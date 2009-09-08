@@ -1,192 +1,62 @@
 From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: [PATCH 1/2] RDMA/cxgb3: Don't ignore insert_handle() failures.
-Date: Tue, 08 Sep 2009 16:30:01 -0500
-Message-ID: <20090908213001.15369.15629.stgit@build.ogc.int>
+Subject: [PATCH 2/2] RDMA/cxgb3: clean up properly on FW mismatch failures.
+Date: Tue, 08 Sep 2009 16:30:06 -0500
+Message-ID: <20090908213006.15369.19707.stgit@build.ogc.int>
+References: <20090908213001.15369.15629.stgit@build.ogc.int>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20090908213001.15369.15629.stgit-T4OLL4TyM9aNDNWfRnPdfg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, general-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+FW mismatches can cause a crash in the iw_cxgb3 event handler.
+
+- NULL the t3cdev->ulp pointer on failures in cxio_rdev_open()
+
+- Silently ignore events with the ulp ptr is null in iwch_err_handler()
+
 Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 ---
 
- drivers/infiniband/hw/cxgb3/iwch_mem.c      |   21 ++++++++---
- drivers/infiniband/hw/cxgb3/iwch_provider.c |   50 +++++++++++++++++++--------
- 2 files changed, 49 insertions(+), 22 deletions(-)
+ drivers/infiniband/hw/cxgb3/cxio_hal.c |    1 +
+ drivers/infiniband/hw/cxgb3/iwch.c     |    5 ++++-
+ 2 files changed, 5 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/infiniband/hw/cxgb3/iwch_mem.c b/drivers/infiniband/hw/cxgb3/iwch_mem.c
-index ec49a5c..e1ec65e 100644
---- a/drivers/infiniband/hw/cxgb3/iwch_mem.c
-+++ b/drivers/infiniband/hw/cxgb3/iwch_mem.c
-@@ -39,7 +39,7 @@
- #include "iwch.h"
- #include "iwch_provider.h"
- 
--static void iwch_finish_mem_reg(struct iwch_mr *mhp, u32 stag)
-+static int iwch_finish_mem_reg(struct iwch_mr *mhp, u32 stag)
+diff --git a/drivers/infiniband/hw/cxgb3/cxio_hal.c b/drivers/infiniband/hw/cxgb3/cxio_hal.c
+index 4dec515..68955f8 100644
+--- a/drivers/infiniband/hw/cxgb3/cxio_hal.c
++++ b/drivers/infiniband/hw/cxgb3/cxio_hal.c
+@@ -1034,6 +1034,7 @@ err3:
+ err2:
+ 	cxio_hal_destroy_ctrl_qp(rdev_p);
+ err1:
++	rdev_p->t3cdev_p->ulp = (void *) NULL;
+ 	list_del(&rdev_p->entry);
+ 	return err;
+ }
+diff --git a/drivers/infiniband/hw/cxgb3/iwch.c b/drivers/infiniband/hw/cxgb3/iwch.c
+index 5796170..3f0c99d 100644
+--- a/drivers/infiniband/hw/cxgb3/iwch.c
++++ b/drivers/infiniband/hw/cxgb3/iwch.c
+@@ -165,10 +165,13 @@ static void close_rnic_dev(struct t3cdev *tdev)
+ static void iwch_event_handler(struct t3cdev *tdev, u32 evt, u32 port_id)
  {
- 	u32 mmid;
+ 	struct cxio_rdev *rdev = tdev->ulp;
+-	struct iwch_dev *rnicp = rdev_to_iwch_dev(rdev);
++	struct iwch_dev *rnicp;
+ 	struct ib_event event;
+ 	u32    portnum = port_id + 1;
  
-@@ -47,14 +47,15 @@ static void iwch_finish_mem_reg(struct iwch_mr *mhp, u32 stag)
- 	mhp->attr.stag = stag;
- 	mmid = stag >> 8;
- 	mhp->ibmr.rkey = mhp->ibmr.lkey = stag;
--	insert_handle(mhp->rhp, &mhp->rhp->mmidr, mhp, mmid);
- 	PDBG("%s mmid 0x%x mhp %p\n", __func__, mmid, mhp);
-+	return insert_handle(mhp->rhp, &mhp->rhp->mmidr, mhp, mmid);
- }
- 
- int iwch_register_mem(struct iwch_dev *rhp, struct iwch_pd *php,
- 		      struct iwch_mr *mhp, int shift)
- {
- 	u32 stag;
-+	int ret;
- 
- 	if (cxio_register_phys_mem(&rhp->rdev,
- 				   &stag, mhp->attr.pdid,
-@@ -66,9 +67,11 @@ int iwch_register_mem(struct iwch_dev *rhp, struct iwch_pd *php,
- 				   mhp->attr.pbl_size, mhp->attr.pbl_addr))
- 		return -ENOMEM;
- 
--	iwch_finish_mem_reg(mhp, stag);
--
--	return 0;
-+	ret = iwch_finish_mem_reg(mhp, stag);
-+	if (ret)
-+		cxio_dereg_mem(&rhp->rdev, mhp->attr.stag, mhp->attr.pbl_size,
-+		       mhp->attr.pbl_addr);
-+	return ret;
- }
- 
- int iwch_reregister_mem(struct iwch_dev *rhp, struct iwch_pd *php,
-@@ -77,6 +80,7 @@ int iwch_reregister_mem(struct iwch_dev *rhp, struct iwch_pd *php,
- 					int npages)
- {
- 	u32 stag;
-+	int ret;
- 
- 	/* We could support this... */
- 	if (npages > mhp->attr.pbl_size)
-@@ -93,9 +97,12 @@ int iwch_reregister_mem(struct iwch_dev *rhp, struct iwch_pd *php,
- 				   mhp->attr.pbl_size, mhp->attr.pbl_addr))
- 		return -ENOMEM;
- 
--	iwch_finish_mem_reg(mhp, stag);
-+	ret = iwch_finish_mem_reg(mhp, stag);
-+	if (ret)
-+		cxio_dereg_mem(&rhp->rdev, mhp->attr.stag, mhp->attr.pbl_size,
-+		       mhp->attr.pbl_addr);
- 
--	return 0;
-+	return ret;
- }
- 
- int iwch_alloc_pbl(struct iwch_mr *mhp, int npages)
-diff --git a/drivers/infiniband/hw/cxgb3/iwch_provider.c b/drivers/infiniband/hw/cxgb3/iwch_provider.c
-index 72aa57c..6895523 100644
---- a/drivers/infiniband/hw/cxgb3/iwch_provider.c
-+++ b/drivers/infiniband/hw/cxgb3/iwch_provider.c
-@@ -195,7 +195,11 @@ static struct ib_cq *iwch_create_cq(struct ib_device *ibdev, int entries, int ve
- 	spin_lock_init(&chp->lock);
- 	atomic_set(&chp->refcnt, 1);
- 	init_waitqueue_head(&chp->wait);
--	insert_handle(rhp, &rhp->cqidr, chp, chp->cq.cqid);
-+	if (insert_handle(rhp, &rhp->cqidr, chp, chp->cq.cqid)) {
-+		cxio_destroy_cq(&chp->rhp->rdev, &chp->cq);
-+		kfree(chp);
-+		return ERR_PTR(-ENOMEM);
-+	}
- 
- 	if (ucontext) {
- 		struct iwch_mm_entry *mm;
-@@ -750,7 +754,11 @@ static struct ib_mw *iwch_alloc_mw(struct ib_pd *pd)
- 	mhp->attr.stag = stag;
- 	mmid = (stag) >> 8;
- 	mhp->ibmw.rkey = stag;
--	insert_handle(rhp, &rhp->mmidr, mhp, mmid);
-+	if (insert_handle(rhp, &rhp->mmidr, mhp, mmid)) {
-+		cxio_deallocate_window(&rhp->rdev, mhp->attr.stag);
-+		kfree(mhp);
-+		return ERR_PTR(-ENOMEM);
-+	}
- 	PDBG("%s mmid 0x%x mhp %p stag 0x%x\n", __func__, mmid, mhp, stag);
- 	return &(mhp->ibmw);
- }
-@@ -778,37 +786,43 @@ static struct ib_mr *iwch_alloc_fast_reg_mr(struct ib_pd *pd, int pbl_depth)
- 	struct iwch_mr *mhp;
- 	u32 mmid;
- 	u32 stag = 0;
--	int ret;
-+	int ret = 0;
- 
- 	php = to_iwch_pd(pd);
- 	rhp = php->rhp;
- 	mhp = kzalloc(sizeof(*mhp), GFP_KERNEL);
- 	if (!mhp)
--		return ERR_PTR(-ENOMEM);
-+		goto err;
- 
- 	mhp->rhp = rhp;
- 	ret = iwch_alloc_pbl(mhp, pbl_depth);
--	if (ret) {
--		kfree(mhp);
--		return ERR_PTR(ret);
--	}
-+	if (ret)
-+		goto err1;
- 	mhp->attr.pbl_size = pbl_depth;
- 	ret = cxio_allocate_stag(&rhp->rdev, &stag, php->pdid,
- 				 mhp->attr.pbl_size, mhp->attr.pbl_addr);
--	if (ret) {
--		iwch_free_pbl(mhp);
--		kfree(mhp);
--		return ERR_PTR(ret);
--	}
-+	if (ret)
-+		goto err2;
- 	mhp->attr.pdid = php->pdid;
- 	mhp->attr.type = TPT_NON_SHARED_MR;
- 	mhp->attr.stag = stag;
- 	mhp->attr.state = 1;
- 	mmid = (stag) >> 8;
- 	mhp->ibmr.rkey = mhp->ibmr.lkey = stag;
--	insert_handle(rhp, &rhp->mmidr, mhp, mmid);
-+	if (insert_handle(rhp, &rhp->mmidr, mhp, mmid))
-+		goto err3;
-+
- 	PDBG("%s mmid 0x%x mhp %p stag 0x%x\n", __func__, mmid, mhp, stag);
- 	return &(mhp->ibmr);
-+err3:
-+	cxio_dereg_mem(&rhp->rdev, stag, mhp->attr.pbl_size,
-+		       mhp->attr.pbl_addr);
-+err2:
-+	iwch_free_pbl(mhp);
-+err1:
-+	kfree(mhp);
-+err:
-+	return ERR_PTR(ret);
- }
- 
- static struct ib_fast_reg_page_list *iwch_alloc_fastreg_pbl(
-@@ -961,7 +975,13 @@ static struct ib_qp *iwch_create_qp(struct ib_pd *pd,
- 	spin_lock_init(&qhp->lock);
- 	init_waitqueue_head(&qhp->wait);
- 	atomic_set(&qhp->refcnt, 1);
--	insert_handle(rhp, &rhp->qpidr, qhp, qhp->wq.qpid);
-+
-+	if (insert_handle(rhp, &rhp->qpidr, qhp, qhp->wq.qpid)) {
-+		cxio_destroy_qp(&rhp->rdev, &qhp->wq,
-+			ucontext ? &ucontext->uctx : &rhp->rdev.uctx);
-+		kfree(qhp);
-+		return ERR_PTR(-ENOMEM);
-+	}
- 
- 	if (udata) {
- 
++	if (!rdev)
++		return;
++	rnicp = rdev_to_iwch_dev(rdev);
+ 	switch (evt) {
+ 	case OFFLOAD_STATUS_DOWN: {
+ 		rdev->flags = CXIO_ERROR_FATAL;
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
