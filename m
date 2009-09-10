@@ -1,32 +1,22 @@
-From: Keshetti Mahesh <keshetti.mahesh@gmail.com>
-Subject: [ofa-general] [PATCH] Added 'ibcheckspeed', Fix 'ibcheckportwidth'
-Date: Thu, 10 Sep 2009 15:15:52 +0530
-Message-ID: <829ded920909100245r1dfabe03k57b2088843c0a136@mail.gmail.com>
+From: Keshetti Mahesh <keshetti.mahesh-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH v2] infiniband-diags/scripts: Add 'ibcheckspeed' and
+	'ibcheckportspeed' to scripts
+Date: Thu, 10 Sep 2009 18:32:08 +0530
+Message-ID: <829ded920909100602h78614ac0jd4eb1ee8d7a3779b@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <general-bounces@lists.openfabrics.org>
-List-Unsubscribe: <http://lists.openfabrics.org/cgi-bin/mailman/listinfo/general>,
-	<mailto:general-request@lists.openfabrics.org?subject=unsubscribe>
-List-Archive: <http://lists.openfabrics.org/pipermail/general>
-List-Post: <mailto:general@lists.openfabrics.org>
-List-Help: <mailto:general-request@lists.openfabrics.org?subject=help>
-List-Subscribe: <http://lists.openfabrics.org/cgi-bin/mailman/listinfo/general>,
-	<mailto:general-request@lists.openfabrics.org?subject=subscribe>
-Sender: general-bounces@lists.openfabrics.org
-Errors-To: general-bounces@lists.openfabrics.org
-To: OFED mailing list <linux-rdma@vger.kernel.org>
-Cc: OFED mailing list <general@lists.openfabrics.org>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: OFED mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: OFED mailing list <general-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>, Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-- Added 'ibcheckspeed': Similar to 'ibcheckwidth' in operation and usage.
-                      Reports error/warning messages if the LinkSpeedActive is
-                      2.5 Gbps when the LinkSpeedSupported is more
-than 2.5 Gbps.
-- Fix 'ibcheckportwidth': Exit if the maximum LinkWidthSupported is 1X
-instead of
-processing next line of output.
+Added 'ibcheckspeed' and 'ibcheckportspeed': Similar to
+'ibcheckwidth/ibcheckportwidth' in functionality and implementation.
+Reports error/warning messages if the LinkSpeedActive is configured as
+2.5 Gbps when the LinkSpeedSupported is more than 2.5 Gbps.
 
-Signed-off-by: Keshetti Mahesh <keshetti.mahesh@gmail.com>
+Signed-off-by: Keshetti Mahesh < keshetti.mahesh-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 ---
  infiniband-diags/scripts/ibcheckportspeed.in |  146 ++++++++++++++++++++++++++
  infiniband-diags/scripts/ibcheckportwidth.in |    2 +-
@@ -356,3 +346,194 @@ speed in error found\n", nports, pe
 +exit $rv
 -- 
 1.6.4.2
+
+
+>From 76e5f441bac10dff185244139a46124ff4736d56 Mon Sep 17 00:00:00 2001
+From: Keshetti Mahesh <keshetti.mahesh-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Date: Thu, 10 Sep 2009 18:24:16 +0530
+Subject: [PATCH 2/2] Revert the change made to 'ibcheckportwidth'
+ Add man pages of 'ibcheckportspeed' and 'ibcheckspeed'
+ Integrate 'ibcheckportspeed' and 'ibcheckspeed' into the build system
+Organization: OFED
+
+---
+ infiniband-diags/Makefile.am                 |    3 +-
+ infiniband-diags/configure.in                |    2 +
+ infiniband-diags/man/ibcheckportspeed.8      |   44 ++++++++++++++++++++++++++
+ infiniband-diags/man/ibcheckportwidth.8      |    2 +-
+ infiniband-diags/man/ibcheckspeed.8          |   37 +++++++++++++++++++++
+ infiniband-diags/scripts/ibcheckportwidth.in |    2 +-
+ 6 files changed, 87 insertions(+), 3 deletions(-)
+ create mode 100644 infiniband-diags/man/ibcheckportspeed.8
+ create mode 100644 infiniband-diags/man/ibcheckspeed.8
+
+diff --git a/infiniband-diags/Makefile.am b/infiniband-diags/Makefile.am
+index 1cdb60e..8c5b773 100644
+--- a/infiniband-diags/Makefile.am
++++ b/infiniband-diags/Makefile.am
+@@ -23,6 +23,7 @@ sbin_SCRIPTS = scripts/ibcheckerrs
+scripts/ibchecknet scripts/ibchecknode \
+                scripts/ibcheckport scripts/ibhosts scripts/ibstatus \
+               scripts/ibswitches scripts/ibnodes scripts/ibrouters \
+               scripts/ibcheckwidth scripts/ibcheckportwidth \
++              scripts/ibcheckspeed scripts/ibcheckportspeed \
+               scripts/ibcheckstate scripts/ibcheckportstate \
+               scripts/ibcheckerrors scripts/ibclearerrors \
+               scripts/ibclearcounters scripts/ibdatacounts \
+@@ -76,7 +77,7 @@ man_MANS = man/ibaddr.8 man/ibcheckerrors.8
+man/ibcheckerrs.8 \
+        man/ibprintswitch.8 man/ibprintca.8 man/ibfindnodesusing.8 \
+        man/ibdatacounts.8 man/ibdatacounters.8 \
+        man/ibrouters.8 man/ibprintrt.8 man/ibidsverify.8 \
+-       man/check_lft_balance.8
++       man/check_lft_balance.8 man/ibcheckportspeed.8 man/ibcheckspeed.8
+
+ BUILT_SOURCES = ibdiag_version
+ ibdiag_version:
+diff --git a/infiniband-diags/configure.in b/infiniband-diags/configure.in
+index 3ef35cc..c647f40 100644
+--- a/infiniband-diags/configure.in
++++ b/infiniband-diags/configure.in
+@@ -156,8 +156,10 @@ AC_CONFIG_FILES([\
+        scripts/ibcheckport \
+        scripts/ibcheckportstate \
+        scripts/ibcheckportwidth \
++       scripts/ibcheckportspeed \
+        scripts/ibcheckstate \
+        scripts/ibcheckwidth \
++       scripts/ibcheckspeed \
+        scripts/ibclearcounters \
+        scripts/ibclearerrors \
+        scripts/ibdatacounts \
+diff --git a/infiniband-diags/man/ibcheckportspeed.8
+b/infiniband-diags/man/ibcheckportspeed.8
+new file mode 100644
+index 0000000..36beaac
+--- /dev/null
++++ b/infiniband-diags/man/ibcheckportspeed.8
+@@ -0,0 +1,44 @@
++.TH IBCHECKPORTSPEED 8 "Sep 10, 2009" "OpenIB" "OpenIB Diagnostics"
++
++.SH NAME
++ibcheckportspeed \- validate IB port for link speed
++
++.SH SYNOPSIS
++.B ibcheckportspeed
++[\-h] [\-v] [\-N | \-nocolor] [\-G] [\-C ca_name] [\-P ca_port]
++[\-t(imeout) timeout_ms]  <lid|guid> <port>
++
++.SH DESCRIPTION
++.PP
++Check connectivity and check the specified port for link speed.
+Report warning if the LinkSpeedSupported is greater than 2.5 Gbps and
+LinkSpeedActive is configured as 2.5 Gbps.
++
++Port address is a lid unless -G option is used to specify a GUID address.
++
++.SH OPTIONS
++.PP
++\-G      use GUID address argument. In most cases, it is the Port GUID.
++        Example:
++        "0x08f1040023"
++.PP
++\-v      increase the verbosity level
++.PP
++\-N | \-nocolor use mono rather than color mode
++.PP
++\-C <ca_name>    use the specified ca_name.
++.PP
++\-P <ca_port>    use the specified ca_port.
++.PP
++\-t <timeout_ms> override the default timeout for the solicited mads.
++
++.SH EXAMPLE
++.PP
++ibcheckportspeed 2 3         # check lid 2 port 3
++
++.SH SEE ALSO
++.BR smpquery(8),
++.BR ibaddr(8)
++
++.SH AUTHOR
++.TP
++Keshetti Mahesh
++.RI < keshetti.mahesh-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org >
+diff --git a/infiniband-diags/man/ibcheckportwidth.8
+b/infiniband-diags/man/ibcheckportwidth.8
+index 85c06fc..c368467 100644
+--- a/infiniband-diags/man/ibcheckportwidth.8
++++ b/infiniband-diags/man/ibcheckportwidth.8
+@@ -4,7 +4,7 @@
+ ibcheckportwidth \- validate IB port for 1x link width
+
+ .SH SYNOPSIS
+-.B ibcheckport
++.B ibcheckportwidth
+ [\-h] [\-v] [\-N | \-nocolor] [\-G] [\-C ca_name] [\-P ca_port]
+ [\-t(imeout) timeout_ms]  <lid|guid> <port>
+
+diff --git a/infiniband-diags/man/ibcheckspeed.8
+b/infiniband-diags/man/ibcheckspeed.8
+new file mode 100644
+index 0000000..29aee37
+--- /dev/null
++++ b/infiniband-diags/man/ibcheckspeed.8
+@@ -0,0 +1,37 @@
++.TH IBCHECKSPEED 8 "Sep 10, 2009" "OpenIB" "OpenIB Diagnostics"
++
++.SH NAME
++ibcheckspeed \- find link speed configuration errors in IB subnet
++
++.SH SYNOPSIS
++.B ibcheckspeed
++[\-h] [\-v] [\-N | \-nocolor] [<topology-file> | \-C ca_name
++\-P ca_port \-t(imeout) timeout_ms]
++
++
++.SH DESCRIPTION
++.PP
++ibcheckspeed is a script which uses a full topology file that was created by
++ibnetdiscover, scans the network to validate the active link speeds and reports
++any links which are configured with less active link speed then the supported
++link speed.
++
++.SH OPTIONS
++.PP
++\-N | \-nocolor  use mono rather than color mode
++.PP
++\-C <ca_name>    use the specified ca_name.
++.PP
++\-P <ca_port>    use the specified ca_port.
++.PP
++\-t <timeout_ms> override the default timeout for the solicited mads.
++
++.SH SEE ALSO
++.BR ibnetdiscover(8),
++.BR ibchecknode(8),
++.BR ibcheckportspeed(8)
++
++.SH AUTHOR
++.TP
++Keshetti Mahesh
++.RI < keshetti.mahesh-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org >
+diff --git a/infiniband-diags/scripts/ibcheckportwidth.in
+b/infiniband-diags/scripts/ibcheckportwidth.in
+index 60a0892..32c5c5e 100644
+--- a/infiniband-diags/scripts/ibcheckportwidth.in
++++ b/infiniband-diags/scripts/ibcheckportwidth.in
+@@ -103,7 +103,7 @@ function blue(s)
+ }
+
+ # Only check LinkWidthActive if LinkWidthSupported is not 1X
+-/^LinkWidthSupported/{ if ($2 == "1X") { exit } }
++/^LinkWidthSupported/{ if ($2 != "1X") { next } }
+ /^LinkWidthActive/{ if ($2 == "1X") warn = warn "#warn: Link
+configured as 1X  lid '$lid' port '$portnum'\n"}
+
+ /^ib/  {print $0; next}
+-- 
+1.6.4.2
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
