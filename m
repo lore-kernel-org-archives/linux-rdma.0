@@ -1,64 +1,46 @@
-From: KOSAKI Motohiro <kosaki.motohiro-+CUm20s59erQFUHtdCDX3A@public.gmane.org>
-Subject: Re: [GIT PULL] please pull ummunotify
-Date: Fri, 11 Sep 2009 14:56:13 +0900 (JST)
-Message-ID: <20090911145036.DB65.A69D9226@jp.fujitsu.com>
+From: Roland Dreier <rdreier@cisco.com>
+Subject: [ofa-general] Re: [GIT PULL] please pull ummunotify
+Date: Thu, 10 Sep 2009 23:03:25 -0700
+Message-ID: <adatyzahvbm.fsf@cisco.com>
 References: <aday6omhz9d.fsf@cisco.com>
+	<20090911145036.DB65.A69D9226@jp.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <aday6omhz9d.fsf-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Cc: kosaki.motohiro-+CUm20s59erQFUHtdCDX3A@public.gmane.org, torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, general-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <general-bounces@lists.openfabrics.org>
+In-Reply-To: <20090911145036.DB65.A69D9226@jp.fujitsu.com> (KOSAKI Motohiro's
+	message of "Fri, 11 Sep 2009 14:56:13 +0900 (JST)")
+List-Unsubscribe: <http://lists.openfabrics.org/cgi-bin/mailman/listinfo/general>,
+	<mailto:general-request@lists.openfabrics.org?subject=unsubscribe>
+List-Archive: <http://lists.openfabrics.org/pipermail/general>
+List-Post: <mailto:general@lists.openfabrics.org>
+List-Help: <mailto:general-request@lists.openfabrics.org?subject=help>
+List-Subscribe: <http://lists.openfabrics.org/cgi-bin/mailman/listinfo/general>,
+	<mailto:general-request@lists.openfabrics.org?subject=subscribe>
+Sender: general-bounces@lists.openfabrics.org
+Errors-To: general-bounces@lists.openfabrics.org
+To: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>
+Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, general@lists.openfabrics.org, akpm@linux-foundation.org, torvalds@linux-foundation.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Roland,
 
-> Linus, please consider pulling from
->=20
->     master.kernel.org:/pub/scm/linux/kernel/git/roland/infiniband.git=
- ummunotify
->=20
-> This tree is also available from kernel.org mirrors at:
->=20
->     git://git.kernel.org/pub/scm/linux/kernel/git/roland/infiniband.g=
-it ummunotify
->=20
-> This will get "ummunotify," a new character device that allows a
-> userspace library to register for MMU notifications; this is
-> particularly useful for MPI implementions (message passing libraries
-> used in HPC) to be able to keep track of what wacky things consumers
-> do to their memory mappings.  My colleague Jeff Squyres from the Open
-> MPI project posted a blog entry about why MPI wants this:
->=20
-> http://blogs.cisco.com/ciscotalk/performance/comments/better_linux_me=
-mory_tracking/
->=20
-> His summary of ummunotify:
->=20
->   "It=E2=80=99s elegant, doesn=E2=80=99t require strange linker trick=
-s, and seems to
->    work in all cases.  Yay!"
->=20
-> This code went through several review iterations on lkml and was in
-> -mm and -next for quite a few weeks.  Andrew is OK with merging it (I
-> think -- Andrew please correct me if I misunderstood you).
+ > Can I this version already solved fork() + COW issue? if so, could you
+ > please explain what happen at fork. Obviously RDMA point to either parent
+ > or child page, not both. but Corrent COW rule is, first touch process
+ > get copyed page and other process still own original page. I think it's 
+ > unpecected behavior form RDMA.
 
-I'm sorry. I haven't review this code and I didn't track this discussio=
-n
-carefully. but I have one stupid question. May I ask?=20
-Can I this version already solved fork() + COW issue? if so, could you
-please explain what happen at fork. Obviously RDMA point to either pare=
-nt
-or child page, not both. but Corrent COW rule is, first touch process
-get copyed page and other process still own original page. I think it's=
-=20
-unpecected behavior form RDMA.
+No, ummunotify doesn't really help that much with fork() + COW.  If a
+parent forks and then touches pages that are actively in use for RDMA,
+then of course they get COWed and RDMA goes to the wrong memory (from
+the point of view of the parent).
 
+ummunotify does deal with the case where a process forks and touches
+memory that was used for RDMA but no longer is -- in that case, the MPI
+library has a chance to flush its registration cache because it will get
+a ummunotify event invalidating the old mapping.
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+The real purpose of ummunotify is to allow MPI implementations to cache
+registrations, even when the MPI library is used with an application
+that does funny things for allocation (mmap()/munmap() or brk(), etc).
+
+ - Roland
