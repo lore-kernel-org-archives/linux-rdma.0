@@ -1,131 +1,171 @@
-From: Keshetti Mahesh <keshetti.mahesh@gmail.com>
-Subject: Re: [ofa-general] Re: [PATCH v2] infiniband-diags/scripts: Add
-	'ibcheckspeed' and 'ibcheckportspeed' to scripts
-Date: Fri, 11 Sep 2009 09:32:39 +0530
-Message-ID: <829ded920909102102o49f037cbhc53a849f1fcfdaa4@mail.gmail.com>
-References: <829ded920909100602h78614ac0jd4eb1ee8d7a3779b@mail.gmail.com>
-	<f0e08f230909100623k75d69e52m965628c3305f2125@mail.gmail.com>
-	<20090910090213.6888b7d5.weiny2@llnl.gov>
+From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Subject: [GIT PULL] please pull infiniband.git
+Date: Thu, 10 Sep 2009 21:23:26 -0700
+Message-ID: <ada3a6ujeip.fsf@cisco.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-Return-path: <general-bounces@lists.openfabrics.org>
-In-Reply-To: <20090910090213.6888b7d5.weiny2@llnl.gov>
-List-Unsubscribe: <http://lists.openfabrics.org/cgi-bin/mailman/listinfo/general>,
-	<mailto:general-request@lists.openfabrics.org?subject=unsubscribe>
-List-Archive: <http://lists.openfabrics.org/pipermail/general>
-List-Post: <mailto:general@lists.openfabrics.org>
-List-Help: <mailto:general-request@lists.openfabrics.org?subject=help>
-List-Subscribe: <http://lists.openfabrics.org/cgi-bin/mailman/listinfo/general>,
-	<mailto:general-request@lists.openfabrics.org?subject=subscribe>
-Sender: general-bounces@lists.openfabrics.org
-Errors-To: general-bounces@lists.openfabrics.org
-To: Ira Weiny <weiny2@llnl.gov>
-Cc: OFED mailing list <linux-rdma@vger.kernel.org>, OFED mailing list <general@lists.openfabrics.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, general-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-My badness. I have not used 'iblinkinfo' before.
-So, I guess there is no need for the above script. Apart from that, I feel
-there should be a program/script which will first scan the fabric to find t=
-he
-maximum common supported width/speed and then report the warning messages
-of the links/ports which are configured with active width/speed less
-than the found
-value. Is there any tool already exists which does the same ?
+Linus, please pull from
 
--
-Keshetti Mahesh
+    master.kernel.org:/pub/scm/linux/kernel/git/roland/infiniband.git for-linus
 
-On Thu, Sep 10, 2009 at 9:32 PM, Ira Weiny <weiny2@llnl.gov> wrote:
-> Also, iblinkinfo will report links which it finds capable of either faste=
-r or wider operation. =A0iblinkinfo checks both ends of the link as Hal men=
-tions. =A0It reports this with output like.
->
-> Switch 0x0005ad0000092106 Cisco Switch SFS7000D:
-> ...
-> =A0 =A0 =A0 =A0 =A0 7 =A0 =A08[ =A0] =3D=3D( 4X 2.5 Gbps Active/ =A0LinkU=
-p)=3D=3D> =A0 =A0 =A0 8 =A0 12[ =A0] "MT47396 Infiniscale-III Mellanox Tech=
-nologies" ( Could be 5.0 Gbps)
-> ...
->
-> Also the portstatus console command in OpenSM will report links which are=
- running at "reduced speed or width". =A0Although this does not check the r=
-emote port.
->
-> OpenSM $ help portstatus
-> portstatus [ca|switch|router]
-> summarize port status
-> =A0 [ca|switch|router] -- limit the results to the node type specified
-> OpenSM $ portstatus
-> "ALL" port status:
-> =A0 115 port(s) scanned on 9 nodes in 26 us
-> =A0 85 down
-> =A0 30 active
-> =A0 32 at 4X
-> =A0 22 at 2.5 Gbps
-> =A0 8 at 5.0 Gbps
-> =A0 2 at 10.0 Gbps
->
-> Possible issues:
-> =A0 2 disabled
-> =A0 =A0 =A00x0008f10400411b18 5 (ISR9024D Voltaire)
-> =A0 =A0 =A00x0005ad0000092106 13 (Cisco Switch SFS7000D)
-> =A0 6 with reduced speed
-> =A0 =A0 =A00x0008f10500200220 33 (Voltaire 4036 - 36 QDR ports switch)
-> =A0 =A0 =A00x0008f10500200220 19 (Voltaire 4036 - 36 QDR ports switch)
-> =A0 =A0 =A00x0005ad0000092106 21 (Cisco Switch SFS7000D)
-> =A0 =A0 =A00x0005ad0000092106 20 (Cisco Switch SFS7000D)
-> =A0 =A0 =A00x0005ad0000092106 9 (Cisco Switch SFS7000D)
-> =A0 =A0 =A00x0005ad0000092106 8 (Cisco Switch SFS7000D)
->
->
-> Ira
->
-> On Thu, 10 Sep 2009 09:23:35 -0400
-> Hal Rosenstock <hal.rosenstock@gmail.com> wrote:
->
->> On Thu, Sep 10, 2009 at 9:02 AM, Keshetti Mahesh
->> <keshetti.mahesh@gmail.com>wrote:
->>
->> > Added 'ibcheckspeed' and 'ibcheckportspeed': Similar to
->> > 'ibcheckwidth/ibcheckportwidth' in functionality and implementation.
->> > Reports error/warning messages if the LinkSpeedActive is configured as
->> > 2.5 Gbps when the LinkSpeedSupported is more than 2.5 Gbps.
->> >
->>
->> ibportstate checks for more than this in terms of speed (and width)
->> anomalies.
->>
->> Would it be better for these scripts to use that tool now ? Alternativel=
-y,
->> the additional speed/width anomaly checks could be implemented in these
->> scripts but it does involve checking the peer port so there's a little m=
-ore
->> to it.
->>
->> -- Hal
->>
->>
->> >
->> > Signed-off-by: Keshetti Mahesh < keshetti.mahesh@gmail.com>
->> > ---
->> > =A0infiniband-diags/scripts/ibcheckportspeed.in | =A0146
->> > ++++++++++++++++++++++++++
->> > =A0infiniband-diags/scripts/ibcheckportwidth.in | =A0 =A02 +-
->> > =A0infiniband-diags/scripts/ibcheckspeed.in =A0 =A0 | =A0135
->> > ++++++++++++++++++++++++
->> > =A03 files changed, 282 insertions(+), 1 deletions(-)
->> > =A0create mode 100644 infiniband-diags/scripts/ibcheckportspeed.in
->> > =A0create mode 100644 infiniband-diags/scripts/ibcheckspeed.in
->> >
->> <snip...>
->>
->
->
-> --
-> Ira Weiny
-> Math Programmer/Computer Scientist
-> Lawrence Livermore National Lab
-> 925-423-8008
-> weiny2@llnl.gov
->
+This tree is also available from kernel.org mirrors at:
+
+    git://git.kernel.org/pub/scm/linux/kernel/git/roland/infiniband.git for-linus
+
+This will get the batch of RDMA/InfiniBand changes for the 2.6.32
+merge window:
+
+Alexander Schmidt (1):
+      IB/ehca: Make port autodetect mode the default
+
+Arputham Benjamin (2):
+      mlx4_core: Distinguish multiple devices in /proc/interrupts
+      IB/mthca: Distinguish multiple devices in /proc/interrupts
+
+Chien Tung (1):
+      RDMA/nes: Map MTU to IB_MTU_* and correctly report link state
+
+Don Wood (10):
+      RDMA/nes: Update refcnt during disconnect
+      RDMA/nes: Allocate work item for disconnect event handling
+      RDMA/nes: Change memory allocation for cqp request to GFP_ATOMIC
+      RDMA/nes: Clean out CQ completions when QP is destroyed
+      RDMA/nes: Add CQ error handling
+      RDMA/nes: Implement Terminate Packet
+      RDMA/nes: Use flush mechanism to set status for wqe in error
+      RDMA/nes: Make poll_cq return correct number of wqes during flush
+      RDMA/nes: Use the flush code to fill in cqe error
+      RDMA/nes: Rework the disconn routine for terminate and flushing
+
+Hal Rosenstock (1):
+      IB/mad: Allow tuning of QP0 and QP1 sizes
+
+Jack Morgenstein (3):
+      IB/uverbs: Return ENOSYS for unimplemented commands (not EINVAL)
+      IB/mlx4: Don't allow userspace open while recovering from catastrophic error
+      IB/mthca: Don't allow userspace open while recovering from catastrophic error
+
+Jason Gunthorpe (1):
+      IPoIB: Check multicast address format
+
+Joachim Fenkes (2):
+      IB/ehca: Construct MAD redirect replies from request MAD
+      IB/ehca: Fix CQE flags reporting
+
+Marcin Slusarz (1):
+      IB: Use printk_once() for driver versions
+
+Roel Kluin (2):
+      IB/ipath: strncpy() doesn't always NUL-terminate
+      RDMA/amso1100: Check kmalloc() result in c2_register_device()
+
+Roland Dreier (15):
+      IPoIB: Remove unused <rdma/ib_cache.h> includes
+      IPoIB: Drop priv->lock before calling ipoib_send()
+      IB/mad: Check hop count field in directed route MAD to avoid array overflow
+      IB: Use DEFINE_SPINLOCK() for static spinlocks
+      mlx4_core: Use pci_request_regions()
+      mlx4_core: Remove unnecessary includes of <linux/init.h>
+      IB/mlx4: Annotate CQ locking
+      mlx4_core: Allocate and map sufficient ICM memory for EQ context
+      IB/mthca: Remove unnecessary include of <asm/page.h>
+      IB/mthca: Remove unnecessary include of <linux/init.h>
+      IB/mthca: Annotate CQ locking
+      IB/mad: Fix possible lock-lock-timer deadlock
+      MAINTAINERS: InfiniBand/RDMA mailing list transition to vger
+      Merge branches 'cxgb3', 'ehca', 'ipath', 'ipoib', 'misc', 'mlx4', 'mthca' and 'nes' into for-linus
+      Merge branch 'mad' into for-linus
+
+Steve Wise (8):
+      RDMA/cxgb3: iwch_unregister_device leaks memory
+      RDMA/cxgb3: Set the appropriate IO channel in rdma_init work requests
+      RDMA/cxgb3: Handle port events properly
+      RDMA/cxgb3: Don't free endpoints early
+      RDMA/cxgb3: Wake up any waiters on peer close/abort
+      RDMA/cxgb3: Don't ignore insert_handle() failures
+      RDMA/cxgb3: Clean up properly on FW mismatch failures
+      RDMA/iwcm: Reject the connection when the cm_id is destroyed
+
+Tobias Klauser (1):
+      RDMA/amso1100: Use %pM conversion specifier
+
+Yevgeny Petrilin (1):
+      mlx4_core: Avoid double free_icms
+
+Yossi Etigin (1):
+      IB/core: Fix send multicast group leave retry
+
+ MAINTAINERS                                    |   12 +-
+ drivers/infiniband/core/iwcm.c                 |    1 +
+ drivers/infiniband/core/mad.c                  |   35 +-
+ drivers/infiniband/core/mad_priv.h             |    3 +
+ drivers/infiniband/core/multicast.c            |   10 +-
+ drivers/infiniband/core/sa_query.c             |    7 +-
+ drivers/infiniband/core/smi.c                  |    8 +
+ drivers/infiniband/core/uverbs_main.c          |   10 +-
+ drivers/infiniband/hw/amso1100/c2.c            |    6 +-
+ drivers/infiniband/hw/amso1100/c2_provider.c   |   24 +-
+ drivers/infiniband/hw/cxgb3/cxio_hal.c         |    5 +-
+ drivers/infiniband/hw/cxgb3/cxio_wr.h          |    6 +
+ drivers/infiniband/hw/cxgb3/iwch.c             |   37 +-
+ drivers/infiniband/hw/cxgb3/iwch_cm.c          |   68 ++-
+ drivers/infiniband/hw/cxgb3/iwch_cm.h          |    9 +-
+ drivers/infiniband/hw/cxgb3/iwch_mem.c         |   21 +-
+ drivers/infiniband/hw/cxgb3/iwch_provider.c    |   52 ++-
+ drivers/infiniband/hw/cxgb3/iwch_qp.c          |    1 +
+ drivers/infiniband/hw/ehca/ehca_main.c         |    8 +-
+ drivers/infiniband/hw/ehca/ehca_reqs.c         |    6 +-
+ drivers/infiniband/hw/ehca/ehca_sqp.c          |   47 ++-
+ drivers/infiniband/hw/ipath/ipath_file_ops.c   |    2 +-
+ drivers/infiniband/hw/ipath/ipath_mad.c        |    2 +-
+ drivers/infiniband/hw/mlx4/main.c              |   12 +-
+ drivers/infiniband/hw/mlx4/mlx4_ib.h           |    1 +
+ drivers/infiniband/hw/mlx4/qp.c                |   12 +-
+ drivers/infiniband/hw/mthca/mthca_catas.c      |    1 +
+ drivers/infiniband/hw/mthca/mthca_config_reg.h |    2 -
+ drivers/infiniband/hw/mthca/mthca_dev.h        |    1 +
+ drivers/infiniband/hw/mthca/mthca_eq.c         |   17 +-
+ drivers/infiniband/hw/mthca/mthca_main.c       |    8 +-
+ drivers/infiniband/hw/mthca/mthca_provider.c   |    3 +
+ drivers/infiniband/hw/mthca/mthca_provider.h   |    1 +
+ drivers/infiniband/hw/mthca/mthca_qp.c         |   12 +-
+ drivers/infiniband/hw/mthca/mthca_reset.c      |    1 -
+ drivers/infiniband/hw/nes/nes.h                |    2 +-
+ drivers/infiniband/hw/nes/nes_cm.c             |  128 ++--
+ drivers/infiniband/hw/nes/nes_cm.h             |    2 -
+ drivers/infiniband/hw/nes/nes_hw.c             |  767 +++++++++++++++++-------
+ drivers/infiniband/hw/nes/nes_hw.h             |  103 ++++
+ drivers/infiniband/hw/nes/nes_utils.c          |    5 +-
+ drivers/infiniband/hw/nes/nes_verbs.c          |  204 +++++--
+ drivers/infiniband/hw/nes/nes_verbs.h          |   16 +-
+ drivers/infiniband/ulp/ipoib/ipoib_cm.c        |    1 -
+ drivers/infiniband/ulp/ipoib/ipoib_ib.c        |    1 -
+ drivers/infiniband/ulp/ipoib/ipoib_main.c      |    7 +-
+ drivers/infiniband/ulp/ipoib/ipoib_multicast.c |   21 +
+ drivers/net/cxgb3/cxgb3_main.c                 |    6 +-
+ drivers/net/cxgb3/cxgb3_offload.c              |    6 +-
+ drivers/net/cxgb3/cxgb3_offload.h              |    8 +-
+ drivers/net/mlx4/cq.c                          |    1 -
+ drivers/net/mlx4/eq.c                          |   77 +--
+ drivers/net/mlx4/icm.c                         |    1 -
+ drivers/net/mlx4/main.c                        |   37 +-
+ drivers/net/mlx4/mcg.c                         |    1 -
+ drivers/net/mlx4/mlx4.h                        |    7 +-
+ drivers/net/mlx4/mr.c                          |    1 -
+ drivers/net/mlx4/pd.c                          |    1 -
+ drivers/net/mlx4/profile.c                     |    2 -
+ drivers/net/mlx4/qp.c                          |    2 -
+ drivers/net/mlx4/reset.c                       |    1 -
+ drivers/net/mlx4/srq.c                         |    2 -
+ drivers/scsi/cxgb3i/cxgb3i_init.c              |   12 +-
+ 63 files changed, 1278 insertions(+), 595 deletions(-)
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
