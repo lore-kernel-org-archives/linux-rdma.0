@@ -1,74 +1,35 @@
-From: Barry Mavin <Barry.Mavin-sPOXD9PnZXtBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [ofa-general] Re: [PATCH v2] infiniband-diags/scripts: Add
- 'ibcheckspeed' and 'ibcheckportspeed' to scripts
-Date: Fri, 11 Sep 2009 11:43:40 +0530
-Message-ID: <C6CFE86C.15626%Barry.Mavin@recital.com>
-References: <829ded920909102246o18b25caagf84bfe352f699a82@mail.gmail.com>
+From: Brice Goglin <Brice.Goglin@inria.fr>
+Subject: Re: [GIT PULL] please pull ummunotify
+Date: Fri, 11 Sep 2009 08:15:19 +0200
+Message-ID: <4AA9EAF7.5010401@inria.fr>
+References: <aday6omhz9d.fsf@cisco.com>	<20090911145036.DB65.A69D9226@jp.fujitsu.com> <adatyzahvbm.fsf@cisco.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="US-ASCII"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <829ded920909102246o18b25caagf84bfe352f699a82-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Keshetti Mahesh <keshetti.mahesh-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: OFED mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, OFED mailing list <general-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1753664AbZIKGPm@vger.kernel.org>
+In-Reply-To: <adatyzahvbm.fsf@cisco.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Roland Dreier <rdreier@cisco.com>
+Cc: KOSAKI Motohiro <kosaki.motohiro@jp.fujitsu.com>, torvalds@linux-foundation.org, akpm@linux-foundation.org, jsquyres@cisco.com, linux-rdma@vger.kernel.org, general@lists.openfabrics.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-When I start the subnet manager on redhat 5.3 with:
+Roland Dreier wrote:
+>  > Can I this version already solved fork() + COW issue? if so, could you
+>  > please explain what happen at fork. Obviously RDMA point to either parent
+>  > or child page, not both. but Corrent COW rule is, first touch process
+>  > get copyed page and other process still own original page. I think it's 
+>  > unpecected behavior form RDMA.
+>
+> No, ummunotify doesn't really help that much with fork() + COW.  If a
+> parent forks and then touches pages that are actively in use for RDMA,
+> then of course they get COWed and RDMA goes to the wrong memory (from
+> the point of view of the parent).
+>   
 
-# service opensm restart
+My understanding of the code is that fork will end-up calling
+copy_page_range() on all VMA, and copy_page_range() calls
+mmu_notifier_invalidate_range_start() if  is_cow_mapping() is true,
+which should be the case here. So you should get some invalidate events
+on fork.
 
-I get the following messages in the log file.
-
-Sep 11 11:41:46 252576 [4EF83940] 0x01 -> __osm_mcmr_rcv_join_mgrp: ERR
-1B12: __validate_more_comp_fields, __validate_port_caps, or JoinState = 0
-failed from port 0x0002c90300047b91 (ibas1 HCA-1), sending
-IB_SA_MAD_STATUS_REQ_INVALID
-Sep 11 11:41:46 252688 [4EF83940] 0x01 -> __osm_mcmr_rcv_join_mgrp: ERR
-1B12: __validate_more_comp_fields, __validate_port_caps, or JoinState = 0
-failed from port 0x0002c90300044c61 (ibds2 HCA-1), sending
-IB_SA_MAD_STATUS_REQ_INVALID
-Sep 11 11:41:46 252731 [4EF83940] 0x01 -> __osm_mcmr_rcv_join_mgrp: ERR
-1B12: __validate_more_comp_fields, __validate_port_caps, or JoinState = 0
-failed from port 0x0002c90300047b7d (ibds1 HCA-1), sending
-IB_SA_MAD_STATUS_REQ_INVALID
-Sep 11 11:41:46 252929 [43170940] 0x01 -> __osm_mcmr_rcv_join_mgrp: ERR
-1B12: __validate_more_comp_fields, __validate_port_caps, or JoinState = 0
-failed from port 0x0002c90300047b75 (ibas2 HCA-1), sending
-IB_SA_MAD_STATUS_REQ_INVALID
-
-What is the cause of these?
-
----
-Regards
-Barry Mavin
-Recital Corporation
-Chairman and CEO
-Website: http://www.recital.com
-MSN Messenger: Barry_Mavin-uAjRD0nVeow@public.gmane.org
-Skype: BarryMavin
-Direct line worldwide: +1 9785224139
-
-
-
-> From: Keshetti Mahesh <keshetti.mahesh-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-> Date: Fri, 11 Sep 2009 11:16:44 +0530
-> To: Barry Mavin <Barry.Mavin-sPOXD9PnZXtBDgjK7y7TUQ@public.gmane.org>
-> Cc: OFED mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, OFED mailing list
-> <general-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
-> Subject: Re: [ofa-general] Re: [PATCH v2] infiniband-diags/scripts: Add
-> 'ibcheckspeed' and 'ibcheckportspeed' to scripts
-> 
->> # ibtracert 10.10.10.1 10.10.10.3
-> 
-> ibtracert only supports source/destination addresses to be specified
-> in LID/GUID format. See man page of ibtracert.
-> 
-> -
-> Keshetti Mahesh
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Brice
