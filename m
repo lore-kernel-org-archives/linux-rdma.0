@@ -1,28 +1,34 @@
-From: "Eli Dorfman (Voltaire)" <dorfman.eli-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [ofa-general] Re: [PATCH v2] infiniband-diags/scripts: Add 'ibcheckspeed'
- and 'ibcheckportspeed' to scripts
-Date: Tue, 15 Sep 2009 16:04:24 +0300
-Message-ID: <4AAF90D8.6070403@gmail.com>
-References: <829ded920909100602h78614ac0jd4eb1ee8d7a3779b@mail.gmail.com> 	<f0e08f230909100623k75d69e52m965628c3305f2125@mail.gmail.com> 	<20090910090213.6888b7d5.weiny2@llnl.gov> <829ded920909102102o49f037cbhc53a849f1fcfdaa4@mail.gmail.com> 	<20090914110221.7e33b737.weiny2@llnl.gov> <f0e08f230909141151g6e0df176tcb9bca2c040c06c7@mail.gmail.com> 	<4AAF8883.1020900@gmail.com> <829ded920909150541l5505ac0etf18d1937cb54eff1@mail.gmail.com>
+From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [ofa-general] Re: [GIT PULL] please pull ummunotify
+Date: Tue, 15 Sep 2009 07:57:56 -0700
+Message-ID: <ada7hw0gsqz.fsf@cisco.com>
+References: <aday6omhz9d.fsf@cisco.com> <20090915113434.GF1328@ucw.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <829ded920909150541l5505ac0etf18d1937cb54eff1-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <20090915113434.GF1328-+ZI9xUNit7I@public.gmane.org> (Pavel Machek's message of "Tue,
+	15 Sep 2009 13:34:34 +0200")
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Keshetti Mahesh <keshetti.mahesh-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>, OFED mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, OFED mailing list <general-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, general-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org, akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Keshetti Mahesh wrote:
->> Also it would be useful to find all ports in Disable state.
-> 
-> iblinkinfo already does this with '-d' option.
-> 
-It shows all the port that are in Down state - either cable disconnected or port disabled (by ibportstate).
 
-Eli
+ > I don't remember seeing discussion of this on lkml. Yes it  is in
+ > -next...
 
+eg http://lkml.org/lkml/2009/7/31/197 and followups, or search for v2
+and earlier patches.
+
+ > Basically it allows app to 'trace itself'? ...with interesting mmap()
+ > interface, exporting int to userspace, hoping it behaves atomically...? 
+
+Yes, it allows app to trace what the kernel does to memory mappings.  I
+don't believe there's any real issue to atomicity of mmap'ed memory,
+since userspace really just tests whether read value is == to old read
+value or not.
+
+ - R.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
