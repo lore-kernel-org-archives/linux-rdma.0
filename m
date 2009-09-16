@@ -1,57 +1,27 @@
-From: Eli Cohen <eli@mellanox.co.il>
-Subject: [ofa-general] [PATCH] mlx4: confiugre cache line size
-Date: Wed, 16 Sep 2009 14:03:03 +0300
-Message-ID: <20090916110302.GA32767@mtls03>
+From: Bart Van Assche <bart.vanassche-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Merge process for OFED patches
+Date: Wed, 16 Sep 2009 14:44:28 +0200
+Message-ID: <e2e108260909160544r6a1099afvadd3e9b80a84a748@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <general-bounces@lists.openfabrics.org>
-Content-Disposition: inline
-List-Unsubscribe: <http://lists.openfabrics.org/cgi-bin/mailman/listinfo/general>,
-	<mailto:general-request@lists.openfabrics.org?subject=unsubscribe>
-List-Archive: <http://lists.openfabrics.org/pipermail/general>
-List-Post: <mailto:general@lists.openfabrics.org>
-List-Help: <mailto:general-request@lists.openfabrics.org?subject=help>
-List-Subscribe: <http://lists.openfabrics.org/cgi-bin/mailman/listinfo/general>,
-	<mailto:general-request@lists.openfabrics.org?subject=subscribe>
-Sender: general-bounces@lists.openfabrics.org
-Errors-To: general-bounces@lists.openfabrics.org
-To: Roland Dreier <rdreier@cisco.com>
-Cc: linux-rdma@vger.kernel.org, general-list <general@lists.openfabrics.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, OpenIB <general-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-ConnectX can work more efficiently if the CPU cache line size is confiugred to
-it at INIT_HCA. This patch configures cache line size for systems that report
-it.
+Hello Roland,
 
-Signed-off-by: Eli Cohen <eli@mellanox.co.il>
----
- drivers/net/mlx4/fw.c |    7 +++++++
- 1 files changed, 7 insertions(+), 0 deletions(-)
+I noticed that there are seven SRP patches (bug fixes) present in OFED
+1.4.1 that are not present in mainstream Linux kernels up to and
+including version 2.6.30. Do you know whether it is documented
+anywhere which process is followed for merging such patches in the
+mainstream Linux kernel ?
 
-diff --git a/drivers/net/mlx4/fw.c b/drivers/net/mlx4/fw.c
-index 20526ce..aa38c06 100644
---- a/drivers/net/mlx4/fw.c
-+++ b/drivers/net/mlx4/fw.c
-@@ -699,6 +699,7 @@ int mlx4_INIT_HCA(struct mlx4_dev *dev, struct mlx4_init_hca_param *param)
- #define INIT_HCA_IN_SIZE		 0x200
- #define INIT_HCA_VERSION_OFFSET		 0x000
- #define	 INIT_HCA_VERSION		 2
-+#define INIT_HCA_CACHELINE_SZ_OFFSET	 0x0e
- #define INIT_HCA_FLAGS_OFFSET		 0x014
- #define INIT_HCA_QPC_OFFSET		 0x020
- #define	 INIT_HCA_QPC_BASE_OFFSET	 (INIT_HCA_QPC_OFFSET + 0x10)
-@@ -736,6 +737,12 @@ int mlx4_INIT_HCA(struct mlx4_dev *dev, struct mlx4_init_hca_param *param)
- 
- 	*((u8 *) mailbox->buf + INIT_HCA_VERSION_OFFSET) = INIT_HCA_VERSION;
- 
-+#if defined(cache_line_size)
-+	*((u8 *) mailbox->buf + INIT_HCA_CACHELINE_SZ_OFFSET) =
-+		order_base_2(cache_line_size() / 16) << 5;
-+#endif
-+
-+
- #if defined(__LITTLE_ENDIAN)
- 	*(inbox + INIT_HCA_FLAGS_OFFSET / 4) &= ~cpu_to_be32(1 << 1);
- #elif defined(__BIG_ENDIAN)
--- 
-1.6.4.3
+Thanks,
+
+Bart.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
