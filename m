@@ -1,55 +1,50 @@
-From: Keshetti Mahesh <keshetti.mahesh-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH] 'ibcheckportwidth' : Exit if LWS is 1X
-Date: Wed, 16 Sep 2009 09:12:14 +0530
-Message-ID: <829ded920909152042y227a709u6e74ee05d6ff05@mail.gmail.com>
+From: Bart Van Assche <bart.vanassche-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [Scst-devel] [ofa-general] WinOF_2_0_5/SRP initiator: slow reads
+	and eventually hangs
+Date: Wed, 16 Sep 2009 08:38:52 +0200
+Message-ID: <e2e108260909152338p15f46244y67884a2589a5b5a5@mail.gmail.com>
+References: <f3177b9e0908091009x23813cbdq4fbd9ebe6d8e174f@mail.gmail.com>
+	 <f3177b9e0909060641i296c7aefp322712f52de9786a@mail.gmail.com>
+	 <4AA4F561.504@vlnb.net>
+	 <f3177b9e0909081529i4dd74faq9a6c5a4783b5ded4@mail.gmail.com>
+	 <e2e108260909090938x6b72c519teed7dfd280eac804@mail.gmail.com>
+	 <f3177b9e0909111250w159def51h9b720366e27fa3a7@mail.gmail.com>
+	 <4AAE909F.6030202@vlnb.net>
+	 <f3177b9e0909141603j2dc61663j4c6bbcc0dda631d4@mail.gmail.com>
+	 <e2e108260909142310vb353718uea99d50ab638a865@mail.gmail.com>
+	 <f3177b9e0909150850r2d0f5e15id7f4e14b015f68ed@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <f3177b9e0909150850r2d0f5e15id7f4e14b015f68ed-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>, OFED mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, OFED mailing list <general-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+To: Chris Worley <worleys-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Vladislav Bolkhovitin <vst-d+Crzxg7Rs0@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, scst-devel <scst-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, OpenIB <general-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-=46ix: Modify ibcheckportwidth to exit if LWS is 1X instead of processi=
-ng
-next lines.
-Trivial: ibcheckportwidth man page cosmetic change
+On Tue, Sep 15, 2009 at 5:50 PM, Chris Worley <worleys-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote=
+:
+> I couldn't get ramdisks working w/ SCST in RHEL5.2. =A0When running:
+>
+> echo "open ramdisk /mnt/foo" > /proc/scsi_tgt/vdisk/vdisk
+>
+> I get the error:
+>
+> dev_vdisk: ***ERROR***: Wrong f_op or FS doesn't have required capabi=
+lities
+>
+> ... which doesn't occur in the Ubuntu kernel, so I've been unable to
+> test RHEL kernels w/ ramdisks. =A0In general, this problem occurs w/ =
+8KB
+> and smaller blocks w/ the Ubuntu kernels, and 2KB and smaller blocks
+> w/ RHEL kernels.
 
-Signed-off-by: Keshetti Mahesh <keshetti.mahesh-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
----
-infiniband-diags/man/ibcheckportwidth.8 =A0 =A0 =A0| =A0 =A02 +-
-infiniband-diags/scripts/ibcheckportwidth.in | =A0 =A02 +-
+The following should work on RHEL systems:
 
-diff --git a/infiniband-diags/man/ibcheckportwidth.8
-b/infiniband-diags/man/ibcheckportwidth.8
-index 85c06fc..c368467 100644
---- a/infiniband-diags/man/ibcheckportwidth.8
-+++ b/infiniband-diags/man/ibcheckportwidth.8
-@@ -4,7 +4,7 @@
-=A0ibcheckportwidth \- validate IB port for 1x link width
+echo "open ramdisk /dev/ram0" > /proc/scsi_tgt/vdisk/vdisk
 
-=A0.SH SYNOPSIS
--.B ibcheckport
-+.B ibcheckportwidth
-=A0[\-h] [\-v] [\-N | \-nocolor] [\-G] [\-C ca_name] [\-P ca_port]
-=A0[\-t(imeout) timeout_ms] =A0<lid|guid> <port>
-
-diff --git a/infiniband-diags/scripts/ibcheckportwidth.in
-b/infiniband-diags/scripts/ibcheckportwidth.in
-index 32c5c5e..60a0892 100644
---- a/infiniband-diags/scripts/ibcheckportwidth.in
-+++ b/infiniband-diags/scripts/ibcheckportwidth.in
-@@ -103,7 +103,7 @@ function blue(s)
-=A0}
-
-=A0# Only check LinkWidthActive if LinkWidthSupported is not 1X
--/^LinkWidthSupported/{ if ($2 !=3D "1X") { next } }
-+/^LinkWidthSupported/{ if ($2 =3D=3D "1X") { exit } }
---
-1.6.4.2
-
---
-Keshetti Mahesh
+Bart.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
 n
