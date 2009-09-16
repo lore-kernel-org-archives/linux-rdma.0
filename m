@@ -1,96 +1,88 @@
-From: Chris Worley <worleys@gmail.com>
-Subject: Re: [Scst-devel] [ofa-general] WinOF_2_0_5/SRP initiator: slow reads
-	and eventually hangs
-Date: Wed, 16 Sep 2009 09:11:15 -0600
-Message-ID: <f3177b9e0909160811i5c490577k8298e5d1ff920b27@mail.gmail.com>
-References: <f3177b9e0908091009x23813cbdq4fbd9ebe6d8e174f@mail.gmail.com>
-	<e2e108260909142310vb353718uea99d50ab638a865@mail.gmail.com>
-	<f3177b9e0909150850r2d0f5e15id7f4e14b015f68ed@mail.gmail.com>
-	<4AAFC42D.4030708@vlnb.net>
-	<f3177b9e0909150953x11d19210mf07cbdcc57928d42@mail.gmail.com>
-	<4AAFC794.7090205@vlnb.net>
-	<f3177b9e0909151001i61027dd9y282e2f98a8f05b03@mail.gmail.com>
-	<4AAFCA77.6050305@vlnb.net>
-	<f3177b9e0909151351p12173c78oe01cc8bcca957550@mail.gmail.com>
-	<e2e108260909160003n7d9170edl8289c6fce4f8225c@mail.gmail.com>
+From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [GIT PULL] please pull ummunotify
+Date: Wed, 16 Sep 2009 09:30:09 -0700
+Message-ID: <ada1vm6g8dq.fsf@cisco.com>
+References: <aday6omhz9d.fsf@cisco.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-Return-path: <general-bounces@lists.openfabrics.org>
-In-Reply-To: <e2e108260909160003n7d9170edl8289c6fce4f8225c@mail.gmail.com>
-List-Unsubscribe: <http://lists.openfabrics.org/cgi-bin/mailman/listinfo/general>,
-	<mailto:general-request@lists.openfabrics.org?subject=unsubscribe>
-List-Archive: <http://lists.openfabrics.org/pipermail/general>
-List-Post: <mailto:general@lists.openfabrics.org>
-List-Help: <mailto:general-request@lists.openfabrics.org?subject=help>
-List-Subscribe: <http://lists.openfabrics.org/cgi-bin/mailman/listinfo/general>,
-	<mailto:general-request@lists.openfabrics.org?subject=subscribe>
-Sender: general-bounces@lists.openfabrics.org
-Errors-To: general-bounces@lists.openfabrics.org
-To: Bart Van Assche <bart.vanassche@gmail.com>
-Cc: linux-rdma@vger.kernel.org, scst-devel <scst-devel@lists.sourceforge.net>, Vladislav Bolkhovitin <vst@vlnb.net>, OpenIB <general@lists.openfabrics.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <aday6omhz9d.fsf-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org> (Roland Dreier's message of "Thu, 10
+	Sep 2009 21:38:22 -0700")
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org
+Cc: akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, general-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Sep 16, 2009 at 1:03 AM, Bart Van Assche
-<bart.vanassche@gmail.com> wrote:
-> On Tue, Sep 15, 2009 at 10:51 PM, Chris Worley <worleys@gmail.com> wrote:
->> In lots of testing today, I've seen this panic twice on the Ubuntu 8.10 =
-targets:
->>
->> [ =A0330.155992] ib_srpt: disconnected session
->> 0x00247100000000460024710000000046 because a new SRP_LOGIN_REQ has
->> been received.
->
-> The above message means that an initiator logged in, did not log out
-> and logged in again. Has one of the initiator systems e.g. been power
-> cycled while an SRP connection was active ?
+Hi Linus,
 
-Yes.  Once ib_srp is hung on one device, I re-login to get the device
-and test again.  I can't log out of the previous, as it's hung... this
-"hanging" is the issue I'm having.  When I re-login, I get a new
-device... i.e. I hung /dev/sdc and re-login to get /dev/sdd... then
-test that until it hangs.
+Sorry to hassle you about this, but I would like to know where things
+stand.  I know (from the reflink discussion if nothing else) that you'r=
+e
+definitely not bashful about telling people when their code sucks, so
+this silent treatment has me really flustered.  I've been showering and
+brushing my teeth and everything, honest!
 
-Using the ramdisks makes the problem much easier to trigger, and
-occasionally causes the panic, especially using:
+Seriously, this code solves a problem that the MPI/HPC people have been
+complaining about for quite a while, and if possible I'd like to get
+this upstream.  Or if you have a better idea, I'm all ears...
 
-fio --rw=3Drandrw --bs=3D1k --numjobs=3D64 --iodepth=3D64 --sync=3D0 \
-   --direct=3D1 --randrepeat=3D0  --group_reporting --ioengine=3Dlibaio \
-   --filename=3D/dev/sdp --name=3Dtest --loops=3D10000 --runtime=3D1600 \
-   --rwmixread=3D100
+Thanks,
+  Roland
 
-...on the initiator to cause it.
-
-Chris
->
->> [ =A0357.207046] ib_srpt: srpt_xmit_response: tag=3D 17 channel in bad s=
-tate 2
->
-> This means that an attempt was made by SRPT to transmit a response for
-> a channel in the state 2 (disconnecting). This must be analyzed
-> further, just like the bug report triggered from
-> srpt_abort_scst_cmd().
->
-> [ ... ]
->
->> [ =A0411.636699] WARNING: at /root/scst/srpt/src/ib_srpt.c:924
->> srpt_abort_scst_cmd+0xac/0x160 [ib_srpt]()
->> ...
->
-> This message has been triggered by the statement WARN_ON("unexpected
-> cmd state"). It must be analyzed whether this is a consequence of what
-> went wrong before or whether this is a separate issue.
->
-> [ ... ]
->
->> This may have been due to low memory, as I was using most target
->> memory for the ramdisk.
->
-> The kernel warning message in ib_srpt.c at line 924 should never be
-> triggered, not even under low memory circumstances. I'll have a look
-> at this anyway.
->
-> Thanks for the detailed report.
->
-> Bart.
->
+ > Linus, please consider pulling from
+ >=20
+ >     master.kernel.org:/pub/scm/linux/kernel/git/roland/infiniband.gi=
+t ummunotify
+ >=20
+ > This tree is also available from kernel.org mirrors at:
+ >=20
+ >     git://git.kernel.org/pub/scm/linux/kernel/git/roland/infiniband.=
+git ummunotify
+ >=20
+ > This will get "ummunotify," a new character device that allows a
+ > userspace library to register for MMU notifications; this is
+ > particularly useful for MPI implementions (message passing libraries
+ > used in HPC) to be able to keep track of what wacky things consumers
+ > do to their memory mappings.  My colleague Jeff Squyres from the Ope=
+n
+ > MPI project posted a blog entry about why MPI wants this:
+ >=20
+ > http://blogs.cisco.com/ciscotalk/performance/comments/better_linux_m=
+emory_tracking/
+ >=20
+ > His summary of ummunotify:
+ >=20
+ >   "It=E2=80=99s elegant, doesn=E2=80=99t require strange linker tric=
+ks, and seems to
+ >    work in all cases.  Yay!"
+ >=20
+ > This code went through several review iterations on lkml and was in
+ > -mm and -next for quite a few weeks.  Andrew is OK with merging it (=
+I
+ > think -- Andrew please correct me if I misunderstood you).
+ >=20
+ > Roland Dreier (1):
+ >       ummunotify: Userspace support for MMU notifications
+ >=20
+ >  Documentation/Makefile                  |    3 +-
+ >  Documentation/ummunotify/Makefile       |    7 +
+ >  Documentation/ummunotify/ummunotify.txt |  150 ++++++++
+ >  Documentation/ummunotify/umn-test.c     |  200 +++++++++++
+ >  drivers/char/Kconfig                    |   12 +
+ >  drivers/char/Makefile                   |    1 +
+ >  drivers/char/ummunotify.c               |  566 ++++++++++++++++++++=
++++++++++++
+ >  include/linux/Kbuild                    |    1 +
+ >  include/linux/ummunotify.h              |  121 +++++++
+ >  9 files changed, 1060 insertions(+), 1 deletions(-)
+ >  create mode 100644 Documentation/ummunotify/Makefile
+ >  create mode 100644 Documentation/ummunotify/ummunotify.txt
+ >  create mode 100644 Documentation/ummunotify/umn-test.c
+ >  create mode 100644 drivers/char/ummunotify.c
+ >  create mode 100644 include/linux/ummunotify.h
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
