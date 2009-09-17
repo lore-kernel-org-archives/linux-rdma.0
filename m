@@ -1,30 +1,33 @@
-From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+From: Peter Zijlstra <peterz-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
 Subject: Re: [ofa-general] Re: [GIT PULL] please pull ummunotify
-Date: Thu, 17 Sep 2009 08:03:25 -0700
-Message-ID: <adazl8td35u.fsf@cisco.com>
+Date: Thu, 17 Sep 2009 17:22:24 +0200
+Message-ID: <1253200944.14935.29.camel@laptop>
 References: <aday6omhz9d.fsf@cisco.com> <1253187028.8439.2.camel@twins>
-	<adafxalejiq.fsf@cisco.com> <adaab0tej5c.fsf@cisco.com>
-	<1253198976.14935.27.camel@laptop>
+	 <adafxalejiq.fsf@cisco.com> <adaab0tej5c.fsf@cisco.com>
+	 <1253198976.14935.27.camel@laptop>  <adazl8td35u.fsf@cisco.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1253198976.14935.27.camel@laptop> (Peter Zijlstra's message of
-	"Thu, 17 Sep 2009 16:49:36 +0200")
+In-Reply-To: <adazl8td35u.fsf-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Peter Zijlstra <peterz-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Paul Mackerras <paulus-eUNUBHrolfbYtjvyW6yDsg@public.gmane.org>, Anton Blanchard <anton-eUNUBHrolfbYtjvyW6yDsg@public.gmane.org>, general-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org, akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, Ingo Molnar <mingo-X9Un+BFzKDI@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On Thu, 2009-09-17 at 08:03 -0700, Roland Dreier wrote:
+> > Hmm, or are you saying you can only get 1 event per registered range and
+>  > allocate the thing on registration? That'd need some registration limit
+>  > to avoid DoS scenarios.
+> 
+> Yes, that's what I do.  You're right, I should add a limit... although
+> their are lots of ways for userspace to consume arbitrary amounts of
+> kernel resources already.
 
- > Hmm, or are you saying you can only get 1 event per registered range and
- > allocate the thing on registration? That'd need some registration limit
- > to avoid DoS scenarios.
+I'd be good to work at reducing that number, not adding to it ;-)
 
-Yes, that's what I do.  You're right, I should add a limit... although
-their are lots of ways for userspace to consume arbitrary amounts of
-kernel resources already.
+But yeah, I currently don't see a very nice match to perf counters.
 
- - R.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
