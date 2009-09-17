@@ -1,30 +1,28 @@
 From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH] IB/ipoib: Do not turn on carrier  to a non active port
-Date: Thu, 17 Sep 2009 08:02:04 -0700
-Message-ID: <ada4or1ehsj.fsf@cisco.com>
-References: <4AB20C6C.9090005@Voltaire.COM>
+Subject: Re: [ofa-general] Re: [GIT PULL] please pull ummunotify
+Date: Thu, 17 Sep 2009 08:03:25 -0700
+Message-ID: <adazl8td35u.fsf@cisco.com>
+References: <aday6omhz9d.fsf@cisco.com> <1253187028.8439.2.camel@twins>
+	<adafxalejiq.fsf@cisco.com> <adaab0tej5c.fsf@cisco.com>
+	<1253198976.14935.27.camel@laptop>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4AB20C6C.9090005-hKgKHo2Ms0F+cjeuK/JdrQ@public.gmane.org> (Moni Shoua's message of "Thu, 17
-	Sep 2009 13:16:12 +0300")
+In-Reply-To: <1253198976.14935.27.camel@laptop> (Peter Zijlstra's message of
+	"Thu, 17 Sep 2009 16:49:36 +0200")
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Moni Shoua <monis-hKgKHo2Ms0F+cjeuK/JdrQ@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, OpenFabrics General <general-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>, Vlad <vlad-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
+To: Peter Zijlstra <peterz-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Paul Mackerras <paulus-eUNUBHrolfbYtjvyW6yDsg@public.gmane.org>, Anton Blanchard <anton-eUNUBHrolfbYtjvyW6yDsg@public.gmane.org>, general-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org, akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, Ingo Molnar <mingo-X9Un+BFzKDI@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
- > +	if (ib_query_port(priv->ca, priv->port, &attr) ||
- > +		attr.state != IB_PORT_ACTIVE) {
- > +		ipoib_dbg(priv, "wait with carrier until IB port is active\n");
- > +		if (test_bit(IPOIB_FLAG_OPER_UP, &priv->flags))
- > +			queue_delayed_work(ipoib_workqueue, &priv->carrier_on_task, HZ);
- > +		return;
- > +	}
+ > Hmm, or are you saying you can only get 1 event per registered range and
+ > allocate the thing on registration? That'd need some registration limit
+ > to avoid DoS scenarios.
 
-This queueing delayed work to poll the port state seems a bit odd to
-me... we get an event when the port changes state anyway, right?  So
-can't we just turn the carrier on when we get an active event?
+Yes, that's what I do.  You're right, I should add a limit... although
+their are lots of ways for userspace to consume arbitrary amounts of
+kernel resources already.
 
  - R.
 --
