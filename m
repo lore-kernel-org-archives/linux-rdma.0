@@ -1,51 +1,41 @@
-From: Roland Dreier <rdreier@cisco.com>
+From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 Subject: Re: [ofa-general] Re: [GIT PULL] please pull ummunotify
-Date: Thu, 17 Sep 2009 07:24:45 -0700
-Message-ID: <adafxalejiq.fsf@cisco.com>
+Date: Thu, 17 Sep 2009 07:32:47 -0700
+Message-ID: <adaab0tej5c.fsf@cisco.com>
 References: <aday6omhz9d.fsf@cisco.com> <1253187028.8439.2.camel@twins>
+	<adafxalejiq.fsf@cisco.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <general-bounces@lists.openfabrics.org>
-In-Reply-To: <1253187028.8439.2.camel@twins> (Peter Zijlstra's message of
-	"Thu, 17 Sep 2009 13:30:28 +0200")
-List-Unsubscribe: <http://lists.openfabrics.org/cgi-bin/mailman/listinfo/general>,
-	<mailto:general-request@lists.openfabrics.org?subject=unsubscribe>
-List-Archive: <http://lists.openfabrics.org/pipermail/general>
-List-Post: <mailto:general@lists.openfabrics.org>
-List-Help: <mailto:general-request@lists.openfabrics.org?subject=help>
-List-Subscribe: <http://lists.openfabrics.org/cgi-bin/mailman/listinfo/general>,
-	<mailto:general-request@lists.openfabrics.org?subject=subscribe>
-Sender: general-bounces@lists.openfabrics.org
-Errors-To: general-bounces@lists.openfabrics.org
-To: Peter Zijlstra <peterz@infradead.org>
-Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, Paul Mackerras <paulus@samba.org>, Anton Blanchard <anton@samba.org>, general@lists.openfabrics.org, akpm@linux-foundation.org, torvalds@linux-foundation.org, Ingo Molnar <mingo@elte.hu>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <adafxalejiq.fsf-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org> (Roland Dreier's message of "Thu, 17
+	Sep 2009 07:24:45 -0700")
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Peter Zijlstra <peterz-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Paul Mackerras <paulus-eUNUBHrolfbYtjvyW6yDsg@public.gmane.org>, Anton Blanchard <anton-eUNUBHrolfbYtjvyW6yDsg@public.gmane.org>, general-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org, akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, Ingo Molnar <mingo-X9Un+BFzKDI@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
- > Anton Blanchard suggested a while back that this might be integrated
- > with perf-counters, since perf-counters already does mmap() tracking and
- > also provides events through an mmap()'ed buffer.
+ > So getting those events in the kernel is no problem -- we have the MMU
+ > notifier hooks that tell us exactly what we need to know.  The issue is
+ > purely the way userspace registers interest in address ranges, and how
+ > to kernel returns the events.
  > 
- > Has anybody looked into this?
+ > For perf counters it seems that one would have to create a new counter
+ > for each address range... is that correct?  And also I don't know if
+ > perf counter has an analog for the fast path optimization that
+ > ummunotify provides via a mmap'ed generation counter (a quick way for
+ > userspace to see 'nothing happened since last time you checked').
 
-I didn't see the original suggestion.  Certainly hooking in to existing
-infrastructure for user/kernel communication would be good.
+Oh I forgot... ummunotify also preallocates everything etc. so that
+there is no way for events to be lost.  Which saves userspace from
+having to trash everything cached and start over, which it would have to
+do if it misses an invalidate event.
 
-The fit doesn't seem great to me, although I am rather naive about perf
-counters.  The problem that ummunotify is trying to solve is to let an
-app say 'for these 1000 address ranges (that possibly only cover a small
-part of my total address space), please let me know when the mappings
-are invalidated for any reason'.
-
-So getting those events in the kernel is no problem -- we have the MMU
-notifier hooks that tell us exactly what we need to know.  The issue is
-purely the way userspace registers interest in address ranges, and how
-to kernel returns the events.
-
-For perf counters it seems that one would have to create a new counter
-for each address range... is that correct?  And also I don't know if
-perf counter has an analog for the fast path optimization that
-ummunotify provides via a mmap'ed generation counter (a quick way for
-userspace to see 'nothing happened since last time you checked').
+And AFAIK, pref counters does have the possibility of overflowing a
+buffer and losing an event, right?
 
  - R.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
