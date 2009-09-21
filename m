@@ -1,56 +1,32 @@
 From: Moni Shoua <monis-hKgKHo2Ms0F+cjeuK/JdrQ@public.gmane.org>
-Subject: [PATCH V2] IB/ipoib: Do not turn on carrier  to a non active port
-Date: Mon, 21 Sep 2009 12:42:16 +0300
-Message-ID: <4AB74A78.2080108@Voltaire.COM>
+Subject: How to handle illegal multicast addresses in IPoIB?
+Date: Mon, 21 Sep 2009 16:31:44 +0300
+Message-ID: <4AB78040.9000606@Voltaire.COM>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Vlad <vlad-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, OpenFabrics General <general-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This patch fixes https://bugs.openfabrics.org/show_bug.cgi?id=1726
-Multicast join can succeed even if IB port is down. This happens when OpenSM
-runs on the same port with the requesting port. IPoIB on the other hand, calls
-netif_carrier_on() when join succeeded without caring about the state of
-the IB port. The result is an IPoIB interface in RUNNING state but without
-active IB port to support it. If a bonding interface uses this IPoIB interface
-as a slave it might not detect that this slave is almost useless and failover
-functionality will be damaged.
-The fix  checks the state of the IB port in the carrier_task before
-calling netif_carrier_on().
+Hi,
+The problem in short: Illegal multicast addresses can be passed to ib_ipoib which will add them to the queue of multicast addresses it needs to join. From this point on ib_ipoib will get stuck in the attempt to join an illegal multicast group and without a giving a chance for other groups to try.
 
-Signed-off-by: Moni Shoua <monis-smomgflXvOZWk0Htik3J/w@public.gmane.org>
----
- drivers/infiniband/ulp/ipoib/ipoib_multicast.c |    7 +++++++
- 1 file changed, 7 insertions(+)
+Recently 2 patches were sent to to deal with this problem. Both of them were rejectedm mainly from technical reasons.
+Since I think that it is important to have the problem fixed I want to revive the discussion and resubmit one of them or both, according to the opinions here.
 
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib_multicast.c b/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
-index 25874fc..9ace51d 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
-+++ b/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
-@@ -362,12 +362,19 @@ void ipoib_mcast_carrier_on_task(struct work_struct *work)
- {
- 	struct ipoib_dev_priv *priv = container_of(work, struct ipoib_dev_priv,
- 						   carrier_on_task);
-+	struct ib_port_attr attr;
- 
- 	/*
- 	 * Take rtnl_lock to avoid racing with ipoib_stop() and
- 	 * turning the carrier back on while a device is being
- 	 * removed.
- 	 */
-+
-+	if (ib_query_port(priv->ca, priv->port, &attr) ||
-+		attr.state != IB_PORT_ACTIVE) {
-+		ipoib_dbg(priv, "wait with carrier until IB port is active\n");
-+		return;
-+	}
- 	rtnl_lock();
- 	netif_carrier_on(priv->dev);
- 	rtnl_unlock();
+One patch (http://lists.openfabrics.org/pipermail/general/2009-August/061663.html) checks each multicast address for validity before it lets it get into the queue. 
+
+The other patch (http://lists.openfabrics.org/pipermail/general/2009-August/061693.html) queues all addresses it gets but adds fairness to the join attempts.
+
+My questions is: Do we need both patches? If not, which one to choose?
+
+I think that the first patch (check validity) is good enough.
+
+thanks
+ MoniS
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
