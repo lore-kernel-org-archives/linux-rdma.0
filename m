@@ -1,32 +1,40 @@
-From: Moni Shoua <monis-hKgKHo2Ms0F+cjeuK/JdrQ@public.gmane.org>
-Subject: How to handle illegal multicast addresses in IPoIB?
-Date: Mon, 21 Sep 2009 16:31:44 +0300
-Message-ID: <4AB78040.9000606@Voltaire.COM>
+From: Or Gerlitz <ogerlitz-hKgKHo2Ms0FWk0Htik3J/w@public.gmane.org>
+Subject: Re: How to handle illegal multicast addresses in IPoIB?
+Date: Mon, 21 Sep 2009 17:33:45 +0300
+Message-ID: <4AB78EC9.7020805@Voltaire.com>
+References: <4AB78040.9000606@Voltaire.COM>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <4AB78040.9000606-hKgKHo2Ms0F+cjeuK/JdrQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Moni Shoua <monis-hKgKHo2Ms0F+cjeuK/JdrQ@public.gmane.org>
+Cc: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi,
-The problem in short: Illegal multicast addresses can be passed to ib_ipoib which will add them to the queue of multicast addresses it needs to join. From this point on ib_ipoib will get stuck in the attempt to join an illegal multicast group and without a giving a chance for other groups to try.
+Moni Shoua wrote:
+> One patch (http://lists.openfabrics.org/pipermail/general/2009-August/061663.html) checks each 
+> multicast address for validity before it lets it get into the queue. 
 
-Recently 2 patches were sent to to deal with this problem. Both of them were rejectedm mainly from technical reasons.
-Since I think that it is important to have the problem fixed I want to revive the discussion and resubmit one of them or both, according to the opinions here.
+isn't it the below commit which appears in Linus tree?
 
-One patch (http://lists.openfabrics.org/pipermail/general/2009-August/061663.html) checks each multicast address for validity before it lets it get into the queue. 
+Or.
+> commit 5e47596bee12597824a3b5b21e20f80b61e58a35
+> Author: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+> Date:   Sat Sep 5 20:23:40 2009 -0700
+> 
+>     IPoIB: Check multicast address format
+> 
+>     Check that the format of multicast link addresses is correct before
+>     taking them from dev->mc_list to priv->multicast_list.  This way we
+>     never try to send a bogus address to the SA, which prevents badness
+>     from erronous 'ip maddr addr add', broken bonding drivers, etc.
+> 
+>     Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+>     Signed-off-by: Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 
-The other patch (http://lists.openfabrics.org/pipermail/general/2009-August/061693.html) queues all addresses it gets but adds fairness to the join attempts.
 
-My questions is: Do we need both patches? If not, which one to choose?
-
-I think that the first patch (check validity) is good enough.
-
-thanks
- MoniS
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
