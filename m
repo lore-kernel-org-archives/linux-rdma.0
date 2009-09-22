@@ -1,31 +1,34 @@
-From: "Sean Hefty" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [ANNOUNCE] librdmacm 1.0.9
-Date: Mon, 21 Sep 2009 11:04:42 -0700
-Message-ID: <845DCD8921D843CEBC63201AD73A3A24@amr.corp.intel.com>
-References: <OF0B8FD0DB.A642A9F8-ON88257634.007C6289-88257634.007D7D76@us.ibm.com> <4AB746EB.6090104@Voltaire.com>
+From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH] mlx4: confiugre cache line size
+Date: Tue, 22 Sep 2009 10:51:10 -0700
+Message-ID: <adaiqfa7trl.fsf@cisco.com>
+References: <20090916110302.GA32767@mtls03>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4AB746EB.6090104-hKgKHo2Ms0FWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <20090916110302.GA32767@mtls03> (Eli Cohen's message of "Wed, 16
+	Sep 2009 14:03:03 +0300")
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: 'Or Gerlitz' <ogerlitz-hKgKHo2Ms0FWk0Htik3J/w@public.gmane.org>, Pradeep Satyanarayana <pradeep-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>
-Cc: dwilder-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org, Tziporet Koren <tziporet-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Vladimir Sokolovsky <vlad-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Eli Cohen <eli-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
+Cc: general-list <general-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Release 1.0.9 of the librdmacm has been posted to
 
-http://www.openfabrics.org/downloads/rdmacm/
+ > +#if defined(cache_line_size)
 
-This adds the following patches over 1.0.8:
+Why the #if here?  Do we just need to include <linux/cache.h> explicitly
+to make sure we get the define?
 
-cmatose: avoid missing completions
-rping: add ipv6 support
-librdmacm: use sockaddr_storage
+ > +	*((u8 *) mailbox->buf + INIT_HCA_CACHELINE_SZ_OFFSET) =
+ > +		order_base_2(cache_line_size() / 16) << 5;
 
-- Sean
+Trivial but I think it's safe to assume a cacheline is always a power of
+2.  And I think it's clearer (and avoids generating a divide) to use
+subtraction rather than division... so this could all become:
 
+		(ilog2(cache_line_size()) - 4) << 5;
+
+ - R.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
