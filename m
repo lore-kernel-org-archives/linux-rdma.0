@@ -1,66 +1,51 @@
-From: Eli Cohen <eli@mellanox.co.il>
-Subject: [ofa-general] [PATCH v2] mlx4: configure cache line size
-Date: Wed, 23 Sep 2009 10:36:58 +0300
-Message-ID: <20090923073658.GA23252@mtls03>
+From: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Possible process deadlock in RMPP flow
+Date: Wed, 23 Sep 2009 18:04:54 +0300
+Message-ID: <20090923150454.GA26150@mtls03>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <general-bounces@lists.openfabrics.org>
+Return-path: <ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
 Content-Disposition: inline
-List-Unsubscribe: <http://lists.openfabrics.org/cgi-bin/mailman/listinfo/general>,
-	<mailto:general-request@lists.openfabrics.org?subject=unsubscribe>
-List-Archive: <http://lists.openfabrics.org/pipermail/general>
-List-Post: <mailto:general@lists.openfabrics.org>
-List-Help: <mailto:general-request@lists.openfabrics.org?subject=help>
-List-Subscribe: <http://lists.openfabrics.org/cgi-bin/mailman/listinfo/general>,
-	<mailto:general-request@lists.openfabrics.org?subject=subscribe>
-Sender: general-bounces@lists.openfabrics.org
-Errors-To: general-bounces@lists.openfabrics.org
-To: Roland Dreier <rdreier@cisco.com>
-Cc: linux-rdma@vger.kernel.org, general-list <general@lists.openfabrics.org>
+List-Unsubscribe: <http://lists.openfabrics.org/cgi-bin/mailman/listinfo/ewg>,
+	<mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.openfabrics.org/pipermail/ewg>
+List-Post: <mailto:ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+List-Help: <mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=help>
+List-Subscribe: <http://lists.openfabrics.org/cgi-bin/mailman/listinfo/ewg>,
+	<mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=subscribe>
+Sender: ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
+Errors-To: ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
+To: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Linux RDMA list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ewg <ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>, general-list <general-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-ConnectX can work more efficiently if the CPU cache line size is configured to
-it at INIT_HCA. This patch configures the CPU cache line size.
+Hi Sean,
+one of our customers experiences problems when running ibnetdiscover.
+The problem happens from time to time.
+Here is the call stack the he gets:
 
-Signed-off-by: Eli Cohen <eli@mellanox.co.il>
----
-As per Roland's comments, the following changes were made:
-1. Remove #ifdef cache_line_size and include linux/cache.h
-2. Assume cache line size is a power of 2 and use ilog2 instead of
-order_base_2
+ibnetdiscover D ffffffff80149b8d     0 26968  26544
+(L-TLB)
+ ffff8102c900bd88 0000000000000046 ffff81037e8e0000 ffff81037e8e02e8
+ ffff8102c900bd78 000000000000000a ffff8102c5b50820 ffff81038a929820
+ 0000011837bf6105 0000000000000ede ffff8102c5b50a08 0000000100000000
+Call Trace:
+ [<ffffffff80064207>] wait_for_completion+0x79/0xa2
+ [<ffffffff8008b4cc>] default_wake_function+0x0/0xe
+ [<ffffffff882271d9>] :ib_mad:ib_cancel_rmpp_recvs+0x87/0xde
+ [<ffffffff88224485>] :ib_mad:ib_unregister_mad_agent+0x30d/0x424
+ [<ffffffff883983e9>] :ib_umad:ib_umad_close+0x9d/0xd6
+ [<ffffffff80012e22>] __fput+0xae/0x198
+ [<ffffffff80023de6>] filp_close+0x5c/0x64
+ [<ffffffff800393df>] put_files_struct+0x63/0xae
+ [<ffffffff80015b26>] do_exit+0x31c/0x911
+ [<ffffffff8004971a>] cpuset_exit+0x0/0x6c
+ [<ffffffff8005e116>] system_call+0x7e/0x83
 
- drivers/net/mlx4/fw.c |    5 +++++
- 1 files changed, 5 insertions(+), 0 deletions(-)
+>From the dump it seems that the process is waits on the call to
+flush_workqueue() in ib_cancel_rmpp_recvs(). The package they use is
+OFED 1.4.2.
 
-diff --git a/drivers/net/mlx4/fw.c b/drivers/net/mlx4/fw.c
-index cee199c..3c16602 100644
---- a/drivers/net/mlx4/fw.c
-+++ b/drivers/net/mlx4/fw.c
-@@ -33,6 +33,7 @@
-  */
- 
- #include <linux/mlx4/cmd.h>
-+#include <linux/cache.h>
- 
- #include "fw.h"
- #include "icm.h"
-@@ -698,6 +699,7 @@ int mlx4_INIT_HCA(struct mlx4_dev *dev, struct mlx4_init_hca_param *param)
- #define INIT_HCA_IN_SIZE		 0x200
- #define INIT_HCA_VERSION_OFFSET		 0x000
- #define	 INIT_HCA_VERSION		 2
-+#define INIT_HCA_CACHELINE_SZ_OFFSET	 0x0e
- #define INIT_HCA_FLAGS_OFFSET		 0x014
- #define INIT_HCA_QPC_OFFSET		 0x020
- #define	 INIT_HCA_QPC_BASE_OFFSET	 (INIT_HCA_QPC_OFFSET + 0x10)
-@@ -735,6 +737,9 @@ int mlx4_INIT_HCA(struct mlx4_dev *dev, struct mlx4_init_hca_param *param)
- 
- 	*((u8 *) mailbox->buf + INIT_HCA_VERSION_OFFSET) = INIT_HCA_VERSION;
- 
-+	*((u8 *) mailbox->buf + INIT_HCA_CACHELINE_SZ_OFFSET) =
-+		(ilog2(cache_line_size()) - 4) << 5;
-+
- #if defined(__LITTLE_ENDIAN)
- 	*(inbox + INIT_HCA_FLAGS_OFFSET / 4) &= ~cpu_to_be32(1 << 1);
- #elif defined(__BIG_ENDIAN)
--- 
-1.6.4.3
+Do you have any idea or suggestions how to sort this out?
+
+Thanks.
