@@ -1,31 +1,48 @@
-From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH/RFC] IB/mad: Fix lock-lock-timer deadlock in RMPP code
-Date: Wed, 23 Sep 2009 11:09:52 -0700
-Message-ID: <adapr9h4jnz.fsf@cisco.com>
-References: <adaws4an4uh.fsf@cisco.com>
-	<e2e108260909071327o7f521876s60d643b455e7c6ec@mail.gmail.com>
-	<adaskeym5gu.fsf@cisco.com>
-	<e2e108260909072325w2e0b4b1na0aa01a74f2341e4@mail.gmail.com>
-	<adabpllmk7c.fsf@cisco.com>
-	<e2e108260909081209t36bfef12m24ce000686ed116e@mail.gmail.com>
-	<adavdjrkfyq.fsf_-_@cisco.com>
-	<F658AB9802E54F9887A2753721FA7882@amr.corp.intel.com>
-	<ada7hvq7s36.fsf@cisco.com>
-	<9DA1536B0B4943E7BC52280C977F1D23@amr.corp.intel.com>
+From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+Subject: [PATCH] infiniband-diags/src/ibqueryerrors.c: fix bug when
+ attempting a sub-fabric scan
+Date: Wed, 23 Sep 2009 14:45:55 -0700
+Message-ID: <20090923144555.9efa2c75.weiny2@llnl.gov>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <9DA1536B0B4943E7BC52280C977F1D23-Zpru7NauK7drdx17CPfAsdBPR1lH4CV8@public.gmane.org> (Sean
-	Hefty's message of "Tue, 22 Sep 2009 15:27:23 -0700")
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Bart Van Assche <bart.vanassche-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, general-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
+To: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+Cc: OpenFabrics <general-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
- > Reviewed-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+Date: Wed, 23 Sep 2009 14:26:55 -0700
+Subject: [PATCH] infiniband-diags/src/ibqueryerrors.c: fix bug when attempting a sub-fabric scan
 
-Thanks, I applied this.
+	Also ibd_sm_id is never valid in this tool as the "-s" option is used
+	for "suppress"
+
+Signed-off-by: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+---
+ infiniband-diags/src/ibqueryerrors.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/infiniband-diags/src/ibqueryerrors.c b/infiniband-diags/src/ibqueryerrors.c
+index f73ca6f..892e539 100644
+--- a/infiniband-diags/src/ibqueryerrors.c
++++ b/infiniband-diags/src/ibqueryerrors.c
+@@ -441,8 +441,8 @@ int main(int argc, char **argv)
+ 	} else if (switch_guid_str) {
+ 		if ((resolved =
+ 		     ib_resolve_portid_str_via(&portid, switch_guid_str,
+-					       IB_DEST_GUID, ibd_sm_id,
+-					       ibmad_port)) >= 0)
++					       IB_DEST_GUID, NULL,
++					       ibmad_port)) < 0)
+ 			IBWARN("Failed to resolve %s; attempting full scan\n",
+ 			       switch_guid_str);
+ 	}
+-- 
+1.5.4.5
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
