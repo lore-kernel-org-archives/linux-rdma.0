@@ -1,280 +1,124 @@
-From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-Subject: [PATCH] infiniband-diags/src/ibqueryerrors.c: Remove --all option
- and replace it with --switch, --ca, --router
-Date: Wed, 23 Sep 2009 15:09:23 -0700
-Message-ID: <20090923150923.a5281107.weiny2@llnl.gov>
+From: Ira Weiny <weiny2@llnl.gov>
+Subject: Re: [ofa-general] [PATCH] infiniband-diags: Fix IB network
+	discovery from switch node.
+Date: Wed, 23 Sep 2009 17:24:51 -0700
+Message-ID: <20090923172451.fb20ab9b.weiny2@llnl.gov>
+References: <4A9548AA.4020900@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Cc: OpenFabrics <general-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <general-bounces@lists.openfabrics.org>
+In-Reply-To: <4A9548AA.4020900@gmail.com>
+List-Unsubscribe: <http://lists.openfabrics.org/cgi-bin/mailman/listinfo/general>,
+	<mailto:general-request@lists.openfabrics.org?subject=unsubscribe>
+List-Archive: <http://lists.openfabrics.org/pipermail/general>
+List-Post: <mailto:general@lists.openfabrics.org>
+List-Help: <mailto:general-request@lists.openfabrics.org?subject=help>
+List-Subscribe: <http://lists.openfabrics.org/cgi-bin/mailman/listinfo/general>,
+	<mailto:general-request@lists.openfabrics.org?subject=subscribe>
+Sender: general-bounces@lists.openfabrics.org
+Errors-To: general-bounces@lists.openfabrics.org
+To: "Eli Dorfman (Voltaire)" <dorfman.eli@gmail.com>
+Cc: "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, OpenIB <general@lists.openfabrics.org>
 List-Id: linux-rdma@vger.kernel.org
 
+Eli,
 
-From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-Date: Wed, 23 Sep 2009 11:38:11 -0700
-Subject: [PATCH] infiniband-diags/src/ibqueryerrors.c: Remove --all option and replace it with --switch, --ca, --router
+On Wed, 26 Aug 2009 17:37:30 +0300
+"Eli Dorfman (Voltaire)" <dorfman.eli@gmail.com> wrote:
 
-	By default ibqueryerrors should print errors for all node types.
-	Adding the other options allows for the limitation of this output.
+> Subject: [PATCH] Fix IB network discovery from switch node.
 
-	Also change the --switch option to be --node-guid which is really more
-	accurate and use "-G" for better compliance with other utilities.  "-S"
-	is left in for backward compatibility for the time being.
+Sorry for the late inquiry on this but what exactly was the bug here?
 
-	Update the man page
+I just found that this change introduced a bug.  The problem is that if you
+don't do this query, even when the first found node is a switch, the port you
+came into the switch on will not get reported properly.  Here is what I mean.
 
-Signed-off-by: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
----
- infiniband-diags/man/ibqueryerrors.8 |   62 +++++++++++++++++++-----------
- infiniband-diags/src/ibqueryerrors.c |   70 +++++++++++++++++++++++++---------
- 2 files changed, 92 insertions(+), 40 deletions(-)
+Running with the current master:
 
-diff --git a/infiniband-diags/man/ibqueryerrors.8 b/infiniband-diags/man/ibqueryerrors.8
-index a327f3b..8f83a7b 100644
---- a/infiniband-diags/man/ibqueryerrors.8
-+++ b/infiniband-diags/man/ibqueryerrors.8
-@@ -5,7 +5,7 @@ ibqueryerrors.pl \- query and report non-zero IB port counters
- 
- .SH SYNOPSIS
- .B ibqueryerrors.pl
--[-a -c -r -R -C <ca_name> -P <ca_port> -s <err1,err2,...> -S <switch_guid>
-+[-s <err1,err2,...> -c -r -C <ca_name> -P <ca_port> -s <err1,err2,...> -G <node_guid>
- -D <direct_route> -d]
- 
- .SH DESCRIPTION
-@@ -20,41 +20,59 @@ reported.
- 
- .PP
- .TP
--\fB\-a\fR
--Report an action to take.  Some of the counters are not errors in and of
--themselves.  This reports some more information on what the counters mean and
--what actions can/should be taken if they are non-zero.
-+\fB\-s <err1,err2,...>\fR
-+Suppress the errors listed in the comma separated list provided.
- .TP
- \fB\-c\fR
- Suppress some of the common "side effect" counters.  These counters usually do
- not indicate an error condition and can be usually be safely ignored.
- .TP
-+\fB\-G <node_guid>\fR
-+Report results only for the node guid specified.
-+.TP
-+\fB\-S <node_guid>\fR
-+\-S is provided only for backward compatibility and works the same as "-G"
-+.TP
-+\fB\-D <direct_route>\fR
-+Report results only for the switch specified by the direct route path.
-+.TP
- \fB\-r\fR
- Report the port information.  This includes LID, port, external port (if
- applicable), link speed setting, remote GUID, remote port, remote external port
- (if applicable), and remote node description information.
- .TP
--\fB\-R\fR
--Recalculate the ibnetdiscover information, ie do not use the cached
--information.  This option is slower but should be used if the diag tools have
--not been used for some time or if there are other reasons to believe that
--the fabric has changed.
-+\fB\-\-data\fR
-+Include the optional transmit and receive data counters.
- .TP
--\fB\-s <err1,err2,...>\fR
--Suppress the errors listed in the comma separated list provided.
-+\fB\-\-switch\fR  print data for switches only
- .TP
--\fB\-S <switch_guid>\fR
--Report results only for the switch specified. (hex format)
-+\fB\-\-ca\fR  print data for CA's only
- .TP
--\fB\-D <direct_route>\fR
--Report results only for the switch specified by the direct route path.
-+\fB\-\-router\fR  print data for routers only
- .TP
--\fB\-d\fR
--Include the optional transmit and receive data counters.
--.TP
--\fB\-C <ca_name>\fR    use the specified ca_name for the search.
--.TP
--\fB\-P <ca_port>\fR    use the specified ca_port for the search.
-+\fB\-R\fR  (This option is obsolete and does nothing)
-+
-+.SH COMMON OPTIONS
-+.PP
-+\-d      raise the IB debugging level.
-+        May be used several times (-ddd or -d -d -d).
-+.PP
-+\-e      show send and receive errors (timeouts and others)
-+.PP
-+\-h      show the usage message
-+.PP
-+\-v      increase the application verbosity level.
-+        May be used several times (-vv or -v -v -v)
-+.PP
-+\-V      show the version info.
-+
-+# Other common flags:
-+.PP
-+\-C <ca_name>    use the specified ca_name.
-+.PP
-+\-P <ca_port>    use the specified ca_port.
-+.PP
-+\-t <timeout_ms> override the default timeout for the solicited mads.
- 
- 
- .SH AUTHOR
-diff --git a/infiniband-diags/src/ibqueryerrors.c b/infiniband-diags/src/ibqueryerrors.c
-index f73ca6f..ecfd662 100644
---- a/infiniband-diags/src/ibqueryerrors.c
-+++ b/infiniband-diags/src/ibqueryerrors.c
-@@ -59,12 +59,17 @@ static char *node_name_map_file = NULL;
- static nn_map_t *node_name_map = NULL;
- int data_counters = 0;
- int port_config = 0;
--uint64_t switch_guid = 0;
--char *switch_guid_str = NULL;
-+uint64_t node_guid = 0;
-+char *node_guid_str = NULL;
- int sup_total = 0;
- enum MAD_FIELDS *suppressed_fields = NULL;
- char *dr_path = NULL;
--int all_nodes = 0;
-+
-+#define PRINT_ALL 0xFF /* all nodes default flag */
-+uint8_t node_type_to_print = PRINT_ALL;
-+#define PRINT_SWITCH 0x1
-+#define PRINT_CA     0x2
-+#define PRINT_ROUTER 0x4
- 
- static unsigned int get_max(unsigned int num)
- {
-@@ -304,8 +309,21 @@ void print_node(ibnd_node_t * node, void *user_data)
- 	int header_printed = 0;
- 	int p = 0;
- 	int startport = 1;
-+	int type = 0;
-+
-+	switch (node->type) {
-+	case IB_NODE_SWITCH:
-+		type = PRINT_SWITCH;
-+		break;
-+	case IB_NODE_CA:
-+		type = PRINT_CA;
-+		break;
-+	case IB_NODE_ROUTER:
-+		type = PRINT_ROUTER;
-+		break;
-+	}
- 
--	if (!all_nodes && node->type != IB_NODE_SWITCH)
-+	if ((type & node_type_to_print) == 0)
- 		return;
- 
- 	if (node->type == IB_NODE_SWITCH && node->smaenhsp0)
-@@ -361,11 +379,24 @@ static int process_opt(void *context, int ch, char *optarg)
- 		data_counters++;
- 		break;
- 	case 3:
--		all_nodes++;
-+		if (node_type_to_print == PRINT_ALL)
-+			node_type_to_print = 0;
-+		node_type_to_print |= PRINT_SWITCH;
-+		break;
-+	case 4:
-+		if (node_type_to_print == PRINT_ALL)
-+			node_type_to_print = 0;
-+		node_type_to_print |= PRINT_CA;
-+		break;
-+	case 5:
-+		if (node_type_to_print == PRINT_ALL)
-+			node_type_to_print = 0;
-+		node_type_to_print |= PRINT_ROUTER;
- 		break;
-+	case 'G':
- 	case 'S':
--		switch_guid_str = optarg;
--		switch_guid = strtoull(optarg, 0, 0);
-+		node_guid_str = optarg;
-+		node_guid = strtoull(optarg, 0, 0);
- 		break;
- 	case 'D':
- 		dr_path = strdup(optarg);
-@@ -399,8 +430,9 @@ int main(int argc, char **argv)
- 		{"suppress-common", 'c', 0, NULL,
- 		 "suppress some of the common counters"},
- 		{"node-name-map", 1, 1, "<file>", "node name map file"},
--		{"switch", 'S', 1, "<switch_guid>",
--		 "query only <switch_guid> (hex format)"},
-+		{"node-guid", 'G', 1, "<node_guid>", "query only <node_guid>"},
-+		{"", 'S', 1, "<node_guid>",
-+		 "Same as \"-G\" for backward compatibility"},
- 		{"Direct", 'D', 1, "<dr_path>",
- 		 "query only switch specified by <dr_path>"},
- 		{"report-port", 'r', 0, NULL,
-@@ -408,7 +440,9 @@ int main(int argc, char **argv)
- 		{"GNDN", 'R', 0, NULL,
- 		 "(This option is obsolete and does nothing)"},
- 		{"data", 2, 0, NULL, "include the data counters in the output"},
--		{"all", 3, 0, NULL, "output all nodes (not just switches)"},
-+		{"switch", 3, 0, NULL, "print data for switches only"},
-+		{"ca", 4, 0, NULL, "print data for CA's only"},
-+		{"router", 5, 0, NULL, "print data for routers only"},
- 		{0}
- 	};
- 	char usage_args[] = "";
-@@ -438,13 +472,13 @@ int main(int argc, char **argv)
- 					       NULL, ibmad_port)) < 0)
- 			IBWARN("Failed to resolve %s; attempting full scan\n",
- 			       dr_path);
--	} else if (switch_guid_str) {
-+	} else if (node_guid_str) {
- 		if ((resolved =
--		     ib_resolve_portid_str_via(&portid, switch_guid_str,
-+		     ib_resolve_portid_str_via(&portid, node_guid_str,
- 					       IB_DEST_GUID, ibd_sm_id,
- 					       ibmad_port)) >= 0)
- 			IBWARN("Failed to resolve %s; attempting full scan\n",
--			       switch_guid_str);
-+			       node_guid_str);
- 	}
- 
- 	if (resolved >= 0)
-@@ -463,13 +497,13 @@ int main(int argc, char **argv)
- 
- 	report_suppressed();
- 
--	if (switch_guid_str) {
--		ibnd_node_t *node = ibnd_find_node_guid(fabric, switch_guid);
-+	if (node_guid_str) {
-+		ibnd_node_t *node = ibnd_find_node_guid(fabric, node_guid);
- 		if (node)
- 			print_node(node, NULL);
- 		else
- 			fprintf(stderr, "Failed to find node: %s\n",
--				switch_guid_str);
-+				node_guid_str);
- 	} else if (dr_path) {
- 		ibnd_node_t *node = ibnd_find_node_dr(fabric, dr_path);
- 		uint8_t ni[IB_SMP_DATA_SIZE];
-@@ -477,9 +511,9 @@ int main(int argc, char **argv)
- 		if (!smp_query_via(ni, &portid, IB_ATTR_NODE_INFO, 0,
- 				   ibd_timeout, ibmad_port))
- 			return -1;
--		mad_decode_field(ni, IB_NODE_GUID_F, &(switch_guid));
-+		mad_decode_field(ni, IB_NODE_GUID_F, &(node_guid));
- 
--		node = ibnd_find_node_guid(fabric, switch_guid);
-+		node = ibnd_find_node_guid(fabric, node_guid);
- 		if (node)
- 			print_node(node, NULL);
- 		else
+17:19:42 > ./iblinkinfo -S 0x000b8cffff00490c
+Switch 0x000b8cffff00490c MT47396 Infiniscale-III Mellanox Technologies:
+           8    1[  ] ==( 4X 2.5 Gbps   Down/ Polling)==>             [  ] "" ( )
+...
+           8    9[  ] ==( 4X 2.5 Gbps   Down/ Polling)==>             [  ] "" ( )
+           8   10[  ] ==( 4X 5.0 Gbps Active/  LinkUp)==>      15   24[  ] "ISR9024D Voltaire" ( )
+           8   11[  ] ==( 4X 2.5 Gbps   Down/ Polling)==>             [  ] "" ( )
+           8   12[  ] ==( 4X 5.0 Gbps Active/  LinkUp)==>             [  ] "" ( )
+           8   13[  ] ==( 4X 2.5 Gbps   Down/ Polling)==>             [  ] "" ( )
+...
+
+The DR path "came in" on port 12 and is reported as Active/LinkUp but has no
+information on the other end.  Here is what the output should look like with
+your change removed.
+
+17:22:36 > ./iblinkinfo -S 0x000b8cffff00490c
+Switch 0x000b8cffff00490c MT47396 Infiniscale-III Mellanox Technologies:
+           8    1[  ] ==( 4X 2.5 Gbps   Down/ Polling)==>             [  ] "" ( )
+...
+           8    9[  ] ==( 4X 2.5 Gbps   Down/ Polling)==>             [  ] "" ( )
+           8   10[  ] ==( 4X 5.0 Gbps Active/  LinkUp)==>      15   24[  ] "ISR9024D Voltaire" ( )
+           8   11[  ] ==( 4X 2.5 Gbps   Down/ Polling)==>             [  ] "" ( )
+           8   12[  ] ==( 4X 5.0 Gbps Active/  LinkUp)==>       7    8[  ] "Cisco Switch SFS7000D" ( )
+           8   13[  ] ==( 4X 2.5 Gbps   Down/ Polling)==>             [  ] "" ( )
+...
+
+This properly reports the other end of this link as another switch.
+
+Could you explain the problem a bit more so we can come up with a better
+solution?
+
+Thanks,
+Ira
+
+> 
+> Signed-off-by: Eli Dorfman <elid@voltaire.com>
+> ---
+>  infiniband-diags/libibnetdisc/src/ibnetdisc.c |   16 +++++++++-------
+>  1 files changed, 9 insertions(+), 7 deletions(-)
+> 
+> diff --git a/infiniband-diags/libibnetdisc/src/ibnetdisc.c b/infiniband-diags/libibnetdisc/src/ibnetdisc.c
+> index c69467e..779e659 100644
+> --- a/infiniband-diags/libibnetdisc/src/ibnetdisc.c
+> +++ b/infiniband-diags/libibnetdisc/src/ibnetdisc.c
+> @@ -590,13 +590,15 @@ ibnd_fabric_t *ibnd_discover_fabric(struct ibmad_port * ibmad_port,
+>  	if (!port)
+>  		goto error;
+>  
+> -	rc = get_remote_node(ibmad_port, fabric, node, port, from,
+> -			     mad_get_field(node->info, 0,
+> -					   IB_NODE_LOCAL_PORT_F), 0);
+> -	if (rc < 0)
+> -		goto error;
+> -	if (rc > 0)		/* non-fatal error, nothing more to be done */
+> -		return ((ibnd_fabric_t *) fabric);
+> +	if (node->node.type != IB_NODE_SWITCH) { 
+> +		rc = get_remote_node(ibmad_port, fabric, node, port, from,
+> +				     mad_get_field(node->info, 0,
+> +						   IB_NODE_LOCAL_PORT_F), 0);
+> +		if (rc < 0)
+> +			goto error;
+> +		if (rc > 0)		/* non-fatal error, nothing more to be done */
+> +			return ((ibnd_fabric_t *) fabric);
+> +	}
+>  
+>  	for (dist = 0; dist <= max_hops; dist++) {
+>  
+> -- 
+> 1.5.5
+> 
+> _______________________________________________
+> general mailing list
+> general@lists.openfabrics.org
+> http://*lists.openfabrics.org/cgi-bin/mailman/listinfo/general
+> 
+> To unsubscribe, please visit http://*openib.org/mailman/listinfo/openib-general
+> 
+
+
 -- 
-1.5.4.5
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Ira Weiny
+Math Programmer/Computer Scientist
+Lawrence Livermore National Lab
+925-423-8008
+weiny2@llnl.gov
