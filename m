@@ -1,19 +1,19 @@
 From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 4/5] drivers/infiniband: remove duplicate structure field initialization
-Date: Thu, 24 Sep 2009 10:59:41 -0700
-Message-ID: <aday6o41awi.fsf@cisco.com>
-References: <Pine.LNX.4.64.0909192149040.27171@ask.diku.dk>
+Subject: Re: [PATCH v2] mlx4: configure cache line size
+Date: Thu, 24 Sep 2009 11:03:17 -0700
+Message-ID: <adaskec1aqi.fsf@cisco.com>
+References: <20090923073658.GA23252@mtls03>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <Pine.LNX.4.64.0909192149040.27171-QfmoRoYWmW9knbxzx/v8hQ@public.gmane.org> (Julia Lawall's
-	message of "Sat, 19 Sep 2009 21:49:24 +0200 (CEST)")
+In-Reply-To: <20090923073658.GA23252@mtls03> (Eli Cohen's message of "Wed, 23
+	Sep 2009 10:36:58 +0300")
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Julia Lawall <julia-dAYI7NvHqcQ@public.gmane.org>
-Cc: hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Chien Tung <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Eli Cohen <eli-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
+Cc: general-list <general-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-thanks, applied
+thanks, applied.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
