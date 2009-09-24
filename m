@@ -1,124 +1,42 @@
-From: Ira Weiny <weiny2@llnl.gov>
-Subject: Re: [ofa-general] [PATCH] infiniband-diags: Fix IB network
-	discovery from switch node.
-Date: Wed, 23 Sep 2009 17:24:51 -0700
-Message-ID: <20090923172451.fb20ab9b.weiny2@llnl.gov>
-References: <4A9548AA.4020900@gmail.com>
+From: Or Gerlitz <ogerlitz-hKgKHo2Ms0FWk0Htik3J/w@public.gmane.org>
+Subject: Re: Possible process deadlock in RMPP flow
+Date: Thu, 24 Sep 2009 09:38:43 +0300
+Message-ID: <4ABB13F3.1060702@Voltaire.com>
+References: <20090923150454.GA26150@mtls03>	<7A32EEE20DF5432CADB60B8F8B1E0093@amr.corp.intel.com>
+	<20090923172532.GA32223@mtls03>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Return-path: <general-bounces@lists.openfabrics.org>
-In-Reply-To: <4A9548AA.4020900@gmail.com>
-List-Unsubscribe: <http://lists.openfabrics.org/cgi-bin/mailman/listinfo/general>,
-	<mailto:general-request@lists.openfabrics.org?subject=unsubscribe>
-List-Archive: <http://lists.openfabrics.org/pipermail/general>
-List-Post: <mailto:general@lists.openfabrics.org>
-List-Help: <mailto:general-request@lists.openfabrics.org?subject=help>
-List-Subscribe: <http://lists.openfabrics.org/cgi-bin/mailman/listinfo/general>,
-	<mailto:general-request@lists.openfabrics.org?subject=subscribe>
-Sender: general-bounces@lists.openfabrics.org
-Errors-To: general-bounces@lists.openfabrics.org
-To: "Eli Dorfman (Voltaire)" <dorfman.eli@gmail.com>
-Cc: "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, OpenIB <general@lists.openfabrics.org>
+Return-path: <ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+In-Reply-To: <20090923172532.GA32223@mtls03>
+List-Unsubscribe: <http://lists.openfabrics.org/cgi-bin/mailman/listinfo/ewg>,
+	<mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.openfabrics.org/pipermail/ewg>
+List-Post: <mailto:ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+List-Help: <mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=help>
+List-Subscribe: <http://lists.openfabrics.org/cgi-bin/mailman/listinfo/ewg>,
+	<mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=subscribe>
+Sender: ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
+Errors-To: ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
+To: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Linux RDMA list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Eli,
+Eli Cohen wrote:
+> On Wed, Sep 23, 2009 at 09:08:28AM -0700, Sean Hefty wrote:
+>> What kernel does 1.4.2 map to?
+> I think OFED 1.4.2 is based on kernel 2.6.27 but they're using RHEL 5.3
 
-On Wed, 26 Aug 2009 17:37:30 +0300
-"Eli Dorfman (Voltaire)" <dorfman.eli@gmail.com> wrote:
+Yes, the usual mess: ofed X is based on kernel Y1 but with some additions from kernel Y2 plus plenty of unreviwed and non-merged patches. Distro Z picks ofed X and the result is 99% unsupportable as Roland said. Somehow this ofed creature is still hanging around working on the the next damage its going to bring into this world (code name 1.5)
 
-> Subject: [PATCH] Fix IB network discovery from switch node.
+Eli, here's a little tip for you, I had the displeasure to resolve bunch of support cases originating from the fact that the below 2 years old commit missed some ofed version (sorry forgot the number...), maybe it would help you as well?
 
-Sorry for the late inquiry on this but what exactly was the bug here?
+Under a normal setting, if this commit actually solves a bug being hit by many costumers, someone would have opened a distro bugzilla case saying, "please pick this commit for your kernel", the customers would have either wait for the next distro update or use a distro intermediate kernel. Currently, I understand that distros are picking ofed versions and that's it.
 
-I just found that this change introduced a bug.  The problem is that if you
-don't do this query, even when the first found node is a switch, the port you
-came into the switch on will not get reported properly.  Here is what I mean.
+Or.
 
-Running with the current master:
+commit b61d92d8ae6aa13b17d1c31e69d123879cec2ee2
+Author: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Date:   Fri Nov 30 17:30:18 2007 -0800
 
-17:19:42 > ./iblinkinfo -S 0x000b8cffff00490c
-Switch 0x000b8cffff00490c MT47396 Infiniscale-III Mellanox Technologies:
-           8    1[  ] ==( 4X 2.5 Gbps   Down/ Polling)==>             [  ] "" ( )
-...
-           8    9[  ] ==( 4X 2.5 Gbps   Down/ Polling)==>             [  ] "" ( )
-           8   10[  ] ==( 4X 5.0 Gbps Active/  LinkUp)==>      15   24[  ] "ISR9024D Voltaire" ( )
-           8   11[  ] ==( 4X 2.5 Gbps   Down/ Polling)==>             [  ] "" ( )
-           8   12[  ] ==( 4X 5.0 Gbps Active/  LinkUp)==>             [  ] "" ( )
-           8   13[  ] ==( 4X 2.5 Gbps   Down/ Polling)==>             [  ] "" ( )
-...
-
-The DR path "came in" on port 12 and is reported as Active/LinkUp but has no
-information on the other end.  Here is what the output should look like with
-your change removed.
-
-17:22:36 > ./iblinkinfo -S 0x000b8cffff00490c
-Switch 0x000b8cffff00490c MT47396 Infiniscale-III Mellanox Technologies:
-           8    1[  ] ==( 4X 2.5 Gbps   Down/ Polling)==>             [  ] "" ( )
-...
-           8    9[  ] ==( 4X 2.5 Gbps   Down/ Polling)==>             [  ] "" ( )
-           8   10[  ] ==( 4X 5.0 Gbps Active/  LinkUp)==>      15   24[  ] "ISR9024D Voltaire" ( )
-           8   11[  ] ==( 4X 2.5 Gbps   Down/ Polling)==>             [  ] "" ( )
-           8   12[  ] ==( 4X 5.0 Gbps Active/  LinkUp)==>       7    8[  ] "Cisco Switch SFS7000D" ( )
-           8   13[  ] ==( 4X 2.5 Gbps   Down/ Polling)==>             [  ] "" ( )
-...
-
-This properly reports the other end of this link as another switch.
-
-Could you explain the problem a bit more so we can come up with a better
-solution?
-
-Thanks,
-Ira
-
-> 
-> Signed-off-by: Eli Dorfman <elid@voltaire.com>
-> ---
->  infiniband-diags/libibnetdisc/src/ibnetdisc.c |   16 +++++++++-------
->  1 files changed, 9 insertions(+), 7 deletions(-)
-> 
-> diff --git a/infiniband-diags/libibnetdisc/src/ibnetdisc.c b/infiniband-diags/libibnetdisc/src/ibnetdisc.c
-> index c69467e..779e659 100644
-> --- a/infiniband-diags/libibnetdisc/src/ibnetdisc.c
-> +++ b/infiniband-diags/libibnetdisc/src/ibnetdisc.c
-> @@ -590,13 +590,15 @@ ibnd_fabric_t *ibnd_discover_fabric(struct ibmad_port * ibmad_port,
->  	if (!port)
->  		goto error;
->  
-> -	rc = get_remote_node(ibmad_port, fabric, node, port, from,
-> -			     mad_get_field(node->info, 0,
-> -					   IB_NODE_LOCAL_PORT_F), 0);
-> -	if (rc < 0)
-> -		goto error;
-> -	if (rc > 0)		/* non-fatal error, nothing more to be done */
-> -		return ((ibnd_fabric_t *) fabric);
-> +	if (node->node.type != IB_NODE_SWITCH) { 
-> +		rc = get_remote_node(ibmad_port, fabric, node, port, from,
-> +				     mad_get_field(node->info, 0,
-> +						   IB_NODE_LOCAL_PORT_F), 0);
-> +		if (rc < 0)
-> +			goto error;
-> +		if (rc > 0)		/* non-fatal error, nothing more to be done */
-> +			return ((ibnd_fabric_t *) fabric);
-> +	}
->  
->  	for (dist = 0; dist <= max_hops; dist++) {
->  
-> -- 
-> 1.5.5
-> 
-> _______________________________________________
-> general mailing list
-> general@lists.openfabrics.org
-> http://*lists.openfabrics.org/cgi-bin/mailman/listinfo/general
-> 
-> To unsubscribe, please visit http://*openib.org/mailman/listinfo/openib-general
-> 
-
-
--- 
-Ira Weiny
-Math Programmer/Computer Scientist
-Lawrence Livermore National Lab
-925-423-8008
-weiny2@llnl.gov
+    IB/mad: Fix incorrect access to items on local_list
