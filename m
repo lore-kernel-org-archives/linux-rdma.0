@@ -1,20 +1,61 @@
-From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH V2] IB/ipoib: Do not turn on carrier  to a non active port
-Date: Thu, 24 Sep 2009 12:00:54 -0700
-Message-ID: <adahbus182h.fsf@cisco.com>
-References: <4AB74A78.2080108@Voltaire.COM>
+From: Roland Dreier <rdreier@cisco.com>
+Subject: [ofa-general] [GIT PULL] please pull infiniband.git
+Date: Thu, 24 Sep 2009 12:45:12 -0700
+Message-ID: <ada7hvo160n.fsf@cisco.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4AB74A78.2080108-hKgKHo2Ms0F+cjeuK/JdrQ@public.gmane.org> (Moni Shoua's message of "Mon, 21
-	Sep 2009 12:42:16 +0300")
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Moni Shoua <monis-hKgKHo2Ms0F+cjeuK/JdrQ@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Vlad <vlad-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, OpenFabrics General <general-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+Return-path: <general-bounces@lists.openfabrics.org>
+List-Unsubscribe: <http://lists.openfabrics.org/cgi-bin/mailman/listinfo/general>,
+	<mailto:general-request@lists.openfabrics.org?subject=unsubscribe>
+List-Archive: <http://lists.openfabrics.org/pipermail/general>
+List-Post: <mailto:general@lists.openfabrics.org>
+List-Help: <mailto:general-request@lists.openfabrics.org?subject=help>
+List-Subscribe: <http://lists.openfabrics.org/cgi-bin/mailman/listinfo/general>,
+	<mailto:general-request@lists.openfabrics.org?subject=subscribe>
+Sender: general-bounces@lists.openfabrics.org
+Errors-To: general-bounces@lists.openfabrics.org
+To: torvalds@linux-foundation.org, akpm@linux-foundation.org
+Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, general@lists.openfabrics.org
 List-Id: linux-rdma@vger.kernel.org
 
-thanks, applied.
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Linus, please pull from
+
+    master.kernel.org:/pub/scm/linux/kernel/git/roland/infiniband.git for-linus
+
+This tree is also available from kernel.org mirrors at:
+
+    git://git.kernel.org/pub/scm/linux/kernel/git/roland/infiniband.git for-linus
+
+This will get the batch of RDMA/InfiniBand changes for the 2.6.32
+merge window:
+
+The following changes since commit 86d710146fb9975f04c505ec78caa43d227c1018:
+  Linus Torvalds (1):
+        Merge git://git.linux-nfs.org/projects/trondmy/nfs-2.6
+
+are available in the git repository at:
+
+  master.kernel.org:/pub/scm/linux/kernel/git/roland/infiniband.git for-linus
+
+Eli Cohen (1):
+      mlx4_core: Pass cache line size to device FW
+
+Jack Morgenstein (1):
+      IB/mthca: Fix access to freed memory in catastrophic event handling
+
+Julia Lawall (1):
+      RDMA/nes: Remove duplicate .ndo_set_mac_address field initialization
+
+Moni Shoua (1):
+      IPoIB: Don't turn on carrier for a non-active port
+
+Roland Dreier (2):
+      IB/mad: Fix lock-lock-timer deadlock in RMPP code
+      Merge branches 'ipoib', 'mad', 'mlx4', 'mthca' and 'nes' into for-linus
+
+ drivers/infiniband/core/mad_rmpp.c             |   17 +++++++++++++----
+ drivers/infiniband/hw/mthca/mthca_catas.c      |   11 ++++++++---
+ drivers/infiniband/hw/nes/nes_nic.c            |    1 -
+ drivers/infiniband/ulp/ipoib/ipoib_multicast.c |    7 +++++++
+ drivers/net/mlx4/fw.c                          |    5 +++++
+ 5 files changed, 33 insertions(+), 8 deletions(-)
