@@ -1,65 +1,63 @@
-From: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH] opensm/osm_ucast_lash: fix use after free bug
-Date: Fri, 25 Sep 2009 19:11:31 -0400
-Message-ID: <f0e08f230909251611l52971e2bwe65d269c9813f6e@mail.gmail.com>
-References: <1251486496-24812-1-git-send-email-jaschut@sandia.gov>
-	 <1251486496-24812-2-git-send-email-jaschut@sandia.gov>
-	 <20090922185014.GF24398@me>
-	 <1253651343.4776.1125.camel@sale659.sandia.gov>
-	 <20090925135256.GE26931@me> <20090925145045.GF26931@me>
+From: Jaswinder Singh Rajput <jaswinder-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: [PATCH] infiniband: fops_get is not required for core,
+ uverbs_main.c
+Date: Sat, 26 Sep 2009 13:46:01 +0530
+Message-ID: <1253952962.3897.2.camel@ht.satnam>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20090925145045.GF26931@me>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Cc: OpenIB <general-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Jim Schutt <jaschut-4OHPYypu0djtX7QSmKvirg@public.gmane.org>
+To: Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 9/25/09, Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org> wrote:
->
-> When LASH runs its switch structures cleanup OpenSM can rediscover a
-> subnet and 'p_sw' pointer may refer already freed memory, so don't touch
-> it, just free our own stuff. (Note also that for valids OpenSM switches
-> objects' 'priv' pointers are cleared on lash_cleanup()).
->
-> Signed-off-by: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
 
-Tested-by: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+fops_get is useless as 'uverbs_event_fops' will always be 'true'.
+This also fix compilation warning :
 
-> ---
->  opensm/opensm/osm_ucast_lash.c |    5 +----
->  1 files changed, 1 insertions(+), 4 deletions(-)
->
-> diff --git a/opensm/opensm/osm_ucast_lash.c b/opensm/opensm/osm_ucast_lash.c
-> index dbc6bcc..3c424cb 100644
-> --- a/opensm/opensm/osm_ucast_lash.c
-> +++ b/opensm/opensm/osm_ucast_lash.c
-> @@ -628,8 +628,7 @@ static switch_t *switch_create(lash_t * p_lash, unsigned
-> id, osm_switch_t * p_sw
->  	}
->
->  	sw->p_sw = p_sw;
-> -	if (p_sw)
-> -		p_sw->priv = sw;
-> +	p_sw->priv = sw;
->
->  	if (osm_mesh_node_create(p_lash, sw)) {
->  		free(sw->dij_channels);
-> @@ -644,8 +643,6 @@ static void switch_delete(lash_t *p_lash, switch_t * sw)
->  {
->  	if (sw->dij_channels)
->  		free(sw->dij_channels);
-> -	if (sw->p_sw)
-> -		sw->p_sw->priv = NULL;
->  	free(sw);
->  }
->
-> --
-> 1.6.5.rc1
->
->
+  CC [M]  drivers/infiniband/core/uverbs_main.o
+drivers/infiniband/core/uverbs_main.c: In function =E2=80=98ib_uverbs_a=
+lloc_event_file=E2=80=99:
+drivers/infiniband/core/uverbs_main.c:522: warning: the address of =E2=80=
+=98uverbs_event_fops=E2=80=99 will always evaluate as =E2=80=98true=E2=80=
+=99
+
+Signed-off-by: Jaswinder Singh Rajput <jaswinderrajput-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+---
+ drivers/infiniband/core/uverbs_main.c |    7 +------
+ 1 files changed, 1 insertions(+), 6 deletions(-)
+
+diff --git a/drivers/infiniband/core/uverbs_main.c b/drivers/infiniband=
+/core/uverbs_main.c
+index d3fff9e..a59ddd1 100644
+--- a/drivers/infiniband/core/uverbs_main.c
++++ b/drivers/infiniband/core/uverbs_main.c
+@@ -513,13 +513,8 @@ struct file *ib_uverbs_alloc_event_file(struct ib_=
+uverbs_file *uverbs_file,
+ 		goto err;
+ 	}
+=20
+-	/*
+-	 * fops_get() can't fail here, because we're coming from a
+-	 * system call on a uverbs file, which will already have a
+-	 * module reference.
+-	 */
+ 	filp =3D alloc_file(uverbs_event_mnt, dget(uverbs_event_mnt->mnt_root=
+),
+-			  FMODE_READ, fops_get(&uverbs_event_fops));
++			  FMODE_READ, &uverbs_event_fops);
+ 	if (!filp) {
+ 		ret =3D -ENFILE;
+ 		goto err_fd;
+--=20
+1.6.0.6
+
+
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
