@@ -1,51 +1,37 @@
-From: Bart Van Assche <bart.vanassche-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH] IB: Fix typo in udev rule documentation
-Date: Mon, 28 Sep 2009 20:30:19 +0200
-Message-ID: <200909282030.19481.bart.vanassche@gmail.com>
+From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: [PATCH] iWCM: Do not call provider reject method with irqs disabled.
+Date: Mon, 28 Sep 2009 14:03:28 -0500
+Message-ID: <20090928190328.26092.69566.stgit@build.ogc.int>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Lukasz Jurewicz <lukasz.jurewicz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+To: rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-The proper syntax for udev rules is KERNEL==... instead of KERNEL=...
+Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+---
 
-Signed-off-by: Bart Van Assche <bart.vanassche-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Reported-by: Lukasz Jurewicz <lukasz.jurewicz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+ drivers/infiniband/core/iwcm.c |    2 ++
+ 1 files changed, 2 insertions(+), 0 deletions(-)
 
-diff --git a/Documentation/infiniband/user_mad.txt b/Documentation/infiniband/user_mad.txt
-index 744687d..8a36695 100644
---- a/Documentation/infiniband/user_mad.txt
-+++ b/Documentation/infiniband/user_mad.txt
-@@ -128,8 +128,8 @@ Setting IsSM Capability Bit
-   To create the appropriate character device files automatically with
-   udev, a rule like
- 
--    KERNEL="umad*", NAME="infiniband/%k"
--    KERNEL="issm*", NAME="infiniband/%k"
-+    KERNEL=="umad*", NAME="infiniband/%k"
-+    KERNEL=="issm*", NAME="infiniband/%k"
- 
-   can be used.  This will create device nodes named
- 
-diff --git a/Documentation/infiniband/user_verbs.txt b/Documentation/infiniband/user_verbs.txt
-index f847501..afe3f8d 100644
---- a/Documentation/infiniband/user_verbs.txt
-+++ b/Documentation/infiniband/user_verbs.txt
-@@ -58,7 +58,7 @@ Memory pinning
-   To create the appropriate character device files automatically with
-   udev, a rule like
- 
--    KERNEL="uverbs*", NAME="infiniband/%k"
-+    KERNEL=="uverbs*", NAME="infiniband/%k"
- 
-   can be used.  This will create device nodes named
- 
+diff --git a/drivers/infiniband/core/iwcm.c b/drivers/infiniband/core/iwcm.c
+index 55d093a..625fec5 100644
+--- a/drivers/infiniband/core/iwcm.c
++++ b/drivers/infiniband/core/iwcm.c
+@@ -362,7 +362,9 @@ static void destroy_cm_id(struct iw_cm_id *cm_id)
+ 		 * In either case, must tell the provider to reject.
+ 		 */
+ 		cm_id_priv->state = IW_CM_STATE_DESTROYING;
++		spin_unlock_irqrestore(&cm_id_priv->lock, flags);
+ 		cm_id->device->iwcm->reject(cm_id, NULL, 0);
++		spin_lock_irqsave(&cm_id_priv->lock, flags);
+ 		break;
+ 	case IW_CM_STATE_CONN_SENT:
+ 	case IW_CM_STATE_DESTROYING:
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
