@@ -1,116 +1,137 @@
-From: Jon Mason <jon-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: Re: [PATCHv2] opensm/osm_mesh.c: Add dump_mesh routine at
-	OSM_LOG_DEBUG level
-Date: Tue, 29 Sep 2009 16:58:38 -0500
-Message-ID: <20090929215838.GE10188@opengridcomputing.com>
-References: <20090929215540.GA28635@comcast.net>
+From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+Subject: Re: [ofa-general] [PATCH] infiniband-diags: Fix IB network
+ discovery from switch node.
+Date: Tue, 29 Sep 2009 16:48:42 -0700
+Message-ID: <20090929164842.c1ab7d06.weiny2@llnl.gov>
+References: <4A9548AA.4020900@gmail.com>
+	<20090923172451.fb20ab9b.weiny2@llnl.gov>
+	<4AC232D5.2060806@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20090929215540.GA28635-Wuw85uim5zDR7s880joybQ@public.gmane.org>
+In-Reply-To: <4AC232D5.2060806-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Hal Rosenstock <hnrose-Wuw85uim5zDR7s880joybQ@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Eli Dorfman (Voltaire)" <dorfman.eli-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>, OpenIB <general-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Julia Volynsky <juliav-smomgflXvOZWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Looks like it is working now...
+On Tue, 29 Sep 2009 18:16:21 +0200
+"Eli Dorfman (Voltaire)" <dorfman.eli-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
 
-Jeff, pull the trigger!
-
-Thanks,
-Jon
-
-On Tue, Sep 29, 2009 at 05:55:40PM -0400, Hal Rosenstock wrote:
+> Ira Weiny wrote:
+> > Eli,
+> > 
+> > On Wed, 26 Aug 2009 17:37:30 +0300
+> > "Eli Dorfman (Voltaire)" <dorfman.eli-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
+> > 
+> >> Subject: [PATCH] Fix IB network discovery from switch node.
+> > 
+> > Sorry for the late inquiry on this but what exactly was the bug here?
 > 
-> Signed-off-by: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-> ---
-> Changes since v1:
-> Use snprintf rather than sprintf
-> Also, moved output of ]
+> Sorry for the late response.
+> The problem is related to wrong discovery when running from the switch.
+> Without the patch ibnetdiscover finds only local switch
+
+Ok I see.
+
+[snip]
+
 > 
-> diff --git a/opensm/opensm/osm_mesh.c b/opensm/opensm/osm_mesh.c
-> index 260e2f8..53f0f58 100644
-> --- a/opensm/opensm/osm_mesh.c
-> +++ b/opensm/opensm/osm_mesh.c
-> @@ -1565,6 +1565,63 @@ err:
->  	return -1;
->  }
+> I think that the problem is related to NodeInfo:LocalPort which is 0 in case of a switch.
+> I see that get_remote_node() sends direct route MAD to switch with path 0,0 and that fails (at least for Mellanox IS4 switch chips).
+> Another way to bypass this may be as follows:
+> 
+> diff --git a/infiniband-diags/libibnetdisc/src/ibnetdisc.c b/infiniband-diags/libibnetdisc/src/ibnetdisc.c
+> index 1e93ff8..3dd0dc6 100644
+> --- a/infiniband-diags/libibnetdisc/src/ibnetdisc.c
+> +++ b/infiniband-diags/libibnetdisc/src/ibnetdisc.c
+> @@ -461,7 +461,7 @@ get_remote_node(struct ibnd_fabric *fabric, struct ibnd_node *node, struct ibnd_
+>  			!= IB_PORT_PHYS_STATE_LINKUP)
+>  		return -1;
 >  
-> +static void dump_mesh(lash_t *p_lash)
-> +{
-> +	osm_log_t *p_log = &p_lash->p_osm->log;
-> +	int sw;
-> +	int num_switches = p_lash->num_switches;
-> +	int dimension;
-> +	int i, j, k, n;
-> +	switch_t *s, *s2;
-> +	char buf[256];
-> +
-> +	OSM_LOG_ENTER(p_log);
-> +
-> +	for (sw = 0; sw < num_switches; sw++) {
-> +		s = p_lash->switches[sw];
-> +		dimension = s->node->dimension;
-> +		n = sprintf(buf, "[");
-> +		for (i = 0; i < dimension; i++) {
-> +			n += snprintf(buf + n, sizeof(buf) - n,
-> +				      "%2d", s->node->coord[i]);
-> +			if (n > sizeof(buf))
-> +				n = sizeof(buf);
-> +			if (i != dimension - 1) {
-> +				n += snprintf(buf + n, sizeof(buf) - n, "%s", ",");
-> +				if (n > sizeof(buf))
-> +					n = sizeof(buf);
-> +			}
-> +		}
-> +		n += snprintf(buf + n, sizeof(buf) - n, "]");
-> +		if (n > sizeof(buf))
-> +			n = sizeof(buf);
-> +		for (j = 0; j < s->node->num_links; j++) {
-> +			s2 = p_lash->switches[s->node->links[j]->switch_id];
-> +			n += snprintf(buf + n, sizeof(buf) - n, " [%d]->[", j);
-> +			if (n > sizeof(buf))
-> +				n = sizeof(buf);
-> +			for (k = 0; k < dimension; k++) {
-> +				n += snprintf(buf + n, sizeof(buf) - n, "%2d",
-> +					      s2->node->coord[k]);
-> +				if (n > sizeof(buf))
-> +					n = sizeof(buf);
-> +				if (k != dimension - 1) {
-> +					n += snprintf(buf + n, sizeof(buf) - n,
-> +						      ",");
-> +					if (n > sizeof(buf))
-> +						n = sizeof(buf);
-> +				}
-> +			}
-> +			n += snprintf(buf + n, sizeof(buf) - n, "]");
-> +			if (n > sizeof(buf))
-> +				n = sizeof(buf);
-> +		}
-> +		OSM_LOG(p_log, OSM_LOG_DEBUG, "%s\n", buf);
-> +	}
-> +
-> +	OSM_LOG_EXIT(p_log);
-> +}
-> +
->  /*
->   * osm_do_mesh_analysis
->   */
-> @@ -1653,6 +1710,9 @@ int osm_do_mesh_analysis(lash_t *p_lash)
->  		OSM_LOG(p_log, OSM_LOG_INFO, "%s", buf);
->  	}
+> -	if (extend_dpath(fabric, path, portnum) < 0)
+> +	if (portnum > 0 && extend_dpath(fabric, path, portnum) < 0)
+>  		return -1;
 >  
-> +	if (osm_log_is_active(p_log, OSM_LOG_DEBUG))
-> +		dump_mesh(p_lash);
-> +
->  done:
->  	mesh_delete(mesh);
->  	OSM_LOG_EXIT(p_log);
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>  	if (query_node(fabric, &node_buf, &port_buf, path)) {
+> 
+> 
+> Please check whether this is OK and I can send a new patch.
+> 
+
+This seems to fix my issue.  Here is a patch against master which works for
+me.  If you want to verify that would be great.
+
+Thanks for helping me out,
+Ira
+
+From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+Date: Tue, 22 Sep 2009 11:08:28 -0700
+Subject: [PATCH] infiniband-diags/libibnetdisc/src/ibnetdisc.c: fix bug in single node processing.
+
+	Eli fixed an issue with running ibnetdiscover from a switch but it
+	introduced a bug in processing a single switch:
+
+17:19:42 > ./iblinkinfo -S 0x000b8cffff00490c
+Switch 0x000b8cffff00490c MT47396 Infiniscale-III Mellanox Technologies:
+...
+           8   11[  ] ==( 4X 2.5 Gbps   Down/ Polling)==>             [  ] "" ( )
+           8   12[  ] ==( 4X 5.0 Gbps Active/  LinkUp)==>             [  ] "" ( )
+           8   13[  ] ==( 4X 2.5 Gbps   Down/ Polling)==>             [  ] "" ( )
+...
+
+	The port we "come in on" when discovering the switch is not reported properly.
+
+   This patch, suggested by Eli, reverses Eli's patch and fixes his original
+   bug in a way which does not introduce the above issue.
+
+Signed-off-by: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+---
+ infiniband-diags/libibnetdisc/src/ibnetdisc.c |   18 ++++++++----------
+ 1 files changed, 8 insertions(+), 10 deletions(-)
+
+diff --git a/infiniband-diags/libibnetdisc/src/ibnetdisc.c b/infiniband-diags/libibnetdisc/src/ibnetdisc.c
+index 97e369c..96f72c5 100644
+--- a/infiniband-diags/libibnetdisc/src/ibnetdisc.c
++++ b/infiniband-diags/libibnetdisc/src/ibnetdisc.c
+@@ -506,7 +506,7 @@ static int get_remote_node(struct ibmad_port *ibmad_port,
+ 	    != IB_PORT_PHYS_STATE_LINKUP)
+ 		return 1;	/* positive == non-fatal error */
+ 
+-	if (extend_dpath(ibmad_port, fabric, path, portnum) < 0)
++	if (portnum > 0 && extend_dpath(ibmad_port, fabric, path, portnum) < 0)
+ 		return -1;
+ 
+ 	if (query_node(ibmad_port, fabric, &node_buf, &port_buf, path)) {
+@@ -600,15 +600,13 @@ ibnd_fabric_t *ibnd_discover_fabric(struct ibmad_port * ibmad_port,
+ 	if (!port)
+ 		goto error;
+ 
+-	if (node->type != IB_NODE_SWITCH) {
+-		rc = get_remote_node(ibmad_port, fabric, node, port, from,
+-				     mad_get_field(node->info, 0,
+-						   IB_NODE_LOCAL_PORT_F), 0);
+-		if (rc < 0)
+-			goto error;
+-		if (rc > 0)		/* non-fatal error, nothing more to be done */
+-			return ((ibnd_fabric_t *) fabric);
+-	}
++	rc = get_remote_node(ibmad_port, fabric, node, port, from,
++			     mad_get_field(node->info, 0,
++					   IB_NODE_LOCAL_PORT_F), 0);
++	if (rc < 0)
++		goto error;
++	if (rc > 0)		/* non-fatal error, nothing more to be done */
++		return ((ibnd_fabric_t *) fabric);
+ 
+ 	for (dist = 0; dist <= max_hops; dist++) {
+ 
+-- 
+1.5.4.5
+
+
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
