@@ -1,55 +1,28 @@
-From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: Re: getting path to backport directory
-Date: Tue, 29 Sep 2009 16:05:09 -0500
-Message-ID: <4AC27685.4010801@opengridcomputing.com>
-References: <Pine.LNX.4.64.0909291613310.13129@postal.iol.unh.edu>
+From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Subject: Re: Posting Problem
+Date: Tue, 29 Sep 2009 14:22:01 -0700
+Message-ID: <adaske5tpja.fsf@cisco.com>
+References: <f0e08f230909291053l1062277an21cab3b330a46e09@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <Pine.LNX.4.64.0909291613310.13129-yQ+R4xhlqLEyozb/sh1beDe48wsgrGvP@public.gmane.org>
+In-Reply-To: <f0e08f230909291053l1062277an21cab3b330a46e09-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+	(Hal Rosenstock's message of "Tue, 29 Sep 2009 13:53:02 -0400")
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Robert D. Russell" <rdr-zcUZCMB5SQOVc3sceRu5cw@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, OFED mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+[cc'ing Dave Miller about mail issues]
 
-If you have a configured ofa_kernel tree, then look at 
-<path_to_ofa_kernel>/config.mk.  It contains the backport path.
+ > I've been able to post a short test message but when I post a patch,
+ > it seems to go into the ether. How can I find out what is going wrong?
 
-Steve.
+There is probably a size limit on mails (100 or maybe 400 KB), could you
+possibly be hitting that?  Otherwise I don't know, what is the
+difference between how you send the test message and the patch?
 
-
-Robert D. Russell wrote:
->
-> A general question on getting the correct backport.
->
-> On my machine, if I do "uname -r" I get
-> 2.6.18-128.el5
->
-> If I do "cat /etc/redhat-release" I get
-> CentOs release 5.3 (Final)
->
-> If I look in "/usr/src/ofa_kernel/kernel_addons/backport"
-> the subdirectory I need to use for the current kernel is:
-> 2.6.18-EL5.3
->
-> My question:  Is there somewhere in the system where I can
-> find (or generate) the string "2.6.18-EL5.3"?
-> I want to put that in my scripts so they will automatically
-> pick it up whenever we change versions (as we just did when
-> going to Centos -- it used to be 2.6.18-EL5.2 in the RedHat
-> version we were running before).  At present I have to edit
-> these scripts by hand, and that's a lousy way to do business.
->
-> Thanks,
-> Bob Russell
->
-> -- 
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
+ - R.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
