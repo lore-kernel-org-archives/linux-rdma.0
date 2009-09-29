@@ -1,48 +1,49 @@
-From: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: Posting Problem
-Date: Tue, 29 Sep 2009 14:04:42 -0400
-Message-ID: <f0e08f230909291104t7c619ac5md241b5ff535c43cf@mail.gmail.com>
-References: <f0e08f230909291053l1062277an21cab3b330a46e09@mail.gmail.com>
-	 <e2e108260909291057k68a6b14ag562bf51d786b4b01@mail.gmail.com>
+From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: [PATCH v2] IWCM: Don't call provider reject func with irqs disabled
+Date: Tue, 29 Sep 2009 13:41:53 -0500
+Message-ID: <20090929184152.16572.60582.stgit@build.ogc.int>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <e2e108260909291057k68a6b14ag562bf51d786b4b01-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <bart.vanassche-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: OFED mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Sep 29, 2009 at 1:57 PM, Bart Van Assche
-<bart.vanassche-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
->
-> On Tue, Sep 29, 2009 at 7:53 PM, Hal Rosenstock
-> <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
-> > I've been able to post a short test message but when I post a patch,
-> > it seems to go into the ether. How can I find out what is going wrong
-> > ?
->
-> Strange. The patch I posted yesterday arrived on the list as far as I
-> can see (http://www.spinics.net/lists/linux-rdma/msg00146.html).
+Recently a call to the provider's reject handler was added to
+destroy_cm_id() to fix a provider endpoint leak.  This call needs to be
+done outside of irq disablement.  So unlock and relock around this call.
+This is safe because:
 
+1) the provider will do nothing with this endpoint until the iwcm either
+accepts or rejects.
 
-Yes, I've seen many other patches there so I know it's something in my
-setup. I'm using mutt and think I've followed the directions in
-email-clients.txt.
+2) the lock is only released after the iwcm state is changed, so an errant
+iwcm app that is destroying -and- rejecting the connection concurrently
+will get a failure on one of the calls.
 
->
-> Maybe
-> your e-mail with the patch was sent as an HTML mail instead of plain
-> text ?
+Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+---
 
+ drivers/infiniband/core/iwcm.c |    2 ++
+ 1 files changed, 2 insertions(+), 0 deletions(-)
 
-Same procedure works fine with general-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org and is
-plain not HTML mail.
+diff --git a/drivers/infiniband/core/iwcm.c b/drivers/infiniband/core/iwcm.c
+index 55d093a..625fec5 100644
+--- a/drivers/infiniband/core/iwcm.c
++++ b/drivers/infiniband/core/iwcm.c
+@@ -362,7 +362,9 @@ static void destroy_cm_id(struct iw_cm_id *cm_id)
+ 		 * In either case, must tell the provider to reject.
+ 		 */
+ 		cm_id_priv->state = IW_CM_STATE_DESTROYING;
++		spin_unlock_irqrestore(&cm_id_priv->lock, flags);
+ 		cm_id->device->iwcm->reject(cm_id, NULL, 0);
++		spin_lock_irqsave(&cm_id_priv->lock, flags);
+ 		break;
+ 	case IW_CM_STATE_CONN_SENT:
+ 	case IW_CM_STATE_DESTROYING:
 
--- Hal
-
->
-> Bart.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
