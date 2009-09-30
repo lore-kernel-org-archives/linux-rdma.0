@@ -1,38 +1,22 @@
-From: "Sean Hefty" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 2/2] libibmad/resolve: add include to pick up inet_pton
-Date: Wed, 30 Sep 2009 16:22:26 -0700
-Message-ID: <B3D9536B45F044569239C2EF308D6BBD@amr.corp.intel.com>
-References: <B5538B5C830E456484477BD3BAFA430B@amr.corp.intel.com>
+From: "Davis, Arlin R" <arlin.r.davis-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH 1/4] dapl/openib_scm: update windows support to use 'fd'
+ abstraction
+Date: Wed, 30 Sep 2009 16:32:56 -0700
+Message-ID: <E3280858FA94444CA49D2BA02341C9835E855A91@orsmsx506.amr.corp.intel.com>
+References: <E61D2EAC1B404A49ACB04B4092C00BEC@amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <B5538B5C830E456484477BD3BAFA430B-Zpru7NauK7drdx17CPfAsdBPR1lH4CV8@public.gmane.org>
+In-Reply-To: <E61D2EAC1B404A49ACB04B4092C00BEC-Zpru7NauK7drdx17CPfAsdBPR1lH4CV8@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, 'Sasha Khapyorsky' <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Windows needs to specifically pull in inet_pton from inet.h.
 
-Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
----
+Thanks, applied 1,3,4.  2/4 (dtest,dtestx,dtestcm) already covered.
 
- libibmad/src/resolve.c |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
-
-diff --git a/libibmad/src/resolve.c b/libibmad/src/resolve.c
-index 9438fc1..3e07e8a 100644
---- a/libibmad/src/resolve.c
-+++ b/libibmad/src/resolve.c
-@@ -39,6 +39,7 @@
- #include <stdio.h>
- #include <stdlib.h>
- #include <string.h>
-+#include <arpa/inet.h>
- 
- #include <infiniband/umad.h>
- #include <infiniband/mad.h>
 
 
 
