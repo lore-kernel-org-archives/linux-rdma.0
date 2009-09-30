@@ -1,109 +1,40 @@
-From: Ingo Molnar <mingo-X9Un+BFzKDI@public.gmane.org>
-Subject: Re: [ofa-general] Re: [GIT PULL] please pull ummunotify
-Date: Wed, 30 Sep 2009 11:44:56 +0200
-Message-ID: <20090930094456.GD24621@elte.hu>
-References: <aday6omhz9d.fsf@cisco.com> <1253187028.8439.2.camel@twins> <adafxalejiq.fsf@cisco.com> <adaab0tej5c.fsf@cisco.com> <1253198976.14935.27.camel@laptop> <adazl8td35u.fsf@cisco.com> <adatyz1d17q.fsf@cisco.com> <20090929171332.GD14405@elf.ucw.cz>
+From: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [ofa-general] [PATCH 2/2 v4] opensm: Compression of multicast
+	group according to pkey
+Date: Wed, 30 Sep 2009 09:40:28 -0400
+Message-ID: <f0e08f230909300640r69936ee5w2ff59d5cfa2a7cd6@mail.gmail.com>
+References: <4AC21184.4010103@Voltaire.COM>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20090929171332.GD14405-I/5MKhXcvmPrBKCeMvbIDA@public.gmane.org>
+In-Reply-To: <4AC21184.4010103-hKgKHo2Ms0F+cjeuK/JdrQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>
-Cc: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Peter Zijlstra <peterz-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Paul Mackerras <paulus-eUNUBHrolfbYtjvyW6yDsg@public.gmane.org>, Anton Blanchard <anton-eUNUBHrolfbYtjvyW6yDsg@public.gmane.org>, general-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org, akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org
+To: Slava Strebkov <slavas-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+Cc: general-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org, OFED mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On Tue, Sep 29, 2009 at 9:54 AM, Slava Strebkov <slavas-smomgflXvOZWk0Htik3J/w@public.gmane.org> wrote:
+> Additional data structure added:
+> 1. Map of all partition keys opened in the fabric.
+> 2. Map of all multicast group boxes shared same pkey.
+> MLID assignment for multicast groups works in a usual manner,
+> allocating free entry for newly created group.
+> Proposed compression algorithm starts working when there are no more
+> free entries in the mlid array. List of MLIDs for new multicast group
+> will be chosen from the pkey indexed map according to the requested
+> pkey. MLID which shares minimum number of ports will be given to newly
+> created multicast group.
 
-* Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org> wrote:
+Other suitability criteria aside from minimum number of ports (which
+is debatable), are MTU and rate matching. Are MTU and rate also
+checked (in addition to pkey) ? If not, IMO these checks should be
+added.
 
-> On Thu 2009-09-17 08:45:29, Roland Dreier wrote:
-> > 
-> >
-[...]
-> > OK.  It would be nice to tie into something more general, but I 
-> > think I agree -- perf counters are missing the filtering and the "no 
-> > lost events" that ummunotify does have. [...]
+-- Hal
 
-Performance events filtering is being worked on and now with the proper 
-non-DoS limit you've added you can lose events too, dont you? So it's 
-all a question of how much buffering to add - and with perf events too 
-you can buffer arbitrary large amount of events.
+> Signed-off-by: Slava Strebkov <slavas-smomgflXvOZWk0Htik3J/w@public.gmane.org>
 
-> > [...]  And I'm not sure it's worth messing up the perf counters 
-> > design just to jam one more not totally related thing in.
-
-Nobody suggested details for any redesign yet (so far it seems like a 
-perfect match, to me at least) so i'm wondering what messup you are 
-referring to.
-
-> I believe that extending perf counters to do what you want is better 
-> than adding one more, very strange, user<->kernel interface.
-
-Agreed.
-
-Lemme react to the original description of the code:
-
->     git://git.kernel.org/pub/scm/linux/kernel/git/roland/infiniband.git ummunotify
->
-> This will get "ummunotify," a new character device that allows a 
-> userspace library to register for MMU notifications; this is 
-> particularly useful for MPI implementions (message passing libraries 
-> used in HPC) to be able to keep track of what wacky things consumers 
-> do to their memory mappings.
-
-I test-pulled this code and had a look at it.
-
-I think this could be done in a simpler, less limited, more generic, 
-more useful form by using some variation of perf events.
-
-You should be able to get all that you want by adding two TRACE_EVENT() 
-tracepoints and using the existing perf event syscall to get the events 
-to user-space.
-
-Meaning that this:
-
-  9 files changed, 1060 insertions(+), 1 deletions(-)
-
-Would be replaced with something like:
-
-  2 files changed, 100 insertions(+), 0 deletions(-)
-
-[ the +100 lines would (roughly) would add tracepoints to 
-  invalidate_page and invalidate_range_start. (possibly via 
-  mmu_notifier_register() like the ummunotify code does) Most of that 
-  linecount would be comments. ]
-
-Another upside, beyond the reduction in complexity is that we'd have one 
-less special char driver based ABI. Which is a big plus in my opinion, 
-especially if this goes towards HPC folks and if it's used for real. Why 
-should such a MM capability hidden behind a character device and an 
-ioctl?
-
-The perf event approach is beneficial to non-HPC as well: MM 
-instrumentation for example - page range invalidates are interesting to 
-all sorts of modi of analysis.
-
-A question: what is the typical size/scope of the rbtree of the watched 
-regions of memory in practical (test) deployments of the ummunofity 
-code?
-
-Per tracepoint filtering is possible via the perf event patches Li Zefan 
-has posted to lkml recently, under this subject:
-
-   [PATCH 0/6] perf trace: Add filter support
-
-They are still being worked on but it's very clear that flexible 
-in-kernel filtering support will be a natural part of the perf event 
-design in the very near future, so if that alone is your reason not to 
-use it it would be better if you helped us complete/test the filter 
-support and use that, instead of a parallel framework.
-
-Or if that's not desirable or not possible, or if there's any other 
-technical roadblock, i'd like to know the particulars of that.
-
-Thanks,
-
-	Ingo
+<snip...>
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
