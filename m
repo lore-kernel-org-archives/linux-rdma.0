@@ -1,40 +1,39 @@
-From: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [ofa-general] [PATCH 2/2 v4] opensm: Compression of multicast
-	group according to pkey
-Date: Wed, 30 Sep 2009 09:40:28 -0400
-Message-ID: <f0e08f230909300640r69936ee5w2ff59d5cfa2a7cd6@mail.gmail.com>
-References: <4AC21184.4010103@Voltaire.COM>
+From: Hal Rosenstock <hnrose-Wuw85uim5zDR7s880joybQ@public.gmane.org>
+Subject: [PATCH] opensm/osm_sa_lft_record.c: In lftr_rcv_new_lftr, handle
+	osm_switch_get_lft_block failure
+Date: Wed, 30 Sep 2009 11:43:41 -0400
+Message-ID: <20090930154341.GA31709@comcast.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4AC21184.4010103-hKgKHo2Ms0F+cjeuK/JdrQ@public.gmane.org>
+Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Slava Strebkov <slavas-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Cc: general-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org, OFED mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, general-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Sep 29, 2009 at 9:54 AM, Slava Strebkov <slavas-smomgflXvOZWk0Htik3J/w@public.gmane.org> wrote:
-> Additional data structure added:
-> 1. Map of all partition keys opened in the fabric.
-> 2. Map of all multicast group boxes shared same pkey.
-> MLID assignment for multicast groups works in a usual manner,
-> allocating free entry for newly created group.
-> Proposed compression algorithm starts working when there are no more
-> free entries in the mlid array. List of MLIDs for new multicast group
-> will be chosen from the pkey indexed map according to the requested
-> pkey. MLID which shares minimum number of ports will be given to newly
-> created multicast group.
 
-Other suitability criteria aside from minimum number of ports (which
-is debatable), are MTU and rate matching. Are MTU and rate also
-checked (in addition to pkey) ? If not, IMO these checks should be
-added.
-
--- Hal
-
-> Signed-off-by: Slava Strebkov <slavas-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-
-<snip...>
+Signed-off-by: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+---
+diff --git a/opensm/opensm/osm_sa_lft_record.c b/opensm/opensm/osm_sa_lft_record.c
+index d092129..828b277 100644
+--- a/opensm/opensm/osm_sa_lft_record.c
++++ b/opensm/opensm/osm_sa_lft_record.c
+@@ -99,8 +99,12 @@ static ib_api_status_t lftr_rcv_new_lftr(IN osm_sa_t * sa,
+ 	p_rec_item->rec.block_num = cl_hton16(block);
+ 
+ 	/* copy the lft block */
+-	osm_switch_get_lft_block(p_sw, block, p_rec_item->rec.lft);
+-
++	if (!osm_switch_get_lft_block(p_sw, block, p_rec_item->rec.lft)) {
++		OSM_LOG(sa->p_log, OSM_LOG_ERROR, "ERR 4403: "
++			"osm_switch_get_lft_block failed\n");
++		status = IB_INSUFFICIENT_RESOURCES;
++		goto Exit;
++	}
+ 	cl_qlist_insert_tail(p_list, &p_rec_item->list_item);
+ 
+ Exit:
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
