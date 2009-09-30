@@ -1,7 +1,7 @@
 From: "Sean Hefty" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 4/4] dapl/dtestx: add definition for getpid
-Date: Wed, 30 Sep 2009 16:15:56 -0700
-Message-ID: <6C197864FC9E4FC6A30D62E8D6255ACB@amr.corp.intel.com>
+Subject: [PATCH 3/4] dapl/dtest: remove gettimeofday definition
+Date: Wed, 30 Sep 2009 16:15:07 -0700
+Message-ID: <E9F6461C37494A9586069CB583DF5E14@amr.corp.intel.com>
 References: <E61D2EAC1B404A49ACB04B4092C00BEC@amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
@@ -13,40 +13,63 @@ Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Davis, Arlin R" <arlin.r.davis-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Add definition for getpid similar to that used by the other dtest apps.
+WinOF provides a common implementation of gettimeofday that should
+be used instead.
 
 Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
 
- test/dtest/dtestcm.c |    1 +
- test/dtest/dtestx.c  |    1 +
- 2 files changed, 2 insertions(+), 0 deletions(-)
+ test/dtest/dtest.c   |   17 +++--------------
+ test/dtest/dtestcm.c |   19 +++----------------
+ test/dtest/dtestx.c  |    6 +++---
+ 3 files changed, 9 insertions(+), 33 deletions(-)
 
+diff --git a/test/dtest/dtest.c b/test/dtest/dtest.c
+index 22999f7..1ae279f 100755
+--- a/test/dtest/dtest.c
++++ b/test/dtest/dtest.c
+@@ -723,17 +723,6 @@ complete:
+ 	return (0);
+ }
+ 
+-#if defined(_WIN32) || defined(_WIN64)
+-void gettimeofday(struct timeval *t, char *jnk)
+-{
+-	SYSTEMTIME now;
+-	GetLocalTime(&now);
+-	t->tv_sec = now.wMinute * 60;
+-	t->tv_sec += now.wSecond;
+-	t->tv_usec = now.wMilliseconds;
+-}
+-#endif
+-
+ double get_time(void)
+ {
+ 	struct timeval tp;
 diff --git a/test/dtest/dtestcm.c b/test/dtest/dtestcm.c
-index d1e5712..cb2f262 100644
+index 427a25e..d1e5712 100644
 --- a/test/dtest/dtestcm.c
 +++ b/test/dtest/dtestcm.c
-@@ -49,6 +49,7 @@
- #include <complib/cl_types.h>
- #include "..\..\..\..\etc\user\getopt.c"
+@@ -547,19 +547,6 @@ bail:
+ 	return (0);
+ }
  
-+#define getpid() ((int)GetCurrentProcessId())
- #define F64x "%I64x"
- #define F64d "%I64d"
- 
-diff --git a/test/dtest/dtestx.c b/test/dtest/dtestx.c
-index 369d58b..6e078ec 100755
---- a/test/dtest/dtestx.c
-+++ b/test/dtest/dtestx.c
-@@ -44,6 +44,7 @@
- #include "..\..\..\..\etc\user\getopt.c"
- #define __BYTE_ORDER __LITTLE_ENDIAN
- 
-+#define getpid() ((int)GetCurrentProcessId())
- #define F64x "%I64x"
- #define F64u "%I64u"
- #define DAPL_PROVIDER "ibnic0v2"
-
+-#if defined(_WIN32) || defined(_WIN64)
+-
+-void gettimeofday(struct timeval *t, char *jnk)
+-{
+-	SYSTEMTIME now;
+-	GetLocalTime(&now);
+-	t->tv_sec = now.wMinute * 60;
+-	t->tv_sec += now.wSecond;
+-	t->tv_usec = now.wMilliseconds;
+-}
+-
+-#endif
+-
+ double get_time(void)
+ {
+ 	struct timeval tp;
 
 
 --
