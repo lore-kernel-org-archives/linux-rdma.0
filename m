@@ -1,134 +1,99 @@
-From: "Arlin Davis" <arlin.r.davis@intel.com>
-Subject: [PATCH] DAPL v2: dtest, dtestx: remove IB verb definitions
-Date: Wed, 30 Sep 2009 15:04:31 -0700
-Message-ID: <6DF924A7A42A4E68A8F2217696304884@amr.corp.intel.com>
+From: "Sean Hefty" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH 1/4] dapl/openib_scm: update windows support to use 'fd' abstraction
+Date: Wed, 30 Sep 2009 16:11:19 -0700
+Message-ID: <E61D2EAC1B404A49ACB04B4092C00BEC@amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <ofw-bounces@lists.openfabrics.org>
-List-Unsubscribe: <http://lists.openfabrics.org/cgi-bin/mailman/listinfo/ofw>,
-	<mailto:ofw-request@lists.openfabrics.org?subject=unsubscribe>
-List-Archive: <http://lists.openfabrics.org/pipermail/ofw>
-List-Post: <mailto:ofw@lists.openfabrics.org>
-List-Help: <mailto:ofw-request@lists.openfabrics.org?subject=help>
-List-Subscribe: <http://lists.openfabrics.org/cgi-bin/mailman/listinfo/ofw>,
-	<mailto:ofw-request@lists.openfabrics.org?subject=subscribe>
-Sender: ofw-bounces@lists.openfabrics.org
-Errors-To: ofw-bounces@lists.openfabrics.org
-To: linux-rdma@vger.kernel.org, ofw@lists.openfabrics.org
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Davis, Arlin R" <arlin.r.davis-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+The completion manager was updated to provide an abstraction that
+better mimicked how fd's were used.  Update dapl to use this
+abstraction, rather than the older completion manager api.
 
-Remove gid and qp_type references from test app.
-Print address infomation in sockaddr and
-ucm provider format with qpn and lid.
+This helps minimize changes between linux and windows.
 
-Signed-off-by: Arlin Davis <arlin.r.davis@intel.com>
+Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- test/dtest/dtest.c  |   19 ++++++++-----------
- test/dtest/dtestx.c |   27 +++++++++++----------------
- 2 files changed, 19 insertions(+), 27 deletions(-)
 
-diff --git a/test/dtest/dtest.c b/test/dtest/dtest.c
-index 75cbe4c..5ac16c4 100755
---- a/test/dtest/dtest.c
-+++ b/test/dtest/dtest.c
-@@ -100,7 +100,6 @@
- #define MAX_PROCS      1000
+ dapl/openib_scm/device.c |   16 ++++++++--------
+ 1 files changed, 8 insertions(+), 8 deletions(-)
+
+diff --git a/dapl/openib_scm/device.c b/dapl/openib_scm/device.c
+index bb72279..a327390 100644
+--- a/dapl/openib_scm/device.c
++++ b/dapl/openib_scm/device.c
+@@ -70,18 +70,16 @@ void dapli_ib_thread_destroy(void);
+ #include "..\..\..\..\..\etc\user\comp_channel.cpp"
+ #include <rdma\winverbs.h>
  
- /* Header files needed for DAT/uDAPL */
--#include "infiniband/verbs.h"
- #include "dat2/udat.h"
+-struct ibvw_windata windata;
++static COMP_SET ufds;
  
- /* definitions */
-@@ -219,7 +218,7 @@ union dcm_addr {
- 		uint8_t		port_num;
- 		uint16_t	lid;
- 		uint32_t	qpn;
--		union ibv_gid	gid;
-+		uint8_t		gid[16];
- 	} ib;
- };
+ static int dapls_os_init(void)
+ {
+-	return ibvw_get_windata(&windata, IBVW_WINDATA_VERSION);
++	return CompSetInit(&ufds);
+ }
  
-@@ -447,15 +446,13 @@ int main(int argc, char **argv)
- 		(void*)ia_attr.ia_address_ptr,
- 		sizeof(DAT_SOCK_ADDR6));
+ static void dapls_os_release(void)
+ {
+-	if (windata.comp_mgr)
+-		ibvw_release_windata(&windata, IBVW_WINDATA_VERSION);
+-	windata.comp_mgr = NULL;
++	CompSetCleanup(&ufds);
+ }
  
--	if (local.ib.qp_type == IBV_QPT_UD) {
--		ucm = 1;
--		printf("%d Local uCM Address = QPN=0x%x, LID=0x%x\n",
--			getpid(), ntohl(local.ib.qpn),
--			ntohs(local.ib.lid));
--		printf("%d Remote uCM Address = QPN=0x%x, LID=0x%x\n",
--			getpid(), ntohl(remote.ib.qpn),
--			ntohs(remote.ib.lid));
--	}
-+	printf("%d Local Address %s port %d\n", getpid(),
-+	       inet_ntoa(((struct sockaddr_in *)&local)->sin_addr), 
-+	       SERVER_CONN_QUAL);
-+
-+	printf("%d Local Address QPN=0x%x, LID=0x%x  <<< ucm provider\n",
-+		getpid(), ntohl(local.ib.qpn),
-+		ntohs(local.ib.lid));
+ static int dapls_config_verbs(struct ibv_context *verbs)
+@@ -98,7 +96,7 @@ static int dapls_config_comp_channel(struct ibv_comp_channel *channel)
  
- 	/* Create Protection Zone */
- 	start = get_time();
-diff --git a/test/dtest/dtestx.c b/test/dtest/dtestx.c
-index 6e17b6d..2132f31 100755
---- a/test/dtest/dtestx.c
-+++ b/test/dtest/dtestx.c
-@@ -65,7 +65,6 @@
+ static int dapls_thread_signal(void)
+ {
+-	CompManagerCancel(windata.comp_mgr);
++	CompSetCancel(&ufds);
+ 	return 0;
+ }
+ #else				// _WIN64 || WIN32
+@@ -584,7 +582,6 @@ void dapli_thread(void *arg)
+ {
+ 	struct _ib_hca_transport *hca;
+ 	struct _ib_hca_transport *uhca[8];
+-	COMP_CHANNEL *channel;
+ 	int ret, idx, cnt;
  
- #endif
+ 	dapl_dbg_log(DAPL_DBG_TYPE_UTIL, " ib_thread(%d,0x%x): ENTER: \n",
+@@ -595,11 +592,14 @@ void dapli_thread(void *arg)
+ 	     g_ib_thread_state == IB_THREAD_RUN; 
+ 	     dapl_os_lock(&g_hca_lock)) {
  
--#include "infiniband/verbs.h"
- #include "dat2/udat.h"
- #include "dat2/dat_ib_extensions.h"
++		CompSetZero(&ufds);
+ 		idx = 0;
+ 		hca = dapl_llist_is_empty(&g_hca_list) ? NULL :
+ 		      dapl_llist_peek_head(&g_hca_list);
  
-@@ -189,7 +188,7 @@ union dcm_addr {
- 		uint8_t		port_num;
- 		uint16_t	lid;
- 		uint32_t	qpn;
--		union ibv_gid	gid;
-+		uint8_t		gid[16];
- 	} ib;
- };
+ 		while (hca) {
++			CompSetAdd(&hca->ib_ctx->channel, &ufds);
++			CompSetAdd(&hca->ib_cq->comp_channel, &ufds);
+ 			uhca[idx++] = hca;
+ 			hca = dapl_llist_next_entry(&g_hca_list,
+ 						    (DAPL_LLIST_ENTRY *)
+@@ -608,7 +608,7 @@ void dapli_thread(void *arg)
+ 		cnt = idx;
  
-@@ -444,24 +443,20 @@ int connect_ep(char *hostname)
- 		(void*)ia_attr.ia_address_ptr,
- 		sizeof(DAT_SOCK_ADDR6));
+ 		dapl_os_unlock(&g_hca_lock);
+-		ret = CompManagerPoll(windata.comp_mgr, INFINITE, &channel);
++		ret = CompSetPoll(&ufds, INFINITE);
  
--	if (local.ib.qp_type == IBV_QPT_UD) {
--		ucm = 1;
-+        printf("%d Local Address %s port %d\n", getpid(),
-+               inet_ntoa(((struct sockaddr_in *)&local)->sin_addr),
-+               SERVER_ID);
- 
--		if (ud_test) {
--			printf("%d UD test over UCM provider not supported\n",
--				getpid());
--			exit(1);
--		}
-+        printf("%d Local Address QPN=0x%x, LID=0x%x <<< ucm provider\n",
-+                getpid(), ntohl(local.ib.qpn),
-+                ntohs(local.ib.lid));
- 
--		printf("%d Local uCM Address = QPN=0x%x, LID=0x%x\n",
--			getpid(), ntohl(local.ib.qpn),
--			ntohs(local.ib.lid));
--		printf("%d Remote uCM Address = QPN=0x%x, LID=0x%x\n",
--			getpid(), ntohl(remote.ib.qpn),
--			ntohs(remote.ib.lid));
-+	if (ucm && ud_test) {
-+		printf("%d UD test over UCM provider not supported\n",
-+			getpid());
-+		exit(1);
- 	}
- 
--
- 	/* Print provider specific attributes */
- 	for (i = 0; i < prov_attrs.num_provider_specific_attr; i++) {
- 		LOGPRINTF(" Provider Specific Attribute[%d] %s=%s\n",
--- 
-1.5.2.5
+ 		dapl_dbg_log(DAPL_DBG_TYPE_UTIL,
+ 			     " ib_thread(%d) poll_event 0x%x\n",
+
+
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
