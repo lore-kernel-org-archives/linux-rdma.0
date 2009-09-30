@@ -1,53 +1,115 @@
-From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [ofa-general] Re: [GIT PULL] please pull ummunotify
-Date: Wed, 30 Sep 2009 10:06:32 -0700
-Message-ID: <ada63b0tl9j.fsf@cisco.com>
-References: <aday6omhz9d.fsf@cisco.com> <1253187028.8439.2.camel@twins>
-	<adafxalejiq.fsf@cisco.com> <adaab0tej5c.fsf@cisco.com>
-	<1253198976.14935.27.camel@laptop> <adazl8td35u.fsf@cisco.com>
-	<adatyz1d17q.fsf@cisco.com> <20090929171332.GD14405@elf.ucw.cz>
-	<20090930094456.GD24621@elte.hu>
+From: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH] opensm: Reduce heap consumption by unicast routing tables
+	(LFTs)
+Date: Wed, 30 Sep 2009 14:38:27 -0400
+Message-ID: <f0e08f230909301138y64595e9dj47bdec4a47d80f99@mail.gmail.com>
+References: <20090927193258.GG26931@me>
+	 <1719052465.9944581254135649449.JavaMail.root@sz0074a.westchester.pa.mail.comcast.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20090930094456.GD24621-X9Un+BFzKDI@public.gmane.org> (Ingo Molnar's message of "Wed,
-	30 Sep 2009 11:44:56 +0200")
+In-Reply-To: <1719052465.9944581254135649449.JavaMail.root-m8vEhog2yEGs1RcX6exeh1Wh7bxQi8rYbcbDuTDi3LmGxX56iWlbXw@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ingo Molnar <mingo-X9Un+BFzKDI@public.gmane.org>
-Cc: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>, Peter Zijlstra <peterz-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Paul Mackerras <paulus-eUNUBHrolfbYtjvyW6yDsg@public.gmane.org>, Anton Blanchard <anton-eUNUBHrolfbYtjvyW6yDsg@public.gmane.org>, general-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org, akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org
+To: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+Hi Sasha,
 
- > Performance events filtering is being worked on and now with the proper 
- > non-DoS limit you've added you can lose events too, dont you? So it's 
- > all a question of how much buffering to add - and with perf events too 
- > you can buffer arbitrary large amount of events.
+Somehow this message didn't make it to the general list.
 
-No, the idea for non-DoS for ummunotify is that we would limit the
-number of regions the application can register; so an application might
-hit the limit up front but no runtime loss of events once a region was
-registered successfully.
+> Hi Hal,
+>
+> On 11:30 Sat 29 Aug =C2=A0 =C2=A0 , Hal Rosenstock wrote:
+>>
+>> Heap memory consumption by the unicast and multicast routing tables =
+can be
+>> reduced.
+>>
+>> Using valgrind --tool=3Dmassif (for heap profiling), there are coupl=
+e of
+>> places that consume most of the heap memory:
+>> ->38.75% (11,206,656B) 0x43267E: osm_switch_new (osm_switch.c:134)
+>
+> What fabric size was used for such measurements?
+>
+> Assuming that maximal LFT size is less than 50K you may need > 200
+> switches in order to eat almost 11M memory.
 
- > I think this could be done in a simpler, less limited, more generic, 
- > more useful form by using some variation of perf events.
- > 
- > You should be able to get all that you want by adding two TRACE_EVENT() 
- > tracepoints and using the existing perf event syscall to get the events 
- > to user-space.
+Yes, this was done with around 200 switches.
 
-Yes, I would like to use perf events too.  Would it be plausible to
-create a way for userspace to create a "counter" for each address range
-being watched?  Then events would not be lost, because those counters
-would become non-zero.
+> And what about memory consumption for lid matrices?
 
- > Meaning that this:
- >   9 files changed, 1060 insertions(+), 1 deletions(-)
+This didn't show up in the heap profiling. My understanding is that
+LID matrices are already optimized. The arrays of ports are allocated
+for each LID (in host order) on demand:
 
-Note that lots/ of the files touched here are in Documentation or are
-one-line changes to Makefiles etc.
+cl_status_t osm_switch_set_hops(...)
+{
+       ...
+       if (!p_sw->hops[lid_ho]) {
+               p_sw->hops[lid_ho] =3D malloc(p_sw->num_ports);
+               if (!p_sw->hops[lid_ho])
+                       return -1;
+               memset(p_sw->hops[lid_ho], OSM_NO_PATH,
+p_sw->num_ports);
+       }
+       ...
+}
 
- - R.
+>> ->12.89% (3,728,256B) 0x40F8C9: osm_mcast_tbl_init (osm_mcast_tbl.c:=
+96)
+>>
+>> osm_switch_new (osm_switch.c:108):
+>> =C2=A0 =C2=A0 =C2=A0 =C2=A0p_sw->lft =3D malloc(IB_LID_UCAST_END_HO =
++ 1);
+>>
+>> From ib_types.h
+>> =C2=A0#define IB_LID_UCAST_END_HO 0xBFFF
+>
+> Which is 49152 bytes per switch, not so terrible IMHO.
+
+=46or embedded systems, 50KB per switch is not so small.
+Also, a similar thing happens with MFTs, so these 50KB turn
+into something even bigger.
+
+>
+>>
+>> The LFT can be allocated in smaller chunks. If there is a LID that
+>> exeeds the current LFT size, LFT is reallocated with an increased si=
+ze.
+>
+> Is such chunk-driven flow really needed?
+>
+> After subnet discovery and LIDs =C2=A0assignment you know exactly how=
+ many
+> lid entries are needed for LFT. So would not it be better, faster and
+> simpler to just prealloc switches' LFT buffers for this required and
+> already optimal size at beginning of the LFT calculation phase?
+
+Yes, that seems like a better approach.
+
+>> This reduces performance and increases memory fragmentation,
+>
+> Also code's size, complexity and maintainability.
+>
+>> so this
+>> tradeoff is made optional based on new build and config options (see
+>> below).
+>
+> And assuming that we will have a simpler approach, will we need those
+> config options?
+
+The config options would not be needed but build options might be.
+That would depend on whether you want the current behavior (allocation
+during osm_switch_new) preserved or not. Do you ?
+
+-- Hal
+
+<snip...>
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
