@@ -1,32 +1,44 @@
-From: "Sean Hefty" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [OPENSM] cast to remove warnings about signed vs. unsigned	comparisons
-Date: Thu, 1 Oct 2009 11:43:22 -0700
-Message-ID: <7C799D30BD9A4AFBB2F99080871974BD@amr.corp.intel.com>
-References: <839303D0FDC14F77AE516FDC9CF8B6A7@amr.corp.intel.com> <20091001155613.GN17846@me> <3F6F638B8D880340AB536D29CD4C1E1912C86E862B@orsmsx501.amr.corp.intel.com> <20091001162715.GC22310@obsidianresearch.com> <5700CAE1904A41378DAE71D5F81B9C55@amr.corp.intel.com> <20091001182734.GI19540@obsidianresearch.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [OPENSM] match functions to prototypes in header file
+Date: Thu, 1 Oct 2009 12:51:48 -0600
+Message-ID: <20091001185148.GJ19540@obsidianresearch.com>
+References: <3DE88517D38A4EB0B49A2E3AAF96D005@amr.corp.intel.com> <20091001183127.GX17846@me>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20091001182734.GI19540-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20091001183127.GX17846@me>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: 'Jason Gunthorpe' <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: "Smith, Stan" <stan.smith-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>, ofw-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+Cc: "Stan C. Smith" <stan.smith-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, ofw-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
->The biggest problem is that the cast is only correct if the types
->never change. If someone changes the type then every instance of every
->cast must be tracked down and fixed too. This is a huge maintenance
->burden that implict casting avoids.
+On Thu, Oct 01, 2009 at 08:31:27PM +0200, Sasha Khapyorsky wrote:
+> > @@ -1106,9 +1109,9 @@ void osm_dump_path_record(IN osm_log_t * p_log, IN const ib_path_rec_t * p_pr,
+> >  			"\t\t\t\tresv2...................0x%X\n"
+> >  			"\t\t\t\tresv3...................0x%X\n",
+> >  			cl_ntoh64(p_pr->service_id),
+> > -			inet_ntop(AF_INET6, p_pr->dgid.raw, gid_str,
+> > +			inet_ntop(AF_INET6, (void*)p_pr->dgid.raw, gid_str,
+> 
+> And why is such casting(s) needed?
 
-You could definitely argue that by changing the type of a variable, you should
-validate its usage anywhere it's used.
+Casting away const like that is incorrect, fix your inet_ntop to have
+a POSIX signature or ignore the warning.
 
-Trying to assign a variable of one type to another is a valid warning that
-should be looked at.  Disabling the warning is not the best solution.
+> Also wouldn't it be simpler to remove 'const' in "type * const var"
+> function parameter definitions? This restricts only value of a pointer
+> (not structure content), and since function parameters are passed by
+> values such restriction is only related to a function implementation
+> and actually meanless in sense of API. Thoughts?
 
-- Sean
+Yah, type * const var is quite strange. Why propose this?
 
+Then again, this existing is quite strange too:
+
+> >  			  IN const osm_log_level_t log_level)
+
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
