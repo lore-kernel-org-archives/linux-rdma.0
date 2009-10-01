@@ -1,46 +1,53 @@
-From: "Smith, Stan" <stan.smith-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH] osm_subnet.c change void* arithmetic to char*
-Date: Thu, 1 Oct 2009 14:38:28 -0700
-Message-ID: <3F6F638B8D880340AB536D29CD4C1E1912C86E8A99@orsmsx501.amr.corp.intel.com>
+From: "Sean Hefty" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: ib_types.h moving
+Date: Thu, 1 Oct 2009 14:47:33 -0700
+Message-ID: <376DB0F1C4874D9388729D1367F54C23@amr.corp.intel.com>
+References: <EED935897ACB4DC784DFAB4184A5DC6F@amr.corp.intel.com>	<FCF6CB1AB515463BAB014EB7BB084FDA@amr.corp.intel.com>	<20090917101804.12e9e5ce.weiny2@llnl.gov>	<FD141AAD0F10420B9D0478DB68C9DEDA@amr.corp.intel.com>	<20090917132050.041b077d.weiny2@llnl.gov>	<20090925130908.GD26931@me> <20090930183126.0011af7c.weiny2@llnl.gov>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <20090930183126.0011af7c.weiny2-i2BcT+NCU+M@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Cc: "ofw-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org" <ofw-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: 'Ira Weiny' <weiny2-i2BcT+NCU+M@public.gmane.org>, Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+Cc: ofw_list <ofw-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Eli Dorfman <elid-smomgflXvOZWk0Htik3J/w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+>So far I can only think of 2 "correct" options.
+>
+>   1) Make ib_types.h into a new library and have libibverbs, libibmad,
+>      opensm, and MPI's use the constants and helper functions there.  This of
+>      course would force some dependencies.
+>
+>   2) split up and spread ib_types.h around to appropriate places.  This will
+>      likely include libibmad and libibverbs (others?) I don't think libibumad
+>      is appropriate really.  At first, I suggested this mainly out of
+>      convenience because WinOF uses it.  However, I don't think it is
+>      architecturally correct.  libibumad looks to have a sound interface and
+>      should not be messed with.
 
-MS compiler doesn't Grok void* arithmetic, use char*
+The only issue that was pointed out was that the IB ACM duplicated some network
+structure definitions (the SA MAD format, McMemberRecord, PathRecord).  It seems
+perfectly natural to me to have the library that allows you to send and receive
+MADs to provide these definitions, especially considering how fundamental these
+specific attributes are to using IB.  Even though umad_send and umad_recv are
+both defined to take a void * input buffer, they expect a specific format to
+that buffer.
 
-Signed-off-by: stan smith <stan.smith-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+libibverbs defines host structure definitions for McMemberRecord and PathRecord,
+but doesn't use them.  This allows the rdma_cm and ib_cm to remain independent,
+but use the same definition.
 
---- a/opensm/opensm/osm_subnet.c        2009-10-01 12:45:52.000000000 -0700
-+++ b/opensm/opensm/osm_subnet.c        2009-10-01 14:24:18.000000000 -0700
-@@ -1193,8 +1193,8 @@
-                        if (strcmp(r->name, p_key))
-                                continue;
+IB ACM is coded to libibumad directly, mainly because I didn't see any benefit
+to coding to a higher level MAD interface that was more complex to use.  Trying
+to keep the defines in a higher level library, which is what we have now, either
+results in duplicating them or forcing a dependency where there wouldn't be any.
 
--                       p_field1 = (void *)p_opts->file_opts + r->opt_offset;
--                       p_field2 = (void *)p_opts + r->opt_offset;
-+                       p_field1 = (char *)p_opts->file_opts + r->opt_offset;
-+                       p_field2 = (char *)p_opts + r->opt_offset;
-                        /* don't call setup function first time */
-                        r->parse_fn(NULL, p_key, p_val, p_field1, p_field2,
-                                    NULL);
-@@ -1253,8 +1253,8 @@
-                        if (!r->can_update || strcmp(r->name, p_key))
-                                continue;
+And to be clear, I'm only referring to definitions in ib_types.h (and some in
+mad.h), and not any actual functionality.
 
--                       p_field1 = (void *)p_opts->file_opts + r->opt_offset;
--                       p_field2 = (void *)p_opts + r->opt_offset;
-+                       p_field1 = (char *)p_opts->file_opts + r->opt_offset;
-+                       p_field2 = (char *)p_opts + r->opt_offset;
-                        r->parse_fn(p_subn, p_key, p_val, p_field1, p_field2,
-                                    r->setup_fn);
-                        break;
+- Sean
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
