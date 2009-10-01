@@ -1,56 +1,36 @@
-From: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH] opensm/osm_mesh.c: simplify compare_switches() function
-Date: Thu, 1 Oct 2009 19:04:43 +0200
-Message-ID: <20091001170443.GS17846@me>
+From: "Sean Hefty" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [OPENSM] cast to remove warnings about signed vs. unsigned comparisons
+Date: Thu, 1 Oct 2009 10:10:13 -0700
+Message-ID: <5700CAE1904A41378DAE71D5F81B9C55@amr.corp.intel.com>
+References: <839303D0FDC14F77AE516FDC9CF8B6A7@amr.corp.intel.com> <20091001155613.GN17846@me> <3F6F638B8D880340AB536D29CD4C1E1912C86E862B@orsmsx501.amr.corp.intel.com> <20091001162715.GC22310@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <20091001162715.GC22310-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+To: 'Jason Gunthorpe' <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, "Smith, Stan" <stan.smith-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>, ofw-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+>I've always felt the warning on implicit cast from larger to smaller
+>type to be somewhat useless - that is an unavoidable operation when
+>working with networking. Adding casts does nothing to actually improve
+>the code, and trying to change to smaller types results in worse code
+>gen and no improvement in function.
 
-Simplify compare_switches() qsort's comparator function.
+An explicit cast lets someone reading the code know that the original programmer
+was aware that data could be loss, or that data loss wouldn't occur because of
+the range of the data.  IMO, adding explicit casts to the code is better than
+having an equally number of implicit casts.
 
-Signed-off-by: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
----
- opensm/opensm/osm_mesh.c |   12 ++++--------
- 1 files changed, 4 insertions(+), 8 deletions(-)
+>Maybe OFW would be better off just turning that warning off? :)
 
-diff --git a/opensm/opensm/osm_mesh.c b/opensm/opensm/osm_mesh.c
-index e5c53d9..76191d9 100644
---- a/opensm/opensm/osm_mesh.c
-+++ b/opensm/opensm/osm_mesh.c
-@@ -1370,21 +1370,17 @@ static int reorder_links(lash_t *p_lash, mesh_t *mesh)
-  */
- static int compare_switches(const void *p1, const void *p2)
- {
--	int i, j, d;
- 	const comp_t *cp1 = p1, *cp2 = p2;
- 	const sort_ctx_t *ctx = &cp1->ctx;
- 	switch_t *s1 = ctx->p_lash->switches[cp1->index];
- 	switch_t *s2 = ctx->p_lash->switches[cp2->index];
-+	int i, j;
-+	int ret;
- 
- 	for (i = 0; i < ctx->mesh->dimension; i++) {
- 		j = ctx->mesh->dim_order[i];
--		d = s1->node->coord[j] - s2->node->coord[j];
--
--		if (d > 0)
--			return 1;
--
--		if (d < 0)
--			return -1;
-+		if ((ret = s1->node->coord[j] - s2->node->coord[j]));
-+			return ret;
- 	}
- 
- 	return 0;
--- 
-1.6.5.rc1
+I've tried.  If there's a way to do this, I haven't found it.  The /W<whatever
+number this is> option hasn't worked for me.
+
+- Sean
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
