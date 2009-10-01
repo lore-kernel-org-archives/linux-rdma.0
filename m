@@ -1,38 +1,51 @@
-From: "Sean Hefty" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [OPENSM] cast to remove warnings about signed vs. unsigned comparisons
-Date: Thu, 1 Oct 2009 10:10:13 -0700
-Message-ID: <5700CAE1904A41378DAE71D5F81B9C55@amr.corp.intel.com>
-References: <839303D0FDC14F77AE516FDC9CF8B6A7@amr.corp.intel.com> <20091001155613.GN17846@me> <3F6F638B8D880340AB536D29CD4C1E1912C86E862B@orsmsx501.amr.corp.intel.com> <20091001162715.GC22310@obsidianresearch.com>
+From: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH] opensm/osm_helper.c: fix compiler warning
+Date: Thu, 1 Oct 2009 19:17:00 +0200
+Message-ID: <20091001171700.GU17846@me>
+References: <D8E83C9B6A164D48B1F37DFB606CB25A@amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20091001162715.GC22310-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <D8E83C9B6A164D48B1F37DFB606CB25A-Zpru7NauK7drdx17CPfAsdBPR1lH4CV8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: 'Jason Gunthorpe' <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, "Smith, Stan" <stan.smith-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>, ofw-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: "Stan C. Smith" <stan.smith-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, ofw-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
->I've always felt the warning on implicit cast from larger to smaller
->type to be somewhat useless - that is an unavoidable operation when
->working with networking. Adding casts does nothing to actually improve
->the code, and trying to change to smaller types results in worse code
->gen and no improvement in function.
 
-An explicit cast lets someone reading the code know that the original programmer
-was aware that data could be loss, or that data loss wouldn't occur because of
-the range of the data.  IMO, adding explicit casts to the code is better than
-having an equally number of implicit casts.
+Eliminate compiler warning:
 
->Maybe OFW would be better off just turning that warning off? :)
+osm_helper.c:551: warning: missing braces around initializer
+osm_helper.c:551: warning: (near initialization for =E2=80=98ib_zero_gi=
+d.raw=E2=80=99)
 
-I've tried.  If there's a way to do this, I haven't found it.  The /W<whatever
-number this is> option hasn't worked for me.
+Signed-off-by: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+---
+ opensm/opensm/osm_helper.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-- Sean
+diff --git a/opensm/opensm/osm_helper.c b/opensm/opensm/osm_helper.c
+index 35da131..ea9e21f 100644
+--- a/opensm/opensm/osm_helper.c
++++ b/opensm/opensm/osm_helper.c
+@@ -548,7 +548,7 @@ const char *ib_get_trap_str(ib_net16_t trap_num)
+ 	return "Unknown";
+ }
+=20
+-const ib_gid_t ib_zero_gid =3D { 0 };
++const ib_gid_t ib_zero_gid =3D { { 0 } };
+=20
+ /*********************************************************************=
+*
+  *********************************************************************=
+*/
+--=20
+1.6.5.rc1
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
