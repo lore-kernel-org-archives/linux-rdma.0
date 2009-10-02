@@ -1,35 +1,61 @@
-From: "Sean Hefty" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: ib_types.h moving
-Date: Fri, 2 Oct 2009 09:56:22 -0700
-Message-ID: <FB1B0AC05BE24B3892604089AAB3C706@amr.corp.intel.com>
-References: <EED935897ACB4DC784DFAB4184A5DC6F@amr.corp.intel.com>	<FCF6CB1AB515463BAB014EB7BB084FDA@amr.corp.intel.com>	<20090917101804.12e9e5ce.weiny2@llnl.gov>	<FD141AAD0F10420B9D0478DB68C9DEDA@amr.corp.intel.com>	<20090917132050.041b077d.weiny2@llnl.gov>	<20090925130908.GD26931@me>	<20090930183126.0011af7c.weiny2@llnl.gov>	<376DB0F1C4874D9388729D1367F54C23@amr.corp.intel.com> <20091001173841.9ef6bca2.weiny2@llnl.gov>
+From: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH] opensm: fix some obvious -Wsign-compare warnings
+Date: Fri, 2 Oct 2009 13:41:14 -0400
+Message-ID: <f0e08f230910021041p28307726j6bb280220abd1eae@mail.gmail.com>
+References: <20091001192536.GY17846@me>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20091001173841.9ef6bca2.weiny2-i2BcT+NCU+M@public.gmane.org>
+In-Reply-To: <20091001192536.GY17846@me>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: 'Ira Weiny' <weiny2-i2BcT+NCU+M@public.gmane.org>
-Cc: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>, ofw_list <ofw-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Eli Dorfman <elid-smomgflXvOZWk0Htik3J/w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+To: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Stan C. Smith" <stan.smith-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-><sigh> yes this discussion has digressed.  But I don't think we should dive
->into breaking up (or moving) ib_types just to move things around.  I think
->Sasha is right we need to have a plan for where things _should_ end up.  As I
->look for homes for all the items of ib_types I find that it is not just one
->place.  :-/
+Sasha,
 
-I really don't think it's worth the effort to rework IB libraries and MAD
-layers.  Most user space applications need simpler interfaces to use than
-communicating directly with the IB SA.  For the few that want or need to, the
-existing libraries are sufficient.  We only need a better place for some of the
-structure definitions than an opensm header file.  Even the ib-diags shouldn't
-depend on opensm.
+On Thu, Oct 1, 2009 at 3:25 PM, Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org> =
+wrote:
+>
+> Fix some obvious (not all) compile warnings generated when
+> -Wsign-compare flag is used.
+>
+> Signed-off-by: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+> ---
 
-- Sean
+<snip...>
 
+> diff --git a/opensm/opensm/osm_mcast_mgr.c b/opensm/opensm/osm_mcast_=
+mgr.c
+> index 6f51404..aaab91a 100644
+> --- a/opensm/opensm/osm_mcast_mgr.c
+> +++ b/opensm/opensm/osm_mcast_mgr.c
+> @@ -1004,7 +1004,7 @@ static int mcast_mgr_set_mftables(osm_sm_t * sm=
+)
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0osm_switch_t *p_sw;
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0osm_mcast_tbl_t *p_tbl;
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0int block_notdone, ret =3D 0;
+> - =C2=A0 =C2=A0 =C2=A0 int16_t block_num, max_block =3D -1;
+> + =C2=A0 =C2=A0 =C2=A0 uint16_t block_num, max_block =3D -1;
+
+Doesn't this change break the loop which uses block_num/max_block like:
+
+for (block_num =3D 0; block_num <=3D max_block; block_num++) {
+=2E..
+
+so should a max_block check be inserted before that loop ?
+
+-- Hal
+
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0p_sw =3D (osm_switch_t *) cl_qmap_head(p_s=
+w_tbl);
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0while (p_sw !=3D (osm_switch_t *) cl_qmap_=
+end(p_sw_tbl)) {
+
+<snip...>
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
