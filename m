@@ -1,81 +1,34 @@
-From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [ofa-general] Re: [GIT PULL] please pull ummunotify
-Date: Fri, 02 Oct 2009 09:32:00 -0700
-Message-ID: <ada3a61rc3j.fsf@cisco.com>
-References: <aday6omhz9d.fsf@cisco.com> <1253187028.8439.2.camel@twins>
-	<adafxalejiq.fsf@cisco.com> <adaab0tej5c.fsf@cisco.com>
-	<1253198976.14935.27.camel@laptop> <adazl8td35u.fsf@cisco.com>
-	<adatyz1d17q.fsf@cisco.com> <20090929171332.GD14405@elf.ucw.cz>
-	<20090930094456.GD24621@elte.hu>
+From: "Sean Hefty" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: ib_types.h moving
+Date: Fri, 2 Oct 2009 09:56:22 -0700
+Message-ID: <FB1B0AC05BE24B3892604089AAB3C706@amr.corp.intel.com>
+References: <EED935897ACB4DC784DFAB4184A5DC6F@amr.corp.intel.com>	<FCF6CB1AB515463BAB014EB7BB084FDA@amr.corp.intel.com>	<20090917101804.12e9e5ce.weiny2@llnl.gov>	<FD141AAD0F10420B9D0478DB68C9DEDA@amr.corp.intel.com>	<20090917132050.041b077d.weiny2@llnl.gov>	<20090925130908.GD26931@me>	<20090930183126.0011af7c.weiny2@llnl.gov>	<376DB0F1C4874D9388729D1367F54C23@amr.corp.intel.com> <20091001173841.9ef6bca2.weiny2@llnl.gov>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20090930094456.GD24621-X9Un+BFzKDI@public.gmane.org> (Ingo Molnar's message of "Wed,
-	30 Sep 2009 11:44:56 +0200")
+In-Reply-To: <20091001173841.9ef6bca2.weiny2-i2BcT+NCU+M@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ingo Molnar <mingo-X9Un+BFzKDI@public.gmane.org>
-Cc: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>, Peter Zijlstra <peterz-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Paul Mackerras <paulus-eUNUBHrolfbYtjvyW6yDsg@public.gmane.org>, Anton Blanchard <anton-eUNUBHrolfbYtjvyW6yDsg@public.gmane.org>, general-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org, akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org
+To: 'Ira Weiny' <weiny2-i2BcT+NCU+M@public.gmane.org>
+Cc: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>, ofw_list <ofw-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Eli Dorfman <elid-smomgflXvOZWk0Htik3J/w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+><sigh> yes this discussion has digressed.  But I don't think we should dive
+>into breaking up (or moving) ib_types just to move things around.  I think
+>Sasha is right we need to have a plan for where things _should_ end up.  As I
+>look for homes for all the items of ib_types I find that it is not just one
+>place.  :-/
 
- > Per tracepoint filtering is possible via the perf event patches Li Zefan 
- > has posted to lkml recently, under this subject:
- > 
- >    [PATCH 0/6] perf trace: Add filter support
- > 
- > They are still being worked on but it's very clear that flexible 
- > in-kernel filtering support will be a natural part of the perf event 
- > design in the very near future, so if that alone is your reason not to 
- > use it it would be better if you helped us complete/test the filter 
- > support and use that, instead of a parallel framework.
- > 
- > Or if that's not desirable or not possible, or if there's any other 
- > technical roadblock, i'd like to know the particulars of that.
+I really don't think it's worth the effort to rework IB libraries and MAD
+layers.  Most user space applications need simpler interfaces to use than
+communicating directly with the IB SA.  For the few that want or need to, the
+existing libraries are sufficient.  We only need a better place for some of the
+structure definitions than an opensm header file.  Even the ib-diags shouldn't
+depend on opensm.
 
-So I looked a little deeper into this, and I don't think (even with the
-filtering extensions) that perf events are directly applicable to this
-problem.  The first issue is that, assuming I'm understanding the
-comment in perf_event.c:
+- Sean
 
-        /*
-         * Raw tracepoint data is a severe data leak, only allow root to
-         * have these.
-         */
-
-currently tracepoints can only be used by privileged processes.  A key
-feature of ummunotify is that ordinary unprivileged processes can use it.
-
-So would it be acceptable to add something like PERF_TYPE_MMU_NOTIFIER
-as a way of letting unprivileged userspace get access to just MMU events
-for their own process?  Clearly this touches core infrastructure and is
-not as simple as just adding two tracepoints.
-
-Then, assuming we have some way to create an "MMU notifier" perf event,
-we need a way for userspace to specify which address ranges it would
-like events for (I don't think the string filter expression used by
-existing trace filtering works, because if userspace is looking at a few
-hundred regions, then the size of the filtering expression explodes, and
-adding or removing a single range becomes a pain).  So I guess a new
-ioctl() to add/remove ranges for MMU_NOTIFIER perf events?
-
-I think filtering is needed, because otherwise events for ranges that
-are not of interest are just a waste of resources to generate and
-process, and make losing good events because of overflow much more
-likely.
-
-We still have the problem of lost events if the mmap buffer overflows,
-but userspace should be able to size the buffer so that such events are
-rare I guess.
-
-In the end this seems to just take the ummunotify code I have, and make
-it be a new type of perf counter instead of a character special device.
-I'd actually be OK with that, since having an oddball new char dev
-interface is not particularly nice.  But on the other hand just
-multiplexing a new type of thing under perf events is not all that much
-better.  What do you think?
-
-Thanks,
-  Roland
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
