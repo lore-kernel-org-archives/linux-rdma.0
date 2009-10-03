@@ -1,81 +1,95 @@
-From: "Arlin Davis" <arlin.r.davis-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [ANNOUNCE] dapl-2.0.23 release
-Date: Fri, 2 Oct 2009 17:15:30 -0700
-Message-ID: <099FBF52252142AA87A29578C69AAE14@amr.corp.intel.com>
+From: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH] opensm: fix some obvious -Wsign-compare warnings
+Date: Sat, 3 Oct 2009 02:33:57 +0200
+Message-ID: <20091003003357.GD17846@me>
+References: <20091001192536.GY17846@me>
+ <f0e08f230910021041p28307726j6bb280220abd1eae@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <f0e08f230910021041p28307726j6bb280220abd1eae-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: ofw-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
-Cc: "Smith, Stan" <stan.smith-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Vladimir Sokolovsky <vlad-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+To: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Dale Purdy <purdy-sJ/iWh9BUns@public.gmane.org>, "Stan C. Smith" <stan.smith-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-New release for uDAPL v2 (2.0.23) available at:
+On 13:41 Fri 02 Oct     , Hal Rosenstock wrote:
+>=20
+> > diff --git a/opensm/opensm/osm_mcast_mgr.c b/opensm/opensm/osm_mcas=
+t_mgr.c
+> > index 6f51404..aaab91a 100644
+> > --- a/opensm/opensm/osm_mcast_mgr.c
+> > +++ b/opensm/opensm/osm_mcast_mgr.c
+> > @@ -1004,7 +1004,7 @@ static int mcast_mgr_set_mftables(osm_sm_t * =
+sm)
+> > =A0 =A0 =A0 =A0osm_switch_t *p_sw;
+> > =A0 =A0 =A0 =A0osm_mcast_tbl_t *p_tbl;
+> > =A0 =A0 =A0 =A0int block_notdone, ret =3D 0;
+> > - =A0 =A0 =A0 int16_t block_num, max_block =3D -1;
+> > + =A0 =A0 =A0 uint16_t block_num, max_block =3D -1;
+>=20
+> Doesn't this change break the loop which uses block_num/max_block lik=
+e:
+>=20
+> for (block_num =3D 0; block_num <=3D max_block; block_num++) {
+> ...
 
-http://www.openfabrics.org/downloads/dapl
+Yes, it breaks (I was too fast, sorry). The breakage is also catched by
+Dale. The patch below should fix this.
 
-Latest Packages (see ChangeLog for recent changes):
+Sasha
 
-md5sum: f58d6dd903cee271d71b0eb6fa33984e compat-dapl-1.2.14.tar.gz 
-md5sum: dc1f31a4bc28aedcb725264d65db7e51 dapl-2.0.23.tar.gz 
+=46rom 0121a81ecb3124760817819cf170bb137523082c Mon Sep 17 00:00:00 200=
+1
+=46rom: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+Date: Sat, 3 Oct 2009 02:19:49 +0200
+Subject: [PATCH] opensm: fix endless looping in mcast_mgr
 
-Vlad, please pull into OFED 1.5 using package spec files and installing following order (v2 first):
+The bug was introduced by broken signed -> unsigned conversion. Fix thi=
+s
+properly (including sign-compare warning).
 
-dapl-2.0.23-1 
-dapl-utils-2.0.23-1 
-dapl-devel-2.0.23-1 
-dapl-debuginfo-2.0.23-1 
-compat-dapl-1.2.14-1 
-compat-dapl-devel-1.2.14-1 
+Signed-off-by: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+---
+ opensm/include/opensm/osm_switch.h |    2 +-
+ opensm/opensm/osm_mcast_mgr.c      |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-Summary of changes since last release: 
-
-v2 - cma: cannot reuse the cm_id and qp for new connection, must reallocate a new one. 
-v2 - scm, cma: update DAPL cm protocol revision with latest address/port changes 
-v2 - ucm: modify IB address format to align better with sockaddr_in6 
-v2 - Add definition for getpid similar to that used by the other dtest apps. 
-v2 - WinOF provides a common implementation of gettimeofday that should 
-v2 - the completion manager was updated to provide an abstraction that 
-v2 - dtestcm: remove IB verb definitions 
-v2 - dtest, dtestx: remove IB verb definitions 
-v2 - scm: tighten up socket options to insure similiar behavior on Windows and Linux. 
-v2 - cma: improve serialization of destroy and event processing 
-v2 - scm: improve serialization of destroy and state changes 
-v2 - common: no cleanup/release code for timer thread 
-v2 - scm, cma: dapli_thread doesn't always get teminated on library close. 
-v2 - ucm: tighten up locking with CM processing, state changes 
-v2 - ucm: For UD type QP's, return CR p_data with CONN_EST event on passive side. 
-v2 - ucm: cleanup extra cr/lf 
-v2 - ucm: fix issues with UD QP's. 
-v2 - winof: Convert windows version of dapl and dat libaries to use private heaps. 
-v2 - dtest, dtestx: modifications for UD QP testing with ucm provider. 
-v2 - scm, ucm: UD QP support was broken when porting to common openib code base. 
-v2 - cma: cleanup warning with unused local variable, ret, in disconnect 
-v2 - cma: remove debug message after rdma_disconnect failure 
-v2 - scm: socket errno check needs O/S dependent wrapper 
-v2 - dapltest: update script files for WinOF 
-v2 - cma: conditional check for new rdma_cm definition. 
-
-For more details see the following: 
-
-http://www.openfabrics.org/downloads/dapl
-documentation/uDAPL_v20.pdf for v2 API specification 
-documentation/transition_to_dat20_120406.pdf for details on porting to 2.0 
-documentation/DAT_IB_Extensions.pdf for IB extension details. 
-documentation/DAT_IW_Extensions.pdf for iWARP extension details. 
-documentation/uDAPL_ofed_testing_bkm.pdf for latest uDAPL OFED BKM, updated 8-22-2008 
-
-uDAT/uDAPL source git tree is located at git://git.openfabrics.org/~ardavis/scm/dapl.git 
-
-Thanks,
-
--arlin
-
-_______________________________________________
+diff --git a/opensm/include/opensm/osm_switch.h b/opensm/include/opensm=
+/osm_switch.h
+index e281842..37c1c4f 100644
+--- a/opensm/include/opensm/osm_switch.h
++++ b/opensm/include/opensm/osm_switch.h
+@@ -103,7 +103,7 @@ typedef struct osm_switch {
+ 	uint8_t *lft;
+ 	uint8_t *new_lft;
+ 	osm_mcast_tbl_t mcast_tbl;
+-	uint32_t mft_block_num;
++	int32_t mft_block_num;
+ 	uint32_t mft_position;
+ 	unsigned endport_links;
+ 	unsigned need_update;
+diff --git a/opensm/opensm/osm_mcast_mgr.c b/opensm/opensm/osm_mcast_mg=
+r.c
+index aaab91a..6f51404 100644
+--- a/opensm/opensm/osm_mcast_mgr.c
++++ b/opensm/opensm/osm_mcast_mgr.c
+@@ -1004,7 +1004,7 @@ static int mcast_mgr_set_mftables(osm_sm_t * sm)
+ 	osm_switch_t *p_sw;
+ 	osm_mcast_tbl_t *p_tbl;
+ 	int block_notdone, ret =3D 0;
+-	uint16_t block_num, max_block =3D -1;
++	int16_t block_num, max_block =3D -1;
+=20
+ 	p_sw =3D (osm_switch_t *) cl_qmap_head(p_sw_tbl);
+ 	while (p_sw !=3D (osm_switch_t *) cl_qmap_end(p_sw_tbl)) {
+--=20
+1.6.5.rc1
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
