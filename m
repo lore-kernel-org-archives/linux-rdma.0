@@ -1,34 +1,46 @@
-From: "Sean Hefty" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH 1/2] rdma/cm: support option to allow manually setting	IB path
-Date: Mon, 5 Oct 2009 12:20:20 -0700
-Message-ID: <7678E71349EE4E57ADB9B81D7C176BB2@amr.corp.intel.com>
-References: <F0EFC2D8E6A340D48497497670C5969C@amr.corp.intel.com> <20091005175656.GK5191@obsidianresearch.com> <F7D418716F3A4A0DACE42CC449624298@amr.corp.intel.com> <20091005181525.GL5191@obsidianresearch.com>
+From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: [ANNOUNCE] libcxgb3 1.2.5 released
+Date: Mon, 05 Oct 2009 16:44:32 -0500
+Message-ID: <4ACA68C0.8030301@opengridcomputing.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20091005181525.GL5191-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: 'Jason Gunthorpe' <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Return-path: <ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+List-Unsubscribe: <http://lists.openfabrics.org/cgi-bin/mailman/listinfo/ewg>,
+	<mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.openfabrics.org/pipermail/ewg>
+List-Post: <mailto:ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+List-Help: <mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=help>
+List-Subscribe: <http://lists.openfabrics.org/cgi-bin/mailman/listinfo/ewg>,
+	<mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=subscribe>
+Sender: ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
+Errors-To: ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: OpenFabrics EWG <ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
->But that isn't really the point, IB CM already provides this API so,
->why corrupt the RDMA CM abstraction with this?
+Sorry for yet another libcxgb3 so soon, but:
 
-The RDMA CM abstraction does not work on larger cluster sizes.  Either we can
-fix the RDMA CM or force all RDMA CM applications to be re-written and become
-transport aware.  This allows the librdmacm to implement a fix and communicate
-the necessary information to the kernel for connection establishment using
-generic mechanisms and an existing RDMA CM API.  (One alternative is for the
-kernel RDMA CM to communicate directly with the IB ACM or other external
-service, but I'd like to see much wider testing, acceptance, and standardization
-before attempting that.)  I could not find an efficient way of implementing the
-entire solution in user space because of the event reporting and port space
-handling.
+The libcxgb3 package is a userspace driver for Chelsio T3 iWARP RNICs.   
+It is a plug-in module for libibverbs that allows programs to use 
+Chelsio RDMA hardware directly from userspace.
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+A new release, libcxgb3-1.2.5, is available from
+
+http://www.openfabrics.org/downloads/cxgb3/libcxgb3-1.2.5.tar.gz
+
+with md5sum
+
+ed2eaf99bc7cce401dd0549505febdd1 libcxgb3-1.2.5.tar.gz
+
+This minor release fixes a bug where the qp wasn't being correctly RESET 
+causing dapltest failures.
+
+
+Vlad: Please pull this into ofed-1.5 before RC1.
+
+
+Thanks,
+
+
+Steve.
