@@ -1,49 +1,54 @@
-From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: [PATCH] RDMA/cxgb3: iwch_query_port() - handle null inetdev ptr.
-Date: Tue, 06 Oct 2009 16:13:22 -0500
-Message-ID: <20091006211321.16751.15175.stgit@build.ogc.int>
+From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+Subject: Re: Default force_link_speed value in opensm configuration
+Date: Tue, 6 Oct 2009 14:27:28 -0700
+Message-ID: <20091006142728.3d1e5bcc.weiny2@llnl.gov>
+References: <4ACB6891.7010202@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <4ACB6891.7010202-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Eli Dorfman (Voltaire)" <dorfman.eli-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: OFED mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-in_dev_get() can return NULL.  If it does, iwch_query_port() will crash.
-Handle the NULL case by mapping it to rdma state INIT.
+On Tue, 06 Oct 2009 17:56:01 +0200
+"Eli Dorfman (Voltaire)" <dorfman.eli-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
 
-Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
----
+> Hi,
+> 
+> Is there a reason for setting default force_link_speed to 15 (set enabled as supported) 
+> and not to 0 (don't modify PortInfo:LinkSpeedEnabled )?
 
- drivers/infiniband/hw/cxgb3/iwch_provider.c |   11 +++++++----
- 1 files changed, 7 insertions(+), 4 deletions(-)
+The thought was to enable all ports to the maximum supported by default.  This
+was the behavior before this option was added so it was though to leave it
+alone by default.
 
-diff --git a/drivers/infiniband/hw/cxgb3/iwch_provider.c b/drivers/infiniband/hw/cxgb3/iwch_provider.c
-index 6895523..03cfaec 100644
---- a/drivers/infiniband/hw/cxgb3/iwch_provider.c
-+++ b/drivers/infiniband/hw/cxgb3/iwch_provider.c
-@@ -1199,11 +1199,14 @@ static int iwch_query_port(struct ib_device *ibdev,
- 		props->state = IB_PORT_DOWN;
- 	else {
- 		inetdev = in_dev_get(netdev);
--		if (inetdev->ifa_list)
--			props->state = IB_PORT_ACTIVE;
--		else
-+		if (inetdev) {
-+			if (inetdev->ifa_list)
-+				props->state = IB_PORT_ACTIVE;
-+			else
-+				props->state = IB_PORT_INIT;
-+			in_dev_put(inetdev);
-+		} else
- 			props->state = IB_PORT_INIT;
--		in_dev_put(inetdev);
- 	}
- 
- 	props->port_cap_flags =
+Is there a reason this should not happen?  I guess since the Volume 2 spec
+says that the power on default for this is LinkSpeedSupported there is no
+reason to have the SM send these Set's.  Perhaps there is broken hardware out
+there?
 
+Ira
+
+
+> 
+> Thanks,
+> Eli
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://*vger.kernel.org/majordomo-info.html
+> 
+
+
+-- 
+Ira Weiny
+Math Programmer/Computer Scientist
+Lawrence Livermore National Lab
+925-423-8008
+weiny2-i2BcT+NCU+M@public.gmane.org
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
