@@ -1,54 +1,55 @@
-From: Vladimir Sokolovsky <vlad-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [ANNOUNCE] libcxgb3 1.2.5 released
-Date: Tue, 06 Oct 2009 09:22:14 +0200
-Message-ID: <4ACAF026.4010405@dev.mellanox.co.il>
-References: <4ACA68C0.8030301@opengridcomputing.com>
+From: Or Gerlitz <ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH 2/2] rdma/cm: allow user to specify IP to DGID mapping
+Date: Tue, 06 Oct 2009 10:00:19 +0200
+Message-ID: <4ACAF913.3050909@voltaire.com>
+References: <F0EFC2D8E6A340D48497497670C5969C@amr.corp.intel.com> <F451C333D8CB45E4B4642C6BD1EDD3C3@amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
-In-Reply-To: <4ACA68C0.8030301-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-List-Unsubscribe: <http://lists.openfabrics.org/cgi-bin/mailman/listinfo/ewg>,
-	<mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.openfabrics.org/pipermail/ewg>
-List-Post: <mailto:ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
-List-Help: <mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=help>
-List-Subscribe: <http://lists.openfabrics.org/cgi-bin/mailman/listinfo/ewg>,
-	<mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=subscribe>
-Sender: ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
-Errors-To: ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
-To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, OpenFabrics EWG <ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <F451C333D8CB45E4B4642C6BD1EDD3C3-Zpru7NauK7drdx17CPfAsdBPR1lH4CV8@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Steve Wise wrote:
-> Sorry for yet another libcxgb3 so soon, but:
->
-> The libcxgb3 package is a userspace driver for Chelsio T3 iWARP 
-> RNICs.   It is a plug-in module for libibverbs that allows programs to 
-> use Chelsio RDMA hardware directly from userspace.
->
-> A new release, libcxgb3-1.2.5, is available from
->
-> http://www.openfabrics.org/downloads/cxgb3/libcxgb3-1.2.5.tar.gz
->
-> with md5sum
->
-> ed2eaf99bc7cce401dd0549505febdd1 libcxgb3-1.2.5.tar.gz
->
-> This minor release fixes a bug where the qp wasn't being correctly 
-> RESET causing dapltest failures.
->
->
-> Vlad: Please pull this into ofed-1.5 before RC1.
->
->
-> Thanks,
->
->
-> Steve.
->
-Done,
+Sean Hefty wrote:
+> Provide an option for user's to manually specify the socket address to DGID mapping on InfiniBand.  Currently, all mappings are done using ipoib, and involve ARP.  This will not work across IP subnets, and alternative mechanisms of resolving the mapping are being explored. The latter can be more efficient if combined with route resolution as well.
+Sean, 
 
-Regards,
-Vladimir
+If I understand correct your suggested changes are to optionally let an 
+application to - instead of the following sequence of calls
+
+rdma_resolve_addr  / addr resolved event
+rdma_create_qp
+rdma_resolve_route  / route resolved event
+rdma_connect / cm events
+
+do
+
+rdma_set_ib_path
+rdma_create_qp
+rdma_connect / cm events
+
+So in that respect, I am not sure how rdma_set_dest serves you. Further, 
+rdma_resolve_addr does three resolutions
+
+1. the local device and source gid
+2. the PKEY (VLAN) to use
+3. the destination gid
+
+so in that respect, rdma_set_ib_path replaces both rdma_resolve_addr and
+rdma_resolve_route?
+
+I would prefer to have a solution where the app flow isn't touched, 
+something like the kernel rdma-cm to communicate with the user space ACM 
+daemon to get address and route resolutions.  Does such a design makes 
+sense to you?
+
+
+Or
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
