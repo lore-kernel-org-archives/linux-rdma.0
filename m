@@ -1,41 +1,67 @@
-From: "Sean Hefty" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH 1/2] rdma/cm: support option to allow manually setting	IB path
-Date: Tue, 6 Oct 2009 12:05:02 -0700
-Message-ID: <D61F37041B6F49ACB0AC64FBF2DC4D00@amr.corp.intel.com>
-References: <F0EFC2D8E6A340D48497497670C5969C@amr.corp.intel.com> <20091005175656.GK5191@obsidianresearch.com> <F7D418716F3A4A0DACE42CC449624298@amr.corp.intel.com> <20091005181525.GL5191@obsidianresearch.com> <5AEC2602AE03EB46BFC16C6B9B200DA8168EFD82BA@MNEXMB2.qlogic.org>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH 2/2] rdma/cm: allow user to specify IP to DGID mapping
+Date: Tue, 6 Oct 2009 14:07:39 -0600
+Message-ID: <20091006200739.GP5191@obsidianresearch.com>
+References: <F0EFC2D8E6A340D48497497670C5969C@amr.corp.intel.com> <F451C333D8CB45E4B4642C6BD1EDD3C3@amr.corp.intel.com> <4ACAF913.3050909@voltaire.com> <AA7E7C8FC2A04B9688CD69CEB7355DF8@amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <5AEC2602AE03EB46BFC16C6B9B200DA8168EFD82BA-e4KNYiSEog6Xx9kJd3VG2h2eb7JE58TQ@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <AA7E7C8FC2A04B9688CD69CEB7355DF8-Zpru7NauK7drdx17CPfAsdBPR1lH4CV8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: 'Todd Rimmer' <todd.rimmer-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+To: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: 'Or Gerlitz' <ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
->Ideally the best approach would be to have a mux at the ib_mad level.  We could
->allow a user space application to intercept all outbound MADs for a given class
->and/or attribute.  Unlike the present "snooping" of mads, this would literally
->be a interception.  This would provide a number of key advantages:
+On Tue, Oct 06, 2009 at 12:05:02PM -0700, Sean Hefty wrote:
 
-I agree that this is a good idea, and I mentioned something similar to this
-before on the list.  The idea was rejected in favor of using standard SA
-redirection.
+> From user space, the call sequence does not change.  The user calls
+> rdma_resolve_addr, rdma_resolve_route, rdma_connect, etc.  It is up to the
+> librdmacm to perform the resolution.  Today, the resolution request is simply
+> passed down to the kernel, which restricts how the resolution can be performed.
 
-That said, it may not be the best approach in all situations.  It restricts any
-solution to the MAD layer only.  If you look at how IB ACM approaches the
-problem, it combines the name/address resolution (ARP) with route resolution (PR
-query) without sending QP 1 traffic.  A solution limited to snooping MADs would
-be less efficient.
+Well, that is the whole trade off for using IP based addressing via
+RDMA CM - you completely give up the IB addressing
+architecture. Having an option for user space to specify an IP address
+and a HW address is just really very, very strange.
 
-For these two patches, if user space can determine the address mapping that they
-want for their connection and/or the path that should be used, do we allow the
-user to specify either or both?  I'd like to keep this discussion somewhat
-separate from how those were obtained.
+I understand why you'd want to do this, but it is just such a brutal
+hack..
 
-- Sean
+IMHO, I think the fundamental problem is that RDMA CM is tied to IP
+(ie iWarp addressing). This was probably a mistake. We really needed a
+protocol and address agnostic CM API that can work with RDMA IB, iWARP
+and standard IB CM protocols, using the appropriate protocol specific
+addressing family and mechanism in each case.
 
+Then you could have ACM provide GID based PR addressing using IB CM
+within the RDMA CM API and it doesn't create such a complex mess. This
+would then mirror how sockets work.
+
+Actually, thinking about it some more, that would be very helpful. As
+I said before, I have worked on apps using IB CM. The only reason is
+to have complete control over the addressing. If I could use RDMA CM
+API in some kind of AF_GID addressing and service ID space, it would
+basically eliminate the need for IB CM entirely and make it alot less
+trouble to support things like iWarp, since it now just another AF/PF
+in the same API family.
+
+> (FYI - I have not yet implemented the librdmacm to call
+> rdma_bind_addr as part of rdma_resolve_route on linux.  I did not
+> see an easy way to convert a destination IP address to a source IP
+> address.  If anyone knows how, please let me know.)
+
+Isn't this related to the now several threads discussing how route
+resolution in the RDMA CM is busted?
+
+http://lists.openfabrics.org/pipermail/general/2009-July/060612.html
+
+You get the source address via the user (netlink) or kernel
+(ip_route_output_key) equivalent of 'ip route get x.x.x.x dev XXX'
+
+I wonder if Leo ever figured this out?
+
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
