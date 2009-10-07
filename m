@@ -1,26 +1,41 @@
-From: "Sean Hefty" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH] rdma/cm: fix resolving local ipv6 address.
-Date: Wed, 7 Oct 2009 16:06:45 -0700
-Message-ID: <6339B08075304FECBCDDF99663588BAB@amr.corp.intel.com>
-References: <1254955759.23471.7.camel@wilder.ibm.com>	<26840C730CF948B48A185F3F073FFC04@amr.corp.intel.com> <ada3a5uolfy.fsf@cisco.com>
+From: "Stan C. Smith" <stan.smith@intel.com>
+Subject: [PATCH] remove unnecessary leading '/' from filename
+Date: Wed, 7 Oct 2009 16:46:43 -0700
+Message-ID: <784A3771E5D143179461A7D5151AE78C@amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <ada3a5uolfy.fsf-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: 'Roland Dreier' <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Cc: "'David J. Wilder'" <dwilder-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, pradeep-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org
+Return-path: <ofw-bounces@lists.openfabrics.org>
+List-Unsubscribe: <http://lists.openfabrics.org/cgi-bin/mailman/listinfo/ofw>,
+	<mailto:ofw-request@lists.openfabrics.org?subject=unsubscribe>
+List-Archive: <http://lists.openfabrics.org/pipermail/ofw>
+List-Post: <mailto:ofw@lists.openfabrics.org>
+List-Help: <mailto:ofw-request@lists.openfabrics.org?subject=help>
+List-Subscribe: <http://lists.openfabrics.org/cgi-bin/mailman/listinfo/ofw>,
+	<mailto:ofw-request@lists.openfabrics.org?subject=subscribe>
+Sender: ofw-bounces@lists.openfabrics.org
+Errors-To: ofw-bounces@lists.openfabrics.org
+To: 'Sasha Khapyorsky' <sashak@voltaire.com>
+Cc: ofw@lists.openfabrics.org, 'linux-rdma' <linux-rdma@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
->thanks, applied... I didn't get the original patch but oh well.
 
-The original path was under the subject "Failing to resolve local ipv6 address.'
+In osm_db_domain_init() the filename is appended to a path string 'db_dir_name' which contains a trailing '/'.
+Remove extra '/'.
 
-I changed the subject on my reply.
+Signed-off-by: stan smith <stan.smith@intel.com>
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/opensm/opensm/osm_lid_mgr.c b/opensm/opensm/osm_lid_mgr.c
+index 947fe7a..1704054 100644
+--- a/opensm/opensm/osm_lid_mgr.c
++++ b/opensm/opensm/osm_lid_mgr.c
+@@ -239,7 +239,7 @@ ib_api_status_t osm_lid_mgr_init(IN osm_lid_mgr_t * p_mgr, IN osm_sm_t * sm)
+ 	p_mgr->p_lock = sm->p_lock;
+ 
+ 	/* we initialize and restore the db domain of guid to lid map */
+-	p_mgr->p_g2l = osm_db_domain_init(p_mgr->p_db, "/guid2lid");
++	p_mgr->p_g2l = osm_db_domain_init(p_mgr->p_db, "guid2lid");
+ 	if (!p_mgr->p_g2l) {
+ 		OSM_LOG(p_mgr->p_log, OSM_LOG_ERROR, "ERR 0316: "
+ 			"Error initializing Guid-to-Lid persistent database\n");
