@@ -1,95 +1,64 @@
-From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-Subject: Re: [ofa-general] [PATCH -- repost] infiniband-diags: Fix IB
- network discovery from switch node.
-Date: Wed, 7 Oct 2009 10:35:25 -0700
-Message-ID: <20091007103525.8982fc2f.weiny2@llnl.gov>
-References: <4A9548AA.4020900@gmail.com>
-	<20090923172451.fb20ab9b.weiny2@llnl.gov>
-	<4AC232D5.2060806@gmail.com>
-	<20090929164842.c1ab7d06.weiny2@llnl.gov>
+From: "Sean Hefty" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH 2/2] rdma/cm: allow user to specify IP to DGID mapping
+Date: Wed, 7 Oct 2009 12:16:56 -0700
+Message-ID: <20ADF14BE2B24B459DC3921F69449E61@amr.corp.intel.com>
+References: <F0EFC2D8E6A340D48497497670C5969C@amr.corp.intel.com> <F451C333D8CB45E4B4642C6BD1EDD3C3@amr.corp.intel.com> <4ACAF913.3050909@voltaire.com> <AA7E7C8FC2A04B9688CD69CEB7355DF8@amr.corp.intel.com> <20091006200739.GP5191@obsidianresearch.com> <B266C10D3C26431E8FF5012420132452@amr.corp.intel.com> <20091006231720.GR5191@obsidianresearch.com> <3F7D26D4BA1C46F18F2F87BDD7EB7F36@amr.corp.intel.com> <20091007052639.GB18578@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain;
+	charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20090929164842.c1ab7d06.weiny2-i2BcT+NCU+M@public.gmane.org>
+In-Reply-To: <20091007052639.GB18578-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Cc: "Eli Dorfman (Voltaire)" <dorfman.eli-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Julia Volynsky <juliav-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+To: 'Jason Gunthorpe' <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: 'Or Gerlitz' <ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Sasha,
+>So, I'm just talking about the user space API, the others can be
+>changed as necessary to align with it.
+>
+>This is open source, so choosing a technically better solution over a
+>endlessly backwards compatible solution is done all the time and is
+>normal, expected, etc. Cost of progress - that is the underlying
+>rational of Documentation/stable_api_nonsense.txt, and it applies just
+>as well to niche little user space libraries like these :)
 
-Perhaps you missed this patch the first time around.  Eli, verified that it worked for him on the switch as well as works for me.  This applies to current master as is.
+stable_api_nonsense.txt only applies to the rdma_cm interface, not the ABI or a
+user space library.  I believe that any change to the library or ABI that forces
+applications to change would be detrimental to OFA and the stack as a whole, and
+I do not see a compelling reason to make such a change.
 
-Eli, I added you as signing off on this.
+Discarding the existing librdmacm interface and ABI are not viable options in my
+opinion.
 
-Thanks guys,
-Ira
+>The rdma_ucm interface would have to be extended to be able to do 100%
+>of the functionality of the ib cm interface using the rdma_cm_id
+>abstraction. This is very useful in of itself and much better than
+>adding an obscure option to override the ARP query. For instance,
+>other MPIs could immediately provide their users an option to use GID
+>addresess directly and cut out the ARP overhead instantly with
+>little code change.
 
-From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-Date: Tue, 22 Sep 2009 11:08:28 -0700
-Subject: [PATCH] infiniband-diags/libibnetdisc/src/ibnetdisc.c: fix bug in single node processing.
-
-	Eli fixed an issue with running ibnetdiscover from a switch but it
-	introduced a bug in processing a single switch:
-
-17:19:42 > ./iblinkinfo -S 0x000b8cffff00490c
-Switch 0x000b8cffff00490c MT47396 Infiniscale-III Mellanox Technologies:
-...
-           8   11[  ] ==( 4X 2.5 Gbps   Down/ Polling)==>             [  ] "" ( )
-           8   12[  ] ==( 4X 5.0 Gbps Active/  LinkUp)==>             [  ] "" ( )
-           8   13[  ] ==( 4X 2.5 Gbps   Down/ Polling)==>             [  ] "" ( )
-...
-
-	The port we "come in on" when discovering the switch is not reported properly.
-
-	This patch reverses Eli's patch and fixes his original bug in a way
-	which does not introduce the above issue.
-
-Signed-off-by: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-Signed-off-by: "Eli Dorfman (Voltaire)" <dorfman.eli-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
----
- infiniband-diags/libibnetdisc/src/ibnetdisc.c |   18 ++++++++----------
- 1 files changed, 8 insertions(+), 10 deletions(-)
-
-diff --git a/infiniband-diags/libibnetdisc/src/ibnetdisc.c b/infiniband-diags/libibnetdisc/src/ibnetdisc.c
-index 97e369c..96f72c5 100644
---- a/infiniband-diags/libibnetdisc/src/ibnetdisc.c
-+++ b/infiniband-diags/libibnetdisc/src/ibnetdisc.c
-@@ -506,7 +506,7 @@ static int get_remote_node(struct ibmad_port *ibmad_port,
- 	    != IB_PORT_PHYS_STATE_LINKUP)
- 		return 1;	/* positive == non-fatal error */
+rdma_cm rdma_resolve_addr may result in issuing an ARP query - it depends on the
+transport and device capabilities.  I want to keep the other behavior of
+librdmacm rdma_resolve_addr, and eliminate the ARP as unnecessary.  Other
+options I looked at were using fields inside the struct sockaddr_in6 (yuck) or
+letting a timeout of 0 indicate that ARP should not be used.  The latter leaves
+the ABI intact.  The drawback is that the DGID could still be unknown, which
+would result in rdma_cm rdma_resolve_route failing.  This may be acceptable.
  
--	if (extend_dpath(ibmad_port, fabric, path, portnum) < 0)
-+	if (portnum > 0 && extend_dpath(ibmad_port, fabric, path, portnum) < 0)
- 		return -1;
- 
- 	if (query_node(ibmad_port, fabric, &node_buf, &port_buf, path)) {
-@@ -600,15 +600,13 @@ ibnd_fabric_t *ibnd_discover_fabric(struct ibmad_port * ibmad_port,
- 	if (!port)
- 		goto error;
- 
--	if (node->type != IB_NODE_SWITCH) {
--		rc = get_remote_node(ibmad_port, fabric, node, port, from,
--				     mad_get_field(node->info, 0,
--						   IB_NODE_LOCAL_PORT_F), 0);
--		if (rc < 0)
--			goto error;
--		if (rc > 0)		/* non-fatal error, nothing more to be done */
--			return ((ibnd_fabric_t *) fabric);
--	}
-+	rc = get_remote_node(ibmad_port, fabric, node, port, from,
-+			     mad_get_field(node->info, 0,
-+					   IB_NODE_LOCAL_PORT_F), 0);
-+	if (rc < 0)
-+		goto error;
-+	if (rc > 0)		/* non-fatal error, nothing more to be done */
-+		return ((ibnd_fabric_t *) fabric);
- 
- 	for (dist = 0; dist <= max_hops; dist++) {
- 
--- 
-1.5.4.5
+An extension to the ABI is needed to allow user space to set the IB path.  The
+proposed 'set_option' ABI could support passing multiple PRs to the kernel.  The
+kernel implementation only handles one currently.
+
+>From your other mails, it doesn't sound like you have an issue with an ABI
+extension that allows setting the IB path record directly.  Is this correct, and
+do you have an issue with the proposed implementation of that?
+
+You do seem to disagree with the changes to allow user space to specify the IP
+to DGID mapping.  Is there an alternative that you would agree with?
+
+- Sean
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
