@@ -1,65 +1,94 @@
-From: Jeremy Enos <jenos-R3uSp7q5utt4piUD7e9S/g@public.gmane.org>
-Subject: 1.5 rc 1 install/build error
-Date: Thu, 08 Oct 2009 18:01:45 -0500
-Message-ID: <4ACE6F59.90502@ncsa.uiuc.edu>
+From: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH 2/2] rdma/cm: allow user to specify IP to DGID mapping
+Date: Fri, 9 Oct 2009 01:13:48 +0200
+Message-ID: <15ddcffd0910081613wb5087eaj14eb65aebb0e91c0@mail.gmail.com>
+References: <F0EFC2D8E6A340D48497497670C5969C@amr.corp.intel.com>
+	 <F451C333D8CB45E4B4642C6BD1EDD3C3@amr.corp.intel.com>
+	 <4ACAF913.3050909@voltaire.com>
+	 <AA7E7C8FC2A04B9688CD69CEB7355DF8@amr.corp.intel.com>
+	 <15ddcffd0910071523w4f229b14j905ad170ceb8c21f@mail.gmail.com>
+	 <9F4DE6A2B4F644698E94F00C4FEEF30A@amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <9F4DE6A2B4F644698E94F00C4FEEF30A-Zpru7NauK7drdx17CPfAsdBPR1lH4CV8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Or Gerlitz <ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This is the HPC build option:
+On Thu, Oct 8, 2009 at 1:42 AM, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote=
+:
+> My intent, which differs from Jason's, was to fully support the exist=
+ing
+> librdmacm interfaces as they are defined.
 
--------------------------------------------------------<snip>
-/var/tmp/mvapich-1.1.0-3390-root/usr/mpi/gcc/mvapich-1.1.0/bin/mpicc -o
-cpi cpi.o -lm
-/var/tmp/mvapich-1.1.0-3390-root/usr/mpi/gcc/mvapich-1.1.0/bin/mpif77
--fPIC -L/usr/lib64 -Wall -c pi3.f
-/var/tmp/mvapich-1.1.0-3390-root/usr/mpi/gcc/mvapich-1.1.0/bin/mpif77 -o
-pi3 pi3.o
-/var/tmp/mvapich-1.1.0-3390-root/usr/mpi/gcc/mvapich-1.1.0/bin/mpif90 
--Wall -c pi3f90.f90
-/var/tmp/mvapich-1.1.0-3390-root/usr/mpi/gcc/mvapich-1.1.0/bin/mpif90     
--o pi3f90 pi3f90.o
-rm -f *.o *~ PI* cpi  pi3 simpleio hello++ pi3f90 cpilog
-rm -rf SunWS_cache ii_files pi3f90.f pi3p cpip *.ti *.ii
-installed MPICH in
-/var/tmp/mvapich-1.1.0-3390-root/usr/mpi/gcc/mvapich-1.1.0
-/var/tmp/mvapich-1.1.0-3390-root/usr/mpi/gcc/mvapich-1.1.0/sbin/mpiuninstall
-may be used to remove the installation.
-+ rm -f
-/var/tmp/mvapich-1.1.0-3390-root//usr/mpi/gcc/mvapich-1.1.0/share/examples/mpirun
-+ cat
-+ cat
-+ /usr/lib/rpm/redhat/brp-compress
-+ /usr/lib/rpm/redhat/brp-strip /usr/bin/strip
-+ /usr/lib/rpm/redhat/brp-strip-static-archive /usr/bin/strip
-+ /usr/lib/rpm/redhat/brp-strip-comment-note /usr/bin/strip /usr/bin/objdump
-+ /usr/lib/rpm/brp-python-bytecompile
-+ /usr/lib/rpm/redhat/brp-python-hardlink
-+ /usr/lib/rpm/redhat/brp-java-repack-jars
-Processing files: mvapich_gcc-1.1.0-3390
-error: File not found:
-/var/tmp/OFED_topdir/BUILDROOT/mvapich_gcc-1.1.0-3390.x86_64/usr/mpi/gcc/mvapich-1.1.0
+yes, I agree this is the way to go
+
+> Implementation wise, if the user of the librdmacm calls rdma_resolve_=
+addr with a
+> src address, it's easy. =A0Without the src address, it's hard, but I =
+may just be
+> missing some easy interface for finding the src address.
+
+note that dst can map to multiple src addresses, so you're just
+looking for one of them... its doable, I will get you the details if
+you still need them
 
 
-RPM build errors:
-    File not found:
-/var/tmp/OFED_topdir/BUILDROOT/mvapich_gcc-1.1.0-33902.6.27.35-170.2.94.fc10.x86_64
-.x86_64/usr/mpi/gcc/mvapich-1.1.0
+>>> If a user sets the wrong address mapping or route, they should only=
+ affect themselves
 
--------------------------------------------------------
+>> I wasn't sure to follow this comment, can you elaborate a bit more?
 
-OS: Fedora Core 10 x64, up to date as of today
-Kernel:  2.6.27.35-170.2.94.fc10.x86_64
+> I meant that if some bogus app wants to specify an IP to GID mapping =
+that's
+> invalid, the incorrect mapping should only affect connections for tha=
+t app.
 
-This seems like more of a packaging problem than a build one.
+yes, this makes sense and I believe the rdma-cm code is written such
+that one bugus ID doesn't leak its defections to other IDs
 
-    Jeremy
+> I can somewhat implement an ACM + librdmacm solution entirely in user=
+ space by
+> layering the librdmacm over libibcm. =A0Because of the event reportin=
+g, it would be limited
+> in how it could be use, and is unlikely to be something that would ev=
+er be supported.
 
+yes, it would be limited and not really supportable, going that way
+for research / experimentation and development is fine, just make sure
+to never release that...
+
+> Technically, rdma_resolve_addr could remain unchanged, in which case =
+it will do
+> everything it does today, which may include sending an ARP.  This is =
+the
+> specific operation that I'd like to avoid.
+
+again, apps (both user and kernel ones) do use rdma_resolve_addr and
+we want them to keep doing so (I thought we agreed on that). For
+staging you may develop the type II address resolution prototype on
+top of libibcm but later rdma_resolve_addr would call IBACM and then
+sync with the kernel.
+
+Basically, can we agree that rdma_resolve_addr(src, dst, timeout) of
+type II it would look like
+
+if (src)
+  rdma_bind(src)
+else
+   call_some_user_space_networking_api_to_convert_dst_to_netdev/src
+next,  now we have dev/pkey
+- call ACM to resolve dst IP to GID and use dev/pkey for that
+- sync the kernel rdma_cm with the resolution if needed for the
+state-machine (hopefully its not a must at this point and can be done
+when calling set_path).
+
+Or
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
