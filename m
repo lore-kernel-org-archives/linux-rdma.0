@@ -1,56 +1,65 @@
-From: "Smith, Stan" <stan.smith@intel.com>
-Subject: RE: [PATCH] opensm - standardize on a single Windows #define
-Date: Thu, 8 Oct 2009 11:12:27 -0700
-Message-ID: <3F6F638B8D880340AB536D29CD4C1E1912C8846233@orsmsx501.amr.corp.intel.com>
-References: <C014357BC392401989734C286EDC5AE1@amr.corp.intel.com>
-	<21B1AC3C6F82416A8764CF0B6FD9C27B@amr.corp.intel.com>
-	<3F6F638B8D880340AB536D29CD4C1E1912C8846161@orsmsx501.amr.corp.intel.com>
-	<452E35E50EEF4860B8A5694626BA3B04@amr.corp.intel.com>
+From: Jeremy Enos <jenos-R3uSp7q5utt4piUD7e9S/g@public.gmane.org>
+Subject: 1.5 rc 1 install/build error
+Date: Thu, 08 Oct 2009 18:01:45 -0500
+Message-ID: <4ACE6F59.90502@ncsa.uiuc.edu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <ofw-bounces@lists.openfabrics.org>
-In-Reply-To: <452E35E50EEF4860B8A5694626BA3B04@amr.corp.intel.com>
-Content-Language: en-US
-List-Unsubscribe: <http://lists.openfabrics.org/cgi-bin/mailman/listinfo/ofw>,
-	<mailto:ofw-request@lists.openfabrics.org?subject=unsubscribe>
-List-Archive: <http://lists.openfabrics.org/pipermail/ofw>
-List-Post: <mailto:ofw@lists.openfabrics.org>
-List-Help: <mailto:ofw-request@lists.openfabrics.org?subject=help>
-List-Subscribe: <http://lists.openfabrics.org/cgi-bin/mailman/listinfo/ofw>,
-	<mailto:ofw-request@lists.openfabrics.org?subject=subscribe>
-Sender: ofw-bounces@lists.openfabrics.org
-Errors-To: ofw-bounces@lists.openfabrics.org
-To: "Hefty, Sean" <sean.hefty@intel.com>, 'Sasha Khapyorsky' <sashak@voltaire.com>
-Cc: "ofw@lists.openfabrics.org" <ofw@lists.openfabrics.org>, 'linux-rdma' <linux-rdma@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hefty, Sean wrote:
->> What would you suggest, given you did not like the ifndef __WIN__ in
->> terms of readability?
->
-> I was saying that it is slightly easier for me to read:
->
-> #ifdef __WIN__
-> // windows stuff
-> #else                 // <- not __WIN__
-> // other stuff
-> #endif
->
-> versus
->
-> #ifndef __WIN_
-> // other stuff
-> #else                 // <- not not __WIN__
-> // windows stuff
-> #endif
->
-> I don't have a problem with the use of __WIN__ or
->
-> #ifndef __WIN__
-> // other stuff
-> #endif
+This is the HPC build option:
 
-There is a fair amount of code hoisting to flip the ifndef __WIN__ --> ifde=
-f __WIN__ for readability reasons.
-There are bigger fish to fry at this juncture. Perhaps into the future.
+-------------------------------------------------------<snip>
+/var/tmp/mvapich-1.1.0-3390-root/usr/mpi/gcc/mvapich-1.1.0/bin/mpicc -o
+cpi cpi.o -lm
+/var/tmp/mvapich-1.1.0-3390-root/usr/mpi/gcc/mvapich-1.1.0/bin/mpif77
+-fPIC -L/usr/lib64 -Wall -c pi3.f
+/var/tmp/mvapich-1.1.0-3390-root/usr/mpi/gcc/mvapich-1.1.0/bin/mpif77 -o
+pi3 pi3.o
+/var/tmp/mvapich-1.1.0-3390-root/usr/mpi/gcc/mvapich-1.1.0/bin/mpif90 
+-Wall -c pi3f90.f90
+/var/tmp/mvapich-1.1.0-3390-root/usr/mpi/gcc/mvapich-1.1.0/bin/mpif90     
+-o pi3f90 pi3f90.o
+rm -f *.o *~ PI* cpi  pi3 simpleio hello++ pi3f90 cpilog
+rm -rf SunWS_cache ii_files pi3f90.f pi3p cpip *.ti *.ii
+installed MPICH in
+/var/tmp/mvapich-1.1.0-3390-root/usr/mpi/gcc/mvapich-1.1.0
+/var/tmp/mvapich-1.1.0-3390-root/usr/mpi/gcc/mvapich-1.1.0/sbin/mpiuninstall
+may be used to remove the installation.
++ rm -f
+/var/tmp/mvapich-1.1.0-3390-root//usr/mpi/gcc/mvapich-1.1.0/share/examples/mpirun
++ cat
++ cat
++ /usr/lib/rpm/redhat/brp-compress
++ /usr/lib/rpm/redhat/brp-strip /usr/bin/strip
++ /usr/lib/rpm/redhat/brp-strip-static-archive /usr/bin/strip
++ /usr/lib/rpm/redhat/brp-strip-comment-note /usr/bin/strip /usr/bin/objdump
++ /usr/lib/rpm/brp-python-bytecompile
++ /usr/lib/rpm/redhat/brp-python-hardlink
++ /usr/lib/rpm/redhat/brp-java-repack-jars
+Processing files: mvapich_gcc-1.1.0-3390
+error: File not found:
+/var/tmp/OFED_topdir/BUILDROOT/mvapich_gcc-1.1.0-3390.x86_64/usr/mpi/gcc/mvapich-1.1.0
+
+
+RPM build errors:
+    File not found:
+/var/tmp/OFED_topdir/BUILDROOT/mvapich_gcc-1.1.0-33902.6.27.35-170.2.94.fc10.x86_64
+.x86_64/usr/mpi/gcc/mvapich-1.1.0
+
+-------------------------------------------------------
+
+OS: Fedora Core 10 x64, up to date as of today
+Kernel:  2.6.27.35-170.2.94.fc10.x86_64
+
+This seems like more of a packaging problem than a build one.
+
+    Jeremy
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
