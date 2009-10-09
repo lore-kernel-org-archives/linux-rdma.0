@@ -1,7 +1,8 @@
 From: Hal Rosenstock <hnrose-Wuw85uim5zDR7s880joybQ@public.gmane.org>
-Subject: [PATCH] opensm/osm_lid_mgr.c: Fix typo in OSM_LOG message
-Date: Fri, 9 Oct 2009 10:47:50 -0400
-Message-ID: <20091009144750.GB17861@comcast.net>
+Subject: [PATCH] opensm: Add infrastructure support for PortInfo
+	IsMulticastPkeyTrapSuppressionSupported
+Date: Fri, 9 Oct 2009 10:46:59 -0400
+Message-ID: <20091009144659.GA17861@comcast.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
@@ -12,21 +13,141 @@ Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 
+Per published MgtWG errata RefID 4576
+
 Signed-off-by: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 ---
-diff --git a/opensm/opensm/osm_lid_mgr.c b/opensm/opensm/osm_lid_mgr.c
-index 947fe7a..74b5e39 100644
---- a/opensm/opensm/osm_lid_mgr.c
-+++ b/opensm/opensm/osm_lid_mgr.c
-@@ -1051,7 +1051,7 @@ static int lid_mgr_set_physp_pi(IN osm_lid_mgr_t * p_mgr,
- 	    && !p_mgr->p_subn->opt.no_clients_rereg
- 	    && (p_old_pi->capability_mask & IB_PORT_CAP_HAS_CLIENT_REREG)) {
- 		OSM_LOG(p_mgr->p_log, OSM_LOG_DEBUG,
--			"Seting client rereg on %s, port %d\n",
-+			"Setting client rereg on %s, port %d\n",
- 			p_port->p_node->print_desc, p_port->p_physp->port_num);
- 		ib_port_info_set_client_rereg(p_pi, 1);
- 		send_set = TRUE;
+diff --git a/opensm/include/iba/ib_types.h b/opensm/include/iba/ib_types.h
+index 25ed35f..c820372 100644
+--- a/opensm/include/iba/ib_types.h
++++ b/opensm/include/iba/ib_types.h
+@@ -4432,7 +4432,7 @@ typedef struct _ib_port_info {
+ 	ib_net16_t p_key_violations;
+ 	ib_net16_t q_key_violations;
+ 	uint8_t guid_cap;
+-	uint8_t subnet_timeout;	/* cli_rereg(1b), resrv(2b), timeout(5b) */
++	uint8_t subnet_timeout;	/* cli_rereg(1b), mcast_pkey_trap_suppr(1b), resrv(1b), timeout(5b) */
+ 	uint8_t resp_time_value;
+ 	uint8_t error_threshold; /* local phy errors(4b), overrun errors(4b) */
+ 	ib_net16_t max_credit_hint;
+@@ -5282,7 +5282,7 @@ ib_port_info_set_timeout(IN ib_port_info_t * const p_pi,
+ {
+ 	CL_ASSERT(timeout <= 0x1F);
+ 	p_pi->subnet_timeout =
+-	    (uint8_t) ((p_pi->subnet_timeout & 0x80) | (timeout & 0x1F));
++	    (uint8_t) ((p_pi->subnet_timeout & 0xC0) | (timeout & 0x1F));
+ }
+ 
+ /*
+@@ -5317,7 +5317,7 @@ ib_port_info_set_client_rereg(IN ib_port_info_t * const p_pi,
+ 	CL_ASSERT(client_rereg <= 0x1);
+ 	p_pi->subnet_timeout =
+ 	    (uint8_t) ((p_pi->
+-			subnet_timeout & 0x1F) | ((client_rereg << 7) & 0x80));
++			subnet_timeout & 0x5F) | ((client_rereg << 7) & 0x80));
+ }
+ 
+ /*
+@@ -5336,6 +5336,43 @@ ib_port_info_set_client_rereg(IN ib_port_info_t * const p_pi,
+ * SEE ALSO
+ *********/
+ 
++/****f* IBA Base: Types/ib_port_info_set_mcast_pkey_trap_suppress
++* NAME
++*	ib_port_info_set_mcast_pkey_trap_suppress
++*
++* DESCRIPTION
++*	Sets the encoded multicast pkey trap suppresion enabled bit value
++*	in the PortInfo attribute.
++*
++* SYNOPSIS
++*/
++static inline void OSM_API
++ib_port_info_set_mcast_pkey_trap_suppress(IN ib_port_info_t * const p_pi,
++					  IN const uint8_t trap_suppress)
++{
++	CL_ASSERT(trap_suppress <= 0x1);
++	p_pi->subnet_timeout =
++	    (uint8_t) ((p_pi->
++			subnet_timeout & 0x9F) | ((trap_suppress << 6) & 0x40));
++}
++
++/*
++* PARAMETERS
++*	p_pi
++*		[in] Pointer to a PortInfo attribute.
++*
++*	trap_suppress
++*		[in] Multicast pkey trap suppresion enabled value to set
++*		     (either 1 or 0).
++*
++* RETURN VALUES
++*	None.
++*
++* NOTES
++*
++* SEE ALSO
++*********/
++
+ /****f* IBA Base: Types/ib_port_info_get_timeout
+ * NAME
+ *	ib_port_info_get_timeout
+@@ -5392,6 +5429,35 @@ ib_port_info_get_client_rereg(IN ib_port_info_t const *p_pi)
+ * SEE ALSO
+ *********/
+ 
++/****f* IBA Base: Types/ib_port_info_get_mcast_pkey_trap_suppress
++* NAME
++*	ib_port_info_get_mcast_pkey_trap_suppress
++*
++* DESCRIPTION
++*	Gets the encoded multicast pkey trap suppresion enabled bit value
++*	in the PortInfo attribute.
++*
++* SYNOPSIS
++*/
++static inline uint8_t OSM_API
++ib_port_info_get_mcast_pkey_trap_suppress(IN ib_port_info_t const *p_pi)
++{
++	return ((p_pi->subnet_timeout & 0x40) >> 6);
++}
++
++/*
++* PARAMETERS
++*	p_pi
++*		[in] Pointer to a PortInfo attribute.
++*
++* RETURN VALUES
++*	Multicast PKey trap suppression enabled value (either 1 or 0).
++*
++* NOTES
++*
++* SEE ALSO
++*********/
++
+ /****f* IBA Base: Types/ib_port_info_set_hoq_lifetime
+ * NAME
+ *	ib_port_info_set_hoq_lifetime
+diff --git a/opensm/opensm/osm_helper.c b/opensm/opensm/osm_helper.c
+index 2b3dced..417c256 100644
+--- a/opensm/opensm/osm_helper.c
++++ b/opensm/opensm/osm_helper.c
+@@ -823,6 +823,7 @@ void osm_dump_port_info(IN osm_log_t * p_log, IN ib_net64_t node_guid,
+ 			"\t\t\t\tq_key_violations........0x%X\n"
+ 			"\t\t\t\tguid_cap................0x%X\n"
+ 			"\t\t\t\tclient_reregister.......0x%X\n"
++			"\t\t\t\tmcast_pkey_trap_suppr...0x%X\n"
+ 			"\t\t\t\tsubnet_timeout..........0x%X\n"
+ 			"\t\t\t\tresp_time_value.........0x%X\n"
+ 			"\t\t\t\terror_threshold.........0x%X\n"
+@@ -854,6 +855,7 @@ void osm_dump_port_info(IN osm_log_t * p_log, IN ib_net64_t node_guid,
+ 			cl_ntoh16(p_pi->p_key_violations),
+ 			cl_ntoh16(p_pi->q_key_violations), p_pi->guid_cap,
+ 			ib_port_info_get_client_rereg(p_pi),
++			ib_port_info_get_mcast_pkey_trap_suppress(p_pi),
+ 			ib_port_info_get_timeout(p_pi), p_pi->resp_time_value,
+ 			p_pi->error_threshold, cl_ntoh16(p_pi->max_credit_hint),
+ 			cl_ntoh32(p_pi->link_rt_latency));
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
