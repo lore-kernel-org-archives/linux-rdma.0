@@ -1,8 +1,7 @@
 From: Hal Rosenstock <hnrose-Wuw85uim5zDR7s880joybQ@public.gmane.org>
-Subject: [PATCH] opensm: Add infrastructure support for PortInfo
-	IsMulticastPkeyTrapSuppressionSupported
-Date: Fri, 9 Oct 2009 10:46:59 -0400
-Message-ID: <20091009144659.GA17861@comcast.net>
+Subject: [PATCH] opensm/osm_pkey.c: Cosmetic changes
+Date: Fri, 9 Oct 2009 10:48:37 -0400
+Message-ID: <20091009144837.GC17861@comcast.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
@@ -13,141 +12,94 @@ Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 
-Per published MgtWG errata RefID 4576
-
 Signed-off-by: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 ---
-diff --git a/opensm/include/iba/ib_types.h b/opensm/include/iba/ib_types.h
-index 25ed35f..c820372 100644
---- a/opensm/include/iba/ib_types.h
-+++ b/opensm/include/iba/ib_types.h
-@@ -4432,7 +4432,7 @@ typedef struct _ib_port_info {
- 	ib_net16_t p_key_violations;
- 	ib_net16_t q_key_violations;
- 	uint8_t guid_cap;
--	uint8_t subnet_timeout;	/* cli_rereg(1b), resrv(2b), timeout(5b) */
-+	uint8_t subnet_timeout;	/* cli_rereg(1b), mcast_pkey_trap_suppr(1b), resrv(1b), timeout(5b) */
- 	uint8_t resp_time_value;
- 	uint8_t error_threshold; /* local phy errors(4b), overrun errors(4b) */
- 	ib_net16_t max_credit_hint;
-@@ -5282,7 +5282,7 @@ ib_port_info_set_timeout(IN ib_port_info_t * const p_pi,
- {
- 	CL_ASSERT(timeout <= 0x1F);
- 	p_pi->subnet_timeout =
--	    (uint8_t) ((p_pi->subnet_timeout & 0x80) | (timeout & 0x1F));
-+	    (uint8_t) ((p_pi->subnet_timeout & 0xC0) | (timeout & 0x1F));
+diff --git a/opensm/opensm/osm_pkey.c b/opensm/opensm/osm_pkey.c
+index 6075b6a..6355718 100644
+--- a/opensm/opensm/osm_pkey.c
++++ b/opensm/opensm/osm_pkey.c
+@@ -97,7 +97,7 @@ ib_api_status_t osm_pkey_tbl_init(IN osm_pkey_tbl_t * p_pkey_tbl)
+ 	cl_qlist_init(&p_pkey_tbl->pending);
+ 	p_pkey_tbl->used_blocks = 0;
+ 	p_pkey_tbl->max_blocks = 0;
+-	return (IB_SUCCESS);
++	return IB_SUCCESS;
  }
  
- /*
-@@ -5317,7 +5317,7 @@ ib_port_info_set_client_rereg(IN ib_port_info_t * const p_pi,
- 	CL_ASSERT(client_rereg <= 0x1);
- 	p_pi->subnet_timeout =
- 	    (uint8_t) ((p_pi->
--			subnet_timeout & 0x1F) | ((client_rereg << 7) & 0x80));
-+			subnet_timeout & 0x5F) | ((client_rereg << 7) & 0x80));
+ /**********************************************************************
+@@ -146,7 +146,7 @@ ib_api_status_t osm_pkey_tbl_set(IN osm_pkey_tbl_t * p_pkey_tbl,
+ 		p_pkey_block =
+ 		    (ib_pkey_table_t *) malloc(sizeof(ib_pkey_table_t));
+ 		if (!p_pkey_block)
+-			return (IB_ERROR);
++			return IB_ERROR;
+ 		memset(p_pkey_block, 0, sizeof(ib_pkey_table_t));
+ 		cl_ptr_vector_set(&p_pkey_tbl->blocks, block, p_pkey_block);
+ 	}
+@@ -191,7 +191,7 @@ ib_api_status_t osm_pkey_tbl_set(IN osm_pkey_tbl_t * p_pkey_tbl,
+ 				    );
+ 		}
+ 	}
+-	return (IB_SUCCESS);
++	return IB_SUCCESS;
  }
  
- /*
-@@ -5336,6 +5336,43 @@ ib_port_info_set_client_rereg(IN ib_port_info_t * const p_pi,
- * SEE ALSO
- *********/
+ /**********************************************************************
+@@ -210,7 +210,7 @@ ib_api_status_t osm_pkey_tbl_set_new_entry(IN osm_pkey_tbl_t * p_pkey_tbl,
+ 	if (!(p_block = osm_pkey_tbl_new_block_get(p_pkey_tbl, block_idx))) {
+ 		p_block = (ib_pkey_table_t *) malloc(sizeof(ib_pkey_table_t));
+ 		if (!p_block)
+-			return (IB_ERROR);
++			return IB_ERROR;
+ 		memset(p_block, 0, sizeof(ib_pkey_table_t));
+ 		cl_ptr_vector_set(&p_pkey_tbl->new_blocks, block_idx, p_block);
+ 	}
+@@ -219,7 +219,7 @@ ib_api_status_t osm_pkey_tbl_set_new_entry(IN osm_pkey_tbl_t * p_pkey_tbl,
+ 	if (p_pkey_tbl->used_blocks <= block_idx)
+ 		p_pkey_tbl->used_blocks = block_idx + 1;
  
-+/****f* IBA Base: Types/ib_port_info_set_mcast_pkey_trap_suppress
-+* NAME
-+*	ib_port_info_set_mcast_pkey_trap_suppress
-+*
-+* DESCRIPTION
-+*	Sets the encoded multicast pkey trap suppresion enabled bit value
-+*	in the PortInfo attribute.
-+*
-+* SYNOPSIS
-+*/
-+static inline void OSM_API
-+ib_port_info_set_mcast_pkey_trap_suppress(IN ib_port_info_t * const p_pi,
-+					  IN const uint8_t trap_suppress)
-+{
-+	CL_ASSERT(trap_suppress <= 0x1);
-+	p_pi->subnet_timeout =
-+	    (uint8_t) ((p_pi->
-+			subnet_timeout & 0x9F) | ((trap_suppress << 6) & 0x40));
-+}
-+
-+/*
-+* PARAMETERS
-+*	p_pi
-+*		[in] Pointer to a PortInfo attribute.
-+*
-+*	trap_suppress
-+*		[in] Multicast pkey trap suppresion enabled value to set
-+*		     (either 1 or 0).
-+*
-+* RETURN VALUES
-+*	None.
-+*
-+* NOTES
-+*
-+* SEE ALSO
-+*********/
-+
- /****f* IBA Base: Types/ib_port_info_get_timeout
- * NAME
- *	ib_port_info_get_timeout
-@@ -5392,6 +5429,35 @@ ib_port_info_get_client_rereg(IN ib_port_info_t const *p_pi)
- * SEE ALSO
- *********/
+-	return (IB_SUCCESS);
++	return IB_SUCCESS;
+ }
  
-+/****f* IBA Base: Types/ib_port_info_get_mcast_pkey_trap_suppress
-+* NAME
-+*	ib_port_info_get_mcast_pkey_trap_suppress
-+*
-+* DESCRIPTION
-+*	Gets the encoded multicast pkey trap suppresion enabled bit value
-+*	in the PortInfo attribute.
-+*
-+* SYNOPSIS
-+*/
-+static inline uint8_t OSM_API
-+ib_port_info_get_mcast_pkey_trap_suppress(IN ib_port_info_t const *p_pi)
-+{
-+	return ((p_pi->subnet_timeout & 0x40) >> 6);
-+}
-+
-+/*
-+* PARAMETERS
-+*	p_pi
-+*		[in] Pointer to a PortInfo attribute.
-+*
-+* RETURN VALUES
-+*	Multicast PKey trap suppression enabled value (either 1 or 0).
-+*
-+* NOTES
-+*
-+* SEE ALSO
-+*********/
-+
- /****f* IBA Base: Types/ib_port_info_set_hoq_lifetime
- * NAME
- *	ib_port_info_set_hoq_lifetime
-diff --git a/opensm/opensm/osm_helper.c b/opensm/opensm/osm_helper.c
-index 2b3dced..417c256 100644
---- a/opensm/opensm/osm_helper.c
-+++ b/opensm/opensm/osm_helper.c
-@@ -823,6 +823,7 @@ void osm_dump_port_info(IN osm_log_t * p_log, IN ib_net64_t node_guid,
- 			"\t\t\t\tq_key_violations........0x%X\n"
- 			"\t\t\t\tguid_cap................0x%X\n"
- 			"\t\t\t\tclient_reregister.......0x%X\n"
-+			"\t\t\t\tmcast_pkey_trap_suppr...0x%X\n"
- 			"\t\t\t\tsubnet_timeout..........0x%X\n"
- 			"\t\t\t\tresp_time_value.........0x%X\n"
- 			"\t\t\t\terror_threshold.........0x%X\n"
-@@ -854,6 +855,7 @@ void osm_dump_port_info(IN osm_log_t * p_log, IN ib_net64_t node_guid,
- 			cl_ntoh16(p_pi->p_key_violations),
- 			cl_ntoh16(p_pi->q_key_violations), p_pi->guid_cap,
- 			ib_port_info_get_client_rereg(p_pi),
-+			ib_port_info_get_mcast_pkey_trap_suppress(p_pi),
- 			ib_port_info_get_timeout(p_pi), p_pi->resp_time_value,
- 			p_pi->error_threshold, cl_ntoh16(p_pi->max_credit_hint),
- 			cl_ntoh32(p_pi->link_rt_latency));
+ /**********************************************************************
+@@ -275,10 +275,10 @@ ib_api_status_t osm_pkey_tbl_get_block_and_idx(IN osm_pkey_tbl_t * p_pkey_tbl,
+ 		     block->pkey_entry + IB_NUM_PKEY_ELEMENTS_IN_BLOCK)) {
+ 			*p_block_idx = block_index;
+ 			*p_pkey_idx = (uint8_t) (p_pkey - block->pkey_entry);
+-			return (IB_SUCCESS);
++			return IB_SUCCESS;
+ 		}
+ 	}
+-	return (IB_NOT_FOUND);
++	return IB_NOT_FOUND;
+ }
+ 
+ /**********************************************************************
+@@ -294,9 +294,9 @@ static boolean_t match_pkey(IN const ib_net16_t * pkey1,
+ 	/* compare if the bases are the same. if they are - then
+ 	   this is a match */
+ 	if (ib_pkey_get_base(*pkey1) != ib_pkey_get_base(*pkey2))
+-		return (FALSE);
++		return FALSE;
+ 
+-	return (TRUE);
++	return TRUE;
+ }
+ 
+ /**********************************************************************
+@@ -447,10 +447,9 @@ boolean_t osm_physp_has_pkey(IN osm_log_t * p_log, IN ib_net16_t pkey,
+ 		res = TRUE;
+ 		OSM_LOG(p_log, OSM_LOG_DEBUG,
+ 			"PKey 0x%04x was found\n", cl_ntoh16(pkey));
+-	} else {
++	} else
+ 		OSM_LOG(p_log, OSM_LOG_DEBUG,
+ 			"PKey 0x%04x was not found\n", cl_ntoh16(pkey));
+-	}
+ 
+ Exit:
+ 	OSM_LOG_EXIT(p_log);
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
