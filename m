@@ -1,54 +1,62 @@
 From: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [ewg] [PATCH] mlx4: remove limitation on LSO header size
-Date: Sun, 11 Oct 2009 11:47:57 +0200
-Message-ID: <20091011094757.GA4929@mtls03>
-References: <20090930090701.GA2385@mtls03> <4AC858E0.2010506@voltaire.com>
+Subject: Re: [PATCH] mlx4: remove limitation on LSO header size
+Date: Sun, 11 Oct 2009 12:00:15 +0200
+Message-ID: <20091011100015.GB4929@mtls03>
+References: <20090930090701.GA2385@mtls03> <adaocoiombn.fsf@cisco.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <4AC858E0.2010506-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Cc: Eli Cohen <eli-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Linux RDMA list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <adaocoiombn.fsf-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+List-Unsubscribe: <http://lists.openfabrics.org/cgi-bin/mailman/listinfo/ewg>,
+	<mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.openfabrics.org/pipermail/ewg>
+List-Post: <mailto:ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+List-Help: <mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=help>
+List-Subscribe: <http://lists.openfabrics.org/cgi-bin/mailman/listinfo/ewg>,
+	<mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=subscribe>
+Sender: ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
+Errors-To: ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
+To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Cc: Linux RDMA list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, ewg <ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>, general-list <general-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Sun, Oct 04, 2009 at 10:12:16AM +0200, Or Gerlitz wrote:
->> Also, this patch will cause IB_DEVICE_UD_TSO to be set only of FW versions that set MLX4_DEV_CAP_FLAG_BLH; e.g. FW version 2.6.000 and higher.
-> warning to users having an older firmware installed?
-
-I am not sure this deserves a warning - after all it's just that the
-feature is not supported.
-
-> So the driver doesn't use the actual value of the max_gso_sz capability,  
-> isn't this a bug?  the BLH bit  (any reason not the mention in the  
-> change-log what these three letters stand for...?) serves you to support  
-> large LSO headers, but isn't enough, max_gso_sz is related to the  
-> payload and should be used, I think.
->
-According to the spec, for LSO to be supported at all, max_gso_sz must
-be none zero. Moreover, for BLH to be supported (BLH stands for Big
-LSO Header), the MLX4_DEV_CAP_FLAG_BLH flag must be set and hence the
-condition on both of them.
+On Wed, Oct 07, 2009 at 03:45:16PM -0700, Roland Dreier wrote:
+> 
+>  > +	*blh = unlikely(halign > 64) ? 1 : 0;
+> 
+> This idiom of "(boolean condition) ? 1 : 0" looks odd to me... doesn't
+> (halign > 64) already evaluate to 1 or 0 anyway?  Does the unlikely()
+> actually affect code generation here?
+True, (halign > 64) is the same and is cleaner. As for the unlikely()
+-- well it's already been there and besides, we're never sure if it
+will improve anything so the same question could be asked for other
+places in the code.
 
 
->>  	if (dev->dev->caps.bmme_flags & MLX4_BMME_FLAG_RESERVED_LKEY)
->>  		props->device_cap_flags |= IB_DEVICE_LOCAL_DMA_LKEY;
->> diff --git a/drivers/infiniband/hw/mlx4/qp.c b/drivers/infiniband/hw/mlx4/qp.c
->> index 219b103..1b356cf 100644
->> --- a/drivers/infiniband/hw/mlx4/qp.c
->> +++ b/drivers/infiniband/hw/mlx4/qp.c
->> @@ -261,7 +261,7 @@ static int send_wqe_overhead(enum ib_qp_type type, u32 flags)
->>  	case IB_QPT_UD:
->>  		return sizeof (struct mlx4_wqe_ctrl_seg) +
->>  			sizeof (struct mlx4_wqe_datagram_seg) +
->> -			((flags & MLX4_IB_QP_LSO) ? 64 : 0);
->> +			((flags & MLX4_IB_QP_LSO) ? 128 : 0);
-> 64 , 128 ... here and later in build_lso_seg ,  how about defining some  
-> human readable something?
+> 
+> With that said, see below...
+> 
+>  > +	int blh = 0;
+> 
+> I assume this initialization is to avoid a compiler warning.  But the
+> code is actually correct without initializing blh -- so I think that we
+> save a tiny bit of code by doing uninitialized_var() instead?
+We must initialize blh since it is used for any send request and not
+just LSO opcodes. 
 
-OK, I will replace with an enum.
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+> 
+>  > +			(blh ? cpu_to_be32(1 << 6) : 0);
+> 
+> ...given that the only use of blh is as a flag to decide what constant
+> to use here, does it generate better code to make blh be __be32 and set
+> the value directly in build_lso_seg, ie do:
+> 
+> 	*blh = unlikely(halign > 64) ? cpu_to_be32(1 << 6) : 0;
+> 
+> and then use blh without ?: in mlx4_ib_post_send...
+> 
+
+So we can let build_lso_header() put the corrent value for blh and
+unconditionally "or" it into owner_opcode.
