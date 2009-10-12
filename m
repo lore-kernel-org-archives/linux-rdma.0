@@ -1,7 +1,7 @@
 From: "Stan C. Smith" <stan.smith@intel.com>
-Subject: [PATCH] osmtest - clarify assignment operation
-Date: Mon, 12 Oct 2009 10:17:12 -0700
-Message-ID: <90026838F7CE447FBF3318901EC934FA@amr.corp.intel.com>
+Subject: [PATCH] osmtest - fix signed unsigned comparisons
+Date: Mon, 12 Oct 2009 10:21:29 -0700
+Message-ID: <F7FAC243E7364BC582B7FCDBE42FB384@amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="us-ascii"
@@ -21,19 +21,41 @@ Cc: ofw@lists.openfabrics.org, 'linux-rdma' <linux-rdma@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
-Clarify assignment & remove WDK compiler warning.
+Make for loop index match loop termination comparison type.
 
 Signed-off-by: stan smith <stan.smith@intel.com>
 
 diff --git a/opensm/osmtest/main.c b/opensm/osmtest/main.c
-index 4bb9f82..6bfd7a6 100644
+index 4bb9f82..588a477 100644
 --- a/opensm/osmtest/main.c
 +++ b/opensm/osmtest/main.c
-@@ -433,7 +433,7 @@ int main(int argc, char *argv[])
- 			/*
- 			 * Specifies the max LID to search for during exploration.
- 			 */
--			max_lid = atoi(optarg);
-+			max_lid = (uint16_t) atoi(optarg);
- 			printf("\tMAX-LID %u\n", max_lid);
- 			break;
+@@ -214,7 +214,7 @@ static void print_all_guids(IN osmtest_t * p_osmt)
+ 	ib_api_status_t status;
+ 	uint32_t num_ports = MAX_LOCAL_IBPORTS;
+ 	ib_port_attr_t attr_array[MAX_LOCAL_IBPORTS];
+-	int i;
++	uint32_t i;
+ 
+ 	for (i = 0; i < num_ports; i++) {
+ 		attr_array[i].num_pkeys = 0;
+@@ -247,7 +247,7 @@ ib_net64_t get_port_guid(IN osmtest_t * p_osmt, uint64_t port_guid)
+ 	ib_api_status_t status;
+ 	uint32_t num_ports = MAX_LOCAL_IBPORTS;
+ 	ib_port_attr_t attr_array[MAX_LOCAL_IBPORTS];
+-	int i;
++	uint32_t i;
+ 
+ 	for (i = 0; i < num_ports; i++) {
+ 		attr_array[i].num_pkeys = 0;
+diff --git a/opensm/osmtest/osmtest.c b/opensm/osmtest/osmtest.c
+index c6ec955..a1457b8 100644
+--- a/opensm/osmtest/osmtest.c
++++ b/opensm/osmtest/osmtest.c
+@@ -7237,7 +7237,7 @@ osmtest_bind(IN osmtest_t * p_osmt,
+ 	ib_api_status_t status;
+ 	uint32_t num_ports = MAX_LOCAL_IBPORTS;
+ 	ib_port_attr_t attr_array[MAX_LOCAL_IBPORTS];
+-	int i;
++	uint32_t i;
+ 
+ 	OSM_LOG_ENTER(&p_osmt->log);
