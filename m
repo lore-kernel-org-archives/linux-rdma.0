@@ -1,7 +1,7 @@
 From: "Stan C. Smith" <stan.smith@intel.com>
-Subject: [PATCH] osmtest -code cleanup -  use strncasecmp()
-Date: Mon, 12 Oct 2009 11:52:24 -0700
-Message-ID: <5BD92B127714460C9672BD9230B397A0@amr.corp.intel.com>
+Subject: [PATCH] osmtest - code cleanup
+Date: Mon, 12 Oct 2009 11:57:08 -0700
+Message-ID: <4BFF1A3398A74B2AABB948EF2843BF68@amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="us-ascii"
@@ -21,29 +21,32 @@ Cc: ofw@lists.openfabrics.org, 'linux-rdma' <linux-rdma@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
+Remove unused ifdef __WIN__ & redundant include.
+
 Signed-off-by: stan smith <stan.smith@intel.com>
 
 diff --git a/opensm/osmtest/osmtest.c b/opensm/osmtest/osmtest.c
-index c6ec955..423e836 100644
+index c6ec955..82a814e 100644
 --- a/opensm/osmtest/osmtest.c
 +++ b/opensm/osmtest/osmtest.c
-@@ -59,10 +59,6 @@
- #include <complib/cl_debug.h>
- #include "osmtest.h"
+@@ -43,19 +43,13 @@
+  *
+  */
  
--#ifndef __WIN__
--#define strnicmp strncasecmp
+-#ifdef __WIN__
+-#pragma warning(disable : 4996)
 -#endif
 -
- #define POOL_MIN_ITEMS  64
- #define MAX_LOCAL_IBPORTS 64
- 
-@@ -6169,7 +6165,7 @@ static const osmtest_token_t *str_get_token(IN char *const p_str)
- 	p_tok = &token_array[index];
- 
- 	while (p_tok->val != OSMTEST_TOKEN_UNKNOWN) {
--		if (strnicmp(p_str, p_tok->str, p_tok->str_size) == 0)
-+		if (strncasecmp(p_str, p_tok->str, p_tok->str_size) == 0)
- 			return (p_tok);
- 
- 		p_tok = &token_array[++index];
+ #include <stdio.h>
+ #include <stdlib.h>
+ #include <string.h>
+-#ifdef __WIN__
+-#include <complib/cl_timer.h>
+-#else
++#ifndef __WIN__
+ #include <strings.h>
+-#include <sys/time.h>
+ #endif
++#include <sys/time.h>
+ #include <complib/cl_debug.h>
+ #include "osmtest.h"
