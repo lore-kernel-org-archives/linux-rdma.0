@@ -1,61 +1,74 @@
-From: "Smith, Stan" <stan.smith@intel.com>
-Subject: RE: [PATCH] opensm - standardize on a single Windows #define
-Date: Mon, 12 Oct 2009 15:29:38 -0700
-Message-ID: <3F6F638B8D880340AB536D29CD4C1E1912C896BBFC@orsmsx501.amr.corp.intel.com>
-References: <C014357BC392401989734C286EDC5AE1@amr.corp.intel.com>
-	<21B1AC3C6F82416A8764CF0B6FD9C27B@amr.corp.intel.com>
-	<3F6F638B8D880340AB536D29CD4C1E1912C8846161@orsmsx501.amr.corp.intel.com>
-	<20091012220041.GL13830@me>
-	<3F6F638B8D880340AB536D29CD4C1E1912C896BBEA@orsmsx501.amr.corp.intel.com>
+From: Vu Pham <vuhuong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [ofa-general][PATCH 0/4] SRP fail-over faster
+Date: Mon, 12 Oct 2009 15:56:33 -0700
+Message-ID: <4AD3B421.1050704@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <ofw-bounces@lists.openfabrics.org>
-In-Reply-To: <3F6F638B8D880340AB536D29CD4C1E1912C896BBEA@orsmsx501.amr.corp.intel.com>
-Content-Language: en-US
-List-Unsubscribe: <http://lists.openfabrics.org/cgi-bin/mailman/listinfo/ofw>,
-	<mailto:ofw-request@lists.openfabrics.org?subject=unsubscribe>
-List-Archive: <http://lists.openfabrics.org/pipermail/ofw>
-List-Post: <mailto:ofw@lists.openfabrics.org>
-List-Help: <mailto:ofw-request@lists.openfabrics.org?subject=help>
-List-Subscribe: <http://lists.openfabrics.org/cgi-bin/mailman/listinfo/ofw>,
-	<mailto:ofw-request@lists.openfabrics.org?subject=subscribe>
-Sender: ofw-bounces@lists.openfabrics.org
-Errors-To: ofw-bounces@lists.openfabrics.org
-To: "Smith, Stan" <stan.smith@intel.com>, Sasha Khapyorsky <sashak@voltaire.com>
-Cc: "ofw@lists.openfabrics.org" <ofw@lists.openfabrics.org>, 'linux-rdma' <linux-rdma@vger.kernel.org>
+Content-Type: multipart/mixed;
+ boundary="------------090004080102040207000405"
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Linux RDMA list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Smith, Stan wrote:
-> Sasha Khapyorsky wrote:
->> On 10:16 Thu 08 Oct     , Smith, Stan wrote:
->>> Hefty, Sean wrote:
->>>>> Code cleanup, standardize on a single Windows #define '__WIN__';
->>>>> WIN32 --> __WIN__. Flip usage of ifndef WIN32 --> ifdef __GNUC__
->>>>
->>>> GNUC indicates a specific compiler, not a platform, which is what
->>>> the check is for.
->>>
->>> To the best of my understanding OpenSM is built for Linux/OFED,
->>> Solaris and Windows.
->>
->> Also some embedded platforms and we don't know what in a future.
->>
->> '#ifdef __WIN__' and '#ifndef __GNUC__' are not equivalent.
->>
->> Sasha
->
-> You wish to live with the negative logic of ifndef __WIN__ ?
->
-> How about ifdef __linux__  ?
+This is a multi-part message in MIME format.
+--------------090004080102040207000405
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 
-If __linux__ doesn't work for you, then please create a Linux Platform defi=
-ne I can use.
 
->
->
->
-> _______________________________________________
-> ofw mailing list
-> ofw@lists.openfabrics.org
-> http://lists.openfabrics.org/cgi-bin/mailman/listinfo/ofw
+
+--------------090004080102040207000405
+Content-Type: message/rfc822;
+ name="[ofa-general][PATCH 0/4] SRP fail-over faster.eml"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="[ofa-general][PATCH 0/4] SRP fail-over faster.eml"
+
+Message-ID: <4AD3B1C6.9050400-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Date: Mon, 12 Oct 2009 15:46:30 -0700
+From: Vu Pham <vuhuong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+User-Agent: Thunderbird 2.0.0.23 (Windows/20090812)
+MIME-Version: 1.0
+To: OF General <general-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>,
+ Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Subject: [ofa-general][PATCH 0/4] SRP fail-over faster
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+
+Testing srp fail-over with dm-multipath/multipathd/srp_daemon, the 
+current srp implementation will take average 3-5 minutes to complete the 
+error recovery before return DID_BAD_TARGET so that dm-multipath can 
+switch to other paths. During this error recovery, there is no I/O 
+happening (old and new I/Os)
+
+The following patches attempt to help srp fail-over faster and 
+controllable. It introduces srp_dev_loss_tmo module parameter, so that, 
+srp will fail-over after srp_dev_loss_tmo expired.The minimum value for 
+srp_dev_loss_tmo is 60 seconds.
+
+Patch 1/4: recreate qp and cq at reconnect instead of reuse them
+Patch 2/4: disconnect request without wait.
+Patch 3/4: introducing srp_dev_loss_tmo, creating a timer on qp_error event.
+Patch 4/4: setting up async event handler to handle local port up/down 
+events
+
+The fail-over will be more accurate on local port up/down events (ie. 
+someone pull the cable connect local port to switch), it is less 
+accurate on target port up/down events (ie. someone pull the cable 
+connect target port to switch)
+
+To be accurate on target port up/down events, it requires to change 
+srp_daemon to catch the event of IB target port joining/leaving the 
+fabric, then pass these event down to srp driver, srp driver need to 
+implement entry points to receive these events and act upon them. These 
+are missed on this attempt
+
+thanks,
+-vu
+
+
+--------------090004080102040207000405--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
