@@ -1,39 +1,28 @@
-From: "Stan C. Smith" <stan.smith@intel.com>
-Subject: [PATCH] osmtest - Add OSM_CDECL to main() declaration
-Date: Mon, 12 Oct 2009 10:10:28 -0700
-Message-ID: <41F5872023464A3C8FD5828F037B4D77@amr.corp.intel.com>
+From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCHv2] mlx4: remove limitation on LSO header size
+Date: Mon, 12 Oct 2009 10:04:18 -0700
+Message-ID: <adaeip8h7cd.fsf@cisco.com>
+References: <20091011132013.GA24725@mtls03>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <ofw-bounces@lists.openfabrics.org>
-List-Unsubscribe: <http://lists.openfabrics.org/cgi-bin/mailman/listinfo/ofw>,
-	<mailto:ofw-request@lists.openfabrics.org?subject=unsubscribe>
-List-Archive: <http://lists.openfabrics.org/pipermail/ofw>
-List-Post: <mailto:ofw@lists.openfabrics.org>
-List-Help: <mailto:ofw-request@lists.openfabrics.org?subject=help>
-List-Subscribe: <http://lists.openfabrics.org/cgi-bin/mailman/listinfo/ofw>,
-	<mailto:ofw-request@lists.openfabrics.org?subject=subscribe>
-Sender: ofw-bounces@lists.openfabrics.org
-Errors-To: ofw-bounces@lists.openfabrics.org
-To: 'Sasha Khapyorsky' <sashak@voltaire.com>
-Cc: ofw@lists.openfabrics.org, 'linux-rdma' <linux-rdma@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20091011132013.GA24725@mtls03> (Eli Cohen's message of "Sun, 11
+	Oct 2009 15:20:13 +0200")
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Eli Cohen <eli-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
+Cc: Linux RDMA list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
+ > @@ -1523,6 +1521,7 @@ int mlx4_ib_post_send(struct ib_qp *ibqp, struct ib_send_wr *wr,
+ >  	__be32 *lso_wqe;
+ >  	__be32 uninitialized_var(lso_hdr_sz);
+ >  	int i;
+ > +	__be32 blh = 0;
 
-Signed-off-by: stan smith <stan.smith@intel.com>
-
-diff --git a/opensm/osmtest/main.c b/opensm/osmtest/main.c
-index 4bb9f82..287baf3 100644
---- a/opensm/osmtest/main.c
-+++ b/opensm/osmtest/main.c
-@@ -285,7 +285,7 @@ ib_net64_t get_port_guid(IN osmtest_t * p_osmt, uint64_t port_guid)
- 
- /**********************************************************************
-  **********************************************************************/
--int main(int argc, char *argv[])
-+int OSM_CDECL main(int argc, char *argv[])
- {
- 	static osmtest_t osm_test;
- 	osmtest_opt_t opt = { 0 };
+So isn't this a bug if multiple work requests are passed in?  Shouldn't
+the blh initialization be inside the loop over work requests?
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
