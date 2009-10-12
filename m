@@ -1,57 +1,176 @@
-From: Ingo Molnar <mingo-X9Un+BFzKDI@public.gmane.org>
-Subject: Re: [ofa-general] Re: [GIT PULL] please pull ummunotify
-Date: Mon, 12 Oct 2009 20:19:44 +0200
-Message-ID: <20091012181944.GF17138@elte.hu>
-References: <aday6omhz9d.fsf@cisco.com> <1253187028.8439.2.camel@twins> <adafxalejiq.fsf@cisco.com> <adaab0tej5c.fsf@cisco.com> <1253198976.14935.27.camel@laptop> <adazl8td35u.fsf@cisco.com> <adatyz1d17q.fsf@cisco.com> <20090929171332.GD14405@elf.ucw.cz> <20090930094456.GD24621@elte.hu> <20090930160232.GZ22310@obsidianresearch.com>
+From: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH] opensm: Add infrastructure support for PortInfo
+ IsMulticastPkeyTrapSuppressionSupported
+Date: Mon, 12 Oct 2009 20:45:23 +0200
+Message-ID: <20091012184523.GC13830@me>
+References: <20091009144659.GA17861@comcast.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20090930160232.GZ22310-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <20091009144659.GA17861-Wuw85uim5zDR7s880joybQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>, Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Peter Zijlstra <peterz-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Paul Mackerras <paulus-eUNUBHrolfbYtjvyW6yDsg@public.gmane.org>, Anton Blanchard <anton-eUNUBHrolfbYtjvyW6yDsg@public.gmane.org>, general-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org, akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, Jeff Squyres <jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+To: Hal Rosenstock <hnrose-Wuw85uim5zDR7s880joybQ@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-
-* Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
-
-> On Wed, Sep 30, 2009 at 11:44:56AM +0200, Ingo Molnar wrote:
-> > > > OK.  It would be nice to tie into something more general, but I 
-> > > > think I agree -- perf counters are missing the filtering and the "no 
-> > > > lost events" that ummunotify does have. [...]
-> > 
-> > Performance events filtering is being worked on and now with the 
-> > proper non-DoS limit you've added you can lose events too, dont you? 
-> > So it's all a question of how much buffering to add - and with perf 
-> > events too you can buffer arbitrary large amount of events.
+On 10:46 Fri 09 Oct     , Hal Rosenstock wrote:
 > 
-> No, the ummunotify does not loose events, that is the fundamental 
-> difference between it and all tracing schemes.
+> Per published MgtWG errata RefID 4576
 > 
-> Every call to ibv_reg_mr is paired with a call to ummunotify to create 
-> a matching watcher. Both calls allocate some kernel memory, if one 
-> fails the entire operation fails and userspace can do whatever it does 
-> on memory allocation failure.
+> Signed-off-by: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+> ---
+> diff --git a/opensm/include/iba/ib_types.h b/opensm/include/iba/ib_types.h
+> index 25ed35f..c820372 100644
+> --- a/opensm/include/iba/ib_types.h
+> +++ b/opensm/include/iba/ib_types.h
+> @@ -4432,7 +4432,7 @@ typedef struct _ib_port_info {
+>  	ib_net16_t p_key_violations;
+>  	ib_net16_t q_key_violations;
+>  	uint8_t guid_cap;
+> -	uint8_t subnet_timeout;	/* cli_rereg(1b), resrv(2b), timeout(5b) */
+> +	uint8_t subnet_timeout;	/* cli_rereg(1b), mcast_pkey_trap_suppr(1b), resrv(1b), timeout(5b) */
+>  	uint8_t resp_time_value;
+>  	uint8_t error_threshold; /* local phy errors(4b), overrun errors(4b) */
+>  	ib_net16_t max_credit_hint;
+> @@ -5282,7 +5282,7 @@ ib_port_info_set_timeout(IN ib_port_info_t * const p_pi,
+>  {
+>  	CL_ASSERT(timeout <= 0x1F);
+>  	p_pi->subnet_timeout =
+> -	    (uint8_t) ((p_pi->subnet_timeout & 0x80) | (timeout & 0x1F));
+> +	    (uint8_t) ((p_pi->subnet_timeout & 0xC0) | (timeout & 0x1F));
 
-We already support signal notification for perf events, and we also 
-support two modi of perf ring-buffer overflow notification. Adding a 
-third one that sends a signal when events are lost would be in line with 
-that.
+Why not 'p_pi->subnet_timeout & 0xe0' then (IOW why to bother with
+reserved bits reset)?
 
-This would allow you to have the OOM semantics of requesting a SIGBUS - 
-or user-space could do other things: like print a warning in the app or 
-ignore the event overflow.
+>  }
+>  
+>  /*
+> @@ -5317,7 +5317,7 @@ ib_port_info_set_client_rereg(IN ib_port_info_t * const p_pi,
+>  	CL_ASSERT(client_rereg <= 0x1);
+>  	p_pi->subnet_timeout =
+>  	    (uint8_t) ((p_pi->
+> -			subnet_timeout & 0x1F) | ((client_rereg << 7) & 0x80));
+> +			subnet_timeout & 0x5F) | ((client_rereg << 7) & 0x80));
 
-Which are all interesting things to do. (If you do that you might want 
-to add that to 'perf top' or 'perf record' as well.)
+Ditto.
 
-> After that point the scheme is perfectly lossless.
+>  }
+>  
+>  /*
+> @@ -5336,6 +5336,43 @@ ib_port_info_set_client_rereg(IN ib_port_info_t * const p_pi,
+>  * SEE ALSO
+>  *********/
+>  
+> +/****f* IBA Base: Types/ib_port_info_set_mcast_pkey_trap_suppress
+> +* NAME
+> +*	ib_port_info_set_mcast_pkey_trap_suppress
+> +*
+> +* DESCRIPTION
+> +*	Sets the encoded multicast pkey trap suppresion enabled bit value
+> +*	in the PortInfo attribute.
+> +*
+> +* SYNOPSIS
+> +*/
+> +static inline void OSM_API
+> +ib_port_info_set_mcast_pkey_trap_suppress(IN ib_port_info_t * const p_pi,
+> +					  IN const uint8_t trap_suppress)
+> +{
+> +	CL_ASSERT(trap_suppress <= 0x1);
+> +	p_pi->subnet_timeout =
+> +	    (uint8_t) ((p_pi->
+> +			subnet_timeout & 0x9F) | ((trap_suppress << 6) & 0x40));
 
-Well if it can OOM it's not lossless, obviously. You just define "event 
-loss" to be equivalent to "Destruction of the universe." ;-)
+Ditto.
 
-	Ingo
+And whoudn't this:
+
+	p_pi->subnet_timeout = (p_pi->subnet_timeout & 0xbf) |
+		(trap_suppress << 6)
+
+just work?
+
+Sasha
+
+> +}
+> +
+> +/*
+> +* PARAMETERS
+> +*	p_pi
+> +*		[in] Pointer to a PortInfo attribute.
+> +*
+> +*	trap_suppress
+> +*		[in] Multicast pkey trap suppresion enabled value to set
+> +*		     (either 1 or 0).
+> +*
+> +* RETURN VALUES
+> +*	None.
+> +*
+> +* NOTES
+> +*
+> +* SEE ALSO
+> +*********/
+> +
+>  /****f* IBA Base: Types/ib_port_info_get_timeout
+>  * NAME
+>  *	ib_port_info_get_timeout
+> @@ -5392,6 +5429,35 @@ ib_port_info_get_client_rereg(IN ib_port_info_t const *p_pi)
+>  * SEE ALSO
+>  *********/
+>  
+> +/****f* IBA Base: Types/ib_port_info_get_mcast_pkey_trap_suppress
+> +* NAME
+> +*	ib_port_info_get_mcast_pkey_trap_suppress
+> +*
+> +* DESCRIPTION
+> +*	Gets the encoded multicast pkey trap suppresion enabled bit value
+> +*	in the PortInfo attribute.
+> +*
+> +* SYNOPSIS
+> +*/
+> +static inline uint8_t OSM_API
+> +ib_port_info_get_mcast_pkey_trap_suppress(IN ib_port_info_t const *p_pi)
+> +{
+> +	return ((p_pi->subnet_timeout & 0x40) >> 6);
+> +}
+> +
+> +/*
+> +* PARAMETERS
+> +*	p_pi
+> +*		[in] Pointer to a PortInfo attribute.
+> +*
+> +* RETURN VALUES
+> +*	Multicast PKey trap suppression enabled value (either 1 or 0).
+> +*
+> +* NOTES
+> +*
+> +* SEE ALSO
+> +*********/
+> +
+>  /****f* IBA Base: Types/ib_port_info_set_hoq_lifetime
+>  * NAME
+>  *	ib_port_info_set_hoq_lifetime
+> diff --git a/opensm/opensm/osm_helper.c b/opensm/opensm/osm_helper.c
+> index 2b3dced..417c256 100644
+> --- a/opensm/opensm/osm_helper.c
+> +++ b/opensm/opensm/osm_helper.c
+> @@ -823,6 +823,7 @@ void osm_dump_port_info(IN osm_log_t * p_log, IN ib_net64_t node_guid,
+>  			"\t\t\t\tq_key_violations........0x%X\n"
+>  			"\t\t\t\tguid_cap................0x%X\n"
+>  			"\t\t\t\tclient_reregister.......0x%X\n"
+> +			"\t\t\t\tmcast_pkey_trap_suppr...0x%X\n"
+>  			"\t\t\t\tsubnet_timeout..........0x%X\n"
+>  			"\t\t\t\tresp_time_value.........0x%X\n"
+>  			"\t\t\t\terror_threshold.........0x%X\n"
+> @@ -854,6 +855,7 @@ void osm_dump_port_info(IN osm_log_t * p_log, IN ib_net64_t node_guid,
+>  			cl_ntoh16(p_pi->p_key_violations),
+>  			cl_ntoh16(p_pi->q_key_violations), p_pi->guid_cap,
+>  			ib_port_info_get_client_rereg(p_pi),
+> +			ib_port_info_get_mcast_pkey_trap_suppress(p_pi),
+>  			ib_port_info_get_timeout(p_pi), p_pi->resp_time_value,
+>  			p_pi->error_threshold, cl_ntoh16(p_pi->max_credit_hint),
+>  			cl_ntoh32(p_pi->link_rt_latency));
+> 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
