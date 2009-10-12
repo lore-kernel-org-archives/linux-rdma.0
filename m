@@ -1,52 +1,23 @@
 From: "Eli Dorfman (Voltaire)" <dorfman.eli-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: Default force_link_speed value in opensm configuration
-Date: Mon, 12 Oct 2009 11:47:37 +0200
-Message-ID: <4AD2FB39.6040602@gmail.com>
-References: <4ACB6891.7010202@gmail.com> <20091006142728.3d1e5bcc.weiny2@llnl.gov>
+Subject: hop weighted routing
+Date: Mon, 12 Oct 2009 12:08:43 +0200
+Message-ID: <4AD3002B.2080901@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20091006142728.3d1e5bcc.weiny2-i2BcT+NCU+M@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-Cc: OFED mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: purdy-sJ/iWh9BUns@public.gmane.org
+Cc: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>, OFED mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Nir Gal <nirg-smomgflXvOZWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Ira Weiny wrote:
-> On Tue, 06 Oct 2009 17:56:01 +0200
-> "Eli Dorfman (Voltaire)" <dorfman.eli-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
-> 
->> Hi,
->>
->> Is there a reason for setting default force_link_speed to 15 (set enabled as supported) 
->> and not to 0 (don't modify PortInfo:LinkSpeedEnabled )?
-> 
-> The thought was to enable all ports to the maximum supported by default.  This
-> was the behavior before this option was added so it was though to leave it
-> alone by default.
-> 
-> Is there a reason this should not happen?  I guess since the Volume 2 spec
-> says that the power on default for this is LinkSpeedSupported there is no
-> reason to have the SM send these Set's.  Perhaps there is broken hardware out
-> there?
+Hi,
 
-well actually there is a hardware that supports only 5.0Gbps (but reports 2.5 or 5.0 Gbps since there is no option for 5.0 only)
-and powers on with enabled speed of 5.0Gbps only.
-Setting the enabled speed to the supported speed will fail further negotiation (after link reset) since the device does not support 2.5Gbps.
+I have tried to use hop weighted routing and noticed that it is supported only for minhop.
+Is there a reason that this was not implemented for up-down as well?
 
-So if the default for all other devices is enabled=supported then we can change the opensm configuration force_link_speed to 0.
-
+Thanks,
 Eli
-  
-> 
-> Ira
-> 
-> 
->> Thanks,
->> Eli
->> --
-
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
