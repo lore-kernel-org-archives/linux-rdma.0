@@ -1,39 +1,51 @@
-From: Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: OpenSM Failover
-Date: Mon, 12 Oct 2009 10:22:14 +0200
-Message-ID: <4AD2E736.4050803@dev.mellanox.co.il>
-References: <B1EF3F77-622B-40DA-BB3D-DC35973B60A6@gmail.com>	<CBC039F5-9019-436D-AF6D-F887E860D07B@gmail.com> <4AD2D75A.2020403@dev.mellanox.co.il> <4AD2E582.8010202@voltaire.com>
-Reply-To: kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org
+From: "Eli Dorfman (Voltaire)" <dorfman.eli-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: Default force_link_speed value in opensm configuration
+Date: Mon, 12 Oct 2009 11:47:37 +0200
+Message-ID: <4AD2FB39.6040602@gmail.com>
+References: <4ACB6891.7010202@gmail.com> <20091006142728.3d1e5bcc.weiny2@llnl.gov>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4AD2E582.8010202-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <20091006142728.3d1e5bcc.weiny2-i2BcT+NCU+M@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Cc: Aaron Knister <aaron.knister-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+Cc: OFED mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Or Gerlitz wrote:
-> Yevgeny Kliteynik wrote:
->> There was a hand-over problem in OFED 1.4, but later it turned  out to 
->> be FW issue. The thing is, FW version 2.6.648 doesn't  have this bug 
->> any more...
-> so things should work fine with the newly released 2.7 firmware?
+Ira Weiny wrote:
+> On Tue, 06 Oct 2009 17:56:01 +0200
+> "Eli Dorfman (Voltaire)" <dorfman.eli-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
+> 
+>> Hi,
+>>
+>> Is there a reason for setting default force_link_speed to 15 (set enabled as supported) 
+>> and not to 0 (don't modify PortInfo:LinkSpeedEnabled )?
+> 
+> The thought was to enable all ports to the maximum supported by default.  This
+> was the behavior before this option was added so it was though to leave it
+> alone by default.
+> 
+> Is there a reason this should not happen?  I guess since the Volume 2 spec
+> says that the power on default for this is LinkSpeedSupported there is no
+> reason to have the SM send these Set's.  Perhaps there is broken hardware out
+> there?
 
-Yes
+well actually there is a hardware that supports only 5.0Gbps (but reports 2.5 or 5.0 Gbps since there is no option for 5.0 only)
+and powers on with enabled speed of 5.0Gbps only.
+Setting the enabled speed to the supported speed will fail further negotiation (after link reset) since the device does not support 2.5Gbps.
 
-> if this 
-> is still under question, Aaron, I suggest you open a bugzilla case @ 
-> https://bugs.openfabrics.org and we can track from there.
+So if the default for all other devices is enabled=supported then we can change the opensm configuration force_link_speed to 0.
 
-Good idea.
-
--- Yevgeny
-
-> Or.
+Eli
+  
+> 
+> Ira
 > 
 > 
+>> Thanks,
+>> Eli
+>> --
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
