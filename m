@@ -1,106 +1,53 @@
-From: Peter Zijlstra <peterz-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Subject: Re: [ofa-general] Re: [GIT PULL] please pull ummunotify
-Date: Mon, 12 Oct 2009 19:33:22 +0200
-Message-ID: <1255368802.8392.26.camel@twins>
-References: <aday6omhz9d.fsf@cisco.com> <1253187028.8439.2.camel@twins>
-	 <adafxalejiq.fsf@cisco.com> <adaab0tej5c.fsf@cisco.com>
-	 <1253198976.14935.27.camel@laptop> <adazl8td35u.fsf@cisco.com>
-	 <adatyz1d17q.fsf@cisco.com> <20090929171332.GD14405@elf.ucw.cz>
-	 <20090930094456.GD24621@elte.hu> <ada3a61rc3j.fsf@cisco.com>
-	 <ada3a5uq1dk.fsf@cisco.com>
+From: "David J. Wilder" <dwilder-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [ewg] rping is not resolving ipv6 addresses
+Date: Mon, 12 Oct 2009 10:52:59 -0700
+Message-ID: <1255369979.29677.7.camel@wilder.ibm.com>
+References: <1254957121.23471.17.camel@wilder.ibm.com>
+	 <adavdiqn63u.fsf@cisco.com> <1255114672.3533.8.camel@wilder.ibm.com>
+	 <15ddcffd0910091353w51bddc60w8452ca107de296fb@mail.gmail.com>
+	 <1255122901.3533.20.camel@wilder.ibm.com>
+	 <20091009224604.GG5191@obsidianresearch.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <ada3a5uq1dk.fsf-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <20091009224604.GG5191-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Cc: Ingo Molnar <mingo-X9Un+BFzKDI@public.gmane.org>, Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Paul Mackerras <paulus-eUNUBHrolfbYtjvyW6yDsg@public.gmane.org>, Anton Blanchard <anton-eUNUBHrolfbYtjvyW6yDsg@public.gmane.org>, general-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org, akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, wilder-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org, linux-rdma <linux-rdm>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, 2009-10-07 at 15:34 -0700, Roland Dreier wrote:
-> > So I looked a little deeper into this, and I don't think (even with the
->  > filtering extensions) that perf events are directly applicable to this
->  > problem.  The first issue is that, assuming I'm understanding the
->  > comment in perf_event.c:
->  > 
->  >         /*
->  >          * Raw tracepoint data is a severe data leak, only allow root to
->  >          * have these.
->  >          */
->  > 
->  > currently tracepoints can only be used by privileged processes.  A key
->  > feature of ummunotify is that ordinary unprivileged processes can use it.
->  > 
->  > So would it be acceptable to add something like PERF_TYPE_MMU_NOTIFIER
->  > as a way of letting unprivileged userspace get access to just MMU events
->  > for their own process?  Clearly this touches core infrastructure and is
->  > not as simple as just adding two tracepoints.
->  > 
->  > Then, assuming we have some way to create an "MMU notifier" perf event,
->  > we need a way for userspace to specify which address ranges it would
->  > like events for (I don't think the string filter expression used by
->  > existing trace filtering works, because if userspace is looking at a few
->  > hundred regions, then the size of the filtering expression explodes, and
->  > adding or removing a single range becomes a pain).  So I guess a new
->  > ioctl() to add/remove ranges for MMU_NOTIFIER perf events?
->  > 
->  > I think filtering is needed, because otherwise events for ranges that
->  > are not of interest are just a waste of resources to generate and
->  > process, and make losing good events because of overflow much more
->  > likely.
->  > 
->  > We still have the problem of lost events if the mmap buffer overflows,
->  > but userspace should be able to size the buffer so that such events are
->  > rare I guess.
->  > 
->  > In the end this seems to just take the ummunotify code I have, and make
->  > it be a new type of perf counter instead of a character special device.
->  > I'd actually be OK with that, since having an oddball new char dev
->  > interface is not particularly nice.  But on the other hand just
->  > multiplexing a new type of thing under perf events is not all that much
->  > better.  What do you think?
+
+On Fri, 2009-10-09 at 16:46 -0600, Jason Gunthorpe wrote:
+> On Fri, Oct 09, 2009 at 02:15:01PM -0700, David J. Wilder wrote:
 > 
-> Ingo/Peter/<anyone suggesting perf events> -- can you comment on this
-> plan of creating PERF_TYPE_MMU_NOTIFIER for perf events to implement
-> ummunotify?  To me it looks like a wash -- the main difference is how
-> userspace gets the magic ummunotify file descriptor, either by
-> open("/dev/ummunotify") or by perf_event_open(...PERF_TYPE_MMU_NOTIFIER...),
-> but pretty much everything else stays pretty much the same in terms of
-> how much kernel code is involved.  We do reuse the perf events mmap
-> buffer code but I think that ends up being more complicated than
-> returning events via read().
+> > Yes ping6 will work but I must specify the interface to use:
+> > ping6 fe80::202:c903:1:1925%ib0
+> > 
+> > Here is the patch to rping to allow the source address to be specified.
+> > I am not sure this is the correct approach to fix this.
 > 
-> Anyway, before I spend the time converting over to the new
-> infrastructure and causing the MPI guys to churn their code, I'd like to
-> make sure that this is what you guys have in mind.
+> It is not, IPv6 link local addresses must be scoped. rping is
+> parsing the address with getaddrinfo, that does correctly set the
+> sin6_scope_id value in the sockaddr.
+
+ping6 is scoping the address (setting sin6_scope_id) by hand. So rping
+should do the same thing.
+
 > 
-> (By the way, after thinking about this more, I really do think that
-> filtering events by address range is a must-have -- with filtering,
-> userspace can map sufficient buffer space to avoid losing events for a
-> given number of regions; without filtering, events might get lost just
-> because of invalidate events for ranges userspace didn't even care about)
+> rdma_resolve_addr (and likely the underlying kernel component) must
+> respect this when dealing with link local scope addresses.
+> 
+> rmda_resolve_addr should fail if a link local IPv6 address is provided
+> without scope, like the normal IP stack:
+> 
+> connect(3, {sa_family=AF_INET6, sin6_port=htons(1025), inet_pton(AF_INET6, "fe80::202:c903:1:1925", &sin6_addr), sin6_flowinfo=0, sin6_scope_id=0}, 28) = -1 EINVAL (Invalid argument)
+> 
+> So this is two bugs in the rdma cm, rping is correct as is..
 
-I think something like
+It may be correct, but not functional with link-local address.
 
-PERF_TYPE_SOFTWARE, PERF_COUNT_SW_MUNMAP + $filter
-
-or
-
-PERF_TYPE_TRACEPOINT, //events/vm/munmap/id + $filter
-
-As for the read/poll issue, I think we can do something like
-PERF_FORMAT_BLOCK which would make read() block when ->count hasn't
-changed, and make poll() work without requiring a mmap().
-
-As to filter, we can do two things, add a simple single range filter to
-perf_event_attr, which is something ia64 has hardware support for IIRC,
-or we can possibly use this trace filter muck.
-
-Would something like that be sufficient? With such events only
-generating a wakeup (poll) when the unmap actually happens, you'd not
-even need an mmap() buffer to keep up with that.
-
+> 
+> Jason
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
