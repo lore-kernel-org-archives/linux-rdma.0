@@ -1,16 +1,16 @@
 From: "Smith, Stan" <stan.smith@intel.com>
-Subject: RE: [PATCH] osmtest/osmtest.c: remove strings.h inclusion
-Date: Mon, 12 Oct 2009 15:25:51 -0700
-Message-ID: <3F6F638B8D880340AB536D29CD4C1E1912C896BBEE@orsmsx501.amr.corp.intel.com>
-References: <4BFF1A3398A74B2AABB948EF2843BF68@amr.corp.intel.com>
-	<20091012214054.GH13830@me>
-	<3F6F638B8D880340AB536D29CD4C1E1912C896BB77@orsmsx501.amr.corp.intel.com>
-	<20091012220740.GM13830@me>
+Subject: RE: [PATCH] osmtest - Add OSM_CDECL to main() declaration
+Date: Mon, 12 Oct 2009 15:28:18 -0700
+Message-ID: <3F6F638B8D880340AB536D29CD4C1E1912C896BBF9@orsmsx501.amr.corp.intel.com>
+References: <41F5872023464A3C8FD5828F037B4D77@amr.corp.intel.com>
+	<20091012214322.GI13830@me>
+	<3F6F638B8D880340AB536D29CD4C1E1912C896BB9E@orsmsx501.amr.corp.intel.com>
+	<20091012221811.GO13830@me>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: quoted-printable
 Return-path: <ofw-bounces@lists.openfabrics.org>
-In-Reply-To: <20091012220740.GM13830@me>
+In-Reply-To: <20091012221811.GO13830@me>
 Content-Language: en-US
 List-Unsubscribe: <http://lists.openfabrics.org/cgi-bin/mailman/listinfo/ofw>,
 	<mailto:ofw-request@lists.openfabrics.org?subject=unsubscribe>
@@ -26,26 +26,25 @@ Cc: "ofw@lists.openfabrics.org" <ofw@lists.openfabrics.org>, 'linux-rdma' <linux
 List-Id: linux-rdma@vger.kernel.org
 
 Sasha Khapyorsky wrote:
-> Remove redundant strings.h inclusion (and associated ifndef __WIN__).
+> On 14:58 Mon 12 Oct     , Smith, Stan wrote:
+>>>
+>>>>  {
+>>>>      static osmtest_t osm_test;
+>>>>      osmtest_opt_t opt =3D { 0 };
+>>
+>> Sean maintains a separate set of patches applied to IB diags in
+>> order to address issues like the x86 requirement for __cdecl on
+>> main(). Since OSM_CDECL was already defined in OFED opensm, it did
+>> not seem to be a major concession to prefix main() with it.
+>> Options:
+>> 1) utilize OSM_CDECL
+>> 2) throw an ugly ifdef __WIN__ or ifdef __linux__ around main()
+>> 3) Create more Windows-only patches required for the Windows
+>> implementation of OFED opensm & tools.
 >
-> Signed-off-by: Sasha Khapyorsky <sashak@voltaire.com>
-> ---
->  opensm/osmtest/osmtest.c |    3 ---
->  1 files changed, 0 insertions(+), 3 deletions(-)
+> Any options for windows compiler about call conventions?
 >
-> diff --git a/opensm/osmtest/osmtest.c b/opensm/osmtest/osmtest.c
-> index 3618ea3..f0f23c7 100644
-> --- a/opensm/osmtest/osmtest.c
-> +++ b/opensm/osmtest/osmtest.c
-> @@ -46,9 +46,6 @@
->  #include <stdio.h>
->  #include <stdlib.h>
->  #include <string.h>
-> -#ifndef __WIN__
-> -#include <strings.h>
-> -#endif
->  #include <sys/time.h>
->  #include <complib/cl_debug.h>
->  #include "osmtest.h"
+> Sasha
 
-Looking better all the time...
+Sadly not for x86 architecture on Windows. Both Sean and I have danced arou=
+nd this and come up empty.
