@@ -1,13 +1,13 @@
 From: Sasha Khapyorsky <sashak@voltaire.com>
-Subject: Re: [PATCH] osmtest - code cleanup
-Date: Mon, 12 Oct 2009 23:40:54 +0200
-Message-ID: <20091012214054.GH13830@me>
-References: <4BFF1A3398A74B2AABB948EF2843BF68@amr.corp.intel.com>
+Subject: Re: [PATCH] osmtest - Add OSM_CDECL to main() declaration
+Date: Mon, 12 Oct 2009 23:43:22 +0200
+Message-ID: <20091012214322.GI13830@me>
+References: <41F5872023464A3C8FD5828F037B4D77@amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <ofw-bounces@lists.openfabrics.org>
 Content-Disposition: inline
-In-Reply-To: <4BFF1A3398A74B2AABB948EF2843BF68@amr.corp.intel.com>
+In-Reply-To: <41F5872023464A3C8FD5828F037B4D77@amr.corp.intel.com>
 List-Unsubscribe: <http://lists.openfabrics.org/cgi-bin/mailman/listinfo/ofw>,
 	<mailto:ofw-request@lists.openfabrics.org?subject=unsubscribe>
 List-Archive: <http://lists.openfabrics.org/pipermail/ofw>
@@ -21,45 +21,29 @@ To: "Stan C. Smith" <stan.smith@intel.com>
 Cc: ofw@lists.openfabrics.org, 'linux-rdma' <linux-rdma@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 11:57 Mon 12 Oct     , Stan C. Smith wrote:
+On 10:10 Mon 12 Oct     , Stan C. Smith wrote:
 > 
-> Remove unused ifdef __WIN__ & redundant include.
 > 
 > Signed-off-by: stan smith <stan.smith@intel.com>
-
-Applied. Thanks. The question is below.
-
 > 
-> diff --git a/opensm/osmtest/osmtest.c b/opensm/osmtest/osmtest.c
-> index c6ec955..82a814e 100644
-> --- a/opensm/osmtest/osmtest.c
-> +++ b/opensm/osmtest/osmtest.c
-> @@ -43,19 +43,13 @@
->   *
->   */
+> diff --git a/opensm/osmtest/main.c b/opensm/osmtest/main.c
+> index 4bb9f82..287baf3 100644
+> --- a/opensm/osmtest/main.c
+> +++ b/opensm/osmtest/main.c
+> @@ -285,7 +285,7 @@ ib_net64_t get_port_guid(IN osmtest_t * p_osmt, uint64_t port_guid)
 >  
-> -#ifdef __WIN__
-> -#pragma warning(disable : 4996)
-> -#endif
-> -
->  #include <stdio.h>
->  #include <stdlib.h>
->  #include <string.h>
-> -#ifdef __WIN__
-> -#include <complib/cl_timer.h>
-> -#else
-> +#ifndef __WIN__
->  #include <strings.h>
-> -#include <sys/time.h>
->  #endif
+>  /**********************************************************************
+>   **********************************************************************/
+> -int main(int argc, char *argv[])
+> +int OSM_CDECL main(int argc, char *argv[])
 
-I suppose that windows should have string.h, right? Assuming so could we
-remove '#ifndef __WIN__' completely here?
+Hmm, why is this needed? AFAIK most of infiniband-diags tools were
+ported to windows without adding such special declaration for main()
+functions.
 
 Sasha
 
-> +#include <sys/time.h>
->  #include <complib/cl_debug.h>
->  #include "osmtest.h"
->  
+>  {
+>  	static osmtest_t osm_test;
+>  	osmtest_opt_t opt = { 0 };
 > 
