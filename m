@@ -1,49 +1,67 @@
-From: Sasha Khapyorsky <sashak@voltaire.com>
-Subject: [PATCH] osmtest/osmtest.c: remove strings.h inclusion
-Date: Tue, 13 Oct 2009 00:07:40 +0200
-Message-ID: <20091012220740.GM13830@me>
-References: <4BFF1A3398A74B2AABB948EF2843BF68@amr.corp.intel.com>
-	<20091012214054.GH13830@me>
-	<3F6F638B8D880340AB536D29CD4C1E1912C896BB77@orsmsx501.amr.corp.intel.com>
+From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+Subject: Re: Default force_link_speed value in opensm configuration
+Date: Mon, 12 Oct 2009 14:35:53 -0700
+Message-ID: <20091012143553.04554689.weiny2@llnl.gov>
+References: <4ACB6891.7010202@gmail.com>
+	<20091006142728.3d1e5bcc.weiny2@llnl.gov>
+	<4AD2FB39.6040602@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <ofw-bounces@lists.openfabrics.org>
-Content-Disposition: inline
-In-Reply-To: <3F6F638B8D880340AB536D29CD4C1E1912C896BB77@orsmsx501.amr.corp.intel.com>
-List-Unsubscribe: <http://lists.openfabrics.org/cgi-bin/mailman/listinfo/ofw>,
-	<mailto:ofw-request@lists.openfabrics.org?subject=unsubscribe>
-List-Archive: <http://lists.openfabrics.org/pipermail/ofw>
-List-Post: <mailto:ofw@lists.openfabrics.org>
-List-Help: <mailto:ofw-request@lists.openfabrics.org?subject=help>
-List-Subscribe: <http://lists.openfabrics.org/cgi-bin/mailman/listinfo/ofw>,
-	<mailto:ofw-request@lists.openfabrics.org?subject=subscribe>
-Sender: ofw-bounces@lists.openfabrics.org
-Errors-To: ofw-bounces@lists.openfabrics.org
-To: "Smith, Stan" <stan.smith@intel.com>
-Cc: "ofw@lists.openfabrics.org" <ofw@lists.openfabrics.org>, 'linux-rdma' <linux-rdma@vger.kernel.org>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <4AD2FB39.6040602-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Eli Dorfman (Voltaire)" <dorfman.eli-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: OFED mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On Mon, 12 Oct 2009 11:47:37 +0200
+"Eli Dorfman (Voltaire)" <dorfman.eli-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
 
-Remove redundant strings.h inclusion (and associated ifndef __WIN__).
+> Ira Weiny wrote:
+> > On Tue, 06 Oct 2009 17:56:01 +0200
+> > "Eli Dorfman (Voltaire)" <dorfman.eli-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
+> > 
+> >> Hi,
+> >>
+> >> Is there a reason for setting default force_link_speed to 15 (set enabled as supported) 
+> >> and not to 0 (don't modify PortInfo:LinkSpeedEnabled )?
+> > 
+> > The thought was to enable all ports to the maximum supported by default.  This
+> > was the behavior before this option was added so it was though to leave it
+> > alone by default.
+> > 
+> > Is there a reason this should not happen?  I guess since the Volume 2 spec
+> > says that the power on default for this is LinkSpeedSupported there is no
+> > reason to have the SM send these Set's.  Perhaps there is broken hardware out
+> > there?
+> 
+> well actually there is a hardware that supports only 5.0Gbps (but reports 2.5 or 5.0 Gbps since there is no option for 5.0 only)
+> and powers on with enabled speed of 5.0Gbps only.
+> Setting the enabled speed to the supported speed will fail further negotiation (after link reset) since the device does not support 2.5Gbps.
 
-Signed-off-by: Sasha Khapyorsky <sashak@voltaire.com>
----
- opensm/osmtest/osmtest.c |    3 ---
- 1 files changed, 0 insertions(+), 3 deletions(-)
+That seems like broken hardware...
 
-diff --git a/opensm/osmtest/osmtest.c b/opensm/osmtest/osmtest.c
-index 3618ea3..f0f23c7 100644
---- a/opensm/osmtest/osmtest.c
-+++ b/opensm/osmtest/osmtest.c
-@@ -46,9 +46,6 @@
- #include <stdio.h>
- #include <stdlib.h>
- #include <string.h>
--#ifndef __WIN__
--#include <strings.h>
--#endif
- #include <sys/time.h>
- #include <complib/cl_debug.h>
- #include "osmtest.h"
+> 
+> So if the default for all other devices is enabled=supported then we can change the opensm configuration force_link_speed to 0.
+>
+
+I have no problem changing it.  As I said if hardware is compliant I think it
+might speed things up.  I will test out a patch with the hardware I can test.
+
+However, I would like to know if anyone else knows of hardware which needs it
+set to "15".  If so, this is going to be an interesting problem...  ;-)
+
+Ira
+
+
 -- 
-1.6.5
+Ira Weiny
+Math Programmer/Computer Scientist
+Lawrence Livermore National Lab
+925-423-8008
+weiny2-i2BcT+NCU+M@public.gmane.org
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
