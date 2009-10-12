@@ -1,177 +1,49 @@
-From: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH] opensm: Add infrastructure support for PortInfo
- IsMulticastPkeyTrapSuppressionSupported
-Date: Mon, 12 Oct 2009 20:45:23 +0200
-Message-ID: <20091012184523.GC13830@me>
-References: <20091009144659.GA17861@comcast.net>
+From: "Stan C. Smith" <stan.smith@intel.com>
+Subject: [PATCH] osmtest -code cleanup -  use strncasecmp()
+Date: Mon, 12 Oct 2009 11:52:24 -0700
+Message-ID: <5BD92B127714460C9672BD9230B397A0@amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20091009144659.GA17861-Wuw85uim5zDR7s880joybQ@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Hal Rosenstock <hnrose-Wuw85uim5zDR7s880joybQ@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <ofw-bounces@lists.openfabrics.org>
+List-Unsubscribe: <http://lists.openfabrics.org/cgi-bin/mailman/listinfo/ofw>,
+	<mailto:ofw-request@lists.openfabrics.org?subject=unsubscribe>
+List-Archive: <http://lists.openfabrics.org/pipermail/ofw>
+List-Post: <mailto:ofw@lists.openfabrics.org>
+List-Help: <mailto:ofw-request@lists.openfabrics.org?subject=help>
+List-Subscribe: <http://lists.openfabrics.org/cgi-bin/mailman/listinfo/ofw>,
+	<mailto:ofw-request@lists.openfabrics.org?subject=subscribe>
+Sender: ofw-bounces@lists.openfabrics.org
+Errors-To: ofw-bounces@lists.openfabrics.org
+To: 'Sasha Khapyorsky' <sashak@voltaire.com>
+Cc: ofw@lists.openfabrics.org, 'linux-rdma' <linux-rdma@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 10:46 Fri 09 Oct     , Hal Rosenstock wrote:
-> 
-> Per published MgtWG errata RefID 4576
-> 
-> Signed-off-by: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-> ---
-> diff --git a/opensm/include/iba/ib_types.h b/opensm/include/iba/ib_types.h
-> index 25ed35f..c820372 100644
-> --- a/opensm/include/iba/ib_types.h
-> +++ b/opensm/include/iba/ib_types.h
-> @@ -4432,7 +4432,7 @@ typedef struct _ib_port_info {
->  	ib_net16_t p_key_violations;
->  	ib_net16_t q_key_violations;
->  	uint8_t guid_cap;
-> -	uint8_t subnet_timeout;	/* cli_rereg(1b), resrv(2b), timeout(5b) */
-> +	uint8_t subnet_timeout;	/* cli_rereg(1b), mcast_pkey_trap_suppr(1b), resrv(1b), timeout(5b) */
->  	uint8_t resp_time_value;
->  	uint8_t error_threshold; /* local phy errors(4b), overrun errors(4b) */
->  	ib_net16_t max_credit_hint;
-> @@ -5282,7 +5282,7 @@ ib_port_info_set_timeout(IN ib_port_info_t * const p_pi,
->  {
->  	CL_ASSERT(timeout <= 0x1F);
->  	p_pi->subnet_timeout =
-> -	    (uint8_t) ((p_pi->subnet_timeout & 0x80) | (timeout & 0x1F));
-> +	    (uint8_t) ((p_pi->subnet_timeout & 0xC0) | (timeout & 0x1F));
 
-Why not 'p_pi->subnet_timeout & 0xe0' then (IOW why to bother with
-reserved bits reset)?
+Signed-off-by: stan smith <stan.smith@intel.com>
 
->  }
->  
->  /*
-> @@ -5317,7 +5317,7 @@ ib_port_info_set_client_rereg(IN ib_port_info_t * const p_pi,
->  	CL_ASSERT(client_rereg <= 0x1);
->  	p_pi->subnet_timeout =
->  	    (uint8_t) ((p_pi->
-> -			subnet_timeout & 0x1F) | ((client_rereg << 7) & 0x80));
-> +			subnet_timeout & 0x5F) | ((client_rereg << 7) & 0x80));
-
-Ditto.
-
->  }
->  
->  /*
-> @@ -5336,6 +5336,43 @@ ib_port_info_set_client_rereg(IN ib_port_info_t * const p_pi,
->  * SEE ALSO
->  *********/
->  
-> +/****f* IBA Base: Types/ib_port_info_set_mcast_pkey_trap_suppress
-> +* NAME
-> +*	ib_port_info_set_mcast_pkey_trap_suppress
-> +*
-> +* DESCRIPTION
-> +*	Sets the encoded multicast pkey trap suppresion enabled bit value
-> +*	in the PortInfo attribute.
-> +*
-> +* SYNOPSIS
-> +*/
-> +static inline void OSM_API
-> +ib_port_info_set_mcast_pkey_trap_suppress(IN ib_port_info_t * const p_pi,
-> +					  IN const uint8_t trap_suppress)
-> +{
-> +	CL_ASSERT(trap_suppress <= 0x1);
-> +	p_pi->subnet_timeout =
-> +	    (uint8_t) ((p_pi->
-> +			subnet_timeout & 0x9F) | ((trap_suppress << 6) & 0x40));
-
-Ditto.
-
-And whoudn't this:
-
-	p_pi->subnet_timeout = (p_pi->subnet_timeout & 0xbf) |
-		(trap_suppress << 6)
-
-just work?
-
-Sasha
-
-> +}
-> +
-> +/*
-> +* PARAMETERS
-> +*	p_pi
-> +*		[in] Pointer to a PortInfo attribute.
-> +*
-> +*	trap_suppress
-> +*		[in] Multicast pkey trap suppresion enabled value to set
-> +*		     (either 1 or 0).
-> +*
-> +* RETURN VALUES
-> +*	None.
-> +*
-> +* NOTES
-> +*
-> +* SEE ALSO
-> +*********/
-> +
->  /****f* IBA Base: Types/ib_port_info_get_timeout
->  * NAME
->  *	ib_port_info_get_timeout
-> @@ -5392,6 +5429,35 @@ ib_port_info_get_client_rereg(IN ib_port_info_t const *p_pi)
->  * SEE ALSO
->  *********/
->  
-> +/****f* IBA Base: Types/ib_port_info_get_mcast_pkey_trap_suppress
-> +* NAME
-> +*	ib_port_info_get_mcast_pkey_trap_suppress
-> +*
-> +* DESCRIPTION
-> +*	Gets the encoded multicast pkey trap suppresion enabled bit value
-> +*	in the PortInfo attribute.
-> +*
-> +* SYNOPSIS
-> +*/
-> +static inline uint8_t OSM_API
-> +ib_port_info_get_mcast_pkey_trap_suppress(IN ib_port_info_t const *p_pi)
-> +{
-> +	return ((p_pi->subnet_timeout & 0x40) >> 6);
-> +}
-> +
-> +/*
-> +* PARAMETERS
-> +*	p_pi
-> +*		[in] Pointer to a PortInfo attribute.
-> +*
-> +* RETURN VALUES
-> +*	Multicast PKey trap suppression enabled value (either 1 or 0).
-> +*
-> +* NOTES
-> +*
-> +* SEE ALSO
-> +*********/
-> +
->  /****f* IBA Base: Types/ib_port_info_set_hoq_lifetime
->  * NAME
->  *	ib_port_info_set_hoq_lifetime
-> diff --git a/opensm/opensm/osm_helper.c b/opensm/opensm/osm_helper.c
-> index 2b3dced..417c256 100644
-> --- a/opensm/opensm/osm_helper.c
-> +++ b/opensm/opensm/osm_helper.c
-> @@ -823,6 +823,7 @@ void osm_dump_port_info(IN osm_log_t * p_log, IN ib_net64_t node_guid,
->  			"\t\t\t\tq_key_violations........0x%X\n"
->  			"\t\t\t\tguid_cap................0x%X\n"
->  			"\t\t\t\tclient_reregister.......0x%X\n"
-> +			"\t\t\t\tmcast_pkey_trap_suppr...0x%X\n"
->  			"\t\t\t\tsubnet_timeout..........0x%X\n"
->  			"\t\t\t\tresp_time_value.........0x%X\n"
->  			"\t\t\t\terror_threshold.........0x%X\n"
-> @@ -854,6 +855,7 @@ void osm_dump_port_info(IN osm_log_t * p_log, IN ib_net64_t node_guid,
->  			cl_ntoh16(p_pi->p_key_violations),
->  			cl_ntoh16(p_pi->q_key_violations), p_pi->guid_cap,
->  			ib_port_info_get_client_rereg(p_pi),
-> +			ib_port_info_get_mcast_pkey_trap_suppress(p_pi),
->  			ib_port_info_get_timeout(p_pi), p_pi->resp_time_value,
->  			p_pi->error_threshold, cl_ntoh16(p_pi->max_credit_hint),
->  			cl_ntoh32(p_pi->link_rt_latency));
-> 
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/opensm/osmtest/osmtest.c b/opensm/osmtest/osmtest.c
+index c6ec955..423e836 100644
+--- a/opensm/osmtest/osmtest.c
++++ b/opensm/osmtest/osmtest.c
+@@ -59,10 +59,6 @@
+ #include <complib/cl_debug.h>
+ #include "osmtest.h"
+ 
+-#ifndef __WIN__
+-#define strnicmp strncasecmp
+-#endif
+-
+ #define POOL_MIN_ITEMS  64
+ #define MAX_LOCAL_IBPORTS 64
+ 
+@@ -6169,7 +6165,7 @@ static const osmtest_token_t *str_get_token(IN char *const p_str)
+ 	p_tok = &token_array[index];
+ 
+ 	while (p_tok->val != OSMTEST_TOKEN_UNKNOWN) {
+-		if (strnicmp(p_str, p_tok->str, p_tok->str_size) == 0)
++		if (strncasecmp(p_str, p_tok->str, p_tok->str_size) == 0)
+ 			return (p_tok);
+ 
+ 		p_tok = &token_array[++index];
