@@ -1,76 +1,31 @@
-From: Ingo Molnar <mingo-X9Un+BFzKDI@public.gmane.org>
+From: Ingo Molnar <mingo@elte.hu>
 Subject: Re: [ofa-general] Re: [GIT PULL] please pull ummunotify
-Date: Tue, 13 Oct 2009 08:38:16 +0200
-Message-ID: <20091013063816.GB9470@elte.hu>
-References: <1253198976.14935.27.camel@laptop> <adazl8td35u.fsf@cisco.com> <adatyz1d17q.fsf@cisco.com> <20090929171332.GD14405@elf.ucw.cz> <20090930094456.GD24621@elte.hu> <20090930160232.GZ22310@obsidianresearch.com> <20091012181944.GF17138@elte.hu> <20091012193048.GA20313@obsidianresearch.com> <20091012202046.GA7648@elte.hu> <4AD41373.8010108@inria.fr>
+Date: Tue, 13 Oct 2009 08:40:06 +0200
+Message-ID: <20091013064006.GC9470@elte.hu>
+References: <1253198976.14935.27.camel@laptop> <adazl8td35u.fsf@cisco.com> <adatyz1d17q.fsf@cisco.com> <20090929171332.GD14405@elf.ucw.cz> <20090930094456.GD24621@elte.hu> <20090930160232.GZ22310@obsidianresearch.com> <20091012181944.GF17138@elte.hu> <20091012193048.GA20313@obsidianresearch.com> <20091012202046.GA7648@elte.hu> <20091013040515.GI18578@obsidianresearch.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S933091AbZJMGk7@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <4AD41373.8010108-MZpvjPyXg2s@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Brice Goglin <Brice.Goglin-MZpvjPyXg2s@public.gmane.org>
-Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>, Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Peter Zijlstra <peterz-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Paul Mackerras <paulus-eUNUBHrolfbYtjvyW6yDsg@public.gmane.org>, Anton Blanchard <anton-eUNUBHrolfbYtjvyW6yDsg@public.gmane.org>, general-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org, akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, Jeff Squyres <jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <20091013040515.GI18578@obsidianresearch.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
+Cc: Pavel Machek <pavel@ucw.cz>, Roland Dreier <rdreier@cisco.com>, Peter Zijlstra <peterz@infradead.org>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, Paul Mackerras <paulus@samba.org>, Anton Blanchard <anton@samba.org>, general@lists.openfabrics.org, akpm@linux-foundation.org, torvalds@linux-foundation.org, Jeff Squyres <jsquyres@cisco.com>
 List-Id: linux-rdma@vger.kernel.org
 
 
-* Brice Goglin <Brice.Goglin-MZpvjPyXg2s@public.gmane.org> wrote:
+* Jason Gunthorpe <jgunthorpe@obsidianresearch.com> wrote:
 
-> Ingo Molnar wrote:
-> > * Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
-> >
-> >   
-> >> On Mon, Oct 12, 2009 at 08:19:44PM +0200, Ingo Molnar wrote:
-> >>
-> >>     
-> >>>> After that point the scheme is perfectly lossless.
-> >>>>         
-> >>> Well if it can OOM it's not lossless, obviously. You just define 
-> >>> "event loss" to be equivalent to "Destruction of the universe." ;-)
-> >>>       
-> >> It can't OOM once the ummunotify registration is done - when an event 
-> >> occurs it doesn't allocate any memory and it doesn't loose events.
-> >>     
-> >
-> > Well, it has built-in event loss via the UMMUNOTIFY_FLAG_HINT mechanism: 
-> > any double events on the same range will cause an imprecise event to be 
-> > recorded and cause the loss of information.
-> >   
+> On Mon, Oct 12, 2009 at 10:20:46PM +0200, Ingo Molnar wrote:
+> > It might be more acceptable because the flag-hint mechanism can at most 
+> > cause over-flushing - while with perf events we might miss to invalidate 
+> > a range altogether.
 > 
-> The target (MPI) application doesn't care about how many events are 
-> coming here. It just needs to know whether something has been 
-> invalidated in the range. If so, it destroy the whole RDMA window 
-> anyway. So it's actually _good_ that multiple events are merged into a 
-> single one: the application only has to process a single event per 
-> partially-invalidated range.
+> Right. Overflushing is not important, but missing an event entirely is 
+> not recoverable (at least within the current kernel APIs).
 
-it's not unconditionally good as the fuzzy-merge-events rule:
-
-                        events[n].flags      = UMMUNOTIFY_EVENT_FLAG_HINT;
-                        events[n].hint_start = max(reg->start, reg->hint_start);
-                        events[n].hint_end   = min(reg->end, reg->hint_end);
-
-in essence merges flushes into a single interval - which inevitably 
-might include areas of memory that were not flushed at all.
-
-For example these two flushes:
-
-  [...]          [...]
-
-Would be merged into:
-
-  [..................]
-
-Btw., isnt the above max/min logic buggy, causing lost events? Shouldnt 
-it be:
-
-                        events[n].hint_start = min(reg->start, reg->hint_start);
-                        events[n].hint_end   = max(reg->end, reg->hint_end);
-
-?
+So if we detect event loss in the perf event case (should not happen 
+with sufficient buffering but it is a possibility the code should be 
+prepared for) then we can just flush the [0,-1ULL] range, right?
 
 	Ingo
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
