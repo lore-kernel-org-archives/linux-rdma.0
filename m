@@ -1,169 +1,101 @@
-From: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCHv2] opensm: Add infrastructure  support for PortInfo
- IsMulticastPkeyTrapSuppressionSupported
-Date: Tue, 13 Oct 2009 20:14:11 +0200
-Message-ID: <20091013181411.GU13830@me>
-References: <20091013173454.GA30487@comcast.net>
+From: Guy Coates <gmpc-5fLPn3lgkryFxr2TtlUqVg@public.gmane.org>
+Subject: Re: [Fwd: FW: OFED installation question re-AltLinux]
+Date: Tue, 13 Oct 2009 19:10:09 +0100
+Message-ID: <4AD4C281.6060009@sanger.ac.uk>
+References: <4AD4ACBD.2000409@nasa.gov>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20091013173454.GA30487-Wuw85uim5zDR7s880joybQ@public.gmane.org>
+In-Reply-To: <4AD4ACBD.2000409-NSQ8wuThN14@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Hal Rosenstock <hnrose-Wuw85uim5zDR7s880joybQ@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: serg-bzQdu9zFT3Uox3rIn2DAYQ@public.gmane.org
+Cc: Jeff Becker <Jeffrey.C.Becker-NSQ8wuThN14@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Bill Boas <bboas-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org>, Sujal Das <sujal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jeffrey Scott <jeff-PQF7zMLV7HqjP/IhtLckvQ@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 13:34 Tue 13 Oct     , Hal Rosenstock wrote:
+Jeff Becker wrote:
+> Forwarding... Please reply to Sergey (cc'd above). Thanks.
 > 
-> Per published MgtWG errata RefID 4576
+> -jeff
 > 
-> Signed-off-by: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-
-Applied with discussed changes (see below). Thanks.
-
-> ---
-> Changes since v1:
-> Don't reset reserved bits packed with subnet timeout
+> P.S. The general list does not accept messages anymore - the archives
+> are still available.
 > 
-> diff --git a/opensm/include/iba/ib_types.h b/opensm/include/iba/ib_types.h
-> index aa566f7..7a54d9e 100644
-> --- a/opensm/include/iba/ib_types.h
-> +++ b/opensm/include/iba/ib_types.h
-> @@ -4431,7 +4431,7 @@ typedef struct _ib_port_info {
->  	ib_net16_t p_key_violations;
->  	ib_net16_t q_key_violations;
->  	uint8_t guid_cap;
-> -	uint8_t subnet_timeout;	/* cli_rereg(1b), resrv(2b), timeout(5b) */
-> +	uint8_t subnet_timeout;	/* cli_rereg(1b), mcast_pkey_trap_suppr(1b), resrv(1b), timeout(5b) */
->  	uint8_t resp_time_value;
->  	uint8_t error_threshold; /* local phy errors(4b), overrun errors(4b) */
->  	ib_net16_t max_credit_hint;
-> @@ -5281,7 +5281,7 @@ ib_port_info_set_timeout(IN ib_port_info_t * const p_pi,
->  {
->  	CL_ASSERT(timeout <= 0x1F);
->  	p_pi->subnet_timeout =
-> -	    (uint8_t) ((p_pi->subnet_timeout & 0x80) | (timeout & 0x1F));
-> +	    (uint8_t) ((p_pi->subnet_timeout & 0xE0) | (timeout & 0x1F));
->  }
->  
->  /*
-> @@ -5316,7 +5316,7 @@ ib_port_info_set_client_rereg(IN ib_port_info_t * const p_pi,
->  	CL_ASSERT(client_rereg <= 0x1);
->  	p_pi->subnet_timeout =
->  	    (uint8_t) ((p_pi->
-> -			subnet_timeout & 0x1F) | ((client_rereg << 7) & 0x80));
-> +			subnet_timeout & 0x5F) | ((client_rereg << 7) & 0x80));
-
-Similar to the chunk above don't reset reserved bit, so changing this:
-
-+			subnet_timeout & 0x7F) | ((client_rereg << 7) & 0x80));
-
-Sasha
-
->  }
->  
->  /*
-> @@ -5335,6 +5335,42 @@ ib_port_info_set_client_rereg(IN ib_port_info_t * const p_pi,
->  * SEE ALSO
->  *********/
->  
-> +/****f* IBA Base: Types/ib_port_info_set_mcast_pkey_trap_suppress
-> +* NAME
-> +*	ib_port_info_set_mcast_pkey_trap_suppress
-> +*
-> +* DESCRIPTION
-> +*	Sets the encoded multicast pkey trap suppresion enabled bit value
-> +*	in the PortInfo attribute.
-> +*
-> +* SYNOPSIS
-> +*/
-> +static inline void OSM_API
-> +ib_port_info_set_mcast_pkey_trap_suppress(IN ib_port_info_t * const p_pi,
-> +					  IN const uint8_t trap_suppress)
-> +{
-> +	CL_ASSERT(trap_suppress <= 0x1);
-> +	p_pi->subnet_timeout =
-> +	    (uint8_t) ((p_pi->subnet_timeout & 0xBF) | (trap_suppress << 6));
-> +}
-> +
-> +/*
-> +* PARAMETERS
-> +*	p_pi
-> +*		[in] Pointer to a PortInfo attribute.
-> +*
-> +*	trap_suppress
-> +*		[in] Multicast pkey trap suppresion enabled value to set
-> +*		     (either 1 or 0).
-> +*
-> +* RETURN VALUES
-> +*	None.
-> +*
-> +* NOTES
-> +*
-> +* SEE ALSO
-> +*********/
-> +
->  /****f* IBA Base: Types/ib_port_info_get_timeout
->  * NAME
->  *	ib_port_info_get_timeout
-> @@ -5391,6 +5427,35 @@ ib_port_info_get_client_rereg(IN ib_port_info_t const *p_pi)
->  * SEE ALSO
->  *********/
->  
-> +/****f* IBA Base: Types/ib_port_info_get_mcast_pkey_trap_suppress
-> +* NAME
-> +*	ib_port_info_get_mcast_pkey_trap_suppress
-> +*
-> +* DESCRIPTION
-> +*	Gets the encoded multicast pkey trap suppresion enabled bit value
-> +*	in the PortInfo attribute.
-> +*
-> +* SYNOPSIS
-> +*/
-> +static inline uint8_t OSM_API
-> +ib_port_info_get_mcast_pkey_trap_suppress(IN ib_port_info_t const *p_pi)
-> +{
-> +	return ((p_pi->subnet_timeout & 0x40) >> 6);
-> +}
-> +
-> +/*
-> +* PARAMETERS
-> +*	p_pi
-> +*		[in] Pointer to a PortInfo attribute.
-> +*
-> +* RETURN VALUES
-> +*	Multicast PKey trap suppression enabled value (either 1 or 0).
-> +*
-> +* NOTES
-> +*
-> +* SEE ALSO
-> +*********/
-> +
->  /****f* IBA Base: Types/ib_port_info_set_hoq_lifetime
->  * NAME
->  *	ib_port_info_set_hoq_lifetime
-> diff --git a/opensm/opensm/osm_helper.c b/opensm/opensm/osm_helper.c
-> index 2b1e5ef..40dea10 100644
-> --- a/opensm/opensm/osm_helper.c
-> +++ b/opensm/opensm/osm_helper.c
-> @@ -823,6 +823,7 @@ void osm_dump_port_info(IN osm_log_t * p_log, IN ib_net64_t node_guid,
->  			"\t\t\t\tq_key_violations........0x%X\n"
->  			"\t\t\t\tguid_cap................0x%X\n"
->  			"\t\t\t\tclient_reregister.......0x%X\n"
-> +			"\t\t\t\tmcast_pkey_trap_suppr...0x%X\n"
->  			"\t\t\t\tsubnet_timeout..........0x%X\n"
->  			"\t\t\t\tresp_time_value.........0x%X\n"
->  			"\t\t\t\terror_threshold.........0x%X\n"
-> @@ -849,6 +850,7 @@ void osm_dump_port_info(IN osm_log_t * p_log, IN ib_net64_t node_guid,
->  			cl_ntoh16(p_pi->p_key_violations),
->  			cl_ntoh16(p_pi->q_key_violations), p_pi->guid_cap,
->  			ib_port_info_get_client_rereg(p_pi),
-> +			ib_port_info_get_mcast_pkey_trap_suppress(p_pi),
->  			ib_port_info_get_timeout(p_pi), p_pi->resp_time_value,
->  			p_pi->error_threshold, cl_ntoh16(p_pi->max_credit_hint),
->  			cl_ntoh32(p_pi->link_rt_latency));
+> -------- Original Message --------
+> Subject: 	FW: OFED installation question re-AltLinux
+> Date: 	Tue, 13 Oct 2009 11:14:08 -0500
+> From: 	Bill Boas <bboas-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org>
+> Reply-To: 	bboas-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org <bboas-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org>
+> To: 	general-owner-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
+> <general-owner-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+> CC: 	'Jeffrey Scott' <jeff-PQF7zMLV7HqjP/IhtLckvQ@public.gmane.org>, 'Sujal Das'
+> <sujal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 > 
+> 
+> 
+> If some one on general knows how to help Serg who sent the message below,
+> please respond. Thank you.
+> 
+> Bill Boas
+> VP, Bus Dev System Fabric Works
+> Exec Dir. OpenFabrics Alliance
+> 510-375-8840
+> bboas-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org
+> www.systemfabricworks.com
+> bill.boas-G2znmakfqn7U1rindQTSdQ@public.gmane.org
+> www.openfabrics.org
+> 
+> 
+> -----Original Message-----
+> From: Jeffrey Scott [mailto:jeff-PQF7zMLV7HqjP/IhtLckvQ@public.gmane.org] 
+> Sent: Tuesday, October 13, 2009 9:09 AM
+> To: bboas-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org; 'Sujal Das'
+> Subject: FW: OFED installation
+> 
+> Who should this inquiry go to?
+> 
+> 
+> -----Original Message-----
+> From: Sergey Zhumatiy [mailto:serg-bzQdu9zFT3Uox3rIn2DAYQ@public.gmane.org] 
+> Sent: Tuesday, October 13, 2009 2:44 AM
+> To: membership-G2znmakfqn7U1rindQTSdQ@public.gmane.org; webmaster-G2znmakfqn7U1rindQTSdQ@public.gmane.org
+> Subject: OFED installation
+> 
+>   Hello!
+>   I try to install OFED-1.5 on my AltLinux cluster. AltLinux is
+> rpm-based, but I cannot install it because install .pl cannot find gcc,
+> stdc++-devel and tk. All of them are installed. OFED-1.0.1 was installed
+> succesfully one year ago.
+>   How can I compile and install latest OFED?
+> 
+>   Also, I want to install latest OFED to my experimental Debian cluster.
+> Is it possible?
+> 
+>   Thank you.
+> 
+Hi Sergey,
+
+
+OFED debian packages (up to OFED 1.4.2) are available here:
+
+http://pkg-ofed.alioth.debian.org/
+
+Cheers,
+
+Guy
+
+-- 
+Dr Guy Coates,  Informatics System Group
+The Wellcome Trust Sanger Institute, Hinxton, Cambridge, CB10 1HH, UK
+Tel: +44 (0)1223 834244 ex 6925
+Fax: +44 (0)1223 496802
+
+
+-- 
+ The Wellcome Trust Sanger Institute is operated by Genome Research 
+ Limited, a charity registered in England with number 1021457 and a 
+ company registered in England with number 2742969, whose registered 
+ office is 215 Euston Road, London, NW1 2BE. 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
