@@ -1,32 +1,44 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [ofw] [PATCH] opensm - standardize on a single Windows #define
-Date: Mon, 12 Oct 2009 22:15:32 -0600
-Message-ID: <20091013041532.GK18578@obsidianresearch.com>
-References: <C014357BC392401989734C286EDC5AE1@amr.corp.intel.com> <21B1AC3C6F82416A8764CF0B6FD9C27B@amr.corp.intel.com> <3F6F638B8D880340AB536D29CD4C1E1912C8846161@orsmsx501.amr.corp.intel.com> <20091012220041.GL13830@me> <3F6F638B8D880340AB536D29CD4C1E1912C896BBEA@orsmsx501.amr.corp.intel.com> <3F6F638B8D880340AB536D29CD4C1E1912C896BBFC@orsmsx501.amr.corp.intel.com>
+From: Brice Goglin <Brice.Goglin@inria.fr>
+Subject: Re: [ofa-general] Re: [GIT PULL] please pull ummunotify
+Date: Tue, 13 Oct 2009 07:43:15 +0200
+Message-ID: <4AD41373.8010108@inria.fr>
+References: <adafxalejiq.fsf@cisco.com> <adaab0tej5c.fsf@cisco.com> <1253198976.14935.27.camel@laptop> <adazl8td35u.fsf@cisco.com> <adatyz1d17q.fsf@cisco.com> <20090929171332.GD14405@elf.ucw.cz> <20090930094456.GD24621@elte.hu> <20090930160232.GZ22310@obsidianresearch.com> <20091012181944.GF17138@elte.hu> <20091012193048.GA20313@obsidianresearch.com> <20091012202046.GA7648@elte.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <3F6F638B8D880340AB536D29CD4C1E1912C896BBFC-osO9UTpF0USkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Smith, Stan" <stan.smith-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>, "ofw-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org" <ofw-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>, 'linux-rdma' <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S932738AbZJMFpO@vger.kernel.org>
+In-Reply-To: <20091012202046.GA7648@elte.hu>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Ingo Molnar <mingo@elte.hu>
+Cc: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Pavel Machek <pavel@ucw.cz>, Roland Dreier <rdreier@cisco.com>, Peter Zijlstra <peterz@infradead.org>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, Paul Mackerras <paulus@samba.org>, Anton Blanchard <anton@samba.org>, general@lists.openfabrics.org, akpm@linux-foundation.org, torvalds@linux-foundation.org, Jeff Squyres <jsquyres@cisco.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Oct 12, 2009 at 03:29:38PM -0700, Smith, Stan wrote:
+Ingo Molnar wrote:
+> * Jason Gunthorpe <jgunthorpe@obsidianresearch.com> wrote:
+>
+>   
+>> On Mon, Oct 12, 2009 at 08:19:44PM +0200, Ingo Molnar wrote:
+>>
+>>     
+>>>> After that point the scheme is perfectly lossless.
+>>>>         
+>>> Well if it can OOM it's not lossless, obviously. You just define 
+>>> "event loss" to be equivalent to "Destruction of the universe." ;-)
+>>>       
+>> It can't OOM once the ummunotify registration is done - when an event 
+>> occurs it doesn't allocate any memory and it doesn't loose events.
+>>     
+>
+> Well, it has built-in event loss via the UMMUNOTIFY_FLAG_HINT mechanism: 
+> any double events on the same range will cause an imprecise event to be 
+> recorded and cause the loss of information.
+>   
 
-> If __linux__ doesn't work for you, then please create a Linux Platform define I can use.
+The target (MPI) application doesn't care about how many events are
+coming here. It just needs to know whether something has been
+invalidated in the range. If so, it destroy the whole RDMA window
+anyway. So it's actually _good_ that multiple events are merged into a
+single one: the application only has to process a single event per
+partially-invalidated range.
 
-Pretty much all the patches I've seen you make should be guarded by
-__WIN__, you shouldn't be using __linux__.
-
-opensm and the other OFA stuff is POSIX. If you need to deviate from
-POSIX because Windows isn't, then you should use __WIN__ as the guard.
-
-It is inappropriate to guard POSIX code with __linux__
-
-Jason
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Brice
