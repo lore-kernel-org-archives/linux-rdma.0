@@ -1,241 +1,124 @@
 From: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH] opensm: Add infrastructure support for PortInfo
-	IsMulticastPkeyTrapSuppressionSupported
-Date: Tue, 13 Oct 2009 09:15:36 -0400
-Message-ID: <f0e08f230910130615of844fc4lb02265e5eaf25717@mail.gmail.com>
-References: <20091009144659.GA17861@comcast.net> <20091012184523.GC13830@me>
+Subject: Re: Default force_link_speed value in opensm configuration
+Date: Tue, 13 Oct 2009 09:39:08 -0400
+Message-ID: <f0e08f230910130639v7f2da43bt630b7f42eb0da795@mail.gmail.com>
+References: <4ACB6891.7010202@gmail.com>
+	 <20091006142728.3d1e5bcc.weiny2@llnl.gov> <4AD2FB39.6040602@gmail.com>
+	 <20091012143553.04554689.weiny2@llnl.gov>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20091012184523.GC13830@me>
+In-Reply-To: <20091012143553.04554689.weiny2-i2BcT+NCU+M@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+Cc: "Eli Dorfman (Voltaire)" <dorfman.eli-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, OFED mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Oct 12, 2009 at 2:45 PM, Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>=
- wrote:
-> On 10:46 Fri 09 Oct =C2=A0 =C2=A0 , Hal Rosenstock wrote:
+On Mon, Oct 12, 2009 at 5:35 PM, Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org> wrote:
+> On Mon, 12 Oct 2009 11:47:37 +0200
+> "Eli Dorfman (Voltaire)" <dorfman.eli-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
+>
+>> Ira Weiny wrote:
+>> > On Tue, 06 Oct 2009 17:56:01 +0200
+>> > "Eli Dorfman (Voltaire)" <dorfman.eli-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
+>> >
+>> >> Hi,
+>> >>
+>> >> Is there a reason for setting default force_link_speed to 15 (set enabled as supported)
+>> >> and not to 0 (don't modify PortInfo:LinkSpeedEnabled )?
+
+This is going back some 2 years to 7/15/07 commit ID
+c7cbf11992b111d2b9c7347e398e67f2b5806edb
+
+commit c7cbf11992b111d2b9c7347e398e67f2b5806edb
+Author: Hal Rosenstock <halr-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+Date:   Sun Jul 15 06:43:20 2007 -0400
+
+    OpenSM: Change force_link_speed to allow for local policy and more flexibili
+
+    OpenSM: Change force_link_speed to allow for local policy and more
+    flexibility
+
+    Extend (and change) the use of force_link_speed as follows:
+    0 - no change
+    1 - set to SDR
+    15 - set as supported (default)
+    (Non zero values are used to set LinkSpeedEnabled component in PortInfo)
+
+    Note that force_link_speed 0 which used to force SDR is now
+    force_link_speed 1
+
+    "Ideally", there were be a per port configuration of this.
+
+    [Note this is largely untested.]
+
+    Signed-off-by: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+
+I think that the default was chosen based on IBA 1.2.1 vol 2 p. 108 stating:
+"The default value following power on shall be set to LinkSpeedSupported."
+which should not be an issue with compliant hardware.
+
+>> >
+>> > The thought was to enable all ports to the maximum supported by default.  This
+>> > was the behavior before this option was added so it was though to leave it
+>> > alone by default.
+>> >
+>> > Is there a reason this should not happen?  I guess since the Volume 2 spec
+>> > says that the power on default for this is LinkSpeedSupported there is no
+>> > reason to have the SM send these Set's.  Perhaps there is broken hardware out
+>> > there?
 >>
->> Per published MgtWG errata RefID 4576
+>> well actually there is a hardware that supports only 5.0Gbps (but reports 2.5 or 5.0 Gbps since there is no option for 5.0 only)
+>> and powers on with enabled speed of 5.0Gbps only.
+>> Setting the enabled speed to the supported speed will fail further negotiation (after link reset) since the device does not support 2.5Gbps.
+>
+> That seems like broken hardware...
+
+Yes, all ports are required to support SDR.
+
+IBA 1.2.1 vol 2 p. 108 states:
+"Note that the SDR speed (2.5 Gb/s) must always be enabled, since
+link initialization occurs at this speed."
+
+If you feel that this should not be a requirement, shouldn't that be
+taken up with the IBTA and have the spec amended ?
+
 >>
->> Signed-off-by: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
->> ---
->> diff --git a/opensm/include/iba/ib_types.h b/opensm/include/iba/ib_t=
-ypes.h
->> index 25ed35f..c820372 100644
->> --- a/opensm/include/iba/ib_types.h
->> +++ b/opensm/include/iba/ib_types.h
->> @@ -4432,7 +4432,7 @@ typedef struct _ib_port_info {
->> =C2=A0 =C2=A0 =C2=A0 ib_net16_t p_key_violations;
->> =C2=A0 =C2=A0 =C2=A0 ib_net16_t q_key_violations;
->> =C2=A0 =C2=A0 =C2=A0 uint8_t guid_cap;
->> - =C2=A0 =C2=A0 uint8_t subnet_timeout; /* cli_rereg(1b), resrv(2b),=
- timeout(5b) */
->> + =C2=A0 =C2=A0 uint8_t subnet_timeout; /* cli_rereg(1b), mcast_pkey=
-_trap_suppr(1b), resrv(1b), timeout(5b) */
->> =C2=A0 =C2=A0 =C2=A0 uint8_t resp_time_value;
->> =C2=A0 =C2=A0 =C2=A0 uint8_t error_threshold; /* local phy errors(4b=
-), overrun errors(4b) */
->> =C2=A0 =C2=A0 =C2=A0 ib_net16_t max_credit_hint;
->> @@ -5282,7 +5282,7 @@ ib_port_info_set_timeout(IN ib_port_info_t * c=
-onst p_pi,
->> =C2=A0{
->> =C2=A0 =C2=A0 =C2=A0 CL_ASSERT(timeout <=3D 0x1F);
->> =C2=A0 =C2=A0 =C2=A0 p_pi->subnet_timeout =3D
->> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 (uint8_t) ((p_pi->subnet_timeout & 0x8=
-0) | (timeout & 0x1F));
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 (uint8_t) ((p_pi->subnet_timeout & 0xC=
-0) | (timeout & 0x1F));
->
-> Why not 'p_pi->subnet_timeout & 0xe0' then (IOW why to bother with
-> reserved bits reset)?
-
-Per this erratum (RefID 4576), this bit is no longer reserved. It is
-now used for MulticastPKeyTrapSuppressionEnabled.
-
->
->> =C2=A0}
+>> So if the default for all other devices is enabled=supported then we can change the opensm configuration force_link_speed to 0.
 >>
->> =C2=A0/*
->> @@ -5317,7 +5317,7 @@ ib_port_info_set_client_rereg(IN ib_port_info_=
-t * const p_pi,
->> =C2=A0 =C2=A0 =C2=A0 CL_ASSERT(client_rereg <=3D 0x1);
->> =C2=A0 =C2=A0 =C2=A0 p_pi->subnet_timeout =3D
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 (uint8_t) ((p_pi->
->> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 subnet_timeout & 0x1F) | ((client_rereg << 7) & 0x80));
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 subnet_timeout & 0x5F) | ((client_rereg << 7) & 0x80));
 >
-> Ditto.
-
-See above.
-
->> =C2=A0}
->>
->> =C2=A0/*
->> @@ -5336,6 +5336,43 @@ ib_port_info_set_client_rereg(IN ib_port_info=
-_t * const p_pi,
->> =C2=A0* SEE ALSO
->> =C2=A0*********/
->>
->> +/****f* IBA Base: Types/ib_port_info_set_mcast_pkey_trap_suppress
->> +* NAME
->> +* =C2=A0 =C2=A0ib_port_info_set_mcast_pkey_trap_suppress
->> +*
->> +* DESCRIPTION
->> +* =C2=A0 =C2=A0Sets the encoded multicast pkey trap suppresion enab=
-led bit value
->> +* =C2=A0 =C2=A0in the PortInfo attribute.
->> +*
->> +* SYNOPSIS
->> +*/
->> +static inline void OSM_API
->> +ib_port_info_set_mcast_pkey_trap_suppress(IN ib_port_info_t * const=
- p_pi,
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 IN c=
-onst uint8_t trap_suppress)
->> +{
->> + =C2=A0 =C2=A0 CL_ASSERT(trap_suppress <=3D 0x1);
->> + =C2=A0 =C2=A0 p_pi->subnet_timeout =3D
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 (uint8_t) ((p_pi->
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 subnet_timeout & 0x9F) | ((trap_suppress << 6) & 0x40));
+> I have no problem changing it.  As I said if hardware is compliant I think it
+> might speed things up.  I will test out a patch with the hardware I can test.
 >
-> Ditto.
+> However, I would like to know if anyone else knows of hardware which needs it
+> set to "15".  If so, this is going to be an interesting problem...  ;-)
 
-See above.
+I'm not sure about need but I think there is a tradeoff here in
+changing this. The pro is it will work with non compliant hardware.
+The con is that it may result in less than the max LSS being used in
+some scenarios.
 
-> And whoudn't this:
->
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0p_pi->subnet_timeout =3D (p_pi->subnet_tim=
-eout & 0xbf) |
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0(trap_suppress=
- << 6)
->
-> just work?
-
-Sure, Do you want an updated patch with this change ?
+Should the default be changed for non compliant hardware or should
+this need to be configured in subnets including such hardware as it
+has since this was introduced ?
 
 -- Hal
 
-> Sasha
+> Ira
 >
->> +}
->> +
->> +/*
->> +* PARAMETERS
->> +* =C2=A0 =C2=A0p_pi
->> +* =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0[in] Pointer to a PortIn=
-fo attribute.
->> +*
->> +* =C2=A0 =C2=A0trap_suppress
->> +* =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0[in] Multicast pkey trap=
- suppresion enabled value to set
->> +* =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 (either 1=
- or 0).
->> +*
->> +* RETURN VALUES
->> +* =C2=A0 =C2=A0None.
->> +*
->> +* NOTES
->> +*
->> +* SEE ALSO
->> +*********/
->> +
->> =C2=A0/****f* IBA Base: Types/ib_port_info_get_timeout
->> =C2=A0* NAME
->> =C2=A0* =C2=A0 =C2=A0ib_port_info_get_timeout
->> @@ -5392,6 +5429,35 @@ ib_port_info_get_client_rereg(IN ib_port_info=
-_t const *p_pi)
->> =C2=A0* SEE ALSO
->> =C2=A0*********/
->>
->> +/****f* IBA Base: Types/ib_port_info_get_mcast_pkey_trap_suppress
->> +* NAME
->> +* =C2=A0 =C2=A0ib_port_info_get_mcast_pkey_trap_suppress
->> +*
->> +* DESCRIPTION
->> +* =C2=A0 =C2=A0Gets the encoded multicast pkey trap suppresion enab=
-led bit value
->> +* =C2=A0 =C2=A0in the PortInfo attribute.
->> +*
->> +* SYNOPSIS
->> +*/
->> +static inline uint8_t OSM_API
->> +ib_port_info_get_mcast_pkey_trap_suppress(IN ib_port_info_t const *=
-p_pi)
->> +{
->> + =C2=A0 =C2=A0 return ((p_pi->subnet_timeout & 0x40) >> 6);
->> +}
->> +
->> +/*
->> +* PARAMETERS
->> +* =C2=A0 =C2=A0p_pi
->> +* =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0[in] Pointer to a PortIn=
-fo attribute.
->> +*
->> +* RETURN VALUES
->> +* =C2=A0 =C2=A0Multicast PKey trap suppression enabled value (eithe=
-r 1 or 0).
->> +*
->> +* NOTES
->> +*
->> +* SEE ALSO
->> +*********/
->> +
->> =C2=A0/****f* IBA Base: Types/ib_port_info_set_hoq_lifetime
->> =C2=A0* NAME
->> =C2=A0* =C2=A0 =C2=A0ib_port_info_set_hoq_lifetime
->> diff --git a/opensm/opensm/osm_helper.c b/opensm/opensm/osm_helper.c
->> index 2b3dced..417c256 100644
->> --- a/opensm/opensm/osm_helper.c
->> +++ b/opensm/opensm/osm_helper.c
->> @@ -823,6 +823,7 @@ void osm_dump_port_info(IN osm_log_t * p_log, IN=
- ib_net64_t node_guid,
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 "\t\t\t\tq_key_violations........0x%X\n"
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 "\t\t\t\tguid_cap................0x%X\n"
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 "\t\t\t\tclient_reregister.......0x%X\n"
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 "\t\t\t\tmcast_pkey_trap_suppr...0x%X\n"
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 "\t\t\t\tsubnet_timeout..........0x%X\n"
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 "\t\t\t\tresp_time_value.........0x%X\n"
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 "\t\t\t\terror_threshold.........0x%X\n"
->> @@ -854,6 +855,7 @@ void osm_dump_port_info(IN osm_log_t * p_log, IN=
- ib_net64_t node_guid,
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 cl_ntoh16(p_pi->p_key_violations),
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 cl_ntoh16(p_pi->q_key_violations), p_pi->guid_cap,
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 ib_port_info_get_client_rereg(p_pi),
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 ib_port_info_get_mcast_pkey_trap_suppress(p_pi),
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 ib_port_info_get_timeout(p_pi), p_pi->resp_time_value,
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 p_pi->error_threshold, cl_ntoh16(p_pi->max_credit_hint),
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 cl_ntoh32(p_pi->link_rt_latency));
->>
+>
 > --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma"=
- in
+> Ira Weiny
+> Math Programmer/Computer Scientist
+> Lawrence Livermore National Lab
+> 925-423-8008
+> weiny2-i2BcT+NCU+M@public.gmane.org
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at =C2=A0http://vger.kernel.org/majordomo-info.ht=
-ml
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 >
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
