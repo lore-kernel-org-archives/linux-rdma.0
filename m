@@ -1,98 +1,225 @@
-From: Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: OpenSM Failover
-Date: Tue, 13 Oct 2009 18:13:32 +0200
-Message-ID: <4AD4A72C.6000108@dev.mellanox.co.il>
-References: <B1EF3F77-622B-40DA-BB3D-DC35973B60A6@gmail.com>	 <CBC039F5-9019-436D-AF6D-F887E860D07B@gmail.com>	 <4AD2D75A.2020403@dev.mellanox.co.il> <4AD2E582.8010202@voltaire.com>	 <4AD2E736.4050803@dev.mellanox.co.il>	 <eafd71280910120703y7dfa04cbq114cf07d46c909fb@mail.gmail.com>	 <4AD49DAB.4020206@dev.mellanox.co.il> <eafd71280910130852k1166b980kdf7129a52dacd42f@mail.gmail.com>
-Reply-To: kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org
+From: "Stan C. Smith" <stan.smith@intel.com>
+Subject: [PATCH] opensm - standardize on a single Windows #define -
+	take #2
+Date: Tue, 13 Oct 2009 09:15:35 -0700
+Message-ID: <02AF42785F2743CA9BA06E8D48A79A25@amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain;
+	charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <eafd71280910130852k1166b980kdf7129a52dacd42f-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Aaron Knister <aaron.knister-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Or Gerlitz <ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <ofw-bounces@lists.openfabrics.org>
+List-Unsubscribe: <http://lists.openfabrics.org/cgi-bin/mailman/listinfo/ofw>,
+	<mailto:ofw-request@lists.openfabrics.org?subject=unsubscribe>
+List-Archive: <http://lists.openfabrics.org/pipermail/ofw>
+List-Post: <mailto:ofw@lists.openfabrics.org>
+List-Help: <mailto:ofw-request@lists.openfabrics.org?subject=help>
+List-Subscribe: <http://lists.openfabrics.org/cgi-bin/mailman/listinfo/ofw>,
+	<mailto:ofw-request@lists.openfabrics.org?subject=subscribe>
+Sender: ofw-bounces@lists.openfabrics.org
+Errors-To: ofw-bounces@lists.openfabrics.org
+To: Sasha Khapyorsky <sashak@voltaire.com>
+Cc: ofw@lists.openfabrics.org, 'linux-rdma' <linux-rdma@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Aaron Knister wrote:
-> Thanks! I really appreciate that.
-> 
-> I still have a question about the initial failover- I'm still
-> wondering why there's a 30 second delay. Wouldn't nodeA send some type
-> of handover message (my IB knowledge is limited) to notify a subnet
-> manager of a lower priority to take over?
 
-When master SM dies, it can't notify anyone that it is dead.
-Standby SM keeps polling the master SM, and if the latter is
-dead, it will be getting timeouts on these polls.
-The number of polls, and the time that passes between these
-polls is configurable.
-Default is 4 polls with 10 seconds waiting in between.
+Code cleanup, standardize on a single Windows #define '__WIN__'.
 
-Note that SM fail-over might be very destructive to the 
-traffic. Depending on the SM configuration, it can change LIDs,
-routing, it will require flushing of all the path resolutions
-on all the fabric nodes and refreshing all the multicast
-membership in the subnet.
+Signed-off-by: Stan Smith <stan.smith@intel.com>
 
-> As I said, the older opensms
-> on the older mellanox model HCAs failsover and failsback instantly.
-
-The instant failback is expected, and this is the bug that
-we're discussing. As for the instant failover - I'll check
-how the things supposed to work and get back to you.
-
--- Yevgeny
-
-> On Tue, Oct 13, 2009 at 11:32 AM, Yevgeny Kliteynik
-> <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wrote:
->> Aaron,
->>
->> Thanks for the logs, this was really helpful.
->> Looks like there is a handover race in the OSM -
->> SM on node A misses the fact that SM on node B
->> have gave up its mastership.
->>
->> There is a bugzilla issue the describes all the
->> details of this race:
->>
->> https://bugs.openfabrics.org/show_bug.cgi?id=1499
->>
->> I've updated the issue form with your case, and we will continue following
->> this bug there.
->>
->> -- Yevgeny
->>
->> Aaron Knister wrote:
->>> While the adapters have mellanox chipsets their actually IBM OEM
->>> branded and IBM hasn't released the 2.7 fw yet. I'm a little hesitant
->>> to apply the generic Mellanox FW.
->>>
->>> On Mon, Oct 12, 2009 at 4:22 AM, Yevgeny Kliteynik
->>> <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wrote:
->>>> Or Gerlitz wrote:
->>>>> Yevgeny Kliteynik wrote:
->>>>>> There was a hand-over problem in OFED 1.4, but later it turned  out to
->>>>>> be
->>>>>> FW issue. The thing is, FW version 2.6.648 doesn't  have this bug any
->>>>>> more...
->>>>> so things should work fine with the newly released 2.7 firmware?
->>>> Yes
->>>>
->>>>> if this is still under question, Aaron, I suggest you open a bugzilla
->>>>> case
->>>>> @ https://bugs.openfabrics.org and we can track from there.
->>>> Good idea.
->>>>
->>>> -- Yevgeny
->>>>
->>>>> Or.
->>>>>
->>>>>
->>
-> 
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/opensm/include/iba/ib_cm_types.h b/opensm/include/iba/ib_cm_types.h
+index c1fbfaf..061f47b 100644
+--- a/opensm/include/iba/ib_cm_types.h
++++ b/opensm/include/iba/ib_cm_types.h
+@@ -36,7 +36,7 @@
+ #if !defined(__IB_CM_TYPES_H__)
+ #define __IB_CM_TYPES_H__
+ 
+-#ifndef WIN32
++#ifndef __WIN__
+ 
+ #include <iba/ib_types.h>
+ 
+@@ -199,5 +199,5 @@ typedef uint16_t ib_sidr_status_t;
+ #define IB_SIDR_UNSUPPORTED_VER				5
+ 
+ END_C_DECLS
+-#endif				/* ndef WIN32 */
++#endif				/* ndef __WIN__ */
+ #endif				/* __IB_CM_TYPES_H__ */
+diff --git a/opensm/include/iba/ib_types.h b/opensm/include/iba/ib_types.h
+index aa566f7..dac3a21 100644
+--- a/opensm/include/iba/ib_types.h
++++ b/opensm/include/iba/ib_types.h
+@@ -50,7 +50,7 @@
+ #endif				/* __cplusplus */
+ 
+ BEGIN_C_DECLS
+-#if defined( WIN32 ) || defined( _WIN64 )
++#if defined( __WIN__ )
+ #if defined( EXPORT_AL_SYMBOLS )
+ #define OSM_EXPORT	__declspec(dllexport)
+ #else
+@@ -8309,7 +8309,7 @@ typedef struct _ib_mcast *__ptr64 ib_mcast_handle_t;
+ 	in order to be compliant with Infinicon ib_types; later we'll change it to support
+ 	OpenSM ib_types.h */
+ 
+-#ifndef WIN32
++#ifndef __WIN__
+ /****d* Access Layer/ib_api_status_t
+ * NAME
+ *	ib_api_status_t
+@@ -10633,8 +10633,7 @@ typedef struct _ib_ci_op {
+ *****/
+ 
+ END_C_DECLS
+-#endif				/* ndef WIN32 */
+-#if defined( __WIN__ )
++#else				/* ndef __WIN__ */
+ #include <iba/ib_types_extended.h>
+ #endif
+ #endif				/* __IB_TYPES_H__ */
+diff --git a/opensm/libvendor/osm_pkt_randomizer.c b/opensm/libvendor/osm_pkt_randomizer.c
+index 3e77b56..316c0eb 100644
+--- a/opensm/libvendor/osm_pkt_randomizer.c
++++ b/opensm/libvendor/osm_pkt_randomizer.c
+@@ -47,7 +47,7 @@
+ #include <stdlib.h>
+ #include <string.h>
+ 
+-#ifndef WIN32
++#ifndef __WIN__
+ #include <sys/time.h>
+ #include <unistd.h>
+ #endif
+@@ -130,23 +130,23 @@ __osm_pkt_randomizer_process_path(IN osm_log_t * p_log,
+ 
+ 	if (rand_value_init == FALSE) {
+ 		int seed;
+-#ifdef WIN32
++#ifdef __WIN__
+ 		SYSTEMTIME st;
+ #else
+ 		struct timeval tv;
+ 		struct timezone tz;
+-#endif				/*  WIN32 */
++#endif				/*  __WIN__ */
+ 
+ 		/* initiate the rand_value according to timeofday */
+ 		rand_value_init = TRUE;
+ 
+-#ifdef WIN32
++#ifdef __WIN__
+ 		GetLocalTime(&st);
+ 		seed = st.wMilliseconds;
+ #else
+ 		gettimeofday(&tv, &tz);
+ 		seed = tv.tv_usec;
+-#endif				/*  WIN32 */
++#endif				/*  __WIN__ */
+ 
+ 		srand(seed);
+ 	}
+diff --git a/opensm/opensm/osm_log.c b/opensm/opensm/osm_log.c
+index 8f30784..918e696 100644
+--- a/opensm/opensm/osm_log.c
++++ b/opensm/opensm/osm_log.c
+@@ -55,7 +55,7 @@
+ 
+ static int log_exit_count = 0;
+ 
+-#ifndef WIN32
++#ifndef __WIN__
+ #include <sys/time.h>
+ #include <unistd.h>
+ #include <complib/cl_timer.h>
+@@ -76,9 +76,9 @@ static char *month_str[] = {
+ };
+ #else
+ void OsmReportState(IN const char *p_str);
+-#endif				/* ndef WIN32 */
++#endif				/* ndef __WIN__ */
+ 
+-#ifndef WIN32
++#ifndef __WIN__
+ 
+ static void truncate_log_file(osm_log_t * p_log)
+ {
+@@ -99,7 +99,7 @@ static void truncate_log_file(osm_log_t * p_log)
+ 	fprintf(stderr,
+ 		"truncate_log_file: cannot truncate on windows system (yet)\n");
+ }
+-#endif				/* ndef WIN32 */
++#endif				/* ndef __WIN__ */
+ 
+ void osm_log(IN osm_log_t * p_log, IN osm_log_level_t verbosity,
+ 	     IN const char *p_str, ...)
+@@ -107,7 +107,7 @@ void osm_log(IN osm_log_t * p_log, IN osm_log_level_t verbosity,
+ 	char buffer[LOG_ENTRY_SIZE_MAX];
+ 	va_list args;
+ 	int ret;
+-#ifdef WIN32
++#ifdef __WIN__
+ 	SYSTEMTIME st;
+ 	uint32_t pid = GetCurrentThreadId();
+ #else
+@@ -116,7 +116,7 @@ void osm_log(IN osm_log_t * p_log, IN osm_log_level_t verbosity,
+ 	struct tm result;
+ 	uint64_t time_usecs;
+ 	uint32_t usecs;
+-#endif				/* WIN32 */
++#endif				/* __WIN__ */
+ 
+ 	/* If this is a call to syslog - always print it */
+ 	if (!(verbosity & (OSM_LOG_SYS | p_log->level)))
+@@ -135,9 +135,9 @@ void osm_log(IN osm_log_t * p_log, IN osm_log_level_t verbosity,
+ 			printf("%s\n", buffer);
+ 			fflush(stdout);
+ 		}
+-#ifdef WIN32
++#ifdef __WIN__
+ 		OsmReportState(buffer);
+-#endif				/* WIN32 */
++#endif				/* __WIN__ */
+ 	}
+ 
+ 	/* regular log to default out_port */
+@@ -150,7 +150,7 @@ void osm_log(IN osm_log_t * p_log, IN osm_log_level_t verbosity,
+ 			p_log->max_size);
+ 		truncate_log_file(p_log);
+ 	}
+-#ifdef WIN32
++#ifdef __WIN__
+ 	GetLocalTime(&st);
+ _retry:
+ 	ret =
+diff --git a/opensm/opensm/st.c b/opensm/opensm/st.c
+index c5a2f53..ea76038 100644
+--- a/opensm/opensm/st.c
++++ b/opensm/opensm/st.c
+@@ -43,10 +43,6 @@
+ #include <string.h>
+ #include <opensm/st.h>
+ 
+-#ifdef _WIN32
+-#include <malloc.h>
+-#endif
+-
+ typedef struct st_table_entry st_table_entry;
+ 
+ struct st_table_entry {
+diff --git a/opensm/osmtest/include/osmtest_base.h b/opensm/osmtest/include/osmtest_base.h
+index cda3a31..6c980a3 100644
+--- a/opensm/osmtest/include/osmtest_base.h
++++ b/opensm/osmtest/include/osmtest_base.h
+@@ -48,11 +48,7 @@
+ #endif
+ 
+ #define OSMTEST_MAX_LINE_LEN	120
+-#ifdef WIN32
+-#define OSMTEST_FILE_PATH_MAX	4096
+-#else
+ #define OSMTEST_FILE_PATH_MAX	PATH_MAX
+-#endif
+ 
+ #define STRESS_SMALL_RMPP_THR 100000
+ /*
