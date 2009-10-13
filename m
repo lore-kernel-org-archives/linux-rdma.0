@@ -1,64 +1,45 @@
-From: Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: OpenSM Failover
-Date: Tue, 13 Oct 2009 17:32:59 +0200
-Message-ID: <4AD49DAB.4020206@dev.mellanox.co.il>
-References: <B1EF3F77-622B-40DA-BB3D-DC35973B60A6@gmail.com>	 <CBC039F5-9019-436D-AF6D-F887E860D07B@gmail.com>	 <4AD2D75A.2020403@dev.mellanox.co.il> <4AD2E582.8010202@voltaire.com>	 <4AD2E736.4050803@dev.mellanox.co.il> <eafd71280910120703y7dfa04cbq114cf07d46c909fb@mail.gmail.com>
-Reply-To: kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org
+From: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCHv3] opensm: Reduce heap consumption by unicast routing
+ tables (LFTs)
+Date: Tue, 13 Oct 2009 17:44:27 +0200
+Message-ID: <20091013154427.GP13830@me>
+References: <20091004160541.GA28310@comcast.net>
+ <20091012154629.GD31778@me>
+ <f0e08f230910130559y2eb965cfm7a2e26b05ad63c12@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <eafd71280910120703y7dfa04cbq114cf07d46c909fb-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <f0e08f230910130559y2eb965cfm7a2e26b05ad63c12-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Aaron Knister <aaron.knister-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Or Gerlitz <ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Aaron,
+On 08:59 Tue 13 Oct     , Hal Rosenstock wrote:
+> >> @@ -405,7 +406,7 @@ uint8_t osm_switch_get_port_least_hops(IN cons=
+t osm_switch_t * p_sw,
+> >> =A0static inline uint8_t osm_switch_get_port_by_lid(IN const osm_s=
+witch_t * p_sw,
+> >> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 =A0 =A0 =A0 =A0IN uint16_t lid_ho)
+> >> =A0{
+> >> - =A0 =A0 if (lid_ho =3D=3D 0 || lid_ho > IB_LID_UCAST_END_HO)
+> >> + =A0 =A0 if (lid_ho =3D=3D 0 || lid_ho >=3D p_sw->lft_size)
+> >
+> > Similar story? Shouldn't this be checked against p_sw->max_lid_ho?
+>=20
+> Yes and this change could be considered independent as I think is a
+> minor optimization even with the LFT heap changes.
 
-Thanks for the logs, this was really helpful.
-Looks like there is a handover race in the OSM -
-SM on node A misses the fact that SM on node B
-have gave up its mastership.
+It is not just optimization, but rather a bug fix - it should prevent
+potential junk returned by this function. And yes, it exists even
+without LFT reallocation stuff.
 
-There is a bugzilla issue the describes all the
-details of this race:
-
-https://bugs.openfabrics.org/show_bug.cgi?id=1499
-
-I've updated the issue form with your case, and 
-we will continue following this bug there.
-
--- Yevgeny
-
-Aaron Knister wrote:
-> While the adapters have mellanox chipsets their actually IBM OEM
-> branded and IBM hasn't released the 2.7 fw yet. I'm a little hesitant
-> to apply the generic Mellanox FW.
-> 
-> On Mon, Oct 12, 2009 at 4:22 AM, Yevgeny Kliteynik
-> <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wrote:
->> Or Gerlitz wrote:
->>> Yevgeny Kliteynik wrote:
->>>> There was a hand-over problem in OFED 1.4, but later it turned  out to be
->>>> FW issue. The thing is, FW version 2.6.648 doesn't  have this bug any
->>>> more...
->>> so things should work fine with the newly released 2.7 firmware?
->> Yes
->>
->>> if this is still under question, Aaron, I suggest you open a bugzilla case
->>> @ https://bugs.openfabrics.org and we can track from there.
->> Good idea.
->>
->> -- Yevgeny
->>
->>> Or.
->>>
->>>
->>
-> 
-
+Sasha
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
