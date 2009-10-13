@@ -1,150 +1,127 @@
-From: Eli Cohen <eli-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
-Subject: [PATCHv3] mlx4: remove limitation on LSO header size
-Date: Tue, 13 Oct 2009 09:57:08 +0200
-Message-ID: <20091013075708.GA11061@mtls03>
+From: Bart Van Assche <bart.vanassche-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [ofa-general][PATCH 4/4] SRP fail-over faster
+Date: Tue, 13 Oct 2009 13:09:43 +0200
+Message-ID: <e2e108260910130409q78e3edbcndd64b7cf419705b9@mail.gmail.com>
+References: <4AD3B466.8060908@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <4AD3B466.8060908-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+To: Vu Pham <vuhuong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Cc: Linux RDMA list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Current code has a limitation as for the size of an LSO header not allowed to
-cross a 64 byte boundary. This patch removes this limitation by setting the WQE
-RR for large headers thus allowing LSO headers of any size. The extra buffer
-reserved for MLX4_IB_QP_LSO QPs has been doubled, from 64 to 128 bytes,
-assuming this is reasonable upper limit to header length.
-Also, this patch will cause IB_DEVICE_UD_TSO to be set only of FW versions that
-set MLX4_DEV_CAP_FLAG_BLH; e.g. FW version 2.6.000 and higher.
-
-Signed-off-by: Eli Cohen <eli-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
----
-Changes from previous version:
-Fixed initialize blh for every WR in a chain of WRs, not just the
-first.
-
- drivers/infiniband/hw/mlx4/main.c |    2 +-
- drivers/infiniband/hw/mlx4/qp.c   |   24 ++++++++++++------------
- include/linux/mlx4/device.h       |    1 +
- 3 files changed, 14 insertions(+), 13 deletions(-)
-
-diff --git a/drivers/infiniband/hw/mlx4/main.c b/drivers/infiniband/hw/mlx4/main.c
-index 3cb3f47..e596537 100644
---- a/drivers/infiniband/hw/mlx4/main.c
-+++ b/drivers/infiniband/hw/mlx4/main.c
-@@ -103,7 +103,7 @@ static int mlx4_ib_query_device(struct ib_device *ibdev,
- 		props->device_cap_flags |= IB_DEVICE_UD_AV_PORT_ENFORCE;
- 	if (dev->dev->caps.flags & MLX4_DEV_CAP_FLAG_IPOIB_CSUM)
- 		props->device_cap_flags |= IB_DEVICE_UD_IP_CSUM;
--	if (dev->dev->caps.max_gso_sz)
-+	if (dev->dev->caps.max_gso_sz && dev->dev->caps.flags & MLX4_DEV_CAP_FLAG_BLH)
- 		props->device_cap_flags |= IB_DEVICE_UD_TSO;
- 	if (dev->dev->caps.bmme_flags & MLX4_BMME_FLAG_RESERVED_LKEY)
- 		props->device_cap_flags |= IB_DEVICE_LOCAL_DMA_LKEY;
-diff --git a/drivers/infiniband/hw/mlx4/qp.c b/drivers/infiniband/hw/mlx4/qp.c
-index 219b103..4b94240 100644
---- a/drivers/infiniband/hw/mlx4/qp.c
-+++ b/drivers/infiniband/hw/mlx4/qp.c
-@@ -54,7 +54,8 @@ enum {
- 	/*
- 	 * Largest possible UD header: send with GRH and immediate data.
- 	 */
--	MLX4_IB_UD_HEADER_SIZE		= 72
-+	MLX4_IB_UD_HEADER_SIZE		= 72,
-+	LSO_HEADER_SPARE		= 128,
- };
- 
- struct mlx4_ib_sqp {
-@@ -67,7 +68,8 @@ struct mlx4_ib_sqp {
- };
- 
- enum {
--	MLX4_IB_MIN_SQ_STRIDE = 6
-+	MLX4_IB_MIN_SQ_STRIDE = 6,
-+	MLX4_CACHE_LINE_SIZE = 64,
- };
- 
- static const __be32 mlx4_ib_opcode[] = {
-@@ -261,7 +263,7 @@ static int send_wqe_overhead(enum ib_qp_type type, u32 flags)
- 	case IB_QPT_UD:
- 		return sizeof (struct mlx4_wqe_ctrl_seg) +
- 			sizeof (struct mlx4_wqe_datagram_seg) +
--			((flags & MLX4_IB_QP_LSO) ? 64 : 0);
-+			((flags & MLX4_IB_QP_LSO) ? LSO_HEADER_SPARE : 0);
- 	case IB_QPT_UC:
- 		return sizeof (struct mlx4_wqe_ctrl_seg) +
- 			sizeof (struct mlx4_wqe_raddr_seg);
-@@ -1467,16 +1469,12 @@ static void __set_data_seg(struct mlx4_wqe_data_seg *dseg, struct ib_sge *sg)
- 
- static int build_lso_seg(struct mlx4_wqe_lso_seg *wqe, struct ib_send_wr *wr,
- 			 struct mlx4_ib_qp *qp, unsigned *lso_seg_len,
--			 __be32 *lso_hdr_sz)
-+			 __be32 *lso_hdr_sz, __be32 *blh)
- {
- 	unsigned halign = ALIGN(sizeof *wqe + wr->wr.ud.hlen, 16);
- 
--	/*
--	 * This is a temporary limitation and will be removed in
--	 * a forthcoming FW release:
--	 */
--	if (unlikely(halign > 64))
--		return -EINVAL;
-+	if (unlikely(halign > MLX4_CACHE_LINE_SIZE))
-+		*blh = cpu_to_be32(1 << 6);
- 
- 	if (unlikely(!(qp->flags & MLX4_IB_QP_LSO) &&
- 		     wr->num_sge > qp->sq.max_gs - (halign >> 4)))
-@@ -1523,6 +1521,7 @@ int mlx4_ib_post_send(struct ib_qp *ibqp, struct ib_send_wr *wr,
- 	__be32 *lso_wqe;
- 	__be32 uninitialized_var(lso_hdr_sz);
- 	int i;
-+	__be32 blh;
- 
- 	spin_lock_irqsave(&qp->sq.lock, flags);
- 
-@@ -1530,6 +1529,7 @@ int mlx4_ib_post_send(struct ib_qp *ibqp, struct ib_send_wr *wr,
- 
- 	for (nreq = 0; wr; ++nreq, wr = wr->next) {
- 		lso_wqe = &dummy;
-+		blh = 0;
- 
- 		if (mlx4_wq_overflow(&qp->sq, nreq, qp->ibqp.send_cq)) {
- 			err = -ENOMEM;
-@@ -1616,7 +1616,7 @@ int mlx4_ib_post_send(struct ib_qp *ibqp, struct ib_send_wr *wr,
- 			size += sizeof (struct mlx4_wqe_datagram_seg) / 16;
- 
- 			if (wr->opcode == IB_WR_LSO) {
--				err = build_lso_seg(wqe, wr, qp, &seglen, &lso_hdr_sz);
-+				err = build_lso_seg(wqe, wr, qp, &seglen, &lso_hdr_sz, &blh);
- 				if (unlikely(err)) {
- 					*bad_wr = wr;
- 					goto out;
-@@ -1687,7 +1687,7 @@ int mlx4_ib_post_send(struct ib_qp *ibqp, struct ib_send_wr *wr,
- 		}
- 
- 		ctrl->owner_opcode = mlx4_ib_opcode[wr->opcode] |
--			(ind & qp->sq.wqe_cnt ? cpu_to_be32(1 << 31) : 0);
-+			(ind & qp->sq.wqe_cnt ? cpu_to_be32(1 << 31) : 0) | blh;
- 
- 		stamp = ind + qp->sq_spare_wqes;
- 		ind += DIV_ROUND_UP(size * 16, 1U << qp->sq.wqe_shift);
-diff --git a/include/linux/mlx4/device.h b/include/linux/mlx4/device.h
-index ce7cc6c..e92d1bf 100644
---- a/include/linux/mlx4/device.h
-+++ b/include/linux/mlx4/device.h
-@@ -61,6 +61,7 @@ enum {
- 	MLX4_DEV_CAP_FLAG_BAD_PKEY_CNTR	= 1 <<  8,
- 	MLX4_DEV_CAP_FLAG_BAD_QKEY_CNTR	= 1 <<  9,
- 	MLX4_DEV_CAP_FLAG_DPDP		= 1 << 12,
-+	MLX4_DEV_CAP_FLAG_BLH		= 1 << 15,
- 	MLX4_DEV_CAP_FLAG_MEM_WINDOW	= 1 << 16,
- 	MLX4_DEV_CAP_FLAG_APM		= 1 << 17,
- 	MLX4_DEV_CAP_FLAG_ATOMIC	= 1 << 18,
--- 
-1.6.5
-
+T24gVHVlLCBPY3QgMTMsIDIwMDkgYXQgMTI6NTcgQU0sIFZ1IFBoYW0gPHZ1aHVvbmdAbWVsbGFu
+b3guY29tPiB3cm90ZToKPgo+Cj4gSGFuZGxpbmcgYXN5bmMgbG9jYWwgcG9ydCBldmVudHM6IHBv
+cnQgZXJyLCBhY3RpdmUsIGxpZCBjaGFuZ2UuLi4KPiBVcG9uIGxvY2FsIHBvcnQgZXJyLCBpdCB3
+aWxsIHNldCB1cCB0aW1lciBzcnBfZGV2X2xvc3NfdG1vIHNlY29uZHMgdG8gcmVjb25uZWN0LiBJ
+ZiBsb2NhbCBwb3J0IGFjdGl2ZSBhbmQgdGhlcmUgaXMgdGltZXIsIGl0IHdpbGwgZGVsZXRlIHRo
+ZSB0aW1lcgo+Cj4gU2lnbmVkLW9mZi1ieTogVnUgUGhhbSA8dnVAbWVsbGFub3guY29tPgo+Cj4g
+SW5kZXg6IG9mZWRfa2VybmVsL2RyaXZlcnMvaW5maW5pYmFuZC91bHAvc3JwL2liX3NycC5jCj4g
+PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
+PT09PT09PT09PQo+IC0tLSBvZmVkX2tlcm5lbC5vcmlnL2RyaXZlcnMvaW5maW5pYmFuZC91bHAv
+c3JwL2liX3NycC5jCj4gKysrIG9mZWRfa2VybmVsL2RyaXZlcnMvaW5maW5pYmFuZC91bHAvc3Jw
+L2liX3NycC5jCj4gQEAgLTIwNzEsNiArMjEyMCw3NyBAQAo+IKAgoCCgIKByZXR1cm4gTlVMTDsK
+PiCgfQo+Cj4gK3N0YXRpYyB2b2lkIHNycF9ldmVudF9oYW5kbGVyKHN0cnVjdCBpYl9ldmVudF9o
+YW5kbGVyICpoYW5kbGVyLAo+ICsgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIHN0cnVjdCBp
+Yl9ldmVudCAqZXZlbnQpCj4gK3sKPiArIKAgoCCgIHN0cnVjdCBzcnBfZGV2aWNlICpzcnBfZGV2
+ID0KPiArIKAgoCCgIKAgoCBpYl9nZXRfY2xpZW50X2RhdGEoZXZlbnQtPmRldmljZSwgJnNycF9j
+bGllbnQpOwo+ICsgoCCgIKAgc3RydWN0IHNycF9ob3N0ICpob3N0LCAqdG1wX2hvc3Q7Cj4gKyCg
+IKAgoCBzdHJ1Y3Qgc3JwX3RhcmdldF9wb3J0ICp0YXJnZXQsICp0bXBfdGFyZ2V0Owo+ICsKPiAr
+IKAgoCCgIGlmICghc3JwX2RldiB8fCBzcnBfZGV2LT5kZXYgIT0gZXZlbnQtPmRldmljZSkKPiAr
+IKAgoCCgIKAgoCCgIKAgcmV0dXJuOwo+ICsKPiArIKAgoCCgIHByaW50ayhLRVJOX1dBUk5JTkcg
+UEZYICJBU1lOQyBldmVudD0gJWQgb24gZGV2aWNlPSAlc1xuIiwKPiArIKAgoCCgIKAgoCCgIKAg
+ZXZlbnQtPmV2ZW50LCBzcnBfZGV2LT5kZXYtPm5hbWUpOwo+ICsKPiArIKAgoCCgIHN3aXRjaCAo
+ZXZlbnQtPmV2ZW50KSB7Cj4gKyCgIKAgoCBjYXNlIElCX0VWRU5UX1BPUlRfRVJSOgo+ICsgoCCg
+IKAgoCCgIKAgoCBsaXN0X2Zvcl9lYWNoX2VudHJ5X3NhZmUoaG9zdCwgdG1wX2hvc3QsCj4gKyCg
+IKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAmc3JwX2Rldi0+ZGV2X2xpc3Qs
+IGxpc3QpIHsKPiArIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCBpZiAoZXZlbnQtPmVsZW1lbnQucG9y
+dF9udW0gPT0gaG9zdC0+cG9ydCkgewo+ICsgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAg
+c3Bpbl9sb2NrKCZob3N0LT50YXJnZXRfbG9jayk7CgpDYW4gc3JwX3JlbW92ZV93b3JrKCkgYmUg
+ZXhlY3V0ZWQgY29uY3VycmVudGx5IHdpdGgKc3JwX2V2ZW50X2hhbmRsZXIoKSA/IEluIHRoYXQg
+Y2FzZSB0aGUgYWJvdmUgY29kZSBpc24ndCBzYWZlIGFuZCB0aGUKc3Bpbl9sb2NrKCZob3N0LT50
+YXJnZXRfbG9jaykgc2hvdWxkIGJlIG1vdmVkIHRvIGp1c3QgYmVmb3JlCmxpc3RfZm9yX2VhY2hf
+ZW50cnlfc2FmZSgpLiBUaGUgY3VycmVudCBpbXBsZW1lbnRhdGlvbiBjYW4gdHJpZ2dlcgpyZWFk
+aW5nIGRlYWxsb2NhdGVkIG1lbW9yeS4KCj4gKyCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAg
+oCBsaXN0X2Zvcl9lYWNoX2VudHJ5X3NhZmUodGFyZ2V0LCB0bXBfdGFyZ2V0LAo+ICsgoCCgIKAg
+oCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCZob3N0LT50
+YXJnZXRfbGlzdCwgbGlzdCkgewo+ICsgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCg
+IKAgoCB1bnNpZ25lZCBsb25nIGZsYWdzOwo+ICsKPiArIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCg
+IKAgoCCgIKAgoCCgIKAgc3Bpbl9sb2NrX2lycXNhdmUodGFyZ2V0LT5zY3NpX2hvc3QtPmhvc3Rf
+bG9jaywKPiArIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCg
+IKAgoCCgIKAgZmxhZ3MpOwo+ICsgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAg
+oCBpZiAoIXRhcmdldC0+cXBfaW5fZXJyb3IgJiYKPiArIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCg
+IKAgoCCgIKAgoCCgIKAgoCCgIHRhcmdldC0+c3RhdGUgPT0gU1JQX1RBUkdFVF9MSVZFKQo+ICsg
+oCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIHNycF9xcF9lcnJf
+YWRkX3RpbWVyKHRhcmdldCwKPiArIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCg
+IKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKBzcnBfZGV2X2xvc3NfdG1vKTsKPiArIKAg
+oCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgc3Bpbl91bmxvY2tfaXJxcmVzdG9y
+ZSh0YXJnZXQtPnNjc2lfaG9zdC0+aG9zdF9sb2NrLAo+ICsgoCCgIKAgoCCgIKAgoCCgIKAgoCCg
+IKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoGZsYWdzKTsKPiArIKAgoCCg
+IKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIH0KPiArIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAg
+oCCgIHNwaW5fdW5sb2NrKCZob3N0LT50YXJnZXRfbG9jayk7Cj4gKyCgIKAgoCCgIKAgoCCgIKAg
+oCCgIKAgfQo+ICsgoCCgIKAgoCCgIKAgoCB9Cj4gKyCgIKAgoCCgIKAgoCCgIGJyZWFrOwo+ICsg
+oCCgIKAgY2FzZSBJQl9FVkVOVF9QT1JUX0FDVElWRToKPiArIKAgoCCgIGNhc2UgSUJfRVZFTlRf
+TElEX0NIQU5HRToKPiArIKAgoCCgIGNhc2UgSUJfRVZFTlRfUEtFWV9DSEFOR0U6Cj4gKyCgIKAg
+oCBjYXNlIElCX0VWRU5UX1NNX0NIQU5HRToKPiArIKAgoCCgIKAgoCCgIKAgbGlzdF9mb3JfZWFj
+aF9lbnRyeV9zYWZlKGhvc3QsIHRtcF9ob3N0LCAmc3JwX2Rldi0+ZGV2X2xpc3QsCj4gKyCgIKAg
+oCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKBsaXN0KSB7Cj4gKyCgIKAgoCCgIKAg
+oCCgIKAgoCCgIKAgaWYgKGV2ZW50LT5lbGVtZW50LnBvcnRfbnVtID09IGhvc3QtPnBvcnQpIHsK
+PiArIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIHNwaW5fbG9jaygmaG9zdC0+dGFyZ2V0
+X2xvY2spOwoKQSByZW1hcmsgc2ltaWxhciB0byB0aGUgYWJvdmU6IHRoaXMgY29kZSBpc24ndCBz
+YWZlIGFnYWluc3QgY29uY3VycmVudApjYWxscyBvZiBzcnBfcmVtb3ZlX29uZSgpLgoKPiArIKAg
+oCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIGxpc3RfZm9yX2VhY2hfZW50cnlfc2FmZSh0YXJn
+ZXQsIHRtcF90YXJnZXQsCj4gKyCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCg
+IKAgoCCgIKAgoCCgIKAgoCCgJmhvc3QtPnRhcmdldF9saXN0LCBsaXN0KSB7Cj4gKyCgIKAgoCCg
+IKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIHVuc2lnbmVkIGxvbmcgZmxhZ3M7Cj4gKwo+
+ICsgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCBzcGluX2xvY2tfaXJxc2F2
+ZSh0YXJnZXQtPnNjc2lfaG9zdC0+aG9zdF9sb2NrLAo+ICsgoCCgIKAgoCCgIKAgoCCgIKAgoCCg
+IKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCBmbGFncyk7Cj4gKyCgIKAgoCCgIKAg
+oCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIGlmICh0aW1lcl9wZW5kaW5nKCZ0YXJnZXQtPnFw
+X2Vycl90aW1lcikKPiArIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCg
+ICYmICF0YXJnZXQtPnFwX2luX2Vycm9yKSB7Cj4gKyCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCg
+IKAgoCCgIKAgoCCgIKAgoCCgIKAgc2hvc3RfcHJpbnRrKEtFUk5fV0FSTklORyBQRlgsCj4gKyCg
+IKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAg
+oHRhcmdldC0+c2NzaV9ob3N0LAo+ICsgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCg
+IKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAiZGVsZXRlIHFwX2luX2VyciB0aW1lclxuIik7Cj4g
+KyCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgZGVsX3RpbWVy
+KCZ0YXJnZXQtPnFwX2Vycl90aW1lcik7Cj4gKyCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAg
+oCCgIKAgoCCgIH0KPiArIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgc3Bp
+bl91bmxvY2tfaXJxcmVzdG9yZSh0YXJnZXQtPnNjc2lfaG9zdC0+aG9zdF9sb2NrLAo+ICsgoCCg
+IKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAg
+oGZsYWdzKTsKPiArIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIH0KPiArIKAgoCCgIKAg
+oCCgIKAgoCCgIKAgoCCgIKAgoCCgIHNwaW5fdW5sb2NrKCZob3N0LT50YXJnZXRfbG9jayk7Cj4g
+KyCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgfQo+ICsgoCCgIKAgoCCgIKAgoCB9Cj4gKyCgIKAgoCCg
+IKAgoCCgIGJyZWFrOwo+ICsgoCCgIKAgZGVmYXVsdDoKPiArIKAgoCCgIKAgoCCgIKAgYnJlYWs7
+Cj4gKyCgIKAgoCB9Cj4gKwo+ICt9Cj4gKwo+IKBzdGF0aWMgdm9pZCBzcnBfYWRkX29uZShzdHJ1
+Y3QgaWJfZGV2aWNlICpkZXZpY2UpCj4goHsKPiCgIKAgoCCgc3RydWN0IHNycF9kZXZpY2UgKnNy
+cF9kZXY7Cj4gQEAgLTIxMTYsNiArMjIyOCwxMSBAQAo+IKAgoCCgIKBpZiAoSVNfRVJSKHNycF9k
+ZXYtPm1yKSkKPiCgIKAgoCCgIKAgoCCgIKBnb3RvIGVycl9wZDsKPgo+ICsgoCCgIKAgSU5JVF9J
+Ql9FVkVOVF9IQU5ETEVSKCZzcnBfZGV2LT5ldmVudF9oYW5kbGVyLCBzcnBfZGV2LT5kZXYsCj4g
+KyCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgc3JwX2V2ZW50X2hhbmRsZXIpOwo+ICsgoCCg
+IKAgaWYgKGliX3JlZ2lzdGVyX2V2ZW50X2hhbmRsZXIoJnNycF9kZXYtPmV2ZW50X2hhbmRsZXIp
+KQo+ICsgoCCgIKAgoCCgIKAgoCBnb3RvIGVycl9wZDsKPiArCj4goCCgIKAgoG1lbXNldCgmZm1y
+X3BhcmFtLCAwLCBzaXplb2YgZm1yX3BhcmFtKTsKPiCgIKAgoCCgZm1yX3BhcmFtLnBvb2xfc2l6
+ZSCgIKAgoCCgID0gU1JQX0ZNUl9QT09MX1NJWkU7Cj4goCCgIKAgoGZtcl9wYXJhbS5kaXJ0eV93
+YXRlcm1hcmsgoCA9IFNSUF9GTVJfRElSVFlfU0laRTsKPiBAQCAtMjE2MCw2ICsyMjg0LDggQEAK
+Pgo+IKAgoCCgIKBzcnBfZGV2ID0gaWJfZ2V0X2NsaWVudF9kYXRhKGRldmljZSwgJnNycF9jbGll
+bnQpOwo+Cj4gKyCgIKAgoCBpYl91bnJlZ2lzdGVyX2V2ZW50X2hhbmRsZXIoJnNycF9kZXYtPmV2
+ZW50X2hhbmRsZXIpOwo+ICsKPiCgIKAgoCCgbGlzdF9mb3JfZWFjaF9lbnRyeV9zYWZlKGhvc3Qs
+IHRtcF9ob3N0LCAmc3JwX2Rldi0+ZGV2X2xpc3QsIGxpc3QpIHsKPiCgIKAgoCCgIKAgoCCgIKBk
+ZXZpY2VfdW5yZWdpc3RlcigmaG9zdC0+ZGV2KTsKPiCgIKAgoCCgIKAgoCCgIKAvKgo+IEluZGV4
+OiBvZmVkX2tlcm5lbC9kcml2ZXJzL2luZmluaWJhbmQvdWxwL3NycC9pYl9zcnAuaAo+ID09PT09
+PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
+PT09PT0KPiAtLS0gb2ZlZF9rZXJuZWwub3JpZy9kcml2ZXJzL2luZmluaWJhbmQvdWxwL3NycC9p
+Yl9zcnAuaAo+ICsrKyBvZmVkX2tlcm5lbC9kcml2ZXJzL2luZmluaWJhbmQvdWxwL3NycC9pYl9z
+cnAuaAo+IEBAIC04OCw2ICs4OCw3IEBAIHN0cnVjdCBzcnBfZGV2aWNlIHsKPiCgIKAgoCCgc3Ry
+dWN0IGliX2RldmljZSCgIKAgoCAqZGV2Owo+IKAgoCCgIKBzdHJ1Y3QgaWJfcGQgoCCgIKAgoCCg
+ICpwZDsKPiCgIKAgoCCgc3RydWN0IGliX21yIKAgoCCgIKAgoCAqbXI7Cj4gKyCgIKAgoCBzdHJ1
+Y3QgaWJfZXZlbnRfaGFuZGxlciBldmVudF9oYW5kbGVyOwo+IKAgoCCgIKBzdHJ1Y3QgaWJfZm1y
+X3Bvb2wgoCCgICpmbXJfcG9vbDsKPiCgIKAgoCCgaW50IKAgoCCgIKAgoCCgIKAgoCCgIKAgZm1y
+X3BhZ2Vfc2hpZnQ7Cj4goCCgIKAgoGludCCgIKAgoCCgIKAgoCCgIKAgoCCgIGZtcl9wYWdlX3Np
+emU7Cj4K
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
