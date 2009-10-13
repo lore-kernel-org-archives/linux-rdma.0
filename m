@@ -1,225 +1,46 @@
-From: "Stan C. Smith" <stan.smith@intel.com>
-Subject: [PATCH] opensm - standardize on a single Windows #define -
-	take #2
-Date: Tue, 13 Oct 2009 09:15:35 -0700
-Message-ID: <02AF42785F2743CA9BA06E8D48A79A25@amr.corp.intel.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [ofa-general] Re: [GIT PULL] please pull ummunotify
+Date: Tue, 13 Oct 2009 10:27:25 -0600
+Message-ID: <20091013162725.GL18578@obsidianresearch.com>
+References: <adazl8td35u.fsf@cisco.com> <adatyz1d17q.fsf@cisco.com> <20090929171332.GD14405@elf.ucw.cz> <20090930094456.GD24621@elte.hu> <20090930160232.GZ22310@obsidianresearch.com> <20091012181944.GF17138@elte.hu> <20091012193048.GA20313@obsidianresearch.com> <20091012202046.GA7648@elte.hu> <20091013040515.GI18578@obsidianresearch.com> <20091013064006.GC9470@elte.hu>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <ofw-bounces@lists.openfabrics.org>
-List-Unsubscribe: <http://lists.openfabrics.org/cgi-bin/mailman/listinfo/ofw>,
-	<mailto:ofw-request@lists.openfabrics.org?subject=unsubscribe>
-List-Archive: <http://lists.openfabrics.org/pipermail/ofw>
-List-Post: <mailto:ofw@lists.openfabrics.org>
-List-Help: <mailto:ofw-request@lists.openfabrics.org?subject=help>
-List-Subscribe: <http://lists.openfabrics.org/cgi-bin/mailman/listinfo/ofw>,
-	<mailto:ofw-request@lists.openfabrics.org?subject=subscribe>
-Sender: ofw-bounces@lists.openfabrics.org
-Errors-To: ofw-bounces@lists.openfabrics.org
-To: Sasha Khapyorsky <sashak@voltaire.com>
-Cc: ofw@lists.openfabrics.org, 'linux-rdma' <linux-rdma@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20091013064006.GC9470-X9Un+BFzKDI@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Ingo Molnar <mingo-X9Un+BFzKDI@public.gmane.org>
+Cc: Pavel Machek <pavel-+ZI9xUNit7I@public.gmane.org>, Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Peter Zijlstra <peterz-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Paul Mackerras <paulus-eUNUBHrolfbYtjvyW6yDsg@public.gmane.org>, Anton Blanchard <anton-eUNUBHrolfbYtjvyW6yDsg@public.gmane.org>, general-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org, akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, Jeff Squyres <jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On Tue, Oct 13, 2009 at 08:40:06AM +0200, Ingo Molnar wrote:
+> 
+> * Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
+> 
+> > On Mon, Oct 12, 2009 at 10:20:46PM +0200, Ingo Molnar wrote:
+> > > It might be more acceptable because the flag-hint mechanism can at most 
+> > > cause over-flushing - while with perf events we might miss to invalidate 
+> > > a range altogether.
+> > 
+> > Right. Overflushing is not important, but missing an event entirely is 
+> > not recoverable (at least within the current kernel APIs).
+> 
+> So if we detect event loss in the perf event case (should not happen 
+> with sufficient buffering but it is a possibility the code should be 
+> prepared for) then we can just flush the [0,-1ULL] range, right?
 
-Code cleanup, standardize on a single Windows #define '__WIN__'.
+No, the reason overflushing within a registration is OK is because of
+how the MPI APIs are defined and typically used. The map and
+registration window will typically be 1:1 ie you malloc something and
+then register it. It is an error to register beyond your malloced
+space. So, in truth, the hint stuff isn't really essential for MPI.
 
-Signed-off-by: Stan Smith <stan.smith@intel.com>
+flushing all ranges would result in data loss since ranges may be in
+use at the time, and 'flush' is actually unregister/reregister - the
+hardware cannot do in place atomic modify.
 
-diff --git a/opensm/include/iba/ib_cm_types.h b/opensm/include/iba/ib_cm_types.h
-index c1fbfaf..061f47b 100644
---- a/opensm/include/iba/ib_cm_types.h
-+++ b/opensm/include/iba/ib_cm_types.h
-@@ -36,7 +36,7 @@
- #if !defined(__IB_CM_TYPES_H__)
- #define __IB_CM_TYPES_H__
- 
--#ifndef WIN32
-+#ifndef __WIN__
- 
- #include <iba/ib_types.h>
- 
-@@ -199,5 +199,5 @@ typedef uint16_t ib_sidr_status_t;
- #define IB_SIDR_UNSUPPORTED_VER				5
- 
- END_C_DECLS
--#endif				/* ndef WIN32 */
-+#endif				/* ndef __WIN__ */
- #endif				/* __IB_CM_TYPES_H__ */
-diff --git a/opensm/include/iba/ib_types.h b/opensm/include/iba/ib_types.h
-index aa566f7..dac3a21 100644
---- a/opensm/include/iba/ib_types.h
-+++ b/opensm/include/iba/ib_types.h
-@@ -50,7 +50,7 @@
- #endif				/* __cplusplus */
- 
- BEGIN_C_DECLS
--#if defined( WIN32 ) || defined( _WIN64 )
-+#if defined( __WIN__ )
- #if defined( EXPORT_AL_SYMBOLS )
- #define OSM_EXPORT	__declspec(dllexport)
- #else
-@@ -8309,7 +8309,7 @@ typedef struct _ib_mcast *__ptr64 ib_mcast_handle_t;
- 	in order to be compliant with Infinicon ib_types; later we'll change it to support
- 	OpenSM ib_types.h */
- 
--#ifndef WIN32
-+#ifndef __WIN__
- /****d* Access Layer/ib_api_status_t
- * NAME
- *	ib_api_status_t
-@@ -10633,8 +10633,7 @@ typedef struct _ib_ci_op {
- *****/
- 
- END_C_DECLS
--#endif				/* ndef WIN32 */
--#if defined( __WIN__ )
-+#else				/* ndef __WIN__ */
- #include <iba/ib_types_extended.h>
- #endif
- #endif				/* __IB_TYPES_H__ */
-diff --git a/opensm/libvendor/osm_pkt_randomizer.c b/opensm/libvendor/osm_pkt_randomizer.c
-index 3e77b56..316c0eb 100644
---- a/opensm/libvendor/osm_pkt_randomizer.c
-+++ b/opensm/libvendor/osm_pkt_randomizer.c
-@@ -47,7 +47,7 @@
- #include <stdlib.h>
- #include <string.h>
- 
--#ifndef WIN32
-+#ifndef __WIN__
- #include <sys/time.h>
- #include <unistd.h>
- #endif
-@@ -130,23 +130,23 @@ __osm_pkt_randomizer_process_path(IN osm_log_t * p_log,
- 
- 	if (rand_value_init == FALSE) {
- 		int seed;
--#ifdef WIN32
-+#ifdef __WIN__
- 		SYSTEMTIME st;
- #else
- 		struct timeval tv;
- 		struct timezone tz;
--#endif				/*  WIN32 */
-+#endif				/*  __WIN__ */
- 
- 		/* initiate the rand_value according to timeofday */
- 		rand_value_init = TRUE;
- 
--#ifdef WIN32
-+#ifdef __WIN__
- 		GetLocalTime(&st);
- 		seed = st.wMilliseconds;
- #else
- 		gettimeofday(&tv, &tz);
- 		seed = tv.tv_usec;
--#endif				/*  WIN32 */
-+#endif				/*  __WIN__ */
- 
- 		srand(seed);
- 	}
-diff --git a/opensm/opensm/osm_log.c b/opensm/opensm/osm_log.c
-index 8f30784..918e696 100644
---- a/opensm/opensm/osm_log.c
-+++ b/opensm/opensm/osm_log.c
-@@ -55,7 +55,7 @@
- 
- static int log_exit_count = 0;
- 
--#ifndef WIN32
-+#ifndef __WIN__
- #include <sys/time.h>
- #include <unistd.h>
- #include <complib/cl_timer.h>
-@@ -76,9 +76,9 @@ static char *month_str[] = {
- };
- #else
- void OsmReportState(IN const char *p_str);
--#endif				/* ndef WIN32 */
-+#endif				/* ndef __WIN__ */
- 
--#ifndef WIN32
-+#ifndef __WIN__
- 
- static void truncate_log_file(osm_log_t * p_log)
- {
-@@ -99,7 +99,7 @@ static void truncate_log_file(osm_log_t * p_log)
- 	fprintf(stderr,
- 		"truncate_log_file: cannot truncate on windows system (yet)\n");
- }
--#endif				/* ndef WIN32 */
-+#endif				/* ndef __WIN__ */
- 
- void osm_log(IN osm_log_t * p_log, IN osm_log_level_t verbosity,
- 	     IN const char *p_str, ...)
-@@ -107,7 +107,7 @@ void osm_log(IN osm_log_t * p_log, IN osm_log_level_t verbosity,
- 	char buffer[LOG_ENTRY_SIZE_MAX];
- 	va_list args;
- 	int ret;
--#ifdef WIN32
-+#ifdef __WIN__
- 	SYSTEMTIME st;
- 	uint32_t pid = GetCurrentThreadId();
- #else
-@@ -116,7 +116,7 @@ void osm_log(IN osm_log_t * p_log, IN osm_log_level_t verbosity,
- 	struct tm result;
- 	uint64_t time_usecs;
- 	uint32_t usecs;
--#endif				/* WIN32 */
-+#endif				/* __WIN__ */
- 
- 	/* If this is a call to syslog - always print it */
- 	if (!(verbosity & (OSM_LOG_SYS | p_log->level)))
-@@ -135,9 +135,9 @@ void osm_log(IN osm_log_t * p_log, IN osm_log_level_t verbosity,
- 			printf("%s\n", buffer);
- 			fflush(stdout);
- 		}
--#ifdef WIN32
-+#ifdef __WIN__
- 		OsmReportState(buffer);
--#endif				/* WIN32 */
-+#endif				/* __WIN__ */
- 	}
- 
- 	/* regular log to default out_port */
-@@ -150,7 +150,7 @@ void osm_log(IN osm_log_t * p_log, IN osm_log_level_t verbosity,
- 			p_log->max_size);
- 		truncate_log_file(p_log);
- 	}
--#ifdef WIN32
-+#ifdef __WIN__
- 	GetLocalTime(&st);
- _retry:
- 	ret =
-diff --git a/opensm/opensm/st.c b/opensm/opensm/st.c
-index c5a2f53..ea76038 100644
---- a/opensm/opensm/st.c
-+++ b/opensm/opensm/st.c
-@@ -43,10 +43,6 @@
- #include <string.h>
- #include <opensm/st.h>
- 
--#ifdef _WIN32
--#include <malloc.h>
--#endif
--
- typedef struct st_table_entry st_table_entry;
- 
- struct st_table_entry {
-diff --git a/opensm/osmtest/include/osmtest_base.h b/opensm/osmtest/include/osmtest_base.h
-index cda3a31..6c980a3 100644
---- a/opensm/osmtest/include/osmtest_base.h
-+++ b/opensm/osmtest/include/osmtest_base.h
-@@ -48,11 +48,7 @@
- #endif
- 
- #define OSMTEST_MAX_LINE_LEN	120
--#ifdef WIN32
--#define OSMTEST_FILE_PATH_MAX	4096
--#else
- #define OSMTEST_FILE_PATH_MAX	PATH_MAX
--#endif
- 
- #define STRESS_SMALL_RMPP_THR 100000
- /*
+Jason
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
