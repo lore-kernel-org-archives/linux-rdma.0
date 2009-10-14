@@ -1,29 +1,45 @@
-From: Or Gerlitz <ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Subject: Re: switching the active interface for bonding
-Date: Wed, 14 Oct 2009 13:20:09 +0200
-Message-ID: <4AD5B3E9.7070606@voltaire.com>
-References: <4AD35909.9020006@oracle.com>
+From: Hal Rosenstock <hnrose-Wuw85uim5zDR7s880joybQ@public.gmane.org>
+Subject: [PATCH] opensm/release notes: Fix typo
+Date: Wed, 14 Oct 2009 07:28:19 -0400
+Message-ID: <20091014112819.GA17634@comcast.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4AD35909.9020006-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sumeet Lahorani <Sumeet.Lahorani-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+To: sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Sumeet Lahorani wrote:
-> We are using OFED 1.4.2
-Please note that the bonding driver provided by the latest distros 
-supports IPoIB. So if your distro happen to be RHEL 5.4 (or its OEL 5.4 
-derivative), or SLES11 you can and should use the distro provided 
-bonding. Moving forward, OTOH customers would use only distro code and 
-OTOH bonding will be moved out from ofed, so best  if you better start 
-working now as things will be outside anyway.
 
-Or.
-
+Signed-off-by: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+---
+diff --git a/opensm/doc/opensm_release_notes-3.2.txt b/opensm/doc/opensm_release_notes-3.2.txt
+index 3356e95..5a83092 100644
+--- a/opensm/doc/opensm_release_notes-3.2.txt
++++ b/opensm/doc/opensm_release_notes-3.2.txt
+@@ -271,7 +271,7 @@ information regarding each compliance statement.
+   PortInfo:M_Key - Set the M_Key to a node based random value.
+ 
+ * C14-62.1.1.13 (Initialization):
+-  PortInfo:P_KeyProtectBits - set according to an optional policy.
++  PortInfo:M_KeyProtectBits - set according to an optional policy.
+ 
+ * C14-62.1.1.24 (Initialization):
+   SwitchInfo:DefaultPort - should be configured for random FDB.
+diff --git a/opensm/doc/opensm_release_notes-3.3.txt b/opensm/doc/opensm_release_notes-3.3.txt
+index ad9f9eb..70e7110 100644
+--- a/opensm/doc/opensm_release_notes-3.3.txt
++++ b/opensm/doc/opensm_release_notes-3.3.txt
+@@ -157,7 +157,7 @@ information regarding each compliance statement.
+   PortInfo:M_Key - Set the M_Key to a node based random value.
+ 
+ * C14-62.1.1.13 (Initialization):
+-  PortInfo:P_KeyProtectBits - set according to an optional policy.
++  PortInfo:M_KeyProtectBits - set according to an optional policy.
+ 
+ * C14-62.1.1.24 (Initialization):
+   SwitchInfo:DefaultPort - should be configured for random FDB.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
