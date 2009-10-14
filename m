@@ -1,43 +1,33 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH]  link-local address fix for rdma_resolve_addr
-Date: Wed, 14 Oct 2009 11:40:17 -0600
-Message-ID: <20091014174017.GM5191@obsidianresearch.com>
-References: <1255471781.14513.7.camel@wilder.ibm.com>
-	<20091013231234.GK5191@obsidianresearch.com>
-	<1255537437.14513.28.camel@wilder.ibm.com>
-	<20091014170155.GL5191@obsidianresearch.com>
-	<1255541405.5111.14.camel@wilder.ibm.com>
+From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCHv2] mlx4: Add a new supported 40 GigE device ID
+Date: Wed, 14 Oct 2009 10:55:28 -0700
+Message-ID: <adaeip5ami7.fsf@cisco.com>
+References: <20091012151435.GA30130@mtls03>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1255541405.5111.14.camel-XfwDJb4SXxnMbYB6QlFGEg@public.gmane.org>
-List-Unsubscribe: <http://lists.openfabrics.org/cgi-bin/mailman/listinfo/ewg>,
-	<mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.openfabrics.org/pipermail/ewg>
-List-Post: <mailto:ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
-List-Help: <mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=help>
-List-Subscribe: <http://lists.openfabrics.org/cgi-bin/mailman/listinfo/ewg>,
-	<mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=subscribe>
-Sender: ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
-Errors-To: ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
-To: "David J. Wilder" <dwilder-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, wilder-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org, ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20091012151435.GA30130@mtls03> (Eli Cohen's message of "Mon, 12
+	Oct 2009 17:14:35 +0200")
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Eli Cohen <eli-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
+Cc: Linux RDMA list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Oct 14, 2009 at 10:30:05AM -0700, David J. Wilder wrote:
+Thanks, applied.
 
-> This looks good. Once concern, it may be obtuse, but if both the src and
-> dst are link-local addresses should only one need to be scoped?  This
-> patch will required the src to always be scoped when using link local.  
+ > Resending the patch based on Roland's "for-linus" branch.
 
-The TCPv6 code requires the src to be scoped (or SO_BINDTODEVICE to be
-used prior). If src is scoped then it is optional to scope dest, but
-if dest is scoped then it must match. I intended to capture that logic..
+By the way, just to be clear, my master branch is just the state of
+Linus's tree at the time I branched.  So it's not a particularly good
+thing to base work on.  My "for-next" branch is probably the best if you
+are worried about conflicts ... that has everything I've queued up
+already.
 
-Can you give a quick test and send a git format-patch/checkpatch'd
-patch to Roland, with your signed off line, etc. You can put a
-Reviewed-by line from me as well if you like.
+Or if you work against Linus's latest tree, I can probably fix things
+up.
 
-Thanks,
-Jason
+ - R.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
