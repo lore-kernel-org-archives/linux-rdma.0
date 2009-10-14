@@ -1,99 +1,39 @@
-From: Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: OpenSM Failover
-Date: Wed, 14 Oct 2009 10:46:37 +0200
-Message-ID: <4AD58FED.1060800@dev.mellanox.co.il>
-References: <B1EF3F77-622B-40DA-BB3D-DC35973B60A6@gmail.com>	 <CBC039F5-9019-436D-AF6D-F887E860D07B@gmail.com>	 <4AD2D75A.2020403@dev.mellanox.co.il> <4AD2E582.8010202@voltaire.com>	 <4AD2E736.4050803@dev.mellanox.co.il>	 <eafd71280910120703y7dfa04cbq114cf07d46c909fb@mail.gmail.com>	 <4AD49DAB.4020206@dev.mellanox.co.il>	 <eafd71280910130852k1166b980kdf7129a52dacd42f@mail.gmail.com>	 <4AD4A72C.6000108@dev.mellanox.co.il> <eafd71280910131426g1cd68d7k1c28aee185ac3b8d@mail.gmail.com>
-Reply-To: kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org
+From: Sergey Zhumatiy <serg-bzQdu9zFT3Uox3rIn2DAYQ@public.gmane.org>
+Subject: Re: [Fwd: FW: OFED installation question re-AltLinux]
+Date: Wed, 14 Oct 2009 13:39:02 +0400
+Message-ID: <4AD59C36.7000409@parallel.ru>
+References: <4AD4ACBD.2000409@nasa.gov> <4AD4C281.6060009@sanger.ac.uk>
+Reply-To: serg-bzQdu9zFT3Uox3rIn2DAYQ@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <eafd71280910131426g1cd68d7k1c28aee185ac3b8d-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <4AD4C281.6060009-5fLPn3lgkryFxr2TtlUqVg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Aaron Knister <aaron.knister-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Or Gerlitz <ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Guy Coates <gmpc-5fLPn3lgkryFxr2TtlUqVg@public.gmane.org>
+Cc: Jeff Becker <Jeffrey.C.Becker-NSQ8wuThN14@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Bill Boas <bboas-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org>, Sujal Das <sujal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jeffrey Scott <jeff-PQF7zMLV7HqjP/IhtLckvQ@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Aaron,
-
-Aaron Knister wrote:
->>> As I said, the older opensms
->>> on the older mellanox model HCAs failsover and failsback instantly.
->> The instant failback is expected, and this is the bug that
->> we're discussing. As for the instant failover - I'll check
->> how the things supposed to work and get back to you.
-
-After checking this thing, I don't understand how the
-instant failover is possible. The only case it can
-work is if you don't have a switch in your subnet - 
-just two HCAs connected directly to each other.
-Is this the case?
-
-If not, then I'd like to see opensm logs.
-Please run opensm as before (-V -s 0 -e).
-Start OSM on node A with high priority.
-Start OSM on node B with low priority.
-Kill OSM on node A, and see that OSM on
-node B becomes master.
-
-I need only the log of the opensm on node B.
-Best if you could just attach it to the bugzilla
-issue form, but if you can't - you can mail it to me.
-
--- Yevgeny
-
->> -- Yevgeny
->>
->>> On Tue, Oct 13, 2009 at 11:32 AM, Yevgeny Kliteynik
->>> <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wrote:
->>>> Aaron,
->>>>
->>>> Thanks for the logs, this was really helpful.
->>>> Looks like there is a handover race in the OSM -
->>>> SM on node A misses the fact that SM on node B
->>>> have gave up its mastership.
->>>>
->>>> There is a bugzilla issue the describes all the
->>>> details of this race:
->>>>
->>>> https://bugs.openfabrics.org/show_bug.cgi?id=1499
->>>>
->>>> I've updated the issue form with your case, and we will continue
->>>> following
->>>> this bug there.
->>>>
->>>> -- Yevgeny
->>>>
->>>> Aaron Knister wrote:
->>>>> While the adapters have mellanox chipsets their actually IBM OEM
->>>>> branded and IBM hasn't released the 2.7 fw yet. I'm a little hesitant
->>>>> to apply the generic Mellanox FW.
->>>>>
->>>>> On Mon, Oct 12, 2009 at 4:22 AM, Yevgeny Kliteynik
->>>>> <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wrote:
->>>>>> Or Gerlitz wrote:
->>>>>>> Yevgeny Kliteynik wrote:
->>>>>>>> There was a hand-over problem in OFED 1.4, but later it turned  out
->>>>>>>> to
->>>>>>>> be
->>>>>>>> FW issue. The thing is, FW version 2.6.648 doesn't  have this bug any
->>>>>>>> more...
->>>>>>> so things should work fine with the newly released 2.7 firmware?
->>>>>> Yes
->>>>>>
->>>>>>> if this is still under question, Aaron, I suggest you open a bugzilla
->>>>>>> case
->>>>>>> @ https://bugs.openfabrics.org and we can track from there.
->>>>>> Good idea.
->>>>>>
->>>>>> -- Yevgeny
->>>>>>
->>>>>>> Or.
->>>>>>>
->>>>>>>
->>
+> OFED debian packages (up to OFED 1.4.2) are available here:
 > 
+> http://pkg-ofed.alioth.debian.org/
+> 
+  Ok! Thank you very much! I'll try them.
 
+  But main question is still open:  how to install OFED on AltLinux or
+other distributive (not Fedora/Suse). Older installer simply did
+compilation on any system... I can use switch to ignore dependencies,
+but it cannot do uninstall older packages (I think it does incorrectly
+detect dependencies on older packages).
+
+  Is it possible to generate unwanted packages list, which needs to be
+removed before installation and ordered list of packages to build? I can
+build them manually, but I need to know order and what to be uninstalled
+before building...
+
+-- 
+  With respect
+                                                   Serg.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
