@@ -1,98 +1,48 @@
-From: Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: ConnectX saquery question
-Date: Wed, 14 Oct 2009 16:16:51 +0200
-Message-ID: <4AD5DD53.2080305@dev.mellanox.co.il>
-References: <eafd71280910140630w2ca6a802s9ef98362d0fecb6@mail.gmail.com> <f0e08f230910140637g5049658cy8b3481c06b0865af@mail.gmail.com> <4AD5D854.20506@dev.mellanox.co.il>
-Reply-To: kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org
+From: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH] opensm/osm_ucast_updn.c: Reduce temporary allocation
+ of cas_per_sw
+Date: Wed, 14 Oct 2009 16:34:23 +0200
+Message-ID: <20091014143423.GC13830@me>
+References: <20091014131435.GA23890@comcast.net>
+ <20091014132911.GB13830@me>
+ <f0e08f230910140633i43bd7648w1feba7c2be6c0d11@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4AD5D854.20506-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <f0e08f230910140633i43bd7648w1feba7c2be6c0d11-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org
-Cc: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Aaron Knister <aaron.knister-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Yevgeny Kliteynik wrote:
-> Hal Rosenstock wrote:
->> On Wed, Oct 14, 2009 at 9:30 AM, Aaron Knister 
->> <aaron.knister-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
->>> I searched the lists and can't really find an answer to my question-
->>>
->>> When I run saquery -s on my cluster with ConnectX HCAs (fw ver
->>> 2.6.648) all I get is the following output
->>>
->>> IsSM ports
->>>
->>> IsSMdisabled ports
->>>
->>> I thought this should show ports that are running a subnet manager
->>> (there are 2 running on the cluster) or am I incorrect?
->>
->> That means that the IsSM bit in PortInfo:CapabilityMask is not being
->> set. Maybe that's not supported by the firmware.
-> 
-> Nope, I just checked it with FW 2.6.648 - looks fine:
-> 
->     # saquery -s
->     IsSM ports
->     PortInfoRecord dump:
->                     EndPortLid..............512
->                     PortNum.................0x1
->                     base_lid................0x200
->                     master_sm_base_lid......0x80
->                     capability_mask.........0x251086A
->     PortInfoRecord dump:
->                     EndPortLid..............128
->                     PortNum.................0x1
->                     base_lid................0x80
->                     master_sm_base_lid......0x80
->                     capability_mask.........0x251086A
->     
->     IsSMdisabled ports
-> 
-> Maybe IsSM bit is not being set by the OSM?
-> What SM version are you running?
+On 09:33 Wed 14 Oct     , Hal Rosenstock wrote:
+> On Wed, Oct 14, 2009 at 9:29 AM, Sasha Khapyorsky <sashak-smomgflXvObQFizaE/u3fw@public.gmane.org=
+m> wrote:
+> > On 09:14 Wed 14 Oct =A0 =A0 , Hal Rosenstock wrote:
+> >>
+> >> Also, combine malloc/memset into calloc
+> >
+> > Any special reason for malloc/calloc change?
+>=20
+> It's a little more concise and efficient to calloc rather than
+> malloc/memset.
 
-Also, run the following from the node that runs SM and
-doesn't appear in the 'saquery -s' report:
+Why do you think so? Normally calloc() is malloc() + memset() - you
+just get extra call and extra check.
 
-sminfo -D 0
-smpquery -D portinfo 0 <sm_port_num>
+> Any reason not to do this ?
 
-'sm_port_num' is the number of port that SM is binded to.
-Usually it's 1.
+Above.
 
--- Yevgeny
+calloc() can be nicer in some cases and pretty common, feel free to use
+it when appropriate. But I don't think that we need to make a global
+malloc() -> calloc() conversion without any good reason.
 
- 
-> -- Yevgeny
-> 
-> 
->> -- Hal
->>
->>> Thanks!
->>>
->>> -Aaron
->>> -- 
->>> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
->>> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>>
->> -- 
->> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
->> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>
-> 
-> -- 
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-
+Sasha
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
