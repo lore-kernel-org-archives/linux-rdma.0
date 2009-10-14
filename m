@@ -1,92 +1,78 @@
-From: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH] opensm/osm_ucast_updn.c: Reduce temporary allocation of
-	cas_per_sw
-Date: Wed, 14 Oct 2009 09:33:55 -0400
-Message-ID: <f0e08f230910140633i43bd7648w1feba7c2be6c0d11@mail.gmail.com>
-References: <20091014131435.GA23890@comcast.net> <20091014132911.GB13830@me>
+From: Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: ConnectX saquery question
+Date: Wed, 14 Oct 2009 15:55:32 +0200
+Message-ID: <4AD5D854.20506@dev.mellanox.co.il>
+References: <eafd71280910140630w2ca6a802s9ef98362d0fecb6@mail.gmail.com> <f0e08f230910140637g5049658cy8b3481c06b0865af@mail.gmail.com>
+Reply-To: kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20091014132911.GB13830@me>
+In-Reply-To: <f0e08f230910140637g5049658cy8b3481c06b0865af-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Aaron Knister <aaron.knister-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Oct 14, 2009 at 9:29 AM, Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>=
- wrote:
-> On 09:14 Wed 14 Oct =C2=A0 =C2=A0 , Hal Rosenstock wrote:
+Hal Rosenstock wrote:
+> On Wed, Oct 14, 2009 at 9:30 AM, Aaron Knister <aaron.knister-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
+>> I searched the lists and can't really find an answer to my question-
 >>
->> Also, combine malloc/memset into calloc
->
-> Any special reason for malloc/calloc change?
-
-It's a little more concise and efficient to calloc rather than
-malloc/memset. Any reason not to do this ?
-
-> Please don't mix two things in one patch.
-
-I thought this was minor. I'll resubmit if you prefer.
-
--- Hal
-
-> Sasha
->
+>> When I run saquery -s on my cluster with ConnectX HCAs (fw ver
+>> 2.6.648) all I get is the following output
 >>
->> Signed-off-by: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
->> ---
->> diff --git a/opensm/opensm/osm_ucast_updn.c b/opensm/opensm/osm_ucas=
-t_updn.c
->> index bb9ccda..a2acdbd 100644
->> --- a/opensm/opensm/osm_ucast_updn.c
->> +++ b/opensm/opensm/osm_ucast_updn.c
->> @@ -2,6 +2,7 @@
->> =C2=A0 * Copyright (c) 2004-2008 Voltaire, Inc. All rights reserved.
->> =C2=A0 * Copyright (c) 2002-2006 Mellanox Technologies LTD. All righ=
-ts reserved.
->> =C2=A0 * Copyright (c) 1996-2003 Intel Corporation. All rights reser=
-ved.
->> + * Copyright (c) 2009 HNR Consulting. All rights reserved.
->> =C2=A0 *
->> =C2=A0 * This software is available to you under a choice of one of =
-two
->> =C2=A0 * licenses. =C2=A0You may choose to be licensed under the ter=
-ms of the GNU
->> @@ -431,13 +432,12 @@ static void updn_find_root_nodes_by_min_hop(OU=
-T updn_t * p_updn)
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 "Current number of =
-ports in the subnet is %d\n",
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 cl_qmap_count(&p_os=
-m->subn.port_guid_tbl));
+>> IsSM ports
 >>
->> - =C2=A0 =C2=A0 cas_per_sw =3D malloc((IB_LID_UCAST_END_HO + 1) * si=
-zeof(*cas_per_sw));
->> + =C2=A0 =C2=A0 cas_per_sw =3D calloc(p_osm->subn.max_ucast_lid_ho, =
-sizeof(*cas_per_sw));
->> =C2=A0 =C2=A0 =C2=A0 if (!cas_per_sw) {
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 OSM_LOG(&p_osm->log=
-, OSM_LOG_ERROR, "ERR AA14: "
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 "cannot alloc mem for CAs per switch counter array\n");
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 goto _exit;
->> =C2=A0 =C2=A0 =C2=A0 }
->> - =C2=A0 =C2=A0 memset(cas_per_sw, 0, (IB_LID_UCAST_END_HO + 1) * si=
-zeof(*cas_per_sw));
+>> IsSMdisabled ports
 >>
->> =C2=A0 =C2=A0 =C2=A0 /* Find the Maximum number of CAs (and routers)=
- for histogram normalization */
->> =C2=A0 =C2=A0 =C2=A0 OSM_LOG(&p_osm->log, OSM_LOG_VERBOSE,
+>> I thought this should show ports that are running a subnet manager
+>> (there are 2 running on the cluster) or am I incorrect?
+> 
+> That means that the IsSM bit in PortInfo:CapabilityMask is not being
+> set. Maybe that's not supported by the firmware.
+
+Nope, I just checked it with FW 2.6.648 - looks fine:
+
+	# saquery -s
+	IsSM ports
+	PortInfoRecord dump:
+	                EndPortLid..............512
+	                PortNum.................0x1
+	                base_lid................0x200
+	                master_sm_base_lid......0x80
+	                capability_mask.........0x251086A
+	PortInfoRecord dump:
+	                EndPortLid..............128
+	                PortNum.................0x1
+	                base_lid................0x80
+	                master_sm_base_lid......0x80
+	                capability_mask.........0x251086A
+	
+	IsSMdisabled ports
+
+Maybe IsSM bit is not being set by the OSM?
+What SM version are you running?
+
+-- Yevgeny
+
+ 
+> -- Hal
+> 
+>> Thanks!
+>>
+>> -Aaron
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+>> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 >>
 > --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma"=
- in
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at =C2=A0http://vger.kernel.org/majordomo-info.ht=
-ml
->
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
