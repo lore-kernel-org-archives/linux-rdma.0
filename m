@@ -1,53 +1,53 @@
-From: Keshetti Mahesh <keshetti.mahesh-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH] infiniband-diags/libibnetdisc: Removed trivial comments
-Date: Wed, 14 Oct 2009 09:44:35 +0530
-Message-ID: <829ded920910132114v24498fdfjbdcf17d92363adb8@mail.gmail.com>
+From: Vladimir Sokolovsky <vlad-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [Fwd: FW: OFED installation question re-AltLinux]
+Date: Wed, 14 Oct 2009 09:34:27 +0200
+Message-ID: <4AD57F03.1060807@dev.mellanox.co.il>
+References: <4AD4ACBD.2000409@nasa.gov>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <4AD4ACBD.2000409-NSQ8wuThN14@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: OFED mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>, Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+To: serg-bzQdu9zFT3Uox3rIn2DAYQ@public.gmane.org
+Cc: Jeff Becker <Jeffrey.C.Becker-NSQ8wuThN14@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Bill Boas <bboas-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org>, Sujal Das <sujal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Jeffrey Scott <jeff-PQF7zMLV7HqjP/IhtLckvQ@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-infiniband-diags/libibnetdisc/: Removed trivial comments.
+> -----Original Message-----
+> From: Jeffrey Scott [mailto:jeff-PQF7zMLV7HqjP/IhtLckvQ@public.gmane.org] 
+> Sent: Tuesday, October 13, 2009 9:09 AM
+> To: bboas-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org; 'Sujal Das'
+> Subject: FW: OFED installation
+> 
+> Who should this inquiry go to?
+> 
+> 
+> -----Original Message-----
+> From: Sergey Zhumatiy [mailto:serg-bzQdu9zFT3Uox3rIn2DAYQ@public.gmane.org] 
+> Sent: Tuesday, October 13, 2009 2:44 AM
+> To: membership-G2znmakfqn7U1rindQTSdQ@public.gmane.org; webmaster-G2znmakfqn7U1rindQTSdQ@public.gmane.org
+> Subject: OFED installation
+> 
+>   Hello!
+>   I try to install OFED-1.5 on my AltLinux cluster. AltLinux is
+> rpm-based, but I cannot install it because install .pl cannot find gcc,
+> stdc++-devel and tk. All of them are installed. OFED-1.0.1 was installed
+> succesfully one year ago.
+>   How can I compile and install latest OFED?
+> 
+>   Also, I want to install latest OFED to my experimental Debian cluster.
+> Is it possible?
+> 
+>   Thank you.
+> 
 
-Signed-off-by: Keshetti Mahesh <keshetti.mahesh-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
----
- infiniband-diags/libibnetdisc/src/ibnetdisc.c |    6 ------
- 1 files changed, 0 insertions(+), 6 deletions(-)
+Hi Sergey,
+Try to add '--without-depcheck' to install.pl command:
 
-diff --git a/infiniband-diags/libibnetdisc/src/ibnetdisc.c
-b/infiniband-diags/libibnetdisc/src/ibnetdisc.c
-index 97e369c..ef8aa6a 100644
---- a/infiniband-diags/libibnetdisc/src/ibnetdisc.c
-+++ b/infiniband-diags/libibnetdisc/src/ibnetdisc.c
-@@ -94,9 +94,6 @@ static int get_port_info(struct ibmad_port *ibmad_port,
- 	return 0;
- }
+./install.pl -c ofed.conf --without-depcheck
 
--/*
-- * Returns -1 if error.
-- */
- static int query_node_info(struct ibmad_port *ibmad_port,
- 			   ibnd_fabric_t * fabric, ibnd_node_t * node,
- 			   ib_portid_t * portid)
-@@ -113,9 +110,6 @@ static int query_node_info(struct ibmad_port *ibmad_port,
- 	return (0);
- }
-
--/*
-- * Returns 0 if non switch node is found, 1 if switch is found, -1 if error.
-- */
- static int query_node(struct ibmad_port *ibmad_port, ibnd_fabric_t * fabric,
- 		      ibnd_node_t * node, ibnd_port_t * port,
- 		      ib_portid_t * portid)
--- 
-1.6.4
-
-
--- 
-Keshetti Mahesh
+Regards,
+Vladimir
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
