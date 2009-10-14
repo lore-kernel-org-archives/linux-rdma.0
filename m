@@ -1,34 +1,42 @@
-From: Hal Rosenstock <hnrose-Wuw85uim5zDR7s880joybQ@public.gmane.org>
-Subject: [PATCH] opensm/osm_subnet.h: Add mgrp_mgid_tbl description
-Date: Wed, 14 Oct 2009 15:51:50 -0400
-Message-ID: <20091014195150.GA18033@comcast.net>
+From: Vu Pham <vuhuong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [ofa-general][PATCH 1/4] SRP fail-over faster
+Date: Wed, 14 Oct 2009 12:52:11 -0700
+Message-ID: <4AD62BEB.7060504@mellanox.com>
+References: <4AD3B433.7040803@mellanox.com> <adaaaztam3r.fsf@cisco.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <adaaaztam3r.fsf-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Cc: Linux RDMA list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+Roland Dreier wrote:
+> One meta comment: when sending a series of 4 patches, please choose a
+> descriptive subject for each one.  We don't want the same headline in
+> the kernel log for all 4 patches.
+>
+>   
+I'll remember next time
+>  > -	qp_attr.qp_state = IB_QPS_RESET;
+>  > -	ret = ib_modify_qp(target->qp, &qp_attr, IB_QP_STATE);
+>  > -	if (ret)
+>  > -		goto err;
+>  > -
+>  > -	ret = srp_init_qp(target, target->qp);
+>  > -	if (ret)
+>  > +	old_qp = target->qp;
+>  > +	old_cq = target->cq;
+>  > +	ret = srp_create_target_ib(target);
+>
+> I don't understand why this is any faster?  Is creating a new QP really
+> any different from modifying an old QP to reset state?
+>   
 
-Signed-off-by: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
----
-diff --git a/opensm/include/opensm/osm_subnet.h b/opensm/include/opensm/osm_subnet.h
-index 9488225..b63c97e 100644
---- a/opensm/include/opensm/osm_subnet.h
-+++ b/opensm/include/opensm/osm_subnet.h
-@@ -634,6 +634,10 @@ typedef struct osm_subn {
- *		This flag should be on during first non-master heavy
- *		(including pre-master discovery stage)
- *
-+*	mgrp_mgid_tbl
-+*		Container of pointers to all Multicast group objects in
-+*		the subnet. Indexed by MGID.
-+*
- *	mgroups
- *		Array of pointers to all Multicast Group objects in the subnet.
- *		Indexed by MLID offset from base MLID.
+It is not; it is needed for patch 2/4 disconnect without wait and it is 
+faster that way
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
