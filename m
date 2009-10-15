@@ -1,62 +1,80 @@
-From: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH] opensm/opensm/osm_subnet.c: adjust buffer to ensure a
- '\n' is printed
-Date: Thu, 15 Oct 2009 21:15:50 +0200
-Message-ID: <20091015191550.GD20210@me>
-References: <20091014172120.3cb11b5a.weiny2@llnl.gov>
+From: "David J. Wilder" <dwilder-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH]  link-local address fix for rdma_resolve_addr
+Date: Thu, 15 Oct 2009 12:27:21 -0700
+Message-ID: <1255634841.5111.40.camel@wilder.ibm.com>
+References: <1255471781.14513.7.camel@wilder.ibm.com>
+	<20091013231234.GK5191@obsidianresearch.com>
+	<1255537437.14513.28.camel@wilder.ibm.com>
+	<20091014170155.GL5191@obsidianresearch.com>
+	<1255541405.5111.14.camel@wilder.ibm.com>
+	<20091014174017.GM5191@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20091014172120.3cb11b5a.weiny2-i2BcT+NCU+M@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Return-path: <ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+In-Reply-To: <20091014174017.GM5191-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+List-Unsubscribe: <http://lists.openfabrics.org/cgi-bin/mailman/listinfo/ewg>,
+	<mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.openfabrics.org/pipermail/ewg>
+List-Post: <mailto:ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+List-Help: <mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=help>
+List-Subscribe: <http://lists.openfabrics.org/cgi-bin/mailman/listinfo/ewg>,
+	<mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=subscribe>
+Sender: ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
+Errors-To: ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, wilder-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org, ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 17:21 Wed 14 Oct     , Ira Weiny wrote:
-> 
-> From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-> Date: Wed, 14 Oct 2009 17:05:53 -0700
-> Subject: [PATCH] opensm/opensm/osm_subnet.c: adjust buffer to ensure a '\n' is printed
-> 
-> 	When printing cached options strings which fill the print buffer.
-> 	Adjust the length so the final snprintf(..., "\n"); can succeed.
-> 
-> Signed-off-by: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+On Wed, 2009-10-14 at 13:09 Jason Gunthorpe wrote:
 
-Applied. Thanks.
+> So, it tries to match the source addr to the addrs bound to the
+> device, which is wrong - that isn't how the ip stack works.
 
-> ---
->  opensm/opensm/osm_subnet.c |    4 ++--
->  1 files changed, 2 insertions(+), 2 deletions(-)
-> 
-> diff --git a/opensm/opensm/osm_subnet.c b/opensm/opensm/osm_subnet.c
-> index 647950e..ab9c327 100644
-> --- a/opensm/opensm/osm_subnet.c
-> +++ b/opensm/opensm/osm_subnet.c
-> @@ -105,8 +105,8 @@ static void log_config_value(char *name, const char *fmt, ...)
->  	if (n > sizeof(buf))
->  		n = sizeof(buf);
->  	n += vsnprintf(buf + n, sizeof(buf) - n, fmt, args);
-> -	if (n > sizeof(buf))
-> -		n = sizeof(buf);
-> +	if (n >= sizeof(buf)-1)
+> You can patch this up a little bit by fixing up addr_resolve_local to
+> set sin6_scope_ip.
 
-I'm changing this to 'n > sizeof(buf) - 2' to match below line.
+I found the bug in addr_resolve_local().  (more comments below)
 
-> +		n = sizeof(buf)-2;
+--- addr.c.1759	2009-10-13 15:57:48.000000000 -0500
++++ addr.c.ip_local	2009-10-15 14:03:50.000000000 -0500
+@@ -390,14 +390,17 @@ static int addr_resolve_local(struct soc
+ 	case AF_INET6:
+ 	{
+ 		struct in6_addr *a;
++		int found = 0;
+ 
+ 		for_each_netdev(&init_net, dev)
+ 			if (ipv6_chk_addr(&init_net,
+ 					  &((struct sockaddr_in6 *) dst_in)->sin6_addr,
+-					  dev, 1))
++					  dev, 1)){
++				found = 1;
+ 				break;
++			}
+ 
+-		if (!dev)
++		if (!found)
+ 			return -EADDRNOTAVAIL;
+ 
+ 		a = &((struct sockaddr_in6 *) src_in)->sin6_addr;
+@@ -406,6 +409,8 @@ static int addr_resolve_local(struct soc
+ 			src_in->sa_family = dst_in->sa_family;
+ 			((struct sockaddr_in6 *) src_in)->sin6_addr =
+ 				((struct sockaddr_in6 *) dst_in)->sin6_addr;
++			((struct sockaddr_in6 *) src_in)->sin6_scope_id =
++                                ((struct sockaddr_in6 *) dst_in)->sin6_scope_id;
+ 			ret = rdma_copy_addr(addr, dev, dev->dev_addr);
+ 		} else if (ipv6_addr_loopback(a)) {
+ 			ret = rdma_translate_ip(dst_in, addr);
 
-Sasha
 
->  	snprintf(buf + n, sizeof(buf) - n, "\n");
->  	va_end(args);
->  	printf("%s", buf);
-> -- 
-> 1.5.4.5
-> 
-> 
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> But really the correct thing to do is to remove addr_resolve_local and
+> place the source address into the struct flowi and use the result of
+> the route lookup to bind to the source device, and set the source
+> address if it is unset.
+
+Sorry I don't get it..
+Are you saying that ip6_route_output() will resolve the address even if
+it is a link-local address bound to my own interface? Therefor
+addr_resolve_local() is not needed.
