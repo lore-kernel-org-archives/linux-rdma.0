@@ -1,19 +1,20 @@
 From: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH] opensm/osm_lid_mgr.c: Cosmetic commentary changes
-Date: Thu, 15 Oct 2009 22:59:30 +0200
-Message-ID: <20091015205930.GI20210@me>
-References: <20091015184307.GA9771@comcast.net>
+Subject: Re: [PATCHv2] opensm/osm_ucast_updn.c: Further reduction in
+ cas_per_sw allocation
+Date: Thu, 15 Oct 2009 23:02:52 +0200
+Message-ID: <20091015210252.GJ20210@me>
+References: <20091015200028.GA14851@comcast.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20091015184307.GA9771-Wuw85uim5zDR7s880joybQ@public.gmane.org>
+In-Reply-To: <20091015200028.GA14851-Wuw85uim5zDR7s880joybQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Hal Rosenstock <hnrose-Wuw85uim5zDR7s880joybQ@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 14:43 Thu 15 Oct     , Hal Rosenstock wrote:
+On 16:00 Thu 15 Oct     , Hal Rosenstock wrote:
 > 
 > Signed-off-by: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 
