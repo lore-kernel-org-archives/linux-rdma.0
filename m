@@ -1,57 +1,63 @@
-From: Hal Rosenstock <hnrose-Wuw85uim5zDR7s880joybQ@public.gmane.org>
-Subject: [PATCH] opensm/osm_ucast_updn.c: Further reduction in cas_per_sw
-	memory allocation
-Date: Thu, 15 Oct 2009 09:34:45 -0400
-Message-ID: <20091015133445.GA8041@comcast.net>
+From: Vu Pham <vuhuong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [ofa-general][PATCH 3/4] SRP fail-over faster
+Date: Thu, 15 Oct 2009 09:23:36 -0700
+Message-ID: <4AD74C88.8030604@mellanox.com>
+References: <4AD3B453.3030109@mellanox.com> <ada1vl5alqh.fsf@cisco.com>	 <4AD63681.6080901@mellanox.com> <adaljjd8zrj.fsf@cisco.com>	 <4AD63DB1.3060906@mellanox.com>  <adahbu18uf5.fsf@cisco.com> <1255570760.13845.4.camel@obelisk.thedillows.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <1255570760.13845.4.camel-1q1vX8mYZiGLUyTwlgNVppKKF0rrzTr+@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>
+Cc: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Linux RDMA list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+David Dillow wrote:
+> On Wed, 2009-10-14 at 15:47 -0700, Roland Dreier wrote:
+>   
+>>>>  > First it does not make sense for user to set it below 60; therefore,
+>>>>         
+>>  > >  > it is forced to have 60 and above
+>>
+>>  > > Why not?  A minute seems to be a really long time given the point of
+>>  > > these patches is supposed to be failing over faster.  Surely we can tell
+>>  > > if a path really failed sooner than 60 seconds on an IB fabric.
+>>
+>>  > When we fail-over, it will cause the luns ownership transfer in
+>>  > target/storage. It's undesirable op unless necessary
+>>  > Target/storage most likely can reboot and come back within 60 seconds
+>>  > We don't want to create the situation of path bouncing
+>>
+>> OK, I can see why in some (many) situations it makes sense to wait a
+>> while before reporting a target as gone.  But why do we hard code the
+>> policy of a minimum timeout of 60 seconds in the kernel?  Why not a
+>> minimum of 120 seconds?  What if I know my storage is guaranteed to
+>> reboot in 2 seconds -- why can't I have a timeout of 5 seconds?
+>>
+>> You haven't really explained where the magic number of 60 seconds comes from.
+>>     
+>
+> On that note, does this have to be a module parameter -- what if I have
+> connections to different devices, that have different reboot guarantees?
+>
+>   
+It can be tuned down to target/device level instead of  module parameter.
+What do you think, Roland? It can be a param. in login string and stored 
+in target structure.
+> And if I really want a timeout of less than 60 seconds, why should I
+> have to patch my kernel?
+>
+>   
+Then target parameter would be the right approach.
+> And if I want to disable this completely?
+>   
 
-Signed-off-by: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
----
-diff --git a/opensm/opensm/osm_ucast_updn.c b/opensm/opensm/osm_ucast_updn.c
-index ced076a..c46b033 100644
---- a/opensm/opensm/osm_ucast_updn.c
-+++ b/opensm/opensm/osm_ucast_updn.c
-@@ -424,7 +424,7 @@ static void updn_find_root_nodes_by_min_hop(OUT updn_t * p_updn)
- 	double thd1, thd2;
- 	unsigned i, cas_num = 0;
- 	unsigned *cas_per_sw;
--	uint16_t lid_ho;
-+	uint16_t lid_ho = 0;
- 
- 	OSM_LOG_ENTER(&p_osm->log);
- 
-@@ -432,13 +432,21 @@ static void updn_find_root_nodes_by_min_hop(OUT updn_t * p_updn)
- 		"Current number of ports in the subnet is %d\n",
- 		cl_qmap_count(&p_osm->subn.port_guid_tbl));
- 
--	cas_per_sw = malloc(p_osm->subn.max_ucast_lid_ho * sizeof(*cas_per_sw));
-+	for (item = cl_qmap_head(&p_updn->p_osm->subn.sw_guid_tbl);
-+	     item != cl_qmap_end(&p_updn->p_osm->subn.sw_guid_tbl);
-+	     item = cl_qmap_next(item)) {
-+		p_sw = (osm_switch_t *)item;
-+		if (p_sw->lft_size > lid_ho)
-+			lid_ho = p_sw->lft_size;
-+	}
-+
-+	cas_per_sw = malloc(lid_ho * sizeof(*cas_per_sw));
- 	if (!cas_per_sw) {
- 		OSM_LOG(&p_osm->log, OSM_LOG_ERROR, "ERR AA14: "
- 			"cannot alloc mem for CAs per switch counter array\n");
- 		goto _exit;
- 	}
--	memset(cas_per_sw, 0, p_osm->subn.max_ucast_lid_ho * sizeof(*cas_per_sw));
-+	memset(cas_per_sw, 0, lid_ho * sizeof(*cas_per_sw));
- 
- 	/* Find the Maximum number of CAs (and routers) for histogram normalization */
- 	OSM_LOG(&p_osm->log, OSM_LOG_VERBOSE,
+Unless these patches are bad and affect the stability of the driver, why 
+do you want to disable it? If you don't use multipath/device-mapper and 
+use /dev/sd**, everything will be  same
+
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
