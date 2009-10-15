@@ -1,80 +1,73 @@
-From: "David J. Wilder" <dwilder-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH]  link-local address fix for rdma_resolve_addr
-Date: Thu, 15 Oct 2009 12:27:21 -0700
-Message-ID: <1255634841.5111.40.camel@wilder.ibm.com>
-References: <1255471781.14513.7.camel@wilder.ibm.com>
-	<20091013231234.GK5191@obsidianresearch.com>
-	<1255537437.14513.28.camel@wilder.ibm.com>
-	<20091014170155.GL5191@obsidianresearch.com>
-	<1255541405.5111.14.camel@wilder.ibm.com>
-	<20091014174017.GM5191@obsidianresearch.com>
+From: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH] opensm/osm_ucast_updn.c: Further reduction in
+ cas_per_sw memory allocation
+Date: Thu, 15 Oct 2009 21:24:06 +0200
+Message-ID: <20091015192406.GE20210@me>
+References: <20091015133445.GA8041@comcast.net>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Return-path: <ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
-In-Reply-To: <20091014174017.GM5191-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-List-Unsubscribe: <http://lists.openfabrics.org/cgi-bin/mailman/listinfo/ewg>,
-	<mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.openfabrics.org/pipermail/ewg>
-List-Post: <mailto:ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
-List-Help: <mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=help>
-List-Subscribe: <http://lists.openfabrics.org/cgi-bin/mailman/listinfo/ewg>,
-	<mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=subscribe>
-Sender: ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
-Errors-To: ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, wilder-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org, ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20091015133445.GA8041-Wuw85uim5zDR7s880joybQ@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Hal Rosenstock <hnrose-Wuw85uim5zDR7s880joybQ@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, 2009-10-14 at 13:09 Jason Gunthorpe wrote:
+On 09:34 Thu 15 Oct     , Hal Rosenstock wrote:
+> 
+> Signed-off-by: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+> ---
+> diff --git a/opensm/opensm/osm_ucast_updn.c b/opensm/opensm/osm_ucast_updn.c
+> index ced076a..c46b033 100644
+> --- a/opensm/opensm/osm_ucast_updn.c
+> +++ b/opensm/opensm/osm_ucast_updn.c
+> @@ -424,7 +424,7 @@ static void updn_find_root_nodes_by_min_hop(OUT updn_t * p_updn)
+>  	double thd1, thd2;
+>  	unsigned i, cas_num = 0;
+>  	unsigned *cas_per_sw;
+> -	uint16_t lid_ho;
+> +	uint16_t lid_ho = 0;
+>  
+>  	OSM_LOG_ENTER(&p_osm->log);
+>  
+> @@ -432,13 +432,21 @@ static void updn_find_root_nodes_by_min_hop(OUT updn_t * p_updn)
+>  		"Current number of ports in the subnet is %d\n",
+>  		cl_qmap_count(&p_osm->subn.port_guid_tbl));
+>  
+> -	cas_per_sw = malloc(p_osm->subn.max_ucast_lid_ho * sizeof(*cas_per_sw));
+> +	for (item = cl_qmap_head(&p_updn->p_osm->subn.sw_guid_tbl);
+> +	     item != cl_qmap_end(&p_updn->p_osm->subn.sw_guid_tbl);
+> +	     item = cl_qmap_next(item)) {
+> +		p_sw = (osm_switch_t *)item;
+> +		if (p_sw->lft_size > lid_ho)
+> +			lid_ho = p_sw->lft_size;
+> +	}
 
-> So, it tries to match the source addr to the addrs bound to the
-> device, which is wrong - that isn't how the ip stack works.
+It doesn't look very effective to me - lft_size can be larger than
+max_lid_ho + 1 and never smaller. Also I don't like looping here. Why to
+not just:
 
-> You can patch this up a little bit by fixing up addr_resolve_local to
-> set sin6_scope_ip.
+	lid_ho = cl_ptr_vector_get_size(&p_subn->port_lid_tbl);
 
-I found the bug in addr_resolve_local().  (more comments below)
+?
 
---- addr.c.1759	2009-10-13 15:57:48.000000000 -0500
-+++ addr.c.ip_local	2009-10-15 14:03:50.000000000 -0500
-@@ -390,14 +390,17 @@ static int addr_resolve_local(struct soc
- 	case AF_INET6:
- 	{
- 		struct in6_addr *a;
-+		int found = 0;
- 
- 		for_each_netdev(&init_net, dev)
- 			if (ipv6_chk_addr(&init_net,
- 					  &((struct sockaddr_in6 *) dst_in)->sin6_addr,
--					  dev, 1))
-+					  dev, 1)){
-+				found = 1;
- 				break;
-+			}
- 
--		if (!dev)
-+		if (!found)
- 			return -EADDRNOTAVAIL;
- 
- 		a = &((struct sockaddr_in6 *) src_in)->sin6_addr;
-@@ -406,6 +409,8 @@ static int addr_resolve_local(struct soc
- 			src_in->sa_family = dst_in->sa_family;
- 			((struct sockaddr_in6 *) src_in)->sin6_addr =
- 				((struct sockaddr_in6 *) dst_in)->sin6_addr;
-+			((struct sockaddr_in6 *) src_in)->sin6_scope_id =
-+                                ((struct sockaddr_in6 *) dst_in)->sin6_scope_id;
- 			ret = rdma_copy_addr(addr, dev, dev->dev_addr);
- 		} else if (ipv6_addr_loopback(a)) {
- 			ret = rdma_translate_ip(dst_in, addr);
+Sasha
 
-
-> But really the correct thing to do is to remove addr_resolve_local and
-> place the source address into the struct flowi and use the result of
-> the route lookup to bind to the source device, and set the source
-> address if it is unset.
-
-Sorry I don't get it..
-Are you saying that ip6_route_output() will resolve the address even if
-it is a link-local address bound to my own interface? Therefor
-addr_resolve_local() is not needed.
+> +
+> +	cas_per_sw = malloc(lid_ho * sizeof(*cas_per_sw));
+>  	if (!cas_per_sw) {
+>  		OSM_LOG(&p_osm->log, OSM_LOG_ERROR, "ERR AA14: "
+>  			"cannot alloc mem for CAs per switch counter array\n");
+>  		goto _exit;
+>  	}
+> -	memset(cas_per_sw, 0, p_osm->subn.max_ucast_lid_ho * sizeof(*cas_per_sw));
+> +	memset(cas_per_sw, 0, lid_ho * sizeof(*cas_per_sw));
+>  
+>  	/* Find the Maximum number of CAs (and routers) for histogram normalization */
+>  	OSM_LOG(&p_osm->log, OSM_LOG_VERBOSE,
+> 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
