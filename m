@@ -1,8 +1,8 @@
 From: Hal Rosenstock <hnrose-Wuw85uim5zDR7s880joybQ@public.gmane.org>
-Subject: [PATCH] opensm/osm_ucast_cache.c: Cosmetic change to log message
-	for consistency
-Date: Thu, 15 Oct 2009 09:36:39 -0400
-Message-ID: <20091015133639.GB8041@comcast.net>
+Subject: [PATCH] opensm/osm_ucast_updn.c: Further reduction in cas_per_sw
+	memory allocation
+Date: Thu, 15 Oct 2009 09:34:45 -0400
+Message-ID: <20091015133445.GA8041@comcast.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
@@ -15,19 +15,43 @@ List-Id: linux-rdma@vger.kernel.org
 
 Signed-off-by: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 ---
-diff --git a/opensm/opensm/osm_ucast_cache.c b/opensm/opensm/osm_ucast_cache.c
-index 31a5333..8db9df2 100644
---- a/opensm/opensm/osm_ucast_cache.c
-+++ b/opensm/opensm/osm_ucast_cache.c
-@@ -876,7 +876,7 @@ void osm_ucast_cache_add_link(osm_ucast_mgr_t * p_mgr,
- 	if (osm_node_get_type(p_node_1) != IB_NODE_TYPE_SWITCH &&
- 	    osm_node_get_type(p_node_2) != IB_NODE_TYPE_SWITCH) {
- 		OSM_LOG(p_mgr->p_log, OSM_LOG_INFO,
--			"Dropping CA-2-CA link - cache invalid\n");
-+			"Dropping CA/RTR-2-CA/RTR link - cache invalid\n");
- 		osm_ucast_cache_invalidate(p_mgr);
- 		goto Exit;
+diff --git a/opensm/opensm/osm_ucast_updn.c b/opensm/opensm/osm_ucast_updn.c
+index ced076a..c46b033 100644
+--- a/opensm/opensm/osm_ucast_updn.c
++++ b/opensm/opensm/osm_ucast_updn.c
+@@ -424,7 +424,7 @@ static void updn_find_root_nodes_by_min_hop(OUT updn_t * p_updn)
+ 	double thd1, thd2;
+ 	unsigned i, cas_num = 0;
+ 	unsigned *cas_per_sw;
+-	uint16_t lid_ho;
++	uint16_t lid_ho = 0;
+ 
+ 	OSM_LOG_ENTER(&p_osm->log);
+ 
+@@ -432,13 +432,21 @@ static void updn_find_root_nodes_by_min_hop(OUT updn_t * p_updn)
+ 		"Current number of ports in the subnet is %d\n",
+ 		cl_qmap_count(&p_osm->subn.port_guid_tbl));
+ 
+-	cas_per_sw = malloc(p_osm->subn.max_ucast_lid_ho * sizeof(*cas_per_sw));
++	for (item = cl_qmap_head(&p_updn->p_osm->subn.sw_guid_tbl);
++	     item != cl_qmap_end(&p_updn->p_osm->subn.sw_guid_tbl);
++	     item = cl_qmap_next(item)) {
++		p_sw = (osm_switch_t *)item;
++		if (p_sw->lft_size > lid_ho)
++			lid_ho = p_sw->lft_size;
++	}
++
++	cas_per_sw = malloc(lid_ho * sizeof(*cas_per_sw));
+ 	if (!cas_per_sw) {
+ 		OSM_LOG(&p_osm->log, OSM_LOG_ERROR, "ERR AA14: "
+ 			"cannot alloc mem for CAs per switch counter array\n");
+ 		goto _exit;
  	}
+-	memset(cas_per_sw, 0, p_osm->subn.max_ucast_lid_ho * sizeof(*cas_per_sw));
++	memset(cas_per_sw, 0, lid_ho * sizeof(*cas_per_sw));
+ 
+ 	/* Find the Maximum number of CAs (and routers) for histogram normalization */
+ 	OSM_LOG(&p_osm->log, OSM_LOG_VERBOSE,
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
