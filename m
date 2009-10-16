@@ -1,7 +1,7 @@
 From: "Davis, Arlin R" <arlin.r.davis-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 09/11] ucm: fix lock init bug in ucm_cm_find
-Date: Fri, 16 Oct 2009 16:52:11 -0700
-Message-ID: <E3280858FA94444CA49D2BA02341C9835ECA1CCD@orsmsx506.amr.corp.intel.com>
+Subject: [PATCH 10/11] ucm, scm, cma: Fix CNO support on DTO type EVD's
+Date: Fri, 16 Oct 2009 16:52:57 -0700
+Message-ID: <E3280858FA94444CA49D2BA02341C9835ECA1CD0@orsmsx506.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
@@ -13,313 +13,224 @@ Cc: "Smith, Stan" <stan.smith-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Hefty, 
 List-Id: linux-rdma@vger.kernel.org
 
 
-the lock should be setup as pointer to lock
-not lock structure. Cleanup lock and list
-in cm_find function and cm_print function.
+EVD wait_object should be used for CNO processing
+and not the direct CQ event channels. Add proper
+checking for DTO type EVD's with CNO at wait
+and wakeup.
 
-Add debug aid by passing process id in
-msg resv area. cleanup cr references
-and change to cm for consistency.
+UCM missing support for collective EVD's under a
+CNO. Add support to create common channel for
+collective EVD's during device open. Add support
+in cm_thread to check this channel. Also,
+during disconnect, move QP to error to properly
+flush queue instead of moving to reset and init.
 
 Signed-off-by: Arlin Davis <arlin.r.davis-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- dapl/openib_ucm/cm.c |  120 +++++++++++++++++++++++++++++---------------------
- 1 files changed, 69 insertions(+), 51 deletions(-)
+ dapl/openib_common/cq.c        |    6 ++++-
+ dapl/openib_ucm/cm.c           |   18 ++++++++++---
+ dapl/openib_ucm/dapl_ib_util.h |    1 +
+ dapl/openib_ucm/device.c       |   52 +++++++++++++++++++++++++++++++++++++++-
+ dapl/udapl/dapl_evd_wait.c     |    3 +-
+ 5 files changed, 73 insertions(+), 7 deletions(-)
 
+diff --git a/dapl/openib_common/cq.c b/dapl/openib_common/cq.c
+index 16d4f18..c36a766 100644
+--- a/dapl/openib_common/cq.c
++++ b/dapl/openib_common/cq.c
+@@ -259,7 +259,11 @@ dapls_evd_dto_wakeup(IN DAPL_EVD * evd_ptr)
+ 	dapl_dbg_log(DAPL_DBG_TYPE_UTIL,
+ 		     " cq_object_wakeup: evd=%p\n", evd_ptr);
+ 
+-	/* no wake up mechanism */
++	/*  EVD with CNO; waiting on OS wait object */
++	if (evd_ptr->cno_ptr)
++		dapl_os_wait_object_wakeup(&evd_ptr->wait_object);
++
++	/* otherwise, no wake up mechanism */
+ 	return DAT_SUCCESS;
+ }
+ 
 diff --git a/dapl/openib_ucm/cm.c b/dapl/openib_ucm/cm.c
-index 9d702a8..29f87b5 100644
+index 29f87b5..7ce3aab 100644
 --- a/dapl/openib_ucm/cm.c
 +++ b/dapl/openib_ucm/cm.c
-@@ -166,14 +166,14 @@ static void ucm_check_timers(dp_ib_cm_handle_t cm, int *timer)
- 		    (cm->hca->ib_trans.rep_time * cm->retries)) {
- 			dapl_log(DAPL_DBG_TYPE_WARN,
- 				 " CM_REQ retry %d [lid, port, qpn]:"
--				 " 0x%x %d 0x%x -> 0x%x %d 0x%x\n", 
-+				 " %x %x %x -> %x %x %x \n", 
- 				 cm->retries,
- 				 ntohs(cm->msg.saddr.ib.lid), 
- 				 ntohs(cm->msg.sport),
- 				 ntohl(cm->msg.saddr.ib.qpn), 
- 				 ntohs(cm->msg.daddr.ib.lid), 
- 				 ntohs(cm->msg.dport),
--				 ntohl(cm->msg.dqpn)); 
-+				 ntohl(cm->msg.dqpn));
- 			dapl_os_unlock(&cm->lock);
- 			dapli_cm_connect(cm->ep, cm);
- 			return;
-@@ -181,17 +181,20 @@ static void ucm_check_timers(dp_ib_cm_handle_t cm, int *timer)
- 		break;
- 	case DCM_RTU_PENDING: 
- 		*timer = cm->hca->ib_trans.cm_timer;  
--		if ((time - cm->timer)/1000 > cm->hca->ib_trans.rtu_time) {
-+		if ((time - cm->timer)/1000 > 
-+		    (cm->hca->ib_trans.rtu_time * cm->retries)) {
- 			dapl_log(DAPL_DBG_TYPE_WARN,
- 				 " CM_REPLY retry %d [lid, port, qpn]:"
--				 " 0x%x %d 0x%x -> 0x%x %d 0x%x\n", 
-+				 " %x %x %x -> %x %x %x r_pid %x,%d\n", 
- 				 cm->retries,
- 				 ntohs(cm->msg.saddr.ib.lid), 
- 				 ntohs(cm->msg.sport),
- 				 ntohl(cm->msg.saddr.ib.qpn), 
- 				 ntohs(cm->msg.daddr.ib.lid), 
- 				 ntohs(cm->msg.dport),
--				 ntohl(cm->msg.daddr.ib.qpn));  
-+				 ntohl(cm->msg.daddr.ib.qpn),  
-+				 ntohl(*(DAT_UINT32*)cm->msg.resv),
-+				 ntohl(*(DAT_UINT32*)cm->msg.resv)); 
- 			dapl_os_unlock(&cm->lock);
- 			ucm_reply(cm);
- 			return;
-@@ -204,14 +207,16 @@ static void ucm_check_timers(dp_ib_cm_handle_t cm, int *timer)
- 		    (cm->hca->ib_trans.rep_time)) {
- 			dapl_log(DAPL_DBG_TYPE_WARN,
- 				 " CM_DREQ retry %d [lid, port, qpn]:"
--				 " 0x%x %d 0x%x -> 0x%x %d 0x%x\n", 
-+				 " %x %x %x -> %x %x %x r_pid %x,%d\n", 
- 				 cm->retries,
- 				 ntohs(cm->msg.saddr.ib.lid), 
- 				 ntohs(cm->msg.sport),
- 				 ntohl(cm->msg.saddr.ib.qpn), 
- 				 ntohs(cm->msg.daddr.ib.lid), 
- 				 ntohs(cm->msg.dport),
--				 ntohl(cm->msg.dqpn)); 
-+				 ntohl(cm->msg.dqpn), 
-+				 ntohl(*(DAT_UINT32*)cm->msg.resv),
-+				 ntohl(*(DAT_UINT32*)cm->msg.resv)); 
- 			dapl_os_unlock(&cm->lock);
- 			dapli_cm_disconnect(cm);
-                         return;
-@@ -396,24 +401,24 @@ static void ucm_process_recv(ib_hca_transport_t *tp,
- dp_ib_cm_handle_t ucm_cm_find(ib_hca_transport_t *tp, ib_cm_msg_t *msg)
+@@ -1510,10 +1510,10 @@ dapls_ib_disconnect(IN DAPL_EP *ep, IN DAT_CLOSE_FLAGS close_flags)
+ 	dapl_dbg_log(DAPL_DBG_TYPE_EP,
+ 		     "dapls_ib_disconnect(ep_handle %p ....)\n", ep);
+ 
+-	/* reinit to modify QP state, if not UD */
+-	if (ep->qp_handle->qp_type != IBV_QPT_UD)
+-		dapls_ib_reinit_ep(ep);
+-
++	/* move to err state to flush, if not UD */
++	if (ep->qp_handle->qp_type != IBV_QPT_UD) 
++		dapls_modify_qp_state(ep->qp_handle, IBV_QPS_ERR,0,0,0);
++	
+ 	if (ep->cm_handle == NULL ||
+ 	    ep->param.ep_state == DAT_EP_STATE_DISCONNECTED)
+ 		return DAT_SUCCESS;
+@@ -1957,6 +1957,7 @@ void cm_thread(void *arg)
+ 		CompSetZero(&hca->ib_trans.signal.set);
+ 		CompSetAdd(&hca->ib_hca_handle->channel, &hca->ib_trans.signal.set);
+ 		CompSetAdd(&hca->ib_trans.rch->comp_channel, &hca->ib_trans.signal.set);
++		CompSetAdd(&hca->ib_cq->comp_channel, &hca->ib_trans.signal.set);
+ 
+ 		next = dapl_llist_is_empty(&hca->ib_trans.list) ? NULL :
+ 			dapl_llist_peek_head(&hca->ib_trans.list);
+@@ -1982,12 +1983,16 @@ void cm_thread(void *arg)
+ 
+ 		hca->ib_hca_handle->channel.Milliseconds = time_ms;
+ 		hca->ib_trans.rch->comp_channel.Milliseconds = time_ms;
++		hca->ib_trans.ib_cq->comp_channel.Milliseconds = time_ms;
+ 		CompSetPoll(&hca->ib_trans.signal.set, time_ms);
+ 
+ 		hca->ib_hca_handle->channel.Milliseconds = 0;
+ 		hca->ib_trans.rch->comp_channel.Milliseconds = 0;
++		hca->ib_trans.ib_cq->comp_channel.Milliseconds = 0;
++
+ 		ucm_recv(&hca->ib_trans);
+ 		ucm_async_event(hca);
++		dapli_cq_event_cb(&hca->ib_trans);
+ 	}
+ 
+ 	dapl_os_unlock(&hca->ib_trans.lock);
+@@ -2019,6 +2024,7 @@ void cm_thread(void *arg)
+ 		dapl_fd_set(hca->ib_trans.signal.scm[0], set, DAPL_FD_READ);	
+ 		dapl_fd_set(hca->ib_hca_handle->async_fd, set, DAPL_FD_READ);
+ 		dapl_fd_set(hca->ib_trans.rch->fd, set, DAPL_FD_READ);
++		dapl_fd_set(hca->ib_trans.ib_cq->fd, set, DAPL_FD_READ);
+ 		
+ 		if (!dapl_llist_is_empty(&hca->ib_trans.list))
+ 			next = dapl_llist_peek_head(&hca->ib_trans.list);
+@@ -2061,6 +2067,10 @@ void cm_thread(void *arg)
+ 			      DAPL_FD_READ) == DAPL_FD_READ) {
+ 			ucm_async_event(hca);
+ 		}
++		if (dapl_poll(hca->ib_trans.ib_cq->fd, 
++			      DAPL_FD_READ) == DAPL_FD_READ) {
++			dapli_cq_event_cb(&hca->ib_trans);
++		}
+ 		while (dapl_poll(hca->ib_trans.signal.scm[0], 
+ 				 DAPL_FD_READ) == DAPL_FD_READ) {
+ 			recv(hca->ib_trans.signal.scm[0], rbuf, 2, 0);
+diff --git a/dapl/openib_ucm/dapl_ib_util.h b/dapl/openib_ucm/dapl_ib_util.h
+index eef6384..27ff8dd 100644
+--- a/dapl/openib_ucm/dapl_ib_util.h
++++ b/dapl/openib_ucm/dapl_ib_util.h
+@@ -115,6 +115,7 @@ typedef struct _ib_hca_transport
+ /* prototypes */
+ void cm_thread(void *arg);
+ void ucm_async_event(struct dapl_hca *hca);
++void dapli_cq_event_cb(struct _ib_hca_transport *tp);
+ dp_ib_cm_handle_t dapls_ib_cm_create(DAPL_EP *ep);
+ void dapls_ib_cm_free(dp_ib_cm_handle_t cm, DAPL_EP *ep);
+ void dapls_print_cm_list(IN DAPL_IA *ia_ptr);
+diff --git a/dapl/openib_ucm/device.c b/dapl/openib_ucm/device.c
+index 65f5f9b..077446b 100644
+--- a/dapl/openib_ucm/device.c
++++ b/dapl/openib_ucm/device.c
+@@ -37,6 +37,8 @@ static void ucm_service_destroy(IN DAPL_HCA *hca);
+ static int  ucm_service_create(IN DAPL_HCA *hca);
+ 
+ #if defined (_WIN32)
++#include "..\..\..\..\..\etc\user\comp_channel.cpp"
++#include <rdma\winverbs.h>
+ 
+ static int32_t create_os_signal(IN DAPL_HCA * hca_ptr)
  {
- 	dp_ib_cm_handle_t cm, next, found = NULL;
--	struct dapl_llist_entry	*list;
--	DAPL_OS_LOCK lock;
-+	struct dapl_llist_entry	**list;
-+	DAPL_OS_LOCK *lock;
- 	int listenq = 0;
- 
- 	/* conn list first, duplicate requests for DCM_REQ */
--	list = tp->list;
--	lock = tp->lock;
-+	list = &tp->list;
-+	lock = &tp->lock;
- 
- retry_listenq:
--	dapl_os_lock(&lock);
--        if (!dapl_llist_is_empty(&list))
--		next = dapl_llist_peek_head(&list);
-+	dapl_os_lock(lock);
-+        if (!dapl_llist_is_empty(list))
-+		next = dapl_llist_peek_head(list);
- 	else
- 		next = NULL;
- 
- 	while (next) {
- 		cm = next;
--		next = dapl_llist_next_entry(&list,
-+		next = dapl_llist_next_entry(list,
- 					     (DAPL_LLIST_ENTRY *)&cm->entry);
- 		if (cm->state == DCM_DESTROY)
- 			continue;
-@@ -435,7 +440,7 @@ retry_listenq:
- 				break; 
- 			} else {
- 				/* duplicate; bail and throw away */
--				dapl_os_unlock(&lock);
-+				dapl_os_unlock(lock);
- 				dapl_log(DAPL_DBG_TYPE_CM,
- 					 " duplicate: op %s st %s [lid, port, qpn]:"
- 					 " 0x%x %d 0x%x <- 0x%x %d 0x%x\n", 
-@@ -451,13 +456,13 @@ retry_listenq:
- 			}
- 		}
- 	}
--	dapl_os_unlock(&lock);
-+	dapl_os_unlock(lock);
- 
- 	/* no duplicate request on connq, check listenq for new request */
- 	if (ntohs(msg->op) == DCM_REQ && !listenq && !found) {
- 		listenq = 1;
--		list = tp->llist;
--		lock = tp->llock;
-+		list = &tp->llist;
-+		lock = &tp->llock;
- 		goto retry_listenq;
- 	}
- 
-@@ -608,6 +613,7 @@ dp_ib_cm_handle_t dapls_ib_cm_create(DAPL_EP *ep)
- 		goto bail;
- 
- 	cm->msg.ver = htons(DCM_VER);
-+	*(DAT_UINT32*)cm->msg.resv = htonl(dapl_os_getpid()); /* exchange PID for debugging */
- 	
- 	/* ACTIVE: init source address QP info from local EP */
- 	if (ep) {
-@@ -648,7 +654,7 @@ static void ucm_ud_free(DAPL_EP *ep)
- 	DAPL_IA *ia = ep->header.owner_ia;
- 	DAPL_HCA *hca = NULL;
- 	ib_hca_transport_t *tp = &ia->hca_ptr->ib_trans;
--	dp_ib_cm_handle_t cr, next;
-+	dp_ib_cm_handle_t cm, next;
- 
- 	dapl_os_lock(&tp->lock);
- 	if (!dapl_llist_is_empty((DAPL_LLIST_HEAD*)&tp->list))
-@@ -657,17 +663,17 @@ static void ucm_ud_free(DAPL_EP *ep)
- 	    next = NULL;
- 
- 	while (next) {
--		cr = next;
-+		cm = next;
- 		next = dapl_llist_next_entry((DAPL_LLIST_HEAD*)&tp->list,
--					     (DAPL_LLIST_ENTRY*)&cr->entry);
--		if (cr->ep == ep)  {
-+					     (DAPL_LLIST_ENTRY*)&cm->entry);
-+		if (cm->ep == ep)  {
- 			dapl_dbg_log(DAPL_DBG_TYPE_EP,
--				     " qp_free CR: ep %p cr %p\n", ep, cr);
--			dapl_os_lock(&cr->lock);
--			hca = cr->hca;
--			cr->ep = NULL;
--			cr->state = DCM_DESTROY;
--			dapl_os_unlock(&cr->lock);
-+				     " qp_free CM: ep %p cm %p\n", ep, cm);
-+			dapl_os_lock(&cm->lock);
-+			hca = cm->hca;
-+			cm->ep = NULL;
-+			cm->state = DCM_DESTROY;
-+			dapl_os_unlock(&cm->lock);
- 		}
- 	}
- 	dapl_os_unlock(&tp->lock);
-@@ -855,8 +861,12 @@ dapli_cm_connect(DAPL_EP *ep, dp_ib_cm_handle_t cm)
- 		dapl_os_unlock(&cm->lock);
- 
- #ifdef DAPL_COUNTERS
--		if (g_dapl_dbg_type & DAPL_DBG_TYPE_CM_LIST)
-+		/* called from check_timers in cm_thread, cm lock held */
-+		if (g_dapl_dbg_type & DAPL_DBG_TYPE_CM_LIST) {
-+			dapl_os_unlock(&cm->hca->ib_trans.lock);
- 			dapls_print_cm_list(ep->header.owner_ia);
-+			dapl_os_lock(&cm->hca->ib_trans.lock);
-+		}
- #endif
- 		dapl_evd_connection_callback(cm, 
- 					     IB_CME_DESTINATION_UNREACHABLE,
-@@ -928,6 +938,7 @@ static void ucm_connect_rtu(dp_ib_cm_handle_t cm, ib_cm_msg_t *msg)
- 				 ntohs(msg->saddr.ib.lid), 
- 				 ntohl(msg->saddr.ib.qpn), 
- 				 ntohs(msg->sport));
-+			dapl_os_unlock(&cm->lock);
- 			goto bail;
- 		}
- 		dapl_os_memcpy(cm->msg.p_data, 
-@@ -1272,8 +1283,12 @@ static int ucm_reply(dp_ib_cm_handle_t cm)
- 			
- 		dapl_os_unlock(&cm->lock);
- #ifdef DAPL_COUNTERS
--		if (g_dapl_dbg_type & DAPL_DBG_TYPE_CM_LIST)
-+		/* called from check_timers in cm_thread, cm lock held */
-+		if (g_dapl_dbg_type & DAPL_DBG_TYPE_CM_LIST) {
-+			dapl_os_unlock(&cm->hca->ib_trans.lock);
- 			dapls_print_cm_list(dapl_llist_peek_head(&cm->hca->ia_list_head));
-+			dapl_os_lock(&cm->hca->ib_trans.lock);
-+		}
- #endif
- #ifdef DAT_EXTENSIONS
- 		if (cm->msg.saddr.ib.qp_type == IBV_QPT_UD) {
-@@ -1577,7 +1592,7 @@ dapls_ib_setup_conn_listener(IN DAPL_IA *ia,
- 
- 	/* reserve local port, then allocate CM object */
- 	if (!ucm_get_port(&ia->hca_ptr->ib_trans, (uint16_t)sid)) {
--		dapl_dbg_log(DAPL_DBG_TYPE_CM,
-+		dapl_dbg_log(DAPL_DBG_TYPE_WARN,
- 			     " listen: ERROR %s on conn_qual 0x%x\n",
- 			     strerror(errno), sid);
- 		return DAT_CONN_QUAL_IN_USE;
-@@ -2074,16 +2089,16 @@ void dapls_print_cm_list(IN DAPL_IA *ia_ptr)
- 	/* Print in process CM's for this IA, if debug type set */
- 	int i = 0;
- 	dp_ib_cm_handle_t cm, next_cm;
--	struct dapl_llist_entry	*list;
--	DAPL_OS_LOCK lock;
-+	struct dapl_llist_entry	**list;
-+	DAPL_OS_LOCK *lock;
- 	
- 	/* LISTEN LIST */
--	list = ia_ptr->hca_ptr->ib_trans.llist;
--	lock = ia_ptr->hca_ptr->ib_trans.llock;
-+	list = &ia_ptr->hca_ptr->ib_trans.llist;
-+	lock = &ia_ptr->hca_ptr->ib_trans.llock;
- 
--	dapl_os_lock(&lock);
--	if (!dapl_llist_is_empty((DAPL_LLIST_HEAD*)&list))
--		next_cm = dapl_llist_peek_head((DAPL_LLIST_HEAD*)&list);
-+	dapl_os_lock(lock);
-+	if (!dapl_llist_is_empty((DAPL_LLIST_HEAD*)list))
-+		next_cm = dapl_llist_peek_head((DAPL_LLIST_HEAD*)list);
-  	else
- 		next_cm = NULL;
- 
-@@ -2093,31 +2108,32 @@ void dapls_print_cm_list(IN DAPL_IA *ia_ptr)
- 		next_cm = dapl_llist_next_entry((DAPL_LLIST_HEAD*)list,
- 						(DAPL_LLIST_ENTRY*)&cm->entry);
- 
--		printf( "  LISTEN[%d]: sp %p %s uCM_QP: 0x%x %d 0x%x\n",
-+		printf( "  LISTEN[%d]: sp %p %s uCM_QP: 0x%x %d 0x%x l_pid %x,%d\n",
- 			i, cm->sp, dapl_cm_state_str(cm->state),
- 			ntohs(cm->msg.saddr.ib.lid), ntohs(cm->msg.sport),
--			ntohl(cm->msg.sqpn));
-+			ntohl(cm->msg.sqpn), ntohl(*(DAT_UINT32*)cm->msg.resv), 
-+			ntohl(*(DAT_UINT32*)cm->msg.resv)); 
- 		i++;
- 	}
--	dapl_os_unlock(&lock);
-+	dapl_os_unlock(lock);
- 
- 	/* CONNECTION LIST */
--	list = ia_ptr->hca_ptr->ib_trans.list;
--	lock = ia_ptr->hca_ptr->ib_trans.lock;
-+	list = &ia_ptr->hca_ptr->ib_trans.list;
-+	lock = &ia_ptr->hca_ptr->ib_trans.lock;
- 
--	dapl_os_lock(&lock);
--	if (!dapl_llist_is_empty((DAPL_LLIST_HEAD*)&list))
--		next_cm = dapl_llist_peek_head((DAPL_LLIST_HEAD*)&list);
-+	dapl_os_lock(lock);
-+	if (!dapl_llist_is_empty((DAPL_LLIST_HEAD*)list))
-+		next_cm = dapl_llist_peek_head((DAPL_LLIST_HEAD*)list);
-  	else
- 		next_cm = NULL;
- 
-         while (next_cm) {
- 		cm = next_cm;
--		next_cm = dapl_llist_next_entry((DAPL_LLIST_HEAD*)&list,
-+		next_cm = dapl_llist_next_entry((DAPL_LLIST_HEAD*)list,
- 						(DAPL_LLIST_ENTRY*)&cm->entry);
- 
- 		printf( "  CONN[%d]: ep %p cm %p %s %s"
--			"  0x%x %d 0x%x %s 0x%x %d 0x%x\n",
-+			"  %x %x %x %s %x %x %x r_pid %x,%d\n",
- 			i, cm->ep, cm,
- 			cm->msg.saddr.ib.qp_type == IBV_QPT_RC ? "RC" : "UD",
- 			dapl_cm_state_str(cm->state),
-@@ -2127,10 +2143,12 @@ void dapls_print_cm_list(IN DAPL_IA *ia_ptr)
- 			cm->sp ? "<-" : "->",
- 			ntohs(cm->msg.daddr.ib.lid),
- 			ntohs(cm->msg.dport),
--			ntohl(cm->msg.daddr.ib.qpn));
-+			ntohl(cm->msg.daddr.ib.qpn),
-+			ntohs(cm->msg.op) == DCM_REQ ? 0 : ntohl(*(DAT_UINT32*)cm->msg.resv), 
-+			ntohs(cm->msg.op) == DCM_REQ ? 0 : ntohl(*(DAT_UINT32*)cm->msg.resv)); 
- 		i++;
- 	}
- 	printf("\n");
--	dapl_os_unlock(&lock);
-+	dapl_os_unlock(lock);
+@@ -48,6 +50,18 @@ static void destroy_os_signal(IN DAPL_HCA * hca_ptr)
+ 	CompSetCleanup(&hca_ptr->ib_trans.signal.set);
  }
+ 
++static int dapls_config_verbs(struct ibv_context *verbs)
++{
++	verbs->channel.Milliseconds = 0;
++	return 0;
++}
++
++static int dapls_config_comp_channel(struct ibv_comp_channel *channel)
++{
++	channel->comp_channel.Milliseconds = 0;
++	return 0;
++}
++
+ #else // _WIN32
+ 
+ static int32_t create_os_signal(IN DAPL_HCA * hca_ptr)
+@@ -105,6 +119,31 @@ static void destroy_os_signal(IN DAPL_HCA * hca_ptr)
+ 	closesocket(hca_ptr->ib_trans.signal.scm[1]);
+ }
+ 
++static int dapls_config_fd(int fd)
++{
++	int opts;
++
++	opts = fcntl(fd, F_GETFL);
++	if (opts < 0 || fcntl(fd, F_SETFL, opts | O_NONBLOCK) < 0) {
++		dapl_log(DAPL_DBG_TYPE_ERR,
++			 " dapls_config_fd: fcntl on fd %d ERR %d %s\n",
++			 fd, opts, strerror(errno));
++		return errno;
++	}
++
++	return 0;
++}
++
++static int dapls_config_verbs(struct ibv_context *verbs)
++{
++	return dapls_config_fd(verbs->async_fd);
++}
++
++static int dapls_config_comp_channel(struct ibv_comp_channel *channel)
++{
++	return dapls_config_fd(channel->fd);
++}
++
  #endif
+ 
+ /*
+@@ -187,6 +226,7 @@ found:
+ 		goto err;
+ 	}
+ 	hca_ptr->ib_trans.ib_ctx = hca_ptr->ib_hca_handle;
++	dapls_config_verbs(hca_ptr->ib_hca_handle);
+ 	
+ 	/* get lid for this hca-port, network order */
+ 	if (ibv_query_port(hca_ptr->ib_hca_handle,
+@@ -243,7 +283,17 @@ found:
+ 
+ 	if ((dapl_os_lock_init(&hca_ptr->ib_trans.plock)) != DAT_SUCCESS)
+ 		goto err;
+-	
++
++	/* EVD events without direct CQ channels, CNO support */
++	hca_ptr->ib_trans.ib_cq =
++	    ibv_create_comp_channel(hca_ptr->ib_hca_handle);
++	if (hca_ptr->ib_trans.ib_cq == NULL) {
++		dapl_log(DAPL_DBG_TYPE_ERR,
++			 " open_hca: ibv_create_comp_channel ERR %s\n",
++			 strerror(errno));
++		goto bail;
++	}
++	dapls_config_comp_channel(hca_ptr->ib_trans.ib_cq);
+ 
+ 	/* initialize CM and listen lists on this HCA uCM QP */
+ 	dapl_llist_init_head(&hca_ptr->ib_trans.list);
+diff --git a/dapl/udapl/dapl_evd_wait.c b/dapl/udapl/dapl_evd_wait.c
+index 2e501ae..79afb0d 100644
+--- a/dapl/udapl/dapl_evd_wait.c
++++ b/dapl/udapl/dapl_evd_wait.c
+@@ -215,7 +215,8 @@ DAT_RETURN DAT_API dapl_evd_wait(IN DAT_EVD_HANDLE evd_handle,
+ 		DAPL_CNTR(evd_ptr, DCNT_EVD_WAIT_BLOCKED);
+ 		dapl_os_unlock(&evd_ptr->header.lock);
+ 
+-		if (evd_ptr->evd_flags & (DAT_EVD_DTO_FLAG | DAT_EVD_RMR_BIND_FLAG)) {
++		if ((!evd_ptr->cno_ptr) && 
++		    (evd_ptr->evd_flags & (DAT_EVD_DTO_FLAG | DAT_EVD_RMR_BIND_FLAG))) {
+ 			dat_status = dapls_evd_dto_wait(evd_ptr, time_out);
+ 		} else {
+ 			dat_status = dapl_os_wait_object_wait(&evd_ptr->wait_object, time_out);
 -- 
 1.5.2.5
 
