@@ -1,43 +1,45 @@
 From: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH] opensm: fix LFT allocation size
-Date: Fri, 16 Oct 2009 13:53:26 +0200
-Message-ID: <20091016115326.GN20210@me>
-References: <20091016002810.GA16243@sgi.com>
- <20091016105811.GM20210@me>
+Subject: Re: [PATCH] opensm/osm_ucast_cache.c: Cosmetic change to log
+ message for consistency
+Date: Fri, 16 Oct 2009 14:01:54 +0200
+Message-ID: <20091016120154.GO20210@me>
+References: <20091015133639.GB8041@comcast.net>
+ <20091015192647.GF20210@me>
+ <4AD79CBC.10606@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20091016105811.GM20210@me>
+In-Reply-To: <4AD79CBC.10606-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: Dale Purdy <purdy-sJ/iWh9BUns@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+To: Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: Hal Rosenstock <hnrose-Wuw85uim5zDR7s880joybQ@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+On 00:05 Fri 16 Oct     , Yevgeny Kliteynik wrote:
+> 
+> If I remember it correctly, there's an INFO message
+> in the ucast mgr saying something like "switches
+> configured for unicast" or "<routing engine name>
+> tables configured", or something like that (I don't
+> have access to the code right now).
 
-Fix LFT allocation size - count zero entry as well.
+Yes, and there a needs of INFO level is also questionable IMHO.
 
-Signed-off-by: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
----
- opensm/opensm/osm_switch.c |    3 +--
- 1 files changed, 1 insertions(+), 2 deletions(-)
+> So I wanted to see one more line
 
-diff --git a/opensm/opensm/osm_switch.c b/opensm/opensm/osm_switch.c
-index ed0bc66..67e3ede 100644
---- a/opensm/opensm/osm_switch.c
-+++ b/opensm/opensm/osm_switch.c
-@@ -497,8 +497,7 @@ static int alloc_lft(IN osm_switch_t * p_sw, uint16_t lids)
- 	uint16_t lft_size;
- 
- 	/* Ensure LFT is in units of LFT block size */
--	lft_size = (lids + IB_SMP_DATA_SIZE - 1) / IB_SMP_DATA_SIZE * IB_SMP_DATA_SIZE;
--
-+	lft_size = (lids / IB_SMP_DATA_SIZE + 1) * IB_SMP_DATA_SIZE;
- 	if (lft_size > p_sw->lft_size) {
- 		uint8_t *new_lft = realloc(p_sw->lft, lft_size);
- 		if (!new_lft)
--- 
-1.6.5
+There are more than one:
+
+$ grep OSM_LOG_INFO opensm/osm_ucast_cache.c | wc -l 
+19
+
+> that says that
+> cache is not applicable.
+
+We don't need an extra lines, one line instead (as I did in the posted
+patch) is enough.
+
+Sasha
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
