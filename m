@@ -1,7 +1,8 @@
 From: "Davis, Arlin R" <arlin.r.davis-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 05/11] Fix build warning when compiling on 32-bit systems.
-Date: Fri, 16 Oct 2009 16:49:25 -0700
-Message-ID: <E3280858FA94444CA49D2BA02341C9835ECA1CBE@orsmsx506.amr.corp.intel.com>
+Subject: [PATCH 06/11] The HCA should not be closed until all resources have
+ been released.
+Date: Fri, 16 Oct 2009 16:50:33 -0700
+Message-ID: <E3280858FA94444CA49D2BA02341C9835ECA1CC6@orsmsx506.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
@@ -12,25 +13,40 @@ To: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "ofw-ZwoEpl
 Cc: "Smith, Stan" <stan.smith-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+This results in a hang on windows, since closing the device frees
+the event processing thread.
 
 Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- dapl/openib_ucm/cm.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ dapl/openib_ucm/device.c |    9 +++++----
+ 1 files changed, 5 insertions(+), 4 deletions(-)
 
-diff --git a/dapl/openib_ucm/cm.c b/dapl/openib_ucm/cm.c
-index 36ea419..41a7c9e 100644
---- a/dapl/openib_ucm/cm.c
-+++ b/dapl/openib_ucm/cm.c
-@@ -497,7 +497,7 @@ retry:
- 		notify = 0;
- 	
- 	for (i = 0; i < ret; i++) {
--		msg = (ib_cm_msg_t*)wc[i].wr_id;
-+		msg = (ib_cm_msg_t*) (uintptr_t) wc[i].wr_id;
+diff --git a/dapl/openib_ucm/device.c b/dapl/openib_ucm/device.c
+index 90a044e..4f26e87 100644
+--- a/dapl/openib_ucm/device.c
++++ b/dapl/openib_ucm/device.c
+@@ -354,16 +354,17 @@ DAT_RETURN dapls_ib_close_hca(IN DAPL_HCA * hca_ptr)
+ 		}
+ 	}
  
- 		dapl_dbg_log(DAPL_DBG_TYPE_CM, 
- 			     " ucm_recv: wc status=%d, ln=%d id=%p sqp=%x\n", 
++	dapl_os_lock_destroy(&hca_ptr->ib_trans.lock);
++	dapl_os_lock_destroy(&hca_ptr->ib_trans.llock);
++	destroy_cr_pipe(hca_ptr); /* no longer need pipe */
++	ucm_service_destroy(hca_ptr);
++
+ 	if (hca_ptr->ib_hca_handle != IB_INVALID_HANDLE) {
+ 		if (ibv_close_device(hca_ptr->ib_hca_handle))
+ 			return (dapl_convert_errno(errno, "ib_close_device"));
+ 		hca_ptr->ib_hca_handle = IB_INVALID_HANDLE;
+ 	}
+ 
+-	dapl_os_lock_destroy(&hca_ptr->ib_trans.lock);
+-	dapl_os_lock_destroy(&hca_ptr->ib_trans.llock);
+-	destroy_cr_pipe(hca_ptr); /* no longer need pipe */
+-	ucm_service_destroy(hca_ptr);
+ 	return (DAT_SUCCESS);
+ }
+ 
 -- 
 1.5.2.5
 
