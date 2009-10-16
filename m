@@ -1,46 +1,83 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH]  link-local address fix for rdma_resolve_addr
-Date: Fri, 16 Oct 2009 13:28:49 -0600
-Message-ID: <20091016192849.GX5191@obsidianresearch.com>
-References: <1255471781.14513.7.camel@wilder.ibm.com> <20091013231234.GK5191@obsidianresearch.com> <1255537437.14513.28.camel@wilder.ibm.com> <20091014170155.GL5191@obsidianresearch.com> <1255541405.5111.14.camel@wilder.ibm.com> <20091014174017.GM5191@obsidianresearch.com> <1255634841.5111.40.camel@wilder.ibm.com> <20091015213205.GV5191@obsidianresearch.com> <1255719280.14675.30.camel@wilder.ibm.com>
+From: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCHv4] opensm: Reduce heap consumption by multicast routing
+	tables (MFTs)
+Date: Fri, 16 Oct 2009 16:17:54 -0400
+Message-ID: <f0e08f230910161317o2769393bu5d171e9572bb429d@mail.gmail.com>
+References: <20091015223052.GA6843@comcast.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1255719280.14675.30.camel-XfwDJb4SXxnMbYB6QlFGEg@public.gmane.org>
+In-Reply-To: <20091015223052.GA6843-Wuw85uim5zDR7s880joybQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "David J. Wilder" <dwilder-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>
-Cc: sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, pradeep-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org, wilder-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org
+To: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Oct 16, 2009 at 11:54:39AM -0700, David J. Wilder wrote:
+Sasha,
 
-> There is the wrinkle in this plan.  If you pass ip6_route_output() your
-> own link-local address (scoped or not) it returns a neighbor entry bound
-> to the loop back device.
+On Thu, Oct 15, 2009 at 6:30 PM, Hal Rosenstock <hnrose-Wuw85uim5zDR7s880joybQ@public.gmane.org> wr=
+ote:
+>
+> Heap memory consumption by the unicast and multicast routing tables c=
+an be
+> reduced.
+>
+> This patch is analagous to the previous patch doing this for the unic=
+ast
+> routing tables (LFTs).
+>
+> Using valgrind --tool=3Dmassif (for heap profiling), there are couple=
+ of place
+> ->38.75% (11,206,656B) 0x43267E: osm_switch_new (osm_switch.c:134)
+> ->12.89% (3,728,256B) 0x40F8C9: osm_mcast_tbl_init (osm_mcast_tbl.c:9=
+6)
+>
+> osm_mcast_tbl_init (osm_mcast_tbl.c:96):
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0p_tbl->p_mask_tbl =3D malloc(p_tbl->num_en=
+tries *
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 (IB_MCAST_POSITION_MA=
+X +
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A01) * IB_MCAST_M=
+ASK_SIZE / 8);
+>
+> num_entries above is set based on the switch's MulticastFDBCap
+> (indicated in it's SM class SwitchInfo attribute).
+>
+> MFTs are only be increased in size and are never reduced in size. If =
+a realloc
+> for MFT fails, it is treated as a fatal error and OpenSM is exited.
+>
+> Signed-off-by: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+> ---
+> Changes since v3:
+> Renamed mft_size to mft_depth and added description in osm_mcast_tbl.=
+h
+> Removed vestigial realloc mask tbl call in osm_dump.c
+> Simplified max_mlid determination in alloc_mfts
+> Added return value to osm_mcast_tbl_realloc_mask_tbl
+> Added return value to alloc_mfts
+> Handle alloc_mfts failure in osm_mcast_mgr_process/process_mgroups
+> Renamed osm_mcast_tbl_realloc_mask_tbl to osm_mcast_tbl_realloc
+> In osm_mcast_tbl_realloc, simplified mft_depth calculation
+>
+> Changes since v2:
+> MFT allocation during routing preparation rather than on table access
+>
+> Changes since v1:
+> MFT allocation based on actual MLID requests
+>
 
-Well, that really is correct. The RDMA CM could try to do something
-smart if lo is returned from the route lookup - ie choose the first
-RDMA device bound to that IP or something.
+Please ignore this. I'll resubmit once we get past the mcast tbl
+change for max LID host order.
 
-There are other problems with the loop back case, like the Linux stack
-doesn't generate neighbor entries for its own IP addresses.
+-- Hal
 
-The loopback case is far less important than the other policy routing
-features anyhow..
-
-> I will post a patch with our first solution and include the fix to
-> addr_resolve_local(). 
-
-May as well, a little bit of progress is better than none at all. 
-
-Also note that I observed that the IPv6 code path never sets the
-source address from the routing table if IN6_ADDR_ANY is used as
-source, this is certainly wrong and could cause other problems down
-the line, probably more so for iwarp than IB though..
-
-Jason
+<snip...>
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
