@@ -1,83 +1,55 @@
-From: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCHv4] opensm: Reduce heap consumption by multicast routing
-	tables (MFTs)
-Date: Fri, 16 Oct 2009 16:17:54 -0400
-Message-ID: <f0e08f230910161317o2769393bu5d171e9572bb429d@mail.gmail.com>
-References: <20091015223052.GA6843@comcast.net>
+From: Edward Mascarenhas <eddiem-sJ/iWh9BUns@public.gmane.org>
+Subject: ibdiagpath return code incorrect
+Date: Fri, 16 Oct 2009 16:15:54 -0700
+Message-ID: <4AD8FEAA.101@sgi.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20091015223052.GA6843-Wuw85uim5zDR7s880joybQ@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+List-Unsubscribe: <http://lists.openfabrics.org/cgi-bin/mailman/listinfo/ewg>,
+	<mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.openfabrics.org/pipermail/ewg>
+List-Post: <mailto:ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+List-Help: <mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=help>
+List-Subscribe: <http://lists.openfabrics.org/cgi-bin/mailman/listinfo/ewg>,
+	<mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=subscribe>
+Sender: ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
+Errors-To: ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, EWG <Openfabrics-ewg-0P3JtQMG0aQdnm+yROfE0A@public.gmane.org>
+Cc: kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Sasha,
+It appears that even on error ibdiagpath is returning zero but it
+should return non-zero for error cases. Scripts that call ibdiagpath
+can use the return code to take appropriate action.
 
-On Thu, Oct 15, 2009 at 6:30 PM, Hal Rosenstock <hnrose-Wuw85uim5zDR7s880joybQ@public.gmane.org> wr=
-ote:
->
-> Heap memory consumption by the unicast and multicast routing tables c=
-an be
-> reduced.
->
-> This patch is analagous to the previous patch doing this for the unic=
-ast
-> routing tables (LFTs).
->
-> Using valgrind --tool=3Dmassif (for heap profiling), there are couple=
- of place
-> ->38.75% (11,206,656B) 0x43267E: osm_switch_new (osm_switch.c:134)
-> ->12.89% (3,728,256B) 0x40F8C9: osm_mcast_tbl_init (osm_mcast_tbl.c:9=
-6)
->
-> osm_mcast_tbl_init (osm_mcast_tbl.c:96):
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0p_tbl->p_mask_tbl =3D malloc(p_tbl->num_en=
-tries *
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 (IB_MCAST_POSITION_MA=
-X +
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A01) * IB_MCAST_M=
-ASK_SIZE / 8);
->
-> num_entries above is set based on the switch's MulticastFDBCap
-> (indicated in it's SM class SwitchInfo attribute).
->
-> MFTs are only be increased in size and are never reduced in size. If =
-a realloc
-> for MFT fails, it is treated as a fatal error and OpenSM is exited.
->
-> Signed-off-by: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-> ---
-> Changes since v3:
-> Renamed mft_size to mft_depth and added description in osm_mcast_tbl.=
-h
-> Removed vestigial realloc mask tbl call in osm_dump.c
-> Simplified max_mlid determination in alloc_mfts
-> Added return value to osm_mcast_tbl_realloc_mask_tbl
-> Added return value to alloc_mfts
-> Handle alloc_mfts failure in osm_mcast_mgr_process/process_mgroups
-> Renamed osm_mcast_tbl_realloc_mask_tbl to osm_mcast_tbl_realloc
-> In osm_mcast_tbl_realloc, simplified mft_depth calculation
->
-> Changes since v2:
-> MFT allocation during routing preparation rather than on table access
->
-> Changes since v1:
-> MFT allocation based on actual MLID requests
->
+Here is an example.
 
-Please ignore this. I'll resubmit once we get past the mcast tbl
-change for max LID host order.
+==================================================
+service0: # ibdiagpath -i 1 -d 1,12
+Loading IBDIAGPATH from: /usr/lib64/ibdiagpath1.2
+-W- Topology file is not specified.
+    Reports regarding cluster links will use direct routes.
+Loading IBDM from: /usr/lib64/ibdm1.2
+-I- Using port 1 as the local port
+    (since that is the output port based on the provided direct route).
 
--- Hal
+-I---------------------------------------------------
+-I- Traversing the path from local to destination
+-I---------------------------------------------------
+-I- From: lid=0x000c guid=0x0002c90200291949 dev=25218 service0/P1
+-I- To:   lid=0x001d guid=0x0800690000005264 dev=48438 Port=28
 
-<snip...>
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+can't read "PATH(1)": no such element in array
+
+service0:/tmp/src # echo $?
+0
+service0:/tmp/src #
+================================================
+
+Assuming this is a bug, I don't have a fix, but I'm hoping someone who
+is more familiar with the ibdiagpath code will provide a fix.
+
+Thanks,
+Edward
