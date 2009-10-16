@@ -1,55 +1,44 @@
-From: Edward Mascarenhas <eddiem-sJ/iWh9BUns@public.gmane.org>
-Subject: ibdiagpath return code incorrect
-Date: Fri, 16 Oct 2009 16:15:54 -0700
-Message-ID: <4AD8FEAA.101@sgi.com>
+From: "Davis, Arlin R" <arlin.r.davis-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH 03/11] dat: reduce debug message level when parsing for
+ location of dat.conf
+Date: Fri, 16 Oct 2009 16:48:46 -0700
+Message-ID: <E3280858FA94444CA49D2BA02341C9835ECA1CB8@orsmsx506.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
-List-Unsubscribe: <http://lists.openfabrics.org/cgi-bin/mailman/listinfo/ewg>,
-	<mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.openfabrics.org/pipermail/ewg>
-List-Post: <mailto:ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
-List-Help: <mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=help>
-List-Subscribe: <http://lists.openfabrics.org/cgi-bin/mailman/listinfo/ewg>,
-	<mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=subscribe>
-Sender: ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
-Errors-To: ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, EWG <Openfabrics-ewg-0P3JtQMG0aQdnm+yROfE0A@public.gmane.org>
-Cc: kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Language: en-US
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "ofw-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org" <ofw-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+Cc: "Smith, Stan" <stan.smith-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-It appears that even on error ibdiagpath is returning zero but it
-should return non-zero for error cases. Scripts that call ibdiagpath
-can use the return code to take appropriate action.
 
-Here is an example.
+Don't output failover to default /etc/dat.conf from
+sysconfdir at ERROR level. Reduce to DAT_OS_DBG_TYPE_SR.
 
-==================================================
-service0: # ibdiagpath -i 1 -d 1,12
-Loading IBDIAGPATH from: /usr/lib64/ibdiagpath1.2
--W- Topology file is not specified.
-    Reports regarding cluster links will use direct routes.
-Loading IBDM from: /usr/lib64/ibdm1.2
--I- Using port 1 as the local port
-    (since that is the output port based on the provided direct route).
+Signed-off-by: Arlin Davis <arlin.r.davis-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+---
+ dat/udat/udat_sr_parser.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
--I---------------------------------------------------
--I- Traversing the path from local to destination
--I---------------------------------------------------
--I- From: lid=0x000c guid=0x0002c90200291949 dev=25218 service0/P1
--I- To:   lid=0x001d guid=0x0800690000005264 dev=48438 Port=28
+diff --git a/dat/udat/udat_sr_parser.c b/dat/udat/udat_sr_parser.c
+index 126fb9f..3b5caef 100644
+--- a/dat/udat/udat_sr_parser.c
++++ b/dat/udat/udat_sr_parser.c
+@@ -239,7 +239,7 @@ DAT_RETURN dat_sr_load(void)
+ 		sr_file = dat_os_fopen(sr_path);
+ 		if (sr_file == NULL) {
+ #ifdef DAT_CONF
+-			dat_os_dbg_print(DAT_OS_DBG_TYPE_ERROR,
++			dat_os_dbg_print(DAT_OS_DBG_TYPE_SR,
+ 					 "DAT Registry: sysconfdir, "
+ 					 "bad filename - %s, retry default at %s\n",
+ 					 sr_path, DAT_SR_CONF_DEFAULT);
+-- 
+1.5.2.5
 
-
-can't read "PATH(1)": no such element in array
-
-service0:/tmp/src # echo $?
-0
-service0:/tmp/src #
-================================================
-
-Assuming this is a bug, I don't have a fix, but I'm hoping someone who
-is more familiar with the ibdiagpath code will provide a fix.
-
-Thanks,
-Edward
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
