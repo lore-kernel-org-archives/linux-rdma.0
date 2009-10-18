@@ -1,62 +1,50 @@
-From: "Davis, Arlin R" <arlin.r.davis-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [[PATCH 11/11] ucm: using UD type QP's, ucm reports wrong reject
- event when user rejects AH resolution request.
-Date: Fri, 16 Oct 2009 16:52:56 -0700
-Message-ID: <E3280858FA94444CA49D2BA02341C9835ECA1CCF@orsmsx506.amr.corp.intel.com>
+From: Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH] opensm/osm_ucast_cache.c: Cosmetic change to log message
+ for consistency
+Date: Sun, 18 Oct 2009 09:29:10 +0200
+Message-ID: <4ADAC3C6.7050905@dev.mellanox.co.il>
+References: <20091015133639.GB8041@comcast.net> <20091015192647.GF20210@me> <4AD79CBC.10606@dev.mellanox.co.il> <20091016120154.GO20210@me>
+Reply-To: kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <20091016120154.GO20210@me>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "ofw-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org" <ofw-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
-Cc: "Smith, Stan" <stan.smith-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+Cc: Hal Rosenstock <hnrose-Wuw85uim5zDR7s880joybQ@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+Sasha Khapyorsky wrote:
+> On 00:05 Fri 16 Oct     , Yevgeny Kliteynik wrote:
+>> If I remember it correctly, there's an INFO message
+>> in the ucast mgr saying something like "switches
+>> configured for unicast" or "<routing engine name>
+>> tables configured", or something like that (I don't
+>> have access to the code right now).
+> 
+> Yes, and there a needs of INFO level is also questionable IMHO.
+> 
+>> So I wanted to see one more line
+> 
+> There are more than one:
+> 
+> $ grep OSM_LOG_INFO opensm/osm_ucast_cache.c | wc -l 
+> 19
 
-During rejects, both usr and ucm internal, the qp_type does not get initialized
-so the check for UD type QP messages fail on active side and the wrong
-event gets generated. Initialize saddr.ib information before sending reject
-back to active side.
+That's true, but only one of them may be printed
+each time the ucast manager runs.
 
-Signed-off-by: Arlin Davis <arlin.r.davis-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
----
- dapl/openib_ucm/cm.c |   10 +++++++++-
- 1 files changed, 9 insertions(+), 1 deletions(-)
+-- Yevgeny
 
-diff --git a/dapl/openib_ucm/cm.c b/dapl/openib_ucm/cm.c
-index 7ce3aab..cc480c4 100644
---- a/dapl/openib_ucm/cm.c
-+++ b/dapl/openib_ucm/cm.c
-@@ -304,6 +304,13 @@ static int ucm_reject(ib_hca_transport_t *tp, ib_cm_msg_t *msg)
- 	smsg.sqpn = msg->dqpn;
- 
- 	dapl_os_memcpy(&smsg.daddr, &msg->saddr, sizeof(union dcm_addr));
-+	
-+	/* no dst_addr IB info in REQ, init lid, gid, get type from saddr */
-+	smsg.saddr.ib.lid = tp->addr.ib.lid; 
-+	smsg.saddr.ib.qp_type = msg->saddr.ib.qp_type;
-+	dapl_os_memcpy(&smsg.saddr.ib.gid[0],
-+		       &tp->addr.ib.gid, 16); 
-+
- 	dapl_os_memcpy(&smsg.saddr, &msg->daddr, sizeof(union dcm_addr));
- 
- 	dapl_dbg_log(DAPL_DBG_TYPE_CM, 
-@@ -1736,10 +1743,11 @@ dapls_ib_reject_connection(IN dp_ib_cm_handle_t cm,
-         if (psize > DCM_MAX_PDATA_SIZE)
-                 return DAT_LENGTH_ERROR;
- 
--	/* cr_thread will destroy CR, update saddr lid, gid info */
-+	/* cr_thread will destroy CR, update saddr lid, gid, qp_type info */
- 	dapl_os_lock(&cm->lock);
- 	cm->state = DCM_REJECTED;
- 	cm->msg.saddr.ib.lid = cm->hca->ib_trans.addr.ib.lid; 
-+	cm->msg.saddr.ib.qp_type = cm->msg.daddr.ib.qp_type;
- 	dapl_os_memcpy(&cm->msg.saddr.ib.gid[0],
- 		       &cm->hca->ib_trans.addr.ib.gid, 16); 
- 	cm->msg.op = htons(DCM_REJ_USER);
--- 
-1.5.2.5
+>> that says that
+>> cache is not applicable.
+> 
+> We don't need an extra lines, one line instead (as I did in the posted
+> patch) is enough.
+> 
+> Sasha
+> 
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
