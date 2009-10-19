@@ -1,60 +1,105 @@
-From: "Sean Hefty" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: Re: Possible process deadlock in RMPP flow
-Date: Mon, 19 Oct 2009 13:30:47 -0700
-Message-ID: <BFC792E8570C48B8981C34F913243887@amr.corp.intel.com>
-References: <20090923150454.GA26150@mtls03>	<7A32EEE20DF5432CADB60B8F8B1E0093@amr.corp.intel.com>	<20090923172532.GA32223@mtls03>	<4ABB13F3.1060702@Voltaire.com>
-	<20090924073601.GA28876@mtls03> <4AC848E9.6040909@voltaire.com>
-	<4AC8BE74.3050200@mellanox.co.il>
+From: "David J. Wilder" <dwilder-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH] link-local address fix for rdma_resolve_addr
+Date: Mon, 19 Oct 2009 15:47:09 -0700
+Message-ID: <1255992430.12075.7.camel@wilder.ibm.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-Return-path: <ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
-In-Reply-To: <4AC8BE74.3050200-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
-List-Unsubscribe: <http://lists.openfabrics.org/cgi-bin/mailman/listinfo/ewg>,
-	<mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.openfabrics.org/pipermail/ewg>
-List-Post: <mailto:ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
-List-Help: <mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=help>
-List-Subscribe: <http://lists.openfabrics.org/cgi-bin/mailman/listinfo/ewg>,
-	<mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=subscribe>
-Sender: ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
-Errors-To: ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
-To: tziporet-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org, Or Gerlitz <ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Cc: Linux RDMA list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, pradeep-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org, ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
->>> Thanks Or. This one is already in OFED 1.4.2 but apparently this is a
->>> different problem. Once I have information whether the patch Roland
->>> posted fixed it I will update the list.
->> Eli, did you find a commit that fixes the problem you reported on?
->>
->> Or.
->>
->>
->Not yet :-(
+Sean, Roland
 
-I can't find anything off in the code for this.  It's odd, since
-unregister_mad_agent() does:
+Here is the updated patch that Jason and I discussed last week.
 
-        flush_workqueue(port_priv->wq);
-        ib_cancel_rmpp_recvs(mad_agent_priv);
+rdma_resolve_addr() returns an error when attempting to resolve ipv6
+link-local address.  This patch fixes the handling of link-local address.
 
-and ib_cancel_rmpp_recvs() does:
+The patch was tested using rping run as such:
 
-        spin_lock_irqsave(&agent->lock, flags);
-        list_for_each_entry(rmpp_recv, &agent->rmpp_list, list) {
-                cancel_delayed_work(&rmpp_recv->timeout_work);
-                cancel_delayed_work(&rmpp_recv->cleanup_work);
-        }
-        spin_unlock_irqrestore(&agent->lock, flags);
+Link-local with scope:
+# /usr/bin/rping -c -a <remote-system-link-local>%ib0
 
-        flush_workqueue(agent->qp_info->port_priv->wq);
+Link-local w/out scope: (expect failure)
+# /usr/bin/rping -c -a <remote-system-link-local>
+rdma_resolve_addr error -1
 
-which basically just flushes the same work queue.
+Own interface link local:
+# /usr/bin/rping -c -a <remote-system-link-local>%ib0
 
-I haven't been able to reproduce the problem, but I'm running the latest kernel
-- not sure that matters in this case.  Does ibnetdiscover just hang forever at
-the end of the test when this occurs?  Is there any more information available?
+Other ipv6 address:
+# /usr/bin/rping -c -a 2001:db8:1234::2
 
-- Sean 
+(server side started with rping -s -P -v -a ::0)
+
+Tested against ofed build OFED-1.5-20091019-0811 and kernel 2.6.30.
+
+Signed-off-by: David Wilder <dwilder-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>
+
+------------------------------------------------------
+ drivers/infiniband/core/addr.c |   25 ++++++++++++++++++++++---
+ 1 files changed, 22 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/infiniband/core/addr.c b/drivers/infiniband/core/addr.c
+index bd07803..3442256 100644
+--- a/drivers/infiniband/core/addr.c
++++ b/drivers/infiniband/core/addr.c
+@@ -278,6 +278,21 @@ static int addr6_resolve_remote(struct sockaddr_in6 *src_in,
+ 	fl.nl_u.ip6_u.daddr = dst_in->sin6_addr;
+ 	fl.nl_u.ip6_u.saddr = src_in->sin6_addr;
+ 
++	if (ipv6_addr_type(&src_in->sin6_addr) & IPV6_ADDR_LINKLOCAL) {
++		if (!src_in->sin6_scope_id)
++			return -EINVAL;
++		fl.oif = src_in->sin6_scope_id;
++	}
++	if (ipv6_addr_type(&dst_in->sin6_addr) & IPV6_ADDR_LINKLOCAL) {
++		if (dst_in->sin6_scope_id) {
++			if (fl.oif && fl.oif != dst_in->sin6_scope_id)
++				return -EINVAL;
++			fl.oif = dst_in->sin6_scope_id;
++		}
++		if (!fl.oif)
++			return -EINVAL;
++	}
++
+ 	dst = ip6_route_output(&init_net, NULL, &fl);
+ 	if (!dst)
+ 		return ret;
+@@ -390,14 +405,16 @@ static int addr_resolve_local(struct sockaddr *src_in,
+ 	case AF_INET6:
+ 	{
+ 		struct in6_addr *a;
++		int found = 0;
+ 
+ 		for_each_netdev(&init_net, dev)
+ 			if (ipv6_chk_addr(&init_net,
+ 					  &((struct sockaddr_in6 *) dst_in)->sin6_addr,
+-					  dev, 1))
++					  dev, 1)) {
++				found = 1;
+ 				break;
+-
+-		if (!dev)
++			}
++		if (!found)
+ 			return -EADDRNOTAVAIL;
+ 
+ 		a = &((struct sockaddr_in6 *) src_in)->sin6_addr;
+@@ -406,6 +423,8 @@ static int addr_resolve_local(struct sockaddr *src_in,
+ 			src_in->sa_family = dst_in->sa_family;
+ 			((struct sockaddr_in6 *) src_in)->sin6_addr =
+ 				((struct sockaddr_in6 *) dst_in)->sin6_addr;
++			((struct sockaddr_in6 *) src_in)->sin6_scope_id =
++				((struct sockaddr_in6 *) dst_in)->sin6_scope_id;
+ 			ret = rdma_copy_addr(addr, dev, dev->dev_addr);
+ 		} else if (ipv6_addr_loopback(a)) {
+ 			ret = rdma_translate_ip(dst_in, addr);
+
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
