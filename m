@@ -1,7 +1,7 @@
 From: Hal Rosenstock <hnrose-Wuw85uim5zDR7s880joybQ@public.gmane.org>
-Subject: [PATCH] opensm/osm_vendor_api.h: Fix some commentary typos
-Date: Mon, 19 Oct 2009 09:02:11 -0400
-Message-ID: <20091019130211.GB18483@comcast.net>
+Subject: [PATCH] opensm: Add some additional HP vendor IDs/OUIs
+Date: Mon, 19 Oct 2009 10:21:21 -0400
+Message-ID: <20091019142121.GA19177@comcast.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
@@ -14,42 +14,32 @@ List-Id: linux-rdma@vger.kernel.org
 
 Signed-off-by: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 ---
-diff --git a/opensm/include/vendor/osm_vendor_api.h b/opensm/include/vendor/osm_vendor_api.h
-index 70eb6cc..5bf2abc 100644
---- a/opensm/include/vendor/osm_vendor_api.h
-+++ b/opensm/include/vendor/osm_vendor_api.h
-@@ -172,9 +172,9 @@ void osm_vendor_delete(IN osm_vendor_t ** const pp_vend);
- * SEE ALSO
- *********/
+diff --git a/opensm/include/opensm/osm_base.h b/opensm/include/opensm/osm_base.h
+index 06223ce..34646cd 100644
+--- a/opensm/include/opensm/osm_base.h
++++ b/opensm/include/opensm/osm_base.h
+@@ -906,6 +906,8 @@ typedef enum _osm_sm_signal {
+ #define OSM_VENDOR_ID_HP2           0x0018FE
+ #define OSM_VENDOR_ID_DELL          0x00188B
+ #define OSM_VENDOR_ID_SUPERMICRO    0x003048
++#define OSM_VENDOR_ID_HP3           0x0019BB
++#define OSM_VENDOR_ID_HP4           0x00237D
  
--/****f* OpenSM Vendor API/osm_vendor_get_ports
-+/****f* OpenSM Vendor API/osm_vendor_get_all_port_attr
- * NAME
--*  osm_vendor_get_ports
-+*  osm_vendor_get_all_port_attr
- *
- * DESCRIPTION
- *  Returns an array of available port attribute structures.
-@@ -197,7 +197,7 @@ osm_vendor_get_all_port_attr(IN osm_vendor_t * const p_vend,
- *
- *  p_num_ports
- *     [in/out] Pointer to a variable to hold the total number of ports
--*     available on the local machine..
-+*     available on the local machine.
- *
- * RETURN VALUES
- *  IB_SUCCESS on success.
-@@ -219,8 +219,8 @@ osm_vendor_get_all_port_attr(IN osm_vendor_t * const p_vend,
- * SYNOPSIS
- */
- ib_api_status_t
--osm_vendor_init(IN osm_vendor_t * const p_vend,
--		IN osm_log_t * const p_log, IN const uint32_t timeout);
-+osm_vendor_init(IN osm_vendor_t * const p_vend, IN osm_log_t * const p_log,
-+		IN const uint32_t timeout);
- /*
- * PARAMETERS
- *  p_vend
+ /**********/
+ 
+diff --git a/opensm/opensm/osm_helper.c b/opensm/opensm/osm_helper.c
+index 40dea10..4f520ba 100644
+--- a/opensm/opensm/osm_helper.c
++++ b/opensm/opensm/osm_helper.c
+@@ -2210,6 +2210,8 @@ const char *osm_get_manufacturer_str(IN uint64_t guid_ho)
+ 		return (panta_str);
+ 	case OSM_VENDOR_ID_HP:
+ 	case OSM_VENDOR_ID_HP2:
++	case OSM_VENDOR_ID_HP3:
++	case OSM_VENDOR_ID_HP4:
+ 		return (hp_str);
+ 	case OSM_VENDOR_ID_RIOWORKS:
+ 		return (rioworks_str);
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
