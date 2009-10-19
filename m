@@ -1,84 +1,84 @@
-From: Dhabaleswar Panda <panda-wPOY3OvGL++pAIv7I8X2sze48wsgrGvP@public.gmane.org>
-Subject: Re: 1.5 rc 1 install/build error
-Date: Sun, 18 Oct 2009 12:04:42 -0400 (EDT)
-Message-ID: <Pine.GSO.4.40.0910181202260.6125-100000@xi.cse.ohio-state.edu>
-References: <4ACE6F59.90502@ncsa.uiuc.edu>
+From: Brian Cain <brian.cain-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: mlx4_en - Inconsistent TCP throughput
+Date: Sun, 18 Oct 2009 22:48:27 -0500
+Message-ID: <17e3a31c0910182048y79df833ek100ef8955eb30d85@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4ACE6F59.90502-R3uSp7q5utt4piUD7e9S/g@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jeremy Enos <jenos-R3uSp7q5utt4piUD7e9S/g@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, pasha-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org, Dhabaleswar Panda <panda-wPOY3OvGL++pAIv7I8X2sze48wsgrGvP@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Pasha from Mellanox has uploaded a new mvapich rpm build to the open
-fabrics website - http://www.openfabrics.org/~pasha/ofed_1_5/mvapich/ The
-new build should resolve the rpm build problems on Fedora 10 OS you are
-seeing. Let us know if the problem persists with the latest build.
+I'm trying to aggregate 10GbE ports for a realtime data acquisition
+application.  I need to be able to get consistently high throughput to
+satisfy my application's demands.
 
-Thanks,
+I have a dual-X58 host with a MT26448 on each IOH.  I can acquire >
+39Gb/s in aggregate across four TCP streams (one per port).  This
+throughput remains consistent across many consecutive netperf
+TCP_STREAM trials, but trying the same experiment hours or days later,
+I'll find that the performance suffers (< 30Gb/s).
 
-DK
+irq_balancer is disabled and all of the IRQs' affinity masks for one
+card are set to the same core, the other card's IRQs are set to a core
+on the other socket.  I'm using 9000 byte MTUs.  The majority of the
+system settings are at their defaults.  I'm keeping the task affinity
+among the netserver processes static as well.  I don't see any error
+messages from mlx* in dmesg.
 
+Can anyone suggest some parameters that might be able to help me find
+consistently high performance?
 
-On Thu, 8 Oct 2009, Jeremy Enos wrote:
+~~~~
+$  sudo ethtool -i eth16
+driver: mlx4_en (MT_0BD0110010)
+version: 1.4.2 (Sep 24 2009)
+firmware-version: 2.6.0
+bus-info: 0000:28:00.0
 
-> This is the HPC build option:
->
-> -------------------------------------------------------<snip>
-> /var/tmp/mvapich-1.1.0-3390-root/usr/mpi/gcc/mvapich-1.1.0/bin/mpicc -o
-> cpi cpi.o -lm
-> /var/tmp/mvapich-1.1.0-3390-root/usr/mpi/gcc/mvapich-1.1.0/bin/mpif77
-> -fPIC -L/usr/lib64 -Wall -c pi3.f
-> /var/tmp/mvapich-1.1.0-3390-root/usr/mpi/gcc/mvapich-1.1.0/bin/mpif77 -o
-> pi3 pi3.o
-> /var/tmp/mvapich-1.1.0-3390-root/usr/mpi/gcc/mvapich-1.1.0/bin/mpif90
-> -Wall -c pi3f90.f90
-> /var/tmp/mvapich-1.1.0-3390-root/usr/mpi/gcc/mvapich-1.1.0/bin/mpif90
-> -o pi3f90 pi3f90.o
-> rm -f *.o *~ PI* cpi  pi3 simpleio hello++ pi3f90 cpilog
-> rm -rf SunWS_cache ii_files pi3f90.f pi3p cpip *.ti *.ii
-> installed MPICH in
-> /var/tmp/mvapich-1.1.0-3390-root/usr/mpi/gcc/mvapich-1.1.0
-> /var/tmp/mvapich-1.1.0-3390-root/usr/mpi/gcc/mvapich-1.1.0/sbin/mpiuninstall
-> may be used to remove the installation.
-> + rm -f
-> /var/tmp/mvapich-1.1.0-3390-root//usr/mpi/gcc/mvapich-1.1.0/share/examples/mpirun
-> + cat
-> + cat
-> + /usr/lib/rpm/redhat/brp-compress
-> + /usr/lib/rpm/redhat/brp-strip /usr/bin/strip
-> + /usr/lib/rpm/redhat/brp-strip-static-archive /usr/bin/strip
-> + /usr/lib/rpm/redhat/brp-strip-comment-note /usr/bin/strip /usr/bin/objdump
-> + /usr/lib/rpm/brp-python-bytecompile
-> + /usr/lib/rpm/redhat/brp-python-hardlink
-> + /usr/lib/rpm/redhat/brp-java-repack-jars
-> Processing files: mvapich_gcc-1.1.0-3390
-> error: File not found:
-> /var/tmp/OFED_topdir/BUILDROOT/mvapich_gcc-1.1.0-3390.x86_64/usr/mpi/gcc/mvapich-1.1.0
->
->
-> RPM build errors:
->     File not found:
-> /var/tmp/OFED_topdir/BUILDROOT/mvapich_gcc-1.1.0-33902.6.27.35-170.2.94.fc10.x86_64
-> .x86_64/usr/mpi/gcc/mvapich-1.1.0
->
-> -------------------------------------------------------
->
-> OS: Fedora Core 10 x64, up to date as of today
-> Kernel:  2.6.27.35-170.2.94.fc10.x86_64
->
-> This seems like more of a packaging problem than a build one.
->
->     Jeremy
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+$  lsb_release -a
+LSB Version:
+core-2.0-noarch:core-3.2-noarch:core-2.0-x86_64:core-3.2-x86_64:desktop-3.2-amd64:desktop-3.2-noarch:graphics-2.0-amd64:graphics-2.0-noarch:graphics-3.2-amd64:graphics-3.2-noarch
+Distributor ID: SUSE LINUX
+Description:    openSUSE 11.1 (x86_64)
+Release:        11.1
+Codename:       n/a
 
+$  cat /proc/version
+Linux version 2.6.29.6-9-debug (root@z800-revo-0) (gcc version 4.3.2
+[gcc-4_3-branch revision 141291] (SUSE Linux) ) #1 SMP Tue Sep 15
+11:02:15 CDT 2009
+
+$ sudo grep . /sys/module/mlx4_en/parameters/*
+/sys/module/mlx4_en/parameters/inline_thold:104
+/sys/module/mlx4_en/parameters/ip_reasm:1
+/sys/module/mlx4_en/parameters/num_lro:32
+/sys/module/mlx4_en/parameters/pfcrx:0
+/sys/module/mlx4_en/parameters/pfctx:0
+/sys/module/mlx4_en/parameters/rss_mask:5
+/sys/module/mlx4_en/parameters/rss_xor:0
+
+$ sudo grep . /sys/module/mlx4_core/parameters/*
+/sys/module/mlx4_core/parameters/block_loopback:1
+/sys/module/mlx4_core/parameters/debug_level:0
+/sys/module/mlx4_core/parameters/enable_qos:N
+/sys/module/mlx4_core/parameters/internal_err_reset:1
+/sys/module/mlx4_core/parameters/log_mtts_per_seg:3
+/sys/module/mlx4_core/parameters/log_num_cq:0
+/sys/module/mlx4_core/parameters/log_num_mac:2
+/sys/module/mlx4_core/parameters/log_num_mcg:0
+/sys/module/mlx4_core/parameters/log_num_mpt:0
+/sys/module/mlx4_core/parameters/log_num_mtt:0
+/sys/module/mlx4_core/parameters/log_num_qp:0
+/sys/module/mlx4_core/parameters/log_num_srq:0
+/sys/module/mlx4_core/parameters/log_num_vlan:0
+/sys/module/mlx4_core/parameters/log_rdmarc_per_qp:0
+/sys/module/mlx4_core/parameters/msi_x:1
+/sys/module/mlx4_core/parameters/set_4k_mtu:0
+/sys/module/mlx4_core/parameters/use_prio:N
+
+-- 
+-Brian
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
