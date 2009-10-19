@@ -1,102 +1,119 @@
-From: Yevgeny Petrilin <yevgenyp-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
-Subject: Re: mlx4_en - Inconsistent TCP throughput
-Date: Mon, 19 Oct 2009 14:50:36 +0200
-Message-ID: <4ADC609C.3070903@mellanox.co.il>
-References: <17e3a31c0910182048y79df833ek100ef8955eb30d85@mail.gmail.com>
+From: Hal Rosenstock <hnrose-Wuw85uim5zDR7s880joybQ@public.gmane.org>
+Subject: [PATCH] opensm/osm_sm_state_mgr.c: Cosmetic formatting changes
+Date: Mon, 19 Oct 2009 09:03:51 -0400
+Message-ID: <20091019130351.GC18483@comcast.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <17e3a31c0910182048y79df833ek100ef8955eb30d85-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Brian Cain <brian.cain-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+To: sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hello Brian,
 
-I am the developer of mlx4_en driver.
-I will be happy to help you in this issue, it is not rdma related, so let's take it off line.
-
-Yevgeny
-
-Brian Cain wrote:
-> I'm trying to aggregate 10GbE ports for a realtime data acquisition
-> application.  I need to be able to get consistently high throughput to
-> satisfy my application's demands.
-> 
-> I have a dual-X58 host with a MT26448 on each IOH.  I can acquire >
-> 39Gb/s in aggregate across four TCP streams (one per port).  This
-> throughput remains consistent across many consecutive netperf
-> TCP_STREAM trials, but trying the same experiment hours or days later,
-> I'll find that the performance suffers (< 30Gb/s).
-> 
-> irq_balancer is disabled and all of the IRQs' affinity masks for one
-> card are set to the same core, the other card's IRQs are set to a core
-> on the other socket.  I'm using 9000 byte MTUs.  The majority of the
-> system settings are at their defaults.  I'm keeping the task affinity
-> among the netserver processes static as well.  I don't see any error
-> messages from mlx* in dmesg.
-> 
-> Can anyone suggest some parameters that might be able to help me find
-> consistently high performance?
-> 
-> ~~~~
-> $  sudo ethtool -i eth16
-> driver: mlx4_en (MT_0BD0110010)
-> version: 1.4.2 (Sep 24 2009)
-> firmware-version: 2.6.0
-> bus-info: 0000:28:00.0
-> 
-> $  lsb_release -a
-> LSB Version:
-> core-2.0-noarch:core-3.2-noarch:core-2.0-x86_64:core-3.2-x86_64:desktop-3.2-amd64:desktop-3.2-noarch:graphics-2.0-amd64:graphics-2.0-noarch:graphics-3.2-amd64:graphics-3.2-noarch
-> Distributor ID: SUSE LINUX
-> Description:    openSUSE 11.1 (x86_64)
-> Release:        11.1
-> Codename:       n/a
-> 
-> $  cat /proc/version
-> Linux version 2.6.29.6-9-debug (root@z800-revo-0) (gcc version 4.3.2
-> [gcc-4_3-branch revision 141291] (SUSE Linux) ) #1 SMP Tue Sep 15
-> 11:02:15 CDT 2009
-> 
-> $ sudo grep . /sys/module/mlx4_en/parameters/*
-> /sys/module/mlx4_en/parameters/inline_thold:104
-> /sys/module/mlx4_en/parameters/ip_reasm:1
-> /sys/module/mlx4_en/parameters/num_lro:32
-> /sys/module/mlx4_en/parameters/pfcrx:0
-> /sys/module/mlx4_en/parameters/pfctx:0
-> /sys/module/mlx4_en/parameters/rss_mask:5
-> /sys/module/mlx4_en/parameters/rss_xor:0
-> 
-> $ sudo grep . /sys/module/mlx4_core/parameters/*
-> /sys/module/mlx4_core/parameters/block_loopback:1
-> /sys/module/mlx4_core/parameters/debug_level:0
-> /sys/module/mlx4_core/parameters/enable_qos:N
-> /sys/module/mlx4_core/parameters/internal_err_reset:1
-> /sys/module/mlx4_core/parameters/log_mtts_per_seg:3
-> /sys/module/mlx4_core/parameters/log_num_cq:0
-> /sys/module/mlx4_core/parameters/log_num_mac:2
-> /sys/module/mlx4_core/parameters/log_num_mcg:0
-> /sys/module/mlx4_core/parameters/log_num_mpt:0
-> /sys/module/mlx4_core/parameters/log_num_mtt:0
-> /sys/module/mlx4_core/parameters/log_num_qp:0
-> /sys/module/mlx4_core/parameters/log_num_srq:0
-> /sys/module/mlx4_core/parameters/log_num_vlan:0
-> /sys/module/mlx4_core/parameters/log_rdmarc_per_qp:0
-> /sys/module/mlx4_core/parameters/msi_x:1
-> /sys/module/mlx4_core/parameters/set_4k_mtu:0
-> /sys/module/mlx4_core/parameters/use_prio:N
-> 
-> --
-> -Brian
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-
+Signed-off-by: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+---
+diff --git a/opensm/opensm/osm_sm_state_mgr.c b/opensm/opensm/osm_sm_state_mgr.c
+index d06e6aa..f046447 100644
+--- a/opensm/opensm/osm_sm_state_mgr.c
++++ b/opensm/opensm/osm_sm_state_mgr.c
+@@ -86,15 +86,17 @@ static void sm_state_mgr_send_master_sm_info_req(osm_sm_t * sm)
+ 	memset(&context, 0, sizeof(context));
+ 	if (sm->p_subn->sm_state == IB_SMINFO_STATE_STANDBY) {
+ 		/*
+-		 * We are in STANDBY state - this means we need to poll on the master
+-		 * SM (according to master_guid)
+-		 * Send a query of SubnGet(SMInfo) to the subn master_sm_base_lid object.
++		 * We are in STANDBY state - this means we need to poll the
++		 * master SM (according to master_guid).
++		 * Send a query of SubnGet(SMInfo) to the subn
++		 * master_sm_base_lid object.
+ 		 */
+ 		p_port = osm_get_port_by_guid(sm->p_subn, sm->master_sm_guid);
+ 	} else {
+ 		/*
+-		 * We are not in STANDBY - this means we are in MASTER state - so we need
+-		 * to poll on the SM that is saved in p_polling_sm under sm.
++		 * We are not in STANDBY - this means we are in MASTER state -
++		 * so we need to poll the SM that is saved in p_polling_sm
++		 * under sm.
+ 		 * Send a query of SubnGet(SMInfo) to that SM.
+ 		 */
+ 		p_port = sm->p_polling_sm->p_port;
+@@ -338,8 +340,10 @@ ib_api_status_t osm_sm_state_mgr_process(osm_sm_t * sm,
+ 			 */
+ 			/* Turn on the first_time_master_sweep flag */
+ 			sm->p_subn->first_time_master_sweep = TRUE;
+-			/* Turn on the force_heavy_sweep - we want a
+-			 * heavy sweep to occur on the first sweep of this SM. */
++			/*
++			 * Turn on the force_heavy_sweep - we want a
++			 * heavy sweep to occur on the first sweep of this SM.
++			 */
+ 			sm->p_subn->force_heavy_sweep = TRUE;
+ 
+ 			sm->p_subn->sm_state = IB_SMINFO_STATE_MASTER;
+@@ -387,24 +391,28 @@ ib_api_status_t osm_sm_state_mgr_process(osm_sm_t * sm,
+ 		switch (signal) {
+ 		case OSM_SM_SIGNAL_POLLING_TIMEOUT:
+ 			/*
+-			 * we received a polling timeout - this means that we waited for
+-			 * a remote master sm to send us a handover, but didn't get it, and
+-			 * didn't get a response from that remote sm.
+-			 * We want to force a heavy sweep - hopefully this occurred because
+-			 * the remote sm died, and we'll find this out and configure the
+-			 * subnet after a heavy sweep.
+-			 * We also want to clear the p_polling_sm object - since we are
+-			 * done polling on that remote sm - we are sweeping again.
++			 * We received a polling timeout - this means that we
++			 * waited for a remote master sm to send us a handover,
++			 * but didn't get it, and didn't get a response from
++			 * that remote sm.
++			 * We want to force a heavy sweep - hopefully this
++			 * occurred because the remote sm died, and we'll find
++			 * this out and configure the subnet after a heavy sweep.
++			 * We also want to clear the p_polling_sm object - since
++			 * we are done polling on that remote sm - we are
++			 * sweeping again.
+ 			 */
+ 		case OSM_SM_SIGNAL_HANDOVER:
+ 			/*
+-			 * If we received a handover in a master state - then we want to
+-			 * force a heavy sweep. This means that either we are in a sweep
+-			 * currently - in this case - no change, or we are in idle state -
+-			 * since we recognized a master SM before - so we want to make a
++			 * If we received a handover in a master state - then we
++			 * want to force a heavy sweep. This means that either
++			 * we are in a sweep currently - in this case - no
++			 * change, or we are in idle state - since we
++			 * recognized a master SM before - so we want to make a
+ 			 * heavy sweep and reconfigure the new subnet.
+-			 * We also want to clear the p_polling_sm object - since we are
+-			 * done polling on that remote sm - we got a handover from it.
++			 * We also want to clear the p_polling_sm object - since
++			 * we are done polling on that remote sm - we got a
++			 * handover from it.
+ 			 */
+ 			OSM_LOG(sm->p_log, OSM_LOG_VERBOSE,
+ 				"Forcing heavy sweep. "
+@@ -424,11 +432,11 @@ ib_api_status_t osm_sm_state_mgr_process(osm_sm_t * sm,
+ 			break;
+ 		case OSM_SM_SIGNAL_WAIT_FOR_HANDOVER:
+ 			/*
+-			 * We found a remote master SM, and we are waiting for it
+-			 * to handover the mastership to us. Need to start polling
+-			 * on that SM, to make sure it is alive, if it isn't - then
+-			 * we should move back to discovering, since something must
+-			 * have happened to it.
++			 * We found a remote master SM, and we are waiting for
++			 * it to handover the mastership to us. Need to start
++			 * polling that SM, to make sure it is alive, if it
++			 * isn't - then we should move back to discovering,
++			 * since something must have happened to it.
+ 			 */
+ 			sm_state_mgr_start_polling(sm);
+ 			break;
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
