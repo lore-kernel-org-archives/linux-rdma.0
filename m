@@ -1,68 +1,45 @@
-From: "Sean Hefty" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH v2] [RFC] rdma/cm: support option to allow manually setting IB path
-Date: Thu, 22 Oct 2009 10:52:13 -0700
-Message-ID: <1438C87E89284364A56E08A40DFE199E@amr.corp.intel.com>
-References: <F0EFC2D8E6A340D48497497670C5969C@amr.corp.intel.com> <A08104C1CF70400F8BEF492AD49C8491@amr.corp.intel.com> <20091020181458.GD14520@obsidianresearch.com> <46770152ACA04B6C8AA9497C45AC8FD0@amr.corp.intel.com> <20091020191404.GH14520@obsidianresearch.com> <9DFD8E65325F4EE990749EEBE4BC33CA@amr.corp.intel.com> <20091022004245.GV14520@obsidianresearch.com> <AE35305D45DB49F591A45DADD822209A@amr.corp.intel.com> <20091022013542.GX14520@obsidianresearch.com> <B7E97540810E4A2785FF1FC8CB96F453@amr.corp.intel.com> <20091022165414.GH26003@obsidianresearch.com>
+From: Hal Rosenstock <hnrose-Wuw85uim5zDR7s880joybQ@public.gmane.org>
+Subject: [PATCH] opensm: Add some additional HP vendor IDs/OUIs
+Date: Mon, 19 Oct 2009 09:00:28 -0400
+Message-ID: <20091019130028.GA18483@comcast.net>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20091022165414.GH26003-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: 'Jason Gunthorpe' <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org
+To: sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
->> +static int ucma_set_ib_path(struct ucma_context *ctx,
->> +			    struct ib_path_rec_data *path_data, size_t optlen)
->> +{
->> +	struct ib_sa_path_rec sa_path;
->> +	struct rdma_cm_event event;
->> +	int ret;
->> +
->> +	if (optlen != sizeof(*path_data))
->> +		return -EINVAL;
->> +
->> +	if (path_data->flags != IB_PATH_GMP | IB_PATH_PRIMARY |
->> +				IB_PATH_OUTBOUND | IB_PATH_INBOUND)
->> +		return -EINVAL;
->
->This should accept an array here, to aid easing in APM support:
 
-I agree - I thought about this after sending the patch.  This is more what I
-think is needed at this point:
-
-if ((optlen % sizeof(*path_data)) != 0) return -EINVAL;
-
-if (number of paths > 1)
-	return -ENOSYS;
-
-if (path_data->flags != (IB_PATH_GMP | IB_PATH_PRIMARY |
-                            IB_PATH_OUTBOUND | IB_PATH_INBOUND))
-
-	return -EINVAL;
-
->Could you do basic APM support right now, exactly with the same
->capability as ucm has?
-
-The rdma_cm is not coded to handle APM.  That should be a separate patch.
-
->
->> +enum {
->> +	IB_PATH_GMP	  = 1,
->> +	IB_PATH_PRIMARY   = (1<<1),
->> +	IB_PATH_ALTERNATE = (1<<2),
->> +	IB_PATH_OUTBOUND  = (1<<3),
->> +	IB_PATH_INBOUND   = (1<<4)
->> +};
->
->I like the PATH_PRIMARY/PATH_ALTERNATE idea,
->
->But I think IB_PATH_OUTBOUND_REV is still required.
-
-I'm not fond of the reverse idea.  Why do you think it's needed?
-
+Signed-off-by: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+---
+diff --git a/opensm/include/opensm/osm_base.h b/opensm/include/opensm/osm_base.h
+index 06223ce..34646cd 100644
+--- a/opensm/include/opensm/osm_base.h
++++ b/opensm/include/opensm/osm_base.h
+@@ -906,6 +906,8 @@ typedef enum _osm_sm_signal {
+ #define OSM_VENDOR_ID_HP2           0x0018FE
+ #define OSM_VENDOR_ID_DELL          0x00188B
+ #define OSM_VENDOR_ID_SUPERMICRO    0x003048
++#define OSM_VENDOR_ID_HP3           0x0019BB
++#define OSM_VENDOR_ID_HP4           0x00237D
+ 
+ /**********/
+ 
+diff --git a/opensm/opensm/osm_helper.c b/opensm/opensm/osm_helper.c
+index 40dea10..4f520ba 100644
+--- a/opensm/opensm/osm_helper.c
++++ b/opensm/opensm/osm_helper.c
+@@ -2210,6 +2210,8 @@ const char *osm_get_manufacturer_str(IN uint64_t guid_ho)
+ 		return (panta_str);
+ 	case OSM_VENDOR_ID_HP:
+ 	case OSM_VENDOR_ID_HP2:
++	case OSM_VENDOR_ID_HP3:
++	case OSM_VENDOR_ID_HP4:
+ 		return (hp_str);
+ 	case OSM_VENDOR_ID_RIOWORKS:
+ 		return (rioworks_str);
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
