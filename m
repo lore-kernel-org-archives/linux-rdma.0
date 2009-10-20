@@ -1,48 +1,199 @@
 From: Or Gerlitz <ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH 2/2] rdma/cm: allow user to specify IP to DGID mapping
-Date: Tue, 20 Oct 2009 12:22:23 +0200
-Message-ID: <4ADD8F5F.3010008@voltaire.com>
-References: <F0EFC2D8E6A340D48497497670C5969C@amr.corp.intel.com>		<F451C333D8CB45E4B4642C6BD1EDD3C3@amr.corp.intel.com>		<4ACAF913.3050909@voltaire.com>		<AA7E7C8FC2A04B9688CD69CEB7355DF8@amr.corp.intel.com>		<15ddcffd0910071523w4f229b14j905ad170ceb8c21f@mail.gmail.com>		<9F4DE6A2B4F644698E94F00C4FEEF30A@amr.corp.intel.com>		<0A383504E0E54C949DEF84405E3AE92F@amr.corp.intel.com>	<15ddcffd0910081633q20d98abfg41a9f4e781e486b1@mail.gmail.com> <859D79BFCA4741F393AABF76BBCA4F7B@amr.corp.intel.com>
+Subject: [PATCH] ib/iser: re-write SG handling for rdma logic
+Date: Tue, 20 Oct 2009 12:38:59 +0200 (IST)
+Message-ID: <Pine.LNX.4.64.0910201235220.1145@zuben.voltaire.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <859D79BFCA4741F393AABF76BBCA4F7B-Zpru7NauK7drdx17CPfAsdBPR1lH4CV8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: 'Or Gerlitz' <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Mike Christie <michaelc-hcNo3dDEHLuVc3sceRu5cw@public.gmane.org>, Alexander Nezhinsky <alexandern-smomgflXvOZWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Sean Hefty wrote:
-> From the perspective of IB, the RDMA CM simply defines a specific format to private data and service ID carried in the IB CM REQ.  As long as any use adheres to that protocol, interoperability won't be an issue.
-okay, I just wanted to make sure that the whole thing (ACM + modified 
-librdmacm + modifed rdma-cm) is applicable AND inter-operable for 
-AF_INET / PS_TCP applications.
-Looking on kernel cma.c format_hdr code it first branches on the address 
-family and next of the port space.
+After dma-mapping an SG list provided by the SCSI midlayer, iser has
+to make sure the mapped SG is "aligned for RDMA" in the sense that its
+possible to produce one mapping in the HCA IOMMU which represents the
+whole SG. Next, the mapped SG is formatted for registration with the HCA.
 
-Going with your proposed flow, I understand that an app call to 
-rdma_resolve_addr will be broken down to rdma_bind_addr, ACM resolution 
-of the destination GID and then rdma_set_ib_dest, so things should work 
-perfect for AF_INET / PS_TCP apps, correct?
+This patch re-writes the logic that does the above, to make it clearer
+and simpler. It also fixes a bug in the being aligned for rdma checks,
+where a "start" check wasn't done but rather only "end" check.
 
-The only missing piece here is the route lookup from user space for 
-applications not specifying a source address in their rdma_resolve_addr 
-invocation, do you still need help to implement that?
+Signed-off-by: Alexander Nezhinsky <alexandern-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Or Gerlitz <ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org>
 
-> Essentially, the RDMA CM interface would become capable of connecting to any IB application.  (I really haven't thought through the details yet, and the addition of RDMA_PS_IB shouldn't be part of the initial patch submission.)
+Index: linux-2.6.32-rc5/drivers/infiniband/ulp/iser/iser_memory.c
+===================================================================
+--- linux-2.6.32-rc5.orig/drivers/infiniband/ulp/iser/iser_memory.c
++++ linux-2.6.32-rc5/drivers/infiniband/ulp/iser/iser_memory.c
+@@ -209,6 +209,8 @@ void iser_finalize_rdma_unaligned_sg(str
+ 	mem_copy->copy_buf = NULL;
+ }
 
-fair-enough, I just wanted to make sure with you that AF_IB / PS_IB 
-aren't tightly coupled with the proposed change and you have clarified that.
++#define IS_4K_ALIGNED(addr)	((((unsigned long)addr) & ~MASK_4K) == 0)
++
+ /**
+  * iser_sg_to_page_vec - Translates scatterlist entries to physical addresses
+  * and returns the length of resulting physical address array (may be less than
+@@ -221,62 +223,52 @@ void iser_finalize_rdma_unaligned_sg(str
+  * where --few fragments of the same page-- are present in the SG as
+  * consecutive elements. Also, it handles one entry SG.
+  */
++
+ static int iser_sg_to_page_vec(struct iser_data_buf *data,
+ 			       struct iser_page_vec *page_vec,
+ 			       struct ib_device *ibdev)
+ {
+-	struct scatterlist *sgl = (struct scatterlist *)data->buf;
+-	struct scatterlist *sg;
+-	u64 first_addr, last_addr, page;
+-	int end_aligned;
+-	unsigned int cur_page = 0;
++	struct scatterlist *sg, *sgl = (struct scatterlist *)data->buf;
++	u64 start_addr, end_addr, page, chunk_start = 0;
+ 	unsigned long total_sz = 0;
+-	int i;
++	unsigned int dma_len;
++	int i, new_chunk, cur_page, last_ent = data->dma_nents - 1;
 
-> The ACM responds based on a configuration file.  The ib_acme utility can create that file using the active IP, pkey, port information of the system, but the current ACM implementation does not adjust to dynamic changes or detect misconfigurations or other made up words.
-I see. Does the new flow of librdmacm is going to be under new API, eg 
-rdma_resolve_addr/route_ext  or the same API optionally talking to ACM 
-through some IPC if the ACM daemon is running, or something else?
+ 	/* compute the offset of first element */
+ 	page_vec->offset = (u64) sgl[0].offset & ~MASK_4K;
 
-Or.
++	new_chunk = 1;
++	cur_page  = 0;
+ 	for_each_sg(sgl, sg, data->dma_nents, i) {
+-		unsigned int dma_len = ib_sg_dma_len(ibdev, sg);
+-
++		start_addr = ib_sg_dma_address(ibdev, sg);
++		if (new_chunk)
++			chunk_start = start_addr;
++		dma_len = ib_sg_dma_len(ibdev, sg);
++		end_addr = start_addr + dma_len;
+ 		total_sz += dma_len;
 
+-		first_addr = ib_sg_dma_address(ibdev, sg);
+-		last_addr  = first_addr + dma_len;
+-
+-		end_aligned   = !(last_addr  & ~MASK_4K);
+-
+-		/* continue to collect page fragments till aligned or SG ends */
+-		while (!end_aligned && (i + 1 < data->dma_nents)) {
+-			sg = sg_next(sg);
+-			i++;
+-			dma_len = ib_sg_dma_len(ibdev, sg);
+-			total_sz += dma_len;
+-			last_addr = ib_sg_dma_address(ibdev, sg) + dma_len;
+-			end_aligned = !(last_addr  & ~MASK_4K);
++		/* collect page fragments until aligned or end of SG list */
++		if (!IS_4K_ALIGNED(end_addr) && i < last_ent) {
++			new_chunk = 0;
++			continue;
+ 		}
++		new_chunk = 1;
 
+-		/* handle the 1st page in the 1st DMA element */
+-		if (cur_page == 0) {
+-			page = first_addr & MASK_4K;
+-			page_vec->pages[cur_page] = page;
+-			cur_page++;
++		/* address of the first page in the contiguous chunk;
++		   masking relevant for the very first SG entry,
++		   which might be unaligned */
++		page = chunk_start & MASK_4K;
++		do {
++			page_vec->pages[cur_page++] = page;
+ 			page += SIZE_4K;
+-		} else
+-			page = first_addr;
+-
+-		for (; page < last_addr; page += SIZE_4K) {
+-			page_vec->pages[cur_page] = page;
+-			cur_page++;
+-		}
+-
++		} while (page < end_addr);
+ 	}
++
+ 	page_vec->data_size = total_sz;
+ 	iser_dbg("page_vec->data_size:%d cur_page %d\n", page_vec->data_size,cur_page);
+ 	return cur_page;
+ }
+
+-#define IS_4K_ALIGNED(addr)	((((unsigned long)addr) & ~MASK_4K) == 0)
+
+ /**
+  * iser_data_buf_aligned_len - Tries to determine the maximal correctly aligned
+@@ -284,42 +276,40 @@ static int iser_sg_to_page_vec(struct is
+  * the number of entries which are aligned correctly. Supports the case where
+  * consecutive SG elements are actually fragments of the same physcial page.
+  */
+-static unsigned int iser_data_buf_aligned_len(struct iser_data_buf *data,
+-					      struct ib_device *ibdev)
++static int iser_data_buf_aligned_len(struct iser_data_buf *data,
++				      struct ib_device *ibdev)
+ {
+-	struct scatterlist *sgl, *sg;
+-	u64 end_addr, next_addr;
+-	int i, cnt;
+-	unsigned int ret_len = 0;
++	struct scatterlist *sgl, *sg, *next_sg = NULL;
++	u64 start_addr, end_addr;
++	int i, ret_len, start_check = 0;
++
++	if (data->dma_nents == 1)
++		return 1;
+
+ 	sgl = (struct scatterlist *)data->buf;
++	start_addr  = ib_sg_dma_address(ibdev, sgl);
+
+-	cnt = 0;
+ 	for_each_sg(sgl, sg, data->dma_nents, i) {
+-		/* iser_dbg("Checking sg iobuf [%d]: phys=0x%08lX "
+-		   "offset: %ld sz: %ld\n", i,
+-		   (unsigned long)sg_phys(sg),
+-		   (unsigned long)sg->offset,
+-		   (unsigned long)sg->length); */
+-		end_addr = ib_sg_dma_address(ibdev, sg) +
+-			   ib_sg_dma_len(ibdev, sg);
+-		/* iser_dbg("Checking sg iobuf end address "
+-		       "0x%08lX\n", end_addr); */
+-		if (i + 1 < data->dma_nents) {
+-			next_addr = ib_sg_dma_address(ibdev, sg_next(sg));
+-			/* are i, i+1 fragments of the same page? */
+-			if (end_addr == next_addr) {
+-				cnt++;
+-				continue;
+-			} else if (!IS_4K_ALIGNED(end_addr)) {
+-				ret_len = cnt + 1;
+-				break;
+-			}
+-		}
+-		cnt++;
++		if (start_check && !IS_4K_ALIGNED(start_addr))
++			break;
++
++		next_sg = sg_next(sg);
++		if (!next_sg)
++			break;
++
++		end_addr    = start_addr + ib_sg_dma_len(ibdev, sg);
++		start_addr  = ib_sg_dma_address(ibdev, next_sg);
++
++		if (end_addr == start_addr) {
++			start_check = 0;
++			continue;
++		} else
++			start_check = 1;
++
++		if (!IS_4K_ALIGNED(end_addr))
++			break;
+ 	}
+-	if (i == data->dma_nents)
+-		ret_len = cnt;	/* loop ended */
++	ret_len = (next_sg) ? i : i+1;
+ 	iser_dbg("Found %d aligned entries out of %d in sg:0x%p\n",
+ 		 ret_len, data->dma_nents, data);
+ 	return ret_len;
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
