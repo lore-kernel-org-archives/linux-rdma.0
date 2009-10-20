@@ -1,35 +1,34 @@
-From: "Sean Hefty" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH 1/2] rdma/cm: support option to allow manually setting	IB path
-Date: Tue, 20 Oct 2009 11:34:01 -0700
-Message-ID: <46770152ACA04B6C8AA9497C45AC8FD0@amr.corp.intel.com>
-References: <F0EFC2D8E6A340D48497497670C5969C@amr.corp.intel.com> <A08104C1CF70400F8BEF492AD49C8491@amr.corp.intel.com> <20091020181458.GD14520@obsidianresearch.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: Multicast joins failing on 1.5-rc1?
+Date: Tue, 20 Oct 2009 12:34:30 -0600
+Message-ID: <20091020183430.GF14520@obsidianresearch.com>
+References: <A5E1097A-DFEA-4508-A47F-FF07C34EA525@routingdynamics.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20091020181458.GD14520-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <A5E1097A-DFEA-4508-A47F-FF07C34EA525-dK3M3PVJaX4iXRBKUn1UN0EOCMrvLtNR@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: 'Jason Gunthorpe' <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+To: stuarts <stuarts-dK3M3PVJaX4iXRBKUn1UN0EOCMrvLtNR@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
->Can you please have some way for this to pass APM data and the
->reversible GMP path as well? We know this is a problem, lets not
->introduce new userspace APIs that further enshrine it..
+On Tue, Oct 20, 2009 at 01:16:07PM -0500, stuarts wrote:
+> When I look through for the code, I found that error code associated  
+> with an invalid set of component masks:
+> Oct 20 12:40:05 824130 [44240940] 0x01 -> mcmr_rcv_join_mgrp: ERR 1B11: 
+> method = SubnAdmSet, scope_state = 0x1, component mask =  
+> 0x0000000000010083, expected comp mask = 0x00000000000130c7, MGID:  
+> ff12:601b:ffff::16 from port 0x0002c90300032431 (x3 HCA-1)
 
-Did you have something specific in mind?
+I thought this was normal, expected behavior?
 
-ucma_set_ib_paths should be able to accommodate this; we just need some rules
-defined.  More invasive kernel changes are needed to do anything with the extra
-paths.
+The IPoIB Send only join process doesn't create multicast groups. If
+there is a listening group then it joins it, otherwise nothing.
 
-For APM, I'm guessing that you'd like a way to set a new alternate path after
-establishing a connection.  ucma_set_ib_paths could still do this based on the
-state of the connection.
+Basically, you need listeners before you can send.
 
-- Sean
-
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
