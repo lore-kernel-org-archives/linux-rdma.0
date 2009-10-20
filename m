@@ -1,199 +1,79 @@
-From: Or Gerlitz <ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH] ib/iser: re-write SG handling for rdma logic
-Date: Tue, 20 Oct 2009 12:38:59 +0200 (IST)
-Message-ID: <Pine.LNX.4.64.0910201235220.1145@zuben.voltaire.com>
+From: Hal Rosenstock <hnrose-Wuw85uim5zDR7s880joybQ@public.gmane.org>
+Subject: [PATCH] opensm/osm_vl15intf.c: In vl15_poller, drain unicast even
+	if max_wire_smps are outstanding
+Date: Tue, 20 Oct 2009 09:41:17 -0400
+Message-ID: <20091020134117.GB5440@comcast.net>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Mike Christie <michaelc-hcNo3dDEHLuVc3sceRu5cw@public.gmane.org>, Alexander Nezhinsky <alexandern-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+To: sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-After dma-mapping an SG list provided by the SCSI midlayer, iser has
-to make sure the mapped SG is "aligned for RDMA" in the sense that its
-possible to produce one mapping in the HCA IOMMU which represents the
-whole SG. Next, the mapped SG is formatted for registration with the HCA.
 
-This patch re-writes the logic that does the above, to make it clearer
-and simpler. It also fixes a bug in the being aligned for rdma checks,
-where a "start" check wasn't done but rather only "end" check.
+Unicast sends should not be blocked by waiting transactions.
+In this case (one example is timeouts due to rebooting nodes),
+this can cause trap represses to be delayed (which is not a good thing).
 
-Signed-off-by: Alexander Nezhinsky <alexandern-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Or Gerlitz <ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-
-Index: linux-2.6.32-rc5/drivers/infiniband/ulp/iser/iser_memory.c
-===================================================================
---- linux-2.6.32-rc5.orig/drivers/infiniband/ulp/iser/iser_memory.c
-+++ linux-2.6.32-rc5/drivers/infiniband/ulp/iser/iser_memory.c
-@@ -209,6 +209,8 @@ void iser_finalize_rdma_unaligned_sg(str
- 	mem_copy->copy_buf = NULL;
- }
-
-+#define IS_4K_ALIGNED(addr)	((((unsigned long)addr) & ~MASK_4K) == 0)
+Signed-off-by: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+---
+diff --git a/opensm/opensm/osm_vl15intf.c b/opensm/opensm/osm_vl15intf.c
+index 9e43a9c..07a2336 100644
+--- a/opensm/opensm/osm_vl15intf.c
++++ b/opensm/opensm/osm_vl15intf.c
+@@ -2,6 +2,7 @@
+  * Copyright (c) 2004-2008 Voltaire, Inc. All rights reserved.
+  * Copyright (c) 2002-2005 Mellanox Technologies LTD. All rights reserved.
+  * Copyright (c) 1996-2003 Intel Corporation. All rights reserved.
++ * Copyright (c) 2009 HNR Consulting. All rights reserved.
+  *
+  * This software is available to you under a choice of one of two
+  * licenses.  You may choose to be licensed under the terms of the GNU
+@@ -115,6 +116,7 @@ static void vl15_poller(IN void *p_ptr)
+ 	osm_madw_t *p_madw;
+ 	osm_vl15_t *p_vl = p_ptr;
+ 	cl_qlist_t *p_fifo;
++	uint32_t ufifo_count = 0;
+ 
+ 	OSM_LOG_ENTER(p_vl->p_log);
+ 
+@@ -132,10 +134,15 @@ static void vl15_poller(IN void *p_ptr)
+ 		 */
+ 		cl_spinlock_acquire(&p_vl->lock);
+ 
+-		if (cl_qlist_count(&p_vl->ufifo) != 0)
++		if (ufifo_count)
+ 			p_fifo = &p_vl->ufifo;
+-		else
+-			p_fifo = &p_vl->rfifo;
++		else {
++			ufifo_count = cl_qlist_count(&p_vl->ufifo);
++			if (ufifo_count != 0)
++				p_fifo = &p_vl->ufifo;
++			else
++				p_fifo = &p_vl->rfifo;
++		}
+ 
+ 		p_madw = (osm_madw_t *) cl_qlist_remove_head(p_fifo);
+ 
+@@ -157,7 +164,14 @@ static void vl15_poller(IN void *p_ptr)
+ 			status = cl_event_wait_on(&p_vl->signal,
+ 						  EVENT_NO_TIMEOUT, TRUE);
+ 
+-		while (p_vl->p_stats->qp0_mads_outstanding_on_wire >=
++		if (ufifo_count) {
++			cl_spinlock_acquire(&p_vl->lock);
++                	ufifo_count = cl_qlist_count(&p_vl->ufifo);
++			cl_spinlock_release(&p_vl->lock);
++		}
 +
- /**
-  * iser_sg_to_page_vec - Translates scatterlist entries to physical addresses
-  * and returns the length of resulting physical address array (may be less than
-@@ -221,62 +223,52 @@ void iser_finalize_rdma_unaligned_sg(str
-  * where --few fragments of the same page-- are present in the SG as
-  * consecutive elements. Also, it handles one entry SG.
-  */
-+
- static int iser_sg_to_page_vec(struct iser_data_buf *data,
- 			       struct iser_page_vec *page_vec,
- 			       struct ib_device *ibdev)
- {
--	struct scatterlist *sgl = (struct scatterlist *)data->buf;
--	struct scatterlist *sg;
--	u64 first_addr, last_addr, page;
--	int end_aligned;
--	unsigned int cur_page = 0;
-+	struct scatterlist *sg, *sgl = (struct scatterlist *)data->buf;
-+	u64 start_addr, end_addr, page, chunk_start = 0;
- 	unsigned long total_sz = 0;
--	int i;
-+	unsigned int dma_len;
-+	int i, new_chunk, cur_page, last_ent = data->dma_nents - 1;
-
- 	/* compute the offset of first element */
- 	page_vec->offset = (u64) sgl[0].offset & ~MASK_4K;
-
-+	new_chunk = 1;
-+	cur_page  = 0;
- 	for_each_sg(sgl, sg, data->dma_nents, i) {
--		unsigned int dma_len = ib_sg_dma_len(ibdev, sg);
--
-+		start_addr = ib_sg_dma_address(ibdev, sg);
-+		if (new_chunk)
-+			chunk_start = start_addr;
-+		dma_len = ib_sg_dma_len(ibdev, sg);
-+		end_addr = start_addr + dma_len;
- 		total_sz += dma_len;
-
--		first_addr = ib_sg_dma_address(ibdev, sg);
--		last_addr  = first_addr + dma_len;
--
--		end_aligned   = !(last_addr  & ~MASK_4K);
--
--		/* continue to collect page fragments till aligned or SG ends */
--		while (!end_aligned && (i + 1 < data->dma_nents)) {
--			sg = sg_next(sg);
--			i++;
--			dma_len = ib_sg_dma_len(ibdev, sg);
--			total_sz += dma_len;
--			last_addr = ib_sg_dma_address(ibdev, sg) + dma_len;
--			end_aligned = !(last_addr  & ~MASK_4K);
-+		/* collect page fragments until aligned or end of SG list */
-+		if (!IS_4K_ALIGNED(end_addr) && i < last_ent) {
-+			new_chunk = 0;
-+			continue;
- 		}
-+		new_chunk = 1;
-
--		/* handle the 1st page in the 1st DMA element */
--		if (cur_page == 0) {
--			page = first_addr & MASK_4K;
--			page_vec->pages[cur_page] = page;
--			cur_page++;
-+		/* address of the first page in the contiguous chunk;
-+		   masking relevant for the very first SG entry,
-+		   which might be unaligned */
-+		page = chunk_start & MASK_4K;
-+		do {
-+			page_vec->pages[cur_page++] = page;
- 			page += SIZE_4K;
--		} else
--			page = first_addr;
--
--		for (; page < last_addr; page += SIZE_4K) {
--			page_vec->pages[cur_page] = page;
--			cur_page++;
--		}
--
-+		} while (page < end_addr);
- 	}
-+
- 	page_vec->data_size = total_sz;
- 	iser_dbg("page_vec->data_size:%d cur_page %d\n", page_vec->data_size,cur_page);
- 	return cur_page;
- }
-
--#define IS_4K_ALIGNED(addr)	((((unsigned long)addr) & ~MASK_4K) == 0)
-
- /**
-  * iser_data_buf_aligned_len - Tries to determine the maximal correctly aligned
-@@ -284,42 +276,40 @@ static int iser_sg_to_page_vec(struct is
-  * the number of entries which are aligned correctly. Supports the case where
-  * consecutive SG elements are actually fragments of the same physcial page.
-  */
--static unsigned int iser_data_buf_aligned_len(struct iser_data_buf *data,
--					      struct ib_device *ibdev)
-+static int iser_data_buf_aligned_len(struct iser_data_buf *data,
-+				      struct ib_device *ibdev)
- {
--	struct scatterlist *sgl, *sg;
--	u64 end_addr, next_addr;
--	int i, cnt;
--	unsigned int ret_len = 0;
-+	struct scatterlist *sgl, *sg, *next_sg = NULL;
-+	u64 start_addr, end_addr;
-+	int i, ret_len, start_check = 0;
-+
-+	if (data->dma_nents == 1)
-+		return 1;
-
- 	sgl = (struct scatterlist *)data->buf;
-+	start_addr  = ib_sg_dma_address(ibdev, sgl);
-
--	cnt = 0;
- 	for_each_sg(sgl, sg, data->dma_nents, i) {
--		/* iser_dbg("Checking sg iobuf [%d]: phys=0x%08lX "
--		   "offset: %ld sz: %ld\n", i,
--		   (unsigned long)sg_phys(sg),
--		   (unsigned long)sg->offset,
--		   (unsigned long)sg->length); */
--		end_addr = ib_sg_dma_address(ibdev, sg) +
--			   ib_sg_dma_len(ibdev, sg);
--		/* iser_dbg("Checking sg iobuf end address "
--		       "0x%08lX\n", end_addr); */
--		if (i + 1 < data->dma_nents) {
--			next_addr = ib_sg_dma_address(ibdev, sg_next(sg));
--			/* are i, i+1 fragments of the same page? */
--			if (end_addr == next_addr) {
--				cnt++;
--				continue;
--			} else if (!IS_4K_ALIGNED(end_addr)) {
--				ret_len = cnt + 1;
--				break;
--			}
--		}
--		cnt++;
-+		if (start_check && !IS_4K_ALIGNED(start_addr))
-+			break;
-+
-+		next_sg = sg_next(sg);
-+		if (!next_sg)
-+			break;
-+
-+		end_addr    = start_addr + ib_sg_dma_len(ibdev, sg);
-+		start_addr  = ib_sg_dma_address(ibdev, next_sg);
-+
-+		if (end_addr == start_addr) {
-+			start_check = 0;
-+			continue;
-+		} else
-+			start_check = 1;
-+
-+		if (!IS_4K_ALIGNED(end_addr))
-+			break;
- 	}
--	if (i == data->dma_nents)
--		ret_len = cnt;	/* loop ended */
-+	ret_len = (next_sg) ? i : i+1;
- 	iser_dbg("Found %d aligned entries out of %d in sg:0x%p\n",
- 		 ret_len, data->dma_nents, data);
- 	return ret_len;
++		while (!ufifo_count &&
++		       p_vl->p_stats->qp0_mads_outstanding_on_wire >=
+ 		       (int32_t) p_vl->max_wire_smps &&
+ 		       p_vl->thread_state == OSM_THREAD_STATE_RUN) {
+ 			status = cl_event_wait_on(&p_vl->signal,
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
