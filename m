@@ -1,177 +1,23 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: [PATCH libibcm] Return errors from the kernel consistently
-Date: Mon, 19 Oct 2009 23:58:34 -0600
-Message-ID: <20091020055834.GA26350@obsidianresearch.com>
+From: Tziporet Koren <tziporet-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
+Subject: Re: [ewg] Re: Possible process deadlock in RMPP flow
+Date: Tue, 20 Oct 2009 08:06:57 +0200
+Message-ID: <4ADD5381.2020407@mellanox.co.il>
+References: <20090923150454.GA26150@mtls03>	<7A32EEE20DF5432CADB60B8F8B1E0093@amr.corp.intel.com>	<20090923172532.GA32223@mtls03>	<4ABB13F3.1060702@Voltaire.com>	<20090924073601.GA28876@mtls03> <4AC848E9.6040909@voltaire.com>	<4AC8BE74.3050200@mellanox.co.il> <BFC792E8570C48B8981C34F913243887@amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <BFC792E8570C48B8981C34F913243887-Zpru7NauK7drdx17CPfAsdBPR1lH4CV8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Linux RDMA list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: tziporet-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org, Or Gerlitz <ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org>, Linux RDMA list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-This fixes one subtle bug, where a return of 0 from the kernel will
-result in a success report from the library, and fixes a terrible
-API in the process. Use errno, or return the code, or both.
-Not half and half..
+Sean Hefty wrote:
+> I can't find anything off in the code for this.  
+Eventually it was a FW issue that is fixed in our new 2.7.0 release
 
-It is easier to return errno than to fixup the cases that don't,
-so lets stick with that.
-
-Codes should have been be positive for alignment with POSIX, but
-it is much too late for that..
-
-Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
----
- src/cm.c |   30 +++++++++++++++---------------
- 1 files changed, 15 insertions(+), 15 deletions(-)
-
-librdmacm has the same basic flaw too.
-
-What do you think Sean?
-
-diff --git a/src/cm.c b/src/cm.c
-index 7370abe..4807e2d 100644
---- a/src/cm.c
-+++ b/src/cm.c
-@@ -261,7 +261,7 @@ int ib_cm_destroy_id(struct ib_cm_id *cm_id)
- 
- 	result = write(cm_id->device->fd, msg, size);
- 	if (result != size)
--		return (result > 0) ? -ENODATA : result;
-+		return (result >= 0) ? -ENODATA : -1*errno;
- 
- 	VALGRIND_MAKE_MEM_DEFINED(resp, sizeof *resp);
- 
-@@ -292,7 +292,7 @@ int ib_cm_attr_id(struct ib_cm_id *cm_id, struct ib_cm_attr_param *param)
- 
- 	result = write(cm_id->device->fd, msg, size);
- 	if (result != size)
--		return (result > 0) ? -ENODATA : result;
-+		return (result >= 0) ? -ENODATA : -1*errno;
- 
- 	VALGRIND_MAKE_MEM_DEFINED(resp, sizeof *resp);
- 
-@@ -322,7 +322,7 @@ int ib_cm_init_qp_attr(struct ib_cm_id *cm_id,
- 
- 	result = write(cm_id->device->fd, msg, size);
- 	if (result != size)
--		return (result > 0) ? -ENODATA : result;
-+		return (result >= 0) ? -ENODATA : -1*errno;
- 
- 	VALGRIND_MAKE_MEM_DEFINED(resp, sizeof *resp);
- 
-@@ -348,7 +348,7 @@ int ib_cm_listen(struct ib_cm_id *cm_id,
- 
- 	result = write(cm_id->device->fd, msg, size);
- 	if (result != size)
--		return (result > 0) ? -ENODATA : result;
-+		return (result >= 0) ? -ENODATA : -1*errno;
- 
- 	return 0;
- }
-@@ -407,7 +407,7 @@ int ib_cm_send_req(struct ib_cm_id *cm_id, struct ib_cm_req_param *param)
- 
- 	result = write(cm_id->device->fd, msg, size);
- 	if (result != size)
--		return (result > 0) ? -ENODATA : result;
-+		return (result >= 0) ? -ENODATA : -1*errno;
- 
- 	return 0;
- }
-@@ -442,7 +442,7 @@ int ib_cm_send_rep(struct ib_cm_id *cm_id, struct ib_cm_rep_param *param)
- 
- 	result = write(cm_id->device->fd, msg, size);
- 	if (result != size)
--		return (result > 0) ? -ENODATA : result;
-+		return (result >= 0) ? -ENODATA : -1*errno;
- 
- 	return 0;
- }
-@@ -467,7 +467,7 @@ static inline int cm_send_private_data(struct ib_cm_id *cm_id,
- 
- 	result = write(cm_id->device->fd, msg, size);
- 	if (result != size)
--		return (result > 0) ? -ENODATA : result;
-+		return (result >= 0) ? -ENODATA : -1*errno;
- 
- 	return 0;
- }
-@@ -508,7 +508,7 @@ static int cm_establish(struct ib_cm_id *cm_id)
- 
- 	result = write(cm_id->device->fd, msg, size);
- 	if (result != size)
--		return (result > 0) ? -ENODATA : result;
-+		return (result >= 0) ? -ENODATA : -1*errno;
- 
- 	return 0;
- }
-@@ -533,7 +533,7 @@ int ib_cm_notify(struct ib_cm_id *cm_id, enum ibv_event_type event)
- 
- 	result = write(cm_id->device->fd, msg, size);
- 	if (result != size)
--		return (result > 0) ? -ENODATA : result;
-+		return (result >= 0) ? -ENODATA : -1*errno;
- 
- 	return 0;
- }
-@@ -567,7 +567,7 @@ static inline int cm_send_status(struct ib_cm_id *cm_id,
- 
- 	result = write(cm_id->device->fd, msg, size);
- 	if (result != size)
--		return (result > 0) ? -ENODATA : result;
-+		return (result >= 0) ? -ENODATA : -1*errno;
- 
- 	return 0;
- }
-@@ -617,7 +617,7 @@ int ib_cm_send_mra(struct ib_cm_id *cm_id,
- 
- 	result = write(cm_id->device->fd, msg, size);
- 	if (result != size)
--		return (result > 0) ? -ENODATA : result;
-+		return (result >= 0) ? -ENODATA : -1*errno;
- 
- 	return 0;
- }
-@@ -652,7 +652,7 @@ int ib_cm_send_lap(struct ib_cm_id *cm_id,
- 
- 	result = write(cm_id->device->fd, msg, size);
- 	if (result != size)
--		return (result > 0) ? -ENODATA : result;
-+		return (result >= 0) ? -ENODATA : -1*errno;
- 
- 	return 0;
- }
-@@ -692,7 +692,7 @@ int ib_cm_send_sidr_req(struct ib_cm_id *cm_id,
- 
- 	result = write(cm_id->device->fd, msg, size);
- 	if (result != size)
--		return (result > 0) ? -ENODATA : result;
-+		return (result >= 0) ? -ENODATA : -1*errno;
- 
- 	return 0;
- }
-@@ -726,7 +726,7 @@ int ib_cm_send_sidr_rep(struct ib_cm_id *cm_id,
- 
- 	result = write(cm_id->device->fd, msg, size);
- 	if (result != size)
--		return (result > 0) ? -ENODATA : result;
-+		return (result >= 0) ? -ENODATA : -1*errno;
- 
- 	return 0;
- }
-@@ -836,7 +836,7 @@ int ib_cm_get_event(struct ib_cm_device *device, struct ib_cm_event **event)
- 
- 	result = write(device->fd, msg, size);
- 	if (result != size) {
--		result = (result > 0) ? -ENODATA : result;
-+		return (result >= 0) ? -ENODATA : -1*errno;
- 		goto done;
- 	}
- 
--- 
-1.6.0.4
-
+Tziporet
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
