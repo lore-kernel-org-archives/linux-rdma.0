@@ -1,82 +1,94 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH] link-local address fix for rdma_resolve_addr
-Date: Wed, 21 Oct 2009 17:08:45 -0600
-Message-ID: <20091021230845.GR14520@obsidianresearch.com>
-References: <1255992430.12075.7.camel@wilder.ibm.com>
-	<20091019234329.GC9643@obsidianresearch.com>
-	<676AB781CD644CC28E1AD4951EA4EEF8@amr.corp.intel.com>
-	<20091020003344.GA14520@obsidianresearch.com>
-	<1256164230.12075.31.camel@wilder.ibm.com>
+From: "Sean Hefty" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH] link-local address fix for rdma_resolve_addr
+Date: Wed, 21 Oct 2009 16:17:01 -0700
+Message-ID: <9D257695083141E79685CB2B260D7D7C@amr.corp.intel.com>
+References: <1255992430.12075.7.camel@wilder.ibm.com>	 <20091019234329.GC9643@obsidianresearch.com>	 <676AB781CD644CC28E1AD4951EA4EEF8@amr.corp.intel.com>	 <20091020003344.GA14520@obsidianresearch.com> <1256164230.12075.31.camel@wilder.ibm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
-Content-Disposition: inline
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1256164230.12075.31.camel-XfwDJb4SXxnMbYB6QlFGEg@public.gmane.org>
-List-Unsubscribe: <http://lists.openfabrics.org/cgi-bin/mailman/listinfo/ewg>,
-	<mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.openfabrics.org/pipermail/ewg>
-List-Post: <mailto:ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
-List-Help: <mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=help>
-List-Subscribe: <http://lists.openfabrics.org/cgi-bin/mailman/listinfo/ewg>,
-	<mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=subscribe>
-Sender: ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
-Errors-To: ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
-To: "David J. Wilder" <dwilder-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org, ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "'David J. Wilder'" <dwilder-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, pradeep-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org, ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Oct 21, 2009 at 03:30:29PM -0700, David J. Wilder wrote:
+>This patch,  as Jason's suggested,  moves the function of addr_resolve_local()
+>into addr4_resolve_remote()
+>and addr6_resolve_remote().  It eliminates the need for addr_resolve_local().
 
-> addr6_resolve_remote(). The second patch fixes the bugs in
-> addr_resolve_local().  The 3d patch I am posting now for discussion.
-> 
-> This patch, as Jason's suggested, moves the function of
-> addr_resolve_local() into addr4_resolve_remote() and
-> addr6_resolve_remote().  It eliminates the need for
-> addr_resolve_local().
+One quick comment, remove '_remote' from function names:
+addr4_resolve_remote, addr6_resolve_remote, and addr_resolve_remote
 
-This looks exactly like what I was thinking of - have you tested this?
+> drivers/infiniband/core/addr.c |   99 +++++++--------------------------------
+> 1 files changed, 18 insertions(+), 81 deletions(-)
+>
+>diff --git a/drivers/infiniband/core/addr.c b/drivers/infiniband/core/addr.c
+>index bd07803..f7a5861 100644
+>--- a/drivers/infiniband/core/addr.c
+>+++ b/drivers/infiniband/core/addr.c
+>@@ -233,6 +233,14 @@ static int addr4_resolve_remote(struct sockaddr_in
+>*src_in,
+> 	if (ret)
+> 		goto out;
+>
+>+	if (rt->idev->dev == init_net.loopback_dev){
+>+		ret = rdma_translate_ip((struct sockaddr *)dst_in, addr);
+>+		if (!ret)
+>+			memcpy(addr->dst_dev_addr, addr->src_dev_addr,
+>+				MAX_ADDR_LEN);
+>+		goto put;
+>+	}
 
-If it is OK, I'd make it the first in the series.
+This doesn't end up doing the same thing as what resolve_local did.  It only
+matches up with the 'else if' portion below: 
+ 
+>-static int addr_resolve_local(struct sockaddr *src_in,
+>-			      struct sockaddr *dst_in,
+>-			      struct rdma_dev_addr *addr)
+>-{
+>-	struct net_device *dev;
+>-	int ret;
+>-
+>-	switch (dst_in->sa_family) {
+>-	case AF_INET:
+>-	{
+>-		__be32 src_ip = ((struct sockaddr_in *)
+src_in)->sin_addr.s_addr;
+>-		__be32 dst_ip = ((struct sockaddr_in *)
+dst_in)->sin_addr.s_addr;
+>-
+>-		dev = ip_dev_find(&init_net, dst_ip);
+>-		if (!dev)
+>-			return -EADDRNOTAVAIL;
+>-
+>-		if (ipv4_is_zeronet(src_ip)) {
+>-			src_in->sa_family = dst_in->sa_family;
+>-			((struct sockaddr_in *) src_in)->sin_addr.s_addr =
+dst_ip;
+>-			ret = rdma_copy_addr(addr, dev, dev->dev_addr);
+>-		} else if (ipv4_is_loopback(src_ip)) {
+>-			ret = rdma_translate_ip(dst_in, addr);
+>-			if (!ret)
+>-				memcpy(addr->dst_dev_addr, dev->dev_addr,
+>MAX_ADDR_LEN);
+>-		} else {
+>-			ret = rdma_translate_ip(src_in, addr);
+>-			if (!ret)
+>-				memcpy(addr->dst_dev_addr, dev->dev_addr,
+>MAX_ADDR_LEN);
+>-		}
 
-There were two things I was not sure about in my example.
- 1) Is 'init_net.loopback_dev' the correct reference for the loop device? Or
-    is it something like dev_net(rt->idev->dev)->loopback_dev ?
+We need to handle the case where the source address is not given and provide
+one.  We also need to handle the case where the source address is given, but may
+not match the destination address, or even use the same RDMA device.
 
-    I'm sensing it may be the latter, but can't investigate right now
-    Donno much about this new namespace stuff really
+I didn't look at the ipv6 changes yet.
 
- 2) Was rt->idev->dev the right choice for the ipv4 case? Or is it
-    rt->u.dst.dev ?
+- Sean
 
-    The TCP case kinda looks like
-int tcp_v4_connect(struct sock *sk, struct sockaddr *uaddr, int addr_len)
-        tmp = ip_route_connect(&rt, nexthop, inet->saddr,
-                               RT_CONN_FLAGS(sk), sk->sk_bound_dev_if,
-                               IPPROTO_TCP,
-                               inet->sport, usin->sin_port, sk, 1);
-        sk_setup_caps(sk, &rt->u.dst);
-
-void sk_setup_caps(struct sock *sk, struct dst_entry *dst)
-        __sk_dst_set(sk, dst);
-
-    And all later things key off the sk_get_dst. So I'm thinking
-    that u.dst.dev might be correct.
-
-    I have no idea what the difference is though (can't look too hard
-    right now)
-
-The main other fixup I see is to remove
-                ret = cma_bind_addr(id, src_addr, dst_addr);
-
->From rdma_resolve_addr and rely on the routing lookup in
-addr_resolve_remote called by addr_resolve_ip to setup the bind device
-from the routing lookup. (This is what I mentioned in my last email)
-
-Which then lets you fixup the checking and handling of the
-sin6_scopeid on the source address - and fixes the main other routing
-difference against the TCP stack.
-
-Thanks for working on this!
-
-Jason
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
