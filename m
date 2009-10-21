@@ -1,33 +1,40 @@
 From: "Sean Hefty" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH libibrdmacm] Return errors from the library consistently
-Date: Wed, 21 Oct 2009 11:25:35 -0700
-Message-ID: <20109FFA005D46B3A2A34E0CF6F0CBEC@amr.corp.intel.com>
-References: <20091020184157.GG14520@obsidianresearch.com>
+Subject: [PATCH] librdmacm: initialize correct pthread condition in rdma_join_multicast
+Date: Wed, 21 Oct 2009 11:47:17 -0700
+Message-ID: <04702C2CBECB44E5A2D3D3495EA0378B@amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20091020184157.GG14520-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: 'Jason Gunthorpe' <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Linux RDMA list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Linux RDMA list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
->Remove the return of -errno and always return codes via errno.
->As documented in librdmacm, these libraries are already documented
->to return -1 to indicate the code is in errno.
->
->Update rping to show a correct error reporting methodology.
->
->Also fix an errant return of 0 if the read/write syscalls return 0.
->
->Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+rdma_join_multicast re-initializes id_priv->cond rather than mc->cond.
+Fix this.  Bug reported by Nir Naaman.
 
-Thanks - both of these look good to me and tested fine.  I should push out new
-releases of both libraries by the end of the week with these changes and ask
-that they get pulled into OFED 1.5.
+Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+---
 
-- Sean
+ src/cma.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/src/cma.c b/src/cma.c
+index 87e73ac..e4bc8d6 100644
+--- a/src/cma.c
++++ b/src/cma.c
+@@ -1044,7 +1044,7 @@ int rdma_join_multicast(struct rdma_cm_id *id, struct sockaddr *addr,
+ 	mc->context = context;
+ 	mc->id_priv = id_priv;
+ 	memcpy(&mc->addr, addr, addrlen);
+-	if (pthread_cond_init(&id_priv->cond, NULL)) {
++	if (pthread_cond_init(&mc->cond, NULL)) {
+ 		ret = -1;
+ 		goto err1;
+ 	}
+
+
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
