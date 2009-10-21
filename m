@@ -1,40 +1,35 @@
-From: John Russo <john.russo-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-Subject: FW: InfiniPath EMail address running again.
-Date: Wed, 21 Oct 2009 11:59:55 -0500
-Message-ID: <A331668DC876334996266B5A7756A01318E894E36D@MNEXMB2.qlogic.org>
+From: "Sean Hefty" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH libibrdmacm] Return errors from the library consistently
+Date: Wed, 21 Oct 2009 11:25:35 -0700
+Message-ID: <20109FFA005D46B3A2A34E0CF6F0CBEC@amr.corp.intel.com>
+References: <20091020184157.GG14520@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <20091020184157.GG14520-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: 'Jason Gunthorpe' <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Linux RDMA list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Due to an IT 'glitch' the infinipath-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org email address was not f=
-unctioning properly. The issue has been fixed and you can continue to s=
-end issues/comments to this email.
+>Remove the return of -errno and always return codes via errno.
+>As documented in librdmacm, these libraries are already documented
+>to return -1 to indicate the code is in errno.
+>
+>Update rping to show a correct error reporting methodology.
+>
+>Also fix an errant return of 0 if the read/write syscalls return 0.
+>
+>Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 
-I apologize for the inconvenience.
+Thanks - both of these look good to me and tested fine.  I should push out new
+releases of both libraries by the end of the week with these changes and ask
+that they get pulled into OFED 1.5.
 
-John Russo
-
-
-
-
-John F. Russo
-Engineering Manager
-QLogic Corporation
-780 Fifth Avenue
-Suite 140
-King of Prussia, PA 19406
-Direct: 610-233-4866
-=46ax:=A0=A0=A0=A0=A0 610-233-4777
-Cell:=A0=A0=A0=A0 610-246-9903
-www.qlogic.com
+- Sean
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
