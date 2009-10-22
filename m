@@ -1,45 +1,59 @@
-From: Hal Rosenstock <hnrose-Wuw85uim5zDR7s880joybQ@public.gmane.org>
-Subject: [PATCH] opensm: Add some additional HP vendor IDs/OUIs
-Date: Mon, 19 Oct 2009 09:00:28 -0400
-Message-ID: <20091019130028.GA18483@comcast.net>
+From: "Sean Hefty" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH] link-local address fix for rdma_resolve_addr
+Date: Thu, 22 Oct 2009 10:59:37 -0700
+Message-ID: <A03920DE5BAE4309BAFC1B6471AE928C@amr.corp.intel.com>
+References: <1256164230.12075.31.camel@wilder.ibm.com> <9D257695083141E79685CB2B260D7D7C@amr.corp.intel.com> <20091021233639.GS14520@obsidianresearch.com> <BFF5CD71FFA74BF09A2EED5F3319F370@amr.corp.intel.com> <20091022002846.GU14520@obsidianresearch.com> <4803112A5B7A4953B62ABAFD1BBD9881@amr.corp.intel.com> <20091022011939.GW14520@obsidianresearch.com> <60E9443821EE4FFA90448DF5CC1368A8@amr.corp.intel.com> <20091022062531.GB26003@obsidianresearch.com> <B1D32A650C2F400E92AFC4909D8880A0@amr.corp.intel.com> <20091022164717.GG26003@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <20091022164717.GG26003-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: 'Jason Gunthorpe' <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: "'David J. Wilder'" <dwilder-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+>> You can redirect (REJ) a REQ to a different port, but you can't accept (REP)
+>a
+>> connection on a different port.
+>
+>Do you have a compliance statment for that? :)
 
-Signed-off-by: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
----
-diff --git a/opensm/include/opensm/osm_base.h b/opensm/include/opensm/osm_base.h
-index 06223ce..34646cd 100644
---- a/opensm/include/opensm/osm_base.h
-+++ b/opensm/include/opensm/osm_base.h
-@@ -906,6 +906,8 @@ typedef enum _osm_sm_signal {
- #define OSM_VENDOR_ID_HP2           0x0018FE
- #define OSM_VENDOR_ID_DELL          0x00188B
- #define OSM_VENDOR_ID_SUPERMICRO    0x003048
-+#define OSM_VENDOR_ID_HP3           0x0019BB
-+#define OSM_VENDOR_ID_HP4           0x00237D
- 
- /**********/
- 
-diff --git a/opensm/opensm/osm_helper.c b/opensm/opensm/osm_helper.c
-index 40dea10..4f520ba 100644
---- a/opensm/opensm/osm_helper.c
-+++ b/opensm/opensm/osm_helper.c
-@@ -2210,6 +2210,8 @@ const char *osm_get_manufacturer_str(IN uint64_t guid_ho)
- 		return (panta_str);
- 	case OSM_VENDOR_ID_HP:
- 	case OSM_VENDOR_ID_HP2:
-+	case OSM_VENDOR_ID_HP3:
-+	case OSM_VENDOR_ID_HP4:
- 		return (hp_str);
- 	case OSM_VENDOR_ID_RIOWORKS:
- 		return (rioworks_str);
+The REP doesn't carry port (i.e. GID) information.
+
+>Spec says:
+>
+> The initiator is responsible for proposing the Port Addresses
+> (Primary and optional Alternate) that the target (REQ recipient) is to
+> use for the channel.  Based on the path defined by those port
+> addresses, the initiator provides timeout information and the Service
+> Level to be used by the target for any messages that it initiates. The
+> SL from initiator to target need not be the same as from target to
+> initiator, but the SL that is contained within the REQ message is the
+> one that the initiator would prefer the target use. Path in- formation
+> is available from Subnet Administration (see section 15.2.5.16
+> PathRecord).
+>
+>'Proposing the Port Addresses' == Any Port On the Node, IMHO.
+
+Under reject reasons:
+
+12 Primary Remote Port GID rejected
+The recipient of the REQ message could not (or would not) accept the Primary
+Remote Port GID
+GID of acceptable port.
+
+13 Primary Remote Port LID rejected
+The recipient of the REQ message could not (or would not) accept the Primary
+Remote Port LID
+LID of acceptable port.
+
+I interpret this as the REQ carries the proposal.  If the passive side aggress
+with the proposal, it accepts the connection, otherwise it rejects.
+
+- Sean
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
