@@ -1,90 +1,51 @@
-From: Hal Rosenstock <hnrose-Wuw85uim5zDR7s880joybQ@public.gmane.org>
-Subject: [PATCHv2] opensm/osm_vendor_ibumad: Use OSM_UMAD_MAX_AGENTS rather
-	than UMAD_CA_MAX_AGENTS
-Date: Thu, 22 Oct 2009 09:43:00 -0400
-Message-ID: <20091022134300.GA28208@comcast.net>
+From: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH] opensm/osm_vendor_ibumad.c: Add environment variable
+ to change max retries
+Date: Thu, 22 Oct 2009 15:50:04 +0200
+Message-ID: <20091022135004.GK20210@me>
+References: <20091019183342.GA28926@comcast.net>
+ <20091022122443.GF20210@me>
+ <f0e08f230910220556h3d7352f4s4bd8e57c0a01a5d0@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
+In-Reply-To: <f0e08f230910220556h3d7352f4s4bd8e57c0a01a5d0-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org
+To: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+On 08:56 Thu 22 Oct     , Hal Rosenstock wrote:
+> >
+> > Why do you need this?
+> 
+> It is useful in some clusters where the default behavior is
+> insufficient
 
-This define controls an array in the OpenSM umad vendor layer. Moving
-this define to the vendor layer aids in Windows porting. See thread
-which "ends" with:
-http://lists.openfabrics.org/pipermail/ofw/2009-October/005819.html
+I would suppose that by itself this may indicate some external issues
+like bad connectivity (cabling) or similar and some investigation would
+be helpful there (regardless to number of retries).
 
-Signed-off-by: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
----
-Changes since v1:
-Added patch description
+> and control over the number of retries helps and there is
+> no vendor API support for this.
+> 
+> > And why did you choose to use environment variable and not command
+> > line/config option? I think that it is less obvious.
+> 
+> It was modeled after OSM_UMAD_MAX_PENDING.
 
-diff --git a/opensm/include/vendor/osm_vendor_ibumad.h b/opensm/include/vendor/osm_vendor_ibumad.h
-index e346a2e..f3a48e5 100644
---- a/opensm/include/vendor/osm_vendor_ibumad.h
-+++ b/opensm/include/vendor/osm_vendor_ibumad.h
-@@ -66,6 +66,8 @@ BEGIN_C_DECLS
- #define OSM_DEFAULT_RETRY_COUNT 3
- #define OSM_UMAD_MAX_CAS	32
- #define OSM_UMAD_MAX_PORTS_PER_CA	2
-+#define OSM_UMAD_MAX_AGENTS	32
-+
- /****s* OpenSM: Vendor UMAD/osm_ca_info_t
- * NAME
- *   osm_ca_info_t
-@@ -154,7 +156,7 @@ typedef struct _osm_vendor {
- 	osm_ca_info_t *p_ca_info;
- 	uint32_t timeout;
- 	int max_retries;
--	osm_bind_handle_t agents[UMAD_CA_MAX_AGENTS];
-+	osm_bind_handle_t agents[OSM_UMAD_MAX_AGENTS];
- 	char ca_names[OSM_UMAD_MAX_CAS][UMAD_CA_NAME_LEN];
- 	vendor_match_tbl_t mtbl;
- 	umad_port_t umad_port;
-diff --git a/opensm/libvendor/osm_vendor_ibumad.c b/opensm/libvendor/osm_vendor_ibumad.c
-index 8d3c680..b221335 100644
---- a/opensm/libvendor/osm_vendor_ibumad.c
-+++ b/opensm/libvendor/osm_vendor_ibumad.c
-@@ -288,7 +288,7 @@ static void *umad_receiver(void *p_ptr)
- 			}
- 		}
- 
--		if (mad_agent >= UMAD_CA_MAX_AGENTS ||
-+		if (mad_agent >= OSM_UMAD_MAX_AGENTS ||
- 		    !(p_bind = p_vend->agents[mad_agent])) {
- 			OSM_LOG(p_ur->p_log, OSM_LOG_ERROR, "ERR 5407: "
- 				"invalid mad agent %d - dropping\n", mad_agent);
-@@ -738,7 +738,7 @@ static void osm_vendor_close_port(osm_vendor_t * const p_vend)
- 	}
- 
- 	if (p_vend->umad_port_id >= 0) {
--		for (i = 0; i < UMAD_CA_MAX_AGENTS; i++)
-+		for (i = 0; i < OSM_UMAD_MAX_AGENTS; i++)
- 			if (p_vend->agents[i])
- 				umad_unregister(p_vend->umad_port_id, i);
- 		umad_close_port(p_vend->umad_port_id);
-@@ -862,7 +862,7 @@ osm_vendor_bind(IN osm_vendor_t * const p_vend,
- 		goto Exit;
- 	}
- 
--	if (p_bind->agent_id >= UMAD_CA_MAX_AGENTS ||
-+	if (p_bind->agent_id >= OSM_UMAD_MAX_AGENTS ||
- 	    p_vend->agents[p_bind->agent_id]) {
- 		OSM_LOG(p_vend->p_log, OSM_LOG_ERROR, "ERR 5427: "
- 			"bad agent id %u or duplicate agent for class %u vers %u\n",
-@@ -890,7 +890,7 @@ osm_vendor_bind(IN osm_vendor_t * const p_vend,
- 			goto Exit;
- 		}
- 
--		if (p_bind->agent_id1 >= UMAD_CA_MAX_AGENTS ||
-+		if (p_bind->agent_id1 >= OSM_UMAD_MAX_AGENTS ||
- 		    p_vend->agents[p_bind->agent_id1]) {
- 			OSM_LOG(p_vend->p_log, OSM_LOG_ERROR, "ERR 5429: "
- 				"bad agent id %u or duplicate agent for class 1 vers %u\n",
+It was internal libvendor hack (which is also not 100% clean :))
+controlling ibumad implementation specific parameter. Unlike this a
+number of MAD retries (similar to MAD response timeout value) has more
+generic meaning.
+
+> It could be made a command
+> line/options file item. Is that your preference ?
+
+I think command line/config option is a way to do it.
+
+Sasha
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
