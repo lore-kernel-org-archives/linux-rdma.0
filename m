@@ -1,34 +1,38 @@
-From: "Sean Hefty" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH] link-local address fix for rdma_resolve_addr
-Date: Thu, 22 Oct 2009 11:31:07 -0700
-Message-ID: <60293EE44E7243B59C41498F20D558A0@amr.corp.intel.com>
-References: <20091021233639.GS14520@obsidianresearch.com> <BFF5CD71FFA74BF09A2EED5F3319F370@amr.corp.intel.com> <20091022002846.GU14520@obsidianresearch.com> <4803112A5B7A4953B62ABAFD1BBD9881@amr.corp.intel.com> <20091022011939.GW14520@obsidianresearch.com> <60E9443821EE4FFA90448DF5CC1368A8@amr.corp.intel.com> <20091022062531.GB26003@obsidianresearch.com> <B1D32A650C2F400E92AFC4909D8880A0@amr.corp.intel.com> <20091022164717.GG26003@obsidianresearch.com> <A03920DE5BAE4309BAFC1B6471AE928C@amr.corp.intel.com> <20091022182221.GZ14520@obsidianresearch.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH v2] [RFC] rdma/cm: support option to allow manually
+	setting IB path
+Date: Thu, 22 Oct 2009 12:36:36 -0600
+Message-ID: <20091022183636.GA14520@obsidianresearch.com>
+References: <20091020191404.GH14520@obsidianresearch.com> <9DFD8E65325F4EE990749EEBE4BC33CA@amr.corp.intel.com> <20091022004245.GV14520@obsidianresearch.com> <AE35305D45DB49F591A45DADD822209A@amr.corp.intel.com> <20091022013542.GX14520@obsidianresearch.com> <B7E97540810E4A2785FF1FC8CB96F453@amr.corp.intel.com> <20091022165414.GH26003@obsidianresearch.com> <1438C87E89284364A56E08A40DFE199E@amr.corp.intel.com> <20091022181101.GY14520@obsidianresearch.com> <67280F81CB6F417DA6EEE22448ED5500@amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20091022182221.GZ14520-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <67280F81CB6F417DA6EEE22448ED5500-Zpru7NauK7drdx17CPfAsdBPR1lH4CV8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: 'Jason Gunthorpe' <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: "'David J. Wilder'" <dwilder-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
->Why would it need to? The REQ contains all the port information
->necessary, the active side doesn't get to pick the port, it just gets
->to approve it.
+On Thu, Oct 22, 2009 at 11:28:11AM -0700, Sean Hefty wrote:
 
-I'm not following you at all now.  You said:
+> I don't like the idea of the kernel silently ignoring the alternate path.
+> Returning an error seems like a better idea.
 
-This is actually something of a mandatory notion to implement the
-full generality of the IB CM protocol which allows the CM REP to
-contain a port GUID of another port on the same node (multi-port
-APM is an IB feature). So you never know what port the accept()
-result will get bound to.
+Then provide a way for userspace to know WTF to do. Without a
+negotiation process this is now an 'impossible to use right' API.
 
-The REP does not contain a port GUID, so what exactly were you trying to say
-here?
+There are other kernel protocols that work like this, some netlink
+stuff works like this for instance. The notion of providing multiple
+options and having the kernel pick the ones it supports is a standard
+technique for forward API compatability.
 
+How about a compromise. Add a IB_PATH_MUST or something, if the kernel
+skips over an entry marked like that due to no support then it returns
+-ENOSYS. Userspace that really cares can use that flag. I expect most
+cases won't care..
+
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
