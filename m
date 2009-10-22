@@ -1,39 +1,57 @@
-From: Bryan <bryan.mreese-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: OFED 1.4.2 requires rebuild of kernel modules on each node
-Date: Thu, 22 Oct 2009 14:21:36 -0400
-Message-ID: <aad292200910221121w3bf5480fyfc4b04a12290b150@mail.gmail.com>
+From: "Sean Hefty" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH v2] [RFC] rdma/cm: support option to allow manually	setting IB path
+Date: Thu, 22 Oct 2009 11:28:11 -0700
+Message-ID: <67280F81CB6F417DA6EEE22448ED5500@amr.corp.intel.com>
+References: <20091020181458.GD14520@obsidianresearch.com> <46770152ACA04B6C8AA9497C45AC8FD0@amr.corp.intel.com> <20091020191404.GH14520@obsidianresearch.com> <9DFD8E65325F4EE990749EEBE4BC33CA@amr.corp.intel.com> <20091022004245.GV14520@obsidianresearch.com> <AE35305D45DB49F591A45DADD822209A@amr.corp.intel.com> <20091022013542.GX14520@obsidianresearch.com> <B7E97540810E4A2785FF1FC8CB96F453@amr.corp.intel.com> <20091022165414.GH26003@obsidianresearch.com> <1438C87E89284364A56E08A40DFE199E@amr.corp.intel.com> <20091022181101.GY14520@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20091022181101.GY14520-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: 'Jason Gunthorpe' <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-I was referred to this list by the general mailing list on OFED.
-Emailing from my personal address since Lotus Notes insists that
-anything it sends has to contain some portion of HTML.
+>> if (number of paths > 1)
+>> 	return -ENOSYS;
+>
+>This is really no different than what you had at first.
 
-This problem was observed on Red Hat Enterprise Linux 5 update 3.  I
-searched the list but did not see anything immediately applicable.
-We've seen issues similar in the past where we were able to modify the
-script to solve an RPM that didn't match the expected naming scheme,
-but did not see anything immediately when looking at the scripts for
-this version.
+The main difference is returning ENOSYS to indicate that only one path is
+acceptable.
 
-Copied from an internal bug reporting tool:
+>My idea was to have the kernel search the array for the entries it
+>needs/supports. First one found wins. This provides future
+>API compatability.
+>
+>Some future userspace, to support some future kernel APM, would pass in 2
+>entries:
+> IB_PATH_GMP | IB_PATH_PRIMARY | IB_PATH_OUTBOUND | IB_PATH_INBOUND
+> IB_PATH_GMP | IB_PATH_ALTERNATE | IB_PATH_OUTBOUND | IB_PATH_INBOUND
+>
+>This shouldn't break old kernels.
 
-On installing OFED 1.4.2, the tarball was extracted, in directory the code
-was extracted to, ./install.pl was run and all components of OFED were
-build/installed with the default settings.  Then this directory was
-copied to another node, and ./install.pl -c ofed.conf was run.  Previously
-this would just do the install of the already built components, but with
-OFED 1.4.2, the kernel RPM gets re-built when this is done.
+I don't like the idea of the kernel silently ignoring the alternate path.
+Returning an error seems like a better idea.
 
-This means that the build tools have to be on each node, and that
-deployment of OFED takes longer.
+>Again, some even future kernel would support 6 entries, future user
+>space would send this:
+> IB_PATH_PRIMARY | IB_PATH_INBOUND
+> IB_PATH_PRIMARY | IB_PATH_OUTBOUND
+> IB_PATH_GMP | IB_PATH_PRIMARY | IB_PATH_OUTBOUND | IB_PATH_INBOUND
+> IB_PATH_ALTERNATE | IB_PATH_INBOUND
+> IB_PATH_ALTERNATE | IB_PATH_OUTBOUND
+> IB_PATH_GMP | IB_PATH_ALTERNATE | IB_PATH_OUTBOUND | IB_PATH_INBOUND
+>
+>This shouldn't break old kernels either.
 
-Bryan Reese -- breese-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org
-e1350 Linux Cluster Test Engineer
+To me, this sets contradictory paths.  The pairings <PRI | IN>, <PRI | OUT>,
+<ALT | IN>, <ALT | OUT> should appear exactly once in a set of paths.
+
+- Sean
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
