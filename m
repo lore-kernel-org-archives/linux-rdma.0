@@ -1,23 +1,54 @@
-From: Or Gerlitz <ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH] librdmacm: initialize correct pthread condition in	rdma_join_multicast
-Date: Thu, 22 Oct 2009 17:13:42 +0200
-Message-ID: <4AE076A6.1030908@voltaire.com>
-References: <04702C2CBECB44E5A2D3D3495EA0378B@amr.corp.intel.com>
+From: Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: [PATCH] opensm/osm_ucast_updn.c: cosmetics - rename function
+Date: Thu, 22 Oct 2009 17:33:03 +0200
+Message-ID: <4AE07B2F.8030004@dev.mellanox.co.il>
+Reply-To: kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <04702C2CBECB44E5A2D3D3495EA0378B-Zpru7NauK7drdx17CPfAsdBPR1lH4CV8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Linux RDMA list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Alex Rosenbaum <Alexr-smomgflXvOZWk0Htik3J/w@public.gmane.org>, Nir Naaman <naaman-7z/5BgaJwgfQT0dZR+AlfA@public.gmane.org>
+To: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+Cc: Linux RDMA <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Sean Hefty wrote:
-> rdma_join_multicast re-initializes id_priv->cond rather than mc->cond. Fix this.  Bug reported by Nir Naaman
-any idea what's the impact of this bug?
+Hi Sasha,
 
-Or.
+There's a static function in the up/down routing, called
+"updn_clear_root_hops". This function is supposed to clear
+the hops to all targets but root switches.
+So the more correct name for this function would be
+"updn_clear_non_root_hops".
+
+Signed-off-by: Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+---
+ opensm/opensm/osm_ucast_updn.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/opensm/opensm/osm_ucast_updn.c b/opensm/opensm/osm_ucast_updn.c
+index e81a299..e567a46 100644
+--- a/opensm/opensm/osm_ucast_updn.c
++++ b/opensm/opensm/osm_ucast_updn.c
+@@ -286,7 +286,7 @@ static int updn_subn_rank(IN updn_t * p_updn)
+ /**********************************************************************
+  **********************************************************************/
+ /* hack: preserve min hops entries to any other root switches */
+-static void updn_clear_root_hops(updn_t * p_updn, osm_switch_t * p_sw)
++static void updn_clear_non_root_hops(updn_t * p_updn, osm_switch_t * p_sw)
+ {
+ 	osm_port_t *p_port;
+ 	unsigned i;
+@@ -325,7 +325,7 @@ static int updn_set_min_hop_table(IN updn_t * p_updn)
+ 		p_sw = (osm_switch_t *)item;
+ 		/* Clear Min Hop Table */
+ 		if (p_subn->opt.connect_roots)
+-			updn_clear_root_hops(p_updn, p_sw);
++			updn_clear_non_root_hops(p_updn, p_sw);
+ 		else
+ 			osm_switch_clear_hops(p_sw);
+ 	}
+-- 
+1.5.1.4
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
