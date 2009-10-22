@@ -1,19 +1,19 @@
 From: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH] opensm/osm_vendor_api.h: Fix some commentary typos
-Date: Thu, 22 Oct 2009 14:11:23 +0200
-Message-ID: <20091022121123.GC20210@me>
-References: <20091019130211.GB18483@comcast.net>
+Subject: Re: [PATCH] opensm: Add some additional HP vendor IDs/OUIs
+Date: Thu, 22 Oct 2009 14:10:35 +0200
+Message-ID: <20091022121035.GB20210@me>
+References: <20091019130028.GA18483@comcast.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20091019130211.GB18483-Wuw85uim5zDR7s880joybQ@public.gmane.org>
+In-Reply-To: <20091019130028.GA18483-Wuw85uim5zDR7s880joybQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Hal Rosenstock <hnrose-Wuw85uim5zDR7s880joybQ@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 09:02 Mon 19 Oct     , Hal Rosenstock wrote:
+On 09:00 Mon 19 Oct     , Hal Rosenstock wrote:
 > 
 > Signed-off-by: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 
