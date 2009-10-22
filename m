@@ -1,74 +1,89 @@
-From: "Woodruff, Robert J" <robert.j.woodruff-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: OFED 1.4.2 requires rebuild of kernel modules on each node
-Date: Thu, 22 Oct 2009 15:38:58 -0700
-Message-ID: <382A478CAD40FA4FB46605CF81FE39F43DB6BABA@orsmsx507.amr.corp.intel.com>
-References: <aad292200910221121w3bf5480fyfc4b04a12290b150@mail.gmail.com>
+From: Vu Pham <vuhuong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [ofa-general][PATCH 2/4] SRP fail-over faster
+Date: Thu, 22 Oct 2009 16:08:54 -0700
+Message-ID: <4AE0E606.6090805@mellanox.com>
+References: <4AD3B443.7040107@mellanox.com> <ada63aham2r.fsf@cisco.com>	<4AD62D9D.1020900@mellanox.com> <adatyy190ti.fsf@cisco.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: multipart/mixed;
+ boundary="------------090006050500010308040905"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <aad292200910221121w3bf5480fyfc4b04a12290b150-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <adatyy190ti.fsf-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bryan <bryan.mreese-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org" <ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Cc: Linux RDMA list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Sending this to the EWG openfabrics list,
-since this seems to be an OFED build/installation issue
-rather than a general code problem.
+This is a multi-part message in MIME format.
+--------------090006050500010308040905
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 
-One thing that you might try is to instead of copying the
-entire build directory and re-runing ./install.pl -c ofed.conf
-on each system, instead, after building on one node,
-just copy the binrary RPMS directory and 
-the uninstall script to the other nodes,
-Then just run the uninstall script and
-install the RPMS manually... e.g, 
+Roland Dreier wrote:
+>  > >  > -	wait_for_completion(&target->done);
+>  > >
+>  > > How do you avoid leaking connection on module unload etc?  Don't we have
+>  > > to wait for the disconnect to finish somewhere?
+>  > >
+>  > >  - R.
+>  > >   
+>  > Are you talking about cm_id?
+>  > I think that we wait because we want to reuse cq/qp associate with the
+>  > connection.
+>  > On module unload, we destroy cm_id, cq, qp altogether.
+>
+> OK, I think I understand this piece locally (although if you delete the
+> wait_for_completion() it would probably make more sense to delete the
+> init_completion() just before it as well).
+>
+> However is it really a correct to reuse a cm_id that is in state
+> timewait to initiate a new connection?  That seems pretty fragile to me.
+>   
+Here is the updated patch to remove both init_completion() and 
+wait_for_completion()
 
-./uninstall.sh
-cd ./RPMS/redhat-release-xxxx/x86_64
-rpm -i *
 
-This method has worked for me in the past. 
+--------------090006050500010308040905
+Content-Type: text/plain;
+ name="srp_2_disconnect_without_wait.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="srp_2_disconnect_without_wait.patch"
 
-woody
+Disconnect the connection without waiting (1 << max(timeout -8),0) ms
 
+Signed-off-by: Vu Pham <vu-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
------Original Message-----
-From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Bryan
-Sent: Thursday, October 22, 2009 11:22 AM
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Subject: OFED 1.4.2 requires rebuild of kernel modules on each node
+ drivers/infiniband/ulp/srp/ib_srp.c |    3 ---
+ 1 files changed, 0 insertions(+), 3 deletions(-)
 
-I was referred to this list by the general mailing list on OFED.
-Emailing from my personal address since Lotus Notes insists that
-anything it sends has to contain some portion of HTML.
+diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
+index 54c8fe2..dfa14de 100644
+--- a/drivers/infiniband/ulp/srp/ib_srp.c
++++ b/drivers/infiniband/ulp/srp/ib_srp.c
+@@ -415,13 +415,11 @@ static void srp_disconnect_target(struct srp_target_port *target)
+ {
+ 	/* XXX should send SRP_I_LOGOUT request */
+ 
+-	init_completion(&target->done);
+ 	if (ib_send_cm_dreq(target->cm_id, NULL, 0)) {
+ 		shost_printk(KERN_DEBUG, target->scsi_host,
+ 			     PFX "Sending CM DREQ failed\n");
+ 		return;
+ 	}
+-	wait_for_completion(&target->done);
+ }
+ 
+ static void srp_remove_work(struct work_struct *work)
+@@ -1301,7 +1299,6 @@ static int srp_cm_handler(struct ib_cm_id *cm_id, struct ib_cm_event *event)
+ 		shost_printk(KERN_ERR, target->scsi_host,
+ 			     PFX "connection closed\n");
+ 
+-		comp = 1;
+ 		target->status = 0;
+ 		break;
+ 
 
-This problem was observed on Red Hat Enterprise Linux 5 update 3.  I
-searched the list but did not see anything immediately applicable.
-We've seen issues similar in the past where we were able to modify the
-script to solve an RPM that didn't match the expected naming scheme,
-but did not see anything immediately when looking at the scripts for
-this version.
-
-Copied from an internal bug reporting tool:
-
-On installing OFED 1.4.2, the tarball was extracted, in directory the code
-was extracted to, ./install.pl was run and all components of OFED were
-build/installed with the default settings.  Then this directory was
-copied to another node, and ./install.pl -c ofed.conf was run.  Previously
-this would just do the install of the already built components, but with
-OFED 1.4.2, the kernel RPM gets re-built when this is done.
-
-This means that the build tools have to be on each node, and that
-deployment of OFED takes longer.
-
-Bryan Reese -- breese-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org
-e1350 Linux Cluster Test Engineer
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--------------090006050500010308040905--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
