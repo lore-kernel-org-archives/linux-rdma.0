@@ -1,48 +1,59 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH] link-local address fix for rdma_resolve_addr
-Date: Thu, 22 Oct 2009 10:47:17 -0600
-Message-ID: <20091022164717.GG26003@obsidianresearch.com>
-References: <1256164230.12075.31.camel@wilder.ibm.com> <9D257695083141E79685CB2B260D7D7C@amr.corp.intel.com> <20091021233639.GS14520@obsidianresearch.com> <BFF5CD71FFA74BF09A2EED5F3319F370@amr.corp.intel.com> <20091022002846.GU14520@obsidianresearch.com> <4803112A5B7A4953B62ABAFD1BBD9881@amr.corp.intel.com> <20091022011939.GW14520@obsidianresearch.com> <60E9443821EE4FFA90448DF5CC1368A8@amr.corp.intel.com> <20091022062531.GB26003@obsidianresearch.com> <B1D32A650C2F400E92AFC4909D8880A0@amr.corp.intel.com>
+Subject: Re: [PATCH v2] [RFC] rdma/cm: support option to allow manually setting IB path
+Date: Thu, 22 Oct 2009 10:54:14 -0600
+Message-ID: <20091022165414.GH26003@obsidianresearch.com>
+References: <F0EFC2D8E6A340D48497497670C5969C@amr.corp.intel.com> <A08104C1CF70400F8BEF492AD49C8491@amr.corp.intel.com> <20091020181458.GD14520@obsidianresearch.com> <46770152ACA04B6C8AA9497C45AC8FD0@amr.corp.intel.com> <20091020191404.GH14520@obsidianresearch.com> <9DFD8E65325F4EE990749EEBE4BC33CA@amr.corp.intel.com> <20091022004245.GV14520@obsidianresearch.com> <AE35305D45DB49F591A45DADD822209A@amr.corp.intel.com> <20091022013542.GX14520@obsidianresearch.com> <B7E97540810E4A2785FF1FC8CB96F453@amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <B1D32A650C2F400E92AFC4909D8880A0-Zpru7NauK7drdx17CPfAsdBPR1lH4CV8@public.gmane.org>
+In-Reply-To: <B7E97540810E4A2785FF1FC8CB96F453-Zpru7NauK7drdx17CPfAsdBPR1lH4CV8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "'David J. Wilder'" <dwilder-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Oct 21, 2009 at 11:49:52PM -0700, Sean Hefty wrote:
-> >   This is actually something of a mandatory notion to implement the
-> >   full generality of the IB CM protocol which allows the CM REP to
-> >   contain a port GUID of another port on the same node (multi-port
-> >   APM is an IB feature). So you never know what port the accept()
-> >   result will get bound to.
-> 
-> You can redirect (REJ) a REQ to a different port, but you can't accept (REP) a
-> connection on a different port.
+On Thu, Oct 22, 2009 at 01:10:09AM -0700, Sean Hefty wrote:
 
-Do you have a compliance statment for that? :)
+> +static int ucma_set_ib_path(struct ucma_context *ctx,
+> +			    struct ib_path_rec_data *path_data, size_t optlen)
+> +{
+> +	struct ib_sa_path_rec sa_path;
+> +	struct rdma_cm_event event;
+> +	int ret;
+> +
+> +	if (optlen != sizeof(*path_data))
+> +		return -EINVAL;
+> +
+> +	if (path_data->flags != IB_PATH_GMP | IB_PATH_PRIMARY |
+> +				IB_PATH_OUTBOUND | IB_PATH_INBOUND)
+> +		return -EINVAL;
 
-Spec says:
- 
- The initiator is responsible for proposing the Port Addresses
- (Primary and optional Alternate) that the target (REQ recipient) is to
- use for the channel.  Based on the path defined by those port
- addresses, the initiator provides timeout information and the Service
- Level to be used by the target for any messages that it initiates. The
- SL from initiator to target need not be the same as from target to
- initiator, but the SL that is contained within the REQ message is the
- one that the initiator would prefer the target use. Path in- formation
- is available from Subnet Administration (see section 15.2.5.16
- PathRecord).
+This should accept an array here, to aid easing in APM support:
 
-'Proposing the Port Addresses' == Any Port On the Node, IMHO.
+if ((optlen % sizeof(*path_data)) != 0) return -EINVAL;
 
-Someone went to alot of trouble to include enough unnecessary
-information to make that possible, and it is necessary for multi port
-APM.
+for (; optlen != 0; optlen -= sizeof(*path_data), path_data++)
+   if (path_data->flags == (IB_PATH_GMP | IB_PATH_PRIMARY |                                  
+                            IB_PATH_OUTBOUND | IB_PATH_INBOUND))
+       break;
+
+if (optlen == 0) return -EINVAL;
+
+Could you do basic APM support right now, exactly with the same
+capability as ucm has?
+
+> +enum {
+> +	IB_PATH_GMP	  = 1,
+> +	IB_PATH_PRIMARY   = (1<<1),
+> +	IB_PATH_ALTERNATE = (1<<2),
+> +	IB_PATH_OUTBOUND  = (1<<3),
+> +	IB_PATH_INBOUND   = (1<<4)
+> +};
+
+I like the PATH_PRIMARY/PATH_ALTERNATE idea,
+
+But I think IB_PATH_OUTBOUND_REV is still required.
 
 Jason
 --
