@@ -1,7 +1,7 @@
 From: "Notice Office" <noticetc-LYJP0WDo+eM@public.gmane.org>
 Subject: Informacion
-Date: Sat, 24 Oct 2009 13:40:06 +0200 (CEST)
-Message-ID: <200910241140.n9OBe6xa015666@mail.mc.o2online.de>
+Date: Sat, 24 Oct 2009 13:40:37 +0200 (CEST)
+Message-ID: <200910241140.n9OBebpr016485@mail.mc.o2online.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
