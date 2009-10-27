@@ -1,47 +1,92 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH] link-local address fix for rdma_resolve_addr
-Date: Tue, 27 Oct 2009 11:14:03 -0600
-Message-ID: <20091027171403.GP26003@obsidianresearch.com>
-References: <20091021233639.GS14520@obsidianresearch.com> <BFF5CD71FFA74BF09A2EED5F3319F370@amr.corp.intel.com> <20091022002846.GU14520@obsidianresearch.com> <4803112A5B7A4953B62ABAFD1BBD9881@amr.corp.intel.com> <20091022011939.GW14520@obsidianresearch.com> <60E9443821EE4FFA90448DF5CC1368A8@amr.corp.intel.com> <20091022062531.GB26003@obsidianresearch.com> <4AE43BED.3090405@voltaire.com> <20091025200332.GN26003@obsidianresearch.com> <4AE6EF44.5040004@voltaire.com>
+From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+Subject: [PATCH] infiniband-diags/ibqueryerrors: Use remap'ed node name in
+ clear port error message
+Date: Tue, 27 Oct 2009 10:22:39 -0700
+Message-ID: <20091027102239.9fd7690e.weiny2@llnl.gov>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <4AE6EF44.5040004-smomgflXvOZWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Oct 27, 2009 at 03:01:56PM +0200, Or Gerlitz wrote:
 
-> Don't tell me that Dave's patches are blocked b/c you discovered the 
-> rdma_bind design and now you don't like it, as I wrote you, Dave sent 
-> patch to fix the IPv6 support, during the discussion on his patches you 
-> come and bring up more and more issues you consider as problems (but I 
-> don't) and block the patch set, I don't think this is appropriate. Let 
-> the patches go and send your patches to fix the problems you see. Why 
-> anyone touching some code piece has to fix problems you see in that piece?!
+From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+Date: Tue, 27 Oct 2009 10:22:36 -0700
+Subject: [PATCH] infiniband-diags/ibqueryerrors: Use remap'ed node name in clear port error message
 
-Wow, seriously? You do understand the purpose of review, right?
 
-Documentation/development-process/7.AdvancedTopics:
- Different developers will review code from different points of view.
- Some are mostly concerned with coding style and whether code lines
- have trailing white space.  Others will focus primarily on whether the
- change implemented by the patch as a whole is a good thing for the
- kernel or not.  Yet others will check for problematic locking,
- excessive stack usage, possible security issues, duplication of code
- found elsewhere, adequate documentation, adverse effects on
- performance, user-space ABI changes, etc.  All types of review, if
- they lead to better code going into the kernel, are welcome and
- worthwhile.
+Signed-off-by: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+---
+ infiniband-diags/src/ibqueryerrors.c |   17 ++++++++++-------
+ 1 files changed, 10 insertions(+), 7 deletions(-)
 
-And yes, actually, accounting for how rdma_bind() is different from
-bind() when doing route resolution is pretty much the main remaining
-problem.
+diff --git a/infiniband-diags/src/ibqueryerrors.c b/infiniband-diags/src/ibqueryerrors.c
+index 625bd8e..a29e649 100644
+--- a/infiniband-diags/src/ibqueryerrors.c
++++ b/infiniband-diags/src/ibqueryerrors.c
+@@ -295,7 +295,7 @@ static void print_port(ib_portid_t * portid, uint16_t cap_mask, char *node_name,
+ }
+ 
+ static void clear_port(ib_portid_t * portid, uint16_t cap_mask,
+-		       ibnd_node_t * node, int port)
++		       char * node_name, int port)
+ {
+ 	uint8_t pc[1024];
+ 	/* bits defined in Table 228 PortCounters CounterSelect and
+@@ -317,7 +317,7 @@ static void clear_port(ib_portid_t * portid, uint16_t cap_mask,
+ 	if (!performance_reset_via(pc, portid, port, mask, ibd_timeout,
+ 				   IB_GSI_PORT_COUNTERS, ibmad_port))
+ 		IBERROR("Failed to reset errors %s port %d",
+-			node->nodedesc, port);
++			node_name, port);
+ }
+ 
+ void print_node(ibnd_node_t * node, void *user_data)
+@@ -329,6 +329,7 @@ void print_node(ibnd_node_t * node, void *user_data)
+ 	int all_port_sup = 0;
+ 	ib_portid_t portid = { 0 };
+ 	uint16_t cap_mask = 0;
++	char *node_name = NULL;
+ 
+ 	switch (node->type) {
+ 	case IB_NODE_SWITCH:
+@@ -348,9 +349,10 @@ void print_node(ibnd_node_t * node, void *user_data)
+ 	if (node->type == IB_NODE_SWITCH && node->smaenhsp0)
+ 		startport = 0;
+ 
++	node_name = remap_node_name(node_name_map, node->guid,
++				    node->nodedesc);
++
+ 	for (p = startport; p <= node->numports; p++) {
+-		char *node_name = remap_node_name(node_name_map, node->guid,
+-						  node->nodedesc);
+ 		if (node->ports[p]) {
+ 			if (node->type == IB_NODE_SWITCH)
+ 				ib_portid_set(&portid, node->smalid, 0, 0);
+@@ -367,13 +369,14 @@ void print_node(ibnd_node_t * node, void *user_data)
+ 			print_port(&portid, cap_mask, node_name, node, p,
+ 				   &header_printed);
+ 			if (!all_port_sup)
+-				clear_port(&portid, cap_mask, node, p);
++				clear_port(&portid, cap_mask, node_name, p);
+ 		}
+-		free(node_name);
+ 	}
+ 
+ 	if (all_port_sup)
+-		clear_port(&portid, cap_mask, node, 0xFF);
++		clear_port(&portid, cap_mask, node_name, 0xFF);
++
++	free(node_name);
+ }
+ 
+ static void add_suppressed(enum MAD_FIELDS field)
+-- 
+1.5.4.5
 
-Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
