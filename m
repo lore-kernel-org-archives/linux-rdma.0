@@ -1,7 +1,7 @@
 From: Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH 1/3] opensm: connect switches in tree - added new option
-Date: Tue, 27 Oct 2009 10:55:59 +0200
-Message-ID: <4AE6B59F.4070105@dev.mellanox.co.il>
+Subject: [PATCH 2/3] opensm: connect switches in tree - implemented in fat-tree
+Date: Tue, 27 Oct 2009 10:56:33 +0200
+Message-ID: <4AE6B5C1.8020405@dev.mellanox.co.il>
 Reply-To: kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
@@ -12,123 +12,131 @@ To: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
 Cc: Linux RDMA <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Adding new option: '--connect_switches'
-This option should connect more switches with a down/up
-routes in up/down and fat-tree routing.
+This patch implements connect_roots and connect_switches
+option in fat-tree. Actually, both options mapped to the
+same implementation.
+
+The idea is the following: pick some leaf switch in the
+fabric. Now go over all the switches above the leaf level
+in the tree. If these switches don't know how to route to
+some LID and the selected leaf switch does know, route this
+LID to the leaf switch.
 
 Signed-off-by: Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 ---
- opensm/include/opensm/osm_subnet.h |    1 +
- opensm/man/opensm.8.in             |   11 +++++++++--
- opensm/opensm/main.c               |   15 +++++++++++++--
- opensm/opensm/osm_subnet.c         |    6 ++++++
- 4 files changed, 29 insertions(+), 4 deletions(-)
+ opensm/opensm/osm_ucast_ftree.c |   92 +++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 92 insertions(+), 0 deletions(-)
 
-diff --git a/opensm/include/opensm/osm_subnet.h b/opensm/include/opensm/osm_subnet.h
-index b63c97e..f8cd241 100644
---- a/opensm/include/opensm/osm_subnet.h
-+++ b/opensm/include/opensm/osm_subnet.h
-@@ -189,6 +189,7 @@ typedef struct osm_subn_opt {
- 	char *routing_engine_names;
- 	boolean_t use_ucast_cache;
- 	boolean_t connect_roots;
-+	boolean_t connect_switches;
- 	char *lid_matrix_dump_file;
- 	char *lfts_file;
- 	char *root_guid_file;
-diff --git a/opensm/man/opensm.8.in b/opensm/man/opensm.8.in
-index 03002c0..d6fceef 100644
---- a/opensm/man/opensm.8.in
-+++ b/opensm/man/opensm.8.in
-@@ -19,6 +19,7 @@ opensm \- InfiniBand subnet manager and administration (SM/SA)
- [\-\-lash_start_vl <vl number>]
- [\-A | \-\-ucast_cache]
- [\-z | \-\-connect_roots]
-+[\-\-connect_switches]
- [\-M <file name> | \-\-lid_matrix_file <file name>]
- [\-U <file name> | \-\-lfts_file <file name>]
- [\-S | \-\-sadb_file <file name>]
-@@ -170,8 +171,14 @@ recalculations: one when the host goes down, and the other when
- the host comes back online.
- .TP
- \fB\-z\fR, \fB\-\-connect_roots\fR
--This option enforces a routing engine (currently up/down
--only) to make connectivity between root switches and in
-+This option enforces routing engines (up/down and
-+fat-tree) to make connectivity between root switches and in
-+this way to be fully IBA complaint. In many cases this can
-+violate "pure" deadlock free algorithm, so use it carefully.
-+.TP
-+\fB\-\-connect_switches\fR
-+This option enforces routing engines (up/down and
-+fat-tree) to make connectivity between all switches and in
- this way to be fully IBA complaint. In many cases this can
- violate "pure" deadlock free algorithm, so use it carefully.
- .TP
-diff --git a/opensm/opensm/main.c b/opensm/opensm/main.c
-index 2e28c83..8175887 100644
---- a/opensm/opensm/main.c
-+++ b/opensm/opensm/main.c
-@@ -189,8 +189,14 @@ static void show_usage(void)
- 	printf("--sm_sl <sl number>\n"
- 	       "          Sets the SL to use to communicate with the SM/SA. Defaults to 0.\n\n");
- 	printf("--connect_roots, -z\n"
--	       "          This option enforces a routing engine (currently\n"
--	       "          up/down only) to make connectivity between root switches\n"
-+	       "          This option enforces routing engines (up/down and \n"
-+	       "          fat-tree) to make connectivity between root switches\n"
-+	       "          and in this way be IBA compliant. In many cases,\n"
-+	       "          this can violate \"pure\" deadlock free algorithm, so\n"
-+	       "          use it carefully.\n\n");
-+	printf("--connect_switches\n"
-+	       "          This option enforces routing engines (up/down and \n"
-+	       "          fat-tree) to make connectivity between all the switches\n"
- 	       "          and in this way be IBA compliant. In many cases,\n"
- 	       "          this can violate \"pure\" deadlock free algorithm, so\n"
- 	       "          use it carefully.\n\n");
-@@ -610,6 +616,7 @@ int main(int argc, char *argv[])
- 		{"do_mesh_analysis", 0, NULL, 5},
- 		{"lash_start_vl", 1, NULL, 6},
- 		{"sm_sl", 1, NULL, 7},
-+		{"connect_switches", 0, NULL, 8},
- 		{NULL, 0, NULL, 0}	/* Required at the end of the array */
- 	};
+diff --git a/opensm/opensm/osm_ucast_ftree.c b/opensm/opensm/osm_ucast_ftree.c
+index 5b403f7..3d91f72 100644
+--- a/opensm/opensm/osm_ucast_ftree.c
++++ b/opensm/opensm/osm_ucast_ftree.c
+@@ -2949,6 +2949,90 @@ static void fabric_route_to_switches(IN ftree_fabric_t * p_ftree)
+ /***************************************************
+  ***************************************************/
 
-@@ -983,6 +990,10 @@ int main(int argc, char *argv[])
- 			opt.sm_sl = (uint8_t) temp;
- 			printf(" SMSL = %d\n", opt.sm_sl);
- 			break;
-+		case 8:
-+			opt.connect_switches = TRUE;
-+			printf(" Connect switches option is on\n");
-+			break;
- 		case 'h':
- 		case '?':
- 		case ':':
-diff --git a/opensm/opensm/osm_subnet.c b/opensm/opensm/osm_subnet.c
-index 8976b5f..f7a2a73 100644
---- a/opensm/opensm/osm_subnet.c
-+++ b/opensm/opensm/osm_subnet.c
-@@ -754,6 +754,7 @@ void osm_subn_set_default_opt(IN osm_subn_opt_t * p_opt)
- 	p_opt->use_ucast_cache = FALSE;
- 	p_opt->routing_engine_names = NULL;
- 	p_opt->connect_roots = FALSE;
-+	p_opt->connect_switches = FALSE;
- 	p_opt->lid_matrix_dump_file = NULL;
- 	p_opt->lfts_file = NULL;
- 	p_opt->root_guid_file = NULL;
-@@ -1416,6 +1417,11 @@ int osm_subn_output_conf(FILE *out, IN osm_subn_opt_t * p_opts)
- 		p_opts->connect_roots ? "TRUE" : "FALSE");
-
- 	fprintf(out,
-+		"# Connect switchess (use FALSE if unsure)\n"
-+		"connect_switches %s\n\n",
-+		p_opts->connect_switches ? "TRUE" : "FALSE");
++static void fabric_route_down_up_switches(IN ftree_fabric_t * p_ftree)
++{
++	uint16_t lid;
++	uint8_t port_num;
++	osm_port_t *p_port;
++	ftree_sw_t *p_sw;
++	ftree_sw_t *p_leaf_sw;
 +
-+	fprintf(out,
- 		"# Use unicast routing cache (use FALSE if unsure)\n"
- 		"use_ucast_cache %s\n\n",
- 		p_opts->use_ucast_cache ? "TRUE" : "FALSE");
++	OSM_LOG_ENTER(&p_ftree->p_osm->log);
++
++	/*
++	 * We need a switch that will accomodate all the down/up turns in
++	 * the fabric. Having these turn in a single place in the fabric
++	 * will not create credit loops.
++	 * So we need to select this switch.
++	 * The idea here is to chose leaf with the highest index. I don't
++	 * have any theory to back me up on this. It's just a general thought
++	 * that this way the switch that might be a bottleneck for many mcast
++	 * groups will be far away from the OpenSM, so it will draw the
++	 * multicast traffic away from the SM.
++	 */
++
++	p_leaf_sw = p_ftree->leaf_switches[p_ftree->leaf_switches_num-1];
++
++	/*
++	 * Now go over all the switches in the fabric that
++	 * have lower rank, and route the missing LIDs to
++	 * the selected leaf switch.
++	 * In short, this leaf switch now poses a target
++	 * for all those missing LIDs.
++	 */
++
++	for (p_sw = (ftree_sw_t *) cl_qmap_head(&p_ftree->sw_tbl);
++	     p_sw != (ftree_sw_t *) cl_qmap_end(&p_ftree->sw_tbl);
++	     p_sw = (ftree_sw_t *) cl_qmap_next(&p_sw->map_item)) {
++
++		if (p_sw->rank >= p_ftree->leaf_switch_rank)
++			continue;
++
++		for (lid = 1; lid <= p_leaf_sw->p_osm_sw->max_lid_ho; lid ++) {
++
++			if (p_sw->p_osm_sw->new_lft[lid] != OSM_NO_PATH ||
++			    p_leaf_sw->hops[lid] == OSM_NO_PATH)
++				continue;
++
++			p_port = cl_ptr_vector_get(
++				&p_ftree->p_osm->subn.port_lid_tbl, lid);
++
++			/* we're interested only in switches */
++			if (!p_port && !p_port->p_node && !p_port->p_node->sw)
++				continue;
++
++			/*
++			 * the missing LID will be routed through the same
++			 * port that routes to the selected leaf switch
++			 */
++			port_num = p_sw->p_osm_sw->new_lft[p_leaf_sw->base_lid];
++
++			OSM_LOG(&p_ftree->p_osm->log, OSM_LOG_DEBUG,
++				"Switch %s: setting path to LID %u "
++				"through port %u\n",
++				tuple_to_str(p_sw->tuple), lid, port_num);
++
++			/* set local lft */
++			p_sw->p_osm_sw->new_lft[lid] = port_num;
++
++			/*
++			 * Set local min hop table.
++			 * The distance to the target LID is a distance
++			 * to the selected leaf switch plus the distance
++			 * from the leaf to the target LID.
++			 */
++			sw_set_hops(p_sw, lid, port_num,
++				p_sw->hops[p_leaf_sw->base_lid] +
++				p_leaf_sw->hops[lid], TRUE);
++		}
++	}
++
++	OSM_LOG_EXIT(&p_ftree->p_osm->log);
++}				/* fabric_route_roots() */
++
++/***************************************************
++ ***************************************************/
++
+ static int fabric_populate_nodes(IN ftree_fabric_t * p_ftree)
+ {
+ 	osm_node_t *p_osm_node;
+@@ -3978,6 +4062,14 @@ static int do_routing(IN void *context)
+ 		"Filling switch forwarding tables for switch-to-switch paths\n");
+ 	fabric_route_to_switches(p_ftree);
+
++	if (p_ftree->p_osm->subn.opt.connect_roots ||
++	    p_ftree->p_osm->subn.opt.connect_switches) {
++		OSM_LOG(&p_ftree->p_osm->log, OSM_LOG_VERBOSE,
++			"Connecting switches that are unreachable within "
++			"Up/Down rules\n");
++		fabric_route_down_up_switches(p_ftree);
++	}
++
+ 	/* for each switch, set its fwd table */
+ 	cl_qmap_apply_func(&p_ftree->sw_tbl, set_sw_fwd_table, (void *)p_ftree);
+
 -- 
 1.5.1.4
 
