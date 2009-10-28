@@ -1,36 +1,41 @@
-From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Subject: Re: fprintf stderr in libibverbs
-Date: Wed, 28 Oct 2009 10:51:22 -0700
-Message-ID: <adazl7bs8yt.fsf@cisco.com>
-References: <20091028054232.GA1966@obsidianresearch.com>
+From: "Sean Hefty" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH RDMA] Fixup IPv6 support and IPv4 routing corner cases for	RDMA CM
+Date: Wed, 28 Oct 2009 10:58:58 -0700
+Message-ID: <E27512B9FE294380956C074D2C35D235@amr.corp.intel.com>
+References: <20091028054253.GA22882@obsidianresearch.com> <4E89386C612E46C9A33501CEC2521BAF@amr.corp.intel.com> <20091028165043.GD1966@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20091028054232.GA1966-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> (Jason Gunthorpe's
-	message of "Tue, 27 Oct 2009 23:42:32 -0600")
+In-Reply-To: <20091028165043.GD1966-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: 'Jason Gunthorpe' <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Or Gerlitz <ogerlitz-hKgKHo2Ms0FWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+>Hum.. Not sure how that would work? src = AF_INET, dst = AF_IB?
 
- > My main goal would be to remove prints from the library in common
- > cases like no IB drivers loaded, no devices present, or no
- > permissions. I have an app where the prints are inconvient.
- > 
- > What I was thinking was to return these cases via errno (ENOSYS,
- > ENODEV, EPERM) in ibv_get_device_list. Do you think that is OK?
+yes - conceptually, these both map to PF_IB, which I think is really the
+limiting factor
 
-Yes, that makes sense I guess.
+I'm guessing that you could make the reverse work as well, but it requires more
+work and probably wouldn't be used by apps anyway.
 
- > int ibv_get_device_list_ex(struct ibv_device ***devices,int *num_devices, 
- >                            const char **warning_msg);
+>I guess I was hoping you'd be able to do the private data in userspace
+>and avoid those kind of special cases..
 
-Are there that many cases where the output is important enough and
-likely enough that it's worth a new API to get it out when stderr
-doesn't suffice?
+The private data would still be done in user space.  This allows apps that make
+use of ADDR_CHANGE events to continue working as normal, while still allowing
+for address resolution to be done in user space.  This should meet Or's request.
+User space may not know if they can resolve a particular address before binding.
 
- - R.
+I need to write the kernel patches to see if supporting this causes undo grief.
+At this point, I'm guessing that the only thing that would prevent this from
+working is if an explicit check is added.
+
+- Sean
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
