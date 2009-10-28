@@ -1,40 +1,63 @@
-From: "Sean Hefty" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH v3] [RFC] rdma/cm: support option to allow manually	setting IB path
-Date: Wed, 28 Oct 2009 12:37:39 -0700
-Message-ID: <5082D185D95A4389BC9EEA666CAEBA66@amr.corp.intel.com>
-References: <20091020181458.GD14520@obsidianresearch.com> <46770152ACA04B6C8AA9497C45AC8FD0@amr.corp.intel.com> <20091020191404.GH14520@obsidianresearch.com> <9DFD8E65325F4EE990749EEBE4BC33CA@amr.corp.intel.com> <20091022004245.GV14520@obsidianresearch.com> <AE35305D45DB49F591A45DADD822209A@amr.corp.intel.com> <20091022013542.GX14520@obsidianresearch.com> <B7E97540810E4A2785FF1FC8CB96F453@amr.corp.intel.com> <DC0770A17FDC4DACAC0251A3362CE87A@amr.corp.intel.com> <adaiqdzs81h.fsf@cisco.com> <20091028191454.GL14520@obsidianresearch.com>
+From: Chris Worley <worleys-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: Adjusting minimum packet size or "wait to merge requests" in SRP
+Date: Wed, 28 Oct 2009 13:38:37 -0600
+Message-ID: <f3177b9e0910281238n1e53653eq3e667010caf8e745@mail.gmail.com>
+References: <f3177b9e0910281147u5a47f75ao8bbe156d5b04969c@mail.gmail.com>
+	 <e2e108260910281214y5e3b5f4u24438986672e81b3@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20091028191454.GL14520-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <e2e108260910281214y5e3b5f4u24438986672e81b3-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: 'Jason Gunthorpe' <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org
+To: Bart Van Assche <bart.vanassche-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, scst-devel <scst-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
->But, I still think this API should return EINVAL if the cm_id is in
->AF_INET/AF_INET6 mode. That is to say, this API only works with the
->AF_IB idea we have been discussing.
+On Wed, Oct 28, 2009 at 1:14 PM, Bart Van Assche
+<bart.vanassche-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
+> On Wed, Oct 28, 2009 at 7:47 PM, Chris Worley <worleys-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
+>> It appears that SRP tries to coalesce and fragment initiator I/O
+>> requests into 64KB packets, as that looks to be the size requested
+>> to/from the device on the target side (and the I/O scheduler is
+>> disabled on the target).
+>>
+>> Is there a way to control this, where no coalescing occurs when
+>> latency is an issue and requests are small, and no fragmentation
+>> occurs when requests are large?
+>>
+>> Or, am I totally wrong in my assumption that SRP is coalescing/fragmenting data?
 >
->I suggest this because using this API really does override the
->capabilities of the AF_INET/6 in unexpected ways, as the discussion
->drifted through it seemed like at least bonding, routing
->and ND operations would/could be overridden.
+> Regarding avoiding coalescing of I/O requests: which I/O scheduler is
+> being used on the initiator system and how has it been configured via
+> sysfs ?
+
+There is no scheduler running on either target or initiator on the
+drives in question (sorry I worded that incorrectly initially), or so
+I've been told (this information is second-hand).  I did see iostat
+output from the initiator in his case, where there were long waits and
+service times that I'm guessing was due to some coalescing/merging.
+There was also a hint in the iostat output that a scheduler was
+enabled, as there were non-zero values (occasionally) under the
+[rw]qm/s columns, which, if I understand iostat correctly, means there
+is a scheduler merging results.
+
+So you're saying there is no hold-off for merging on the initiator
+side of the IB/SRP stack?
 >
->If so then I'd say it should be part of an AF_IB patch.
+> Adjusting the constant MAX_RDMA_SIZE in scst/srpt/src/ib_srpt.h might
+> help to avoid fragmentation of large requests by the SRP protocol.
+> Please post a follow-up message to the mailing list with your findings
+> such that MAX_RDMA_SIZE can be converted from a compile-time constant
+> to a sysfs variable if this would be useful.
+
+Will do.
+
+Thanks,
+
+Chris
 >
->Sean, what are your thoughts on applying it to AF_INET/6?
-
-Even without any other kernel changes, this patch enables us to solve the
-biggest scaling problem that we've measured, so I want to allow it regardless of
-what the original addressing was.  Whether a path record comes from the SA, a
-local cache, some wonky multicast protocol, or is made up is really independent
-from how the GIDs were discovered.
-
-- Sean
-
+> Bart.
+>
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
