@@ -1,30 +1,28 @@
-From: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH] opensm/osm_sa.c: don't ignore failure in
- osm_mgrp_add_port()
-Date: Wed, 28 Oct 2009 18:58:57 +0200
-Message-ID: <20091028165857.GF6843@me>
-References: <4AE814E3.4090405@dev.mellanox.co.il>
+From: "Sean Hefty" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH RDMA] Fixup IPv6 support and IPv4 routing corner cases for	RDMA CM
+Date: Wed, 28 Oct 2009 10:05:19 -0700
+Message-ID: <D775590A8D92454491BD2034E85B2B36@amr.corp.intel.com>
+References: <20091028054253.GA22882@obsidianresearch.com> <4AE859F8.2030708@Voltaire.com> <20091028164615.GC1966@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <4AE814E3.4090405-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+In-Reply-To: <20091028164615.GC1966-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: Linux RDMA <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: 'Jason Gunthorpe' <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Or Gerlitz <ogerlitz-hKgKHo2Ms0FWk0Htik3J/w@public.gmane.org>
+Cc: "David J. Wilder" <dwilder-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>, leo.tominna-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 11:54 Wed 28 Oct     , Yevgeny Kliteynik wrote:
-> Hi Sasha,
-> 
-> Small fix in loading SA DB: don't ignore failure
-> in osm_mgrp_add_port() - require clients re-registration.
-> 
-> Signed-off-by: Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+>Can you explain how rdma_resolve_addr is used in conjunction with
+>multicast? I do not understand what the dest would be. Is it just a man
+>page typo?
 
-Applied. Thanks.
+A UD endpoint can communicate using multicast and to other UD endpoints.  A user
+could resolve a UD endpoint before joining a multicast group.
 
-Sasha
+- Sean
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
