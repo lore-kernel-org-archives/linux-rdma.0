@@ -1,42 +1,30 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH RDMA] Fixup IPv6 support and IPv4 routing corner cases for	RDMA CM
-Date: Wed, 28 Oct 2009 10:50:43 -0600
-Message-ID: <20091028165043.GD1966@obsidianresearch.com>
-References: <20091028054253.GA22882@obsidianresearch.com> <4E89386C612E46C9A33501CEC2521BAF@amr.corp.intel.com>
+From: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH] opensm/osm_sa.c: don't ignore failure in
+ osm_mgrp_add_port()
+Date: Wed, 28 Oct 2009 18:58:57 +0200
+Message-ID: <20091028165857.GF6843@me>
+References: <4AE814E3.4090405@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <4E89386C612E46C9A33501CEC2521BAF-Zpru7NauK7drdx17CPfAsdBPR1lH4CV8@public.gmane.org>
+In-Reply-To: <4AE814E3.4090405-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "David J. Wilder" <dwilder-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>, leo.tominna-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: Linux RDMA <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Oct 28, 2009 at 01:08:33AM -0700, Sean Hefty wrote:
-> >Here is how I think this should all go. I can't steal some machines to
-> >test it right now (prolly can't till after SC|09), but David/Sean maybe
-> >you can have a look at it?
+On 11:54 Wed 28 Oct     , Yevgeny Kliteynik wrote:
+> Hi Sasha,
 > 
-> I will try to test it some this week.
-
-Thanks, probably won't work right away, but I feel it is closer..
-
-Do you have any idea about the ARP things? Is whoever did this
-originally still around?
-
-> >AH, there is still another oopsie I just noticed, rdma_resolve_addr
-> >does not check that dst_addr and src_addr are the same AF
+> Small fix in loading SA DB: don't ignore failure
+> in osm_mgrp_add_port() - require clients re-registration.
 > 
-> I was actually considering making use of this to allow AF_INET or AF_INET6 to
-> communicate with AF_IB.  There's not a protocol limitation to supporting this.
+> Signed-off-by: Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 
-Hum.. Not sure how that would work? src = AF_INET, dst = AF_IB?
+Applied. Thanks.
 
-I guess I was hoping you'd be able to do the private data in userspace
-and avoid those kind of special cases..
-
-Jason
+Sasha
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
