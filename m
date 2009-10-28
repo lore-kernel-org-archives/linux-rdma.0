@@ -1,40 +1,28 @@
-From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH v3] [RFC] rdma/cm: support option to allow manually setting IB path
-Date: Wed, 28 Oct 2009 11:11:22 -0700
-Message-ID: <adaiqdzs81h.fsf@cisco.com>
-References: <F0EFC2D8E6A340D48497497670C5969C@amr.corp.intel.com>
-	<A08104C1CF70400F8BEF492AD49C8491@amr.corp.intel.com>
-	<20091020181458.GD14520@obsidianresearch.com>
-	<46770152ACA04B6C8AA9497C45AC8FD0@amr.corp.intel.com>
-	<20091020191404.GH14520@obsidianresearch.com>
-	<9DFD8E65325F4EE990749EEBE4BC33CA@amr.corp.intel.com>
-	<20091022004245.GV14520@obsidianresearch.com>
-	<AE35305D45DB49F591A45DADD822209A@amr.corp.intel.com>
-	<20091022013542.GX14520@obsidianresearch.com>
-	<B7E97540810E4A2785FF1FC8CB96F453@amr.corp.intel.com>
-	<DC0770A17FDC4DACAC0251A3362CE87A@amr.corp.intel.com>
+From: Chris Worley <worleys-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Adjusting minimum packet size or "wait to merge requests" in SRP
+Date: Wed, 28 Oct 2009 12:47:45 -0600
+Message-ID: <f3177b9e0910281147u5a47f75ao8bbe156d5b04969c@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <DC0770A17FDC4DACAC0251A3362CE87A-Zpru7NauK7drdx17CPfAsdBPR1lH4CV8@public.gmane.org> (Sean
-	Hefty's message of "Thu, 22 Oct 2009 13:26:37 -0700")
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: 'Jason Gunthorpe' <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, scst-devel <scst-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This looks fine to me... the only thing I could wonder about is:
+It appears that SRP tries to coalesce and fragment initiator I/O
+requests into 64KB packets, as that looks to be the size requested
+to/from the device on the target side (and the I/O scheduler is
+disabled on the target).
 
- > +	RDMA_OPTION_ID_TOS	= 0,
- > +
- > +	RDMA_OPTION_IB_PATH	= 1
+Is there a way to control this, where no coalescing occurs when
+latency is an issue and requests are small, and no fragmentation
+occurs when requests are large?
 
-why a blank line here? ;)
-
-Jason and Or, does this seem ready to queue for 2.6.33?
+Or, am I totally wrong in my assumption that SRP is coalescing/fragmenting data?
 
 Thanks,
-  Roland
+
+Chris
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
