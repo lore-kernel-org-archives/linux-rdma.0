@@ -1,49 +1,44 @@
-From: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH] opemsm code cleanup
-Date: Wed, 28 Oct 2009 18:15:07 +0200
-Message-ID: <20091028161506.GD6843@me>
-References: <394674AC37584063BC9059F30CB083C9@amr.corp.intel.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH RDMA] Fixup IPv6 support and IPv4 routing corner cases for	RDMA CM
+Date: Wed, 28 Oct 2009 10:46:15 -0600
+Message-ID: <20091028164615.GC1966@obsidianresearch.com>
+References: <20091028054253.GA22882@obsidianresearch.com> <4AE859F8.2030708@Voltaire.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <394674AC37584063BC9059F30CB083C9-Zpru7NauK7drdx17CPfAsdBPR1lH4CV8@public.gmane.org>
+In-Reply-To: <4AE859F8.2030708-hKgKHo2Ms0FWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Stan C. Smith" <stan.smith-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ofw-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
+To: Or Gerlitz <ogerlitz-hKgKHo2Ms0FWk0Htik3J/w@public.gmane.org>
+Cc: "David J. Wilder" <dwilder-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>, leo.tominna-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 10:43 Tue 27 Oct     , Stan C. Smith wrote:
+On Wed, Oct 28, 2009 at 04:49:28PM +0200, Or Gerlitz wrote:
+> Jason Gunthorpe wrote:
+> > **COMPILE TESTED ONLY**
 > 
-> Cleanup code by removing if statement which does nothing.
-> 
-> Signed-off-by: stan smith <stan.smith-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> any reason why other people have to test for you?
 
-Whitespaces are mangled in the patch. Applied by hands. Thanks.
+Just a preliminary proposal - other people can do whatever they
+want. Look at the list of things it fixes and decide your self if you
+want to help or not <shrug>
 
-Sasha
+> > Convert the address resolution process for outgoing connections
+> > to be very similar to the way the TCP stack does the same operations.
+> > This fixes many corner case bugs that can crop up.
+> 
+> rdma_join_multicast(3) states that "before joining a multicast
+> group, the rdma_cm_id must be bound to an RDMA device by calling
+> rdma_bind_addr or rdma_resolve_addr", please make sure that this
+> flow isn't broken by your patch.
 
-> 
-> diff --git a/opensm/opensm/osm_vl15intf.c b/opensm/opensm/osm_vl15intf.c
-> index 9e43a9c..ee9626f 100644
-> --- a/opensm/opensm/osm_vl15intf.c
-> +++ b/opensm/opensm/osm_vl15intf.c
-> @@ -271,9 +271,6 @@ ib_api_status_t osm_vl15_init(IN osm_vl15_t * p_vl, IN osm_vendor_t * p_vend,
->          */
->         status = cl_thread_init(&p_vl->poller, vl15_poller, p_vl,
->                                 "opensm poller");
-> -       if (status != IB_SUCCESS)
-> -               goto Exit;
-> -
->  Exit:
->         OSM_LOG_EXIT(p_log);
->         return (status);
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+Can you explain how rdma_resolve_addr is used in conjunction with
+multicast? I do not understand what the dest would be. Is it just a man
+page typo?
+
+I belive the rdma_bind_addr path is unaffected.
+
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
