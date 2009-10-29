@@ -1,7 +1,7 @@
 From: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH] opensm/osm_mcast_mgr: simplify alloc_mfts()
-Date: Thu, 29 Oct 2009 21:18:28 +0200
-Message-ID: <20091029191828.GC20136@me>
+Subject: [PATCH] opensm/osm_mcast_tbl: remove redundant checks
+Date: Thu, 29 Oct 2009 21:19:06 +0200
+Message-ID: <20091029191906.GD20136@me>
 References: <20091023234856.GA1482@comcast.net>
  <20091029191732.GB20136@me>
 Mime-Version: 1.0
@@ -15,49 +15,60 @@ Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 
-Remove not actually needed 'max_mlid' variable from alloc_mft()
-function.
+Remove some redundant checks introduced by MFTs reallocation patch.
 
 Signed-off-by: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
 ---
- opensm/opensm/osm_mcast_mgr.c |   14 ++++----------
- 1 files changed, 4 insertions(+), 10 deletions(-)
+ opensm/opensm/osm_mcast_tbl.c |   12 ++----------
+ 1 files changed, 2 insertions(+), 10 deletions(-)
 
-diff --git a/opensm/opensm/osm_mcast_mgr.c b/opensm/opensm/osm_mcast_mgr.c
-index a5e9758..faa0c4b 100644
---- a/opensm/opensm/osm_mcast_mgr.c
-+++ b/opensm/opensm/osm_mcast_mgr.c
-@@ -1048,17 +1048,12 @@ static int alloc_mfts(osm_sm_t * sm)
- 	int i;
- 	cl_map_item_t *item;
- 	osm_switch_t *p_sw;
--	int max_mlid = 0;
+diff --git a/opensm/opensm/osm_mcast_tbl.c b/opensm/opensm/osm_mcast_tbl.c
+index 6cc97b1..b5ae6f2 100644
+--- a/opensm/opensm/osm_mcast_tbl.c
++++ b/opensm/opensm/osm_mcast_tbl.c
+@@ -99,11 +99,9 @@ void osm_mcast_tbl_set(IN osm_mcast_tbl_t * p_tbl, IN uint16_t mlid_ho,
+ 	uintn_t bit_mask;
+ 	int16_t block_num;
  
- 	for (i = sm->p_subn->max_mcast_lid_ho - IB_LID_MCAST_START_HO; i >= 0;
--	     i--) {
--		if (sm->p_subn->mgroups[i]) {
--			max_mlid = i + IB_LID_MCAST_START_HO;
-+	     i--)
-+		if (sm->p_subn->mgroups[i])
- 			break;
--		}
--	}
--
--	if (max_mlid == 0)
-+	if (i < 0)
- 		return 0;
+-	CL_ASSERT(p_tbl);
++	CL_ASSERT(p_tbl && p_tbl->p_mask_tbl);
+ 	CL_ASSERT(mlid_ho >= IB_LID_MCAST_START_HO);
+ 	CL_ASSERT(mlid_ho <= p_tbl->max_mlid_ho);
+-	CL_ASSERT(mlid_ho - IB_LID_MCAST_START_HO < p_tbl->mft_depth);
+-	CL_ASSERT(p_tbl->p_mask_tbl);
  
- 	/* Now, walk switches and (re)allocate multicast tables */
-@@ -1066,8 +1061,7 @@ static int alloc_mfts(osm_sm_t * sm)
- 	     item != cl_qmap_end(&sm->p_subn->sw_guid_tbl);
- 	     item = cl_qmap_next(item)) {
- 		p_sw = (osm_switch_t *)item;
--		if (osm_mcast_tbl_realloc(&p_sw->mcast_tbl,
--					  max_mlid - IB_LID_MCAST_START_HO))
-+		if (osm_mcast_tbl_realloc(&p_sw->mcast_tbl, i))
- 			return -1;
+ 	mlid_offset = mlid_ho - IB_LID_MCAST_START_HO;
+ 	mask_offset = port / IB_MCAST_MASK_SIZE;
+@@ -168,8 +166,6 @@ boolean_t osm_mcast_tbl_is_port(IN const osm_mcast_tbl_t * p_tbl,
+ 		CL_ASSERT(mlid_ho <= p_tbl->max_mlid_ho);
+ 
+ 		mlid_offset = mlid_ho - IB_LID_MCAST_START_HO;
+-		if (mlid_offset >= p_tbl->mft_depth)
+-			return FALSE;
+ 		mask_offset = port_num / IB_MCAST_MASK_SIZE;
+ 		bit_mask = cl_ntoh16((uint16_t)
+ 				     (1 << (port_num % IB_MCAST_MASK_SIZE)));
+@@ -197,8 +193,6 @@ boolean_t osm_mcast_tbl_is_any_port(IN const osm_mcast_tbl_t * p_tbl,
+ 		CL_ASSERT(mlid_ho <= p_tbl->max_mlid_ho);
+ 
+ 		mlid_offset = mlid_ho - IB_LID_MCAST_START_HO;
+-		if (mlid_offset >= p_tbl->mft_depth)
+-			return FALSE;
+ 
+ 		for (position = 0; position <= p_tbl->max_position; position++)
+ 			result |= (*p_tbl->p_mask_tbl)[mlid_offset][position];
+@@ -250,10 +244,8 @@ void osm_mcast_tbl_clear_mlid(IN osm_mcast_tbl_t * p_tbl, IN uint16_t mlid_ho)
+ 	CL_ASSERT(p_tbl);
+ 	CL_ASSERT(mlid_ho >= IB_LID_MCAST_START_HO);
+ 
+-	if (p_tbl->p_mask_tbl && (mlid_ho <= p_tbl->max_mlid_ho)) {
++	if (p_tbl->p_mask_tbl && mlid_ho <= p_tbl->max_mlid_ho) {
+ 		mlid_offset = mlid_ho - IB_LID_MCAST_START_HO;
+-		if (mlid_offset >= p_tbl->mft_depth)
+-			return;
+ 		for (i = 0; i <= p_tbl->max_position; i++)
+ 			(*p_tbl->p_mask_tbl)[mlid_offset][i] = 0;
  	}
- 	return 0;
 -- 
 1.6.5.1
 
