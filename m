@@ -1,90 +1,100 @@
-From: Vu Pham <vuhuong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [ofa-general][PATCH 3/4] SRP fail-over faster
-Date: Thu, 29 Oct 2009 09:37:54 -0700
-Message-ID: <4AE9C4E2.7090801@mellanox.com>
-References: <4AD3B453.3030109@mellanox.com> <ada1vl5alqh.fsf@cisco.com>	<4AD63681.6080901@mellanox.com> <adaljjd8zrj.fsf@cisco.com>	<4AD63DB1.3060906@mellanox.com> <adahbu18uf5.fsf@cisco.com>	<1255570760.13845.4.camel@obelisk.thedillows.org>	<4AD74C88.8030604@mellanox.com>	<1255634715.29829.9.camel@lap75545.ornl.gov>	<20091015213512.GW5191@obsidianresearch.com>	<4AE0E71E.20309@mellanox.com> <adavdhzs8iv.fsf@cisco.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Kevin Harms <harms-Kw/0HyiNjNCfRvmTrFJqzg@public.gmane.org>
+Subject: Ubuntu and OFED package
+Date: Thu, 29 Oct 2009 11:10:34 -0500
+Message-ID: <5D00672F-A0D5-4A5C-8C62-D32AA922C4AF@alcf.anl.gov>
+Mime-Version: 1.0 (Apple Message framework v936)
+Content-Type: multipart/signed; boundary=Apple-Mail-29--647439714; micalg=sha1; protocol="application/pkcs7-signature"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <adavdhzs8iv.fsf-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>, Linux RDMA list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Bart Van Assche <bart.vanassche-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Roland Dreier wrote:
->  > +	if (timer_pending(&target->qp_err_timer))
->  > +		del_timer_sync(&target->qp_err_timer);
->  > +
->  >  	spin_unlock_irq(target->scsi_host->host_lock);
->
-> As was pointed out, I don't think you can do del_timer_sync while
-> holding the lock, since the timer function takes the same lock.
->
->   
 
-I don't think that it takes the same lock (ie. host_lock).; however, the 
-problem is  kernel configured CONFIG_LOCKDEP, del_timer_sync()  call 
-local_irq_save/restore() to acquire/release timer->lockdep_map
+--Apple-Mail-29--647439714
+Content-Type: text/plain;
+	charset=US-ASCII;
+	format=flowed;
+	delsp=yes
+Content-Transfer-Encoding: 7bit
 
-> But I don't know that just switching to del_timer without the sync works
-> here ... without the sync then the timeout function could still run any
-> time after the del_timer, even after everything gets freed.
->
->   
-I will move del_timer_sync() of the host_lock. It's safe because we only 
-setup the same timer when the target state is ALIVE, however, target 
-state is already REMOVED when del_timer_sync() is called
 
-> BTW the test of timer_pending isn't needed here... del_timer does the
-> test internally anyway.
->
-> I do agree it would be very good to improve the SRP error handling.  I
-> have some concerns about the overall design here -- it seems that if we
-> handle connection failure and allow a new connection to proceed while
-> cleaning up asynchronously, then this opens the door to a lot of
-> complexity, and I don't see that complexity handled in this patchset.
-> For example, the new connection could fail too before the old one is
-> done cleaning up, etc, etc and we end up with an arbitrarily large queue
-> of things waiting to clean up.  Or maybe it really it is simpler than that.
->
->   
-It's is complicated; however, it is not as complicated as you said.
-There are two flows/places where we clean-up connection and create new 
-one (ie. call srp_reconnect_target) in async event timer and scsi error 
-handling srp_reset_host(); however, in srp_reset_host() the patch 3/4 
-check for true condition of  timer_pending or qp_in_error or target 
-state wrapped in host_lock then it won't call srp_reconnect_target(). It 
-left one flow/place to clean up / create new connection.
+   I'm having an issue with using the available distro OFED package.  
+This was with Ubuntu 9.04:
 
-We destroy cm connection/cq/qp and create new connection/cq/qp in the 
-same flow/place; we also already clean up all scsi/srp resources 
-associated with old connection before create new one; therefore, the 
-only resources pended for clean up is cm/connection resources, qp/cq 
-low-level resources. And I believe the lower IB stack does that well.
+node:~$ sudo ibv_devinfo
+mlx4: There is a mismatch between the kernel and the userspace  
+libraries: Kernel does not support XRC. Exiting.
+Failed to open device
 
-> I think the best way to move this forward would be to post another
-> cleaned up version of your patch set.  Please try to reorganize things
-> so each patch is reasonably self contained.  Of course your patchset is
-> taking multiple steps to improve things.  But as much as possible,
-> please try to avoid combining two things into a single patch, and
-> conversely also try to avoid putting things into a patch that don't make
-> sense without a later patch.
->
-> Avoiding policy in the kernel as much as possible in terms of hard-coded
-> timeouts etc is a good goal too.
->
-> Also it would help to give each patch a separate descriptive subject,
-> and put as much detail in the changelogs as you can.
->
-> Thanks,
->   Roland
->   
-I'll follow the instructions above, rework the patch set and resubmit
+    This was using the 2.6.28-11-server kernel. We also tried backing  
+down to a 2.6.27-15-server kernel and got a similar error.
+
+   Can anyone give me a hint on what to do? Or do i need to scrap the  
+ubuntu provided package?
 
 thanks,
--vu
+kevin
+--Apple-Mail-29--647439714
+Content-Disposition: attachment;
+	filename=smime.p7s
+Content-Type: application/pkcs7-signature;
+	name=smime.p7s
+Content-Transfer-Encoding: base64
+
+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
+AAA=
+
+--Apple-Mail-29--647439714--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
