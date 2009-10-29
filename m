@@ -1,111 +1,39 @@
-From: Kevin Harms <harms-Kw/0HyiNjNCfRvmTrFJqzg@public.gmane.org>
-Subject: Re: Ubuntu and OFED package
-Date: Thu, 29 Oct 2009 12:48:10 -0500
-Message-ID: <EF2EEAE0-C631-41F0-B694-699DFB1E06DC@alcf.anl.gov>
-References: <5D00672F-A0D5-4A5C-8C62-D32AA922C4AF@alcf.anl.gov> <ada3a525cex.fsf@cisco.com>
-Mime-Version: 1.0 (Apple Message framework v936)
-Content-Type: multipart/signed; boundary=Apple-Mail-33--641583966; micalg=sha1; protocol="application/pkcs7-signature"
+From: Vladislav Bolkhovitin <vst-d+Crzxg7Rs0@public.gmane.org>
+Subject: Re: [Scst-devel] Adjusting minimum packet size or "wait to merge
+ requests" in SRP
+Date: Thu, 29 Oct 2009 21:30:41 +0300
+Message-ID: <4AE9DF51.9020707@vlnb.net>
+References: <f3177b9e0910281147u5a47f75ao8bbe156d5b04969c@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <ada3a525cex.fsf-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <f3177b9e0910281147u5a47f75ao8bbe156d5b04969c-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Chris Worley <worleys-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, scst-devel <scst-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+Chris Worley, on 10/28/2009 09:47 PM wrote:
+> It appears that SRP tries to coalesce and fragment initiator I/O
+> requests into 64KB packets, as that looks to be the size requested
+> to/from the device on the target side (and the I/O scheduler is
+> disabled on the target).
+> 
+> Is there a way to control this, where no coalescing occurs when
+> latency is an issue and requests are small, and no fragmentation
+> occurs when requests are large?
+> 
+> Or, am I totally wrong in my assumption that SRP is coalescing/fragmenting data?
 
---Apple-Mail-33--641583966
-Content-Type: text/plain;
-	charset=US-ASCII;
-	format=flowed;
-	delsp=yes
-Content-Transfer-Encoding: 7bit
+You can at any time see size of requests you are receiving on the target 
+side by either enabling "scsi" logging (hopefully, you know how to do 
+it) or by looking in /proc/scsi_tgt/sgv. In the latter file you will see 
+general statistics for power of 2 allocations, i.e. request for 10K will 
+increase 16K row.
 
+Vlad
 
-   I agree. I guess i was asking specifically if someone knew what the  
-correct ubuntu magic was. There is a single ubuntu "ofed" package. I  
-don't find any reference to a special ubuntu kernel version for use  
-with ofed.
-
-thanks,
-kevin
-
-On Oct 29, 2009, at 12:37 PM, Roland Dreier wrote:
-
->
->> node:~$ sudo ibv_devinfo
->> mlx4: There is a mismatch between the kernel and the userspace
->> libraries: Kernel does not support XRC. Exiting.
->> Failed to open device
->
-> It seems you are using the default Ubuntu kernel but a libmlx4 package
-> from somewhere else.  If you are using the OFED-patched libmlx4 you  
-> will
-> need to use the OFED-patched kernel too.
->
-> - R.
-
-
---Apple-Mail-33--641583966
-Content-Disposition: attachment;
-	filename=smime.p7s
-Content-Type: application/pkcs7-signature;
-	name=smime.p7s
-Content-Transfer-Encoding: base64
-
-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
-AAA=
-
---Apple-Mail-33--641583966--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
