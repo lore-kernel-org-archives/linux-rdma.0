@@ -1,25 +1,25 @@
 From: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Subject: Re: [infiniband-diags] [PATCH] [1/2] split out ibnd_fabric_t
- fields that are only used during a scan
-Date: Thu, 29 Oct 2009 23:39:00 +0200
-Message-ID: <20091029213900.GG20136@me>
-References: <1256773929.4819.190.camel@auk31.llnl.gov>
+Subject: Re: [infiniband-diags] [PATCH] [2/2] remove 'dist' field from
+ ibnd_node_t, which was virtually not used
+Date: Thu, 29 Oct 2009 23:39:18 +0200
+Message-ID: <20091029213918.GH20136@me>
+References: <1256773931.4819.192.camel@auk31.llnl.gov>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1256773929.4819.190.camel-X2zTWyBD0EhliZ7u+bvwcg@public.gmane.org>
+In-Reply-To: <1256773931.4819.192.camel-X2zTWyBD0EhliZ7u+bvwcg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Al Chu <chu11-i2BcT+NCU+M@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 On 16:52 Wed 28 Oct     , Al Chu wrote:
-> Split out public parameters from ibnd_fabric_t that are useless b/c they
-> are only used during the ibnetdiscover scan.
-> 
-> Note that this patch has similarities to a previous patch from Ira,
-> however it is separate and independent of that patch series.
+> Remove the 'dist' field from the ibnd_node_t struct and rearch code
+> appropriately.  It ends up this field was only used to pass a value from
+> create_node() to add_to_nodedist(), of which create_node() is the only
+> function that calls add_to_nodedist().  In other words, it served pretty
+> much no purpose.
 > 
 > Al
 > 
@@ -31,13 +31,13 @@ On 16:52 Wed 28 Oct     , Al Chu wrote:
 > Lawrence Livermore National Laboratory
 
 > From: Albert Chu <chu11-i2BcT+NCU+M@public.gmane.org>
-> Date: Tue, 27 Oct 2009 16:16:14 -0700
-> Subject: [PATCH] split out ibnd_fabric_t fields that are only used during a scan
+> Date: Wed, 28 Oct 2009 16:18:39 -0700
+> Subject: [PATCH] remove 'dist' field from ibnd_node_t, which was virtually not used
 > 
 > 
 > Signed-off-by: Albert Chu <chu11-i2BcT+NCU+M@public.gmane.org>
 
-Applies. Thanks.
+Applied. Thanks.
 
 Sasha
 --
