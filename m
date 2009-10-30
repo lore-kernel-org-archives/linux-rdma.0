@@ -1,206 +1,185 @@
-From: "Sean Hefty" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH v4] rdma/cm: support option to allow manually setting IB path
-Date: Thu, 29 Oct 2009 18:49:47 -0700
-Message-ID: <1B115D7248A5404781F001F72A7C591A@amr.corp.intel.com>
-References: <F0EFC2D8E6A340D48497497670C5969C@amr.corp.intel.com> <A08104C1CF70400F8BEF492AD49C8491@amr.corp.intel.com> <20091020181458.GD14520@obsidianresearch.com> <46770152ACA04B6C8AA9497C45AC8FD0@amr.corp.intel.com> <20091020191404.GH14520@obsidianresearch.com> <9DFD8E65325F4EE990749EEBE4BC33CA@amr.corp.intel.com> <20091022004245.GV14520@obsidianresearch.com> <AE35305D45DB49F591A45DADD822209A@amr.corp.intel.com> <20091022013542.GX14520@obsidianresearch.com> <B7E97540810E4A2785FF1FC8CB96F453@amr.corp.intel.com> <DC0770A17FDC4DACAC0251A3362CE87A@amr.corp.intel.com>
+From: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH] opensm/osm_trap_rcv.c: In trap_rcv_process_request, no
+ need to sweep on trap 145 and certain trap 144s
+Date: Fri, 30 Oct 2009 03:57:11 +0200
+Message-ID: <20091030015711.GS20136@me>
+References: <20090805222737.GA8523@comcast.net>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <DC0770A17FDC4DACAC0251A3362CE87A-Zpru7NauK7drdx17CPfAsdBPR1lH4CV8@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20090805222737.GA8523-Wuw85uim5zDR7s880joybQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Jason Gunthorpe' <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org
+To: Hal Rosenstock <hnrose-Wuw85uim5zDR7s880joybQ@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Export rdma_set_ib_paths to user space to allow applications to
-manually set the IB path used for connections.  This allows
-alternative ways for a user space application or library to obtain
-path record information, including retrieving path information
-from cached data, avoiding direct interaction with the IB SA.
-The IB SA is a single, centralized entity that can limit scaling
-on large clusters running MPI applications.
+Hi Hal,
 
-Future changes to the rdma cm can expand on this framework to
-support the full range of features allowed by the IB CM, such as
-separate forward and reverse paths and APM.
+On 18:27 Wed 05 Aug     , Hal Rosenstock wrote:
+> 
+> NodeDescription changed trap only needs to query the new NodeDescription
+> and not cause sweep
+> 
+> Similarly for SystemImageGUID changed (trap 145)
+> 
+> LinkWidth/SpeedEnabled changed traps (at least right now) and
+> SM priority changed traps do need to sweep.
+> 
+> In the future, LinkWidth/SpeedEnabled changed trap handling
+> can query PortInfo (may also need to bounce port too).
+> 
+> Also, as noted in related email thread, it's unclear what
+> sweeping on non generic traps accomplishes but this behavior
+> is preserved.
+> 
+> Signed-off-by: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+> ---
+> diff --git a/opensm/opensm/osm_trap_rcv.c b/opensm/opensm/osm_trap_rcv.c
+> index d2e4202..e5bd529 100644
+> --- a/opensm/opensm/osm_trap_rcv.c
+> +++ b/opensm/opensm/osm_trap_rcv.c
+> @@ -291,8 +291,9 @@ trap_rcv_process_request(IN osm_sm_t * sm,
+>  	osm_physp_t *p_physp;
+>  	cl_ptr_vector_t *p_tbl;
+>  	osm_port_t *p_port;
+> +	osm_node_t *p_node;
+>  	ib_net16_t source_lid = 0;
+> -	boolean_t is_gsi = TRUE;
+> +	boolean_t is_gsi = TRUE, is_trap144_sweep = FALSE;
 
-Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Reviewed-By: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
----
-changes from v3: removed extra blank line
+What about reusing already existing 'run_heavy_sweep' variable and not
+introduce new one?
 
-I was able to test successfully on 2.6.31.  Please merge for 2.6.33.
+>  	uint8_t port_num = 0;
+>  	boolean_t physp_change_trap = FALSE;
+>  	uint64_t event_wheel_timeout = OSM_DEFAULT_TRAP_SUPRESSION_TIMEOUT;
+> @@ -547,44 +548,59 @@ trap_rcv_process_request(IN osm_sm_t * sm,
+>  		}
+>  	}
 
+In general: function trap_rcv_process_request() already has 400 lines of
+code and adding there more lines without simplifying flows makes me
+nervous.
 
- drivers/infiniband/core/sa_query.c |    6 ++++
- drivers/infiniband/core/ucma.c     |   49 ++++++++++++++++++++++++++++++++++++
- include/rdma/ib_sa.h               |    6 ++++
- include/rdma/ib_user_sa.h          |   16 ++++++++++++
- include/rdma/rdma_user_cm.h        |    6 +++-
- 5 files changed, 81 insertions(+), 2 deletions(-)
+>  
+> -	/* Check for node description update. IB Spec v1.2.1 pg 823 */
+> -	if (ib_notice_is_generic(p_ntci) &&
+> -	    cl_ntoh16(p_ntci->g_or_v.generic.trap_num) == 144 &&
+> -	    p_ntci->data_details.ntc_144.local_changes & TRAP_144_MASK_OTHER_LOCAL_CHANGES &&
+> -	    p_ntci->data_details.ntc_144.change_flgs & TRAP_144_MASK_NODE_DESCRIPTION_CHANGE) {
+> -		OSM_LOG(sm->p_log, OSM_LOG_INFO, "Trap 144 Node description update\n");
+> -
+> -		if (p_physp) {
+> -			CL_PLOCK_ACQUIRE(sm->p_lock);
+> -			osm_req_get_node_desc(sm, p_physp);
+> -			CL_PLOCK_RELEASE(sm->p_lock);
+> -		} else
+> -			OSM_LOG(sm->p_log, OSM_LOG_ERROR,
+> -				"ERR 3812: No physical port found for "
+> -				"trap 144: \"node description update\"\n");
+> -	}
+> +	if (ib_notice_is_generic(p_ntci)) {
+> +		/* Check for node description update. IB Spec v1.2.1 pg 823 */
+> +		if (cl_ntoh16(p_ntci->g_or_v.generic.trap_num) == 144) {
+> +			/* update port's capability mask (in PortInfo) */
+> +			p_physp->port_info.capability_mask = p_ntci->data_details.ntc_144.new_cap_mask;
 
-diff --git a/drivers/infiniband/core/sa_query.c
-b/drivers/infiniband/core/sa_query.c
-index 1865049..2e73dcc 100644
---- a/drivers/infiniband/core/sa_query.c
-+++ b/drivers/infiniband/core/sa_query.c
-@@ -604,6 +604,12 @@ retry:
- 	return ret ? ret : id;
- }
- 
-+void ib_sa_unpack_path(void *attribute, struct ib_sa_path_rec *rec)
-+{
-+	ib_unpack(path_rec_table, ARRAY_SIZE(path_rec_table), attribute, rec);
-+}
-+EXPORT_SYMBOL(ib_sa_unpack_path);
-+
- static void ib_sa_path_rec_callback(struct ib_sa_query *sa_query,
- 				    int status,
- 				    struct ib_sa_mad *mad)
-diff --git a/drivers/infiniband/core/ucma.c b/drivers/infiniband/core/ucma.c
-index 4346a24..23d9939 100644
---- a/drivers/infiniband/core/ucma.c
-+++ b/drivers/infiniband/core/ucma.c
-@@ -42,6 +42,7 @@
- #include <rdma/rdma_user_cm.h>
- #include <rdma/ib_marshall.h>
- #include <rdma/rdma_cm.h>
-+#include <rdma/rdma_cm_ib.h>
- 
- MODULE_AUTHOR("Sean Hefty");
- MODULE_DESCRIPTION("RDMA Userspace Connection Manager Access");
-@@ -811,6 +812,51 @@ static int ucma_set_option_id(struct ucma_context *ctx, int
-optname,
- 	return ret;
- }
- 
-+static int ucma_set_ib_path(struct ucma_context *ctx,
-+			    struct ib_path_rec_data *path_data, size_t optlen)
-+{
-+	struct ib_sa_path_rec sa_path;
-+	struct rdma_cm_event event;
-+	int ret;
-+
-+	if (optlen % sizeof(*path_data))
-+		return -EINVAL;
-+
-+	for (; optlen; optlen -= sizeof(*path_data), path_data++) {
-+		if (path_data->flags == (IB_PATH_GMP | IB_PATH_PRIMARY |
-+					 IB_PATH_BIDIRECTIONAL))
-+			break;
-+	}
-+
-+	if (!optlen)
-+		return -EINVAL;
-+
-+	ib_sa_unpack_path(path_data->path_rec, &sa_path);
-+	ret = rdma_set_ib_paths(ctx->cm_id, &sa_path, 1);
-+	if (ret)
-+		return ret;
-+
-+	memset(&event, 0, sizeof event);
-+	event.event = RDMA_CM_EVENT_ROUTE_RESOLVED;
-+	return ucma_event_handler(ctx->cm_id, &event);
-+}
-+
-+static int ucma_set_option_ib(struct ucma_context *ctx, int optname,
-+			      void *optval, size_t optlen)
-+{
-+	int ret;
-+
-+	switch (optname) {
-+	case RDMA_OPTION_IB_PATH:
-+		ret = ucma_set_ib_path(ctx, optval, optlen);
-+		break;
-+	default:
-+		ret = -ENOSYS;
-+	}
-+
-+	return ret;
-+}
-+
- static int ucma_set_option_level(struct ucma_context *ctx, int level,
- 				 int optname, void *optval, size_t optlen)
- {
-@@ -820,6 +866,9 @@ static int ucma_set_option_level(struct ucma_context *ctx,
-int level,
- 	case RDMA_OPTION_ID:
- 		ret = ucma_set_option_id(ctx, optname, optval, optlen);
- 		break;
-+	case RDMA_OPTION_IB:
-+		ret = ucma_set_option_ib(ctx, optname, optval, optlen);
-+		break;
- 	default:
- 		ret = -ENOSYS;
- 	}
-diff --git a/include/rdma/ib_sa.h b/include/rdma/ib_sa.h
-index 3841c1a..1082afa 100644
---- a/include/rdma/ib_sa.h
-+++ b/include/rdma/ib_sa.h
-@@ -379,4 +379,10 @@ int ib_init_ah_from_path(struct ib_device *device, u8
-port_num,
- 			 struct ib_sa_path_rec *rec,
- 			 struct ib_ah_attr *ah_attr);
- 
-+/**
-+ * ib_sa_unpack_path - Convert a path record from MAD format to struct
-+ * ib_sa_path_rec.
-+ */
-+void ib_sa_unpack_path(void *attribute, struct ib_sa_path_rec *rec);
-+
- #endif /* IB_SA_H */
-diff --git a/include/rdma/ib_user_sa.h b/include/rdma/ib_user_sa.h
-index 6591201..cfc7c9b 100644
---- a/include/rdma/ib_user_sa.h
-+++ b/include/rdma/ib_user_sa.h
-@@ -35,6 +35,22 @@
- 
- #include <linux/types.h>
- 
-+enum {
-+	IB_PATH_GMP		= 1,
-+	IB_PATH_PRIMARY		= (1<<1),
-+	IB_PATH_ALTERNATE	= (1<<2),
-+	IB_PATH_OUTBOUND	= (1<<3),
-+	IB_PATH_INBOUND		= (1<<4),
-+	IB_PATH_INBOUND_REVERSE = (1<<5),
-+	IB_PATH_BIDIRECTIONAL	= IB_PATH_OUTBOUND | IB_PATH_INBOUND_REVERSE
-+};
-+
-+struct ib_path_rec_data {
-+	__u32	flags;
-+	__u32	reserved;
-+	__u32	path_rec[16];
-+};
-+
- struct ib_user_path_rec {
- 	__u8	dgid[16];
- 	__u8	sgid[16];
-diff --git a/include/rdma/rdma_user_cm.h b/include/rdma/rdma_user_cm.h
-index c557054..1d16502 100644
---- a/include/rdma/rdma_user_cm.h
-+++ b/include/rdma/rdma_user_cm.h
-@@ -215,12 +215,14 @@ struct rdma_ucm_event_resp {
- 
- /* Option levels */
- enum {
--	RDMA_OPTION_ID		= 0
-+	RDMA_OPTION_ID		= 0,
-+	RDMA_OPTION_IB		= 1
- };
- 
- /* Option details */
- enum {
--	RDMA_OPTION_ID_TOS	= 0
-+	RDMA_OPTION_ID_TOS	= 0,
-+	RDMA_OPTION_IB_PATH	= 1
- };
- 
- struct rdma_ucm_set_option {
+Hmm, could this introduce some issues?
+
+> +			if (p_ntci->data_details.ntc_144.local_changes & TRAP_144_MASK_OTHER_LOCAL_CHANGES) {
+> +				if (p_ntci->data_details.ntc_144.change_flgs & TRAP_144_MASK_NODE_DESCRIPTION_CHANGE) {
+
+	if ((p_ntci->data_details.ntc_144.local_changes &
+	     TRAP_144_MASK_OTHER_LOCAL_CHANGES) &&
+	    (p_ntci->data_details.ntc_144.change_flgs &
+	     TRAP_144_MASK_NODE_DESCRIPTION_CHANGE)) {
+
+> +					OSM_LOG(sm->p_log, OSM_LOG_INFO,
+> +						"Trap 144 Node description update\n");
+> +
+> +					if (p_physp) {
+> +						CL_PLOCK_ACQUIRE(sm->p_lock);
+> +						osm_req_get_node_desc(sm, p_physp);
+> +						CL_PLOCK_RELEASE(sm->p_lock);
+> +					} else
+> +						OSM_LOG(sm->p_log, OSM_LOG_ERROR,
+> +							"ERR 3812: No physical port found for "
+> +							"trap 144: \"node description update\"\n");
+> +				}
+> +			}
+> +			if (p_ntci->data_details.ntc_144.change_flgs & TRAP_144_MASK_LINK_WIDTH_ENABLE_CHANGE ||
+> +			    p_ntci->data_details.ntc_144.change_flgs & TRAP_144_MASK_LINK_SPEED_ENABLE_CHANGE ||
+> +			    p_ntci->data_details.ntc_144.change_flgs & TRAP_144_MASK_SM_PRIORITY_CHANGE)
+
+	if ((p_ntci->data_details.ntc_144.change_flgs &
+	     (TRAP_144_MASK_LINK_WIDTH_ENABLE_CHANGE |
+	      TRAP_144_MASK_LINK_SPEED_ENABLE_CHANGE |
+	      TRAP_144_MASK_SM_PRIORITY_CHANGE)))
 
 
+> +				is_trap144_sweep = TRUE;
+> +		}
+>  
+> -	/* do a sweep if we received a trap */
+> -	if (sm->p_subn->opt.sweep_on_trap) {
+> -		/* if this is trap number 128 or run_heavy_sweep is TRUE -
+> -		   update the force_heavy_sweep flag of the subnet.
+> -		   Sweep also on traps 144/145 - these traps signal a change of
+> -		   certain port capabilities/system image guid.
+> -		   TODO: In the future this can be changed to just getting
+> -		   PortInfo on this port instead of sweeping the entire subnet. */
+> -		if (ib_notice_is_generic(p_ntci) &&
+> -		    (cl_ntoh16(p_ntci->g_or_v.generic.trap_num) == 128 ||
+> -		     cl_ntoh16(p_ntci->g_or_v.generic.trap_num) == 144 ||
+> -		     cl_ntoh16(p_ntci->g_or_v.generic.trap_num) == 145 ||
+> -		     run_heavy_sweep)) {
+> -			OSM_LOG(sm->p_log, OSM_LOG_VERBOSE,
+> -				"Forcing heavy sweep. Received trap:%u\n",
+> -				cl_ntoh16(p_ntci->g_or_v.generic.trap_num));
+> +		if (cl_ntoh16(p_ntci->g_or_v.generic.trap_num) == 145) {
+> +			/* update system image guid (in NodeInfo) */
+> +			p_node = osm_physp_get_node_ptr(p_physp);
+> +			if (p_node)
 
+When 'p_node' could be NULL?
+
+> +				p_node->node_info.node_guid = p_ntci->data_details.ntc_145.new_sys_guid;
+
+Didn't you mean 'node_info.sys_guid' and 'node_info.node_guid'?
+
+> +		}
+> +
+> +		/* do a sweep if we received a trap */
+> +		if (sm->p_subn->opt.sweep_on_trap) {
+> +			/* if this is trap number 128 or run_heavy_sweep is
+> +			   TRUE - update the force_heavy_sweep flag of the
+> +			   subnet. Also, sweep on certain types of trap 144.
+> +			   TODO: In the future this can be changed to just
+> +			   getting PortInfo on this port instead of sweeping
+> +			   the entire subnet. */
+> +		    	if (cl_ntoh16(p_ntci->g_or_v.generic.trap_num) == 128 ||
+> +			    is_trap144_sweep || run_heavy_sweep) {
+
+It looks that prevents sweeping on PortInfo:CapMask change which
+is effectively breaks at least SM handover - new SM will be undetected.
+
+> +				OSM_LOG(sm->p_log, OSM_LOG_VERBOSE,
+> +					"Forcing heavy sweep. Received trap:%u\n",
+> +					cl_ntoh16(p_ntci->g_or_v.generic.trap_num));
+>  
+> -			sm->p_subn->force_heavy_sweep = TRUE;
+> +				sm->p_subn->force_heavy_sweep = TRUE;
+> +			}
+> +			osm_sm_signal(sm, OSM_SIGNAL_SWEEP);
+>  		}
+> +	} else if (sm->p_subn->opt.sweep_on_trap)
+>  		osm_sm_signal(sm, OSM_SIGNAL_SWEEP);
+> -	}
+>  
+>  	/* If we reached here due to trap 129/130/131 - do not need to do
+>  	   the notice report. Just goto exit. We know this is the case
+> 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
