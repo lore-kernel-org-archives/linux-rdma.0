@@ -1,82 +1,100 @@
 From: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH] opensm/mcast_tbl: set max_mlid_ho as actually configured
-	mlid
-Date: Fri, 30 Oct 2009 16:44:47 -0400
-Message-ID: <f0e08f230910301344j5b9564a5k9b77fd4e43e48376@mail.gmail.com>
-References: <4AEAEA86.8080309@systemfabricworks.com>
-	 <f0e08f230910300648m4d802f57w2910cea678a3cd1f@mail.gmail.com>
-	 <20091030200620.GB5829@me>
+Subject: Re: [PATCH] opensm: Add configurable retries for transactions
+Date: Fri, 30 Oct 2009 16:51:16 -0400
+Message-ID: <f0e08f230910301351o3f81d787g5e177be10da72319@mail.gmail.com>
+References: <20091024140538.GA5213@comcast.net> <20091030025541.GU20136@me>
+	 <f0e08f230910300848i3a36ceedh4472478b6f492a7d@mail.gmail.com>
+	 <20091030201738.GC5829@me>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20091030200620.GB5829@me>
+In-Reply-To: <20091030201738.GC5829@me>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Oct 30, 2009 at 4:06 PM, Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>=
+On Fri, Oct 30, 2009 at 4:17 PM, Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>=
  wrote:
-> On 09:48 Fri 30 Oct =C2=A0 =C2=A0 , Hal Rosenstock wrote:
+> On 11:48 Fri 30 Oct =C2=A0 =C2=A0 , Hal Rosenstock wrote:
+>> >> @@ -819,6 +821,13 @@ osm_vendor_bind(IN osm_vendor_t * const p_ve=
+nd,
+>> >> =C2=A0 =C2=A0 =C2=A0 p_bind->send_err_callback =3D send_err_callb=
+ack;
+>> >> =C2=A0 =C2=A0 =C2=A0 p_bind->p_mad_pool =3D p_mad_pool;
+>> >> =C2=A0 =C2=A0 =C2=A0 p_bind->port_guid =3D port_guid;
+>> >> + =C2=A0 =C2=A0 if (p_vend->timeout =3D=3D -1) {
+>> >> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 p_bind->timeout =3D p=
+_user_bind->timeout;
+>> >> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 p_bind->max_retries =3D=
+ p_user_bind->retries;
+>> >> + =C2=A0 =C2=A0 } else {
+>> >> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 p_bind->timeout =3D p=
+_vend->timeout;
+>> >> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 p_bind->max_retries =3D=
+ p_vend->max_retries;
+>> >> + =C2=A0 =C2=A0 }
 >> >
->> > diff --git a/opensm/opensm/osm_mcast_tbl.c b/opensm/opensm/osm_mca=
-st_tbl.c
->> > index b5ae6f2..eee9290 100644
->> > --- a/opensm/opensm/osm_mcast_tbl.c
->> > +++ b/opensm/opensm/osm_mcast_tbl.c
->> > @@ -122,7 +122,7 @@ int osm_mcast_tbl_realloc(IN osm_mcast_tbl_t *=
- p_tbl, IN
->> > uintn_t mlid_offset)
->> > =C2=A0 =C2=A0 =C2=A0 =C2=A0uint16_t (*p_mask_tbl)[][IB_MCAST_POSIT=
-ION_MAX];
+>> > Hmm, shouldn't we respect user requested data? Something like:
 >> >
->> > =C2=A0 =C2=A0 =C2=A0 =C2=A0if (mlid_offset < p_tbl->mft_depth)
->> > - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 return 0;
->> > + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 goto done;
+>> > =C2=A0 =C2=A0 =C2=A0 =C2=A0p_bind->timeout =3D p_user_bind->timeou=
+t ? p_user_bind->timeout :
+>> > =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
+=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0p_vend->timeout;
+>> > =C2=A0 =C2=A0 =C2=A0 =C2=A0p_bind->retries =3D p_user_bind->retrie=
+s ? p_user_bind->retries :
+>> > =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
+=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0p_vend->retries;
+>> >
+>> > ?
 >>
->> Why should max_mlid_ho be changed when < mft_depth ?
+>> The -1 is for the new ABI.
 >
-> To be equal to an actually configured max mlid value (not a size of
-> mcast table allocation).
->
->> Doing so makes group removal not work properly.
->
-> This may have this issue, but not due to fact of max_mlid_ho change, =
-but
-> due to invalid check in osm_mcast_tbl_clear_mlid(). I think there it
-> should be something like:
->
-> diff --git a/opensm/opensm/osm_mcast_tbl.c b/opensm/opensm/osm_mcast_=
-tbl.c
-> index 0a45904..a599e56 100644
-> --- a/opensm/opensm/osm_mcast_tbl.c
-> +++ b/opensm/opensm/osm_mcast_tbl.c
-> @@ -245,8 +245,8 @@ void osm_mcast_tbl_clear_mlid(IN osm_mcast_tbl_t =
-* p_tbl, IN uint16_t mlid_ho)
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0CL_ASSERT(p_tbl);
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0CL_ASSERT(mlid_ho >=3D IB_LID_MCAST_START_=
-HO);
->
-> - =C2=A0 =C2=A0 =C2=A0 if (p_tbl->p_mask_tbl && mlid_ho <=3D p_tbl->m=
-ax_mlid_ho) {
-> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 mlid_offset =3D ml=
-id_ho - IB_LID_MCAST_START_HO;
-> + =C2=A0 =C2=A0 =C2=A0 mlid_offset =3D mlid_ho - IB_LID_MCAST_START_H=
-O;
-> + =C2=A0 =C2=A0 =C2=A0 if (p_tbl->p_mask_tbl && mlid_offset < p_tbl->=
-mft_depth) {
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0for (i =3D 0; =
-i <=3D p_tbl->max_position; i++)
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 =C2=A0(*p_tbl->p_mask_tbl)[mlid_offset][i] =3D 0;
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0}
->
-> Does it make sense?
+> Could you elaborate?
 
-Yes, that fixes the removal issue.
+In order to be able to deal with combinations of old/new opensm/vendor =
+layer.
 
-Tested-by: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+>> >> @@ -983,6 +989,11 @@ int main(int argc, char *argv[])
+>> >> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
+=A0 =C2=A0 opt.sm_sl =3D (uint8_t) temp;
+>> >> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
+=A0 =C2=A0 printf(" SMSL =3D %d\n", opt.sm_sl);
+>> >> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
+=A0 =C2=A0 break;
+>> >> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 case 8:
+>> >> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =
+=C2=A0 opt.transaction_retries =3D strtol(optarg, NULL, 0);
+>> >
+>> > Please use strtoul().
+>>
+>> OK. What about transaction_timeout ?
+>
+> Yes, the same is applicable here.
+>
+>> >> @@ -392,8 +393,7 @@ ib_api_status_t osm_opensm_init(IN osm_opensm=
+_t * p_osm,
+>> >> =C2=A0 =C2=A0 =C2=A0 if (status !=3D IB_SUCCESS)
+>> >> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 goto Exit;
+>> >>
+>> >> - =C2=A0 =C2=A0 p_osm->p_vendor =3D
+>> >> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 osm_vendor_new(&p_osm->log, p_opt->=
+transaction_timeout);
+>> >> + =C2=A0 =C2=A0 p_osm->p_vendor =3D osm_vendor_new(&p_osm->log, -=
+1);
+>> >
+>> > Why to not make p_opt->transaction_timeout as default for newly
+>> > allocated vendor object?
+>>
+>> To support old and new ABI.
+>
+> What do you mean? OpenSM will run against older vendor?
+>
+> Even if so how '-1' is helpful? Likely it will break things, no?
+
+-1 is not a valid timeout so can't this be used in this manner ? How
+will it break things ?
 
 -- Hal
 
