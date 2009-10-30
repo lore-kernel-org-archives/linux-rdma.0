@@ -1,37 +1,72 @@
 From: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH] opensm: Add initial support for optimized
-	SLtoVLMappingTable programming
-Date: Fri, 30 Oct 2009 11:40:20 -0400
-Message-ID: <f0e08f230910300840t2902ea50ye20420694fd7ef7@mail.gmail.com>
-References: <20090804131836.GA15226@comcast.net> <20091030022324.GT20136@me>
+Subject: Re: [PATCH] opensm: Add configurable retries for transactions
+Date: Fri, 30 Oct 2009 11:48:58 -0400
+Message-ID: <f0e08f230910300848i3a36ceedh4472478b6f492a7d@mail.gmail.com>
+References: <20091024140538.GA5213@comcast.net> <20091030025541.GU20136@me>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20091030022324.GT20136@me>
+In-Reply-To: <20091030025541.GU20136@me>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Oct 29, 2009 at 10:23 PM, Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org=
+On Thu, Oct 29, 2009 at 10:55 PM, Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org=
 > wrote:
-> On 09:18 Tue 04 Aug =C2=A0 =C2=A0 , Hal Rosenstock wrote:
+> On 10:05 Sat 24 Oct =C2=A0 =C2=A0 , Hal Rosenstock wrote:
 >>
->
-> Implementation description would be very useful.
-
-> What does "initial support" mean?
-
-It means there's more to come in terms of using
-OptimizedSLtoVLMappingProgramming. This is the simplest
-use/introduction of this optional feature.
-
+>> As part of this change, transaction timeouts (and retries) are per
+>> umad agent (supplied at osm_vendor_bind).
+>>
+>> Old ABI is supported without these bind parameters.
+>>
 >> Signed-off-by: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 >> ---
+>> diff --git a/opensm/include/opensm/osm_madw.h b/opensm/include/opens=
+m/osm_madw.h
+>> index afa7047..10a065b 100644
+>> --- a/opensm/include/opensm/osm_madw.h
+>> +++ b/opensm/include/opensm/osm_madw.h
+>> @@ -2,6 +2,7 @@
+>> =C2=A0 * Copyright (c) 2004-2008 Voltaire, Inc. All rights reserved.
+>> =C2=A0 * Copyright (c) 2002-2005 Mellanox Technologies LTD. All righ=
+ts reserved.
+>> =C2=A0 * Copyright (c) 1996-2003 Intel Corporation. All rights reser=
+ved.
+>> + * Copyright (c) 2009 HNR Consulting. All rights reserved.
+>> =C2=A0 *
+>> =C2=A0 * This software is available to you under a choice of one of =
+two
+>> =C2=A0 * licenses. =C2=A0You may choose to be licensed under the ter=
+ms of the GNU
+>> @@ -76,6 +77,8 @@ typedef struct osm_bind_info {
+>> =C2=A0 =C2=A0 =C2=A0 boolean_t is_report_processor;
+>> =C2=A0 =C2=A0 =C2=A0 uint32_t send_q_size;
+>> =C2=A0 =C2=A0 =C2=A0 uint32_t recv_q_size;
+>> + =C2=A0 =C2=A0 uint32_t timeout;
+>> + =C2=A0 =C2=A0 uint32_t retries;
+>> =C2=A0} osm_bind_info_t;
+>> =C2=A0/*
+>> =C2=A0* FIELDS
+>> @@ -103,6 +106,12 @@ typedef struct osm_bind_info {
+>> =C2=A0* =C2=A0 =C2=A0recv_q_size
+>> =C2=A0* =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0Receive Queue Size
+>> =C2=A0*
+>> +* =C2=A0 =C2=A0timeout
+>> +* =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0Transaction timeout
+>> +*
+>> +* =C2=A0 =C2=A0retries
+>> +* =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0Number of retries for tr=
+ansaction
+>> +*
+>> =C2=A0* SEE ALSO
+>> =C2=A0*********/
+>>
 >> diff --git a/opensm/include/opensm/osm_subnet.h b/opensm/include/ope=
 nsm/osm_subnet.h
->> index 6c20de8..8443763 100644
+>> index b63c97e..77347c8 100644
 >> --- a/opensm/include/opensm/osm_subnet.h
 >> +++ b/opensm/include/opensm/osm_subnet.h
 >> @@ -4,6 +4,7 @@
@@ -47,253 +82,278 @@ erved.
 two
 >> =C2=A0 * licenses. =C2=A0You may choose to be licensed under the ter=
 ms of the GNU
->> @@ -204,6 +205,7 @@ typedef struct osm_subn_opt {
->> =C2=A0 =C2=A0 =C2=A0 boolean_t daemon;
->> =C2=A0 =C2=A0 =C2=A0 boolean_t sm_inactive;
->> =C2=A0 =C2=A0 =C2=A0 boolean_t babbling_port_policy;
->> + =C2=A0 =C2=A0 boolean_t use_optimized_slvl;
->> =C2=A0 =C2=A0 =C2=A0 osm_qos_options_t qos_options;
->> =C2=A0 =C2=A0 =C2=A0 osm_qos_options_t qos_ca_options;
->> =C2=A0 =C2=A0 =C2=A0 osm_qos_options_t qos_sw0_options;
->> @@ -428,6 +430,10 @@ typedef struct osm_subn_opt {
->> =C2=A0* =C2=A0 =C2=A0babbling_port_policy
->> =C2=A0* =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0OpenSM will enforce=
- its "babbling" port policy.
+>> @@ -149,6 +150,7 @@ typedef struct osm_subn_opt {
+>> =C2=A0 =C2=A0 =C2=A0 uint32_t sweep_interval;
+>> =C2=A0 =C2=A0 =C2=A0 uint32_t max_wire_smps;
+>> =C2=A0 =C2=A0 =C2=A0 uint32_t transaction_timeout;
+>> + =C2=A0 =C2=A0 uint32_t transaction_retries;
+>> =C2=A0 =C2=A0 =C2=A0 uint8_t sm_priority;
+>> =C2=A0 =C2=A0 =C2=A0 uint8_t lmc;
+>> =C2=A0 =C2=A0 =C2=A0 boolean_t lmc_esp0;
+>> @@ -261,6 +263,9 @@ typedef struct osm_subn_opt {
+>> =C2=A0* =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0The maximum time in=
+ milliseconds allowed for a transaction
+>> =C2=A0* =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0to complete. =C2=A0=
+Default is 200.
 >> =C2=A0*
->> +* =C2=A0 =C2=A0use_optimized_slvl
->> +* =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0Use optimized SLtoVLMapp=
-ingTable programming if
->> +* =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0device indicates it supp=
-orts this.
+>> +* =C2=A0 =C2=A0transaction_retries
+>> +* =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0The number of retries fo=
+r a transaction. Default is 3.
 >> +*
->> =C2=A0* =C2=A0 =C2=A0perfmgr
->> =C2=A0* =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0Enable or disable t=
-he performance manager
->> =C2=A0*
->> diff --git a/opensm/opensm/osm_qos.c b/opensm/opensm/osm_qos.c
->> index e3dfb58..592e082 100644
->> --- a/opensm/opensm/osm_qos.c
->> +++ b/opensm/opensm/osm_qos.c
->> @@ -1,5 +1,6 @@
->> =C2=A0/*
->> =C2=A0 * Copyright (c) 2006-2008 Voltaire, Inc. All rights reserved.
+>> =C2=A0* =C2=A0 =C2=A0sm_priority
+>> =C2=A0* =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0The priority of thi=
+s SM as specified by the user. =C2=A0This
+>> =C2=A0* =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0value is made avail=
+able in the SMInfo attribute.
+>> diff --git a/opensm/libvendor/osm_vendor_ibumad.c b/opensm/libvendor=
+/osm_vendor_ibumad.c
+>> index 8d3c680..c98141e 100644
+>> --- a/opensm/libvendor/osm_vendor_ibumad.c
+>> +++ b/opensm/libvendor/osm_vendor_ibumad.c
+>> @@ -85,6 +85,8 @@ typedef struct _osm_umad_bind_info {
+>> =C2=A0 =C2=A0 =C2=A0 int port_id;
+>> =C2=A0 =C2=A0 =C2=A0 int agent_id;
+>> =C2=A0 =C2=A0 =C2=A0 int agent_id1; =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+/* SMI requires two agents */
+>> + =C2=A0 =C2=A0 uint32_t timeout;
+>> + =C2=A0 =C2=A0 uint32_t max_retries;
+>
+> You don't need fixed size types for those values, do you? And umad_se=
+nd()
+> and umad_recv() accept timeout and retries parameters as 'int' - woul=
+d
+> be better to be consistent with types.
+>
+>> =C2=A0} osm_umad_bind_info_t;
+>>
+>> =C2=A0typedef struct _umad_receiver {
+>> @@ -476,7 +478,7 @@ osm_vendor_init(IN osm_vendor_t * const p_vend,
+>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 p_vend->mtbl.max =3D tmp;
+>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 else
+>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 OSM_LOG(p_vend->p_log, OSM_LOG_ERROR, "Error:"
+>> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
+=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 "OSM_UMAD_MAX_PENDING=3D%d is invalid",
+>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
+=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 "OSM_UMAD_MAX_PENDING=3D%d is invalid\n=
+",
+>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 tmp);
+>> =C2=A0 =C2=A0 =C2=A0 }
+>>
+>> @@ -819,6 +821,13 @@ osm_vendor_bind(IN osm_vendor_t * const p_vend,
+>> =C2=A0 =C2=A0 =C2=A0 p_bind->send_err_callback =3D send_err_callback=
+;
+>> =C2=A0 =C2=A0 =C2=A0 p_bind->p_mad_pool =3D p_mad_pool;
+>> =C2=A0 =C2=A0 =C2=A0 p_bind->port_guid =3D port_guid;
+>> + =C2=A0 =C2=A0 if (p_vend->timeout =3D=3D -1) {
+>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 p_bind->timeout =3D p_us=
+er_bind->timeout;
+>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 p_bind->max_retries =3D =
+p_user_bind->retries;
+>> + =C2=A0 =C2=A0 } else {
+>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 p_bind->timeout =3D p_ve=
+nd->timeout;
+>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 p_bind->max_retries =3D =
+p_vend->max_retries;
+>> + =C2=A0 =C2=A0 }
+>
+> Hmm, shouldn't we respect user requested data? Something like:
+>
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0p_bind->timeout =3D p_user_bind->timeout ?=
+ p_user_bind->timeout :
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0p_vend->timeout;
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0p_bind->retries =3D p_user_bind->retries ?=
+ p_user_bind->retries :
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0p_vend->retries;
+>
+> ?
+
+The -1 is for the new ABI.
+
+>>
+>> =C2=A0 =C2=A0 =C2=A0 memset(method_mask, 0, sizeof method_mask);
+>> =C2=A0 =C2=A0 =C2=A0 if (p_user_bind->is_responder) {
+>> @@ -1086,8 +1095,8 @@ Resp:
+>> =C2=A0#endif
+>> =C2=A0 =C2=A0 =C2=A0 if ((ret =3D umad_send(p_bind->port_id, p_bind-=
+>agent_id, p_vw->umad,
+>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 =C2=A0 =C2=A0 =C2=A0sent_mad_size,
+>> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
+=A0 =C2=A0 =C2=A0 =C2=A0resp_expected ? p_vend->timeout : 0,
+>> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
+=A0 =C2=A0 =C2=A0 =C2=A0p_vend->max_retries)) < 0) {
+>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
+=A0 =C2=A0 =C2=A0 =C2=A0resp_expected ? p_bind->timeout : 0,
+>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
+=A0 =C2=A0 =C2=A0 =C2=A0p_bind->max_retries)) < 0) {
+>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 OSM_LOG(p_vend->p_l=
+og, OSM_LOG_ERROR, "ERR 5430: "
+>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 "Send p_madw =3D %p of size %d failed %d (%m)\n",
+>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 p_madw, sent_mad_size, ret);
+>> diff --git a/opensm/man/opensm.8.in b/opensm/man/opensm.8.in
+>> index 03002c0..bd8ab4e 100644
+>> --- a/opensm/man/opensm.8.in
+>> +++ b/opensm/man/opensm.8.in
+>> @@ -1,4 +1,4 @@
+>> -.TH OPENSM 8 "September 14, 2009" "OpenIB" "OpenIB Management"
+>> +.TH OPENSM 8 "October 22, 2009" "OpenIB" "OpenIB Management"
+>>
+>> =C2=A0.SH NAME
+>> =C2=A0opensm \- InfiniBand subnet manager and administration (SM/SA)
+>> @@ -31,6 +31,7 @@ opensm \- InfiniBand subnet manager and administra=
+tion (SM/SA)
+>> =C2=A0[\-o(nce)]
+>> =C2=A0[\-s(weep) <interval>]
+>> =C2=A0[\-t(imeout) <milliseconds>]
+>> +[\-\-retries <number>]
+>> =C2=A0[\-maxsmps <number>]
+>> =C2=A0[\-console [off | local | socket | loopback]]
+>> =C2=A0[\-console-port <port>]
+>> @@ -233,6 +234,12 @@ Specifying -t 0 disables timeouts.
+>> =C2=A0Without -t, OpenSM defaults to a timeout value of
+>> =C2=A0200 milliseconds.
+>> =C2=A0.TP
+>> +\fB\-\-retries\fR <number>
+>> +This option specifies the number of retries used
+>> +for transactions.
+>> +Without --retries, OpenSM defaults to 3 retries
+>> +for transactions.
+>> +.TP
+>> =C2=A0\fB\-maxsmps\fR <number>
+>> =C2=A0This option specifies the number of VL15 SMP MADs
+>> =C2=A0allowed on the wire at any one time.
+>> diff --git a/opensm/opensm/main.c b/opensm/opensm/main.c
+>> index 2e28c83..b697994 100644
+>> --- a/opensm/opensm/main.c
+>> +++ b/opensm/opensm/main.c
+>> @@ -248,6 +248,11 @@ static void show_usage(void)
+>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0" =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 =C2=A0Specifying -t 0 disables timeouts.\n"
+>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0" =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 =C2=A0Without -t, OpenSM defaults to a timeout value of\n"
+>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0" =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 =C2=A0200 milliseconds.\n\n");
+>> + =C2=A0 =C2=A0 printf("--retries <number>\n"
+>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0" =C2=A0 =C2=A0 =C2=A0 =C2=
+=A0 =C2=A0This option specifies the number of retries used\n"
+>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0" =C2=A0 =C2=A0 =C2=A0 =C2=
+=A0 =C2=A0for transactions.\n"
+>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0" =C2=A0 =C2=A0 =C2=A0 =C2=
+=A0 =C2=A0Without --retries, OpenSM defaults to %u retries\n"
+>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0" =C2=A0 =C2=A0 =C2=A0 =C2=
+=A0 =C2=A0for transactions.\n\n", OSM_DEFAULT_RETRY_COUNT);
+>> =C2=A0 =C2=A0 =C2=A0 printf("--maxsmps, -n <number>\n"
+>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0" =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 =C2=A0This option specifies the number of VL15 SMP MADs\n"
+>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0" =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 =C2=A0allowed on the wire at any one time.\n"
+>> @@ -610,6 +615,7 @@ int main(int argc, char *argv[])
+>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 {"do_mesh_analysis"=
+, 0, NULL, 5},
+>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 {"lash_start_vl", 1=
+, NULL, 6},
+>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 {"sm_sl", 1, NULL, =
+7},
+>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 {"retries", 1, NULL, 8},
+>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 {NULL, 0, NULL, 0} =
+=C2=A0 =C2=A0 =C2=A0/* Required at the end of the array */
+>> =C2=A0 =C2=A0 =C2=A0 };
+>>
+>> @@ -983,6 +989,11 @@ int main(int argc, char *argv[])
+>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 opt.sm_sl =3D (uint8_t) temp;
+>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 printf(" SMSL =3D %d\n", opt.sm_sl);
+>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 break;
+>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 case 8:
+>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
+=A0 opt.transaction_retries =3D strtol(optarg, NULL, 0);
+>
+> Please use strtoul().
+
+OK. What about transaction_timeout ?
+
+>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
+=A0 printf(" Transaction retries =3D %u\n",
+>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
+=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0opt.transaction_retries);
+>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
+=A0 break;
+>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 case 'h':
+>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 case '?':
+>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 case ':':
+>> diff --git a/opensm/opensm/osm_opensm.c b/opensm/opensm/osm_opensm.c
+>> index 1f2b067..52668ca 100644
+>> --- a/opensm/opensm/osm_opensm.c
+>> +++ b/opensm/opensm/osm_opensm.c
+>> @@ -2,6 +2,7 @@
+>> =C2=A0 * Copyright (c) 2004-2008 Voltaire, Inc. All rights reserved.
+>> =C2=A0 * Copyright (c) 2002-2006 Mellanox Technologies LTD. All righ=
+ts reserved.
+>> =C2=A0 * Copyright (c) 1996-2003 Intel Corporation. All rights reser=
+ved.
 >> + * Copyright (c) 2009 HNR Consulting. All rights reserved.
 >> =C2=A0 *
 >> =C2=A0 * This software is available to you under a choice of one of =
 two
 >> =C2=A0 * licenses. =C2=A0You may choose to be licensed under the ter=
 ms of the GNU
->> @@ -150,7 +151,7 @@ static ib_api_status_t vlarb_update(osm_sm_t * s=
-m, osm_physp_t * p,
+>> @@ -392,8 +393,7 @@ ib_api_status_t osm_opensm_init(IN osm_opensm_t =
+* p_osm,
+>> =C2=A0 =C2=A0 =C2=A0 if (status !=3D IB_SUCCESS)
+>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 goto Exit;
 >>
->> =C2=A0static ib_api_status_t sl2vl_update_table(osm_sm_t * sm, osm_p=
-hysp_t * p,
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =
-uint8_t in_port, uint8_t out_port,
->> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 unsi=
-gned force_update,
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 unsi=
-gned optimize, unsigned force_update,
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =
-const ib_slvl_table_t * sl2vl_table)
->> =C2=A0{
->> =C2=A0 =C2=A0 =C2=A0 osm_madw_context_t context;
->> @@ -177,10 +178,18 @@ static ib_api_status_t sl2vl_update_table(osm_=
-sm_t * sm, osm_physp_t * p,
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 !memcmp(p_tbl, &tbl, sizeof(tbl))=
-)
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 return IB_SUCCESS;
->>
->> + =C2=A0 =C2=A0 /* both input port and output port wildcarded */
->> + =C2=A0 =C2=A0 if (optimize && (in_port !=3D 1 || out_port !=3D 1))
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 return IB_SUCCESS;
->> +
+>> - =C2=A0 =C2=A0 p_osm->p_vendor =3D
+>> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 osm_vendor_new(&p_osm->log, p_opt->tra=
+nsaction_timeout);
+>> + =C2=A0 =C2=A0 p_osm->p_vendor =3D osm_vendor_new(&p_osm->log, -1);
 >
-> This function (sl2vl_update_table()) is called for each in and out po=
-rts
-> combination. I think that instead of calling it N * N times and
-> filtering out the case 'in =3D=3D out =3D=3D 1' you just need it once=
- somewhere
-> at higher layer.
+> Why to not make p_opt->transaction_timeout as default for newly
+> allocated vendor object?
 
-I was trying to minimize the changes to the current code flow. It can
-be done the way you propose but that will cause larger changes. Are
-you sure about this direction ?
+To support old and new ABI.
 
->> =C2=A0 =C2=A0 =C2=A0 context.slvl_context.node_guid =3D osm_node_get=
-_node_guid(p_node);
->> =C2=A0 =C2=A0 =C2=A0 context.slvl_context.port_guid =3D osm_physp_ge=
-t_port_guid(p);
->> =C2=A0 =C2=A0 =C2=A0 context.slvl_context.set_method =3D TRUE;
->> - =C2=A0 =C2=A0 attr_mod =3D in_port << 8 | out_port;
->> + =C2=A0 =C2=A0 if (optimize)
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 /* both input port and o=
-utput port wildcarded */
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 attr_mod =3D 0x30000;
->> + =C2=A0 =C2=A0 else
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 attr_mod =3D in_port << =
-8 | out_port;
->> =C2=A0 =C2=A0 =C2=A0 return osm_req_set(sm, osm_physp_get_dr_path_pt=
-r(p),
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 =C2=A0 =C2=A0(uint8_t *) & tbl, sizeof(tbl),
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 =C2=A0 =C2=A0IB_MAD_ATTR_SLVL_TABLE, cl_hton32(attr_mod),
->> @@ -189,14 +198,17 @@ static ib_api_status_t sl2vl_update_table(osm_=
-sm_t * sm, osm_physp_t * p,
->>
->> =C2=A0static ib_api_status_t sl2vl_update(osm_sm_t * sm, osm_port_t =
-* p_port,
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 osm_physp_t * p, uint=
-8_t port_num,
->> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 unsigned force_update,
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 unsigned optimize, unsign=
-ed force_update,
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 const struct qos_conf=
-ig *qcfg)
->> =C2=A0{
->> =C2=A0 =C2=A0 =C2=A0 ib_api_status_t status;
->> =C2=A0 =C2=A0 =C2=A0 uint8_t i, num_ports;
->> =C2=A0 =C2=A0 =C2=A0 osm_physp_t *p_physp;
->> + =C2=A0 =C2=A0 osm_node_t *p_node;
->> + =C2=A0 =C2=A0 unsigned optimizesl2vl =3D 0;
->>
->> - =C2=A0 =C2=A0 if (osm_node_get_type(osm_physp_get_node_ptr(p)) =3D=
-=3D IB_NODE_TYPE_SWITCH) {
->> + =C2=A0 =C2=A0 p_node =3D osm_physp_get_node_ptr(p);
->> + =C2=A0 =C2=A0 if (osm_node_get_type(p_node) =3D=3D IB_NODE_TYPE_SW=
-ITCH) {
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 if (ib_port_info_ge=
-t_vl_cap(&p->port_info) =3D=3D 1) {
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 /* Check port 0's capability mask */
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 p_physp =3D p_port->p_physp;
->> @@ -205,7 +217,8 @@ static ib_api_status_t sl2vl_update(osm_sm_t * s=
-m, osm_port_t * p_port,
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 =C2=A0 =C2=A0 =C2=A0capability_mask & IB_PORT_CAP_HAS_SL_MAP))
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 return IB_SUCCESS;
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 }
->> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 num_ports =3D osm_node_g=
-et_num_physp(osm_physp_get_node_ptr(p));
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 num_ports =3D osm_node_g=
-et_num_physp(p_node);
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 optimizesl2vl =3D ib_swi=
-tch_info_get_opt_sl2vlmapping(&p_node->sw->switch_info) & optimize;
+-- Hal
+
+> Sasha
 >
-> It should be once per switch, not for each switch port.
-
-Sure; if (still) needed here (might depend on the approach) is a
-tradeoff of a simple local operation v. an additional passed in
-parameter.
-
->> =C2=A0 =C2=A0 =C2=A0 } else {
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 if (!(p->port_info.=
-capability_mask & IB_PORT_CAP_HAS_SL_MAP))
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 return IB_SUCCESS;
->> @@ -213,8 +226,8 @@ static ib_api_status_t sl2vl_update(osm_sm_t * s=
-m, osm_port_t * p_port,
->> =C2=A0 =C2=A0 =C2=A0 }
+>> =C2=A0 =C2=A0 =C2=A0 if (p_osm->p_vendor =3D=3D NULL) {
+>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 status =3D IB_INSUF=
+=46ICIENT_RESOURCES;
+>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 goto Exit;
+>> diff --git a/opensm/opensm/osm_perfmgr.c b/opensm/opensm/osm_perfmgr=
+=2Ec
+>> index f95610e..f0ec92d 100644
+>> --- a/opensm/opensm/osm_perfmgr.c
+>> +++ b/opensm/opensm/osm_perfmgr.c
+>> @@ -264,6 +264,8 @@ ib_api_status_t osm_perfmgr_bind(osm_perfmgr_t *=
+ pm, ib_net64_t port_guid)
+>> =C2=A0 =C2=A0 =C2=A0 bind_info.is_trap_processor =3D FALSE;
+>> =C2=A0 =C2=A0 =C2=A0 bind_info.recv_q_size =3D OSM_PM_DEFAULT_QP1_RC=
+V_SIZE;
+>> =C2=A0 =C2=A0 =C2=A0 bind_info.send_q_size =3D OSM_PM_DEFAULT_QP1_SE=
+ND_SIZE;
+>> + =C2=A0 =C2=A0 bind_info.timeout =3D pm->subn->opt.transaction_time=
+out;
+>> + =C2=A0 =C2=A0 bind_info.retries =3D pm->subn->opt.transaction_retr=
+ies;
 >>
->> =C2=A0 =C2=A0 =C2=A0 for (i =3D 0; i < num_ports; i++) {
->> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 status =3D sl2vl_update_=
-table(sm, p, i, port_num, force_update,
->> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- &qcfg->sl2vl);
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 status =3D sl2vl_update_=
-table(sm, p, i, port_num, optimizesl2vl,
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- force_update, &qcfg->sl2vl);
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 if (status !=3D IB_=
-SUCCESS)
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 return status;
->> =C2=A0 =C2=A0 =C2=A0 }
->> @@ -224,7 +237,8 @@ static ib_api_status_t sl2vl_update(osm_sm_t * s=
-m, osm_port_t * p_port,
->>
->> =C2=A0static int qos_physp_setup(osm_log_t * p_log, osm_sm_t * sm,
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 =C2=A0 =C2=A0osm_port_t * p_port, osm_physp_t * p,
->> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0uint8_t port_num, unsigned force_update,
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0uint8_t port_num, unsigned optimize,
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0unsigned force_update,
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 =C2=A0 =C2=A0const struct qos_config *qcfg)
->> =C2=A0{
->> =C2=A0 =C2=A0 =C2=A0 ib_api_status_t status;
->> @@ -245,7 +259,8 @@ static int qos_physp_setup(osm_log_t * p_log, os=
-m_sm_t * sm,
->> =C2=A0 =C2=A0 =C2=A0 }
->>
->> =C2=A0 =C2=A0 =C2=A0 /* setup SL2VL tables */
->> - =C2=A0 =C2=A0 status =3D sl2vl_update(sm, p_port, p, port_num, for=
-ce_update, qcfg);
->> + =C2=A0 =C2=A0 status =3D sl2vl_update(sm, p_port, p, port_num, opt=
-imize, force_update,
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0 =C2=A0 qcfg);
->> =C2=A0 =C2=A0 =C2=A0 if (status !=3D IB_SUCCESS) {
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 OSM_LOG(p_log, OSM_=
-LOG_ERROR, "ERR 6203 : "
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 "failed to update SL2VLMapping tables "
->> @@ -307,6 +322,7 @@ int osm_qos_setup(osm_opensm_t * p_osm)
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 p_osm->subn.need_upda=
-te;
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 if (qos_physp_setup(&p_osm->log, &p=
-_osm->sm,
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =
-=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 p_port, p_physp, i,
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 =C2=A0 =C2=A0 =C2=A0 p_osm->subn.opt.use_optimized_slvl,
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =
-=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 force_update, &swe_config))
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 ret =3D=
- -1;
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 }
->> @@ -327,7 +343,7 @@ int osm_qos_setup(osm_opensm_t * p_osm)
->>
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 force_update =3D p_=
-physp->need_update || p_osm->subn.need_update;
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 if (qos_physp_setup=
-(&p_osm->log, &p_osm->sm, p_port, p_physp,
->> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 0, force_update, cfg))
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 0, 0, force_update, cfg))
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 ret =3D -1;
->> =C2=A0 =C2=A0 =C2=A0 }
->>
->> diff --git a/opensm/opensm/osm_slvl_map_rcv.c b/opensm/opensm/osm_sl=
-vl_map_rcv.c
->> index 9c37442..67c71bd 100644
->> --- a/opensm/opensm/osm_slvl_map_rcv.c
->> +++ b/opensm/opensm/osm_slvl_map_rcv.c
+>> =C2=A0 =C2=A0 =C2=A0 OSM_LOG(pm->log, OSM_LOG_VERBOSE,
+>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 "Binding to port GU=
+ID 0x%" PRIx64 "\n", cl_ntoh64(port_guid));
+>> diff --git a/opensm/opensm/osm_sa_mad_ctrl.c b/opensm/opensm/osm_sa_=
+mad_ctrl.c
+>> index f22411b..04b6693 100644
+>> --- a/opensm/opensm/osm_sa_mad_ctrl.c
+>> +++ b/opensm/opensm/osm_sa_mad_ctrl.c
 >> @@ -2,6 +2,7 @@
 >> =C2=A0 * Copyright (c) 2004-2008 Voltaire, Inc. All rights reserved.
 >> =C2=A0 * Copyright (c) 2002-2005 Mellanox Technologies LTD. All righ=
@@ -306,132 +366,43 @@ ved.
 two
 >> =C2=A0 * licenses. =C2=A0You may choose to be licensed under the ter=
 ms of the GNU
->> @@ -72,7 +73,9 @@ void osm_slvl_rcv_process(IN void *context, IN voi=
-d *p_data)
->> =C2=A0 =C2=A0 =C2=A0 osm_slvl_context_t *p_context;
->> =C2=A0 =C2=A0 =C2=A0 ib_net64_t port_guid;
->> =C2=A0 =C2=A0 =C2=A0 ib_net64_t node_guid;
->> - =C2=A0 =C2=A0 uint8_t out_port_num, in_port_num;
->> + =C2=A0 =C2=A0 uint32_t attr_mod;
->> + =C2=A0 =C2=A0 uint8_t out_port_num, in_port_num, startinport, star=
-toutport,
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 endinport, endoutport;
+>> @@ -528,6 +529,8 @@ ib_api_status_t osm_sa_mad_ctrl_bind(IN osm_sa_m=
+ad_ctrl_t * p_ctrl,
+>> =C2=A0 =C2=A0 =C2=A0 bind_info.port_guid =3D port_guid;
+>> =C2=A0 =C2=A0 =C2=A0 bind_info.recv_q_size =3D OSM_SM_DEFAULT_QP1_RC=
+V_SIZE;
+>> =C2=A0 =C2=A0 =C2=A0 bind_info.send_q_size =3D OSM_SM_DEFAULT_QP1_SE=
+ND_SIZE;
+>> + =C2=A0 =C2=A0 bind_info.timeout =3D p_ctrl->sa->p_subn->opt.transa=
+ction_timeout;
+>> + =C2=A0 =C2=A0 bind_info.retries =3D p_ctrl->sa->p_subn->opt.transa=
+ction_retries;
 >>
->> =C2=A0 =C2=A0 =C2=A0 CL_ASSERT(sm);
+>> =C2=A0 =C2=A0 =C2=A0 OSM_LOG(p_ctrl->p_log, OSM_LOG_VERBOSE,
+>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 "Binding to port GU=
+ID 0x%" PRIx64 "\n", cl_ntoh64(port_guid));
+>> diff --git a/opensm/opensm/osm_sm_mad_ctrl.c b/opensm/opensm/osm_sm_=
+mad_ctrl.c
+>> index f96aff4..c51c158 100644
+>> --- a/opensm/opensm/osm_sm_mad_ctrl.c
+>> +++ b/opensm/opensm/osm_sm_mad_ctrl.c
+>> @@ -885,6 +885,8 @@ ib_api_status_t osm_sm_mad_ctrl_bind(IN osm_sm_m=
+ad_ctrl_t * p_ctrl,
+>> =C2=A0 =C2=A0 =C2=A0 bind_info.port_guid =3D port_guid;
+>> =C2=A0 =C2=A0 =C2=A0 bind_info.recv_q_size =3D OSM_SM_DEFAULT_QP0_RC=
+V_SIZE;
+>> =C2=A0 =C2=A0 =C2=A0 bind_info.send_q_size =3D OSM_SM_DEFAULT_QP0_SE=
+ND_SIZE;
+>> + =C2=A0 =C2=A0 bind_info.timeout =3D p_ctrl->p_subn->opt.transactio=
+n_timeout;
+>> + =C2=A0 =C2=A0 bind_info.retries =3D p_ctrl->p_subn->opt.transactio=
+n_retries;
 >>
->> @@ -111,6 +114,9 @@ void osm_slvl_rcv_process(IN void *context, IN v=
-oid *p_data)
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 (uint=
-8_t) cl_ntoh32(p_smp->attr_mod & 0xFF000000);
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 in_port_num =3D
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 (uint=
-8_t) cl_ntoh32((p_smp->attr_mod & 0x00FF0000) << 8);
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 attr_mod =3D cl_ntoh32(p=
-_smp->attr_mod);
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 if (attr_mod & 0x30000)
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 goto opt_sl2vl;
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 p_physp =3D osm_nod=
-e_get_physp_ptr(p_node, out_port_num);
->> =C2=A0 =C2=A0 =C2=A0 } else {
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 p_physp =3D p_port-=
->p_physp;
->> @@ -123,7 +129,7 @@ void osm_slvl_rcv_process(IN void *context, IN v=
-oid *p_data)
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0all we want is to update the subne=
-t.
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0*/
->> =C2=A0 =C2=A0 =C2=A0 OSM_LOG(sm->p_log, OSM_LOG_VERBOSE,
->> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 "Got SLtoVL get response=
- in_port_num %u out_port_num %u with "
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 "Received SLtoVL GetResp=
- in_port_num %u out_port_num %u with "
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 "GUID 0x%" PRIx64 "=
- for parent node GUID 0x%" PRIx64 ", TID 0x%"
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 PRIx64 "\n", in_por=
-t_num, out_port_num, cl_ntoh64(port_guid),
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 cl_ntoh64(node_guid=
-), cl_ntoh64(p_smp->trans_id));
->> @@ -142,6 +148,39 @@ void osm_slvl_rcv_process(IN void *context, IN =
-void *p_data)
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 out_port_num, p_slvl_tbl, OSM_LOG_D=
-EBUG);
->>
->> =C2=A0 =C2=A0 =C2=A0 osm_physp_set_slvl_tbl(p_physp, p_slvl_tbl, in_=
-port_num);
->> + =C2=A0 =C2=A0 goto Exit;
->> +
->> +opt_sl2vl:
->
-> I think that you need to use functions here.
-
-Where is here ? To what are you referring ?
-
->> + =C2=A0 =C2=A0 OSM_LOG(sm->p_log, OSM_LOG_VERBOSE,
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 "Got optimized SLtoVL ge=
-t response in_port_num %u out_port_num "
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 "%u with GUID 0x%" PRIx6=
-4 " for parent node GUID 0x%" PRIx64
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 ", TID 0x%" PRIx64 "\n",=
- in_port_num, out_port_num,
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 cl_ntoh64(port_guid), cl=
-_ntoh64(node_guid),
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 cl_ntoh64(p_smp->trans_i=
-d));
->> +
->> + =C2=A0 =C2=A0 osm_dump_slvl_map_table(sm->p_log, port_guid, in_por=
-t_num,
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 out_port_num, p_slvl_tbl, OSM_LOG_DEBUG=
-);
->> +
->> + =C2=A0 =C2=A0 if (attr_mod & 0x10000) {
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 startoutport =3D ib_swit=
-ch_info_is_enhanced_port0(&p_node->sw->switch_info) ? 0 : 1;
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 endoutport =3D osm_node_=
-get_num_physp(p_node);
->> + =C2=A0 =C2=A0 } else
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 endoutport =3D startoutp=
-ort =3D out_port_num;
->> + =C2=A0 =C2=A0 if (attr_mod & 0x20000) {
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 startinport =3D ib_switc=
-h_info_is_enhanced_port0(&p_node->sw->switch_info) ? 0 : 1;
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 endinport =3D osm_node_g=
-et_num_physp(p_node);
->> + =C2=A0 =C2=A0 } else
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 endinport =3D startinpor=
-t =3D in_port_num;
->> +
->> + =C2=A0 =C2=A0 for (out_port_num =3D startoutport; out_port_num < e=
-ndoutport;
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0out_port_num++) {
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 p_physp =3D osm_node_get=
-_physp_ptr(p_node, out_port_num);
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 if (!p_physp)
->
-> When could this be NULL?
-
-It was just defensive. Should it be removed ?
-
--- Hal
-
-> Sasha
->
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 continue;
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 for (in_port_num =3D sta=
-rtinport; in_port_num < endinport;
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0in_p=
-ort_num++)
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 osm_physp_set_slvl_tbl(p_physp, p_slvl_tbl, in_port_num);
->> + =C2=A0 =C2=A0 }
->>
->> =C2=A0Exit:
->> =C2=A0 =C2=A0 =C2=A0 cl_plock_release(sm->p_lock);
+>> =C2=A0 =C2=A0 =C2=A0 OSM_LOG(p_ctrl->p_log, OSM_LOG_VERBOSE,
+>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 "Binding to port 0x=
+%" PRIx64 "\n", cl_ntoh64(port_guid));
 >> diff --git a/opensm/opensm/osm_subnet.c b/opensm/opensm/osm_subnet.c
->> index 0d11811..540165a 100644
+>> index 8976b5f..a9a7981 100644
 >> --- a/opensm/opensm/osm_subnet.c
 >> +++ b/opensm/opensm/osm_subnet.c
 >> @@ -4,6 +4,7 @@
@@ -447,57 +418,74 @@ erved.
 two
 >> =C2=A0 * licenses. =C2=A0You may choose to be licensed under the ter=
 ms of the GNU
->> @@ -352,6 +353,7 @@ static const opt_rec_t opt_tbl[] =3D {
->> =C2=A0 =C2=A0 =C2=A0 { "daemon", OPT_OFFSET(daemon), opts_parse_bool=
-ean, NULL, 0 },
->> =C2=A0 =C2=A0 =C2=A0 { "sm_inactive", OPT_OFFSET(sm_inactive), opts_=
-parse_boolean, NULL, 1 },
->> =C2=A0 =C2=A0 =C2=A0 { "babbling_port_policy", OPT_OFFSET(babbling_p=
-ort_policy), opts_parse_boolean, NULL, 1 },
->> + =C2=A0 =C2=A0 {"use_optimized_slvl", OPT_OFFSET(use_optimized_slvl=
-), opts_parse_boolean, NULL, 1 },
->> =C2=A0#ifdef ENABLE_OSM_PERF_MGR
->> =C2=A0 =C2=A0 =C2=A0 { "perfmgr", OPT_OFFSET(perfmgr), opts_parse_bo=
-olean, NULL, 0 },
->> =C2=A0 =C2=A0 =C2=A0 { "perfmgr_redir", OPT_OFFSET(perfmgr_redir), o=
-pts_parse_boolean, NULL, 0 },
->> @@ -715,6 +717,7 @@ void osm_subn_set_default_opt(IN osm_subn_opt_t =
-* const p_opt)
->> =C2=A0 =C2=A0 =C2=A0 p_opt->daemon =3D FALSE;
->> =C2=A0 =C2=A0 =C2=A0 p_opt->sm_inactive =3D FALSE;
->> =C2=A0 =C2=A0 =C2=A0 p_opt->babbling_port_policy =3D FALSE;
->> + =C2=A0 =C2=A0 p_opt->use_optimized_slvl =3D FALSE;
->> =C2=A0#ifdef ENABLE_OSM_PERF_MGR
->> =C2=A0 =C2=A0 =C2=A0 p_opt->perfmgr =3D FALSE;
->> =C2=A0 =C2=A0 =C2=A0 p_opt->perfmgr_redir =3D TRUE;
->> @@ -1501,10 +1504,13 @@ int osm_subn_output_conf(FILE *out, IN osm_s=
-ubn_opt_t *const p_opts)
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 "# SM Inactive\n"
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 "sm_inactive %s\n\n=
-"
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 "# Babbling Port Po=
-licy\n"
->> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 "babbling_port_policy %s=
-\n\n",
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 "babbling_port_policy %s=
-\n\n"
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 "# Use Optimized SLtoVLM=
-apping programming if supported by device\n"
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 "use_optimized_slvl %s\n=
+>> @@ -299,6 +300,7 @@ static const opt_rec_t opt_tbl[] =3D {
+>> =C2=A0 =C2=A0 =C2=A0 { "console", OPT_OFFSET(console), opts_parse_ch=
+arp, NULL, 0 },
+>> =C2=A0 =C2=A0 =C2=A0 { "console_port", OPT_OFFSET(console_port), opt=
+s_parse_uint16, NULL, 0 },
+>> =C2=A0 =C2=A0 =C2=A0 { "transaction_timeout", OPT_OFFSET(transaction=
+_timeout), opts_parse_uint32, NULL, 1 },
+>> + =C2=A0 =C2=A0 { "transaction_retries", OPT_OFFSET(transaction_retr=
+ies), opts_parse_uint32, NULL, 1 },
+>> =C2=A0 =C2=A0 =C2=A0 { "max_msg_fifo_timeout", OPT_OFFSET(max_msg_fi=
+fo_timeout), opts_parse_uint32, NULL, 1 },
+>> =C2=A0 =C2=A0 =C2=A0 { "sm_priority", OPT_OFFSET(sm_priority), opts_=
+parse_uint8, opts_setup_sm_priority, 1 },
+>> =C2=A0 =C2=A0 =C2=A0 { "lmc", OPT_OFFSET(lmc), opts_parse_uint8, NUL=
+L, 1 },
+>> @@ -694,6 +696,7 @@ void osm_subn_set_default_opt(IN osm_subn_opt_t =
+* p_opt)
+>> =C2=A0 =C2=A0 =C2=A0 p_opt->console =3D strdup(OSM_DEFAULT_CONSOLE);
+>> =C2=A0 =C2=A0 =C2=A0 p_opt->console_port =3D OSM_DEFAULT_CONSOLE_POR=
+T;
+>> =C2=A0 =C2=A0 =C2=A0 p_opt->transaction_timeout =3D OSM_DEFAULT_TRAN=
+S_TIMEOUT_MILLISEC;
+>> + =C2=A0 =C2=A0 p_opt->transaction_retries =3D OSM_DEFAULT_RETRY_COU=
+NT;
+>> =C2=A0 =C2=A0 =C2=A0 /* by default we will consider waiting for 50x =
+transaction timeout normal */
+>> =C2=A0 =C2=A0 =C2=A0 p_opt->max_msg_fifo_timeout =3D 50 * OSM_DEFAUL=
+T_TRANS_TIMEOUT_MILLISEC;
+>> =C2=A0 =C2=A0 =C2=A0 p_opt->sm_priority =3D OSM_DEFAULT_SM_PRIORITY;
+>> @@ -1500,6 +1503,8 @@ int osm_subn_output_conf(FILE *out, IN osm_sub=
+n_opt_t * p_opts)
+>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 "max_wire_smps %u\n=
+\n"
+>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 "# The maximum time=
+ in [msec] allowed for a transaction to complete\n"
+>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 "transaction_timeou=
+t %u\n\n"
+>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 " The maximum number of =
+retries allowed for a transaction to complete\n"
+>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 "transaction_retries %u\=
+n\n"
+>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 "# Maximal time in =
+[msec] a message can stay in the incoming message queue.\n"
+>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 "# If there is more=
+ than one message in the queue and the last message\n"
+>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 "# stayed in the qu=
+eue more than this value, any SA request will be\n"
+>> @@ -1509,6 +1514,7 @@ int osm_subn_output_conf(FILE *out, IN osm_sub=
+n_opt_t * p_opts)
+>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 "single_thread %s\n=
 \n",
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 p_opts->daemon ? "T=
-RUE" : "FALSE",
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 p_opts->sm_inactive=
- ? "TRUE" : "FALSE",
->> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 p_opts->babbling_port_po=
-licy ? "TRUE" : "FALSE");
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 p_opts->babbling_port_po=
-licy ? "TRUE" : "FALSE",
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 p_opts->use_optimized_sl=
-vl ? "TRUE" : "FALSE");
+>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 p_opts->max_wire_sm=
+ps,
+>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 p_opts->transaction=
+_timeout,
+>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 p_opts->transaction_retr=
+ies,
+>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 p_opts->max_msg_fif=
+o_timeout,
+>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 p_opts->single_thre=
+ad ? "TRUE" : "FALSE");
 >>
->> =C2=A0#ifdef ENABLE_OSM_PERF_MGR
->> =C2=A0 =C2=A0 =C2=A0 fprintf(out,
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-rdma=
+" in
+>> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+>> More majordomo info at =C2=A0http://vger.kernel.org/majordomo-info.h=
+tml
 >>
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-rdma"=
