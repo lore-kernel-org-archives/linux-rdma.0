@@ -1,156 +1,94 @@
-From: Hal Rosenstock <hnrose-Wuw85uim5zDR7s880joybQ@public.gmane.org>
-Subject: [PATCH] opensm/osm_trap_rcv.c: Minor reorganization of
-	trap_rcv_process_request
-Date: Sat, 31 Oct 2009 07:25:01 -0500
-Message-ID: <20091031122501.GA24260@comcast.net>
+From: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH] opensm/osm_link_mgr.c: In link_mgr_set_physp_pi, only
+ call link_mgr_get_smsl when LID valid
+Date: Sat, 31 Oct 2009 14:12:12 +0200
+Message-ID: <20091031121212.GA9479@me>
+References: <20091030004732.GP20136@me>
+ <1830724148.4221541256937456735.JavaMail.root@sz0074a.westchester.pa.mail.comcast.net>
+ <f0e08f230910301631x639a6670x8fbe184580964f9a@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
+In-Reply-To: <f0e08f230910301631x639a6670x8fbe184580964f9a-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org
+To: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+On 19:31 Fri 30 Oct     , Hal Rosenstock wrote:
+> Hi Sasha,
+>=20
+> On Fri, Oct 30, 2009 at 5:17 PM, Sasha Khapyorsky <sashak-smomgflXvObQFizaE/u3fw@public.gmane.org=
+m> wrote:
+> >
+> > Hi Hal,
+> >
+> > On 09:27 Wed 23 Sep =A0 =A0 , Hal Rosenstock wrote:
+> >>
+> >> Fix seg fault which occurs when get_osm_switch_from_port is
+> >> called with NULL port (which in this case was caused by calling
+> >> cl_ptr_vector_get on port LID table with LID 0)
+> >
+> > Would be really useful to describe when and why this (LID =3D 0) ca=
+n
+> > happen.
+>=20
+> Thought we resolved this in "osm_link_mgr.c:link_mgr_get_smsl questio=
+n" thread.
 
-Move some code out into separate log_trap_info routine
-for readability/maintainability 
+It is not for me. It is a change log and people which can read this
+over years may not follow any mailing thread on the list.
 
-Signed-off-by: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
----
-diff --git a/opensm/opensm/osm_trap_rcv.c b/opensm/opensm/osm_trap_rcv.c
-index d2e4202..c6fe9e9 100644
---- a/opensm/opensm/osm_trap_rcv.c
-+++ b/opensm/opensm/osm_trap_rcv.c
-@@ -275,11 +275,51 @@ static int disable_port(osm_sm_t *sm, osm_physp_t *p)
- 	return ret;
- }
- 
-+static void log_trap_info(osm_log_t *p_log, ib_mad_notice_attr_t *p_ntci,
-+			  ib_net16_t source_lid, ib_net64_t trans_id)
-+{
-+	if (ib_notice_is_generic(p_ntci)) {
-+		if ((p_ntci->g_or_v.generic.trap_num == CL_HTON16(129)) ||
-+		    (p_ntci->g_or_v.generic.trap_num == CL_HTON16(130)) ||
-+		    (p_ntci->g_or_v.generic.trap_num == CL_HTON16(131)))
-+			OSM_LOG(p_log, OSM_LOG_ERROR,
-+				"Received Generic Notice type:%u "
-+				"num:%u (%s) Producer:%u (%s) "
-+				"from LID:%u Port %d TID:0x%016" PRIx64 "\n",
-+				ib_notice_get_type(p_ntci),
-+				cl_ntoh16(p_ntci->g_or_v.generic.trap_num),
-+				ib_get_trap_str(p_ntci->g_or_v.generic.trap_num),
-+				cl_ntoh32(ib_notice_get_prod_type(p_ntci)),
-+				ib_get_producer_type_str(ib_notice_get_prod_type(p_ntci)),
-+				cl_hton16(source_lid),
-+				p_ntci->data_details.ntc_129_131.port_num,
-+				cl_ntoh64(trans_id));
-+		else
-+			OSM_LOG(p_log, OSM_LOG_ERROR,
-+				"Received Generic Notice type:%u "
-+				"num:%u (%s) Producer:%u (%s) "
-+				"from LID:%u TID:0x%016" PRIx64 "\n",
-+				ib_notice_get_type(p_ntci),
-+				cl_ntoh16(p_ntci->g_or_v.generic.trap_num),
-+				ib_get_trap_str(p_ntci->g_or_v.generic.trap_num),
-+				cl_ntoh32(ib_notice_get_prod_type(p_ntci)),
-+				ib_get_producer_type_str(ib_notice_get_prod_type(p_ntci)),
-+				cl_hton16(source_lid),
-+				cl_ntoh64(trans_id));
-+	} else
-+		OSM_LOG(p_log, OSM_LOG_ERROR,
-+			"Received Vendor Notice type:%u vend:0x%06X "
-+			"dev:%u from LID:%u TID:0x%016" PRIx64 "\n",
-+			ib_notice_get_type(p_ntci),
-+			cl_ntoh32(ib_notice_get_vend_id(p_ntci)),
-+			cl_ntoh16(p_ntci->g_or_v.vend.dev_id),
-+			cl_ntoh16(source_lid), cl_ntoh64(trans_id));
-+}
-+
- /**********************************************************************
-  **********************************************************************/
- static void
--trap_rcv_process_request(IN osm_sm_t * sm,
--			 IN const osm_madw_t * const p_madw)
-+trap_rcv_process_request(IN osm_sm_t * sm, IN const osm_madw_t * const p_madw)
- {
- 	uint8_t payload[sizeof(ib_mad_notice_attr_t)];
- 	ib_smp_t *p_smp;
-@@ -362,59 +402,13 @@ trap_rcv_process_request(IN osm_sm_t * sm,
- 		source_lid = tmp_madw.mad_addr.addr_type.smi.source_lid;
- 
- 		/* Print some info about the incoming Trap */
--		if (ib_notice_is_generic(p_ntci)) {
--			if ((p_ntci->g_or_v.generic.trap_num == CL_HTON16(129))
--			    || (p_ntci->g_or_v.generic.trap_num ==
--				CL_HTON16(130))
--			    || (p_ntci->g_or_v.generic.trap_num ==
--				CL_HTON16(131)))
--				OSM_LOG(sm->p_log, OSM_LOG_ERROR,
--					"Received Generic Notice type:%u "
--					"num:%u (%s) Producer:%u (%s) "
--					"from LID:%u Port %d TID:0x%016"
--					PRIx64 "\n", ib_notice_get_type(p_ntci),
--					cl_ntoh16(p_ntci->g_or_v.generic.
--						  trap_num),
--					ib_get_trap_str(p_ntci->g_or_v.generic.
--							trap_num),
--					cl_ntoh32(ib_notice_get_prod_type
--						  (p_ntci)),
--					ib_get_producer_type_str
--					(ib_notice_get_prod_type(p_ntci)),
--					cl_hton16(source_lid),
--					p_ntci->data_details.ntc_129_131.
--					port_num, cl_ntoh64(p_smp->trans_id));
--			else
--				OSM_LOG(sm->p_log, OSM_LOG_ERROR,
--					"Received Generic Notice type:%u "
--					"num:%u (%s) Producer:%u (%s) "
--					"from LID:%u TID:0x%016" PRIx64
--					"\n", ib_notice_get_type(p_ntci),
--					cl_ntoh16(p_ntci->g_or_v.generic.
--						  trap_num),
--					ib_get_trap_str(p_ntci->g_or_v.generic.
--							trap_num),
--					cl_ntoh32(ib_notice_get_prod_type
--						  (p_ntci)),
--					ib_get_producer_type_str
--					(ib_notice_get_prod_type(p_ntci)),
--					cl_hton16(source_lid),
--					cl_ntoh64(p_smp->trans_id));
--		} else
--			OSM_LOG(sm->p_log, OSM_LOG_ERROR,
--				"Received Vendor Notice type:%u vend:0x%06X "
--				"dev:%u from LID:%u TID:0x%016" PRIx64 "\n",
--				ib_notice_get_type(p_ntci),
--				cl_ntoh32(ib_notice_get_vend_id(p_ntci)),
--				cl_ntoh16(p_ntci->g_or_v.vend.dev_id),
--				cl_ntoh16(source_lid),
--				cl_ntoh64(p_smp->trans_id));
-+		log_trap_info(sm->p_log, p_ntci, source_lid, p_smp->trans_id);
- 	}
- 
- 	osm_dump_notice(sm->p_log, p_ntci, OSM_LOG_VERBOSE);
- 
--	p_physp = osm_get_physp_by_mad_addr(sm->p_log,
--					    sm->p_subn, &tmp_madw.mad_addr);
-+	p_physp = osm_get_physp_by_mad_addr(sm->p_log, sm->p_subn,
-+					    &tmp_madw.mad_addr);
- 	if (p_physp)
- 		p_smp->m_key = p_physp->port_info.m_key;
- 	else
-@@ -528,8 +522,8 @@ trap_rcv_process_request(IN osm_sm_t * sm,
- 		}
- 
- 		/* restart the aging anyway */
--		/* If physp_change_trap is TRUE - then use a callback to unset the
--		   healthy bit. If not - no need to use a callback. */
-+		/* If physp_change_trap is TRUE - then use a callback to unset
-+		   the healthy bit. If not - no need to use a callback. */
- 		if (physp_change_trap == TRUE)
- 			cl_event_wheel_reg(&sm->trap_aging_tracker, trap_key, cl_get_time_stamp() + event_wheel_timeout, osm_trap_rcv_aging_tracker_callback,	/* no callback */
- 					   sm	/* no context */ );
+> > diff --git a/opensm/opensm/osm_link_mgr.c b/opensm/opensm/osm_link_=
+mgr.c
+> > index 4d4be56..217f51e 100644
+> > --- a/opensm/opensm/osm_link_mgr.c
+> > +++ b/opensm/opensm/osm_link_mgr.c
+> > @@ -68,7 +68,8 @@ static uint8_t link_mgr_get_smsl(IN osm_sm_t * sm=
+, IN
+> > osm_physp_t * p_physp)
+> >
+> > =A0=A0=A0=A0=A0=A0=A0=A0=A0OSM_LOG_ENTER(sm->p_log);
+> >
+> > -=A0=A0=A0=A0=A0=A0=A0=A0if (p_osm->routing_engine_used !=3D OSM_RO=
+UTING_ENGINE_TYPE_LASH) {
+> > +=A0=A0=A0=A0=A0=A0=A0=A0if (p_osm->routing_engine_used !=3D OSM_RO=
+UTING_ENGINE_TYPE_LASH
+> > +=A0=A0=A0=A0=A0=A0=A0=A0 =A0 =A0|| !(slid =3D osm_physp_get_base_l=
+id(p_physp))) {
+> > =A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0/* Use default S=
+L if lash routing is not used */
+> > =A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0OSM_LOG_EXIT(sm-=
+>p_log);
+> > =A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0return (sm->p_su=
+bn->opt.sm_sl);
+> > @@ -80,7 +81,6 @@ static uint8_t link_mgr_get_smsl(IN osm_sm_t * sm=
+, IN
+> > osm_physp_t * p_physp)
+> > =A0=A0=A0=A0=A0=A0=A0=A0=A0 =A0 =A0cl_ptr_vector_get(&sm->p_subn->p=
+ort_lid_tbl, cl_ntoh16(smlid));
+> >
+> > =A0=A0=A0=A0=A0=A0=A0=A0=A0/* Find osm_port of the source =3D p_phy=
+sp */
+> > -=A0=A0=A0=A0=A0=A0=A0=A0slid =3D osm_physp_get_base_lid(p_physp);
+> > =A0=A0=A0=A0=A0=A0=A0=A0=A0p_src_port =3D
+> > =A0=A0=A0=A0=A0=A0=A0=A0=A0 =A0 =A0cl_ptr_vector_get(&sm->p_subn->p=
+ort_lid_tbl, cl_ntoh16(slid));
+> >
+> >
+> > Wouldn't it be the same functionally?
+>=20
+> Yes,
+>=20
+> Do you want an updated patch ?
+
+No need, I have it already.
+
+Sasha
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
