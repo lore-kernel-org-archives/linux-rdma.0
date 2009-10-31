@@ -1,60 +1,155 @@
-From: "Davis, Arlin R" <arlin.r.davis-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [ANNOUNCE] uDAPL v2 - dapl-2.0.24 release
-Date: Fri, 30 Oct 2009 16:53:48 -0700
-Message-ID: <E3280858FA94444CA49D2BA02341C9835F10B5D0@orsmsx506.amr.corp.intel.com>
+From: Hal Rosenstock <hnrose-Wuw85uim5zDR7s880joybQ@public.gmane.org>
+Subject: [PATCH] opensm/osm_trap_rcv.c: Minor reorganization of
+	trap_rcv_process_request
+Date: Sat, 31 Oct 2009 07:25:01 -0500
+Message-ID: <20091031122501.GA24260@comcast.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Language: en-US
+Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "ofw-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org" <ofw-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
-Cc: Vladimir Sokolovsky <vlad-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, "Smith, Stan" <stan.smith-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+
+Move some code out into separate log_trap_info routine
+for readability/maintainability 
+
+Signed-off-by: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+---
+diff --git a/opensm/opensm/osm_trap_rcv.c b/opensm/opensm/osm_trap_rcv.c
+index d2e4202..c6fe9e9 100644
+--- a/opensm/opensm/osm_trap_rcv.c
++++ b/opensm/opensm/osm_trap_rcv.c
+@@ -275,11 +275,51 @@ static int disable_port(osm_sm_t *sm, osm_physp_t *p)
+ 	return ret;
+ }
  
-New release for uDAPL 2.0 available on the OFA download page and in my git tree.
-
-md5sum: a8472363f40e7bddbf40217c45165bcc dapl-2.0.24.tar.gz 
-
-Summary of changes since last release: 
-
-v2 - winof: Utilize WinOF version of inet_ntop() for Windows OSes which do not support inet_ntop(). 
-v2 - winof: ucm windows build issue with new CQ completion channel 
-v2 - winof: add ucm provider to windows build 
-v2 - winof: add missing build files for ibal, scm 
-v2 - scm: connection peer resets under heavy load, incorrect event on error 
-v2 - ucm: increase default reply and rtu timeout values. 
-v2 - ucm: change some debug message levels and add check for valid UD REPLY during retries. 
-v2 - ucm: increase timers during subsequent retries 
-v2 - ucm, scm: address handles need destroyed when freeing Endpoints with UD QP's. 
-v2 - openib_common: ignore pd free errors, clear pd_handle and return. 
-v2 - ucm: using UD type QP's, ucm reports wrong reject event when user rejects AH resolution request. 
-v2 - ucm, scm, cma: Fix CNO support on DTO type EVD's 
-v2 - ucm: fix lock init bug in ucm_cm_find 
-v2 - ucm: fix build problem with latest windows ucm changes 
-v2 - ucm: HCA should not be closed until all resources have been released. 
-v2 - ucm: build warning when compiling on 32-bit systems. 
-v2 - ucm: trying to deregister the same memory region twice 
-v2 - dat: reduce debug message level when parsing for location of dat.conf 
-v2 - ucm: update ucm provider for windows environment 
-v2 - ucm: add timer/retry CM logic to the ucm provider 
-
-Vlad, please pull new package into latest OFED 1.5 build and install the following:
++static void log_trap_info(osm_log_t *p_log, ib_mad_notice_attr_t *p_ntci,
++			  ib_net16_t source_lid, ib_net64_t trans_id)
++{
++	if (ib_notice_is_generic(p_ntci)) {
++		if ((p_ntci->g_or_v.generic.trap_num == CL_HTON16(129)) ||
++		    (p_ntci->g_or_v.generic.trap_num == CL_HTON16(130)) ||
++		    (p_ntci->g_or_v.generic.trap_num == CL_HTON16(131)))
++			OSM_LOG(p_log, OSM_LOG_ERROR,
++				"Received Generic Notice type:%u "
++				"num:%u (%s) Producer:%u (%s) "
++				"from LID:%u Port %d TID:0x%016" PRIx64 "\n",
++				ib_notice_get_type(p_ntci),
++				cl_ntoh16(p_ntci->g_or_v.generic.trap_num),
++				ib_get_trap_str(p_ntci->g_or_v.generic.trap_num),
++				cl_ntoh32(ib_notice_get_prod_type(p_ntci)),
++				ib_get_producer_type_str(ib_notice_get_prod_type(p_ntci)),
++				cl_hton16(source_lid),
++				p_ntci->data_details.ntc_129_131.port_num,
++				cl_ntoh64(trans_id));
++		else
++			OSM_LOG(p_log, OSM_LOG_ERROR,
++				"Received Generic Notice type:%u "
++				"num:%u (%s) Producer:%u (%s) "
++				"from LID:%u TID:0x%016" PRIx64 "\n",
++				ib_notice_get_type(p_ntci),
++				cl_ntoh16(p_ntci->g_or_v.generic.trap_num),
++				ib_get_trap_str(p_ntci->g_or_v.generic.trap_num),
++				cl_ntoh32(ib_notice_get_prod_type(p_ntci)),
++				ib_get_producer_type_str(ib_notice_get_prod_type(p_ntci)),
++				cl_hton16(source_lid),
++				cl_ntoh64(trans_id));
++	} else
++		OSM_LOG(p_log, OSM_LOG_ERROR,
++			"Received Vendor Notice type:%u vend:0x%06X "
++			"dev:%u from LID:%u TID:0x%016" PRIx64 "\n",
++			ib_notice_get_type(p_ntci),
++			cl_ntoh32(ib_notice_get_vend_id(p_ntci)),
++			cl_ntoh16(p_ntci->g_or_v.vend.dev_id),
++			cl_ntoh16(source_lid), cl_ntoh64(trans_id));
++}
++
+ /**********************************************************************
+  **********************************************************************/
+ static void
+-trap_rcv_process_request(IN osm_sm_t * sm,
+-			 IN const osm_madw_t * const p_madw)
++trap_rcv_process_request(IN osm_sm_t * sm, IN const osm_madw_t * const p_madw)
+ {
+ 	uint8_t payload[sizeof(ib_mad_notice_attr_t)];
+ 	ib_smp_t *p_smp;
+@@ -362,59 +402,13 @@ trap_rcv_process_request(IN osm_sm_t * sm,
+ 		source_lid = tmp_madw.mad_addr.addr_type.smi.source_lid;
  
-dapl-2.0.24-1 
-dapl-utils-2.0.24-1 
-dapl-devel-2.0.24-1 
-dapl-debuginfo-2.0.24-1 
-compat-dapl-1.2.14-1 
-compat-dapl-devel-1.2.14-1 
-
-See http://www.openfabrics.org/downloads/dapl/ more details.
-
--arlin
-
-
-
+ 		/* Print some info about the incoming Trap */
+-		if (ib_notice_is_generic(p_ntci)) {
+-			if ((p_ntci->g_or_v.generic.trap_num == CL_HTON16(129))
+-			    || (p_ntci->g_or_v.generic.trap_num ==
+-				CL_HTON16(130))
+-			    || (p_ntci->g_or_v.generic.trap_num ==
+-				CL_HTON16(131)))
+-				OSM_LOG(sm->p_log, OSM_LOG_ERROR,
+-					"Received Generic Notice type:%u "
+-					"num:%u (%s) Producer:%u (%s) "
+-					"from LID:%u Port %d TID:0x%016"
+-					PRIx64 "\n", ib_notice_get_type(p_ntci),
+-					cl_ntoh16(p_ntci->g_or_v.generic.
+-						  trap_num),
+-					ib_get_trap_str(p_ntci->g_or_v.generic.
+-							trap_num),
+-					cl_ntoh32(ib_notice_get_prod_type
+-						  (p_ntci)),
+-					ib_get_producer_type_str
+-					(ib_notice_get_prod_type(p_ntci)),
+-					cl_hton16(source_lid),
+-					p_ntci->data_details.ntc_129_131.
+-					port_num, cl_ntoh64(p_smp->trans_id));
+-			else
+-				OSM_LOG(sm->p_log, OSM_LOG_ERROR,
+-					"Received Generic Notice type:%u "
+-					"num:%u (%s) Producer:%u (%s) "
+-					"from LID:%u TID:0x%016" PRIx64
+-					"\n", ib_notice_get_type(p_ntci),
+-					cl_ntoh16(p_ntci->g_or_v.generic.
+-						  trap_num),
+-					ib_get_trap_str(p_ntci->g_or_v.generic.
+-							trap_num),
+-					cl_ntoh32(ib_notice_get_prod_type
+-						  (p_ntci)),
+-					ib_get_producer_type_str
+-					(ib_notice_get_prod_type(p_ntci)),
+-					cl_hton16(source_lid),
+-					cl_ntoh64(p_smp->trans_id));
+-		} else
+-			OSM_LOG(sm->p_log, OSM_LOG_ERROR,
+-				"Received Vendor Notice type:%u vend:0x%06X "
+-				"dev:%u from LID:%u TID:0x%016" PRIx64 "\n",
+-				ib_notice_get_type(p_ntci),
+-				cl_ntoh32(ib_notice_get_vend_id(p_ntci)),
+-				cl_ntoh16(p_ntci->g_or_v.vend.dev_id),
+-				cl_ntoh16(source_lid),
+-				cl_ntoh64(p_smp->trans_id));
++		log_trap_info(sm->p_log, p_ntci, source_lid, p_smp->trans_id);
+ 	}
+ 
+ 	osm_dump_notice(sm->p_log, p_ntci, OSM_LOG_VERBOSE);
+ 
+-	p_physp = osm_get_physp_by_mad_addr(sm->p_log,
+-					    sm->p_subn, &tmp_madw.mad_addr);
++	p_physp = osm_get_physp_by_mad_addr(sm->p_log, sm->p_subn,
++					    &tmp_madw.mad_addr);
+ 	if (p_physp)
+ 		p_smp->m_key = p_physp->port_info.m_key;
+ 	else
+@@ -528,8 +522,8 @@ trap_rcv_process_request(IN osm_sm_t * sm,
+ 		}
+ 
+ 		/* restart the aging anyway */
+-		/* If physp_change_trap is TRUE - then use a callback to unset the
+-		   healthy bit. If not - no need to use a callback. */
++		/* If physp_change_trap is TRUE - then use a callback to unset
++		   the healthy bit. If not - no need to use a callback. */
+ 		if (physp_change_trap == TRUE)
+ 			cl_event_wheel_reg(&sm->trap_aging_tracker, trap_key, cl_get_time_stamp() + event_wheel_timeout, osm_trap_rcv_aging_tracker_callback,	/* no callback */
+ 					   sm	/* no context */ );
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
