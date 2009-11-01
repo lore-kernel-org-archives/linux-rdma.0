@@ -1,19 +1,17 @@
 From: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Subject: p
-Date: Sun, 1 Nov 2009 21:58:55 +0200
-Message-ID: <20091101195855.GN29434@me>
+Subject: [PATCH] management: bump package versions
+Date: Sun, 1 Nov 2009 22:01:44 +0200
+Message-ID: <20091101200144.GO29434@me>
+References: <20091101195855.GN29434@me>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
+In-Reply-To: <20091101195855.GN29434@me>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
->From bf49c02f6eb474fcc25af40de68991de23ee629f Mon Sep 17 00:00:00 2001
-From: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Date: Sun, 1 Nov 2009 21:55:47 +0200
-Subject: [PATCH] management: bump package versions
 
 Bump IB management packages versions:
 
@@ -26,6 +24,16 @@ Update mailing list name in configure.in files.
 
 Signed-off-by: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
 ---
+
+On 21:58 Sun 01 Nov     , Sasha Khapyorsky wrote:
+> From bf49c02f6eb474fcc25af40de68991de23ee629f Mon Sep 17 00:00:00 2001
+> From: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+> Date: Sun, 1 Nov 2009 21:55:47 +0200
+> Subject: [PATCH] management: bump package versions
+
+Resending. Used bad subject and format first time, sorry - hit 'send'
+too quickly.
+
  infiniband-diags/configure.in |    2 +-
  libibmad/configure.in         |    2 +-
  libibumad/configure.in        |    2 +-
