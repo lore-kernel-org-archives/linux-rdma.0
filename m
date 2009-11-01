@@ -1,44 +1,93 @@
-From: Or Gerlitz <ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH v4] rdma/cm: support option to allow manually setting
- IB	path
-Date: Sun, 01 Nov 2009 09:10:50 +0200
-Message-ID: <4AED347A.1060301@voltaire.com>
-References: <F0EFC2D8E6A340D48497497670C5969C@amr.corp.intel.com>	<A08104C1CF70400F8BEF492AD49C8491@amr.corp.intel.com>	<20091020181458.GD14520@obsidianresearch.com>	<46770152ACA04B6C8AA9497C45AC8FD0@amr.corp.intel.com>	<20091020191404.GH14520@obsidianresearch.com>	<9DFD8E65325F4EE990749EEBE4BC33CA@amr.corp.intel.com>	<20091022004245.GV14520@obsidianresearch.com>	<AE35305D45DB49F591A45DADD822209A@amr.corp.intel.com>	<20091022013542.GX14520@obsidianresearch.com>	<B7E97540810E4A2785FF1FC8CB96F453@amr.corp.intel.com>	<DC0770A17FDC4DACAC0251A3362CE87A@amr.corp.intel.com> <1B115D7248A5404781F001F72A7C591A@amr.corp.intel.com>
+From: "Eli Dorfman (Voltaire)" <dorfman.eli-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH] infiniband-diags/saquery: Report SA MAD Class specific status.
+Date: Sun, 01 Nov 2009 10:09:37 +0200
+Message-ID: <4AED4241.4000808@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1B115D7248A5404781F001F72A7C591A-Zpru7NauK7drdx17CPfAsdBPR1lH4CV8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: 'Jason Gunthorpe' <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org
+To: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Sean Hefty wrote:
-> Future changes to the rdma cm can expand on this framework to support the full range of features allowed by the IB CM, such as separate forward and reverse paths and APM
-Sean,
+Report SA MAD Class specific status.
 
-Before enhancing the rdma-cm to support the full feature set of the IB 
-CM, something which I personally don't see the actual need for (but I 
-will be happy to get educated what applications will or can migrate to 
-rdma-cm once this is implemented), how about trying to allow for reduced 
-QoS scheme also when the entity that resolved this patch didn't 
-consulted with the SA?
+Fixes wrong error report for SA query status.
 
-IB QoS is based on the query providing the <SGID, DGID, PKEY, SID, TOS> 
-tuple and the SA returning a <SLID, DLID, SL, MTU, ....> QoS tuple. Now 
-I'd like to see how can we let the application / querying middleware to 
-take advantage of the knowledge on what partition it runs and use the SL 
-associated with the IPv4 (e.g AF_INET rdma-cm ID's) IPoIB broadcast 
-group. This way, one can still program a QoS scheme at the SA which is 
-based on partitions.
+Signed-off-by: Eli Dorfman <elid-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+---
+ infiniband-diags/src/saquery.c |   41 ++++++++++++++++++++++++++++++++++++---
+ 1 files changed, 37 insertions(+), 4 deletions(-)
 
-Looking on mckey, the user space code (e.g ACM), could just do rdma_bind 
-to an IP address of an IPoIB NIC that uses this partition and then 
-rdma_join to an unmapped multicast address which correspond to the 
-broadcast group, take the SL and leave the group, makes sense?
-
-Or.
+diff --git a/infiniband-diags/src/saquery.c b/infiniband-diags/src/saquery.c
+index 6c44b63..71823d5 100644
+--- a/infiniband-diags/src/saquery.c
++++ b/infiniband-diags/src/saquery.c
+@@ -124,6 +124,41 @@ int requested_lid_flag = 0;
+ uint64_t requested_guid = 0;
+ int requested_guid_flag = 0;
+ 
++#define SA_ERR_UNKNOWN IB_SA_MAD_STATUS_PRIO_SUGGESTED
++
++const char *ib_sa_error_str[] = {
++	"SA_NO_ERROR",
++	"SA_ERR_NO_RESOURCES",
++	"SA_ERR_REQ_INVALID",
++	"SA_ERR_NO_RECORDS",
++	"SA_ERR_TOO_MANY_RECORDS",
++	"SA_ERR_REQ_INVALID_GID",
++	"SA_ERR_REQ_INSUFFICIENT_COMPONENTS",
++	"SA_ERR_REQ_DENIED",
++	"SA_ERR_STATUS_PRIO_SUGGESTED",
++	"SA_ERR_UNKNOWN"
++};
++
++static inline const char *ib_sa_err_str(IN uint8_t status)
++{
++	if (status > SA_ERR_UNKNOWN)
++		status = SA_ERR_UNKNOWN;
++	return (ib_sa_error_str[status]);
++}
++
++static inline void report_err(int status)
++{
++	int st = status & 0xff;
++
++	if (st)
++		fprintf(stderr, "ERROR: Query result returned: %s (0x%x)\n",
++			ib_get_err_str(st), status);
++	st = status >> 8;
++	if (st)
++		fprintf(stderr, "ERROR: Query result returned: %s (0x%x)\n",
++			ib_sa_err_str(st), status);
++}
++
+ static int sa_query(struct bind_handle *h, uint8_t method,
+ 		    uint16_t attr, uint32_t mod, uint64_t comp_mask,
+ 		    uint64_t sm_key, void *data)
+@@ -794,8 +829,7 @@ static int get_any_records(bind_handle_t h,
+ 	}
+ 
+ 	if (result.status != IB_SUCCESS) {
+-		fprintf(stderr, "Query result returned: %s\n",
+-			ib_get_err_str(result.status));
++		report_err(result.status);
+ 		return result.status;
+ 	}
+ 
+@@ -1009,8 +1043,7 @@ static int get_print_class_port_info(bind_handle_t h)
+ 		return ret;
+ 	}
+ 	if (result.status != IB_SUCCESS) {
+-		fprintf(stderr, "ERROR: Query result returned: %s\n",
+-			ib_get_err_str(result.status));
++		report_err(result.status);
+ 		return (result.status);
+ 	}
+ 	dump_results(&result, dump_class_port_info);
+-- 
+1.5.5
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
