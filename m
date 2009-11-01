@@ -1,88 +1,112 @@
 From: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH] opensm/osm_trap_rcv.c: Improvements in log_trap_info()
-Date: Sun, 1 Nov 2009 18:36:59 +0200
-Message-ID: <20091101163659.GI29434@me>
-References: <20091031122501.GA24260@comcast.net>
+Subject: Re: [PATCH] infiniband-diags/saquery: Report SA MAD Class specific
+ status.
+Date: Sun, 1 Nov 2009 18:52:23 +0200
+Message-ID: <20091101165223.GJ29434@me>
+References: <4AED4241.4000808@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20091031122501.GA24260-Wuw85uim5zDR7s880joybQ@public.gmane.org>
+In-Reply-To: <4AED4241.4000808-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Hal Rosenstock <hnrose-Wuw85uim5zDR7s880joybQ@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Eli Dorfman (Voltaire)" <dorfman.eli-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On 10:09 Sun 01 Nov     , Eli Dorfman (Voltaire) wrote:
+> Report SA MAD Class specific status.
+> 
+> Fixes wrong error report for SA query status.
 
-In log_trap_info() return when log level is not requested, merge generic
-notice logging code.
+I agree with patch, but one comment is below.
 
-Signed-off-by: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
----
- opensm/opensm/osm_trap_rcv.c |   42 +++++++++++++++++++-----------------------
- 1 files changed, 19 insertions(+), 23 deletions(-)
+> 
+> Signed-off-by: Eli Dorfman <elid-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+> ---
+>  infiniband-diags/src/saquery.c |   41 ++++++++++++++++++++++++++++++++++++---
+>  1 files changed, 37 insertions(+), 4 deletions(-)
+> 
+> diff --git a/infiniband-diags/src/saquery.c b/infiniband-diags/src/saquery.c
+> index 6c44b63..71823d5 100644
+> --- a/infiniband-diags/src/saquery.c
+> +++ b/infiniband-diags/src/saquery.c
+> @@ -124,6 +124,41 @@ int requested_lid_flag = 0;
+>  uint64_t requested_guid = 0;
+>  int requested_guid_flag = 0;
+>  
+> +#define SA_ERR_UNKNOWN IB_SA_MAD_STATUS_PRIO_SUGGESTED
+> +
+> +const char *ib_sa_error_str[] = {
+> +	"SA_NO_ERROR",
+> +	"SA_ERR_NO_RESOURCES",
+> +	"SA_ERR_REQ_INVALID",
+> +	"SA_ERR_NO_RECORDS",
+> +	"SA_ERR_TOO_MANY_RECORDS",
+> +	"SA_ERR_REQ_INVALID_GID",
+> +	"SA_ERR_REQ_INSUFFICIENT_COMPONENTS",
+> +	"SA_ERR_REQ_DENIED",
+> +	"SA_ERR_STATUS_PRIO_SUGGESTED",
+> +	"SA_ERR_UNKNOWN"
+> +};
+> +
+> +static inline const char *ib_sa_err_str(IN uint8_t status)
+> +{
+> +	if (status > SA_ERR_UNKNOWN)
+> +		status = SA_ERR_UNKNOWN;
+> +	return (ib_sa_error_str[status]);
+> +}
+> +
+> +static inline void report_err(int status)
+> +{
+> +	int st = status & 0xff;
+> +
+> +	if (st)
+> +		fprintf(stderr, "ERROR: Query result returned: %s (0x%x)\n",
+> +			ib_get_err_str(st), status);
+> +	st = status >> 8;
+> +	if (st)
+> +		fprintf(stderr, "ERROR: Query result returned: %s (0x%x)\n",
+> +			ib_sa_err_str(st), status);
 
-diff --git a/opensm/opensm/osm_trap_rcv.c b/opensm/opensm/osm_trap_rcv.c
-index c6fe9e9..a414f55 100644
---- a/opensm/opensm/osm_trap_rcv.c
-+++ b/opensm/opensm/osm_trap_rcv.c
-@@ -278,34 +278,30 @@ static int disable_port(osm_sm_t *sm, osm_physp_t *p)
- static void log_trap_info(osm_log_t *p_log, ib_mad_notice_attr_t *p_ntci,
- 			  ib_net16_t source_lid, ib_net64_t trans_id)
- {
-+	if (!osm_log_is_active(p_log, OSM_LOG_ERROR))
-+		return;
-+
- 	if (ib_notice_is_generic(p_ntci)) {
-+		char str[32];
-+
- 		if ((p_ntci->g_or_v.generic.trap_num == CL_HTON16(129)) ||
- 		    (p_ntci->g_or_v.generic.trap_num == CL_HTON16(130)) ||
- 		    (p_ntci->g_or_v.generic.trap_num == CL_HTON16(131)))
--			OSM_LOG(p_log, OSM_LOG_ERROR,
--				"Received Generic Notice type:%u "
--				"num:%u (%s) Producer:%u (%s) "
--				"from LID:%u Port %d TID:0x%016" PRIx64 "\n",
--				ib_notice_get_type(p_ntci),
--				cl_ntoh16(p_ntci->g_or_v.generic.trap_num),
--				ib_get_trap_str(p_ntci->g_or_v.generic.trap_num),
--				cl_ntoh32(ib_notice_get_prod_type(p_ntci)),
--				ib_get_producer_type_str(ib_notice_get_prod_type(p_ntci)),
--				cl_hton16(source_lid),
--				p_ntci->data_details.ntc_129_131.port_num,
--				cl_ntoh64(trans_id));
-+			snprintf(str, sizeof(str), " Port %u",
-+				 p_ntci->data_details.ntc_129_131.port_num);
- 		else
--			OSM_LOG(p_log, OSM_LOG_ERROR,
--				"Received Generic Notice type:%u "
--				"num:%u (%s) Producer:%u (%s) "
--				"from LID:%u TID:0x%016" PRIx64 "\n",
--				ib_notice_get_type(p_ntci),
--				cl_ntoh16(p_ntci->g_or_v.generic.trap_num),
--				ib_get_trap_str(p_ntci->g_or_v.generic.trap_num),
--				cl_ntoh32(ib_notice_get_prod_type(p_ntci)),
--				ib_get_producer_type_str(ib_notice_get_prod_type(p_ntci)),
--				cl_hton16(source_lid),
--				cl_ntoh64(trans_id));
-+			str[0] = '\0';
-+
-+		OSM_LOG(p_log, OSM_LOG_ERROR,
-+			"Received Generic Notice type:%u "
-+			"num:%u (%s) Producer:%u (%s) "
-+			"from LID:%u%s TID:0x%016" PRIx64 "\n",
-+			ib_notice_get_type(p_ntci),
-+			cl_ntoh16(p_ntci->g_or_v.generic.trap_num),
-+			ib_get_trap_str(p_ntci->g_or_v.generic.trap_num),
-+			cl_ntoh32(ib_notice_get_prod_type(p_ntci)),
-+			ib_get_producer_type_str(ib_notice_get_prod_type(p_ntci)),
-+			cl_hton16(source_lid), str, cl_ntoh64(trans_id));
- 	} else
- 		OSM_LOG(p_log, OSM_LOG_ERROR,
- 			"Received Vendor Notice type:%u vend:0x%06X "
--- 
-1.6.5.1
+Such two identical messages with different error strings seems
+confusing to me. Wouldn't it be better to merge it in a single line,
+like:
 
+	ERROR: Query result returned 0xNNNN: SM blah1 , SA blah2
+
+(or similar), with making each part optional.
+
+Sasha
+
+> +}
+> +
+>  static int sa_query(struct bind_handle *h, uint8_t method,
+>  		    uint16_t attr, uint32_t mod, uint64_t comp_mask,
+>  		    uint64_t sm_key, void *data)
+> @@ -794,8 +829,7 @@ static int get_any_records(bind_handle_t h,
+>  	}
+>  
+>  	if (result.status != IB_SUCCESS) {
+> -		fprintf(stderr, "Query result returned: %s\n",
+> -			ib_get_err_str(result.status));
+> +		report_err(result.status);
+>  		return result.status;
+>  	}
+>  
+> @@ -1009,8 +1043,7 @@ static int get_print_class_port_info(bind_handle_t h)
+>  		return ret;
+>  	}
+>  	if (result.status != IB_SUCCESS) {
+> -		fprintf(stderr, "ERROR: Query result returned: %s\n",
+> -			ib_get_err_str(result.status));
+> +		report_err(result.status);
+>  		return (result.status);
+>  	}
+>  	dump_results(&result, dump_class_port_info);
+> -- 
+> 1.5.5
+> 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
