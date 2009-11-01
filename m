@@ -1,112 +1,54 @@
 From: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH] infiniband-diags/saquery: Report SA MAD Class specific
- status.
-Date: Sun, 1 Nov 2009 18:52:23 +0200
-Message-ID: <20091101165223.GJ29434@me>
-References: <4AED4241.4000808@gmail.com>
+Subject: [PATCH] opensm_release_notes-3.3: remove OFED dependency
+Date: Sun, 1 Nov 2009 20:43:57 +0200
+Message-ID: <20091101184357.GK29434@me>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <4AED4241.4000808-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Eli Dorfman (Voltaire)" <dorfman.eli-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 10:09 Sun 01 Nov     , Eli Dorfman (Voltaire) wrote:
-> Report SA MAD Class specific status.
-> 
-> Fixes wrong error report for SA query status.
 
-I agree with patch, but one comment is below.
+Remove OFED (and older friends) from OpenSM software dependencies list,
+replace by just IB stack. Also add the mainstream Linux kernel to the
+list of qualified stacks.
 
-> 
-> Signed-off-by: Eli Dorfman <elid-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-> ---
->  infiniband-diags/src/saquery.c |   41 ++++++++++++++++++++++++++++++++++++---
->  1 files changed, 37 insertions(+), 4 deletions(-)
-> 
-> diff --git a/infiniband-diags/src/saquery.c b/infiniband-diags/src/saquery.c
-> index 6c44b63..71823d5 100644
-> --- a/infiniband-diags/src/saquery.c
-> +++ b/infiniband-diags/src/saquery.c
-> @@ -124,6 +124,41 @@ int requested_lid_flag = 0;
->  uint64_t requested_guid = 0;
->  int requested_guid_flag = 0;
->  
-> +#define SA_ERR_UNKNOWN IB_SA_MAD_STATUS_PRIO_SUGGESTED
-> +
-> +const char *ib_sa_error_str[] = {
-> +	"SA_NO_ERROR",
-> +	"SA_ERR_NO_RESOURCES",
-> +	"SA_ERR_REQ_INVALID",
-> +	"SA_ERR_NO_RECORDS",
-> +	"SA_ERR_TOO_MANY_RECORDS",
-> +	"SA_ERR_REQ_INVALID_GID",
-> +	"SA_ERR_REQ_INSUFFICIENT_COMPONENTS",
-> +	"SA_ERR_REQ_DENIED",
-> +	"SA_ERR_STATUS_PRIO_SUGGESTED",
-> +	"SA_ERR_UNKNOWN"
-> +};
-> +
-> +static inline const char *ib_sa_err_str(IN uint8_t status)
-> +{
-> +	if (status > SA_ERR_UNKNOWN)
-> +		status = SA_ERR_UNKNOWN;
-> +	return (ib_sa_error_str[status]);
-> +}
-> +
-> +static inline void report_err(int status)
-> +{
-> +	int st = status & 0xff;
-> +
-> +	if (st)
-> +		fprintf(stderr, "ERROR: Query result returned: %s (0x%x)\n",
-> +			ib_get_err_str(st), status);
-> +	st = status >> 8;
-> +	if (st)
-> +		fprintf(stderr, "ERROR: Query result returned: %s (0x%x)\n",
-> +			ib_sa_err_str(st), status);
+Signed-off-by: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+---
+ opensm/doc/opensm_release_notes-3.3.txt |    8 +++++---
+ 1 files changed, 5 insertions(+), 3 deletions(-)
 
-Such two identical messages with different error strings seems
-confusing to me. Wouldn't it be better to merge it in a single line,
-like:
+diff --git a/opensm/doc/opensm_release_notes-3.3.txt b/opensm/doc/opensm_release_notes-3.3.txt
+index 02a110b..9725ad0 100644
+--- a/opensm/doc/opensm_release_notes-3.3.txt
++++ b/opensm/doc/opensm_release_notes-3.3.txt
+@@ -97,9 +97,10 @@ ced5a6e opensm/opensm/osm_console.c: move reporting of plugins to "status"
+ 
+ 1.4 Software Dependencies
+ 
+-OpenSM depends on the installation of either OFED 1.x, OpenIB gen2 (e.g.
+-IBG2 distribution), OpenIB gen1 (e.g. IBGD distribution), or Mellanox
+-VAPI stacks. The qualified driver versions are provided in Table 2,
++OpenSM depends on the installation of libibumad package (distributed as
++part of OFA IB management together with OpenSM) and IB stack presence,
++in particular libibumad uses user_mad kernel interface ('ib_umad' kernel
++module). The qualified driver versions are provided in Table 2,
+ "Qualified IB Stacks".
+ 
+ Also, building of QoS manager policy file parser requires flex, and either
+@@ -457,6 +458,7 @@ Table 2 - Qualified IB Stacks
+ 
+ Stack                                    | Version
+ -----------------------------------------|--------------------------
++The main stream Linux kernel             |   2.6.x
+ OFED                                     |   1.4
+ OFED                                     |   1.3
+ OFED                                     |   1.2
+-- 
+1.6.5.1
 
-	ERROR: Query result returned 0xNNNN: SM blah1 , SA blah2
-
-(or similar), with making each part optional.
-
-Sasha
-
-> +}
-> +
->  static int sa_query(struct bind_handle *h, uint8_t method,
->  		    uint16_t attr, uint32_t mod, uint64_t comp_mask,
->  		    uint64_t sm_key, void *data)
-> @@ -794,8 +829,7 @@ static int get_any_records(bind_handle_t h,
->  	}
->  
->  	if (result.status != IB_SUCCESS) {
-> -		fprintf(stderr, "Query result returned: %s\n",
-> -			ib_get_err_str(result.status));
-> +		report_err(result.status);
->  		return result.status;
->  	}
->  
-> @@ -1009,8 +1043,7 @@ static int get_print_class_port_info(bind_handle_t h)
->  		return ret;
->  	}
->  	if (result.status != IB_SUCCESS) {
-> -		fprintf(stderr, "ERROR: Query result returned: %s\n",
-> -			ib_get_err_str(result.status));
-> +		report_err(result.status);
->  		return (result.status);
->  	}
->  	dump_results(&result, dump_class_port_info);
-> -- 
-> 1.5.5
-> 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
