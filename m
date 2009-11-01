@@ -1,66 +1,26 @@
 From: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH] opensm/osm_sa_mcmember_record.c: optimization in zero
- mgid comparison
-Date: Sun, 1 Nov 2009 18:02:16 +0200
-Message-ID: <20091101160216.GF29434@me>
-References: <4AED56C0.4080006@dev.mellanox.co.il>
+Subject: Re: [PATCHv3] opensm: Add configurable retries for transactions
+Date: Sun, 1 Nov 2009 18:09:38 +0200
+Message-ID: <20091101160938.GG29434@me>
+References: <20091030230459.GA13140@comcast.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <4AED56C0.4080006-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+In-Reply-To: <20091030230459.GA13140-Wuw85uim5zDR7s880joybQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: Linux RDMA <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Hal Rosenstock <hnrose-Wuw85uim5zDR7s880joybQ@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 11:37 Sun 01 Nov     , Yevgeny Kliteynik wrote:
-> Hi Sasha,
+On 18:05 Fri 30 Oct     , Hal Rosenstock wrote:
 > 
-> Small optimization in comparison to zero mgid in new
-> mcast group creation.
+> As part of this change, transaction timeouts (and retries) are per
+> umad agent (supplied at osm_vendor_bind).
 > 
-> Signed-off-by: Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+> Signed-off-by: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 
 Applied. Thanks.
-
-Also see below.
-
-> ---
->  opensm/opensm/osm_sa_mcmember_record.c |   11 ++++-------
->  1 files changed, 4 insertions(+), 7 deletions(-)
-> 
-> diff --git a/opensm/opensm/osm_sa_mcmember_record.c b/opensm/opensm/osm_sa_mcmember_record.c
-> index dd01eed..18dc22c 100644
-> --- a/opensm/opensm/osm_sa_mcmember_record.c
-> +++ b/opensm/opensm/osm_sa_mcmember_record.c
-> @@ -731,7 +731,7 @@ static ib_api_status_t mcmr_rcv_create_new_mgrp(IN osm_sa_t * sa,
->  						OUT osm_mgrp_t ** pp_mgrp)
->  {
->  	ib_net16_t mlid;
-> -	unsigned zero_mgid, i;
-> +	unsigned zero_mgid = 1;
->  	uint8_t scope;
->  	ib_gid_t *p_mgid;
->  	ib_api_status_t status = IB_SUCCESS;
-> @@ -740,12 +740,9 @@ static ib_api_status_t mcmr_rcv_create_new_mgrp(IN osm_sa_t * sa,
->  	OSM_LOG_ENTER(sa->p_log);
-> 
->  	/* but what if the given MGID was not 0 ? */
-> -	zero_mgid = 1;
-> -	for (i = 0; i < sizeof(p_recvd_mcmember_rec->mgid); i++)
-> -		if (p_recvd_mcmember_rec->mgid.raw[i] != 0) {
-> -			zero_mgid = 0;
-> -			break;
-> -		}
-> +	if (p_recvd_mcmember_rec->mgid.unicast.prefix != 0 ||
-> +	    p_recvd_mcmember_rec->mgid.unicast.interface_id != 0)
-> +		zero_mgid = 0;
-
-Actually you can use 'ib_zero_gid' here, something like:
-
-	zero_mgid = !memcmp(&p_recvd_mcmember_rec->mgid, &ib_zero_gid,
-			    sizeof(ib_git_t));
 
 Sasha
 --
