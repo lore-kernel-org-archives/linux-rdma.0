@@ -1,68 +1,69 @@
 From: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH] opensm/osm_sm_mad_ctrl.c: In sm_mad_ctrl_send_err_cb,
- set init failure on PKeyTable and QoS initialization failure
-Date: Sun, 1 Nov 2009 17:52:48 +0200
-Message-ID: <20091101155248.GD29434@me>
-References: <20091030012213.GR20136@me>
- <949139550.4222411256937590346.JavaMail.root@sz0074a.westchester.pa.mail.comcast.net>
- <f0e08f230910301445q6a4790aam295c254c430f0f82@mail.gmail.com>
+Subject: Re: [PATCH] opensm/osm_sa_mcmember_record.c: optimization in zero
+ mgid comparison
+Date: Sun, 1 Nov 2009 18:02:16 +0200
+Message-ID: <20091101160216.GF29434@me>
+References: <4AED56C0.4080006@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <f0e08f230910301445q6a4790aam295c254c430f0f82-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <4AED56C0.4080006-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: Linux RDMA <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 17:45 Fri 30 Oct     , Hal Rosenstock wrote:
-> On Thu, Oct 29, 2009 at 9:22 PM,  Sasha Khapyorsky <sashak@voltaire.c=
-om> wrote:
-> >
-> >
-> > On 09:13 Mon 10 Aug =A0 =A0 , Hal Rosenstock wrote:
-> >>
-> >> Signed-off-by: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-> >> ---
-> >> diff --git a/opensm/opensm/osm_sm_mad_ctrl.c
-> >> b/opensm/opensm/osm_sm_mad_ctrl.c
-> >> index 791c848..f0bc407 100644
-> >> --- a/opensm/opensm/osm_sm_mad_ctrl.c
-> >> +++ b/opensm/opensm/osm_sm_mad_ctrl.c
-> >> @@ -723,7 +723,10 @@ static void sm_mad_ctrl_send_err_cb(IN void *=
-context,
-> >> IN osm_madw_t * p_madw)
-> >> =A0=A0=A0=A0=A0=A0=A0=A0=A0 =A0 =A0(p_smp->attr_id =3D=3D IB_MAD_A=
-TTR_PORT_INFO ||
-> >> =A0=A0=A0=A0=A0=A0=A0=A0=A0 =A0 =A0 p_smp->attr_id =3D=3D IB_MAD_A=
-TTR_MCAST_FWD_TBL ||
-> >> =A0=A0=A0=A0=A0=A0=A0=A0=A0 =A0 =A0 p_smp->attr_id =3D=3D IB_MAD_A=
-TTR_SWITCH_INFO ||
-> >> -=A0=A0=A0=A0=A0=A0=A0=A0 =A0 =A0 p_smp->attr_id =3D=3D IB_MAD_ATT=
-R_LIN_FWD_TBL)) {
-> >> +=A0=A0=A0=A0=A0=A0=A0=A0 =A0 =A0 p_smp->attr_id =3D=3D IB_MAD_ATT=
-R_LIN_FWD_TBL ||
-> >> +=A0=A0=A0=A0=A0=A0=A0=A0 =A0 =A0 p_smp->attr_id =3D=3D IB_MAD_ATT=
-R_P_KEY_TABLE ||
-> >> +=A0=A0=A0=A0=A0=A0=A0=A0 =A0 =A0 p_smp->attr_id =3D=3D IB_MAD_ATT=
-R_SLVL_TABLE ||
-> >> +=A0=A0=A0=A0=A0=A0=A0=A0 =A0 =A0 p_smp->attr_id =3D=3D IB_MAD_ATT=
-R_VL_ARBITRATION)) {
-> >
-> > Why this change?
->=20
-> Why not ? Aren't these initialization failures ? Why should they be
-> excluded ? If I recall correctly, they were originally excluded due t=
-o
-> "newness" but that was years ago.
+On 11:37 Sun 01 Nov     , Yevgeny Kliteynik wrote:
+> Hi Sasha,
+> 
+> Small optimization in comparison to zero mgid in new
+> mcast group creation.
+> 
+> Signed-off-by: Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 
-Ok, let's try this.
+Applied. Thanks.
+
+Also see below.
+
+> ---
+>  opensm/opensm/osm_sa_mcmember_record.c |   11 ++++-------
+>  1 files changed, 4 insertions(+), 7 deletions(-)
+> 
+> diff --git a/opensm/opensm/osm_sa_mcmember_record.c b/opensm/opensm/osm_sa_mcmember_record.c
+> index dd01eed..18dc22c 100644
+> --- a/opensm/opensm/osm_sa_mcmember_record.c
+> +++ b/opensm/opensm/osm_sa_mcmember_record.c
+> @@ -731,7 +731,7 @@ static ib_api_status_t mcmr_rcv_create_new_mgrp(IN osm_sa_t * sa,
+>  						OUT osm_mgrp_t ** pp_mgrp)
+>  {
+>  	ib_net16_t mlid;
+> -	unsigned zero_mgid, i;
+> +	unsigned zero_mgid = 1;
+>  	uint8_t scope;
+>  	ib_gid_t *p_mgid;
+>  	ib_api_status_t status = IB_SUCCESS;
+> @@ -740,12 +740,9 @@ static ib_api_status_t mcmr_rcv_create_new_mgrp(IN osm_sa_t * sa,
+>  	OSM_LOG_ENTER(sa->p_log);
+> 
+>  	/* but what if the given MGID was not 0 ? */
+> -	zero_mgid = 1;
+> -	for (i = 0; i < sizeof(p_recvd_mcmember_rec->mgid); i++)
+> -		if (p_recvd_mcmember_rec->mgid.raw[i] != 0) {
+> -			zero_mgid = 0;
+> -			break;
+> -		}
+> +	if (p_recvd_mcmember_rec->mgid.unicast.prefix != 0 ||
+> +	    p_recvd_mcmember_rec->mgid.unicast.interface_id != 0)
+> +		zero_mgid = 0;
+
+Actually you can use 'ib_zero_gid' here, something like:
+
+	zero_mgid = !memcmp(&p_recvd_mcmember_rec->mgid, &ib_zero_gid,
+			    sizeof(ib_git_t));
 
 Sasha
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
