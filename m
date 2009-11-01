@@ -1,184 +1,224 @@
 From: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH] opensm: Add initial support for optimized
- SLtoVLMappingTable programming
-Date: Sun, 1 Nov 2009 17:19:57 +0200
-Message-ID: <20091101151957.GB29434@me>
-References: <20090804131836.GA15226@comcast.net>
- <20091030022324.GT20136@me>
- <f0e08f230910300840t2902ea50ye20420694fd7ef7@mail.gmail.com>
+Subject: Re: [PATCH] opensm/osm_trap_rcv.c: In trap_rcv_process_request, no
+ need to sweep on trap 145 and certain trap 144s
+Date: Sun, 1 Nov 2009 17:49:29 +0200
+Message-ID: <20091101154929.GC29434@me>
+References: <20090805222737.GA8523@comcast.net>
+ <20091030015711.GS20136@me>
+ <f0e08f230910300823j56edb800nf88efca23165bf5@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <f0e08f230910300840t2902ea50ye20420694fd7ef7-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <f0e08f230910300823j56edb800nf88efca23165bf5-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 11:40 Fri 30 Oct     , Hal Rosenstock wrote:
-> >> @@ -150,7 +151,7 @@ static ib_api_status_t vlarb_update(osm_sm_t *=
- sm, osm_physp_t * p,
-> >>
-> >> =A0static ib_api_status_t sl2vl_update_table(osm_sm_t * sm, osm_ph=
-ysp_t * p,
-> >> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 uint8_t in_port, uint8_t out_port,
-> >> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
-=A0 =A0 =A0 unsigned force_update,
+On 11:23 Fri 30 Oct     , Hal Rosenstock wrote:
+> >
+> > In general: function trap_rcv_process_request() already has 400 lin=
+es of
+> > code and adding there more lines without simplifying flows makes me
+> > nervous.
+>=20
+> Are you going to block this change until such restructure ?
+
+I would prefer to improve it at least in a part where patch adds even
+more flows. Also there are many issues yet without restructuring.
+
+>=20
+> >> - =A0 =A0 /* Check for node description update. IB Spec v1.2.1 pg =
+823 */
+> >> - =A0 =A0 if (ib_notice_is_generic(p_ntci) &&
+> >> - =A0 =A0 =A0 =A0 cl_ntoh16(p_ntci->g_or_v.generic.trap_num) =3D=3D=
+ 144 &&
+> >> - =A0 =A0 =A0 =A0 p_ntci->data_details.ntc_144.local_changes & TRA=
+P_144_MASK_OTHER_LOCAL_CHANGES &&
+> >> - =A0 =A0 =A0 =A0 p_ntci->data_details.ntc_144.change_flgs & TRAP_=
+144_MASK_NODE_DESCRIPTION_CHANGE) {
+> >> - =A0 =A0 =A0 =A0 =A0 =A0 OSM_LOG(sm->p_log, OSM_LOG_INFO, "Trap 1=
+44 Node description update\n");
+> >> -
+> >> - =A0 =A0 =A0 =A0 =A0 =A0 if (p_physp) {
+> >> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 CL_PLOCK_ACQUIRE(sm->p_l=
+ock);
+> >> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 osm_req_get_node_desc(sm=
+, p_physp);
+> >> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 CL_PLOCK_RELEASE(sm->p_l=
+ock);
+> >> - =A0 =A0 =A0 =A0 =A0 =A0 } else
+> >> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 OSM_LOG(sm->p_log, OSM_L=
+OG_ERROR,
+> >> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 "ERR 381=
+2: No physical port found for "
+> >> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 "trap 14=
+4: \"node description update\"\n");
+> >> - =A0 =A0 }
+> >> + =A0 =A0 if (ib_notice_is_generic(p_ntci)) {
+> >> + =A0 =A0 =A0 =A0 =A0 =A0 /* Check for node description update. IB=
+ Spec v1.2.1 pg 823 */
+> >> + =A0 =A0 =A0 =A0 =A0 =A0 if (cl_ntoh16(p_ntci->g_or_v.generic.tra=
+p_num) =3D=3D 144) {
+> >> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 /* update port's capabil=
+ity mask (in PortInfo) */
+> >> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 p_physp->port_info.capab=
+ility_mask =3D p_ntci->data_details.ntc_144.new_cap_mask;
+> >
+> > Hmm, could this introduce some issues?
+>=20
+> Like what ?
+
+Like ignoring isSM bit and maybe some other "problematic" bits which
+required SM DB update.
+
+>=20
+> >> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (p_ntci->data_details=
+=2Entc_144.local_changes & TRAP_144_MASK_OTHER_LOCAL_CHANGES) {
+> >> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (p_nt=
+ci->data_details.ntc_144.change_flgs & TRAP_144_MASK_NODE_DESCRIPTION_C=
+HANGE) {
+> >
+> > =A0 =A0 =A0 =A0if ((p_ntci->data_details.ntc_144.local_changes &
+> > =A0 =A0 =A0 =A0 =A0 =A0 TRAP_144_MASK_OTHER_LOCAL_CHANGES) &&
+> > =A0 =A0 =A0 =A0 =A0 =A0(p_ntci->data_details.ntc_144.change_flgs &
+> > =A0 =A0 =A0 =A0 =A0 =A0 TRAP_144_MASK_NODE_DESCRIPTION_CHANGE)) {
+> >
 > >> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
-=A0 =A0 =A0 unsigned optimize, unsigned force_update,
-> >> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 const ib_slvl_table_t * sl2vl_table)
-> >> =A0{
-> >> =A0 =A0 =A0 osm_madw_context_t context;
-> >> @@ -177,10 +178,18 @@ static ib_api_status_t sl2vl_update_table(os=
-m_sm_t * sm, osm_physp_t * p,
-> >> =A0 =A0 =A0 =A0 =A0 !memcmp(p_tbl, &tbl, sizeof(tbl)))
-> >> =A0 =A0 =A0 =A0 =A0 =A0 =A0 return IB_SUCCESS;
-> >>
-> >> + =A0 =A0 /* both input port and output port wildcarded */
-> >> + =A0 =A0 if (optimize && (in_port !=3D 1 || out_port !=3D 1))
-> >> + =A0 =A0 =A0 =A0 =A0 =A0 return IB_SUCCESS;
+=A0 =A0 OSM_LOG(sm->p_log, OSM_LOG_INFO,
+> >> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0 =A0 =A0 =A0 =A0 "Trap 144 Node description update\n");
 > >> +
+> >> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0 if (p_physp) {
+> >> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0 =A0 =A0 =A0 =A0 CL_PLOCK_ACQUIRE(sm->p_lock);
+> >> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0 =A0 =A0 =A0 =A0 osm_req_get_node_desc(sm, p_physp);
+> >> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0 =A0 =A0 =A0 =A0 CL_PLOCK_RELEASE(sm->p_lock);
+> >> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0 } else
+> >> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0 =A0 =A0 =A0 =A0 OSM_LOG(sm->p_log, OSM_LOG_ERROR,
+> >> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 "ERR 3812: No physical port fou=
+nd for "
+> >> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 "trap 144: \"node description u=
+pdate\"\n");
+> >> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 }
+> >> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 }
+> >> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (p_ntci->data_details=
+=2Entc_144.change_flgs & TRAP_144_MASK_LINK_WIDTH_ENABLE_CHANGE ||
+> >> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 p_ntci->data_det=
+ails.ntc_144.change_flgs & TRAP_144_MASK_LINK_SPEED_ENABLE_CHANGE ||
+> >> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 p_ntci->data_det=
+ails.ntc_144.change_flgs & TRAP_144_MASK_SM_PRIORITY_CHANGE)
 > >
-> > This function (sl2vl_update_table()) is called for each in and out =
-ports
-> > combination. I think that instead of calling it N * N times and
-> > filtering out the case 'in =3D=3D out =3D=3D 1' you just need it on=
-ce somewhere
-> > at higher layer.
->=20
-> I was trying to minimize the changes to the current code flow. It can
-> be done the way you propose but that will cause larger changes. Are
-> you sure about this direction ?
-
-I'm sure that that we don't need a bunch of empty loops. Also I think
-that doing this on an appropriate layer will not complicate things more=
-=2E
-
-> >> @@ -72,7 +73,9 @@ void osm_slvl_rcv_process(IN void *context, IN v=
-oid *p_data)
-> >> =A0 =A0 =A0 osm_slvl_context_t *p_context;
-> >> =A0 =A0 =A0 ib_net64_t port_guid;
-> >> =A0 =A0 =A0 ib_net64_t node_guid;
-> >> - =A0 =A0 uint8_t out_port_num, in_port_num;
-> >> + =A0 =A0 uint32_t attr_mod;
-> >> + =A0 =A0 uint8_t out_port_num, in_port_num, startinport, startout=
-port,
-> >> + =A0 =A0 =A0 =A0 =A0 =A0 endinport, endoutport;
-> >>
-> >> =A0 =A0 =A0 CL_ASSERT(sm);
-> >>
-> >> @@ -111,6 +114,9 @@ void osm_slvl_rcv_process(IN void *context, IN=
- void *p_data)
-> >> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 (uint8_t) cl_ntoh32(p_smp->att=
-r_mod & 0xFF000000);
-> >> =A0 =A0 =A0 =A0 =A0 =A0 =A0 in_port_num =3D
-> >> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 (uint8_t) cl_ntoh32((p_smp->at=
-tr_mod & 0x00FF0000) << 8);
-> >> + =A0 =A0 =A0 =A0 =A0 =A0 attr_mod =3D cl_ntoh32(p_smp->attr_mod);
-> >> + =A0 =A0 =A0 =A0 =A0 =A0 if (attr_mod & 0x30000)
-> >> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 goto opt_sl2vl;
-> >> =A0 =A0 =A0 =A0 =A0 =A0 =A0 p_physp =3D osm_node_get_physp_ptr(p_n=
-ode, out_port_num);
-> >> =A0 =A0 =A0 } else {
-> >> =A0 =A0 =A0 =A0 =A0 =A0 =A0 p_physp =3D p_port->p_physp;
-> >> @@ -123,7 +129,7 @@ void osm_slvl_rcv_process(IN void *context, IN=
- void *p_data)
-> >> =A0 =A0 =A0 =A0 =A0all we want is to update the subnet.
-> >> =A0 =A0 =A0 =A0*/
-> >> =A0 =A0 =A0 OSM_LOG(sm->p_log, OSM_LOG_VERBOSE,
-> >> - =A0 =A0 =A0 =A0 =A0 =A0 "Got SLtoVL get response in_port_num %u =
-out_port_num %u with "
-> >> + =A0 =A0 =A0 =A0 =A0 =A0 "Received SLtoVL GetResp in_port_num %u =
-out_port_num %u with "
-> >> =A0 =A0 =A0 =A0 =A0 =A0 =A0 "GUID 0x%" PRIx64 " for parent node GU=
-ID 0x%" PRIx64 ", TID 0x%"
-> >> =A0 =A0 =A0 =A0 =A0 =A0 =A0 PRIx64 "\n", in_port_num, out_port_num=
-, cl_ntoh64(port_guid),
-> >> =A0 =A0 =A0 =A0 =A0 =A0 =A0 cl_ntoh64(node_guid), cl_ntoh64(p_smp-=
->trans_id));
-> >> @@ -142,6 +148,39 @@ void osm_slvl_rcv_process(IN void *context, I=
-N void *p_data)
-> >> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 out_po=
-rt_num, p_slvl_tbl, OSM_LOG_DEBUG);
-> >>
-> >> =A0 =A0 =A0 osm_physp_set_slvl_tbl(p_physp, p_slvl_tbl, in_port_nu=
-m);
-> >> + =A0 =A0 goto Exit;
-> >> +
-> >> +opt_sl2vl:
+> > =A0 =A0 =A0 =A0if ((p_ntci->data_details.ntc_144.change_flgs &
+> > =A0 =A0 =A0 =A0 =A0 =A0 (TRAP_144_MASK_LINK_WIDTH_ENABLE_CHANGE |
+> > =A0 =A0 =A0 =A0 =A0 =A0 =A0TRAP_144_MASK_LINK_SPEED_ENABLE_CHANGE |
+> > =A0 =A0 =A0 =A0 =A0 =A0 =A0TRAP_144_MASK_SM_PRIORITY_CHANGE)))
 > >
-> > I think that you need to use functions here.
->=20
-> Where is here ? To what are you referring ?
-
-When your function becomes to form of:
-
-	if (cond1)
-		goto do1;
-=09
-	do_else();
-
-	goto exit;
-
-do1:
-	do_1();
-
-exit:
-	return;
-
-I'm suggesting to improve flows, for example by using functions (or
-another way if applicable and achieves the simplification goal).
-
->=20
-> >> + =A0 =A0 OSM_LOG(sm->p_log, OSM_LOG_VERBOSE,
-> >> + =A0 =A0 =A0 =A0 =A0 =A0 "Got optimized SLtoVL get response in_po=
-rt_num %u out_port_num "
-> >> + =A0 =A0 =A0 =A0 =A0 =A0 "%u with GUID 0x%" PRIx64 " for parent n=
-ode GUID 0x%" PRIx64
-> >> + =A0 =A0 =A0 =A0 =A0 =A0 ", TID 0x%" PRIx64 "\n", in_port_num, ou=
-t_port_num,
-> >> + =A0 =A0 =A0 =A0 =A0 =A0 cl_ntoh64(port_guid), cl_ntoh64(node_gui=
-d),
-> >> + =A0 =A0 =A0 =A0 =A0 =A0 cl_ntoh64(p_smp->trans_id));
-> >> +
-> >> + =A0 =A0 osm_dump_slvl_map_table(sm->p_log, port_guid, in_port_nu=
-m,
-> >> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 out_port=
-_num, p_slvl_tbl, OSM_LOG_DEBUG);
-> >> +
-> >> + =A0 =A0 if (attr_mod & 0x10000) {
-> >> + =A0 =A0 =A0 =A0 =A0 =A0 startoutport =3D ib_switch_info_is_enhan=
-ced_port0(&p_node->sw->switch_info) ? 0 : 1;
-> >> + =A0 =A0 =A0 =A0 =A0 =A0 endoutport =3D osm_node_get_num_physp(p_=
-node);
-> >> + =A0 =A0 } else
-> >> + =A0 =A0 =A0 =A0 =A0 =A0 endoutport =3D startoutport =3D out_port=
-_num;
-> >> + =A0 =A0 if (attr_mod & 0x20000) {
-> >> + =A0 =A0 =A0 =A0 =A0 =A0 startinport =3D ib_switch_info_is_enhanc=
-ed_port0(&p_node->sw->switch_info) ? 0 : 1;
-> >> + =A0 =A0 =A0 =A0 =A0 =A0 endinport =3D osm_node_get_num_physp(p_n=
-ode);
-> >> + =A0 =A0 } else
-> >> + =A0 =A0 =A0 =A0 =A0 =A0 endinport =3D startinport =3D in_port_nu=
-m;
-> >> +
-> >> + =A0 =A0 for (out_port_num =3D startoutport; out_port_num < endou=
-tport;
-> >> + =A0 =A0 =A0 =A0 =A0out_port_num++) {
-> >> + =A0 =A0 =A0 =A0 =A0 =A0 p_physp =3D osm_node_get_physp_ptr(p_nod=
-e, out_port_num);
-> >> + =A0 =A0 =A0 =A0 =A0 =A0 if (!p_physp)
 > >
-> > When could this be NULL?
+> >> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 is_trap1=
+44_sweep =3D TRUE;
+> >> + =A0 =A0 =A0 =A0 =A0 =A0 }
+> >>
+> >> - =A0 =A0 /* do a sweep if we received a trap */
+> >> - =A0 =A0 if (sm->p_subn->opt.sweep_on_trap) {
+> >> - =A0 =A0 =A0 =A0 =A0 =A0 /* if this is trap number 128 or run_hea=
+vy_sweep is TRUE -
+> >> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0update the force_heavy_sweep flag=
+ of the subnet.
+> >> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0Sweep also on traps 144/145 - the=
+se traps signal a change of
+> >> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0certain port capabilities/system =
+image guid.
+> >> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0TODO: In the future this can be c=
+hanged to just getting
+> >> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0PortInfo on this port instead of =
+sweeping the entire subnet. */
+> >> - =A0 =A0 =A0 =A0 =A0 =A0 if (ib_notice_is_generic(p_ntci) &&
+> >> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 (cl_ntoh16(p_ntci->g_or_v.generi=
+c.trap_num) =3D=3D 128 ||
+> >> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0cl_ntoh16(p_ntci->g_or_v.gene=
+ric.trap_num) =3D=3D 144 ||
+> >> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0cl_ntoh16(p_ntci->g_or_v.gene=
+ric.trap_num) =3D=3D 145 ||
+> >> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0run_heavy_sweep)) {
+> >> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 OSM_LOG(sm->p_log, OSM_L=
+OG_VERBOSE,
+> >> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 "Forcing=
+ heavy sweep. Received trap:%u\n",
+> >> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 cl_ntoh1=
+6(p_ntci->g_or_v.generic.trap_num));
+> >> + =A0 =A0 =A0 =A0 =A0 =A0 if (cl_ntoh16(p_ntci->g_or_v.generic.tra=
+p_num) =3D=3D 145) {
+> >> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 /* update system image g=
+uid (in NodeInfo) */
+> >> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 p_node =3D osm_physp_get=
+_node_ptr(p_physp);
+> >> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (p_node)
+> >
+> > When 'p_node' could be NULL?
 >=20
-> It was just defensive. Should it be removed ?
+> It's just a possible return from osm_physp_get_node_ptr and wanted to
+> be sure this was not the case before setting node_info. Should this b=
+e
+> eliminated ?
 
-I wasn't sure, so asked. If it is "just defensive" please remove it.
+If p_physp->p_node cannot be NULL legally, then the check should be
+eliminated in order to not hide an errors and to not eat cpu cycles.
+
+>=20
+> >> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 p_node->=
+node_info.node_guid =3D p_ntci->data_details.ntc_145.new_sys_guid;
+> >
+> > Didn't you mean 'node_info.sys_guid' and 'node_info.node_guid'?
+>=20
+> Just sys_guid.
+
+Sorry typo, I tried to ask: shouldn't be:
+
+	p_node->node_info.sys_guid =3D p_ntci->data_details.ntc_145.new_sys_gu=
+id;
+
+, instead?
+
+>=20
+> >> + =A0 =A0 =A0 =A0 =A0 =A0 }
+> >> +
+> >> + =A0 =A0 =A0 =A0 =A0 =A0 /* do a sweep if we received a trap */
+> >> + =A0 =A0 =A0 =A0 =A0 =A0 if (sm->p_subn->opt.sweep_on_trap) {
+> >> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 /* if this is trap numbe=
+r 128 or run_heavy_sweep is
+> >> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0TRUE - update the=
+ force_heavy_sweep flag of the
+> >> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0subnet. Also, swe=
+ep on certain types of trap 144.
+> >> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0TODO: In the futu=
+re this can be changed to just
+> >> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0getting PortInfo =
+on this port instead of sweeping
+> >> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0the entire subnet=
+=2E */
+> >> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (cl_ntoh16(p_ntci->g_=
+or_v.generic.trap_num) =3D=3D 128 ||
+> >> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 is_trap144_sweep=
+ || run_heavy_sweep) {
+> >
+> > It looks that prevents sweeping on PortInfo:CapMask change which
+> > is effectively breaks at least SM handover - new SM will be undetec=
+ted.
+>=20
+> Yes, CapMask change should be included along with the other local
+> changes to cause sweep.
+
+So this should change the patch.=20
 
 Sasha
 --
