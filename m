@@ -1,22 +1,23 @@
 From: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCHv3] opensm: Add configurable retries for transactions
-Date: Sun, 1 Nov 2009 18:09:38 +0200
-Message-ID: <20091101160938.GG29434@me>
-References: <20091030230459.GA13140@comcast.net>
+Subject: Re: [PATCH] opensm/osm_trap_rcv.c: Minor reorganization of
+ trap_rcv_process_request
+Date: Sun, 1 Nov 2009 18:36:35 +0200
+Message-ID: <20091101163635.GH29434@me>
+References: <20091031122501.GA24260@comcast.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20091030230459.GA13140-Wuw85uim5zDR7s880joybQ@public.gmane.org>
+In-Reply-To: <20091031122501.GA24260-Wuw85uim5zDR7s880joybQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Hal Rosenstock <hnrose-Wuw85uim5zDR7s880joybQ@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 18:05 Fri 30 Oct     , Hal Rosenstock wrote:
+On 07:25 Sat 31 Oct     , Hal Rosenstock wrote:
 > 
-> As part of this change, transaction timeouts (and retries) are per
-> umad agent (supplied at osm_vendor_bind).
+> Move some code out into separate log_trap_info routine
+> for readability/maintainability 
 > 
 > Signed-off-by: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 
