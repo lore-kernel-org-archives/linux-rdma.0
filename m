@@ -1,76 +1,56 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH] librdmacm/mckey: enforce local binding for unmapped
-	multicast addresses
-Date: Mon, 2 Nov 2009 11:42:27 -0700
-Message-ID: <20091102184227.GD7768@obsidianresearch.com>
-References: <Pine.LNX.4.64.0911011130140.6591@zuben.voltaire.com>
+From: "Sean Hefty" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: QoS in local SA entity: was rdma/cm: support option to allow manually setting IB path
+Date: Mon, 2 Nov 2009 10:59:31 -0800
+Message-ID: <2EA483054F2D4472B9F57386E463FE33@amr.corp.intel.com>
+References: <F0EFC2D8E6A340D48497497670C5969C@amr.corp.intel.com>	<A08104C1CF70400F8BEF492AD49C8491@amr.corp.intel.com>	<20091020181458.GD14520@obsidianresearch.com>	<46770152ACA04B6C8AA9497C45AC8FD0@amr.corp.intel.com>	<20091020191404.GH14520@obsidianresearch.com>	<9DFD8E65325F4EE990749EEBE4BC33CA@amr.corp.intel.com>	<20091022004245.GV14520@obsidianresearch.com>	<AE35305D45DB49F591A45DADD822209A@amr.corp.intel.com>	<20091022013542.GX14520@obsidianresearch.com>	<B7E97540810E4A2785FF1FC8CB96F453@amr.corp.intel.com>	<DC0770A17FDC4DACAC0251A3362CE87A@amr.corp.intel.com> <1B115D7248A5404781F001F72A7C591A@amr.corp.intel.com> <4AED347A.1060301@voltaire.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.64.0911011130140.6591-aDiYczhfhVLdX2U7gxhm1tBPR1lH4CV8@public.gmane.org>
+In-Reply-To: <4AED347A.1060301-smomgflXvOZWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: 'Or Gerlitz' <ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+Cc: 'Jason Gunthorpe' <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Sun, Nov 01, 2009 at 11:31:22AM +0200, Or Gerlitz wrote:
+>Before enhancing the rdma-cm to support the full feature set of the IB
+>CM, something which I personally don't see the actual need for (but I
+>will be happy to get educated what applications will or can migrate to
+>rdma-cm once this is implemented), how about trying to allow for reduced
+>QoS scheme also when the entity that resolved this patch didn't
+>consulted with the SA?
 
-> Sean, using unmapped multicast addresses I see that a different broacast group is
-> created by the SM such that mckey doesn't manage to join the ipv4 broadcast group
-> 
-> $ ./mckey -M ff12:401b:ffff:0:0:0:ffff:ffff -b 10.10.5.62 -p 0x2
-> 
-> mckey: joined dgid: ff12:401b:ffff:: mlid c00b sl 0
+I think this really needs to be discussed wrt the implementation of the entity
+providing the path records.
 
-Erm, I'm not sure what is going on by the time things get to the SA,
-but the above output shows this kernel bug. The joined DGID for that
-AF_INET6 address should be FF12:601b::FFFF:FFFF
+>IB QoS is based on the query providing the <SGID, DGID, PKEY, SID, TOS>
+>tuple and the SA returning a <SLID, DLID, SL, MTU, ....> QoS tuple. Now
+>I'd like to see how can we let the application / querying middleware to
+>take advantage of the knowledge on what partition it runs and use the SL
+>associated with the IPv4 (e.g AF_INET rdma-cm ID's) IPoIB broadcast
+>group. This way, one can still program a QoS scheme at the SA which is
+>based on partitions.
 
-The AF_INET6 -M argument to mckey is not treated as a MGID unless it is
-prefixed with FF10:A01B:: (so ugly..)
+I think what's needed is a way for the SA to distribute QoS information to the
+end nodes, so that the decisions can be made locally.  If someone wants some
+sort of dynamic QoS management and is happy using a small cluster, then they can
+disable any local SA entities and contact the SA directly.
 
-If you want to join the IPv4 all hosts group I think you need to use
--M 255.255.255.255
+In the case of ACM, the pkey is embedded in the MGID.  'Something' could tell
+the SA to create ACM multicast groups using a specific SL for a given MGID or
+pkey in the join request.  That SL would be distributed to the end nodes when
+they joined their groups.
 
-Your result does show that something else is wrong too, the group with
-MLID 0xC00B should have been MGID ff12:401b:ffff:: like mckey reported
-..
+>Looking on mckey, the user space code (e.g ACM), could just do rdma_bind
+>to an IP address of an IPoIB NIC that uses this partition and then
+>rdma_join to an unmapped multicast address which correspond to the
+>broadcast group, take the SL and leave the group, makes sense?
 
->From 9f3a76deb5bfda0f8243eadfa024eb547c03f583 Mon Sep 17 00:00:00 2001
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Date: Mon, 2 Nov 2009 11:23:38 -0700
-Subject: [PATCH] RDMA CM: Fix AF_INET6 support in multicast joining
+The entity that provides the path records cannot depend on calling into the
+librdmacm.  The dependency needs to go the other way.
 
-If joining to an AF_INET6 address we need to map the address to a MGID
-in the same way as the IP stack. The old code would just fall through to
-the IPv4 case and generate garbage.
-
-Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
----
- drivers/infiniband/core/cma.c |    5 +++++
- 1 files changed, 5 insertions(+), 0 deletions(-)
-
-compile tested only.
-
-diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
-index a0fa241..1e9a78a 100644
---- a/drivers/infiniband/core/cma.c
-+++ b/drivers/infiniband/core/cma.c
-@@ -2724,6 +2724,11 @@ static void cma_set_mgid(struct rdma_id_private *id_priv,
- 								 0xFF10A01B)) {
- 		/* IPv6 address is an SA assigned MGID. */
- 		memcpy(mgid, &sin6->sin6_addr, sizeof *mgid);
-+	} else if ((addr->sa_family == AF_INET6)) {
-+		ipv6_ib_mc_map(&sin6->sin6_addr, dev_addr->broadcast, mc_map);
-+		if (id_priv->id.ps == RDMA_PS_UDP)
-+			mc_map[7] = 0x01;	/* Use RDMA CM signature */
-+		*mgid = *(union ib_gid *) (mc_map + 4);
- 	} else {
- 		ip_ib_mc_map(sin->sin_addr.s_addr, dev_addr->broadcast, mc_map);
- 		if (id_priv->id.ps == RDMA_PS_UDP)
--- 
-1.5.4.2
+- Sean
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
