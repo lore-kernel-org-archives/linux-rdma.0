@@ -1,27 +1,23 @@
 From: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH] opensm/osm_sa_mcmember_record.c: fsmall code
- optimization
-Date: Mon, 2 Nov 2009 02:51:30 +0200
-Message-ID: <20091102005130.GC1153@me>
-References: <4AEE0DDB.3050606@dev.mellanox.co.il>
+Subject: Re: [PATCH] opensm/: Removed empty comments
+Date: Mon, 2 Nov 2009 03:00:28 +0200
+Message-ID: <20091102010028.GD1153@me>
+References: <829ded920910282352u5105f2an4835d3685bf64a93@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <4AEE0DDB.3050606-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+In-Reply-To: <829ded920910282352u5105f2an4835d3685bf64a93-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: Linux RDMA <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Keshetti Mahesh <keshetti.mahesh-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: OFED mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 00:38 Mon 02 Nov     , Yevgeny Kliteynik wrote:
-> Further optimization in comparison to zero mgid -
-> use existing function to check whether the mgid
-> is all zero.
-> 
-> Signed-off-by: Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+On 12:22 Thu 29 Oct     , Keshetti Mahesh wrote:
+> Signed-off-by: Keshetti Mahesh <keshetti.mahesh-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+> ---
 
-Applied. Thanks.
+I've got the patch. Will apply shortly.
 
 Sasha
 --
