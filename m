@@ -1,203 +1,45 @@
-From: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH] Return single PathRecord for SubnAdmGet when SGID
- and/or DGID
-Date: Mon, 2 Nov 2009 17:03:08 +0200
-Message-ID: <20091102150308.GB21323@me>
-References: <1256902806-12040-1-git-send-email-elid@voltaire.com>
+From: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH] infiniband-diags/perfquery.c: Fix extended counter reset
+	mask
+Date: Mon, 2 Nov 2009 11:23:32 -0400
+Message-ID: <f0e08f230911020723g68586367g296d1991616d937@mail.gmail.com>
+References: <20091030011708.GQ20136@me>
+	 <1361989047.4222321256937573066.JavaMail.root@sz0074a.westchester.pa.mail.comcast.net>
+	 <f0e08f230910301516o33bddfa3lcab8e31c3eec096f@mail.gmail.com>
+	 <20091102130305.GA8345@me>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1256902806-12040-1-git-send-email-elid-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <20091102130305.GA8345@me>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Eli Dorfman <dorfman.eli-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Eli Dorfman <elid-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+To: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Eli,
+On Mon, Nov 2, 2009 at 9:03 AM, Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org> =
+wrote:
+> On 18:16 Fri 30 Oct =C2=A0 =C2=A0 , Hal Rosenstock wrote:
+>>
+>> Because a PMA implementation which follows the IBA recommendation wi=
+ll
+>> reject this
+>
+> Hmm, where did you find such recommendation where stated that if
+> reserved bits are not '0' the request should be rejected (I would rat=
+her
+> expect ignoring of those values at all)?
 
-On 13:40 Fri 30 Oct     , Eli Dorfman wrote:
-> From: Eli Dorfman <elid-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+I sent a subsequent email indicating there was an errata on this and
+that these changes are needed.
 
-Please add descriptive change log. It is hard (for me) to just remember
-an issue in all details.
+-- Hal
 
-> 
-> Signed-off-by: Eli Dorfman <elid-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-> ---
->  opensm/opensm/osm_sa_path_record.c |   38 ++++++++++++++++++++++++-----------
->  1 files changed, 26 insertions(+), 12 deletions(-)
-> 
-> diff --git a/opensm/opensm/osm_sa_path_record.c b/opensm/opensm/osm_sa_path_record.c
-> index f36eb46..0c6621b 100644
-> --- a/opensm/opensm/osm_sa_path_record.c
-> +++ b/opensm/opensm/osm_sa_path_record.c
-> @@ -890,7 +890,7 @@ Exit:
->  
->  /**********************************************************************
->   **********************************************************************/
-> -static void pr_rcv_get_port_pair_paths(IN osm_sa_t * sa,
-> +static int pr_rcv_get_port_pair_paths(IN osm_sa_t * sa,
->  				       IN const osm_madw_t * p_madw,
->  				       IN const osm_port_t * p_req_port,
->  				       IN const osm_port_t * p_src_port,
-> @@ -908,7 +908,7 @@ static void pr_rcv_get_port_pair_paths(IN osm_sa_t * sa,
->  	uint16_t dest_lid_max_ho;
->  	uint16_t src_lid_ho;
->  	uint16_t dest_lid_ho;
-> -	uint32_t path_num;
-> +	uint32_t path_num = 0;
-
-It is reinitialized later as: 
-
-	path_num = cl_qlist_count(p_list);
-
-, one of them is not needed.
-
->  	uint8_t preference;
->  	uintn_t iterations;
->  	uintn_t src_offset;
-> @@ -1019,7 +1019,7 @@ static void pr_rcv_get_port_pair_paths(IN osm_sa_t * sa,
->  	   Preferred paths come first in OpenSM
->  	 */
->  	preference = 0;
-> -	path_num = 0;
-> +	path_num = cl_qlist_count(p_list);
-
-Is this correct?
-
-In this way pr_rcv_get_port_pair_paths() will return a total number of
-PRs collected in previous calls too (not for just specific
-source/destination call). No?
-
->  
->  	/* If SubnAdmGet, assume NumbPaths 1 (1.2 erratum) */
->  	if (p_sa_mad->method != IB_MAD_METHOD_GET)
-> @@ -1111,6 +1111,7 @@ static void pr_rcv_get_port_pair_paths(IN osm_sa_t * sa,
->  
->  Exit:
->  	OSM_LOG_EXIT(sa->p_log);
-> +	return path_num;
->  }
->  
->  /**********************************************************************
-> @@ -1314,6 +1315,8 @@ static void pr_rcv_process_world(IN osm_sa_t * sa, IN const osm_madw_t * p_madw,
->  	const cl_qmap_t *p_tbl;
->  	const osm_port_t *p_dest_port;
->  	const osm_port_t *p_src_port;
-> +	const ib_sa_mad_t *p_sa_mad;
-> +	int   num_paths = 0;
->  
->  	OSM_LOG_ENTER(sa->p_log);
->  
-> @@ -1326,14 +1329,17 @@ static void pr_rcv_process_world(IN osm_sa_t * sa, IN const osm_madw_t * p_madw,
->  	   any check to determine the reversability of the paths.
->  	 */
->  	p_tbl = &sa->p_subn->port_guid_tbl;
-> +	p_sa_mad = osm_madw_get_sa_mad_ptr(p_madw);
->  
->  	p_dest_port = (osm_port_t *) cl_qmap_head(p_tbl);
->  	while (p_dest_port != (osm_port_t *) cl_qmap_end(p_tbl)) {
->  		p_src_port = (osm_port_t *) cl_qmap_head(p_tbl);
->  		while (p_src_port != (osm_port_t *) cl_qmap_end(p_tbl)) {
-> -			pr_rcv_get_port_pair_paths(sa, p_madw, requester_port,
-> -						   p_src_port, p_dest_port,
-> -						   p_dgid, comp_mask, p_list);
-> +			num_paths += pr_rcv_get_port_pair_paths(sa, p_madw, requester_port,
-> +								p_src_port, p_dest_port,
-> +								p_dgid, comp_mask, p_list);
-> +			if (p_sa_mad->method == IB_MAD_METHOD_GET && num_paths > 1)
-> +				return;
-
-So it will return with num_paths > 1. Then wouldn't an error (too many
-records) be generated by osm_sa_respond() (just similar to as it is
-now)? I guess so.
-
-So shouldn't here be something like:
-
-	if (p_sa_mad->method == IB_MAD_METHOD_GET &&
-	    cl_qlist_count(p_list) >= 1)
-		break;
-
-(, and then you don't need to bother with num_paths in
-pr_rcv_get_port_pair_paths())?
-
->  
->  			p_src_port =
->  			    (osm_port_t *) cl_qmap_next(&p_src_port->map_item);
-> @@ -1358,6 +1364,8 @@ static void pr_rcv_process_half(IN osm_sa_t * sa, IN const osm_madw_t * p_madw,
->  {
->  	const cl_qmap_t *p_tbl;
->  	const osm_port_t *p_port;
-> +	const ib_sa_mad_t *p_sa_mad;
-> +	int   num_paths = 0;
->  
->  	OSM_LOG_ENTER(sa->p_log);
->  
-> @@ -1367,6 +1375,7 @@ static void pr_rcv_process_half(IN osm_sa_t * sa, IN const osm_madw_t * p_madw,
->  	   need to special case that one.
->  	 */
->  	p_tbl = &sa->p_subn->port_guid_tbl;
-> +	p_sa_mad = osm_madw_get_sa_mad_ptr(p_madw);
->  
->  	if (p_src_port) {
->  		/*
-> @@ -1374,9 +1383,11 @@ static void pr_rcv_process_half(IN osm_sa_t * sa, IN const osm_madw_t * p_madw,
->  		 */
->  		p_port = (osm_port_t *) cl_qmap_head(p_tbl);
->  		while (p_port != (osm_port_t *) cl_qmap_end(p_tbl)) {
-> -			pr_rcv_get_port_pair_paths(sa, p_madw, requester_port,
-> -						   p_src_port, p_port, p_dgid,
-> -						   comp_mask, p_list);
-> +			num_paths += pr_rcv_get_port_pair_paths(sa, p_madw, requester_port,
-> +								p_src_port, p_port, p_dgid,
-> +								comp_mask, p_list);
-> +			if (p_sa_mad->method == IB_MAD_METHOD_GET && num_paths > 1)
-
-Ditto.
-
-> +				goto Exit;
-
-'break' will work too.
-
->  			p_port = (osm_port_t *) cl_qmap_next(&p_port->map_item);
->  		}
->  	} else {
-> @@ -1385,13 +1396,16 @@ static void pr_rcv_process_half(IN osm_sa_t * sa, IN const osm_madw_t * p_madw,
->  		 */
->  		p_port = (osm_port_t *) cl_qmap_head(p_tbl);
->  		while (p_port != (osm_port_t *) cl_qmap_end(p_tbl)) {
-> -			pr_rcv_get_port_pair_paths(sa, p_madw, requester_port,
-> -						   p_port, p_dest_port, p_dgid,
-> -						   comp_mask, p_list);
-> +			num_paths += pr_rcv_get_port_pair_paths(sa, p_madw, requester_port,
-> +								p_port, p_dest_port, p_dgid,
-> +								comp_mask, p_list);
-> +			if (p_sa_mad->method == IB_MAD_METHOD_GET && num_paths > 1)
-
-Ditto.
-
-> +				goto Exit;
-
-'break' will work too
-
->  			p_port = (osm_port_t *) cl_qmap_next(&p_port->map_item);
->  		}
->  	}
->  
-> +Exit:
-
-and then exit label is not needed.
-
-Sasha
-
->  	OSM_LOG_EXIT(sa->p_log);
->  }
->  
-> -- 
-> 1.5.5
-> 
+>
+> Sasha
+>
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
