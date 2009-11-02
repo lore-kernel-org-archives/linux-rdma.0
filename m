@@ -1,56 +1,234 @@
-From: Hal Rosenstock <hnrose-Wuw85uim5zDR7s880joybQ@public.gmane.org>
-Subject: [PATCH] opensm/osm_mcast_tbl: Fix size of port mask table array
-Date: Mon, 2 Nov 2009 14:06:54 -0500
-Message-ID: <20091102190654.GA18937@comcast.net>
+From: Al Chu <chu11-i2BcT+NCU+M@public.gmane.org>
+Subject: [infiniband-diags] [PATCH] [2/2] split out scan specific data from
+	ibnd_node_t
+Date: Mon, 02 Nov 2009 11:33:21 -0800
+Message-ID: <1257190401.580.31.camel@auk31.llnl.gov>
+Reply-To: chu11-i2BcT+NCU+M@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/mixed; boundary="=-wGA0fdfJcgDE4tvnmMrI"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 
-Should be IB_MCAST_POSITION_MAX + 1 rather than just IB_MCAST_POSITION_MAX
+--=-wGA0fdfJcgDE4tvnmMrI
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 
-Signed-off-by: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Hey Sasha,
+
+This splits out some scan specific data from ibnd_node_t that doesn't
+need to be in the public struct.
+
+Al
+
+-- 
+Albert Chu
+chu11-i2BcT+NCU+M@public.gmane.org
+Computer Scientist
+High Performance Systems Division
+Lawrence Livermore National Laboratory
+
+--=-wGA0fdfJcgDE4tvnmMrI
+Content-Disposition: attachment; filename=0002-split-out-scan-specific-data-from-ibnd_node_t.patch
+Content-Type: text/plain; name=0002-split-out-scan-specific-data-from-ibnd_node_t.patch; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+
+From: Albert Chu <chu11-i2BcT+NCU+M@public.gmane.org>
+Date: Thu, 29 Oct 2009 18:59:26 -0700
+Subject: [PATCH] split out scan specific data from ibnd_node_t
+
+
+Signed-off-by: Albert Chu <chu11-i2BcT+NCU+M@public.gmane.org>
 ---
-diff --git a/opensm/include/opensm/osm_mcast_tbl.h b/opensm/include/opensm/osm_mcast_tbl.h
-index 6d3f083..0745b5b 100644
---- a/opensm/include/opensm/osm_mcast_tbl.h
-+++ b/opensm/include/opensm/osm_mcast_tbl.h
-@@ -76,7 +76,7 @@ typedef struct osm_mcast_fwdbl {
- 	uint16_t num_entries;
- 	uint16_t max_mlid_ho;
- 	uint16_t mft_depth;
--	uint16_t(*p_mask_tbl)[][IB_MCAST_POSITION_MAX];
-+	uint16_t(*p_mask_tbl)[][IB_MCAST_POSITION_MAX + 1];
- } osm_mcast_tbl_t;
- /*
- * FIELDS
-@@ -106,7 +106,7 @@ typedef struct osm_mcast_fwdbl {
- *
- *	p_mask_tbl
- *		Pointer to a two dimensional array of port_masks for this switch.
--*		The first dimension is MLID, the second dimension is mask position.
-+*		The first dimension is MLID offset, second dimension is mask position.
- *		This pointer is null for switches that do not support multicast.
- *
- * SEE ALSO
-diff --git a/opensm/opensm/osm_mcast_tbl.c b/opensm/opensm/osm_mcast_tbl.c
-index 818f2e0..c2c5395 100644
---- a/opensm/opensm/osm_mcast_tbl.c
-+++ b/opensm/opensm/osm_mcast_tbl.c
-@@ -119,7 +119,7 @@ void osm_mcast_tbl_set(IN osm_mcast_tbl_t * p_tbl, IN uint16_t mlid_ho,
- int osm_mcast_tbl_realloc(IN osm_mcast_tbl_t * p_tbl, IN uintn_t mlid_offset)
- {
- 	size_t mft_depth, size;
--	uint16_t (*p_mask_tbl)[][IB_MCAST_POSITION_MAX];
-+	uint16_t (*p_mask_tbl)[][IB_MCAST_POSITION_MAX + 1];
+ .../libibnetdisc/include/infiniband/ibnetdisc.h    |    2 -
+ infiniband-diags/libibnetdisc/src/chassis.c        |   18 ++++++++--
+ infiniband-diags/libibnetdisc/src/ibnetdisc.c      |   32 +++++++++++++++----
+ infiniband-diags/libibnetdisc/src/internal.h       |    8 ++++-
+ 4 files changed, 46 insertions(+), 14 deletions(-)
+
+diff --git a/infiniband-diags/libibnetdisc/include/infiniband/ibnetdisc.h b/infiniband-diags/libibnetdisc/include/infiniband/ibnetdisc.h
+index 6120453..f1cb00c 100644
+--- a/infiniband-diags/libibnetdisc/include/infiniband/ibnetdisc.h
++++ b/infiniband-diags/libibnetdisc/include/infiniband/ibnetdisc.h
+@@ -48,7 +48,6 @@ struct ibnd_port;		/* forward declare */
+ typedef struct ibnd_node {
+ 	struct ibnd_node *next;	/* all node list in fabric */
  
- 	if (mlid_offset < p_tbl->mft_depth)
- 		goto done;
+-	ib_portid_t path_portid;	/* path from "from_node" */
+ 	int smalid;
+ 	int smalmc;
+ 
+@@ -81,7 +80,6 @@ typedef struct ibnd_node {
+ 	/* internal use only */
+ 	unsigned char ch_found;
+ 	struct ibnd_node *htnext;	/* hash table list */
+-	struct ibnd_node *dnext;	/* nodesdist next */
+ 	struct ibnd_node *type_next;	/* next based on type */
+ } ibnd_node_t;
+ 
+diff --git a/infiniband-diags/libibnetdisc/src/chassis.c b/infiniband-diags/libibnetdisc/src/chassis.c
+index 15c17d2..3bd0108 100644
+--- a/infiniband-diags/libibnetdisc/src/chassis.c
++++ b/infiniband-diags/libibnetdisc/src/chassis.c
+@@ -822,6 +822,7 @@ int group_nodes(ibnd_fabric_t * fabric, ibnd_scan_t *scan)
+ 	int chassisnum = 0;
+ 	ibnd_chassis_t *chassis;
+ 	ibnd_chassis_t *ch, *ch_next;
++	ibnd_node_scan_t *node_scan;
+ 
+ 	scan->first_chassis = NULL;
+ 	scan->current_chassis = NULL;
+@@ -832,16 +833,21 @@ int group_nodes(ibnd_fabric_t * fabric, ibnd_scan_t *scan)
+ 	/* according to internal connectivity */
+ 	/* not very efficient but clear code so... */
+ 	for (dist = 0; dist <= fabric->maxhops_discovered; dist++)
+-		for (node = scan->nodesdist[dist]; node; node = node->dnext)
++		for (node_scan = scan->nodesdist[dist]; node_scan; node_scan = node_scan->dnext) {
++			node = node_scan->node;
++
+ 			if (mad_get_field(node->info, 0,
+ 					  IB_NODE_VENDORID_F) == VTR_VENDOR_ID
+ 			    && fill_voltaire_chassis_record(node))
+ 				goto cleanup;
++		}
+ 
+ 	/* separate every Voltaire chassis from each other and build linked list of them */
+ 	/* algorithm: catch spine and find all surrounding nodes */
+ 	for (dist = 0; dist <= fabric->maxhops_discovered; dist++)
+-		for (node = scan->nodesdist[dist]; node; node = node->dnext) {
++		for (node_scan = scan->nodesdist[dist]; node_scan; node_scan = node_scan->dnext) {
++			node = node_scan->node;
++
+ 			if (mad_get_field(node->info, 0,
+ 					  IB_NODE_VENDORID_F) != VTR_VENDOR_ID)
+ 				continue;
+@@ -859,7 +865,9 @@ int group_nodes(ibnd_fabric_t * fabric, ibnd_scan_t *scan)
+ 	/* now make pass on nodes for chassis which are not Voltaire */
+ 	/* grouped by common SystemImageGUID */
+ 	for (dist = 0; dist <= fabric->maxhops_discovered; dist++)
+-		for (node = scan->nodesdist[dist]; node; node = node->dnext) {
++		for (node_scan = scan->nodesdist[dist]; node_scan; node_scan = node_scan->dnext) {
++			node = node_scan->node;
++
+ 			if (mad_get_field(node->info, 0,
+ 					  IB_NODE_VENDORID_F) == VTR_VENDOR_ID)
+ 				continue;
+@@ -885,7 +893,9 @@ int group_nodes(ibnd_fabric_t * fabric, ibnd_scan_t *scan)
+ 	/* now, make another pass to see which nodes are part of chassis */
+ 	/* (defined as chassis->nodecount > 1) */
+ 	for (dist = 0; dist <= MAXHOPS;) {
+-		for (node = scan->nodesdist[dist]; node; node = node->dnext) {
++		for (node_scan = scan->nodesdist[dist]; node_scan; node_scan = node_scan->dnext) {
++			node = node_scan->node;
++
+ 			if (mad_get_field(node->info, 0,
+ 					  IB_NODE_VENDORID_F) == VTR_VENDOR_ID)
+ 				continue;
+diff --git a/infiniband-diags/libibnetdisc/src/ibnetdisc.c b/infiniband-diags/libibnetdisc/src/ibnetdisc.c
+index ffa35e4..283584b 100644
+--- a/infiniband-diags/libibnetdisc/src/ibnetdisc.c
++++ b/infiniband-diags/libibnetdisc/src/ibnetdisc.c
+@@ -332,13 +332,26 @@ static void add_to_type_list(ibnd_node_t * node, ibnd_fabric_t * fabric)
+ 	}
+ }
+ 
+-static void add_to_nodedist(ibnd_node_t * node, ibnd_scan_t * scan, int dist)
++static int add_to_nodedist(ibnd_node_t * node, ibnd_scan_t * scan,
++			   ib_portid_t * path, int dist)
+ {
++	ibnd_node_scan_t *node_scan;
++
++	node_scan = malloc(sizeof(*node_scan));
++	if (!node_scan) {
++		IBND_ERROR("OOM: node scan creation failed\n");
++		return -1;
++	}
++	node_scan->node = node;
++	node_scan->path_portid = *path;
++
+ 	if (node->type != IB_NODE_SWITCH)
+ 		dist = MAXHOPS;	/* special Ca list */
+ 
+-	node->dnext = scan->nodesdist[dist];
+-	scan->nodesdist[dist] = node;
++	node_scan->dnext = scan->nodesdist[dist];
++	scan->nodesdist[dist] = node_scan;
++	
++	return 0;
+ }
+ 
+ static ibnd_node_t *create_node(ibnd_fabric_t * fabric, ibnd_scan_t * scan,
+@@ -354,7 +367,6 @@ static ibnd_node_t *create_node(ibnd_fabric_t * fabric, ibnd_scan_t * scan,
+ 	}
+ 
+ 	memcpy(node, temp, sizeof(*node));
+-	node->path_portid = *path;
+ 
+ 	add_to_nodeguid_hash(node, fabric->nodestbl);
+ 
+@@ -363,7 +375,11 @@ static ibnd_node_t *create_node(ibnd_fabric_t * fabric, ibnd_scan_t * scan,
+ 	fabric->nodes = node;
+ 
+ 	add_to_type_list(node, fabric);
+-	add_to_nodedist(node, scan, dist);
++
++	if (add_to_nodedist(node, scan, path, dist) < 0) {
++		free(node);
++		return NULL;
++	}
+ 
+ 	return node;
+ }
+@@ -492,6 +508,7 @@ ibnd_fabric_t *ibnd_discover_fabric(struct ibmad_port * ibmad_port,
+ 	ibnd_node_t node_buf;
+ 	ibnd_port_t port_buf;
+ 	ibnd_node_t *node;
++	ibnd_node_scan_t *node_scan;
+ 	ibnd_port_t *port;
+ 	int i;
+ 	int dist = 0;
+@@ -552,9 +569,10 @@ ibnd_fabric_t *ibnd_discover_fabric(struct ibmad_port * ibmad_port,
+ 
+ 	for (dist = 0; dist <= max_hops; dist++) {
+ 
+-		for (node = scan.nodesdist[dist]; node; node = node->dnext) {
++		for (node_scan = scan.nodesdist[dist]; node_scan; node_scan = node_scan->dnext) {
++			node = node_scan->node;
+ 
+-			path = &node->path_portid;
++			path = &node_scan->path_portid;
+ 
+ 			IBND_DEBUG("dist %d node %p\n", dist, node);
+ 			dump_endnode(path, "processing", node, port);
+diff --git a/infiniband-diags/libibnetdisc/src/internal.h b/infiniband-diags/libibnetdisc/src/internal.h
+index eac1a29..d8bcf87 100644
+--- a/infiniband-diags/libibnetdisc/src/internal.h
++++ b/infiniband-diags/libibnetdisc/src/internal.h
+@@ -52,8 +52,14 @@
+ 
+ #define MAXHOPS         63
+ 
++typedef struct ibnd_node_scan {
++	ibnd_node_t *node;
++	ib_portid_t path_portid;	/* path from "from_node" */
++	struct ibnd_node_scan *dnext;	/* nodesdist next */
++} ibnd_node_scan_t;
++
+ typedef struct ibnd_scan {
+-	ibnd_node_t *nodesdist[MAXHOPS + 1];
++	ibnd_node_scan_t *nodesdist[MAXHOPS + 1];
+ 	ibnd_chassis_t *first_chassis;
+ 	ibnd_chassis_t *current_chassis;
+ 	ibnd_chassis_t *last_chassis;
+-- 
+1.5.4.5
+
+
+--=-wGA0fdfJcgDE4tvnmMrI--
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
