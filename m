@@ -1,246 +1,118 @@
-From: Slava Strebkov <slavas-hKgKHo2Ms0F+cjeuK/JdrQ@public.gmane.org>
-Subject: [PATCH] opensm: Multicast root switch calculation
-Date: Mon, 02 Nov 2009 09:42:13 +0200
-Message-ID: <4AEE8D55.2050602@Voltaire.COM>
+From: "Eli Dorfman (Voltaire)" <dorfman.eli-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH] infiniband-diags/saquery: Report SA MAD Class specific
+ status.
+Date: Mon, 02 Nov 2009 11:22:30 +0200
+Message-ID: <4AEEA4D6.8070109@gmail.com>
+References: <4AED4241.4000808@gmail.com> <20091101165223.GJ29434@me>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20091101165223.GJ29434@me>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Proposed new algorithm for calculation of root switch for multicast
-spanning tree. Only edge switches(those connected to hosts) and
-switches - multicast members themselves are involved in root calculation.
-This gives improvement, especially on large fabrics, since number of
-switches usually much less then the number of ports, shared same mcast
-group.
+Sasha Khapyorsky wrote:
+> On 10:09 Sun 01 Nov     , Eli Dorfman (Voltaire) wrote:
+>> Report SA MAD Class specific status.
+>>
+>> Fixes wrong error report for SA query status.
+> 
+> I agree with patch, but one comment is below.
+> 
+>> Signed-off-by: Eli Dorfman <elid-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+>> ---
+>>  infiniband-diags/src/saquery.c |   41 ++++++++++++++++++++++++++++++++++++---
+>>  1 files changed, 37 insertions(+), 4 deletions(-)
+>>
+>> diff --git a/infiniband-diags/src/saquery.c b/infiniband-diags/src/saquery.c
+>> index 6c44b63..71823d5 100644
+>> --- a/infiniband-diags/src/saquery.c
+>> +++ b/infiniband-diags/src/saquery.c
+>> @@ -124,6 +124,41 @@ int requested_lid_flag = 0;
+>>  uint64_t requested_guid = 0;
+>>  int requested_guid_flag = 0;
+>>  
+>> +#define SA_ERR_UNKNOWN IB_SA_MAD_STATUS_PRIO_SUGGESTED
+>> +
+>> +const char *ib_sa_error_str[] = {
+>> +	"SA_NO_ERROR",
+>> +	"SA_ERR_NO_RESOURCES",
+>> +	"SA_ERR_REQ_INVALID",
+>> +	"SA_ERR_NO_RECORDS",
+>> +	"SA_ERR_TOO_MANY_RECORDS",
+>> +	"SA_ERR_REQ_INVALID_GID",
+>> +	"SA_ERR_REQ_INSUFFICIENT_COMPONENTS",
+>> +	"SA_ERR_REQ_DENIED",
+>> +	"SA_ERR_STATUS_PRIO_SUGGESTED",
+>> +	"SA_ERR_UNKNOWN"
+>> +};
+>> +
+>> +static inline const char *ib_sa_err_str(IN uint8_t status)
+>> +{
+>> +	if (status > SA_ERR_UNKNOWN)
+>> +		status = SA_ERR_UNKNOWN;
+>> +	return (ib_sa_error_str[status]);
+>> +}
+>> +
+>> +static inline void report_err(int status)
+>> +{
+>> +	int st = status & 0xff;
+>> +
+>> +	if (st)
+>> +		fprintf(stderr, "ERROR: Query result returned: %s (0x%x)\n",
+>> +			ib_get_err_str(st), status);
+>> +	st = status >> 8;
+>> +	if (st)
+>> +		fprintf(stderr, "ERROR: Query result returned: %s (0x%x)\n",
+>> +			ib_sa_err_str(st), status);
+> 
+> Such two identical messages with different error strings seems
+> confusing to me. Wouldn't it be better to merge it in a single line,
+> like:
+> 
+> 	ERROR: Query result returned 0xNNNN: SM blah1 , SA blah2
+> 
+> (or similar), with making each part optional.
 
-Signed-off-by: Slava Strebkov <slavas-smomgflXvOZWk0Htik3J/w@public.gmane.org>
----
- opensm/include/opensm/osm_switch.h |   14 ++++-
- opensm/opensm/osm_mcast_mgr.c      |  132 ++++++++++++++++++++++++++++++++----
- 2 files changed, 132 insertions(+), 14 deletions(-)
+I agree.
+Is it possible according to the spec to have both SM and SA (i don't think so)
 
-diff --git a/opensm/include/opensm/osm_switch.h b/opensm/include/opensm/osm_switch.h
-index 655491d..6204b37 100644
---- a/opensm/include/opensm/osm_switch.h
-+++ b/opensm/include/opensm/osm_switch.h
-@@ -1,5 +1,5 @@
- /*
-- * Copyright (c) 2004-2008 Voltaire, Inc. All rights reserved.
-+ * Copyright (c) 2004-2009 Voltaire, Inc. All rights reserved.
-  * Copyright (c) 2002-2009 Mellanox Technologies LTD. All rights reserved.
-  * Copyright (c) 1996-2003 Intel Corporation. All rights reserved.
-  *
-@@ -109,6 +109,9 @@ typedef struct osm_switch {
- 	unsigned endport_links;
- 	unsigned need_update;
- 	void *priv;
-+	cl_map_item_t mcast_item;
-+	uint32_t num_of_mcm;
-+	uint8_t	is_mc_member;
- } osm_switch_t;
- /*
- * FIELDS
-@@ -151,6 +154,15 @@ typedef struct osm_switch {
- *		When set indicates that switch was probably reset, so
- *		fwd tables and rest cached data should be flushed
- *
-+*	mcast_item
-+*		map item for switch in building mcast tree
-+*
-+*	num_of_mcm
-+*		number of mcast members(ports) connected to switch
-+*
-+*	is_mc_member
-+*		whether switch is a mcast member itself
-+*
- * SEE ALSO
- *	Switch object
- *********/
-diff --git a/opensm/opensm/osm_mcast_mgr.c b/opensm/opensm/osm_mcast_mgr.c
-index 0ee689c..c9c93a2 100644
---- a/opensm/opensm/osm_mcast_mgr.c
-+++ b/opensm/opensm/osm_mcast_mgr.c
-@@ -1,5 +1,5 @@
- /*
-- * Copyright (c) 2004-2008 Voltaire, Inc. All rights reserved.
-+ * Copyright (c) 2004-2009 Voltaire, Inc. All rights reserved.
-  * Copyright (c) 2002-2009 Mellanox Technologies LTD. All rights reserved.
-  * Copyright (c) 1996-2003 Intel Corporation. All rights reserved.
-  * Copyright (c) 2008 Xsigo Systems Inc.  All rights reserved.
-@@ -203,25 +203,132 @@ static float osm_mcast_mgr_compute_max_hops(osm_sm_t * sm,
- 	return (float)max_hops;
- }
- 
-+static void mcast_mgr_build_switch_map(osm_sm_t * sm,
-+			const osm_mgrp_t * p_mgrp,
-+			cl_qmap_t *p_mcast_member_sw_tbl)
-+{
-+	osm_switch_t	*remote_sw;
-+	const osm_mcm_port_t *p_mcm_port;
-+	const cl_qmap_t *p_mcm_tbl;
-+	osm_port_t *p_port;
-+	ib_net64_t	port_guid;
-+	osm_physp_t	*p_physp_remote;
-+	osm_node_t *remote_node;
-+
-+	OSM_LOG_ENTER(sm->p_log);
-+
-+	cl_qmap_init(p_mcast_member_sw_tbl);
-+	p_mcm_tbl = &p_mgrp->mcm_port_tbl;
-+	for (p_mcm_port = (osm_mcm_port_t *) cl_qmap_head(p_mcm_tbl);
-+		p_mcm_port != (osm_mcm_port_t *) cl_qmap_end(p_mcm_tbl);
-+		p_mcm_port = (osm_mcm_port_t *) cl_qmap_next(&p_mcm_port->map_item)) {
-+		p_port = (osm_port_t*)osm_get_port_by_guid(sm->p_subn,
-+			ib_gid_get_guid(&p_mcm_port->port_gid));
-+		if (!p_port)
-+			continue;
-+		if (osm_node_get_type(p_port->p_node) == IB_NODE_TYPE_CA) {
-+			p_physp_remote = osm_physp_get_remote(p_port->p_physp);
-+			remote_node = osm_physp_get_node_ptr(p_physp_remote);
-+		}
-+		else {
-+			/* for switches - remote switch would be the switch itself*/
-+			remote_node = osm_physp_get_node_ptr( p_port->p_physp);
-+		}
-+		/* get the remote switch of the mcmember */
-+		remote_sw = remote_node->sw;
-+		port_guid = osm_node_get_node_guid(remote_node);
-+		if (cl_qmap_get(p_mcast_member_sw_tbl, port_guid) ==
-+			cl_qmap_end(p_mcast_member_sw_tbl)) {
-+			/* insert switch to table */
-+			cl_qmap_insert(p_mcast_member_sw_tbl, port_guid, &remote_sw->mcast_item);
-+			/* New element in the table */
-+			if (osm_node_get_type(p_port->p_node) == IB_NODE_TYPE_CA) {
-+				/* for HCA update the MC count on the remote switch */
-+				remote_sw->num_of_mcm++;
-+			}
-+			else
-+				remote_sw->is_mc_member = 1; /* the switch is MC memeber */
-+		}
-+	}
-+	OSM_LOG_EXIT(sm->p_log);
-+}
-+
-+static void mcast_mgr_destroy_switch_map(osm_sm_t * sm,
-+			cl_qmap_t *p_mcast_member_sw_tbl)
-+{
-+	cl_map_item_t *p_item;
-+	osm_switch_t *p_sw;
-+
-+	OSM_LOG_ENTER(sm->p_log);
-+
-+	p_item = cl_qmap_head(p_mcast_member_sw_tbl);
-+	while (p_item != cl_qmap_end(p_mcast_member_sw_tbl)) {
-+		p_sw = PARENT_STRUCT(p_item, osm_switch_t, mcast_item);
-+			p_sw->num_of_mcm = 0;
-+			p_sw->is_mc_member = 0;
-+			p_item = cl_qmap_next(p_item);
-+	}
-+	cl_qmap_remove_all(p_mcast_member_sw_tbl);
-+	OSM_LOG_EXIT(sm->p_log);
-+}
-+
-+static float
-+osm_mcast_mgr_compute_avg_hops_weight(osm_sm_t * sm,
-+		const osm_switch_t *const p_sw_cur,
-+		const cl_qmap_t	*p_sw_tbl )
-+{
-+	float avg_hops_weight = 0;
-+	uint32_t hops = 0;
-+	uint32_t num_ports = 0;
-+	uint16_t base_lid_ho;
-+	uint32_t tmp_hops;
-+	uint32_t least_hops;
-+	osm_switch_t *p_sw;
-+	cl_map_item_t *p_item;
-+
-+	OSM_LOG_ENTER(sm->p_log);
-+	/*
-+		For each member of the multicast group, compute the
-+		number of hops to its base LID.
-+	*/
-+	for( p_item = cl_qmap_head( p_sw_tbl);
-+		p_item != cl_qmap_end( p_sw_tbl);
-+		p_item = cl_qmap_next(p_item )) {
-+		p_sw =  (osm_switch_t*)PARENT_STRUCT(p_item, osm_switch_t, mcast_item);
-+		base_lid_ho = cl_ntoh16( osm_node_get_base_lid(p_sw->p_node,0 ));
-+		least_hops = osm_switch_get_least_hops( p_sw_cur, base_lid_ho );
-+		/* for all host that are MC members and attached to the switch,
-+		we should add the (least_hops + 1) * number_of_such_hosts.
-+		If switch itself is in the MC, we should add the least_hops only */
-+		tmp_hops = (least_hops + 1) * p_sw->num_of_mcm + least_hops * p_sw->is_mc_member;
-+		hops += tmp_hops;
-+		num_ports+=p_sw->num_of_mcm + p_sw->is_mc_member;
-+	}
-+
-+	CL_ASSERT( num_ports );
-+	if( num_ports != 0 ) {
-+		avg_hops_weight = (hops ) / num_ports;
-+	}
-+
-+	OSM_LOG_EXIT(sm->p_log);
-+	return( avg_hops_weight );
-+}
-+
- /**********************************************************************
-    This function attempts to locate the optimal switch for the
-    center of the spanning tree.  The current algorithm chooses
--   a switch with the lowest average hop count to the members
-+   a switch with the lowest average weight of the members
-    of the multicast group.
- **********************************************************************/
- static osm_switch_t *mcast_mgr_find_optimal_switch(osm_sm_t * sm,
--						   const osm_mgrp_t * p_mgrp)
-+						  const osm_mgrp_t * p_mgrp)
- {
- 	cl_qmap_t *p_sw_tbl;
--	const osm_switch_t *p_sw;
-+	osm_switch_t *p_sw;
- 	const osm_switch_t *p_best_sw = NULL;
- 	float hops = 0;
- 	float best_hops = 10000;	/* any big # will do */
--#ifdef OSM_VENDOR_INTF_ANAFA
--	boolean_t use_avg_hops = TRUE;	/* anafa2 - bug hca on switch *//* use max hops for root */
--#else
--	boolean_t use_avg_hops = FALSE;	/* use max hops for root */
--#endif
-+	cl_qmap_t mcast_member_sw_tbl;
- 
- 	OSM_LOG_ENTER(sm->p_log);
- 
-@@ -229,16 +336,14 @@ static osm_switch_t *mcast_mgr_find_optimal_switch(osm_sm_t * sm,
- 
- 	CL_ASSERT(!osm_mgrp_is_empty(p_mgrp));
- 
-+	mcast_mgr_build_switch_map(sm, p_mgrp, &mcast_member_sw_tbl);
- 	for (p_sw = (osm_switch_t *) cl_qmap_head(p_sw_tbl);
- 	     p_sw != (osm_switch_t *) cl_qmap_end(p_sw_tbl);
- 	     p_sw = (osm_switch_t *) cl_qmap_next(&p_sw->map_item)) {
- 		if (!osm_switch_supports_mcast(p_sw))
- 			continue;
- 
--		if (use_avg_hops)
--			hops = osm_mcast_mgr_compute_avg_hops(sm, p_mgrp, p_sw);
--		else
--			hops = osm_mcast_mgr_compute_max_hops(sm, p_mgrp, p_sw);
-+		hops = osm_mcast_mgr_compute_avg_hops_weight(sm, p_sw, &mcast_member_sw_tbl);
- 
- 		OSM_LOG(sm->p_log, OSM_LOG_DEBUG,
- 			"Switch 0x%016" PRIx64 ", hops = %f\n",
-@@ -259,6 +364,7 @@ static osm_switch_t *mcast_mgr_find_optimal_switch(osm_sm_t * sm,
- 		OSM_LOG(sm->p_log, OSM_LOG_VERBOSE,
- 			"No multicast capable switches detected\n");
- 
-+	mcast_mgr_destroy_switch_map(sm, &mcast_member_sw_tbl);
- 	OSM_LOG_EXIT(sm->p_log);
- 	return (osm_switch_t *) p_best_sw;
- }
--- 
-1.6.3.3
+Eli
+
+> 
+> Sasha
+> 
+>> +}
+>> +
+>>  static int sa_query(struct bind_handle *h, uint8_t method,
+>>  		    uint16_t attr, uint32_t mod, uint64_t comp_mask,
+>>  		    uint64_t sm_key, void *data)
+>> @@ -794,8 +829,7 @@ static int get_any_records(bind_handle_t h,
+>>  	}
+>>  
+>>  	if (result.status != IB_SUCCESS) {
+>> -		fprintf(stderr, "Query result returned: %s\n",
+>> -			ib_get_err_str(result.status));
+>> +		report_err(result.status);
+>>  		return result.status;
+>>  	}
+>>  
+>> @@ -1009,8 +1043,7 @@ static int get_print_class_port_info(bind_handle_t h)
+>>  		return ret;
+>>  	}
+>>  	if (result.status != IB_SUCCESS) {
+>> -		fprintf(stderr, "ERROR: Query result returned: %s\n",
+>> -			ib_get_err_str(result.status));
+>> +		report_err(result.status);
+>>  		return (result.status);
+>>  	}
+>>  	dump_results(&result, dump_class_port_info);
+>> -- 
+>> 1.5.5
+>>
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
