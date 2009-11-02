@@ -1,277 +1,154 @@
-From: Al Chu <chu11-i2BcT+NCU+M@public.gmane.org>
-Subject: Re: [infiniband-diags] [PATCH] [2/2] split out scan specific data
-	from ibnd_node_t
-Date: Mon, 02 Nov 2009 13:11:56 -0800
-Message-ID: <1257196316.580.33.camel@auk31.llnl.gov>
-References: <1257190401.580.31.camel@auk31.llnl.gov>
-Reply-To: chu11-i2BcT+NCU+M@public.gmane.org
+From: Pradeep Satyanarayana <pradeeps-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
+Subject: [Fwd: Crash in bonding]
+Date: Mon, 02 Nov 2009 14:43:56 -0800
+Message-ID: <4AEF60AC.6030508@linux.vnet.ibm.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="=-ZnlYBEQ3AcafzuG697Rs"
+Content-Type: multipart/mixed;
+ boundary="------------000900060004000308040807"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1257190401.580.31.camel-X2zTWyBD0EhliZ7u+bvwcg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-
---=-ZnlYBEQ3AcafzuG697Rs
-Content-Type: text/plain
+This is a multi-part message in MIME format.
+--------------000900060004000308040807
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 
-Hi Sasha,
+Typo in email address. Resending.
 
-Oops.  I forgot to free the newly created memory.  Here's a new patch.
+Pradeep
 
-Al
+--------------000900060004000308040807
+Content-Type: message/rfc822;
+ name="Crash in bonding.eml"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="Crash in bonding.eml"
 
-On Mon, 2009-11-02 at 11:33 -0800, Al Chu wrote:
-> Hey Sasha,
-> 
-> This splits out some scan specific data from ibnd_node_t that doesn't
-> need to be in the public struct.
-> 
-> Al
-> 
--- 
-Albert Chu
-chu11-i2BcT+NCU+M@public.gmane.org
-Computer Scientist
-High Performance Systems Division
-Lawrence Livermore National Laboratory
-
---=-ZnlYBEQ3AcafzuG697Rs
-Content-Disposition: attachment; filename=0002-split-out-scan-specific-data-from-ibnd_node_t.patch
-Content-Type: text/plain; name=0002-split-out-scan-specific-data-from-ibnd_node_t.patch; charset=utf-8
+Message-ID: <4AEF6020.7000806-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
+Date: Mon, 02 Nov 2009 14:41:36 -0800
+From: Pradeep Satyanarayana <pradeeps-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
+User-Agent: Thunderbird 2.0.0.23 (Windows/20090812)
+MIME-Version: 1.0
+To: monis-smomgflXvOZWk0Htik3J/w@public.gmane.org
+CC: EWG <Openfabrics-ewg-0P3JtQMG0aQdnm+yROfE0A@public.gmane.org>, linux-rdma-u79uwXL29TZpP82i2CBTzA@public.gmane.org,
+ fubar-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org
+Subject: Crash in bonding 
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 
-From: Albert Chu <chu11-i2BcT+NCU+M@public.gmane.org>
-Date: Thu, 29 Oct 2009 18:59:26 -0700
-Subject: [PATCH] split out scan specific data from ibnd_node_t
+This crash was originally reported against Rhel5.4. However, one can recreate this crash quite easily in OFED-1.5 too. 
+The steps to recreate the crash are as follows:
+
+1. Run traffic (I used ping) on the IB interfaces through the bond master
+2. ifdown ib0
+3. ifdown ib1
+4. modprobe -r ib_ipoib
+
+Quite often, the crash stack trace seen is as follows:
+
+ID: 0      TASK: ffff81087fc11820  CPU: 13  COMMAND: "swapper"
+ #0 [ffff81010ff07ab0] crash_kexec at ffffffff800ac5b9
+ #1 [ffff81010ff07b70] __die at ffffffff80065127
+ #2 [ffff81010ff07bb0] do_page_fault at ffffffff80066da7
+ #3 [ffff81010ff07ca0] error_exit at ffffffff8005dde9
+ #4 [ffff81010ff07d58] neigh_connected_output at ffffffff8022cb87
+ #5 [ffff81010ff07d88] ip_output at ffffffff800320ac
+ #6 [ffff81010ff07db8] ip_queue_xmit at ffffffff8003464d
+ #7 [ffff81010ff07e78] tcp_transmit_skb at ffffffff80021d73
+ #8 [ffff81010ff07ec8] tcp_retransmit_skb at ffffffff80250ccd
+ #9 [ffff81010ff07f08] tcp_write_timer at ffffffff80252652
+#10 [ffff81010ff07f28] run_timer_softirq at ffffffff800968be
+#11 [ffff81010ff07f58] __do_softirq at ffffffff8001235a
+#12 [ffff81010ff07f88] call_softirq at ffffffff8005e2fc
+#13 [ffff81010ff07fa0] do_softirq at ffffffff8006cb14
+#14 [ffff81010ff07fb0] apic_timer_interrupt at ffffffff8005dc8e
+--- <IRQ stack> ---
+#15 [ffff81010ff03e48] apic_timer_interrupt at ffffffff8005dc8e
+    [exception RIP: mwait_idle+54]
+    RIP: ffffffff800571f4  RSP: ffff81010ff03ef0  RFLAGS: 00000246
+    RAX: 0000000000000000  RBX: 000000000000000d  RCX: 0000000000000000
+    RDX: 0000000000000000  RSI: 0000000000000001  RDI: ffffffff80301698
+    RBP: ffff81087fc11a10   R8: ffff81010ff02000   R9: 0000000000000032
+    R10: ffff81048e0cc4f0  R11: ffff8103ebafcd18  R12: 0000000005f33f4d
+    R13: 00000d12e63d7223  R14: ffff81047fe797a0  R15: ffff81087fc11820
+    ORIG_RAX: ffffffffffffff10  CS: 0010  SS: 0018
+#16 [ffff81010ff03ef0] cpu_idle at ffffffff8004939e
 
 
-Signed-off-by: Albert Chu <chu11-i2BcT+NCU+M@public.gmane.org>
----
- .../libibnetdisc/include/infiniband/ibnetdisc.h    |    2 -
- infiniband-diags/libibnetdisc/src/chassis.c        |   18 +++++--
- infiniband-diags/libibnetdisc/src/ibnetdisc.c      |   51 +++++++++++++++++---
- infiniband-diags/libibnetdisc/src/internal.h       |    8 +++-
- 4 files changed, 65 insertions(+), 14 deletions(-)
 
-diff --git a/infiniband-diags/libibnetdisc/include/infiniband/ibnetdisc.h b/infiniband-diags/libibnetdisc/include/infiniband/ibnetdisc.h
-index 6120453..f1cb00c 100644
---- a/infiniband-diags/libibnetdisc/include/infiniband/ibnetdisc.h
-+++ b/infiniband-diags/libibnetdisc/include/infiniband/ibnetdisc.h
-@@ -48,7 +48,6 @@ struct ibnd_port;		/* forward declare */
- typedef struct ibnd_node {
- 	struct ibnd_node *next;	/* all node list in fabric */
- 
--	ib_portid_t path_portid;	/* path from "from_node" */
- 	int smalid;
- 	int smalmc;
- 
-@@ -81,7 +80,6 @@ typedef struct ibnd_node {
- 	/* internal use only */
- 	unsigned char ch_found;
- 	struct ibnd_node *htnext;	/* hash table list */
--	struct ibnd_node *dnext;	/* nodesdist next */
- 	struct ibnd_node *type_next;	/* next based on type */
- } ibnd_node_t;
- 
-diff --git a/infiniband-diags/libibnetdisc/src/chassis.c b/infiniband-diags/libibnetdisc/src/chassis.c
-index 15c17d2..3bd0108 100644
---- a/infiniband-diags/libibnetdisc/src/chassis.c
-+++ b/infiniband-diags/libibnetdisc/src/chassis.c
-@@ -822,6 +822,7 @@ int group_nodes(ibnd_fabric_t * fabric, ibnd_scan_t *scan)
- 	int chassisnum = 0;
- 	ibnd_chassis_t *chassis;
- 	ibnd_chassis_t *ch, *ch_next;
-+	ibnd_node_scan_t *node_scan;
- 
- 	scan->first_chassis = NULL;
- 	scan->current_chassis = NULL;
-@@ -832,16 +833,21 @@ int group_nodes(ibnd_fabric_t * fabric, ibnd_scan_t *scan)
- 	/* according to internal connectivity */
- 	/* not very efficient but clear code so... */
- 	for (dist = 0; dist <= fabric->maxhops_discovered; dist++)
--		for (node = scan->nodesdist[dist]; node; node = node->dnext)
-+		for (node_scan = scan->nodesdist[dist]; node_scan; node_scan = node_scan->dnext) {
-+			node = node_scan->node;
-+
- 			if (mad_get_field(node->info, 0,
- 					  IB_NODE_VENDORID_F) == VTR_VENDOR_ID
- 			    && fill_voltaire_chassis_record(node))
- 				goto cleanup;
-+		}
- 
- 	/* separate every Voltaire chassis from each other and build linked list of them */
- 	/* algorithm: catch spine and find all surrounding nodes */
- 	for (dist = 0; dist <= fabric->maxhops_discovered; dist++)
--		for (node = scan->nodesdist[dist]; node; node = node->dnext) {
-+		for (node_scan = scan->nodesdist[dist]; node_scan; node_scan = node_scan->dnext) {
-+			node = node_scan->node;
-+
- 			if (mad_get_field(node->info, 0,
- 					  IB_NODE_VENDORID_F) != VTR_VENDOR_ID)
- 				continue;
-@@ -859,7 +865,9 @@ int group_nodes(ibnd_fabric_t * fabric, ibnd_scan_t *scan)
- 	/* now make pass on nodes for chassis which are not Voltaire */
- 	/* grouped by common SystemImageGUID */
- 	for (dist = 0; dist <= fabric->maxhops_discovered; dist++)
--		for (node = scan->nodesdist[dist]; node; node = node->dnext) {
-+		for (node_scan = scan->nodesdist[dist]; node_scan; node_scan = node_scan->dnext) {
-+			node = node_scan->node;
-+
- 			if (mad_get_field(node->info, 0,
- 					  IB_NODE_VENDORID_F) == VTR_VENDOR_ID)
- 				continue;
-@@ -885,7 +893,9 @@ int group_nodes(ibnd_fabric_t * fabric, ibnd_scan_t *scan)
- 	/* now, make another pass to see which nodes are part of chassis */
- 	/* (defined as chassis->nodecount > 1) */
- 	for (dist = 0; dist <= MAXHOPS;) {
--		for (node = scan->nodesdist[dist]; node; node = node->dnext) {
-+		for (node_scan = scan->nodesdist[dist]; node_scan; node_scan = node_scan->dnext) {
-+			node = node_scan->node;
-+
- 			if (mad_get_field(node->info, 0,
- 					  IB_NODE_VENDORID_F) == VTR_VENDOR_ID)
- 				continue;
-diff --git a/infiniband-diags/libibnetdisc/src/ibnetdisc.c b/infiniband-diags/libibnetdisc/src/ibnetdisc.c
-index ffa35e4..233654c 100644
---- a/infiniband-diags/libibnetdisc/src/ibnetdisc.c
-+++ b/infiniband-diags/libibnetdisc/src/ibnetdisc.c
-@@ -332,13 +332,26 @@ static void add_to_type_list(ibnd_node_t * node, ibnd_fabric_t * fabric)
- 	}
- }
- 
--static void add_to_nodedist(ibnd_node_t * node, ibnd_scan_t * scan, int dist)
-+static int add_to_nodedist(ibnd_node_t * node, ibnd_scan_t * scan,
-+			   ib_portid_t * path, int dist)
- {
-+	ibnd_node_scan_t *node_scan;
-+
-+	node_scan = malloc(sizeof(*node_scan));
-+	if (!node_scan) {
-+		IBND_ERROR("OOM: node scan creation failed\n");
-+		return -1;
-+	}
-+	node_scan->node = node;
-+	node_scan->path_portid = *path;
-+
- 	if (node->type != IB_NODE_SWITCH)
- 		dist = MAXHOPS;	/* special Ca list */
- 
--	node->dnext = scan->nodesdist[dist];
--	scan->nodesdist[dist] = node;
-+	node_scan->dnext = scan->nodesdist[dist];
-+	scan->nodesdist[dist] = node_scan;
-+	
-+	return 0;
- }
- 
- static ibnd_node_t *create_node(ibnd_fabric_t * fabric, ibnd_scan_t * scan,
-@@ -354,7 +367,6 @@ static ibnd_node_t *create_node(ibnd_fabric_t * fabric, ibnd_scan_t * scan,
- 	}
- 
- 	memcpy(node, temp, sizeof(*node));
--	node->path_portid = *path;
- 
- 	add_to_nodeguid_hash(node, fabric->nodestbl);
- 
-@@ -363,7 +375,11 @@ static ibnd_node_t *create_node(ibnd_fabric_t * fabric, ibnd_scan_t * scan,
- 	fabric->nodes = node;
- 
- 	add_to_type_list(node, fabric);
--	add_to_nodedist(node, scan, dist);
-+
-+	if (add_to_nodedist(node, scan, path, dist) < 0) {
-+		free(node);
-+		return NULL;
-+	}
- 
- 	return node;
- }
-@@ -483,6 +499,23 @@ error:
- 	return rc;
- }
- 
-+static void ibnd_scan_destroy(ibnd_scan_t *scan)
-+{
-+	int dist = 0;
-+	int max_hops = MAXHOPS - 1;
-+	ibnd_node_scan_t *node_scan;
-+	ibnd_node_scan_t *next;
-+
-+	for (dist = 0; dist <= max_hops; dist++) {
-+		node_scan = scan->nodesdist[dist];
-+		while (node_scan) {
-+			next = node_scan->dnext;
-+			free(node_scan);
-+			node_scan = next;
-+		}
-+	}
-+}
-+
- ibnd_fabric_t *ibnd_discover_fabric(struct ibmad_port * ibmad_port,
- 				    ib_portid_t * from, int hops)
- {
-@@ -492,6 +525,7 @@ ibnd_fabric_t *ibnd_discover_fabric(struct ibmad_port * ibmad_port,
- 	ibnd_node_t node_buf;
- 	ibnd_port_t port_buf;
- 	ibnd_node_t *node;
-+	ibnd_node_scan_t *node_scan;
- 	ibnd_port_t *port;
- 	int i;
- 	int dist = 0;
-@@ -552,9 +586,10 @@ ibnd_fabric_t *ibnd_discover_fabric(struct ibmad_port * ibmad_port,
- 
- 	for (dist = 0; dist <= max_hops; dist++) {
- 
--		for (node = scan.nodesdist[dist]; node; node = node->dnext) {
-+		for (node_scan = scan.nodesdist[dist]; node_scan; node_scan = node_scan->dnext) {
-+			node = node_scan->node;
- 
--			path = &node->path_portid;
-+			path = &node_scan->path_portid;
- 
- 			IBND_DEBUG("dist %d node %p\n", dist, node);
- 			dump_endnode(path, "processing", node, port);
-@@ -598,8 +633,10 @@ ibnd_fabric_t *ibnd_discover_fabric(struct ibmad_port * ibmad_port,
- 	if (group_nodes(fabric, &scan))
- 		goto error;
- 
-+	ibnd_scan_destroy(&scan);
- 	return fabric;
- error:
-+	ibnd_scan_destroy(&scan);
- 	ibnd_destroy_fabric(fabric);
- 	return NULL;
- }
-diff --git a/infiniband-diags/libibnetdisc/src/internal.h b/infiniband-diags/libibnetdisc/src/internal.h
-index eac1a29..d8bcf87 100644
---- a/infiniband-diags/libibnetdisc/src/internal.h
-+++ b/infiniband-diags/libibnetdisc/src/internal.h
-@@ -52,8 +52,14 @@
- 
- #define MAXHOPS         63
- 
-+typedef struct ibnd_node_scan {
-+	ibnd_node_t *node;
-+	ib_portid_t path_portid;	/* path from "from_node" */
-+	struct ibnd_node_scan *dnext;	/* nodesdist next */
-+} ibnd_node_scan_t;
-+
- typedef struct ibnd_scan {
--	ibnd_node_t *nodesdist[MAXHOPS + 1];
-+	ibnd_node_scan_t *nodesdist[MAXHOPS + 1];
- 	ibnd_chassis_t *first_chassis;
- 	ibnd_chassis_t *current_chassis;
- 	ibnd_chassis_t *last_chassis;
--- 
-1.5.4.5
+I was able to set up some break points and the analysis follows.
+
+cpu 0x1 stopped at breakpoint 0x1 (d000000000ec4214 .bond_release+0x0/0x4d0 [bonding])
+        mflr    r0
+enter ? for help
+1:mon> t
+[link register   ] d000000000ecdf80 .bonding_store_slaves+0x304/0x3f0 [bonding]
+[c00000000fd97b00] d000000000ecdf70 .bonding_store_slaves+0x2f4/0x3f0 [bonding] (unreliable)
+[c00000000fd97bd0] c00000000029a660 .class_device_attr_store+0x44/0x60
+[c00000000fd97c40] c00000000015df9c .sysfs_write_file+0x134/0x1b8
+[c00000000fd97cf0] c0000000000f8ec4 .vfs_write+0x118/0x200
+[c00000000fd97d90] c0000000000f9634 .sys_write+0x4c/0x8c
+[c00000000fd97e30] c0000000000086a4 syscall_exit+0x0/0x40
+--- Exception: c00 (System Call) at 000000000ff11138
+SP (ffd1f300) is in userspace
+
+Did some basic sanity checks and confirmed that we hit a couple of breakpoints and
+the bond master was indeed bond0 as expected and the slave device being released was ib1.
+After the breakpoints, we crashed 
 
 
---=-ZnlYBEQ3AcafzuG697Rs--
+Faulting instruction address: 0xc00000000034bddc
+cpu 0x1: Vector: 300 (Data Access) at [c0000000e025b2b0]
+    pc: c00000000034bddc: .neigh_resolve_output+0x28c/0x34c
+    lr: c00000000034bdc0: .neigh_resolve_output+0x270/0x34c
+    sp: c0000000e025b530
+   msr: 8000000000009032
+   dar: d000000000c6fe58
+ dsisr: 40000000
+  current = 0xc0000000e25f1aa0
+  paca    = 0xc00000000053e280
+    pid   = 3591, comm = ping
+enter ? for help
+1:mon> e
+cpu 0x1: Vector: 300 (Data Access) at [c0000000e025b2b0]
+    pc: c00000000034bddc: .neigh_resolve_output+0x28c/0x34c
+    lr: c00000000034bdc0: .neigh_resolve_output+0x270/0x34c
+    sp: c0000000e025b530
+   msr: 8000000000009032
+   dar: d000000000c6fe58
+ dsisr: 40000000
+  current = 0xc0000000e25f1aa0
+  paca    = 0xc00000000053e280
+    pid   = 3591, comm = ping
+1:mon> t
+[c0000000e025b5e0] c000000000376934 .ip_output+0x358/0x3c0
+[c0000000e025b670] c000000000374a04 .ip_push_pending_frames+0x440/0x558
+[c0000000e025b720] c000000000397f10 .raw_sendmsg+0x770/0x860
+[c0000000e025b860] c0000000003a24f8 .inet_sendmsg+0x7c/0xa8
+[c0000000e025b900] c00000000033031c .sock_sendmsg+0x114/0x1b8
+[c0000000e025bb00] c000000000331878 .sys_sendmsg+0x218/0x2ac
+[c0000000e025bd20] c000000000356314 .compat_sys_sendmsg+0x14/0x28
+[c0000000e025bd90] c000000000357914 .compat_sys_socketcall+0x1e4/0x214
+[c0000000e025be30] c0000000000086a4 syscall_exit+0x0/0x40
+--- Exception: c00 (System Call) at 0000000007f03c98
+SP (ffb6e570) is in userspace
+1:mon>
+
+I looked at the skb and confirmed that this was indeed against bond0.
+
+One thing is apparent at this point. ping is continuing even though bond_release()
+for ib1 (and of course ib0) occurred way back!
+
+This is the reason for the crash. Any suggestions as to how to fix this?
+
+Pradeep
+
+
+
+
+--------------000900060004000308040807--
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
