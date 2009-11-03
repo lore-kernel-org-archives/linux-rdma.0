@@ -1,66 +1,77 @@
-From: Al Chu <chu11-i2BcT+NCU+M@public.gmane.org>
-Subject: Re: [PATCH] infiniband-diags/ibqueryerrors: Fix realloc size to
-	prevent core
-Date: Tue, 03 Nov 2009 13:39:22 -0800
-Message-ID: <1257284362.580.59.camel@auk31.llnl.gov>
-References: <20091103132003.112e10b0.weiny2@llnl.gov>
-Reply-To: chu11-i2BcT+NCU+M@public.gmane.org
+From: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH] opensm/osm_state_mgr.c: force heavy sweep when fabric
+ consists of single switch
+Date: Wed, 4 Nov 2009 00:12:17 +0200
+Message-ID: <20091103221217.GE29388@me>
+References: <4AF0056A.5030503@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20091103132003.112e10b0.weiny2-i2BcT+NCU+M@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <4AF0056A.5030503-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-Cc: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: Linux RDMA <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Need to check for NULL?  Manpage says its possible:
+On 12:26 Tue 03 Nov     , Yevgeny Kliteynik wrote:
+> Always do heavy sweep when there is only one node in the
+> fabric, and this node is a switch, and SM runs on top of it -
+> there may be a race when OSM starts running before the
+> external ports are ports are up, or if they went through
+> reset while SM was starting.
+> In this race switch brings up the ports and turns on the
+> PSC bit, but OSM might get PortInfo before SwitchInfo, and it
+> might see all ports as down, but PSC bit on. If that happens,
+> OSM turns off PSC bit, and it will never see external ports
+> again - it won't perform any heavy sweep, only light sweep
 
----
-realloc()  returns  a  pointer to the newly allocated memory, which is
-suitably aligned for any kind of variable and may be different from ptr,
-or NULL if the request fails.
----
+Could such race happen when there are more than one node in a fabric?
 
-Al
+Sasha
 
-On Tue, 2009-11-03 at 13:20 -0800, Ira Weiny wrote:
-> From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-> Date: Tue, 3 Nov 2009 13:19:33 -0800
-> Subject: [PATCH] infiniband-diags/ibqueryerrors: Fix realloc size to prevent core
 > 
-> 	Realloc size was wrong causing a core when enough errors were
-> 	suppressed.  Reproduced by running:
-> 
-> 	ibqueryerrors -c -s RcvSwRelayErrors,LinkDowned,VL15Dropped,XmtWait,SymbolErrors,LinkRecovers,RcvErrors
-> 
-> Signed-off-by: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+> Signed-off-by: Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 > ---
->  infiniband-diags/src/ibqueryerrors.c |    3 ++-
->  1 files changed, 2 insertions(+), 1 deletions(-)
+>  opensm/opensm/osm_state_mgr.c |   15 ++++++++++-----
+>  1 files changed, 10 insertions(+), 5 deletions(-)
 > 
-> diff --git a/infiniband-diags/src/ibqueryerrors.c b/infiniband-diags/src/ibqueryerrors.c
-> index f83f29e..aac7087 100644
-> --- a/infiniband-diags/src/ibqueryerrors.c
-> +++ b/infiniband-diags/src/ibqueryerrors.c
-> @@ -381,7 +381,8 @@ void print_node(ibnd_node_t * node, void *user_data)
->  
->  static void add_suppressed(enum MAD_FIELDS field)
->  {
-> -	suppressed_fields = realloc(suppressed_fields, sizeof(enum MAD_FIELDS));
-> +	suppressed_fields = realloc(suppressed_fields,
-> +				    (sup_total+1)*sizeof(enum MAD_FIELDS));
->  	suppressed_fields[sup_total] = field;
->  	sup_total++;
->  }
--- 
-Albert Chu
-chu11-i2BcT+NCU+M@public.gmane.org
-Computer Scientist
-High Performance Systems Division
-Lawrence Livermore National Laboratory
-
+> diff --git a/opensm/opensm/osm_state_mgr.c b/opensm/opensm/osm_state_mgr.c
+> index 4303d6e..537c855 100644
+> --- a/opensm/opensm/osm_state_mgr.c
+> +++ b/opensm/opensm/osm_state_mgr.c
+> @@ -1062,13 +1062,18 @@ static void do_sweep(osm_sm_t * sm)
+>  	 * Otherwise, this is probably our first discovery pass
+>  	 * or we are connected in loopback. In both cases do a
+>  	 * heavy sweep.
+> -	 * Note: If we are connected in loopback we want a heavy
+> -	 * sweep, since we will not be getting any traps if there is
+> -	 * a lost connection.
+> +	 * Note the following:
+> +	 * 1. If we are connected in loopback we want a heavy sweep, since we
+> +	 *    will not be getting any traps if there is a lost connection.
+> +	 * 2. If we are in DISCOVERING state - this means it is either in
+> +	 *    initializing or wake up from STANDBY - run the heavy sweep.
+> +	 * 3. If there is only one node in the fabric, and this node is a
+> +	 *    switch, and OSM runs on top of it, there might be a race when
+> +	 *    OSM starts running before the external ports are up - run the
+> +	 *    heavy sweep.
+>  	 */
+> -	/*  if we are in DISCOVERING state - this means it is either in
+> -	 *  initializing or wake up from STANDBY - run the heavy sweep */
+>  	if (cl_qmap_count(&sm->p_subn->sw_guid_tbl)
+> +	    && cl_qmap_count(&sm->p_subn->node_guid_tbl) != 1
+>  	    && sm->p_subn->sm_state != IB_SMINFO_STATE_DISCOVERING
+>  	    && sm->p_subn->opt.force_heavy_sweep == FALSE
+>  	    && sm->p_subn->force_heavy_sweep == FALSE
+> -- 
+> 1.5.1.4
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
