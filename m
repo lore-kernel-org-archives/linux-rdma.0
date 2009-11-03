@@ -1,41 +1,24 @@
 From: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Subject: Re: [infiniband-diags] [PATCH] remove unused headers in
- libibnetdiscover
-Date: Wed, 4 Nov 2009 00:14:29 +0200
-Message-ID: <20091103221429.GF29388@me>
-References: <1257273449.580.54.camel@auk31.llnl.gov>
+Subject: Re: [PATCH] opensm/osm_mcast_tbl.c: In osm_mcast_tbl_clear_mlid,
+ use memset to clear port mask entry
+Date: Wed, 4 Nov 2009 00:12:02 +0200
+Message-ID: <20091103221202.GD29388@me>
+References: <20091103120058.GA31605@comcast.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1257273449.580.54.camel-X2zTWyBD0EhliZ7u+bvwcg@public.gmane.org>
+In-Reply-To: <20091103120058.GA31605-Wuw85uim5zDR7s880joybQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Al Chu <chu11-i2BcT+NCU+M@public.gmane.org>
+To: Hal Rosenstock <hnrose-Wuw85uim5zDR7s880joybQ@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 10:37 Tue 03 Nov     , Al Chu wrote:
-> Hey Sasha,
+On 07:00 Tue 03 Nov     , Hal Rosenstock wrote:
 > 
-> Just noticed it.  Left over/cut and pasted from the original
-> ibnetdiscover tool code or no longer necessary due to recent changes.
-> This patch is independent of the other patches I recently posted.
+> rather than less efficient for loop
 > 
-> Al
-> 
-> -- 
-> Albert Chu
-> chu11-i2BcT+NCU+M@public.gmane.org
-> Computer Scientist
-> High Performance Systems Division
-> Lawrence Livermore National Laboratory
-
-> From: Albert Chu <chu11-i2BcT+NCU+M@public.gmane.org>
-> Date: Tue, 3 Nov 2009 10:33:08 -0800
-> Subject: [PATCH] remove unused headers
-> 
-> 
-> Signed-off-by: Albert Chu <chu11-i2BcT+NCU+M@public.gmane.org>
+> Signed-off-by: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 
 Applied. Thanks.
 
