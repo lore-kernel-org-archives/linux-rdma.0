@@ -1,48 +1,56 @@
-From: Pradeep Satyanarayana <pradeeps-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
-Subject: Re: Crash in bonding
-Date: Tue, 03 Nov 2009 08:38:22 -0800
-Message-ID: <4AF05C7E.3060804@linux.vnet.ibm.com>
-References: <4AEF60AC.6030508@linux.vnet.ibm.com> <4AEFD866.1040106@voltaire.com>
+From: "Sean Hefty" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH] librdmacm/mckey: enforce local binding for unmapped	multicast addresses
+Date: Tue, 3 Nov 2009 08:43:01 -0800
+Message-ID: <72E827020C9E497DB3CAA3DD720E9604@amr.corp.intel.com>
+References: <Pine.LNX.4.64.0911011130140.6591@zuben.voltaire.com> <AB1AB5E171B44E1AA5FAFB87901C69C7@amr.corp.intel.com> <4AF037F7.9080100@voltaire.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain;
+	charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4AEFD866.1040106-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <4AF037F7.9080100-smomgflXvOZWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Moni Shoua <monis-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+To: 'Or Gerlitz' <ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Or Gerlitz wrote:
-> Pradeep Satyanarayana wrote:
->> This crash was originally reported against Rhel5.4. However, one can
->> recreate this crash quite easily in OFED-1.5 too. 
-> I understand that you get the crash when working with the RHEL5.4
-> bonding driver, correct? 
-We used the one that comes native with the Rhel5.4 distro. I also used installed
-OFED-1.5 on Rhel5.4 and still see the same problem.
+>I am still not sure to follow you. My basic thought was that unmapped
+>multicast addresses are MGIDs specified by the application such that
+>rdma-cm doesn't treat them as IPv6 multicast address and no mapping is
+>applied on them. 
 
-does it happen only with IPoIB devices acting
-> as the bonding slaves or also with Ethernet devices? 
+This is basically correct, but the MGIDs must be of the format 0xFF1-scope-A01B.
+The kernel keys off this in the address to determine if the mapping should be
+made.
 
-I am not exactly sure what you are hinting at. Simplest case is to use IPoIB
-devices as slaves and with the steps below the crash occurs. The crash is specific
-to IPoIB, and does not happen with Ethernet slaves.
+>1. "if SA receives a request to create a multicast group with the MGID
+>undefined"
+>2.  "the MGID that it creates shall be of the following format"
+>
+>so there are two parts here, 1st request the SA to create a new group,
+>assign it an MGID (what about joining this node/port to the group), 2nd,
+>getting back the MGID created by the SA. Looking on the rdma-cm kernel
+>code, I don't see where/how it specifies to the SA  that the MGID is
+>undefined? shouldn't it not set the MGID bit in the component mask in
+>this case? next, I don't see where the MGID created by the SA is given
 
-Please note that
-> with RHEL 5.4 there's no need to use the ofed provided bonding module,
-> more over, I believe that the distro provided one is more stable and
-> uptodate in this case. 
-We used what is natively available with Rhel5.4.
+>From 15.2.5.17.2:
 
-Moving forward, ofed bonding support for newish
-> distributions is to be removed. Moni, any reason to support bonding/EL
-> 5.4 in ofed?
+"MGID undefined" means either the MGID bit in the component mask is not set, or
+if the MGID bit in the component mask is set, the MGID component of
+MCMemberRecord:MGID is 0.
 
-Can you explain why you plan to remove this from the newer distros? This is 
-indeed news to me.
+If the join request is for an address of 0, then the MGID will be 0 in the SA
+join request.  The SA will assign an MGID starting with 0xFF1-scope-A01B.  When
+the join request completes, the MCMemberRecord information is given to the user
+as part of the multicast join event in the form of address handle attributes.
+(See cma_ib_mc_handler.)
 
-Pradeep
+What's missing is Jason's patch to fix the IPv6 mapping, and a way to extend the
+rdma_cm to support the full range of unmapped addresses.  I just haven't been
+able to get to either of these yet.
+
+- Sean
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
