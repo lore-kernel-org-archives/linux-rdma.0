@@ -1,43 +1,78 @@
-From: Or Gerlitz <ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH] librdmacm/mckey: enforce local binding for unmapped	multicast
- addresses
-Date: Tue, 03 Nov 2009 16:02:31 +0200
-Message-ID: <4AF037F7.9080100@voltaire.com>
-References: <Pine.LNX.4.64.0911011130140.6591@zuben.voltaire.com> <AB1AB5E171B44E1AA5FAFB87901C69C7@amr.corp.intel.com>
+From: Hal Rosenstock <hnrose-Wuw85uim5zDR7s880joybQ@public.gmane.org>
+Subject: [PATCH] opensm/osm_trap_rcv.c: Eliminate heavy sweep on receipt of
+	trap 145
+Date: Tue, 3 Nov 2009 10:29:32 -0500
+Message-ID: <20091103152932.GA7267@comcast.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <AB1AB5E171B44E1AA5FAFB87901C69C7-Zpru7NauK7drdx17CPfAsdBPR1lH4CV8@public.gmane.org>
+Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Sean Hefty wrote:
-> Unmapped multicast groups only support the case where the SA has created the
-> group with the MGID undefined.  The MGID must be in this format: 0xff1 scope 0xA01B (see figure 196 on page 928 of the spec).  The kernel checks for this specific address format to see if it needs to convert the address or not [...] wanted the ability to create a group a get back a unique group ID
-I am still not sure to follow you. My basic thought was that unmapped 
-multicast addresses are MGIDs specified by the application such that 
-rdma-cm doesn't treat them as IPv6 multicast address and no mapping is 
-applied on them. From the spec location you have pointed me I understand 
-that the intention is for a request to the SA to generate a unique MGID:
 
-1. "if SA receives a request to create a multicast group with the MGID 
-undefined"
-2.  "the MGID that it creates shall be of the following format"
+Trap 145 is sys image GUID changed and can be handled without a 
+new heavy sweep. New sys image GUID is present in trap and that
+is the only info that needs updating.
 
-so there are two parts here, 1st request the SA to create a new group, 
-assign it an MGID (what about joining this node/port to the group), 2nd, 
-getting back the MGID created by the SA. Looking on the rdma-cm kernel 
-code, I don't see where/how it specifies to the SA  that the MGID is 
-undefined? shouldn't it not set the MGID bit in the component mask in 
-this case? next, I don't see where the MGID created by the SA is given 
-back to the application. I guess still miss something here, can you 
-clarify, thanks
-
-Or.
-
+Signed-off-by: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+---
+diff --git a/opensm/opensm/osm_trap_rcv.c b/opensm/opensm/osm_trap_rcv.c
+index 91c3761..dae6e68 100644
+--- a/opensm/opensm/osm_trap_rcv.c
++++ b/opensm/opensm/osm_trap_rcv.c
+@@ -305,6 +305,7 @@ static void trap_rcv_process_request(IN osm_sm_t * sm,
+ 	osm_physp_t *p_physp;
+ 	cl_ptr_vector_t *p_tbl;
+ 	osm_port_t *p_port;
++	osm_node_t *p_node;
+ 	ib_net16_t source_lid = 0;
+ 	boolean_t is_gsi = TRUE;
+ 	uint8_t port_num = 0;
+@@ -504,8 +505,9 @@ static void trap_rcv_process_request(IN osm_sm_t * sm,
+ 	}
+ 
+ 	/* Check for node description update. IB Spec v1.2.1 pg 823 */
+-	if (ib_notice_is_generic(p_ntci) &&
+-	    cl_ntoh16(p_ntci->g_or_v.generic.trap_num) == 144 &&
++	if (!ib_notice_is_generic(p_ntci))
++		goto check_sweep;
++	if (cl_ntoh16(p_ntci->g_or_v.generic.trap_num) == 144 &&
+ 	    p_ntci->data_details.ntc_144.local_changes & TRAP_144_MASK_OTHER_LOCAL_CHANGES &&
+ 	    p_ntci->data_details.ntc_144.change_flgs & TRAP_144_MASK_NODE_DESCRIPTION_CHANGE) {
+ 		OSM_LOG(sm->p_log, OSM_LOG_INFO, "Trap 144 Node description update\n");
+@@ -518,20 +520,25 @@ static void trap_rcv_process_request(IN osm_sm_t * sm,
+ 			OSM_LOG(sm->p_log, OSM_LOG_ERROR,
+ 				"ERR 3812: No physical port found for "
+ 				"trap 144: \"node description update\"\n");
++		goto check_sweep;
+ 	}
+-
++	if (cl_ntoh16(p_ntci->g_or_v.generic.trap_num) == 145) {
++		/* update system image guid (in NodeInfo) */
++		p_node = osm_physp_get_node_ptr(p_physp);
++		p_node->node_info.sys_guid = p_ntci->data_details.ntc_145.new_sys_guid;
++	}
++check_sweep:
+ 	/* do a sweep if we received a trap */
+ 	if (sm->p_subn->opt.sweep_on_trap) {
+ 		/* if this is trap number 128 or run_heavy_sweep is TRUE -
+ 		   update the force_heavy_sweep flag of the subnet.
+-		   Sweep also on traps 144/145 - these traps signal a change of
+-		   certain port capabilities/system image guid.
++		   Sweep also on traps 144 - these traps signal a change of
++		   certain port capabilities.
+ 		   TODO: In the future this can be changed to just getting
+ 		   PortInfo on this port instead of sweeping the entire subnet. */
+ 		if (ib_notice_is_generic(p_ntci) &&
+ 		    (cl_ntoh16(p_ntci->g_or_v.generic.trap_num) == 128 ||
+ 		     cl_ntoh16(p_ntci->g_or_v.generic.trap_num) == 144 ||
+-		     cl_ntoh16(p_ntci->g_or_v.generic.trap_num) == 145 ||
+ 		     run_heavy_sweep)) {
+ 			OSM_LOG(sm->p_log, OSM_LOG_VERBOSE,
+ 				"Forcing heavy sweep. Received trap:%u\n",
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
