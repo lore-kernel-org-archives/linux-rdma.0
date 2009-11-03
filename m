@@ -1,46 +1,40 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH] librdmacm/mckey: enforce local binding for unmapped	multicast addresses
-Date: Tue, 3 Nov 2009 10:29:49 -0700
-Message-ID: <20091103172949.GR1966@obsidianresearch.com>
-References: <Pine.LNX.4.64.0911011130140.6591@zuben.voltaire.com> <AB1AB5E171B44E1AA5FAFB87901C69C7@amr.corp.intel.com> <4AF037F7.9080100@voltaire.com> <72E827020C9E497DB3CAA3DD720E9604@amr.corp.intel.com>
+From: Pradeep Satyanarayana <pradeeps-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
+Subject: Re: Crash in bonding
+Date: Tue, 03 Nov 2009 09:40:29 -0800
+Message-ID: <4AF06B0D.5070709@linux.vnet.ibm.com>
+References: <4AEF6020.7000806@linux.vnet.ibm.com><1257252696.13991.5.camel@linux-nzha.site>
+	<4AF05D9B.30807@linux.vnet.ibm.com>
+	<39C75744D164D948A170E9792AF8E7CA01AB635F@exil.voltaire.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <72E827020C9E497DB3CAA3DD720E9604-Zpru7NauK7drdx17CPfAsdBPR1lH4CV8@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: 'Or Gerlitz' <ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+In-Reply-To: <39C75744D164D948A170E9792AF8E7CA01AB635F-QfUkFaTmzUSUvQqKE/ONIwC/G2K4zDHf@public.gmane.org>
+List-Unsubscribe: <http://lists.openfabrics.org/cgi-bin/mailman/listinfo/ewg>,
+	<mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.openfabrics.org/pipermail/ewg>
+List-Post: <mailto:ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+List-Help: <mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=help>
+List-Subscribe: <http://lists.openfabrics.org/cgi-bin/mailman/listinfo/ewg>,
+	<mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=subscribe>
+Sender: ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
+Errors-To: ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
+To: Shiri Franchi <shirif-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Moni Shoua <monis-smomgflXvOZWk0Htik3J/w@public.gmane.org>, fubar-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org, EWG <Openfabrics-ewg-0P3JtQMG0aQdnm+yROfE0A@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Nov 03, 2009 at 08:43:01AM -0800, Sean Hefty wrote:
+Shiri Franchi wrote:
+> Hi,
+> 
+> I did it exactly as you described:
+> 1. ifdown ib0
+> 2. ifdown ib1
+> 3. modprobe -r ib_ipoib
+> 
+> And it did not reproduced..
 
-> What's missing is Jason's patch to fix the IPv6 mapping, and a way to extend the
-> rdma_cm to support the full range of unmapped addresses.  I just haven't been
-> able to get to either of these yet.
+It is a race that you may not be recreating. I have tried
+this across different HCAs and platforms (x86_64, ppc64). 
+Seems to recreate almost at will for me.
 
-My feeling is when AF_IB is introduced the hacky overload of AF_INET6
-should be deprecated and MGIDs must be passed in as AF_IB - and some
-ancillary optional data to set the pkey, rate, etc for the join request.
-
-That way a 0 AF_IB MGID would pass straight through to the SA, and
-come back as a unique SA assigned address.
-
-This fills in an API hole, there is no way to join a MGID with kernel
-help to refcount and unjoin.
-
-BTW, the kernel test for 0xFF1-scope-A01B is busted:
-
-(s6_addr32[0]) & 0xFF10A01B) == 0xFF10A01B
-
-I was wondering what that was about. Should have been
-
-(s6_addr32[0]) & 0xFFF0FFFF) == 0xFF10A01B
-
-Right?
-
-Jason
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Pradeep
