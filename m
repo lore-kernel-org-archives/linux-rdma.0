@@ -1,65 +1,38 @@
-From: Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH] opensm/osm_state_mgr.c: force heavy sweep when fabric consists
- of single switch
-Date: Tue, 03 Nov 2009 12:26:50 +0200
-Message-ID: <4AF0056A.5030503@dev.mellanox.co.il>
-Reply-To: kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org
+From: Hal Rosenstock <hnrose-Wuw85uim5zDR7s880joybQ@public.gmane.org>
+Subject: [PATCH] opensm/osm_mcast_tbl.c: In osm_mcast_tbl_clear_mlid, use
+	memset to clear port mask entry
+Date: Tue, 3 Nov 2009 07:00:58 -0500
+Message-ID: <20091103120058.GA31605@comcast.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Cc: Linux RDMA <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Always do heavy sweep when there is only one node in the
-fabric, and this node is a switch, and SM runs on top of it -
-there may be a race when OSM starts running before the
-external ports are ports are up, or if they went through
-reset while SM was starting.
-In this race switch brings up the ports and turns on the
-PSC bit, but OSM might get PortInfo before SwitchInfo, and it
-might see all ports as down, but PSC bit on. If that happens,
-OSM turns off PSC bit, and it will never see external ports
-again - it won't perform any heavy sweep, only light sweep
 
-Signed-off-by: Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+rather than less efficient for loop
+
+Signed-off-by: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 ---
- opensm/opensm/osm_state_mgr.c |   15 ++++++++++-----
- 1 files changed, 10 insertions(+), 5 deletions(-)
-
-diff --git a/opensm/opensm/osm_state_mgr.c b/opensm/opensm/osm_state_mgr.c
-index 4303d6e..537c855 100644
---- a/opensm/opensm/osm_state_mgr.c
-+++ b/opensm/opensm/osm_state_mgr.c
-@@ -1062,13 +1062,18 @@ static void do_sweep(osm_sm_t * sm)
- 	 * Otherwise, this is probably our first discovery pass
- 	 * or we are connected in loopback. In both cases do a
- 	 * heavy sweep.
--	 * Note: If we are connected in loopback we want a heavy
--	 * sweep, since we will not be getting any traps if there is
--	 * a lost connection.
-+	 * Note the following:
-+	 * 1. If we are connected in loopback we want a heavy sweep, since we
-+	 *    will not be getting any traps if there is a lost connection.
-+	 * 2. If we are in DISCOVERING state - this means it is either in
-+	 *    initializing or wake up from STANDBY - run the heavy sweep.
-+	 * 3. If there is only one node in the fabric, and this node is a
-+	 *    switch, and OSM runs on top of it, there might be a race when
-+	 *    OSM starts running before the external ports are up - run the
-+	 *    heavy sweep.
- 	 */
--	/*  if we are in DISCOVERING state - this means it is either in
--	 *  initializing or wake up from STANDBY - run the heavy sweep */
- 	if (cl_qmap_count(&sm->p_subn->sw_guid_tbl)
-+	    && cl_qmap_count(&sm->p_subn->node_guid_tbl) != 1
- 	    && sm->p_subn->sm_state != IB_SMINFO_STATE_DISCOVERING
- 	    && sm->p_subn->opt.force_heavy_sweep == FALSE
- 	    && sm->p_subn->force_heavy_sweep == FALSE
--- 
-1.5.1.4
-
+diff --git a/opensm/opensm/osm_mcast_tbl.c b/opensm/opensm/osm_mcast_tbl.c
+index 462d528..4c58102 100644
+--- a/opensm/opensm/osm_mcast_tbl.c
++++ b/opensm/opensm/osm_mcast_tbl.c
+@@ -231,8 +231,9 @@ void osm_mcast_tbl_clear_mlid(IN osm_mcast_tbl_t * p_tbl, IN uint16_t mlid_ho)
+ 
+ 	mlid_offset = mlid_ho - IB_LID_MCAST_START_HO;
+ 	if (p_tbl->p_mask_tbl && mlid_offset < p_tbl->mft_depth)
+-		for (i = 0; i <= p_tbl->max_position; i++)
+-			(*p_tbl->p_mask_tbl)[mlid_offset][i] = 0;
++		memset((uint8_t *)p_tbl->p_mask_tbl + mlid_offset * (IB_MCAST_POSITION_MAX + 1) * IB_MCAST_MASK_SIZE / 8,
++		       0,
++		       (IB_MCAST_POSITION_MAX + 1) * IB_MCAST_MASK_SIZE / 8);
+ }
+ 
+ boolean_t osm_mcast_tbl_get_block(IN osm_mcast_tbl_t * p_tbl,
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
