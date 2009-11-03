@@ -1,36 +1,45 @@
-From: "Sean Hefty" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH] librdmacm/mckey: enforce local binding for unmapped	multicast addresses
-Date: Tue, 3 Nov 2009 10:11:38 -0800
-Message-ID: <BDD23F8A7760479DBA7B9BA77C642476@amr.corp.intel.com>
-References: <Pine.LNX.4.64.0911011130140.6591@zuben.voltaire.com> <AB1AB5E171B44E1AA5FAFB87901C69C7@amr.corp.intel.com> <4AF037F7.9080100@voltaire.com> <72E827020C9E497DB3CAA3DD720E9604@amr.corp.intel.com> <20091103172949.GR1966@obsidianresearch.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: [PATCH] RDMA CM: Fix AF_INET6 support in multicast joining
+Date: Tue, 3 Nov 2009 11:30:33 -0700
+Message-ID: <20091103183033.GR7768@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20091103172949.GR1966-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: 'Jason Gunthorpe' <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: 'Or Gerlitz' <ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
->My feeling is when AF_IB is introduced the hacky overload of AF_INET6
->should be deprecated and MGIDs must be passed in as AF_IB - and some
->ancillary optional data to set the pkey, rate, etc for the join request.
+If joining to an AF_INET6 address we need to map the address to a MGID
+in the same way as the IP stack. The old code would just fall through to
+the IPv4 case and generate garbage.
 
-Yes, I expect AF_IB to fix this.
+Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+---
+ drivers/infiniband/core/cma.c |    5 +++++
+ 1 files changed, 5 insertions(+), 0 deletions(-)
 
->BTW, the kernel test for 0xFF1-scope-A01B is busted:
->
->(s6_addr32[0]) & 0xFF10A01B) == 0xFF10A01B
->
->I was wondering what that was about. Should have been
->
->(s6_addr32[0]) & 0xFFF0FFFF) == 0xFF10A01B
->
->Right?
+Sean: Sounded like you approve?
 
-The check is wrong and should match the latter.
+diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
+index a0fa241..1e9a78a 100644
+--- a/drivers/infiniband/core/cma.c
++++ b/drivers/infiniband/core/cma.c
+@@ -2724,6 +2724,11 @@ static void cma_set_mgid(struct rdma_id_private *id_priv,
+ 								 0xFF10A01B)) {
+ 		/* IPv6 address is an SA assigned MGID. */
+ 		memcpy(mgid, &sin6->sin6_addr, sizeof *mgid);
++	} else if ((addr->sa_family == AF_INET6)) {
++		ipv6_ib_mc_map(&sin6->sin6_addr, dev_addr->broadcast, mc_map);
++		if (id_priv->id.ps == RDMA_PS_UDP)
++			mc_map[7] = 0x01;	/* Use RDMA CM signature */
++		*mgid = *(union ib_gid *) (mc_map + 4);
+ 	} else {
+ 		ip_ib_mc_map(sin->sin_addr.s_addr, dev_addr->broadcast, mc_map);
+ 		if (id_priv->id.ps == RDMA_PS_UDP)
+-- 
+1.5.4.2
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
