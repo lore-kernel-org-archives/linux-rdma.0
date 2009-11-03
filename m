@@ -1,55 +1,72 @@
-From: "Sean Hefty" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH] RDMA CM: Fix AF_INET6 support in multicast joining
-Date: Tue, 3 Nov 2009 10:36:34 -0800
-Message-ID: <110CF502BB1F4987B9A43A53ADC763D8@amr.corp.intel.com>
-References: <20091103183033.GR7768@obsidianresearch.com>
+From: Al Chu <chu11-i2BcT+NCU+M@public.gmane.org>
+Subject: [infiniband-diags] [PATCH] remove unused headers in
+	libibnetdiscover
+Date: Tue, 03 Nov 2009 10:37:29 -0800
+Message-ID: <1257273449.580.54.camel@auk31.llnl.gov>
+Reply-To: chu11-i2BcT+NCU+M@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="=-pk/phXkOh4xcEnOLvqPK"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20091103183033.GR7768-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: 'Jason Gunthorpe' <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+To: sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
->If joining to an AF_INET6 address we need to map the address to a MGID
->in the same way as the IP stack. The old code would just fall through to
->the IPv4 case and generate garbage.
->
->Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 
-Acked-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+--=-pk/phXkOh4xcEnOLvqPK
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 
->---
-> drivers/infiniband/core/cma.c |    5 +++++
-> 1 files changed, 5 insertions(+), 0 deletions(-)
->
->Sean: Sounded like you approve?
+Hey Sasha,
 
-yes - thanks.  I either missed this or dropped it when you first posted it.
+Just noticed it.  Left over/cut and pasted from the original
+ibnetdiscover tool code or no longer necessary due to recent changes.
+This patch is independent of the other patches I recently posted.
 
->diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
->index a0fa241..1e9a78a 100644
->--- a/drivers/infiniband/core/cma.c
->+++ b/drivers/infiniband/core/cma.c
->@@ -2724,6 +2724,11 @@ static void cma_set_mgid(struct rdma_id_private
->*id_priv,
-> 								 0xFF10A01B)) {
-> 		/* IPv6 address is an SA assigned MGID. */
-> 		memcpy(mgid, &sin6->sin6_addr, sizeof *mgid);
->+	} else if ((addr->sa_family == AF_INET6)) {
->+		ipv6_ib_mc_map(&sin6->sin6_addr, dev_addr->broadcast, mc_map);
->+		if (id_priv->id.ps == RDMA_PS_UDP)
->+			mc_map[7] = 0x01;	/* Use RDMA CM signature */
->+		*mgid = *(union ib_gid *) (mc_map + 4);
-> 	} else {
-> 		ip_ib_mc_map(sin->sin_addr.s_addr, dev_addr->broadcast, mc_map);
-> 		if (id_priv->id.ps == RDMA_PS_UDP)
->--
->1.5.4.2
+Al
 
+-- 
+Albert Chu
+chu11-i2BcT+NCU+M@public.gmane.org
+Computer Scientist
+High Performance Systems Division
+Lawrence Livermore National Laboratory
+
+--=-pk/phXkOh4xcEnOLvqPK
+Content-Disposition: attachment; filename=0001-remove-unused-headers.patch
+Content-Type: text/plain; name=0001-remove-unused-headers.patch; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+
+From: Albert Chu <chu11-i2BcT+NCU+M@public.gmane.org>
+Date: Tue, 3 Nov 2009 10:33:08 -0800
+Subject: [PATCH] remove unused headers
+
+
+Signed-off-by: Albert Chu <chu11-i2BcT+NCU+M@public.gmane.org>
+---
+ infiniband-diags/libibnetdisc/src/ibnetdisc.c |    3 ---
+ 1 files changed, 0 insertions(+), 3 deletions(-)
+
+diff --git a/infiniband-diags/libibnetdisc/src/ibnetdisc.c b/infiniband-diags/libibnetdisc/src/ibnetdisc.c
+index ebc45ba..bd28ba7 100644
+--- a/infiniband-diags/libibnetdisc/src/ibnetdisc.c
++++ b/infiniband-diags/libibnetdisc/src/ibnetdisc.c
+@@ -41,10 +41,7 @@
+ #include <stdio.h>
+ #include <stdlib.h>
+ #include <unistd.h>
+-#include <stdarg.h>
+-#include <time.h>
+ #include <string.h>
+-#include <getopt.h>
+ #include <errno.h>
+ #include <inttypes.h>
+ 
+-- 
+1.5.4.5
+
+
+--=-pk/phXkOh4xcEnOLvqPK--
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
