@@ -1,158 +1,86 @@
-From: Line Holen <Line.Holen-UdXhSnd/wVw@public.gmane.org>
-Subject: Re: [PATCH] opensm/osm_state_mgr.c: force heavy sweep when fabric
- consists of single switch
-Date: Wed, 04 Nov 2009 18:42:52 +0100
-Message-ID: <4AF1BD1C.4090703@Sun.COM>
-References: <4AF0056A.5030503@dev.mellanox.co.il> <20091103221217.GE29388@me>
- <4AF14DCD.3010407@dev.mellanox.co.il> <4AF16740.3080600@Sun.COM>
- <4AF1A3CA.9070902@dev.mellanox.co.il>
+From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH 03/25] mlx4_core: add multi-function communication channel
+Date: Wed, 04 Nov 2009 10:04:59 -0800
+Message-ID: <adaiqdq17zo.fsf@cisco.com>
+References: <4AF19E14.5070107@mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; CHARSET=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-reply-to: <4AF1A3CA.9070902-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+In-Reply-To: <4AF19E14.5070107-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org> (Yevgeny Petrilin's message of
+	"Wed, 04 Nov 2009 17:30:28 +0200")
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org
-Cc: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>, Linux RDMA <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Yevgeny Petrilin <yevgenyp-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, liranl-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org, tziporet-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 11/ 4/09 04:54 PM, Yevgeny Kliteynik wrote:
-> Line Holen wrote:
->> On 11/ 4/09 10:47 AM, Yevgeny Kliteynik wrote:
->>> Sasha Khapyorsky wrote:
->>>> On 12:26 Tue 03 Nov     , Yevgeny Kliteynik wrote:
->>>>> Always do heavy sweep when there is only one node in the
->>>>> fabric, and this node is a switch, and SM runs on top of it -
->>>>> there may be a race when OSM starts running before the
->>>>> external ports are ports are up, or if they went through
->>>>> reset while SM was starting.
->>>>> In this race switch brings up the ports and turns on the
->>>>> PSC bit, but OSM might get PortInfo before SwitchInfo, and it
->>>>> might see all ports as down, but PSC bit on. If that happens,
->>>>> OSM turns off PSC bit, and it will never see external ports
->>>>> again - it won't perform any heavy sweep, only light sweep
->>>> Could such race happen when there are more than one node in a fabric?
->>> I think that my description of the race was misleading.
->>> The race can happen on *any* fabric when SM runs on switch.
->>> But when it does happen, SM thinks that the whole subnet
->>> is just one switch - that's what it managed to discover.
->>> I've actually seen it happening.
->>> So the patch fixes this particular case.
->>>
->>> So the next question that you would probably ask is can
->>> this race happen on some *other* switch and not the one
->>> SM is running on?
->>>
->>> Well, I don't know. I have a hunch that it can't, but I
->>> couldn't prove it to myself yet.
->>>
->>> The race on the managed switch is a special case because
->>> SM always sees port 0, and always gets responses to its
->>> SMP queries. On any other switch, if the ports were reset,
->>> SM won't get any response until the ports are up again.
->>>
->>> Perhaps there might be a case where SM got some port as down,
->>> and by the time SM got SwitchInfo with PSC bit the port
->>> was already up, so SM won't start discovery beyond this
->>> port. But this race would be fixed on the next heavy sweep,
->>> when SM will discover this port that it missed the previous
->>> time, whereas race on managed switch is fatal - SM won't
->>> ever do any heavy sweep.
->>>
->>> -- Yevgeny
->>
->> At least for the 3.2 branch there is a general race regardless of
->> where the SM is running. I haven't checked the current master, but
->> I cannot recall seeing any patches related to this so I assume
->> the race is still there.
->>
->> There is a window between SM discovering a switch and clearing PSC
->> for the same switch. The SM will not detect a state change on the
->> switch ports during this time.
-> 
-> If the port changes state during that period, the switch issues
-> new trap 128, which (I think) should cause SM to re-discover the
-> fabric once this discovery cycle is over. Is this correct?
-> 
 
-I think the switch shall send a trap whenever it sets the PSC bit.
-Once set I believe it will not send another trap until it is reset.
-Or do I misinterpret the spec ?
+ > --- a/drivers/net/mlx4/cmd.c
+ > +++ b/drivers/net/mlx4/cmd.c
+ > @@ -41,6 +41,7 @@
+ >  #include <asm/io.h>
+ >  
+ >  #include "mlx4.h"
+ > +#include "en_port.h"
 
-> Or perhaps the more serious problem happens when SM LID is not
-> configured yet on the switch, hence the trap is not going to the
-> right place?
-> 
->> I have a patch for the 3.2 branch that I can merge into master.
-> 
-> Sure, that would be nice :)
-> 
-> -- Yevgeny
-> 
-> 
->> Line
->>
->>>> Sasha
->>>>
->>>>> Signed-off-by: Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
->>>>> ---
->>>>>  opensm/opensm/osm_state_mgr.c |   15 ++++++++++-----
->>>>>  1 files changed, 10 insertions(+), 5 deletions(-)
->>>>>
->>>>> diff --git a/opensm/opensm/osm_state_mgr.c
->>>>> b/opensm/opensm/osm_state_mgr.c
->>>>> index 4303d6e..537c855 100644
->>>>> --- a/opensm/opensm/osm_state_mgr.c
->>>>> +++ b/opensm/opensm/osm_state_mgr.c
->>>>> @@ -1062,13 +1062,18 @@ static void do_sweep(osm_sm_t * sm)
->>>>>       * Otherwise, this is probably our first discovery pass
->>>>>       * or we are connected in loopback. In both cases do a
->>>>>       * heavy sweep.
->>>>> -     * Note: If we are connected in loopback we want a heavy
->>>>> -     * sweep, since we will not be getting any traps if there is
->>>>> -     * a lost connection.
->>>>> +     * Note the following:
->>>>> +     * 1. If we are connected in loopback we want a heavy sweep,
->>>>> since we
->>>>> +     *    will not be getting any traps if there is a lost
->>>>> connection.
->>>>> +     * 2. If we are in DISCOVERING state - this means it is either in
->>>>> +     *    initializing or wake up from STANDBY - run the heavy sweep.
->>>>> +     * 3. If there is only one node in the fabric, and this node is a
->>>>> +     *    switch, and OSM runs on top of it, there might be a race
->>>>> when
->>>>> +     *    OSM starts running before the external ports are up -
->>>>> run the
->>>>> +     *    heavy sweep.
->>>>>       */
->>>>> -    /*  if we are in DISCOVERING state - this means it is either in
->>>>> -     *  initializing or wake up from STANDBY - run the heavy sweep */
->>>>>      if (cl_qmap_count(&sm->p_subn->sw_guid_tbl)
->>>>> +        && cl_qmap_count(&sm->p_subn->node_guid_tbl) != 1
->>>>>          && sm->p_subn->sm_state != IB_SMINFO_STATE_DISCOVERING
->>>>>          && sm->p_subn->opt.force_heavy_sweep == FALSE
->>>>>          && sm->p_subn->force_heavy_sweep == FALSE
->>>>> -- 
->>>>> 1.5.1.4
->>>>>
->>>>> -- 
->>>>> To unsubscribe from this list: send the line "unsubscribe
->>>>> linux-rdma" in
->>>>> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->>>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>>>>
->>> -- 
->>> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
->>> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>
->>
-> 
-> -- 
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Why does core mlx4 command handling end up depending on stuff from en_port.h?
 
+ > +	__be32 status = readl(&priv->mfunc.comm->slave_read);
+
+This can't be endian-clean, can it?  What does sparse with
+-D__CHECK_ENDIAN__ say?
+
+ > +	queue_delayed_work(priv->mfunc.comm_wq, &priv->mfunc.comm_work,
+ > +						polled ? HZ / 1000 : HZ / 10);
+
+So this is always running at least 10 times a second?  That's a lot of
+wakeups on an idle system.  Is there no way to make this event-driven?
+
+And HZ/1000 is going to be 0 if HZ is less than 1000 ... so this is just
+going to run continuously in the polling case.
+
+ > +	/* Write command */
+ > +	if (cmd == MLX4_COMM_CMD_RESET)
+ > +		priv->cmd.comm_toggle = 0;
+ > +	else if (++priv->cmd.comm_toggle > 2)
+ > +		priv->cmd.comm_toggle = 1;
+
+Is this right?  comm_toggle goes 0, 1, 2, 1, 2, ...?
+
+ > +static struct mlx4_cmd_info {
+ > +	u8 opcode;
+ > +	u8 has_inbox;
+ > +	u8 has_outbox;
+ > +	u8 out_is_imm;
+ > +	int (*verify)(struct mlx4_dev *dev, int slave, struct mlx4_vhcr *vhcr,
+ > +					    struct mlx4_cmd_mailbox *inbox);
+ > +	int (*wrapper)(struct mlx4_dev *dev, int slave, struct mlx4_vhcr *vhcr,
+ > +					     struct mlx4_cmd_mailbox *inbox,
+ > +					     struct mlx4_cmd_mailbox *outbox);
+ > +} cmd_info[] = {
+ > +	{MLX4_CMD_QUERY_FW,        0, 1, 0, NULL, NULL},
+ > +	{MLX4_CMD_QUERY_ADAPTER,   0, 1, 0, NULL, NULL},
+
+This big structure would be better with designated initializers.  Also
+instead of u8 for the flags bool would be better probably.  Then it
+becomes more self documenting, ie
+
+	{ .opcode = MLX4_CMD_QUERY_FW, .has_outbox = true }, ...
+
+ > +struct mlx4_vhcr {
+ > +	u64 in_param;
+ > +	u64 out_param;
+ > +	u32 in_modifier;
+ > +	u32 timeout;
+ > +	u16 op;
+ > +	u16 token;
+ > +	u8 op_modifier;
+ > +	int errno;
+ > +};
+
+trivial but can you use tabs to line up the structure field names the
+way the rest of the mlx4 declarations do?
+
+ - R.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
