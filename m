@@ -1,55 +1,108 @@
-From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-Subject: [PATCH 2/2] infiniband-diags/ibqueryerrors: Properly exit and clean
- up resources when node info query fails
-Date: Tue, 3 Nov 2009 20:22:47 -0800
-Message-ID: <20091103202247.901acbda.weiny2@llnl.gov>
+From: Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH] opensm/osm_state_mgr.c: force heavy sweep when fabric
+ consists of single switch
+Date: Wed, 04 Nov 2009 11:47:57 +0200
+Message-ID: <4AF14DCD.3010407@dev.mellanox.co.il>
+References: <4AF0056A.5030503@dev.mellanox.co.il> <20091103221217.GE29388@me>
+Reply-To: kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20091103221217.GE29388@me>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: Linux RDMA <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+Sasha Khapyorsky wrote:
+> On 12:26 Tue 03 Nov     , Yevgeny Kliteynik wrote:
+>> Always do heavy sweep when there is only one node in the
+>> fabric, and this node is a switch, and SM runs on top of it -
+>> there may be a race when OSM starts running before the
+>> external ports are ports are up, or if they went through
+>> reset while SM was starting.
+>> In this race switch brings up the ports and turns on the
+>> PSC bit, but OSM might get PortInfo before SwitchInfo, and it
+>> might see all ports as down, but PSC bit on. If that happens,
+>> OSM turns off PSC bit, and it will never see external ports
+>> again - it won't perform any heavy sweep, only light sweep
+> 
+> Could such race happen when there are more than one node in a fabric?
 
-From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-Date: Tue, 3 Nov 2009 20:17:14 -0800
-Subject: [PATCH] infiniband-diags/ibqueryerrors: Properly exit and clean up resources when node info query fails
+I think that my description of the race was misleading.
+The race can happen on *any* fabric when SM runs on switch.
+But when it does happen, SM thinks that the whole subnet
+is just one switch - that's what it managed to discover.
+I've actually seen it happening.
+So the patch fixes this particular case.
 
+So the next question that you would probably ask is can
+this race happen on some *other* switch and not the one
+SM is running on?
 
-Signed-off-by: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
----
- infiniband-diags/src/ibqueryerrors.c |    7 +++++--
- 1 files changed, 5 insertions(+), 2 deletions(-)
+Well, I don't know. I have a hunch that it can't, but I
+couldn't prove it to myself yet.
 
-diff --git a/infiniband-diags/src/ibqueryerrors.c b/infiniband-diags/src/ibqueryerrors.c
-index 43698d2..8305e5d 100644
---- a/infiniband-diags/src/ibqueryerrors.c
-+++ b/infiniband-diags/src/ibqueryerrors.c
-@@ -559,8 +559,10 @@ int main(int argc, char **argv)
- 		uint8_t ni[IB_SMP_DATA_SIZE];
+The race on the managed switch is a special case because
+SM always sees port 0, and always gets responses to its
+SMP queries. On any other switch, if the ports were reset,
+SM won't get any response until the ports are up again.
+
+Perhaps there might be a case where SM got some port as down,
+and by the time SM got SwitchInfo with PSC bit the port
+was already up, so SM won't start discovery beyond this
+port. But this race would be fixed on the next heavy sweep,
+when SM will discover this port that it missed the previous
+time, whereas race on managed switch is fatal - SM won't
+ever do any heavy sweep.
+
+-- Yevgeny
  
- 		if (!smp_query_via(ni, &portid, IB_ATTR_NODE_INFO, 0,
--				   ibd_timeout, ibmad_port))
--			return -1;
-+				   ibd_timeout, ibmad_port)) {
-+			rc = -1;
-+			goto destroy_fabric;
-+		}
- 		mad_decode_field(ni, IB_NODE_GUID_F, &(node_guid));
- 
- 		node = ibnd_find_node_guid(fabric, node_guid);
-@@ -571,6 +573,7 @@ int main(int argc, char **argv)
- 	} else
- 		ibnd_iter_nodes(fabric, print_node, NULL);
- 
-+destroy_fabric:
- 	ibnd_destroy_fabric(fabric);
- 
- close_port:
--- 
-1.5.4.5
+> Sasha
+> 
+>> Signed-off-by: Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+>> ---
+>>  opensm/opensm/osm_state_mgr.c |   15 ++++++++++-----
+>>  1 files changed, 10 insertions(+), 5 deletions(-)
+>>
+>> diff --git a/opensm/opensm/osm_state_mgr.c b/opensm/opensm/osm_state_mgr.c
+>> index 4303d6e..537c855 100644
+>> --- a/opensm/opensm/osm_state_mgr.c
+>> +++ b/opensm/opensm/osm_state_mgr.c
+>> @@ -1062,13 +1062,18 @@ static void do_sweep(osm_sm_t * sm)
+>>  	 * Otherwise, this is probably our first discovery pass
+>>  	 * or we are connected in loopback. In both cases do a
+>>  	 * heavy sweep.
+>> -	 * Note: If we are connected in loopback we want a heavy
+>> -	 * sweep, since we will not be getting any traps if there is
+>> -	 * a lost connection.
+>> +	 * Note the following:
+>> +	 * 1. If we are connected in loopback we want a heavy sweep, since we
+>> +	 *    will not be getting any traps if there is a lost connection.
+>> +	 * 2. If we are in DISCOVERING state - this means it is either in
+>> +	 *    initializing or wake up from STANDBY - run the heavy sweep.
+>> +	 * 3. If there is only one node in the fabric, and this node is a
+>> +	 *    switch, and OSM runs on top of it, there might be a race when
+>> +	 *    OSM starts running before the external ports are up - run the
+>> +	 *    heavy sweep.
+>>  	 */
+>> -	/*  if we are in DISCOVERING state - this means it is either in
+>> -	 *  initializing or wake up from STANDBY - run the heavy sweep */
+>>  	if (cl_qmap_count(&sm->p_subn->sw_guid_tbl)
+>> +	    && cl_qmap_count(&sm->p_subn->node_guid_tbl) != 1
+>>  	    && sm->p_subn->sm_state != IB_SMINFO_STATE_DISCOVERING
+>>  	    && sm->p_subn->opt.force_heavy_sweep == FALSE
+>>  	    && sm->p_subn->force_heavy_sweep == FALSE
+>> -- 
+>> 1.5.1.4
+>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+>> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>
+> 
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
