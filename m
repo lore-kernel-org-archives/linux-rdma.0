@@ -1,8 +1,7 @@
 From: Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH 3/3 v2] opensm: connect switches in tree - implemented in
- up/down
-Date: Wed, 04 Nov 2009 13:09:12 +0200
-Message-ID: <4AF160D8.9040801@dev.mellanox.co.il>
+Subject: [PATCH 1/3 v3] opensm: connect switches in tree - added new option
+Date: Wed, 04 Nov 2009 13:08:57 +0200
+Message-ID: <4AF160C9.1030908@dev.mellanox.co.il>
 Reply-To: kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
@@ -13,149 +12,152 @@ To: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
 Cc: Linux RDMA <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This patch implements connect_switches option in up/down
-routing. Also, connect_roots is now handled as a special
-case of connect_switches.
+Adding new option: '--connect_switches'
+This option should connect more switches with a
+down/up routes in up/down and fat-tree routing.
 
-The idea is the following: when clearing hops, preserve
-the entries for switches that are above the highest leaf
-in the tree.
-So if the highest leaf in the tree has rank N, preserve
-hops to all the switches with ranks 0 to (N-1).
-When connecting roots (--connect_roots option), just set
-N to 1.
-
-[v2 - no changes, just rebased and resolved conflicts]
+[v3 - no changes since v2, just rebased and resolved conflicts]
 
 Signed-off-by: Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 ---
- opensm/opensm/osm_ucast_updn.c |   87 +++++++++++++++++++++++++++++++---------
- 1 files changed, 68 insertions(+), 19 deletions(-)
+ opensm/include/opensm/osm_subnet.h |   10 ++++++++--
+ opensm/man/opensm.8.in             |   11 +++++++++--
+ opensm/opensm/main.c               |   15 +++++++++++++--
+ opensm/opensm/osm_subnet.c         |    7 +++++++
+ 4 files changed, 37 insertions(+), 6 deletions(-)
 
-diff --git a/opensm/opensm/osm_ucast_updn.c b/opensm/opensm/osm_ucast_updn.c
-index 01e40eb..cb99730 100644
---- a/opensm/opensm/osm_ucast_updn.c
-+++ b/opensm/opensm/osm_ucast_updn.c
-@@ -279,24 +279,80 @@ static int updn_subn_rank(IN updn_t * p_updn)
- 	return 0;
- }
+diff --git a/opensm/include/opensm/osm_subnet.h b/opensm/include/opensm/osm_subnet.h
+index 0302f91..ecb0a62 100644
+--- a/opensm/include/opensm/osm_subnet.h
++++ b/opensm/include/opensm/osm_subnet.h
+@@ -191,6 +191,7 @@ typedef struct osm_subn_opt {
+ 	char *routing_engine_names;
+ 	boolean_t use_ucast_cache;
+ 	boolean_t connect_roots;
++	boolean_t connect_switches;
+ 	char *lid_matrix_dump_file;
+ 	char *lfts_file;
+ 	char *root_guid_file;
+@@ -374,8 +375,13 @@ typedef struct osm_subn_opt {
+ *
+ *	connect_roots
+ *		The option which will enforce root to root connectivity with
+-*		up/down routing engine (even if this violates "pure" deadlock
+-*		free up/down algorithm)
++*		up/down and fat-tree routing engines (even if this violates
++*		"pure" deadlock free up/down or fat-tree algorithm)
++*
++*	connect_switches
++*		The option which will enforce switch to switch connectivity
++*		with up/down and fat-tree routing engines (even if this
++*		violates "pure" deadlock free up/down or fat-tree algorithm)
+ *
+ *	use_ucast_cache
+ *		When TRUE enables unicast routing cache.
+diff --git a/opensm/man/opensm.8.in b/opensm/man/opensm.8.in
+index bd8ab4e..1dc76de 100644
+--- a/opensm/man/opensm.8.in
++++ b/opensm/man/opensm.8.in
+@@ -19,6 +19,7 @@ opensm \- InfiniBand subnet manager and administration (SM/SA)
+ [\-\-lash_start_vl <vl number>]
+ [\-A | \-\-ucast_cache]
+ [\-z | \-\-connect_roots]
++[\-\-connect_switches]
+ [\-M <file name> | \-\-lid_matrix_file <file name>]
+ [\-U <file name> | \-\-lfts_file <file name>]
+ [\-S | \-\-sadb_file <file name>]
+@@ -171,8 +172,14 @@ recalculations: one when the host goes down, and the other when
+ the host comes back online.
+ .TP
+ \fB\-z\fR, \fB\-\-connect_roots\fR
+-This option enforces a routing engine (currently up/down
+-only) to make connectivity between root switches and in
++This option enforces routing engines (up/down and
++fat-tree) to make connectivity between root switches and in
++this way to be fully IBA complaint. In many cases this can
++violate "pure" deadlock free algorithm, so use it carefully.
++.TP
++\fB\-\-connect_switches\fR
++This option enforces routing engines (up/down and
++fat-tree) to make connectivity between all switches and in
+ this way to be fully IBA complaint. In many cases this can
+ violate "pure" deadlock free algorithm, so use it carefully.
+ .TP
+diff --git a/opensm/opensm/main.c b/opensm/opensm/main.c
+index 5c8cd9b..34809a1 100644
+--- a/opensm/opensm/main.c
++++ b/opensm/opensm/main.c
+@@ -186,8 +186,14 @@ static void show_usage(void)
+ 	printf("--sm_sl <sl number>\n"
+ 	       "          Sets the SL to use to communicate with the SM/SA. Defaults to 0.\n\n");
+ 	printf("--connect_roots, -z\n"
+-	       "          This option enforces a routing engine (currently\n"
+-	       "          up/down only) to make connectivity between root switches\n"
++	       "          This option enforces routing engines (up/down and \n"
++	       "          fat-tree) to make connectivity between root switches\n"
++	       "          and in this way be IBA compliant. In many cases,\n"
++	       "          this can violate \"pure\" deadlock free algorithm, so\n"
++	       "          use it carefully.\n\n");
++	printf("--connect_switches\n"
++	       "          This option enforces routing engines (up/down and \n"
++	       "          fat-tree) to make connectivity between all the switches\n"
+ 	       "          and in this way be IBA compliant. In many cases,\n"
+ 	       "          this can violate \"pure\" deadlock free algorithm, so\n"
+ 	       "          use it carefully.\n\n");
+@@ -604,6 +610,7 @@ int main(int argc, char *argv[])
+ 		{"lash_start_vl", 1, NULL, 6},
+ 		{"sm_sl", 1, NULL, 7},
+ 		{"retries", 1, NULL, 8},
++		{"connect_switches", 0, NULL, 9},
+ 		{NULL, 0, NULL, 0}	/* Required at the end of the array */
+ 	};
 
--/* hack: preserve min hops entries to any other root switches */
--static void updn_clear_non_root_hops(updn_t * p_updn, osm_switch_t * p_sw)
-+/**********************************************************************
-+ **********************************************************************/
-+/* Preserve min hops entries to any switch
-+ * above certain level in the tree */
-+static void updn_switch_clear_hops_below_rank(updn_t * p_updn,
-+	osm_switch_t * p_sw, unsigned min_leaf_rank)
- {
- 	osm_port_t *p_port;
- 	unsigned i;
+@@ -982,6 +989,10 @@ int main(int argc, char *argv[])
+ 			printf(" Transaction retries = %u\n",
+ 			       opt.transaction_retries);
+ 			break;
++		case 9:
++			opt.connect_switches = TRUE;
++			printf(" Connect switches option is on\n");
++			break;
+ 		case 'h':
+ 		case '?':
+ 		case ':':
+diff --git a/opensm/opensm/osm_subnet.c b/opensm/opensm/osm_subnet.c
+index cac5e94..798d4ad 100644
+--- a/opensm/opensm/osm_subnet.c
++++ b/opensm/opensm/osm_subnet.c
+@@ -328,6 +328,7 @@ static const opt_rec_t opt_tbl[] = {
+ 	{ "sweep_on_trap", OPT_OFFSET(sweep_on_trap), opts_parse_boolean, NULL, 1 },
+ 	{ "routing_engine", OPT_OFFSET(routing_engine_names), opts_parse_charp, NULL, 0 },
+ 	{ "connect_roots", OPT_OFFSET(connect_roots), opts_parse_boolean, NULL, 1 },
++	{ "connect_switches", OPT_OFFSET(connect_switches), opts_parse_boolean, NULL, 1 },
+ 	{ "use_ucast_cache", OPT_OFFSET(use_ucast_cache), opts_parse_boolean, NULL, 1 },
+ 	{ "log_file", OPT_OFFSET(log_file), opts_parse_charp, NULL, 0 },
+ 	{ "log_max_size", OPT_OFFSET(log_max_size), opts_parse_uint32, opts_setup_log_max_size, 1 },
+@@ -737,6 +738,7 @@ void osm_subn_set_default_opt(IN osm_subn_opt_t * p_opt)
+ 	p_opt->use_ucast_cache = FALSE;
+ 	p_opt->routing_engine_names = NULL;
+ 	p_opt->connect_roots = FALSE;
++	p_opt->connect_switches = FALSE;
+ 	p_opt->lid_matrix_dump_file = NULL;
+ 	p_opt->lfts_file = NULL;
+ 	p_opt->root_guid_file = NULL;
+@@ -1387,6 +1389,11 @@ int osm_subn_output_conf(FILE *out, IN osm_subn_opt_t * p_opts)
+ 		p_opts->connect_roots ? "TRUE" : "FALSE");
 
- 	for (i = 0; i < p_sw->num_hops; i++)
- 		if (p_sw->hops[i]) {
--			p_port =
--			    cl_ptr_vector_get(&p_updn->p_osm->subn.port_lid_tbl,
--					      i);
--			if (!p_port || !p_port->p_node->sw
--			    || ((struct updn_node *)p_port->p_node->sw->priv)->
--			    rank != 0)
-+			p_port = cl_ptr_vector_get(
-+				&p_updn->p_osm->subn.port_lid_tbl, i);
-+			if (!p_port || !p_port->p_node->sw ||
-+			    ((struct updn_node *)
-+			    p_port->p_node->sw->priv)->rank >= min_leaf_rank)
- 				memset(p_sw->hops[i], 0xff, p_sw->num_ports);
- 		}
- }
-
-+/**********************************************************************
-+ **********************************************************************/
-+static void updn_clear_hops(IN updn_t * p_updn)
-+{
-+	osm_subn_t *p_subn = &p_updn->p_osm->subn;
-+	osm_switch_t *p_sw;
-+	struct updn_node * p_updn_sw;
-+	osm_physp_t * p_physp;
-+	osm_port_t * p_port;
-+	cl_map_item_t *item;
-+	unsigned min_leaf_rank = 0xff;
+ 	fprintf(out,
++		"# Connect switchess (use FALSE if unsure)\n"
++		"connect_switches %s\n\n",
++		p_opts->connect_switches ? "TRUE" : "FALSE");
 +
-+	if (p_subn->opt.connect_switches) {
-+		/*
-+		 * Preserve roots to switches above the highest leaf
-+		 * switch (leaf switch with the lowest rank).
-+		 *
-+		 * Need to find the minimal rank of leaf switch.
-+		 * The fastest way would be to go through all the
-+		 * CA ports in the fabric and check the switch that
-+		 * is connected to them.
-+		 */
-+		for (item = cl_qmap_head(&p_updn->p_osm->subn.port_guid_tbl);
-+		     item != cl_qmap_end(&p_updn->p_osm->subn.port_guid_tbl);
-+		     item = cl_qmap_next(item)) {
-+			p_port = (osm_port_t *)item;
-+			if (p_port->p_node->sw)
-+				continue;
-+			p_physp = p_port->p_physp->p_remote_physp;
-+			if (!p_physp || !p_physp->p_node->sw)
-+				continue;
-+
-+			p_updn_sw = (struct updn_node*)p_physp->p_node->sw->priv;
-+			if (p_updn_sw->rank < min_leaf_rank)
-+				min_leaf_rank = p_updn_sw->rank;
-+		}
-+	} else if (p_subn->opt.connect_roots)
-+		min_leaf_rank = 1;
-+
-+	for (item = cl_qmap_head(&p_updn->p_osm->subn.sw_guid_tbl);
-+	     item != cl_qmap_end(&p_updn->p_osm->subn.sw_guid_tbl);
-+	     item = cl_qmap_next(item)) {
-+		p_sw = (osm_switch_t *)item;
-+		if (p_subn->opt.connect_switches || p_subn->opt.connect_roots)
-+			updn_switch_clear_hops_below_rank(
-+				p_updn, p_sw, min_leaf_rank);
-+		else
-+			osm_switch_clear_hops(p_sw);
-+	}
-+}
-+
-+/**********************************************************************
-+ **********************************************************************/
- static int updn_set_min_hop_table(IN updn_t * p_updn)
- {
- 	osm_subn_t *p_subn = &p_updn->p_osm->subn;
-@@ -311,16 +367,8 @@ static int updn_set_min_hop_table(IN updn_t * p_updn)
- 	OSM_LOG(p_log, OSM_LOG_VERBOSE,
- 		"Init Min Hop Table of all switches [\n");
-
--	for (item = cl_qmap_head(&p_updn->p_osm->subn.sw_guid_tbl);
--	     item != cl_qmap_end(&p_updn->p_osm->subn.sw_guid_tbl);
--	     item = cl_qmap_next(item)) {
--		p_sw = (osm_switch_t *)item;
--		/* Clear Min Hop Table */
--		if (p_subn->opt.connect_roots)
--			updn_clear_non_root_hops(p_updn, p_sw);
--		else
--			osm_switch_clear_hops(p_sw);
--	}
-+	/* Clear Min Hop Table */
-+	updn_clear_hops(p_updn);
-
- 	OSM_LOG(p_log, OSM_LOG_VERBOSE,
- 		"Init Min Hop Table of all switches ]\n");
-@@ -598,7 +646,8 @@ static int updn_lid_matrices(void *ctx)
- 			OSM_LOG(&p_updn->p_osm->log, OSM_LOG_ERROR, "ERR : "
- 				"cannot parse root guids file \'%s\'\n",
- 				p_updn->p_osm->subn.opt.root_guid_file);
--		if (p_updn->p_osm->subn.opt.connect_roots &&
-+		if ((p_updn->p_osm->subn.opt.connect_roots ||
-+		     p_updn->p_osm->subn.opt.connect_switches) &&
- 		    p_updn->num_roots > 1)
- 			osm_ucast_mgr_build_lid_matrices(&p_updn->p_osm->sm.ucast_mgr);
- 	} else {
++	fprintf(out,
+ 		"# Use unicast routing cache (use FALSE if unsure)\n"
+ 		"use_ucast_cache %s\n\n",
+ 		p_opts->use_ucast_cache ? "TRUE" : "FALSE");
 -- 
 1.5.1.4
+
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
