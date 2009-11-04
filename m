@@ -1,96 +1,159 @@
-From: Yevgeny Petrilin <yevgenyp-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
-Subject: [PATCH 25/25] mlx4_en: Loopback enable
-Date: Wed, 04 Nov 2009 17:32:27 +0200
-Message-ID: <4AF19E8B.3000500@mellanox.co.il>
+From: Hal Rosenstock <hnrose-Wuw85uim5zDR7s880joybQ@public.gmane.org>
+Subject: [PATCHv2] infiniband-diags/ibqueryerrors: Add support for
+	PortXmitDiscardDetails
+Date: Wed, 4 Nov 2009 09:42:19 -0500
+Message-ID: <20091104144219.GA7923@comcast.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, liranl-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org, tziporet-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org, yevgenyp-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org
+To: sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-All packets are subject to loopback.
-To enable loopback we write the dest mac to the wqe.
 
-Signed-off-by: Yevgeny Petrilin <yevgenyp-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
+When --details selected, if PortCounters has transmit discards, then
+query PortXmitDiscardDetails. On reset, if --details is selected, then
+PortXmitDiscardDetails will also be reset.
+
+Unfortunately, PortSamplesControl:OptionMask can't be trusted to determine
+which PortXmitDiscardDetails counters are supported so an option was added
+for this.
+
+Signed-off-by: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 ---
- drivers/net/mlx4/en_netdev.c |    2 +-
- drivers/net/mlx4/en_tx.c     |   14 ++++++++++++++
- drivers/net/mlx4/mlx4_en.h   |    1 +
- 3 files changed, 16 insertions(+), 1 deletions(-)
+Changes since v1:
+Better description
 
-diff --git a/drivers/net/mlx4/en_netdev.c b/drivers/net/mlx4/en_netdev.c
-index 8406fbb..947fb2f 100644
---- a/drivers/net/mlx4/en_netdev.c
-+++ b/drivers/net/mlx4/en_netdev.c
-@@ -108,7 +108,7 @@ static void mlx4_en_vlan_rx_kill_vid(struct net_device *dev, unsigned short vid)
- 	mutex_unlock(&mdev->state_lock);
+diff --git a/infiniband-diags/man/ibqueryerrors.8 b/infiniband-diags/man/ibqueryerrors.8
+index 1352246..d5a499e 100644
+--- a/infiniband-diags/man/ibqueryerrors.8
++++ b/infiniband-diags/man/ibqueryerrors.8
+@@ -1,4 +1,4 @@
+-.TH IBQUERYERRORS 8 "Jan 24, 2008" "OpenIB" "OpenIB Diagnostics"
++.TH IBQUERYERRORS 8 "Oct 30, 2009" "OpenIB" "OpenIB Diagnostics"
+ 
+ .SH NAME
+ ibqueryerrors.pl \- query and report non-zero IB port counters
+@@ -58,6 +58,8 @@ printed or not.  This is because data counters are only \fBprinted\fR on ports
+ which have errors.  This means if a port has 0 errors and the \-K option is
+ specified the data counters will be cleared without any printed output.
+ .TP
++\fB\-\-details\fR include transmit discard details
++.TP
+ \fB\-R\fR  (This option is obsolete and does nothing)
+ 
+ .SH COMMON OPTIONS
+diff --git a/infiniband-diags/src/ibqueryerrors.c b/infiniband-diags/src/ibqueryerrors.c
+index f83f29e..61a34e4 100644
+--- a/infiniband-diags/src/ibqueryerrors.c
++++ b/infiniband-diags/src/ibqueryerrors.c
+@@ -2,6 +2,7 @@
+  * Copyright (c) 2004-2009 Voltaire Inc.  All rights reserved.
+  * Copyright (c) 2007 Xsigo Systems Inc.  All rights reserved.
+  * Copyright (c) 2008 Lawrence Livermore National Lab.  All rights reserved.
++ * Copyright (c) 2009 HNR Consulting.  All rights reserved.
+  *
+  * This software is available to you under a choice of one of two
+  * licenses.  You may choose to be licensed under the terms of the GNU
+@@ -65,7 +66,7 @@ int sup_total = 0;
+ enum MAD_FIELDS *suppressed_fields = NULL;
+ char *dr_path = NULL;
+ uint8_t node_type_to_print = 0;
+-unsigned clear_errors = 0, clear_counts = 0;
++unsigned clear_errors = 0, clear_counts = 0, details = 0;
+ 
+ #define PRINT_SWITCH 0x1
+ #define PRINT_CA     0x2
+@@ -273,10 +274,35 @@ static int query_cap_mask(ib_portid_t *portid, char *node_name, int portnum,
+ 	return 0;
  }
  
--static u64 mlx4_en_mac_to_u64(u8 *addr)
-+u64 mlx4_en_mac_to_u64(u8 *addr)
- {
- 	u64 mac = 0;
- 	int i;
-diff --git a/drivers/net/mlx4/en_tx.c b/drivers/net/mlx4/en_tx.c
-index a893733..cfbe361 100644
---- a/drivers/net/mlx4/en_tx.c
-+++ b/drivers/net/mlx4/en_tx.c
-@@ -599,6 +599,7 @@ netdev_tx_t mlx4_en_xmit(struct sk_buff *skb, struct net_device *dev)
- 	struct mlx4_wqe_data_seg *data;
- 	struct skb_frag_struct *frag;
- 	struct mlx4_en_tx_info *tx_info;
-+	struct ethhdr *ethh;
- 	int tx_ind = 0;
- 	int nr_txbb;
- 	int desc_size;
-@@ -610,6 +611,8 @@ netdev_tx_t mlx4_en_xmit(struct sk_buff *skb, struct net_device *dev)
- 	int i;
- 	int lso_header_size;
- 	void *fragptr;
-+	u64 mac;
-+	u32 mac_l, mac_h;
- 
- 	real_size = get_real_size(skb, dev, &lso_header_size);
- 	if (unlikely(!real_size))
-@@ -675,6 +678,17 @@ netdev_tx_t mlx4_en_xmit(struct sk_buff *skb, struct net_device *dev)
- 		priv->port_stats.tx_chksum_offload++;
- 	}
- 
-+	/* Copy dst mac address to wqe */
-+	skb_reset_mac_header(skb);
-+	ethh = eth_hdr(skb);
-+	if (ethh && ethh->h_dest) {
-+		mac = mlx4_en_mac_to_u64(ethh->h_dest);
-+		mac_h = (u32) ((mac & 0xffff00000000) >> 16);
-+		mac_l = (u32) (mac & 0xffffffff);
-+		tx_desc->ctrl.srcrb_flags |= cpu_to_be32(mac_h);
-+		tx_desc->ctrl.imm = cpu_to_be32(mac_l);
-+	}
++static void print_xmitdisc_details(ibnd_node_t * node, char * node_name,
++				   uint8_t * pc, int portnum)
++{
++	char buf[1024];
++	char *str = buf;
++	uint32_t val = 0;
++	int n = 0;
++	int i = 0;
 +
- 	/* Handle LSO (TSO) packets */
- 	if (lso_header_size) {
- 		/* Mark opcode as LSO */
-diff --git a/drivers/net/mlx4/mlx4_en.h b/drivers/net/mlx4/mlx4_en.h
-index b4731d5..02d07e9 100644
---- a/drivers/net/mlx4/mlx4_en.h
-+++ b/drivers/net/mlx4/mlx4_en.h
-@@ -564,6 +564,7 @@ int mlx4_SET_PORT_qpn_calc(struct mlx4_dev *dev, u8 port, u32 base_qpn,
++	buf[0] = 0;
++	for (n = 0, i = IB_PC_XMT_INACT_DISC_F; i <= IB_PC_XMT_SW_HOL_DISC_F; i++) {
++		mad_decode_field(pc, i, (void *)&val);
++		if (val)
++			n += snprintf(str + n, 1024 - n, " [%s == %d]",
++				      mad_field_name(i), val);
++	}
++	if (n > 0) {
++		printf("   GUID 0x%" PRIx64 " port %d:%s\n", node->guid,
++		       portnum, str);
++		if (port_config)
++			print_port_config(node_name, node, portnum);
++	}
++}
++
+ static void print_port(ib_portid_t * portid, uint16_t cap_mask, char *node_name,
+ 		       ibnd_node_t * node, int portnum, int *header_printed)
+ {
+ 	uint8_t pc[1024];
++	uint32_t xmtdisc;
  
- int mlx4_en_DUMP_ETH_STATS(struct mlx4_en_dev *mdev, u8 port, u8 reset);
+ 	memset(pc, 0, 1024);
  
-+u64 mlx4_en_mac_to_u64(u8 *addr);
- /*
-  * Globals
-  */
--- 
-1.6.1.3
-
-
-
-
+@@ -292,6 +318,19 @@ static void print_port(ib_portid_t * portid, uint16_t cap_mask, char *node_name,
+ 		mad_encode_field(pc, IB_PC_XMT_WAIT_F, &foo);
+ 	}
+ 	print_results(node_name, node, pc, portnum, header_printed);
++
++	/* If there are PortXmitDiscards, get details (if supported) */
++	mad_decode_field(pc, IB_PC_XMT_DISCARDS_F, &xmtdisc);
++	if (details && xmtdisc) {
++		if (!pma_query_via(pc, portid, portnum, ibd_timeout,
++				   IB_GSI_PORT_XMIT_DISCARD_DETAILS,
++				   ibmad_port)) {
++			IBWARN("IB_GSI_PORT_XMIT_DISCARD_DETAILS query failed on %s, %s port %d",
++			       node_name, portid2str(portid), portnum);
++			return;
++		}
++		print_xmitdisc_details(node, node_name, pc, portnum);
++	}
+ }
+ 
+ static void clear_port(ib_portid_t * portid, uint16_t cap_mask,
+@@ -318,6 +357,13 @@ static void clear_port(ib_portid_t * portid, uint16_t cap_mask,
+ 				   IB_GSI_PORT_COUNTERS, ibmad_port))
+ 		IBERROR("Failed to reset errors %s port %d",
+ 			node_name, port);
++
++	if (details && clear_errors) {
++		mask = 0xF;
++		performance_reset_via(pc, portid, port, mask, ibd_timeout,
++				      IB_GSI_PORT_XMIT_DISCARD_DETAILS,
++				      ibmad_port);
++	}
+ }
+ 
+ void print_node(ibnd_node_t * node, void *user_data)
+@@ -428,6 +474,9 @@ static int process_opt(void *context, int ch, char *optarg)
+ 	case 5:
+ 		node_type_to_print |= PRINT_ROUTER;
+ 		break;
++	case 6:
++		details = 1;
++		break;
+ 	case 'G':
+ 	case 'S':
+ 		node_guid_str = optarg;
+@@ -484,6 +533,7 @@ int main(int argc, char **argv)
+ 		{"switch", 3, 0, NULL, "print data for switches only"},
+ 		{"ca", 4, 0, NULL, "print data for CA's only"},
+ 		{"router", 5, 0, NULL, "print data for routers only"},
++		{"details", 6, 0, NULL, "include transmit discard details"},
+ 		{"clear-errors", 'k', 0, NULL,
+ 		 "Clear error counters after read"},
+ 		{"clear-counts", 'K', 0, NULL,
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
