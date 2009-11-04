@@ -1,7 +1,7 @@
 From: "Stan C. Smith" <stan.smith-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH] osmtest - code cleanup: remove Windows specific items.
-Date: Wed, 4 Nov 2009 12:34:04 -0800
-Message-ID: <53DFB8C213D246138BE8D3793204CE12@amr.corp.intel.com>
+Subject: [PATCH 1/2] contain pthreads defs with ifdef  HAVE_LIBPTHREAD
+Date: Wed, 4 Nov 2009 12:58:16 -0800
+Message-ID: <F9EFFFF3BD1D442AB6AA993FD6F0B5D8@amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="us-ascii"
@@ -13,26 +13,30 @@ Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ofw-ZwoEplunGu1OwGhvXhtE
 List-Id: linux-rdma@vger.kernel.org
 
 
-Remove #ifdef WIN32, #else & #endif. Just use PATH_MAX.
+Contain pthread definitions with ifdef HAVE_LIBPTHREAD
 
 Signed-off-by: stan smith <stan.smith-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-diff --git a/opensm/osmtest/include/osmtest_base.h b/opensm/osmtest/include/osmtest_base.h
-index cda3a31..6c980a3 100644
---- a/opensm/osmtest/include/osmtest_base.h
-+++ b/opensm/osmtest/include/osmtest_base.h
-@@ -48,11 +48,7 @@
- #endif
- 
- #define OSMTEST_MAX_LINE_LEN	120
--#ifdef WIN32
--#define OSMTEST_FILE_PATH_MAX	4096
--#else
- #define OSMTEST_FILE_PATH_MAX	PATH_MAX
--#endif
- 
- #define STRESS_SMALL_RMPP_THR 100000
- /*
+diff --git a/opensm/include/vendor/osm_vendor_ibumad.h b/opensm/include/vendor/osm_vendor_ibumad.h
+index 0a4692d..d523412 100644
+--- a/opensm/include/vendor/osm_vendor_ibumad.h
++++ b/opensm/include/vendor/osm_vendor_ibumad.h
+@@ -160,8 +160,13 @@ typedef struct _osm_vendor {
+ 	char ca_names[OSM_UMAD_MAX_CAS][UMAD_CA_NAME_LEN];
+ 	vendor_match_tbl_t mtbl;
+ 	umad_port_t umad_port;
++#ifdef HAVE_LIBPTHREAD
+ 	pthread_mutex_t cb_mutex;
+ 	pthread_mutex_t match_tbl_mutex;
++#else
++	cl_mutex_t cb_mutex;
++	cl_mutex_t match_tbl_mutex;
++#endif
+ 	int umad_port_id;
+ 	void *receiver;
+ 	int issmfd;
+
+
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
