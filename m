@@ -1,37 +1,47 @@
-From: Or Gerlitz <or.gerlitz@gmail.com>
-Subject: Re: [PATCH 19/25] mlx4: Randomizing mac addresses for slaves
-Date: Wed, 4 Nov 2009 23:33:28 +0200
-Message-ID: <15ddcffd0911041333l165ee274mfae3508a3db755e7@mail.gmail.com>
-References: <4AF19E69.8070605@mellanox.co.il> <adar5seys3e.fsf@cisco.com>
+From: "Smith, Stan" <stan.smith-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH 1/2] contain pthreads defs with ifdef  HAVE_LIBPTHREAD
+Date: Wed, 4 Nov 2009 14:42:13 -0800
+Message-ID: <3F6F638B8D880340AB536D29CD4C1E1912C8E0CE18@orsmsx501.amr.corp.intel.com>
+References: <F9EFFFF3BD1D442AB6AA993FD6F0B5D8@amr.corp.intel.com>
+ <74DB7ADB8B154DE69B8F65456193D483@amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <adar5seys3e.fsf@cisco.com>
-Sender: netdev-owner@vger.kernel.org
-To: Roland Dreier <rdreier@cisco.com>
-Cc: Yevgeny Petrilin <yevgenyp@mellanox.co.il>, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, liranl@mellanox.co.il, tziporet@mellanox.co.il
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <74DB7ADB8B154DE69B8F65456193D483-Zpru7NauK7drdx17CPfAsdBPR1lH4CV8@public.gmane.org>
+Content-Language: en-US
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Sasha Khapyorsky' <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "ofw-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org" <ofw-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Nov 4, 2009 at 10:04 PM, Roland Dreier <rdreier@cisco.com> wrot=
-e:
->> +#define MLX4_MAC_HEAD =A0 =A0 =A0 =A0 =A0 =A0 =A0 0x2c9000000ULL
+Hefty, Sean wrote:
+>> Contain pthread definitions with ifdef HAVE_LIBPTHREAD
+>>
+>> Signed-off-by: stan smith <stan.smith-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+>>
+>> diff --git a/opensm/include/vendor/osm_vendor_ibumad.h
+>> b/opensm/include/vendor/osm_vendor_ibumad.h
+>> index 0a4692d..d523412 100644
+>> --- a/opensm/include/vendor/osm_vendor_ibumad.h
+>> +++ b/opensm/include/vendor/osm_vendor_ibumad.h
+>> @@ -160,8 +160,13 @@ typedef struct _osm_vendor {
+>>      char ca_names[OSM_UMAD_MAX_CAS][UMAD_CA_NAME_LEN];
+>>      vendor_match_tbl_t mtbl; umad_port_t umad_port;
+>> +#ifdef HAVE_LIBPTHREAD
+>>      pthread_mutex_t cb_mutex;
+>>      pthread_mutex_t match_tbl_mutex;
+>> +#else
+>> +    cl_mutex_t cb_mutex;
+>> +    cl_mutex_t match_tbl_mutex;
+>> +#endif
+>
+> complib is available on both platforms, why not just use it?
+>
+> Alternately, #define cl_mutex_t pthread_mutex_t and avoid the #ifdef's
 
-> Is this a good idea? =A0You're basically choosing 24 random bits with=
-in your OUI...
-> seems the chance of collision with another MAC used on the same netwo=
-rk is
-> high enough that it could easily happen in practice on a moderately b=
-ig network.
-
-yes, this has been brought by Stephen and others on this last back on
-September 11th, this year @
-http://marc.info/?l=3Dlinux-netdev&m=3D125263488409128
-
-> Can you pick a reserved range or something?
-
-Using different OUI for the VF device wouldn't help either I think,
-since the #VF becomes fairly big even on a modest side cluster with
-(say) a VM consuming VF per 1-2 cores.
-
-Or.
+Pthreads have been workin just fine, no need fix something that is not broken.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
