@@ -1,148 +1,130 @@
-From: Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH 2/3 v2] opensm: connect switches in tree - implemented in
- fat-tree
-Date: Wed, 04 Nov 2009 13:09:05 +0200
-Message-ID: <4AF160D1.1010804@dev.mellanox.co.il>
-Reply-To: kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org
+From: Line Holen <Line.Holen-UdXhSnd/wVw@public.gmane.org>
+Subject: Re: [PATCH] opensm/osm_state_mgr.c: force heavy sweep when fabric
+ consists of single switch
+Date: Wed, 04 Nov 2009 12:36:32 +0100
+Message-ID: <4AF16740.3080600@Sun.COM>
+References: <4AF0056A.5030503@dev.mellanox.co.il> <20091103221217.GE29388@me>
+ <4AF14DCD.3010407@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; CHARSET=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-reply-to: <4AF14DCD.3010407-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+To: kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org, Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
 Cc: Linux RDMA <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This patch implements connect_roots and connect_switches
-option in fat-tree. Actually, both options mapped to the
-same implementation.
+On 11/ 4/09 10:47 AM, Yevgeny Kliteynik wrote:
+> Sasha Khapyorsky wrote:
+>> On 12:26 Tue 03 Nov     , Yevgeny Kliteynik wrote:
+>>> Always do heavy sweep when there is only one node in the
+>>> fabric, and this node is a switch, and SM runs on top of it -
+>>> there may be a race when OSM starts running before the
+>>> external ports are ports are up, or if they went through
+>>> reset while SM was starting.
+>>> In this race switch brings up the ports and turns on the
+>>> PSC bit, but OSM might get PortInfo before SwitchInfo, and it
+>>> might see all ports as down, but PSC bit on. If that happens,
+>>> OSM turns off PSC bit, and it will never see external ports
+>>> again - it won't perform any heavy sweep, only light sweep
+>>
+>> Could such race happen when there are more than one node in a fabric?
+> 
+> I think that my description of the race was misleading.
+> The race can happen on *any* fabric when SM runs on switch.
+> But when it does happen, SM thinks that the whole subnet
+> is just one switch - that's what it managed to discover.
+> I've actually seen it happening.
+> So the patch fixes this particular case.
+> 
+> So the next question that you would probably ask is can
+> this race happen on some *other* switch and not the one
+> SM is running on?
+> 
+> Well, I don't know. I have a hunch that it can't, but I
+> couldn't prove it to myself yet.
+> 
+> The race on the managed switch is a special case because
+> SM always sees port 0, and always gets responses to its
+> SMP queries. On any other switch, if the ports were reset,
+> SM won't get any response until the ports are up again.
+> 
+> Perhaps there might be a case where SM got some port as down,
+> and by the time SM got SwitchInfo with PSC bit the port
+> was already up, so SM won't start discovery beyond this
+> port. But this race would be fixed on the next heavy sweep,
+> when SM will discover this port that it missed the previous
+> time, whereas race on managed switch is fatal - SM won't
+> ever do any heavy sweep.
+> 
+> -- Yevgeny
 
-The idea is the following: pick some leaf switch in the
-fabric. Now go over all the switches above the leaf level
-in the tree. If these switches don't know how to route to
-some LID and the selected leaf switch does know, route this
-LID to the leaf switch.
+At least for the 3.2 branch there is a general race regardless of
+where the SM is running. I haven't checked the current master, but
+I cannot recall seeing any patches related to this so I assume
+the race is still there.
 
-[v2 - no changes, just rebased]
+There is a window between SM discovering a switch and clearing PSC
+for the same switch. The SM will not detect a state change on the
+switch ports during this time.
 
-Signed-off-by: Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
----
- opensm/opensm/osm_ucast_ftree.c |   92 +++++++++++++++++++++++++++++++++++++++
- 1 files changed, 92 insertions(+), 0 deletions(-)
+I have a patch for the 3.2 branch that I can merge into master.
 
-diff --git a/opensm/opensm/osm_ucast_ftree.c b/opensm/opensm/osm_ucast_ftree.c
-index 1b1da19..ddb77b7 100644
---- a/opensm/opensm/osm_ucast_ftree.c
-+++ b/opensm/opensm/osm_ucast_ftree.c
-@@ -2949,6 +2949,90 @@ static void fabric_route_to_switches(IN ftree_fabric_t * p_ftree)
- /***************************************************
-  ***************************************************/
+Line
 
-+static void fabric_route_down_up_switches(IN ftree_fabric_t * p_ftree)
-+{
-+	uint16_t lid;
-+	uint8_t port_num;
-+	osm_port_t *p_port;
-+	ftree_sw_t *p_sw;
-+	ftree_sw_t *p_leaf_sw;
-+
-+	OSM_LOG_ENTER(&p_ftree->p_osm->log);
-+
-+	/*
-+	 * We need a switch that will accomodate all the down/up turns in
-+	 * the fabric. Having these turn in a single place in the fabric
-+	 * will not create credit loops.
-+	 * So we need to select this switch.
-+	 * The idea here is to chose leaf with the highest index. I don't
-+	 * have any theory to back me up on this. It's just a general thought
-+	 * that this way the switch that might be a bottleneck for many mcast
-+	 * groups will be far away from the OpenSM, so it will draw the
-+	 * multicast traffic away from the SM.
-+	 */
-+
-+	p_leaf_sw = p_ftree->leaf_switches[p_ftree->leaf_switches_num-1];
-+
-+	/*
-+	 * Now go over all the switches in the fabric that
-+	 * have lower rank, and route the missing LIDs to
-+	 * the selected leaf switch.
-+	 * In short, this leaf switch now poses a target
-+	 * for all those missing LIDs.
-+	 */
-+
-+	for (p_sw = (ftree_sw_t *) cl_qmap_head(&p_ftree->sw_tbl);
-+	     p_sw != (ftree_sw_t *) cl_qmap_end(&p_ftree->sw_tbl);
-+	     p_sw = (ftree_sw_t *) cl_qmap_next(&p_sw->map_item)) {
-+
-+		if (p_sw->rank >= p_ftree->leaf_switch_rank)
-+			continue;
-+
-+		for (lid = 1; lid <= p_leaf_sw->p_osm_sw->max_lid_ho; lid ++) {
-+
-+			if (p_sw->p_osm_sw->new_lft[lid] != OSM_NO_PATH ||
-+			    p_leaf_sw->hops[lid] == OSM_NO_PATH)
-+				continue;
-+
-+			p_port = cl_ptr_vector_get(
-+				&p_ftree->p_osm->subn.port_lid_tbl, lid);
-+
-+			/* we're interested only in switches */
-+			if (!p_port && !p_port->p_node && !p_port->p_node->sw)
-+				continue;
-+
-+			/*
-+			 * the missing LID will be routed through the same
-+			 * port that routes to the selected leaf switch
-+			 */
-+			port_num = p_sw->p_osm_sw->new_lft[p_leaf_sw->base_lid];
-+
-+			OSM_LOG(&p_ftree->p_osm->log, OSM_LOG_DEBUG,
-+				"Switch %s: setting path to LID %u "
-+				"through port %u\n",
-+				tuple_to_str(p_sw->tuple), lid, port_num);
-+
-+			/* set local lft */
-+			p_sw->p_osm_sw->new_lft[lid] = port_num;
-+
-+			/*
-+			 * Set local min hop table.
-+			 * The distance to the target LID is a distance
-+			 * to the selected leaf switch plus the distance
-+			 * from the leaf to the target LID.
-+			 */
-+			sw_set_hops(p_sw, lid, port_num,
-+				p_sw->hops[p_leaf_sw->base_lid] +
-+				p_leaf_sw->hops[lid], TRUE);
-+		}
-+	}
-+
-+	OSM_LOG_EXIT(&p_ftree->p_osm->log);
-+}				/* fabric_route_roots() */
-+
-+/***************************************************
-+ ***************************************************/
-+
- static int fabric_populate_nodes(IN ftree_fabric_t * p_ftree)
- {
- 	osm_node_t *p_osm_node;
-@@ -3978,6 +4062,14 @@ static int do_routing(IN void *context)
- 		"Filling switch forwarding tables for switch-to-switch paths\n");
- 	fabric_route_to_switches(p_ftree);
-
-+	if (p_ftree->p_osm->subn.opt.connect_roots ||
-+	    p_ftree->p_osm->subn.opt.connect_switches) {
-+		OSM_LOG(&p_ftree->p_osm->log, OSM_LOG_VERBOSE,
-+			"Connecting switches that are unreachable within "
-+			"Up/Down rules\n");
-+		fabric_route_down_up_switches(p_ftree);
-+	}
-+
- 	/* for each switch, set its fwd table */
- 	cl_qmap_apply_func(&p_ftree->sw_tbl, set_sw_fwd_table, (void *)p_ftree);
-
--- 
-1.5.1.4
-
+> 
+>> Sasha
+>>
+>>> Signed-off-by: Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+>>> ---
+>>>  opensm/opensm/osm_state_mgr.c |   15 ++++++++++-----
+>>>  1 files changed, 10 insertions(+), 5 deletions(-)
+>>>
+>>> diff --git a/opensm/opensm/osm_state_mgr.c
+>>> b/opensm/opensm/osm_state_mgr.c
+>>> index 4303d6e..537c855 100644
+>>> --- a/opensm/opensm/osm_state_mgr.c
+>>> +++ b/opensm/opensm/osm_state_mgr.c
+>>> @@ -1062,13 +1062,18 @@ static void do_sweep(osm_sm_t * sm)
+>>>       * Otherwise, this is probably our first discovery pass
+>>>       * or we are connected in loopback. In both cases do a
+>>>       * heavy sweep.
+>>> -     * Note: If we are connected in loopback we want a heavy
+>>> -     * sweep, since we will not be getting any traps if there is
+>>> -     * a lost connection.
+>>> +     * Note the following:
+>>> +     * 1. If we are connected in loopback we want a heavy sweep,
+>>> since we
+>>> +     *    will not be getting any traps if there is a lost connection.
+>>> +     * 2. If we are in DISCOVERING state - this means it is either in
+>>> +     *    initializing or wake up from STANDBY - run the heavy sweep.
+>>> +     * 3. If there is only one node in the fabric, and this node is a
+>>> +     *    switch, and OSM runs on top of it, there might be a race when
+>>> +     *    OSM starts running before the external ports are up - run the
+>>> +     *    heavy sweep.
+>>>       */
+>>> -    /*  if we are in DISCOVERING state - this means it is either in
+>>> -     *  initializing or wake up from STANDBY - run the heavy sweep */
+>>>      if (cl_qmap_count(&sm->p_subn->sw_guid_tbl)
+>>> +        && cl_qmap_count(&sm->p_subn->node_guid_tbl) != 1
+>>>          && sm->p_subn->sm_state != IB_SMINFO_STATE_DISCOVERING
+>>>          && sm->p_subn->opt.force_heavy_sweep == FALSE
+>>>          && sm->p_subn->force_heavy_sweep == FALSE
+>>> -- 
+>>> 1.5.1.4
+>>>
+>>> -- 
+>>> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+>>> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>>
+>>
+> 
+> -- 
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
