@@ -1,108 +1,40 @@
 From: Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH] opensm/osm_state_mgr.c: force heavy sweep when fabric
- consists of single switch
-Date: Wed, 04 Nov 2009 11:47:57 +0200
-Message-ID: <4AF14DCD.3010407@dev.mellanox.co.il>
-References: <4AF0056A.5030503@dev.mellanox.co.il> <20091103221217.GE29388@me>
+Subject: [PATCH 0/3 v2] opensm SA DB dump/restore: SA DB persistence
+Date: Wed, 04 Nov 2009 12:59:54 +0200
+Message-ID: <4AF15EAA.7070508@dev.mellanox.co.il>
 Reply-To: kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20091103221217.GE29388@me>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
 Cc: Linux RDMA <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Sasha Khapyorsky wrote:
-> On 12:26 Tue 03 Nov     , Yevgeny Kliteynik wrote:
->> Always do heavy sweep when there is only one node in the
->> fabric, and this node is a switch, and SM runs on top of it -
->> there may be a race when OSM starts running before the
->> external ports are ports are up, or if they went through
->> reset while SM was starting.
->> In this race switch brings up the ports and turns on the
->> PSC bit, but OSM might get PortInfo before SwitchInfo, and it
->> might see all ports as down, but PSC bit on. If that happens,
->> OSM turns off PSC bit, and it will never see external ports
->> again - it won't perform any heavy sweep, only light sweep
-> 
-> Could such race happen when there are more than one node in a fabric?
+Hi Sasha,
 
-I think that my description of the race was misleading.
-The race can happen on *any* fabric when SM runs on switch.
-But when it does happen, SM thinks that the whole subnet
-is just one switch - that's what it managed to discover.
-I've actually seen it happening.
-So the patch fixes this particular case.
+[v2 - no changes, just rebased and resolved conflicts]
 
-So the next question that you would probably ask is can
-this race happen on some *other* switch and not the one
-SM is running on?
+OSM can dump SA DB, but it is done every heavy sweep, and
+only when running with high verbosity, which cannot be used
+in production.
+OSM can also load SA DB from file, but then it also stays
+in this static SA configuration.
 
-Well, I don't know. I have a hunch that it can't, but I
-couldn't prove it to myself yet.
+The following patch series improves SA DB persistence:
 
-The race on the managed switch is a special case because
-SM always sees port 0, and always gets responses to its
-SMP queries. On any other switch, if the ports were reset,
-SM won't get any response until the ports are up again.
-
-Perhaps there might be a case where SM got some port as down,
-and by the time SM got SwitchInfo with PSC bit the port
-was already up, so SM won't start discovery beyond this
-port. But this race would be fixed on the next heavy sweep,
-when SM will discover this port that it missed the previous
-time, whereas race on managed switch is fatal - SM won't
-ever do any heavy sweep.
+1/3: Added option to load SA DB only on the first master
+     heavy sweep. After that SA goes to the usual (dynamic)
+     mode of operation
+2/3: Added option to dump SA DB on every sweep (both light
+     and heavy), regardless of the verbosity level.
+3/3: Optimize SA DB dumping: added 'dirty' flag to the SA
+     struct to denote that SA DB was modified since the
+     last dump. SA DB will be dumped only if the DB is dirty.
 
 -- Yevgeny
- 
-> Sasha
-> 
->> Signed-off-by: Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
->> ---
->>  opensm/opensm/osm_state_mgr.c |   15 ++++++++++-----
->>  1 files changed, 10 insertions(+), 5 deletions(-)
->>
->> diff --git a/opensm/opensm/osm_state_mgr.c b/opensm/opensm/osm_state_mgr.c
->> index 4303d6e..537c855 100644
->> --- a/opensm/opensm/osm_state_mgr.c
->> +++ b/opensm/opensm/osm_state_mgr.c
->> @@ -1062,13 +1062,18 @@ static void do_sweep(osm_sm_t * sm)
->>  	 * Otherwise, this is probably our first discovery pass
->>  	 * or we are connected in loopback. In both cases do a
->>  	 * heavy sweep.
->> -	 * Note: If we are connected in loopback we want a heavy
->> -	 * sweep, since we will not be getting any traps if there is
->> -	 * a lost connection.
->> +	 * Note the following:
->> +	 * 1. If we are connected in loopback we want a heavy sweep, since we
->> +	 *    will not be getting any traps if there is a lost connection.
->> +	 * 2. If we are in DISCOVERING state - this means it is either in
->> +	 *    initializing or wake up from STANDBY - run the heavy sweep.
->> +	 * 3. If there is only one node in the fabric, and this node is a
->> +	 *    switch, and OSM runs on top of it, there might be a race when
->> +	 *    OSM starts running before the external ports are up - run the
->> +	 *    heavy sweep.
->>  	 */
->> -	/*  if we are in DISCOVERING state - this means it is either in
->> -	 *  initializing or wake up from STANDBY - run the heavy sweep */
->>  	if (cl_qmap_count(&sm->p_subn->sw_guid_tbl)
->> +	    && cl_qmap_count(&sm->p_subn->node_guid_tbl) != 1
->>  	    && sm->p_subn->sm_state != IB_SMINFO_STATE_DISCOVERING
->>  	    && sm->p_subn->opt.force_heavy_sweep == FALSE
->>  	    && sm->p_subn->force_heavy_sweep == FALSE
->> -- 
->> 1.5.1.4
->>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
->> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>
-> 
+
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
