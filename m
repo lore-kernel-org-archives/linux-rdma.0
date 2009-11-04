@@ -1,41 +1,35 @@
-From: Roland Dreier <rdreier@cisco.com>
-Subject: Re: [PATCH 16/25] mlx4_core: boot sriov
-Date: Wed, 04 Nov 2009 11:55:49 -0800
-Message-ID: <aday6mmyshm.fsf@cisco.com>
-References: <4AF19E5D.1060806@mellanox.co.il>
+From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH 19/25] mlx4: Randomizing mac addresses for slaves
+Date: Wed, 04 Nov 2009 12:04:21 -0800
+Message-ID: <adar5seys3e.fsf@cisco.com>
+References: <4AF19E69.8070605@mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <4AF19E5D.1060806@mellanox.co.il> (Yevgeny Petrilin's message of
-	"Wed, 04 Nov 2009 17:31:41 +0200")
-Sender: netdev-owner@vger.kernel.org
-To: Yevgeny Petrilin <yevgenyp@mellanox.co.il>
-Cc: linux-rdma@vger.kernel.org, netdev@vger.kernel.org, liranl@mellanox.co.il, tziporet@mellanox.co.il
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <4AF19E69.8070605-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org> (Yevgeny Petrilin's message of
+	"Wed, 04 Nov 2009 17:31:53 +0200")
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Yevgeny Petrilin <yevgenyp-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, liranl-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org, tziporet-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 
- > +	/* Detect if this device is a virtual function */
- > +	switch (id->device) {
- > +	case 0x6341:
- > +	case 0x634b:
- > +	case 0x6733:
- > +	case 0x673d:
- > +	case 0x6369:
- > +	case 0x6751:
- > +	case 0x6765:
+ > +#define MLX4_MAC_HEAD		0x2c9000000ULL
+ > +			random_ether_addr(rand_mac);
+ > +			caps->def_mac[i] = MLX4_MAC_HEAD | rand_mac[0] |
+ > +				((u64)(rand_mac[1]) << 8) | ((u64)(rand_mac[2]) << 16);
 
-This isn't be maintainable or sane.  How about using driver_data in the
-PCI device table?
+Is this a good idea?  You're basically choosing 24 random bits within
+your OUI... seems the chance of collision with another MAC used on the
+same network is high enough that it could easily happen in practice on a
+moderately big network.  Can you pick a reserved range or something?
 
- > +#ifdef CONFIG_PCI_IOV
- > +		if (sr_iov) {
-
-Can we avoid a lot of these ifdefs by just doing
-
-#else
-#define sr_iov	0
-#endif /* CONFIG_PCI_IOV */
-
-at the beginning and letting the IOV code be optimized away?
+Also I'm not sure if there's much point in using random_ether_addr if
+you're going to override the high order part anyway, since
+random_ether_addr just makes sure it doesn't pick a multicast address.
 
  - R.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
