@@ -1,41 +1,34 @@
 From: Or Gerlitz <ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Subject: Re: QoS in local SA entity
-Date: Thu, 05 Nov 2009 14:07:38 +0200
-Message-ID: <4AF2C00A.4040808@voltaire.com>
+Subject: Re: [PATCH RDMA] Fixup IPv6 support and IPv4 routing corner cases
+ for RDMA CM
+Date: Thu, 05 Nov 2009 14:21:53 +0200
+Message-ID: <4AF2C361.1080307@voltaire.com>
+References: <20091028054253.GA22882@obsidianresearch.com>	<4E89386C612E46C9A33501CEC2521BAF@amr.corp.intel.com>	<20091028165043.GD1966@obsidianresearch.com>	<E27512B9FE294380956C074D2C35D235@amr.corp.intel.com> <20091028185847.GK14520@obsidianresearch.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20091028185847.GK14520-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
->
-> I think this really needs to be discussed wrt the implementation of the entity providing the path records.
-fair-enough, lets do it then...
+Jason Gunthorpe wrote:
+> Well, looking at this, I see that ADDR_CHANGE is only generated on netdev events NETDEV_BONDING_FAILOVER - so what are the semantics WRT to UCM here? As I said before, defeating the ND process seriously affects how bonding works.
+Again, much of the rdma-cm essence is to link/bridge/glue the netdev and 
+rdma stacks. I don't see what it has to do with UCM which you keep 
+mentioning/repeating over this email/thread and elsewhere.
 
-> I think what's needed is a way for the SA to distribute QoS information to the end nodes, so that the decisions can be made locally.  If someone wants some sort of dynamic QoS management and is happy using a small cluster, then they can disable any local SA entities and contact the SA directly.
-
-I believe we can go also on a middle way, where the SA isn't contacted 
-directly using path query for each resolution, but rather "indirectly" 
-e.g using a dedicated multicast based protocol.
-
-> In the case of ACM, the pkey is embedded in the MGID.  'Something' could tell the SA to create ACM multicast groups using a specific SL for a given MGID or pkey in the join request.  That SL would be distributed to the end nodes when they joined their groups.
-
-So assuming ACM supports AF_INET, using network stack route lookup on 
-the destination address / rdma_bind on the source address, etc as we 
-discussed, ACM can use the rdma-cm to resolve the pkey, then use this 
-pkey the MGID and a management software could tell the SA to use a 
-specific SL for MGIDs on this partition. Next, ACM can use this SL in 
-the path it generates for the IB connection, makes sense?
-
-> The entity that provides the path records cannot depend on calling into the librdmacm.  The dependency needs to go the other way.
-I understand that you want to be dependent less as much as possible, but 
-I believe that my suggestion doesn't contradict your design but rather 
-enhance it.
+Sean, I don't see why ACM can't be implemented without introducing 
+AF_IB/PS_IB, is it really a must or more of something you see as making 
+the implementation somehow easier? Now, even if you are fine with AF_IB, 
+I don't think that UCM should take over the rdma-ucm and fill the kernel 
+rdma-cm code with tons of IB specifics code. If people need UCM, lets 
+them use libibcm.
 
 Or.
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
