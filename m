@@ -1,195 +1,120 @@
-From: Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH] opensm/osm_state_mgr.c: force heavy sweep when fabric
- consists of single switch
-Date: Thu, 05 Nov 2009 09:29:31 +0200
-Message-ID: <4AF27EDB.6070604@dev.mellanox.co.il>
-References: <4AF0056A.5030503@dev.mellanox.co.il> <20091103221217.GE29388@me> <4AF14DCD.3010407@dev.mellanox.co.il> <4AF16740.3080600@Sun.COM> <4AF1A3CA.9070902@dev.mellanox.co.il> <4AF1BD1C.4090703@Sun.COM> <4AF1CA61.2020007@dev.mellanox.co.il>
-Reply-To: kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org
+From: Philip Pokorny <ppokorny-pabcTyWEv4ZW60MLeMDbCVaTQe2KTcn/@public.gmane.org>
+Subject: Re: SRPT and SCST
+Date: Thu, 05 Nov 2009 03:51:13 -0500
+Message-ID: <4AF29201.6000606@penguincomputing.com>
+References: <3142CEFB1403044F9954E2DF6C85660FBB34BD@orca.penguincomputing.com>	 <f3177b9e0911040802o7fce0f4fte02c52dfe940f582@mail.gmail.com>	 <3142CEFB1403044F9954E2DF6C85660FBB34BF@orca.penguincomputing.com>	 <f3177b9e0911041004t2e75d545v5cc10d5375550bde@mail.gmail.com>	 <654FA770A883FB43BAF3CB0B1E1DAC8C01C8C4DD@orca.penguincomputing.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4AF1CA61.2020007-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+In-Reply-To: <654FA770A883FB43BAF3CB0B1E1DAC8C01C8C4DD-/U8SqUwOx9/OOpeOfUw7maQk6oIRg43YAL8bYrjMMd8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org
-Cc: Line Holen <Line.Holen-UdXhSnd/wVw@public.gmane.org>, Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>, Linux RDMA <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Philip Pokorny <ppokorny-pabcTyWEv4ZW60MLeMDbCVaTQe2KTcn/@public.gmane.org>, scst-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Arend Dittmer <adittmer-pabcTyWEv4ZW60MLeMDbCVaTQe2KTcn/@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Yevgeny Kliteynik wrote:
-> Line Holen wrote:
->> On 11/ 4/09 04:54 PM, Yevgeny Kliteynik wrote:
->>> Line Holen wrote:
->>>> On 11/ 4/09 10:47 AM, Yevgeny Kliteynik wrote:
->>>>> Sasha Khapyorsky wrote:
->>>>>> On 12:26 Tue 03 Nov     , Yevgeny Kliteynik wrote:
->>>>>>> Always do heavy sweep when there is only one node in the
->>>>>>> fabric, and this node is a switch, and SM runs on top of it -
->>>>>>> there may be a race when OSM starts running before the
->>>>>>> external ports are ports are up, or if they went through
->>>>>>> reset while SM was starting.
->>>>>>> In this race switch brings up the ports and turns on the
->>>>>>> PSC bit, but OSM might get PortInfo before SwitchInfo, and it
->>>>>>> might see all ports as down, but PSC bit on. If that happens,
->>>>>>> OSM turns off PSC bit, and it will never see external ports
->>>>>>> again - it won't perform any heavy sweep, only light sweep
->>>>>> Could such race happen when there are more than one node in a fabric?
->>>>> I think that my description of the race was misleading.
->>>>> The race can happen on *any* fabric when SM runs on switch.
->>>>> But when it does happen, SM thinks that the whole subnet
->>>>> is just one switch - that's what it managed to discover.
->>>>> I've actually seen it happening.
->>>>> So the patch fixes this particular case.
->>>>>
->>>>> So the next question that you would probably ask is can
->>>>> this race happen on some *other* switch and not the one
->>>>> SM is running on?
->>>>>
->>>>> Well, I don't know. I have a hunch that it can't, but I
->>>>> couldn't prove it to myself yet.
->>>>>
->>>>> The race on the managed switch is a special case because
->>>>> SM always sees port 0, and always gets responses to its
->>>>> SMP queries. On any other switch, if the ports were reset,
->>>>> SM won't get any response until the ports are up again.
->>>>>
->>>>> Perhaps there might be a case where SM got some port as down,
->>>>> and by the time SM got SwitchInfo with PSC bit the port
->>>>> was already up, so SM won't start discovery beyond this
->>>>> port. But this race would be fixed on the next heavy sweep,
->>>>> when SM will discover this port that it missed the previous
->>>>> time, whereas race on managed switch is fatal - SM won't
->>>>> ever do any heavy sweep.
->>>>>
->>>>> -- Yevgeny
->>>> At least for the 3.2 branch there is a general race regardless of
->>>> where the SM is running. I haven't checked the current master, but
->>>> I cannot recall seeing any patches related to this so I assume
->>>> the race is still there.
->>>>
->>>> There is a window between SM discovering a switch and clearing PSC
->>>> for the same switch. The SM will not detect a state change on the
->>>> switch ports during this time.
->>> If the port changes state during that period, the switch issues
->>> new trap 128, which (I think) should cause SM to re-discover the
->>> fabric once this discovery cycle is over. Is this correct?
->>>
->>
->> I think the switch shall send a trap whenever it sets the PSC bit.
->> Once set I believe it will not send another trap until it is reset.
->> Or do I misinterpret the spec ?
-> 
-> I may be wrong, but I thought that this is how things work:
-> - port state changes
-> - switch turns on PSC bit and starts sending traps
-> - SM gets the trap, sends trap repress
-> - switch gets trap repress and stops sending traps
-> - PSC is still on
-> - port state changes again (the same or any other port)
-> - switch turns on PSC bit (which doesn't matter as PSC is
->   already on) and starts sending traps again
-> - etc...
-> 
-> Anyway, I'll double-check this issue.
+Chris Worley asked that we post this to scst and linux-rdma lists for 
+discussion.
 
-Yep, verified.
-Switch sends traps regardless the PSC bit status.
-Also, the spec doesn't link them together:
+We're trying to get IB SRPT working and can't seem to get a stable 
+configuration using any of the various SCST, IB_SRPT, and kernel/distro 
+versions out there.  In most cases, we're able to crash the connection 
+and typically the target within minutes of pounding by 4 initiators 
+doing "mkfs.ext3", "tar xf" and "fsck" to the SRP block device.
 
-   o14-5.1.1: If a switch supports Traps (PortInfo:
-   CapabilityMask.IsTrap-Supported is one), its SMA
-   shall send trap 128 to the SM indicated by the 
-   PortInfo:MasterSMLID under any condition that 
-   would cause SwitchInfo:PortStateChange to be set
-   to one. (See 14.2.5.4 SwitchInfo on page 827.)
+Our target is a Penguin Computing Altus 2704 with disk expansion 
+chassis.  That's a 4-socket AMD hex-core (24 total cores) with 128GB of 
+memory and 24 1TB drives attached to two LSI 1068 SAS controllers. (aka 
+3801E)  The drives are configured as 12 RAID-1 mirrors and 3-wide LVM 
+stripes over those mirrors.  There are an additional 6 SSD's in the 
+server in a "fast" VG also RAID-1 mirrored and LVM striped.  Read ahead 
+is disabled on the LVM volumes.
 
--- Yevgeny
+LVM volumes are exported via SCST as FILEIO block devices to initiators. 
+  50 groups are defined with two LVM volumes/block devices per group. 
+One initiator per group. (NODE GUID added to "names" in the group)
 
-> -- Yevgeny
-> 
->>> Or perhaps the more serious problem happens when SM LID is not
->>> configured yet on the switch, hence the trap is not going to the
->>> right place?
->>>
->>>> I have a patch for the 3.2 branch that I can merge into master.
->>> Sure, that would be nice :)
->>>
->>> -- Yevgeny
->>>
->>>
->>>> Line
->>>>
->>>>>> Sasha
->>>>>>
->>>>>>> Signed-off-by: Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
->>>>>>> ---
->>>>>>>  opensm/opensm/osm_state_mgr.c |   15 ++++++++++-----
->>>>>>>  1 files changed, 10 insertions(+), 5 deletions(-)
->>>>>>>
->>>>>>> diff --git a/opensm/opensm/osm_state_mgr.c
->>>>>>> b/opensm/opensm/osm_state_mgr.c
->>>>>>> index 4303d6e..537c855 100644
->>>>>>> --- a/opensm/opensm/osm_state_mgr.c
->>>>>>> +++ b/opensm/opensm/osm_state_mgr.c
->>>>>>> @@ -1062,13 +1062,18 @@ static void do_sweep(osm_sm_t * sm)
->>>>>>>       * Otherwise, this is probably our first discovery pass
->>>>>>>       * or we are connected in loopback. In both cases do a
->>>>>>>       * heavy sweep.
->>>>>>> -     * Note: If we are connected in loopback we want a heavy
->>>>>>> -     * sweep, since we will not be getting any traps if there is
->>>>>>> -     * a lost connection.
->>>>>>> +     * Note the following:
->>>>>>> +     * 1. If we are connected in loopback we want a heavy sweep,
->>>>>>> since we
->>>>>>> +     *    will not be getting any traps if there is a lost
->>>>>>> connection.
->>>>>>> +     * 2. If we are in DISCOVERING state - this means it is 
->>>>>>> either in
->>>>>>> +     *    initializing or wake up from STANDBY - run the heavy 
->>>>>>> sweep.
->>>>>>> +     * 3. If there is only one node in the fabric, and this node 
->>>>>>> is a
->>>>>>> +     *    switch, and OSM runs on top of it, there might be a race
->>>>>>> when
->>>>>>> +     *    OSM starts running before the external ports are up -
->>>>>>> run the
->>>>>>> +     *    heavy sweep.
->>>>>>>       */
->>>>>>> -    /*  if we are in DISCOVERING state - this means it is either in
->>>>>>> -     *  initializing or wake up from STANDBY - run the heavy 
->>>>>>> sweep */
->>>>>>>      if (cl_qmap_count(&sm->p_subn->sw_guid_tbl)
->>>>>>> +        && cl_qmap_count(&sm->p_subn->node_guid_tbl) != 1
->>>>>>>          && sm->p_subn->sm_state != IB_SMINFO_STATE_DISCOVERING
->>>>>>>          && sm->p_subn->opt.force_heavy_sweep == FALSE
->>>>>>>          && sm->p_subn->force_heavy_sweep == FALSE
->>>>>>> -- 
->>>>>>> 1.5.1.4
->>>>>>>
->>>>>>> -- 
->>>>>>> To unsubscribe from this list: send the line "unsubscribe
->>>>>>> linux-rdma" in
->>>>>>> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->>>>>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>>>>>>
->>>>> -- 
->>>>> To unsubscribe from this list: send the line "unsubscribe 
->>>>> linux-rdma" in
->>>>> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->>>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>>>
->>> -- 
->>> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
->>> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>
->>
-> 
-> -- 
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+With only 4 initiators, almost 100% of I/O is to RAM and no disk I/O is 
+seen on the target.
 
+Performance (when it's working) is generally good at 800MB/sec 
+aggregate, but we'd like to see better.  It appeared we were getting 
+1.3GB/s at one point.
+
+On Wed, Nov 4, 2009 at 5:34 PM, Philip Pokorny
+<ppokorny-pabcTyWEv4ZW60MLeMDbCVaTQe2KTcn/@public.gmane.org> wrote:
+> We got a serial console attached and ran a test using the SCST and IB_SRPT
+> versions that you recommended (Arend set it up so I'll defer to him on the
+> exact SVN checkout that he used).
+>
+>> What sort of crashes are you seeing?  I also have a customer
+>> experiencing a crash, but I can't get details out of them.
+>
+> The client gets SCSI I/O errors and aborts the filesystem (putting it in
+> read-only mode).
+>
+> After about 400 seconds of testing, the server side logs the following:
+>
+> [ 8418.697830] <6>[12426]: scst_check_sense:2444:Clearing dbl_ua_possible
+> flag (dev ffff811816136000, cmd ffff81081017c1c8)
+> [ 8418.697836] <6>[12426]: scst_dec_on_dev_cmd:577:cmd ffff81081017c1c8 (tag
+> 17): unblocking dev ffff811816136000
+> [ 8418.697843] <6>[0]: scst_unblock_dev:4653:Device UNBLOCK(new 0), dev
+> ffff811816136000
+> [ 8864.258468] ib_mthca 0000:81:00.0: SQ 000405 full (999320 head, 997272
+> tail, 2048 max, 0 nreq)
+> [ 8864.294450] ***ERROR***: srpt_xfer_data[2374] ret=-12
+> [ 8864.326702] <6>[0]: scst_queue_retry_cmd:1099:TGT QUEUE FULL:
+> incrementing retry_cmds 1
+> [ 8864.326709] <6>[0]: scst_queue_retry_cmd:1106:Some command(s) finished,
+> direct retry (finished_cmds=2023031, tgt->finished_cmds=2023137,
+> retry_cmds=0)
+> [ 8878.447081] ib_mthca 0000:81:00.0: SQ 000406 full (1080498 head, 1078450
+> tail, 2048 max, 0 nreq)
+> [ 8878.484452] ***ERROR***: srpt_xfer_data[2374] ret=-12
+> [ 8878.517595] <6>[0]: scst_queue_retry_cmd:1099:TGT QUEUE FULL:
+> incrementing retry_cmds 1
+> [ 8878.517608] <6>[0]: scst_queue_retry_cmd:1106:Some command(s) finished,
+> direct retry (finished_cmds=2256307, tgt->finished_cmds=2256504,
+> retry_cmds=0)
+> [ 8882.694684] ib_mthca 0000:81:00.0: SQ 000404 full (1087484 head, 1085436
+> tail, 2048 max, 0 nreq)
+> [ 8882.732542] ***ERROR***: srpt_xfer_data[2374] ret=-12
+> [ 8882.766396] <6>[0]: scst_queue_retry_cmd:1099:TGT QUEUE FULL:
+> incrementing retry_cmds 1
+> [ 8882.766403] <6>[0]: scst_queue_retry_cmd:1106:Some command(s) finished,
+> direct retry (finished_cmds=2310445, tgt->finished_cmds=2310539,
+> retry_cmds=0)
+> [ 8891.650890] ib_mthca 0000:81:00.0: SQ 000407 full (1155377 head, 1153329
+> tail, 2048 max, 0 nreq)
+> [ 8891.689016] ***ERROR***: srpt_xfer_data[2374] ret=-12
+> [ 8891.723548] <6>[0]: scst_queue_retry_cmd:1099:TGT QUEUE FULL:
+> incrementing retry_cmds 1
+> [ 8891.723556] <6>[0]: scst_queue_retry_cmd:1106:Some command(s) finished,
+> direct retry (finished_cmds=2381910, tgt->finished_cmds=2382001,
+> retry_cmds=0)
+> [ 8891.723573] ib_mthca 0000:81:00.0: too many gathers
+> [ 8891.758000] ***ERROR***: srpt_xfer_data[2374] ret=-22
+> [ 8891.792888] <6>[0]: scst: scst_rdy_to_xfer:985:***ERROR***: Target driver
+> ib_srpt rdy_to_xfer() returned fatal error
+>
+> I hope that helps.
+>
+> I've seen that same "rdy_to_xfer() returned fatal error several times in
+> different configurations.  The screen shots we sent earlier had the same
+> "ib_mthca ... SQ ... full (xx head..." message at the start.  So that seems
+> to be related as well.
+>
+> Thanks for the help,
+> Phil P.
+>
+> --
+> Philip Pokorny, RHCE
+> Chief Hardware Architect - Penguin Computing
+> Voice: 415-370-0835  Toll free: 888-PENGUIN
+> www.penguincomputing.com
+>
+>
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
