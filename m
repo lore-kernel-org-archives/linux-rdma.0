@@ -1,32 +1,48 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH RDMA] Fixup IPv6 support and IPv4 routing corner cases for RDMA CM
-Date: Thu, 5 Nov 2009 10:04:19 -0700
-Message-ID: <20091105170419.GU1966@obsidianresearch.com>
-References: <20091028054253.GA22882@obsidianresearch.com> <4E89386C612E46C9A33501CEC2521BAF@amr.corp.intel.com> <20091028165043.GD1966@obsidianresearch.com> <E27512B9FE294380956C074D2C35D235@amr.corp.intel.com> <20091028185847.GK14520@obsidianresearch.com> <4AF2C361.1080307@voltaire.com>
+From: "Smith, Stan" <stan.smith-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH 1/2] contain pthreads defs with ifdef  HAVE_LIBPTHREAD
+Date: Thu, 5 Nov 2009 09:07:45 -0800
+Message-ID: <3F6F638B8D880340AB536D29CD4C1E1912C8E0D221@orsmsx501.amr.corp.intel.com>
+References: <F9EFFFF3BD1D442AB6AA993FD6F0B5D8@amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <4AF2C361.1080307-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <F9EFFFF3BD1D442AB6AA993FD6F0B5D8-Zpru7NauK7drdx17CPfAsdBPR1lH4CV8@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: 'Sasha Khapyorsky' <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "ofw-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org" <ofw-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Nov 05, 2009 at 02:21:53PM +0200, Or Gerlitz wrote:
-> Jason Gunthorpe wrote:
-> >Well, looking at this, I see that ADDR_CHANGE is only generated on netdev 
-> >events NETDEV_BONDING_FAILOVER - so what are the semantics WRT to UCM 
-> >here? As I said before, defeating the ND process seriously affects how 
-> >bonding works.
+Stan C. Smith wrote:
+> Contain pthread definitions with ifdef HAVE_LIBPTHREAD
+>
+> Signed-off-by: stan smith <stan.smith-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+>
+> diff --git a/opensm/include/vendor/osm_vendor_ibumad.h
+> b/opensm/include/vendor/osm_vendor_ibumad.h index 0a4692d..d523412
+> 100644 --- a/opensm/include/vendor/osm_vendor_ibumad.h
+> +++ b/opensm/include/vendor/osm_vendor_ibumad.h
+> @@ -160,8 +160,13 @@ typedef struct _osm_vendor {
+>       char ca_names[OSM_UMAD_MAX_CAS][UMAD_CA_NAME_LEN];
+>       vendor_match_tbl_t mtbl;
+>       umad_port_t umad_port;
+> +#ifdef HAVE_LIBPTHREAD
+>       pthread_mutex_t cb_mutex;
+>       pthread_mutex_t match_tbl_mutex;
+> +#else
+> +     cl_mutex_t cb_mutex;
+> +     cl_mutex_t match_tbl_mutex;
+> +#endif
+>       int umad_port_id;
+>       void *receiver;
+>       int issmfd;
 
-> Again, much of the rdma-cm essence is to link/bridge/glue the netdev and 
-> rdma stacks. I don't see what it has to do with UCM which you keep 
-> mentioning/repeating over this email/thread and elsewhere.
+The use of ifdef HAVE_LIBPTHREAD was based on existing HAVE_LIBPTHREAD usage in opensm/include/opensm/osm_stats.h @ line 97.
+If the community prefers the use of macros then these two patches can be skipped.
+Please advise on path to travel.
 
-Oops, brian fart, I ment ACM
-
-Jason
+Stan.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
