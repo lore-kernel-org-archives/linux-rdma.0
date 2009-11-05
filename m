@@ -1,29 +1,58 @@
-From: "Liran Liss" <liranl-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
-Subject: RE: [PATCH 05/25] mlx4_core: add slave resource allocation
-Date: Thu, 5 Nov 2009 15:14:46 +0200
-Message-ID: <2ED289D4E09FBD4D92D911E869B97FDD0166C9D6@mtlexch01.mtl.com>
-References: <4AF19E1E.4000102@mellanox.co.il> <ada7hu617aw.fsf@cisco.com>
+From: "Liran Liss" <liranl@mellanox.co.il>
+Subject: RE: [PATCH 16/25] mlx4_core: boot sriov
+Date: Thu, 5 Nov 2009 15:26:17 +0200
+Message-ID: <2ED289D4E09FBD4D92D911E869B97FDD0166CA13@mtlexch01.mtl.com>
+References: <4AF19E5D.1060806@mellanox.co.il> <aday6mmyshm.fsf@cisco.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="US-ASCII"
 Content-Transfer-Encoding: 8BIT
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <netdev-owner@vger.kernel.org>
 Content-class: urn:content-classes:message
-In-reply-to: <ada7hu617aw.fsf-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Yevgeny Petrilin <yevgenyp-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tziporet Koren <tziporet-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
+In-reply-to: <aday6mmyshm.fsf@cisco.com>
+Sender: netdev-owner@vger.kernel.org
+To: Roland Dreier <rdreier@cisco.com>, Yevgeny Petrilin <yevgenyp@mellanox.co.il>
+Cc: linux-rdma@vger.kernel.org, netdev@vger.kernel.org, Tziporet Koren <tziporet@mellanox.co.il>
 List-Id: linux-rdma@vger.kernel.org
 
- > +	u32 param1 = *((u32 *) &vhcr->in_param);
- > +	u32 param2 = *(((u32 *) &vhcr->in_param) + 1);
+ S.B.
+--Liran
 
-Is this endian clean?
+-----Original Message-----
+From: Roland Dreier [mailto:rdreier@cisco.com] 
+Sent: Wednesday, November 04, 2009 9:56 PM
+To: Yevgeny Petrilin
+Cc: linux-rdma@vger.kernel.org; netdev@vger.kernel.org; Liran Liss;
+Tziporet Koren
+Subject: Re: [PATCH 16/25] mlx4_core: boot sriov
 
-LL: Yes - the master and slave always run on the same arch...
+
+ > +	/* Detect if this device is a virtual function */
+ > +	switch (id->device) {
+ > +	case 0x6341:
+ > +	case 0x634b:
+ > +	case 0x6733:
+ > +	case 0x673d:
+ > +	case 0x6369:
+ > +	case 0x6751:
+ > +	case 0x6765:
+
+This isn't be maintainable or sane.  How about using driver_data in the
+PCI device table?
+LL: good idea; 10x.
+
+ > +#ifdef CONFIG_PCI_IOV
+ > +		if (sr_iov) {
+
+Can we avoid a lot of these ifdefs by just doing
+
+#else
+#define sr_iov	0
+#endif /* CONFIG_PCI_IOV */
+
+at the beginning and letting the IOV code be optimized away?
+
+LL: I think that this won't pass -Wall when compiling against a kernel
+with sriov compiled out.
 
  - R.
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
