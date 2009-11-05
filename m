@@ -1,52 +1,27 @@
-From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-Subject: [PATCH] infiniband-diags/ibnetdisc.h: Clarify "ports" member of
- ibnd_node_t with more descriptive comment
-Date: Thu, 5 Nov 2009 11:29:56 -0800
-Message-ID: <20091105112956.914e4c8a.weiny2@llnl.gov>
+From: "Sean Hefty" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH] librdmacm/mckey: enforce local binding for unmapped	multicast addresses
+Date: Thu, 5 Nov 2009 11:44:17 -0800
+Message-ID: <EE242E2A2A6A45A581F62AAFD24CD761@amr.corp.intel.com>
+References: <Pine.LNX.4.64.0911011130140.6591@zuben.voltaire.com>	<AB1AB5E171B44E1AA5FAFB87901C69C7@amr.corp.intel.com>	<4AF037F7.9080100@voltaire.com> <72E827020C9E497DB3CAA3DD720E9604@amr.corp.intel.com> <4AF2B92E.2030807@Voltaire.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain;
+	charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <4AF2B92E.2030807-hKgKHo2Ms0FWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: 'Or Gerlitz' <ogerlitz-hKgKHo2Ms0FWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+>document how SA assigned MGIDs can be created via mckey
+>
+>Signed-off-by: Or Gerlitz <ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org>
 
-From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-Date: Tue, 3 Nov 2009 17:03:15 -0800
-Subject: [PATCH] infiniband-diags/ibnetdisc.h: Clarify "ports" member of ibnd_node_t with more descriptive comment
+Thanks - I merged this with your other patch to mckey and applied them to my
+tree.
 
-
-Signed-off-by: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
----
- .../libibnetdisc/include/infiniband/ibnetdisc.h    |   11 ++++++++---
- 1 files changed, 8 insertions(+), 3 deletions(-)
-
-diff --git a/infiniband-diags/libibnetdisc/include/infiniband/ibnetdisc.h b/infiniband-diags/libibnetdisc/include/infiniband/ibnetdisc.h
-index bb5df02..2b4afea 100644
---- a/infiniband-diags/libibnetdisc/include/infiniband/ibnetdisc.h
-+++ b/infiniband-diags/libibnetdisc/include/infiniband/ibnetdisc.h
-@@ -66,9 +66,14 @@ typedef struct ibnd_node {
- 
- 	char nodedesc[IB_SMP_DATA_SIZE];
- 
--	struct ibnd_port **ports;	/* in order array of port pointers
--					   the size of this array is info.numports + 1
--					   items MAY BE NULL!  (ie 0 == switches only) */
-+	struct ibnd_port **ports;	/* array of ports, indexed by port number
-+					   ports[1] == port 1,
-+					   ports[2] == port 2,
-+					   etc...
-+					   Any port in the array MAY BE NULL!
-+					   Most notable is non-switches have no
-+					   port 0 therefore node.ports[0] == NULL
-+					   for those nodes */
- 
- 	/* chassis info */
- 	struct ibnd_node *next_chassis_node;	/* next node in ibnd_chassis_t->nodes */
--- 
-1.5.4.5
+- Sean
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
