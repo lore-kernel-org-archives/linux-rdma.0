@@ -1,55 +1,34 @@
-From: "Liran Liss" <liranl-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
-Subject: RE: [PATCH 19/25] mlx4: Randomizing mac addresses for slaves
-Date: Thu, 5 Nov 2009 15:38:18 +0200
-Message-ID: <2ED289D4E09FBD4D92D911E869B97FDD0166CA59@mtlexch01.mtl.com>
-References: <4AF19E69.8070605@mellanox.co.il> <adar5seys3e.fsf@cisco.com> <15ddcffd0911041333l165ee274mfae3508a3db755e7@mail.gmail.com>
+From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH 16/25] mlx4_core: boot sriov
+Date: Thu, 05 Nov 2009 07:57:05 -0800
+Message-ID: <adafx8tc6cu.fsf@roland-alpha.cisco.com>
+References: <4AF19E5D.1060806@mellanox.co.il> <aday6mmyshm.fsf@cisco.com>
+	<2ED289D4E09FBD4D92D911E869B97FDD0166CA13@mtlexch01.mtl.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-class: urn:content-classes:message
-In-reply-to: <15ddcffd0911041333l165ee274mfae3508a3db755e7-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <2ED289D4E09FBD4D92D911E869B97FDD0166CA13-ia22CT07NJfiMCgWhms8HQC/G2K4zDHf@public.gmane.org>
+	(Liran Liss's message of "Thu, 5 Nov 2009 15:26:17 +0200")
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+To: Liran Liss <liranl-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
 Cc: Yevgeny Petrilin <yevgenyp-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tziporet Koren <tziporet-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This approach seems to be common practice now (e.g., drivers/net/igb/ig=
-b_main.c:1332).
-In any case, the user can change the randomized mac.
---Liran
 
------Original Message-----
-=46rom: Or Gerlitz [mailto:or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org]=20
-Sent: Wednesday, November 04, 2009 11:33 PM
-To: Roland Dreier
-Cc: Yevgeny Petrilin; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; netdev-u79uwXL29TaqPxH82wqD4g@public.gmane.org=
-g; Liran Liss; Tziporet Koren
-Subject: Re: [PATCH 19/25] mlx4: Randomizing mac addresses for slaves
+ > LL: I think that this won't pass -Wall when compiling against a kernel
+ > with sriov compiled out.
 
-On Wed, Nov 4, 2009 at 10:04 PM, Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org> wrot=
-e:
->> +#define MLX4_MAC_HEAD =A0 =A0 =A0 =A0 =A0 =A0 =A0 0x2c9000000ULL
+Why not?  The sriov code provides stubs like:
 
-> Is this a good idea? =A0You're basically choosing 24 random bits with=
-in your OUI...
-> seems the chance of collision with another MAC used on the same=20
-> network is high enough that it could easily happen in practice on a m=
-oderately big network.
+static inline int pci_enable_sriov(struct pci_dev *dev, int nr_virtfn)
+{
+	return -ENODEV;
+}
 
-yes, this has been brought by Stephen and others on this last back on S=
-eptember 11th, this year @
-http://marc.info/?l=3Dlinux-netdev&m=3D125263488409128
+if CONFIG_PCI_IOV is not enabled.
 
-> Can you pick a reserved range or something?
-
-Using different OUI for the VF device wouldn't help either I think, sin=
-ce the #VF becomes fairly big even on a modest side cluster with
-(say) a VM consuming VF per 1-2 cores.
-
-Or.
+ - R.
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
