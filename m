@@ -1,58 +1,28 @@
-From: Sasha Khapyorsky <sashak@voltaire.com>
-Subject: Re: [PATCH 1/2] contain pthreads defs with ifdef
-	HAVE_LIBPTHREAD
-Date: Fri, 6 Nov 2009 18:58:34 +0200
-Message-ID: <20091106165834.GE7192@me>
-References: <F9EFFFF3BD1D442AB6AA993FD6F0B5D8@amr.corp.intel.com>
-	<74DB7ADB8B154DE69B8F65456193D483@amr.corp.intel.com>
+From: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH] osmtest - code cleanup: remove Windows specific items.
+Date: Fri, 6 Nov 2009 18:58:57 +0200
+Message-ID: <20091106165857.GF7192@me>
+References: <53DFB8C213D246138BE8D3793204CE12@amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <ofw-bounces@lists.openfabrics.org>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <74DB7ADB8B154DE69B8F65456193D483@amr.corp.intel.com>
-List-Unsubscribe: <http://lists.openfabrics.org/cgi-bin/mailman/listinfo/ofw>,
-	<mailto:ofw-request@lists.openfabrics.org?subject=unsubscribe>
-List-Archive: <http://lists.openfabrics.org/pipermail/ofw>
-List-Post: <mailto:ofw@lists.openfabrics.org>
-List-Help: <mailto:ofw-request@lists.openfabrics.org?subject=help>
-List-Subscribe: <http://lists.openfabrics.org/cgi-bin/mailman/listinfo/ofw>,
-	<mailto:ofw-request@lists.openfabrics.org?subject=subscribe>
-Sender: ofw-bounces@lists.openfabrics.org
-Errors-To: ofw-bounces@lists.openfabrics.org
-To: Sean Hefty <sean.hefty@intel.com>
-Cc: linux-rdma@vger.kernel.org, ofw@lists.openfabrics.org
+In-Reply-To: <53DFB8C213D246138BE8D3793204CE12-Zpru7NauK7drdx17CPfAsdBPR1lH4CV8@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Stan C. Smith" <stan.smith-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ofw-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 13:05 Wed 04 Nov     , Sean Hefty wrote:
-> >Contain pthread definitions with ifdef HAVE_LIBPTHREAD
-> >
-> >Signed-off-by: stan smith <stan.smith@intel.com>
-> >
-> >diff --git a/opensm/include/vendor/osm_vendor_ibumad.h
-> >b/opensm/include/vendor/osm_vendor_ibumad.h
-> >index 0a4692d..d523412 100644
-> >--- a/opensm/include/vendor/osm_vendor_ibumad.h
-> >+++ b/opensm/include/vendor/osm_vendor_ibumad.h
-> >@@ -160,8 +160,13 @@ typedef struct _osm_vendor {
-> > 	char ca_names[OSM_UMAD_MAX_CAS][UMAD_CA_NAME_LEN];
-> > 	vendor_match_tbl_t mtbl;
-> > 	umad_port_t umad_port;
-> >+#ifdef HAVE_LIBPTHREAD
-> > 	pthread_mutex_t cb_mutex;
-> > 	pthread_mutex_t match_tbl_mutex;
-> >+#else
-> >+	cl_mutex_t cb_mutex;
-> >+	cl_mutex_t match_tbl_mutex;
-> >+#endif
+On 12:34 Wed 04 Nov     , Stan C. Smith wrote:
 > 
-> complib is available on both platforms, why not just use it?
+> Remove #ifdef WIN32, #else & #endif. Just use PATH_MAX.
+> 
+> Signed-off-by: stan smith <stan.smith-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-We don't have cl_mutex_t in linux's implementation.
-
-I didn't know that complib on windows already implements semantics which
-are similar to most useful pthread things. That is good, and seems that
-an easy porting could be done by using macros like:
-
-#define pthread_* cl_thread_*
+Applied. Thanks.
 
 Sasha
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
