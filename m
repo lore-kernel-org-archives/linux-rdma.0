@@ -1,128 +1,90 @@
-From: Ralph Campbell <ralph.campbell-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH] IB/libipathverbs: update function signatures for
-	libibverbs-1.1.3
-Date: Fri, 6 Nov 2009 11:05:26 -0800
-Message-ID: <1257534326.992.211.camel@chromite.mv.qlogic.com>
+From: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH] libibmad: Add support for PortInfo:McastPkeyTrapSuppressionEnabled
+Date: Fri, 6 Nov 2009 14:35:30 -0500
+Message-ID: <f0e08f230911061135x4117c1caj311139e1bc8799c2@mail.gmail.com>
+References: <20091106141034.GC19678@comcast.net> <20091106180217.GP7192@me>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20091106180217.GP7192@me>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-This patch changes the function signatures to match the API
-changes in libibverbs-1.1.3.
-    
-Signed-off-by: Ralph Campbell <ralph.campbell-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+On Fri, Nov 6, 2009 at 1:02 PM, Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org> =
+wrote:
+> On 09:10 Fri 06 Nov =C2=A0 =C2=A0 , Hal Rosenstock wrote:
+>>
+>> Per published MgtWG erratum RefID 4576
+>
+> Please describe the change.
 
-diff --git a/src/ipathverbs.h b/src/ipathverbs.h
-index 3493807..5ebd79d 100644
---- a/src/ipathverbs.h
-+++ b/src/ipathverbs.h
-@@ -1,5 +1,5 @@
- /*
-- * Copyright (c) 2006-2007 QLogic Corp. All rights reserved.
-+ * Copyright (c) 2006-2009 QLogic Corp. All rights reserved.
-  * Copyright (c) 2005. PathScale, Inc. All rights reserved.
-  *
-  * This software is available to you under a choice of one of two
-@@ -188,7 +188,7 @@ struct ibv_pd *ipath_alloc_pd(struct ibv_context *pd);
- int ipath_free_pd(struct ibv_pd *pd);
- 
- struct ibv_mr *ipath_reg_mr(struct ibv_pd *pd, void *addr,
--			    size_t length, enum ibv_access_flags access);
-+			    size_t length, int access);
- 
- int ipath_dereg_mr(struct ibv_mr *mr);
- 
-@@ -217,11 +217,11 @@ struct ibv_qp *ipath_create_qp_v1(struct ibv_pd *pd,
- 				  struct ibv_qp_init_attr *attr);
- 
- int ipath_query_qp(struct ibv_qp *qp, struct ibv_qp_attr *attr,
--		   enum ibv_qp_attr_mask attr_mask,
-+		   int attr_mask,
- 		   struct ibv_qp_init_attr *init_attr);
- 
- int ipath_modify_qp(struct ibv_qp *qp, struct ibv_qp_attr *attr,
--		    enum ibv_qp_attr_mask attr_mask);
-+		    int attr_mask);
- 
- int ipath_destroy_qp(struct ibv_qp *qp);
- 
-@@ -241,11 +241,11 @@ struct ibv_srq *ipath_create_srq_v1(struct ibv_pd *pd,
- 
- int ipath_modify_srq(struct ibv_srq *srq,
- 		     struct ibv_srq_attr *attr, 
--		     enum ibv_srq_attr_mask attr_mask);
-+		     int attr_mask);
- 
- int ipath_modify_srq_v1(struct ibv_srq *srq,
- 			struct ibv_srq_attr *attr, 
--			enum ibv_srq_attr_mask attr_mask);
-+			int attr_mask);
- 
- int ipath_query_srq(struct ibv_srq *srq, struct ibv_srq_attr *attr);
- 
-diff --git a/src/verbs.c b/src/verbs.c
-index b73b7f7..17d54cd 100644
---- a/src/verbs.c
-+++ b/src/verbs.c
-@@ -1,5 +1,5 @@
- /*
-- * Copyright (c) 2006-2007 QLogic Corp. All rights reserved.
-+ * Copyright (c) 2006-2009 QLogic Corp. All rights reserved.
-  * Copyright (c) 2005. PathScale, Inc. All rights reserved.
-  *
-  * This software is available to you under a choice of one of two
-@@ -113,7 +113,7 @@ int ipath_free_pd(struct ibv_pd *pd)
- }
- 
- struct ibv_mr *ipath_reg_mr(struct ibv_pd *pd, void *addr,
--			    size_t length, enum ibv_access_flags access)
-+			    size_t length, int access)
- {
- 	struct ibv_mr *mr;
- 	struct ibv_reg_mr cmd;
-@@ -372,7 +372,7 @@ struct ibv_qp *ipath_create_qp_v1(struct ibv_pd *pd,
- }
- 
- int ipath_query_qp(struct ibv_qp *qp, struct ibv_qp_attr *attr,
--		   enum ibv_qp_attr_mask attr_mask,
-+		   int attr_mask,
- 		   struct ibv_qp_init_attr *init_attr)
- {
- 	struct ibv_query_qp cmd;
-@@ -382,7 +382,7 @@ int ipath_query_qp(struct ibv_qp *qp, struct ibv_qp_attr *attr,
- }
- 
- int ipath_modify_qp(struct ibv_qp *qp, struct ibv_qp_attr *attr,
--		    enum ibv_qp_attr_mask attr_mask)
-+		    int attr_mask)
- {
- 	struct ibv_modify_qp cmd;
- 
-@@ -567,7 +567,7 @@ struct ibv_srq *ipath_create_srq_v1(struct ibv_pd *pd,
- 
- int ipath_modify_srq(struct ibv_srq *ibsrq,
- 		     struct ibv_srq_attr *attr, 
--		     enum ibv_srq_attr_mask attr_mask)
-+		     int attr_mask)
- {
- 	struct ipath_srq            *srq = to_isrq(ibsrq);
- 	struct ipath_modify_srq_cmd  cmd;
-@@ -611,7 +611,7 @@ int ipath_modify_srq(struct ibv_srq *ibsrq,
- 
- int ipath_modify_srq_v1(struct ibv_srq *ibsrq,
- 			struct ibv_srq_attr *attr, 
--			enum ibv_srq_attr_mask attr_mask)
-+			int attr_mask)
- {
- 	struct ibv_modify_srq cmd;
- 
+Not sure what else you are looking for here. Is it a description of
+the new field or a description of the patch which is trivial:
+"Add support for new field to PortInfo"
 
+> Reference to private tracker's RefID number
+> is not enough.
 
+It's not private as I've tried to explain before.
+
+-- Hal
+
+>
+> Sasha
+>
+>>
+>> Signed-off-by: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+>> ---
+>> diff --git a/libibmad/include/infiniband/mad.h b/libibmad/include/in=
+finiband/mad.h
+>> index b82b0d5..ed8fd71 100644
+>> --- a/libibmad/include/infiniband/mad.h
+>> +++ b/libibmad/include/infiniband/mad.h
+>> @@ -357,6 +357,7 @@ enum MAD_FIELDS {
+>> =C2=A0 =C2=A0 =C2=A0 IB_PORT_QKEY_VIOL_F,
+>> =C2=A0 =C2=A0 =C2=A0 IB_PORT_GUID_CAP_F,
+>> =C2=A0 =C2=A0 =C2=A0 IB_PORT_CLIENT_REREG_F,
+>> + =C2=A0 =C2=A0 IB_PORT_MCAST_PKEY_SUPR_ENAB_F,
+>> =C2=A0 =C2=A0 =C2=A0 IB_PORT_SUBN_TIMEOUT_F,
+>> =C2=A0 =C2=A0 =C2=A0 IB_PORT_RESP_TIME_VAL_F,
+>> =C2=A0 =C2=A0 =C2=A0 IB_PORT_LOCAL_PHYS_ERR_F,
+>> diff --git a/libibmad/src/fields.c b/libibmad/src/fields.c
+>> index 98a0c60..c2f9585 100644
+>> --- a/libibmad/src/fields.c
+>> +++ b/libibmad/src/fields.c
+>> @@ -162,6 +162,7 @@ static const ib_field_t ib_mad_f[] =3D {
+>> =C2=A0 =C2=A0 =C2=A0 {BITSOFFS(384, 16), "QkeyViolations", mad_dump_=
+uint},
+>> =C2=A0 =C2=A0 =C2=A0 {BITSOFFS(400, 8), "GuidCap", mad_dump_uint},
+>> =C2=A0 =C2=A0 =C2=A0 {BITSOFFS(408, 1), "ClientReregister", mad_dump=
+_uint},
+>> + =C2=A0 =C2=A0 {BITSOFFS(409, 1), "McastPkeyTrapSuppressionEnabled"=
+, mad_dump_uint},
+>> =C2=A0 =C2=A0 =C2=A0 {BITSOFFS(411, 5), "SubnetTimeout", mad_dump_ui=
+nt},
+>> =C2=A0 =C2=A0 =C2=A0 {BITSOFFS(419, 5), "RespTimeVal", mad_dump_uint=
+},
+>> =C2=A0 =C2=A0 =C2=A0 {BITSOFFS(424, 4), "LocalPhysErr", mad_dump_uin=
+t},
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-rdma=
+" in
+>> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+>> More majordomo info at =C2=A0http://vger.kernel.org/majordomo-info.h=
+tml
+>>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma"=
+ in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at =C2=A0http://vger.kernel.org/majordomo-info.ht=
+ml
+>
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
