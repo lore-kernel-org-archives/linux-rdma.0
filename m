@@ -1,23 +1,27 @@
 From: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH] osmtest - code cleanup: remove Windows specific items.
-Date: Fri, 6 Nov 2009 18:58:57 +0200
-Message-ID: <20091106165857.GF7192@me>
-References: <53DFB8C213D246138BE8D3793204CE12@amr.corp.intel.com>
+Subject: Re: [PATCH] infiniband-diags/ibnetdisc.h: Clarify "ports" member
+ of ibnd_node_t with more descriptive comment
+Date: Fri, 6 Nov 2009 18:59:46 +0200
+Message-ID: <20091106165946.GH7192@me>
+References: <20091105112956.914e4c8a.weiny2@llnl.gov>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <53DFB8C213D246138BE8D3793204CE12-Zpru7NauK7drdx17CPfAsdBPR1lH4CV8@public.gmane.org>
+In-Reply-To: <20091105112956.914e4c8a.weiny2-i2BcT+NCU+M@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Stan C. Smith" <stan.smith-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ofw-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
+To: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 12:34 Wed 04 Nov     , Stan C. Smith wrote:
+On 11:29 Thu 05 Nov     , Ira Weiny wrote:
 > 
-> Remove #ifdef WIN32, #else & #endif. Just use PATH_MAX.
+> From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+> Date: Tue, 3 Nov 2009 17:03:15 -0800
+> Subject: [PATCH] infiniband-diags/ibnetdisc.h: Clarify "ports" member of ibnd_node_t with more descriptive comment
 > 
-> Signed-off-by: stan smith <stan.smith-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> 
+> Signed-off-by: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
 
 Applied. Thanks.
 
