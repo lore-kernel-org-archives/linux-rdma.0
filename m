@@ -1,7 +1,8 @@
 From: Hal Rosenstock <hnrose-Wuw85uim5zDR7s880joybQ@public.gmane.org>
-Subject: [PATCH] opensm: Only clear SMP beyond end of PortInfo attribute
-Date: Fri, 6 Nov 2009 09:14:02 -0500
-Message-ID: <20091106141402.GA19699@comcast.net>
+Subject: [PATCH] libibmad: Add support for
+	PortInfo:McastPkeyTrapSuppressionEnabled
+Date: Fri, 6 Nov 2009 09:10:34 -0500
+Message-ID: <20091106141034.GC19678@comcast.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
@@ -12,55 +13,34 @@ Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 
-rather than the whole SMP
+Per published MgtWG erratum RefID 4576
 
 Signed-off-by: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 ---
-diff --git a/opensm/opensm/osm_lid_mgr.c b/opensm/opensm/osm_lid_mgr.c
-index 145be1c..5529033 100644
---- a/opensm/opensm/osm_lid_mgr.c
-+++ b/opensm/opensm/osm_lid_mgr.c
-@@ -865,8 +865,9 @@ static int lid_mgr_set_physp_pi(IN osm_lid_mgr_t * p_mgr,
- 	   Third, send the SMP to this physical port.
- 	 */
- 
--	memset(payload, 0, IB_SMP_DATA_SIZE);
- 	memcpy(payload, p_old_pi, sizeof(ib_port_info_t));
-+	memset(payload + sizeof(ib_port_info_t), 0,
-+	       IB_SMP_DATA_SIZE - sizeof(ib_port_info_t));
- 
- 	/*
- 	   Should never write back a value that is bigger then 3 in
-diff --git a/opensm/opensm/osm_link_mgr.c b/opensm/opensm/osm_link_mgr.c
-index 2477f2c..bcfc269 100644
---- a/opensm/opensm/osm_link_mgr.c
-+++ b/opensm/opensm/osm_link_mgr.c
-@@ -152,8 +152,9 @@ static int link_mgr_set_physp_pi(osm_sm_t * sm, IN osm_physp_t * p_physp,
- 			esp0 = TRUE;
- 	}
- 
--	memset(payload, 0, IB_SMP_DATA_SIZE);
- 	memcpy(payload, p_old_pi, sizeof(ib_port_info_t));
-+	memset(payload + sizeof(ib_port_info_t), 0,
-+	       IB_SMP_DATA_SIZE - sizeof(ib_port_info_t));
- 
- 	/*
- 	   Should never write back a value that is bigger then 3 in
-diff --git a/opensm/opensm/osm_pkey_mgr.c b/opensm/opensm/osm_pkey_mgr.c
-index 6666be2..de79e3d 100644
---- a/opensm/opensm/osm_pkey_mgr.c
-+++ b/opensm/opensm/osm_pkey_mgr.c
-@@ -200,8 +200,9 @@ pkey_mgr_enforce_partition(IN osm_log_t * p_log, osm_sm_t * sm,
- 		return IB_SUCCESS;
- 	}
- 
--	memset(payload, 0, IB_SMP_DATA_SIZE);
- 	memcpy(payload, p_pi, sizeof(ib_port_info_t));
-+	memset(payload + sizeof(ib_port_info_t), 0,
-+	       IB_SMP_DATA_SIZE - sizeof(ib_port_info_t));
- 
- 	p_pi = (ib_port_info_t *) payload;
- 	if (enforce == TRUE)
+diff --git a/libibmad/include/infiniband/mad.h b/libibmad/include/infiniband/mad.h
+index b82b0d5..ed8fd71 100644
+--- a/libibmad/include/infiniband/mad.h
++++ b/libibmad/include/infiniband/mad.h
+@@ -357,6 +357,7 @@ enum MAD_FIELDS {
+ 	IB_PORT_QKEY_VIOL_F,
+ 	IB_PORT_GUID_CAP_F,
+ 	IB_PORT_CLIENT_REREG_F,
++	IB_PORT_MCAST_PKEY_SUPR_ENAB_F,
+ 	IB_PORT_SUBN_TIMEOUT_F,
+ 	IB_PORT_RESP_TIME_VAL_F,
+ 	IB_PORT_LOCAL_PHYS_ERR_F,
+diff --git a/libibmad/src/fields.c b/libibmad/src/fields.c
+index 98a0c60..c2f9585 100644
+--- a/libibmad/src/fields.c
++++ b/libibmad/src/fields.c
+@@ -162,6 +162,7 @@ static const ib_field_t ib_mad_f[] = {
+ 	{BITSOFFS(384, 16), "QkeyViolations", mad_dump_uint},
+ 	{BITSOFFS(400, 8), "GuidCap", mad_dump_uint},
+ 	{BITSOFFS(408, 1), "ClientReregister", mad_dump_uint},
++	{BITSOFFS(409, 1), "McastPkeyTrapSuppressionEnabled", mad_dump_uint},
+ 	{BITSOFFS(411, 5), "SubnetTimeout", mad_dump_uint},
+ 	{BITSOFFS(419, 5), "RespTimeVal", mad_dump_uint},
+ 	{BITSOFFS(424, 4), "LocalPhysErr", mad_dump_uint},
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
