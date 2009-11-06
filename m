@@ -1,205 +1,275 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [ANNOUNCE] libibverbs 1.1.3 is released
-Date: Fri, 06 Nov 2009 13:08:10 -0500
-Message-ID: <4AF4660A.4040103@redhat.com>
-References: <adaskd151b2.fsf@cisco.com>
+From: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+Subject: Re: [infiniband-diags] [PATCH] [2/2] split out scan specific data
+ from ibnd_node_t
+Date: Fri, 6 Nov 2009 20:16:33 +0200
+Message-ID: <20091106181633.GQ7192@me>
+References: <1257190401.580.31.camel@auk31.llnl.gov>
+ <1257196316.580.33.camel@auk31.llnl.gov>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
- protocol="application/pgp-signature";
- boundary="------------enig3EDD29ECC50A93CCF5BBEF1C"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <adaskd151b2.fsf-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1257196316.580.33.camel-X2zTWyBD0EhliZ7u+bvwcg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+To: Al Chu <chu11-i2BcT+NCU+M@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
---------------enig3EDD29ECC50A93CCF5BBEF1C
-Content-Type: multipart/mixed;
- boundary="------------010205020902010707030707"
+On 13:11 Mon 02 Nov     , Al Chu wrote:
+> Hi Sasha,
+> 
+> Oops.  I forgot to free the newly created memory.  Here's a new patch.
+> 
+> Al
+> 
+> On Mon, 2009-11-02 at 11:33 -0800, Al Chu wrote:
+> > Hey Sasha,
+> > 
+> > This splits out some scan specific data from ibnd_node_t that doesn't
+> > need to be in the public struct.
+> > 
+> > Al
+> > 
+> -- 
+> Albert Chu
+> chu11-i2BcT+NCU+M@public.gmane.org
+> Computer Scientist
+> High Performance Systems Division
+> Lawrence Livermore National Laboratory
 
-This is a multi-part message in MIME format.
---------------010205020902010707030707
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+> From: Albert Chu <chu11-i2BcT+NCU+M@public.gmane.org>
+> Date: Thu, 29 Oct 2009 18:59:26 -0700
+> Subject: [PATCH] split out scan specific data from ibnd_node_t
+> 
+> 
+> Signed-off-by: Albert Chu <chu11-i2BcT+NCU+M@public.gmane.org>
+> ---
+>  .../libibnetdisc/include/infiniband/ibnetdisc.h    |    2 -
+>  infiniband-diags/libibnetdisc/src/chassis.c        |   18 +++++--
+>  infiniband-diags/libibnetdisc/src/ibnetdisc.c      |   51 +++++++++++++++++---
+>  infiniband-diags/libibnetdisc/src/internal.h       |    8 +++-
+>  4 files changed, 65 insertions(+), 14 deletions(-)
+> 
+> diff --git a/infiniband-diags/libibnetdisc/include/infiniband/ibnetdisc.h b/infiniband-diags/libibnetdisc/include/infiniband/ibnetdisc.h
+> index 6120453..f1cb00c 100644
+> --- a/infiniband-diags/libibnetdisc/include/infiniband/ibnetdisc.h
+> +++ b/infiniband-diags/libibnetdisc/include/infiniband/ibnetdisc.h
+> @@ -48,7 +48,6 @@ struct ibnd_port;		/* forward declare */
+>  typedef struct ibnd_node {
+>  	struct ibnd_node *next;	/* all node list in fabric */
+>  
+> -	ib_portid_t path_portid;	/* path from "from_node" */
+>  	int smalid;
+>  	int smalmc;
+>  
+> @@ -81,7 +80,6 @@ typedef struct ibnd_node {
+>  	/* internal use only */
+>  	unsigned char ch_found;
+>  	struct ibnd_node *htnext;	/* hash table list */
+> -	struct ibnd_node *dnext;	/* nodesdist next */
+>  	struct ibnd_node *type_next;	/* next based on type */
+>  } ibnd_node_t;
 
-On 10/29/2009 05:37 PM, Roland Dreier wrote:
-> libibverbs is a library that allows programs to use RDMA "verbs" for
-> direct access to RDMA (currently InfiniBand and iWARP) hardware from
-> userspace.
->=20
-> The new stable release, 1.1.3, is available from
->=20
->     http://www.openfabrics.org//downloads/verbs/libibverbs-1.1.3.tar.gz=
+Why do you want to remove this? port->path_portid can be useful for
+logging, specific querying, etc.. Even node->dnext can be helpful for
+some "advanced" use too.
 
->=20
-> with sha1sum
->=20
->     aa8eb44c84e326799d986c8f07d636afd0b8b7eb  libibverbs-1.1.3.tar.gz
->=20
-> I also pushed the latest tree and tag out to kernel.org:
->=20
->     git://git.kernel.org/pub/scm/libs/infiniband/libibverbs.git
->=20
-> (the name of the tag is libibverbs-1.1.3).
->=20
-> It's been too long since the previous release, and this release
-> contains many small fixes and cleanups, including a few that have API
-> impacts (although no changes in code using the library should be
-> required).
+Sasha
 
-No changes to precompiled code should be necessary, however to suppress
-warnings when compiling against this new API there are a few minor
-cleanups needed.  Those cleanups are already in the libmlx4 and libmthca
-git repos.  This patch does the cleanups for libcxgb3.
+>  
+> diff --git a/infiniband-diags/libibnetdisc/src/chassis.c b/infiniband-diags/libibnetdisc/src/chassis.c
+> index 15c17d2..3bd0108 100644
+> --- a/infiniband-diags/libibnetdisc/src/chassis.c
+> +++ b/infiniband-diags/libibnetdisc/src/chassis.c
+> @@ -822,6 +822,7 @@ int group_nodes(ibnd_fabric_t * fabric, ibnd_scan_t *scan)
+>  	int chassisnum = 0;
+>  	ibnd_chassis_t *chassis;
+>  	ibnd_chassis_t *ch, *ch_next;
+> +	ibnd_node_scan_t *node_scan;
+>  
+>  	scan->first_chassis = NULL;
+>  	scan->current_chassis = NULL;
+> @@ -832,16 +833,21 @@ int group_nodes(ibnd_fabric_t * fabric, ibnd_scan_t *scan)
+>  	/* according to internal connectivity */
+>  	/* not very efficient but clear code so... */
+>  	for (dist = 0; dist <= fabric->maxhops_discovered; dist++)
+> -		for (node = scan->nodesdist[dist]; node; node = node->dnext)
+> +		for (node_scan = scan->nodesdist[dist]; node_scan; node_scan = node_scan->dnext) {
+> +			node = node_scan->node;
+> +
+>  			if (mad_get_field(node->info, 0,
+>  					  IB_NODE_VENDORID_F) == VTR_VENDOR_ID
+>  			    && fill_voltaire_chassis_record(node))
+>  				goto cleanup;
+> +		}
+>  
+>  	/* separate every Voltaire chassis from each other and build linked list of them */
+>  	/* algorithm: catch spine and find all surrounding nodes */
+>  	for (dist = 0; dist <= fabric->maxhops_discovered; dist++)
+> -		for (node = scan->nodesdist[dist]; node; node = node->dnext) {
+> +		for (node_scan = scan->nodesdist[dist]; node_scan; node_scan = node_scan->dnext) {
+> +			node = node_scan->node;
+> +
+>  			if (mad_get_field(node->info, 0,
+>  					  IB_NODE_VENDORID_F) != VTR_VENDOR_ID)
+>  				continue;
+> @@ -859,7 +865,9 @@ int group_nodes(ibnd_fabric_t * fabric, ibnd_scan_t *scan)
+>  	/* now make pass on nodes for chassis which are not Voltaire */
+>  	/* grouped by common SystemImageGUID */
+>  	for (dist = 0; dist <= fabric->maxhops_discovered; dist++)
+> -		for (node = scan->nodesdist[dist]; node; node = node->dnext) {
+> +		for (node_scan = scan->nodesdist[dist]; node_scan; node_scan = node_scan->dnext) {
+> +			node = node_scan->node;
+> +
+>  			if (mad_get_field(node->info, 0,
+>  					  IB_NODE_VENDORID_F) == VTR_VENDOR_ID)
+>  				continue;
+> @@ -885,7 +893,9 @@ int group_nodes(ibnd_fabric_t * fabric, ibnd_scan_t *scan)
+>  	/* now, make another pass to see which nodes are part of chassis */
+>  	/* (defined as chassis->nodecount > 1) */
+>  	for (dist = 0; dist <= MAXHOPS;) {
+> -		for (node = scan->nodesdist[dist]; node; node = node->dnext) {
+> +		for (node_scan = scan->nodesdist[dist]; node_scan; node_scan = node_scan->dnext) {
+> +			node = node_scan->node;
+> +
+>  			if (mad_get_field(node->info, 0,
+>  					  IB_NODE_VENDORID_F) == VTR_VENDOR_ID)
+>  				continue;
+> diff --git a/infiniband-diags/libibnetdisc/src/ibnetdisc.c b/infiniband-diags/libibnetdisc/src/ibnetdisc.c
+> index ffa35e4..233654c 100644
+> --- a/infiniband-diags/libibnetdisc/src/ibnetdisc.c
+> +++ b/infiniband-diags/libibnetdisc/src/ibnetdisc.c
+> @@ -332,13 +332,26 @@ static void add_to_type_list(ibnd_node_t * node, ibnd_fabric_t * fabric)
+>  	}
+>  }
+>  
+> -static void add_to_nodedist(ibnd_node_t * node, ibnd_scan_t * scan, int dist)
+> +static int add_to_nodedist(ibnd_node_t * node, ibnd_scan_t * scan,
+> +			   ib_portid_t * path, int dist)
+>  {
+> +	ibnd_node_scan_t *node_scan;
+> +
+> +	node_scan = malloc(sizeof(*node_scan));
+> +	if (!node_scan) {
+> +		IBND_ERROR("OOM: node scan creation failed\n");
+> +		return -1;
+> +	}
+> +	node_scan->node = node;
+> +	node_scan->path_portid = *path;
+> +
+>  	if (node->type != IB_NODE_SWITCH)
+>  		dist = MAXHOPS;	/* special Ca list */
+>  
+> -	node->dnext = scan->nodesdist[dist];
+> -	scan->nodesdist[dist] = node;
+> +	node_scan->dnext = scan->nodesdist[dist];
+> +	scan->nodesdist[dist] = node_scan;
+> +	
+> +	return 0;
+>  }
+>  
+>  static ibnd_node_t *create_node(ibnd_fabric_t * fabric, ibnd_scan_t * scan,
+> @@ -354,7 +367,6 @@ static ibnd_node_t *create_node(ibnd_fabric_t * fabric, ibnd_scan_t * scan,
+>  	}
+>  
+>  	memcpy(node, temp, sizeof(*node));
+> -	node->path_portid = *path;
+>  
+>  	add_to_nodeguid_hash(node, fabric->nodestbl);
+>  
+> @@ -363,7 +375,11 @@ static ibnd_node_t *create_node(ibnd_fabric_t * fabric, ibnd_scan_t * scan,
+>  	fabric->nodes = node;
+>  
+>  	add_to_type_list(node, fabric);
+> -	add_to_nodedist(node, scan, dist);
+> +
+> +	if (add_to_nodedist(node, scan, path, dist) < 0) {
+> +		free(node);
+> +		return NULL;
+> +	}
+>  
+>  	return node;
+>  }
+> @@ -483,6 +499,23 @@ error:
+>  	return rc;
+>  }
+>  
+> +static void ibnd_scan_destroy(ibnd_scan_t *scan)
+> +{
+> +	int dist = 0;
+> +	int max_hops = MAXHOPS - 1;
+> +	ibnd_node_scan_t *node_scan;
+> +	ibnd_node_scan_t *next;
+> +
+> +	for (dist = 0; dist <= max_hops; dist++) {
+> +		node_scan = scan->nodesdist[dist];
+> +		while (node_scan) {
+> +			next = node_scan->dnext;
+> +			free(node_scan);
+> +			node_scan = next;
+> +		}
+> +	}
+> +}
+> +
+>  ibnd_fabric_t *ibnd_discover_fabric(struct ibmad_port * ibmad_port,
+>  				    ib_portid_t * from, int hops)
+>  {
+> @@ -492,6 +525,7 @@ ibnd_fabric_t *ibnd_discover_fabric(struct ibmad_port * ibmad_port,
+>  	ibnd_node_t node_buf;
+>  	ibnd_port_t port_buf;
+>  	ibnd_node_t *node;
+> +	ibnd_node_scan_t *node_scan;
+>  	ibnd_port_t *port;
+>  	int i;
+>  	int dist = 0;
+> @@ -552,9 +586,10 @@ ibnd_fabric_t *ibnd_discover_fabric(struct ibmad_port * ibmad_port,
+>  
+>  	for (dist = 0; dist <= max_hops; dist++) {
+>  
+> -		for (node = scan.nodesdist[dist]; node; node = node->dnext) {
+> +		for (node_scan = scan.nodesdist[dist]; node_scan; node_scan = node_scan->dnext) {
+> +			node = node_scan->node;
+>  
+> -			path = &node->path_portid;
+> +			path = &node_scan->path_portid;
+>  
+>  			IBND_DEBUG("dist %d node %p\n", dist, node);
+>  			dump_endnode(path, "processing", node, port);
+> @@ -598,8 +633,10 @@ ibnd_fabric_t *ibnd_discover_fabric(struct ibmad_port * ibmad_port,
+>  	if (group_nodes(fabric, &scan))
+>  		goto error;
+>  
+> +	ibnd_scan_destroy(&scan);
+>  	return fabric;
+>  error:
+> +	ibnd_scan_destroy(&scan);
+>  	ibnd_destroy_fabric(fabric);
+>  	return NULL;
+>  }
+> diff --git a/infiniband-diags/libibnetdisc/src/internal.h b/infiniband-diags/libibnetdisc/src/internal.h
+> index eac1a29..d8bcf87 100644
+> --- a/infiniband-diags/libibnetdisc/src/internal.h
+> +++ b/infiniband-diags/libibnetdisc/src/internal.h
+> @@ -52,8 +52,14 @@
+>  
+>  #define MAXHOPS         63
+>  
+> +typedef struct ibnd_node_scan {
+> +	ibnd_node_t *node;
+> +	ib_portid_t path_portid;	/* path from "from_node" */
+> +	struct ibnd_node_scan *dnext;	/* nodesdist next */
+> +} ibnd_node_scan_t;
+> +
+>  typedef struct ibnd_scan {
+> -	ibnd_node_t *nodesdist[MAXHOPS + 1];
+> +	ibnd_node_scan_t *nodesdist[MAXHOPS + 1];
+>  	ibnd_chassis_t *first_chassis;
+>  	ibnd_chassis_t *current_chassis;
+>  	ibnd_chassis_t *last_chassis;
+> -- 
+> 1.5.4.5
+> 
 
---=20
-Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-              GPG KeyID: CFBFF194
-	      http://people.redhat.com/dledford
-
-Infiniband specific RPMs available at
-	      http://people.redhat.com/dledford/Infiniband
-
---------------010205020902010707030707
-Content-Type: text/plain;
- name="libcxgb3-1.2.5-verbs-api.patch"
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: attachment;
- filename="libcxgb3-1.2.5-verbs-api.patch"
-
---- libcxgb3-1.2.5/src/verbs.c.api	2009-09-29 14:57:44.000000000 -0400
-+++ libcxgb3-1.2.5/src/verbs.c	2009-11-06 12:37:33.172964811 -0500
-@@ -108,7 +108,7 @@ int iwch_free_pd(struct ibv_pd *pd)
-=20
- static struct ibv_mr *__iwch_reg_mr(struct ibv_pd *pd, void *addr,
- 				    size_t length, uint64_t hca_va,
--				    enum ibv_access_flags access)
-+				    int access)
- {
- 	struct iwch_mr *mhp;
- 	struct ibv_reg_mr cmd;
-@@ -144,7 +144,7 @@ static struct ibv_mr *__iwch_reg_mr(stru
- }
-=20
- struct ibv_mr *iwch_reg_mr(struct ibv_pd *pd, void *addr,
--			   size_t length, enum ibv_access_flags access)
-+			   size_t length, int access)
- {
- 	PDBG("%s addr %p length %ld\n", __FUNCTION__, addr, length);
- 	return __iwch_reg_mr(pd, addr, length, (uintptr_t) addr, access);
-@@ -267,7 +267,7 @@ struct ibv_srq *iwch_create_srq(struct i
- }
-=20
- int iwch_modify_srq(struct ibv_srq *srq, struct ibv_srq_attr *attr,=20
--		    enum ibv_srq_attr_mask attr_mask)
-+		    int attr_mask)
- {
- 	return -ENOSYS;
- }
-@@ -370,7 +370,7 @@ static void reset_qp(struct iwch_qp *qhp
- }
-=20
- int iwch_modify_qp(struct ibv_qp *ibqp, struct ibv_qp_attr *attr,
--		   enum ibv_qp_attr_mask attr_mask)
-+		   int attr_mask)
- {
- 	struct ibv_modify_qp cmd;
- 	struct iwch_qp *qhp =3D to_iwch_qp(ibqp);
-@@ -424,7 +424,7 @@ int iwch_destroy_qp(struct ibv_qp *ibqp)
- }
-=20
- int iwch_query_qp(struct ibv_qp *qp, struct ibv_qp_attr *attr,
--		  enum ibv_qp_attr_mask attr_mask, struct ibv_qp_init_attr *init_attr)=
-
-+		  int attr_mask, struct ibv_qp_init_attr *init_attr)
- {
- 	return -ENOSYS;
- }
-@@ -439,12 +439,12 @@ int iwch_destroy_ah(struct ibv_ah *ah)
- 	return -ENOSYS;
- }
-=20
--int iwch_attach_mcast(struct ibv_qp *qp, union ibv_gid *gid, uint16_t li=
-d)
-+int iwch_attach_mcast(struct ibv_qp *qp, const union ibv_gid *gid, uint1=
-6_t lid)
- {
- 	return -ENOSYS;
- }
-=20
--int iwch_detach_mcast(struct ibv_qp *qp, union ibv_gid *gid, uint16_t li=
-d)
-+int iwch_detach_mcast(struct ibv_qp *qp, const union ibv_gid *gid, uint1=
-6_t lid)
- {
- 	return -ENOSYS;
- }
---- libcxgb3-1.2.5/src/iwch.h.api	2009-09-29 14:58:25.000000000 -0400
-+++ libcxgb3-1.2.5/src/iwch.h	2009-11-06 12:37:19.981089104 -0500
-@@ -150,7 +150,7 @@ extern struct ibv_pd *iwch_alloc_pd(stru
- extern int iwch_free_pd(struct ibv_pd *pd);
-=20
- extern struct ibv_mr *iwch_reg_mr(struct ibv_pd *pd, void *addr,
--				  size_t length, enum ibv_access_flags access);
-+				  size_t length, int access);
- extern int iwch_dereg_mr(struct ibv_mr *mr);
-=20
- struct ibv_cq *iwch_create_cq(struct ibv_context *context, int cqe,
-@@ -168,7 +168,7 @@ extern struct ibv_srq *iwch_create_srq(s
- 				       struct ibv_srq_init_attr *attr);
- extern int iwch_modify_srq(struct ibv_srq *srq,
- 			   struct ibv_srq_attr *attr,
--			   enum ibv_srq_attr_mask mask);
-+			   int mask);
- extern int iwch_destroy_srq(struct ibv_srq *srq);
- extern int iwch_post_srq_recv(struct ibv_srq *ibsrq,
- 			      struct ibv_recv_wr *wr,
-@@ -177,11 +177,11 @@ extern int iwch_post_srq_recv(struct ibv
- extern struct ibv_qp *iwch_create_qp(struct ibv_pd *pd,
- 				     struct ibv_qp_init_attr *attr);
- extern int iwch_modify_qp(struct ibv_qp *qp, struct ibv_qp_attr *attr,
--			  enum ibv_qp_attr_mask attr_mask);
-+			  int attr_mask);
- extern int iwch_destroy_qp(struct ibv_qp *qp);
- extern int iwch_query_qp(struct ibv_qp *qp,
- 			 struct ibv_qp_attr *attr,
--			 enum ibv_qp_attr_mask attr_mask,
-+			 int attr_mask,
- 			 struct ibv_qp_init_attr *init_attr);
- extern void iwch_flush_qp(struct iwch_qp *qhp);
- extern int t3a_post_send(struct ibv_qp *ibqp, struct ibv_send_wr *wr,
-@@ -195,9 +195,9 @@ extern int t3b_post_recv(struct ibv_qp *
- extern struct ibv_ah *iwch_create_ah(struct ibv_pd *pd,
- 			     struct ibv_ah_attr *ah_attr);
- extern int iwch_destroy_ah(struct ibv_ah *ah);
--extern int iwch_attach_mcast(struct ibv_qp *qp, union ibv_gid *gid,
-+extern int iwch_attach_mcast(struct ibv_qp *qp, const union ibv_gid *gid=
-,
- 			     uint16_t lid);
--extern int iwch_detach_mcast(struct ibv_qp *qp, union ibv_gid *gid,
-+extern int iwch_detach_mcast(struct ibv_qp *qp, const union ibv_gid *gid=
-,
- 			     uint16_t lid);
- extern void t3b_async_event(struct ibv_async_event *event);
- #ifdef DEBUG
-
---------------010205020902010707030707--
-
---------------enig3EDD29ECC50A93CCF5BBEF1C
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.9 (GNU/Linux)
-
-iEYEARECAAYFAkr0ZgoACgkQg6WylM+/8ZQ2xgCcCIj7XY7n0otpTsQyfEKxR2j9
-kiUAoKFeNj9omx/bgfP2AH5SGr0HTQ0z
-=1QzL
------END PGP SIGNATURE-----
-
---------------enig3EDD29ECC50A93CCF5BBEF1C--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
