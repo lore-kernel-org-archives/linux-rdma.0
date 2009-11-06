@@ -1,68 +1,127 @@
-From: Michael Reed <mdr-sJ/iWh9BUns@public.gmane.org>
-Subject: [PATCH 1/1] opensm/main.c: opensm cannot be killed while asking for
- port guid
-Date: Fri, 06 Nov 2009 12:41:47 -0600
-Message-ID: <4AF46DEB.7090105@sgi.com>
+From: Ralph Campbell <ralph.campbell-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH] IB/libipathverbs: update function signatures for
+	libibverbs-1.1.3
+Date: Fri, 6 Nov 2009 11:05:26 -0800
+Message-ID: <1257534326.992.211.camel@chromite.mv.qlogic.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Sammy Wilborn <samm-sJ/iWh9BUns@public.gmane.org>, Jeremy Higdon <jeremy-sJ/iWh9BUns@public.gmane.org>
+To: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-opensm enters an uninterruptible loop when the user enters
-"-g 0" on the command line.  The only way to kill opensm is to
-background the process and send "kill -9".
+This patch changes the function signatures to match the API
+changes in libibverbs-1.1.3.
+    
+Signed-off-by: Ralph Campbell <ralph.campbell-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
 
-This patch provides the user an out in get_port_guid() by
-introducing "0" as a valid selection.  This patch also changes
-the "Lame choice!" error message to something a bit more, uh,
-"professional".  main() is modified to test the return code.
-This was probably a bug as a return of 0 is returned under a
-number of different circumstances by get_port_guid().
-
-Applies to 1.15 RC2.
-
-Signed-off-by: Michael Reed <mdr-sJ/iWh9BUns@public.gmane.org>
-
-
---- /tmp/OFED-1.5-rc2/main.c	2009-11-06 08:56:59.089100487 -0800
-+++ opensm/main.c	2009-11-06 09:42:34.698963811 -0800
-@@ -434,15 +434,19 @@ static ib_net64_t get_port_guid(IN osm_o
- 			       i + 1, cl_ntoh64(attr_array[i].port_guid),
- 			       attr_array[i].lid,
- 			       ib_get_port_state_str(attr_array[i].link_state));
--		printf("\nEnter choice (1-%u): ", i);
-+		printf("\n\t0: Exit\n");
-+		printf("\nEnter choice (0-%u): ", i);
- 		fflush(stdout);
- 		if (scanf("%u", &choice) <= 0) {
- 			char junk[128];
- 			if (scanf("%s", junk) <= 0)
- 				printf("\nError: Cannot scan!\n");
--		} else if (choice && choice <= num_ports)
-+		}
-+		else if (choice == 0)
-+			return (0);
-+		else if (choice <= num_ports)
- 			break;
--		printf("\nError: Lame choice!\n");
-+		printf("\nError: Please try again.\n");
- 	}
- 	choice--;
- 	printf("Choice guid=0x%" PRIx64 "\n",
-@@ -1039,6 +1043,9 @@ int main(int argc, char *argv[])
- 	if (opt.guid == 0 || cl_hton64(opt.guid) == CL_HTON64(INVALID_GUID))
- 		opt.guid = get_port_guid(&osm, opt.guid);
+diff --git a/src/ipathverbs.h b/src/ipathverbs.h
+index 3493807..5ebd79d 100644
+--- a/src/ipathverbs.h
++++ b/src/ipathverbs.h
+@@ -1,5 +1,5 @@
+ /*
+- * Copyright (c) 2006-2007 QLogic Corp. All rights reserved.
++ * Copyright (c) 2006-2009 QLogic Corp. All rights reserved.
+  * Copyright (c) 2005. PathScale, Inc. All rights reserved.
+  *
+  * This software is available to you under a choice of one of two
+@@ -188,7 +188,7 @@ struct ibv_pd *ipath_alloc_pd(struct ibv_context *pd);
+ int ipath_free_pd(struct ibv_pd *pd);
  
-+	if (opt.guid == 0)
-+		goto Exit;
-+
- 	status = osm_opensm_bind(&osm, opt.guid);
- 	if (status != IB_SUCCESS) {
- 		printf("\nError from osm_opensm_bind (0x%X)\n", status);
+ struct ibv_mr *ipath_reg_mr(struct ibv_pd *pd, void *addr,
+-			    size_t length, enum ibv_access_flags access);
++			    size_t length, int access);
+ 
+ int ipath_dereg_mr(struct ibv_mr *mr);
+ 
+@@ -217,11 +217,11 @@ struct ibv_qp *ipath_create_qp_v1(struct ibv_pd *pd,
+ 				  struct ibv_qp_init_attr *attr);
+ 
+ int ipath_query_qp(struct ibv_qp *qp, struct ibv_qp_attr *attr,
+-		   enum ibv_qp_attr_mask attr_mask,
++		   int attr_mask,
+ 		   struct ibv_qp_init_attr *init_attr);
+ 
+ int ipath_modify_qp(struct ibv_qp *qp, struct ibv_qp_attr *attr,
+-		    enum ibv_qp_attr_mask attr_mask);
++		    int attr_mask);
+ 
+ int ipath_destroy_qp(struct ibv_qp *qp);
+ 
+@@ -241,11 +241,11 @@ struct ibv_srq *ipath_create_srq_v1(struct ibv_pd *pd,
+ 
+ int ipath_modify_srq(struct ibv_srq *srq,
+ 		     struct ibv_srq_attr *attr, 
+-		     enum ibv_srq_attr_mask attr_mask);
++		     int attr_mask);
+ 
+ int ipath_modify_srq_v1(struct ibv_srq *srq,
+ 			struct ibv_srq_attr *attr, 
+-			enum ibv_srq_attr_mask attr_mask);
++			int attr_mask);
+ 
+ int ipath_query_srq(struct ibv_srq *srq, struct ibv_srq_attr *attr);
+ 
+diff --git a/src/verbs.c b/src/verbs.c
+index b73b7f7..17d54cd 100644
+--- a/src/verbs.c
++++ b/src/verbs.c
+@@ -1,5 +1,5 @@
+ /*
+- * Copyright (c) 2006-2007 QLogic Corp. All rights reserved.
++ * Copyright (c) 2006-2009 QLogic Corp. All rights reserved.
+  * Copyright (c) 2005. PathScale, Inc. All rights reserved.
+  *
+  * This software is available to you under a choice of one of two
+@@ -113,7 +113,7 @@ int ipath_free_pd(struct ibv_pd *pd)
+ }
+ 
+ struct ibv_mr *ipath_reg_mr(struct ibv_pd *pd, void *addr,
+-			    size_t length, enum ibv_access_flags access)
++			    size_t length, int access)
+ {
+ 	struct ibv_mr *mr;
+ 	struct ibv_reg_mr cmd;
+@@ -372,7 +372,7 @@ struct ibv_qp *ipath_create_qp_v1(struct ibv_pd *pd,
+ }
+ 
+ int ipath_query_qp(struct ibv_qp *qp, struct ibv_qp_attr *attr,
+-		   enum ibv_qp_attr_mask attr_mask,
++		   int attr_mask,
+ 		   struct ibv_qp_init_attr *init_attr)
+ {
+ 	struct ibv_query_qp cmd;
+@@ -382,7 +382,7 @@ int ipath_query_qp(struct ibv_qp *qp, struct ibv_qp_attr *attr,
+ }
+ 
+ int ipath_modify_qp(struct ibv_qp *qp, struct ibv_qp_attr *attr,
+-		    enum ibv_qp_attr_mask attr_mask)
++		    int attr_mask)
+ {
+ 	struct ibv_modify_qp cmd;
+ 
+@@ -567,7 +567,7 @@ struct ibv_srq *ipath_create_srq_v1(struct ibv_pd *pd,
+ 
+ int ipath_modify_srq(struct ibv_srq *ibsrq,
+ 		     struct ibv_srq_attr *attr, 
+-		     enum ibv_srq_attr_mask attr_mask)
++		     int attr_mask)
+ {
+ 	struct ipath_srq            *srq = to_isrq(ibsrq);
+ 	struct ipath_modify_srq_cmd  cmd;
+@@ -611,7 +611,7 @@ int ipath_modify_srq(struct ibv_srq *ibsrq,
+ 
+ int ipath_modify_srq_v1(struct ibv_srq *ibsrq,
+ 			struct ibv_srq_attr *attr, 
+-			enum ibv_srq_attr_mask attr_mask)
++			int attr_mask)
+ {
+ 	struct ibv_modify_srq cmd;
+ 
+
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
