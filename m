@@ -1,33 +1,58 @@
-From: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH 1/2] contain pthreads defs with ifdef  HAVE_LIBPTHREAD
-Date: Fri, 6 Nov 2009 18:56:23 +0200
-Message-ID: <20091106165623.GD7192@me>
+From: Sasha Khapyorsky <sashak@voltaire.com>
+Subject: Re: [PATCH 1/2] contain pthreads defs with ifdef
+	HAVE_LIBPTHREAD
+Date: Fri, 6 Nov 2009 18:58:34 +0200
+Message-ID: <20091106165834.GE7192@me>
 References: <F9EFFFF3BD1D442AB6AA993FD6F0B5D8@amr.corp.intel.com>
- <3F6F638B8D880340AB536D29CD4C1E1912C8E0D221@orsmsx501.amr.corp.intel.com>
+	<74DB7ADB8B154DE69B8F65456193D483@amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <ofw-bounces@lists.openfabrics.org>
 Content-Disposition: inline
-In-Reply-To: <3F6F638B8D880340AB536D29CD4C1E1912C8E0D221-osO9UTpF0USkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Smith, Stan" <stan.smith-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "ofw-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org" <ofw-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+In-Reply-To: <74DB7ADB8B154DE69B8F65456193D483@amr.corp.intel.com>
+List-Unsubscribe: <http://lists.openfabrics.org/cgi-bin/mailman/listinfo/ofw>,
+	<mailto:ofw-request@lists.openfabrics.org?subject=unsubscribe>
+List-Archive: <http://lists.openfabrics.org/pipermail/ofw>
+List-Post: <mailto:ofw@lists.openfabrics.org>
+List-Help: <mailto:ofw-request@lists.openfabrics.org?subject=help>
+List-Subscribe: <http://lists.openfabrics.org/cgi-bin/mailman/listinfo/ofw>,
+	<mailto:ofw-request@lists.openfabrics.org?subject=subscribe>
+Sender: ofw-bounces@lists.openfabrics.org
+Errors-To: ofw-bounces@lists.openfabrics.org
+To: Sean Hefty <sean.hefty@intel.com>
+Cc: linux-rdma@vger.kernel.org, ofw@lists.openfabrics.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 09:07 Thu 05 Nov     , Smith, Stan wrote:
+On 13:05 Wed 04 Nov     , Sean Hefty wrote:
+> >Contain pthread definitions with ifdef HAVE_LIBPTHREAD
+> >
+> >Signed-off-by: stan smith <stan.smith@intel.com>
+> >
+> >diff --git a/opensm/include/vendor/osm_vendor_ibumad.h
+> >b/opensm/include/vendor/osm_vendor_ibumad.h
+> >index 0a4692d..d523412 100644
+> >--- a/opensm/include/vendor/osm_vendor_ibumad.h
+> >+++ b/opensm/include/vendor/osm_vendor_ibumad.h
+> >@@ -160,8 +160,13 @@ typedef struct _osm_vendor {
+> > 	char ca_names[OSM_UMAD_MAX_CAS][UMAD_CA_NAME_LEN];
+> > 	vendor_match_tbl_t mtbl;
+> > 	umad_port_t umad_port;
+> >+#ifdef HAVE_LIBPTHREAD
+> > 	pthread_mutex_t cb_mutex;
+> > 	pthread_mutex_t match_tbl_mutex;
+> >+#else
+> >+	cl_mutex_t cb_mutex;
+> >+	cl_mutex_t match_tbl_mutex;
+> >+#endif
 > 
-> The use of ifdef HAVE_LIBPTHREAD was based on existing HAVE_LIBPTHREAD usage in opensm/include/opensm/osm_stats.h @ line 97.
+> complib is available on both platforms, why not just use it?
 
-Right, but it was used due to differences in the functionality between
-cl_event_t and pthread stuff. I would be happy to remove those #ifdef's
-upon such differences elimination.
+We don't have cl_mutex_t in linux's implementation.
 
-> If the community prefers the use of macros then these two patches can be skipped.
+I didn't know that complib on windows already implements semantics which
+are similar to most useful pthread things. That is good, and seems that
+an easy porting could be done by using macros like:
 
-I think that macros are nicer.
+#define pthread_* cl_thread_*
 
 Sasha
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
