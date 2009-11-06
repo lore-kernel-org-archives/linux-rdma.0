@@ -1,7 +1,7 @@
 From: Hal Rosenstock <hnrose-Wuw85uim5zDR7s880joybQ@public.gmane.org>
-Subject: [PATCH] opensm/ib_types.h: Fix some commentary typos
-Date: Fri, 6 Nov 2009 09:06:24 -0500
-Message-ID: <20091106140624.GA19678@comcast.net>
+Subject: [PATCH] opensm/osm_base.h: Update IBA reference to use 1.2.1
+Date: Fri, 6 Nov 2009 09:08:08 -0500
+Message-ID: <20091106140808.GB19678@comcast.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
@@ -14,37 +14,19 @@ List-Id: linux-rdma@vger.kernel.org
 
 Signed-off-by: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 ---
-diff --git a/opensm/include/iba/ib_types.h b/opensm/include/iba/ib_types.h
-index 677166b..f6a1cf4 100644
---- a/opensm/include/iba/ib_types.h
-+++ b/opensm/include/iba/ib_types.h
-@@ -5339,7 +5339,7 @@ ib_port_info_set_client_rereg(IN ib_port_info_t * const p_pi,
- *	ib_port_info_set_mcast_pkey_trap_suppress
- *
- * DESCRIPTION
--*	Sets the encoded multicast pkey trap suppresion enabled bit value
-+*	Sets the encoded multicast pkey trap suppression enabled bit value
- *	in the PortInfo attribute.
- *
- * SYNOPSIS
-@@ -5359,7 +5359,7 @@ ib_port_info_set_mcast_pkey_trap_suppress(IN ib_port_info_t * const p_pi,
- *		[in] Pointer to a PortInfo attribute.
- *
- *	trap_suppress
--*		[in] Multicast pkey trap suppresion enabled value to set
-+*		[in] Multicast pkey trap suppression enabled value to set
- *		     (either 1 or 0).
- *
- * RETURN VALUES
-@@ -5431,7 +5431,7 @@ ib_port_info_get_client_rereg(IN ib_port_info_t const *p_pi)
- *	ib_port_info_get_mcast_pkey_trap_suppress
- *
- * DESCRIPTION
--*	Gets the encoded multicast pkey trap suppresion enabled bit value
-+*	Gets the encoded multicast pkey trap suppression enabled bit value
- *	in the PortInfo attribute.
- *
- * SYNOPSIS
+diff --git a/opensm/include/opensm/osm_base.h b/opensm/include/opensm/osm_base.h
+index a38ae2b..9d8bf98 100644
+--- a/opensm/include/opensm/osm_base.h
++++ b/opensm/include/opensm/osm_base.h
+@@ -668,7 +668,7 @@ typedef enum _osm_thread_state {
+ /***********/
+ 
+ /*
+- * OSM_CAP are from Table 117 and C15-0.1.7 Table 186
++ * OSM_CAP are from IBA 1.2.1 Table 117 and Table 188
+  */
+ 
+ /****d* OpenSM: Base/OSM_CAP_IS_TRAP_SUP
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
