@@ -1,37 +1,76 @@
-From: Bart Van Assche <bart.vanassche-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: SRPT and SCST
-Date: Sun, 8 Nov 2009 10:49:53 +0100
-Message-ID: <e2e108260911080149t569fc016p6e38d86a15cb7d05@mail.gmail.com>
-References: <3142CEFB1403044F9954E2DF6C85660FBB34BD@orca.penguincomputing.com>
-	 <4AF2D2B8.5080304@vlnb.net>
-	 <e2e108260911051034o43db58cdi65b84ce46219bb94@mail.gmail.com>
-	 <654FA770A883FB43BAF3CB0B1E1DAC8C01C8C4F9@orca.penguincomputing.com>
-	 <e2e108260911052306l230d8d7cxbae68bf08678d6fe@mail.gmail.com>
-	 <4AF40FBC.9080004@vlnb.net>
-	 <654FA770A883FB43BAF3CB0B1E1DAC8C01C8C4FA@orca.penguincomputing.com>
-	 <e2e108260911060653g6832c124uaa6e11072a12e448@mail.gmail.com>
-	 <4AF45134.30207@vlnb.net>
-	 <3142CEFB1403044F9954E2DF6C85660FBB34E6@orca.penguincomputing.com>
+From: Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: [PATCH] opensm/complib: bug in cl_list_insert_array_head/tail functions
+Date: Sun, 08 Nov 2009 15:28:16 +0200
+Message-ID: <4AF6C770.9020107@dev.mellanox.co.il>
+Reply-To: kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <3142CEFB1403044F9954E2DF6C85660FBB34E6-/U8SqUwOx9/OOpeOfUw7maQk6oIRg43YAL8bYrjMMd8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Arend Dittmer <adittmer-pabcTyWEv4ZW60MLeMDbCVaTQe2KTcn/@public.gmane.org>
-Cc: Vladislav Bolkhovitin <vst-d+Crzxg7Rs0@public.gmane.org>, Philip Pokorny <ppokorny-pabcTyWEv4ZW60MLeMDbCVaTQe2KTcn/@public.gmane.org>, scst-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Vu Pham <vuhuong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+Cc: Linux RDMA <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Nov 6, 2009 at 6:28 PM, Arend Dittmer
-<adittmer-pabcTyWEv4ZW60MLeMDbCVaTQe2KTcn/@public.gmane.org> wrote:
-> Please find attached the gzip'ed /var/log/messages.
+Fixing bug in cl_list_insert_array_head/tail functions.
+In case of failure, no cleanup is done.
 
-This log clearly show the login and logout actions from the different
-initiators. I couldn't find anything unusual in the posted log file
-however. Around which time did the initiator start complaining about
-aborted SCSI commands ? Does this issue also happen when using the SRP
-initiator included in a vanilla (non-OFED) Linux kernel ?
+Signed-off-by: Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+---
+ opensm/complib/cl_list.c |   10 ++++++----
+ 1 files changed, 6 insertions(+), 4 deletions(-)
 
-Bart.
+diff --git a/opensm/complib/cl_list.c b/opensm/complib/cl_list.c
+index a30d3be..555a968 100644
+--- a/opensm/complib/cl_list.c
++++ b/opensm/complib/cl_list.c
+@@ -424,6 +424,7 @@ cl_status_t cl_list_insert_array_head(IN cl_list_t * const p_list,
+ {
+ 	cl_status_t status;
+ 	void *p_object;
++	uint32_t items_remain = item_count;
+
+ 	CL_ASSERT(p_list);
+ 	CL_ASSERT(cl_is_qpool_inited(&p_list->list_item_pool));
+@@ -439,11 +440,11 @@ cl_status_t cl_list_insert_array_head(IN cl_list_t * const p_list,
+ 	p_object = ((uint8_t *) p_array + (item_size * (item_count - 1)));
+
+ 	/* Continue to add all items to the list. */
+-	while (item_count--) {
++	while (items_remain--) {
+ 		status = cl_list_insert_head(p_list, p_object);
+ 		if (status != CL_SUCCESS) {
+ 			/* Remove all items that have been inserted. */
+-			while (item_count++ < item_count)
++			while (items_remain++ < (item_count - 1))
+ 				cl_list_remove_head(p_list);
+ 			return (status);
+ 		}
+@@ -462,6 +463,7 @@ cl_status_t cl_list_insert_array_tail(IN cl_list_t * const p_list,
+ {
+ 	cl_status_t status;
+ 	void *p_object;
++	uint32_t items_remain = item_count;
+
+ 	CL_ASSERT(p_list);
+ 	CL_ASSERT(cl_is_qpool_inited(&p_list->list_item_pool));
+@@ -473,11 +475,11 @@ cl_status_t cl_list_insert_array_tail(IN cl_list_t * const p_list,
+ 	p_object = (void *)p_array;
+
+ 	/* Continue to add all items to the list. */
+-	while (item_count--) {
++	while (items_remain--) {
+ 		status = cl_list_insert_tail(p_list, p_object);
+ 		if (status != CL_SUCCESS) {
+ 			/* Remove all items that have been inserted. */
+-			while (item_count++ < item_count)
++			while (items_remain++ < (item_count - 1))
+ 				cl_list_remove_tail(p_list);
+ 			return (status);
+ 		}
+-- 
+1.5.1.4
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
