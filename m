@@ -1,49 +1,52 @@
-From: Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: OpenSM: reporting traps 129, 130, 131
-Date: Sun, 08 Nov 2009 16:37:02 +0200
-Message-ID: <4AF6D78E.6080600@dev.mellanox.co.il>
-Reply-To: kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: QoS in local SA entity
+Date: Sun, 8 Nov 2009 17:56:08 -0700
+Message-ID: <20091109005607.GV1966@obsidianresearch.com>
+References: <4AF2C00A.4040808@voltaire.com> <9BF1CEFA7F6F44F5B5641065C4914EB5@amr.corp.intel.com> <4AF66473.2050303@voltaire.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <4AF66473.2050303-smomgflXvOZWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Cc: Linux RDMA <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Or Gerlitz <ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Sasha,
+On Sun, Nov 08, 2009 at 08:25:55AM +0200, Or Gerlitz wrote:
 
-I noticed that OpenSM doesn't send InformInfo on traps 129/130/131.
-This is what osm_trap_rcv.c is doing:
+> >ACM is intended to be a service that's used by the librdmacm to resolve 
+> >address mappings and routes.  Trying to have ACM use the librdmacm ends up 
+> >with a circular dependency.  That's the part I'm trying to avoid.
+> 
+> fail-enough, I believe that my suggestion is doable also without 
+> circular dependency, e.g as you indicated below or with a fairly small 
+> enhancement of librdmacm, see next
 
-322: static void trap_rcv_process_request(IN osm_sm_t * sm,
-323: 				     IN const osm_madw_t * p_madw)
-... 
+The entire point of the rdma_getaddrinfo + AF_IB is to avoid hacking
+up librdmacm for every address lookup/cache scheme someone invents.
 
-435: 		if (ib_notice_is_generic(p_ntci) &&
-436: 		    (p_ntci->g_or_v.generic.trap_num == CL_HTON16(129) ||
-437: 		     p_ntci->g_or_v.generic.trap_num == CL_HTON16(130) ||
-438: 		     p_ntci->g_or_v.generic.trap_num == CL_HTON16(131))) {
-439: 			/* If this is a trap 129, 130, or 131 - then this is a
-440: 			 * trap signaling a change on a physical port.
-441: 			 * Mark the physp_change_trap flag as TRUE.
-442: 			 */
-443: 			physp_change_trap = TRUE;
-...
+The desired flow would be:
 
-539:	/* If we reached here due to trap 129/130/131 - do not need to do
-540:	   the notice report. Just goto exit. We know this is the case
-541:	   if physp_change_trap is TRUE. */
-542:	if (physp_change_trap == TRUE)
-543:		goto Exit;
+rdma_getaddrinfo("User-Specified-Host-String","User-Specified-Port-String",
+                 &hints,&res);
 
+// Server flow (hints.af_flags |= AI_PASSIVE)
+rdma_bind(res[0].bind_addr);
+rmda_listen(res[0].listen_addr);
 
-Any particular reason why there's no reporting of these traps?
+// Client Flow
+rdma_bind(res[0].bind_addr); // Optional
+rdma_resolve_addr2(res[0].bind_addr,res[0].dest_addr,res[0].extra_info);
 
--- Yevgeny
+And under rdma_getaddrinfo we could have any number of modules, like
+glibc does.
 
+Well written apps should already be using normal getaddrinfo, so we
+can design an upgrade to rdma_getaddrinfo to be very minor, source
+wise. Un upgraded apps don't get the new functionality.
 
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
