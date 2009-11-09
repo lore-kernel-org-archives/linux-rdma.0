@@ -1,68 +1,85 @@
-From: Chris Worley <worleys-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: SRPT and SCST
-Date: Mon, 9 Nov 2009 13:43:53 -0700
-Message-ID: <f3177b9e0911091243j135fe526t7c5a03f860d46b68@mail.gmail.com>
-References: <3142CEFB1403044F9954E2DF6C85660FBB34BD@orca.penguincomputing.com>
-	 <654FA770A883FB43BAF3CB0B1E1DAC8C01C8C4F9@orca.penguincomputing.com>
-	 <e2e108260911052306l230d8d7cxbae68bf08678d6fe@mail.gmail.com>
-	 <4AF40FBC.9080004@vlnb.net>
-	 <654FA770A883FB43BAF3CB0B1E1DAC8C01C8C4FA@orca.penguincomputing.com>
-	 <e2e108260911060653g6832c124uaa6e11072a12e448@mail.gmail.com>
-	 <4AF45134.30207@vlnb.net>
-	 <3142CEFB1403044F9954E2DF6C85660FBB34E6@orca.penguincomputing.com>
-	 <e2e108260911080149t569fc016p6e38d86a15cb7d05@mail.gmail.com>
-	 <4AF87B05.1050902@vlnb.net>
+From: Vu Pham <vuhuong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH 1/6]  SRP recreates qp/cq resources at reconnecting
+ to target
+Date: Mon, 09 Nov 2009 13:31:30 -0800
+Message-ID: <4AF88A32.2000209@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: multipart/mixed;
+ boundary="------------030604020906040305030904"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4AF87B05.1050902-d+Crzxg7Rs0@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Vladislav Bolkhovitin <vst-d+Crzxg7Rs0@public.gmane.org>
-Cc: Bart Van Assche <bart.vanassche-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Arend Dittmer <adittmer-pabcTyWEv4ZW60MLeMDbCVaTQe2KTcn/@public.gmane.org>, Philip Pokorny <ppokorny-pabcTyWEv4ZW60MLeMDbCVaTQe2KTcn/@public.gmane.org>, scst-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Vu Pham <vuhuong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Linux RDMA list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Nov 9, 2009 at 1:26 PM, Vladislav Bolkhovitin <vst-d+Crzxg7Rs0@public.gmane.org> wr=
-ote:
-> Bart Van Assche, on 11/08/2009 12:49 PM wrote:
->>
->> On Fri, Nov 6, 2009 at 6:28 PM, Arend Dittmer
->> <adittmer-pabcTyWEv4ZW60MLeMDbCVaTQe2KTcn/@public.gmane.org> wrote:
->>>
->>> Please find attached the gzip'ed /var/log/messages.
->>
->> This log clearly show the login and logout actions from the differen=
-t
->> initiators. I couldn't find anything unusual in the posted log file
->> however. Around which time did the initiator start complaining about
->> aborted SCSI commands ? Does this issue also happen when using the S=
-RP
->> initiator included in a vanilla (non-OFED) Linux kernel ?
->
-> It looks painfully similar to what Chris Worley experienced some time=
- ago
-> and somehow fixed/workarounded.
->
-> Chris, can you comment on this?
+This is a multi-part message in MIME format.
+--------------030604020906040305030904
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 
-The "thread=3D1" fixed the problem mostly, but I am working with anothe=
-r
-group that says they still get an abort, but haven't gotten around to
-providing me with the info I need to look at it.
+Recreating qp, cq when reconnect to target instead of re-use them.
+We need this so that we don't have to wait on disconnect connection
 
-Chris
->
->> Bart.
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-rdma=
-" in
->> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
->>
->
->
+Signed-of-by: Vu Pham <vu-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+
+
+--------------030604020906040305030904
+Content-Type: text/plain;
+ name="srp_1_recreate_res_at_reconnect.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="srp_1_recreate_res_at_reconnect.patch"
+
+ drivers/infiniband/ulp/srp/ib_srp.c |   22 +++++++++++-----------
+ 1 files changed, 11 insertions(+), 11 deletions(-)
+
+diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
+index dfa14de..e44939a 100644
+--- a/drivers/infiniband/ulp/srp/ib_srp.c
++++ b/drivers/infiniband/ulp/srp/ib_srp.c
+@@ -535,10 +535,10 @@ static void srp_reset_req(struct srp_target_port *target, struct srp_request *re
+ 
+ static int srp_reconnect_target(struct srp_target_port *target)
+ {
+-	struct ib_qp_attr qp_attr;
+ 	struct srp_request *req, *tmp;
+-	struct ib_wc wc;
+ 	int ret;
++	struct ib_cq *old_cq;
++	struct ib_qp *old_qp;
+ 
+ 	spin_lock_irq(target->scsi_host->host_lock);
+ 	if (target->state != SRP_TARGET_LIVE) {
+@@ -557,17 +557,17 @@ static int srp_reconnect_target(struct srp_target_port *target)
+ 	if (ret)
+ 		goto err;
+ 
+-	qp_attr.qp_state = IB_QPS_RESET;
+-	ret = ib_modify_qp(target->qp, &qp_attr, IB_QP_STATE);
+-	if (ret)
+-		goto err;
+-
+-	ret = srp_init_qp(target, target->qp);
+-	if (ret)
++	old_qp = target->qp;
++	old_cq = target->cq;
++	ret = srp_create_target_ib(target);
++	if (ret) {
++		target->qp = old_qp;
++		target->cq = old_cq;
+ 		goto err;
++	}
+ 
+-	while (ib_poll_cq(target->cq, 1, &wc) > 0)
+-		; /* nothing */
++	ib_destroy_qp(old_qp);
++	ib_destroy_cq(old_cq);
+ 
+ 	spin_lock_irq(target->scsi_host->host_lock);
+ 	list_for_each_entry_safe(req, tmp, &target->req_queue, list)
+
+--------------030604020906040305030904--
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
