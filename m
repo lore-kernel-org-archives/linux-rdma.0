@@ -1,10 +1,11 @@
 From: Vu Pham <vuhuong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH 3/6]  SRP implement device_loss_timeout per target
-Date: Mon, 09 Nov 2009 13:32:55 -0800
-Message-ID: <4AF88A87.300@mellanox.com>
+Subject: [PATCH 4/6]  SRP setup timer to propagate errors and
+ clean up connection resources
+Date: Mon, 09 Nov 2009 13:33:43 -0800
+Message-ID: <4AF88AB7.30108@mellanox.com>
 Mime-Version: 1.0
 Content-Type: multipart/mixed;
- boundary="------------010903030009010303060803"
+ boundary="------------030709060508010306050905"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Linux RDMA list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
@@ -12,87 +13,139 @@ Cc: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 This is a multi-part message in MIME format.
---------------010903030009010303060803
+--------------030709060508010306050905
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 
-Introducing device_loss_timeout per target granuality.
-SRP driver will propagate I/O errors and clean up connection resources after
-device_loss_timeout expired when local port or target port disconnected from
-the fabric.
-    
+Creating a timer to propagate I/O errors up and clean up connection
+after a timeout (normally target->device_loss_timeout) expired.
+During this timeout while the qp is in error state, srp will return
+DID_RESET for outstanding I/Os, return FAILED for abort_cmd, reset_lun,
+and return SUCCESS (without retrying reconnect) on reset_host
+
 Signed-off-by: Vu Pham <vu-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
 
---------------010903030009010303060803
+--------------030709060508010306050905
 Content-Type: text/plain;
- name="srp_3_device_loss_timeout.patch"
+ name="srp_4_qp_in_error_timer.patch"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline;
- filename="srp_3_device_loss_timeout.patch"
+ filename="srp_4_qp_in_error_timer.patch"
 
- drivers/infiniband/ulp/srp/ib_srp.c |   12 +++++++++++-
- drivers/infiniband/ulp/srp/ib_srp.h |    1 +
- 2 files changed, 12 insertions(+), 1 deletions(-)
+ drivers/infiniband/ulp/srp/ib_srp.c |   61 ++++++++++++++++++++++++++++++++++-
+ drivers/infiniband/ulp/srp/ib_srp.h |    2 +
+ 2 files changed, 62 insertions(+), 1 deletions(-)
 
 diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
-index e44939a..047d488 100644
+index 047d488..3475a8b 100644
 --- a/drivers/infiniband/ulp/srp/ib_srp.c
 +++ b/drivers/infiniband/ulp/srp/ib_srp.c
-@@ -1298,7 +1298,6 @@ static int srp_cm_handler(struct ib_cm_id *cm_id, struct ib_cm_event *event)
- 	case IB_CM_TIMEWAIT_EXIT:
- 		shost_printk(KERN_ERR, target->scsi_host,
- 			     PFX "connection closed\n");
--
- 		target->status = 0;
- 		break;
+@@ -435,6 +435,8 @@ static void srp_remove_work(struct work_struct *work)
+ 	target->state = SRP_TARGET_REMOVED;
+ 	spin_unlock_irq(target->scsi_host->host_lock);
  
-@@ -1657,6 +1656,7 @@ enum {
- 	SRP_OPT_MAX_CMD_PER_LUN	= 1 << 6,
- 	SRP_OPT_IO_CLASS	= 1 << 7,
- 	SRP_OPT_INITIATOR_EXT	= 1 << 8,
-+	SRP_OPT_DEVICE_LOSS_TMO	= 1 << 9,
- 	SRP_OPT_ALL		= (SRP_OPT_ID_EXT	|
- 				   SRP_OPT_IOC_GUID	|
- 				   SRP_OPT_DGID		|
-@@ -1674,6 +1674,7 @@ static const match_table_t srp_opt_tokens = {
- 	{ SRP_OPT_MAX_CMD_PER_LUN,	"max_cmd_per_lun=%d" 	},
- 	{ SRP_OPT_IO_CLASS,		"io_class=%x"		},
- 	{ SRP_OPT_INITIATOR_EXT,	"initiator_ext=%s"	},
-+	{ SRP_OPT_DEVICE_LOSS_TMO,	"device_loss_timeout=%d"},
- 	{ SRP_OPT_ERR,			NULL 			}
- };
- 
-@@ -1801,6 +1802,15 @@ static int srp_parse_options(const char *buf, struct srp_target_port *target)
- 			kfree(p);
- 			break;
- 
-+		case SRP_OPT_DEVICE_LOSS_TMO:
-+			if (match_int(args, &token)) {
-+				printk(KERN_WARNING PFX "bad device loss timeout '%s'\n", p);
-+				goto out;
-+			}
-+			if (token > 0)
-+				target->device_loss_timeout = token;
-+			break;
++	del_timer_sync(&target->qp_err_timer);
 +
- 		default:
- 			printk(KERN_WARNING PFX "unknown parameter or missing value "
- 			       "'%s' in target creation request\n", p);
+ 	spin_lock(&target->srp_host->target_lock);
+ 	list_del(&target->list);
+ 	spin_unlock(&target->srp_host->target_lock);
+@@ -896,6 +898,50 @@ static void srp_handle_recv(struct srp_target_port *target, struct ib_wc *wc)
+ 				      DMA_FROM_DEVICE);
+ }
+ 
++static void srp_reconnect_work(struct work_struct *work)
++{
++	struct srp_target_port *target =
++		container_of(work, struct srp_target_port, work);
++
++	srp_reconnect_target(target);
++	spin_lock_irq(target->scsi_host->host_lock);
++	target->work_in_progress = 0;
++	spin_unlock_irq(target->scsi_host->host_lock);
++}
++
++static void srp_qp_in_err_timer(unsigned long data)
++{
++	struct srp_target_port *target = (struct srp_target_port *)data;
++	struct srp_request *req, *tmp;
++
++	if (target->state != SRP_TARGET_LIVE)
++		return;
++
++	spin_lock_irq(target->scsi_host->host_lock);
++	list_for_each_entry_safe(req, tmp, &target->req_queue, list)
++		srp_reset_req(target, req);
++	spin_unlock_irq(target->scsi_host->host_lock);
++
++	spin_lock_irq(target->scsi_host->host_lock);
++	if (!target->work_in_progress) {
++		target->work_in_progress = 1;
++		INIT_WORK(&target->work, srp_reconnect_work);
++		schedule_work(&target->work);
++	}
++	spin_unlock_irq(target->scsi_host->host_lock);
++}
++
++static void srp_qp_err_add_timer(struct srp_target_port *target, int time)
++{
++	if (!timer_pending(&target->qp_err_timer)) {
++		setup_timer(&target->qp_err_timer,
++			    srp_qp_in_err_timer,
++			    (unsigned long)target);
++		target->qp_err_timer.expires = round_jiffies(time*HZ + jiffies);
++		add_timer(&target->qp_err_timer);
++	}
++}
++
+ static void srp_completion(struct ib_cq *cq, void *target_ptr)
+ {
+ 	struct srp_target_port *target = target_ptr;
+@@ -1440,9 +1486,22 @@ static int srp_reset_device(struct scsi_cmnd *scmnd)
+ static int srp_reset_host(struct scsi_cmnd *scmnd)
+ {
+ 	struct srp_target_port *target = host_to_target(scmnd->device->host);
++	struct srp_request *req, *tmp;
+ 	int ret = FAILED;
+ 
+-	shost_printk(KERN_ERR, target->scsi_host, PFX "SRP reset_host called\n");
++	shost_printk(KERN_ERR, target->scsi_host,
++		     PFX "SRP reset_host called state %d qp_err %d\n",
++		     target->state, target->qp_in_error);
++
++	spin_lock_irq(target->scsi_host->host_lock);
++	if (timer_pending(&target->qp_err_timer) || target->qp_in_error ||
++	    target->state != SRP_TARGET_LIVE) {
++		list_for_each_entry_safe(req, tmp, &target->req_queue, list)
++			srp_reset_req(target, req);
++		spin_unlock_irq(target->scsi_host->host_lock);
++		return SUCCESS;
++	}
++	spin_unlock_irq(target->scsi_host->host_lock);
+ 
+ 	if (!srp_reconnect_target(target))
+ 		ret = SUCCESS;
 diff --git a/drivers/infiniband/ulp/srp/ib_srp.h b/drivers/infiniband/ulp/srp/ib_srp.h
-index e185b90..92db025 100644
+index 92db025..daa4bf7 100644
 --- a/drivers/infiniband/ulp/srp/ib_srp.h
 +++ b/drivers/infiniband/ulp/srp/ib_srp.h
-@@ -159,6 +159,7 @@ struct srp_target_port {
+@@ -153,12 +153,14 @@ struct srp_target_port {
+ 	struct srp_request	req_ring[SRP_SQ_SIZE];
+ 
+ 	struct work_struct	work;
++	int			work_in_progress;
+ 
+ 	struct list_head	list;
+ 	struct completion	done;
  	int			status;
  	enum srp_target_state	state;
  	int			qp_in_error;
-+	int			device_loss_timeout;
++	struct timer_list	qp_err_timer;
+ 	int			device_loss_timeout;
  };
  
- struct srp_iu {
 
---------------010903030009010303060803--
+--------------030709060508010306050905--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
