@@ -1,11 +1,10 @@
 From: Vu Pham <vuhuong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH 4/6]  SRP setup timer to propagate errors and
- clean up connection resources
-Date: Mon, 09 Nov 2009 13:33:43 -0800
-Message-ID: <4AF88AB7.30108@mellanox.com>
+Subject: [PATCH 5/6]  SRP handles async. port error/active events
+Date: Mon, 09 Nov 2009 13:34:19 -0800
+Message-ID: <4AF88ADB.10202@mellanox.com>
 Mime-Version: 1.0
 Content-Type: multipart/mixed;
- boundary="------------030709060508010306050905"
+ boundary="------------050303030807050500070407"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Linux RDMA list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
@@ -13,139 +12,170 @@ Cc: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 This is a multi-part message in MIME format.
---------------030709060508010306050905
+--------------050303030807050500070407
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 
-Creating a timer to propagate I/O errors up and clean up connection
-after a timeout (normally target->device_loss_timeout) expired.
-During this timeout while the qp is in error state, srp will return
-DID_RESET for outstanding I/Os, return FAILED for abort_cmd, reset_lun,
-and return SUCCESS (without retrying reconnect) on reset_host
+Handling async local port events: port error, active, lid change...
+Upon local port err, it will set up timer device_loss_timeout seconds to
+propagate I/O errors and reconnect. If local port active and there is
+timer, it will delete the timer
 
 Signed-off-by: Vu Pham <vu-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
 
---------------030709060508010306050905
+--------------050303030807050500070407
 Content-Type: text/plain;
- name="srp_4_qp_in_error_timer.patch"
+ name="srp_5_async_event_handler.patch"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline;
- filename="srp_4_qp_in_error_timer.patch"
+ filename="srp_5_async_event_handler.patch"
 
- drivers/infiniband/ulp/srp/ib_srp.c |   61 ++++++++++++++++++++++++++++++++++-
+ drivers/infiniband/ulp/srp/ib_srp.c |   85 +++++++++++++++++++++++++++++++++++
  drivers/infiniband/ulp/srp/ib_srp.h |    2 +
- 2 files changed, 62 insertions(+), 1 deletions(-)
+ 2 files changed, 87 insertions(+), 0 deletions(-)
 
 diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
-index 047d488..3475a8b 100644
+index 3475a8b..f62ef8f 100644
 --- a/drivers/infiniband/ulp/srp/ib_srp.c
 +++ b/drivers/infiniband/ulp/srp/ib_srp.c
-@@ -435,6 +435,8 @@ static void srp_remove_work(struct work_struct *work)
- 	target->state = SRP_TARGET_REMOVED;
- 	spin_unlock_irq(target->scsi_host->host_lock);
- 
-+	del_timer_sync(&target->qp_err_timer);
-+
- 	spin_lock(&target->srp_host->target_lock);
- 	list_del(&target->list);
- 	spin_unlock(&target->srp_host->target_lock);
-@@ -896,6 +898,50 @@ static void srp_handle_recv(struct srp_target_port *target, struct ib_wc *wc)
- 				      DMA_FROM_DEVICE);
+@@ -2037,6 +2037,81 @@ free_host:
+ 	return NULL;
  }
  
-+static void srp_reconnect_work(struct work_struct *work)
++static void srp_event_handler(struct ib_event_handler *handler,
++			      struct ib_event *event)
 +{
-+	struct srp_target_port *target =
-+		container_of(work, struct srp_target_port, work);
++	struct srp_device *srp_dev =
++	    ib_get_client_data(event->device, &srp_client);
++	struct srp_host *host, *tmp_host;
++	struct srp_target_port *target, *tmp_target;
 +
-+	srp_reconnect_target(target);
-+	spin_lock_irq(target->scsi_host->host_lock);
-+	target->work_in_progress = 0;
-+	spin_unlock_irq(target->scsi_host->host_lock);
-+}
-+
-+static void srp_qp_in_err_timer(unsigned long data)
-+{
-+	struct srp_target_port *target = (struct srp_target_port *)data;
-+	struct srp_request *req, *tmp;
-+
-+	if (target->state != SRP_TARGET_LIVE)
++	if (!srp_dev || srp_dev->dev != event->device)
 +		return;
 +
-+	spin_lock_irq(target->scsi_host->host_lock);
-+	list_for_each_entry_safe(req, tmp, &target->req_queue, list)
-+		srp_reset_req(target, req);
-+	spin_unlock_irq(target->scsi_host->host_lock);
++	printk(KERN_WARNING PFX "ASYNC event= %d on device= %s\n",
++		event->event, srp_dev->dev->name);
 +
-+	spin_lock_irq(target->scsi_host->host_lock);
-+	if (!target->work_in_progress) {
-+		target->work_in_progress = 1;
-+		INIT_WORK(&target->work, srp_reconnect_work);
-+		schedule_work(&target->work);
++	switch (event->event) {
++	case IB_EVENT_PORT_ERR:
++		spin_lock(&srp_dev->dev_lock);
++		list_for_each_entry_safe(host, tmp_host,
++					 &srp_dev->dev_list, list) {
++			if (event->element.port_num == host->port) {
++				spin_lock(&host->target_lock);
++				list_for_each_entry_safe(target, tmp_target,
++							 &host->target_list, list) {
++					unsigned long flags;
++
++					spin_lock_irqsave(target->scsi_host->host_lock,
++							  flags);
++					if (!target->qp_in_error &&
++					    target->state == SRP_TARGET_LIVE)
++						srp_qp_err_add_timer(target,
++								     target->device_loss_timeout);
++					spin_unlock_irqrestore(target->scsi_host->host_lock,
++							       flags);
++				}
++				spin_unlock(&host->target_lock);
++			}
++		}
++		spin_unlock(&srp_dev->dev_lock);
++		break;
++	case IB_EVENT_PORT_ACTIVE:
++	case IB_EVENT_LID_CHANGE:
++	case IB_EVENT_PKEY_CHANGE:
++	case IB_EVENT_SM_CHANGE:
++		spin_lock(&srp_dev->dev_lock);
++		list_for_each_entry_safe(host, tmp_host, &srp_dev->dev_list,
++					 list) {
++			if (event->element.port_num == host->port) {
++				spin_lock(&host->target_lock);
++				list_for_each_entry_safe(target, tmp_target,
++							 &host->target_list, list) {
++					unsigned long flags;
++
++					spin_lock_irqsave(target->scsi_host->host_lock,
++							  flags);
++					if (timer_pending(&target->qp_err_timer)
++					    && !target->qp_in_error) {
++						shost_printk(KERN_WARNING PFX,
++							     target->scsi_host,
++							     "delete qp_in_err timer\n");
++						del_timer(&target->qp_err_timer);
++					}
++					spin_unlock_irqrestore(target->scsi_host->host_lock,
++							       flags);
++				}
++				spin_unlock(&host->target_lock);
++			}
++		}
++		spin_unlock(&srp_dev->dev_lock);
++		break;
++	default:
++		break;
 +	}
-+	spin_unlock_irq(target->scsi_host->host_lock);
++
 +}
 +
-+static void srp_qp_err_add_timer(struct srp_target_port *target, int time)
-+{
-+	if (!timer_pending(&target->qp_err_timer)) {
-+		setup_timer(&target->qp_err_timer,
-+			    srp_qp_in_err_timer,
-+			    (unsigned long)target);
-+		target->qp_err_timer.expires = round_jiffies(time*HZ + jiffies);
-+		add_timer(&target->qp_err_timer);
-+	}
-+}
-+
- static void srp_completion(struct ib_cq *cq, void *target_ptr)
+ static void srp_add_one(struct ib_device *device)
  {
- 	struct srp_target_port *target = target_ptr;
-@@ -1440,9 +1486,22 @@ static int srp_reset_device(struct scsi_cmnd *scmnd)
- static int srp_reset_host(struct scsi_cmnd *scmnd)
- {
- 	struct srp_target_port *target = host_to_target(scmnd->device->host);
-+	struct srp_request *req, *tmp;
- 	int ret = FAILED;
+ 	struct srp_device *srp_dev;
+@@ -2069,6 +2144,7 @@ static void srp_add_one(struct ib_device *device)
+ 	srp_dev->fmr_page_mask  = ~((u64) srp_dev->fmr_page_size - 1);
  
--	shost_printk(KERN_ERR, target->scsi_host, PFX "SRP reset_host called\n");
-+	shost_printk(KERN_ERR, target->scsi_host,
-+		     PFX "SRP reset_host called state %d qp_err %d\n",
-+		     target->state, target->qp_in_error);
+ 	INIT_LIST_HEAD(&srp_dev->dev_list);
++	spin_lock_init(&srp_dev->dev_lock);
+ 
+ 	srp_dev->dev = device;
+ 	srp_dev->pd  = ib_alloc_pd(device);
+@@ -2082,6 +2158,11 @@ static void srp_add_one(struct ib_device *device)
+ 	if (IS_ERR(srp_dev->mr))
+ 		goto err_pd;
+ 
++	INIT_IB_EVENT_HANDLER(&srp_dev->event_handler, srp_dev->dev,
++			      srp_event_handler);
++	if (ib_register_event_handler(&srp_dev->event_handler))
++		goto err_pd;
 +
-+	spin_lock_irq(target->scsi_host->host_lock);
-+	if (timer_pending(&target->qp_err_timer) || target->qp_in_error ||
-+	    target->state != SRP_TARGET_LIVE) {
-+		list_for_each_entry_safe(req, tmp, &target->req_queue, list)
-+			srp_reset_req(target, req);
-+		spin_unlock_irq(target->scsi_host->host_lock);
-+		return SUCCESS;
-+	}
-+	spin_unlock_irq(target->scsi_host->host_lock);
+ 	memset(&fmr_param, 0, sizeof fmr_param);
+ 	fmr_param.pool_size	    = SRP_FMR_POOL_SIZE;
+ 	fmr_param.dirty_watermark   = SRP_FMR_DIRTY_SIZE;
+@@ -2133,6 +2214,9 @@ static void srp_remove_one(struct ib_device *device)
  
- 	if (!srp_reconnect_target(target))
- 		ret = SUCCESS;
+ 	srp_dev = ib_get_client_data(device, &srp_client);
+ 
++	ib_unregister_event_handler(&srp_dev->event_handler);
++
++	spin_lock(&srp_dev->dev_lock);
+ 	list_for_each_entry_safe(host, tmp_host, &srp_dev->dev_list, list) {
+ 		device_unregister(&host->dev);
+ 		/*
+@@ -2172,6 +2256,7 @@ static void srp_remove_one(struct ib_device *device)
+ 
+ 		kfree(host);
+ 	}
++	spin_unlock(&srp_dev->dev_lock);
+ 
+ 	if (srp_dev->fmr_pool)
+ 		ib_destroy_fmr_pool(srp_dev->fmr_pool);
 diff --git a/drivers/infiniband/ulp/srp/ib_srp.h b/drivers/infiniband/ulp/srp/ib_srp.h
-index 92db025..daa4bf7 100644
+index daa4bf7..74d1f09 100644
 --- a/drivers/infiniband/ulp/srp/ib_srp.h
 +++ b/drivers/infiniband/ulp/srp/ib_srp.h
-@@ -153,12 +153,14 @@ struct srp_target_port {
- 	struct srp_request	req_ring[SRP_SQ_SIZE];
- 
- 	struct work_struct	work;
-+	int			work_in_progress;
- 
- 	struct list_head	list;
- 	struct completion	done;
- 	int			status;
- 	enum srp_target_state	state;
- 	int			qp_in_error;
-+	struct timer_list	qp_err_timer;
- 	int			device_loss_timeout;
- };
- 
+@@ -86,8 +86,10 @@ enum srp_request_type {
+ struct srp_device {
+ 	struct list_head	dev_list;
+ 	struct ib_device       *dev;
++	spinlock_t		dev_lock;
+ 	struct ib_pd	       *pd;
+ 	struct ib_mr	       *mr;
++	struct ib_event_handler event_handler;
+ 	struct ib_fmr_pool     *fmr_pool;
+ 	int			fmr_page_shift;
+ 	int			fmr_page_size;
 
---------------030709060508010306050905--
+--------------050303030807050500070407--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
