@@ -1,31 +1,47 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH] librdmacm/mckey: enforce local binding for unmapped
-	multicast addresses
-Date: Mon, 9 Nov 2009 09:34:51 -0800
-Message-ID: <CF9C39F99A89134C9CF9C4CCB68B8DDF12C1EA512F@orsmsx501.amr.corp.intel.com>
-References: <Pine.LNX.4.64.0911011130140.6591@zuben.voltaire.com>
-	<AB1AB5E171B44E1AA5FAFB87901C69C7@amr.corp.intel.com>
-	<4AF037F7.9080100@voltaire.com>
-	<72E827020C9E497DB3CAA3DD720E9604@amr.corp.intel.com>
-	<4AF2B92E.2030807@Voltaire.com>
- <EE242E2A2A6A45A581F62AAFD24CD761@amr.corp.intel.com>
- <4AF66069.60709@voltaire.com>
+From: "Sean Hefty" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: QoS in local SA entity
+Date: Mon, 9 Nov 2009 10:38:52 -0800
+Message-ID: <5C9CD47F123648F0A926E151BF775484@amr.corp.intel.com>
+References: <4AF2C00A.4040808@voltaire.com> <9BF1CEFA7F6F44F5B5641065C4914EB5@amr.corp.intel.com> <4AF66473.2050303@voltaire.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4AF66069.60709-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <4AF66473.2050303-smomgflXvOZWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+To: 'Or Gerlitz' <ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org>
 Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
->I don't see this @
->http://www.openfabrics.org/git/?p=~shefty/librdmacm.git, were you
->referring a local clone?
+>L1. compute source address
+>L2. issue kernel rdma_bind to source address and resolve <device, port,
+>pkey>
+>L3. issue ACM address (DGID) resolution call using (<device, port,
+>pkey>, dest-ip)
+>
+>makes sense? if yes, what's the need in the address configuration file?
 
-Yes - I just haven't pushed it back upstream yet.
+Here is where we're at today:
+
+rdma_resolve_addr:
+	- Source sends a multicast request to destination IP
+	- Destination performs a path record query
+	- Destination sends a response with IP to DGID mapping
+
+rdma_resolve_route:
+	- Source performs a path record query
+
+The current implementation of ACM converts this to:
+	** Source sends a multicast request to destination IP
+	** Destination sends a response with IP to DGID mapping
+	- Path record is constructed from multicast group information	
+
+ACM needs to know what the local addresses are, so it can respond to requests
+for those addresses.
+
+- Sean
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
