@@ -1,58 +1,41 @@
-From: Bart Van Assche <bart.vanassche-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: SRPT and SCST
-Date: Mon, 9 Nov 2009 08:27:10 +0100
-Message-ID: <e2e108260911082327s688a3fffi3aa103cd7cd532e@mail.gmail.com>
-References: <3142CEFB1403044F9954E2DF6C85660FBB34BD@orca.penguincomputing.com>
-	 <f3177b9e0911040802o7fce0f4fte02c52dfe940f582@mail.gmail.com>
-	 <3142CEFB1403044F9954E2DF6C85660FBB34BF@orca.penguincomputing.com>
-	 <f3177b9e0911041004t2e75d545v5cc10d5375550bde@mail.gmail.com>
-	 <654FA770A883FB43BAF3CB0B1E1DAC8C01C8C4DD@orca.penguincomputing.com>
-	 <4AF29201.6000606@penguincomputing.com> <4AF2D2B8.5080304@vlnb.net>
-	 <e2e108260911051034o43db58cdi65b84ce46219bb94@mail.gmail.com>
-	 <654FA770A883FB43BAF3CB0B1E1DAC8C01C8C4F9@orca.penguincomputing.com>
+From: Or Gerlitz <ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+Subject: Re: QoS in local SA entity
+Date: Mon, 09 Nov 2009 09:44:31 +0200
+Message-ID: <4AF7C85F.5000604@voltaire.com>
+References: <4AF2C00A.4040808@voltaire.com>	<9BF1CEFA7F6F44F5B5641065C4914EB5@amr.corp.intel.com>	<4AF66473.2050303@voltaire.com> <20091109005607.GV1966@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <654FA770A883FB43BAF3CB0B1E1DAC8C01C8C4F9-/U8SqUwOx9/OOpeOfUw7maQk6oIRg43YAL8bYrjMMd8@public.gmane.org>
+In-Reply-To: <20091109005607.GV1966-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Philip Pokorny <ppokorny-pabcTyWEv4ZW60MLeMDbCVaTQe2KTcn/@public.gmane.org>
-Cc: Vladislav Bolkhovitin <vst-d+Crzxg7Rs0@public.gmane.org>, scst-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Arend Dittmer <adittmer-pabcTyWEv4ZW60MLeMDbCVaTQe2KTcn/@public.gmane.org>, Vu Pham <vuhuong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Nov 6, 2009 at 3:54 AM, Philip Pokorny
-<ppokorny-pabcTyWEv4ZW60MLeMDbCVaTQe2KTcn/@public.gmane.org> wrote:
->
-> On Thu, Nov 5, 2009 at 2:27 PM, Vladislav Bolkhovitin <vst-d+Crzxg7Rs0@public.gmane.org> wrote:
-> >
-> > Philip Pokorny, on 11/05/2009 11:51 AM wrote:
-> >>
-> >> Chris Worley asked that we post this to scst and linux-rdma lists for discussion.
-> >>
-> >
-> > Looks like ib_post_send() in srpt_perform_rdmas() returned ENOMEM and then srpt_xfer_data() "forgot" to unmapped corresponding SG with all related consequences.
->
-> I would like to add the following to the above analysis:
-> * The function srpt_xfer_data() calls srpt_perform_rdmas(). The last
-> function calls ib_post_send() repeatedly. ib_post_send() can fail
-> because the work queue on which the send request should be posted is
-> full. When processing an sg list with multiple entries, it is possible
-> that some entries get posted to the work queue and some not.
-> * If this happens, the last send posted on the work queue won't
-> trigger a completion event (this is a bug in srpt_perform_rdmas()).
-> * If the srpt_perform_rdmas() call inside srpt_xfer_data() fails, it
-> is possible that some of the sg list entries have been posted on the
-> IB work queue and some not. So error recovery will be more complex
-> than just a single call to ib_dma_unmap_sg().
->
-> =======
-> Is there something I could code up to sleep, pause or retry the calls to ib_post_send if they fail?
+Jason Gunthorpe wrote:
+> The entire point of the rdma_getaddrinfo + AF_IB is to avoid hacking up librdmacm for every address lookup/cache scheme someone invents
+the entire simple point I am trying to make is that rdma_getaddrinfo + 
+AF_INET is doable, is simple and is needed to keep up the essence of the 
+rdma-cm. I don't see how AF_IB buys anything to anyone that but if you 
+want to push it up as long as AF_INET is first and most 
+supported/interoperable future/present go and add your bits. As you 
+indicated the route lookup I was mentioning could be done in 
+rdma_addrinfo, sure with  &res including both source and destination 
+addresses. No rdma_resolve_addr2 is needed the one that exists now has  
+source addresses specified, I  don't see that extra info is needed for 
+AF_INET that was resolved with rdma_getaddrinfo is this AF_IB specific?
 
-Proper error handling has to be implemented in srpt_xfer_data(). Also,
-measures have to be taken such that no more work is posted on the IB
-queue than the reserved size. Which value are you using for
-SCST_MAX_TGT_DEV_COMMANDS (defined in scst/src/scst_priv.h) ?
+I don't see why the app should bother on calling rdma_getaddrinfo, it 
+can be done by librdmacm with rdma_getaddrinfo having multiple modules 
+as you suggested. I am in favor of the approach suggested by Sean of 
+librdmacm either doing its native flow or under environment variable 
+doing an alternative flow, where your suggestion not to have the 2nd 
+flow being tightly coupled with ACM, e.g through using get_addrinfo 
+abstraction and friends makes sense (yes!)
 
-Bart.
+Or.
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
