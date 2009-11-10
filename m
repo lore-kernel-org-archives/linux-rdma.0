@@ -1,62 +1,51 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: LID reconfiguration
-Date: Mon, 9 Nov 2009 17:20:47 -0700
-Message-ID: <20091110002047.GJ6188@obsidianresearch.com>
-References: <alpine.BSF.2.00.0911091324150.1226@desktop> <20091109234547.GH6188@obsidianresearch.com> <alpine.BSF.2.00.0911091348360.1226@desktop>
+From: "Stan C. Smith" <stan.smith@intel.com>
+Subject: [PATCH] opensm - use C99 transportable data type for pointer
+	storage
+Date: Mon, 9 Nov 2009 17:48:08 -0800
+Message-ID: <086F8B40ADA84EE7B6398F4761937836@amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <alpine.BSF.2.00.0911091348360.1226@desktop>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jeff Roberson <jroberson-gUAg20sWgfgcWVvVuXF20w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <ofw-bounces@lists.openfabrics.org>
+List-Unsubscribe: <http://lists.openfabrics.org/cgi-bin/mailman/listinfo/ofw>,
+	<mailto:ofw-request@lists.openfabrics.org?subject=unsubscribe>
+List-Archive: <http://lists.openfabrics.org/pipermail/ofw>
+List-Post: <mailto:ofw@lists.openfabrics.org>
+List-Help: <mailto:ofw-request@lists.openfabrics.org?subject=help>
+List-Subscribe: <http://lists.openfabrics.org/cgi-bin/mailman/listinfo/ofw>,
+	<mailto:ofw-request@lists.openfabrics.org?subject=subscribe>
+Sender: ofw-bounces@lists.openfabrics.org
+Errors-To: ofw-bounces@lists.openfabrics.org
+To: 'Sasha Khapyorsky' <sashak@voltaire.com>
+Cc: linux-rdma@vger.kernel.org, ofw@lists.openfabrics.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Nov 09, 2009 at 01:56:49PM -1000, Jeff Roberson wrote:
->>> Is there anything I can do other than restart the discovery and
->>> connection process?  Shouldn't we have enough information with the GID to
->>> retain and reroute the connection?
->>
->> With a GID you can go back to the SM and get an updated set of
->> path records with the new LID data.
->
-> Ok, so the QPs will be held in an error state but I can restart them once 
-> I re-initialize the paths right?  I can query the path using umad and get 
-> path record?  So we'll have a minor hicup in communication but previously 
-> buffered data will be sent as soon as the QP is valid again?
 
-I've never heard of someone recovering QPs once they reach the error
-state, I think they are pretty much done at that point. You have to
-start again.
+In order to skip the #ifndef __WIN__ around #include <stdint.h>, inttypes.h was used.
+'inttypes.h' includes stdint.h and exists in the WinOF svn tree.
+OFED opensm builds without problems on EL 5.3.
 
-To get hitless switching to the passive backup pass you need to use
-the IB APM feature.
+Signed-off-by: stan smith <stan.smith@intel.com>
 
-Otherwse, you could detect failure of the QP and issue a new PR query
-for the GID using umad and then try again to connect - depending on
-how your home grown connection process works I guess..
-
-> We are not using IPoIB at the moment.  This is for an appliance type  
-> device and the customers will be responsible for their own switches.  At  
-> present everything simply stops working when we re-lid so I just need to  
-> add the correct failure handling code.
-
-Detect failure and start again from stratch is what pretty much
-everyone does today, AFAIK.
-
->> rdmacm when combined with IPoIB bonding will give you a kind of
->> active/passive HA type multi-path.
->
-> That is essentially what we're looking for.  We discover the devices  
-> automatically but transparent multi-path would've saved a lot of work.
-
-Yes, you probably could have used the bonding feature, but note it
-does not save you from errored QPs in the failover case and I've had
-problems with IPoIB PR caching in LID-change cases in the past..
-
-Jason
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/opensm/include/opensm/st.h b/opensm/include/opensm/st.h
+index 30cc308..ad6c289 100644
+--- a/opensm/include/opensm/st.h
++++ b/opensm/include/opensm/st.h
+@@ -39,6 +39,7 @@
+ #define ST_INCLUDED
+ 
+ #include <stdlib.h>
++#include <inttypes.h>
+ 
+ #ifdef __cplusplus
+ #  define BEGIN_C_DECLS extern "C" {
+@@ -49,7 +50,7 @@
+ #endif				/* __cplusplus */
+ 
+ BEGIN_C_DECLS
+-#define st_ptr_t unsigned long
++#define st_ptr_t uintptr_t
+ typedef st_ptr_t st_data_t;
+ 
+ #define ST_DATA_T_DEFINED
