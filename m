@@ -1,8 +1,8 @@
 From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-Subject: [PATCH 1/2] infiniband-diags/libibnetdisc: clean up PortInfo
- queries
-Date: Tue, 10 Nov 2009 14:01:37 -0800
-Message-ID: <20091110140137.0c66e84f.weiny2@llnl.gov>
+Subject: [PATCH 2/2] infiniband-diags/libibnetdisc: Remove nearly duplicate
+ "get_node_info" function
+Date: Tue, 10 Nov 2009 14:01:35 -0800
+Message-ID: <20091110140135.0853ca2d.weiny2@llnl.gov>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
@@ -12,103 +12,98 @@ To: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
 Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Sasha,
-
-This and the subsequent patch clean up the port info query code to be more
-straight forward.
-
-First off I got rid of the "decode_port_info" function as it does very little
-and combined the smp_query_via call into a "query_port_info"
-
-The second patch removes the "get_port_info" function as it became nearly
-redundant with query_port_info.
-
-Ira
 
 From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-Date: Tue, 10 Nov 2009 11:22:03 -0800
-Subject: [PATCH] infiniband-diags/libibnetdisc: clean up PortInfo queries
+Date: Tue, 10 Nov 2009 13:51:41 -0800
+Subject: [PATCH] infiniband-diags/libibnetdisc: Remove nearly duplicate "get_node_info" function
 
-	remove old "decode_port_info" and replace with new "query_port_info"
+	Fold remaining functionality into "query_port_info"
 
 Signed-off-by: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
 ---
- infiniband-diags/libibnetdisc/src/ibnetdisc.c |   32 +++++++++++++-----------
- 1 files changed, 17 insertions(+), 15 deletions(-)
+ infiniband-diags/libibnetdisc/src/ibnetdisc.c |   33 ++++++++----------------
+ 1 files changed, 11 insertions(+), 22 deletions(-)
 
 diff --git a/infiniband-diags/libibnetdisc/src/ibnetdisc.c b/infiniband-diags/libibnetdisc/src/ibnetdisc.c
-index 62dff93..3f62f3f 100644
+index 3f62f3f..688382a 100644
 --- a/infiniband-diags/libibnetdisc/src/ibnetdisc.c
 +++ b/infiniband-diags/libibnetdisc/src/ibnetdisc.c
-@@ -57,16 +57,24 @@
- static int show_progress = 0;
- int ibdebug;
- 
--void decode_port_info(ibnd_port_t * port)
-+int query_port_info(struct ibmad_port *ibmad_port, ib_portid_t * portid,
-+		    int portnum, ibnd_port_t * port)
+@@ -60,32 +60,20 @@ int ibdebug;
+ int query_port_info(struct ibmad_port *ibmad_port, ib_portid_t * portid,
+ 		    int portnum, ibnd_port_t * port)
  {
-+	if (!smp_query_via(port->info, portid, IB_ATTR_PORT_INFO,
-+			   portnum, 0, ibmad_port))
-+		return -1;
++	char width[64], speed[64];
++	int iwidth;
++	int ispeed;
 +
+ 	if (!smp_query_via(port->info, portid, IB_ATTR_PORT_INFO,
+ 			   portnum, 0, ibmad_port))
+ 		return -1;
+ 
  	port->base_lid = (uint16_t) mad_get_field(port->info, 0, IB_PORT_LID_F);
  	port->lmc = (uint8_t) mad_get_field(port->info, 0, IB_PORT_LMC_F);
+-
+-	return 0;
+-}
+-
+-static int get_port_info(struct ibmad_port *ibmad_port,
+-			 ibnd_fabric_t * fabric, ibnd_port_t * port,
+-			 int portnum, ib_portid_t * portid)
+-{
+-	int rc = 0;
+-	char width[64], speed[64];
+-	int iwidth;
+-	int ispeed;
+-
+ 	port->portnum = portnum;
 +
-+	return 0;
- }
- 
- static int get_port_info(struct ibmad_port *ibmad_port,
- 			 ibnd_fabric_t * fabric, ibnd_port_t * port,
- 			 int portnum, ib_portid_t * portid)
- {
-+	int rc = 0;
- 	char width[64], speed[64];
- 	int iwidth;
- 	int ispeed;
-@@ -75,11 +83,8 @@ static int get_port_info(struct ibmad_port *ibmad_port,
  	iwidth = mad_get_field(port->info, 0, IB_PORT_LINK_WIDTH_ACTIVE_F);
  	ispeed = mad_get_field(port->info, 0, IB_PORT_LINK_SPEED_ACTIVE_F);
- 
--	if (!smp_query_via(port->info, portid, IB_ATTR_PORT_INFO,
--			   portnum, 0, ibmad_port))
--		return -1;
 -
--	decode_port_info(port);
-+	if ((rc = query_port_info(ibmad_port, portid, portnum, port)) != 0)
-+		return rc;
- 
+-	if ((rc = query_port_info(ibmad_port, portid, portnum, port)) != 0)
+-		return rc;
+-
  	IBND_DEBUG
  	    ("portid %s portnum %d: base lid %d state %d physstate %d %s %s\n",
-@@ -123,10 +128,8 @@ static int query_node(struct ibmad_port *ibmad_port, ibnd_fabric_t * fabric,
+ 	     portid2str(portid), portnum, port->base_lid,
+@@ -93,6 +81,7 @@ static int get_port_info(struct ibmad_port *ibmad_port,
+ 	     mad_get_field(port->info, 0, IB_PORT_PHYS_STATE_F),
+ 	     mad_dump_val(IB_PORT_LINK_WIDTH_ACTIVE_F, width, 64, &iwidth),
+ 	     mad_dump_val(IB_PORT_LINK_SPEED_ACTIVE_F, speed, 64, &ispeed));
++
+ 	return 0;
+ }
+ 
+@@ -122,15 +111,15 @@ static int query_node(struct ibmad_port *ibmad_port, ibnd_fabric_t * fabric,
+ 	if ((rc = query_node_info(ibmad_port, fabric, node, portid)) != 0)
+ 		return rc;
+ 
+-	port->portnum = mad_get_field(node->info, 0, IB_NODE_LOCAL_PORT_F);
+-	port->guid = mad_get_field64(node->info, 0, IB_NODE_PORT_GUID_F);
+-
  	if (!smp_query_via(nd, portid, IB_ATTR_NODE_DESC, 0, 0, ibmad_port))
  		return -1;
  
--	if (!smp_query_via(port->info, portid, IB_ATTR_PORT_INFO, 0, 0,
--			   ibmad_port))
--		return -1;
--	decode_port_info(port);
-+	if ((rc = query_port_info(ibmad_port, portid, 0, port)) != 0)
-+		return rc;
+ 	if ((rc = query_port_info(ibmad_port, portid, 0, port)) != 0)
+ 		return rc;
  
++	port->portnum = mad_get_field(node->info, 0, IB_NODE_LOCAL_PORT_F);
++	port->guid = mad_get_field64(node->info, 0, IB_NODE_PORT_GUID_F);
++
  	if (node->type != IB_NODE_SWITCH)
  		return 0;
-@@ -134,11 +137,10 @@ static int query_node(struct ibmad_port *ibmad_port, ibnd_fabric_t * fabric,
- 	node->smalid = port->base_lid;
- 	node->smalmc = port->lmc;
  
--	/* after we have the sma information find out the real PortInfo for this port */
--	if (!smp_query_via(port->info, portid, IB_ATTR_PORT_INFO,
--			   port->portnum, 0, ibmad_port))
--		return -1;
--	decode_port_info(port);
-+	/* after we have the sma information find out the "real" PortInfo for
-+	 * the external port */
-+	if ((rc = query_port_info(ibmad_port, portid, port->portnum, port)) != 0)
-+		return rc;
+@@ -563,8 +552,8 @@ ibnd_fabric_t *ibnd_discover_fabric(struct ibmad_port * ibmad_port,
+ 						       IB_NODE_LOCAL_PORT_F))
+ 					continue;
  
- 	port->base_lid = (uint16_t) node->smalid;	/* LID is still defined by port 0 */
- 	port->lmc = (uint8_t) node->smalmc;
+-				if (get_port_info(ibmad_port, fabric,
+-						  &port_buf, i, path)) {
++				if (query_port_info(ibmad_port, path, i,
++						    &port_buf)) {
+ 					IBND_ERROR
+ 					    ("can't reach node %s port %d\n",
+ 					     portid2str(path), i);
 -- 
 1.5.4.5
 
