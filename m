@@ -1,46 +1,68 @@
-From: Ralph Campbell <ralph.campbell-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] IB/core: export struct ib_port
-Date: Wed, 11 Nov 2009 12:07:30 -0800
-Message-ID: <1257970050.992.317.camel@chromite.mv.qlogic.com>
-References: <1257966478.992.300.camel@chromite.mv.qlogic.com>
-	 <adafx8kx41h.fsf@roland-alpha.cisco.com>
+From: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH] opensm/osm_mcast_mgr.c: fix return value on alloc_mfts()
+	failures
+Date: Wed, 11 Nov 2009 15:25:23 -0500
+Message-ID: <f0e08f230911111225k4b1c30c0y44c13d950d9555b6@mail.gmail.com>
+References: <20091111183317.GX7192@me>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <adafx8kx41h.fsf-BjVyx320WGW9gfZ95n9DRSW4+XlvGpQz@public.gmane.org>
+In-Reply-To: <20091111183317.GX7192@me>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+To: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
 Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, 2009-11-11 at 11:19 -0800, Roland Dreier wrote:
-> > This patch moves the definition of struct ib_port from
->  > sysfs.c to ib_verbs.h so that HCAs can create files in
->  > /sys/class/infiniband/<hca>/ports/<N>/
-> 
-> um, maybe, but we need to see how it gets used first.  How do you get
-> the to struct ib_port in driver code?  Maybe it would make more sense to
-> add a way for low-level drivers to pass in port attributes that get
-> added when the port structure gets created?
+On Wed, Nov 11, 2009 at 1:33 PM, Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>=
+ wrote:
+>
+> When alloc_mfts() fails and multicast routing calculation interrupted
+> return -1 value to a caller.
 
-It is used by the new ib_qib driver to expose the SL to VL table
-since the user level MPI library (libpsm) constructs packets including
-the IB header. After the driver calls ib_register_device(),
-it calls device_create_file() to create the files in
-/sys/class/infiniband/qib0/. Then it uses struct ib_device->port_list
-to get the pointer to ib_port to add a directory similar to "gids"
-and "pkeys" for each SL.
+Yes, that fixes the return value but nothing (at least currently)
+takes advantage of that. Is that the next step ?
 
-> By the way, any plans to resume working on the upstream driver for
-> qlogic HCAs?  Do you still plan to deprecate ib_ipath and add a new
-> driver for new devices?
+-- Hal
 
-Yes, this is what I'm working on.
-The patch is the only change outside of the hw/qib/ directory.
-Do you want to see a preview of the sysfs code?
-
+>
+> Signed-off-by: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+> ---
+> =C2=A0opensm/opensm/osm_mcast_mgr.c | =C2=A0 =C2=A02 ++
+> =C2=A01 files changed, 2 insertions(+), 0 deletions(-)
+>
+> diff --git a/opensm/opensm/osm_mcast_mgr.c b/opensm/opensm/osm_mcast_=
+mgr.c
+> index 105e905..7bd7add 100644
+> --- a/opensm/opensm/osm_mcast_mgr.c
+> +++ b/opensm/opensm/osm_mcast_mgr.c
+> @@ -1066,6 +1066,7 @@ int osm_mcast_mgr_process(osm_sm_t * sm)
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0if (alloc_mfts(sm)) {
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0OSM_LOG(sm->p_=
+log, OSM_LOG_ERROR,
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 =C2=A0"ERR 0A07: alloc_mfts failed\n");
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 ret =3D -1;
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0goto exit;
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0}
+>
+> @@ -1110,6 +1111,7 @@ int osm_mcast_mgr_process_mgroups(osm_sm_t * sm=
+)
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0if (alloc_mfts(sm)) {
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0OSM_LOG(sm->p_=
+log, OSM_LOG_ERROR,
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 =C2=A0"ERR 0A09: alloc_mfts failed\n");
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 ret =3D -1;
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0goto exit;
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0}
+>
+> --
+> 1.6.5.2
+>
+>
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
