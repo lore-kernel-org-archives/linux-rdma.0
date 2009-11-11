@@ -1,48 +1,62 @@
-From: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH] opensm/osm_mcast_mgr.c: fix return value on alloc_mfts()
- failures
-Date: Wed, 11 Nov 2009 20:33:17 +0200
-Message-ID: <20091111183317.GX7192@me>
+From: Ralph Campbell <ralph.campbell-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH] IB/core: export struct ib_port
+Date: Wed, 11 Nov 2009 11:07:58 -0800
+Message-ID: <1257966478.992.300.camel@chromite.mv.qlogic.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+This patch moves the definition of struct ib_port from
+sysfs.c to ib_verbs.h so that HCAs can create files in
+/sys/class/infiniband/<hca>/ports/<N>/
 
-When alloc_mfts() fails and multicast routing calculation interrupted
-return -1 value to a caller.
-
-Signed-off-by: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Ralph Campbell <ralph.campbell-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
 ---
- opensm/opensm/osm_mcast_mgr.c |    2 ++
- 1 files changed, 2 insertions(+), 0 deletions(-)
 
-diff --git a/opensm/opensm/osm_mcast_mgr.c b/opensm/opensm/osm_mcast_mgr.c
-index 105e905..7bd7add 100644
---- a/opensm/opensm/osm_mcast_mgr.c
-+++ b/opensm/opensm/osm_mcast_mgr.c
-@@ -1066,6 +1066,7 @@ int osm_mcast_mgr_process(osm_sm_t * sm)
- 	if (alloc_mfts(sm)) {
- 		OSM_LOG(sm->p_log, OSM_LOG_ERROR,
- 			"ERR 0A07: alloc_mfts failed\n");
-+		ret = -1;
- 		goto exit;
- 	}
+diff --git a/drivers/infiniband/core/sysfs.c b/drivers/infiniband/core/sysfs.c
+index 158a214..e01f3e7 100644
+--- a/drivers/infiniband/core/sysfs.c
++++ b/drivers/infiniband/core/sysfs.c
+@@ -39,14 +39,6 @@
  
-@@ -1110,6 +1111,7 @@ int osm_mcast_mgr_process_mgroups(osm_sm_t * sm)
- 	if (alloc_mfts(sm)) {
- 		OSM_LOG(sm->p_log, OSM_LOG_ERROR,
- 			"ERR 0A09: alloc_mfts failed\n");
-+		ret = -1;
- 		goto exit;
- 	}
+ #include <rdma/ib_mad.h>
  
--- 
-1.6.5.2
+-struct ib_port {
+-	struct kobject         kobj;
+-	struct ib_device      *ibdev;
+-	struct attribute_group gid_group;
+-	struct attribute_group pkey_group;
+-	u8                     port_num;
+-};
+-
+ struct port_attribute {
+ 	struct attribute attr;
+ 	ssize_t (*show)(struct ib_port *, struct port_attribute *, char *buf);
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index c179318..5d23957 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -1154,6 +1154,14 @@ struct ib_device {
+ 	u8                           phys_port_cnt;
+ };
+ 
++struct ib_port {
++	struct kobject         kobj;
++	struct ib_device      *ibdev;
++	struct attribute_group gid_group;
++	struct attribute_group pkey_group;
++	u8                     port_num;
++};
++
+ struct ib_client {
+ 	char  *name;
+ 	void (*add)   (struct ib_device *);
+
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
