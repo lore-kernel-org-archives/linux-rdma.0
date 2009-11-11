@@ -1,40 +1,66 @@
-From: Ralph Campbell <ralph.campbell-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-Subject: Re: ipath now and then (was [PATCH] IB/core: export struct ib_port)
-Date: Wed, 11 Nov 2009 13:35:50 -0800
-Message-ID: <1257975350.992.324.camel@chromite.mv.qlogic.com>
-References: <15ddcffd0911111318h425c43f6ya136d8f4aaa6883e@mail.gmail.com>
+From: David Brean <David.Brean-UdXhSnd/wVw@public.gmane.org>
+Subject: Re: strong ordering for data registered memory
+Date: Wed, 11 Nov 2009 16:37:41 -0500
+Message-ID: <4AFB2EA5.4030804@Sun.COM>
+References: <4AF9CACE.8070700@Sun.COM> <adaskclvta4.fsf@roland-alpha.cisco.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; CHARSET=US-ASCII; format=flowed
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <15ddcffd0911111318h425c43f6ya136d8f4aaa6883e-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-reply-to: <adaskclvta4.fsf-BjVyx320WGW9gfZ95n9DRSW4+XlvGpQz@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Dave Olson <dave.olson-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, 2009-11-11 at 13:18 -0800, Or Gerlitz wrote:
-> On Wed, Nov 11, 2009 at 11:06 PM, Dave Olson <dave.olson-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org> wrote:
-> > And yes, the ib_ipath is being fully deprecated.  The "full set" of
-> > patches that adds ib_qib upstream will include a subset that drops
-> > ib_ipath.   All the bug fixes and feature work have been done for ib_qib
-> 
-> It was brought up in few occasions that the ipath driver can be
-> changed such that it becomes a software IBoE driver (e.g use packet
-> socket with the IBoE ether type for the IB L2 emulation).
-> If it doesn't have to serve for the qlogic HCA anymore, this
-> transformation might be even eaiser.
-> I wonder if its better to remove it now and maybe return it later with
-> the new facelift or leave it till the change is done.
-> 
-> Or.
+I decided to minimize the impact of an API change on the class of 
+applications that use the current verbs interface because those 
+applications can safely run on platforms that deliver optimal 
+performance using weak ordering for data buffers.  New binaries aren't 
+required for this class of application.
 
-I don't understand what you are suggesting.
-The kernel module name ib_ipath and/or directory name
-drivers/infiniband/hw/ipath could be reused for some
-other purpose certainly.
+I thought it would be more appropriate to put the burden of added 
+complexity on the class of applications that bypass the verbs to access 
+special features in the hardware.  In fact, those applications are 
+selective about memory regions that need this special handling and would 
+register lots of memory without the "strong ordering' bit.  How 
+applications determine that the platform is capable of performing the 
+request would be beyond the scope of the verbs, however, I suppose that 
+the verbs framework could check and return an error.
 
+If there are applications that expect the hardware to support "strong 
+ordering" and don't check the hardware, then these might be a problem.  
+Do any of these exists?
 
+By the way, if I had proposed this bit several years ago, then I would 
+have chosen a "weak ordering" flag.  Instead, I decided to try 
+protecting the existing base of verbs-based software.
+
+-David
+
+Roland Dreier wrote:
+>  > Some time ago there was an email sent to this group with the subject
+>  > "weak ordering for data registered memory".  I don't recall any action
+>  > resulting from this thread.  So, I have a question.  If a bit were
+>  > defined to specify "strong ordering", perhaps as a "access" flag (see
+>  > ibv_access_flags) and used with ibv_reg_mr(), would that be sufficient
+>  > for (1) client applications that need a HW "guarantee" of writing the
+>  > last byte of an RDMA last and (2) platform implementations that need
+>  > to deliver that feature?
+>
+> What would happen if an application asked for strong ordering and the
+> adapter and/or platform is not capable of that?
+>
+> Weak ordering is a bit easier to handle -- the app is saying "if you can
+> make things go faster, don't worry about ordering here" and a platform
+> where it doesn't matter can just ignore it.
+>
+>  - R.
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>   
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
