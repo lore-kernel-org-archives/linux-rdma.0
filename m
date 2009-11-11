@@ -1,287 +1,198 @@
-From: Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH] opensm/osm_state_mgr.c: force heavy sweep when fabric
- consists of single switch
-Date: Wed, 11 Nov 2009 11:15:17 +0200
-Message-ID: <4AFA80A5.8080809@dev.mellanox.co.il>
-References: <4AF0056A.5030503@dev.mellanox.co.il> <20091103221217.GE29388@me> <4AF14DCD.3010407@dev.mellanox.co.il> <4AF16740.3080600@Sun.COM> <4AF1A3CA.9070902@dev.mellanox.co.il> <4AF1BD1C.4090703@Sun.COM> <4AF1CA61.2020007@dev.mellanox.co.il> <4AF27EDB.6070604@dev.mellanox.co.il> <4AF6D619.8000908@gmail.com> <4AF7D040.2060807@dev.mellanox.co.il> <4AF7F22D.9010609@gmail.com> <4AF7F864.6030809@dev.mellanox.co.il> <4AF81F15.1080205@gmail.com>
-Reply-To: kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org
+From: Dotan Barak <dotanba-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: back to back RDMA read fail?
+Date: Wed, 11 Nov 2009 11:52:41 +0200
+Message-ID: <4AFA8969.501@gmail.com>
+References: <7d5928b30911092036v6d1196a8m53287dc5eebb654d@mail.gmail.com>	 <7d5928b30911092103r5b730091jd2ca2581f540ea3d@mail.gmail.com>	 <00ca01ca61d3$fd4dd290$f7e977b0$@com> <7d5928b30911100731o24941445wfb8be19e2b0cc1fb@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4AF81F15.1080205-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <7d5928b30911100731o24941445wfb8be19e2b0cc1fb-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Eli Dorfman (Voltaire)" <dorfman.eli-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Line Holen <Line.Holen-UdXhSnd/wVw@public.gmane.org>, Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>, Linux RDMA <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: neutron <neutronsharc-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Paul Grun <pgrun-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Eli Dorfman (Voltaire) wrote:
-> Yevgeny Kliteynik wrote:
->> Eli Dorfman (Voltaire) wrote:
->>> Yevgeny Kliteynik wrote:
->>>> Eli Dorfman (Voltaire) wrote:
->>>>> Yevgeny Kliteynik wrote:
->>>>>> Yevgeny Kliteynik wrote:
->>>>>>> Line Holen wrote:
->>>>>>>> On 11/ 4/09 04:54 PM, Yevgeny Kliteynik wrote:
->>>>>>>>> Line Holen wrote:
->>>>>>>>>> On 11/ 4/09 10:47 AM, Yevgeny Kliteynik wrote:
->>>>>>>>>>> Sasha Khapyorsky wrote:
->>>>>>>>>>>> On 12:26 Tue 03 Nov     , Yevgeny Kliteynik wrote:
->>>>>>>>>>>>> Always do heavy sweep when there is only one node in the
->>>>>>>>>>>>> fabric, and this node is a switch, and SM runs on top of it -
->>>>>>>>>>>>> there may be a race when OSM starts running before the
->>>>>>>>>>>>> external ports are ports are up, or if they went through
->>>>>>>>>>>>> reset while SM was starting.
->>>>>>>>>>>>> In this race switch brings up the ports and turns on the
->>>>>>>>>>>>> PSC bit, but OSM might get PortInfo before SwitchInfo, and it
->>>>>>>>>>>>> might see all ports as down, but PSC bit on. If that happens,
->>>>>>>>>>>>> OSM turns off PSC bit, and it will never see external ports
->>>>>>>>>>>>> again - it won't perform any heavy sweep, only light sweep
->>>>>>>>>>>> Could such race happen when there are more than one node in a
->>>>>>>>>>>> fabric?
->>>>>>>>>>> I think that my description of the race was misleading.
->>>>>>>>>>> The race can happen on *any* fabric when SM runs on switch.
->>>>>>>>>>> But when it does happen, SM thinks that the whole subnet
->>>>>>>>>>> is just one switch - that's what it managed to discover.
->>>>>>>>>>> I've actually seen it happening.
->>>>>>>>>>> So the patch fixes this particular case.
->>>>>>>>>>>
->>>>>>>>>>> So the next question that you would probably ask is can
->>>>>>>>>>> this race happen on some *other* switch and not the one
->>>>>>>>>>> SM is running on?
->>>>>>>>>>>
->>>>>>>>>>> Well, I don't know. I have a hunch that it can't, but I
->>>>>>>>>>> couldn't prove it to myself yet.
->>>>>>>>>>>
->>>>>>>>>>> The race on the managed switch is a special case because
->>>>>>>>>>> SM always sees port 0, and always gets responses to its
->>>>>>>>>>> SMP queries. On any other switch, if the ports were reset,
->>>>>>>>>>> SM won't get any response until the ports are up again.
->>>>>>>>>>>
->>>>>>>>>>> Perhaps there might be a case where SM got some port as down,
->>>>>>>>>>> and by the time SM got SwitchInfo with PSC bit the port
->>>>>>>>>>> was already up, so SM won't start discovery beyond this
->>>>>>>>>>> port. But this race would be fixed on the next heavy sweep,
->>>>>>>>>>> when SM will discover this port that it missed the previous
->>>>>>>>>>> time, whereas race on managed switch is fatal - SM won't
->>>>>>>>>>> ever do any heavy sweep.
->>>>>>>>>>>
->>>>>>>>>>> -- Yevgeny
->>>>>>>>>> At least for the 3.2 branch there is a general race regardless of
->>>>>>>>>> where the SM is running. I haven't checked the current master, but
->>>>>>>>>> I cannot recall seeing any patches related to this so I assume
->>>>>>>>>> the race is still there.
->>>>>>>>>>
->>>>>>>>>> There is a window between SM discovering a switch and clearing PSC
->>>>>>>>>> for the same switch. The SM will not detect a state change on the
->>>>>>>>>> switch ports during this time.
->>>>>>>>> If the port changes state during that period, the switch issues
->>>>>>>>> new trap 128, which (I think) should cause SM to re-discover the
->>>>>>>>> fabric once this discovery cycle is over. Is this correct?
->>>>>>>>>
->>>>>>>> I think the switch shall send a trap whenever it sets the PSC bit.
->>>>>>>> Once set I believe it will not send another trap until it is reset.
->>>>>>>> Or do I misinterpret the spec ?
->>>>>>> I may be wrong, but I thought that this is how things work:
->>>>>>> - port state changes
->>>>>>> - switch turns on PSC bit and starts sending traps
->>>>>>> - SM gets the trap, sends trap repress
->>>>>>> - switch gets trap repress and stops sending traps
->>>>>>> - PSC is still on
->>>>>>> - port state changes again (the same or any other port)
->>>>>>> - switch turns on PSC bit (which doesn't matter as PSC is
->>>>>>>   already on) and starts sending traps again
->>>>>>> - etc...
->>>>>>>
->>>>>>> Anyway, I'll double-check this issue.
->>>>>> Yep, verified.
->>>>>> Switch sends traps regardless the PSC bit status.
->>>>>> Also, the spec doesn't link them together:
->>>>>>
->>>>>>   o14-5.1.1: If a switch supports Traps (PortInfo:
->>>>>>   CapabilityMask.IsTrap-Supported is one), its SMA
->>>>>>   shall send trap 128 to the SM indicated by the  
->>>>>> PortInfo:MasterSMLID
->>>>>> under any condition that   would cause SwitchInfo:PortStateChange to
->>>>>> be set
->>>>>>   to one. (See 14.2.5.4 SwitchInfo on page 827.)
->>>>>>
->>>>> Trap will be sent according to the SMLID. After first bring up the
->>>>> SMLID is not set yet and trap will not be sent.
->>>>> In that case the opensm would discover the change only by PSC bit.
->>>>> For IS3 chips the PSC bit and/or trap were set only after one or more
->>>>> ports changed their state, so I don't understand how can the SM
->>>>> discover PSC bit set while all ports are down. Or is this a change in
->>>>> IS4?
->>>> It can happen when SM runs on the switch, not not host.
->>>> In this case if all ports are going down, SM will see
->>>> them all down and it will see PSC bit on.
->>> So this patch is only for SM running on a switch which is the only
->>> node in the fabric?
->>> I don't see the race when there is more than one switch - please explain.
->> Quoting from above:
->>
->>   The race can happen on *any* fabric when SM runs on switch.
->>   But when it does happen, SM thinks that the whole subnet
->>   is just one switch - that's what it managed to discover.
-> 
-> I saw that but I don't understand how this can happen.
-> If PSC bit is set after *every* port state change and
-> SM clears PSC bit before reading PortInfo from the switch,
+Hi.
 
-osm_node_info_rcv.c, ni_rcv_process_switch():
-I see in the code that SM receives NodeInfo, then it requests
-SwitchInfo and right after that it requests PortInfo for all
-the ports w/o waiting for the SwitchInfo response.
-In addition to that, if it happens during the first master
-sweep, SM LID is not configured yet, or configured to the
-wrong value, so no traps will be received by the SM.
+how do you connect the QPs?
+via CM/CMA or by sockets (and you actually call the ibv_modify_qp)?
 
--- Yevgeny
+Dotan
 
-> then there is no race condition.
-> As I mentioned before for IS3 switches that is correct.
-> Is there a different behavior with IS4 switches?
-> 
->>> Also AFAIK the PSC bit is set only after any physical port state change.
->> Yes, but it is set only once.
-> 
-> PSC bit should be set after *every* port state change.
-> 
-> Eli
-> 
->> Meanwhile, the ports can change from up to down,
->> then SM discovers them, and then from down to up.
+neutron wrote:
+> Hi Paul, thanks a lot for your quick reply!
+>
+> In my test,  client informs the server of its local memory (rkey,
+> addr, size) by sending 4 back to back messages,  each message elicits
+> a RDMA read request (RR) from the server.
+>
+> In other words, client exposes its memory to the server, and server
+> RDMA reads it.
+>
+> As far as RDMA read is concerned, server is a requester, and client is
+> a responder, right?
+>
+> The error I encountered happens at the initial phase, when client
+> sends 4 back to back messages to server(using ibv_post_send ),
+> containing (rkey, addr, size) client's local memory.
+>
+> In these 4 ibv_post_send(), client will see one failure.   At server
+> side, server has already posted enough WQs in the RQ.  The failures
+> are included in my first email.
+>
+> Looking at the program output, it appears that, server gets messages
+> 1, issues RR 1, gets message 2, issues RR 2.    But somehow client
+> reports that "send message 2" fails.
+>
+> On the contrary, server reports "receive message 3" fails.
+>
+> As a result, server gets message 1,2,4, and succeeds with RR 1,2,4.
+> But clients sees that message 2 fails, and succeed with message 1,3,4.
+>   This inconsistency is the problem that puzzled me.
+>
+> ------------
+> By the way, how to interpret the parameters for RDMA, and what are
+> parameters that control RDMA behavior?  Below are something I can
+> find, there must be more....
+>
+>    max_qp_rd_atom:                 4
+>    max_res_rd_atom:                258048
+>    max_qp_init_rd_atom:            128
+>
+>    qp_attr.max_dest_rd_atomic
+>    qp_attr.max_rd_atomic
+>
+>
+>
+> -neutron
+>
+>
+>
+> On Tue, Nov 10, 2009 at 2:04 AM, Paul Grun <pgrun-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org> wrote:
+>   
+>> Is it possible that you exceeded the number of available RDMA Read Resources
+>> available on the server?  There is an expectation that the client knows how
+>> many outstanding RDMA Read Requests the responder (server) is capable of
+>> handling; if the requester (client) exceeds that number, the responder will
+>> indeed return a NAK-Invalid Request.  Sounds like your server is configured
+>> to accept three outstanding RDMA Read Requests.
+>> This also explains why it works when you pause the program periodically...it
+>> gives the responder time to generate the RDMA Read Responses and therefore
+>> free up some resources to be used in receiving the next incoming RDMA Read
+>> Request.
 >>
->> -- Yevgeny
+>> -Paul
+>>
+>> -----Original Message-----
+>> From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+>> [mailto:linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of neutron
+>> Sent: Monday, November 09, 2009 9:04 PM
+>> To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+>> Subject: back to back RDMA read fail?
+>>
+>> Hi all,
+>>
+>> I have a simple program that test back to back RDMA read performance.
+>> However I encountered errors for unknown reasons.
+>>
+>> The basic flow of my program is:
+>>
+>> client:
+>> ibv_post_send() to send 4 back to back messages to server (no delay
+>> inbetween). Each message contains the (rkey, addr, size) of a local
+>> buffer. The buffer is registered with remote-read/write/ permissions.
+>> After that, ibv_poll_cq() is called to wait for completion.
+>>
+>> server:
+>> First, enough receive WRs are posted to the RQ.  Upon receipt of each
+>> message, immediately post a RDMA read request, using the (rkey, addr,
+>> size) information contained in the originating message.
+>>
+>> --------------
+>> Both client and server use RC QP.  Some errors are observed.
+>>
+>> On client side,  ibv_poll_cq() gets 4 CQE, one out of the 4 CQE is an error:
+>> CQ::  wr_id=0x0, wc_opcode=IBV_WC_SEND, wc_status=remote invalid RD
+>> request, wc_flag=0x3b
+>>      byte_len=11338758, immdata=1110104528, qp_num=0x0, src_qp=2290530758
+>>
+>> The other 3 CQE are success.
+>>
+>> On server side,
+>> 3 of the 4 messages are successfully received. One message produces an
+>> error CQE:
+>> CQ::  wr_id=0x8000000000, wc_opcode=Unknow-wc-opcode,
+>> wc_status=unknown, wc_flag=0x0
+>>      byte_len=9569287, immdata=0, qp_num=0x0, src_qp=265551872
+>>
+>> The 3 RDMA read corresponding to the successful receive all succeed.
+>>
+>> But, if I pause the client program for a short while( usleep(100) for
+>> example ) after calling ibv_post_send(), then no error occurs.
+>> Anyone can point out the pitfall here? Thanks!
 >>
 >>
->>> So if we clear the PSC bit and only then get PortInfo we will still
->>> catch any new state change.
->>> right?
->>>
->>> Eli
->>>
->>>
->>>> -- Yevgeny
->>>>
->>>>> Eli
->>>>>
->>>>>> -- Yevgeny
->>>>>>
->>>>>>> -- Yevgeny
->>>>>>>
->>>>>>>>> Or perhaps the more serious problem happens when SM LID is not
->>>>>>>>> configured yet on the switch, hence the trap is not going to the
->>>>>>>>> right place?
->>>>>>>>>
->>>>>>>>>> I have a patch for the 3.2 branch that I can merge into master.
->>>>>>>>> Sure, that would be nice :)
->>>>>>>>>
->>>>>>>>> -- Yevgeny
->>>>>>>>>
->>>>>>>>>
->>>>>>>>>> Line
->>>>>>>>>>
->>>>>>>>>>>> Sasha
->>>>>>>>>>>>
->>>>>>>>>>>>> Signed-off-by: Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
->>>>>>>>>>>>> ---
->>>>>>>>>>>>>  opensm/opensm/osm_state_mgr.c |   15 ++++++++++-----
->>>>>>>>>>>>>  1 files changed, 10 insertions(+), 5 deletions(-)
->>>>>>>>>>>>>
->>>>>>>>>>>>> diff --git a/opensm/opensm/osm_state_mgr.c
->>>>>>>>>>>>> b/opensm/opensm/osm_state_mgr.c
->>>>>>>>>>>>> index 4303d6e..537c855 100644
->>>>>>>>>>>>> --- a/opensm/opensm/osm_state_mgr.c
->>>>>>>>>>>>> +++ b/opensm/opensm/osm_state_mgr.c
->>>>>>>>>>>>> @@ -1062,13 +1062,18 @@ static void do_sweep(osm_sm_t * sm)
->>>>>>>>>>>>>       * Otherwise, this is probably our first discovery pass
->>>>>>>>>>>>>       * or we are connected in loopback. In both cases do a
->>>>>>>>>>>>>       * heavy sweep.
->>>>>>>>>>>>> -     * Note: If we are connected in loopback we want a heavy
->>>>>>>>>>>>> -     * sweep, since we will not be getting any traps if
->>>>>>>>>>>>> there is
->>>>>>>>>>>>> -     * a lost connection.
->>>>>>>>>>>>> +     * Note the following:
->>>>>>>>>>>>> +     * 1. If we are connected in loopback we want a heavy
->>>>>>>>>>>>> sweep,
->>>>>>>>>>>>> since we
->>>>>>>>>>>>> +     *    will not be getting any traps if there is a lost
->>>>>>>>>>>>> connection.
->>>>>>>>>>>>> +     * 2. If we are in DISCOVERING state - this means it is
->>>>>>>>>>>>> either in
->>>>>>>>>>>>> +     *    initializing or wake up from STANDBY - run the heavy
->>>>>>>>>>>>> sweep.
->>>>>>>>>>>>> +     * 3. If there is only one node in the fabric, and this
->>>>>>>>>>>>> node is a
->>>>>>>>>>>>> +     *    switch, and OSM runs on top of it, there might be a
->>>>>>>>>>>>> race
->>>>>>>>>>>>> when
->>>>>>>>>>>>> +     *    OSM starts running before the external ports are
->>>>>>>>>>>>> up -
->>>>>>>>>>>>> run the
->>>>>>>>>>>>> +     *    heavy sweep.
->>>>>>>>>>>>>       */
->>>>>>>>>>>>> -    /*  if we are in DISCOVERING state - this means it is
->>>>>>>>>>>>> either in
->>>>>>>>>>>>> -     *  initializing or wake up from STANDBY - run the heavy
->>>>>>>>>>>>> sweep */
->>>>>>>>>>>>>      if (cl_qmap_count(&sm->p_subn->sw_guid_tbl)
->>>>>>>>>>>>> +        && cl_qmap_count(&sm->p_subn->node_guid_tbl) != 1
->>>>>>>>>>>>>          && sm->p_subn->sm_state != IB_SMINFO_STATE_DISCOVERING
->>>>>>>>>>>>>          && sm->p_subn->opt.force_heavy_sweep == FALSE
->>>>>>>>>>>>>          && sm->p_subn->force_heavy_sweep == FALSE
->>>>>>>>>>>>> -- 
->>>>>>>>>>>>> 1.5.1.4
->>>>>>>>>>>>>
->>>>>>>>>>>>> -- 
->>>>>>>>>>>>> To unsubscribe from this list: send the line "unsubscribe
->>>>>>>>>>>>> linux-rdma" in
->>>>>>>>>>>>> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->>>>>>>>>>>>> More majordomo info at
->>>>>>>>>>>>> http://vger.kernel.org/majordomo-info.html
->>>>>>>>>>>>>
->>>>>>>>>>> -- 
->>>>>>>>>>> To unsubscribe from this list: send the line "unsubscribe
->>>>>>>>>>> linux-rdma" in
->>>>>>>>>>> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->>>>>>>>>>> More majordomo info at 
->>>>>>>>>>> http://vger.kernel.org/majordomo-info.html
->>>>>>>>> -- 
->>>>>>>>> To unsubscribe from this list: send the line "unsubscribe
->>>>>>>>> linux-rdma" in
->>>>>>>>> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->>>>>>>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>>>>>> -- 
->>>>>>> To unsubscribe from this list: send the line "unsubscribe
->>>>>>> linux-rdma" in
->>>>>>> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->>>>>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>>>>>>
->>>>>> -- 
->>>>>> To unsubscribe from this list: send the line "unsubscribe
->>>>>> linux-rdma" in
->>>>>> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->>>>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>>>> -- 
->>>>> To unsubscribe from this list: send the line "unsubscribe
->>>>> linux-rdma" in
->>>>> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->>>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>>>>
->>> -- 
->>> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
->>> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>>
-> 
+>> -----------
+>> On both client and server, I'm using  'mthca0' type MT25208.  The QPs
+>> are initialized with "qp_attr.max_dest_rd_atomic=4,
+>> qp_attr.max_rd_atomic = 4".  The QP's "devinfo -v" gives the
+>> information:
+>>
+>> hca_id: mthca0
+>>        fw_ver:                         5.1.400
+>>        node_guid:                      0002:c902:0023:c04c
+>>        sys_image_guid:                 0002:c902:0023:c04f
+>>        vendor_id:                      0x02c9
+>>        vendor_part_id:                 25218
+>>        hw_ver:                         0xA0
+>>        board_id:                       MT_0370130002
+>>        phys_port_cnt:                  2
+>>        max_mr_size:                    0xffffffffffffffff
+>>        page_size_cap:                  0xfffff000
+>>        max_qp:                         64512
+>>        max_qp_wr:                      16384
+>>        device_cap_flags:               0x00001c76
+>>        max_sge:                        27
+>>        max_sge_rd:                     0
+>>        max_cq:                         65408
+>>        max_cqe:                        131071
+>>        max_mr:                         131056
+>>        max_pd:                         32764
+>>        max_qp_rd_atom:                 4
+>>        max_ee_rd_atom:                 0
+>>        max_res_rd_atom:                258048
+>>        max_qp_init_rd_atom:            128
+>>        max_ee_init_rd_atom:            0
+>>        atomic_cap:                     ATOMIC_HCA (1)
+>>        max_ee:                         0
+>>        max_rdd:                        0
+>>        max_mw:                         0
+>>        max_raw_ipv6_qp:                0
+>>        max_raw_ethy_qp:                0
+>>        max_mcast_grp:                  8192
+>>        max_mcast_qp_attach:            56
+>>        max_total_mcast_qp_attach:      458752
+>>        max_ah:                         0
+>>        max_fmr:                        0
+>>        max_srq:                        960
+>>        max_srq_wr:                     16384
+>>        max_srq_sge:                    27
+>>        max_pkeys:                      64
+>>        local_ca_ack_delay:             15
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+>> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>
+>>
+>>
+>>     
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+>   
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
