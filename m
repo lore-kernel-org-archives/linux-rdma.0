@@ -1,57 +1,44 @@
-From: Richard Frank <richard.frank-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: strong ordering for data registered memory
-Date: Wed, 11 Nov 2009 13:16:26 -0500
-Message-ID: <4AFAFF7A.4090602@oracle.com>
-References: <4AF9CACE.8070700@Sun.COM> <adaskclvta4.fsf@roland-alpha.cisco.com>
+From: "Sean Hefty" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH] RDMA/addr: Use appropriate locking with for_each_netdev()
+Date: Wed, 11 Nov 2009 10:18:47 -0800
+Message-ID: <D5E1FB213939498DBFFEB5A3B83C08AD@amr.corp.intel.com>
+References: <4AF8EBA4.2070102@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain;
+	charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <adaskclvta4.fsf-BjVyx320WGW9gfZ95n9DRSW4+XlvGpQz@public.gmane.org>
+In-Reply-To: <4AF8EBA4.2070102-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Cc: David Brean <David.Brean-UdXhSnd/wVw@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: 'Eric Dumazet' <eric.dumazet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+Cc: Linux Netdev List <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Today apps are forced to assume that all transports can not provide 
-strong ordering..
-and hence must implement solutions to work around this.
-
-There are specific optimizations an app might make if it knows the 
-underpinning
-transport can make these guarantees..
-
-It would be useful if "strong ordering" were exposed as attribute from a 
-transport..
-and as well - have the ability to provide a hint to enable "strong 
-ordering" on either
-registration or per operation or at the qp level .
-
-Are there any HCAs that provide "strong ordering" today ?
-
-Roland Dreier wrote:
->  > Some time ago there was an email sent to this group with the subject
->  > "weak ordering for data registered memory".  I don't recall any action
->  > resulting from this thread.  So, I have a question.  If a bit were
->  > defined to specify "strong ordering", perhaps as a "access" flag (see
->  > ibv_access_flags) and used with ibv_reg_mr(), would that be sufficient
->  > for (1) client applications that need a HW "guarantee" of writing the
->  > last byte of an RDMA last and (2) platform implementations that need
->  > to deliver that feature?
+>for_each_netdev() should be used with RTNL or dev_base_lock held,
+>or risk a crash.
 >
-> What would happen if an application asked for strong ordering and the
-> adapter and/or platform is not capable of that?
+>Signed-off-by: Eric Dumazet <eric.dumazet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+
+Thanks - I'm working on a patch set in this area.  Roland, I can merge Eric's
+changes into that patch set if it makes things easier.
+
+> drivers/infiniband/core/addr.c |    9 +++++++--
+> 1 files changed, 7 insertions(+), 2 deletions(-)
 >
-> Weak ordering is a bit easier to handle -- the app is saying "if you can
-> make things go faster, don't worry about ordering here" and a platform
-> where it doesn't matter can just ignore it.
->
->  - R.
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->   
+>diff --git a/drivers/infiniband/core/addr.c b/drivers/infiniband/core/addr.c
+>index bd07803..5ca0b2c 100644
+>--- a/drivers/infiniband/core/addr.c
+>+++ b/drivers/infiniband/core/addr.c
+>@@ -131,6 +131,7 @@ int rdma_translate_ip(struct sockaddr *addr, struct
+
+The changes to this function are still valid.
+
+>@@ -391,15 +393,17 @@ static int addr_resolve_local(struct sockaddr *src_in,
+
+This function is going away.
+
+- Sean
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
