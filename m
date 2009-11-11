@@ -1,41 +1,24 @@
-From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH] IB/core: export struct ib_port
-Date: Wed, 11 Nov 2009 12:52:02 -0800
-Message-ID: <adaaayswzrh.fsf@roland-alpha.cisco.com>
-References: <1257966478.992.300.camel@chromite.mv.qlogic.com>
-	<adafx8kx41h.fsf@roland-alpha.cisco.com>
-	<1257970050.992.317.camel@chromite.mv.qlogic.com>
+From: "Sean Hefty" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH] RDMA/addr: Use appropriate locking with for_each_netdev()
+Date: Wed, 11 Nov 2009 12:55:42 -0800
+Message-ID: <8C10E584257A46DB9A0AD193520CF4A7@amr.corp.intel.com>
+References: <4AF8EBA4.2070102@gmail.com>	<D5E1FB213939498DBFFEB5A3B83C08AD@amr.corp.intel.com> <adaocn8x6j7.fsf@roland-alpha.cisco.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1257970050.992.317.camel-/vjeY7uYZjrPXfVEPVhPGq6RkeBMCJyt@public.gmane.org> (Ralph
-	Campbell's message of "Wed, 11 Nov 2009 12:07:30 -0800")
+In-Reply-To: <adaocn8x6j7.fsf-BjVyx320WGW9gfZ95n9DRSW4+XlvGpQz@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ralph Campbell <ralph.campbell-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: 'Roland Dreier' <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Cc: 'Eric Dumazet' <eric.dumazet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, Linux Netdev List <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+>Would it be possible for you to take Eric's patch as the first in your
+>set (keeping his From: of course) and base your fixes on top of that?
 
- > It is used by the new ib_qib driver to expose the SL to VL table
- > since the user level MPI library (libpsm) constructs packets including
- > the IB header. After the driver calls ib_register_device(),
- > it calls device_create_file() to create the files in
- > /sys/class/infiniband/qib0/. Then it uses struct ib_device->port_list
- > to get the pointer to ib_port to add a directory similar to "gids"
- > and "pkeys" for each SL.
+Will do.
 
-Hmm, maybe we should just add a vls directory with sl0 ... sl15 or
-something like that in generic code?  I don't see why this needs to be
-driver-specific code.
-
- > Yes, this is what I'm working on.
- > The patch is the only change outside of the hw/qib/ directory.
- > Do you want to see a preview of the sysfs code?
-
-I think the earlier you can post the whole driver, the sooner you'll get
-it upstream.
-
- - R.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
