@@ -1,34 +1,49 @@
-From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH] RDMA/addr: Use appropriate locking with for_each_netdev()
-Date: Wed, 11 Nov 2009 10:25:48 -0800
-Message-ID: <adaocn8x6j7.fsf@roland-alpha.cisco.com>
-References: <4AF8EBA4.2070102@gmail.com>
-	<D5E1FB213939498DBFFEB5A3B83C08AD@amr.corp.intel.com>
+From: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH] opensm/osm_mcast_mgr.c: fix return value on alloc_mfts()
+ failures
+Date: Wed, 11 Nov 2009 20:33:17 +0200
+Message-ID: <20091111183317.GX7192@me>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <D5E1FB213939498DBFFEB5A3B83C08AD-Zpru7NauK7drdx17CPfAsdBPR1lH4CV8@public.gmane.org> (Sean
-	Hefty's message of "Wed, 11 Nov 2009 10:18:47 -0800")
+Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: 'Eric Dumazet' <eric.dumazet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, Linux Netdev List <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
- > >for_each_netdev() should be used with RTNL or dev_base_lock held,
- > >or risk a crash.
- > >
- > >Signed-off-by: Eric Dumazet <eric.dumazet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
- > 
- > Thanks - I'm working on a patch set in this area.  Roland, I can merge Eric's
- > changes into that patch set if it makes things easier.
+When alloc_mfts() fails and multicast routing calculation interrupted
+return -1 value to a caller.
 
-Would it be possible for you to take Eric's patch as the first in your
-set (keeping his From: of course) and base your fixes on top of that?
-That seems the cleanest thing to me.
+Signed-off-by: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+---
+ opensm/opensm/osm_mcast_mgr.c |    2 ++
+ 1 files changed, 2 insertions(+), 0 deletions(-)
 
-Thanks,
-  Roland
+diff --git a/opensm/opensm/osm_mcast_mgr.c b/opensm/opensm/osm_mcast_mgr.c
+index 105e905..7bd7add 100644
+--- a/opensm/opensm/osm_mcast_mgr.c
++++ b/opensm/opensm/osm_mcast_mgr.c
+@@ -1066,6 +1066,7 @@ int osm_mcast_mgr_process(osm_sm_t * sm)
+ 	if (alloc_mfts(sm)) {
+ 		OSM_LOG(sm->p_log, OSM_LOG_ERROR,
+ 			"ERR 0A07: alloc_mfts failed\n");
++		ret = -1;
+ 		goto exit;
+ 	}
+ 
+@@ -1110,6 +1111,7 @@ int osm_mcast_mgr_process_mgroups(osm_sm_t * sm)
+ 	if (alloc_mfts(sm)) {
+ 		OSM_LOG(sm->p_log, OSM_LOG_ERROR,
+ 			"ERR 0A09: alloc_mfts failed\n");
++		ret = -1;
+ 		goto exit;
+ 	}
+ 
+-- 
+1.6.5.2
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
