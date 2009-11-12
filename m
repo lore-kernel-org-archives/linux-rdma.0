@@ -1,58 +1,29 @@
-From: Sasha Khapyorsky <sashak@voltaire.com>
-Subject: Re: Re: [PATCH] osm_subnet.c
-Date: Thu, 12 Nov 2009 21:18:11 +0200
-Message-ID: <20091112191811.GO7192@me>
-References: <3F6F638B8D880340AB536D29CD4C1E1912C86E8A8F@orsmsx501.amr.corp.intel.com>
-	<20091004001316.GK17846@me>
-	<A6E929B3F38F455EB28EB478FBAF290E@amr.corp.intel.com>
+From: "Sean Hefty" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [ofw] Re: [PATCH] osm_subnet.c
+Date: Thu, 12 Nov 2009 11:23:43 -0800
+Message-ID: <81D21ED9D6F34BC1B7DA64F50EE5A7DD@amr.corp.intel.com>
+References: <3F6F638B8D880340AB536D29CD4C1E1912C86E8A8F@orsmsx501.amr.corp.intel.com> <20091004001316.GK17846@me> <A6E929B3F38F455EB28EB478FBAF290E@amr.corp.intel.com> <20091112191811.GO7192@me>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <ofw-bounces@lists.openfabrics.org>
-Content-Disposition: inline
-In-Reply-To: <A6E929B3F38F455EB28EB478FBAF290E@amr.corp.intel.com>
-List-Unsubscribe: <http://lists.openfabrics.org/cgi-bin/mailman/listinfo/ofw>,
-	<mailto:ofw-request@lists.openfabrics.org?subject=unsubscribe>
-List-Archive: <http://lists.openfabrics.org/pipermail/ofw>
-List-Post: <mailto:ofw@lists.openfabrics.org>
-List-Help: <mailto:ofw-request@lists.openfabrics.org?subject=help>
-List-Subscribe: <http://lists.openfabrics.org/cgi-bin/mailman/listinfo/ofw>,
-	<mailto:ofw-request@lists.openfabrics.org?subject=subscribe>
-Sender: ofw-bounces@lists.openfabrics.org
-Errors-To: ofw-bounces@lists.openfabrics.org
-To: Sean Hefty <sean.hefty@intel.com>
-Cc: ofw@lists.openfabrics.org, linux-rdma <linux-rdma@vger.kernel.org>
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20091112191811.GO7192@me>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: 'Sasha Khapyorsky' <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+Cc: "Smith, Stan" <stan.smith-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, ofw-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 09:20 Mon 05 Oct     , Sean Hefty wrote:
-> >>  /**********************************************************************
-> >>   **********************************************************************/
-> >> -static long compar_mgids(const void *m1, const void *m2)
-> >> +static intn_t compar_mgids(const void *m1, const void *m2)
-> >
-> >Any disagreement about changing a prototype of this method
-> >(cl_pfn_fmap_cmp_t) in complib to use standard type (long) instead of
-> >"homemade" and less clear one ('intn_t')?
-> >
-> >Sasha
-> >
-> >>  {
-> >>         return memcmp(m1, m2, sizeof(ib_gid_t));
-> >>  }
-> 
-> If the function is simply a wrapper around a single call to memcmp, why keep it
-> at all?
+>	int compar(const void *, const void *);
+>
+>, or to not bother at all and leave it as 'long'.
+>
+>Hmm, I would prefer to change to 'int' to prevent future confusing.
+>Thoughts?
 
-The function is used as comparator callback in complib's fleximap
-implementation (just similar to qsort()'s compar parameter and others)
-and signed integer (= , >  or < 0) should be returned. Using pointer
-sized int as return value is not needed here. We can do it to match
-others comparators (qsort, scandir, etc.) prototype exactly:
+int seems to make the most sense to me.
 
-	int compar(const void *, const void *);
-
-, or to not bother at all and leave it as 'long'.
-
-Hmm, I would prefer to change to 'int' to prevent future confusing.
-Thoughts?
-
-Sasha
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
