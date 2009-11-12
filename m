@@ -1,87 +1,81 @@
-From: Al Chu <chu11-i2BcT+NCU+M@public.gmane.org>
-Subject: Re: [infiniband-diags] [PATCH] [2/2] split out scan specific data
-	from ibnd_node_t
-Date: Thu, 12 Nov 2009 09:51:08 -0800
-Message-ID: <1258048268.31785.185.camel@auk31.llnl.gov>
-References: <1257190401.580.31.camel@auk31.llnl.gov>
-	 <1257196316.580.33.camel@auk31.llnl.gov> <20091106181633.GQ7192@me>
-	 <1257532494.18550.89.camel@auk31.llnl.gov>  <20091112163105.GI7192@me>
-Reply-To: chu11-i2BcT+NCU+M@public.gmane.org
+From: "Leonid Keller" <leonid-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
+Subject: RE: [ofw] RE: [PATCH] opensm - use C99 transportable data type forpointer storage
+Date: Thu, 12 Nov 2009 20:09:53 +0200
+Message-ID: <2ED289D4E09FBD4D92D911E869B97FDD01876DAA@mtlexch01.mtl.com>
+References: <086F8B40ADA84EE7B6398F4761937836@amr.corp.intel.com> <3F6F638B8D880340AB536D29CD4C1E1912CC482F85@orsmsx501.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20091112163105.GI7192@me>
+Content-class: urn:content-classes:message
+In-Reply-To: <3F6F638B8D880340AB536D29CD4C1E1912CC482F85-osO9UTpF0USkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Smith, Stan" <stan.smith-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ofw-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hey Sasha,
+Did you send it before morning coffee or after ?  :)
 
-> Really? I thought that it could be a useful data for "advanced" uses.
+Maybe, because it seems obvious. 
+All are agree with the elimination of unnecessary #ifndef's.
+As to me, go ahead, commit it.
 
-It was removed in commit 094f922a34d6378d6a3bd1d137f90d6530685f94.  It
-was a simpler version of a patch that Ira had proposed on the mailing
-list.
-
-> I cannot understand why are you trying to make things there as 
-> "private" as technically possible (even on price of extra code size 
-> and complexity). Finally it is an open source stuff, so let to users 
-> to use it how they want and for their own responsibility. :)
-
-At the core of this patch (as well as some other patches I've submitted
-on libibnetdiscover before), is cleaning up the interface of
-libibnetdisc to be just the "core" of libibnetdisc.  We could stick
-anything into the public structs that could have potential usefulness,
-but at some point I think we need to limit ourselves to only the core
-stuff.  Why not add the ibmad_port to the structs?  Or instead of
-putting just the guids or lids in the structs, why not also the pkeys,
-capability masks, or VL tables?
-
-Al
-
-On Thu, 2009-11-12 at 18:31 +0200, Sasha Khapyorsky wrote:
-> On 10:34 Fri 06 Nov     , Al Chu wrote:
-> > > 
-> > > Why do you want to remove this? port->path_portid can be useful for
-> > > logging, specific querying, etc.. Even node->dnext can be helpful for
-> > > some "advanced" use too.
-> > 
-> > The 'nodesdist' array (which is what the 'dnext' pointer is used for) is
-> > only used during the scan and is no longer available publicly.
+> -----Original Message-----
+> From: ofw-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org 
+> [mailto:ofw-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org] On Behalf Of Smith, Stan
+> Sent: Thursday, November 12, 2009 7:32 PM
+> To: 'Sasha Khapyorsky'
+> Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; ofw-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
+> Subject: [ofw] RE: [PATCH] opensm - use C99 transportable 
+> data type forpointer storage
 > 
-> Really? I thought that it could be a useful data for "advanced" uses.
+> Hello,
+>   Can you help me understand why this patch always seems to 
+> fall into a black hole with no feedback?
 > 
-> > So the
-> > 'dnext' pointer doesn't serve a purpose being in the public ibnd_node_t
-> > struct.
-> > 
-> > Post scan, the 'path_portid' was ony used in ibnd_update_node(), which
-> > is now removed.
+> Thank you,
 > 
-> You are saying about libibnetdisc itself. My example was about an
-> application which uses this. For instance after discovery application
-> may want to query some ports for its own purpose. What is wrong with
-> that?
+> Stan.
 > 
-> > In addition, Ira and I felt it is one of the fields
-> > that shouldn't have been exported out of libibnetdisc, it is far too
-> > "scan specific" and shouldn't be public.
 > 
-> I cannot understand why are you trying to make things there as "private"
-> as technically possible (even on price of extra code size and
-> complexity). Finally it is an open source stuff, so let to users to use
-> it how they want and for their own responsibility. :)
+> Stan C. Smith wrote:
+> > In order to skip the #ifndef __WIN__ around #include <stdint.h>, 
+> > inttypes.h was used. 'inttypes.h' includes stdint.h and 
+> exists in the 
+> > WinOF svn tree.
+> > OFED opensm builds without problems on EL 5.3.
+> >
+> > Signed-off-by: stan smith <stan.smith-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> >
+> > diff --git a/opensm/include/opensm/st.h 
+> b/opensm/include/opensm/st.h 
+> > index 30cc308..ad6c289 100644
+> > --- a/opensm/include/opensm/st.h
+> > +++ b/opensm/include/opensm/st.h
+> > @@ -39,6 +39,7 @@
+> >  #define ST_INCLUDED
+> >
+> >  #include <stdlib.h>
+> > +#include <inttypes.h>
+> >
+> >  #ifdef __cplusplus
+> >  #  define BEGIN_C_DECLS extern "C" {
+> > @@ -49,7 +50,7 @@
+> >  #endif                               /* __cplusplus */
+> >
+> >  BEGIN_C_DECLS
+> > -#define st_ptr_t unsigned long
+> > +#define st_ptr_t uintptr_t
+> >  typedef st_ptr_t st_data_t;
+> >
+> >  #define ST_DATA_T_DEFINED
 > 
-> Sasha
--- 
-Albert Chu
-chu11-i2BcT+NCU+M@public.gmane.org
-Computer Scientist
-High Performance Systems Division
-Lawrence Livermore National Laboratory
-
+> _______________________________________________
+> ofw mailing list
+> ofw-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
+> http://lists.openfabrics.org/cgi-bin/mailman/listinfo/ofw
+> 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
