@@ -1,43 +1,46 @@
 From: Dave Olson <dave.olson-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] IB/core: export struct ib_port
-Date: Wed, 11 Nov 2009 21:38:43 -0800
-Message-ID: <alpine.LFD.1.10.0911112136110.24052@topaz.mv.qlogic.com>
-References: <1257966478.992.300.camel@chromite.mv.qlogic.com> <adafx8kx41h.fsf@roland-alpha.cisco.com> <1257970050.992.317.camel@chromite.mv.qlogic.com> <adaaayswzrh.fsf@roland-alpha.cisco.com> <alpine.LFD.1.10.0911111303080.25952@topaz.mv.qlogic.com>
- <adaaaysvf69.fsf@roland-alpha.cisco.com> <1257981770.992.336.camel@chromite.mv.qlogic.com> <adaws1wtywk.fsf@roland-alpha.cisco.com>
+Subject: Re: strong ordering for data registered memory
+Date: Wed, 11 Nov 2009 21:41:47 -0800
+Message-ID: <alpine.LFD.1.10.0911112140000.24052@topaz.mv.qlogic.com>
+References: <4AF9CACE.8070700@Sun.COM> <adaskclvta4.fsf@roland-alpha.cisco.com> <4AFAFF7A.4090602@oracle.com> <4AFB3677.6050603@Sun.COM> <4AFB3E6B.3080606@oracle.com> <20091111231338.GZ1966@obsidianresearch.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="US-ASCII"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <adaws1wtywk.fsf-BjVyx320WGW9gfZ95n9DRSW4+XlvGpQz@public.gmane.org>
+In-Reply-To: <20091111231338.GZ1966-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Cc: Ralph Campbell <ralph.campbell-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Richard Frank <richard.frank-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, David Brean <David.Brean-UdXhSnd/wVw@public.gmane.org>, Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, 11 Nov 2009, Roland Dreier wrote:
+On Wed, 11 Nov 2009, Jason Gunthorpe wrote:
 
+| On Wed, Nov 11, 2009 at 05:44:59PM -0500, Richard Frank wrote:
 | 
-|  > While this is true for SLtoVL, we create other files which are
-|  > device specific under the port directory too.
-|  > It seems like we might need to introduce a callback into the driver to
-|  > create the port specific sysfs files.
+| > Would anyone like to through out the list of HCAs that do this... I
+| > can guess at a few...  and can ask the vendors directly.. if not.. .
+| > 
+| > It would be much nicer to not hardcode names of adapters.. but that won't
+| > stop us.. :)
 | 
-| Umm, you could have said there were other things initially!
+| Isn't it more complex than this? AFAIK the PCI-E standard does not
+| specify the order which data inside a single transfer becomes visible,
+| only how different transfers relate. To work on the most agressive
+| PCI-E system the HCA would have to transfer the last XX bytes as a
+| seperate PCI-E transaction without relaxed ordering.
 
-Those have been there "forever" in qib without requiring the change
-in the core sysfs code.  It's only sysfs group entries that require
-the patch to expose ib_port.
+I can't speak to the specifics of this on PCIe, but yes, by default
+the pcie transfers within a single tag can be unordered.
 
-| Anyway, rather than a callback, I guess we could just add a place to
-| attach a set of port attributes to the structure that gets passed into
-| ib_register_device() maybe?
+| This is the sort of thing that might start to matter on QPI and HT
+| memory-interleaved configurations. A multi-cache line transfer will be
+| split up and completed on different chips - it may not be fully
+| coherent 100% of the time.
 
-Seems like major overkill to have callbacks, when all we need is to
-get the structure that "owns" (is the parent kobject of) the directory.
+HT is fine, by design, at least on AMD processors (probably don't care
+too much about the older sibyte cpus, since they weren't fully
+HT-compliant).
 
-| And maybe we could clean up the existing code that does
-| device_create_file() to use a list of device attributes also...
-
-Seems to be a rather different issue, to me.
+I don't know about QPI.
 
 Dave Olson
 dave.olson-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org
