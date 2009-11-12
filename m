@@ -1,30 +1,34 @@
 From: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Subject: Re: OpenSM: reporting traps 129, 130, 131
-Date: Thu, 12 Nov 2009 22:36:04 +0200
-Message-ID: <20091112203604.GS7192@me>
-References: <4AF6D78E.6080600@dev.mellanox.co.il>
- <f0e08f230911120546q5aa0ed72oc6811cbd2471bc44@mail.gmail.com>
- <20091112154213.GH7192@me>
- <f0e08f230911120838w2f824a4dnc6b51a68b25bbffd@mail.gmail.com>
+Subject: Re: [PATCHv2] infiniband-diags/ibqueryerrors: Add support for
+ PortXmitDiscardDetails
+Date: Thu, 12 Nov 2009 22:38:44 +0200
+Message-ID: <20091112203844.GT7192@me>
+References: <20091104144219.GA7923@comcast.net>
+ <20091106165933.GG7192@me>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <f0e08f230911120838w2f824a4dnc6b51a68b25bbffd-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <20091106165933.GG7192@me>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org, Linux RDMA <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Hal Rosenstock <hnrose-Wuw85uim5zDR7s880joybQ@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 11:38 Thu 12 Nov     , Hal Rosenstock wrote:
+On 18:59 Fri 06 Nov     , Sasha Khapyorsky wrote:
+> On 09:42 Wed 04 Nov     , Hal Rosenstock wrote:
+> > 
+> > When --details selected, if PortCounters has transmit discards, then
+> > query PortXmitDiscardDetails. On reset, if --details is selected, then
+> > PortXmitDiscardDetails will also be reset.
+> > 
+> > Unfortunately, PortSamplesControl:OptionMask can't be trusted to determine
+> > which PortXmitDiscardDetails counters are supported so an option was added
+> > for this.
 > 
-> We've cared for several years now (babbling port policy was introduced
-> into the master on 7/6/09) but this issue still persists. Are you
-> saying no reports for these traps until the trap rate is obeyed ?
+> Interesting... Why so? Is it any bug in existing hw? Which one?
 
-If existing trap rate filtering in OpenSM is sufficient we can add
-reporting (if somebody needs this). I just don't think that we need to
-introduce temporary options.
+Could you elaborate?
 
 Sasha
 --
