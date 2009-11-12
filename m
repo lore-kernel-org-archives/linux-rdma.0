@@ -1,57 +1,30 @@
-From: "Smith, Stan" <stan.smith@intel.com>
-Subject: RE: RE: [PATCH] opensm - use C99 transportable data type
-	forpointer storage
-Date: Thu, 12 Nov 2009 10:21:13 -0800
-Message-ID: <3F6F638B8D880340AB536D29CD4C1E1912CC483045@orsmsx501.amr.corp.intel.com>
+From: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH] opensm - use C99 transportable data type for pointer
+ storage
+Date: Thu, 12 Nov 2009 21:02:26 +0200
+Message-ID: <20091112190226.GM7192@me>
 References: <086F8B40ADA84EE7B6398F4761937836@amr.corp.intel.com>
-	<3F6F638B8D880340AB536D29CD4C1E1912CC482F85@orsmsx501.amr.corp.intel.com>
-	<2ED289D4E09FBD4D92D911E869B97FDD01876DAA@mtlexch01.mtl.com>
-	<23D45E5AA67A4CFEB34AB441A9E4E32D@amr.corp.intel.com>
+ <3F6F638B8D880340AB536D29CD4C1E1912CC482F85@orsmsx501.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <ofw-bounces@lists.openfabrics.org>
-In-Reply-To: <23D45E5AA67A4CFEB34AB441A9E4E32D@amr.corp.intel.com>
-Content-Language: en-US
-List-Unsubscribe: <http://lists.openfabrics.org/cgi-bin/mailman/listinfo/ofw>,
-	<mailto:ofw-request@lists.openfabrics.org?subject=unsubscribe>
-List-Archive: <http://lists.openfabrics.org/pipermail/ofw>
-List-Post: <mailto:ofw@lists.openfabrics.org>
-List-Help: <mailto:ofw-request@lists.openfabrics.org?subject=help>
-List-Subscribe: <http://lists.openfabrics.org/cgi-bin/mailman/listinfo/ofw>,
-	<mailto:ofw-request@lists.openfabrics.org?subject=subscribe>
-Sender: ofw-bounces@lists.openfabrics.org
-Errors-To: ofw-bounces@lists.openfabrics.org
-To: "Hefty, Sean" <sean.hefty@intel.com>, 'Leonid Keller' <leonid@mellanox.co.il>, Sasha Khapyorsky <sashak@voltaire.com>
-Cc: "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "ofw@lists.openfabrics.org" <ofw@lists.openfabrics.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <3F6F638B8D880340AB536D29CD4C1E1912CC482F85-osO9UTpF0USkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Smith, Stan" <stan.smith-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "ofw-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org" <ofw-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hefty, Sean wrote:
->> Did you send it before morning coffee or after ?  :)
->>
->> Maybe, because it seems obvious.
->> All are agree with the elimination of unnecessary #ifndef's.
->> As to me, go ahead, commit it.
->
-> It needs to be merged into the mgmt.git tree.
->
->>>>  #include <stdlib.h>
->>>> +#include <inttypes.h>
->>>>
->>>>  #ifdef __cplusplus
->>>>  #  define BEGIN_C_DECLS extern "C" {
->>>> @@ -49,7 +50,7 @@
->>>>  #endif                               /* __cplusplus */
->>>>
->>>>  BEGIN_C_DECLS
->>>> -#define st_ptr_t unsigned long
->>>> +#define st_ptr_t uintptr_t
->
-> Does anyone know the reason for st_ptr_t at all?  Why not use
-> uintptr_t everywhere and avoid the define?
+On 09:32 Thu 12 Nov     , Smith, Stan wrote:
+> Hello,
+>   Can you help me understand why this patch always seems to fall into a black hole with no feedback?
 
-This is a good question. I avoided the issue due to the fact this patch has=
- been submitted before with no feedback so KIS is the game plan for now.
+Bad luck and my wishes to understand what is going on there. However the
+second is less critical in this particular case - I can do it after
+applying the patch.
 
-Once the uintptr_t concept has been accepted, then a 2nd step would be to r=
-eplace st_ptr_t with uintptr_t and remove the #define.
+Sasha
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
