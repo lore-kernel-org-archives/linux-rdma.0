@@ -1,21 +1,22 @@
 From: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH] opensm - remove useless goto
-Date: Thu, 12 Nov 2009 03:58:39 +0200
-Message-ID: <20091112015839.GC7192@me>
-References: <ADC0EAA392394ECAA20D606EF6BDEB04@amr.corp.intel.com>
+Subject: Re: [PATCH] opensm/osm_link_mgr.c: Fix IBA reference for PortInfo
+ attribute
+Date: Thu, 12 Nov 2009 04:00:14 +0200
+Message-ID: <20091112020014.GD7192@me>
+References: <20091106204219.GA13988@comcast.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <ADC0EAA392394ECAA20D606EF6BDEB04-Zpru7NauK7drdx17CPfAsdBPR1lH4CV8@public.gmane.org>
+In-Reply-To: <20091106204219.GA13988-Wuw85uim5zDR7s880joybQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Stan C. Smith" <stan.smith-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ofw-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
+To: Hal Rosenstock <hnrose-Wuw85uim5zDR7s880joybQ@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 15:07 Mon 09 Nov     , Stan C. Smith wrote:
+On 15:42 Fri 06 Nov     , Hal Rosenstock wrote:
 > 
-> Signed-off-by: stan smith <stan.smith-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> Signed-off-by: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 
 Applied. Thanks.
 
