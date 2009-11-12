@@ -1,56 +1,52 @@
-From: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Subject: Re: [infiniband-diags] [PATCH] [2/2] split out scan specific data
- from ibnd_node_t
-Date: Thu, 12 Nov 2009 18:31:05 +0200
-Message-ID: <20091112163105.GI7192@me>
-References: <1257190401.580.31.camel@auk31.llnl.gov>
- <1257196316.580.33.camel@auk31.llnl.gov>
- <20091106181633.GQ7192@me>
- <1257532494.18550.89.camel@auk31.llnl.gov>
+From: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: OpenSM: reporting traps 129, 130, 131
+Date: Thu, 12 Nov 2009 11:38:51 -0500
+Message-ID: <f0e08f230911120838w2f824a4dnc6b51a68b25bbffd@mail.gmail.com>
+References: <4AF6D78E.6080600@dev.mellanox.co.il>
+	 <f0e08f230911120546q5aa0ed72oc6811cbd2471bc44@mail.gmail.com>
+	 <20091112154213.GH7192@me>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1257532494.18550.89.camel-X2zTWyBD0EhliZ7u+bvwcg@public.gmane.org>
+In-Reply-To: <20091112154213.GH7192@me>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Al Chu <chu11-i2BcT+NCU+M@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+Cc: kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org, Linux RDMA <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 10:34 Fri 06 Nov     , Al Chu wrote:
-> > 
-> > Why do you want to remove this? port->path_portid can be useful for
-> > logging, specific querying, etc.. Even node->dnext can be helpful for
-> > some "advanced" use too.
-> 
-> The 'nodesdist' array (which is what the 'dnext' pointer is used for) is
-> only used during the scan and is no longer available publicly.
+On Thu, Nov 12, 2009 at 10:42 AM, Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org=
+> wrote:
+> On 08:46 Thu 12 Nov =C2=A0 =C2=A0 , Hal Rosenstock wrote:
+>> >
+>> > Any particular reason why there's no reporting of these traps?
+>>
+>> AFAIK it's been this way for at least the last 5 or 6 years.
+>
+> Yes, this is what I found too tracking down git/svn history.
+>
+>> A practical consideration in changing this is that these traps are t=
+he
+>> ones for which babbling port was implemented since they do not obey
+>> the trap rate so there's a large downside to adding the reports for
+>> these. If that is to be done, then perhaps this should be done based
+>> on some option.
+>
+> I don't think that we need new option for this, instead we should car=
+e
+> that OpenSM is not overloaded by such trap floods.
 
-Really? I thought that it could be a useful data for "advanced" uses.
+We've cared for several years now (babbling port policy was introduced
+into the master on 7/6/09) but this issue still persists. Are you
+saying no reports for these traps until the trap rate is obeyed ?
 
-> So the
-> 'dnext' pointer doesn't serve a purpose being in the public ibnd_node_t
-> struct.
-> 
-> Post scan, the 'path_portid' was ony used in ibnd_update_node(), which
-> is now removed.
+-- Hal
 
-You are saying about libibnetdisc itself. My example was about an
-application which uses this. For instance after discovery application
-may want to query some ports for its own purpose. What is wrong with
-that?
-
-> In addition, Ira and I felt it is one of the fields
-> that shouldn't have been exported out of libibnetdisc, it is far too
-> "scan specific" and shouldn't be public.
-
-I cannot understand why are you trying to make things there as "private"
-as technically possible (even on price of extra code size and
-complexity). Finally it is an open source stuff, so let to users to use
-it how they want and for their own responsibility. :)
-
-Sasha
+>
+> Sasha
+>
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
