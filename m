@@ -1,72 +1,58 @@
-From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH] IB/core: export struct ib_port
-Date: Thu, 12 Nov 2009 11:07:19 -0800
-Message-ID: <ada1vk3ftp4.fsf@roland-alpha.cisco.com>
-References: <1257966478.992.300.camel@chromite.mv.qlogic.com>
-	<adafx8kx41h.fsf@roland-alpha.cisco.com>
-	<1257970050.992.317.camel@chromite.mv.qlogic.com>
-	<adaaayswzrh.fsf@roland-alpha.cisco.com>
-	<alpine.LFD.1.10.0911111303080.25952@topaz.mv.qlogic.com>
-	<adaaaysvf69.fsf@roland-alpha.cisco.com>
-	<1257981770.992.336.camel@chromite.mv.qlogic.com>
-	<adaws1wtywk.fsf@roland-alpha.cisco.com>
-	<alpine.LFD.1.10.0911112136110.24052@topaz.mv.qlogic.com>
+From: Sasha Khapyorsky <sashak@voltaire.com>
+Subject: Re: Re: [PATCH] osm_subnet.c
+Date: Thu, 12 Nov 2009 21:18:11 +0200
+Message-ID: <20091112191811.GO7192@me>
+References: <3F6F638B8D880340AB536D29CD4C1E1912C86E8A8F@orsmsx501.amr.corp.intel.com>
+	<20091004001316.GK17846@me>
+	<A6E929B3F38F455EB28EB478FBAF290E@amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <alpine.LFD.1.10.0911112136110.24052-vxnkQ4oxbxUi9g6yJnKVd0EOCMrvLtNR@public.gmane.org> (Dave
-	Olson's message of "Wed, 11 Nov 2009 21:38:43 -0800")
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Dave Olson <dave.olson-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-Cc: Ralph Campbell <ralph.campbell-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <ofw-bounces@lists.openfabrics.org>
+Content-Disposition: inline
+In-Reply-To: <A6E929B3F38F455EB28EB478FBAF290E@amr.corp.intel.com>
+List-Unsubscribe: <http://lists.openfabrics.org/cgi-bin/mailman/listinfo/ofw>,
+	<mailto:ofw-request@lists.openfabrics.org?subject=unsubscribe>
+List-Archive: <http://lists.openfabrics.org/pipermail/ofw>
+List-Post: <mailto:ofw@lists.openfabrics.org>
+List-Help: <mailto:ofw-request@lists.openfabrics.org?subject=help>
+List-Subscribe: <http://lists.openfabrics.org/cgi-bin/mailman/listinfo/ofw>,
+	<mailto:ofw-request@lists.openfabrics.org?subject=subscribe>
+Sender: ofw-bounces@lists.openfabrics.org
+Errors-To: ofw-bounces@lists.openfabrics.org
+To: Sean Hefty <sean.hefty@intel.com>
+Cc: ofw@lists.openfabrics.org, linux-rdma <linux-rdma@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On 09:20 Mon 05 Oct     , Sean Hefty wrote:
+> >>  /**********************************************************************
+> >>   **********************************************************************/
+> >> -static long compar_mgids(const void *m1, const void *m2)
+> >> +static intn_t compar_mgids(const void *m1, const void *m2)
+> >
+> >Any disagreement about changing a prototype of this method
+> >(cl_pfn_fmap_cmp_t) in complib to use standard type (long) instead of
+> >"homemade" and less clear one ('intn_t')?
+> >
+> >Sasha
+> >
+> >>  {
+> >>         return memcmp(m1, m2, sizeof(ib_gid_t));
+> >>  }
+> 
+> If the function is simply a wrapper around a single call to memcmp, why keep it
+> at all?
 
- > |  > While this is true for SLtoVL, we create other files which are
- > |  > device specific under the port directory too.
- > |  > It seems like we might need to introduce a callback into the driver to
- > |  > create the port specific sysfs files.
- > | 
- > | Umm, you could have said there were other things initially!
- > 
- > Those have been there "forever" in qib without requiring the change
- > in the core sysfs code.  It's only sysfs group entries that require
- > the patch to expose ib_port.
+The function is used as comparator callback in complib's fleximap
+implementation (just similar to qsort()'s compar parameter and others)
+and signed integer (= , >  or < 0) should be returned. Using pointer
+sized int as return value is not needed here. We can do it to match
+others comparators (qsort, scandir, etc.) prototype exactly:
 
-OK, I'm confused.  Ralph originally said:
+	int compar(const void *, const void *);
 
- > It [struct ib_port] is used by the new ib_qib driver to expose the SL
- > to VL table since the user level MPI library (libpsm) constructs
- > packets including the IB header.
+, or to not bother at all and leave it as 'long'.
 
-So if that's the only use, then I'd be in favor of just exposing the
-standard, generic SL-to-VL table info for all IB devices.  If there are
-other per-port device-specific things, then let's give a clean way for
-devices to add per-port attributes without having to know the internals
-of how the RDMA core implements sysfs stuff.
+Hmm, I would prefer to change to 'int' to prevent future confusing.
+Thoughts?
 
- > | Anyway, rather than a callback, I guess we could just add a place to
- > | attach a set of port attributes to the structure that gets passed into
- > | ib_register_device() maybe?
- > 
- > Seems like major overkill to have callbacks, when all we need is to
- > get the structure that "owns" (is the parent kobject of) the directory.
-
-Yes, I agree that callbacks aren't really the best way.  I was
-suggesting passing in the per-port attributes as part of the ib_device
-structure in ib_register_device().
-
- > | And maybe we could clean up the existing code that does
- > | device_create_file() to use a list of device attributes also...
- > 
- > Seems to be a rather different issue, to me.
-
-Yes, it's independent.  But if we're passing in per-port attributes, we
-might as well take the opportunity to make the API rational and pass in
-per-device attributes too.
-
- - R.
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Sasha
