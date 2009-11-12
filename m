@@ -1,30 +1,38 @@
-From: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH] libibmad: Add support for new
- PortInfo:McastPkeyTrapSuppressionEnabled field
-Date: Thu, 12 Nov 2009 22:54:30 +0200
-Message-ID: <20091112205430.GX7192@me>
-References: <20091106203519.GB13461@comcast.net>
+From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: [PATCH] RDMA/cxgb3: remove BUG_ON() on rearm failure.
+Date: Thu, 12 Nov 2009 15:11:25 -0600
+Message-ID: <20091112211125.21174.31332.stgit@build.ogc.int>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20091106203519.GB13461-Wuw85uim5zDR7s880joybQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Hal Rosenstock <hnrose-Wuw85uim5zDR7s880joybQ@public.gmane.org>
+To: rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 15:35 Fri 06 Nov     , Hal Rosenstock wrote:
-> 
-> Per published MgtWG erratum RefID 4576 - Add PortInfo component
-> to allow SM to tell port to suppress Bad P_Key traps for multicast
-> limited members
-> 
-> Signed-off-by: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+This failure, while indicating fatal problems with the device, shouldn't
+kill the system.
 
-Applied. Thanks.
+Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+---
 
-Sasha
+ drivers/infiniband/hw/cxgb3/cxio_hal.c |    1 -
+ 1 files changed, 0 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/infiniband/hw/cxgb3/cxio_hal.c b/drivers/infiniband/hw/cxgb3/cxio_hal.c
+index 72ed339..7c05bfa 100644
+--- a/drivers/infiniband/hw/cxgb3/cxio_hal.c
++++ b/drivers/infiniband/hw/cxgb3/cxio_hal.c
+@@ -109,7 +109,6 @@ int cxio_hal_cq_op(struct cxio_rdev *rdev_p, struct t3_cq *cq,
+ 		while (!CQ_VLD_ENTRY(rptr, cq->size_log2, cqe)) {
+ 			udelay(1);
+ 			if (i++ > 1000000) {
+-				BUG_ON(1);
+ 				printk(KERN_ERR "%s: stalled rnic\n",
+ 				       rdev_p->dev_name);
+ 				return -EIO;
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
