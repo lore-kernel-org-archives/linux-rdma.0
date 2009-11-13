@@ -1,136 +1,142 @@
 From: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH] complib/cl_fleximap: add cl_fmap_match() function
-Date: Fri, 13 Nov 2009 22:38:56 +0200
-Message-ID: <20091113203856.GT7192@me>
+Subject: [PATCH RFC] opensm: compress IPV6 SNM groups to use a single MLID
+Date: Fri, 13 Nov 2009 22:40:41 +0200
+Message-ID: <20091113204041.GU7192@me>
 References: <20091113061948.GJ7192@me>
  <20091113062104.GK7192@me>
  <20091113201144.GS7192@me>
+ <20091113203856.GT7192@me>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20091113201144.GS7192@me>
+In-Reply-To: <20091113203856.GT7192@me>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Cc: Eli Dorfman <elid-smomgflXvOZWk0Htik3J/w@public.gmane.org>, Slava Strebkov <slavas-smomgflXvOZWk0Htik3J/w@public.gmane.org>, Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
-Add cl_fmap_match() function - it is similar for cl_fmap_get() (getting
-fleximap item by key) with difference that instead of using the map's
-default comparison routine custom compare function can be passed there
-as a parameter.
+This is rework of previously used IPv6 SNM groups compression workaround
+using newly proposed "many MGID to single MLID" mapping infrastructure.
 
-This can be useful for matching map item by a key pattern.
+Unlike previous solution where all IPv6 Solicited node multicast (SNM)
+requests were collapsed into a single multicast group in OpenSM, now
+each IPv6 SNM group is represented as a separate multicast group and
+all groups sharing same P_Key and scope values use a same MLID value.
+
+The compression method itself should be faster now because MLID sharing
+criteria (matching IPv6 SNM MGID signature) is performed only once when
+multicast group is created (and not each time when get MC group by MGID
+lookup was performed).
+
+This solution should be fully IBA complaint.
+
+As before this feature is switched on by using 'consolidate_ipv6_snm_req'
+command line or/and configuration option.
 
 Signed-off-by: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
 ---
+ opensm/opensm/osm_sa_mcmember_record.c |   68 ++++++++++++++++++-------------
+ 1 files changed, 39 insertions(+), 29 deletions(-)
 
-This function is used in IPv6 SNM MGID compression patch.
-
- opensm/complib/cl_map.c              |   14 ++++++++++--
- opensm/complib/libosmcomp.map        |    1 +
- opensm/include/complib/cl_fleximap.h |   36 ++++++++++++++++++++++++++++++++++
- 3 files changed, 48 insertions(+), 3 deletions(-)
-
-diff --git a/opensm/complib/cl_map.c b/opensm/complib/cl_map.c
-index d851bf8..f5fb1f3 100644
---- a/opensm/complib/cl_map.c
-+++ b/opensm/complib/cl_map.c
-@@ -1144,8 +1144,9 @@ void cl_fmap_init(IN cl_fmap_t * const p_map, IN cl_pfn_fmap_cmp_t pfn_compare)
- 	cl_fmap_remove_all(p_map);
- }
- 
--cl_fmap_item_t *cl_fmap_get(IN const cl_fmap_t * const p_map,
--			    IN const void *const p_key)
-+cl_fmap_item_t *cl_fmap_match(IN const cl_fmap_t * const p_map,
-+			      IN const void *const p_key,
-+			      IN cl_pfn_fmap_cmp_t pfn_compare)
- {
- 	cl_fmap_item_t *p_item;
- 	int cmp;
-@@ -1156,7 +1157,8 @@ cl_fmap_item_t *cl_fmap_get(IN const cl_fmap_t * const p_map,
- 	p_item = __cl_fmap_root(p_map);
- 
- 	while (p_item != &p_map->nil) {
--		cmp = p_map->pfn_compare(p_key, p_item->p_key);
-+		cmp = pfn_compare ? pfn_compare(p_key, p_item->p_key) :
-+			p_map->pfn_compare(p_key, p_item->p_key);
- 
- 		if (!cmp)
- 			break;	/* just right */
-@@ -1170,6 +1172,12 @@ cl_fmap_item_t *cl_fmap_get(IN const cl_fmap_t * const p_map,
- 	return (p_item);
- }
- 
-+cl_fmap_item_t *cl_fmap_get(IN const cl_fmap_t * const p_map,
-+			    IN const void *const p_key)
+diff --git a/opensm/opensm/osm_sa_mcmember_record.c b/opensm/opensm/osm_sa_mcmember_record.c
+index 27675b6..58c5736 100644
+--- a/opensm/opensm/osm_sa_mcmember_record.c
++++ b/opensm/opensm/osm_sa_mcmember_record.c
+@@ -114,6 +114,35 @@ static void free_mlid(IN osm_sa_t * sa, IN uint16_t mlid)
+ /*********************************************************************
+  Get a new unused mlid by scanning all the used ones in the subnet.
+ **********************************************************************/
++/* Special Case IPv6 Solicited Node Multicast (SNM) addresses */
++/* 0xff1Z601bXXXX0000 : 0x00000001ffYYYYYY */
++/* Where Z is the scope, XXXX is the P_Key, and
++ * YYYYYY is the last 24 bits of the port guid */
++#define PREFIX_MASK CL_HTON64(0xff10ffff0000ffffULL)
++#define PREFIX_SIGNATURE CL_HTON64(0xff10601b00000000ULL)
++#define INT_ID_MASK CL_HTON64(0xfffffff1ff000000ULL)
++#define INT_ID_SIGNATURE CL_HTON64(0x00000001ff000000ULL)
++
++static int compare_ipv6_snm_mgids(const void *m1, const void *m2)
 +{
-+	return cl_fmap_match(p_map, p_key, p_map->pfn_compare);
++	return memcmp(m1, m2, sizeof(ib_gid_t) - 6);
 +}
 +
- cl_fmap_item_t *cl_fmap_get_next(IN const cl_fmap_t * const p_map,
- 				 IN const void *const p_key)
- {
-diff --git a/opensm/complib/libosmcomp.map b/opensm/complib/libosmcomp.map
-index 788eb2a..52410cc 100644
---- a/opensm/complib/libosmcomp.map
-+++ b/opensm/complib/libosmcomp.map
-@@ -66,6 +66,7 @@ OSMCOMP_2.3 {
- 		cl_map_merge;
- 		cl_map_delta;
- 		cl_fmap_init;
-+		cl_fmap_match;
- 		cl_fmap_get;
- 		cl_fmap_get_next;
- 		cl_fmap_apply_func;
-diff --git a/opensm/include/complib/cl_fleximap.h b/opensm/include/complib/cl_fleximap.h
-index ec008cf..b74040f 100644
---- a/opensm/include/complib/cl_fleximap.h
-+++ b/opensm/include/complib/cl_fleximap.h
-@@ -619,6 +619,42 @@ cl_fmap_item_t *cl_fmap_insert(IN cl_fmap_t * const p_map,
- *	Flexi Map, cl_fmap_remove, cl_fmap_item_t
- *********/
- 
-+/****f* Component Library: Flexi Map/cl_fmap_match
-+* NAME
-+*	cl_fmap_get
-+*
-+* DESCRIPTION
-+*	The cl_fmap_match function returns the map item matching a key.
-+*
-+* SYNOPSIS
-+*/
-+cl_fmap_item_t *cl_fmap_match(IN const cl_fmap_t * const p_map,
-+			      IN const void *const p_key,
-+			      IN cl_pfn_fmap_cmp_t pfn_compare);
-+/*
-+* PARAMETERS
-+*	p_map
-+*		[in] Pointer to a cl_fmap_t structure from which to retrieve the
-+*		item with the specified key.
-+*
-+*	p_key
-+*		[in] Pointer to a key value used to search for the desired map item.
-+*
-+*	pfn_compare
-+*		[in] Pointer to a compare function to invoke to compare the
-+*		keys of items in the map. Passing NULL here makes such call
-+*		to be equivalent to using cl_fmap_get().
-+*
-+* RETURN VALUES
-+*	Pointer to the map item matching the desired key value.
-+*
-+*	Pointer to the map end if there was no item matching the desired key
-+*	value stored in the flexi map.
-+*
-+* SEE ALSO
-+*	Flexi Map, cl_fmap_remove, cl_fmap_get
-+*********/
++static ib_net16_t find_ipv6_snm_mlid(osm_subn_t *subn, ib_gid_t *mgid)
++{
++	osm_mgrp_t *m = (osm_mgrp_t *)cl_fmap_match(&subn->mgrp_mgid_tbl, mgid,
++						    compare_ipv6_snm_mgids);
++	if (m != (osm_mgrp_t *)cl_fmap_end(&subn->mgrp_mgid_tbl))
++		return m->mlid;
++	return 0;
++}
 +
- /****f* Component Library: Flexi Map/cl_fmap_get
- * NAME
- *	cl_fmap_get
++static unsigned match_ipv6_snm_mgid(ib_gid_t * mgid)
++{
++	return ((mgid->unicast.prefix & PREFIX_MASK) == PREFIX_SIGNATURE &&
++		(mgid->unicast.interface_id & INT_ID_MASK) == INT_ID_SIGNATURE);
++}
++
+ static ib_net16_t get_new_mlid(osm_sa_t * sa, ib_member_rec_t * mcmr)
+ {
+ 	osm_subn_t *p_subn = sa->p_subn;
+@@ -125,6 +154,16 @@ static ib_net16_t get_new_mlid(osm_sa_t * sa, ib_member_rec_t * mcmr)
+ 	    && !osm_get_mbox_by_mlid(p_subn, requested_mlid))
+ 		return requested_mlid;
+ 
++	if (sa->p_subn->opt.consolidate_ipv6_snm_req
++	    && match_ipv6_snm_mgid(&mcmr->mgid)
++	    && (requested_mlid = find_ipv6_snm_mlid(sa->p_subn, &mcmr->mgid))) {
++		char str[INET6_ADDRSTRLEN];
++		OSM_LOG(sa->p_log, OSM_LOG_DEBUG,
++			"Special Case Solicited Node Mcast Join for MGID %s\n",
++			inet_ntop(AF_INET6, mcmr->mgid.raw, str, sizeof(str)));
++		return requested_mlid;
++	}
++
+ 	max = p_subn->max_mcast_lid_ho - IB_LID_MCAST_START_HO + 1;
+ 	for (i = 0; i < max; i++)
+ 		if (!sa->p_subn->mboxes[i])
+@@ -829,39 +868,10 @@ Exit:
+ 	return status;
+ }
+ 
+-#define PREFIX_MASK CL_HTON64(0xff10ffff0000ffffULL)
+-#define PREFIX_SIGNATURE CL_HTON64(0xff10601b00000000ULL)
+-#define INT_ID_MASK CL_HTON64(0xfffffff1ff000000ULL)
+-#define INT_ID_SIGNATURE CL_HTON64(0x00000001ff000000ULL)
+-
+-/* Special Case IPv6 Solicited Node Multicast (SNM) addresses */
+-/* 0xff1Z601bXXXX0000 : 0x00000001ffYYYYYY */
+-/* Where Z is the scope, XXXX is the P_Key, and
+- * YYYYYY is the last 24 bits of the port guid */
+-static unsigned match_and_update_ipv6_snm_mgid(ib_gid_t * mgid)
+-{
+-	if ((mgid->unicast.prefix & PREFIX_MASK) == PREFIX_SIGNATURE &&
+-	    (mgid->unicast.interface_id & INT_ID_MASK) == INT_ID_SIGNATURE) {
+-		mgid->unicast.prefix &= PREFIX_MASK;
+-		mgid->unicast.interface_id &= INT_ID_MASK;
+-		return 1;
+-	}
+-	return 0;
+-}
+-
+ osm_mgrp_t *osm_get_mgrp_by_mgid(IN osm_sa_t * sa, IN ib_gid_t * p_mgid)
+ {
+ 	osm_mgrp_t *mg;
+ 
+-	if (sa->p_subn->opt.consolidate_ipv6_snm_req &&
+-	    match_and_update_ipv6_snm_mgid(p_mgid)) {
+-		char gid_str[INET6_ADDRSTRLEN];
+-		OSM_LOG(sa->p_log, OSM_LOG_DEBUG,
+-			"Special Case Solicited Node Mcast Join for MGID %s\n",
+-			inet_ntop(AF_INET6, p_mgid->raw, gid_str,
+-				  sizeof gid_str));
+-	}
+-
+ 	mg = (osm_mgrp_t *)cl_fmap_get(&sa->p_subn->mgrp_mgid_tbl, p_mgid);
+ 	if (mg != (osm_mgrp_t *)cl_fmap_end(&sa->p_subn->mgrp_mgid_tbl))
+ 		return mg;
 -- 
 1.6.5.2
 
