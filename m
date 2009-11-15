@@ -1,22 +1,22 @@
-From: Or Gerlitz <ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCHv2] infiniband-diags/ibqueryerrors: Add support for	PortXmitDiscardDetails
-Date: Sun, 15 Nov 2009 07:52:20 +0200
-Message-ID: <4AFF9714.1040708@voltaire.com>
-References: <20091104144219.GA7923@comcast.net> <20091106165933.GG7192@me>	<20091112203844.GT7192@me>	<f0e08f230911130643l788ef2e5n538c123912300d42@mail.gmail.com> <20091113145928.GO7192@me>
+From: Or Gerlitz <ogerlitz-hKgKHo2Ms0FWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH RESEND] ib/iser: re-write SG handling for rdma logic
+Date: Sun, 15 Nov 2009 08:24:16 +0200
+Message-ID: <4AFF9E90.8050208@Voltaire.com>
+References: <Pine.LNX.4.64.0911010824010.4388@zuben.voltaire.com>	<4AF8142A.3070506@voltaire.com> <adapr7ry76j.fsf@roland-alpha.cisco.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20091113145928.GO7192@me>
+In-Reply-To: <adapr7ry76j.fsf-BjVyx320WGW9gfZ95n9DRSW4+XlvGpQz@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Sasha Khapyorsky wrote:
->> I don't think this is the forum to discuss vendor bugs.
->>     
-no way we can commit here a fix for undocumented bug
+Roland Dreier wrote:
+> I just haven't been in a merging mode lately... will start working on my 2.6.33 queue soon
+
+So when more or less this work is going to start? it seems there are bunch of things on the plate for this cycle.
 
 Or.
 
