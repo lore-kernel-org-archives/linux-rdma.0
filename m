@@ -1,7 +1,7 @@
 From: Hal Rosenstock <hnrose-Wuw85uim5zDR7s880joybQ@public.gmane.org>
-Subject: [PATCH] opensm/osm_vendor_api.h: Fix commentary typo
-Date: Mon, 16 Nov 2009 13:43:43 -0500
-Message-ID: <20091116184343.GC2417@comcast.net>
+Subject: [PATCH] opensm/osm_ucast_ftree.c: Cosmetic commentary changes
+Date: Mon, 16 Nov 2009 13:42:22 -0500
+Message-ID: <20091116184222.GA2417@comcast.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
@@ -12,21 +12,39 @@ Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 
+Make routine names in comments consistent with actual (changed) names
+
 Signed-off-by: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 ---
-diff --git a/opensm/include/vendor/osm_vendor_api.h b/opensm/include/vendor/osm_vendor_api.h
-index 5bf2abc..39ee33e 100644
---- a/opensm/include/vendor/osm_vendor_api.h
-+++ b/opensm/include/vendor/osm_vendor_api.h
-@@ -370,7 +370,7 @@ osm_vendor_send(IN osm_bind_handle_t h_bind,
- *
- * NOTES
- *   1. Only mads that expect a response are tracked for transaction competion.
--*   2. A mad that does not expect a response is being put back immediatly after
-+*   2. A mad that does not expect a response is being put back immediately after
- *      being sent.
- *
- * SEE ALSO
+diff --git a/opensm/opensm/osm_ucast_ftree.c b/opensm/opensm/osm_ucast_ftree.c
+index 1b1da19..76b1d6a 100644
+--- a/opensm/opensm/osm_ucast_ftree.c
++++ b/opensm/opensm/osm_ucast_ftree.c
+@@ -1975,7 +1975,7 @@ static inline int port_group_compare_load_down(const ftree_port_group_t * p1,
+  * as it is much faster.
+  *
+  * Important note:
+- * This function and __osm_ftree_bubble_sort_down must NOT be factorized.
++ * This function and bubble_sort_down must NOT be factorized.
+  * Although most of the code is the same and a function pointer could be used
+  * for the compareason function, it would prevent the compareason function to be inlined
+  * and cost a great deal to performances.
+@@ -2047,13 +2047,13 @@ bubble_sort_siblings(ftree_port_group_t ** p_group_array, uint32_t nmemb)
+ 
+ /*
+  * Function: Sorts an array of port group. Order is decide through
+- * __osm_ftree_port_group_compare_load_down ( up counters, least load remote switch, biggest GUID)
++ * port_group_compare_load_down ( up counters, least load remote switch, biggest GUID)
+  * Given   : A port group array and its length. Each port group points to a remote switch (not a HCA)
+  * As the list is mostly sorted, we used a bubble sort instead of qsort
+  * as it is much faster.
+  *
+  * Important note:
+- * This function and __osm_ftree_bubble_sort_up must NOT be factorized.
++ * This function and bubble_sort_up must NOT be factorized.
+  * Although most of the code is the same and a function pointer could be used
+  * for the compareason function, it would prevent the compareason function to be inlined
+  * and cost a great deal to performances.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
