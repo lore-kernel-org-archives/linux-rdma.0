@@ -1,8 +1,7 @@
 From: Hal Rosenstock <hnrose-Wuw85uim5zDR7s880joybQ@public.gmane.org>
-Subject: [PATCH] opensm/libvendor/osm_vendor_ibumad.c: Cosmetic change to
-	OSM_LOG message
-Date: Mon, 16 Nov 2009 13:43:03 -0500
-Message-ID: <20091116184303.GB2417@comcast.net>
+Subject: [PATCH] opensm/osm_vendor_api.h: Fix commentary typo
+Date: Mon, 16 Nov 2009 13:43:43 -0500
+Message-ID: <20091116184343.GC2417@comcast.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
@@ -15,19 +14,19 @@ List-Id: linux-rdma@vger.kernel.org
 
 Signed-off-by: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 ---
-diff --git a/opensm/libvendor/osm_vendor_ibumad.c b/opensm/libvendor/osm_vendor_ibumad.c
-index 0f5a7ae..5ea79cb 100644
---- a/opensm/libvendor/osm_vendor_ibumad.c
-+++ b/opensm/libvendor/osm_vendor_ibumad.c
-@@ -353,7 +353,7 @@ static void *umad_receiver(void *p_ptr)
- 				OSM_LOG(p_vend->p_log, OSM_LOG_ERROR,
- 					"ERR 5412: "
- 					"Failed to obtain request madw for timed out MAD"
--					"(method=0x%X attr=0x%X tid=0x%"PRIx64") -- dropping\n",
-+					" (method=0x%X attr=0x%X tid=0x%"PRIx64") -- dropping\n",
- 					mad->method, cl_ntoh16(mad->attr_id),
- 					cl_ntoh64(mad->trans_id));
- 			} else {
+diff --git a/opensm/include/vendor/osm_vendor_api.h b/opensm/include/vendor/osm_vendor_api.h
+index 5bf2abc..39ee33e 100644
+--- a/opensm/include/vendor/osm_vendor_api.h
++++ b/opensm/include/vendor/osm_vendor_api.h
+@@ -370,7 +370,7 @@ osm_vendor_send(IN osm_bind_handle_t h_bind,
+ *
+ * NOTES
+ *   1. Only mads that expect a response are tracked for transaction competion.
+-*   2. A mad that does not expect a response is being put back immediatly after
++*   2. A mad that does not expect a response is being put back immediately after
+ *      being sent.
+ *
+ * SEE ALSO
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
