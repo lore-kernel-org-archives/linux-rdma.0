@@ -1,26 +1,33 @@
-From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Subject: patchwork for tracking patch status (was: [PATCH] Init ipoib_neigh.dgid)
-Date: Mon, 16 Nov 2009 09:44:37 -0800
-Message-ID: <aday6m6bbzu.fsf_-_@roland-alpha.cisco.com>
-References: <1258392964.29051.5.camel@wilder.ibm.com>
-	<ada3a4ecqrg.fsf@roland-alpha.cisco.com>
+From: Hal Rosenstock <hnrose-Wuw85uim5zDR7s880joybQ@public.gmane.org>
+Subject: [PATCH] opensm/libvendor/osm_vendor_ibumad.c: Cosmetic change to
+	OSM_LOG message
+Date: Mon, 16 Nov 2009 13:43:03 -0500
+Message-ID: <20091116184303.GB2417@comcast.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <ada3a4ecqrg.fsf-BjVyx320WGW9gfZ95n9DRSW4+XlvGpQz@public.gmane.org> (Roland Dreier's message
-	of "Mon, 16 Nov 2009 09:40:19 -0800")
+Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "David J. Wilder" <dwilder-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>
-Cc: eli-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-By the way, you (and anyone else) can look at
-<http://patchwork.kernel.org/project/linux-rdma/list/> to see the status
-of patches.  If a patch is in the "New" state then it's not lost and
-I'll get to it eventually.
 
- - R.
-
+Signed-off-by: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+---
+diff --git a/opensm/libvendor/osm_vendor_ibumad.c b/opensm/libvendor/osm_vendor_ibumad.c
+index 0f5a7ae..5ea79cb 100644
+--- a/opensm/libvendor/osm_vendor_ibumad.c
++++ b/opensm/libvendor/osm_vendor_ibumad.c
+@@ -353,7 +353,7 @@ static void *umad_receiver(void *p_ptr)
+ 				OSM_LOG(p_vend->p_log, OSM_LOG_ERROR,
+ 					"ERR 5412: "
+ 					"Failed to obtain request madw for timed out MAD"
+-					"(method=0x%X attr=0x%X tid=0x%"PRIx64") -- dropping\n",
++					" (method=0x%X attr=0x%X tid=0x%"PRIx64") -- dropping\n",
+ 					mad->method, cl_ntoh16(mad->attr_id),
+ 					cl_ntoh64(mad->trans_id));
+ 			} else {
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
