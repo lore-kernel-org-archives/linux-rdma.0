@@ -1,7 +1,7 @@
 From: "Sean Hefty" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 2/9] RDMA CM: Correct detection of SA Created MGID
-Date: Mon, 16 Nov 2009 15:57:19 -0800
-Message-ID: <0666293A38644E8BB2AF359DFBDF5300@amr.corp.intel.com>
+Subject: [PATCH 3/9] RDMA CM: Fix AF_INET6 support in multicast joining
+Date: Mon, 16 Nov 2009 15:57:54 -0800
+Message-ID: <42E34BCA3C1A4A5A8D05055ED243BBEE@amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="us-ascii"
@@ -13,30 +13,33 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Jason Gunthorpe <[jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org]>
 
-RDMA CM treats AF_INET6 addresses that are either 0 or prefixed with
-FF1x:A01B::/32 as MGIDs, but the detection for the prefix was buggy,
-fix it up.
+If joining to an AF_INET6 address we need to map the address to a MGID
+in the same way as the IP stack. The old code would just fall through to
+the IPv4 case and generate garbage.
 
 Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
 
- drivers/infiniband/core/cma.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ drivers/infiniband/core/cma.c |    5 +++++
+ 1 files changed, 5 insertions(+), 0 deletions(-)
 
 diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
-index 0753178..8bb2cf4 100644
+index 8bb2cf4..052b4c0 100644
 --- a/drivers/infiniband/core/cma.c
 +++ b/drivers/infiniband/core/cma.c
-@@ -2687,7 +2687,7 @@ static void cma_set_mgid(struct rdma_id_private *id_priv,
- 	if (cma_any_addr(addr)) {
- 		memset(mgid, 0, sizeof *mgid);
- 	} else if ((addr->sa_family == AF_INET6) &&
--		   ((be32_to_cpu(sin6->sin6_addr.s6_addr32[0]) & 0xFF10A01B) ==
-+		   ((be32_to_cpu(sin6->sin6_addr.s6_addr32[0]) & 0xFFF0FFFF) ==
+@@ -2691,6 +2691,11 @@ static void cma_set_mgid(struct rdma_id_private *id_priv,
  								 0xFF10A01B)) {
  		/* IPv6 address is an SA assigned MGID. */
  		memcpy(mgid, &sin6->sin6_addr, sizeof *mgid);
++	} else if ((addr->sa_family == AF_INET6)) {
++		ipv6_ib_mc_map(&sin6->sin6_addr, dev_addr->broadcast, mc_map);
++		if (id_priv->id.ps == RDMA_PS_UDP)
++			mc_map[7] = 0x01;	/* Use RDMA CM signature */
++		*mgid = *(union ib_gid *) (mc_map + 4);
+ 	} else {
+ 		ip_ib_mc_map(sin->sin_addr.s_addr, dev_addr->broadcast, mc_map);
+ 		if (id_priv->id.ps == RDMA_PS_UDP)
 
 
 
