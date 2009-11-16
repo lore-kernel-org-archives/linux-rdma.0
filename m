@@ -1,171 +1,178 @@
 From: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH] opensm: Cosmetic changes
-Date: Mon, 16 Nov 2009 10:30:40 -0500
-Message-ID: <f0e08f230911160730o2fc19cddh42382026c9510a5d@mail.gmail.com>
-References: <20091113163720.GA13938@comcast.net> <20091115113920.GX7192@me>
+Subject: Re: [PATCH] complib/cl_fleximap: add cl_fmap_match() function
+Date: Mon, 16 Nov 2009 10:30:57 -0500
+Message-ID: <f0e08f230911160730r6863783fs1757ac7b4ff248a9@mail.gmail.com>
+References: <20091113061948.GJ7192@me> <20091113062104.GK7192@me>
+	 <20091113201144.GS7192@me> <20091113203856.GT7192@me>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20091115113920.GX7192@me>
+In-Reply-To: <20091113203856.GT7192@me>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Eli Dorfman <elid-smomgflXvOZWk0Htik3J/w@public.gmane.org>, Slava Strebkov <slavas-smomgflXvOZWk0Htik3J/w@public.gmane.org>, Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Sun, Nov 15, 2009 at 6:39 AM, Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>=
+On Fri, Nov 13, 2009 at 3:38 PM, Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>=
  wrote:
-> On 11:37 Fri 13 Nov =C2=A0 =C2=A0 , Hal Rosenstock wrote:
->>
->> Compressed some type declarations and assignments into single line
->> Removed some unneeded underbars
->> Some minor reformatting including comment lines
->> Fixed some tabbing
->> Fixed some typos
->> Eliminated trailing periods in messages
->> Eliminated some unneeded braces
->>
->> Signed-off-by: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 >
-> Applied with one change (below). Thanks.
+> Add cl_fmap_match() function - it is similar for cl_fmap_get() (getti=
+ng
+> fleximap item by key) with difference that instead of using the map's
+> default comparison routine custom compare function can be passed ther=
+e
+> as a parameter.
 >
-> [snip]
+> This can be useful for matching map item by a key pattern.
 >
->> diff --git a/opensm/opensm/osm_state_mgr.c b/opensm/opensm/osm_state=
-_mgr.c
->> index 122a8d4..32b162c 100644
->> --- a/opensm/opensm/osm_state_mgr.c
->> +++ b/opensm/opensm/osm_state_mgr.c
->> @@ -174,8 +174,8 @@ static void state_mgr_get_remote_port_info(IN os=
-m_sm_t * sm,
->> =C2=A0 =C2=A0 =C2=A0 mad_context.pi_context.light_sweep =3D TRUE;
->> =C2=A0 =C2=A0 =C2=A0 mad_context.pi_context.active_transition =3D FA=
-LSE;
->>
->> - =C2=A0 =C2=A0 /* note that with some negative logic - if the query=
- failed it means that
->> - =C2=A0 =C2=A0 =C2=A0* there is no point in going to heavy sweep */
->> + =C2=A0 =C2=A0 /* note that with some negative logic - if the query=
- failed it means
->> + =C2=A0 =C2=A0 =C2=A0* that there is no point in going to heavy swe=
-ep */
->> =C2=A0 =C2=A0 =C2=A0 status =3D osm_req_get(sm, &rem_node_dr_path,
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 =C2=A0 =C2=A0 =C2=A0IB_MAD_ATTR_PORT_INFO, 0, CL_DISP_MSGID_NON=
-E,
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 =C2=A0 =C2=A0 =C2=A0&mad_context);
->> @@ -445,12 +445,12 @@ static ib_api_status_t state_mgr_sweep_hop_1(I=
-N osm_sm_t * sm)
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 break;
->>
->> =C2=A0 =C2=A0 =C2=A0 case IB_NODE_TYPE_SWITCH:
->> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 /* Need to go over all t=
-he ports of the switch, and send a node_info
->> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0* from them. This =
-doesn't include the port 0 of the switch, which
->> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0* hosts the SM.
->> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0* Note: We'll send=
- another switchInfo on port 0, since if no ports
->> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0* are connected, w=
-e still want to get some response, and have the
->> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0* subnet come up.
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 /* Need to go over all t=
-he ports of the switch, and send a
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0* node_info from t=
-hem. This doesn't include the port 0 of the
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0* switch, which ho=
-sts the SM.
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0* Note: We'll send=
- another switchInfo on port 0, since if no
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0* ports are connec=
-ted, we still want to get some response, and
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0* have the subnet =
-come up.
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0*/
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 num_ports =3D osm_n=
-ode_get_num_physp(p_node);
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 for (port_num =3D 1=
-; port_num < num_ports; port_num++) {
->> @@ -497,6 +497,7 @@ static void query_sm_info(cl_map_item_t * item, =
-void *cxt)
->> =C2=A0 =C2=A0 =C2=A0 osm_sm_t *sm =3D cxt;
->> =C2=A0 =C2=A0 =C2=A0 ib_api_status_t ret;
->>
->> +OSM_LOG(sm->p_log, OSM_LOG_ERROR, "GUID 0x%" PRIx64 "\n", cl_ntoh64=
-(r_sm->p_port->guid));
+> Signed-off-by: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+> ---
 >
-> Assuming that this whole line is a typo (please review patches visual=
-ly
-> before hitting send) I'm removing it.
+> This function is used in IPv6 SNM MGID compression patch.
+>
+> =C2=A0opensm/complib/cl_map.c =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0| =C2=A0 14 ++++++++++--
+> =C2=A0opensm/complib/libosmcomp.map =C2=A0 =C2=A0 =C2=A0 =C2=A0| =C2=A0=
+ =C2=A01 +
+> =C2=A0opensm/include/complib/cl_fleximap.h | =C2=A0 36 ++++++++++++++=
+++++++++++++++++++++
+> =C2=A03 files changed, 48 insertions(+), 3 deletions(-)
+>
+> diff --git a/opensm/complib/cl_map.c b/opensm/complib/cl_map.c
+> index d851bf8..f5fb1f3 100644
+> --- a/opensm/complib/cl_map.c
+> +++ b/opensm/complib/cl_map.c
+> @@ -1144,8 +1144,9 @@ void cl_fmap_init(IN cl_fmap_t * const p_map, I=
+N cl_pfn_fmap_cmp_t pfn_compare)
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0cl_fmap_remove_all(p_map);
+> =C2=A0}
+>
+> -cl_fmap_item_t *cl_fmap_get(IN const cl_fmap_t * const p_map,
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 =C2=A0 =C2=A0 IN const void *const p_key)
+> +cl_fmap_item_t *cl_fmap_match(IN const cl_fmap_t * const p_map,
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 =C2=A0 =C2=A0 =C2=A0 IN const void *const p_key,
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 =C2=A0 =C2=A0 =C2=A0 IN cl_pfn_fmap_cmp_t pfn_compare)
+> =C2=A0{
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0cl_fmap_item_t *p_item;
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0int cmp;
+> @@ -1156,7 +1157,8 @@ cl_fmap_item_t *cl_fmap_get(IN const cl_fmap_t =
+* const p_map,
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0p_item =3D __cl_fmap_root(p_map);
+>
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0while (p_item !=3D &p_map->nil) {
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 cmp =3D p_map->pfn=
+_compare(p_key, p_item->p_key);
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 cmp =3D pfn_compar=
+e ? pfn_compare(p_key, p_item->p_key) :
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 p_map->pfn_compare(p_key, p_item->p_key);
+>
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0if (!cmp)
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 =C2=A0break; =C2=A0/* just right */
+> @@ -1170,6 +1172,12 @@ cl_fmap_item_t *cl_fmap_get(IN const cl_fmap_t=
+ * const p_map,
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0return (p_item);
+> =C2=A0}
+>
+> +cl_fmap_item_t *cl_fmap_get(IN const cl_fmap_t * const p_map,
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 =C2=A0 =C2=A0 IN const void *const p_key)
+> +{
+> + =C2=A0 =C2=A0 =C2=A0 return cl_fmap_match(p_map, p_key, p_map->pfn_=
+compare);
+> +}
+> +
+> =C2=A0cl_fmap_item_t *cl_fmap_get_next(IN const cl_fmap_t * const p_m=
+ap,
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 IN const void *const p_key)
+> =C2=A0{
+> diff --git a/opensm/complib/libosmcomp.map b/opensm/complib/libosmcom=
+p.map
+> index 788eb2a..52410cc 100644
+> --- a/opensm/complib/libosmcomp.map
+> +++ b/opensm/complib/libosmcomp.map
+> @@ -66,6 +66,7 @@ OSMCOMP_2.3 {
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0cl_map_merge;
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0cl_map_delta;
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0cl_fmap_init;
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 cl_fmap_match;
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0cl_fmap_get;
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0cl_fmap_get_ne=
+xt;
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0cl_fmap_apply_=
+func;
+> diff --git a/opensm/include/complib/cl_fleximap.h b/opensm/include/co=
+mplib/cl_fleximap.h
+> index ec008cf..b74040f 100644
+> --- a/opensm/include/complib/cl_fleximap.h
+> +++ b/opensm/include/complib/cl_fleximap.h
+> @@ -619,6 +619,42 @@ cl_fmap_item_t *cl_fmap_insert(IN cl_fmap_t * co=
+nst p_map,
+> =C2=A0* =C2=A0 =C2=A0 =C2=A0Flexi Map, cl_fmap_remove, cl_fmap_item_t
+> =C2=A0*********/
+>
+> +/****f* Component Library: Flexi Map/cl_fmap_match
+> +* NAME
+> +* =C2=A0 =C2=A0 =C2=A0cl_fmap_get
 
-I did visually inspect but missed this.
+typo: cl_fmap_match
 
--- Hal
-
->
-> Sasha
->
->> =C2=A0 =C2=A0 =C2=A0 context.smi_context.port_guid =3D r_sm->p_port-=
->guid;
->> =C2=A0 =C2=A0 =C2=A0 context.smi_context.set_method =3D FALSE;
->> =C2=A0 =C2=A0 =C2=A0 context.smi_context.light_sweep =3D TRUE;
->> @@ -834,7 +835,7 @@ static void state_mgr_report_new_ports(IN osm_sm=
-_t * sm)
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 /* details of the n=
-otice */
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 notice.generic_type=
- =3D 0x83; =C2=A0 =C2=A0 /* is generic subn mgt type */
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 ib_notice_set_prod_=
-type_ho(&notice, 4); /* A Class Manager generator */
->> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 /* endport becomes to be=
- reachable */
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 /* endport becomes reach=
-able */
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 notice.g_or_v.gener=
-ic.trap_num =3D CL_HTON16(64);
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 /* The sm_base_lid =
-is saved in network order already. */
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 notice.issuer_lid =3D=
- sm->p_subn->sm_base_lid;
->> @@ -1125,7 +1126,7 @@ static void do_sweep(osm_sm_t * sm)
->> =C2=A0 =C2=A0 =C2=A0 }
->>
->> =C2=A0 =C2=A0 =C2=A0 /* go to heavy sweep */
->> -_repeat_discovery:
->> +repeat_discovery:
->>
->> =C2=A0 =C2=A0 =C2=A0 /* First of all - unset all flags */
->> =C2=A0 =C2=A0 =C2=A0 sm->p_subn->force_heavy_sweep =3D FALSE;
->> @@ -1162,7 +1163,7 @@ _repeat_discovery:
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 wait_for_pending_transactions(&sm=
-->p_subn->p_osm->stats))
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 return;
->>
->> - =C2=A0 =C2=A0 /* discovery completed - check other sm presense */
->> + =C2=A0 =C2=A0 /* discovery completed - check other sm presence */
->> =C2=A0 =C2=A0 =C2=A0 if (sm->master_sm_found) {
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 /*
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0* Call the sm=
-_state_mgr with signal
->> @@ -1179,7 +1180,7 @@ _repeat_discovery:
->>
->> =C2=A0 =C2=A0 =C2=A0 /* if new sweep requested - don't bother with t=
-he rest */
->> =C2=A0 =C2=A0 =C2=A0 if (sm->p_subn->force_heavy_sweep)
->> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 goto _repeat_discovery;
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 goto repeat_discovery;
->>
->> =C2=A0 =C2=A0 =C2=A0 OSM_LOG_MSG_BOX(sm->p_log, OSM_LOG_VERBOSE, "HE=
-AVY SWEEP COMPLETE");
->>
->>
+> +*
+> +* DESCRIPTION
+> +* =C2=A0 =C2=A0 =C2=A0The cl_fmap_match function returns the map ite=
+m matching a key.
+> +*
+> +* SYNOPSIS
+> +*/
+> +cl_fmap_item_t *cl_fmap_match(IN const cl_fmap_t * const p_map,
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 =C2=A0 =C2=A0 =C2=A0 IN const void *const p_key,
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 =C2=A0 =C2=A0 =C2=A0 IN cl_pfn_fmap_cmp_t pfn_compare);
+> +/*
+> +* PARAMETERS
+> +* =C2=A0 =C2=A0 =C2=A0p_map
+> +* =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0[in] Pointer to a =
+cl_fmap_t structure from which to retrieve the
+> +* =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0item with the spec=
+ified key.
+> +*
+> +* =C2=A0 =C2=A0 =C2=A0p_key
+> +* =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0[in] Pointer to a =
+key value used to search for the desired map item.
+> +*
+> +* =C2=A0 =C2=A0 =C2=A0pfn_compare
+> +* =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0[in] Pointer to a =
+compare function to invoke to compare the
+> +* =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0keys of items in t=
+he map. Passing NULL here makes such call
+> +* =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0to be equivalent t=
+o using cl_fmap_get().
+> +*
+> +* RETURN VALUES
+> +* =C2=A0 =C2=A0 =C2=A0Pointer to the map item matching the desired k=
+ey value.
+> +*
+> +* =C2=A0 =C2=A0 =C2=A0Pointer to the map end if there was no item ma=
+tching the desired key
+> +* =C2=A0 =C2=A0 =C2=A0value stored in the flexi map.
+> +*
+> +* SEE ALSO
+> +* =C2=A0 =C2=A0 =C2=A0Flexi Map, cl_fmap_remove, cl_fmap_get
+> +*********/
+> +
+> =C2=A0/****f* Component Library: Flexi Map/cl_fmap_get
+> =C2=A0* NAME
+> =C2=A0* =C2=A0 =C2=A0 =C2=A0cl_fmap_get
 > --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma"=
- in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at =C2=A0http://vger.kernel.org/majordomo-info.ht=
-ml
+> 1.6.5.2
+>
 >
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
