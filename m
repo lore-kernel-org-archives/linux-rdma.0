@@ -1,7 +1,7 @@
 From: "Sean Hefty" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 1/9] rdma/addr: use appropriate locking with for_each_netdev
-Date: Mon, 16 Nov 2009 15:56:49 -0800
-Message-ID: <2ECCDE30329F4354A214C698E4611BFD@amr.corp.intel.com>
+Subject: [PATCH 2/9] RDMA CM: Correct detection of SA Created MGID
+Date: Mon, 16 Nov 2009 15:57:19 -0800
+Message-ID: <0666293A38644E8BB2AF359DFBDF5300@amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="us-ascii"
@@ -11,65 +11,32 @@ Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Eric Dumazet <eric.dumazet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+From: Jason Gunthorpe <[jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org]>
 
-for_each_netdev() should be used with RTNL or dev_base_lock held,
-or risk a crash.
+RDMA CM treats AF_INET6 addresses that are either 0 or prefixed with
+FF1x:A01B::/32 as MGIDs, but the detection for the prefix was buggy,
+fix it up.
 
-Signed-off-by: Eric Dumazet <eric.dumazet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
 
- drivers/infiniband/core/addr.c |    8 +++++++-
- 1 files changed, 7 insertions(+), 1 deletions(-)
+ drivers/infiniband/core/cma.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/infiniband/core/addr.c b/drivers/infiniband/core/addr.c
-index 5be1bd4..de16126 100644
---- a/drivers/infiniband/core/addr.c
-+++ b/drivers/infiniband/core/addr.c
-@@ -131,6 +131,7 @@ int rdma_translate_ip(struct sockaddr *addr, struct rdma_dev_addr *dev_addr)
- 
- #if defined(CONFIG_IPV6) || defined(CONFIG_IPV6_MODULE)
- 	case AF_INET6:
-+		read_lock(&dev_base_lock);
- 		for_each_netdev(&init_net, dev) {
- 			if (ipv6_chk_addr(&init_net,
- 					  &((struct sockaddr_in6 *) addr)->sin6_addr,
-@@ -139,6 +140,7 @@ int rdma_translate_ip(struct sockaddr *addr, struct rdma_dev_addr *dev_addr)
- 				break;
- 			}
- 		}
-+		read_unlock(&dev_base_lock);
- 		break;
- #endif
- 	}
-@@ -391,14 +393,17 @@ static int addr_resolve_local(struct sockaddr *src_in,
- 	{
- 		struct in6_addr *a;
- 
-+		read_lock(&dev_base_lock);
- 		for_each_netdev(&init_net, dev)
- 			if (ipv6_chk_addr(&init_net,
- 					  &((struct sockaddr_in6 *) addr)->sin6_addr,
- 					  dev, 1))
- 				break;
- 
--		if (!dev)
-+		if (!dev) {
-+			read_unlock(&dev_base_lock);
- 			return -EADDRNOTAVAIL;
-+		}
- 
- 		a = &((struct sockaddr_in6 *) src_in)->sin6_addr;
- 
-@@ -416,6 +421,7 @@ static int addr_resolve_local(struct sockaddr *src_in,
- 			if (!ret)
- 				memcpy(addr->dst_dev_addr, dev->dev_addr, MAX_ADDR_LEN);
- 		}
-+		read_unlock(&dev_base_lock);
- 		break;
- 	}
- #endif
+diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
+index 0753178..8bb2cf4 100644
+--- a/drivers/infiniband/core/cma.c
++++ b/drivers/infiniband/core/cma.c
+@@ -2687,7 +2687,7 @@ static void cma_set_mgid(struct rdma_id_private *id_priv,
+ 	if (cma_any_addr(addr)) {
+ 		memset(mgid, 0, sizeof *mgid);
+ 	} else if ((addr->sa_family == AF_INET6) &&
+-		   ((be32_to_cpu(sin6->sin6_addr.s6_addr32[0]) & 0xFF10A01B) ==
++		   ((be32_to_cpu(sin6->sin6_addr.s6_addr32[0]) & 0xFFF0FFFF) ==
+ 								 0xFF10A01B)) {
+ 		/* IPv6 address is an SA assigned MGID. */
+ 		memcpy(mgid, &sin6->sin6_addr, sizeof *mgid);
 
 
 
