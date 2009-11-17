@@ -1,11 +1,11 @@
 From: Al Chu <chu11-i2BcT+NCU+M@public.gmane.org>
-Subject: [infiniband-diags] [PATCH] [1/3] remove unnecessary casting in
-	libibnetdiscover
-Date: Tue, 17 Nov 2009 10:16:14 -0800
-Message-ID: <1258481774.1335.95.camel@auk31.llnl.gov>
+Subject: [infiniband-diags] [PATCH] [2/3] use nodes/switches lists instead
+	of nodesdist array in libibnetdiscover
+Date: Tue, 17 Nov 2009 10:17:20 -0800
+Message-ID: <1258481840.1335.96.camel@auk31.llnl.gov>
 Reply-To: chu11-i2BcT+NCU+M@public.gmane.org
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="=-KgfjuL+uR9OFApIIWHt1"
+Content-Type: multipart/mixed; boundary="=-mwWX7HSbv3bwOtnuISKa"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org
@@ -13,15 +13,20 @@ Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 
---=-KgfjuL+uR9OFApIIWHt1
+--=-mwWX7HSbv3bwOtnuISKa
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 
 Hey Sasha,
 
-I noticed a bunch of unnecessary casting.  The typing is done correctly
-throughout the code, so I assume the casting was done due to legacy
-reasons.
+I noticed that that 'nodesdist' array was used for going through only
+switches or all nodes in the fabric.  Spoke to Ira about it, and he
+believes it's b/c in early ibnetdiscover code the 'nodesdist' array was
+the only data structure available for iterating over nodes.  Now we can
+use the 'nodes' list or 'switches' list, which makes it clearer to
+understand what's going on and is probably the "right" data structure to
+now use.  It also makes the chassis code section not dependent on the
+scan specific chunks of libibnetdiscover.
 
 Al
 
@@ -32,116 +37,185 @@ Computer Scientist
 High Performance Systems Division
 Lawrence Livermore National Laboratory
 
---=-KgfjuL+uR9OFApIIWHt1
-Content-Disposition: attachment; filename=0001-remove-unnecessary-casting-in-libibnetdiscover.patch
-Content-Type: text/plain; name=0001-remove-unnecessary-casting-in-libibnetdiscover.patch; charset=UTF-8
+--=-mwWX7HSbv3bwOtnuISKa
+Content-Disposition: attachment; filename*0=0002-use-nodes-switches-lists-instead-of-nodesdist-array.patc; filename*1=h
+Content-Type: text/plain; name=0002-use-nodes-switches-lists-instead-of-nodesdist-array.patch; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 
 From: Albert Chu <chu11-i2BcT+NCU+M@public.gmane.org>
-Date: Mon, 16 Nov 2009 17:14:34 -0800
-Subject: [PATCH] remove unnecessary casting in libibnetdiscover
+Date: Mon, 16 Nov 2009 17:14:56 -0800
+Subject: [PATCH] use nodes/switches lists instead of nodesdist array
 
 
 Signed-off-by: Albert Chu <chu11-i2BcT+NCU+M@public.gmane.org>
 ---
- infiniband-diags/libibnetdisc/src/chassis.c |   28 ++++++++++----------------
- 1 files changed, 11 insertions(+), 17 deletions(-)
+ infiniband-diags/libibnetdisc/src/chassis.c |  124 +++++++++++----------------
+ 1 files changed, 51 insertions(+), 73 deletions(-)
 
 diff --git a/infiniband-diags/libibnetdisc/src/chassis.c b/infiniband-diags/libibnetdisc/src/chassis.c
-index 3bd0108..a8b6767 100644
+index a8b6767..c11fa8d 100644
 --- a/infiniband-diags/libibnetdisc/src/chassis.c
 +++ b/infiniband-diags/libibnetdisc/src/chassis.c
-@@ -346,30 +346,28 @@ char anafa_spine4_slot_2_slb[25] = {
- 
- /*	reference                     { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24 }; */
- 
--static int get_sfb_slot(ibnd_node_t * node, ibnd_port_t * lineport)
-+static int get_sfb_slot(ibnd_node_t * n, ibnd_port_t * lineport)
+@@ -816,11 +816,9 @@ static void add_node_to_chassis(ibnd_chassis_t * chassis, ibnd_node_t * node)
+ int group_nodes(ibnd_fabric_t * fabric, ibnd_scan_t *scan)
  {
--	ibnd_node_t *n = (ibnd_node_t *) node;
+ 	ibnd_node_t *node;
+-	int dist;
+ 	int chassisnum = 0;
+ 	ibnd_chassis_t *chassis;
+ 	ibnd_chassis_t *ch, *ch_next;
+-	ibnd_node_scan_t *node_scan;
+ 
+ 	scan->first_chassis = NULL;
+ 	scan->current_chassis = NULL;
+@@ -830,91 +828,71 @@ int group_nodes(ibnd_fabric_t * fabric, ibnd_scan_t *scan)
+ 	/* an appropriate chassis record (slotnum and position) */
+ 	/* according to internal connectivity */
+ 	/* not very efficient but clear code so... */
+-	for (dist = 0; dist <= fabric->maxhops_discovered; dist++)
+-		for (node_scan = scan->nodesdist[dist]; node_scan; node_scan = node_scan->dnext) {
+-			node = node_scan->node;
 -
- 	n->ch_slot = SPINE_CS;
--	if (is_spine_9096(node)) {
-+	if (is_spine_9096(n)) {
- 		n->ch_type = ISR9096_CT;
- 		n->ch_slotnum = spine4_slot_2_slb[lineport->portnum];
- 		n->ch_anafanum = anafa_spine4_slot_2_slb[lineport->portnum];
--	} else if (is_spine_9288(node)) {
-+	} else if (is_spine_9288(n)) {
- 		n->ch_type = ISR9288_CT;
- 		n->ch_slotnum = spine12_slot_2_slb[lineport->portnum];
- 		n->ch_anafanum = anafa_spine12_slot_2_slb[lineport->portnum];
--	} else if (is_spine_2012(node)) {
-+	} else if (is_spine_2012(n)) {
- 		n->ch_type = ISR2012_CT;
- 		n->ch_slotnum = spine12_slot_2_slb[lineport->portnum];
- 		n->ch_anafanum = anafa_spine12_slot_2_slb[lineport->portnum];
--	} else if (is_spine_2004(node)) {
-+	} else if (is_spine_2004(n)) {
- 		n->ch_type = ISR2004_CT;
- 		n->ch_slotnum = spine4_slot_2_slb[lineport->portnum];
- 		n->ch_anafanum = anafa_spine4_slot_2_slb[lineport->portnum];
- 	} else {
- 		IBND_ERROR("Unexpected node found: guid 0x%016" PRIx64,
--			   node->guid);
-+			   n->guid);
- 		return -1;
+-			if (mad_get_field(node->info, 0,
+-					  IB_NODE_VENDORID_F) == VTR_VENDOR_ID
+-			    && fill_voltaire_chassis_record(node))
+-				goto cleanup;
+-		}
++	for (node = fabric->switches; node; node = node->type_next) {
++		if (mad_get_field(node->info, 0,
++				  IB_NODE_VENDORID_F) == VTR_VENDOR_ID
++		    && fill_voltaire_chassis_record(node))
++			goto cleanup;
++	}
+ 
+ 	/* separate every Voltaire chassis from each other and build linked list of them */
+ 	/* algorithm: catch spine and find all surrounding nodes */
+-	for (dist = 0; dist <= fabric->maxhops_discovered; dist++)
+-		for (node_scan = scan->nodesdist[dist]; node_scan; node_scan = node_scan->dnext) {
+-			node = node_scan->node;
+-
+-			if (mad_get_field(node->info, 0,
+-					  IB_NODE_VENDORID_F) != VTR_VENDOR_ID)
+-				continue;
+-			if (!node->ch_found
+-			    || (node->chassis && node->chassis->chassisnum)
+-			    || !is_spine(node))
+-				continue;
+-			if (add_chassis(scan))
+-				goto cleanup;
+-			scan->current_chassis->chassisnum = ++chassisnum;
+-			if (build_chassis(node, scan->current_chassis))
+-				goto cleanup;
+-		}
++	for (node = fabric->switches; node; node = node->type_next) {
++		if (mad_get_field(node->info, 0,
++				  IB_NODE_VENDORID_F) != VTR_VENDOR_ID)
++			continue;
++		if (!node->ch_found
++		    || (node->chassis && node->chassis->chassisnum)
++		    || !is_spine(node))
++			continue;
++		if (add_chassis(scan))
++			goto cleanup;
++		scan->current_chassis->chassisnum = ++chassisnum;
++		if (build_chassis(node, scan->current_chassis))
++			goto cleanup;
++	}
+ 
+ 	/* now make pass on nodes for chassis which are not Voltaire */
+ 	/* grouped by common SystemImageGUID */
+-	for (dist = 0; dist <= fabric->maxhops_discovered; dist++)
+-		for (node_scan = scan->nodesdist[dist]; node_scan; node_scan = node_scan->dnext) {
+-			node = node_scan->node;
+-
+-			if (mad_get_field(node->info, 0,
+-					  IB_NODE_VENDORID_F) == VTR_VENDOR_ID)
+-				continue;
+-			if (mad_get_field64(node->info, 0,
+-					    IB_NODE_SYSTEM_GUID_F)) {
+-				chassis =
+-				    find_chassisguid(fabric, node);
+-				if (chassis)
+-					chassis->nodecount++;
+-				else {
+-					/* Possible new chassis */
+-					if (add_chassis(scan))
+-						goto cleanup;
+-					scan->current_chassis->chassisguid =
+-					    get_chassisguid(node);
+-					scan->current_chassis->nodecount = 1;
+-				}
++	for (node = fabric->switches; node; node = node->type_next) {
++		if (mad_get_field(node->info, 0,
++				  IB_NODE_VENDORID_F) == VTR_VENDOR_ID)
++			continue;
++		if (mad_get_field64(node->info, 0,
++				    IB_NODE_SYSTEM_GUID_F)) {
++			chassis = find_chassisguid(fabric, node);
++			if (chassis)
++				chassis->nodecount++;
++			else {
++				/* Possible new chassis */
++				if (add_chassis(scan))
++					goto cleanup;
++				scan->current_chassis->chassisguid =
++				    get_chassisguid(node);
++				scan->current_chassis->nodecount = 1;
+ 			}
+ 		}
++	}
+ 
+ 	/* now, make another pass to see which nodes are part of chassis */
+ 	/* (defined as chassis->nodecount > 1) */
+-	for (dist = 0; dist <= MAXHOPS;) {
+-		for (node_scan = scan->nodesdist[dist]; node_scan; node_scan = node_scan->dnext) {
+-			node = node_scan->node;
+-
+-			if (mad_get_field(node->info, 0,
+-					  IB_NODE_VENDORID_F) == VTR_VENDOR_ID)
+-				continue;
+-			if (mad_get_field64(node->info, 0,
+-					    IB_NODE_SYSTEM_GUID_F)) {
+-				chassis =
+-				    find_chassisguid(fabric, node);
+-				if (chassis && chassis->nodecount > 1) {
+-					if (!chassis->chassisnum)
+-						chassis->chassisnum =
+-						    ++chassisnum;
+-					if (!node->ch_found) {
+-						node->ch_found = 1;
+-						add_node_to_chassis(chassis,
+-								    node);
+-					}
++	for (node = fabric->nodes; node; node = node->next) {
++		if (mad_get_field(node->info, 0,
++				  IB_NODE_VENDORID_F) == VTR_VENDOR_ID)
++			continue;
++		if (mad_get_field64(node->info, 0,
++				    IB_NODE_SYSTEM_GUID_F)) {
++			chassis = find_chassisguid(fabric, node);
++			if (chassis && chassis->nodecount > 1) {
++				if (!chassis->chassisnum)
++					chassis->chassisnum =
++					    ++chassisnum;
++				if (!node->ch_found) {
++					node->ch_found = 1;
++					add_node_to_chassis(chassis, node);
+ 				}
+ 			}
+ 		}
+-		if (dist == fabric->maxhops_discovered)
+-			dist = MAXHOPS;	/* skip to CAs */
+-		else
+-			dist++;
  	}
- 	return 0;
-@@ -653,7 +651,7 @@ static int build_chassis(ibnd_node_t * node, ibnd_chassis_t * chassis)
- 	ibnd_port_t *port = 0;
  
- 	/* we get here with node = chassis_spine */
--	if (insert_spine((ibnd_node_t *) node, chassis))
-+	if (insert_spine(node, chassis))
- 		return -1;
- 
- 	/* loop: pass on all ports of node */
-@@ -874,8 +872,7 @@ int group_nodes(ibnd_fabric_t * fabric, ibnd_scan_t *scan)
- 			if (mad_get_field64(node->info, 0,
- 					    IB_NODE_SYSTEM_GUID_F)) {
- 				chassis =
--				    find_chassisguid(fabric,
--						     (ibnd_node_t *) node);
-+				    find_chassisguid(fabric, node);
- 				if (chassis)
- 					chassis->nodecount++;
- 				else {
-@@ -883,8 +880,7 @@ int group_nodes(ibnd_fabric_t * fabric, ibnd_scan_t *scan)
- 					if (add_chassis(scan))
- 						goto cleanup;
- 					scan->current_chassis->chassisguid =
--					    get_chassisguid((ibnd_node_t *)
--							    node);
-+					    get_chassisguid(node);
- 					scan->current_chassis->nodecount = 1;
- 				}
- 			}
-@@ -902,8 +898,7 @@ int group_nodes(ibnd_fabric_t * fabric, ibnd_scan_t *scan)
- 			if (mad_get_field64(node->info, 0,
- 					    IB_NODE_SYSTEM_GUID_F)) {
- 				chassis =
--				    find_chassisguid(fabric,
--						     (ibnd_node_t *) node);
-+				    find_chassisguid(fabric, node);
- 				if (chassis && chassis->nodecount > 1) {
- 					if (!chassis->chassisnum)
- 						chassis->chassisnum =
-@@ -911,8 +906,7 @@ int group_nodes(ibnd_fabric_t * fabric, ibnd_scan_t *scan)
- 					if (!node->ch_found) {
- 						node->ch_found = 1;
- 						add_node_to_chassis(chassis,
--								    (ibnd_node_t
--								     *) node);
-+								    node);
- 					}
- 				}
- 			}
+ 	fabric->chassis = scan->first_chassis;
 -- 
 1.5.4.5
 
 
---=-KgfjuL+uR9OFApIIWHt1--
+--=-mwWX7HSbv3bwOtnuISKa--
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
