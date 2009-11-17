@@ -1,7 +1,7 @@
 From: "Sean Hefty" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 6/9] ib/addr: store net_device type instead of translating to RDMA transport
-Date: Mon, 16 Nov 2009 16:02:08 -0800
-Message-ID: <A1FD692E247847A4973F2EE7AD3294B0@amr.corp.intel.com>
+Subject: [PATCH 7/9] rdma/cm: fix loopback address support
+Date: Mon, 16 Nov 2009 16:06:42 -0800
+Message-ID: <8C1E83708E03464FA1613B7E6E9BCBCC@amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="us-ascii"
@@ -11,94 +11,267 @@ Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-The struct rdma_dev_addr stores net_device address information:
-the source device address, destination hardware address, and
-broadcast address.  For consistency, store the net_device type
-rather than converting it to the rdma_node_type.
+The RDMA CM is intended to support the use of a loopback address
+when establishing a connection; however, the behavior of the CM
+when loopback addresses are used is confusing and does not always
+work, depending on whether loopback was specified by the server,
+the client, or both.
 
-The type indicates the format of the various hardware addresses,
-which is what we're concerned with, and not the RDMA node type
-that the address may map to.
+The defined behavior of rdma_bind_addr is to associate an RDMA
+device with an rdma_cm_id, as long as the user specified a non-
+zero address.  (I.e. they weren't just trying to reserve a port.)
+Currently, if the loopback address is passed to rdam_bind_addr,
+no device is associated with the rdma_cm_id.  Fix this.
+
+If a loopback address is specified by the client as the destination
+address for a connection, it will fail to establish a connection.
+This is true even if the server is listing across all addresses or
+on the loopback address itself.  The issue is that the server tries
+to translate the IP address carried in the REQ message to a local
+net_device address, which fails.  The translation is not needed in
+this case, since the REQ carries the actual HW address that should
+be used.
+
+Finally, cleanup loopback support to be more transport neutral.
+Replace separate calls to get/set the sgid and dgid from the
+device address to a single call that behaves correctly depending
+on the format of the device address.  And support both IPv4 and
+IPv6 address formats.
 
 Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
 
- drivers/infiniband/core/addr.c |   13 +------------
- drivers/infiniband/core/cma.c  |    6 +++---
- include/rdma/ib_addr.h         |    3 ++-
- 3 files changed, 6 insertions(+), 16 deletions(-)
+ drivers/infiniband/core/cma.c  |   77 ++++++++++++++++++++++------------------
+ drivers/infiniband/core/ucma.c |    8 ++--
+ include/rdma/ib_addr.h         |   31 +++++-----------
+ 3 files changed, 57 insertions(+), 59 deletions(-)
 
-diff --git a/drivers/infiniband/core/addr.c b/drivers/infiniband/core/addr.c
-index f5baf0b..4febc0e 100644
---- a/drivers/infiniband/core/addr.c
-+++ b/drivers/infiniband/core/addr.c
-@@ -36,7 +36,6 @@
- #include <linux/mutex.h>
- #include <linux/inetdevice.h>
- #include <linux/workqueue.h>
--#include <linux/if_arp.h>
- #include <net/arp.h>
- #include <net/neighbour.h>
- #include <net/route.h>
-@@ -92,17 +91,7 @@ EXPORT_SYMBOL(rdma_addr_unregister_client);
- int rdma_copy_addr(struct rdma_dev_addr *dev_addr, struct net_device *dev,
- 		     const unsigned char *dst_dev_addr)
- {
--	switch (dev->type) {
--	case ARPHRD_INFINIBAND:
--		dev_addr->dev_type = RDMA_NODE_IB_CA;
--		break;
--	case ARPHRD_ETHER:
--		dev_addr->dev_type = RDMA_NODE_RNIC;
--		break;
--	default:
--		return -EADDRNOTAVAIL;
--	}
--
-+	dev_addr->dev_type = dev->type;
- 	memcpy(dev_addr->src_dev_addr, dev->dev_addr, MAX_ADDR_LEN);
- 	memcpy(dev_addr->broadcast, dev->broadcast, MAX_ADDR_LEN);
- 	if (dst_dev_addr)
 diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
-index 699ad12..b305b5c 100644
+index b305b5c..38867a4 100644
 --- a/drivers/infiniband/core/cma.c
 +++ b/drivers/infiniband/core/cma.c
-@@ -330,11 +330,11 @@ static int cma_acquire_dev(struct rdma_id_private *id_priv)
+@@ -330,17 +330,7 @@ static int cma_acquire_dev(struct rdma_id_private *id_priv)
  	union ib_gid gid;
  	int ret = -ENODEV;
  
--	switch (rdma_node_get_transport(dev_addr->dev_type)) {
--	case RDMA_TRANSPORT_IB:
-+	switch (dev_addr->dev_type) {
-+	case ARPHRD_INFINIBAND:
- 		ib_addr_get_sgid(dev_addr, &gid);
+-	switch (dev_addr->dev_type) {
+-	case ARPHRD_INFINIBAND:
+-		ib_addr_get_sgid(dev_addr, &gid);
+-		break;
+-	case ARPHRD_ETHER:
+-		iw_addr_get_sgid(dev_addr, &gid);
+-		break;
+-	default:
+-		return -ENODEV;
+-	}
+-
++	rdma_addr_get_sgid(dev_addr, &gid);
+ 	list_for_each_entry(cma_dev, &dev_list, list) {
+ 		ret = ib_find_cached_gid(cma_dev->device, &gid,
+ 					 &id_priv->id.port_num, NULL);
+@@ -1032,11 +1022,17 @@ static struct rdma_id_private *cma_new_conn_id(struct rdma_cm_id *listen_id,
+ 	if (rt->num_paths == 2)
+ 		rt->path_rec[1] = *ib_event->param.req_rcvd.alternate_path;
+ 
+-	ib_addr_set_dgid(&rt->addr.dev_addr, &rt->path_rec[0].dgid);
+-	ret = rdma_translate_ip((struct sockaddr *) &id->route.addr.src_addr,
+-				&id->route.addr.dev_addr);
+-	if (ret)
+-		goto destroy_id;
++	if (cma_any_addr((struct sockaddr *) &rt->addr.src_addr)) {
++		rt->addr.dev_addr.dev_type = ARPHRD_INFINIBAND;
++		rdma_addr_set_sgid(&rt->addr.dev_addr, &rt->path_rec[0].sgid);
++		ib_addr_set_pkey(&rt->addr.dev_addr, rt->path_rec[0].pkey);
++	} else {
++		ret = rdma_translate_ip((struct sockaddr *) &rt->addr.src_addr,
++					&rt->addr.dev_addr);
++		if (ret)
++			goto destroy_id;
++	}
++	rdma_addr_set_dgid(&rt->addr.dev_addr, &rt->path_rec[0].dgid);
+ 
+ 	id_priv = container_of(id, struct rdma_id_private, id);
+ 	id_priv->state = CMA_CONNECT;
+@@ -1071,10 +1067,12 @@ static struct rdma_id_private *cma_new_udp_id(struct rdma_cm_id *listen_id,
+ 	cma_save_net_info(&id->route.addr, &listen_id->route.addr,
+ 			  ip_ver, port, src, dst);
+ 
+-	ret = rdma_translate_ip((struct sockaddr *) &id->route.addr.src_addr,
+-				&id->route.addr.dev_addr);
+-	if (ret)
+-		goto err;
++	if (!cma_any_addr((struct sockaddr *) &id->route.addr.src_addr)) {
++		ret = rdma_translate_ip((struct sockaddr *) &id->route.addr.src_addr,
++					&id->route.addr.dev_addr);
++		if (ret)
++			goto err;
++	}
+ 
+ 	id_priv = container_of(id, struct rdma_id_private, id);
+ 	id_priv->state = CMA_CONNECT;
+@@ -1565,8 +1563,8 @@ static int cma_query_ib_route(struct rdma_id_private *id_priv, int timeout_ms,
+ 	struct sockaddr_in6 *sin6;
+ 
+ 	memset(&path_rec, 0, sizeof path_rec);
+-	ib_addr_get_sgid(&addr->dev_addr, &path_rec.sgid);
+-	ib_addr_get_dgid(&addr->dev_addr, &path_rec.dgid);
++	rdma_addr_get_sgid(&addr->dev_addr, &path_rec.sgid);
++	rdma_addr_get_dgid(&addr->dev_addr, &path_rec.dgid);
+ 	path_rec.pkey = cpu_to_be16(ib_addr_get_pkey(&addr->dev_addr));
+ 	path_rec.numb_path = 1;
+ 	path_rec.reversible = 1;
+@@ -1781,7 +1779,11 @@ port_found:
+ 	if (ret)
+ 		goto out;
+ 
+-	ib_addr_set_sgid(&id_priv->id.route.addr.dev_addr, &gid);
++	id_priv->id.route.addr.dev_addr.dev_type =
++		(rdma_node_get_transport(cma_dev->device->node_type) == RDMA_TRANSPORT_IB) ?
++		ARPHRD_INFINIBAND : ARPHRD_ETHER;
++
++	rdma_addr_set_sgid(&id_priv->id.route.addr.dev_addr, &gid);
+ 	ib_addr_set_pkey(&id_priv->id.route.addr.dev_addr, pkey);
+ 	id_priv->id.port_num = p;
+ 	cma_attach_to_dev(id_priv, cma_dev);
+@@ -1839,7 +1841,7 @@ out:
+ static int cma_resolve_loopback(struct rdma_id_private *id_priv)
+ {
+ 	struct cma_work *work;
+-	struct sockaddr_in *src_in, *dst_in;
++	struct sockaddr *src, *dst;
+ 	union ib_gid gid;
+ 	int ret;
+ 
+@@ -1853,14 +1855,19 @@ static int cma_resolve_loopback(struct rdma_id_private *id_priv)
+ 			goto err;
+ 	}
+ 
+-	ib_addr_get_sgid(&id_priv->id.route.addr.dev_addr, &gid);
+-	ib_addr_set_dgid(&id_priv->id.route.addr.dev_addr, &gid);
++	rdma_addr_get_sgid(&id_priv->id.route.addr.dev_addr, &gid);
++	rdma_addr_set_dgid(&id_priv->id.route.addr.dev_addr, &gid);
+ 
+-	if (cma_zero_addr((struct sockaddr *) &id_priv->id.route.addr.src_addr)) {
+-		src_in = (struct sockaddr_in *)&id_priv->id.route.addr.src_addr;
+-		dst_in = (struct sockaddr_in *)&id_priv->id.route.addr.dst_addr;
+-		src_in->sin_family = dst_in->sin_family;
+-		src_in->sin_addr.s_addr = dst_in->sin_addr.s_addr;
++	src = (struct sockaddr *) &id_priv->id.route.addr.src_addr;
++	if (cma_zero_addr(src)) {
++		dst = (struct sockaddr *) &id_priv->id.route.addr.dst_addr;
++		if ((src->sa_family = dst->sa_family) == AF_INET) {
++			((struct sockaddr_in *) src)->sin_addr.s_addr =
++				((struct sockaddr_in *) dst)->sin_addr.s_addr;
++		} else {
++			ipv6_addr_copy(&((struct sockaddr_in6 *) src)->sin6_addr,
++				       &((struct sockaddr_in6 *) dst)->sin6_addr);
++		}
+ 	}
+ 
+ 	work->id = id_priv;
+@@ -2089,7 +2096,9 @@ int rdma_bind_addr(struct rdma_cm_id *id, struct sockaddr *addr)
+ 	if (!cma_comp_exch(id_priv, CMA_IDLE, CMA_ADDR_BOUND))
+ 		return -EINVAL;
+ 
+-	if (!cma_any_addr(addr)) {
++	if (cma_loopback_addr(addr)) {
++		ret = cma_bind_loopback(id_priv);
++	} else if (!cma_zero_addr(addr)) {
+ 		ret = rdma_translate_ip(addr, &id->route.addr.dev_addr);
+ 		if (ret)
+ 			goto err1;
+@@ -2108,7 +2117,7 @@ int rdma_bind_addr(struct rdma_cm_id *id, struct sockaddr *addr)
+ 
+ 	return 0;
+ err2:
+-	if (!cma_any_addr(addr)) {
++	if (id_priv->cma_dev) {
+ 		mutex_lock(&lock);
+ 		cma_detach_from_dev(id_priv);
+ 		mutex_unlock(&lock);
+@@ -2721,7 +2730,7 @@ static int cma_join_ib_multicast(struct rdma_id_private *id_priv,
+ 	cma_set_mgid(id_priv, (struct sockaddr *) &mc->addr, &rec.mgid);
+ 	if (id_priv->id.ps == RDMA_PS_UDP)
+ 		rec.qkey = cpu_to_be32(RDMA_UDP_QKEY);
+-	ib_addr_get_sgid(dev_addr, &rec.port_gid);
++	rdma_addr_get_sgid(dev_addr, &rec.port_gid);
+ 	rec.pkey = cpu_to_be16(ib_addr_get_pkey(dev_addr));
+ 	rec.join_state = 1;
+ 
+diff --git a/drivers/infiniband/core/ucma.c b/drivers/infiniband/core/ucma.c
+index 4346a24..755fc33 100644
+--- a/drivers/infiniband/core/ucma.c
++++ b/drivers/infiniband/core/ucma.c
+@@ -561,10 +561,10 @@ static void ucma_copy_ib_route(struct rdma_ucm_query_route_resp *resp,
+ 	switch (route->num_paths) {
+ 	case 0:
+ 		dev_addr = &route->addr.dev_addr;
+-		ib_addr_get_dgid(dev_addr,
+-				 (union ib_gid *) &resp->ib_route[0].dgid);
+-		ib_addr_get_sgid(dev_addr,
+-				 (union ib_gid *) &resp->ib_route[0].sgid);
++		rdma_addr_get_dgid(dev_addr,
++				   (union ib_gid *) &resp->ib_route[0].dgid);
++		rdma_addr_get_sgid(dev_addr,
++				   (union ib_gid *) &resp->ib_route[0].sgid);
+ 		resp->ib_route[0].pkey = cpu_to_be16(ib_addr_get_pkey(dev_addr));
  		break;
--	case RDMA_TRANSPORT_IWARP:
-+	case ARPHRD_ETHER:
- 		iw_addr_get_sgid(dev_addr, &gid);
- 		break;
- 	default:
+ 	case 2:
 diff --git a/include/rdma/ib_addr.h b/include/rdma/ib_addr.h
-index 27f17cc..3a39c55 100644
+index 3a39c55..fa0d52b 100644
 --- a/include/rdma/ib_addr.h
 +++ b/include/rdma/ib_addr.h
-@@ -36,6 +36,7 @@
+@@ -122,40 +122,29 @@ static inline void ib_addr_get_mgid(struct rdma_dev_addr *dev_addr,
+ 	memcpy(gid, dev_addr->broadcast + 4, sizeof *gid);
+ }
  
- #include <linux/in.h>
- #include <linux/in6.h>
-+#include <linux/if_arp.h>
- #include <linux/netdevice.h>
- #include <linux/socket.h>
- #include <rdma/ib_verbs.h>
-@@ -60,7 +61,7 @@ struct rdma_dev_addr {
- 	unsigned char src_dev_addr[MAX_ADDR_LEN];
- 	unsigned char dst_dev_addr[MAX_ADDR_LEN];
- 	unsigned char broadcast[MAX_ADDR_LEN];
--	enum rdma_node_type dev_type;
-+	unsigned short dev_type;
- 	int bound_dev_if;
- };
+-static inline void ib_addr_get_sgid(struct rdma_dev_addr *dev_addr,
+-				    union ib_gid *gid)
++static inline int rdma_addr_gid_offset(struct rdma_dev_addr *dev_addr)
+ {
+-	memcpy(gid, dev_addr->src_dev_addr + 4, sizeof *gid);
++	return dev_addr->dev_type == ARPHRD_INFINIBAND ? 4 : 0;
+ }
  
+-static inline void ib_addr_set_sgid(struct rdma_dev_addr *dev_addr,
+-				    union ib_gid *gid)
++static inline void rdma_addr_get_sgid(struct rdma_dev_addr *dev_addr, union ib_gid *gid)
+ {
+-	memcpy(dev_addr->src_dev_addr + 4, gid, sizeof *gid);
++	memcpy(gid, dev_addr->src_dev_addr + rdma_addr_gid_offset(dev_addr), sizeof *gid);
+ }
+ 
+-static inline void ib_addr_get_dgid(struct rdma_dev_addr *dev_addr,
+-				    union ib_gid *gid)
++static inline void rdma_addr_set_sgid(struct rdma_dev_addr *dev_addr, union ib_gid *gid)
+ {
+-	memcpy(gid, dev_addr->dst_dev_addr + 4, sizeof *gid);
++	memcpy(dev_addr->src_dev_addr + rdma_addr_gid_offset(dev_addr), gid, sizeof *gid);
+ }
+ 
+-static inline void ib_addr_set_dgid(struct rdma_dev_addr *dev_addr,
+-				    union ib_gid *gid)
++static inline void rdma_addr_get_dgid(struct rdma_dev_addr *dev_addr, union ib_gid *gid)
+ {
+-	memcpy(dev_addr->dst_dev_addr + 4, gid, sizeof *gid);
++	memcpy(gid, dev_addr->dst_dev_addr + rdma_addr_gid_offset(dev_addr), sizeof *gid);
+ }
+ 
+-static inline void iw_addr_get_sgid(struct rdma_dev_addr *dev_addr,
+-				    union ib_gid *gid)
+-{
+-	memcpy(gid, dev_addr->src_dev_addr, sizeof *gid);
+-}
+-
+-static inline void iw_addr_get_dgid(struct rdma_dev_addr *dev_addr,
+-				    union ib_gid *gid)
++static inline void rdma_addr_set_dgid(struct rdma_dev_addr *dev_addr, union ib_gid *gid)
+ {
+-	memcpy(gid, dev_addr->dst_dev_addr, sizeof *gid);
++	memcpy(dev_addr->dst_dev_addr + rdma_addr_gid_offset(dev_addr), gid, sizeof *gid);
+ }
+ 
+ #endif /* IB_ADDR_H */
 
 
 
