@@ -1,36 +1,31 @@
-From: "Sean Hefty" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: LID reconfiguration
-Date: Mon, 16 Nov 2009 21:15:47 -0800
-Message-ID: <6A30FB8CEED94D778E7CDAE4660458DA@amr.corp.intel.com>
-References: <alpine.BSF.2.00.0911091324150.1226@desktop> <20091109234547.GH6188@obsidianresearch.com> <alpine.BSF.2.00.0911091348360.1226@desktop> <20091110002047.GJ6188@obsidianresearch.com> <alpine.BSF.2.00.0911161835230.1226@desktop>
+From: Or Gerlitz <ogerlitz-hKgKHo2Ms0FWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH 8/9] ib/addr: simplify resolving IPv4 addresses
+Date: Tue, 17 Nov 2009 08:27:36 +0200
+Message-ID: <4B024258.7070500@Voltaire.com>
+References: <AD17449F0C4E4FE7B20C32412F077C00@amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <alpine.BSF.2.00.0911161835230.1226@desktop>
+In-Reply-To: <AD17449F0C4E4FE7B20C32412F077C00-Zpru7NauK7drdx17CPfAsdBPR1lH4CV8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: 'Jeff Roberson' <jroberson-gUAg20sWgfgcWVvVuXF20w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+To: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
->Is there an opensource example of using APM?  When I call ib_cm_send_lap()
->the QP goes to some error state and my connections die.  Do I need to set
->some QP attributes first?  I found a paper that describes the process but
->does not contain sample code or any real details.
+Sean Hefty wrote:
+> Merge resolve local/remote address resolution into a single
+> data flow to ensure consistent access and use of the local routing tables.
 
-Sending the LAP/APR only exchanges CM protocol messages.  You still need to
-modify the QP.  There's an old example program for the kernel that did APM, but
-it shouldn't be too hard to see what it did and convert it to a userspace app.
+Sean, I reviewed patches 1-6 & 8 and they all look fine, I will give the whole series a try later this week to further validate them.
 
-See the cmpost sample in the test-apps branch of my rdma-dev.git tree.
+> Based on work from:
+> David Wilder <dwilder-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>
+> Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 
-http://www.openfabrics.org/git/?p=~shefty/rdma-dev.git;a=blob;f=drivers/infiniba
-nd/util/cmpost/cmpost.c;h=99f1446af841fd34b50b7bdfce1360f741e10a63;hb=b5e668a9b6
-d0f24d1a92e604e67c44f1452ea1e4
+David, Jason, are you planning to test these patches as well? specifically I assume the IPv6 work should be of interest to you...
 
-- Sean
-
+Or.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
