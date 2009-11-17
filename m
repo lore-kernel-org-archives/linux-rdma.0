@@ -1,31 +1,32 @@
-From: Or Gerlitz <ogerlitz-hKgKHo2Ms0FWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH 8/9] ib/addr: simplify resolving IPv4 addresses
-Date: Tue, 17 Nov 2009 08:27:36 +0200
-Message-ID: <4B024258.7070500@Voltaire.com>
-References: <AD17449F0C4E4FE7B20C32412F077C00@amr.corp.intel.com>
+From: Vladimir Sokolovsky <vlad-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: New source release of libipathverbs-1.2.tar.gz
+Date: Tue, 17 Nov 2009 09:55:02 +0200
+Message-ID: <4B0256D6.1090006@dev.mellanox.co.il>
+References: <1258422628.992.391.camel@chromite.mv.qlogic.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <AD17449F0C4E4FE7B20C32412F077C00-Zpru7NauK7drdx17CPfAsdBPR1lH4CV8@public.gmane.org>
+In-Reply-To: <1258422628.992.391.camel-/vjeY7uYZjrPXfVEPVhPGq6RkeBMCJyt@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Ralph Campbell <ralph.campbell-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, EWG <ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Sean Hefty wrote:
-> Merge resolve local/remote address resolution into a single
-> data flow to ensure consistent access and use of the local routing tables.
+Ralph Campbell wrote:
+> I have updated the latest released source tarball for libipathverbs
+> which can be found at:
+> 
+> http://www.openfabrics.org/downloads/libipathverbs/libipathverbs-1.2.tar.gz
+> 
+> Vlad, please update OFED-1.5 to include this version.
+> 
+> 
 
-Sean, I reviewed patches 1-6 & 8 and they all look fine, I will give the whole series a try later this week to further validate them.
+Done,
 
-> Based on work from:
-> David Wilder <dwilder-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>
-> Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-
-David, Jason, are you planning to test these patches as well? specifically I assume the IPv6 work should be of interest to you...
-
-Or.
+Regards,
+Vladimir
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
