@@ -1,48 +1,36 @@
-From: Hal Rosenstock <hnrose-Wuw85uim5zDR7s880joybQ@public.gmane.org>
-Subject: [PATCH] opensm/osm_sm_mad_ctrl.c: Fix qp0_mads_accounting
-Date: Tue, 17 Nov 2009 14:08:38 -0500
-Message-ID: <20091117190838.GA23887@comcast.net>
+From: Ralph Campbell <ralph.campbell-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+Subject: Re: New source release of libipathverbs-1.2.tar.gz
+Date: Tue, 17 Nov 2009 11:26:46 -0800
+Message-ID: <1258486006.992.403.camel@chromite.mv.qlogic.com>
+References: <1258422628.992.391.camel@chromite.mv.qlogic.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <1258422628.992.391.camel-/vjeY7uYZjrPXfVEPVhPGq6RkeBMCJyt@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: EWG <ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>, Vladimir Sokolovsky <vlad-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+The tar file I previously announced was built incorrectly.
+I have updated the tar file and the ipath/README.
+The correct version has a sha1sum of
+462c07f85b4d568ef72846865ee48ba0af4bb015.
 
-In sm_mad_ctrl_process_trap_repress, when attribute ID is notice, don't
-just return the mad but rather retire it which fixes the qp0_mads_accounting.
-Trap/TrapRepresses are treated as transactions.
+On Mon, 2009-11-16 at 17:50 -0800, Ralph Campbell wrote:
+> I have updated the latest released source tarball for libipathverbs
+> which can be found at:
+> 
+> http://www.openfabrics.org/downloads/libipathverbs/libipathverbs-1.2.tar.gz
+> 
+> Vlad, please update OFED-1.5 to include this version.
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-Signed-off-by: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
----
-diff --git a/opensm/opensm/osm_sm_mad_ctrl.c b/opensm/opensm/osm_sm_mad_ctrl.c
-index a4f488d..74beb1c 100644
---- a/opensm/opensm/osm_sm_mad_ctrl.c
-+++ b/opensm/opensm/osm_sm_mad_ctrl.c
-@@ -552,6 +552,7 @@ static void sm_mad_ctrl_process_trap_repress(IN osm_sm_mad_ctrl_t * p_ctrl,
- 	 */
- 	switch (p_smp->attr_id) {
- 	case IB_MAD_ATTR_NOTICE:
-+		sm_mad_ctrl_retire_trans_mad(p_ctrl, p_madw);
- 		break;
- 	default:
- 		cl_atomic_inc(&p_ctrl->p_stats->qp0_mads_rcvd_unknown);
-@@ -559,11 +560,10 @@ static void sm_mad_ctrl_process_trap_repress(IN osm_sm_mad_ctrl_t * p_ctrl,
- 			"Unsupported attribute 0x%X\n",
- 			cl_ntoh16(p_smp->attr_id));
- 		osm_dump_dr_smp(p_ctrl->p_log, p_smp, OSM_LOG_ERROR);
-+		osm_mad_pool_put(p_ctrl->p_mad_pool, p_madw);
- 		break;
- 	}
- 
--	osm_mad_pool_put(p_ctrl->p_mad_pool, p_madw);
--
- 	OSM_LOG_EXIT(p_ctrl->p_log);
- }
- 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
