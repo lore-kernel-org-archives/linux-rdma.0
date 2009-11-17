@@ -1,32 +1,85 @@
-From: Vladimir Sokolovsky <vlad-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: New source release of libipathverbs-1.2.tar.gz
-Date: Tue, 17 Nov 2009 09:55:02 +0200
-Message-ID: <4B0256D6.1090006@dev.mellanox.co.il>
-References: <1258422628.992.391.camel@chromite.mv.qlogic.com>
+From: Hal Rosenstock <hnrose-Wuw85uim5zDR7s880joybQ@public.gmane.org>
+Subject: [PATCH] opensm/complib/cl_event.c: Cosmetic changes
+Date: Tue, 17 Nov 2009 09:02:57 -0500
+Message-ID: <20091117140257.GA16153@comcast.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1258422628.992.391.camel-/vjeY7uYZjrPXfVEPVhPGq6RkeBMCJyt@public.gmane.org>
+Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ralph Campbell <ralph.campbell-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, EWG <ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+To: sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Ralph Campbell wrote:
-> I have updated the latest released source tarball for libipathverbs
-> which can be found at:
-> 
-> http://www.openfabrics.org/downloads/libipathverbs/libipathverbs-1.2.tar.gz
-> 
-> Vlad, please update OFED-1.5 to include this version.
-> 
-> 
 
-Done,
+Remove unneeded parentheses around value in return statements
+Remove some unneeded braces
 
-Regards,
-Vladimir
+Signed-off-by: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+---
+diff --git a/opensm/complib/cl_event.c b/opensm/complib/cl_event.c
+index 1d2feed..27b4ae5 100644
+--- a/opensm/complib/cl_event.c
++++ b/opensm/complib/cl_event.c
+@@ -62,7 +62,7 @@ cl_status_t cl_event_init(IN cl_event_t * const p_event,
+ 	p_event->manual_reset = manual_reset;
+ 	p_event->state = CL_INITIALIZED;
+ 
+-	return (CL_SUCCESS);
++	return CL_SUCCESS;
+ }
+ 
+ void cl_event_destroy(IN cl_event_t * const p_event)
+@@ -94,7 +94,7 @@ cl_status_t cl_event_signal(IN cl_event_t * const p_event)
+ 
+ 	pthread_mutex_unlock(&p_event->mutex);
+ 
+-	return (CL_SUCCESS);
++	return CL_SUCCESS;
+ }
+ 
+ cl_status_t cl_event_reset(IN cl_event_t * const p_event)
+@@ -106,7 +106,7 @@ cl_status_t cl_event_reset(IN cl_event_t * const p_event)
+ 	p_event->signaled = FALSE;
+ 	pthread_mutex_unlock(&p_event->mutex);
+ 
+-	return (CL_SUCCESS);
++	return CL_SUCCESS;
+ }
+ 
+ cl_status_t cl_event_wait_on(IN cl_event_t * const p_event,
+@@ -129,13 +129,13 @@ cl_status_t cl_event_wait_on(IN cl_event_t * const p_event,
+ 			p_event->signaled = FALSE;
+ 
+ 		pthread_mutex_unlock(&p_event->mutex);
+-		return (CL_SUCCESS);
++		return CL_SUCCESS;
+ 	}
+ 
+ 	/* If just testing the state, return CL_TIMEOUT. */
+ 	if (wait_us == 0) {
+ 		pthread_mutex_unlock(&p_event->mutex);
+-		return (CL_TIMEOUT);
++		return CL_TIMEOUT;
+ 	}
+ 
+ 	if (wait_us == EVENT_NO_TIMEOUT) {
+@@ -164,13 +164,12 @@ cl_status_t cl_event_wait_on(IN cl_event_t * const p_event,
+ 				status = CL_TIMEOUT;
+ 			else
+ 				status = CL_NOT_DONE;
+-		} else {
++		} else
+ 			status = CL_ERROR;
+-		}
+ 	}
+ 	if (!p_event->manual_reset)
+ 		p_event->signaled = FALSE;
+ 
+ 	pthread_mutex_unlock(&p_event->mutex);
+-	return (status);
++	return status;
+ }
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
