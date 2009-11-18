@@ -1,29 +1,81 @@
-From: Or Gerlitz <ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Subject: Re: [ewg] [PATCHv6 0/10] RDMAoE support
-Date: Wed, 18 Nov 2009 18:34:38 +0200
-Message-ID: <4B04221E.3060201@voltaire.com>
-References: <20091116155302.GA2463@mtls03>
+From: "Sean Hefty" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH 1/9 v2] rdma/addr: use appropriate locking with for_each_netdev
+Date: Wed, 18 Nov 2009 08:48:15 -0800
+Message-ID: <0DE7895EE7A84B31BA1B87ADE3355AB8@amr.corp.intel.com>
+References: <2ECCDE30329F4354A214C698E4611BFD@amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain;
+	charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20091116155302.GA2463@mtls03>
+In-Reply-To: <2ECCDE30329F4354A214C698E4611BFD-Zpru7NauK7drdx17CPfAsdBPR1lH4CV8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Linux RDMA list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, netdev <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ewg <ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Eli Cohen wrote:
-> This new series reflects changes based on feedback from the community on the previous set of patches, and is tagged v6. Previous series were posted to the openfabrics general list only.
->
-> Changes from v5:
-> 1. Bug fixes.
-How do you expect a reviewer to learn what were the bugs and what are 
-the fixes and if there are bugs that are known and weren't fixed yet? is 
-one expected to do a diff between patches? where is the listing of 
-changes from vX for X=1,2,3,4?
+From: Eric Dumazet <eric.dumazet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 
-Or.
+for_each_netdev() should be used with RTNL or dev_base_lock held,
+or risk a crash.
+
+Signed-off-by: Eric Dumazet <eric.dumazet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+---
+change from v1:
+update patch from 2.6.31 to 2.6.32-rc7
+
+ drivers/infiniband/core/addr.c |    8 +++++++-
+ 1 files changed, 7 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/infiniband/core/addr.c b/drivers/infiniband/core/addr.c
+index bd07803..373f111 100644
+--- a/drivers/infiniband/core/addr.c
++++ b/drivers/infiniband/core/addr.c
+@@ -131,6 +131,7 @@ int rdma_translate_ip(struct sockaddr *addr, struct rdma_dev_addr *dev_addr)
+ 
+ #if defined(CONFIG_IPV6) || defined(CONFIG_IPV6_MODULE)
+ 	case AF_INET6:
++		read_lock(&dev_base_lock);
+ 		for_each_netdev(&init_net, dev) {
+ 			if (ipv6_chk_addr(&init_net,
+ 					  &((struct sockaddr_in6 *) addr)->sin6_addr,
+@@ -139,6 +140,7 @@ int rdma_translate_ip(struct sockaddr *addr, struct rdma_dev_addr *dev_addr)
+ 				break;
+ 			}
+ 		}
++		read_unlock(&dev_base_lock);
+ 		break;
+ #endif
+ 	}
+@@ -391,14 +393,17 @@ static int addr_resolve_local(struct sockaddr *src_in,
+ 	{
+ 		struct in6_addr *a;
+ 
++		read_lock(&dev_base_lock);
+ 		for_each_netdev(&init_net, dev)
+ 			if (ipv6_chk_addr(&init_net,
+ 					  &((struct sockaddr_in6 *) dst_in)->sin6_addr,
+ 					  dev, 1))
+ 				break;
+ 
+-		if (!dev)
++		if (!dev) {
++			read_unlock(&dev_base_lock);
+ 			return -EADDRNOTAVAIL;
++		}
+ 
+ 		a = &((struct sockaddr_in6 *) src_in)->sin6_addr;
+ 
+@@ -416,6 +421,7 @@ static int addr_resolve_local(struct sockaddr *src_in,
+ 			if (!ret)
+ 				memcpy(addr->dst_dev_addr, dev->dev_addr, MAX_ADDR_LEN);
+ 		}
++		read_unlock(&dev_base_lock);
+ 		break;
+ 	}
+ #endif
+
+
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
