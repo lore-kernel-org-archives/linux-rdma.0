@@ -1,7 +1,7 @@
 From: Ralph Campbell <ralph.campbell-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH 30/53] IB/qib: Add qib_qsfp.c
-Date: Thu, 19 Nov 2009 15:39:33 -0800
-Message-ID: <20091119233933.30356.18773.stgit@chromite.mv.qlogic.com>
+Subject: [PATCH 31/53] IB/qib: Add qib_qsfp.h
+Date: Thu, 19 Nov 2009 15:39:39 -0800
+Message-ID: <20091119233938.30356.1366.stgit@chromite.mv.qlogic.com>
 References: <20091119233655.30356.57433.stgit@chromite.mv.qlogic.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -13,21 +13,21 @@ To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-creates the qib_qsfp.c file.
+creates the qib_qsfp.h file.
 
 Signed-off-by: Ralph Campbell <ralph.campbell-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
 ---
 
- drivers/infiniband/hw/qib/qib_qsfp.c |  593 ++++++++++++++++++++++++++++++++++
- 1 files changed, 593 insertions(+), 0 deletions(-)
- create mode 100644 drivers/infiniband/hw/qib/qib_qsfp.c
+ drivers/infiniband/hw/qib/qib_qsfp.h |  183 ++++++++++++++++++++++++++++++++++
+ 1 files changed, 183 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/infiniband/hw/qib/qib_qsfp.h
 
-diff --git a/drivers/infiniband/hw/qib/qib_qsfp.c b/drivers/infiniband/hw/qib/qib_qsfp.c
+diff --git a/drivers/infiniband/hw/qib/qib_qsfp.h b/drivers/infiniband/hw/qib/qib_qsfp.h
 new file mode 100644
-index 0000000..5ffeddf
+index 0000000..01ea507
 --- /dev/null
-+++ b/drivers/infiniband/hw/qib/qib_qsfp.c
-@@ -0,0 +1,593 @@
++++ b/drivers/infiniband/hw/qib/qib_qsfp.h
+@@ -0,0 +1,183 @@
 +/*
 + * Copyright (c) 2006, 2007, 2008, 2009 QLogic Corporation. All rights reserved.
 + * Copyright (c) 2003, 2004, 2005, 2006 PathScale, Inc. All rights reserved.
@@ -60,567 +60,157 @@ index 0000000..5ffeddf
 + * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 + * SOFTWARE.
 + */
++/* QSFP support common definitions, for ib_qib driver */
 +
-+#include <linux/delay.h>
-+#include <linux/pci.h>
-+#include <linux/vmalloc.h>
-+
-+#include "qib.h"
-+#include "qib_qsfp.h"
++#define QSFP_DEV 0xA0
++#define QSFP_PWR_LAG_MSEC 2000
 +
 +/*
-+ * QSFP support for ib_qib driver, using "Two Wire Serial Interface" driver
-+ * in qib_twsi.c
++ * Below are masks for various QSFP signals, for Port 1.
++ * Port2 equivalents are shifted by QSFP_GPIO_PORT2_SHIFT.
++ * _N means asserted low
 + */
-+#define QSFP_MAX_RETRY 4
++#define QSFP_GPIO_MOD_SEL_N (4)
++#define QSFP_GPIO_MOD_PRS_N (8)
++#define QSFP_GPIO_INT_N (0x10)
++#define QSFP_GPIO_MOD_RST_N (0x20)
++#define QSFP_GPIO_LP_MODE (0x40)
++#define QSFP_GPIO_PORT2_SHIFT 5
 +
-+static int qsfp_read(struct qib_pportdata *ppd, int addr, void *bp, int len)
-+{
-+	struct qib_devdata *dd = ppd->dd;
-+	u32 out, mask;
-+	int ret, cnt, pass = 0;
-+	int stuck = 0;
-+	u8 *buff = bp;
++#define QSFP_PAGESIZE 128
++/* Defined fields that QLogic requires of qualified cables */
++/* Byte 0 is Identifier, not checked */
++/* Byte 1 is reserved "status MSB" */
++/* Byte 2 is "status LSB" We only care that D2 "Flat Mem" is set. */
++/*
++ * Rest of first 128 not used, although 127 is reserved for page select
++ * if module is not "Flat memory".
++ */
++/* Byte 128 is Identifier: must be 0x0c for QSFP, or 0x0d for QSFP+ */
++#define QSFP_MOD_ID_OFFS 128
++/*
++ * Byte 129 is "Extended Identifier". We only care about D7,D6: Power class
++ *  0:1.5W, 1:2.0W, 2:2.5W, 3:3.5W
++ */
++#define QSFP_MOD_PWR_OFFS 129
++/* Byte 130 is Connector type. Not QLogic req'd */
++/* Bytes 131..138 are Transceiver types, bit maps for various tech, none IB */
++/* Byte 139 is encoding. code 0x01 is 8b10b. Not QLogic req'd */
++/* byte 140 is nominal bit-rate, in units of 100Mbits/sec Not QLogic req'd */
++/* Byte 141 is Extended Rate Select. Not QLogic req'd */
++/* Bytes 142..145 are lengths for various fiber types. Not QLogic req'd */
++/* Byte 146 is length for Copper. Units of 1 meter */
++#define QSFP_MOD_LEN_OFFS 146
++/*
++ * Byte 147 is Device technology. D0..3 not Qlogc req'd
++ * D4..7 select from 15 choices, translated by table:
++ */
++#define QSFP_MOD_TECH_OFFS 147
++extern const char *const qib_qsfp_devtech[16];
++/* Length is only valid if technology is "copper" */
++#define QSFP_IS_CU(tech) ((0xED00 >> ((tech) >> 4)) & 1)
++#define QSFP_TECH_1490 9
 +
-+	qib_cdbg(VERBOSE, "Grabbing Mutex for QSFP in %d:%d\n", dd->unit,
-+		 ppd->port);
-+	ret = mutex_lock_interruptible(&dd->eep_lock);
-+	if (ret)
-+		goto no_unlock;
++#define QSFP_OUI(oui) (((unsigned)oui[0] << 16) | ((unsigned)oui[1] << 8) | \
++			oui[2])
++#define QSFP_OUI_AMPHENOL 0x415048
++#define QSFP_OUI_FINISAR  0x009065
++#define QSFP_OUI_GORE     0x002177
 +
-+	if (dd->twsi_eeprom_dev == QIB_TWSI_NO_DEV) {
-+		qib_dbg("QSFP read on board without QSFP\n");
-+		ret = -ENXIO;
-+		goto bail;
-+	}
-+
-+	/*
-+	 * We presume, if we are called at all, that this board has
-+	 * QSFP. This is on the same i2c chain as the legacy parts,
-+	 * but only responds if the module is selected via GPIO pins.
-+	 * Further, there are very long setup and hold requirements
-+	 * on MODSEL.
-+	 */
-+	mask = QSFP_GPIO_MOD_SEL_N | QSFP_GPIO_MOD_RST_N | QSFP_GPIO_LP_MODE;
-+	out = QSFP_GPIO_MOD_RST_N | QSFP_GPIO_LP_MODE;
-+	if (ppd->hw_pidx) {
-+		mask <<= QSFP_GPIO_PORT2_SHIFT;
-+		out <<= QSFP_GPIO_PORT2_SHIFT;
-+	}
-+
-+	dd->f_gpio_mod(dd, out, mask, mask);
-+
-+	/*
-+	 * Module could take up to 2 Msec to respond to MOD_SEL, and there
-+	 * is no way to tell if it is ready, so we must wait.
-+	 */
-+	msleep(2);
-+
-+	/* Make sure TWSI bus is in sane state. */
-+	ret = qib_twsi_reset(dd);
-+	if (ret) {
-+		qib_dev_porterr(dd, ppd->port, "TWSI Reset failed, QSFP Rd\n");
-+		ret = -EIO;
-+		stuck = 1;
-+		goto deselect;
-+	}
-+
-+	/* All QSFP modules are at A0 */
-+
-+	cnt = 0;
-+	while (cnt < len) {
-+		unsigned in_page;
-+		int wlen = len - cnt;
-+		in_page = addr % QSFP_PAGESIZE;
-+		if ((in_page + wlen) > QSFP_PAGESIZE)
-+			wlen = QSFP_PAGESIZE - in_page;
-+		ret = qib_twsi_blk_rd(dd, QSFP_DEV, addr, buff + cnt, wlen);
-+		/* Some QSFP's fail first try. Retry as experiment */
-+		if (ret && cnt == 0 && ++pass < QSFP_MAX_RETRY)
-+			continue;
-+		if (ret) {
-+			/* qib_twsi_blk_rd() 1 for error, else 0 */
-+			ret = -EIO;
-+			goto deselect;
-+		}
-+		addr += wlen;
-+		cnt += wlen;
-+	}
-+	ret = cnt;
-+
-+deselect:
-+	/*
-+	 * Module could take up to 10 uSec after transfer before
-+	 * ready to respond to MOD_SEL negation, and there is no way
-+	 * to tell if it is ready, so we must wait.
-+	 */
-+	udelay(10);
-+	/* set QSFP MODSEL, RST. LP all high */
-+	dd->f_gpio_mod(dd, mask, mask, mask);
-+
-+	/*
-+	 * Module could take up to 2 Msec to respond to MOD_SEL
-+	 * going away, and there is no way to tell if it is ready.
-+	 * so we must wait.
-+	 */
-+	if (stuck)
-+		qib_dev_err(dd, "TWSI bus stuck non-idle\n");
-+
-+	if (pass >= QSFP_MAX_RETRY && ret)
-+		qib_dev_porterr(dd, ppd->port, "QSFP failed even retrying\n");
-+	else if (pass)
-+		qib_dev_porterr(dd, ppd->port, "QSFP retries: %d\n", pass);
-+
-+	msleep(2);
-+
-+bail:
-+	mutex_unlock(&dd->eep_lock);
-+	qib_cdbg(VERBOSE, "Released Mutex for QSFP %d:%d, ret %d\n", dd->unit,
-+		ppd->port, ret);
-+
-+no_unlock:
-+	return ret;
-+}
++/* Bytes 148..163 are Vendor Name, Left-justified Blank-filled */
++#define QSFP_VEND_OFFS 148
++#define QSFP_VEND_LEN 16
++/* Byte 164 is IB Extended tranceiver codes Bits D0..3 are SDR,DDR,QDR,EDR */
++#define QSFP_IBXCV_OFFS 164
++/* Bytes 165..167 are Vendor OUI number */
++#define QSFP_VOUI_OFFS 165
++#define QSFP_VOUI_LEN 3
++/* Bytes 168..183 are Vendor Part Number, string */
++#define QSFP_PN_OFFS 168
++#define QSFP_PN_LEN 16
++/* Bytes 184,185 are Vendor Rev. Left Justified, Blank-filled */
++#define QSFP_REV_OFFS 184
++#define QSFP_REV_LEN 2
++/*
++ * Bytes 186,187 are Wavelength, if Optical. Not Qlogic req'd
++ *  If copper, they are attenuation in dB:
++ * Byte 186 is at 2.5Gb/sec (SDR), Byte 187 at 5.0Gb/sec (DDR)
++ */
++#define QSFP_ATTEN_OFFS 186
++#define QSFP_ATTEN_LEN 2
++/* Bytes 188,189 are Wavelength tolerance, not QLogic req'd */
++/* Byte 190 is Max Case Temp. Not QLogic req'd */
++/* Byte 191 is LSB of sum of bytes 128..190. Not QLogic req'd */
++#define QSFP_CC_OFFS 191
++/* Bytes 192..195 are Options implemented in qsfp. Not Qlogic req'd */
++/* Bytes 196..211 are Serial Number, String */
++#define QSFP_SN_OFFS 196
++#define QSFP_SN_LEN 16
++/* Bytes 212..219 are date-code YYMMDD (MM==1 for Jan) */
++#define QSFP_DATE_OFFS 212
++#define QSFP_DATE_LEN 6
++/* Bytes 218,219 are optional lot-code, string */
++#define QSFP_LOT_OFFS 218
++#define QSFP_LOT_LEN 2
++/* Bytes 220, 221 indicate monitoring options, Not QLogic req'd */
++/* Byte 223 is LSB of sum of bytes 192..222 */
++#define QSFP_CC_EXT_OFFS 223
 +
 +/*
-+ * qsfp_write
-+ * We do not ordinarily write the QSFP, but this is needed to select
-+ * the page on non-flat QSFPs, and possibly later unusual cases
++ * struct qib_qsfp_data encapsulates state of QSFP device for one port.
++ * it will be part of port-chip-specific data if a board supports QSFP.
++ *
++ * Since multiple board-types use QSFP, and their pport_data structs
++ * differ (in the chip-specific section), we need a pointer to its head.
++ *
++ * Avoiding premature optimization, we will have one work_struct per port,
++ * and let the (increasingly inaccurately named) eep_lock arbitrate
++ * access to common resources.
++ *
 + */
-+static int qib_qsfp_write(struct qib_pportdata *ppd, int addr, void *bp,
-+			  int len)
-+{
-+	struct qib_devdata *dd = ppd->dd;
-+	u32 out, mask;
-+	int ret, cnt;
-+	u8 *buff = bp;
-+
-+	qib_cdbg(VERBOSE, "Grabbing Mutex for QSFP %d:%d Wr\n", dd->unit,
-+		 ppd->port);
-+	ret = mutex_lock_interruptible(&dd->eep_lock);
-+	if (ret)
-+		goto no_unlock;
-+
-+	if (dd->twsi_eeprom_dev == QIB_TWSI_NO_DEV) {
-+		qib_dbg("QSFP write on board (%d:%d) without QSFP\n", dd->unit,
-+			ppd->port);
-+		ret = -ENXIO;
-+		goto bail;
-+	}
-+
-+	/*
-+	 * We presume, if we are called at all, that this board has
-+	 * QSFP. This is on the same i2c chain as the legacy parts,
-+	 * but only responds if the module is selected via GPIO pins.
-+	 * Further, there are very long setup and hold requirements
-+	 * on MODSEL.
-+	 */
-+	mask = QSFP_GPIO_MOD_SEL_N | QSFP_GPIO_MOD_RST_N | QSFP_GPIO_LP_MODE;
-+	out = QSFP_GPIO_MOD_RST_N | QSFP_GPIO_LP_MODE;
-+	if (ppd->hw_pidx) {
-+		mask <<= QSFP_GPIO_PORT2_SHIFT;
-+		out <<= QSFP_GPIO_PORT2_SHIFT;
-+	}
-+	dd->f_gpio_mod(dd, out, mask, mask);
-+
-+	/*
-+	 * Module could take up to 2 Msec to respond to MOD_SEL,
-+	 * and there is no way to tell if it is ready, so we must wait.
-+	 */
-+	msleep(2);
-+
-+	/* Make sure TWSI bus is in sane state. */
-+	ret = qib_twsi_reset(dd);
-+	if (ret) {
-+		qib_dev_porterr(dd, ppd->port, "TWSI Reset failed, QSFP Wr\n");
-+		ret = -EIO;
-+		goto deselect;
-+	}
-+
-+	/* All QSFP modules are at A0 */
-+
-+	cnt = 0;
-+	while (cnt < len) {
-+		unsigned in_page;
-+		int wlen = len - cnt;
-+		in_page = addr % QSFP_PAGESIZE;
-+		if ((in_page + wlen) > QSFP_PAGESIZE)
-+			wlen = QSFP_PAGESIZE - in_page;
-+		ret = qib_twsi_blk_wr(dd, QSFP_DEV, addr, buff + cnt, wlen);
-+		if (ret) {
-+			/* qib_twsi_blk_wr() 1 for error, else 0 */
-+			qib_dbg("qib_twsi_blk_wr(%d:%d, %d, , %d) failed\n",
-+				dd->unit, ppd->port, addr, wlen);
-+			ret = -EIO;
-+			goto deselect;
-+		}
-+		addr += wlen;
-+		cnt += wlen;
-+	}
-+	ret = cnt;
-+
-+deselect:
-+	/*
-+	 * Module could take up to 10 uSec after transfer before
-+	 * ready to respond to MOD_SEL negation, and there is no way
-+	 * to tell if it is ready, so we must wait.
-+	 */
-+	udelay(10);
-+	/* set QSFP MODSEL, RST, LP high */
-+	dd->f_gpio_mod(dd, mask, mask, mask);
-+	/*
-+	 * Module could take up to 2 Msec to respond to MOD_SEL
-+	 * going away, and there is no way to tell if it is ready.
-+	 * so we must wait.
-+	 */
-+	msleep(2);
-+
-+bail:
-+	mutex_unlock(&dd->eep_lock);
-+	qib_cdbg(VERBOSE, "Released Mutex for QSFP %d:%d, ret %d\n", dd->unit,
-+		 ppd->port, ret);
-+
-+no_unlock:
-+	return ret;
-+}
 +
 +/*
-+ * For validation, we want to check the checksums, even of the
-+ * fields we do not otherwise use. This function reads the bytes from
-+ * <first> to <next-1> and returns the 8lsbs of the sum, or <0 for errors
++ * Hold the parts of the onboard EEPROM that we care about, so we aren't
++ * coonstantly bit-boffing
 + */
-+static int qsfp_cks(struct qib_pportdata *ppd, int first, int next)
-+{
-+	int ret;
-+	u16 cks;
-+	u8 bval;
-+
-+	cks = 0;
-+	while (first < next) {
-+		ret = qsfp_read(ppd, first, &bval, 1);
-+		if (ret < 0)
-+			goto bail;
-+		cks += bval;
-+		++first;
-+	}
-+	ret = cks & 0xFF;
-+bail:
-+	return ret;
-+
-+}
-+
-+int qib_refresh_qsfp_cache(struct qib_pportdata *ppd, struct qib_qsfp_cache *cp)
-+{
-+	int ret;
-+	int idx;
-+	u16 cks;
-+	u32 mask;
-+	u8 peek[4];
-+
-+	mask = QSFP_GPIO_MOD_PRS_N;
-+	if (ppd->hw_pidx)
-+		mask <<= QSFP_GPIO_PORT2_SHIFT;
-+
-+	ret = ppd->dd->f_gpio_mod(ppd->dd, 0, 0, 0);
-+	if (ret & mask) {
-+		qib_dbg("No QSFP module in %d:%d\n", ppd->dd->unit, ppd->port);
-+		ret = -ENODEV;
-+		goto bail;
-+	}
-+
-+	ret = qsfp_read(ppd, 0, peek, 3);
-+	if (ret < 0)
-+		goto bail;
-+	if ((peek[0] & 0xFE) != 0x0C)
-+		qib_dev_porterr(ppd->dd, ppd->port,
-+				"QSFP byte0 is 0x%02X, S/B 0x0C/D\n", peek[0]);
-+
-+	if ((peek[2] & 2) == 0) {
-+		/*
-+		 * If cable is paged, rather than "flat memory", we need to
-+		 * set the page to zero, Even if it already appears to be zero.
-+		 */
-+		u8 poke = 0;
-+		ret = qib_qsfp_write(ppd, 127, &poke, 1);
-+		udelay(50);
-+		if (ret != 1) {
-+			qib_dev_porterr(ppd->dd, ppd->port,
-+					"Failed QSFP Page set\n");
-+			goto bail;
-+		}
-+	}
-+
-+	ret = qsfp_read(ppd, QSFP_MOD_ID_OFFS, &cp->id, 1);
-+	if (ret < 0)
-+		goto bail;
-+	if ((cp->id & 0xFE) != 0x0C)
-+		qib_dev_porterr(ppd->dd, ppd->port,
-+				"QSFP ID byte is 0x%02X, S/B 0x0C/D\n", cp->id);
-+	cks = cp->id;
-+
-+	ret = qsfp_read(ppd, QSFP_MOD_PWR_OFFS, &cp->pwr, 1);
-+	if (ret < 0)
-+		goto bail;
-+	cks += cp->pwr;
-+
-+	ret = qsfp_cks(ppd, QSFP_MOD_PWR_OFFS + 1, QSFP_MOD_LEN_OFFS);
-+	if (ret < 0)
-+		goto bail;
-+	cks += ret;
-+
-+	ret = qsfp_read(ppd, QSFP_MOD_LEN_OFFS, &cp->len, 1);
-+	if (ret < 0)
-+		goto bail;
-+	cks += cp->len;
-+
-+	ret = qsfp_read(ppd, QSFP_MOD_TECH_OFFS, &cp->tech, 1);
-+	if (ret < 0)
-+		goto bail;
-+	cks += cp->tech;
-+
-+	ret = qsfp_read(ppd, QSFP_VEND_OFFS, &cp->vendor, QSFP_VEND_LEN);
-+	if (ret < 0)
-+		goto bail;
-+	for (idx = 0; idx < QSFP_VEND_LEN; ++idx)
-+		cks += cp->vendor[idx];
-+
-+	ret = qsfp_read(ppd, QSFP_IBXCV_OFFS, &cp->xt_xcv, 1);
-+	if (ret < 0)
-+		goto bail;
-+	cks += cp->xt_xcv;
-+
-+	ret = qsfp_read(ppd, QSFP_VOUI_OFFS, &cp->oui, QSFP_VOUI_LEN);
-+	if (ret < 0)
-+		goto bail;
-+	for (idx = 0; idx < QSFP_VOUI_LEN; ++idx)
-+		cks += cp->oui[idx];
-+
-+	ret = qsfp_read(ppd, QSFP_PN_OFFS, &cp->partnum, QSFP_PN_LEN);
-+	if (ret < 0)
-+		goto bail;
-+	for (idx = 0; idx < QSFP_PN_LEN; ++idx)
-+		cks += cp->partnum[idx];
-+
-+	ret = qsfp_read(ppd, QSFP_REV_OFFS, &cp->rev, QSFP_REV_LEN);
-+	if (ret < 0)
-+		goto bail;
-+	for (idx = 0; idx < QSFP_REV_LEN; ++idx)
-+		cks += cp->rev[idx];
-+
-+	ret = qsfp_read(ppd, QSFP_ATTEN_OFFS, &cp->atten, QSFP_ATTEN_LEN);
-+	if (ret < 0)
-+		goto bail;
-+	for (idx = 0; idx < QSFP_ATTEN_LEN; ++idx)
-+		cks += cp->atten[idx];
-+
-+	ret = qsfp_cks(ppd, QSFP_ATTEN_OFFS + QSFP_ATTEN_LEN, QSFP_CC_OFFS);
-+	if (ret < 0)
-+		goto bail;
-+	cks += ret;
-+
-+	cks &= 0xFF;
-+	ret = qsfp_read(ppd, QSFP_CC_OFFS, &cp->cks1, 1);
-+	if (ret < 0)
-+		goto bail;
-+	if (cks != cp->cks1)
-+		qib_dev_porterr(ppd->dd, ppd->port,
-+				"QSFP cks1 is %02X, computed %02X\n", cp->cks1,
-+				cks);
-+
-+	/* Second checksum covers 192 to (serial, date, lot) */
-+	ret = qsfp_cks(ppd, QSFP_CC_OFFS + 1, QSFP_SN_OFFS);
-+	if (ret < 0)
-+		goto bail;
-+	cks = ret;
-+
-+	ret = qsfp_read(ppd, QSFP_SN_OFFS, &cp->serial, QSFP_SN_LEN);
-+	if (ret < 0)
-+		goto bail;
-+	for (idx = 0; idx < QSFP_SN_LEN; ++idx)
-+		cks += cp->serial[idx];
-+
-+	ret = qsfp_read(ppd, QSFP_DATE_OFFS, &cp->date, QSFP_DATE_LEN);
-+	if (ret < 0)
-+		goto bail;
-+	for (idx = 0; idx < QSFP_DATE_LEN; ++idx)
-+		cks += cp->date[idx];
-+
-+	ret = qsfp_read(ppd, QSFP_LOT_OFFS, &cp->lot, QSFP_LOT_LEN);
-+	if (ret < 0)
-+		goto bail;
-+	for (idx = 0; idx < QSFP_LOT_LEN; ++idx)
-+		cks += cp->lot[idx];
-+
-+	ret = qsfp_cks(ppd, QSFP_LOT_OFFS + QSFP_LOT_LEN, QSFP_CC_EXT_OFFS);
-+	if (ret < 0)
-+		goto bail;
-+	cks += ret;
-+
-+	ret = qsfp_read(ppd, QSFP_CC_EXT_OFFS, &cp->cks2, 1);
-+	if (ret < 0)
-+		goto bail;
-+	cks &= 0xFF;
-+	if (cks != cp->cks2)
-+		qib_dev_porterr(ppd->dd, ppd->port,
-+				"QSFP cks2 is %02X, computed %02X\n", cp->cks2,
-+				cks);
-+	ret = 0;
-+
-+bail:
-+	return ret;
-+
-+}
-+
-+const char * const qib_qsfp_devtech[16] = {
-+	"850nm VCSEL", "1310nm VCSEL", "1550nm VCSEL", "1310nm FP",
-+	"1310nm DFB", "1550nm DFB", "1310nm EML", "1550nm EML",
-+	"Cu Misc", "1490nm DFB", "Cu NoEq", "Cu Eq",
-+	"Undef", "Cu Active BothEq", "Cu FarEq", "Cu NearEq"
++struct qib_qsfp_cache {
++	u8 id;	/* must be 0x0C or 0x0D */
++	u8 pwr; /* in D6,7 */
++	u8 len;	/* in meters, Cu only */
++	u8 tech;
++	char vendor[QSFP_VEND_LEN];
++	u8 xt_xcv; /* Ext. tranceiver codes, 4 lsbs are IB speed supported */
++	u8 oui[QSFP_VOUI_LEN];
++	u8 partnum[QSFP_PN_LEN];
++	u8 rev[QSFP_REV_LEN];
++	u8 atten[QSFP_ATTEN_LEN];
++	u8 cks1;	/* Checksum of bytes 128..190 */
++	u8 serial[QSFP_SN_LEN];
++	u8 date[QSFP_DATE_LEN];
++	u8 lot[QSFP_LOT_LEN];
++	u8 cks2;	/* Checsum of bytes 192..222 */
 +};
 +
-+#define QSFP_DUMP_CHUNK 16 /* Holds longest string */
-+#define QSFP_DEFAULT_HDR_CNT 224
++#define QSFP_PWR(pbyte) (((pbyte) >> 6) & 3)
++#define QSFP_ATTEN_SDR(attenarray) (attenarray[0])
++#define QSFP_ATTEN_DDR(attenarray) (attenarray[1])
 +
-+static const char *pwr_codes = "1.5W2.0W2.5W3.5W";
++struct qib_qsfp_data {
++	/* Helps to find our way */
++	struct qib_pportdata *ppd;
++	struct work_struct work;
++	struct qib_qsfp_cache cache;
++	u64 t_insert;
++};
 +
-+void qib_qsfp_short_msg(struct qib_qsfp_data *qd)
-+{
-+	char lenstr[6];
-+	lenstr[0] = ' ';
-+	lenstr[1] = '\0';
-+	if (QSFP_IS_CU(qd->cache.tech))
-+		sprintf(lenstr, "%dM ", qd->cache.len);
-+	qib_cdbg(INIT, "IB%u:%u QSFP %.*s %.*s %.3s%s SN: %.*s\n",
-+			qd->ppd->dd->unit, qd->ppd->port, QSFP_VEND_LEN,
-+			qd->cache.vendor, QSFP_PN_LEN, qd->cache.partnum,
-+			lenstr, qib_qsfp_devtech[qd->cache.tech >> 4],
-+			QSFP_SN_LEN, qd->cache.serial);
-+}
++extern int qib_refresh_qsfp_cache(struct qib_pportdata *ppd,
++				  struct qib_qsfp_cache *cp);
++extern void qib_qsfp_short_msg(struct qib_qsfp_data *qd);
 +
-+/*
-+ * Initialize structures that control access to QSFP. Called once per port
-+ * on cards that support QSFP.
-+ */
-+void qib_qsfp_init(struct qib_qsfp_data *qd,
-+		   void (*fevent)(struct work_struct *))
-+{
-+	u32 mask, highs;
-+	int pins;
++extern void qib_qsfp_init(struct qib_qsfp_data *qd,
++			  void (*fevent)(struct work_struct *));
++extern void qib_qsfp_deinit(struct qib_qsfp_data *qd);
 +
-+	struct qib_devdata *dd = qd->ppd->dd;
-+
-+	/* Initialize work struct for later QSFP events */
-+	INIT_WORK(&qd->work, fevent);
-+
-+	/*
-+	 * Later, we may want more validation. For now, just set up pins and
-+	 * blip reset. If module is present, call qib_refresh_qsfp_cache(),
-+	 * to do further init.
-+	 */
-+	mask = QSFP_GPIO_MOD_SEL_N | QSFP_GPIO_MOD_RST_N | QSFP_GPIO_LP_MODE;
-+	highs = mask - QSFP_GPIO_MOD_RST_N;
-+	if (qd->ppd->hw_pidx) {
-+		mask <<= QSFP_GPIO_PORT2_SHIFT;
-+		highs <<= QSFP_GPIO_PORT2_SHIFT;
-+	}
-+	dd->f_gpio_mod(dd, highs, mask, mask);
-+	udelay(20); /* Generous RST dwell */
-+
-+	dd->f_gpio_mod(dd, mask, mask, mask);
-+	/* Spec says module can take up to two seconds! */
-+	mask = QSFP_GPIO_MOD_PRS_N;
-+	if (qd->ppd->hw_pidx)
-+		mask <<= QSFP_GPIO_PORT2_SHIFT;
-+
-+	/* Do not try to wait here. Better to let event handle it */
-+	pins = dd->f_gpio_mod(dd, 0, 0, 0);
-+	if (pins & mask) {
-+		qib_dbg("IB%u:%u has no QSFP module present\n",
-+			qd->ppd->dd->unit, qd->ppd->port);
-+		goto bail;
-+	}
-+	/* We see a Mdoule, but it may be unwise to look yet. Just schedule */
-+	qd->t_insert = get_jiffies_64();
-+	schedule_work(&qd->work);
-+bail:
-+	return;
-+}
-+
-+void qib_qsfp_deinit(struct qib_qsfp_data *qd)
-+{
-+	/*
-+	 * There is nothing to do here for now.  our
-+	 * work is scheduled with schedule_work(), and
-+	 * flush_scheduled_work() from remove_one will
-+	 * block until all work ssetup with schedule_work()
-+	 * completes.
-+	 */
-+}
-+
-+int qib_qsfp_dump(struct qib_pportdata *ppd, char *buf, int len)
-+{
-+	struct qib_qsfp_cache cd;
-+	u8 bin_buff[QSFP_DUMP_CHUNK];
-+	char lenstr[6];
-+	int sofar, ret;
-+	int bidx = 0;
-+
-+	sofar = 0;
-+	ret = qib_refresh_qsfp_cache(ppd, &cd);
-+	if (ret < 0) {
-+		qib_dbg("IB%u:%u QSFP cache-refresh failed\n", ppd->dd->unit,
-+			ppd->port);
-+		goto bail;
-+	}
-+
-+	lenstr[0] = ' ';
-+	lenstr[1] = '\0';
-+	if (QSFP_IS_CU(cd.tech))
-+		sprintf(lenstr, "%dM ", cd.len);
-+
-+	sofar += scnprintf(buf + sofar, len - sofar, "PWR:%.3sW\n", pwr_codes +
-+			   (QSFP_PWR(cd.pwr) * 4));
-+
-+	sofar += scnprintf(buf + sofar, len - sofar, "TECH:%s%s\n", lenstr,
-+			   qib_qsfp_devtech[cd.tech >> 4]);
-+
-+	sofar += scnprintf(buf + sofar, len - sofar, "Vendor:%.*s\n",
-+			   QSFP_VEND_LEN, cd.vendor);
-+
-+	sofar += scnprintf(buf + sofar, len - sofar, "OUI:%06X\n",
-+			   QSFP_OUI(cd.oui));
-+
-+	sofar += scnprintf(buf + sofar, len - sofar, "Part#:%.*s\n",
-+			   QSFP_PN_LEN, cd.partnum);
-+	sofar += scnprintf(buf + sofar, len - sofar, "Rev:%.*s\n",
-+			   QSFP_REV_LEN, cd.rev);
-+	if (QSFP_IS_CU(cd.tech))
-+		sofar += scnprintf(buf + sofar, len - sofar, "Atten:%d, %d\n",
-+				   QSFP_ATTEN_SDR(cd.atten),
-+				   QSFP_ATTEN_DDR(cd.atten));
-+	sofar += scnprintf(buf + sofar, len - sofar, "Serial:%.*s\n",
-+			   QSFP_SN_LEN, cd.serial);
-+	sofar += scnprintf(buf + sofar, len - sofar, "Date:%.*s\n",
-+			   QSFP_DATE_LEN, cd.date);
-+	sofar += scnprintf(buf + sofar, len - sofar, "Lot:%.*s\n",
-+			   QSFP_LOT_LEN, cd.date);
-+
-+	while (bidx < QSFP_DEFAULT_HDR_CNT) {
-+		int iidx;
-+		ret = qsfp_read(ppd, bidx, bin_buff, QSFP_DUMP_CHUNK);
-+		if (ret < 0)
-+			goto bail;
-+		for (iidx = 0; iidx < ret; ++iidx) {
-+			sofar += scnprintf(buf + sofar, len-sofar, " %02X",
-+				bin_buff[iidx]);
-+		}
-+		sofar += scnprintf(buf + sofar, len - sofar, "\n");
-+		bidx += QSFP_DUMP_CHUNK;
-+	}
-+	ret = sofar;
-+bail:
-+	return ret;
-+}
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
