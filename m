@@ -1,30 +1,41 @@
-From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 5/9 v2] ib/addr: verify source and destination address families match
-Date: Wed, 18 Nov 2009 17:30:05 -0800
-Message-ID: <adaskcb8foi.fsf@roland-alpha.cisco.com>
-References: <4329E49DC571489C9F9498770613E42D@amr.corp.intel.com>
-	<75A0BA738B5E4574AC17BB674109FBB2@amr.corp.intel.com>
-	<adaws1n8h3e.fsf@roland-alpha.cisco.com>
-	<7F0D72D35EF140058670BF8E228966B8@amr.corp.intel.com>
+From: Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: [PATCH] opensm/osm_subnet.c: fixing bug in dumping options file
+Date: Thu, 19 Nov 2009 13:54:43 +0200
+Message-ID: <4B053203.206@dev.mellanox.co.il>
+Reply-To: kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <7F0D72D35EF140058670BF8E228966B8-Zpru7NauK7drdx17CPfAsdBPR1lH4CV8@public.gmane.org> (Sean
-	Hefty's message of "Wed, 18 Nov 2009 17:27:37 -0800")
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+Cc: Linux RDMA <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+Adding missing pound sign to the printed
+comments in the OSM options file.
 
- > I can go either way here - either update the comments in the header file, or
- > allow passing in NULL.  Do you or does anyone else have a preference?
+Signed-off-by: Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+---
+ opensm/opensm/osm_subnet.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-I don't have a strong preference.  Or really any preference, except
-maybe generally favoring interface stability -- ie keep doing what we've
-been doing and leave src_addr as optional.  OTOH we could kill the
-never-triggered test for src_addr and follow experience with the
-interface.  Basically I don't know... whatever you'd rather do is fine.
+diff --git a/opensm/opensm/osm_subnet.c b/opensm/opensm/osm_subnet.c
+index 2cfcbe6..29bb94b 100644
+--- a/opensm/opensm/osm_subnet.c
++++ b/opensm/opensm/osm_subnet.c
+@@ -1471,7 +1471,7 @@ int osm_subn_output_conf(FILE *out, IN osm_subn_opt_t * p_opts)
+ 		"max_wire_smps %u\n\n"
+ 		"# The maximum time in [msec] allowed for a transaction to complete\n"
+ 		"transaction_timeout %u\n\n"
+-		" The maximum number of retries allowed for a transaction to complete\n"
++		"# The maximum number of retries allowed for a transaction to complete\n"
+ 		"transaction_retries %u\n\n"
+ 		"# Maximal time in [msec] a message can stay in the incoming message queue.\n"
+ 		"# If there is more than one message in the queue and the last message\n"
+-- 
+1.5.1.4
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
