@@ -1,8 +1,8 @@
 From: "Davis, Arlin R" <arlin.r.davis-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH] uDAPL v2 - ucm: inbound DREQ/DREP handshake should
- transition QP.
-Date: Wed, 18 Nov 2009 16:22:28 -0800
-Message-ID: <E3280858FA94444CA49D2BA02341C983619D3FD9@orsmsx506.amr.corp.intel.com>
+Subject: [PATCH] uDAPL v2 - common: seg fault in dapl_evd_wait with
+ multi-thread application using CNO's
+Date: Wed, 18 Nov 2009 16:22:31 -0800
+Message-ID: <E3280858FA94444CA49D2BA02341C983619D3FDA@orsmsx506.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
@@ -13,63 +13,45 @@ To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY
 Cc: "Smith, Stan" <stan.smith-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
- 
-during RC QP release, when receiving a disconnect request from remote peer
-instead of a disconnect call from the client, the QP didn't get properly
-set in ERR state and didn't flush the queue during disconnect processing.
+
+if dealing with event streams besides a CQ event stream,
+be conservative and set producer side locking.  Otherwise, no.
+Check for CNO is missing, CNO is not considered CQ event stream.
 
 Signed-off-by: Arlin Davis <arlin.r.davis-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- dapl/openib_ucm/cm.c |   15 ++++++++++-----
- 1 files changed, 10 insertions(+), 5 deletions(-)
+ dapl/common/dapl_evd_util.c |    9 ++++++---
+ 1 files changed, 6 insertions(+), 3 deletions(-)
 
-diff --git a/dapl/openib_ucm/cm.c b/dapl/openib_ucm/cm.c
-index 2b7471e..b51556a 100644
---- a/dapl/openib_ucm/cm.c
-+++ b/dapl/openib_ucm/cm.c
-@@ -711,7 +711,8 @@ static void ucm_ud_free(DAPL_EP *ep)
- void dapls_ib_cm_free(dp_ib_cm_handle_t cm, DAPL_EP *ep)
- {
- 	dapl_dbg_log(DAPL_DBG_TYPE_CM,
--		     " cm_destroy: cm %p ep %p\n", cm, ep);
-+		     " cm_destroy: %s cm %p ep %p\n",
-+		     cm ? dapl_cm_state_str(cm->state) : "", cm, ep);
+diff --git a/dapl/common/dapl_evd_util.c b/dapl/common/dapl_evd_util.c
+index 02909e9..cc0aa17 100644
+--- a/dapl/common/dapl_evd_util.c
++++ b/dapl/common/dapl_evd_util.c
+@@ -159,9 +159,11 @@ dapls_evd_internal_create(DAPL_IA * ia_ptr,
+ 	/*
+ 	 * If we are dealing with event streams besides a CQ event stream,
+ 	 * be conservative and set producer side locking.  Otherwise, no.
++	 * Note: CNO is not considered CQ event stream.
+ 	 */
+ 	evd_ptr->evd_producer_locking_needed =
+-	    !(evd_flags & (DAT_EVD_DTO_FLAG | DAT_EVD_RMR_BIND_FLAG));
++	    (!(evd_flags & (DAT_EVD_DTO_FLAG | DAT_EVD_RMR_BIND_FLAG)) ||
++	     evd_ptr->cno_ptr);
  
- 	if (!cm && ep) {
- 		ucm_ud_free(ep);
-@@ -813,6 +814,10 @@ DAT_RETURN dapli_cm_disconnect(dp_ib_cm_handle_t cm)
- 	dapl_os_lock(&cm->lock);
- 	switch (cm->state) {
- 	case DCM_CONNECTED:
-+		/* CONSUMER: move to err state to flush, if not UD */
-+		if (cm->ep->qp_handle->qp_type != IBV_QPT_UD) 
-+			dapls_modify_qp_state(cm->ep->qp_handle, IBV_QPS_ERR,0,0,0);
-+
- 		/* send DREQ, event after DREP or DREQ timeout */
- 		cm->state = DCM_DISC_PENDING;
- 		cm->msg.op = htons(DCM_DREQ);
-@@ -836,6 +841,10 @@ DAT_RETURN dapli_cm_disconnect(dp_ib_cm_handle_t cm)
- 		}
- 		break;
- 	case DCM_DISC_RECV:
-+		/* CM_THREAD: move to err state to flush, if not UD */
-+		if (cm->ep->qp_handle->qp_type != IBV_QPT_UD) 
-+			dapls_modify_qp_state(cm->ep->qp_handle, IBV_QPS_ERR,0,0,0);
-+
- 		/* DREQ received, send DREP and schedule event */
- 		cm->msg.op = htons(DCM_DREP);
- 		break;
-@@ -1547,10 +1556,6 @@ dapls_ib_disconnect(IN DAPL_EP *ep, IN DAT_CLOSE_FLAGS close_flags)
- 	dapl_dbg_log(DAPL_DBG_TYPE_EP,
- 		     "dapls_ib_disconnect(ep_handle %p ....)\n", ep);
+ 	/* Before we setup any callbacks, transition state to OPEN.  */
+ 	evd_ptr->evd_state = DAPL_EVD_STATE_OPEN;
+@@ -646,8 +648,9 @@ dapli_evd_post_event(IN DAPL_EVD * evd_ptr, IN const DAT_EVENT * event_ptr)
+ 	DAT_RETURN dat_status;
+ 	DAPL_CNO *cno_to_trigger = NULL;
  
--	/* move to err state to flush, if not UD */
--	if (ep->qp_handle->qp_type != IBV_QPT_UD) 
--		dapls_modify_qp_state(ep->qp_handle, IBV_QPS_ERR,0,0,0);
--	
- 	if (ep->cm_handle == NULL ||
- 	    ep->param.ep_state == DAT_EP_STATE_DISCONNECTED)
- 		return DAT_SUCCESS;
+-	dapl_dbg_log(DAPL_DBG_TYPE_EVD, "%s: Called with event %s\n",
+-		     __FUNCTION__, dapl_event_str(event_ptr->event_number));
++	dapl_dbg_log(DAPL_DBG_TYPE_EVD, "%s: %s evd %p state %d\n",
++		     __FUNCTION__, dapl_event_str(event_ptr->event_number), 
++		     evd_ptr, evd_ptr->evd_state);
+ 
+ 	dat_status = dapls_rbuf_add(&evd_ptr->pending_event_queue,
+ 				    (void *)event_ptr);
 -- 
 1.5.2.5
 
