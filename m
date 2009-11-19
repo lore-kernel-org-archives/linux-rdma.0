@@ -1,66 +1,101 @@
-From: "David J. Wilder" <dwilder-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH 8/9] ib/addr: simplify resolving IPv4 addresses
-Date: Thu, 19 Nov 2009 08:46:49 -0800
-Message-ID: <1258649210.11975.34.camel@wilder.ibm.com>
-References: <AD17449F0C4E4FE7B20C32412F077C00@amr.corp.intel.com>
-	 <4B024258.7070500@Voltaire.com>  <4B055BBA.8020505@Voltaire.com>
+From: Martin Siegert <siegert-z1KUqvL5UUQ@public.gmane.org>
+Subject: LOCAL LENGTH ERROR when sending large messages
+Date: Thu, 19 Nov 2009 13:09:06 -0800
+Message-ID: <20091119210906.GA12787@stikine.its.sfu.ca>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="x+6KMIRAuhnl3hBn"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4B055BBA.8020505-hKgKHo2Ms0FWk0Htik3J/w@public.gmane.org>
+Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <ogerlitz-hKgKHo2Ms0FWk0Htik3J/w@public.gmane.org>
-Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 
-On Thu, 2009-11-19 at 16:52 +0200, Or Gerlitz wrote:
-> > I reviewed patches 1-6 & 8 and they all look fine, I will give the whole series 
-> > a try later this week to further validate them
-> 
+--x+6KMIRAuhnl3hBn
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-I tested ipv4 and ipv6 address resolution using ucmatose.  All my tests
-ran fine.  I tested with patches 1 through 9 on ofed
-1.5(OFED-1.5-20091118-0600) on 2.6.30.  Ucmatose was taken from Sean's
-librdmacm git (required for ipv6 support).  Here are the tests I ran:
+Hi,
 
-ucmatose
-        [-s server_address]
-        [-b bind_address]
+I am running into problems whe sending large messages
+(trivial program attached) using OpenMPI 1.3.3 over Infiniband.
+This happens when I send more than 134217728 doubles (1GB).
+For count = 134217728 the program works fine. The program
+also works fine when using TCP instead of IB. The two nodes
+both have 16GB of memory and ulimit is set to unlimited for
+everything that has to do with memory. This is running under
+RedHat 5.3 (actually Scientific Linux 5.3, which is identical
+as far as kernel, ib drivers, etc. is concerned). The two nodes
+are blade servers with Mellanox ConnectX MT25418 adapters
+(firmware 2.3.0) that use the mlx4 driver.
+Output when running with count = 134217729:
 
+# mpiexec -machinefile m2 -n 2 ./a.out
+id=1: calling irecv ...
+id=0: calling isend ...
+[[51231,1],1][btl_openib_component.c:2951:handle_wc] from b1 to: b2 error polling LP CQ with status LOCAL LENGTH ERROR status number 1 for wr_id 78676848 opcode 128  vendor error 105 qp_idx 3
 
-ipv4 - Local address
-----------------------
-ucmatose  -s 127.0.0.1
-ucmatose  -s 192.168.0.199
-ucmatose  -b 192.168.0.199 -s 192.168.0.199
+error 105 appears to be "No buffer space available".
+What can be done to solve this problem? E.g., is there a way to increase
+these buffers?
+(sorry, I am not an expert - any advice would be appreciated - thanks!)
 
-ipv4 - Remote address
-----------------------
-ucmatose  -s 192.168.0.198
-ucmatose  -b 192.168.0.199 -s 192.168.0.198
+Cheers,
+Martin
 
-ipv6 - Local addresses
------------------------
-ucmatose  -s fe80::202:c903:1:28ed%ib0
-ucmatose  -s 2001:db8:1234::1
-ucmatose  -b fe80::202:c903:1:28ed%ib0 -s fe80::202:c903:1:28ed%ib0
-ucmatose  -b 2001:db8:1234::1 -s 2001:db8:1234::1
-ucmatose  -b 2001:db8:1234::1 -s fe80::202:c903:1:28ed%ib0
-ucmatose  -b fe80::202:c903:1:28ee%ib1 -s 2001:db8:1234::1
-ucmatose  -b 2001:db8:1234::10 -s 2001:db8:1234::1
+-- 
+Martin Siegert
+Head, Research Computing
+WestGrid Site Lead
+IT Services                                phone: 778 782-4691
+Simon Fraser University                    fax:   778 782-4242
+Burnaby, British Columbia                  email: siegert-z1KUqvL5UUQ@public.gmane.org
+Canada  V5A 1S6
 
-ipv6 - Remote addresses
-------------------------
-ucmatose  -s 2001:db8:1234::2
-ucmatose  -b 2001:db8:1234::1 -s 2001:db8:1234::2
-ucmatose  -b fe80::202:c903:1:28ed%ib0 -s 2001:db8:1234::2
-ucmatose  -b fe80::202:c903:1:28ee%ib1 -s 2001:db8:1234::2
-ucmatose  -s fe80::202:c903:1:1925%ib0
-ucmatose  -b 2001:db8:1234::1 -s fe80::202:c903:1:1925%ib0
-ucmatose  -b fe80::202:c903:1:28ed%ib0 -s fe80::202:c903:1:1925%ib0
+--x+6KMIRAuhnl3hBn
+Content-Type: text/x-c++src; charset=us-ascii
+Content-Disposition: attachment; filename="sendrecv.c"
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <mpi.h>
+
+int main(int argc, char *argv[]) {
+int count, i, myid, numprocs;
+double *buf, wt, wt0;
+MPI_Request req;
+MPI_Status stat;
+
+   MPI_Init(NULL, NULL);
+   MPI_Comm_rank(MPI_COMM_WORLD, &myid);
+   MPI_Comm_size(MPI_COMM_WORLD, &numprocs);
+   
+   count = 134217729;
+   buf = (double *)malloc(count*sizeof(double));
+   if (buf == NULL) {
+      fprintf(stderr, "id=%i: error - buffer allocation failed.\n", myid);
+      MPI_Abort(MPI_COMM_WORLD, -1);
+      exit(-1);
+   }
+   if (myid == 0) {
+      for (i = 0; i < count; i++) {
+         buf[i] = (double)i;
+      }
+      fprintf(stderr, "id=%i: calling isend ...\n", myid);
+      wt0 = MPI_Wtime();
+      MPI_Isend(buf, count, MPI_DOUBLE, 1, 1, MPI_COMM_WORLD, &req);
+   } else if (myid == 1) {
+      fprintf(stderr, "id=%i: calling irecv ...\n", myid);
+      wt0 = MPI_Wtime();
+      MPI_Irecv(buf, count, MPI_DOUBLE, 0, 1, MPI_COMM_WORLD, &req);
+   }
+   MPI_Wait(&req, &stat);
+   wt = MPI_Wtime();
+   printf("id=%i: isend/irecv completed %f\n", myid, wt - wt0);
+   MPI_Finalize();
+}
+
+--x+6KMIRAuhnl3hBn--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
