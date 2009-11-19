@@ -1,7 +1,7 @@
 From: Ralph Campbell <ralph.campbell-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH 13/53] IB/qib: Add qib_driver.c
-Date: Thu, 19 Nov 2009 15:38:04 -0800
-Message-ID: <20091119233804.30356.53056.stgit@chromite.mv.qlogic.com>
+Subject: [PATCH 14/53] IB/qib: Add qib_eeprom.c
+Date: Thu, 19 Nov 2009 15:38:09 -0800
+Message-ID: <20091119233809.30356.88303.stgit@chromite.mv.qlogic.com>
 References: <20091119233655.30356.57433.stgit@chromite.mv.qlogic.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -13,21 +13,21 @@ To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-creates the qib_driver.c file.
+creates the qib_eeprom.c file.
 
 Signed-off-by: Ralph Campbell <ralph.campbell-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
 ---
 
- drivers/infiniband/hw/qib/qib_driver.c |  793 ++++++++++++++++++++++++++++++++
- 1 files changed, 793 insertions(+), 0 deletions(-)
- create mode 100644 drivers/infiniband/hw/qib/qib_driver.c
+ drivers/infiniband/hw/qib/qib_eeprom.c |  460 ++++++++++++++++++++++++++++++++
+ 1 files changed, 460 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/infiniband/hw/qib/qib_eeprom.c
 
-diff --git a/drivers/infiniband/hw/qib/qib_driver.c b/drivers/infiniband/hw/qib/qib_driver.c
+diff --git a/drivers/infiniband/hw/qib/qib_eeprom.c b/drivers/infiniband/hw/qib/qib_eeprom.c
 new file mode 100644
-index 0000000..5c68b97
+index 0000000..7a6fe41
 --- /dev/null
-+++ b/drivers/infiniband/hw/qib/qib_driver.c
-@@ -0,0 +1,793 @@
++++ b/drivers/infiniband/hw/qib/qib_eeprom.c
+@@ -0,0 +1,460 @@
 +/*
 + * Copyright (c) 2006, 2007, 2008, 2009 QLogic Corporation. All rights reserved.
 + * Copyright (c) 2003, 2004, 2005, 2006 PathScale, Inc. All rights reserved.
@@ -61,765 +61,432 @@ index 0000000..5c68b97
 + * SOFTWARE.
 + */
 +
-+#include <linux/spinlock.h>
-+#include <linux/pci.h>
-+#include <linux/io.h>
 +#include <linux/delay.h>
-+#include <linux/netdevice.h>
++#include <linux/pci.h>
 +#include <linux/vmalloc.h>
 +
 +#include "qib.h"
 +
 +/*
-+ * The size has to be longer than this string, so we can append
-+ * board/chip information to it in the init code.
++ * Functions specific to the serial EEPROM on cards handled by ib_qib.
++ * The actual serail interface code is in qib_twsi.c. This file is a client
 + */
-+const char ib_qib_version[] = QIB_IDSTR "\n";
-+
-+DEFINE_SPINLOCK(qib_devs_lock);
-+LIST_HEAD(qib_dev_list);
-+DEFINE_MUTEX(qib_mutex);	/* general driver use */
-+
-+unsigned qib_debug;
-+module_param_named(debug, qib_debug, uint, S_IWUSR | S_IRUGO);
-+MODULE_PARM_DESC(debug, "mask for debug prints");
-+
-+unsigned qib_ibmtu;
-+module_param_named(ibmtu, qib_ibmtu, uint, S_IRUGO);
-+MODULE_PARM_DESC(ibmtu, "Set max IB MTU (0=2KB, 1=256, 2=512, ... 5=4096");
-+
-+unsigned qib_compat_ddr_negotiate = 1;
-+module_param_named(compat_ddr_negotiate, qib_compat_ddr_negotiate, uint,
-+		   S_IWUSR | S_IRUGO);
-+MODULE_PARM_DESC(compat_ddr_negotiate,
-+		 "Attempt pre-IBTA 1.2 DDR speed negotiation");
-+
-+MODULE_LICENSE("Dual BSD/GPL");
-+MODULE_AUTHOR("QLogic <support-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>");
-+MODULE_DESCRIPTION("QLogic IB driver");
-+
-+/*
-+ * QIB_PIO_MAXIBHDR is the max IB header size allowed for in our
-+ * PIO send buffers.  This is well beyond anything currently
-+ * defined in the InfiniBand spec.
-+ */
-+#define QIB_PIO_MAXIBHDR 128
-+
-+struct qlogic_ib_stats qib_stats;
-+
-+const char *qib_get_unit_name(int unit)
-+{
-+	static char iname[16];
-+
-+	snprintf(iname, sizeof iname, "infinipath%u", unit);
-+	return iname;
-+}
-+
-+/*
-+ * Return count of units with at least one port ACTIVE.
-+ */
-+int qib_count_active_units(void)
-+{
-+	struct qib_devdata *dd;
-+	struct qib_pportdata *ppd;
-+	unsigned long flags;
-+	int pidx, nunits_active = 0;
-+
-+	spin_lock_irqsave(&qib_devs_lock, flags);
-+	list_for_each_entry(dd, &qib_dev_list, list) {
-+		if (!(dd->flags & QIB_PRESENT) || !dd->kregbase)
-+			continue;
-+		for (pidx = 0; pidx < dd->num_pports; ++pidx) {
-+			ppd = dd->pport + pidx;
-+			if (ppd->lid && (ppd->lflags & (QIBL_LINKINIT |
-+					 QIBL_LINKARMED | QIBL_LINKACTIVE))) {
-+				nunits_active++;
-+				break;
-+			}
-+		}
-+	}
-+	spin_unlock_irqrestore(&qib_devs_lock, flags);
-+	return nunits_active;
-+}
-+
-+/*
-+ * Return count of all units, optionally return in arguments
-+ * the number of usable (present) units, and the number of
-+ * ports that are up.
-+ */
-+int qib_count_units(int *npresentp, int *nupp)
-+{
-+	int nunits = 0, npresent = 0, nup = 0;
-+	struct qib_devdata *dd;
-+	unsigned long flags;
-+	int pidx;
-+	struct qib_pportdata *ppd;
-+
-+	spin_lock_irqsave(&qib_devs_lock, flags);
-+
-+	list_for_each_entry(dd, &qib_dev_list, list) {
-+		nunits++;
-+		if ((dd->flags & QIB_PRESENT) && dd->kregbase)
-+			npresent++;
-+		for (pidx = 0; pidx < dd->num_pports; ++pidx) {
-+			ppd = dd->pport + pidx;
-+			if (ppd->lid && (ppd->lflags & (QIBL_LINKINIT |
-+					 QIBL_LINKARMED | QIBL_LINKACTIVE)))
-+				nup++;
-+		}
-+	}
-+
-+	spin_unlock_irqrestore(&qib_devs_lock, flags);
-+
-+	if (npresentp)
-+		*npresentp = npresent;
-+	if (nupp)
-+		*nupp = nup;
-+
-+	return nunits;
-+}
 +
 +/**
-+ * qib_wait_linkstate - wait for an IB link state change to occur
++ * qib_eeprom_read - receives bytes from the eeprom via I2C
 + * @dd: the qlogic_ib device
-+ * @state: the state to wait for
-+ * @msecs: the number of milliseconds to wait
-+ *
-+ * wait up to msecs milliseconds for IB link state change to occur for
-+ * now, take the easy polling route.  Currently used only by
-+ * qib_set_linkstate.  Returns 0 if state reached, otherwise
-+ * -ETIMEDOUT state can have multiple states set, for any of several
-+ * transitions.
++ * @eeprom_offset: address to read from
++ * @buffer: where to store result
++ * @len: number of bytes to receive
 + */
-+int qib_wait_linkstate(struct qib_pportdata *ppd, u32 state, int msecs)
++int qib_eeprom_read(struct qib_devdata *dd, u8 eeprom_offset,
++		    void *buff, int len)
 +{
 +	int ret;
-+	unsigned long flags;
 +
-+	spin_lock_irqsave(&ppd->lflags_lock, flags);
-+	if (ppd->state_wanted) {
-+		spin_unlock_irqrestore(&ppd->lflags_lock, flags);
-+		ret = -EBUSY;
-+		goto bail;
++	ret = mutex_lock_interruptible(&dd->eep_lock);
++	if (!ret) {
++		ret = qib_twsi_reset(dd);
++		if (ret)
++			qib_dev_err(dd, "TWSI Reset failed, EEPROM Rd\n");
++		else
++			ret = qib_twsi_blk_rd(dd, dd->twsi_eeprom_dev,
++					      eeprom_offset, buff, len);
++		mutex_unlock(&dd->eep_lock);
 +	}
-+	ppd->state_wanted = state;
-+	spin_unlock_irqrestore(&ppd->lflags_lock, flags);
-+	wait_event_interruptible_timeout(ppd->state_wait,
-+					 (ppd->lflags & state),
-+					 msecs_to_jiffies(msecs));
-+	spin_lock_irqsave(&ppd->lflags_lock, flags);
-+	ppd->state_wanted = 0;
-+	spin_unlock_irqrestore(&ppd->lflags_lock, flags);
 +
-+	if (!(ppd->lflags & state))
-+		ret = -ETIMEDOUT;
-+	else
-+		ret = 0;
-+bail:
-+	return ret;
-+}
-+
-+int qib_set_linkstate(struct qib_pportdata *ppd, u8 newstate)
-+{
-+	u32 lstate;
-+	int ret;
-+	struct qib_devdata *dd = ppd->dd;
-+	unsigned long flags;
-+
-+	switch (newstate) {
-+	case QIB_IB_LINKDOWN_ONLY:
-+		dd->f_set_ib_cfg(ppd, QIB_IB_CFG_LSTATE,
-+				 IB_LINKCMD_DOWN | IB_LINKINITCMD_NOP);
-+		/* don't wait */
-+		ret = 0;
-+		goto bail;
-+
-+	case QIB_IB_LINKDOWN:
-+		dd->f_set_ib_cfg(ppd, QIB_IB_CFG_LSTATE,
-+				 IB_LINKCMD_DOWN | IB_LINKINITCMD_POLL);
-+		/* don't wait */
-+		ret = 0;
-+		goto bail;
-+
-+	case QIB_IB_LINKDOWN_SLEEP:
-+		dd->f_set_ib_cfg(ppd, QIB_IB_CFG_LSTATE,
-+				 IB_LINKCMD_DOWN | IB_LINKINITCMD_SLEEP);
-+		/* don't wait */
-+		ret = 0;
-+		goto bail;
-+
-+	case QIB_IB_LINKDOWN_DISABLE:
-+		dd->f_set_ib_cfg(ppd, QIB_IB_CFG_LSTATE,
-+				 IB_LINKCMD_DOWN | IB_LINKINITCMD_DISABLE);
-+		/* don't wait */
-+		ret = 0;
-+		goto bail;
-+
-+	case QIB_IB_LINKARM:
-+		if (ppd->lflags & QIBL_LINKARMED) {
-+			qib_dbg("Asked for ARM, already there, skip\n");
-+			ret = 0;
-+			goto bail;
-+		}
-+		if (!(ppd->lflags & (QIBL_LINKINIT | QIBL_LINKACTIVE))) {
-+			qib_dbg("Asked for ARM, lflags %x, error\n",
-+				ppd->lflags);
-+			ret = -EINVAL;
-+			goto bail;
-+		}
-+		/*
-+		 * Since the port can be ACTIVE when we ask for ARMED,
-+		 * clear QIBL_LINKV so we can wait for a transition.
-+		 * If the link isn't ARMED, then something else happened
-+		 * and there is no point waiting for ARMED.
-+		 */
-+		spin_lock_irqsave(&ppd->lflags_lock, flags);
-+		ppd->lflags &= ~QIBL_LINKV;
-+		spin_unlock_irqrestore(&ppd->lflags_lock, flags);
-+		dd->f_set_ib_cfg(ppd, QIB_IB_CFG_LSTATE,
-+				 IB_LINKCMD_ARMED | IB_LINKINITCMD_NOP);
-+		lstate = QIBL_LINKV;
-+		break;
-+
-+	case QIB_IB_LINKACTIVE:
-+		if (ppd->lflags & QIBL_LINKACTIVE) {
-+			qib_dbg("Asked for ACTIVE, already there, skip\n");
-+			ret = 0;
-+			goto bail;
-+		}
-+		if (!(ppd->lflags & QIBL_LINKARMED)) {
-+			qib_dbg("Asked for ACTIVE, lflags %x, error\n",
-+				ppd->lflags);
-+			ret = -EINVAL;
-+			goto bail;
-+		}
-+		dd->f_set_ib_cfg(ppd, QIB_IB_CFG_LSTATE,
-+				 IB_LINKCMD_ACTIVE | IB_LINKINITCMD_NOP);
-+		lstate = QIBL_LINKACTIVE;
-+		break;
-+
-+	default:
-+		qib_dbg("Invalid linkstate 0x%x requested\n", newstate);
-+		ret = -EINVAL;
-+		goto bail;
-+	}
-+	ret = qib_wait_linkstate(ppd, lstate, 10);
-+
-+bail:
 +	return ret;
 +}
 +
 +/*
-+ * Get address of eager buffer from it's index (allocated in chunks, not
-+ * contiguous).
++ * Actually update the eeprom, first doing write enable if
++ * needed, then restoring write enable state.
++ * Must be called with eep_lock held
 + */
-+static inline void *qib_get_egrbuf(const struct qib_ctxtdata *rcd, u32 etail)
++static int eeprom_write_with_enable(struct qib_devdata *dd, u8 offset,
++		     const void *buf, int len)
 +{
-+	const u32 chunk = etail / rcd->rcvegrbufs_perchunk;
-+	const u32 idx =  etail % rcd->rcvegrbufs_perchunk;
++	int ret, pwen;
 +
-+	return rcd->rcvegrbuf[chunk] + idx * rcd->dd->rcvegrbufsize;
-+}
-+
-+/**
-+ * get_rhf_errstring - decode RHF errors
-+ * @err: the err number
-+ * @msg: the output buffer
-+ * @len: the length of the output buffer
-+ *
-+ * only used one place now, may want more later
-+ */
-+static void get_rhf_errstring(u32 err, char *msg, size_t len)
-+{
-+	/* if no errors, and so don't need to check what's first */
-+	*msg = '\0';
-+
-+	if (err & QLOGIC_IB_RHF_H_ICRCERR)
-+		strlcat(msg, "icrcerr ", len);
-+	if (err & QLOGIC_IB_RHF_H_VCRCERR)
-+		strlcat(msg, "vcrcerr ", len);
-+	if (err & QLOGIC_IB_RHF_H_PARITYERR)
-+		strlcat(msg, "parityerr ", len);
-+	if (err & QLOGIC_IB_RHF_H_LENERR)
-+		strlcat(msg, "lenerr ", len);
-+	if (err & QLOGIC_IB_RHF_H_MTUERR)
-+		strlcat(msg, "mtuerr ", len);
-+	if (err & QLOGIC_IB_RHF_H_IHDRERR)
-+		/* qlogic_ib hdr checksum error */
-+		strlcat(msg, "qibhdrerr ", len);
-+	if (err & QLOGIC_IB_RHF_H_TIDERR)
-+		strlcat(msg, "tiderr ", len);
-+	if (err & QLOGIC_IB_RHF_H_MKERR)
-+		/* bad ctxt, offset, etc. */
-+		strlcat(msg, "invalid qibhdr ", len);
-+	if (err & QLOGIC_IB_RHF_H_IBERR)
-+		strlcat(msg, "iberr ", len);
-+	if (err & QLOGIC_IB_RHF_L_SWA)
-+		strlcat(msg, "swA ", len);
-+	if (err & QLOGIC_IB_RHF_L_SWB)
-+		strlcat(msg, "swB ", len);
-+}
-+
-+/*
-+ * Returns 1 if error was a CRC, else 0.
-+ * Needed for some chip's synthesized error counters.
-+ */
-+static u32 qib_rcv_hdrerr(struct qib_pportdata *ppd, u32 ctxt,
-+			  u32 eflags, u32 l, u32 etail, __le32 *rhf_addr,
-+			  struct qib_message_header *hdr)
-+{
-+	char emsg[128];
-+	u32 ret = 0;
-+
-+	get_rhf_errstring(eflags, emsg, sizeof emsg);
-+	qib_cdbg(ERRPKT, "IB%u:%u ctxt %u RHF %x qtail=%x typ=%u "
-+		 "tlen=%x opcode=%x egridx=%x: %s\n", ppd->dd->unit,
-+		 ppd->port, ctxt, eflags, l, qib_hdrget_rcv_type(rhf_addr),
-+		 qib_hdrget_length_in_bytes(rhf_addr),
-+		 be32_to_cpu(hdr->bth[0]) >> 24, etail, emsg);
-+
-+	if (eflags & (QLOGIC_IB_RHF_H_ICRCERR | QLOGIC_IB_RHF_H_VCRCERR))
-+		ret = 1;
-+	return ret;
-+}
-+
-+/*
-+ * qib_kreceive - receive a packet
-+ * @rcd: the qlogic_ib context
-+ * @llic: gets count of good packets needed to clear lli,
-+ *          (used with chips that need need to track crcs for lli)
-+ *
-+ * called from interrupt handler for errors or receive interrupt
-+ * Returns number of CRC error packets, needed by some chips for
-+ * local link integrity tracking.   crcs are adjusted down by following
-+ * good packets, if any, and count of good packets is also tracked.
-+ */
-+u32 qib_kreceive(struct qib_ctxtdata *rcd, u32 *llic, u32 *npkts)
-+{
-+	struct qib_devdata *dd = rcd->dd;
-+	struct qib_pportdata *ppd = rcd->ppd;
-+	__le32 *rhf_addr;
-+	void *ebuf;
-+	const u32 rsize = dd->rcvhdrentsize;        /* words */
-+	const u32 maxcnt = dd->rcvhdrcnt * rsize;   /* words */
-+	u32 etail = -1, l, hdrqtail;
-+	struct qib_message_header *hdr;
-+	u32 eflags, etype, tlen, i = 0, updegr = 0, crcs = 0;
-+	int last;
-+	u64 lval;
-+	struct qib_qp *qp, *nqp;
-+
-+	l = rcd->head;
-+	rhf_addr = (__le32 *) rcd->rcvhdrq + l + dd->rhf_offset;
-+	if (dd->flags & QIB_NODMA_RTAIL) {
-+		u32 seq = qib_hdrget_seq(rhf_addr);
-+		if (seq != rcd->seq_cnt) {
-+			qib_cdbg(PKT, "ctxt%u: hdrq seq diff @ hdrqhd %x\n",
-+				 rcd->ctxt, rcd->head);
-+			goto bail;
-+		}
-+		hdrqtail = 0;
-+	} else {
-+		hdrqtail = qib_get_rcvhdrtail(rcd);
-+		if (l == hdrqtail) {
-+			qib_cdbg(PKT, "ctxt%u: no pkts tail==hdrqhd %x\n",
-+				 rcd->ctxt, rcd->head);
-+			goto bail;
-+		}
-+		smp_rmb();  /* prevent speculative reads of dma'ed hdrq */
-+	}
-+
-+	for (last = 0, i = 1; !last; i += !last) {
-+		hdr = dd->f_get_msgheader(dd, rhf_addr);
-+		eflags = qib_hdrget_err_flags(rhf_addr);
-+		etype = qib_hdrget_rcv_type(rhf_addr);
-+		/* total length */
-+		tlen = qib_hdrget_length_in_bytes(rhf_addr);
-+		ebuf = NULL;
-+		if ((dd->flags & QIB_NODMA_RTAIL) ?
-+		    qib_hdrget_use_egr_buf(rhf_addr) :
-+		    (etype != RCVHQ_RCV_TYPE_EXPECTED)) {
-+			etail = qib_hdrget_index(rhf_addr);
-+			updegr = 1;
-+			if (tlen > sizeof(*hdr) ||
-+			    etype >= RCVHQ_RCV_TYPE_NON_KD)
-+				ebuf = qib_get_egrbuf(rcd, etail);
-+		}
-+		if (!eflags) {
-+			u16 lrh_len = be16_to_cpu(hdr->lrh[2]) << 2;
-+
-+			if (lrh_len != tlen) {
-+				qib_dbg("IB%u:%u ctxt %u lrh_len %u "
-+					"!= tlen %u\n",
-+					dd->unit, ppd->port, rcd->ctxt,
-+					lrh_len, tlen);
-+				qib_stats.sps_lenerrs++;
-+				goto move_along;
-+			}
-+		}
-+		if (etype == RCVHQ_RCV_TYPE_NON_KD && !eflags &&
-+		    ebuf == NULL &&
-+		    tlen > (dd->rcvhdrentsize - 2 + 1 -
-+				qib_hdrget_offset(rhf_addr)) << 2) {
-+			qib_dbg("IB%d ctxt %u NULL data rhf %08x%08x tlen %u\n",
-+				ppd->port, rcd->ctxt,
-+				le32_to_cpu(rhf_addr[1]),
-+				le32_to_cpu(rhf_addr[0]), tlen);
-+			goto move_along;
-+		}
-+
-+		/*
-+		 * Both tiderr and qibhdrerr are set for all plain IB
-+		 * packets; only qibhdrerr should be set.
-+		 */
-+
-+		if (etype != RCVHQ_RCV_TYPE_NON_KD &&
-+		    etype != RCVHQ_RCV_TYPE_ERROR &&
-+		    qib_hdrget_qib_ver(hdr->iph.ver_ctxt_tid_offset) !=
-+		    IPS_PROTO_VERSION)
-+			qib_cdbg(ERRPKT, "Bad InfiniPath protocol version "
-+				 "%x\n", etype);
-+
-+		if (unlikely(eflags))
-+			crcs += qib_rcv_hdrerr(ppd, rcd->ctxt, eflags, l,
-+					       etail, rhf_addr, hdr);
-+		else if (etype == RCVHQ_RCV_TYPE_NON_KD) {
-+			qib_ib_rcv(rcd, hdr, ebuf, tlen);
-+			if (crcs)
-+				crcs--;
-+			else if (llic && *llic)
-+				--*llic;
-+		} else if (etype == RCVHQ_RCV_TYPE_EXPECTED)
-+			qib_cdbg(ERRPKT, "type=Expected pkt, no err bits\n");
-+		else if (etype == RCVHQ_RCV_TYPE_EAGER) {
-+			u8 opcode = be32_to_cpu(hdr->bth[0]) >> 24;
-+			u32 qpn = be32_to_cpu(hdr->bth[1]) & 0xffffff;
-+
-+			qib_cdbg(RVPKT, "typ %x, opcode %x (eager, "
-+				 "qp=%x), len %x; ignored\n", etype,
-+				 opcode, qpn, tlen);
-+		} else {
-+			/*
-+			 * Error packet, type of error unknown.
-+			 * Probably type 3, but we don't know, so don't
-+			 * even try to print the opcode, etc.
-+			 * Usually caused by a "bad packet", that has no
-+			 * BTH, when the LRH says it should, or it's
-+			 * a KD packet with an invalid KDETH.
-+			 */
-+			qib_cdbg(ERRPKT, "Error Pkt, but no eflags! egrbuf"
-+				 " %x, len %x hdrq+%x rhf: %Lx\n", etail,
-+				 tlen, l, le64_to_cpu(*(__le64 *) rhf_addr));
-+			if (qib_debug & __QIB_ERRPKTDBG) {
-+				u32 j, *d, dw = rsize - 2;
-+
-+				if (rsize > (tlen >> 2))
-+					dw = tlen >> 2;
-+				d = (u32 *)hdr;
-+				printk(KERN_DEBUG "EPkt rcvhdr(%x dw):\n",
-+				       dw);
-+				for (j = 0; j < dw; j++)
-+					printk(KERN_DEBUG "%8x%s", d[j],
-+						(j%8) == 7 ? "\n" : " ");
-+				printk(KERN_DEBUG ".\n");
-+			}
-+		}
-+move_along:
-+		l += rsize;
-+		if (l >= maxcnt)
-+			l = 0;
-+		rhf_addr = (__le32 *) rcd->rcvhdrq + l + dd->rhf_offset;
-+		if (dd->flags & QIB_NODMA_RTAIL) {
-+			u32 seq = qib_hdrget_seq(rhf_addr);
-+
-+			if (++rcd->seq_cnt > 13)
-+				rcd->seq_cnt = 1;
-+			if (seq != rcd->seq_cnt)
-+				last = 1;
-+		} else if (l == hdrqtail)
-+			last = 1;
-+		/*
-+		 * Update head regs etc., every 16 packets, if not last pkt,
-+		 * to help prevent rcvhdrq overflows, when many packets
-+		 * are processed and queue is nearly full.
-+		 * Don't request an interrupt for intermediate updates.
-+		 */
-+		lval = l;
-+		if (!last && !(i & 0xf)) {
-+			dd->f_update_usrhead(rcd, lval, updegr, etail);
-+			updegr = 0;
-+		}
-+	}
-+
-+	rcd->head = l;
-+	rcd->pkt_count += i;
-+
-+	/*
-+	 * Iterate over all QPs waiting to respond.
-+	 * The list won't change since the IRQ is only run on one CPU.
-+	 */
-+	list_for_each_entry_safe(qp, nqp, &rcd->qp_wait_list, rspwait) {
-+		list_del_init(&qp->rspwait);
-+		if (qp->r_flags & QIB_R_RSP_NAK) {
-+			qp->r_flags &= ~QIB_R_RSP_NAK;
-+			qib_send_rc_ack(qp);
-+		}
-+		if (qp->r_flags & QIB_R_RSP_SEND) {
-+			unsigned long flags;
-+
-+			qp->r_flags &= ~QIB_R_RSP_SEND;
-+			spin_lock_irqsave(&qp->s_lock, flags);
-+			if (ib_qib_state_ops[qp->state] &
-+					QIB_PROCESS_OR_FLUSH_SEND)
-+				qib_schedule_send(qp);
-+			spin_unlock_irqrestore(&qp->s_lock, flags);
-+		}
-+		if (atomic_dec_and_test(&qp->refcount))
-+			wake_up(&qp->wait);
-+	}
-+
-+	qib_cdbg(PKT, "IB%d ctxt %d handled %u packets\n",
-+		 ppd->port, rcd->ctxt, i);
-+bail:
-+	/* Report number of packets consumed */
-+	if (npkts)
-+		*npkts = i;
-+
-+	/*
-+	 * Always write head at end, and setup rcv interrupt, even
-+	 * if no packets were processed.
-+	 */
-+	lval = (u64)rcd->head | dd->rhdrhead_intr_off;
-+	dd->f_update_usrhead(rcd, lval, updegr, etail);
-+	return crcs;
-+}
-+
-+/**
-+ * qib_set_mtu - set the MTU
-+ * @ppd: the perport data
-+ * @arg: the new MTU
-+ *
-+ * We can handle "any" incoming size, the issue here is whether we
-+ * need to restrict our outgoing size.   For now, we don't do any
-+ * sanity checking on this, and we don't deal with what happens to
-+ * programs that are already running when the size changes.
-+ * NOTE: changing the MTU will usually cause the IBC to go back to
-+ * link INIT state...
-+ */
-+int qib_set_mtu(struct qib_pportdata *ppd, u16 arg)
-+{
-+	u32 piosize;
-+	int ret, chk;
-+
-+	if (arg != 256 && arg != 512 && arg != 1024 && arg != 2048 &&
-+	    arg != 4096) {
-+		qib_dbg("Trying to set invalid mtu %u, failing\n", arg);
-+		ret = -EINVAL;
-+		goto bail;
-+	}
-+	chk = ib_mtu_enum_to_int(qib_ibmtu);
-+	if (chk > 0 && arg > chk) {
-+		qib_dbg("Trying to set mtu %u > ibmtu cap %u, failing\n",
-+			arg, chk);
-+		ret = -EINVAL;
-+		goto bail;
-+	}
-+
-+	piosize = ppd->ibmaxlen;
-+	ppd->ibmtu = arg;
-+
-+	if (arg >= (piosize - QIB_PIO_MAXIBHDR)) {
-+		/* Only if it's not the initial value (or reset to it) */
-+		if (piosize != ppd->init_ibmaxlen) {
-+			if (arg > piosize && arg <= ppd->init_ibmaxlen)
-+				piosize = ppd->init_ibmaxlen - 2 * sizeof(u32);
-+			ppd->ibmaxlen = piosize;
-+		}
-+	} else if ((arg + QIB_PIO_MAXIBHDR) != ppd->ibmaxlen) {
-+		piosize = arg + QIB_PIO_MAXIBHDR - 2 * sizeof(u32);
-+		ppd->ibmaxlen = piosize;
-+		qib_cdbg(VERBOSE, "ibmaxlen was 0x%x, setting to 0x%x "
-+			   "(mtu 0x%x)\n", ppd->ibmaxlen, piosize,
-+			   arg);
-+	}
-+
-+	ppd->dd->f_set_ib_cfg(ppd, QIB_IB_CFG_MTU, 0);
-+
-+	ret = 0;
-+
-+bail:
-+	return ret;
-+}
-+
-+int qib_set_lid(struct qib_pportdata *ppd, u32 lid, u8 lmc)
-+{
-+	struct qib_devdata *dd = ppd->dd;
-+	ppd->lid = lid;
-+	ppd->lmc = lmc;
-+
-+	dd->f_set_ib_cfg(ppd, QIB_IB_CFG_LIDLMC,
-+			 lid | (~((1U << lmc) - 1)) << 16);
-+
-+	qib_devinfo(dd->pcidev, "IB%u:%u got a lid: 0x%x\n",
-+		    dd->unit, ppd->port, lid);
-+
-+	return 0;
-+}
-+
-+/*
-+ * Following deal with the "obviously simple" task of overriding the state
-+ * of the LEDS, which normally indicate link physical and logical status.
-+ * The complications arise in dealing with different hardware mappings
-+ * and the board-dependent routine being called from interrupts.
-+ * and then there's the requirement to _flash_ them.
-+ */
-+#define LED_OVER_FREQ_SHIFT 8
-+#define LED_OVER_FREQ_MASK (0xFF<<LED_OVER_FREQ_SHIFT)
-+/* Below is "non-zero" to force override, but both actual LEDs are off */
-+#define LED_OVER_BOTH_OFF (8)
-+
-+static void qib_run_led_override(unsigned long opaque)
-+{
-+	struct qib_pportdata *ppd = (struct qib_pportdata *)opaque;
-+	struct qib_devdata *dd = ppd->dd;
-+	int timeoff;
-+	int ph_idx;
-+
-+	if (!(dd->flags & QIB_INITTED))
-+		return;
-+
-+	ph_idx = ppd->led_override_phase++ & 1;
-+	ppd->led_override = ppd->led_override_vals[ph_idx];
-+	timeoff = ppd->led_override_timeoff;
-+
-+	dd->f_setextled(ppd, 1);
-+	/*
-+	 * don't re-fire the timer if user asked for it to be off; we let
-+	 * it fire one more time after they turn it off to simplify
-+	 */
-+	if (ppd->led_override_vals[0] || ppd->led_override_vals[1])
-+		mod_timer(&ppd->led_override_timer, jiffies + timeoff);
-+}
-+
-+void qib_set_led_override(struct qib_pportdata *ppd, unsigned int val)
-+{
-+	struct qib_devdata *dd = ppd->dd;
-+	int timeoff, freq;
-+
-+	if (!(dd->flags & QIB_INITTED))
-+		return;
-+
-+	/* First check if we are blinking. If not, use 1HZ polling */
-+	timeoff = HZ;
-+	freq = (val & LED_OVER_FREQ_MASK) >> LED_OVER_FREQ_SHIFT;
-+
-+	if (freq) {
-+		/* For blink, set each phase from one nybble of val */
-+		ppd->led_override_vals[0] = val & 0xF;
-+		ppd->led_override_vals[1] = (val >> 4) & 0xF;
-+		timeoff = (HZ << 4)/freq;
-+	} else {
-+		/* Non-blink set both phases the same. */
-+		ppd->led_override_vals[0] = val & 0xF;
-+		ppd->led_override_vals[1] = val & 0xF;
-+	}
-+	ppd->led_override_timeoff = timeoff;
-+
-+	/*
-+	 * If the timer has not already been started, do so. Use a "quick"
-+	 * timeout so the function will be called soon, to look at our request.
-+	 */
-+	if (atomic_inc_return(&ppd->led_override_timer_active) == 1) {
-+		/* Need to start timer */
-+		init_timer(&ppd->led_override_timer);
-+		ppd->led_override_timer.function = qib_run_led_override;
-+		ppd->led_override_timer.data = (unsigned long) ppd;
-+		ppd->led_override_timer.expires = jiffies + 1;
-+		add_timer(&ppd->led_override_timer);
-+	} else {
-+		if (ppd->led_override_vals[0] || ppd->led_override_vals[1])
-+			mod_timer(&ppd->led_override_timer, jiffies + 1);
-+		atomic_dec(&ppd->led_override_timer_active);
-+	}
-+}
-+
-+/**
-+ * qib_reset_device - reset the chip if possible
-+ * @unit: the device to reset
-+ *
-+ * Whether or not reset is successful, we attempt to re-initialize the chip
-+ * (that is, much like a driver unload/reload).  We clear the INITTED flag
-+ * so that the various entry points will fail until we reinitialize.  For
-+ * now, we only allow this if no user contexts are open that use chip resources
-+ */
-+int qib_reset_device(int unit)
-+{
-+	int ret, i;
-+	struct qib_devdata *dd = qib_lookup(unit);
-+	struct qib_pportdata *ppd;
-+	unsigned long flags;
-+	int pidx;
-+
-+	if (!dd) {
-+		ret = -ENODEV;
-+		goto bail;
-+	}
-+
-+	qib_devinfo(dd->pcidev, "Reset on unit %u requested\n", unit);
-+
-+	if (!dd->kregbase || !(dd->flags & QIB_PRESENT)) {
-+		qib_devinfo(dd->pcidev, "Invalid unit number %u or "
-+			    "not initialized or not present\n", unit);
-+		ret = -ENXIO;
-+		goto bail;
-+	}
-+
-+	spin_lock_irqsave(&dd->uctxt_lock, flags);
-+	if (dd->rcd)
-+		for (i = dd->first_user_ctxt; i < dd->cfgctxts; i++) {
-+			if (!dd->rcd[i] || !dd->rcd[i]->cnt)
-+				continue;
-+			spin_unlock_irqrestore(&dd->uctxt_lock, flags);
-+			qib_dbg("unit %u ctxt %d is in use (PID %u cmd %s),"
-+				" can't reset\n", unit, i,
-+				dd->rcd[i]->pid,
-+				dd->rcd[i]->comm);
-+			ret = -EBUSY;
-+			goto bail;
-+		}
-+	spin_unlock_irqrestore(&dd->uctxt_lock, flags);
-+
-+	for (pidx = 0; pidx < dd->num_pports; ++pidx) {
-+		ppd = dd->pport + pidx;
-+		if (atomic_read(&ppd->led_override_timer_active)) {
-+			/* Need to stop LED timer, _then_ shut off LEDs */
-+			del_timer_sync(&ppd->led_override_timer);
-+			atomic_set(&ppd->led_override_timer_active, 0);
-+		}
-+
-+		/* Shut off LEDs after we are sure timer is not running */
-+		ppd->led_override = LED_OVER_BOTH_OFF;
-+		dd->f_setextled(ppd, 0);
-+		if (dd->flags & QIB_HAS_SEND_DMA)
-+			teardown_sdma(ppd);
-+	}
-+
-+	ret = dd->f_reset(dd);
-+	if (ret == 1) {
-+		qib_dbg("Reinitializing unit %u after reset attempt\n",
-+			unit);
-+		ret = qib_init(dd, 1);
-+	} else
-+		ret = -EAGAIN;
++	pwen = dd->f_eeprom_wen(dd, 1);
++	ret = qib_twsi_reset(dd);
 +	if (ret)
-+		qib_dev_err(dd, "Reinitialize unit %u after "
-+			    "reset failed with %d\n", unit, ret);
++		qib_dev_err(dd, "TWSI Reset failed, EEPROM Wr\n");
 +	else
-+		qib_devinfo(dd->pcidev, "Reinitialized unit %u after "
-+			    "resetting\n", unit);
++		ret = qib_twsi_blk_wr(dd, dd->twsi_eeprom_dev,
++				      offset, buf, len);
++	dd->f_eeprom_wen(dd, pwen);
++	return ret;
++}
 +
++/**
++ * qib_eeprom_write - writes data to the eeprom via I2C
++ * @dd: the qlogic_ib device
++ * @eeprom_offset: where to place data
++ * @buffer: data to write
++ * @len: number of bytes to write
++ */
++int qib_eeprom_write(struct qib_devdata *dd, u8 eeprom_offset,
++		     const void *buff, int len)
++{
++	int ret;
++
++	ret = mutex_lock_interruptible(&dd->eep_lock);
++	if (!ret) {
++		ret = eeprom_write_with_enable(dd, eeprom_offset, buff, len);
++		mutex_unlock(&dd->eep_lock);
++	}
++
++	return ret;
++}
++
++static u8 flash_csum(struct qib_flash *ifp, int adjust)
++{
++	u8 *ip = (u8 *) ifp;
++	u8 csum = 0, len;
++
++	/*
++	 * Limit length checksummed to max length of actual data.
++	 * Checksum of erased eeprom will still be bad, but we avoid
++	 * reading past the end of the buffer we were passed.
++	 */
++	len = ifp->if_length;
++	if (len > sizeof(struct qib_flash))
++		len = sizeof(struct qib_flash);
++	while (len--)
++		csum += *ip++;
++	csum -= ifp->if_csum;
++	csum = ~csum;
++	if (adjust)
++		ifp->if_csum = csum;
++
++	return csum;
++}
++
++/**
++ * qib_get_eeprom_info- get the GUID et al. from the TSWI EEPROM device
++ * @dd: the qlogic_ib device
++ *
++ * We have the capability to use the nguid field, and get
++ * the guid from the first chip's flash, to use for all of them.
++ */
++void qib_get_eeprom_info(struct qib_devdata *dd)
++{
++	void *buf;
++	struct qib_flash *ifp;
++	__be64 guid;
++	int len, eep_stat;
++	u8 csum, *bguid;
++	int t = dd->unit;
++	struct qib_devdata *dd0 = qib_lookup(0);
++
++	if (t && dd0->nguid > 1 && t <= dd0->nguid) {
++		u8 oguid;
++		dd->base_guid = dd0->base_guid;
++		bguid = (u8 *) &dd->base_guid;
++
++		oguid = bguid[7];
++		bguid[7] += t;
++		if (oguid > bguid[7]) {
++			if (bguid[6] == 0xff) {
++				if (bguid[5] == 0xff) {
++					qib_dev_err(dd, "Can't set %s GUID"
++						    " from base, wraps to"
++						    " OUI!\n",
++						    qib_get_unit_name(t));
++					dd->base_guid = 0;
++					goto bail;
++				}
++				bguid[5]++;
++			}
++			bguid[6]++;
++		}
++		dd->nguid = 1;
++
++		qib_dbg("nguid %u, so adding %u to device 0 guid, "
++			"for %llx\n", dd0->nguid, t,
++			(unsigned long long) be64_to_cpu(dd->base_guid));
++		goto bail;
++	}
++
++	/*
++	 * Read full flash, not just currently used part, since it may have
++	 * been written with a newer definition.
++	 * */
++	len = sizeof(struct qib_flash);
++	buf = vmalloc(len);
++	if (!buf) {
++		qib_dev_err(dd, "Couldn't allocate memory to read %u "
++			    "bytes from eeprom for GUID\n", len);
++		goto bail;
++	}
++
++	/*
++	 * Use "public" eeprom read function, which does locking and
++	 * figures out device. This will migrate to chip-specific.
++	 */
++	eep_stat = qib_eeprom_read(dd, 0, buf, len);
++
++	if (eep_stat) {
++		qib_dev_err(dd, "Failed reading GUID from eeprom\n");
++		goto done;
++	}
++	ifp = (struct qib_flash *)buf;
++
++	csum = flash_csum(ifp, 0);
++	if (csum != ifp->if_csum) {
++		qib_devinfo(dd->pcidev, "Bad I2C flash checksum: "
++			 "0x%x, not 0x%x\n", csum, ifp->if_csum);
++		goto done;
++	}
++	if (*(__be64 *) ifp->if_guid == cpu_to_be64(0) ||
++	    *(__be64 *) ifp->if_guid == ~cpu_to_be64(0)) {
++		qib_dev_err(dd, "Invalid GUID %llx from flash; ignoring\n",
++			    *(unsigned long long *) ifp->if_guid);
++		/* don't allow GUID if all 0 or all 1's */
++		goto done;
++	}
++
++	/* complain, but allow it */
++	if (*(u64 *) ifp->if_guid == 0x100007511000000ULL)
++		qib_devinfo(dd->pcidev, "Warning, GUID %llx is "
++			 "default, probably not correct!\n",
++			 *(unsigned long long *) ifp->if_guid);
++
++	bguid = ifp->if_guid;
++	if (!bguid[0] && !bguid[1] && !bguid[2]) {
++		/*
++		 * Original incorrect GUID format in flash; fix in
++		 * core copy, by shifting up 2 octets; don't need to
++		 * change top octet, since both it and shifted are 0.
++		 */
++		bguid[1] = bguid[3];
++		bguid[2] = bguid[4];
++		bguid[3] = 0;
++		bguid[4] = 0;
++		guid = *(__be64 *) ifp->if_guid;
++		qib_cdbg(VERBOSE, "Old GUID format in flash, top 3 zero, "
++			 "shifting 2 octets\n");
++	} else
++		guid = *(__be64 *) ifp->if_guid;
++	dd->base_guid = guid;
++	dd->nguid = ifp->if_numguid;
++	/*
++	 * Things are slightly complicated by the desire to transparently
++	 * support both the Pathscale 10-digit serial number and the QLogic
++	 * 13-character version.
++	 */
++	if ((ifp->if_fversion > 1) && ifp->if_sprefix[0] &&
++	    ((u8 *) ifp->if_sprefix)[0] != 0xFF) {
++		char *snp = dd->serial;
++
++		/*
++		 * This board has a Serial-prefix, which is stored
++		 * elsewhere for backward-compatibility.
++		 */
++		memcpy(snp, ifp->if_sprefix, sizeof ifp->if_sprefix);
++		snp[sizeof ifp->if_sprefix] = '\0';
++		len = strlen(snp);
++		snp += len;
++		len = (sizeof dd->serial) - len;
++		if (len > sizeof ifp->if_serial)
++			len = sizeof ifp->if_serial;
++		memcpy(snp, ifp->if_serial, len);
++	} else
++		memcpy(dd->serial, ifp->if_serial,
++		       sizeof ifp->if_serial);
++	if (!strstr(ifp->if_comment, "Tested successfully"))
++		qib_dev_err(dd, "Board SN %s did not pass functional "
++			    "test: %s\n", dd->serial, ifp->if_comment);
++
++	qib_cdbg(VERBOSE, "Initted GUID to %llx from eeprom\n",
++		 (unsigned long long) be64_to_cpu(dd->base_guid));
++
++	memcpy(&dd->eep_st_errs, &ifp->if_errcntp, QIB_EEP_LOG_CNT);
++	/*
++	 * Power-on (actually "active") hours are kept as little-endian value
++	 * in EEPROM, but as seconds in a (possibly as small as 24-bit)
++	 * atomic_t while running.
++	 */
++	atomic_set(&dd->active_time, 0);
++	dd->eep_hrs = ifp->if_powerhour[0] | (ifp->if_powerhour[1] << 8);
++
++done:
++	vfree(buf);
++
++bail:;
++}
++
++/**
++ * qib_update_eeprom_log - copy active-time and error counters to eeprom
++ * @dd: the qlogic_ib device
++ *
++ * Although the time is kept as seconds in the qib_devdata struct, it is
++ * rounded to hours for re-write, as we have only 16 bits in EEPROM.
++ * First-cut code reads whole (expected) struct qib_flash, modifies,
++ * re-writes. Future direction: read/write only what we need, assuming
++ * that the EEPROM had to have been "good enough" for driver init, and
++ * if not, we aren't making it worse.
++ *
++ */
++int qib_update_eeprom_log(struct qib_devdata *dd)
++{
++	void *buf;
++	struct qib_flash *ifp;
++	int len, hi_water;
++	uint32_t new_time, new_hrs;
++	u8 csum;
++	int ret, idx;
++	unsigned long flags;
++
++	/* first, check if we actually need to do anything. */
++	ret = 0;
++	for (idx = 0; idx < QIB_EEP_LOG_CNT; ++idx) {
++		if (dd->eep_st_new_errs[idx]) {
++			ret = 1;
++			break;
++		}
++	}
++	new_time = atomic_read(&dd->active_time);
++
++	if (ret == 0 && new_time < 3600)
++		goto bail;
++
++	/*
++	 * The quick-check above determined that there is something worthy
++	 * of logging, so get current contents and do a more detailed idea.
++	 * read full flash, not just currently used part, since it may have
++	 * been written with a newer definition
++	 */
++	len = sizeof(struct qib_flash);
++	buf = vmalloc(len);
++	ret = 1;
++	if (!buf) {
++		qib_dev_err(dd, "Couldn't allocate memory to read %u "
++			    "bytes from eeprom for logging\n", len);
++		goto bail;
++	}
++
++	/* Grab semaphore and read current EEPROM. If we get an
++	 * error, let go, but if not, keep it until we finish write.
++	 */
++	ret = mutex_lock_interruptible(&dd->eep_lock);
++	if (ret) {
++		qib_dev_err(dd, "Unable to acquire EEPROM for logging\n");
++		goto free_bail;
++	}
++	ret = qib_twsi_blk_rd(dd, dd->twsi_eeprom_dev, 0, buf, len);
++	if (ret) {
++		mutex_unlock(&dd->eep_lock);
++		qib_dev_err(dd, "Unable read EEPROM for logging\n");
++		goto free_bail;
++	}
++	ifp = (struct qib_flash *)buf;
++
++	csum = flash_csum(ifp, 0);
++	if (csum != ifp->if_csum) {
++		mutex_unlock(&dd->eep_lock);
++		qib_dev_err(dd, "EEPROM cks err (0x%02X, S/B 0x%02X)\n",
++			    csum, ifp->if_csum);
++		ret = 1;
++		goto free_bail;
++	}
++	hi_water = 0;
++	spin_lock_irqsave(&dd->eep_st_lock, flags);
++	for (idx = 0; idx < QIB_EEP_LOG_CNT; ++idx) {
++		int new_val = dd->eep_st_new_errs[idx];
++		if (new_val) {
++			/*
++			 * If we have seen any errors, add to EEPROM values
++			 * We need to saturate at 0xFF (255) and we also
++			 * would need to adjust the checksum if we were
++			 * trying to minimize EEPROM traffic
++			 * Note that we add to actual current count in EEPROM,
++			 * in case it was altered while we were running.
++			 */
++			new_val += ifp->if_errcntp[idx];
++			if (new_val > 0xFF)
++				new_val = 0xFF;
++			if (ifp->if_errcntp[idx] != new_val) {
++				ifp->if_errcntp[idx] = new_val;
++				hi_water = offsetof(struct qib_flash,
++						    if_errcntp) + idx;
++			}
++			/*
++			 * update our shadow (used to minimize EEPROM
++			 * traffic), to match what we are about to write.
++			 */
++			dd->eep_st_errs[idx] = new_val;
++			dd->eep_st_new_errs[idx] = 0;
++		}
++	}
++	/*
++	 * Now update active-time. We would like to round to the nearest hour
++	 * but unless atomic_t are sure to be proper signed ints we cannot,
++	 * because we need to account for what we "transfer" to EEPROM and
++	 * if we log an hour at 31 minutes, then we would need to set
++	 * active_time to -29 to accurately count the _next_ hour.
++	 */
++	if (new_time >= 3600) {
++		new_hrs = new_time / 3600;
++		atomic_sub((new_hrs * 3600), &dd->active_time);
++		new_hrs += dd->eep_hrs;
++		if (new_hrs > 0xFFFF)
++			new_hrs = 0xFFFF;
++		dd->eep_hrs = new_hrs;
++		if ((new_hrs & 0xFF) != ifp->if_powerhour[0]) {
++			ifp->if_powerhour[0] = new_hrs & 0xFF;
++			hi_water = offsetof(struct qib_flash, if_powerhour);
++		}
++		if ((new_hrs >> 8) != ifp->if_powerhour[1]) {
++			ifp->if_powerhour[1] = new_hrs >> 8;
++			hi_water = offsetof(struct qib_flash, if_powerhour) + 1;
++		}
++	}
++	/*
++	 * There is a tiny possibility that we could somehow fail to write
++	 * the EEPROM after updating our shadows, but problems from holding
++	 * the spinlock too long are a much bigger issue.
++	 */
++	spin_unlock_irqrestore(&dd->eep_st_lock, flags);
++	if (hi_water) {
++		/* we made some change to the data, uopdate cksum and write */
++		csum = flash_csum(ifp, 1);
++		ret = eeprom_write_with_enable(dd, 0, buf, hi_water + 1);
++	}
++	mutex_unlock(&dd->eep_lock);
++	if (ret)
++		qib_dev_err(dd, "Failed updating EEPROM\n");
++
++free_bail:
++	vfree(buf);
 +bail:
 +	return ret;
++}
++
++/**
++ * qib_inc_eeprom_err - increment one of the four error counters
++ * that are logged to EEPROM.
++ * @dd: the qlogic_ib device
++ * @eidx: 0..3, the counter to increment
++ * @incr: how much to add
++ *
++ * Each counter is 8-bits, and saturates at 255 (0xFF). They
++ * are copied to the EEPROM (aka flash) whenever qib_update_eeprom_log()
++ * is called, but it can only be called in a context that allows sleep.
++ * This function can be called even at interrupt level.
++ */
++void qib_inc_eeprom_err(struct qib_devdata *dd, u32 eidx, u32 incr)
++{
++	uint new_val;
++	unsigned long flags;
++
++	spin_lock_irqsave(&dd->eep_st_lock, flags);
++	new_val = dd->eep_st_new_errs[eidx] + incr;
++	if (new_val > 255)
++		new_val = 255;
++	dd->eep_st_new_errs[eidx] = new_val;
++	spin_unlock_irqrestore(&dd->eep_st_lock, flags);
 +}
 
 --
