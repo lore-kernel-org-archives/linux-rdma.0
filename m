@@ -1,40 +1,29 @@
-From: Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH] opensm/osm_subnet.c: fixing bug in dumping options file
-Date: Thu, 19 Nov 2009 13:54:43 +0200
-Message-ID: <4B053203.206@dev.mellanox.co.il>
-Reply-To: kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org
+From: Or Gerlitz <ogerlitz-hKgKHo2Ms0FWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH 8/9] ib/addr: simplify resolving IPv4 addresses
+Date: Thu, 19 Nov 2009 16:52:42 +0200
+Message-ID: <4B055BBA.8020505@Voltaire.com>
+References: <AD17449F0C4E4FE7B20C32412F077C00@amr.corp.intel.com> <4B024258.7070500@Voltaire.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <4B024258.7070500-hKgKHo2Ms0FWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Cc: Linux RDMA <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, "David J. Wilder" <dwilder-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Adding missing pound sign to the printed
-comments in the OSM options file.
+> I reviewed patches 1-6 & 8 and they all look fine, I will give the whole series 
+> a try later this week to further validate them
 
-Signed-off-by: Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
----
- opensm/opensm/osm_subnet.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+I tested the patch series (V2 for the patches that have it, V1 for the rest) over 2.6.32-rc5
+and librdmacm-1.0.8-1.el5 covering AF_INET/PS_TCP unicast and AF_INET/PS_IPOIB multicast and 
+bonding (operability and address-change event). I used mckey and rping, all worked fine, 
+thanks for driving this change set, Sean. David, I'll be happy to hear how the IPv6 testing went, lets get this going.
 
-diff --git a/opensm/opensm/osm_subnet.c b/opensm/opensm/osm_subnet.c
-index 2cfcbe6..29bb94b 100644
---- a/opensm/opensm/osm_subnet.c
-+++ b/opensm/opensm/osm_subnet.c
-@@ -1471,7 +1471,7 @@ int osm_subn_output_conf(FILE *out, IN osm_subn_opt_t * p_opts)
- 		"max_wire_smps %u\n\n"
- 		"# The maximum time in [msec] allowed for a transaction to complete\n"
- 		"transaction_timeout %u\n\n"
--		" The maximum number of retries allowed for a transaction to complete\n"
-+		"# The maximum number of retries allowed for a transaction to complete\n"
- 		"transaction_retries %u\n\n"
- 		"# Maximal time in [msec] a message can stay in the incoming message queue.\n"
- 		"# If there is more than one message in the queue and the last message\n"
--- 
-1.5.1.4
+
+
+Or.
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
