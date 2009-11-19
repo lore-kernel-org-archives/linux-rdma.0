@@ -1,7 +1,7 @@
 From: Ralph Campbell <ralph.campbell-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH 43/53] IB/qib: Add qib_uc.c
-Date: Thu, 19 Nov 2009 15:40:42 -0800
-Message-ID: <20091119234042.30356.57063.stgit@chromite.mv.qlogic.com>
+Subject: [PATCH 41/53] IB/qib: Add qib_twsi.c
+Date: Thu, 19 Nov 2009 15:40:32 -0800
+Message-ID: <20091119234031.30356.83217.stgit@chromite.mv.qlogic.com>
 References: <20091119233655.30356.57433.stgit@chromite.mv.qlogic.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -13,24 +13,24 @@ To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-creates the qib_uc.c file.
+creates the qib_twsi.c file.
 
 Signed-off-by: Ralph Campbell <ralph.campbell-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
 ---
 
- drivers/infiniband/hw/qib/qib_uc.c |  586 ++++++++++++++++++++++++++++++++++++
- 1 files changed, 586 insertions(+), 0 deletions(-)
- create mode 100644 drivers/infiniband/hw/qib/qib_uc.c
+ drivers/infiniband/hw/qib/qib_twsi.c |  521 ++++++++++++++++++++++++++++++++++
+ 1 files changed, 521 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/infiniband/hw/qib/qib_twsi.c
 
-diff --git a/drivers/infiniband/hw/qib/qib_uc.c b/drivers/infiniband/hw/qib/qib_uc.c
+diff --git a/drivers/infiniband/hw/qib/qib_twsi.c b/drivers/infiniband/hw/qib/qib_twsi.c
 new file mode 100644
-index 0000000..f077489
+index 0000000..a9a1c92
 --- /dev/null
-+++ b/drivers/infiniband/hw/qib/qib_uc.c
-@@ -0,0 +1,586 @@
++++ b/drivers/infiniband/hw/qib/qib_twsi.c
+@@ -0,0 +1,521 @@
 +/*
 + * Copyright (c) 2006, 2007, 2008, 2009 QLogic Corporation. All rights reserved.
-+ * Copyright (c) 2005, 2006 PathScale, Inc. All rights reserved.
++ * Copyright (c) 2003, 2004, 2005, 2006 PathScale, Inc. All rights reserved.
 + *
 + * This software is available to you under a choice of one of two
 + * licenses.  You may choose to be licensed under the terms of the GNU
@@ -61,558 +61,493 @@ index 0000000..f077489
 + * SOFTWARE.
 + */
 +
++#include <linux/delay.h>
++#include <linux/pci.h>
++#include <linux/vmalloc.h>
++
 +#include "qib.h"
 +
-+/* cut down ridiculously long IB macro names */
-+#define OP(x) IB_OPCODE_UC_##x
++/*
++ * QLogic_IB "Two Wire Serial Interface" driver.
++ * Originally written for a not-quite-i2c serial eeprom, which is
++ * still used on some supported boards. Later boards have added a
++ * variety of other uses, most board-specific, so teh bit-boffing
++ * part has been split off to this file, while the other parts
++ * have been moved to chip-specific files.
++ *
++ * We have also dropped all pretense of fully generic (e.g. pretend
++ * we don't know whether '1' is the higher voltage) interface, as
++ * the restrictions of the generic i2c interface (e.g. no access from
++ * driver itself) make it unsuitable for this use.
++ */
++
++#define READ_CMD 1
++#define WRITE_CMD 0
 +
 +/**
-+ * qib_make_uc_req - construct a request packet (SEND, RDMA write)
-+ * @qp: a pointer to the QP
++ * i2c_wait_for_writes - wait for a write
++ * @dd: the qlogic_ib device
 + *
-+ * Return 1 if constructed; otherwise, return 0.
++ * We use this instead of udelay directly, so we can make sure
++ * that previous register writes have been flushed all the way
++ * to the chip.  Since we are delaying anyway, the cost doesn't
++ * hurt, and makes the bit twiddling more regular
 + */
-+int qib_make_uc_req(struct qib_qp *qp)
++static void i2c_wait_for_writes(struct qib_devdata *dd)
 +{
-+	struct qib_other_headers *ohdr;
-+	struct qib_swqe *wqe;
-+	unsigned long flags;
-+	u32 hwords;
-+	u32 bth0;
-+	u32 len;
-+	u32 pmtu = ib_mtu_enum_to_int(qp->path_mtu);
-+	int ret = 0;
++	/*
++	 * implicit read of EXTStatus is as good as explicit
++	 * read of scratch, if all we want to do is flush
++	 * writes.
++	 */
++	dd->f_gpio_mod(dd, 0, 0, 0);
++	rmb(); /* inlined, so prevent compiler reordering */
++}
 +
-+	spin_lock_irqsave(&qp->s_lock, flags);
++/*
++ * QSFP modules are allowed to hold SCL low for 500uSec. Allow twice that
++ * for "almost compliant" modules
++ */
++#define SCL_WAIT_USEC 1000
 +
-+	if (!(ib_qib_state_ops[qp->state] & QIB_PROCESS_SEND_OK)) {
-+		if (!(ib_qib_state_ops[qp->state] & QIB_FLUSH_SEND))
-+			goto bail;
-+		/* We are in the error state, flush the work request. */
-+		if (qp->s_last == qp->s_head)
-+			goto bail;
-+		/* If DMAs are in progress, we can't flush immediately. */
-+		if (atomic_read(&qp->s_dma_busy)) {
-+			qp->s_flags |= QIB_S_WAIT_DMA;
-+			goto bail;
++/* BUF_WAIT is time bus must be free between STOP or ACK and to next START.
++ * Should be 20, but some chips need more.
++ */
++#define TWSI_BUF_WAIT_USEC 60
++
++static void scl_out(struct qib_devdata *dd, u8 bit)
++{
++	u32 mask;
++
++	udelay(1);
++
++	mask = 1UL << dd->gpio_scl_num;
++
++	/* SCL is meant to be bare-drain, so never set "OUT", just DIR */
++	dd->f_gpio_mod(dd, 0, bit ? 0 : mask, mask);
++
++	/*
++	 * Allow for slow slaves by simple
++	 * delay for falling edge, sampling on rise.
++	 */
++	if (!bit)
++		udelay(2);
++	else {
++		int rise_usec;
++		for (rise_usec = SCL_WAIT_USEC; rise_usec > 0; rise_usec -= 2) {
++			if (mask & dd->f_gpio_mod(dd, 0, 0, 0))
++				break;
++			udelay(2);
 +		}
-+		wqe = get_swqe_ptr(qp, qp->s_last);
-+		qib_send_complete(qp, wqe, IB_WC_WR_FLUSH_ERR);
-+		goto done;
++		if (rise_usec <= 0)
++			qib_dev_err(dd, "TWSI SCL stuck low > %d uSec\n",
++				    SCL_WAIT_USEC);
++	}
++	i2c_wait_for_writes(dd);
++}
++
++static void sda_out(struct qib_devdata *dd, u8 bit)
++{
++	u32 mask;
++
++	mask = 1UL << dd->gpio_sda_num;
++
++	/* SDA is meant to be bare-drain, so never set "OUT", just DIR */
++	dd->f_gpio_mod(dd, 0, bit ? 0 : mask, mask);
++
++	i2c_wait_for_writes(dd);
++	udelay(2);
++}
++
++static u8 sda_in(struct qib_devdata *dd, int wait)
++{
++	int bnum;
++	u32 read_val, mask;
++
++	bnum = dd->gpio_sda_num;
++	mask = (1UL << bnum);
++	/* SDA is meant to be bare-drain, so never set "OUT", just DIR */
++	dd->f_gpio_mod(dd, 0, 0, mask);
++	read_val = dd->f_gpio_mod(dd, 0, 0, 0);
++	if (wait)
++		i2c_wait_for_writes(dd);
++	return (read_val & mask) >> bnum;
++}
++
++/**
++ * i2c_ackrcv - see if ack following write is true
++ * @dd: the qlogic_ib device
++ */
++static int i2c_ackrcv(struct qib_devdata *dd)
++{
++	u8 ack_received;
++
++	/* AT ENTRY SCL = LOW */
++	/* change direction, ignore data */
++	ack_received = sda_in(dd, 1);
++	scl_out(dd, 1);
++	ack_received = sda_in(dd, 1) == 0;
++	scl_out(dd, 0);
++	return ack_received;
++}
++
++static void stop_cmd(struct qib_devdata *dd);
++
++/**
++ * rd_byte - read a byte, sending STOP on last, else ACK
++ * @dd: the qlogic_ib device
++ *
++ * Returns byte shifted out of device
++ */
++static int rd_byte(struct qib_devdata *dd, int last)
++{
++	int bit_cntr, data;
++
++	data = 0;
++
++	for (bit_cntr = 7; bit_cntr >= 0; --bit_cntr) {
++		data <<= 1;
++		scl_out(dd, 1);
++		data |= sda_in(dd, 0);
++		scl_out(dd, 0);
++	}
++	if (last) {
++		scl_out(dd, 1);
++		stop_cmd(dd);
++	} else {
++		sda_out(dd, 0);
++		scl_out(dd, 1);
++		scl_out(dd, 0);
++		sda_out(dd, 1);
++	}
++	return data;
++}
++
++/**
++ * wr_byte - write a byte, one bit at a time
++ * @dd: the qlogic_ib device
++ * @data: the byte to write
++ *
++ * Returns 0 if we got the following ack, otherwise 1
++ */
++static int wr_byte(struct qib_devdata *dd, u8 data)
++{
++	int bit_cntr;
++	u8 bit;
++
++	for (bit_cntr = 7; bit_cntr >= 0; bit_cntr--) {
++		bit = (data >> bit_cntr) & 1;
++		sda_out(dd, bit);
++		scl_out(dd, 1);
++		scl_out(dd, 0);
++	}
++	return (!i2c_ackrcv(dd)) ? 1 : 0;
++}
++
++/*
++ * issue TWSI start sequence:
++ * (both clock/data high, clock high, data low while clock is high)
++ */
++static void start_seq(struct qib_devdata *dd)
++{
++	sda_out(dd, 1);
++	scl_out(dd, 1);
++	sda_out(dd, 0);
++	udelay(1);
++	scl_out(dd, 0);
++}
++
++/**
++ * stop_seq - transmit the stop sequence
++ * @dd: the qlogic_ib device
++ *
++ * (both clock/data low, clock high, data high while clock is high)
++ */
++static void stop_seq(struct qib_devdata *dd)
++{
++	scl_out(dd, 0);
++	sda_out(dd, 0);
++	scl_out(dd, 1);
++	sda_out(dd, 1);
++}
++
++/**
++ * stop_cmd - transmit the stop condition
++ * @dd: the qlogic_ib device
++ *
++ * (both clock/data low, clock high, data high while clock is high)
++ */
++static void stop_cmd(struct qib_devdata *dd)
++{
++	stop_seq(dd);
++	udelay(TWSI_BUF_WAIT_USEC);
++}
++
++/**
++ * qib_twsi_reset - reset I2C communication
++ * @dd: the qlogic_ib device
++ */
++
++int qib_twsi_reset(struct qib_devdata *dd)
++{
++	int clock_cycles_left = 9;
++	int was_high = 0;
++	u32 pins, mask;
++
++	/* Both SCL and SDA should be high. If not, there
++	 * is something wrong.
++	 */
++	mask = (1UL << dd->gpio_scl_num) | (1UL << dd->gpio_sda_num);
++
++	/*
++	 * Force pins to desired innocuous state.
++	 * This is the default power-on state with out=0 and dir=0,
++	 * So tri-stated and should be floating high (barring HW problems)
++	 */
++	dd->f_gpio_mod(dd, 0, 0, mask);
++
++	/*
++	 * Clock nine times to get all listeners into a sane state.
++	 * If SDA does not go high at any point, we are wedged.
++	 * One vendor recommends then issuing START followed by STOP.
++	 * we cannot use our "normal" functions to do that, because
++	 * if SCL drops between them, another vendor's part will
++	 * wedge, dropping SDA and keeping it low forever, at the end of
++	 * the next transaction (even if it was not the device addressed).
++	 * So our START and STOP take place with SCL held high.
++	 */
++	while (clock_cycles_left--) {
++		scl_out(dd, 0);
++		scl_out(dd, 1);
++		/* Note if SDA is high, but keep clocking to sync slave */
++		was_high |= sda_in(dd, 0);
 +	}
 +
-+	ohdr = &qp->s_hdr.u.oth;
-+	if (qp->remote_ah_attr.ah_flags & IB_AH_GRH)
-+		ohdr = &qp->s_hdr.u.l.oth;
-+
-+	/* header size in 32-bit words LRH+BTH = (8+12)/4. */
-+	hwords = 5;
-+	bth0 = 1 << 22; /* Set M bit */
-+
-+	/* Get the next send request. */
-+	wqe = get_swqe_ptr(qp, qp->s_cur);
-+	qp->s_wqe = NULL;
-+	switch (qp->s_state) {
-+	default:
-+		if (!(ib_qib_state_ops[qp->state] &
-+		    QIB_PROCESS_NEXT_SEND_OK))
-+			goto bail;
-+		/* Check if send work queue is empty. */
-+		if (qp->s_cur == qp->s_head)
-+			goto bail;
++	if (was_high) {
 +		/*
-+		 * Start a new request.
++		 * We saw a high, which we hope means the slave is sync'd.
++		 * Issue START, STOP, pause for T_BUF.
 +		 */
-+		wqe->psn = qp->s_next_psn;
-+		qp->s_psn = qp->s_next_psn;
-+		qp->s_sge.sge = wqe->sg_list[0];
-+		qp->s_sge.sg_list = wqe->sg_list + 1;
-+		qp->s_sge.num_sge = wqe->wr.num_sge;
-+		qp->s_sge.total_len = wqe->length;
-+		len = wqe->length;
-+		qp->s_len = len;
-+		switch (wqe->wr.opcode) {
-+		case IB_WR_SEND:
-+		case IB_WR_SEND_WITH_IMM:
-+			if (len > pmtu) {
-+				qp->s_state = OP(SEND_FIRST);
-+				len = pmtu;
-+				break;
-+			}
-+			if (wqe->wr.opcode == IB_WR_SEND)
-+				qp->s_state = OP(SEND_ONLY);
-+			else {
-+				qp->s_state =
-+					OP(SEND_ONLY_WITH_IMMEDIATE);
-+				/* Immediate data comes after the BTH */
-+				ohdr->u.imm_data = wqe->wr.ex.imm_data;
-+				hwords += 1;
-+			}
-+			if (wqe->wr.send_flags & IB_SEND_SOLICITED)
-+				bth0 |= IB_BTH_SOLICITED;
-+			qp->s_wqe = wqe;
-+			if (++qp->s_cur >= qp->s_size)
-+				qp->s_cur = 0;
-+			break;
 +
-+		case IB_WR_RDMA_WRITE:
-+		case IB_WR_RDMA_WRITE_WITH_IMM:
-+			ohdr->u.rc.reth.vaddr =
-+				cpu_to_be64(wqe->wr.wr.rdma.remote_addr);
-+			ohdr->u.rc.reth.rkey =
-+				cpu_to_be32(wqe->wr.wr.rdma.rkey);
-+			ohdr->u.rc.reth.length = cpu_to_be32(len);
-+			hwords += sizeof(struct ib_reth) / 4;
-+			if (len > pmtu) {
-+				qp->s_state = OP(RDMA_WRITE_FIRST);
-+				len = pmtu;
-+				break;
-+			}
-+			if (wqe->wr.opcode == IB_WR_RDMA_WRITE)
-+				qp->s_state = OP(RDMA_WRITE_ONLY);
-+			else {
-+				qp->s_state =
-+					OP(RDMA_WRITE_ONLY_WITH_IMMEDIATE);
-+				/* Immediate data comes after the RETH */
-+				ohdr->u.rc.imm_data = wqe->wr.ex.imm_data;
-+				hwords += 1;
-+				if (wqe->wr.send_flags & IB_SEND_SOLICITED)
-+					bth0 |= IB_BTH_SOLICITED;
-+			}
-+			qp->s_wqe = wqe;
-+			if (++qp->s_cur >= qp->s_size)
-+				qp->s_cur = 0;
-+			break;
-+
-+		default:
-+			goto bail;
-+		}
-+		break;
-+
-+	case OP(SEND_FIRST):
-+		qp->s_state = OP(SEND_MIDDLE);
-+		/* FALLTHROUGH */
-+	case OP(SEND_MIDDLE):
-+		len = qp->s_len;
-+		if (len > pmtu) {
-+			len = pmtu;
-+			break;
-+		}
-+		if (wqe->wr.opcode == IB_WR_SEND)
-+			qp->s_state = OP(SEND_LAST);
-+		else {
-+			qp->s_state = OP(SEND_LAST_WITH_IMMEDIATE);
-+			/* Immediate data comes after the BTH */
-+			ohdr->u.imm_data = wqe->wr.ex.imm_data;
-+			hwords += 1;
-+		}
-+		if (wqe->wr.send_flags & IB_SEND_SOLICITED)
-+			bth0 |= IB_BTH_SOLICITED;
-+		qp->s_wqe = wqe;
-+		if (++qp->s_cur >= qp->s_size)
-+			qp->s_cur = 0;
-+		break;
-+
-+	case OP(RDMA_WRITE_FIRST):
-+		qp->s_state = OP(RDMA_WRITE_MIDDLE);
-+		/* FALLTHROUGH */
-+	case OP(RDMA_WRITE_MIDDLE):
-+		len = qp->s_len;
-+		if (len > pmtu) {
-+			len = pmtu;
-+			break;
-+		}
-+		if (wqe->wr.opcode == IB_WR_RDMA_WRITE)
-+			qp->s_state = OP(RDMA_WRITE_LAST);
-+		else {
-+			qp->s_state =
-+				OP(RDMA_WRITE_LAST_WITH_IMMEDIATE);
-+			/* Immediate data comes after the BTH */
-+			ohdr->u.imm_data = wqe->wr.ex.imm_data;
-+			hwords += 1;
-+			if (wqe->wr.send_flags & IB_SEND_SOLICITED)
-+				bth0 |= IB_BTH_SOLICITED;
-+		}
-+		qp->s_wqe = wqe;
-+		if (++qp->s_cur >= qp->s_size)
-+			qp->s_cur = 0;
-+		break;
++		pins = dd->f_gpio_mod(dd, 0, 0, 0);
++		if ((pins & mask) != mask)
++			qib_dev_err(dd, "TWSI pins not at rest: %d\n",
++				    pins & mask);
++		/* Drop SDA to issue START */
++		udelay(1); /* Guarantee .6 uSec setup */
++		sda_out(dd, 0);
++		udelay(1); /* Guarantee .6 uSec hold */
++		/* At this point, SCL is high, SDA low. Raise SDA for STOP */
++		sda_out(dd, 1);
++		udelay(TWSI_BUF_WAIT_USEC);
 +	}
-+	qp->s_len -= len;
-+	qp->s_hdrwords = hwords;
-+	qp->s_cur_sge = &qp->s_sge;
-+	qp->s_cur_size = len;
-+	qib_make_ruc_header(qp, ohdr, bth0 | (qp->s_state << 24),
-+			    qp->s_next_psn++ & QIB_PSN_MASK);
-+done:
-+	ret = 1;
-+	goto unlock;
 +
-+bail:
-+	qp->s_flags &= ~QIB_S_BUSY;
-+unlock:
-+	spin_unlock_irqrestore(&qp->s_lock, flags);
++	return !was_high;
++}
++
++#define QIB_TWSI_START 0x100
++#define QIB_TWSI_STOP 0x200
++
++/* Write byte to TWSI, optionally prefixed with START or suffixed with
++ * STOP.
++ * returns 0 if OK (ACK received), else != 0
++ */
++static int qib_twsi_wr(struct qib_devdata *dd, int data, int flags)
++{
++	int ret = 1;
++	if (flags & QIB_TWSI_START)
++		start_seq(dd);
++
++	ret = wr_byte(dd, data); /* Leaves SCL low (from i2c_ackrcv()) */
++
++	if (flags & QIB_TWSI_STOP)
++		stop_cmd(dd);
++	if (ret)
++		qib_cdbg(VERBOSE, "qib%d Failed TWSI wr %s 0x%02X %s\n",
++			dd->unit, (flags & QIB_TWSI_START) ? "START" : "", data,
++			(flags & QIB_TWSI_STOP) ? "STOP" : "");
 +	return ret;
 +}
 +
-+static void fix_mr_refcount(struct qib_qp *qp)
++/* Added functionality for IBA7220-based cards */
++#define QIB_TEMP_DEV 0x98
++
++/*
++ * qib_twsi_blk_rd
++ * Formerly called qib_eeprom_internal_read, and only used for eeprom,
++ * but now the general interface for data transfer from twsi devices.
++ * One vestige of its former role is that it recognizes a device
++ * QIB_TWSI_NO_DEV and does the correct operation for the legacy part,
++ * which responded to all TWSI device codes, interpreting them as
++ * address within device. On all other devices found on board handled by
++ * this driver, the device is followed by a one-byte "address" which selects
++ * the "register" or "offset" within the device from which data should
++ * be read.
++ */
++int qib_twsi_blk_rd(struct qib_devdata *dd, int dev, int addr,
++		    void *buffer, int len)
 +{
-+	unsigned i;
++	int ret;
++	u8 *bp = buffer;
 +
-+	if (qp->r_sge.num_sge == qp->s_rdma_read_sge.num_sge)
-+		return;
-+	while (qp->r_sge.num_sge) {
-+		atomic_dec(&qp->r_sge.sge.mr->refcount);
-+		if (--qp->r_sge.num_sge)
-+			qp->r_sge.sge = *qp->r_sge.sg_list++;
-+	}
-+	for (i = 0; i < qp->s_rdma_read_sge.num_sge; i++) {
-+		struct qib_sge *sge = i ?
-+			&qp->s_rdma_read_sge.sg_list[i - 1] :
-+			&qp->s_rdma_read_sge.sge;
++	ret = 1;
 +
-+		atomic_inc(&sge->mr->refcount);
++	if (dev == QIB_TWSI_NO_DEV) {
++		/* legacy not-really-I2C */
++		qib_cdbg(VERBOSE, "qib%d Start command only address\n",
++			 dd->unit);
++		addr = (addr << 1) | READ_CMD;
++		ret = qib_twsi_wr(dd, addr, QIB_TWSI_START);
++	} else {
++		/* Actual I2C */
++		qib_cdbg(VERBOSE, "qib%d Start command uses devaddr %02X\n",
++			 dd->unit, dev);
++		ret = qib_twsi_wr(dd, dev | WRITE_CMD, QIB_TWSI_START);
++		if (ret) {
++			qib_dbg("qib%d Failed TWSI startcmd\n", dd->unit);
++			stop_cmd(dd);
++			ret = 1;
++			goto bail;
++		}
++		/*
++		 * SFF spec claims we do _not_ stop after the addr
++		 * but simply issue a start with the "read" dev-addr.
++		 * Since we are implicitely waiting for ACK here,
++		 * we need t_buf (nominally 20uSec) before that start,
++		 * and cannot rely on the delay built in to the STOP
++		 */
++		ret = qib_twsi_wr(dd, addr, 0);
++		udelay(TWSI_BUF_WAIT_USEC);
++
++		if (ret) {
++			qib_dev_err(dd, "Failed to write TWSI addr %02X\n",
++				    addr);
++			ret = 1;
++			goto bail;
++		}
++		ret = qib_twsi_wr(dd, dev | READ_CMD, QIB_TWSI_START);
 +	}
++	if (ret) {
++		qib_dbg("qib%d Failed startcmd for dev %02X\n", dd->unit, dev);
++		stop_cmd(dd);
++		ret = 1;
++		goto bail;
++	}
++
++	/*
++	 * block devices keeps clocking data out as long as we ack,
++	 * automatically incrementing the address. Some have "pages"
++	 * whose boundaries will not be crossed, but the handling
++	 * of these is left to the caller, who is in a better
++	 * position to know.
++	 */
++	while (len-- > 0) {
++		/*
++		 * Get and store data, sending ACK if length remaining,
++		 * else STOP
++		 */
++		*bp++ = rd_byte(dd, !len);
++	}
++
++	ret = 0;
++
++bail:
++	return ret;
 +}
 +
-+/**
-+ * qib_uc_rcv - handle an incoming UC packet
-+ * @ibp: the port the packet came in on
-+ * @hdr: the header of the packet
-+ * @has_grh: true if the packet has a GRH
-+ * @data: the packet data
-+ * @tlen: the length of the packet
-+ * @qp: the QP for this packet.
-+ *
-+ * This is called from qib_qp_rcv() to process an incoming UC packet
-+ * for the given QP.
-+ * Called at interrupt level.
++/*
++ * qib_twsi_blk_wr
++ * Formerly called qib_eeprom_internal_write, and only used for eeprom,
++ * but now the general interface for data transfer to twsi devices.
++ * One vestige of its former role is that it recognizes a device
++ * QIB_TWSI_NO_DEV and does the correct operation for the legacy part,
++ * which responded to all TWSI device codes, interpreting them as
++ * address within device. On all other devices found on board handled by
++ * this driver, the device is followed by a one-byte "address" which selects
++ * the "register" or "offset" within the device to which data should
++ * be written.
 + */
-+void qib_uc_rcv(struct qib_ibport *ibp, struct qib_ib_header *hdr,
-+		int has_grh, void *data, u32 tlen, struct qib_qp *qp)
++int qib_twsi_blk_wr(struct qib_devdata *dd, int dev, int addr,
++		    const void *buffer, int len)
 +{
-+	struct qib_other_headers *ohdr;
-+	unsigned long flags;
-+	u32 opcode;
-+	u32 hdrsize;
-+	u32 psn;
-+	u32 pad;
-+	struct ib_wc wc;
-+	u32 pmtu = ib_mtu_enum_to_int(qp->path_mtu);
-+	struct ib_reth *reth;
++	int sub_len;
++	const u8 *bp = buffer;
++	int max_wait_time, i;
 +	int ret;
++	ret = 1;
 +
-+	/* Check for GRH */
-+	if (!has_grh) {
-+		ohdr = &hdr->u.oth;
-+		hdrsize = 8 + 12;       /* LRH + BTH */
-+	} else {
-+		ohdr = &hdr->u.l.oth;
-+		hdrsize = 8 + 40 + 12;  /* LRH + GRH + BTH */
-+	}
++	while (len > 0) {
++		if (dev == QIB_TWSI_NO_DEV) {
++			if (qib_twsi_wr(dd, (addr << 1) | WRITE_CMD,
++					QIB_TWSI_START)) {
++				qib_dbg("qib%d Failed to start cmd offset %u\n",
++					dd->unit, addr);
++				goto failed_write;
++			}
++		} else {
++			/* Real I2C */
++			qib_cdbg(VERBOSE, "qib%d write start command devaddr"
++				" %02X\n", dd->unit, dev);
++			if (qib_twsi_wr(dd, dev | WRITE_CMD, QIB_TWSI_START)) {
++				qib_dbg("qib%d Failed TWSI startcmd\n",
++					dd->unit);
++				goto failed_write;
++			}
++			ret = qib_twsi_wr(dd, addr, 0);
++			if (ret) {
++				qib_dev_err(dd, "Failed to write TWSI addr\n");
++				goto failed_write;
++			}
++		}
 +
-+	opcode = be32_to_cpu(ohdr->bth[0]);
-+	spin_lock_irqsave(&qp->s_lock, flags);
-+	if (qib_ruc_check_hdr(ibp, hdr, has_grh, qp, opcode))
-+		goto sunlock;
-+	spin_unlock_irqrestore(&qp->s_lock, flags);
++		sub_len = min(len, 4);
++		addr += sub_len;
++		len -= sub_len;
 +
-+	psn = be32_to_cpu(ohdr->bth[2]);
-+	opcode >>= 24;
-+	memset(&wc, 0, sizeof wc);
++		for (i = 0; i < sub_len; i++) {
++			if (qib_twsi_wr(dd, *bp++, 0)) {
++				qib_dbg("qib%d no ack after byte %u/%u (%u "
++					"total remain)\n", dd->unit, i, sub_len,
++					len + sub_len - i);
++				goto failed_write;
++			}
++		}
 +
-+	/* Prevent simultaneous processing after APM on different CPUs */
-+	spin_lock(&qp->r_lock);
++		stop_cmd(dd);
 +
-+	/* Compare the PSN verses the expected PSN. */
-+	if (unlikely(qib_cmp24(psn, qp->r_psn) != 0)) {
 +		/*
-+		 * Handle a sequence error.
-+		 * Silently drop any current message.
++		 * Wait for write complete by waiting for a successful
++		 * read (the chip replies with a zero after the write
++		 * cmd completes, and before it writes to the eeprom.
++		 * The startcmd for the read will fail the ack until
++		 * the writes have completed.   We do this inline to avoid
++		 * the debug prints that are in the real read routine
++		 * if the startcmd fails.
++		 * We also use the proper device address, so it doesn't matter
++		 * whether we have real eeprom_dev. Legacy likes any address.
 +		 */
-+		qp->r_psn = psn;
-+inv:
-+		while (qp->r_sge.num_sge) {
-+			atomic_dec(&qp->r_sge.sge.mr->refcount);
-+			if (--qp->r_sge.num_sge)
-+				qp->r_sge.sge = *qp->r_sge.sg_list++;
-+		}
-+		qp->r_state = OP(SEND_LAST);
-+		switch (opcode) {
-+		case OP(SEND_FIRST):
-+		case OP(SEND_ONLY):
-+		case OP(SEND_ONLY_WITH_IMMEDIATE):
-+			goto send_first;
-+
-+		case OP(RDMA_WRITE_FIRST):
-+		case OP(RDMA_WRITE_ONLY):
-+		case OP(RDMA_WRITE_ONLY_WITH_IMMEDIATE):
-+			goto rdma_first;
-+
-+		default:
-+			ibp->n_pkt_drops++;
-+			goto runlock;
-+		}
-+	}
-+
-+	/* Check for opcode sequence errors. */
-+	switch (qp->r_state) {
-+	case OP(SEND_FIRST):
-+	case OP(SEND_MIDDLE):
-+		if (opcode == OP(SEND_MIDDLE) ||
-+		    opcode == OP(SEND_LAST) ||
-+		    opcode == OP(SEND_LAST_WITH_IMMEDIATE))
-+			break;
-+		goto inv;
-+
-+	case OP(RDMA_WRITE_FIRST):
-+	case OP(RDMA_WRITE_MIDDLE):
-+		if (opcode == OP(RDMA_WRITE_MIDDLE) ||
-+		    opcode == OP(RDMA_WRITE_LAST) ||
-+		    opcode == OP(RDMA_WRITE_LAST_WITH_IMMEDIATE))
-+			break;
-+		goto inv;
-+
-+	default:
-+		if (opcode == OP(SEND_FIRST) ||
-+		    opcode == OP(SEND_ONLY) ||
-+		    opcode == OP(SEND_ONLY_WITH_IMMEDIATE) ||
-+		    opcode == OP(RDMA_WRITE_FIRST) ||
-+		    opcode == OP(RDMA_WRITE_ONLY) ||
-+		    opcode == OP(RDMA_WRITE_ONLY_WITH_IMMEDIATE))
-+			break;
-+		goto inv;
-+	}
-+
-+	if (qp->state == IB_QPS_RTR && !(qp->r_flags & QIB_R_COMM_EST)) {
-+		qp->r_flags |= QIB_R_COMM_EST;
-+		if (qp->ibqp.event_handler) {
-+			struct ib_event ev;
-+
-+			ev.device = qp->ibqp.device;
-+			ev.element.qp = &qp->ibqp;
-+			ev.event = IB_EVENT_COMM_EST;
-+			qp->ibqp.event_handler(&ev, qp->ibqp.qp_context);
-+		}
-+	}
-+
-+	/* OK, process the packet. */
-+	switch (opcode) {
-+	case OP(SEND_FIRST):
-+	case OP(SEND_ONLY):
-+	case OP(SEND_ONLY_WITH_IMMEDIATE):
-+send_first:
-+		if (qp->r_flags & QIB_R_REUSE_SGE) {
-+			qp->r_flags &= ~QIB_R_REUSE_SGE;
-+			fix_mr_refcount(qp);
-+			qp->r_sge = qp->s_rdma_read_sge;
-+		} else {
-+			ret = qib_get_rwqe(qp, 0);
-+			if (ret < 0)
-+				goto op_err;
-+			if (!ret) {
-+				ibp->n_pkt_drops++;
-+				goto runlock;
-+			}
-+			qp->s_rdma_read_sge = qp->r_sge;
-+		}
-+		qp->r_rcv_len = 0;
-+		if (opcode == OP(SEND_ONLY))
-+			goto send_last;
-+		else if (opcode == OP(SEND_ONLY_WITH_IMMEDIATE))
-+			goto send_last_imm;
-+		/* FALLTHROUGH */
-+	case OP(SEND_MIDDLE):
-+		/* Check for invalid length PMTU or posted rwqe len. */
-+		if (unlikely(tlen != (hdrsize + pmtu + 4))) {
-+			qp->r_flags |= QIB_R_REUSE_SGE;
-+			ibp->n_pkt_drops++;
-+			goto runlock;
-+		}
-+		qp->r_rcv_len += pmtu;
-+		if (unlikely(qp->r_rcv_len > qp->r_len)) {
-+			qp->r_flags |= QIB_R_REUSE_SGE;
-+			ibp->n_pkt_drops++;
-+			goto runlock;
-+		}
-+		qib_copy_sge(&qp->r_sge, data, pmtu, 1);
-+		break;
-+
-+	case OP(SEND_LAST_WITH_IMMEDIATE):
-+send_last_imm:
-+		wc.ex.imm_data = ohdr->u.imm_data;
-+		hdrsize += 4;
-+		wc.wc_flags = IB_WC_WITH_IMM;
-+		/* FALLTHROUGH */
-+	case OP(SEND_LAST):
-+send_last:
-+		/* Get the number of bytes the message was padded by. */
-+		pad = (be32_to_cpu(ohdr->bth[0]) >> 20) & 3;
-+		/* Check for invalid length. */
-+		/* XXX LAST len should be >= 1 */
-+		if (unlikely(tlen < (hdrsize + pad + 4))) {
-+			qp->r_flags |= QIB_R_REUSE_SGE;
-+			ibp->n_pkt_drops++;
-+			goto runlock;
-+		}
-+		/* Don't count the CRC. */
-+		tlen -= (hdrsize + pad + 4);
-+		wc.byte_len = tlen + qp->r_rcv_len;
-+		if (unlikely(wc.byte_len > qp->r_len)) {
-+			qp->r_flags |= QIB_R_REUSE_SGE;
-+			ibp->n_pkt_drops++;
-+			goto runlock;
-+		}
-+		wc.opcode = IB_WC_RECV;
-+last_imm:
-+		qib_copy_sge(&qp->r_sge, data, tlen, 1);
-+		while (qp->r_sge.num_sge) {
-+			atomic_dec(&qp->r_sge.sge.mr->refcount);
-+			if (--qp->r_sge.num_sge)
-+				qp->r_sge.sge = *qp->r_sge.sg_list++;
-+		}
-+		wc.wr_id = qp->r_wr_id;
-+		wc.status = IB_WC_SUCCESS;
-+		wc.qp = &qp->ibqp;
-+		wc.src_qp = qp->remote_qpn;
-+		wc.slid = qp->remote_ah_attr.dlid;
-+		wc.sl = qp->remote_ah_attr.sl;
-+		/* Signal completion event if the solicited bit is set. */
-+		qib_cq_enter(to_icq(qp->ibqp.recv_cq), &wc,
-+			     (ohdr->bth[0] &
-+				cpu_to_be32(IB_BTH_SOLICITED)) != 0);
-+		break;
-+
-+	case OP(RDMA_WRITE_FIRST):
-+	case OP(RDMA_WRITE_ONLY):
-+	case OP(RDMA_WRITE_ONLY_WITH_IMMEDIATE): /* consume RWQE */
-+rdma_first:
-+		if (unlikely(!(qp->qp_access_flags &
-+			       IB_ACCESS_REMOTE_WRITE))) {
-+			ibp->n_pkt_drops++;
-+			goto runlock;
-+		}
-+		reth = &ohdr->u.rc.reth;
-+		hdrsize += sizeof(*reth);
-+		qp->r_len = be32_to_cpu(reth->length);
-+		qp->r_rcv_len = 0;
-+		qp->r_sge.sg_list = NULL;
-+		if (qp->r_len != 0) {
-+			u32 rkey = be32_to_cpu(reth->rkey);
-+			u64 vaddr = be64_to_cpu(reth->vaddr);
-+			int ok;
-+
-+			/* Check rkey */
-+			ok = qib_rkey_ok(qp, &qp->r_sge.sge, qp->r_len,
-+					 vaddr, rkey, IB_ACCESS_REMOTE_WRITE);
-+			if (unlikely(!ok)) {
-+				ibp->n_pkt_drops++;
-+				goto runlock;
-+			}
-+			qp->r_sge.num_sge = 1;
-+		} else {
-+			qp->r_sge.num_sge = 0;
-+			qp->r_sge.sge.mr = NULL;
-+			qp->r_sge.sge.vaddr = NULL;
-+			qp->r_sge.sge.length = 0;
-+			qp->r_sge.sge.sge_length = 0;
-+		}
-+		if (opcode == OP(RDMA_WRITE_ONLY))
-+			goto rdma_last;
-+		else if (opcode == OP(RDMA_WRITE_ONLY_WITH_IMMEDIATE))
-+			goto rdma_last_imm;
-+		/* FALLTHROUGH */
-+	case OP(RDMA_WRITE_MIDDLE):
-+		/* Check for invalid length PMTU or posted rwqe len. */
-+		if (unlikely(tlen != (hdrsize + pmtu + 4))) {
-+			ibp->n_pkt_drops++;
-+			goto runlock;
-+		}
-+		qp->r_rcv_len += pmtu;
-+		if (unlikely(qp->r_rcv_len > qp->r_len)) {
-+			ibp->n_pkt_drops++;
-+			goto runlock;
-+		}
-+		qib_copy_sge(&qp->r_sge, data, pmtu, 1);
-+		break;
-+
-+	case OP(RDMA_WRITE_LAST_WITH_IMMEDIATE):
-+rdma_last_imm:
-+		wc.ex.imm_data = ohdr->u.imm_data;
-+		hdrsize += 4;
-+		wc.wc_flags = IB_WC_WITH_IMM;
-+
-+		/* Get the number of bytes the message was padded by. */
-+		pad = (be32_to_cpu(ohdr->bth[0]) >> 20) & 3;
-+		/* Check for invalid length. */
-+		/* XXX LAST len should be >= 1 */
-+		if (unlikely(tlen < (hdrsize + pad + 4))) {
-+			ibp->n_pkt_drops++;
-+			goto runlock;
-+		}
-+		/* Don't count the CRC. */
-+		tlen -= (hdrsize + pad + 4);
-+		if (unlikely(tlen + qp->r_rcv_len != qp->r_len)) {
-+			ibp->n_pkt_drops++;
-+			goto runlock;
-+		}
-+		if (qp->r_flags & QIB_R_REUSE_SGE)
-+			qp->r_flags &= ~QIB_R_REUSE_SGE;
-+		else {
-+			ret = qib_get_rwqe(qp, 1);
-+			if (ret < 0)
-+				goto op_err;
-+			if (!ret) {
-+				ibp->n_pkt_drops++;
-+				goto runlock;
++		max_wait_time = 100;
++		while (qib_twsi_wr(dd, dev | READ_CMD, QIB_TWSI_START)) {
++			stop_cmd(dd);
++			if (!--max_wait_time) {
++				qib_dbg("qib%d Did not get successful read to "
++					"complete write\n", dd->unit);
++				goto failed_write;
 +			}
 +		}
-+		wc.byte_len = qp->r_len;
-+		wc.opcode = IB_WC_RECV_RDMA_WITH_IMM;
-+		goto last_imm;
-+
-+	case OP(RDMA_WRITE_LAST):
-+rdma_last:
-+		/* Get the number of bytes the message was padded by. */
-+		pad = (be32_to_cpu(ohdr->bth[0]) >> 20) & 3;
-+		/* Check for invalid length. */
-+		/* XXX LAST len should be >= 1 */
-+		if (unlikely(tlen < (hdrsize + pad + 4))) {
-+			ibp->n_pkt_drops++;
-+			goto runlock;
-+		}
-+		/* Don't count the CRC. */
-+		tlen -= (hdrsize + pad + 4);
-+		if (unlikely(tlen + qp->r_rcv_len != qp->r_len)) {
-+			ibp->n_pkt_drops++;
-+			goto runlock;
-+		}
-+		qib_copy_sge(&qp->r_sge, data, tlen, 1);
-+		while (qp->r_sge.num_sge) {
-+			atomic_dec(&qp->r_sge.sge.mr->refcount);
-+			if (--qp->r_sge.num_sge)
-+				qp->r_sge.sge = *qp->r_sge.sg_list++;
-+		}
-+		break;
-+
-+	default:
-+		/* Drop packet for unknown opcodes. */
-+		ibp->n_pkt_drops++;
-+		goto runlock;
++		/* now read (and ignore) the resulting byte */
++		rd_byte(dd, 1);
 +	}
-+	qp->r_psn++;
-+	qp->r_state = opcode;
-+runlock:
-+	spin_unlock(&qp->r_lock);
-+	return;
 +
-+op_err:
-+	qib_rc_error(qp, IB_WC_LOC_QP_OP_ERR);
-+	spin_unlock(&qp->r_lock);
-+	return;
++	ret = 0;
++	goto bail;
 +
-+sunlock:
-+	spin_unlock_irqrestore(&qp->s_lock, flags);
++failed_write:
++	stop_cmd(dd);
++	ret = 1;
++
++bail:
++	return ret;
 +}
 
 --
