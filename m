@@ -1,7 +1,7 @@
 From: Ralph Campbell <ralph.campbell-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH 08/53] IB/qib: Add qib_common.h
-Date: Thu, 19 Nov 2009 15:37:38 -0800
-Message-ID: <20091119233738.30356.79414.stgit@chromite.mv.qlogic.com>
+Subject: [PATCH 11/53] IB/qib: Add qib_diag.c
+Date: Thu, 19 Nov 2009 15:37:53 -0800
+Message-ID: <20091119233753.30356.14516.stgit@chromite.mv.qlogic.com>
 References: <20091119233655.30356.57433.stgit@chromite.mv.qlogic.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -13,21 +13,21 @@ To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-creates the qib_common.h file.
+creates the qib_diag.c file.
 
 Signed-off-by: Ralph Campbell <ralph.campbell-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
 ---
 
- drivers/infiniband/hw/qib/qib_common.h |  750 ++++++++++++++++++++++++++++++++
- 1 files changed, 750 insertions(+), 0 deletions(-)
- create mode 100644 drivers/infiniband/hw/qib/qib_common.h
+ drivers/infiniband/hw/qib/qib_diag.c |  908 ++++++++++++++++++++++++++++++++++
+ 1 files changed, 908 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/infiniband/hw/qib/qib_diag.c
 
-diff --git a/drivers/infiniband/hw/qib/qib_common.h b/drivers/infiniband/hw/qib/qib_common.h
+diff --git a/drivers/infiniband/hw/qib/qib_diag.c b/drivers/infiniband/hw/qib/qib_diag.c
 new file mode 100644
-index 0000000..58a09fc
+index 0000000..f5cb4cc
 --- /dev/null
-+++ b/drivers/infiniband/hw/qib/qib_common.h
-@@ -0,0 +1,750 @@
++++ b/drivers/infiniband/hw/qib/qib_diag.c
+@@ -0,0 +1,908 @@
 +/*
 + * Copyright (c) 2006, 2007, 2008, 2009 QLogic Corporation. All rights reserved.
 + * Copyright (c) 2003, 2004, 2005, 2006 PathScale, Inc. All rights reserved.
@@ -61,723 +61,881 @@ index 0000000..58a09fc
 + * SOFTWARE.
 + */
 +
-+#ifndef _QIB_COMMON_H
-+#define _QIB_COMMON_H
++/*
++ * This file contains support for diagnostic functions.  It is accessed by
++ * opening the qib_diag device, normally minor number 129.  Diagnostic use
++ * of the QLogic_IB chip may render the chip or board unusable until the
++ * driver is unloaded, or in some cases, until the system is rebooted.
++ *
++ * Accesses to the chip through this interface are not similar to going
++ * through the /sys/bus/pci resource mmap interface.
++ */
++
++#include <linux/io.h>
++#include <linux/pci.h>
++#include <linux/poll.h>
++#include <linux/vmalloc.h>
++#include <linux/fs.h>
++#include <linux/uaccess.h>
++
++#include "qib.h"
++#include "qib_common.h"
 +
 +/*
-+ * This file contains defines, structures, etc. that are used
-+ * to communicate between kernel and user code.
++ * Each client that opens the diag device must read then write
++ * offset 0, to prevent lossage from random cat or od. diag_state
++ * sequences this "handshake".
 + */
++enum diag_state { UNUSED = 0, OPENED, INIT, READY };
 +
-+/* This is the IEEE-assigned OUI for QLogic Inc. QLogic_IB */
-+#define QIB_SRC_OUI_1 0x00
-+#define QIB_SRC_OUI_2 0x11
-+#define QIB_SRC_OUI_3 0x75
-+
-+/* version of protocol header (known to chip also). In the long run,
-+ * we should be able to generate and accept a range of version numbers;
-+ * for now we only accept one, and it's compiled in.
-+ */
-+#define IPS_PROTO_VERSION 2
-+
-+/*
-+ * These are compile time constants that you may want to enable or disable
-+ * if you are trying to debug problems with code or performance.
-+ * QIB_VERBOSE_TRACING define as 1 if you want additional tracing in
-+ * fastpath code
-+ * QIB_TRACE_REGWRITES define as 1 if you want register writes to be
-+ * traced in faspath code
-+ * _QIB_TRACING define as 0 if you want to remove all tracing in a
-+ * compilation unit
-+ * _QIB_DEBUGGING define as 0 if you want to remove debug prints
-+ */
++/* State for an individual client. PID so children cannot abuse handshake */
++static struct qib_diag_client {
++	struct qib_diag_client *next;
++	struct qib_devdata *dd;
++	pid_t pid;
++	enum diag_state state;
++} *client_pool;
 +
 +/*
-+ * The value in the BTH QP field that QLogic_IB uses to differentiate
-+ * an qlogic_ib protocol IB packet vs standard IB transport
-+ * This it needs to be even (0x656b78), because the LSB is sometimes
-+ * used for the MSB of context. The change may cause a problem
-+ * interoperating with older software.
++ * Get a client struct. Recycled if possible, else kmalloc.
++ * Must be called with qib_mutex held
 + */
-+#define QIB_KD_QP 0x656b78
++static struct qib_diag_client *get_client(struct qib_devdata *dd)
++{
++	struct qib_diag_client *dc;
++
++	dc = client_pool;
++	if (dc)
++		/* got from pool remove it and use */
++		client_pool = dc->next;
++	else
++		/* None in pool, alloc and init */
++		dc = kmalloc(sizeof *dc, GFP_KERNEL);
++
++	if (dc) {
++		dc->next = NULL;
++		dc->dd = dd;
++		dc->pid = current->pid;
++		dc->state = OPENED;
++	}
++	return dc;
++}
 +
 +/*
-+ * These are the status bits readable (in ascii form, 64bit value)
-+ * from the "status" sysfs file.  For binary compatibility, values
-+ * must remain as is; removed states can be reused for different
-+ * purposes.
++ * Return to pool. Must be called with qib_mutex held
 + */
-+#define QIB_STATUS_INITTED       0x1    /* basic initialization done */
-+/* Chip has been found and initted */
-+#define QIB_STATUS_CHIP_PRESENT 0x20
-+/* IB link is at ACTIVE, usable for data traffic */
-+#define QIB_STATUS_IB_READY     0x40
-+/* link is configured, LID, MTU, etc. have been set */
-+#define QIB_STATUS_IB_CONF      0x80
-+/* A Fatal hardware error has occurred. */
-+#define QIB_STATUS_HWERROR     0x200
++static void return_client(struct qib_diag_client *dc)
++{
++	struct qib_devdata *dd = dc->dd;
++	struct qib_diag_client *tdc, *rdc;
 +
-+/*
-+ * The list of usermode accessible registers.  Also see Reg_* later in file.
-+ */
-+enum qib_ureg {
-+	/* (RO)  DMA RcvHdr to be used next. */
-+	ur_rcvhdrtail = 0,
-+	/* (RW)  RcvHdr entry to be processed next by host. */
-+	ur_rcvhdrhead = 1,
-+	/* (RO)  Index of next Eager index to use. */
-+	ur_rcvegrindextail = 2,
-+	/* (RW)  Eager TID to be processed next */
-+	ur_rcvegrindexhead = 3,
-+	/* For internal use only; max register number. */
-+	_QIB_UregMax
++	rdc = NULL;
++	if (dc == dd->diag_client) {
++		dd->diag_client = dc->next;
++		rdc = dc;
++	} else {
++		tdc = dc->dd->diag_client;
++		while (tdc) {
++			if (dc == tdc->next) {
++				tdc->next = dc->next;
++				rdc = dc;
++				break;
++			}
++			tdc = tdc->next;
++		}
++	}
++	if (rdc) {
++		rdc->state = UNUSED;
++		rdc->dd = NULL;
++		rdc->pid = 0;
++		rdc->next = client_pool;
++		client_pool = rdc;
++	}
++}
++
++static int qib_diag_open(struct inode *in, struct file *fp);
++static int qib_diag_release(struct inode *in, struct file *fp);
++static ssize_t qib_diag_read(struct file *fp, char __user *data,
++			     size_t count, loff_t *off);
++static ssize_t qib_diag_write(struct file *fp, const char __user *data,
++			      size_t count, loff_t *off);
++
++static const struct file_operations diag_file_ops = {
++	.owner = THIS_MODULE,
++	.write = qib_diag_write,
++	.read = qib_diag_read,
++	.open = qib_diag_open,
++	.release = qib_diag_release
 +};
 +
-+/* bit values for spi_runtime_flags */
-+#define QIB_RUNTIME_PCIE                0x0002
-+#define QIB_RUNTIME_FORCE_WC_ORDER      0x0004
-+#define QIB_RUNTIME_RCVHDR_COPY         0x0008
-+#define QIB_RUNTIME_MASTER              0x0010
-+#define QIB_RUNTIME_NODMA_RTAIL         0x0080
-+#define QIB_RUNTIME_SPECIAL_TRIGGER     0x0100
-+#define QIB_RUNTIME_SDMA                0x0200
-+#define QIB_RUNTIME_FORCE_PIOAVAIL      0x0400
-+#define QIB_RUNTIME_PIO_REGSWAPPED      0x0800
-+#define QIB_RUNTIME_CTXT_MSB_IN_QP      0x1000
-+#define QIB_RUNTIME_CTXT_REDIRECT       0x2000
-+#define QIB_RUNTIME_HDRSUPP             0x4000
++static atomic_t diagpkt_count = ATOMIC_INIT(0);
++static struct cdev *diagpkt_cdev;
++static struct device *diagpkt_device;
 +
-+/*
-+ * This structure is returned by qib_userinit() immediately after
-+ * open to get implementation-specific info, and info specific to this
-+ * instance.
-+ *
-+ * This struct must have explict pad fields where type sizes
-+ * may result in different alignments between 32 and 64 bit
-+ * programs, since the 64 bit * bit kernel requires the user code
-+ * to have matching offsets
-+ */
-+struct qib_base_info {
-+	/* version of hardware, for feature checking. */
-+	__u32 spi_hw_version;
-+	/* version of software, for feature checking. */
-+	__u32 spi_sw_version;
-+	/* QLogic_IB context assigned, goes into sent packets */
-+	__u16 spi_ctxt;
-+	__u16 spi_subctxt;
-+	/*
-+	 * IB MTU, packets IB data must be less than this.
-+	 * The MTU is in bytes, and will be a multiple of 4 bytes.
-+	 */
-+	__u32 spi_mtu;
-+	/*
-+	 * Size of a PIO buffer.  Any given packet's total size must be less
-+	 * than this (in words).  Included is the starting control word, so
-+	 * if 513 is returned, then total pkt size is 512 words or less.
-+	 */
-+	__u32 spi_piosize;
-+	/* size of the TID cache in qlogic_ib, in entries */
-+	__u32 spi_tidcnt;
-+	/* size of the TID Eager list in qlogic_ib, in entries */
-+	__u32 spi_tidegrcnt;
-+	/* size of a single receive header queue entry in words. */
-+	__u32 spi_rcvhdrent_size;
-+	/*
-+	 * Count of receive header queue entries allocated.
-+	 * This may be less than the spu_rcvhdrcnt passed in!.
-+	 */
-+	__u32 spi_rcvhdr_cnt;
++static ssize_t qib_diagpkt_write(struct file *fp, const char __user *data,
++				 size_t count, loff_t *off);
 +
-+	/* per-chip and other runtime features bitmap (QIB_RUNTIME_*) */
-+	__u32 spi_runtime_flags;
-+
-+	/* address where hardware receive header queue is mapped */
-+	__u64 spi_rcvhdr_base;
-+
-+	/* user program. */
-+
-+	/* base address of eager TID receive buffers used by hardware. */
-+	__u64 spi_rcv_egrbufs;
-+
-+	/* Allocated by initialization code, not by protocol. */
-+
-+	/*
-+	 * Size of each TID buffer in host memory, starting at
-+	 * spi_rcv_egrbufs.  The buffers are virtually contiguous.
-+	 */
-+	__u32 spi_rcv_egrbufsize;
-+	/*
-+	 * The special QP (queue pair) value that identifies an qlogic_ib
-+	 * protocol packet from standard IB packets.  More, probably much
-+	 * more, to be added.
-+	 */
-+	__u32 spi_qpair;
-+
-+	/*
-+	 * User register base for init code, not to be used directly by
-+	 * protocol or applications.  Always points to chip registers,
-+	 * for normal or shared context.
-+	 */
-+	__u64 spi_uregbase;
-+	/*
-+	 * Maximum buffer size in bytes that can be used in a single TID
-+	 * entry (assuming the buffer is aligned to this boundary).  This is
-+	 * the minimum of what the hardware and software support Guaranteed
-+	 * to be a power of 2.
-+	 */
-+	__u32 spi_tid_maxsize;
-+	/*
-+	 * alignment of each pio send buffer (byte count
-+	 * to add to spi_piobufbase to get to second buffer)
-+	 */
-+	__u32 spi_pioalign;
-+	/*
-+	 * The index of the first pio buffer available to this process;
-+	 * needed to do lookup in spi_pioavailaddr; not added to
-+	 * spi_piobufbase.
-+	 */
-+	__u32 spi_pioindex;
-+	 /* number of buffers mapped for this process */
-+	__u32 spi_piocnt;
-+
-+	/*
-+	 * Base address of writeonly pio buffers for this process.
-+	 * Each buffer has spi_piosize words, and is aligned on spi_pioalign
-+	 * boundaries.  spi_piocnt buffers are mapped from this address
-+	 */
-+	__u64 spi_piobufbase;
-+
-+	/*
-+	 * Base address of readonly memory copy of the pioavail registers.
-+	 * There are 2 bits for each buffer.
-+	 */
-+	__u64 spi_pioavailaddr;
-+
-+	/*
-+	 * Address where driver updates a copy of the interface and driver
-+	 * status (QIB_STATUS_*) as a 64 bit value.  It's followed by a
-+	 * link status qword (formerly combined with driver status), then a
-+	 * string indicating hardware error, if there was one.
-+	 */
-+	__u64 spi_status;
-+
-+	/* number of chip ctxts available to user processes */
-+	__u32 spi_nctxts;
-+	__u16 spi_unit; /* unit number of chip we are using */
-+	__u16 spi_port; /* IB port number we are using */
-+	/* num bufs in each contiguous set */
-+	__u32 spi_rcv_egrperchunk;
-+	/* size in bytes of each contiguous set */
-+	__u32 spi_rcv_egrchunksize;
-+	/* total size of mmap to cover full rcvegrbuffers */
-+	__u32 spi_rcv_egrbuftotlen;
-+	__u32 spi_rhf_offset; /* dword offset in hdrqent for rcvhdr flags */
-+	/* address of readonly memory copy of the rcvhdrq tail register. */
-+	__u64 spi_rcvhdr_tailaddr;
-+
-+	/*
-+	 * shared memory pages for subctxts if ctxt is shared; these cover
-+	 * all the processes in the group sharing a single context.
-+	 * all have enough space for the num_subcontexts value on this job.
-+	 */
-+	__u64 spi_subctxt_uregbase;
-+	__u64 spi_subctxt_rcvegrbuf;
-+	__u64 spi_subctxt_rcvhdr_base;
-+
-+	/* shared memory page for send buffer disarm status */
-+	__u64 spi_sendbuf_status;
-+} __attribute__ ((aligned(8)));
-+
-+/*
-+ * This version number is given to the driver by the user code during
-+ * initialization in the spu_userversion field of qib_user_info, so
-+ * the driver can check for compatibility with user code.
-+ *
-+ * The major version changes when data structures
-+ * change in an incompatible way.  The driver must be the same or higher
-+ * for initialization to succeed.  In some cases, a higher version
-+ * driver will not interoperate with older software, and initialization
-+ * will return an error.
-+ */
-+#define QIB_USER_SWMAJOR 1
-+
-+/*
-+ * Minor version differences are always compatible
-+ * a within a major version, however if user software is larger
-+ * than driver software, some new features and/or structure fields
-+ * may not be implemented; the user code must deal with this if it
-+ * cares, or it must abort after initialization reports the difference.
-+ */
-+#define QIB_USER_SWMINOR 9
-+
-+#define QIB_USER_SWVERSION ((QIB_USER_SWMAJOR << 16) | QIB_USER_SWMINOR)
-+
-+/*
-+ * Similarly, this is the kernel version going back to the user.  It's
-+ * slightly different, in that we want to tell if the driver was built as
-+ * part of a QLogic release, or from the driver from openfabrics.org,
-+ * kernel.org, or a standard distribution, for support reasons.
-+ * The high bit is 0 for non-QLogic and 1 for QLogic-built/supplied.
-+ *
-+ * It's returned by the driver to the user code during initialization in the
-+ * spi_sw_version field of qib_base_info, so the user code can in turn
-+ * check for compatibility with the kernel.
-+*/
-+#define QIB_KERN_SWVERSION ((QIB_KERN_TYPE << 31) | QIB_USER_SWVERSION)
-+
-+/*
-+ * This structure is passed to qib_userinit() to tell the driver where
-+ * user code buffers are, sizes, etc.   The offsets and sizes of the
-+ * fields must remain unchanged, for binary compatibility.  It can
-+ * be extended, if userversion is changed so user code can tell, if needed
-+ */
-+struct qib_user_info {
-+	/*
-+	 * version of user software, to detect compatibility issues.
-+	 * Should be set to QIB_USER_SWVERSION.
-+	 */
-+	__u32 spu_userversion;
-+
-+	__u32 _spu_unused2;
-+
-+	/* size of struct base_info to write to */
-+	__u32 spu_base_info_size;
-+
-+	__u32 _spu_unused3;
-+
-+	/*
-+	 * If two or more processes wish to share a context, each process
-+	 * must set the spu_subctxt_cnt and spu_subctxt_id to the same
-+	 * values.  The only restriction on the spu_subctxt_id is that
-+	 * it be unique for a given node.
-+	 */
-+	__u16 spu_subctxt_cnt;
-+	__u16 spu_subctxt_id;
-+
-+	__u32 spu_port; /* IB port requested by user if > 0 */
-+
-+	/*
-+	 * address of struct base_info to write to
-+	 */
-+	__u64 spu_base_info;
-+
-+} __attribute__ ((aligned(8)));
-+
-+/* User commands. */
-+
-+/* 16 available, was: old set up userspace (for old user code) */
-+#define QIB_CMD_CTXT_INFO       17      /* find out what resources we got */
-+#define QIB_CMD_RECV_CTRL       18      /* control receipt of packets */
-+#define QIB_CMD_TID_UPDATE      19      /* update expected TID entries */
-+#define QIB_CMD_TID_FREE        20      /* free expected TID entries */
-+#define QIB_CMD_SET_PART_KEY    21      /* add partition key */
-+/* 22 available, was: return info on slave processes (for old user code) */
-+#define QIB_CMD_ASSIGN_CTXT     23      /* allocate HCA and ctxt */
-+#define QIB_CMD_USER_INIT       24      /* set up userspace */
-+#define QIB_CMD_UNUSED_1        25
-+#define QIB_CMD_UNUSED_2        26
-+#define QIB_CMD_PIOAVAILUPD     27      /* force an update of PIOAvail reg */
-+#define QIB_CMD_POLL_TYPE       28      /* set the kind of polling we want */
-+#define QIB_CMD_ARMLAUNCH_CTRL  29      /* armlaunch detection control */
-+/* 30 is unused */
-+#define QIB_CMD_SDMA_INFLIGHT   31      /* sdma inflight counter request */
-+#define QIB_CMD_SDMA_COMPLETE   32      /* sdma completion counter request */
-+/* 33 available, was a testing feature  */
-+#define QIB_CMD_DISARM_BUFS     34      /* disarm send buffers w/ errors */
-+#define QIB_CMD_ACK_EVENT     35	/* ack & clear bits */
-+
-+/*
-+ * QIB_CMD_ACK_EVENT obsoletes QIB_CMD_DISARM_BUFS, but we keep it for
-+ * compatibility with libraries from previous release.   The ACK_EVENT
-+ * will take appropriate driver action (if any, just DISARM for now),
-+ * then clear the bits passed in as part of the mask.  These bits are
-+ * in the first 64bit word at spi_sendbuf_status, and are passed to
-+ * the driver in the event_mask union as well.
-+ */
-+#define _QIB_EVENT_DISARM_BUFS_BIT	0
-+#define _QIB_EVENT_LINKDOWN_BIT		1
-+#define _QIB_EVENT_LID_CHANGE_BIT	2
-+#define _QIB_EVENT_LMC_CHANGE_BIT	3
-+#define _QIB_EVENT_SL2VL_CHANGE_BIT	4
-+#define _QIB_MAX_EVENT_BIT _QIB_EVENT_SL2VL_CHANGE_BIT
-+
-+#define QIB_EVENT_DISARM_BUFS_BIT	(1UL << _QIB_EVENT_DISARM_BUFS_BIT)
-+#define QIB_EVENT_LINKDOWN_BIT		(1UL << _QIB_EVENT_LINKDOWN_BIT)
-+#define QIB_EVENT_LID_CHANGE_BIT	(1UL << _QIB_EVENT_LID_CHANGE_BIT)
-+#define QIB_EVENT_LMC_CHANGE_BIT	(1UL << _QIB_EVENT_LMC_CHANGE_BIT)
-+#define QIB_EVENT_SL2VL_CHANGE_BIT	(1UL << _QIB_EVENT_SL2VL_CHANGE_BIT)
-+
-+
-+/*
-+ * Poll types
-+ */
-+#define QIB_POLL_TYPE_ANYRCV     0x0
-+#define QIB_POLL_TYPE_URGENT     0x1
-+
-+struct qib_ctxt_info {
-+	__u16 num_active;       /* number of active units */
-+	__u16 unit;             /* unit (chip) assigned to caller */
-+	__u16 port;             /* IB port assigned to caller (1-based) */
-+	__u16 ctxt;             /* ctxt on unit assigned to caller */
-+	__u16 subctxt;          /* subctxt on unit assigned to caller */
-+	__u16 num_ctxts;        /* number of ctxts available on unit */
-+	__u16 num_subctxts;     /* number of subctxts opened on ctxt */
-+	__u16 __pad;            /* pad size out to qword multple */
++static const struct file_operations diagpkt_file_ops = {
++	.owner = THIS_MODULE,
++	.write = qib_diagpkt_write,
 +};
 +
-+struct qib_tid_info {
-+	__u32 tidcnt;
-+	/* make structure same size in 32 and 64 bit */
-+	__u32 tid__unused;
-+	/* virtual address of first page in transfer */
-+	__u64 tidvaddr;
-+	/* pointer (same size 32/64 bit) to __u16 tid array */
-+	__u64 tidlist;
++int qib_diag_add(struct qib_devdata *dd)
++{
++	char name[16];
++	int ret = 0;
++
++	if (atomic_inc_return(&diagpkt_count) == 1) {
++		ret = qib_cdev_init(QIB_DIAGPKT_MINOR, "ipath_diagpkt",
++				    &diagpkt_file_ops, &diagpkt_cdev,
++				    &diagpkt_device);
++		if (ret)
++			goto done;
++	}
++
++	snprintf(name, sizeof(name), "ipath_diag%d", dd->unit);
++	ret = qib_cdev_init(QIB_DIAG_MINOR_BASE + dd->unit, name,
++			    &diag_file_ops, &dd->diag_cdev,
++			    &dd->diag_device);
++done:
++	return ret;
++}
++
++static void qib_unregister_observers(struct qib_devdata *dd);
++
++void qib_diag_remove(struct qib_devdata *dd)
++{
++	struct qib_diag_client *dc;
++
++	if (atomic_dec_and_test(&diagpkt_count))
++		qib_cdev_cleanup(&diagpkt_cdev, &diagpkt_device);
++
++	qib_cdev_cleanup(&dd->diag_cdev, &dd->diag_device);
 +
 +	/*
-+	 * pointer (same size 32/64 bit) to bitmap of TIDs used
-+	 * for this call; checked for being large enough at open
++	 * Return all diag_clients of this device. There should be none,
++	 * as we are "guaranteed" that no clients are still open
 +	 */
-+	__u64 tidmap;
++	while (dd->diag_client)
++		return_client(dd->diag_client);
++
++	/* Now clean up all unused client structs */
++	while (client_pool) {
++		dc = client_pool;
++		client_pool = dc->next;
++		kfree(dc);
++	}
++	/* Clean up observer list */
++	qib_unregister_observers(dd);
++}
++
++/* qib_remap_ioaddr32 - remap an offset into chip address space to __iomem *
++ *
++ * @dd: the qlogic_ib device
++ * @offs: the offset in chip-space
++ * @cntp: Pointer to max (byte) count for transfer starting at offset
++ * This returns a u32 __iomem * so it can be used for both 64 and 32-bit
++ * mapping. It is needed because with the use of PAT for control of
++ * write-combining, the logically contiguous address-space of the chip
++ * may be split into virtually non-contiguous spaces, with different
++ * attributes, which are them mapped to contiguous physical space
++ * based from the first BAR.
++ *
++ * The code below makes the same assumptions as were made in
++ * init_chip_wc_pat() (qib_init.c), copied here:
++ * Assumes chip address space looks like:
++ *		- kregs + sregs + cregs + uregs (in any order)
++ *		- piobufs (2K and 4K bufs in either order)
++ *	or:
++ *		- kregs + sregs + cregs (in any order)
++ *		- piobufs (2K and 4K bufs in either order)
++ *		- uregs
++ *
++ * If cntp is non-NULL, returns how many bytes from offset can be accessed
++ * Returns 0 if the offset is not mapped.
++ */
++static u32 __iomem *qib_remap_ioaddr32(struct qib_devdata *dd, u32 offset,
++				       u32 *cntp)
++{
++	u32 kreglen;
++	u32 snd_bottom, snd_lim = 0;
++	u32 __iomem *krb32 = (u32 __iomem *)dd->kregbase;
++	u32 __iomem *map = NULL;
++	u32 cnt = 0;
++
++	/* First, simplest case, offset is within the first map. */
++	kreglen = (dd->kregend - dd->kregbase) * sizeof(u64);
++	if (offset < kreglen) {
++		map = krb32 + (offset / sizeof(u32));
++		cnt = kreglen - offset;
++		goto mapped;
++	}
++
++	/*
++	 * Next check for user regs, the next most common case,
++	 * and a cheap check because if they are not in the first map
++	 * they are last in chip.
++	 */
++	if (dd->userbase) {
++		/* If user regs mapped, they are after send, so set limit. */
++		u32 ulim = (dd->cfgctxts * dd->ureg_align) + dd->uregbase;
++		snd_lim = dd->uregbase;
++		krb32 = (u32 __iomem *)dd->userbase;
++		if (offset >= dd->uregbase && offset < ulim) {
++			map = krb32 + (offset - dd->uregbase) / sizeof(u32);
++			cnt = ulim - offset;
++			goto mapped;
++		}
++	}
++
++	/*
++	 * Lastly, check for offset within Send Buffers.
++	 * This is gnarly because struct devdata is deliberately vague
++	 * about things like 7322 VL15 buffers, and we are not in
++	 * chip-specific code here, so should not make many assumptions.
++	 * The one we _do_ make is that the only chip that has more sndbufs
++	 * than we admit is the 7322, and it has userregs above that, so
++	 * we know the snd_lim.
++	 */
++	/* Assume 2K buffers are first. */
++	snd_bottom = dd->pio2k_bufbase;
++	if (snd_lim == 0) {
++		u32 tot2k = dd->piobcnt2k * ALIGN(dd->piosize2k, dd->palign);
++		snd_lim = snd_bottom + tot2k;
++	}
++	/* If 4k buffers exist, account for them by bumping
++	 * appropriate limit.
++	 */
++	if (dd->piobcnt4k) {
++		u32 tot4k = dd->piobcnt4k * dd->align4k;
++		u32 offs4k = dd->piobufbase >> 32;
++		if (snd_bottom > offs4k)
++			snd_bottom = offs4k;
++		else {
++			/* 4k above 2k. Bump snd_lim, if needed*/
++			if (!dd->userbase)
++				snd_lim = offs4k + tot4k;
++		}
++	}
++	/*
++	 * Judgement call: can we ignore the space between SendBuffs and
++	 * UserRegs, where we would like to see vl15 buffs, but not more?
++	 */
++	if (offset >= snd_bottom && offset < snd_lim) {
++		offset -= snd_bottom;
++		map = (u32 __iomem *)dd->piobase + (offset / sizeof(u32));
++		cnt = snd_lim - offset;
++	}
++
++mapped:
++	if (cntp)
++		*cntp = cnt;
++	return map;
++}
++
++/*
++ * qib_read_umem64 - read a 64-bit quantity from the chip into user space
++ * @dd: the qlogic_ib device
++ * @uaddr: the location to store the data in user memory
++ * @regoffs: the offset from BAR0 (_NOT_ full pointer, anymore)
++ * @count: number of bytes to copy (multiple of 32 bits)
++ *
++ * This function also localizes all chip memory accesses.
++ * The copy should be written such that we read full cacheline packets
++ * from the chip.  This is usually used for a single qword
++ *
++ * NOTE:  This assumes the chip address is 64-bit aligned.
++ */
++static int qib_read_umem64(struct qib_devdata *dd, void __user *uaddr,
++			   u32 regoffs, size_t count)
++{
++	const u64 __iomem *reg_addr;
++	const u64 __iomem *reg_end;
++	u32 limit;
++	int ret;
++
++	reg_addr = (const u64 __iomem *)qib_remap_ioaddr32(dd, regoffs, &limit);
++	if (reg_addr == NULL || limit == 0 || !(dd->flags & QIB_PRESENT)) {
++		ret = -EINVAL;
++		goto bail;
++	}
++	if (count >= limit)
++		count = limit;
++	reg_end = reg_addr + (count / sizeof(u64));
++
++	/* not very efficient, but it works for now */
++	while (reg_addr < reg_end) {
++		u64 data = readq(reg_addr);
++
++		if (copy_to_user(uaddr, &data, sizeof(u64))) {
++			ret = -EFAULT;
++			goto bail;
++		}
++		reg_addr++;
++		uaddr += sizeof(u64);
++	}
++	ret = 0;
++bail:
++	return ret;
++}
++
++/*
++ * qib_write_umem64 - write a 64-bit quantity to the chip from user space
++ * @dd: the qlogic_ib device
++ * @regoffs: the offset from BAR0 (_NOT_ full pointer, anymore)
++ * @uaddr: the source of the data in user memory
++ * @count: the number of bytes to copy (multiple of 32 bits)
++ *
++ * This is usually used for a single qword
++ * NOTE:  This assumes the chip address is 64-bit aligned.
++ */
++
++static int qib_write_umem64(struct qib_devdata *dd, u32 regoffs,
++			    const void __user *uaddr, size_t count)
++{
++	u64 __iomem *reg_addr;
++	const u64 __iomem *reg_end;
++	u32 limit;
++	int ret;
++
++	reg_addr = (u64 __iomem *)qib_remap_ioaddr32(dd, regoffs, &limit);
++	if (reg_addr == NULL || limit == 0 || !(dd->flags & QIB_PRESENT)) {
++		ret = -EINVAL;
++		goto bail;
++	}
++	if (count >= limit)
++		count = limit;
++	reg_end = reg_addr + (count / sizeof(u64));
++
++	/* not very efficient, but it works for now */
++	while (reg_addr < reg_end) {
++		u64 data;
++		if (copy_from_user(&data, uaddr, sizeof(data))) {
++			ret = -EFAULT;
++			goto bail;
++		}
++		writeq(data, reg_addr);
++
++		reg_addr++;
++		uaddr += sizeof(u64);
++	}
++	ret = 0;
++bail:
++	return ret;
++}
++
++/*
++ * qib_read_umem32 - read a 32-bit quantity from the chip into user space
++ * @dd: the qlogic_ib device
++ * @uaddr: the location to store the data in user memory
++ * @regoffs: the offset from BAR0 (_NOT_ full pointer, anymore)
++ * @count: number of bytes to copy
++ *
++ * read 32 bit values, not 64 bit; for memories that only
++ * support 32 bit reads; usually a single dword.
++ */
++static int qib_read_umem32(struct qib_devdata *dd, void __user *uaddr,
++			   u32 regoffs, size_t count)
++{
++	const u32 __iomem *reg_addr;
++	const u32 __iomem *reg_end;
++	u32 limit;
++	int ret;
++
++	reg_addr = qib_remap_ioaddr32(dd, regoffs, &limit);
++	if (reg_addr == NULL || limit == 0 || !(dd->flags & QIB_PRESENT)) {
++		ret = -EINVAL;
++		goto bail;
++	}
++	if (count >= limit)
++		count = limit;
++	reg_end = reg_addr + (count / sizeof(u32));
++
++	/* not very efficient, but it works for now */
++	while (reg_addr < reg_end) {
++		u32 data = readl(reg_addr);
++
++		if (copy_to_user(uaddr, &data, sizeof(data))) {
++			ret = -EFAULT;
++			goto bail;
++		}
++
++		reg_addr++;
++		uaddr += sizeof(u32);
++
++	}
++	ret = 0;
++bail:
++	return ret;
++}
++
++/*
++ * qib_write_umem32 - write a 32-bit quantity to the chip from user space
++ * @dd: the qlogic_ib device
++ * @regoffs: the offset from BAR0 (_NOT_ full pointer, anymore)
++ * @uaddr: the source of the data in user memory
++ * @count: number of bytes to copy
++ *
++ * write 32 bit values, not 64 bit; for memories that only
++ * support 32 bit write; usually a single dword.
++ */
++
++static int qib_write_umem32(struct qib_devdata *dd, u32 regoffs,
++			    const void __user *uaddr, size_t count)
++{
++	u32 __iomem *reg_addr;
++	const u32 __iomem *reg_end;
++	u32 limit;
++	int ret;
++
++	reg_addr = qib_remap_ioaddr32(dd, regoffs, &limit);
++	if (reg_addr == NULL || limit == 0 || !(dd->flags & QIB_PRESENT)) {
++		ret = -EINVAL;
++		goto bail;
++	}
++	if (count >= limit)
++		count = limit;
++	reg_end = reg_addr + (count / sizeof(u32));
++
++	while (reg_addr < reg_end) {
++		u32 data;
++
++		if (copy_from_user(&data, uaddr, sizeof(data))) {
++			ret = -EFAULT;
++			goto bail;
++		}
++		writel(data, reg_addr);
++
++		reg_addr++;
++		uaddr += sizeof(u32);
++	}
++	ret = 0;
++bail:
++	return ret;
++}
++
++static int qib_diag_open(struct inode *in, struct file *fp)
++{
++	int unit = iminor(in) - QIB_DIAG_MINOR_BASE;
++	struct qib_devdata *dd;
++	struct qib_diag_client *dc;
++	int ret;
++
++	mutex_lock(&qib_mutex);
++
++	dd = qib_lookup(unit);
++
++	if (dd == NULL || !(dd->flags & QIB_PRESENT) ||
++	    !dd->kregbase) {
++		ret = -ENODEV;
++		goto bail;
++	}
++
++	dc = get_client(dd);
++	if (!dc) {
++		ret = -ENOMEM;
++		goto bail;
++	}
++	dc->next = dd->diag_client;
++	dd->diag_client = dc;
++	fp->private_data = dc;
++	ret = 0;
++bail:
++	mutex_unlock(&qib_mutex);
++
++	return ret;
++}
++
++/**
++ * qib_diagpkt_write - write an IB packet
++ * @fp: the diag data device file pointer
++ * @data: qib_diag_pkt structure saying where to get the packet
++ * @count: size of data to write
++ * @off: unused by this code
++ */
++static ssize_t qib_diagpkt_write(struct file *fp,
++				 const char __user *data,
++				 size_t count, loff_t *off)
++{
++	u32 __iomem *piobuf;
++	u32 plen, clen, pbufn;
++	struct qib_diag_xpkt dp;
++	u32 *tmpbuf = NULL;
++	struct qib_devdata *dd;
++	struct qib_pportdata *ppd;
++	ssize_t ret = 0;
++
++	if (count != sizeof(dp)) {
++		qib_dbg("Invalid cmd length %u\n", (unsigned)count);
++		ret = -EINVAL;
++		goto bail;
++	}
++	if (copy_from_user(&dp, data, sizeof(dp))) {
++		ret = -EFAULT;
++		goto bail;
++	}
++
++	dd = qib_lookup(dp.unit);
++	if (!dd || !(dd->flags & QIB_PRESENT) || !dd->kregbase) {
++		qib_cdbg(VERBOSE, "illegal unit %u for diag data send\n",
++			 dp.unit);
++		ret = -ENODEV;
++		goto bail;
++	}
++	if (!(dd->flags & QIB_INITTED)) {
++		/* no hardware, freeze, etc. */
++		qib_cdbg(VERBOSE, "unit %u not usable\n", dd->unit);
++		ret = -ENODEV;
++		goto bail;
++	}
++
++	if (dp.version != _DIAG_XPKT_VERS) {
++		qib_dev_err(dd, "Invalid version %u for diagpkt_write\n",
++			    dp.version);
++		ret = -EINVAL;
++		goto bail;
++	}
++	/* send count must be an exact number of dwords */
++	if (dp.len & 3) {
++		ret = -EINVAL;
++		goto bail;
++	}
++	if (!dp.port || dp.port > dd->num_pports) {
++		qib_dbg("unit %u doesn't have physical port %u\n",
++			 dd->unit, dp.port);
++		ret = -EINVAL;
++		goto bail;
++	}
++	ppd = &dd->pport[dp.port - 1];
++
++	/* need total length before first word written */
++	/* +1 word is for the qword padding */
++	plen = sizeof(u32) + dp.len;
++	clen = dp.len >> 2;
++
++	if ((plen + 4) > ppd->ibmaxlen) {
++		qib_dbg("Pkt len 0x%x > ibmaxlen %x\n",
++			plen - 4, ppd->ibmaxlen);
++		ret = -EINVAL;
++		goto bail;      /* before writing pbc */
++	}
++	tmpbuf = vmalloc(plen);
++	if (!tmpbuf) {
++		qib_devinfo(dd->pcidev, "Unable to allocate tmp buffer, "
++			 "failing\n");
++		ret = -ENOMEM;
++		goto bail;
++	}
++
++	if (copy_from_user(tmpbuf,
++			   (const void __user *) (unsigned long) dp.data,
++			   dp.len)) {
++		ret = -EFAULT;
++		goto bail;
++	}
++
++	plen >>= 2;             /* in dwords */
++
++	if (dp.pbc_wd == 0)
++		dp.pbc_wd = plen;
++
++	piobuf = dd->f_getsendbuf(ppd, dp.pbc_wd, &pbufn);
++	if (!piobuf) {
++		qib_cdbg(VERBOSE, "No PIO buffers avail unit for %u\n",
++			   dd->unit);
++		ret = -EBUSY;
++		goto bail;
++	}
++	/* disarm it just to be extra sure */
++	dd->f_sendctrl(dd->pport, QIB_SENDCTRL_DISARM_BUF(pbufn));
++
++	/* disable header check on pbufn for this packet */
++	dd->f_txchk_change(dd, pbufn, 1, TXCHK_CHG_TYPE_DIS1, NULL);
++
++	if (qib_debug & __QIB_PKTDBG)
++		qib_cdbg(VERBOSE, "unit %u 0x%x+1w pio%d\n",
++			 dd->unit, plen - 1, pbufn);
++
++	writeq(dp.pbc_wd, piobuf);
++	/*
++	 * Copy all but the trigger word, then flush, so it's written
++	 * to chip before trigger word, then write trigger word, then
++	 * flush again, so packet is sent.
++	 */
++	if (dd->flags & QIB_PIO_FLUSH_WC) {
++		qib_flush_wc();
++		qib_pio_copy(piobuf + 2, tmpbuf, clen - 1);
++		qib_flush_wc();
++		__raw_writel(tmpbuf[clen - 1], piobuf + clen + 1);
++	} else
++		qib_pio_copy(piobuf + 2, tmpbuf, clen);
++
++	if (dd->flags & QIB_USE_SPCL_TRIG) {
++		u32 spcl_off = (pbufn >= dd->piobcnt2k) ? 2047 : 1023;
++
++		qib_flush_wc();
++		__raw_writel(0xaebecede, piobuf + spcl_off);
++	}
++
++	/*
++	 * Ensure buffer is written to the chip, then re-enable
++	 * header checks (if supported by chip).  The txchk
++	 * code will ensure seen by chip before returning.
++	 */
++	qib_flush_wc();
++	qib_sendbuf_done(dd, pbufn);
++	dd->f_txchk_change(dd, pbufn, 1, TXCHK_CHG_TYPE_ENAB1, NULL);
++
++	ret = sizeof(dp);
++
++bail:
++	vfree(tmpbuf);
++	return ret;
++}
++
++static int qib_diag_release(struct inode *in, struct file *fp)
++{
++	mutex_lock(&qib_mutex);
++	return_client(fp->private_data);
++	fp->private_data = NULL;
++	mutex_unlock(&qib_mutex);
++	return 0;
++}
++
++/*
++ * Chip-specific code calls to register its interest in
++ * a specific range.
++ */
++struct diag_observer_list_elt {
++	struct diag_observer_list_elt *next;
++	const struct diag_observer *op;
 +};
 +
-+struct qib_cmd {
-+	__u32 type;                     /* command type */
-+	union {
-+		struct qib_tid_info tid_info;
-+		struct qib_user_info user_info;
++int qib_register_observer(struct qib_devdata *dd,
++			  const struct diag_observer *op)
++{
++	struct diag_observer_list_elt *olp;
++	int ret = -EINVAL;
++
++	if (!dd || !op)
++		goto bail;
++	ret = -ENOMEM;
++	olp = vmalloc(sizeof *olp);
++	if (!olp) {
++		printk(KERN_ERR QIB_DRV_NAME ": vmalloc for observer failed\n");
++		goto bail;
++	}
++	if (olp) {
++		unsigned long flags;
++
++		spin_lock_irqsave(&dd->qib_diag_trans_lock, flags);
++		olp->op = op;
++		olp->next = dd->diag_observer_list;
++		dd->diag_observer_list = olp;
++		spin_unlock_irqrestore(&dd->qib_diag_trans_lock, flags);
++		ret = 0;
++	}
++bail:
++	return ret;
++}
++
++/* Remove all registered observers when device is closed */
++static void qib_unregister_observers(struct qib_devdata *dd)
++{
++	struct diag_observer_list_elt *olp;
++	unsigned long flags;
++
++	spin_lock_irqsave(&dd->qib_diag_trans_lock, flags);
++	olp = dd->diag_observer_list;
++	while (olp) {
++		/* Pop one observer, let go of lock */
++		dd->diag_observer_list = olp->next;
++		spin_unlock_irqrestore(&dd->qib_diag_trans_lock, flags);
++		vfree(olp);
++		/* try again. */
++		spin_lock_irqsave(&dd->qib_diag_trans_lock, flags);
++		olp = dd->diag_observer_list;
++	}
++	spin_unlock_irqrestore(&dd->qib_diag_trans_lock, flags);
++}
++
++/*
++ * Find the observer, if any, for the specified address. Initial implementation
++ * is simple stack of observers. This must be called with diag transaction
++ * lock held.
++ */
++static const struct diag_observer *diag_get_observer(struct qib_devdata *dd,
++						     u32 addr)
++{
++	struct diag_observer_list_elt *olp;
++	const struct diag_observer *op = NULL;
++
++	olp = dd->diag_observer_list;
++	while (olp) {
++		op = olp->op;
++		if (addr >= op->bottom && addr <= op->top)
++			break;
++		olp = olp->next;
++	}
++	if (!olp)
++		op = NULL;
++
++	return op;
++}
++
++static ssize_t qib_diag_read(struct file *fp, char __user *data,
++			     size_t count, loff_t *off)
++{
++	struct qib_diag_client *dc = fp->private_data;
++	struct qib_devdata *dd = dc->dd;
++	void __iomem *kreg_base;
++	ssize_t ret;
++
++	if (dc->pid != current->pid) {
++		ret = -EPERM;
++		goto bail;
++	}
++
++	kreg_base = dd->kregbase;
++
++	if (count == 0)
++		ret = 0;
++	else if ((count % 4) || (*off % 4))
++		/* address or length is not 32-bit aligned, hence invalid */
++		ret = -EINVAL;
++	else if (dc->state < READY && (*off || count != 8))
++		ret = -EINVAL;  /* prevent cat /dev/qib_diag* */
++	else {
++		unsigned long flags;
++		u64 data64 = 0;
++		int use_32;
++		const struct diag_observer *op;
++
++		use_32 = (count % 8) || (*off % 8);
++		ret = -1;
++		spin_lock_irqsave(&dd->qib_diag_trans_lock, flags);
++		/*
++		 * Check for observer on this address range.
++		 * we only support a single 32 or 64-bit read
++		 * via observer, currently.
++		 */
++		op = diag_get_observer(dd, *off);
++		if (op) {
++			u32 offset = *off;
++			ret = op->hook(dd, op, offset, &data64, 0, use_32);
++		}
++		/*
++		 * We need to release lock before any copy_to_user(),
++		 * whether implicit in qib_read_umem* or explicit below.
++		 */
++		spin_unlock_irqrestore(&dd->qib_diag_trans_lock, flags);
++		if (!op) {
++			if (use_32)
++				/*
++				 * Address or length is not 64-bit aligned;
++				 * do 32-bit rd
++				 */
++				ret = qib_read_umem32(dd, data, (u32) *off,
++						      count);
++			else
++				ret = qib_read_umem64(dd, data, (u32) *off,
++						      count);
++		} else if (ret == count) {
++			/* Below finishes case where observer existed */
++			ret = copy_to_user(data, &data64, use_32 ?
++					   sizeof(u32) : sizeof(u64));
++			if (ret)
++				ret = -EFAULT;
++		}
++	}
++
++	if (ret >= 0) {
++		*off += count;
++		ret = count;
++		if (dc->state == OPENED)
++			dc->state = INIT;
++	}
++bail:
++	return ret;
++}
++
++static ssize_t qib_diag_write(struct file *fp, const char __user *data,
++			      size_t count, loff_t *off)
++{
++	struct qib_diag_client *dc = fp->private_data;
++	struct qib_devdata *dd = dc->dd;
++	void __iomem *kreg_base;
++	ssize_t ret;
++
++	if (dc->pid != current->pid) {
++		ret = -EPERM;
++		goto bail;
++	}
++
++	kreg_base = dd->kregbase;
++
++	if (count == 0)
++		ret = 0;
++	else if ((count % 4) || (*off % 4))
++		/* address or length is not 32-bit aligned, hence invalid */
++		ret = -EINVAL;
++	else if (dc->state < READY &&
++		((*off || count != 8) || dc->state != INIT))
++		/* No writes except second-step of init seq */
++		ret = -EINVAL;  /* before any other write allowed */
++	else {
++		unsigned long flags;
++		const struct diag_observer *op = NULL;
++		int use_32 =  (count % 8) || (*off % 8);
 +
 +		/*
-+		 * address in userspace where we should put the sdma
-+		 * inflight counter
++		 * Check for observer on this address range.
++		 * We only support a single 32 or 64-bit write
++		 * via observer, currently. This helps, because
++		 * we would otherwise have to jump through hoops
++		 * to make "diag transaction" meaningful when we
++		 * cannot do a copy_from_user while holding the lock.
 +		 */
-+		__u64 sdma_inflight;
-+		/*
-+		 * address in userspace where we should put the sdma
-+		 * completion counter
-+		 */
-+		__u64 sdma_complete;
-+		/* address in userspace of struct qib_ctxt_info to
-+		   write result to */
-+		__u64 ctxt_info;
-+		/* enable/disable receipt of packets */
-+		__u32 recv_ctrl;
-+		/* enable/disable armlaunch errors (non-zero to enable) */
-+		__u32 armlaunch_ctrl;
-+		/* partition key to set */
-+		__u16 part_key;
-+		/* user address of __u32 bitmask of active slaves */
-+		__u64 slave_mask_addr;
-+		/* type of polling we want */
-+		__u16 poll_type;
-+		/* back pressure enable bit for one particular context */
-+		__u8 ctxt_bp;
-+		/* qib_user_event_ack(), IPATH_EVENT_* bits */
-+		__u64 event_mask;
-+	} cmd;
-+};
++		if (count == 4 || count == 8) {
++			u64 data64;
++			u32 offset = *off;
++			ret = copy_from_user(&data64, data, count);
++			if (ret) {
++				ret = -EFAULT;
++				goto bail;
++			}
++			spin_lock_irqsave(&dd->qib_diag_trans_lock, flags);
++			op = diag_get_observer(dd, *off);
++			if (op)
++				ret = op->hook(dd, op, offset, &data64, ~0Ull,
++					       use_32);
++			spin_unlock_irqrestore(&dd->qib_diag_trans_lock, flags);
++		}
 +
-+struct qib_iovec {
-+	/* Pointer to data, but same size 32 and 64 bit */
-+	__u64 iov_base;
++		if (!op) {
++			if (use_32)
++				/*
++				 * Address or length is not 64-bit aligned;
++				 * do 32-bit write
++				 */
++				ret = qib_write_umem32(dd, (u32) *off, data,
++						       count);
++			else
++				ret = qib_write_umem64(dd, (u32) *off, data,
++						       count);
++		}
++	}
 +
-+	/*
-+	 * Length of data; don't need 64 bits, but want
-+	 * qib_sendpkt to remain same size as before 32 bit changes, so...
-+	 */
-+	__u64 iov_len;
-+};
-+
-+/*
-+ * Describes a single packet for send.  Each packet can have one or more
-+ * buffers, but the total length (exclusive of IB headers) must be less
-+ * than the MTU, and if using the PIO method, entire packet length,
-+ * including IB headers, must be less than the qib_piosize value (words).
-+ * Use of this necessitates including sys/uio.h
-+ */
-+struct __qib_sendpkt {
-+	__u32 sps_flags;        /* flags for packet (TBD) */
-+	__u32 sps_cnt;          /* number of entries to use in sps_iov */
-+	/* array of iov's describing packet. TEMPORARY */
-+	struct qib_iovec sps_iov[4];
-+};
-+
-+/*
-+ * Diagnostics can send a packet by "writing" the following
-+ * structs to the diag data special file.
-+ * This allows a custom
-+ * pbc (+ static rate) qword, so that special modes and deliberate
-+ * changes to CRCs can be used. The elements were also re-ordered
-+ * for better alignment and to avoid padding issues.
-+ */
-+#define _DIAG_XPKT_VERS 3
-+struct qib_diag_xpkt {
-+	__u16 version;
-+	__u16 unit;
-+	__u16 port;
-+	__u16 len;
-+	__u64 data;
-+	__u64 pbc_wd;
-+};
-+
-+/*
-+ * Data layout in I2C flash (for GUID, etc.)
-+ * All fields are little-endian binary unless otherwise stated
-+ */
-+#define QIB_FLASH_VERSION 2
-+struct qib_flash {
-+	/* flash layout version (QIB_FLASH_VERSION) */
-+	__u8 if_fversion;
-+	/* checksum protecting if_length bytes */
-+	__u8 if_csum;
-+	/*
-+	 * valid length (in use, protected by if_csum), including
-+	 * if_fversion and if_csum themselves)
-+	 */
-+	__u8 if_length;
-+	/* the GUID, in network order */
-+	__u8 if_guid[8];
-+	/* number of GUIDs to use, starting from if_guid */
-+	__u8 if_numguid;
-+	/* the (last 10 characters of) board serial number, in ASCII */
-+	char if_serial[12];
-+	/* board mfg date (YYYYMMDD ASCII) */
-+	char if_mfgdate[8];
-+	/* last board rework/test date (YYYYMMDD ASCII) */
-+	char if_testdate[8];
-+	/* logging of error counts, TBD */
-+	__u8 if_errcntp[4];
-+	/* powered on hours, updated at driver unload */
-+	__u8 if_powerhour[2];
-+	/* ASCII free-form comment field */
-+	char if_comment[32];
-+	/* Backwards compatible prefix for longer QLogic Serial Numbers */
-+	char if_sprefix[4];
-+	/* 82 bytes used, min flash size is 128 bytes */
-+	__u8 if_future[46];
-+};
-+
-+/*
-+ * These are the counters implemented in the chip, and are listed in order.
-+ * The InterCaps naming is taken straight from the chip spec.
-+ */
-+struct qlogic_ib_counters {
-+	__u64 LBIntCnt;
-+	__u64 LBFlowStallCnt;
-+	__u64 TxSDmaDescCnt;    /* was Reserved1 */
-+	__u64 TxUnsupVLErrCnt;
-+	__u64 TxDataPktCnt;
-+	__u64 TxFlowPktCnt;
-+	__u64 TxDwordCnt;
-+	__u64 TxLenErrCnt;
-+	__u64 TxMaxMinLenErrCnt;
-+	__u64 TxUnderrunCnt;
-+	__u64 TxFlowStallCnt;
-+	__u64 TxDroppedPktCnt;
-+	__u64 RxDroppedPktCnt;
-+	__u64 RxDataPktCnt;
-+	__u64 RxFlowPktCnt;
-+	__u64 RxDwordCnt;
-+	__u64 RxLenErrCnt;
-+	__u64 RxMaxMinLenErrCnt;
-+	__u64 RxICRCErrCnt;
-+	__u64 RxVCRCErrCnt;
-+	__u64 RxFlowCtrlErrCnt;
-+	__u64 RxBadFormatCnt;
-+	__u64 RxLinkProblemCnt;
-+	__u64 RxEBPCnt;
-+	__u64 RxLPCRCErrCnt;
-+	__u64 RxBufOvflCnt;
-+	__u64 RxTIDFullErrCnt;
-+	__u64 RxTIDValidErrCnt;
-+	__u64 RxPKeyMismatchCnt;
-+	__u64 RxP0HdrEgrOvflCnt;
-+	__u64 RxP1HdrEgrOvflCnt;
-+	__u64 RxP2HdrEgrOvflCnt;
-+	__u64 RxP3HdrEgrOvflCnt;
-+	__u64 RxP4HdrEgrOvflCnt;
-+	__u64 RxP5HdrEgrOvflCnt;
-+	__u64 RxP6HdrEgrOvflCnt;
-+	__u64 RxP7HdrEgrOvflCnt;
-+	__u64 RxP8HdrEgrOvflCnt;
-+	__u64 RxP9HdrEgrOvflCnt;
-+	__u64 RxP10HdrEgrOvflCnt;
-+	__u64 RxP11HdrEgrOvflCnt;
-+	__u64 RxP12HdrEgrOvflCnt;
-+	__u64 RxP13HdrEgrOvflCnt;
-+	__u64 RxP14HdrEgrOvflCnt;
-+	__u64 RxP15HdrEgrOvflCnt;
-+	__u64 RxP16HdrEgrOvflCnt;
-+	__u64 IBStatusChangeCnt;
-+	__u64 IBLinkErrRecoveryCnt;
-+	__u64 IBLinkDownedCnt;
-+	__u64 IBSymbolErrCnt;
-+	__u64 RxVL15DroppedPktCnt;
-+	__u64 RxOtherLocalPhyErrCnt;
-+	__u64 PcieRetryBufDiagQwordCnt;
-+	__u64 ExcessBufferOvflCnt;
-+	__u64 LocalLinkIntegrityErrCnt;
-+	__u64 RxVlErrCnt;
-+	__u64 RxDlidFltrCnt;
-+};
-+
-+/*
-+ * The next set of defines are for packet headers, and chip register
-+ * and memory bits that are visible to and/or used by user-mode software.
-+ */
-+
-+/* RcvHdrFlags bits */
-+#define QLOGIC_IB_RHF_LENGTH_MASK 0x7FF
-+#define QLOGIC_IB_RHF_LENGTH_SHIFT 0
-+#define QLOGIC_IB_RHF_RCVTYPE_MASK 0x7
-+#define QLOGIC_IB_RHF_RCVTYPE_SHIFT 11
-+#define QLOGIC_IB_RHF_EGRINDEX_MASK 0xFFF
-+#define QLOGIC_IB_RHF_EGRINDEX_SHIFT 16
-+#define QLOGIC_IB_RHF_SEQ_MASK 0xF
-+#define QLOGIC_IB_RHF_SEQ_SHIFT 0
-+#define QLOGIC_IB_RHF_HDRQ_OFFSET_MASK 0x7FF
-+#define QLOGIC_IB_RHF_HDRQ_OFFSET_SHIFT 4
-+#define QLOGIC_IB_RHF_H_ICRCERR   0x80000000
-+#define QLOGIC_IB_RHF_H_VCRCERR   0x40000000
-+#define QLOGIC_IB_RHF_H_PARITYERR 0x20000000
-+#define QLOGIC_IB_RHF_H_LENERR    0x10000000
-+#define QLOGIC_IB_RHF_H_MTUERR    0x08000000
-+#define QLOGIC_IB_RHF_H_IHDRERR   0x04000000
-+#define QLOGIC_IB_RHF_H_TIDERR    0x02000000
-+#define QLOGIC_IB_RHF_H_MKERR     0x01000000
-+#define QLOGIC_IB_RHF_H_IBERR     0x00800000
-+#define QLOGIC_IB_RHF_H_ERR_MASK  0xFF800000
-+#define QLOGIC_IB_RHF_L_USE_EGR   0x80000000
-+#define QLOGIC_IB_RHF_L_SWA       0x00008000
-+#define QLOGIC_IB_RHF_L_SWB       0x00004000
-+
-+/* qlogic_ib header fields */
-+#define QLOGIC_IB_I_VERS_MASK 0xF
-+#define QLOGIC_IB_I_VERS_SHIFT 28
-+#define QLOGIC_IB_I_CTXT_MASK 0xF
-+#define QLOGIC_IB_I_CTXT_SHIFT 24
-+#define QLOGIC_IB_I_TID_MASK 0x7FF
-+#define QLOGIC_IB_I_TID_SHIFT 13
-+#define QLOGIC_IB_I_OFFSET_MASK 0x1FFF
-+#define QLOGIC_IB_I_OFFSET_SHIFT 0
-+
-+/* K_PktFlags bits */
-+#define QLOGIC_IB_KPF_INTR 0x1
-+#define QLOGIC_IB_KPF_SUBCTXT_MASK 0x3
-+#define QLOGIC_IB_KPF_SUBCTXT_SHIFT 1
-+
-+#define QLOGIC_IB_MAX_SUBCTXT   4
-+
-+/* SendPIO per-buffer control */
-+#define QLOGIC_IB_SP_TEST    0x40
-+#define QLOGIC_IB_SP_TESTEBP 0x20
-+#define QLOGIC_IB_SP_TRIGGER_SHIFT  15
-+
-+/* SendPIOAvail bits */
-+#define QLOGIC_IB_SENDPIOAVAIL_BUSY_SHIFT 1
-+#define QLOGIC_IB_SENDPIOAVAIL_CHECK_SHIFT 0
-+
-+/* qlogic_ib header format */
-+struct qib_header {
-+	/*
-+	 * Version - 4 bits, Context - 4 bits, TID - 10 bits and Offset -
-+	 * 14 bits before ECO change ~28 Dec 03.  After that, Vers 4,
-+	 * Context 4, TID 11, offset 13.
-+	 */
-+	__le32 ver_ctxt_tid_offset;
-+	__le16 chksum;
-+	__le16 pkt_flags;
-+};
-+
-+/*
-+ * qlogic_ib user message header format.
-+ * This structure contains the first 4 fields common to all protocols
-+ * that employ qlogic_ib.
-+ */
-+struct qib_message_header {
-+	__be16 lrh[4];
-+	__be32 bth[3];
-+	/* fields below this point are in host byte order */
-+	struct qib_header iph;
-+	__u8 sub_opcode;
-+};
-+
-+/* IB - LRH header consts */
-+#define QIB_LRH_GRH 0x0003      /* 1. word of IB LRH - next header: GRH */
-+#define QIB_LRH_BTH 0x0002      /* 1. word of IB LRH - next header: BTH */
-+
-+/* misc. */
-+#define SIZE_OF_CRC 1
-+
-+#define QIB_DEFAULT_P_KEY 0xFFFF
-+#define QIB_PERMISSIVE_LID 0xFFFF
-+#define QIB_AETH_CREDIT_SHIFT 24
-+#define QIB_AETH_CREDIT_MASK 0x1F
-+#define QIB_AETH_CREDIT_INVAL 0x1F
-+#define QIB_PSN_MASK 0xFFFFFF
-+#define QIB_MSN_MASK 0xFFFFFF
-+#define QIB_QPN_MASK 0xFFFFFF
-+#define QIB_MULTICAST_LID_BASE 0xC000
-+#define QIB_EAGER_TID_ID QLOGIC_IB_I_TID_MASK
-+#define QIB_MULTICAST_QPN 0xFFFFFF
-+
-+/* Receive Header Queue: receive type (from qlogic_ib) */
-+#define RCVHQ_RCV_TYPE_EXPECTED  0
-+#define RCVHQ_RCV_TYPE_EAGER     1
-+#define RCVHQ_RCV_TYPE_NON_KD    2
-+#define RCVHQ_RCV_TYPE_ERROR     3
-+
-+#define QIB_HEADER_QUEUE_WORDS 9
-+
-+/* functions for extracting fields from rcvhdrq entries for the driver.
-+ */
-+static inline __u32 qib_hdrget_err_flags(const __le32 *rbuf)
-+{
-+	return __le32_to_cpu(rbuf[1]) & QLOGIC_IB_RHF_H_ERR_MASK;
++	if (ret >= 0) {
++		*off += count;
++		ret = count;
++		if (dc->state == INIT)
++			dc->state = READY; /* all read/write OK now */
++	}
++bail:
++	return ret;
 +}
 +
-+static inline __u32 qib_hdrget_rcv_type(const __le32 *rbuf)
-+{
-+	return (__le32_to_cpu(rbuf[0]) >> QLOGIC_IB_RHF_RCVTYPE_SHIFT) &
-+		QLOGIC_IB_RHF_RCVTYPE_MASK;
-+}
-+
-+static inline __u32 qib_hdrget_length_in_bytes(const __le32 *rbuf)
-+{
-+	return ((__le32_to_cpu(rbuf[0]) >> QLOGIC_IB_RHF_LENGTH_SHIFT) &
-+		QLOGIC_IB_RHF_LENGTH_MASK) << 2;
-+}
-+
-+static inline __u32 qib_hdrget_index(const __le32 *rbuf)
-+{
-+	return (__le32_to_cpu(rbuf[0]) >> QLOGIC_IB_RHF_EGRINDEX_SHIFT) &
-+		QLOGIC_IB_RHF_EGRINDEX_MASK;
-+}
-+
-+static inline __u32 qib_hdrget_seq(const __le32 *rbuf)
-+{
-+	return (__le32_to_cpu(rbuf[1]) >> QLOGIC_IB_RHF_SEQ_SHIFT) &
-+		QLOGIC_IB_RHF_SEQ_MASK;
-+}
-+
-+static inline __u32 qib_hdrget_offset(const __le32 *rbuf)
-+{
-+	return (__le32_to_cpu(rbuf[1]) >> QLOGIC_IB_RHF_HDRQ_OFFSET_SHIFT) &
-+		QLOGIC_IB_RHF_HDRQ_OFFSET_MASK;
-+}
-+
-+static inline __u32 qib_hdrget_use_egr_buf(const __le32 *rbuf)
-+{
-+	return __le32_to_cpu(rbuf[0]) & QLOGIC_IB_RHF_L_USE_EGR;
-+}
-+
-+static inline __u32 qib_hdrget_qib_ver(__le32 hdrword)
-+{
-+	return (__le32_to_cpu(hdrword) >> QLOGIC_IB_I_VERS_SHIFT) &
-+		QLOGIC_IB_I_VERS_MASK;
-+}
-+
-+#endif                          /* _QIB_COMMON_H */
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
