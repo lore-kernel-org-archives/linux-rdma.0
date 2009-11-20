@@ -1,64 +1,99 @@
-From: Dave Olson <dave.olson-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH 02/53] IB/qib: Add Makefile
-Date: Thu, 19 Nov 2009 17:07:45 -0800
-Message-ID: <alpine.LFD.1.10.0911191700500.21294@topaz.mv.qlogic.com>
-References: <20091119233655.30356.57433.stgit@chromite.mv.qlogic.com> <20091119233706.30356.20051.stgit@chromite.mv.qlogic.com> <adaeinu6owu.fsf@roland-alpha.cisco.com>
+From: Eric Dumazet <eric.dumazet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH] RDMA/addr: Use appropriate locking with for_each_netdev()
+Date: Fri, 20 Nov 2009 06:28:00 +0100
+Message-ID: <4B0628E0.6000404@gmail.com>
+References: <4AF8EBA4.2070102@gmail.com>	<D5E1FB213939498DBFFEB5A3B83C08AD@amr.corp.intel.com> <adaocn8x6j7.fsf@roland-alpha.cisco.com> <8C10E584257A46DB9A0AD193520CF4A7@amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="US-ASCII"
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <adaeinu6owu.fsf-BjVyx320WGW9gfZ95n9DRSW4+XlvGpQz@public.gmane.org>
+In-Reply-To: <8C10E584257A46DB9A0AD193520CF4A7-Zpru7NauK7drdx17CPfAsdBPR1lH4CV8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Cc: Ralph Campbell <ralph.campbell-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: 'Roland Dreier' <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, Linux Netdev List <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, 19 Nov 2009, Roland Dreier wrote:
+Sean Hefty a =E9crit :
+>> Would it be possible for you to take Eric's patch as the first in yo=
+ur
+>> set (keeping his From: of course) and base your fixes on top of that=
+?
+>=20
+> Will do.
+>=20
 
-| 
-|  > +ccflags-y += -DQIB_KERN_TYPE=0 -DQIB_IDSTR='"QLogic kernel.org driver"'
-| 
-| Do we really need to put this in the Makefile?  Why can't this be done
-| in some header file?  What the heck is the KERN_TYPE anyway?
+Any news of this patch ?
 
-A way of distinguishing qlogic-built drivers from elsewhere.  We'll fix
-this; it shouldn't be needed in the upstream driver.
+We need it for 2.6.32 and also to prepare 2.6.33 with upcoming patches.
 
-| 
-| I think the convention is to do this with multiple files per line, ie
-| 
-| ib_qib-y :=	qip_cq.o qib_diag.o qib_dma.o ... \
+Thanks
 
-Last time we did that, we got asked to change it to one per line.  If
-conventions have changed, no problem.
+[PATCH] RDMA/addr: Use appropriate locking with for_each_netdev()
 
-|  > +ib_qib-$(CONFIG_PCI_MSI) += qib_iba6120.o
-| 
-| Seems you put the 6120 in the module device table even if PCI_MSI isn't
-| set... does the driver build without MSI enabled?
+for_each_netdev() should be used with RTNL or dev_base_lock held,
+or risk a crash.
 
-Yes.  It just doesn't work well.  It works well enough to tell people
-what the problem is, which is what we wanted.
+Signed-off-by: Eric Dumazet <eric.dumazet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+---
+ drivers/infiniband/core/addr.c |    9 +++++++--
+ 1 files changed, 7 insertions(+), 2 deletions(-)
 
-| And are you dropping 6110 support (I see no HT_IRQ stuff)?  So do we
-| need to keep ipath around for that?
+diff --git a/drivers/infiniband/core/addr.c b/drivers/infiniband/core/a=
+ddr.c
+index bd07803..5ca0b2c 100644
+--- a/drivers/infiniband/core/addr.c
++++ b/drivers/infiniband/core/addr.c
+@@ -131,6 +131,7 @@ int rdma_translate_ip(struct sockaddr *addr, struct=
+ rdma_dev_addr *dev_addr)
+=20
+ #if defined(CONFIG_IPV6) || defined(CONFIG_IPV6_MODULE)
+ 	case AF_INET6:
++		read_lock(&dev_base_lock);
+ 		for_each_netdev(&init_net, dev) {
+ 			if (ipv6_chk_addr(&init_net,
+ 					  &((struct sockaddr_in6 *) addr)->sin6_addr,
+@@ -139,6 +140,7 @@ int rdma_translate_ip(struct sockaddr *addr, struct=
+ rdma_dev_addr *dev_addr)
+ 				break;
+ 			}
+ 		}
++		read_unlock(&dev_base_lock);
+ 		break;
+ #endif
+ 	}
+@@ -391,15 +393,17 @@ static int addr_resolve_local(struct sockaddr *sr=
+c_in,
+ 	{
+ 		struct in6_addr *a;
+=20
++		read_lock(&dev_base_lock);
+ 		for_each_netdev(&init_net, dev)
+ 			if (ipv6_chk_addr(&init_net,
+ 					  &((struct sockaddr_in6 *) dst_in)->sin6_addr,
+ 					  dev, 1))
+ 				break;
+=20
+-		if (!dev)
++		if (!dev) {
++			read_unlock(&dev_base_lock);
+ 			return -EADDRNOTAVAIL;
+-
++		}
+ 		a =3D &((struct sockaddr_in6 *) src_in)->sin6_addr;
+=20
+ 		if (ipv6_addr_any(a)) {
+@@ -416,6 +420,7 @@ static int addr_resolve_local(struct sockaddr *src_=
+in,
+ 			if (!ret)
+ 				memcpy(addr->dst_dev_addr, dev->dev_addr, MAX_ADDR_LEN);
+ 		}
++		read_unlock(&dev_base_lock);
+ 		break;
+ 	}
+ #endif
 
-6110 is out of this driver, and people (customers) are aware that support has
-been dropped.  The current (non-verbs) userland software won't work on those
-boards any longer, and customers were using them primarily for non-verbs
-MPI.
-
-The ipath driver has some significant problems with verbs, and those
-problems have been fixed based on the significant restructuring and
-rewrites in the ib_qib driver, so it's unlikely that any customer would
-want to continue to use the ib_ipath driver in any case.
-
-It seems to me that people who want the ib_ipath driver are likely to 
-use it only on older kernels where it was known to work OK, in any case.
-Testing on ib_ipath (by QLogic, at least) stopped with the 2.6.24 kernel.
-
-Dave Olson
-dave.olson-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
