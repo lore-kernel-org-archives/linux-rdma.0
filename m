@@ -1,46 +1,25 @@
-From: frank zago <fzago-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org>
-Subject: ib_post_send in drivers
-Date: Fri, 20 Nov 2009 10:16:42 -0600
-Message-ID: <4B06C0EA.2070501@systemfabricworks.com>
+From: Christoph Lameter <cl-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
+Subject: Re: patch for non-ib network
+Date: Fri, 20 Nov 2009 11:13:21 -0500 (EST)
+Message-ID: <alpine.DEB.1.10.0911201112580.30024@V090114053VZO-1>
+References: <Pine.LNX.4.62.0911201915430.25859@mailhub.cdac.in>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <Pine.LNX.4.62.0911201915430.25859-NG0XCrj25/kh/ldBx82aDQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: javed-If5XQcfNmg0@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hello,
+On Fri, 20 Nov 2009, javed-If5XQcfNmg0@public.gmane.org wrote:
 
-It seems ib_post_send() is implemented slightly differently in the 
-various hardware drivers (as in kernel 2.6.31). Here are the differences 
-I've noticed regarding the bad_wr parameter.
+> is it possible to add a patch in ofed release for non-ib networks? we've
+> integrated ofed with 'paramnet-3' a 10Gbps system area network. currently
+> IPoIB is working fine. more details can be provided if required.
 
-amso1100/c2_qp.c : c2_post_send()
- * bails out and does not set bad_wr if the 1st check is bad.
-
-cxgb3/iwch_qp.c : post_one_send()
- * test for bad_send_wr but it should always be set
-
-cxgb3/iwch_qp.c : iwch_post_send()
- * bails out and does not set bad_wr if the 1st 2 checks are bad
-
-ehca/ehca_reqs.c : ehca_post_send()
- * bails out and does not set bad_wr if the 1st check is bad.
- * test for bad_send_wr but it should always be set
- * always return success if at least one post succeeded.
-
-ehca/ehca_reqs.c : post_one_send()
- * test for bad_send_wr but it should always be set
-
-nes/nes_verbs.c : nes_post_send()
- * bails out and does not set bad_wr if the 1st check is bad.
-
-I think assume most are bugs (especially the ehca driver). I can post a 
-patch to fix these if confirmed.
-
-Regards,
- Frank
+Sure. Mellanox is doing something similar right now. Just be sure to sync
+code up.
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
