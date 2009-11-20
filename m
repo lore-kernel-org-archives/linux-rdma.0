@@ -1,8 +1,8 @@
 From: "Jim Schutt" <jaschut-4OHPYypu0djtX7QSmKvirg@public.gmane.org>
-Subject: [PATCH 08/11] opensm: Do not require -Q option for torus-2QoS
- routing engine.
-Date: Fri, 20 Nov 2009 12:15:06 -0700
-Message-ID: <1258744509-11148-8-git-send-email-jaschut@sandia.gov>
+Subject: [PATCH 03/11] opensm: Allow the routing engine to participate
+ in path SL calculations.
+Date: Fri, 20 Nov 2009 12:15:02 -0700
+Message-ID: <1258744509-11148-4-git-send-email-jaschut@sandia.gov>
 References: <1258744509-11148-1-git-send-email-jaschut@sandia.gov>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -14,145 +14,228 @@ To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org, eitan-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org, jaschut-4OHPYypu0djtX7QSmKvirg@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-The torus-2QoS engine provides a deadlock-free routing for a 2D/3D torus,
-but requires that switch SL2VL maps be programmed.  Before this change,
-"opensm -Q" was required for that to happen.
+LASH already does this, in a hard-coded fashion.
 
-When a routing engine sets the struct osm_routing_engine:update_sl2vl
-pointer, it is signalling its intent to participate in SL2VL map programming.
-So, don't return early from osm_qos_setup() in that case; instead do everything
-except attempt to read QoS configuration information.
+Generalize this by adding a callback to struct osm_routing_engine that
+computes a path SL value, and fix up LASH to use it.
 
-For that to work properly, need to also always set up the default QoS config
-information, instead of just when QoS is requested via -Q.
+This patchset causes the requested or QoS-computed SL value to be passed
+to the routing engine path SL computation as a hint.  In the event the
+routing engine's use of SLs allows it to support more than one QoS level,
+it may be able to make use of the SL hint to do so.
 
-With that in place, the -Q option now means the same thing to torus-2QoS that
-it means to other routing engines: QoS configuration is requested.
+For now, LASH just ignores the hint.
 
-Otherwise, torus-2QoS can confine its unicast traffic to SLs 8-15, leaving
-SL 0 free, e.g. for multicast.  This is useful until such time as
-torus-2QoS can be extended to implement a spanning tree for multicast that
-will not deadlock against the routing used for unicast.
+Note that before this change, if LASH was configured and a specific path
+SL value was requested that differed from what LASH needed to route the
+fabric without credit loops, the path SL lookup would fail.  Now LASH's
+SL value is always used.
+
+Possibly the choice between failing a path SL request when it conflicts
+with routing, vs. always providing an SL value that gives a credit-loop-
+free routing, should be user-configurable?
 
 Signed-off-by: Jim Schutt <jaschut-4OHPYypu0djtX7QSmKvirg@public.gmane.org>
 ---
- opensm/opensm/osm_qos.c         |    7 +++++--
- opensm/opensm/osm_subnet.c      |   18 +++++++++---------
- opensm/opensm/osm_ucast_torus.c |   24 +++++++++++++++++++++++-
- 3 files changed, 37 insertions(+), 12 deletions(-)
+ opensm/include/opensm/osm_opensm.h     |    6 +++++
+ opensm/include/opensm/osm_ucast_lash.h |    3 --
+ opensm/opensm/osm_link_mgr.c           |   15 ++++++++-----
+ opensm/opensm/osm_sa_path_record.c     |   34 +++++++++++--------------------
+ opensm/opensm/osm_ucast_lash.c         |    8 +++++-
+ 5 files changed, 33 insertions(+), 33 deletions(-)
 
-diff --git a/opensm/opensm/osm_qos.c b/opensm/opensm/osm_qos.c
-index f42c334..0f0b24f 100644
---- a/opensm/opensm/osm_qos.c
-+++ b/opensm/opensm/osm_qos.c
-@@ -288,7 +288,9 @@ int osm_qos_setup(osm_opensm_t * p_osm)
- 	int ret = 0;
- 	uint8_t i;
+diff --git a/opensm/include/opensm/osm_opensm.h b/opensm/include/opensm/osm_opensm.h
+index 616113b..ef9d4e1 100644
+--- a/opensm/include/opensm/osm_opensm.h
++++ b/opensm/include/opensm/osm_opensm.h
+@@ -129,6 +129,9 @@ struct osm_routing_engine {
+ 	void (*update_sl2vl)(void *context, IN osm_port_t *port,
+ 			     IN uint8_t in_port_num, IN uint8_t out_port_num,
+ 			     IN OUT ib_slvl_table_t *t);
++	uint8_t (*path_sl)(void *context, IN uint8_t path_sl_hint,
++			   IN const osm_port_t *src_port,
++			   IN const osm_port_t *dst_port);
+ 	void (*delete) (void *context);
+ 	struct osm_routing_engine *next;
+ };
+@@ -160,6 +163,9 @@ struct osm_routing_engine {
+ *		for which the SL2VL map should be updated, and in_port_num/
+ *		out_port_num should be ignored.
+ *
++*	path_sl
++*		The callback for computing path SL.
++*
+ *	delete
+ *		The delete method, may be used for routing engine
+ *		internals cleanup.
+diff --git a/opensm/include/opensm/osm_ucast_lash.h b/opensm/include/opensm/osm_ucast_lash.h
+index 9e15d38..dd90d5d 100644
+--- a/opensm/include/opensm/osm_ucast_lash.h
++++ b/opensm/include/opensm/osm_ucast_lash.h
+@@ -94,7 +94,4 @@ typedef struct _lash {
+ 	int ***virtual_location;
+ } lash_t;
  
--	if (!p_osm->subn.opt.qos)
-+	if (!(p_osm->subn.opt.qos ||
-+	      (p_osm->routing_engine_used &&
-+	       p_osm->routing_engine_used->update_sl2vl)))
- 		return 0;
- 
- 	OSM_LOG_ENTER(&p_osm->log);
-@@ -305,7 +307,8 @@ int osm_qos_setup(osm_opensm_t * p_osm)
- 	cl_plock_excl_acquire(&p_osm->lock);
- 
- 	/* read QoS policy config file */
--	osm_qos_parse_policy_file(&p_osm->subn);
-+	if (p_osm->subn.opt.qos)
-+		osm_qos_parse_policy_file(&p_osm->subn);
- 
- 	p_tbl = &p_osm->subn.port_guid_tbl;
- 	p_next = cl_qmap_head(p_tbl);
-diff --git a/opensm/opensm/osm_subnet.c b/opensm/opensm/osm_subnet.c
-index c9bb20c..cc81545 100644
---- a/opensm/opensm/osm_subnet.c
-+++ b/opensm/opensm/osm_subnet.c
-@@ -1044,6 +1044,8 @@ static void subn_verify_qos_set(osm_qos_options_t *set, const char *prefix,
- 
- int osm_subn_verify_config(IN osm_subn_opt_t * p_opts)
- {
-+	osm_qos_options_t dflt;
-+
- 	if (p_opts->lmc > 7) {
- 		log_report(" Invalid Cached Option Value:lmc = %u:"
- 			   "Using Default:%u\n", p_opts->lmc, OSM_DEFAULT_LMC);
-@@ -1087,17 +1089,15 @@ int osm_subn_verify_config(IN osm_subn_opt_t * p_opts)
- 		p_opts->console = OSM_DEFAULT_CONSOLE;
- 	}
- 
--	if (p_opts->qos) {
--		osm_qos_options_t dflt;
+-uint8_t osm_get_lash_sl(osm_opensm_t * p_osm, const osm_port_t * p_src_port,
+-			const osm_port_t * p_dst_port);
 -
--		/* the default options in qos_options must be correct.
--		 * every other one need not be, b/c those will default
--		 * back to whatever is in qos_options.
--		 */
+ #endif
+diff --git a/opensm/opensm/osm_link_mgr.c b/opensm/opensm/osm_link_mgr.c
+index aaeebc7..02d6ec8 100644
+--- a/opensm/opensm/osm_link_mgr.c
++++ b/opensm/opensm/osm_link_mgr.c
+@@ -53,21 +53,23 @@
+ #include <opensm/osm_helper.h>
+ #include <opensm/osm_msgdef.h>
+ #include <opensm/osm_opensm.h>
+-#include <opensm/osm_ucast_lash.h>
  
--		subn_set_default_qos_options(&dflt);
-+	/* the default options in qos_options must be correct.
-+	 * every other one need not be, b/c those will default
-+	 * back to whatever is in qos_options.
-+	 */
-+	subn_set_default_qos_options(&dflt);
-+	subn_verify_qos_set(&p_opts->qos_options, "qos", &dflt);
+ static uint8_t link_mgr_get_smsl(IN osm_sm_t * sm, IN osm_physp_t * p_physp)
+ {
+ 	osm_opensm_t *p_osm = sm->p_subn->p_osm;
++	struct osm_routing_engine *re = p_osm->routing_engine_used;
+ 	const osm_port_t *p_sm_port, *p_src_port;
+ 	ib_net16_t slid, smlid;
+ 	uint8_t sl;
  
--		subn_verify_qos_set(&p_opts->qos_options, "qos", &dflt);
-+	if (p_opts->qos) {
- 		subn_verify_qos_set(&p_opts->qos_ca_options, "qos_ca",
- 				    &p_opts->qos_options);
- 		subn_verify_qos_set(&p_opts->qos_sw0_options, "qos_sw0",
-diff --git a/opensm/opensm/osm_ucast_torus.c b/opensm/opensm/osm_ucast_torus.c
-index 6fff73e..8eb2880 100644
---- a/opensm/opensm/osm_ucast_torus.c
-+++ b/opensm/opensm/osm_ucast_torus.c
-@@ -298,6 +298,7 @@ struct torus {
- #define Z_MESH (1U << 2)
- #define MSG_DEADLOCK (1U << 29)
- #define NOTIFY_CHANGES (1U << 30)
-+#define QOS_ENABLED (1U << 31)
+ 	OSM_LOG_ENTER(sm->p_log);
  
- #define ALL_MESH(flags) \
- 	((flags & (X_MESH | Y_MESH | Z_MESH)) == (X_MESH | Y_MESH | Z_MESH))
-@@ -8548,7 +8549,25 @@ uint8_t torus_path_sl(void *context, uint8_t path_sl_hint,
- 	sl  = sl_set_use_loop_vl(use_vl1(ssw->i, dsw->i, t->x_sz), 0);
- 	sl |= sl_set_use_loop_vl(use_vl1(ssw->j, dsw->j, t->y_sz), 1);
- 	sl |= sl_set_use_loop_vl(use_vl1(ssw->k, dsw->k, t->z_sz), 2);
--	sl |= sl_set_qos(sl_get_qos(path_sl_hint));
-+
-+	/*
-+	 * If QoS was not requested by user, force path SLs into 8-15 range.
-+	 * This leaves SL 0 available for multicast, and SL2VL mappings
-+	 * will keep multicast traffic from deadlocking with unicast traffic.
-+	 *
-+	 * However, multicast might still deadlock against itself if multiple
-+	 * multicast groups each use their own spanning tree.
-+	 *
-+	 * FIXME: it is possible to construct a spanning tree that can
-+	 * overlay the DOR routing used for unicast in a way that multicast
-+	 * and unicast can share VLs but cannot deadlock against each other.
-+	 * Need to implement that and cause it to be used whenever the
-+	 * torus-2QoS routing engine is used.
-+	 */
-+	if (t->flags & QOS_ENABLED)
-+		sl |= sl_set_qos(sl_get_qos(path_sl_hint));
-+	else
-+		sl |= sl_set_qos(1);
- out:
- 	return sl;
- }
-@@ -8570,6 +8589,9 @@ int torus_build_lfts(void *context)
- 			"Error: allocating torus: %s\n", strerror(errno));
- 		goto out;
+-	if (!(p_osm->routing_engine_used &&
+-	      p_osm->routing_engine_used->type == OSM_ROUTING_ENGINE_TYPE_LASH &&
++	if (!(re && re->path_sl &&
+ 	      (slid = osm_physp_get_base_lid(p_physp)))) {
+-		/* Use default SL if lash routing is not used */
++		/*
++		 * Use default SL if routing engine does not provide a
++		 * path SL lookup callback.
++		 */
+ 		OSM_LOG_EXIT(sm->p_log);
+ 		return sm->p_subn->opt.sm_sl;
  	}
-+	if (ctx->osm->subn.opt.qos)
-+		torus->flags |= QOS_ENABLED;
-+
- 	torus->osm = ctx->osm;
- 	fabric->osm = ctx->osm;
+@@ -81,8 +83,9 @@ static uint8_t link_mgr_get_smsl(IN osm_sm_t * sm, IN osm_physp_t * p_physp)
+ 	p_src_port =
+ 	    cl_ptr_vector_get(&sm->p_subn->port_lid_tbl, cl_ntoh16(slid));
  
+-	/* Call lash to find proper SL */
+-	sl = osm_get_lash_sl(p_osm, p_src_port, p_sm_port);
++	/* Call into routing engine to find proper SL */
++	sl = re->path_sl(re->context, sm->p_subn->opt.sm_sl,
++			 p_src_port, p_sm_port);
+ 
+ 	OSM_LOG_EXIT(sm->p_log);
+ 	return sl;
+diff --git a/opensm/opensm/osm_sa_path_record.c b/opensm/opensm/osm_sa_path_record.c
+index 484cb5b..dcb2d4e 100644
+--- a/opensm/opensm/osm_sa_path_record.c
++++ b/opensm/opensm/osm_sa_path_record.c
+@@ -161,6 +161,7 @@ static ib_api_status_t pr_rcv_get_path_parms(IN osm_sa_t * sa,
+ 	const osm_physp_t *p_dest_physp;
+ 	const osm_prtn_t *p_prtn = NULL;
+ 	osm_opensm_t *p_osm;
++	struct osm_routing_engine *p_re;
+ 	const ib_port_info_t *p_pi;
+ 	ib_api_status_t status = IB_SUCCESS;
+ 	ib_net16_t pkey;
+@@ -177,7 +178,6 @@ static ib_api_status_t pr_rcv_get_path_parms(IN osm_sa_t * sa,
+ 	ib_slvl_table_t *p_slvl_tbl = NULL;
+ 	osm_qos_level_t *p_qos_level = NULL;
+ 	uint16_t valid_sl_mask = 0xffff;
+-	int is_lash;
+ 
+ 	OSM_LOG_ENTER(sa->p_log);
+ 
+@@ -188,6 +188,7 @@ static ib_api_status_t pr_rcv_get_path_parms(IN osm_sa_t * sa,
+ 	p_src_physp = p_physp;
+ 	p_pi = &p_physp->port_info;
+ 	p_osm = sa->p_subn->p_osm;
++	p_re = p_osm->routing_engine_used;
+ 
+ 	mtu = ib_port_info_get_mtu_cap(p_pi);
+ 	rate = ib_port_info_compute_rate(p_pi);
+@@ -646,9 +647,6 @@ static ib_api_status_t pr_rcv_get_path_parms(IN osm_sa_t * sa,
+ 	 * Set PathRecord SL
+ 	 */
+ 
+-	is_lash = (p_osm->routing_engine_used &&
+-		   p_osm->routing_engine_used->type == OSM_ROUTING_ENGINE_TYPE_LASH);
+-
+ 	if (comp_mask & IB_PR_COMPMASK_SL) {
+ 		/*
+ 		 * Specific SL was requested
+@@ -665,26 +663,10 @@ static ib_api_status_t pr_rcv_get_path_parms(IN osm_sa_t * sa,
+ 			goto Exit;
+ 		}
+ 
+-		if (is_lash
+-		    && osm_get_lash_sl(p_osm, p_src_port, p_dest_port) != sl) {
+-			OSM_LOG(sa->p_log, OSM_LOG_ERROR, "ERR 1F23: "
+-				"Required PathRecord SL (%u) doesn't "
+-				"match LASH SL\n", sl);
+-			status = IB_NOT_FOUND;
+-			goto Exit;
+-		}
+-
+-	} else if (is_lash) {
+-		/*
+-		 * No specific SL in PathRecord request.
+-		 * If it's LASH routing - use its SL.
+-		 * slid and dest_lid are stored in network in lash.
+-		 */
+-		sl = osm_get_lash_sl(p_osm, p_src_port, p_dest_port);
+ 	} else if (p_qos_level && p_qos_level->sl_set) {
+ 		/*
+-		 * No specific SL was requested, and we're not in
+-		 * LASH routing, but there is an SL in QoS level.
++		 * No specific SL was requested, but there is an SL in
++		 * QoS level.
+ 		 */
+ 		sl = p_qos_level->sl;
+ 
+@@ -725,6 +707,14 @@ static ib_api_status_t pr_rcv_get_path_parms(IN osm_sa_t * sa,
+ 		goto Exit;
+ 	}
+ 
++	/*
++	 * If the routing engine wants to have a say in path SL selection,
++	 * send the currently computed SL value as a hint and let the routing
++	 * engine override it.
++	 */
++	if (p_re && p_re->path_sl)
++		sl = p_re->path_sl(p_re->context, sl, p_src_port, p_dest_port);
++
+ 	/* reset pkey when raw traffic */
+ 	if (comp_mask & IB_PR_COMPMASK_RAWTRAFFIC &&
+ 	    cl_ntoh32(p_pr->hop_flow_raw) & (1 << 31))
+diff --git a/opensm/opensm/osm_ucast_lash.c b/opensm/opensm/osm_ucast_lash.c
+index 626887f..bbba6ee 100644
+--- a/opensm/opensm/osm_ucast_lash.c
++++ b/opensm/opensm/osm_ucast_lash.c
+@@ -1277,12 +1277,15 @@ static void lash_delete(void *context)
+ 	free(p_lash);
+ }
+ 
+-uint8_t osm_get_lash_sl(osm_opensm_t * p_osm, const osm_port_t * p_src_port,
+-			const osm_port_t * p_dst_port)
++static uint8_t get_lash_sl(void *context, uint8_t path_sl_hint,
++			   const osm_port_t *p_src_port,
++			   const osm_port_t *p_dst_port)
+ {
+ 	unsigned dst_id;
+ 	unsigned src_id;
+ 	osm_switch_t *p_sw;
++	lash_t *p_lash = context;
++	osm_opensm_t *p_osm = p_lash->p_osm;
+ 
+ 	if (!(p_osm->routing_engine_used &&
+ 	      p_osm->routing_engine_used->type == OSM_ROUTING_ENGINE_TYPE_LASH))
+@@ -1312,6 +1315,7 @@ int osm_ucast_lash_setup(struct osm_routing_engine *r, osm_opensm_t *p_osm)
+ 
+ 	r->context = p_lash;
+ 	r->ucast_build_fwd_tables = lash_process;
++	r->path_sl = get_lash_sl;
+ 	r->delete = lash_delete;
+ 
+ 	return 0;
 -- 
 1.5.6.GIT
 
