@@ -1,8 +1,7 @@
 From: "Jim Schutt" <jaschut-4OHPYypu0djtX7QSmKvirg@public.gmane.org>
-Subject: [PATCH 04/11] opensm: Track the minimum value in the fabric of
- data VLs supported.
-Date: Fri, 20 Nov 2009 12:15:03 -0700
-Message-ID: <1258744509-11148-5-git-send-email-jaschut@sandia.gov>
+Subject: [PATCH 06/11] opensm: Enable torus-2QoS routing engine.
+Date: Fri, 20 Nov 2009 12:15:04 -0700
+Message-ID: <1258744509-11148-6-git-send-email-jaschut@sandia.gov>
 References: <1258744509-11148-1-git-send-email-jaschut@sandia.gov>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -14,99 +13,63 @@ To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org, eitan-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org, jaschut-4OHPYypu0djtX7QSmKvirg@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-A routing engine that wants to make contributions to SL2VL maps in support
-of routing free from credit loops may need to know the minimum number
-of supported data VLs in the fabric.
-
-This code tracks that value.
 
 Signed-off-by: Jim Schutt <jaschut-4OHPYypu0djtX7QSmKvirg@public.gmane.org>
 ---
- opensm/include/opensm/osm_subnet.h |    1 +
- opensm/opensm/osm_port_info_rcv.c  |   13 ++++++++++++-
- opensm/opensm/osm_state_mgr.c      |    6 ++++++
- opensm/opensm/osm_subnet.c         |    1 +
- 4 files changed, 20 insertions(+), 1 deletions(-)
+ opensm/include/opensm/osm_opensm.h |    1 +
+ opensm/opensm/osm_opensm.c         |    6 ++++++
+ 2 files changed, 7 insertions(+), 0 deletions(-)
 
-diff --git a/opensm/include/opensm/osm_subnet.h b/opensm/include/opensm/osm_subnet.h
-index 0302f91..c303e86 100644
---- a/opensm/include/opensm/osm_subnet.h
-+++ b/opensm/include/opensm/osm_subnet.h
-@@ -509,6 +509,7 @@ typedef struct osm_subn {
- 	uint16_t max_mcast_lid_ho;
- 	uint8_t min_ca_mtu;
- 	uint8_t min_ca_rate;
-+	uint8_t min_data_vls;
- 	boolean_t ignore_existing_lfts;
- 	boolean_t subnet_initialization_error;
- 	boolean_t force_heavy_sweep;
-diff --git a/opensm/opensm/osm_port_info_rcv.c b/opensm/opensm/osm_port_info_rcv.c
-index 8a99064..b0d54c8 100644
---- a/opensm/opensm/osm_port_info_rcv.c
-+++ b/opensm/opensm/osm_port_info_rcv.c
-@@ -82,6 +82,7 @@ static void pi_rcv_process_endport(IN osm_sm_t * sm, IN osm_physp_t * p_physp,
- 	ib_api_status_t status;
- 	ib_net64_t port_guid;
- 	uint8_t rate, mtu;
-+	unsigned data_vls;
- 	cl_qmap_t *p_sm_tbl;
- 	osm_remote_sm_t *p_sm;
+diff --git a/opensm/include/opensm/osm_opensm.h b/opensm/include/opensm/osm_opensm.h
+index ef9d4e1..90c6c0f 100644
+--- a/opensm/include/opensm/osm_opensm.h
++++ b/opensm/include/opensm/osm_opensm.h
+@@ -105,6 +105,7 @@ typedef enum _osm_routing_engine_type {
+ 	OSM_ROUTING_ENGINE_TYPE_FTREE,
+ 	OSM_ROUTING_ENGINE_TYPE_LASH,
+ 	OSM_ROUTING_ENGINE_TYPE_DOR,
++	OSM_ROUTING_ENGINE_TYPE_TORUS_2QOS,
+ 	OSM_ROUTING_ENGINE_TYPE_UNKNOWN
+ } osm_routing_engine_type_t;
+ /***********/
+diff --git a/opensm/opensm/osm_opensm.c b/opensm/opensm/osm_opensm.c
+index 9cd254e..7052d49 100644
+--- a/opensm/opensm/osm_opensm.c
++++ b/opensm/opensm/osm_opensm.c
+@@ -70,6 +70,7 @@ extern int osm_ucast_file_setup(struct osm_routing_engine *, osm_opensm_t *);
+ extern int osm_ucast_ftree_setup(struct osm_routing_engine *, osm_opensm_t *);
+ extern int osm_ucast_lash_setup(struct osm_routing_engine *, osm_opensm_t *);
+ extern int osm_ucast_dor_setup(struct osm_routing_engine *, osm_opensm_t *);
++extern int osm_ucast_torus2QoS_setup(struct osm_routing_engine *, osm_opensm_t *);
  
-@@ -91,7 +92,7 @@ static void pi_rcv_process_endport(IN osm_sm_t * sm, IN osm_physp_t * p_physp,
+ const static struct routing_engine_module routing_modules[] = {
+ 	{"minhop", osm_ucast_minhop_setup},
+@@ -78,6 +79,7 @@ const static struct routing_engine_module routing_modules[] = {
+ 	{"ftree", osm_ucast_ftree_setup},
+ 	{"lash", osm_ucast_lash_setup},
+ 	{"dor", osm_ucast_dor_setup},
++	{"torus-2QoS", osm_ucast_torus2QoS_setup},
+ 	{NULL, NULL}
+ };
  
- 	/* HACK extended port 0 should be handled too! */
- 	if (osm_physp_get_port_num(p_physp) != 0) {
--		/* track the minimal endport MTU and rate */
-+		/* track the minimal endport MTU, rate, and operational VLs */
- 		mtu = ib_port_info_get_mtu_cap(p_pi);
- 		if (mtu < sm->p_subn->min_ca_mtu) {
- 			OSM_LOG(sm->p_log, OSM_LOG_VERBOSE,
-@@ -107,6 +108,16 @@ static void pi_rcv_process_endport(IN osm_sm_t * sm, IN osm_physp_t * p_physp,
- 				PRIx64 "\n", rate, cl_ntoh64(port_guid));
- 			sm->p_subn->min_ca_rate = rate;
- 		}
-+
-+		data_vls = 1U << (ib_port_info_get_op_vls(p_pi) - 1);
-+		if (data_vls >= IB_MAX_NUM_VLS)
-+			data_vls = IB_MAX_NUM_VLS - 1;
-+		if ((uint8_t)data_vls < sm->p_subn->min_data_vls) {
-+			OSM_LOG(sm->p_log, OSM_LOG_VERBOSE,
-+				"Setting endport minimal data VLs to:%u defined by port:0x%"
-+				PRIx64 "\n", data_vls, cl_ntoh64(port_guid));
-+			sm->p_subn->min_data_vls = data_vls;
-+		}
+@@ -98,6 +100,8 @@ const char *osm_routing_engine_type_str(IN osm_routing_engine_type_t type)
+ 		return "lash";
+ 	case OSM_ROUTING_ENGINE_TYPE_DOR:
+ 		return "dor";
++	case OSM_ROUTING_ENGINE_TYPE_TORUS_2QOS:
++		return "torus-2QoS";
+ 	default:
+ 		break;
  	}
- 
- 	if (port_guid != sm->p_subn->sm_port_guid) {
-diff --git a/opensm/opensm/osm_state_mgr.c b/opensm/opensm/osm_state_mgr.c
-index c3f49dc..b6c41a6 100644
---- a/opensm/opensm/osm_state_mgr.c
-+++ b/opensm/opensm/osm_state_mgr.c
-@@ -1132,6 +1132,12 @@ repeat_discovery:
- 	sm->p_subn->force_reroute = FALSE;
- 	sm->p_subn->subnet_initialization_error = FALSE;
- 
-+	/* Reset tracking values in case limiting component got removed
-+	 * from fabric. */
-+	sm->p_subn->min_ca_mtu = IB_MAX_MTU;
-+	sm->p_subn->min_ca_rate = IB_MAX_RATE;
-+	sm->p_subn->min_data_vls = IB_MAX_NUM_VLS - 1;
-+
- 	/* rescan configuration updates */
- 	if (!config_parsed && osm_subn_rescan_conf_files(sm->p_subn) < 0)
- 		OSM_LOG(sm->p_log, OSM_LOG_ERROR, "ERR 331A: "
-diff --git a/opensm/opensm/osm_subnet.c b/opensm/opensm/osm_subnet.c
-index 2cfcbe6..19ba730 100644
---- a/opensm/opensm/osm_subnet.c
-+++ b/opensm/opensm/osm_subnet.c
-@@ -526,6 +526,7 @@ ib_api_status_t osm_subn_init(IN osm_subn_t * p_subn, IN osm_opensm_t * p_osm,
- 	p_subn->max_mcast_lid_ho = IB_LID_MCAST_END_HO;
- 	p_subn->min_ca_mtu = IB_MAX_MTU;
- 	p_subn->min_ca_rate = IB_MAX_RATE;
-+	p_subn->min_data_vls = IB_MAX_NUM_VLS - 1;
- 	p_subn->ignore_existing_lfts = TRUE;
- 
- 	/* we assume master by default - so we only need to set it true if STANDBY */
+@@ -124,6 +128,8 @@ osm_routing_engine_type_t osm_routing_engine_type(IN const char *str)
+ 		return OSM_ROUTING_ENGINE_TYPE_LASH;
+ 	else if (!strcasecmp(str, "dor"))
+ 		return OSM_ROUTING_ENGINE_TYPE_DOR;
++	else if (!strcasecmp(str, "torus-2QoS"))
++		return OSM_ROUTING_ENGINE_TYPE_TORUS_2QOS;
+ 	else
+ 		return OSM_ROUTING_ENGINE_TYPE_UNKNOWN;
+ }
 -- 
 1.5.6.GIT
 
