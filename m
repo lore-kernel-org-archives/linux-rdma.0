@@ -1,8 +1,8 @@
 From: "Jim Schutt" <jaschut-4OHPYypu0djtX7QSmKvirg@public.gmane.org>
-Subject: [PATCH 02/11] opensm: Allow the routing engine to influence
- SL2VL calculations.
-Date: Fri, 20 Nov 2009 12:15:01 -0700
-Message-ID: <1258744509-11148-3-git-send-email-jaschut@sandia.gov>
+Subject: [PATCH 01/11] opensm: Prepare for routing engine input to path
+ record SL lookup and SL2VL map setup.
+Date: Fri, 20 Nov 2009 12:15:00 -0700
+Message-ID: <1258744509-11148-2-git-send-email-jaschut@sandia.gov>
 References: <1258744509-11148-1-git-send-email-jaschut@sandia.gov>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -14,116 +14,272 @@ To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org, eitan-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org, jaschut-4OHPYypu0djtX7QSmKvirg@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Note that the original code assumes that QoS setup is mostly static and
-based only on user configuration.  As a result, there is no provision for
-routing engines that want to compute contributions to the SL2VL maps.
+In the event a routing engine needs to participate in SL assignment and
+SL2VL map setup in order to avoid credit loops in a fabric, it will be
+useful to make the routing engine context more widely available.
 
-Fix this up by adding a callback to struct osm_routing_engine that computes
-a per-port SL2VL map, and call it from the appropriate place in the QoS
-setup path.
+To this end, have osm_opensm_t save a pointer to the routing engine used,
+rather than its type.  This will make the routing engine context easily
+available in, e.g., sl2vl_update() and pr_rcv_get_path_parms().
 
-Also need to move the call to osm_qos_setup() in do_sweep() to after the
-call to the routing engine, so that any SL2VL map contributions from the
-routing engine are based on the latest information.
+Make the necessary adjustments to the code that used the old
+routing_engine_used as an enum _osm_routing_engine_type.  In order to
+keep the behavior where minhop was used if the configured routing engines
+failed, the easiest solution was to add a pointer to osm_opensm_t which
+pointed to the minhop struct osm_routing_engine.
 
 Signed-off-by: Jim Schutt <jaschut-4OHPYypu0djtX7QSmKvirg@public.gmane.org>
 ---
- opensm/include/opensm/osm_opensm.h |   13 +++++++++++++
- opensm/opensm/osm_qos.c            |   19 ++++++++++++++++++-
- opensm/opensm/osm_state_mgr.c      |    4 ++--
- 3 files changed, 33 insertions(+), 3 deletions(-)
+ opensm/include/opensm/osm_opensm.h |    4 ++-
+ opensm/opensm/osm_console.c        |   10 ++++++--
+ opensm/opensm/osm_dump.c           |    3 +-
+ opensm/opensm/osm_link_mgr.c       |    5 ++-
+ opensm/opensm/osm_opensm.c         |   43 +++++++++++++++++++++---------------
+ opensm/opensm/osm_sa_path_record.c |    3 +-
+ opensm/opensm/osm_ucast_lash.c     |    3 +-
+ opensm/opensm/osm_ucast_mgr.c      |   17 ++++++++------
+ 8 files changed, 54 insertions(+), 34 deletions(-)
 
 diff --git a/opensm/include/opensm/osm_opensm.h b/opensm/include/opensm/osm_opensm.h
-index e97142e..616113b 100644
+index c6c9bdb..e97142e 100644
 --- a/opensm/include/opensm/osm_opensm.h
 +++ b/opensm/include/opensm/osm_opensm.h
-@@ -126,6 +126,9 @@ struct osm_routing_engine {
+@@ -120,6 +120,7 @@ typedef enum _osm_routing_engine_type {
+ *	added later.
+ */
+ struct osm_routing_engine {
++	osm_routing_engine_type_t type;
+ 	const char *name;
+ 	void *context;
  	int (*build_lid_matrices) (void *context);
- 	int (*ucast_build_fwd_tables) (void *context);
- 	void (*ucast_dump_tables) (void *context);
-+	void (*update_sl2vl)(void *context, IN osm_port_t *port,
-+			     IN uint8_t in_port_num, IN uint8_t out_port_num,
-+			     IN OUT ib_slvl_table_t *t);
- 	void (*delete) (void *context);
- 	struct osm_routing_engine *next;
- };
-@@ -147,6 +150,16 @@ struct osm_routing_engine {
- *	ucast_dump_tables
- *		The callback for dumping unicast routing tables.
- *
-+*	update_sl2vl(void *context, IN osm_port_t *port,
-+*		     IN uint8_t in_port_num, IN uint8_t out_port_num,
-+*		     OUT ib_slvl_table_t *t)
-+*		The callback to allow routing engine input for SL2VL maps.
-+*		For switches, *port is the switch management port, and
-+*		in_port_num/out_port_num identify which part of the SL2VL
-+*		map to update.  For router/HCA ports, *port is the port
-+*		for which the SL2VL map should be updated, and in_port_num/
-+*		out_port_num should be ignored.
-+*
- *	delete
- *		The delete method, may be used for routing engine
- *		internals cleanup.
-diff --git a/opensm/opensm/osm_qos.c b/opensm/opensm/osm_qos.c
-index 08f9a60..f42c334 100644
---- a/opensm/opensm/osm_qos.c
-+++ b/opensm/opensm/osm_qos.c
-@@ -194,6 +194,7 @@ static ib_api_status_t sl2vl_update(osm_sm_t * sm, osm_port_t * p_port,
+@@ -183,7 +184,8 @@ typedef struct osm_opensm {
+ 	cl_dispatcher_t disp;
+ 	cl_plock_t lock;
+ 	struct osm_routing_engine *routing_engine_list;
+-	osm_routing_engine_type_t routing_engine_used;
++	struct osm_routing_engine *routing_engine_used;
++	struct osm_routing_engine *default_routing_engine;
+ 	osm_stats_t stats;
+ 	osm_console_t console;
+ 	nn_map_t *node_name_map;
+diff --git a/opensm/opensm/osm_console.c b/opensm/opensm/osm_console.c
+index 206e7f7..f0c7aa0 100644
+--- a/opensm/opensm/osm_console.c
++++ b/opensm/opensm/osm_console.c
+@@ -362,6 +362,8 @@ static void print_status(osm_opensm_t * p_osm, FILE * out)
+ 	cl_list_item_t *item;
+ 
+ 	if (out) {
++		const char *re_str;
++
+ 		cl_plock_acquire(&p_osm->lock);
+ 		fprintf(out, "   OpenSM Version       : %s\n", p_osm->osm_version);
+ 		fprintf(out, "   SM State             : %s\n",
+@@ -370,9 +372,11 @@ static void print_status(osm_opensm_t * p_osm, FILE * out)
+ 			p_osm->subn.opt.sm_priority);
+ 		fprintf(out, "   SA State             : %s\n",
+ 			sa_state_str(p_osm->sa.state));
+-		fprintf(out, "   Routing Engine       : %s\n",
+-			osm_routing_engine_type_str(p_osm->
+-						    routing_engine_used));
++
++		re_str = p_osm->routing_engine_used ?
++			osm_routing_engine_type_str(p_osm->routing_engine_used->type) :
++			osm_routing_engine_type_str(OSM_ROUTING_ENGINE_TYPE_NONE);
++		fprintf(out, "   Routing Engine       : %s\n", re_str);
+ 
+ 		fprintf(out, "   Loaded event plugins :");
+ 		if (cl_qlist_head(&p_osm->plugin_list) ==
+diff --git a/opensm/opensm/osm_dump.c b/opensm/opensm/osm_dump.c
+index 86e9c00..f3f4623 100644
+--- a/opensm/opensm/osm_dump.c
++++ b/opensm/opensm/osm_dump.c
+@@ -135,7 +135,8 @@ static void dump_ucast_routes(cl_map_item_t * item, FILE * file, void *cxt)
+ 		"Switch 0x%016" PRIx64 "\nLID    : Port : Hops : Optimal\n",
+ 		cl_ntoh64(osm_node_get_node_guid(p_node)));
+ 
+-	dor = (p_osm->routing_engine_used == OSM_ROUTING_ENGINE_TYPE_DOR);
++	dor = (p_osm->routing_engine_used &&
++	       p_osm->routing_engine_used->type == OSM_ROUTING_ENGINE_TYPE_DOR);
+ 
+ 	for (lid_ho = 1; lid_ho <= max_lid_ho; lid_ho++) {
+ 		fprintf(file, "0x%04X : ", lid_ho);
+diff --git a/opensm/opensm/osm_link_mgr.c b/opensm/opensm/osm_link_mgr.c
+index 03a585b..aaeebc7 100644
+--- a/opensm/opensm/osm_link_mgr.c
++++ b/opensm/opensm/osm_link_mgr.c
+@@ -64,8 +64,9 @@ static uint8_t link_mgr_get_smsl(IN osm_sm_t * sm, IN osm_physp_t * p_physp)
+ 
+ 	OSM_LOG_ENTER(sm->p_log);
+ 
+-	if (p_osm->routing_engine_used != OSM_ROUTING_ENGINE_TYPE_LASH
+-	    || !(slid = osm_physp_get_base_lid(p_physp))) {
++	if (!(p_osm->routing_engine_used &&
++	      p_osm->routing_engine_used->type == OSM_ROUTING_ENGINE_TYPE_LASH &&
++	      (slid = osm_physp_get_base_lid(p_physp)))) {
+ 		/* Use default SL if lash routing is not used */
+ 		OSM_LOG_EXIT(sm->p_log);
+ 		return sm->p_subn->opt.sm_sl;
+diff --git a/opensm/opensm/osm_opensm.c b/opensm/opensm/osm_opensm.c
+index 5b3b364..9cd254e 100644
+--- a/opensm/opensm/osm_opensm.c
++++ b/opensm/opensm/osm_opensm.c
+@@ -147,7 +147,8 @@ static void append_routing_engine(osm_opensm_t *osm,
+ 	r->next = routing_engine;
+ }
+ 
+-static void setup_routing_engine(osm_opensm_t *osm, const char *name)
++static struct osm_routing_engine *setup_routing_engine(osm_opensm_t *osm,
++						       const char *name)
  {
- 	ib_api_status_t status;
- 	uint8_t i, num_ports;
-+	struct osm_routing_engine *re = sm->p_subn->p_osm->routing_engine_used;
- 	osm_physp_t *p_physp;
+ 	struct osm_routing_engine *re;
+ 	const struct routing_engine_module *m;
+@@ -158,47 +159,53 @@ static void setup_routing_engine(osm_opensm_t *osm, const char *name)
+ 			if (!re) {
+ 				OSM_LOG(&osm->log, OSM_LOG_VERBOSE,
+ 					"memory allocation failed\n");
+-				return;
++				return NULL;
+ 			}
+ 			memset(re, 0, sizeof(struct osm_routing_engine));
  
- 	if (osm_node_get_type(osm_physp_get_node_ptr(p)) == IB_NODE_TYPE_SWITCH) {
-@@ -213,8 +214,24 @@ static ib_api_status_t sl2vl_update(osm_sm_t * sm, osm_port_t * p_port,
+ 			re->name = m->name;
++			re->type = osm_routing_engine_type(m->name);
+ 			if (m->setup(re, osm)) {
+ 				OSM_LOG(&osm->log, OSM_LOG_VERBOSE,
+ 					"setup of routing"
+ 					" engine \'%s\' failed\n", name);
+-				return;
++				free(re);
++				return NULL;
+ 			}
+ 			OSM_LOG(&osm->log, OSM_LOG_DEBUG,
+ 				"\'%s\' routing engine set up\n", re->name);
+-			append_routing_engine(osm, re);
+-			return;
++			if (re->type == OSM_ROUTING_ENGINE_TYPE_MINHOP)
++				osm->default_routing_engine = re;
++			return re;
+ 		}
  	}
  
- 	for (i = 0; i < num_ports; i++) {
-+		ib_slvl_table_t routing_sl2vl;
-+		const ib_slvl_table_t *port_sl2vl;
-+		const ib_slvl_table_t *port_sl2vl_old;
-+
-+		if (re->update_sl2vl) {
-+			routing_sl2vl = qcfg->sl2vl;
-+			re->update_sl2vl(re->context,
-+					 p_port, i, port_num, &routing_sl2vl);
-+			port_sl2vl = &routing_sl2vl;
-+			port_sl2vl_old = osm_physp_get_slvl_tbl(p, i);
-+			if (memcmp(port_sl2vl, port_sl2vl_old,
-+				   sizeof(*port_sl2vl)) != 0)
-+				force_update = 1;
-+		} else
-+			port_sl2vl = &qcfg->sl2vl;
-+
- 		status = sl2vl_update_table(sm, p, i, port_num, force_update,
--					    &qcfg->sl2vl);
-+					    port_sl2vl);
- 		if (status != IB_SUCCESS)
- 			return status;
+ 	OSM_LOG(&osm->log, OSM_LOG_ERROR,
+ 		"cannot find or setup routing engine \'%s\'\n", name);
++	return NULL;
+ }
+ 
+ static void setup_routing_engines(osm_opensm_t *osm, const char *engine_names)
+ {
+ 	char *name, *str, *p;
++	struct osm_routing_engine *re;
+ 
+-	if (!engine_names || !*engine_names) {
+-		setup_routing_engine(osm, "minhop");
+-		return;
++	if (engine_names && *engine_names) {
++		str = strdup(engine_names);
++		name = strtok_r(str, ", \t\n", &p);
++		while (name && *name) {
++			re = setup_routing_engine(osm, name);
++			if (re)
++				append_routing_engine(osm, re);
++			name = strtok_r(NULL, ", \t\n", &p);
++		}
++		free(str);
  	}
-diff --git a/opensm/opensm/osm_state_mgr.c b/opensm/opensm/osm_state_mgr.c
-index 7540adc..c3f49dc 100644
---- a/opensm/opensm/osm_state_mgr.c
-+++ b/opensm/opensm/osm_state_mgr.c
-@@ -1228,8 +1228,6 @@ repeat_discovery:
- 
- 	osm_pkey_mgr_process(sm->p_subn->p_osm);
- 
--	osm_qos_setup(sm->p_subn->p_osm);
 -
- 	/* try to restore SA DB (this should be before lid_mgr
- 	   because we may want to disable clients reregistration
- 	   when SA DB is restored) */
-@@ -1270,6 +1268,8 @@ repeat_discovery:
- 	    osm_ucast_cache_process(&sm->ucast_mgr))
- 		osm_ucast_mgr_process(&sm->ucast_mgr);
+-	str = strdup(engine_names);
+-	name = strtok_r(str, ", \t\n", &p);
+-	while (name && *name) {
+-		setup_routing_engine(osm, name);
+-		name = strtok_r(NULL, ", \t\n", &p);
++	if (!osm->default_routing_engine) {
++		re = setup_routing_engine(osm, "minhop");
++		if (!osm->routing_engine_list && re)
++			append_routing_engine(osm, re);
+ 	}
+-	free(str);
+-
+-	if (!osm->routing_engine_list)
+-		setup_routing_engine(osm, "minhop");
+ }
  
-+	osm_qos_setup(sm->p_subn->p_osm);
+ void osm_opensm_construct(IN osm_opensm_t * p_osm)
+diff --git a/opensm/opensm/osm_sa_path_record.c b/opensm/opensm/osm_sa_path_record.c
+index dc9d508..484cb5b 100644
+--- a/opensm/opensm/osm_sa_path_record.c
++++ b/opensm/opensm/osm_sa_path_record.c
+@@ -646,7 +646,8 @@ static ib_api_status_t pr_rcv_get_path_parms(IN osm_sa_t * sa,
+ 	 * Set PathRecord SL
+ 	 */
+ 
+-	is_lash = (p_osm->routing_engine_used == OSM_ROUTING_ENGINE_TYPE_LASH);
++	is_lash = (p_osm->routing_engine_used &&
++		   p_osm->routing_engine_used->type == OSM_ROUTING_ENGINE_TYPE_LASH);
+ 
+ 	if (comp_mask & IB_PR_COMPMASK_SL) {
+ 		/*
+diff --git a/opensm/opensm/osm_ucast_lash.c b/opensm/opensm/osm_ucast_lash.c
+index 3054a56..626887f 100644
+--- a/opensm/opensm/osm_ucast_lash.c
++++ b/opensm/opensm/osm_ucast_lash.c
+@@ -1284,7 +1284,8 @@ uint8_t osm_get_lash_sl(osm_opensm_t * p_osm, const osm_port_t * p_src_port,
+ 	unsigned src_id;
+ 	osm_switch_t *p_sw;
+ 
+-	if (p_osm->routing_engine_used != OSM_ROUTING_ENGINE_TYPE_LASH)
++	if (!(p_osm->routing_engine_used &&
++	      p_osm->routing_engine_used->type == OSM_ROUTING_ENGINE_TYPE_LASH))
+ 		return OSM_DEFAULT_SL;
+ 
+ 	p_sw = get_osm_switch_from_port(p_dst_port);
+diff --git a/opensm/opensm/osm_ucast_mgr.c b/opensm/opensm/osm_ucast_mgr.c
+index 244563d..c29eb8f 100644
+--- a/opensm/opensm/osm_ucast_mgr.c
++++ b/opensm/opensm/osm_ucast_mgr.c
+@@ -941,7 +941,7 @@ static int ucast_mgr_route(struct osm_routing_engine *r, osm_opensm_t * osm)
+ 		return ret;
+ 	}
+ 
+-	osm->routing_engine_used = osm_routing_engine_type(r->name);
++	osm->routing_engine_used = r;
+ 
+ 	osm_ucast_mgr_set_fwd_tables(&osm->sm.ucast_mgr);
+ 
+@@ -969,24 +969,27 @@ int osm_ucast_mgr_process(IN osm_ucast_mgr_t * p_mgr)
+ 	    ucast_mgr_setup_all_switches(p_mgr->p_subn) < 0)
+ 		goto Exit;
+ 
+-	p_osm->routing_engine_used = OSM_ROUTING_ENGINE_TYPE_NONE;
++	p_osm->routing_engine_used = NULL;
+ 	while (p_routing_eng) {
+ 		if (!ucast_mgr_route(p_routing_eng, p_osm))
+ 			break;
+ 		p_routing_eng = p_routing_eng->next;
+ 	}
+ 
+-	if (p_osm->routing_engine_used == OSM_ROUTING_ENGINE_TYPE_NONE) {
++	if (!p_osm->routing_engine_used) {
+ 		/* If configured routing algorithm failed, use default MinHop */
+-		osm_ucast_mgr_build_lid_matrices(p_mgr);
+-		ucast_mgr_build_lfts(p_mgr);
++		struct osm_routing_engine *r = p_osm->default_routing_engine;
 +
- 	if (wait_for_pending_transactions(&sm->p_subn->p_osm->stats))
- 		return;
++		r->build_lid_matrices(r->context);
++		r->ucast_build_fwd_tables(r->context);
++		p_osm->routing_engine_used = r;
+ 		osm_ucast_mgr_set_fwd_tables(p_mgr);
+-		p_osm->routing_engine_used = OSM_ROUTING_ENGINE_TYPE_MINHOP;
+ 	}
  
+ 	OSM_LOG(p_mgr->p_log, OSM_LOG_INFO,
+ 		"%s tables configured on all switches\n",
+-		osm_routing_engine_type_str(p_osm->routing_engine_used));
++		osm_routing_engine_type_str(p_osm->
++					    routing_engine_used->type));
+ 
+ 	if (p_mgr->p_subn->opt.use_ucast_cache)
+ 		p_mgr->cache_valid = TRUE;
 -- 
 1.5.6.GIT
 
