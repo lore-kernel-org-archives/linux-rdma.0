@@ -1,36 +1,73 @@
-From: Eric Dumazet <eric.dumazet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH] RDMA/addr: Use appropriate locking with for_each_netdev()
-Date: Fri, 20 Nov 2009 07:51:36 +0100
-Message-ID: <4B063C78.1070502@gmail.com>
-References: <4AF8EBA4.2070102@gmail.com>	<D5E1FB213939498DBFFEB5A3B83C08AD@amr.corp.intel.com>	<adaocn8x6j7.fsf@roland-alpha.cisco.com>	<8C10E584257A46DB9A0AD193520CF4A7@amr.corp.intel.com>	<4B0628E0.6000404@gmail.com> <adak4xl669z.fsf@roland-alpha.cisco.com>
+From: Alexander Schmidt <alexs@linux.vnet.ibm.com>
+Subject: [PATCH resend] ib/ehca: rework destroy_eq()
+Date: Fri, 20 Nov 2009 10:32:13 +0100
+Message-ID: <20091120103213.13b7ba81@alex-laptop>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <adak4xl669z.fsf-BjVyx320WGW9gfZ95n9DRSW4+XlvGpQz@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, Linux Netdev List <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1754356AbZKTJcO@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Roland Dreier <rdreier@cisco.com>, Linux RDMA <linux-rdma@vger.kernel.org>
+Cc: lkml <linux-kernel@vger.kernel.org>, Stefan Roscher <stefan.roscher@de.ibm.com>, Joachim Fenkes <fenkes@de.ibm.com>, Christoph Raisch <raisch@de.ibm.com>, Hoang-Nam Nguyen <HNGUYEN@linux.vnet.ibm.com>
 List-Id: linux-rdma@vger.kernel.org
 
-Roland Dreier a =E9crit :
->  > Any news of this patch ?
->  >=20
->  > We need it for 2.6.32 and also to prepare 2.6.33 with upcoming pat=
-ches.
->=20
-> Sorry for not explicitly emailing about this patch.  I applied it as
-> part of Sean's series, but I just added it to my 2.6.33 queue.  At th=
-is
-> point in the release cycle it doesn't look severe enough for 2.6.32,
-> unless I miss something.
+The ibmebus_free_irq() function, which might sleep, was called with
+interrupts disabled. To ship around this, make sure that no interrupts
+are running by killing the interrupt tasklet. Also lock the shca_list_lock to
+protect against the poll_eqs_timer running concurrently.
 
-Its possible to get infinite loops or crashes.
+Signed-off-by: Alexander Schmidt <alexs@linux.vnet.ibm.com>
+---
+Hi Roland,
 
-I am not a RDMA user, so I personally dont care :)
+seems like I used your old mail address and I forgot to add the linux-rdma
+list.
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Please apply this for your "next" tree, thanks.
+
+ drivers/infiniband/hw/ehca/ehca_classes.h |    1 +
+ drivers/infiniband/hw/ehca/ehca_eq.c      |    9 ++++++---
+ drivers/infiniband/hw/ehca/ehca_main.c    |    2 +-
+ 3 files changed, 8 insertions(+), 4 deletions(-)
+
+--- linux-2.6.orig/drivers/infiniband/hw/ehca/ehca_eq.c
++++ linux-2.6/drivers/infiniband/hw/ehca/ehca_eq.c
+@@ -169,12 +169,15 @@ int ehca_destroy_eq(struct ehca_shca *sh
+ 	unsigned long flags;
+ 	u64 h_ret;
+
+-	spin_lock_irqsave(&eq->spinlock, flags);
+ 	ibmebus_free_irq(eq->ist, (void *)shca);
+
+-	h_ret = hipz_h_destroy_eq(shca->ipz_hca_handle, eq);
++	spin_lock_irqsave(&shca_list_lock, flags);
++	eq->is_initialized = 0;
++	spin_unlock_irqrestore(&shca_list_lock, flags);
++
++	tasklet_kill(&eq->interrupt_task);
+
+-	spin_unlock_irqrestore(&eq->spinlock, flags);
++	h_ret = hipz_h_destroy_eq(shca->ipz_hca_handle, eq);
+
+ 	if (h_ret != H_SUCCESS) {
+ 		ehca_err(&shca->ib_device, "Can't free EQ resources.");
+--- linux-2.6.orig/drivers/infiniband/hw/ehca/ehca_classes.h
++++ linux-2.6/drivers/infiniband/hw/ehca/ehca_classes.h
+@@ -375,6 +375,7 @@ extern rwlock_t ehca_qp_idr_lock;
+ extern rwlock_t ehca_cq_idr_lock;
+ extern struct idr ehca_qp_idr;
+ extern struct idr ehca_cq_idr;
++extern spinlock_t shca_list_lock;
+
+ extern int ehca_static_rate;
+ extern int ehca_port_act_time;
+--- linux-2.6.orig/drivers/infiniband/hw/ehca/ehca_main.c
++++ linux-2.6/drivers/infiniband/hw/ehca/ehca_main.c
+@@ -123,7 +123,7 @@ DEFINE_IDR(ehca_qp_idr);
+ DEFINE_IDR(ehca_cq_idr);
+
+ static LIST_HEAD(shca_list); /* list of all registered ehcas */
+-static DEFINE_SPINLOCK(shca_list_lock);
++DEFINE_SPINLOCK(shca_list_lock);
+
+ static struct timer_list poll_eqs_timer;
