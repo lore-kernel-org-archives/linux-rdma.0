@@ -1,8 +1,8 @@
 From: "Jim Schutt" <jaschut-4OHPYypu0djtX7QSmKvirg@public.gmane.org>
-Subject: [PATCH 11/11] opensm: Update documentation to describe
- torus-2QoS.
-Date: Fri, 20 Nov 2009 12:15:09 -0700
-Message-ID: <1258744509-11148-11-git-send-email-jaschut@sandia.gov>
+Subject: [PATCH 04/11] opensm: Track the minimum value in the fabric of
+ data VLs supported.
+Date: Fri, 20 Nov 2009 12:15:03 -0700
+Message-ID: <1258744509-11148-5-git-send-email-jaschut@sandia.gov>
 References: <1258744509-11148-1-git-send-email-jaschut@sandia.gov>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -14,215 +14,99 @@ To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org, eitan-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org, jaschut-4OHPYypu0djtX7QSmKvirg@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+A routing engine that wants to make contributions to SL2VL maps in support
+of routing free from credit loops may need to know the minimum number
+of supported data VLs in the fabric.
+
+This code tracks that value.
 
 Signed-off-by: Jim Schutt <jaschut-4OHPYypu0djtX7QSmKvirg@public.gmane.org>
 ---
- opensm/doc/current-routing.txt |  154 +++++++++++++++++++++++++++++++++++++++-
- opensm/man/opensm.8.in         |    9 ++-
- 2 files changed, 160 insertions(+), 3 deletions(-)
+ opensm/include/opensm/osm_subnet.h |    1 +
+ opensm/opensm/osm_port_info_rcv.c  |   13 ++++++++++++-
+ opensm/opensm/osm_state_mgr.c      |    6 ++++++
+ opensm/opensm/osm_subnet.c         |    1 +
+ 4 files changed, 20 insertions(+), 1 deletions(-)
 
-diff --git a/opensm/doc/current-routing.txt b/opensm/doc/current-routing.txt
-index 1302860..141d793 100644
---- a/opensm/doc/current-routing.txt
-+++ b/opensm/doc/current-routing.txt
-@@ -1,7 +1,7 @@
- Current OpenSM Routing
--7/9/07
-+10/9/09
+diff --git a/opensm/include/opensm/osm_subnet.h b/opensm/include/opensm/osm_subnet.h
+index 0302f91..c303e86 100644
+--- a/opensm/include/opensm/osm_subnet.h
++++ b/opensm/include/opensm/osm_subnet.h
+@@ -509,6 +509,7 @@ typedef struct osm_subn {
+ 	uint16_t max_mcast_lid_ho;
+ 	uint8_t min_ca_mtu;
+ 	uint8_t min_ca_rate;
++	uint8_t min_data_vls;
+ 	boolean_t ignore_existing_lfts;
+ 	boolean_t subnet_initialization_error;
+ 	boolean_t force_heavy_sweep;
+diff --git a/opensm/opensm/osm_port_info_rcv.c b/opensm/opensm/osm_port_info_rcv.c
+index 8a99064..b0d54c8 100644
+--- a/opensm/opensm/osm_port_info_rcv.c
++++ b/opensm/opensm/osm_port_info_rcv.c
+@@ -82,6 +82,7 @@ static void pi_rcv_process_endport(IN osm_sm_t * sm, IN osm_physp_t * p_physp,
+ 	ib_api_status_t status;
+ 	ib_net64_t port_guid;
+ 	uint8_t rate, mtu;
++	unsigned data_vls;
+ 	cl_qmap_t *p_sm_tbl;
+ 	osm_remote_sm_t *p_sm;
  
--OpenSM offers five routing engines:
-+OpenSM offers six routing engines:
+@@ -91,7 +92,7 @@ static void pi_rcv_process_endport(IN osm_sm_t * sm, IN osm_physp_t * p_physp,
  
- 1.  Min Hop Algorithm - based on the minimum hops to each node where the
- path length is optimized.
-@@ -28,6 +28,13 @@ two switches.  This provides deadlock free routes for hypercubes when
- the fabric is cabled as a hypercube and for meshes when cabled as a
- mesh (see details below).
+ 	/* HACK extended port 0 should be handled too! */
+ 	if (osm_physp_get_port_num(p_physp) != 0) {
+-		/* track the minimal endport MTU and rate */
++		/* track the minimal endport MTU, rate, and operational VLs */
+ 		mtu = ib_port_info_get_mtu_cap(p_pi);
+ 		if (mtu < sm->p_subn->min_ca_mtu) {
+ 			OSM_LOG(sm->p_log, OSM_LOG_VERBOSE,
+@@ -107,6 +108,16 @@ static void pi_rcv_process_endport(IN osm_sm_t * sm, IN osm_physp_t * p_physp,
+ 				PRIx64 "\n", rate, cl_ntoh64(port_guid));
+ 			sm->p_subn->min_ca_rate = rate;
+ 		}
++
++		data_vls = 1U << (ib_port_info_get_op_vls(p_pi) - 1);
++		if (data_vls >= IB_MAX_NUM_VLS)
++			data_vls = IB_MAX_NUM_VLS - 1;
++		if ((uint8_t)data_vls < sm->p_subn->min_data_vls) {
++			OSM_LOG(sm->p_log, OSM_LOG_VERBOSE,
++				"Setting endport minimal data VLs to:%u defined by port:0x%"
++				PRIx64 "\n", data_vls, cl_ntoh64(port_guid));
++			sm->p_subn->min_data_vls = data_vls;
++		}
+ 	}
  
-+6. Torus-2QoS unicast routing algorithm - a DOR-based routing algorithm
-+specialized for 2D/3D torus topologies.  Torus-2QoS provides deadlock-free
-+routing while supporting two quality of service (QoS) levels.  In addition
-+it is able to route around multiple failed fabric links or a single failed
-+fabric switch without introducing deadlocks, and without changing path SL
-+values granted before the failure.
-+
- OpenSM provides an optional unicast routing cache (enabled by -A or
- --ucast_cache options). When enabled, unicast routing cache prevents
- routing recalculation (which is a heavy task in a large cluster) when
-@@ -388,3 +395,146 @@ ports, one port on one end of the cable, and the other port on the
- other end, continuing along the mesh dimension.
+ 	if (port_guid != sm->p_subn->sm_port_guid) {
+diff --git a/opensm/opensm/osm_state_mgr.c b/opensm/opensm/osm_state_mgr.c
+index c3f49dc..b6c41a6 100644
+--- a/opensm/opensm/osm_state_mgr.c
++++ b/opensm/opensm/osm_state_mgr.c
+@@ -1132,6 +1132,12 @@ repeat_discovery:
+ 	sm->p_subn->force_reroute = FALSE;
+ 	sm->p_subn->subnet_initialization_error = FALSE;
  
- Use '-R dor' option to activate the DOR algorithm.
++	/* Reset tracking values in case limiting component got removed
++	 * from fabric. */
++	sm->p_subn->min_ca_mtu = IB_MAX_MTU;
++	sm->p_subn->min_ca_rate = IB_MAX_RATE;
++	sm->p_subn->min_data_vls = IB_MAX_NUM_VLS - 1;
 +
-+Torus-2QoS Routing Algorithm
-+----------------------------
-+
-+Torus-2QoS is routing algorithm designed for large-scale 2D/3D torus fabrics.
-+
-+It is a DOR-based algorithm that avoids deadlocks that would otherwise
-+occur in a torus using the concept of a dateline for each torus dimension.
-+It encodes into a path SL which datelines the path crosses as follows:
-+
-+  sl = 0;
-+  for (d = 0; d < torus_dimensions; d++)
-+    /* path_crosses_dateline(d) returns 0 or 1 */
-+    sl |= path_crosses_dateline(d) << d;
-+
-+For a 3D torus, that leaves one SL bit free, which torus-2QoS uses to
-+implement two QoS levels.
-+
-+This is possible because torus-2QoS also makes use of the output port
-+dependence of the switch SL2VL maps.  It computes in which torus coordinate
-+direction each interswitch link "points", and writes SL2VL maps for such
-+ports as follows:
-+
-+  for (sl = 0; sl < 16; sl ++)
-+    /* cdir(port) reports which torus coordinate direction a switch port
-+     * "points" in, and returns 0, 1, or 2 */
-+    sl2vl(iport,oport,sl) = 0x1 & (sl >> cdir(oport));
-+
-+Thus torus-2QoS consumes 8 SL values (SL bits 0-2) and 2 VL values (VL bit 0)
-+ per QoS level to provide deadlock-free routing on a 3D torus.
-+
-+Torus-2QoS routes around link failure by "taking the long way around" any
-+1D ring interrupted by a link failure.  For example, consider the 2D 6x5
-+torus below, where switches are denoted by [+a-zA-Z]:
-+
-+        |    |    |    |    |    |
-+   4  --+----+----+----+----+----+--
-+        |    |    |    |    |    |
-+   3  --+----+----+----D----+----+--
-+        |    |    |    |    |    |
-+   2  --+----+----I----r----+----+--
-+        |    |    |    |    |    |
-+   1  --m----S----n----T----o----p--
-+        |    |    |    |    |    |
-+ y=0  --+----+----+----+----+----+--
-+        |    |    |    |    |    |
-+
-+      x=0    1    2    3    4    5
-+
-+For a pristine fabric the path from S to D would be S-n-T-r-d.  In the
-+event that either link S-n or n-T has failed, torus-2QoS would use the path
-+S-m-p-o-T-r-D.  Note that it can do this without changing the path SL
-+value; once the 1D ring m-S-n-T-o-p-m has been broken by failure, path
-+segments using it cannot contribute to deadlock, and the x-direction
-+dateline (between, say, x=5 and x=0) can be ignored for path segments on
-+that ring.
-+
-+One result of this is that torus-2QoS can route around many simultaneous
-+link failures, as long as no 1D ring is broken into disjoint regions.  For
-+example, if links n-T and T-o have both failed, that ring has been broken
-+into two disjoint regions, T and o-p-m-S-n.  Torus-2QoS checks for such
-+issues, reports if they are found, and refuses to route such fabrics.
-+
-+Handling a failed switch under DOR requires introducing into a path at
-+least one turn that would be otherwise "illegal", i.e. not allowed by DOR
-+rules.  Torus-2QoS will introduce such a turn as close as possible to the
-+failed switch in order to route around it.
-+
-+In the above example, suppose switch T has failed, and consider the path
-+from S to D.  Torus-2QoS will produce the path S-n-I-r-D, rather than the
-+S-n-T-r-D path for a pristine torus, by introducing an early turn at n.
-+For traffic arriving at switch I from n, normal DOR rules will generate an
-+illegal turn in the path from S to D at I, and a legal turn at r.
-+
-+Torus-2QoS will also use the input port dependence of SL2VL maps to set VL
-+bit 1 (which would be otherwise unused) for y-x, z-x, and z-y turns, i.e.,
-+those turns that are illegal under DOR.  This causes the first hop after
-+any such turn to use a separate set of VL values, and prevents deadlock in
-+the presence of a single failed switch.
-+
-+For any given path, only the hops after a turn that is illegal under DOR
-+can contribute to a credit loop that leads to deadlock.  So in the example
-+above with failed switch T, the location of the illegal turn at I in the
-+path from S to D requires that any credit loop caused by that turn must
-+encircle the failed switch at T.  Thus the second and later hops after the
-+illegal turn at I (i.e., hop r-D) cannot contribute to a credit loop
-+because they cannot be used to construct a loop encircling T.  The hop I-r
-+uses a separate VL, so it cannot contribute to a credit loop encircling T.
-+
-+Extending this argument shows that in addition to being capable of routing
-+around a single switch failure without introducing deadlock, torus-2QoS can
-+also route around multiple failed switches on the condition they are
-+adjacent in the last dimension routed by DOR.  For example, consider the
-+following case on a 6x6 2D torus:
-+
-+
-+        |    |    |    |    |    |
-+   5  --+----+----+----+----+----+--
-+        |    |    |    |    |    |
-+   4  --+----+----+----D----+----+--
-+        |    |    |    |    |    |
-+   3  --+----+----I----u----+----+--
-+        |    |    |    |    |    |
-+   2  --+----+----q----R----+----+--
-+        |    |    |    |    |    |
-+   1  --m----S----n----T----o----p--
-+        |    |    |    |    |    |
-+ y=0  --+----+----+----+----+----+--
-+        |    |    |    |    |    |
-+
-+      x=0    1    2    3    4    5
-+
-+
-+Suppose switches T and R have failed, and consider the path from S to D.
-+Torus-2QoS will generate the path S-n-q-I-u-D, with an illegal turn at
-+switch I, and with hop I-u using a VL with bit 1 set.
-+
-+As a further example, consider a case that torus-2QoS cannot route without
-+deadlock: two failed switches adjacent in a dimension that is not the last
-+dimension routed by DOR; here the failed switches are O and T:
-+
-+        |    |    |    |    |    |
-+   5  --+----+----+----+----+----+--
-+        |    |    |    |    |    |
-+   4  --+----+----+----+----+----+--
-+        |    |    |    |    |    |
-+   3  --+----+----+----+----D----+--
-+        |    |    |    |    |    |
-+   2  --+----+----I----q----r----+--
-+        |    |    |    |    |    |
-+   1  --m----S----n----O----T----p--
-+        |    |    |    |    |    |
-+ y=0  --+----+----+----+----+----+--
-+        |    |    |    |    |    |
-+
-+      x=0    1    2    3    4    5
-+
-+In a pristine fabric, torus-2QoS would generate the path from S to D as
-+S-n-O-T-r-D.  With failed switches O and T, torus-2QoS will generate the
-+path S-n-I-q-r-D, with illegal turn at switch I, and with hop I-q using a
-+VL with bit 1 set.  In contrast to the earlier examples, the second hop
-+after the illegal turn, q-r, can be used to construct a credit loop
-+encircling the failed switches.
-diff --git a/opensm/man/opensm.8.in b/opensm/man/opensm.8.in
-index bd8ab4e..da016f1 100644
---- a/opensm/man/opensm.8.in
-+++ b/opensm/man/opensm.8.in
-@@ -630,7 +630,7 @@ compiling opensm with -DROUTER_EXP which has been obsoleted.
+ 	/* rescan configuration updates */
+ 	if (!config_parsed && osm_subn_rescan_conf_files(sm->p_subn) < 0)
+ 		OSM_LOG(sm->p_log, OSM_LOG_ERROR, "ERR 331A: "
+diff --git a/opensm/opensm/osm_subnet.c b/opensm/opensm/osm_subnet.c
+index 2cfcbe6..19ba730 100644
+--- a/opensm/opensm/osm_subnet.c
++++ b/opensm/opensm/osm_subnet.c
+@@ -526,6 +526,7 @@ ib_api_status_t osm_subn_init(IN osm_subn_t * p_subn, IN osm_opensm_t * p_osm,
+ 	p_subn->max_mcast_lid_ho = IB_LID_MCAST_END_HO;
+ 	p_subn->min_ca_mtu = IB_MAX_MTU;
+ 	p_subn->min_ca_rate = IB_MAX_RATE;
++	p_subn->min_data_vls = IB_MAX_NUM_VLS - 1;
+ 	p_subn->ignore_existing_lfts = TRUE;
  
- .SH ROUTING
- .PP
--OpenSM now offers five routing engines:
-+OpenSM now offers six routing engines:
- 
- 1.  Min Hop Algorithm - based on the minimum hops to each node where the
- path length is optimized.
-@@ -659,6 +659,13 @@ two switches.  This provides deadlock free routes for hypercubes when
- the fabric is cabled as a hypercube and for meshes when cabled as a
- mesh (see details below).
- 
-+6. Torus-2QoS unicast routing algorithm - a DOR-based routing algorithm
-+specialized for 2D/3D torus topologies.  Torus-2QoS provides deadlock-free
-+routing while supporting two quality of service (QoS) levels.  In addition
-+it is able to route around multiple failed fabric links or a single failed
-+fabric switch without introducing deadlocks, and without changing path SL
-+values granted before the failure.
-+
- OpenSM also supports a file method which
- can load routes from a table. See \'Modular Routing Engine\' for more
- information on this.
+ 	/* we assume master by default - so we only need to set it true if STANDBY */
 -- 
 1.5.6.GIT
 
