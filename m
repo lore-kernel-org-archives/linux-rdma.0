@@ -1,29 +1,31 @@
-From: Roland Dreier <rdreier@cisco.com>
-Subject: Re: [PATCH] RDMA/addr: Use appropriate locking with for_each_netdev()
-Date: Sun, 22 Nov 2009 20:18:04 -0800
-Message-ID: <adafx856fib.fsf@roland-alpha.cisco.com>
-References: <4AF8EBA4.2070102@gmail.com>
-	<D5E1FB213939498DBFFEB5A3B83C08AD@amr.corp.intel.com>
-	<adaocn8x6j7.fsf@roland-alpha.cisco.com>
-	<8C10E584257A46DB9A0AD193520CF4A7@amr.corp.intel.com>
-	<4B0628E0.6000404@gmail.com> <adak4xl669z.fsf@roland-alpha.cisco.com>
-	<4B063C78.1070502@gmail.com>
+From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Subject: Re: patch for non-ib network
+Date: Sun, 22 Nov 2009 20:19:52 -0800
+Message-ID: <adabpit6ffb.fsf@roland-alpha.cisco.com>
+References: <Pine.LNX.4.62.0911201915430.25859@mailhub.cdac.in>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <4B063C78.1070502@gmail.com> (Eric Dumazet's message of "Fri, 20
-	Nov 2009 07:51:36 +0100")
-Sender: netdev-owner@vger.kernel.org
-To: Eric Dumazet <eric.dumazet@gmail.com>
-Cc: Sean Hefty <sean.hefty@intel.com>, "David S. Miller" <davem@davemloft.net>, Linux Netdev List <netdev@vger.kernel.org>, Roland Dreier <rolandd@cisco.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, linux-rdma <linux-rdma@vger.kernel.org>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <Pine.LNX.4.62.0911201915430.25859-NG0XCrj25/kh/ldBx82aDQ@public.gmane.org>
+	(javed-If5XQcfNmg0@public.gmane.org's message of "Fri, 20 Nov 2009 19:54:41 +0530 (IST)")
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: javed-If5XQcfNmg0@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 
- > Its possible to get infinite loops or crashes.
+ > is it possible to add a patch in ofed release for non-ib networks?
+ > we've integrated ofed with 'paramnet-3' a 10Gbps system area
+ > network. currently IPoIB is working fine. more details can be provided
+ > if required.
 
- > I am not a RDMA user, so I personally dont care :)
+I think rather than worrying about OFED, you're better off working on
+getting your drivers integrated in the mainline kernel.
 
-I think given that it's not a regression, and I've never heard of anyone
-hitting it in practice, we can wait until the merge window.
-
-Thanks!
+However if you just have IPoIB working, and your fabric is not IB, then
+I think you might be better off implementing IP-over-paramnet-3 and
+avoiding the complexity of the RDMA stack.  Unless paramnet-3 is RDMA-like?
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
