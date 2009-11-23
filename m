@@ -1,31 +1,103 @@
-From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Subject: Re: patch for non-ib network
-Date: Sun, 22 Nov 2009 20:19:52 -0800
-Message-ID: <adabpit6ffb.fsf@roland-alpha.cisco.com>
-References: <Pine.LNX.4.62.0911201915430.25859@mailhub.cdac.in>
+From: =?ISO-8859-1?Q?C=E9line_Bourde?= <celine.bourde-6ktuUTfB/bM@public.gmane.org>
+Subject: qos on service-id
+Date: Mon, 23 Nov 2009 09:48:49 +0100
+Message-ID: <4B0A4C71.5080209@bull.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <Pine.LNX.4.62.0911201915430.25859-NG0XCrj25/kh/ldBx82aDQ@public.gmane.org>
-	(javed-If5XQcfNmg0@public.gmane.org's message of "Fri, 20 Nov 2009 19:54:41 +0530 (IST)")
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: javed-If5XQcfNmg0@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+Hi,
 
- > is it possible to add a patch in ofed release for non-ib networks?
- > we've integrated ofed with 'paramnet-3' a 10Gbps system area
- > network. currently IPoIB is working fine. more details can be provided
- > if required.
+I'm trying to configure qos-policy.donc file for service-id use.
+I've tried basic RDMA_PS_TCP service-id level with service id 0x0106
 
-I think rather than worrying about OFED, you're better off working on
-getting your drivers integrated in the mainline kernel.
+[]# cat /etc/opensm/qos-policy.conf
+qos-levels
+      qos-level
+      name: DEFAULT
+      sl: 0
+      end-qos-level
+      qos-level
+          name: TCP
+          sl: 4
+      end-qos-level
+        qos-level
+           name: MPI
+           sl: 5
+       end-qos-level
+end-qos-levels
 
-However if you just have IPoIB working, and your fabric is not IB, then
-I think you might be better off implementing IP-over-paramnet-3 and
-avoiding the complexity of the RDMA stack.  Unless paramnet-3 is RDMA-like?
+qos-ulps
+  default                       : 0 # default SL
+  any, service-id 0x0000000001060000- 0x000000000106FFFF : 4
+end-qos-ulps
+
+I add this rule in my configuration and check by mapping
+sl 4 on a vl with a weight of 0
+
+# QoS default options
+qos_max_vls 8
+qos_high_limit 1
+qos_vlarb_high 0:1,1:0,2:0,3:0,4:0
+qos_vlarb_low 0:1,1:2,2:4,3:8,4:0,5:32
+qos_sl2vl 0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15
+
+I've launched qperf on the server side
+and listen on client:
+
+j=3D100; for i in $(seq 0 $j) ; do /usr/bin/qperf -ri mlx4_0:1 -li mlx4=
+_0:1
+10.12.1.4 -sl 4 -lp 20004 rc_bw; done;
+rc_bw:
+  bw  =3D  0 bytes/sec
+rc_bw:
+  bw  =3D  0 bytes/sec
+
+j=3D100; for i in $(seq 0 $j) ; do /usr/bin/qperf -ri mlx4_0:1 -li mlx4=
+_0:1
+10.12.1.4 -sl 5 -lp 20005 rc_bw; done;
+rc_bw:
+  bw  =3D  3.37 GB/sec
+rc_bw:
+  bw  =3D  3.37 GB/sec
+
+Qperf gives me results I expected due to qos-level configuration part,=20
+but no
+expected results using qperf tcp_bw, bandwith is not
+filtered/blocked by sl weight.
+
+# j=3D100; for i in $(seq 0 $j) ; do /usr/bin/qperf 10.12.1.4 tcp_bw; d=
+one;
+tcp_bw:
+  bw  =3D  923 MB/sec
+tcp_bw:
+  bw  =3D  935 MB/sec
+
+j=3D100; for i in $(seq 0 $j) ; do /usr/bin/qperf -ri mlx4_0:1 -li mlx4=
+_0:1
+10.12.1.4 -sl 5 -lp 20005 rc_bw; done;
+rc_bw:
+  bw  =3D  2.23 GB/sec
+rc_bw:
+  bw  =3D  2.24 GB/sec
+rc_bw:
+  bw  =3D  2.21 GB/sec
+
+Could you help me to understanding service-id mechanism or give me a=20
+relevant
+test to test TCP service id level ?
+
+Thanks.
+
+C=E9line Bourde.
+
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
