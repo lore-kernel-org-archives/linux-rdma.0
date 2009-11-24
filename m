@@ -1,7 +1,8 @@
 From: frank zago <fzago-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org>
-Subject: [patch 3/8] cxgb3 - ib_post_send fixes
-Date: Tue, 24 Nov 2009 11:36:40 -0600
-Message-ID: <4B0C19A8.7060402@systemfabricworks.com>
+Subject: [patch 5/8] ehca - ib_post_recv fixes Always set ib_post_recv()s
+ bad_wr.
+Date: Tue, 24 Nov 2009 11:36:46 -0600
+Message-ID: <4B0C19AE.6030006@systemfabricworks.com>
 References: <20091124043323.927819053@systemfabricworks.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
@@ -12,59 +13,64 @@ Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Always set ib_post_send()'s bad_wr.
-
 Signed-off-by: Frank Zago <fzago-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org>
-Index: linux-2.6.31/drivers/infiniband/hw/cxgb3/iwch_qp.c
+Index: linux-2.6.31/drivers/infiniband/hw/ehca/ehca_reqs.c
 ===================================================================
---- linux-2.6.31.orig/drivers/infiniband/hw/cxgb3/iwch_qp.c	2009-11-23 
-20:35:15.000000000 -0600
-+++ linux-2.6.31/drivers/infiniband/hw/cxgb3/iwch_qp.c	2009-11-23 
-20:39:44.000000000 -0600
-@@ -365,18 +365,19 @@
-  	spin_lock_irqsave(&qhp->lock, flag);
-  	if (qhp->attr.state > IWCH_QP_STATE_RTS) {
-  		spin_unlock_irqrestore(&qhp->lock, flag);
--		return -EINVAL;
-+		err = -EINVAL;
-+		goto out;
+--- linux-2.6.31.orig/drivers/infiniband/hw/ehca/ehca_reqs.c	2009-11-23 
+21:23:08.000000000 -0600
++++ linux-2.6.31/drivers/infiniband/hw/ehca/ehca_reqs.c	2009-11-23 
+21:25:48.000000000 -0600
+@@ -519,7 +519,7 @@
+  	if (unlikely(!HAS_RQ(my_qp))) {
+  		ehca_err(dev, "QP has no RQ  ehca_qp=%p qp_num=%x ext_type=%d",
+  			 my_qp, my_qp->real_qp_num, my_qp->ext_type);
+-		return -ENODEV;
++		ret = -ENODEV;
   	}
-  	num_wrs = Q_FREECNT(qhp->wq.sq_rptr, qhp->wq.sq_wptr,
-  		  qhp->wq.sq_size_log2);
-  	if (num_wrs <= 0) {
-  		spin_unlock_irqrestore(&qhp->lock, flag);
--		return -ENOMEM;
-+		err = -ENOMEM;
-+		goto out;
-  	}
-  	while (wr) {
-  		if (num_wrs == 0) {
-  			err = -ENOMEM;
--			*bad_wr = wr;
-  			break;
+
+  	/* LOCK the QUEUE */
+@@ -533,13 +533,9 @@
+  		wqe_p = ipz_qeit_get_inc(&my_qp->ipz_rqueue);
+  		if (unlikely(!wqe_p)) {
+  			/* too many posted work requests: queue overflow */
+-			if (bad_recv_wr)
+-				*bad_recv_wr = cur_recv_wr;
+-			if (wqe_cnt == 0) {
+-				ret = -ENOMEM;
+-				ehca_err(dev, "Too many posted WQEs "
+-					 "qp_num=%x", my_qp->real_qp_num);
+-			}
++			ret = -ENOMEM;
++			ehca_err(dev, "Too many posted WQEs "
++				"qp_num=%x", my_qp->real_qp_num);
+  			goto post_recv_exit0;
   		}
-  		idx = Q_PTR2IDX(qhp->wq.wptr, qhp->wq.size_log2);
-@@ -428,10 +429,8 @@
-  			     wr->opcode);
-  			err = -EINVAL;
+  		/*
+@@ -558,11 +554,9 @@
+  		if (unlikely(ret)) {
+  			my_qp->ipz_rqueue.current_q_offset = start_offset;
+  			*bad_recv_wr = cur_recv_wr;
+-			if (wqe_cnt == 0) {
+-				ret = -EINVAL;
+-				ehca_err(dev, "Could not write WQE "
+-					 "qp_num=%x", my_qp->real_qp_num);
+-			}
++			ret = -EINVAL;
++			ehca_err(dev, "Could not write WQE "
++				"qp_num=%x", my_qp->real_qp_num);
+  			goto post_recv_exit0;
   		}
--		if (err) {
--			*bad_wr = wr;
-+		if (err)
-  			break;
--		}
-  		wqe->send.wrid.id0.hi = qhp->wq.sq_wptr;
-  		sqp->wr_id = wr->wr_id;
-  		sqp->opcode = wr2opcode(t3_wr_opcode);
-@@ -454,6 +453,10 @@
-  	}
-  	spin_unlock_irqrestore(&qhp->lock, flag);
-  	ring_doorbell(qhp->wq.doorbell, qhp->wq.qpid);
+
+@@ -581,6 +575,11 @@
+  	    ehca_dbg(dev, "ehca_qp=%p qp_num=%x wqe_cnt=%d ret=%i",
+  		     my_qp, my_qp->real_qp_num, wqe_cnt, ret);
+  	spin_unlock_irqrestore(&my_qp->spinlock_r, flags);
 +
 +out:
-+	if (err)
-+		*bad_wr = wr;
-  	return err;
++	if (ret)
++		*bad_recv_wr = cur_recv_wr;
++
+  	return ret;
   }
 
 
