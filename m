@@ -1,32 +1,35 @@
-From: "Sean Hefty" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH 9/9] ib/addr: fix ipv6 routing lookup
-Date: Mon, 23 Nov 2009 19:43:34 -0800
-Message-ID: <89DF931E4E7549858A9BF7A31912F2F7@amr.corp.intel.com>
-References: <2449CF17D7E94FCBA643A743473246A5@amr.corp.intel.com> <20091123194847.GL6188@obsidianresearch.com> <913F7AE25239487A9AF368E608F30A34@amr.corp.intel.com> <20091123222652.GM6188@obsidianresearch.com>
+From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH 0/53] IB/qib: add
+Date: Mon, 23 Nov 2009 19:52:29 -0800
+Message-ID: <adar5ro37gi.fsf@roland-alpha.cisco.com>
+References: <20091119233655.30356.57433.stgit@chromite.mv.qlogic.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20091123222652.GM6188-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <20091119233655.30356.57433.stgit-/vjeY7uYZjrPXfVEPVhPGq6RkeBMCJyt@public.gmane.org> (Ralph
+	Campbell's message of "Thu, 19 Nov 2009 15:36:56 -0800")
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: 'Jason Gunthorpe' <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+To: Ralph Campbell <ralph.campbell-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
->The sin6_scope_id must be ignored in all cases except LL
->addresses. Fixing this will break the path that sets the bound_dev_if
->starting from rdma_resolve_addr. This is why my version was setting
->bound_dev_if directly in rdma_resolve_addr.
->
->Did you change it to be like this because you found something wrong
->with the way things were in my big patch?
+So I tried actually building this, and CONFIG_INFINIBAND_IPATH=y +
+CONFIG_INFINIBAND_QIB=y ends up with:
 
-I was wanting to have all of the code paths go through rdma_bind_addr(), with
-source address checks there to things as easy to follow as possible.
+    drivers/infiniband/hw/qib/built-in.o: In function `signal_ib_event':
+    drivers/infiniband/hw/qib/qib_intr.c:72: multiple definition of `signal_ib_event'
+    drivers/infiniband/hw/ipath/built-in.o:drivers/infiniband/hw/ipath/ipath_intr.c:248: first defined here
+    drivers/infiniband/hw/qib/built-in.o: In function `teardown_sdma':
+    drivers/infiniband/hw/qib/qib_sdma.c:475: multiple definition of `teardown_sdma'
+    drivers/infiniband/hw/ipath/built-in.o:drivers/infiniband/hw/ipath/ipath_sdma.c:508: first defined here
 
-- Sean
+etc.
 
+I think it's a good idea to prefix any symbols with non-static scope
+with the driver name, so these should become qib_xxx to avoid conflicts
+(and fixing the too-generic names in ipath wouldn't hurt either).
+
+ - R.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
