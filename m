@@ -1,7 +1,7 @@
 From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 Subject: Re: [PATCH 02/53] IB/qib: Add Makefile
-Date: Mon, 23 Nov 2009 19:59:19 -0800
-Message-ID: <adamy2c3754.fsf@roland-alpha.cisco.com>
+Date: Mon, 23 Nov 2009 20:02:12 -0800
+Message-ID: <adaiqd0370b.fsf@roland-alpha.cisco.com>
 References: <20091119233655.30356.57433.stgit@chromite.mv.qlogic.com>
 	<20091119233706.30356.20051.stgit@chromite.mv.qlogic.com>
 	<adaeinu6owu.fsf@roland-alpha.cisco.com>
@@ -17,40 +17,15 @@ Cc: Ralph Campbell <ralph.campbell-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>, "li
 List-Id: linux-rdma@vger.kernel.org
 
 
- > |  > +ib_qib-$(CONFIG_PCI_MSI) += qib_iba6120.o
+ > | I think the convention is to do this with multiple files per line, ie
  > | 
- > | Seems you put the 6120 in the module device table even if PCI_MSI isn't
- > | set... does the driver build without MSI enabled?
+ > | ib_qib-y :=	qip_cq.o qib_diag.o qib_dma.o ... \
  > 
- > Yes.  It just doesn't work well.  It works well enough to tell people
- > what the problem is, which is what we wanted.
+ > Last time we did that, we got asked to change it to one per line.  If
+ > conventions have changed, no problem.
 
-No, it doesn't even build with CONFIG_PCI_MSI=n (and spews a bunch of
-warnings before failing).  Seriously, try it.
-
- > | And are you dropping 6110 support (I see no HT_IRQ stuff)?  So do we
- > | need to keep ipath around for that?
- > 
- > 6110 is out of this driver, and people (customers) are aware that support has
- > been dropped.  The current (non-verbs) userland software won't work on those
- > boards any longer, and customers were using them primarily for non-verbs
- > MPI.
- > 
- > The ipath driver has some significant problems with verbs, and those
- > problems have been fixed based on the significant restructuring and
- > rewrites in the ib_qib driver, so it's unlikely that any customer would
- > want to continue to use the ib_ipath driver in any case.
-
-I don't think we can drop 6110 support so blithely.  I just did a quick
-check, and brand-new HTX HCAs still seem readily available on ebay, so I
-think it will be a while before they're totally gone.  Since we have the
-driver, we might as well let someone with a few HTX HCAs and a Topspin
-90 they got off ebay for a few hundred bucks use the latest Fedora or
-whatever.  The ideal plan would be to strip all the non-HTX device IDs
-out of ib_ipath, and even better get rid of the unneeded code too.
-
- - R.
-
+I think whoever told you that was on something.  I can't even find one
+example of one-filename-per-line in any Makefile in the kernel.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
