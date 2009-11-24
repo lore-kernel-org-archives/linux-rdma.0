@@ -1,7 +1,7 @@
 From: frank zago <fzago-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org>
-Subject: [patch 6/8] ammasso - ib_post_recv fix
-Date: Tue, 24 Nov 2009 11:36:53 -0600
-Message-ID: <4B0C19B5.9090503@systemfabricworks.com>
+Subject: [patch 8/8] NES - ib_post_recv fixes
+Date: Tue, 24 Nov 2009 11:36:56 -0600
+Message-ID: <4B0C19B8.8010807@systemfabricworks.com>
 References: <20091124043323.927819053@systemfabricworks.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
@@ -15,28 +15,28 @@ List-Id: linux-rdma@vger.kernel.org
 Always set ib_post_recv()'s bad_wr.
 
 Signed-off-by: Frank Zago <fzago-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org>
-Index: linux-2.6.31/drivers/infiniband/hw/amso1100/c2_qp.c
+Index: linux-2.6.31/drivers/infiniband/hw/nes/nes_verbs.c
 ===================================================================
---- linux-2.6.31.orig/drivers/infiniband/hw/amso1100/c2_qp.c	2009-11-23 
-21:26:48.000000000 -0600
-+++ linux-2.6.31/drivers/infiniband/hw/amso1100/c2_qp.c	2009-11-23 
-21:28:11.000000000 -0600
-@@ -947,8 +947,10 @@
-  	unsigned long lock_flags;
-  	int err = 0;
+--- linux-2.6.31.orig/drivers/infiniband/hw/nes/nes_verbs.c	2009-11-23 
+21:59:04.000000000 -0600
++++ linux-2.6.31/drivers/infiniband/hw/nes/nes_verbs.c	2009-11-23 
+21:59:05.000000000 -0600
+@@ -3554,8 +3554,10 @@
+  	u32 counter;
+  	u32 total_payload_length;
 
--	if (qp->state > IB_QPS_RTS)
+-	if (nesqp->ibqp_state > IB_QPS_RTS)
 -		return -EINVAL;
-+	if (qp->state > IB_QPS_RTS) {
++	if (nesqp->ibqp_state > IB_QPS_RTS) {
 +		err = -EINVAL;
 +		goto out;
 +	}
 
-  	/*
-  	 * Try and post each work request
-@@ -1001,6 +1003,7 @@
-  		ib_wr = ib_wr->next;
-  	}
+  	spin_lock_irqsave(&nesqp->lock, flags);
+
+@@ -3618,6 +3620,7 @@
+
+  	spin_unlock_irqrestore(&nesqp->lock, flags);
 
 +out:
   	if (err)
