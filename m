@@ -1,55 +1,56 @@
-From: Jeff Roberson <jroberson-gUAg20sWgfgcWVvVuXF20w@public.gmane.org>
-Subject: RE: LID reconfiguration
-Date: Mon, 23 Nov 2009 17:57:16 -1000 (HST)
-Message-ID: <alpine.BSF.2.00.0911231745350.1226@desktop>
-References: <alpine.BSF.2.00.0911091324150.1226@desktop> <20091109234547.GH6188@obsidianresearch.com> <alpine.BSF.2.00.0911091348360.1226@desktop> <20091110002047.GJ6188@obsidianresearch.com> <alpine.BSF.2.00.0911161835230.1226@desktop>
- <6A30FB8CEED94D778E7CDAE4660458DA@amr.corp.intel.com>
+From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH 02/53] IB/qib: Add Makefile
+Date: Mon, 23 Nov 2009 19:59:19 -0800
+Message-ID: <adamy2c3754.fsf@roland-alpha.cisco.com>
+References: <20091119233655.30356.57433.stgit@chromite.mv.qlogic.com>
+	<20091119233706.30356.20051.stgit@chromite.mv.qlogic.com>
+	<adaeinu6owu.fsf@roland-alpha.cisco.com>
+	<alpine.LFD.1.10.0911191700500.21294@topaz.mv.qlogic.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <6A30FB8CEED94D778E7CDAE4660458DA-Zpru7NauK7drdx17CPfAsdBPR1lH4CV8@public.gmane.org>
+In-Reply-To: <alpine.LFD.1.10.0911191700500.21294-vxnkQ4oxbxUi9g6yJnKVd0EOCMrvLtNR@public.gmane.org> (Dave
+	Olson's message of "Thu, 19 Nov 2009 17:07:45 -0800")
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Dave Olson <dave.olson-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+Cc: Ralph Campbell <ralph.campbell-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>, "linux-rdma@vger.kernel.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, 16 Nov 2009, Sean Hefty wrote:
 
->> Is there an opensource example of using APM?  When I call ib_cm_send_lap()
->> the QP goes to some error state and my connections die.  Do I need to set
->> some QP attributes first?  I found a paper that describes the process but
->> does not contain sample code or any real details.
->
-> Sending the LAP/APR only exchanges CM protocol messages.  You still need to
-> modify the QP.  There's an old example program for the kernel that did APM, but
-> it shouldn't be too hard to see what it did and convert it to a userspace app.
->
-> See the cmpost sample in the test-apps branch of my rdma-dev.git tree.
+ > |  > +ib_qib-$(CONFIG_PCI_MSI) += qib_iba6120.o
+ > | 
+ > | Seems you put the 6120 in the module device table even if PCI_MSI isn't
+ > | set... does the driver build without MSI enabled?
+ > 
+ > Yes.  It just doesn't work well.  It works well enough to tell people
+ > what the problem is, which is what we wanted.
 
-Thank you.  This worked for me.  However, there seems to be some kind of 
-race when the connection is first set up.  On the client if I call 
-ib_cm_send_lap() immediately after ib_cm_send_rtu() returns successfully I 
-get an EINVAL error.  If I delay for one second it works just fine. 
-According to the spec the passive/server side can not send the lap so I 
-can't send it in the rtu handler.  Presumably the call fails immediately 
-after send_rtu because the server hasn't received that message yet?  Is 
-this right?  Is there a way to do this cleanly without a delay?
+No, it doesn't even build with CONFIG_PCI_MSI=n (and spews a bunch of
+warnings before failing).  Seriously, try it.
 
-I notice that if I create the initial attributes for the connection 
-request with an alternate path specified the alt_path_state is still 
-MIGRATED when I send rtu.  If I load a path after the connection is 
-established I can fail back and forth without issue.
+ > | And are you dropping 6110 support (I see no HT_IRQ stuff)?  So do we
+ > | need to keep ipath around for that?
+ > 
+ > 6110 is out of this driver, and people (customers) are aware that support has
+ > been dropped.  The current (non-verbs) userland software won't work on those
+ > boards any longer, and customers were using them primarily for non-verbs
+ > MPI.
+ > 
+ > The ipath driver has some significant problems with verbs, and those
+ > problems have been fixed based on the significant restructuring and
+ > rewrites in the ib_qib driver, so it's unlikely that any customer would
+ > want to continue to use the ib_ipath driver in any case.
 
-Thanks,
-Jeff
+I don't think we can drop 6110 support so blithely.  I just did a quick
+check, and brand-new HTX HCAs still seem readily available on ebay, so I
+think it will be a while before they're totally gone.  Since we have the
+driver, we might as well let someone with a few HTX HCAs and a Topspin
+90 they got off ebay for a few hundred bucks use the latest Fedora or
+whatever.  The ideal plan would be to strip all the non-HTX device IDs
+out of ib_ipath, and even better get rid of the unneeded code too.
 
->
-http://www.openfabrics.org/git/?p=~shefty/rdma-dev.git;a=blob;f=drivers/infiniba
-nd/util/cmpost/cmpost.c;h=99f1446af841fd34b50b7bdfce1360f741e10a63;hb=b5e668a9b6
-d0f24d1a92e604e67c44f1452ea1e4
->
-> - Sean
->
+ - R.
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
