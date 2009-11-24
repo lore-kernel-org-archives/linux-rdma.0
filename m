@@ -1,46 +1,34 @@
-From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 39/53] IB/qib: Add qib_trace.c
-Date: Mon, 23 Nov 2009 20:09:35 -0800
-Message-ID: <adaaayc36o0.fsf@roland-alpha.cisco.com>
-References: <20091119233655.30356.57433.stgit@chromite.mv.qlogic.com>
-	<20091119234021.30356.77098.stgit@chromite.mv.qlogic.com>
-	<ada63966oip.fsf@roland-alpha.cisco.com>
-	<alpine.LFD.1.10.0911191652280.21294@topaz.mv.qlogic.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH 9/9] ib/addr: fix ipv6 routing lookup
+Date: Mon, 23 Nov 2009 23:56:58 -0700
+Message-ID: <20091124065658.GH1966@obsidianresearch.com>
+References: <2449CF17D7E94FCBA643A743473246A5@amr.corp.intel.com> <20091123194847.GL6188@obsidianresearch.com> <913F7AE25239487A9AF368E608F30A34@amr.corp.intel.com> <20091123222652.GM6188@obsidianresearch.com> <89DF931E4E7549858A9BF7A31912F2F7@amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <alpine.LFD.1.10.0911191652280.21294-vxnkQ4oxbxUi9g6yJnKVd0EOCMrvLtNR@public.gmane.org> (Dave
-	Olson's message of "Thu, 19 Nov 2009 16:53:38 -0800")
+Content-Disposition: inline
+In-Reply-To: <89DF931E4E7549858A9BF7A31912F2F7-Zpru7NauK7drdx17CPfAsdBPR1lH4CV8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Dave Olson <dave.olson-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-Cc: Ralph Campbell <ralph.campbell-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>, "linux-rdma@vger.kernel.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+On Mon, Nov 23, 2009 at 07:43:34PM -0800, Sean Hefty wrote:
+> >The sin6_scope_id must be ignored in all cases except LL
+> >addresses. Fixing this will break the path that sets the bound_dev_if
+> >starting from rdma_resolve_addr. This is why my version was setting
+> >bound_dev_if directly in rdma_resolve_addr.
+> >
+> >Did you change it to be like this because you found something wrong
+> >with the way things were in my big patch?
+> 
+> I was wanting to have all of the code paths go through rdma_bind_addr(), with
+> source address checks there to things as easy to follow as possible.
 
- > | I don't think random PCI device drivers hooking into the panic notifier
- > | chain is really a good idea, so probably ripping this out for now is the
- > | best thing to do.
- > 
- > It's extremely useful to have this, otherwise no trace info gets out
- > when the system panics (one of the big reasons you want tracing
- > in the first place).
- > 
- > As best as I can tell, the panic hooks are intended for just this kind
- > of thing.  If there's some other mechanism, we'd be happy to use it.
+OK. Then I'll send a patch to do it the other way, processing
+sin6_scope_id for the non-link-local case is worth fixing.
 
-I can't find one other "non-special" driver hooking into the panic
-notifier.  (The only uses appear to be console drivers doing flushing to
-make sure that panic messages actually appear)  Which should be a hint
-that you probably don't really need it either.
-
-Really, all this duplicated tracing infrastructure is a no-go.  Take a
-look at ftrace events; they're pretty much awesome.  Look in
-Documentation/trace and for a practical example all the trace_ext4_xxx
-stuff in fs/ext4.  Then you can add a generic mechanism to dump the
-trace buffer on panic; I think the tracing guys would be supportive of
-that, it makes a lot of sense for debugging.
-
- - R.
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
