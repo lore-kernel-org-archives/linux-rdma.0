@@ -1,33 +1,113 @@
-From: Ralph Campbell <ralph.campbell-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH 07/53] IB/qib: Add qib_7322_regs.h
-Date: Tue, 24 Nov 2009 16:15:38 -0800
-Message-ID: <1259108138.992.527.camel@chromite.mv.qlogic.com>
-References: <20091119233655.30356.57433.stgit@chromite.mv.qlogic.com>
-	 <20091119233732.30356.15053.stgit@chromite.mv.qlogic.com>
-	 <adaeino36vw.fsf@roland-alpha.cisco.com>
-	 <1259094504.992.517.camel@chromite.mv.qlogic.com>
-	 <ada1vjn36bz.fsf@roland-alpha.cisco.com>
+From: "Davis, Arlin R" <arlin.r.davis-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH] uDAPL v2: scm: client side setsockopt NODELAY fails if data
+ arrives before setting
+Date: Tue, 24 Nov 2009 16:16:16 -0800
+Message-ID: <E3280858FA94444CA49D2BA02341C98361B96A62@orsmsx506.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <ada1vjn36bz.fsf-BjVyx320WGW9gfZ95n9DRSW4+XlvGpQz@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "ofw-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org" <ofw-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+Cc: "Smith, Stan" <stan.smith-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, 2009-11-24 at 14:29 -0800, Roland Dreier wrote:
-> > The file is automatically generated from the HW description
->  > files we use internally. It is obviously easier for us to
->  > leave it as is but if you feel strongly, we can filter the
->  > output to only contain the ones we use.
-> 
-> This one file is bigger than the whole amso1100 driver.  Which seems
-> pretty excessive to me.  I mean, 9734 lines of register defines?!
 
-OK. It looks like I can shrink the 3 register header files by about 50%.
-There really are a lot of registers and most of them are used.
+Move setsockopt before connect to avoid race with data.
+Seems to fail on windows. Not seen on linux.
+
+Signed-off-by: Arlin Davis <arlin.r.davis-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+---
+ dapl/openib_scm/cm.c |   34 ++++++++++++++++++++--------------
+ 1 files changed, 20 insertions(+), 14 deletions(-)
+
+diff --git a/dapl/openib_scm/cm.c b/dapl/openib_scm/cm.c
+index c957f29..105351c 100644
+--- a/dapl/openib_scm/cm.c
++++ b/dapl/openib_scm/cm.c
+@@ -69,7 +69,15 @@ enum DAPL_FD_EVENTS {
+ static int dapl_config_socket(DAPL_SOCKET s)
+ {
+ 	unsigned long nonblocking = 1;
+-	return ioctlsocket(s, FIONBIO, &nonblocking);
++	int ret, opt;
++
++	ret = ioctlsocket(s, FIONBIO, &nonblocking);
++
++	/* no delay for small packets */
++	if (!ret)
++		ret = setsockopt(s, IPPROTO_TCP, TCP_NODELAY, 
++				 (char *)&opt, sizeof(opt));
++	return ret;
+ }
+ 
+ static int dapl_connect_socket(DAPL_SOCKET s, struct sockaddr *addr,
+@@ -176,11 +184,17 @@ enum DAPL_FD_EVENTS {
+ 
+ static int dapl_config_socket(DAPL_SOCKET s)
+ {
+-	int ret;
++	int ret, opt = 1;
+ 
++	/* non-blocking */
+ 	ret = fcntl(s, F_GETFL);
+ 	if (ret >= 0)
+ 		ret = fcntl(s, F_SETFL, ret | O_NONBLOCK);
++
++	/* no delay for small packets */
++	if (!ret)
++		ret = setsockopt(s, IPPROTO_TCP, TCP_NODELAY, 
++				 (char *)&opt, sizeof(opt));
+ 	return ret;
+ }
+ 
+@@ -434,7 +448,7 @@ DAT_RETURN dapli_socket_disconnect(dp_ib_cm_handle_t cm_ptr)
+  */
+ static void dapli_socket_connected(dp_ib_cm_handle_t cm_ptr, int err)
+ {
+-	int ret, len, exp, opt = 1;
++	int len, exp;
+ 	struct iovec iov[2];
+ 	struct dapl_ep *ep_ptr = cm_ptr->ep;
+ 
+@@ -450,14 +464,6 @@ static void dapli_socket_connected(dp_ib_cm_handle_t cm_ptr, int err)
+ 		goto bail;
+ 	}
+ 
+-	/* no delay for small packets */
+-	ret = setsockopt(cm_ptr->socket, IPPROTO_TCP, TCP_NODELAY,
+-			 (char *)&opt, sizeof(opt));
+-	if (ret)
+-		dapl_log(DAPL_DBG_TYPE_ERR,
+-			 " CONN_PENDING: NODELAY setsockopt: %s\n",
+-			 strerror(errno));
+-		
+ 	cm_ptr->state = DCM_REP_PENDING;
+ 
+ 	/* send qp info and pdata to remote peer */
+@@ -537,7 +543,7 @@ dapli_socket_connect(DAPL_EP * ep_ptr,
+ 	if (ret < 0) {
+ 		dapl_log(DAPL_DBG_TYPE_ERR,
+ 			 " connect: config socket %d ERR %d %s\n",
+-			 cm_ptr->socket, ret, strerror(errno));
++			 cm_ptr->socket, ret, strerror(dapl_socket_errno()));
+ 		dat_ret = DAT_INTERNAL_ERROR;
+ 		goto bail;
+ 	}
+@@ -954,8 +960,8 @@ static void dapli_socket_accept(ib_cm_srvc_handle_t cm_ptr)
+ 			   (char *)&opt, sizeof(opt));
+ 		if (ret)
+ 			dapl_log(DAPL_DBG_TYPE_ERR,
+-				 " ACCEPT: NODELAY setsockopt: %s\n",
+-				 strerror(errno));
++				 " ACCEPT: NODELAY setsockopt: 0x%x 0x%x %s\n",
++			 	 ret, dapl_socket_errno(), strerror(dapl_socket_errno()));
+ 		
+ 		/* get local address information from socket */
+ 		sl = sizeof(acm_ptr->addr);
+-- 
+1.5.2.5
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
