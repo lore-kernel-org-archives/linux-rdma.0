@@ -1,39 +1,39 @@
-From: Tziporet Koren <tziporet-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
-Subject: Re: OFED-1.x SRP's user manual
-Date: Wed, 25 Nov 2009 16:11:49 +0200
-Message-ID: <4B0D3B25.3020608@mellanox.co.il>
-References: <20091116163945.GB30983@cefeid.wcss.wroc.pl> <20091125102527.GB3222@cefeid.wcss.wroc.pl>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+From: Jeff Squyres <jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Subject: Re: RDMAoE verbs questions
+Date: Wed, 25 Nov 2009 09:30:40 -0500
+Message-ID: <7127F20E-2307-492D-B929-A6ACA5A74D14@cisco.com>
+References: <209ECE49-3AB9-4E62-B825-54E474321FA6@cisco.com> <20091125001136.GP6188@obsidianresearch.com> <4B0D3982.2040408@mellanox.co.il>
+Mime-Version: 1.0 (Apple Message framework v936)
+Content-Type: text/plain; charset=US-ASCII; format=flowed; delsp=yes
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20091125102527.GB3222-sw0Ds1urQ/R7SKKwlQ7lD6sMm+1xrEX8@public.gmane.org>
+In-Reply-To: <4B0D3982.2040408-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Pawel Dziekonski <dzieko-QBi2pHyxPjg@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tziporet Koren <tziporet-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
+Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Eli Cohen <eli-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Pawel Dziekonski wrote:
-> On Mon, 16 Nov 2009 at 05:39:45PM +0100, Pawel Dziekonski wrote:
->   
->> Hello,
->>
->> where do I find SRP user manual? There is no manual in OFED distro,
->> I have also checked main website and wiki. Manual is mentioned in
->> OFED/docs/SRPT_README.txt.
->>     
->
-> Hello again.
->
-> I got no answers - does the manual exist at all?
-> P
->
->
->   
-You can look at the UM on Mellanox web:
-http://www.mellanox.com/related-docs/prod_software/Mellanox_OFED_Linux_user_manual_1_40_1.pdf
-look at Chapter 7 SRP
+On Nov 25, 2009, at 9:04 AM, Tziporet Koren wrote:
 
-Tziporet
+> Note that application does not need to query the transport type, but  
+> we
+> thought it can be good to know also from debug perspective.
+> Thus I think sysfs is the best place.
+>
+
+
+In practice, we have seen that applications *do* need to query the  
+transport type -- at least (real) IB vs. iWARP.  It is your  
+expectation that IB and IBoE will function identically?
+
+Can you discuss the "transport" vs. "transport_type" questions?
+
+Thanks!
+
+-- 
+Jeff Squyres
+jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
