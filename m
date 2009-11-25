@@ -1,67 +1,37 @@
-From: Jeff Squyres <jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Subject: RDMAoE verbs questions
-Date: Tue, 24 Nov 2009 18:23:15 -0500
-Message-ID: <209ECE49-3AB9-4E62-B825-54E474321FA6@cisco.com>
-Mime-Version: 1.0 (Apple Message framework v936)
-Content-Type: text/plain; charset=US-ASCII; format=flowed; delsp=yes
-Content-Transfer-Encoding: 7bit
+From: "Davis, Arlin R" <arlin.r.davis-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH] uDAPL v1: scm: fix compiler warning, unused variable
+Date: Tue, 24 Nov 2009 16:11:25 -0800
+Message-ID: <E3280858FA94444CA49D2BA02341C98361B96A44@orsmsx506.amr.corp.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "ofw-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org" <ofw-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+Cc: "Smith, Stan" <stan.smith-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-I was reviewing Mellanox's Open MPI patches for RDMAoE support this  
-afternoon and came up with the following general questions:
 
-1. It looks like there is a new field on the ibv_port_attr struct:  
-transport.  Is it expected that all device drivers will start filling  
-in this value, or is it done in the OF core code somewhere?   
-Regardless of where this value is supposed to be filled in, does the  
-Mellanox patch to community OFED ensure that this value is properly  
-initialized regardless of what device is used?  (this issue came up in  
-the OMPI review: whether we could *always* rely on this value being  
-accurate, or whether it was only accurate when Mellanox devices are  
-used -- and it should be considered uninitialized when other devices  
-are used)
+Signed-off-by: Arlin Davis <arlin.r.davis-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+---
+ dapl/openib_scm/dapl_ib_util.c |    1 -
+ 1 files changed, 0 insertions(+), 1 deletions(-)
 
-2. I am somewhat confused by the overloading of the term "transport".   
-It appears that a device will have  
-ibv_device.transport_type==IBV_TRANSPORT_IB for both IB and RDMAOE  
-devices.  The only way to tell the difference is to examine the new  
-ibv_port_attr.transport field to see if it is RDMA_TRANSPORT_IB or  
-RDMA_TRANSPORT_RDMAOE.
-
-This disparity seems a little odd to me.  They're both called  
-"transport" -- so why are they split across two fields?  Is there a  
-reason for not simply creating a new ibv_transport_type enum value  
-named IBV_TRANSPORT_RDMAOE and assigning that to the  
-ibv_device.transport_type field?
-
-I'm *guessing* that Mellanox wants legacy code checking for the  
-ibv_device.transport_type value IBV_TRANSPORT_IB to work for RDMAOE  
-devices as well...?  If that's correct:
-
-2a. That assumption seems risky -- the Open MPI RDMAOE patch implies  
-that host loopback is not supported in RDMAOE mode (but it is in IB  
-mode).  To be clear, the OMPI code had to do something different for  
-real IB vs. RDMAOE in at least 1 or 2 places.
-
-2b. Can we come up with a different/better name for the  
-ibv_port_attr.transport field name and enum values?  Overloading the  
-term "transport" across two fields is quite confusing IMHO.  Example:  
-ignoring the code, how do Mellanox engineers refer to these two  
-different characteristics?  I ask because this might help come up with  
-better struct names.  The existing verbs code base has a long- 
-established "transport_type" field on the ibv_device struct which,  
-obviously, should not be changed.  If you now distinguish  
-"IBV_TRANSPORT_IB" devices as either real IB and IBoE, how do you  
-refer to this 2nd characteristic in spoken/written text?
-
-Thanks!
-
+diff --git a/dapl/openib_scm/dapl_ib_util.c b/dapl/openib_scm/dapl_ib_util.c
+index ca7746e..9fb62a5 100644
+--- a/dapl/openib_scm/dapl_ib_util.c
++++ b/dapl/openib_scm/dapl_ib_util.c
+@@ -175,7 +175,6 @@ DAT_RETURN dapls_ib_open_hca (
+         IN   DAPL_HCA		*hca_ptr)
+ {
+ 	struct ibv_device **dev_list;
+-	int		opts;
+ 	int		i;
+ 	DAT_RETURN	dat_status = DAT_SUCCESS;
+ 
 -- 
-Jeff Squyres
-jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org
+1.5.2.5
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
