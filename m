@@ -1,41 +1,37 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: RDMAoE verbs questions
-Date: Wed, 25 Nov 2009 10:39:17 -0700
-Message-ID: <20091125173917.GK1966@obsidianresearch.com>
-References: <209ECE49-3AB9-4E62-B825-54E474321FA6@cisco.com> <20091125001136.GP6188@obsidianresearch.com> <4B0D3982.2040408@mellanox.co.il> <7127F20E-2307-492D-B929-A6ACA5A74D14@cisco.com> <20091125144108.GA18088@mtls03>
+Subject: Re: Re: RDMAoE verbs questions
+Date: Wed, 25 Nov 2009 10:44:23 -0700
+Message-ID: <20091125174423.GL1966@obsidianresearch.com>
+References: <209ECE49-3AB9-4E62-B825-54E474321FA6@cisco.com> <20091125001136.GP6188@obsidianresearch.com> <DD0B6BCA-5892-4CA9-8F5D-87C6CC1189DC@cisco.com> <20091125045244.GJ1966@obsidianresearch.com> <4B0CFEAB.70304@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20091125144108.GA18088@mtls03>
+In-Reply-To: <4B0CFEAB.70304-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: Jeff Squyres <jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Tziporet Koren <tziporet-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Eli Cohen <eli-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
+To: pasha-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Nov 25, 2009 at 04:41:08PM +0200, Eli Cohen wrote:
-> On Wed, Nov 25, 2009 at 09:30:40AM -0500, Jeff Squyres wrote:
-> > 
-> > In practice, we have seen that applications *do* need to query the
-> > transport type -- at least (real) IB vs. iWARP.  It is your
-> > expectation that IB and IBoE will function identically?
-> > 
-> > Can you discuss the "transport" vs. "transport_type" questions?
-> > 
+On Wed, Nov 25, 2009 at 11:53:47AM +0200, Pavel Shamis (Pasha) wrote:
 > 
-> The reason for identifying each specific port with its own transport
-> is to allow devices which may configure each port differently to be
-> distinhishable. ConnectX is one such device.
+> >I think I'm asking you about the non RDMACM stuff in openmpi, ibcm,
+> >xoob, etc. I can't tell at glance if any of them will be safe to run
+> >on RDMAoE as-is..
+> >  
+> The oob and xoob are custom ompi mpi connection manager that were
+> created specially for Infiniband ONLY. So as result they do what they 
+> supposed to do - they work with infiniband devices :-
+> ) (and do not work with Iwarp and others.). So we do not brake anything 
+> here.
 
-As far as I can tell there is no reason for a multi-port device to
-be represented through verbs as a single device with multiple
-protocols.
+Just so everyone is clear here, the test to run only on Infiniband in the
+above cases is done by checking the transport_type for Infiniband:
 
-If you have a single physical chip with two ports and they are running
-different protocols it seems much cleaner to me to report it to verbs
-apps as two devices.
+  if (IBV_TRANSPORT_IB != btl->device->ib_dev->transport_type) {
 
-Doing this avoids creating compatability problems.
+The code protected by this doesn't work on RDMAoE so RDMAoE must not
+set transport_type to IBV_TRANSPORT_IB.
 
 Jason
 --
