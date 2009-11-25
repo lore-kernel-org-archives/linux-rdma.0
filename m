@@ -1,32 +1,35 @@
-From: "Pavel Shamis (Pasha)" <pashash-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: Re: RDMAoE verbs questions
-Date: Wed, 25 Nov 2009 11:53:47 +0200
-Message-ID: <4B0CFEAB.70304@dev.mellanox.co.il>
-References: <209ECE49-3AB9-4E62-B825-54E474321FA6@cisco.com> <20091125001136.GP6188@obsidianresearch.com> <DD0B6BCA-5892-4CA9-8F5D-87C6CC1189DC@cisco.com> <20091125045244.GJ1966@obsidianresearch.com>
-Reply-To: pasha-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org
+From: Pawel Dziekonski <dzieko-QBi2pHyxPjg@public.gmane.org>
+Subject: Re: OFED-1.x SRP's user manual
+Date: Wed, 25 Nov 2009 11:25:27 +0100
+Message-ID: <20091125102527.GB3222@cefeid.wcss.wroc.pl>
+References: <20091116163945.GB30983@cefeid.wcss.wroc.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20091125045244.GJ1966-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20091116163945.GB30983-sw0Ds1urQ/R7SKKwlQ7lD6sMm+1xrEX8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Jeff Squyres <jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+On Mon, 16 Nov 2009 at 05:39:45PM +0100, Pawel Dziekonski wrote:
+> Hello,
+> 
+> where do I find SRP user manual? There is no manual in OFED distro,
+> I have also checked main website and wiki. Manual is mentioned in
+> OFED/docs/SRPT_README.txt.
 
-> I think I'm asking you about the non RDMACM stuff in openmpi, ibcm,
-> xoob, etc. I can't tell at glance if any of them will be safe to run
-> on RDMAoE as-is..
->   
-The oob and xoob are custom ompi mpi connection manager that were
-created specially for Infiniband ONLY. So as result they do what they 
-supposed to do - they work with infiniband devices :-
-) (and do not work with Iwarp and others.). So we do not brake anything 
-here.
+Hello again.
 
-Regards,
-Pasha.
+I got no answers - does the manual exist at all?
+P
+
+
+-- 
+Pawel Dziekonski <pawel.dziekonski-QBi2pHyxPjg@public.gmane.org>
+Wroclaw Centre for Networking & Supercomputing, HPC Department
+Politechnika Wr., pl. Grunwaldzki 9, bud. D2/101, 50-377 Wroclaw, POLAND
+phone: +48 71 3202043, fax: +48 71 3225797, http://www.wcss.wroc.pl
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
