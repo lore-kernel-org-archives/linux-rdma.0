@@ -1,40 +1,37 @@
-From: "Davis, Arlin R" <arlin.r.davis-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH] uDAPL v2: scm: client side setsockopt NODELAY fails if
-	data arrives before setting
-Date: Tue, 24 Nov 2009 16:36:52 -0800
-Message-ID: <E3280858FA94444CA49D2BA02341C98361B96A9E@orsmsx506.amr.corp.intel.com>
+From: "Sean Hefty" <sean.hefty@intel.com>
+Subject: RE: [PATCH] uDAPL v2: scm: client side setsockopt NODELAY
+	fails if	data arrives before setting
+Date: Tue, 24 Nov 2009 16:37:19 -0800
+Message-ID: <7EDB3F0A31604B79A030FCF46834E443@amr.corp.intel.com>
 References: <E3280858FA94444CA49D2BA02341C98361B96A62@orsmsx506.amr.corp.intel.com>
- <20091125002914.GQ6188@obsidianresearch.com>
+	<20091125002914.GQ6188@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20091125002914.GQ6188-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Content-Language: en-US
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "ofw-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org" <ofw-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>, "Smith, Stan" <stan.smith-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <ofw-bounces@lists.openfabrics.org>
+In-Reply-To: <20091125002914.GQ6188@obsidianresearch.com>
+List-Unsubscribe: <http://lists.openfabrics.org/cgi-bin/mailman/listinfo/ofw>,
+	<mailto:ofw-request@lists.openfabrics.org?subject=unsubscribe>
+List-Archive: <http://lists.openfabrics.org/pipermail/ofw>
+List-Post: <mailto:ofw@lists.openfabrics.org>
+List-Help: <mailto:ofw-request@lists.openfabrics.org?subject=help>
+List-Subscribe: <http://lists.openfabrics.org/cgi-bin/mailman/listinfo/ofw>,
+	<mailto:ofw-request@lists.openfabrics.org?subject=subscribe>
+Sender: ofw-bounces@lists.openfabrics.org
+Errors-To: ofw-bounces@lists.openfabrics.org
+To: 'Jason Gunthorpe' <jgunthorpe@obsidianresearch.com>, "Davis, Arlin R" <arlin.r.davis@intel.com>
+Cc: linux-rdma@vger.kernel.org, ofw@lists.openfabrics.org
 List-Id: linux-rdma@vger.kernel.org
 
- 
->On Tue, Nov 24, 2009 at 04:16:16PM -0800, Davis, Arlin R wrote:
->
->> -	return ioctlsocket(s, FIONBIO, &nonblocking);
->> +	int ret, opt;
->> +
->> +	ret = ioctlsocket(s, FIONBIO, &nonblocking);
->> +
->> +	/* no delay for small packets */
->> +	if (!ret)
->> +		ret = setsockopt(s, IPPROTO_TCP, TCP_NODELAY, 
->> +				 (char *)&opt, sizeof(opt));
->> +	return ret;
->>  }
->
->You probably need to initialize opt..
->
+>TCP_NODELAY is not a POSIX feature, and the common UNIX/Linux behavior
+>is to allow it to be set/unset at any time. Strange the Windows would
+>be restrictive in this way.
 
-Good catch. Thanks Jason.--
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+We were easily able to reproduce errors on Windows trying to set this option
+after the connection was established, but it didn't occur every time.  The
+documentation didn't list any specific restrictions, but our guess is that
+Windows requires that it be set before any data is sent or received on the
+socket.  In any case, the errors went away after moving the call before connect.
+
+- Sean
