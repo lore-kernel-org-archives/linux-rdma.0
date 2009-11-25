@@ -1,33 +1,31 @@
-From: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+From: Or Gerlitz <ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org>
 Subject: Re: RDMAoE verbs questions
-Date: Wed, 25 Nov 2009 16:41:08 +0200
-Message-ID: <20091125144108.GA18088@mtls03>
-References: <209ECE49-3AB9-4E62-B825-54E474321FA6@cisco.com>
- <20091125001136.GP6188@obsidianresearch.com>
- <4B0D3982.2040408@mellanox.co.il>
- <7127F20E-2307-492D-B929-A6ACA5A74D14@cisco.com>
+Date: Wed, 25 Nov 2009 16:59:44 +0200
+Message-ID: <4B0D4660.5060701@voltaire.com>
+References: <209ECE49-3AB9-4E62-B825-54E474321FA6@cisco.com>	<4B0CDBEC.1030203@voltaire.com> <10904370-1D66-4013-BB3F-0F4B5EE581EE@cisco.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <7127F20E-2307-492D-B929-A6ACA5A74D14-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <10904370-1D66-4013-BB3F-0F4B5EE581EE-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Jeff Squyres <jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Cc: Tziporet Koren <tziporet-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Eli Cohen <eli-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
+Cc: pasha-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Nov 25, 2009 at 09:30:40AM -0500, Jeff Squyres wrote:
-> 
-> In practice, we have seen that applications *do* need to query the
-> transport type -- at least (real) IB vs. iWARP.  It is your
-> expectation that IB and IBoE will function identically?
-> 
-> Can you discuss the "transport" vs. "transport_type" questions?
-> 
+Jeff Squyres wrote:
+> Here's one thread:  
+> http://www.open-mpi.org/community/lists/devel/2009/11/7063.php
+Jeff, looking on the threads you have sent, I didn't find a way to 
+download the patch in a form which can be applied on a source tree, is 
+there a way to do it through this archive? are these patches available 
+from some git tree @mellanox or elsewhere? does anyone have the email 
+address of Vasily Philipov (/vasily_at_[hidden]/), if yes, can you op 
+Pasha please ask him to send me or better, this list the proposed patch, 
+many thanks.
 
-The reason for identifying each specific port with its own transport
-is to allow devices which may configure each port differently to be
-distinhishable. ConnectX is one such device.
+Or
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
