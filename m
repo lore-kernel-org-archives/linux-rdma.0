@@ -1,40 +1,25 @@
 From: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Subject: Re: [infiniband-diags] [PATCH] [3/3] splice out chassis scan
- specific from general scan in libibnetdiscover
-Date: Thu, 26 Nov 2009 19:09:47 +0200
-Message-ID: <20091126170947.GO13817@me>
-References: <1258481850.1335.98.camel@auk31.llnl.gov>
+Subject: Re: [PATCH] opensm/osm_sm_mad_ctrl.c: Fix qp0_mads_accounting
+Date: Thu, 26 Nov 2009 19:21:18 +0200
+Message-ID: <20091126172118.GP13817@me>
+References: <20091117190838.GA23887@comcast.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1258481850.1335.98.camel-X2zTWyBD0EhliZ7u+bvwcg@public.gmane.org>
+In-Reply-To: <20091117190838.GA23887-Wuw85uim5zDR7s880joybQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Al Chu <chu11-i2BcT+NCU+M@public.gmane.org>
+To: Hal Rosenstock <hnrose-Wuw85uim5zDR7s880joybQ@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 10:17 Tue 17 Nov     , Al Chu wrote:
-> Hey Sasha,
+On 14:08 Tue 17 Nov     , Hal Rosenstock wrote:
 > 
-> With patch 2/3 the chassis code does not depend on the data structures
-> used in the scan, so we can splice out the chassis specific chunks.
+> In sm_mad_ctrl_process_trap_repress, when attribute ID is notice, don't
+> just return the mad but rather retire it which fixes the qp0_mads_accounting.
+> Trap/TrapRepresses are treated as transactions.
 > 
-> Al
-> 
-> -- 
-> Albert Chu
-> chu11-i2BcT+NCU+M@public.gmane.org
-> Computer Scientist
-> High Performance Systems Division
-> Lawrence Livermore National Laboratory
-
-> From: Albert Chu <chu11-i2BcT+NCU+M@public.gmane.org>
-> Date: Mon, 16 Nov 2009 17:20:32 -0800
-> Subject: [PATCH] splice out chassis scan specific from general scan
-> 
-> 
-> Signed-off-by: Albert Chu <chu11-i2BcT+NCU+M@public.gmane.org>
+> Signed-off-by: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 
 Applied. Thanks.
 
