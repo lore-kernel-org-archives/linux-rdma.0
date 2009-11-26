@@ -1,197 +1,169 @@
 From: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH 3/3 v2] opensm SA DB dump/restore: dump SA DB only if
- modified
-Date: Thu, 26 Nov 2009 16:15:19 +0200
-Message-ID: <20091126141519.GB28564@me>
-References: <4AF15EF0.6050903@dev.mellanox.co.il>
+Subject: Re: [PATCH 3/3 v2] opensm: connect switches in tree - implemented
+ in up/down
+Date: Thu, 26 Nov 2009 17:46:43 +0200
+Message-ID: <20091126154643.GA13817@me>
+References: <4AF160D8.9040801@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <4AF15EF0.6050903-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+In-Reply-To: <4AF160D8.9040801-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Cc: Linux RDMA <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 13:01 Wed 04 Nov     , Yevgeny Kliteynik wrote:
-> Optimizing SA DB dump - added "dirty" flag to denote
-> that the SA DB was modified, so that the DB will be
-> dumped only when the flag is on.
+On 13:09 Wed 04 Nov     , Yevgeny Kliteynik wrote:
+> This patch implements connect_switches option in up/down
+> routing. Also, connect_roots is now handled as a special
+> case of connect_switches.
+> 
+> The idea is the following: when clearing hops, preserve
+> the entries for switches that are above the highest leaf
+> in the tree.
+> So if the highest leaf in the tree has rank N, preserve
+> hops to all the switches with ranks 0 to (N-1).
+> When connecting roots (--connect_roots option), just set
+> N to 1.
+
+Would this affect multicast routing in sense of a credit loop
+generation?
+
+Sasha
+
 > 
 > [v2 - no changes, just rebased and resolved conflicts]
 > 
 > Signed-off-by: Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 > ---
->  opensm/include/opensm/osm_sa.h         |    5 +++++
->  opensm/opensm/osm_inform.c             |    2 ++
->  opensm/opensm/osm_multicast.c          |    3 +++
->  opensm/opensm/osm_sa.c                 |    7 ++++++-
->  opensm/opensm/osm_sa_mcmember_record.c |    4 ++++
->  opensm/opensm/osm_service.c            |    3 +++
->  6 files changed, 23 insertions(+), 1 deletions(-)
+>  opensm/opensm/osm_ucast_updn.c |   87 +++++++++++++++++++++++++++++++---------
+>  1 files changed, 68 insertions(+), 19 deletions(-)
 > 
-> diff --git a/opensm/include/opensm/osm_sa.h b/opensm/include/opensm/osm_sa.h
-> index dad3142..35684cc 100644
-> --- a/opensm/include/opensm/osm_sa.h
-> +++ b/opensm/include/opensm/osm_sa.h
-> @@ -125,6 +125,7 @@ typedef struct osm_sa {
->  	atomic32_t sa_trans_id;
->  	osm_sa_mad_ctrl_t mad_ctrl;
->  	cl_timer_t sr_timer;
-> +	boolean_t dirty;
->  	cl_disp_reg_handle_t cpi_disp_h;
->  	cl_disp_reg_handle_t nr_disp_h;
->  	cl_disp_reg_handle_t pir_disp_h;
-> @@ -178,6 +179,10 @@ typedef struct osm_sa {
->  *	mad_ctrl
->  *		Mad Controller
->  *
-> +*	dirty
-> +*		A flag that denotes that SA DB is dirty and needs
-> +*		to be written to the dump file (if dumping is enabled)
-> +*
->  * SEE ALSO
->  *	SM object
->  *********/
-> diff --git a/opensm/opensm/osm_inform.c b/opensm/opensm/osm_inform.c
-> index 84310a5..d2dd8e7 100644
-> --- a/opensm/opensm/osm_inform.c
-> +++ b/opensm/opensm/osm_inform.c
-> @@ -248,6 +248,7 @@ void osm_infr_insert_to_db(IN osm_subn_t * p_subn, IN osm_log_t * p_log,
->  #endif
-> 
->  	cl_qlist_insert_head(&p_subn->sa_infr_list, &p_infr->list_item);
-> +	p_subn->p_osm->sa.dirty = TRUE;
-> 
->  	OSM_LOG(p_log, OSM_LOG_DEBUG, "Dump after insertion (size %d)\n",
->  		cl_qlist_count(&p_subn->sa_infr_list));
-> @@ -271,6 +272,7 @@ void osm_infr_remove_from_db(IN osm_subn_t * p_subn, IN osm_log_t * p_log,
->  			     OSM_LOG_DEBUG);
-> 
->  	cl_qlist_remove_item(&p_subn->sa_infr_list, &p_infr->list_item);
-> +	p_subn->p_osm->sa.dirty = TRUE;
-> 
->  	osm_infr_delete(p_infr);
-> 
-> diff --git a/opensm/opensm/osm_multicast.c b/opensm/opensm/osm_multicast.c
-> index 8ccab8e..c501986 100644
-> --- a/opensm/opensm/osm_multicast.c
-> +++ b/opensm/opensm/osm_multicast.c
-> @@ -197,6 +197,7 @@ osm_mcm_port_t *osm_mgrp_add_port(IN osm_subn_t * subn, osm_log_t * log,
->  	    ++mgrp->full_members == 1)
->  		mgrp_send_notice(subn, log, mgrp, 66);
-> 
-> +	subn->p_osm->sa.dirty = TRUE;
->  	return mcm_port;
+> diff --git a/opensm/opensm/osm_ucast_updn.c b/opensm/opensm/osm_ucast_updn.c
+> index 01e40eb..cb99730 100644
+> --- a/opensm/opensm/osm_ucast_updn.c
+> +++ b/opensm/opensm/osm_ucast_updn.c
+> @@ -279,24 +279,80 @@ static int updn_subn_rank(IN updn_t * p_updn)
+>  	return 0;
 >  }
 > 
-> @@ -251,6 +252,8 @@ void osm_mgrp_remove_port(osm_subn_t * subn, osm_log_t * log, osm_mgrp_t * mgrp,
->  		mgrp_send_notice(subn, log, mgrp, 67);
->  		osm_mgrp_cleanup(subn, mgrp);
->  	}
+> -/* hack: preserve min hops entries to any other root switches */
+> -static void updn_clear_non_root_hops(updn_t * p_updn, osm_switch_t * p_sw)
+> +/**********************************************************************
+> + **********************************************************************/
+> +/* Preserve min hops entries to any switch
+> + * above certain level in the tree */
+> +static void updn_switch_clear_hops_below_rank(updn_t * p_updn,
+> +	osm_switch_t * p_sw, unsigned min_leaf_rank)
+>  {
+>  	osm_port_t *p_port;
+>  	unsigned i;
+> 
+>  	for (i = 0; i < p_sw->num_hops; i++)
+>  		if (p_sw->hops[i]) {
+> -			p_port =
+> -			    cl_ptr_vector_get(&p_updn->p_osm->subn.port_lid_tbl,
+> -					      i);
+> -			if (!p_port || !p_port->p_node->sw
+> -			    || ((struct updn_node *)p_port->p_node->sw->priv)->
+> -			    rank != 0)
+> +			p_port = cl_ptr_vector_get(
+> +				&p_updn->p_osm->subn.port_lid_tbl, i);
+> +			if (!p_port || !p_port->p_node->sw ||
+> +			    ((struct updn_node *)
+> +			    p_port->p_node->sw->priv)->rank >= min_leaf_rank)
+>  				memset(p_sw->hops[i], 0xff, p_sw->num_ports);
+>  		}
+>  }
+> 
+> +/**********************************************************************
+> + **********************************************************************/
+> +static void updn_clear_hops(IN updn_t * p_updn)
+> +{
+> +	osm_subn_t *p_subn = &p_updn->p_osm->subn;
+> +	osm_switch_t *p_sw;
+> +	struct updn_node * p_updn_sw;
+> +	osm_physp_t * p_physp;
+> +	osm_port_t * p_port;
+> +	cl_map_item_t *item;
+> +	unsigned min_leaf_rank = 0xff;
 > +
-> +	subn->p_osm->sa.dirty = TRUE;
->  }
-
-In general I don't like an idea of spreading this global "dirty" flag
-over various OpenSM areas (it makes the code dirty). But even if it is
-needed couldn't we minimize number of such occurrences?
-
-For example those specific ones in osm_multicast.c are duplicated in
-osm_sa_mcmember_record.c (and also will cause 'dirty' flag setup on the
-SA DB from file loading). Could we consolidate all multicast related
-cases with re-routing requesting for example?
-
-Sasha
-
-> 
->  void osm_mgrp_delete_port(osm_subn_t * subn, osm_log_t * log, osm_mgrp_t * mgrp,
-> diff --git a/opensm/opensm/osm_sa.c b/opensm/opensm/osm_sa.c
-> index e44eab4..91a7459 100644
-> --- a/opensm/opensm/osm_sa.c
-> +++ b/opensm/opensm/osm_sa.c
-> @@ -707,7 +707,12 @@ static void sa_dump_all_sa(osm_opensm_t * p_osm, FILE * file)
-> 
->  int osm_sa_db_file_dump(osm_opensm_t * p_osm)
->  {
-> -	return opensm_dump_to_file(p_osm, "opensm-sa.dump", sa_dump_all_sa);
-> +	int res = 0;
-> +	if (p_osm->sa.dirty) {
-> +		res = opensm_dump_to_file(p_osm, "opensm-sa.dump", sa_dump_all_sa);
-> +		p_osm->sa.dirty = FALSE;
+> +	if (p_subn->opt.connect_switches) {
+> +		/*
+> +		 * Preserve roots to switches above the highest leaf
+> +		 * switch (leaf switch with the lowest rank).
+> +		 *
+> +		 * Need to find the minimal rank of leaf switch.
+> +		 * The fastest way would be to go through all the
+> +		 * CA ports in the fabric and check the switch that
+> +		 * is connected to them.
+> +		 */
+> +		for (item = cl_qmap_head(&p_updn->p_osm->subn.port_guid_tbl);
+> +		     item != cl_qmap_end(&p_updn->p_osm->subn.port_guid_tbl);
+> +		     item = cl_qmap_next(item)) {
+> +			p_port = (osm_port_t *)item;
+> +			if (p_port->p_node->sw)
+> +				continue;
+> +			p_physp = p_port->p_physp->p_remote_physp;
+> +			if (!p_physp || !p_physp->p_node->sw)
+> +				continue;
+> +
+> +			p_updn_sw = (struct updn_node*)p_physp->p_node->sw->priv;
+> +			if (p_updn_sw->rank < min_leaf_rank)
+> +				min_leaf_rank = p_updn_sw->rank;
+> +		}
+> +	} else if (p_subn->opt.connect_roots)
+> +		min_leaf_rank = 1;
+> +
+> +	for (item = cl_qmap_head(&p_updn->p_osm->subn.sw_guid_tbl);
+> +	     item != cl_qmap_end(&p_updn->p_osm->subn.sw_guid_tbl);
+> +	     item = cl_qmap_next(item)) {
+> +		p_sw = (osm_switch_t *)item;
+> +		if (p_subn->opt.connect_switches || p_subn->opt.connect_roots)
+> +			updn_switch_clear_hops_below_rank(
+> +				p_updn, p_sw, min_leaf_rank);
+> +		else
+> +			osm_switch_clear_hops(p_sw);
 > +	}
-> +	return res;
->  }
-> 
->  /*
-> diff --git a/opensm/opensm/osm_sa_mcmember_record.c b/opensm/opensm/osm_sa_mcmember_record.c
-> index 95c41e4..5ba139f 100644
-> --- a/opensm/opensm/osm_sa_mcmember_record.c
-> +++ b/opensm/opensm/osm_sa_mcmember_record.c
-> @@ -818,6 +818,7 @@ static ib_api_status_t mcmr_rcv_create_new_mgrp(IN osm_sa_t * sa,
->  		       &(*pp_mgrp)->mcmember_rec.mgid, &(*pp_mgrp)->map_item);
->  	sa->p_subn->mgroups[cl_ntoh16(mlid) - IB_LID_MCAST_START_HO] = *pp_mgrp;
-> 
-> +	sa->dirty = TRUE;
->  Exit:
->  	OSM_LOG_EXIT(sa->p_log);
->  	return status;
-> @@ -942,6 +943,7 @@ static void mcmr_rcv_leave_mgrp(IN osm_sa_t * sa, IN osm_madw_t * p_madw)
->  	/* remove port and/or update join state */
->  	osm_mgrp_remove_port(sa->p_subn, sa->p_log, p_mgrp, p_mcm_port,
->  			     &mcmember_rec);
-> +	sa->dirty = TRUE;
->  	CL_PLOCK_RELEASE(sa->p_lock);
-> 
->  	mcmr_rcv_respond(sa, p_madw, &mcmember_rec);
-> @@ -1155,6 +1157,7 @@ static void mcmr_rcv_join_mgrp(IN osm_sa_t * sa, IN osm_madw_t * p_madw)
->  	if (osm_log_is_active(sa->p_log, OSM_LOG_DEBUG))
->  		osm_dump_mc_record(sa->p_log, &mcmember_rec, OSM_LOG_DEBUG);
-> 
-> +	sa->dirty = TRUE;
->  	mcmr_rcv_respond(sa, p_madw, &mcmember_rec);
-> 
->  Exit:
-> @@ -1187,6 +1190,7 @@ static ib_api_status_t mcmr_rcv_new_mcmr(IN osm_sa_t * sa,
->  	   State, Port Guid, and Proxy */
->  	p_rec_item->rec = *p_rcvd_rec;
->  	cl_qlist_insert_tail(p_list, &p_rec_item->list_item);
-> +	sa->dirty = TRUE;
-> 
->  Exit:
->  	OSM_LOG_EXIT(sa->p_log);
-> diff --git a/opensm/opensm/osm_service.c b/opensm/opensm/osm_service.c
-> index ceb8aad..91715e6 100644
-> --- a/opensm/opensm/osm_service.c
-> +++ b/opensm/opensm/osm_service.c
-> @@ -46,6 +46,7 @@
->  #include <complib/cl_debug.h>
->  #include <complib/cl_timer.h>
->  #include <opensm/osm_service.h>
-> +#include <opensm/osm_opensm.h>
-> 
->  void osm_svcr_delete(IN osm_svcr_t * p_svcr)
+> +}
+> +
+> +/**********************************************************************
+> + **********************************************************************/
+>  static int updn_set_min_hop_table(IN updn_t * p_updn)
 >  {
-> @@ -122,6 +123,7 @@ void osm_svcr_insert_to_db(IN osm_subn_t * p_subn, IN osm_log_t * p_log,
->  		"Inserting new Service Record into Database\n");
+>  	osm_subn_t *p_subn = &p_updn->p_osm->subn;
+> @@ -311,16 +367,8 @@ static int updn_set_min_hop_table(IN updn_t * p_updn)
+>  	OSM_LOG(p_log, OSM_LOG_VERBOSE,
+>  		"Init Min Hop Table of all switches [\n");
 > 
->  	cl_qlist_insert_head(&p_subn->sa_sr_list, &p_svcr->list_item);
-> +	p_subn->p_osm->sa.dirty = TRUE;
+> -	for (item = cl_qmap_head(&p_updn->p_osm->subn.sw_guid_tbl);
+> -	     item != cl_qmap_end(&p_updn->p_osm->subn.sw_guid_tbl);
+> -	     item = cl_qmap_next(item)) {
+> -		p_sw = (osm_switch_t *)item;
+> -		/* Clear Min Hop Table */
+> -		if (p_subn->opt.connect_roots)
+> -			updn_clear_non_root_hops(p_updn, p_sw);
+> -		else
+> -			osm_switch_clear_hops(p_sw);
+> -	}
+> +	/* Clear Min Hop Table */
+> +	updn_clear_hops(p_updn);
 > 
->  	OSM_LOG_EXIT(p_log);
->  }
-> @@ -137,6 +139,7 @@ void osm_svcr_remove_from_db(IN osm_subn_t * p_subn, IN osm_log_t * p_log,
->  		p_svcr->service_record.service_id);
-> 
->  	cl_qlist_remove_item(&p_subn->sa_sr_list, &p_svcr->list_item);
-> +	p_subn->p_osm->sa.dirty = TRUE;
-> 
->  	OSM_LOG_EXIT(p_log);
->  }
+>  	OSM_LOG(p_log, OSM_LOG_VERBOSE,
+>  		"Init Min Hop Table of all switches ]\n");
+> @@ -598,7 +646,8 @@ static int updn_lid_matrices(void *ctx)
+>  			OSM_LOG(&p_updn->p_osm->log, OSM_LOG_ERROR, "ERR : "
+>  				"cannot parse root guids file \'%s\'\n",
+>  				p_updn->p_osm->subn.opt.root_guid_file);
+> -		if (p_updn->p_osm->subn.opt.connect_roots &&
+> +		if ((p_updn->p_osm->subn.opt.connect_roots ||
+> +		     p_updn->p_osm->subn.opt.connect_switches) &&
+>  		    p_updn->num_roots > 1)
+>  			osm_ucast_mgr_build_lid_matrices(&p_updn->p_osm->sm.ucast_mgr);
+>  	} else {
 > -- 
 > 1.5.1.4
-> 
 > 
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
