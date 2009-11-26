@@ -1,155 +1,194 @@
 From: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH 1/3 v2] opensm SA DB dump/restore: added option to load
- SA DB once
-Date: Thu, 26 Nov 2009 15:30:37 +0200
-Message-ID: <20091126133037.GA28564@me>
-References: <4AF15EBD.6010307@dev.mellanox.co.il>
+Subject: Re: [PATCH 3/3 v2] opensm SA DB dump/restore: dump SA DB only if
+ modified
+Date: Thu, 26 Nov 2009 16:15:19 +0200
+Message-ID: <20091126141519.GB28564@me>
+References: <4AF15EF0.6050903@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <4AF15EBD.6010307-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+In-Reply-To: <4AF15EF0.6050903-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Cc: Linux RDMA <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Yevgeny,
-
-On 13:00 Wed 04 Nov     , Yevgeny Kliteynik wrote:
-> Added option to load SA DB once: 'sa_db_load_once'.
-> This will cause OSM to load SA DB once during first master
-> heavy sweep, and then OSM will move to the usual SA mode.
-
-It is probably should be done by default, without any options. I don't
-think that loading SA DB on an every sweep is anyhow in use today.
-
-> The option is not exposed through OSM command line,
-> but only through options file.
+On 13:01 Wed 04 Nov     , Yevgeny Kliteynik wrote:
+> Optimizing SA DB dump - added "dirty" flag to denote
+> that the SA DB was modified, so that the DB will be
+> dumped only when the flag is on.
 > 
 > [v2 - no changes, just rebased and resolved conflicts]
-
-Please next time place commit message unrelated lines under '---' and
-before diffstat output, in this way git am skips this during applying.
-
 > 
 > Signed-off-by: Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 > ---
->  opensm/include/opensm/osm_subnet.h |    5 +++++
->  opensm/opensm/osm_sa.c             |   20 +++++++++++++++++++-
->  opensm/opensm/osm_subnet.c         |    7 +++++++
->  3 files changed, 31 insertions(+), 1 deletions(-)
+>  opensm/include/opensm/osm_sa.h         |    5 +++++
+>  opensm/opensm/osm_inform.c             |    2 ++
+>  opensm/opensm/osm_multicast.c          |    3 +++
+>  opensm/opensm/osm_sa.c                 |    7 ++++++-
+>  opensm/opensm/osm_sa_mcmember_record.c |    4 ++++
+>  opensm/opensm/osm_service.c            |    3 +++
+>  6 files changed, 23 insertions(+), 1 deletions(-)
 > 
-> diff --git a/opensm/include/opensm/osm_subnet.h b/opensm/include/opensm/osm_subnet.h
-> index 0302f91..871a833 100644
-> --- a/opensm/include/opensm/osm_subnet.h
-> +++ b/opensm/include/opensm/osm_subnet.h
-> @@ -200,6 +200,7 @@ typedef struct osm_subn_opt {
->  	char *ids_guid_file;
->  	char *guid_routing_order_file;
->  	char *sa_db_file;
-> +	boolean_t sa_db_load_once;
->  	boolean_t do_mesh_analysis;
->  	boolean_t exit_on_fatal;
->  	boolean_t honor_guid2lid_file;
-> @@ -411,6 +412,10 @@ typedef struct osm_subn_opt {
->  *	sa_db_file
->  *		Name of the SA database file.
+> diff --git a/opensm/include/opensm/osm_sa.h b/opensm/include/opensm/osm_sa.h
+> index dad3142..35684cc 100644
+> --- a/opensm/include/opensm/osm_sa.h
+> +++ b/opensm/include/opensm/osm_sa.h
+> @@ -125,6 +125,7 @@ typedef struct osm_sa {
+>  	atomic32_t sa_trans_id;
+>  	osm_sa_mad_ctrl_t mad_ctrl;
+>  	cl_timer_t sr_timer;
+> +	boolean_t dirty;
+>  	cl_disp_reg_handle_t cpi_disp_h;
+>  	cl_disp_reg_handle_t nr_disp_h;
+>  	cl_disp_reg_handle_t pir_disp_h;
+> @@ -178,6 +179,10 @@ typedef struct osm_sa {
+>  *	mad_ctrl
+>  *		Mad Controller
 >  *
-> +*	sa_db_load_once
-> +*		When TRUE causes sa_db_file to be loaded only at the
-> +*		first master sweep.
+> +*	dirty
+> +*		A flag that denotes that SA DB is dirty and needs
+> +*		to be written to the dump file (if dumping is enabled)
 > +*
->  *	exit_on_fatal
->  *		If TRUE (default) - SM will exit on fatal subnet initialization
->  *		issues.
-> diff --git a/opensm/opensm/osm_sa.c b/opensm/opensm/osm_sa.c
-> index 2db8ba2..e44eab4 100644
-> --- a/opensm/opensm/osm_sa.c
-> +++ b/opensm/opensm/osm_sa.c
-> @@ -912,6 +912,12 @@ int osm_sa_db_file_load(osm_opensm_t * p_osm)
->  		return 0;
->  	}
+>  * SEE ALSO
+>  *	SM object
+>  *********/
+> diff --git a/opensm/opensm/osm_inform.c b/opensm/opensm/osm_inform.c
+> index 84310a5..d2dd8e7 100644
+> --- a/opensm/opensm/osm_inform.c
+> +++ b/opensm/opensm/osm_inform.c
+> @@ -248,6 +248,7 @@ void osm_infr_insert_to_db(IN osm_subn_t * p_subn, IN osm_log_t * p_log,
+>  #endif
 > 
-> +	if (p_osm->subn.opt.sa_db_load_once && !p_osm->subn.first_time_master_sweep) {
-> +		OSM_LOG(&p_osm->log, OSM_LOG_VERBOSE,
-> +			"Not first sweep - skip SA DB restore\n");
-> +		return 0;
-> +	}
+>  	cl_qlist_insert_head(&p_subn->sa_infr_list, &p_infr->list_item);
+> +	p_subn->p_osm->sa.dirty = TRUE;
+> 
+>  	OSM_LOG(p_log, OSM_LOG_DEBUG, "Dump after insertion (size %d)\n",
+>  		cl_qlist_count(&p_subn->sa_infr_list));
+> @@ -271,6 +272,7 @@ void osm_infr_remove_from_db(IN osm_subn_t * p_subn, IN osm_log_t * p_log,
+>  			     OSM_LOG_DEBUG);
+> 
+>  	cl_qlist_remove_item(&p_subn->sa_infr_list, &p_infr->list_item);
+> +	p_subn->p_osm->sa.dirty = TRUE;
+> 
+>  	osm_infr_delete(p_infr);
+> 
+> diff --git a/opensm/opensm/osm_multicast.c b/opensm/opensm/osm_multicast.c
+> index 8ccab8e..c501986 100644
+> --- a/opensm/opensm/osm_multicast.c
+> +++ b/opensm/opensm/osm_multicast.c
+> @@ -197,6 +197,7 @@ osm_mcm_port_t *osm_mgrp_add_port(IN osm_subn_t * subn, osm_log_t * log,
+>  	    ++mgrp->full_members == 1)
+>  		mgrp_send_notice(subn, log, mgrp, 66);
+> 
+> +	subn->p_osm->sa.dirty = TRUE;
+>  	return mcm_port;
+>  }
+> 
+> @@ -251,6 +252,8 @@ void osm_mgrp_remove_port(osm_subn_t * subn, osm_log_t * log, osm_mgrp_t * mgrp,
+>  		mgrp_send_notice(subn, log, mgrp, 67);
+>  		osm_mgrp_cleanup(subn, mgrp);
+>  	}
 > +
->  	file = fopen(file_name, "r");
->  	if (!file) {
->  		OSM_LOG(&p_osm->log, OSM_LOG_ERROR | OSM_LOG_SYS, "ERR 4C02: "
-> @@ -920,6 +926,10 @@ int osm_sa_db_file_load(osm_opensm_t * p_osm)
->  		return -1;
->  	}
-> 
-> +	OSM_LOG(&p_osm->log, OSM_LOG_VERBOSE,
-> +		"Restoring SA DB from file \'%s\'\n",
-> +		file_name);
-> +
->  	lineno = 0;
-> 
->  	while (fgets(line, sizeof(line) - 1, file) != NULL) {
-> @@ -1096,7 +1106,15 @@ int osm_sa_db_file_load(osm_opensm_t * p_osm)
->  		}
->  	}
-> 
-> -	if (!rereg_clients)
-> +	/*
-> +	 * If restoring SA DB is required only once, SM should go
-> +	 * into the usual mode right after that, which means that
-> +	 * client re-registration should be required even after
-> +	 * the restore - there is a chance that OSM died right after
-> +	 * some MCMember joined MCast group, and his membership
-> +	 * didn't make it into the SA DB file.
-> +	 */
-> +	if (!p_osm->subn.opt.sa_db_load_once && !rereg_clients)
->  		p_osm->subn.opt.no_clients_rereg = TRUE;
+> +	subn->p_osm->sa.dirty = TRUE;
+>  }
 
-Hmm, if you are going to request clients reregistration unconditionally
-then what is the reason to restore SA DB?
+In general I don't like an idea of spreading this global "dirty" flag
+over various OpenSM areas (it makes the code dirty). But even if it is
+needed couldn't we minimize number of such occurrences?
 
-Maybe you wanted to switch this flag off *after* first sweep, but I'm
-not sure following your comment.
+For example those specific ones in osm_multicast.c are duplicated in
+osm_sa_mcmember_record.c (and also will cause 'dirty' flag setup on the
+SA DB from file loading). Could we consolidate all multicast related
+cases with re-routing requesting for example?
 
 Sasha
 
-
 > 
->  _error:
-> diff --git a/opensm/opensm/osm_subnet.c b/opensm/opensm/osm_subnet.c
-> index cac5e94..b0ffddd 100644
-> --- a/opensm/opensm/osm_subnet.c
-> +++ b/opensm/opensm/osm_subnet.c
-> @@ -348,6 +348,7 @@ static const opt_rec_t opt_tbl[] = {
->  	{ "ids_guid_file", OPT_OFFSET(ids_guid_file), opts_parse_charp, NULL, 0 },
->  	{ "guid_routing_order_file", OPT_OFFSET(guid_routing_order_file), opts_parse_charp, NULL, 0 },
->  	{ "sa_db_file", OPT_OFFSET(sa_db_file), opts_parse_charp, NULL, 0 },
-> +	{ "sa_db_load_once", OPT_OFFSET(sa_db_load_once), opts_parse_boolean, NULL, 1 },
->  	{ "do_mesh_analysis", OPT_OFFSET(do_mesh_analysis), opts_parse_boolean, NULL, 1 },
->  	{ "exit_on_fatal", OPT_OFFSET(exit_on_fatal), opts_parse_boolean, NULL, 1 },
->  	{ "honor_guid2lid_file", OPT_OFFSET(honor_guid2lid_file), opts_parse_boolean, NULL, 1 },
-> @@ -746,6 +747,7 @@ void osm_subn_set_default_opt(IN osm_subn_opt_t * p_opt)
->  	p_opt->ids_guid_file = NULL;
->  	p_opt->guid_routing_order_file = NULL;
->  	p_opt->sa_db_file = NULL;
-> +	p_opt->sa_db_load_once = FALSE;
->  	p_opt->do_mesh_analysis = FALSE;
->  	p_opt->exit_on_fatal = TRUE;
->  	p_opt->enable_quirks = FALSE;
-> @@ -1446,6 +1448,11 @@ int osm_subn_output_conf(FILE *out, IN osm_subn_opt_t * p_opts)
->  		p_opts->sa_db_file ? p_opts->sa_db_file : null_str);
+>  void osm_mgrp_delete_port(osm_subn_t * subn, osm_log_t * log, osm_mgrp_t * mgrp,
+> diff --git a/opensm/opensm/osm_sa.c b/opensm/opensm/osm_sa.c
+> index e44eab4..91a7459 100644
+> --- a/opensm/opensm/osm_sa.c
+> +++ b/opensm/opensm/osm_sa.c
+> @@ -707,7 +707,12 @@ static void sa_dump_all_sa(osm_opensm_t * p_osm, FILE * file)
 > 
->  	fprintf(out,
-> +		"# If TRUE causes SA database to be loaded only at\n"
-> +		"# the first master sweep\nsa_db_load_once %s\n\n",
-> +		p_opts->sa_db_load_once ? "TRUE" : "FALSE");
-> +
-> +	fprintf(out,
->  		"#\n# HANDOVER - MULTIPLE SMs OPTIONS\n#\n"
->  		"# SM priority used for deciding who is the master\n"
->  		"# Range goes from 0 (lowest priority) to 15 (highest).\n"
+>  int osm_sa_db_file_dump(osm_opensm_t * p_osm)
+>  {
+> -	return opensm_dump_to_file(p_osm, "opensm-sa.dump", sa_dump_all_sa);
+> +	int res = 0;
+> +	if (p_osm->sa.dirty) {
+> +		res = opensm_dump_to_file(p_osm, "opensm-sa.dump", sa_dump_all_sa);
+> +		p_osm->sa.dirty = FALSE;
+> +	}
+> +	return res;
+>  }
+> 
+>  /*
+> diff --git a/opensm/opensm/osm_sa_mcmember_record.c b/opensm/opensm/osm_sa_mcmember_record.c
+> index 95c41e4..5ba139f 100644
+> --- a/opensm/opensm/osm_sa_mcmember_record.c
+> +++ b/opensm/opensm/osm_sa_mcmember_record.c
+> @@ -818,6 +818,7 @@ static ib_api_status_t mcmr_rcv_create_new_mgrp(IN osm_sa_t * sa,
+>  		       &(*pp_mgrp)->mcmember_rec.mgid, &(*pp_mgrp)->map_item);
+>  	sa->p_subn->mgroups[cl_ntoh16(mlid) - IB_LID_MCAST_START_HO] = *pp_mgrp;
+> 
+> +	sa->dirty = TRUE;
+>  Exit:
+>  	OSM_LOG_EXIT(sa->p_log);
+>  	return status;
+> @@ -942,6 +943,7 @@ static void mcmr_rcv_leave_mgrp(IN osm_sa_t * sa, IN osm_madw_t * p_madw)
+>  	/* remove port and/or update join state */
+>  	osm_mgrp_remove_port(sa->p_subn, sa->p_log, p_mgrp, p_mcm_port,
+>  			     &mcmember_rec);
+> +	sa->dirty = TRUE;
+>  	CL_PLOCK_RELEASE(sa->p_lock);
+> 
+>  	mcmr_rcv_respond(sa, p_madw, &mcmember_rec);
+> @@ -1155,6 +1157,7 @@ static void mcmr_rcv_join_mgrp(IN osm_sa_t * sa, IN osm_madw_t * p_madw)
+>  	if (osm_log_is_active(sa->p_log, OSM_LOG_DEBUG))
+>  		osm_dump_mc_record(sa->p_log, &mcmember_rec, OSM_LOG_DEBUG);
+> 
+> +	sa->dirty = TRUE;
+>  	mcmr_rcv_respond(sa, p_madw, &mcmember_rec);
+> 
+>  Exit:
+> @@ -1187,6 +1190,7 @@ static ib_api_status_t mcmr_rcv_new_mcmr(IN osm_sa_t * sa,
+>  	   State, Port Guid, and Proxy */
+>  	p_rec_item->rec = *p_rcvd_rec;
+>  	cl_qlist_insert_tail(p_list, &p_rec_item->list_item);
+> +	sa->dirty = TRUE;
+> 
+>  Exit:
+>  	OSM_LOG_EXIT(sa->p_log);
+> diff --git a/opensm/opensm/osm_service.c b/opensm/opensm/osm_service.c
+> index ceb8aad..91715e6 100644
+> --- a/opensm/opensm/osm_service.c
+> +++ b/opensm/opensm/osm_service.c
+> @@ -46,6 +46,7 @@
+>  #include <complib/cl_debug.h>
+>  #include <complib/cl_timer.h>
+>  #include <opensm/osm_service.h>
+> +#include <opensm/osm_opensm.h>
+> 
+>  void osm_svcr_delete(IN osm_svcr_t * p_svcr)
+>  {
+> @@ -122,6 +123,7 @@ void osm_svcr_insert_to_db(IN osm_subn_t * p_subn, IN osm_log_t * p_log,
+>  		"Inserting new Service Record into Database\n");
+> 
+>  	cl_qlist_insert_head(&p_subn->sa_sr_list, &p_svcr->list_item);
+> +	p_subn->p_osm->sa.dirty = TRUE;
+> 
+>  	OSM_LOG_EXIT(p_log);
+>  }
+> @@ -137,6 +139,7 @@ void osm_svcr_remove_from_db(IN osm_subn_t * p_subn, IN osm_log_t * p_log,
+>  		p_svcr->service_record.service_id);
+> 
+>  	cl_qlist_remove_item(&p_subn->sa_sr_list, &p_svcr->list_item);
+> +	p_subn->p_osm->sa.dirty = TRUE;
+> 
+>  	OSM_LOG_EXIT(p_log);
+>  }
 > -- 
 > 1.5.1.4
 > 
