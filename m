@@ -1,169 +1,158 @@
 From: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH 3/3 v2] opensm: connect switches in tree - implemented
- in up/down
-Date: Thu, 26 Nov 2009 17:46:43 +0200
-Message-ID: <20091126154643.GA13817@me>
-References: <4AF160D8.9040801@dev.mellanox.co.il>
+Subject: Re: [PATCH 2/3 v2] opensm: connect switches in tree - implemented
+ in fat-tree
+Date: Thu, 26 Nov 2009 17:49:48 +0200
+Message-ID: <20091126154948.GB13817@me>
+References: <4AF160D1.1010804@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <4AF160D8.9040801-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+In-Reply-To: <4AF160D1.1010804-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Cc: Linux RDMA <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 On 13:09 Wed 04 Nov     , Yevgeny Kliteynik wrote:
-> This patch implements connect_switches option in up/down
-> routing. Also, connect_roots is now handled as a special
-> case of connect_switches.
+> This patch implements connect_roots and connect_switches
+> option in fat-tree. Actually, both options mapped to the
+> same implementation.
 > 
-> The idea is the following: when clearing hops, preserve
-> the entries for switches that are above the highest leaf
-> in the tree.
-> So if the highest leaf in the tree has rank N, preserve
-> hops to all the switches with ranks 0 to (N-1).
-> When connecting roots (--connect_roots option), just set
-> N to 1.
-
-Would this affect multicast routing in sense of a credit loop
-generation?
-
-Sasha
-
+> The idea is the following: pick some leaf switch in the
+> fabric. Now go over all the switches above the leaf level
+> in the tree. If these switches don't know how to route to
+> some LID and the selected leaf switch does know, route this
+> LID to the leaf switch.
 > 
-> [v2 - no changes, just rebased and resolved conflicts]
+> [v2 - no changes, just rebased]
 > 
 > Signed-off-by: Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 > ---
->  opensm/opensm/osm_ucast_updn.c |   87 +++++++++++++++++++++++++++++++---------
->  1 files changed, 68 insertions(+), 19 deletions(-)
+>  opensm/opensm/osm_ucast_ftree.c |   92 +++++++++++++++++++++++++++++++++++++++
+>  1 files changed, 92 insertions(+), 0 deletions(-)
 > 
-> diff --git a/opensm/opensm/osm_ucast_updn.c b/opensm/opensm/osm_ucast_updn.c
-> index 01e40eb..cb99730 100644
-> --- a/opensm/opensm/osm_ucast_updn.c
-> +++ b/opensm/opensm/osm_ucast_updn.c
-> @@ -279,24 +279,80 @@ static int updn_subn_rank(IN updn_t * p_updn)
->  	return 0;
->  }
+> diff --git a/opensm/opensm/osm_ucast_ftree.c b/opensm/opensm/osm_ucast_ftree.c
+> index 1b1da19..ddb77b7 100644
+> --- a/opensm/opensm/osm_ucast_ftree.c
+> +++ b/opensm/opensm/osm_ucast_ftree.c
+> @@ -2949,6 +2949,90 @@ static void fabric_route_to_switches(IN ftree_fabric_t * p_ftree)
+>  /***************************************************
+>   ***************************************************/
 > 
-> -/* hack: preserve min hops entries to any other root switches */
-> -static void updn_clear_non_root_hops(updn_t * p_updn, osm_switch_t * p_sw)
-> +/**********************************************************************
-> + **********************************************************************/
-> +/* Preserve min hops entries to any switch
-> + * above certain level in the tree */
-> +static void updn_switch_clear_hops_below_rank(updn_t * p_updn,
-> +	osm_switch_t * p_sw, unsigned min_leaf_rank)
->  {
->  	osm_port_t *p_port;
->  	unsigned i;
-> 
->  	for (i = 0; i < p_sw->num_hops; i++)
->  		if (p_sw->hops[i]) {
-> -			p_port =
-> -			    cl_ptr_vector_get(&p_updn->p_osm->subn.port_lid_tbl,
-> -					      i);
-> -			if (!p_port || !p_port->p_node->sw
-> -			    || ((struct updn_node *)p_port->p_node->sw->priv)->
-> -			    rank != 0)
-> +			p_port = cl_ptr_vector_get(
-> +				&p_updn->p_osm->subn.port_lid_tbl, i);
-> +			if (!p_port || !p_port->p_node->sw ||
-> +			    ((struct updn_node *)
-> +			    p_port->p_node->sw->priv)->rank >= min_leaf_rank)
->  				memset(p_sw->hops[i], 0xff, p_sw->num_ports);
->  		}
->  }
-> 
-> +/**********************************************************************
-> + **********************************************************************/
-> +static void updn_clear_hops(IN updn_t * p_updn)
+> +static void fabric_route_down_up_switches(IN ftree_fabric_t * p_ftree)
 > +{
-> +	osm_subn_t *p_subn = &p_updn->p_osm->subn;
-> +	osm_switch_t *p_sw;
-> +	struct updn_node * p_updn_sw;
-> +	osm_physp_t * p_physp;
-> +	osm_port_t * p_port;
-> +	cl_map_item_t *item;
-> +	unsigned min_leaf_rank = 0xff;
+> +	uint16_t lid;
+> +	uint8_t port_num;
+> +	osm_port_t *p_port;
+> +	ftree_sw_t *p_sw;
+> +	ftree_sw_t *p_leaf_sw;
 > +
-> +	if (p_subn->opt.connect_switches) {
-> +		/*
-> +		 * Preserve roots to switches above the highest leaf
-> +		 * switch (leaf switch with the lowest rank).
-> +		 *
-> +		 * Need to find the minimal rank of leaf switch.
-> +		 * The fastest way would be to go through all the
-> +		 * CA ports in the fabric and check the switch that
-> +		 * is connected to them.
-> +		 */
-> +		for (item = cl_qmap_head(&p_updn->p_osm->subn.port_guid_tbl);
-> +		     item != cl_qmap_end(&p_updn->p_osm->subn.port_guid_tbl);
-> +		     item = cl_qmap_next(item)) {
-> +			p_port = (osm_port_t *)item;
-> +			if (p_port->p_node->sw)
-> +				continue;
-> +			p_physp = p_port->p_physp->p_remote_physp;
-> +			if (!p_physp || !p_physp->p_node->sw)
+> +	OSM_LOG_ENTER(&p_ftree->p_osm->log);
+> +
+> +	/*
+> +	 * We need a switch that will accomodate all the down/up turns in
+> +	 * the fabric. Having these turn in a single place in the fabric
+> +	 * will not create credit loops.
+> +	 * So we need to select this switch.
+> +	 * The idea here is to chose leaf with the highest index. I don't
+> +	 * have any theory to back me up on this. It's just a general thought
+> +	 * that this way the switch that might be a bottleneck for many mcast
+> +	 * groups will be far away from the OpenSM, so it will draw the
+> +	 * multicast traffic away from the SM.
+> +	 */
+> +
+> +	p_leaf_sw = p_ftree->leaf_switches[p_ftree->leaf_switches_num-1];
+> +
+> +	/*
+> +	 * Now go over all the switches in the fabric that
+> +	 * have lower rank, and route the missing LIDs to
+> +	 * the selected leaf switch.
+> +	 * In short, this leaf switch now poses a target
+> +	 * for all those missing LIDs.
+> +	 */
+> +
+> +	for (p_sw = (ftree_sw_t *) cl_qmap_head(&p_ftree->sw_tbl);
+> +	     p_sw != (ftree_sw_t *) cl_qmap_end(&p_ftree->sw_tbl);
+> +	     p_sw = (ftree_sw_t *) cl_qmap_next(&p_sw->map_item)) {
+> +
+> +		if (p_sw->rank >= p_ftree->leaf_switch_rank)
+> +			continue;
+> +
+> +		for (lid = 1; lid <= p_leaf_sw->p_osm_sw->max_lid_ho; lid ++) {
+> +
+> +			if (p_sw->p_osm_sw->new_lft[lid] != OSM_NO_PATH ||
+> +			    p_leaf_sw->hops[lid] == OSM_NO_PATH)
 > +				continue;
 > +
-> +			p_updn_sw = (struct updn_node*)p_physp->p_node->sw->priv;
-> +			if (p_updn_sw->rank < min_leaf_rank)
-> +				min_leaf_rank = p_updn_sw->rank;
+> +			p_port = cl_ptr_vector_get(
+> +				&p_ftree->p_osm->subn.port_lid_tbl, lid);
+> +
+> +			/* we're interested only in switches */
+> +			if (!p_port && !p_port->p_node && !p_port->p_node->sw)
+
+'p_port->p_node = NULL' is invalid case and this check is not needed.
+
+> +				continue;
+> +
+> +			/*
+> +			 * the missing LID will be routed through the same
+> +			 * port that routes to the selected leaf switch
+> +			 */
+> +			port_num = p_sw->p_osm_sw->new_lft[p_leaf_sw->base_lid];
+> +
+> +			OSM_LOG(&p_ftree->p_osm->log, OSM_LOG_DEBUG,
+> +				"Switch %s: setting path to LID %u "
+> +				"through port %u\n",
+> +				tuple_to_str(p_sw->tuple), lid, port_num);
+> +
+> +			/* set local lft */
+> +			p_sw->p_osm_sw->new_lft[lid] = port_num;
+> +
+> +			/*
+> +			 * Set local min hop table.
+> +			 * The distance to the target LID is a distance
+> +			 * to the selected leaf switch plus the distance
+> +			 * from the leaf to the target LID.
+> +			 */
+> +			sw_set_hops(p_sw, lid, port_num,
+> +				p_sw->hops[p_leaf_sw->base_lid] +
+> +				p_leaf_sw->hops[lid], TRUE);
 > +		}
-> +	} else if (p_subn->opt.connect_roots)
-> +		min_leaf_rank = 1;
-> +
-> +	for (item = cl_qmap_head(&p_updn->p_osm->subn.sw_guid_tbl);
-> +	     item != cl_qmap_end(&p_updn->p_osm->subn.sw_guid_tbl);
-> +	     item = cl_qmap_next(item)) {
-> +		p_sw = (osm_switch_t *)item;
-> +		if (p_subn->opt.connect_switches || p_subn->opt.connect_roots)
-> +			updn_switch_clear_hops_below_rank(
-> +				p_updn, p_sw, min_leaf_rank);
-> +		else
-> +			osm_switch_clear_hops(p_sw);
 > +	}
-> +}
 > +
-> +/**********************************************************************
-> + **********************************************************************/
->  static int updn_set_min_hop_table(IN updn_t * p_updn)
+> +	OSM_LOG_EXIT(&p_ftree->p_osm->log);
+> +}				/* fabric_route_roots() */
+> +
+> +/***************************************************
+> + ***************************************************/
+
+Such comments were removed recently, please don't introduce a new ones.
+
+Sasha
+
+> +
+>  static int fabric_populate_nodes(IN ftree_fabric_t * p_ftree)
 >  {
->  	osm_subn_t *p_subn = &p_updn->p_osm->subn;
-> @@ -311,16 +367,8 @@ static int updn_set_min_hop_table(IN updn_t * p_updn)
->  	OSM_LOG(p_log, OSM_LOG_VERBOSE,
->  		"Init Min Hop Table of all switches [\n");
+>  	osm_node_t *p_osm_node;
+> @@ -3978,6 +4062,14 @@ static int do_routing(IN void *context)
+>  		"Filling switch forwarding tables for switch-to-switch paths\n");
+>  	fabric_route_to_switches(p_ftree);
 > 
-> -	for (item = cl_qmap_head(&p_updn->p_osm->subn.sw_guid_tbl);
-> -	     item != cl_qmap_end(&p_updn->p_osm->subn.sw_guid_tbl);
-> -	     item = cl_qmap_next(item)) {
-> -		p_sw = (osm_switch_t *)item;
-> -		/* Clear Min Hop Table */
-> -		if (p_subn->opt.connect_roots)
-> -			updn_clear_non_root_hops(p_updn, p_sw);
-> -		else
-> -			osm_switch_clear_hops(p_sw);
-> -	}
-> +	/* Clear Min Hop Table */
-> +	updn_clear_hops(p_updn);
+> +	if (p_ftree->p_osm->subn.opt.connect_roots ||
+> +	    p_ftree->p_osm->subn.opt.connect_switches) {
+> +		OSM_LOG(&p_ftree->p_osm->log, OSM_LOG_VERBOSE,
+> +			"Connecting switches that are unreachable within "
+> +			"Up/Down rules\n");
+> +		fabric_route_down_up_switches(p_ftree);
+> +	}
+> +
+>  	/* for each switch, set its fwd table */
+>  	cl_qmap_apply_func(&p_ftree->sw_tbl, set_sw_fwd_table, (void *)p_ftree);
 > 
->  	OSM_LOG(p_log, OSM_LOG_VERBOSE,
->  		"Init Min Hop Table of all switches ]\n");
-> @@ -598,7 +646,8 @@ static int updn_lid_matrices(void *ctx)
->  			OSM_LOG(&p_updn->p_osm->log, OSM_LOG_ERROR, "ERR : "
->  				"cannot parse root guids file \'%s\'\n",
->  				p_updn->p_osm->subn.opt.root_guid_file);
-> -		if (p_updn->p_osm->subn.opt.connect_roots &&
-> +		if ((p_updn->p_osm->subn.opt.connect_roots ||
-> +		     p_updn->p_osm->subn.opt.connect_switches) &&
->  		    p_updn->num_roots > 1)
->  			osm_ucast_mgr_build_lid_matrices(&p_updn->p_osm->sm.ucast_mgr);
->  	} else {
 > -- 
 > 1.5.1.4
+> 
 > 
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
