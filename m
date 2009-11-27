@@ -1,7 +1,7 @@
 From: Line Holen <Line.Holen-UdXhSnd/wVw@public.gmane.org>
-Subject: [PATCH] opensm/osm_state_mgr.c Added more info to some error messages
-Date: Fri, 27 Nov 2009 14:14:48 +0100
-Message-ID: <4B0FD0C8.9020200@Sun.COM>
+Subject: [PATCH] opensm/osm_ucast_ftree.c Changed log level
+Date: Fri, 27 Nov 2009 14:16:56 +0100
+Message-ID: <4B0FD148.2000604@Sun.COM>
 Mime-Version: 1.0
 Content-Type: text/plain; CHARSET=US-ASCII
 Content-Transfer-Encoding: 7BIT
@@ -11,110 +11,153 @@ To: sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Added status_value and print_desc to some error messages
+Using INFO instead of SYS whenever ftree decides to fallback to another algorithm,
+and VERBOSE instead of INFO some places where the same info is displayed at INFO
+level in fabric_dump_general_info()
 
 Signed-off-by: Line Holen <Line.Holen-xsfywfwIY+M@public.gmane.org>
 
 ---
 
-diff --git a/opensm/opensm/osm_state_mgr.c b/opensm/opensm/osm_state_mgr.c
-index 7540adc..05c31f7 100644
---- a/opensm/opensm/osm_state_mgr.c
-+++ b/opensm/opensm/osm_state_mgr.c
-@@ -1,4 +1,5 @@
- /*
-+ * Copyright (c) 2009 Sun Microsystems, Inc. All rights reserved.
-  * Copyright (c) 2004-2009 Voltaire, Inc. All rights reserved.
-  * Copyright (c) 2002-2009 Mellanox Technologies LTD. All rights reserved.
-  * Copyright (c) 1996-2003 Intel Corporation. All rights reserved.
-@@ -136,7 +137,8 @@ static void state_mgr_get_sw_info(IN cl_map_item_t * p_object, IN void *context)
+diff --git a/opensm/opensm/osm_ucast_ftree.c b/opensm/opensm/osm_ucast_ftree.c
+index 76b1d6a..e1effd0 100644
+--- a/opensm/opensm/osm_ucast_ftree.c
++++ b/opensm/opensm/osm_ucast_ftree.c
+@@ -3586,7 +3586,7 @@ static int fabric_rank(IN ftree_fabric_t * p_ftree)
+ 	if (res)
+ 		goto Exit;
  
- 	if (status != IB_SUCCESS)
- 		OSM_LOG(sm->p_log, OSM_LOG_ERROR, "ERR 3304: "
--			"Request for SwitchInfo failed\n");
-+			"Request for SwitchInfo failed (%s)\n",
-+			ib_get_err_str(status));
- 
- 	OSM_LOG_EXIT(sm->p_log);
- }
-@@ -182,7 +184,8 @@ static void state_mgr_get_remote_port_info(IN osm_sm_t * sm,
- 
- 	if (status != IB_SUCCESS)
- 		OSM_LOG(sm->p_log, OSM_LOG_ERROR, "ERR 332E: "
--			"Request for PortInfo failed\n");
-+			"Request for PortInfo failed (%s)\n",
-+			ib_get_err_str(status));
+-	OSM_LOG(&p_ftree->p_osm->log, OSM_LOG_INFO,
++	OSM_LOG(&p_ftree->p_osm->log, OSM_LOG_VERBOSE,
+ 		"FatTree max switch rank is %u\n", p_ftree->max_switch_rank);
  
  Exit:
- 	OSM_LOG_EXIT(sm->p_log);
-@@ -241,7 +244,8 @@ static ib_api_status_t state_mgr_sweep_hop_0(IN osm_sm_t * sm)
+@@ -3644,7 +3644,7 @@ static void fabric_set_leaf_rank(IN ftree_fabric_t * p_ftree)
+ 		p_ftree->leaf_switch_rank = p_sw->rank;
+ 	}
  
- 		if (status != IB_SUCCESS)
- 			OSM_LOG(sm->p_log, OSM_LOG_ERROR, "ERR 3305: "
--				"Request for NodeInfo failed\n");
-+				"Request for NodeInfo failed (%s)\n",
-+				ib_get_err_str(status));
- 	} else {
- 		OSM_LOG(sm->p_log, OSM_LOG_DEBUG,
- 			"No bound ports. Deferring sweep...\n");
-@@ -441,7 +445,8 @@ static ib_api_status_t state_mgr_sweep_hop_1(IN osm_sm_t * sm)
- 				     CL_DISP_MSGID_NONE, &context);
- 		if (status != IB_SUCCESS)
- 			OSM_LOG(sm->p_log, OSM_LOG_ERROR, "ERR 3311: "
--				"Request for NodeInfo failed\n");
-+				"Request for NodeInfo failed (%s)\n",
-+				ib_get_err_str(status));
- 		break;
+-	OSM_LOG(&p_ftree->p_osm->log, OSM_LOG_INFO,
++	OSM_LOG(&p_ftree->p_osm->log, OSM_LOG_VERBOSE,
+ 		"FatTree leaf switch rank is %u\n", p_ftree->leaf_switch_rank);
+ 	OSM_LOG_EXIT(&p_ftree->p_osm->log);
+ }				/* fabric_set_leaf_rank() */
+@@ -3772,7 +3772,7 @@ static int construct_fabric(IN void *context)
+ 	fabric_clear(p_ftree);
  
- 	case IB_NODE_TYPE_SWITCH:
-@@ -474,7 +479,8 @@ static ib_api_status_t state_mgr_sweep_hop_1(IN osm_sm_t * sm)
- 				if (status != IB_SUCCESS)
- 					OSM_LOG(sm->p_log, OSM_LOG_ERROR,
- 						"ERR 3312: "
--						"Request for NodeInfo failed\n");
-+						"Request for NodeInfo failed (%s)\n",
-+						ib_get_err_str(status));
- 			}
- 		}
- 		break;
-@@ -617,14 +623,14 @@ static ib_api_status_t state_mgr_light_sweep_start(IN osm_sm_t * sm)
- 				OSM_LOG(sm->p_log, OSM_LOG_ERROR, "ERR 3315: "
- 					"Unknown remote side for node 0x%016"
- 					PRIx64
--					"(%s) port %u. Adding to light sweep sampling list\n",
-+					" (%s) port %u. Adding to light sweep sampling list\n",
- 					cl_ntoh64(osm_node_get_node_guid
- 						  (p_node)),
- 					p_node->print_desc, port_num);
+ 	if (p_ftree->p_osm->subn.opt.lmc > 0) {
+-		osm_log(&p_ftree->p_osm->log, OSM_LOG_SYS,
++		osm_log(&p_ftree->p_osm->log, OSM_LOG_INFO,
+ 			"LMC > 0 is not supported by fat-tree routing.\n"
+ 			"Falling back to default routing\n");
+ 		status = -1;
+@@ -3780,7 +3780,7 @@ static int construct_fabric(IN void *context)
+ 	}
  
- 				osm_dump_dr_path(sm->p_log,
- 						 osm_physp_get_dr_path_ptr
--						 (p_physp), OSM_LOG_ERROR);
-+						 (p_physp), OSM_LOG_INFO);
+ 	if (cl_qmap_count(&p_ftree->p_osm->subn.sw_guid_tbl) < 2) {
+-		osm_log(&p_ftree->p_osm->log, OSM_LOG_SYS,
++		osm_log(&p_ftree->p_osm->log, OSM_LOG_INFO,
+ 			"Fabric has %u switches - topology is not fat-tree.\n"
+ 			"Falling back to default routing\n",
+ 			cl_qmap_count(&p_ftree->p_osm->subn.sw_guid_tbl));
+@@ -3790,7 +3790,7 @@ static int construct_fabric(IN void *context)
  
- 				state_mgr_get_remote_port_info(sm, p_physp);
- 			}
-@@ -861,7 +867,7 @@ static void state_mgr_report_new_ports(IN osm_sm_t * sm)
- 		osm_port_get_lid_range_ho(p_port, &min_lid_ho, &max_lid_ho);
- 		OSM_LOG(sm->p_log, OSM_LOG_INFO,
- 			"Discovered new port with GUID:0x%016" PRIx64
--			" LID range [%u,%u] of node:%s\n",
-+			" LID range [%u,%u] of node: %s\n",
- 			cl_ntoh64(port_gid.unicast.interface_id),
- 			min_lid_ho, max_lid_ho,
- 			p_port->p_node ? p_port->p_node->
-@@ -1003,8 +1009,9 @@ static void cleanup_switch(cl_map_item_t * item, void *log)
+ 	if ((cl_qmap_count(&p_ftree->p_osm->subn.node_guid_tbl) -
+ 	     cl_qmap_count(&p_ftree->p_osm->subn.sw_guid_tbl)) < 2) {
+-		osm_log(&p_ftree->p_osm->log, OSM_LOG_SYS,
++		osm_log(&p_ftree->p_osm->log, OSM_LOG_INFO,
+ 			"Fabric has %u nodes (%u switches) - topology is not fat-tree.\n"
+ 			"Falling back to default routing\n",
+ 			cl_qmap_count(&p_ftree->p_osm->subn.node_guid_tbl),
+@@ -3807,7 +3807,7 @@ static int construct_fabric(IN void *context)
+ 	OSM_LOG(&p_ftree->p_osm->log, OSM_LOG_VERBOSE,
+ 		"Populating FatTree Switch and CA tables\n");
+ 	if (fabric_populate_nodes(p_ftree) != 0) {
+-		osm_log(&p_ftree->p_osm->log, OSM_LOG_SYS,
++		osm_log(&p_ftree->p_osm->log, OSM_LOG_INFO,
+ 			"Fabric topology is not fat-tree - "
+ 			"falling back to default routing\n");
+ 		status = -1;
+@@ -3817,7 +3817,7 @@ static int construct_fabric(IN void *context)
+ 	OSM_LOG(&p_ftree->p_osm->log, OSM_LOG_VERBOSE,
+ 		"Reading guid files provided by user\n");
+ 	if (fabric_read_guid_files(p_ftree) != 0) {
+-		osm_log(&p_ftree->p_osm->log, OSM_LOG_SYS,
++		osm_log(&p_ftree->p_osm->log, OSM_LOG_INFO,
+ 			"Failed reading guid files - "
+ 			"falling back to default routing\n");
+ 		status = -1;
+@@ -3825,8 +3825,8 @@ static int construct_fabric(IN void *context)
+ 	}
  
- 	if (memcmp(sw->lft, sw->new_lft, sw->max_lid_ho + 1))
- 		osm_log(log, OSM_LOG_ERROR, "ERR 331D: "
--			"LFT of switch 0x%016" PRIx64 " is not up to date\n",
--			cl_ntoh64(sw->p_node->node_info.node_guid));
-+			"LFT of switch 0x%016" PRIx64 " (%s) is not up to date\n",
-+			cl_ntoh64(sw->p_node->node_info.node_guid),
-+			sw->p_node->print_desc);
- 	else {
- 		free(sw->new_lft);
- 		sw->new_lft = NULL;
+ 	if (cl_qmap_count(&p_ftree->hca_tbl) < 2) {
+-		osm_log(&p_ftree->p_osm->log, OSM_LOG_SYS,
+-			"Fabric has %u CAa - topology is not fat-tree.\n"
++		osm_log(&p_ftree->p_osm->log, OSM_LOG_INFO,
++			"Fabric has %u CAs - topology is not fat-tree.\n"
+ 			"Falling back to default routing\n",
+ 			cl_qmap_count(&p_ftree->hca_tbl));
+ 		status = -1;
+@@ -3839,7 +3839,7 @@ static int construct_fabric(IN void *context)
+ 	   whole tree rank after filling ports and marking CNs. */
+ 	OSM_LOG(&p_ftree->p_osm->log, OSM_LOG_VERBOSE, "Ranking FatTree\n");
+ 	if (fabric_rank(p_ftree) != 0) {
+-		osm_log(&p_ftree->p_osm->log, OSM_LOG_SYS,
++		osm_log(&p_ftree->p_osm->log, OSM_LOG_INFO,
+ 			"Failed ranking the tree\n");
+ 		status = -1;
+ 		goto Exit;
+@@ -3853,12 +3853,12 @@ static int construct_fabric(IN void *context)
+ 	OSM_LOG(&p_ftree->p_osm->log, OSM_LOG_VERBOSE,
+ 		"Populating CA & switch ports\n");
+ 	if (fabric_populate_ports(p_ftree) != 0) {
+-		osm_log(&p_ftree->p_osm->log, OSM_LOG_SYS,
++		osm_log(&p_ftree->p_osm->log, OSM_LOG_INFO,
+ 			"Fabric topology is not a fat-tree\n");
+ 		status = -1;
+ 		goto Exit;
+ 	} else if (p_ftree->cn_num == 0) {
+-		osm_log(&p_ftree->p_osm->log, OSM_LOG_SYS,
++		osm_log(&p_ftree->p_osm->log, OSM_LOG_INFO,
+ 			"Fabric has no valid compute nodes\n");
+ 		status = -1;
+ 		goto Exit;
+@@ -3870,7 +3870,7 @@ static int construct_fabric(IN void *context)
+ 
+ 	if (fabric_get_rank(p_ftree) > FAT_TREE_MAX_RANK ||
+ 	    fabric_get_rank(p_ftree) < FAT_TREE_MIN_RANK) {
+-		osm_log(&p_ftree->p_osm->log, OSM_LOG_SYS,
++		osm_log(&p_ftree->p_osm->log, OSM_LOG_INFO,
+ 			"Fabric rank is %u (should be between %u and %u)\n",
+ 			fabric_get_rank(p_ftree), FAT_TREE_MIN_RANK,
+ 			FAT_TREE_MAX_RANK);
+@@ -3883,7 +3883,7 @@ static int construct_fabric(IN void *context)
+ 	   As a by-product, this function also runs basic topology
+ 	   validation - it checks that all the CNs are at the same rank. */
+ 	if (fabric_mark_leaf_switches(p_ftree)) {
+-		osm_log(&p_ftree->p_osm->log, OSM_LOG_SYS,
++		osm_log(&p_ftree->p_osm->log, OSM_LOG_INFO,
+ 			"Fabric topology is not a fat-tree\n");
+ 		status = -1;
+ 		goto Exit;
+@@ -3901,7 +3901,7 @@ static int construct_fabric(IN void *context)
+ 	   switches at the same leaf rank w/o CNs, if this is the order of indexing.
+ 	   In any case, the first and the last switches in the array are REAL leafs. */
+ 	if (fabric_create_leaf_switch_array(p_ftree)) {
+-		osm_log(&p_ftree->p_osm->log, OSM_LOG_SYS,
++		osm_log(&p_ftree->p_osm->log, OSM_LOG_INFO,
+ 			"Fabric topology is not a fat-tree\n");
+ 		status = -1;
+ 		goto Exit;
+@@ -3921,7 +3921,7 @@ static int construct_fabric(IN void *context)
+ 	   guid file hasn't been provided by user */
+ 	if (!fabric_roots_provided(p_ftree) &&
+ 	    !fabric_validate_topology(p_ftree)) {
+-		osm_log(&p_ftree->p_osm->log, OSM_LOG_SYS,
++		osm_log(&p_ftree->p_osm->log, OSM_LOG_INFO,
+ 			"Fabric topology is not a fat-tree\n");
+ 		status = -1;
+ 		goto Exit;
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
