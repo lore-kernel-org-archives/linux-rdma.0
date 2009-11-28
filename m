@@ -1,42 +1,31 @@
-From: Line Holen <Line.Holen-UdXhSnd/wVw@public.gmane.org>
-Subject: [PATCH] opensm/osm_vl15intf.c Log change
-Date: Fri, 27 Nov 2009 14:45:40 +0100
-Message-ID: <4B0FD804.2020309@Sun.COM>
+From: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH] remove unnecessary leading '/' from filename
+Date: Sat, 28 Nov 2009 16:23:42 +0200
+Message-ID: <20091128142342.GA16607@me>
+References: <784A3771E5D143179461A7D5151AE78C@amr.corp.intel.com>
+ <20091012215455.GK13830@me>
+ <3F6F638B8D880340AB536D29CD4C1E1912C896BBDA@orsmsx501.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; CHARSET=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <3F6F638B8D880340AB536D29CD4C1E1912C896BBDA-osO9UTpF0USkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Smith, Stan" <stan.smith-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "ofw-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org" <ofw-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>, 'linux-rdma' <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Added transaction ID to a message
+Hi Stan,
 
-Signed-off-by: Line Holen <Line.Holen-xsfywfwIY+M@public.gmane.org>
+On 15:18 Mon 12 Oct     , Smith, Stan wrote:
+> 
+> I believe removing the starting '/' from guid2lid filename is the correct fix for a couple of reasons:
+> 1) prefixing a / to a filename seems strange when the path name is spec'ed as having a trailing / ?
 
----
+I agree. We need to care about making path properly rather than
+introduce a restrictions for directory names definitions.
 
-diff --git a/opensm/opensm/osm_vl15intf.c b/opensm/opensm/osm_vl15intf.c
-index c380a55..cc3ff33 100644
---- a/opensm/opensm/osm_vl15intf.c
-+++ b/opensm/opensm/osm_vl15intf.c
-@@ -1,4 +1,5 @@
- /*
-+ * Copyright (c) 2009 Sun Microsystems, Inc. All rights reserved.
-  * Copyright (c) 2004-2009 Voltaire, Inc. All rights reserved.
-  * Copyright (c) 2002-2006 Mellanox Technologies LTD. All rights reserved.
-  * Copyright (c) 1996-2003 Intel Corporation. All rights reserved.
-@@ -91,7 +92,8 @@ static void vl15_send_mad(osm_vl15_t * p_vl, osm_madw_t * p_madw)
- 	}
- 
- 	OSM_LOG(p_vl->p_log, OSM_LOG_ERROR, "ERR 3E03: "
--		"MAD send failed (%s)\n", ib_get_err_str(status));
-+		"MAD send failed (%s), TID 0x%" PRIx64 "\n",
-+		ib_get_err_str(status), cl_ntoh64(p_madw->p_mad->trans_id));
- 
- 	/*
- 	   The MAD was never successfully sent, so
+Sasha
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
