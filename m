@@ -1,34 +1,30 @@
-From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Subject: Reliable IB connections (RC) and event ordering
-Date: Sun, 29 Nov 2009 11:45:37 +0100
-Message-ID: <e2e108260911290245mb9d603wf46ac7925824a9c4@mail.gmail.com>
-References: <e2e108260911290243h623d45bar77127e9610c8203e@mail.gmail.com>
+From: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH] remove unnecessary leading '/' from filename
+Date: Sun, 29 Nov 2009 14:49:01 +0200
+Message-ID: <20091129124901.GF16607@me>
+References: <784A3771E5D143179461A7D5151AE78C@amr.corp.intel.com>
+ <20091012215455.GK13830@me>
+ <3F6F638B8D880340AB536D29CD4C1E1912C896BBDA@orsmsx501.amr.corp.intel.com>
+ <20091128142342.GA16607@me>
+ <3F6F638B8D880340AB536D29CD4C1E1912CC7DAF12@orsmsx501.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <e2e108260911290243h623d45bar77127e9610c8203e-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <3F6F638B8D880340AB536D29CD4C1E1912CC7DAF12-osO9UTpF0USkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: OFED mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: "Smith, Stan" <stan.smith-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "ofw-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org" <ofw-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>, 'linux-rdma' <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hello,
+On 08:30 Sat 28 Nov     , Smith, Stan wrote:
+> What about the excellent point you raised in previous discussions about those pathnames which are input from environment vars which could be improperly formed? For badly formed paths from ENV vars (lacking trailing '/'), is it sufficient to let open() fail and output path/filename to osm log file?
 
-While working on the SRP target implementation I noticed the following
-(the SRP protocol requires that an SRP initiator sets up an RC
-connection to the SRP target during login):
-* Sometimes (about 25% of SRP logins) the completion queue callback
-function reports data arrival to the SRP target before the RTU event
-has been delivered.
-* Sometimes the completion queue callback function reports data
-arrival after the DREQ message has been sent.
-* According to the IBTA, message order is preserved over RC
-connections and the system that sent the RTU message may only start
-sending data after the RTU message has been sent (section 12.2).
+We are adding delimiter now (in a file path building code), so it is
+not mandatory to have trailing '/' in directory name environment
+variable.
 
-Is this known behavior ? Is this the intended behavior of the Linux
-InfiniBand stack ?
-
-Bart.
+Sasha
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
