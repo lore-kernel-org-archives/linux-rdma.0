@@ -1,8 +1,7 @@
 From: Alex Vainman <alexonlists-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH] libibverbs: Undo changes in memory range tree when madvise()
- fails
-Date: Sun, 29 Nov 2009 18:51:05 +0200
-Message-ID: <4B12A679.3000800@gmail.com>
+Subject: [PATCH] libibverbs: Add huge page support to ibv_madvise_range()
+Date: Sun, 29 Nov 2009 19:08:08 +0200
+Message-ID: <4B12AA78.7090401@gmail.com>
 Reply-To: alexv-smomgflXvOZWk0Htik3J/w@public.gmane.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=windows-1255
@@ -14,279 +13,142 @@ Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 
-ibv_madvise_range() doesn't cleanup if madvise() fails.
-This patch comes to handle madvise() failure:
-
-1. ibv_madvise_range() first manages (splits or mergs) memory ranges in the tree
-and only then calls madvise().If madvise() fails, the tree's memory range
-may contain incorrectly split or merged ranges.
-The patch undoes the split and merge operations performed on the node
-which caused the madvise() failure as well as on that node's neighbors.
-
-2. ibv_madvise_range() first updates memory range reference counter
-and only then calls to madvise(). If madvise() fails, the reference counter
-of the failed node is incorrect. This issue is fixed by updating node's
-reference counter only after a successful call to madvise() or if no call to
-madvise() was need since it was done in the past.
-
-3. When madvise() fails on a memory range portion out of the whole range which
-user requested to modify and ibv_madvise_range() successfully modified a few
-tree nodes up to the problematical portion sub-ranges (this can happen if
-there is an overlap between user's range and range's which where previously
-added to the memory tree) then it is not enough to undo the split and merge
-operation performed on the current node, which caused the failure, but the
-functions needed to undo all the changes made on all the previous ranges from
-start pointer to current location.
-The patch revertes all the changes by re-running it self from start pointer to
-current location with toggled inc value.
+ibv_reg_mr() fails to register a memory region allocated on huge page and not
+the default page size. This happens because ibv_madvise_range() aligns memory
+region to the default system page size before calling to madvise() which fails
+with EINVAL error. madvise() fails because it expects that the start and end
+pointer of the memory range be huge page aligned.
+Patch handles the issue by:
+1. ibv_fork_init() gets kernel's default huge page size in addition
+   to the default page size.
+2. ibv_madvise_range() first tries aligning users memory range to default
+   page size and if madvise() fails with EINVAL error then it tries to align
+   users memory range by huge page size and tries madvise() again.
 
 Signed-off-by: Alex Vaynman <alexv-smomgflXvOZWk0Htik3J/w@public.gmane.org>
 ---
- src/memory.c |  185 ++++++++++++++++++++++++++++++++++++++++++++--------------
- 1 files changed, 142 insertions(+), 43 deletions(-)
+ src/memory.c |   69 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++-
+ 1 files changed, 68 insertions(+), 1 deletions(-)
 
 diff --git a/src/memory.c b/src/memory.c
-index 53d86b7..550015a 100644
+index 550015a..73db083 100644
 --- a/src/memory.c
 +++ b/src/memory.c
-@@ -446,12 +446,121 @@ static struct ibv_mem_node *__mm_find_start(uintptr_t start, uintptr_t end)
+@@ -40,6 +40,9 @@
+ #include <unistd.h>
+ #include <stdlib.h>
+ #include <stdint.h>
++#include <ctype.h>
++#include <fcntl.h>
++#include <string.h>
+ 
+ #include "ibverbs.h"
+ 
+@@ -54,6 +57,8 @@
+ #define MADV_DOFORK	11
+ #endif
+ 
++#define MEMINFO_SIZE	2048
++
+ struct ibv_mem_node {
+ 	enum {
+ 		IBV_RED,
+@@ -68,8 +73,51 @@ struct ibv_mem_node {
+ static struct ibv_mem_node *mm_root;
+ static pthread_mutex_t mm_mutex = PTHREAD_MUTEX_INITIALIZER;
+ static int page_size;
++static int huge_page_size;
+ static int too_late;
+ 
++/*
++ * Get the kernel default huge page size.
++ */
++static int get_huge_page_size()
++{
++	int fd;
++	char buf[MEMINFO_SIZE];
++	int mem_file_len;
++	char *p_hpage_val = NULL;
++	char *end_pointer = NULL;
++	char file_name[] = "/proc/meminfo";
++	const char label[] = "Hugepagesize:";
++	int ret_val = 0;
++
++	fd = open(file_name, O_RDONLY);
++	if (fd < 0)
++		return fd;
++
++	mem_file_len = read(fd, buf, sizeof(buf) - 1);
++
++	close(fd);
++	if (mem_file_len < 0)
++		return mem_file_len;
++
++	buf[mem_file_len] = '\0';
++
++	p_hpage_val = strstr(buf, label);
++	if (!p_hpage_val) {
++		errno = EINVAL;
++		return -1;
++	}
++	p_hpage_val += strlen(label);
++
++	errno = 0;
++	ret_val = strtol(p_hpage_val, &end_pointer, 0);
++
++	if (errno != 0)
++		return -1;
++
++	return ret_val * 1024;
++}
++
+ int ibv_fork_init(void)
+ {
+ 	void *tmp;
+@@ -85,6 +133,8 @@ int ibv_fork_init(void)
+ 	if (page_size < 0)
+ 		return errno;
+ 
++	huge_page_size = get_huge_page_size();
++
+ 	if (posix_memalign(&tmp, page_size, page_size))
+ 		return ENOMEM;
+ 
+@@ -554,7 +604,8 @@ static struct ibv_mem_node *prepare_to_roll_back(struct ibv_mem_node *node,
  	return node;
  }
  
-+static struct ibv_mem_node *merge_ranges(struct ibv_mem_node *node,
-+					 struct ibv_mem_node *prev)
-+{
-+	struct ibv_mem_node *new_node = NULL;
-+
-+	prev->end = node->end;
-+	prev->refcnt = node->refcnt;
-+	__mm_remove(node);
-+	new_node = prev;
-+
-+	return new_node;
-+}
-+
-+static struct ibv_mem_node *split_range(struct ibv_mem_node *node,
-+					uintptr_t cut_line)
-+{
-+	struct ibv_mem_node *new_node = NULL;
-+
-+	new_node = malloc(sizeof *new_node);
-+	if (!new_node)
-+		return NULL;
-+	new_node->start  = cut_line;
-+	new_node->end    = node->end;
-+	new_node->refcnt = node->refcnt;
-+	node->end  = cut_line - 1;
-+	__mm_add(new_node);
-+
-+	return new_node;
-+}
-+
-+static struct ibv_mem_node *get_start_node(uintptr_t start, uintptr_t end,
-+					   int inc)
-+{
-+	struct ibv_mem_node *node, *tmp = NULL;
-+
-+	node = __mm_find_start(start, end);
-+	if (node->start < start)
-+		node = split_range(node, start);
-+	else{
-+		tmp = __mm_prev(node);
-+		if (tmp && tmp->refcnt == node->refcnt + inc)
-+			node = merge_ranges(node, tmp);
-+	}
-+	return node;
-+}
-+
-+/*
-+ * This function is being called if madvise() fails and comes to
-+ * undo merging/splitting operations performed on the node.
-+ */
-+static struct ibv_mem_node *undo_node(struct ibv_mem_node *node,
-+				      uintptr_t start, int inc)
-+{
-+	struct ibv_mem_node *tmp = NULL;
-+
-+	/*
-+	 * This condition can be true only if we merged node which begins at start
-+	 * and ends at node->end with previous node which begins at node->start
-+	 * and ends at start - 1
-+	 */
-+	if (start > node->start) {
-+		tmp = split_range(node, start);
-+		if (tmp) {
-+			node->refcnt += inc;
-+			node = tmp;
-+		} else
-+			return NULL;
-+	}
-+
-+	tmp  =  __mm_prev(node);
-+	if (tmp && tmp->refcnt == node->refcnt)
-+		node = merge_ranges(node, tmp);
-+
-+	tmp  =  __mm_next(node);
-+	if (tmp && tmp->refcnt == node->refcnt)
-+		node = merge_ranges(tmp, node);
-+
-+	return node;
-+}
-+
-+/*
-+ * This function is being called if madvise() fails.
-+ * The node which caused madvise() to fail may contain just a sub range of [start-end]
-+ * so we need to undo all the successful changes (if any) already performed on a range
-+ * [start - (node->prev)->end].
-+ * Function finds the node to begin rescanning from, find the end of the
-+ * range to rescan and invert the operation type.
-+ */
-+static struct ibv_mem_node *prepare_to_roll_back(struct ibv_mem_node *node,
-+						 uintptr_t start,
-+						 uintptr_t *p_end,
-+						 int *p_inc,
-+						 int *p_advice)
-+{
-+	struct ibv_mem_node *tmp = NULL;
-+
-+	*p_inc *= -1;
-+	*p_advice = *p_inc == 1 ? MADV_DONTFORK : MADV_DOFORK;
-+	tmp = __mm_prev(node);
-+	node = NULL;
-+	if (tmp) {
-+		*p_end = tmp->end;
-+		if (start <= *p_end)
-+			node = get_start_node(start, *p_end, *p_inc);
-+	}
-+	return node;
-+}
-+
- static int ibv_madvise_range(void *base, size_t size, int advice)
+-static int ibv_madvise_range(void *base, size_t size, int advice)
++static int ibv_madvise_range_helper(void *base, size_t size, int advice,
++				    int page_size)
  {
  	uintptr_t start, end;
  	struct ibv_mem_node *node, *tmp;
- 	int inc;
- 	int ret = 0;
-+	int rolling_back = 0;
- 
- 	if (!size)
- 		return 0;
-@@ -464,52 +573,21 @@ static int ibv_madvise_range(void *base, size_t size, int advice)
- 
- 	pthread_mutex_lock(&mm_mutex);
- 
--	node = __mm_find_start(start, end);
--
--	if (node->start < start) {
--		tmp = malloc(sizeof *tmp);
--		if (!tmp) {
--			ret = -1;
--			goto out;
--		}
--
--		tmp->start  = start;
--		tmp->end    = node->end;
--		tmp->refcnt = node->refcnt;
--		node->end   = start - 1;
--
--		__mm_add(tmp);
--		node = tmp;
--	} else {
--		tmp = __mm_prev(node);
--		if (tmp && tmp->refcnt == node->refcnt + inc) {
--			tmp->end = node->end;
--			tmp->refcnt = node->refcnt;
--			__mm_remove(node);
--			node = tmp;
--		}
-+	node = get_start_node(start, end, inc);
-+	if (!node) {
-+		ret = -1;
-+		goto out;
- 	}
--
- 	while (node && node->start <= end) {
- 		if (node->end > end) {
--			tmp = malloc(sizeof *tmp);
--			if (!tmp) {
-+			if (!split_range(node, end + 1)) {
- 				ret = -1;
- 				goto out;
- 			}
--
--			tmp->start  = end + 1;
--			tmp->end    = node->end;
--			tmp->refcnt = node->refcnt;
--			node->end   = end;
--
--			__mm_add(tmp);
- 		}
- 
--		node->refcnt += inc;
--
--		if ((inc == -1 && node->refcnt == 0) ||
--		    (inc ==  1 && node->refcnt == 1)) {
-+		if ((inc == -1 && node->refcnt == 1) ||
-+		    (inc ==  1 && node->refcnt == 0)) {
- 			/*
- 			 * If this is the first time through the loop,
- 			 * and we merged this node with the previous
-@@ -528,22 +606,41 @@ static int ibv_madvise_range(void *base, size_t size, int advice)
- 				ret = madvise((void *) node->start,
- 					      node->end - node->start + 1,
- 					      advice);
--			if (ret)
-+			if (ret) {
-+				/*
-+				 * undo merging/splitting operations performed on the node
-+				 */
-+				node = undo_node(node, start, inc);
-+				if (!rolling_back) {
-+					/*
-+					 *if we already successfully modified sub ranges of [start-end]:
-+					 *from start till node->start - 1 we need to rescan this range
-+					 *and to undo all the changes.
-+					 */
-+					if (node)
-+						node = prepare_to_roll_back(node, start, &end, &inc, &advice);
-+					if (node) {
-+						rolling_back = 1;
-+						continue;
-+					}
-+				}
- 				goto out;
-+			}
- 		}
- 
-+		node->refcnt += inc;
- 		node = __mm_next(node);
- 	}
- 
- 	if (node) {
- 		tmp = __mm_prev(node);
--		if (tmp && node->refcnt == tmp->refcnt) {
--			tmp->end = node->end;
--			__mm_remove(node);
--		}
-+		if (tmp && node->refcnt == tmp->refcnt)
-+			node = merge_ranges(node, tmp);
- 	}
- 
- out:
-+	if (rolling_back)
-+		ret = -1;
- 	pthread_mutex_unlock(&mm_mutex);
- 
+@@ -646,6 +697,22 @@ out:
  	return ret;
-@@ -568,3 +665,5 @@ int ibv_dofork_range(void *base, size_t size)
- 		return 0;
- 	}
  }
+ 
++static int ibv_madvise_range(void *base, size_t size, int advice)
++{
++	int ret_val = 0;
 +
++	ret_val = ibv_madvise_range_helper(base, size, advice, page_size);
 +
++	/*
++	 * if memory is backed by huge pages we need to align it
++	 * to huge page boundary in order madvise() will succeed.
++	 */
++	if (ret_val == -1 && errno == EINVAL && huge_page_size > 0)
++		ret_val = ibv_madvise_range_helper(base, size, advice, huge_page_size);
++
++	return ret_val;
++}
++
+ int ibv_dontfork_range(void *base, size_t size)
+ {
+ 	if (mm_root)
 -- 
 1.5.5
-
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
