@@ -1,45 +1,38 @@
 From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Subject: Re: Reliable IB connections (RC) and event ordering
-Date: Sun, 29 Nov 2009 11:03:32 -0800
-Message-ID: <adak4x9ywzf.fsf@roland-alpha.cisco.com>
-References: <e2e108260911290243h623d45bar77127e9610c8203e@mail.gmail.com>
-	<e2e108260911290245mb9d603wf46ac7925824a9c4@mail.gmail.com>
+Subject: Re: [PATCH] IB/ehca: Reduce number of spin_lock/spin_unlocks in ehca_poll_eqs
+Date: Sun, 29 Nov 2009 21:26:35 -0800
+Message-ID: <adad430y450.fsf@roland-alpha.cisco.com>
+References: <20091127031320.GV32182@kryten>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <e2e108260911290245mb9d603wf46ac7925824a9c4-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org> (Bart
-	Van Assche's message of "Sun, 29 Nov 2009 11:45:37 +0100")
+In-Reply-To: <20091127031320.GV32182@kryten> (Anton Blanchard's message of
+	"Fri, 27 Nov 2009 14:13:20 +1100")
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Cc: OFED mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Anton Blanchard <anton-eUNUBHrolfbYtjvyW6yDsg@public.gmane.org>
+Cc: Hoang-Nam Nguyen <hnguyen-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, Christoph Raisch <raisch-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, Stefan Roscher <ossrosch-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, Alexander Schmidt <alexs-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, Joachim Fenkes <fenkes-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 
- > While working on the SRP target implementation I noticed the following
- > (the SRP protocol requires that an SRP initiator sets up an RC
- > connection to the SRP target during login):
- > * Sometimes (about 25% of SRP logins) the completion queue callback
- > function reports data arrival to the SRP target before the RTU event
- > has been delivered.
- > * Sometimes the completion queue callback function reports data
- > arrival after the DREQ message has been sent.
- > * According to the IBTA, message order is preserved over RC
- > connections and the system that sent the RTU message may only start
- > sending data after the RTU message has been sent (section 12.2).
- > 
- > Is this known behavior ? Is this the intended behavior of the Linux
- > InfiniBand stack ?
+ > +
+ >  			spin_lock_irqsave(&eq->spinlock, flags);
+ > +
+ >  			q_ofs = eq->ipz_queue.current_q_offset;
+ > -			spin_unlock_irqrestore(&eq->spinlock, flags);
+ >  			do {
+ > -				spin_lock_irqsave(&eq->spinlock, flags);
+ >  				q_ofs2 = eq->ipz_queue.current_q_offset;
+ > -				spin_unlock_irqrestore(&eq->spinlock, flags);
+ >  				max--;
+ >  			} while (q_ofs == q_ofs2 && max > 0);
+ > +
+ > +			spin_unlock_irqrestore(&eq->spinlock, flags);
+ > +
 
-Yes, this is known and I don't think there is any other sane way to
-implement things.  Recall that CM messages (RTU, DREQ, etc) are sent on
-a separate QP than the actual connection being established, and that
-there is no ordering between work requests on separate work queues.
-
-If you want to refer to the IBA, you could look at figure 132 in section
-12.9.6 -- an RC connection transitions to established when either the
-RTU is received, or a message is received on the connection.  The IBA
-takes into account this lack of ordering in multiple places -- defining
-"communication established" async events, etc.
+Does this loop have to drop the lock to give the EQ code a chance to
+update the queue pointer?  If I understand this correctly, the EQ
+polling code is just trying to have a fallback if interrupts don't
+work...
 
  - R.
 --
