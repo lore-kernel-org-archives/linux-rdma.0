@@ -1,538 +1,394 @@
-From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-Subject: Re: [PATCH] infiniband-diags/ibportstate: allow changes to CA
- portinfo parameters
-Date: Tue, 1 Dec 2009 10:09:48 -0800
-Message-ID: <20091201100948.c860aff5.weiny2@llnl.gov>
-References: <1257451016.992.173.camel@chromite.mv.qlogic.com>
-	<20091201031722.GI16607@me>
+From: Hal Rosenstock <hnrose-Wuw85uim5zDR7s880joybQ@public.gmane.org>
+Subject: [PATCHv3] opensm: Add support for optimized SLtoVLMappingTable
+	programming
+Date: Tue, 1 Dec 2009 14:41:10 -0500
+Message-ID: <20091201194110.GA26753@comcast.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20091201031722.GI16607@me>
+Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Cc: Ralph Campbell <ralph.campbell-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, 1 Dec 2009 05:17:22 +0200
-Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org> wrote:
 
-> Hi Ralph,
-> 
-> On 11:56 Thu 05 Nov     , Ralph Campbell wrote:
-> > This patch adds new commands to ibportstate to support initializing
-> > the link for CAs connected back-to-back. It also allows more than
-> > one field to be changed at the same time such as "lid 23 arm" or
-> > "width 1 speed 3 enable".
-> 
-> As far as I can see this changes a functionality of ibportstate
-> dramatically. Actually it makes it more like to 'ibportset' than just
-> 'ibportstate', correct?
+Optimized SLtoVLMappingTable programming reduces the number of MADs
+needed from O(n**2) to O(n). See IBA 1.2.1 vol 1 p. 843 14.2.5.8
+SLtoVLMappingTable.
 
-Yes it adds "set" functionality but ibportstate still reports the state by
-default.
+Signed-off-by: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+---
+Changes since v2:
+Use osm_log rather than OSM_LOG in osm_slvl_rcv_process for optimized
+sl2vl mapping programming verbose log message
+Removed unneeded check of p_physp in input port loop in osm_slvl_rcv_process
+for optimized sl2vl mapping programming
 
-> 
-> If so, wouldn't it be better to introduce a new tool - let's say
-> 'ibportset' (or like this)?
+Changes since v1:
+Changed optimized programming flow in osm_qos to only call
+sl2vl_update once per switch supporting this feature
 
-_If_ we make "ibportset" then we should do so by changing "ibportstate" to
-"ibportset" and removing the old tool. (Or just leave this as ibportstate)  My
-reasoning is that we already have a lot of diags.  This can cause confusion
-among some users as to which tools do what.  I am not advocating a kitchen
-sink app but I think we should be careful about adding new tools when the
-functionality is closely related to something that exists as it does here.
-
-Also, a minor nit on the patch below.
-
-> 
-> (Or even wider 'smpset' - however such 'smpset' can be done later
-> following a real needs by extending ibportset or so).
-> 
-> Don't understand me wrong I'm not disagree at all, just trying to find
-> the best way to add such functionality to infiniband-diags.
-> 
-> Sasha
-> 
-> > 
-> > Signed-off-by: Ralph Campbell <ralph.campbell-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-> > ---
-> > 
-> > diff --git a/infiniband-diags/src/ibportstate.c b/infiniband-diags/src/ibportstate.c
-> > index e631bfd..192b14e 100644
-> > --- a/infiniband-diags/src/ibportstate.c
-> > +++ b/infiniband-diags/src/ibportstate.c
-> > @@ -46,93 +46,133 @@
-> >  
-> >  #include "ibdiag_common.h"
-> >  
-> > +enum port_ops {
-> > +	QUERY,
-> > +	ENABLE,
-> > +	RESET,
-> > +	DISABLE,
-> > +	SPEED,
-> > +	WIDTH,
-> > +	DOWN,
-> > +	ARM,
-> > +	ACTIVE,
-> > +	VLS,
-> > +	MTU,
-> > +	LID,
-> > +	SMLID,
-> > +	LMC,
-> > +};
-> > +
-> >  struct ibmad_port *srcport;
-> > +int speed = 15;
-> > +int width = 255;
-> > +int lid;
-> > +int smlid;
-> > +int lmc;
-> > +int mtu;
-> > +int vls;
-> > +
-> > +struct {
-> > +	const char *name;
-> > +	int *val;
-> > +	int set;
-> > +} port_args[] = {
-> > +	{ "query", NULL, 0 },	/* QUERY */
-> > +	{ "enable", NULL, 0 },	/* ENABLE */
-> > +	{ "reset", NULL, 0 },	/* RESET */
-> > +	{ "disable", NULL, 0 },	/* DISABLE */
-> > +	{ "speed", &speed, 0 },	/* SPEED */
-> > +	{ "width", &width, 0 },	/* WIDTH */
-> > +	{ "down", NULL, 0 },	/* DOWN */
-> > +	{ "arm", NULL, 0 },	/* ARM */
-> > +	{ "active", NULL, 0 },	/* ACTIVE */
-> > +	{ "vls", &vls, 0 },	/* VLS */
-> > +	{ "mtu", &mtu, 0 },	/* MTU */
-> > +	{ "lid", &lid, 0 },	/* LID */
-> > +	{ "smlid", &smlid, 0 },	/* SMLID */
-> > +	{ "lmc", &lmc, 0 },	/* LMC */
-> > +};
-> > +
-> > +#define NPORT_ARGS (sizeof(port_args) / sizeof(port_args[0]))
-> >  
-> >  /*******************************************/
-> >  
-> > +/*
-> > + * Return 1 if port is a switch, else zero.
-> > + */
-> >  static int get_node_info(ib_portid_t * dest, uint8_t * data)
-> >  {
-> >  	int node_type;
-> >  
-> >  	if (!smp_query_via(data, dest, IB_ATTR_NODE_INFO, 0, 0, srcport))
-> > -		return -1;
-> > +		IBERROR("smp query nodeinfo failed");
-> >  
-> >  	node_type = mad_get_field(data, 0, IB_NODE_TYPE_F);
-> >  	if (node_type == IB_NODE_SWITCH)	/* Switch NodeType ? */
-> > -		return 0;
-> > -	else
-> >  		return 1;
-> > +	else
-> > +		return 0;
-> >  }
-> >  
-> > -static int get_port_info(ib_portid_t * dest, uint8_t * data, int portnum,
-> > -			 int port_op)
-> > +static void get_port_info(ib_portid_t * dest, uint8_t * data, int portnum)
-> > +{
-> > +	if (!smp_query_via(data, dest, IB_ATTR_PORT_INFO, portnum, 0, srcport))
-> > +		IBERROR("smp query portinfo failed");
-> > +}
-> > +
-> > +static void show_port_info(ib_portid_t * dest, uint8_t * data, int portnum)
-> >  {
-> >  	char buf[2048];
-> >  	char val[64];
-> >  
-> > -	if (!smp_query_via(data, dest, IB_ATTR_PORT_INFO, portnum, 0, srcport))
-> > -		return -1;
-> > -
-> > -	if (port_op != 4) {
-> > -		mad_dump_portstates(buf, sizeof buf, data, sizeof data);
-> > -		mad_decode_field(data, IB_PORT_LINK_WIDTH_SUPPORTED_F, val);
-> > -		mad_dump_field(IB_PORT_LINK_WIDTH_SUPPORTED_F,
-> > -			       buf + strlen(buf), sizeof buf - strlen(buf),
-> > -			       val);
-> > -		sprintf(buf + strlen(buf), "%s", "\n");
-> > -		mad_decode_field(data, IB_PORT_LINK_WIDTH_ENABLED_F, val);
-> > -		mad_dump_field(IB_PORT_LINK_WIDTH_ENABLED_F, buf + strlen(buf),
-> > -			       sizeof buf - strlen(buf), val);
-> > -		sprintf(buf + strlen(buf), "%s", "\n");
-> > -		mad_decode_field(data, IB_PORT_LINK_WIDTH_ACTIVE_F, val);
-> > -		mad_dump_field(IB_PORT_LINK_WIDTH_ACTIVE_F, buf + strlen(buf),
-> > -			       sizeof buf - strlen(buf), val);
-> > -		sprintf(buf + strlen(buf), "%s", "\n");
-> > -		mad_decode_field(data, IB_PORT_LINK_SPEED_SUPPORTED_F, val);
-> > -		mad_dump_field(IB_PORT_LINK_SPEED_SUPPORTED_F,
-> > -			       buf + strlen(buf), sizeof buf - strlen(buf),
-> > -			       val);
-> > -		sprintf(buf + strlen(buf), "%s", "\n");
-> > -		mad_decode_field(data, IB_PORT_LINK_SPEED_ENABLED_F, val);
-> > -		mad_dump_field(IB_PORT_LINK_SPEED_ENABLED_F, buf + strlen(buf),
-> > -			       sizeof buf - strlen(buf), val);
-> > -		sprintf(buf + strlen(buf), "%s", "\n");
-> > -		mad_decode_field(data, IB_PORT_LINK_SPEED_ACTIVE_F, val);
-> > -		mad_dump_field(IB_PORT_LINK_SPEED_ACTIVE_F, buf + strlen(buf),
-> > -			       sizeof buf - strlen(buf), val);
-> > -		sprintf(buf + strlen(buf), "%s", "\n");
-> > -	} else {
-> > -		mad_decode_field(data, IB_PORT_LINK_SPEED_ENABLED_F, val);
-> > -		mad_dump_field(IB_PORT_LINK_SPEED_ENABLED_F, buf, sizeof buf,
-> > -			       val);
-> > -		sprintf(buf + strlen(buf), "%s", "\n");
-> > -	}
-> > +	mad_dump_portstates(buf, sizeof buf, data, sizeof data);
-> > +	mad_decode_field(data, IB_PORT_LID_F, val);
-> > +	mad_dump_field(IB_PORT_LID_F, buf + strlen(buf),
-> > +		       sizeof buf - strlen(buf), val);
-> > +	sprintf(buf + strlen(buf), "%s", "\n");
-> > +	mad_decode_field(data, IB_PORT_SMLID_F, val);
-> > +	mad_dump_field(IB_PORT_SMLID_F, buf + strlen(buf),
-> > +		       sizeof buf - strlen(buf), val);
-> > +	sprintf(buf + strlen(buf), "%s", "\n");
-> > +	mad_decode_field(data, IB_PORT_LMC_F, val);
-> > +	mad_dump_field(IB_PORT_LMC_F, buf + strlen(buf),
-> > +		       sizeof buf - strlen(buf), val);
-> > +	sprintf(buf + strlen(buf), "%s", "\n");
-> > +	mad_decode_field(data, IB_PORT_LINK_WIDTH_SUPPORTED_F, val);
-> > +	mad_dump_field(IB_PORT_LINK_WIDTH_SUPPORTED_F, buf + strlen(buf),
-> > +		       sizeof buf - strlen(buf), val);
-> > +	sprintf(buf + strlen(buf), "%s", "\n");
-> > +	mad_decode_field(data, IB_PORT_LINK_WIDTH_ENABLED_F, val);
-> > +	mad_dump_field(IB_PORT_LINK_WIDTH_ENABLED_F, buf + strlen(buf),
-> > +		       sizeof buf - strlen(buf), val);
-> > +	sprintf(buf + strlen(buf), "%s", "\n");
-> > +	mad_decode_field(data, IB_PORT_LINK_WIDTH_ACTIVE_F, val);
-> > +	mad_dump_field(IB_PORT_LINK_WIDTH_ACTIVE_F, buf + strlen(buf),
-> > +		       sizeof buf - strlen(buf), val);
-> > +	sprintf(buf + strlen(buf), "%s", "\n");
-> > +	mad_decode_field(data, IB_PORT_LINK_SPEED_SUPPORTED_F, val);
-> > +	mad_dump_field(IB_PORT_LINK_SPEED_SUPPORTED_F, buf + strlen(buf),
-> > +		       sizeof buf - strlen(buf), val);
-> > +	sprintf(buf + strlen(buf), "%s", "\n");
-> > +	mad_decode_field(data, IB_PORT_LINK_SPEED_ENABLED_F, val);
-> > +	mad_dump_field(IB_PORT_LINK_SPEED_ENABLED_F, buf + strlen(buf),
-> > +		       sizeof buf - strlen(buf), val);
-> > +	sprintf(buf + strlen(buf), "%s", "\n");
-> > +	mad_decode_field(data, IB_PORT_LINK_SPEED_ACTIVE_F, val);
-> > +	mad_dump_field(IB_PORT_LINK_SPEED_ACTIVE_F, buf + strlen(buf),
-> > +		       sizeof buf - strlen(buf), val);
-> > +	sprintf(buf + strlen(buf), "%s", "\n");
-> >  
-> >  	printf("# Port info: %s port %d\n%s", portid2str(dest), portnum, buf);
-> > -	return 0;
-> >  }
-> >  
-> > -static int set_port_info(ib_portid_t * dest, uint8_t * data, int portnum,
-> > -			 int port_op)
-> > +static void set_port_info(ib_portid_t * dest, uint8_t * data, int portnum)
-> >  {
-> > -	char buf[2048];
-> > -	char val[64];
-> > -
-> >  	if (!smp_set_via(data, dest, IB_ATTR_PORT_INFO, portnum, 0, srcport))
-> > -		return -1;
-> > -
-> > -	if (port_op != 4)
-> > -		mad_dump_portstates(buf, sizeof buf, data, sizeof data);
-> > -	else {
-> > -		mad_decode_field(data, IB_PORT_LINK_SPEED_ENABLED_F, val);
-> > -		mad_dump_field(IB_PORT_LINK_SPEED_ENABLED_F, buf, sizeof buf,
-> > -			       val);
-> > -		sprintf(buf + strlen(buf), "%s", "\n");
-> > -	}
-> > +		IBERROR("smp set portinfo failed");
-> >  
-> >  	printf("\nAfter PortInfo set:\n");
-> > -	printf("# Port info: %s port %d\n%s", portid2str(dest), portnum, buf);
-> > -	return 0;
-> > +	show_port_info(dest, data, portnum);
-> >  }
-> >  
-> >  static int get_link_width(int lwe, int lws)
-> > @@ -201,22 +241,23 @@ int main(int argc, char **argv)
-> >  	int mgmt_classes[3] =
-> >  	    { IB_SMI_CLASS, IB_SMI_DIRECT_CLASS, IB_SA_CLASS };
-> >  	ib_portid_t portid = { 0 };
-> > -	int err;
-> > -	int port_op = 0;	/* default to query */
-> > -	int speed = 15;
-> > -	int is_switch = 1;
-> > +	int port_op = -1;
-> > +	int is_switch;
-> >  	int state, physstate, lwe, lws, lwa, lse, lss, lsa;
-> >  	int peerlocalportnum, peerlwe, peerlws, peerlwa, peerlse, peerlss,
-> >  	    peerlsa;
-> > -	int width = 255, peerwidth, peerspeed;
-> > +	int peerwidth, peerspeed;
-> >  	uint8_t data[IB_SMP_DATA_SIZE];
-> >  	ib_portid_t peerportid = { 0 };
-> >  	int portnum = 0;
-> >  	ib_portid_t selfportid = { 0 };
-> >  	int selfport = 0;
-> > -
-> > +	int changed = 0;
-> > +	int i;
-> > +	long val;
-> >  	char usage_args[] = "<dest dr_path|lid|guid> <portnum> [<op>]\n"
-> > -	    "\nSupported ops: enable, disable, reset, speed, width, query";
-> > +	    "\nSupported ops: enable, disable, reset, speed, width, query,\n"
-> > +	    "\tdown, arm, active, vls, mtu, lid, smlid, lmc\n";
-> >  	const char *usage_examples[] = {
-> >  		"3 1 disable\t\t\t# by lid",
-> >  		"-G 0x2C9000100D051 1 enable\t# by guid",
-> > @@ -224,6 +265,7 @@ int main(int argc, char **argv)
-> >  		"3 1 reset\t\t\t# by lid",
-> >  		"3 1 speed 1\t\t\t# by lid",
-> >  		"3 1 width 1\t\t\t# by lid",
-> > +		"-D 0 1 lid 0x1234 arm\t\t# by direct route",
-> >  		NULL
-> >  	};
-> >  
-> > @@ -247,78 +289,130 @@ int main(int argc, char **argv)
-> >  	if (argc > 1)
-> >  		portnum = strtol(argv[1], 0, 0);
-> >  
-> > -	/* First, make sure it is a switch port if it is a "set" */
-> > -	if (argc >= 3) {
-> > -		if (!strcmp(argv[2], "enable"))
-> > -			port_op = 1;
-> > -		else if (!strcmp(argv[2], "disable"))
-> > -			port_op = 2;
-> > -		else if (!strcmp(argv[2], "reset"))
-> > -			port_op = 3;
-> > -		else if (!strcmp(argv[2], "speed")) {
-> > -			if (argc < 4)
-> > -				IBERROR
-> > -				    ("speed requires an additional parameter");
-> > -			port_op = 4;
-> > -			/* Parse speed value */
-> > -			speed = strtoul(argv[3], 0, 0);
-> > -			if (speed > 15)
-> > -				IBERROR("invalid speed value %d", speed);
-> > -		} else if (!strcmp(argv[2], "width")) {
-> > -			if (argc < 4)
-> > -				IBERROR
-> > -				    ("width requires an additional parameter");
-> > -			port_op = 5;
-> > -			/* Parse width value */
-> > -			width = strtoul(argv[3], 0, 0);
-> > -			if (width > 15 && width != 255)
-> > -				IBERROR("invalid width value %d", width);
-> > +	for (i = 2; i < argc; i++) {
-> > +		int j;
-> > +
-> > +		for (j = 0; j < NPORT_ARGS; j++) {
-> > +			if (strcmp(argv[i], port_args[j].name))
-> > +				continue;
-> > +			port_args[j].set = 1;
-> > +			if (!port_args[j].val) {
-> > +				if (port_op >= 0)
-> > +					IBERROR("%s only one of: ",
-> > +						"query, enable, disable, "
-> > +						"reset, down, arm, active, "
-> > +						"can be specified",
-> > +						port_args[j].name);
-> > +				port_op = j;
-> > +				break;
-> > +			}
-> > +			if (++i >= argc)
-> > +				IBERROR("%s requires an additional parameter",
-> > +					port_args[j].name);
-> > +			val = strtol(argv[i], 0, 0);
-> > +			switch (j) {
-> > +			case SPEED:
-> > +				if (val < 0 || val > 15)
-> > +					IBERROR("invalid speed value %ld", val);
-> > +				break;
-> > +			case WIDTH:
-> > +				if (val < 0 || (val > 15 && val != 255))
-> > +					IBERROR("invalid width value %ld", val);
-> > +				break;
-> > +			case VLS:
-> > +				if (val <= 0 || val > 5)
-> > +					IBERROR("invalid vls value %ld", val);
-> > +				break;
-> > +			case MTU:
-> > +				if (val <= 0 || val > 5)
-> > +					IBERROR("invalid mtu value %ld", val);
-> > +				break;
-> > +			case LID:
-> > +				if (val <= 0 || val >= 0xC000)
-> > +					IBERROR("invalid lid value 0x%lx", val);
-> > +				break;
-> > +			case SMLID:
-> > +				if (val <= 0 || val >= 0xC000)
-> > +					IBERROR("invalid smlid value 0x%lx",
-> > +						val);
-> > +				break;
-> > +			case LMC:
-> > +				if (val < 0 || val > 7)
-> > +					IBERROR("invalid lmc value %ld", val);
-> > +			}
-> > +			*port_args[j].val = (int) val;
-> > +			changed = 1;
-> > +			break;
-> >  		}
-> > +		if (j == NPORT_ARGS)
-> > +			IBERROR("invalid operation: %s", argv[i]);
-> >  	}
-> > +	if (port_op < 0)
-> > +		port_op = QUERY;
-> >  
-> > -	err = get_node_info(&portid, data);
-> > -	if (err < 0)
-> > -		IBERROR("smp query nodeinfo failed");
-> > -	if (err) {		/* not switch */
-> > -		if (port_op == 0)	/* query op */
-> > -			is_switch = 0;
-> > -		else if (port_op == 2)	/* disable */
-> > -			IBERROR("Node type not switch - disable not allowed");
-> > -	}
-> > +	is_switch = get_node_info(&portid, data);
-> >  
-> > -	if (port_op)
-> > -		printf("Initial PortInfo:\n");
-> > +	if (port_op != QUERY || changed)
-> > +		printf("Initial %s PortInfo:\n", is_switch ? "Switch" : "CA");
-> >  	else
-> > -		printf("PortInfo:\n");
-> > -	err = get_port_info(&portid, data, portnum, port_op);
-> > -	if (err < 0)
-> > -		IBERROR("smp query portinfo failed");
-> > -
-> > -	/* Only if one of the "set" options is chosen */
-> > -	if (port_op) {
-> > -		if ((port_op == 1) || (port_op == 3)) {	/* Enable or Reset port */
-> > -			mad_set_field(data, 0, IB_PORT_PHYS_STATE_F, 2);	/* Polling */
-> > -			mad_set_field(data, 0, IB_PORT_STATE_F, 0);	/* No Change */
-> > -		} else if (port_op == 2) {	/* Disable port */
-> > +		printf("%s PortInfo:\n", is_switch ? "Switch" : "CA");
-> > +	get_port_info(&portid, data, portnum);
-> > +	show_port_info(&portid, data, portnum);
-> > +
-> > +	if (port_op != QUERY || changed) {
-> > +		/*
-> > +		 * If we aren't setting the LID and the LID is the default,
-> > +		 * the SMA command will fail due to an invalid LID.
-> > +		 * Set it to something unlikely but valid.
-> > +		 */
-> > +		val = mad_get_field(data, 0, IB_PORT_LID_F);
-> > +		if (!port_args[LID].set && (!val || val == 0xFFFF))
-> > +			mad_set_field(data, 0, IB_PORT_LID_F, 0x1234);
-> > +		val = mad_get_field(data, 0, IB_PORT_SMLID_F);
-> > +		if (!port_args[SMLID].set && (!val || val == 0xFFFF))
-> > +			mad_set_field(data, 0, IB_PORT_SMLID_F, 0x1234);
-> > +		mad_set_field(data, 0, IB_PORT_STATE_F, 0);       /* NOP */
-> > +		mad_set_field(data, 0, IB_PORT_PHYS_STATE_F, 0);  /* NOP */
-> > +
-> > +		switch (port_op) {
-> > +		case ENABLE:
-> > +		case RESET:
-> > +			/* Polling */
-> > +			mad_set_field(data, 0, IB_PORT_PHYS_STATE_F, 2);
-> > +			break;
-> > +		case DISABLE:
-> >  			printf("Disable may be irreversible\n");
-> > -			mad_set_field(data, 0, IB_PORT_STATE_F, 1);	/* Down */
-> > -			mad_set_field(data, 0, IB_PORT_PHYS_STATE_F, 3);	/* Disabled */
-> > -		} else if (port_op == 4) {	/* Set speed */
-> > +			mad_set_field(data, 0, IB_PORT_PHYS_STATE_F, 3);
-> > +			break;
-> > +		case DOWN:
-> > +			mad_set_field(data, 0, IB_PORT_STATE_F, 1);
-> > +			break;
-> > +		case ARM:
-> > +			mad_set_field(data, 0, IB_PORT_STATE_F, 3);
-> > +			break;
-> > +		case ACTIVE:
-> > +			mad_set_field(data, 0, IB_PORT_STATE_F, 4);
-> > +			break;
-
-See ib_types.h for #def's for IB_LINK_DOWN(1), IB_LINK_ARMED(3), and
-IB_LINK_ACTIVE(4).
-
-Ira
-
-> > +		}
-> > +		if (port_args[SPEED].set)
-> >  			mad_set_field(data, 0, IB_PORT_LINK_SPEED_ENABLED_F,
-> >  				      speed);
-> > -			mad_set_field(data, 0, IB_PORT_STATE_F, 0);
-> > -			mad_set_field(data, 0, IB_PORT_PHYS_STATE_F, 0);
-> > -		} else if (port_op == 5) {	/* Set width */
-> > +		if (port_args[WIDTH].set)
-> >  			mad_set_field(data, 0, IB_PORT_LINK_WIDTH_ENABLED_F,
-> >  				      width);
-> > -			mad_set_field(data, 0, IB_PORT_STATE_F, 0);
-> > -			mad_set_field(data, 0, IB_PORT_PHYS_STATE_F, 0);
-> > -		}
-> > +		if (port_args[VLS].set)
-> > +			mad_set_field(data, 0, IB_PORT_OPER_VLS_F, vls);
-> > +		if (port_args[MTU].set)
-> > +			mad_set_field(data, 0, IB_PORT_NEIGHBOR_MTU_F, mtu);
-> > +		if (port_args[LID].set)
-> > +			mad_set_field(data, 0, IB_PORT_LID_F, lid);
-> > +		if (port_args[SMLID].set)
-> > +			mad_set_field(data, 0, IB_PORT_SMLID_F, smlid);
-> > +		if (port_args[LMC].set)
-> > +			mad_set_field(data, 0, IB_PORT_LMC_F, lmc);
-> > +
-> > +		set_port_info(&portid, data, portnum);
-> >  
-> > -		err = set_port_info(&portid, data, portnum, port_op);
-> > -		if (err < 0)
-> > -			IBERROR("smp set portinfo failed");
-> > -		/* query op - only compare peer port if switch port, exclude SP0 */
-> >  	} else if (is_switch && portnum) {
-> >  		/* Now, make sure PortState is Active */
-> >  		/* Or is PortPhysicalState LinkUp sufficient ? */
-> > @@ -351,20 +445,15 @@ int main(int argc, char **argv)
-> >  			peerportid.drpath.drdlid = 0xffff;
-> >  
-> >  			/* Get peer port NodeInfo to obtain peer port number */
-> > -			err = get_node_info(&peerportid, data);
-> > -			if (err < 0)
-> > -				IBERROR("smp query nodeinfo failed");
-> > +			get_node_info(&peerportid, data);
-> >  
-> >  			mad_decode_field(data, IB_NODE_LOCAL_PORT_F,
-> >  					 &peerlocalportnum);
-> >  
-> >  			printf("Peer PortInfo:\n");
-> >  			/* Get peer port characteristics */
-> > -			err =
-> > -			    get_port_info(&peerportid, data, peerlocalportnum,
-> > -					  port_op);
-> > -			if (err < 0)
-> > -				IBERROR("smp query peer portinfo failed");
-> > +			get_port_info(&peerportid, data, peerlocalportnum);
-> > +			show_port_info(&peerportid, data, peerlocalportnum);
-> >  
-> >  			mad_decode_field(data, IB_PORT_LINK_WIDTH_ENABLED_F,
-> >  					 &peerlwe);
-> > 
-> > 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://*vger.kernel.org/majordomo-info.html
-> 
-
-
--- 
-Ira Weiny
-Math Programmer/Computer Scientist
-Lawrence Livermore National Lab
-925-423-8008
-weiny2-i2BcT+NCU+M@public.gmane.org
+diff --git a/opensm/include/opensm/osm_subnet.h b/opensm/include/opensm/osm_subnet.h
+index 3c08689..583c070 100644
+--- a/opensm/include/opensm/osm_subnet.h
++++ b/opensm/include/opensm/osm_subnet.h
+@@ -206,6 +206,7 @@ typedef struct osm_subn_opt {
+ 	boolean_t daemon;
+ 	boolean_t sm_inactive;
+ 	boolean_t babbling_port_policy;
++	boolean_t use_optimized_slvl;
+ 	osm_qos_options_t qos_options;
+ 	osm_qos_options_t qos_ca_options;
+ 	osm_qos_options_t qos_sw0_options;
+@@ -433,6 +434,10 @@ typedef struct osm_subn_opt {
+ *	babbling_port_policy
+ *		OpenSM will enforce its "babbling" port policy.
+ *
++*	use_optimized_slvl
++*		Use optimized SLtoVLMappingTable programming if
++*		device indicates it supports this.
++*
+ *	perfmgr
+ *		Enable or disable the performance manager
+ *
+diff --git a/opensm/opensm/osm_qos.c b/opensm/opensm/osm_qos.c
+index 08f9a60..617a86e 100644
+--- a/opensm/opensm/osm_qos.c
++++ b/opensm/opensm/osm_qos.c
+@@ -1,5 +1,6 @@
+ /*
+  * Copyright (c) 2006-2009 Voltaire, Inc. All rights reserved.
++ * Copyright (c) 2009 HNR Consulting. All rights reserved.
+  *
+  * This software is available to you under a choice of one of two
+  * licenses.  You may choose to be licensed under the terms of the GNU
+@@ -150,7 +151,7 @@ static ib_api_status_t vlarb_update(osm_sm_t * sm, osm_physp_t * p,
+ 
+ static ib_api_status_t sl2vl_update_table(osm_sm_t * sm, osm_physp_t * p,
+ 					  uint8_t in_port, uint8_t out_port,
+-					  unsigned force_update,
++					  unsigned optimize, unsigned force_update,
+ 					  const ib_slvl_table_t * sl2vl_table)
+ {
+ 	osm_madw_context_t context;
+@@ -180,41 +181,47 @@ static ib_api_status_t sl2vl_update_table(osm_sm_t * sm, osm_physp_t * p,
+ 	context.slvl_context.node_guid = osm_node_get_node_guid(p_node);
+ 	context.slvl_context.port_guid = osm_physp_get_port_guid(p);
+ 	context.slvl_context.set_method = TRUE;
+-	attr_mod = in_port << 8 | out_port;
++	if (optimize)
++		/* wildcard both input and output ports */
++		attr_mod = 0x30000;
++	else
++		attr_mod = in_port << 8 | out_port;
+ 	return osm_req_set(sm, osm_physp_get_dr_path_ptr(p),
+ 			   (uint8_t *) & tbl, sizeof(tbl),
+ 			   IB_MAD_ATTR_SLVL_TABLE, cl_hton32(attr_mod),
+ 			   CL_DISP_MSGID_NONE, &context);
+ }
+ 
+-static ib_api_status_t sl2vl_update(osm_sm_t * sm, osm_port_t * p_port,
++static ib_api_status_t sl2vl_update(osm_sm_t * sm, osm_physp_t * p0,
+ 				    osm_physp_t * p, uint8_t port_num,
+-				    unsigned force_update,
++				    unsigned optimize, unsigned force_update,
+ 				    const struct qos_config *qcfg)
+ {
+ 	ib_api_status_t status;
+ 	uint8_t i, num_ports;
+-	osm_physp_t *p_physp;
++	osm_node_t *p_node;
+ 
+-	if (osm_node_get_type(osm_physp_get_node_ptr(p)) == IB_NODE_TYPE_SWITCH) {
++	p_node = osm_physp_get_node_ptr(p);
++	if (osm_node_get_type(p_node) == IB_NODE_TYPE_SWITCH) {
+ 		if (ib_port_info_get_vl_cap(&p->port_info) == 1) {
+ 			/* Check port 0's capability mask */
+-			p_physp = p_port->p_physp;
+-			if (!
+-			    (p_physp->port_info.
+-			     capability_mask & IB_PORT_CAP_HAS_SL_MAP))
++			if (!(p0->port_info.capability_mask & IB_PORT_CAP_HAS_SL_MAP))
+ 				return IB_SUCCESS;
+ 		}
+-		num_ports = osm_node_get_num_physp(osm_physp_get_node_ptr(p));
++		num_ports = osm_node_get_num_physp(p_node);
+ 	} else {
+ 		if (!(p->port_info.capability_mask & IB_PORT_CAP_HAS_SL_MAP))
+ 			return IB_SUCCESS;
+ 		num_ports = 1;
+ 	}
+ 
++	if (optimize)
++		return sl2vl_update_table(sm, p, 1, port_num, optimize,
++					  force_update, &qcfg->sl2vl);
++
+ 	for (i = 0; i < num_ports; i++) {
+-		status = sl2vl_update_table(sm, p, i, port_num, force_update,
+-					    &qcfg->sl2vl);
++		status = sl2vl_update_table(sm, p, i, port_num, optimize,
++					    force_update, &qcfg->sl2vl);
+ 		if (status != IB_SUCCESS)
+ 			return status;
+ 	}
+@@ -222,22 +229,30 @@ static ib_api_status_t sl2vl_update(osm_sm_t * sm, osm_port_t * p_port,
+ 	return IB_SUCCESS;
+ }
+ 
+-static int qos_physp_setup(osm_log_t * p_log, osm_sm_t * sm,
+-			   osm_port_t * p_port, osm_physp_t * p,
+-			   uint8_t port_num, unsigned force_update,
+-			   const struct qos_config *qcfg)
++static int vlarb_physp_setup(osm_sm_t * sm, osm_physp_t * p, uint8_t port_num,
++			     unsigned force_update,
++			     const struct qos_config *qcfg)
+ {
+-	ib_api_status_t status;
+-
+ 	/* OpVLs should be ok at this moment - just use it */
+ 
+ 	/* setup VL high limit on the physp later to be updated by link mgr */
+ 	p->vl_high_limit = qcfg->vl_high_limit;
+ 
+ 	/* setup VLArbitration */
+-	status = vlarb_update(sm, p, port_num, force_update, qcfg);
++	return vlarb_update(sm, p, port_num, force_update, qcfg);
++}
++
++static int qos_physp_setup(osm_log_t * p_log, osm_sm_t * sm,
++			   osm_physp_t * p0, osm_physp_t * p,
++			   uint8_t port_num, unsigned force_update,
++			   const struct qos_config *qcfg)
++{
++	ib_api_status_t status;
++
++	/* setup VLArbitration */
++	status = vlarb_physp_setup(sm, p, port_num, force_update, qcfg);
+ 	if (status != IB_SUCCESS) {
+-		OSM_LOG(p_log, OSM_LOG_ERROR, "ERR 6202 : "
++		OSM_LOG(p_log, OSM_LOG_ERROR, "ERR 6202: "
+ 			"failed to update VLArbitration tables "
+ 			"for port %" PRIx64 " #%d\n",
+ 			cl_ntoh64(p->port_guid), port_num);
+@@ -245,9 +260,9 @@ static int qos_physp_setup(osm_log_t * p_log, osm_sm_t * sm,
+ 	}
+ 
+ 	/* setup SL2VL tables */
+-	status = sl2vl_update(sm, p_port, p, port_num, force_update, qcfg);
++	status = sl2vl_update(sm, p0, p, port_num, 0, force_update, qcfg);
+ 	if (status != IB_SUCCESS) {
+-		OSM_LOG(p_log, OSM_LOG_ERROR, "ERR 6203 : "
++		OSM_LOG(p_log, OSM_LOG_ERROR, "ERR 6203: "
+ 			"failed to update SL2VLMapping tables "
+ 			"for port %" PRIx64 " #%d\n",
+ 			cl_ntoh64(p->port_guid), port_num);
+@@ -267,6 +282,7 @@ int osm_qos_setup(osm_opensm_t * p_osm)
+ 	uint32_t num_physp;
+ 	osm_physp_t *p_physp;
+ 	osm_node_t *p_node;
++	osm_switch_t *p_sw;
+ 	unsigned force_update;
+ 	int ret = 0;
+ 	uint8_t i;
+@@ -290,6 +306,44 @@ int osm_qos_setup(osm_opensm_t * p_osm)
+ 	/* read QoS policy config file */
+ 	osm_qos_parse_policy_file(&p_osm->subn);
+ 
++	/* loop on switches that support optimized SL2VL programming first */
++	p_tbl = &p_osm->subn.sw_guid_tbl;
++	p_next = cl_qmap_head(p_tbl);
++	while (p_next != cl_qmap_end(p_tbl)) {
++		p_sw = (osm_switch_t *) p_next;
++		p_next = cl_qmap_next(p_next);
++
++		if (ib_switch_info_get_opt_sl2vlmapping(&p_sw->switch_info) &&
++		    p_osm->subn.opt.use_optimized_slvl) {
++			p_physp = osm_node_get_physp_ptr(p_sw->p_node, 1);
++			num_physp = osm_node_get_num_physp(p_sw->p_node);
++			force_update = p_osm->subn.need_update;
++			for (i = 1; i < num_physp; i++) {
++				p_physp = osm_node_get_physp_ptr(p_sw->p_node, i);
++				if (!p_physp)
++					continue;
++				if (vlarb_physp_setup(&p_osm->sm, p_physp, i,
++						      p_physp->need_update ||
++						      p_osm->subn.need_update,
++						      &swe_config))
++					ret = -1;
++				force_update |= p_physp->need_update;
++			}
++			if (sl2vl_update(&p_osm->sm,
++					 osm_node_get_physp_ptr(p_sw->p_node, 0),
++					 p_physp, i, 1, force_update,
++					 &swe_config)) {
++				OSM_LOG(&p_osm->log, OSM_LOG_ERROR, "ERR 6204: "
++					"failed to update optimized SL2VLMapping"
++					" tables for port %" PRIx64 " #%d\n",
++					cl_ntoh64(p_physp->port_guid), i);
++				ret = -1;
++			}
++		}
++	}
++
++	/* now, loop on ports skipping the external ports of switches
++	   that support optimized SL2VL programming */
+ 	p_tbl = &p_osm->subn.port_guid_tbl;
+ 	p_next = cl_qmap_head(p_tbl);
+ 	while (p_next != cl_qmap_end(p_tbl)) {
+@@ -298,6 +352,11 @@ int osm_qos_setup(osm_opensm_t * p_osm)
+ 
+ 		p_node = p_port->p_node;
+ 		if (p_node->sw) {
++			/* skip switches with optimized SL2VL mapping
++			   programming since already done */
++			if (ib_switch_info_get_opt_sl2vlmapping(&p_node->sw->switch_info) &&
++			    p_osm->subn.opt.use_optimized_slvl)
++				goto check_port0;
+ 			num_physp = osm_node_get_num_physp(p_node);
+ 			for (i = 1; i < num_physp; i++) {
+ 				p_physp = osm_node_get_physp_ptr(p_node, i);
+@@ -306,10 +365,11 @@ int osm_qos_setup(osm_opensm_t * p_osm)
+ 				force_update = p_physp->need_update ||
+ 				    p_osm->subn.need_update;
+ 				if (qos_physp_setup(&p_osm->log, &p_osm->sm,
+-						    p_port, p_physp, i,
++						    p_port->p_physp, p_physp, i,
+ 						    force_update, &swe_config))
+ 					ret = -1;
+ 			}
++check_port0:
+ 			/* skip base port 0 */
+ 			if (!ib_switch_info_is_enhanced_port0
+ 			    (&p_node->sw->switch_info))
+@@ -326,8 +386,8 @@ int osm_qos_setup(osm_opensm_t * p_osm)
+ 			continue;
+ 
+ 		force_update = p_physp->need_update || p_osm->subn.need_update;
+-		if (qos_physp_setup(&p_osm->log, &p_osm->sm, p_port, p_physp,
+-				    0, force_update, cfg))
++		if (qos_physp_setup(&p_osm->log, &p_osm->sm, p_port->p_physp,
++				    p_physp, 0, force_update, cfg))
+ 			ret = -1;
+ 	}
+ 
+diff --git a/opensm/opensm/osm_slvl_map_rcv.c b/opensm/opensm/osm_slvl_map_rcv.c
+index 4f75690..214a763 100644
+--- a/opensm/opensm/osm_slvl_map_rcv.c
++++ b/opensm/opensm/osm_slvl_map_rcv.c
+@@ -2,6 +2,7 @@
+  * Copyright (c) 2004-2009 Voltaire, Inc. All rights reserved.
+  * Copyright (c) 2002-2005 Mellanox Technologies LTD. All rights reserved.
+  * Copyright (c) 1996-2003 Intel Corporation. All rights reserved.
++ * Copyright (c) 2009 HNR Consulting. All rights reserved.
+  *
+  * This software is available to you under a choice of one of two
+  * licenses.  You may choose to be licensed under the terms of the GNU
+@@ -70,7 +71,9 @@ void osm_slvl_rcv_process(IN void *context, IN void *p_data)
+ 	osm_slvl_context_t *p_context;
+ 	ib_net64_t port_guid;
+ 	ib_net64_t node_guid;
+-	uint8_t out_port_num, in_port_num;
++	uint32_t attr_mod;
++	uint8_t out_port_num, in_port_num, startinport, startoutport,
++		endinport, endoutport;
+ 
+ 	CL_ASSERT(sm);
+ 
+@@ -109,6 +112,9 @@ void osm_slvl_rcv_process(IN void *context, IN void *p_data)
+ 		    (uint8_t) cl_ntoh32(p_smp->attr_mod & 0xFF000000);
+ 		in_port_num =
+ 		    (uint8_t) cl_ntoh32((p_smp->attr_mod & 0x00FF0000) << 8);
++		attr_mod = cl_ntoh32(p_smp->attr_mod);
++		if (attr_mod & 0x30000)
++			goto opt_sl2vl;
+ 		p_physp = osm_node_get_physp_ptr(p_node, out_port_num);
+ 	} else {
+ 		p_physp = p_port->p_physp;
+@@ -121,7 +127,7 @@ void osm_slvl_rcv_process(IN void *context, IN void *p_data)
+ 	   all we want is to update the subnet.
+ 	 */
+ 	OSM_LOG(sm->p_log, OSM_LOG_VERBOSE,
+-		"Got SLtoVL get response in_port_num %u out_port_num %u with "
++		"Received SLtoVL GetResp in_port_num %u out_port_num %u with "
+ 		"GUID 0x%" PRIx64 " for parent node GUID 0x%" PRIx64 ", TID 0x%"
+ 		PRIx64 "\n", in_port_num, out_port_num, cl_ntoh64(port_guid),
+ 		cl_ntoh64(node_guid), cl_ntoh64(p_smp->trans_id));
+@@ -140,6 +146,38 @@ void osm_slvl_rcv_process(IN void *context, IN void *p_data)
+ 				out_port_num, p_slvl_tbl, OSM_LOG_DEBUG);
+ 
+ 	osm_physp_set_slvl_tbl(p_physp, p_slvl_tbl, in_port_num);
++	goto Exit;
++
++opt_sl2vl:
++	if (osm_log_is_active(sm->p_log, OSM_LOG_VERBOSE))
++		osm_log(sm->p_log, OSM_LOG_VERBOSE,
++			"Received optimized SLtoVL get response in_port_num %u "
++			"out_port_num %u with GUID 0x%" PRIx64 " for parent "
++			"node GUID 0x%" PRIx64 ", TID 0x%" PRIx64 "\n",
++			in_port_num, out_port_num, cl_ntoh64(port_guid),
++			cl_ntoh64(node_guid), cl_ntoh64(p_smp->trans_id));
++
++	osm_dump_slvl_map_table(sm->p_log, port_guid, in_port_num,
++				out_port_num, p_slvl_tbl, OSM_LOG_DEBUG);
++
++	if (attr_mod & 0x10000) {
++		startoutport = ib_switch_info_is_enhanced_port0(&p_node->sw->switch_info) ? 0 : 1;
++		endoutport = osm_node_get_num_physp(p_node);
++	} else
++		endoutport = startoutport = out_port_num;
++	if (attr_mod & 0x20000) {
++		startinport = ib_switch_info_is_enhanced_port0(&p_node->sw->switch_info) ? 0 : 1;
++		endinport = osm_node_get_num_physp(p_node);
++	} else
++		endinport = startinport = in_port_num;
++
++	for (out_port_num = startoutport; out_port_num < endoutport;
++	     out_port_num++) {
++		p_physp = osm_node_get_physp_ptr(p_node, out_port_num);
++		for (in_port_num = startinport; in_port_num < endinport;
++		     in_port_num++)
++			osm_physp_set_slvl_tbl(p_physp, p_slvl_tbl, in_port_num);
++	}
+ 
+ Exit:
+ 	cl_plock_release(sm->p_lock);
+diff --git a/opensm/opensm/osm_subnet.c b/opensm/opensm/osm_subnet.c
+index 09029db..103b5c6 100644
+--- a/opensm/opensm/osm_subnet.c
++++ b/opensm/opensm/osm_subnet.c
+@@ -354,6 +354,7 @@ static const opt_rec_t opt_tbl[] = {
+ 	{ "daemon", OPT_OFFSET(daemon), opts_parse_boolean, NULL, 0 },
+ 	{ "sm_inactive", OPT_OFFSET(sm_inactive), opts_parse_boolean, NULL, 1 },
+ 	{ "babbling_port_policy", OPT_OFFSET(babbling_port_policy), opts_parse_boolean, NULL, 1 },
++	{ "use_optimized_slvl", OPT_OFFSET(use_optimized_slvl), opts_parse_boolean, NULL, 1 },
+ #ifdef ENABLE_OSM_PERF_MGR
+ 	{ "perfmgr", OPT_OFFSET(perfmgr), opts_parse_boolean, NULL, 0 },
+ 	{ "perfmgr_redir", OPT_OFFSET(perfmgr_redir), opts_parse_boolean, NULL, 0 },
+@@ -713,6 +714,7 @@ void osm_subn_set_default_opt(IN osm_subn_opt_t * p_opt)
+ 	p_opt->daemon = FALSE;
+ 	p_opt->sm_inactive = FALSE;
+ 	p_opt->babbling_port_policy = FALSE;
++	p_opt->use_optimized_slvl = FALSE;
+ #ifdef ENABLE_OSM_PERF_MGR
+ 	p_opt->perfmgr = FALSE;
+ 	p_opt->perfmgr_redir = TRUE;
+@@ -1499,10 +1501,13 @@ int osm_subn_output_conf(FILE *out, IN osm_subn_opt_t * p_opts)
+ 		"# SM Inactive\n"
+ 		"sm_inactive %s\n\n"
+ 		"# Babbling Port Policy\n"
+-		"babbling_port_policy %s\n\n",
++		"babbling_port_policy %s\n\n"
++		"# Use Optimized SLtoVLMapping programming if supported by device\n"
++		"use_optimized_slvl %s\n\n",
+ 		p_opts->daemon ? "TRUE" : "FALSE",
+ 		p_opts->sm_inactive ? "TRUE" : "FALSE",
+-		p_opts->babbling_port_policy ? "TRUE" : "FALSE");
++		p_opts->babbling_port_policy ? "TRUE" : "FALSE",
++		p_opts->use_optimized_slvl ? "TRUE" : "FALSE");
+ 
+ #ifdef ENABLE_OSM_PERF_MGR
+ 	fprintf(out,
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
