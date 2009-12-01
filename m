@@ -1,7 +1,7 @@
 From: Chien Tung <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 6/9] RDMA/nes: Implement IB_SIGNAL_ALL_WR as an iWARP extension
-Date: Tue, 1 Dec 2009 16:19:58 -0600
-Message-ID: <20091201221958.GA6468@ctung-MOBL>
+Subject: [PATCH 8/9] RDMA/nes: Add max_cqe check to nes_create_cq()
+Date: Tue, 1 Dec 2009 16:20:02 -0600
+Message-ID: <20091201222002.GA7488@ctung-MOBL>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
@@ -12,72 +12,51 @@ Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 
-Add IB_SINGAL_ALL_WR support as an iWARP extension.  If set, make
-sure all WR for the QP is signalled.
-Consolidate flags used in nesqp structure.
+Add a check to nes_create_cq() to return -EINVAL if creating
+a CQ with depth > max_cqe (32766).
 
 Signed-off-by: Chien Tung <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/nes/nes_verbs.c |    6 ++++--
- drivers/infiniband/hw/nes/nes_verbs.h |   15 +++++++++------
- 2 files changed, 13 insertions(+), 8 deletions(-)
+ drivers/infiniband/hw/nes/nes_hw.c    |    2 +-
+ drivers/infiniband/hw/nes/nes_verbs.c |    5 ++++-
+ 2 files changed, 5 insertions(+), 2 deletions(-)
 
+diff --git a/drivers/infiniband/hw/nes/nes_hw.c b/drivers/infiniband/hw/nes/nes_hw.c
+index b59ca56..6f625a9 100644
+--- a/drivers/infiniband/hw/nes/nes_hw.c
++++ b/drivers/infiniband/hw/nes/nes_hw.c
+@@ -482,7 +482,7 @@ struct nes_adapter *nes_init_adapter(struct nes_device *nesdev, u8 hw_rev) {
+ 	nesadapter->max_irrq_wr = (u32temp >> 16) & 3;
+ 
+ 	nesadapter->max_sge = 4;
+-	nesadapter->max_cqe = 32767;
++	nesadapter->max_cqe = 32766;
+ 
+ 	if (nes_read_eeprom_values(nesdev, nesadapter)) {
+ 		printk(KERN_ERR PFX "Unable to read EEPROM data.\n");
 diff --git a/drivers/infiniband/hw/nes/nes_verbs.c b/drivers/infiniband/hw/nes/nes_verbs.c
-index 42ec5d0..2bdea64 100644
+index e929684..e09d3ed 100644
 --- a/drivers/infiniband/hw/nes/nes_verbs.c
 +++ b/drivers/infiniband/hw/nes/nes_verbs.c
-@@ -1407,6 +1407,8 @@ static struct ib_qp *nes_create_qp(struct ib_pd *ibpd,
- 			return ERR_PTR(-EINVAL);
- 	}
+@@ -527,7 +527,7 @@ static int nes_query_device(struct ib_device *ibdev, struct ib_device_attr *prop
+ 	props->max_qp_wr = nesdev->nesadapter->max_qp_wr - 2;
+ 	props->max_sge = nesdev->nesadapter->max_sge;
+ 	props->max_cq = nesibdev->max_cq;
+-	props->max_cqe = nesdev->nesadapter->max_cqe - 1;
++	props->max_cqe = nesdev->nesadapter->max_cqe;
+ 	props->max_mr = nesibdev->max_mr;
+ 	props->max_mw = nesibdev->max_mr;
+ 	props->max_pd = nesibdev->max_pd;
+@@ -1543,6 +1543,9 @@ static struct ib_cq *nes_create_cq(struct ib_device *ibdev, int entries,
+ 	unsigned long flags;
+ 	int ret;
  
-+	nesqp->sig_all = (init_attr->sq_sig_type == IB_SIGNAL_ALL_WR);
++	if (entries > nesadapter->max_cqe)
++		return ERR_PTR(-EINVAL);
 +
- 	/* update the QP table */
- 	nesdev->nesadapter->qp_table[nesqp->hwqp.qp_id-NES_FIRST_QPN] = nesqp;
- 	nes_debug(NES_DBG_QP, "netdev refcnt=%u\n",
-@@ -3502,9 +3504,9 @@ static int nes_post_send(struct ib_qp *ibqp, struct ib_send_wr *ib_wr,
- 		if (err)
- 			break;
- 
--		if (ib_wr->send_flags & IB_SEND_SIGNALED) {
-+		if ((ib_wr->send_flags & IB_SEND_SIGNALED) || nesqp->sig_all)
- 			wqe_misc |= NES_IWARP_SQ_WQE_SIGNALED_COMPL;
--		}
-+
- 		wqe->wqe_words[NES_IWARP_SQ_WQE_MISC_IDX] = cpu_to_le32(wqe_misc);
- 
- 		ib_wr = ib_wr->next;
-diff --git a/drivers/infiniband/hw/nes/nes_verbs.h b/drivers/infiniband/hw/nes/nes_verbs.h
-index 89822d7..ac8b86b 100644
---- a/drivers/infiniband/hw/nes/nes_verbs.h
-+++ b/drivers/infiniband/hw/nes/nes_verbs.h
-@@ -167,17 +167,20 @@ struct nes_qp {
- 	enum ib_event_type    terminate_eventtype;
- 	wait_queue_head_t     kick_waitq;
- 	u16                   in_disconnect;
-+	u16                   active_conn:1;
-+	u16                   skip_lsmm:1;
-+	u16                   user_mode:1;
-+	u16                   hte_added:1;
-+	u16                   flush_issued:1;
-+	u16                   destroyed:1;
-+	u16                   sq_kmapped:1;
-+	u16                   sig_all:1;
-+	u16                   rsvd:8;
- 	u16                   private_data_len;
- 	u16                   term_sq_flush_code;
- 	u16                   term_rq_flush_code;
--	u8                    active_conn;
--	u8                    skip_lsmm;
--	u8                    user_mode;
--	u8                    hte_added;
- 	u8                    hw_iwarp_state;
--	u8                    flush_issued;
- 	u8                    hw_tcp_state;
- 	u8                    term_flags;
--	u8                    destroyed;
- };
- #endif			/* NES_VERBS_H */
+ 	err = nes_alloc_resource(nesadapter, nesadapter->allocated_cqs,
+ 			nesadapter->max_cq, &cq_num, &nesadapter->next_cq);
+ 	if (err) {
 -- 
 1.6.4.2
 
