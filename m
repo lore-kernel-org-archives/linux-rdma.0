@@ -1,24 +1,38 @@
-From: "Sean Hefty" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: RDMAoE verbs questions
-Date: Tue, 1 Dec 2009 08:27:16 -0800
-Message-ID: <44B4931AF8354AF3BABCCA052150D2BA@amr.corp.intel.com>
-References: <F57121538EA0C94F86018DDD40ADA1D101A4E9A6@mtiexch01.mti.com> <2ED289D4E09FBD4D92D911E869B97FDD01CBE494@mtlexch01.mtl.com> <2ED289D4E09FBD4D92D911E869B97FDD01D0D6F9@mtlexch01.mtl.com>
+From: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH] opensm/osm_vendor_mlx: fix compilation error
+Date: Tue, 1 Dec 2009 18:30:44 +0200
+Message-ID: <20091201163044.GV16607@me>
+References: <4B13DA83.4070400@dev.mellanox.co.il>
+ <20091201161716.GU16607@me>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <2ED289D4E09FBD4D92D911E869B97FDD01D0D6F9-ia22CT07NJfiMCgWhms8HQC/G2K4zDHf@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20091201161716.GU16607@me>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: 'Liran Liss' <liranl-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Jeff Squyres <jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: Linux RDMA <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
->RDMAoE *is* IB transport over Ethernet
+On 18:17 Tue 01 Dec     , Sasha Khapyorsky wrote:
+> On 16:45 Mon 30 Nov     , Yevgeny Kliteynik wrote:
+> > Fix compilation error of that was introduced with patch
+> > that added configurable transaction retries - osm_vendor_mlx
+> > didn't have a definition of OSM_DEFAULT_RETRY_COUNT.
 
-RDMAoE carries something that looks a lot like IB L3 or an IPv6 header, so it
-isn't exactly IB transport over Ethernet.
+BTW as far as I understand osm_vendor_mlx is used only with ibmgtsim.
+Right? If so could this be switched to osm_vendor_ibumad?
 
+There is already libumad2sim.so (in ibsim) which catches all user_mad
+calls and redirects this to where you want. Adoption of such model to
+ibmgtsim would have a many advantages: it doesn't require OpenSM
+rebuild, it supports not only OpenSM and osmtest, but virtually any
+application which uses user_mad, it is really simple.
+
+Finally this will leave us with only one vendor layer -
+osm_vendor_ibumad. (AFAIK windows OpenSM is moving this direction too).
+
+Sasha
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
