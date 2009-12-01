@@ -1,7 +1,7 @@
 From: Chien Tung <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 1/9] RDMA/nes: In nes_post_send() always set bad_wr on error
-Date: Tue, 1 Dec 2009 16:19:44 -0600
-Message-ID: <20091201221944.GA8060@ctung-MOBL>
+Subject: [PATCH 6/9] RDMA/nes: Implement IB_SIGNAL_ALL_WR as an iWARP extension
+Date: Tue, 1 Dec 2009 16:19:58 -0600
+Message-ID: <20091201221958.GA6468@ctung-MOBL>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
@@ -11,52 +11,73 @@ To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Frank Zago <fzago-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org>
 
-On error set bad_wr in nes_post_send().  Stop processing ib_wr
-queue when an error is detected.
+Add IB_SINGAL_ALL_WR support as an iWARP extension.  If set, make
+sure all WR for the QP is signalled.
+Consolidate flags used in nesqp structure.
 
-Signed-off-by: Frank Zago <fzago-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org>
 Signed-off-by: Chien Tung <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/nes/nes_verbs.c |   10 ++++++++--
- 1 files changed, 8 insertions(+), 2 deletions(-)
+ drivers/infiniband/hw/nes/nes_verbs.c |    6 ++++--
+ drivers/infiniband/hw/nes/nes_verbs.h |   15 +++++++++------
+ 2 files changed, 13 insertions(+), 8 deletions(-)
 
 diff --git a/drivers/infiniband/hw/nes/nes_verbs.c b/drivers/infiniband/hw/nes/nes_verbs.c
-index a680c42..25b52d2 100644
+index 42ec5d0..2bdea64 100644
 --- a/drivers/infiniband/hw/nes/nes_verbs.c
 +++ b/drivers/infiniband/hw/nes/nes_verbs.c
-@@ -3386,8 +3386,10 @@ static int nes_post_send(struct ib_qp *ibqp, struct ib_send_wr *ib_wr,
- 	wqe_count = 0;
- 	total_payload_length = 0;
+@@ -1407,6 +1407,8 @@ static struct ib_qp *nes_create_qp(struct ib_pd *ibpd,
+ 			return ERR_PTR(-EINVAL);
+ 	}
  
--	if (nesqp->ibqp_state > IB_QPS_RTS)
--		return -EINVAL;
-+	if (nesqp->ibqp_state > IB_QPS_RTS) {
-+		err = -EINVAL;
-+		goto out;
-+	}
- 
- 	spin_lock_irqsave(&nesqp->lock, flags);
- 
-@@ -3498,6 +3500,9 @@ static int nes_post_send(struct ib_qp *ibqp, struct ib_send_wr *ib_wr,
- 					break;
- 			}
- 
-+		if (err)
-+			break;
++	nesqp->sig_all = (init_attr->sq_sig_type == IB_SIGNAL_ALL_WR);
 +
- 		if (ib_wr->send_flags & IB_SEND_SIGNALED) {
+ 	/* update the QP table */
+ 	nesdev->nesadapter->qp_table[nesqp->hwqp.qp_id-NES_FIRST_QPN] = nesqp;
+ 	nes_debug(NES_DBG_QP, "netdev refcnt=%u\n",
+@@ -3502,9 +3504,9 @@ static int nes_post_send(struct ib_qp *ibqp, struct ib_send_wr *ib_wr,
+ 		if (err)
+ 			break;
+ 
+-		if (ib_wr->send_flags & IB_SEND_SIGNALED) {
++		if ((ib_wr->send_flags & IB_SEND_SIGNALED) || nesqp->sig_all)
  			wqe_misc |= NES_IWARP_SQ_WQE_SIGNALED_COMPL;
- 		}
-@@ -3522,6 +3527,7 @@ static int nes_post_send(struct ib_qp *ibqp, struct ib_send_wr *ib_wr,
+-		}
++
+ 		wqe->wqe_words[NES_IWARP_SQ_WQE_MISC_IDX] = cpu_to_le32(wqe_misc);
  
- 	spin_unlock_irqrestore(&nesqp->lock, flags);
- 
-+out:
- 	if (err)
- 		*bad_wr = ib_wr;
- 	return err;
+ 		ib_wr = ib_wr->next;
+diff --git a/drivers/infiniband/hw/nes/nes_verbs.h b/drivers/infiniband/hw/nes/nes_verbs.h
+index 89822d7..ac8b86b 100644
+--- a/drivers/infiniband/hw/nes/nes_verbs.h
++++ b/drivers/infiniband/hw/nes/nes_verbs.h
+@@ -167,17 +167,20 @@ struct nes_qp {
+ 	enum ib_event_type    terminate_eventtype;
+ 	wait_queue_head_t     kick_waitq;
+ 	u16                   in_disconnect;
++	u16                   active_conn:1;
++	u16                   skip_lsmm:1;
++	u16                   user_mode:1;
++	u16                   hte_added:1;
++	u16                   flush_issued:1;
++	u16                   destroyed:1;
++	u16                   sq_kmapped:1;
++	u16                   sig_all:1;
++	u16                   rsvd:8;
+ 	u16                   private_data_len;
+ 	u16                   term_sq_flush_code;
+ 	u16                   term_rq_flush_code;
+-	u8                    active_conn;
+-	u8                    skip_lsmm;
+-	u8                    user_mode;
+-	u8                    hte_added;
+ 	u8                    hw_iwarp_state;
+-	u8                    flush_issued;
+ 	u8                    hw_tcp_state;
+ 	u8                    term_flags;
+-	u8                    destroyed;
+ };
+ #endif			/* NES_VERBS_H */
 -- 
 1.6.4.2
 
