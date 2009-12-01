@@ -1,29 +1,34 @@
 From: Christoph Lameter <cl-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
 Subject: Re: RDMAoE verbs questions
-Date: Tue, 1 Dec 2009 14:58:57 -0600 (CST)
-Message-ID: <alpine.DEB.2.00.0912011457300.10926@router.home>
-References: <209ECE49-3AB9-4E62-B825-54E474321FA6@cisco.com> <20091125001136.GP6188@obsidianresearch.com> <4B0D3982.2040408@mellanox.co.il> <7127F20E-2307-492D-B929-A6ACA5A74D14@cisco.com> <20091125144108.GA18088@mtls03>
- <20091125173917.GK1966@obsidianresearch.com>
+Date: Tue, 1 Dec 2009 15:00:46 -0600 (CST)
+Message-ID: <alpine.DEB.2.00.0912011459540.10926@router.home>
+References: <209ECE49-3AB9-4E62-B825-54E474321FA6@cisco.com> <20091125001136.GP6188@obsidianresearch.com> <20091130133406.GA32123@mtls03> <5A90523D-56AE-4675-AA39-B6876FB32999@cisco.com> <20091201142823.GA17213@mtls03>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20091125173917.GK1966-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <20091201142823.GA17213@mtls03>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Jeff Squyres <jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Tziporet Koren <tziporet-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Eli Cohen <eli-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
+To: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: Jeff Squyres <jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, 25 Nov 2009, Jason Gunthorpe wrote:
+On Tue, 1 Dec 2009, Eli Cohen wrote:
 
-> If you have a single physical chip with two ports and they are running
-> different protocols it seems much cleaner to me to report it to verbs
-> apps as two devices.
+> On Mon, Nov 30, 2009 at 09:03:47AM -0500, Jeff Squyres wrote:
+> > Per my prior question: is it expected that IBoE will function
+> > *exactly* the same as real IB?  The addition of the port attribute
+> > seems to imply not.
 >
-> Doing this avoids creating compatability problems.
+> IBoE and IB should work exactly the same from the perspective of a
+> user level application that makes use of rdmacm to create connections.
+> Such apps can ignore the new attribute. And we believe this should
+> cover the vast majority of apps.  The new port attribute optionally
+> allows the distinction for apps that need it (e.g. those that do not
+> use the rdmacm, apps that have a reason to prefer one over the other
+> when there is a choice, etc).
 
-Right. Mellanox has some limitation between how each port can be
-configured. But that could also be checked with two independent devices.
-
+rdmacm only? I would expect syscall API compatibility? For our use case
+this needs to work with multicast traffic.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
