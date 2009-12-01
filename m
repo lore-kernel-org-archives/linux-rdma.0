@@ -1,34 +1,55 @@
-From: Christoph Lameter <cl-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
-Subject: Re: RDMAoE verbs questions
-Date: Tue, 1 Dec 2009 15:00:46 -0600 (CST)
-Message-ID: <alpine.DEB.2.00.0912011459540.10926@router.home>
-References: <209ECE49-3AB9-4E62-B825-54E474321FA6@cisco.com> <20091125001136.GP6188@obsidianresearch.com> <20091130133406.GA32123@mtls03> <5A90523D-56AE-4675-AA39-B6876FB32999@cisco.com> <20091201142823.GA17213@mtls03>
+From: Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH] opensm/osm_vendor_mlx: fix compilation error
+Date: Tue, 01 Dec 2009 23:42:14 +0200
+Message-ID: <4B158DB6.4020106@dev.mellanox.co.il>
+References: <4B13DA83.4070400@dev.mellanox.co.il> <20091201161716.GU16607@me> <20091201163044.GV16607@me>
+Reply-To: kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20091201142823.GA17213@mtls03>
+In-Reply-To: <20091201163044.GV16607@me>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: Jeff Squyres <jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+Cc: Linux RDMA <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, 1 Dec 2009, Eli Cohen wrote:
+H5 Sasha,
 
-> On Mon, Nov 30, 2009 at 09:03:47AM -0500, Jeff Squyres wrote:
-> > Per my prior question: is it expected that IBoE will function
-> > *exactly* the same as real IB?  The addition of the port attribute
-> > seems to imply not.
->
-> IBoE and IB should work exactly the same from the perspective of a
-> user level application that makes use of rdmacm to create connections.
-> Such apps can ignore the new attribute. And we believe this should
-> cover the vast majority of apps.  The new port attribute optionally
-> allows the distinction for apps that need it (e.g. those that do not
-> use the rdmacm, apps that have a reason to prefer one over the other
-> when there is a choice, etc).
+Sasha Khapyorsky wrote:
+> On 18:17 Tue 01 Dec     , Sasha Khapyorsky wrote:
+>> On 16:45 Mon 30 Nov     , Yevgeny Kliteynik wrote:
+>>> Fix compilation error of that was introduced with patch
+>>> that added configurable transaction retries - osm_vendor_mlx
+>>> didn't have a definition of OSM_DEFAULT_RETRY_COUNT.
+> 
+> BTW as far as I understand osm_vendor_mlx is used only with ibmgtsim.
+> Right? If so could this be switched to osm_vendor_ibumad?
+> 
+> There is already libumad2sim.so (in ibsim) which catches all user_mad
+> calls and redirects this to where you want. Adoption of such model to
+> ibmgtsim would have a many advantages: it doesn't require OpenSM
+> rebuild, it supports not only OpenSM and osmtest, but virtually any
+> application which uses user_mad, it is really simple.
+> 
+> Finally this will leave us with only one vendor layer -
+> osm_vendor_ibumad. (AFAIK windows OpenSM is moving this direction too).
 
-rdmacm only? I would expect syscall API compatibility? For our use case
-this needs to work with multicast traffic.
+That is the plan. It's not as trivial as it sounds.
+Some things that exist in vendor_mlx do not exist
+in vendor_ibumad (such as RMPP implementation), 
+but this is certainly the plan. 
+
+AFAIK, WinSM and ibmgtsim are the only two things 
+that are using non-umad vendor. Once they both will
+switch to umad, the whole vendor layers as it exists
+today in OpenSM won't be necessary.
+
+--Yevgeny 
+ 
+> Sasha
+> 
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
