@@ -1,22 +1,24 @@
 From: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH] opensm/osm_vl15intf.c Log change
-Date: Tue, 1 Dec 2009 18:15:02 +0200
-Message-ID: <20091201161502.GS16607@me>
-References: <4B0FD804.2020309@Sun.COM>
+Subject: Re: [PATCH] opensm/osm_vendor_mlx_txn.c: eliminate bunch of
+ compilation warnings
+Date: Tue, 1 Dec 2009 18:16:36 +0200
+Message-ID: <20091201161636.GT16607@me>
+References: <4B13D9AF.9040202@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <4B0FD804.2020309-UdXhSnd/wVw@public.gmane.org>
+In-Reply-To: <4B13D9AF.9040202-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Line Holen <Line.Holen-UdXhSnd/wVw@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: Linux RDMA <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 14:45 Fri 27 Nov     , Line Holen wrote:
-> Added transaction ID to a message
+On 16:41 Mon 30 Nov     , Yevgeny Kliteynik wrote:
+> Eliminate bunch of compilation warnings in printing
+> 64-bit values to log.
 > 
-> Signed-off-by: Line Holen <Line.Holen-xsfywfwIY+M@public.gmane.org>
+> Signed-off-by: Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 
 Applied. Thanks.
 
