@@ -1,28 +1,40 @@
-From: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: RDMAoE verbs questions
-Date: Tue, 1 Dec 2009 16:42:45 +0200
-Message-ID: <20091201144245.GB17213@mtls03>
-References: <209ECE49-3AB9-4E62-B825-54E474321FA6@cisco.com>
- <20091125001136.GP6188@obsidianresearch.com>
- <20091130133406.GA32123@mtls03>
- <adaiqcrx2xx.fsf@roland-alpha.cisco.com>
+From: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH RFC] opensm: compress IPV6 SNM groups to use a single
+ MLID
+Date: Tue, 1 Dec 2009 16:58:47 +0200
+Message-ID: <20091201145847.GM16607@me>
+References: <20091113061948.GJ7192@me>
+ <20091113062104.GK7192@me>
+ <20091113201144.GS7192@me>
+ <20091113203856.GT7192@me>
+ <20091113204041.GU7192@me>
+ <f0e08f230911160735i69ad3671m9a2667900b933e13@mail.gmail.com>
+ <20091126163634.GJ13817@me>
+ <f0e08f230911301148t8d573c7lf1f67972b5438b72@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <adaiqcrx2xx.fsf-BjVyx320WGW9gfZ95n9DRSW4+XlvGpQz@public.gmane.org>
+In-Reply-To: <f0e08f230911301148t8d573c7lf1f67972b5438b72-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Jeff Squyres <jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Eli Dorfman <elid-smomgflXvOZWk0Htik3J/w@public.gmane.org>, Slava Strebkov <slavas-smomgflXvOZWk0Htik3J/w@public.gmane.org>, Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Nov 30, 2009 at 10:50:02AM -0800, Roland Dreier wrote:
+On 14:48 Mon 30 Nov     , Hal Rosenstock wrote:
 > 
-> I was thinking the same thing, although maybe a name like "link_layer"
-> would be clearer?
-> 
+> The multicast tree (MLID) has one rate, MTU, etc. so these parameters
+> should be enforced on multicast groups (MGIDs) overlaid on the same
+> MLID.
 
-Sure, that's cleaer - I'll change that.
+Assuming that Multicast groups (MGIDs) are consistent in terms of rate,
+MTU and packet life time parameters. Why should we share this over MLID
+implementing MGID to MLID compression?
+
+Sharing P_Key helps to prevent P_Key violation traps, but what should be
+a reason for rate, MTU and packet life time?
+
+Sasha
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
