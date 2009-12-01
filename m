@@ -1,7 +1,7 @@
 From: Chien Tung <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 5/9] RDMA/nes: Add additional SFP+ PHY uC status check and PHY reset
-Date: Tue, 1 Dec 2009 16:19:53 -0600
-Message-ID: <20091201221953.GA6936@ctung-MOBL>
+Subject: [PATCH 1/9] RDMA/nes: In nes_post_send() always set bad_wr on error
+Date: Tue, 1 Dec 2009 16:19:44 -0600
+Message-ID: <20091201221944.GA8060@ctung-MOBL>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
@@ -11,78 +11,52 @@ To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+From: Frank Zago <fzago-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org>
 
-Add additional PHY uC status check in case PHY firmware is not running
-properly with heartbeat.  Add a hard PHY reset if uC status is 0x0
-after initial reset.
+On error set bad_wr in nes_post_send().  Stop processing ib_wr
+queue when an error is detected.
 
+Signed-off-by: Frank Zago <fzago-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org>
 Signed-off-by: Chien Tung <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/nes/nes_hw.c |   28 ++++++++++++++++++++++------
- 1 files changed, 22 insertions(+), 6 deletions(-)
+ drivers/infiniband/hw/nes/nes_verbs.c |   10 ++++++++--
+ 1 files changed, 8 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/infiniband/hw/nes/nes_hw.c b/drivers/infiniband/hw/nes/nes_hw.c
-index 3d9bbff..b59ca56 100644
---- a/drivers/infiniband/hw/nes/nes_hw.c
-+++ b/drivers/infiniband/hw/nes/nes_hw.c
-@@ -1356,6 +1356,8 @@ int nes_init_phy(struct nes_device *nesdev)
- 	}
- 	if ((phy_type == NES_PHY_TYPE_ARGUS) ||
- 	    (phy_type == NES_PHY_TYPE_SFP_D)) {
-+		u32 first_time = 1;
+diff --git a/drivers/infiniband/hw/nes/nes_verbs.c b/drivers/infiniband/hw/nes/nes_verbs.c
+index a680c42..25b52d2 100644
+--- a/drivers/infiniband/hw/nes/nes_verbs.c
++++ b/drivers/infiniband/hw/nes/nes_verbs.c
+@@ -3386,8 +3386,10 @@ static int nes_post_send(struct ib_qp *ibqp, struct ib_send_wr *ib_wr,
+ 	wqe_count = 0;
+ 	total_payload_length = 0;
+ 
+-	if (nesqp->ibqp_state > IB_QPS_RTS)
+-		return -EINVAL;
++	if (nesqp->ibqp_state > IB_QPS_RTS) {
++		err = -EINVAL;
++		goto out;
++	}
+ 
+ 	spin_lock_irqsave(&nesqp->lock, flags);
+ 
+@@ -3498,6 +3500,9 @@ static int nes_post_send(struct ib_qp *ibqp, struct ib_send_wr *ib_wr,
+ 					break;
+ 			}
+ 
++		if (err)
++			break;
 +
- 		/* Check firmware heartbeat */
- 		nes_read_10G_phy_reg(nesdev, phy_index, 0x3, 0xd7ee);
- 		temp_phy_data = (u16)nes_read_indexed(nesdev, NES_IDX_MAC_MDIO_CONTROL);
-@@ -1363,8 +1365,13 @@ int nes_init_phy(struct nes_device *nesdev)
- 		nes_read_10G_phy_reg(nesdev, phy_index, 0x3, 0xd7ee);
- 		temp_phy_data2 = (u16)nes_read_indexed(nesdev, NES_IDX_MAC_MDIO_CONTROL);
+ 		if (ib_wr->send_flags & IB_SEND_SIGNALED) {
+ 			wqe_misc |= NES_IWARP_SQ_WQE_SIGNALED_COMPL;
+ 		}
+@@ -3522,6 +3527,7 @@ static int nes_post_send(struct ib_qp *ibqp, struct ib_send_wr *ib_wr,
  
--		if (temp_phy_data != temp_phy_data2)
--			return 0;
-+		if (temp_phy_data != temp_phy_data2) {
-+			nes_read_10G_phy_reg(nesdev, phy_index, 0x3, 0xd7fd);
-+			temp_phy_data = (u16)nes_read_indexed(nesdev, NES_IDX_MAC_MDIO_CONTROL);
-+			if ((temp_phy_data & 0xff) > 0x20)
-+				return 0;
-+			printk(PFX "Reinitializing PHY\n");
-+		}
+ 	spin_unlock_irqrestore(&nesqp->lock, flags);
  
- 		/* no heartbeat, configure the PHY */
- 		nes_write_10G_phy_reg(nesdev, phy_index, 0x1, 0x0000, 0x8000);
-@@ -1400,7 +1407,7 @@ int nes_init_phy(struct nes_device *nesdev)
- 		temp_phy_data = (u16)nes_read_indexed(nesdev, NES_IDX_MAC_MDIO_CONTROL);
- 		do {
- 			if (counter++ > 150) {
--				nes_debug(NES_DBG_PHY, "No PHY heartbeat\n");
-+				printk(PFX "No PHY heartbeat\n");
- 				break;
- 			}
- 			mdelay(1);
-@@ -1414,11 +1421,20 @@ int nes_init_phy(struct nes_device *nesdev)
- 			nes_read_10G_phy_reg(nesdev, phy_index, 0x3, 0xd7fd);
- 			temp_phy_data = (u16)nes_read_indexed(nesdev, NES_IDX_MAC_MDIO_CONTROL);
- 			if (counter++ > 300) {
--				nes_debug(NES_DBG_PHY, "PHY did not track\n");
--				break;
-+				if (((temp_phy_data & 0xff) == 0x0) && first_time) {
-+					first_time = 0;
-+					counter = 0;
-+					/* reset AMCC PHY and try again */
-+					nes_write_10G_phy_reg(nesdev, phy_index, 0x3, 0xe854, 0x00c0);
-+					nes_write_10G_phy_reg(nesdev, phy_index, 0x3, 0xe854, 0x0040);
-+					continue;
-+				} else {
-+					printk(PFX "PHY did not track\n");
-+					break;
-+				}
- 			}
- 			mdelay(10);
--		} while (((temp_phy_data & 0xff) != 0x50) && ((temp_phy_data & 0xff) != 0x70));
-+		} while ((temp_phy_data & 0xff) < 0x30);
- 
- 		/* setup signal integrity */
- 		nes_write_10G_phy_reg(nesdev, phy_index, 0x1, 0xd003, 0x0000);
++out:
+ 	if (err)
+ 		*bad_wr = ib_wr;
+ 	return err;
 -- 
 1.6.4.2
 
