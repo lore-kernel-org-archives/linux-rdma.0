@@ -1,62 +1,47 @@
-From: Patrick Finnegan <pat@computer-refuge.org>
-Subject: Sun V880 + Infiniband?
-Date: Wed, 2 Dec 2009 10:45:02 -0500
-Message-ID: <200912021045.02970.pat@computer-refuge.org>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: RDMAoE verbs questions
+Date: Wed, 2 Dec 2009 10:33:14 -0700
+Message-ID: <20091202173314.GP1966@obsidianresearch.com>
+References: <F57121538EA0C94F86018DDD40ADA1D101A4E9A6@mtiexch01.mti.com> <2ED289D4E09FBD4D92D911E869B97FDD01CBE494@mtlexch01.mtl.com> <2ED289D4E09FBD4D92D911E869B97FDD01D0D6F9@mtlexch01.mtl.com> <20091201174604.GO1966@obsidianresearch.com> <2ED289D4E09FBD4D92D911E869B97FDD01D647E2@mtlexch01.mtl.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <sparclinux-owner@vger.kernel.org>
-Sender: sparclinux-owner@vger.kernel.org
-To: sparclinux@vger.kernel.org
-Cc: linux-rdma@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <2ED289D4E09FBD4D92D911E869B97FDD01D647E2-ia22CT07NJfiMCgWhms8HQC/G2K4zDHf@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Liran Liss <liranl-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
+Cc: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Jeff Squyres <jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-So, I'm trying to get a Mellanox IB card to work on my Sun V880, and I'm 
-getting this error output to dmesg: 
+On Wed, Dec 02, 2009 at 12:38:31PM +0200, Liran Liss wrote:
+> 
+> > So? There are substantial semantic differences for *all* non-rdmacm
+> > applications. Even common ones like OpenMPI. You propose to ignore them?
+> 
+> On the contrary! Any application that *does* care what the link layer is
+> can look up a new field in port_attr (rather than a new node transport
+> type).
+> Applications that don't, both old and new, can continue as normal - no
+> changes to the code are required.
 
-[   99.529658] ib_mthca: Mellanox InfiniBand HCA driver v1.0 (April 4, 
-2008)
-[   99.609988] ib_mthca: Initializing 0003:01:00.0
-[   99.664180] PCI: Enabling device: (0003:01:00.0), cmd 2
-[   99.664193] ib_mthca 0003:01:00.0: Missing DCS, aborting.
+Existing apps rely on transport_type == IBV_TRANSPORT_IB to indicate IB
+management is present. There are many examples of this.
 
-I'm using a kernel compiled off of Linus's git tree as of a few days ago 
-(to fix other SPARC issues).  From what I've seen from google searches, 
-this means that the first BAR isn't mapped or visible to the driver, so 
-maybe this is a SPARC related thing?
+The art of API compatability is to not break existing old apps, so you
+don't get to change the meaning of transport_type == IBV_TRANSPORT_IB
+to mean 'it is only IB verbs like'. That breaks the API.
 
-lspci -v output for the device:
+Adding a new field to port_attr preserves functionality but not
+compatability. I hope you understand the difference.
 
-0003:00:01.0 PCI bridge: Mellanox Technologies MT23108 PCI Bridge (rev 
-a1) (prog-if 00 [Normal decode])
-        Flags: bus master, 66MHz, slow devsel, latency 64
-        [virtual] Memory at fffff80500000000 (32-bit, non-prefetchable) 
-[size=1]
-        [virtual] Memory at fffff80500000000 (32-bit, non-prefetchable) 
-[size=1]
-        Bus: primary=00, secondary=01, subordinate=01, sec-latency=0
-        Memory behind bridge: 00100000-0fffffff
-        [virtual] Expansion ROM at fffff80500000000 [disabled] [size=1]
-        Capabilities: [70] PCI-X bridge device
+> So, all relevant apps will work great with either IB or RDMAoE, in a
+> transparent manner.
 
-0003:01:00.0 InfiniBand: Mellanox Technologies MT23108 InfiniHost (rev 
-a1)
-        Subsystem: Mellanox Technologies MT23108 InfiniHost
-        Flags: 66MHz, slow devsel, IRQ 30
-        Memory at fffff80500000000 (64-bit, non-prefetchable) [size=1]
-        Memory at fffff80500000000 (64-bit, prefetchable) [size=1]
-        Memory at fffff80500000000 (64-bit, prefetchable) [size=1]
-        [virtual] Expansion ROM at fffff80500000000 [disabled] [size=1]
-        Capabilities: [40] MSI-X: Enable- Mask- TabSize=32
-        Capabilities: [50] Vital Product Data <?>
-        Capabilities: [60] Message Signalled Interrupts: Mask- 64bit+ 
-Queue=0/5 Enable-
-        Capabilities: [70] PCI-X non-bridge device
-        Kernel modules: ib_mthca
+No, they won't. They will see transport_type == IBV_TRANSPORT_IB and
+attempt to do PR queries to the SM. That won't work on RDMAoE.
 
-
-Pat
--- 
-Purdue University Research Computing ---  http://www.rcac.purdue.edu/
-The Computer Refuge                  ---  http://computer-refuge.org
+Jason
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
