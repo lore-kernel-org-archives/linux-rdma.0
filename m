@@ -1,56 +1,46 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: Sun V880 + Infiniband?
-Date: Wed, 02 Dec 2009 14:42:55 -0800 (PST)
-Message-ID: <20091202.144255.137848873.davem@davemloft.net>
-References: <200912021045.02970.pat@computer-refuge.org>
-	<adaocmhuupk.fsf@roland-alpha.cisco.com>
+From: Arputham Benjamin <abenjamin-sJ/iWh9BUns@public.gmane.org>
+Subject: Proposal to add a name to an IB subnet
+Date: Wed, 02 Dec 2009 15:59:00 -0800
+Message-ID: <4B16FF44.7090507@sgi.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <sparclinux-owner@vger.kernel.org>
-In-Reply-To: <adaocmhuupk.fsf@roland-alpha.cisco.com>
-Sender: sparclinux-owner@vger.kernel.org
-To: rdreier@cisco.com
-Cc: pat@computer-refuge.org, sparclinux@vger.kernel.org, linux-rdma@vger.kernel.org
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>, hnrose-Wuw85uim5zDR7s880joybQ@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Roland Dreier <rdreier@cisco.com>
-Date: Wed, 02 Dec 2009 09:55:19 -0800
+Hi,
 
-> 
->  > [   99.664193] ib_mthca 0003:01:00.0: Missing DCS, aborting.
->  > 
->  > I'm using a kernel compiled off of Linus's git tree as of a few days ago 
->  > (to fix other SPARC issues).  From what I've seen from google searches, 
->  > this means that the first BAR isn't mapped or visible to the driver, so 
->  > maybe this is a SPARC related thing?
-> 
-> I think the problem is related to:
-> 
->  >         Memory at fffff80500000000 (64-bit, non-prefetchable) [size=1]
->  >         Memory at fffff80500000000 (64-bit, prefetchable) [size=1]
->  >         Memory at fffff80500000000 (64-bit, prefetchable) [size=1]
-> 
-> So it says you have 3 BARs at the same address, all with size 1 (?!)
-> which means the PCI setup or probing is messed up.  The mthca driver
-> checks that the first BAR has size 1 megabyte as it should, and it's
-> bailing out because the kernel is telling it that it's the wrong size.
+I suggest we add a text based name to an IB subnet, perhaps to
+help user in identifying an IB subnet or understanding its function
+in a multi-fabric IB cluster. For example, in a dual-fabric
+(or dual-rail) IB cluster, one subnet could be named "mpi" and the
+other subnet could be named "storage".
 
-These BARs are allocated and setup by the boot firmware long before
-Linus boots up.  Not being able to handle 64-bit BARs properly
-wouldn't surprise me.
+In the current implementation of OpenSM, syslog messages are prefixed
+with the process ID. When multiple instances of OpenSM run on a single node
+to support dual-fabric IB, process ID doesn't help the admin to quickly 
+identify a specific IB subnet (i.e., it needs a translation)
 
-But there could also be a Linux bug in decoding the openfirmware
-property values as well, so let's investigate that.
+subnet_prefix (64-bit number) can be used as a prefix to syslog messages
+but a user configurable text based name is better.
 
-Patrick, can you post a new "prtconf -pv" dump under Linux with this
-card in the machine?  Also, please bootup with:
+We could add an option '-n | --ib_subnet_name' to OpenSM command line
+to input the IB subnet name and modify the osm_log() function for syslog
+messages (message type: OSM_LOG_SYS) to prefix its messages with the
+subnet name. 
 
-	of_debug=1 ofpci_debug=1
+Also, we could limit this name prefix changes to syslog messages only for now.
+(i.e., leave the opensm log as it is because the current implementation
+allows the user to specify the file name for the opensm log)
 
-added to the kernel command line and post the resulting "dmesg".
+Any comments?
 
-If there's something Linux isn't doing right, those dumps will help
-me spot it.
-
-Thanks!
+Regards,
+Benjamin
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
