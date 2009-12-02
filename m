@@ -1,44 +1,40 @@
 From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 39/53] IB/qib: Add qib_trace.c
-Date: Wed, 02 Dec 2009 09:52:25 -0800
-Message-ID: <adaskbtuuue.fsf@roland-alpha.cisco.com>
-References: <20091119233655.30356.57433.stgit@chromite.mv.qlogic.com>
-	<20091119234021.30356.77098.stgit@chromite.mv.qlogic.com>
-	<ada63966oip.fsf@roland-alpha.cisco.com>
-	<1259712618.992.637.camel@chromite.mv.qlogic.com>
+Subject: Re: Sun V880 + Infiniband?
+Date: Wed, 02 Dec 2009 09:55:19 -0800
+Message-ID: <adaocmhuupk.fsf@roland-alpha.cisco.com>
+References: <200912021045.02970.pat@computer-refuge.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1259712618.992.637.camel-/vjeY7uYZjrPXfVEPVhPGq6RkeBMCJyt@public.gmane.org> (Ralph
-	Campbell's message of "Tue, 01 Dec 2009 16:10:18 -0800")
+In-Reply-To: <200912021045.02970.pat-bdq14YP6qtQCo4FBHZViTkB+6BGkLq7r@public.gmane.org> (Patrick Finnegan's
+	message of "Wed, 2 Dec 2009 10:45:02 -0500")
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ralph Campbell <ralph.campbell-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-Cc: "linux-rdma@vger.kernel.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Patrick Finnegan <pat-bdq14YP6qtQCo4FBHZViTkB+6BGkLq7r@public.gmane.org>
+Cc: sparclinux-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 
- > 1) It requires CONFIG_TRACING to be set which compiles code -pg
- >    so that function prologue code calls mcount. What Linux
- >    distributions will have this configured as the default?
+ > [   99.664193] ib_mthca 0003:01:00.0: Missing DCS, aborting.
+ > 
+ > I'm using a kernel compiled off of Linus's git tree as of a few days ago 
+ > (to fix other SPARC issues).  From what I've seen from google searches, 
+ > this means that the first BAR isn't mapped or visible to the driver, so 
+ > maybe this is a SPARC related thing?
 
-I would assume all relevant distros with a kernel that contains ftrace
-will enable this.  It's a pretty fundamental debugging features.  (By
-the way, ftrace uses binary patching to NOP out the calls to mcount when
-tracing is turned off at runtime, which makes the overhead pretty minimal)
+I think the problem is related to:
 
-The only stock kernel have at the moment is Fedora 12, and that
-definitely has all the ftrace stuff turned on.  I guess you could check
-what enterprise kernels do, but I'd be surprised if they turned it off.
+ >         Memory at fffff80500000000 (64-bit, non-prefetchable) [size=1]
+ >         Memory at fffff80500000000 (64-bit, prefetchable) [size=1]
+ >         Memory at fffff80500000000 (64-bit, prefetchable) [size=1]
 
- > 2) We have to backport the ftrace code to whatever OFED kernels
- >    will be supported for OFED-1.6 which could be painful.
-
-Backport however your want ... patch back in your own tracing subsystem
-if you want.  For upstream I don't think a 1000+ line driver-private
-tracing subsystem is acceptable when a better alternative exists
-already.
+So it says you have 3 BARs at the same address, all with size 1 (?!)
+which means the PCI setup or probing is messed up.  The mthca driver
+checks that the first BAR has size 1 megabyte as it should, and it's
+bailing out because the kernel is telling it that it's the wrong size.
 
  - R.
+
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
