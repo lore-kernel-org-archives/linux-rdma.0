@@ -1,55 +1,24 @@
-From: Ralph Campbell <ralph.campbell-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH 39/53] IB/qib: Add qib_trace.c
-Date: Tue, 01 Dec 2009 16:10:18 -0800
-Message-ID: <1259712618.992.637.camel@chromite.mv.qlogic.com>
-References: <20091119233655.30356.57433.stgit@chromite.mv.qlogic.com>
-	 <20091119234021.30356.77098.stgit@chromite.mv.qlogic.com>
-	 <ada63966oip.fsf@roland-alpha.cisco.com>
+From: Or Gerlitz <ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+Subject: Re: RDMAoE verbs questions
+Date: Wed, 02 Dec 2009 10:08:32 +0200
+Message-ID: <4B162080.6070805@voltaire.com>
+References: <F57121538EA0C94F86018DDD40ADA1D101A4E9A6@mtiexch01.mti.com>	<2ED289D4E09FBD4D92D911E869B97FDD01CBE494@mtlexch01.mtl.com>	<2ED289D4E09FBD4D92D911E869B97FDD01D0D6F9@mtlexch01.mtl.com>	<44B4931AF8354AF3BABCCA052150D2BA@amr.corp.intel.com> <2ED289D4E09FBD4D92D911E869B97FDD01D0D792@mtlexch01.mtl.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <ada63966oip.fsf-BjVyx320WGW9gfZ95n9DRSW4+XlvGpQz@public.gmane.org>
+In-Reply-To: <2ED289D4E09FBD4D92D911E869B97FDD01D0D792-ia22CT07NJfiMCgWhms8HQC/G2K4zDHf@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Liran Liss <liranl-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
+Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Jeff Squyres <jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, 2009-11-19 at 16:14 -0800, Roland Dreier wrote:
-> Seems all this infrastructure could be profitably ripped out and
-> replaced with the more powerful and flexible ftrace events stuff...
-> 
->  > +#ifndef ATOMIC_NOTIFIER_INIT
->  > +/*
->  > + * Some backports don't have this, so define here for now.
->  > + * We may not want to keep this for upstream.  If we do, we'll
->  > + * do this via the backports at that time.
->  > + */
->  > +#define atomic_notifier_chain_register notifier_chain_register
->  > +#define atomic_notifier_chain_unregister notifier_chain_unregister
->  > +#endif
-> 
-> Doesn't seem like this was meant to go into the upstream submission?
-> Seems like it would be worth going over the patches again and cleaning
-> up everything that is solely for compatibility with old kernels.
-> 
-> I don't think random PCI device drivers hooking into the panic notifier
-> chain is really a good idea, so probably ripping this out for now is the
-> best thing to do.
-> 
->  - R.
+Liran Liss wrote:
+> from an rdmacm app's point of view - there is no visible difference between IB and RDMAoE ports: both support the complete set of Verbs, just as any IB transport provider
+>   
+wrong,  local (loopback) communication aren't supported  with RDMAoE.
 
-I looked at ftrace and I see two problems with using it.
-
-1) It requires CONFIG_TRACING to be set which compiles code -pg
-   so that function prologue code calls mcount. What Linux
-   distributions will have this configured as the default?
-
-2) We have to backport the ftrace code to whatever OFED kernels
-   will be supported for OFED-1.6 which could be painful.
-
-What if we eliminate the notifier_chain_register?
-
+Or.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
