@@ -1,45 +1,134 @@
-From: Arputham Benjamin <abenjamin-sJ/iWh9BUns@public.gmane.org>
-Subject: Proposal to add a name to an IB subnet
-Date: Wed, 02 Dec 2009 15:59:00 -0800
-Message-ID: <4B16FF44.7090507@sgi.com>
+From: Frank Zago <frank-6OywahBdSro@public.gmane.org>
+Subject: [patch 5/6] RDMA/ehca - ib_post_recv fixes, v2
+Date: Wed, 02 Dec 2009 20:36:17 -0600
+Message-ID: <4B172421.1070102@zago.net>
+References: <20091203023350.646158428@systemfabricworks.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20091203023350.646158428-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>, hnrose-Wuw85uim5zDR7s880joybQ@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hi,
+Always set ib_post_recv()'s bad_wr when an error occurred.
 
-I suggest we add a text based name to an IB subnet, perhaps to
-help user in identifying an IB subnet or understanding its function
-in a multi-fabric IB cluster. For example, in a dual-fabric
-(or dual-rail) IB cluster, one subnet could be named "mpi" and the
-other subnet could be named "storage".
+Signed-off-by: Frank Zago <fzago-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org>
+---
+ drivers/infiniband/hw/ehca/ehca_reqs.c |   41 ++++++++++++++++-----------------
+ 1 file changed, 20 insertions(+), 21 deletions(-)
 
-In the current implementation of OpenSM, syslog messages are prefixed
-with the process ID. When multiple instances of OpenSM run on a single node
-to support dual-fabric IB, process ID doesn't help the admin to quickly 
-identify a specific IB subnet (i.e., it needs a translation)
+Index: linux-2.6.31/drivers/infiniband/hw/ehca/ehca_reqs.c
+===================================================================
+--- linux-2.6.31.orig/drivers/infiniband/hw/ehca/ehca_reqs.c	2009-12-02
+19:23:19.000000000 -0600
++++ linux-2.6.31/drivers/infiniband/hw/ehca/ehca_reqs.c	2009-12-02
+19:23:22.000000000 -0600
+@@ -507,7 +507,6 @@
+ 			      struct ib_recv_wr *recv_wr,
+ 			      struct ib_recv_wr **bad_recv_wr)
+ {
+-	struct ib_recv_wr *cur_recv_wr;
+ 	struct ehca_wqe *wqe_p;
+ 	int wqe_cnt = 0;
+ 	int ret = 0;
+@@ -518,27 +517,23 @@
+ 	if (unlikely(!HAS_RQ(my_qp))) {
+ 		ehca_err(dev, "QP has no RQ  ehca_qp=%p qp_num=%x ext_type=%d",
+ 			 my_qp, my_qp->real_qp_num, my_qp->ext_type);
+-		return -ENODEV;
++		ret = -ENODEV;
++		goto out;
+ 	}
 
-subnet_prefix (64-bit number) can be used as a prefix to syslog messages
-but a user configurable text based name is better.
+ 	/* LOCK the QUEUE */
+ 	spin_lock_irqsave(&my_qp->spinlock_r, flags);
 
-We could add an option '-n | --ib_subnet_name' to OpenSM command line
-to input the IB subnet name and modify the osm_log() function for syslog
-messages (message type: OSM_LOG_SYS) to prefix its messages with the
-subnet name. 
+-	/* loop processes list of send reqs */
+-	for (cur_recv_wr = recv_wr; cur_recv_wr != NULL;
+-	     cur_recv_wr = cur_recv_wr->next) {
++	/* loop processes list of recv reqs */
++	while(recv_wr) {
+ 		u64 start_offset = my_qp->ipz_rqueue.current_q_offset;
+ 		/* get pointer next to free WQE */
+ 		wqe_p = ipz_qeit_get_inc(&my_qp->ipz_rqueue);
+ 		if (unlikely(!wqe_p)) {
+ 			/* too many posted work requests: queue overflow */
+-			if (bad_recv_wr)
+-				*bad_recv_wr = cur_recv_wr;
+-			if (wqe_cnt == 0) {
+-				ret = -ENOMEM;
+-				ehca_err(dev, "Too many posted WQEs "
+-					 "qp_num=%x", my_qp->real_qp_num);
+-			}
++			ret = -ENOMEM;
++			ehca_err(dev, "Too many posted WQEs "
++				"qp_num=%x", my_qp->real_qp_num);
+ 			goto post_recv_exit0;
+ 		}
+ 		/*
+@@ -548,7 +543,7 @@
+ 		rq_map_idx = start_offset / my_qp->ipz_rqueue.qe_size;
 
-Also, we could limit this name prefix changes to syslog messages only for now.
-(i.e., leave the opensm log as it is because the current implementation
-allows the user to specify the file name for the opensm log)
+ 		/* write a RECV WQE into the QUEUE */
+-		ret = ehca_write_rwqe(&my_qp->ipz_rqueue, wqe_p, cur_recv_wr,
++		ret = ehca_write_rwqe(&my_qp->ipz_rqueue, wqe_p, recv_wr,
+ 				rq_map_idx);
+ 		/*
+ 		 * if something failed,
+@@ -556,22 +551,20 @@
+ 		 */
+ 		if (unlikely(ret)) {
+ 			my_qp->ipz_rqueue.current_q_offset = start_offset;
+-			*bad_recv_wr = cur_recv_wr;
+-			if (wqe_cnt == 0) {
+-				ret = -EINVAL;
+-				ehca_err(dev, "Could not write WQE "
+-					 "qp_num=%x", my_qp->real_qp_num);
+-			}
++			ret = -EINVAL;
++			ehca_err(dev, "Could not write WQE "
++				"qp_num=%x", my_qp->real_qp_num);
+ 			goto post_recv_exit0;
+ 		}
 
-Any comments?
+ 		qmap_entry = &my_qp->rq_map.map[rq_map_idx];
+-		qmap_entry->app_wr_id = get_app_wr_id(cur_recv_wr->wr_id);
++		qmap_entry->app_wr_id = get_app_wr_id(recv_wr->wr_id);
+ 		qmap_entry->reported = 0;
+ 		qmap_entry->cqe_req = 1;
 
-Regards,
-Benjamin
+ 		wqe_cnt++;
+-	} /* eof for cur_recv_wr */
++		recv_wr = recv_wr->next;
++	} /* eof for recv_wr */
+
+ post_recv_exit0:
+ 	iosync(); /* serialize GAL register access */
+@@ -580,6 +573,11 @@
+ 	    ehca_dbg(dev, "ehca_qp=%p qp_num=%x wqe_cnt=%d ret=%i",
+ 		     my_qp, my_qp->real_qp_num, wqe_cnt, ret);
+ 	spin_unlock_irqrestore(&my_qp->spinlock_r, flags);
++
++out:
++	if (ret)
++		*bad_recv_wr = recv_wr;
++
+ 	return ret;
+ }
+
+@@ -593,6 +591,7 @@
+ 	if (unlikely(my_qp->state == IB_QPS_RESET)) {
+ 		ehca_err(qp->device, "Invalid QP state  qp_state=%d qpn=%x",
+ 			 my_qp->state, qp->qp_num);
++		*bad_recv_wr = recv_wr;
+ 		return -EINVAL;
+ 	}
+
+
+-- 
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
