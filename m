@@ -1,7 +1,7 @@
 From: Ralph Campbell <ralph.campbell-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v2 36/51] IB/qib: Add qib_sdma.c
-Date: Thu, 03 Dec 2009 11:06:14 -0800
-Message-ID: <20091203190613.29507.89798.stgit@chromite.mv.qlogic.com>
+Subject: [PATCH v2 38/51] IB/qib: Add qib_sysfs.c
+Date: Thu, 03 Dec 2009 11:06:24 -0800
+Message-ID: <20091203190624.29507.22110.stgit@chromite.mv.qlogic.com>
 References: <20091203190305.29507.58158.stgit@chromite.mv.qlogic.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -13,23 +13,24 @@ To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-creates the qib_sdma.c file.
+creates the qib_sysfs.c file.
 
 Signed-off-by: Ralph Campbell <ralph.campbell-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
 ---
 
- drivers/infiniband/hw/qib/qib_sdma.c | 1037 ++++++++++++++++++++++++++++++++++
- 1 files changed, 1037 insertions(+), 0 deletions(-)
- create mode 100644 drivers/infiniband/hw/qib/qib_sdma.c
+ drivers/infiniband/hw/qib/qib_sysfs.c |  736 +++++++++++++++++++++++++++++++++
+ 1 files changed, 736 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/infiniband/hw/qib/qib_sysfs.c
 
-diff --git a/drivers/infiniband/hw/qib/qib_sdma.c b/drivers/infiniband/hw/qib/qib_sdma.c
+diff --git a/drivers/infiniband/hw/qib/qib_sysfs.c b/drivers/infiniband/hw/qib/qib_sysfs.c
 new file mode 100644
-index 0000000..4b58f26
+index 0000000..747005a
 --- /dev/null
-+++ b/drivers/infiniband/hw/qib/qib_sdma.c
-@@ -0,0 +1,1037 @@
++++ b/drivers/infiniband/hw/qib/qib_sysfs.c
+@@ -0,0 +1,736 @@
 +/*
-+ * Copyright (c) 2007, 2008, 2009 QLogic Corporation. All rights reserved.
++ * Copyright (c) 2006, 2007, 2008, 2009 QLogic Corporation. All rights reserved.
++ * Copyright (c) 2006 PathScale, Inc. All rights reserved.
 + *
 + * This software is available to you under a choice of one of two
 + * licenses.  You may choose to be licensed under the terms of the GNU
@@ -59,1011 +60,709 @@ index 0000000..4b58f26
 + * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 + * SOFTWARE.
 + */
-+
-+#include <linux/spinlock.h>
-+#include <linux/netdevice.h>
++#include <linux/ctype.h>
 +
 +#include "qib.h"
-+#include "qib_common.h"
 +
-+/* default pio off, sdma on */
-+static ushort sdma_descq_cnt = 256;
-+module_param_named(sdma_descq_cnt, sdma_descq_cnt, ushort, S_IRUGO);
-+MODULE_PARM_DESC(sdma_descq_cnt, "Number of SDMA descq entries");
-+
-+/*
-+ * Bits defined in the send DMA descriptor.
-+ */
-+#define SDMA_DESC_LAST          (1ULL << 11)
-+#define SDMA_DESC_FIRST         (1ULL << 12)
-+#define SDMA_DESC_DMA_HEAD      (1ULL << 13)
-+#define SDMA_DESC_USE_LARGE_BUF (1ULL << 14)
-+#define SDMA_DESC_INTR          (1ULL << 15)
-+#define SDMA_DESC_COUNT_LSB     16
-+#define SDMA_DESC_GEN_LSB       30
-+
-+char *qib_sdma_state_names[] = {
-+	[qib_sdma_state_s00_hw_down]          = "s00_HwDown",
-+	[qib_sdma_state_s10_hw_start_up_wait] = "s10_HwStartUpWait",
-+	[qib_sdma_state_s20_idle]             = "s20_Idle",
-+	[qib_sdma_state_s30_sw_clean_up_wait] = "s30_SwCleanUpWait",
-+	[qib_sdma_state_s40_hw_clean_up_wait] = "s40_HwCleanUpWait",
-+	[qib_sdma_state_s50_hw_halt_wait]     = "s50_HwHaltWait",
-+	[qib_sdma_state_s99_running]          = "s99_Running",
-+};
-+
-+char *qib_sdma_event_names[] = {
-+	[qib_sdma_event_e00_go_hw_down]   = "e00_GoHwDown",
-+	[qib_sdma_event_e10_go_hw_start]  = "e10_GoHwStart",
-+	[qib_sdma_event_e20_hw_started]   = "e20_HwStarted",
-+	[qib_sdma_event_e30_go_running]   = "e30_GoRunning",
-+	[qib_sdma_event_e40_sw_cleaned]   = "e40_SwCleaned",
-+	[qib_sdma_event_e50_hw_cleaned]   = "e50_HwCleaned",
-+	[qib_sdma_event_e60_hw_halted]    = "e60_HwHalted",
-+	[qib_sdma_event_e70_go_idle]      = "e70_GoIdle",
-+	[qib_sdma_event_e7220_err_halted] = "e7220_ErrHalted",
-+	[qib_sdma_event_e7322_err_halted] = "e7322_ErrHalted",
-+	[qib_sdma_event_e90_timer_tick]   = "e90_TimerTick",
-+};
-+
-+/* declare all statics here rather than keep sorting */
-+static int alloc_sdma(struct qib_pportdata *);
-+static void sdma_complete(struct kref *);
-+static void sdma_finalput(struct qib_sdma_state *);
-+static void sdma_get(struct qib_sdma_state *);
-+static void sdma_put(struct qib_sdma_state *);
-+static void sdma_set_state(struct qib_pportdata *, enum qib_sdma_states);
-+static void sdma_start_sw_clean_up(struct qib_pportdata *);
-+static void sdma_sw_clean_up_task(unsigned long);
-+static void unmap_desc(struct qib_pportdata *, unsigned);
-+
-+static void sdma_get(struct qib_sdma_state *ss)
-+{
-+	kref_get(&ss->kref);
-+}
-+
-+static void sdma_complete(struct kref *kref)
-+{
-+	struct qib_sdma_state *ss =
-+		container_of(kref, struct qib_sdma_state, kref);
-+
-+	complete(&ss->comp);
-+}
-+
-+static void sdma_put(struct qib_sdma_state *ss)
-+{
-+	kref_put(&ss->kref, sdma_complete);
-+}
-+
-+static void sdma_finalput(struct qib_sdma_state *ss)
-+{
-+	sdma_put(ss);
-+	wait_for_completion(&ss->comp);
-+}
-+
-+/*
-+ * Complete all the sdma requests on the active list, in the correct
-+ * order, and with appropriate processing.   Called when cleaning up
-+ * after sdma shutdown, and when new sdma requests are submitted for
-+ * a link that is down.   This matches what is done for requests
-+ * that complete normally, it's just the full list.
++/**
++ * qib_parse_ushort - parse an unsigned short value in an arbitrary base
++ * @str: the string containing the number
++ * @valp: where to put the result
 + *
-+ * Must be called with sdma_lock held
++ * Returns the number of bytes consumed, or negative value on error.
 + */
-+static void clear_sdma_activelist(struct qib_pportdata *ppd)
++static int qib_parse_ushort(const char *str, unsigned short *valp)
 +{
-+	struct qib_sdma_txreq *txp, *txp_next;
-+
-+	list_for_each_entry_safe(txp, txp_next, &ppd->sdma_activelist, list) {
-+		list_del_init(&txp->list);
-+		if (txp->flags & QIB_SDMA_TXREQ_F_FREEDESC) {
-+			unsigned idx;
-+
-+			idx = txp->start_idx;
-+			while (idx != txp->next_descq_idx) {
-+				unmap_desc(ppd, idx);
-+				if (++idx == ppd->sdma_descq_cnt)
-+					idx = 0;
-+			}
-+		}
-+		if (txp->callback)
-+			(*txp->callback)(txp, QIB_SDMA_TXREQ_S_ABORTED);
-+	}
-+}
-+
-+static void sdma_sw_clean_up_task(unsigned long opaque)
-+{
-+	struct qib_pportdata *ppd = (struct qib_pportdata *) opaque;
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&ppd->sdma_lock, flags);
-+
-+	/*
-+	 * At this point, the following should always be true:
-+	 * - We are halted, so no more descriptors are getting retired.
-+	 * - We are not running, so no one is submitting new work.
-+	 * - Only we can send the e40_sw_cleaned, so we can't start
-+	 *   running again until we say so.  So, the active list and
-+	 *   descq are ours to play with.
-+	 */
-+
-+	/* Process all retired requests. */
-+	qib_sdma_make_progress(ppd);
-+
-+	clear_sdma_activelist(ppd);
-+
-+	/*
-+	 * Resync count of added and removed.  It is VERY important that
-+	 * sdma_descq_removed NEVER decrement - user_sdma depends on it.
-+	 */
-+	ppd->sdma_descq_removed = ppd->sdma_descq_added;
-+
-+	/*
-+	 * Reset our notion of head and tail.
-+	 * Note that the HW registers will be reset when switching states
-+	 * due to calling __qib_sdma_process_event() below.
-+	 */
-+	ppd->sdma_descq_tail = 0;
-+	ppd->sdma_descq_head = 0;
-+	ppd->sdma_head_dma[0] = 0;
-+	ppd->sdma_generation = 0;
-+
-+	__qib_sdma_process_event(ppd, qib_sdma_event_e40_sw_cleaned);
-+
-+	spin_unlock_irqrestore(&ppd->sdma_lock, flags);
-+}
-+
-+/*
-+ * This is called when changing to state qib_sdma_state_s10_hw_start_up_wait
-+ * as a result of send buffer errors or send DMA descriptor errors.
-+ * We want to disarm the buffers in these cases.
-+ */
-+static void sdma_hw_start_up(struct qib_pportdata *ppd)
-+{
-+	struct qib_sdma_state *ss = &ppd->sdma_state;
-+	unsigned bufno;
-+
-+	for (bufno = ss->first_sendbuf; bufno < ss->last_sendbuf; ++bufno)
-+		ppd->dd->f_sendctrl(ppd, QIB_SENDCTRL_DISARM_BUF(bufno));
-+
-+	ppd->dd->f_sdma_hw_start_up(ppd);
-+}
-+
-+static void sdma_sw_tear_down(struct qib_pportdata *ppd)
-+{
-+	struct qib_sdma_state *ss = &ppd->sdma_state;
-+
-+	/* Releasing this reference means the state machine has stopped. */
-+	sdma_put(ss);
-+}
-+
-+static void sdma_start_sw_clean_up(struct qib_pportdata *ppd)
-+{
-+	tasklet_hi_schedule(&ppd->sdma_sw_clean_up_task);
-+}
-+
-+static void sdma_set_state(struct qib_pportdata *ppd,
-+	enum qib_sdma_states next_state)
-+{
-+	struct qib_sdma_state *ss = &ppd->sdma_state;
-+	struct sdma_set_state_action *action = ss->set_state_action;
-+	unsigned op = 0;
-+
-+	/* debugging bookkeeping */
-+	ss->previous_state = ss->current_state;
-+	ss->previous_op = ss->current_op;
-+
-+	ss->current_state = next_state;
-+
-+	if (action[next_state].op_enable)
-+		op |= QIB_SDMA_SENDCTRL_OP_ENABLE;
-+
-+	if (action[next_state].op_intenable)
-+		op |= QIB_SDMA_SENDCTRL_OP_INTENABLE;
-+
-+	if (action[next_state].op_halt)
-+		op |= QIB_SDMA_SENDCTRL_OP_HALT;
-+
-+	if (action[next_state].op_drain)
-+		op |= QIB_SDMA_SENDCTRL_OP_DRAIN;
-+
-+	if (action[next_state].go_s99_running_tofalse)
-+		ss->go_s99_running = 0;
-+
-+	if (action[next_state].go_s99_running_totrue)
-+		ss->go_s99_running = 1;
-+
-+	ss->current_op = op;
-+
-+	ppd->dd->f_sdma_sendctrl(ppd, ss->current_op);
-+}
-+
-+static void unmap_desc(struct qib_pportdata *ppd, unsigned head)
-+{
-+	__le64 *descqp = &ppd->sdma_descq[head].qw[0];
-+	u64 desc[2];
-+	dma_addr_t addr;
-+	size_t len;
-+
-+	desc[0] = le64_to_cpu(descqp[0]);
-+	desc[1] = le64_to_cpu(descqp[1]);
-+
-+	addr = (desc[1] << 32) | (desc[0] >> 32);
-+	len = (desc[0] >> 14) & (0x7ffULL << 2);
-+	dma_unmap_single(&ppd->dd->pcidev->dev, addr, len, DMA_TO_DEVICE);
-+}
-+
-+static int alloc_sdma(struct qib_pportdata *ppd)
-+{
-+	ppd->sdma_descq_cnt = sdma_descq_cnt;
-+	if (!ppd->sdma_descq_cnt)
-+		ppd->sdma_descq_cnt = 256;
-+
-+	/* Allocate memory for SendDMA descriptor FIFO */
-+	qib_cdbg(SDMA, "IB%u:%u allocating %u SDMA descq entries\n",
-+		 ppd->dd->unit, ppd->port, (unsigned)ppd->sdma_descq_cnt);
-+	ppd->sdma_descq = dma_alloc_coherent(&ppd->dd->pcidev->dev,
-+		ppd->sdma_descq_cnt * sizeof(u64[2]), &ppd->sdma_descq_phys,
-+		GFP_KERNEL);
-+
-+	if (!ppd->sdma_descq) {
-+		qib_dev_err(ppd->dd, "failed to allocate SendDMA descriptor "
-+			    "FIFO memory\n");
-+		goto bail;
-+	}
-+
-+	/* Allocate memory for DMA of head register to memory */
-+	ppd->sdma_head_dma = dma_alloc_coherent(&ppd->dd->pcidev->dev,
-+		PAGE_SIZE, &ppd->sdma_head_phys, GFP_KERNEL);
-+	if (!ppd->sdma_head_dma) {
-+		qib_dev_err(ppd->dd, "failed to allocate SendDMA "
-+			    "head memory\n");
-+		goto cleanup_descq;
-+	}
-+	ppd->sdma_head_dma[0] = 0;
-+	return 0;
-+
-+cleanup_descq:
-+	dma_free_coherent(&ppd->dd->pcidev->dev,
-+		ppd->sdma_descq_cnt * sizeof(u64[2]), (void *)ppd->sdma_descq,
-+		ppd->sdma_descq_phys);
-+	ppd->sdma_descq = NULL;
-+	ppd->sdma_descq_phys = 0;
-+bail:
-+	ppd->sdma_descq_cnt = 0;
-+	return -ENOMEM;
-+}
-+
-+static void free_sdma(struct qib_pportdata *ppd)
-+{
-+	struct qib_devdata *dd = ppd->dd;
-+
-+	if (ppd->sdma_head_dma) {
-+		dma_free_coherent(&dd->pcidev->dev, PAGE_SIZE,
-+				  (void *)ppd->sdma_head_dma,
-+				  ppd->sdma_head_phys);
-+		ppd->sdma_head_dma = NULL;
-+		ppd->sdma_head_phys = 0;
-+	}
-+
-+	if (ppd->sdma_descq) {
-+		dma_free_coherent(&dd->pcidev->dev,
-+				  ppd->sdma_descq_cnt * sizeof(u64[2]),
-+				  ppd->sdma_descq, ppd->sdma_descq_phys);
-+		ppd->sdma_descq = NULL;
-+		ppd->sdma_descq_phys = 0;
-+	}
-+}
-+
-+static inline void make_sdma_desc(struct qib_pportdata *ppd,
-+				  u64 *sdmadesc, u64 addr, u64 dwlen,
-+				  u64 dwoffset)
-+{
-+
-+	WARN_ON(addr & 3);
-+	/* SDmaPhyAddr[47:32] */
-+	sdmadesc[1] = addr >> 32;
-+	/* SDmaPhyAddr[31:0] */
-+	sdmadesc[0] = (addr & 0xfffffffcULL) << 32;
-+	/* SDmaGeneration[1:0] */
-+	sdmadesc[0] |= (ppd->sdma_generation & 3ULL) <<
-+		SDMA_DESC_GEN_LSB;
-+	/* SDmaDwordCount[10:0] */
-+	sdmadesc[0] |= (dwlen & 0x7ffULL) << SDMA_DESC_COUNT_LSB;
-+	/* SDmaBufOffset[12:2] */
-+	sdmadesc[0] |= dwoffset & 0x7ffULL;
-+}
-+
-+/* sdma_lock must be held */
-+int qib_sdma_make_progress(struct qib_pportdata *ppd)
-+{
-+	struct list_head *lp = NULL;
-+	struct qib_sdma_txreq *txp = NULL;
-+	struct qib_devdata *dd = ppd->dd;
-+	int progress = 0;
-+	u16 hwhead;
-+	u16 idx = 0;
-+
-+	hwhead = dd->f_sdma_gethead(ppd);
-+
-+	/* The reason for some of the complexity of this code is that
-+	 * not all descriptors have corresponding txps.  So, we have to
-+	 * be able to skip over descs until we wander into the range of
-+	 * the next txp on the list.
-+	 */
-+
-+	if (!list_empty(&ppd->sdma_activelist)) {
-+		lp = ppd->sdma_activelist.next;
-+		txp = list_entry(lp, struct qib_sdma_txreq, list);
-+		idx = txp->start_idx;
-+	}
-+
-+	while (ppd->sdma_descq_head != hwhead) {
-+		/* if desc is part of this txp, unmap if needed */
-+		if (txp && (txp->flags & QIB_SDMA_TXREQ_F_FREEDESC) &&
-+		    (idx == ppd->sdma_descq_head)) {
-+			unmap_desc(ppd, ppd->sdma_descq_head);
-+			if (++idx == ppd->sdma_descq_cnt)
-+				idx = 0;
-+		}
-+
-+		/* increment dequed desc count */
-+		ppd->sdma_descq_removed++;
-+
-+		/* advance head, wrap if needed */
-+		if (++ppd->sdma_descq_head == ppd->sdma_descq_cnt)
-+			ppd->sdma_descq_head = 0;
-+
-+		/* if now past this txp's descs, do the callback */
-+		if (txp && txp->next_descq_idx == ppd->sdma_descq_head) {
-+			/* remove from active list */
-+			list_del_init(&txp->list);
-+			if (txp->callback)
-+				(*txp->callback)(txp, QIB_SDMA_TXREQ_S_OK);
-+			/* see if there is another txp */
-+			if (list_empty(&ppd->sdma_activelist))
-+				txp = NULL;
-+			else {
-+				lp = ppd->sdma_activelist.next;
-+				txp = list_entry(lp, struct qib_sdma_txreq,
-+					list);
-+				idx = txp->start_idx;
-+			}
-+		}
-+		progress = 1;
-+	}
-+	if (progress)
-+		qib_verbs_sdma_desc_avail(ppd, qib_sdma_descq_freecnt(ppd));
-+	return progress;
-+}
-+
-+/*
-+ * This is called from interrupt context.
-+ */
-+void qib_sdma_intr(struct qib_pportdata *ppd)
-+{
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&ppd->sdma_lock, flags);
-+
-+	__qib_sdma_intr(ppd);
-+
-+	spin_unlock_irqrestore(&ppd->sdma_lock, flags);
-+}
-+
-+void __qib_sdma_intr(struct qib_pportdata *ppd)
-+{
-+	if (__qib_sdma_running(ppd))
-+		qib_sdma_make_progress(ppd);
-+}
-+
-+int qib_setup_sdma(struct qib_pportdata *ppd)
-+{
-+	struct qib_devdata *dd = ppd->dd;
-+	unsigned long flags;
-+	int ret = 0;
-+
-+	ret = alloc_sdma(ppd);
-+	if (ret)
-+		goto bail;
-+
-+	/* set consistent sdma state */
-+	ppd->dd->f_sdma_init_early(ppd);
-+	spin_lock_irqsave(&ppd->sdma_lock, flags);
-+	sdma_set_state(ppd, qib_sdma_state_s00_hw_down);
-+	spin_unlock_irqrestore(&ppd->sdma_lock, flags);
-+
-+	/* set up reference counting */
-+	kref_init(&ppd->sdma_state.kref);
-+	init_completion(&ppd->sdma_state.comp);
-+
-+	ppd->sdma_generation = 0;
-+	ppd->sdma_descq_head = 0;
-+	ppd->sdma_descq_removed = 0;
-+	ppd->sdma_descq_added = 0;
-+
-+	INIT_LIST_HEAD(&ppd->sdma_activelist);
-+
-+	tasklet_init(&ppd->sdma_sw_clean_up_task, sdma_sw_clean_up_task,
-+		(unsigned long)ppd);
-+
-+	ret = dd->f_init_sdma_regs(ppd);
-+	if (ret)
-+		goto bail_alloc;
-+
-+	qib_sdma_process_event(ppd, qib_sdma_event_e10_go_hw_start);
-+
-+	return 0;
-+
-+bail_alloc:
-+	qib_teardown_sdma(ppd);
-+bail:
-+	return ret;
-+}
-+
-+void qib_teardown_sdma(struct qib_pportdata *ppd)
-+{
-+	qib_sdma_process_event(ppd, qib_sdma_event_e00_go_hw_down);
-+
-+	/*
-+	 * This waits for the state machine to exit so it is not
-+	 * necessary to kill the sdma_sw_clean_up_task to make sure
-+	 * it is not running.
-+	 */
-+	sdma_finalput(&ppd->sdma_state);
-+
-+	free_sdma(ppd);
-+}
-+
-+int qib_sdma_running(struct qib_pportdata *ppd)
-+{
-+	unsigned long flags;
++	unsigned long val;
++	char *end;
 +	int ret;
 +
-+	spin_lock_irqsave(&ppd->sdma_lock, flags);
-+	ret = __qib_sdma_running(ppd);
-+	spin_unlock_irqrestore(&ppd->sdma_lock, flags);
++	if (!isdigit(str[0])) {
++		ret = -EINVAL;
++		goto bail;
++	}
++
++	val = simple_strtoul(str, &end, 0);
++
++	if (val > 0xffff) {
++		ret = -EINVAL;
++		goto bail;
++	}
++
++	*valp = val;
++
++	ret = end + 1 - str;
++	if (ret == 0)
++		ret = -EINVAL;
++
++bail:
++	return ret;
++}
++
++/* start of per-port functions */
++/*
++ * Get/Set heartbeat enable. OR of 1=enabled, 2=auto
++ */
++static ssize_t show_hrtbt_enb(struct qib_pportdata *ppd, char *buf)
++{
++	struct qib_devdata *dd = ppd->dd;
++	int ret;
++
++	ret = dd->f_get_ib_cfg(ppd, QIB_IB_CFG_HRTBT);
++	ret = scnprintf(buf, PAGE_SIZE, "%d\n", ret);
++	return ret;
++}
++
++static ssize_t store_hrtbt_enb(struct qib_pportdata *ppd, const char *buf,
++			       size_t count)
++{
++	struct qib_devdata *dd = ppd->dd;
++	int ret;
++	u16 val;
++
++	ret = qib_parse_ushort(buf, &val);
++
++	/*
++	 * Set the "intentional" heartbeat enable per either of
++	 * "Enable" and "Auto", as these are normally set together.
++	 * This bit is consulted when leaving loopback mode,
++	 * because entering loopback mode overrides it and automatically
++	 * disables heartbeat.
++	 */
++	if (ret >= 0)
++		ret = dd->f_set_ib_cfg(ppd, QIB_IB_CFG_HRTBT, val);
++	if (ret < 0)
++		qib_dev_err(dd, "attempt to set invalid Heartbeat enable\n");
++	return ret < 0 ? ret : count;
++}
++
++static ssize_t store_loopback(struct qib_pportdata *ppd, const char *buf,
++			      size_t count)
++{
++	struct qib_devdata *dd = ppd->dd;
++	int ret = count, r;
++
++	r = dd->f_set_ib_loopback(ppd, buf);
++	if (r < 0)
++		ret = r;
 +
 +	return ret;
 +}
 +
-+/*
-+ * Complete a request when sdma not running; likely only request
-+ * but to simplify the code, always queue it, then process the full
-+ * activelist.  We process the entire list to ensure that this particular
-+ * request does get it's callback, but in the correct order.
-+ * Must be called with sdma_lock held
-+ */
-+static void complete_sdma_err_req(struct qib_pportdata *ppd,
-+				  struct qib_verbs_txreq *tx)
++static ssize_t store_led_override(struct qib_pportdata *ppd, const char *buf,
++				  size_t count)
 +{
-+	atomic_inc(&tx->qp->s_dma_busy);
-+	/* no sdma descriptors, so no unmap_desc */
-+	tx->txreq.start_idx = 0;
-+	tx->txreq.next_descq_idx = 0;
-+	list_add_tail(&tx->txreq.list, &ppd->sdma_activelist);
-+	clear_sdma_activelist(ppd);
++	struct qib_devdata *dd = ppd->dd;
++	int ret;
++	u16 val;
++
++	ret = qib_parse_ushort(buf, &val);
++	if (ret > 0)
++		qib_set_led_override(ppd, val);
++	else
++		qib_dev_err(dd, "attempt to set invalid LED override\n");
++	return ret < 0 ? ret : count;
 +}
 +
-+/*
-+ * This function queues one IB packet onto the send DMA queue per call.
-+ * The caller is responsible for checking:
-+ * 1) The number of send DMA descriptor entries is less than the size of
-+ *    the descriptor queue.
-+ * 2) The IB SGE addresses and lengths are 32-bit aligned
-+ *    (except possibly the last SGE's length)
-+ * 3) The SGE addresses are suitable for passing to dma_map_single().
-+ */
-+int qib_sdma_verbs_send(struct qib_pportdata *ppd,
-+			struct qib_sge_state *ss, u32 dwords,
-+			struct qib_verbs_txreq *tx)
++static ssize_t show_qsfp(struct qib_pportdata *ppd, char *buf)
 +{
-+	unsigned long flags;
-+	struct qib_sge *sge;
-+	struct qib_qp *qp;
-+	int ret = 0;
-+	u16 tail;
-+	__le64 *descqp;
-+	u64 sdmadesc[2];
-+	u32 dwoffset;
-+	dma_addr_t addr;
++	ssize_t ret;
 +
-+	spin_lock_irqsave(&ppd->sdma_lock, flags);
++	ret = qib_qsfp_dump(ppd, buf, PAGE_SIZE);
++	return ret;
++}
 +
-+retry:
-+	if (unlikely(!__qib_sdma_running(ppd))) {
-+		complete_sdma_err_req(ppd, tx);
-+		goto unlock;
-+	}
++static ssize_t show_status(struct qib_pportdata *ppd, char *buf)
++{
++	ssize_t ret;
 +
-+	if (tx->txreq.sg_count > qib_sdma_descq_freecnt(ppd)) {
-+		if (qib_sdma_make_progress(ppd))
-+			goto retry;
-+		if (ppd->dd->flags & QIB_HAS_SDMA_TIMEOUT)
-+			ppd->dd->f_sdma_set_desc_cnt(ppd,
-+					ppd->sdma_descq_cnt / 2);
-+		goto busy;
-+	}
-+
-+	dwoffset = tx->hdr_dwords;
-+	make_sdma_desc(ppd, sdmadesc, (u64) tx->txreq.addr, dwoffset, 0);
-+
-+	sdmadesc[0] |= SDMA_DESC_FIRST;
-+	if (tx->txreq.flags & QIB_SDMA_TXREQ_F_USELARGEBUF)
-+		sdmadesc[0] |= SDMA_DESC_USE_LARGE_BUF;
-+
-+	/* write to the descq */
-+	tail = ppd->sdma_descq_tail;
-+	descqp = &ppd->sdma_descq[tail].qw[0];
-+	*descqp++ = cpu_to_le64(sdmadesc[0]);
-+	*descqp++ = cpu_to_le64(sdmadesc[1]);
-+
-+	/* increment the tail */
-+	if (++tail == ppd->sdma_descq_cnt) {
-+		tail = 0;
-+		descqp = &ppd->sdma_descq[0].qw[0];
-+		++ppd->sdma_generation;
-+	}
-+
-+	tx->txreq.start_idx = tail;
-+
-+	sge = &ss->sge;
-+	while (dwords) {
-+		u32 dw;
-+		u32 len;
-+
-+		len = dwords << 2;
-+		if (len > sge->length)
-+			len = sge->length;
-+		if (len > sge->sge_length)
-+			len = sge->sge_length;
-+		BUG_ON(len == 0);
-+		dw = (len + 3) >> 2;
-+		addr = dma_map_single(&ppd->dd->pcidev->dev, sge->vaddr,
-+				      dw << 2, DMA_TO_DEVICE);
-+		if (dma_mapping_error(&ppd->dd->pcidev->dev, addr))
-+			goto unmap;
-+		sdmadesc[0] = 0;
-+		make_sdma_desc(ppd, sdmadesc, (u64) addr, dw, dwoffset);
-+		/* SDmaUseLargeBuf has to be set in every descriptor */
-+		if (tx->txreq.flags & QIB_SDMA_TXREQ_F_USELARGEBUF)
-+			sdmadesc[0] |= SDMA_DESC_USE_LARGE_BUF;
-+		/* write to the descq */
-+		*descqp++ = cpu_to_le64(sdmadesc[0]);
-+		*descqp++ = cpu_to_le64(sdmadesc[1]);
-+
-+		/* increment the tail */
-+		if (++tail == ppd->sdma_descq_cnt) {
-+			tail = 0;
-+			descqp = &ppd->sdma_descq[0].qw[0];
-+			++ppd->sdma_generation;
-+		}
-+		sge->vaddr += len;
-+		sge->length -= len;
-+		sge->sge_length -= len;
-+		if (sge->sge_length == 0) {
-+			if (--ss->num_sge)
-+				*sge = *ss->sg_list++;
-+		} else if (sge->length == 0 && sge->mr->lkey) {
-+			if (++sge->n >= QIB_SEGSZ) {
-+				if (++sge->m >= sge->mr->mapsz)
-+					break;
-+				sge->n = 0;
-+			}
-+			sge->vaddr =
-+				sge->mr->map[sge->m]->segs[sge->n].vaddr;
-+			sge->length =
-+				sge->mr->map[sge->m]->segs[sge->n].length;
-+		}
-+
-+		dwoffset += dw;
-+		dwords -= dw;
-+	}
-+
-+	if (!tail)
-+		descqp = &ppd->sdma_descq[ppd->sdma_descq_cnt].qw[0];
-+	descqp -= 2;
-+	descqp[0] |= cpu_to_le64(SDMA_DESC_LAST);
-+	if (tx->txreq.flags & QIB_SDMA_TXREQ_F_HEADTOHOST)
-+		descqp[0] |= cpu_to_le64(SDMA_DESC_DMA_HEAD);
-+	if (tx->txreq.flags & QIB_SDMA_TXREQ_F_INTREQ)
-+		descqp[0] |= cpu_to_le64(SDMA_DESC_INTR);
-+
-+	atomic_inc(&tx->qp->s_dma_busy);
-+	tx->txreq.next_descq_idx = tail;
-+	ppd->dd->f_sdma_update_tail(ppd, tail);
-+	ppd->sdma_descq_added += tx->txreq.sg_count;
-+	list_add_tail(&tx->txreq.list, &ppd->sdma_activelist);
-+	goto unlock;
-+
-+unmap:
-+	for (;;) {
-+		if (!tail)
-+			tail = ppd->sdma_descq_cnt - 1;
-+		else
-+			tail--;
-+		if (tail == ppd->sdma_descq_tail)
-+			break;
-+		unmap_desc(ppd, tail);
-+	}
-+	qp = tx->qp;
-+	qib_dbg("QP%d I/O error\n", qp->ibqp.qp_num);
-+	qib_put_txreq(tx);
-+	spin_lock(&qp->s_lock);
-+	if (qp->ibqp.qp_type == IB_QPT_RC) {
-+		/* XXX what about error sending RDMA read responses? */
-+		if (ib_qib_state_ops[qp->state] & QIB_PROCESS_RECV_OK)
-+			qib_error_qp(qp, IB_WC_GENERAL_ERR);
-+	} else if (qp->s_wqe)
-+		qib_send_complete(qp, qp->s_wqe, IB_WC_GENERAL_ERR);
-+	spin_unlock(&qp->s_lock);
-+	/* return zero to process the next send work request */
-+	goto unlock;
-+
-+busy:
-+	qp = tx->qp;
-+	spin_lock(&qp->s_lock);
-+	if (ib_qib_state_ops[qp->state] & QIB_PROCESS_RECV_OK) {
-+		struct qib_ibdev *dev;
-+
-+		/*
-+		 * If we couldn't queue the DMA request, save the info
-+		 * and try again later rather than destroying the
-+		 * buffer and undoing the side effects of the copy.
-+		 */
-+		tx->ss = ss;
-+		tx->dwords = dwords;
-+		qp->s_tx = tx;
-+		dev = &ppd->dd->verbs_dev;
-+		spin_lock(&dev->pending_lock);
-+		if (list_empty(&qp->iowait)) {
-+			struct qib_ibport *ibp;
-+
-+			ibp = &ppd->ibport_data;
-+			ibp->n_dmawait++;
-+			qp->s_flags |= QIB_S_WAIT_DMA_DESC;
-+			list_add_tail(&qp->iowait, &dev->dmawait);
-+		}
-+		spin_unlock(&dev->pending_lock);
-+		qp->s_flags &= ~QIB_S_BUSY;
-+		spin_unlock(&qp->s_lock);
-+		ret = -EBUSY;
-+	} else {
-+		spin_unlock(&qp->s_lock);
-+		qib_put_txreq(tx);
-+	}
-+unlock:
-+	spin_unlock_irqrestore(&ppd->sdma_lock, flags);
++	if (!ppd->statusp)
++		ret = -EINVAL;
++	else
++		ret = scnprintf(buf, PAGE_SIZE, "0x%llx\n",
++				(unsigned long long) *(ppd->statusp));
 +	return ret;
 +}
 +
 +/*
-+ * sdma_lock should be acquired before calling this routine
++ * For userland compatibility, these offsets must remain fixed.
++ * They are strings for QIB_STATUS_*
 + */
-+void dump_sdma_state(struct qib_pportdata *ppd)
++static const char *qib_status_str[] = {
++	"Initted",
++	"",
++	"",
++	"",
++	"",
++	"Present",
++	"IB_link_up",
++	"IB_configured",
++	"",
++	"Fatal_Hardware_Error",
++	NULL,
++};
++
++static ssize_t show_status_str(struct qib_pportdata *ppd, char *buf)
 +{
-+	struct qib_sdma_desc *descq;
-+	struct qib_sdma_txreq *txp, *txpnext;
-+	__le64 *descqp;
-+	u64 desc[2];
-+	dma_addr_t addr;
-+	u16 gen, dwlen, dwoffset;
-+	u16 head, tail, cnt;
++	int i, any;
++	u64 s;
++	ssize_t ret;
 +
-+	head = ppd->sdma_descq_head;
-+	tail = ppd->sdma_descq_tail;
-+	cnt = qib_sdma_descq_freecnt(ppd);
-+	descq = ppd->sdma_descq;
-+
-+	qib_cdbg(SDMA, "IB%u: ppd->sdma_descq_head: %u\n", ppd->port, head);
-+	qib_cdbg(SDMA, "IB%u: ppd->sdma_descq_tail: %u\n", ppd->port, tail);
-+	qib_cdbg(SDMA, "IB%u: sdma_descq_freecnt: %u\n", ppd->port, cnt);
-+
-+	/* print info for each entry in the descriptor queue */
-+	while (head != tail) {
-+		char flags[6] = { 'x', 'x', 'x', 'x', 'x', 0 };
-+
-+		descqp = &descq[head].qw[0];
-+		desc[0] = le64_to_cpu(descqp[0]);
-+		desc[1] = le64_to_cpu(descqp[1]);
-+		flags[0] = (desc[0] & 1<<15) ? 'I' : '-';
-+		flags[1] = (desc[0] & 1<<14) ? 'L' : 'S';
-+		flags[2] = (desc[0] & 1<<13) ? 'H' : '-';
-+		flags[3] = (desc[0] & 1<<12) ? 'F' : '-';
-+		flags[4] = (desc[0] & 1<<11) ? 'L' : '-';
-+		addr = (desc[1] << 32) | ((desc[0] >> 32) & 0xfffffffcULL);
-+		gen = (desc[0] >> 30) & 3ULL;
-+		dwlen = (desc[0] >> 14) & (0x7ffULL << 2);
-+		dwoffset = (desc[0] & 0x7ffULL) << 2;
-+		qib_cdbg(SDMA, "IB%u: sdmadesc[%u]: flags:%s addr:0x%016llx "
-+			 "gen:%u len:%u bytes offset:%u bytes\n", ppd->port,
-+			 head, flags, addr, gen, dwlen, dwoffset);
-+		if (++head == ppd->sdma_descq_cnt)
-+			head = 0;
++	if (!ppd->statusp) {
++		ret = -EINVAL;
++		goto bail;
 +	}
 +
-+	if (qib_debug & __QIB_VERBDBG)
-+		/* print dma descriptor indices from the TX requests */
-+		list_for_each_entry_safe(txp, txpnext, &ppd->sdma_activelist,
-+					 list)
-+			qib_cdbg(SDMA, "IB%u: txp->start_idx: %u "
-+				"txp->next_descq_idx: %u\n", ppd->port,
-+				txp->start_idx, txp->next_descq_idx);
++	s = *(ppd->statusp);
++	*buf = '\0';
++	for (any = i = 0; s && qib_status_str[i]; i++) {
++		if (s & 1) {
++			/* if overflow */
++			if (any && strlcat(buf, " ", PAGE_SIZE) >= PAGE_SIZE)
++				break;
++			if (strlcat(buf, qib_status_str[i], PAGE_SIZE) >=
++					PAGE_SIZE)
++				break;
++			any = 1;
++		}
++		s >>= 1;
++	}
++	if (any)
++		strlcat(buf, "\n", PAGE_SIZE);
++
++	ret = strlen(buf);
++
++bail:
++	return ret;
 +}
 +
-+void qib_sdma_process_event(struct qib_pportdata *ppd,
-+	enum qib_sdma_events event)
++/* end of per-port functions */
++
++/*
++ * Start of per-port file structures and support code
++ * Because we are fitting into other infrastructure, we have to supply the
++ * full set of kobject/sysfs_ops structures and routines.
++ */
++#define QIB_PORT_ATTR(name, mode, show, store) \
++	static struct qib_port_attr qib_port_attr_##name = \
++		__ATTR(name, mode, show, store)
++
++struct qib_port_attr {
++	struct attribute attr;
++	ssize_t (*show)(struct qib_pportdata *, char *);
++	ssize_t (*store)(struct qib_pportdata *, const char *, size_t);
++};
++
++QIB_PORT_ATTR(loopback, S_IWUSR, NULL, store_loopback);
++QIB_PORT_ATTR(led_override, S_IWUSR, NULL, store_led_override);
++QIB_PORT_ATTR(hrtbt_enable, S_IWUSR | S_IRUGO, show_hrtbt_enb,
++	      store_hrtbt_enb);
++QIB_PORT_ATTR(qsfp, S_IRUGO, show_qsfp, NULL);
++QIB_PORT_ATTR(status, S_IRUGO, show_status, NULL);
++QIB_PORT_ATTR(status_str, S_IRUGO, show_status_str, NULL);
++
++static struct attribute *port_default_attributes[] = {
++	&qib_port_attr_loopback.attr,
++	&qib_port_attr_led_override.attr,
++	&qib_port_attr_hrtbt_enable.attr,
++	&qib_port_attr_status.attr,
++	&qib_port_attr_status_str.attr,
++	NULL
++};
++
++static ssize_t qib_portattr_show(struct kobject *kobj,
++	struct attribute *attr, char *buf)
 +{
++	struct qib_port_attr *pattr =
++		container_of(attr, struct qib_port_attr, attr);
++	struct qib_pportdata *ppd =
++		container_of(kobj, struct qib_pportdata, pport_kobj);
++
++	return pattr->show(ppd, buf);
++}
++
++static ssize_t qib_portattr_store(struct kobject *kobj,
++	struct attribute *attr, const char *buf, size_t len)
++{
++	struct qib_port_attr *pattr =
++		container_of(attr, struct qib_port_attr, attr);
++	struct qib_pportdata *ppd =
++		container_of(kobj, struct qib_pportdata, pport_kobj);
++
++	return pattr->store(ppd, buf, len);
++}
++
++static void qib_port_release(struct kobject *kobj)
++{
++	/* nothing to do since memory is freed by qib_free_devdata() */
++}
++
++static struct sysfs_ops qib_port_ops = {
++	.show = qib_portattr_show,
++	.store = qib_portattr_store,
++};
++
++static struct kobj_type qib_port_ktype = {
++	.release = qib_port_release,
++	.sysfs_ops = &qib_port_ops,
++	.default_attrs = port_default_attributes
++};
++
++/* Start sl2vl */
++
++#define QIB_SL2VL_ATTR(N) \
++	static struct qib_sl2vl_attr qib_sl2vl_attr_##N = { \
++		.attr = { .name = __stringify(N), .mode = 0444 }, \
++		.sl = N \
++	}
++
++struct qib_sl2vl_attr {
++	struct attribute attr;
++	int sl;
++};
++
++QIB_SL2VL_ATTR(0);
++QIB_SL2VL_ATTR(1);
++QIB_SL2VL_ATTR(2);
++QIB_SL2VL_ATTR(3);
++QIB_SL2VL_ATTR(4);
++QIB_SL2VL_ATTR(5);
++QIB_SL2VL_ATTR(6);
++QIB_SL2VL_ATTR(7);
++QIB_SL2VL_ATTR(8);
++QIB_SL2VL_ATTR(9);
++QIB_SL2VL_ATTR(10);
++QIB_SL2VL_ATTR(11);
++QIB_SL2VL_ATTR(12);
++QIB_SL2VL_ATTR(13);
++QIB_SL2VL_ATTR(14);
++QIB_SL2VL_ATTR(15);
++
++static struct attribute *sl2vl_default_attributes[] = {
++	&qib_sl2vl_attr_0.attr,
++	&qib_sl2vl_attr_1.attr,
++	&qib_sl2vl_attr_2.attr,
++	&qib_sl2vl_attr_3.attr,
++	&qib_sl2vl_attr_4.attr,
++	&qib_sl2vl_attr_5.attr,
++	&qib_sl2vl_attr_6.attr,
++	&qib_sl2vl_attr_7.attr,
++	&qib_sl2vl_attr_8.attr,
++	&qib_sl2vl_attr_9.attr,
++	&qib_sl2vl_attr_10.attr,
++	&qib_sl2vl_attr_11.attr,
++	&qib_sl2vl_attr_12.attr,
++	&qib_sl2vl_attr_13.attr,
++	&qib_sl2vl_attr_14.attr,
++	&qib_sl2vl_attr_15.attr,
++	NULL
++};
++
++static ssize_t sl2vl_attr_show(struct kobject *kobj, struct attribute *attr,
++			       char *buf)
++{
++	struct qib_sl2vl_attr *sattr =
++		container_of(attr, struct qib_sl2vl_attr, attr);
++	struct qib_pportdata *ppd =
++		container_of(kobj, struct qib_pportdata, sl2vl_kobj);
++	struct qib_ibport *qibp = &ppd->ibport_data;
++
++	return sprintf(buf, "%u\n", qibp->sl_to_vl[sattr->sl]);
++}
++
++static struct sysfs_ops qib_sl2vl_ops = {
++	.show = sl2vl_attr_show,
++};
++
++static struct kobj_type qib_sl2vl_ktype = {
++	.release = qib_port_release,
++	.sysfs_ops = &qib_sl2vl_ops,
++	.default_attrs = sl2vl_default_attributes
++};
++
++/* End sl2vl */
++
++/* end of per-port file structures and support code */
++
++/*
++ * Start of per-unit (or driver, in some cases, but replicated
++ * per unit) functions (these get a device *)
++ */
++static ssize_t show_rev(struct device *device, struct device_attribute *attr,
++			char *buf)
++{
++	struct qib_ibdev *dev =
++		container_of(device, struct qib_ibdev, ibdev.dev);
++
++	return sprintf(buf, "%x\n", dd_from_dev(dev)->minrev);
++}
++
++static ssize_t show_hca(struct device *device, struct device_attribute *attr,
++			char *buf)
++{
++	struct qib_ibdev *dev =
++		container_of(device, struct qib_ibdev, ibdev.dev);
++	struct qib_devdata *dd = dd_from_dev(dev);
++	int ret;
++
++	if (!dd->boardname)
++		ret = -EINVAL;
++	else
++		ret = scnprintf(buf, PAGE_SIZE, "%s\n", dd->boardname);
++	return ret;
++}
++
++static const char *qp_type_str[] = {
++	"SMI", "GSI", "RC", "UC", "UD",
++};
++
++static ssize_t show_stats(struct device *device, struct device_attribute *attr,
++			  char *buf)
++{
++	struct qib_ibdev *dev =
++		container_of(device, struct qib_ibdev, ibdev.dev);
++	struct qib_devdata *dd = dd_from_dev(dev);
++	unsigned pidx;
++	unsigned i;
++	int len = 0;
 +	unsigned long flags;
 +
-+	spin_lock_irqsave(&ppd->sdma_lock, flags);
++	for (pidx = 0; pidx < dd->num_pports; ++pidx) {
++		struct qib_ibport *ibp = &dd->pport[pidx].ibport_data;
 +
-+	__qib_sdma_process_event(ppd, event);
++		len += sprintf(buf + len,
++			       "Port %d:\n"
++			       "RC timeouts %d\n"
++			       "RC resends  %d\n"
++			       "RC QACKs    %d\n"
++			       "RC SEQ NAKs %d\n"
++			       "RC RDMA seq %d\n"
++			       "RC RNR NAKs %d\n"
++			       "RC OTH NAKs %d\n"
++			       "RC DComp    %d\n"
++			       "RCr dup req %d\n"
++			       "RCr SEQ NAK %d\n"
++			       "wait piobuf %d\n"
++			       "wait DMA    %d\n"
++			       "wait TX     %d\n"
++			       "unaligned   %d\n"
++			       "loop pkts   %d\n"
++			       "PKT drops   %d\n",
++			       dd->pport[pidx].port,
++			       ibp->n_timeouts, ibp->n_rc_resends,
++			       ibp->n_rc_qacks, ibp->n_seq_naks,
++			       ibp->n_rdma_seq, ibp->n_rnr_naks,
++			       ibp->n_other_naks, ibp->n_rc_delayed_comp,
++			       ibp->n_rc_dupreq, ibp->n_rc_seqnak,
++			       dev->n_piowait, ibp->n_dmawait, dev->n_txwait,
++			       ibp->n_unaligned, ibp->n_loop_pkts,
++			       ibp->n_pkt_drops);
++		for (i = 0; i < ARRAY_SIZE(ibp->opstats); i++) {
++			const struct qib_opcode_stats *si = &ibp->opstats[i];
 +
-+	if (ppd->sdma_state.current_state == qib_sdma_state_s99_running)
-+		qib_verbs_sdma_desc_avail(ppd, qib_sdma_descq_freecnt(ppd));
++			if (!si->n_packets && !si->n_bytes)
++				continue;
++			len += sprintf(buf + len, "%02x %llu/%llu\n", i,
++				       (unsigned long long) si->n_packets,
++				       (unsigned long long) si->n_bytes);
++		}
++	}
++	len += sprintf(buf + len, "Ctx:npkts");
++	for (i = 0; i < dd->first_user_ctxt; i++) {
++		if (!dd->rcd[i])
++			continue;
++		len += sprintf(buf + len, " %u:%u", i,
++			       dd->rcd[i]->pkt_count);
++	}
++	len += sprintf(buf + len, "\n");
++	spin_lock_irqsave(&dev->qpt_lock, flags);
++	for (i = 0; i < dev->qp_table_size; i++) {
++		struct qib_qp *qp;
++		for (qp = dev->qp_table[i]; qp != NULL; qp = qp->next) {
++			struct qib_swqe *wqe;
 +
-+	spin_unlock_irqrestore(&ppd->sdma_lock, flags);
++			if (qp->s_last == qp->s_acked &&
++			    qp->s_acked == qp->s_cur &&
++			    qp->s_cur == qp->s_tail &&
++			    qp->s_tail == qp->s_head)
++				continue;
++			if (len + 128 >= PAGE_SIZE)
++				break;
++			wqe = get_swqe_ptr(qp, qp->s_last);
++			len += sprintf(buf + len,
++				       "QP%u %s %u %u %u f=%x %u %u %u %u %u "
++				       "PSN %x %x %x %x %x "
++				       "(%u %u %u %u %u %u) QP%u LID %x\n",
++				       qp->ibqp.qp_num,
++				       qp_type_str[qp->ibqp.qp_type],
++				       qp->state,
++				       wqe->wr.opcode,
++				       qp->s_hdrwords,
++				       qp->s_flags,
++				       atomic_read(&qp->s_dma_busy),
++				       !list_empty(&qp->iowait),
++				       qp->timeout,
++				       wqe->ssn,
++				       qp->s_lsn,
++				       qp->s_last_psn,
++				       qp->s_psn, qp->s_next_psn,
++				       qp->s_sending_psn, qp->s_sending_hpsn,
++				       qp->s_last, qp->s_acked, qp->s_cur,
++				       qp->s_tail, qp->s_head, qp->s_size,
++				       qp->remote_qpn,
++				       qp->remote_ah_attr.dlid);
++		}
++	}
++	spin_unlock_irqrestore(&dev->qpt_lock, flags);
++	return len;
 +}
 +
-+void __qib_sdma_process_event(struct qib_pportdata *ppd,
-+	enum qib_sdma_events event)
++static ssize_t show_version(struct device *device,
++			    struct device_attribute *attr, char *buf)
 +{
-+	struct qib_sdma_state *ss = &ppd->sdma_state;
++	/* The string printed here is already newline-terminated. */
++	return scnprintf(buf, PAGE_SIZE, "%s", (char *)ib_qib_version);
++}
 +
-+	qib_cdbg(SDMA, "IB%u:%u [%s] %s\n", ppd->dd->unit, ppd->port,
-+		 qib_sdma_state_names[ss->current_state],
-+		 qib_sdma_event_names[event]);
-+	switch (ss->current_state) {
-+	case qib_sdma_state_s00_hw_down:
-+		switch (event) {
-+		case qib_sdma_event_e00_go_hw_down:
-+			break;
-+		case qib_sdma_event_e10_go_hw_start:
-+			/* This reference means the state machine is started */
-+			sdma_get(&ppd->sdma_state);
-+			sdma_set_state(ppd,
-+				       qib_sdma_state_s10_hw_start_up_wait);
-+			break;
-+		case qib_sdma_event_e20_hw_started:
-+			break;
-+		case qib_sdma_event_e30_go_running:
-+			break;
-+		case qib_sdma_event_e40_sw_cleaned:
-+			sdma_sw_tear_down(ppd);
-+			break;
-+		case qib_sdma_event_e50_hw_cleaned:
-+			break;
-+		case qib_sdma_event_e60_hw_halted:
-+			break;
-+		case qib_sdma_event_e70_go_idle:
-+			break;
-+		case qib_sdma_event_e7220_err_halted:
-+			break;
-+		case qib_sdma_event_e7322_err_halted:
-+			break;
-+		case qib_sdma_event_e90_timer_tick:
-+			break;
-+		}
-+		break;
++static ssize_t show_boardversion(struct device *device,
++				 struct device_attribute *attr, char *buf)
++{
++	struct qib_ibdev *dev =
++		container_of(device, struct qib_ibdev, ibdev.dev);
++	struct qib_devdata *dd = dd_from_dev(dev);
 +
-+	case qib_sdma_state_s10_hw_start_up_wait:
-+		switch (event) {
-+		case qib_sdma_event_e00_go_hw_down:
-+			sdma_set_state(ppd, qib_sdma_state_s00_hw_down);
-+			sdma_sw_tear_down(ppd);
-+			break;
-+		case qib_sdma_event_e10_go_hw_start:
-+			break;
-+		case qib_sdma_event_e20_hw_started:
-+			sdma_set_state(ppd, ss->go_s99_running ?
-+				       qib_sdma_state_s99_running :
-+				       qib_sdma_state_s20_idle);
-+			break;
-+		case qib_sdma_event_e30_go_running:
-+			ss->go_s99_running = 1;
-+			break;
-+		case qib_sdma_event_e40_sw_cleaned:
-+			break;
-+		case qib_sdma_event_e50_hw_cleaned:
-+			break;
-+		case qib_sdma_event_e60_hw_halted:
-+			break;
-+		case qib_sdma_event_e70_go_idle:
-+			ss->go_s99_running = 0;
-+			break;
-+		case qib_sdma_event_e7220_err_halted:
-+			break;
-+		case qib_sdma_event_e7322_err_halted:
-+			break;
-+		case qib_sdma_event_e90_timer_tick:
-+			break;
-+		}
-+		break;
++	/* The string printed here is already newline-terminated. */
++	return scnprintf(buf, PAGE_SIZE, "%s", dd->boardversion);
++}
 +
-+	case qib_sdma_state_s20_idle:
-+		switch (event) {
-+		case qib_sdma_event_e00_go_hw_down:
-+			sdma_set_state(ppd, qib_sdma_state_s00_hw_down);
-+			sdma_sw_tear_down(ppd);
-+			break;
-+		case qib_sdma_event_e10_go_hw_start:
-+			break;
-+		case qib_sdma_event_e20_hw_started:
-+			break;
-+		case qib_sdma_event_e30_go_running:
-+			sdma_set_state(ppd, qib_sdma_state_s99_running);
-+			ss->go_s99_running = 1;
-+			break;
-+		case qib_sdma_event_e40_sw_cleaned:
-+			break;
-+		case qib_sdma_event_e50_hw_cleaned:
-+			break;
-+		case qib_sdma_event_e60_hw_halted:
-+			break;
-+		case qib_sdma_event_e70_go_idle:
-+			/*
-+			 * Some chips need sends flushed after we go idle
-+			 * in some conditions, in case there are stuck sends
-+			 * after hw cleanup
-+			 */
-+			if (ppd->dd->f_sdma_flush_sends(ppd))
-+				sdma_set_state(ppd,
-+					qib_sdma_state_s40_hw_clean_up_wait);
-+			break;
-+		case qib_sdma_event_e7220_err_halted:
-+			break;
-+		case qib_sdma_event_e7322_err_halted:
-+			break;
-+		case qib_sdma_event_e90_timer_tick:
-+			break;
-+		}
-+		break;
 +
-+	case qib_sdma_state_s30_sw_clean_up_wait:
-+		switch (event) {
-+		case qib_sdma_event_e00_go_hw_down:
-+			sdma_set_state(ppd, qib_sdma_state_s00_hw_down);
-+			break;
-+		case qib_sdma_event_e10_go_hw_start:
-+			break;
-+		case qib_sdma_event_e20_hw_started:
-+			break;
-+		case qib_sdma_event_e30_go_running:
-+			ss->go_s99_running = 1;
-+			break;
-+		case qib_sdma_event_e40_sw_cleaned:
-+			sdma_set_state(ppd,
-+				       qib_sdma_state_s10_hw_start_up_wait);
-+			sdma_hw_start_up(ppd);
-+			break;
-+		case qib_sdma_event_e50_hw_cleaned:
-+			break;
-+		case qib_sdma_event_e60_hw_halted:
-+			break;
-+		case qib_sdma_event_e70_go_idle:
-+			ss->go_s99_running = 0;
-+			break;
-+		case qib_sdma_event_e7220_err_halted:
-+			break;
-+		case qib_sdma_event_e7322_err_halted:
-+			break;
-+		case qib_sdma_event_e90_timer_tick:
-+			break;
-+		}
-+		break;
++static ssize_t show_localbus_info(struct device *device,
++				  struct device_attribute *attr, char *buf)
++{
++	struct qib_ibdev *dev =
++		container_of(device, struct qib_ibdev, ibdev.dev);
++	struct qib_devdata *dd = dd_from_dev(dev);
 +
-+	case qib_sdma_state_s40_hw_clean_up_wait:
-+		switch (event) {
-+		case qib_sdma_event_e00_go_hw_down:
-+			sdma_set_state(ppd, qib_sdma_state_s00_hw_down);
-+			sdma_start_sw_clean_up(ppd);
-+			break;
-+		case qib_sdma_event_e10_go_hw_start:
-+			break;
-+		case qib_sdma_event_e20_hw_started:
-+			break;
-+		case qib_sdma_event_e30_go_running:
-+			ss->go_s99_running = 1;
-+			break;
-+		case qib_sdma_event_e40_sw_cleaned:
-+			break;
-+		case qib_sdma_event_e50_hw_cleaned:
-+			sdma_set_state(ppd,
-+				       qib_sdma_state_s30_sw_clean_up_wait);
-+			sdma_start_sw_clean_up(ppd);
-+			break;
-+		case qib_sdma_event_e60_hw_halted:
-+			break;
-+		case qib_sdma_event_e70_go_idle:
-+			ss->go_s99_running = 0;
-+			break;
-+		case qib_sdma_event_e7220_err_halted:
-+			break;
-+		case qib_sdma_event_e7322_err_halted:
-+			break;
-+		case qib_sdma_event_e90_timer_tick:
-+			break;
-+		}
-+		break;
++	/* The string printed here is already newline-terminated. */
++	return scnprintf(buf, PAGE_SIZE, "%s", dd->lbus_info);
++}
 +
-+	case qib_sdma_state_s50_hw_halt_wait:
-+		switch (event) {
-+		case qib_sdma_event_e00_go_hw_down:
-+			sdma_set_state(ppd, qib_sdma_state_s00_hw_down);
-+			sdma_start_sw_clean_up(ppd);
-+			break;
-+		case qib_sdma_event_e10_go_hw_start:
-+			break;
-+		case qib_sdma_event_e20_hw_started:
-+			break;
-+		case qib_sdma_event_e30_go_running:
-+			ss->go_s99_running = 1;
-+			break;
-+		case qib_sdma_event_e40_sw_cleaned:
-+			break;
-+		case qib_sdma_event_e50_hw_cleaned:
-+			break;
-+		case qib_sdma_event_e60_hw_halted:
-+			sdma_set_state(ppd,
-+				       qib_sdma_state_s40_hw_clean_up_wait);
-+			ppd->dd->f_sdma_hw_clean_up(ppd);
-+			break;
-+		case qib_sdma_event_e70_go_idle:
-+			ss->go_s99_running = 0;
-+			break;
-+		case qib_sdma_event_e7220_err_halted:
-+			break;
-+		case qib_sdma_event_e7322_err_halted:
-+			break;
-+		case qib_sdma_event_e90_timer_tick:
-+			break;
-+		}
-+		break;
 +
-+	case qib_sdma_state_s99_running:
-+		switch (event) {
-+		case qib_sdma_event_e00_go_hw_down:
-+			sdma_set_state(ppd, qib_sdma_state_s00_hw_down);
-+			sdma_start_sw_clean_up(ppd);
-+			break;
-+		case qib_sdma_event_e10_go_hw_start:
-+			break;
-+		case qib_sdma_event_e20_hw_started:
-+			break;
-+		case qib_sdma_event_e30_go_running:
-+			break;
-+		case qib_sdma_event_e40_sw_cleaned:
-+			break;
-+		case qib_sdma_event_e50_hw_cleaned:
-+			break;
-+		case qib_sdma_event_e60_hw_halted:
-+			sdma_set_state(ppd,
-+				       qib_sdma_state_s30_sw_clean_up_wait);
-+			sdma_start_sw_clean_up(ppd);
-+			break;
-+		case qib_sdma_event_e70_go_idle:
-+			sdma_set_state(ppd, qib_sdma_state_s50_hw_halt_wait);
-+			ss->go_s99_running = 0;
-+			break;
-+		case qib_sdma_event_e7220_err_halted:
-+			sdma_set_state(ppd,
-+				       qib_sdma_state_s30_sw_clean_up_wait);
-+			sdma_start_sw_clean_up(ppd);
-+			break;
-+		case qib_sdma_event_e7322_err_halted:
-+			sdma_set_state(ppd, qib_sdma_state_s50_hw_halt_wait);
-+			break;
-+		case qib_sdma_event_e90_timer_tick:
-+			break;
-+		}
-+		break;
++static ssize_t show_nctxts(struct device *device,
++			   struct device_attribute *attr, char *buf)
++{
++	struct qib_ibdev *dev =
++		container_of(device, struct qib_ibdev, ibdev.dev);
++	struct qib_devdata *dd = dd_from_dev(dev);
++
++	/* Return the number of user ports (contexts) available. */
++	return scnprintf(buf, PAGE_SIZE, "%u\n", dd->cfgctxts -
++		dd->first_user_ctxt);
++}
++
++static ssize_t show_serial(struct device *device,
++			   struct device_attribute *attr, char *buf)
++{
++	struct qib_ibdev *dev =
++		container_of(device, struct qib_ibdev, ibdev.dev);
++	struct qib_devdata *dd = dd_from_dev(dev);
++
++	buf[sizeof dd->serial] = '\0';
++	memcpy(buf, dd->serial, sizeof dd->serial);
++	strcat(buf, "\n");
++	return strlen(buf);
++}
++
++static ssize_t store_chip_reset(struct device *device,
++				struct device_attribute *attr, const char *buf,
++				size_t count)
++{
++	struct qib_ibdev *dev =
++		container_of(device, struct qib_ibdev, ibdev.dev);
++	struct qib_devdata *dd = dd_from_dev(dev);
++	int ret;
++
++	if (count < 5 || memcmp(buf, "reset", 5) || !dd->diag_client) {
++		ret = -EINVAL;
++		goto bail;
 +	}
 +
-+	ss->last_event = event;
++	ret = qib_reset_device(dd->unit);
++bail:
++	return ret < 0 ? ret : count;
++}
 +
-+	qib_cdbg(SDMA, "IB%u:%u [%s]\n", ppd->dd->unit, ppd->port,
-+		 qib_sdma_state_names[ss->current_state]);
++static ssize_t show_logged_errs(struct device *device,
++				struct device_attribute *attr, char *buf)
++{
++	struct qib_ibdev *dev =
++		container_of(device, struct qib_ibdev, ibdev.dev);
++	struct qib_devdata *dd = dd_from_dev(dev);
++	int idx, count;
++
++	/* force consistency with actual EEPROM */
++	if (qib_update_eeprom_log(dd) != 0)
++		return -ENXIO;
++
++	count = 0;
++	for (idx = 0; idx < QIB_EEP_LOG_CNT; ++idx) {
++		count += scnprintf(buf + count, PAGE_SIZE - count, "%d%c",
++				   dd->eep_st_errs[idx],
++				   idx == (QIB_EEP_LOG_CNT - 1) ? '\n' : ' ');
++	}
++
++	return count;
++}
++
++/*
++ * Dump tempsense regs. in decimal, to ease shell-scripts.
++ */
++static ssize_t show_tempsense(struct device *device,
++			      struct device_attribute *attr, char *buf)
++{
++	struct qib_ibdev *dev =
++		container_of(device, struct qib_ibdev, ibdev.dev);
++	struct qib_devdata *dd = dd_from_dev(dev);
++	int ret;
++	int idx;
++	u8 regvals[8];
++
++	ret = -ENXIO;
++	for (idx = 0; idx < 8; ++idx) {
++		if (idx == 6)
++			continue;
++		ret = dd->f_tempsense_rd(dd, idx);
++		if (ret < 0)
++			break;
++		regvals[idx] = ret;
++	}
++	if (idx == 8)
++		ret = scnprintf(buf, PAGE_SIZE, "%d %d %02X %02X %d %d\n",
++				*(signed char *)(regvals),
++				*(signed char *)(regvals + 1),
++				regvals[2], regvals[3],
++				*(signed char *)(regvals + 5),
++				*(signed char *)(regvals + 7));
++	return ret;
++}
++
++/*
++ * end of per-unit (or driver, in some cases, but replicated
++ * per unit) functions
++ */
++
++/* start of per-unit file structures and support code */
++static DEVICE_ATTR(hw_rev, S_IRUGO, show_rev, NULL);
++static DEVICE_ATTR(hca_type, S_IRUGO, show_hca, NULL);
++static DEVICE_ATTR(board_id, S_IRUGO, show_hca, NULL);
++static DEVICE_ATTR(stats, S_IRUGO, show_stats, NULL);
++static DEVICE_ATTR(version, S_IRUGO, show_version, NULL);
++static DEVICE_ATTR(nctxts, S_IRUGO, show_nctxts, NULL);
++static DEVICE_ATTR(serial, S_IRUGO, show_serial, NULL);
++static DEVICE_ATTR(boardversion, S_IRUGO, show_boardversion, NULL);
++static DEVICE_ATTR(logged_errors, S_IRUGO, show_logged_errs, NULL);
++static DEVICE_ATTR(tempsense, S_IRUGO, show_tempsense, NULL);
++static DEVICE_ATTR(localbus_info, S_IRUGO, show_localbus_info, NULL);
++static DEVICE_ATTR(chip_reset, S_IWUSR, NULL, store_chip_reset);
++
++static struct device_attribute *qib_attributes[] = {
++	&dev_attr_hw_rev,
++	&dev_attr_hca_type,
++	&dev_attr_board_id,
++	&dev_attr_stats,
++	&dev_attr_version,
++	&dev_attr_nctxts,
++	&dev_attr_serial,
++	&dev_attr_boardversion,
++	&dev_attr_logged_errors,
++	&dev_attr_tempsense,
++	&dev_attr_localbus_info,
++	&dev_attr_chip_reset,
++};
++
++static int create_port_files(struct ib_device *ibdev, u8 port_num,
++			     struct kobject *kobj)
++{
++	struct qib_pportdata *ppd;
++	struct qib_devdata *dd = dd_from_ibdev(ibdev);
++	int ret;
++
++	if (!port_num || port_num > dd->num_pports) {
++		qib_dev_err(dd, "Skipping infiniband class with "
++			    "invalid port %u\n", port_num);
++		ret = -ENODEV;
++		goto bail;
++	}
++	ppd = &dd->pport[port_num - 1];
++
++	ret = kobject_init_and_add(&ppd->pport_kobj, &qib_port_ktype, kobj,
++				   "linkcontrol");
++	if (ret) {
++		qib_dev_err(dd, "Skipping linkcontrol sysfs info, "
++			    "(err %d) port %u\n", ret, port_num);
++		goto bail;
++	}
++
++	if (dd->flags & QIB_HAS_QSFP) {
++		ret = sysfs_create_file(&ppd->pport_kobj,
++					&qib_port_attr_qsfp.attr);
++		if (ret) {
++			qib_dev_err(dd, "Skipping qsfp sysfs info, "
++				    "(err %d) port %u\n", ret, port_num);
++			goto bail;
++		}
++	}
++	kobject_uevent(&ppd->pport_kobj, KOBJ_ADD);
++
++	ret = kobject_init_and_add(&ppd->sl2vl_kobj, &qib_sl2vl_ktype, kobj,
++				   "sl2vl");
++	if (ret) {
++		qib_dev_err(dd, "Skipping sl2vl sysfs info, "
++			    "(err %d) port %u\n", ret, port_num);
++		goto bail_sl;
++	}
++	kobject_uevent(&ppd->sl2vl_kobj, KOBJ_ADD);
++
++	return 0;
++
++bail_sl:
++	kobject_put(&ppd->pport_kobj);
++bail:
++	return ret;
++}
++
++/*
++ * Register and create our files in /sys/class/infiniband.
++ */
++int qib_verbs_register_sysfs(struct qib_devdata *dd)
++{
++	struct ib_device *dev = &dd->verbs_dev.ibdev;
++	int i, ret;
++
++	for (i = 0; i < ARRAY_SIZE(qib_attributes); ++i)
++		if (device_create_file(&dev->dev, qib_attributes[i])) {
++			ret = 1;
++			goto bail;
++		}
++
++	ret = ib_sysfs_create_port_files(dev, create_port_files);
++bail:
++	return ret;
++}
++
++/*
++ * Unregister and remove our files in /sys/class/infiniband.
++ */
++void qib_verbs_unregister_sysfs(struct qib_devdata *dd)
++{
++	struct qib_pportdata *ppd;
++	int i;
++
++	for (i = 0; i < dd->num_pports; i++) {
++		ppd = &dd->pport[i];
++		kobject_put(&ppd->pport_kobj);
++		kobject_put(&ppd->sl2vl_kobj);
++	}
 +}
 
 --
