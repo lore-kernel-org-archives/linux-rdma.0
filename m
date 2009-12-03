@@ -1,7 +1,7 @@
 From: Ralph Campbell <ralph.campbell-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v2 16/51] IB/qib: Add qib_fs.c
-Date: Thu, 03 Dec 2009 11:04:29 -0800
-Message-ID: <20091203190429.29507.80306.stgit@chromite.mv.qlogic.com>
+Subject: [PATCH v2 21/51] IB/qib: Add qib_intr.c
+Date: Thu, 03 Dec 2009 11:04:55 -0800
+Message-ID: <20091203190455.29507.76205.stgit@chromite.mv.qlogic.com>
 References: <20091203190305.29507.58158.stgit@chromite.mv.qlogic.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -13,24 +13,24 @@ To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-creates the qib_fs.c file.
+creates the qib_intr.c file.
 
 Signed-off-by: Ralph Campbell <ralph.campbell-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
 ---
 
- drivers/infiniband/hw/qib/qib_fs.c |  549 ++++++++++++++++++++++++++++++++++++
- 1 files changed, 549 insertions(+), 0 deletions(-)
- create mode 100644 drivers/infiniband/hw/qib/qib_fs.c
+ drivers/infiniband/hw/qib/qib_intr.c |  217 ++++++++++++++++++++++++++++++++++
+ 1 files changed, 217 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/infiniband/hw/qib/qib_intr.c
 
-diff --git a/drivers/infiniband/hw/qib/qib_fs.c b/drivers/infiniband/hw/qib/qib_fs.c
+diff --git a/drivers/infiniband/hw/qib/qib_intr.c b/drivers/infiniband/hw/qib/qib_intr.c
 new file mode 100644
-index 0000000..629ff7e
+index 0000000..46e128a
 --- /dev/null
-+++ b/drivers/infiniband/hw/qib/qib_fs.c
-@@ -0,0 +1,549 @@
++++ b/drivers/infiniband/hw/qib/qib_intr.c
+@@ -0,0 +1,217 @@
 +/*
 + * Copyright (c) 2006, 2007, 2008, 2009 QLogic Corporation. All rights reserved.
-+ * Copyright (c) 2006 PathScale, Inc. All rights reserved.
++ * Copyright (c) 2003, 2004, 2005, 2006 PathScale, Inc. All rights reserved.
 + *
 + * This software is available to you under a choice of one of two
 + * licenses.  You may choose to be licensed under the terms of the GNU
@@ -61,521 +61,189 @@ index 0000000..629ff7e
 + * SOFTWARE.
 + */
 +
-+#include <linux/module.h>
-+#include <linux/fs.h>
-+#include <linux/mount.h>
-+#include <linux/pagemap.h>
-+#include <linux/init.h>
-+#include <linux/namei.h>
++#include <linux/pci.h>
++#include <linux/delay.h>
 +
 +#include "qib.h"
++#include "qib_common.h"
 +
-+#define QIBFS_MAGIC 0x726a77
-+
-+static struct super_block *qib_super;
-+
-+#define private2dd(file) ((file)->f_dentry->d_inode->i_private)
-+
-+static int qibfs_mknod(struct inode *dir, struct dentry *dentry,
-+		       int mode, const struct file_operations *fops,
-+		       void *data)
-+{
-+	int error;
-+	struct inode *inode = new_inode(dir->i_sb);
-+
-+	if (!inode) {
-+		error = -EPERM;
-+		goto bail;
-+	}
-+
-+	inode->i_mode = mode;
-+	inode->i_uid = 0;
-+	inode->i_gid = 0;
-+	inode->i_blocks = 0;
-+	inode->i_atime = CURRENT_TIME;
-+	inode->i_mtime = inode->i_atime;
-+	inode->i_ctime = inode->i_atime;
-+	inode->i_private = data;
-+	if ((mode & S_IFMT) == S_IFDIR) {
-+		inode->i_op = &simple_dir_inode_operations;
-+		inc_nlink(inode);
-+		inc_nlink(dir);
-+	}
-+
-+	inode->i_fop = fops;
-+
-+	d_instantiate(dentry, inode);
-+	error = 0;
-+
-+bail:
-+	return error;
-+}
-+
-+static int create_file(const char *name, mode_t mode,
-+		       struct dentry *parent, struct dentry **dentry,
-+		       const struct file_operations *fops, void *data)
-+{
-+	int error;
-+
-+	*dentry = NULL;
-+	mutex_lock(&parent->d_inode->i_mutex);
-+	*dentry = lookup_one_len(name, parent, strlen(name));
-+	if (!IS_ERR(*dentry))
-+		error = qibfs_mknod(parent->d_inode, *dentry,
-+				    mode, fops, data);
-+	else
-+		error = PTR_ERR(*dentry);
-+	mutex_unlock(&parent->d_inode->i_mutex);
-+
-+	return error;
-+}
-+
-+static ssize_t driver_stats_read(struct file *file, char __user *buf,
-+				 size_t count, loff_t *ppos)
-+{
-+	return simple_read_from_buffer(buf, count, ppos, &qib_stats,
-+				       sizeof qib_stats);
-+}
-+
-+/*
-+ * driver stats field names, one line per stat, single string.  Used by
-+ * programs like ipathstats to print the stats in a way which works for
-+ * different versions of drivers, without changing program source.
-+ * if qlogic_ib_stats changes, this needs to change.  Names need to be
-+ * 12 chars or less (w/o newline), for proper display by ipathstats utility.
++/**
++ * qib_format_hwmsg - format a single hwerror message
++ * @msg message buffer
++ * @msgl length of message buffer
++ * @hwmsg message to add to message buffer
 + */
-+static const char qib_statnames[] =
-+	"KernIntr\n"
-+	"ErrorIntr\n"
-+	"Tx_Errs\n"
-+	"Rcv_Errs\n"
-+	"H/W_Errs\n"
-+	"NoPIOBufs\n"
-+	"CtxtsOpen\n"
-+	"RcvLen_Errs\n"
-+	"EgrBufFull\n"
-+	"EgrHdrFull\n"
-+	;
-+
-+static ssize_t driver_names_read(struct file *file, char __user *buf,
-+				 size_t count, loff_t *ppos)
++static void qib_format_hwmsg(char *msg, size_t msgl, const char *hwmsg)
 +{
-+	return simple_read_from_buffer(buf, count, ppos, qib_statnames,
-+		sizeof qib_statnames - 1); /* no null */
++	strlcat(msg, "[", msgl);
++	strlcat(msg, hwmsg, msgl);
++	strlcat(msg, "]", msgl);
 +}
 +
-+static const struct file_operations driver_ops[] = {
-+	{ .read = driver_stats_read, },
-+	{ .read = driver_names_read, },
-+};
-+
-+/* read the per-device counters */
-+static ssize_t dev_counters_read(struct file *file, char __user *buf,
-+				 size_t count, loff_t *ppos)
-+{
-+	u64 *counters;
-+	struct qib_devdata *dd = private2dd(file);
-+
-+	return simple_read_from_buffer(buf, count, ppos, counters,
-+		dd->f_read_cntrs(dd, *ppos, NULL, &counters));
-+}
-+
-+/* read the per-device counters */
-+static ssize_t dev_names_read(struct file *file, char __user *buf,
-+			      size_t count, loff_t *ppos)
-+{
-+	char *names;
-+	struct qib_devdata *dd = private2dd(file);
-+
-+	return simple_read_from_buffer(buf, count, ppos, names,
-+		dd->f_read_cntrs(dd, *ppos, &names, NULL));
-+}
-+
-+static const struct file_operations cntr_ops[] = {
-+	{ .read = dev_counters_read, },
-+	{ .read = dev_names_read, },
-+};
-+
-+/*
-+ * Could use file->f_dentry->d_inode->i_ino to figure out which file,
-+ * instead of separate routine for each, but for now, this works...
++/**
++ * qib_format_hwerrors - format hardware error messages for display
++ * @hwerrs hardware errors bit vector
++ * @hwerrmsgs hardware error descriptions
++ * @nhwerrmsgs number of hwerrmsgs
++ * @msg message buffer
++ * @msgl message buffer length
 + */
-+
-+/* read the per-port names (same for each port) */
-+static ssize_t portnames_read(struct file *file, char __user *buf,
-+			      size_t count, loff_t *ppos)
++void qib_format_hwerrors(u64 hwerrs, const struct qib_hwerror_msgs *hwerrmsgs,
++			 size_t nhwerrmsgs, char *msg, size_t msgl)
 +{
-+	char *names;
-+	struct qib_devdata *dd = private2dd(file);
++	int i;
 +
-+	return simple_read_from_buffer(buf, count, ppos, names,
-+		dd->f_read_portcntrs(dd, *ppos, 0, &names, NULL));
++	for (i = 0; i < nhwerrmsgs; i++)
++		if (hwerrs & hwerrmsgs[i].mask)
++			qib_format_hwmsg(msg, msgl, hwerrmsgs[i].msg);
 +}
 +
-+/* read the per-port counters for port 1 (pidx 0) */
-+static ssize_t portcntrs_1_read(struct file *file, char __user *buf,
-+				size_t count, loff_t *ppos)
++static void signal_ib_event(struct qib_pportdata *ppd, enum ib_event_type ev)
 +{
-+	u64 *counters;
-+	struct qib_devdata *dd = private2dd(file);
++	struct ib_event event;
++	struct qib_devdata *dd = ppd->dd;
 +
-+	return simple_read_from_buffer(buf, count, ppos, counters,
-+		dd->f_read_portcntrs(dd, *ppos, 0, NULL, &counters));
++	event.device = &dd->verbs_dev.ibdev;
++	event.element.port_num = ppd->port;
++	event.event = ev;
++	ib_dispatch_event(&event);
 +}
 +
-+/* read the per-port counters for port 2 (pidx 1) */
-+static ssize_t portcntrs_2_read(struct file *file, char __user *buf,
-+				size_t count, loff_t *ppos)
++void qib_handle_e_ibstatuschanged(struct qib_pportdata *ppd, u64 ibcs)
 +{
-+	u64 *counters;
-+	struct qib_devdata *dd = private2dd(file);
-+
-+	return simple_read_from_buffer(buf, count, ppos, counters,
-+		dd->f_read_portcntrs(dd, *ppos, 1, NULL, &counters));
-+}
-+
-+static const struct file_operations portcntr_ops[] = {
-+	{ .read = portnames_read, },
-+	{ .read = portcntrs_1_read, },
-+	{ .read = portcntrs_2_read, },
-+};
-+
-+static ssize_t flash_read(struct file *file, char __user *buf,
-+			  size_t count, loff_t *ppos)
-+{
-+	struct qib_devdata *dd;
-+	ssize_t ret;
-+	loff_t pos;
-+	char *tmp;
-+
-+	pos = *ppos;
-+
-+	if (pos < 0) {
-+		ret = -EINVAL;
-+		goto bail;
-+	}
-+
-+	if (pos >= sizeof(struct qib_flash)) {
-+		ret = 0;
-+		goto bail;
-+	}
-+
-+	if (count > sizeof(struct qib_flash) - pos)
-+		count = sizeof(struct qib_flash) - pos;
-+
-+	tmp = kmalloc(count, GFP_KERNEL);
-+	if (!tmp) {
-+		ret = -ENOMEM;
-+		goto bail;
-+	}
-+
-+	dd = private2dd(file);
-+	if (qib_eeprom_read(dd, pos, tmp, count)) {
-+		qib_dev_err(dd, "failed to read from flash\n");
-+		ret = -ENXIO;
-+		goto bail_tmp;
-+	}
-+
-+	if (copy_to_user(buf, tmp, count)) {
-+		ret = -EFAULT;
-+		goto bail_tmp;
-+	}
-+
-+	*ppos = pos + count;
-+	ret = count;
-+
-+bail_tmp:
-+	kfree(tmp);
-+
-+bail:
-+	return ret;
-+}
-+
-+static ssize_t flash_write(struct file *file, const char __user *buf,
-+			   size_t count, loff_t *ppos)
-+{
-+	struct qib_devdata *dd;
-+	ssize_t ret;
-+	loff_t pos;
-+	char *tmp;
-+
-+	pos = *ppos;
-+
-+	if (pos != 0) {
-+		ret = -EINVAL;
-+		goto bail;
-+	}
-+
-+	if (count != sizeof(struct qib_flash)) {
-+		ret = -EINVAL;
-+		goto bail;
-+	}
-+
-+	tmp = kmalloc(count, GFP_KERNEL);
-+	if (!tmp) {
-+		ret = -ENOMEM;
-+		goto bail;
-+	}
-+
-+	if (copy_from_user(tmp, buf, count)) {
-+		ret = -EFAULT;
-+		goto bail_tmp;
-+	}
-+
-+	dd = private2dd(file);
-+	if (qib_eeprom_write(dd, pos, tmp, count)) {
-+		ret = -ENXIO;
-+		qib_dev_err(dd, "failed to write to flash\n");
-+		goto bail_tmp;
-+	}
-+
-+	*ppos = pos + count;
-+	ret = count;
-+
-+bail_tmp:
-+	kfree(tmp);
-+
-+bail:
-+	return ret;
-+}
-+
-+static const struct file_operations flash_ops = {
-+	.read = flash_read,
-+	.write = flash_write,
-+};
-+
-+static int add_cntr_files(struct super_block *sb, struct qib_devdata *dd)
-+{
-+	struct dentry *dir, *tmp;
-+	char unit[10];
-+	int ret, i;
-+
-+	/* create the per-unit directory */
-+	snprintf(unit, sizeof unit, "%u", dd->unit);
-+	ret = create_file(unit, S_IFDIR|S_IRUGO|S_IXUGO, sb->s_root, &dir,
-+			  &simple_dir_operations, dd);
-+	if (ret) {
-+		printk(KERN_ERR "create_file(%s) failed: %d\n", unit, ret);
-+		goto bail;
-+	}
-+
-+	/* create the files in the new directory */
-+	ret = create_file("counters", S_IFREG|S_IRUGO, dir, &tmp,
-+			  &cntr_ops[0], dd);
-+	if (ret) {
-+		printk(KERN_ERR "create_file(%s/counters) failed: %d\n",
-+		       unit, ret);
-+		goto bail;
-+	}
-+	ret = create_file("counter_names", S_IFREG|S_IRUGO, dir, &tmp,
-+			  &cntr_ops[1], dd);
-+	if (ret) {
-+		printk(KERN_ERR "create_file(%s/counter_names) failed: %d\n",
-+		       unit, ret);
-+		goto bail;
-+	}
-+	ret = create_file("portcounter_names", S_IFREG|S_IRUGO, dir, &tmp,
-+			  &portcntr_ops[0], dd);
-+	if (ret) {
-+		printk(KERN_ERR "create_file(%s/%s) failed: %d\n",
-+		       unit, "portcounter_names", ret);
-+		goto bail;
-+	}
-+	for (i = 1; i <= dd->num_pports; i++) {
-+		char portcntr[24];
-+
-+		sprintf(portcntr, "port%dcounters", i);
-+		/* create the files in the new directory */
-+		ret = create_file(portcntr, S_IFREG|S_IRUGO, dir, &tmp,
-+				  &portcntr_ops[i], dd);
-+		if (ret) {
-+			printk(KERN_ERR "create_file(%s/%s) failed: %d\n",
-+				unit, portcntr, ret);
-+			goto bail;
-+		}
-+	}
-+
-+	ret = create_file("flash", S_IFREG|S_IWUSR|S_IRUGO, dir, &tmp,
-+			  &flash_ops, dd);
-+	if (ret)
-+		printk(KERN_ERR "create_file(%s/flash) failed: %d\n",
-+			unit, ret);
-+bail:
-+	return ret;
-+}
-+
-+static int remove_file(struct dentry *parent, char *name)
-+{
-+	struct dentry *tmp;
-+	int ret;
-+
-+	tmp = lookup_one_len(name, parent, strlen(name));
-+
-+	if (IS_ERR(tmp)) {
-+		ret = PTR_ERR(tmp);
-+		goto bail;
-+	}
-+
-+	spin_lock(&dcache_lock);
-+	spin_lock(&tmp->d_lock);
-+	if (!(d_unhashed(tmp) && tmp->d_inode)) {
-+		dget_locked(tmp);
-+		__d_drop(tmp);
-+		spin_unlock(&tmp->d_lock);
-+		spin_unlock(&dcache_lock);
-+		simple_unlink(parent->d_inode, tmp);
-+	} else {
-+		spin_unlock(&tmp->d_lock);
-+		spin_unlock(&dcache_lock);
-+	}
-+
-+	ret = 0;
-+bail:
-+	/*
-+	 * We don't expect clients to care about the return value, but
-+	 * it's there if they need it.
-+	 */
-+	return ret;
-+}
-+
-+static int remove_device_files(struct super_block *sb,
-+			       struct qib_devdata *dd)
-+{
-+	struct dentry *dir, *root;
-+	char unit[10];
-+	int ret, i;
-+
-+	root = dget(sb->s_root);
-+	mutex_lock(&root->d_inode->i_mutex);
-+	snprintf(unit, sizeof unit, "%u", dd->unit);
-+	dir = lookup_one_len(unit, root, strlen(unit));
-+
-+	if (IS_ERR(dir)) {
-+		ret = PTR_ERR(dir);
-+		printk(KERN_ERR "Lookup of %s failed\n", unit);
-+		goto bail;
-+	}
-+
-+	remove_file(dir, "counters");
-+	remove_file(dir, "counter_names");
-+	remove_file(dir, "portcounter_names");
-+	for (i = 0; i < dd->num_pports; i++) {
-+		char portcntr[24];
-+
-+		sprintf(portcntr, "port%dcounters", i + 1);
-+		remove_file(dir, portcntr);
-+	}
-+	remove_file(dir, "flash");
-+	d_delete(dir);
-+	ret = simple_rmdir(root->d_inode, dir);
-+
-+bail:
-+	mutex_unlock(&root->d_inode->i_mutex);
-+	dput(root);
-+	return ret;
-+}
-+
-+/*
-+ * This fills everything in when the fs is mounted, to handle umount/mount
-+ * after device init.  The direct add_cntr_files() call handles adding
-+ * them from the init code, when the fs is already mounted.
-+ */
-+static int qibfs_fill_super(struct super_block *sb, void *data, int silent)
-+{
-+	struct qib_devdata *dd, *tmp;
++	struct qib_devdata *dd = ppd->dd;
 +	unsigned long flags;
-+	int ret;
++	u32 lstate;
++	u8 ltstate;
 +
-+	static struct tree_descr files[] = {
-+		[2] = {"driver_stats", &driver_ops[0], S_IRUGO},
-+		[3] = {"driver_stats_names", &driver_ops[1], S_IRUGO},
-+		{""},
-+	};
-+
-+	ret = simple_fill_super(sb, QIBFS_MAGIC, files);
-+	if (ret) {
-+		printk(KERN_ERR "simple_fill_super failed: %d\n", ret);
-+		goto bail;
-+	}
-+
-+	spin_lock_irqsave(&qib_devs_lock, flags);
-+
-+	list_for_each_entry_safe(dd, tmp, &qib_dev_list, list) {
-+		spin_unlock_irqrestore(&qib_devs_lock, flags);
-+		ret = add_cntr_files(sb, dd);
-+		if (ret) {
-+			deactivate_super(sb);
-+			goto bail;
-+		}
-+		spin_lock_irqsave(&qib_devs_lock, flags);
-+	}
-+
-+	spin_unlock_irqrestore(&qib_devs_lock, flags);
-+
-+bail:
-+	return ret;
-+}
-+
-+static int qibfs_get_sb(struct file_system_type *fs_type, int flags,
-+			const char *dev_name, void *data, struct vfsmount *mnt)
-+{
-+	int ret = get_sb_single(fs_type, flags, data,
-+				qibfs_fill_super, mnt);
-+	if (ret >= 0)
-+		qib_super = mnt->mnt_sb;
-+	return ret;
-+}
-+
-+static void qibfs_kill_super(struct super_block *s)
-+{
-+	kill_litter_super(s);
-+	qib_super = NULL;
-+}
-+
-+int qibfs_add(struct qib_devdata *dd)
-+{
-+	int ret;
++	lstate = dd->f_iblink_state(ibcs); /* linkstate */
++	ltstate = dd->f_ibphys_portstate(ibcs);
 +
 +	/*
-+	 * On first unit initialized, qib_super will not yet exist
-+	 * because nobody has yet tried to mount the filesystem, so
-+	 * we can't consider that to be an error; if an error occurs
-+	 * during the mount, that will get a complaint, so this is OK.
-+	 * add_cntr_files() for all units is done at mount from
-+	 * qibfs_fill_super(), so one way or another, everything works.
++	 * If linkstate transitions into INIT from any of the various down
++	 * states, or if it transitions from any of the up (INIT or better)
++	 * states into any of the down states (except link recovery), then
++	 * call the chip-specific code to take appropriate actions.
 +	 */
-+	if (qib_super == NULL)
-+		ret = 0;
-+	else
-+		ret = add_cntr_files(qib_super, dd);
-+	return ret;
++	if (lstate >= IB_PORT_INIT && (ppd->lflags & QIBL_LINKDOWN) &&
++	    ltstate == IB_PHYSPORTSTATE_LINKUP) {
++		/* transitioned to UP */
++		if (dd->f_ib_updown(ppd, 1, ibcs))
++			goto skip_ibchange; /* chip-code handled */
++	} else if (ppd->lflags & (QIBL_LINKINIT | QIBL_LINKARMED |
++		   QIBL_LINKACTIVE | QIBL_IB_FORCE_NOTIFY)) {
++		if (ltstate != IB_PHYSPORTSTATE_LINKUP &&
++		    ltstate <= IB_PHYSPORTSTATE_CFG_TRAIN &&
++		    dd->f_ib_updown(ppd, 0, ibcs))
++			goto skip_ibchange; /* chip-code handled */
++		qib_set_uevent_bits(ppd, _QIB_EVENT_LINKDOWN_BIT);
++	}
++
++	if (lstate != IB_PORT_DOWN) {
++		/* lstate is INIT, ARMED, or ACTIVE */
++		if (lstate != IB_PORT_ACTIVE) {
++			*ppd->statusp &= ~QIB_STATUS_IB_READY;
++			if (ppd->lflags & QIBL_LINKACTIVE)
++				signal_ib_event(ppd, IB_EVENT_PORT_ERR);
++			spin_lock_irqsave(&ppd->lflags_lock, flags);
++			if (lstate == IB_PORT_ARMED) {
++				ppd->lflags |= QIBL_LINKARMED | QIBL_LINKV;
++				ppd->lflags &= ~(QIBL_LINKINIT |
++					QIBL_LINKDOWN | QIBL_LINKACTIVE);
++			} else {
++				ppd->lflags |= QIBL_LINKINIT | QIBL_LINKV;
++				ppd->lflags &= ~(QIBL_LINKARMED |
++					QIBL_LINKDOWN | QIBL_LINKACTIVE);
++			}
++			spin_unlock_irqrestore(&ppd->lflags_lock, flags);
++		} else if (ltstate == IB_PHYSPORTSTATE_LINKUP) {
++			/* active, but not active defered */
++			*ppd->statusp |=
++				QIB_STATUS_IB_READY | QIB_STATUS_IB_CONF;
++			spin_lock_irqsave(&ppd->lflags_lock, flags);
++			ppd->lflags |= QIBL_LINKACTIVE | QIBL_LINKV;
++			ppd->lflags &= ~(QIBL_LINKINIT |
++				QIBL_LINKDOWN | QIBL_LINKARMED);
++			spin_unlock_irqrestore(&ppd->lflags_lock, flags);
++			if (dd->flags & QIB_HAS_SEND_DMA)
++				qib_sdma_process_event(ppd,
++					qib_sdma_event_e30_go_running);
++			signal_ib_event(ppd, IB_EVENT_PORT_ACTIVE);
++			dd->f_setextled(ppd, 1);
++			qib_hol_up(ppd);
++		}
++	} else { /* down */
++		if (ppd->lflags & QIBL_LINKACTIVE)
++			signal_ib_event(ppd, IB_EVENT_PORT_ERR);
++		spin_lock_irqsave(&ppd->lflags_lock, flags);
++		ppd->lflags |= QIBL_LINKDOWN | QIBL_LINKV;
++		ppd->lflags &= ~(QIBL_LINKINIT |
++				 QIBL_LINKACTIVE | QIBL_LINKARMED);
++		spin_unlock_irqrestore(&ppd->lflags_lock, flags);
++		*ppd->statusp &= ~QIB_STATUS_IB_READY;
++	}
++
++skip_ibchange:
++	ppd->lastibcstat = ibcs;
++	return;
 +}
 +
-+int qibfs_remove(struct qib_devdata *dd)
++/*
++ * Handle receive interrupts for user ctxts; this means a user
++ * process was waiting for a packet to arrive, and didn't want
++ * to poll.
++ */
++void qib_handle_urcv(struct qib_devdata *dd, u64 ctxtr)
 +{
-+	int ret = 0;
++	struct qib_ctxtdata *rcd;
++	unsigned long flags;
++	int i;
 +
-+	if (qib_super)
-+		ret = remove_device_files(qib_super, dd);
++	spin_lock_irqsave(&dd->uctxt_lock, flags);
++	for (i = dd->first_user_ctxt; dd->rcd && i < dd->cfgctxts; i++) {
++		if (!(ctxtr & (1ULL << i)))
++			continue;
++		rcd = dd->rcd[i];
++		if (!rcd || !rcd->cnt)
++			continue;
 +
-+	return ret;
++		if (test_and_clear_bit(QIB_CTXT_WAITING_RCV, &rcd->flag)) {
++			wake_up_interruptible(&rcd->wait);
++			dd->f_rcvctrl(rcd->ppd, QIB_RCVCTRL_INTRAVAIL_DIS,
++				      rcd->ctxt);
++		} else if (test_and_clear_bit(QIB_CTXT_WAITING_URG,
++					      &rcd->flag)) {
++			rcd->urgent++;
++			wake_up_interruptible(&rcd->wait);
++		}
++	}
++	spin_unlock_irqrestore(&dd->uctxt_lock, flags);
 +}
 +
-+static struct file_system_type qibfs_fs_type = {
-+	.owner =        THIS_MODULE,
-+	.name =         "ipathfs",
-+	.get_sb =       qibfs_get_sb,
-+	.kill_sb =      qibfs_kill_super,
-+};
-+
-+int __init qib_init_qibfs(void)
++void qib_bad_intrstatus(struct qib_devdata *dd)
 +{
-+	return register_filesystem(&qibfs_fs_type);
-+}
++	static int allbits;
 +
-+int __exit qib_exit_qibfs(void)
-+{
-+	return unregister_filesystem(&qibfs_fs_type);
++	/* separate routine, for better optimization of qib_intr() */
++
++	/*
++	 * We print the message and disable interrupts, in hope of
++	 * having a better chance of debugging the problem.
++	 */
++	qib_dev_err(dd, "Read of chip interrupt status failed"
++		    " disabling interrupts\n");
++	if (allbits++) {
++		/* disable interrupt delivery, something is very wrong */
++		if (allbits == 2)
++			dd->f_set_intr_state(dd, 0);
++		if (allbits == 3) {
++			qib_dev_err(dd, "2nd bad interrupt status, "
++				    "unregistering interrupts\n");
++			dd->flags |= QIB_BADINTR;
++			dd->flags &= ~QIB_INITTED;
++			dd->f_free_irq(dd);
++		}
++	}
 +}
 
 --
