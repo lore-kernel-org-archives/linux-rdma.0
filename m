@@ -1,8 +1,7 @@
 From: Ralph Campbell <ralph.campbell-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v2 51/51] IB/qib: Hooks for adding the QIB driver into the
-	framework
-Date: Thu, 03 Dec 2009 11:07:32 -0800
-Message-ID: <20091203190732.29507.2592.stgit@chromite.mv.qlogic.com>
+Subject: [PATCH v2 49/51] IB/qib: Add qib_wc_ppc64.c
+Date: Thu, 03 Dec 2009 11:07:21 -0800
+Message-ID: <20091203190721.29507.42351.stgit@chromite.mv.qlogic.com>
 References: <20091203190305.29507.58158.stgit@chromite.mv.qlogic.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -14,37 +13,83 @@ To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+creates the qib_wc_ppc64.c file.
+
 Signed-off-by: Ralph Campbell <ralph.campbell-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
 ---
 
- drivers/infiniband/Kconfig  |    1 +
- drivers/infiniband/Makefile |    1 +
- 2 files changed, 2 insertions(+), 0 deletions(-)
+ drivers/infiniband/hw/qib/qib_wc_ppc64.c |   62 ++++++++++++++++++++++++++++++
+ 1 files changed, 62 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/infiniband/hw/qib/qib_wc_ppc64.c
 
-diff --git a/drivers/infiniband/Kconfig b/drivers/infiniband/Kconfig
-index dd0db67..c80f973 100644
---- a/drivers/infiniband/Kconfig
-+++ b/drivers/infiniband/Kconfig
-@@ -42,6 +42,7 @@ config INFINIBAND_ADDR_TRANS
- 
- source "drivers/infiniband/hw/mthca/Kconfig"
- source "drivers/infiniband/hw/ipath/Kconfig"
-+source "drivers/infiniband/hw/qib/Kconfig"
- source "drivers/infiniband/hw/ehca/Kconfig"
- source "drivers/infiniband/hw/amso1100/Kconfig"
- source "drivers/infiniband/hw/cxgb3/Kconfig"
-diff --git a/drivers/infiniband/Makefile b/drivers/infiniband/Makefile
-index ed35e44..27b66b1 100644
---- a/drivers/infiniband/Makefile
-+++ b/drivers/infiniband/Makefile
-@@ -1,6 +1,7 @@
- obj-$(CONFIG_INFINIBAND)		+= core/
- obj-$(CONFIG_INFINIBAND_MTHCA)		+= hw/mthca/
- obj-$(CONFIG_INFINIBAND_IPATH)		+= hw/ipath/
-+obj-$(CONFIG_INFINIBAND_QIB)		+= hw/qib/
- obj-$(CONFIG_INFINIBAND_EHCA)		+= hw/ehca/
- obj-$(CONFIG_INFINIBAND_AMSO1100)	+= hw/amso1100/
- obj-$(CONFIG_INFINIBAND_CXGB3)		+= hw/cxgb3/
+diff --git a/drivers/infiniband/hw/qib/qib_wc_ppc64.c b/drivers/infiniband/hw/qib/qib_wc_ppc64.c
+new file mode 100644
+index 0000000..673cf4c
+--- /dev/null
++++ b/drivers/infiniband/hw/qib/qib_wc_ppc64.c
+@@ -0,0 +1,62 @@
++/*
++ * Copyright (c) 2006, 2007, 2008 QLogic Corporation. All rights reserved.
++ *
++ * This software is available to you under a choice of one of two
++ * licenses.  You may choose to be licensed under the terms of the GNU
++ * General Public License (GPL) Version 2, available from the file
++ * COPYING in the main directory of this source tree, or the
++ * OpenIB.org BSD license below:
++ *
++ *     Redistribution and use in source and binary forms, with or
++ *     without modification, are permitted provided that the following
++ *     conditions are met:
++ *
++ *      - Redistributions of source code must retain the above
++ *        copyright notice, this list of conditions and the following
++ *        disclaimer.
++ *
++ *      - Redistributions in binary form must reproduce the above
++ *        copyright notice, this list of conditions and the following
++ *        disclaimer in the documentation and/or other materials
++ *        provided with the distribution.
++ *
++ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
++ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
++ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
++ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
++ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
++ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
++ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
++ * SOFTWARE.
++ */
++
++/*
++ * This file is conditionally built on PowerPC only.  Otherwise weak symbol
++ * versions of the functions exported from here are used.
++ */
++
++#include "qib.h"
++
++/**
++ * qib_enable_wc - enable write combining for MMIO writes to the device
++ * @dd: qlogic_ib device
++ *
++ * Nothing to do on PowerPC, so just return without error.
++ */
++int qib_enable_wc(struct qib_devdata *dd)
++{
++	return 0;
++}
++
++/**
++ * qib_unordered_wc - indicate whether write combining is unordered
++ *
++ * Because our performance depends on our ability to do write
++ * combining mmio writes in the most efficient way, we need to
++ * know if we are on a processor that may reorder stores when
++ * write combining.
++ */
++int qib_unordered_wc(void)
++{
++	return 1;
++}
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
