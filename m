@@ -1,7 +1,7 @@
 From: sebastien dugue <sebastien.dugue-6ktuUTfB/bM@public.gmane.org>
 Subject: Re: QoS settings not mapped correctly per pkey ?
-Date: Thu, 3 Dec 2009 10:05:03 +0100
-Message-ID: <20091203100503.19430d35@frecb007965>
+Date: Thu, 3 Dec 2009 10:08:07 +0100
+Message-ID: <20091203100807.37f259b2@frecb007965>
 References: <4B0D0DB2.6080802@bull.net>
 	<4B0D1F36.1090007@dev.mellanox.co.il>
 	<4B0D38C7.3080505@bull.net>
@@ -13,79 +13,73 @@ References: <4B0D0DB2.6080802@bull.net>
 	<4B0E4105.5080107@bull.net>
 	<4B0E50D6.8020401@dev.mellanox.co.il>
 	<4B177058.9070909@dev.mellanox.co.il>
-	<4B1774F0.9060002@Voltaire.com>
+	<20091203091758.1975bf32@frecb007965>
+	<4B177F10.1040908@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4B1774F0.9060002-hKgKHo2Ms0FWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <4B177F10.1040908-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <ogerlitz-hKgKHo2Ms0FWk0Htik3J/w@public.gmane.org>
-Cc: kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org, Vincent Ficet <jean-vincent.ficet-6ktuUTfB/bM@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, BOURDE CELINE <Celine.Bourde-6ktuUTfB/bM@public.gmane.org>
+To: kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org
+Cc: Vincent Ficet <jean-vincent.ficet-6ktuUTfB/bM@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, BOURDE CELINE <Celine.Bourde-6ktuUTfB/bM@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On Thu, 03 Dec 2009 11:04:16 +0200
+Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wrote:
 
-
-  Hi Or,
-
-On Thu, 03 Dec 2009 10:21:04 +0200
-Or Gerlitz <ogerlitz-hKgKHo2Ms0FWk0Htik3J/w@public.gmane.org> wrote:
-
-> Yevgeny Kliteynik wrote:
-> > " It looks like in 'datagram' mode, the SL weights
-> >   do not seem to be applied, or maybe this is an
-> >   artifact of IPoIB in 'datagram mode' "
+> sebastien dugue wrote:
+> >   Hi Yevgeny,
+> >=20
+> > On Thu, 03 Dec 2009 10:01:28 +0200
+> > Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wrote:
+> >=20
+> >> Sebastien,
+> >>
+> >> I noticed that you found the problem in IPoIB child=20
+> >> interfaces configuration. Glad that this worked out well.=20
+> >>
+> >> My question is about the note that you left in the issue:
+> >>
+> >>  " It looks like in 'datagram' mode, the SL weights
+> >>    do not seem to be applied, or maybe this is an
+> >>    artifact of IPoIB in 'datagram mode' "
+> >>
+> >> Have you checked that in this mode you do get the right
+> >> SL for each child interface by shutting off the relevant
+> >> SL (mapping it to VL15)?
+> >=20
+> >   Yes, SL to VL mapping is OK.
+> >=20
+> >> If yes, then what you're saying is that you see that
+> >> interfaces use the right SL and VL, but you don't see
+> >> any arbitration between VLs?
+> >=20
+> >   Right, whatever the weights I put in the vlarbs tables have absol=
+utely
+> > no effect when IPoIB is in datagram mode. I don't know if it's
+> > an arbitration problem (don't think so) or an IPoIB problem.
+> >=20
+> >   Could be that due to the 2044 bytes MTU in datagram mode, iperf
+> > spends much time not doing transfers and fails to provide enough
+> > data to the interfaces. Don't know.
+> >=20
+> >   Once I switched to connected mode, with a 65520 bytes MTU, things
+> > started to work OK with a much better overall combined bandwidth.
 >=20
-> yes, there's no reason for connected mode to behave differently wrt t=
-o QoS/SL assignment from the SM, as both modes get their SL from the pa=
-th record provided by the SM and both mode use the same code for the pa=
-th query...
+> OK, then "a much better overall combined bandwidth" is an
+> answer here. VL arbitration kicks in only when you saturate
+> the link. If you don't, there's no point doing arbitration,
+> because HW is able so serve any packet that comes w/o the
+> need to prioritize.
 
-  Right, that was my gut's feeling.
+  Yep, that's the conclusion I came to.
 
->=20
-> > Have you checked that in this mode you do get the right
-> > SL for each child interface by shutting off the relevant
-> > SL (mapping it to VL15)?
->=20
-> seeing what SL is provided by the SM in return to the path query is t=
-rivial, either through the opensm logs or the ipoib ones, e.g here you =
-see that ib1 got SL 0
-> on its Path to GID fe80:0000:0000:0000:0008:f104:0399:3c92 LID 0x0006=
- which is
-> 10.10.0.91
-
-  Just checked, the SLs provided by the path queries are OK in datagram=
- mode.
-
-  There might be some overhead somewhere (in iperf or in the IPoIB laye=
-r) that
-prevent using the link full bandwidth in datagram mode.
-
-  Thanks,
+  Might be interesting to find where the bottleneck is though, that
+prevents saturating the link.
 
   S=C3=A9bastien.
 
-
->=20
-> > ifdown ib1
-> > echo 1 > /sys/module/ib_ipoib/parameters/debug_level
-> > ifup ib1
-> > ping 10.10.0.91
-> > dmesg | grep ib1
->=20
-> > ib1: Start path record lookup for fe80:0000:0000:0000:0008:f104:039=
-9:3c92 MTU > 0
-> > ib1: PathRec LID 0x0006 for GID fe80:0000:0000:0000:0008:f104:0399:=
-3c92
-> > ib1: Created ah ffff81021ddda180
-> > ib1: created address handle ffff81021ddda500 for LID 0x0006, SL 0
->=20
-> > # ip neigh show dev ib1
-> > 10.10.0.91 lladdr 80:00:00:49:fe:80:00:00:00:00:00:00:00:08:f1:04:0=
-3:99:3c:92 REACHABLE
->=20
->=20
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
 n
