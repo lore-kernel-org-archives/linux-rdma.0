@@ -1,7 +1,7 @@
 From: Ralph Campbell <ralph.campbell-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v2 25/51] IB/qib: Add qib_mmap.c
-Date: Thu, 03 Dec 2009 11:05:16 -0800
-Message-ID: <20091203190516.29507.56250.stgit@chromite.mv.qlogic.com>
+Subject: [PATCH v2 28/51] IB/qib: Add qib_pio_copy.c
+Date: Thu, 03 Dec 2009 11:05:32 -0800
+Message-ID: <20091203190532.29507.42594.stgit@chromite.mv.qlogic.com>
 References: <20091203190305.29507.58158.stgit@chromite.mv.qlogic.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -13,23 +13,23 @@ To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-creates the qib_mmap.c file.
+creates the qib_pio_copy.c file.
 
 Signed-off-by: Ralph Campbell <ralph.campbell-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
 ---
 
- drivers/infiniband/hw/qib/qib_mmap.c |  173 ++++++++++++++++++++++++++++++++++
- 1 files changed, 173 insertions(+), 0 deletions(-)
- create mode 100644 drivers/infiniband/hw/qib/qib_mmap.c
+ drivers/infiniband/hw/qib/qib_pio_copy.c |   64 ++++++++++++++++++++++++++++++
+ 1 files changed, 64 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/infiniband/hw/qib/qib_pio_copy.c
 
-diff --git a/drivers/infiniband/hw/qib/qib_mmap.c b/drivers/infiniband/hw/qib/qib_mmap.c
+diff --git a/drivers/infiniband/hw/qib/qib_pio_copy.c b/drivers/infiniband/hw/qib/qib_pio_copy.c
 new file mode 100644
-index 0000000..ae15d38
+index 0000000..10b8c44
 --- /dev/null
-+++ b/drivers/infiniband/hw/qib/qib_mmap.c
-@@ -0,0 +1,173 @@
++++ b/drivers/infiniband/hw/qib/qib_pio_copy.c
+@@ -0,0 +1,64 @@
 +/*
-+ * Copyright (c) 2006, 2007, 2008, 2009 QLogic Corporation. All rights reserved.
++ * Copyright (c) 2009 QLogic Corporation. All rights reserved.
 + *
 + * This software is available to you under a choice of one of two
 + * licenses.  You may choose to be licensed under the terms of the GNU
@@ -60,146 +60,37 @@ index 0000000..ae15d38
 + * SOFTWARE.
 + */
 +
-+#include <linux/module.h>
-+#include <linux/vmalloc.h>
-+#include <linux/mm.h>
-+#include <linux/errno.h>
-+#include <asm/pgtable.h>
-+
-+#include "qib_verbs.h"
++#include "qib.h"
 +
 +/**
-+ * qib_release_mmap_info - free mmap info structure
-+ * @ref: a pointer to the kref within struct qib_mmap_info
++ * qib_pio_copy - copy data to MMIO space, in multiples of 32-bits
++ * @to: destination, in MMIO space (must be 64-bit aligned)
++ * @from: source (must be 64-bit aligned)
++ * @count: number of 32-bit quantities to copy
++ *
++ * Copy data from kernel space to MMIO space, in multiples of 32 bits at a
++ * time.  Order of access is not guaranteed, nor is a memory barrier
++ * performed afterwards.
 + */
-+void qib_release_mmap_info(struct kref *ref)
++void qib_pio_copy(void __iomem *to, const void *from, size_t count)
 +{
-+	struct qib_mmap_info *ip =
-+		container_of(ref, struct qib_mmap_info, ref);
-+	struct qib_ibdev *dev = to_idev(ip->context->device);
++#ifdef CONFIG_64BIT
++	u64 __iomem *dst = to;
++	const u64 *src = from;
++	const u64 *end = src + (count >> 1);
 +
-+	spin_lock_irq(&dev->pending_lock);
-+	list_del(&ip->pending_mmaps);
-+	spin_unlock_irq(&dev->pending_lock);
++	while (src < end)
++		__raw_writeq(*src++, dst++);
++	if (count & 1)
++		__raw_writel(*(const u32 *)src, dst);
++#else
++	u32 __iomem *dst = to;
++	const u32 *src = from;
++	const u32 *end = src + count;
 +
-+	vfree(ip->obj);
-+	kfree(ip);
-+}
-+
-+/*
-+ * open and close keep track of how many times the CQ is mapped,
-+ * to avoid releasing it.
-+ */
-+static void qib_vma_open(struct vm_area_struct *vma)
-+{
-+	struct qib_mmap_info *ip = vma->vm_private_data;
-+
-+	kref_get(&ip->ref);
-+}
-+
-+static void qib_vma_close(struct vm_area_struct *vma)
-+{
-+	struct qib_mmap_info *ip = vma->vm_private_data;
-+
-+	kref_put(&ip->ref, qib_release_mmap_info);
-+}
-+
-+static struct vm_operations_struct qib_vm_ops = {
-+	.open =     qib_vma_open,
-+	.close =    qib_vma_close,
-+};
-+
-+/**
-+ * qib_mmap - create a new mmap region
-+ * @context: the IB user context of the process making the mmap() call
-+ * @vma: the VMA to be initialized
-+ * Return zero if the mmap is OK. Otherwise, return an errno.
-+ */
-+int qib_mmap(struct ib_ucontext *context, struct vm_area_struct *vma)
-+{
-+	struct qib_ibdev *dev = to_idev(context->device);
-+	unsigned long offset = vma->vm_pgoff << PAGE_SHIFT;
-+	unsigned long size = vma->vm_end - vma->vm_start;
-+	struct qib_mmap_info *ip, *pp;
-+	int ret = -EINVAL;
-+
-+	/*
-+	 * Search the device's list of objects waiting for a mmap call.
-+	 * Normally, this list is very short since a call to create a
-+	 * CQ, QP, or SRQ is soon followed by a call to mmap().
-+	 */
-+	spin_lock_irq(&dev->pending_lock);
-+	list_for_each_entry_safe(ip, pp, &dev->pending_mmaps,
-+				 pending_mmaps) {
-+		/* Only the creator is allowed to mmap the object */
-+		if (context != ip->context || (__u64) offset != ip->offset)
-+			continue;
-+		/* Don't allow a mmap larger than the object. */
-+		if (size > ip->size)
-+			break;
-+
-+		list_del_init(&ip->pending_mmaps);
-+		spin_unlock_irq(&dev->pending_lock);
-+
-+		ret = remap_vmalloc_range(vma, ip->obj, 0);
-+		if (ret)
-+			goto done;
-+		vma->vm_ops = &qib_vm_ops;
-+		vma->vm_private_data = ip;
-+		qib_vma_open(vma);
-+		goto done;
-+	}
-+	spin_unlock_irq(&dev->pending_lock);
-+done:
-+	return ret;
-+}
-+
-+/*
-+ * Allocate information for qib_mmap
-+ */
-+struct qib_mmap_info *qib_create_mmap_info(struct qib_ibdev *dev,
-+					   u32 size,
-+					   struct ib_ucontext *context,
-+					   void *obj) {
-+	struct qib_mmap_info *ip;
-+
-+	ip = kmalloc(sizeof *ip, GFP_KERNEL);
-+	if (!ip)
-+		goto bail;
-+
-+	size = PAGE_ALIGN(size);
-+
-+	spin_lock_irq(&dev->mmap_offset_lock);
-+	if (dev->mmap_offset == 0)
-+		dev->mmap_offset = PAGE_SIZE;
-+	ip->offset = dev->mmap_offset;
-+	dev->mmap_offset += size;
-+	spin_unlock_irq(&dev->mmap_offset_lock);
-+
-+	INIT_LIST_HEAD(&ip->pending_mmaps);
-+	ip->size = size;
-+	ip->context = context;
-+	ip->obj = obj;
-+	kref_init(&ip->ref);
-+
-+bail:
-+	return ip;
-+}
-+
-+void qib_update_mmap_info(struct qib_ibdev *dev, struct qib_mmap_info *ip,
-+			  u32 size, void *obj)
-+{
-+	size = PAGE_ALIGN(size);
-+
-+	spin_lock_irq(&dev->mmap_offset_lock);
-+	if (dev->mmap_offset == 0)
-+		dev->mmap_offset = PAGE_SIZE;
-+	ip->offset = dev->mmap_offset;
-+	dev->mmap_offset += size;
-+	spin_unlock_irq(&dev->mmap_offset_lock);
-+
-+	ip->size = size;
-+	ip->obj = obj;
++	while (src < end)
++		__raw_writel(*src++, dst++);
++#endif
 +}
 
 --
