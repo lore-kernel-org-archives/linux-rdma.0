@@ -1,7 +1,7 @@
 From: Ralph Campbell <ralph.campbell-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v2 01/51] IB/qib: Add Kconfig
-Date: Thu, 03 Dec 2009 11:03:11 -0800
-Message-ID: <20091203190311.29507.83034.stgit@chromite.mv.qlogic.com>
+Subject: [PATCH v2 02/51] IB/qib: Add Makefile
+Date: Thu, 03 Dec 2009 11:03:16 -0800
+Message-ID: <20091203190316.29507.32857.stgit@chromite.mv.qlogic.com>
 References: <20091203190305.29507.58158.stgit@chromite.mv.qlogic.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -13,32 +13,36 @@ To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-This creates the Kconfig file.
+This creates the Makefile file.
 
 Signed-off-by: Ralph Campbell <ralph.campbell-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
 ---
 
- drivers/infiniband/hw/qib/Kconfig |   11 +++++++++++
- 1 files changed, 11 insertions(+), 0 deletions(-)
- create mode 100644 drivers/infiniband/hw/qib/Kconfig
+ drivers/infiniband/hw/qib/Makefile |   15 +++++++++++++++
+ 1 files changed, 15 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/infiniband/hw/qib/Makefile
 
-diff --git a/drivers/infiniband/hw/qib/Kconfig b/drivers/infiniband/hw/qib/Kconfig
+diff --git a/drivers/infiniband/hw/qib/Makefile b/drivers/infiniband/hw/qib/Makefile
 new file mode 100644
-index 0000000..1acfb54
+index 0000000..c6515a1
 --- /dev/null
-+++ b/drivers/infiniband/hw/qib/Kconfig
-@@ -0,0 +1,11 @@
-+config INFINIBAND_QIB
-+	tristate "QLogic PCIe HCA support"
-+	depends on 64BIT && NET
-+	---help---
-+	This is a driver for QLogic PCIe QLE IB host channel adapters,
-+	including InfiniBand verbs support.  This driver allows these
-+	devices to be used with both kernel upper level protocols such
-+	as IP-over-InfiniBand as well as with userspace applications
-+	(in conjunction with InfiniBand userspace access).
-+	This driver does not support the QLogic HyperTransport card
-+	(model QHT7140).
++++ b/drivers/infiniband/hw/qib/Makefile
+@@ -0,0 +1,15 @@
++obj-$(CONFIG_INFINIBAND_QIB) += ib_qib.o
++
++ib_qib-y := qib_cq.o qib_diag.o qib_dma.o qib_driver.o qib_eeprom.o \
++	qib_file_ops.o qib_fs.o qib_init.o qib_intr.o qib_keys.o \
++	qib_mad.o qib_mmap.o qib_mr.o qib_pcie.o qib_pio_copy.o \
++	qib_qp.o qib_qsfp.o qib_rc.o qib_ruc.o qib_sdma.o qib_srq.o \
++	qib_sysfs.o qib_twsi.o qib_tx.o qib_uc.o qib_ud.o \
++	qib_user_pages.o qib_user_sdma.o qib_verbs_mcast.o qib_iba7220.o \
++	qib_sd7220.o qib_sd7220_img.o qib_iba7322.o qib_verbs.o
++
++# 6120 has no fallback if no MSI interrupts, others can do INTx
++ib_qib-$(CONFIG_PCI_MSI) += qib_iba6120.o
++
++ib_qib-$(CONFIG_X86_64) += qib_wc_x86_64.o
++ib_qib-$(CONFIG_PPC64) += qib_wc_ppc64.o
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
