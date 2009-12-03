@@ -1,7 +1,7 @@
 From: Ralph Campbell <ralph.campbell-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v2 33/51] IB/qib: Add qib_ruc.c
-Date: Thu, 03 Dec 2009 11:05:58 -0800
-Message-ID: <20091203190558.29507.93077.stgit@chromite.mv.qlogic.com>
+Subject: [PATCH v2 37/51] IB/qib: Add qib_srq.c
+Date: Thu, 03 Dec 2009 11:06:19 -0800
+Message-ID: <20091203190619.29507.92875.stgit@chromite.mv.qlogic.com>
 References: <20091203190305.29507.58158.stgit@chromite.mv.qlogic.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -13,21 +13,21 @@ To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-creates the qib_ruc.c file.
+creates the qib_srq.c file.
 
 Signed-off-by: Ralph Campbell <ralph.campbell-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
 ---
 
- drivers/infiniband/hw/qib/qib_ruc.c |  817 +++++++++++++++++++++++++++++++++++
- 1 files changed, 817 insertions(+), 0 deletions(-)
- create mode 100644 drivers/infiniband/hw/qib/qib_ruc.c
+ drivers/infiniband/hw/qib/qib_srq.c |  374 +++++++++++++++++++++++++++++++++++
+ 1 files changed, 374 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/infiniband/hw/qib/qib_srq.c
 
-diff --git a/drivers/infiniband/hw/qib/qib_ruc.c b/drivers/infiniband/hw/qib/qib_ruc.c
+diff --git a/drivers/infiniband/hw/qib/qib_srq.c b/drivers/infiniband/hw/qib/qib_srq.c
 new file mode 100644
-index 0000000..eb78d93
+index 0000000..d79ae33
 --- /dev/null
-+++ b/drivers/infiniband/hw/qib/qib_ruc.c
-@@ -0,0 +1,817 @@
++++ b/drivers/infiniband/hw/qib/qib_srq.c
+@@ -0,0 +1,374 @@
 +/*
 + * Copyright (c) 2006, 2007, 2008, 2009 QLogic Corporation. All rights reserved.
 + * Copyright (c) 2005, 2006 PathScale, Inc. All rights reserved.
@@ -61,789 +61,346 @@ index 0000000..eb78d93
 + * SOFTWARE.
 + */
 +
-+#include <linux/spinlock.h>
++#include <linux/err.h>
++#include <linux/vmalloc.h>
 +
-+#include "qib.h"
-+#include "qib_mad.h"
-+
-+/*
-+ * Convert the AETH RNR timeout code into the number of microseconds.
-+ */
-+const u32 ib_qib_rnr_table[32] = {
-+	655360,	/* 00: 655.36 */
-+	10,	/* 01:    .01 */
-+	20,	/* 02     .02 */
-+	30,	/* 03:    .03 */
-+	40,	/* 04:    .04 */
-+	60,	/* 05:    .06 */
-+	80,	/* 06:    .08 */
-+	120,	/* 07:    .12 */
-+	160,	/* 08:    .16 */
-+	240,	/* 09:    .24 */
-+	320,	/* 0A:    .32 */
-+	480,	/* 0B:    .48 */
-+	640,	/* 0C:    .64 */
-+	960,	/* 0D:    .96 */
-+	1280,	/* 0E:   1.28 */
-+	1920,	/* 0F:   1.92 */
-+	2560,	/* 10:   2.56 */
-+	3840,	/* 11:   3.84 */
-+	5120,	/* 12:   5.12 */
-+	7680,	/* 13:   7.68 */
-+	10240,	/* 14:  10.24 */
-+	15360,	/* 15:  15.36 */
-+	20480,	/* 16:  20.48 */
-+	30720,	/* 17:  30.72 */
-+	40960,	/* 18:  40.96 */
-+	61440,	/* 19:  61.44 */
-+	81920,	/* 1A:  81.92 */
-+	122880,	/* 1B: 122.88 */
-+	163840,	/* 1C: 163.84 */
-+	245760,	/* 1D: 245.76 */
-+	327680,	/* 1E: 327.68 */
-+	491520	/* 1F: 491.52 */
-+};
-+
-+/*
-+ * Validate a RWQE and fill in the SGE state.
-+ * Return 1 if OK.
-+ */
-+static int qib_init_sge(struct qib_qp *qp, struct qib_rwqe *wqe)
-+{
-+	int i, j, ret;
-+	struct ib_wc wc;
-+	struct qib_lkey_table *rkt;
-+	struct qib_pd *pd;
-+	struct qib_sge_state *ss;
-+
-+	rkt = &to_idev(qp->ibqp.device)->lk_table;
-+	pd = to_ipd(qp->ibqp.srq ? qp->ibqp.srq->pd : qp->ibqp.pd);
-+	ss = &qp->r_sge;
-+	ss->sg_list = qp->r_sg_list;
-+	qp->r_len = 0;
-+	for (i = j = 0; i < wqe->num_sge; i++) {
-+		if (wqe->sg_list[i].length == 0)
-+			continue;
-+		/* Check LKEY */
-+		if (!qib_lkey_ok(rkt, pd, j ? &ss->sg_list[j - 1] : &ss->sge,
-+				 &wqe->sg_list[i], IB_ACCESS_LOCAL_WRITE))
-+			goto bad_lkey;
-+		qp->r_len += wqe->sg_list[i].length;
-+		j++;
-+	}
-+	ss->num_sge = j;
-+	ss->total_len = qp->r_len;
-+	ret = 1;
-+	goto bail;
-+
-+bad_lkey:
-+	while (j) {
-+		struct qib_sge *sge = --j ? &ss->sg_list[j - 1] : &ss->sge;
-+
-+		atomic_dec(&sge->mr->refcount);
-+	}
-+	ss->num_sge = 0;
-+	memset(&wc, 0, sizeof(wc));
-+	wc.wr_id = wqe->wr_id;
-+	wc.status = IB_WC_LOC_PROT_ERR;
-+	wc.opcode = IB_WC_RECV;
-+	wc.qp = &qp->ibqp;
-+	/* Signal solicited completion event. */
-+	qib_cq_enter(to_icq(qp->ibqp.recv_cq), &wc, 1);
-+	ret = 0;
-+bail:
-+	return ret;
-+}
++#include "qib_verbs.h"
 +
 +/**
-+ * qib_get_rwqe - copy the next RWQE into the QP's RWQE
-+ * @qp: the QP
-+ * @wr_id_only: update qp->r_wr_id only, not qp->r_sge
++ * qib_post_srq_receive - post a receive on a shared receive queue
++ * @ibsrq: the SRQ to post the receive on
++ * @wr: the list of work requests to post
++ * @bad_wr: A pointer to the first WR to cause a problem is put here
 + *
-+ * Return -1 if there is a local error, 0 if no RWQE is available,
-+ * otherwise return 1.
-+ *
-+ * Can be called from interrupt level.
++ * This may be called from interrupt context.
 + */
-+int qib_get_rwqe(struct qib_qp *qp, int wr_id_only)
++int qib_post_srq_receive(struct ib_srq *ibsrq, struct ib_recv_wr *wr,
++			 struct ib_recv_wr **bad_wr)
 +{
-+	unsigned long flags;
-+	struct qib_rq *rq;
++	struct qib_srq *srq = to_isrq(ibsrq);
 +	struct qib_rwq *wq;
-+	struct qib_srq *srq;
-+	struct qib_rwqe *wqe;
-+	void (*handler)(struct ib_event *, void *);
-+	u32 tail;
++	unsigned long flags;
 +	int ret;
 +
-+	if (qp->ibqp.srq) {
-+		srq = to_isrq(qp->ibqp.srq);
-+		handler = srq->ibsrq.event_handler;
-+		rq = &srq->rq;
-+	} else {
-+		srq = NULL;
-+		handler = NULL;
-+		rq = &qp->r_rq;
-+	}
++	for (; wr; wr = wr->next) {
++		struct qib_rwqe *wqe;
++		u32 next;
++		int i;
 +
-+	spin_lock_irqsave(&rq->lock, flags);
-+	if (!(ib_qib_state_ops[qp->state] & QIB_PROCESS_RECV_OK)) {
-+		ret = 0;
-+		goto unlock;
-+	}
-+
-+	wq = rq->wq;
-+	tail = wq->tail;
-+	/* Validate tail before using it since it is user writable. */
-+	if (tail >= rq->size)
-+		tail = 0;
-+	if (unlikely(tail == wq->head)) {
-+		ret = 0;
-+		goto unlock;
-+	}
-+	/* Make sure entry is read after head index is read. */
-+	smp_rmb();
-+	wqe = get_rwqe_ptr(rq, tail);
-+	/*
-+	 * Even though we update the tail index in memory, the verbs
-+	 * consumer is not supposed to post more entries until a
-+	 * completion is generated.
-+	 */
-+	if (++tail >= rq->size)
-+		tail = 0;
-+	wq->tail = tail;
-+	if (!wr_id_only && !qib_init_sge(qp, wqe)) {
-+		ret = -1;
-+		goto unlock;
-+	}
-+	qp->r_wr_id = wqe->wr_id;
-+
-+	ret = 1;
-+	set_bit(QIB_R_WRID_VALID, &qp->r_aflags);
-+	if (handler) {
-+		u32 n;
-+
-+		/*
-+		 * Validate head pointer value and compute
-+		 * the number of remaining WQEs.
-+		 */
-+		n = wq->head;
-+		if (n >= rq->size)
-+			n = 0;
-+		if (n < tail)
-+			n += rq->size - tail;
-+		else
-+			n -= tail;
-+		if (n < srq->limit) {
-+			struct ib_event ev;
-+
-+			srq->limit = 0;
-+			spin_unlock_irqrestore(&rq->lock, flags);
-+			ev.device = qp->ibqp.device;
-+			ev.element.srq = qp->ibqp.srq;
-+			ev.event = IB_EVENT_SRQ_LIMIT_REACHED;
-+			handler(&ev, srq->ibsrq.srq_context);
++		if ((unsigned) wr->num_sge > srq->rq.max_sge) {
++			*bad_wr = wr;
++			ret = -EINVAL;
 +			goto bail;
 +		}
++
++		spin_lock_irqsave(&srq->rq.lock, flags);
++		wq = srq->rq.wq;
++		next = wq->head + 1;
++		if (next >= srq->rq.size)
++			next = 0;
++		if (next == wq->tail) {
++			spin_unlock_irqrestore(&srq->rq.lock, flags);
++			*bad_wr = wr;
++			ret = -ENOMEM;
++			goto bail;
++		}
++
++		wqe = get_rwqe_ptr(&srq->rq, wq->head);
++		wqe->wr_id = wr->wr_id;
++		wqe->num_sge = wr->num_sge;
++		for (i = 0; i < wr->num_sge; i++)
++			wqe->sg_list[i] = wr->sg_list[i];
++		/* Make sure queue entry is written before the head index. */
++		smp_wmb();
++		wq->head = next;
++		spin_unlock_irqrestore(&srq->rq.lock, flags);
 +	}
-+unlock:
-+	spin_unlock_irqrestore(&rq->lock, flags);
++	ret = 0;
++
 +bail:
 +	return ret;
 +}
 +
-+/*
-+ * Switch to alternate path.
-+ * The QP s_lock should be held and interrupts disabled.
-+ */
-+void qib_migrate_qp(struct qib_qp *qp)
-+{
-+	struct ib_event ev;
-+
-+	qp->s_mig_state = IB_MIG_MIGRATED;
-+	qp->remote_ah_attr = qp->alt_ah_attr;
-+	qp->port_num = qp->alt_ah_attr.port_num;
-+	qp->s_pkey_index = qp->s_alt_pkey_index;
-+
-+	ev.device = qp->ibqp.device;
-+	ev.element.qp = &qp->ibqp;
-+	ev.event = IB_EVENT_PATH_MIG;
-+	qp->ibqp.event_handler(&ev, qp->ibqp.qp_context);
-+}
-+
-+static __be64 get_sguid(struct qib_ibport *ibp, unsigned index)
-+{
-+	if (!index) {
-+		struct qib_pportdata *ppd = ppd_from_ibp(ibp);
-+
-+		return ppd->guid;
-+	} else
-+		return ibp->guids[index - 1];
-+}
-+
-+static int gid_ok(union ib_gid *gid, __be64 gid_prefix, __be64 id)
-+{
-+	return (gid->global.interface_id == id &&
-+		(gid->global.subnet_prefix == gid_prefix ||
-+		 gid->global.subnet_prefix == IB_DEFAULT_GID_PREFIX));
-+}
-+
-+/*
-+ *
-+ * This should be called with the QP s_lock held.
-+ */
-+int qib_ruc_check_hdr(struct qib_ibport *ibp, struct qib_ib_header *hdr,
-+		      int has_grh, struct qib_qp *qp, u32 bth0)
-+{
-+	__be64 guid;
-+
-+	if (qp->s_mig_state == IB_MIG_ARMED && (bth0 & IB_BTH_MIG_REQ)) {
-+		if (!has_grh) {
-+			if (qp->alt_ah_attr.ah_flags & IB_AH_GRH)
-+				goto err;
-+		} else {
-+			if (!(qp->alt_ah_attr.ah_flags & IB_AH_GRH))
-+				goto err;
-+			guid = get_sguid(ibp, qp->alt_ah_attr.grh.sgid_index);
-+			if (!gid_ok(&hdr->u.l.grh.dgid, ibp->gid_prefix, guid))
-+				goto err;
-+			if (!gid_ok(&hdr->u.l.grh.sgid,
-+			    qp->alt_ah_attr.grh.dgid.global.subnet_prefix,
-+			    qp->alt_ah_attr.grh.dgid.global.interface_id))
-+				goto err;
-+		}
-+		if (!qib_pkey_ok((u16)bth0,
-+				 qib_get_pkey(ibp, qp->s_alt_pkey_index))) {
-+			qib_bad_pqkey(ibp, IB_NOTICE_TRAP_BAD_PKEY,
-+				      (u16)bth0,
-+				      (be16_to_cpu(hdr->lrh[0]) >> 4) & 0xF,
-+				      0, qp->ibqp.qp_num,
-+				      hdr->lrh[3], hdr->lrh[1]);
-+			goto err;
-+		}
-+		/* Validate the SLID. See Ch. 9.6.1.5 and 17.2.8 */
-+		if (be16_to_cpu(hdr->lrh[3]) != qp->alt_ah_attr.dlid ||
-+		    ppd_from_ibp(ibp)->port != qp->alt_ah_attr.port_num)
-+			goto err;
-+		qib_migrate_qp(qp);
-+	} else {
-+		if (!has_grh) {
-+			if (qp->remote_ah_attr.ah_flags & IB_AH_GRH)
-+				goto err;
-+		} else {
-+			if (!(qp->remote_ah_attr.ah_flags & IB_AH_GRH))
-+				goto err;
-+			guid = get_sguid(ibp,
-+					 qp->remote_ah_attr.grh.sgid_index);
-+			if (!gid_ok(&hdr->u.l.grh.dgid, ibp->gid_prefix, guid))
-+				goto err;
-+			if (!gid_ok(&hdr->u.l.grh.sgid,
-+			    qp->remote_ah_attr.grh.dgid.global.subnet_prefix,
-+			    qp->remote_ah_attr.grh.dgid.global.interface_id))
-+				goto err;
-+		}
-+		if (!qib_pkey_ok((u16)bth0,
-+				 qib_get_pkey(ibp, qp->s_pkey_index))) {
-+			qib_bad_pqkey(ibp, IB_NOTICE_TRAP_BAD_PKEY,
-+				      (u16)bth0,
-+				      (be16_to_cpu(hdr->lrh[0]) >> 4) & 0xF,
-+				      0, qp->ibqp.qp_num,
-+				      hdr->lrh[3], hdr->lrh[1]);
-+			goto err;
-+		}
-+		/* Validate the SLID. See Ch. 9.6.1.5 */
-+		if (be16_to_cpu(hdr->lrh[3]) != qp->remote_ah_attr.dlid ||
-+		    ppd_from_ibp(ibp)->port != qp->port_num)
-+			goto err;
-+		if (qp->s_mig_state == IB_MIG_REARM &&
-+		    !(bth0 & IB_BTH_MIG_REQ))
-+			qp->s_mig_state = IB_MIG_ARMED;
-+	}
-+
-+	return 0;
-+
-+err:
-+	return 1;
-+}
-+
 +/**
-+ * qib_ruc_loopback - handle UC and RC lookback requests
-+ * @sqp: the sending QP
-+ *
-+ * This is called from qib_do_send() to
-+ * forward a WQE addressed to the same HCA.
-+ * Note that although we are single threaded due to the tasklet, we still
-+ * have to protect against post_send().  We don't have to worry about
-+ * receive interrupts since this is a connected protocol and all packets
-+ * will pass through here.
++ * qib_create_srq - create a shared receive queue
++ * @ibpd: the protection domain of the SRQ to create
++ * @srq_init_attr: the attributes of the SRQ
++ * @udata: data from libibverbs when creating a user SRQ
 + */
-+static void qib_ruc_loopback(struct qib_qp *sqp)
++struct ib_srq *qib_create_srq(struct ib_pd *ibpd,
++			      struct ib_srq_init_attr *srq_init_attr,
++			      struct ib_udata *udata)
 +{
-+	struct qib_ibport *ibp = to_iport(sqp->ibqp.device, sqp->port_num);
-+	struct qib_qp *qp;
-+	struct qib_swqe *wqe;
-+	struct qib_sge *sge;
-+	unsigned long flags;
-+	struct ib_wc wc;
-+	u64 sdata;
-+	atomic64_t *maddr;
-+	enum ib_wc_status send_status;
-+	int release;
-+	int ret;
++	struct qib_ibdev *dev = to_idev(ibpd->device);
++	struct qib_srq *srq;
++	u32 sz;
++	struct ib_srq *ret;
 +
-+	/*
-+	 * Note that we check the responder QP state after
-+	 * checking the requester's state.
-+	 */
-+	qp = qib_lookup_qpn(ibp, sqp->remote_qpn);
-+
-+	spin_lock_irqsave(&sqp->s_lock, flags);
-+
-+	/* Return if we are already busy processing a work request. */
-+	if ((sqp->s_flags & (QIB_S_BUSY | QIB_S_ANY_WAIT)) ||
-+	    !(ib_qib_state_ops[sqp->state] & QIB_PROCESS_OR_FLUSH_SEND))
-+		goto unlock;
-+
-+	sqp->s_flags |= QIB_S_BUSY;
-+
-+again:
-+	if (sqp->s_last == sqp->s_head)
-+		goto clr_busy;
-+	wqe = get_swqe_ptr(sqp, sqp->s_last);
-+
-+	/* Return if it is not OK to start a new work reqeust. */
-+	if (!(ib_qib_state_ops[sqp->state] & QIB_PROCESS_NEXT_SEND_OK)) {
-+		if (!(ib_qib_state_ops[sqp->state] & QIB_FLUSH_SEND))
-+			goto clr_busy;
-+		/* We are in the error state, flush the work request. */
-+		send_status = IB_WC_WR_FLUSH_ERR;
-+		goto flush_send;
-+	}
-+
-+	/*
-+	 * We can rely on the entry not changing without the s_lock
-+	 * being held until we update s_last.
-+	 * We increment s_cur to indicate s_last is in progress.
-+	 */
-+	if (sqp->s_last == sqp->s_cur) {
-+		if (++sqp->s_cur >= sqp->s_size)
-+			sqp->s_cur = 0;
-+	}
-+	spin_unlock_irqrestore(&sqp->s_lock, flags);
-+
-+	if (!qp || !(ib_qib_state_ops[qp->state] & QIB_PROCESS_RECV_OK) ||
-+	    qp->ibqp.qp_type != sqp->ibqp.qp_type) {
-+		ibp->n_pkt_drops++;
-+		/*
-+		 * For RC, the requester would timeout and retry so
-+		 * shortcut the timeouts and just signal too many retries.
-+		 */
-+		if (sqp->ibqp.qp_type == IB_QPT_RC)
-+			send_status = IB_WC_RETRY_EXC_ERR;
-+		else
-+			send_status = IB_WC_SUCCESS;
-+		goto serr;
-+	}
-+
-+	memset(&wc, 0, sizeof wc);
-+	send_status = IB_WC_SUCCESS;
-+
-+	release = 1;
-+	sqp->s_sge.sge = wqe->sg_list[0];
-+	sqp->s_sge.sg_list = wqe->sg_list + 1;
-+	sqp->s_sge.num_sge = wqe->wr.num_sge;
-+	sqp->s_len = wqe->length;
-+	switch (wqe->wr.opcode) {
-+	case IB_WR_SEND_WITH_IMM:
-+		wc.wc_flags = IB_WC_WITH_IMM;
-+		wc.ex.imm_data = wqe->wr.ex.imm_data;
-+		/* FALLTHROUGH */
-+	case IB_WR_SEND:
-+		ret = qib_get_rwqe(qp, 0);
-+		if (ret < 0)
-+			goto op_err;
-+		if (!ret)
-+			goto rnr_nak;
-+		break;
-+
-+	case IB_WR_RDMA_WRITE_WITH_IMM:
-+		if (unlikely(!(qp->qp_access_flags & IB_ACCESS_REMOTE_WRITE)))
-+			goto inv_err;
-+		wc.wc_flags = IB_WC_WITH_IMM;
-+		wc.ex.imm_data = wqe->wr.ex.imm_data;
-+		ret = qib_get_rwqe(qp, 1);
-+		if (ret < 0)
-+			goto op_err;
-+		if (!ret)
-+			goto rnr_nak;
-+		/* FALLTHROUGH */
-+	case IB_WR_RDMA_WRITE:
-+		if (unlikely(!(qp->qp_access_flags & IB_ACCESS_REMOTE_WRITE)))
-+			goto inv_err;
-+		if (wqe->length == 0)
-+			break;
-+		if (unlikely(!qib_rkey_ok(qp, &qp->r_sge.sge, wqe->length,
-+					  wqe->wr.wr.rdma.remote_addr,
-+					  wqe->wr.wr.rdma.rkey,
-+					  IB_ACCESS_REMOTE_WRITE)))
-+			goto acc_err;
-+		qp->r_sge.sg_list = NULL;
-+		qp->r_sge.num_sge = 1;
-+		qp->r_sge.total_len = wqe->length;
-+		break;
-+
-+	case IB_WR_RDMA_READ:
-+		if (unlikely(!(qp->qp_access_flags & IB_ACCESS_REMOTE_READ)))
-+			goto inv_err;
-+		if (unlikely(!qib_rkey_ok(qp, &sqp->s_sge.sge, wqe->length,
-+					  wqe->wr.wr.rdma.remote_addr,
-+					  wqe->wr.wr.rdma.rkey,
-+					  IB_ACCESS_REMOTE_READ)))
-+			goto acc_err;
-+		release = 0;
-+		sqp->s_sge.sg_list = NULL;
-+		sqp->s_sge.num_sge = 1;
-+		qp->r_sge.sge = wqe->sg_list[0];
-+		qp->r_sge.sg_list = wqe->sg_list + 1;
-+		qp->r_sge.num_sge = wqe->wr.num_sge;
-+		qp->r_sge.total_len = wqe->length;
-+		break;
-+
-+	case IB_WR_ATOMIC_CMP_AND_SWP:
-+	case IB_WR_ATOMIC_FETCH_AND_ADD:
-+		if (unlikely(!(qp->qp_access_flags & IB_ACCESS_REMOTE_ATOMIC)))
-+			goto inv_err;
-+		if (unlikely(!qib_rkey_ok(qp, &qp->r_sge.sge, sizeof(u64),
-+					  wqe->wr.wr.atomic.remote_addr,
-+					  wqe->wr.wr.atomic.rkey,
-+					  IB_ACCESS_REMOTE_ATOMIC)))
-+			goto acc_err;
-+		/* Perform atomic OP and save result. */
-+		maddr = (atomic64_t *) qp->r_sge.sge.vaddr;
-+		sdata = wqe->wr.wr.atomic.compare_add;
-+		*(u64 *) sqp->s_sge.sge.vaddr =
-+			(wqe->wr.opcode == IB_WR_ATOMIC_FETCH_AND_ADD) ?
-+			(u64) atomic64_add_return(sdata, maddr) - sdata :
-+			(u64) cmpxchg((u64 *) qp->r_sge.sge.vaddr,
-+				      sdata, wqe->wr.wr.atomic.swap);
-+		atomic_dec(&qp->r_sge.sge.mr->refcount);
-+		qp->r_sge.num_sge = 0;
-+		goto send_comp;
-+
-+	default:
-+		send_status = IB_WC_LOC_QP_OP_ERR;
-+		goto serr;
-+	}
-+
-+	sge = &sqp->s_sge.sge;
-+	while (sqp->s_len) {
-+		u32 len = sqp->s_len;
-+
-+		if (len > sge->length)
-+			len = sge->length;
-+		if (len > sge->sge_length)
-+			len = sge->sge_length;
-+		BUG_ON(len == 0);
-+		qib_copy_sge(&qp->r_sge, sge->vaddr, len, release);
-+		sge->vaddr += len;
-+		sge->length -= len;
-+		sge->sge_length -= len;
-+		if (sge->sge_length == 0) {
-+			if (!release)
-+				atomic_dec(&sge->mr->refcount);
-+			if (--sqp->s_sge.num_sge)
-+				*sge = *sqp->s_sge.sg_list++;
-+		} else if (sge->length == 0 && sge->mr->lkey) {
-+			if (++sge->n >= QIB_SEGSZ) {
-+				if (++sge->m >= sge->mr->mapsz)
-+					break;
-+				sge->n = 0;
-+			}
-+			sge->vaddr =
-+				sge->mr->map[sge->m]->segs[sge->n].vaddr;
-+			sge->length =
-+				sge->mr->map[sge->m]->segs[sge->n].length;
-+		}
-+		sqp->s_len -= len;
-+	}
-+	if (release)
-+		while (qp->r_sge.num_sge) {
-+			atomic_dec(&qp->r_sge.sge.mr->refcount);
-+			if (--qp->r_sge.num_sge)
-+				qp->r_sge.sge = *qp->r_sge.sg_list++;
-+		}
-+
-+	if (!test_and_clear_bit(QIB_R_WRID_VALID, &qp->r_aflags))
-+		goto send_comp;
-+
-+	if (wqe->wr.opcode == IB_WR_RDMA_WRITE_WITH_IMM)
-+		wc.opcode = IB_WC_RECV_RDMA_WITH_IMM;
-+	else
-+		wc.opcode = IB_WC_RECV;
-+	wc.wr_id = qp->r_wr_id;
-+	wc.status = IB_WC_SUCCESS;
-+	wc.byte_len = wqe->length;
-+	wc.qp = &qp->ibqp;
-+	wc.src_qp = qp->remote_qpn;
-+	wc.slid = qp->remote_ah_attr.dlid;
-+	wc.sl = qp->remote_ah_attr.sl;
-+	wc.port_num = 1;
-+	/* Signal completion event if the solicited bit is set. */
-+	qib_cq_enter(to_icq(qp->ibqp.recv_cq), &wc,
-+		       wqe->wr.send_flags & IB_SEND_SOLICITED);
-+
-+send_comp:
-+	spin_lock_irqsave(&sqp->s_lock, flags);
-+	ibp->n_loop_pkts++;
-+flush_send:
-+	sqp->s_rnr_retry = sqp->s_rnr_retry_cnt;
-+	qib_send_complete(sqp, wqe, send_status);
-+	goto again;
-+
-+rnr_nak:
-+	/* Handle RNR NAK */
-+	if (qp->ibqp.qp_type == IB_QPT_UC)
-+		goto send_comp;
-+	ibp->n_rnr_naks++;
-+	/*
-+	 * Note: we don't need the s_lock held since the BUSY flag
-+	 * makes this single threaded.
-+	 */
-+	if (sqp->s_rnr_retry == 0) {
-+		send_status = IB_WC_RNR_RETRY_EXC_ERR;
-+		goto serr;
-+	}
-+	if (sqp->s_rnr_retry_cnt < 7)
-+		sqp->s_rnr_retry--;
-+	spin_lock_irqsave(&sqp->s_lock, flags);
-+	if (!(ib_qib_state_ops[sqp->state] & QIB_PROCESS_RECV_OK))
-+		goto clr_busy;
-+	sqp->s_flags |= QIB_S_WAIT_RNR;
-+	sqp->s_timer.function = qib_rc_rnr_retry;
-+	sqp->s_timer.expires = jiffies +
-+		usecs_to_jiffies(ib_qib_rnr_table[qp->r_min_rnr_timer]);
-+	add_timer(&sqp->s_timer);
-+	goto clr_busy;
-+
-+op_err:
-+	send_status = IB_WC_REM_OP_ERR;
-+	wc.status = IB_WC_LOC_QP_OP_ERR;
-+	goto err;
-+
-+inv_err:
-+	send_status = IB_WC_REM_INV_REQ_ERR;
-+	wc.status = IB_WC_LOC_QP_OP_ERR;
-+	goto err;
-+
-+acc_err:
-+	send_status = IB_WC_REM_ACCESS_ERR;
-+	wc.status = IB_WC_LOC_PROT_ERR;
-+err:
-+	/* responder goes to error state */
-+	qib_rc_error(qp, wc.status);
-+
-+serr:
-+	spin_lock_irqsave(&sqp->s_lock, flags);
-+	qib_send_complete(sqp, wqe, send_status);
-+	if (sqp->ibqp.qp_type == IB_QPT_RC) {
-+		int lastwqe = qib_error_qp(sqp, IB_WC_WR_FLUSH_ERR);
-+
-+		sqp->s_flags &= ~QIB_S_BUSY;
-+		spin_unlock_irqrestore(&sqp->s_lock, flags);
-+		if (lastwqe) {
-+			struct ib_event ev;
-+
-+			ev.device = sqp->ibqp.device;
-+			ev.element.qp = &sqp->ibqp;
-+			ev.event = IB_EVENT_QP_LAST_WQE_REACHED;
-+			sqp->ibqp.event_handler(&ev, sqp->ibqp.qp_context);
-+		}
++	if (srq_init_attr->attr.max_sge == 0 ||
++	    srq_init_attr->attr.max_sge > ib_qib_max_srq_sges ||
++	    srq_init_attr->attr.max_wr == 0 ||
++	    srq_init_attr->attr.max_wr > ib_qib_max_srq_wrs) {
++		ret = ERR_PTR(-EINVAL);
 +		goto done;
 +	}
-+clr_busy:
-+	sqp->s_flags &= ~QIB_S_BUSY;
-+unlock:
-+	spin_unlock_irqrestore(&sqp->s_lock, flags);
-+done:
-+	if (qp && atomic_dec_and_test(&qp->refcount))
-+		wake_up(&qp->wait);
-+}
 +
-+/**
-+ * qib_make_grh - construct a GRH header
-+ * @ibp: a pointer to the IB port
-+ * @hdr: a pointer to the GRH header being constructed
-+ * @grh: the global route address to send to
-+ * @hwords: the number of 32 bit words of header being sent
-+ * @nwords: the number of 32 bit words of data being sent
-+ *
-+ * Return the size of the header in 32 bit words.
-+ */
-+u32 qib_make_grh(struct qib_ibport *ibp, struct ib_grh *hdr,
-+		 struct ib_global_route *grh, u32 hwords, u32 nwords)
-+{
-+	hdr->version_tclass_flow =
-+		cpu_to_be32((IB_GRH_VERSION << IB_GRH_VERSION_SHIFT) |
-+			    (grh->traffic_class << IB_GRH_TCLASS_SHIFT) |
-+			    (grh->flow_label << IB_GRH_FLOW_SHIFT));
-+	hdr->paylen = cpu_to_be16((hwords - 2 + nwords + SIZE_OF_CRC) << 2);
-+	/* next_hdr is defined by C8-7 in ch. 8.4.1 */
-+	hdr->next_hdr = IB_GRH_NEXT_HDR;
-+	hdr->hop_limit = grh->hop_limit;
-+	/* The SGID is 32-bit aligned. */
-+	hdr->sgid.global.subnet_prefix = ibp->gid_prefix;
-+	hdr->sgid.global.interface_id = grh->sgid_index ?
-+		ibp->guids[grh->sgid_index - 1] : ppd_from_ibp(ibp)->guid;
-+	hdr->dgid = grh->dgid;
-+
-+	/* GRH header size in 32-bit words. */
-+	return sizeof(struct ib_grh) / sizeof(u32);
-+}
-+
-+void qib_make_ruc_header(struct qib_qp *qp, struct qib_other_headers *ohdr,
-+			 u32 bth0, u32 bth2)
-+{
-+	struct qib_ibport *ibp = to_iport(qp->ibqp.device, qp->port_num);
-+	u16 lrh0;
-+	u32 nwords;
-+	u32 extra_bytes;
-+
-+	/* Construct the header. */
-+	extra_bytes = -qp->s_cur_size & 3;
-+	nwords = (qp->s_cur_size + extra_bytes) >> 2;
-+	lrh0 = QIB_LRH_BTH;
-+	if (unlikely(qp->remote_ah_attr.ah_flags & IB_AH_GRH)) {
-+		qp->s_hdrwords += qib_make_grh(ibp, &qp->s_hdr.u.l.grh,
-+					       &qp->remote_ah_attr.grh,
-+					       qp->s_hdrwords, nwords);
-+		lrh0 = QIB_LRH_GRH;
-+	}
-+	lrh0 |= ibp->sl_to_vl[qp->remote_ah_attr.sl] << 12 |
-+		qp->remote_ah_attr.sl << 4;
-+	qp->s_hdr.lrh[0] = cpu_to_be16(lrh0);
-+	qp->s_hdr.lrh[1] = cpu_to_be16(qp->remote_ah_attr.dlid);
-+	qp->s_hdr.lrh[2] = cpu_to_be16(qp->s_hdrwords + nwords + SIZE_OF_CRC);
-+	qp->s_hdr.lrh[3] = cpu_to_be16(ppd_from_ibp(ibp)->lid |
-+				       qp->remote_ah_attr.src_path_bits);
-+	bth0 |= qib_get_pkey(ibp, qp->s_pkey_index);
-+	bth0 |= extra_bytes << 20;
-+	if (qp->s_mig_state == IB_MIG_MIGRATED)
-+		bth0 |= IB_BTH_MIG_REQ;
-+	ohdr->bth[0] = cpu_to_be32(bth0);
-+	ohdr->bth[1] = cpu_to_be32(qp->remote_qpn);
-+	ohdr->bth[2] = cpu_to_be32(bth2);
-+}
-+
-+/**
-+ * qib_do_send - perform a send on a QP
-+ * @work: contains a pointer to the QP
-+ *
-+ * Process entries in the send work queue until credit or queue is
-+ * exhausted.  Only allow one CPU to send a packet per QP (tasklet).
-+ * Otherwise, two threads could send packets out of order.
-+ */
-+void qib_do_send(struct work_struct *work)
-+{
-+	struct qib_qp *qp = container_of(work, struct qib_qp, s_work);
-+	struct qib_ibport *ibp = to_iport(qp->ibqp.device, qp->port_num);
-+	struct qib_pportdata *ppd = ppd_from_ibp(ibp);
-+	int (*make_req)(struct qib_qp *qp);
-+	unsigned long flags;
-+
-+	if ((qp->ibqp.qp_type == IB_QPT_RC ||
-+	     qp->ibqp.qp_type == IB_QPT_UC) &&
-+	    (qp->remote_ah_attr.dlid & ~((1 << ppd->lmc) - 1)) == ppd->lid) {
-+		qib_ruc_loopback(qp);
-+		return;
++	srq = kmalloc(sizeof(*srq), GFP_KERNEL);
++	if (!srq) {
++		ret = ERR_PTR(-ENOMEM);
++		goto done;
 +	}
 +
-+	if (qp->ibqp.qp_type == IB_QPT_RC)
-+		make_req = qib_make_rc_req;
-+	else if (qp->ibqp.qp_type == IB_QPT_UC)
-+		make_req = qib_make_uc_req;
-+	else
-+		make_req = qib_make_ud_req;
-+
-+	spin_lock_irqsave(&qp->s_lock, flags);
-+
-+	/* Return if we are already busy processing a work request. */
-+	if (!qib_send_ok(qp)) {
-+		spin_unlock_irqrestore(&qp->s_lock, flags);
-+		return;
++	/*
++	 * Need to use vmalloc() if we want to support large #s of entries.
++	 */
++	srq->rq.size = srq_init_attr->attr.max_wr + 1;
++	srq->rq.max_sge = srq_init_attr->attr.max_sge;
++	sz = sizeof(struct ib_sge) * srq->rq.max_sge +
++		sizeof(struct qib_rwqe);
++	srq->rq.wq = vmalloc_user(sizeof(struct qib_rwq) + srq->rq.size * sz);
++	if (!srq->rq.wq) {
++		ret = ERR_PTR(-ENOMEM);
++		goto bail_srq;
 +	}
 +
-+	qp->s_flags |= QIB_S_BUSY;
++	/*
++	 * Return the address of the RWQ as the offset to mmap.
++	 * See qib_mmap() for details.
++	 */
++	if (udata && udata->outlen >= sizeof(__u64)) {
++		int err;
++		u32 s = sizeof(struct qib_rwq) + srq->rq.size * sz;
 +
-+	spin_unlock_irqrestore(&qp->s_lock, flags);
-+
-+	do {
-+		/* Check for a constructed packet to be sent. */
-+		if (qp->s_hdrwords != 0) {
-+			/*
-+			 * If the packet cannot be sent now, return and
-+			 * the send tasklet will be woken up later.
-+			 */
-+			if (qib_verbs_send(qp, &qp->s_hdr, qp->s_hdrwords,
-+					   qp->s_cur_sge, qp->s_cur_size))
-+				break;
-+			/* Record that s_hdr is empty. */
-+			qp->s_hdrwords = 0;
++		srq->ip =
++		    qib_create_mmap_info(dev, s, ibpd->uobject->context,
++					 srq->rq.wq);
++		if (!srq->ip) {
++			ret = ERR_PTR(-ENOMEM);
++			goto bail_wq;
 +		}
-+	} while (make_req(qp));
++
++		err = ib_copy_to_udata(udata, &srq->ip->offset,
++				       sizeof(srq->ip->offset));
++		if (err) {
++			ret = ERR_PTR(err);
++			goto bail_ip;
++		}
++	} else
++		srq->ip = NULL;
++
++	/*
++	 * ib_create_srq() will initialize srq->ibsrq.
++	 */
++	spin_lock_init(&srq->rq.lock);
++	srq->rq.wq->head = 0;
++	srq->rq.wq->tail = 0;
++	srq->limit = srq_init_attr->attr.srq_limit;
++
++	spin_lock(&dev->n_srqs_lock);
++	if (dev->n_srqs_allocated == ib_qib_max_srqs) {
++		spin_unlock(&dev->n_srqs_lock);
++		ret = ERR_PTR(-ENOMEM);
++		goto bail_ip;
++	}
++
++	dev->n_srqs_allocated++;
++	spin_unlock(&dev->n_srqs_lock);
++
++	if (srq->ip) {
++		spin_lock_irq(&dev->pending_lock);
++		list_add(&srq->ip->pending_mmaps, &dev->pending_mmaps);
++		spin_unlock_irq(&dev->pending_lock);
++	}
++
++	ret = &srq->ibsrq;
++	goto done;
++
++bail_ip:
++	kfree(srq->ip);
++bail_wq:
++	vfree(srq->rq.wq);
++bail_srq:
++	kfree(srq);
++done:
++	return ret;
 +}
 +
-+/*
-+ * This should be called with s_lock held.
++/**
++ * qib_modify_srq - modify a shared receive queue
++ * @ibsrq: the SRQ to modify
++ * @attr: the new attributes of the SRQ
++ * @attr_mask: indicates which attributes to modify
++ * @udata: user data for libibverbs.so
 + */
-+void qib_send_complete(struct qib_qp *qp, struct qib_swqe *wqe,
-+		       enum ib_wc_status status)
++int qib_modify_srq(struct ib_srq *ibsrq, struct ib_srq_attr *attr,
++		   enum ib_srq_attr_mask attr_mask,
++		   struct ib_udata *udata)
 +{
-+	u32 old_last, last;
-+	unsigned i;
++	struct qib_srq *srq = to_isrq(ibsrq);
++	struct qib_rwq *wq;
++	int ret = 0;
 +
-+	if (!(ib_qib_state_ops[qp->state] & QIB_PROCESS_OR_FLUSH_SEND))
-+		return;
++	if (attr_mask & IB_SRQ_MAX_WR) {
++		struct qib_rwq *owq;
++		struct qib_rwqe *p;
++		u32 sz, size, n, head, tail;
 +
-+	for (i = 0; i < wqe->wr.num_sge; i++) {
-+		struct qib_sge *sge = &wqe->sg_list[i];
++		/* Check that the requested sizes are below the limits. */
++		if ((attr->max_wr > ib_qib_max_srq_wrs) ||
++		    ((attr_mask & IB_SRQ_LIMIT) ?
++		     attr->srq_limit : srq->limit) > attr->max_wr) {
++			ret = -EINVAL;
++			goto bail;
++		}
 +
-+		atomic_dec(&sge->mr->refcount);
++		sz = sizeof(struct qib_rwqe) +
++			srq->rq.max_sge * sizeof(struct ib_sge);
++		size = attr->max_wr + 1;
++		wq = vmalloc_user(sizeof(struct qib_rwq) + size * sz);
++		if (!wq) {
++			ret = -ENOMEM;
++			goto bail;
++		}
++
++		/* Check that we can write the offset to mmap. */
++		if (udata && udata->inlen >= sizeof(__u64)) {
++			__u64 offset_addr;
++			__u64 offset = 0;
++
++			ret = ib_copy_from_udata(&offset_addr, udata,
++						 sizeof(offset_addr));
++			if (ret)
++				goto bail_free;
++			udata->outbuf =
++				(void __user *) (unsigned long) offset_addr;
++			ret = ib_copy_to_udata(udata, &offset,
++					       sizeof(offset));
++			if (ret)
++				goto bail_free;
++		}
++
++		spin_lock_irq(&srq->rq.lock);
++		/*
++		 * validate head and tail pointer values and compute
++		 * the number of remaining WQEs.
++		 */
++		owq = srq->rq.wq;
++		head = owq->head;
++		tail = owq->tail;
++		if (head >= srq->rq.size || tail >= srq->rq.size) {
++			ret = -EINVAL;
++			goto bail_unlock;
++		}
++		n = head;
++		if (n < tail)
++			n += srq->rq.size - tail;
++		else
++			n -= tail;
++		if (size <= n) {
++			ret = -EINVAL;
++			goto bail_unlock;
++		}
++		n = 0;
++		p = wq->wq;
++		while (tail != head) {
++			struct qib_rwqe *wqe;
++			int i;
++
++			wqe = get_rwqe_ptr(&srq->rq, tail);
++			p->wr_id = wqe->wr_id;
++			p->num_sge = wqe->num_sge;
++			for (i = 0; i < wqe->num_sge; i++)
++				p->sg_list[i] = wqe->sg_list[i];
++			n++;
++			p = (struct qib_rwqe *)((char *) p + sz);
++			if (++tail >= srq->rq.size)
++				tail = 0;
++		}
++		srq->rq.wq = wq;
++		srq->rq.size = size;
++		wq->head = n;
++		wq->tail = 0;
++		if (attr_mask & IB_SRQ_LIMIT)
++			srq->limit = attr->srq_limit;
++		spin_unlock_irq(&srq->rq.lock);
++
++		vfree(owq);
++
++		if (srq->ip) {
++			struct qib_mmap_info *ip = srq->ip;
++			struct qib_ibdev *dev = to_idev(srq->ibsrq.device);
++			u32 s = sizeof(struct qib_rwq) + size * sz;
++
++			qib_update_mmap_info(dev, ip, s, wq);
++
++			/*
++			 * Return the offset to mmap.
++			 * See qib_mmap() for details.
++			 */
++			if (udata && udata->inlen >= sizeof(__u64)) {
++				ret = ib_copy_to_udata(udata, &ip->offset,
++						       sizeof(ip->offset));
++				if (ret)
++					goto bail;
++			}
++
++			/*
++			 * Put user mapping info onto the pending list
++			 * unless it already is on the list.
++			 */
++			spin_lock_irq(&dev->pending_lock);
++			if (list_empty(&ip->pending_mmaps))
++				list_add(&ip->pending_mmaps,
++					 &dev->pending_mmaps);
++			spin_unlock_irq(&dev->pending_lock);
++		}
++	} else if (attr_mask & IB_SRQ_LIMIT) {
++		spin_lock_irq(&srq->rq.lock);
++		if (attr->srq_limit >= srq->rq.size)
++			ret = -EINVAL;
++		else
++			srq->limit = attr->srq_limit;
++		spin_unlock_irq(&srq->rq.lock);
 +	}
-+	if (qp->ibqp.qp_type == IB_QPT_UD ||
-+	    qp->ibqp.qp_type == IB_QPT_SMI ||
-+	    qp->ibqp.qp_type == IB_QPT_GSI)
-+		atomic_dec(&to_iah(wqe->wr.wr.ud.ah)->refcount);
++	goto bail;
 +
-+	/* See ch. 11.2.4.1 and 10.7.3.1 */
-+	if (!(qp->s_flags & QIB_S_SIGNAL_REQ_WR) ||
-+	    (wqe->wr.send_flags & IB_SEND_SIGNALED) ||
-+	    status != IB_WC_SUCCESS) {
-+		struct ib_wc wc;
++bail_unlock:
++	spin_unlock_irq(&srq->rq.lock);
++bail_free:
++	vfree(wq);
++bail:
++	return ret;
++}
 +
-+		memset(&wc, 0, sizeof wc);
-+		wc.wr_id = wqe->wr.wr_id;
-+		wc.status = status;
-+		wc.opcode = ib_qib_wc_opcode[wqe->wr.opcode];
-+		wc.qp = &qp->ibqp;
-+		if (status == IB_WC_SUCCESS)
-+			wc.byte_len = wqe->length;
-+		qib_cq_enter(to_icq(qp->ibqp.send_cq), &wc,
-+			     status != IB_WC_SUCCESS);
-+	}
++int qib_query_srq(struct ib_srq *ibsrq, struct ib_srq_attr *attr)
++{
++	struct qib_srq *srq = to_isrq(ibsrq);
 +
-+	last = qp->s_last;
-+	old_last = last;
-+	if (++last >= qp->s_size)
-+		last = 0;
-+	qp->s_last = last;
-+	if (qp->s_acked == old_last)
-+		qp->s_acked = last;
-+	if (qp->s_cur == old_last)
-+		qp->s_cur = last;
-+	if (qp->s_tail == old_last)
-+		qp->s_tail = last;
-+	if (qp->state == IB_QPS_SQD && last == qp->s_cur)
-+		qp->s_draining = 0;
++	attr->max_wr = srq->rq.size - 1;
++	attr->max_sge = srq->rq.max_sge;
++	attr->srq_limit = srq->limit;
++	return 0;
++}
++
++/**
++ * qib_destroy_srq - destroy a shared receive queue
++ * @ibsrq: the SRQ to destroy
++ */
++int qib_destroy_srq(struct ib_srq *ibsrq)
++{
++	struct qib_srq *srq = to_isrq(ibsrq);
++	struct qib_ibdev *dev = to_idev(ibsrq->device);
++
++	spin_lock(&dev->n_srqs_lock);
++	dev->n_srqs_allocated--;
++	spin_unlock(&dev->n_srqs_lock);
++	if (srq->ip)
++		kref_put(&srq->ip->ref, qib_release_mmap_info);
++	else
++		vfree(srq->rq.wq);
++	kfree(srq);
++
++	return 0;
 +}
 
 --
