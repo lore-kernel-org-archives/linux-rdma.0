@@ -1,7 +1,7 @@
 From: Ralph Campbell <ralph.campbell-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v2 38/51] IB/qib: Add qib_sysfs.c
-Date: Thu, 03 Dec 2009 11:06:24 -0800
-Message-ID: <20091203190624.29507.22110.stgit@chromite.mv.qlogic.com>
+Subject: [PATCH v2 40/51] IB/qib: Add qib_tx.c
+Date: Thu, 03 Dec 2009 11:06:34 -0800
+Message-ID: <20091203190634.29507.84061.stgit@chromite.mv.qlogic.com>
 References: <20091203190305.29507.58158.stgit@chromite.mv.qlogic.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -13,24 +13,23 @@ To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-creates the qib_sysfs.c file.
+creates the qib_tx.c file.
 
 Signed-off-by: Ralph Campbell <ralph.campbell-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
 ---
 
- drivers/infiniband/hw/qib/qib_sysfs.c |  736 +++++++++++++++++++++++++++++++++
- 1 files changed, 736 insertions(+), 0 deletions(-)
- create mode 100644 drivers/infiniband/hw/qib/qib_sysfs.c
+ drivers/infiniband/hw/qib/qib_tx.c |  585 ++++++++++++++++++++++++++++++++++++
+ 1 files changed, 585 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/infiniband/hw/qib/qib_tx.c
 
-diff --git a/drivers/infiniband/hw/qib/qib_sysfs.c b/drivers/infiniband/hw/qib/qib_sysfs.c
+diff --git a/drivers/infiniband/hw/qib/qib_tx.c b/drivers/infiniband/hw/qib/qib_tx.c
 new file mode 100644
-index 0000000..747005a
+index 0000000..7d77f29
 --- /dev/null
-+++ b/drivers/infiniband/hw/qib/qib_sysfs.c
-@@ -0,0 +1,736 @@
++++ b/drivers/infiniband/hw/qib/qib_tx.c
+@@ -0,0 +1,585 @@
 +/*
-+ * Copyright (c) 2006, 2007, 2008, 2009 QLogic Corporation. All rights reserved.
-+ * Copyright (c) 2006 PathScale, Inc. All rights reserved.
++ * Copyright (c) 2008, 2009 QLogic Corporation. All rights reserved.
 + *
 + * This software is available to you under a choice of one of two
 + * licenses.  You may choose to be licensed under the terms of the GNU
@@ -60,708 +59,558 @@ index 0000000..747005a
 + * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 + * SOFTWARE.
 + */
-+#include <linux/ctype.h>
++
++#include <linux/spinlock.h>
++#include <linux/pci.h>
++#include <linux/io.h>
++#include <linux/delay.h>
++#include <linux/netdevice.h>
++#include <linux/vmalloc.h>
 +
 +#include "qib.h"
 +
++static unsigned qib_hol_timeout_ms = 3000;
++module_param_named(hol_timeout_ms, qib_hol_timeout_ms, uint, S_IRUGO);
++MODULE_PARM_DESC(hol_timeout_ms,
++		 "duration of user app suspension after link failure");
++
++unsigned qib_sdma_fetch_arb = 1;
++module_param_named(fetch_arb, qib_sdma_fetch_arb, uint, S_IRUGO);
++MODULE_PARM_DESC(fetch_arb, "IBA7220: change SDMA descriptor arbitration");
++
 +/**
-+ * qib_parse_ushort - parse an unsigned short value in an arbitrary base
-+ * @str: the string containing the number
-+ * @valp: where to put the result
++ * qib_disarm_piobufs - cancel a range of PIO buffers
++ * @dd: the qlogic_ib device
++ * @first: the first PIO buffer to cancel
++ * @cnt: the number of PIO buffers to cancel
 + *
-+ * Returns the number of bytes consumed, or negative value on error.
++ * Cancel a range of PIO buffers. Used at user process close,
++ * in case it died while writing to a PIO buffer.
 + */
-+static int qib_parse_ushort(const char *str, unsigned short *valp)
++void qib_disarm_piobufs(struct qib_devdata *dd, unsigned first, unsigned cnt)
 +{
-+	unsigned long val;
-+	char *end;
-+	int ret;
-+
-+	if (!isdigit(str[0])) {
-+		ret = -EINVAL;
-+		goto bail;
-+	}
-+
-+	val = simple_strtoul(str, &end, 0);
-+
-+	if (val > 0xffff) {
-+		ret = -EINVAL;
-+		goto bail;
-+	}
-+
-+	*valp = val;
-+
-+	ret = end + 1 - str;
-+	if (ret == 0)
-+		ret = -EINVAL;
-+
-+bail:
-+	return ret;
-+}
-+
-+/* start of per-port functions */
-+/*
-+ * Get/Set heartbeat enable. OR of 1=enabled, 2=auto
-+ */
-+static ssize_t show_hrtbt_enb(struct qib_pportdata *ppd, char *buf)
-+{
-+	struct qib_devdata *dd = ppd->dd;
-+	int ret;
-+
-+	ret = dd->f_get_ib_cfg(ppd, QIB_IB_CFG_HRTBT);
-+	ret = scnprintf(buf, PAGE_SIZE, "%d\n", ret);
-+	return ret;
-+}
-+
-+static ssize_t store_hrtbt_enb(struct qib_pportdata *ppd, const char *buf,
-+			       size_t count)
-+{
-+	struct qib_devdata *dd = ppd->dd;
-+	int ret;
-+	u16 val;
-+
-+	ret = qib_parse_ushort(buf, &val);
-+
-+	/*
-+	 * Set the "intentional" heartbeat enable per either of
-+	 * "Enable" and "Auto", as these are normally set together.
-+	 * This bit is consulted when leaving loopback mode,
-+	 * because entering loopback mode overrides it and automatically
-+	 * disables heartbeat.
-+	 */
-+	if (ret >= 0)
-+		ret = dd->f_set_ib_cfg(ppd, QIB_IB_CFG_HRTBT, val);
-+	if (ret < 0)
-+		qib_dev_err(dd, "attempt to set invalid Heartbeat enable\n");
-+	return ret < 0 ? ret : count;
-+}
-+
-+static ssize_t store_loopback(struct qib_pportdata *ppd, const char *buf,
-+			      size_t count)
-+{
-+	struct qib_devdata *dd = ppd->dd;
-+	int ret = count, r;
-+
-+	r = dd->f_set_ib_loopback(ppd, buf);
-+	if (r < 0)
-+		ret = r;
-+
-+	return ret;
-+}
-+
-+static ssize_t store_led_override(struct qib_pportdata *ppd, const char *buf,
-+				  size_t count)
-+{
-+	struct qib_devdata *dd = ppd->dd;
-+	int ret;
-+	u16 val;
-+
-+	ret = qib_parse_ushort(buf, &val);
-+	if (ret > 0)
-+		qib_set_led_override(ppd, val);
-+	else
-+		qib_dev_err(dd, "attempt to set invalid LED override\n");
-+	return ret < 0 ? ret : count;
-+}
-+
-+static ssize_t show_qsfp(struct qib_pportdata *ppd, char *buf)
-+{
-+	ssize_t ret;
-+
-+	ret = qib_qsfp_dump(ppd, buf, PAGE_SIZE);
-+	return ret;
-+}
-+
-+static ssize_t show_status(struct qib_pportdata *ppd, char *buf)
-+{
-+	ssize_t ret;
-+
-+	if (!ppd->statusp)
-+		ret = -EINVAL;
-+	else
-+		ret = scnprintf(buf, PAGE_SIZE, "0x%llx\n",
-+				(unsigned long long) *(ppd->statusp));
-+	return ret;
-+}
-+
-+/*
-+ * For userland compatibility, these offsets must remain fixed.
-+ * They are strings for QIB_STATUS_*
-+ */
-+static const char *qib_status_str[] = {
-+	"Initted",
-+	"",
-+	"",
-+	"",
-+	"",
-+	"Present",
-+	"IB_link_up",
-+	"IB_configured",
-+	"",
-+	"Fatal_Hardware_Error",
-+	NULL,
-+};
-+
-+static ssize_t show_status_str(struct qib_pportdata *ppd, char *buf)
-+{
-+	int i, any;
-+	u64 s;
-+	ssize_t ret;
-+
-+	if (!ppd->statusp) {
-+		ret = -EINVAL;
-+		goto bail;
-+	}
-+
-+	s = *(ppd->statusp);
-+	*buf = '\0';
-+	for (any = i = 0; s && qib_status_str[i]; i++) {
-+		if (s & 1) {
-+			/* if overflow */
-+			if (any && strlcat(buf, " ", PAGE_SIZE) >= PAGE_SIZE)
-+				break;
-+			if (strlcat(buf, qib_status_str[i], PAGE_SIZE) >=
-+					PAGE_SIZE)
-+				break;
-+			any = 1;
-+		}
-+		s >>= 1;
-+	}
-+	if (any)
-+		strlcat(buf, "\n", PAGE_SIZE);
-+
-+	ret = strlen(buf);
-+
-+bail:
-+	return ret;
-+}
-+
-+/* end of per-port functions */
-+
-+/*
-+ * Start of per-port file structures and support code
-+ * Because we are fitting into other infrastructure, we have to supply the
-+ * full set of kobject/sysfs_ops structures and routines.
-+ */
-+#define QIB_PORT_ATTR(name, mode, show, store) \
-+	static struct qib_port_attr qib_port_attr_##name = \
-+		__ATTR(name, mode, show, store)
-+
-+struct qib_port_attr {
-+	struct attribute attr;
-+	ssize_t (*show)(struct qib_pportdata *, char *);
-+	ssize_t (*store)(struct qib_pportdata *, const char *, size_t);
-+};
-+
-+QIB_PORT_ATTR(loopback, S_IWUSR, NULL, store_loopback);
-+QIB_PORT_ATTR(led_override, S_IWUSR, NULL, store_led_override);
-+QIB_PORT_ATTR(hrtbt_enable, S_IWUSR | S_IRUGO, show_hrtbt_enb,
-+	      store_hrtbt_enb);
-+QIB_PORT_ATTR(qsfp, S_IRUGO, show_qsfp, NULL);
-+QIB_PORT_ATTR(status, S_IRUGO, show_status, NULL);
-+QIB_PORT_ATTR(status_str, S_IRUGO, show_status_str, NULL);
-+
-+static struct attribute *port_default_attributes[] = {
-+	&qib_port_attr_loopback.attr,
-+	&qib_port_attr_led_override.attr,
-+	&qib_port_attr_hrtbt_enable.attr,
-+	&qib_port_attr_status.attr,
-+	&qib_port_attr_status_str.attr,
-+	NULL
-+};
-+
-+static ssize_t qib_portattr_show(struct kobject *kobj,
-+	struct attribute *attr, char *buf)
-+{
-+	struct qib_port_attr *pattr =
-+		container_of(attr, struct qib_port_attr, attr);
-+	struct qib_pportdata *ppd =
-+		container_of(kobj, struct qib_pportdata, pport_kobj);
-+
-+	return pattr->show(ppd, buf);
-+}
-+
-+static ssize_t qib_portattr_store(struct kobject *kobj,
-+	struct attribute *attr, const char *buf, size_t len)
-+{
-+	struct qib_port_attr *pattr =
-+		container_of(attr, struct qib_port_attr, attr);
-+	struct qib_pportdata *ppd =
-+		container_of(kobj, struct qib_pportdata, pport_kobj);
-+
-+	return pattr->store(ppd, buf, len);
-+}
-+
-+static void qib_port_release(struct kobject *kobj)
-+{
-+	/* nothing to do since memory is freed by qib_free_devdata() */
-+}
-+
-+static struct sysfs_ops qib_port_ops = {
-+	.show = qib_portattr_show,
-+	.store = qib_portattr_store,
-+};
-+
-+static struct kobj_type qib_port_ktype = {
-+	.release = qib_port_release,
-+	.sysfs_ops = &qib_port_ops,
-+	.default_attrs = port_default_attributes
-+};
-+
-+/* Start sl2vl */
-+
-+#define QIB_SL2VL_ATTR(N) \
-+	static struct qib_sl2vl_attr qib_sl2vl_attr_##N = { \
-+		.attr = { .name = __stringify(N), .mode = 0444 }, \
-+		.sl = N \
-+	}
-+
-+struct qib_sl2vl_attr {
-+	struct attribute attr;
-+	int sl;
-+};
-+
-+QIB_SL2VL_ATTR(0);
-+QIB_SL2VL_ATTR(1);
-+QIB_SL2VL_ATTR(2);
-+QIB_SL2VL_ATTR(3);
-+QIB_SL2VL_ATTR(4);
-+QIB_SL2VL_ATTR(5);
-+QIB_SL2VL_ATTR(6);
-+QIB_SL2VL_ATTR(7);
-+QIB_SL2VL_ATTR(8);
-+QIB_SL2VL_ATTR(9);
-+QIB_SL2VL_ATTR(10);
-+QIB_SL2VL_ATTR(11);
-+QIB_SL2VL_ATTR(12);
-+QIB_SL2VL_ATTR(13);
-+QIB_SL2VL_ATTR(14);
-+QIB_SL2VL_ATTR(15);
-+
-+static struct attribute *sl2vl_default_attributes[] = {
-+	&qib_sl2vl_attr_0.attr,
-+	&qib_sl2vl_attr_1.attr,
-+	&qib_sl2vl_attr_2.attr,
-+	&qib_sl2vl_attr_3.attr,
-+	&qib_sl2vl_attr_4.attr,
-+	&qib_sl2vl_attr_5.attr,
-+	&qib_sl2vl_attr_6.attr,
-+	&qib_sl2vl_attr_7.attr,
-+	&qib_sl2vl_attr_8.attr,
-+	&qib_sl2vl_attr_9.attr,
-+	&qib_sl2vl_attr_10.attr,
-+	&qib_sl2vl_attr_11.attr,
-+	&qib_sl2vl_attr_12.attr,
-+	&qib_sl2vl_attr_13.attr,
-+	&qib_sl2vl_attr_14.attr,
-+	&qib_sl2vl_attr_15.attr,
-+	NULL
-+};
-+
-+static ssize_t sl2vl_attr_show(struct kobject *kobj, struct attribute *attr,
-+			       char *buf)
-+{
-+	struct qib_sl2vl_attr *sattr =
-+		container_of(attr, struct qib_sl2vl_attr, attr);
-+	struct qib_pportdata *ppd =
-+		container_of(kobj, struct qib_pportdata, sl2vl_kobj);
-+	struct qib_ibport *qibp = &ppd->ibport_data;
-+
-+	return sprintf(buf, "%u\n", qibp->sl_to_vl[sattr->sl]);
-+}
-+
-+static struct sysfs_ops qib_sl2vl_ops = {
-+	.show = sl2vl_attr_show,
-+};
-+
-+static struct kobj_type qib_sl2vl_ktype = {
-+	.release = qib_port_release,
-+	.sysfs_ops = &qib_sl2vl_ops,
-+	.default_attrs = sl2vl_default_attributes
-+};
-+
-+/* End sl2vl */
-+
-+/* end of per-port file structures and support code */
-+
-+/*
-+ * Start of per-unit (or driver, in some cases, but replicated
-+ * per unit) functions (these get a device *)
-+ */
-+static ssize_t show_rev(struct device *device, struct device_attribute *attr,
-+			char *buf)
-+{
-+	struct qib_ibdev *dev =
-+		container_of(device, struct qib_ibdev, ibdev.dev);
-+
-+	return sprintf(buf, "%x\n", dd_from_dev(dev)->minrev);
-+}
-+
-+static ssize_t show_hca(struct device *device, struct device_attribute *attr,
-+			char *buf)
-+{
-+	struct qib_ibdev *dev =
-+		container_of(device, struct qib_ibdev, ibdev.dev);
-+	struct qib_devdata *dd = dd_from_dev(dev);
-+	int ret;
-+
-+	if (!dd->boardname)
-+		ret = -EINVAL;
-+	else
-+		ret = scnprintf(buf, PAGE_SIZE, "%s\n", dd->boardname);
-+	return ret;
-+}
-+
-+static const char *qp_type_str[] = {
-+	"SMI", "GSI", "RC", "UC", "UD",
-+};
-+
-+static ssize_t show_stats(struct device *device, struct device_attribute *attr,
-+			  char *buf)
-+{
-+	struct qib_ibdev *dev =
-+		container_of(device, struct qib_ibdev, ibdev.dev);
-+	struct qib_devdata *dd = dd_from_dev(dev);
-+	unsigned pidx;
++	unsigned long flags;
 +	unsigned i;
-+	int len = 0;
++	unsigned last;
++
++	qib_cdbg(ERRPKT, "disarm %u PIObufs first=%u\n", cnt, first);
++	last = first + cnt;
++	spin_lock_irqsave(&dd->pioavail_lock, flags);
++	for (i = first; i < last; i++) {
++		__clear_bit(i, dd->pio_need_disarm);
++		dd->f_sendctrl(dd->pport, QIB_SENDCTRL_DISARM_BUF(i));
++	}
++	spin_unlock_irqrestore(&dd->pioavail_lock, flags);
++}
++
++/*
++ * This is called by a user process when it sees the DISARM_BUFS event
++ * bit is set.
++ */
++int qib_disarm_piobufs_ifneeded(struct qib_ctxtdata *rcd)
++{
++	struct qib_devdata *dd = rcd->dd;
++	unsigned i;
++	unsigned last;
++	unsigned n = 0;
++
++	last = rcd->pio_base + rcd->piocnt;
++	/*
++	 * Don't need uctxt_lock here, since user has called in to us.
++	 * Clear at start in case more interrupts set bits while we
++	 * are disarming
++	 */
++	if (rcd->user_event_mask) {
++		/*
++		 * subctxt_cnt is 0 if not shared, so do base
++		 * separately, first, then remaining subctxt, if any
++		 */
++		clear_bit(_QIB_EVENT_DISARM_BUFS_BIT, &rcd->user_event_mask[0]);
++		for (i = 1; i < rcd->subctxt_cnt; i++)
++			clear_bit(_QIB_EVENT_DISARM_BUFS_BIT,
++				  &rcd->user_event_mask[i]);
++	}
++	spin_lock_irq(&dd->pioavail_lock);
++	for (i = rcd->pio_base; i < last; i++) {
++		if (__test_and_clear_bit(i, dd->pio_need_disarm)) {
++			n++;
++			dd->f_sendctrl(rcd->ppd, QIB_SENDCTRL_DISARM_BUF(i));
++		}
++	}
++	spin_unlock_irq(&dd->pioavail_lock);
++	qib_cdbg(ERRPKT, "Ctxt%u, User disarm (%u bufs (%u-%u)) done\n",
++		rcd->ctxt, n, rcd->pio_base, last);
++	return 0;
++}
++
++static struct qib_pportdata *is_sdma_buf(struct qib_devdata *dd, unsigned i)
++{
++	struct qib_pportdata *ppd;
++	unsigned pidx;
++
++	for (pidx = 0; pidx < dd->num_pports; pidx++) {
++		ppd = dd->pport + pidx;
++		if (i >= ppd->sdma_state.first_sendbuf &&
++		    i < ppd->sdma_state.last_sendbuf)
++			return ppd;
++	}
++	return NULL;
++}
++
++/*
++ * Return true if send buffer is being used by a user context.
++ * Sets  _QIB_EVENT_DISARM_BUFS_BIT in user_event_mask as a side effect
++ */
++static int find_ctxt(struct qib_devdata *dd, unsigned bufn)
++{
++	struct qib_ctxtdata *rcd;
++	unsigned ctxt;
++	int ret = 0;
++
++	spin_lock(&dd->uctxt_lock);
++	for (ctxt = dd->first_user_ctxt; ctxt < dd->cfgctxts; ctxt++) {
++		rcd = dd->rcd[ctxt];
++		if (!rcd || bufn < rcd->pio_base ||
++		    bufn >= rcd->pio_base + rcd->piocnt)
++			continue;
++		if (rcd->user_event_mask) {
++			int i;
++			/*
++			 * subctxt_cnt is 0 if not shared, so do base
++			 * separately, first, then remaining subctxt, if any
++			 */
++			set_bit(_QIB_EVENT_DISARM_BUFS_BIT,
++				&rcd->user_event_mask[0]);
++			for (i = 1; i < rcd->subctxt_cnt; i++)
++				set_bit(_QIB_EVENT_DISARM_BUFS_BIT,
++					&rcd->user_event_mask[i]);
++		}
++		ret = 1;
++		break;
++	}
++	spin_unlock(&dd->uctxt_lock);
++
++	return ret;
++}
++
++/*
++ * Disarm a set of send buffers.  If the buffer might be actively being
++ * written to, mark the buffer to be disarmed later when it is not being
++ * written to.
++ *
++ * This should only be called from the IRQ error handler.
++ */
++void qib_disarm_piobufs_set(struct qib_devdata *dd, unsigned long *mask,
++			    unsigned cnt)
++{
++	struct qib_pportdata *ppd;
++	unsigned i;
 +	unsigned long flags;
 +
-+	for (pidx = 0; pidx < dd->num_pports; ++pidx) {
-+		struct qib_ibport *ibp = &dd->pport[pidx].ibport_data;
-+
-+		len += sprintf(buf + len,
-+			       "Port %d:\n"
-+			       "RC timeouts %d\n"
-+			       "RC resends  %d\n"
-+			       "RC QACKs    %d\n"
-+			       "RC SEQ NAKs %d\n"
-+			       "RC RDMA seq %d\n"
-+			       "RC RNR NAKs %d\n"
-+			       "RC OTH NAKs %d\n"
-+			       "RC DComp    %d\n"
-+			       "RCr dup req %d\n"
-+			       "RCr SEQ NAK %d\n"
-+			       "wait piobuf %d\n"
-+			       "wait DMA    %d\n"
-+			       "wait TX     %d\n"
-+			       "unaligned   %d\n"
-+			       "loop pkts   %d\n"
-+			       "PKT drops   %d\n",
-+			       dd->pport[pidx].port,
-+			       ibp->n_timeouts, ibp->n_rc_resends,
-+			       ibp->n_rc_qacks, ibp->n_seq_naks,
-+			       ibp->n_rdma_seq, ibp->n_rnr_naks,
-+			       ibp->n_other_naks, ibp->n_rc_delayed_comp,
-+			       ibp->n_rc_dupreq, ibp->n_rc_seqnak,
-+			       dev->n_piowait, ibp->n_dmawait, dev->n_txwait,
-+			       ibp->n_unaligned, ibp->n_loop_pkts,
-+			       ibp->n_pkt_drops);
-+		for (i = 0; i < ARRAY_SIZE(ibp->opstats); i++) {
-+			const struct qib_opcode_stats *si = &ibp->opstats[i];
-+
-+			if (!si->n_packets && !si->n_bytes)
-+				continue;
-+			len += sprintf(buf + len, "%02x %llu/%llu\n", i,
-+				       (unsigned long long) si->n_packets,
-+				       (unsigned long long) si->n_bytes);
-+		}
-+	}
-+	len += sprintf(buf + len, "Ctx:npkts");
-+	for (i = 0; i < dd->first_user_ctxt; i++) {
-+		if (!dd->rcd[i])
++	for (i = 0; i < cnt; i++) {
++		int which;
++		if (!test_bit(i, mask))
 +			continue;
-+		len += sprintf(buf + len, " %u:%u", i,
-+			       dd->rcd[i]->pkt_count);
-+	}
-+	len += sprintf(buf + len, "\n");
-+	spin_lock_irqsave(&dev->qpt_lock, flags);
-+	for (i = 0; i < dev->qp_table_size; i++) {
-+		struct qib_qp *qp;
-+		for (qp = dev->qp_table[i]; qp != NULL; qp = qp->next) {
-+			struct qib_swqe *wqe;
-+
-+			if (qp->s_last == qp->s_acked &&
-+			    qp->s_acked == qp->s_cur &&
-+			    qp->s_cur == qp->s_tail &&
-+			    qp->s_tail == qp->s_head)
-+				continue;
-+			if (len + 128 >= PAGE_SIZE)
-+				break;
-+			wqe = get_swqe_ptr(qp, qp->s_last);
-+			len += sprintf(buf + len,
-+				       "QP%u %s %u %u %u f=%x %u %u %u %u %u "
-+				       "PSN %x %x %x %x %x "
-+				       "(%u %u %u %u %u %u) QP%u LID %x\n",
-+				       qp->ibqp.qp_num,
-+				       qp_type_str[qp->ibqp.qp_type],
-+				       qp->state,
-+				       wqe->wr.opcode,
-+				       qp->s_hdrwords,
-+				       qp->s_flags,
-+				       atomic_read(&qp->s_dma_busy),
-+				       !list_empty(&qp->iowait),
-+				       qp->timeout,
-+				       wqe->ssn,
-+				       qp->s_lsn,
-+				       qp->s_last_psn,
-+				       qp->s_psn, qp->s_next_psn,
-+				       qp->s_sending_psn, qp->s_sending_hpsn,
-+				       qp->s_last, qp->s_acked, qp->s_cur,
-+				       qp->s_tail, qp->s_head, qp->s_size,
-+				       qp->remote_qpn,
-+				       qp->remote_ah_attr.dlid);
-+		}
-+	}
-+	spin_unlock_irqrestore(&dev->qpt_lock, flags);
-+	return len;
-+}
-+
-+static ssize_t show_version(struct device *device,
-+			    struct device_attribute *attr, char *buf)
-+{
-+	/* The string printed here is already newline-terminated. */
-+	return scnprintf(buf, PAGE_SIZE, "%s", (char *)ib_qib_version);
-+}
-+
-+static ssize_t show_boardversion(struct device *device,
-+				 struct device_attribute *attr, char *buf)
-+{
-+	struct qib_ibdev *dev =
-+		container_of(device, struct qib_ibdev, ibdev.dev);
-+	struct qib_devdata *dd = dd_from_dev(dev);
-+
-+	/* The string printed here is already newline-terminated. */
-+	return scnprintf(buf, PAGE_SIZE, "%s", dd->boardversion);
-+}
-+
-+
-+static ssize_t show_localbus_info(struct device *device,
-+				  struct device_attribute *attr, char *buf)
-+{
-+	struct qib_ibdev *dev =
-+		container_of(device, struct qib_ibdev, ibdev.dev);
-+	struct qib_devdata *dd = dd_from_dev(dev);
-+
-+	/* The string printed here is already newline-terminated. */
-+	return scnprintf(buf, PAGE_SIZE, "%s", dd->lbus_info);
-+}
-+
-+
-+static ssize_t show_nctxts(struct device *device,
-+			   struct device_attribute *attr, char *buf)
-+{
-+	struct qib_ibdev *dev =
-+		container_of(device, struct qib_ibdev, ibdev.dev);
-+	struct qib_devdata *dd = dd_from_dev(dev);
-+
-+	/* Return the number of user ports (contexts) available. */
-+	return scnprintf(buf, PAGE_SIZE, "%u\n", dd->cfgctxts -
-+		dd->first_user_ctxt);
-+}
-+
-+static ssize_t show_serial(struct device *device,
-+			   struct device_attribute *attr, char *buf)
-+{
-+	struct qib_ibdev *dev =
-+		container_of(device, struct qib_ibdev, ibdev.dev);
-+	struct qib_devdata *dd = dd_from_dev(dev);
-+
-+	buf[sizeof dd->serial] = '\0';
-+	memcpy(buf, dd->serial, sizeof dd->serial);
-+	strcat(buf, "\n");
-+	return strlen(buf);
-+}
-+
-+static ssize_t store_chip_reset(struct device *device,
-+				struct device_attribute *attr, const char *buf,
-+				size_t count)
-+{
-+	struct qib_ibdev *dev =
-+		container_of(device, struct qib_ibdev, ibdev.dev);
-+	struct qib_devdata *dd = dd_from_dev(dev);
-+	int ret;
-+
-+	if (count < 5 || memcmp(buf, "reset", 5) || !dd->diag_client) {
-+		ret = -EINVAL;
-+		goto bail;
-+	}
-+
-+	ret = qib_reset_device(dd->unit);
-+bail:
-+	return ret < 0 ? ret : count;
-+}
-+
-+static ssize_t show_logged_errs(struct device *device,
-+				struct device_attribute *attr, char *buf)
-+{
-+	struct qib_ibdev *dev =
-+		container_of(device, struct qib_ibdev, ibdev.dev);
-+	struct qib_devdata *dd = dd_from_dev(dev);
-+	int idx, count;
-+
-+	/* force consistency with actual EEPROM */
-+	if (qib_update_eeprom_log(dd) != 0)
-+		return -ENXIO;
-+
-+	count = 0;
-+	for (idx = 0; idx < QIB_EEP_LOG_CNT; ++idx) {
-+		count += scnprintf(buf + count, PAGE_SIZE - count, "%d%c",
-+				   dd->eep_st_errs[idx],
-+				   idx == (QIB_EEP_LOG_CNT - 1) ? '\n' : ' ');
-+	}
-+
-+	return count;
-+}
-+
-+/*
-+ * Dump tempsense regs. in decimal, to ease shell-scripts.
-+ */
-+static ssize_t show_tempsense(struct device *device,
-+			      struct device_attribute *attr, char *buf)
-+{
-+	struct qib_ibdev *dev =
-+		container_of(device, struct qib_ibdev, ibdev.dev);
-+	struct qib_devdata *dd = dd_from_dev(dev);
-+	int ret;
-+	int idx;
-+	u8 regvals[8];
-+
-+	ret = -ENXIO;
-+	for (idx = 0; idx < 8; ++idx) {
-+		if (idx == 6)
++		/*
++		 * If the buffer is owned by the DMA hardware,
++		 * reset the DMA engine.
++		 */
++		ppd = is_sdma_buf(dd, i);
++		if (ppd) {
++			/* should do only once per port */
++			qib_cdbg(ERRPKT, "buf %u sdma; do cancel_sends\n", i);
++			qib_cancel_sends(ppd);
 +			continue;
-+		ret = dd->f_tempsense_rd(dd, idx);
-+		if (ret < 0)
-+			break;
-+		regvals[idx] = ret;
++		}
++		/*
++		 * If the kernel is writing the buffer or the buffer is
++		 * owned by a user process, we can't clear it yet.
++		 */
++		spin_lock_irqsave(&dd->pioavail_lock, flags);
++		if (test_bit(i, dd->pio_writing) ||
++		    (!test_bit(i << 1, dd->pioavailkernel) &&
++		     find_ctxt(dd, i))) {
++			__set_bit(i, dd->pio_need_disarm);
++			which = 0;
++		} else {
++			which = 1;
++			dd->f_sendctrl(dd->pport, QIB_SENDCTRL_DISARM_BUF(i));
++		}
++		spin_unlock_irqrestore(&dd->pioavail_lock, flags);
++		qib_cdbg(ERRPKT, "disarm buf %u %s\n", i, which ?
++			 "now" : "later");
 +	}
-+	if (idx == 8)
-+		ret = scnprintf(buf, PAGE_SIZE, "%d %d %02X %02X %d %d\n",
-+				*(signed char *)(regvals),
-+				*(signed char *)(regvals + 1),
-+				regvals[2], regvals[3],
-+				*(signed char *)(regvals + 5),
-+				*(signed char *)(regvals + 7));
-+	return ret;
 +}
 +
-+/*
-+ * end of per-unit (or driver, in some cases, but replicated
-+ * per unit) functions
++/**
++ * update_send_bufs - update shadow copy of the PIO availability map
++ * @dd: the qlogic_ib device
++ *
++ * called whenever our local copy indicates we have run out of send buffers
 + */
-+
-+/* start of per-unit file structures and support code */
-+static DEVICE_ATTR(hw_rev, S_IRUGO, show_rev, NULL);
-+static DEVICE_ATTR(hca_type, S_IRUGO, show_hca, NULL);
-+static DEVICE_ATTR(board_id, S_IRUGO, show_hca, NULL);
-+static DEVICE_ATTR(stats, S_IRUGO, show_stats, NULL);
-+static DEVICE_ATTR(version, S_IRUGO, show_version, NULL);
-+static DEVICE_ATTR(nctxts, S_IRUGO, show_nctxts, NULL);
-+static DEVICE_ATTR(serial, S_IRUGO, show_serial, NULL);
-+static DEVICE_ATTR(boardversion, S_IRUGO, show_boardversion, NULL);
-+static DEVICE_ATTR(logged_errors, S_IRUGO, show_logged_errs, NULL);
-+static DEVICE_ATTR(tempsense, S_IRUGO, show_tempsense, NULL);
-+static DEVICE_ATTR(localbus_info, S_IRUGO, show_localbus_info, NULL);
-+static DEVICE_ATTR(chip_reset, S_IWUSR, NULL, store_chip_reset);
-+
-+static struct device_attribute *qib_attributes[] = {
-+	&dev_attr_hw_rev,
-+	&dev_attr_hca_type,
-+	&dev_attr_board_id,
-+	&dev_attr_stats,
-+	&dev_attr_version,
-+	&dev_attr_nctxts,
-+	&dev_attr_serial,
-+	&dev_attr_boardversion,
-+	&dev_attr_logged_errors,
-+	&dev_attr_tempsense,
-+	&dev_attr_localbus_info,
-+	&dev_attr_chip_reset,
-+};
-+
-+static int create_port_files(struct ib_device *ibdev, u8 port_num,
-+			     struct kobject *kobj)
++static void update_send_bufs(struct qib_devdata *dd)
 +{
-+	struct qib_pportdata *ppd;
-+	struct qib_devdata *dd = dd_from_ibdev(ibdev);
-+	int ret;
++	unsigned long flags;
++	unsigned i;
++	const unsigned piobregs = dd->pioavregs;
 +
-+	if (!port_num || port_num > dd->num_pports) {
-+		qib_dev_err(dd, "Skipping infiniband class with "
-+			    "invalid port %u\n", port_num);
-+		ret = -ENODEV;
-+		goto bail;
++	/*
++	 * If the generation (check) bits have changed, then we update the
++	 * busy bit for the corresponding PIO buffer.  This algorithm will
++	 * modify positions to the value they already have in some cases
++	 * (i.e., no change), but it's faster than changing only the bits
++	 * that have changed.
++	 *
++	 * We would like to do this atomicly, to avoid spinlocks in the
++	 * critical send path, but that's not really possible, given the
++	 * type of changes, and that this routine could be called on
++	 * multiple cpu's simultaneously, so we lock in this routine only,
++	 * to avoid conflicting updates; all we change is the shadow, and
++	 * it's a single 64 bit memory location, so by definition the update
++	 * is atomic in terms of what other cpu's can see in testing the
++	 * bits.  The spin_lock overhead isn't too bad, since it only
++	 * happens when all buffers are in use, so only cpu overhead, not
++	 * latency or bandwidth is affected.
++	 */
++	if (!dd->pioavailregs_dma) {
++		qib_dbg("Update shadow pioavail, but regs_dma NULL!\n");
++		return;
 +	}
-+	ppd = &dd->pport[port_num - 1];
++	if (qib_debug & __QIB_VERBDBG) {
++		/* only if packet debug and verbose */
++		volatile __le64 *dma = dd->pioavailregs_dma; /* DMA'ed */
++		unsigned long *shadow = dd->pioavailshadow;
 +
-+	ret = kobject_init_and_add(&ppd->pport_kobj, &qib_port_ktype, kobj,
-+				   "linkcontrol");
-+	if (ret) {
-+		qib_dev_err(dd, "Skipping linkcontrol sysfs info, "
-+			    "(err %d) port %u\n", ret, port_num);
-+		goto bail;
++		qib_dbg("Refill avail, ts%lx; dmacopy: "
++			"%llx %llx %llx %llx %llx %llx"
++			"; shadow: %lx %lx %lx %lx %lx %lx\n",
++			(unsigned long)get_cycles(),
++			(unsigned long long) le64_to_cpu(dma[0]),
++			(unsigned long long) le64_to_cpu(dma[1]),
++			(unsigned long long) le64_to_cpu(dma[2]),
++			(unsigned long long) le64_to_cpu(dma[3]),
++			(unsigned long long) le64_to_cpu(dma[4]),
++			(unsigned long long) le64_to_cpu(dma[5]),
++			shadow[0], shadow[1], shadow[2], shadow[3],
++			shadow[4], shadow[5]);
 +	}
++	spin_lock_irqsave(&dd->pioavail_lock, flags);
++	for (i = 0; i < piobregs; i++) {
++		u64 pchbusy, pchg, piov, pnew;
 +
-+	if (dd->flags & QIB_HAS_QSFP) {
-+		ret = sysfs_create_file(&ppd->pport_kobj,
-+					&qib_port_attr_qsfp.attr);
-+		if (ret) {
-+			qib_dev_err(dd, "Skipping qsfp sysfs info, "
-+				    "(err %d) port %u\n", ret, port_num);
-+			goto bail;
++		piov = le64_to_cpu(dd->pioavailregs_dma[i]);
++		pchg = dd->pioavailkernel[i] &
++			~(dd->pioavailshadow[i] ^ piov);
++		pchbusy = pchg << QLOGIC_IB_SENDPIOAVAIL_BUSY_SHIFT;
++		if (pchg && (pchbusy & dd->pioavailshadow[i])) {
++			pnew = dd->pioavailshadow[i] & ~pchbusy;
++			pnew |= piov & pchbusy;
++			dd->pioavailshadow[i] = pnew;
 +		}
 +	}
-+	kobject_uevent(&ppd->pport_kobj, KOBJ_ADD);
++	spin_unlock_irqrestore(&dd->pioavail_lock, flags);
++}
 +
-+	ret = kobject_init_and_add(&ppd->sl2vl_kobj, &qib_sl2vl_ktype, kobj,
-+				   "sl2vl");
-+	if (ret) {
-+		qib_dev_err(dd, "Skipping sl2vl sysfs info, "
-+			    "(err %d) port %u\n", ret, port_num);
-+		goto bail_sl;
++/*
++ * Debugging code and stats updates if no pio buffers available.
++ */
++static noinline void no_send_bufs(struct qib_devdata *dd)
++{
++	dd->upd_pio_shadow = 1;
++
++	/* not atomic, but if we lose a stat count in a while, that's OK */
++	qib_stats.sps_nopiobufs++;
++}
++
++/*
++ * Common code for normal driver send buffer allocation, and reserved
++ * allocation.
++ *
++ * Do appropriate marking as busy, etc.
++ * Returns buffer pointer if one is found, otherwise NULL.
++ */
++u32 __iomem *qib_getsendbuf_range(struct qib_devdata *dd, u32 *pbufnum,
++				  u32 first, u32 last)
++{
++	unsigned i, j, updated = 0;
++	unsigned nbufs;
++	unsigned long flags;
++	unsigned long *shadow = dd->pioavailshadow;
++	u32 __iomem *buf;
++
++	if (!(dd->flags & QIB_PRESENT))
++		return NULL;
++
++	nbufs = last - first + 1; /* number in range to check */
++	if (dd->upd_pio_shadow) {
++		/*
++		 * Minor optimization.  If we had no buffers on last call,
++		 * start out by doing the update; continue and do scan even
++		 * if no buffers were updated, to be paranoid.
++		 */
++		update_send_bufs(dd);
++		updated++;
 +	}
-+	kobject_uevent(&ppd->sl2vl_kobj, KOBJ_ADD);
++	i = first;
++rescan:
++	/*
++	 * While test_and_set_bit() is atomic, we do that and then the
++	 * change_bit(), and the pair is not.  See if this is the cause
++	 * of the remaining armlaunch errors.
++	 */
++	spin_lock_irqsave(&dd->pioavail_lock, flags);
++	for (j = 0; j < nbufs; j++, i++) {
++		if (i > last)
++			i = first;
++		if (__test_and_set_bit((2 * i) + 1, shadow))
++			continue;
++		/* flip generation bit */
++		__change_bit(2 * i, shadow);
++		/* remember that the buffer can be written to now */
++		__set_bit(i, dd->pio_writing);
++		break;
++	}
++	spin_unlock_irqrestore(&dd->pioavail_lock, flags);
 +
-+	return 0;
-+
-+bail_sl:
-+	kobject_put(&ppd->pport_kobj);
-+bail:
-+	return ret;
-+}
-+
-+/*
-+ * Register and create our files in /sys/class/infiniband.
-+ */
-+int qib_verbs_register_sysfs(struct qib_devdata *dd)
-+{
-+	struct ib_device *dev = &dd->verbs_dev.ibdev;
-+	int i, ret;
-+
-+	for (i = 0; i < ARRAY_SIZE(qib_attributes); ++i)
-+		if (device_create_file(&dev->dev, qib_attributes[i])) {
-+			ret = 1;
-+			goto bail;
++	if (j == nbufs) {
++		if (!updated) {
++			/*
++			 * First time through; shadow exhausted, but may be
++			 * buffers available, try an update and then rescan.
++			 */
++			update_send_bufs(dd);
++			updated++;
++			i = first;
++			goto rescan;
 +		}
++		no_send_bufs(dd);
++		buf = NULL;
++	} else {
++		if (i < dd->piobcnt2k)
++			buf = (u32 __iomem *)(dd->pio2kbase +
++				i * dd->palign);
++		else
++			buf = (u32 __iomem *)(dd->pio4kbase +
++				(i - dd->piobcnt2k) * dd->align4k);
++		if (pbufnum)
++			*pbufnum = i;
++		dd->upd_pio_shadow = 0;
++	}
 +
-+	ret = ib_sysfs_create_port_files(dev, create_port_files);
-+bail:
-+	return ret;
++	return buf;
 +}
 +
 +/*
-+ * Unregister and remove our files in /sys/class/infiniband.
++ * Record that the caller is finished writing to the buffer so we don't
++ * disarm it while it is being written and disarm it now if needed.
 + */
-+void qib_verbs_unregister_sysfs(struct qib_devdata *dd)
++void qib_sendbuf_done(struct qib_devdata *dd, unsigned n)
 +{
-+	struct qib_pportdata *ppd;
-+	int i;
++	unsigned long flags;
 +
-+	for (i = 0; i < dd->num_pports; i++) {
-+		ppd = &dd->pport[i];
-+		kobject_put(&ppd->pport_kobj);
-+		kobject_put(&ppd->sl2vl_kobj);
++	spin_lock_irqsave(&dd->pioavail_lock, flags);
++	__clear_bit(n, dd->pio_writing);
++	if (__test_and_clear_bit(n, dd->pio_need_disarm))
++		dd->f_sendctrl(dd->pport, QIB_SENDCTRL_DISARM_BUF(n));
++	spin_unlock_irqrestore(&dd->pioavail_lock, flags);
++}
++
++/**
++ * qib_chg_pioavailkernel - change which send buffers are available for kernel
++ * @dd: the qlogic_ib device
++ * @start: the starting send buffer number
++ * @len: the number of send buffers
++ * @avail: true if the buffers are available for kernel use, false otherwise
++ */
++void qib_chg_pioavailkernel(struct qib_devdata *dd, unsigned start,
++	unsigned len, u32 avail, struct qib_ctxtdata *rcd)
++{
++	unsigned long flags;
++	unsigned end;
++	unsigned ostart = start;
++
++	if (rcd)
++		qib_cdbg(SDMA, "start %u len %u avail %d ctxt%u\n", start,
++			 len, avail, rcd->ctxt);
++	else
++		qib_cdbg(SDMA, "start %u len %u avail %d (nowait)\n",
++			 start, len, avail);
++
++	/* There are two bits per send buffer (busy and generation) */
++	start *= 2;
++	end = start + len * 2;
++
++	spin_lock_irqsave(&dd->pioavail_lock, flags);
++	/* Set or clear the busy bit in the shadow. */
++	while (start < end) {
++		if (avail) {
++			unsigned long dma;
++			int i;
++
++			/*
++			 * The BUSY bit will never be set, because we disarm
++			 * the user buffers before we hand them back to the
++			 * kernel.  We do have to make sure the generation
++			 * bit is set correctly in shadow, since it could
++			 * have changed many times while allocated to user.
++			 * We can't use the bitmap functions on the full
++			 * dma array because it is always little-endian, so
++			 * we have to flip to host-order first.
++			 * BITS_PER_LONG is slightly wrong, since it's
++			 * always 64 bits per register in chip...
++			 * We only work on 64 bit kernels, so that's OK.
++			 */
++			i = start / BITS_PER_LONG;
++			__clear_bit(QLOGIC_IB_SENDPIOAVAIL_BUSY_SHIFT + start,
++				    dd->pioavailshadow);
++			dma = (unsigned long)
++				le64_to_cpu(dd->pioavailregs_dma[i]);
++			if (test_bit((QLOGIC_IB_SENDPIOAVAIL_CHECK_SHIFT +
++				      start) % BITS_PER_LONG, &dma))
++				__set_bit(QLOGIC_IB_SENDPIOAVAIL_CHECK_SHIFT +
++					  start, dd->pioavailshadow);
++			else
++				__clear_bit(QLOGIC_IB_SENDPIOAVAIL_CHECK_SHIFT
++					    + start, dd->pioavailshadow);
++			__set_bit(start, dd->pioavailkernel);
++		} else {
++			__set_bit(start + QLOGIC_IB_SENDPIOAVAIL_BUSY_SHIFT,
++				  dd->pioavailshadow);
++			__clear_bit(start, dd->pioavailkernel);
++		}
++		start += 2;
++	}
++
++	spin_unlock_irqrestore(&dd->pioavail_lock, flags);
++
++	dd->f_txchk_change(dd, ostart, len, avail, rcd);
++}
++
++/*
++ * Flush all sends that might be in the ready to send state, as well as any
++ * that are in the process of being sent.  Used whenever we need to be
++ * sure the send side is idle.  Cleans up all buffer state by canceling
++ * all pio buffers, and issuing an abort, which cleans up anything in the
++ * launch fifo.  The cancel is superfluous on some chip versions, but
++ * it's safer to always do it.
++ * PIOAvail bits are updated by the chip as if a normal send had happened.
++ */
++void qib_cancel_sends(struct qib_pportdata *ppd)
++{
++	struct qib_devdata *dd = ppd->dd;
++	struct qib_ctxtdata *rcd;
++	unsigned long flags;
++	unsigned ctxt;
++	unsigned i;
++	unsigned last;
++
++	/*
++	 * Tell PSM to disarm buffers again before trying to reuse them.
++	 * We need to be sure the rcd doesn't change out from under us
++	 * while we do so.  We hold the two locks sequentially.  We might
++	 * needlessly set some need_disarm bits as a result, if the
++	 * context is closed after we release the uctxt_lock, but that's
++	 * fairly benign, and safer than nesting the locks.
++	 */
++	for (ctxt = dd->first_user_ctxt; ctxt < dd->cfgctxts; ctxt++) {
++		spin_lock_irqsave(&dd->uctxt_lock, flags);
++		rcd = dd->rcd[ctxt];
++		if (rcd && rcd->ppd == ppd) {
++			last = rcd->pio_base + rcd->piocnt;
++			if (rcd->user_event_mask) {
++				/*
++				 * subctxt_cnt is 0 if not shared, so do base
++				 * separately, first, then remaining subctxt,
++				 * if any
++				 */
++				set_bit(_QIB_EVENT_DISARM_BUFS_BIT,
++					&rcd->user_event_mask[0]);
++				for (i = 1; i < rcd->subctxt_cnt; i++)
++					set_bit(_QIB_EVENT_DISARM_BUFS_BIT,
++						&rcd->user_event_mask[i]);
++			}
++			i = rcd->pio_base;
++			spin_unlock_irqrestore(&dd->uctxt_lock, flags);
++			spin_lock_irqsave(&dd->pioavail_lock, flags);
++			for (; i < last; i++)
++				__set_bit(i, dd->pio_need_disarm);
++			spin_unlock_irqrestore(&dd->pioavail_lock, flags);
++		} else
++			spin_unlock_irqrestore(&dd->uctxt_lock, flags);
++	}
++
++	if (dd->flags & QIB_HAS_SEND_DMA)
++		qib_sdma_process_event(ppd, qib_sdma_event_e70_go_idle);
++	else
++		dd->f_sendctrl(ppd, QIB_SENDCTRL_DISARM_ALL |
++				    QIB_SENDCTRL_FLUSH);
++}
++
++/*
++ * Force an update of in-memory copy of the pioavail registers, when
++ * needed for any of a variety of reasons.
++ * If already off, this routine is a nop, on the assumption that the
++ * caller (or set of callers) will "do the right thing".
++ * This is a per-device operation, so just the first port.
++ */
++void qib_force_pio_avail_update(struct qib_devdata *dd)
++{
++	dd->f_sendctrl(dd->pport, QIB_SENDCTRL_AVAIL_BLIP);
++}
++
++void qib_hol_down(struct qib_pportdata *ppd)
++{
++	/*
++	 * Cancel sends when the link goes DOWN so that we aren't doing it
++	 * at INIT when we might be trying to send SMI packets.
++	 */
++	if (!(ppd->lflags & QIBL_IB_AUTONEG_INPROG))
++		qib_cancel_sends(ppd);
++}
++
++/*
++ * Link is at INIT.
++ * We start the HoL timer so we can detect stuck packets blocking SMP replies.
++ * Timer may already be running, so use mod_timer, not add_timer.
++ */
++void qib_hol_init(struct qib_pportdata *ppd)
++{
++	if (ppd->hol_state != QIB_HOL_INIT) {
++		ppd->hol_state = QIB_HOL_INIT;
++		mod_timer(&ppd->hol_timer,
++			  jiffies + msecs_to_jiffies(qib_hol_timeout_ms));
++	}
++}
++
++/*
++ * Link is up, continue any user processes, and ensure timer
++ * is a nop, if running.  Let timer keep running, if set; it
++ * will nop when it sees the link is up.
++ */
++void qib_hol_up(struct qib_pportdata *ppd)
++{
++	ppd->hol_state = QIB_HOL_UP;
++}
++
++/*
++ * This is only called via the timer.
++ */
++void qib_hol_event(unsigned long opaque)
++{
++	struct qib_pportdata *ppd = (struct qib_pportdata *)opaque;
++
++	/* If hardware error, etc, skip. */
++	if (!(ppd->dd->flags & QIB_INITTED))
++		return;
++
++	if (ppd->hol_state != QIB_HOL_UP) {
++		/*
++		 * Try to flush sends in case a stuck packet is blocking
++		 * SMP replies.
++		 */
++		qib_hol_down(ppd);
++		mod_timer(&ppd->hol_timer,
++			  jiffies + msecs_to_jiffies(qib_hol_timeout_ms));
 +	}
 +}
 
