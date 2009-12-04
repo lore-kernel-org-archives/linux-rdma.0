@@ -1,96 +1,79 @@
-From: Ralph Campbell <ralph.campbell-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v2 49/51] IB/qib: Add qib_wc_ppc64.c
-Date: Thu, 03 Dec 2009 11:07:21 -0800
-Message-ID: <20091203190721.29507.42351.stgit@chromite.mv.qlogic.com>
-References: <20091203190305.29507.58158.stgit@chromite.mv.qlogic.com>
+From: Line Holen <Line.Holen-UdXhSnd/wVw@public.gmane.org>
+Subject: [PATCH] opensm/osm_vendor_ibumad.c: Move error info into single message
+Date: Fri, 04 Dec 2009 10:41:50 +0100
+Message-ID: <4B18D95E.1090007@Sun.COM>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; CHARSET=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20091203190305.29507.58158.stgit-/vjeY7uYZjrPXfVEPVhPGq6RkeBMCJyt@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+To: sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-creates the qib_wc_ppc64.c file.
+The information in ERR 5409 is moved into 5410/5411 to reduce
+number of messages
 
-Signed-off-by: Ralph Campbell <ralph.campbell-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+Signed-off-by: Line Holen <Line.Holen-xsfywfwIY+M@public.gmane.org>
+
 ---
 
- drivers/infiniband/hw/qib/qib_wc_ppc64.c |   62 ++++++++++++++++++++++++++++++
- 1 files changed, 62 insertions(+), 0 deletions(-)
- create mode 100644 drivers/infiniband/hw/qib/qib_wc_ppc64.c
-
-diff --git a/drivers/infiniband/hw/qib/qib_wc_ppc64.c b/drivers/infiniband/hw/qib/qib_wc_ppc64.c
-new file mode 100644
-index 0000000..673cf4c
---- /dev/null
-+++ b/drivers/infiniband/hw/qib/qib_wc_ppc64.c
-@@ -0,0 +1,62 @@
-+/*
-+ * Copyright (c) 2006, 2007, 2008 QLogic Corporation. All rights reserved.
-+ *
-+ * This software is available to you under a choice of one of two
-+ * licenses.  You may choose to be licensed under the terms of the GNU
-+ * General Public License (GPL) Version 2, available from the file
-+ * COPYING in the main directory of this source tree, or the
-+ * OpenIB.org BSD license below:
-+ *
-+ *     Redistribution and use in source and binary forms, with or
-+ *     without modification, are permitted provided that the following
-+ *     conditions are met:
-+ *
-+ *      - Redistributions of source code must retain the above
-+ *        copyright notice, this list of conditions and the following
-+ *        disclaimer.
-+ *
-+ *      - Redistributions in binary form must reproduce the above
-+ *        copyright notice, this list of conditions and the following
-+ *        disclaimer in the documentation and/or other materials
-+ *        provided with the distribution.
-+ *
-+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
-+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
-+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-+ * SOFTWARE.
-+ */
+diff --git a/opensm/libvendor/osm_vendor_ibumad.c b/opensm/libvendor/osm_vendor_ibumad.c
+index 8f9bbf5..b4319cd 100644
+--- a/opensm/libvendor/osm_vendor_ibumad.c
++++ b/opensm/libvendor/osm_vendor_ibumad.c
+@@ -3,6 +3,7 @@
+  * Copyright (c) 2002-2005 Mellanox Technologies LTD. All rights reserved.
+  * Copyright (c) 1996-2003 Intel Corporation. All rights reserved.
+  * Copyright (c) 2009 HNR Consulting. All rights reserved.
++ * Copyright (c) 2009 Sun Microsystems, Inc. All rights reserved.
+  *
+  * This software is available to you under a choice of one of two
+  * licenses.  You may choose to be licensed under the terms of the GNU
+@@ -325,28 +326,30 @@ static void *umad_receiver(void *p_ptr)
+ 
+ 		/* if status != 0 then we are handling recv timeout on send */
+ 		if (umad_status(p_madw->vend_wrap.umad)) {
+-			OSM_LOG(p_vend->p_log, OSM_LOG_ERROR, "ERR 5409: "
+-				"send completed with error"
+-				" (method=0x%X attr=0x%X trans_id=0x%" PRIx64
+-				") -- dropping\n",
+-				mad->method, cl_ntoh16(mad->attr_id),
+-				cl_ntoh64(mad->trans_id));
 +
-+/*
-+ * This file is conditionally built on PowerPC only.  Otherwise weak symbol
-+ * versions of the functions exported from here are used.
-+ */
-+
-+#include "qib.h"
-+
-+/**
-+ * qib_enable_wc - enable write combining for MMIO writes to the device
-+ * @dd: qlogic_ib device
-+ *
-+ * Nothing to do on PowerPC, so just return without error.
-+ */
-+int qib_enable_wc(struct qib_devdata *dd)
-+{
-+	return 0;
-+}
-+
-+/**
-+ * qib_unordered_wc - indicate whether write combining is unordered
-+ *
-+ * Because our performance depends on our ability to do write
-+ * combining mmio writes in the most efficient way, we need to
-+ * know if we are on a processor that may reorder stores when
-+ * write combining.
-+ */
-+int qib_unordered_wc(void)
-+{
-+	return 1;
-+}
-
+ 			if (mad->mgmt_class != IB_MCLASS_SUBN_DIR) {
+ 				/* LID routed */
+-				OSM_LOG(p_vend->p_log, OSM_LOG_ERROR,
+-					"ERR 5410: class 0x%x LID %u\n",
+-					mad->mgmt_class,
++				OSM_LOG(p_vend->p_log, OSM_LOG_ERROR, "ERR 5410: "
++					"Send completed with error -- dropping\n"
++					"\t\t\tClass 0x%x, Method 0x%X, Attr 0x%X, "
++					"TID 0x%" PRIx64 ", LID %u\n",
++					mad->mgmt_class, mad->method,
++					cl_ntoh16(mad->attr_id),
++					cl_ntoh64(mad->trans_id),
+ 					cl_ntoh16(ib_mad_addr->lid));
+ 			} else {
+ 				ib_smp_t *smp;
+ 
+ 				/* Direct routed SMP */
+ 				smp = (ib_smp_t *) mad;
+-				OSM_LOG(p_vend->p_log, OSM_LOG_ERROR,
+-					"ERR 5411: DR SMP Hop Ptr: 0x%X\n",
+-					smp->hop_ptr);
++				OSM_LOG(p_vend->p_log, OSM_LOG_ERROR, "ERR 5411: "
++					"DR SMP Send completed with error -- dropping\n"
++					"\t\t\tMethod 0x%X, Attr 0x%X, TID 0x%" PRIx64
++					", Hop Ptr: 0x%X\n",
++					mad->method, cl_ntoh16(mad->attr_id),
++					cl_ntoh64(mad->trans_id), smp->hop_ptr);
+ 				osm_dump_smp_dr_path(p_vend->p_log, smp,
+-						     OSM_LOG_ERROR);
++						     OSM_LOG_VERBOSE);
+ 			}
+ 
+ 			if (!(p_req_madw = get_madw(p_vend, &mad->trans_id))) {
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
