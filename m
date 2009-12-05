@@ -1,44 +1,65 @@
-From: "Davis, Arlin R" <arlin.r.davis-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH] uDAPL v2 - openib_common: remote memory read privilege set
- multi times
-Date: Fri, 4 Dec 2009 14:36:56 -0800
-Message-ID: <E3280858FA94444CA49D2BA02341C98361E0FFD9@orsmsx506.amr.corp.intel.com>
+From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Subject: Re: RDMAoE verbs questions
+Date: Fri, 04 Dec 2009 20:03:31 -0800
+Message-ID: <ada1vjaukx8.fsf@roland-alpha.cisco.com>
+References: <209ECE49-3AB9-4E62-B825-54E474321FA6@cisco.com>
+	<20091125001136.GP6188@obsidianresearch.com>
+	<20091130133406.GA32123@mtls03>
+	<adaiqcrx2xx.fsf@roland-alpha.cisco.com>
+	<20091130190345.GV6188@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <20091130190345.GV6188-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> (Jason Gunthorpe's
+	message of "Mon, 30 Nov 2009 12:03:45 -0700")
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "ofw-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org" <ofw-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
-Cc: "Smith, Stan" <stan.smith-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Jeff Squyres <jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 
-cleanup duplicate setting of read privileges in dapls_convert_privileges
+ > Yes, every Linux arch aligns structs to the min alignment for the
+ > members, so at least 32 in this case.
+ > 
+ > However, it doesn't really matter, look at ibv_cmd_query_port, it
+ > doesn't zero the padding. So there must be an ABI bump to ensure that
+ > new code links to a library that doesn't fill the new member with
+ > garbage.
+ > 
+ > This is a messy one, the low level libraries have to be reved somehow too..
+ > ops.query_port2() I guess.
 
-Signed-off-by: Arlin Davis <arlin.r.davis-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
----
- dapl/openib_common/mem.c |    4 ----
- 1 files changed, 0 insertions(+), 4 deletions(-)
+Actually I think we can fix this in libibverbs without having to break
+anything.  It's a little bit devious, but if we do something like:
 
-diff --git a/dapl/openib_common/mem.c b/dapl/openib_common/mem.c
-index b286f8c..ddf85a4 100644
---- a/dapl/openib_common/mem.c
-+++ b/dapl/openib_common/mem.c
-@@ -55,10 +55,6 @@ STATIC _INLINE_ int dapls_convert_privileges(IN DAT_MEM_PRIV_FLAGS privileges)
- 		access |= IBV_ACCESS_REMOTE_WRITE;
- 	if (DAT_MEM_PRIV_REMOTE_READ_FLAG & privileges)
- 		access |= IBV_ACCESS_REMOTE_READ;
--	if (DAT_MEM_PRIV_REMOTE_READ_FLAG & privileges)
--		access |= IBV_ACCESS_REMOTE_READ;
--	if (DAT_MEM_PRIV_REMOTE_READ_FLAG & privileges)
--		access |= IBV_ACCESS_REMOTE_READ;
- #ifdef DAT_EXTENSIONS
- 	if (DAT_IB_MEM_PRIV_REMOTE_ATOMIC & privileges)
- 		access |= IBV_ACCESS_REMOTE_ATOMIC;
--- 
-1.5.2.5
+// ... add link_layer member in padding of struct ibv_port_attr
 
+enum {
+	IBV_LINK_LAYER_UNSPECIFIED,
+	IBV_LINK_LAYER_INFINIBAND,
+	IBV_LINK_LAYER_ETHERNET,
+};
+
+static inline int __ibv_query_port(struct ibv_context *context, uint8_t port_num,
+				   struct ibv_port_attr *port_attr)
+{
+	port_attr->link_layer = IBV_LINK_LAYER_UNSPECIFIED;
+	return ibv_query_port(context, port_num, port_attr);
+}
+
+// ... rest of file...
+
+#define ibv_query_port(context, port_num, port_attr) \
+	__ibv_query_port(context, port_num, port_attr)
+
+then I think legacy apps should be OK (port_attr size doesn't change,
+binary compat is still there), and new apps that do check link_layer
+should also be OK ... if they use an old library and/or old driver,
+they'll see LINK_LAYER_UNSPECIFIED, which means that IBoE is not supported.
+
+What do you think, does this work?
+
+ - R.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
