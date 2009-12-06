@@ -1,35 +1,69 @@
-From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [ofa-general] [Bug 14235] New: SRP initiator lockup
-Date: Sat, 05 Dec 2009 13:49:58 -0800
-Message-ID: <adatyw5t7jt.fsf@roland-alpha.cisco.com>
-References: <bug-14235-11804@http.bugzilla.kernel.org/>
-	<ada63b3xcdt.fsf@cisco.com>
-	<e2e108260912050944k1228e964ta7a70dde493ba010@mail.gmail.com>
+From: Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH 3/3 v2] opensm: connect switches in tree - implemented
+ in up/down
+Date: Sun, 06 Dec 2009 10:35:45 +0200
+Message-ID: <4B1B6CE1.4050802@dev.mellanox.co.il>
+References: <4AF160D8.9040801@dev.mellanox.co.il> <20091126154643.GA13817@me>
+Reply-To: kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <e2e108260912050944k1228e964ta7a70dde493ba010-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-	(Bart Van Assche's message of "Sat, 5 Dec 2009 18:44:22 +0100")
+In-Reply-To: <20091126154643.GA13817@me>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <bart.vanassche-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: OFED mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+Cc: Linux RDMA <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+Hi Sasha,
 
- > I'm not sure that the non-error path for ordinary SCSI commands is
- > that trivial. If my interpretation of the SRP initiator source code is
- > correct, the statements complete(&target->done) and
- > init_completion(&target->done) can be executed concurrently. Although
- > I do not know what the exact consequences are, and although I do not
- > know whether this is related to the issue I reported, this is a race
- > condition. I'm not sure that allowing such races is good kernel
- > programming practice.
+Sasha Khapyorsky wrote:
+> On 13:09 Wed 04 Nov     , Yevgeny Kliteynik wrote:
+>> This patch implements connect_switches option in up/down
+>> routing. Also, connect_roots is now handled as a special
+>> case of connect_switches.
+>>
+>> The idea is the following: when clearing hops, preserve
+>> the entries for switches that are above the highest leaf
+>> in the tree.
+>> So if the highest leaf in the tree has rank N, preserve
+>> hops to all the switches with ranks 0 to (N-1).
+>> When connecting roots (--connect_roots option), just set
+>> N to 1.
+> 
+> Would this affect multicast routing in sense of a credit loop
+> generation?
 
-target->done is only used in connection setup I think, so not related to
-hangs during IO processing.  However I would like to know more details
-of where you see this race, since yes we would want to fix that.
+Since I sent these patches, I had it running in various
+simulations and setups, and there are couple of fundamental
+issue with this approach. Basically, what I did here (in up/dn)
+is wrong. Not only for multicast, but for unicast too.
+It interferes with the usual up/down paths routing.
 
- - R.
+I will issue V3 of the patches, and it will be only
+connect_roots implementation for fat-tree with the
+two small remarks that you found.
+
+As for the general algorithm for connecting switches,
+the whole approach of the connect_roots option and of
+what I was lately trying to do with connect_switches
+option is wrong. There is no need to connect all the
+roots to each other. There's also no need to connect
+all the switches to each other.
+What we need is a connection between all the *managed*
+switches (extended port 0) to all the other switches
+in the fabric in both directions.
+This option should *replace* the connect_roots option
+functionality (though we can leave connect_roots for
+backward compatibility).
+
+I'll work on the algorithm, but clearly it won't be
+ready for OFED 1.5.
+
+If you have any thoughts about this idea, I'd be happy
+to hear them.
+
+-- Yevgeny
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
