@@ -1,331 +1,55 @@
-From: "Slava Strebkov" <slavas-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Subject: RE: [PATCH v3] opensm: support routing engine update
-Date: Mon, 7 Dec 2009 12:27:49 +0200
-Message-ID: <39C75744D164D948A170E9792AF8E7CA01F6FA30@exil.voltaire.com>
-References: <4AED461B.5040302@Voltaire.COM><4B1BD5B6.6000005@dev.mellanox.co.il><39C75744D164D948A170E9792AF8E7CA01F6FA2F@exil.voltaire.com> <4B1CBB34.6070708@dev.mellanox.co.il>
+From: yogeshwar sonawane <yogyas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: release of debug/test tools for dapl and verbs
+Date: Mon, 7 Dec 2009 17:29:39 +0530
+Message-ID: <b681c62b0912070359m23d21bc2tf614258f2ae398d4@mail.gmail.com>
+References: <Pine.LNX.4.62.0912042106220.7602@mailhub.cdac.in>
+	 <603F8A3875DCE940BA37B49D0A6EA0AE3C99B6C0@azsmsx501.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-class: urn:content-classes:message
-In-Reply-To: <4B1CBB34.6070708-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+In-Reply-To: <603F8A3875DCE940BA37B49D0A6EA0AE3C99B6C0-uLM7Qlg6Mbekrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Tung, Chien Tin" <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "javed-If5XQcfNmg0@public.gmane.org" <javed-If5XQcfNmg0@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-HI!
-That was my misunderstanding - upon heavy sweep SM will try to load
-routing engines as defined in the SM.conf file (ftree & updn - in that
-order).
-So ftree will be loaded when switch comes back from reboot.
+Hi chien,
 
-Slava
+TED is an environment on top of uDAPL library. Hence TED can be run
+over iWARP adapters using there uDAPL libraries.
 
------Original Message-----
-From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-[mailto:linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Yevgeny Kliteynik
-Sent: Monday, December 07, 2009 10:22 AM
-To: Slava Strebkov
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Subject: Re: [PATCH v3] opensm: support routing engine update
+Currently, TED source has uDAPL provider limits set for OFED uDAPL
+library. Kindly have a look at them (dbg_def.h under src/include path)
+and if required, change them. Things should work then.
 
-Slava,
+Till now, we have not tested TED with iWARP adapters. In future, we
+will try to do it.
 
-Slava Strebkov wrote:
-> Hi Yevgeny,
-> In that case SM will use updn and will not come back to ftree
-> automatically.
+Any questions/suggestions/feedback is welcome.
 
-I think that this is a bad thing.
+Thanks & Regards,
+Yogeshwar
 
-I wouldn't want *temporary* change of fabric to cause
-*permanent* change of SM mode of operation. Such changes
-do happen, and I'd prefer SM to continue functioning
-in accordance to the user's configuration once the
-fabric is settled again.
-
-I do see the cases were the change that you propose is
-beneficial - if fabric topology doesn't fits the chosen
-routing, SM will waste time on retrying the wrong routing
-at every heavy sweep, but this happens due to suboptimal
-SM configuration and not as a result of some event that
-user has no control of.
-
--- Yevgeny
-
-
- 
-> Slava
-> 
-> -----Original Message-----
-> From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> [mailto:linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Yevgeny
-Kliteynik
-> Sent: Sunday, December 06, 2009 6:03 PM
-> To: Slava Strebkov
-> Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> Subject: Re: [PATCH v3] opensm: support routing engine update
-> 
-> Slava,
-> 
-> Slava Strebkov wrote:
->> setup routing engine when in use and delete when failed.
->> setup routing engine before use.
->> delete resources when routing algorithm fails.
->> this will save allocation for routing algorithms that are not used.
-> 
-> Suppose a user runs SM with ftree & updn routings (in that order),
-> and SM manages to route the fabric with ftree. At some point 
-> some switch reboots and causes ftree to fail and SM routes the
-> fabric with updn.
-> Does this mean that ftree will be removed from the list, and
-> when the switch comes back, SM won't try ftree any more?
-> 
-> -- Yevgeny
->  
->> Signed-off-by: Slava Strebkov <slavas-smomgflXvOZWk0Htik3J/w@public.gmane.org>
->> ---
->>  opensm/include/opensm/osm_opensm.h |    5 +++
->>  opensm/opensm/osm_opensm.c         |   57
-> +++++++++++++++++++++++++++++++-----
->>  opensm/opensm/osm_subnet.c         |    7 ++++-
->>  opensm/opensm/osm_ucast_mgr.c      |   28 +++++++++++++++++
->>  4 files changed, 88 insertions(+), 9 deletions(-)
->>
->> diff --git a/opensm/include/opensm/osm_opensm.h
-> b/opensm/include/opensm/osm_opensm.h
->> index c121be4..ca0fddb 100644
->> --- a/opensm/include/opensm/osm_opensm.h
->> +++ b/opensm/include/opensm/osm_opensm.h
->> @@ -109,6 +109,7 @@ typedef enum _osm_routing_engine_type {
->>  } osm_routing_engine_type_t;
->>  /***********/
->>  
->> +struct osm_opensm;
->>  /****s* OpenSM: OpenSM/osm_routing_engine
->>  * NAME
->>  *	struct osm_routing_engine
->> @@ -122,6 +123,8 @@ typedef enum _osm_routing_engine_type {
->>  struct osm_routing_engine {
->>  	const char *name;
->>  	void *context;
->> +	int initialized;
->> +	int (*setup) (struct osm_routing_engine *re, struct osm_opensm
-> *p_osm);
->>  	int (*build_lid_matrices) (void *context);
->>  	int (*ucast_build_fwd_tables) (void *context);
->>  	void (*ucast_dump_tables) (void *context);
->> @@ -183,6 +186,7 @@ typedef struct osm_opensm {
->>  	cl_dispatcher_t disp;
->>  	cl_plock_t lock;
->>  	struct osm_routing_engine *routing_engine_list;
->> +	struct osm_routing_engine *last_routing_engine;
->>  	osm_routing_engine_type_t routing_engine_used;
->>  	osm_stats_t stats;
->>  	osm_console_t console;
->> @@ -522,6 +526,7 @@ extern volatile unsigned int osm_exit_flag;
->>  * DESCRIPTION
->>  *  Set to one to cause all threads to leave
->>  *********/
->> +void osm_update_routing_engines(osm_opensm_t *osm, const char
-> *engine_names);
->>  
->>  END_C_DECLS
->>  #endif				/* _OSM_OPENSM_H_ */
->> diff --git a/opensm/opensm/osm_opensm.c b/opensm/opensm/osm_opensm.c
->> index 50d1349..f90584d 100644
->> --- a/opensm/opensm/osm_opensm.c
->> +++ b/opensm/opensm/osm_opensm.c
->> @@ -169,14 +169,7 @@ static void setup_routing_engine(osm_opensm_t
-> *osm, const char *name)
->>  			memset(re, 0, sizeof(struct
-> osm_routing_engine));
->>  
->>  			re->name = m->name;
->> -			if (m->setup(re, osm)) {
->> -				OSM_LOG(&osm->log, OSM_LOG_VERBOSE,
->> -					"setup of routing"
->> -					" engine \'%s\' failed\n",
-> name);
->> -				return;
->> -			}
->> -			OSM_LOG(&osm->log, OSM_LOG_DEBUG,
->> -				"\'%s\' routing engine set up\n",
-> re->name);
->> +			re->setup = m->setup;
->>  			append_routing_engine(osm, re);
->>  			return;
->>  		}
->> @@ -236,6 +229,54 @@ static void destroy_routing_engines(osm_opensm_t
-> *osm)
->>  			r->delete(r->context);
->>  		free(r);
->>  	}
->> +    osm->routing_engine_list = NULL;
->> +}
->> +
->> +static void update_routing_engine(
->> +       struct osm_routing_engine *cur,
->> +       struct osm_routing_engine *last)
->> +{
->> +	struct osm_routing_engine *next = cur->next;
->> +	if (!last)
->> +		return; /* no last routing engine */
->> +	memcpy(cur, last, sizeof(*cur));
->> +	/* restore next */
->> +	cur->next = next;
->> +}
->> +
->> +void osm_update_routing_engines(osm_opensm_t *osm, const char
-> *engine_names)
->> +{
->> +	struct osm_routing_engine *r, *l;
->> +	/* find used routing engine and save as last */
->> +	l = r = osm->routing_engine_list;
->> +	if (r && osm->routing_engine_used ==
-> osm_routing_engine_type(r->name)) {
->> +		osm->last_routing_engine = r;
->> +		osm->routing_engine_list = r->next;
->> +	}
->> +	else while ((r = r->next)) {
->> +		if (osm->routing_engine_used ==
->> +			osm_routing_engine_type(r->name)) {
->> +				osm->last_routing_engine = r;
->> +				l->next = r->next;
->> +				break;
->> +		}
->> +		l = r;
->> +	}
->> +	/* cleanup prev routing engine list and replace with current
-> list */
->> +	destroy_routing_engines(osm);
->> +	setup_routing_engines(osm, engine_names);
->> +	/* check if last routing engine exist in new list and update
-> callbacks */
->> +	r = osm->routing_engine_list;
->> +	while (r) {
->> +		if (osm->routing_engine_used ==
->> +			osm_routing_engine_type(r->name)) {
->> +				update_routing_engine(r,
-> osm->last_routing_engine);
->> +				free(osm->last_routing_engine);
->> +				osm->last_routing_engine = NULL;
->> +				break;
->> +		}
->> +	r = r->next;
->> +	}
->>  }
->>  
->>
+On Fri, Dec 4, 2009 at 9:52 PM, Tung, Chien Tin
+<chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
+>>can be used over any implementation of uDAPL/verbs over IB. there wil=
+l be
+>>regular updations with new features, bug fixes, docs etc. suggestions=
+ are
+>>welcome.
 >
-/**********************************************************************
->> diff --git a/opensm/opensm/osm_subnet.c b/opensm/opensm/osm_subnet.c
->> index 8d63a75..742ae64 100644
->> --- a/opensm/opensm/osm_subnet.c
->> +++ b/opensm/opensm/osm_subnet.c
->> @@ -152,6 +152,11 @@ static void opts_setup_sm_priority(osm_subn_t
-> *p_subn, void *p_val)
->>  	osm_set_sm_priority(p_sm, sm_priority);
->>  }
->>  
->> +static void opts_setup_routing_engine(osm_subn_t *p_subn, void
-> *p_val)
->> +{
->> +	osm_update_routing_engines(p_subn->p_osm, p_val);
->> +}
->> +
->>  static void opts_parse_net64(IN osm_subn_t *p_subn, IN char *p_key,
->>  			     IN char *p_val_str, void *p_v1, void *p_v2,
->>  			     void (*pfn)(osm_subn_t *, void *))
->> @@ -324,7 +329,7 @@ static const opt_rec_t opt_tbl[] = {
->>  	{ "hop_weights_file", OPT_OFFSET(hop_weights_file),
-> opts_parse_charp, NULL, 0 },
->>  	{ "port_profile_switch_nodes",
-> OPT_OFFSET(port_profile_switch_nodes), opts_parse_boolean, NULL, 1 },
->>  	{ "sweep_on_trap", OPT_OFFSET(sweep_on_trap),
-> opts_parse_boolean, NULL, 1 },
->> -	{ "routing_engine", OPT_OFFSET(routing_engine_names),
-> opts_parse_charp, NULL, 0 },
->> +	{ "routing_engine", OPT_OFFSET(routing_engine_names),
-> opts_parse_charp, opts_setup_routing_engine, 1 },
->>  	{ "connect_roots", OPT_OFFSET(connect_roots),
-> opts_parse_boolean, NULL, 1 },
->>  	{ "use_ucast_cache", OPT_OFFSET(use_ucast_cache),
-> opts_parse_boolean, NULL, 1 },
->>  	{ "log_file", OPT_OFFSET(log_file), opts_parse_charp, NULL, 0 },
->> diff --git a/opensm/opensm/osm_ucast_mgr.c
-> b/opensm/opensm/osm_ucast_mgr.c
->> index 39d825c..d6294ac 100644
->> --- a/opensm/opensm/osm_ucast_mgr.c
->> +++ b/opensm/opensm/osm_ucast_mgr.c
->> @@ -998,8 +998,23 @@ int osm_ucast_mgr_process(IN osm_ucast_mgr_t *
-> p_mgr)
->>  
->>  	p_osm->routing_engine_used = OSM_ROUTING_ENGINE_TYPE_NONE;
->>  	while (p_routing_eng) {
->> +		if (!p_routing_eng->initialized &&
->> +			p_routing_eng->setup(p_routing_eng, p_osm)) {
->> +			OSM_LOG(p_mgr->p_log, OSM_LOG_ERROR,
->> +				"ERR 3A0F: setup of routing engine
-> \'%s\' failed\n",
->> +					p_routing_eng->name);
->> +					p_routing_eng =
-> p_routing_eng->next;
->> +					continue;
->> +		}
->> +		OSM_LOG(p_mgr->p_log, OSM_LOG_INFO,
->> +			"\'%s\' routing engine set up\n",
-> p_routing_eng->name);
->> +		p_routing_eng->initialized = 1;
->>  		if (!ucast_mgr_route(p_routing_eng, p_osm))
->>  			break;
->> +		/* delete unused routing engine */
->> +		if (p_routing_eng->delete)
->> +			p_routing_eng->delete(p_routing_eng->context);
->> +		p_routing_eng->initialized = 0;
->>  		p_routing_eng = p_routing_eng->next;
->>  	}
->>  
->> @@ -1011,6 +1026,19 @@ int osm_ucast_mgr_process(IN osm_ucast_mgr_t *
-> p_mgr)
->>  		p_osm->routing_engine_used =
-> OSM_ROUTING_ENGINE_TYPE_MINHOP;
->>  	}
->>  
->> +	/* if for some reason different routing engine is used */
->> +	/* cleanup last unused routing engine */
->> +	p_routing_eng = p_osm->last_routing_engine;
->> +	if (p_routing_eng) {
->> +			if (p_routing_eng->initialized &&
->> +					p_routing_eng->delete &&
->> +					p_osm->routing_engine_used !=
->> +
-> osm_routing_engine_type(p_routing_eng->name))
->> +
-> p_routing_eng->delete(p_routing_eng->context);
->> +			free(p_routing_eng);
->> +			p_osm->last_routing_engine = NULL;
->> +	}
->> +
->>  	OSM_LOG(p_mgr->p_log, OSM_LOG_INFO,
->>  		"%s tables configured on all switches\n",
->>
-> osm_routing_engine_type_str(p_osm->routing_engine_used));
-> 
+> Will your tools work for iWARP adapters as well?
+>
+> Chien
 > --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma"
-in
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma"=
+ in
 > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-
+> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
+>
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
