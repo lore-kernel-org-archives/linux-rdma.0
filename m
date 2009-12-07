@@ -1,69 +1,58 @@
-From: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: RDMAoE verbs questions
-Date: Mon, 7 Dec 2009 19:25:11 +0200
-Message-ID: <20091207172511.GA13496@mtls03>
-References: <209ECE49-3AB9-4E62-B825-54E474321FA6@cisco.com>
- <20091125001136.GP6188@obsidianresearch.com>
- <20091130133406.GA32123@mtls03>
- <adaiqcrx2xx.fsf@roland-alpha.cisco.com>
- <20091130190345.GV6188@obsidianresearch.com>
- <ada1vjaukx8.fsf@roland-alpha.cisco.com>
+From: Julia Lawall <julia-dAYI7NvHqcQ@public.gmane.org>
+Subject: RE: [PATCH 3/5] drivers/infiniband: correct size computation
+Date: Mon, 7 Dec 2009 20:57:06 +0100 (CET)
+Message-ID: <Pine.LNX.4.64.0912072056160.1202@ask.diku.dk>
+References: <Pine.LNX.4.64.0912061015540.20858@ask.diku.dk>
+ <603F8A3875DCE940BA37B49D0A6EA0AE3CE36BF4@azsmsx501.amr.corp.intel.com>
+ <Pine.LNX.4.64.0912071720520.15109@ask.diku.dk>
+ <603F8A3875DCE940BA37B49D0A6EA0AE3CE36C9F@azsmsx501.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <ada1vjaukx8.fsf-BjVyx320WGW9gfZ95n9DRSW4+XlvGpQz@public.gmane.org>
+In-Reply-To: <603F8A3875DCE940BA37B49D0A6EA0AE3CE36C9F-uLM7Qlg6Mbekrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Jeff Squyres <jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Tung, Chien Tin" <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "Latif, Faisal" <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Dec 04, 2009 at 08:03:31PM -0800, Roland Dreier wrote:
-> 
->  > Yes, every Linux arch aligns structs to the min alignment for the
->  > members, so at least 32 in this case.
->  > 
->  > However, it doesn't really matter, look at ibv_cmd_query_port, it
->  > doesn't zero the padding. So there must be an ABI bump to ensure that
->  > new code links to a library that doesn't fill the new member with
->  > garbage.
->  > 
->  > This is a messy one, the low level libraries have to be reved somehow too..
->  > ops.query_port2() I guess.
-> 
-> Actually I think we can fix this in libibverbs without having to break
-> anything.  It's a little bit devious, but if we do something like:
-> 
-> // ... add link_layer member in padding of struct ibv_port_attr
-> 
-> enum {
-> 	IBV_LINK_LAYER_UNSPECIFIED,
-> 	IBV_LINK_LAYER_INFINIBAND,
-> 	IBV_LINK_LAYER_ETHERNET,
-> };
-> 
-> static inline int __ibv_query_port(struct ibv_context *context, uint8_t port_num,
-> 				   struct ibv_port_attr *port_attr)
-> {
-> 	port_attr->link_layer = IBV_LINK_LAYER_UNSPECIFIED;
-> 	return ibv_query_port(context, port_num, port_attr);
-> }
-> 
-> // ... rest of file...
-> 
-> #define ibv_query_port(context, port_num, port_attr) \
-> 	__ibv_query_port(context, port_num, port_attr)
-> 
-> then I think legacy apps should be OK (port_attr size doesn't change,
-> binary compat is still there), and new apps that do check link_layer
-> should also be OK ... if they use an old library and/or old driver,
-> they'll see LINK_LAYER_UNSPECIFIED, which means that IBoE is not supported.
-> 
-> What do you think, does this work?
-> 
->  - R.
+From: Julia Lawall <julia-dAYI7NvHqcQ@public.gmane.org>
 
-It looks good to me. Thanks, I will take it for RDMAoE.
+The size argument to ioremap_nocache should be the size of desired
+information, not the pointer to it.
+
+The semantic match that finds this problem is as follows:
+(http://coccinelle.lip6.fr/)
+
+// <smpl>
+@expression@
+expression *x;
+@@
+
+x =
+ <+...
+*sizeof(x)
+...+>// </smpl>
+
+Signed-off-by: Julia Lawall <julia-dAYI7NvHqcQ@public.gmane.org>
+
+---
+ drivers/infiniband/hw/nes/nes.c     |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/infiniband/hw/nes/nes.c b/drivers/infiniband/hw/nes/nes.c
+index cbde0cf..95db98f 100644
+--- a/drivers/infiniband/hw/nes/nes.c
++++ b/drivers/infiniband/hw/nes/nes.c
+@@ -521,7 +521,8 @@ static int __devinit nes_probe(struct pci_dev *pcidev, const struct pci_device_i
+ 	spin_lock_init(&nesdev->indexed_regs_lock);
+ 
+ 	/* Remap the PCI registers in adapter BAR0 to kernel VA space */
+-	mmio_regs = ioremap_nocache(pci_resource_start(pcidev, BAR_0), sizeof(mmio_regs));
++	mmio_regs = ioremap_nocache(pci_resource_start(pcidev, BAR_0),
++				    pci_resource_len(pcidev, BAR_0));
+ 	if (mmio_regs == NULL) {
+ 		printk(KERN_ERR PFX "Unable to remap BAR0\n");
+ 		ret = -EIO;
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
