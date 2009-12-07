@@ -1,305 +1,157 @@
 From: Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH v3] opensm: support routing engine update
-Date: Mon, 07 Dec 2009 10:22:12 +0200
-Message-ID: <4B1CBB34.6070708@dev.mellanox.co.il>
-References: <4AED461B.5040302@Voltaire.COM> <4B1BD5B6.6000005@dev.mellanox.co.il> <39C75744D164D948A170E9792AF8E7CA01F6FA2F@exil.voltaire.com>
+Subject: [PATCH] opensm/osm_sa_mcmember_record.c: print mcast join/create
+ failures in VERBOSE instead of DEBUG level
+Date: Mon, 07 Dec 2009 12:22:55 +0200
+Message-ID: <4B1CD77F.6050905@dev.mellanox.co.il>
 Reply-To: kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <39C75744D164D948A170E9792AF8E7CA01F6FA2F-QfUkFaTmzUSUvQqKE/ONIwC/G2K4zDHf@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Slava Strebkov <slavas-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+Cc: Linux RDMA <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Slava,
+Sasha,
 
-Slava Strebkov wrote:
-> Hi Yevgeny,
-> In that case SM will use updn and will not come back to ftree
-> automatically.
+If mcast group join/create fails, the details about
+the failure reason are printed in OSM_LOG_DEBUG level.
+This is rather important info, and needs to be printed
+in OSM_LOG_VERBOSE level. Note that only one message
+is printed per failure.
 
-I think that this is a bad thing.
+I'm also considering turning all these messages into
+OSM_LOG_ERROR messages with more details.
 
-I wouldn't want *temporary* change of fabric to cause
-*permanent* change of SM mode of operation. Such changes
-do happen, and I'd prefer SM to continue functioning
-in accordance to the user's configuration once the
-fabric is settled again.
+Signed-off-by: Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+---
+ opensm/opensm/osm_sa_mcmember_record.c |   26 +++++++++++++-------------
+ 1 files changed, 13 insertions(+), 13 deletions(-)
 
-I do see the cases were the change that you propose is
-beneficial - if fabric topology doesn't fits the chosen
-routing, SM will waste time on retrying the wrong routing
-at every heavy sweep, but this happens due to suboptimal
-SM configuration and not as a result of some event that
-user has no control of.
+diff --git a/opensm/opensm/osm_sa_mcmember_record.c b/opensm/opensm/osm_sa_mcmember_record.c
+index 3839b67..a4d86e3 100644
+--- a/opensm/opensm/osm_sa_mcmember_record.c
++++ b/opensm/opensm/osm_sa_mcmember_record.c
+@@ -247,7 +247,7 @@ static boolean_t validate_more_comp_fields(osm_log_t * p_log,
+ 		switch (mtu_sel) {
+ 		case 0:	/* Greater than MTU specified */
+ 			if (mtu_mgrp <= mtu_required) {
+-				OSM_LOG(p_log, OSM_LOG_DEBUG,
++				OSM_LOG(p_log, OSM_LOG_VERBOSE,
+ 					"Requested mcast group has MTU %x, "
+ 					"which is not greater than %x\n",
+ 					mtu_mgrp, mtu_required);
+@@ -256,7 +256,7 @@ static boolean_t validate_more_comp_fields(osm_log_t * p_log,
+ 			break;
+ 		case 1:	/* Less than MTU specified */
+ 			if (mtu_mgrp >= mtu_required) {
+-				OSM_LOG(p_log, OSM_LOG_DEBUG,
++				OSM_LOG(p_log, OSM_LOG_VERBOSE,
+ 					"Requested mcast group has MTU %x, "
+ 					"which is not less than %x\n",
+ 					mtu_mgrp, mtu_required);
+@@ -265,7 +265,7 @@ static boolean_t validate_more_comp_fields(osm_log_t * p_log,
+ 			break;
+ 		case 2:	/* Exactly MTU specified */
+ 			if (mtu_mgrp != mtu_required) {
+-				OSM_LOG(p_log, OSM_LOG_DEBUG,
++				OSM_LOG(p_log, OSM_LOG_VERBOSE,
+ 					"Requested mcast group has MTU %x, "
+ 					"which is not equal to %x\n",
+ 					mtu_mgrp, mtu_required);
+@@ -286,7 +286,7 @@ static boolean_t validate_more_comp_fields(osm_log_t * p_log,
+ 		switch (rate_sel) {
+ 		case 0:	/* Greater than RATE specified */
+ 			if (rate_mgrp <= rate_required) {
+-				OSM_LOG(p_log, OSM_LOG_DEBUG,
++				OSM_LOG(p_log, OSM_LOG_VERBOSE,
+ 					"Requested mcast group has RATE %x, "
+ 					"which is not greater than %x\n",
+ 					rate_mgrp, rate_required);
+@@ -295,7 +295,7 @@ static boolean_t validate_more_comp_fields(osm_log_t * p_log,
+ 			break;
+ 		case 1:	/* Less than RATE specified */
+ 			if (rate_mgrp >= rate_required) {
+-				OSM_LOG(p_log, OSM_LOG_DEBUG,
++				OSM_LOG(p_log, OSM_LOG_VERBOSE,
+ 					"Requested mcast group has RATE %x, "
+ 					"which is not less than %x\n",
+ 					rate_mgrp, rate_required);
+@@ -304,7 +304,7 @@ static boolean_t validate_more_comp_fields(osm_log_t * p_log,
+ 			break;
+ 		case 2:	/* Exactly RATE specified */
+ 			if (rate_mgrp != rate_required) {
+-				OSM_LOG(p_log, OSM_LOG_DEBUG,
++				OSM_LOG(p_log, OSM_LOG_VERBOSE,
+ 					"Requested mcast group has RATE %x, "
+ 					"which is not equal to %x\n",
+ 					rate_mgrp, rate_required);
+@@ -335,7 +335,7 @@ static boolean_t validate_port_caps(osm_log_t * p_log,
+ 	mtu_required = ib_port_info_get_mtu_cap(&p_physp->port_info);
+ 	mtu_mgrp = (uint8_t) (p_mgrp->mcmember_rec.mtu & 0x3F);
+ 	if (mtu_required < mtu_mgrp) {
+-		OSM_LOG(p_log, OSM_LOG_DEBUG,
++		OSM_LOG(p_log, OSM_LOG_VERBOSE,
+ 			"Port's MTU %x is less than %x\n",
+ 			mtu_required, mtu_mgrp);
+ 		return FALSE;
+@@ -344,7 +344,7 @@ static boolean_t validate_port_caps(osm_log_t * p_log,
+ 	rate_required = ib_port_info_compute_rate(&p_physp->port_info);
+ 	rate_mgrp = (uint8_t) (p_mgrp->mcmember_rec.rate & 0x3F);
+ 	if (rate_required < rate_mgrp) {
+-		OSM_LOG(p_log, OSM_LOG_DEBUG,
++		OSM_LOG(p_log, OSM_LOG_VERBOSE,
+ 			"Port's RATE %x is less than %x\n",
+ 			rate_required, rate_mgrp);
+ 		return FALSE;
+@@ -666,7 +666,7 @@ static boolean_t mgrp_request_is_realizable(IN osm_sa_t * sa,
+ 		switch (mtu_sel) {
+ 		case 0:	/* Greater than MTU specified */
+ 			if (port_mtu && mtu_required >= port_mtu) {
+-				OSM_LOG(p_log, OSM_LOG_DEBUG,
++				OSM_LOG(p_log, OSM_LOG_VERBOSE,
+ 					"Requested MTU %x >= the port\'s mtu:%x\n",
+ 					mtu_required, port_mtu);
+ 				return FALSE;
+@@ -694,7 +694,7 @@ static boolean_t mgrp_request_is_realizable(IN osm_sa_t * sa,
+ 		}
+ 		/* make sure it still be in the range */
+ 		if (mtu < IB_MIN_MTU || mtu > IB_MAX_MTU) {
+-			OSM_LOG(p_log, OSM_LOG_DEBUG,
++			OSM_LOG(p_log, OSM_LOG_VERBOSE,
+ 				"Calculated MTU %x is out of range\n", mtu);
+ 			return FALSE;
+ 		}
+@@ -713,7 +713,7 @@ static boolean_t mgrp_request_is_realizable(IN osm_sa_t * sa,
+ 		switch (rate_sel) {
+ 		case 0:	/* Greater than RATE specified */
+ 			if (port_rate && rate_required >= port_rate) {
+-				OSM_LOG(p_log, OSM_LOG_DEBUG,
++				OSM_LOG(p_log, OSM_LOG_VERBOSE,
+ 					"Requested RATE %x >= the port\'s rate:%x\n",
+ 					rate_required, port_rate);
+ 				return FALSE;
+@@ -741,7 +741,7 @@ static boolean_t mgrp_request_is_realizable(IN osm_sa_t * sa,
+ 		}
+ 		/* make sure it still is in the range */
+ 		if (rate < IB_MIN_RATE || rate > IB_MAX_RATE) {
+-			OSM_LOG(p_log, OSM_LOG_DEBUG,
++			OSM_LOG(p_log, OSM_LOG_VERBOSE,
+ 				"Calculated RATE %x is out of range\n", rate);
+ 			return FALSE;
+ 		}
+@@ -1015,7 +1015,7 @@ static void mcmr_rcv_join_mgrp(IN osm_sa_t * sa, IN osm_madw_t * p_madw)
 
--- Yevgeny
-
-
- 
-> Slava
-> 
-> -----Original Message-----
-> From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> [mailto:linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Yevgeny Kliteynik
-> Sent: Sunday, December 06, 2009 6:03 PM
-> To: Slava Strebkov
-> Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> Subject: Re: [PATCH v3] opensm: support routing engine update
-> 
-> Slava,
-> 
-> Slava Strebkov wrote:
->> setup routing engine when in use and delete when failed.
->> setup routing engine before use.
->> delete resources when routing algorithm fails.
->> this will save allocation for routing algorithms that are not used.
-> 
-> Suppose a user runs SM with ftree & updn routings (in that order),
-> and SM manages to route the fabric with ftree. At some point 
-> some switch reboots and causes ftree to fail and SM routes the
-> fabric with updn.
-> Does this mean that ftree will be removed from the list, and
-> when the switch comes back, SM won't try ftree any more?
-> 
-> -- Yevgeny
->  
->> Signed-off-by: Slava Strebkov <slavas-smomgflXvOZWk0Htik3J/w@public.gmane.org>
->> ---
->>  opensm/include/opensm/osm_opensm.h |    5 +++
->>  opensm/opensm/osm_opensm.c         |   57
-> +++++++++++++++++++++++++++++++-----
->>  opensm/opensm/osm_subnet.c         |    7 ++++-
->>  opensm/opensm/osm_ucast_mgr.c      |   28 +++++++++++++++++
->>  4 files changed, 88 insertions(+), 9 deletions(-)
->>
->> diff --git a/opensm/include/opensm/osm_opensm.h
-> b/opensm/include/opensm/osm_opensm.h
->> index c121be4..ca0fddb 100644
->> --- a/opensm/include/opensm/osm_opensm.h
->> +++ b/opensm/include/opensm/osm_opensm.h
->> @@ -109,6 +109,7 @@ typedef enum _osm_routing_engine_type {
->>  } osm_routing_engine_type_t;
->>  /***********/
->>  
->> +struct osm_opensm;
->>  /****s* OpenSM: OpenSM/osm_routing_engine
->>  * NAME
->>  *	struct osm_routing_engine
->> @@ -122,6 +123,8 @@ typedef enum _osm_routing_engine_type {
->>  struct osm_routing_engine {
->>  	const char *name;
->>  	void *context;
->> +	int initialized;
->> +	int (*setup) (struct osm_routing_engine *re, struct osm_opensm
-> *p_osm);
->>  	int (*build_lid_matrices) (void *context);
->>  	int (*ucast_build_fwd_tables) (void *context);
->>  	void (*ucast_dump_tables) (void *context);
->> @@ -183,6 +186,7 @@ typedef struct osm_opensm {
->>  	cl_dispatcher_t disp;
->>  	cl_plock_t lock;
->>  	struct osm_routing_engine *routing_engine_list;
->> +	struct osm_routing_engine *last_routing_engine;
->>  	osm_routing_engine_type_t routing_engine_used;
->>  	osm_stats_t stats;
->>  	osm_console_t console;
->> @@ -522,6 +526,7 @@ extern volatile unsigned int osm_exit_flag;
->>  * DESCRIPTION
->>  *  Set to one to cause all threads to leave
->>  *********/
->> +void osm_update_routing_engines(osm_opensm_t *osm, const char
-> *engine_names);
->>  
->>  END_C_DECLS
->>  #endif				/* _OSM_OPENSM_H_ */
->> diff --git a/opensm/opensm/osm_opensm.c b/opensm/opensm/osm_opensm.c
->> index 50d1349..f90584d 100644
->> --- a/opensm/opensm/osm_opensm.c
->> +++ b/opensm/opensm/osm_opensm.c
->> @@ -169,14 +169,7 @@ static void setup_routing_engine(osm_opensm_t
-> *osm, const char *name)
->>  			memset(re, 0, sizeof(struct
-> osm_routing_engine));
->>  
->>  			re->name = m->name;
->> -			if (m->setup(re, osm)) {
->> -				OSM_LOG(&osm->log, OSM_LOG_VERBOSE,
->> -					"setup of routing"
->> -					" engine \'%s\' failed\n",
-> name);
->> -				return;
->> -			}
->> -			OSM_LOG(&osm->log, OSM_LOG_DEBUG,
->> -				"\'%s\' routing engine set up\n",
-> re->name);
->> +			re->setup = m->setup;
->>  			append_routing_engine(osm, re);
->>  			return;
->>  		}
->> @@ -236,6 +229,54 @@ static void destroy_routing_engines(osm_opensm_t
-> *osm)
->>  			r->delete(r->context);
->>  		free(r);
->>  	}
->> +    osm->routing_engine_list = NULL;
->> +}
->> +
->> +static void update_routing_engine(
->> +       struct osm_routing_engine *cur,
->> +       struct osm_routing_engine *last)
->> +{
->> +	struct osm_routing_engine *next = cur->next;
->> +	if (!last)
->> +		return; /* no last routing engine */
->> +	memcpy(cur, last, sizeof(*cur));
->> +	/* restore next */
->> +	cur->next = next;
->> +}
->> +
->> +void osm_update_routing_engines(osm_opensm_t *osm, const char
-> *engine_names)
->> +{
->> +	struct osm_routing_engine *r, *l;
->> +	/* find used routing engine and save as last */
->> +	l = r = osm->routing_engine_list;
->> +	if (r && osm->routing_engine_used ==
-> osm_routing_engine_type(r->name)) {
->> +		osm->last_routing_engine = r;
->> +		osm->routing_engine_list = r->next;
->> +	}
->> +	else while ((r = r->next)) {
->> +		if (osm->routing_engine_used ==
->> +			osm_routing_engine_type(r->name)) {
->> +				osm->last_routing_engine = r;
->> +				l->next = r->next;
->> +				break;
->> +		}
->> +		l = r;
->> +	}
->> +	/* cleanup prev routing engine list and replace with current
-> list */
->> +	destroy_routing_engines(osm);
->> +	setup_routing_engines(osm, engine_names);
->> +	/* check if last routing engine exist in new list and update
-> callbacks */
->> +	r = osm->routing_engine_list;
->> +	while (r) {
->> +		if (osm->routing_engine_used ==
->> +			osm_routing_engine_type(r->name)) {
->> +				update_routing_engine(r,
-> osm->last_routing_engine);
->> +				free(osm->last_routing_engine);
->> +				osm->last_routing_engine = NULL;
->> +				break;
->> +		}
->> +	r = r->next;
->> +	}
->>  }
->>  
->>
-> /**********************************************************************
->> diff --git a/opensm/opensm/osm_subnet.c b/opensm/opensm/osm_subnet.c
->> index 8d63a75..742ae64 100644
->> --- a/opensm/opensm/osm_subnet.c
->> +++ b/opensm/opensm/osm_subnet.c
->> @@ -152,6 +152,11 @@ static void opts_setup_sm_priority(osm_subn_t
-> *p_subn, void *p_val)
->>  	osm_set_sm_priority(p_sm, sm_priority);
->>  }
->>  
->> +static void opts_setup_routing_engine(osm_subn_t *p_subn, void
-> *p_val)
->> +{
->> +	osm_update_routing_engines(p_subn->p_osm, p_val);
->> +}
->> +
->>  static void opts_parse_net64(IN osm_subn_t *p_subn, IN char *p_key,
->>  			     IN char *p_val_str, void *p_v1, void *p_v2,
->>  			     void (*pfn)(osm_subn_t *, void *))
->> @@ -324,7 +329,7 @@ static const opt_rec_t opt_tbl[] = {
->>  	{ "hop_weights_file", OPT_OFFSET(hop_weights_file),
-> opts_parse_charp, NULL, 0 },
->>  	{ "port_profile_switch_nodes",
-> OPT_OFFSET(port_profile_switch_nodes), opts_parse_boolean, NULL, 1 },
->>  	{ "sweep_on_trap", OPT_OFFSET(sweep_on_trap),
-> opts_parse_boolean, NULL, 1 },
->> -	{ "routing_engine", OPT_OFFSET(routing_engine_names),
-> opts_parse_charp, NULL, 0 },
->> +	{ "routing_engine", OPT_OFFSET(routing_engine_names),
-> opts_parse_charp, opts_setup_routing_engine, 1 },
->>  	{ "connect_roots", OPT_OFFSET(connect_roots),
-> opts_parse_boolean, NULL, 1 },
->>  	{ "use_ucast_cache", OPT_OFFSET(use_ucast_cache),
-> opts_parse_boolean, NULL, 1 },
->>  	{ "log_file", OPT_OFFSET(log_file), opts_parse_charp, NULL, 0 },
->> diff --git a/opensm/opensm/osm_ucast_mgr.c
-> b/opensm/opensm/osm_ucast_mgr.c
->> index 39d825c..d6294ac 100644
->> --- a/opensm/opensm/osm_ucast_mgr.c
->> +++ b/opensm/opensm/osm_ucast_mgr.c
->> @@ -998,8 +998,23 @@ int osm_ucast_mgr_process(IN osm_ucast_mgr_t *
-> p_mgr)
->>  
->>  	p_osm->routing_engine_used = OSM_ROUTING_ENGINE_TYPE_NONE;
->>  	while (p_routing_eng) {
->> +		if (!p_routing_eng->initialized &&
->> +			p_routing_eng->setup(p_routing_eng, p_osm)) {
->> +			OSM_LOG(p_mgr->p_log, OSM_LOG_ERROR,
->> +				"ERR 3A0F: setup of routing engine
-> \'%s\' failed\n",
->> +					p_routing_eng->name);
->> +					p_routing_eng =
-> p_routing_eng->next;
->> +					continue;
->> +		}
->> +		OSM_LOG(p_mgr->p_log, OSM_LOG_INFO,
->> +			"\'%s\' routing engine set up\n",
-> p_routing_eng->name);
->> +		p_routing_eng->initialized = 1;
->>  		if (!ucast_mgr_route(p_routing_eng, p_osm))
->>  			break;
->> +		/* delete unused routing engine */
->> +		if (p_routing_eng->delete)
->> +			p_routing_eng->delete(p_routing_eng->context);
->> +		p_routing_eng->initialized = 0;
->>  		p_routing_eng = p_routing_eng->next;
->>  	}
->>  
->> @@ -1011,6 +1026,19 @@ int osm_ucast_mgr_process(IN osm_ucast_mgr_t *
-> p_mgr)
->>  		p_osm->routing_engine_used =
-> OSM_ROUTING_ENGINE_TYPE_MINHOP;
->>  	}
->>  
->> +	/* if for some reason different routing engine is used */
->> +	/* cleanup last unused routing engine */
->> +	p_routing_eng = p_osm->last_routing_engine;
->> +	if (p_routing_eng) {
->> +			if (p_routing_eng->initialized &&
->> +					p_routing_eng->delete &&
->> +					p_osm->routing_engine_used !=
->> +
-> osm_routing_engine_type(p_routing_eng->name))
->> +
-> p_routing_eng->delete(p_routing_eng->context);
->> +			free(p_routing_eng);
->> +			p_osm->last_routing_engine = NULL;
->> +	}
->> +
->>  	OSM_LOG(p_mgr->p_log, OSM_LOG_INFO,
->>  		"%s tables configured on all switches\n",
->>
-> osm_routing_engine_type_str(p_osm->routing_engine_used));
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+ 	if (!osm_physp_share_pkey(sa->p_log, p_physp, p_request_physp)) {
+ 		CL_PLOCK_RELEASE(sa->p_lock);
+-		OSM_LOG(sa->p_log, OSM_LOG_DEBUG,
++		OSM_LOG(sa->p_log, OSM_LOG_VERBOSE,
+ 			"Port and requester don't share pkey\n");
+ 		osm_sa_send_error(sa, p_madw, IB_SA_MAD_STATUS_REQ_INVALID);
+ 		goto Exit;
+-- 
+1.5.1.4
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
