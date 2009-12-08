@@ -1,17 +1,26 @@
-From: Mercedes Benz Xmas Cash Splash <don-wilson-rphTv4pjVZMJGwgDXS7ZQA@public.gmane.org>
-Subject: 950.000.00 GBP has been awarded to you in our Mercedes Benz Xmas Splash send your details
-Date: Mon, 7 Dec 2009 14:19:20 -0800 (PST)
-Message-ID: <91559.91067.qm__43082.5963536792$1260224384$gmane$org@web81605.mail.mud.yahoo.com>
-Reply-To: edward.howell-SeKd7Ux/Gwsdnm+yROfE0A@public.gmane.org
+From: Or Gerlitz <ogerlitz-hKgKHo2Ms0FWk0Htik3J/w@public.gmane.org>
+Subject: Re: InfiniBand/RDMA merge plans
+Date: Tue, 08 Dec 2009 15:04:37 +0200
+Message-ID: <4B1E4EE5.8030609@Voltaire.com>
+References: <adar5upos9z.fsf@cisco.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <adar5upos9z.fsf-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+Roland Dreier wrote:
+> Since 2.6.31-rc8 has been out more than a week already, it's probably
+> a good time to talk about 2.6.32 merge plans.  All the pending things
+> that I'm aware of are listed below.
 
-Name:.............. Address:..........
-Country:........ Phone Number:.....
+Hi Roland, any update on the 2.6.33 merge plans?
+
+Or.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
