@@ -1,7 +1,7 @@
 From: Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 01/11] RDMA/nes: change MAX_CM_BUFFER define
-Date: Wed, 9 Dec 2009 16:37:49 -0600
-Message-ID: <20091209223749.GA103256@flatif-MOBL>
+Subject: [PATCH 02/11] RDMA/nes: fix query of ORD values
+Date: Wed, 9 Dec 2009 16:38:56 -0600
+Message-ID: <20091209223856.GA127904@flatif-MOBL>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
@@ -11,36 +11,39 @@ To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Changed MAX_CM_BUFFER for MPA frame to be conformant to RFC 5044.
-This will change it to 512 + 20 instead of 512.
+The ORD size needs updating as we are supporting more inbound READ resources
+per connection.
 
 Signed-off-by: Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/nes/nes_cm.h |    4 +++-
- 1 files changed, 3 insertions(+), 1 deletions(-)
+ drivers/infiniband/hw/nes/nes_verbs.c |    8 ++++----
+ 1 files changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/infiniband/hw/nes/nes_cm.h b/drivers/infiniband/hw/nes/nes_cm.h
-index 90e8e4d..118c7c8 100644
---- a/drivers/infiniband/hw/nes/nes_cm.h
-+++ b/drivers/infiniband/hw/nes/nes_cm.h
-@@ -47,6 +47,8 @@
- #define IEFT_MPA_KEY_REP  "MPA ID Rep Frame"
- #define IETF_MPA_KEY_SIZE 16
- #define IETF_MPA_VERSION  1
-+#define IETF_MAX_PRIV_DATA_LEN 512
-+#define IETF_MPA_FRAME_SIZE     20
- 
- enum ietf_mpa_flags {
- 	IETF_MPA_FLAGS_MARKERS = 0x80,	/* receive Markers */
-@@ -169,7 +171,7 @@ struct nes_timer_entry {
- 
- #define NES_CM_DEF_SEQ2      0x18ed5740
- #define NES_CM_DEF_LOCAL_ID2 0xb807
--#define	MAX_CM_BUFFER	512
-+#define	MAX_CM_BUFFER	(IETF_MPA_FRAME_SIZE + IETF_MAX_PRIV_DATA_LEN)
- 
- 
- typedef u32 nes_addr_t;
+diff --git a/drivers/infiniband/hw/nes/nes_verbs.c b/drivers/infiniband/hw/nes/nes_verbs.c
+index 7a77450..0e3eee2 100644
+--- a/drivers/infiniband/hw/nes/nes_verbs.c
++++ b/drivers/infiniband/hw/nes/nes_verbs.c
+@@ -534,16 +534,16 @@ static int nes_query_device(struct ib_device *ibdev, struct ib_device_attr *prop
+ 	props->max_sge_rd = 1;
+ 	switch (nesdev->nesadapter->max_irrq_wr) {
+ 		case 0:
+-			props->max_qp_rd_atom = 1;
++			props->max_qp_rd_atom = 2;
+ 			break;
+ 		case 1:
+-			props->max_qp_rd_atom = 4;
++			props->max_qp_rd_atom = 8;
+ 			break;
+ 		case 2:
+-			props->max_qp_rd_atom = 16;
++			props->max_qp_rd_atom = 32;
+ 			break;
+ 		case 3:
+-			props->max_qp_rd_atom = 32;
++			props->max_qp_rd_atom = 64;
+ 			break;
+ 		default:
+ 			props->max_qp_rd_atom = 0;
 -- 
 1.5.3.3
 
