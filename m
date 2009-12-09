@@ -1,7 +1,7 @@
 From: Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 07/11] RDMA/nes: Xansation test crash on cm_node ref_count
-Date: Wed, 9 Dec 2009 16:41:43 -0600
-Message-ID: <20091209224143.GA127092@flatif-MOBL>
+Subject: [PATCH 08/11] RDMA/nes: check for zero stag
+Date: Wed, 9 Dec 2009 16:42:31 -0600
+Message-ID: <20091209224231.GA124820@flatif-MOBL>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
@@ -11,76 +11,49 @@ To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Running Xansation test, active side node crashed.
-The problem started from passive side. It generated stag which was
-0. The passive side sent TERMINATE instead of MPA REJECT msg. On the
-active side, it receives TERMINATE and sends connect_err() and set the
-cm_node state to CLOSED. The passive side sends FIN + ACK after TERMINATE.
-Active side in handle_ack_pkt() and send_reset(). send_reset()
-consumes 1 cm_node's ref_count. Because the cm_node is in CLOSED state, which
-means that cm_node will be destroyed after completion of the connect_err()
-indication, cm will crash after send_reset().
+STags are generated randomly but the driver does not correctly prevent
+a zero STag.  Using STag zero is privileged and causes a user space
+application to fail.  This change prevents the driver from trying to
+allocate a zero STag.
 
 Signed-off-by: Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/nes/nes_cm.c |   17 ++++++++++++++++-
- 1 files changed, 16 insertions(+), 1 deletions(-)
+ drivers/infiniband/hw/nes/nes_hw.c    |    3 ++-
+ drivers/infiniband/hw/nes/nes_verbs.c |    3 ---
+ 2 files changed, 2 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/infiniband/hw/nes/nes_cm.c b/drivers/infiniband/hw/nes/nes_cm.c
-index 20e21f1..a258168 100644
---- a/drivers/infiniband/hw/nes/nes_cm.c
-+++ b/drivers/infiniband/hw/nes/nes_cm.c
-@@ -1610,6 +1610,7 @@ static void handle_syn_pkt(struct nes_cm_node *cm_node, struct sk_buff *skb,
- 		break;
- 	case NES_CM_STATE_CLOSED:
- 		cleanup_retrans_entry(cm_node);
-+		add_ref_cm_node(cm_node);
- 		send_reset(cm_node, skb);
- 		break;
- 	case NES_CM_STATE_TSA:
-@@ -1661,9 +1662,15 @@ static void handle_synack_pkt(struct nes_cm_node *cm_node, struct sk_buff *skb,
- 		passive_open_err(cm_node, skb, 1);
- 		break;
- 	case NES_CM_STATE_LISTENING:
-+		cm_node->tcp_cntxt.loc_seq_num = ntohl(tcph->ack_seq);
-+		cleanup_retrans_entry(cm_node);
-+		cm_node->state = NES_CM_STATE_CLOSED;
-+		send_reset(cm_node, skb);
-+		break;
- 	case NES_CM_STATE_CLOSED:
- 		cm_node->tcp_cntxt.loc_seq_num = ntohl(tcph->ack_seq);
- 		cleanup_retrans_entry(cm_node);
-+		add_ref_cm_node(cm_node);
- 		send_reset(cm_node, skb);
- 		break;
- 	case NES_CM_STATE_ESTABLISHED:
-@@ -1732,8 +1739,13 @@ static int handle_ack_pkt(struct nes_cm_node *cm_node, struct sk_buff *skb,
- 			dev_kfree_skb_any(skb);
- 		break;
- 	case NES_CM_STATE_LISTENING:
-+		cleanup_retrans_entry(cm_node);
-+		cm_node->state = NES_CM_STATE_CLOSED;
-+		send_reset(cm_node, skb);
-+		break;
- 	case NES_CM_STATE_CLOSED:
- 		cleanup_retrans_entry(cm_node);
-+		add_ref_cm_node(cm_node);
- 		send_reset(cm_node, skb);
- 		break;
- 	case NES_CM_STATE_LAST_ACK:
-@@ -2193,8 +2205,11 @@ static int mini_cm_close(struct nes_cm_core *cm_core, struct nes_cm_node *cm_nod
- 	case NES_CM_STATE_CLOSING:
- 		ret = -1;
- 		break;
--	case NES_CM_STATE_MPAREJ_RCVD:
- 	case NES_CM_STATE_LISTENING:
-+		cleanup_retrans_entry(cm_node);
-+		send_reset(cm_node, NULL);
-+		break;
-+	case NES_CM_STATE_MPAREJ_RCVD:
- 	case NES_CM_STATE_UNKNOWN:
- 	case NES_CM_STATE_INITED:
- 	case NES_CM_STATE_CLOSED:
+diff --git a/drivers/infiniband/hw/nes/nes_hw.c b/drivers/infiniband/hw/nes/nes_hw.c
+index 9fc0273..b1c2cbb 100644
+--- a/drivers/infiniband/hw/nes/nes_hw.c
++++ b/drivers/infiniband/hw/nes/nes_hw.c
+@@ -437,11 +437,12 @@ struct nes_adapter *nes_init_adapter(struct nes_device *nesdev, u8 hw_rev) {
+ 	nesadapter->qp_table = (struct nes_qp **)(&nesadapter->allocated_arps[BITS_TO_LONGS(arp_table_size)]);
+ 
+ 
+-	/* mark the usual suspect QPs and CQs as in use */
++	/* mark the usual suspect QPs, MR and CQs as in use */
+ 	for (u32temp = 0; u32temp < NES_FIRST_QPN; u32temp++) {
+ 		set_bit(u32temp, nesadapter->allocated_qps);
+ 		set_bit(u32temp, nesadapter->allocated_cqs);
+ 	}
++	set_bit(0, nesadapter->allocated_mrs);
+ 
+ 	for (u32temp = 0; u32temp < 20; u32temp++)
+ 		set_bit(u32temp, nesadapter->allocated_pds);
+diff --git a/drivers/infiniband/hw/nes/nes_verbs.c b/drivers/infiniband/hw/nes/nes_verbs.c
+index 0e3eee2..de53e88 100644
+--- a/drivers/infiniband/hw/nes/nes_verbs.c
++++ b/drivers/infiniband/hw/nes/nes_verbs.c
+@@ -2503,9 +2503,6 @@ static struct ib_mr *nes_reg_user_mr(struct ib_pd *pd, u64 start, u64 length,
+ 			stag = stag_index << 8;
+ 			stag |= driver_key;
+ 			stag += (u32)stag_key;
+-			if (stag == 0) {
+-				stag = 1;
+-			}
+ 
+ 			iova_start = virt;
+ 			/* Make the leaf PBL the root if only one PBL */
 -- 
 1.5.3.3
 
