@@ -1,32 +1,32 @@
-From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Subject: Re: RDMAoE verbs questions
-Date: Wed, 09 Dec 2009 11:06:41 -0800
-Message-ID: <adak4wwrmpq.fsf@roland-alpha.cisco.com>
-References: <209ECE49-3AB9-4E62-B825-54E474321FA6@cisco.com>
-	<20091125001136.GP6188@obsidianresearch.com>
-	<20091130133406.GA32123@mtls03>
-	<adaiqcrx2xx.fsf@roland-alpha.cisco.com>
-	<20091130190345.GV6188@obsidianresearch.com>
-	<ada1vjaukx8.fsf@roland-alpha.cisco.com>
-	<20091207172511.GA13496@mtls03>
+From: Patrick Finnegan <pat-bdq14YP6qtQCo4FBHZViTkB+6BGkLq7r@public.gmane.org>
+Subject: Re: Sun V880 + Infiniband?
+Date: Wed, 9 Dec 2009 14:29:56 -0500
+Message-ID: <200912091429.56117.pat@computer-refuge.org>
+References: <adaocmhuupk.fsf@roland-alpha.cisco.com> <200912030144.18971.pat@computer-refuge.org> <20091209.013955.262196704.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20091207172511.GA13496@mtls03> (Eli Cohen's message of "Mon, 7
-	Dec 2009 19:25:11 +0200")
+In-Reply-To: <20091209.013955.262196704.davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Jeff Squyres <jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+Cc: rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org, sparclinux-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+On Wednesday 09 December 2009, David Miller wrote:
+> Please give this patch a try:
+> 
+> sparc64: Fix overly strict range type matching for PCI devices.
 
- > It looks good to me. Thanks, I will take it for RDMAoE.
+This appears to work for me.
 
-Great... as Jason suggested, please also add in the appropriate reserved
-fields to pad the struct to a 32 bit boundary and zero them in the
-wrapper.  So if there is a next time we don't have this problem again.
+Thanks!
 
- - R.
+Pat
+-- 
+Purdue University Research Computing ---  http://www.rcac.purdue.edu/
+The Computer Refuge                  ---  http://computer-refuge.org
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
