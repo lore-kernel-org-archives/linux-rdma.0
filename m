@@ -1,7 +1,7 @@
 From: Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 06/11] RDMA/nes: abnormal listener termination causes loopback node crash
-Date: Wed, 9 Dec 2009 16:41:15 -0600
-Message-ID: <20091209224115.GA128120@flatif-MOBL>
+Subject: [PATCH 07/11] RDMA/nes: Xansation test crash on cm_node ref_count
+Date: Wed, 9 Dec 2009 16:41:43 -0600
+Message-ID: <20091209224143.GA127092@flatif-MOBL>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
@@ -11,59 +11,76 @@ To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-when listener is destroyed for loopback connection, listener node is
-getting reset event. This causes crash as listener is not expecting
-reset event. Code review of cm_event_reset() durring debugging showed
-the cm_id ref count in incrementing after calling its event handler
-and not before.
+Running Xansation test, active side node crashed.
+The problem started from passive side. It generated stag which was
+0. The passive side sent TERMINATE instead of MPA REJECT msg. On the
+active side, it receives TERMINATE and sends connect_err() and set the
+cm_node state to CLOSED. The passive side sends FIN + ACK after TERMINATE.
+Active side in handle_ack_pkt() and send_reset(). send_reset()
+consumes 1 cm_node's ref_count. Because the cm_node is in CLOSED state, which
+means that cm_node will be destroyed after completion of the connect_err()
+indication, cm will crash after send_reset().
 
 Signed-off-by: Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/nes/nes_cm.c |   16 +++-------------
- 1 files changed, 3 insertions(+), 13 deletions(-)
+ drivers/infiniband/hw/nes/nes_cm.c |   17 ++++++++++++++++-
+ 1 files changed, 16 insertions(+), 1 deletions(-)
 
 diff --git a/drivers/infiniband/hw/nes/nes_cm.c b/drivers/infiniband/hw/nes/nes_cm.c
-index ec04786..20e21f1 100644
+index 20e21f1..a258168 100644
 --- a/drivers/infiniband/hw/nes/nes_cm.c
 +++ b/drivers/infiniband/hw/nes/nes_cm.c
-@@ -1014,18 +1014,6 @@ static int mini_cm_dec_refcnt_listen(struct nes_cm_core *cm_core,
- 					cm_node->state = NES_CM_STATE_LISTENER_DESTROYED;
- 					loopback->state = NES_CM_STATE_CLOSED;
- 
--					event.cm_node = cm_node;
--					event.cm_info.rem_addr =
--							 cm_node->rem_addr;
--					event.cm_info.loc_addr =
--							 cm_node->loc_addr;
--					event.cm_info.rem_port =
--							 cm_node->rem_port;
--					event.cm_info.loc_port =
--							 cm_node->loc_port;
--					event.cm_info.cm_id = cm_node->cm_id;
--					cm_event_reset(&event);
--
- 					rem_ref_cm_node(cm_node->cm_core,
- 							 cm_node);
- 
-@@ -3440,6 +3428,8 @@ static void cm_event_reset(struct nes_cm_event *event)
- 
- 	nes_debug(NES_DBG_CM, "%p - cm_id = %p\n", event->cm_node, cm_id);
- 	nesqp = cm_id->provider_data;
-+	if (!nesqp)
-+		return;
- 
- 	nesqp->cm_id = NULL;
- 	/* cm_id->provider_data = NULL; */
-@@ -3451,8 +3441,8 @@ static void cm_event_reset(struct nes_cm_event *event)
- 	cm_event.private_data = NULL;
- 	cm_event.private_data_len = 0;
- 
--	ret = cm_id->event_handler(cm_id, &cm_event);
- 	cm_id->add_ref(cm_id);
-+	ret = cm_id->event_handler(cm_id, &cm_event);
- 	atomic_inc(&cm_closes);
- 	cm_event.event = IW_CM_EVENT_CLOSE;
- 	cm_event.status = IW_CM_EVENT_STATUS_OK;
+@@ -1610,6 +1610,7 @@ static void handle_syn_pkt(struct nes_cm_node *cm_node, struct sk_buff *skb,
+ 		break;
+ 	case NES_CM_STATE_CLOSED:
+ 		cleanup_retrans_entry(cm_node);
++		add_ref_cm_node(cm_node);
+ 		send_reset(cm_node, skb);
+ 		break;
+ 	case NES_CM_STATE_TSA:
+@@ -1661,9 +1662,15 @@ static void handle_synack_pkt(struct nes_cm_node *cm_node, struct sk_buff *skb,
+ 		passive_open_err(cm_node, skb, 1);
+ 		break;
+ 	case NES_CM_STATE_LISTENING:
++		cm_node->tcp_cntxt.loc_seq_num = ntohl(tcph->ack_seq);
++		cleanup_retrans_entry(cm_node);
++		cm_node->state = NES_CM_STATE_CLOSED;
++		send_reset(cm_node, skb);
++		break;
+ 	case NES_CM_STATE_CLOSED:
+ 		cm_node->tcp_cntxt.loc_seq_num = ntohl(tcph->ack_seq);
+ 		cleanup_retrans_entry(cm_node);
++		add_ref_cm_node(cm_node);
+ 		send_reset(cm_node, skb);
+ 		break;
+ 	case NES_CM_STATE_ESTABLISHED:
+@@ -1732,8 +1739,13 @@ static int handle_ack_pkt(struct nes_cm_node *cm_node, struct sk_buff *skb,
+ 			dev_kfree_skb_any(skb);
+ 		break;
+ 	case NES_CM_STATE_LISTENING:
++		cleanup_retrans_entry(cm_node);
++		cm_node->state = NES_CM_STATE_CLOSED;
++		send_reset(cm_node, skb);
++		break;
+ 	case NES_CM_STATE_CLOSED:
+ 		cleanup_retrans_entry(cm_node);
++		add_ref_cm_node(cm_node);
+ 		send_reset(cm_node, skb);
+ 		break;
+ 	case NES_CM_STATE_LAST_ACK:
+@@ -2193,8 +2205,11 @@ static int mini_cm_close(struct nes_cm_core *cm_core, struct nes_cm_node *cm_nod
+ 	case NES_CM_STATE_CLOSING:
+ 		ret = -1;
+ 		break;
+-	case NES_CM_STATE_MPAREJ_RCVD:
+ 	case NES_CM_STATE_LISTENING:
++		cleanup_retrans_entry(cm_node);
++		send_reset(cm_node, NULL);
++		break;
++	case NES_CM_STATE_MPAREJ_RCVD:
+ 	case NES_CM_STATE_UNKNOWN:
+ 	case NES_CM_STATE_INITED:
+ 	case NES_CM_STATE_CLOSED:
 -- 
 1.5.3.3
 
