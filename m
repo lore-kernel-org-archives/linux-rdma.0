@@ -1,40 +1,37 @@
 From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH v2 0/51] updated patches for adding QIB driver
-Date: Wed, 09 Dec 2009 14:47:39 -0800
-Message-ID: <adahbrzpxx0.fsf@roland-alpha.cisco.com>
-References: <20091203190305.29507.58158.stgit@chromite.mv.qlogic.com>
+Subject: Re: [PATCH] mlx4: Fix bug in mlx4_ib_mcg_attach
+Date: Wed, 09 Dec 2009 14:49:47 -0800
+Message-ID: <adad42npxtg.fsf@roland-alpha.cisco.com>
+References: <20091208151405.GA30005@mtls03>
+	<aday6lbpykk.fsf@roland-alpha.cisco.com>
+	<20091209224818.GB4540@mtls03>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20091203190305.29507.58158.stgit-/vjeY7uYZjrPXfVEPVhPGq6RkeBMCJyt@public.gmane.org> (Ralph
-	Campbell's message of "Thu, 03 Dec 2009 11:03:05 -0800")
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ralph Campbell <ralph.campbell-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+In-Reply-To: <20091209224818.GB4540@mtls03> (Eli Cohen's message of "Thu, 10
+	Dec 2009 00:48:18 +0200")
+List-Unsubscribe: <http://lists.openfabrics.org/cgi-bin/mailman/listinfo/ewg>,
+	<mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.openfabrics.org/pipermail/ewg>
+List-Post: <mailto:ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+List-Help: <mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=help>
+List-Subscribe: <http://lists.openfabrics.org/cgi-bin/mailman/listinfo/ewg>,
+	<mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=subscribe>
+Sender: ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
+Errors-To: ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
+To: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: Linux RDMA list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, ewg <ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-have not had a chance to look at the new submission yet but I think you
-need at least the following rolled in, to avoid calling __exit code that
-might have been thrown away from the error path of your init function.
 
-Building with CONFIG_DEBUG_SECTION_MISMATCH=y when you see that the
-kernel build tells you that you introduced new section mismatches is
-probably a good idea.
+ > > This bug doesn't seem to ever have been present in the upstream
+ > > kernel -- what are you generating this patch against?
 
-diff --git a/drivers/infiniband/hw/qib/qib_file_ops.c b/drivers/infiniband/hw/qib/qib_file_ops.c
-index 781c87f..53c314f 100644
---- a/drivers/infiniband/hw/qib/qib_file_ops.c
-+++ b/drivers/infiniband/hw/qib/qib_file_ops.c
-@@ -2450,7 +2450,7 @@ done:
- 	return ret;
- }
- 
--void __exit qib_dev_cleanup(void)
-+void qib_dev_cleanup(void)
- {
- 	if (qib_class) {
- 		class_destroy(qib_class);
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+ > I think it came from your for-next branch.
+
+I don't see anything touching this code there.  The patch that
+introduced this code upstream, 521e575b ("IB/mlx4: Add support for
+blocking multicast loopback packets") doesn't have this bug and I don't
+see anything else that changed that area of the code.
+
+ - R.
