@@ -1,45 +1,47 @@
-From: "Tung, Chien Tin" <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [ANNOUNCE] libnes-1.0.0 release
-Date: Tue, 8 Dec 2009 15:22:44 -0700
-Message-ID: <603F8A3875DCE940BA37B49D0A6EA0AE3D004865@azsmsx501.amr.corp.intel.com>
+From: Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: [PATCH] opensm/libvendor//osm_vendor_ibumad_sa.c: uninitialized fields
+Date: Wed, 09 Dec 2009 02:14:18 +0200
+Message-ID: <4B1EEBDA.5070501@dev.mellanox.co.il>
+Reply-To: kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
-Return-path: <ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
-Content-Language: en-US
-List-Unsubscribe: <http://lists.openfabrics.org/cgi-bin/mailman/listinfo/ewg>,
-	<mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.openfabrics.org/pipermail/ewg>
-List-Post: <mailto:ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
-List-Help: <mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=help>
-List-Subscribe: <http://lists.openfabrics.org/cgi-bin/mailman/listinfo/ewg>,
-	<mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=subscribe>
-Sender: ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
-Errors-To: ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
-To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, EWG <Openfabrics-ewg-0P3JtQMG0aQdnm+yROfE0A@public.gmane.org>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+Cc: Linux RDMA <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-New release of libnes library (1.0.0) is available at:
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-Path: kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org
+X-OriginalArrivalTime: 09 Dec 2009 00:05:42.0455 (UTC) FILETIME=[590C3C70:01CA7863]
 
-http://www.openfabrics.org/downloads/nes/libnes-1.0.0.tar.gz
+Taking care of couple of uninitialized fields.
+Discovered with 'osmtest -f a' - bad things
+start to happen when a packet is dropped, and
+osmtest should really get a timeout.
 
-sha1sum: e9d73b46cbc6c000f9904874fb1aba874b6ab8cf  libnes-1.0.0.tar.gz
+Signed-off-by: Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+---
+ opensm/libvendor/osm_vendor_ibumad_sa.c |    2 ++
+ 1 files changed, 2 insertions(+), 0 deletions(-)
 
-Changes since last release:
+diff --git a/opensm/libvendor/osm_vendor_ibumad_sa.c b/opensm/libvendor/osm_vendor_ibumad_sa.c
+index e05a5ef..78f2bce 100644
+--- a/opensm/libvendor/osm_vendor_ibumad_sa.c
++++ b/opensm/libvendor/osm_vendor_ibumad_sa.c
+@@ -241,6 +241,8 @@ osmv_bind_sa(IN osm_vendor_t * const p_vend,
+ 	bind_info.is_report_processor = FALSE;
+ 	bind_info.send_q_size = OSM_SM_DEFAULT_QP1_RCV_SIZE;
+ 	bind_info.recv_q_size = OSM_SM_DEFAULT_QP1_SEND_SIZE;
++	bind_info.timeout = OSM_DEFAULT_TRANS_TIMEOUT_MILLISEC;
++	bind_info.retries = OSM_DEFAULT_RETRY_COUNT;
 
-Chien Tung (2):
-      libnes: sync up with function prototype changes in libibverbs-1.1.3
-      libnes: update version number to 1.0.0
-
-Don Wood (2):
-      libnes: Fix a thread safety problem on send and recv paths.
-      libnes: Change the fence flag to read fence
-
-Vlad, please pull this in for OFED 1.5.
-
-Thanks,
-
-Chien
+ 	/* allocate the new sa bind info */
+ 	p_sa_bind_info =
+-- 
+1.5.1.4
 
 --
-Chien Tung | chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
