@@ -1,20 +1,16 @@
-From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [Patch] Init ipoib_neigh.dgid
-Date: Wed, 09 Dec 2009 10:03:40 -0800
-Message-ID: <adaaaxst477.fsf@roland-alpha.cisco.com>
-References: <1257960891.14154.7.camel@wilder.ibm.com>
+From: Roland Dreier <rdreier@cisco.com>
+Subject: Re: [PATCH] ipath: Use bitmap_weight
+Date: Wed, 09 Dec 2009 10:05:49 -0800
+Message-ID: <ada638gt43m.fsf@roland-alpha.cisco.com>
+References: <1258340880-28269-1-git-send-email-akinobu.mita@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1257960891.14154.7.camel-XfwDJb4SXxnMbYB6QlFGEg@public.gmane.org> (David J. Wilder's
-	message of "Wed, 11 Nov 2009 09:34:51 -0800")
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "David J. Wilder" <dwilder-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1756588AbZLISFv@vger.kernel.org>
+In-Reply-To: <1258340880-28269-1-git-send-email-akinobu.mita@gmail.com>
+	(Akinobu Mita's message of "Mon, 16 Nov 2009 12:08:00 +0900")
+Sender: linux-kernel-owner@vger.kernel.org
+To: Akinobu Mita <akinobu.mita@gmail.com>
+Cc: akpm@linux-foundation.org, linux-kernel@vger.kernel.org, Ralph Campbell <infinipath@qlogic.com>, Roland Dreier <rolandd@cisco.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-thanks, applied at last
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+thanks, applied.
