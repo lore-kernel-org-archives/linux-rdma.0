@@ -1,49 +1,94 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH] rdmaoe/libibverbs: handle binary compatibility
-Date: Thu, 10 Dec 2009 10:33:53 -0700
-Message-ID: <20091210173353.GW1966@obsidianresearch.com>
-References: <20091210170536.GA3229@mtls03>
+From: Al Chu <chu11-i2BcT+NCU+M@public.gmane.org>
+Subject: [infiniband-diags] [PATCH] remove obsoleted option from iblinkinfo
+	manpage
+Date: Thu, 10 Dec 2009 11:38:38 -0800
+Message-ID: <1260473918.4557.97.camel@auk31.llnl.gov>
+Reply-To: chu11-i2BcT+NCU+M@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/mixed; boundary="=-k/Jorf1YgiqXd9cM8QcH"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20091210170536.GA3229@mtls03>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Eli Cohen <eli-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
-Cc: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Linux RDMA list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ewg <ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+To: sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Dec 10, 2009 at 07:05:36PM +0200, Eli Cohen wrote:
 
-> here is the patch I prepared based on the discussions we had. The patch is based on the last
-> rdmaoe/libibverbs patch I sent. libmlx4 was modified too, a trivial
-> change that changes name. Both fixes were push to OFED. I will send a
-> new patch set in a few days.
+--=-k/Jorf1YgiqXd9cM8QcH
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 
-Could you prepare this based on Roland's tree? This patch won't apply.
+Hi Sasha,
 
-Why are things still going into OFED so quickly? Shouldn't Roland
-accept this stuff before it gets to OFED - or at least review it once..
+Nothing fancy, noticed the manpage still had this obsoleted option
+listed.  I copied the documentation that was put into the ibqueryerrors
+manpage.
 
-> +static inline int ___ibv_query_port(struct ibv_context *context,
-> +				    uint8_t port_num,
-> +				    struct ibv_port_attr *port_attr)
-> +{
-> +	uint8_t *padp;
-> +	int padsize;
-> +
-> +	port_attr->link_layer = IBV_LINK_LAYER_UNSPECIFIED;
-> +	padp = &port_attr->link_layer + sizeof port_attr->link_layer;
-> +	padsize = sizeof(int) - ((unsigned long)padp & (sizeof(int) - 1));
-> +	memset(padp, 0, padsize);
-> +
-> +	return context->ops.query_port(context, port_num, port_attr);
-> +}
+Al
 
-You should explicity declare the padding, like ibv_query_port_resp
-does, the above is very fragile.
+-- 
+Albert Chu
+chu11-i2BcT+NCU+M@public.gmane.org
+Computer Scientist
+High Performance Systems Division
+Lawrence Livermore National Laboratory
 
-Jason
+--=-k/Jorf1YgiqXd9cM8QcH
+Content-Disposition: attachment; filename=0001-remove-obsoleted-option-from-iblinkinfo-manpage.patch
+Content-Type: text/plain; name=0001-remove-obsoleted-option-from-iblinkinfo-manpage.patch; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+
+>From e0050396ddd4cbd611abef3ac74fca854c038b12 Mon Sep 17 00:00:00 2001
+From: Albert Chu <chu11-i2BcT+NCU+M@public.gmane.org>
+Date: Thu, 10 Dec 2009 11:25:22 -0800
+Subject: [PATCH] remove obsoleted option from iblinkinfo manpage
+
+
+Signed-off-by: Albert Chu <chu11-i2BcT+NCU+M@public.gmane.org>
+---
+ infiniband-diags/man/iblinkinfo.8 |   10 +++-------
+ 1 files changed, 3 insertions(+), 7 deletions(-)
+
+diff --git a/infiniband-diags/man/iblinkinfo.8 b/infiniband-diags/man/iblinkinfo.8
+index b9b4318..de8676a 100644
+--- a/infiniband-diags/man/iblinkinfo.8
++++ b/infiniband-diags/man/iblinkinfo.8
+@@ -5,7 +5,7 @@ iblinkinfo.pl \- report link info for all links in the fabric
+ 
+ .SH SYNOPSIS
+ .B iblinkinfo.pl
+-   [-Rhcdl -C <ca_name> -P <ca_port> -v <lt,hoq,vlstall> -S <guid>
++   [-hcdl -C <ca_name> -P <ca_port> -v <lt,hoq,vlstall> -S <guid>
+ -D <direct_route>]
+ 
+ .SH DESCRIPTION
+@@ -17,12 +17,6 @@ IB fabric.
+ 
+ .PP
+ .TP
+-\fB\-R\fR
+-Recalculate the ibnetdiscover information, ie do not use the cached
+-information.  This option is slower but should be used if the diag tools have
+-not been used for some time or if there are other reasons to believe the
+-fabric has changed.
+-.TP
+ \fB\-S <guid>\fR
+ Output only the switch specified by <guid> (hex format)
+ .TP
+@@ -46,6 +40,8 @@ Print port capabilities (enabled and supported values)
+ \fB\-C <ca_name>\fR    use the specified ca_name for the search.
+ .TP
+ \fB\-P <ca_port>\fR    use the specified ca_port for the search.
++.TP
++\fB\-R\fR (This option is obsolete and does nothing)
+ 
+ 
+ .SH AUTHOR
+-- 
+1.5.4.5
+
+
+--=-k/Jorf1YgiqXd9cM8QcH--
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
