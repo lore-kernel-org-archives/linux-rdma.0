@@ -1,41 +1,33 @@
-From: Eli Cohen <eli-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
-Subject: [PATCH v2] mlx4_core: Cleanup bug in __mlx4_init_one()
-Date: Thu, 10 Dec 2009 13:37:28 +0200
-Message-ID: <20091210113728.GC18037@mtls03>
+From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: Re: [PATCH 06/11] RDMA/nes: abnormal listener termination causes
+ loopback node crash
+Date: Thu, 10 Dec 2009 09:21:11 -0600
+Message-ID: <4B2111E7.80607@opengridcomputing.com>
+References: <20091209224115.GA128120@flatif-MOBL> <4B20A00C.1070607@voltaire.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <4B20A00C.1070607-smomgflXvOZWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Cc: Linux RDMA list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ewg <ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+To: Or Gerlitz <ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+Cc: Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-If mlx4_init_port_info() fails, cleanup the initialized ports only.
+Or Gerlitz wrote:
+> Faisal Latif wrote:
+>> when listener is destroyed for loopback connection
+> Does the upstream iwarp stack supports loopback connections? does it 
+> apply to all vendors?
+>
+> Or.
 
-Signed-off-by: Eli Cohen <eli-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
----
-Changes: rebase the patch on Roland's for-next branch
+Loopback support is provider-specific.  There is no software iwarp 
+loopback, if that's what your asking.  But the upstream core code 
+doesn't prohibit providers from supporting hw-loopback connections.
 
- drivers/net/mlx4/main.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/net/mlx4/main.c b/drivers/net/mlx4/main.c
-index 291a505..3cf56d9 100644
---- a/drivers/net/mlx4/main.c
-+++ b/drivers/net/mlx4/main.c
-@@ -1174,7 +1174,7 @@ static int __mlx4_init_one(struct pci_dev *pdev, const struct pci_device_id *id)
- 	return 0;
- 
- err_port:
--	for (port = 1; port <= dev->caps.num_ports; port++)
-+	for (--port; port >= 1; --port)
- 		mlx4_cleanup_port_info(&priv->port[port]);
- 
- 	mlx4_cleanup_mcg_table(dev);
--- 
-1.6.5.5
-
+Steve.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
