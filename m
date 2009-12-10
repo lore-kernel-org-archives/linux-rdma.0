@@ -1,28 +1,41 @@
 From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH v3 23/27] misc: use helpers for rlimits
-Date: Wed, 09 Dec 2009 15:59:18 -0800
-Message-ID: <adapr6nog15.fsf@roland-alpha.cisco.com>
-References: <1259363167-9347-1-git-send-email-jslaby@suse.cz>
-	<1259363167-9347-23-git-send-email-jslaby@suse.cz>
+Subject: Re: [PATCH v2 12/51] IB/qib: Add qib_dma.c
+Date: Wed, 09 Dec 2009 16:09:33 -0800
+Message-ID: <adaljhbofk2.fsf@roland-alpha.cisco.com>
+References: <20091203190305.29507.58158.stgit@chromite.mv.qlogic.com>
+	<20091203190408.29507.27708.stgit@chromite.mv.qlogic.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1259363167-9347-23-git-send-email-jslaby-AlSwsSmVLrQ@public.gmane.org> (Jiri Slaby's
-	message of "Sat, 28 Nov 2009 00:06:03 +0100")
+In-Reply-To: <20091203190408.29507.27708.stgit-/vjeY7uYZjrPXfVEPVhPGq6RkeBMCJyt@public.gmane.org> (Ralph
+	Campbell's message of "Thu, 03 Dec 2009 11:04:08 -0800")
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jiri Slaby <jslaby-AlSwsSmVLrQ@public.gmane.org>
-Cc: jirislaby-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, mingo-X9Un+BFzKDI@public.gmane.org, nhorman-2XuSBdqkA4R54TAoqtyWWQ@public.gmane.org, sfr-3FnU+UHB4dNDw9hX6IcOSA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, marcin.slusarz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org, mingo-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, hpa-YMNOUZJC4hwAvxtiuMwx3w@public.gmane.org, torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, oleg-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, James Morris <jmorris-gx6/JNMH7DfYtjvyW6yDsg@public.gmane.org>, Heiko Carstens <heiko.carstens-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Ralph Campbell <ralph.campbell-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Not sure it matters at this part, but for the drivers/infiniband part,
-you can add:
 
-Acked-by: Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+ > +struct ib_dma_mapping_ops qib_dma_mapping_ops = {
+ > +	qib_mapping_error,
+ > +	qib_dma_map_single,
+ > +	qib_dma_unmap_single,
+ > +	qib_dma_map_page,
+ > +	qib_dma_unmap_page,
+ > +	qib_map_sg,
+ > +	qib_unmap_sg,
+ > +	qib_sg_dma_address,
+ > +	qib_sg_dma_len,
+ > +	qib_sync_single_for_cpu,
+ > +	qib_sync_single_for_device,
+ > +	qib_dma_alloc_coherent,
+ > +	qib_dma_free_coherent
+ > +};
 
-wrapping all the current->signal->rlim[] stuff in a helper function
-looks like a nice cleanup independent of the writable limit stuff.
+I think it would be a good idea to use a designated initializer -- eg
 
- - R.
+	.mapping_error		= qib_mapping_error, ...
+
+instead to avoid silent breakage if we extend the mapping ops structure.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
