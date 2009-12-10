@@ -1,60 +1,60 @@
-From: "Sean Hefty" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [ewg] Re: [PATCH] rdmaoe/libibverbs: handle binary compatibility
-Date: Thu, 10 Dec 2009 13:50:00 -0800
-Message-ID: <C657920367C84928A5A013CC8E49912B@amr.corp.intel.com>
-References: <20091210170536.GA3229@mtls03> <20091210173353.GW1966@obsidianresearch.com> <20091210211455.GA5166@mtls03>
+From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Subject: Re: Re: [PATCH] rdmaoe/libibverbs: handle binary compatibility
+Date: Thu, 10 Dec 2009 13:57:11 -0800
+Message-ID: <adaein2lcg8.fsf@roland-alpha.cisco.com>
+References: <20091210170536.GA3229@mtls03>
+	<20091210173353.GW1966@obsidianresearch.com>
+	<20091210211455.GA5166@mtls03>
+	<20091210214945.GP6188@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20091210211455.GA5166@mtls03>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: 'Eli Cohen' <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Eli Cohen <eli-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, Linux RDMA list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, ewg <ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+In-Reply-To: <20091210214945.GP6188-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> (Jason Gunthorpe's
+	message of "Thu, 10 Dec 2009 14:49:45 -0700")
+List-Unsubscribe: <http://lists.openfabrics.org/cgi-bin/mailman/listinfo/ewg>,
+	<mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.openfabrics.org/pipermail/ewg>
+List-Post: <mailto:ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+List-Help: <mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=help>
+List-Subscribe: <http://lists.openfabrics.org/cgi-bin/mailman/listinfo/ewg>,
+	<mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=subscribe>
+Sender: ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
+Errors-To: ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Linux RDMA list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, ewg <ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
->@@ -306,7 +314,7 @@ static struct pingpong_context *pp_init_ctx(struct
->ibv_device *ib_dev, int size,
-> 		return NULL;
-> 	}
->
->-	memset(ctx->buf, 0, size);
->+	memset(ctx->buf, 0x7b + is_server, size);
->
-> 	ctx->context = ibv_open_device(ib_dev);
-> 	if (!ctx->context) {
->@@ -481,6 +489,7 @@ static void usage(const char *argv0)
-> 	printf("  -n, --iters=<iters>    number of exchanges (default 1000)\n");
-> 	printf("  -l, --sl=<sl>          service level value\n");
-> 	printf("  -e, --events           sleep on CQ events (default poll)\n");
->+	printf("  -g, --gid=<remote gid> gid of the other port\n");
 
-It seems easier for the user if the tests discovered its local GID and exchanged
-it with the remote side like it does with the LID and QPN.
- 
->diff --git a/include/infiniband/kern-abi.h b/include/infiniband/kern-abi.h
->index 0db083a..8ef8844 100644
+ > >  #define IB_USER_VERBS_MIN_ABI_VERSION  1
+ > > -#define IB_USER_VERBS_MAX_ABI_VERSION  6
+ > > +#define IB_USER_VERBS_MAX_ABI_VERSION  7
+ >  
+ > Whats this about? That seems like it needs a much bigger review,
+ > changing the kernel ABI version instantly breaks every existing
+ > libibverbs, shouldn't be done without alot of discussion!!
 
->
-> /*
->@@ -223,7 +224,8 @@ struct ibv_query_port_resp {
-> 	__u8  active_width;
-> 	__u8  active_speed;
-> 	__u8  phys_state;
->-	__u8  reserved[3];
->+	__u8  link_layer;
->+	__u8  reserved[2];
-> };
+Yes, I've been meaning to bring this up earlier.
 
-Should we define the network layer too?  Right now we have IB transport, which
-assumes IB network and link; iWarp transport, which almost assumes IP network
-and Ethernet; and RDMAoE, which may or may not have a network (but requires the
-L3 address) and Ethernet (or is it DCB) link.
+There was a time, long ago, when changing this ABI was maybe OK.  I
+think even when I first designed the uverbs ABI, having this version
+instead of capability bits was a goof.  But I don't have a time machine.
 
-- Sean
+In any case I think at this point we need to stick with ABI version 6
+will full backwards compat unless we really really can't.  And I don't
+think the changes here are nearly drastic enough that we can't figure
+out a way forward without breaking things.
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+ > Why do you have IBV_LINK_LAYER_UNSPECIFIED ? That seems pointless. Why
+ > should existing kernels return UNSPECIFIED when we know they are
+ > always IB. I'd say drop IBV_LINK_LAYER_UNSPECIFIED and set
+ > IBV_LINK_LAYER_INFINIBAND to 0.
+
+I prefer having the UNSPECIFIED.  Not a strong preference but my
+reasoning is that if you have an old kernel that doesn't answer
+anything, you're better off letting the app see that.  And there's no
+reason why iWARP has to run over ethernet in principle.
+
+Maybe I'm wrong but I don't like setting "don't know" magically to IB
+behind the scenes.
+
+ - R.
