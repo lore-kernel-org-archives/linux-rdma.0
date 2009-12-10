@@ -1,33 +1,25 @@
-From: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
-Subject: Re: Sun V880 + Infiniband?
-Date: Wed, 09 Dec 2009 17:20:53 -0800 (PST)
-Message-ID: <20091209.172053.211572407.davem@davemloft.net>
-References: <200912030144.18971.pat@computer-refuge.org>
-	<20091209.013955.262196704.davem@davemloft.net>
-	<200912091429.56117.pat@computer-refuge.org>
+From: Or Gerlitz <ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH 06/11] RDMA/nes: abnormal listener termination causes
+ loopback node crash
+Date: Thu, 10 Dec 2009 09:15:24 +0200
+Message-ID: <4B20A00C.1070607@voltaire.com>
+References: <20091209224115.GA128120@flatif-MOBL>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <200912091429.56117.pat-bdq14YP6qtQCo4FBHZViTkB+6BGkLq7r@public.gmane.org>
+In-Reply-To: <20091209224115.GA128120@flatif-MOBL>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: pat-bdq14YP6qtQCo4FBHZViTkB+6BGkLq7r@public.gmane.org
-Cc: rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org, sparclinux-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Cc: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Patrick Finnegan <pat-bdq14YP6qtQCo4FBHZViTkB+6BGkLq7r@public.gmane.org>
-Date: Wed, 9 Dec 2009 14:29:56 -0500
+Faisal Latif wrote:
+> when listener is destroyed for loopback connection
+Does the upstream iwarp stack supports loopback connections? does it 
+apply to all vendors?
 
-> On Wednesday 09 December 2009, David Miller wrote:
->> Please give this patch a try:
->> 
->> sparc64: Fix overly strict range type matching for PCI devices.
-> 
-> This appears to work for me.
-> 
-> Thanks!
-
-Thanks for your report and testing the fix.
+Or.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
