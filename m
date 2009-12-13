@@ -1,26 +1,23 @@
 From: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Subject: Re: [infiniband-diags] [PATCH] remove obsoleted option from
- iblinkinfo manpage
-Date: Sun, 13 Dec 2009 22:22:14 +0200
-Message-ID: <20091213202214.GS5262@me>
-References: <1260473918.4557.97.camel@auk31.llnl.gov>
+Subject: Re: [infiniband-diags] [PATCH] correct manpages for tools that are
+ no longer scripts
+Date: Sun, 13 Dec 2009 22:23:27 +0200
+Message-ID: <20091213202327.GT5262@me>
+References: <1260480241.4557.100.camel@auk31.llnl.gov>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1260473918.4557.97.camel-X2zTWyBD0EhliZ7u+bvwcg@public.gmane.org>
+In-Reply-To: <1260480241.4557.100.camel-X2zTWyBD0EhliZ7u+bvwcg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Al Chu <chu11-i2BcT+NCU+M@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Al,
-
-On 11:38 Thu 10 Dec     , Al Chu wrote:
+On 13:24 Thu 10 Dec     , Al Chu wrote:
+> Hey Sasha,
 > 
-> Nothing fancy, noticed the manpage still had this obsoleted option
-> listed.  I copied the documentation that was put into the ibqueryerrors
-> manpage.
+> Another set of typos I found.  Nothing fancy.
 > 
 > Al
 > 
@@ -31,24 +28,14 @@ On 11:38 Thu 10 Dec     , Al Chu wrote:
 > High Performance Systems Division
 > Lawrence Livermore National Laboratory
 
-> From e0050396ddd4cbd611abef3ac74fca854c038b12 Mon Sep 17 00:00:00 2001
-
-Please don't add such '\n^From ' line to patch change log. It is used as
-email message separator in mbox format. As result many git related tools
-(such as 'git rebase') will be confused by this.
-
-For more details about desired patch/email format you can see:
-
-	/usr/src/linux/Documentation/SubmittingPatches
-
 > From: Albert Chu <chu11-i2BcT+NCU+M@public.gmane.org>
-> Date: Thu, 10 Dec 2009 11:25:22 -0800
-> Subject: [PATCH] remove obsoleted option from iblinkinfo manpage
+> Date: Thu, 10 Dec 2009 13:21:02 -0800
+> Subject: [PATCH] correct manpages for tools that are no longer scripts
 > 
 > 
 > Signed-off-by: Albert Chu <chu11-i2BcT+NCU+M@public.gmane.org>
 
-Applied.
+Applied. Thanks.
 
 Sasha
 --
