@@ -1,54 +1,48 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [ewg] Re: [PATCH] rdmaoe/libibverbs: handle binary
-	compatibility
-Date: Mon, 14 Dec 2009 12:14:09 -0700
-Message-ID: <20091214191409.GU6188@obsidianresearch.com>
-References: <20091210170536.GA3229@mtls03> <20091210173353.GW1966@obsidianresearch.com> <20091210211455.GA5166@mtls03> <C657920367C84928A5A013CC8E49912B@amr.corp.intel.com> <20091214084127.GB10744@mtls03>
+From: Ralph Campbell <ralph.campbell-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+Subject: Re: InfiniBand/RDMA merge plans for 2.6.33
+Date: Mon, 14 Dec 2009 12:09:18 -0800
+Message-ID: <1260821358.19688.296.camel@chromite.mv.qlogic.com>
+References: <adaocm1csgb.fsf@roland-alpha.cisco.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20091214084127.GB10744@mtls03>
+In-Reply-To: <adaocm1csgb.fsf-BjVyx320WGW9gfZ95n9DRSW4+XlvGpQz@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, Linux RDMA list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, ewg <ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Cc: "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Dec 14, 2009 at 10:41:27AM +0200, Eli Cohen wrote:
-> On Thu, Dec 10, 2009 at 01:50:00PM -0800, Sean Hefty wrote:
-> > >@@ -306,7 +314,7 @@ static struct pingpong_context *pp_init_ctx(struct
-> > >ibv_device *ib_dev, int size,
-> > > 		return NULL;
-> > > 	}
-> > >
-> > >-	memset(ctx->buf, 0, size);
-> > >+	memset(ctx->buf, 0x7b + is_server, size);
-> > >
-> > > 	ctx->context = ibv_open_device(ib_dev);
-> > > 	if (!ctx->context) {
-> > >@@ -481,6 +489,7 @@ static void usage(const char *argv0)
-> > > 	printf("  -n, --iters=<iters>    number of exchanges (default 1000)\n");
-> > > 	printf("  -l, --sl=<sl>          service level value\n");
-> > > 	printf("  -e, --events           sleep on CQ events (default poll)\n");
-> > >+	printf("  -g, --gid=<remote gid> gid of the other port\n");
-> > 
-> > It seems easier for the user if the tests discovered its local GID and exchanged
-> > it with the remote side like it does with the LID and QPN.
-> >  
-> 
-> Will be changed in the next patch set -- the user will specify the
-> index to the GID table of the local port.
+On Mon, 2009-12-14 at 10:37 -0800, Roland Dreier wrote:
 
-It would be nice if the tools would consistently let you choose the
-source device based on gid.. I've been meaning to make a patch for
-verbs to add a ibv_open_device_by_gid() function or something like
-that.
+>  - New QLogic qib driver.  Needs at least one more iteration of
+>    cleanups; and I have not had time to look at the latest code in
+>    detail to see exactly what cleanups are needed.  I am concerned
+>    that QLogic chose to abandon the ipath driver as unmaintainable,
+>    and now wants to replace it with an even bigger driver (measured
+>    by lines of code) that does not support the HT device that ipath
+>    supported.  How can we make sure qib has a longer future?
 
-Using gid idx is pretty unfriendly ...
+I understand your frustration in having to deal with a large amount
+of code. If you included all the Mellanox firmware in the mlx4
+driver, it would be huge too. I'm limited in what I can do given
+the complexity of the IBTA spec.
 
-But it is just a test prorgam, no worries.
+QLogic is not "abandoning the ipath driver as unmaintainable".
+The thought was that trying to incrementally patch in all the changes
+needed to support dual ports, QDR, chip register addresses, etc.
+would result in larger patches than renaming the driver. It was a
+chicken-and-egg problem because until the new code was fully
+written and debugged, we couldn't post it and we couldn't patch
+ipath until we knew all the places that needed to be changed.
 
-Jason
+We had a pretty strong business requirement to get support for 
+our QDR product into OFED 1.5 and the IB interrop tests required
+we get something into OFED. The chip schedule just didn't leave time
+to debug everything, get it reviewed and then merge with OFED.
+Also, I was out for 5 weeks and that delayed the submission to
+linux-rdma.
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
