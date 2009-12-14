@@ -1,100 +1,45 @@
-From: Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH 1/3 v2] opensm SA DB dump/restore: added option to load
- SA DB once
-Date: Sun, 13 Dec 2009 23:38:45 +0200
-Message-ID: <4B255EE5.50202@dev.mellanox.co.il>
-References: <4AF15EBD.6010307@dev.mellanox.co.il> <20091126133037.GA28564@me> <4B1B883D.3080508@dev.mellanox.co.il> <20091213162305.GO5262@me>
-Reply-To: kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org
+From: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [ewg] Re: [PATCH] rdmaoe/libibverbs: handle binary
+ compatibility
+Date: Mon, 14 Dec 2009 10:41:27 +0200
+Message-ID: <20091214084127.GB10744@mtls03>
+References: <20091210170536.GA3229@mtls03>
+ <20091210173353.GW1966@obsidianresearch.com>
+ <20091210211455.GA5166@mtls03>
+ <C657920367C84928A5A013CC8E49912B@amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20091213162305.GO5262@me>
+Content-Disposition: inline
+In-Reply-To: <C657920367C84928A5A013CC8E49912B-Zpru7NauK7drdx17CPfAsdBPR1lH4CV8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Cc: Linux RDMA <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, Linux RDMA list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, ewg <ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 13/Dec/09 18:23, Sasha Khapyorsky wrote:
-> On 12:32 Sun 06 Dec     , Yevgeny Kliteynik wrote:
->>>> @@ -1096,7 +1106,15 @@ int osm_sa_db_file_load(osm_opensm_t * p_osm)
->>>>   		}
->>>>   	}
->>>>
->>>> -	if (!rereg_clients)
->>>> +	/*
->>>> +	 * If restoring SA DB is required only once, SM should go
->>>> +	 * into the usual mode right after that, which means that
->>>> +	 * client re-registration should be required even after
->>>> +	 * the restore - there is a chance that OSM died right after
->>>> +	 * some MCMember joined MCast group, and his membership
->>>> +	 * didn't make it into the SA DB file.
->>>> +	 */
->>>> +	if (!p_osm->subn.opt.sa_db_load_once&&  !rereg_clients)
->>>>   		p_osm->subn.opt.no_clients_rereg = TRUE;
->>>
->>> Hmm, if you are going to request clients reregistration unconditionally
->>> then what is the reason to restore SA DB?
->>>
->>> Maybe you wanted to switch this flag off *after* first sweep, but I'm
->>> not sure following your comment.
->>
->> We have a dump file with mcast members, and OSM is loading
->> this file. Suppose OSM has successfully loaded the whole file.
->> But this does not mean that there's no need to request client
->> re-registration on all the hosts. Consider the following case:
->>   - Heavy sweep - SM dumps current SA DB to a file
->>   - Client asks to join some mcast group
->>   - SM gets the request and processes it
->>   - The request is OK - SM sets the 'dirty' flag and
->>     responds to client
->>   - Client gets the response
->>   - SM dies
->>   - SM is restarted - it loads the existing SA DB, which
->>     does not includes the latest client's membership
->>   - Loading of the whole SA DB is OK - no client re-register
->>     request is issued
->>   - Client remains disconnected from the mcast group
->
-> It is easy to think about such or similar scenarios. But OTOH if you
-> are going to request clients reregistration, why to preload SA DB?
->
->> I want to be able to tell SM to request client re-register
->> after loading the SA DB even if all was OK.
->
-> So my question is when preloading SA DB buys something for us when
-> clients will reregister anyway? Bugs?
+On Thu, Dec 10, 2009 at 01:50:00PM -0800, Sean Hefty wrote:
+> >@@ -306,7 +314,7 @@ static struct pingpong_context *pp_init_ctx(struct
+> >ibv_device *ib_dev, int size,
+> > 		return NULL;
+> > 	}
+> >
+> >-	memset(ctx->buf, 0, size);
+> >+	memset(ctx->buf, 0x7b + is_server, size);
+> >
+> > 	ctx->context = ibv_open_device(ib_dev);
+> > 	if (!ctx->context) {
+> >@@ -481,6 +489,7 @@ static void usage(const char *argv0)
+> > 	printf("  -n, --iters=<iters>    number of exchanges (default 1000)\n");
+> > 	printf("  -l, --sl=<sl>          service level value\n");
+> > 	printf("  -e, --events           sleep on CQ events (default poll)\n");
+> >+	printf("  -g, --gid=<remote gid> gid of the other port\n");
+> 
+> It seems easier for the user if the tests discovered its local GID and exchanged
+> it with the remote side like it does with the LID and QPN.
+>  
 
-Well, I wouldn't call it "bugs". It's more of non-compliant
-application behavior. Many applications just not able to
-survive things like MLID change - they are not listening
-to events and do not request mcast group re-registration.
-
--- Yevgeny
-
->> So there are 3 options to do it:
->>
->> 1. Completely rely on 'no_clients_rereg' option only.
->>     Do not alter this option, doesn't matter if the SA DB
->>     reloading succeeded or not.
->>
->> 2. Combine 'no_clients_rereg' option with loading SA DB
->>     result: if loading succeeded, do whatever 'no_clients_rereg'
->>     option says. If loading failed at some point, turn off
->>     the 'no_clients_rereg' option (turn on re-registartion
->>     requests, don't you just love the double-negative logic?)
->>
->> 3. Add new option for this particular case.
->>
->> I'm all for option 2, and this is what I'm implementing
->> in V3 series patches.
->
-> IMHO this is better than what was proposed in the original patch. Think
-> that we can make it this way.
->
-> Sasha
->
-
+Will be changed in the next patch set -- the user will specify the
+index to the GID table of the local port.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
