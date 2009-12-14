@@ -1,48 +1,58 @@
-From: Ralph Campbell <ralph.campbell-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-Subject: Re: InfiniBand/RDMA merge plans for 2.6.33
-Date: Mon, 14 Dec 2009 12:09:18 -0800
-Message-ID: <1260821358.19688.296.camel@chromite.mv.qlogic.com>
-References: <adaocm1csgb.fsf@roland-alpha.cisco.com>
+From: Bart Van Assche <bart.vanassche-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: SRPT and SCST
+Date: Mon, 14 Dec 2009 21:41:08 +0100
+Message-ID: <e2e108260912141241u1e13956cg73b7bfcc41021234@mail.gmail.com>
+References: <3142CEFB1403044F9954E2DF6C85660FBB34BD@orca.penguincomputing.com>
+	 <f3177b9e0911040802o7fce0f4fte02c52dfe940f582@mail.gmail.com>
+	 <3142CEFB1403044F9954E2DF6C85660FBB34BF@orca.penguincomputing.com>
+	 <f3177b9e0911041004t2e75d545v5cc10d5375550bde@mail.gmail.com>
+	 <654FA770A883FB43BAF3CB0B1E1DAC8C01C8C4DD@orca.penguincomputing.com>
+	 <4AF29201.6000606@penguincomputing.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <adaocm1csgb.fsf-BjVyx320WGW9gfZ95n9DRSW4+XlvGpQz@public.gmane.org>
+In-Reply-To: <4AF29201.6000606-pabcTyWEv4ZW60MLeMDbCVaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Cc: "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Philip Pokorny <ppokorny-pabcTyWEv4ZW60MLeMDbCVaTQe2KTcn/@public.gmane.org>
+Cc: scst-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Arend Dittmer <adittmer-pabcTyWEv4ZW60MLeMDbCVaTQe2KTcn/@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, 2009-12-14 at 10:37 -0800, Roland Dreier wrote:
+On Thu, Nov 5, 2009 at 9:51 AM, Philip Pokorny
+<ppokorny-pabcTyWEv4ZW60MLeMDbCVaTQe2KTcn/@public.gmane.org> wrote:
+>>
+>> [ ... ]
+>>
+>> [ 8864.326702] <6>[0]: scst_queue_retry_cmd:1099:TGT QUEUE FULL:
+>> incrementing retry_cmds 1
+>> [ 8864.326709] <6>[0]: scst_queue_retry_cmd:1106:Some command(s) finished,
+>> direct retry (finished_cmds=2023031, tgt->finished_cmds=2023137,
+>> retry_cmds=0)
+>> [ ... ]
 
->  - New QLogic qib driver.  Needs at least one more iteration of
->    cleanups; and I have not had time to look at the latest code in
->    detail to see exactly what cleanups are needed.  I am concerned
->    that QLogic chose to abandon the ipath driver as unmaintainable,
->    and now wants to replace it with an even bigger driver (measured
->    by lines of code) that does not support the HT device that ipath
->    supported.  How can we make sure qib has a longer future?
+(replying to an e-mail of one month ago)
 
-I understand your frustration in having to deal with a large amount
-of code. If you included all the Mellanox firmware in the mlx4
-driver, it would be huge too. I'm limited in what I can do given
-the complexity of the IBTA spec.
+The above issue should be fixed in SCST revision 1391, together with
+the following changes:
+* Support for OFED 1.5.
+* The maximum supported value for the ib_srp kernel module parameter
+srp_sg_tablesize has been increased from 58 to 128, at least when
+ib_srpt is loaded with default parameters. Modifying the new ib_srpt
+kernel module parameter srp_max_rdma_size makes it possible to support
+even higher values of srp_sg_tablesize.
+* Various small performance improvements.
 
-QLogic is not "abandoning the ipath driver as unmaintainable".
-The thought was that trying to incrementally patch in all the changes
-needed to support dual ports, QDR, chip register addresses, etc.
-would result in larger patches than renaming the driver. It was a
-chicken-and-egg problem because until the new code was fully
-written and debugged, we couldn't post it and we couldn't patch
-ipath until we knew all the places that needed to be changed.
+The results I obtained with QDR HCA's, a RAM disk as target and a
+vanilla 2.6.27.39 kernel + CFQ on the initiator system are:
+* for asynchronous (buffered) I/O, writing speeds up to 1070 MB/s
+(srp_sg_tablesize = 128; block size = 16 KB).
+* for asynchronous (buffered) I/O, reading speeds up to 930 MB/s
+(srp_sg_tablesize = 12; block size = 16 KB).
+* for direct (non-buffered) I/O, writing speeds up to 1000 MB/s
+(srp_sg_tablesize = 32; block size = 2 MB).
+* for direct (non-buffered) I/O, reading speeds up to 1710 MB/s
+(srp_sg_tablesize = 16; block size = 64 MB).
 
-We had a pretty strong business requirement to get support for 
-our QDR product into OFED 1.5 and the IB interrop tests required
-we get something into OFED. The chip schedule just didn't leave time
-to debug everything, get it reviewed and then merge with OFED.
-Also, I was out for 5 weeks and that delayed the submission to
-linux-rdma.
-
+Bart.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
