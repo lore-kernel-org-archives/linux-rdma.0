@@ -1,71 +1,124 @@
-From: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH] opensm/osm_vl15intf.c Log change
-Date: Tue, 15 Dec 2009 11:12:50 -0500
-Message-ID: <f0e08f230912150812r8fa3a89kf62aa2412e8b824@mail.gmail.com>
-References: <4B0FD804.2020309@Sun.COM>
+From: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+Subject: Re: SRP issues with OpenSM 3.3.3
+Date: Tue, 15 Dec 2009 19:03:17 +0200
+Message-ID: <20091215170317.GV5262@me>
+References: <20091214164334.064102f0.weiny2@llnl.gov>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4B0FD804.2020309-UdXhSnd/wVw@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20091214164334.064102f0.weiny2-i2BcT+NCU+M@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Line Holen <Line.Holen-xsfywfwIY+M@public.gmane.org>
-Cc: sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+Cc: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Nov 27, 2009 at 8:45 AM, Line Holen <Line.Holen-xsfywfwIY+M@public.gmane.org> wrote:
-> Added transaction ID to a message
->
-> Signed-off-by: Line Holen <Line.Holen-xsfywfwIY+M@public.gmane.org>
->
-> ---
->
-> diff --git a/opensm/opensm/osm_vl15intf.c b/opensm/opensm/osm_vl15int=
-f.c
-> index c380a55..cc3ff33 100644
-> --- a/opensm/opensm/osm_vl15intf.c
-> +++ b/opensm/opensm/osm_vl15intf.c
-> @@ -1,4 +1,5 @@
-> =C2=A0/*
-> + * Copyright (c) 2009 Sun Microsystems, Inc. All rights reserved.
-> =C2=A0* Copyright (c) 2004-2009 Voltaire, Inc. All rights reserved.
-> =C2=A0* Copyright (c) 2002-2006 Mellanox Technologies LTD. All rights=
- reserved.
-> =C2=A0* Copyright (c) 1996-2003 Intel Corporation. All rights reserve=
-d.
-> @@ -91,7 +92,8 @@ static void vl15_send_mad(osm_vl15_t * p_vl, osm_ma=
-dw_t * p_madw)
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0}
->
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0OSM_LOG(p_vl->p_log, OSM_LOG_ERROR, "ERR 3=
-E03: "
-> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 "MAD send failed (=
-%s)\n", ib_get_err_str(status));
-> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 "MAD send failed (=
-%s), TID 0x%" PRIx64 "\n",
-> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 ib_get_err_str(sta=
-tus), cl_ntoh64(p_madw->p_mad->trans_id));
+Hi Ira,
 
-I don't think it's safe to touch the MAD once it's been returned to
-the pool. So either this change needs to be reverted or the
-transaction ID (and any other info to be printed on error) saved and
-logged on error.
+On 16:43 Mon 14 Dec     , Ira Weiny wrote:
+> 
+> I have found that the following patch caused our SRP connected storage to
+> break.
+> 
+> patch: 3d20f82edd3246879063b77721d0bcef927bdc48
+> 
+>     opensm/osm_sa_path_record.c: separate router guid resolution code
+>     
+>     Move off subnet destination (router address) resolution code to separate
+>     function to improve readability.
+>     
+>     Signed-off-by: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+> 
+> I further traced the problem to pr_rcv_build_pr and the patch below fixes the
+> bug.
 
--- Hal
+Nice catch and great investigation!
 
->
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0/*
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 The MAD was never successfully sen=
-t, so
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma"=
- in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at =C2=A0http://vger.kernel.org/majordomo-info.ht=
-ml
->
+> 
+> 16:03:34 > git diff 
+> diff --git a/opensm/opensm/osm_sa_path_record.c b/opensm/opensm/osm_sa_path_record.c
+> index be0cd71..32c889f 100644
+> --- a/opensm/opensm/osm_sa_path_record.c
+> +++ b/opensm/opensm/osm_sa_path_record.c
+> @@ -800,7 +800,7 @@ static void pr_rcv_build_pr(IN osm_sa_t * sa, IN const osm_port_t * p_src_port,
+>  
+>         /* Only set HopLimit if going through a router */
+>         if (is_nonzero_gid)
+> -               p_pr->hop_flow_raw |= cl_hton32(IB_HOPLIMIT_MAX);
+> +               p_pr->hop_flow_raw |= IB_HOPLIMIT_MAX;
+>  
+>         p_pr->pkey = p_parms->pkey;
+>         ib_path_rec_set_sl(p_pr, p_parms->sl);
+> 
+> 
+> "hop_flow_raw" is not really a 32bit value but rather 4 fields:
+> Component     Length(bits)   Offset(bits)
+> RawTraffic    1              352
+> Reserved      3              353
+> FlowLabel     20             356
+> HopLimit      8              384
+
+This patch doesn't look correct for me. Instead of placing
+IB_HOPLIMIT_MAX in proper place this will put it in RawTraffic and
+Reserved fields on little-endian machines (such as x86). And this
+changes nothing on a big-endian machine. Right?
+
+Following your investigation it seems that SRP target breaks when
+IB_HOPLIMIT_MAX is set in SA PR query responses for intra-subnet DGIDs.
+
+> However, I don't understand the comment "Only set HopLimit if going through a
+> router"?
+
+This is from '#ifdef ROUTER_EXP' days - as far as I could understand
+HopLimit should be set to IB_HOPLIMIT_MAX for inter-subnet MADs.
+
+> 
+> Was the intent to only set p_dgid in pr_rcv_get_end_points if we are heading
+> through a router?
+
+Seems that this was an original logic.
+
+> I don't think it matters if we are going through a router
+> or not does it?
+
+I thought so too, but as we can see it triggers the bug you discovered.
+
+So immediate fix for this is to move p_dgid setup back to router
+section, like this:
+
+
+diff --git a/opensm/opensm/osm_sa_path_record.c b/opensm/opensm/osm_sa_path_record.c
+index 7855be5..fbeef03 100644
+--- a/opensm/opensm/osm_sa_path_record.c
++++ b/opensm/opensm/osm_sa_path_record.c
+@@ -1236,6 +1236,8 @@ static ib_net16_t pr_rcv_get_end_points(IN osm_sa_t * sa,
+ 				sa_status = IB_SA_MAD_STATUS_INVALID_GID;
+ 				goto Exit;
+ 			}
++			if (p_dgid)
++				*p_dgid = p_pr->dgid;
+ 		} else
+ 			dest_guid = p_pr->dgid.unicast.interface_id;
+ 
+@@ -1253,9 +1255,6 @@ static ib_net16_t pr_rcv_get_end_points(IN osm_sa_t * sa,
+ 			sa_status = IB_SA_MAD_STATUS_INVALID_GID;
+ 			goto Exit;
+ 		}
+-
+-		if (p_dgid)
+-			*p_dgid = p_pr->dgid;
+ 	} else {
+ 		*pp_dest_port = 0;
+ 		if (comp_mask & IB_PR_COMPMASK_DLID) {
+
+
+BTW, could you test this? Unfortunately I don't have SRP target :(
+
+And seems that as more solid solution we need to cleanup some logic in
+osm_sa_path_record.c code.
+
+Sasha
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
