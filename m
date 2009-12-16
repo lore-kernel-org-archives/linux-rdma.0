@@ -1,63 +1,44 @@
 From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 Subject: Re: InfiniBand/RDMA merge plans for 2.6.33
-Date: Wed, 16 Dec 2009 09:15:09 -0800
-Message-ID: <ada1viualia.fsf@roland-alpha.cisco.com>
+Date: Wed, 16 Dec 2009 09:20:01 -0800
+Message-ID: <adaws0m96pq.fsf@roland-alpha.cisco.com>
 References: <adaocm1csgb.fsf@roland-alpha.cisco.com>
-	<4B28A259.3040909@mellanox.co.il>
+	<1260821358.19688.296.camel@chromite.mv.qlogic.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4B28A259.3040909-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org> (Tziporet Koren's message of
-	"Wed, 16 Dec 2009 11:03:21 +0200")
+In-Reply-To: <1260821358.19688.296.camel-/vjeY7uYZjrPXfVEPVhPGq6RkeBMCJyt@public.gmane.org> (Ralph
+	Campbell's message of "Mon, 14 Dec 2009 12:09:18 -0800")
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tziporet Koren <tziporet-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
-Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Yevgeny Petrilin <yevgenyp-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
+To: Ralph Campbell <ralph.campbell-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma@vger.kernel.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
- > >   - mlx4 SR-IOV support.  Again, main problem was my lack of time.  I
- > >     agree in principle with this stuff, just want to be careful that we
- > >     don't turn the mlx4 driver into an unmaintainable mess of "if
- > >     (sriov) something; else something_else" all over.
+ > I understand your frustration in having to deal with a large amount
+ > of code. If you included all the Mellanox firmware in the mlx4
+ > driver, it would be huge too. I'm limited in what I can do given
+ > the complexity of the IBTA spec.
 
- > Roland,
- > You have not sent any comments to our patches that were sent few weeks
- > ago on time for 2.6.32 inclusion,
- > and now I am surprised you do not accept them for 2.6.32.
- > I think we still have time to work together and fix your concerns on
- > mlx4 driver.
- > Can you send more concrete comments so we can fix them?
+Sure, I understand that your driver is going to be pretty big.  However,
+ipath was ~38 KLoC, which qib is ~54 KLoC (after the latest cleanup --
+it started over 60K if I recall correctly).  That's 40% bigger, 16 KLoC
+in absolute terms -- and you dropped support for HT HCAs!
 
-As I said (in the text you quoted), the main problem is my lack of
-time.  I want to read the patches over again, and I suspect we will have
-one more iteration before they are ready to go.  There does seem to be a
-lot of changing from
+ > QLogic is not "abandoning the ipath driver as unmaintainable".
+ > The thought was that trying to incrementally patch in all the changes
+ > needed to support dual ports, QDR, chip register addresses, etc.
+ > would result in larger patches than renaming the driver. It was a
+ > chicken-and-egg problem because until the new code was fully
+ > written and debugged, we couldn't post it and we couldn't patch
+ > ipath until we knew all the places that needed to be changed.
 
-	/* pv code */
+We can quibble about the reason, but the end effect is that ipath is
+abandonded, right?  Maybe a better approach would have been to write a
+new driver for the new chip and not try to move the old devices out of
+ipath.  But of course it's way too late to start over.
 
-to
-
-	if (sriov) {
-		/* sriov code */
-	} else {
-		/* completely different pv code */
-	}
-
-which is to say the least not beautiful.
-
-More broadly there is a problem that I am doing 99% of the code review
-for RDMA kernel patches.  Occasionally people get interested in isolated
-things, but for the most part the expectation seems to be that I will
-review everything, which doesn't scale.
-
- > Since we have a HW that supports SRIOV and many people are interested
- > in this new technology for KVM thus it is important that we drive it
- > now
-
-If you send a 25-patch series after -rc6, you should expect that there
-is a good chance of missing the next merge window.  Sorry -- with the
-current process of expecting me to be the only reviewer for nearly
-everything, I simply am not going to be able to get through things in time.
+Anyway, we'll get qib in eventually -- but it may take some work.
 
  - R.
 --
