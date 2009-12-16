@@ -1,42 +1,39 @@
-From: Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH] opensm/osm_vl15intf.c: reverting commit 546399c3b983cdfe7adf4bd0b179358744603478
-Date: Wed, 16 Dec 2009 11:02:45 +0200
-Message-ID: <4B28A235.9090900@dev.mellanox.co.il>
-Reply-To: kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org
+From: Tziporet Koren <tziporet-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
+Subject: Re: InfiniBand/RDMA merge plans for 2.6.33
+Date: Wed, 16 Dec 2009 11:03:21 +0200
+Message-ID: <4B28A259.3040909@mellanox.co.il>
+References: <adaocm1csgb.fsf@roland-alpha.cisco.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <adaocm1csgb.fsf-BjVyx320WGW9gfZ95n9DRSW4+XlvGpQz@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Cc: Line.Holen-UdXhSnd/wVw@public.gmane.org, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Linux RDMA <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Yevgeny Petrilin <yevgenyp-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-OSM crashes when accessing fields of mad that has already
-been returned to the pool.
+On 12/14/2009 8:37 PM, Roland Dreier wrote:
+>
+>   - mlx4 SR-IOV support.  Again, main problem was my lack of time.  I
+>     agree in principle with this stuff, just want to be careful that we
+>     don't turn the mlx4 driver into an unmaintainable mess of "if
+>     (sriov) something; else something_else" all over.
+>    
 
-Signed-off-by: Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
----
- opensm/opensm/osm_vl15intf.c |    3 +--
- 1 files changed, 1 insertions(+), 2 deletions(-)
+Roland,
+You have not sent any comments to our patches that were sent few weeks 
+ago on time for 2.6.32 inclusion,
+and now I am surprised you do not accept them for 2.6.32.
+I think we still have time to work together and fix your concerns on 
+mlx4 driver.
+Can you send more concrete comments so we can fix them?
 
-diff --git a/opensm/opensm/osm_vl15intf.c b/opensm/opensm/osm_vl15intf.c
-index e2b3888..005dbd0 100644
---- a/opensm/opensm/osm_vl15intf.c
-+++ b/opensm/opensm/osm_vl15intf.c
-@@ -97,8 +97,7 @@ static void vl15_send_mad(osm_vl15_t * p_vl, osm_madw_t * p_madw,
- 	}
+Since we have a HW that supports SRIOV and many people are interested in 
+this new technology for KVM thus it is important that we drive it now
 
- 	OSM_LOG(p_vl->p_log, OSM_LOG_ERROR, "ERR 3E03: "
--		"MAD send failed (%s), TID 0x%" PRIx64 "\n",
--		ib_get_err_str(status), cl_ntoh64(p_madw->p_mad->trans_id));
-+		"MAD send failed (%s)\n", ib_get_err_str(status));
-
- 	/*
- 	   The MAD was never successfully sent, so
--- 
-1.5.1.4
-
+Thanks
+Tziporet
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
