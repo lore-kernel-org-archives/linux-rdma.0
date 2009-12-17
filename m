@@ -1,35 +1,34 @@
-From: Randy Dunlap <randy.dunlap@oracle.com>
-Subject: Re: [PATCH v3] SCSI/libsrp: document the libsrp source code
-Date: Thu, 17 Dec 2009 13:14:51 -0800
-Message-ID: <20091217131451.341950b6.randy.dunlap@oracle.com>
-References: <200912172102.35558.bart.vanassche@gmail.com>
+From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [Announce] rxe dev tree available (soft RDMAoE)
+Date: Thu, 17 Dec 2009 13:25:58 -0800
+Message-ID: <adazl5h47ix.fsf@roland-alpha.cisco.com>
+References: <4B294BDD.3010405@systemfabricworks.com>
+	<20091216213816.GV6188@obsidianresearch.com>
+	<031b01ca7e99$38abf510$aa03df30$@com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-scsi-owner@vger.kernel.org>
-In-Reply-To: <200912172102.35558.bart.vanassche@gmail.com>
-Sender: linux-scsi-owner@vger.kernel.org
-To: Bart Van Assche <bart.vanassche@gmail.com>
-Cc: linux-scsi@vger.kernel.org, linux-rdma@vger.kernel.org, "James E.J. Bottomley" <James.Bottomley@suse.de>, FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <031b01ca7e99$38abf510$aa03df30$@com> (Robert Pearson's message
+	of "Wed, 16 Dec 2009 15:46:26 -0600")
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Robert Pearson <rpearson-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org>
+Cc: 'Jason Gunthorpe' <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, 'frank zago' <fzago-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, 'John Groves' <john-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, 17 Dec 2009 21:02:35 +0100 Bart Van Assche wrote:
 
-> Adds documentation to the libsrp source code.
-> 
-> Signed-off-by: Bart Van Assche <bart.vanassche@gmail.com>
-> Cc: James E.J. Bottomley <James.Bottomley@suse.de>
-> Cc: FUJITA Tomonori <fujita.tomonori@lab.ntt.co.jp>
-> Acked-by: Randy Dunlap <randy.dunlap@oracle.com>
-> 
-> ----
-> This is the third version of this patch. Compared to the first version of this
-> patch, the patch does now adhere to the kernel-doc format and function
-> arguments that were not yet documented are now documented. Thanks to Randy
-> Dunlap for the reviews.
+ > Yes, but later. For now it is still being actively developed and is changing
+ > a lot. Once it settles down we plan to convert to patches and push up
+ > stream.
 
+I think you would probably be better off developing the kernel driver as
+a branch in an up-to-date kernel tree, and then worrying about backports
+later.  You could get rid of some of the redundant infrastructure like
+dump_hex() and crc32 (too bad IB didn't choose the CRC32C polynomial, so
+you can't use the crypto API and get Intel CRC32 instruction
+acceleration for free).
 
-Thanks for beginning this and for persisting.
-
----
-~Randy
+ - R.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
