@@ -1,52 +1,27 @@
-From: "Woodruff, Robert J" <robert.j.woodruff-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+From: <fzago-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org>
 Subject: RE: [Announce] rxe dev tree available (soft RDMAoE)
-Date: Wed, 16 Dec 2009 16:19:16 -0800
-Message-ID: <382A478CAD40FA4FB46605CF81FE39F4431FB84A@orsmsx507.amr.corp.intel.com>
-References: <4B294BDD.3010405@systemfabricworks.com>
+Date: Wed, 16 Dec 2009 19:59:31 -0500
+Message-ID: <20091217005931.IZEQT.109999.root@cdptpa-bc-web01-z02>
+References: <382A478CAD40FA4FB46605CF81FE39F4431FB84A@orsmsx507.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4B294BDD.3010405-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <382A478CAD40FA4FB46605CF81FE39F4431FB84A-osO9UTpF0URzLByeVOV5+bfspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: frank zago <fzago-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Woodruff, Robert J" <robert.j.woodruff-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Cc: Bob Pearson <rpearson-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org>, John Groves <john-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-What is soft RDMA over ethernet, does this mean it is RDMAoE that will run over
-any ethernet interface that is installed in the system ?
 
-woody
- 
+---- "Woodruff wrote: 
+> What is soft RDMA over ethernet, does this mean it is RDMAoE that will run over
+> any ethernet interface that is installed in the system ?
+> 
 
------Original Message-----
-From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of frank zago
-Sent: Wednesday, December 16, 2009 1:07 PM
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Bob Pearson; John Groves
-Subject: [Announce] rxe dev tree available (soft RDMAoE)
+That's correct. Currently for every ethX interface present, it creates a corresponding rxeX device. These rxeX devices behaves the same way than regular IB devices.
 
-Hello,
-
-The development tree for a soft RDMA transport over Ethernet driver 
-(rxe) is available in the OFA git repository. This is a work in progress 
-but has enough functionality for people interested in looking at it to 
-be worth sharing. Going forward changes to the driver will be maintained 
-here.
-
-To get a copy of the driver type
-
-   git clone git://git.openfabrics.org/~fzago/rxe
-
-This work is being supported by Mellanox and System Fabric Works.
-
-Regards,
-   Frank
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Frank.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
