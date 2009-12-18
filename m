@@ -1,76 +1,142 @@
 From: "Jim Schutt" <jaschut-4OHPYypu0djtX7QSmKvirg@public.gmane.org>
-Subject: [PATCH 07/12] opensm: Make torus-2QoS always use OSM_LOG_INFO,
- never LOG_INFO.
-Date: Fri, 18 Dec 2009 13:50:56 -0700
-Message-ID: <1261169461-2516-7-git-send-email-jaschut@sandia.gov>
+Subject: [PATCH 05/12] opensm: Enforce torus-2QoS link ordering
+ convention.
+Date: Fri, 18 Dec 2009 13:54:23 -0700
+Message-ID: <1261169663.7690.259.camel@sale659.sandia.gov>
 References: <1258744509-11148-1-git-send-email-jaschut@sandia.gov>
+ <1261169461-2516-1-git-send-email-jaschut@sandia.gov>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed;
+ boundary="=-MkwSfNOsgp4kG7U7FWdN"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1258744509-11148-1-git-send-email-jaschut-4OHPYypu0djtX7QSmKvirg@public.gmane.org>
+In-Reply-To: <1261169461-2516-1-git-send-email-jaschut-4OHPYypu0djtX7QSmKvirg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org, eitan-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org, jaschut-4OHPYypu0djtX7QSmKvirg@public.gmane.org
+To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: "sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org" <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>, "eitan-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org" <eitan-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
+--=-MkwSfNOsgp4kG7U7FWdN
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+
+
+The function ring_next_sw() used by torus-2QoS to build LFTs relies
+on the ordering convention that the 1 end of a link is in the
+positive coordinate direction WRT the 0 end.  Previously the links
+were always built this way, but nothing enforced the convention.
+
+This commit adds code to enforce the convention, including code
+needed to label switches as they are installed into the torus,
+rather than after all the torus switches are found.
+
 Signed-off-by: Jim Schutt <jaschut-4OHPYypu0djtX7QSmKvirg@public.gmane.org>
 ---
- opensm/opensm/osm_ucast_torus.c |   10 +++++-----
- 1 files changed, 5 insertions(+), 5 deletions(-)
 
-diff --git a/opensm/opensm/osm_ucast_torus.c b/opensm/opensm/osm_ucast_torus.c
-index 0306af9..61e0bf3 100644
---- a/opensm/opensm/osm_ucast_torus.c
-+++ b/opensm/opensm/osm_ucast_torus.c
-@@ -7971,7 +7971,7 @@ void torus_update_osm_sl2vl(void *context, osm_port_t *sw_mgmt_port,
- 		guid_t guid;
- 
- 		guid = osm_node_get_node_guid(sw_mgmt_port->p_node);
--		OSM_LOG(log, LOG_INFO,
-+		OSM_LOG(log, OSM_LOG_INFO,
- 			"Error: osm_port (GUID 0x%04llx) "
- 			"not in our fabric description\n", ntohllu(guid));
- 		return;
-@@ -8527,7 +8527,7 @@ uint8_t torus_path_sl(void *context, uint8_t path_sl_hint,
- 		sport = osm_port_relink_endpoint(osm_sport);
- 		if (!sport) {
- 			guid = osm_node_get_node_guid(osm_sport->p_node);
--			OSM_LOG(log, LOG_INFO,
-+			OSM_LOG(log, OSM_LOG_INFO,
- 				"Error: osm_sport (GUID 0x%04llx) "
- 				"not in our fabric description\n",
- 				ntohllu(guid));
-@@ -8539,7 +8539,7 @@ uint8_t torus_path_sl(void *context, uint8_t path_sl_hint,
- 		dport = osm_port_relink_endpoint(osm_dport);
- 		if (!dport) {
- 			guid = osm_node_get_node_guid(osm_dport->p_node);
--			OSM_LOG(log, LOG_INFO,
-+			OSM_LOG(log, OSM_LOG_INFO,
- 				"Error: osm_dport (GUID 0x%04llx) "
- 				"not in our fabric description\n",
- 				ntohllu(guid));
-@@ -8552,14 +8552,14 @@ uint8_t torus_path_sl(void *context, uint8_t path_sl_hint,
- 	 */
- 	if (sport->type != SRCSINK) {
- 		guid = osm_node_get_node_guid(osm_sport->p_node);
--		OSM_LOG(log, LOG_INFO,
-+		OSM_LOG(log, OSM_LOG_INFO,
- 			"Error: osm_sport (GUID 0x%04llx) "
- 			"not a data src/sink port\n", ntohllu(guid));
- 		goto out;
- 	}
- 	if (dport->type != SRCSINK) {
- 		guid = osm_node_get_node_guid(osm_dport->p_node);
--		OSM_LOG(log, LOG_INFO,
-+		OSM_LOG(log, OSM_LOG_INFO,
- 			"Error: osm_dport (GUID 0x%04llx) "
- 			"not a data src/sink port\n", ntohllu(guid));
- 		goto out;
--- 
-1.5.6.GIT
+I've attached the patch as a compressed file, as otherwise
+it is too large to make it through the list.
 
+-- Jim
+
+ opensm/opensm/osm_ucast_torus.c |  433 +++++++++++++++++++++------------------
+ 1 files changed, 237 insertions(+), 196 deletions(-)
+
+
+
+--=-MkwSfNOsgp4kG7U7FWdN
+Content-Disposition: attachment;
+ filename*0=0005-opensm-Enforce-torus-2QoS-link-ordering-convention.patch;
+ filename*1=.bz2
+Content-Type: application/x-bzip;
+ name=0005-opensm-Enforce-torus-2QoS-link-ordering-convention.patch.bz2
+Content-Transfer-Encoding: base64
+
+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
+goh/QjwQ2TzWuJb/xdyRThQkA4IcikA=
+
+
+--=-MkwSfNOsgp4kG7U7FWdN--
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
