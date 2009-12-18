@@ -1,168 +1,85 @@
-From: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [RFC PATCH] Set HopLimit based on off subnet Re: SRP issues with
-	OpenSM 3.3.3
-Date: Fri, 18 Dec 2009 10:20:29 -0500
-Message-ID: <f0e08f230912180720l421f1e79t64abf0fdce7e6b5c@mail.gmail.com>
-References: <20091214164334.064102f0.weiny2@llnl.gov>
-	 <20091215170317.GV5262@me>
-	 <20091215171532.GA8288@obsidianresearch.com>
-	 <20091215091819.c217cf36.weiny2@llnl.gov>
-	 <f0e08f230912150959j536667bbg51b8381724681880@mail.gmail.com>
-	 <20091215185511.3ae458cc.weiny2@llnl.gov>
-	 <f0e08f230912160529h64424ba7id5c57dffb770380c@mail.gmail.com>
-	 <20091217181800.a1ee6b9b.weiny2@llnl.gov>
+From: "Jim Schutt" <jaschut-4OHPYypu0djtX7QSmKvirg@public.gmane.org>
+Subject: [PATCH 00/12] Add specialized multicast support to new torus
+ routing engine: torus-2QoS
+Date: Fri, 18 Dec 2009 13:50:50 -0700
+Message-ID: <1261169461-2516-1-git-send-email-jaschut@sandia.gov>
+References: <1258744509-11148-1-git-send-email-jaschut@sandia.gov>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20091217181800.a1ee6b9b.weiny2-i2BcT+NCU+M@public.gmane.org>
+In-Reply-To: <1258744509-11148-1-git-send-email-jaschut-4OHPYypu0djtX7QSmKvirg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org, eitan-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org, jaschut-4OHPYypu0djtX7QSmKvirg@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Dec 17, 2009 at 9:18 PM, Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org> wrote:
-> On Wed, 16 Dec 2009 08:29:43 -0500
-> Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
->
->> On Tue, Dec 15, 2009 at 9:55 PM, Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org> wrote:
->
-> [snip]
->
->> >
->> > diff --git a/opensm/opensm/osm_sa_path_record.c b/opensm/opensm/os=
-m_sa_path_record.c
->> > index be0cd71..1fa83a1 100644
->> > --- a/opensm/opensm/osm_sa_path_record.c
->> > +++ b/opensm/opensm/osm_sa_path_record.c
->> > @@ -757,6 +757,14 @@ Exit:
->> > =C2=A0 =C2=A0 =C2=A0 =C2=A0return (status);
->> > =C2=A0}
->> >
->> > +static int gid_is_off_subnet(IN osm_sa_t * sa, IN const ib_gid_t =
-* p_dgid)
->> > +{
->> > + =C2=A0 =C2=A0 =C2=A0 return (!ib_gid_is_link_local(p_dgid) &&
->> > + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 !ib_gid_is_mult=
-icast(p_dgid) &&
->> > + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 ib_gid_get_subn=
-et_prefix(p_dgid) !=3D
->> > + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 sa->p_subn->opt=
-=2Esubnet_prefix);
->> > +}
->> > +
->> > =C2=A0/***********************************************************=
-***********
->> > =C2=A0************************************************************=
-**********/
->> > =C2=A0static void pr_rcv_build_pr(IN osm_sa_t * sa, IN const osm_p=
-ort_t * p_src_port,
->> > @@ -770,16 +778,12 @@ static void pr_rcv_build_pr(IN osm_sa_t * sa=
-, IN const osm_port_t * p_src_port,
->> > =C2=A0{
->> > =C2=A0 =C2=A0 =C2=A0 =C2=A0const osm_physp_t *p_src_physp;
->> > =C2=A0 =C2=A0 =C2=A0 =C2=A0const osm_physp_t *p_dest_physp;
->> > - =C2=A0 =C2=A0 =C2=A0 boolean_t is_nonzero_gid =3D 0;
->> >
->> > =C2=A0 =C2=A0 =C2=A0 =C2=A0OSM_LOG_ENTER(sa->p_log);
->> >
->> > =C2=A0 =C2=A0 =C2=A0 =C2=A0p_src_physp =3D p_src_port->p_physp;
->> >
->> > =C2=A0 =C2=A0 =C2=A0 =C2=A0if (p_dgid)
->> > - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 is_nonzero_gid =
-=3D ib_gid_is_notzero(p_dgid);
->> > -
->> > - =C2=A0 =C2=A0 =C2=A0 if (is_nonzero_gid)
->> > =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0p_pr->dgid =
-=3D *p_dgid;
->> > =C2=A0 =C2=A0 =C2=A0 =C2=A0else {
->> > =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0p_dest_phys=
-p =3D p_dest_port->p_physp;
->> > @@ -799,7 +803,7 @@ static void pr_rcv_build_pr(IN osm_sa_t * sa, =
-IN const osm_port_t * p_src_port,
->> > =C2=A0 =C2=A0 =C2=A0 =C2=A0p_pr->hop_flow_raw &=3D cl_hton32(1 << =
-31);
->> >
->> > =C2=A0 =C2=A0 =C2=A0 =C2=A0/* Only set HopLimit if going through a=
- router */
->> > - =C2=A0 =C2=A0 =C2=A0 if (is_nonzero_gid)
->> > + =C2=A0 =C2=A0 =C2=A0 if (gid_is_off_subnet(sa, &p_pr->dgid))
->> > =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0p_pr->hop_f=
-low_raw |=3D cl_hton32(IB_HOPLIMIT_MAX);
->> >
->> > =C2=A0 =C2=A0 =C2=A0 =C2=A0p_pr->pkey =3D p_parms->pkey;
->> > @@ -1248,10 +1252,7 @@ static ib_net16_t pr_rcv_get_end_points(IN =
-osm_sa_t * sa,
->> > =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0memset(p_dg=
-id, 0, sizeof(*p_dgid));
->> >
->> > =C2=A0 =C2=A0 =C2=A0 =C2=A0if (comp_mask & IB_PR_COMPMASK_DGID) {
->> > - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 if (!ib_gid_is_=
-link_local(&p_pr->dgid) &&
->> > - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 !=
-ib_gid_is_multicast(&p_pr->dgid) &&
->> > - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 i=
-b_gid_get_subnet_prefix(&p_pr->dgid) !=3D
->> > - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 s=
-a->p_subn->opt.subnet_prefix) {
->> > + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 if (gid_is_off_=
-subnet(sa, &p_pr->dgid)) {
->> > =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0dest_guid =3D find_router(sa, p_pr->dgid.unicast.prefi=
-x);
->> > =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0if (!dest_guid) {
->> > =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0char gid_str[INET6_ADDRSTR=
-LEN];
->> >
->> >
->> > This maintains the p_dgid found in pr_rcv_get_end_points but appro=
-priately
->> > set's the HopLimit when the DGID is off subnet.
->>
->> Yes, this looks right to me. Would it be better to only determine
->> gid_is_off_subnet once by saving this in a variable and passing it a=
-s
->> a parameter where needed ?
->>
->
-> It might be faster but it would mean a bigger change.
+This patch series adds specialized multicast support to torus-2QoS,
+a new routing engine designed to handle large fabrics connected with a
+2D/3D torus topology.  The original patch series adding torus-2QoS
+can be found here: http://www.spinics.net/lists/linux-rdma/msg01438.html
 
-Yes.
+This patch series is intended to be applied on top of the previous series.
+Patches 1-7 are cleanup patches that fix issues in the previous series
+that were discoverd during development of this series.  Patches 8-9 are
+preparation patches that make it possible for a routing engine to 
+generate spanning trees for multicast groups.  Patches 10-12 implement
+the specialized multicast spanning tree support required by torus-2QoS.
 
-> It looks like having
-> the dgid or p_pr structures in some internal opensm structure to carr=
-y that
-> information along would be best but that is a lot of work.
+As described for the previous patch series, the torus-2QoS engine can
+provide the following functionality on a 2D/3D torus:
+- routing that is free of credit loops
+- two levels of QoS, assuming switches support 8 data VLs
+- ability to route around a single failed switch, and/or multiple failed
+    links, without
+    - introducing credit loops
+    - changing path SL values
+- very short run times, with good scaling properties as fabric size
+    increases
 
-It could also be done by passing this as an additional parameter
-through the necessary routines.
+However, in order to provide this funcionality, torus-2QoS must employ
+all 4 available SL bits, and 3 data VL bits.  Thus, there are no available
+resources on which to confine multicast routing, and multicast spanning
+trees must be constructed to overlay unicast routes in such a way that
+no credit loops are possible.  This patch set implements that, and provides
+the above functionality for all fabrics for which torus-2QoS can generate
+unicast routes which are free of credit loops.
 
-> Do you think this will adversely affect performance on a big system?
+The last patch in the series updates opensm/doc/current-routing.txt with
+a description of how torus-2QoS generates spanning trees with the 
+desired properties.
 
-I don't know as I haven't measured the difference in the two
-approaches. Just trying to minimize additions to computing PRs.
 
--- Hal
+Jim Schutt (12):
+  opensm: Make error message for torus-2QoS dateline specification
+    match code check.
+  opensm: torus-2QoS should fail to route if message deadlock is
+    possible.
+  opensm: Remove unused port specification from torus-2QoS config file
+    parsing.
+  opensm: Fix up some torus-2QoS comments to match code.
+  opensm: Enforce torus-2QoS link ordering convention.
+  opensm: Remove redundant function names in torus-2QoS logging.
+  opensm: Make torus-2QoS always use OSM_LOG_INFO, never LOG_INFO.
+  opensm: Add struct osm_routing_engine callback to build spanning
+    trees for multicast.
+  opensm: Make mcast_mgr_purge_tree() available outside
+    osm_mcast_mgr.c.
+  opensm: Implement master spanning tree for torus-2QoS multicast
+    support.
+  opensm: Implement multicast support for torus-2QoS.
+  opensm: Update documentation to describe torus-2QoS multicast
+    support.
 
-> I plan
-> to roll this out internally and we will have a chance to test on bigg=
-er
-> systems here. =C2=A0But there are larger out there now.
->
-> Ira
->
->
-> --
-> Ira Weiny
-> Math Programmer/Computer Scientist
-> Lawrence Livermore National Lab
-> 925-423-8008
-> weiny2-i2BcT+NCU+M@public.gmane.org
->
+ opensm/doc/current-routing.txt        |  121 ++++-
+ opensm/include/opensm/osm_multicast.h |   33 ++
+ opensm/include/opensm/osm_opensm.h    |    6 +
+ opensm/opensm/osm_mcast_mgr.c         |   11 +-
+ opensm/opensm/osm_ucast_torus.c       | 1001 +++++++++++++++++++++++++--------
+ 5 files changed, 931 insertions(+), 241 deletions(-)
+
+
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
