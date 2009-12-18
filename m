@@ -1,8 +1,8 @@
 From: "Jim Schutt" <jaschut-4OHPYypu0djtX7QSmKvirg@public.gmane.org>
-Subject: [PATCH 08/12] opensm: Add struct osm_routing_engine callback to
- build spanning trees for multicast.
-Date: Fri, 18 Dec 2009 13:50:57 -0700
-Message-ID: <1261169461-2516-8-git-send-email-jaschut@sandia.gov>
+Subject: [PATCH 04/12] opensm: Fix up some torus-2QoS comments to match
+ code.
+Date: Fri, 18 Dec 2009 13:50:54 -0700
+Message-ID: <1261169461-2516-5-git-send-email-jaschut@sandia.gov>
 References: <1258744509-11148-1-git-send-email-jaschut@sandia.gov>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -14,67 +14,30 @@ To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org, eitan-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org, jaschut-4OHPYypu0djtX7QSmKvirg@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-If a routing engine needs to compute spanning trees with special
-properties, it needs a way to override the default implementation.
-A routing engine callback provides that mechanism.  Routing engines
-that can use the default implementation can leave the callback
-pointer set to NULL.
 
 Signed-off-by: Jim Schutt <jaschut-4OHPYypu0djtX7QSmKvirg@public.gmane.org>
 ---
- opensm/include/opensm/osm_opensm.h |    6 ++++++
- opensm/opensm/osm_mcast_mgr.c      |    7 ++++++-
- 2 files changed, 12 insertions(+), 1 deletions(-)
+ opensm/opensm/osm_ucast_torus.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/opensm/include/opensm/osm_opensm.h b/opensm/include/opensm/osm_opensm.h
-index 90c6c0f..59df9ea 100644
---- a/opensm/include/opensm/osm_opensm.h
-+++ b/opensm/include/opensm/osm_opensm.h
-@@ -133,6 +133,8 @@ struct osm_routing_engine {
- 	uint8_t (*path_sl)(void *context, IN uint8_t path_sl_hint,
- 			   IN const osm_port_t *src_port,
- 			   IN const osm_port_t *dst_port);
-+	ib_api_status_t (*mcast_build_stree)(void *context,
-+					     IN OUT osm_mgrp_box_t *mgb);
- 	void (*delete) (void *context);
- 	struct osm_routing_engine *next;
- };
-@@ -167,6 +169,10 @@ struct osm_routing_engine {
- *	path_sl
- *		The callback for computing path SL.
- *
-+*	mcast_build_stree
-+*		The callback for building the spanning tree for multicast
-+*		forwarding, called per MLID.
-+*
- *	delete
- *		The delete method, may be used for routing engine
- *		internals cleanup.
-diff --git a/opensm/opensm/osm_mcast_mgr.c b/opensm/opensm/osm_mcast_mgr.c
-index 697fb58..e65e459 100644
---- a/opensm/opensm/osm_mcast_mgr.c
-+++ b/opensm/opensm/osm_mcast_mgr.c
-@@ -946,6 +946,7 @@ Exit:
- static ib_api_status_t mcast_mgr_process_mlid(osm_sm_t * sm, uint16_t mlid)
- {
- 	ib_api_status_t status = IB_SUCCESS;
-+	struct osm_routing_engine *re = sm->p_subn->p_osm->routing_engine_used;
- 	osm_mgrp_box_t *mbox;
- 
- 	OSM_LOG_ENTER(sm->p_log);
-@@ -960,7 +961,11 @@ static ib_api_status_t mcast_mgr_process_mlid(osm_sm_t * sm, uint16_t mlid)
- 
- 	mbox = osm_get_mbox_by_mlid(sm->p_subn, cl_hton16(mlid));
- 	if (mbox) {
--		status = mcast_mgr_build_spanning_tree(sm, mbox);
-+		if (re && re->mcast_build_stree)
-+			status = re->mcast_build_stree(re->context, mbox);
-+		else
-+			status = mcast_mgr_build_spanning_tree(sm, mbox);
-+
- 		if (status != IB_SUCCESS)
- 			OSM_LOG(sm->p_log, OSM_LOG_ERROR, "ERR 0A17: "
- 				"Unable to create spanning tree (%s) for mlid "
+diff --git a/opensm/opensm/osm_ucast_torus.c b/opensm/opensm/osm_ucast_torus.c
+index 42582ce..9e4a9eb 100644
+--- a/opensm/opensm/osm_ucast_torus.c
++++ b/opensm/opensm/osm_ucast_torus.c
+@@ -169,11 +169,11 @@ struct port_grp {
+ /*
+  * A struct t_switch is used to represent a switch as placed in a torus.
+  *
+- * A t_switch used to build an N-dimensional torus will have N+1 port groups,
++ * A t_switch used to build an N-dimensional torus will have 2N+1 port groups,
+  * used as follows, assuming 0 <= d < N:
+  *   port_grp[2d]   => links leaving in negative direction for coordinate d
+  *   port_grp[2d+1] => links leaving in positive direction for coordinate d
+- *   port_grp[N]    => endpoints local to switch; i.e., hosts on switch
++ *   port_grp[2N]   => endpoints local to switch; i.e., hosts on switch
+  *
+  * struct link objects referenced by a t_switch are assumed to be oriented:
+  * traversing a link from link.end[0] to link.end[1] is always in the positive
 -- 
 1.5.6.GIT
 
