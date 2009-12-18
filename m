@@ -1,8 +1,8 @@
 From: "Jim Schutt" <jaschut-4OHPYypu0djtX7QSmKvirg@public.gmane.org>
-Subject: [PATCH 00/12] Add specialized multicast support to new torus
- routing engine: torus-2QoS
-Date: Fri, 18 Dec 2009 13:50:50 -0700
-Message-ID: <1261169461-2516-1-git-send-email-jaschut@sandia.gov>
+Subject: [PATCH 02/12] opensm: torus-2QoS should fail to route if
+ message deadlock is possible.
+Date: Fri, 18 Dec 2009 13:50:52 -0700
+Message-ID: <1261169461-2516-3-git-send-email-jaschut@sandia.gov>
 References: <1258744509-11148-1-git-send-email-jaschut@sandia.gov>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -14,69 +14,65 @@ To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org, eitan-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org, jaschut-4OHPYypu0djtX7QSmKvirg@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-This patch series adds specialized multicast support to torus-2QoS,
-a new routing engine designed to handle large fabrics connected with a
-2D/3D torus topology.  The original patch series adding torus-2QoS
-can be found here: http://www.spinics.net/lists/linux-rdma/msg01438.html
+The whole point of torus-2QoS is to provide deadlock-free routing
+for a torus while enabling two quality of service levels.  The
+ability to route around a failed switch provides a window to
+repair the fabric with minimal impact to running applications.
 
-This patch series is intended to be applied on top of the previous series.
-Patches 1-7 are cleanup patches that fix issues in the previous series
-that were discoverd during development of this series.  Patches 8-9 are
-preparation patches that make it possible for a routing engine to 
-generate spanning trees for multicast groups.  Patches 10-12 implement
-the specialized multicast spanning tree support required by torus-2QoS.
+So if the possibility of mesage deadlock is detected due to
+the topology of missing switches, torus-2QoS should fail
+to route.
 
-As described for the previous patch series, the torus-2QoS engine can
-provide the following functionality on a 2D/3D torus:
-- routing that is free of credit loops
-- two levels of QoS, assuming switches support 8 data VLs
-- ability to route around a single failed switch, and/or multiple failed
-    links, without
-    - introducing credit loops
-    - changing path SL values
-- very short run times, with good scaling properties as fabric size
-    increases
+Users of torus-2QoS can either configure multiple routing
+algorithms, so another algorithm with different properties can
+attempt to route the fabric, or configure no fallback algorithm
+so that the last good torus-2QoS tables are left in the switches.
 
-However, in order to provide this funcionality, torus-2QoS must employ
-all 4 available SL bits, and 3 data VL bits.  Thus, there are no available
-resources on which to confine multicast routing, and multicast spanning
-trees must be constructed to overlay unicast routes in such a way that
-no credit loops are possible.  This patch set implements that, and provides
-the above functionality for all fabrics for which torus-2QoS can generate
-unicast routes which are free of credit loops.
+None of the alternatives are great:
+- Having torus-2QoS route the fabric even though the missing
+    switch topology allows message deadlock means applications
+    may encounter poor performance due to message deadlock.
+- Having another engine route the fabric means that any
+    application that doesn't repath may trigger message deadlock
+    due to inconsistencies between path SL values in use and
+    path SL values required by the new engine for deadlock-free
+    routing.
+- Leaving the last good torus-2QoS tables in the switches means
+    that traffic through the newly failed switch cannot be
+    delivered.
 
-The last patch in the series updates opensm/doc/current-routing.txt with
-a description of how torus-2QoS generates spanning trees with the 
-desired properties.
+It isn't clear which of these options has the least impact on
+running applications, but the operational imperative is clear:
+failures in a torus fabric routed with torus-2QoS need to be
+repaired ASAP.
 
+Signed-off-by: Jim Schutt <jaschut-4OHPYypu0djtX7QSmKvirg@public.gmane.org>
+---
+ opensm/opensm/osm_ucast_torus.c |    8 +++++---
+ 1 files changed, 5 insertions(+), 3 deletions(-)
 
-Jim Schutt (12):
-  opensm: Make error message for torus-2QoS dateline specification
-    match code check.
-  opensm: torus-2QoS should fail to route if message deadlock is
-    possible.
-  opensm: Remove unused port specification from torus-2QoS config file
-    parsing.
-  opensm: Fix up some torus-2QoS comments to match code.
-  opensm: Enforce torus-2QoS link ordering convention.
-  opensm: Remove redundant function names in torus-2QoS logging.
-  opensm: Make torus-2QoS always use OSM_LOG_INFO, never LOG_INFO.
-  opensm: Add struct osm_routing_engine callback to build spanning
-    trees for multicast.
-  opensm: Make mcast_mgr_purge_tree() available outside
-    osm_mcast_mgr.c.
-  opensm: Implement master spanning tree for torus-2QoS multicast
-    support.
-  opensm: Implement multicast support for torus-2QoS.
-  opensm: Update documentation to describe torus-2QoS multicast
-    support.
-
- opensm/doc/current-routing.txt        |  121 ++++-
- opensm/include/opensm/osm_multicast.h |   33 ++
- opensm/include/opensm/osm_opensm.h    |    6 +
- opensm/opensm/osm_mcast_mgr.c         |   11 +-
- opensm/opensm/osm_ucast_torus.c       | 1001 +++++++++++++++++++++++++--------
- 5 files changed, 931 insertions(+), 241 deletions(-)
+diff --git a/opensm/opensm/osm_ucast_torus.c b/opensm/opensm/osm_ucast_torus.c
+index 7108394..bc87757 100644
+--- a/opensm/opensm/osm_ucast_torus.c
++++ b/opensm/opensm/osm_ucast_torus.c
+@@ -7659,10 +7659,12 @@ bool routable_torus(struct torus *t, struct fabric *f)
+ 			}
+ 		}
+ 
+-	if (t->flags & MSG_DEADLOCK)
++	if (t->flags & MSG_DEADLOCK) {
+ 		OSM_LOG(&t->osm->log, OSM_LOG_ERROR,
+-			"Warning: missing switch topology "
+-			"==> message deadlock possible!\n");
++			"Error: missing switch topology "
++			"==> message deadlock!\n");
++		success = false;
++	}
+ 	return success;
+ }
+ 
+-- 
+1.5.6.GIT
 
 
 --
