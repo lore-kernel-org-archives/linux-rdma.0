@@ -1,8 +1,8 @@
 From: "Jim Schutt" <jaschut-4OHPYypu0djtX7QSmKvirg@public.gmane.org>
-Subject: [PATCH 09/12] opensm: Make mcast_mgr_purge_tree() available
- outside osm_mcast_mgr.c.
-Date: Fri, 18 Dec 2009 13:50:58 -0700
-Message-ID: <1261169461-2516-9-git-send-email-jaschut@sandia.gov>
+Subject: [PATCH 06/12] opensm: Remove redundant function names in
+ torus-2QoS logging.
+Date: Fri, 18 Dec 2009 13:50:55 -0700
+Message-ID: <1261169461-2516-6-git-send-email-jaschut@sandia.gov>
 References: <1258744509-11148-1-git-send-email-jaschut@sandia.gov>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -14,92 +14,64 @@ To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org, eitan-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org, jaschut-4OHPYypu0djtX7QSmKvirg@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-A routing engine that needs to compute multicast spanning trees with
-special properties will need to delete old trees.  There's already
-a function that does this: mcast_mgr_purge_tree().
-
-Make it available outside osm_mcast_mgr.c, and change the name
-to follow the naming convention (osm_ prefix) for global functions.
 
 Signed-off-by: Jim Schutt <jaschut-4OHPYypu0djtX7QSmKvirg@public.gmane.org>
 ---
- opensm/include/opensm/osm_multicast.h |   33 +++++++++++++++++++++++++++++++++
- opensm/opensm/osm_mcast_mgr.c         |    4 ++--
- 2 files changed, 35 insertions(+), 2 deletions(-)
+ opensm/opensm/osm_ucast_torus.c |   14 +++++++-------
+ 1 files changed, 7 insertions(+), 7 deletions(-)
 
-diff --git a/opensm/include/opensm/osm_multicast.h b/opensm/include/opensm/osm_multicast.h
-index 1da575d..df6ac6c 100644
---- a/opensm/include/opensm/osm_multicast.h
-+++ b/opensm/include/opensm/osm_multicast.h
-@@ -53,6 +53,7 @@
- #include <opensm/osm_mcm_port.h>
- #include <opensm/osm_subnet.h>
- #include <opensm/osm_log.h>
-+#include <opensm/osm_sm.h>
- 
- #ifdef __cplusplus
- #  define BEGIN_C_DECLS extern "C" {
-@@ -193,6 +194,38 @@ osm_mgrp_t *osm_mgrp_new(IN osm_subn_t * subn, IN ib_net16_t mlid,
- *	Multicast Group, osm_mgrp_delete
- *********/
- 
-+/*
-+ * Need a forward declaration to work around include loop:
-+ * osm_sm.h <- osm_multicast.h
-+ */
-+struct osm_sm;
-+
-+/****f* OpenSM: Multicast Tree/osm_purge_mtree
-+* NAME
-+*	osm_purge_mtree
-+*
-+* DESCRIPTION
-+*	Frees all the nodes in a multicast spanning tree
-+*
-+* SYNOPSIS
-+*/
-+void osm_purge_mtree(IN struct osm_sm * sm, IN osm_mgrp_box_t * mgb);
-+/*
-+* PARAMETERS
-+*	sm
-+*		[in] Pointer to osm_sm_t object.
-+*	mgb
-+*		[in] Pointer to an osm_mgrp_box_t object.
-+*
-+* RETURN VALUES
-+*	None.
-+*
-+*
-+* NOTES
-+*
-+* SEE ALSO
-+*********/
-+
- /****f* OpenSM: Multicast Group/osm_mgrp_is_guid
- * NAME
- *	osm_mgrp_is_guid
-diff --git a/opensm/opensm/osm_mcast_mgr.c b/opensm/opensm/osm_mcast_mgr.c
-index e65e459..11a10ce 100644
---- a/opensm/opensm/osm_mcast_mgr.c
-+++ b/opensm/opensm/osm_mcast_mgr.c
-@@ -146,7 +146,7 @@ static void mcast_mgr_purge_tree_node(IN osm_mtree_node_t * p_mtn)
- 	free(p_mtn);
- }
- 
--static void mcast_mgr_purge_tree(osm_sm_t * sm, IN osm_mgrp_box_t * mbox)
-+void osm_purge_mtree(osm_sm_t * sm, IN osm_mgrp_box_t * mbox)
- {
- 	OSM_LOG_ENTER(sm->p_log);
- 
-@@ -695,7 +695,7 @@ static ib_api_status_t mcast_mgr_build_spanning_tree(osm_sm_t * sm,
- 	   on multicast forwarding table information if the user wants to
- 	   preserve existing multicast routes.
- 	 */
--	mcast_mgr_purge_tree(sm, mbox);
-+	osm_purge_mtree(sm, mbox);
- 
- 	/* build the first "subset" containing all member ports */
- 	if (make_port_list(&port_list, mbox)) {
+diff --git a/opensm/opensm/osm_ucast_torus.c b/opensm/opensm/osm_ucast_torus.c
+index b740f93..0306af9 100644
+--- a/opensm/opensm/osm_ucast_torus.c
++++ b/opensm/opensm/osm_ucast_torus.c
+@@ -8437,7 +8437,7 @@ bool get_lid(struct port_grp *pg, unsigned p,
+ 	osm_port = ep->osm_port;
+ 	if (!(osm_port && osm_port->priv == ep)) {
+ 		OSM_LOG(&pg->sw->torus->osm->log, OSM_LOG_ERROR,
+-			"Error: get_lid: ep->osm_port->priv != ep "
++			"Error: ep->osm_port->priv != ep "
+ 			"for sw 0x%04llu port %d\n",
+ 			ntohllu(((struct t_switch *)(ep->sw))->n_id), ep->port);
+ 		return false;
+@@ -8528,8 +8528,8 @@ uint8_t torus_path_sl(void *context, uint8_t path_sl_hint,
+ 		if (!sport) {
+ 			guid = osm_node_get_node_guid(osm_sport->p_node);
+ 			OSM_LOG(log, LOG_INFO,
+-				"Error: get_torus_sl: osm_sport (GUID "
+-				"0x%04llx) not in our fabric description\n",
++				"Error: osm_sport (GUID 0x%04llx) "
++				"not in our fabric description\n",
+ 				ntohllu(guid));
+ 			goto out;
+ 		}
+@@ -8540,8 +8540,8 @@ uint8_t torus_path_sl(void *context, uint8_t path_sl_hint,
+ 		if (!dport) {
+ 			guid = osm_node_get_node_guid(osm_dport->p_node);
+ 			OSM_LOG(log, LOG_INFO,
+-				"Error: get_torus_sl: osm_dport (GUID "
+-				"0x%04llx) not in our fabric description\n",
++				"Error: osm_dport (GUID 0x%04llx) "
++				"not in our fabric description\n",
+ 				ntohllu(guid));
+ 			goto out;
+ 		}
+@@ -8553,14 +8553,14 @@ uint8_t torus_path_sl(void *context, uint8_t path_sl_hint,
+ 	if (sport->type != SRCSINK) {
+ 		guid = osm_node_get_node_guid(osm_sport->p_node);
+ 		OSM_LOG(log, LOG_INFO,
+-			"Error: get_torus_sl: osm_sport (GUID 0x%04llx) "
++			"Error: osm_sport (GUID 0x%04llx) "
+ 			"not a data src/sink port\n", ntohllu(guid));
+ 		goto out;
+ 	}
+ 	if (dport->type != SRCSINK) {
+ 		guid = osm_node_get_node_guid(osm_dport->p_node);
+ 		OSM_LOG(log, LOG_INFO,
+-			"Error: get_torus_sl: osm_dport (GUID 0x%04llx) "
++			"Error: osm_dport (GUID 0x%04llx) "
+ 			"not a data src/sink port\n", ntohllu(guid));
+ 		goto out;
+ 	}
 -- 
 1.5.6.GIT
 
