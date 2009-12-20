@@ -1,32 +1,39 @@
 From: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Subject: Re: Proposal to add a name to an IB subnet
-Date: Sun, 20 Dec 2009 14:43:23 +0200
-Message-ID: <20091220124323.GH5262@me>
-References: <4B16FF44.7090507@sgi.com>
+Subject: Re: [RFC PATCH] Set HopLimit based on off subnet Re: SRP issues
+ with OpenSM 3.3.3
+Date: Sun, 20 Dec 2009 21:57:10 +0200
+Message-ID: <20091220195710.GA18524@me>
+References: <20091214164334.064102f0.weiny2@llnl.gov>
+ <20091215170317.GV5262@me>
+ <20091215171532.GA8288@obsidianresearch.com>
+ <20091215091819.c217cf36.weiny2@llnl.gov>
+ <f0e08f230912150959j536667bbg51b8381724681880@mail.gmail.com>
+ <20091215185511.3ae458cc.weiny2@llnl.gov>
+ <f0e08f230912160529h64424ba7id5c57dffb770380c@mail.gmail.com>
+ <20091217181800.a1ee6b9b.weiny2@llnl.gov>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <4B16FF44.7090507-sJ/iWh9BUns@public.gmane.org>
+In-Reply-To: <20091217181800.a1ee6b9b.weiny2-i2BcT+NCU+M@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Arputham Benjamin <abenjamin-sJ/iWh9BUns@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, hnrose-Wuw85uim5zDR7s880joybQ@public.gmane.org
+To: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+Cc: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 15:59 Wed 02 Dec     , Arputham Benjamin wrote:
+On 18:18 Thu 17 Dec     , Ira Weiny wrote:
 > 
-> We could add an option '-n | --ib_subnet_name' to OpenSM command line
-> to input the IB subnet name and modify the osm_log() function for syslog
-> messages (message type: OSM_LOG_SYS) to prefix its messages with the
-> subnet name. 
-> 
-> Also, we could limit this name prefix changes to syslog messages only for now.
-> (i.e., leave the opensm log as it is because the current implementation
-> allows the user to specify the file name for the opensm log)
-> 
-> Any comments?
+> It might be faster but it would mean a bigger change.  It looks like having
+> the dgid or p_pr structures in some internal opensm structure to carry that
+> information along would be best but that is a lot of work.
 
-Looks like a nice idea for me.
+Actually now dgid parameter is never used when intra-subnet PR is
+requested - maybe those parameters (dgid, is_off_subnet, etc.) could be
+merged into some context struct which is initialized once and passed down
+to the functions.
+
+Likely some general cleanup of osm_sa_path_record.c is needed to see a
+most obvious coding solution.
 
 Sasha
 --
