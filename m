@@ -1,83 +1,578 @@
-From: "Jim Schutt" <jaschut-4OHPYypu0djtX7QSmKvirg@public.gmane.org>
-Subject: Re: [PATCH 03/12] opensm: Remove unused port specification from
- torus-2QoS config file parsing.
-Date: Fri, 18 Dec 2009 13:56:13 -0700
-Message-ID: <1261169773.7690.262.camel@sale659.sandia.gov>
-References: <1258744509-11148-1-git-send-email-jaschut@sandia.gov>
- <1261169461-2516-4-git-send-email-jaschut@sandia.gov>
+From: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH] tests/subnet_discover: discover test utility
+Date: Sun, 20 Dec 2009 14:14:06 +0200
+Message-ID: <20091220121406.GF5262@me>
+References: <20090813204306.dffc3237.weiny2@llnl.gov>
+ <20090816110200.GS25501@me>
+ <20090817083023.da17378b.weiny2@llnl.gov>
+ <20090823120609.GG9547@me>
+ <20090826164026.8dcce4b2.weiny2@llnl.gov>
+ <20091023234349.GK5764@me>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="=-OS2pu/7J50vx40tYpikc"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1261169461-2516-4-git-send-email-jaschut-4OHPYypu0djtX7QSmKvirg@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20091023234349.GK5764@me>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: "sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org" <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>, "eitan-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org" <eitan-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
+To: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Al Chu <chu11-i2BcT+NCU+M@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
---=-OS2pu/7J50vx40tYpikc
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+'subnet_discover' is simple test utility which implements "non-blocking"
+discovery method where mads are sending "in parallel" (unlike the
+current implementation of 'ibnetdiscover' and similar to how OpenSM
+does). For this a recently discovered node id value is encoded as lower
+16 bits of mad transaction id.
 
+Signed-off-by: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+---
 
-The patch this email replies to changes the format of the torus-2QoS.conf
-file.  The attached file works with the new format, and replaces the
-example file sent in reply to the original torus-2QoS patch series.
+Hi Ira,
 
--- Jim
+On 01:43 Sat 24 Oct     , Sasha Khapyorsky wrote:
+> > 
+> > Current Master:        Threaded version:
+> > real    0m9.149s        0m2.223s
+> > user    0m0.016s        0m0.374s
+> > sys     0m0.372s        0m1.056s
+> > 
+> > With that in mind...
+> 
+> Good. So what do you think due to which factor most of this performance
+> gain was achieved? Due to using multiple threads or due to SMP queries
+> parallelism? I would suspect that it is a parallelism.
 
+For some purposes in ibsim/tests I wrote a simple utility
+'subnet_discover', this works as single thread and utilizes a "parallel"
+mad sending method and also uses libibumad for all mad
+sending/receiving stuff.
 
---=-OS2pu/7J50vx40tYpikc
-Content-Disposition: attachment;
- filename=torus-2QoS-5x5x5.conf
-Content-Type: text/plain;
- charset=utf-8;
- name=torus-2QoS-5x5x5.conf
-Content-Transfer-Encoding: 7bit
+I think that similar implementation in libibnetdisc (I can do it if we
+are in agreement :)) would improve its performance.
 
-# We want the torus routing engine to attempt to find a
-# 5x5x5 torus in the fabric:
-torus 5 5 5
+Would you like to look at this?
 
-# We need to tell the routing engine what directions we
-# want the torus coordinate directions to be, by specifing
-# the endpoints (switch GUID only) of a link in each
-# direction.  Here we specify positive coordinate directions:
-xp_link 0x200000  0x200019   # S_0_0_0 -> S_1_0_0
-yp_link 0x200000  0x200005   # S_0_0_0 -> S_0_1_0
-zp_link 0x200000  0x200001   # S_0_0_0 -> S_0_0_1
+Sasha
 
-# If one of the above switches were to fail, the routing
-# engine would not have sufficient information to locate the
-# torus in the fabric.  Specify a backup origin here:
+ tests/Makefile          |    2 +-
+ tests/subnet_discover.c |  495 +++++++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 496 insertions(+), 1 deletions(-)
+ create mode 100644 tests/subnet_discover.c
 
-next_origin
-xp_link 0x20001f  0x200038   # S_1_1_1 -> S_2_1_1
-yp_link 0x20001f  0x200024   # S_1_1_1 -> S_1_2_1
-zp_link 0x20001f  0x200020   # S_1_1_1 -> S_1_1_2
-
-# The torus routing engine uses the concept of a dateline,
-# where a coordinate wraps from its maximum back to zero,
-# in order to compute path SL values that provide routing
-# that is free from credit loops.
-#
-# If it is forced by a failed switch to use the backup
-# origin specification, that would cause the datelines
-# to move, which would change many path SL values, which
-# defeats one of the main benefits of this routing engine.
-# So, describe the position of the original datelines
-# relative to the backup origin as follows:
-x_dateline -1
-y_dateline -1
-z_dateline -1
-
-# You can specify as many backup origins as you like, but
-# in practice, the torus routing engine is only guaranteed
-# to be able to route around a single failed switch without
-# introducing credit loops, so one backup origin is enough.
-
---=-OS2pu/7J50vx40tYpikc--
+diff --git a/tests/Makefile b/tests/Makefile
+index dd4cd55..bd415d8 100644
+--- a/tests/Makefile
++++ b/tests/Makefile
+@@ -1,4 +1,4 @@
+-progs:= mcast_storm
++progs:= subnet_discover mcast_storm
+ 
+ -include ../defs.mk
+ 
+diff --git a/tests/subnet_discover.c b/tests/subnet_discover.c
+new file mode 100644
+index 0000000..a577cc7
+--- /dev/null
++++ b/tests/subnet_discover.c
+@@ -0,0 +1,495 @@
++/*
++ * Copyright (c) 2009 Voltaire, Inc. All rights reserved.
++ *
++ * This is free software; you can redistribute it and/or modify it
++ * under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ */
++
++#include <stdio.h>
++#include <string.h>
++#include <errno.h>
++#include <inttypes.h>
++#include <getopt.h>
++
++#include <infiniband/umad.h>
++#include <infiniband/mad.h>
++
++struct port {
++	struct node *node;
++	uint64_t guid;
++	struct port *remote;
++	uint8_t port_info[IB_SMP_DATA_SIZE];
++};
++
++struct node {
++	uint64_t guid;
++	unsigned num_ports;
++	unsigned is_switch;
++	uint8_t node_info[IB_SMP_DATA_SIZE];
++	uint8_t node_desc[IB_SMP_DATA_SIZE];
++	uint8_t switch_info[IB_SMP_DATA_SIZE];
++	struct port ports[];
++};
++
++static struct node *node_array[32 * 1024];
++static unsigned node_count = 0;
++static unsigned trid_cnt = 0;
++static unsigned outstanding = 0;
++static unsigned timeout = 100;
++static unsigned retries = 3;
++static unsigned verbose = 0;
++
++#define ERROR(fmt, ...) fprintf(stderr, "ERR: " fmt, ##__VA_ARGS__)
++#define VERBOSE(fmt, ...) if (verbose) fprintf(stderr, fmt, ##__VA_ARGS__)
++#define NOISE(fmt, ...) if (verbose > 1) fprintf(stderr, fmt, ##__VA_ARGS__)
++
++static const char *print_path(uint8_t path[], size_t path_cnt)
++{
++	static char buf[256];
++	int i, n = 0;
++	for (i = 0; i <= path_cnt; i++)
++		n += snprintf(buf + n, sizeof(buf) - n, "%u,", path[i]);
++	buf[n] = '\0';
++	return buf;
++}
++
++#define DBG_DUMP_FUNC(name) static void dbg_dump_##name(void *data) \
++{ \
++	char buf[2048]; \
++	mad_dump_##name(buf, sizeof(buf), data, IB_SMP_DATA_SIZE); \
++	NOISE("### "#name":\n%s\n", buf); \
++}
++
++DBG_DUMP_FUNC(nodeinfo);
++DBG_DUMP_FUNC(nodedesc);
++DBG_DUMP_FUNC(portinfo);
++DBG_DUMP_FUNC(switchinfo);
++
++static void build_umad_req(void *umad, uint8_t * path, unsigned path_cnt,
++			   uint64_t trid, uint8_t method,
++			   uint16_t attr_id, uint32_t attr_mod, uint64_t mkey)
++{
++	void *mad = umad_get_mad(umad);
++
++	memset(umad, 0, umad_size() + IB_MAD_SIZE);
++	umad_set_addr(umad, 0xffff, 0, 0, 0);
++	mad_set_field(mad, 0, IB_MAD_METHOD_F, method);
++	mad_set_field(mad, 0, IB_MAD_CLASSVER_F, 1);
++	mad_set_field(mad, 0, IB_MAD_MGMTCLASS_F, IB_SMI_DIRECT_CLASS);
++	mad_set_field(mad, 0, IB_MAD_BASEVER_F, 1);
++	mad_set_field(mad, 0, IB_DRSMP_HOPCNT_F, path_cnt);
++	mad_set_field(mad, 0, IB_DRSMP_HOPPTR_F, 0);
++	mad_set_field64(mad, 0, IB_MAD_TRID_F, trid);
++	mad_set_field(mad, 0, IB_DRSMP_DRDLID_F, 0xffff);
++	mad_set_field(mad, 0, IB_DRSMP_DRSLID_F, 0xffff);
++	mad_set_array(mad, 0, IB_DRSMP_PATH_F, path);
++	mad_set_field(mad, 0, IB_MAD_ATTRID_F, attr_id);
++	mad_set_field(mad, 0, IB_MAD_ATTRMOD_F, attr_mod);
++	mad_set_field64(mad, 0, IB_MAD_MKEY_F, mkey);
++}
++
++static int send_query(int fd, int agent, void *umad, unsigned node_id,
++		      uint8_t * path, size_t path_cnt, uint16_t attr_id,
++		      uint32_t attr_mod)
++{
++	uint64_t trid;
++	int ret;
++
++	trid = (trid_cnt++ << 16) | (node_id & 0xffff);
++	build_umad_req(umad, path, path_cnt, trid, IB_MAD_METHOD_GET, attr_id,
++		       attr_mod, 0);
++
++	ret = umad_send(fd, agent, umad, IB_MAD_SIZE, timeout, retries);
++	if (ret < 0) {
++		ERROR("umad_send failed: trid 0x%016" PRIx64
++		      ", attr_id %x, attr_mod %x: %s\n",
++		      trid, attr_id, attr_mod, strerror(errno));
++		return -1;
++	}
++
++	outstanding++;
++
++	VERBOSE("send %016" PRIx64 ": attr %x, mod %x to %s\n", trid, attr_id,
++		attr_mod, print_path(path, path_cnt));
++
++	return ret;
++}
++
++static int recv_response(int fd, int agent, uint8_t * umad, size_t length)
++{
++	int len = length, ret;
++
++	do {
++		ret = umad_recv(fd, umad, &len, timeout);
++	} while (ret >= 0 && ret != agent);
++
++	if (ret < 0 || umad_status(umad)) {
++		ERROR("umad_recv failed: umad status %x: %s\n",
++		      umad_status(umad), strerror(errno));
++		return -1;
++	}
++
++	return ret;
++}
++
++static int query_node_info(int fd, int agent, void *umad, unsigned node_id,
++			   uint8_t * path, size_t path_cnt)
++{
++	return send_query(fd, agent, umad, node_id, path, path_cnt,
++			  IB_ATTR_NODE_INFO, 0);
++}
++
++static int query_node_desc(int fd, int agent, void *umad, unsigned node_id,
++			   uint8_t * path, size_t path_cnt)
++{
++	return send_query(fd, agent, umad, node_id, path, path_cnt,
++			  IB_ATTR_NODE_DESC, 0);
++}
++
++static int query_switch_info(int fd, int agent, void *umad, unsigned node_id,
++			     uint8_t * path, size_t path_cnt)
++{
++	return send_query(fd, agent, umad, node_id, path, path_cnt,
++			  IB_ATTR_SWITCH_INFO, 0);
++}
++
++static int query_port_info(int fd, int agent, void *umad, unsigned node_id,
++			   uint8_t * path, size_t path_cnt, unsigned port_num)
++{
++	return send_query(fd, agent, umad, node_id, path, path_cnt,
++			  IB_ATTR_PORT_INFO, port_num);
++}
++
++static int add_node(uint8_t * node_info)
++{
++	struct node *node;
++	unsigned i, num_ports = mad_get_field(node_info, 0, IB_NODE_NPORTS_F);
++
++	node = malloc(sizeof(*node) + (num_ports + 1) * sizeof(node->ports[0]));
++	if (!node)
++		return -1;
++	memset(node, 0,
++	       sizeof(*node) + (num_ports + 1) * sizeof(node->ports[0]));
++
++	node->num_ports = num_ports;
++	node->guid = mad_get_field64(node_info, 0, IB_NODE_GUID_F);
++	node->is_switch = ((mad_get_field(node_info, 0, IB_NODE_TYPE_F)) ==
++			   IB_NODE_SWITCH);
++	memcpy(node->node_info, node_info, sizeof(node->node_info));
++	for (i = 0; i <= num_ports; i++)
++		node->ports[i].node = node;
++
++	node_array[node_count] = node;
++
++	return node_count++;
++}
++
++static int find_node(uint8_t * node_info)
++{
++	uint64_t guid = mad_get_field64(node_info, 0, IB_NODE_GUID_F);
++	unsigned i;
++
++	for (i = 0; i < node_count; i++)
++		if (node_array[i]->guid == guid)
++			return i;
++	return -1;
++}
++
++static int process_port_info(void *umad, unsigned node_id, int fd, int agent,
++			     uint8_t path[], size_t path_cnt)
++{
++	struct node *node = node_array[node_id];
++	struct port *port;
++	uint8_t *port_info = umad + umad_size() + IB_SMP_DATA_OFFS;
++	unsigned port_num, local_port;
++
++	dbg_dump_portinfo(port_info);
++
++	port_num = mad_get_field(umad_get_mad(umad), 0, IB_MAD_ATTRMOD_F);
++	local_port = mad_get_field(port_info, 0, IB_PORT_LOCAL_PORT_F);
++
++	port = &node->ports[port_num];
++	memcpy(port->port_info, port_info, sizeof(port->port_info));
++
++	if (port_num &&
++	    mad_get_field(port_info, 0, IB_PORT_PHYS_STATE_F) == 5 &&
++	    ((node->is_switch && port_num != local_port) ||
++	     (node_id == 0 && port_num == local_port))) {
++		path[++path_cnt] = port_num;
++		return query_node_info(fd, agent, umad, node_id, path,
++				       path_cnt);
++	}
++
++	return 0;
++}
++
++static int process_switch_info(unsigned node_id, uint8_t * switch_info)
++{
++	struct node *node = node_array[node_id];
++
++	dbg_dump_switchinfo(switch_info);
++	memcpy(node->switch_info, switch_info, sizeof(node->switch_info));
++
++	return 0;
++}
++
++static int process_node_desc(unsigned node_id, uint8_t * node_desc)
++{
++	struct node *node = node_array[node_id];
++
++	dbg_dump_nodedesc(node_desc);
++	memcpy(node->node_desc, node_desc, sizeof(node->node_desc));
++
++	return 0;
++}
++
++static void connect_ports(unsigned node1_id, unsigned port1_num,
++			  unsigned node2_id, unsigned port2_num)
++{
++	struct port *port1 = &node_array[node1_id]->ports[port1_num];
++	struct port *port2 = &node_array[node2_id]->ports[port2_num];
++	VERBOSE("connecting %u:%u <--> %u:%u\n",
++		node1_id, port1_num, node2_id, port2_num);
++	port1->remote = port2;
++	port2->remote = port1;
++}
++
++static int process_node(void *umad, unsigned remote_id, int fd, int agent,
++			uint8_t path[], size_t path_cnt)
++{
++	struct node *node;
++	uint8_t *node_info = umad_get_mad(umad) + IB_SMP_DATA_OFFS;
++	unsigned port_num = mad_get_field(node_info, 0, IB_NODE_LOCAL_PORT_F);
++	unsigned node_is_new = 0;
++	int i, id;
++
++	dbg_dump_nodeinfo(node_info);
++
++	if ((id = find_node(node_info)) < 0) {
++		id = add_node(node_info);
++		if (id < 0)
++			return -1;
++		node_is_new = 1;
++	}
++
++	node = node_array[id];
++
++	node->ports[port_num].guid =
++	    mad_get_field64(node_info, 0, IB_NODE_PORT_GUID_F);
++
++	if (id)			/* skip connect for very first node */
++		connect_ports(id, port_num, remote_id, path[path_cnt]);
++
++	if (!node_is_new)
++		return 0;
++
++	query_node_desc(fd, agent, umad, id, path, path_cnt);
++
++	if (node->is_switch)
++		query_switch_info(fd, agent, umad, id, path, path_cnt);
++
++	for (i = !node->is_switch; i <= node->num_ports; i++)
++		query_port_info(fd, agent, umad, id, path, path_cnt, i);
++
++	return 0;
++}
++
++static int recv_smp_resp(int fd, int agent, uint8_t * umad, uint8_t path[])
++{
++	void *mad;
++	uint64_t trid;
++	uint8_t method;
++	uint16_t status;
++	uint16_t attr_id;
++	uint32_t attr_mod;
++	size_t path_cnt;
++	unsigned node_id;
++	int ret;
++
++	ret = recv_response(fd, agent, umad, IB_MAD_SIZE);
++
++	mad = umad_get_mad(umad);
++	status = mad_get_field(mad, 0, IB_DRSMP_STATUS_F);
++	method = mad_get_field(mad, 0, IB_MAD_METHOD_F);
++	trid = mad_get_field64(mad, 0, IB_MAD_TRID_F);
++	attr_id = mad_get_field(mad, 0, IB_MAD_ATTRID_F);
++	attr_mod = mad_get_field(mad, 0, IB_MAD_ATTRMOD_F);
++	path_cnt = mad_get_field(mad, 0, IB_DRSMP_HOPCNT_F);
++	mad_get_array(mad, 0, IB_DRSMP_PATH_F, path);
++
++	if (method != IB_MAD_METHOD_GET)
++		return 0;
++
++	outstanding--;
++
++	if (ret < 0 || status) {
++		ERROR("error response 0x%016" PRIx64 ": attr_id %x"
++		      ", attr_mod %x from %s with status %x\n", trid,
++		      attr_id, attr_mod, print_path(path, path_cnt), status);
++		return -1;
++	}
++
++	node_id = trid & 0xffff;
++
++	VERBOSE("recv %016" PRIx64 ": attr %x, mod %x from %s\n", trid, attr_id,
++		attr_mod, print_path(path, path_cnt));
++
++	switch (attr_id) {
++	case IB_ATTR_NODE_INFO:
++		process_node(umad, node_id, fd, agent, path, path_cnt);
++		break;
++	case IB_ATTR_NODE_DESC:
++		process_node_desc(node_id, mad + IB_SMP_DATA_OFFS);
++		break;
++	case IB_ATTR_SWITCH_INFO:
++		process_switch_info(node_id, mad + IB_SMP_DATA_OFFS);
++		break;
++	case IB_ATTR_PORT_INFO:
++		process_port_info(umad, node_id, fd, agent, path, path_cnt);
++		break;
++	default:
++		VERBOSE("unsolicited response 0x%016" PRIx64 ": attr_id %x"
++			", attr_mod %x\n", trid, attr_id, attr_mod);
++		return 0;
++	}
++
++	return ret;
++}
++
++static int discovery(int fd, int agent)
++{
++	uint8_t path[64] = { 0 };
++	void *umad;
++	int ret;
++
++	umad = malloc(IB_MAD_SIZE + umad_size());
++	if (!umad)
++		return -ENOMEM;
++
++	ret = query_node_info(fd, agent, umad, 0, path, 0);
++	if (ret < 0)
++		return ret;
++
++	while (outstanding)
++		if (recv_smp_resp(fd, agent, umad, path))
++			ret = 1;
++
++	free(umad);
++
++	return ret;
++}
++
++static int umad_discovery(char *card_name, unsigned int port_num)
++{
++	int fd, agent, ret;
++
++	ret = umad_init();
++	if (ret) {
++		ERROR("cannot init umad\n");
++		return -1;
++	}
++
++	fd = umad_open_port(card_name, port_num);
++	if (fd < 0) {
++		ERROR("cannot open umad port %s:%u: %s\n",
++		      card_name ? card_name : "NULL", port_num,
++		      strerror(errno));
++		return -1;
++	}
++
++	agent = umad_register(fd, IB_SMI_DIRECT_CLASS, 1, 0, NULL);
++	if (agent < 0) {
++		ERROR("cannot register SMI DR class for umad port %s:%u: %s\n",
++		      card_name ? card_name : "NULL", port_num,
++		      strerror(errno));
++		return -1;
++	}
++
++	ret = discovery(fd, agent);
++	if (ret)
++		ERROR("Failed to discover.\n");
++
++	umad_unregister(fd, agent);
++	umad_close_port(fd);
++
++	umad_done();
++
++	return ret;
++}
++
++static void print_subnet()
++{
++	struct node *node;
++	struct port *local, *remote;
++	unsigned i, j;
++
++	for (i = 0; i < node_count; i++) {
++		node = node_array[i];
++		printf("%s %u \"%s-%016" PRIx64 "\" \t# %s\n",
++		       node->is_switch ? "Switch" : "Ca", node->num_ports,
++		       node->is_switch ? "S" : "H", node->guid,
++		       node->node_desc);
++		for (j = 1; j <= node->num_ports; j++) {
++			local = &node->ports[j];
++			remote = local->remote;
++			if (!remote)
++				continue;
++			printf("[%u] \t\"%s-%016" PRIx64 "\"[%lu] \t# %s\n", j,
++			       remote->node->is_switch ? "S" : "H",
++			       remote->node->guid, remote - remote->node->ports,
++			       remote->node->node_desc);
++		}
++		printf("\n");
++	}
++}
++
++int main(int argc, char **argv)
++{
++	const struct option long_opts[] = {
++		{"Card", 1, 0, 'C'},
++		{"Port", 1, 0, 'P'},
++		{"timeout", 1, 0, 't'},
++		{"retries", 1, 0, 'r'},
++		{}
++	};
++	char *card_name = NULL;
++	unsigned int port_num = 0;
++	int ch, ret;
++
++	while (1) {
++		ch = getopt_long(argc, argv, "C:P:t:r:v", long_opts, NULL);
++		if (ch == -1)
++			break;
++		switch (ch) {
++		case 'C':
++			card_name = optarg;
++			break;
++		case 'P':
++			port_num = strtoul(optarg, NULL, 0);
++			break;
++		case 't':
++			timeout = strtoul(optarg, NULL, 0);
++			break;
++		case 'r':
++			retries = strtoul(optarg, NULL, 0);
++			break;
++		case 'v':
++			verbose++;
++			break;
++		default:
++			printf("usage: %s [-C card_name] [-P port_num]"
++			       " [-t timeout] [-r retries] [-v[v]]\n", argv[0]);
++			exit(2);
++			break;
++		}
++	}
++
++	ret = umad_discovery(card_name, port_num);
++
++	print_subnet();
++
++	return ret;
++}
+-- 
+1.6.6.rc3
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
