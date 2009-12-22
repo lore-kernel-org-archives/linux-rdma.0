@@ -1,56 +1,35 @@
-From: Arputham Benjamin <abenjamin-sJ/iWh9BUns@public.gmane.org>
-Subject: Re: Proposal to add a name to an IB subnet
-Date: Mon, 21 Dec 2009 16:14:31 -0800
-Message-ID: <4B300F67.60105@sgi.com>
-References: <4B16FF44.7090507@sgi.com> <f0e08f230912210559s4e011adendf10b489a0ad7c8c@mail.gmail.com>
+From: "Guay Wei Lin" <weilin-S8y2klWGCOFhl2p70BpVqQ@public.gmane.org>
+Subject: Questions on RTS->SQD
+Date: Tue, 22 Dec 2009 10:56:57 +0100
+Message-ID: <000001ca82ed$1c67b8a0$553729e0$@no>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain;
+	charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <f0e08f230912210559s4e011adendf10b489a0ad7c8c-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+References: 
+In-Reply-To: 
+Content-Language: en-us
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hal Rosenstock wrote:
-> On Wed, Dec 2, 2009 at 6:59 PM, Arputham Benjamin <abenjamin-sJ/iWh9BUns@public.gmane.org> wrote:
->> Hi,
->>
->> I suggest we add a text based name to an IB subnet, perhaps to
->> help user in identifying an IB subnet or understanding its function
->> in a multi-fabric IB cluster. For example, in a dual-fabric
->> (or dual-rail) IB cluster, one subnet could be named "mpi" and the
->> other subnet could be named "storage".
->>
->> In the current implementation of OpenSM, syslog messages are prefixed
->> with the process ID. When multiple instances of OpenSM run on a single node
->> to support dual-fabric IB, process ID doesn't help the admin to quickly
->> identify a specific IB subnet (i.e., it needs a translation)
->>
->> subnet_prefix (64-bit number) can be used as a prefix to syslog messages
->> but a user configurable text based name is better.
->>
->> We could add an option '-n | --ib_subnet_name' to OpenSM command line
->> to input the IB subnet name and modify the osm_log() function for syslog
->> messages (message type: OSM_LOG_SYS) to prefix its messages with the
->> subnet name.
-> 
-> Support for this could/should be added in the options file as well.
-> 
-> -- Hal
+Hi, 
 
-Sure. We can add the variable name/value "ib_subnet_name" to options file as well.
+As for an experiment for my research to try out the SQD state, I've reused
+the perftest code (send_bw.c) to modify the QP state from RTS->SQD, and
+query_qp to make sure the QP is in the SQD state. The codes were added
+before ibv_post_send function. (to make sure no outstanding WR in the SQ).
+When the ibv_modify_qp is executed to modify QP from RTS->SQD, it returns a
+0 without any error code, but when the ibv_query_qp to query on the
+QP_state, the QP is still in RTS state. I'm using the mlx4 HCAs. Any
+ideas/suggestions why this will happen or I miss out something?
 
-Regards,
-Benjamin
+Thanks,
+Wei Lin
+PhD student
+Simula School of Research and Innovation AS 
 
-> 
->> Also, we could limit this name prefix changes to syslog messages only for now.
->> (i.e., leave the opensm log as it is because the current implementation
->> allows the user to specify the file name for the opensm log)
->>
->> Any comments?
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
