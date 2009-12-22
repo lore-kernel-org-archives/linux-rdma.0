@@ -1,81 +1,57 @@
-From: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH] tests/subnet_discover: discover test utility
-Date: Mon, 21 Dec 2009 09:02:56 -0500
-Message-ID: <f0e08f230912210602i5e3f528h2b0630420346db82@mail.gmail.com>
-References: <20090813204306.dffc3237.weiny2@llnl.gov>
-	 <20090816110200.GS25501@me> <20090817083023.da17378b.weiny2@llnl.gov>
-	 <20090823120609.GG9547@me> <20090826164026.8dcce4b2.weiny2@llnl.gov>
-	 <20091023234349.GK5764@me> <20091220121406.GF5262@me>
-	 <20091220182809.f7e17fae.weiny2@llnl.gov> <20091221073550.GB18524@me>
+From: Arputham Benjamin <abenjamin-sJ/iWh9BUns@public.gmane.org>
+Subject: Re: Proposal to add a name to an IB subnet
+Date: Mon, 21 Dec 2009 16:14:31 -0800
+Message-ID: <4B300F67.60105@sgi.com>
+References: <4B16FF44.7090507@sgi.com> <f0e08f230912210559s4e011adendf10b489a0ad7c8c@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20091221073550.GB18524@me>
+In-Reply-To: <f0e08f230912210559s4e011adendf10b489a0ad7c8c-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Cc: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Al Chu <chu11-i2BcT+NCU+M@public.gmane.org>
+To: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Dec 21, 2009 at 2:35 AM, Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>=
- wrote:
-> Hi Ira,
->
-> On 18:28 Sun 20 Dec =C2=A0 =C2=A0 , Ira Weiny wrote:
+Hal Rosenstock wrote:
+> On Wed, Dec 2, 2009 at 6:59 PM, Arputham Benjamin <abenjamin-sJ/iWh9BUns@public.gmane.org> wrote:
+>> Hi,
 >>
->> Yes, a similar mechanism would work in libibnetdisc. =C2=A0However, =
-it looks like you are doing a depth first search
->
-> I wouldn't call it so, it is rather "parallel" than "first" depth or
-> breath - discovery continues at first responding node doesn't matter =
-how
-> was it queried in depth or in breath.
-
-Does anything limit the amount of parallelism ?
-
->
->> which I fear might exceed the path count limit in a DR path?
->
-> Right, hops count should be limited. I will add this.
->
->> Is this how OpenSM works?
->
-> I think so. The difference is that OpenSM has a limit of outstanding
-> MADs on the wire and subnet_discover doesn't (and there could be a lo=
-t
-> of MADs).
-
-Isn't that dangerous in a real subnet ?
-
--- Hal
-
->
->> I was trying to do a breath first search like ibnetdiscover does.
+>> I suggest we add a text based name to an IB subnet, perhaps to
+>> help user in identifying an IB subnet or understanding its function
+>> in a multi-fabric IB cluster. For example, in a dual-fabric
+>> (or dual-rail) IB cluster, one subnet could be named "mpi" and the
+>> other subnet could be named "storage".
 >>
->> >
->> > Would you like to look at this?
+>> In the current implementation of OpenSM, syslog messages are prefixed
+>> with the process ID. When multiple instances of OpenSM run on a single node
+>> to support dual-fabric IB, process ID doesn't help the admin to quickly
+>> identify a specific IB subnet (i.e., it needs a translation)
 >>
->> No problem, I have enclosed the output from a run on Hyperion.
->> There appears to be a lot of errors. =C2=A0I am not sure what the is=
-sue is right off. =C2=A0I have included an ibnetdiscover output for com=
-parision.
->
-> Thanks.
->
-> An errors are response timeouts. I guess that most of them are due
-> to switches' VL15 overflow (could be verified by VL15Dropped counter
-> evaluation). Will look at this deeply.
->
-> Sasha
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma"=
- in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at =C2=A0http://vger.kernel.org/majordomo-info.ht=
-ml
->
+>> subnet_prefix (64-bit number) can be used as a prefix to syslog messages
+>> but a user configurable text based name is better.
+>>
+>> We could add an option '-n | --ib_subnet_name' to OpenSM command line
+>> to input the IB subnet name and modify the osm_log() function for syslog
+>> messages (message type: OSM_LOG_SYS) to prefix its messages with the
+>> subnet name.
+> 
+> Support for this could/should be added in the options file as well.
+> 
+> -- Hal
+
+Sure. We can add the variable name/value "ib_subnet_name" to options file as well.
+
+Regards,
+Benjamin
+
+> 
+>> Also, we could limit this name prefix changes to syslog messages only for now.
+>> (i.e., leave the opensm log as it is because the current implementation
+>> allows the user to specify the file name for the opensm log)
+>>
+>> Any comments?
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
