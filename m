@@ -1,109 +1,102 @@
-From: Vladimir Sokolovsky <vlad-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [ANNOUNCE] OFED 1.5 rc6 release is available
-Date: Wed, 23 Dec 2009 14:21:39 +0200
-Message-ID: <4B320B53.20507@dev.mellanox.co.il>
-References: <4B30F0E2.6010501@dev.mellanox.co.il> <20091223115210.07f37954@alex-laptop>
+From: Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH] opensm/osm_mcast_mgr.c: fix osm_mcast_mgr_compute_max_hops
+ for managed switch
+Date: Wed, 23 Dec 2009 16:29:45 +0200
+Message-ID: <4B322959.10500@dev.mellanox.co.il>
+References: <4B2F4405.9000300@dev.mellanox.co.il> <20091222212348.GF26940@me>
+Reply-To: kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20091223115210.07f37954@alex-laptop>
+In-Reply-To: <20091222212348.GF26940@me>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Alexander Schmidt <alexs-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
-Cc: OpenFabrics EWG <ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, becker-2Ww08eqqtp6fRvmTrFJqzg@public.gmane.org
+To: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+Cc: Linux RDMA <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Alexander Schmidt wrote:
-> On Tue, 22 Dec 2009 18:16:34 +0200
-> Vladimir Sokolovsky <vlad-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wrote:
-> 
->> Hi,
->> OFED 1.5-rc6 is available
->>
->> Notes:
->>
->> The tarball is available on:
->> http://www.openfabrics.org/builds/ofed-1.5/release/OFED-1.5-rc6.tgz
-> 
-> I've tried to download RC6, but openfabrics.org seems to be down. Will try
-> again later today...
-> 
-> Regards,
-> Alex
-> 
+Hi Sasha,
 
-You can download it using scp if you have a user on the OFA server:
-scp <username>@69.55.231.180:/var/www/openfabrics.org/downloads/OFED/ofed-1.5/OFED-1.5-rc6.tgz .
+On 22/Dec/09 23:23, Sasha Khapyorsky wrote:
+> Hi Yevgeny,
+>
+> On 11:46 Mon 21 Dec     , Yevgeny Kliteynik wrote:
+>> If a certain mcast group has only one member, and this
+>> member is a switch, OSM fails to select this switch
+>> when trying to create spanning tree for this mcast group:
+>>
+>> ERR 0A08: Unable to locate a suitable switch for group 0xC000
+>> ERR 0A17: Unable to create spanning tree (IB_ERROR) for mlid 0xc000
+>>
+>> Signed-off-by: Yevgeny Kliteynik<kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+>> ---
+>>   opensm/opensm/osm_mcast_mgr.c |   16 ++++++++++------
+>>   1 files changed, 10 insertions(+), 6 deletions(-)
+>>
+>> diff --git a/opensm/opensm/osm_mcast_mgr.c b/opensm/opensm/osm_mcast_mgr.c
+>> index 697fb58..16f578b 100644
+>> --- a/opensm/opensm/osm_mcast_mgr.c
+>> +++ b/opensm/opensm/osm_mcast_mgr.c
+>> @@ -204,6 +204,12 @@ static float osm_mcast_mgr_compute_max_hops(osm_sm_t * sm, cl_qlist_t * l,
+>>
+>>   	OSM_LOG_ENTER(sm->p_log);
+>>
+>> +	if (cl_qlist_count(l) == 0) {
+>> +		/*  We should be here if there aren't any ports in the group */
+>> +		max_hops = 10001; /* see later - we use it to realize no hops */
+>> +		goto Exit;
+>> +	}
+>> +
+>
+> Could we reach this condition?
+>
+>> From the caller code:
+>
+> 	num_ports = cl_qlist_count(&port_list);
+> 	if (num_ports == 0) {
+> 		OSM_LOG(sm->p_log, OSM_LOG_VERBOSE,
+> 			"MLID 0x%X has no members - nothing to do\n",
+> 			mbox->mlid);
+> 		goto Exit;
+> 	}
 
-There is a problem with primary network interface of the OFA server (eth0 69.55.231.195).
-Other three virtual interfaces work well (eth0:1 69.55.231.178, eth0:2 69.55.231.179, eth0:3 69.55.231.180).
-So, bugzilla, wiki and svn web pages are working.
+You're fight, we can't reach this condition anyway.
+So the fix should be just removing the special treatment
+of the problematic case. Patch shortly.
 
-Jeff,
-Can you check this issue?
-
-Regards,
-Vladimir
-
->> To get BUILD_ID run ofed_info
+-- Yevgeny
+  
+> Sasha
+>
+>>   	/*
+>>   	   For each member of the multicast group, compute the
+>>   	   number of hops to its base LID.
+>> @@ -215,12 +221,10 @@ static float osm_mcast_mgr_compute_max_hops(osm_sm_t * sm, cl_qlist_t * l,
+>>   			max_hops = hops;
+>>   	}
 >>
->> Please report any issues in bugzilla https://bugs.openfabrics.org/  for
->> OFED 1.5
+>> -	if (max_hops == 0)
+>> -		/*
+>> -		   We should be here if there aren't any ports in the group.
+>> -		 */
+>> -		max_hops = 10001;	/* see later - we use it to realize no hops */
+>> -
+>> +	/* Note that at this point we might get (max_hops == 0),
+>> +	   which means that there's only one member in the mcast
+>> +	   group, and it's the current switch */
+>> +Exit:
+>>   	OSM_LOG_EXIT(sm->p_log);
+>>   	return (float)max_hops;
+>>   }
+>> --
+>> 1.5.1.4
 >>
->> Vladimir & Tziporet
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+>> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 >>
->> ========================================================================
->>
->>
->> Release information:
->> --------------------
->> Linux Operating Systems:
->>          - RedHat EL4 up7:       2.6.9-78.ELsmp
->>          - RedHat EL4 up8:       2.6.9-89.ELsmp
->>          - RedHat EL5 up3:       2.6.18-128.el5
->>          - RedHat EL5 up4:       2.6.18-164.el5
->>          - SLES10 SP2:           2.6.16.60-0.21-smp
->>          - SLES10 SP3:           2.6.16.60-0.54-smp
->>          - SLES11:               2.6.27.19-5-default
->>          - OEL 4 up7             2.6.9-78.ELsmp
->>          - OEL 4 up8             2.6.9-89.ELsmp
->>          - CentOS5.3             2.6.18-128.el5
->>          - CentOS5.4             2.6.18-164.el5
->>          - Fedora Core12         2.6.31.5-127.fc12   *
->>          - OpenSuSE 11           2.6.25.5-1.1        *
->>          - kernel.org:           2.6.29, 2.6.30,
->>                                  2.6.31 and 2.6.32   *
->>
->>         * Minimal QA for these versions
->>
->> Systems:
->>         * x86_64
->>         * x86
->>         * ia64
->>         * ppc64
->>
->>
->> Main changes from 1.5 rc5:
->> ============================
->> 1. Updated packages:
->>
->>        - Management packages:
->>        libibumad-1.3.4_20091214.tar.gz
->>        libibmad-1.3.4_20091214.tar.gz
->>        opensm-3.3.4_20091221_033cf4c.tar.gz
->>        infiniband-diags-1.5.4_20091221_033cf4c.tar.gz
->>        ibutils-1.5.tar.gz
->>
->>        - MPI packages
->>        mvapich-1.2.0-3567.src.rpm
->>
->> 2. Bug fixes
->>       See attached.
->>
->>
->>
->>
-> 
+>
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
