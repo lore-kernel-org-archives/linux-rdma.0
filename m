@@ -1,91 +1,42 @@
-From: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH] opensm/osm_mcast_mgr.c: fix
- osm_mcast_mgr_compute_max_hops for managed switch
-Date: Tue, 22 Dec 2009 23:23:48 +0200
-Message-ID: <20091222212348.GF26940@me>
-References: <4B2F4405.9000300@dev.mellanox.co.il>
+From: Or Gerlitz <ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+Subject: Re: RDMAoE / lossless Ethernet (ewg: SC'09 BOF - Meeting notes)
+Date: Wed, 23 Dec 2009 10:09:44 +0200
+Message-ID: <4B31D048.5040001@voltaire.com>
+References: <2ED289D4E09FBD4D92D911E869B97FDD01AF10F2@mtlexch01.mtl.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <4B2F4405.9000300-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+In-Reply-To: <2ED289D4E09FBD4D92D911E869B97FDD01AF10F2-ia22CT07NJfiMCgWhms8HQC/G2K4zDHf@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: Linux RDMA <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Liran Liss <liranl-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, Yevgeny Petrilin <yevgenyp-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
+Cc: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Richard Frank <richard.frank-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Linux RDMA list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Paul Grun <pgrun-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Yevgeny,
+Liran Liss wrote:
+> >> all the rdmaoe materials saying the lossless traffic class is a 
+> must,  are you saying that this works well also  >> without it? then 
+> why from  architect point of view you have posed this requirement?
+>
+> lossless traffic can be achieved today using global pause, for 
+> example.  PFC is still important; we will submit initial patches that 
+> support it next wee
+Liran, I would say that OTOH global pause isn't the way to go and OTHO 
+IB RC functions quite bad when many packets are lost. As such RDMAoE 
+without PFC and mapping priorities into TCs (the Ethernet VLs) isn't 
+really for production, for any non trivial environment involving more 
+then one hop. Also, this email is from one month ago, any news on the 
+patches?
 
-On 11:46 Mon 21 Dec     , Yevgeny Kliteynik wrote:
-> If a certain mcast group has only one member, and this
-> member is a switch, OSM fails to select this switch
-> when trying to create spanning tree for this mcast group:
-> 
-> ERR 0A08: Unable to locate a suitable switch for group 0xC000
-> ERR 0A17: Unable to create spanning tree (IB_ERROR) for mlid 0xc000
-> 
-> Signed-off-by: Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-> ---
->  opensm/opensm/osm_mcast_mgr.c |   16 ++++++++++------
->  1 files changed, 10 insertions(+), 6 deletions(-)
-> 
-> diff --git a/opensm/opensm/osm_mcast_mgr.c b/opensm/opensm/osm_mcast_mgr.c
-> index 697fb58..16f578b 100644
-> --- a/opensm/opensm/osm_mcast_mgr.c
-> +++ b/opensm/opensm/osm_mcast_mgr.c
-> @@ -204,6 +204,12 @@ static float osm_mcast_mgr_compute_max_hops(osm_sm_t * sm, cl_qlist_t * l,
-> 
->  	OSM_LOG_ENTER(sm->p_log);
-> 
-> +	if (cl_qlist_count(l) == 0) {
-> +		/*  We should be here if there aren't any ports in the group */
-> +		max_hops = 10001; /* see later - we use it to realize no hops */
-> +		goto Exit;
-> +	}
-> +
+Yevgeny, I took a look, and there are patches to support pfc for the 
+mlx4_en driver, but they were never submitted upstream, which means that 
+even if rdmaoe goes upstream, mainline users will not be able even to 
+really test it. Also,  the pfc in these patches configuration seems to 
+be done with sysfs and not through the Netlink APIs defined in 
+include/net/dcbnl.c, did you had any specific reason not to integrate 
+with the mainline method of pfc/tc configuration?
 
-Could we reach this condition?
-
->From the caller code:
-
-	num_ports = cl_qlist_count(&port_list);
-	if (num_ports == 0) {
-		OSM_LOG(sm->p_log, OSM_LOG_VERBOSE,
-			"MLID 0x%X has no members - nothing to do\n",
-			mbox->mlid);
-		goto Exit;
-	}
-
-Sasha
-
->  	/*
->  	   For each member of the multicast group, compute the
->  	   number of hops to its base LID.
-> @@ -215,12 +221,10 @@ static float osm_mcast_mgr_compute_max_hops(osm_sm_t * sm, cl_qlist_t * l,
->  			max_hops = hops;
->  	}
-> 
-> -	if (max_hops == 0)
-> -		/*
-> -		   We should be here if there aren't any ports in the group.
-> -		 */
-> -		max_hops = 10001;	/* see later - we use it to realize no hops */
-> -
-> +	/* Note that at this point we might get (max_hops == 0),
-> +	   which means that there's only one member in the mcast
-> +	   group, and it's the current switch */
-> +Exit:
->  	OSM_LOG_EXIT(sm->p_log);
->  	return (float)max_hops;
->  }
-> -- 
-> 1.5.1.4
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+Or.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
