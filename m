@@ -1,33 +1,29 @@
-From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Subject: Re: RDMAoE / lossless Ethernet (ewg: SC'09 BOF - Meeting notes)
-Date: Wed, 23 Dec 2009 07:52:43 -0800
-Message-ID: <adahbrh1yd0.fsf@roland-alpha.cisco.com>
-References: <2ED289D4E09FBD4D92D911E869B97FDD01AF10F2@mtlexch01.mtl.com>
-	<4B31D048.5040001@voltaire.com>
+From: "Woodruff, Robert J" <robert.j.woodruff-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: OpenFabrics server is not responding
+Date: Wed, 23 Dec 2009 08:00:33 -0800
+Message-ID: <382A478CAD40FA4FB46605CF81FE39F44F4BFC09@orsmsx507.amr.corp.intel.com>
+References: <2ED289D4E09FBD4D92D911E869B97FDD0222E943@mtlexch01.mtl.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4B31D048.5040001-smomgflXvOZWk0Htik3J/w@public.gmane.org> (Or Gerlitz's message of "Wed, 23
-	Dec 2009 10:09:44 +0200")
+In-Reply-To: <2ED289D4E09FBD4D92D911E869B97FDD0222E943-ia22CT07NJfiMCgWhms8HQC/G2K4zDHf@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Cc: Liran Liss <liranl-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, Yevgeny Petrilin <yevgenyp-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Richard Frank <richard.frank-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Linux RDMA list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Paul Grun <pgrun-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org>
+To: Tziporet Koren <tziporet-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, Jeff Squyres <jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, "becker-2Ww08eqqtp6fRvmTrFJqzg@public.gmane.org" <becker-2Ww08eqqtp6fRvmTrFJqzg@public.gmane.org>, Bill Boas <bboas-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org>
+Cc: 'Jeffrey Scott' <jeff-PQF7zMLV7HqjP/IhtLckvQ@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+Tziporet wrote,
 
- > Liran, I would say that OTOH global pause isn't the way to go and OTHO
- > IB RC functions quite bad when many packets are lost. As such RDMAoE
- > without PFC and mapping priorities into TCs (the Ethernet VLs) isn't
- > really for production, for any non trivial environment involving more
- > then one hop. Also, this email is from one month ago, any news on the
- > patches?
+>Bill - do you know who is the administrator that can fix this
+>We cannot access git and also web site and ewg mailing list does not
+>work
 
-I agree that implementing DCB is important for IBoE, but why do you say
-that a classical ethernet fabric with global pause isn't usable?  That
-should be roughly equivalent to an IB fabric that uses only a single VL,
-which is the case for many production IB fabrics.
+I cannot access it either. Does anyone know where it is physically located ?
 
- - R.
+woody
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
