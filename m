@@ -1,32 +1,33 @@
-From: Or Gerlitz <ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH] IB/mlx4: fix post_recv wq overflow check
-Date: Wed, 23 Dec 2009 17:28:12 +0200 (IST)
-Message-ID: <Pine.LNX.4.64.0912231727040.19295@zuben.voltaire.com>
+From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Subject: Re: RDMAoE / lossless Ethernet (ewg: SC'09 BOF - Meeting notes)
+Date: Wed, 23 Dec 2009 07:52:43 -0800
+Message-ID: <adahbrh1yd0.fsf@roland-alpha.cisco.com>
+References: <2ED289D4E09FBD4D92D911E869B97FDD01AF10F2@mtlexch01.mtl.com>
+	<4B31D048.5040001@voltaire.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <4B31D048.5040001-smomgflXvOZWk0Htik3J/w@public.gmane.org> (Or Gerlitz's message of "Wed, 23
+	Dec 2009 10:09:44 +0200")
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Jack Morgenstein <jackm-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
+To: Or Gerlitz <ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+Cc: Liran Liss <liranl-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, Yevgeny Petrilin <yevgenyp-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Richard Frank <richard.frank-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Linux RDMA list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Paul Grun <pgrun-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-the post recv flow should check wq overflow using the recv and not the send cq
 
-Signed-off-by: Or Gerlitz <ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+ > Liran, I would say that OTOH global pause isn't the way to go and OTHO
+ > IB RC functions quite bad when many packets are lost. As such RDMAoE
+ > without PFC and mapping priorities into TCs (the Ethernet VLs) isn't
+ > really for production, for any non trivial environment involving more
+ > then one hop. Also, this email is from one month ago, any news on the
+ > patches?
 
-diff --git a/drivers/infiniband/hw/mlx4/qp.c b/drivers/infiniband/hw/mlx4/qp.c
-index 989555c..2a97c96 100644
---- a/drivers/infiniband/hw/mlx4/qp.c
-+++ b/drivers/infiniband/hw/mlx4/qp.c
-@@ -1752,7 +1752,7 @@ int mlx4_ib_post_recv(struct ib_qp *ibqp, struct ib_recv_wr *wr,
- 	ind = qp->rq.head & (qp->rq.wqe_cnt - 1);
+I agree that implementing DCB is important for IBoE, but why do you say
+that a classical ethernet fabric with global pause isn't usable?  That
+should be roughly equivalent to an IB fabric that uses only a single VL,
+which is the case for many production IB fabrics.
 
- 	for (nreq = 0; wr; ++nreq, wr = wr->next) {
--		if (mlx4_wq_overflow(&qp->rq, nreq, qp->ibqp.send_cq)) {
-+		if (mlx4_wq_overflow(&qp->rq, nreq, qp->ibqp.recv_cq)) {
- 			err = -ENOMEM;
- 			*bad_wr = wr;
- 			goto out;
+ - R.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
