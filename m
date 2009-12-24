@@ -1,58 +1,42 @@
-From: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Subject: [ANNOUNCE] management tarballs release
-Date: Thu, 24 Dec 2009 16:50:53 +0200
-Message-ID: <20091224145053.GO26940@me>
+From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Subject: Re: RDMAoE / lossless Ethernet (ewg: SC'09 BOF - Meeting notes)
+Date: Thu, 24 Dec 2009 07:59:36 -0800
+Message-ID: <ada8wcs1hxz.fsf@roland-alpha.cisco.com>
+References: <2ED289D4E09FBD4D92D911E869B97FDD01AF10F2@mtlexch01.mtl.com>
+	<4B31D048.5040001@voltaire.com>
+	<adahbrh1yd0.fsf@roland-alpha.cisco.com>
+	<15ddcffd0912231412y8f6724fh5a7036f30117189e@mail.gmail.com>
+	<adad42519n5.fsf@roland-alpha.cisco.com>
+	<4B335DCD.4080201@voltaire.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <4B335DCD.4080201-smomgflXvOZWk0Htik3J/w@public.gmane.org> (Or Gerlitz's message of "Thu, 24
+	Dec 2009 14:25:49 +0200")
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: OpenIB <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, OpenFabricsEWG <ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+To: Or Gerlitz <ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+Cc: Paul Grun <pgrun-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org>, Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, Yevgeny Petrilin <yevgenyp-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, Richard Frank <richard.frank-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Linux RDMA list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi,
 
-There is a new release of the management (OpenSM and infiniband
-diagnostics) tarballs available in:
+ > Putting a side for a moment the detailed discussion we've started and
+ > looking on the concluding remarks you have made, I wasn't sure to
+ > follow:  if DCB isn't available (even from a silly reason of hw
+ > supporting pfc but patches not being pushed to the kernel...) what you
+ > think would function better (or function at all) for IBoE, lossy or
+ > globally paused Ethernet? I haven't managed so far to convince you
+ > that both aren't applicable for IBoE, but I also didn't manage to see
+ > what are you suggesting in the absence of DCB.
 
-http://www.openfabrics.org/downloads/management/
+I think you would have to enable pause to avoid dropping packets.  The
+IB RC transport doesn't seem to be designed to recover from packet loss.
 
-(listed in http://www.openfabrics.org/downloads/management/latest.txt)
+And my main point is that if you're only using a single VL, then there's
+no real difference between DCB/PFC and classical ethernet flow control.
+The fundamental difference with IB remains, namely credit-based
+vs. pause-based flow control, so you'll need more buffering on ethernet.
 
-md5sum:
-
-1281c3497086f3348b8ede7c3c5dcacf  libibumad-1.3.4.tar.gz
-02d0c65079c067e0e933c4822dad8b28  libibmad-1.3.4.tar.gz
-3bdd9f288b50c9031883d2d7c2f15937  opensm-3.3.5.tar.gz
-b40e2136204f653c675f40516936ecea  infiniband-diags-1.5.5.tar.gz
-
-All component versions are from recent master branch. Full list of
-changes is below.
-
-Sasha
-
-
-Al Chu (2):
-      remove obsoleted option from iblinkinfo manpage
-      correct manpages for tools that are no longer scripts
-
-Hal Rosenstock (2):
-      opensm/osm_vendor_ibumad.c: Add transaction ID to osm_vendor_send log message
-      opensm/osm_sm_mad_ctrl.c: In sm_mad_ctrl_send_err_cb, revert setting of init failure on QoS initialization failures
-
-Sasha Khapyorsky (6):
-      opensm/osm_sa_path_record.c: don't set dgid pointer for local subnet
-      opensm: cosmetic cleanup
-      opensm: add Voltaire copyright notice
-      opensm_release_notes-3.3: RN update
-      opensm: update libraries version strings
-      management: packages versions update
-
-Yevgeny Kliteynik (3):
-      opensm/osm_vl15intf.c: reverting commit 546399c3b983cdfe7adf4bd0b179358744603478
-      opensm: copyright updates
-      opensm/osm_mcast_mgr.c: fix osm_mcast_mgr_compute_max_hops for managed switch
-
+ - R.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
