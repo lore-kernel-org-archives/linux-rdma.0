@@ -1,37 +1,30 @@
 From: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH] opensm/osm_sm_mad_ctrl.c: In sm_mad_ctrl_send_err_cb,
- revert setting of init failure on QoS initialization failures
-Date: Thu, 24 Dec 2009 14:56:01 +0200
-Message-ID: <20091224125601.GK26940@me>
-References: <20091224112036.GA32559@comcast.net>
+Subject: Re: [PATCH v2] opensm/osm_mcast_mgr.c: fix
+ osm_mcast_mgr_compute_max_hops for managed switch
+Date: Thu, 24 Dec 2009 16:26:19 +0200
+Message-ID: <20091224142619.GN26940@me>
+References: <4B322CBC.1070805@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20091224112036.GA32559-Wuw85uim5zDR7s880joybQ@public.gmane.org>
+In-Reply-To: <4B322CBC.1070805-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Hal Rosenstock <hnrose-Wuw85uim5zDR7s880joybQ@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, elid-smomgflXvOZWk0Htik3J/w@public.gmane.org, celine.bourde-6ktuUTfB/bM@public.gmane.org
+To: Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: Linux RDMA <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Hal,
-
-On 06:20 Thu 24 Dec     , Hal Rosenstock wrote:
+On 16:44 Wed 23 Dec     , Yevgeny Kliteynik wrote:
+> If a certain mcast group has only one member, and this
+> member is a switch, OSM fails to select this switch
+> when trying to create spanning tree for this mcast group:
 > 
-> There are unexplained cases of status 0x1c that have been observed
-> for SL to VL mapping table setting as documented in "Re: qos on service-id"
-> http://article.gmane.org/gmane.linux.drivers.rdma/1464
+> ERR 0A08: Unable to locate a suitable switch for group 0xC000
+> ERR 0A17: Unable to create spanning tree (IB_ERROR) for mlid 0xc000
 > 
-> A subsequent patch will reintroduce this checking based on an additional
-> option which will default to not do this.
+> Signed-off-by: Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 
-I think that addition of such sort of options (eg "--workaround-bugX")
-should be avoided unless it is absolutely necessary. And even then more
-generic stuff would be better.
-
-In this specific case more generic option like:
-'--resweep-on-failed-attr=11,15' (with reasonable default) will be more
-useful for dealing with this and maybe another potential issues.
+Applied. Thanks.
 
 Sasha
 --
