@@ -1,69 +1,62 @@
-From: Jon Mason <jon-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: Re: erroneous CONFIG variable in infiniband code?
-Date: Mon, 28 Dec 2009 15:38:28 -0600
-Message-ID: <20091228213826.GA7042@opengridcomputing.com>
-References: <alpine.LFD.2.00.0912281157340.12771@localhost>
+From: Hal Rosenstock <hnrose-Wuw85uim5zDR7s880joybQ@public.gmane.org>
+Subject: [PATCH] infiniband-diags/ibqueryerrors.c: Fix output format of
+	counters
+Date: Tue, 29 Dec 2009 09:30:49 -0500
+Message-ID: <20091229143049.GA20458@comcast.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <alpine.LFD.2.00.0912281157340.12771@localhost>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Robert P. J. Day" <rpjday-L09J2beyid0N/H6P543EQg@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Dec 28, 2009 at 11:58:29AM -0500, Robert P. J. Day wrote:
-> 
-> drivers/infiniband/core/cma.c:2086:#if defined(CONFIG_IPv6) || defined(CONFIG_IPV6_MODULE)
-> 
->   notice the difference in case there, "IPv6" versus "IPV6".  someone
-> want to check that out?
 
-Yup, looks like a bug introduced in commit d14714df61681cfecf945a58436edf197327e87f
-Author: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Date:   Thu Nov 19 16:46:25 2009 -0800
+Should be unsigned decimal rather than plain decimal
 
-    IB/addr: Fix IPv6 routing lookup
-    
-    Include link scope as part of address resolution.  Combine local
-    and remote address resolution into a single, simpler code path.
-    Fix error checking in the IPv6 routing lookups.
-    
-    Based on work from:
-    David Wilder <dwilder-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>
-    Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-    
-    Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-    
-    [ Fix up cma_check_linklocal() for !IPV6 case.  - Roland ]
-    
-    Signed-off-by: Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-
-Before the change, they were
--#if defined(CONFIG_IPV6) || defined(CONFIG_IPV6_MODULE)
-
-Good catch.  Submit a patch and Cc lkml.
-
-Thanks,
-Jon
-
-> 
-> rday
-> --
-> 
-> ========================================================================
-> Robert P. J. Day                               Waterloo, Ontario, CANADA
-> 
->             Linux Consulting, Training and Kernel Pedantry.
-> 
-> Web page:                                          http://crashcourse.ca
-> Twitter:                                       http://twitter.com/rpjday
-> ========================================================================
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Signed-off-by: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+---
+diff --git a/infiniband-diags/src/ibqueryerrors.c b/infiniband-diags/src/ibqueryerrors.c
+index 370c74d..47bd2af 100644
+--- a/infiniband-diags/src/ibqueryerrors.c
++++ b/infiniband-diags/src/ibqueryerrors.c
+@@ -226,7 +226,7 @@ static int print_xmitdisc_details(char *buf, size_t size, ib_portid_t * portid,
+ 	     i++) {
+ 		mad_decode_field(pc, i, (void *)&val);
+ 		if (val)
+-			n += snprintf(buf + n, size - n, " [%s == %d]",
++			n += snprintf(buf + n, size - n, " [%s == %u]",
+ 				      mad_field_name(i), val);
+ 	}
+ 	return n;
+@@ -251,7 +251,7 @@ static void print_results(ib_portid_t * portid, char *node_name,
+ 
+ 		mad_decode_field(pc, i, (void *)&val);
+ 		if (val)
+-			n += snprintf(str + n, 1024 - n, " [%s == %d]",
++			n += snprintf(str + n, 1024 - n, " [%s == %u]",
+ 				      mad_field_name(i), val);
+ 
+ 		/* If there are PortXmitDiscards, get details (if supported) */
+@@ -264,7 +264,7 @@ static void print_results(ib_portid_t * portid, char *node_name,
+ 	if (!suppress(IB_PC_XMT_WAIT_F)) {
+ 		mad_decode_field(pc, IB_PC_XMT_WAIT_F, (void *)&val);
+ 		if (val)
+-			n += snprintf(str + n, 1024 - n, " [%s == %d]",
++			n += snprintf(str + n, 1024 - n, " [%s == %u]",
+ 				      mad_field_name(IB_PC_XMT_WAIT_F), val);
+ 	}
+ 
+@@ -276,7 +276,7 @@ static void print_results(ib_portid_t * portid, char *node_name,
+ 				mad_decode_field(pc, i, (void *)&val64);
+ 				if (val64)
+ 					n += snprintf(str + n, 1024 - n,
+-						      " [%s == %" PRId64 "]",
++						      " [%s == %" PRIu64 "]",
+ 						      mad_field_name(i), val64);
+ 			}
+ 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
