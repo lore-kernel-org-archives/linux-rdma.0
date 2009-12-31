@@ -1,113 +1,81 @@
-From: Hal Rosenstock <hnrose-Wuw85uim5zDR7s880joybQ@public.gmane.org>
-Subject: [PATCH] infiniband-diags/ibqueryerrors: Add support for optional
-	PortRcvErrorDetails counter
-Date: Thu, 31 Dec 2009 14:10:54 -0500
-Message-ID: <20091231191054.GA27874@comcast.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: jeff-ruUnomVL5WBWk0Htik3J/w@public.gmane.org (Jeff Haferman)
+Subject: rdma problems on Sun / ConnectX hardware
+Date: Thu, 31 Dec 2009 11:08:59 -0800 (PST)
+Message-ID: <20091231190859.041281D90009@adint.net>
+Reply-To: jeff-ruUnomVL5WBWk0Htik3J/w@public.gmane.org
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 
-to --details option
+Linux kernel = 2.6.18-92.1.26.el5_lustre.1.6.7.2smp
+OS = Centos 5.2
 
-Signed-off-by: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
----
-diff --git a/infiniband-diags/man/ibqueryerrors.8 b/infiniband-diags/man/ibqueryerrors.8
-index 83a2b5a..e7feea8 100644
---- a/infiniband-diags/man/ibqueryerrors.8
-+++ b/infiniband-diags/man/ibqueryerrors.8
-@@ -1,4 +1,4 @@
--.TH IBQUERYERRORS 8 "Oct 30, 2009" "OpenIB" "OpenIB Diagnostics"
-+.TH IBQUERYERRORS 8 "Dec 31, 2009" "OpenIB" "OpenIB Diagnostics"
- 
- .SH NAME
- ibqueryerrors \- query and report non-zero IB port counters
-@@ -58,7 +58,7 @@ printed or not.  This is because data counters are only \fBprinted\fR on ports
- which have errors.  This means if a port has 0 errors and the \-K option is
- specified the data counters will be cleared without any printed output.
- .TP
--\fB\-\-details\fR include transmit discard details
-+\fB\-\-details\fR include receive error and transmit discard details
- .TP
- \fB\-R\fR  (This option is obsolete and does nothing)
- 
-diff --git a/infiniband-diags/src/ibqueryerrors.c b/infiniband-diags/src/ibqueryerrors.c
-index 47bd2af..ceacc58 100644
---- a/infiniband-diags/src/ibqueryerrors.c
-+++ b/infiniband-diags/src/ibqueryerrors.c
-@@ -205,24 +205,31 @@ static void report_suppressed(void)
- 	printf("\n");
- }
- 
--static int print_xmitdisc_details(char *buf, size_t size, ib_portid_t * portid,
--				  ibnd_node_t * node, char *node_name,
--				  int portnum)
-+static int print_details(char *buf, size_t size, ib_portid_t * portid,
-+			 ibnd_node_t * node, char *node_name, int portnum,
-+			 int j)
- {
- 	uint8_t pc[1024];
- 	uint32_t val = 0;
- 	int i, n;
- 
-+	if (j != IB_PC_ERR_RCV_F && j!= IB_PC_XMT_DISCARDS_F)
-+		return 0;
-+
- 	memset(pc, 0, 1024);
- 
- 	if (!pma_query_via(pc, portid, portnum, ibd_timeout,
--			   IB_GSI_PORT_XMIT_DISCARD_DETAILS, ibmad_port)) {
--		IBWARN("IB_GSI_PORT_XMIT_DISCARD_DETAILS query failed on %s, "
--		       "%s port %d", node_name, portid2str(portid), portnum);
-+			   (j == IB_PC_ERR_RCV_F ? IB_GSI_PORT_RCV_ERROR_DETAILS : IB_GSI_PORT_XMIT_DISCARD_DETAILS),
-+			   ibmad_port)) {
-+		IBWARN("%s query failed on %s, %s port %d",
-+			(j == IB_PC_ERR_RCV_F ? "IB_GSI_PORT_RCV_ERROR_DETAILS" : "IB_GSI_PORT_XMIT_DISCARD_DETAILS"),
-+			node_name, portid2str(portid), portnum);
- 		return 0;
- 	}
- 
--	for (n = 0, i = IB_PC_XMT_INACT_DISC_F; i <= IB_PC_XMT_SW_HOL_DISC_F;
-+	for (n = 0,
-+	     i = (j == IB_PC_ERR_RCV_F ? IB_PC_RCV_LOCAL_PHY_ERR_F : IB_PC_XMT_INACT_DISC_F);
-+	     i <= (j == IB_PC_ERR_RCV_F ? IB_PC_RCV_LOOPING_ERR_F : IB_PC_XMT_SW_HOL_DISC_F);
- 	     i++) {
- 		mad_decode_field(pc, i, (void *)&val);
- 		if (val)
-@@ -254,10 +261,14 @@ static void print_results(ib_portid_t * portid, char *node_name,
- 			n += snprintf(str + n, 1024 - n, " [%s == %u]",
- 				      mad_field_name(i), val);
- 
-+		/* If there are PortRcvErrors, get details (if supported) */
-+		if (i == IB_PC_ERR_RCV_F && details && val) {
-+			n += print_details(str + n, 1024 - n, portid,
-+					   node, node_name, portnum, i);
- 		/* If there are PortXmitDiscards, get details (if supported) */
--		if (i == IB_PC_XMT_DISCARDS_F && details && val) {
--			n += print_xmitdisc_details(str + n, 1024 - n, portid,
--						    node, node_name, portnum);
-+		} else if (i == IB_PC_XMT_DISCARDS_F && details && val) {
-+			n += print_details(str + n, 1024 - n, portid,
-+					   node, node_name, portnum, i);
- 		}
- 	}
- 
-@@ -364,6 +375,10 @@ static void clear_port(ib_portid_t * portid, uint16_t cap_mask,
- 		performance_reset_via(pc, portid, port, mask, ibd_timeout,
- 				      IB_GSI_PORT_XMIT_DISCARD_DETAILS,
- 				      ibmad_port);
-+		mask = 0x3F;
-+		performance_reset_via(pc, portid, port, mask, ibd_timeout,
-+				      IB_GSI_PORT_RCV_ERROR_DETAILS,
-+				      ibmad_port);
- 	}
- }
- 
+We have a Sun Blade system with Sun IB products 
+(switch= Sun part number X2821A-Z 36 port QDR switch)
+(hcas = Sun part number X4216A-Z dual port DDR PCI-E)
+
+I can SOMETIMES run mvapich or openmpi over IB and it works, but generally I get
+a "CQ polling error".  So I went back to the rdma tests and see some problems.
+
+We have installed OFED 1.4.1-4, and because I was having problems I upgraded the firmware on the HCAS:
+
+lspci | grep -i infin
+0b:00.0 InfiniBand: Mellanox Technologies MT25418 [ConnectX IB DDR, PCIe 2.0 2.5GT/s] (rev a0)
+
+mstflint -d 0b:00.0 q 
+Image type:      ConnectX
+FW Version:      2.6.0
+Device ID:       25418
+Chip Revision:   A0
+Description:     Node             Port1            Port2            Sys
+image
+GUIDs:           0003ba000100d770 0003ba000100d771 0003ba000100d772
+0003ba000100d773 
+MACs:                             0003ba00d771     0003ba00d772     
+Board ID:         (SUN0060000001)
+VSD:             
+PSID:            SUN0060000001
+
+An rping from the client to server gives
+verbose
+client
+created cm_id 0x10ca7c70
+cma_event type RDMA_CM_EVENT_ADDR_RESOLVED cma_id 0x10ca7c70 (parent)
+cma_event type RDMA_CM_EVENT_ROUTE_RESOLVED cma_id 0x10ca7c70 (parent)
+rdma_resolve_addr - rdma_resolve_route successful
+created pd 0x10caa3d0
+created channel 0x10caa3f0
+created cq 0x10caa410
+created qp 0x10caa550
+rping_setup_buffers called on cb 0x10ca5010
+allocated & registered buffers...
+cq_thread started.
+cma_event type RDMA_CM_EVENT_ESTABLISHED cma_id 0x10ca7c70 (parent)
+ESTABLISHED
+rmda_connect successful
+RDMA addr 10caaa90 rkey 2002800 len 100
+send completion
+cma_event type RDMA_CM_EVENT_DISCONNECTED cma_id 0x10ca7c70 (parent)
+client DISCONNECT EVENT...
+wait for RDMA_WRITE_ADV state 6
+cq completion failed status 5
+rping_free_buffers called on cb 0x10ca5010
+destroy cm_id 0x10ca7c70
+
+
+An ib_rdma_lat gives
+   local address: LID 0x16 QPN 0x004f PSN 0x743778 RKey 0x002500 VAddr 0x00000007c72001
+  remote address: LID 0x01 QPN 0x004f PSN 0x6497a1 RKey 0x002500 VAddr 0x00000018780001
+Conflicting CPU frequency values detected: 2336.000000 != 2003.000000
+Latency typical: inf usec
+Latency best   : inf usec
+Latency worst  : inf usec
+
+
+Any ideas?????
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
