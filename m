@@ -1,81 +1,50 @@
-From: jeff-ruUnomVL5WBWk0Htik3J/w@public.gmane.org (Jeff Haferman)
-Subject: rdma problems on Sun / ConnectX hardware
-Date: Thu, 31 Dec 2009 11:08:59 -0800 (PST)
-Message-ID: <20091231190859.041281D90009@adint.net>
-Reply-To: jeff-ruUnomVL5WBWk0Htik3J/w@public.gmane.org
+From: Bart Van Assche <bart.vanassche-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: The SRP initiator and the endianness of tags in SRP information units
+Date: Sat, 2 Jan 2010 12:50:56 +0100
+Message-ID: <e2e108261001020350h2a63377v153ff5dc7c1519b5@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Cc: OFED mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+Hello Roland,
 
-Linux kernel = 2.6.18-92.1.26.el5_lustre.1.6.7.2smp
-OS = Centos 5.2
+First of all, my best wishes for the new year. I hope that you will be
+able to continue supporting the RDMA community in 2010.
 
-We have a Sun Blade system with Sun IB products 
-(switch= Sun part number X2821A-Z 36 port QDR switch)
-(hcas = Sun part number X4216A-Z dual port DDR PCI-E)
+I have a question about the SRP initiator available in the Linux
+kernel. While consulting the SRP spec (r16a) I noticed that all
+multi-byte integer fields of SRP information units must be sent using
+the big endian byte order. This holds e.g. for the 64-bit tag fields
+present in several information units. So I was expecting these tags to
+be declared as __be64. However, in the header file <scsi/srp.h> these
+tags are declared as type u64, that is, being stored in CPU order. As
+a result, the byte order of the tags sent by the SRP initiator will
+depend on the endianness of the CPU the SRP initiator is running on
+(e.g. little endian on Intel CPU's, big endian on PowerPC CPU's).
+While this doesn't harm -- an SRP target must send back the same tag
+it received -- I found this confusing. Is this the intended behavior
+of the SRP initiator ?
 
-I can SOMETIMES run mvapich or openmpi over IB and it works, but generally I get
-a "CQ polling error".  So I went back to the rdma tests and see some problems.
+The different tag fields declared in <scsi/srp.h> are:
 
-We have installed OFED 1.4.1-4, and because I was having problems I upgraded the firmware on the HCAS:
+$ grep -n '64.*tag;' include/scsi/srp.h
+121:    u64     tag;
+140:    u64     tag;
+152:    u64     tag;
+161:    u64     tag;
+169:    u64     tag;
+180:    u64     tag;
+186:    u64     task_tag;
+201:    u64     tag;
+231:    u64     tag;
+251:    u64     tag;
+261:    u64     tag;
 
-lspci | grep -i infin
-0b:00.0 InfiniBand: Mellanox Technologies MT25418 [ConnectX IB DDR, PCIe 2.0 2.5GT/s] (rev a0)
-
-mstflint -d 0b:00.0 q 
-Image type:      ConnectX
-FW Version:      2.6.0
-Device ID:       25418
-Chip Revision:   A0
-Description:     Node             Port1            Port2            Sys
-image
-GUIDs:           0003ba000100d770 0003ba000100d771 0003ba000100d772
-0003ba000100d773 
-MACs:                             0003ba00d771     0003ba00d772     
-Board ID:         (SUN0060000001)
-VSD:             
-PSID:            SUN0060000001
-
-An rping from the client to server gives
-verbose
-client
-created cm_id 0x10ca7c70
-cma_event type RDMA_CM_EVENT_ADDR_RESOLVED cma_id 0x10ca7c70 (parent)
-cma_event type RDMA_CM_EVENT_ROUTE_RESOLVED cma_id 0x10ca7c70 (parent)
-rdma_resolve_addr - rdma_resolve_route successful
-created pd 0x10caa3d0
-created channel 0x10caa3f0
-created cq 0x10caa410
-created qp 0x10caa550
-rping_setup_buffers called on cb 0x10ca5010
-allocated & registered buffers...
-cq_thread started.
-cma_event type RDMA_CM_EVENT_ESTABLISHED cma_id 0x10ca7c70 (parent)
-ESTABLISHED
-rmda_connect successful
-RDMA addr 10caaa90 rkey 2002800 len 100
-send completion
-cma_event type RDMA_CM_EVENT_DISCONNECTED cma_id 0x10ca7c70 (parent)
-client DISCONNECT EVENT...
-wait for RDMA_WRITE_ADV state 6
-cq completion failed status 5
-rping_free_buffers called on cb 0x10ca5010
-destroy cm_id 0x10ca7c70
-
-
-An ib_rdma_lat gives
-   local address: LID 0x16 QPN 0x004f PSN 0x743778 RKey 0x002500 VAddr 0x00000007c72001
-  remote address: LID 0x01 QPN 0x004f PSN 0x6497a1 RKey 0x002500 VAddr 0x00000018780001
-Conflicting CPU frequency values detected: 2336.000000 != 2003.000000
-Latency typical: inf usec
-Latency best   : inf usec
-Latency worst  : inf usec
-
-
-Any ideas?????
-
+Bart.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
