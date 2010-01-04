@@ -1,7 +1,7 @@
 From: Webmaster <noreply-c67hte604QFWk0Htik3J/w@public.gmane.org>
 Subject: Welcome to our Newsletter
-Date: Mon, 4 Jan 2010 17:25:43 -0500
-Message-ID: <1dc2ef3c086cdfa8fdf46bdd14aef032@mail.ebuppies.com>
+Date: Mon, 4 Jan 2010 18:44:56 -0500
+Message-ID: <1b0aef591121ec9688ad78325f63fbbe@mail.ebuppies.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 8bit
