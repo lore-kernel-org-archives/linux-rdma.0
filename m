@@ -1,7 +1,7 @@
 From: Webmaster <noreply-c67hte604QFWk0Htik3J/w@public.gmane.org>
-Subject: Request for confirmation
-Date: Mon, 4 Jan 2010 17:21:35 -0500
-Message-ID: <272f281767e1bbd3310837b8f4865e5b@mail.ebuppies.com>
+Subject: Welcome to our Newsletter
+Date: Mon, 4 Jan 2010 17:25:43 -0500
+Message-ID: <1dc2ef3c086cdfa8fdf46bdd14aef032@mail.ebuppies.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 8bit
@@ -10,32 +10,24 @@ Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Sorry to bother you: we are cleaning up our database and it appears that
-you have previously signed up to eBuppies.com mailinglists and not
-confirmed your subscription.We would like to give you the opportunity to
-re-confirm your subscription. The instructions on how to confirm are below.
- 
 
-  Almost welcome to our newsletter(s) ...
+  
+  Welcome to our Newsletter
 
-  Someone, hopefully you, has subscribed your email address to the
-following newsletters:
-  
-  
+  Please keep this email for later reference.
 
-  If this is correct, please click the following link to confirm your
-subscription.
-  Without this confirmation, you will not receive any newsletters.
+  Your email address has been added to the following newsletter(s):
   
- 
-http://ebuppies.com/emailserv/?p=confirm&uid=d6cb49d9619d05033c033ba1d5fa5777
-  
-  If this is not correct, you do not need to do anything, simply delete
-this message.
+ * None of them
+
+  To update your details and preferences please go to
+http://ebuppies.com/emailserv/?p=preferences&uid=d6cb49d9619d05033c033ba1d5fa5777.
+  If you do not want to receive any more messages, please go to
+http://ebuppies.com/emailserv/?p=unsubscribe&uid=d6cb49d9619d05033c033ba1d5fa5777.
 
   Thank you
   
-    
+  
 
 
 --
