@@ -1,7 +1,7 @@
 From: Eli Cohen <eli-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
-Subject: [PATCHv7 6/9] ipoib: avoid ipoib over RoCEE
-Date: Tue, 5 Jan 2010 12:33:15 +0200
-Message-ID: <20100105103315.GH31480@mtls03>
+Subject: [PATCHv7 5/9] ib_core: RoCEE UD packet packing support
+Date: Tue, 5 Jan 2010 12:33:06 +0200
+Message-ID: <20100105103306.GG31480@mtls03>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
@@ -11,38 +11,212 @@ To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 Cc: Linux RDMA list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-IPoIB is an implementation of IP over Infiniband transport. In the case of
-RoCEE, the link layer is Ethernet so IP can work directly over Ethernet, so
-disable IPoIB for none IB_LINK_LAYER_INFINIBAND ports.
+Add support functions to aid in packing RoCEE packets.
 
 Signed-off-by: Eli Cohen <eli-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
 ---
- drivers/infiniband/ulp/ipoib/ipoib_main.c |    5 +++++
- 1 files changed, 5 insertions(+), 0 deletions(-)
+ drivers/infiniband/core/ud_header.c |  111 +++++++++++++++++++++++++++++++++++
+ include/rdma/ib_pack.h              |   26 ++++++++
+ 2 files changed, 137 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-index df3eb8c..359c91f 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
-+++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-@@ -1362,6 +1362,8 @@ static void ipoib_add_one(struct ib_device *device)
- 	}
+diff --git a/drivers/infiniband/core/ud_header.c b/drivers/infiniband/core/ud_header.c
+index 8ec7876..f3f47da 100644
+--- a/drivers/infiniband/core/ud_header.c
++++ b/drivers/infiniband/core/ud_header.c
+@@ -80,6 +80,29 @@ static const struct ib_field lrh_table[]  = {
+ 	  .size_bits    = 16 }
+ };
  
- 	for (p = s; p <= e; ++p) {
-+		if (rdma_port_link_layer(device, p) != IB_LINK_LAYER_INFINIBAND)
-+			continue;
- 		dev = ipoib_add_port("ib%d", device, p);
- 		if (!IS_ERR(dev)) {
- 			priv = netdev_priv(dev);
-@@ -1383,6 +1385,9 @@ static void ipoib_remove_one(struct ib_device *device)
- 	dev_list = ib_get_client_data(device, &ipoib_client);
- 
- 	list_for_each_entry_safe(priv, tmp, dev_list, list) {
-+		if (rdma_port_link_layer(device, priv->port) != IB_LINK_LAYER_INFINIBAND)
-+			continue;
++static const struct ib_field eth_table[]  = {
++	{ STRUCT_FIELD(eth, dmac_h),
++	  .offset_words = 0,
++	  .offset_bits  = 0,
++	  .size_bits    = 32 },
++	{ STRUCT_FIELD(eth, dmac_l),
++	  .offset_words = 1,
++	  .offset_bits  = 0,
++	  .size_bits    = 16 },
++	{ STRUCT_FIELD(eth, smac_h),
++	  .offset_words = 1,
++	  .offset_bits  = 16,
++	  .size_bits    = 16 },
++	{ STRUCT_FIELD(eth, smac_l),
++	  .offset_words = 2,
++	  .offset_bits  = 0,
++	  .size_bits    = 32 },
++	{ STRUCT_FIELD(eth, type),
++	  .offset_words = 3,
++	  .offset_bits  = 0,
++	  .size_bits    = 16 }
++};
 +
- 		ib_unregister_event_handler(&priv->event_handler);
+ static const struct ib_field grh_table[]  = {
+ 	{ STRUCT_FIELD(grh, ip_version),
+ 	  .offset_words = 0,
+@@ -241,6 +264,53 @@ void ib_ud_header_init(int     		    payload_bytes,
+ EXPORT_SYMBOL(ib_ud_header_init);
  
- 		rtnl_lock();
+ /**
++ * ib_rocee_ud_header_init - Initialize UD header structure
++ * @payload_bytes:Length of packet payload
++ * @grh_present:GRH flag (if non-zero, GRH will be included)
++ * @header:Structure to initialize
++ *
++ * ib_rocee_ud_header_init() initializes the grh.ip_version, grh.payload_length,
++ * grh.next_header, bth.opcode, bth.pad_count and
++ * bth.transport_header_version fields of a &struct eth_ud_header given
++ * the payload length and whether a GRH will be included.
++ */
++void ib_rocee_ud_header_init(int     		    payload_bytes,
++			   int    		    grh_present,
++			   struct eth_ud_header    *header)
++{
++	int header_len;
++
++	memset(header, 0, sizeof *header);
++
++	header_len =
++		sizeof header->eth  +
++		IB_BTH_BYTES  +
++		IB_DETH_BYTES;
++	if (grh_present)
++		header_len += IB_GRH_BYTES;
++
++	header->grh_present          = grh_present;
++	if (grh_present) {
++		header->grh.ip_version      = 6;
++		header->grh.payload_length  =
++			cpu_to_be16((IB_BTH_BYTES     +
++				     IB_DETH_BYTES    +
++				     payload_bytes    +
++				     4                + /* ICRC     */
++				     3) & ~3);          /* round up */
++		header->grh.next_header     = 0x1b;
++	}
++
++	if (header->immediate_present)
++		header->bth.opcode           = IB_OPCODE_UD_SEND_ONLY_WITH_IMMEDIATE;
++	else
++		header->bth.opcode           = IB_OPCODE_UD_SEND_ONLY;
++	header->bth.pad_count                = (4 - payload_bytes) & 3;
++	header->bth.transport_header_version = 0;
++}
++EXPORT_SYMBOL(ib_rocee_ud_header_init);
++
++/**
+  * ib_ud_header_pack - Pack UD header struct into wire format
+  * @header:UD header struct
+  * @buf:Buffer to pack into
+@@ -281,6 +351,47 @@ int ib_ud_header_pack(struct ib_ud_header *header,
+ EXPORT_SYMBOL(ib_ud_header_pack);
+ 
+ /**
++ * rocee_ud_header_pack - Pack UD header struct into eth wire format
++ * @header:UD header struct
++ * @buf:Buffer to pack into
++ *
++ * ib_ud_header_pack() packs the UD header structure @header into wire
++ * format in the buffer @buf.
++ */
++int rocee_ud_header_pack(struct eth_ud_header *header,
++		       void                 *buf)
++{
++	int len = 0;
++
++	ib_pack(eth_table, ARRAY_SIZE(eth_table),
++		&header->eth, buf);
++	len += IB_ETH_BYTES;
++
++	if (header->grh_present) {
++		ib_pack(grh_table, ARRAY_SIZE(grh_table),
++			&header->grh, buf + len);
++		len += IB_GRH_BYTES;
++	}
++
++	ib_pack(bth_table, ARRAY_SIZE(bth_table),
++		&header->bth, buf + len);
++	len += IB_BTH_BYTES;
++
++	ib_pack(deth_table, ARRAY_SIZE(deth_table),
++		&header->deth, buf + len);
++	len += IB_DETH_BYTES;
++
++	if (header->immediate_present) {
++		memcpy(buf + len, &header->immediate_data,
++		       sizeof header->immediate_data);
++		len += sizeof header->immediate_data;
++	}
++
++	return len;
++}
++EXPORT_SYMBOL(rocee_ud_header_pack);
++
++/**
+  * ib_ud_header_unpack - Unpack UD header struct from wire format
+  * @header:UD header struct
+  * @buf:Buffer to pack into
+diff --git a/include/rdma/ib_pack.h b/include/rdma/ib_pack.h
+index d7fc45c..0982a4c 100644
+--- a/include/rdma/ib_pack.h
++++ b/include/rdma/ib_pack.h
+@@ -37,6 +37,7 @@
+ 
+ enum {
+ 	IB_LRH_BYTES  = 8,
++	IB_ETH_BYTES  = 14,
+ 	IB_GRH_BYTES  = 40,
+ 	IB_BTH_BYTES  = 12,
+ 	IB_DETH_BYTES = 8
+@@ -210,6 +211,14 @@ struct ib_unpacked_deth {
+ 	__be32       source_qpn;
+ };
+ 
++struct ib_unpacked_eth {
++	u8	dmac_h[4];
++	u8	dmac_l[2];
++	u8	smac_h[2];
++	u8	smac_l[4];
++	__be16	type;
++};
++
+ struct ib_ud_header {
+ 	struct ib_unpacked_lrh  lrh;
+ 	int                     grh_present;
+@@ -220,6 +229,16 @@ struct ib_ud_header {
+ 	__be32         		immediate_data;
+ };
+ 
++struct eth_ud_header {
++	struct ib_unpacked_eth  eth;
++	int                     grh_present;
++	struct ib_unpacked_grh  grh;
++	struct ib_unpacked_bth  bth;
++	struct ib_unpacked_deth deth;
++	int            		immediate_present;
++	__be32         		immediate_data;
++};
++
+ void ib_pack(const struct ib_field        *desc,
+ 	     int                           desc_len,
+ 	     void                         *structure,
+@@ -234,10 +253,17 @@ void ib_ud_header_init(int     		   payload_bytes,
+ 		       int    		   grh_present,
+ 		       struct ib_ud_header *header);
+ 
++void ib_rocee_ud_header_init(int     		   payload_bytes,
++			   int    		   grh_present,
++			   struct eth_ud_header   *header);
++
+ int ib_ud_header_pack(struct ib_ud_header *header,
+ 		      void                *buf);
+ 
+ int ib_ud_header_unpack(void                *buf,
+ 			struct ib_ud_header *header);
+ 
++int rocee_ud_header_pack(struct eth_ud_header *header,
++			 void                 *buf);
++
+ #endif /* IB_PACK_H */
 -- 
 1.6.6
 
