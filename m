@@ -1,7 +1,7 @@
 From: Eli Cohen <eli-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
-Subject: [PATCHv7 3/9] IB/umad: Enable support only for IB ports
-Date: Tue, 5 Jan 2010 12:32:46 +0200
-Message-ID: <20100105103246.GE31480@mtls03>
+Subject: [PATCHv7 6/9] ipoib: avoid ipoib over RoCEE
+Date: Tue, 5 Jan 2010 12:33:15 +0200
+Message-ID: <20100105103315.GH31480@mtls03>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
@@ -11,49 +11,38 @@ To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 Cc: Linux RDMA list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Initialize umad context only for Infiniband (as oppoesed to Ethernet) ports.
+IPoIB is an implementation of IP over Infiniband transport. In the case of
+RoCEE, the link layer is Ethernet so IP can work directly over Ethernet, so
+disable IPoIB for none IB_LINK_LAYER_INFINIBAND ports.
 
 Signed-off-by: Eli Cohen <eli-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
 ---
- drivers/infiniband/core/user_mad.c |   11 +++++++----
- 1 files changed, 7 insertions(+), 4 deletions(-)
+ drivers/infiniband/ulp/ipoib/ipoib_main.c |    5 +++++
+ 1 files changed, 5 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/infiniband/core/user_mad.c b/drivers/infiniband/core/user_mad.c
-index 7de0296..e962c5a 100644
---- a/drivers/infiniband/core/user_mad.c
-+++ b/drivers/infiniband/core/user_mad.c
-@@ -1138,8 +1138,9 @@ static void ib_umad_add_one(struct ib_device *device)
- 	for (i = s; i <= e; ++i) {
- 		umad_dev->port[i - s].umad_dev = umad_dev;
- 
--		if (ib_umad_init_port(device, i, &umad_dev->port[i - s]))
--			goto err;
-+		if (rdma_port_link_layer(device, i) == IB_LINK_LAYER_INFINIBAND)
-+			if (ib_umad_init_port(device, i, &umad_dev->port[i - s]))
-+				goto err;
+diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c b/drivers/infiniband/ulp/ipoib/ipoib_main.c
+index df3eb8c..359c91f 100644
+--- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
++++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
+@@ -1362,6 +1362,8 @@ static void ipoib_add_one(struct ib_device *device)
  	}
  
- 	ib_set_client_data(device, &umad_client, umad_dev);
-@@ -1148,7 +1149,8 @@ static void ib_umad_add_one(struct ib_device *device)
+ 	for (p = s; p <= e; ++p) {
++		if (rdma_port_link_layer(device, p) != IB_LINK_LAYER_INFINIBAND)
++			continue;
+ 		dev = ipoib_add_port("ib%d", device, p);
+ 		if (!IS_ERR(dev)) {
+ 			priv = netdev_priv(dev);
+@@ -1383,6 +1385,9 @@ static void ipoib_remove_one(struct ib_device *device)
+ 	dev_list = ib_get_client_data(device, &ipoib_client);
  
- err:
- 	while (--i >= s)
--		ib_umad_kill_port(&umad_dev->port[i - s]);
-+		if (rdma_port_link_layer(device, i) == IB_LINK_LAYER_INFINIBAND)
-+			ib_umad_kill_port(&umad_dev->port[i - s]);
+ 	list_for_each_entry_safe(priv, tmp, dev_list, list) {
++		if (rdma_port_link_layer(device, priv->port) != IB_LINK_LAYER_INFINIBAND)
++			continue;
++
+ 		ib_unregister_event_handler(&priv->event_handler);
  
- 	kref_put(&umad_dev->ref, ib_umad_release_dev);
- }
-@@ -1162,7 +1164,8 @@ static void ib_umad_remove_one(struct ib_device *device)
- 		return;
- 
- 	for (i = 0; i <= umad_dev->end_port - umad_dev->start_port; ++i)
--		ib_umad_kill_port(&umad_dev->port[i]);
-+		if (rdma_port_link_layer(device, i + 1) == IB_LINK_LAYER_INFINIBAND)
-+			ib_umad_kill_port(&umad_dev->port[i]);
- 
- 	kref_put(&umad_dev->ref, ib_umad_release_dev);
- }
+ 		rtnl_lock();
 -- 
 1.6.6
 
