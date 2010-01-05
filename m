@@ -1,46 +1,113 @@
-From: Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: Some question about the switch ports' LinkSpeed
-Date: Tue, 05 Jan 2010 10:02:23 +0200
-Message-ID: <4B42F20F.5030505@dev.mellanox.co.il>
-References: <91fe68d51001040558w5f79e6adw8d0af15758e4d9fc@mail.gmail.com>
-Reply-To: kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org
+From: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: [PATCHv7 0/9] RoCEE support to Infiniband
+Date: Tue, 5 Jan 2010 12:32:13 +0200
+Message-ID: <20100105103213.GB31480@mtls03>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <91fe68d51001040558w5f79e6adw8d0af15758e4d9fc-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: =?UTF-8?B?546L5YWB5b2s?= <acceptany-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Cc: Linux RDMA list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi,
+RoCEE (pronounced =E2=80=98rocky=E2=80=99) allows running the IB transp=
+ort protocol
+using Ethernet frames, enabling the deployment of IB semantics on
+lossless Ethernet fabrics.
 
-On 04/Jan/10 15:58, =E7=8E=8B=E5=85=81=E5=BD=AC wrote:
-> Now I have a Infiniband switch with the rate of a port 20Gb/s.
-> But my experiment can only work below the LinkSpeed of 1Gb/s.
-> Is there some methods to limit the rate of the switch.
+RoCEE packets are standard Ethernet frames with an IEEE assigned
+Ethertype, a GRH, unmodified IB transport headers and payload.  IB
+subnet management and SA services are not required for RoCEE
+operation; Ethernet management practices are used instead. RoCEE
+encodes IP addresses into its GIDs and resolves MAC addresses using
+the host IP stack. For multicast GIDs, standard IP to MAC mappings
+apply.
 
-The lowest possible rate in IB is 1x SDR, which is 2.5 Gb/s.
-What exactly do you want to limit? What is the test doing?
-Do you have control over that code that generates the traffic?
+The OFA RDMA Verbs API is syntactically unmodified. The CMA is adapted
+to support RoCEE ports allowing existing RDMA applications to run over
+RoCEE with no changes.
 
-> Can QoS work out ?
+Address handles for RoCEE are required to contain valid L3 addresses
+(GIDs) and the IB L2 address fields become reserved. The complementary
+Ethernet L2 address information is subsequently resolved below the
+API.=20
 
-QoS (i.e. VL arbitration) kicks in only when the link is
-saturated. QoS doesn't have an ability to limit the BW.
-It can only limit relative BW part among several streams.
+As there is no SA in RoCEE, the CMA code is adapted to locally fill-in
+corresponding path record attributes for RoCEE address handles. Also,
+the CMA provides the required address handle attributes for SIDR
+requests and joining of multicast groups.=20
 
--- Yevgeny
+With this patch set, a RoCEE port is currently assigned a single GID,
+encoding the IPv6 link-local address of the corresponding netdev; the
+CMA RoCEE code temporarily uses these IPv6 link-local addresses as
+GIDs instead of the IP address provided by the user.=20
 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma"=
- in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+Support for host VLAN tagged packets and setting of the user prio on
+RoCEE frames will be added in the near future. Also, with these
+patches, RoCEE multicast frames may be broadcast as there is currently
+no use of a L2 multicast group membership protocol.
 
+To enable RoCEE with the mlx4 driver stack, both the mlx4_en and
+mlx4_ib drivers must be loaded, and the netdevice for the
+corresponding RoCEE port must be running. Individual ports of a multi
+port HCA can be independently configured as Ethernet (with support for
+RoCEE) or IB, as is already the case.
+
+We have successfully tested MPI, SDP, RDS, and native Verbs
+applications over RoCEE.
+
+=46ollowing is a series of 9 patches based on Roland's for-next branch.
+This new series reflects changes based on feedback from the community
+on the previous patch set.
+
+Changes from v6:
+1. Rebase on 2.6.32-rc6.
+2. Fix loopback support.
+3. Undo ABI version bumping.
+4. Use the notion of 'link layer' attribute for ports instead of 'port
+transport'.
+
+
+Signed-off-by: Eli Cohen <eli-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
+---
+
+ drivers/infiniband/core/agent.c           |   37 +-
+ drivers/infiniband/core/cma.c             |  261 +++++++++++++++
+ drivers/infiniband/core/mad.c             |   66 ++-
+ drivers/infiniband/core/multicast.c       |   25 +
+ drivers/infiniband/core/sa_query.c        |   39 +-
+ drivers/infiniband/core/ucma.c            |   45 ++
+ drivers/infiniband/core/ud_header.c       |  111 ++++++
+ drivers/infiniband/core/user_mad.c        |   11=20
+ drivers/infiniband/core/uverbs.h          |    1=20
+ drivers/infiniband/core/uverbs_cmd.c      |   32 +
+ drivers/infiniband/core/uverbs_main.c     |    1=20
+ drivers/infiniband/core/verbs.c           |   25 +
+ drivers/infiniband/hw/mlx4/ah.c           |  178 ++++++++--
+ drivers/infiniband/hw/mlx4/mad.c          |   32 +
+ drivers/infiniband/hw/mlx4/main.c         |  497 +++++++++++++++++++++=
+++++++---
+ drivers/infiniband/hw/mlx4/mlx4_ib.h      |   34 +-
+ drivers/infiniband/hw/mlx4/qp.c           |  194 ++++++++---
+ drivers/infiniband/ulp/ipoib/ipoib_main.c |    5=20
+ drivers/net/mlx4/en_main.c                |   15=20
+ drivers/net/mlx4/en_port.c                |    4=20
+ drivers/net/mlx4/en_port.h                |    3=20
+ drivers/net/mlx4/fw.c                     |    3=20
+ drivers/net/mlx4/intf.c                   |   20 +
+ drivers/net/mlx4/main.c                   |    6=20
+ drivers/net/mlx4/mlx4.h                   |    1=20
+ include/linux/mlx4/cmd.h                  |    1=20
+ include/linux/mlx4/device.h               |   31 +
+ include/linux/mlx4/driver.h               |   16=20
+ include/linux/mlx4/qp.h                   |    6=20
+ include/rdma/ib_addr.h                    |   98 +++++
+ include/rdma/ib_pack.h                    |   26 +
+ include/rdma/ib_user_verbs.h              |   19 +
+ include/rdma/ib_verbs.h                   |   24 +
+ 33 files changed, 1639 insertions(+), 228 deletions(-)
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
 n
