@@ -1,33 +1,59 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: ipoib 10ge gateway
-Date: Tue, 5 Jan 2010 17:37:34 -0700
-Message-ID: <20100106003734.GC4664@obsidianresearch.com>
-References: <e75d22a91001050706i228099d7qf6d745371d9547e9@mail.gmail.com> <2B7CD63E-C426-4E24-ADD1-9866D7ABF9C9@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <2B7CD63E-C426-4E24-ADD1-9866D7ABF9C9-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Aaron Knister <aaron.knister-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Michael Di Domenico <mdidomenico4-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+From: Jiri Slaby <jslaby@suse.cz>
+Subject: [PATCH] infiniband: use helpers for rlimits
+Date: Wed,  6 Jan 2010 16:24:38 +0100
+Message-ID: <1262791479-26594-10-git-send-email-jslaby@suse.cz>
+References: <1262791479-26594-1-git-send-email-jslaby@suse.cz>
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S932261Ab0AFPZy@vger.kernel.org>
+In-Reply-To: <1262791479-26594-1-git-send-email-jslaby@suse.cz>
+Sender: linux-kernel-owner@vger.kernel.org
+To: jirislaby@gmail.com
+Cc: linux-kernel@vger.kernel.org, Ralph Campbell <infinipath@qlogic.com>, Andrew Morton <akpm@linux-foundation.org>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Jan 05, 2010 at 07:27:57PM -0500, Aaron Knister wrote:
+Make sure compiler won't do weird things with limits. E.g. fetching
+them twice may return 2 different values after writable limits are
+implemented.
 
-> As an aside I would love to know how to pull an infiniband interface
-> into a bridge.
+I.e. either use rlimit helpers added in
+3e10e716abf3c71bdb5d86b8f507f9e72236c9cd
+or ACCESS_ONCE if not applicable.
 
-bridging only works between networks with the same L2 address scheme
-and support in the bridging driver for that address scheme.
+Signed-off-by: Jiri Slaby <jslaby@suse.cz>
+Acked-by: Roland Dreier <rolandd@cisco.com>
+Cc: Ralph Campbell <infinipath@qlogic.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: Sean Hefty <sean.hefty@intel.com>
+Cc: Hal Rosenstock <hal.rosenstock@gmail.com>
+Cc: linux-rdma@vger.kernel.org
+---
+ drivers/infiniband/core/umem.c                 |    2 +-
+ drivers/infiniband/hw/ipath/ipath_user_pages.c |    3 +--
+ 2 files changed, 2 insertions(+), 3 deletions(-)
 
-The vnic schemes should work with bridging, but not ipoib.
-
-You can solve some problems that bridging is also used to solve using
-proxy arp and routing, those should work with ipoib.
-
-Jason
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/drivers/infiniband/core/umem.c b/drivers/infiniband/core/umem.c
+index 6f7c096..4f906f0 100644
+--- a/drivers/infiniband/core/umem.c
++++ b/drivers/infiniband/core/umem.c
+@@ -136,7 +136,7 @@ struct ib_umem *ib_umem_get(struct ib_ucontext *context, unsigned long addr,
+ 	down_write(&current->mm->mmap_sem);
+ 
+ 	locked     = npages + current->mm->locked_vm;
+-	lock_limit = current->signal->rlim[RLIMIT_MEMLOCK].rlim_cur >> PAGE_SHIFT;
++	lock_limit = rlimit(RLIMIT_MEMLOCK) >> PAGE_SHIFT;
+ 
+ 	if ((locked > lock_limit) && !capable(CAP_IPC_LOCK)) {
+ 		ret = -ENOMEM;
+diff --git a/drivers/infiniband/hw/ipath/ipath_user_pages.c b/drivers/infiniband/hw/ipath/ipath_user_pages.c
+index 82878e3..eb7d59a 100644
+--- a/drivers/infiniband/hw/ipath/ipath_user_pages.c
++++ b/drivers/infiniband/hw/ipath/ipath_user_pages.c
+@@ -59,8 +59,7 @@ static int __get_user_pages(unsigned long start_page, size_t num_pages,
+ 	size_t got;
+ 	int ret;
+ 
+-	lock_limit = current->signal->rlim[RLIMIT_MEMLOCK].rlim_cur >>
+-		PAGE_SHIFT;
++	lock_limit = rlimit(RLIMIT_MEMLOCK) >> PAGE_SHIFT;
+ 
+ 	if (num_pages > lock_limit) {
+ 		ret = -ENOMEM;
