@@ -1,91 +1,88 @@
-From: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH] opensm/osm_sa_infrominfo.c: fixes and simplifications in
- lid range check
-Date: Thu, 7 Jan 2010 14:20:09 +0200
-Message-ID: <20100107122009.GB26089@me>
+From: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCHv3] opensm: Add support for optimized SLtoVLMappingTable
+	programming
+Date: Thu, 7 Jan 2010 08:34:24 -0500
+Message-ID: <f0e08f231001070534k5201150cm2247f18d33262595@mail.gmail.com>
+References: <20091201194110.GA26753@comcast.net> <20100105111841.GO26940@me>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <20100105111841.GO26940@me>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-
-In function validate_ports_access_rights() in case when lid range is
-ended by out of range lid value (not allocated by SM) truncate it to
-valid one. Check lids for out of range only error once and not in a
-loop.
-
-Signed-off-by: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
----
- opensm/opensm/osm_sa_informinfo.c |   28 ++++++++++++++++------------
- 1 files changed, 16 insertions(+), 12 deletions(-)
-
-diff --git a/opensm/opensm/osm_sa_informinfo.c b/opensm/opensm/osm_sa_informinfo.c
-index c1ab481..9fb3608 100644
---- a/opensm/opensm/osm_sa_informinfo.c
-+++ b/opensm/opensm/osm_sa_informinfo.c
-@@ -91,7 +91,6 @@ static boolean_t validate_ports_access_rights(IN osm_sa_t * sa,
- 	osm_port_t *p_port;
- 	ib_net64_t portguid;
- 	uint16_t lid_range_begin, lid_range_end, lid;
--	const cl_ptr_vector_t *p_tbl;
- 
- 	OSM_LOG_ENTER(sa->p_log);
- 
-@@ -124,6 +123,8 @@ static boolean_t validate_ports_access_rights(IN osm_sa_t * sa,
- 			goto Exit;
- 		}
- 	} else {
-+		size_t lids_size;
-+
- 		/* gid is zero - check if LID range is defined */
- 		lid_range_begin =
- 		    cl_ntoh16(p_infr_rec->inform_record.inform_info.
-@@ -136,25 +137,28 @@ static boolean_t validate_ports_access_rights(IN osm_sa_t * sa,
- 		    cl_ntoh16(p_infr_rec->inform_record.inform_info.
- 			      lid_range_end);
- 
-+		lids_size = cl_ptr_vector_get_size(&sa->p_subn->port_lid_tbl);
-+
- 		/* lid_range_end is set to zero if no range desired. In this
- 		   case - just make it equal to the lid_range_begin. */
- 		if (lid_range_end == 0)
- 			lid_range_end = lid_range_begin;
-+		else if (lid_range_end >= lids_size)
-+			lid_range_end = lids_size - 1;
-+
-+		if (lid_range_begin >= lids_size) {
-+			/* requested lids are out of range */
-+			OSM_LOG(sa->p_log, OSM_LOG_ERROR, "ERR 4302: "
-+				"Given LIDs (%u-%u) are out of range (%zu)\n",
-+				lid_range_begin, lid_range_end, lids_size);
-+			valid = FALSE;
-+			goto Exit;
-+		}
- 
- 		/* go over all defined lids within the range and make sure that the
- 		   requester port can access them according to current partitioning. */
- 		for (lid = lid_range_begin; lid <= lid_range_end; lid++) {
--			p_tbl = &sa->p_subn->port_lid_tbl;
--			if (cl_ptr_vector_get_size(p_tbl) > lid)
--				p_port = cl_ptr_vector_get(p_tbl, lid);
--			else {
--				/* lid requested is out of range */
--				OSM_LOG(sa->p_log, OSM_LOG_ERROR, "ERR 4302: "
--					"Given LID (%u) is out of range:%u\n",
--					lid, cl_ptr_vector_get_size(p_tbl));
--				valid = FALSE;
--				goto Exit;
--			}
-+			p_port = osm_get_port_by_lid(sa->p_subn, cl_hton16(lid));
- 			if (p_port == NULL)
- 				continue;
- 
--- 
-1.6.6
-
+SGkgU2FzaGEsCgpPbiBUdWUsIEphbiA1LCAyMDEwIGF0IDY6MTggQU0sIFNhc2hhIEtoYXB5b3Jz
+a3kgPHNhc2hha0B2b2x0YWlyZS5jb20+IHdyb3RlOgo+IEhpIEhhbCwKPgo+IE9uIDE0OjQxIFR1
+ZSAwMSBEZWMgwqAgwqAgLCBIYWwgUm9zZW5zdG9jayB3cm90ZToKPj4KPj4gT3B0aW1pemVkIFNM
+dG9WTE1hcHBpbmdUYWJsZSBwcm9ncmFtbWluZyByZWR1Y2VzIHRoZSBudW1iZXIgb2YgTUFEcwo+
+PiBuZWVkZWQgZnJvbSBPKG4qKjIpIHRvIE8obikuIFNlZSBJQkEgMS4yLjEgdm9sIDEgcC4gODQz
+IDE0LjIuNS44Cj4+IFNMdG9WTE1hcHBpbmdUYWJsZS4KPj4KPj4gU2lnbmVkLW9mZi1ieTogSGFs
+IFJvc2Vuc3RvY2sgPGhhbC5yb3NlbnN0b2NrQGdtYWlsLmNvbT4KPj4gLS0tCj4KPiBbc25pcF0K
+Pgo+PiBkaWZmIC0tZ2l0IGEvb3BlbnNtL29wZW5zbS9vc21fcW9zLmMgYi9vcGVuc20vb3BlbnNt
+L29zbV9xb3MuYwo+PiBpbmRleCAwOGY5YTYwLi42MTdhODZlIDEwMDY0NAo+PiAtLS0gYS9vcGVu
+c20vb3BlbnNtL29zbV9xb3MuYwo+PiArKysgYi9vcGVuc20vb3BlbnNtL29zbV9xb3MuYwo+Cj4g
+W3NuaXBdCj4KPj4gQEAgLTI5MCw2ICszMDYsNDQgQEAgaW50IG9zbV9xb3Nfc2V0dXAob3NtX29w
+ZW5zbV90ICogcF9vc20pCj4+IMKgIMKgIMKgIC8qIHJlYWQgUW9TIHBvbGljeSBjb25maWcgZmls
+ZSAqLwo+PiDCoCDCoCDCoCBvc21fcW9zX3BhcnNlX3BvbGljeV9maWxlKCZwX29zbS0+c3Vibik7
+Cj4+Cj4+ICsgwqAgwqAgLyogbG9vcCBvbiBzd2l0Y2hlcyB0aGF0IHN1cHBvcnQgb3B0aW1pemVk
+IFNMMlZMIHByb2dyYW1taW5nIGZpcnN0ICovCj4+ICsgwqAgwqAgcF90YmwgPSAmcF9vc20tPnN1
+Ym4uc3dfZ3VpZF90Ymw7Cj4+ICsgwqAgwqAgcF9uZXh0ID0gY2xfcW1hcF9oZWFkKHBfdGJsKTsK
+Pj4gKyDCoCDCoCB3aGlsZSAocF9uZXh0ICE9IGNsX3FtYXBfZW5kKHBfdGJsKSkgewo+PiArIMKg
+IMKgIMKgIMKgIMKgIMKgIHBfc3cgPSAob3NtX3N3aXRjaF90ICopIHBfbmV4dDsKPj4gKyDCoCDC
+oCDCoCDCoCDCoCDCoCBwX25leHQgPSBjbF9xbWFwX25leHQocF9uZXh0KTsKPj4gKwo+PiArIMKg
+IMKgIMKgIMKgIMKgIMKgIGlmIChpYl9zd2l0Y2hfaW5mb19nZXRfb3B0X3NsMnZsbWFwcGluZygm
+cF9zdy0+c3dpdGNoX2luZm8pICYmCj4+ICsgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgcF9vc20t
+PnN1Ym4ub3B0LnVzZV9vcHRpbWl6ZWRfc2x2bCkgewo+PiArIMKgIMKgIMKgIMKgIMKgIMKgIMKg
+IMKgIMKgIMKgIHBfcGh5c3AgPSBvc21fbm9kZV9nZXRfcGh5c3BfcHRyKHBfc3ctPnBfbm9kZSwg
+MSk7Cj4+ICsgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgbnVtX3BoeXNwID0gb3NtX25v
+ZGVfZ2V0X251bV9waHlzcChwX3N3LT5wX25vZGUpOwo+PiArIMKgIMKgIMKgIMKgIMKgIMKgIMKg
+IMKgIMKgIMKgIGZvcmNlX3VwZGF0ZSA9IHBfb3NtLT5zdWJuLm5lZWRfdXBkYXRlOwo+PiArIMKg
+IMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIGZvciAoaSA9IDE7IGkgPCBudW1fcGh5c3A7IGkr
+Kykgewo+PiArIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIHBfcGh5
+c3AgPSBvc21fbm9kZV9nZXRfcGh5c3BfcHRyKHBfc3ctPnBfbm9kZSwgaSk7Cj4+ICsgwqAgwqAg
+wqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgaWYgKCFwX3BoeXNwKQo+PiArIMKg
+IMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIGNvbnRp
+bnVlOwo+PiArIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIGlmICh2
+bGFyYl9waHlzcF9zZXR1cCgmcF9vc20tPnNtLCBwX3BoeXNwLCBpLAo+PiArIMKgIMKgIMKgIMKg
+IMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKg
+IMKgIMKgIHBfcGh5c3AtPm5lZWRfdXBkYXRlIHx8Cj4+ICsgwqAgwqAgwqAgwqAgwqAgwqAgwqAg
+wqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgcF9v
+c20tPnN1Ym4ubmVlZF91cGRhdGUsCj4+ICsgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAg
+wqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgJnN3ZV9jb25maWcp
+KQo+PiArIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKg
+IMKgIHJldCA9IC0xOwo+PiArIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKg
+IMKgIGZvcmNlX3VwZGF0ZSB8PSBwX3BoeXNwLT5uZWVkX3VwZGF0ZTsKPj4gKyDCoCDCoCDCoCDC
+oCDCoCDCoCDCoCDCoCDCoCDCoCB9Cj4+ICsgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAg
+aWYgKHNsMnZsX3VwZGF0ZSgmcF9vc20tPnNtLAo+PiArIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKg
+IMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgb3NtX25vZGVfZ2V0X3BoeXNwX3B0cihw
+X3N3LT5wX25vZGUsIDApLAo+PiArIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKg
+IMKgIMKgIMKgIMKgIMKgIMKgIMKgcF9waHlzcCwgaSwgMSwgZm9yY2VfdXBkYXRlLAo+Cj4gQXQg
+dGhpcyBwb2ludCBpID0gbnVtX3BoeXNwLCB3aGljaCBpcyBhbiBpbnZhbGlkIHN3aXRjaCBwb3J0
+IG51bWJlciwKPiByaWdodD8KClllcywgYnV0IGluIHNsMnZsX3VwZGF0ZV90YWJsZSBvdXRwdXQg
+cG9ydCBudW0gaXMgbm90IHVzZWQgd2hlbgpvcHRpbWl6ZSBpcyAxIHdoaWNoIGlzIHRoZSBjYXNl
+IGhlcmUuCgotLSBIYWwKCj4gU2FzaGEKPgo+Cj4+ICsgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAg
+wqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAmc3dlX2NvbmZpZykpIHsKPj4gKyDCoCDC
+oCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCBPU01fTE9HKCZwX29zbS0+bG9n
+LCBPU01fTE9HX0VSUk9SLCAiRVJSIDYyMDQ6ICIKPj4gKyDCoCDCoCDCoCDCoCDCoCDCoCDCoCDC
+oCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCAiZmFpbGVkIHRvIHVwZGF0ZSBvcHRpbWl6
+ZWQgU0wyVkxNYXBwaW5nIgo+PiArIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKg
+IMKgIMKgIMKgIMKgIMKgIMKgICIgdGFibGVzIGZvciBwb3J0ICUiIFBSSXg2NCAiICMlZFxuIiwK
+Pj4gKyDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDC
+oCBjbF9udG9oNjQocF9waHlzcC0+cG9ydF9ndWlkKSwgaSk7Cj4+ICsgwqAgwqAgwqAgwqAgwqAg
+wqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgcmV0ID0gLTE7Cj4+ICsgwqAgwqAgwqAgwqAgwqAg
+wqAgwqAgwqAgwqAgwqAgfQo+PiArIMKgIMKgIMKgIMKgIMKgIMKgIH0KPj4gKyDCoCDCoCB9Cj4+
+ICsKPj4gKyDCoCDCoCAvKiBub3csIGxvb3Agb24gcG9ydHMgc2tpcHBpbmcgdGhlIGV4dGVybmFs
+IHBvcnRzIG9mIHN3aXRjaGVzCj4+ICsgwqAgwqAgwqAgwqB0aGF0IHN1cHBvcnQgb3B0aW1pemVk
+IFNMMlZMIHByb2dyYW1taW5nICovCj4+IMKgIMKgIMKgIHBfdGJsID0gJnBfb3NtLT5zdWJuLnBv
+cnRfZ3VpZF90Ymw7Cj4+IMKgIMKgIMKgIHBfbmV4dCA9IGNsX3FtYXBfaGVhZChwX3RibCk7Cj4+
+IMKgIMKgIMKgIHdoaWxlIChwX25leHQgIT0gY2xfcW1hcF9lbmQocF90YmwpKSB7Cj4gLS0KPiBU
+byB1bnN1YnNjcmliZSBmcm9tIHRoaXMgbGlzdDogc2VuZCB0aGUgbGluZSAidW5zdWJzY3JpYmUg
+bGludXgtcmRtYSIgaW4KPiB0aGUgYm9keSBvZiBhIG1lc3NhZ2UgdG8gbWFqb3Jkb21vQHZnZXIu
+a2VybmVsLm9yZwo+IE1vcmUgbWFqb3Jkb21vIGluZm8gYXQgwqBodHRwOi8vdmdlci5rZXJuZWwu
+b3JnL21ham9yZG9tby1pbmZvLmh0bWwKPgo=
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
