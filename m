@@ -1,46 +1,30 @@
-From: David Dillow <dave-i1Mk8JYDVaaSihdK6806/g@public.gmane.org>
-Subject: Re: [PATCH] IB/srp: Fix initiator lockup
-Date: Thu, 07 Jan 2010 11:26:32 -0500
-Message-ID: <1262881592.29991.17.camel@obelisk.thedillows.org>
-References: <e2e108261001020419l36319156hb9d625edc2e15d06@mail.gmail.com>
-	 <1262568846.13289.4.camel@obelisk.thedillows.org>
-	 <e2e108261001032313v472d4b9dm75c3d0b1a9268adc@mail.gmail.com>
-	 <adavdfesyi4.fsf@roland-alpha.cisco.com>
-	 <e2e108261001062359l66384219r650294b4d6e9f3f1@mail.gmail.com>
+From: "Sean Hefty" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCHv7 4/9] ib_core: RoCEE CMA device binding
+Date: Thu, 7 Jan 2010 08:50:47 -0800
+Message-ID: <1E5F6C57727E4A3BB737240D2D1942A4@amr.corp.intel.com>
+References: <20100105103257.GF31480@mtls03> <4B45E977.70805@Voltaire.com> <20100107151912.GB2892@mtls03>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain;
+	charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <e2e108261001062359l66384219r650294b4d6e9f3f1-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <20100107151912.GB2892@mtls03>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <bart.vanassche-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, OFED mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Chris Worley <worleys-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+To: 'Eli Cohen' <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Or Gerlitz <ogerlitz-hKgKHo2Ms0FWk0Htik3J/w@public.gmane.org>
+Cc: Eli Cohen <eli-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Linux RDMA list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, 2010-01-07 at 08:59 +0100, Bart Van Assche wrote:
-> On Wed, Jan 6, 2010 at 10:40 PM, Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org> wrote:
-> >
-> >  > Is that regular kernel coding practice, to run away with the work
-> >  > someone else did and to claim authorship ? As far as I know this is
-> >  > considered as impolite.
-> >
-> > I don't see "with proper credit for Bart" as claiming authorship.  And
-> > yes, I think proposing a better way of doing things is definitely
-> > regular kernel coding practice.  It's more than polite -- it's going way
-> > beyond helpful review comments and actually helping revise the patches.
-> 
-> You are welcome to have a look at the descriptions of the three
-> patches posted by David Dillow. I was not credited in any way in these
-> descriptions. Not for analyzing the problem, not for the design of a
-> solution and not for the work I did in implementing a solution. That
-> is why I wrote that David Dillow was claiming authorship of the work I
-> did.
+>> > +	route->path_rec->hop_limit = 2;
+>>
+>
+>The reason is that ib_init_ah_from_path() will not set IB_AH_GRH for
+>hop_limit smaller then 2, and since that GRH is required in RoCEE, and
+>since this is specific to RoCEE, I put 2 to make pass this.
 
-And here I thought I covered it by stating in the cover letter that they
-were not signed off, needed credit for you, and shouldn't go upstream
-until you ACK'd them, presumably with that fixed. I thought people would
-put two and two together, but I suppose not. I'll try to be more
-explicit next time.
+A hop limit of 2 seems wrong though.  Isn't there some change that could be made
+to ib_init_ah_from_path() that would work?  It seems like the PR itself should
+indicate somehow whether the path is for IB or Ethernet.  (Special LID values or
+some flag...)
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
