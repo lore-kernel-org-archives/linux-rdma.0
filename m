@@ -1,89 +1,159 @@
 From: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Subject: Re: [PATCHv3] opensm: Add support for optimized SLtoVLMappingTable
 	programming
-Date: Thu, 7 Jan 2010 08:34:24 -0500
-Message-ID: <f0e08f231001070534k5201150cm2247f18d33262595@mail.gmail.com>
+Date: Thu, 7 Jan 2010 08:35:28 -0500
+Message-ID: <f0e08f231001070535l382f1d54t7f6290607e52b196@mail.gmail.com>
 References: <20091201194110.GA26753@comcast.net> <20100105111841.GO26940@me>
+	 <20100105112334.GP26940@me>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: base64
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20100105111841.GO26940@me>
+In-Reply-To: <20100105112334.GP26940@me>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-SGkgU2FzaGEsCgpPbiBUdWUsIEphbiA1LCAyMDEwIGF0IDY6MTggQU0sIFNhc2hhIEtoYXB5b3Jz
-a3kgPHNhc2hha0B2b2x0YWlyZS5jb20+IHdyb3RlOgo+IEhpIEhhbCwKPgo+IE9uIDE0OjQxIFR1
-ZSAwMSBEZWMgwqAgwqAgLCBIYWwgUm9zZW5zdG9jayB3cm90ZToKPj4KPj4gT3B0aW1pemVkIFNM
-dG9WTE1hcHBpbmdUYWJsZSBwcm9ncmFtbWluZyByZWR1Y2VzIHRoZSBudW1iZXIgb2YgTUFEcwo+
-PiBuZWVkZWQgZnJvbSBPKG4qKjIpIHRvIE8obikuIFNlZSBJQkEgMS4yLjEgdm9sIDEgcC4gODQz
-IDE0LjIuNS44Cj4+IFNMdG9WTE1hcHBpbmdUYWJsZS4KPj4KPj4gU2lnbmVkLW9mZi1ieTogSGFs
-IFJvc2Vuc3RvY2sgPGhhbC5yb3NlbnN0b2NrQGdtYWlsLmNvbT4KPj4gLS0tCj4KPiBbc25pcF0K
-Pgo+PiBkaWZmIC0tZ2l0IGEvb3BlbnNtL29wZW5zbS9vc21fcW9zLmMgYi9vcGVuc20vb3BlbnNt
-L29zbV9xb3MuYwo+PiBpbmRleCAwOGY5YTYwLi42MTdhODZlIDEwMDY0NAo+PiAtLS0gYS9vcGVu
-c20vb3BlbnNtL29zbV9xb3MuYwo+PiArKysgYi9vcGVuc20vb3BlbnNtL29zbV9xb3MuYwo+Cj4g
-W3NuaXBdCj4KPj4gQEAgLTI5MCw2ICszMDYsNDQgQEAgaW50IG9zbV9xb3Nfc2V0dXAob3NtX29w
-ZW5zbV90ICogcF9vc20pCj4+IMKgIMKgIMKgIC8qIHJlYWQgUW9TIHBvbGljeSBjb25maWcgZmls
-ZSAqLwo+PiDCoCDCoCDCoCBvc21fcW9zX3BhcnNlX3BvbGljeV9maWxlKCZwX29zbS0+c3Vibik7
-Cj4+Cj4+ICsgwqAgwqAgLyogbG9vcCBvbiBzd2l0Y2hlcyB0aGF0IHN1cHBvcnQgb3B0aW1pemVk
-IFNMMlZMIHByb2dyYW1taW5nIGZpcnN0ICovCj4+ICsgwqAgwqAgcF90YmwgPSAmcF9vc20tPnN1
-Ym4uc3dfZ3VpZF90Ymw7Cj4+ICsgwqAgwqAgcF9uZXh0ID0gY2xfcW1hcF9oZWFkKHBfdGJsKTsK
-Pj4gKyDCoCDCoCB3aGlsZSAocF9uZXh0ICE9IGNsX3FtYXBfZW5kKHBfdGJsKSkgewo+PiArIMKg
-IMKgIMKgIMKgIMKgIMKgIHBfc3cgPSAob3NtX3N3aXRjaF90ICopIHBfbmV4dDsKPj4gKyDCoCDC
-oCDCoCDCoCDCoCDCoCBwX25leHQgPSBjbF9xbWFwX25leHQocF9uZXh0KTsKPj4gKwo+PiArIMKg
-IMKgIMKgIMKgIMKgIMKgIGlmIChpYl9zd2l0Y2hfaW5mb19nZXRfb3B0X3NsMnZsbWFwcGluZygm
-cF9zdy0+c3dpdGNoX2luZm8pICYmCj4+ICsgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgcF9vc20t
-PnN1Ym4ub3B0LnVzZV9vcHRpbWl6ZWRfc2x2bCkgewo+PiArIMKgIMKgIMKgIMKgIMKgIMKgIMKg
-IMKgIMKgIMKgIHBfcGh5c3AgPSBvc21fbm9kZV9nZXRfcGh5c3BfcHRyKHBfc3ctPnBfbm9kZSwg
-MSk7Cj4+ICsgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgbnVtX3BoeXNwID0gb3NtX25v
-ZGVfZ2V0X251bV9waHlzcChwX3N3LT5wX25vZGUpOwo+PiArIMKgIMKgIMKgIMKgIMKgIMKgIMKg
-IMKgIMKgIMKgIGZvcmNlX3VwZGF0ZSA9IHBfb3NtLT5zdWJuLm5lZWRfdXBkYXRlOwo+PiArIMKg
-IMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIGZvciAoaSA9IDE7IGkgPCBudW1fcGh5c3A7IGkr
-Kykgewo+PiArIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIHBfcGh5
-c3AgPSBvc21fbm9kZV9nZXRfcGh5c3BfcHRyKHBfc3ctPnBfbm9kZSwgaSk7Cj4+ICsgwqAgwqAg
-wqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgaWYgKCFwX3BoeXNwKQo+PiArIMKg
-IMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIGNvbnRp
-bnVlOwo+PiArIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIGlmICh2
-bGFyYl9waHlzcF9zZXR1cCgmcF9vc20tPnNtLCBwX3BoeXNwLCBpLAo+PiArIMKgIMKgIMKgIMKg
-IMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKg
-IMKgIMKgIHBfcGh5c3AtPm5lZWRfdXBkYXRlIHx8Cj4+ICsgwqAgwqAgwqAgwqAgwqAgwqAgwqAg
-wqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgcF9v
-c20tPnN1Ym4ubmVlZF91cGRhdGUsCj4+ICsgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAg
-wqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgJnN3ZV9jb25maWcp
-KQo+PiArIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKg
-IMKgIHJldCA9IC0xOwo+PiArIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKg
-IMKgIGZvcmNlX3VwZGF0ZSB8PSBwX3BoeXNwLT5uZWVkX3VwZGF0ZTsKPj4gKyDCoCDCoCDCoCDC
-oCDCoCDCoCDCoCDCoCDCoCDCoCB9Cj4+ICsgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAg
-aWYgKHNsMnZsX3VwZGF0ZSgmcF9vc20tPnNtLAo+PiArIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKg
-IMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgb3NtX25vZGVfZ2V0X3BoeXNwX3B0cihw
-X3N3LT5wX25vZGUsIDApLAo+PiArIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKg
-IMKgIMKgIMKgIMKgIMKgIMKgIMKgcF9waHlzcCwgaSwgMSwgZm9yY2VfdXBkYXRlLAo+Cj4gQXQg
-dGhpcyBwb2ludCBpID0gbnVtX3BoeXNwLCB3aGljaCBpcyBhbiBpbnZhbGlkIHN3aXRjaCBwb3J0
-IG51bWJlciwKPiByaWdodD8KClllcywgYnV0IGluIHNsMnZsX3VwZGF0ZV90YWJsZSBvdXRwdXQg
-cG9ydCBudW0gaXMgbm90IHVzZWQgd2hlbgpvcHRpbWl6ZSBpcyAxIHdoaWNoIGlzIHRoZSBjYXNl
-IGhlcmUuCgotLSBIYWwKCj4gU2FzaGEKPgo+Cj4+ICsgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAg
-wqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAmc3dlX2NvbmZpZykpIHsKPj4gKyDCoCDC
-oCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCBPU01fTE9HKCZwX29zbS0+bG9n
-LCBPU01fTE9HX0VSUk9SLCAiRVJSIDYyMDQ6ICIKPj4gKyDCoCDCoCDCoCDCoCDCoCDCoCDCoCDC
-oCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCAiZmFpbGVkIHRvIHVwZGF0ZSBvcHRpbWl6
-ZWQgU0wyVkxNYXBwaW5nIgo+PiArIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKg
-IMKgIMKgIMKgIMKgIMKgIMKgICIgdGFibGVzIGZvciBwb3J0ICUiIFBSSXg2NCAiICMlZFxuIiwK
-Pj4gKyDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDC
-oCBjbF9udG9oNjQocF9waHlzcC0+cG9ydF9ndWlkKSwgaSk7Cj4+ICsgwqAgwqAgwqAgwqAgwqAg
-wqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgcmV0ID0gLTE7Cj4+ICsgwqAgwqAgwqAgwqAgwqAg
-wqAgwqAgwqAgwqAgwqAgfQo+PiArIMKgIMKgIMKgIMKgIMKgIMKgIH0KPj4gKyDCoCDCoCB9Cj4+
-ICsKPj4gKyDCoCDCoCAvKiBub3csIGxvb3Agb24gcG9ydHMgc2tpcHBpbmcgdGhlIGV4dGVybmFs
-IHBvcnRzIG9mIHN3aXRjaGVzCj4+ICsgwqAgwqAgwqAgwqB0aGF0IHN1cHBvcnQgb3B0aW1pemVk
-IFNMMlZMIHByb2dyYW1taW5nICovCj4+IMKgIMKgIMKgIHBfdGJsID0gJnBfb3NtLT5zdWJuLnBv
-cnRfZ3VpZF90Ymw7Cj4+IMKgIMKgIMKgIHBfbmV4dCA9IGNsX3FtYXBfaGVhZChwX3RibCk7Cj4+
-IMKgIMKgIMKgIHdoaWxlIChwX25leHQgIT0gY2xfcW1hcF9lbmQocF90YmwpKSB7Cj4gLS0KPiBU
-byB1bnN1YnNjcmliZSBmcm9tIHRoaXMgbGlzdDogc2VuZCB0aGUgbGluZSAidW5zdWJzY3JpYmUg
-bGludXgtcmRtYSIgaW4KPiB0aGUgYm9keSBvZiBhIG1lc3NhZ2UgdG8gbWFqb3Jkb21vQHZnZXIu
-a2VybmVsLm9yZwo+IE1vcmUgbWFqb3Jkb21vIGluZm8gYXQgwqBodHRwOi8vdmdlci5rZXJuZWwu
-b3JnL21ham9yZG9tby1pbmZvLmh0bWwKPgo=
+On Tue, Jan 5, 2010 at 6:23 AM, Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org> =
+wrote:
+> On 13:18 Tue 05 Jan =C2=A0 =C2=A0 , Sasha Khapyorsky wrote:
+>> >
+>> > Optimized SLtoVLMappingTable programming reduces the number of MAD=
+s
+>> > needed from O(n**2) to O(n). See IBA 1.2.1 vol 1 p. 843 14.2.5.8
+>> > SLtoVLMappingTable.
+>> >
+>> > Signed-off-by: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+>> > ---
+>>
+>> [snip]
+>>
+>> > diff --git a/opensm/opensm/osm_qos.c b/opensm/opensm/osm_qos.c
+>> > index 08f9a60..617a86e 100644
+>> > --- a/opensm/opensm/osm_qos.c
+>> > +++ b/opensm/opensm/osm_qos.c
+>>
+>
+> After rebasing this part over recently posted patches it becomes:
+>
+> diff --git a/opensm/opensm/osm_qos.c b/opensm/opensm/osm_qos.c
+> index f54e995..6bbbfa2 100644
+> --- a/opensm/opensm/osm_qos.c
+> +++ b/opensm/opensm/osm_qos.c
+> @@ -1,5 +1,6 @@
+> =C2=A0/*
+> =C2=A0* Copyright (c) 2006-2009 Voltaire, Inc. All rights reserved.
+> + * Copyright (c) 2009 HNR Consulting. All rights reserved.
+> =C2=A0*
+> =C2=A0* This software is available to you under a choice of one of tw=
+o
+> =C2=A0* licenses. =C2=A0You may choose to be licensed under the terms=
+ of the GNU
+> @@ -157,14 +158,13 @@ static ib_api_status_t vlarb_update(osm_sm_t * =
+sm, osm_physp_t * p,
+> =C2=A0}
+>
+> =C2=A0static ib_api_status_t sl2vl_update_table(osm_sm_t * sm, osm_ph=
+ysp_t * p,
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =
+uint8_t in_port, uint8_t out_port,
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =
+uint8_t in_port, uint32_t attr_mod,
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =
+=C2=A0unsigned force_update,
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =
+=C2=A0const ib_slvl_table_t * sl2vl_table)
+> =C2=A0{
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0osm_madw_context_t context;
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0ib_slvl_table_t tbl, *p_tbl;
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0osm_node_t *p_node =3D osm_physp_get_node_=
+ptr(p);
+> - =C2=A0 =C2=A0 =C2=A0 uint32_t attr_mod;
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0ib_api_status_t status;
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0unsigned vl_mask;
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0uint8_t vl1, vl2;
+> @@ -189,7 +189,6 @@ static ib_api_status_t sl2vl_update_table(osm_sm_=
+t * sm, osm_physp_t * p,
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0context.slvl_context.node_guid =3D osm_nod=
+e_get_node_guid(p_node);
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0context.slvl_context.port_guid =3D osm_phy=
+sp_get_port_guid(p);
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0context.slvl_context.set_method =3D TRUE;
+> - =C2=A0 =C2=A0 =C2=A0 attr_mod =3D in_port << 8 | out_port;
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0status =3D osm_req_set(sm, osm_physp_get_d=
+r_path_ptr(p),
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 =C2=A0 =C2=A0 =C2=A0 (uint8_t *) & tbl, sizeof(tbl),
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 =C2=A0 =C2=A0 =C2=A0 IB_MAD_ATTR_SLVL_TABLE, cl_hton32(attr_mod=
+),
+> @@ -223,12 +222,20 @@ static int qos_extports_setup(osm_sm_t * sm, os=
+m_node_t *node,
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0if (!(p0->port_info.capability_mask & IB_P=
+ORT_CAP_HAS_SL_MAP))
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0return ret;
+>
+> + =C2=A0 =C2=A0 =C2=A0 if (ib_switch_info_get_opt_sl2vlmapping(&node-=
+>sw->switch_info) &&
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 sm->p_subn->opt.use_optimized_sl=
+vl) {
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 p =3D osm_node_get=
+_physp_ptr(node, 1);
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 force_update =3D p=
+->need_update || sm->p_subn->need_update;
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 return sl2vl_updat=
+e_table(sm, p, 1, 0x30000, force_update,
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =
+&qcfg->sl2vl);
+> + =C2=A0 =C2=A0 =C2=A0 }
+> +
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0for (i =3D 1; i < num_ports; i++) {
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0p =3D osm_node=
+_get_physp_ptr(node, i);
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0force_update =3D=
+ p->need_update || sm->p_subn->need_update;
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0for (j =3D 0; =
+j < num_ports; j++)
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 if (sl2vl_update_table(sm, p, i, j, force_update,
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =
+=C2=A0 =C2=A0 =C2=A0&qcfg->sl2vl))
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 if (sl2vl_update_table(sm, p, i, i << 8 | j,
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =
+=C2=A0 =C2=A0 =C2=A0force_update, &qcfg->sl2vl))
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0ret =3D -1;
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0}
+>
+>
+> , does it look fine for you?
+
+In the optimized case, doesn't this send extra SL2VL mapping table ?
+Couldn''t that be eliminated by checking for this in the new endport
+routine (and skipping the remainder of that routine) ?
+
+-- Hal
+
+>
+> Sasha
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma"=
+ in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at =C2=A0http://vger.kernel.org/majordomo-info.ht=
+ml
+>
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
