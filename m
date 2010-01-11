@@ -1,50 +1,52 @@
-From: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCHv7 4/9] ib_core: RoCEE CMA device binding
-Date: Mon, 11 Jan 2010 12:54:50 +0200
-Message-ID: <20100111105450.GA10818@mtls03>
-References: <20100105103257.GF31480@mtls03>
- <4B45E977.70805@Voltaire.com>
- <20100107151912.GB2892@mtls03>
- <1E5F6C57727E4A3BB737240D2D1942A4@amr.corp.intel.com>
- <20100107182451.GD4664@obsidianresearch.com>
+From: Or Gerlitz <ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+Subject: upstream mlx4/ib/4K mtu support
+Date: Mon, 11 Jan 2010 14:13:20 +0200 (IST)
+Message-ID: <Pine.LNX.4.64.1001111410240.28822@zuben.voltaire.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20100107182451.GD4664-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Or Gerlitz <ogerlitz-hKgKHo2Ms0FWk0Htik3J/w@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Linux RDMA list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Vladimir Sokolovsky <vlad-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Jan 07, 2010 at 11:24:51AM -0700, Jason Gunthorpe wrote:
-> On Thu, Jan 07, 2010 at 08:50:47AM -0800, Sean Hefty wrote:
-> > >> > +	route->path_rec->hop_limit = 2;
-> > >>
-> > >
-> > >The reason is that ib_init_ah_from_path() will not set IB_AH_GRH for
-> > >hop_limit smaller then 2, and since that GRH is required in RoCEE, and
-> > >since this is specific to RoCEE, I put 2 to make pass this.
-> > 
-> > A hop limit of 2 seems wrong though.  Isn't there some change that
-> > could be made to ib_init_ah_from_path() that would work?  It seems
-> > like the PR itself should indicate somehow whether the path is for
-> > IB or Ethernet.  (Special LID values or some flag...)
-> 
+Hi Vlad, I came across this ofed patch which isn't upstream. Is it a must
+for making mlx4/ib/4K mtu working? was it rejected from upstream? why?
 
-So, adding a flag to ib_init_ah_from_path() seems a reasonable
-solution. This function is called from three places:
-cm_init_av_by_path() and cma_sidr_rep_handler() can check the port
-link layer and set a flag to request GRH for Ethernet link layers. The
-other place is IPoIB:path_rec_completion() where we need not require
-GRH since IPoIB over RoCEE is disable.
+Or.
 
 
-> I agree, on the wire the hop limit in the GRH should be 0 or 0xFF. 0
-> is preferred since there is no support for routing.
-> 
+mlx4/IB: Add set_4k_mtu module parameter.
 
-Why do you think we should use 0 for hop limit? Isn't 1 just as good?
+It control Infiniband link MTU for all IB ports in a host.
+
+Signed-off-by: Vladimir Sokolovsky <vlad-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
+---
+Index: ofed_kernel-fixes/drivers/net/mlx4/port.c
+===================================================================
+--- ofed_kernel-fixes.orig/drivers/net/mlx4/port.c	2009-11-09 02:20:06.000000000 +0200
++++ ofed_kernel-fixes/drivers/net/mlx4/port.c	2009-11-09 02:21:46.000000000 +0200
+@@ -37,6 +37,10 @@
+
+ #include "mlx4.h"
+
++int mlx4_ib_set_4k_mtu = 0;
++module_param_named(set_4k_mtu, mlx4_ib_set_4k_mtu, int, 0444);
++MODULE_PARM_DESC(set_4k_mtu, "attempt to set 4K MTU to all ConnectX ports");
++
+ #define MLX4_MAC_VALID		(1ull << 63)
+ #define MLX4_MAC_MASK		0xffffffffffffULL
+
+@@ -308,6 +312,9 @@
+
+ 	memset(mailbox->buf, 0, 256);
+
++	if (mlx4_ib_set_4k_mtu)
++		((__be32 *) mailbox->buf)[0] |= cpu_to_be32((1 << 22) | (1 << 21) | (5 << 12) | (2 << 4));
++
+ 	((__be32 *) mailbox->buf)[1] = dev->caps.ib_port_def_cap[port];
+ 	err = mlx4_cmd(dev, mailbox->dma, port, 0, MLX4_CMD_SET_PORT,
+ 		       MLX4_CMD_TIME_CLASS_B);
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
