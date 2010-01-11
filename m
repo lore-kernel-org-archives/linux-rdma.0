@@ -1,42 +1,50 @@
-From: Vladislav Bolkhovitin <vst-d+Crzxg7Rs0@public.gmane.org>
-Subject: Re: SRP Q's: 1) When is asynchronous I/O complete, 2) Is sequential
- 	I/O coalesced, and 3) why is iSCSI faster than SRP in some instances
-Date: Mon, 11 Jan 2010 21:44:01 +0300
-Message-ID: <4B4B7171.4020000@vlnb.net>
-References: <f3177b9e1001061616v4f0015d1h843ba19c8cdd83d@mail.gmail.com>	 <1262829441.29991.10.camel@obelisk.thedillows.org>	 <f3177b9e1001081340r323c53cela2fb22907212fc2b@mail.gmail.com>	 <1262989053.14204.21.camel@obelisk.thedillows.org> <f3177b9e1001081439j3730acefrbfcf523b0da06306@mail.gmail.com>
+From: "Davis, Arlin R" <arlin.r.davis-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [ANNOUNCE] uDAPL v2 - dapl-2.0.26 release
+Date: Mon, 11 Jan 2010 11:58:07 -0800
+Message-ID: <E3280858FA94444CA49D2BA02341C983ADFC3AD6@orsmsx506.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <f3177b9e1001081439j3730acefrbfcf523b0da06306-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Chris Worley <worleys-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: David Dillow <dave-i1Mk8JYDVaaSihdK6806/g@public.gmane.org>, OFED mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, scst-devel <scst-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "ofw-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org" <ofw-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>, "ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org" <ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+Cc: "Smith, Stan" <stan.smith-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Vladimir Sokolovsky <vlad-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, Tziporet Koren <tziporet-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Chris Worley, on 01/09/2010 01:39 AM wrote:
->>> I thought if the device was opened with the O_DIRECT flag, then the
->>> scheduler should have nothing to coalesce.
->> Depends on how many I/Os your application has in flight at once,
->> assuming it is using AIO or threads. If you have more requests in flight
->> than can be queued, the block layer will coalesce if possible.
-> 
-> I do use AIO, always 64 threads, each w/ 64 outstanding I/O's.  Local
-> or iSER initiator based, I never see any coalescing.  Only w/ SRP.
+ 
 
-SRP initiator seems to be not too well optimized for the best 
-performance. ISER initiator is noticeably better in this area.
+New release for uDAPL 2.0 available on the OFA download page and in my git tree.
 
-> There is the scst_vdisk "Direct I/O" option that's been commented out
-> of the code, as it's not supposed to work... maybe direct I/O doesn't
-> work... but that would be the target side.
+Bug fixes for RDMAoE.
 
-O_DIRECT for vdisk is supposed to work. It's a matter of a small patch 
-for the kernel, see http://scst.sourceforge.net/contributing.html#O_DIRECT.
+md5sum: 32924de6b4f1fa351aa1468b19501981 dapl-2.0.26.tar.gz 
 
-Meanwhile, you can use fileio_tgt handler, with which O_DIRECT works well.
+Summary of changes since last release: 
 
-Vlad
+Release 2.0.26 fixes (tested on OFED-RDMAoE-rc6, Mellanox MHJH29-XTC, v2.7.0): 
+
+v2 - openib_common: add check for both gid and global routing in RTR 
+v2 - openib_common: remote memory read priviledge set multiple times 
+v2 - scm, ucm: DAPL_GLOBAL_ROUTING enable setting to use GID's, causes segv 
+
+Vlad, please pull new package into latest OFED 1.5 RDMAoE build and install the following:
+ 
+dapl-2.0.26-1 
+dapl-utils-2.0.26-1 
+dapl-devel-2.0.26-1 
+dapl-debuginfo-2.0.26-1 
+compat-dapl-1.2.15-1 
+compat-dapl-devel-1.2.15-1 
+
+See http://www.openfabrics.org/downloads/dapl/ more details.
+
+Thanks,
+
+-arlin
+
+
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
