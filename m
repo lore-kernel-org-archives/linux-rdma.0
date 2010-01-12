@@ -1,183 +1,54 @@
-From: Alex Vainman <alexonlists-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH] libibverbs: Add huge page support to ibv_madvise_range()
-Date: Tue, 12 Jan 2010 11:26:12 +0200
-Message-ID: <4B4C4034.6000105@gmail.com>
-References: <4B12AA78.7090401@gmail.com> <4B1E5CA9.3090707@gmail.com>
-Reply-To: alexv-smomgflXvOZWk0Htik3J/w@public.gmane.org
+From: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH] tests/subnet_discover: discover test utility
+Date: Tue, 12 Jan 2010 11:31:45 +0200
+Message-ID: <20100112093145.GF26089@me>
+References: <20090816110200.GS25501@me>
+ <20090817083023.da17378b.weiny2@llnl.gov>
+ <20090823120609.GG9547@me>
+ <20090826164026.8dcce4b2.weiny2@llnl.gov>
+ <20091023234349.GK5764@me>
+ <20091220121406.GF5262@me>
+ <20091220182809.f7e17fae.weiny2@llnl.gov>
+ <20091221073550.GB18524@me>
+ <20091228092251.GR26940@me>
+ <f0e08f231001110556y7c47cc54oa3cfd5859f9a4e76@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1255
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4B1E5CA9.3090707-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <f0e08f231001110556y7c47cc54oa3cfd5859f9a4e76-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Cc: roland <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, alexr-smomgflXvOZWk0Htik3J/w@public.gmane.org, alexv-smomgflXvOZWk0Htik3J/w@public.gmane.org
+To: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Al Chu <chu11-i2BcT+NCU+M@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Roland,
+Hi Hal,
 
-I would like to ask you if you have an estimation for when you will review the patches below?
+On 08:56 Mon 11 Jan     , Hal Rosenstock wrote:
+> >
+> > diff --git a/tests/subnet_discover.c b/tests/subnet_discover.c
+> > index 7f8a85c..42e7aee 100644
+> > --- a/tests/subnet_discover.c
+> > +++ b/tests/subnet_discover.c
+> > @@ -40,6 +40,7 @@ static struct node *node_array[32 * 1024];
+> > =A0static unsigned node_count =3D 0;
+> > =A0static unsigned trid_cnt =3D 0;
+> > =A0static unsigned outstanding =3D 0;
+> > +static unsigned max_outstanding =3D 8;
+>=20
+> Any reason why this default is different from the one which OpenSM
+> uses ? Seems to me it should be the same (or less).
 
-Thanks,
-AlexV
+In my tests I found that '8' is more optimal number (the tool works
+faster and without drops) than '4' used in OpenSM.
 
-Alex Vainman wrote:
-> Hi Roland,
-> 
-> Have you had a chance to look at this patch and at the patch 
-> I've sent with this email:
-> "Subject: [PATCH] libibverbs: Add huge page support to ibv_madvise_range()
-> Sent: Sun, 29 Nov 2009 19:08:08 +0200"?
-> 
-> Thanks,
-> Alexv
-> 
-> 
-> Alex Vainman wrote:
->> ibv_reg_mr() fails to register a memory region allocated on huge page and not
->> the default page size. This happens because ibv_madvise_range() aligns memory
->> region to the default system page size before calling to madvise() which fails
->> with EINVAL error. madvise() fails because it expects that the start and end
->> pointer of the memory range be huge page aligned.
->> Patch handles the issue by:
->> 1. ibv_fork_init() gets kernel's default huge page size in addition
->>    to the default page size.
->> 2. ibv_madvise_range() first tries aligning users memory range to default
->>    page size and if madvise() fails with EINVAL error then it tries to align
->>    users memory range by huge page size and tries madvise() again.
->>
->> Signed-off-by: Alex Vaynman <alexv-smomgflXvOZWk0Htik3J/w@public.gmane.org>
->> ---
->>  src/memory.c |   69 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++-
->>  1 files changed, 68 insertions(+), 1 deletions(-)
->>
->> diff --git a/src/memory.c b/src/memory.c
->> index 550015a..73db083 100644
->> --- a/src/memory.c
->> +++ b/src/memory.c
->> @@ -40,6 +40,9 @@
->>  #include <unistd.h>
->>  #include <stdlib.h>
->>  #include <stdint.h>
->> +#include <ctype.h>
->> +#include <fcntl.h>
->> +#include <string.h>
->>  
->>  #include "ibverbs.h"
->>  
->> @@ -54,6 +57,8 @@
->>  #define MADV_DOFORK	11
->>  #endif
->>  
->> +#define MEMINFO_SIZE	2048
->> +
->>  struct ibv_mem_node {
->>  	enum {
->>  		IBV_RED,
->> @@ -68,8 +73,51 @@ struct ibv_mem_node {
->>  static struct ibv_mem_node *mm_root;
->>  static pthread_mutex_t mm_mutex = PTHREAD_MUTEX_INITIALIZER;
->>  static int page_size;
->> +static int huge_page_size;
->>  static int too_late;
->>  
->> +/*
->> + * Get the kernel default huge page size.
->> + */
->> +static int get_huge_page_size()
->> +{
->> +	int fd;
->> +	char buf[MEMINFO_SIZE];
->> +	int mem_file_len;
->> +	char *p_hpage_val = NULL;
->> +	char *end_pointer = NULL;
->> +	char file_name[] = "/proc/meminfo";
->> +	const char label[] = "Hugepagesize:";
->> +	int ret_val = 0;
->> +
->> +	fd = open(file_name, O_RDONLY);
->> +	if (fd < 0)
->> +		return fd;
->> +
->> +	mem_file_len = read(fd, buf, sizeof(buf) - 1);
->> +
->> +	close(fd);
->> +	if (mem_file_len < 0)
->> +		return mem_file_len;
->> +
->> +	buf[mem_file_len] = '\0';
->> +
->> +	p_hpage_val = strstr(buf, label);
->> +	if (!p_hpage_val) {
->> +		errno = EINVAL;
->> +		return -1;
->> +	}
->> +	p_hpage_val += strlen(label);
->> +
->> +	errno = 0;
->> +	ret_val = strtol(p_hpage_val, &end_pointer, 0);
->> +
->> +	if (errno != 0)
->> +		return -1;
->> +
->> +	return ret_val * 1024;
->> +}
->> +
->>  int ibv_fork_init(void)
->>  {
->>  	void *tmp;
->> @@ -85,6 +133,8 @@ int ibv_fork_init(void)
->>  	if (page_size < 0)
->>  		return errno;
->>  
->> +	huge_page_size = get_huge_page_size();
->> +
->>  	if (posix_memalign(&tmp, page_size, page_size))
->>  		return ENOMEM;
->>  
->> @@ -554,7 +604,8 @@ static struct ibv_mem_node *prepare_to_roll_back(struct ibv_mem_node *node,
->>  	return node;
->>  }
->>  
->> -static int ibv_madvise_range(void *base, size_t size, int advice)
->> +static int ibv_madvise_range_helper(void *base, size_t size, int advice,
->> +				    int page_size)
->>  {
->>  	uintptr_t start, end;
->>  	struct ibv_mem_node *node, *tmp;
->> @@ -646,6 +697,22 @@ out:
->>  	return ret;
->>  }
->>  
->> +static int ibv_madvise_range(void *base, size_t size, int advice)
->> +{
->> +	int ret_val = 0;
->> +
->> +	ret_val = ibv_madvise_range_helper(base, size, advice, page_size);
->> +
->> +	/*
->> +	 * if memory is backed by huge pages we need to align it
->> +	 * to huge page boundary in order madvise() will succeed.
->> +	 */
->> +	if (ret_val == -1 && errno == EINVAL && huge_page_size > 0)
->> +		ret_val = ibv_madvise_range_helper(base, size, advice, huge_page_size);
->> +
->> +	return ret_val;
->> +}
->> +
->>  int ibv_dontfork_range(void *base, size_t size)
->>  {
->>  	if (mm_root)
-> 
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+Of course it would be helpful to run this over bigger cluster than
+what I have to see that the results are consistent.
 
-
+Sasha
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
