@@ -1,49 +1,33 @@
 From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCHv7 0/9] RoCEE support to Infiniband
-Date: Tue, 12 Jan 2010 09:12:08 -0800
-Message-ID: <ada7hrnp7rr.fsf@roland-alpha.cisco.com>
-References: <20100105103213.GB31480@mtls03>
+Subject: Re: [PATCH] IB/srp: Fix initiator lockup
+Date: Tue, 12 Jan 2010 09:13:51 -0800
+Message-ID: <ada3a2bp7ow.fsf@roland-alpha.cisco.com>
+References: <e2e108261001020419l36319156hb9d625edc2e15d06@mail.gmail.com>
+	<ada4omyud7c.fsf@roland-alpha.cisco.com>
+	<e2e108261001062352l1925f4e1i24bdbdde08056c4c@mail.gmail.com>
+	<adak4vuqrcw.fsf@roland-alpha.cisco.com>
+	<e2e108261001070003y6881eac7g3e8129e44b78a475@mail.gmail.com>
+	<adavdfapimb.fsf@roland-alpha.cisco.com>
+	<e2e108261001100234k7dcb45cescb9ae133c0cdc256@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20100105103213.GB31480@mtls03> (Eli Cohen's message of "Tue, 5
-	Jan 2010 12:32:13 +0200")
+In-Reply-To: <e2e108261001100234k7dcb45cescb9ae133c0cdc256-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+	(Bart Van Assche's message of "Sun, 10 Jan 2010 11:34:06 +0100")
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: Linux RDMA list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Cc: OFED mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Chris Worley <worleys-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
- > RoCEE (pronounced =E2=80=98rocky=E2=80=99) allows running the IB tra=
-nsport protocol
- > using Ethernet frames, enabling the deployment of IB semantics on
- > lossless Ethernet fabrics.
+ > Note: I do not know of any SRP targets that implement approach (2). As
+ > far as I know all SRP targets use approach (1).
 
-Just starting to review this, but let me say at the start that I really
-don't like the term "RoCEE" for this stuff.  The OFED 1.5 release you
-guys did was called "RDMAoE" but I really think "IBoE" is the best term=
-=2E
-
-Taking the two halves of "RoCEE": The "CEE" acronym doesn't seem
-appropriate, since the standard is really called "DCB" and in any case
-these patches (as far as I can tell) don't use any DCB features.  "E"
-for Ethernet would make more sense.  And "R" or "RDMA" seems
-insufficiently descriptive -- the whole point of this protocol is that
-it uses the IB transport layer rather than iWARP or something else, so
-it seems much clearer to call this "IB".  Plain "R" is really opaque --
-who would ever guess that "R" stands for "RDMA".
-
-=46urthermore, it makes sense to me to take advantage of all the market=
-ing
-and exposition that we did for FCoE -- which was not called "SCSIoDCB".
-The parallels are nearly exact, and being able to say that "IBoE does
-is to IB transport as FCoE is to Fibre Channel" is a very clear analogy=
-=2E
-
- - R.
+But no other SRP targets send SRP_CRED_REQ -- and that includes all
+native IB storage arrays that I know of.  So there must be some other
+way around this (and having separate buffers for command receives and
+response sends does seem like a sensible way to design a target anyway).
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
