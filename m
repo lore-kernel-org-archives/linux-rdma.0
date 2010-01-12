@@ -1,202 +1,54 @@
-From: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH] infiniband-diags/ibqueryerrors: Add support for
- optional PortRcvErrorDetails counter
-Date: Tue, 12 Jan 2010 21:14:20 +0200
-Message-ID: <20100112191420.GJ574@me>
-References: <20091231191054.GA27874@comcast.net>
+From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH] IB/srp: Fix initiator lockup
+Date: Tue, 12 Jan 2010 14:57:35 -0800
+Message-ID: <adavdf7nd7k.fsf@roland-alpha.cisco.com>
+References: <e2e108261001020419l36319156hb9d625edc2e15d06@mail.gmail.com>
+	<ada4omyud7c.fsf@roland-alpha.cisco.com>
+	<e2e108261001062352l1925f4e1i24bdbdde08056c4c@mail.gmail.com>
+	<adak4vuqrcw.fsf@roland-alpha.cisco.com>
+	<e2e108261001070003y6881eac7g3e8129e44b78a475@mail.gmail.com>
+	<adavdfapimb.fsf@roland-alpha.cisco.com>
+	<e2e108261001100234k7dcb45cescb9ae133c0cdc256@mail.gmail.com>
+	<ada3a2bp7ow.fsf@roland-alpha.cisco.com>
+	<e2e108261001120923w4b405736v8b8e8ae41322823b@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20091231191054.GA27874-Wuw85uim5zDR7s880joybQ@public.gmane.org>
+In-Reply-To: <e2e108261001120923w4b405736v8b8e8ae41322823b-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+	(Bart Van Assche's message of "Tue, 12 Jan 2010 18:23:22 +0100")
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Hal Rosenstock <hnrose-Wuw85uim5zDR7s880joybQ@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Cc: OFED mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Chris Worley <worleys-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Hal,
 
-On 14:10 Thu 31 Dec     , Hal Rosenstock wrote:
-> 
-> to --details option
-> 
-> Signed-off-by: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-> ---
-> diff --git a/infiniband-diags/man/ibqueryerrors.8 b/infiniband-diags/man/ibqueryerrors.8
-> index 83a2b5a..e7feea8 100644
-> --- a/infiniband-diags/man/ibqueryerrors.8
-> +++ b/infiniband-diags/man/ibqueryerrors.8
-> @@ -1,4 +1,4 @@
-> -.TH IBQUERYERRORS 8 "Oct 30, 2009" "OpenIB" "OpenIB Diagnostics"
-> +.TH IBQUERYERRORS 8 "Dec 31, 2009" "OpenIB" "OpenIB Diagnostics"
->  
->  .SH NAME
->  ibqueryerrors \- query and report non-zero IB port counters
-> @@ -58,7 +58,7 @@ printed or not.  This is because data counters are only \fBprinted\fR on ports
->  which have errors.  This means if a port has 0 errors and the \-K option is
->  specified the data counters will be cleared without any printed output.
->  .TP
-> -\fB\-\-details\fR include transmit discard details
-> +\fB\-\-details\fR include receive error and transmit discard details
->  .TP
->  \fB\-R\fR  (This option is obsolete and does nothing)
->  
-> diff --git a/infiniband-diags/src/ibqueryerrors.c b/infiniband-diags/src/ibqueryerrors.c
-> index 47bd2af..ceacc58 100644
-> --- a/infiniband-diags/src/ibqueryerrors.c
-> +++ b/infiniband-diags/src/ibqueryerrors.c
-> @@ -205,24 +205,31 @@ static void report_suppressed(void)
->  	printf("\n");
->  }
->  
-> -static int print_xmitdisc_details(char *buf, size_t size, ib_portid_t * portid,
-> -				  ibnd_node_t * node, char *node_name,
-> -				  int portnum)
-> +static int print_details(char *buf, size_t size, ib_portid_t * portid,
-> +			 ibnd_node_t * node, char *node_name, int portnum,
-> +			 int j)
->  {
->  	uint8_t pc[1024];
->  	uint32_t val = 0;
->  	int i, n;
->  
-> +	if (j != IB_PC_ERR_RCV_F && j!= IB_PC_XMT_DISCARDS_F)
-> +		return 0;
-> +
->  	memset(pc, 0, 1024);
->  
->  	if (!pma_query_via(pc, portid, portnum, ibd_timeout,
-> -			   IB_GSI_PORT_XMIT_DISCARD_DETAILS, ibmad_port)) {
-> -		IBWARN("IB_GSI_PORT_XMIT_DISCARD_DETAILS query failed on %s, "
-> -		       "%s port %d", node_name, portid2str(portid), portnum);
-> +			   (j == IB_PC_ERR_RCV_F ? IB_GSI_PORT_RCV_ERROR_DETAILS : IB_GSI_PORT_XMIT_DISCARD_DETAILS),
-> +			   ibmad_port)) {
-> +		IBWARN("%s query failed on %s, %s port %d",
-> +			(j == IB_PC_ERR_RCV_F ? "IB_GSI_PORT_RCV_ERROR_DETAILS" : "IB_GSI_PORT_XMIT_DISCARD_DETAILS"),
-> +			node_name, portid2str(portid), portnum);
->  		return 0;
->  	}
->  
-> -	for (n = 0, i = IB_PC_XMT_INACT_DISC_F; i <= IB_PC_XMT_SW_HOL_DISC_F;
-> +	for (n = 0,
-> +	     i = (j == IB_PC_ERR_RCV_F ? IB_PC_RCV_LOCAL_PHY_ERR_F : IB_PC_XMT_INACT_DISC_F);
-> +	     i <= (j == IB_PC_ERR_RCV_F ? IB_PC_RCV_LOOPING_ERR_F : IB_PC_XMT_SW_HOL_DISC_F);
->  	     i++) {
->  		mad_decode_field(pc, i, (void *)&val);
->  		if (val)
-> @@ -254,10 +261,14 @@ static void print_results(ib_portid_t * portid, char *node_name,
->  			n += snprintf(str + n, 1024 - n, " [%s == %u]",
->  				      mad_field_name(i), val);
->  
-> +		/* If there are PortRcvErrors, get details (if supported) */
-> +		if (i == IB_PC_ERR_RCV_F && details && val) {
-> +			n += print_details(str + n, 1024 - n, portid,
-> +					   node, node_name, portnum, i);
->  		/* If there are PortXmitDiscards, get details (if supported) */
-> -		if (i == IB_PC_XMT_DISCARDS_F && details && val) {
-> -			n += print_xmitdisc_details(str + n, 1024 - n, portid,
-> -						    node, node_name, portnum);
-> +		} else if (i == IB_PC_XMT_DISCARDS_F && details && val) {
-> +			n += print_details(str + n, 1024 - n, portid,
-> +					   node, node_name, portnum, i);
->  		}
->  	}
->  
+ > Having separate buffer sets for command receives and response sends
+ > might seem a sensible way to design a target. But calling
+ > ib_post_recv() before sending a response back to the initiator is not
+ > acceptable because this increases communication latency. When a target
+ > uses separate buffer sets, sends back SRP_RSP before responses before
+ > ib_post_recv() is called, and when it processes SRP_CMD requests in
+ > parallel, it still can happen that a sequence of RL - 2 SRP_RSP
+ > responses is sent back to the initiator all with the REQUEST LIMIT
+ > DELTA field set to zero. So even with separate buffer sets there is a
+ > need for SRP_CRED_REQ support in the initiator.
 
-Could the code above be consolidated in more readable form (without
-repeating the same conditional flows)? Maybe like this:
+I doubt you could benchmark the overhead of calling ib_post_recv() in
+the full SRP protocol.  Really, I bet it's less than 100 nanoseconds to
+form the work request and call ib_post_recv().  Maybe I'm wrong but I
+really expect the overhead of actually doing IO (even to a ramdisk
+buffer or something) is going to be much higher than posting a receive.
 
- 
-diff --git a/infiniband-diags/src/ibqueryerrors.c b/infiniband-diags/src/ibqueryerrors.c
-index 47bd2af..0ebe4bf 100644
---- a/infiniband-diags/src/ibqueryerrors.c
-+++ b/infiniband-diags/src/ibqueryerrors.c
-@@ -205,30 +205,31 @@ static void report_suppressed(void)
- 	printf("\n");
- }
- 
--static int print_xmitdisc_details(char *buf, size_t size, ib_portid_t * portid,
--				  ibnd_node_t * node, char *node_name,
--				  int portnum)
-+static int query_and_dump(char *buf, size_t size, ib_portid_t * portid,
-+			 ibnd_node_t * node, char *node_name, int portnum,
-+			 const char *attr_name, uint16_t attr_id,
-+			 int start_field, int end_field)
- {
- 	uint8_t pc[1024];
- 	uint32_t val = 0;
- 	int i, n;
- 
--	memset(pc, 0, 1024);
-+	memset(pc, 0, sizeof(pc));
- 
--	if (!pma_query_via(pc, portid, portnum, ibd_timeout,
--			   IB_GSI_PORT_XMIT_DISCARD_DETAILS, ibmad_port)) {
--		IBWARN("IB_GSI_PORT_XMIT_DISCARD_DETAILS query failed on %s, "
--		       "%s port %d", node_name, portid2str(portid), portnum);
-+	if (!pma_query_via(pc, portid, portnum, ibd_timeout, attr_id,
-+			   ibmad_port)) {
-+		IBWARN("%s query failed on %s, %s port %d", attr_name,
-+			node_name, portid2str(portid), portnum);
- 		return 0;
- 	}
- 
--	for (n = 0, i = IB_PC_XMT_INACT_DISC_F; i <= IB_PC_XMT_SW_HOL_DISC_F;
--	     i++) {
-+	for (n = 0, i = start_field; i < end_field; i++) {
- 		mad_decode_field(pc, i, (void *)&val);
- 		if (val)
- 			n += snprintf(buf + n, size - n, " [%s == %u]",
- 				      mad_field_name(i), val);
- 	}
-+
- 	return n;
- }
- 
-@@ -256,8 +257,20 @@ static void print_results(ib_portid_t * portid, char *node_name,
- 
- 		/* If there are PortXmitDiscards, get details (if supported) */
- 		if (i == IB_PC_XMT_DISCARDS_F && details && val) {
--			n += print_xmitdisc_details(str + n, 1024 - n, portid,
--						    node, node_name, portnum);
-+			n += query_and_dump(str + n, sizeof(buf) - n, portid,
-+					    node, node_name, portnum,
-+					    "PortXmitDiscardDetails",
-+					    IB_GSI_PORT_XMIT_DISCARD_DETAILS,
-+					    IB_PC_RCV_LOCAL_PHY_ERR_F,
-+					    IB_PC_RCV_ERR_LAST_F);
-+		/* If there are PortRcvErrors, get details (if supported) */
-+		} else if (i == IB_PC_ERR_RCV_F && details && val) {
-+			n += query_and_dump(str + n, sizeof(buf) - n, portid,
-+					    node, node_name, portnum,
-+					    "PortRecvErrorsDetails",
-+					    IB_GSI_PORT_RCV_ERROR_DETAILS,
-+					    IB_PC_XMT_INACT_DISC_F,
-+					    IB_PC_XMT_DISC_LAST_F);
- 		}
- 	}
- 
-? 
+Or maybe you did benchmark it and I'm wrong?
 
-> @@ -364,6 +375,10 @@ static void clear_port(ib_portid_t * portid, uint16_t cap_mask,
->  		performance_reset_via(pc, portid, port, mask, ibd_timeout,
->  				      IB_GSI_PORT_XMIT_DISCARD_DETAILS,
->  				      ibmad_port);
-> +		mask = 0x3F;
-> +		performance_reset_via(pc, portid, port, mask, ibd_timeout,
-> +				      IB_GSI_PORT_RCV_ERROR_DETAILS,
-> +				      ibmad_port);
+ > I'm surprised by all this opposition against adding SRP_CRED_REQ
+ > support in the initiator, a feature defined in the SRP standard ?
 
-If 'mask' value is used unconditionally whouldn't it be simpler to just
-write:
+As I said I agree we should implement support for SRP_CRED_REQ.  However
+I think it would be better if the SCST target could be made to work
+reliably with pre-2.6.34 initiators as well.
 
-		performance_reset_via(pc, portid, port, 0x3f, ibd_timeout,
-				      IB_GSI_PORT_RCV_ERROR_DETAILS,
-				      ibmad_port);
-
-?
-
-Sasha
+ - R.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
