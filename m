@@ -1,28 +1,32 @@
 From: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH] infiniband-diags/ibportstate: allow changes to CA
- portinfo parameters
-Date: Tue, 12 Jan 2010 12:14:37 +0200
-Message-ID: <20100112101437.GH26089@me>
-References: <1257451016.992.173.camel@chromite.mv.qlogic.com>
+Subject: Re: [PATCH] opensm/osm_qos.c: merge SL2VL mapping capability check
+Date: Tue, 12 Jan 2010 12:35:17 +0200
+Message-ID: <20100112103517.GI26089@me>
+References: <20091201194110.GA26753@comcast.net>
+ <20100104170141.GK26940@me>
+ <f0e08f231001070538q78453f91kd47c931087dfa735@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1257451016.992.173.camel-/vjeY7uYZjrPXfVEPVhPGq6RkeBMCJyt@public.gmane.org>
+In-Reply-To: <f0e08f231001070538q78453f91kd47c931087dfa735-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ralph Campbell <ralph.campbell-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 11:56 Thu 05 Nov     , Ralph Campbell wrote:
-> This patch adds new commands to ibportstate to support initializing
-> the link for CAs connected back-to-back. It also allows more than
-> one field to be changed at the same time such as "lid 23 arm" or
-> "width 1 speed 3 enable".
+On 08:38 Thu 07 Jan     , Hal Rosenstock wrote:
 > 
-> Signed-off-by: Ralph Campbell <ralph.campbell-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+> Change appears to be for switches to always rely on this bit rather
+> than only when VLCap is 1. I wonder if there are any switches with
+> VLCap > 1 that don't set the IsSLMappingSupported CapabilityMask bit.
+> There shouldn't be (at least if they are IBA 1.2.1 compliant) but are
+> you sure about this ?
 
-Applied. Thanks.
+I'm not sure about this, but think that probability of using such
+hypothetical old switches for any sort of QoS is very low. And anyway it
+doesn't look for me that we have any stronger SL2VL mapping capability
+indication - 'VLCap > 1' by itself doesn't do this too, right?
 
 Sasha
 --
