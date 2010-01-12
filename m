@@ -1,54 +1,38 @@
 From: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH] tests/subnet_discover: discover test utility
-Date: Tue, 12 Jan 2010 11:31:45 +0200
-Message-ID: <20100112093145.GF26089@me>
-References: <20090816110200.GS25501@me>
- <20090817083023.da17378b.weiny2@llnl.gov>
- <20090823120609.GG9547@me>
- <20090826164026.8dcce4b2.weiny2@llnl.gov>
- <20091023234349.GK5764@me>
- <20091220121406.GF5262@me>
- <20091220182809.f7e17fae.weiny2@llnl.gov>
- <20091221073550.GB18524@me>
- <20091228092251.GR26940@me>
- <f0e08f231001110556y7c47cc54oa3cfd5859f9a4e76@mail.gmail.com>
+Subject: Re: [PATCH] infiniband-diags/ibportstate: allow changes to CA
+ portinfo parameters
+Date: Tue, 12 Jan 2010 12:11:33 +0200
+Message-ID: <20100112101133.GG26089@me>
+References: <1257451016.992.173.camel@chromite.mv.qlogic.com>
+ <1263246218.3077.75.camel@chromite.mv.qlogic.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <f0e08f231001110556y7c47cc54oa3cfd5859f9a4e76-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <1263246218.3077.75.camel-/vjeY7uYZjrPXfVEPVhPGq6RkeBMCJyt@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Al Chu <chu11-i2BcT+NCU+M@public.gmane.org>
+To: Ralph Campbell <ralph.campbell-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Hal,
+Hi Ralph,
 
-On 08:56 Mon 11 Jan     , Hal Rosenstock wrote:
-> >
-> > diff --git a/tests/subnet_discover.c b/tests/subnet_discover.c
-> > index 7f8a85c..42e7aee 100644
-> > --- a/tests/subnet_discover.c
-> > +++ b/tests/subnet_discover.c
-> > @@ -40,6 +40,7 @@ static struct node *node_array[32 * 1024];
-> > =A0static unsigned node_count =3D 0;
-> > =A0static unsigned trid_cnt =3D 0;
-> > =A0static unsigned outstanding =3D 0;
-> > +static unsigned max_outstanding =3D 8;
->=20
-> Any reason why this default is different from the one which OpenSM
-> uses ? Seems to me it should be the same (or less).
+On 13:43 Mon 11 Jan     , Ralph Campbell wrote:
+> Its been 2 months since I posted this.
+> What is the current status? Last comment I saw was from Ira
+> saying either add this functionality to ibportstate or
+> rename ibportstate but don't split it off into a new command.
 
-In my tests I found that '8' is more optimal number (the tool works
-faster and without drops) than '4' used in OpenSM.
+You are right, it seems that an idea about universal and potentially
+extendable new tool didn't find many fans :)
 
-Of course it would be helpful to run this over bigger cluster than
-what I have to see that the results are consistent.
+> My preference is to go with the original patch. I haven't
+> seen any strong objection to it.
+
+I will go over original patch.
 
 Sasha
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
