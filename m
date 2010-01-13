@@ -1,57 +1,39 @@
 From: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH] tests/subnet_discover: discover test utility
-Date: Wed, 13 Jan 2010 15:11:44 -0500
-Message-ID: <f0e08f231001131211y64489a51nd2621cefdb27ad25@mail.gmail.com>
-References: <20090816110200.GS25501@me> <20090823120609.GG9547@me>
-	 <20090826164026.8dcce4b2.weiny2@llnl.gov> <20091023234349.GK5764@me>
-	 <20091220121406.GF5262@me> <20091220182809.f7e17fae.weiny2@llnl.gov>
-	 <20091221073550.GB18524@me> <20091228092251.GR26940@me>
-	 <f0e08f231001110556y7c47cc54oa3cfd5859f9a4e76@mail.gmail.com>
-	 <20100112093145.GF26089@me>
+Subject: Re: [PATCH] opensm/osm_qos.c: merge SL2VL mapping capability check
+Date: Wed, 13 Jan 2010 15:13:09 -0500
+Message-ID: <f0e08f231001131213r4a743d6boc1b07e9fadc773ac@mail.gmail.com>
+References: <20091201194110.GA26753@comcast.net> <20100104170141.GK26940@me>
+	 <f0e08f231001070538q78453f91kd47c931087dfa735@mail.gmail.com>
+	 <20100112103517.GI26089@me>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20100112093145.GF26089@me>
+In-Reply-To: <20100112103517.GI26089@me>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Cc: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Al Chu <chu11-i2BcT+NCU+M@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Sasha,
-
-On Tue, Jan 12, 2010 at 4:31 AM, Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org> wrote:
-> Hi Hal,
->
-> On 08:56 Mon 11 Jan     , Hal Rosenstock wrote:
->> >
->> > diff --git a/tests/subnet_discover.c b/tests/subnet_discover.c
->> > index 7f8a85c..42e7aee 100644
->> > --- a/tests/subnet_discover.c
->> > +++ b/tests/subnet_discover.c
->> > @@ -40,6 +40,7 @@ static struct node *node_array[32 * 1024];
->> >  static unsigned node_count = 0;
->> >  static unsigned trid_cnt = 0;
->> >  static unsigned outstanding = 0;
->> > +static unsigned max_outstanding = 8;
+On Tue, Jan 12, 2010 at 5:35 AM, Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org> wrote:
+> On 08:38 Thu 07 Jan     , Hal Rosenstock wrote:
 >>
->> Any reason why this default is different from the one which OpenSM
->> uses ? Seems to me it should be the same (or less).
+>> Change appears to be for switches to always rely on this bit rather
+>> than only when VLCap is 1. I wonder if there are any switches with
+>> VLCap > 1 that don't set the IsSLMappingSupported CapabilityMask bit.
+>> There shouldn't be (at least if they are IBA 1.2.1 compliant) but are
+>> you sure about this ?
 >
-> In my tests I found that '8' is more optimal number (the tool works
-> faster and without drops) than '4' used in OpenSM.
->
-> Of course it would be helpful to run this over bigger cluster than
-> what I have to see that the results are consistent.
+> I'm not sure about this, but think that probability of using such
+> hypothetical old switches for any sort of QoS is very low.
 
-This is exactly my concern. Not only cluster size but use cases
-including concurrent diag discover and SM operation where SMPs are
-heavily in use.
+Low but not zero... I'm also not sure it's just old switches...
+I've seen many rejections (status 7) since you made this change.
 
-There already have been a number of reports of dropped SMPs on this
-list with the current diags and this change will only make things
-worse IMO.
+> And anyway it
+> doesn't look for me that we have any stronger SL2VL mapping capability
+> indication - 'VLCap > 1' by itself doesn't do this too, right?
 
-Also, the OpenSM default should be at least as large as the diags for this.
+It does. There's a requirement that SL2VL mapping is required when VLCap > 1.
 
 -- Hal
 
