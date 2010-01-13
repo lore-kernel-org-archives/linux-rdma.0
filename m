@@ -1,30 +1,33 @@
-From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 1/3] rdma_cm: Add support for a new RDMA_PS_LUSTRE Lustre port space
-Date: Wed, 13 Jan 2010 09:04:19 -0800
-Message-ID: <ada6376ndgs.fsf@roland-alpha.cisco.com>
-References: <20100113154952.0f01aa1d@frecb007965>
-	<20100113155150.59867f40@frecb007965>
-	<7ED07283D76C422C9210FBE7C832731B@amr.corp.intel.com>
+From: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH v2] opensm: Add update_desc command to opensm console
+Date: Wed, 13 Jan 2010 19:26:16 +0200
+Message-ID: <20100113172616.GM574@me>
+References: <4B4C3386.5040205@gmail.com>
+ <20100112121423.GA574@me>
+ <4B4DE7F5.3020407@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <7ED07283D76C422C9210FBE7C832731B-Zpru7NauK7drdx17CPfAsdBPR1lH4CV8@public.gmane.org> (Sean
-	Hefty's message of "Wed, 13 Jan 2010 08:56:30 -0800")
+Content-Disposition: inline
+In-Reply-To: <4B4DE7F5.3020407-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: 'sebastien dugue' <sebastien.dugue-6ktuUTfB/bM@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+To: "Eli Dorfman (Voltaire)" <dorfman.eli-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On 17:34 Wed 13 Jan     , Eli Dorfman (Voltaire) wrote:
+> 
+> Sometimes nodes are discovered by the opensm with their default
+> name before real host name was resolves and updated in the HCA.
+> Since Mellanox ConnectX HCA do not support NodeDescription
+> change trap (as part of trap 144) we need an option to refresh
+> NodeDescription from console.
+> 
+> Signed-off-by: Eli Dorfman <elid-smomgflXvOZWk0Htik3J/w@public.gmane.org>
 
- > In general, I don't like the idea of application port spaces for QoS
- > support.  Can't this be done using port numbers in the existing port
- > space?
+Applied. Thanks.
 
-I agree.  If setting QoS requires a kernel patch for each application, I
-think we've messed up QoS somehow.  There needs to be a way to control
-QoS via configuration, rather than rebuilding.
-
- - R.
+Sasha
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
