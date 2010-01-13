@@ -1,162 +1,31 @@
-From: "Eli Dorfman (Voltaire)" <dorfman.eli-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH v2] opensm: Add update_desc command to opensm console
-Date: Wed, 13 Jan 2010 17:34:13 +0200
-Message-ID: <4B4DE7F5.3020407@gmail.com>
-References: <4B4C3386.5040205@gmail.com> <20100112121423.GA574@me>
+From: "Sean Hefty" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH 1/3] rdma_cm: Add support for a new RDMA_PS_LUSTRE Lustre port space
+Date: Wed, 13 Jan 2010 08:56:30 -0800
+Message-ID: <7ED07283D76C422C9210FBE7C832731B@amr.corp.intel.com>
+References: <20100113154952.0f01aa1d@frecb007965> <20100113155150.59867f40@frecb007965>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain;
+	charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20100112121423.GA574@me>
+In-Reply-To: <20100113155150.59867f40@frecb007965>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+To: 'sebastien dugue' <sebastien.dugue-6ktuUTfB/bM@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+>  This patch adds a new port space for use by Lustre traffic.
+>
+>  This, along with patches to OpenSM and Lustre, allow to define a
+>specific QoS for lustre.
 
-Sometimes nodes are discovered by the opensm with their default
-name before real host name was resolves and updated in the HCA.
-Since Mellanox ConnectX HCA do not support NodeDescription
-change trap (as part of trap 144) we need an option to refresh
-NodeDescription from console.
+In general, I don't like the idea of application port spaces for QoS
+support.  Can't this be done using port numbers in the existing port
+space?
 
-Signed-off-by: Eli Dorfman <elid-smomgflXvOZWk0Htik3J/w@public.gmane.org>
----
+>+	RDMA_PS_LUSTRE = 0x0153,
 
-v2: Revert error (ERR 3319) message deletion
-
- opensm/opensm/osm_console.c   |   16 ++++++++++++
- opensm/opensm/osm_state_mgr.c |   53 +++++++++++++++++++++++++++++++----------
- 2 files changed, 56 insertions(+), 13 deletions(-)
-
-diff --git a/opensm/opensm/osm_console.c b/opensm/opensm/osm_console.c
-index 206e7f7..e90cb99 100644
---- a/opensm/opensm/osm_console.c
-+++ b/opensm/opensm/osm_console.c
-@@ -56,6 +56,8 @@
- #include <opensm/osm_perfmgr.h>
- #include <opensm/osm_subnet.h>
- 
-+extern void osm_update_node_desc(IN osm_sm_t *sm);
-+
- struct command {
- 	char *name;
- 	void (*help_function) (FILE * out, int detail);
-@@ -207,6 +209,14 @@ static void help_dump_conf(FILE *out, int detail)
- 	}
- }
- 
-+static void help_update_desc(FILE *out, int detail)
-+{
-+	fprintf(out, "update_desc\n");
-+	if (detail) {
-+		fprintf(out, "update node description for all nodes\n");
-+	}
-+}
-+
- #ifdef ENABLE_OSM_PERF_MGR
- static void help_perfmgr(FILE * out, int detail)
- {
-@@ -1134,6 +1144,11 @@ static void dump_conf_parse(char **p_last, osm_opensm_t * p_osm, FILE * out)
- 	osm_subn_output_conf(out, &p_osm->subn.opt);
- }
- 
-+static void update_desc_parse(char **p_last, osm_opensm_t * p_osm, FILE * out)
-+{
-+	osm_update_node_desc(&p_osm->sm);
-+}
-+
- #ifdef ENABLE_OSM_PERF_MGR
- static void perfmgr_parse(char **p_last, osm_opensm_t * p_osm, FILE * out)
- {
-@@ -1326,6 +1341,7 @@ static const struct command console_cmds[] = {
- 	{"switchbalance", &help_switchbalance, &switchbalance_parse},
- 	{"lidbalance", &help_lidbalance, &lidbalance_parse},
- 	{"dump_conf", &help_dump_conf, &dump_conf_parse},
-+	{"update_desc", &help_update_desc, &update_desc_parse},
- 	{"version", &help_version, &version_parse},
- #ifdef ENABLE_OSM_PERF_MGR
- 	{"perfmgr", &help_perfmgr, &perfmgr_parse},
-diff --git a/opensm/opensm/osm_state_mgr.c b/opensm/opensm/osm_state_mgr.c
-index 6296f21..86aaff2 100644
---- a/opensm/opensm/osm_state_mgr.c
-+++ b/opensm/opensm/osm_state_mgr.c
-@@ -510,11 +510,7 @@ static void query_sm_info(cl_map_item_t * item, void *cxt)
- 			ib_get_err_str(ret));
- }
- 
--/**********************************************************************
-- During a light sweep, check each node to see if the node description
-- is valid and if not issue a ND query.
--**********************************************************************/
--static void state_mgr_get_node_desc(IN cl_map_item_t * obj, IN void *context)
-+static void state_mgr_update_node_desc(IN cl_map_item_t * obj, IN void *context)
- {
- 	osm_madw_context_t mad_context;
- 	osm_node_t *p_node = (osm_node_t *) obj;
-@@ -527,14 +523,8 @@ static void state_mgr_get_node_desc(IN cl_map_item_t * obj, IN void *context)
- 
- 	CL_ASSERT(p_node);
- 
--	if (p_node->print_desc
--	    && strcmp(p_node->print_desc, OSM_NODE_DESC_UNKNOWN))
--		/* if ND is valid, do nothing */
--		goto exit;
--
--	OSM_LOG(sm->p_log, OSM_LOG_ERROR,
--		"ERR 3319: Unknown node description for node GUID "
--		"0x%016" PRIx64 ".  Reissuing ND query\n",
-+	OSM_LOG(sm->p_log, OSM_LOG_DEBUG,
-+		"Updating NodeDesc for 0x%016" PRIx64 "\n",
- 		cl_ntoh64(osm_node_get_node_guid(p_node)));
- 
- 	/* get a physp to request from. */
-@@ -563,6 +553,43 @@ exit:
- 	OSM_LOG_EXIT(sm->p_log);
- }
- 
-+void osm_update_node_desc(IN osm_sm_t *sm)
-+{
-+	CL_PLOCK_ACQUIRE(sm->p_lock);
-+	cl_qmap_apply_func(&sm->p_subn->node_guid_tbl, state_mgr_update_node_desc,
-+			   sm);
-+	CL_PLOCK_RELEASE(sm->p_lock);
-+}
-+
-+/**********************************************************************
-+ During a light sweep, check each node to see if the node description
-+ is valid and if not issue a ND query.
-+**********************************************************************/
-+static void state_mgr_get_node_desc(IN cl_map_item_t * obj, IN void *context)
-+{
-+	osm_node_t *p_node = (osm_node_t *) obj;
-+	osm_sm_t *sm = context;
-+
-+	OSM_LOG_ENTER(sm->p_log);
-+
-+	CL_ASSERT(p_node);
-+
-+	if (p_node->print_desc
-+	    && strcmp(p_node->print_desc, OSM_NODE_DESC_UNKNOWN))
-+		/* if ND is valid, do nothing */
-+		goto exit;
-+
-+	OSM_LOG(sm->p_log, OSM_LOG_ERROR,
-+		"ERR 3319: Unknown node description for node GUID "
-+		"0x%016" PRIx64 ".  Reissuing ND query\n",
-+ 		cl_ntoh64(osm_node_get_node_guid(p_node)));
-+
-+	state_mgr_update_node_desc(obj, context);
-+
-+exit:
-+	OSM_LOG_EXIT(sm->p_log);
-+}
-+
- /**********************************************************************
-  Initiates a lightweight sweep of the subnet.
-  Used during normal sweeps after the subnet is up.
--- 
-1.5.5
+It looks like this number maps to the VINES protocol.
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
