@@ -1,8 +1,7 @@
 From: sebastien dugue <sebastien.dugue-6ktuUTfB/bM@public.gmane.org>
-Subject: [PATCH 1/3] rdma_cm: Add support for a new RDMA_PS_LUSTRE Lustre
- port space
-Date: Wed, 13 Jan 2010 15:51:50 +0100
-Message-ID: <20100113155150.59867f40@frecb007965>
+Subject: [PATCH 3/3] Add new port_space parameter to ko2iblnd module
+Date: Wed, 13 Jan 2010 15:56:46 +0100
+Message-ID: <20100113155646.2f786945@frecb007965>
 References: <20100113154952.0f01aa1d@frecb007965>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
@@ -15,72 +14,103 @@ Cc: Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Sasha Khapy
 List-Id: linux-rdma@vger.kernel.org
 
 
-  This patch adds a new port space for use by Lustre traffic.
+  This patch is only given as a reference.
 
-  This, along with patches to OpenSM and Lustre, allow to define a
-specific QoS for lustre.
 
-Signed-off-by: Sebastien Dugue <sebastien.dugue-6ktuUTfB/bM@public.gmane.org>
----
- drivers/infiniband/core/cma.c |    5 +++++
- include/rdma/rdma_cm.h        |   11 ++++++-----
- 2 files changed, 11 insertions(+), 5 deletions(-)
-
-diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
-index cc9b594..6b9e75e 100644
---- a/drivers/infiniband/core/cma.c
-+++ b/drivers/infiniband/core/cma.c
-@@ -78,6 +78,7 @@ static DEFINE_IDR(sdp_ps);
- static DEFINE_IDR(tcp_ps);
- static DEFINE_IDR(udp_ps);
- static DEFINE_IDR(ipoib_ps);
-+static DEFINE_IDR(lustre_ps);
- static int next_port;
+Index: b/lnet/klnds/o2iblnd/o2iblnd.c
+===================================================================
+--- a/lnet/klnds/o2iblnd/o2iblnd.c
++++ b/lnet/klnds/o2iblnd/o2iblnd.c
+@@ -2503,7 +2503,7 @@ kiblnd_startup (lnet_ni_t *ni)
+                 ibdev->ibd_ifip = ip;
+                 strcpy(&ibdev->ibd_ifname[0], ifname);
  
- struct cma_device {
-@@ -2066,6 +2067,9 @@ static int cma_get_port(struct rdma_id_private *id_priv)
- 	case RDMA_PS_IPOIB:
- 		ps = &ipoib_ps;
- 		break;
-+	case RDMA_PS_LUSTRE:
-+		ps = &lustre_ps;
-+		break;
- 	default:
- 		return -EPROTONOSUPPORT;
- 	}
-@@ -3034,6 +3038,7 @@ static void __exit cma_cleanup(void)
- 	idr_destroy(&tcp_ps);
- 	idr_destroy(&udp_ps);
- 	idr_destroy(&ipoib_ps);
-+	idr_destroy(&lustre_ps);
- }
+-                id = rdma_create_id(kiblnd_cm_callback, ibdev, RDMA_PS_TCP);
++                id = rdma_create_id(kiblnd_cm_callback, ibdev, *kiblnd_tunables.kib_port_space);
+                 if (IS_ERR(id)) {
+                         CERROR("Can't create listen ID: %ld\n", PTR_ERR(id));
+                         goto failed;
+Index: b/lnet/klnds/o2iblnd/o2iblnd.h
+===================================================================
+--- a/lnet/klnds/o2iblnd/o2iblnd.h
++++ b/lnet/klnds/o2iblnd/o2iblnd.h
+@@ -125,6 +125,7 @@ typedef struct
+ #if defined(CONFIG_SYSCTL) && !CFS_SYSFS_MODULE_PARM
+         cfs_sysctl_table_header_t *kib_sysctl;  /* sysctl interface */
+ #endif
++        int              *kib_port_space;       /* port space */
+ } kib_tunables_t;
  
- module_init(cma_init);
-diff --git a/include/rdma/rdma_cm.h b/include/rdma/rdma_cm.h
-index c6b2962..d662799 100644
---- a/include/rdma/rdma_cm.h
-+++ b/include/rdma/rdma_cm.h
-@@ -63,11 +63,12 @@ enum rdma_cm_event_type {
+ extern kib_tunables_t  kiblnd_tunables;
+Index: b/lnet/klnds/o2iblnd/o2iblnd_cb.c
+===================================================================
+--- a/lnet/klnds/o2iblnd/o2iblnd_cb.c
++++ b/lnet/klnds/o2iblnd/o2iblnd_cb.c
+@@ -1188,7 +1188,7 @@ kiblnd_connect_peer (kib_peer_t *peer)
+         LASSERT (net != NULL);
+         LASSERT (peer->ibp_connecting > 0);
+ 
+-        cmid = rdma_create_id(kiblnd_cm_callback, peer, RDMA_PS_TCP);
++        cmid = rdma_create_id(kiblnd_cm_callback, peer, *kiblnd_tunables.kib_port_space);
+         if (IS_ERR(cmid)) {
+                 CERROR("Can't create CMID for %s: %ld\n",
+                        libcfs_nid2str(peer->ibp_nid), PTR_ERR(cmid));
+Index: b/lnet/klnds/o2iblnd/o2iblnd_modparams.c
+===================================================================
+--- a/lnet/klnds/o2iblnd/o2iblnd_modparams.c
++++ b/lnet/klnds/o2iblnd/o2iblnd_modparams.c
+@@ -120,6 +120,10 @@ static int pmr_pool_size = 512;
+ CFS_MODULE_PARM(pmr_pool_size, "i", int, 0444,
+                 "size of the MR cache pmr pool");
+ 
++static int port_space = RDMA_PS_TCP;
++CFS_MODULE_PARM(port_space, "i", int, 0444,
++                "Port space");
++
+ kib_tunables_t kiblnd_tunables = {
+         .kib_service                = &service,
+         .kib_cksum                  = &cksum,
+@@ -141,6 +145,7 @@ kib_tunables_t kiblnd_tunables = {
+         .kib_fmr_flush_trigger      = &fmr_flush_trigger,
+         .kib_fmr_cache              = &fmr_cache,
+         .kib_pmr_pool_size          = &pmr_pool_size,
++        .kib_port_space             = &port_space,
  };
  
- enum rdma_port_space {
--	RDMA_PS_SDP   = 0x0001,
--	RDMA_PS_IPOIB = 0x0002,
--	RDMA_PS_TCP   = 0x0106,
--	RDMA_PS_UDP   = 0x0111,
--	RDMA_PS_SCTP  = 0x0183
-+	RDMA_PS_SDP    = 0x0001,
-+	RDMA_PS_IPOIB  = 0x0002,
-+	RDMA_PS_TCP    = 0x0106,
-+	RDMA_PS_UDP    = 0x0111,
-+	RDMA_PS_LUSTRE = 0x0153,
-+	RDMA_PS_SCTP   = 0x0183
+ #if defined(CONFIG_SYSCTL) && !CFS_SYSFS_MODULE_PARM
+@@ -169,7 +174,8 @@ enum {
+         O2IBLND_FMR_POOL_SIZE,
+         O2IBLND_FMR_FLUSH_TRIGGER,
+         O2IBLND_FMR_CACHE,
+-        O2IBLND_PMR_POOL_SIZE
++        O2IBLND_PMR_POOL_SIZE,
++        O2IBLND_PORT_SPACE
+ };
+ #else
+ 
+@@ -193,6 +199,7 @@ enum {
+ #define O2IBLND_FMR_FLUSH_TRIGGER CTL_UNNUMBERED
+ #define O2IBLND_FMR_CACHE        CTL_UNNUMBERED
+ #define O2IBLND_PMR_POOL_SIZE    CTL_UNNUMBERED
++#define O2IBLND_PORT_SPACE       CTL_UNNUMBERED
+ 
+ #endif
+ 
+@@ -358,6 +365,14 @@ static cfs_sysctl_table_t kiblnd_ctl_tab
+                 .mode     = 0444,
+                 .proc_handler = &proc_dointvec
+         },
++        {
++                .ctl_name = O2IBLND_PORT_SPACE,
++                .procname = "port_space",
++                .data     = &port_space,
++                .maxlen   = sizeof(int),
++                .mode     = 0444,
++                .proc_handler = &proc_dointvec
++        },
+         {0}
  };
  
- struct rdma_addr {
--- 
-1.6.0.4
-
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
