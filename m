@@ -1,64 +1,49 @@
-From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Subject: Re: [PATCH] IB/srp: Fix initiator lockup
-Date: Wed, 13 Jan 2010 19:57:26 +0100
-Message-ID: <e2e108261001131057g339fc80fn638109f2d441f13a@mail.gmail.com>
-References: <e2e108261001062352l1925f4e1i24bdbdde08056c4c@mail.gmail.com>
-	 <e2e108261001070003y6881eac7g3e8129e44b78a475@mail.gmail.com>
-	 <adavdfapimb.fsf@roland-alpha.cisco.com>
-	 <e2e108261001100234k7dcb45cescb9ae133c0cdc256@mail.gmail.com>
-	 <ada3a2bp7ow.fsf@roland-alpha.cisco.com>
-	 <e2e108261001120923w4b405736v8b8e8ae41322823b@mail.gmail.com>
-	 <adavdf7nd7k.fsf@roland-alpha.cisco.com>
-	 <20100112232421.GA16490@obsidianresearch.com>
-	 <e2e108261001122323p695d8a9cscd992eda25fdba89@mail.gmail.com>
-	 <20100113181615.GC16490@obsidianresearch.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Bryan Green <bryan.d.green-NSQ8wuThN14@public.gmane.org>
+Subject: Re: Documentation for libiverbs?
+Date: Wed, 13 Jan 2010 10:09:15 -0800
+Message-ID: <20100113180915.685262448E@vis06.nas.nasa.gov>
+References: <S1752421Ab0AMJqp/20100113094645Z+1609@vger.kernel.org> <4B4D9B1E.1020604@eso.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20100113181615.GC16490-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-reply-to: <4B4D9B1E.1020604-hv++7WL8WN4@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, OFED mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Chris Worley <worleys-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+To: Werther Pirani <wpirani-hv++7WL8WN4@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Jan 13, 2010 at 7:16 PM, Jason Gunthorpe
-<jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
->
-> On Wed, Jan 13, 2010 at 08:23:27AM +0100, Bart Van Assche wrote:
-> > On Wed, Jan 13, 2010 at 12:24 AM, Jason Gunthorpe
-> > <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
-> > > [ ... ]
-> > >
-> > > Also, I couldn't tell for sure from a cursory examination of the
-> > > patch, but the initiator must be designed to not stall processing=
- the
-> > > RQ dependent on the SQ or the credit level, when using a credit s=
-cheme
-> > > like this. Or you will deadlock.
-> > >
-> > > For instance it isn't clear to me how the control flow around
-> > > srp_process_cred_req is ment to work - it tries to send a reply, =
-but
-> > > if it can't due to srp_get_txp_iu failing it just gives up foreve=
-r?
-> >
-> > For a standards-conforming SRP target, srp_get_txp_iu() will never
-> > fail. A quote from section 5.5.2 of the SRP r16a document:
->
-> What guarantees that that the send completion for the reply is
-> processed before a receive completion for the next request?
+Werther Pirani writes:
+>     Hello,
+> 
+> I've been redirected to this list from OpenFabrics' web site, so let me apo=
+> logise=20
+> right away if this is not the right place for this question.
+> 
+> We are writing an application that requires high throughput and low latency=
+> . More=20
+> specifically, we need to take advantage of features like RDMA, possibly thr=
+> ough=20
+> the ibv_ API in libiverbs, but the documentation available is really too sk=
+> etchy=20
+> to be of any help (and even the OpenFabrics' web site isn't of any use in t=
+> his=20
+> respect).
+> 
+> At the moment all I have to go by is the RDMA_RC_example in the "RDMA Ware =
+> Network=20
+> Programming User's Manual" from Mellanox, but it's really not quite enough.=
+>  Since=20
+> even searching the web isn't turning out any documentation, I was wondering=
+>  if=20
+> anyone here has any to share.
 
-Did you notice that I increased the number of receive slots reserved
-for target-initiated requests from one to two ?
+You should read Chapters 10 (Software Transport Interface) and 11 (Software
+Transport Verbs) of the Infiniband Architecture Specification, Volume 1.
 
-+ =A0 =A0 =A0 /* Number of receive slots reserved for receiving request=
-s. */
-+ =A0 =A0 =A0 SRP_RXR_SIZE =A0 =A0 =A0 =A0 =A0 =A0=3D 2,
+Then, besides the example code such as ib_write_bw and ib_rdma_bw, there are the man pages for libibverbs
+and librdmacm.
 
-Bart.
+-Bryan
+
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
