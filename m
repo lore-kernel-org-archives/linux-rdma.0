@@ -1,76 +1,174 @@
-From: Frank Leers <Frank.Leers-UdXhSnd/wVw@public.gmane.org>
-Subject: Re: mode connected infiniband
-Date: Thu, 14 Jan 2010 08:06:18 -0800
-Message-ID: <92A5895F-F6BC-4916-B915-64643A2F51DF@sun.com>
-References: <8fd3bb681001140011k5ec9492eg19b59b110e45a2b5@mail.gmail.com>
+From: Yevgeny Kliteynik <kliteyn-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
+Subject: Re: [PATCH 03/11] opensm: Allow the routing engine to participate
+ in path SL calculations.
+Date: Thu, 14 Jan 2010 18:24:11 +0200
+Message-ID: <4B4F452B.7040007@mellanox.co.il>
+References: <1258744509-11148-1-git-send-email-jaschut@sandia.gov> <1258744509-11148-4-git-send-email-jaschut@sandia.gov>
+Reply-To: kliteyn-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; CHARSET=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=windows-1255; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-reply-to: <8fd3bb681001140011k5ec9492eg19b59b110e45a2b5-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <1258744509-11148-4-git-send-email-jaschut-4OHPYypu0djtX7QSmKvirg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Nico <parpandet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jim Schutt <jaschut-4OHPYypu0djtX7QSmKvirg@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org, eitan-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+Jim,
 
-On Jan 14, 2010, at 12:11 AM, Nico wrote:
+On 20/Nov/09 21:15, Jim Schutt wrote:
+> LASH already does this, in a hard-coded fashion.
+>
+> Generalize this by adding a callback to struct osm_routing_engine that
+> computes a path SL value, and fix up LASH to use it.
+>
+> This patchset causes the requested or QoS-computed SL value to be passed
+> to the routing engine path SL computation as a hint.  In the event the
+> routing engine's use of SLs allows it to support more than one QoS level,
+> it may be able to make use of the SL hint to do so.
+>
+> For now, LASH just ignores the hint.
+>
+> Note that before this change, if LASH was configured and a specific path
+> SL value was requested that differed from what LASH needed to route the
+> fabric without credit loops, the path SL lookup would fail.  Now LASH's
+> SL value is always used.
+>
+> Possibly the choice between failing a path SL request when it conflicts
+> with routing, vs. always providing an SL value that gives a credit-loop-
+> free routing, should be user-configurable?
 
-> Hello,
-> 
-> I'am using an infiniband kernel 2.6.32-trunk-686 from debian,
-> and it seems /sys/class/net/ib0/mode is missing :
-> 
+SL can come from the following places:
+  - user requested specific SL in PathRecord query
+  - QoS policy configuration
+  - SL specified in partition parameters
+  - basic QoS (no policies, only SL2VL table)
+  - routing engine
 
-It might be that when OFED was built, the "CONFIG_INFINIBAND_IPOIB_CM=y" was set to 'n' in your 'configure.mk.kernel' or on the command line during the ./configure step - 
+Except for QoS policy being able to override SL that is specified in
+the partition parameters (with an error message in the log), IMHO if
+there's a conflict between SLs coming from different constraints
+PathRecord should fail to find a satisfiable path, or at least we
+should see some error message in the log that the selected SL
+conflicts with other OSM configurations, but will be used anyway.
 
---with-ipoib-cm    make CONFIG_INFINIBAND_IPOIB_CM=y [yes]
---without-ipoib-cm   [no]
+[snip...]
 
--frank
+>
+> @@ -725,6 +707,14 @@ static ib_api_status_t pr_rcv_get_path_parms(IN osm_sa_t * sa,
+>   		goto Exit;
+>   	}
+>
+> +	/*
+> +	 * If the routing engine wants to have a say in path SL selection,
+> +	 * send the currently computed SL value as a hint and let the routing
+> +	 * engine override it.
+> +	 */
+> +	if (p_re&&  p_re->path_sl)
+> +		sl = p_re->path_sl(p_re->context, sl, p_src_port, p_dest_port);
+>    
 
+In addition to error message if routing engine overrides the provided
+hint, need to check whether the returned SL is valid - check the
+corresponding bit in valid_sl_mask. It might be irrelevant for torus-2QoS
+routing (not sure yet, need to read more patches :-) ), but it's
+probably needed in general case.
 
-> vza:/sys/class/net/ib0# ls -l
-> total 0
-> -r--r--r-- 1 root root 4096 janv. 14 08:55 address
-> -r--r--r-- 1 root root 4096 janv. 14 08:55 addr_len
-> -r--r--r-- 1 root root 4096 janv. 14 08:55 broadcast
-> -r--r--r-- 1 root root 4096 janv. 14 08:55 carrier
-> --w--w--w- 1 root root 4096 janv. 14 08:55 create_child
-> --w--w--w- 1 root root 4096 janv. 14 08:55 delete_child
-> lrwxrwxrwx 1 root root    0 janv. 14 08:55 device -> ../../../0000:05:00.0
-> -r--r--r-- 1 root root 4096 janv. 14 08:55 dev_id
-> -r--r--r-- 1 root root 4096 janv. 14 08:55 dormant
-> -r--r--r-- 1 root root 4096 janv. 14 08:55 features
-> -rw-r--r-- 1 root root 4096 janv. 14 08:55 flags
-> -rw-r--r-- 1 root root 4096 janv. 14 08:55 ifalias
-> -r--r--r-- 1 root root 4096 janv. 14 08:55 ifindex
-> -r--r--r-- 1 root root 4096 janv. 14 08:55 iflink
-> -r--r--r-- 1 root root 4096 janv. 14 08:55 link_mode
-> -rw-r--r-- 1 root root 4096 janv. 14 08:55 mtu
-> -r--r--r-- 1 root root 4096 janv. 14 08:55 operstate
-> -r--r--r-- 1 root root 4096 janv. 14 08:55 pkey
-> drwxr-xr-x 2 root root    0 janv. 14 08:55 power
-> drwxr-xr-x 2 root root    0 janv. 14 08:55 statistics
-> lrwxrwxrwx 1 root root    0 janv. 14 08:55 subsystem ->
-> ../../../../../../../../class/net
-> -rw-r--r-- 1 root root 4096 janv. 14 08:55 tx_queue_len
-> -r--r--r-- 1 root root 4096 janv. 14 08:55 type
-> -rw-r--r-- 1 root root 4096 janv. 14 08:55 uevent
-> -rw-r--r-- 1 root root 4096 janv. 14 08:55 umcast
-> 
-> as I am doing some benchs and wanted to size up MTU with connected mode,
-> 
-> * is there another way to use connected mode ?
-> * is it related to debian packaging ?
-> 
-> Regards.
-> 
-> Nicolas
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Also, perhaps it would be better to provide the bitmask of available
+SLs as a hint if there are more than one suitable SL?
+
+I mean something like this (didn't try it, didn't even compile it,
+need corresponding change in the p_re->path_sl callback, it's just
+to illustrate what I mean):
+
+---
+  opensm/opensm/osm_sa_path_record.c |   47 
+++++++++++++++++++++++-------------
+  1 files changed, 29 insertions(+), 18 deletions(-)
+
+diff --git a/opensm/opensm/osm_sa_path_record.c 
+b/opensm/opensm/osm_sa_path_record.c
+index 7120d65..6de8979 100644
+--- a/opensm/opensm/osm_sa_path_record.c
++++ b/opensm/opensm/osm_sa_path_record.c
+@@ -171,7 +171,7 @@ static ib_api_status_t pr_rcv_get_path_parms(IN 
+osm_sa_t * sa,
+      uint8_t required_mtu;
+      uint8_t required_rate;
+      uint8_t required_pkt_life;
+-    uint8_t sl;
++    uint8_t sl = OSM_DEFAULT_SL;
+      uint8_t in_port_num;
+      ib_net16_t dest_lid;
+      uint8_t i;
+@@ -688,33 +688,44 @@ static ib_api_status_t pr_rcv_get_path_parms(IN 
+osm_sa_t * sa,
+                  cl_ntoh16(pkey), sl);
+          } else
+              sl = p_prtn->sl;
+-    } else if (sa->p_subn->opt.qos) {
++    }
++
++    /*
++     * If the routing engine wants to have a say in path SL selection,
++     * send the currently computed SL value as a hint and let the routing
++     * engine override it.
++     */
++    if (p_re && p_re->path_sl)
++        sl = p_re->path_sl(p_re->context, valid_sl_mask, p_src_port, 
+p_dest_port);
++
++    if (sa->p_subn->opt.qos && !(valid_sl_mask & (1 << sl))) {
++        OSM_LOG(sa->p_log, OSM_LOG_ERROR, "ERR 1F24: "
++            "Selected SL (%u) leads to VL15\n", sl);
++        status = IB_NOT_FOUND;
++        goto Exit;
++    }
++
++    if (!(p_re && p_re->path_sl) &&
++        !(comp_mask & IB_PR_COMPMASK_SL) &&
++        !(p_qos_level && p_qos_level->sl_set) &&
++        !pkey &&
++        (sa->p_subn->opt.qos)) {
+          if (valid_sl_mask & (1 << OSM_DEFAULT_SL))
+              sl = OSM_DEFAULT_SL;
+          else {
+              for (i = 0; i < IB_MAX_NUM_VLS; i++)
+                  if (valid_sl_mask & (1 << i))
+                      break;
++            if (i == IB_MAX_NUM_VLS) {
++                OSM_LOG(sa->p_log, OSM_LOG_ERROR, "ERR ABCD: "
++                    "bla bla bla\n");
++                status = IB_NOT_FOUND;
++                goto Exit;
++            }
+              sl = i;
+          }
+-    } else
+-        sl = OSM_DEFAULT_SL;
+-
+-    if (sa->p_subn->opt.qos && !(valid_sl_mask & (1 << sl))) {
+-        OSM_LOG(sa->p_log, OSM_LOG_ERROR, "ERR 1F24: "
+-            "Selected SL (%u) leads to VL15\n", sl);
+-        status = IB_NOT_FOUND;
+-        goto Exit;
+      }
+
+-    /*
+-     * If the routing engine wants to have a say in path SL selection,
+-     * send the currently computed SL value as a hint and let the routing
+-     * engine override it.
+-     */
+-    if (p_re && p_re->path_sl)
+-        sl = p_re->path_sl(p_re->context, sl, p_src_port, p_dest_port);
+-
+      /* reset pkey when raw traffic */
+      if (comp_mask & IB_PR_COMPMASK_RAWTRAFFIC &&
+          cl_ntoh32(p_pr->hop_flow_raw) & (1 << 31))
+-- 
+1.5.1.4
+
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
