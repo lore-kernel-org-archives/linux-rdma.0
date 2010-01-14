@@ -1,39 +1,33 @@
 From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Subject: Re: Documentation for libiverbs?
-Date: Thu, 14 Jan 2010 09:23:41 -0800
-Message-ID: <ada7hrkmwgy.fsf@roland-alpha.cisco.com>
-References: <S1752421Ab0AMJqp/20100113094645Z+1609@vger.kernel.org>
-	<4B4D9B1E.1020604@eso.org> <4B4DB219.2020406@mellanox.co.il>
-	<4B4EEAFC.5040409@eso.org>
+Subject: Re: [PATCH 1/3] rdma_cm: Add support for a new RDMA_PS_LUSTRE Lustre port space
+Date: Thu, 14 Jan 2010 09:25:31 -0800
+Message-ID: <ada3a28mwdw.fsf@roland-alpha.cisco.com>
+References: <20100113154952.0f01aa1d@frecb007965>
+	<20100113155150.59867f40@frecb007965>
+	<7ED07283D76C422C9210FBE7C832731B@amr.corp.intel.com>
+	<ada6376ndgs.fsf@roland-alpha.cisco.com>
+	<20100114135815.69d5a9a5@frecb007965>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4B4EEAFC.5040409-hv++7WL8WN4@public.gmane.org> (Werther Pirani's message of "Thu, 14
-	Jan 2010 09:59:24 +0000")
+In-Reply-To: <20100114135815.69d5a9a5@frecb007965> (sebastien dugue's message
+	of "Thu, 14 Jan 2010 13:58:15 +0100")
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Werther Pirani <wpirani-hv++7WL8WN4@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: sebastien dugue <sebastien.dugue-6ktuUTfB/bM@public.gmane.org>
+Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
- > I understand things correctly, means the only option is Unreliable
- > Datagrams.
-
-Yes.
-
- > I'm experimenting with ud_pingpong.c and it works, but as soon as a
- > try to exchange messages bigger than 2048 bytes I have the following
- > error:
+ > > I agree.  If setting QoS requires a kernel patch for each application, I
+ > > think we've messed up QoS somehow.  There needs to be a way to control
+ > > QoS via configuration, rather than rebuilding.
  > 
- > Failed status local length error (1) for wr_id 2
- > 
- > A table in Mellanox' "RDMA Aware Networks Programming" shows that for
- > UDs the max messages size is limited by the MTU. That really being the
- > case, how can I check/change the it?
+ >   Right, it's possible via configuration only, but you then cannot separate
+ > the different Lustre traffics (MDS and OSS for example).
 
-UD messages are limited to a single packet.  The packet MTU is a
-hardware/fabric property, and it is quite likely that 2048 is the
-maximum for your fabric.
+I guess I don't know enough about Lustre to know why this would be so.
+How does creating a new port space for Lustre help with this?  Why can't
+one do the same thing in one of the existing port spaces?
 
  - R.
 --
