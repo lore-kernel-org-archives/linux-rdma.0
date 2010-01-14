@@ -1,79 +1,65 @@
-From: sebastien dugue <sebastien.dugue-6ktuUTfB/bM@public.gmane.org>
-Subject: Re: [PATCH 1/3] rdma_cm: Add support for a new RDMA_PS_LUSTRE
- Lustre port space
-Date: Thu, 14 Jan 2010 15:37:49 +0100
-Message-ID: <20100114153749.11430b0f@frecb007965>
-References: <20100113154952.0f01aa1d@frecb007965>
-	<20100113155150.59867f40@frecb007965>
-	<7ED07283D76C422C9210FBE7C832731B@amr.corp.intel.com>
-	<20100114134713.01f2bb58@frecb007965>
-	<4B4F25A7.6000900@Voltaire.com>
+From: Alex Vainman <alexonlists-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH] libibverbs: Add huge page support to ibv_madvise_range()
+Date: Thu, 14 Jan 2010 17:12:12 +0200
+Message-ID: <4B4F344C.5060009@gmail.com>
+References: <4B12AA78.7090401@gmail.com> <20100112142544.GA14861@mtls03>
+Reply-To: alexv-smomgflXvOZWk0Htik3J/w@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4B4F25A7.6000900-hKgKHo2Ms0FWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <20100112142544.GA14861@mtls03>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <ogerlitz-hKgKHo2Ms0FWk0Htik3J/w@public.gmane.org>
-Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+To: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: alexv-smomgflXvOZWk0Htik3J/w@public.gmane.org, roland <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+Hi Eli,
 
-  Hi Or,
+Sorry fot the late response.
 
-On Thu, 14 Jan 2010 16:09:43 +0200
-Or Gerlitz <ogerlitz-hKgKHo2Ms0FWk0Htik3J/w@public.gmane.org> wrote:
+> If strtol() fails, you may return with an invalid, non zero value for
+> huge page size. Maybe use some temporary variable to hold the
+> intermediate result.
 
-> sebastien dugue wrote:
-> > That can be done with port numbers, except that we cannot separate
-> > traffic to Lustre MDS and traffic to Lustre OSS=20
->=20
-> Looking on these patches and going with you for a minute, I don't see=
- how this patch set serves you to assign a different QoS level (e.g SL)=
- to MDS vs OSS related traffic. Can you elaborate on that a bit?
+If strtol() fails, for any reason, we always return value <= 0 for huge page size.
+This indicates that system's huge page size is unknown
+and the second call to ibv_madvise_range_helper(), with huge page size,
+will be skipped (as it supposed to be).
 
-  If you can specify a target-port-guid to the Lustre service ID in Ope=
-nSM's
-qos-policy.conf then you're all set.
+Thanks,
+AlexV
 
-  For example:
-
-    qos-=C2=ADulps=C2=A0
-=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0default=C2=A0=C2=A0=C2=A0=
-=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=
-=C2=A0=C2=A0	      :=C2=A00=C2=A0#=C2=A0default=C2=A0SL
-=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0lustre,=C2=A0target-=C2=
-=ADport=C2=ADguid=C2=A00x1234,0x1235=C2=A0:=C2=A01=C2=A0#=C2=A0lustre=C2=
-=A0traffic to MDSs
-=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0lustre=C2=A0=C2=A0=C2=A0=
-=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=
-=C2=A0=C2=A0=C2=A0	      :=C2=A02=C2=A0#=C2=A0default lustre traffic (t=
-o OSSs)
-    end=C2=AD-qos-=C2=ADulps
-
-
->=20
-> Sean Hefty wrote:
-> > Can't this be done using port numbers in the existing port space?
->=20
-> Indeed, Sebastien what prevents you from using the TCP port space, wi=
-th one port used for MDS traffic and another port for OSS traffic? how =
-does Lustre get ports to listen on, are they well known or you call bin=
-d with port zero and use the port allocated by the rdma-cm?
-
-  I'm not a Lustre expert (far from it), but after talking with our Lus=
-tre guys,
-it seems that all Lustre servers, OSS or MDS, use the same TCP port. So=
- there's
-no possible way to separate traffic based on TCP port only.
-
-  Thanks,
-
-  S=C3=A9bastien.
+Eli Cohen Wrote:
+> On Sun, Nov 29, 2009 at 07:08:08PM +0200, Alex Vainman wrote:
+>> +	p_hpage_val = strstr(buf, label);
+>> +	if (!p_hpage_val) {
+>> +		errno = EINVAL;
+>> +		return -1;
+>> +	}
+>> +	p_hpage_val += strlen(label);
+>> +
+>> +	errno = 0;
+>> +	ret_val = strtol(p_hpage_val, &end_pointer, 0);
+> 
+> If strtol() fails, you may return with an invalid, non zero value for
+> huge page size. Maybe use some temporary variable to hold the
+> intermediate result.
+>> +
+>> +	if (errno != 0)
+>> +		return -1;
+>> +
+>> +	return ret_val * 1024;
+>> +}
+>> +
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
