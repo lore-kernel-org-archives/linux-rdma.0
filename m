@@ -1,95 +1,77 @@
 From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH] libibverbs: Undo changes in memory range tree when madvise() fails
-Date: Fri, 15 Jan 2010 10:54:50 -0800
-Message-ID: <adad41bi4g5.fsf@roland-alpha.cisco.com>
-References: <4B12A679.3000800@gmail.com>
+Subject: Re: [PATCH] libibverbs: Add huge page support to ibv_madvise_range()
+Date: Fri, 15 Jan 2010 10:59:07 -0800
+Message-ID: <ada8wbzi490.fsf@roland-alpha.cisco.com>
+References: <4B12AA78.7090401@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4B12A679.3000800-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> (Alex Vainman's message of "Sun, 29
-	Nov 2009 18:51:05 +0200")
+In-Reply-To: <4B12AA78.7090401-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> (Alex Vainman's message of "Sun, 29
+	Nov 2009 19:08:08 +0200")
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: alexv-smomgflXvOZWk0Htik3J/w@public.gmane.org
 Cc: roland <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-This looks pretty good overall -- thanks for taking this on, I've been
-meaning to fix this for a long time, but never got around to it.
 
-However, I'm having a bit of a hard time following the cleanups vs. real
-changes in this patch -- could you break it up into (at least) two
-steps?  ie one patch that just factors code out into merge_ranges()
-etc. and then a second patch that makes the fixes for handling madvise
-failures?  I think that would make the second patch much easier to
-understand.  And if you can split the second patch further, that might
-make it even easier to review.
+ > ibv_reg_mr() fails to register a memory region allocated on huge page and not
+ > the default page size. This happens because ibv_madvise_range() aligns memory
+ > region to the default system page size before calling to madvise() which fails
+ > with EINVAL error. madvise() fails because it expects that the start and end
+ > pointer of the memory range be huge page aligned.
 
-Also some specific comments:
+Seems unfortunate.  I wonder if there's a way the kernel madvise could
+help us here?
 
- > +static struct ibv_mem_node *merge_ranges(struct ibv_mem_node *node,
- > +					 struct ibv_mem_node *prev)
+ > +/*
+ > + * Get the kernel default huge page size.
+ > + */
+ > +static int get_huge_page_size()
  > +{
- > +	struct ibv_mem_node *new_node = NULL;
+ > +	int fd;
+ > +	char buf[MEMINFO_SIZE];
+ > +	int mem_file_len;
+ > +	char *p_hpage_val = NULL;
+ > +	char *end_pointer = NULL;
+ > +	char file_name[] = "/proc/meminfo";
+ > +	const char label[] = "Hugepagesize:";
+ > +	int ret_val = 0;
  > +
- > +	prev->end = node->end;
- > +	prev->refcnt = node->refcnt;
- > +	__mm_remove(node);
- > +	new_node = prev;
+ > +	fd = open(file_name, O_RDONLY);
+ > +	if (fd < 0)
+ > +		return fd;
  > +
- > +	return new_node;
+ > +	mem_file_len = read(fd, buf, sizeof(buf) - 1);
+ > +
+ > +	close(fd);
+ > +	if (mem_file_len < 0)
+ > +		return mem_file_len;
+ > +
+ > +	buf[mem_file_len] = '\0';
+ > +
+ > +	p_hpage_val = strstr(buf, label);
+ > +	if (!p_hpage_val) {
+ > +		errno = EINVAL;
+ > +		return -1;
+ > +	}
+ > +	p_hpage_val += strlen(label);
+ > +
+ > +	errno = 0;
+ > +	ret_val = strtol(p_hpage_val, &end_pointer, 0);
+ > +
+ > +	if (errno != 0)
+ > +		return -1;
+ > +
+ > +	return ret_val * 1024;
  > +}
 
-why do you have the new_node variable at all?  why can't this just be
-written as:
+This seems to duplicate but only partially a similar function from
+libhugetlbfs.  Is there any way we can just use that directly?  eg
+libhugetlbfs handles the case where there are multiple huge page sizes
+(and that exists even on mainstream x86 with 2MB and 1GB pages possible
+on the same system).
 
-+static struct ibv_mem_node *merge_ranges(struct ibv_mem_node *node,
-+					 struct ibv_mem_node *prev)
-+{
-+	prev->end = node->end;
-+	prev->refcnt = node->refcnt;
-+	__mm_remove(node);
-+	return prev;
-+}
-
- > +	else{
-
-should be a space after the "else" -- please make sure all the
-trivial formatting is OK.
-
- > +	/*
- > +	 * This condition can be true only if we merged node which begins at start
- > +	 * and ends at node->end with previous node which begins at node->start
- > +	 * and ends at start - 1
- > +	 */
-
-these and a few other comments make pretty long lines for no really good
-reason -- please try to end comments before, say, column 75.
-
- > +						 uintptr_t *p_end,
- > +						 int *p_inc,
- > +						 int *p_advice)
-
-I prefer not to use hungarian notation for variable names.
-
- > +						node = prepare_to_roll_back(node, start, &end, &inc, &advice);
-
-I'm OK with lines over 80 characters, but 110 is a bit too
-much... please try to split the function up a bit so this isn't indented
-by 6 tabs.  (This over-long line is a symptom of the fact that things
-are too deeply nested here)
-
- > @@ -568,3 +665,5 @@ int ibv_dofork_range(void *base, size_t size)
- >  		return 0;
- >  	}
- >  }
- > +
- > +
-
-extra chunk, just get rid of this change.
-
-Thanks,
-  Roland
-
+ - R.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
