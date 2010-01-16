@@ -1,52 +1,47 @@
 From: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH] tests/subnet_discover: discover test utility
-Date: Sat, 16 Jan 2010 21:36:03 +0200
-Message-ID: <20100116193603.GX574@me>
-References: <20090823120609.GG9547@me>
- <20090826164026.8dcce4b2.weiny2@llnl.gov>
- <20091023234349.GK5764@me>
- <20091220121406.GF5262@me>
- <20091220182809.f7e17fae.weiny2@llnl.gov>
- <20091221073550.GB18524@me>
- <20091228092251.GR26940@me>
- <f0e08f231001110556y7c47cc54oa3cfd5859f9a4e76@mail.gmail.com>
- <20100112093145.GF26089@me>
- <f0e08f231001131211y64489a51nd2621cefdb27ad25@mail.gmail.com>
+Subject: Re: [PATCH] infiniband-diags/ibqueryerrors: Add support for
+ optional PortRcvErrorDetails counter
+Date: Sat, 16 Jan 2010 21:53:26 +0200
+Message-ID: <20100116195326.GZ574@me>
+References: <20091231191054.GA27874@comcast.net>
+ <20100112191420.GJ574@me>
+ <f0e08f231001131210r669265fax870cfb4bbaf3c1d@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <f0e08f231001131211y64489a51nd2621cefdb27ad25-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <f0e08f231001131210r669265fax870cfb4bbaf3c1d-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Al Chu <chu11-i2BcT+NCU+M@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 15:11 Wed 13 Jan     , Hal Rosenstock wrote:
+On 15:10 Wed 13 Jan     , Hal Rosenstock wrote:
+
+[snip]
+
+> >> @@ -364,6 +375,10 @@ static void clear_port(ib_portid_t * portid, uint16_t cap_mask,
+> >>               performance_reset_via(pc, portid, port, mask, ibd_timeout,
+> >>                                     IB_GSI_PORT_XMIT_DISCARD_DETAILS,
+> >>                                     ibmad_port);
+> >> +             mask = 0x3F;
+> >> +             performance_reset_via(pc, portid, port, mask, ibd_timeout,
+> >> +                                   IB_GSI_PORT_RCV_ERROR_DETAILS,
+> >> +                                   ibmad_port);
 > >
-> > In my tests I found that '8' is more optimal number (the tool works
-> > faster and without drops) than '4' used in OpenSM.
+> > If 'mask' value is used unconditionally whouldn't it be simpler to just
+> > write:
 > >
-> > Of course it would be helpful to run this over bigger cluster than
-> > what I have to see that the results are consistent.
+> >                performance_reset_via(pc, portid, port, 0x3f, ibd_timeout,
+> >                                      IB_GSI_PORT_RCV_ERROR_DETAILS,
+> >                                      ibmad_port);
+> >
+> > ?
 > 
-> This is exactly my concern. Not only cluster size but use cases
-> including concurrent diag discover and SM operation where SMPs are
-> heavily in use.
+> Yes and that comment also applies to the instance above this for xmit
+> discard details reset.
 
-Was it investigated? What was a conclusions?
-
-> There already have been a number of reports of dropped SMPs on this
-> list with the current diags and this change will only make things
-> worse IMO.
->
-> Also, the OpenSM default should be at least as large as the diags for this.
-
-I don't know where concurrent MADs are used in the current "diags", do
-you?
-
-This utility is not 'diags' at all. It is placed in ibsim/tests and I
-wrote it for test purpose.
+Ok. Both patches are applied. Thanks.
 
 Sasha
 --
