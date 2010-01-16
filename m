@@ -1,51 +1,52 @@
 From: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Subject: Re: [infiniband-diags] [UPDATED PATCH] [3/3] support --load-cache
- in iblinkinfo and ibqueryerrors
-Date: Sat, 16 Jan 2010 20:40:31 +0200
-Message-ID: <20100116184031.GW574@me>
-References: <1263579799.15172.168.camel@auk31.llnl.gov>
- <20100116142801.GS574@me>
- <1263659117.14626.12.camel@crazyclimber.llnl.gov>
+Subject: Re: [PATCH] tests/subnet_discover: discover test utility
+Date: Sat, 16 Jan 2010 21:36:03 +0200
+Message-ID: <20100116193603.GX574@me>
+References: <20090823120609.GG9547@me>
+ <20090826164026.8dcce4b2.weiny2@llnl.gov>
+ <20091023234349.GK5764@me>
+ <20091220121406.GF5262@me>
+ <20091220182809.f7e17fae.weiny2@llnl.gov>
+ <20091221073550.GB18524@me>
+ <20091228092251.GR26940@me>
+ <f0e08f231001110556y7c47cc54oa3cfd5859f9a4e76@mail.gmail.com>
+ <20100112093145.GF26089@me>
+ <f0e08f231001131211y64489a51nd2621cefdb27ad25@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1263659117.14626.12.camel-RLKWKRZIcZkVVsCFsIUZTRy+HRzXvqW9@public.gmane.org>
+In-Reply-To: <f0e08f231001131211y64489a51nd2621cefdb27ad25-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Al Chu <chu11-i2BcT+NCU+M@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Al Chu <chu11-i2BcT+NCU+M@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 08:25 Sat 16 Jan     , Al Chu wrote:
-> > > @@ -317,6 +322,11 @@ int main(int argc, char **argv)
-> > >  		mad_rpc_set_timeout(ibmad_port, ibd_timeout);
-> > >  
-> > >  	node_name_map = open_node_name_map(node_name_map_file);
-> > > +	
-> > > +	if (dr_path && load_cache_file) {
-> > > +		fprintf(stderr, "Cannot specify cache and direct route path\n");
-> > > +		exit(1);
-> > > +	}
-> > 
-> > Why is this limitation needed really?
+On 15:11 Wed 13 Jan     , Hal Rosenstock wrote:
+> >
+> > In my tests I found that '8' is more optimal number (the tool works
+> > faster and without drops) than '4' used in OpenSM.
+> >
+> > Of course it would be helpful to run this over bigger cluster than
+> > what I have to see that the results are consistent.
 > 
-> I spoke to Ira about it awhile ago.  I think what we decided was that
-> while technically you can do a DR path, b/c you can load a cache from
-> anywhere in the cluster, you won't know if the DR path is legal or
-> correct at point A vs point B.  In contrast, the node_guid input is
-> valid anywhere you are on the cluster.
+> This is exactly my concern. Not only cluster size but use cases
+> including concurrent diag discover and SM operation where SMPs are
+> heavily in use.
 
-But OTOH you have "from" field in the cache. Isn't it used to save an
-original discovery point?
+Was it investigated? What was a conclusions?
 
-> I suppose we could just allow it and the user has to understand this
-> fact??
+> There already have been a number of reports of dropped SMPs on this
+> list with the current diags and this change will only make things
+> worse IMO.
+>
+> Also, the OpenSM default should be at least as large as the diags for this.
 
-First we need to decide about what this would mean - a path from an
-original discovery point or path from a current one.
+I don't know where concurrent MADs are used in the current "diags", do
+you?
 
-In any case I think that we can start with disabled direct path option
-and re-enable later if it would be useful.
+This utility is not 'diags' at all. It is placed in ibsim/tests and I
+wrote it for test purpose.
 
 Sasha
 --
