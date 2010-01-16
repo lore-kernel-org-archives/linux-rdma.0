@@ -1,47 +1,52 @@
 From: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH] infiniband-diags/ibqueryerrors: Add support for
- optional PortRcvErrorDetails counter
-Date: Sat, 16 Jan 2010 21:53:26 +0200
-Message-ID: <20100116195326.GZ574@me>
-References: <20091231191054.GA27874@comcast.net>
- <20100112191420.GJ574@me>
- <f0e08f231001131210r669265fax870cfb4bbaf3c1d@mail.gmail.com>
+Subject: Re: [PATCH] opensm/osm_qos.c: merge SL2VL mapping capability check
+Date: Sat, 16 Jan 2010 22:27:59 +0200
+Message-ID: <20100116202759.GA574@me>
+References: <20091201194110.GA26753@comcast.net>
+ <20100104170141.GK26940@me>
+ <f0e08f231001070538q78453f91kd47c931087dfa735@mail.gmail.com>
+ <20100112103517.GI26089@me>
+ <f0e08f231001131213r4a743d6boc1b07e9fadc773ac@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <f0e08f231001131210r669265fax870cfb4bbaf3c1d-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <f0e08f231001131213r4a743d6boc1b07e9fadc773ac-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 15:10 Wed 13 Jan     , Hal Rosenstock wrote:
-
-[snip]
-
-> >> @@ -364,6 +375,10 @@ static void clear_port(ib_portid_t * portid, uint16_t cap_mask,
-> >>               performance_reset_via(pc, portid, port, mask, ibd_timeout,
-> >>                                     IB_GSI_PORT_XMIT_DISCARD_DETAILS,
-> >>                                     ibmad_port);
-> >> +             mask = 0x3F;
-> >> +             performance_reset_via(pc, portid, port, mask, ibd_timeout,
-> >> +                                   IB_GSI_PORT_RCV_ERROR_DETAILS,
-> >> +                                   ibmad_port);
+On 15:13 Wed 13 Jan     , Hal Rosenstock wrote:
+> On Tue, Jan 12, 2010 at 5:35 AM, Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org> wrote:
+> > On 08:38 Thu 07 Jan     , Hal Rosenstock wrote:
+> >>
+> >> Change appears to be for switches to always rely on this bit rather
+> >> than only when VLCap is 1. I wonder if there are any switches with
+> >> VLCap > 1 that don't set the IsSLMappingSupported CapabilityMask bit.
+> >> There shouldn't be (at least if they are IBA 1.2.1 compliant) but are
+> >> you sure about this ?
 > >
-> > If 'mask' value is used unconditionally whouldn't it be simpler to just
-> > write:
-> >
-> >                performance_reset_via(pc, portid, port, 0x3f, ibd_timeout,
-> >                                      IB_GSI_PORT_RCV_ERROR_DETAILS,
-> >                                      ibmad_port);
-> >
-> > ?
+> > I'm not sure about this, but think that probability of using such
+> > hypothetical old switches for any sort of QoS is very low.
 > 
-> Yes and that comment also applies to the instance above this for xmit
-> discard details reset.
+> Low but not zero... I'm also not sure it's just old switches...
+> I've seen many rejections (status 7) since you made this change.
 
-Ok. Both patches are applied. Thanks.
+This is interesting. Do you have any details?
+
+> > And anyway it
+> > doesn't look for me that we have any stronger SL2VL mapping capability
+> > indication - 'VLCap > 1' by itself doesn't do this too, right?
+> 
+> It does. There's a requirement that SL2VL mapping is required when VLCap > 1.
+
+Correct, I found it in o7-4. Basically we can check both (now after
+switch/endport separation in the code this should be easier), but I
+would prefer to understand better an issue (if we have) first.
+
+Also same o7-4 is applicable to CA and router ports. Do you know why
+was VLCap > 1 condition ignored there?
 
 Sasha
 --
