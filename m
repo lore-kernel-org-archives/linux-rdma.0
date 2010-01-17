@@ -1,50 +1,116 @@
-From: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCHv7 7/9] ib_core: Add API to support RoCEE from userspace
-Date: Sun, 17 Jan 2010 10:13:47 +0200
-Message-ID: <20100117081347.GA30297@mtls03>
-References: <20100105103322.GI31480@mtls03>
- <52D379D24301435CB26E9B1FE51DBA57@amr.corp.intel.com>
+From: Alex Vainman <alexonlists-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH] libibverbs: Undo changes in memory range tree when madvise()
+ fails
+Date: Sun, 17 Jan 2010 10:15:41 +0200
+Message-ID: <4B52C72D.1000708@gmail.com>
+References: <4B12A679.3000800@gmail.com> <adad41bi4g5.fsf@roland-alpha.cisco.com>
+Reply-To: alexv-smomgflXvOZWk0Htik3J/w@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <52D379D24301435CB26E9B1FE51DBA57-Zpru7NauK7drdx17CPfAsdBPR1lH4CV8@public.gmane.org>
+In-Reply-To: <adad41bi4g5.fsf-BjVyx320WGW9gfZ95n9DRSW4+XlvGpQz@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: 'Eli Cohen' <eli-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Linux RDMA list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Cc: alexv-smomgflXvOZWk0Htik3J/w@public.gmane.org, roland <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Jan 13, 2010 at 01:55:41PM -0800, Sean Hefty wrote:
-> >Add ib_uverbs_get_mac() to be used by ibv_create_ah() to retirieve the remote
-> >port's MAC address from the remote port's GID. Port link layer is also returned
-> >by ibv_query_port().
-> 
-> Is this really to map the GID of a remote port to its MAC address, or is the
-> mapping for a local port?
-> 
-> If it's the former, then I would expect the functionality to more naturally fall
-> into ib_addr, with rdma_resolve_addr being the user space interface for this.
+Hi Roland,
 
-Actually the intention is that this API will resolve any GID, local
-or remote, to the port's MAC address. I am not sure if
-rdma_resolve_addr() is a good choice for this task since it involves
-sockets stuff; and if we want to utilize this API for pure IB verbs
-then that would be inappropriate.
+Thanks for the review.
+I would break the patch as you requested and make the changes 
+according to your comments.
+Currently I am working on another assignment, so I would send
+you the fixed patches till the beginning of the next week.
 
-> 
-> >+/**
-> >+  * ib_get_mac - get the mac address for the specified gid
-> >+  * @device: IB device used for traffic
-> >+  * @port: port number used.
-> >+  * @gid: gid to be resolved into mac
-> >+  * @mac: mac of the port bearing this gid
-> >+  */
-> >+int ib_get_mac(struct ib_device *device, u8 port, u8 *gid, u8 *mac);
-> 
-> Other calls use union ib_gid * where gids are expected.
+Thanks,
+AlexV
 
-Agree. Will change this.
- 
+Roland Dreier Wrote:
+> This looks pretty good overall -- thanks for taking this on, I've been
+> meaning to fix this for a long time, but never got around to it.
+> 
+> However, I'm having a bit of a hard time following the cleanups vs. real
+> changes in this patch -- could you break it up into (at least) two
+> steps?  ie one patch that just factors code out into merge_ranges()
+> etc. and then a second patch that makes the fixes for handling madvise
+> failures?  I think that would make the second patch much easier to
+> understand.  And if you can split the second patch further, that might
+> make it even easier to review.
+> 
+> Also some specific comments:
+> 
+>  > +static struct ibv_mem_node *merge_ranges(struct ibv_mem_node *node,
+>  > +					 struct ibv_mem_node *prev)
+>  > +{
+>  > +	struct ibv_mem_node *new_node = NULL;
+>  > +
+>  > +	prev->end = node->end;
+>  > +	prev->refcnt = node->refcnt;
+>  > +	__mm_remove(node);
+>  > +	new_node = prev;
+>  > +
+>  > +	return new_node;
+>  > +}
+> 
+> why do you have the new_node variable at all?  why can't this just be
+> written as:
+> 
+> +static struct ibv_mem_node *merge_ranges(struct ibv_mem_node *node,
+> +					 struct ibv_mem_node *prev)
+> +{
+> +	prev->end = node->end;
+> +	prev->refcnt = node->refcnt;
+> +	__mm_remove(node);
+> +	return prev;
+> +}
+> 
+>  > +	else{
+> 
+> should be a space after the "else" -- please make sure all the
+> trivial formatting is OK.
+> 
+>  > +	/*
+>  > +	 * This condition can be true only if we merged node which begins at start
+>  > +	 * and ends at node->end with previous node which begins at node->start
+>  > +	 * and ends at start - 1
+>  > +	 */
+> 
+> these and a few other comments make pretty long lines for no really good
+> reason -- please try to end comments before, say, column 75.
+> 
+>  > +						 uintptr_t *p_end,
+>  > +						 int *p_inc,
+>  > +						 int *p_advice)
+> 
+> I prefer not to use hungarian notation for variable names.
+> 
+>  > +						node = prepare_to_roll_back(node, start, &end, &inc, &advice);
+> 
+> I'm OK with lines over 80 characters, but 110 is a bit too
+> much... please try to split the function up a bit so this isn't indented
+> by 6 tabs.  (This over-long line is a symptom of the fact that things
+> are too deeply nested here)
+> 
+>  > @@ -568,3 +665,5 @@ int ibv_dofork_range(void *base, size_t size)
+>  >  		return 0;
+>  >  	}
+>  >  }
+>  > +
+>  > +
+> 
+> extra chunk, just get rid of this change.
+> 
+> Thanks,
+>   Roland
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
