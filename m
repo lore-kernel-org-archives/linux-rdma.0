@@ -1,29 +1,26 @@
-From: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Subject: Re: [infiniband-diags] [UPDATED PATCH] [3/3] support --load-cache
- in iblinkinfo and ibqueryerrors
-Date: Tue, 19 Jan 2010 15:50:50 +0200
-Message-ID: <20100119135050.GA25576@me>
-References: <1263579799.15172.168.camel@auk31.llnl.gov>
- <20100116142801.GS574@me>
- <1263879351.21443.13.camel@crazyclimber.llnl.gov>
+From: Or Gerlitz <ogerlitz-hKgKHo2Ms0FWk0Htik3J/w@public.gmane.org>
+Subject: Re: clarification on the mlx4 CQE structure
+Date: Tue, 19 Jan 2010 16:08:43 +0200
+Message-ID: <4B55BCEB.5080006@Voltaire.com>
+References: <Pine.LNX.4.64.1001191416160.22919@zuben.voltaire.com> <2ED289D4E09FBD4D92D911E869B97FDD02783427@mtlexch01.mtl.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1263879351.21443.13.camel-RLKWKRZIcZkVVsCFsIUZTRy+HRzXvqW9@public.gmane.org>
+In-Reply-To: <2ED289D4E09FBD4D92D911E869B97FDD02783427-ia22CT07NJfiMCgWhms8HQC/G2K4zDHf@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Al Chu <chu11-i2BcT+NCU+M@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Yevgeny Petrilin <yevgenyp-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 21:35 Mon 18 Jan     , Al Chu wrote:
-> Hey Sasha,
-> 
-> Here's an updated patch with the cleanup changes as we discussed.
+Yevgeny Petrilin wrote:
+> This commit has an endianess bug, that was fixed in commit f781a22f.
+> The cqe->sl_vid field is a be16, so we needed to convert the sl value to
+> host order. Before the commit this field was two u8 fields, so no conversion was needed
 
-Applied. Thanks.
+okay, got it, thanks 
 
-Sasha
+Or.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
