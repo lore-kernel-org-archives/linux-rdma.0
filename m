@@ -1,138 +1,31 @@
-From: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH v2] opensm: Multicast root switch calculation
-Date: Wed, 20 Jan 2010 13:59:36 +0200
-Message-ID: <20100120115936.GC25576@me>
-References: <4B17C712.9010109@Voltaire.COM>
- <20100120102703.GB25576@me>
- <39C75744D164D948A170E9792AF8E7CA01F6FA8A@exil.voltaire.com>
+From: Bart Van Assche <bart.vanassche-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: IB/documentation: fix typo in include/rdma/ib_verbs.h
+Date: Wed, 20 Jan 2010 13:56:13 +0100
+Message-ID: <e2e108261001200456r470e7e51p67504454acbc3258@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <39C75744D164D948A170E9792AF8E7CA01F6FA8A-QfUkFaTmzUSUvQqKE/ONIwC/G2K4zDHf@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Slava Strebkov <slavas-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Eli Dorfman <elid-smomgflXvOZWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org>, Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+To: Linux-RDMA <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 13:32 Wed 20 Jan     , Slava Strebkov wrote:
-> "average hops" was chosen instead of "max hops" because in root weight
-> calculation the number of ports is also important, not only the distance
-> (hops).
+Signed-off-by: Bart Van Assche <bart.vanassche-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 
-But this patch is declared as root switch calculation optimization, not
-as algorithm change (actually I even missed this part in V1).
-
-If you think that an algorithm should be changed we need to handle this
-separately.
-
-And there could be a discussion - I have report that some days ago
-credit loop issue was observed when "average hops" method was used
-(and then it was replaced by "max hops"). I don't have much details
-about this case and cannot be sure that it was not "false alarm" (or
-outdated information), but anyway I think that we should be careful
-here.
-
-Sasha
-
-
-
-> -----Original Message-----
-> From: Sasha Khapyorsky [mailto:sashakvolt-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org] On Behalf Of Sasha
-> Khapyorsky
-> Sent: Wednesday, January 20, 2010 12:27 PM
-> To: Slava Strebkov
-> Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Eli Dorfman; Or Gerlitz; Yevgeny
-> Kliteynik
-> Subject: Re: [PATCH v2] opensm: Multicast root switch calculation
-> 
-> Hi Slava,
-> 
-> On 16:11 Thu 03 Dec     , Slava Strebkov wrote:
-> > Proposed new algorithm for calculation of root switch for multicast
-> > spanning tree. Only edge switches(those connected to hosts) and
-> > switches - multicast members themselves are involved in root
-> calculation.
-> > This gives improvement, especially on large fabrics, since number of
-> > switches usually much less then the number of ports, shared same mcast
-> > group.
-> > 
-> > Signed-off-by: Slava Strebkov <slavas-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-> > ---
-> 
-> [snip]
-> 
-> > @@ -231,32 +342,27 @@ static float
-> osm_mcast_mgr_compute_max_hops(osm_sm_t * sm, cl_qlist_t * l,
-> >     of the multicast group.
-> >
-> **********************************************************************/
-> >  static osm_switch_t *mcast_mgr_find_optimal_switch(osm_sm_t * sm,
-> > -						   cl_qlist_t *list)
-> > +						   cl_qlist_t * list)
-> >  {
-> >  	cl_qmap_t *p_sw_tbl;
-> >  	osm_switch_t *p_sw, *p_best_sw = NULL;
-> >  	float hops = 0;
-> >  	float best_hops = 10000;	/* any big # will do */
-> > -#ifdef OSM_VENDOR_INTF_ANAFA
-> > -	boolean_t use_avg_hops = TRUE;	/* anafa2 - bug hca on switch
-> *//* use max hops for root */
-> > -#else
-> > -	boolean_t use_avg_hops = FALSE;	/* use max hops for root */
-> > -#endif
-> > -
-> > +	cl_qmap_t mcast_member_sw_tbl;
-> >  	OSM_LOG_ENTER(sm->p_log);
-> >  
-> >  	p_sw_tbl = &sm->p_subn->sw_guid_tbl;
-> >  
-> > +	mcast_mgr_build_switch_map(sm, list, &mcast_member_sw_tbl);
-> >  	for (p_sw = (osm_switch_t *) cl_qmap_head(p_sw_tbl);
-> >  	     p_sw != (osm_switch_t *) cl_qmap_end(p_sw_tbl);
-> >  	     p_sw = (osm_switch_t *) cl_qmap_next(&p_sw->map_item)) {
-> >  		if (!osm_switch_supports_mcast(p_sw))
-> >  			continue;
-> >  
-> > -		if (use_avg_hops)
-> > -			hops = osm_mcast_mgr_compute_avg_hops(sm, list,
-> p_sw);
-> > -		else
-> > -			hops = osm_mcast_mgr_compute_max_hops(sm, list,
-> p_sw);
-> > +		hops =
-> > +		    osm_mcast_mgr_compute_avg_hops_weight(sm, p_sw,
-> > +
-> &mcast_member_sw_tbl);
-> 
-> Any reason why was root switch computation method changed? By default it
-> was "max hops" based and as far as I can see you changed this to
-> "average hops".
-> 
-> Sasha
-> 
-> >  
-> >  		OSM_LOG(sm->p_log, OSM_LOG_DEBUG,
-> >  			"Switch 0x%016" PRIx64 ", hops = %f\n",
-> > @@ -277,6 +383,7 @@ static osm_switch_t
-> *mcast_mgr_find_optimal_switch(osm_sm_t * sm,
-> >  		OSM_LOG(sm->p_log, OSM_LOG_VERBOSE,
-> >  			"No multicast capable switches detected\n");
-> >  
-> > +	mcast_mgr_destroy_switch_map(sm, &mcast_member_sw_tbl);
-> >  	OSM_LOG_EXIT(sm->p_log);
-> >  	return p_best_sw;
-> >  }
-> > -- 
-> > 1.6.3.3
-> > 
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-rdma"
-> in
-> > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> > 
-> 
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index 09509ed..00f5d26 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -1534,7 +1534,7 @@ int ib_peek_cq(struct ib_cq *cq, int wc_cnt);
+  *   Must contain exactly one of %IB_CQ_SOLICITED or %IB_CQ_NEXT_COMP
+  *   to request an event on the next solicited event or next work
+  *   completion at any type, respectively. %IB_CQ_REPORT_MISSED_EVENTS
+- *   may also be |ed in to request a hint about missed events, as
++ *   may also be passed in to request a hint about missed events, as
+  *   described below.
+  *
+  * Return Value:
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
