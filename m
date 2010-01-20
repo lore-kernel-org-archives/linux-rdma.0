@@ -1,7 +1,7 @@
 From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 Subject: Re: mode connected infiniband
-Date: Tue, 19 Jan 2010 17:09:49 -0800
-Message-ID: <adar5pl37ky.fsf@roland-alpha.cisco.com>
+Date: Tue, 19 Jan 2010 17:10:37 -0800
+Message-ID: <adamy0937jm.fsf@roland-alpha.cisco.com>
 References: <8fd3bb681001140011k5ec9492eg19b59b110e45a2b5@mail.gmail.com>
 	<adabpgwmwiw.fsf@roland-alpha.cisco.com>
 	<4B52C456.5030501@mellanox.co.il>
@@ -17,14 +17,16 @@ Cc: Tziporet Koren <tziporet-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, linux-rdm
 List-Id: linux-rdma@vger.kernel.org
 
 
+ > > IPoIB CM is very stable now and has a better performance
+ > 
  > The last time I tried to use it the kernel began reporting lots of
  > OOM events (2.6.30 stock). I thought this was well known because CM
  > mode uses high order allocations??
 
-That's not well-known to me.  What's the backtrace for those high-order
-allocations?  I thought the CM code was careful to allocate receive
-buffers using page-size fragments but maybe there's some other path (skb
-rings, QP/CQ structures?) that does a higher-order alloc.
+And in any case changing the kernel config option default just means
+that the code gets built, but we start in datagram mode by default
+anyway.  So it just means people can enable it at runtime without having
+to rebuild the kernel.
 
  - R.
 --
