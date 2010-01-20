@@ -1,32 +1,36 @@
 From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Subject: Re: mode connected infiniband
-Date: Tue, 19 Jan 2010 17:10:37 -0800
-Message-ID: <adamy0937jm.fsf@roland-alpha.cisco.com>
-References: <8fd3bb681001140011k5ec9492eg19b59b110e45a2b5@mail.gmail.com>
-	<adabpgwmwiw.fsf@roland-alpha.cisco.com>
-	<4B52C456.5030501@mellanox.co.il>
-	<20100118025626.GG9059@obsidianresearch.com>
+Subject: Re: [PATCH 1/3] rdma_cm: Add support for a new RDMA_PS_LUSTRE Lustre port space
+Date: Tue, 19 Jan 2010 17:12:43 -0800
+Message-ID: <adaiqax37g4.fsf@roland-alpha.cisco.com>
+References: <20100113154952.0f01aa1d@frecb007965>
+	<20100113155150.59867f40@frecb007965>
+	<7ED07283D76C422C9210FBE7C832731B@amr.corp.intel.com>
+	<ada6376ndgs.fsf@roland-alpha.cisco.com>
+	<20100114135815.69d5a9a5@frecb007965>
+	<ada3a28mwdw.fsf@roland-alpha.cisco.com>
+	<20100115084102.2258eba8@frecb007965>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20100118025626.GG9059-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> (Jason Gunthorpe's
-	message of "Sun, 17 Jan 2010 19:56:26 -0700")
+In-Reply-To: <20100115084102.2258eba8@frecb007965> (sebastien dugue's message
+	of "Fri, 15 Jan 2010 08:41:02 +0100")
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Tziporet Koren <tziporet-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: sebastien dugue <sebastien.dugue-6ktuUTfB/bM@public.gmane.org>
+Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
- > > IPoIB CM is very stable now and has a better performance
- > 
- > The last time I tried to use it the kernel began reporting lots of
- > OOM events (2.6.30 stock). I thought this was well known because CM
- > mode uses high order allocations??
+ >   Well, without a specific port space, the default for Lustre is to use the
+ > TCP port space so you cannot distinguish Lustre traffic from other traffic using
+ > that same port space.
 
-And in any case changing the kernel config option default just means
-that the code gets built, but we start in datagram mode by default
-anyway.  So it just means people can enable it at runtime without having
-to rebuild the kernel.
+I'm still a bit confused.  The problem as I understand it is that Lustre
+always uses the same TCP port, so there's no way to apply different QoS
+to different types of Lustre traffic.  But if we create a new port space
+and don't change the ports that Lustre uses, then there's still no way
+to apply different QoS for different Lustre traffic.  So I guess you
+need to change the ports used within the new port space -- but then why
+can't you just stay in the TCP space but change the ports used?
 
  - R.
 --
