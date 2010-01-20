@@ -1,90 +1,96 @@
-From: sebastien dugue <sebastien.dugue-6ktuUTfB/bM@public.gmane.org>
-Subject: Re: [PATCH 1/3] rdma_cm: Add support for a new RDMA_PS_LUSTRE
- Lustre port space
-Date: Wed, 20 Jan 2010 10:17:17 +0100
-Message-ID: <20100120101717.60d733e3@frecb007965>
-References: <20100113154952.0f01aa1d@frecb007965>
-	<20100113155150.59867f40@frecb007965>
-	<7ED07283D76C422C9210FBE7C832731B@amr.corp.intel.com>
-	<ada6376ndgs.fsf@roland-alpha.cisco.com>
-	<20100114135815.69d5a9a5@frecb007965>
-	<ada3a28mwdw.fsf@roland-alpha.cisco.com>
-	<20100115084102.2258eba8@frecb007965>
-	<adaiqax37g4.fsf@roland-alpha.cisco.com>
-	<20100120085530.5d675ef8@frecb007965>
-	<4B56B8E3.3010909@voltaire.com>
+From: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH v2] opensm: Multicast root switch calculation
+Date: Wed, 20 Jan 2010 12:27:03 +0200
+Message-ID: <20100120102703.GB25576@me>
+References: <4B17C712.9010109@Voltaire.COM>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4B56B8E3.3010909-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <4B17C712.9010109-hKgKHo2Ms0F+cjeuK/JdrQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Cc: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+To: Slava Strebkov <slavas-hKgKHo2Ms0F+cjeuK/JdrQ@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Eli Dorfman <elid-smomgflXvOZWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org>, Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, 20 Jan 2010 10:03:47 +0200
-Or Gerlitz <ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org> wrote:
+Hi Slava,
 
-> sebastien dugue wrote:
-> >> So I guess you need to change the ports used within the new port s=
-pace -- but then=20
-> >> why can't you just stay in the TCP space but change the ports used=
-?
-> >>    =20
-> >
-> > No, with the new port space, there's no need to change ports. You o=
-nly need to specify the target GUIDs. For example:
-> >         lustre, target-=C2=ADport=C2=ADguid 0x1234,0x1235 : 1 # lus=
-tre traffic to MDSs
-> >         lustre                  	      : 2 # default lustre traffic=
- (to OSSs)
-> > Hope this helps clarify things a bit.
-> >  =20
-> sorry, but it doesn't,  as far as I understand there are three=20
-> possibilities for what the string "lustre" is being translated to
-> by the opensm QoS logic:
->=20
-> (A) lustre port in the TCP port space
-> (B) lustre port space
-> (C) nothing (that is not a service, in the same manner that ipoib jus=
-t=20
-> doesn't mean anything to opensm)
+On 16:11 Thu 03 Dec     , Slava Strebkov wrote:
+> Proposed new algorithm for calculation of root switch for multicast
+> spanning tree. Only edge switches(those connected to hosts) and
+> switches - multicast members themselves are involved in root calculation.
+> This gives improvement, especially on large fabrics, since number of
+> switches usually much less then the number of ports, shared same mcast
+> group.
+> 
+> Signed-off-by: Slava Strebkov <slavas-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+> ---
 
-  I'm not sure I'm following you here.
+[snip]
 
-  With the patches, the 'lustre' keyword is being translated to the lus=
-tre
-port space and only to that port space, never to the TCP port space. So=
- if
-I'm understanding you correctly, it's B.=20
+> @@ -231,32 +342,27 @@ static float osm_mcast_mgr_compute_max_hops(osm_sm_t * sm, cl_qlist_t * l,
+>     of the multicast group.
+>  **********************************************************************/
+>  static osm_switch_t *mcast_mgr_find_optimal_switch(osm_sm_t * sm,
+> -						   cl_qlist_t *list)
+> +						   cl_qlist_t * list)
+>  {
+>  	cl_qmap_t *p_sw_tbl;
+>  	osm_switch_t *p_sw, *p_best_sw = NULL;
+>  	float hops = 0;
+>  	float best_hops = 10000;	/* any big # will do */
+> -#ifdef OSM_VENDOR_INTF_ANAFA
+> -	boolean_t use_avg_hops = TRUE;	/* anafa2 - bug hca on switch *//* use max hops for root */
+> -#else
+> -	boolean_t use_avg_hops = FALSE;	/* use max hops for root */
+> -#endif
+> -
+> +	cl_qmap_t mcast_member_sw_tbl;
+>  	OSM_LOG_ENTER(sm->p_log);
+>  
+>  	p_sw_tbl = &sm->p_subn->sw_guid_tbl;
+>  
+> +	mcast_mgr_build_switch_map(sm, list, &mcast_member_sw_tbl);
+>  	for (p_sw = (osm_switch_t *) cl_qmap_head(p_sw_tbl);
+>  	     p_sw != (osm_switch_t *) cl_qmap_end(p_sw_tbl);
+>  	     p_sw = (osm_switch_t *) cl_qmap_next(&p_sw->map_item)) {
+>  		if (!osm_switch_supports_mcast(p_sw))
+>  			continue;
+>  
+> -		if (use_avg_hops)
+> -			hops = osm_mcast_mgr_compute_avg_hops(sm, list, p_sw);
+> -		else
+> -			hops = osm_mcast_mgr_compute_max_hops(sm, list, p_sw);
+> +		hops =
+> +		    osm_mcast_mgr_compute_avg_hops_weight(sm, p_sw,
+> +							  &mcast_member_sw_tbl);
 
->=20
-> Assuming C is not the case, then either A or B will yield the same=20
-> result and as such the new port space buys you nothing.
+Any reason why was root switch computation method changed? By default it
+was "max hops" based and as far as I can see you changed this to
+"average hops".
 
-  No, because in OpenSM's QoS logic, there's no way to map the TCP port
-space with specific target GUIDs onto an SL. You have keywords for SDP,=
- SRP,
-RDS, ISER, ... but not for the TCP port space (or am I missing somethin=
-g?).
+Sasha
 
-  What B buys you is the ability to map Lustre traffic to a specific
-target GUID onto an SL.
-
-  An alternative would be to be able to map the TCP port space to a spe=
-cific
-port and specific target GUIDs onto an SL in OpenSM's QoS configuration=
-, but
-that's currently not possible.
-
-  S=C3=A9bastien.
-
-
-
-
+>  
+>  		OSM_LOG(sm->p_log, OSM_LOG_DEBUG,
+>  			"Switch 0x%016" PRIx64 ", hops = %f\n",
+> @@ -277,6 +383,7 @@ static osm_switch_t *mcast_mgr_find_optimal_switch(osm_sm_t * sm,
+>  		OSM_LOG(sm->p_log, OSM_LOG_VERBOSE,
+>  			"No multicast capable switches detected\n");
+>  
+> +	mcast_mgr_destroy_switch_map(sm, &mcast_member_sw_tbl);
+>  	OSM_LOG_EXIT(sm->p_log);
+>  	return p_best_sw;
+>  }
+> -- 
+> 1.6.3.3
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
