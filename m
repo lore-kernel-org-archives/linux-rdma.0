@@ -1,27 +1,35 @@
-From: Or Gerlitz <ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Subject: Re: ibv_asyncwatch and buffering
-Date: Thu, 21 Jan 2010 13:07:19 +0200
-Message-ID: <4B583567.80707@voltaire.com>
-References: <41C706F4-CB54-4F03-86BD-03F27302B128@Sun.com>
+From: =?iso-8859-1?Q?H=E5kon_Bugge?= <Haakon.Bugge-UdXhSnd/wVw@public.gmane.org>
+Subject: [PATCH] libibverbs: Force line-buffering in ibv_asyncwatch
+Date: Thu, 21 Jan 2010 14:40:45 +0100
+Message-ID: <ED0695A5-CBE3-4CE2-A20C-BBC7BEF28C33@Sun.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; CHARSET=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <41C706F4-CB54-4F03-86BD-03F27302B128-U0mLk4xYmo8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: =?ISO-8859-1?Q?H=E5kon_Bugge?= <Haakon.Bugge-UdXhSnd/wVw@public.gmane.org>
-Cc: OFED mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Vladimir Sokolovsky <vlad-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
+Cc: OFED mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Or Gerlitz <ogerlitz-hKgKHo2Ms0FWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-H=E5kon Bugge wrote:
-> That would make ibv_asyncwatch more useful in scripted environments
->  =20
-patch?
+ibv_asyncwatch defaults to block-buffering when stdout is redirected to a file or pipe. This fix makes it more usable in scripted environments.
 
-Or.
+Signed-off-by: Hakon Bugge <Haakon.Bugge-xsfywfwIY+M@public.gmane.org>
+---
+diff --git a/examples/asyncwatch.c b/examples/asyncwatch.c
+index e56b4dc..f9fe6ff 100644
+--- a/examples/asyncwatch.c
++++ b/examples/asyncwatch.c
+@@ -98,6 +98,9 @@ int main(int argc, char *argv[])
+                return 1;
+        }
+ 
++       /* Force line-buffering if stdout is redirected */
++       setlinebuf(stdout);
++
+        printf("%s: async event FD %d\n",
+               ibv_get_device_name(*dev_list), context->async_fd);
+
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
