@@ -1,35 +1,25 @@
-From: =?iso-8859-1?Q?H=E5kon_Bugge?= <Haakon.Bugge-UdXhSnd/wVw@public.gmane.org>
-Subject: ibv_asyncwatch and buffering
-Date: Thu, 21 Jan 2010 11:30:38 +0100
-Message-ID: <41C706F4-CB54-4F03-86BD-03F27302B128@Sun.com>
+From: Or Gerlitz <ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+Subject: Re: ibv_asyncwatch and buffering
+Date: Thu, 21 Jan 2010 13:07:19 +0200
+Message-ID: <4B583567.80707@voltaire.com>
+References: <41C706F4-CB54-4F03-86BD-03F27302B128@Sun.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: text/plain; charset=ISO-8859-1;
+	format=flowed
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <41C706F4-CB54-4F03-86BD-03F27302B128-U0mLk4xYmo8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: OFED mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: =?ISO-8859-1?Q?H=E5kon_Bugge?= <Haakon.Bugge-UdXhSnd/wVw@public.gmane.org>
+Cc: OFED mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi,
+H=E5kon Bugge wrote:
+> That would make ibv_asyncwatch more useful in scripted environments
+>  =20
+patch?
 
-
-It seems like ibv_asyncwatch defaults to standard libc behavior wrt. to=
- buffering. That is, if you pipe the output of ibv_asyncwatch, no outpu=
-t happens, as the stdout is redirected to a pipe and block buffering is=
- used by default.
-
-One could a) use sprintf() and write() or b) force libc buffering to li=
-ne-mode by means of setlinebuf(stdout).
-
-That would make ibv_asyncwatch more useful in scripted environments.
-
-
-
-Thanks,=20
-H=E5kon
-
-
-
+Or.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
 n
