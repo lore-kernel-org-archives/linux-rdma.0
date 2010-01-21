@@ -1,84 +1,60 @@
-From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: Re: Problems using krping
-Date: Thu, 21 Jan 2010 08:40:33 -0600
-Message-ID: <4B586761.8040005@opengridcomputing.com>
-References: <201001211807011710722@inspur.com>
+From: Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: [PATCH] opensm/osm_sa.{c,h}: osm_sa_db_file_dump() return values
+Date: Thu, 21 Jan 2010 17:54:13 +0200
+Message-ID: <4B5878A5.1080800@dev.mellanox.co.il>
+Reply-To: kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <201001211807011710722-6gUaA8visnnQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: lihaidong <lihaidong-6gUaA8visnnQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+Cc: Linux RDMA <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-It appears the MLX4 driver does not support kernel mode memory regions.  
-You'll have to use dma mrs or fast_reg mrs with that device.
+Since osm_sa_db_file_dump() doesn't have to actually dump
+SA DB, reflecting this in the function return values.
 
-Steve.
+Function returns 0 if the SA DB was actually dumped,
+>0 if there was no need to dump the SA DB and <0 if
+some error occurred.
 
+Signed-off-by: Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+---
+ opensm/include/opensm/osm_sa.h |    4 +++-
+ opensm/opensm/osm_sa.c         |    2 +-
+ 2 files changed, 4 insertions(+), 2 deletions(-)
 
+diff --git a/opensm/include/opensm/osm_sa.h b/opensm/include/opensm/osm_sa.h
+index 9229d1a..d516310 100644
+--- a/opensm/include/opensm/osm_sa.h
++++ b/opensm/include/opensm/osm_sa.h
+@@ -436,7 +436,9 @@ int osm_sa_db_file_dump(struct osm_opensm *p_osm);
+ *		[in] Pointer to an osm_opensm_t object.
+ *
+ * RETURN VALUES
+-*	None
++*	 0 if the SA DB was actually dumped
++*	>0 if there was no need to dump the SA DB
++*	<0 if some error occurred.
+ *
+ *********/
 
+diff --git a/opensm/opensm/osm_sa.c b/opensm/opensm/osm_sa.c
+index 0d203ad..3473e4c 100644
+--- a/opensm/opensm/osm_sa.c
++++ b/opensm/opensm/osm_sa.c
+@@ -704,7 +704,7 @@ static void sa_dump_all_sa(osm_opensm_t * p_osm, FILE * file)
 
-lihaidong wrote:
-> Mr.Wise:
->  
-> When using mr mode as the memory registration method, krping failed to 
-> get memory region using ib_reg_phys_mr().Could you help me, please?
->  
-> dmesg:
-> krping_init
-> krping: proc write |client,addr=10.10.10.15,mem_mode=mr,port=9999,count=1,verbose|
-> client
-> ipaddr (10.10.10.15)
-> port 9999
-> count 1
-> verbose
-> created cm_id ffff88013c74c800
-> cma_event type 0 cma_id ffff88013c74c800 (parent)
-> cma_event type 2 cma_id ffff88013c74c800 (parent)
-> rdma_resolve_addr - rdma_resolve_route successful
-> created pd ffff880133845280
-> created cq ffff88013c1ff400
-> created qp ffff88013c1ffe00
-> krping: krping_setup_buffers called on cb ffff88013c59f800
-> krping: recv buf dma_addr 13c59f968 size 16
-> krping: recv_buf reg_mr failed
-> krping: krping_setup_buffers failed: -38
-> destroy cm_id ffff88013c74c800
-> krping: proc write |client,addr=10.10.10.15,mem_mode=mr,port=9999,count=1,verbose|
-> client
-> ipaddr (10.10.10.15)
-> port 9999
-> count 1
-> verbose
-> created cm_id ffff88013c59f800
-> cma_event type 0 cma_id ffff88013c59f800 (parent)
-> cma_event type 2 cma_id ffff88013c59f800 (parent)
-> rdma_resolve_addr - rdma_resolve_route successful
-> created pd ffff88012f5964a0
-> created cq ffff88012faee400
-> created qp ffff88012faeec00
-> krping: krping_setup_buffers called on cb ffff88013c71d400
-> krping: recv buf dma_addr 13c71d568 size 16
-> krping: recv_buf reg_mr failed
-> krping: krping_setup_buffers failed: -38
-> destroy cm_id ffff88013c59f800
->  
->  
-> echo "client,addr=10.10.10.15,mem_mode=mr,port=9999,count=1" > /proc/krping 
->
-> echo "server,addr=10.10.10.15,mem_mode=mr,port=9999" > /proc/krping
->  
-> Using OFED-1.5 ofa_kernel-1.5
-> HardWare:Mellanox Technologies MT26428 [ConnectX VPI PCIe 2.0 5GT/s - IB QDR / 10GigE] 
->
-> put krping source files into drivers/infiniband/hw/mlx4
->  
-> 2010-01-21
-> ------------------------------------------------------------------------
-> lihaidong
+ int osm_sa_db_file_dump(osm_opensm_t * p_osm)
+ {
+-	int res = 0;
++	int res = 1;
+ 	if (p_osm->sa.dirty) {
+ 		res = opensm_dump_to_file(
+ 			p_osm, "opensm-sa.dump", sa_dump_all_sa);
+-- 
+1.5.1.4
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
