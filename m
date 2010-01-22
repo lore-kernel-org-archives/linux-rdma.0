@@ -1,165 +1,161 @@
-From: Arputham Benjamin <abenjamin-sJ/iWh9BUns@public.gmane.org>
-Subject: [PATCH] opensm: Add a name to IB subnet and include it in syslog
- messages
-Date: Thu, 21 Jan 2010 14:16:21 -0800
-Message-ID: <4B58D235.2020409@sgi.com>
+From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+Subject: Found one reason libibnetdisc is slower than subnet_discover
+Date: Thu, 21 Jan 2010 18:14:18 -0800
+Message-ID: <20100121181418.a9e955bb.weiny2@llnl.gov>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+To: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Added a text based name to an IB subnet to help user in identifying
-an IB subnet or understanding its function in a multi-fabric IB cluster.
-For example, in a dual-fabric (or dual-rail) IB cluster, one subnet
-could be named "mpi" and the other subnet could be named "storage".
+Sasha,
 
-Summary of changes:
- o Added the option 'subnet_name' to OpenSM command line and config file.
- o Enhanced OpenSM logging facility to include the subnet name in
-   syslog messages.
+Here is a patch which speeds up libibnetdisc by about 17%.  I am not going to pursue this much because I think a major rework of the library is necessary and I like your algorithm.  I see a couple of minor issues but I think they can be worked out.
 
-Signed-off-by: Arputham Benjamin <abenjamin-sJ/iWh9BUns@public.gmane.org>
+Anyway here is the data for the patch below.  This is on Hyperion the test cluster I was using before.
+
+17:38:26 > time ibnetdiscover --node-name-map=/etc/opensm/ib-node-name-map > old
+
+real    0m3.174s
+user    0m0.049s
+sys     0m0.834s
+
+18:15:42 > time ./ibnetdiscover --node-name-map=/etc/opensm/ib-node-name-map > new
+
+real    0m2.625s
+user    0m0.057s
+sys     0m0.570s
+
+18:15:49 > diff old new
+2c2
+< # Topology file: generated on Thu Jan 21 18:15:42 2010
 ---
-diff -rup a/include/opensm/osm_log.h b/include/opensm/osm_log.h
---- a/include/opensm/osm_log.h	2010-01-18 21:32:12.195328129 -0800
-+++ b/include/opensm/osm_log.h	2010-01-18 21:34:46.573932164 -0800
-@@ -120,6 +120,7 @@ typedef struct osm_log {
- 	boolean_t accum_log_file;
- 	boolean_t daemon;
- 	char *log_file_name;
-+	char *subnet_name;
- } osm_log_t;
- /*********/
- 
-diff -rup a/include/opensm/osm_subnet.h b/include/opensm/osm_subnet.h
---- a/include/opensm/osm_subnet.h	2010-01-18 21:32:12.195328129 -0800
-+++ b/include/opensm/osm_subnet.h	2010-01-18 21:34:55.782087826 -0800
-@@ -224,6 +224,7 @@ typedef struct osm_subn_opt {
- 	char *event_plugin_name;
- 	char *node_name_map_name;
- 	char *prefix_routes_file;
-+	char *subnet_name;
- 	boolean_t consolidate_ipv6_snm_req;
- 	struct osm_subn_opt *file_opts; /* used for update */
- 	uint8_t lash_start_vl;			/* starting vl to use in lash */
-diff -rup a/man/opensm.8.in b/man/opensm.8.in
---- a/man/opensm.8.in	2010-01-19 11:29:03.954832199 -0800
-+++ b/man/opensm.8.in	2010-01-21 10:56:58.901836423 -0800
-@@ -49,6 +49,7 @@ opensm \- InfiniBand subnet manager and 
- [\-\-perfmgr_sweep_time_s <seconds>]
- [\-\-prefix_routes_file <path>]
- [\-\-consolidate_ipv6_snm_req]
-+[\-\-subnet_name <subnet name>]
- [\-v(erbose)] [\-V] [\-D <flags>] [\-d(ebug) <number>]
- [\-h(elp)] [\-?]
- 
-@@ -345,6 +346,9 @@ effect if --enable-perfmgr was specified
- Use shared MLID for IPv6 Solicited Node Multicast groups per MGID scope
- and P_Key.
- .TP
-+\fB\-\-subnet_name\fR <subnet name>
-+This option specifies the text based name of the subnet.
-+.TP
- \fB\-v\fR, \fB\-\-verbose\fR
- This option increases the log verbosity level.
- The -v option may be specified multiple times
-diff -rup a/opensm/main.c b/opensm/main.c
---- a/opensm/main.c	2010-01-18 21:31:43.318842260 -0800
-+++ b/opensm/main.c	2010-01-19 11:51:45.566967909 -0800
-@@ -324,6 +324,8 @@ static void show_usage(void)
- 	printf("--consolidate_ipv6_snm_req\n"
- 	       "          Use shared MLID for IPv6 Solicited Node Multicast groups\n"
- 	       "          per MGID scope and P_Key.\n\n");
-+	printf("--subnet_name <subnet name>\n"
-+	       "          Text based name of the IB subnet.\n\n");
- 	printf("--verbose, -v\n"
- 	       "          This option increases the log verbosity level.\n"
- 	       "          The -v option may be specified multiple times\n"
-@@ -607,6 +609,7 @@ int main(int argc, char *argv[])
- 		{"lash_start_vl", 1, NULL, 6},
- 		{"sm_sl", 1, NULL, 7},
- 		{"retries", 1, NULL, 8},
-+		{"subnet_name", 1, NULL, 9},
- 		{NULL, 0, NULL, 0}	/* Required at the end of the array */
- 	};
- 
-@@ -985,6 +988,11 @@ int main(int argc, char *argv[])
- 			printf(" Transaction retries = %u\n",
- 			       opt.transaction_retries);
- 			break;
-+		case 9:
-+			SET_STR_OPT(opt.subnet_name, optarg);
-+			printf("IB subnet name = %s\n",
-+			       opt.subnet_name);
-+			break;
- 		case 'h':
- 		case '?':
- 		case ':':
-diff -rup a/opensm/osm_log.c b/opensm/osm_log.c
---- a/opensm/osm_log.c	2010-01-18 21:31:43.318842260 -0800
-+++ b/opensm/osm_log.c	2010-01-18 21:33:47.808939648 -0800
-@@ -107,6 +107,7 @@ void osm_log(IN osm_log_t * p_log, IN os
- 	char buffer[LOG_ENTRY_SIZE_MAX];
- 	va_list args;
- 	int ret;
-+	uint8_t ind = 0;
- #ifdef __WIN__
- 	SYSTEMTIME st;
- 	uint32_t pid = GetCurrentThreadId();
-@@ -123,7 +124,14 @@ void osm_log(IN osm_log_t * p_log, IN os
- 		return;
- 
- 	va_start(args, p_str);
--	vsprintf(buffer, p_str, args);
-+	if(p_log->subnet_name) {
-+		snprintf(buffer, LOG_ENTRY_SIZE_MAX, "%s: ", p_log->subnet_name);
-+		ind = strlen(buffer);
-+		vsprintf(&buffer[ind], p_str, args);
-+	}
-+	else {
-+		vsprintf(buffer, p_str, args);
-+	}
- 	va_end(args);
- 
- 	/* this is a call to the syslog */
-diff -rup a/opensm/osm_opensm.c b/opensm/osm_opensm.c
---- a/opensm/osm_opensm.c	2010-01-18 21:31:43.318842260 -0800
-+++ b/opensm/osm_opensm.c	2010-01-18 21:34:00.125147535 -0800
-@@ -337,6 +337,7 @@ ib_api_status_t osm_opensm_init(IN osm_o
- 				 p_opt->log_max_size, p_opt->accum_log_file);
- 	if (status != IB_SUCCESS)
- 		return status;
-+	p_osm->log.subnet_name = p_opt->subnet_name;
- 
- 	/* If there is a log level defined - add the OSM_VERSION to it */
- 	osm_log(&p_osm->log,
-diff -rup a/opensm/osm_subnet.c b/opensm/osm_subnet.c
---- a/opensm/osm_subnet.c	2010-01-18 21:31:43.318842260 -0800
-+++ b/opensm/osm_subnet.c	2010-01-18 21:34:10.833328335 -0800
-@@ -395,6 +395,7 @@ static const opt_rec_t opt_tbl[] = {
- 	{ "consolidate_ipv6_snm_req", OPT_OFFSET(consolidate_ipv6_snm_req), opts_parse_boolean, NULL, 1 },
- 	{ "lash_start_vl", OPT_OFFSET(lash_start_vl), opts_parse_uint8, NULL, 1 },
- 	{ "sm_sl", OPT_OFFSET(sm_sl), opts_parse_uint8, NULL, 1 },
-+	{ "subnet_name", OPT_OFFSET(subnet_name), opts_parse_charp, NULL, 1 },
- 	{0}
- };
- 
-@@ -1629,6 +1630,11 @@ int osm_subn_output_conf(FILE *out, IN o
- 		"consolidate_ipv6_snm_req %s\n\n",
- 		p_opts->consolidate_ipv6_snm_req ? "TRUE" : "FALSE");
- 
-+	fprintf(out,
-+		"# Subnet name\n"
-+		"subnet_name %s\n\n",
-+		p_opts->subnet_name);
-+
- 	/* optional string attributes ... */
- 
+> # Topology file: generated on Thu Jan 21 18:15:49 2010
+
+
+Ira
+
+
+>From 53a3f1936e0ec954a3c470cc5436ce4fd6be3b3e Mon Sep 17 00:00:00 2001
+From: Ira Weiny <weiny2-ig7AzVSIIG5IWGcSWN6Auu1ftBKYq+Ku@public.gmane.org>
+Date: Thu, 21 Jan 2010 17:13:37 -0800
+Subject: [PATCH] optimize query_node
+
+   recognize when we have found a switch we have already processed and skip the
+   SwitchInfo and NodeDescription queries.
+
+Signed-off-by: Ira Weiny <weiny2-ig7AzVSIIG5IWGcSWN6Auu1ftBKYq+Ku@public.gmane.org>
+---
+ infiniband-diags/libibnetdisc/src/ibnetdisc.c |   45 +++++++++++++++----------
+ 1 files changed, 27 insertions(+), 18 deletions(-)
+
+diff --git a/infiniband-diags/libibnetdisc/src/ibnetdisc.c b/infiniband-diags/libibnetdisc/src/ibnetdisc.c
+index d0c97a1..fa0dbe4 100644
+--- a/infiniband-diags/libibnetdisc/src/ibnetdisc.c
++++ b/infiniband-diags/libibnetdisc/src/ibnetdisc.c
+@@ -101,19 +101,30 @@ static int query_node_info(struct ibmad_port *ibmad_port,
  	return 0;
+ }
+ 
++static ibnd_node_t *find_existing_node(ibnd_fabric_t * fabric,
++				       uint64_t guid)
++{
++	int hash = HASHGUID(guid) % HTSZ;
++	ibnd_node_t *node;
++
++	for (node = fabric->nodestbl[hash]; node; node = node->htnext)
++		if (node->guid == guid)
++			return node;
++
++	return NULL;
++}
++
+ static int query_node(struct ibmad_port *ibmad_port, ibnd_fabric_t * fabric,
+ 		      ibnd_node_t * node, ibnd_port_t * port,
+ 		      ib_portid_t * portid)
+ {
+ 	int rc = 0;
+ 	void *nd = node->nodedesc;
++	ibnd_node_t *existing;
+ 
+ 	if ((rc = query_node_info(ibmad_port, fabric, node, portid)) != 0)
+ 		return rc;
+ 
+-	if (!smp_query_via(nd, portid, IB_ATTR_NODE_DESC, 0, 0, ibmad_port))
+-		return -1;
+-
+ 	if ((rc = query_port_info(ibmad_port, portid, 0, port)) != 0)
+ 		return rc;
+ 
+@@ -121,7 +132,7 @@ static int query_node(struct ibmad_port *ibmad_port, ibnd_fabric_t * fabric,
+ 	port->guid = mad_get_field64(node->info, 0, IB_NODE_PORT_GUID_F);
+ 
+ 	if (node->type != IB_NODE_SWITCH)
+-		return 0;
++		goto query_nd;
+ 
+ 	node->smalid = port->base_lid;
+ 	node->smalmc = port->lmc;
+@@ -135,6 +146,12 @@ static int query_node(struct ibmad_port *ibmad_port, ibnd_fabric_t * fabric,
+ 	port->base_lid = (uint16_t) node->smalid;	/* LID is still defined by port 0 */
+ 	port->lmc = (uint8_t) node->smalmc;
+ 
++	if ((existing = find_existing_node(fabric, node->guid)) != NULL) {
++		/* probably don't even need this memcpy */
++		memcpy(node, existing, sizeof *node);
++		return (0);
++	}
++
+ 	if (!smp_query_via(node->switchinfo, portid, IB_ATTR_SWITCH_INFO, 0, 0,
+ 			   ibmad_port))
+ 		node->smaenhsp0 = 0;	/* assume base SP0 */
+@@ -144,6 +161,11 @@ static int query_node(struct ibmad_port *ibmad_port, ibnd_fabric_t * fabric,
+ 
+ 	IBND_DEBUG("portid %s: got switch node %" PRIx64 " '%s'\n",
+ 		   portid2str(portid), node->guid, node->nodedesc);
++
++query_nd:
++	if (!smp_query_via(nd, portid, IB_ATTR_NODE_DESC, 0, 0, ibmad_port))
++		return -1;
++
+ 	return 0;
+ }
+ 
+@@ -208,19 +230,6 @@ static void dump_endnode(ib_portid_t * path, char *prompt,
+ 	       port->base_lid + (1 << port->lmc) - 1, node->nodedesc);
+ }
+ 
+-static ibnd_node_t *find_existing_node(ibnd_fabric_t * fabric,
+-				       ibnd_node_t * new)
+-{
+-	int hash = HASHGUID(new->guid) % HTSZ;
+-	ibnd_node_t *node;
+-
+-	for (node = fabric->nodestbl[hash]; node; node = node->htnext)
+-		if (node->guid == new->guid)
+-			return node;
+-
+-	return NULL;
+-}
+-
+ ibnd_node_t *ibnd_find_node_guid(ibnd_fabric_t * fabric, uint64_t guid)
+ {
+ 	int hash = HASHGUID(guid) % HTSZ;
+@@ -459,7 +468,7 @@ static int get_remote_node(struct ibmad_port *ibmad_port,
+ 		return 1;	/* positive == non-fatal error */
+ 	}
+ 
+-	oldnode = find_existing_node(fabric, &node_buf);
++	oldnode = find_existing_node(fabric, node_buf.guid);
+ 	if (oldnode)
+ 		remotenode = oldnode;
+ 	else if (!(remotenode = create_node(fabric, scan, &node_buf, path,
+-- 
+1.5.4.5
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
