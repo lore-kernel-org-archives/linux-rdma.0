@@ -1,64 +1,70 @@
 From: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH] tests/subnet_discover: discover test utility
-Date: Sat, 23 Jan 2010 07:24:29 -0500
-Message-ID: <f0e08f231001230424v5fb254a7o60bc70b69dc7f537@mail.gmail.com>
-References: <20090823120609.GG9547@me> <20091023234349.GK5764@me>
-	 <20091220121406.GF5262@me> <20091220182809.f7e17fae.weiny2@llnl.gov>
-	 <20091221073550.GB18524@me> <20091228092251.GR26940@me>
-	 <f0e08f231001110556y7c47cc54oa3cfd5859f9a4e76@mail.gmail.com>
-	 <20100112093145.GF26089@me>
-	 <f0e08f231001131211y64489a51nd2621cefdb27ad25@mail.gmail.com>
-	 <20100116193603.GX574@me>
+Subject: Re: [PATCH] opensm/osm_qos.c: merge SL2VL mapping capability check
+Date: Sat, 23 Jan 2010 07:25:28 -0500
+Message-ID: <f0e08f231001230425j28ced479if608a75bb4216186@mail.gmail.com>
+References: <20091201194110.GA26753@comcast.net> <20100104170141.GK26940@me>
+	 <f0e08f231001070538q78453f91kd47c931087dfa735@mail.gmail.com>
+	 <20100112103517.GI26089@me>
+	 <f0e08f231001131213r4a743d6boc1b07e9fadc773ac@mail.gmail.com>
+	 <20100116202759.GA574@me>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20100116193603.GX574@me>
+In-Reply-To: <20100116202759.GA574@me>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Cc: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Al Chu <chu11-i2BcT+NCU+M@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Sat, Jan 16, 2010 at 2:36 PM, Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>=
+On Sat, Jan 16, 2010 at 3:27 PM, Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>=
  wrote:
-> On 15:11 Wed 13 Jan =C2=A0 =C2=A0 , Hal Rosenstock wrote:
+> On 15:13 Wed 13 Jan =C2=A0 =C2=A0 , Hal Rosenstock wrote:
+>> On Tue, Jan 12, 2010 at 5:35 AM, Sasha Khapyorsky <sashak@voltaire.c=
+om> wrote:
+>> > On 08:38 Thu 07 Jan =C2=A0 =C2=A0 , Hal Rosenstock wrote:
+>> >>
+>> >> Change appears to be for switches to always rely on this bit rath=
+er
+>> >> than only when VLCap is 1. I wonder if there are any switches wit=
+h
+>> >> VLCap > 1 that don't set the IsSLMappingSupported CapabilityMask =
+bit.
+>> >> There shouldn't be (at least if they are IBA 1.2.1 compliant) but=
+ are
+>> >> you sure about this ?
 >> >
->> > In my tests I found that '8' is more optimal number (the tool work=
-s
->> > faster and without drops) than '4' used in OpenSM.
->> >
->> > Of course it would be helpful to run this over bigger cluster than
->> > what I have to see that the results are consistent.
+>> > I'm not sure about this, but think that probability of using such
+>> > hypothetical old switches for any sort of QoS is very low.
 >>
->> This is exactly my concern. Not only cluster size but use cases
->> including concurrent diag discover and SM operation where SMPs are
->> heavily in use.
+>> Low but not zero... I'm also not sure it's just old switches...
+>> I've seen many rejections (status 7) since you made this change.
 >
-> Was it investigated? What was a conclusions?
+> This is interesting. Do you have any details?
 
-I was pointing out testing that needs to be done rather than testing
-already done. The use cases I mentioned are based on current
-experience. I'm sure there are more.
+I've been unable to get test time for this as yet.
 
->> There already have been a number of reports of dropped SMPs on this
->> list with the current diags and this change will only make things
->> worse IMO.
+>> > And anyway it
+>> > doesn't look for me that we have any stronger SL2VL mapping capabi=
+lity
+>> > indication - 'VLCap > 1' by itself doesn't do this too, right?
 >>
->> Also, the OpenSM default should be at least as large as the diags fo=
-r this.
+>> It does. There's a requirement that SL2VL mapping is required when V=
+LCap > 1.
 >
-> I don't know where concurrent MADs are used in the current "diags", d=
-o
-> you?
+> Correct, I found it in o7-4. Basically we can check both (now after
+> switch/endport separation in the code this should be easier), but I
+> would prefer to understand better an issue (if we have) first.
 >
-> This utility is not 'diags' at all. It is placed in ibsim/tests and I
-> wrote it for test purpose.
+> Also same o7-4 is applicable to CA and router ports.
 
-In your original email on this, you proposed that this algorithm be
-incorporated in the diags (you wrote "I think that similar
-implementation in libibnetdisc (I can do it if we
-are in agreement :)) would improve its performance") so this comment
-thread appears relevant to me.
+I see no mention of CA and router ports in o7-4. What are you
+referring to here ?
+
+> Do you know why
+> was VLCap > 1 condition ignored there?
+
+Where is the "there" that you are referring to above ?
 
 -- Hal
 
