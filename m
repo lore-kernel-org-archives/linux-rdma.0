@@ -1,70 +1,93 @@
 From: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH] opensm/osm_qos.c: merge SL2VL mapping capability check
-Date: Sat, 23 Jan 2010 07:25:28 -0500
-Message-ID: <f0e08f231001230425j28ced479if608a75bb4216186@mail.gmail.com>
-References: <20091201194110.GA26753@comcast.net> <20100104170141.GK26940@me>
-	 <f0e08f231001070538q78453f91kd47c931087dfa735@mail.gmail.com>
-	 <20100112103517.GI26089@me>
-	 <f0e08f231001131213r4a743d6boc1b07e9fadc773ac@mail.gmail.com>
-	 <20100116202759.GA574@me>
+Subject: Re: [PATCHv3] opensm: Add support for optimized SLtoVLMappingTable
+	programming
+Date: Sat, 23 Jan 2010 07:26:14 -0500
+Message-ID: <f0e08f231001230426t2e48aa58pbcb2d3f1323c6e56@mail.gmail.com>
+References: <20091201194110.GA26753@comcast.net> <20100105111841.GO26940@me>
+	 <20100105112334.GP26940@me>
+	 <f0e08f231001070535l382f1d54t7f6290607e52b196@mail.gmail.com>
+	 <20100112105516.GK26089@me>
+	 <f0e08f231001131214w790b1f34s46cbbda8b6454ac3@mail.gmail.com>
+	 <20100116203304.GB574@me>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20100116202759.GA574@me>
+In-Reply-To: <20100116203304.GB574@me>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Sat, Jan 16, 2010 at 3:27 PM, Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>=
+On Sat, Jan 16, 2010 at 3:33 PM, Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>=
  wrote:
-> On 15:13 Wed 13 Jan =C2=A0 =C2=A0 , Hal Rosenstock wrote:
->> On Tue, Jan 12, 2010 at 5:35 AM, Sasha Khapyorsky <sashak@voltaire.c=
-om> wrote:
->> > On 08:38 Thu 07 Jan =C2=A0 =C2=A0 , Hal Rosenstock wrote:
+> On 15:14 Wed 13 Jan =C2=A0 =C2=A0 , Hal Rosenstock wrote:
+>> >> > @@ -223,12 +222,20 @@ static int qos_extports_setup(osm_sm_t * =
+sm, osm_node_t *node,
+>> >> > =C2=A0 =C2=A0 =C2=A0 =C2=A0if (!(p0->port_info.capability_mask =
+& IB_PORT_CAP_HAS_SL_MAP))
+>> >> > =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0return r=
+et;
+>> >> >
+>> >> > + =C2=A0 =C2=A0 =C2=A0 if (ib_switch_info_get_opt_sl2vlmapping(=
+&node->sw->switch_info) &&
+>> >> > + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 sm->p_subn->opt.use_optimi=
+zed_slvl) {
+>> >> > + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 p =3D osm_no=
+de_get_physp_ptr(node, 1);
+>> >> > + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 force_update=
+ =3D p->need_update || sm->p_subn->need_update;
+>> >> > + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 return sl2vl=
+_update_table(sm, p, 1, 0x30000, force_update,
+>> >> > + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =
+=C2=A0 &qcfg->sl2vl);
+>> >> > + =C2=A0 =C2=A0 =C2=A0 }
+>> >> > +
+>> >> > =C2=A0 =C2=A0 =C2=A0 =C2=A0for (i =3D 1; i < num_ports; i++) {
+>> >> > =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0p =3D os=
+m_node_get_physp_ptr(node, i);
+>> >> > =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0force_up=
+date =3D p->need_update || sm->p_subn->need_update;
+>> >> > =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0for (j =3D=
+ 0; j < num_ports; j++)
+>> >> > - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 =C2=A0 if (sl2vl_update_table(sm, p, i, j, force_update,
+>> >> > - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =
+=C2=A0 =C2=A0 =C2=A0 =C2=A0&qcfg->sl2vl))
+>> >> > + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 =C2=A0 if (sl2vl_update_table(sm, p, i, i << 8 | j,
+>> >> > + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =
+=C2=A0 =C2=A0 =C2=A0 =C2=A0force_update, &qcfg->sl2vl))
+>> >> > =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =
+=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0ret =3D -1;
+>> >> > =C2=A0 =C2=A0 =C2=A0 =C2=A0}
+>> >> >
+>> >> >
+>> >> > , does it look fine for you?
 >> >>
->> >> Change appears to be for switches to always rely on this bit rath=
-er
->> >> than only when VLCap is 1. I wonder if there are any switches wit=
-h
->> >> VLCap > 1 that don't set the IsSLMappingSupported CapabilityMask =
-bit.
->> >> There shouldn't be (at least if they are IBA 1.2.1 compliant) but=
- are
->> >> you sure about this ?
+>> >> In the optimized case, doesn't this send extra SL2VL mapping tabl=
+e ?
 >> >
->> > I'm not sure about this, but think that probability of using such
->> > hypothetical old switches for any sort of QoS is very low.
+>> > I don't see how, could you elaborate?
 >>
->> Low but not zero... I'm also not sure it's just old switches...
->> I've seen many rejections (status 7) since you made this change.
+>> Doesn't this send a table for the endport even when optimized ?
 >
-> This is interesting. Do you have any details?
+> Yes, and how is this different from the original patch?
 
-I've been unable to get test time for this as yet.
+The original patch didn't do this but missed accounting for the switch
+port 0 configuration.
 
->> > And anyway it
->> > doesn't look for me that we have any stronger SL2VL mapping capabi=
-lity
->> > indication - 'VLCap > 1' by itself doesn't do this too, right?
->>
->> It does. There's a requirement that SL2VL mapping is required when V=
-LCap > 1.
->
-> Correct, I found it in o7-4. Basically we can check both (now after
-> switch/endport separation in the code this should be easier), but I
-> would prefer to understand better an issue (if we have) first.
->
-> Also same o7-4 is applicable to CA and router ports.
+> Remember, that there is a different configuration for switch's port 0
+> (needed or not - this is another question), so we must to take it int=
+o
+> account.
 
-I see no mention of CA and router ports in o7-4. What are you
-referring to here ?
-
-> Do you know why
-> was VLCap > 1 condition ignored there?
-
-Where is the "there" that you are referring to above ?
+Yes but is there a need for this if they are the same and wildcarding
+is used ? That will save what seems to me to be an unneeded MAD
+request/response pair per switch.
 
 -- Hal
 
