@@ -1,34 +1,82 @@
-From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 01/25 v2] mlx4_core: identify function as pf or vf
-Date: Mon, 25 Jan 2010 11:20:04 -0800
-Message-ID: <adar5peouu3.fsf@roland-alpha.cisco.com>
-References: <4AF3930E.90904@mellanox.co.il>
+From: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH] opensm/osm_qos.c: Eliminate unneeded endport SL to VL
+	setup
+Date: Mon, 25 Jan 2010 15:18:45 -0500
+Message-ID: <f0e08f231001251218l757a4143qa6b91705366176a@mail.gmail.com>
+References: <20100125132937.GA2053@comcast.net> <20100125174643.GW13519@me>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4AF3930E.90904-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org> (Yevgeny Petrilin's message of
-	"Fri, 06 Nov 2009 05:07:58 +0200")
+In-Reply-To: <20100125174643.GW13519@me>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yevgeny Petrilin <yevgenyp-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, liranl-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org, tziporet-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org
+To: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+Hi Sasha,
 
- >  enum {
- >  	MLX4_FLAG_MSI_X		= 1 << 0,
- >  	MLX4_FLAG_OLD_PORT_CMDS	= 1 << 1,
- > +	MLX4_FLAG_MASTER	= 1 << 2,
- > +	MLX4_FLAG_SLAVE		= 1 << 3,
- > +	MLX4_FLAG_SRIOV		= 1 << 4,
- >  };
+On Mon, Jan 25, 2010 at 12:46 PM, Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org=
+> wrote:
+> Hi Hal,
+>
+> On 08:29 Mon 25 Jan =C2=A0 =C2=A0 , Hal Rosenstock wrote:
+>>
+>> when using optimized programming and it's supported by the switch
+>>
+>> Signed-off-by: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+>> ---
+>> diff --git a/opensm/opensm/osm_qos.c b/opensm/opensm/osm_qos.c
+>> index 6bbbfa2..afa454f 100644
+>> --- a/opensm/opensm/osm_qos.c
+>> +++ b/opensm/opensm/osm_qos.c
+>> @@ -305,6 +305,12 @@ int osm_qos_setup(osm_opensm_t * p_osm)
+>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 =C2=A0 =C2=A0 (&p_node->sw->switch_info))
+>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0  =C2=A0=
+ =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 continue;
+>>
+>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
+=A0 if (ib_switch_info_get_opt_sl2vlmapping(&p_node->sw->switch_info) &=
+&
+>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
+=A0 =C2=A0 =C2=A0 p_osm->sm.p_subn->opt.use_optimized_slvl &&
+>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
+=A0 =C2=A0 =C2=A0 !memcmp(&swe_config.sl2vl, &sw0_config.sl2vl,
+>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
+=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 sizeof(swe_config.sl2vl))=
+)
+>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
+=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 continue;
+>> +
+>
+> But then exports sl2vl tables setup loop should be changed starting f=
+rom
+> port '0' (not '1'), right?
 
-I'm a bit confused by these flags.  As far as I can tell, the SRIOV flag
-will be set if and only if MASTER is set too... so in other words we
-might as well just have the MASTER and SLAVE flags and not have the
-SRIOV flag at all.
+Isn't it just that vlarb needs to be pushed for port 0 in that case
+(and not the sl2vl) ? Patch to follow.
 
- - R.
+-- Hal
+
+> Sasha
+>
+>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 cfg =3D &sw0_config;
+>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 } else if (osm_node=
+_get_type(p_node) =3D=3D IB_NODE_TYPE_ROUTER)
+>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 cfg =3D &rtr_config;
+>>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma"=
+ in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at =C2=A0http://vger.kernel.org/majordomo-info.ht=
+ml
+>
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
