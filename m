@@ -1,72 +1,86 @@
-From: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH] opensm/osm_qos.c: merge SL2VL mapping capability check
-Date: Mon, 25 Jan 2010 15:19:16 -0500
-Message-ID: <f0e08f231001251219m7eba67a4x1006051bc2c21db3@mail.gmail.com>
-References: <20091201194110.GA26753@comcast.net> <20100104170141.GK26940@me>
-	 <f0e08f231001070538q78453f91kd47c931087dfa735@mail.gmail.com>
-	 <20100112103517.GI26089@me>
-	 <f0e08f231001131213r4a743d6boc1b07e9fadc773ac@mail.gmail.com>
-	 <20100116202759.GA574@me>
-	 <f0e08f231001230425j28ced479if608a75bb4216186@mail.gmail.com>
-	 <20100125152018.GO13519@me>
+From: Hal Rosenstock <hnrose-Wuw85uim5zDR7s880joybQ@public.gmane.org>
+Subject: [PATCHv2] opensm/osm_qos.c: Eliminate unneeded endport SL to VL
+	setup
+Date: Mon, 25 Jan 2010 15:22:48 -0500
+Message-ID: <20100125202247.GA9197@comcast.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20100125152018.GO13519@me>
+Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+To: sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Jan 25, 2010 at 10:20 AM, Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org=
-> wrote:
-> On 07:25 Sat 23 Jan =C2=A0 =C2=A0 , Hal Rosenstock wrote:
->> >>
->> >> It does. There's a requirement that SL2VL mapping is required whe=
-n VLCap > 1.
->> >
->> > Correct, I found it in o7-4. Basically we can check both (now afte=
-r
->> > switch/endport separation in the code this should be easier), but =
-I
->> > would prefer to understand better an issue (if we have) first.
->> >
->> > Also same o7-4 is applicable to CA and router ports.
->>
->> I see no mention of CA and router ports in o7-4.
->
-> This is the point. o7-4 is not limited by switch ports.
->
->> What are you
->> referring to here ?
->
-> This was the question, why such capability check should be (was)
-> ideologically different for CA ports? If 'VLCap > 1' is significant
-> capability indication for switch ports this should be the same
-> interpretation with CA and router ports.
 
-The difference is due to capability mask being valid for CA and router
-ports and only valid for switch port 0. Later on (at IBA 1.2.1), we
-came back and said for switch external ports they were the same as
-switch port 0 which was how footnote (b) came to be added but I'm not
-sure about relying on the conformance to this.
+when using optimized programming and it's supported by the switch
 
--- Hal
+Signed-off-by: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+---
+Changes since v1:
+Add in update of vlarb tables for port 0 when optimized but no SL to VL
+tables needed to be configured on that port
 
->
->>
->> > Do you know why
->> > was VLCap > 1 condition ignored there?
->>
->> Where is the "there" that you are referring to above ?
->
-> not switch ports.
->
-> Sasha
->
+diff --git a/opensm/opensm/osm_qos.c b/opensm/opensm/osm_qos.c
+index f814ea8..218e128 100644
+--- a/opensm/opensm/osm_qos.c
++++ b/opensm/opensm/osm_qos.c
+@@ -243,13 +243,15 @@ static int qos_extports_setup(osm_sm_t * sm, osm_node_t *node,
+ }
+ 
+ static int qos_endport_setup(osm_sm_t * sm, osm_physp_t * p,
+-			     const struct qos_config *qcfg)
++			     const struct qos_config *qcfg, int vlarb_only)
+ {
+ 	unsigned force_update = p->need_update || sm->p_subn->need_update;
+ 
+ 	p->vl_high_limit = qcfg->vl_high_limit;
+ 	if (vlarb_update(sm, p, 0, force_update, qcfg))
+ 		return -1;
++	if (vlarb_only)
++		return 0;
+ 
+ 	if (!(p->port_info.capability_mask & IB_PORT_CAP_HAS_SL_MAP))
+ 		return 0;
+@@ -269,6 +271,7 @@ int osm_qos_setup(osm_opensm_t * p_osm)
+ 	osm_port_t *p_port;
+ 	osm_node_t *p_node;
+ 	int ret = 0;
++	int vlarb_only;
+ 
+ 	if (!p_osm->subn.opt.qos)
+ 		return 0;
+@@ -292,6 +295,7 @@ int osm_qos_setup(osm_opensm_t * p_osm)
+ 	p_tbl = &p_osm->subn.port_guid_tbl;
+ 	p_next = cl_qmap_head(p_tbl);
+ 	while (p_next != cl_qmap_end(p_tbl)) {
++		vlarb_only = 0;
+ 		p_port = (osm_port_t *) p_next;
+ 		p_next = cl_qmap_next(p_next);
+ 
+@@ -305,13 +309,20 @@ int osm_qos_setup(osm_opensm_t * p_osm)
+ 			    (&p_node->sw->switch_info))
+ 				continue;
+ 
++			if (ib_switch_info_get_opt_sl2vlmapping(&p_node->sw->switch_info) &&
++			    p_osm->sm.p_subn->opt.use_optimized_slvl &&
++			    !memcmp(&swe_config.sl2vl, &sw0_config.sl2vl,
++				    sizeof(swe_config.sl2vl)))
++				vlarb_only = 1;
++
+ 			cfg = &sw0_config;
+ 		} else if (osm_node_get_type(p_node) == IB_NODE_TYPE_ROUTER)
+ 			cfg = &rtr_config;
+ 		else
+ 			cfg = &ca_config;
+ 
+-		if (qos_endport_setup(&p_osm->sm, p_port->p_physp, cfg))
++		if (qos_endport_setup(&p_osm->sm, p_port->p_physp, cfg,
++				      vlarb_only))
+ 			ret = -1;
+ 	}
+ 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
