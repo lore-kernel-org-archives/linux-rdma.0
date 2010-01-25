@@ -1,51 +1,25 @@
 From: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH] opensm/osm_qos.c: Eliminate unneeded endport SL to VL
- setup
-Date: Mon, 25 Jan 2010 19:46:43 +0200
-Message-ID: <20100125174643.GW13519@me>
-References: <20100125132937.GA2053@comcast.net>
+Subject: Re: [PATCH] opensm/osm_qos.c: Fix typo in OSM_LOG message
+Date: Mon, 25 Jan 2010 19:48:03 +0200
+Message-ID: <20100125174803.GX13519@me>
+References: <20100125133023.GB2053@comcast.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20100125132937.GA2053-Wuw85uim5zDR7s880joybQ@public.gmane.org>
+In-Reply-To: <20100125133023.GB2053-Wuw85uim5zDR7s880joybQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Hal Rosenstock <hnrose-Wuw85uim5zDR7s880joybQ@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Hal,
-
-On 08:29 Mon 25 Jan     , Hal Rosenstock wrote:
-> 
-> when using optimized programming and it's supported by the switch
+On 08:30 Mon 25 Jan     , Hal Rosenstock wrote:
 > 
 > Signed-off-by: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-> ---
-> diff --git a/opensm/opensm/osm_qos.c b/opensm/opensm/osm_qos.c
-> index 6bbbfa2..afa454f 100644
-> --- a/opensm/opensm/osm_qos.c
-> +++ b/opensm/opensm/osm_qos.c
-> @@ -305,6 +305,12 @@ int osm_qos_setup(osm_opensm_t * p_osm)
->  			    (&p_node->sw->switch_info))
->  				continue;
->  
-> +			if (ib_switch_info_get_opt_sl2vlmapping(&p_node->sw->switch_info) &&
-> +			    p_osm->sm.p_subn->opt.use_optimized_slvl &&
-> +			    !memcmp(&swe_config.sl2vl, &sw0_config.sl2vl,
-> +				    sizeof(swe_config.sl2vl)))
-> +				continue;
-> +
 
-But then exports sl2vl tables setup loop should be changed starting from
-port '0' (not '1'), right?
+Aplied. Thanks.
 
 Sasha
-
->  			cfg = &sw0_config;
->  		} else if (osm_node_get_type(p_node) == IB_NODE_TYPE_ROUTER)
->  			cfg = &rtr_config;
-> 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
