@@ -1,35 +1,40 @@
-From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: Re: Problems using krping
-Date: Tue, 26 Jan 2010 09:02:37 -0600
-Message-ID: <4B5F040D.8080204@opengridcomputing.com>
-References: <201001211807011710722@inspur.com>, <201001221533186875550@inspur.com>, <201001242242553436345@inspur.com>, <201001251036131874884@inspur.com> <201001262046537030587@inspur.com>
+From: Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: [PATCH] opensm/osm_port_info_rcv.c: fix compilation warning
+Date: Tue, 26 Jan 2010 18:10:54 +0200
+Message-ID: <4B5F140E.7090400@dev.mellanox.co.il>
+Reply-To: kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <201001262046537030587-6gUaA8visnnQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: lihaidong <lihaidong-6gUaA8visnnQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>, Linux RDMA <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-lihaidong wrote:
-> Mr.Wise
+Fixing compilation warning:
+osm_port_info_rcv.c:163: warning: implicit declaration of function 'free'
+
+Signed-off-by: Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+---
+ opensm/opensm/osm_port_info_rcv.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
+
+diff --git a/opensm/opensm/osm_port_info_rcv.c b/opensm/opensm/osm_port_info_rcv.c
+index 8a99064..9260047 100644
+--- a/opensm/opensm/osm_port_info_rcv.c
++++ b/opensm/opensm/osm_port_info_rcv.c
+@@ -46,6 +46,7 @@
+ #endif				/* HAVE_CONFIG_H */
+
+ #include <string.h>
++#include <stdlib.h>
+ #include <iba/ib_types.h>
+ #include <complib/cl_qmap.h>
+ #include <complib/cl_passivelock.h>
+-- 
+1.5.1.4
 
 
-You need to start calling me Steve.  You're making me feel older than I 
-am. ;-)
-
-
-> When  krping setup buffers  failed, ib_free_fast_reg_page_list is used;
-> When krping free buffers, ib_free_fast_reg_page_list is not used.
-> Though krping still works well, could you an comment on that?
-
-
-
-Sounds like a bug.
-
-Steve.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
