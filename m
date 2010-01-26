@@ -1,36 +1,50 @@
-From: Or Gerlitz <ogerlitz-hKgKHo2Ms0FWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH 2/4] IB/uverbs: Support for XRC
-Date: Tue, 26 Jan 2010 16:39:41 +0200
-Message-ID: <4B5EFEAD.9040702@Voltaire.com>
-References: <1264446094-4460-1-git-send-email-rolandd@cisco.com> <1264446094-4460-3-git-send-email-rolandd@cisco.com>
+From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: Re: Problems using krping
+Date: Tue, 26 Jan 2010 09:01:24 -0600
+Message-ID: <4B5F03C4.1070705@opengridcomputing.com>
+References: <201001211807011710722@inspur.com>, <201001221533186875550@inspur.com>, <201001242242553436345@inspur.com>, <201001251036131874884@inspur.com> <201001261339589687690@inspur.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1264446094-4460-3-git-send-email-rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <201001261339589687690-6gUaA8visnnQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: lihaidong <lihaidong-6gUaA8visnnQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Roland Dreier wrote:
-> Add support for core userspace XRC operations (alloc/dealloc XRC domain,
-> create XRC SRQ), including adding an ABI for marshalling requests and responses.
-> +++ b/include/rdma/ib_user_verbs.h
-> @@ -81,7 +81,10 @@ enum {
-> -	IB_USER_VERBS_CMD_POST_SRQ_RECV
-> +	IB_USER_VERBS_CMD_POST_SRQ_RECV,
-> +	IB_USER_VERBS_CMD_CREATE_XRC_SRQ,
-> +	IB_USER_VERBS_CMD_OPEN_XRCD,
-> +	IB_USER_VERBS_CMD_CLOSE_XRCD
+lihaidong wrote:
+> Mr.Wise
+> |||                 else {
+> ||| 
+> |||                         cb->rdma_sq_wr.opcode = IB_WR_RDMA_READ;
+> |||                         if (cb->mem == FASTREG) {
+> |||                                 /* 
+> |||                                  * Immediately follow the read with a 
+> |||                                  * fenced LOCAL_INV.
+> |||                                  */
+> |||                                 cb->rdma_sq_wr.next = &inv;
+> |||                                 memset(&inv, 0, sizeof inv);
+> |||                                 inv.opcode = IB_WR_LOCAL_INV;
+> |||                                 inv.ex.invalidate_rkey = cb->fastreg_mr->rkey;
+> |||                                 inv.send_flags = IB_SEND_FENCE;
+> |||                         }
+> |||                 }
+> ||| 
+> |||                 ret = ib_post_send(cb->qp, &cb->rdma_sq_wr, &bad_wr);
+> |||                 if (ret) {
+> |||                         printk(KERN_ERR PFX "post send error %d\n", ret);
+> |||                         break;
+> |||                 }
+> |||                 cb->rdma_sq_wr.next = NULL;
+> the last line, is that safe? There's an invalidate wr following 
+> rdma_sq_wr.This line will not disturb invalidate wr being performed in 
+> lower level, right? 
+>  
 
-Jack,Roland I believe that adding entries to this enum means ABI change towards libibverbs or eventually cause ABI change between libibverbs and its consumers, (e.g change in size/content of the verbs context structure, etc), correct? 
-
-I'd like to use this ABI change and introduce/expose also the ib_modify_cq verb to user space. Basically, the related patches should be quite simple (uverbs, libibverbs, libmlx4), still, I'll be glad if you tell/coach me against what code base to do that. 
-
-One more thing I'd like to add to libibverbs and some device driver libraries is send-with-invalidate, but this is only user space patch set without any kernel/user, lib/app ABI change, correct?
-
-Or.
+Correct.  The work requests are copied by the verbs layer.   So once you 
+return from ib_post_send, the send work request structure itself can be 
+reused/freed/whatever.
 
 
 --
