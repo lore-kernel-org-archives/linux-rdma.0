@@ -1,67 +1,34 @@
-From: Alex Chiang <achiang-VXdhtT5mjnY@public.gmane.org>
-Subject: Re: infiniband limit of 32 cards per system?
-Date: Tue, 26 Jan 2010 15:03:33 -0700
-Message-ID: <20100126220333.GB12035@ldl.fc.hp.com>
-References: <20100125235013.GD2828@grease.ALLEYCAT> <adaiqapplv7.fsf@roland-alpha.cisco.com>
+From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH 01/25 v2] mlx4_core: identify function as pf or vf
+Date: Tue, 26 Jan 2010 15:49:19 -0800
+Message-ID: <ada3a1spgu8.fsf@roland-alpha.cisco.com>
+References: <4AF3930E.90904@mellanox.co.il>
+	<adar5peouu3.fsf@roland-alpha.cisco.com>
+	<E113D394D7C5DB4F8FF691FA7EE9DB44384E3CAC3F@MTLMAIL.mtl.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <adaiqapplv7.fsf-BjVyx320WGW9gfZ95n9DRSW4+XlvGpQz@public.gmane.org>
+In-Reply-To: <E113D394D7C5DB4F8FF691FA7EE9DB44384E3CAC3F-WQlSmcKwN8Te+A/uUDamNg@public.gmane.org>
+	(Yevgeny Petrilin's message of "Tue, 26 Jan 2010 10:21:30 +0200")
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, justin.chen-VXdhtT5mjnY@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Yevgeny Petrilin <yevgenyp-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
+Cc: "linux-rdma@vger.kernel.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "netdev@vger.kernel.org" <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, Tziporet Koren <tziporet-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-* Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>:
-> 
->  > If that enum is indeed the limiting factor, would someone
->  > mind explaining (or pointing me at TFM ;) why it's limited
->  > to 32 devices?
-> 
-> That dates back to when device #s had 8 bits for major and 8
-> bits for minor.  We got one major assigned for IB, and had to
-> split up the 256 minors that gave us among userspace verbs,
-> management access, etc.  And 32 seemed like a pretty reasonable
-> limit for most uses.
 
-Hm...
+ > > I'm a bit confused by these flags.  As far as I can tell, the SRIOV flag will be set if and > only if MASTER is set too... so in other words we might as well just have the MASTER and > > SLAVE flags and not have the SRIOV flag at all.
 
-        IB_UMAD_MAX_PORTS  = 64,
-        IB_UMAD_MAJOR      = 231,
-        IB_UMAD_MINOR_BASE = 0
-	register_chrdev_region(base_dev, IB_UMAD_MAX_PORTS * 2, "infiniband_mad");
+ > We could have a situation where we have multiple physical functions, without SRIOV.
+ > In this case one of the functions would be MASTER, but not SRIOV
 
-        IB_UVERBS_MAJOR       = 231,
-        IB_UVERBS_BASE_MINOR  = 192,
-        IB_UVERBS_MAX_DEVICES = 32
-	register_chrdev_region(IB_UVERBS_BASE_DEV, IB_UVERBS_MAX_DEVICES, "infiniband_verbs");
+Where in the code could that happen?  The only place I see the SRIOV or
+MASTER flag get set is a line like:
 
-        IB_UCM_MAJOR = 231,
-        IB_UCM_BASE_MINOR = 224,
-        IB_UCM_MAX_DEVICES = 32
-	register_chrdev_region(IB_UCM_BASE_DEV, IB_UCM_MAX_DEVICES, "infiniband_cm");
+	dev->flags |= MLX4_FLAG_SRIOV | MLX4_FLAG_MASTER;
 
-It looks like we have a hole from [128, 192).
+so they are never used separately.
 
-Would it be something as simple as this?
-
-diff --git a/drivers/infiniband/core/uverbs_main.c b/drivers/infiniband/core/uve
-index 5f284ff..b9aa2b8 100644
---- a/drivers/infiniband/core/uverbs_main.c
-+++ b/drivers/infiniband/core/uverbs_main.c
-@@ -57,8 +57,8 @@ MODULE_LICENSE("Dual BSD/GPL");
- 
- enum {
-        IB_UVERBS_MAJOR       = 231,
--       IB_UVERBS_BASE_MINOR  = 192,
--       IB_UVERBS_MAX_DEVICES = 32
-+       IB_UVERBS_BASE_MINOR  = 128,
-+       IB_UVERBS_MAX_DEVICES = 64
- };
- 
- #define IB_UVERBS_BASE_DEV     MKDEV(IB_UVERBS_MAJOR, IB_UVERBS_BASE_MINOR)
-
+ - R.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
