@@ -1,32 +1,42 @@
 From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 01/25 v2] mlx4_core: identify function as pf or vf
-Date: Tue, 26 Jan 2010 15:49:19 -0800
-Message-ID: <ada3a1spgu8.fsf@roland-alpha.cisco.com>
-References: <4AF3930E.90904@mellanox.co.il>
-	<adar5peouu3.fsf@roland-alpha.cisco.com>
-	<E113D394D7C5DB4F8FF691FA7EE9DB44384E3CAC3F@MTLMAIL.mtl.com>
+Subject: Re: [PATCH 2/4] IB/uverbs: Support for XRC
+Date: Tue, 26 Jan 2010 15:51:12 -0800
+Message-ID: <aday6jko26n.fsf@roland-alpha.cisco.com>
+References: <1264446094-4460-1-git-send-email-rolandd@cisco.com>
+	<1264446094-4460-3-git-send-email-rolandd@cisco.com>
+	<4B5EFEAD.9040702@Voltaire.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <E113D394D7C5DB4F8FF691FA7EE9DB44384E3CAC3F-WQlSmcKwN8Te+A/uUDamNg@public.gmane.org>
-	(Yevgeny Petrilin's message of "Tue, 26 Jan 2010 10:21:30 +0200")
+In-Reply-To: <4B5EFEAD.9040702-hKgKHo2Ms0FWk0Htik3J/w@public.gmane.org> (Or Gerlitz's message of "Tue, 26
+	Jan 2010 16:39:41 +0200")
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yevgeny Petrilin <yevgenyp-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
-Cc: "linux-rdma@vger.kernel.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "netdev@vger.kernel.org" <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, Tziporet Koren <tziporet-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
+To: Or Gerlitz <ogerlitz-hKgKHo2Ms0FWk0Htik3J/w@public.gmane.org>
+Cc: Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 
- > > I'm a bit confused by these flags.  As far as I can tell, the SRIOV flag will be set if and > only if MASTER is set too... so in other words we might as well just have the MASTER and > > SLAVE flags and not have the SRIOV flag at all.
+ > > -	IB_USER_VERBS_CMD_POST_SRQ_RECV
+ > > +	IB_USER_VERBS_CMD_POST_SRQ_RECV,
+ > > +	IB_USER_VERBS_CMD_CREATE_XRC_SRQ,
+ > > +	IB_USER_VERBS_CMD_OPEN_XRCD,
+ > > +	IB_USER_VERBS_CMD_CLOSE_XRCD
+ > 
+ > Jack,Roland I believe that adding entries to this enum means ABI change towards libibverbs or eventually cause ABI change between libibverbs and its consumers, (e.g change in size/content of the verbs context structure, etc), correct? 
 
- > We could have a situation where we have multiple physical functions, without SRIOV.
- > In this case one of the functions would be MASTER, but not SRIOV
+This is a backwards-compatible ABI extension -- we are adding new
+commands.  And I believe OFED has been shipping this ABI for quite a
+while now (since 1.4?).
 
-Where in the code could that happen?  The only place I see the SRIOV or
-MASTER flag get set is a line like:
+ > I'd like to use this ABI change and introduce/expose also the ib_modify_cq verb to user space. Basically, the related patches should be quite simple (uverbs, libibverbs, libmlx4), still, I'll be glad if you tell/coach me against what code base to do that. 
 
-	dev->flags |= MLX4_FLAG_SRIOV | MLX4_FLAG_MASTER;
+OK, but we should coordinate this with all the other ABI extensions that
+OFED has already made.
 
-so they are never used separately.
+ > One more thing I'd like to add to libibverbs and some device driver libraries is send-with-invalidate, but this is only user space patch set without any kernel/user, lib/app ABI change, correct?
+
+It is a library ABI change of course to add the send with invalidate
+opcode.  But that is OK.
 
  - R.
 --
