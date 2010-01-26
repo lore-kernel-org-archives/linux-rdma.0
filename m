@@ -1,145 +1,39 @@
-From: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCHv2] opensm/osm_qos.c: Eliminate unneeded endport SL to VL
-	setup
-Date: Tue, 26 Jan 2010 08:30:18 -0500
-Message-ID: <f0e08f231001260530o6260986dice657109f4eea637@mail.gmail.com>
-References: <20100125202247.GA9197@comcast.net> <20100126132605.GJ26338@me>
+From: Or Gerlitz <ogerlitz-hKgKHo2Ms0FWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH 2/4] IB/uverbs: Support for XRC
+Date: Tue, 26 Jan 2010 16:39:41 +0200
+Message-ID: <4B5EFEAD.9040702@Voltaire.com>
+References: <1264446094-4460-1-git-send-email-rolandd@cisco.com> <1264446094-4460-3-git-send-email-rolandd@cisco.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20100126132605.GJ26338@me>
+In-Reply-To: <1264446094-4460-3-git-send-email-rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+To: Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Jan 26, 2010 at 8:26 AM, Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>=
- wrote:
-> On 15:22 Mon 25 Jan =C2=A0 =C2=A0 , Hal Rosenstock wrote:
->>
->> when using optimized programming and it's supported by the switch
->>
->> Signed-off-by: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
->> ---
->> Changes since v1:
->> Add in update of vlarb tables for port 0 when optimized but no SL to=
- VL
->> tables needed to be configured on that port
->>
->> diff --git a/opensm/opensm/osm_qos.c b/opensm/opensm/osm_qos.c
->> index f814ea8..218e128 100644
->> --- a/opensm/opensm/osm_qos.c
->> +++ b/opensm/opensm/osm_qos.c
->> @@ -243,13 +243,15 @@ static int qos_extports_setup(osm_sm_t * sm, o=
-sm_node_t *node,
->> =C2=A0}
->>
->> =C2=A0static int qos_endport_setup(osm_sm_t * sm, osm_physp_t * p,
->> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0 =C2=A0const struct qos_config *qcfg)
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0 =C2=A0const struct qos_config *qcfg, int vlarb_only)
->> =C2=A0{
->> =C2=A0 =C2=A0 =C2=A0 unsigned force_update =3D p->need_update || sm-=
->p_subn->need_update;
->>
->> =C2=A0 =C2=A0 =C2=A0 p->vl_high_limit =3D qcfg->vl_high_limit;
->> =C2=A0 =C2=A0 =C2=A0 if (vlarb_update(sm, p, 0, force_update, qcfg))
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 return -1;
->> + =C2=A0 =C2=A0 if (vlarb_only)
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 return 0;
->>
->> =C2=A0 =C2=A0 =C2=A0 if (!(p->port_info.capability_mask & IB_PORT_CA=
-P_HAS_SL_MAP))
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 return 0;
->> @@ -269,6 +271,7 @@ int osm_qos_setup(osm_opensm_t * p_osm)
->> =C2=A0 =C2=A0 =C2=A0 osm_port_t *p_port;
->> =C2=A0 =C2=A0 =C2=A0 osm_node_t *p_node;
->> =C2=A0 =C2=A0 =C2=A0 int ret =3D 0;
->> + =C2=A0 =C2=A0 int vlarb_only;
->>
->> =C2=A0 =C2=A0 =C2=A0 if (!p_osm->subn.opt.qos)
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 return 0;
->> @@ -292,6 +295,7 @@ int osm_qos_setup(osm_opensm_t * p_osm)
->> =C2=A0 =C2=A0 =C2=A0 p_tbl =3D &p_osm->subn.port_guid_tbl;
->> =C2=A0 =C2=A0 =C2=A0 p_next =3D cl_qmap_head(p_tbl);
->> =C2=A0 =C2=A0 =C2=A0 while (p_next !=3D cl_qmap_end(p_tbl)) {
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 vlarb_only =3D 0;
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 p_port =3D (osm_por=
-t_t *) p_next;
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 p_next =3D cl_qmap_=
-next(p_next);
->>
->> @@ -305,13 +309,20 @@ int osm_qos_setup(osm_opensm_t * p_osm)
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 =C2=A0 =C2=A0 (&p_node->sw->switch_info))
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 continue;
->>
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 if (ib_switch_info_get_opt_sl2vlmapping(&p_node->sw->switch_info) &=
-&
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0 p_osm->sm.p_subn->opt.use_optimized_slvl &&
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0 !memcmp(&swe_config.sl2vl, &sw0_config.sl2vl,
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 sizeof(swe_config.sl2vl))=
-)
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 vlarb_only =3D 1;
->> +
->
-> qos_extports_setup() is running port setup loop (for both VLArb *and*
-> SL2VL) as:
->
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0for (i =3D 1; i < num_ports; i++) {
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0...
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0}
->
-> , starting from port '1'.
->
-> So you case will just effectively skip any SL2VL setup for port 0
-> (it was commented for V1 too).
+Roland Dreier wrote:
+> Add support for core userspace XRC operations (alloc/dealloc XRC domain,
+> create XRC SRQ), including adding an ABI for marshalling requests and responses.
+> +++ b/include/rdma/ib_user_verbs.h
+> @@ -81,7 +81,10 @@ enum {
+> -	IB_USER_VERBS_CMD_POST_SRQ_RECV
+> +	IB_USER_VERBS_CMD_POST_SRQ_RECV,
+> +	IB_USER_VERBS_CMD_CREATE_XRC_SRQ,
+> +	IB_USER_VERBS_CMD_OPEN_XRCD,
+> +	IB_USER_VERBS_CMD_CLOSE_XRCD
 
-This is intended. It's not needed since it's only doing this in the
-wildcarded case and the wildcarding includes port 0.
+Jack,Roland I believe that adding entries to this enum means ABI change towards libibverbs or eventually cause ABI change between libibverbs and its consumers, (e.g change in size/content of the verbs context structure, etc), correct? 
 
--- Hal
+I'd like to use this ABI change and introduce/expose also the ib_modify_cq verb to user space. Basically, the related patches should be quite simple (uverbs, libibverbs, libmlx4), still, I'll be glad if you tell/coach me against what code base to do that. 
 
->
-> Sasha
->
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 cfg =3D &sw0_config;
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 } else if (osm_node=
-_get_type(p_node) =3D=3D IB_NODE_TYPE_ROUTER)
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 cfg =3D &rtr_config;
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 else
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 cfg =3D &ca_config;
->>
->> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 if (qos_endport_setup(&p=
-_osm->sm, p_port->p_physp, cfg))
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 if (qos_endport_setup(&p=
-_osm->sm, p_port->p_physp, cfg,
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 vlarb_only))
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 ret =3D -1;
->> =C2=A0 =C2=A0 =C2=A0 }
->>
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma"=
- in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at =C2=A0http://vger.kernel.org/majordomo-info.ht=
-ml
->
+One more thing I'd like to add to libibverbs and some device driver libraries is send-with-invalidate, but this is only user space patch set without any kernel/user, lib/app ABI change, correct?
+
+Or.
+
+
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
