@@ -1,35 +1,27 @@
-From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Subject: Re: infiniband limit of 32 cards per system?
-Date: Mon, 25 Jan 2010 20:03:58 -0800
-Message-ID: <adaaaw1pl5d.fsf@roland-alpha.cisco.com>
-References: <20100125235013.GD2828@grease.ALLEYCAT>
-	<adaiqapplv7.fsf@roland-alpha.cisco.com>
-	<20100126035906.GA23347@ldl.fc.hp.com>
+From: Yevgeny Petrilin <yevgenyp-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
+Subject: RE: [PATCH 01/25 v2] mlx4_core: identify function as pf or vf
+Date: Tue, 26 Jan 2010 10:21:30 +0200
+Message-ID: <E113D394D7C5DB4F8FF691FA7EE9DB44384E3CAC3F@MTLMAIL.mtl.com>
+References: <4AF3930E.90904@mellanox.co.il>
+ <adar5peouu3.fsf@roland-alpha.cisco.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20100126035906.GA23347-e+Ta4ugHZmL3oGB3hsPCZA@public.gmane.org> (Alex Chiang's message of
-	"Mon, 25 Jan 2010 20:59:06 -0700")
+In-Reply-To: <adar5peouu3.fsf-BjVyx320WGW9gfZ95n9DRSW4+XlvGpQz@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Alex Chiang <achiang-VXdhtT5mjnY@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, justin.chen-VXdhtT5mjnY@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, Tziporet Koren <tziporet-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
- > I'm guessing that it's not just a simple kernel fix though since
- > OFED has to change too, right?
+> I'm a bit confused by these flags.  As far as I can tell, the SRIOV flag will be set if and > only if MASTER is set too... so in other words we might as well just have the MASTER and > > SLAVE flags and not have the SRIOV flag at all.
 
-Dunno about OFED.  Nothing sane is hard-coding major/minor numbers
-though -- so I think OFED should be OK, asuming there are no crazy
-scripts that bypass udev creating device nodes etc.
+We could have a situation where we have multiple physical functions, without SRIOV.
+In this case one of the functions would be MASTER, but not SRIOV
 
-I don't think that it's _totally_ trivial in the kernel -- we do need to
-add some code in several places to allocate dynamic device numbers when
-we run out of the static allocation (probably best to keep the legacy
-device numbers for "small" < 32 adapter systems, since there may be
-really small systems with static hard-coded /dev etc).
-
- - R.
+Yevgeny
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
