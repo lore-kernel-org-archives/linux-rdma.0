@@ -1,29 +1,85 @@
-From: Divy Le Ray <divy-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH] cxgb3/iw_cxgb3: doorbell overflow avoidance and recovery.
-Date: Wed, 27 Jan 2010 11:46:20 -0800
-Message-ID: <4B60980C.1020005@chelsio.com>
-References: <20100127170333.19854.40039.stgit@build.ogc.int> <adavdenmjkh.fsf@roland-alpha.cisco.com>
+From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: [PATCH v2] RDMA/cxgb3: Don't allocate the sw queue for user mode CQs.
+Date: Wed, 27 Jan 2010 14:22:34 -0600
+Message-ID: <20100127202234.20540.82009.stgit@build.ogc.int>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <adavdenmjkh.fsf-BjVyx320WGW9gfZ95n9DRSW4+XlvGpQz@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Cc: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, jeff-o2qLIJkoznsdnm+yROfE0A@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+To: rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Roland Dreier wrote:
->
-> Looks reasonable at first reading.  I can take this through my tree,
-> assuming it's OK with you, Divy?
->
-Hi Roland,
+Only kernel mode CQs need the sw queue memory allocated.  The sw queue
+for user mode CQs is allocated in user mode by libcxgb3.
 
-it is okay with me.
+Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+---
 
-Cheers,
-Divy
+ drivers/infiniband/hw/cxgb3/cxio_hal.c      |   14 +++++++-------
+ drivers/infiniband/hw/cxgb3/cxio_hal.h      |    2 +-
+ drivers/infiniband/hw/cxgb3/iwch_provider.c |    2 +-
+ 3 files changed, 9 insertions(+), 9 deletions(-)
+
+diff --git a/drivers/infiniband/hw/cxgb3/cxio_hal.c b/drivers/infiniband/hw/cxgb3/cxio_hal.c
+index 8837d56..a28e862 100644
+--- a/drivers/infiniband/hw/cxgb3/cxio_hal.c
++++ b/drivers/infiniband/hw/cxgb3/cxio_hal.c
+@@ -154,7 +154,7 @@ static int cxio_hal_clear_qp_ctx(struct cxio_rdev *rdev_p, u32 qpid)
+ 	return iwch_cxgb3_ofld_send(rdev_p->t3cdev_p, skb);
+ }
+ 
+-int cxio_create_cq(struct cxio_rdev *rdev_p, struct t3_cq *cq)
++int cxio_create_cq(struct cxio_rdev *rdev_p, struct t3_cq *cq, int kernel)
+ {
+ 	struct rdma_cq_setup setup;
+ 	int size = (1UL << (cq->size_log2)) * sizeof(struct t3_cqe);
+@@ -162,12 +162,12 @@ int cxio_create_cq(struct cxio_rdev *rdev_p, struct t3_cq *cq)
+ 	cq->cqid = cxio_hal_get_cqid(rdev_p->rscp);
+ 	if (!cq->cqid)
+ 		return -ENOMEM;
+-	cq->sw_queue = kzalloc(size, GFP_KERNEL);
+-	if (!cq->sw_queue)
+-		return -ENOMEM;
+-	cq->queue = dma_alloc_coherent(&(rdev_p->rnic_info.pdev->dev),
+-					     (1UL << (cq->size_log2)) *
+-					     sizeof(struct t3_cqe),
++	if (kernel) {
++		cq->sw_queue = kzalloc(size, GFP_KERNEL);
++		if (!cq->sw_queue)
++			return -ENOMEM;
++	}
++	cq->queue = dma_alloc_coherent(&(rdev_p->rnic_info.pdev->dev), size,
+ 					     &(cq->dma_addr), GFP_KERNEL);
+ 	if (!cq->queue) {
+ 		kfree(cq->sw_queue);
+diff --git a/drivers/infiniband/hw/cxgb3/cxio_hal.h b/drivers/infiniband/hw/cxgb3/cxio_hal.h
+index f3d440c..baa2867 100644
+--- a/drivers/infiniband/hw/cxgb3/cxio_hal.h
++++ b/drivers/infiniband/hw/cxgb3/cxio_hal.h
+@@ -157,7 +157,7 @@ int cxio_rdev_open(struct cxio_rdev *rdev);
+ void cxio_rdev_close(struct cxio_rdev *rdev);
+ int cxio_hal_cq_op(struct cxio_rdev *rdev, struct t3_cq *cq,
+ 		   enum t3_cq_opcode op, u32 credit);
+-int cxio_create_cq(struct cxio_rdev *rdev, struct t3_cq *cq);
++int cxio_create_cq(struct cxio_rdev *rdev, struct t3_cq *cq, int kernel);
+ int cxio_destroy_cq(struct cxio_rdev *rdev, struct t3_cq *cq);
+ int cxio_resize_cq(struct cxio_rdev *rdev, struct t3_cq *cq);
+ void cxio_release_ucontext(struct cxio_rdev *rdev, struct cxio_ucontext *uctx);
+diff --git a/drivers/infiniband/hw/cxgb3/iwch_provider.c b/drivers/infiniband/hw/cxgb3/iwch_provider.c
+index ed71755..47b35c6 100644
+--- a/drivers/infiniband/hw/cxgb3/iwch_provider.c
++++ b/drivers/infiniband/hw/cxgb3/iwch_provider.c
+@@ -187,7 +187,7 @@ static struct ib_cq *iwch_create_cq(struct ib_device *ibdev, int entries, int ve
+ 	entries = roundup_pow_of_two(entries);
+ 	chp->cq.size_log2 = ilog2(entries);
+ 
+-	if (cxio_create_cq(&rhp->rdev, &chp->cq)) {
++	if (cxio_create_cq(&rhp->rdev, &chp->cq, !ucontext)) {
+ 		kfree(chp);
+ 		return ERR_PTR(-ENOMEM);
+ 	}
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
