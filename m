@@ -1,26 +1,33 @@
 From: Or Gerlitz <ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH 2/4] IB/uverbs: Support for XRC
-Date: Thu, 28 Jan 2010 09:53:35 +0200
-Message-ID: <4B61427F.2030003@voltaire.com>
-References: <1264446094-4460-1-git-send-email-rolandd@cisco.com>	<1264446094-4460-3-git-send-email-rolandd@cisco.com>	<4B5EFEAD.9040702@Voltaire.com> <aday6jko26n.fsf@roland-alpha.cisco.com>	<4B6003B2.4040101@voltaire.com> <ada8wbjo7v3.fsf@roland-alpha.cisco.com>
+Subject: Re: DREQ timeout for rdma-cm consumers
+Date: Thu, 28 Jan 2010 15:03:59 +0200
+Message-ID: <4B618B3F.9030803@voltaire.com>
+References: <Pine.LNX.4.64.1001261749260.13804@zuben.voltaire.com> <F766FA8B1AD74F0E98EF28981448A4CF@amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <ada8wbjo7v3.fsf-BjVyx320WGW9gfZ95n9DRSW4+XlvGpQz@public.gmane.org>
+In-Reply-To: <F766FA8B1AD74F0E98EF28981448A4CF-Zpru7NauK7drdx17CPfAsdBPR1lH4CV8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Roland Dreier wrote:
->  > I believe the only thing I need to coordinate with is the XRC patch set.
->
-> I think the IBoE patches in the OFED branch also extend the ABI. We should try to avoid stepping on that too.
-I think the only (a part from the link type field in the port attr) ABI 
-change introduced by the IBoE branch is the the get_mac verb. As I wrote 
-Eli @ http://marc.info/?l=linux-rdma&m=126380119407472 to my opinion 
-this verb isn't needed at all, so far he didn't reply.
+Sean Hefty wrote:
+> I believe that the IB timeout of 20 is about 4 seconds.  If the packet lifetime is 1 second, then each try will take 6 seconds to timeout.  For 15 retries, this is close to 100 seconds.  
+okay, thanks for explaining this.
+
+> You should be able to destroy the rdma_cm_id at anytime
+I understand that, however, currently the code I am working with (iser) 
+wait to get both flushes on all the posted work requests AND disconnect 
+or address-change event to mark the <rdmacm id, qp> couple as 
+disconnected, clear it up and signal higher level to reconnect. I'll 
+have to look what is the way to go for fast reconnection, maybe connect 
+a new <id, qp> couple before the current one is totally 
+flushed/disconnected. Also, destroying the ID doesn't remove the qpn 
+from the IB CM timewait database, correct? hence if I don't wait long 
+enough and the driver/hw reuses the qpn short enough to hit the IB CM 
+stale connection/etc logic, I will not be able to reconnect, I guess.
 
 Or.
 --
