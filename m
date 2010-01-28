@@ -1,283 +1,452 @@
 From: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH]opensm: QOS options for switch leaf (edge) ports.
-Date: Thu, 28 Jan 2010 10:29:45 -0500
-Message-ID: <f0e08f231001280729o69c94631nba2093960e0d80f@mail.gmail.com>
-References: <4B5D96B0.8030903@Voltaire.COM>
+Subject: Re: [PATCH v2] opensm: Multicast root switch calculation
+Date: Thu, 28 Jan 2010 10:39:10 -0500
+Message-ID: <f0e08f231001280739m31dae78cj5ab7bd78621dcbfc@mail.gmail.com>
+References: <4B17C712.9010109@Voltaire.COM> <20100120102703.GB25576@me>
+	 <39C75744D164D948A170E9792AF8E7CA01F6FA8A@exil.voltaire.com>
+	 <20100120115936.GC25576@me> <20100127104503.GM26338@me>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4B5D96B0.8030903-hKgKHo2Ms0F+cjeuK/JdrQ@public.gmane.org>
+In-Reply-To: <20100127104503.GM26338@me>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Slava Strebkov <slavas-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+Cc: Slava Strebkov <slavas-smomgflXvOZWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Eli Dorfman <elid-smomgflXvOZWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org>, Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Jan 25, 2010 at 8:03 AM, Slava Strebkov <slavas-smomgflXvOZWk0Htik3J/w@public.gmane.org> w=
-rote:
-> New QOS option for edge ports allows to set
-> different sl 2 vl mapping for switch ports
-> connected to HCAs.
-
-Should be CAs as this includes TCAs too, right ?
-
-Should router peer ports also be included here ?
-
-> Signed-off-by: Slava Strebkov <slavas-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-> ---
-> =C2=A0opensm/include/opensm/osm_subnet.h | =C2=A0 =C2=A01 +
-> =C2=A0opensm/opensm/osm_qos.c =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
-| =C2=A0 21 ++++++++++++++++++---
-> =C2=A0opensm/opensm/osm_subnet.c =C2=A0 =C2=A0 =C2=A0 =C2=A0 | =C2=A0=
- 14 ++++++++++++++
-
-IMO QoS docs and opensm man page should also be updated to go along wit=
-h this.
-
-> =C2=A03 files changed, 33 insertions(+), 3 deletions(-)
+On Wed, Jan 27, 2010 at 5:45 AM, Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>=
+ wrote:
+> On 13:59 Wed 20 Jan =C2=A0 =C2=A0 , Sasha Khapyorsky wrote:
+>> On 13:32 Wed 20 Jan =C2=A0 =C2=A0 , Slava Strebkov wrote:
+>> > "average hops" was chosen instead of "max hops" because in root we=
+ight
+>> > calculation the number of ports is also important, not only the di=
+stance
+>> > (hops).
+>>
+>> But this patch is declared as root switch calculation optimization, =
+not
+>> as algorithm change (actually I even missed this part in V1).
 >
-> diff --git a/opensm/include/opensm/osm_subnet.h b/opensm/include/open=
-sm/osm_subnet.h
-> index 65f687a..31681aa 100644
-> --- a/opensm/include/opensm/osm_subnet.h
-> +++ b/opensm/include/opensm/osm_subnet.h
-> @@ -212,6 +212,7 @@ typedef struct osm_subn_opt {
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0osm_qos_options_t qos_ca_options;
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0osm_qos_options_t qos_sw0_options;
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0osm_qos_options_t qos_swe_options;
-> + =C2=A0 =C2=A0 =C2=A0 osm_qos_options_t qos_sw_edge_options;
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0osm_qos_options_t qos_rtr_options;
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0boolean_t enable_quirks;
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0boolean_t no_clients_rereg;
-> diff --git a/opensm/opensm/osm_qos.c b/opensm/opensm/osm_qos.c
-> index 6bbbfa2..51f0aed 100644
-> --- a/opensm/opensm/osm_qos.c
-> +++ b/opensm/opensm/osm_qos.c
-> @@ -202,15 +202,21 @@ static ib_api_status_t sl2vl_update_table(osm_s=
-m_t * sm, osm_physp_t * p,
+> I reworked this patch preserving original ("max hops") calculation
+> method. Please look at this.
+>
+> The next step is to evaluate "max hops" -> "average hops" switch and =
+to
+> cleanup OSM_VENDOR_INTF_ANAFA macro.
+>
+> Sasha
+>
+>
+> From: Slava Strebkov <slavas-hKgKHo2Ms0F+cjeuK/JdrQ@public.gmane.org>
+> Date: Thu, 3 Dec 2009 16:11:30 +0200
+> Subject: [PATCH] opensm: Multicast root switch calculation
+>
+> Proposed new algorithm for calculation of root switch for multicast
+> spanning tree. Only edge switches(those connected to hosts)
+
+What about switches whose peer port is a router ? Shouldn't they be
+included here ?
+
+> and
+> switches - multicast members themselves are involved in root calculat=
+ion.
+> This gives improvement, especially on large fabrics, since number of
+> switches usually much less then the number of ports, shared same mcas=
+t
+> group.
+>
+> Signed-off-by: Slava Strebkov <slavas-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+> Signed-off-by: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+> ---
+> =C2=A0opensm/include/opensm/osm_switch.h | =C2=A0 12 +++
+> =C2=A0opensm/opensm/osm_mcast_mgr.c =C2=A0 =C2=A0 =C2=A0| =C2=A0149 +=
++++++++++++++++++++++++++---------
+> =C2=A02 files changed, 122 insertions(+), 39 deletions(-)
+>
+> diff --git a/opensm/include/opensm/osm_switch.h b/opensm/include/open=
+sm/osm_switch.h
+> index 205896d..cb6e5ac 100644
+> --- a/opensm/include/opensm/osm_switch.h
+> +++ b/opensm/include/opensm/osm_switch.h
+> @@ -109,6 +109,9 @@ typedef struct osm_switch {
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0unsigned endport_links;
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0unsigned need_update;
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0void *priv;
+> + =C2=A0 =C2=A0 =C2=A0 cl_map_item_t mgrp_item;
+> + =C2=A0 =C2=A0 =C2=A0 uint32_t num_of_mcm;
+> + =C2=A0 =C2=A0 =C2=A0 uint8_t is_mc_member;
+> =C2=A0} osm_switch_t;
+> =C2=A0/*
+> =C2=A0* FIELDS
+> @@ -151,6 +154,15 @@ typedef struct osm_switch {
+> =C2=A0* =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0When set indi=
+cates that switch was probably reset, so
+> =C2=A0* =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0fwd tables an=
+d rest cached data should be flushed
+> =C2=A0*
+> +* =C2=A0 =C2=A0 =C2=A0mgrp_item
+> +* =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0map item for switc=
+h in building mcast tree
+> +*
+> +* =C2=A0 =C2=A0 =C2=A0num_of_mcm
+> +* =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0number of mcast me=
+mbers(ports) connected to switch
+> +*
+> +* =C2=A0 =C2=A0 =C2=A0is_mc_member
+> +* =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0whether switch is =
+a mcast member itself
+> +*
+> =C2=A0* SEE ALSO
+> =C2=A0* =C2=A0 =C2=A0 =C2=A0Switch object
+> =C2=A0*********/
+> diff --git a/opensm/opensm/osm_mcast_mgr.c b/opensm/opensm/osm_mcast_=
+mgr.c
+> index dce9f2b..5c9d0bc 100644
+> --- a/opensm/opensm/osm_mcast_mgr.c
+> +++ b/opensm/opensm/osm_mcast_mgr.c
+> @@ -157,50 +157,119 @@ static void mcast_mgr_purge_tree(osm_sm_t * sm=
+, IN osm_mgrp_box_t * mbox)
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0OSM_LOG_EXIT(sm->p_log);
 > =C2=A0}
 >
-> =C2=A0static int qos_extports_setup(osm_sm_t * sm, osm_node_t *node,
+> -static float osm_mcast_mgr_compute_avg_hops(osm_sm_t * sm, cl_qlist_=
+t * l,
 > - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 =C2=A0 =C2=A0 =C2=A0 const struct qos_config *qcfg)
+ =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =
+=C2=A0 const osm_switch_t * p_sw)
+> +static void mcast_mgr_build_switch_map(osm_sm_t * sm,
 > + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 =C2=A0 =C2=A0 =C2=A0 const struct qos_config *qcfg, boolean_t e=
-dge_ports_only)
+ =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0const cl=
+_qlist_t * port_list,
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0cl_qmap_=
+t * p_mcast_member_sw_tbl)
 > =C2=A0{
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0osm_physp_t *p0, *p;
-> + =C2=A0 =C2=A0 =C2=A0 osm_node_t *p_remote_node;
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0unsigned force_update;
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0unsigned num_ports =3D osm_node_get_num_ph=
-ysp(node);
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0int ret =3D 0;
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0unsigned i, j;
+> - =C2=A0 =C2=A0 =C2=A0 float avg_hops =3D 0;
+> - =C2=A0 =C2=A0 =C2=A0 uint32_t hops =3D 0;
+> - =C2=A0 =C2=A0 =C2=A0 uint32_t num_ports =3D 0;
+> - =C2=A0 =C2=A0 =C2=A0 cl_list_item_t *i;
+> + =C2=A0 =C2=A0 =C2=A0 osm_switch_t *remote_sw;
+> + =C2=A0 =C2=A0 =C2=A0 cl_list_item_t *list_item;
+> + =C2=A0 =C2=A0 =C2=A0 osm_port_t *p_port;
+> + =C2=A0 =C2=A0 =C2=A0 ib_net64_t port_guid;
+> + =C2=A0 =C2=A0 =C2=A0 osm_physp_t *p_physp_remote;
+> + =C2=A0 =C2=A0 =C2=A0 osm_node_t *remote_node;
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0osm_mcast_work_obj_t *wobj;
 >
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0for (i =3D 1; i < num_ports; i++) {
-> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 if (edge_ports_onl=
-y) {
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0OSM_LOG_ENTER(sm->p_log);
+>
+> - =C2=A0 =C2=A0 =C2=A0 /*
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0For each member of the multicast =
+group, compute the
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0number of hops to its base LID.
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0*/
+> - =C2=A0 =C2=A0 =C2=A0 for (i =3D cl_qlist_head(l); i !=3D cl_qlist_e=
+nd(l); i =3D cl_qlist_next(i)) {
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 wobj =3D cl_item_o=
+bj(i, wobj, list_item);
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 hops +=3D osm_swit=
+ch_get_port_least_hops(p_sw, wobj->p_port);
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 num_ports++;
+> + =C2=A0 =C2=A0 =C2=A0 cl_qmap_init(p_mcast_member_sw_tbl);
+> + =C2=A0 =C2=A0 =C2=A0 for (list_item =3D cl_qlist_head(port_list);
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0list_item !=3D cl_qlist_en=
+d(port_list);
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0list_item =3D cl_qlist_nex=
+t(list_item)) {
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 wobj =3D cl_item_o=
+bj(list_item, wobj, list_item);
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 p_port =3D wobj->p=
+_port;
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 if (!p_port)
 > + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 p_remote_node =3D osm_node_get_remote_node(node, i, NULL);
+ =C2=A0 continue;
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 if (p_port->p_node=
+->sw) {
 > + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 if (p_remote_node && (osm_node_get_type(p_remote_node) !=3D IB_=
-NODE_TYPE_CA))
+ =C2=A0 /* for switches - remote switch would be the switch itself */
 > + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 continue;
+ =C2=A0 remote_node =3D osm_physp_get_node_ptr(p_port->p_physp);
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 } else {
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 p_physp_remote =3D osm_physp_get_remote(p_port->p_physp);
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 remote_node =3D osm_physp_get_node_ptr(p_physp_remote);
 > + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 }
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0p =3D osm_node=
-_get_physp_ptr(node, i);
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0force_update =3D=
- p->need_update || sm->p_subn->need_update;
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0p->vl_high_lim=
-it =3D qcfg->vl_high_limit;
-> @@ -231,6 +237,11 @@ static int qos_extports_setup(osm_sm_t * sm, osm=
-_node_t *node,
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0}
->
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0for (i =3D 1; i < num_ports; i++) {
-> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 if (edge_ports_onl=
-y ) {
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 /* get the remote =
+switch of the mcmember */
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 remote_sw =3D remo=
+te_node->sw;
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 port_guid =3D osm_=
+node_get_node_guid(remote_node);
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 if (cl_qmap_get(p_=
+mcast_member_sw_tbl, port_guid) =3D=3D
 > + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 p_remote_node =3D osm_node_get_remote_node(node, i, NULL);
+ =C2=A0 cl_qmap_end(p_mcast_member_sw_tbl)) {
 > + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 if (p_remote_node && (osm_node_get_type(p_remote_node) !=3D IB_=
-NODE_TYPE_CA))
+ =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 /* insert switch to table */
 > + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 continue;
-> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 }
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0p =3D osm_node=
-_get_physp_ptr(node, i);
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0force_update =3D=
- p->need_update || sm->p_subn->need_update;
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0for (j =3D 0; =
-j < num_ports; j++)
+ =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 cl_qmap_insert(p_mcast_member_sw_tb=
+l, port_guid, &remote_sw->mgrp_item);
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 /* New element in the table */
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 if (osm_node_get_type(p_port->p_nod=
+e) =3D=3D IB_NODE_TYPE_CA)
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 /* for =
+HCA update the MC count on the remote switch */
 
-How does this work when optimized SL to VL programming is enabled and
-supported on the device ? Doesn't some handling need to be added for
-this ?
-
-> @@ -262,7 +273,7 @@ static int qos_endport_setup(osm_sm_t * sm, osm_p=
-hysp_t * p,
->
-> =C2=A0int osm_qos_setup(osm_opensm_t * p_osm)
-> =C2=A0{
-> - =C2=A0 =C2=A0 =C2=A0 struct qos_config ca_config, sw0_config, swe_c=
-onfig, rtr_config;
-> + =C2=A0 =C2=A0 =C2=A0 struct qos_config ca_config, sw0_config, swe_c=
-onfig, sw_edge_config, rtr_config;
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0struct qos_config *cfg;
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0cl_qmap_t *p_tbl;
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0cl_map_item_t *p_next;
-> @@ -281,6 +292,8 @@ int osm_qos_setup(osm_opensm_t * p_osm)
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 =C2=A0 &p_osm->subn.opt.qos_options);
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0qos_build_config(&swe_config, &p_osm->subn=
-=2Eopt.qos_swe_options,
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 =C2=A0 &p_osm->subn.opt.qos_options);
-> + =C2=A0 =C2=A0 =C2=A0 qos_build_config(&sw_edge_config, &p_osm->subn=
-=2Eopt.qos_sw_edge_options,
-> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 =C2=A0&p_osm->subn.opt.qos_options);
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0qos_build_config(&rtr_config, &p_osm->subn=
-=2Eopt.qos_rtr_options,
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 =C2=A0 &p_osm->subn.opt.qos_options);
->
-> @@ -297,9 +310,11 @@ int osm_qos_setup(osm_opensm_t * p_osm)
->
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0p_node =3D p_p=
-ort->p_node;
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0if (p_node->sw=
-) {
-> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 if (qos_extports_setup(&p_osm->sm, p_node, &swe_config))
-> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 if (qos_extports_setup(&p_osm->sm, p_node, &swe_config, FALSE))
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0ret =3D -1;
->
-> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 if (qos_extports_setup(&p_osm->sm, p_node, &sw_edge_config, TRU=
-E))
-> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 ret =3D -1;
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 =C2=A0/* skip base port 0 */
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 =C2=A0if (!ib_switch_info_is_enhanced_port0
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 =C2=A0 =C2=A0 =C2=A0(&p_node->sw->switch_info))
-> diff --git a/opensm/opensm/osm_subnet.c b/opensm/opensm/osm_subnet.c
-> index edbffe8..aa82f32 100644
-> --- a/opensm/opensm/osm_subnet.c
-> +++ b/opensm/opensm/osm_subnet.c
-> @@ -385,6 +385,11 @@ static const opt_rec_t opt_tbl[] =3D {
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0{ "qos_swe_vlarb_high", OPT_OFFSET(qos_swe=
-_options.vlarb_high), opts_parse_charp, NULL, 1 },
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0{ "qos_swe_vlarb_low", OPT_OFFSET(qos_swe_=
-options.vlarb_low), opts_parse_charp, NULL, 1 },
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0{ "qos_swe_sl2vl", OPT_OFFSET(qos_swe_opti=
-ons.sl2vl), opts_parse_charp, NULL, 1 },
-> + =C2=A0 =C2=A0 =C2=A0 { "qos_edge_max_vls", OPT_OFFSET(qos_sw_edge_o=
-ptions.max_vls), opts_parse_uint32, NULL, 1 },
-> + =C2=A0 =C2=A0 =C2=A0 { "qos_edge_high_limit", OPT_OFFSET(qos_sw_edg=
-e_options.high_limit), opts_parse_int32, NULL, 1 },
-> + =C2=A0 =C2=A0 =C2=A0 { "qos_edge_vlarb_high", OPT_OFFSET(qos_sw_edg=
-e_options.vlarb_high), opts_parse_charp, NULL, 1 },
-> + =C2=A0 =C2=A0 =C2=A0 { "qos_edge_vlarb_low", OPT_OFFSET(qos_sw_edge=
-_options.vlarb_low), opts_parse_charp, NULL, 1 },
-> + =C2=A0 =C2=A0 =C2=A0 { "qos_edge_sl2vl", OPT_OFFSET(qos_sw_edge_opt=
-ions.sl2vl), opts_parse_charp, NULL, 1 },
-
-Are edge ports the same as leaf ports ? If so, it would be better to
-use that terminology if it is the same as it is already used and
-exposed in OpenSM. Maybe the difference is that edge ports currently
-appear to only have CA ports as peers whereas leaf ports have CA or
-router ports as peers.
+Should this be !=3D IB_NODE_TYPE_SWITCH so that both CAs and routers ar=
+e
+included here ?
 
 -- Hal
 
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0{ "qos_rtr_max_vls", OPT_OFFSET(qos_rtr_op=
-tions.max_vls), opts_parse_uint32, NULL, 1 },
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0{ "qos_rtr_high_limit", OPT_OFFSET(qos_rtr=
-_options.high_limit), opts_parse_int32, NULL, 1 },
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0{ "qos_rtr_vlarb_high", OPT_OFFSET(qos_rtr=
-_options.vlarb_high), opts_parse_charp, NULL, 1 },
-> @@ -768,6 +773,7 @@ void osm_subn_set_default_opt(IN osm_subn_opt_t *=
- p_opt)
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0subn_init_qos_options(&p_opt->qos_ca_optio=
-ns, NULL);
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0subn_init_qos_options(&p_opt->qos_sw0_opti=
-ons, NULL);
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0subn_init_qos_options(&p_opt->qos_swe_opti=
-ons, NULL);
-> + =C2=A0 =C2=A0 =C2=A0 subn_init_qos_options(&p_opt->qos_sw_edge_opti=
-ons, NULL);
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0subn_init_qos_options(&p_opt->qos_rtr_opti=
-ons, NULL);
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 remote_=
+sw->num_of_mcm++;
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 else
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 /* the =
+switch is MC memeber */
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 remote_=
+sw->is_mc_member =3D 1;
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 }
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0}
+> + =C2=A0 =C2=A0 =C2=A0 OSM_LOG_EXIT(sm->p_log);
+> +}
+>
+> - =C2=A0 =C2=A0 =C2=A0 /*
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0We should be here if there aren't=
+ any ports in the group.
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0*/
+> - =C2=A0 =C2=A0 =C2=A0 CL_ASSERT(num_ports);
+> +static void mcast_mgr_destroy_switch_map(osm_sm_t * sm,
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 cl_qmap_t *p_mcast_member_sw_tbl)
+> +{
+> + =C2=A0 =C2=A0 =C2=A0 cl_map_item_t *p_item;
+> + =C2=A0 =C2=A0 =C2=A0 osm_switch_t *p_sw;
+>
+> - =C2=A0 =C2=A0 =C2=A0 if (num_ports !=3D 0)
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 avg_hops =3D (floa=
+t)(hops / num_ports);
+> + =C2=A0 =C2=A0 =C2=A0 OSM_LOG_ENTER(sm->p_log);
+>
+> + =C2=A0 =C2=A0 =C2=A0 p_item =3D cl_qmap_head(p_mcast_member_sw_tbl)=
+;
+> + =C2=A0 =C2=A0 =C2=A0 while (p_item !=3D cl_qmap_end(p_mcast_member_=
+sw_tbl)) {
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 p_sw =3D PARENT_ST=
+RUCT(p_item, osm_switch_t, mgrp_item);
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 p_sw->num_of_mcm =3D=
+ 0;
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 p_sw->is_mc_member=
+ =3D 0;
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 p_item =3D cl_qmap=
+_next(p_item);
+> + =C2=A0 =C2=A0 =C2=A0 }
+> + =C2=A0 =C2=A0 =C2=A0 cl_qmap_remove_all(p_mcast_member_sw_tbl);
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0OSM_LOG_EXIT(sm->p_log);
+> - =C2=A0 =C2=A0 =C2=A0 return avg_hops;
 > =C2=A0}
 >
-> @@ -1112,6 +1118,8 @@ int osm_subn_verify_config(IN osm_subn_opt_t * =
-p_opts)
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0&p_opts->qos_op=
-tions);
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0subn_verify_qo=
-s_set(&p_opts->qos_swe_options, "qos_swe",
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0&p_opts->qos_op=
-tions);
-> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 subn_verify_qos_se=
-t(&p_opts->qos_sw_edge_options, "qos_edge",
+> =C2=A0/**************************************************************=
+********
+> =C2=A0Calculate the maximal "min hops" from the given switch to any
+> =C2=A0of the group HCAs
+> =C2=A0***************************************************************=
+*******/
+> -static float osm_mcast_mgr_compute_max_hops(osm_sm_t * sm, cl_qlist_=
+t * l,
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =
+=C2=A0 const osm_switch_t * p_sw)
+> +#ifdef OSM_VENDOR_INTF_ANAFA
+> +static float osm_mcast_mgr_compute_avg_hops(osm_sm_t * sm, cl_qmap_t=
+ * m,
 > + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 &p_opts->qos_options)=
-;
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0subn_verify_qo=
-s_set(&p_opts->qos_rtr_options, "qos_rtr",
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0&p_opts->qos_op=
-tions);
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0}
-> @@ -1220,6 +1228,8 @@ int osm_subn_rescan_conf_files(IN osm_subn_t * =
-p_subn)
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0&p_opts->file_opts->qos_sw0_options)=
-;
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0subn_init_qos_options(&p_opts->qos_swe_opt=
-ions,
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0&p_opts->file_opts->qos_swe_options)=
-;
-> + =C2=A0 =C2=A0 =C2=A0 subn_init_qos_options(&p_opts->qos_sw_edge_opt=
-ions,
+ =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =
+=C2=A0 const osm_switch_t * this_sw)
+> =C2=A0{
+> - =C2=A0 =C2=A0 =C2=A0 uint32_t max_hops =3D 0;
+> + =C2=A0 =C2=A0 =C2=A0 float avg_hops =3D 0;
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0uint32_t hops =3D 0;
+> - =C2=A0 =C2=A0 =C2=A0 cl_list_item_t *i;
+> - =C2=A0 =C2=A0 =C2=A0 osm_mcast_work_obj_t *wobj;
+> + =C2=A0 =C2=A0 =C2=A0 uint32_t num_ports =3D 0;
+> + =C2=A0 =C2=A0 =C2=A0 uint16_t lid;
+> + =C2=A0 =C2=A0 =C2=A0 uint32_t least_hops;
+> + =C2=A0 =C2=A0 =C2=A0 cl_map_item_t *i;
+> + =C2=A0 =C2=A0 =C2=A0 osm_switch_t *sw;
+> +
+> + =C2=A0 =C2=A0 =C2=A0 OSM_LOG_ENTER(sm->p_log);
+> +
+> + =C2=A0 =C2=A0 =C2=A0 for (i =3D cl_qmap_head(m); i !=3D cl_qmap_end=
+(m); i =3D cl_qmap_next(i)) {
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 sw =3D cl_item_obj=
+(i, sw, mcast_item);
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 lid =3D cl_ntoh16(=
+osm_node_get_base_lid(sw->p_node, 0));
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 least_hops =3D osm=
+_switch_get_least_hops(this_sw, lid);
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 /* for all host th=
+at are MC members and attached to the switch,
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0we sh=
+ould add the (least_hops + 1) * number_of_such_hosts.
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0If sw=
+itch itself is in the MC, we should add the least_hops only */
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 hops +=3D (least_h=
+ops + 1) * sw->num_of_mcm +
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 leas=
+t_hops * sw->is_mc_member;
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 num_ports +=3D sw-=
+>num_of_mcm + sw->is_mc_member;
+> + =C2=A0 =C2=A0 =C2=A0 }
+> +
+> + =C2=A0 =C2=A0 =C2=A0 /* We should be here if there aren't any ports=
+ in the group. */
+> + =C2=A0 =C2=A0 =C2=A0 CL_ASSERT(num_ports);
+> +
+> + =C2=A0 =C2=A0 =C2=A0 avg_hops =3D (float)(hops / num_ports);
+> +
+> + =C2=A0 =C2=A0 =C2=A0 OSM_LOG_EXIT(sm->p_log);
+> + =C2=A0 =C2=A0 =C2=A0 return avg_hops;
+> +}
+> +#else
+> +static float osm_mcast_mgr_compute_max_hops(osm_sm_t * sm, cl_qmap_t=
+ * m,
 > + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 =C2=A0 =C2=A0 =C2=A0 &p_opts->file_opts->qos_sw_edge_options);
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0subn_init_qos_options(&p_opts->qos_rtr_opt=
-ions,
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0&p_opts->file_opts->qos_rtr_options)=
-;
+ =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =
+=C2=A0 const osm_switch_t * this_sw)
+> +{
+> + =C2=A0 =C2=A0 =C2=A0 uint32_t max_hops =3D 0, hops;
+> + =C2=A0 =C2=A0 =C2=A0 uint16_t lid;
+> + =C2=A0 =C2=A0 =C2=A0 cl_map_item_t *i;
+> + =C2=A0 =C2=A0 =C2=A0 osm_switch_t *sw;
 >
-> @@ -1620,6 +1630,10 @@ int osm_subn_output_conf(FILE *out, IN osm_sub=
-n_opt_t * p_opts)
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0OSM_LOG_ENTER(sm->p_log);
+>
+> @@ -208,9 +277,11 @@ static float osm_mcast_mgr_compute_max_hops(osm_=
+sm_t * sm, cl_qlist_t * l,
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 For each member of the multicast g=
+roup, compute the
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 number of hops to its base LID.
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0 */
+> - =C2=A0 =C2=A0 =C2=A0 for (i =3D cl_qlist_head(l); i !=3D cl_qlist_e=
+nd(l); i =3D cl_qlist_next(i)) {
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 wobj =3D cl_item_o=
+bj(i, wobj, list_item);
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 hops =3D osm_switc=
+h_get_port_least_hops(p_sw, wobj->p_port);
+> + =C2=A0 =C2=A0 =C2=A0 for (i =3D cl_qmap_head(m); i !=3D cl_qmap_end=
+(m); i =3D cl_qmap_next(i)) {
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 sw =3D cl_item_obj=
+(i, sw, mgrp_item);
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 lid =3D cl_ntoh16(=
+osm_node_get_base_lid(sw->p_node, 0));
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 hops =3D osm_switc=
+h_get_least_hops(this_sw, lid);
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 hops =3D (hops + 1=
+) * sw->num_of_mcm + hops * sw->is_mc_member;
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0if (hops > max=
+_hops)
 > =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0&p_opts->qos_swe_options);
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0fprintf(out, "\n");
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0subn_dump_qos_options(out,
+ =C2=A0 =C2=A0max_hops =3D hops;
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0}
+> @@ -222,6 +293,7 @@ static float osm_mcast_mgr_compute_max_hops(osm_s=
+m_t * sm, cl_qlist_t * l,
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0OSM_LOG_EXIT(sm->p_log);
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0return (float)max_hops;
+> =C2=A0}
+> +#endif
+>
+> =C2=A0/**************************************************************=
+********
+> =C2=A0 =C2=A0This function attempts to locate the optimal switch for =
+the
+> @@ -230,32 +302,30 @@ static float osm_mcast_mgr_compute_max_hops(osm=
+_sm_t * sm, cl_qlist_t * l,
+> =C2=A0 =C2=A0of the multicast group.
+> =C2=A0***************************************************************=
+*******/
+> =C2=A0static osm_switch_t *mcast_mgr_find_optimal_switch(osm_sm_t * s=
+m,
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =
+=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0cl_qlist_t *list)
 > + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 =C2=A0 =C2=A0 =C2=A0 "QoS Edge ports options", "qos_edge",
-> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 =C2=A0 =C2=A0 =C2=A0 &p_opts->qos_sw_edge_options);
-> + =C2=A0 =C2=A0 =C2=A0 fprintf(out, "\n");
-> + =C2=A0 =C2=A0 =C2=A0 subn_dump_qos_options(out,
+ =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =
+=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0cl_qlist_t * list)
+> =C2=A0{
+> + =C2=A0 =C2=A0 =C2=A0 cl_qmap_t mgrp_sw_map;
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0cl_qmap_t *p_sw_tbl;
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0osm_switch_t *p_sw, *p_best_sw =3D NULL;
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0float hops =3D 0;
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0float best_hops =3D 10000; =C2=A0 =C2=A0 =C2=
+=A0 =C2=A0/* any big # will do */
+> -#ifdef OSM_VENDOR_INTF_ANAFA
+> - =C2=A0 =C2=A0 =C2=A0 boolean_t use_avg_hops =3D TRUE; =C2=A0/* anaf=
+a2 - bug hca on switch *//* use max hops for root */
+> -#else
+> - =C2=A0 =C2=A0 =C2=A0 boolean_t use_avg_hops =3D FALSE; /* use max h=
+ops for root */
+> -#endif
+>
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0OSM_LOG_ENTER(sm->p_log);
+>
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0p_sw_tbl =3D &sm->p_subn->sw_guid_tbl;
+>
+> + =C2=A0 =C2=A0 =C2=A0 mcast_mgr_build_switch_map(sm, list, &mgrp_sw_=
+map);
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0for (p_sw =3D (osm_switch_t *) cl_qmap_hea=
+d(p_sw_tbl);
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 p_sw !=3D (osm_switch_t *) =
+cl_qmap_end(p_sw_tbl);
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 p_sw =3D (osm_switch_t *) c=
+l_qmap_next(&p_sw->map_item)) {
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0if (!osm_switc=
+h_supports_mcast(p_sw))
 > =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0"QoS Router ports options", "qos_rtr=
-",
+ =C2=A0 =C2=A0continue;
+>
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 if (use_avg_hops)
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 hops =3D osm_mcast_mgr_compute_avg_hops(sm, list, p_sw);
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 else
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 hops =3D osm_mcast_mgr_compute_max_hops(sm, list, p_sw);
+> +#ifdef OSM_VENDOR_INTF_ANAFA
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 hops =3D osm_mcast=
+_mgr_compute_avg_hops(sm, &mgrp_sw_map, p_sw);
+> +#else
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 hops =3D osm_mcast=
+_mgr_compute_max_hops(sm, &mgrp_sw_map, p_sw);
+> +#endif
+>
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0OSM_LOG(sm->p_=
+log, OSM_LOG_DEBUG,
 > =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0&p_opts->qos_rtr_options);
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0fprintf(out, "\n");
+ =C2=A0 =C2=A0"Switch 0x%016" PRIx64 ", hops =3D %f\n",
+> @@ -276,6 +346,7 @@ static osm_switch_t *mcast_mgr_find_optimal_switc=
+h(osm_sm_t * sm,
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0OSM_LOG(sm->p_=
+log, OSM_LOG_VERBOSE,
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 =C2=A0"No multicast capable switches detected\n");
+>
+> + =C2=A0 =C2=A0 =C2=A0 mcast_mgr_destroy_switch_map(sm, &mgrp_sw_map)=
+;
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0OSM_LOG_EXIT(sm->p_log);
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0return p_best_sw;
+> =C2=A0}
 > --
-> 1.6.3.3
+> 1.6.6.1
 >
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-rdma"=
