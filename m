@@ -1,51 +1,123 @@
-From: Alex Chiang <achiang-VXdhtT5mjnY@public.gmane.org>
-Subject: [PATCH 6/7] IB/uverbs: pack struct ib_uverbs_event_file tighter
-Date: Fri, 29 Jan 2010 14:45:28 -0700
-Message-ID: <20100129214528.17745.56022.stgit@bob.kio>
+From: Alex Chiang <achiang@hp.com>
+Subject: [PATCH 1/7] IB/uverbs: convert *cdev to cdev in struct
+	ib_uverbs_device
+Date: Fri, 29 Jan 2010 14:45:02 -0700
+Message-ID: <20100129214502.17745.35910.stgit@bob.kio>
 References: <20100129214039.17745.38679.stgit@bob.kio>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20100129214039.17745.38679.stgit-tBlMHHroXgg@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, justin.chen-VXdhtT5mjnY@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1755079Ab0A2Vp2@vger.kernel.org>
+In-Reply-To: <20100129214039.17745.38679.stgit@bob.kio>
+Sender: linux-kernel-owner@vger.kernel.org
+To: rdreier@cisco.com
+Cc: linux-rdma@vger.kernel.org, justin.chen@hp.com, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-Eliminate some padding in the structure by rearranging the members.
+Instead of storing a pointer to a cdev, embed the entire struct cdev.
 
-sizeof(struct ib_uverbs_event_file) is now 72 bytes (from 80) and
-more members now fit in the first cacheline.
+This change allows us to use the container_of() macro in
+ib_uverbs_open() in a future patch.
 
-Signed-off-by: Alex Chiang <achiang-VXdhtT5mjnY@public.gmane.org>
+This change increases the size of struct ib_uverbs_device to
+168 bytes across 3 cachelines from 80 bytes in 2 cachelines.
+However, we rearrange the members so that everything fits into
+the first cacheline except for the struct cdev. Finally, we don't
+touch the cdev in any fastpaths, so this change shouldn't negatively
+affect performance.
+
+Signed-off-by: Alex Chiang <achiang@hp.com>
 ---
 
- drivers/infiniband/core/uverbs.h |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/infiniband/core/uverbs.h      |    7 ++++---
+ drivers/infiniband/core/uverbs_main.c |   23 ++++++++++-------------
+ 2 files changed, 14 insertions(+), 16 deletions(-)
 
 diff --git a/drivers/infiniband/core/uverbs.h b/drivers/infiniband/core/uverbs.h
-index e695f65..e54d9ac 100644
+index b3ea958..e695f65 100644
 --- a/drivers/infiniband/core/uverbs.h
 +++ b/drivers/infiniband/core/uverbs.h
-@@ -80,13 +80,13 @@ struct ib_uverbs_device {
+@@ -41,6 +41,7 @@
+ #include <linux/idr.h>
+ #include <linux/mutex.h>
+ #include <linux/completion.h>
++#include <linux/cdev.h>
  
- struct ib_uverbs_event_file {
+ #include <rdma/ib_verbs.h>
+ #include <rdma/ib_umem.h>
+@@ -69,12 +70,12 @@
+ 
+ struct ib_uverbs_device {
  	struct kref				ref;
-+	int					is_async;
- 	struct ib_uverbs_file		       *uverbs_file;
- 	spinlock_t				lock;
-+	int					is_closed;
- 	wait_queue_head_t			poll_wait;
- 	struct fasync_struct		       *async_queue;
- 	struct list_head			event_list;
--	int					is_async;
--	int					is_closed;
++	int					num_comp_vectors;
+ 	struct completion			comp;
+-	int					devnum;
+-	struct cdev			       *cdev;
+ 	struct device			       *dev;
+ 	struct ib_device		       *ib_dev;
+-	int					num_comp_vectors;
++	int					devnum;
++	struct cdev			        cdev;
  };
  
- struct ib_uverbs_file {
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+ struct ib_uverbs_event_file {
+diff --git a/drivers/infiniband/core/uverbs_main.c b/drivers/infiniband/core/uverbs_main.c
+index 5f284ff..5da9a73 100644
+--- a/drivers/infiniband/core/uverbs_main.c
++++ b/drivers/infiniband/core/uverbs_main.c
+@@ -43,7 +43,6 @@
+ #include <linux/sched.h>
+ #include <linux/file.h>
+ #include <linux/mount.h>
+-#include <linux/cdev.h>
+ 
+ #include <asm/uaccess.h>
+ 
+@@ -761,17 +760,15 @@ static void ib_uverbs_add_one(struct ib_device *device)
+ 	uverbs_dev->ib_dev           = device;
+ 	uverbs_dev->num_comp_vectors = device->num_comp_vectors;
+ 
+-	uverbs_dev->cdev = cdev_alloc();
+-	if (!uverbs_dev->cdev)
+-		goto err;
+-	uverbs_dev->cdev->owner = THIS_MODULE;
+-	uverbs_dev->cdev->ops = device->mmap ? &uverbs_mmap_fops : &uverbs_fops;
+-	kobject_set_name(&uverbs_dev->cdev->kobj, "uverbs%d", uverbs_dev->devnum);
+-	if (cdev_add(uverbs_dev->cdev, IB_UVERBS_BASE_DEV + uverbs_dev->devnum, 1))
++	cdev_init(&uverbs_dev->cdev, NULL);
++	uverbs_dev->cdev.owner = THIS_MODULE;
++	uverbs_dev->cdev.ops = device->mmap ? &uverbs_mmap_fops : &uverbs_fops;
++	kobject_set_name(&uverbs_dev->cdev.kobj, "uverbs%d", uverbs_dev->devnum);
++	if (cdev_add(&uverbs_dev->cdev, IB_UVERBS_BASE_DEV + uverbs_dev->devnum, 1))
+ 		goto err_cdev;
+ 
+ 	uverbs_dev->dev = device_create(uverbs_class, device->dma_device,
+-					uverbs_dev->cdev->dev, uverbs_dev,
++					uverbs_dev->cdev.dev, uverbs_dev,
+ 					"uverbs%d", uverbs_dev->devnum);
+ 	if (IS_ERR(uverbs_dev->dev))
+ 		goto err_cdev;
+@@ -790,10 +787,10 @@ static void ib_uverbs_add_one(struct ib_device *device)
+ 	return;
+ 
+ err_class:
+-	device_destroy(uverbs_class, uverbs_dev->cdev->dev);
++	device_destroy(uverbs_class, uverbs_dev->cdev.dev);
+ 
+ err_cdev:
+-	cdev_del(uverbs_dev->cdev);
++	cdev_del(&uverbs_dev->cdev);
+ 	clear_bit(uverbs_dev->devnum, dev_map);
+ 
+ err:
+@@ -811,8 +808,8 @@ static void ib_uverbs_remove_one(struct ib_device *device)
+ 		return;
+ 
+ 	dev_set_drvdata(uverbs_dev->dev, NULL);
+-	device_destroy(uverbs_class, uverbs_dev->cdev->dev);
+-	cdev_del(uverbs_dev->cdev);
++	device_destroy(uverbs_class, uverbs_dev->cdev.dev);
++	cdev_del(&uverbs_dev->cdev);
+ 
+ 	spin_lock(&map_lock);
+ 	dev_table[uverbs_dev->devnum] = NULL;
