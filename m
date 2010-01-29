@@ -1,36 +1,35 @@
-From: "Sean Hefty" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: DREQ timeout for rdma-cm consumers
-Date: Thu, 28 Jan 2010 09:41:35 -0800
-Message-ID: <C2C13483FFBB484FB03A08F58E5D0DC0@amr.corp.intel.com>
-References: <Pine.LNX.4.64.1001261749260.13804@zuben.voltaire.com> <F766FA8B1AD74F0E98EF28981448A4CF@amr.corp.intel.com> <4B618B3F.9030803@voltaire.com>
+From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: [PATCH v2] RDMA/cxgb3: increase the max cq depth.
+Date: Thu, 28 Jan 2010 18:55:49 -0600
+Message-ID: <20100129005548.25782.55785.stgit@build.ogc.int>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4B618B3F.9030803-smomgflXvOZWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: 'Or Gerlitz' <ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
->I understand that, however, currently the code I am working with (iser)
->wait to get both flushes on all the posted work requests AND disconnect
->or address-change event to mark the <rdmacm id, qp> couple as
->disconnected, clear it up and signal higher level to reconnect. I'll
->have to look what is the way to go for fast reconnection, maybe connect
->a new <id, qp> couple before the current one is totally
->flushed/disconnected. Also, destroying the ID doesn't remove the qpn
->from the IB CM timewait database, correct? hence if I don't wait long
->enough and the driver/hw reuses the qpn short enough to hit the IB CM
->stale connection/etc logic, I will not be able to reconnect, I guess.
+Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+---
 
-It's the remote side that may be the problem.  In general, there's no
-guarantee that the remote side has exited timewait, which is what you
-really need to know, or is even aware that the previous connection is no
-longer in use.
+ drivers/infiniband/hw/cxgb3/cxio_hal.h |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-- Sean
+diff --git a/drivers/infiniband/hw/cxgb3/cxio_hal.h b/drivers/infiniband/hw/cxgb3/cxio_hal.h
+index baa2867..073373c 100644
+--- a/drivers/infiniband/hw/cxgb3/cxio_hal.h
++++ b/drivers/infiniband/hw/cxgb3/cxio_hal.h
+@@ -53,7 +53,7 @@
+ #define T3_MAX_PBL_SIZE 256
+ #define T3_MAX_RQ_SIZE 1024
+ #define T3_MAX_QP_DEPTH (T3_MAX_RQ_SIZE-1)
+-#define T3_MAX_CQ_DEPTH 8192
++#define T3_MAX_CQ_DEPTH 262144
+ #define T3_MAX_NUM_STAG (1<<15)
+ #define T3_MAX_MR_SIZE 0x100000000ULL
+ #define T3_PAGESIZE_MASK 0xffff000  /* 4KB-128MB */
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
