@@ -1,51 +1,31 @@
-From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: Re: [PATCH v2] RDMA/cxgb3: increase the max cq depth.
-Date: Thu, 28 Jan 2010 19:08:41 -0600
-Message-ID: <4B623519.3070605@opengridcomputing.com>
-References: <20100129005548.25782.55785.stgit@build.ogc.int>
+From: Hari Subramoni <subramon-wPOY3OvGL++pAIv7I8X2sze48wsgrGvP@public.gmane.org>
+Subject: Setting ACK timeout for QP's created using RDMA_CM.
+Date: Fri, 29 Jan 2010 09:35:19 -0500 (EST)
+Message-ID: <Pine.GSO.4.40.1001290933060.4760-100000@kappa.cse.ohio-state.edu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20100129005548.25782.55785.stgit-T4OLL4TyM9aNDNWfRnPdfg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Roland,
+Hi,
 
-Sorry,  this is actually v1 of this patch.
+I am looking for the IB equivalent of the 're-transmission timeout' we
+have in ethernet. I was going through the QP attributes and came across
+this field in 'struct ibv_qp_attr'
 
-Steve.
+uint8_t timeout; /* Local ack timeout for primary path (valid only for RC QPs)*/
 
+I believe that this is the period of time (in seconds) that the IB HCA
+will wait for the ACK for a packet it sent out before re-transmitting? I
+was looking as to whether this field can be modified when creating a QP
+using RDMA_CM.
 
-Steve Wise wrote:
-> Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-> ---
->
->  drivers/infiniband/hw/cxgb3/cxio_hal.h |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
->
-> diff --git a/drivers/infiniband/hw/cxgb3/cxio_hal.h b/drivers/infiniband/hw/cxgb3/cxio_hal.h
-> index baa2867..073373c 100644
-> --- a/drivers/infiniband/hw/cxgb3/cxio_hal.h
-> +++ b/drivers/infiniband/hw/cxgb3/cxio_hal.h
-> @@ -53,7 +53,7 @@
->  #define T3_MAX_PBL_SIZE 256
->  #define T3_MAX_RQ_SIZE 1024
->  #define T3_MAX_QP_DEPTH (T3_MAX_RQ_SIZE-1)
-> -#define T3_MAX_CQ_DEPTH 8192
-> +#define T3_MAX_CQ_DEPTH 262144
->  #define T3_MAX_NUM_STAG (1<<15)
->  #define T3_MAX_MR_SIZE 0x100000000ULL
->  #define T3_PAGESIZE_MASK 0xffff000  /* 4KB-128MB */
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->   
+Thanks in advance,
+
+Hari.
+
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
