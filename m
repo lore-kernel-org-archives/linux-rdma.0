@@ -1,55 +1,74 @@
-From: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: Setting ACK timeout for QP's created using RDMA_CM.
-Date: Fri, 29 Jan 2010 11:57:05 -0500
-Message-ID: <f0e08f231001290857k37c5f891tbb730d22aabc3075@mail.gmail.com>
-References: <Pine.GSO.4.40.1001290933060.4760-100000@kappa.cse.ohio-state.edu>
-	 <CF9C39F99A89134C9CF9C4CCB68B8DDF12D589ABB6@orsmsx501.amr.corp.intel.com>
+From: Alex Chiang <achiang-VXdhtT5mjnY@public.gmane.org>
+Subject: [PATCH 0/7] Increase maximum Infiniband HCAs per-system
+Date: Fri, 29 Jan 2010 14:44:57 -0700
+Message-ID: <20100129214039.17745.38679.stgit@bob.kio>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CF9C39F99A89134C9CF9C4CCB68B8DDF12D589ABB6-osO9UTpF0USkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Hari Subramoni <subramon-wPOY3OvGL++pAIv7I8X2sze48wsgrGvP@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, justin.chen-VXdhtT5mjnY@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Jan 29, 2010 at 11:43 AM, Hefty, Sean <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wr=
-ote:
->>uint8_t timeout; /* Local ack timeout for primary path (valid only fo=
-r RC
->>QPs)*/
->>
->>I believe that this is the period of time (in seconds) that the IB HC=
-A
->>will wait for the ACK for a packet it sent out before re-transmitting=
-? I
->>was looking as to whether this field can be modified when creating a =
-QP
->>using RDMA_CM.
->
-> This field is set based on the packet lifetime carried in the path re=
-cord. =C2=A0If you're using opensm, there's probably a configuration op=
-tion that can adjust this (subnet timeout, maybe?).
+Justin Chen discovered that Linux "only" supports 32 IB cards in
+a single system when testing a larger system with 40 cards and
+discovered that OFED only reported 32 HCAs.
 
-Yes, OpenSM returns subnet_timeout as the SA PathRecord PacketLifeTime
-assuming it's not loopback and no QoS set.
+This patchset doubles the number of HCAs allowed per system in a
+backwards-compatible manner.
 
--- Hal
+Why only double? Well, it keeps the implementation very simple while
+also keeping the memory increase at a minimum. If the future
+requires even more HCAs per system, we can do a more complicated
+implementation then.
 
-> =C2=A0The time given for the QP attribute is in 'IB time': 4.096 x 2 =
-^ timeout micro-seconds.
->
-> - Sean
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma"=
- in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at =C2=A0http://vger.kernel.org/majordomo-info.ht=
-ml
->
+I tested this by inserting 4 IB cards into a system, and then
+changing IB_UVERBS_MAX_DEVICES = 2.
+
+	dl585g2:~ # modprobe ib_uverbs
+	dl585g2:~ # ls -l /dev/uverbs*
+	crw-rw---- 1 root root 231, 192 Jan 28 06:59 /dev/uverbs0
+	crw-rw---- 1 root root 231, 193 Jan 28 06:59 /dev/uverbs1
+	crw-rw---- 1 root root 249,   0 Jan 28 06:59 /dev/uverbs2
+	crw-rw---- 1 root root 249,   1 Jan 28 06:59 /dev/uverbs3
+
+You can see that the uverbs devices are numbered in order, as one
+would expect, and that devices 2 and 3 have different major numbers
+while devices 0 and 1 retain the legacy, allocated major number.
+
+I don't have access to a huge system to really test what
+happens at device 33, but it should just work, right? :)
+
+I am also unaware of any OFED changes required (if that's even
+necessary), but then again, I'm just a simple kernel guy.
+
+The final two patches are just something I discovered while using
+pahole to verify my changes in converting the *cdev pointer to an
+embedded struct. They don't save all that much, but they also don't
+change very much code either, so why not?
+
+Thanks,
+/ac
+
+---
+
+Alex Chiang (7):
+      IB/uverbs: convert *cdev to cdev in struct ib_uverbs_device
+      IB/uverbs: remove dev_table
+      IB/uverbs: use stack variable 'devnum' in ib_uverbs_add_one
+      IB/uverbs: use stack variable 'base' in ib_uverbs_add_one
+      IB/uverbs: increase maximum devices supported
+      IB/uverbs: pack struct ib_uverbs_event_file tighter
+      IB/core: pack struct ib_device a little tighter
+
+
+ drivers/infiniband/core/uverbs.h      |   11 ++-
+ drivers/infiniband/core/uverbs_main.c |  106 +++++++++++++++++++++------------
+ include/rdma/ib_verbs.h               |    4 +
+ 3 files changed, 76 insertions(+), 45 deletions(-)
+
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
