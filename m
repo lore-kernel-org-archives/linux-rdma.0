@@ -1,123 +1,103 @@
-From: Alex Chiang <achiang@hp.com>
-Subject: [PATCH 1/7] IB/uverbs: convert *cdev to cdev in struct
-	ib_uverbs_device
-Date: Fri, 29 Jan 2010 14:45:02 -0700
-Message-ID: <20100129214502.17745.35910.stgit@bob.kio>
+From: Alex Chiang <achiang-VXdhtT5mjnY@public.gmane.org>
+Subject: [PATCH 2/7] IB/uverbs: remove dev_table
+Date: Fri, 29 Jan 2010 14:45:07 -0700
+Message-ID: <20100129214507.17745.96622.stgit@bob.kio>
 References: <20100129214039.17745.38679.stgit@bob.kio>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1755079Ab0A2Vp2@vger.kernel.org>
-In-Reply-To: <20100129214039.17745.38679.stgit@bob.kio>
-Sender: linux-kernel-owner@vger.kernel.org
-To: rdreier@cisco.com
-Cc: linux-rdma@vger.kernel.org, justin.chen@hp.com, linux-kernel@vger.kernel.org
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20100129214039.17745.38679.stgit-tBlMHHroXgg@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, justin.chen-VXdhtT5mjnY@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Instead of storing a pointer to a cdev, embed the entire struct cdev.
+dev_table's raison d'etre was to associate an inode back to a
+struct ib_uverbs_device.
 
-This change allows us to use the container_of() macro in
-ib_uverbs_open() in a future patch.
+However, now that we've converted ib_uverbs_device to contain
+an embedded cdev (instead of a *cdev), we can use the container_of()
+macro and cast back to the containing device.
 
-This change increases the size of struct ib_uverbs_device to
-168 bytes across 3 cachelines from 80 bytes in 2 cachelines.
-However, we rearrange the members so that everything fits into
-the first cacheline except for the struct cdev. Finally, we don't
-touch the cdev in any fastpaths, so this change shouldn't negatively
-affect performance.
+There's no longer any need for dev_table, so get rid of it.
 
-Signed-off-by: Alex Chiang <achiang@hp.com>
+Signed-off-by: Alex Chiang <achiang-VXdhtT5mjnY@public.gmane.org>
 ---
 
- drivers/infiniband/core/uverbs.h      |    7 ++++---
- drivers/infiniband/core/uverbs_main.c |   23 ++++++++++-------------
- 2 files changed, 14 insertions(+), 16 deletions(-)
+ drivers/infiniband/core/uverbs_main.c |   24 +++++-------------------
+ 1 files changed, 5 insertions(+), 19 deletions(-)
 
-diff --git a/drivers/infiniband/core/uverbs.h b/drivers/infiniband/core/uverbs.h
-index b3ea958..e695f65 100644
---- a/drivers/infiniband/core/uverbs.h
-+++ b/drivers/infiniband/core/uverbs.h
-@@ -41,6 +41,7 @@
- #include <linux/idr.h>
- #include <linux/mutex.h>
- #include <linux/completion.h>
-+#include <linux/cdev.h>
- 
- #include <rdma/ib_verbs.h>
- #include <rdma/ib_umem.h>
-@@ -69,12 +70,12 @@
- 
- struct ib_uverbs_device {
- 	struct kref				ref;
-+	int					num_comp_vectors;
- 	struct completion			comp;
--	int					devnum;
--	struct cdev			       *cdev;
- 	struct device			       *dev;
- 	struct ib_device		       *ib_dev;
--	int					num_comp_vectors;
-+	int					devnum;
-+	struct cdev			        cdev;
- };
- 
- struct ib_uverbs_event_file {
 diff --git a/drivers/infiniband/core/uverbs_main.c b/drivers/infiniband/core/uverbs_main.c
-index 5f284ff..5da9a73 100644
+index 5da9a73..3f11292 100644
 --- a/drivers/infiniband/core/uverbs_main.c
 +++ b/drivers/infiniband/core/uverbs_main.c
-@@ -43,7 +43,6 @@
- #include <linux/sched.h>
- #include <linux/file.h>
- #include <linux/mount.h>
--#include <linux/cdev.h>
+@@ -74,7 +74,6 @@ DEFINE_IDR(ib_uverbs_qp_idr);
+ DEFINE_IDR(ib_uverbs_srq_idr);
  
- #include <asm/uaccess.h>
+ static DEFINE_SPINLOCK(map_lock);
+-static struct ib_uverbs_device *dev_table[IB_UVERBS_MAX_DEVICES];
+ static DECLARE_BITMAP(dev_map, IB_UVERBS_MAX_DEVICES);
  
-@@ -761,17 +760,15 @@ static void ib_uverbs_add_one(struct ib_device *device)
- 	uverbs_dev->ib_dev           = device;
- 	uverbs_dev->num_comp_vectors = device->num_comp_vectors;
+ static ssize_t (*uverbs_cmd_table[])(struct ib_uverbs_file *file,
+@@ -616,14 +615,12 @@ static int ib_uverbs_mmap(struct file *filp, struct vm_area_struct *vma)
+ /*
+  * ib_uverbs_open() does not need the BKL:
+  *
+- *  - dev_table[] accesses are protected by map_lock, the
+- *    ib_uverbs_device structures are properly reference counted, and
++ *  - the ib_uverbs_device structures are properly reference counted and
+  *    everything else is purely local to the file being created, so
+  *    races against other open calls are not a problem;
+  *  - there is no ioctl method to race against;
+- *  - the device is added to dev_table[] as the last part of module
+- *    initialization, the open method will either immediately run
+- *    -ENXIO, or all required initialization will be done.
++ *  - the open method will either immediately run -ENXIO, or all
++ *    required initialization will be done.
+  */
+ static int ib_uverbs_open(struct inode *inode, struct file *filp)
+ {
+@@ -631,13 +628,10 @@ static int ib_uverbs_open(struct inode *inode, struct file *filp)
+ 	struct ib_uverbs_file *file;
+ 	int ret;
  
--	uverbs_dev->cdev = cdev_alloc();
--	if (!uverbs_dev->cdev)
--		goto err;
--	uverbs_dev->cdev->owner = THIS_MODULE;
--	uverbs_dev->cdev->ops = device->mmap ? &uverbs_mmap_fops : &uverbs_fops;
--	kobject_set_name(&uverbs_dev->cdev->kobj, "uverbs%d", uverbs_dev->devnum);
--	if (cdev_add(uverbs_dev->cdev, IB_UVERBS_BASE_DEV + uverbs_dev->devnum, 1))
-+	cdev_init(&uverbs_dev->cdev, NULL);
-+	uverbs_dev->cdev.owner = THIS_MODULE;
-+	uverbs_dev->cdev.ops = device->mmap ? &uverbs_mmap_fops : &uverbs_fops;
-+	kobject_set_name(&uverbs_dev->cdev.kobj, "uverbs%d", uverbs_dev->devnum);
-+	if (cdev_add(&uverbs_dev->cdev, IB_UVERBS_BASE_DEV + uverbs_dev->devnum, 1))
- 		goto err_cdev;
+-	spin_lock(&map_lock);
+-	dev = dev_table[iminor(inode) - IB_UVERBS_BASE_MINOR];
++	dev = container_of(inode->i_cdev, struct ib_uverbs_device, cdev);
+ 	if (dev)
+ 		kref_get(&dev->ref);
+-	spin_unlock(&map_lock);
+-
+-	if (!dev)
++	else
+ 		return -ENXIO;
  
- 	uverbs_dev->dev = device_create(uverbs_class, device->dma_device,
--					uverbs_dev->cdev->dev, uverbs_dev,
-+					uverbs_dev->cdev.dev, uverbs_dev,
- 					"uverbs%d", uverbs_dev->devnum);
- 	if (IS_ERR(uverbs_dev->dev))
- 		goto err_cdev;
-@@ -790,10 +787,10 @@ static void ib_uverbs_add_one(struct ib_device *device)
+ 	if (!try_module_get(dev->ib_dev->owner)) {
+@@ -778,10 +772,6 @@ static void ib_uverbs_add_one(struct ib_device *device)
+ 	if (device_create_file(uverbs_dev->dev, &dev_attr_abi_version))
+ 		goto err_class;
+ 
+-	spin_lock(&map_lock);
+-	dev_table[uverbs_dev->devnum] = uverbs_dev;
+-	spin_unlock(&map_lock);
+-
+ 	ib_set_client_data(device, &uverbs_client, uverbs_dev);
+ 
  	return;
+@@ -811,10 +801,6 @@ static void ib_uverbs_remove_one(struct ib_device *device)
+ 	device_destroy(uverbs_class, uverbs_dev->cdev.dev);
+ 	cdev_del(&uverbs_dev->cdev);
  
- err_class:
--	device_destroy(uverbs_class, uverbs_dev->cdev->dev);
-+	device_destroy(uverbs_class, uverbs_dev->cdev.dev);
- 
- err_cdev:
--	cdev_del(uverbs_dev->cdev);
-+	cdev_del(&uverbs_dev->cdev);
+-	spin_lock(&map_lock);
+-	dev_table[uverbs_dev->devnum] = NULL;
+-	spin_unlock(&map_lock);
+-
  	clear_bit(uverbs_dev->devnum, dev_map);
  
- err:
-@@ -811,8 +808,8 @@ static void ib_uverbs_remove_one(struct ib_device *device)
- 		return;
- 
- 	dev_set_drvdata(uverbs_dev->dev, NULL);
--	device_destroy(uverbs_class, uverbs_dev->cdev->dev);
--	cdev_del(uverbs_dev->cdev);
-+	device_destroy(uverbs_class, uverbs_dev->cdev.dev);
-+	cdev_del(&uverbs_dev->cdev);
- 
- 	spin_lock(&map_lock);
- 	dev_table[uverbs_dev->devnum] = NULL;
+ 	kref_put(&uverbs_dev->ref, ib_uverbs_release_dev);
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
