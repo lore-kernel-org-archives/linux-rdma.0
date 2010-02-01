@@ -1,8 +1,8 @@
 From: Alex Vainman <alexonlists-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH v2 4/4] libibverbs: Undo changes in memory range tree when
+Subject: [PATCH v2 3/4] libibverbs: Undo changes in memory range tree when
  madvise() fails
-Date: Mon, 01 Feb 2010 07:57:42 +0200
-Message-ID: <4B666D56.4090708@gmail.com>
+Date: Mon, 01 Feb 2010 07:57:45 +0200
+Message-ID: <4B666D59.4000101@gmail.com>
 Reply-To: alexv-smomgflXvOZWk0Htik3J/w@public.gmane.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=windows-1255
@@ -13,88 +13,76 @@ To: roland <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Roland Dreier <rdr
 List-Id: linux-rdma@vger.kernel.org
 
 ibv_madvise_range() doesn't cleanup if madvise() fails.
-This patch comes to roll back the changes, made in memory tree,
-which preceded the madvise() failure:
+This patch comes to fix incorrect splits/merges in the memory tree,
+which are outcome of madvise() failure:
 
-When madvise() fails on a memory range portion out of the whole range which
-user requested to modify and ibv_madvise_range() successfully modified a few
-tree nodes up to the problematical portion sub-ranges (this can happen if
-there is an overlap between user's range and range's which where previously
-added to the memory tree) then it is not enough to undo the split and merge
-operation performed on the current node, which caused the failure, but the
-functions needed to undo all the changes made on all the previous ranges from
-start pointer to current location.
-The patch revertes all the changes by re-running it self from start pointer to
-current location with toggled inc value.
+ibv_madvise_range() first manages (splits or mergs) memory ranges in the tree
+and only then calls madvise().If madvise() fails, the tree's memory range
+may contain incorrectly split or merged ranges.
+The patch undoes the split and merge operations performed on the node
+which caused the madvise() failure as well as on that node's neighbors.
 
 Signed-off-by: Alex Vainman <alexv-smomgflXvOZWk0Htik3J/w@public.gmane.org>
 ---
- src/memory.c |   39 ++++++++++++++++++++++++++++++++++++++-
- 1 files changed, 38 insertions(+), 1 deletions(-)
+ src/memory.c |   37 ++++++++++++++++++++++++++++++++++++-
+ 1 files changed, 36 insertions(+), 1 deletions(-)
 
 diff --git a/src/memory.c b/src/memory.c
-index 4dd9bdd..876dced 100644
+index 6a3305f..4dd9bdd 100644
 --- a/src/memory.c
 +++ b/src/memory.c
-@@ -522,12 +522,43 @@ static struct ibv_mem_node *undo_node(struct ibv_mem_node *node,
+@@ -489,6 +489,39 @@ static struct ibv_mem_node *get_start_node(uintptr_t start, uintptr_t end,
  	return node;
  }
  
 +/*
-+ * This function is being called if madvise() fails.
-+ * The node which caused madvise() to fail may contain
-+ * just a sub range of [start-end].
-+ * So we need to undo all the successful changes (if any)
-+ * already performed on a range [start - (node->prev)->end].
-+ * This function finds the node to begin rescanning from,
-+ * finds the end of the range to rescan and invert
-+ * the operation type.
++ * This function is being called if madvise() fails and comes to
++ * undo merging/splitting operations performed on the node.
 + */
-+static struct ibv_mem_node *prepare_to_roll_back(struct ibv_mem_node *node,
-+						 uintptr_t start,
-+						 uintptr_t *end,
-+						 int *inc,
-+						 int *advice)
++static struct ibv_mem_node *undo_node(struct ibv_mem_node *node,
++				      uintptr_t start, int inc)
 +{
 +	struct ibv_mem_node *tmp = NULL;
 +
-+	*inc *= -1;
-+	*advice = *inc == 1 ? MADV_DONTFORK : MADV_DOFORK;
-+	tmp = __mm_prev(node);
-+	node = NULL;
-+	if (tmp) {
-+		*end = tmp->end;
-+		if (start <= *end)
-+			node = get_start_node(start, *end, *inc);
++	/*
++	 * This condition can be true only if we merged this
++	 * node with the previous one, so we need to split them.
++	*/
++	if (start > node->start) {
++		tmp = split_range(node, start);
++		if (tmp) {
++			node->refcnt += inc;
++			node = tmp;
++		} else
++			return NULL;
 +	}
++
++	tmp  =  __mm_prev(node);
++	if (tmp && tmp->refcnt == node->refcnt)
++		node = merge_ranges(node, tmp);
++
++	tmp  =  __mm_next(node);
++	if (tmp && tmp->refcnt == node->refcnt)
++		node = merge_ranges(tmp, node);
++
 +	return node;
 +}
 +
  static int ibv_madvise_range(void *base, size_t size, int advice)
  {
  	uintptr_t start, end;
- 	struct ibv_mem_node *node, *tmp;
- 	int inc;
- 	int ret = 0;
-+	int rolling_back = 0;
- 
- 	if (!size)
- 		return 0;
-@@ -576,7 +607,13 @@ static int ibv_madvise_range(void *base, size_t size, int advice)
+@@ -541,8 +574,10 @@ static int ibv_madvise_range(void *base, size_t size, int advice)
+ 				ret = madvise((void *) node->start,
+ 					      node->end - node->start + 1,
  					      advice);
- 			if (ret) {
- 				node = undo_node(node, start, inc);
--				goto out;
-+				if (rolling_back || !node)
-+					goto out;
-+
-+				node = prepare_to_roll_back(node, start, &end,
-+							    &inc, &advice);
-+				rolling_back = 1;
-+				continue;
- 			}
+-			if (ret)
++			if (ret) {
++				node = undo_node(node, start, inc);
+ 				goto out;
++			}
  		}
  
+ 		node->refcnt += inc;
 -- 
 1.6.5.3
 
