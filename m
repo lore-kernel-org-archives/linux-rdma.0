@@ -1,76 +1,102 @@
-From: Akinobu Mita <akinobu.mita-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 7/9] infiniband: Use for_each_set_bit
-Date: Tue,  2 Feb 2010 00:10:38 +0900
-Message-ID: <1265037040-23413-7-git-send-email-akinobu.mita@gmail.com>
-References: <1265037040-23413-1-git-send-email-akinobu.mita@gmail.com>
+From: sebastien dugue <sebastien.dugue-6ktuUTfB/bM@public.gmane.org>
+Subject: [PATCH] Fix 2.6.3[12] user_mad backports
+Date: Mon, 1 Feb 2010 16:24:19 +0100
+Message-ID: <20100201162419.443afe03@frecb007965>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1265037040-23413-1-git-send-email-akinobu.mita-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org
-Cc: Akinobu Mita <akinobu.mita-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-v2: rename for_each_bit to for_each_set_bit
 
-Signed-off-by: Akinobu Mita <akinobu.mita-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+  The ib_umad_port's sm_sem semaphore is initialized as a mutex which
+although it builds (with a warning) badly breaks at runtime.
+
+  Fix this by using the proper initialization function sema_init().
+
+  Also fix those DOSish end of lines.
+
+Signed-off-by: Sebastien Dugue <sebastien.dugue-6ktuUTfB/bM@public.gmane.org>
 ---
- drivers/infiniband/core/mad.c |   21 +++++----------------
- 1 files changed, 5 insertions(+), 16 deletions(-)
+ .../backport/2.6.31/user_mad_mutex_init.patch      |   30 ++++++++++----------
+ .../backport/2.6.32/user_mad_mutex_init.patch      |   30 ++++++++++----------
+ 2 files changed, 30 insertions(+), 30 deletions(-)
 
-diff --git a/drivers/infiniband/core/mad.c b/drivers/infiniband/core/mad.c
-index 7522008..58463da 100644
---- a/drivers/infiniband/core/mad.c
-+++ b/drivers/infiniband/core/mad.c
-@@ -1193,10 +1193,7 @@ static int method_in_use(struct ib_mad_mgmt_method_table **method,
- {
- 	int i;
- 
--	for (i = find_first_bit(mad_reg_req->method_mask, IB_MGMT_MAX_METHODS);
--	     i < IB_MGMT_MAX_METHODS;
--	     i = find_next_bit(mad_reg_req->method_mask, IB_MGMT_MAX_METHODS,
--			       1+i)) {
-+	for_each_set_bit(i, mad_reg_req->method_mask, IB_MGMT_MAX_METHODS) {
- 		if ((*method)->agent[i]) {
- 			printk(KERN_ERR PFX "Method %d already in use\n", i);
- 			return -EINVAL;
-@@ -1330,13 +1327,9 @@ static int add_nonoui_reg_req(struct ib_mad_reg_req *mad_reg_req,
- 		goto error3;
- 
- 	/* Finally, add in methods being registered */
--	for (i = find_first_bit(mad_reg_req->method_mask,
--				IB_MGMT_MAX_METHODS);
--	     i < IB_MGMT_MAX_METHODS;
--	     i = find_next_bit(mad_reg_req->method_mask, IB_MGMT_MAX_METHODS,
--			       1+i)) {
-+	for_each_set_bit(i, mad_reg_req->method_mask, IB_MGMT_MAX_METHODS)
- 		(*method)->agent[i] = agent_priv;
--	}
+diff --git a/kernel_patches/backport/2.6.31/user_mad_mutex_init.patch b/kernel_patches/backport/2.6.31/user_mad_mutex_init.patch
+index 09cb6e6..3054f1e 100644
+--- a/kernel_patches/backport/2.6.31/user_mad_mutex_init.patch
++++ b/kernel_patches/backport/2.6.31/user_mad_mutex_init.patch
+@@ -1,15 +1,15 @@
+-From: Sven-Thorsten Dietrich <sdietrich-l3A5Bk7waGM@public.gmane.org>
+-Subject: use updated mutex_init.
+-
+-Signed-off-by: Sven-Thorsten Dietrich <sdietrich-l3A5Bk7waGM@public.gmane.org>
+---- a/drivers/infiniband/core/user_mad.c	2009-11-24 07:52:27.000000000 -0800
+-+++ b/drivers/infiniband/core//user_mad.c	2012-09-01 13:06:26.000000000 -0700
+-@@ -1003,7 +1003,7 @@
+- 
+- 	port->ib_dev   = device;
+- 	port->port_num = port_num;
+--	init_MUTEX(&port->sm_sem);
+-+	mutex_init(&port->sm_sem);
+- 	mutex_init(&port->file_mutex);
+- 	INIT_LIST_HEAD(&port->file_list);
+- 
++From: Sven-Thorsten Dietrich <sdietrich-l3A5Bk7waGM@public.gmane.org>
++Subject: use updated mutex_init.
 +
- 	return 0;
- 
- error3:
-@@ -1429,13 +1422,9 @@ check_in_use:
- 		goto error4;
- 
- 	/* Finally, add in methods being registered */
--	for (i = find_first_bit(mad_reg_req->method_mask,
--				IB_MGMT_MAX_METHODS);
--	     i < IB_MGMT_MAX_METHODS;
--	     i = find_next_bit(mad_reg_req->method_mask, IB_MGMT_MAX_METHODS,
--			       1+i)) {
-+	for_each_set_bit(i, mad_reg_req->method_mask, IB_MGMT_MAX_METHODS)
- 		(*method)->agent[i] = agent_priv;
--	}
++Signed-off-by: Sven-Thorsten Dietrich <sdietrich-l3A5Bk7waGM@public.gmane.org>
++--- a/drivers/infiniband/core/user_mad.c	2009-11-24 07:52:27.000000000 -0800
+++++ b/drivers/infiniband/core//user_mad.c	2012-09-01 13:06:26.000000000 -0700
++@@ -1003,7 +1003,7 @@
++ 
++ 	port->ib_dev   = device;
++ 	port->port_num = port_num;
++-	init_MUTEX(&port->sm_sem);
+++	sema_init(&port->sm_sem, 1);
++ 	mutex_init(&port->file_mutex);
++ 	INIT_LIST_HEAD(&port->file_list);
++ 
+diff --git a/kernel_patches/backport/2.6.32/user_mad_mutex_init.patch b/kernel_patches/backport/2.6.32/user_mad_mutex_init.patch
+index 09cb6e6..3054f1e 100644
+--- a/kernel_patches/backport/2.6.32/user_mad_mutex_init.patch
++++ b/kernel_patches/backport/2.6.32/user_mad_mutex_init.patch
+@@ -1,15 +1,15 @@
+-From: Sven-Thorsten Dietrich <sdietrich-l3A5Bk7waGM@public.gmane.org>
+-Subject: use updated mutex_init.
+-
+-Signed-off-by: Sven-Thorsten Dietrich <sdietrich-l3A5Bk7waGM@public.gmane.org>
+---- a/drivers/infiniband/core/user_mad.c	2009-11-24 07:52:27.000000000 -0800
+-+++ b/drivers/infiniband/core//user_mad.c	2012-09-01 13:06:26.000000000 -0700
+-@@ -1003,7 +1003,7 @@
+- 
+- 	port->ib_dev   = device;
+- 	port->port_num = port_num;
+--	init_MUTEX(&port->sm_sem);
+-+	mutex_init(&port->sm_sem);
+- 	mutex_init(&port->file_mutex);
+- 	INIT_LIST_HEAD(&port->file_list);
+- 
++From: Sven-Thorsten Dietrich <sdietrich-l3A5Bk7waGM@public.gmane.org>
++Subject: use updated mutex_init.
 +
- 	return 0;
- 
- error4:
++Signed-off-by: Sven-Thorsten Dietrich <sdietrich-l3A5Bk7waGM@public.gmane.org>
++--- a/drivers/infiniband/core/user_mad.c	2009-11-24 07:52:27.000000000 -0800
+++++ b/drivers/infiniband/core//user_mad.c	2012-09-01 13:06:26.000000000 -0700
++@@ -1003,7 +1003,7 @@
++ 
++ 	port->ib_dev   = device;
++ 	port->port_num = port_num;
++-	init_MUTEX(&port->sm_sem);
+++	sema_init(&port->sm_sem, 1);
++ 	mutex_init(&port->file_mutex);
++ 	INIT_LIST_HEAD(&port->file_list);
++ 
 -- 
-1.6.0.6
+1.6.0.4
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
