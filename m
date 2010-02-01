@@ -1,81 +1,87 @@
-From: Vladimir Sokolovsky <vlad-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
-Subject: [PATCH 1/2] IB/core: Add support for enhanced atomic operations
-Date: Mon, 1 Feb 2010 17:59:59 +0200
-Message-ID: <20100201155959.GA17341@vlad-laptop>
-Reply-To: Vladimir Sokolovsky <vlad-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+From: Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: [PATCH v2] opensm/complib/cl_passivelock.h: some casting issues
+Date: Mon, 01 Feb 2010 18:01:22 +0200
+Message-ID: <4B66FAD2.3010808@dev.mellanox.co.il>
+Reply-To: kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>, Linux RDMA <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This patchset adds support for the following enhanced atomic
-operations:
-- Masked atomic compare and swap
-- Masked atomic fetch and add
+Sasha,
 
-These operations enable using a smaller amount of memory when using
-multiple locks by using portions of a 64 bit value in an atomic operation.
+There are couple of problematic castings in complib/cl_passivelock.h:
 
-- Add new IB_WR_ATOMIC_MASKED_CMP_AND_SWP and
-  IB_WR_ATOMIC_MASKED_FETCH_AND_ADD send opcodes that can be used to mark a
-  "masked atomic compare and swap" and "masked atomic fetch and add" work
-  request correspondingly.
-- Add IB_DEVICE_MASKED_ATOMIC capability bit.
-- Add mask fields to atomic struct of ib_send_wr
-- Add new opcodes to ib_wc_opcode
+(cl_status_t) pthread_rwlock_*()
 
-Signed-off-by: Vladimir Sokolovsky <vlad-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
+Turns out that compiler doesn't like casting directly from
+int to enum, probably because int can be negative:
+
+cl_passivelock.h:199: warning: cast from function call of type 'int' to non-matching type 'enum _cl_status'
+cl_passivelock.h:241: warning: cast from function call of type 'int' to non-matching type 'enum _cl_status'
+cl_passivelock.h:274: warning: cast from function call of type 'int' to non-matching type 'enum _cl_status'
+cl_passivelock.h:306: warning: cast from function call of type 'int' to non-matching type 'enum _cl_status'
+
+Se we can cast the return value in two stages - to unsigned
+and then to enum, but casting it once to unsigned solves
+the problem - the compiler can cast unsigned to enum w/o
+explicit casting.
+
+Signed-off-by: Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 ---
- include/rdma/ib_verbs.h |    9 ++++++++-
- 1 files changed, 8 insertions(+), 1 deletions(-)
 
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index 09509ed..e2adeef 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -105,6 +105,7 @@ enum ib_device_cap_flags {
- 	IB_DEVICE_UD_TSO		= (1<<19),
- 	IB_DEVICE_MEM_MGT_EXTENSIONS	= (1<<21),
- 	IB_DEVICE_BLOCK_MULTICAST_LOOPBACK = (1<<22),
-+	IB_DEVICE_MASKED_ATOMIC		= (1<<23),
- };
- 
- enum ib_atomic_cap {
-@@ -472,7 +473,9 @@ enum ib_wc_opcode {
-  * receive by testing (opcode & IB_WC_RECV).
-  */
- 	IB_WC_RECV			= 1 << 7,
--	IB_WC_RECV_RDMA_WITH_IMM
-+	IB_WC_RECV_RDMA_WITH_IMM,
-+	IB_WC_MASKED_COMP_SWAP,
-+	IB_WC_MASKED_FETCH_ADD
- };
- 
- enum ib_wc_flags {
-@@ -689,6 +692,8 @@ enum ib_wr_opcode {
- 	IB_WR_RDMA_READ_WITH_INV,
- 	IB_WR_LOCAL_INV,
- 	IB_WR_FAST_REG_MR,
-+	IB_WR_ATOMIC_MASKED_CMP_AND_SWP,
-+	IB_WR_ATOMIC_MASKED_FETCH_AND_ADD,
- };
- 
- enum ib_send_flags {
-@@ -732,6 +737,8 @@ struct ib_send_wr {
- 			u64	compare_add;
- 			u64	swap;
- 			u32	rkey;
-+			u64	compare_add_mask;
-+			u64	swap_mask;
- 		} atomic;
- 		struct {
- 			struct ib_ah *ah;
+Changes from v1: cosmetics - there was '//' at the
+                 end of each fixed line, removed now.
+
+ opensm/include/complib/cl_passivelock.h |    8 ++++----
+ 1 files changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/opensm/include/complib/cl_passivelock.h b/opensm/include/complib/cl_passivelock.h
+index bafd339..aba4e64 100644
+--- a/opensm/include/complib/cl_passivelock.h
++++ b/opensm/include/complib/cl_passivelock.h
+@@ -196,7 +196,7 @@ static inline cl_status_t cl_plock_init(IN cl_plock_t * const p_lock)
+ 	cl_status_t status;
+
+ 	CL_ASSERT(p_lock);
+-	status = (cl_status_t) pthread_rwlock_init(&p_lock->lock, NULL);
++	status = (unsigned) pthread_rwlock_init(&p_lock->lock, NULL);
+ 	if (status)
+ 		return CL_ERROR;
+ 	p_lock->state = CL_INITIALIZED;
+@@ -238,7 +238,7 @@ static inline void cl_plock_acquire(IN cl_plock_t * const p_lock)
+ 	CL_ASSERT(p_lock);
+ 	CL_ASSERT(p_lock->state == CL_INITIALIZED);
+
+-	status = (cl_status_t) pthread_rwlock_rdlock(&p_lock->lock);
++	status = (unsigned) pthread_rwlock_rdlock(&p_lock->lock);
+ 	CL_ASSERT(status == 0);
+ }
+
+@@ -271,7 +271,7 @@ static inline void cl_plock_excl_acquire(IN cl_plock_t * const p_lock)
+ 	CL_ASSERT(p_lock);
+ 	CL_ASSERT(p_lock->state == CL_INITIALIZED);
+
+-	status = (cl_status_t) pthread_rwlock_wrlock(&p_lock->lock);
++	status = (unsigned) pthread_rwlock_wrlock(&p_lock->lock);
+ 	CL_ASSERT(status == 0);
+ }
+
+@@ -303,7 +303,7 @@ static inline void cl_plock_release(IN cl_plock_t * const p_lock)
+ 	CL_ASSERT(p_lock);
+ 	CL_ASSERT(p_lock->state == CL_INITIALIZED);
+
+-	status = (cl_status_t) pthread_rwlock_unlock(&p_lock->lock);
++	status = (unsigned) pthread_rwlock_unlock(&p_lock->lock);
+ 	CL_ASSERT(status == 0);
+ }
+
 -- 
-1.5.4.3
+1.5.1.4
+
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
