@@ -1,103 +1,39 @@
-From: sebastien dugue <sebastien.dugue-6ktuUTfB/bM@public.gmane.org>
-Subject: [PATCH] Fix 2.6.3[12] user_mad backports
-Date: Mon, 1 Feb 2010 16:24:19 +0100
-Message-ID: <20100201162419.443afe03@frecb007965>
+From: Vladimir Sokolovsky <vlad-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: [PATCH 0/2] Add support for enhanced atomic operations
+Date: Mon, 01 Feb 2010 17:59:16 +0200
+Message-ID: <4B66FA54.6030408@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+Hi Roland,
 
-  The ib_umad_port's sm_sem semaphore is initialized as a mutex which
-although it builds (with a warning) badly breaks at runtime.
+This patchset adds support for the following enhanced atomic operations:
+- Masked atomic compare and swap
+- Masked atomic fetch and add
 
-  Fix this by using the proper initialization function sema_init().
+These operations enable using a smaller amount of memory when using multiple locks
+by using portions of a 64 bit value in an atomic operation.
 
-  Also fix those DOSish end of lines.
+Vladimir Sokolovsky(2):
+IB/core: Add support for enhanced atomic operations
+mlx4/IB: Add support for enhanced atomic operations
 
-Signed-off-by: Sebastien Dugue <sebastien.dugue-6ktuUTfB/bM@public.gmane.org>
----
- .../backport/2.6.31/user_mad_mutex_init.patch      |   30 ++++++++++----------
- .../backport/2.6.32/user_mad_mutex_init.patch      |   30 ++++++++++----------
- 2 files changed, 30 insertions(+), 30 deletions(-)
+  drivers/infiniband/hw/mlx4/cq.c   |    8 ++++++++
+  drivers/infiniband/hw/mlx4/main.c |    2 ++
+  drivers/infiniband/hw/mlx4/qp.c   |   27 +++++++++++++++++++++++++++
+  include/linux/mlx4/device.h       |    4 ++--
+  include/linux/mlx4/qp.h           |    7 +++++++
+  include/rdma/ib_verbs.h           |    9 ++++++++-
+  6 files changed, 54 insertions(+), 3 deletions(-)
 
-diff --git a/kernel_patches/backport/2.6.31/user_mad_mutex_init.patch b/kernel_patches/backport/2.6.31/user_mad_mutex_init.patch
-index 09cb6e6..3054f1e 100644
---- a/kernel_patches/backport/2.6.31/user_mad_mutex_init.patch
-+++ b/kernel_patches/backport/2.6.31/user_mad_mutex_init.patch
-@@ -1,15 +1,15 @@
--From: Sven-Thorsten Dietrich <sdietrich-l3A5Bk7waGM@public.gmane.org>
--Subject: use updated mutex_init.
--
--Signed-off-by: Sven-Thorsten Dietrich <sdietrich-l3A5Bk7waGM@public.gmane.org>
----- a/drivers/infiniband/core/user_mad.c	2009-11-24 07:52:27.000000000 -0800
--+++ b/drivers/infiniband/core//user_mad.c	2012-09-01 13:06:26.000000000 -0700
--@@ -1003,7 +1003,7 @@
-- 
-- 	port->ib_dev   = device;
-- 	port->port_num = port_num;
---	init_MUTEX(&port->sm_sem);
--+	mutex_init(&port->sm_sem);
-- 	mutex_init(&port->file_mutex);
-- 	INIT_LIST_HEAD(&port->file_list);
-- 
-+From: Sven-Thorsten Dietrich <sdietrich-l3A5Bk7waGM@public.gmane.org>
-+Subject: use updated mutex_init.
-+
-+Signed-off-by: Sven-Thorsten Dietrich <sdietrich-l3A5Bk7waGM@public.gmane.org>
-+--- a/drivers/infiniband/core/user_mad.c	2009-11-24 07:52:27.000000000 -0800
-++++ b/drivers/infiniband/core//user_mad.c	2012-09-01 13:06:26.000000000 -0700
-+@@ -1003,7 +1003,7 @@
-+ 
-+ 	port->ib_dev   = device;
-+ 	port->port_num = port_num;
-+-	init_MUTEX(&port->sm_sem);
-++	sema_init(&port->sm_sem, 1);
-+ 	mutex_init(&port->file_mutex);
-+ 	INIT_LIST_HEAD(&port->file_list);
-+ 
-diff --git a/kernel_patches/backport/2.6.32/user_mad_mutex_init.patch b/kernel_patches/backport/2.6.32/user_mad_mutex_init.patch
-index 09cb6e6..3054f1e 100644
---- a/kernel_patches/backport/2.6.32/user_mad_mutex_init.patch
-+++ b/kernel_patches/backport/2.6.32/user_mad_mutex_init.patch
-@@ -1,15 +1,15 @@
--From: Sven-Thorsten Dietrich <sdietrich-l3A5Bk7waGM@public.gmane.org>
--Subject: use updated mutex_init.
--
--Signed-off-by: Sven-Thorsten Dietrich <sdietrich-l3A5Bk7waGM@public.gmane.org>
----- a/drivers/infiniband/core/user_mad.c	2009-11-24 07:52:27.000000000 -0800
--+++ b/drivers/infiniband/core//user_mad.c	2012-09-01 13:06:26.000000000 -0700
--@@ -1003,7 +1003,7 @@
-- 
-- 	port->ib_dev   = device;
-- 	port->port_num = port_num;
---	init_MUTEX(&port->sm_sem);
--+	mutex_init(&port->sm_sem);
-- 	mutex_init(&port->file_mutex);
-- 	INIT_LIST_HEAD(&port->file_list);
-- 
-+From: Sven-Thorsten Dietrich <sdietrich-l3A5Bk7waGM@public.gmane.org>
-+Subject: use updated mutex_init.
-+
-+Signed-off-by: Sven-Thorsten Dietrich <sdietrich-l3A5Bk7waGM@public.gmane.org>
-+--- a/drivers/infiniband/core/user_mad.c	2009-11-24 07:52:27.000000000 -0800
-++++ b/drivers/infiniband/core//user_mad.c	2012-09-01 13:06:26.000000000 -0700
-+@@ -1003,7 +1003,7 @@
-+ 
-+ 	port->ib_dev   = device;
-+ 	port->port_num = port_num;
-+-	init_MUTEX(&port->sm_sem);
-++	sema_init(&port->sm_sem, 1);
-+ 	mutex_init(&port->file_mutex);
-+ 	INIT_LIST_HEAD(&port->file_list);
-+ 
--- 
-1.6.0.4
-
+Regards,
+Vladimir
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
