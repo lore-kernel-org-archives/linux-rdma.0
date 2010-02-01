@@ -1,27 +1,37 @@
-From: "Sean Hefty" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH 0/2] Add support for enhanced atomic operations
-Date: Mon, 1 Feb 2010 14:11:26 -0800
-Message-ID: <52BD554704A742B18E3F2F8F2B00B9FE@amr.corp.intel.com>
-References: <4B66FA54.6030408@dev.mellanox.co.il>
+From: Andy Grover <andy.grover-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Pull request for OFED 1.5
+Date: Mon, 01 Feb 2010 15:38:15 -0800
+Message-ID: <4B6765E7.4020900@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4B66FA54.6030408-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: 'Vladimir Sokolovsky' <vlad-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Vladimir Sokolovsky <vlad-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ramachandra.kuchimanchi-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
->This patchset adds support for the following enhanced atomic operations:
->- Masked atomic compare and swap
->- Masked atomic fetch and add
+Hi Vlad,
 
-Can you explain these in more detail?  How exactly is a mask used?  Are there
-any restrictions on the format of the mask?  How is the mask carried over the
-wire?  etc.
+I found a small typo in the header guard of vnic_multicast.h which can
+cause a compilation error, please pull.
 
+Thanks -- Regards -- Andy
+
+The following changes since commit 40fbb82255896a5c39b35035e2fd5202246b6508:
+  Yevgeny Petrilin (1):
+        mlx4_en: No need to set smaller tx queue len
+
+are available in the git repository at:
+
+  git://git.openfabrics.org/~agrover/ofed_1_5/linux-2.6.git
+code-drop/20100201
+
+Andy Grover (1):
+      qlgc_vnic: Fix typo in header guard
+
+ drivers/infiniband/ulp/qlgc_vnic/vnic_multicast.h |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
