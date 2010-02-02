@@ -1,103 +1,129 @@
-From: Alex Chiang <achiang-VXdhtT5mjnY@public.gmane.org>
-Subject: [PATCH v2 02/18] IB/uverbs: remove dev_table
-Date: Tue, 02 Feb 2010 12:07:54 -0700
-Message-ID: <20100202190754.28217.48388.stgit@bob.kio>
+From: Alex Chiang <achiang@hp.com>
+Subject: [PATCH v2 05/18] IB/uverbs: increase maximum devices supported
+Date: Tue, 02 Feb 2010 12:08:09 -0700
+Message-ID: <20100202190809.28217.50581.stgit@bob.kio>
 References: <20100202185235.28217.64521.stgit@bob.kio>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20100202185235.28217.64521.stgit-tBlMHHroXgg@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, justin.chen-VXdhtT5mjnY@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20100202185235.28217.64521.stgit@bob.kio>
+Sender: linux-kernel-owner@vger.kernel.org
+To: rdreier@cisco.com
+Cc: linux-rdma@vger.kernel.org, justin.chen@hp.com, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-dev_table's raison d'etre was to associate an inode back to a
-struct ib_uverbs_device.
+Some large systems may support more than IB_UVERBS_MAX_DEVICES
+(currently 32).
 
-However, now that we've converted ib_uverbs_device to contain
-an embedded cdev (instead of a *cdev), we can use the container_of()
-macro and cast back to the containing device.
+This change allows us to support more devices in a backwards-compatible
+manner. The first IB_UVERBS_MAX_DEVICES keep the same major/minor
+device numbers that they've always had.
 
-There's no longer any need for dev_table, so get rid of it.
+If there are more than IB_UVERBS_MAX_DEVICES, we then dynamically
+request a new major device number (new minors start at 0).
 
-Signed-off-by: Alex Chiang <achiang-VXdhtT5mjnY@public.gmane.org>
+This change increases the maximum number of HCAs to 64 (from 32).
+
+Signed-off-by: Alex Chiang <achiang@hp.com>
 ---
 
- drivers/infiniband/core/uverbs_main.c |   24 +++++-------------------
- 1 files changed, 5 insertions(+), 19 deletions(-)
+ drivers/infiniband/core/uverbs_main.c |   56 +++++++++++++++++++++++++++++----
+ 1 files changed, 50 insertions(+), 6 deletions(-)
 
 diff --git a/drivers/infiniband/core/uverbs_main.c b/drivers/infiniband/core/uverbs_main.c
-index 5da9a73..3f11292 100644
+index 8c594cd..38b9085 100644
 --- a/drivers/infiniband/core/uverbs_main.c
 +++ b/drivers/infiniband/core/uverbs_main.c
-@@ -74,7 +74,6 @@ DEFINE_IDR(ib_uverbs_qp_idr);
- DEFINE_IDR(ib_uverbs_srq_idr);
+@@ -728,6 +728,34 @@ static ssize_t show_abi_version(struct class *class, char *buf)
+ }
+ static CLASS_ATTR(abi_version, S_IRUGO, show_abi_version, NULL);
  
- static DEFINE_SPINLOCK(map_lock);
--static struct ib_uverbs_device *dev_table[IB_UVERBS_MAX_DEVICES];
- static DECLARE_BITMAP(dev_map, IB_UVERBS_MAX_DEVICES);
- 
- static ssize_t (*uverbs_cmd_table[])(struct ib_uverbs_file *file,
-@@ -616,14 +615,12 @@ static int ib_uverbs_mmap(struct file *filp, struct vm_area_struct *vma)
- /*
-  * ib_uverbs_open() does not need the BKL:
-  *
-- *  - dev_table[] accesses are protected by map_lock, the
-- *    ib_uverbs_device structures are properly reference counted, and
-+ *  - the ib_uverbs_device structures are properly reference counted and
-  *    everything else is purely local to the file being created, so
-  *    races against other open calls are not a problem;
-  *  - there is no ioctl method to race against;
-- *  - the device is added to dev_table[] as the last part of module
-- *    initialization, the open method will either immediately run
-- *    -ENXIO, or all required initialization will be done.
-+ *  - the open method will either immediately run -ENXIO, or all
-+ *    required initialization will be done.
-  */
- static int ib_uverbs_open(struct inode *inode, struct file *filp)
++static dev_t oflo_maj;
++static DECLARE_BITMAP(oflo_map, IB_UVERBS_MAX_DEVICES);
++
++/*
++ * If we have more than IB_UVERBS_MAX_DEVICES, dynamically overflow by
++ * requesting a new major number and doubling the number of max devices we
++ * support. It's stupid, but simple.
++ */
++static int find_oflo_devnum(void)
++{
++	int ret;
++
++	if (!oflo_maj) {
++		ret = alloc_chrdev_region(&oflo_maj, 0, IB_UVERBS_MAX_DEVICES,
++					  "infiniband_verbs");
++		if (ret) {
++			printk(KERN_ERR "user_verbs: couldn't register dynamic device number\n");
++			return ret;
++		}
++	}
++
++	ret = find_first_zero_bit(oflo_map, IB_UVERBS_MAX_DEVICES);
++	if (ret >= IB_UVERBS_MAX_DEVICES)
++		return -1;
++
++	return ret;
++}
++
+ static void ib_uverbs_add_one(struct ib_device *device)
  {
-@@ -631,13 +628,10 @@ static int ib_uverbs_open(struct inode *inode, struct file *filp)
- 	struct ib_uverbs_file *file;
- 	int ret;
+ 	int devnum;
+@@ -748,11 +776,19 @@ static void ib_uverbs_add_one(struct ib_device *device)
+ 	devnum = find_first_zero_bit(dev_map, IB_UVERBS_MAX_DEVICES);
+ 	if (devnum >= IB_UVERBS_MAX_DEVICES) {
+ 		spin_unlock(&map_lock);
+-		goto err;
++		devnum = find_oflo_devnum();
++		if (devnum < 0)
++			goto err;
++
++		spin_lock(&map_lock);
++		uverbs_dev->devnum = devnum + IB_UVERBS_MAX_DEVICES;
++		base = devnum + oflo_maj;
++		set_bit(devnum, oflo_map);
++	} else {
++		uverbs_dev->devnum = devnum;
++		base = devnum + IB_UVERBS_BASE_DEV;
++		set_bit(devnum, dev_map);
+ 	}
+-	uverbs_dev->devnum = devnum;
+-	base = devnum + IB_UVERBS_BASE_DEV;
+-	set_bit(devnum, dev_map);
+ 	spin_unlock(&map_lock);
  
--	spin_lock(&map_lock);
--	dev = dev_table[iminor(inode) - IB_UVERBS_BASE_MINOR];
-+	dev = container_of(inode->i_cdev, struct ib_uverbs_device, cdev);
- 	if (dev)
- 		kref_get(&dev->ref);
--	spin_unlock(&map_lock);
--
--	if (!dev)
+ 	uverbs_dev->ib_dev           = device;
+@@ -785,7 +821,10 @@ err_class:
+ 
+ err_cdev:
+ 	cdev_del(&uverbs_dev->cdev);
+-	clear_bit(devnum, dev_map);
++	if (uverbs_dev->devnum < IB_UVERBS_MAX_DEVICES)
++		clear_bit(devnum, dev_map);
 +	else
- 		return -ENXIO;
++		clear_bit(devnum, oflo_map);
  
- 	if (!try_module_get(dev->ib_dev->owner)) {
-@@ -778,10 +772,6 @@ static void ib_uverbs_add_one(struct ib_device *device)
- 	if (device_create_file(uverbs_dev->dev, &dev_attr_abi_version))
- 		goto err_class;
- 
--	spin_lock(&map_lock);
--	dev_table[uverbs_dev->devnum] = uverbs_dev;
--	spin_unlock(&map_lock);
--
- 	ib_set_client_data(device, &uverbs_client, uverbs_dev);
- 
- 	return;
-@@ -811,10 +801,6 @@ static void ib_uverbs_remove_one(struct ib_device *device)
+ err:
+ 	kref_put(&uverbs_dev->ref, ib_uverbs_release_dev);
+@@ -805,7 +844,10 @@ static void ib_uverbs_remove_one(struct ib_device *device)
  	device_destroy(uverbs_class, uverbs_dev->cdev.dev);
  	cdev_del(&uverbs_dev->cdev);
  
--	spin_lock(&map_lock);
--	dev_table[uverbs_dev->devnum] = NULL;
--	spin_unlock(&map_lock);
--
- 	clear_bit(uverbs_dev->devnum, dev_map);
+-	clear_bit(uverbs_dev->devnum, dev_map);
++	if (uverbs_dev->devnum < IB_UVERBS_MAX_DEVICES)
++		clear_bit(uverbs_dev->devnum, dev_map);
++	else
++		clear_bit(uverbs_dev->devnum - IB_UVERBS_MAX_DEVICES, oflo_map);
  
  	kref_put(&uverbs_dev->ref, ib_uverbs_release_dev);
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+ 	wait_for_completion(&uverbs_dev->comp);
+@@ -895,6 +937,8 @@ static void __exit ib_uverbs_cleanup(void)
+ 	unregister_filesystem(&uverbs_event_fs);
+ 	class_destroy(uverbs_class);
+ 	unregister_chrdev_region(IB_UVERBS_BASE_DEV, IB_UVERBS_MAX_DEVICES);
++	if (oflo_maj)
++		unregister_chrdev_region(oflo_maj, IB_UVERBS_MAX_DEVICES);
+ 	idr_destroy(&ib_uverbs_pd_idr);
+ 	idr_destroy(&ib_uverbs_mr_idr);
+ 	idr_destroy(&ib_uverbs_mw_idr);
