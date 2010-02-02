@@ -1,7 +1,7 @@
 From: Alex Chiang <achiang-VXdhtT5mjnY@public.gmane.org>
-Subject: [PATCH v2 14/18] IB/ucm: use stack variable 'devnum' in ib_ucm_add_one
-Date: Tue, 02 Feb 2010 12:08:55 -0700
-Message-ID: <20100202190855.28217.68785.stgit@bob.kio>
+Subject: [PATCH v2 13/18] IB/umad: clean whitespace
+Date: Tue, 02 Feb 2010 12:08:50 -0700
+Message-ID: <20100202190850.28217.88334.stgit@bob.kio>
 References: <20100202185235.28217.64521.stgit@bob.kio>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -13,59 +13,76 @@ To: rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, justin.chen-VXdhtT5mjnY@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-This change is not useful by itself, but sets us up for a future
-change that allows us to dynamically allocate device numbers in case
-we have more than IB_UCM_MAX_DEVICES in the system.
+Clean errors as shown when 'let c_space_errors=1' is set in vim.
 
 Signed-off-by: Alex Chiang <achiang-VXdhtT5mjnY@public.gmane.org>
 ---
 
- drivers/infiniband/core/ucm.c |   12 +++++++-----
- 1 files changed, 7 insertions(+), 5 deletions(-)
+ drivers/infiniband/core/user_mad.c |   26 +++++++++++++-------------
+ 1 files changed, 13 insertions(+), 13 deletions(-)
 
-diff --git a/drivers/infiniband/core/ucm.c b/drivers/infiniband/core/ucm.c
-index f504c9b..7ff3300 100644
---- a/drivers/infiniband/core/ucm.c
-+++ b/drivers/infiniband/core/ucm.c
-@@ -1239,6 +1239,7 @@ static DEVICE_ATTR(ibdev, S_IRUGO, show_ibdev, NULL);
+diff --git a/drivers/infiniband/core/user_mad.c b/drivers/infiniband/core/user_mad.c
+index 7fc1e51..3595bd5 100644
+--- a/drivers/infiniband/core/user_mad.c
++++ b/drivers/infiniband/core/user_mad.c
+@@ -487,8 +487,8 @@ static ssize_t ib_umad_write(struct file *filp, const char __user *buf,
+ 		ah_attr.ah_flags = IB_AH_GRH;
+ 		memcpy(ah_attr.grh.dgid.raw, packet->mad.hdr.gid, 16);
+ 		ah_attr.grh.sgid_index	   = packet->mad.hdr.gid_index;
+-		ah_attr.grh.flow_label 	   = be32_to_cpu(packet->mad.hdr.flow_label);
+-		ah_attr.grh.hop_limit  	   = packet->mad.hdr.hop_limit;
++		ah_attr.grh.flow_label	   = be32_to_cpu(packet->mad.hdr.flow_label);
++		ah_attr.grh.hop_limit	   = packet->mad.hdr.hop_limit;
+ 		ah_attr.grh.traffic_class  = packet->mad.hdr.traffic_class;
+ 	}
  
- static void ib_ucm_add_one(struct ib_device *device)
- {
-+	int devnum;
- 	struct ib_ucm_device *ucm_dev;
+@@ -519,9 +519,9 @@ static ssize_t ib_umad_write(struct file *filp, const char __user *buf,
+ 		goto err_ah;
+ 	}
  
- 	if (!device->alloc_ucontext ||
-@@ -1251,16 +1252,17 @@ static void ib_ucm_add_one(struct ib_device *device)
+-	packet->msg->ah 	= ah;
++	packet->msg->ah		= ah;
+ 	packet->msg->timeout_ms = packet->mad.hdr.timeout_ms;
+-	packet->msg->retries 	= packet->mad.hdr.retries;
++	packet->msg->retries	= packet->mad.hdr.retries;
+ 	packet->msg->context[0] = packet;
  
- 	ucm_dev->ib_dev = device;
+ 	/* Copy MAD header.  Any RMPP header is already in place. */
+@@ -856,16 +856,16 @@ static int ib_umad_close(struct inode *inode, struct file *filp)
+ }
  
--	ucm_dev->devnum = find_first_zero_bit(dev_map, IB_UCM_MAX_DEVICES);
--	if (ucm_dev->devnum >= IB_UCM_MAX_DEVICES)
-+	devnum = find_first_zero_bit(dev_map, IB_UCM_MAX_DEVICES);
-+	if (devnum >= IB_UCM_MAX_DEVICES)
- 		goto err;
+ static const struct file_operations umad_fops = {
+-	.owner 	 	= THIS_MODULE,
+-	.read 	 	= ib_umad_read,
+-	.write 	 	= ib_umad_write,
+-	.poll 	 	= ib_umad_poll,
++	.owner		= THIS_MODULE,
++	.read		= ib_umad_read,
++	.write		= ib_umad_write,
++	.poll		= ib_umad_poll,
+ 	.unlocked_ioctl = ib_umad_ioctl,
+ #ifdef CONFIG_COMPAT
+-	.compat_ioctl 	= ib_umad_compat_ioctl,
++	.compat_ioctl	= ib_umad_compat_ioctl,
+ #endif
+-	.open 	 	= ib_umad_open,
+-	.release 	= ib_umad_close
++	.open		= ib_umad_open,
++	.release	= ib_umad_close
+ };
  
--	set_bit(ucm_dev->devnum, dev_map);
-+	ucm_dev->devnum = devnum;
-+	set_bit(devnum, dev_map);
+ static int ib_umad_sm_open(struct inode *inode, struct file *filp)
+@@ -930,8 +930,8 @@ static int ib_umad_sm_close(struct inode *inode, struct file *filp)
+ }
  
- 	cdev_init(&ucm_dev->cdev, &ucm_fops);
- 	ucm_dev->cdev.owner = THIS_MODULE;
- 	kobject_set_name(&ucm_dev->cdev.kobj, "ucm%d", ucm_dev->devnum);
--	if (cdev_add(&ucm_dev->cdev, IB_UCM_BASE_DEV + ucm_dev->devnum, 1))
-+	if (cdev_add(&ucm_dev->cdev, IB_UCM_BASE_DEV + devnum, 1))
- 		goto err;
+ static const struct file_operations umad_sm_fops = {
+-	.owner 	 = THIS_MODULE,
+-	.open 	 = ib_umad_sm_open,
++	.owner	 = THIS_MODULE,
++	.open	 = ib_umad_sm_open,
+ 	.release = ib_umad_sm_close
+ };
  
- 	ucm_dev->dev.class = &cm_class;
-@@ -1281,7 +1283,7 @@ err_dev:
- 	device_unregister(&ucm_dev->dev);
- err_cdev:
- 	cdev_del(&ucm_dev->cdev);
--	clear_bit(ucm_dev->devnum, dev_map);
-+	clear_bit(devnum, dev_map);
- err:
- 	kfree(ucm_dev);
- 	return;
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
