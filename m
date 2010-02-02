@@ -1,8 +1,7 @@
 From: Alex Chiang <achiang-VXdhtT5mjnY@public.gmane.org>
-Subject: [PATCH v2 04/18] IB/uverbs: use stack variable 'base' in
-	ib_uverbs_add_one
-Date: Tue, 02 Feb 2010 12:08:04 -0700
-Message-ID: <20100202190804.28217.62413.stgit@bob.kio>
+Subject: [PATCH v2 06/18] IB/uverbs: pack struct ib_uverbs_event_file tighter
+Date: Tue, 02 Feb 2010 12:08:14 -0700
+Message-ID: <20100202190814.28217.61115.stgit@bob.kio>
 References: <20100202185235.28217.64521.stgit@bob.kio>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -14,44 +13,37 @@ To: rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, justin.chen-VXdhtT5mjnY@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-This change is not useful by itself, but sets us up for a future change
-that allows us to support more than IB_UVERBS_MAX_DEVICES in a system.
+Eliminate some padding in the structure by rearranging the members.
+
+sizeof(struct ib_uverbs_event_file) is now 72 bytes (from 80) and
+more members now fit in the first cacheline.
 
 Signed-off-by: Alex Chiang <achiang-VXdhtT5mjnY@public.gmane.org>
 ---
 
- drivers/infiniband/core/uverbs_main.c |    4 +++-
- 1 files changed, 3 insertions(+), 1 deletions(-)
+ drivers/infiniband/core/uverbs.h |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/infiniband/core/uverbs_main.c b/drivers/infiniband/core/uverbs_main.c
-index acae9ed..8c594cd 100644
---- a/drivers/infiniband/core/uverbs_main.c
-+++ b/drivers/infiniband/core/uverbs_main.c
-@@ -731,6 +731,7 @@ static CLASS_ATTR(abi_version, S_IRUGO, show_abi_version, NULL);
- static void ib_uverbs_add_one(struct ib_device *device)
- {
- 	int devnum;
-+	dev_t base;
- 	struct ib_uverbs_device *uverbs_dev;
+diff --git a/drivers/infiniband/core/uverbs.h b/drivers/infiniband/core/uverbs.h
+index e695f65..e54d9ac 100644
+--- a/drivers/infiniband/core/uverbs.h
++++ b/drivers/infiniband/core/uverbs.h
+@@ -80,13 +80,13 @@ struct ib_uverbs_device {
  
- 	if (!device->alloc_ucontext)
-@@ -750,6 +751,7 @@ static void ib_uverbs_add_one(struct ib_device *device)
- 		goto err;
- 	}
- 	uverbs_dev->devnum = devnum;
-+	base = devnum + IB_UVERBS_BASE_DEV;
- 	set_bit(devnum, dev_map);
- 	spin_unlock(&map_lock);
+ struct ib_uverbs_event_file {
+ 	struct kref				ref;
++	int					is_async;
+ 	struct ib_uverbs_file		       *uverbs_file;
+ 	spinlock_t				lock;
++	int					is_closed;
+ 	wait_queue_head_t			poll_wait;
+ 	struct fasync_struct		       *async_queue;
+ 	struct list_head			event_list;
+-	int					is_async;
+-	int					is_closed;
+ };
  
-@@ -760,7 +762,7 @@ static void ib_uverbs_add_one(struct ib_device *device)
- 	uverbs_dev->cdev.owner = THIS_MODULE;
- 	uverbs_dev->cdev.ops = device->mmap ? &uverbs_mmap_fops : &uverbs_fops;
- 	kobject_set_name(&uverbs_dev->cdev.kobj, "uverbs%d", uverbs_dev->devnum);
--	if (cdev_add(&uverbs_dev->cdev, IB_UVERBS_BASE_DEV + devnum, 1))
-+	if (cdev_add(&uverbs_dev->cdev, base, 1))
- 		goto err_cdev;
- 
- 	uverbs_dev->dev = device_create(uverbs_class, device->dma_device,
+ struct ib_uverbs_file {
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
