@@ -1,127 +1,131 @@
-From: Alex Chiang <achiang-VXdhtT5mjnY@public.gmane.org>
-Subject: [PATCH v2 07/18] IB/uverbs: whitespace cleanup
-Date: Tue, 02 Feb 2010 12:08:19 -0700
-Message-ID: <20100202190819.28217.77764.stgit@bob.kio>
+From: Alex Chiang <achiang@hp.com>
+Subject: [PATCH v2 08/18] IB/umad: convert cdev pointers to embedded structs
+	in struct ib_umad_port
+Date: Tue, 02 Feb 2010 12:08:25 -0700
+Message-ID: <20100202190824.28217.22339.stgit@bob.kio>
 References: <20100202185235.28217.64521.stgit@bob.kio>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20100202185235.28217.64521.stgit-tBlMHHroXgg@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, justin.chen-VXdhtT5mjnY@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20100202185235.28217.64521.stgit@bob.kio>
+Sender: linux-kernel-owner@vger.kernel.org
+To: rdreier@cisco.com
+Cc: linux-rdma@vger.kernel.org, justin.chen@hp.com, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-Clean up the errors as shown when 'let c_space_errors=1' is set in vim.
+Instead of storing pointers to cdev and sm_cdev, embed the full
+structures instead.
 
-Signed-off-by: Alex Chiang <achiang-VXdhtT5mjnY@public.gmane.org>
+This change allows us to use the container_of() macro in ib_umad_open()
+and ib_umad_sm_open() in a future patch.
+
+This change increases the size of struct ib_umad_port to 320 bytes
+from 128.
+
+Signed-off-by: Alex Chiang <achiang@hp.com>
 ---
 
- drivers/infiniband/core/uverbs_main.c |   68 +++++++++++++++++----------------
- 1 files changed, 34 insertions(+), 34 deletions(-)
+ drivers/infiniband/core/user_mad.c |   46 ++++++++++++++++--------------------
+ 1 files changed, 20 insertions(+), 26 deletions(-)
 
-diff --git a/drivers/infiniband/core/uverbs_main.c b/drivers/infiniband/core/uverbs_main.c
-index 38b9085..aff706e 100644
---- a/drivers/infiniband/core/uverbs_main.c
-+++ b/drivers/infiniband/core/uverbs_main.c
-@@ -79,34 +79,34 @@ static DECLARE_BITMAP(dev_map, IB_UVERBS_MAX_DEVICES);
- static ssize_t (*uverbs_cmd_table[])(struct ib_uverbs_file *file,
- 				     const char __user *buf, int in_len,
- 				     int out_len) = {
--	[IB_USER_VERBS_CMD_GET_CONTEXT]   	= ib_uverbs_get_context,
--	[IB_USER_VERBS_CMD_QUERY_DEVICE]  	= ib_uverbs_query_device,
--	[IB_USER_VERBS_CMD_QUERY_PORT]    	= ib_uverbs_query_port,
--	[IB_USER_VERBS_CMD_ALLOC_PD]      	= ib_uverbs_alloc_pd,
--	[IB_USER_VERBS_CMD_DEALLOC_PD]    	= ib_uverbs_dealloc_pd,
--	[IB_USER_VERBS_CMD_REG_MR]        	= ib_uverbs_reg_mr,
--	[IB_USER_VERBS_CMD_DEREG_MR]      	= ib_uverbs_dereg_mr,
-+	[IB_USER_VERBS_CMD_GET_CONTEXT]		= ib_uverbs_get_context,
-+	[IB_USER_VERBS_CMD_QUERY_DEVICE]	= ib_uverbs_query_device,
-+	[IB_USER_VERBS_CMD_QUERY_PORT]		= ib_uverbs_query_port,
-+	[IB_USER_VERBS_CMD_ALLOC_PD]		= ib_uverbs_alloc_pd,
-+	[IB_USER_VERBS_CMD_DEALLOC_PD]		= ib_uverbs_dealloc_pd,
-+	[IB_USER_VERBS_CMD_REG_MR]		= ib_uverbs_reg_mr,
-+	[IB_USER_VERBS_CMD_DEREG_MR]		= ib_uverbs_dereg_mr,
- 	[IB_USER_VERBS_CMD_CREATE_COMP_CHANNEL] = ib_uverbs_create_comp_channel,
--	[IB_USER_VERBS_CMD_CREATE_CQ]     	= ib_uverbs_create_cq,
--	[IB_USER_VERBS_CMD_RESIZE_CQ]     	= ib_uverbs_resize_cq,
--	[IB_USER_VERBS_CMD_POLL_CQ]     	= ib_uverbs_poll_cq,
--	[IB_USER_VERBS_CMD_REQ_NOTIFY_CQ]     	= ib_uverbs_req_notify_cq,
--	[IB_USER_VERBS_CMD_DESTROY_CQ]    	= ib_uverbs_destroy_cq,
--	[IB_USER_VERBS_CMD_CREATE_QP]     	= ib_uverbs_create_qp,
--	[IB_USER_VERBS_CMD_QUERY_QP]     	= ib_uverbs_query_qp,
--	[IB_USER_VERBS_CMD_MODIFY_QP]     	= ib_uverbs_modify_qp,
--	[IB_USER_VERBS_CMD_DESTROY_QP]    	= ib_uverbs_destroy_qp,
--	[IB_USER_VERBS_CMD_POST_SEND]    	= ib_uverbs_post_send,
--	[IB_USER_VERBS_CMD_POST_RECV]    	= ib_uverbs_post_recv,
--	[IB_USER_VERBS_CMD_POST_SRQ_RECV]    	= ib_uverbs_post_srq_recv,
--	[IB_USER_VERBS_CMD_CREATE_AH]    	= ib_uverbs_create_ah,
--	[IB_USER_VERBS_CMD_DESTROY_AH]    	= ib_uverbs_destroy_ah,
--	[IB_USER_VERBS_CMD_ATTACH_MCAST]  	= ib_uverbs_attach_mcast,
--	[IB_USER_VERBS_CMD_DETACH_MCAST]  	= ib_uverbs_detach_mcast,
--	[IB_USER_VERBS_CMD_CREATE_SRQ]    	= ib_uverbs_create_srq,
--	[IB_USER_VERBS_CMD_MODIFY_SRQ]    	= ib_uverbs_modify_srq,
--	[IB_USER_VERBS_CMD_QUERY_SRQ]     	= ib_uverbs_query_srq,
--	[IB_USER_VERBS_CMD_DESTROY_SRQ]   	= ib_uverbs_destroy_srq,
-+	[IB_USER_VERBS_CMD_CREATE_CQ]		= ib_uverbs_create_cq,
-+	[IB_USER_VERBS_CMD_RESIZE_CQ]		= ib_uverbs_resize_cq,
-+	[IB_USER_VERBS_CMD_POLL_CQ]		= ib_uverbs_poll_cq,
-+	[IB_USER_VERBS_CMD_REQ_NOTIFY_CQ]	= ib_uverbs_req_notify_cq,
-+	[IB_USER_VERBS_CMD_DESTROY_CQ]		= ib_uverbs_destroy_cq,
-+	[IB_USER_VERBS_CMD_CREATE_QP]		= ib_uverbs_create_qp,
-+	[IB_USER_VERBS_CMD_QUERY_QP]		= ib_uverbs_query_qp,
-+	[IB_USER_VERBS_CMD_MODIFY_QP]		= ib_uverbs_modify_qp,
-+	[IB_USER_VERBS_CMD_DESTROY_QP]		= ib_uverbs_destroy_qp,
-+	[IB_USER_VERBS_CMD_POST_SEND]		= ib_uverbs_post_send,
-+	[IB_USER_VERBS_CMD_POST_RECV]		= ib_uverbs_post_recv,
-+	[IB_USER_VERBS_CMD_POST_SRQ_RECV]	= ib_uverbs_post_srq_recv,
-+	[IB_USER_VERBS_CMD_CREATE_AH]		= ib_uverbs_create_ah,
-+	[IB_USER_VERBS_CMD_DESTROY_AH]		= ib_uverbs_destroy_ah,
-+	[IB_USER_VERBS_CMD_ATTACH_MCAST]	= ib_uverbs_attach_mcast,
-+	[IB_USER_VERBS_CMD_DETACH_MCAST]	= ib_uverbs_detach_mcast,
-+	[IB_USER_VERBS_CMD_CREATE_SRQ]		= ib_uverbs_create_srq,
-+	[IB_USER_VERBS_CMD_MODIFY_SRQ]		= ib_uverbs_modify_srq,
-+	[IB_USER_VERBS_CMD_QUERY_SRQ]		= ib_uverbs_query_srq,
-+	[IB_USER_VERBS_CMD_DESTROY_SRQ]		= ib_uverbs_destroy_srq,
- };
+diff --git a/drivers/infiniband/core/user_mad.c b/drivers/infiniband/core/user_mad.c
+index 7de0296..40440ef 100644
+--- a/drivers/infiniband/core/user_mad.c
++++ b/drivers/infiniband/core/user_mad.c
+@@ -87,10 +87,10 @@ enum {
+  */
  
- static struct vfsmount *uverbs_event_mnt;
-@@ -368,7 +368,7 @@ static int ib_uverbs_event_close(struct inode *inode, struct file *filp)
+ struct ib_umad_port {
+-	struct cdev           *cdev;
++	struct cdev           cdev;
+ 	struct device	      *dev;
  
- static const struct file_operations uverbs_event_fops = {
- 	.owner	 = THIS_MODULE,
--	.read 	 = ib_uverbs_event_read,
-+	.read	 = ib_uverbs_event_read,
- 	.poll    = ib_uverbs_event_poll,
- 	.release = ib_uverbs_event_close,
- 	.fasync  = ib_uverbs_event_fasync
-@@ -678,17 +678,17 @@ static int ib_uverbs_close(struct inode *inode, struct file *filp)
- }
+-	struct cdev           *sm_cdev;
++	struct cdev           sm_cdev;
+ 	struct device	      *sm_dev;
+ 	struct semaphore       sm_sem;
  
- static const struct file_operations uverbs_fops = {
--	.owner 	 = THIS_MODULE,
--	.write 	 = ib_uverbs_write,
--	.open 	 = ib_uverbs_open,
-+	.owner	 = THIS_MODULE,
-+	.write	 = ib_uverbs_write,
-+	.open	 = ib_uverbs_open,
- 	.release = ib_uverbs_close
- };
+@@ -1008,17 +1008,14 @@ static int ib_umad_init_port(struct ib_device *device, int port_num,
+ 	mutex_init(&port->file_mutex);
+ 	INIT_LIST_HEAD(&port->file_list);
  
- static const struct file_operations uverbs_mmap_fops = {
--	.owner 	 = THIS_MODULE,
--	.write 	 = ib_uverbs_write,
-+	.owner	 = THIS_MODULE,
-+	.write	 = ib_uverbs_write,
- 	.mmap    = ib_uverbs_mmap,
--	.open 	 = ib_uverbs_open,
-+	.open	 = ib_uverbs_open,
- 	.release = ib_uverbs_close
- };
+-	port->cdev = cdev_alloc();
+-	if (!port->cdev)
+-		return -1;
+-	port->cdev->owner = THIS_MODULE;
+-	port->cdev->ops   = &umad_fops;
+-	kobject_set_name(&port->cdev->kobj, "umad%d", port->dev_num);
+-	if (cdev_add(port->cdev, base_dev + port->dev_num, 1))
++	cdev_init(&port->cdev, &umad_fops);
++	port->cdev.owner = THIS_MODULE;
++	kobject_set_name(&port->cdev.kobj, "umad%d", port->dev_num);
++	if (cdev_add(&port->cdev, base_dev + port->dev_num, 1))
+ 		goto err_cdev;
  
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+ 	port->dev = device_create(umad_class, device->dma_device,
+-				  port->cdev->dev, port,
++				  port->cdev.dev, port,
+ 				  "umad%d", port->dev_num);
+ 	if (IS_ERR(port->dev))
+ 		goto err_cdev;
+@@ -1028,17 +1025,14 @@ static int ib_umad_init_port(struct ib_device *device, int port_num,
+ 	if (device_create_file(port->dev, &dev_attr_port))
+ 		goto err_dev;
+ 
+-	port->sm_cdev = cdev_alloc();
+-	if (!port->sm_cdev)
+-		goto err_dev;
+-	port->sm_cdev->owner = THIS_MODULE;
+-	port->sm_cdev->ops   = &umad_sm_fops;
+-	kobject_set_name(&port->sm_cdev->kobj, "issm%d", port->dev_num);
+-	if (cdev_add(port->sm_cdev, base_dev + port->dev_num + IB_UMAD_MAX_PORTS, 1))
++	cdev_init(&port->sm_cdev, &umad_sm_fops);
++	port->sm_cdev.owner = THIS_MODULE;
++	kobject_set_name(&port->sm_cdev.kobj, "issm%d", port->dev_num);
++	if (cdev_add(&port->sm_cdev, base_dev + port->dev_num + IB_UMAD_MAX_PORTS, 1))
+ 		goto err_sm_cdev;
+ 
+ 	port->sm_dev = device_create(umad_class, device->dma_device,
+-				     port->sm_cdev->dev, port,
++				     port->sm_cdev.dev, port,
+ 				     "issm%d", port->dev_num);
+ 	if (IS_ERR(port->sm_dev))
+ 		goto err_sm_cdev;
+@@ -1055,16 +1049,16 @@ static int ib_umad_init_port(struct ib_device *device, int port_num,
+ 	return 0;
+ 
+ err_sm_dev:
+-	device_destroy(umad_class, port->sm_cdev->dev);
++	device_destroy(umad_class, port->sm_cdev.dev);
+ 
+ err_sm_cdev:
+-	cdev_del(port->sm_cdev);
++	cdev_del(&port->sm_cdev);
+ 
+ err_dev:
+-	device_destroy(umad_class, port->cdev->dev);
++	device_destroy(umad_class, port->cdev.dev);
+ 
+ err_cdev:
+-	cdev_del(port->cdev);
++	cdev_del(&port->cdev);
+ 	clear_bit(port->dev_num, dev_map);
+ 
+ 	return -1;
+@@ -1079,11 +1073,11 @@ static void ib_umad_kill_port(struct ib_umad_port *port)
+ 	dev_set_drvdata(port->dev,    NULL);
+ 	dev_set_drvdata(port->sm_dev, NULL);
+ 
+-	device_destroy(umad_class, port->cdev->dev);
+-	device_destroy(umad_class, port->sm_cdev->dev);
++	device_destroy(umad_class, port->cdev.dev);
++	device_destroy(umad_class, port->sm_cdev.dev);
+ 
+-	cdev_del(port->cdev);
+-	cdev_del(port->sm_cdev);
++	cdev_del(&port->cdev);
++	cdev_del(&port->sm_cdev);
+ 
+ 	spin_lock(&port_lock);
+ 	umad_port[port->dev_num] = NULL;
