@@ -1,108 +1,61 @@
-From: Vladimir Sokolovsky <vlad-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH 0/2] Add support for enhanced atomic operations
-Date: Tue, 02 Feb 2010 12:44:29 +0200
-Message-ID: <4B68020D.4080401@dev.mellanox.co.il>
-References: <4B66FA54.6030408@dev.mellanox.co.il> <52BD554704A742B18E3F2F8F2B00B9FE@amr.corp.intel.com>
+From: Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: opensm/complib: redundant redeclaration of functions
+Date: Tue, 02 Feb 2010 15:11:26 +0200
+Message-ID: <4B68247E.6070405@dev.mellanox.co.il>
+References: <4B66D189.2090500@dev.mellanox.co.il> <20100201184616.GC25902@obsidianresearch.com>
+Reply-To: kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <52BD554704A742B18E3F2F8F2B00B9FE-Zpru7NauK7drdx17CPfAsdBPR1lH4CV8@public.gmane.org>
+In-Reply-To: <20100201184616.GC25902-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>, Linux RDMA <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Sean Hefty wrote:
->> This patchset adds support for the following enhanced atomic operati=
-ons:
->> - Masked atomic compare and swap
->> - Masked atomic fetch and add
->=20
-> Can you explain these in more detail?  How exactly is a mask used?  A=
-re there
-> any restrictions on the format of the mask?  How is the mask carried =
-over the
-> wire?  etc.
->=20
-> --
+On 01/Feb/10 20:46, Jason Gunthorpe wrote:
+> On Mon, Feb 01, 2010 at 03:05:13PM +0200, Yevgeny Kliteynik wrote:
+>
+>> In general, here's the problem:
+>>
+>> We have cl_file.h and cl_file_osd.h.
+>> cl_file.h has include directive for cl_file_osd.h
+>> cl_file.h has the following definition of function:
+>> 	int foo();
+>>
+>> cl_file_osd.h has another function definition, but
+>> this time it also has implementation:
+>> 	static inline int foo() { ..... }
+>>
+>> Any preferable way to fix this?
+>
+> It looks to me like using 'extern inline' is appropriate here:
+>
+> extern inline int foo();
+>
+> [..]
+>
+> inline int foo()
+> {
+>     body
+> }
+>
+> If no inline version is defined then the compiler just emits a normal
+> function call, if an inline version is defined then the compiler might
+> use it.
 
-Masked Compare and Swap (MskCmpSwap)
-The MskCmpSwap atomic operation is an extension to the CmpSwap operatio=
-n defined in the IB
-spec. MskCmpSwap allows the user to select a portion of the 64 bit targ=
-et data for the =93compare=94
-check as well as to restrict the swap to a (possibly different) portion=
-=2E The pseudo code below
-describes the operation:
+Thanks for the idea.
+I read some documentation about it, and it does look that
+your suggestion should fix the problem, but it didn't :(
+Probably because they both are in .h files.
 
------
-atomic_response =3D *va
-if (((cmp XOR *va) AND cmp_mask) is ZERO) then
-	*va =3D (*va AND NOT(swap_mask)) OR (swap AND swap_mask)
+-- Yevgeny
+  
+> Jason
+>
 
-return atomic_response
------
-
-The additional operands are carried in the Extended Transport Header. A=
-tomic response generation
-and packet format for MskCmpSwap is as for standard IB Atomic operation=
-s.
-
-
-Masked Fetch and Add (MFetchAdd)
-The MFetchAdd Atomic operation extends the functionality of the standar=
-d IB FetchAdd by
-allowing the user to split the target into multiple fields of selectabl=
-e length. The atomic add is done
-independently on each one of this fields. A bit set in the field_bounda=
-ry parameter specifies the
-field boundaries. The pseudo code below describes the operation:
-
-------------
-bit_adder(ci, b1, b2, *co)
-{
-         value =3D ci + b1 + b2;
-
-         if (value & 2)
-                 *co =3D 1
-         else
-                 *co =3D 0
-
-         return value & 1
-}
-
-mask =3D 1
-carry =3D 0
-atomic_response =3D *va
-#define MASK_IS_SET(mask, attr)      (((mask)&(attr))!=3D0)
-
-for i =3D 0 to 63
-{
-         if ( i !=3D 0 )
-                 mask =3D  mask << 1;
-
-         bit_add_res =3D bit_adder(carry, MASK_IS_SET(atomic_response, =
-mask), MASK_IS_SET(add_value, mask), &new_carry)
-         if (bit_add_res)
-                 atomic_response |=3D mask
-
-         carry =3D ((new_carry) && (!MASK_IS_SET(cmp_mask, mask)))
-}
-
-return atomic_response
-------------
-
-The additional operands are carried in the Extended Transport Header. A=
-tomic response generation
-and packet format for MFetchAdd is as for standard IB Atomic operations=
-=2E
-
-Regards,
-Vladimir
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
