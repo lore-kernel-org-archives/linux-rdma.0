@@ -1,121 +1,73 @@
-From: Alex Chiang <achiang@hp.com>
-Subject: [PATCH v2 12/18] IB/umad: increase maximum devices supported
-Date: Tue, 02 Feb 2010 12:08:45 -0700
-Message-ID: <20100202190845.28217.29701.stgit@bob.kio>
+From: Alex Chiang <achiang-VXdhtT5mjnY@public.gmane.org>
+Subject: [PATCH v2 14/18] IB/ucm: use stack variable 'devnum' in ib_ucm_add_one
+Date: Tue, 02 Feb 2010 12:08:55 -0700
+Message-ID: <20100202190855.28217.68785.stgit@bob.kio>
 References: <20100202185235.28217.64521.stgit@bob.kio>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20100202185235.28217.64521.stgit@bob.kio>
-Sender: linux-kernel-owner@vger.kernel.org
-To: rdreier@cisco.com
-Cc: linux-rdma@vger.kernel.org, justin.chen@hp.com, linux-kernel@vger.kernel.org
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20100202185235.28217.64521.stgit-tBlMHHroXgg@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, justin.chen-VXdhtT5mjnY@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Some large systems may support more than IB_UMAD_MAX_PORTS
-(currently 64).
+This change is not useful by itself, but sets us up for a future
+change that allows us to dynamically allocate device numbers in case
+we have more than IB_UCM_MAX_DEVICES in the system.
 
-This change allows us to support more ports in a backwards-compatible
-manner. The first IB_UMAD_MAX_PORTS keep the same major/minor device
-numbers they've always had.
-
-If there are more than IB_UMAD_MAX_PORTS, we then dynamically request
-a new major device number (new minors start at 0).
-
-Signed-off-by: Alex Chiang <achiang@hp.com>
+Signed-off-by: Alex Chiang <achiang-VXdhtT5mjnY@public.gmane.org>
 ---
 
- drivers/infiniband/core/user_mad.c |   50 ++++++++++++++++++++++++++++++++----
- 1 files changed, 44 insertions(+), 6 deletions(-)
+ drivers/infiniband/core/ucm.c |   12 +++++++-----
+ 1 files changed, 7 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/infiniband/core/user_mad.c b/drivers/infiniband/core/user_mad.c
-index 5a66bd0..7fc1e51 100644
---- a/drivers/infiniband/core/user_mad.c
-+++ b/drivers/infiniband/core/user_mad.c
-@@ -971,6 +971,28 @@ static ssize_t show_abi_version(struct class *class, char *buf)
- }
- static CLASS_ATTR(abi_version, S_IRUGO, show_abi_version, NULL);
+diff --git a/drivers/infiniband/core/ucm.c b/drivers/infiniband/core/ucm.c
+index f504c9b..7ff3300 100644
+--- a/drivers/infiniband/core/ucm.c
++++ b/drivers/infiniband/core/ucm.c
+@@ -1239,6 +1239,7 @@ static DEVICE_ATTR(ibdev, S_IRUGO, show_ibdev, NULL);
  
-+static dev_t oflo_maj;
-+static DECLARE_BITMAP(oflo_map, IB_UMAD_MAX_PORTS);
-+static int find_oflo_devnum(void)
-+{
-+	int ret;
-+
-+	if (!oflo_maj) {
-+		ret = alloc_chrdev_region(&oflo_maj, 0, IB_UMAD_MAX_PORTS * 2,
-+					  "infiniband_mad");
-+		if (ret) {
-+			printk(KERN_ERR "user_mad: couldn't register dynamic device number\n");
-+			return ret;
-+		}
-+	}
-+
-+	ret = find_first_zero_bit(oflo_map, IB_UMAD_MAX_PORTS);
-+	if (ret >= IB_UMAD_MAX_PORTS)
-+		return -1;
-+
-+	return ret;
-+}
-+
- static int ib_umad_init_port(struct ib_device *device, int port_num,
- 			     struct ib_umad_port *port)
+ static void ib_ucm_add_one(struct ib_device *device)
  {
-@@ -981,11 +1003,19 @@ static int ib_umad_init_port(struct ib_device *device, int port_num,
- 	devnum = find_first_zero_bit(dev_map, IB_UMAD_MAX_PORTS);
- 	if (devnum >= IB_UMAD_MAX_PORTS) {
- 		spin_unlock(&port_lock);
--		return -1;
-+		devnum = find_oflo_devnum();
-+		if (devnum < 0)
-+			return -1;
-+
-+		spin_lock(&port_lock);
-+		port->dev_num = devnum + IB_UMAD_MAX_PORTS;
-+		base = devnum + oflo_maj;
-+		set_bit(devnum, oflo_map);
-+	} else {
-+		port->dev_num = devnum;
-+		base = devnum + base_dev;
-+		set_bit(devnum, dev_map);
- 	}
--	port->dev_num = devnum;
--	base = devnum + base_dev;
--	set_bit(devnum, dev_map);
- 	spin_unlock(&port_lock);
++	int devnum;
+ 	struct ib_ucm_device *ucm_dev;
  
- 	port->ib_dev   = device;
-@@ -1042,7 +1072,10 @@ err_dev:
+ 	if (!device->alloc_ucontext ||
+@@ -1251,16 +1252,17 @@ static void ib_ucm_add_one(struct ib_device *device)
  
+ 	ucm_dev->ib_dev = device;
+ 
+-	ucm_dev->devnum = find_first_zero_bit(dev_map, IB_UCM_MAX_DEVICES);
+-	if (ucm_dev->devnum >= IB_UCM_MAX_DEVICES)
++	devnum = find_first_zero_bit(dev_map, IB_UCM_MAX_DEVICES);
++	if (devnum >= IB_UCM_MAX_DEVICES)
+ 		goto err;
+ 
+-	set_bit(ucm_dev->devnum, dev_map);
++	ucm_dev->devnum = devnum;
++	set_bit(devnum, dev_map);
+ 
+ 	cdev_init(&ucm_dev->cdev, &ucm_fops);
+ 	ucm_dev->cdev.owner = THIS_MODULE;
+ 	kobject_set_name(&ucm_dev->cdev.kobj, "ucm%d", ucm_dev->devnum);
+-	if (cdev_add(&ucm_dev->cdev, IB_UCM_BASE_DEV + ucm_dev->devnum, 1))
++	if (cdev_add(&ucm_dev->cdev, IB_UCM_BASE_DEV + devnum, 1))
+ 		goto err;
+ 
+ 	ucm_dev->dev.class = &cm_class;
+@@ -1281,7 +1283,7 @@ err_dev:
+ 	device_unregister(&ucm_dev->dev);
  err_cdev:
- 	cdev_del(&port->cdev);
--	clear_bit(devnum, dev_map);
-+	if (port->dev_num < IB_UMAD_MAX_PORTS)
-+		clear_bit(devnum, dev_map);
-+	else
-+		clear_bit(devnum, oflo_map);
- 
- 	return -1;
- }
-@@ -1079,7 +1112,10 @@ static void ib_umad_kill_port(struct ib_umad_port *port)
- 
- 	mutex_unlock(&port->file_mutex);
- 
--	clear_bit(port->dev_num, dev_map);
-+	if (port->dev_num < IB_UMAD_MAX_PORTS)
-+		clear_bit(port->dev_num, dev_map);
-+	else
-+		clear_bit(port->dev_num - IB_UMAD_MAX_PORTS, oflo_map);
- }
- 
- static void ib_umad_add_one(struct ib_device *device)
-@@ -1187,6 +1223,8 @@ static void __exit ib_umad_cleanup(void)
- 	ib_unregister_client(&umad_client);
- 	class_destroy(umad_class);
- 	unregister_chrdev_region(base_dev, IB_UMAD_MAX_PORTS * 2);
-+	if (oflo_maj)
-+		unregister_chrdev_region(oflo_maj, IB_UMAD_MAX_PORTS * 2);
- }
- 
- module_init(ib_umad_init);
+ 	cdev_del(&ucm_dev->cdev);
+-	clear_bit(ucm_dev->devnum, dev_map);
++	clear_bit(devnum, dev_map);
+ err:
+ 	kfree(ucm_dev);
+ 	return;
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
