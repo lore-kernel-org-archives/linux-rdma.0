@@ -1,139 +1,83 @@
-From: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 0/2] Add support for enhanced atomic operations
-Date: Tue, 2 Feb 2010 10:54:46 -0500
-Message-ID: <f0e08f231002020754h482ba0f7xe35a78a72cc165e8@mail.gmail.com>
-References: <4B66FA54.6030408@dev.mellanox.co.il>
-	 <52BD554704A742B18E3F2F8F2B00B9FE@amr.corp.intel.com>
-	 <4B68020D.4080401@dev.mellanox.co.il>
+From: =?iso-8859-1?Q?H=E5kon_Bugge?= <Haakon.Bugge-UdXhSnd/wVw@public.gmane.org>
+Subject: Re: data placement in-order guarantee ?
+Date: Tue, 02 Feb 2010 17:05:59 +0100
+Message-ID: <F1D9D0AC-1AB3-43F6-B04F-A7AD126ED543@Sun.com>
+References: <b681c62b1002020714s70c24fa7l4fcbf05617986b47@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4B68020D.4080401-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+In-reply-to: <b681c62b1002020714s70c24fa7l4fcbf05617986b47-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Vladimir Sokolovsky <vlad-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: yogeshwar sonawane <yogyas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, mvapich discuss <mvapich-discuss-wPOY3OvGL++pAIv7I8X2sze48wsgrGvP@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Feb 2, 2010 at 5:44 AM, Vladimir Sokolovsky
-<vlad-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wrote:
-> Sean Hefty wrote:
->>>
->>> This patchset adds support for the following enhanced atomic operat=
-ions:
->>> - Masked atomic compare and swap
->>> - Masked atomic fetch and add
->>
->> Can you explain these in more detail? =C2=A0How exactly is a mask us=
-ed? =C2=A0Are
->> there
->> any restrictions on the format of the mask? =C2=A0How is the mask ca=
-rried over
->> the
->> wire? =C2=A0etc.
->>
->> --
->
-> Masked Compare and Swap (MskCmpSwap)
-> The MskCmpSwap atomic operation is an extension to the CmpSwap operat=
-ion
-> defined in the IB
-> spec. MskCmpSwap allows the user to select a portion of the 64 bit ta=
-rget
-> data for the =E2=80=9Ccompare=E2=80=9D
-> check as well as to restrict the swap to a (possibly different) porti=
-on. The
-> pseudo code below
-> describes the operation:
->
-> -----
-> atomic_response =3D *va
-> if (((cmp XOR *va) AND cmp_mask) is ZERO) then
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0*va =3D (*va AND NOT(swap_mask)) OR (swap =
-AND swap_mask)
->
-> return atomic_response
-> -----
->
-> The additional operands are carried in the Extended Transport Header.=
- Atomic
-> response generation
-> and packet format for MskCmpSwap is as for standard IB Atomic operati=
-ons.
->
->
-> Masked Fetch and Add (MFetchAdd)
-> The MFetchAdd Atomic operation extends the functionality of the stand=
-ard IB
-> FetchAdd by
-> allowing the user to split the target into multiple fields of selecta=
-ble
-> length. The atomic add is done
-> independently on each one of this fields. A bit set in the field_boun=
-dary
-> parameter specifies the
-> field boundaries. The pseudo code below describes the operation:
->
-> ------------
-> bit_adder(ci, b1, b2, *co)
-> {
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0value =3D ci + b1 + b2;
->
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0if (value & 2)
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0*co =3D 1
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0else
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0*co =3D 0
->
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0return value & 1
-> }
->
-> mask =3D 1
-> carry =3D 0
-> atomic_response =3D *va
-> #define MASK_IS_SET(mask, attr) =C2=A0 =C2=A0 =C2=A0(((mask)&(attr))!=
-=3D0)
->
-> for i =3D 0 to 63
-> {
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0if ( i !=3D 0 )
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0mask =3D =C2=A0=
-mask << 1;
->
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0bit_add_res =3D bit_adder(carry, MASK_IS_S=
-ET(atomic_response, mask),
-> MASK_IS_SET(add_value, mask), &new_carry)
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0if (bit_add_res)
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0atomic_respons=
-e |=3D mask
->
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0carry =3D ((new_carry) && (!MASK_IS_SET(cm=
-p_mask, mask)))
-> }
->
-> return atomic_response
-> ------------
->
-> The additional operands are carried in the Extended Transport Header.=
- Atomic
-> response generation
-> and packet format for MFetchAdd is as for standard IB Atomic operatio=
-ns.
+On Feb 2, 2010, at 16:14 , yogeshwar sonawane wrote:
 
-Will Mellanox be adding this option to the IB spec rather than keep it
-as vendor proprietary ?
+> Hi all,
+>=20
+> Following question can be of na=EFve nature. Kindly, help me to clari=
+fy
+> the points.
+> Thanks in Advance.
+>=20
+> [snip].
+>=20
+> It will be helpful if some information is shared as how mvapich2
+> handles the situation regarding above point (while using rdma
+> operations) ?
 
--- Hal
+Snip from the InfiniBandTM Architecture Specification:
 
->
-> Regards,
-> Vladimir
+o9-20: An application shall not depend of the contents of an RDMA WRITE=
+ buffer at the responder until one of the following has occurred:
+19 20 21
+=95	Arrival and Completion of the last RDMA WRITE request packet when u=
+sed with Immediate data.
+=95	Arrival and completion of a subsequent SEND message.
+=95	Update of a memory element by a subsequent ATOMIC operation.
+
+Now, most MPI implementation does not obey this; IIRC MVAPICH does rely=
+ on the last byte (word?) being written after all other payload, Scali =
+MPI relies on 4-byte write atomicy and uses a special encoding/decoding=
+ which sustains any reordering of the payload (as long as each 4-byte w=
+ord is written as an atomic unit). The benefit, besides robustness, is =
+the capability of a worm-hole message consumption (the message can be d=
+ecoded and copied into the MPI user buffer _before_ it has been fully r=
+eceived). This method is currently a patent application, so I do not re=
+commend you to copy-cat this method.
+
+So your choice is to be a "nice guy" using one of the preferred methods=
+ from the IB standard or rely on how different IB _implementations_ wor=
+k.
+
+
+
+H=E5kon
+
+
+
+
+>=20
+> I thought that i should mail to both the mailing lists as topic cover=
+s
+> both domains.
+>=20
+> Thanks and Regards,
+> Yogeshwar
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-rdma"=
  in
 > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at =C2=A0http://vger.kernel.org/majordomo-info.ht=
-ml
->
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+H=E5kon Bugge
+Haakon.bugge-U0mLk4xYmo8@public.gmane.org
++47 924 84 514
+
+
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
 n
