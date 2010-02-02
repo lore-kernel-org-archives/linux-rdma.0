@@ -1,50 +1,72 @@
-From: =?iso-8859-1?Q?H=E5kon_Bugge?= <Haakon.Bugge-UdXhSnd/wVw@public.gmane.org>
-Subject: Re: [PATCH 0/2] Add support for enhanced atomic operations
-Date: Tue, 02 Feb 2010 17:13:59 +0100
-Message-ID: <42BE52B6-3163-44E0-9FC1-34B753FD7DE1@Sun.com>
-References: <4B66FA54.6030408@dev.mellanox.co.il>
- <52BD554704A742B18E3F2F8F2B00B9FE@amr.corp.intel.com>
- <4B68020D.4080401@dev.mellanox.co.il>
- <f0e08f231002020754h482ba0f7xe35a78a72cc165e8@mail.gmail.com>
+From: Ramachandra K <ariston-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: qlgc_vnic conflicts with Xen (was Re: Pull request for OFED 1.5)
+Date: Tue, 2 Feb 2010 11:29:52 -0500
+Message-ID: <71d336491002020829j136b6249r9438ebe60df9ca5a@mail.gmail.com>
+References: <4B6765E7.4020900@oracle.com> <4B677723.9040508@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-reply-to: <f0e08f231002020754h482ba0f7xe35a78a72cc165e8-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <4B677723.9040508-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Vladimir Sokolovsky <vlad-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Andy Grover <andy.grover-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, gary.leshner-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org, ramachandra.kuchimanchi-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+Andy,
 
-On Feb 2, 2010, at 16:54 , Hal Rosenstock wrote:
+What is the kernel version you are using ? Is the Xen patch you
+are referring to an out of tree patch ? And from an OFED perspective,
+which OFED versions would be impacted ?
 
-> On Tue, Feb 2, 2010 at 5:44 AM, Vladimir Sokolovsky
->> [snip]
->> Masked Fetch and Add (MFetchAdd)
->> The MFetchAdd Atomic operation extends the functionality of the stan=
-dard IB
->> FetchAdd by
->> allowing the user to split the target into multiple fields of select=
-able
->> length. The atomic add is done
->> independently on each one of this fields. A bit set in the field_bou=
-ndary
->> parameter specifies the
->> field boundaries. The pseudo code below describes the operation:
+Regards,
+Ram
 
-
-As discussed by private email, my take is that it is more important to =
-support adjacent fields than a single-bit fetch-and-add. Hence, encodin=
-g the mask slightly different where a one-to-zero bit transition indica=
-tes break-of-carry, but mask-wise treated as a one, allows adjacent bit=
--fields to be added.
-
-Just my two cents.
-
-
-H=E5kon
-
+On Mon, Feb 1, 2010 at 7:51 PM, Andy Grover <andy.grover-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> wr=
+ote:
+> Actually the build error occurred on kernels with a recent Xen patch,
+> because it also defines a struct mc_info. I suggest renaming your str=
+uct
+> mc_info to vnic_mc_info perhaps?
+>
+> Regards -- Andy
+>
+> Andy Grover wrote:
+>> Hi Vlad,
+>>
+>> I found a small typo in the header guard of vnic_multicast.h which c=
+an
+>> cause a compilation error, please pull.
+>>
+>> Thanks -- Regards -- Andy
+>>
+>> The following changes since commit 40fbb82255896a5c39b35035e2fd52022=
+46b6508:
+>> =A0 Yevgeny Petrilin (1):
+>> =A0 =A0 =A0 =A0 mlx4_en: No need to set smaller tx queue len
+>>
+>> are available in the git repository at:
+>>
+>> =A0 git://git.openfabrics.org/~agrover/ofed_1_5/linux-2.6.git
+>> code-drop/20100201
+>>
+>> Andy Grover (1):
+>> =A0 =A0 =A0 qlgc_vnic: Fix typo in header guard
+>>
+>> =A0drivers/infiniband/ulp/qlgc_vnic/vnic_multicast.h | =A0 =A02 +-
+>> =A01 files changed, 1 insertions(+), 1 deletions(-)
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-rdma=
+" in
+>> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+>> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma"=
+ in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
+>
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
 n
