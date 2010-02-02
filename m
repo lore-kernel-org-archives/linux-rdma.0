@@ -1,54 +1,51 @@
-From: Alex Chiang <achiang-VXdhtT5mjnY@public.gmane.org>
-Subject: [PATCH v2 18/18] IB/core: pack struct ib_device a little tighter
-Date: Tue, 02 Feb 2010 12:09:16 -0700
-Message-ID: <20100202190916.28217.90954.stgit@bob.kio>
+From: Alex Chiang <achiang@hp.com>
+Subject: [PATCH v2 15/18] IB/ucm: use stack variable 'base' in ib_ucm_add_one
+Date: Tue, 02 Feb 2010 12:09:00 -0700
+Message-ID: <20100202190900.28217.53919.stgit@bob.kio>
 References: <20100202185235.28217.64521.stgit@bob.kio>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20100202185235.28217.64521.stgit-tBlMHHroXgg@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, justin.chen-VXdhtT5mjnY@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20100202185235.28217.64521.stgit@bob.kio>
+Sender: linux-kernel-owner@vger.kernel.org
+To: rdreier@cisco.com
+Cc: linux-rdma@vger.kernel.org, justin.chen@hp.com, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-A small change to reduce the size of ib_device to 1112 bytes
-(from 1128).
+This change is not useful by itself, but sets us up for a future change
+that allows us to support more than IB_UCM_MAX_DEVICES.
 
-Signed-off-by: Alex Chiang <achiang-VXdhtT5mjnY@public.gmane.org>
+Signed-off-by: Alex Chiang <achiang@hp.com>
 ---
 
- include/rdma/ib_verbs.h |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/infiniband/core/ucm.c |    4 +++-
+ 1 files changed, 3 insertions(+), 1 deletions(-)
 
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index 09509ed..a585e0f 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -984,9 +984,9 @@ struct ib_device {
- 	struct list_head              event_handler_list;
- 	spinlock_t                    event_handler_lock;
+diff --git a/drivers/infiniband/core/ucm.c b/drivers/infiniband/core/ucm.c
+index 7ff3300..06c50d8 100644
+--- a/drivers/infiniband/core/ucm.c
++++ b/drivers/infiniband/core/ucm.c
+@@ -1240,6 +1240,7 @@ static DEVICE_ATTR(ibdev, S_IRUGO, show_ibdev, NULL);
+ static void ib_ucm_add_one(struct ib_device *device)
+ {
+ 	int devnum;
++	dev_t base;
+ 	struct ib_ucm_device *ucm_dev;
  
-+	spinlock_t                    client_data_lock;
- 	struct list_head              core_list;
- 	struct list_head              client_data_list;
--	spinlock_t                    client_data_lock;
+ 	if (!device->alloc_ucontext ||
+@@ -1257,12 +1258,13 @@ static void ib_ucm_add_one(struct ib_device *device)
+ 		goto err;
  
- 	struct ib_cache               cache;
- 	int                          *pkey_tbl_len;
-@@ -1144,8 +1144,8 @@ struct ib_device {
- 		IB_DEV_UNREGISTERED
- 	}                            reg_state;
+ 	ucm_dev->devnum = devnum;
++	base = devnum + IB_UCM_BASE_DEV;
+ 	set_bit(devnum, dev_map);
  
--	u64			     uverbs_cmd_mask;
- 	int			     uverbs_abi_ver;
-+	u64			     uverbs_cmd_mask;
+ 	cdev_init(&ucm_dev->cdev, &ucm_fops);
+ 	ucm_dev->cdev.owner = THIS_MODULE;
+ 	kobject_set_name(&ucm_dev->cdev.kobj, "ucm%d", ucm_dev->devnum);
+-	if (cdev_add(&ucm_dev->cdev, IB_UCM_BASE_DEV + devnum, 1))
++	if (cdev_add(&ucm_dev->cdev, base, 1))
+ 		goto err;
  
- 	char			     node_desc[64];
- 	__be64			     node_guid;
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+ 	ucm_dev->dev.class = &cm_class;
