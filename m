@@ -1,74 +1,44 @@
-From: Ramachandra K <ariston-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: qlgc_vnic conflicts with Xen (was Re: Pull request for OFED 1.5)
-Date: Tue, 2 Feb 2010 11:29:52 -0500
-Message-ID: <71d336491002020829j136b6249r9438ebe60df9ca5a@mail.gmail.com>
-References: <4B6765E7.4020900@oracle.com> <4B677723.9040508@oracle.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: opensm/complib: redundant redeclaration of functions
+Date: Tue, 2 Feb 2010 11:33:38 -0700
+Message-ID: <20100202183338.GA15648@obsidianresearch.com>
+References: <4B66D189.2090500@dev.mellanox.co.il> <20100201184616.GC25902@obsidianresearch.com> <4B68247E.6070405@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4B677723.9040508-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <4B68247E.6070405-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Andy Grover <andy.grover-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, gary.leshner-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org, ramachandra.kuchimanchi-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org
+To: Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>, Linux RDMA <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Andy,
+On Tue, Feb 02, 2010 at 03:11:26PM +0200, Yevgeny Kliteynik wrote:
+> >If no inline version is defined then the compiler just emits a normal
+> >function call, if an inline version is defined then the compiler might
+> >use it.
+> 
+> Thanks for the idea.
+> I read some documentation about it, and it does look that
+> your suggestion should fix the problem, but it didn't :(
 
-What is the kernel version you are using ? Is the Xen patch you
-are referring to an out of tree patch ? And from an OFED perspective,
-which OFED versions would be impacted ?
+> Probably because they both are in .h files.
 
-Regards,
-Ram
+No, but they do have to be in the right order.
 
-On Mon, Feb 1, 2010 at 7:51 PM, Andy Grover <andy.grover-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> wr=
-ote:
-> Actually the build error occurred on kernels with a recent Xen patch,
-> because it also defines a struct mc_info. I suggest renaming your str=
-uct
-> mc_info to vnic_mc_info perhaps?
->
-> Regards -- Andy
->
-> Andy Grover wrote:
->> Hi Vlad,
->>
->> I found a small typo in the header guard of vnic_multicast.h which c=
-an
->> cause a compilation error, please pull.
->>
->> Thanks -- Regards -- Andy
->>
->> The following changes since commit 40fbb82255896a5c39b35035e2fd52022=
-46b6508:
->> =A0 Yevgeny Petrilin (1):
->> =A0 =A0 =A0 =A0 mlx4_en: No need to set smaller tx queue len
->>
->> are available in the git repository at:
->>
->> =A0 git://git.openfabrics.org/~agrover/ofed_1_5/linux-2.6.git
->> code-drop/20100201
->>
->> Andy Grover (1):
->> =A0 =A0 =A0 qlgc_vnic: Fix typo in header guard
->>
->> =A0drivers/infiniband/ulp/qlgc_vnic/vnic_multicast.h | =A0 =A02 +-
->> =A01 files changed, 1 insertions(+), 1 deletions(-)
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-rdma=
-" in
->> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma"=
- in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
->
+first header:
+
+extern inline int foo();
+inline int foo()
+{
+    body
+}
+
+2nd header:
+extern inline int foo();
+
+Jason
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
