@@ -1,40 +1,116 @@
-From: Octavian Purdila <opurdila-+zzKsuq53OdBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [RFC Patch] net: reserve ports for applications using fixed port numbers
-Date: Wed, 3 Feb 2010 13:12:48 +0200
-Message-ID: <201002031312.48531.opurdila@ixiacom.com>
-References: <20100203043332.3817.27932.sendpatchset@localhost.localdomain>
+From: Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH v3] opensm/complib/cl_passivelock.h: some casting issues
+Date: Wed, 03 Feb 2010 13:54:23 +0200
+Message-ID: <4B6963EF.8020808@dev.mellanox.co.il>
+References: <4B682772.2070304@dev.mellanox.co.il> <20100203105156.GY26338@me>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20100203043332.3817.27932.sendpatchset-bi+AKbBUZKY6gyzm1THtWbp2dZbC/Bob@public.gmane.org>
+In-Reply-To: <20100203105156.GY26338@me>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Amerigo Wang <amwang-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Eric Dumazet <eric.dumazet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Neil Horman <nhorman-2XuSBdqkA4R54TAoqtyWWQ@public.gmane.org>, linux-sctp-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+To: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+Cc: Linux RDMA <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wednesday 03 February 2010 06:30:07 you wrote:
+Hi Sasha,
 
-> This patch introduces /proc/sys/net/ipv4/ip_local_reserved_ports,
-> it can be used like ip_local_port_range, but this is used to
-> reserve ports for third-party applications which use fixed
-> port numbers within ip_local_port_range.
-> 
-> This only affects the applications which call socket functions
-> like bind(2) with port number 0, to prevent the kernel getting the ports
-> within the specified range for them. For applications which use fixed
-> port number, it will have no effects.
+On 03/Feb/10 12:51, Sasha Khapyorsky wrote:
+> Hi Yevgeny,
+>
+> On 15:24 Tue 02 Feb     , Yevgeny Kliteynik wrote:
+>>
+>> There are couple of problematic castings in complib/cl_passivelock.h:
+>>
+>> (cl_status_t) pthread_rwlock_*()
+>>
+>> Turns out that compiler doesn't like casting directly from
+>> int to enum, probably because int can be negative:
+>>
+>> cl_passivelock.h:199: warning: cast from function call of type 'int' to non-matching type 'enum _cl_status'
+>> cl_passivelock.h:241: warning: cast from function call of type 'int' to non-matching type 'enum _cl_status'
+>> cl_passivelock.h:274: warning: cast from function call of type 'int' to non-matching type 'enum _cl_status'
+>> cl_passivelock.h:306: warning: cast from function call of type 'int' to non-matching type 'enum _cl_status'
+>>
+>> Se we need to cast the return value in two stages:
+>> to unsigned, and then to enum.
+>
+> Instead of bothering with ugly integer casting (and so ugly
+> double/triple/etc casting...) would not it be better to just convert
+> cl_status_t to int?
 
-It also affects the case where applications do connect, without previously 
-doing bind, right?
+Sure, why not.
 
-> 
-> Any comments are welcome.
+-- Yevgeny
 
-I think it might be useful to allow setting individual ports as reserved, not 
-only ranges, for example by using a bitmap. 
-
+> Something like:
+>
+> typedef int cl_status_t;
+>
+> #define CL_SUCCESS 0
+> #define CL_BLAHBLAH -1
+> ...
+>
+> Sasha
+>
+>>
+>> Signed-off-by: Yevgeny Kliteynik<kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+>> ---
+>>
+>> Changes from v2: can't do implicit casting from unsigned
+>>                   to enum, so specifying it explicitly.
+>>
+>>   opensm/include/complib/cl_passivelock.h |    8 ++++----
+>>   1 files changed, 4 insertions(+), 4 deletions(-)
+>>
+>> diff --git a/opensm/include/complib/cl_passivelock.h b/opensm/include/complib/cl_passivelock.h
+>> index bafd339..aba4e64 100644
+>> --- a/opensm/include/complib/cl_passivelock.h
+>> +++ b/opensm/include/complib/cl_passivelock.h
+>> @@ -196,7 +196,7 @@ static inline cl_status_t cl_plock_init(IN cl_plock_t * const p_lock)
+>>   	cl_status_t status;
+>>
+>>   	CL_ASSERT(p_lock);
+>> -	status = (cl_status_t) pthread_rwlock_init(&p_lock->lock, NULL);
+>> +	status = (cl_status_t)(unsigned) pthread_rwlock_init(&p_lock->lock, NULL);
+>>   	if (status)
+>>   		return CL_ERROR;
+>>   	p_lock->state = CL_INITIALIZED;
+>> @@ -238,7 +238,7 @@ static inline void cl_plock_acquire(IN cl_plock_t * const p_lock)
+>>   	CL_ASSERT(p_lock);
+>>   	CL_ASSERT(p_lock->state == CL_INITIALIZED);
+>>
+>> -	status = (cl_status_t) pthread_rwlock_rdlock(&p_lock->lock);
+>> +	status = (cl_status_t)(unsigned) pthread_rwlock_rdlock(&p_lock->lock);
+>>   	CL_ASSERT(status == 0);
+>>   }
+>>
+>> @@ -271,7 +271,7 @@ static inline void cl_plock_excl_acquire(IN cl_plock_t * const p_lock)
+>>   	CL_ASSERT(p_lock);
+>>   	CL_ASSERT(p_lock->state == CL_INITIALIZED);
+>>
+>> -	status = (cl_status_t) pthread_rwlock_wrlock(&p_lock->lock);
+>> +	status = (cl_status_t)(unsigned) pthread_rwlock_wrlock(&p_lock->lock);
+>>   	CL_ASSERT(status == 0);
+>>   }
+>>
+>> @@ -303,7 +303,7 @@ static inline void cl_plock_release(IN cl_plock_t * const p_lock)
+>>   	CL_ASSERT(p_lock);
+>>   	CL_ASSERT(p_lock->state == CL_INITIALIZED);
+>>
+>> -	status = (cl_status_t) pthread_rwlock_unlock(&p_lock->lock);
+>> +	status = (cl_status_t)(unsigned) pthread_rwlock_unlock(&p_lock->lock);
+>>   	CL_ASSERT(status == 0);
+>>   }
+>>
+>> --
+>> 1.5.1.4
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+>> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>
+>
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
