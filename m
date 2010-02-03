@@ -1,75 +1,26 @@
-From: Cong Wang <amwang-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [RFC Patch] net: reserve ports for applications using fixed port
- numbers
-Date: Wed, 03 Feb 2010 13:15:45 +0800
-Message-ID: <4B690681.6070908@redhat.com>
-References: <20100203043332.3817.27932.sendpatchset@localhost.localdomain> <1265171993.3274.3.camel@edumazet-laptop>
+From: Tziporet Koren <tziporet-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
+Subject: Re: [PATCH 0/2] Add support for enhanced atomic operations
+Date: Wed, 03 Feb 2010 09:08:09 +0200
+Message-ID: <4B6920D9.3080406@mellanox.co.il>
+References: <4B66FA54.6030408@dev.mellanox.co.il>	 <52BD554704A742B18E3F2F8F2B00B9FE@amr.corp.intel.com>	 <4B68020D.4080401@dev.mellanox.co.il> <f0e08f231002020754h482ba0f7xe35a78a72cc165e8@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1265171993.3274.3.camel@edumazet-laptop>
+In-Reply-To: <f0e08f231002020754h482ba0f7xe35a78a72cc165e8-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Eric Dumazet <eric.dumazet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Neil Horman <nhorman-2XuSBdqkA4R54TAoqtyWWQ@public.gmane.org>, linux-sctp-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+To: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Vladimir Sokolovsky <vlad-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Eric Dumazet wrote:
-> Le mardi 02 f=C3=A9vrier 2010 =C3=A0 23:30 -0500, Amerigo Wang a =C3=A9=
-crit :
->> This patch introduces /proc/sys/net/ipv4/ip_local_reserved_ports,
->> it can be used like ip_local_port_range, but this is used to
->> reserve ports for third-party applications which use fixed
->> port numbers within ip_local_port_range.
->>
->> This only affects the applications which call socket functions
->> like bind(2) with port number 0, to prevent the kernel getting the p=
-orts
->> within the specified range for them. For applications which use fixe=
-d
->> port number, it will have no effects.
->>
->> Any comments are welcome.
->>
->> Signed-off-by: WANG Cong <amwang-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
->> Cc: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
->> Cc: Neil Horman <nhorman-2XuSBdqkA4R54TAoqtyWWQ@public.gmane.org>
->> Cc: Eric Dumazet <eric.dumazet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
->=20
->>  		.procname	=3D "igmp_max_memberships",
->> diff --git a/net/ipv4/udp.c b/net/ipv4/udp.c
->> index f0126fd..83045ca 100644
->> --- a/net/ipv4/udp.c
->> +++ b/net/ipv4/udp.c
->> @@ -210,8 +210,11 @@ int udp_lib_get_port(struct sock *sk, unsigned =
-short snum,
->>  		inet_get_local_port_range(&low, &high);
->>  		remaining =3D (high - low) + 1;
->> =20
->> +again:
->>  		rand =3D net_random();
->>  		first =3D (((u64)rand * remaining) >> 32) + low;
->> +		if (inet_is_reserved_local_port(first))
->> +			goto again;
->>  		/*
->>  		 * force rand to be an odd multiple of UDP_HTABLE_SIZE
->>  		 */
->=20
-> Unless I misread the patch, you are checking only the 'first' port th=
-at
-> udp_lib_get_port() chose.
->=20
-> I would use inet_get_local_reserved_ports(&min_res, &max_res);
-> and check every port that we chose in the loop to avoid it if necessa=
-ry.
->=20
+On 2/2/2010 5:54 PM, Hal Rosenstock wrote:
+> Will Mellanox be adding this option to the IB spec rather than keep it
+> as vendor proprietary ?
+>    
+Yes, it's in our plans
 
-Hmm, right, 'first' is used to do iteration, but I did missed 'last'.
-Thanks! I will fix this in the next update.
-
+Tziporet
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
