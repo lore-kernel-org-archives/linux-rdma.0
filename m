@@ -1,8 +1,8 @@
 From: "Davis, Arlin R" <arlin.r.davis-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH] compat-dapl-1.2: update Copyright file and include the 3
- license files in distribution
-Date: Wed, 3 Feb 2010 14:14:54 -0800
-Message-ID: <E3280858FA94444CA49D2BA02341C983B2E3A41B@orsmsx506.amr.corp.intel.com>
+Subject: [PATCH] dapl-2.0: update Copyright file and include the 3 license
+ files in distribution
+Date: Wed, 3 Feb 2010 14:15:03 -0800
+Message-ID: <E3280858FA94444CA49D2BA02341C983B2E3A41C@orsmsx506.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
@@ -65,24 +65,24 @@ index 2012c04..35ba319 100644
 -
 -
 diff --git a/Makefile.am b/Makefile.am
-index 9c236e1..b353180 100644
+index 23f33e8..bf82853 100755
 --- a/Makefile.am
 +++ b/Makefile.am
-@@ -354,6 +354,9 @@ EXTRA_DIST = dat/common/dat_dictionary.h \
- 	     dapl/udapl/libdaplcma.map \
-              dapl/udapl/libdaplscm.map \
- 	     dapl.spec.in \
+@@ -505,6 +505,9 @@ EXTRA_DIST = dat/common/dat_dictionary.h \
+ 	     dapl/udapl/libdaplofa.map \
+ 	     dapl/udapl/libdaploscm.map \
+ 	     dapl/udapl/libdaploucm.map \
 +	     LICENSE.txt \
 +	     LICENSE2.txt \
 +	     LICENSE3.txt \
+ 	     dapl.spec.in \
  	     $(man_MANS) \
  	     test/dapltest/include/dapl_bpool.h \
- 	     test/dapltest/include/dapl_client_info.h \
 diff --git a/dapl.spec.in b/dapl.spec.in
-index 1045f46..fec23bf 100644
+index 7a532b3..92c4398 100644
 --- a/dapl.spec.in
 +++ b/dapl.spec.in
-@@ -117,7 +117,7 @@ fi
+@@ -121,7 +121,7 @@ fi
  %files
  %defattr(-,root,root,-)
  %{_libdir}/libda*.so.*
