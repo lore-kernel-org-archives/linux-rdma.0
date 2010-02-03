@@ -1,94 +1,111 @@
-From: Eli Dorfman <dorfman.eli-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: opensm: suggestion to define new common port_groups file
-Date: Wed, 3 Feb 2010 17:55:21 +0200
-Message-ID: <694d48601002030755g5a567e78o56dd53151442607@mail.gmail.com>
-References: <4B69453E.4080701@gmail.com> <4B694919.1000207@dev.mellanox.co.il>
+From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Subject: Re: [PATCH 0/8] ib/iser: major face lift of the data path code
+Date: Wed, 3 Feb 2010 17:10:58 +0100
+Message-ID: <e2e108261002030810r432072e1ia8fce2f163f08e28@mail.gmail.com>
+References: <Pine.LNX.4.64.1002031721280.11944@zuben.voltaire.com>
+Reply-To: open-iscsi-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4B694919.1000207-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org
-Cc: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Content-Type: multipart/alternative; boundary=001636c5be5ec50636047eb476e1
+Return-path: <3GaBpSw4JCm4NMdf.hMZMeeOTQSYMUX.OaYabQZ-UeOeUSaaSXQSdagbe.OaY-WNnxsJb2WYALHLMFiseIBxPsWskHk0ljAL8bYrjMMd8@public.gmane.org>
+Sender: open-iscsi-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
+In-Reply-To: <Pine.LNX.4.64.1002031721280.11944-aDiYczhfhVLdX2U7gxhm1tBPR1lH4CV8@public.gmane.org>
+List-Post: <http://groups.google.com/group/open-iscsi/post?hl=en_US>,
+	<mailto:open-iscsi-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+List-Help: <http://groups.google.com/support/?hl=en_US>, <mailto:open-iscsi+help-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+List-Archive: <http://groups.google.com/group/open-iscsi?hl=en_US>
+List-Subscribe: <http://groups.google.com/group/open-iscsi/subscribe?hl=en_US>,
+	<mailto:open-iscsi+subscribe-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+List-Unsubscribe: <http://groups.google.com/group/open-iscsi/subscribe?hl=en_US>,
+	<mailto:open-iscsi+unsubscribe-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org>
+To: open-iscsi-/JYPxA39Uh5TLH3MbocFFw@public.gmane.org
+Cc: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Mike Christie <michaelc-hcNo3dDEHLuVc3sceRu5cw@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Feb 3, 2010 at 11:59 AM, Yevgeny Kliteynik
-<kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wrote:
-> On 03/Feb/10 11:43, Eli Dorfman (Voltaire) wrote:
->>
->> Currently there is a duplication of port group definition in OpenSM
->> configuration files.
->> Using a single configuration file for port groups will make it easie=
-r to
->> manage and will allow using group name as keyword in other configura=
-tion
->> files (i.e. partitions.conf, qos-policy.conf and opensm.conf)
->>
->> The suggested format for port-groups.conf is a simple list:
->> GroupA: GUID1, GUID2, GUID3
->> GroupB: GUID4, GUID5, GUID6
->>
->> All configuration files shall still support the old format (of speci=
-fying
->> GUIDs explicitly) and will also recognize the new Groups.
->
-> I'm all for it!
->
->>
->> Following an example of partitions.conf file with new group definiti=
-on:
->> management=3D0x7fff,ipoib,defmember=3Dfull: GroupA=3Dfull, GroupB=3D=
-limited,
->> ALL_CAS=3Dlimited;
->>
->> and qos-policy.conf with the new group definition:
->>
->> port-groups
->> =C2=A0 =C2=A0 port-group
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0 port-guid: GroupA, GroupB
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0 name: my.group
->> =C2=A0 =C2=A0 end-port-group
->> end-port-groups
->
-> Perhaps in qos-policy.conf we should be able to reference
-> GroupA and GroupB directly by its name, w/o the need to
-> create additional group like it is shown in the example.
+--001636c5be5ec50636047eb476e1
+Content-Type: text/plain; charset=ISO-8859-1
 
-We can start with the simple suggestion as shown in the example and
-then enhance as you suggest.
+On Wed, Feb 3, 2010 at 4:30 PM, Or Gerlitz <ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org> wrote:
 
+> The following patch set removes some in efficiencies in the iser data path
+> through simplification and reducing the amount of code, using less atomic
+> operations, avoiding TX interrupts, moving to iscsi passthrough mode,
+> etc. I did my best to build it as a sequence of patches and not as one
+> big re-write, to allow for better debugging (e.g bisection) and tuning.
 >
-> Ideally, port-groups.conf parser should be able to
-> understand various keywords, such as what is used in
-> partitions.conf (ALL, SWITCHES, SELF, etc).
+> Or.
 >
-> To complicate port-groups.conf parser a bit more, it would
-> be nice if it could support nested definition of port groups.
+> [PATCH 01/9] ib/iser: revert commit bba7ebb "avoid recv buffer exhaustion"
+> [PATCH 02/9] ib/iser: new recv buffer posting logic
+> [PATCH 03/9] ib/iser: remove atomic counter for posted recv buffers
+> [PATCH 04/9] ib/iser: use different CQ for send completions
+> [PATCH 05/9] ib/iser: simplify send flow/descriptors
+> [PATCH 06/9] ib/iser: use atomic allocations
+> [PATCH 07/9] ib/iser: remove unnecessary connection checks
+> [PATCH 08/9] ib/iser: move to use libiscsi passthrough mode
+> [PATCH 09/9] ib/iser: remove redundant locking from iser scsi command
+> response flow
 >
-> But no need to do it right away, we can start with something
-> simple.
 
-I agree.
+Sounds really interesting. Do you have numbers available about how much
+these patches improve throughput or decrease latency ?
 
-Eli
->
-> -- Yevgeny
->
->>
->> Thanks,
->> Eli
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-rdma=
-" in
->> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->> More majordomo info at =C2=A0http://vger.kernel.org/majordomo-info.h=
-tml
->>
->
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Bart.
+
+-- 
+You received this message because you are subscribed to the Google Groups "open-iscsi" group.
+To post to this group, send email to open-iscsi-/JYPxA39Uh5TLH3MbocFF+G/Ez6ZCGd0@public.gmane.org
+To unsubscribe from this group, send email to open-iscsi+unsubscribe-/JYPxA39Uh5TLH3MbocFF+G/Ez6ZCGd0@public.gmane.org
+For more options, visit this group at http://groups.google.com/group/open-iscsi?hl=en.
+
+
+--001636c5be5ec50636047eb476e1
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
+
+<div class=3D"gmail_quote">On Wed, Feb 3, 2010 at 4:30 PM, Or Gerlitz <span=
+ dir=3D"ltr">&lt;<a href=3D"mailto:ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org">ogerlitz@voltaire=
+.com</a>&gt;</span> wrote:<br><blockquote class=3D"gmail_quote" style=3D"ma=
+rgin: 0pt 0pt 0pt 0.8ex; border-left: 1px solid rgb(204, 204, 204); padding=
+-left: 1ex;">
+The following patch set removes some in efficiencies in the iser data path<=
+br>
+through simplification and reducing the amount of code, using less atomic<b=
+r>
+operations, avoiding TX interrupts, moving to iscsi passthrough mode,<br>
+etc. I did my best to build it as a sequence of patches and not as one<br>
+big re-write, to allow for better debugging (e.g bisection) and tuning.<br>
+<br>
+Or.<br>
+<br>
+[PATCH 01/9] ib/iser: revert commit bba7ebb &quot;avoid recv buffer exhaust=
+ion&quot;<br>
+[PATCH 02/9] ib/iser: new recv buffer posting logic<br>
+[PATCH 03/9] ib/iser: remove atomic counter for posted recv buffers<br>
+[PATCH 04/9] ib/iser: use different CQ for send completions<br>
+[PATCH 05/9] ib/iser: simplify send flow/descriptors<br>
+[PATCH 06/9] ib/iser: use atomic allocations<br>
+[PATCH 07/9] ib/iser: remove unnecessary connection checks<br>
+[PATCH 08/9] ib/iser: move to use libiscsi passthrough mode<br>
+[PATCH 09/9] ib/iser: remove redundant locking from iser scsi command respo=
+nse flow<br></blockquote><div><br>Sounds really interesting. Do you have nu=
+mbers available about how much these patches improve throughput or decrease=
+ latency ?<br>
+<br>Bart. <br></div></div>
+
+<p></p>
+
+-- <br />
+
+You received this message because you are subscribed to the Google Groups "=
+open-iscsi" group.<br />
+
+To post to this group, send email to open-iscsi-/JYPxA39Uh5TLH3MbocFF+G/Ez6ZCGd0@public.gmane.org<br />
+
+To unsubscribe from this group, send email to open-iscsi+unsubscribe@google=
+groups.com.<br />
+
+For more options, visit this group at http://groups.google.com/group/open-i=
+scsi?hl=3Den.<br />
+
+
+--001636c5be5ec50636047eb476e1--
