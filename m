@@ -1,67 +1,40 @@
-From: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH] opensm/osm_sa_pkey_record.c: optimize port selection logic
-Date: Wed, 3 Feb 2010 13:00:54 +0200
-Message-ID: <20100203110054.GB26338@me>
+From: Octavian Purdila <opurdila-+zzKsuq53OdBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [RFC Patch] net: reserve ports for applications using fixed port numbers
+Date: Wed, 3 Feb 2010 13:12:48 +0200
+Message-ID: <201002031312.48531.opurdila@ixiacom.com>
+References: <20100203043332.3817.27932.sendpatchset@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <20100203043332.3817.27932.sendpatchset-bi+AKbBUZKY6gyzm1THtWbp2dZbC/Bob@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Amerigo Wang <amwang-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Eric Dumazet <eric.dumazet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Neil Horman <nhorman-2XuSBdqkA4R54TAoqtyWWQ@public.gmane.org>, linux-sctp-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On Wednesday 03 February 2010 06:30:07 you wrote:
 
-Optimize port selection logic when port LID is explicitly requested
-or wildcarded. Remove unneeded variable.
+> This patch introduces /proc/sys/net/ipv4/ip_local_reserved_ports,
+> it can be used like ip_local_port_range, but this is used to
+> reserve ports for third-party applications which use fixed
+> port numbers within ip_local_port_range.
+> 
+> This only affects the applications which call socket functions
+> like bind(2) with port number 0, to prevent the kernel getting the ports
+> within the specified range for them. For applications which use fixed
+> port number, it will have no effects.
 
-Signed-off-by: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
----
- opensm/opensm/osm_sa_pkey_record.c |   19 +++++--------------
- 1 files changed, 5 insertions(+), 14 deletions(-)
+It also affects the case where applications do connect, without previously 
+doing bind, right?
 
-diff --git a/opensm/opensm/osm_sa_pkey_record.c b/opensm/opensm/osm_sa_pkey_record.c
-index c4c974e..5b1c794 100644
---- a/opensm/opensm/osm_sa_pkey_record.c
-+++ b/opensm/opensm/osm_sa_pkey_record.c
-@@ -213,7 +213,6 @@ void osm_pkey_rec_rcv_process(IN void *ctx, IN void *data)
- 	const ib_pkey_table_t *p_pkey;
- 	cl_qlist_t rec_list;
- 	osm_pkey_search_ctxt_t context;
--	ib_api_status_t status = IB_SUCCESS;
- 	ib_net64_t comp_mask;
- 	osm_physp_t *p_req_physp;
- 
-@@ -291,23 +290,15 @@ void osm_pkey_rec_rcv_process(IN void *ctx, IN void *data)
- 	 */
- 	if (comp_mask & IB_PKEY_COMPMASK_LID) {
- 		p_port = osm_get_port_by_lid(sa->p_subn, p_rcvd_rec->lid);
--		if (!p_port) {
--			status = IB_NOT_FOUND;
-+		if (!p_port)
- 			OSM_LOG(sa->p_log, OSM_LOG_ERROR, "ERR 460B: "
- 				"No port found with LID %u\n",
- 				cl_ntoh16(p_rcvd_rec->lid));
--		}
--	}
--
--	if (status == IB_SUCCESS) {
--		/* if we got a unique port - no need for a port search */
--		if (p_port)
--			/* this does the loop on all the port phys ports */
--			sa_pkey_by_comp_mask(sa, p_port, &context);
- 		else
--			cl_qmap_apply_func(&sa->p_subn->port_guid_tbl,
--					   sa_pkey_by_comp_mask_cb, &context);
--	}
-+			sa_pkey_by_comp_mask(sa, p_port, &context);
-+	} else
-+		cl_qmap_apply_func(&sa->p_subn->port_guid_tbl,
-+				   sa_pkey_by_comp_mask_cb, &context);
- 
- 	cl_plock_release(sa->p_lock);
- 
--- 
-1.6.6.1
+> 
+> Any comments are welcome.
+
+I think it might be useful to allow setting individual ports as reserved, not 
+only ranges, for example by using a bitmap. 
+
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
