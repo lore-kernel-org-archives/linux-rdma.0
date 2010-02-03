@@ -1,7 +1,8 @@
 From: Or Gerlitz <ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH 08/9] ib/iser: move to use libiscsi passthrough mode
-Date: Wed, 3 Feb 2010 17:41:25 +0200 (IST)
-Message-ID: <Pine.LNX.4.64.1002031740540.11944@zuben.voltaire.com>
+Subject: [PATCH 08/10] ib/iser: remove redundant locking from command response
+ flow
+Date: Wed, 3 Feb 2010 17:42:49 +0200 (IST)
+Message-ID: <Pine.LNX.4.64.1002031741430.11944@zuben.voltaire.com>
 References: <Pine.LNX.4.64.1002031721280.11944@zuben.voltaire.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
@@ -12,65 +13,63 @@ To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Mike Christie <michaelc-hcNo3dDEHLuVc3sceRu5cw@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-The libiscsi passthrough mode invokes the transport xmit calls directly
-without passing through an internal queue, now when the "cant_sleep"
-prerequisite of iscsi_alloc_session is met, move to use it. Since the
-libibscsi queue isn't used in passthrough mode, the code that schedules
-the xmitworker is removed.
+currently iser recv completion flow takes the session lock twice.
+optimize it to avoid the first one by letting iser_task_rdma_finalize()
+be called only from the cleanup_task callback invoked by iscsi_free_task,
+thus reducing the contention on the session lock between the scsi
+command submission to the scsi command completion flows.
 
 Signed-off-by: Or Gerlitz <ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+Reviewed-by: Mike Christie <michaelc-hcNo3dDEHLuVc3sceRu5cw@public.gmane.org>
 
 ---
- drivers/infiniband/ulp/iser/iscsi_iser.c     |    2 +-
- drivers/infiniband/ulp/iser/iser_initiator.c |   12 ------------
- 2 files changed, 1 insertion(+), 13 deletions(-)
+ drivers/infiniband/ulp/iser/iser_initiator.c |   25 -------------------------
+ 1 file changed, 25 deletions(-)
 
-Index: linux-2.6.33-rc4/drivers/infiniband/ulp/iser/iscsi_iser.c
-===================================================================
---- linux-2.6.33-rc4.orig/drivers/infiniband/ulp/iser/iscsi_iser.c
-+++ linux-2.6.33-rc4/drivers/infiniband/ulp/iser/iscsi_iser.c
-@@ -423,7 +423,7 @@ iscsi_iser_session_create(struct iscsi_e
- 	struct Scsi_Host *shost;
- 	struct iser_conn *ib_conn;
-
--	shost = iscsi_host_alloc(&iscsi_iser_sht, 0, 1);
-+	shost = iscsi_host_alloc(&iscsi_iser_sht, 0, 0);
- 	if (!shost)
- 		return NULL;
- 	shost->transportt = iscsi_iser_scsi_transport;
 Index: linux-2.6.33-rc4/drivers/infiniband/ulp/iser/iser_initiator.c
 ===================================================================
 --- linux-2.6.33-rc4.orig/drivers/infiniband/ulp/iser/iser_initiator.c
 +++ linux-2.6.33-rc4/drivers/infiniband/ulp/iser/iser_initiator.c
-@@ -514,10 +514,7 @@ void iser_rcv_completion(struct iser_rx_
- void iser_snd_completion(struct iser_tx_desc *tx_desc,
- 			struct iser_conn *ib_conn)
+@@ -440,10 +440,7 @@ void iser_rcv_completion(struct iser_rx_
+ 			 struct iser_conn *ib_conn)
  {
--	struct iscsi_iser_conn *iser_conn = ib_conn->iser_conn;
--	struct iscsi_conn      *conn = iser_conn->iscsi_conn;
- 	struct iscsi_task *task;
--	int resume_tx = 0;
- 	struct iser_device *device = ib_conn->device;
+ 	struct iscsi_iser_conn *conn = ib_conn->iser_conn;
+-	struct iscsi_task *task;
+-	struct iscsi_iser_task *iser_task;
+ 	struct iscsi_hdr *hdr;
+-	unsigned char opcode;
+ 	u64 rx_dma;
+ 	int rx_buflen, outstanding, count, err;
 
- 	if (tx_desc->type == ISCSI_TX_DATAOUT) {
-@@ -526,17 +523,8 @@ void iser_snd_completion(struct iser_tx_
- 		kmem_cache_free(ig.desc_cache, tx_desc);
- 	}
+@@ -464,28 +461,6 @@ void iser_rcv_completion(struct iser_rx_
+ 	iser_dbg("op 0x%x itt 0x%x dlen %d\n", hdr->opcode,
+ 			hdr->itt, (int)(rx_xfer_len - ISER_HEADERS_LEN));
 
--	if (atomic_read(&iser_conn->ib_conn->post_send_buf_count) ==
--	    ISER_QP_MAX_REQ_DTOS)
--		resume_tx = 1;
+-	opcode = hdr->opcode & ISCSI_OPCODE_MASK;
 -
- 	atomic_dec(&ib_conn->post_send_buf_count);
-
--	if (resume_tx) {
--		iser_dbg("%ld resuming tx\n",jiffies);
--		iscsi_conn_queue_work(conn);
+-	if (opcode == ISCSI_OP_SCSI_CMD_RSP) {
+-		spin_lock(&conn->iscsi_conn->session->lock);
+-		task = iscsi_itt_to_ctask(conn->iscsi_conn, hdr->itt);
+-		if (task)
+-			__iscsi_get_task(task);
+-		spin_unlock(&conn->iscsi_conn->session->lock);
+-
+-		if (!task)
+-			iser_err("itt can't be matched to task!!! "
+-				 "conn %p opcode %d itt %d\n",
+-				 conn->iscsi_conn, opcode, hdr->itt);
+-		else {
+-			iser_task = task->dd_data;
+-			iser_dbg("itt %d task %p\n",hdr->itt, task);
+-			iser_task->status = ISER_TASK_STATUS_COMPLETED;
+-			iser_task_rdma_finalize(iser_task);
+-			iscsi_put_task(task);
+-		}
 -	}
 -
- 	if (tx_desc->type == ISCSI_TX_CONTROL) {
- 		/* this arithmetic is legal by libiscsi dd_data allocation */
- 		task = (void *) ((long)(void *)tx_desc -
+ 	iscsi_iser_recv(conn->iscsi_conn, hdr,
+ 		rx_desc->data, rx_xfer_len - ISER_HEADERS_LEN);
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
