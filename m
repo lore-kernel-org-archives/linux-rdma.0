@@ -1,99 +1,37 @@
-From: "Davis, Arlin R" <arlin.r.davis-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH] dapl-2.0: update Copyright file and include the 3 license
- files in distribution
-Date: Wed, 3 Feb 2010 14:15:03 -0800
-Message-ID: <E3280858FA94444CA49D2BA02341C983B2E3A41C@orsmsx506.amr.corp.intel.com>
+From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH 02/25 v2] mlx4_core: add support for arbitrary bitmap sizes
+Date: Wed, 03 Feb 2010 14:25:47 -0800
+Message-ID: <adaaavqgdn8.fsf@roland-alpha.cisco.com>
+References: <4AF39314.5020004@mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <4AF39314.5020004-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org> (Yevgeny Petrilin's message of
+	"Fri, 06 Nov 2009 05:08:04 +0200")
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ofw_list <ofw-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
-Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+To: Yevgeny Petrilin <yevgenyp-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, liranl-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org, tziporet-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Update Copyright file and include the 3 license files in distribution
+ > +int mlx4_bitmap_init_no_mask(struct mlx4_bitmap *bitmap, u32 num,
+ > +			     u32 reserved_bot, u32 reserved_top)
+ > +{
+ > +	u32 num_rounded = roundup_pow_of_two(num);
+ > +	return mlx4_bitmap_init(bitmap, num_rounded, num_rounded - 1,
+ > +				reserved_bot, num_rounded - num + reserved_top);
+ > +}
 
-Signed-off-by: Arlin Davis <arlin.r.davis-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
----
- COPYING      |   16 ++++------------
- Makefile.am  |    3 +++
- dapl.spec.in |    2 +-
- 3 files changed, 8 insertions(+), 13 deletions(-)
+I think I would really prefer things if we got rid of this wrapper.  The
+mlx4_bitmap stuff is really there to handle the case where we want to
+have a mask and have the non-used bits cycle to avoid reusing QPN etc.
+If we have a bitmap with no mask that's no a power of 2 in size, there's
+really no value in the mlx4 wrapper -- we might as well just allocate a
+bitmap directly.
 
-diff --git a/COPYING b/COPYING
-index 2012c04..35ba319 100644
---- a/COPYING
-+++ b/COPYING
-@@ -1,7 +1,7 @@
- #
- # Copyright (c) 2002-2005, Network Appliance, Inc. All rights reserved.
- # Copyright (c) 2005 Voltaire Inc.  All rights reserved.
--# Copyright (c) 2005 Intel Corporation. All rights reserved.
-+# Copyright (c) 2005-2010 Intel Corporation. All rights reserved.
- # Copyright (c) 2004-2005, Mellanox Technologies, Inc. All rights reserved. 
- # Copyright (c) 2003 Topspin Corporation.  All rights reserved. 
- # Copyright (c) 2005 Sun Microsystems, Inc. All rights reserved.
-@@ -9,19 +9,13 @@
- # This Software is licensed under one of the following licenses:
- #
- # 1) under the terms of the "Common Public License 1.0" a copy of which is
--#    in the file LICENSE.txt in the root directory. The license is also
--#    available from the Open Source Initiative, see
--#    http://www.opensource.org/licenses/cpl.php.
-+#    in the file LICENSE.txt in the root directory. 
- #
- # 2) under the terms of the "The BSD License" a copy of which is in the file
--#    LICENSE2.txt in the root directory. The license is also available from
--#    the Open Source Initiative, see
--#    http://www.opensource.org/licenses/bsd-license.php.
-+#    LICENSE2.txt in the root directory. 
- #
- # 3) under the terms of the "GNU General Public License (GPL) Version 2" a 
--#    copy of which is in the file LICENSE3.txt in the root directory. The 
--#    license is also available from the Open Source Initiative, see
--#    http://www.opensource.org/licenses/gpl-license.php.
-+#    copy of which is in the file LICENSE3.txt in the root directory. 
- #
- # Licensee has the right to choose one of the above licenses.
- #
-@@ -32,5 +26,3 @@
- # notice, one of the license notices in the documentation
- # and/or other materials provided with the distribution.
- #
--
--
-diff --git a/Makefile.am b/Makefile.am
-index 23f33e8..bf82853 100755
---- a/Makefile.am
-+++ b/Makefile.am
-@@ -505,6 +505,9 @@ EXTRA_DIST = dat/common/dat_dictionary.h \
- 	     dapl/udapl/libdaplofa.map \
- 	     dapl/udapl/libdaploscm.map \
- 	     dapl/udapl/libdaploucm.map \
-+	     LICENSE.txt \
-+	     LICENSE2.txt \
-+	     LICENSE3.txt \
- 	     dapl.spec.in \
- 	     $(man_MANS) \
- 	     test/dapltest/include/dapl_bpool.h \
-diff --git a/dapl.spec.in b/dapl.spec.in
-index 7a532b3..92c4398 100644
---- a/dapl.spec.in
-+++ b/dapl.spec.in
-@@ -121,7 +121,7 @@ fi
- %files
- %defattr(-,root,root,-)
- %{_libdir}/libda*.so.*
--%doc AUTHORS README ChangeLog
-+%doc AUTHORS README COPYING ChangeLog LICENSE.txt LICENSE2.txt LICENSE3.txt
- 
- %files devel
- %defattr(-,root,root,-)
--- 
-1.5.2.5
+And since this is only used in one place (for the EQ tables) I think it
+makes sense to just open-code everything in the EQ code.
 
+ - R.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
