@@ -1,35 +1,66 @@
-From: Vladimir Sokolovsky <vlad-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH 0/2] Add support for enhanced atomic operations
-Date: Wed, 03 Feb 2010 10:01:43 +0200
-Message-ID: <4B692D67.5040006@dev.mellanox.co.il>
-References: <4B66FA54.6030408@dev.mellanox.co.il>	 <52BD554704A742B18E3F2F8F2B00B9FE@amr.corp.intel.com>	 <4B68020D.4080401@dev.mellanox.co.il> <f0e08f231002020754h482ba0f7xe35a78a72cc165e8@mail.gmail.com> <F1F846D4754246DC862643839C4CB216@amr.corp.intel.com>
+From: Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: [PATCH] opensm: minor improvement in loading SA DB
+Date: Wed, 03 Feb 2010 10:42:09 +0200
+Message-ID: <4B6936E1.8010803@dev.mellanox.co.il>
+Reply-To: kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <F1F846D4754246DC862643839C4CB216-Zpru7NauK7drdx17CPfAsdBPR1lH4CV8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: 'Hal Rosenstock' <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>, Linux RDMA <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Sean Hefty wrote:
->> Will Mellanox be adding this option to the IB spec rather than keep it
->> as vendor proprietary ?
-> 
-> Along with that question, what is the use case for this feature?  The only
-> benefit mentioned was saving a few bytes of memory, at the cost of carrying
-> extra network headers.  Atomics are only 64-bits to begin with...
-> 
+Check whether the loading is needed in the state mgr.
 
+Signed-off-by: Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+---
+ opensm/opensm/osm_sa.c        |    6 ------
+ opensm/opensm/osm_state_mgr.c |   11 +++++++----
+ 2 files changed, 7 insertions(+), 10 deletions(-)
 
-For some applications the memory savings are very significant. One
-example is fine grain lock implementations for huge data sets. In other
-cases, the benefit is the ability to update multiple fields with a
-single io operation.
+diff --git a/opensm/opensm/osm_sa.c b/opensm/opensm/osm_sa.c
+index 3473e4c..d950248 100644
+--- a/opensm/opensm/osm_sa.c
++++ b/opensm/opensm/osm_sa.c
+@@ -907,12 +907,6 @@ int osm_sa_db_file_load(osm_opensm_t * p_osm)
+ 	unsigned rereg_clients = 0;
+ 	unsigned lineno;
 
-Regards,
-Vladimir
+-	if (!p_osm->subn.first_time_master_sweep) {
+-		OSM_LOG(&p_osm->log, OSM_LOG_VERBOSE,
+-			"Not first sweep - skip SA DB restore\n");
+-		return 0;
+-	}
+-
+ 	file_name = p_osm->subn.opt.sa_db_file;
+ 	if (!file_name) {
+ 		OSM_LOG(&p_osm->log, OSM_LOG_VERBOSE,
+diff --git a/opensm/opensm/osm_state_mgr.c b/opensm/opensm/osm_state_mgr.c
+index e43463f..2cddc57 100644
+--- a/opensm/opensm/osm_state_mgr.c
++++ b/opensm/opensm/osm_state_mgr.c
+@@ -1261,10 +1261,13 @@ repeat_discovery:
+
+ 	osm_qos_setup(sm->p_subn->p_osm);
+
+-	/* try to restore SA DB (this should be before lid_mgr
+-	   because we may want to disable clients reregistration
+-	   when SA DB is restored) */
+-	osm_sa_db_file_load(sm->p_subn->p_osm);
++	/*
++	 * If it's the first master sweep, try to restore SA DB
++	 * (this should be before lid_mgr because we may want to
++	 * disable clients reregistration when SA DB is restored)
++	 */
++	if (sm->subn.first_time_master_sweep)
++		osm_sa_db_file_load(sm->p_subn->p_osm);
+
+ 	if (wait_for_pending_transactions(&sm->p_subn->p_osm->stats))
+ 		return;
+-- 
+1.5.1.4
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
