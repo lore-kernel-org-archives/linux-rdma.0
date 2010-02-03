@@ -1,8 +1,8 @@
 From: Or Gerlitz <ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH 08/10] ib/iser: remove redundant locking from command response
+Subject: [PATCH 09/9] remove redundant locking from iser scsi command response
  flow
-Date: Wed, 3 Feb 2010 17:42:49 +0200 (IST)
-Message-ID: <Pine.LNX.4.64.1002031741430.11944@zuben.voltaire.com>
+Date: Wed, 3 Feb 2010 17:44:40 +0200 (IST)
+Message-ID: <Pine.LNX.4.64.1002031743230.11944@zuben.voltaire.com>
 References: <Pine.LNX.4.64.1002031721280.11944@zuben.voltaire.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
@@ -23,6 +23,9 @@ Signed-off-by: Or Gerlitz <ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org>
 Reviewed-by: Mike Christie <michaelc-hcNo3dDEHLuVc3sceRu5cw@public.gmane.org>
 
 ---
+
+re-sending, with a corrected subjest line
+
  drivers/infiniband/ulp/iser/iser_initiator.c |   25 -------------------------
  1 file changed, 25 deletions(-)
 
