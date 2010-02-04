@@ -1,42 +1,49 @@
-From: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
-Subject: Re: [RFC Patch] net: reserve ports for applications using fixed
- port numbers
-Date: Thu, 04 Feb 2010 13:56:39 -0800 (PST)
-Message-ID: <20100204.135639.69720709.davem@davemloft.net>
-References: <20100204.094110.64247447.davem@davemloft.net>
-	<201002042015.51092.opurdila@ixiacom.com>
-	<201002050645.CEC95380.MLOtOVFFHSFOQJ@I-love.SAKURA.ne.jp>
+From: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH] opensm/osm_mcast_mgr.c: preserve root switch calculation
+ functionality
+Date: Fri, 5 Feb 2010 00:22:13 +0200
+Message-ID: <20100204222213.GL26338@me>
+References: <20100204204713.GJ26338@me>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <201002050645.CEC95380.MLOtOVFFHSFOQJ-JPay3/Yim36HaxMnTkn67Xf5DAMn2ifp@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20100204204713.GJ26338@me>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: penguin-kernel-JPay3/Yim36HaxMnTkn67Xf5DAMn2ifp@public.gmane.org
-Cc: opurdila-+zzKsuq53OdBDgjK7y7TUQ@public.gmane.org, amwang-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, eric.dumazet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, nhorman-2XuSBdqkA4R54TAoqtyWWQ@public.gmane.org, linux-sctp-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Slava Strebkov <slavas-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+Cc: Eli Dorfman <elid-smomgflXvOZWk0Htik3J/w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Tetsuo Handa <penguin-kernel-JPay3/Yim36HaxMnTkn67Xf5DAMn2ifp@public.gmane.org>
-Date: Fri, 5 Feb 2010 06:45:28 +0900
 
-> Octavian Purdila wrote:
->> 
->> int inet_is_reserved_local_port(int port)
->> {
->> 	if (test_bit(port, reserved_ports))
->> 		return 1;
->> 	return 0;
->> }
->> 
-> Above check is exactly what I'm doing in the LSM hook.
+I'm not sure that this is a bug, but anyway. Now for MC group spanning
+tree root switch calculation it uses max hops criteria differently -
+accumulated hops for all MC members connected to the switch against
+previous maximal one.
 
-But his version can be done inline in 2 or 3 instructions.
+This patch makes it functionally exactly as it was.
 
-An LSM hook will result in an indirect function call,
-all live registers spilled to the stack, then all of
-those reloaded when the function returns.
+Signed-off-by: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+---
+ opensm/opensm/osm_mcast_mgr.c |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletions(-)
 
-It will be much more expensive.
+diff --git a/opensm/opensm/osm_mcast_mgr.c b/opensm/opensm/osm_mcast_mgr.c
+index f33d6a6..322635d 100644
+--- a/opensm/opensm/osm_mcast_mgr.c
++++ b/opensm/opensm/osm_mcast_mgr.c
+@@ -253,7 +253,8 @@ static float mcast_mgr_compute_max_hops(osm_sm_t * sm, cl_qmap_t * m,
+ 		sw = cl_item_obj(i, sw, mgrp_item);
+ 		lid = cl_ntoh16(osm_node_get_base_lid(sw->p_node, 0));
+ 		hops = osm_switch_get_least_hops(this_sw, lid);
+-		hops = (hops + 1) * sw->num_of_mcm + hops * sw->is_mc_member;
++		if (!sw->is_mc_member)
++			hops += 1;
+ 		if (hops > max_hops)
+ 			max_hops = hops;
+ 	}
+-- 
+1.6.6.1
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
