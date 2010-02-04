@@ -1,128 +1,69 @@
-From: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 0/2] Using multi-smps on the wire in libibnetdisc
-Date: Thu, 4 Feb 2010 09:19:39 -0500
-Message-ID: <f0e08f231002040619y34784bauec6a25d31e7d229b@mail.gmail.com>
-References: <20100202164514.bf2b152a.weiny2@llnl.gov>
+From: Or Gerlitz <ogerlitz-hKgKHo2Ms0FWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH 0/8] ib/iser: major face lift of the data path code
+Date: Thu, 04 Feb 2010 16:21:09 +0200
+Message-ID: <4B6AD7D5.7030204@Voltaire.com>
+References: <Pine.LNX.4.64.1002031721280.11944@zuben.voltaire.com> <e2e108261002030811r5c740d6fr4cc055702a88aa50@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20100202164514.bf2b152a.weiny2-i2BcT+NCU+M@public.gmane.org>
+In-Reply-To: <e2e108261002030811r5c740d6fr4cc055702a88aa50-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-Cc: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Cc: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Mike Christie <michaelc-hcNo3dDEHLuVc3sceRu5cw@public.gmane.org>, Yaron Haviv <yaronh-smomgflXvOZWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Feb 2, 2010 at 7:45 PM, Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org> wrote:
-> Sasha,
->
-> Following up on our thread regarding having multiple outstanding SMP'=
-s in libibnetdisc.
->
-> These 2 patches implement that as well as add a function to set the m=
-ax outstanding the lib will use.
->
-> I left the default here to be 4. =C2=A0On a large cluster there seems=
- to be some variance with using 8 or 12. =C2=A0Sometimes I get a speed =
-up over 4 and other times I don't see any. =C2=A0I think it has to do w=
-ith the traffic on the fabric at any particular time.
->
-> For example here are some runs I just did on Hyperion.
->
-> 14:31:55 > /usr/sbin/ibqueryerrors =C2=A0-s RcvErrors,SymbolErrors,Rc=
-vSwRelayErrors,XmtWait -r --data
-> Suppressing: RcvErrors SymbolErrors RcvSwRelayErrors XmtWait
-> Errors for 0x66a00d90006fb "SW19"
-> =C2=A0 GUID 0x66a00d90006fb port 9: [VL15Dropped =3D=3D 3] [XmtData =3D=
-=3D 14562048] [RcvData =3D=3D 14563872] [XmtPkts =3D=3D 202255] [RcvPkt=
-s =3D=3D 202276]
-> =C2=A0 =C2=A0 =C2=A0 Link info: =C2=A0 =C2=A0139 =C2=A0 9[ =C2=A0] =3D=
-=3D( 4X 5.0 Gbps Active/ =C2=A0LinkUp)=3D=3D> =C2=A00x0002c9030001d736 =
-=C2=A0 =C2=A0864 =C2=A0 =C2=A01[ =C2=A0] "hyperion1" ( )
->
-> 14:32:02 > time ./ibnetdiscover -o 8 --node-name-map /etc/opensm/ib-n=
-ode-name-map -g > new
->
-> real =C2=A0 =C2=A00m2.210s
-> user =C2=A0 =C2=A00m1.251s
-> sys =C2=A0 =C2=A0 0m0.869s
->
-> 14:40:36 > time ./ibnetdiscover -o 4 --node-name-map /etc/opensm/ib-n=
-ode-name-map -g > new
->
-> real =C2=A0 =C2=A00m3.385s
-> user =C2=A0 =C2=A00m1.888s
-> sys =C2=A0 =C2=A0 0m1.448s
->
-> 14:40:46 > time ./ibnetdiscover -o 4 --node-name-map /etc/opensm/ib-n=
-ode-name-map -g > new
->
-> real =C2=A0 =C2=A00m2.211s
-> user =C2=A0 =C2=A00m1.165s
-> sys =C2=A0 =C2=A0 0m0.951s
->
-> 14:40:51 > time ./ibnetdiscover -o 8 --node-name-map /etc/opensm/ib-n=
-ode-name-map -g > new
->
-> real =C2=A0 =C2=A00m2.249s
-> user =C2=A0 =C2=A00m1.244s
-> sys =C2=A0 =C2=A0 0m0.936s
->
-> 14:40:59 > time ./ibnetdiscover -o 4 --node-name-map /etc/opensm/ib-n=
-ode-name-map -g > new
->
-> real =C2=A0 =C2=A00m2.170s
-> user =C2=A0 =C2=A00m1.160s
-> sys =C2=A0 =C2=A0 0m0.933s
->
-> 14:41:10 > /usr/sbin/ibqueryerrors =C2=A0-s RcvErrors,SymbolErrors,Rc=
-vSwRelayErrors,XmtWait -r --data
-> Suppressing: RcvErrors SymbolErrors RcvSwRelayErrors XmtWait
-> Errors for 0x66a00d90006fb "SW19"
-> =C2=A0 GUID 0x66a00d90006fb port 9: [VL15Dropped =3D=3D 3] [XmtData =3D=
-=3D 25187379] [RcvData =3D=3D 25196688] [XmtPkts =3D=3D 349861] [RcvPkt=
-s =3D=3D 349954]
-> =C2=A0 =C2=A0 =C2=A0 Link info: =C2=A0 =C2=A0139 =C2=A0 9[ =C2=A0] =3D=
-=3D( 4X 5.0 Gbps Active/ =C2=A0LinkUp)=3D=3D> =C2=A00x0002c9030001d736 =
-=C2=A0 =C2=A0864 =C2=A0 =C2=A01[ =C2=A0] "hyperion1" ( )
->
-> Note that there were no additional VL15Dropped packets on the fabric.=
- =C2=A0I think 4 seems to be a good compromise. =C2=A0I have not tested=
- when there are errors on the fabric. =C2=A0(Right now things seem to b=
-e good!)
+Bart Van Assche wrote:
+> Sounds really interesting. Do you have numbers available about how
+> much these patches improve throughput or decrease latency ?
 
-Is this just with the SM doing light sweeping ?
+Yes, generally speaking after the patches the initiator peaks to about 300-400K IOPS
+with latency under such load being 20-30us and before the patches the initiator was
+doing upto 200K IOPS with the latency under such load being 50-100us, see some data
+I got today on mytest bed. Being focused on the initiator, I was using a "NULL device"
+at the target side.
 
-Is there a speedup with 4 rather than 2 ?
+AFTER
 
--- Hal
+ r  b   swpd   free   buff  cache   si   so    bi    bo   in   cs us sy id wa st
+11 11      0 6212936 260552 367356    0    0 308671     0 285596 492842  4 64  0 31  0
+ 7 13      0 6212936 260552 367356    0    0 309628    24 285138 496537  5 61  0 33  0
+10 12      0 6212936 260552 367356    0    0 308222     0 277868 489261  4 65  0 30  0
+ 8 13      0 6212936 260552 367356    0    0 310724     0 282151 493868  4 67  0 29  0
+12 11      0 6212936 260552 367356    0    0 308209     0 278753 489797  5 66  0 29  0
 
->
-> The first patch converts the algorithm and the second adds the ibnd_s=
-et_max_smps_on_wire call.
->
-> Let me know what you think. =C2=A0Because the algorithm changed so mu=
-ch testing this is a bit difficult because the order of the node discov=
-ery is different. =C2=A0However, I have done some extensive diffing of =
-the output of ibnetdiscover and things look good.
->
-> Ira
->
-> --
-> Ira Weiny
-> Math Programmer/Computer Scientist
-> Lawrence Livermore National Lab
-> 925-423-8008
-> weiny2-i2BcT+NCU+M@public.gmane.org
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma"=
- in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at =C2=A0http://vger.kernel.org/majordomo-info.ht=
-ml
->
+Linux 2.6.33-rc4 (cto-1) 	02/04/2010
+
+avg-cpu:  %user   %nice %system %iowait  %steal   %idle
+           4.62    0.00   66.29   28.71    0.00    0.37
+
+Device:         rrqm/s   wrqm/s   r/s   w/s   rsec/s   wsec/s avgrq-sz avgqu-sz   await  svctm  %util
+sdd               0.00     0.00 88905.94  0.00 177811.88     0.00     2.00     2.82    0.03   0.01  98.61
+sdf               0.00     0.00 64021.78  0.00 128045.54     0.00     2.00     2.55    0.04   0.02  96.24
+sdh               0.00     0.00 88922.77  0.00 177845.54     0.00     2.00     2.85    0.03   0.01  99.01
+sdj               0.00     0.00 64662.38  0.00 129324.75     0.00     2.00     2.69    0.04   0.02  97.82
+
+BEFORE
+
+ r  b   swpd   free   buff  cache   si   so    bi    bo   in   cs us sy id wa st
+ 6 14      0 6211804 260684 368584    0    0 195551     0 195997 557463  3 56  4 37  0
+ 7 13      0 6211804 260684 368584    0    0 191347     0 192311 525823  3 58  3 36  0
+ 6 15      0 6211804 260692 368584    0    0 187135    16 190875 503739  3 58  3 35  0
+ 8 14      0 6211804 260692 368584    0    0 193745     0 193921 556821  3 55  4 38  0
+ 8 16      0 6211804 260692 368584    0    0 191233     0 191549 536499  3 58  4 35  0
+
+Linux 2.6.33-rc4 (cto-1) 	02/04/2010
+
+avg-cpu:  %user   %nice %system %iowait  %steal   %idle
+           2.24    0.00   58.16   35.87    0.00    3.74
+
+Device:         rrqm/s   wrqm/s   r/s   w/s   rsec/s   wsec/s avgrq-sz avgqu-sz   await  svctm  %util
+sdd               0.00     0.00 33964.00  0.00 67928.00     0.00     2.00     3.36    0.10   0.03 100.00
+sdf               0.00     0.00 33456.00  0.00 66912.00     0.00     2.00     3.34    0.10   0.03  99.60
+sdh               0.00     0.00 63176.00  0.00 126352.00     0.00     2.00     3.40    0.05   0.02 100.00
+sdj               0.00     0.00 62973.00  0.00 125946.00     0.00     2.00     3.38    0.05   0.02 100.40
+
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
