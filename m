@@ -1,103 +1,174 @@
-From: "Eli Dorfman (Voltaire)" <dorfman.eli-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH] Delete port only after GID OUT trap was sent
-Date: Thu, 04 Feb 2010 20:12:20 +0200
-Message-ID: <4B6B0E04.808@gmail.com>
+From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+Subject: Re: [PATCH 0/2] Using multi-smps on the wire in libibnetdisc
+Date: Thu, 4 Feb 2010 10:00:45 -0800
+Message-ID: <20100204100045.4d2aa9aa.weiny2@llnl.gov>
+References: <20100202164514.bf2b152a.weiny2@llnl.gov>
+	<f0e08f231002040619y34784bauec6a25d31e7d229b@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <f0e08f231002040619y34784bauec6a25d31e7d229b-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Vladimir Koushnir <vladimirk-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+To: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Send GID OUT trap first and only then remove the port.
-This is done to allow SM check that subscriber and trap source
-are permitted to access each other.
+On Thu, 4 Feb 2010 09:19:39 -0500
+Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
 
-Signed-off-by: Eli Dorfman <elid-smomgflXvOZWk0Htik3J/w@public.gmane.org>
----
- opensm/opensm/osm_drop_mgr.c |   56 ++++++++++++++++++++---------------------
- 1 files changed, 27 insertions(+), 29 deletions(-)
+> On Tue, Feb 2, 2010 at 7:45 PM, Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org> wrote:
+> > Sasha,
+> >
+> > Following up on our thread regarding having multiple outstanding SM=
+P's in libibnetdisc.
+> >
+> > These 2 patches implement that as well as add a function to set the=
+ max outstanding the lib will use.
+> >
+> > I left the default here to be 4. =A0On a large cluster there seems =
+to be some variance with using 8 or 12. =A0Sometimes I get a speed up o=
+ver 4 and other times I don't see any. =A0I think it has to do with the=
+ traffic on the fabric at any particular time.
+> >
+> > For example here are some runs I just did on Hyperion.
+> >
+> > 14:31:55 > /usr/sbin/ibqueryerrors =A0-s RcvErrors,SymbolErrors,Rcv=
+SwRelayErrors,XmtWait -r --data
+> > Suppressing: RcvErrors SymbolErrors RcvSwRelayErrors XmtWait
+> > Errors for 0x66a00d90006fb "SW19"
+> > =A0 GUID 0x66a00d90006fb port 9: [VL15Dropped =3D=3D 3] [XmtData =3D=
+=3D 14562048] [RcvData =3D=3D 14563872] [XmtPkts =3D=3D 202255] [RcvPkt=
+s =3D=3D 202276]
+> > =A0 =A0 =A0 Link info: =A0 =A0139 =A0 9[ =A0] =3D=3D( 4X 5.0 Gbps A=
+ctive/ =A0LinkUp)=3D=3D> =A00x0002c9030001d736 =A0 =A0864 =A0 =A01[ =A0=
+] "hyperion1" ( )
+> >
+> > 14:32:02 > time ./ibnetdiscover -o 8 --node-name-map /etc/opensm/ib=
+-node-name-map -g > new
+> >
+> > real =A0 =A00m2.210s
+> > user =A0 =A00m1.251s
+> > sys =A0 =A0 0m0.869s
+> >
+> > 14:40:36 > time ./ibnetdiscover -o 4 --node-name-map /etc/opensm/ib=
+-node-name-map -g > new
+> >
+> > real =A0 =A00m3.385s
+> > user =A0 =A00m1.888s
+> > sys =A0 =A0 0m1.448s
+> >
+> > 14:40:46 > time ./ibnetdiscover -o 4 --node-name-map /etc/opensm/ib=
+-node-name-map -g > new
+> >
+> > real =A0 =A00m2.211s
+> > user =A0 =A00m1.165s
+> > sys =A0 =A0 0m0.951s
+> >
+> > 14:40:51 > time ./ibnetdiscover -o 8 --node-name-map /etc/opensm/ib=
+-node-name-map -g > new
+> >
+> > real =A0 =A00m2.249s
+> > user =A0 =A00m1.244s
+> > sys =A0 =A0 0m0.936s
+> >
+> > 14:40:59 > time ./ibnetdiscover -o 4 --node-name-map /etc/opensm/ib=
+-node-name-map -g > new
+> >
+> > real =A0 =A00m2.170s
+> > user =A0 =A00m1.160s
+> > sys =A0 =A0 0m0.933s
+> >
+> > 14:41:10 > /usr/sbin/ibqueryerrors =A0-s RcvErrors,SymbolErrors,Rcv=
+SwRelayErrors,XmtWait -r --data
+> > Suppressing: RcvErrors SymbolErrors RcvSwRelayErrors XmtWait
+> > Errors for 0x66a00d90006fb "SW19"
+> > =A0 GUID 0x66a00d90006fb port 9: [VL15Dropped =3D=3D 3] [XmtData =3D=
+=3D 25187379] [RcvData =3D=3D 25196688] [XmtPkts =3D=3D 349861] [RcvPkt=
+s =3D=3D 349954]
+> > =A0 =A0 =A0 Link info: =A0 =A0139 =A0 9[ =A0] =3D=3D( 4X 5.0 Gbps A=
+ctive/ =A0LinkUp)=3D=3D> =A00x0002c9030001d736 =A0 =A0864 =A0 =A01[ =A0=
+] "hyperion1" ( )
+> >
+> > Note that there were no additional VL15Dropped packets on the fabri=
+c. =A0I think 4 seems to be a good compromise. =A0I have not tested whe=
+n there are errors on the fabric. =A0(Right now things seem to be good!=
+)
+>=20
+> Is this just with the SM doing light sweeping ?
 
-diff --git a/opensm/opensm/osm_drop_mgr.c b/opensm/opensm/osm_drop_mgr.c
-index 879e21f..111582e 100644
---- a/opensm/opensm/osm_drop_mgr.c
-+++ b/opensm/opensm/osm_drop_mgr.c
-@@ -180,6 +180,33 @@ static void drop_mgr_remove_port(osm_sm_t * sm, IN osm_port_t * p_port)
- 		goto Exit;
- 	}
- 
-+	/* issue a notice - trap 65 */
-+	/* details of the notice */
-+	notice.generic_type = 0x83;	/* is generic subn mgt type */
-+	ib_notice_set_prod_type_ho(&notice, 4);	/* A class manager generator */
-+	/* endport ceases to be reachable */
-+	notice.g_or_v.generic.trap_num = CL_HTON16(65);
-+	/* The sm_base_lid is saved in network order already. */
-+	notice.issuer_lid = sm->p_subn->sm_base_lid;
-+	/* following C14-72.1.2 and table 119 p725 */
-+	/* we need to provide the GID */
-+	port_gid.unicast.prefix = sm->p_subn->opt.subnet_prefix;
-+	port_gid.unicast.interface_id = port_guid;
-+	memcpy(&(notice.data_details.ntc_64_67.gid),
-+	       &(port_gid), sizeof(ib_gid_t));
-+
-+	/* According to page 653 - the issuer gid in this case of trap
-+	   is the SM gid, since the SM is the initiator of this trap. */
-+	notice.issuer_gid.unicast.prefix = sm->p_subn->opt.subnet_prefix;
-+	notice.issuer_gid.unicast.interface_id = sm->p_subn->sm_port_guid;
-+
-+	status = osm_report_notice(sm->p_log, sm->p_subn, &notice);
-+	if (status != IB_SUCCESS) {
-+		OSM_LOG(sm->p_log, OSM_LOG_ERROR, "ERR 0103: "
-+			"Error sending trap reports (%s)\n",
-+			ib_get_err_str(status));
-+	}
-+
- 	p_sm_guid_tbl = &sm->p_subn->sm_guid_tbl;
- 	p_sm = (osm_remote_sm_t *) cl_qmap_remove(p_sm_guid_tbl, port_guid);
- 	if (p_sm != (osm_remote_sm_t *) cl_qmap_end(p_sm_guid_tbl)) {
-@@ -217,35 +244,6 @@ static void drop_mgr_remove_port(osm_sm_t * sm, IN osm_port_t * p_port)
- 
- 	osm_port_delete(&p_port);
- 
--	/* issue a notice - trap 65 */
--
--	/* details of the notice */
--	notice.generic_type = 0x83;	/* is generic subn mgt type */
--	ib_notice_set_prod_type_ho(&notice, 4);	/* A class manager generator */
--	/* endport ceases to be reachable */
--	notice.g_or_v.generic.trap_num = CL_HTON16(65);
--	/* The sm_base_lid is saved in network order already. */
--	notice.issuer_lid = sm->p_subn->sm_base_lid;
--	/* following C14-72.1.2 and table 119 p725 */
--	/* we need to provide the GID */
--	port_gid.unicast.prefix = sm->p_subn->opt.subnet_prefix;
--	port_gid.unicast.interface_id = port_guid;
--	memcpy(&(notice.data_details.ntc_64_67.gid),
--	       &(port_gid), sizeof(ib_gid_t));
--
--	/* According to page 653 - the issuer gid in this case of trap
--	   is the SM gid, since the SM is the initiator of this trap. */
--	notice.issuer_gid.unicast.prefix = sm->p_subn->opt.subnet_prefix;
--	notice.issuer_gid.unicast.interface_id = sm->p_subn->sm_port_guid;
--
--	status = osm_report_notice(sm->p_log, sm->p_subn, &notice);
--	if (status != IB_SUCCESS) {
--		OSM_LOG(sm->p_log, OSM_LOG_ERROR, "ERR 0103: "
--			"Error sending trap reports (%s)\n",
--			ib_get_err_str(status));
--		goto Exit;
--	}
--
- 	OSM_LOG(sm->p_log, OSM_LOG_INFO,
- 		"Removed port with GUID:0x%016" PRIx64
- 		" LID range [%u, %u] of node:%s\n",
--- 
-1.5.5
+Yes.
 
+>=20
+> Is there a speedup with 4 rather than 2 ?
+
+There is a bit of a speed up (~0.5 to 1.0 sec).  But my main reason to =
+want to
+go to 4 is that if there are issues on the fabric, unresponsive nodes e=
+tc.; 4
+will give us better parallelism to get around these issues.  I have not=
+ had
+the chance to test this condition with the new algorithm but the origin=
+al
+ibnetdiscover would slow way down when there are nodes which have unres=
+ponsive
+SMA's.  If there are only 2 outstanding this will not give us much spee=
+d up.
+This was the main motivation I had for improving the library in this wa=
+y.
+
+Also, I think you are correct that we should increase OpenSM's default =
+from 4
+to 8.  For the same reason as above.  Some of our clusters have worked =
+better
+with 8 when we are having issues.  But right now we are still running w=
+ith 4.
+
+Ira
+
+>=20
+> -- Hal
+>=20
+> >
+> > The first patch converts the algorithm and the second adds the ibnd=
+_set_max_smps_on_wire call.
+> >
+> > Let me know what you think. =A0Because the algorithm changed so muc=
+h testing this is a bit difficult because the order of the node discove=
+ry is different. =A0However, I have done some extensive diffing of the =
+output of ibnetdiscover and things look good.
+> >
+> > Ira
+> >
+> > --
+> > Ira Weiny
+> > Math Programmer/Computer Scientist
+> > Lawrence Livermore National Lab
+> > 925-423-8008
+> > weiny2-i2BcT+NCU+M@public.gmane.org
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-rdm=
+a" in
+> > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> > More majordomo info at =A0http://*vger.kernel.org/majordomo-info.ht=
+ml
+> >
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma"=
+ in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://*vger.kernel.org/majordomo-info.html
+>=20
+
+
+--=20
+Ira Weiny
+Math Programmer/Computer Scientist
+Lawrence Livermore National Lab
+925-423-8008
+weiny2-i2BcT+NCU+M@public.gmane.org
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
