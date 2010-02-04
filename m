@@ -1,7 +1,7 @@
 From: Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH] opensm/complib/cl_passivelock.h: remove unneeded casting
-Date: Thu, 04 Feb 2010 16:14:41 +0200
-Message-ID: <4B6AD651.3080303@dev.mellanox.co.il>
+Subject: [PATCH v3] opensm: minor improvement in loading SA DB
+Date: Thu, 04 Feb 2010 16:16:34 +0200
+Message-ID: <4B6AD6C2.2050401@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
@@ -11,68 +11,76 @@ To: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
 Cc: Linux RDMA <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-After converting cl_status_t from enum to int,
-no need to do this casting any more.
+Check whether the loading is needed in the state mgr.
 
 Signed-off-by: Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 ---
 
-Note: this patch replaces the following patch:
- "[PATCH v3] opensm/complib/cl_passivelock.h: some casting issues"
+Changes since v2: cosmetics and copyright
 
- opensm/include/complib/cl_passivelock.h |   10 +++++-----
- 1 files changed, 5 insertions(+), 5 deletions(-)
+ opensm/opensm/osm_sa.c        |    8 +-------
+ opensm/opensm/osm_state_mgr.c |   13 ++++++++-----
+ 2 files changed, 9 insertions(+), 12 deletions(-)
 
-diff --git a/opensm/include/complib/cl_passivelock.h b/opensm/include/complib/cl_passivelock.h
-index bafd339..aea3bab 100644
---- a/opensm/include/complib/cl_passivelock.h
-+++ b/opensm/include/complib/cl_passivelock.h
+diff --git a/opensm/opensm/osm_sa.c b/opensm/opensm/osm_sa.c
+index 3473e4c..ea87275 100644
+--- a/opensm/opensm/osm_sa.c
++++ b/opensm/opensm/osm_sa.c
 @@ -1,6 +1,6 @@
  /*
-  * Copyright (c) 2004, 2005 Voltaire, Inc. All rights reserved.
-- * Copyright (c) 2002-2005 Mellanox Technologies LTD. All rights reserved.
+  * Copyright (c) 2004-2009 Voltaire, Inc. All rights reserved.
+- * Copyright (c) 2002-2009 Mellanox Technologies LTD. All rights reserved.
 + * Copyright (c) 2002-2010 Mellanox Technologies LTD. All rights reserved.
   * Copyright (c) 1996-2003 Intel Corporation. All rights reserved.
+  * Copyright (c) 2008 Xsigo Systems Inc.  All rights reserved.
   *
-  * This software is available to you under a choice of one of two
-@@ -196,7 +196,7 @@ static inline cl_status_t cl_plock_init(IN cl_plock_t * const p_lock)
- 	cl_status_t status;
+@@ -907,12 +907,6 @@ int osm_sa_db_file_load(osm_opensm_t * p_osm)
+ 	unsigned rereg_clients = 0;
+ 	unsigned lineno;
 
- 	CL_ASSERT(p_lock);
--	status = (cl_status_t) pthread_rwlock_init(&p_lock->lock, NULL);
-+	status = pthread_rwlock_init(&p_lock->lock, NULL);
- 	if (status)
- 		return CL_ERROR;
- 	p_lock->state = CL_INITIALIZED;
-@@ -238,7 +238,7 @@ static inline void cl_plock_acquire(IN cl_plock_t * const p_lock)
- 	CL_ASSERT(p_lock);
- 	CL_ASSERT(p_lock->state == CL_INITIALIZED);
+-	if (!p_osm->subn.first_time_master_sweep) {
+-		OSM_LOG(&p_osm->log, OSM_LOG_VERBOSE,
+-			"Not first sweep - skip SA DB restore\n");
+-		return 0;
+-	}
+-
+ 	file_name = p_osm->subn.opt.sa_db_file;
+ 	if (!file_name) {
+ 		OSM_LOG(&p_osm->log, OSM_LOG_VERBOSE,
+diff --git a/opensm/opensm/osm_state_mgr.c b/opensm/opensm/osm_state_mgr.c
+index e43463f..f3f004a 100644
+--- a/opensm/opensm/osm_state_mgr.c
++++ b/opensm/opensm/osm_state_mgr.c
+@@ -1,7 +1,7 @@
+ /*
+  * Copyright (c) 2009 Sun Microsystems, Inc. All rights reserved.
+  * Copyright (c) 2004-2009 Voltaire, Inc. All rights reserved.
+- * Copyright (c) 2002-2009 Mellanox Technologies LTD. All rights reserved.
++ * Copyright (c) 2002-2010 Mellanox Technologies LTD. All rights reserved.
+  * Copyright (c) 1996-2003 Intel Corporation. All rights reserved.
+  * Copyright (c) 2009 HNR Consulting. All rights reserved.
+  *
+@@ -1261,10 +1261,13 @@ repeat_discovery:
 
--	status = (cl_status_t) pthread_rwlock_rdlock(&p_lock->lock);
-+	status = pthread_rwlock_rdlock(&p_lock->lock);
- 	CL_ASSERT(status == 0);
- }
+ 	osm_qos_setup(sm->p_subn->p_osm);
 
-@@ -271,7 +271,7 @@ static inline void cl_plock_excl_acquire(IN cl_plock_t * const p_lock)
- 	CL_ASSERT(p_lock);
- 	CL_ASSERT(p_lock->state == CL_INITIALIZED);
+-	/* try to restore SA DB (this should be before lid_mgr
+-	   because we may want to disable clients reregistration
+-	   when SA DB is restored) */
+-	osm_sa_db_file_load(sm->p_subn->p_osm);
++	/*
++	 * If it's the first master sweep, try to restore SA DB
++	 * (this should be before lid_mgr because we may want to
++	 * disable clients reregistration when SA DB is restored)
++	 */
++	if (sm->p_subn->first_time_master_sweep)
++		osm_sa_db_file_load(sm->p_subn->p_osm);
 
--	status = (cl_status_t) pthread_rwlock_wrlock(&p_lock->lock);
-+	status = pthread_rwlock_wrlock(&p_lock->lock);
- 	CL_ASSERT(status == 0);
- }
-
-@@ -303,7 +303,7 @@ static inline void cl_plock_release(IN cl_plock_t * const p_lock)
- 	CL_ASSERT(p_lock);
- 	CL_ASSERT(p_lock->state == CL_INITIALIZED);
-
--	status = (cl_status_t) pthread_rwlock_unlock(&p_lock->lock);
-+	status = pthread_rwlock_unlock(&p_lock->lock);
- 	CL_ASSERT(status == 0);
- }
-
+ 	if (wait_for_pending_transactions(&sm->p_subn->p_osm->stats))
+ 		return;
 -- 
 1.5.1.4
+
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
