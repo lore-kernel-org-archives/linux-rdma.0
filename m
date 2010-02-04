@@ -1,174 +1,66 @@
-From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-Subject: Re: [PATCH 0/2] Using multi-smps on the wire in libibnetdisc
-Date: Thu, 4 Feb 2010 10:00:45 -0800
-Message-ID: <20100204100045.4d2aa9aa.weiny2@llnl.gov>
-References: <20100202164514.bf2b152a.weiny2@llnl.gov>
-	<f0e08f231002040619y34784bauec6a25d31e7d229b@mail.gmail.com>
+From: Octavian Purdila <opurdila-+zzKsuq53OdBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [RFC Patch] net: reserve ports for applications using fixed port numbers
+Date: Thu, 4 Feb 2010 20:15:51 +0200
+Message-ID: <201002042015.51092.opurdila@ixiacom.com>
+References: <201002031312.48531.opurdila@ixiacom.com> <201002041444.01897.opurdila@ixiacom.com> <20100204.094110.64247447.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <f0e08f231002040619y34784bauec6a25d31e7d229b-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <20100204.094110.64247447.davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+Cc: amwang-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, eric.dumazet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, nhorman-2XuSBdqkA4R54TAoqtyWWQ@public.gmane.org, linux-sctp-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, 4 Feb 2010 09:19:39 -0500
-Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
+On Thursday 04 February 2010 19:41:10 you wrote:
 
-> On Tue, Feb 2, 2010 at 7:45 PM, Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org> wrote:
-> > Sasha,
-> >
-> > Following up on our thread regarding having multiple outstanding SM=
-P's in libibnetdisc.
-> >
-> > These 2 patches implement that as well as add a function to set the=
- max outstanding the lib will use.
-> >
-> > I left the default here to be 4. =A0On a large cluster there seems =
-to be some variance with using 8 or 12. =A0Sometimes I get a speed up o=
-ver 4 and other times I don't see any. =A0I think it has to do with the=
- traffic on the fabric at any particular time.
-> >
-> > For example here are some runs I just did on Hyperion.
-> >
-> > 14:31:55 > /usr/sbin/ibqueryerrors =A0-s RcvErrors,SymbolErrors,Rcv=
-SwRelayErrors,XmtWait -r --data
-> > Suppressing: RcvErrors SymbolErrors RcvSwRelayErrors XmtWait
-> > Errors for 0x66a00d90006fb "SW19"
-> > =A0 GUID 0x66a00d90006fb port 9: [VL15Dropped =3D=3D 3] [XmtData =3D=
-=3D 14562048] [RcvData =3D=3D 14563872] [XmtPkts =3D=3D 202255] [RcvPkt=
-s =3D=3D 202276]
-> > =A0 =A0 =A0 Link info: =A0 =A0139 =A0 9[ =A0] =3D=3D( 4X 5.0 Gbps A=
-ctive/ =A0LinkUp)=3D=3D> =A00x0002c9030001d736 =A0 =A0864 =A0 =A01[ =A0=
-] "hyperion1" ( )
-> >
-> > 14:32:02 > time ./ibnetdiscover -o 8 --node-name-map /etc/opensm/ib=
--node-name-map -g > new
-> >
-> > real =A0 =A00m2.210s
-> > user =A0 =A00m1.251s
-> > sys =A0 =A0 0m0.869s
-> >
-> > 14:40:36 > time ./ibnetdiscover -o 4 --node-name-map /etc/opensm/ib=
--node-name-map -g > new
-> >
-> > real =A0 =A00m3.385s
-> > user =A0 =A00m1.888s
-> > sys =A0 =A0 0m1.448s
-> >
-> > 14:40:46 > time ./ibnetdiscover -o 4 --node-name-map /etc/opensm/ib=
--node-name-map -g > new
-> >
-> > real =A0 =A00m2.211s
-> > user =A0 =A00m1.165s
-> > sys =A0 =A0 0m0.951s
-> >
-> > 14:40:51 > time ./ibnetdiscover -o 8 --node-name-map /etc/opensm/ib=
--node-name-map -g > new
-> >
-> > real =A0 =A00m2.249s
-> > user =A0 =A00m1.244s
-> > sys =A0 =A0 0m0.936s
-> >
-> > 14:40:59 > time ./ibnetdiscover -o 4 --node-name-map /etc/opensm/ib=
--node-name-map -g > new
-> >
-> > real =A0 =A00m2.170s
-> > user =A0 =A00m1.160s
-> > sys =A0 =A0 0m0.933s
-> >
-> > 14:41:10 > /usr/sbin/ibqueryerrors =A0-s RcvErrors,SymbolErrors,Rcv=
-SwRelayErrors,XmtWait -r --data
-> > Suppressing: RcvErrors SymbolErrors RcvSwRelayErrors XmtWait
-> > Errors for 0x66a00d90006fb "SW19"
-> > =A0 GUID 0x66a00d90006fb port 9: [VL15Dropped =3D=3D 3] [XmtData =3D=
-=3D 25187379] [RcvData =3D=3D 25196688] [XmtPkts =3D=3D 349861] [RcvPkt=
-s =3D=3D 349954]
-> > =A0 =A0 =A0 Link info: =A0 =A0139 =A0 9[ =A0] =3D=3D( 4X 5.0 Gbps A=
-ctive/ =A0LinkUp)=3D=3D> =A00x0002c9030001d736 =A0 =A0864 =A0 =A01[ =A0=
-] "hyperion1" ( )
-> >
-> > Note that there were no additional VL15Dropped packets on the fabri=
-c. =A0I think 4 seems to be a good compromise. =A0I have not tested whe=
-n there are errors on the fabric. =A0(Right now things seem to be good!=
-)
->=20
-> Is this just with the SM doing light sweeping ?
+> From: Octavian Purdila <opurdila-+zzKsuq53OdBDgjK7y7TUQ@public.gmane.org>
+> Date: Thu, 4 Feb 2010 14:44:01 +0200
+> 
+> > My concern is that we can have multiple applications that require a
+> > fixed port and if those ports are significantly apart we will
+> > decrease the port range available for connect. And that will hurt
+> > the rate of which new connections can be opened.
+> 
+> I'm already uneasy about adding the simple check every time
+> we loop around in the bind port allocator.
+> 
+> Adding an LSM hook to this spot?  I absolutely refuse to allow
+> that, it will completely kill bind performance.
+> 
 
-Yes.
+I think Tetsuo was proposing the LSM hook, so I'll leave him the daunting task 
+of convincing you of the benefit of that :) - I have no opinion on this due to 
+massive lack of knowledge.
 
->=20
-> Is there a speedup with 4 rather than 2 ?
+I was just proposing to use a discrete set of ports instead of a range. The 
+check in the current patch:
 
-There is a bit of a speed up (~0.5 to 1.0 sec).  But my main reason to =
-want to
-go to 4 is that if there are issues on the fabric, unresponsive nodes e=
-tc.; 4
-will give us better parallelism to get around these issues.  I have not=
- had
-the chance to test this condition with the new algorithm but the origin=
-al
-ibnetdiscover would slow way down when there are nodes which have unres=
-ponsive
-SMA's.  If there are only 2 outstanding this will not give us much spee=
-d up.
-This was the main motivation I had for improving the library in this wa=
-y.
+int inet_is_reserved_local_port(int port)
+{
+       int min, max;
 
-Also, I think you are correct that we should increase OpenSM's default =
-from 4
-to 8.  For the same reason as above.  Some of our clusters have worked =
-better
-with 8 when we are having issues.  But right now we are still running w=
-ith 4.
+       inet_get_local_reserved_ports(&min, &max);
+       if (min && max)
+               return (port >= min && port <= max);
+       return 0;
+}
 
-Ira
+would become:
 
->=20
-> -- Hal
->=20
-> >
-> > The first patch converts the algorithm and the second adds the ibnd=
-_set_max_smps_on_wire call.
-> >
-> > Let me know what you think. =A0Because the algorithm changed so muc=
-h testing this is a bit difficult because the order of the node discove=
-ry is different. =A0However, I have done some extensive diffing of the =
-output of ibnetdiscover and things look good.
-> >
-> > Ira
-> >
-> > --
-> > Ira Weiny
-> > Math Programmer/Computer Scientist
-> > Lawrence Livermore National Lab
-> > 925-423-8008
-> > weiny2-i2BcT+NCU+M@public.gmane.org
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-rdm=
-a" in
-> > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> > More majordomo info at =A0http://*vger.kernel.org/majordomo-info.ht=
-ml
-> >
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma"=
- in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://*vger.kernel.org/majordomo-info.html
->=20
+int inet_is_reserved_local_port(int port)
+{
+	if (test_bit(port, reserved_ports))
+		return 1;
+	return 0;
+}
 
-
---=20
-Ira Weiny
-Math Programmer/Computer Scientist
-Lawrence Livermore National Lab
-925-423-8008
-weiny2-i2BcT+NCU+M@public.gmane.org
+In theory it might be slower because of the reserved_ports bitmap will have a 
+larger memory footprint than just a min/max, especially with random port 
+allocation. But is this an issue in practice?
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
