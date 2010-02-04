@@ -1,40 +1,92 @@
-From: Octavian Purdila <opurdila-+zzKsuq53OdBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [RFC Patch] net: reserve ports for applications using fixed port numbers
-Date: Thu, 4 Feb 2010 14:44:01 +0200
-Message-ID: <201002041444.01897.opurdila@ixiacom.com>
-References: <20100203043332.3817.27932.sendpatchset@localhost.localdomain> <201002031312.48531.opurdila@ixiacom.com> <4B6A3DBA.1000706@redhat.com>
+From: Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: [PATCH] opensm/complib/cl_types.h: convert cl_status_t to int
+Date: Thu, 04 Feb 2010 16:13:04 +0200
+Message-ID: <4B6AD5F0.5000207@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4B6A3DBA.1000706-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Cong Wang <amwang-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Eric Dumazet <eric.dumazet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Neil Horman <nhorman-2XuSBdqkA4R54TAoqtyWWQ@public.gmane.org>, linux-sctp-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+To: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+Cc: Linux RDMA <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thursday 04 February 2010 05:23:38 you wrote:
 
-> > I think it might be useful to allow setting individual ports as reserved,
-> > not only ranges, for example by using a bitmap.
-> 
-> This is a good idea, but I am not sure if this will be overkill? :-/
-> Also, using bitmap is not friendly to sysctl interface, I am afraid.
-> 
+Signed-off-by: Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+---
+ opensm/include/complib/cl_types.h |   49 ++++++++++++++++++-------------------
+ 1 files changed, 24 insertions(+), 25 deletions(-)
 
-My concern is that we can have multiple applications that require a fixed port 
-and if those ports are significantly apart we will decrease the port range 
-available for connect. And that will hurt the rate of which new connections 
-can be opened.
+diff --git a/opensm/include/complib/cl_types.h b/opensm/include/complib/cl_types.h
+index 17e0df8..a773e51 100644
+--- a/opensm/include/complib/cl_types.h
++++ b/opensm/include/complib/cl_types.h
+@@ -1,6 +1,6 @@
+ /*
+  * Copyright (c) 2004-2009 Voltaire, Inc. All rights reserved.
+- * Copyright (c) 2002-2005 Mellanox Technologies LTD. All rights reserved.
++ * Copyright (c) 2002-2010 Mellanox Technologies LTD. All rights reserved.
+  * Copyright (c) 1996-2003 Intel Corporation. All rights reserved.
+  *
+  * This software is available to you under a choice of one of two
+@@ -263,31 +263,30 @@ typedef uint64_t net64_t;
+ *
+ * SYNOPSIS
+ */
+-typedef enum _cl_status {
+-	CL_SUCCESS = 0,
+-	CL_ERROR,
+-	CL_INVALID_STATE,
+-	CL_INVALID_OPERATION,
+-	CL_INVALID_SETTING,
+-	CL_INVALID_PARAMETER,
+-	CL_INSUFFICIENT_RESOURCES,
+-	CL_INSUFFICIENT_MEMORY,
+-	CL_INVALID_PERMISSION,
+-	CL_COMPLETED,
+-	CL_NOT_DONE,
+-	CL_PENDING,
+-	CL_TIMEOUT,
+-	CL_CANCELED,
+-	CL_REJECT,
+-	CL_OVERRUN,
+-	CL_NOT_FOUND,
+-	CL_UNAVAILABLE,
+-	CL_BUSY,
+-	CL_DISCONNECT,
+-	CL_DUPLICATE,
++#define CL_SUCCESS                 0
++#define CL_ERROR                   1
++#define CL_INVALID_STATE           2
++#define CL_INVALID_OPERATION       3
++#define CL_INVALID_SETTING         4
++#define CL_INVALID_PARAMETER       5
++#define CL_INSUFFICIENT_RESOURCES  6
++#define CL_INSUFFICIENT_MEMORY     7
++#define CL_INVALID_PERMISSION      8
++#define CL_COMPLETED               9
++#define CL_NOT_DONE               10
++#define CL_PENDING                11
++#define CL_TIMEOUT                12
++#define CL_CANCELED               13
++#define CL_REJECT                 14
++#define CL_OVERRUN                15
++#define CL_NOT_FOUND              16
++#define CL_UNAVAILABLE            17
++#define CL_BUSY                   18
++#define CL_DISCONNECT             19
++#define CL_DUPLICATE              20
++#define CL_STATUS_COUNT           21 /* should be the last value */
 
-As for the sysctl interface I agree, I don't think it is even possible to  
-cleanly use a bitmap through sysctl.
+-	CL_STATUS_COUNT		/* should be the last value */
+-} cl_status_t;
++typedef int cl_status_t;
+ /*
+ * SEE ALSO
+ *	Data Types, CL_STATUS_MSG
+-- 
+1.5.1.4
 
-The options I see are either enhance sysctl to support bitmaps or use a 
-dedicated /proc/net entry. 
-
-I want to give this a try, which one do you people think is better?
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
