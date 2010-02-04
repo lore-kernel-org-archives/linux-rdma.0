@@ -1,34 +1,102 @@
-From: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
-Subject: Re: [RFC Patch] net: reserve ports for applications using fixed
- port numbers
-Date: Thu, 04 Feb 2010 09:41:10 -0800 (PST)
-Message-ID: <20100204.094110.64247447.davem@davemloft.net>
-References: <201002031312.48531.opurdila@ixiacom.com>
-	<4B6A3DBA.1000706@redhat.com>
-	<201002041444.01897.opurdila@ixiacom.com>
+From: "Eli Dorfman (Voltaire)" <dorfman.eli-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH] Delete port only after GID OUT trap was sent
+Date: Thu, 04 Feb 2010 20:12:20 +0200
+Message-ID: <4B6B0E04.808@gmail.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <201002041444.01897.opurdila-+zzKsuq53OdBDgjK7y7TUQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: opurdila-+zzKsuq53OdBDgjK7y7TUQ@public.gmane.org
-Cc: amwang-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, eric.dumazet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, nhorman-2XuSBdqkA4R54TAoqtyWWQ@public.gmane.org, linux-sctp-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Vladimir Koushnir <vladimirk-smomgflXvOZWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Octavian Purdila <opurdila-+zzKsuq53OdBDgjK7y7TUQ@public.gmane.org>
-Date: Thu, 4 Feb 2010 14:44:01 +0200
+Send GID OUT trap first and only then remove the port.
+This is done to allow SM check that subscriber and trap source
+are permitted to access each other.
 
-> My concern is that we can have multiple applications that require a
-> fixed port and if those ports are significantly apart we will
-> decrease the port range available for connect. And that will hurt
-> the rate of which new connections can be opened.
+Signed-off-by: Eli Dorfman <elid-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+---
+ opensm/opensm/osm_drop_mgr.c |   56 ++++++++++++++++++++---------------------
+ 1 files changed, 27 insertions(+), 29 deletions(-)
 
-I'm already uneasy about adding the simple check every time
-we loop around in the bind port allocator.
+diff --git a/opensm/opensm/osm_drop_mgr.c b/opensm/opensm/osm_drop_mgr.c
+index 879e21f..111582e 100644
+--- a/opensm/opensm/osm_drop_mgr.c
++++ b/opensm/opensm/osm_drop_mgr.c
+@@ -180,6 +180,33 @@ static void drop_mgr_remove_port(osm_sm_t * sm, IN osm_port_t * p_port)
+ 		goto Exit;
+ 	}
+ 
++	/* issue a notice - trap 65 */
++	/* details of the notice */
++	notice.generic_type = 0x83;	/* is generic subn mgt type */
++	ib_notice_set_prod_type_ho(&notice, 4);	/* A class manager generator */
++	/* endport ceases to be reachable */
++	notice.g_or_v.generic.trap_num = CL_HTON16(65);
++	/* The sm_base_lid is saved in network order already. */
++	notice.issuer_lid = sm->p_subn->sm_base_lid;
++	/* following C14-72.1.2 and table 119 p725 */
++	/* we need to provide the GID */
++	port_gid.unicast.prefix = sm->p_subn->opt.subnet_prefix;
++	port_gid.unicast.interface_id = port_guid;
++	memcpy(&(notice.data_details.ntc_64_67.gid),
++	       &(port_gid), sizeof(ib_gid_t));
++
++	/* According to page 653 - the issuer gid in this case of trap
++	   is the SM gid, since the SM is the initiator of this trap. */
++	notice.issuer_gid.unicast.prefix = sm->p_subn->opt.subnet_prefix;
++	notice.issuer_gid.unicast.interface_id = sm->p_subn->sm_port_guid;
++
++	status = osm_report_notice(sm->p_log, sm->p_subn, &notice);
++	if (status != IB_SUCCESS) {
++		OSM_LOG(sm->p_log, OSM_LOG_ERROR, "ERR 0103: "
++			"Error sending trap reports (%s)\n",
++			ib_get_err_str(status));
++	}
++
+ 	p_sm_guid_tbl = &sm->p_subn->sm_guid_tbl;
+ 	p_sm = (osm_remote_sm_t *) cl_qmap_remove(p_sm_guid_tbl, port_guid);
+ 	if (p_sm != (osm_remote_sm_t *) cl_qmap_end(p_sm_guid_tbl)) {
+@@ -217,35 +244,6 @@ static void drop_mgr_remove_port(osm_sm_t * sm, IN osm_port_t * p_port)
+ 
+ 	osm_port_delete(&p_port);
+ 
+-	/* issue a notice - trap 65 */
+-
+-	/* details of the notice */
+-	notice.generic_type = 0x83;	/* is generic subn mgt type */
+-	ib_notice_set_prod_type_ho(&notice, 4);	/* A class manager generator */
+-	/* endport ceases to be reachable */
+-	notice.g_or_v.generic.trap_num = CL_HTON16(65);
+-	/* The sm_base_lid is saved in network order already. */
+-	notice.issuer_lid = sm->p_subn->sm_base_lid;
+-	/* following C14-72.1.2 and table 119 p725 */
+-	/* we need to provide the GID */
+-	port_gid.unicast.prefix = sm->p_subn->opt.subnet_prefix;
+-	port_gid.unicast.interface_id = port_guid;
+-	memcpy(&(notice.data_details.ntc_64_67.gid),
+-	       &(port_gid), sizeof(ib_gid_t));
+-
+-	/* According to page 653 - the issuer gid in this case of trap
+-	   is the SM gid, since the SM is the initiator of this trap. */
+-	notice.issuer_gid.unicast.prefix = sm->p_subn->opt.subnet_prefix;
+-	notice.issuer_gid.unicast.interface_id = sm->p_subn->sm_port_guid;
+-
+-	status = osm_report_notice(sm->p_log, sm->p_subn, &notice);
+-	if (status != IB_SUCCESS) {
+-		OSM_LOG(sm->p_log, OSM_LOG_ERROR, "ERR 0103: "
+-			"Error sending trap reports (%s)\n",
+-			ib_get_err_str(status));
+-		goto Exit;
+-	}
+-
+ 	OSM_LOG(sm->p_log, OSM_LOG_INFO,
+ 		"Removed port with GUID:0x%016" PRIx64
+ 		" LID range [%u, %u] of node:%s\n",
+-- 
+1.5.5
 
-Adding an LSM hook to this spot?  I absolutely refuse to allow
-that, it will completely kill bind performance.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
