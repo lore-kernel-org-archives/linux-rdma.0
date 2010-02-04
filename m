@@ -1,51 +1,40 @@
-From: Or Gerlitz <ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH] rdma/nes: change WQ overflow return code
-Date: Thu, 4 Feb 2010 13:25:07 +0200 (IST)
-Message-ID: <Pine.LNX.4.64.1002041323100.31229@zuben.voltaire.com>
+From: Octavian Purdila <opurdila-+zzKsuq53OdBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: [RFC Patch] net: reserve ports for applications using fixed port numbers
+Date: Thu, 4 Feb 2010 14:44:01 +0200
+Message-ID: <201002041444.01897.opurdila@ixiacom.com>
+References: <20100203043332.3817.27932.sendpatchset@localhost.localdomain> <201002031312.48531.opurdila@ixiacom.com> <4B6A3DBA.1000706@redhat.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <4B6A3DBA.1000706-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Chien Tung <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Cong Wang <amwang-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Eric Dumazet <eric.dumazet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Neil Horman <nhorman-2XuSBdqkA4R54TAoqtyWWQ@public.gmane.org>, linux-sctp-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-change the nes driver to return -ENOMEM on SQ/RQ overflow in the
-manner done by other rdma hw drivers (e.g cxgb3, ehca, mlx4, mthca)
+On Thursday 04 February 2010 05:23:38 you wrote:
 
-Signed-off-by: Or Gerlitz <ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+> > I think it might be useful to allow setting individual ports as reserved,
+> > not only ranges, for example by using a bitmap.
+> 
+> This is a good idea, but I am not sure if this will be overkill? :-/
+> Also, using bitmap is not friendly to sysctl interface, I am afraid.
+> 
 
-Index: linux-2.6.33-rc4/drivers/infiniband/hw/nes/nes_verbs.c
-===================================================================
---- linux-2.6.33-rc4.orig/drivers/infiniband/hw/nes/nes_verbs.c
-+++ linux-2.6.33-rc4/drivers/infiniband/hw/nes/nes_verbs.c
-@@ -228,7 +228,7 @@ static int nes_bind_mw(struct ib_qp *ibq
- 	/* Check for SQ overflow */
- 	if (((head + (2 * qsize) - nesqp->hwqp.sq_tail) % qsize) == (qsize - 1)) {
- 		spin_unlock_irqrestore(&nesqp->lock, flags);
--		return -EINVAL;
-+		return -ENOMEM;
- 	}
+My concern is that we can have multiple applications that require a fixed port 
+and if those ports are significantly apart we will decrease the port range 
+available for connect. And that will hurt the rate of which new connections 
+can be opened.
 
- 	wqe = &nesqp->hwqp.sq_vbase[head];
-@@ -3294,7 +3294,7 @@ static int nes_post_send(struct ib_qp *i
+As for the sysctl interface I agree, I don't think it is even possible to  
+cleanly use a bitmap through sysctl.
 
- 		/* Check for SQ overflow */
- 		if (((head + (2 * qsize) - nesqp->hwqp.sq_tail) % qsize) == (qsize - 1)) {
--			err = -EINVAL;
-+			err = -ENOMEM;
- 			break;
- 		}
+The options I see are either enhance sysctl to support bitmaps or use a 
+dedicated /proc/net entry. 
 
-@@ -3577,7 +3577,7 @@ static int nes_post_recv(struct ib_qp *i
- 		}
- 		/* Check for RQ overflow */
- 		if (((head + (2 * qsize) - nesqp->hwqp.rq_tail) % qsize) == (qsize - 1)) {
--			err = -EINVAL;
-+			err = -ENOMEM;
- 			break;
- 		}
-
+I want to give this a try, which one do you people think is better?
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
