@@ -1,95 +1,55 @@
-From: "Sean Hefty" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: bug 1918 - openmpi broken due to rdma-cm changes
-Date: Fri, 5 Feb 2010 12:09:54 -0800
-Message-ID: <38B735478FE94F40BBA3E8BFD794B10F@amr.corp.intel.com>
-References: <58D723FE08DC6A4398E6596E38F3FA170566DA@XMB-RCD-205.cisco.com> <0D5487526204477AA2ABED06E46768E2@amr.corp.intel.com> <4B6C498F.3060708@opengridcomputing.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: bug 1918 - openmpi broken due to rdma-cm changes
+Date: Fri, 5 Feb 2010 14:14:55 -0700
+Message-ID: <20100205211455.GT16490@obsidianresearch.com>
+References: <ada4olvefl4.fsf@roland-alpha.cisco.com> <324EFA68-12F6-46E9-B876-7F4847B53224@cisco.com> <4B6C6453.9090706@opengridcomputing.com> <20100205185616.GS16490@obsidianresearch.com> <E8FF8BD1-80AC-4AA7-BC2A-CE7547FB9ABA@cisco.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4B6C498F.3060708-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <E8FF8BD1-80AC-4AA7-BC2A-CE7547FB9ABA-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: 'Steve Wise' <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Cc: "'Jeff Squyres (jsquyres)'" <jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ewg-G2znmakfqn7U1rindQTSdQ@public.gmane.org, "Roland Dreier (rdreier)" <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+To: Jeff Squyres <jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Cc: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, "Roland Dreier (rdreier)" <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ewg-G2znmakfqn7U1rindQTSdQ@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
->Ammasso and Chelsio T3 rnics do not support HW loopback.
-
-It looks like the NES driver doesn't support 127.0.0.1, but does support
-loopback connections (gurgle).  Here's an untested patch for 2.6.33
-(not even compile tested) for consideration then.  I'll be testing
-this shortly unless there's disagreement.
-
-
-rdma/cm: disallow loopback address for iwarp devices
-
-From: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-
-The current RDMA iWarp devices cannot be used to establish
-connections using the loopback address.  Prevent rdma_bind_addr
-from associating the loopback address with an iWarp device.
-
-This fixes an issue with openmpi, where it tries to identify which
-IP addresses map to RDMA devices by calling rdma_bind_addr on
-each address and seeing if the bind succeeds.  Prior to patch
-6f8372b6 "RDMA/cm: fix loopback address support", this process
-worked.  But the rdma_cm now allows rdma_bind_addr to bind to an
-RDMA device using the loopback address, and attaches the rdma_cm_id
-to the RDMA device as part of the bind.
-
-Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
----
-
- drivers/infiniband/core/cma.c |   14 ++++++++++----
- 1 files changed, 10 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
-index cc9b594..5850411 100644
---- a/drivers/infiniband/core/cma.c
-+++ b/drivers/infiniband/core/cma.c
-@@ -1739,6 +1739,9 @@ err:
- }
- EXPORT_SYMBOL(rdma_resolve_route);
+On Fri, Feb 05, 2010 at 03:08:10PM -0500, Jeff Squyres wrote:
+> On Feb 5, 2010, at 1:56 PM, Jason Gunthorpe wrote:
+> 
+> > > I think we should remove the feature of allowing binds to 127.0.0.1 
+> > > altogether based on Jeff's arguments and my assertion that 127.0.0.1 is 
+> > > a sw-loopback mechanism anyway...
+> > 
+> > I don't agree, the kernel should be free to provide a loop back
+> > service any way it likes, and if that means using one of the HW
+> 
+> Ok, fine.  Should we push back OFED 1.5.1 until Open MPI can get 1.4.2 out?  I don't know when that will be.
  
-+/*
-+ * Only IB devices support loopback connections.
-+ */
- static int cma_bind_loopback(struct rdma_id_private *id_priv)
- {
- 	struct cma_device *cma_dev;
-@@ -1753,11 +1756,16 @@ static int cma_bind_loopback(struct rdma_id_private *id_priv)
- 		ret = -ENODEV;
- 		goto out;
- 	}
--	list_for_each_entry(cma_dev, &dev_list, list)
-+	list_for_each_entry(cma_dev, &dev_list, list) {
-+		if (rdma_node_get_transport(cma_dev->device->node_type) !=
-+		    RDMA_TRANSPORT_IB)
-+			continue;
-+
- 		for (p = 1; p <= cma_dev->device->phys_port_cnt; ++p)
- 			if (!ib_query_port(cma_dev->device, p, &port_attr) &&
- 			    port_attr.state == IB_PORT_ACTIVE)
- 				goto port_found;
-+	}
- 
- 	p = 1;
- 	cma_dev = list_entry(dev_list.next, struct cma_device, list);
-@@ -1771,9 +1779,7 @@ port_found:
- 	if (ret)
- 		goto out;
- 
--	id_priv->id.route.addr.dev_addr.dev_type =
--		(rdma_node_get_transport(cma_dev->device->node_type) == RDMA_TRANSPORT_IB) ?
--		ARPHRD_INFINIBAND : ARPHRD_ETHER;
-+	id_priv->id.route.addr.dev_addr.dev_type = ARPHRD_INFINIBAND;
- 
- 	rdma_addr_set_sgid(&id_priv->id.route.addr.dev_addr, &gid);
- 	ib_addr_set_pkey(&id_priv->id.route.addr.dev_addr, pkey);
+> In short: you're breaking backward compatibility with zero warning.
+> There is real software out there that will break if people upgrade
+> their kernel/OFED/RDMA CM/whatever (e.g., Open MPI).  Isn't this
+> supposed to be the Enterprise distribution (meaning: stability)?
+> (trying to keep the frustration out of my voice...)
 
+Well, I think you are right. This kind of change seems appropriate to
+me for mainline, but OFED/RHEL should carry a responsibility to manage
+an identified incompatibility, either patch their kernel, patch their
+OMPI, or publish an errata. That is the role of a distribution.
 
+> How about this: back out the change for now.  Give everyone time to
+> upgrade.  If nothing else, ***give those of us who are involved in
+> this community*** time to upgrade.  Then put the feature back in
+> after adequate time has passed.
 
+I've seen this approach go badly too :( If it isn't actually in a
+mainline kernel userspace devs tend to ignore it ..
+
+Sounds like this is taken care for now anyhow, Sean's patch to remove
+it for iwarp since it doesn't work today with any iwarp drivers does
+obscure the problem.. But it does seem like rdma_cm mode for IB
+networks will still be broken in OMPI with the new kernels.
+
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
