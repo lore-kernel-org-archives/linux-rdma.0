@@ -1,45 +1,29 @@
-From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: Re: bug 1918 - openmpi broken due to rdma-cm changes
-Date: Fri, 05 Feb 2010 10:45:08 -0600
-Message-ID: <4B6C4B14.9000202@opengridcomputing.com>
-References: <58D723FE08DC6A4398E6596E38F3FA170566DA@XMB-RCD-205.cisco.com> <4B6C4460.3050908@opengridcomputing.com>
+From: "Sean Hefty" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: bug 1918 - openmpi broken due to rdma-cm changes
+Date: Fri, 5 Feb 2010 08:52:31 -0800
+Message-ID: <F6DF49B759AD49EEB44BECD99FE26DCF@amr.corp.intel.com>
+References: <58D723FE08DC6A4398E6596E38F3FA170566DA@XMB-RCD-205.cisco.com> <0D5487526204477AA2ABED06E46768E2@amr.corp.intel.com> <4B6C498F.3060708@opengridcomputing.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Type: text/plain;
+	charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4B6C4460.3050908-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+In-Reply-To: <4B6C498F.3060708-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Jeff Squyres (jsquyres)" <jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Cc: sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ewg-G2znmakfqn7U1rindQTSdQ@public.gmane.org, "Roland Dreier (rdreier)" <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+To: 'Steve Wise' <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Cc: "'Jeff Squyres (jsquyres)'" <jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ewg-G2znmakfqn7U1rindQTSdQ@public.gmane.org, "Roland Dreier (rdreier)" <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+>My concern is breaking an existing working OpenMPI in a point release
+>because we changed semantics of the rdma-cm in an ofed point release...
 
-> I agree that we should probably not allow 127.0.0.1 binds in 
-> ofed-1.5.1 at all because it regresses OpenMPI.  Even with IB systems, 
-> if the bind to 127.0.0.1 succeeds, then OpenMPI assumes 127.0.0.1 is 
-> bound to that rdma interface and advertises this address to its peer 
-> as an address to-which that peer can rdma connect!  This will break IB 
-> clusters too, not just T3/iWARP cluster.   While I think OpenMPI needs 
-> to skip 127.0.0.1 in its logic, I think we should probably defer 
-> allowing 127.0.0.1 binds until ofed-1.6.
->
-> But Jeff, note that if someone uses the upstream kernel and OpenMPI, 
-> its busted...
->
-> So I recommend:
->
-> 1) Don't allow 127.0.0.1 binds in ofed-1.5.1
->
-> 2) Fix OpenMPI ASAP to never advertise 127.0.0.1 as a valid rdma-cm 
-> connect address (get it in ofed-1.5.2 or ofed-1.6).
+OFED can call this release a point release, but in reality, the content makes it
+a major release...
 
-Also, there is a good argument for never allowing 127.0.0.1 for rdma 
-anyway.  It implies a _software_ loopback.  It should NEVER be bound to 
-a real NIC interface and thus rdma binds shouldn't be allowed to it 
-since there is no software rdma loopback support...
+>BTW:  Was this change an artifact of rebasing ofed-1.5.1 on a new kernel
+>version?
 
-Unless someone implements software rdma loobpack...  ;)
-
+apparently
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
