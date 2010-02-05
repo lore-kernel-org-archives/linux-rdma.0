@@ -1,37 +1,46 @@
 From: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Subject: Re: [RFC Patch] net: reserve ports for applications using fixed portnumbers
-Date: Fri, 5 Feb 2010 18:08:15 +0900
-Message-ID: <201002051808.BFJ51557.SLQFtJVMOOFFOH@I-love.SAKURA.ne.jp>
-References: <20100203043332.3817.27932.sendpatchset@localhost.localdomain>
-	<e2e108261002042311w59ba1372ld9f8fb2f369ca434@mail.gmail.com>
-	<4B6BC7E4.5070909@redhat.com>
+Subject: Re: [RFC Patch v2] net: reserve ports for applications using fixedport numbers
+Date: Fri, 5 Feb 2010 20:21:28 +0900
+Message-ID: <201002052021.CIC81776.QVSMJOLtFOFFHO@I-love.SAKURA.ne.jp>
+References: <20100204101533.4619.34599.sendpatchset@localhost.localdomain>
+	<201002041959.JEG43202.JQOFHFOVSFMtLO@I-love.SAKURA.ne.jp>
+	<4B6BA16E.3010002@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <4B6BC7E4.5070909@redhat.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: bvanassche@acm.org
-Cc: amwang@redhat.com, linux-kernel@vger.kernel.org, eric.dumazet@gmail.com, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, nhorman@tuxdriver.com, linux-sctp@vger.kernel.org, davem@davemloft.net
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <4B6BA16E.3010002@redhat.com>
+Sender: netdev-owner@vger.kernel.org
+To: amwang@redhat.com
+Cc: linux-kernel@vger.kernel.org, linux-security-module@vger.kernel.org, opurdila@ixiacom.com, eric.dumazet@gmail.com, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, nhorman@tuxdriver.com, linux-sctp@vger.kernel.org, davem@davemloft.net
 List-Id: linux-rdma@vger.kernel.org
 
 Cong Wang wrote:
-> The problem is that there are some existing applications which use
-> fixed port number, we don't have chances to change this for them,
-> thus making them working is desired, so they want to reserve these
-> port for those applications.
-> 
-> For example, if I have an appliction which uses port 40000, but
-> before this application starts, another application gets this port
-> number by bind() with port 0 (i.e. chosen by kernel), in this case,
-> that application will fail to start. Again, we don't have any chance
-> to change the source code of that application.
-> 
-And there is a utility called "portreserved" (port reserve daemon).
-http://fedoraproject.org/wiki/Features/Portreserve
+> Oh, IIUC, TOMOYO is something like SELinux?
 
-But that utility cannot close the race window between "portreserved stops
-reserving local port numbers" and "applications starts using local port
-numbers which portreserved was reserving".
+Yes. It is a policy based mandatory access control implementation which is
+applied to not only non root users but also root user. If MAC is enabled,
+root user cannot freely modify via sysctl() or /proc/sys interface.
 
-Thus, I think people want to have port reservation mechanism inside kernel
-(if it has little impact).
+> So, it is somewhat weird to let users to use TOMOYO to reserve
+> the ports with MAC.
+
+To add reserved port
+
+echo deny_autobind 0-1023 | ccs-loadpolicy -e
+echo deny_autobind 3128 | ccs-loadpolicy -e
+echo deny_autobind 8080 | ccs-loadpolicy -e
+
+and to delete reserved port
+
+echo delete deny_autobind 0-1023 | ccs-loadpolicy -e
+echo delete deny_autobind 3128 | ccs-loadpolicy -e
+echo delete deny_autobind 8080 | ccs-loadpolicy -e
+
+That's all. Quite easy.
+
+> For normal users /proc interface seems more friendly.
+
+I think /proc/sys/net/ipv4/ip_local_reserved_ports interface wants
+"struct list_head" for handling multiple sets of min/max pairs. I'm using
+http://tomoyo.sourceforge.jp/cgi-bin/lxr/source/security/ccsecurity/autobind.c#L29
+for that purpose.
