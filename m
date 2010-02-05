@@ -1,43 +1,45 @@
-From: Jeff Squyres <jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 Subject: Re: bug 1918 - openmpi broken due to rdma-cm changes
-Date: Fri, 5 Feb 2010 12:58:28 -0500
-Message-ID: <324EFA68-12F6-46E9-B876-7F4847B53224@cisco.com>
-References: <58D723FE08DC6A4398E6596E38F3FA170566DA@XMB-RCD-205.cisco.com><4B6C4460.3050908@opengridcomputing.com>
-	<ada4olvefl4.fsf@roland-alpha.cisco.com>
-Mime-Version: 1.0 (Apple Message framework v1077)
-Content-Type: text/plain; charset="us-ascii"
+Date: Fri, 05 Feb 2010 12:32:51 -0600
+Message-ID: <4B6C6453.9090706@opengridcomputing.com>
+References: <58D723FE08DC6A4398E6596E38F3FA170566DA@XMB-RCD-205.cisco.com><4B6C4460.3050908@opengridcomputing.com> <ada4olvefl4.fsf@roland-alpha.cisco.com> <324EFA68-12F6-46E9-B876-7F4847B53224@cisco.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
-In-Reply-To: <ada4olvefl4.fsf-BjVyx320WGW9gfZ95n9DRSW4+XlvGpQz@public.gmane.org>
-List-Unsubscribe: <http://lists.openfabrics.org/cgi-bin/mailman/listinfo/ewg>,
-	<mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.openfabrics.org/pipermail/ewg>
-List-Post: <mailto:ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
-List-Help: <mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=help>
-List-Subscribe: <http://lists.openfabrics.org/cgi-bin/mailman/listinfo/ewg>,
-	<mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=subscribe>
-Sender: ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
-Errors-To: ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
-To: "Roland Dreier (rdreier)" <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, ewg-G2znmakfqn7U1rindQTSdQ@public.gmane.org
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <324EFA68-12F6-46E9-B876-7F4847B53224-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jeff Squyres <jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Cc: "Roland Dreier (rdreier)" <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ewg-G2znmakfqn7U1rindQTSdQ@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Feb 5, 2010, at 12:51 PM, Roland Dreier (rdreier) wrote:
+Jeff Squyres wrote:
+> On Feb 5, 2010, at 12:51 PM, Roland Dreier (rdreier) wrote:
+>
+>   
+>>  > But Jeff, note that if someone uses the upstream kernel and OpenMPI,
+>>  > its busted...
+>>
+>> Is the issue 6f8372b6 ("RDMA/cm: fix loopback address support")?  This
+>> just went in for 2.6.33, which is still at -rc6, so if we can quickly
+>> reach a consensus, there is still time to get a fix in for 2.6.33.
+>>     
+>
+> Oh oh oh!  Yes, that would be fabulous...
+>
+> Thanks!
+>
+>   
 
->  > But Jeff, note that if someone uses the upstream kernel and OpenMPI,
->  > its busted...
-> 
-> Is the issue 6f8372b6 ("RDMA/cm: fix loopback address support")?  This
-> just went in for 2.6.33, which is still at -rc6, so if we can quickly
-> reach a consensus, there is still time to get a fix in for 2.6.33.
+I think we should remove the feature of allowing binds to 127.0.0.1 
+altogether based on Jeff's arguments and my assertion that 127.0.0.1 is 
+a sw-loopback mechanism anyway...
 
-Oh oh oh!  Yes, that would be fabulous...
+I'm not sure if that commit does more or not...
 
-Thanks!
+Steve.
 
--- 
-Jeff Squyres <jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Cisco.com - http://www.cisco.com
-
-For corporate legal information go to:
-http://www.cisco.com/web/about/doing_business/legal/cri/
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
