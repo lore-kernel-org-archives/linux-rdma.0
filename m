@@ -1,238 +1,80 @@
-From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-Subject: Re: [PATCH 0/2] Using multi-smps on the wire in libibnetdisc
-Date: Thu, 4 Feb 2010 18:18:52 -0800
-Message-ID: <20100204181852.f175d968.weiny2@llnl.gov>
-References: <20100202164514.bf2b152a.weiny2@llnl.gov>
-	<f0e08f231002040619y34784bauec6a25d31e7d229b@mail.gmail.com>
-	<20100204100045.4d2aa9aa.weiny2@llnl.gov>
-	<f0e08f231002041201y2b48aa30nc33d2816ed11b1bf@mail.gmail.com>
-	<20100204161325.c4481bfe.weiny2@llnl.gov>
+From: Cong Wang <amwang@redhat.com>
+Subject: Re: [RFC Patch v2] net: reserve ports for applications using fixed
+ port numbers
+Date: Fri, 05 Feb 2010 12:41:18 +0800
+Message-ID: <4B6BA16E.3010002@redhat.com>
+References: <20100204101533.4619.34599.sendpatchset@localhost.localdomain> <201002041959.JEG43202.JQOFHFOVSFMtLO@I-love.SAKURA.ne.jp>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20100204161325.c4481bfe.weiny2-i2BcT+NCU+M@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-Cc: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <201002041959.JEG43202.JQOFHFOVSFMtLO@I-love.SAKURA.ne.jp>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Cc: linux-kernel@vger.kernel.org, linux-security-module@vger.kernel.org, opurdila@ixiacom.com, eric.dumazet@gmail.com, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, nhorman@tuxdriver.com, linux-sctp@vger.kernel.org, davem@davemloft.net
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, 4 Feb 2010 16:13:25 -0800
-Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org> wrote:
+Tetsuo Handa wrote:
+> Hello.
+> 
+> Amerigo Wang wrote:
+>> diff --git a/net/ipv4/inet_hashtables.c b/net/ipv4/inet_hashtables.c
+>> index 2b79377..d3e160a 100644
+>> --- a/net/ipv4/inet_hashtables.c
+>> +++ b/net/ipv4/inet_hashtables.c
+>> @@ -456,6 +456,8 @@ int __inet_hash_connect(struct inet_timewait_death_row *death_row,
+>>  		local_bh_disable();
+>>  		for (i = 1; i <= remaining; i++) {
+>>  			port = low + (i + offset) % remaining;
+>> +			if (inet_is_reserved_local_port(port))
+>> +				continue;
+>>  			head = &hinfo->bhash[inet_bhashfn(net, port,
+>>  					hinfo->bhash_size)];
+>>  			spin_lock(&head->lock);
+> 
+> I'm planning to add a LSM hook here.
+> 
+> If root user sets min port value less than 1024 to
+> /proc/sys/net/ipv4/ip_local_port_range , a process without CAP_NET_BIND_SERVICE
+> capability can bind to privileged port by "bind() with port == 0" or "connect()
+> without bind()" because the condition is
+> 
+> 	err = -EACCES;
+> 	if (snum && snum < PROT_SOCK && !capable(CAP_NET_BIND_SERVICE))
+> 		goto out;
+> 
+> I consider this is a security problem if MAC is enabled. MAC is used for
+> dividing root user's privilege. With MAC, somebody doing some part of root
+> user's jobs may set min port value to less than 1024.
+> 
+> Also, some applications needs fixed local port numbers (e.g. 3128 for Squid,
+> 8080 for Tomcat). The port numbers I want to reserve are more complex than
+> simple min-max range like /proc/sys/net/ipv4/ip_local_reserved_ports .
+> 
+> Therefore, TOMOYO wants to insert a LSM hook (
+> http://tomoyo.sourceforge.jp/cgi-bin/lxr/source/net/ipv4/udp.c#L235
+> http://tomoyo.sourceforge.jp/cgi-bin/lxr/source/net/ipv4/inet_connection_sock.c#L114
+> http://tomoyo.sourceforge.jp/cgi-bin/lxr/source/net/ipv4/inet_hashtables.c#L459
+> ) and allow reserving local ports like
+> 
+>   deny_autobind 0-1023
+>   deny_autobind 3128
+>   deny_autobind 8080
+> 
+> so that
+> 
+>   applications which need such ports won't be unexpectedly blocked by
+>   other application's temporary port usage (i.e. "bind() with port == 0" or
+>   "connect() without bind()")
+> 
+> and
+> 
+>   MAC guarantees that processes without CAP_NET_BIND_SERVICE can never bind
+>   to privileged port
+> 
 
-> On Thu, 4 Feb 2010 15:01:32 -0500
-> Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
->=20
-> > On Thu, Feb 4, 2010 at 1:00 PM, Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org> wrote:
-> > > On Thu, 4 Feb 2010 09:19:39 -0500
-> > > Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
-> > >
-> > >> On Tue, Feb 2, 2010 at 7:45 PM, Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org> wrot=
-e:
-> > >> > Sasha,
-> > >> >
->=20
-> [snip]
+Oh, IIUC, TOMOYO is something like SELinux? So, it is somewhat weird
+to let users to use TOMOYO to reserve the ports with MAC. For normal
+users /proc interface seems more friendly.
 
-[snip]
-
-> > >>
-> > >> Is there a speedup with 4 rather than 2 ?
-> > >
-> > > There is a bit of a speed up (~0.5 to 1.0 sec). =A0But my main re=
-ason to want to
-> > > go to 4 is that if there are issues on the fabric, unresponsive n=
-odes etc.; 4
-> > > will give us better parallelism to get around these issues. =A0I =
-have not had
-> > > the chance to test this condition with the new algorithm but the =
-original
-> > > ibnetdiscover would slow way down when there are nodes which have=
- unresponsive
-> > > SMA's. =A0If there are only 2 outstanding this will not give us m=
-uch speed up.
-> > > This was the main motivation I had for improving the library in t=
-his way.
-
-Ok, I found a fabric with just 2 nodes which were unresponsive...  A qu=
-ick
-test shows...
-
-Original ibnetdiscover:
-
-18:12:29 > time ./ibnetdiscover > foo
-ibwarn: [26993] mad_rpc: _do_madrpc failed; dport (DR path slid 0; dlid=
- 0; 0,1,24,11,9)
-src/ibnetdisc.c:457; Query remote node (DR path slid 0; dlid 0; 0,1,24,=
-11,9) failed, skipping port
-ibwarn: [26993] mad_rpc: _do_madrpc failed; dport (DR path slid 0; dlid=
- 0; 0,1,24,24,18,7,6)
-src/ibnetdisc.c:457; Query remote node (DR path slid 0; dlid 0; 0,1,24,=
-24,18,7,6) failed, skipping port
-
-real    0m9.073s
-user    0m0.137s
-sys     0m0.172s
-
-18:12:43 > time ./ibnetdiscover > foo
-ibwarn: [31111] mad_rpc: _do_madrpc failed; dport (DR path slid 0; dlid=
- 0; 0,1,24,11,9)
-src/ibnetdisc.c:457; Query remote node (DR path slid 0; dlid 0; 0,1,24,=
-11,9) failed, skipping port
-ibwarn: [31111] mad_rpc: _do_madrpc failed; dport (DR path slid 0; dlid=
- 0; 0,1,24,24,18,7,6)
-src/ibnetdisc.c:457; Query remote node (DR path slid 0; dlid 0; 0,1,24,=
-24,18,7,6) failed, skipping port
-
-real    0m9.103s
-user    0m0.046s
-sys     0m0.046s
-
-
-*New* ibnetdiscover with different outstanding SMP's.
-
-18:12:14 > time ./ibnetdiscover -o 2 > foo
-src/query_smp.c:185; umad (DR path slid 0; dlid 0; 0,1,13,11,9 Attr 0x1=
-1:0) bad status 110; Connection timed out
-src/query_smp.c:185; umad (DR path slid 0; dlid 0; 0,1,13,13,7,7,6 Attr=
- 0x11:0) bad status 110; Connection timed out
-
-real    0m9.746s
-user    0m6.559s
-sys     0m3.156s
-
-18:13:00 > time ./ibnetdiscover -o 4 > foo
-src/query_smp.c:185; umad (DR path slid 0; dlid 0; 0,1,13,11,9 Attr 0x1=
-1:0) bad status 110; Connection timed out
-src/query_smp.c:185; umad (DR path slid 0; dlid 0; 0,1,13,13,7,7,6 Attr=
- 0x11:0) bad status 110; Connection timed out
-
-real    0m4.668s
-user    0m3.043s
-sys     0m1.601s
-
-18:13:10 > time ./ibnetdiscover -o 8 > foo
-src/query_smp.c:185; umad (DR path slid 0; dlid 0; 0,1,13,11,9 Attr 0x1=
-1:0) bad status 110; Connection timed out
-src/query_smp.c:185; umad (DR path slid 0; dlid 0; 0,1,13,13,7,7,6 Attr=
- 0x11:0) bad status 110; Connection timed out
-
-real    0m4.360s
-user    0m2.891s
-sys     0m1.451s
-
-
-Note that 2 does not give much speed up, where 4 does.  Obviously this =
-could
-have to do with the fact there were 2 nodes which were bad (so if you h=
-ad
-100's of nodes unresponsive a higher value might be worth using) but as=
- a
-default compromise I think 4 is good.
-
-Ira
-
-> > >
-> > > Also, I think you are correct that we should increase OpenSM's de=
-fault from 4
-> > > to 8. =A0For the same reason as above. =A0Some of our clusters ha=
-ve worked better
-> > > with 8 when we are having issues. =A0But right now we are still r=
-unning with 4.
-> >=20
-> > I'm concerned about just increasing ibnetdiscover to 4 rather than =
-2.
-> > I've seen a number of clusters with SMP dropping with the current
-> > lower defaults.
->=20
-> So OpenSM is seeing dropped packets?  With 4 SMP's on the wire?  I do=
- see some
-> VL15Dropped errors (maybe 2-3 a day) but I did not think that would b=
-e an
-> issue.  What kind of rate are you seeing?
->=20
-> The other question is; do people regularly run the tools which are us=
-ing
-> libibnetdisc (ibqueryerrors, iblinkinfo, ibnetdiscover)?  We do.  If =
-others
-> are not then I would say this change would have less impact as they w=
-ould want
-> the diags to have some priority for debugging.  The other option is t=
-o change
-> the patch to be a default of 2 and allow user to change it depending =
-on what
-> they are trying to do.  If you think that is best I will change the p=
-atch.
->=20
-> Ira
->=20
-> >=20
-> > -- Hal
-> >=20
-> > > Ira
-> > >
-> > >>
-> > >> -- Hal
-> > >>
-> > >> >
-> > >> > The first patch converts the algorithm and the second adds the=
- ibnd_set_max_smps_on_wire call.
-> > >> >
-> > >> > Let me know what you think. =A0Because the algorithm changed s=
-o much testing this is a bit difficult because the order of the node di=
-scovery is different. =A0However, I have done some extensive diffing of=
- the output of ibnetdiscover and things look good.
-> > >> >
-> > >> > Ira
-> > >> >
-> > >> > --
-> > >> > Ira Weiny
-> > >> > Math Programmer/Computer Scientist
-> > >> > Lawrence Livermore National Lab
-> > >> > 925-423-8008
-> > >> > weiny2-i2BcT+NCU+M@public.gmane.org
-> > >> > --
-> > >> > To unsubscribe from this list: send the line "unsubscribe linu=
-x-rdma" in
-> > >> > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> > >> > More majordomo info at =A0http://**vger.kernel.org/majordomo-i=
-nfo.html
-> > >> >
-> > >> --
-> > >> To unsubscribe from this list: send the line "unsubscribe linux-=
-rdma" in
-> > >> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> > >> More majordomo info at =A0http://**vger.kernel.org/majordomo-inf=
-o.html
-> > >>
-> > >
-> > >
-> > > --
-> > > Ira Weiny
-> > > Math Programmer/Computer Scientist
-> > > Lawrence Livermore National Lab
-> > > 925-423-8008
-> > > weiny2-i2BcT+NCU+M@public.gmane.org
-> > >
-> >=20
->=20
->=20
-> --=20
-> Ira Weiny
-> Math Programmer/Computer Scientist
-> Lawrence Livermore National Lab
-> 925-423-8008
-> weiny2-i2BcT+NCU+M@public.gmane.org
-
-
---=20
-Ira Weiny
-Math Programmer/Computer Scientist
-Lawrence Livermore National Lab
-925-423-8008
-weiny2-i2BcT+NCU+M@public.gmane.org
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks.
