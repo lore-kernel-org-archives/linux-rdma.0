@@ -1,52 +1,70 @@
 From: Cong Wang <amwang@redhat.com>
 Subject: Re: [RFC Patch] net: reserve ports for applications using fixed port
- 	numbers
-Date: Fri, 05 Feb 2010 15:25:24 +0800
-Message-ID: <4B6BC7E4.5070909@redhat.com>
-References: <20100203043332.3817.27932.sendpatchset@localhost.localdomain> <e2e108261002042311w59ba1372ld9f8fb2f369ca434@mail.gmail.com>
+ numbers
+Date: Fri, 05 Feb 2010 12:45:38 +0800
+Message-ID: <4B6BA272.4090405@redhat.com>
+References: <201002031312.48531.opurdila@ixiacom.com> <201002041444.01897.opurdila@ixiacom.com> <20100204.094110.64247447.davem@davemloft.net> <201002042015.51092.opurdila@ixiacom.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <e2e108261002042311w59ba1372ld9f8fb2f369ca434@mail.gmail.com>
+In-Reply-To: <201002042015.51092.opurdila@ixiacom.com>
 Sender: netdev-owner@vger.kernel.org
-To: Bart Van Assche <bvanassche@acm.org>
-Cc: linux-kernel@vger.kernel.org, Eric Dumazet <eric.dumazet@gmail.com>, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, Neil Horman <nhorman@tuxdriver.com>, linux-sctp@vger.kernel.org, David Miller <davem@davemloft.net>
+To: Octavian Purdila <opurdila@ixiacom.com>
+Cc: David Miller <davem@davemloft.net>, linux-kernel@vger.kernel.org, eric.dumazet@gmail.com, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, nhorman@tuxdriver.com, linux-sctp@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-Bart Van Assche wrote:
-> On Wed, Feb 3, 2010 at 5:30 AM, Amerigo Wang <amwang@redhat.com> wrote:
->> This patch introduces /proc/sys/net/ipv4/ip_local_reserved_ports,
->> it can be used like ip_local_port_range, but this is used to
->> reserve ports for third-party applications which use fixed
->> port numbers within ip_local_port_range.
->>
->> This only affects the applications which call socket functions
->> like bind(2) with port number 0, to prevent the kernel getting the ports
->> within the specified range for them. For applications which use fixed
->> port number, it will have no effects.
->>
->> Any comments are welcome.
+Octavian Purdila wrote:
+> On Thursday 04 February 2010 19:41:10 you wrote:
 > 
-> Relying on fixed port numbers is generally considered as a shortcoming
-> in the application. It would be helpful if you could explain more in
-> detail why port number reservation is necessary. Maybe there exists
-> another solution that does not require modifying the bind() system
-> call.
+>> From: Octavian Purdila <opurdila@ixiacom.com>
+>> Date: Thu, 4 Feb 2010 14:44:01 +0200
+>>
+>>> My concern is that we can have multiple applications that require a
+>>> fixed port and if those ports are significantly apart we will
+>>> decrease the port range available for connect. And that will hurt
+>>> the rate of which new connections can be opened.
+>> I'm already uneasy about adding the simple check every time
+>> we loop around in the bind port allocator.
+>>
+>> Adding an LSM hook to this spot?  I absolutely refuse to allow
+>> that, it will completely kill bind performance.
+>>
 > 
+> I think Tetsuo was proposing the LSM hook, so I'll leave him the daunting task 
+> of convincing you of the benefit of that :) - I have no opinion on this due to 
+> massive lack of knowledge.
+> 
+> I was just proposing to use a discrete set of ports instead of a range. The 
+> check in the current patch:
+> 
+> int inet_is_reserved_local_port(int port)
+> {
+>        int min, max;
+> 
+>        inet_get_local_reserved_ports(&min, &max);
+>        if (min && max)
+>                return (port >= min && port <= max);
+>        return 0;
+> }
+> 
+> would become:
+> 
+> int inet_is_reserved_local_port(int port)
+> {
+> 	if (test_bit(port, reserved_ports))
+> 		return 1;
+> 	return 0;
+> }
+> 
+> In theory it might be slower because of the reserved_ports bitmap will have a 
+> larger memory footprint than just a min/max, especially with random port 
+> allocation. But is this an issue in practice?
 
-The problem is that there are some existing applications which use
-fixed port number, we don't have chances to change this for them,
-thus making them working is desired, so they want to reserve these
-port for those applications.
+Again, using bitmap algorithm is not a problem and it's better, the
+problem is sysctl interface, how would you plan to interact with users
+via sysctl/proc if you use bitmap to handle this? I would like to hear
+more details about this.
 
-For example, if I have an appliction which uses port 40000, but
-before this application starts, another application gets this port
-number by bind() with port 0 (i.e. chosen by kernel), in this case,
-that application will fail to start. Again, we don't have any chance
-to change the source code of that application.
-
-Hope this can make the problem clear.
-
-Thanks.
+Thanks!
 
