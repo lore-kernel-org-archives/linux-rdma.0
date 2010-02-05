@@ -1,37 +1,106 @@
-From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: Re: bug 1918 - openmpi broken due to rdma-cm changes
-Date: Fri, 05 Feb 2010 16:21:31 -0600
-Message-ID: <4B6C99EB.9030902@opengridcomputing.com>
-References: <ada4olvefl4.fsf@roland-alpha.cisco.com> <324EFA68-12F6-46E9-B876-7F4847B53224@cisco.com> <4B6C6453.9090706@opengridcomputing.com> <20100205185616.GS16490@obsidianresearch.com> <E8FF8BD1-80AC-4AA7-BC2A-CE7547FB9ABA@cisco.com> <20100205211455.GT16490@obsidianresearch.com> <697C6107-13A9-48E3-B451-02529305100D@cisco.com> <4B6C9369.1070208@opengridcomputing.com> <77E29960440B4806B112A7158F4FA1C4@amr.corp.intel.com>
+From: "Sean Hefty" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH] librdmacm: transition QP to RTS before sending reply
+Date: Fri, 5 Feb 2010 14:27:07 -0800
+Message-ID: <337F47898C204328B069AAD388B014DB@amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain;
+	charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <77E29960440B4806B112A7158F4FA1C4-Zpru7NauK7drdx17CPfAsdBPR1lH4CV8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Jeff Squyres <jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, "Roland Dreier (rdreier)" <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ewg-G2znmakfqn7U1rindQTSdQ@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Sean Hefty wrote:
->> There is still some inconsistency here.   Sean, you claimed binds to
->> 127.0.0.1 succeed in ofed-1.4 for IB devices.  If so, then folks running
->> IB/openmpi/rdmacm should be seeing issues.  We need to dig a little more...
->>     
->
-> You can verify this by running ucmatose -b 127.0.0.1 and see if the test enters
-> the listening state.
->   
-Well ofed-1.4.1 with openmpi gets failures when binding to 127.0.0.1 on 
-mthca devs.  Jeff will post the results soon.
+In order to handle a race condition where the passive side of
+a connection can receive data on a QP before the connection established
+event has been received, transition the QP to RTS before sending the reply.
+This allows a user to send a response to any received message immediately,
+rather than waiting until the connection established event has been
+processed.
 
-Are you sure ucmatose is really binding to that address? :)
+A similar fix was applied to the kernel rdma_cm a while ago.
+Simply duplicate the fix in the user space library.
 
-> Can you also try testing iwarp with the patch that I sent? 
->
->   
+Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+---
 
-I will soon.  Can't do it right now.  I'll try tonight or tomorrow.
+ src/cma.c |   27 +++++++++------------------
+ 1 files changed, 9 insertions(+), 18 deletions(-)
+
+diff --git a/src/cma.c b/src/cma.c
+index efad6ae..59e89dd 100644
+--- a/src/cma.c
++++ b/src/cma.c
+@@ -652,7 +652,8 @@ static int ucma_modify_qp_rtr(struct rdma_cm_id *id,
+ 	return ibv_modify_qp(id->qp, &qp_attr, qp_attr_mask);
+ }
+ 
+-static int ucma_modify_qp_rts(struct rdma_cm_id *id)
++static int ucma_modify_qp_rts(struct rdma_cm_id *id,
++			      struct rdma_conn_param *conn_param)
+ {
+ 	struct ibv_qp_attr qp_attr;
+ 	int qp_attr_mask, ret;
+@@ -662,6 +663,8 @@ static int ucma_modify_qp_rts(struct rdma_cm_id *id)
+ 	if (ret)
+ 		return ret;
+ 
++	if (conn_param)
++		qp_attr.max_rd_atomic = conn_param->initiator_depth;
+ 	return ibv_modify_qp(id->qp, &qp_attr, qp_attr_mask);
+ }
+ 
+@@ -929,6 +932,10 @@ int rdma_accept(struct rdma_cm_id *id, struct rdma_conn_param *conn_param)
+ 		ret = ucma_modify_qp_rtr(id, conn_param);
+ 		if (ret)
+ 			return ret;
++
++		ret = ucma_modify_qp_rts(id, conn_param);
++		if (ret)
++			return ret;
+ 	}
+ 
+ 	CMA_CREATE_MSG_CMD(msg, cmd, UCMA_CMD_ACCEPT, size);
+@@ -1212,7 +1219,7 @@ static int ucma_process_conn_resp(struct cma_id_private *id_priv)
+ 	if (ret)
+ 		goto err;
+ 
+-	ret = ucma_modify_qp_rts(&id_priv->id);
++	ret = ucma_modify_qp_rts(&id_priv->id, NULL);
+ 	if (ret)
+ 		goto err;
+ 
+@@ -1231,17 +1238,6 @@ err:
+ 	return ret;
+ }
+ 
+-static int ucma_process_establish(struct rdma_cm_id *id)
+-{
+-	int ret;
+-
+-	ret = ucma_modify_qp_rts(id);
+-	if (ret)
+-		ucma_modify_qp_err(id);
+-
+-	return ret;
+-}
+-
+ static int ucma_process_join(struct cma_event *evt)
+ {
+ 	evt->mc->mgid = evt->event.param.ud.ah_attr.grh.dgid;
+@@ -1367,11 +1363,6 @@ retry:
+ 		}
+ 
+ 		ucma_copy_conn_event(evt, &resp->param.conn);
+-		evt->event.status = ucma_process_establish(&evt->id_priv->id);
+-		if (evt->event.status) {
+-			evt->event.event = RDMA_CM_EVENT_CONNECT_ERROR;
+-			evt->id_priv->connect_error = 1;
+-		}
+ 		break;
+ 	case RDMA_CM_EVENT_REJECTED:
+ 		if (evt->id_priv->connect_error) {
+
 
 
 --
