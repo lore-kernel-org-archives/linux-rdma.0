@@ -1,41 +1,39 @@
-From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 Subject: Re: bug 1918 - openmpi broken due to rdma-cm changes
-Date: Fri, 05 Feb 2010 11:08:13 -0600
-Message-ID: <4B6C507D.20607@opengridcomputing.com>
-References: <58D723FE08DC6A4398E6596E38F3FA170566DA@XMB-RCD-205.cisco.com> <0D5487526204477AA2ABED06E46768E2@amr.corp.intel.com> <4B6C498F.3060708@opengridcomputing.com> <F6DF49B759AD49EEB44BECD99FE26DCF@amr.corp.intel.com>
+Date: Fri, 05 Feb 2010 09:51:19 -0800
+Message-ID: <ada4olvefl4.fsf@roland-alpha.cisco.com>
+References: <58D723FE08DC6A4398E6596E38F3FA170566DA@XMB-RCD-205.cisco.com>
+	<4B6C4460.3050908@opengridcomputing.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <F6DF49B759AD49EEB44BECD99FE26DCF-Zpru7NauK7drdx17CPfAsdBPR1lH4CV8@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "'Jeff Squyres (jsquyres)'" <jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ewg-G2znmakfqn7U1rindQTSdQ@public.gmane.org, "Roland Dreier (rdreier)" <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Return-path: <ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+In-Reply-To: <4B6C4460.3050908-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org> (Steve Wise's message of
+	"Fri, 05 Feb 2010 10:16:32 -0600")
+List-Unsubscribe: <http://lists.openfabrics.org/cgi-bin/mailman/listinfo/ewg>,
+	<mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.openfabrics.org/pipermail/ewg>
+List-Post: <mailto:ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+List-Help: <mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=help>
+List-Subscribe: <http://lists.openfabrics.org/cgi-bin/mailman/listinfo/ewg>,
+	<mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=subscribe>
+Sender: ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
+Errors-To: ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
+To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, ewg-G2znmakfqn7U1rindQTSdQ@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+ > But Jeff, note that if someone uses the upstream kernel and OpenMPI,
+ > its busted...
 
-Sean Hefty wrote:
->> My concern is breaking an existing working OpenMPI in a point release
->> because we changed semantics of the rdma-cm in an ofed point release...
->>     
->
-> OFED can call this release a point release, but in reality, the content makes it
-> a major release...
->
->   
->> BTW:  Was this change an artifact of rebasing ofed-1.5.1 on a new kernel
->> version?
->>     
->
-> apparently
->
->   
+Is the issue 6f8372b6 ("RDMA/cm: fix loopback address support")?  This
+just went in for 2.6.33, which is still at -rc6, so if we can quickly
+reach a consensus, there is still time to get a fix in for 2.6.33.
 
-Well as it stands now:  OpenMPI on ofed-1.5.1 is broken for IB if they 
-use the rdma-cm for connection setup, and all IW clusters which require 
-the rdma-cm connect method. 
+ - R.
+-- 
+Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Cisco.com - http://www.cisco.com
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+For corporate legal information go to:
+http://www.cisco.com/web/about/doing_business/legal/cri/index.html
