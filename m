@@ -1,42 +1,51 @@
-From: Octavian Purdila <opurdila@ixiacom.com>
-Subject: Re: [RFC Patch] net: reserve ports for applications using fixed port numbers
-Date: Fri, 5 Feb 2010 14:28:12 +0200
-Message-ID: <201002051428.12767.opurdila@ixiacom.com>
-References: <20100204.094110.64247447.davem@davemloft.net> <201002050305.22227.opurdila@ixiacom.com> <4B6BB447.8080806@redhat.com>
+From: Hal Rosenstock <hnrose-Wuw85uim5zDR7s880joybQ@public.gmane.org>
+Subject: [PATCH] opensm/osm_mcast_mgr.c: Only route MLIDs with more than 1
+	member
+Date: Fri, 5 Feb 2010 08:20:13 -0500
+Message-ID: <20100205132013.GA30528@comcast.net>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <4B6BB447.8080806@redhat.com>
-Sender: netdev-owner@vger.kernel.org
-To: Cong Wang <amwang@redhat.com>
-Cc: Tetsuo Handa <penguin-kernel@i-love.sakura.ne.jp>, davem@davemloft.net, linux-kernel@vger.kernel.org, eric.dumazet@gmail.com, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, nhorman@tuxdriver.com, linux-sctp@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Friday 05 February 2010 08:01:43 you wrote:
 
-> >> If you can accept his version, I want to use his version (with an
-> >> interface for updating above "reserved_ports" by not only root user's
-> >> sysctl() but also MAC's policy configuration).
-> >
-> > I think that simply using an interface to update the reserved_ports from
-> > MAC policy configuration module wouldn't work, as root will be able to
-> > modify the policy via sysctl.
-> >
-> > I think that we might need to:
-> >
-> > a) have a reserved_port updater
-> >
-> > b) put a LSM hook into that
-> >
-> > c) use the reserved_port updater from sysctl
-> 
-> Ideally, you'd provide an interface for port allocator to use, so
-> doing port reservation will be easier.
-> 
+rather than just more than 0 members. There is no need to route MLIDs with
+only 1 member as single member case is handled locally. MLIDs only need
+routing when 2 or more members.
 
-If I understand the TOMOYO requirements correctly, we need a way to restrict a 
-user action based on some security policy (in this case the ability to clear 
-reserved ports). Traditionally that has been done with LSM hooks, so I think 
-that approach is preferable.
+Signed-off-by: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+---
+diff --git a/opensm/opensm/osm_mcast_mgr.c b/opensm/opensm/osm_mcast_mgr.c
+index 322635d..e42070d 100644
+--- a/opensm/opensm/osm_mcast_mgr.c
++++ b/opensm/opensm/osm_mcast_mgr.c
+@@ -4,6 +4,7 @@
+  * Copyright (c) 1996-2003 Intel Corporation. All rights reserved.
+  * Copyright (c) 2008 Xsigo Systems Inc.  All rights reserved.
+  * Copyright (c) 2009 Sun Microsystems, Inc. All rights reserved.
++ * Copyright (c) 2010 HNR Consulting. All rights reserved.
+  *
+  * This software is available to you under a choice of one of two
+  * licenses.  You may choose to be licensed under the terms of the GNU
+@@ -746,10 +747,10 @@ static ib_api_status_t mcast_mgr_build_spanning_tree(osm_sm_t * sm,
+ 	}
+ 
+ 	num_ports = cl_qlist_count(&port_list);
+-	if (num_ports == 0) {
++	if (num_ports < 2) {
+ 		OSM_LOG(sm->p_log, OSM_LOG_VERBOSE,
+-			"MLID 0x%X has no members - nothing to do\n",
+-			mbox->mlid);
++			"MLID 0x%X has %u members - nothing to do\n",
++			mbox->mlid, num_ports);
+ 		goto Exit;
+ 	}
+ 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
