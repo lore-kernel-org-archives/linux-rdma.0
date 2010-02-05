@@ -1,83 +1,59 @@
-From: Eli Dorfman <dorfman.eli-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH] opensm/osm_mcast_mgr.c: preserve root switch calculation
-	functionality
-Date: Fri, 5 Feb 2010 16:34:11 +0200
-Message-ID: <694d48601002050634t8d2a1fdoedbb37ef1387f9fb@mail.gmail.com>
-References: <20100204204713.GJ26338@me> <20100204222213.GL26338@me>
+From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: Re: bug 1918 - openmpi broken due to rdma-cm changes
+Date: Fri, 05 Feb 2010 10:16:32 -0600
+Message-ID: <4B6C4460.3050908@opengridcomputing.com>
+References: <58D723FE08DC6A4398E6596E38F3FA170566DA@XMB-RCD-205.cisco.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20100204222213.GL26338@me>
+In-Reply-To: <58D723FE08DC6A4398E6596E38F3FA170566DA-2KNrN6/GZtCAsgjym8flbKBKnGwkPULj@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Slava Strebkov <slavas-smomgflXvOZWk0Htik3J/w@public.gmane.org>, Eli Dorfman <elid-smomgflXvOZWk0Htik3J/w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+To: "Jeff Squyres (jsquyres)" <jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Cc: sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ewg-G2znmakfqn7U1rindQTSdQ@public.gmane.org, "Roland Dreier (rdreier)" <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Feb 5, 2010 at 12:22 AM, Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>=
- wrote:
+Jeff Squyres (jsquyres) wrote:
 >
-> I'm not sure that this is a bug, but anyway. Now for MC group spannin=
-g
-> tree root switch calculation it uses max hops criteria differently -
-> accumulated hops for all MC members connected to the switch against
-> previous maximal one.
+> Note that it is highly unlikely that we will release open mpi 1.4.2 in 
+> time for ofed 1.5.1.
 >
-> This patch makes it functionally exactly as it was.
 
-right. otherwise it is sort of average hops.
+Jeff, there is no way to handle high priority bug fixes in the current 
+released stream?
 
+> Also note that trying to bind rdma cm to all interface ip addresses 
+> was the way that we were advised by openfabrics to figure out which 
+> devices are rdma-capable.
 >
-> Signed-off-by: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-> ---
-> =C2=A0opensm/opensm/osm_mcast_mgr.c | =C2=A0 =C2=A03 ++-
-> =C2=A01 files changed, 2 insertions(+), 1 deletions(-)
+> As such, it is highly desirable to get the fix transparently in rdmacm 
+> and preserve the old semantic. More specifically, it seems undesirable 
+> to change this semantic in a minor ofed point release.
 >
-> diff --git a/opensm/opensm/osm_mcast_mgr.c b/opensm/opensm/osm_mcast_=
-mgr.c
-> index f33d6a6..322635d 100644
-> --- a/opensm/opensm/osm_mcast_mgr.c
-> +++ b/opensm/opensm/osm_mcast_mgr.c
-> @@ -253,7 +253,8 @@ static float mcast_mgr_compute_max_hops(osm_sm_t =
-* sm, cl_qmap_t * m,
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0sw =3D cl_item=
-_obj(i, sw, mgrp_item);
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0lid =3D cl_nto=
-h16(osm_node_get_base_lid(sw->p_node, 0));
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0hops =3D osm_s=
-witch_get_least_hops(this_sw, lid);
-> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 hops =3D (hops + 1=
-) * sw->num_of_mcm + hops * sw->is_mc_member;
-> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 if (!sw->is_mc_mem=
-ber)
-> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 hops +=3D 1;
 
-I think that this condition is may be avoided since if the switch is a
-member in the MC group then the packet
-still needs to get to the CPU that is running on it (enhanced port)
-and this is similar to additional hop
-in case of host (assuming that host cpu is much faster then switch cpu)=
-=2E
+I agree that we should probably not allow 127.0.0.1 binds in ofed-1.5.1 
+at all because it regresses OpenMPI.  Even with IB systems, if the bind 
+to 127.0.0.1 succeeds, then OpenMPI assumes 127.0.0.1 is bound to that 
+rdma interface and advertises this address to its peer as an address 
+to-which that peer can rdma connect!  This will break IB clusters too, 
+not just T3/iWARP cluster.   While I think OpenMPI needs to skip 
+127.0.0.1 in its logic, I think we should probably defer allowing 
+127.0.0.1 binds until ofed-1.6.
 
-Eli
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0if (hops > max=
-_hops)
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 =C2=A0max_hops =3D hops;
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0}
-> --
-> 1.6.6.1
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma"=
- in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at =C2=A0http://vger.kernel.org/majordomo-info.ht=
-ml
->
+But Jeff, note that if someone uses the upstream kernel and OpenMPI, its 
+busted...
+
+So I recommend:
+
+1) Don't allow 127.0.0.1 binds in ofed-1.5.1
+
+2) Fix OpenMPI ASAP to never advertise 127.0.0.1 as a valid rdma-cm 
+connect address (get it in ofed-1.5.2 or ofed-1.6).
+
+
+
+Steve.
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
