@@ -1,46 +1,154 @@
-From: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Subject: Re: [RFC Patch v2] net: reserve ports for applications using fixedport numbers
-Date: Fri, 5 Feb 2010 20:21:28 +0900
-Message-ID: <201002052021.CIC81776.QVSMJOLtFOFFHO@I-love.SAKURA.ne.jp>
-References: <20100204101533.4619.34599.sendpatchset@localhost.localdomain>
-	<201002041959.JEG43202.JQOFHFOVSFMtLO@I-love.SAKURA.ne.jp>
-	<4B6BA16E.3010002@redhat.com>
+From: "Jeff Squyres (jsquyres)" <jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Subject: Re: bug 1918 - openmpi broken due to rdma-cm changes
+Date: Fri, 5 Feb 2010 05:32:27 -0600
+Message-ID: <58D723FE08DC6A4398E6596E38F3FA170566DA@XMB-RCD-205.cisco.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <4B6BA16E.3010002@redhat.com>
-Sender: netdev-owner@vger.kernel.org
-To: amwang@redhat.com
-Cc: linux-kernel@vger.kernel.org, linux-security-module@vger.kernel.org, opurdila@ixiacom.com, eric.dumazet@gmail.com, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, nhorman@tuxdriver.com, linux-sctp@vger.kernel.org, davem@davemloft.net
+Content-Type: multipart/mixed; boundary="===============0731796580=="
+Return-path: <ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+Content-class: urn:content-classes:message
+List-Unsubscribe: <http://lists.openfabrics.org/cgi-bin/mailman/listinfo/ewg>,
+	<mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.openfabrics.org/pipermail/ewg>
+List-Post: <mailto:ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+List-Help: <mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=help>
+List-Subscribe: <http://lists.openfabrics.org/cgi-bin/mailman/listinfo/ewg>,
+	<mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=subscribe>
+Mime-version: 1.0
+Sender: ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
+Errors-To: ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
+To: swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ewg-G2znmakfqn7U1rindQTSdQ@public.gmane.org, "Roland Dreier (rdreier)" <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Cong Wang wrote:
-> Oh, IIUC, TOMOYO is something like SELinux?
+This is a multi-part message in MIME format.
 
-Yes. It is a policy based mandatory access control implementation which is
-applied to not only non root users but also root user. If MAC is enabled,
-root user cannot freely modify via sysctl() or /proc/sys interface.
+--===============0731796580==
+Content-class: urn:content-classes:message
+Content-Type: multipart/alternative;
+	boundary="----_=_NextPart_001_01CAA656.E52DD2D1"
 
-> So, it is somewhat weird to let users to use TOMOYO to reserve
-> the ports with MAC.
+This is a multi-part message in MIME format.
 
-To add reserved port
+------_=_NextPart_001_01CAA656.E52DD2D1
+Content-Type: text/plain;
+	charset="UTF-8"
+Content-Transfer-Encoding: base64
 
-echo deny_autobind 0-1023 | ccs-loadpolicy -e
-echo deny_autobind 3128 | ccs-loadpolicy -e
-echo deny_autobind 8080 | ccs-loadpolicy -e
+Tm90ZSB0aGF0IGl0IGlzIGhpZ2hseSB1bmxpa2VseSB0aGF0IHdlIHdpbGwgcmVsZWFzZSBvcGVu
+IG1waSAxLjQuMiBpbiB0aW1lIGZvciBvZmVkIDEuNS4xLiANCg0KQWxzbyBub3RlIHRoYXQgdHJ5
+aW5nIHRvIGJpbmQgcmRtYSBjbSB0byBhbGwgaW50ZXJmYWNlIGlwIGFkZHJlc3NlcyB3YXMgdGhl
+IHdheSB0aGF0IHdlIHdlcmUgYWR2aXNlZCBieSBvcGVuZmFicmljcyB0byBmaWd1cmUgb3V0IHdo
+aWNoIGRldmljZXMgYXJlIHJkbWEtY2FwYWJsZS4gDQoNCkFzIHN1Y2gsIGl0IGlzIGhpZ2hseSBk
+ZXNpcmFibGUgdG8gZ2V0IHRoZSBmaXggdHJhbnNwYXJlbnRseSBpbiByZG1hY20gYW5kIHByZXNl
+cnZlIHRoZSBvbGQgc2VtYW50aWMuIE1vcmUgc3BlY2lmaWNhbGx5LCBpdCBzZWVtcyB1bmRlc2ly
+YWJsZSB0byBjaGFuZ2UgdGhpcyBzZW1hbnRpYyBpbiBhIG1pbm9yIG9mZWQgcG9pbnQgcmVsZWFz
+ZS4gDQoNCi1qbXMNClNlbnQgZnJvbSBteSBQREEuICBObyB0eXBlIGdvb2QuDQoNCi0tLS0tIE9y
+aWdpbmFsIE1lc3NhZ2UgLS0tLS0NCkZyb206IFN0ZXZlIFdpc2UgPHN3aXNlQG9wZW5ncmlkY29t
+cHV0aW5nLmNvbT4NClRvOiBTZWFuIEhlZnR5IDxzZWFuLmhlZnR5QGludGVsLmNvbT4NCkNjOiBs
+aW51eC1yZG1hIDxsaW51eC1yZG1hQHZnZXIua2VybmVsLm9yZz47IE9wZW5GYWJyaWNzIEVXRyA8
+ZXdnQG9wZW5mYWJyaWNzLm9yZz47IEplZmYgU3F1eXJlcyAoanNxdXlyZXMpOyBSb2xhbmQgRHJl
+aWVyIChyZHJlaWVyKQ0KU2VudDogVGh1IEZlYiAwNCAxODowNDoyMyAyMDEwDQpTdWJqZWN0OiBS
+ZTogYnVnIDE5MTggLSBvcGVubXBpIGJyb2tlbiBkdWUgdG8gcmRtYS1jbSBjaGFuZ2VzDQoNClNl
+YW4gSGVmdHkgd3JvdGU6DQo+PiBXZWxsIHRoZW4gdGhlIHJkbWEtY20gbmVlZHMgdG8ga25vdyB3
+aGljaCBkZXZpY2VzIHN1cHBvcnQgaHcgbG9vcGJhY2suDQo+PiBDdXogb24gYSBUMy1vbmx5IHN5
+c3RlbSwgbm8gaHdsb29wLi4uDQo+PiAgICAgDQo+DQo+IFRoZSBwcm9ibGVtIHNvdW5kcyBsaWtl
+IGl0J3MgbW9yZSB0aGFuIGp1c3Qgd2hldGhlciAxMjcuMC4wLjEgaXMgdXNhYmxlLiAgVGhhdA0K
+PiBjaGVjayBtYXkgZml4IG9wZW5tcGksIGJ1dCBpdCBzb3VuZHMgbW9yZSBsaWtlIHRoZSBhcHAg
+bmVlZHMgdG8ga25vdyB3aGV0aGVyIHRoZQ0KPiBkZXZpY2UgY2FuIGFjdHVhbGx5IHN1cHBvcnQg
+bG9vcGJhY2ssIHJlZ2FyZGxlc3Mgb2Ygd2hhdCBhZGRyZXNzZXMgYXJlIHVzZWQuICBJcw0KPiB0
+aGlzIGNvcnJlY3Q/DQo+DQo+IFdoYXQgd291bGQgb3Blbm1waSBkbyBpZiB0aGVyZSB3ZXJlIHR3
+byBhZGRyZXNzZXMgYXNzaWduZWQgdG8gdGhlIFQzIGRldmljZT8NCj4gICANCg0KSXQgd291bGQg
+dXNlIHRoZW0gYW5kIG1pZ2h0IGV2ZW4gY3JlYXRlIHR3byBjb25uZWN0aW9ucy4NCg0KPiBEb2Vz
+IG9wZW5tcGkgc2ltcGx5IGJ5cGFzcyBSRE1BIGZvciBhbGwgY29ubmVjdGlvbnMgb24gdGhlIGxv
+Y2FsIG1hY2hpbmU/DQo+DQo+ICAgDQoNCk9wZW5NUEkgY2FuIGJlIHJ1biB0byB1c2UgaHcgbG9v
+cGJhY2sgaWYgaXRzIGF2YWlsYWJsZS4gIEZvciBUMyANCmNsdXN0ZXJzLCBPTVBJIGlzIHJ1biBp
+biBhIG1vZGUgdG8gdXNlIHNoYXJlZCBtZW1vcnkgZm9yIGludHJhLW5vZGUgDQpjb21tdW5pY2F0
+aW9ucy4NCg0KDQo+IEJhc2ljYWxseSwgSSdtIG5vdCBzdXJlIHRoYXQgdGhpcyBpcyAqanVzdCog
+YW4gcmRtYV9jbSBpc3N1ZS4gIEFsdGhvdWdoIGl0DQo+IGRlZmluaXRlbHkgYXBwZWFycyB0aGF0
+IHNvbWUgc29ydCBvZiBjaGFuZ2UgbmVlZHMgdG8gYmUgbWFkZSB0byB0aGUgcmRtYV9jbS4NCj4N
+Cj4gICANCg0KSSB0aGluayB0aGUgT3Blbk1QSSByZG1hY20gY29kZSBuZWVkcyB0byBza2lwIDEy
+Ny4wLjAuMSwgaW4gdGhpcyANCnBhcnRpY3VsYXIgY2FzZS4gIFByaW9yIHRvIG9mZWQtMS41LjEs
+IGhvd2V2ZXIsIHRoZSBiaW5kIHdvdWxkIGZhaWwgYW5kIA0KdGh1cyBPcGVuTVBJIHdvdWxkIG5v
+dCBhZHZlcnRpc2UgMTI3LjAuMC4xIHRvIGl0cyBwZWVyLiAgSSB3aWxsIHdvcmsgdG8gDQpnZXQg
+dGhhdCBjaGFuZ2UgZG9uZS4NCg0KQnV0IGxldHMgYWxzbyBhZGQgYSBkZXZpY2UgYXR0cmlidXRl
+IHNvIHRoZSByZG1hY20gY2FuIGtub3cgaWYgYSBkZXZpY2UgDQpzdXBwb3J0cyBsb29wYmFjay4g
+ICBDbGVhcmx5LCBpZiB0aGUgcmRtYS1jbSBhbGxvd3MgYmluZHMgdG8gVDMsIA0KbG9vcGJhY2sg
+Y29ubmVjdGlvbnMgd2lsbCBmYWlsIGF0IGNvbm5lY3QgdGltZS4NCg0KSGV5IFJvbGFuZCwgYXJl
+IHlvdSBvayB3aXRoIGEgZGV2aWNlIGF0dHJpYnV0ZSB0byBpbmRpY2F0ZSBody1sb29wYmFjayAN
+CnN1cHBvcnQ/DQoNCg0KU3RldmUuDQoNCg0K
 
-and to delete reserved port
+------_=_NextPart_001_01CAA656.E52DD2D1
+Content-Type: text/html;
+	charset="UTF-8"
+Content-Transfer-Encoding: base64
 
-echo delete deny_autobind 0-1023 | ccs-loadpolicy -e
-echo delete deny_autobind 3128 | ccs-loadpolicy -e
-echo delete deny_autobind 8080 | ccs-loadpolicy -e
+PCFET0NUWVBFIEhUTUwgUFVCTElDICItLy9XM0MvL0RURCBIVE1MIDMuMi8vRU4iPg0KPEhUTUw+
+DQo8SEVBRD4NCjxNRVRBIEhUVFAtRVFVSVY9IkNvbnRlbnQtVHlwZSIgQ09OVEVOVD0idGV4dC9o
+dG1sOyBjaGFyc2V0PVVURi04Ij4NCjxNRVRBIE5BTUU9IkdlbmVyYXRvciIgQ09OVEVOVD0iTVMg
+RXhjaGFuZ2UgU2VydmVyIHZlcnNpb24gNi41Ljc2NTQuMTIiPg0KPFRJVExFPlJlOiBidWcgMTkx
+OCAtIG9wZW5tcGkgYnJva2VuIGR1ZSB0byByZG1hLWNtIGNoYW5nZXM8L1RJVExFPg0KPC9IRUFE
+Pg0KPEJPRFk+DQo8IS0tIENvbnZlcnRlZCBmcm9tIHRleHQvcGxhaW4gZm9ybWF0IC0tPg0KDQo8
+UD48Rk9OVCBTSVpFPTI+Tm90ZSB0aGF0IGl0IGlzIGhpZ2hseSB1bmxpa2VseSB0aGF0IHdlIHdp
+bGwgcmVsZWFzZSBvcGVuIG1waSAxLjQuMiBpbiB0aW1lIGZvciBvZmVkIDEuNS4xLjxCUj4NCjxC
+Uj4NCkFsc28gbm90ZSB0aGF0IHRyeWluZyB0byBiaW5kIHJkbWEgY20gdG8gYWxsIGludGVyZmFj
+ZSBpcCBhZGRyZXNzZXMgd2FzIHRoZSB3YXkgdGhhdCB3ZSB3ZXJlIGFkdmlzZWQgYnkgb3BlbmZh
+YnJpY3MgdG8gZmlndXJlIG91dCB3aGljaCBkZXZpY2VzIGFyZSByZG1hLWNhcGFibGUuPEJSPg0K
+PEJSPg0KQXMgc3VjaCwgaXQgaXMgaGlnaGx5IGRlc2lyYWJsZSB0byBnZXQgdGhlIGZpeCB0cmFu
+c3BhcmVudGx5IGluIHJkbWFjbSBhbmQgcHJlc2VydmUgdGhlIG9sZCBzZW1hbnRpYy4gTW9yZSBz
+cGVjaWZpY2FsbHksIGl0IHNlZW1zIHVuZGVzaXJhYmxlIHRvIGNoYW5nZSB0aGlzIHNlbWFudGlj
+IGluIGEgbWlub3Igb2ZlZCBwb2ludCByZWxlYXNlLjxCUj4NCjxCUj4NCi1qbXM8QlI+DQpTZW50
+IGZyb20gbXkgUERBLiZuYnNwOyBObyB0eXBlIGdvb2QuPEJSPg0KPEJSPg0KLS0tLS0gT3JpZ2lu
+YWwgTWVzc2FnZSAtLS0tLTxCUj4NCkZyb206IFN0ZXZlIFdpc2UgJmx0O3N3aXNlQG9wZW5ncmlk
+Y29tcHV0aW5nLmNvbSZndDs8QlI+DQpUbzogU2VhbiBIZWZ0eSAmbHQ7c2Vhbi5oZWZ0eUBpbnRl
+bC5jb20mZ3Q7PEJSPg0KQ2M6IGxpbnV4LXJkbWEgJmx0O2xpbnV4LXJkbWFAdmdlci5rZXJuZWwu
+b3JnJmd0OzsgT3BlbkZhYnJpY3MgRVdHICZsdDtld2dAb3BlbmZhYnJpY3Mub3JnJmd0OzsgSmVm
+ZiBTcXV5cmVzIChqc3F1eXJlcyk7IFJvbGFuZCBEcmVpZXIgKHJkcmVpZXIpPEJSPg0KU2VudDog
+VGh1IEZlYiAwNCAxODowNDoyMyAyMDEwPEJSPg0KU3ViamVjdDogUmU6IGJ1ZyAxOTE4IC0gb3Bl
+bm1waSBicm9rZW4gZHVlIHRvIHJkbWEtY20gY2hhbmdlczxCUj4NCjxCUj4NClNlYW4gSGVmdHkg
+d3JvdGU6PEJSPg0KJmd0OyZndDsgV2VsbCB0aGVuIHRoZSByZG1hLWNtIG5lZWRzIHRvIGtub3cg
+d2hpY2ggZGV2aWNlcyBzdXBwb3J0IGh3IGxvb3BiYWNrLjxCUj4NCiZndDsmZ3Q7IEN1eiBvbiBh
+IFQzLW9ubHkgc3lzdGVtLCBubyBod2xvb3AuLi48QlI+DQomZ3Q7Jmd0OyZuYnNwOyZuYnNwOyZu
+YnNwOyZuYnNwOzxCUj4NCiZndDs8QlI+DQomZ3Q7IFRoZSBwcm9ibGVtIHNvdW5kcyBsaWtlIGl0
+J3MgbW9yZSB0aGFuIGp1c3Qgd2hldGhlciAxMjcuMC4wLjEgaXMgdXNhYmxlLiZuYnNwOyBUaGF0
+PEJSPg0KJmd0OyBjaGVjayBtYXkgZml4IG9wZW5tcGksIGJ1dCBpdCBzb3VuZHMgbW9yZSBsaWtl
+IHRoZSBhcHAgbmVlZHMgdG8ga25vdyB3aGV0aGVyIHRoZTxCUj4NCiZndDsgZGV2aWNlIGNhbiBh
+Y3R1YWxseSBzdXBwb3J0IGxvb3BiYWNrLCByZWdhcmRsZXNzIG9mIHdoYXQgYWRkcmVzc2VzIGFy
+ZSB1c2VkLiZuYnNwOyBJczxCUj4NCiZndDsgdGhpcyBjb3JyZWN0PzxCUj4NCiZndDs8QlI+DQom
+Z3Q7IFdoYXQgd291bGQgb3Blbm1waSBkbyBpZiB0aGVyZSB3ZXJlIHR3byBhZGRyZXNzZXMgYXNz
+aWduZWQgdG8gdGhlIFQzIGRldmljZT88QlI+DQomZ3Q7Jm5ic3A7Jm5ic3A7PEJSPg0KPEJSPg0K
+SXQgd291bGQgdXNlIHRoZW0gYW5kIG1pZ2h0IGV2ZW4gY3JlYXRlIHR3byBjb25uZWN0aW9ucy48
+QlI+DQo8QlI+DQomZ3Q7IERvZXMgb3Blbm1waSBzaW1wbHkgYnlwYXNzIFJETUEgZm9yIGFsbCBj
+b25uZWN0aW9ucyBvbiB0aGUgbG9jYWwgbWFjaGluZT88QlI+DQomZ3Q7PEJSPg0KJmd0OyZuYnNw
+OyZuYnNwOzxCUj4NCjxCUj4NCk9wZW5NUEkgY2FuIGJlIHJ1biB0byB1c2UgaHcgbG9vcGJhY2sg
+aWYgaXRzIGF2YWlsYWJsZS4mbmJzcDsgRm9yIFQzPEJSPg0KY2x1c3RlcnMsIE9NUEkgaXMgcnVu
+IGluIGEgbW9kZSB0byB1c2Ugc2hhcmVkIG1lbW9yeSBmb3IgaW50cmEtbm9kZTxCUj4NCmNvbW11
+bmljYXRpb25zLjxCUj4NCjxCUj4NCjxCUj4NCiZndDsgQmFzaWNhbGx5LCBJJ20gbm90IHN1cmUg
+dGhhdCB0aGlzIGlzICpqdXN0KiBhbiByZG1hX2NtIGlzc3VlLiZuYnNwOyBBbHRob3VnaCBpdDxC
+Uj4NCiZndDsgZGVmaW5pdGVseSBhcHBlYXJzIHRoYXQgc29tZSBzb3J0IG9mIGNoYW5nZSBuZWVk
+cyB0byBiZSBtYWRlIHRvIHRoZSByZG1hX2NtLjxCUj4NCiZndDs8QlI+DQomZ3Q7Jm5ic3A7Jm5i
+c3A7PEJSPg0KPEJSPg0KSSB0aGluayB0aGUgT3Blbk1QSSByZG1hY20gY29kZSBuZWVkcyB0byBz
+a2lwIDEyNy4wLjAuMSwgaW4gdGhpczxCUj4NCnBhcnRpY3VsYXIgY2FzZS4mbmJzcDsgUHJpb3Ig
+dG8gb2ZlZC0xLjUuMSwgaG93ZXZlciwgdGhlIGJpbmQgd291bGQgZmFpbCBhbmQ8QlI+DQp0aHVz
+IE9wZW5NUEkgd291bGQgbm90IGFkdmVydGlzZSAxMjcuMC4wLjEgdG8gaXRzIHBlZXIuJm5ic3A7
+IEkgd2lsbCB3b3JrIHRvPEJSPg0KZ2V0IHRoYXQgY2hhbmdlIGRvbmUuPEJSPg0KPEJSPg0KQnV0
+IGxldHMgYWxzbyBhZGQgYSBkZXZpY2UgYXR0cmlidXRlIHNvIHRoZSByZG1hY20gY2FuIGtub3cg
+aWYgYSBkZXZpY2U8QlI+DQpzdXBwb3J0cyBsb29wYmFjay4mbmJzcDsmbmJzcDsgQ2xlYXJseSwg
+aWYgdGhlIHJkbWEtY20gYWxsb3dzIGJpbmRzIHRvIFQzLDxCUj4NCmxvb3BiYWNrIGNvbm5lY3Rp
+b25zIHdpbGwgZmFpbCBhdCBjb25uZWN0IHRpbWUuPEJSPg0KPEJSPg0KSGV5IFJvbGFuZCwgYXJl
+IHlvdSBvayB3aXRoIGEgZGV2aWNlIGF0dHJpYnV0ZSB0byBpbmRpY2F0ZSBody1sb29wYmFjazxC
+Uj4NCnN1cHBvcnQ/PEJSPg0KPEJSPg0KPEJSPg0KU3RldmUuPEJSPg0KPEJSPg0KPEJSPg0KPC9G
+T05UPg0KPC9QPg0KDQo8L0JPRFk+DQo8L0hUTUw+
 
-That's all. Quite easy.
+------_=_NextPart_001_01CAA656.E52DD2D1--
 
-> For normal users /proc interface seems more friendly.
+--===============0731796580==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-I think /proc/sys/net/ipv4/ip_local_reserved_ports interface wants
-"struct list_head" for handling multiple sets of min/max pairs. I'm using
-http://tomoyo.sourceforge.jp/cgi-bin/lxr/source/security/ccsecurity/autobind.c#L29
-for that purpose.
+_______________________________________________
+ewg mailing list
+ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
+http://lists.openfabrics.org/cgi-bin/mailman/listinfo/ewg
+--===============0731796580==--
