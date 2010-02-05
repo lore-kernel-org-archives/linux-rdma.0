@@ -1,250 +1,78 @@
-From: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 0/2] Using multi-smps on the wire in libibnetdisc
-Date: Fri, 5 Feb 2010 07:27:05 -0500
-Message-ID: <f0e08f231002050427r37d326b4w4c188e30992579ac@mail.gmail.com>
-References: <20100202164514.bf2b152a.weiny2@llnl.gov>
-	 <f0e08f231002040619y34784bauec6a25d31e7d229b@mail.gmail.com>
-	 <20100204100045.4d2aa9aa.weiny2@llnl.gov>
-	 <f0e08f231002041201y2b48aa30nc33d2816ed11b1bf@mail.gmail.com>
-	 <20100204161325.c4481bfe.weiny2@llnl.gov>
-	 <20100204181852.f175d968.weiny2@llnl.gov>
+From: Vladislav Bolkhovitin <vst-d+Crzxg7Rs0@public.gmane.org>
+Subject: Re: [PATCH 0/8] ib/iser: major face lift of the data path code
+Date: Fri, 05 Feb 2010 15:29:03 +0300
+Message-ID: <4B6C0F0F.5050905@vlnb.net>
+References: <Pine.LNX.4.64.1002031721280.11944@zuben.voltaire.com> <e2e108261002030811r5c740d6fr4cc055702a88aa50@mail.gmail.com> <4B6AD7D5.7030204@Voltaire.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20100204181852.f175d968.weiny2-i2BcT+NCU+M@public.gmane.org>
+In-Reply-To: <4B6AD7D5.7030204-hKgKHo2Ms0FWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-Cc: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Or Gerlitz <ogerlitz-hKgKHo2Ms0FWk0Htik3J/w@public.gmane.org>
+Cc: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>, Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Mike Christie <michaelc-hcNo3dDEHLuVc3sceRu5cw@public.gmane.org>, Yaron Haviv <yaronh-smomgflXvOZWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Feb 4, 2010 at 9:18 PM, Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org> wrote:
-> On Thu, 4 Feb 2010 16:13:25 -0800
-> Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org> wrote:
->
->> On Thu, 4 Feb 2010 15:01:32 -0500
->> Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
->>
->> > On Thu, Feb 4, 2010 at 1:00 PM, Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org> wrote:
->> > > On Thu, 4 Feb 2010 09:19:39 -0500
->> > > Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
->> > >
->> > >> On Tue, Feb 2, 2010 at 7:45 PM, Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org> wro=
-te:
->> > >> > Sasha,
->> > >> >
->>
->> [snip]
->
-> [snip]
->
->> > >>
->> > >> Is there a speedup with 4 rather than 2 ?
->> > >
->> > > There is a bit of a speed up (~0.5 to 1.0 sec). =C2=A0But my mai=
-n reason to want to
->> > > go to 4 is that if there are issues on the fabric, unresponsive =
-nodes etc.; 4
->> > > will give us better parallelism to get around these issues. =C2=A0=
-I have not had
->> > > the chance to test this condition with the new algorithm but the=
- original
->> > > ibnetdiscover would slow way down when there are nodes which hav=
-e unresponsive
->> > > SMA's. =C2=A0If there are only 2 outstanding this will not give =
-us much speed up.
->> > > This was the main motivation I had for improving the library in =
-this way.
->
-> Ok, I found a fabric with just 2 nodes which were unresponsive... =C2=
-=A0A quick
-> test shows...
->
-> Original ibnetdiscover:
->
-> 18:12:29 > time ./ibnetdiscover > foo
-> ibwarn: [26993] mad_rpc: _do_madrpc failed; dport (DR path slid 0; dl=
-id 0; 0,1,24,11,9)
-> src/ibnetdisc.c:457; Query remote node (DR path slid 0; dlid 0; 0,1,2=
-4,11,9) failed, skipping port
-> ibwarn: [26993] mad_rpc: _do_madrpc failed; dport (DR path slid 0; dl=
-id 0; 0,1,24,24,18,7,6)
-> src/ibnetdisc.c:457; Query remote node (DR path slid 0; dlid 0; 0,1,2=
-4,24,18,7,6) failed, skipping port
->
-> real =C2=A0 =C2=A00m9.073s
-> user =C2=A0 =C2=A00m0.137s
-> sys =C2=A0 =C2=A0 0m0.172s
->
-> 18:12:43 > time ./ibnetdiscover > foo
-> ibwarn: [31111] mad_rpc: _do_madrpc failed; dport (DR path slid 0; dl=
-id 0; 0,1,24,11,9)
-> src/ibnetdisc.c:457; Query remote node (DR path slid 0; dlid 0; 0,1,2=
-4,11,9) failed, skipping port
-> ibwarn: [31111] mad_rpc: _do_madrpc failed; dport (DR path slid 0; dl=
-id 0; 0,1,24,24,18,7,6)
-> src/ibnetdisc.c:457; Query remote node (DR path slid 0; dlid 0; 0,1,2=
-4,24,18,7,6) failed, skipping port
->
-> real =C2=A0 =C2=A00m9.103s
-> user =C2=A0 =C2=A00m0.046s
-> sys =C2=A0 =C2=A0 0m0.046s
->
->
-> *New* ibnetdiscover with different outstanding SMP's.
->
-> 18:12:14 > time ./ibnetdiscover -o 2 > foo
-> src/query_smp.c:185; umad (DR path slid 0; dlid 0; 0,1,13,11,9 Attr 0=
-x11:0) bad status 110; Connection timed out
-> src/query_smp.c:185; umad (DR path slid 0; dlid 0; 0,1,13,13,7,7,6 At=
-tr 0x11:0) bad status 110; Connection timed out
->
-> real =C2=A0 =C2=A00m9.746s
-> user =C2=A0 =C2=A00m6.559s
-> sys =C2=A0 =C2=A0 0m3.156s
->
-> 18:13:00 > time ./ibnetdiscover -o 4 > foo
-> src/query_smp.c:185; umad (DR path slid 0; dlid 0; 0,1,13,11,9 Attr 0=
-x11:0) bad status 110; Connection timed out
-> src/query_smp.c:185; umad (DR path slid 0; dlid 0; 0,1,13,13,7,7,6 At=
-tr 0x11:0) bad status 110; Connection timed out
->
-> real =C2=A0 =C2=A00m4.668s
-> user =C2=A0 =C2=A00m3.043s
-> sys =C2=A0 =C2=A0 0m1.601s
->
-> 18:13:10 > time ./ibnetdiscover -o 8 > foo
-> src/query_smp.c:185; umad (DR path slid 0; dlid 0; 0,1,13,11,9 Attr 0=
-x11:0) bad status 110; Connection timed out
-> src/query_smp.c:185; umad (DR path slid 0; dlid 0; 0,1,13,13,7,7,6 At=
-tr 0x11:0) bad status 110; Connection timed out
->
-> real =C2=A0 =C2=A00m4.360s
-> user =C2=A0 =C2=A00m2.891s
-> sys =C2=A0 =C2=A0 0m1.451s
->
->
-> Note that 2 does not give much speed up, where 4 does. =C2=A0Obviousl=
-y this could
-> have to do with the fact there were 2 nodes which were bad (so if you=
- had
-> 100's of nodes unresponsive a higher value might be worth using)
+Or Gerlitz, on 02/04/2010 05:21 PM wrote:
+> Bart Van Assche wrote:
+>> Sounds really interesting. Do you have numbers available about how
+>> much these patches improve throughput or decrease latency ?
+> 
+> Yes, generally speaking after the patches the initiator peaks to about 300-400K IOPS
+> with latency under such load being 20-30us and before the patches the initiator was
+> doing upto 200K IOPS with the latency under such load being 50-100us, see some data
+> I got today on mytest bed. Being focused on the initiator, I was using a "NULL device"
+> at the target side.
 
-It depends on the number of unresponsive nodes being same or higher
-than number of outstanding/parallel SMPs. In a sense, the number of
-outstanding SMPs is a measure of how many unresponsive nodes one is
-willing to tolerate before slowing down/waiting for timeouts. In some
-environments, unresponsive nodes are a normal case.
+Also, what kind of test did you do?
 
--- Hal
-
-> but as a
-> default compromise I think 4 is good.
->
-> Ira
->
->> > >
->> > > Also, I think you are correct that we should increase OpenSM's d=
-efault from 4
->> > > to 8. =C2=A0For the same reason as above. =C2=A0Some of our clus=
-ters have worked better
->> > > with 8 when we are having issues. =C2=A0But right now we are sti=
-ll running with 4.
->> >
->> > I'm concerned about just increasing ibnetdiscover to 4 rather than=
- 2.
->> > I've seen a number of clusters with SMP dropping with the current
->> > lower defaults.
->>
->> So OpenSM is seeing dropped packets? =C2=A0With 4 SMP's on the wire?=
- =C2=A0I do see some
->> VL15Dropped errors (maybe 2-3 a day) but I did not think that would =
-be an
->> issue. =C2=A0What kind of rate are you seeing?
->>
->> The other question is; do people regularly run the tools which are u=
-sing
->> libibnetdisc (ibqueryerrors, iblinkinfo, ibnetdiscover)? =C2=A0We do=
-=2E =C2=A0If others
->> are not then I would say this change would have less impact as they =
-would want
->> the diags to have some priority for debugging. =C2=A0The other optio=
-n is to change
->> the patch to be a default of 2 and allow user to change it depending=
- on what
->> they are trying to do. =C2=A0If you think that is best I will change=
- the patch.
->>
->> Ira
->>
->> >
->> > -- Hal
->> >
->> > > Ira
->> > >
->> > >>
->> > >> -- Hal
->> > >>
->> > >> >
->> > >> > The first patch converts the algorithm and the second adds th=
-e ibnd_set_max_smps_on_wire call.
->> > >> >
->> > >> > Let me know what you think. =C2=A0Because the algorithm chang=
-ed so much testing this is a bit difficult because the order of the nod=
-e discovery is different. =C2=A0However, I have done some extensive dif=
-fing of the output of ibnetdiscover and things look good.
->> > >> >
->> > >> > Ira
->> > >> >
->> > >> > --
->> > >> > Ira Weiny
->> > >> > Math Programmer/Computer Scientist
->> > >> > Lawrence Livermore National Lab
->> > >> > 925-423-8008
->> > >> > weiny2-i2BcT+NCU+M@public.gmane.org
->> > >> > --
->> > >> > To unsubscribe from this list: send the line "unsubscribe lin=
-ux-rdma" in
->> > >> > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->> > >> > More majordomo info at =C2=A0http://**vger.kernel.org/majordo=
-mo-info.html
->> > >> >
->> > >> --
->> > >> To unsubscribe from this list: send the line "unsubscribe linux=
--rdma" in
->> > >> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->> > >> More majordomo info at =C2=A0http://**vger.kernel.org/majordomo=
--info.html
->> > >>
->> > >
->> > >
->> > > --
->> > > Ira Weiny
->> > > Math Programmer/Computer Scientist
->> > > Lawrence Livermore National Lab
->> > > 925-423-8008
->> > > weiny2-i2BcT+NCU+M@public.gmane.org
->> > >
->> >
->>
->>
->> --
->> Ira Weiny
->> Math Programmer/Computer Scientist
->> Lawrence Livermore National Lab
->> 925-423-8008
->> weiny2-i2BcT+NCU+M@public.gmane.org
->
->
+> AFTER
+> 
+>  r  b   swpd   free   buff  cache   si   so    bi    bo   in   cs us sy id wa st
+> 11 11      0 6212936 260552 367356    0    0 308671     0 285596 492842  4 64  0 31  0
+>  7 13      0 6212936 260552 367356    0    0 309628    24 285138 496537  5 61  0 33  0
+> 10 12      0 6212936 260552 367356    0    0 308222     0 277868 489261  4 65  0 30  0
+>  8 13      0 6212936 260552 367356    0    0 310724     0 282151 493868  4 67  0 29  0
+> 12 11      0 6212936 260552 367356    0    0 308209     0 278753 489797  5 66  0 29  0
+> 
+> Linux 2.6.33-rc4 (cto-1) 	02/04/2010
+> 
+> avg-cpu:  %user   %nice %system %iowait  %steal   %idle
+>            4.62    0.00   66.29   28.71    0.00    0.37
+> 
+> Device:         rrqm/s   wrqm/s   r/s   w/s   rsec/s   wsec/s avgrq-sz avgqu-sz   await  svctm  %util
+> sdd               0.00     0.00 88905.94  0.00 177811.88     0.00     2.00     2.82    0.03   0.01  98.61
+> sdf               0.00     0.00 64021.78  0.00 128045.54     0.00     2.00     2.55    0.04   0.02  96.24
+> sdh               0.00     0.00 88922.77  0.00 177845.54     0.00     2.00     2.85    0.03   0.01  99.01
+> sdj               0.00     0.00 64662.38  0.00 129324.75     0.00     2.00     2.69    0.04   0.02  97.82
+> 
+> BEFORE
+> 
+>  r  b   swpd   free   buff  cache   si   so    bi    bo   in   cs us sy id wa st
+>  6 14      0 6211804 260684 368584    0    0 195551     0 195997 557463  3 56  4 37  0
+>  7 13      0 6211804 260684 368584    0    0 191347     0 192311 525823  3 58  3 36  0
+>  6 15      0 6211804 260692 368584    0    0 187135    16 190875 503739  3 58  3 35  0
+>  8 14      0 6211804 260692 368584    0    0 193745     0 193921 556821  3 55  4 38  0
+>  8 16      0 6211804 260692 368584    0    0 191233     0 191549 536499  3 58  4 35  0
+> 
+> Linux 2.6.33-rc4 (cto-1) 	02/04/2010
+> 
+> avg-cpu:  %user   %nice %system %iowait  %steal   %idle
+>            2.24    0.00   58.16   35.87    0.00    3.74
+> 
+> Device:         rrqm/s   wrqm/s   r/s   w/s   rsec/s   wsec/s avgrq-sz avgqu-sz   await  svctm  %util
+> sdd               0.00     0.00 33964.00  0.00 67928.00     0.00     2.00     3.36    0.10   0.03 100.00
+> sdf               0.00     0.00 33456.00  0.00 66912.00     0.00     2.00     3.34    0.10   0.03  99.60
+> sdh               0.00     0.00 63176.00  0.00 126352.00     0.00     2.00     3.40    0.05   0.02 100.00
+> sdj               0.00     0.00 62973.00  0.00 125946.00     0.00     2.00     3.38    0.05   0.02 100.40
+> 
 > --
-> Ira Weiny
-> Math Programmer/Computer Scientist
-> Lawrence Livermore National Lab
-> 925-423-8008
-> weiny2-i2BcT+NCU+M@public.gmane.org
->
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
