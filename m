@@ -1,31 +1,35 @@
-From: Tziporet Koren <tziporet-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
-Subject: Re: [ewg] bug 1918 - openmpi broken due to rdma-cm changes
-Date: Sun, 07 Feb 2010 13:56:15 +0200
-Message-ID: <4B6EAA5F.1000208@mellanox.co.il>
-References: <58D723FE08DC6A4398E6596E38F3FA170566DA@XMB-RCD-205.cisco.com>	<0D5487526204477AA2ABED06E46768E2@amr.corp.intel.com>	<4B6C498F.3060708@opengridcomputing.com>	<38B735478FE94F40BBA3E8BFD794B10F@amr.corp.intel.com>	<4B6D9948.6040007@opengridcomputing.com>	<B41CA82E76BB439B892B4874D38EA652@amr.corp.intel.com> <4B6E15C4.9020703@opengridcomputing.com>
+From: Or Gerlitz <ogerlitz-hKgKHo2Ms0FWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH 0/8] ib/iser: major face lift of the data path code
+Date: Sun, 07 Feb 2010 16:51:14 +0200
+Message-ID: <4B6ED362.2060909@Voltaire.com>
+References: <Pine.LNX.4.64.1002031721280.11944@zuben.voltaire.com>	<e2e108261002030811r5c740d6fr4cc055702a88aa50@mail.gmail.com>	<4B6AD7D5.7030204@Voltaire.com> <4B6C0C93.2090107@vlnb.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4B6E15C4.9020703-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+In-Reply-To: <4B6C0C93.2090107-d+Crzxg7Rs0@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ewg-G2znmakfqn7U1rindQTSdQ@public.gmane.org, "Roland Dreier (rdreier)" <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+To: Vladislav Bolkhovitin <vst-d+Crzxg7Rs0@public.gmane.org>
+Cc: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>, Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Mike Christie <michaelc-hcNo3dDEHLuVc3sceRu5cw@public.gmane.org>, Yaron Haviv <yaronh-smomgflXvOZWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 2/7/2010 3:22 AM, Steve Wise wrote:
->    
->>>
->>> Good catch, I'll update the patch and submit for 2.6.33 on Monday.
->>>
->>>
->>>        
-> NOTE: This doesn't solve our IB/openmpi regression for ofed-1.5.1.
->
->    
-If this patch will be accepted to the kernel 2.6.33 we can take it too
+Vladislav Bolkhovitin wrote:
+> Or Gerlitz wrote:
 
-Tziporet
+> From where did you get those latency numbers?
+
+read iostat(8), you'll see that await is "The average time (in milliseconds) 
+for I/O requests issued to the device to be served"
+
+> what kind of test did you do?
+
+I connected a Linux box through iser to a target exposing four "NULL luns", 
+i.e luns which are not backed by real storage. I run four copies of disktest
+each over a different lun, where each was reading 1k blocks, etc. 
+
+Or.
+
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
