@@ -1,76 +1,71 @@
-From: Jeff Squyres <jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [ewg] rdma/cm: disallow loopback address for iwarp devices
-Date: Mon, 8 Feb 2010 16:56:23 -0500
-Message-ID: <41CC15C4-0200-4C9E-9E10-3D2A9B76D16B@cisco.com>
-References: <58D723FE08DC6A4398E6596E38F3FA170566DA@XMB-RCD-205.cisco.com> <0D5487526204477AA2ABED06E46768E2@amr.corp.intel.com> <4B6C498F.3060708@opengridcomputing.com> <38B735478FE94F40BBA3E8BFD794B10F@amr.corp.intel.com> <4B6D9948.6040007@opengridcomputing.com> <B41CA82E76BB439B892B4874D38EA652@amr.corp.intel.com> <79BAA34231304F1E84C5A5A53C50A207@amr.corp.intel.com> <4B6FFB1B.40905@mellanox.co.il> <4B701FE6.60302@opengridcomputing.com> <adawrynwtz9.fsf@roland-alpha.cisco.com> <20100208191927.GU16490@obsidianresearch.com> <4B706DED.9080403@opengridcomputing.com> <C8A2C57AD5FA4141860DBFF60BFDE2DC@amr.corp.intel.com> <4B707F2D.3030508@opengridcomputing.com>
-Mime-Version: 1.0 (Apple Message framework v1077)
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 8BIT
+From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: [PATCH resend] rdma/cma: Disallow binding rdma endpoints to 127.0.0.1.
+Date: Mon, 08 Feb 2010 16:04:49 -0600
+Message-ID: <20100208220448.17180.60547.stgit@build.ogc.int>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4B707F2D.3030508-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, "Roland Dreier (rdreier)" <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Tziporet Koren <tziporet-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Linux RDMA List <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ewg-G2znmakfqn7U1rindQTSdQ@public.gmane.org
+To: rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Sorry -- I missed many of these mails today due to mail filtering (don't ask).
+Here is a <not tested> patch that I think removes support for binding
+to 127.0.0.1.  Sean will this work?
 
-FWIW:
+If we agree to do this for 2.6.33, then I'll build/test this and resubmit.
 
-- I'm not opposed to adding LOOPBACK checks into OMPI to avoid this problem (I'm waiting for a patch, actually).  I'm just saying that we're not going to get a release out immediately with this fix.  Our next release was scheduled to be 1.4.2, and it is still at least several weeks away.  So allowing this in 2.6.33 would be Bad because a) we know it breaks OMPI, and b) OMPI can't get a release out immediately to fix the issue.
+----
 
-- There are customers who are using RDMA CM with IB (e.g., Sandia with their Mesh/IB routing stuff).
+rdma/cma: Disallow binding rdma endpoints to 127.0.0.1.
 
-- I see the following in rdma_bind_addr(3):
+Currently this functionality breaks openmpi.  Once openmpi is fixed to
+correctly ignore 127.0.0.1 as a valid external rdma address, we can
+re-enable this functionality.
 
------
-DESCRIPTION
-       Associates a source address with an rdma_cm_id.  The  address  may  be
-       wildcarded.   If  binding  to a specific local address, the rdma_cm_id
-       will also be bound to a local RDMA device.
------
+Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+---
 
-What RDMA device is bound to when you use 127.0.0.1?  I'm not 100% sure, but I think that this might be where we got the rationale that we didn't need additional LOOPBACK tests in OMPI...  (if anyone else agrees with this interpretation, then it's at least one argument that allowing binding to LOOPBACK devices *is* a change in semantics, and therefore should be treated extremely carefully)
+ drivers/infiniband/core/cma.c |   16 ++--------------
+ 1 files changed, 2 insertions(+), 14 deletions(-)
 
-
-On Feb 8, 2010, at 4:16 PM, Steve Wise wrote:
-
-> 
-> Sean Hefty wrote:
-> >> IMO 127.0.0.1 should be for SW loopback, not HW RDMA loopback.
-> >>    
-> >
-> > I disagree, but what does it matter?  So, we add a 'software' loopback that uses
-> > 127.0.0.1.  Openmpi still wouldn't work.
-> >
-> >  
-> 
-> I guess that's true.
-> 
-> >> I will commit to get the fix in openmpi asap.
-> >>    
-> >
-> > If we don't care if the fix is in the kernel or user space, then we could add an
-> > a 'disable-loopback-support' build option to librdmacm, which can fail any
-> > attempt to bind to a loopback address.
-> >
-> >  
-> 
-> I'd rather see it removed from 2.6.33 kernel before it shipts, and then
-> we fix openmpi, and then re-submit 127.0.0.1 support once openmpi
-> publishes a release with its fix.  See my other email that submits a
-> potential commit to remove 127.0.0.1 support for 2.6.33.
-> 
-> Steve.
-> 
-
-
--- 
-Jeff Squyres
-jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org
-
-For corporate legal information go to:
-http://www.cisco.com/web/about/doing_business/legal/cri/
+diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
+index cc9b594..cd3d351 100644
+--- a/drivers/infiniband/core/cma.c
++++ b/drivers/infiniband/core/cma.c
+@@ -628,19 +628,9 @@ static inline int cma_zero_addr(struct sockaddr *addr)
+ 	}
+ }
+ 
+-static inline int cma_loopback_addr(struct sockaddr *addr)
+-{
+-	if (addr->sa_family == AF_INET)
+-		return ipv4_is_loopback(
+-			((struct sockaddr_in *) addr)->sin_addr.s_addr);
+-	else
+-		return ipv6_addr_loopback(
+-			&((struct sockaddr_in6 *) addr)->sin6_addr);
+-}
+-
+ static inline int cma_any_addr(struct sockaddr *addr)
+ {
+-	return cma_zero_addr(addr) || cma_loopback_addr(addr);
++	return cma_zero_addr(addr);
+ }
+ 
+ static inline __be16 cma_port(struct sockaddr *addr)
+@@ -2115,9 +2105,7 @@ int rdma_bind_addr(struct rdma_cm_id *id, struct sockaddr *addr)
+ 	if (ret)
+ 		goto err1;
+ 
+-	if (cma_loopback_addr(addr)) {
+-		ret = cma_bind_loopback(id_priv);
+-	} else if (!cma_zero_addr(addr)) {
++	if (!cma_zero_addr(addr)) {
+ 		ret = rdma_translate_ip(addr, &id->route.addr.dev_addr);
+ 		if (ret)
+ 			goto err1;
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
