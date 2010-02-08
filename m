@@ -1,39 +1,60 @@
-From: Tziporet Koren <tziporet-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [ewg] bug 1918 - openmpi broken due to rdma-cm changes
-Date: Sun, 07 Feb 2010 23:44:49 +0200
-Message-ID: <4B6F3451.2070304@mellanox.co.il>
-References: <58D723FE08DC6A4398E6596E38F3FA170566DA@XMB-RCD-205.cisco.com>	<0D5487526204477AA2ABED06E46768E2@amr.corp.intel.com>	<4B6C498F.3060708@opengridcomputing.com> <F6DF49B759AD49EEB44BECD99FE26DCF@amr.corp.intel.com>
-Reply-To: tziporet-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org
+From: Cong Wang <amwang@redhat.com>
+Subject: Re: [RFC Patch v2] net: reserve ports for applications using fixedport
+ numbers
+Date: Mon, 08 Feb 2010 11:15:59 +0800
+Message-ID: <4B6F81EF.4070103@redhat.com>
+References: <20100204101533.4619.34599.sendpatchset@localhost.localdomain>	<201002041959.JEG43202.JQOFHFOVSFMtLO@I-love.SAKURA.ne.jp>	<4B6BA16E.3010002@redhat.com> <201002052021.CIC81776.QVSMJOLtFOFFHO@I-love.SAKURA.ne.jp>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <F6DF49B759AD49EEB44BECD99FE26DCF-Zpru7NauK7drdx17CPfAsdBPR1lH4CV8@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: 'Steve Wise' <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ewg-G2znmakfqn7U1rindQTSdQ@public.gmane.org, "Roland Dreier (rdreier)" <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, dwilder-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org
+Return-path: <linux-security-module-owner@vger.kernel.org>
+In-Reply-To: <201002052021.CIC81776.QVSMJOLtFOFFHO@I-love.SAKURA.ne.jp>
+Sender: linux-security-module-owner@vger.kernel.org
+To: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Cc: linux-kernel@vger.kernel.org, linux-security-module@vger.kernel.org, opurdila@ixiacom.com, eric.dumazet@gmail.com, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, nhorman@tuxdriver.com, linux-sctp@vger.kernel.org, davem@davemloft.net
 List-Id: linux-rdma@vger.kernel.org
 
-On 2/5/2010 6:52 PM, Sean Hefty wrote:
->
->> BTW:  Was this change an artifact of rebasing ofed-1.5.1 on a new kernel
->> version?
->>      
-> apparently
->
->    
-Sorry to jump late on this thread
-OFED 1.5.1 was not rebased on a new kernel - its still based on 2.6.30.
-But many time we take patches that were accepted by the kernel to OFED.
-These patches where pushed to OFED by David Wilder from IBM, since 
-loopback support of CMA was important for them.
-Therefore I add David to the thread too.
+Tetsuo Handa wrote:
+> Cong Wang wrote:
+>> Oh, IIUC, TOMOYO is something like SELinux?
+> 
+> Yes. It is a policy based mandatory access control implementation which is
+> applied to not only non root users but also root user. If MAC is enabled,
+> root user cannot freely modify via sysctl() or /proc/sys interface.
+> 
+>> So, it is somewhat weird to let users to use TOMOYO to reserve
+>> the ports with MAC.
+> 
+> To add reserved port
+> 
+> echo deny_autobind 0-1023 | ccs-loadpolicy -e
+> echo deny_autobind 3128 | ccs-loadpolicy -e
+> echo deny_autobind 8080 | ccs-loadpolicy -e
+> 
+> and to delete reserved port
+> 
+> echo delete deny_autobind 0-1023 | ccs-loadpolicy -e
+> echo delete deny_autobind 3128 | ccs-loadpolicy -e
+> echo delete deny_autobind 8080 | ccs-loadpolicy -e
+> 
+> That's all. Quite easy.
 
-Steve/Jeff - how come no one tested iWARP with the new kernel patches 
-when Sean submitted them?
 
-Tziporet
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Hmm, but you are solving a non-security problem with a security
+tool, doesn't this look weird? ;-)
+
+> 
+>> For normal users /proc interface seems more friendly.
+> 
+> I think /proc/sys/net/ipv4/ip_local_reserved_ports interface wants
+> "struct list_head" for handling multiple sets of min/max pairs. I'm using
+> http://tomoyo.sourceforge.jp/cgi-bin/lxr/source/security/ccsecurity/autobind.c#L29
+> for that purpose.
+
+
+Yes, but I didn't plan to add multiple range support for
+ip_local_reserved_ports, like ip_local_port_range.
+
+Having that will be better but needs more efforts.
+
+Thanks.
