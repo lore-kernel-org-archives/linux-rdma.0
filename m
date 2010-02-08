@@ -1,98 +1,117 @@
-From: "Sean Hefty" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH] [for-2.6.33] rdma/cm: disallow loopback address for
-	iwarp devices
-Date: Sun, 7 Feb 2010 22:02:11 -0800
-Message-ID: <79BAA34231304F1E84C5A5A53C50A207@amr.corp.intel.com>
-References: <58D723FE08DC6A4398E6596E38F3FA170566DA@XMB-RCD-205.cisco.com>
-	<0D5487526204477AA2ABED06E46768E2@amr.corp.intel.com>
-	<4B6C498F.3060708@opengridcomputing.com>
-	<38B735478FE94F40BBA3E8BFD794B10F@amr.corp.intel.com>
-	<4B6D9948.6040007@opengridcomputing.com>
-	<B41CA82E76BB439B892B4874D38EA652@amr.corp.intel.com>
+From: Eli Cohen <eli-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
+Subject: [PATCH] ib_core: fix and clean ib_ud_header_init()
+Date: Mon, 8 Feb 2010 13:40:37 +0200
+Message-ID: <20100208114037.GA12810@mtls03>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
-In-Reply-To: <B41CA82E76BB439B892B4874D38EA652-Zpru7NauK7drdx17CPfAsdBPR1lH4CV8@public.gmane.org>
-List-Unsubscribe: <http://lists.openfabrics.org/cgi-bin/mailman/listinfo/ewg>,
-	<mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.openfabrics.org/pipermail/ewg>
-List-Post: <mailto:ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
-List-Help: <mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=help>
-List-Subscribe: <http://lists.openfabrics.org/cgi-bin/mailman/listinfo/ewg>,
-	<mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=subscribe>
-Sender: ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
-Errors-To: ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Steve Wise' <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ewg-G2znmakfqn7U1rindQTSdQ@public.gmane.org, "Roland Dreier (rdreier)" <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Cc: Linux RDMA list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Since iWarp devices are not guaranteed to support loopback connections,
-prevent rdma_bind_addr from associating the loopback address with
-an iWarp device.
+ib_ud_header_init() first clears header and then fills up the various fields.
+Later on it references header->immediate_present which it has cleared so the
+condition is also false. Fix this by adding an immediate_present field and set
+it into header->immediate_present as is the case with grh_present.
+Also remove unused calculation of header_len.
 
-Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Eli Cohen <eli-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
 ---
-This includes feedback from Steve Wise based on the initial rfc patch.
+ drivers/infiniband/core/ud_header.c    |   14 ++++----------
+ drivers/infiniband/hw/mlx4/qp.c        |    3 ++-
+ drivers/infiniband/hw/mthca/mthca_qp.c |    1 +
+ include/rdma/ib_pack.h                 |    1 +
+ 4 files changed, 8 insertions(+), 11 deletions(-)
 
-Although this patch is needed to prevent binding to RDMA devices that
-may not support loopback addressing, is also works around a bug in
-openmpi using the loopback address to bind to an iwarp device.
-
-This is not a perfect solution either, since it disable all iwarp devices.
-The NES driver should be able to support loopback connections, though that
-feature has never been tested.  We may need a per device attribute.
-I will look at creating such a patch, but wanted to post this in case I
-can't get that one done in the next couple of days. 
-
- drivers/infiniband/core/cma.c |   18 ++++++++++++------
- 1 files changed, 12 insertions(+), 6 deletions(-)
-
-diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
-index cc9b594..fe8b0c0 100644
---- a/drivers/infiniband/core/cma.c
-+++ b/drivers/infiniband/core/cma.c
-@@ -1739,6 +1739,9 @@ err:
- }
- EXPORT_SYMBOL(rdma_resolve_route);
- 
-+/*
-+ * Only IB devices are guaranteed to support loopback connections.
-+ */
- static int cma_bind_loopback(struct rdma_id_private *id_priv)
+diff --git a/drivers/infiniband/core/ud_header.c b/drivers/infiniband/core/ud_header.c
+index 8ec7876..650b501 100644
+--- a/drivers/infiniband/core/ud_header.c
++++ b/drivers/infiniband/core/ud_header.c
+@@ -181,6 +181,7 @@ static const struct ib_field deth_table[] = {
+  * ib_ud_header_init - Initialize UD header structure
+  * @payload_bytes:Length of packet payload
+  * @grh_present:GRH flag (if non-zero, GRH will be included)
++ * @immediate_present: specify if immediate data should be used
+  * @header:Structure to initialize
+  *
+  * ib_ud_header_init() initializes the lrh.link_version, lrh.link_next_header,
+@@ -191,21 +192,13 @@ static const struct ib_field deth_table[] = {
+  */
+ void ib_ud_header_init(int     		    payload_bytes,
+ 		       int    		    grh_present,
++		       int		    immediate_present,
+ 		       struct ib_ud_header *header)
  {
- 	struct cma_device *cma_dev;
-@@ -1753,14 +1756,19 @@ static int cma_bind_loopback(struct rdma_id_private *id_priv)
- 		ret = -ENODEV;
- 		goto out;
- 	}
--	list_for_each_entry(cma_dev, &dev_list, list)
-+	list_for_each_entry(cma_dev, &dev_list, list) {
-+		if (rdma_node_get_transport(cma_dev->device->node_type) !=
-+		    RDMA_TRANSPORT_IB)
-+			continue;
-+
- 		for (p = 1; p <= cma_dev->device->phys_port_cnt; ++p)
- 			if (!ib_query_port(cma_dev->device, p, &port_attr) &&
- 			    port_attr.state == IB_PORT_ACTIVE)
- 				goto port_found;
-+	}
+-	int header_len;
+ 	u16 packet_length;
  
--	p = 1;
--	cma_dev = list_entry(dev_list.next, struct cma_device, list);
-+	ret = -ENODEV;
-+	goto out;
+ 	memset(header, 0, sizeof *header);
  
- port_found:
- 	ret = ib_get_cached_gid(cma_dev->device, p, 0, &gid);
-@@ -1771,9 +1779,7 @@ port_found:
- 	if (ret)
- 		goto out;
+-	header_len =
+-		IB_LRH_BYTES  +
+-		IB_BTH_BYTES  +
+-		IB_DETH_BYTES;
+-	if (grh_present) {
+-		header_len += IB_GRH_BYTES;
+-	}
+-
+ 	header->lrh.link_version     = 0;
+ 	header->lrh.link_next_header =
+ 		grh_present ? IB_LNH_IBA_GLOBAL : IB_LNH_IBA_LOCAL;
+@@ -231,7 +224,8 @@ void ib_ud_header_init(int     		    payload_bytes,
  
--	id_priv->id.route.addr.dev_addr.dev_type =
--		(rdma_node_get_transport(cma_dev->device->node_type) == RDMA_TRANSPORT_IB) ?
--		ARPHRD_INFINIBAND : ARPHRD_ETHER;
-+	id_priv->id.route.addr.dev_addr.dev_type = ARPHRD_INFINIBAND;
+ 	header->lrh.packet_length = cpu_to_be16(packet_length);
  
- 	rdma_addr_set_sgid(&id_priv->id.route.addr.dev_addr, &gid);
- 	ib_addr_set_pkey(&id_priv->id.route.addr.dev_addr, pkey);
+-	if (header->immediate_present)
++	header->immediate_present	     = immediate_present;
++	if (immediate_present)
+ 		header->bth.opcode           = IB_OPCODE_UD_SEND_ONLY_WITH_IMMEDIATE;
+ 	else
+ 		header->bth.opcode           = IB_OPCODE_UD_SEND_ONLY;
+diff --git a/drivers/infiniband/hw/mlx4/qp.c b/drivers/infiniband/hw/mlx4/qp.c
+index b377671..e998511 100644
+--- a/drivers/infiniband/hw/mlx4/qp.c
++++ b/drivers/infiniband/hw/mlx4/qp.c
+@@ -1228,7 +1228,8 @@ static int build_mlx_header(struct mlx4_ib_sqp *sqp, struct ib_send_wr *wr,
+ 	for (i = 0; i < wr->num_sge; ++i)
+ 		send_size += wr->sg_list[i].length;
+ 
+-	ib_ud_header_init(send_size, mlx4_ib_ah_grh_present(ah), &sqp->ud_header);
++	ib_ud_header_init(send_size, mlx4_ib_ah_grh_present(ah), 0,
++			  &sqp->ud_header);
+ 
+ 	sqp->ud_header.lrh.service_level   =
+ 		be32_to_cpu(ah->av.sl_tclass_flowlabel) >> 28;
+diff --git a/drivers/infiniband/hw/mthca/mthca_qp.c b/drivers/infiniband/hw/mthca/mthca_qp.c
+index c10576f..a6d49f0 100644
+--- a/drivers/infiniband/hw/mthca/mthca_qp.c
++++ b/drivers/infiniband/hw/mthca/mthca_qp.c
+@@ -1495,6 +1495,7 @@ static int build_mlx_header(struct mthca_dev *dev, struct mthca_sqp *sqp,
+ 
+ 	ib_ud_header_init(256, /* assume a MAD */
+ 			  mthca_ah_grh_present(to_mah(wr->wr.ud.ah)),
++			  0,
+ 			  &sqp->ud_header);
+ 
+ 	err = mthca_read_ah(dev, to_mah(wr->wr.ud.ah), &sqp->ud_header);
+diff --git a/include/rdma/ib_pack.h b/include/rdma/ib_pack.h
+index d7fc45c..cbb50f4 100644
+--- a/include/rdma/ib_pack.h
++++ b/include/rdma/ib_pack.h
+@@ -232,6 +232,7 @@ void ib_unpack(const struct ib_field        *desc,
+ 
+ void ib_ud_header_init(int     		   payload_bytes,
+ 		       int    		   grh_present,
++		       int		   immediate_present,
+ 		       struct ib_ud_header *header);
+ 
+ int ib_ud_header_pack(struct ib_ud_header *header,
+-- 
+1.6.6.1
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
