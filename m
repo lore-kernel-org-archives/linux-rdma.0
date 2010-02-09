@@ -1,26 +1,37 @@
-From: "Sean Hefty" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH] [for-2.6.33] rdma/cm: disallow loopback address for iwarp devices
-Date: Tue, 9 Feb 2010 08:32:25 -0800
-Message-ID: <8B923EDE56404524B1504DC4AE1E5C54@amr.corp.intel.com>
-References: <58D723FE08DC6A4398E6596E38F3FA170566DA@XMB-RCD-205.cisco.com> <0D5487526204477AA2ABED06E46768E2@amr.corp.intel.com> <4B6C498F.3060708@opengridcomputing.com> <38B735478FE94F40BBA3E8BFD794B10F@amr.corp.intel.com> <4B6D9948.6040007@opengridcomputing.com> <B41CA82E76BB439B892B4874D38EA652@amr.corp.intel.com> <79BAA34231304F1E84C5A5A53C50A207@amr.corp.intel.com>
+From: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: Patch series from Dec 2009 which needs reviewing/applying
+Date: Tue, 9 Feb 2010 19:20:41 +0200
+Message-ID: <201002091920.41978.jackm@dev.mellanox.co.il>
+References: <201002041059.09368.jackm@dev.mellanox.co.il> <adapr4fwt68.fsf@roland-alpha.cisco.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <79BAA34231304F1E84C5A5A53C50A207-Zpru7NauK7drdx17CPfAsdBPR1lH4CV8@public.gmane.org>
+In-Reply-To: <adapr4fwt68.fsf-BjVyx320WGW9gfZ95n9DRSW4+XlvGpQz@public.gmane.org>
+Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Steve Wise' <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, "Roland Dreier (rdreier)" <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Cc: "'Jeff Squyres (jsquyres)'" <jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ewg-G2znmakfqn7U1rindQTSdQ@public.gmane.org
+To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tziporet Koren <tziporet-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, vlad-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-This patch should be dropped.
+On Monday 08 February 2010 19:09, Roland Dreier wrote:
+> =A0> [PATCH 0/2] fix SRQ WQE buffer initialization in liblmx4 and in =
+mlx4_ib
+> =A0> http://www.spinics.net/lists/linux-rdma/msg01911.html
+>=20
+> This isn't a patch AFAICT.
+>=20
+You are right, it isn't.  Generally, when I submit a patch series, I do
+a [PATCH 0/??] to contain overall explanatory notes.
+If you would rather I call the submission something else, that is no pr=
+oblem.
 
-The current proposed fix is:
+What would you like to see in the subject line for an e-mail which intr=
+oduces a patch series?
 
-rdma/cm: revert associating an RDMA device when binding to loopback
-
+-Jack
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
