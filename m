@@ -1,29 +1,30 @@
-From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH V2 00/9] ib/iser: major face lift of the data path code
-Date: Tue, 09 Feb 2010 08:04:55 -0800
-Message-ID: <adar5ouiee0.fsf@roland-alpha.cisco.com>
-References: <Pine.LNX.4.64.1002081509400.16288@zuben.voltaire.com>
-	<4B713C80.7030907@voltaire.com>
+From: Pradeep Satyanarayana <pradeeps-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
+Subject: Re: [PATCH] [for-2.6.33] rdma/cm: revert associating an RDMA device
+ when binding to loopback
+Date: Tue, 09 Feb 2010 08:15:40 -0800
+Message-ID: <4B718A2C.2030602@linux.vnet.ibm.com>
+References: <58D723FE08DC6A4398E6596E38F3FA170566DA@XMB-RCD-205.cisco.com> <0D5487526204477AA2ABED06E46768E2@amr.corp.intel.com> <4B6C498F.3060708@opengridcomputing.com> <38B735478FE94F40BBA3E8BFD794B10F@amr.corp.intel.com> <4B6D9948.6040007@opengridcomputing.com> <B41CA82E76BB439B892B4874D38EA652@amr.corp.intel.com> <79BAA34231304F1E84C5A5A53C50A207@amr.corp.intel.com> <4B6FFB1B.40905@mellanox.co.il> <4B701FE6.60302@opengridcomputing.com> <adawrynwtz9.fsf@roland-alpha.cisco.com> <421D3D6710E847C5B7CAC00EB73117C4@amr.corp.intel.com> <4B717F5D.8020403@opengridcomputing.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4B713C80.7030907-smomgflXvOZWk0Htik3J/w@public.gmane.org> (Or Gerlitz's message of "Tue, 09
-	Feb 2010 12:44:16 +0200")
+In-Reply-To: <4B717F5D.8020403-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, tziporet-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ewg-G2znmakfqn7U1rindQTSdQ@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
- > Roland, looking on your for-next branch I see that it contains single
- > one liner patch "RDMA/cxgb3: Remove BUG_ON() on CQ rearm failure" for
- > 2.6.34 while there are couple of patches targeted for the coming
- > window ... are you planning to get merging start running soon?
+Steve Wise wrote:
+> This patch works.  It also backports cleanly to ofed-1.5.1/RH5.3.
+> 
+> Acked-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+> 
+> Steve.
+Steve, Was this tested against both iWARP and IB?
 
-Yes.
--- 
-Roland Dreier  <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-For corporate legal information go to:
-http://www.cisco.com/web/about/doing_business/legal/cri/index.html
+Thanks
+Pradeep
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
