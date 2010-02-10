@@ -1,34 +1,25 @@
-From: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 00/23 v3] mlx4: multi-function framework and Ethernet
-	SRIOV
-Date: Wed, 10 Feb 2010 09:40:14 +0200
-Message-ID: <15ddcffd1002092340w33a012dap7f8b3d3bff5a7942@mail.gmail.com>
-References: <49BFC313.1030901@mellanox.co.il> <4B6AEDA4.7080603@mellanox.co.il>
+From: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: Patch series from Dec 2009 which needs reviewing/applying
+Date: Wed, 10 Feb 2010 10:43:54 +0200
+Message-ID: <201002101043.54696.jackm@dev.mellanox.co.il>
+References: <201002041059.09368.jackm@dev.mellanox.co.il> <201002091920.41978.jackm@dev.mellanox.co.il> <adamxziiat8.fsf@roland-alpha.cisco.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4B6AEDA4.7080603-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
+In-Reply-To: <adamxziiat8.fsf-BjVyx320WGW9gfZ95n9DRSW4+XlvGpQz@public.gmane.org>
+Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yevgeny Petrilin <yevgenyp-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
-Cc: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, liranl-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org, tziporet-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tziporet Koren <tziporet-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, vlad-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Yevgeny Petrilin <yevgenyp-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org> wrote:
-
-> This is the third version of these patches, the main changes from previous time:
-
-Yevgeny,
-
-I just realized that you've posted this series to
-general-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org which is not active any more, and as
-such, this patch series wasn't posted to the rdma community. The
-kernel rdma stack is now maintained  through
-linux-rdma-u79uwXL29TaiAVqoAR/hOA@public.gmane.org
-Lets have this fixed for V4 ...
-
-thanks,
-
-Or.
+On Tuesday 09 February 2010 19:22, Roland Dreier wrote:
+> so the SRQ
+> initialization fixes are in place, right?
+> 
+Yes.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
