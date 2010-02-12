@@ -1,56 +1,86 @@
-From: "Sean Hefty" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RFC for defining and using AF_IB
-Date: Thu, 11 Feb 2010 17:17:30 -0800
-Message-ID: <254A1EF506C448E68EA2FBFC7D11D9F6@amr.corp.intel.com>
+From: yogeshwar sonawane <yogyas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: data placement in-order guarantee ?
+Date: Fri, 12 Feb 2010 13:18:24 +0530
+Message-ID: <b681c62b1002112348s3e77cb43w812d0cb0bc9b0fa2@mail.gmail.com>
+References: <b681c62b1002020714s70c24fa7l4fcbf05617986b47@mail.gmail.com>
+	 <F1D9D0AC-1AB3-43F6-B04F-A7AD126ED543@Sun.com>
+	 <bb7677341002091008n33cfc01au5d4ec4197eac92bf@mail.gmail.com>
+	 <0E2907DC-7E0C-4F8E-B548-C7CD08428506@Sun.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <0E2907DC-7E0C-4F8E-B548-C7CD08428506-U0mLk4xYmo8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: =?ISO-8859-1?Q?H=E5kon_Bugge?= <Haakon.Bugge-xsfywfwIY+M@public.gmane.org>
+Cc: =?UTF-8?B?4KSF4KSo4KWB4KSc?= <anuj01-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-I want to restart a discussion on adding AF_IB to the rdma_cm.  See the thread
-below for more details:
+Hi,
 
-http://www.mail-archive.com/linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org/msg00279.html
+thanks to all for adding information.
 
-In short, AF_IB would allow a user of the rdma_cm to specify native IB
-addresses.   Transport neutrality would be maintained by adding a call such as
-rdma_getaddrinfo.
+In continuation, If i am transferring only a single byte using RDMA
+write, then can i poll on this byte arrival on receiving side ?
+Atleast, can one be sure in single byte case ?
 
-I'm specifically asking for ideas on what fields sockaddr_ib should contain, the
-use of AF_IB within the rdma_cm, and the definition of IB port space
-(RDMA_PS_IB).  I've tried to identify relevant rdma_cm functionality:
+Thanks and Regards,
+Yogeshwar
 
-rdma_create_id
-Specifies a port space, which is used in constructing the SID.
-Active: The post space controls the operation of rdma_connect.
-
-rdma_bind_addr
-May select a local device based on GID.
-Passive: Also selects a port number, which constructs the SID.
-
-rdma_resolve_addr
-Calls bind.
-Active: Constructs remote SID
-
-rdma_resolve_route
-PR query using GIDs, SID, and QoS data.
-
-One issue is that IB has a single SID range, but the rdma_cm needs to know
-whether to establish a connection or perform SIDR.  A single RDMA_PS_IB is
-insufficient for this purpose.  A more minor observation is that sockaddr_in6
-contains a flowinfo field, which could be used by rdma_resolve_route to perform
-a PR query.  (I point this out because sockaddr_in6 is a reasonable starting
-point for a definition for sockaddr_ib.)  Use of AF_IB may involve manually
-setting the path record, but that shouldn't be required.  I'd also like for IBoE
-to be able to use AF_IB when it makes it into the kernel.
-
-- Sean
-
+2010/2/10 H=C3=A5kon Bugge <Haakon.Bugge-xsfywfwIY+M@public.gmane.org>:
+>
+> On Feb 9, 2010, at 19:08 , =E0=A4=85=E0=A4=A8=E0=A5=81=E0=A4=9C wrote=
+:
+>
+> On Tue, Feb 2, 2010 at 9:35 PM, H=C3=A5kon Bugge <Haakon.Bugge-zdmlq+PNF00@public.gmane.org=
+m> wrote:
+>>
+>> [snip]
+>> Now, most MPI implementation does not obey this; IIRC MVAPICH does r=
+ely on
+>> the last byte (word?) being written after all other payload,
+>
+> But MVAPICH assumes last byte is written in last. What if that is not=
+ the
+> case?
+>
+> I would assume you in that case copy incorrect data from your IB rece=
+ive
+> buffer to your application receive buffer (assuming a one-copy receiv=
+e).
+> This can happen with a less conservative IB implementation and/or wea=
+k
+> ordering of I/O transactions.
+>
+>
+>>
+>> Scali MPI relies on 4-byte write atomicy and uses a special
+>> encoding/decoding which sustains any reordering of the payload (as l=
+ong as
+>> each 4-byte word is written as an atomic unit). The benefit, besides
+>> robustness, is the capability of a worm-hole message consumption (th=
+e
+>> message can be decoded and copied into the MPI user buffer _before_ =
+it has
+>> been fully received). This method is currently a patent application,=
+ so I do
+>> not recommend you to copy-cat this method.
+>
+> Can u provide a link for this method? Atleast I can go through some d=
+etails
+> of this technique.
+>
+> Go to=C2=A0http://portal.uspto.gov/external/portal/pair, have a look =
+at
+> application=C2=A011/256752 and=C2=A011/437902. As stated above, you s=
+hould understand
+> that these techniques are protected by patent legislation.
+>
+>
+> H=C3=A5kon
+>
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
