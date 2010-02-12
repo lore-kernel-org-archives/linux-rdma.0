@@ -1,86 +1,93 @@
-From: yogeshwar sonawane <yogyas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: data placement in-order guarantee ?
-Date: Fri, 12 Feb 2010 13:18:24 +0530
-Message-ID: <b681c62b1002112348s3e77cb43w812d0cb0bc9b0fa2@mail.gmail.com>
-References: <b681c62b1002020714s70c24fa7l4fcbf05617986b47@mail.gmail.com>
-	 <F1D9D0AC-1AB3-43F6-B04F-A7AD126ED543@Sun.com>
-	 <bb7677341002091008n33cfc01au5d4ec4197eac92bf@mail.gmail.com>
-	 <0E2907DC-7E0C-4F8E-B548-C7CD08428506@Sun.com>
+From: Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH 01/02] RDMA/nes: atomic counters for cm listener create and destroy
+Date: Fri, 12 Feb 2010 13:55:03 -0600
+Message-ID: <20100212195503.GA66180@flatif-MOBL>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <0E2907DC-7E0C-4F8E-B548-C7CD08428506-U0mLk4xYmo8@public.gmane.org>
+Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: =?ISO-8859-1?Q?H=E5kon_Bugge?= <Haakon.Bugge-xsfywfwIY+M@public.gmane.org>
-Cc: =?UTF-8?B?4KSF4KSo4KWB4KSc?= <anuj01-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, -c@vger.kernel.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hi,
+Running long hour iterative MPI tests, sometimes ethtool statistics
+"CM Destroy Listener" count is more than "CM Create Listener".
+This inconsistency is fixed by making counter variable atomic.
 
-thanks to all for adding information.
+Signed-off-by: Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+---
+ drivers/infiniband/hw/nes/nes.h     |    4 ++--
+ drivers/infiniband/hw/nes/nes_cm.c  |    8 ++++----
+ drivers/infiniband/hw/nes/nes_nic.c |    4 ++--
+ 3 files changed, 8 insertions(+), 8 deletions(-)
 
-In continuation, If i am transferring only a single byte using RDMA
-write, then can i poll on this byte arrival on receiving side ?
-Atleast, can one be sure in single byte case ?
+diff --git a/drivers/infiniband/hw/nes/nes.h b/drivers/infiniband/hw/nes/nes.h
+index 9884056..cffdac4 100644
+--- a/drivers/infiniband/hw/nes/nes.h
++++ b/drivers/infiniband/hw/nes/nes.h
+@@ -193,8 +193,8 @@ extern u32 cm_packets_created;
+ extern u32 cm_packets_received;
+ extern u32 cm_packets_dropped;
+ extern u32 cm_packets_retrans;
+-extern u32 cm_listens_created;
+-extern u32 cm_listens_destroyed;
++extern atomic_t cm_listens_created;
++extern atomic_t cm_listens_destroyed;
+ extern u32 cm_backlog_drops;
+ extern atomic_t cm_loopbacks;
+ extern atomic_t cm_nodes_created;
+diff --git a/drivers/infiniband/hw/nes/nes_cm.c b/drivers/infiniband/hw/nes/nes_cm.c
+index 39468c2..debd92c 100644
+--- a/drivers/infiniband/hw/nes/nes_cm.c
++++ b/drivers/infiniband/hw/nes/nes_cm.c
+@@ -67,8 +67,8 @@ u32 cm_packets_dropped;
+ u32 cm_packets_retrans;
+ u32 cm_packets_created;
+ u32 cm_packets_received;
+-u32 cm_listens_created;
+-u32 cm_listens_destroyed;
++atomic_t cm_listens_created;
++atomic_t cm_listens_destroyed;
+ u32 cm_backlog_drops;
+ atomic_t cm_loopbacks;
+ atomic_t cm_nodes_created;
+@@ -1042,7 +1042,7 @@ static int mini_cm_dec_refcnt_listen(struct nes_cm_core *cm_core,
+ 		kfree(listener);
+ 		listener = NULL;
+ 		ret = 0;
+-		cm_listens_destroyed++;
++		atomic_inc(&cm_listens_destroyed);
+ 	} else {
+ 		spin_unlock_irqrestore(&cm_core->listen_list_lock, flags);
+ 	}
+@@ -3172,7 +3172,7 @@ int nes_create_listen(struct iw_cm_id *cm_id, int backlog)
+ 			g_cm_core->api->stop_listener(g_cm_core, (void *)cm_node);
+ 			return err;
+ 		}
+-		cm_listens_created++;
++		atomic_inc(&cm_listens_created);
+ 	}
+ 
+ 	cm_id->add_ref(cm_id);
+diff --git a/drivers/infiniband/hw/nes/nes_nic.c b/drivers/infiniband/hw/nes/nes_nic.c
+index ab11027..3d550dc 100644
+--- a/drivers/infiniband/hw/nes/nes_nic.c
++++ b/drivers/infiniband/hw/nes/nes_nic.c
+@@ -1230,8 +1230,8 @@ static void nes_netdev_get_ethtool_stats(struct net_device *netdev,
+ 	target_stat_values[++index] = cm_packets_received;
+ 	target_stat_values[++index] = cm_packets_dropped;
+ 	target_stat_values[++index] = cm_packets_retrans;
+-	target_stat_values[++index] = cm_listens_created;
+-	target_stat_values[++index] = cm_listens_destroyed;
++	target_stat_values[++index] = atomic_read(&cm_listens_created);
++	target_stat_values[++index] = atomic_read(&cm_listens_destroyed);
+ 	target_stat_values[++index] = cm_backlog_drops;
+ 	target_stat_values[++index] = atomic_read(&cm_loopbacks);
+ 	target_stat_values[++index] = atomic_read(&cm_nodes_created);
+-- 
+1.5.3.3
 
-Thanks and Regards,
-Yogeshwar
-
-2010/2/10 H=C3=A5kon Bugge <Haakon.Bugge-xsfywfwIY+M@public.gmane.org>:
->
-> On Feb 9, 2010, at 19:08 , =E0=A4=85=E0=A4=A8=E0=A5=81=E0=A4=9C wrote=
-:
->
-> On Tue, Feb 2, 2010 at 9:35 PM, H=C3=A5kon Bugge <Haakon.Bugge-zdmlq+PNF00@public.gmane.org=
-m> wrote:
->>
->> [snip]
->> Now, most MPI implementation does not obey this; IIRC MVAPICH does r=
-ely on
->> the last byte (word?) being written after all other payload,
->
-> But MVAPICH assumes last byte is written in last. What if that is not=
- the
-> case?
->
-> I would assume you in that case copy incorrect data from your IB rece=
-ive
-> buffer to your application receive buffer (assuming a one-copy receiv=
-e).
-> This can happen with a less conservative IB implementation and/or wea=
-k
-> ordering of I/O transactions.
->
->
->>
->> Scali MPI relies on 4-byte write atomicy and uses a special
->> encoding/decoding which sustains any reordering of the payload (as l=
-ong as
->> each 4-byte word is written as an atomic unit). The benefit, besides
->> robustness, is the capability of a worm-hole message consumption (th=
-e
->> message can be decoded and copied into the MPI user buffer _before_ =
-it has
->> been fully received). This method is currently a patent application,=
- so I do
->> not recommend you to copy-cat this method.
->
-> Can u provide a link for this method? Atleast I can go through some d=
-etails
-> of this technique.
->
-> Go to=C2=A0http://portal.uspto.gov/external/portal/pair, have a look =
-at
-> application=C2=A011/256752 and=C2=A011/437902. As stated above, you s=
-hould understand
-> that these techniques are protected by patent legislation.
->
->
-> H=C3=A5kon
->
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
