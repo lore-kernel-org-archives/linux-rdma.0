@@ -1,68 +1,44 @@
-From: Tom Tucker <tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: MLX4 Strangeness
-Date: Mon, 15 Feb 2010 14:24:40 -0600
-Message-ID: <4B79AD88.8000101@opengridcomputing.com>
+From: Tziporet Koren <tziporet-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
+Subject: Re: ibutils license problems + a few other minor issues
+Date: Mon, 15 Feb 2010 22:50:28 +0200
+Message-ID: <4B79B394.50407@mellanox.co.il>
+References: <4B743A4A.90004@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
-List-Unsubscribe: <http://lists.openfabrics.org/cgi-bin/mailman/listinfo/ewg>,
-	<mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.openfabrics.org/pipermail/ewg>
-List-Post: <mailto:ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
-List-Help: <mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=help>
-List-Subscribe: <http://lists.openfabrics.org/cgi-bin/mailman/listinfo/ewg>,
-	<mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=subscribe>
-Sender: ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
-Errors-To: ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <4B743A4A.90004-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Yevgeny Kliteynik <kliteyn-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On 2/11/2010 7:11 PM, Doug Ledford wrote:
+> The ibutils tarball as found for download on the openfabrics web site
+> has some licensing issues that need resolved ASAP.  The tarball in its
+> current form is probably illegal to distribute until the items are
+> fixed.  So, here's what popped up in review (done by Jay Fenlason):
+>
+> The COPYING files sprinkled around in the tarball are not consistent.
+> Some of them contain a copy of the GPLv2, some of them contain a
+> statement that the package is licensed under either GPLv2 in the file
+> COPYING or the OFA BSD license included here in.  Of course, it doesn't
+> work to reference a COPYING file from within the COPYING file you are
+> referencing and say it has the information you aren't including here.  I
+> would suggest that the proper place for the statement of GPLv2 or BSD is
+> in possibly a LICENSE file with the COPYING file being the GPLv2 as
+> stated.  It also seems redundant to have multiple COPYING files and
+> possibly also multiple LICENSE files in a single tarball, so cleanup of
+> unnecessary files seems in order here.
+>    
 
-Hello,
+Hi Doug
+Thanks for providing the info (I  guess it was in this way from the 
+first days we submitted the code to OFA)
+Yevgeny will fix this soon
 
-I am seeing some very strange behavior on my MLX4 adapters running 2.7 
-firmware and the latest OFED 1.5.1. Two systems are involved and each 
-have dual ported MTHCA DDR adapter and MLX4 adapters.
-
-The scenario starts with NFSRDMA stress testing between the two systems 
-running bonnie++ and iozone concurrently. The test completes and there 
-is no issue. Then 6 minutes pass and the server "times out" the 
-connection and shuts down the RC connection to the client.
-
- From this point on, using the RDMA CM, a new RC QP can be brought up 
-and moved to RTS, however, the first RDMA_SEND to the NFS SERVER system 
-fails with IB_WC_RETRY_EXC_ERR. I have confirmed:
-
-- that "arp" completed successfully and the neighbor entries are 
-populated on both the client and server
-- that the QP are in the RTS state on both the client and server
-- that there are RECV WR posted to the RQ on the server and they did not 
-error out
-- that no RECV WR completed successfully or in error on the server
-- that there are SEND WR posted to the QP on the client
-- the client side SEND_WR fails with error 12 as mentioned above
-
-I have also confirmed the following with a different application (i.e. 
-rping):
-
-server# rping -s
-client# rping -c -a 192.168.80.129
-
-fails with the exact same error, i.e.
-client# rping -c -a 192.168.80.129
-cq completion failed status 12
-wait for RDMA_WRITE_ADV state 10
-client DISCONNECT EVENT...
-
-However, if I run rping the other way, it works fine, that is,
-
-client# rping -s
-server# rping -c -a 192.168.80.135
-
-It runs without error until I stop it.
-
-Does anyone have any ideas on how I might debug this?
-
-Thanks,
-Tom
+Tziporet
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
