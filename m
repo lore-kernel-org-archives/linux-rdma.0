@@ -1,92 +1,189 @@
-From: "David J. Wilder" <dwilder-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>
-Subject: Problems with rnfs
-Date: Mon, 15 Feb 2010 13:44:07 -0800
-Message-ID: <1266270247.5779.21.camel@wilder.ibm.com>
+From: "Jim Schutt" <jaschut-4OHPYypu0djtX7QSmKvirg@public.gmane.org>
+Subject: Re: [PATCH 02/11] opensm: Allow the routing engine to influence
+ SL2VL calculations.
+Date: Mon, 15 Feb 2010 14:45:29 -0700
+Message-ID: <1266270329.31472.112.camel@sale659.sandia.gov>
+References: <1258744509-11148-1-git-send-email-jaschut@sandia.gov>
+ <1258744509-11148-3-git-send-email-jaschut@sandia.gov>
+ <4B72DBBD.9020709@mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <4B72DBBD.9020709-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "kliteyn-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org" <kliteyn-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org" <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>, "eitan-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org" <eitan-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hello,
 
-I am having an issue getting nfs over rdma working on sles11 on ppc64.
-I see the same results with both OFED 1.5 and 1.5.1, I have also tried
-both the a 2.6.30 kernel and the 2.6.27 kernel provided with SLES11.
-(using kernel modules from OFED).
+On Wed, 2010-02-10 at 09:15 -0700, Yevgeny Kliteynik wrote:
+> Hi Jim,
+> 
+> [snip...]
+> 
+> On 20/Nov/09 21:15, Jim Schutt wrote:
+> > diff --git a/opensm/opensm/osm_qos.c b/opensm/opensm/osm_qos.c
+> > index 08f9a60..f42c334 100644
+> > --- a/opensm/opensm/osm_qos.c
+> > +++ b/opensm/opensm/osm_qos.c
+> > @@ -194,6 +194,7 @@ static ib_api_status_t sl2vl_update(osm_sm_t * sm, osm_port_t * p_port,
+> >   {
+> >   	ib_api_status_t status;
+> >   	uint8_t i, num_ports;
+> > +	struct osm_routing_engine *re = sm->p_subn->p_osm->routing_engine_used;
+> >   	osm_physp_t *p_physp;
+> >
+> >   	if (osm_node_get_type(osm_physp_get_node_ptr(p)) == IB_NODE_TYPE_SWITCH) {
+> > @@ -213,8 +214,24 @@ static ib_api_status_t sl2vl_update(osm_sm_t * sm, osm_port_t * p_port,
+> >   	}
+> >
+> >   	for (i = 0; i<  num_ports; i++) {
+> > +		ib_slvl_table_t routing_sl2vl;
+> > +		const ib_slvl_table_t *port_sl2vl;
+> > +		const ib_slvl_table_t *port_sl2vl_old;
+> > +
+> > +		if (re->update_sl2vl) {
+> >    
+> 
+> If routing failed, and no_fallback specified, OSM crashes here.
+> The simple fix is, of course, just fixing the condition to
+> "(re && re->update_sl2vl)", but 
 
-I can create the remote mount, run ls on it, but when I try to cp a file
-to the remote mount I get the following Oops:
+This could cause message deadlock for applications still running
+on parts of fabric that are sill operational, if the last successful
+routing was via a routing engine that wants to set SL2VL map values,
+because we would overwrite them with inappropriate values.
 
-Any ideas?
+But the following equivalent change would be OK:
 
-: Oops: Kernel access of bad area, sig: 11 [#1]
-SMP NR_CPUS=1024 NUMA pSeries
-Modules linked in: nfsd lockd exportfs auth_rpcgss nfs_acl svcrdma
-sunrpc ib_ise
-r iscsi_tcp libiscsi_tcp libiscsi scsi_transport_iscsi rdma_ucm
-qlgc_vnic ib_sdp
- rdma_cm ib_addr iw_cm ib_ipoib ib_cm ib_sa ipv6 ib_uverbs ib_umad
-iw_nes crc32c
- libcrc32c iw_cxgb3 cxgb3 ib_ehca mlx4_en mlx4_ib mlx4_core fuse loop
-ib_mthca i
-b_mad ses sr_mod ib_core cdrom enclosure sg e1000 evbug uhci_hcd
-pata_pdc2027x s
-d_mod crc_t10dif ipr libata scsi_mod dm_region_hash dm_log dm_mod
-NIP: d0000000062bcf64 LR: d000000006eb0c94 CTR: d0000000062bcf00
-REGS: c0000000fb787b20 TRAP: 0300   Not tainted  (2.6.30-5-ppc64)
-MSR: 8000000000009032 <EE,ME,IR,DR>  CR: 22000024  XER: 00000010
-DAR: 0000000000000000, DSISR: 0000000040000000
-TASK = c0000000ef624260[3005] 'nfsd' THREAD: c0000000fb784000 CPU: 0
-GPR00: 0000000000000001 c0000000fb787da0 d0000000062f9f08
-c0000000fcef8d80 
-GPR04: 0000000000000001 0000000000000070 0000000000000000
-0000000000000000 
-GPR08: 0000000000000000 0000000000000000 0000000000000001
-c000000000e5e700 
-GPR12: d000000006eda9c8 c000000000a82400 c000000000794408
-c0000000006b3bc1 
-GPR16: 0000000002394340 0000000000000000 c000000000794340
-00000000019df9c0 
-GPR20: c000000000794358 c0000000006d08ff 0000000000916400
-c0000000fb563780 
-GPR24: 0000000000000001 0000000000000000 c0000000008c7640
-0000000000000000 
-GPR28: 0000000000000000 c0000000fcef8d80 d0000000062f6a88
-c0000000fcef8d80 
-NIP [d0000000062bcf64] .svc_process+0x64/0x864 [sunrpc]
-LR [d000000006eb0c94] .nfsd+0x150/0x1b8 [nfsd]
-Call Trace:
-[c0000000fb787da0] [0000000000000001] 0x1 (unreliable)
-[c0000000fb787e70] [d000000006eb0c94] .nfsd+0x150/0x1b8 [nfsd]
-[c0000000fb787f00] [c0000000000a0b20] .kthread+0x84/0xd0
-[c0000000fb787f90] [c00000000002a464] .kernel_thread+0x54/0x70
-Instruction dump:
-fba1ffe8 f821ff31 e8a30110 eae300b0 2ba50017 409d05d0 e9230220 38000001 
-e97e8048 39000000 90030228 e9290000 <e8090000> 780aa320 7940aac2
-78001f24 
----[ end trace b2c0889cfad5bbdf ]---
+diff --git a/opensm/opensm/osm_qos.c b/opensm/opensm/osm_qos.c
+index 0f0b24f..07f4836 100644
+--- a/opensm/opensm/osm_qos.c
++++ b/opensm/opensm/osm_qos.c
+@@ -197,6 +197,12 @@ static ib_api_status_t sl2vl_update(osm_sm_t * sm, osm_port_t * p_port,
+ 	struct osm_routing_engine *re = sm->p_subn->p_osm->routing_engine_used;
+ 	osm_physp_t *p_physp;
+ 
++	/*
++	 * Do nothing unless the most recent routing attempt was successful.
++	 */
++	if (!re)
++		return IB_SUCCESS;
++
+ 	if (osm_node_get_type(osm_physp_get_node_ptr(p)) == IB_NODE_TYPE_SWITCH) {
+ 		if (ib_port_info_get_vl_cap(&p->port_info) == 1) {
+ 			/* Check port 0's capability mask */
 
-Here are the steps I am using.
 
-On the server.
-/etc/exports ..
-192.168.0.34/255.255.255.0(fsid=0,rw,async,insecure,no_root_squash)
+> I think that it would be better
+> not to apply QoS configuration if unicast manager failed - just
+> restart the sweep.
 
-modprobe svcrdma
-/etc/init.d/nfsserver start
-echo rdma 20049 > /proc/fs/nfsd/portlist
+I think you are right.  Something like this?
 
-On the client:
-modprobe xprtrdma
-/sbin/mount.rnfs 192.168.0.64:/home /mnt  -o rdma,port=20049,nolock
 
-ls /mnt   (works)
-cp vmlinux /mnt  (fails)
+diff --git a/opensm/opensm/osm_state_mgr.c
+b/opensm/opensm/osm_state_mgr.c
+index 10d5e09..d8d4c9e 100644
+--- a/opensm/opensm/osm_state_mgr.c
++++ b/opensm/opensm/osm_state_mgr.c
+@@ -1113,7 +1113,11 @@ static void do_sweep(osm_sm_t * sm)
+ 		/* Re-program the switches fully */
+ 		sm->p_subn->ignore_existing_lfts = TRUE;
+ 
+-		osm_ucast_mgr_process(&sm->ucast_mgr);
++		if (osm_ucast_mgr_process(&sm->ucast_mgr)) {
++			OSM_LOG_MSG_BOX(sm->p_log, OSM_LOG_VERBOSE,
++					"REROUTE FAILED");
++			return;
++		}
+ 		osm_qos_setup(sm->p_subn->p_osm);
+ 
+ 		/* Reset flag */
+@@ -1272,12 +1276,14 @@ repeat_discovery:
+ 			"LID ASSIGNMENT COMPLETE - STARTING SWITCH TABLE CONFIG");
+ 
+ 	/*
+-	 * Proceed with unicast forwarding table configuration.
++	 * Proceed with unicast forwarding table configuration; repeat
++	 * if unicast routing fails.
+ 	 */
+ 
+ 	if (!sm->ucast_mgr.cache_valid ||
+ 	    osm_ucast_cache_process(&sm->ucast_mgr))
+-		osm_ucast_mgr_process(&sm->ucast_mgr);
++		if (osm_ucast_mgr_process(&sm->ucast_mgr))
++			goto repeat_discovery;
+ 
+ 	osm_qos_setup(sm->p_subn->p_osm);
+ 
+diff --git a/opensm/opensm/osm_ucast_mgr.c
+b/opensm/opensm/osm_ucast_mgr.c
+index fbc9244..8ea2e52 100644
+--- a/opensm/opensm/osm_ucast_mgr.c
++++ b/opensm/opensm/osm_ucast_mgr.c
+@@ -955,6 +955,7 @@ int osm_ucast_mgr_process(IN osm_ucast_mgr_t *
+p_mgr)
+ 	osm_opensm_t *p_osm;
+ 	struct osm_routing_engine *p_routing_eng;
+ 	cl_qmap_t *p_sw_guid_tbl;
++	int failed = 0;
+ 
+ 	OSM_LOG_ENTER(p_mgr->p_log);
+ 
+@@ -973,7 +974,8 @@ int osm_ucast_mgr_process(IN osm_ucast_mgr_t *
+p_mgr)
+ 
+ 	p_osm->routing_engine_used = NULL;
+ 	while (p_routing_eng) {
+-		if (!ucast_mgr_route(p_routing_eng, p_osm))
++		failed = ucast_mgr_route(p_routing_eng, p_osm);
++		if (!failed)
+ 			break;
+ 		p_routing_eng = p_routing_eng->next;
+ 	}
+@@ -984,9 +986,11 @@ int osm_ucast_mgr_process(IN osm_ucast_mgr_t *
+p_mgr)
+ 		struct osm_routing_engine *r = p_osm->default_routing_engine;
+ 
+ 		r->build_lid_matrices(r->context);
+-		r->ucast_build_fwd_tables(r->context);
+-		p_osm->routing_engine_used = r;
+-		osm_ucast_mgr_set_fwd_tables(p_mgr);
++		failed = r->ucast_build_fwd_tables(r->context);
++		if (!failed) {
++			p_osm->routing_engine_used = r;
++			osm_ucast_mgr_set_fwd_tables(p_mgr);
++		}
+ 	}
+ 
+ 	if (p_osm->routing_engine_used) {
+@@ -1006,7 +1010,7 @@ int osm_ucast_mgr_process(IN osm_ucast_mgr_t *
+p_mgr)
+ Exit:
+ 	CL_PLOCK_RELEASE(p_mgr->p_lock);
+ 	OSM_LOG_EXIT(p_mgr->p_log);
+-	return 0;
++	return failed;
+ }
+ 
+ static int ucast_build_lid_matrices(void *context)
 
-Dave...
+
+Thanks -- Jim
+
+
+> 
+> -- Yevgeny
+> 
+> 
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
 
 --
