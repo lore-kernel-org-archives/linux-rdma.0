@@ -1,88 +1,40 @@
-From: Tom Tucker <tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: Re: [ewg] MLX4 Strangeness
-Date: Tue, 16 Feb 2010 09:21:13 -0600
-Message-ID: <4B7AB7E9.3000200@opengridcomputing.com>
-References: <4B79AD88.8000101@opengridcomputing.com> <4B7A4EF4.9090209@mellanox.co.il>
+From: "Jim Schutt" <jaschut-4OHPYypu0djtX7QSmKvirg@public.gmane.org>
+Subject: [PATCH 0/3] opensm: Bug fixes for torus-2QoS patchset
+Date: Tue, 16 Feb 2010 09:16:42 -0700
+Message-ID: <1266337005-29874-1-git-send-email-jaschut@sandia.gov>
+References: <1261169461-2516-1-git-send-email-jaschut@sandia.gov>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4B7A4EF4.9090209-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
+In-Reply-To: <1261169461-2516-1-git-send-email-jaschut-4OHPYypu0djtX7QSmKvirg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tziporet Koren <tziporet-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org" <ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org, eitan-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org, kliteyn-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org, jaschut-4OHPYypu0djtX7QSmKvirg@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Tziporet Koren wrote:
-> On 2/15/2010 10:24 PM, Tom Tucker wrote:
->   
->> Hello,
->>
->> I am seeing some very strange behavior on my MLX4 adapters running 2.7
->> firmware and the latest OFED 1.5.1. Two systems are involved and each
->> have dual ported MTHCA DDR adapter and MLX4 adapters.
->>
->> The scenario starts with NFSRDMA stress testing between the two systems
->> running bonnie++ and iozone concurrently. The test completes and there
->> is no issue. Then 6 minutes pass and the server "times out" the
->> connection and shuts down the RC connection to the client.
->>
->>   From this point on, using the RDMA CM, a new RC QP can be brought up
->> and moved to RTS, however, the first RDMA_SEND to the NFS SERVER system
->> fails with IB_WC_RETRY_EXC_ERR. I have confirmed:
->>
->> - that "arp" completed successfully and the neighbor entries are
->> populated on both the client and server
->> - that the QP are in the RTS state on both the client and server
->> - that there are RECV WR posted to the RQ on the server and they did not
->> error out
->> - that no RECV WR completed successfully or in error on the server
->> - that there are SEND WR posted to the QP on the client
->> - the client side SEND_WR fails with error 12 as mentioned above
->>
->> I have also confirmed the following with a different application (i.e.
->> rping):
->>
->> server# rping -s
->> client# rping -c -a 192.168.80.129
->>
->> fails with the exact same error, i.e.
->> client# rping -c -a 192.168.80.129
->> cq completion failed status 12
->> wait for RDMA_WRITE_ADV state 10
->> client DISCONNECT EVENT...
->>
->> However, if I run rping the other way, it works fine, that is,
->>
->> client# rping -s
->> server# rping -c -a 192.168.80.135
->>
->> It runs without error until I stop it.
->>
->> Does anyone have any ideas on how I might debug this?
->>
->>
->>    
->>     
-> Tom
-> What is the vendor syndrome error when you get a completion with error?
->
->   
-Hang on... compiling....
-> Does the issue occurs only on the ConnectX cards (mlx4) or also on the 
-> InfiniHost cards (mthca)
->
->   
+These patches fix bugs discovered during further testing of the
+torus-2QoS routing module for OpenSM.
 
-Only the MLX4 cards.
+(See http://www.spinics.net/lists/linux-rdma/msg01438.html
+and http://www.spinics.net/lists/linux-rdma/msg01938.html)
 
-> Tziporet
->
-> _______________________________________________
-> ewg mailing list
-> ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
-> http://lists.openfabrics.org/cgi-bin/mailman/listinfo/ewg
->   
+
+Jim Schutt (3):
+  opensm: Use local variables when searching for torus-2QoS master
+    spanning tree root.
+  opensm: Fix handling of torus-2QoS topology discovery for radix 4
+    torus dimensions.
+  opensm: Avoid havoc in dump_ucast_routes() caused by torus-2QoS
+    persistent use of osm_port_t:priv.
+
+ opensm/include/opensm/osm_switch.h |   12 +
+ opensm/opensm/osm_dump.c           |    2 +-
+ opensm/opensm/osm_switch.c         |    7 +-
+ opensm/opensm/osm_ucast_mgr.c      |    1 +
+ opensm/opensm/osm_ucast_torus.c    |  418 +++++++++++++++---------------------
+ 5 files changed, 193 insertions(+), 247 deletions(-)
+
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
