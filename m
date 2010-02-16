@@ -1,71 +1,73 @@
-From: Philip Frey <philip.frey-gy3b+zu4XSAfv37vnLkPlQ@public.gmane.org>
-Subject: Re: Simplified iWARP Consumer Library
-Date: Tue, 16 Feb 2010 08:28:16 +0100
-Message-ID: <4B7A4910.6070703@inf.ethz.ch>
-References: <4B796BBD.5050007@inf.ethz.ch> <4B7A2CF8.1070002@voltaire.com>
-Reply-To: philip.frey-gy3b+zu4XSAfv37vnLkPlQ@public.gmane.org
+From: Tziporet Koren <tziporet-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
+Subject: Re: [ewg] MLX4 Strangeness
+Date: Tue, 16 Feb 2010 09:53:24 +0200
+Message-ID: <4B7A4EF4.9090209@mellanox.co.il>
+References: <4B79AD88.8000101@opengridcomputing.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4B7A2CF8.1070002-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <4B79AD88.8000101-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Cc: bmt-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tom Tucker <tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org" <ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Dear all,
+On 2/15/2010 10:24 PM, Tom Tucker wrote:
+> Hello,
+>
+> I am seeing some very strange behavior on my MLX4 adapters running 2.7
+> firmware and the latest OFED 1.5.1. Two systems are involved and each
+> have dual ported MTHCA DDR adapter and MLX4 adapters.
+>
+> The scenario starts with NFSRDMA stress testing between the two systems
+> running bonnie++ and iozone concurrently. The test completes and there
+> is no issue. Then 6 minutes pass and the server "times out" the
+> connection and shuts down the RC connection to the client.
+>
+>   From this point on, using the RDMA CM, a new RC QP can be brought up
+> and moved to RTS, however, the first RDMA_SEND to the NFS SERVER system
+> fails with IB_WC_RETRY_EXC_ERR. I have confirmed:
+>
+> - that "arp" completed successfully and the neighbor entries are
+> populated on both the client and server
+> - that the QP are in the RTS state on both the client and server
+> - that there are RECV WR posted to the RQ on the server and they did not
+> error out
+> - that no RECV WR completed successfully or in error on the server
+> - that there are SEND WR posted to the QP on the client
+> - the client side SEND_WR fails with error 12 as mentioned above
+>
+> I have also confirmed the following with a different application (i.e.
+> rping):
+>
+> server# rping -s
+> client# rping -c -a 192.168.80.129
+>
+> fails with the exact same error, i.e.
+> client# rping -c -a 192.168.80.129
+> cq completion failed status 12
+> wait for RDMA_WRITE_ADV state 10
+> client DISCONNECT EVENT...
+>
+> However, if I run rping the other way, it works fine, that is,
+>
+> client# rping -s
+> server# rping -c -a 192.168.80.135
+>
+> It runs without error until I stop it.
+>
+> Does anyone have any ideas on how I might debug this?
+>
+>
+>    
+Tom
+What is the vendor syndrome error when you get a completion with error?
 
-I was made aware of the fact that the general-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org mailinglist 
-was deprecated and that my initial post about the iWARP library did not reach 
-you. (The general list is still linked on openfabrics.org without a notice of it 
-being deprecated.)
+Does the issue occurs only on the ConnectX cards (mlx4) or also on the 
+InfiniHost cards (mthca)
 
-Please, find below a copy of the original message.
-
-"Dear all,
-
-throughout the course of my PhD, I have written a number of user applications 
-based on the OFED verbs. After some time, I realized that many programming tasks 
-are repetitive (particularly the connection management) and started to wrap them.
-
-This eventually led to a slim, shared library called libiwarp which includes all 
-the basic primitives of RDMA-based communication, implemented as wrappers around 
-libibverbs. Throughout various research projects, the library has turned out to 
-be quite useful especially for people who are not familiar with all the details 
-of the OFED verbs (like master students that only have 6 months to complete 
-their projects or people that simply want to play around with iWARP and run a 
-few simple tests).
-
-We have shown, by experiment, that the overhead induced by the wrappers is 
-negligible, yet it simplifies writing RDMA-based applications significantly. 
-Furthermore, as the library does not replace the OFED verbs, it does not impose 
-any restrictions with regard to the original functionality. Whenever there is 
-something missing in the libiwarp, you can always use the interface provided by 
-the OFED verbs.
-
-As I am now in the process of finishing my work, I was wondering whether there 
-is an interest in the OpenFabrics community for such a library which provides a 
-simplified interface for the OFED verbs. If there is, I would be glad to share 
-my source code with you.
-
-Many thanks for your consideration and best regards,
-  Philip"
-
-Or Gerlitz wrote:
-> Philip Frey wrote:
->> as announced last week (on general-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org) [...] I 
->> would be very interested in your feedback!
-> The general list isn't functional since last fall, as of such, your 
-> announcement wasn't seen by any of the non directly CCed recipients... 
-> can you please resend it here (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)?
-> 
-> Or.
-> 
-> -- 
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Tziporet
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
