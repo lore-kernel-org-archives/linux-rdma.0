@@ -1,130 +1,46 @@
-From: Tom Tucker <tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: Re: [ewg] MLX4 Strangeness
-Date: Tue, 16 Feb 2010 18:25:48 -0600
-Message-ID: <4B7B378C.5010608@opengridcomputing.com>
-References: <4B79AD88.8000101@opengridcomputing.com> <4B7A4EF4.9090209@mellanox.co.il> <4B7B0E98.9030506@opengridcomputing.com> <4B7B35DD.1030609@opengridcomputing.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: is it possible to avoid syncing after an rdma write?
+Date: Tue, 16 Feb 2010 17:58:27 -0700
+Message-ID: <20100217005827.GF16490@obsidianresearch.com>
+References: <4B7B2A6C.80101@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4B7B35DD.1030609-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <4B7B2A6C.80101-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tziporet Koren <tziporet-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org" <ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+To: Andy Grover <andy.grover-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+On Tue, Feb 16, 2010 at 03:29:48PM -0800, Andy Grover wrote:
+> Right now, RDS follows each RDMA write op with a Send op, which 1)
+> causes an interrupt and 2) includes the info we need to call
+> ib_dma_sync_sg_for_cpu() for the target of the rdma write.
+> 
+> We want to omit the Send. If we don't do the sync on the machine that is
+> the target of the RDMA write, the result is... what exactly? I assume
+> the write to memory is snooped by CPUs, so their cachelines will be
+> properly invalidated. However, Linux DMA-API docs seem pretty clear in
+> insisting on the sync.
 
-More info...
+I'm curious about this too, but I will point out that at least the
+user RDMA interface has no match for the kernel DMA calls, so in
+practice RDMA does not work on systems that require them. That means
+bounce buffering is not used and IO/CPU caches are coherent.
 
-Reboot the client and try to reconnect to a server that has not been 
-rebooted fails in the same way.
+Though, I guess, the kernel could use weaker memory ordering types in
+kernel mode that do require the DMA api calls.
 
-It must be an issue with the server. I see no completions on the server 
-or any indication that an RDMA_SEND was incoming. Is there some way to 
-dump adapter state or otherwise see if there was traffic on the wire?
+> Is the issue IOMMUs? Or for compatibility with bounce buffering?
 
-Tom
+As long as the memory is registered the IOMMU should remain
+configured.
 
+What do you intend to replace the SEND with? spin on last byte? There
+are other issues to consider like ordering within the PCI-E fabric..
 
-Tom Tucker wrote:
-> Tom Tucker wrote:
->> Tziporet Koren wrote:
->>> On 2/15/2010 10:24 PM, Tom Tucker wrote:
->>>  
->>>> Hello,
->>>>
->>>> I am seeing some very strange behavior on my MLX4 adapters running 2.7
->>>> firmware and the latest OFED 1.5.1. Two systems are involved and each
->>>> have dual ported MTHCA DDR adapter and MLX4 adapters.
->>>>
->>>> The scenario starts with NFSRDMA stress testing between the two 
->>>> systems
->>>> running bonnie++ and iozone concurrently. The test completes and there
->>>> is no issue. Then 6 minutes pass and the server "times out" the
->>>> connection and shuts down the RC connection to the client.
->>>>
->>>>   From this point on, using the RDMA CM, a new RC QP can be brought up
->>>> and moved to RTS, however, the first RDMA_SEND to the NFS SERVER 
->>>> system
->>>> fails with IB_WC_RETRY_EXC_ERR. I have confirmed:
->>>>
->>>> - that "arp" completed successfully and the neighbor entries are
->>>> populated on both the client and server
->>>> - that the QP are in the RTS state on both the client and server
->>>> - that there are RECV WR posted to the RQ on the server and they 
->>>> did not
->>>> error out
->>>> - that no RECV WR completed successfully or in error on the server
->>>> - that there are SEND WR posted to the QP on the client
->>>> - the client side SEND_WR fails with error 12 as mentioned above
->>>>
->>>> I have also confirmed the following with a different application (i.e.
->>>> rping):
->>>>
->>>> server# rping -s
->>>> client# rping -c -a 192.168.80.129
->>>>
->>>> fails with the exact same error, i.e.
->>>> client# rping -c -a 192.168.80.129
->>>> cq completion failed status 12
->>>> wait for RDMA_WRITE_ADV state 10
->>>> client DISCONNECT EVENT...
->>>>
->>>> However, if I run rping the other way, it works fine, that is,
->>>>
->>>> client# rping -s
->>>> server# rping -c -a 192.168.80.135
->>>>
->>>> It runs without error until I stop it.
->>>>
->>>> Does anyone have any ideas on how I might debug this?
->>>>
->>>>
->>>>        
->>> Tom
->>> What is the vendor syndrome error when you get a completion with error?
->>>
->>>   
->> Feb 16 15:08:29 vic10 kernel: rpcrdma: connection to 
->> 192.168.80.129:20049 closed (-103)
->> Feb 16 15:51:27 vic10 kernel: rpcrdma: connection to 
->> 192.168.80.129:20049 on mlx4_0, memreg 5 slots 32 ird 16
->> Feb 16 15:52:01 vic10 kernel: rpcrdma_event_process:160 wr_id 
->> ffff81002879a000 status 5 opcode 0 vendor_err 244 byte_len 0 qp 
->> ffff81003c9e3200 ex 00000000 src_qp 00000000 wc_flags, 0 pkey_index
->> Feb 16 15:52:06 vic10 kernel: rpcrdma: connection to 
->> 192.168.80.129:20049 closed (-103)
->> Feb 16 15:52:06 vic10 kernel: rpcrdma: connection to 
->> 192.168.80.129:20049 on mlx4_0, memreg 5 slots 32 ird 16
->> Feb 16 15:52:40 vic10 kernel: rpcrdma_event_process:160 wr_id 
->> ffff81002879a000 status 5 opcode 0 vendor_err 244 byte_len 0 qp 
->> ffff81002f2d8400 ex 00000000 src_qp 00000000 wc_flags, 0 pkey_index
->>
->> Repeat forever....
->>
->> So the vendor err is 244.
->>
->
-> Please ignore this. This log skips the failing WR (:-\). I need to do 
-> another trace.
->
->
->
->>> Does the issue occurs only on the ConnectX cards (mlx4) or also on 
->>> the InfiniHost cards (mthca)
->>>
->>> Tziporet
->>>
->>> _______________________________________________
->>> ewg mailing list
->>> ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
->>> http://lists.openfabrics.org/cgi-bin/mailman/listinfo/ewg
->>>   
->>
->>
->
->
-
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
