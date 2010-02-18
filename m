@@ -1,44 +1,24 @@
-From: Ralph Campbell <ralph.campbell-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-Subject: Re: IPoIB memory use after free
-Date: Thu, 18 Feb 2010 11:22:13 -0800
-Message-ID: <1266520933.30078.42.camel@chromite.mv.qlogic.com>
-References: <1266436956.30078.23.camel@chromite.mv.qlogic.com>
-	 <20100217200831.GW20950@sgi.com>
+From: straightway Larsen <four3892ndw-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Dentists - 164k records, 45k emails, 77k fax numbers
+Date: Fri, 19 Feb 2010 03:42:06 +0800
+Message-ID: <eb49a42a-1017-4d1b-a8ae-c719f11fbc08@ump-edgeserver.ump.com.hk>
+Reply-To: <dh37fh37r-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Mime-Version: 1.0
 Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20100217200831.GW20950-sJ/iWh9BUns@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Arthur Kepner <akepner-sJ/iWh9BUns@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: dmanak-m30ZKFXxh5Y/jFmSBShxMA@public.gmane.org, info-elnTdqZh59hBDgjK7y7TUQ@public.gmane.org, spondylitis-GO3HOXYuGN1BDgjK7y7TUQ@public.gmane.org, membership-9mVCLWPdtZyGglJvpFV4uA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, 2010-02-17 at 12:08 -0800, Arthur Kepner wrote:
-> On Wed, Feb 17, 2010 at 12:02:36PM -0800, Ralph Campbell wrote:
-> > I have been tracking down a kernel panic while running qperf udp_bw
-> > tests and it looks like ib_ipoib is using memory after freeing it.
-> > 
-> > The problem is with connected mode. I don't see the panic with
-> > datagram mode. Looking at the source code, I see that the process
-> > of creating the QP with the connection manager, ipoib_cm_create_tx(),
-> > has pointers to struct ipoib_neigh and struct ipoib_path but there
-> > doesn't seem to be a reference count or struct completion similar to
-> > the way the SA path record look up process has to prevent this.
-> > 
-> > I'm working on a patch to test this theory but wanted to post
-> > this before going too far in case others are already aware
-> > of the problem and working on it.
-> > 
-> 
-> Could what you're seeing be related to what's reported here:
-> 
-> http://lists.openfabrics.org/pipermail/general/2008-April/049629.html
+For details, samples and counts on our US listings please
+email me at my other email address  Rosalie.Hines-921/jaJOePH6tri8FUaiJXTwBhnGoBpX@public.gmane.org
 
-It is related but it is not the same since I'm talking about
-struct ipoib_cm_tx holding a stale pointer instead of in
-ipoib_neigh_cleanup().
+  
 
+
+
+
+Send email to rembox-921/jaJOePH6tri8FUaiJXTwBhnGoBpX@public.gmane.org to ensure no further communication
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
