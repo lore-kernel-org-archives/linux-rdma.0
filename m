@@ -1,7 +1,7 @@
-From: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCHv8 0/11] IBoE support to Infiniband
-Date: Thu, 18 Feb 2010 19:23:24 +0200
-Message-ID: <20100218172324.GA12286@mtls03>
+From: Eli Cohen <eli-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
+Subject: [PATCHv8 02/11] ib_core: IBoE support only QP1
+Date: Thu, 18 Feb 2010 19:23:44 +0200
+Message-ID: <20100218172344.GC12286@mtls03>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
@@ -11,102 +11,347 @@ To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 Cc: Linux RDMA list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ewg <ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-IBoE allows running the IB transport protocol using Ethernet frames, enabling
-the deployment of IB semantics on lossless Ethernet fabrics.
-
-IBoE packets are standard Ethernet frames with an IEEE assigned Ethertype, a
-GRH, unmodified IB transport headers and payload.  IB subnet management and SA
-services are not required for IBoE operation; Ethernet management practices are
-used instead. IBoE encodes IP addresses into its GIDs and resolves MAC
-addresses using the host IP stack. For multicast GIDs, standard IP to MAC
-mappings apply.
-
-The OFA RDMA Verbs API is syntactically unmodified. The CMA is adapted to
-support IBoE ports allowing existing RDMA applications to run over IBoE with no
-changes.
-
-Address handles for IBoE are required to contain valid L3 addresses (GIDs) and
-the IB L2 address fields become reserved. The complementary Ethernet L2 address
-information is subsequently resolved below the API.
-
-As there is no SA in IBoE, the CMA code is adapted to locally fill-in
-corresponding path record attributes for IBoE address handles. Also, the CMA
-provides the required address handle attributes for SIDR requests and joining
-of multicast groups.
-
-With this patch set, each IBoE port is assigned a GID equal to the link local
-address of its corresponding net device, and one more GID for each one of the
-VLAN devices which are derived from it. iboe packets are tagged with the VLAN
-ID of the corresponding netdevice through which they are generated.
-
-The priority field in the 802.1q header of IBoE packets is derived from the SL
-field in the address vector. rdma_cm applications can set the TOS value of the
-rdma_cm_id object through the rdma_set_option() API which then maps to SL.
-
-With these patches, IBoE multicast frames may be broadcast as there is
-currently no use of a L2 multicast group membership protocol.
-
-To enable IBoE with the mlx4 driver stack, both the mlx4_en and mlx4_ib drivers
-must be loaded, and the netdevice for the corresponding IBoE port must be
-running. Individual ports of a multi port HCA can be independently configured
-as Ethernet (with support for IBoE) or as IB, as it was already the case.
-
-We have successfully tested MPI, SDP, RDS, and native Verbs applications over
-IBoE.
-
-Following is a series of 11 patches based on Roland's for-next branch.  This
-new series reflects changes based on feedback from the community on the
-previous patch set.
-
-Changes from v7
-1. Rebase on 2.6.33-rc3
-2. Add VLAN support
-3. Bug fixes and improvements (see in the patches changelog).
+Since IBoE is using Ethernet as its link layer, there is no central management
+entity so there is need for QP0.  QP1 is still needed since it handles
+communications between CM agents. This patch will create only QP1 for IBoE
+ports.
 
 Signed-off-by: Eli Cohen <eli-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
 ---
+Changes from v7:
+
+1. Remove "always true" code
+2. Fix failure to initialize port ah_lock in ib_sa_add_one
 
 
- drivers/infiniband/core/agent.c           |   37 +
- drivers/infiniband/core/cm.c              |    5 
- drivers/infiniband/core/cma.c             |  287 ++++++++++++++-
- drivers/infiniband/core/mad.c             |   27 +
- drivers/infiniband/core/multicast.c       |   25 +
- drivers/infiniband/core/sa_query.c        |   46 +-
- drivers/infiniband/core/ucma.c            |   54 ++
- drivers/infiniband/core/ud_header.c       |  129 +++++-
- drivers/infiniband/core/user_mad.c        |   11 
- drivers/infiniband/core/uverbs.h          |    1 
- drivers/infiniband/core/uverbs_cmd.c      |   33 +
- drivers/infiniband/core/uverbs_main.c     |    1 
- drivers/infiniband/core/verbs.c           |   26 +
- drivers/infiniband/hw/mlx4/ah.c           |  196 ++++++++--
- drivers/infiniband/hw/mlx4/mad.c          |   32 +
- drivers/infiniband/hw/mlx4/main.c         |  557 ++++++++++++++++++++++++++++--
- drivers/infiniband/hw/mlx4/mlx4_ib.h      |   35 +
- drivers/infiniband/hw/mlx4/qp.c           |  180 +++++++--
- drivers/infiniband/hw/mthca/mthca_qp.c    |    2 
- drivers/infiniband/ulp/ipoib/ipoib_main.c |    7 
- drivers/net/mlx4/en_main.c                |   15 
- drivers/net/mlx4/en_netdev.c              |   10 
- drivers/net/mlx4/en_port.c                |    4 
- drivers/net/mlx4/en_port.h                |    3 
- drivers/net/mlx4/fw.c                     |    3 
- drivers/net/mlx4/intf.c                   |   20 +
- drivers/net/mlx4/main.c                   |    6 
- drivers/net/mlx4/mlx4.h                   |    1 
- drivers/net/mlx4/mlx4_en.h                |    1 
- drivers/net/mlx4/port.c                   |   19 +
- include/linux/mlx4/cmd.h                  |    1 
- include/linux/mlx4/device.h               |   32 +
- include/linux/mlx4/driver.h               |   16 
- include/linux/mlx4/qp.h                   |    9 
- include/rdma/ib_addr.h                    |  139 +++++++
- include/rdma/ib_pack.h                    |   28 +
- include/rdma/ib_sa.h                      |    3 
- include/rdma/ib_user_verbs.h              |   22 +
- include/rdma/ib_verbs.h                   |   29 +
- 39 files changed, 1813 insertions(+), 239 deletions(-)
+ drivers/infiniband/core/agent.c     |   37 +++++++++++++++++++------------
+ drivers/infiniband/core/mad.c       |   27 +++++++++++++++++++---
+ drivers/infiniband/core/multicast.c |   25 ++++++++++++++++++---
+ drivers/infiniband/core/sa_query.c  |   41 ++++++++++++++++++++++------------
+ 4 files changed, 93 insertions(+), 37 deletions(-)
+
+diff --git a/drivers/infiniband/core/agent.c b/drivers/infiniband/core/agent.c
+index ae7c288..964f4fb 100644
+--- a/drivers/infiniband/core/agent.c
++++ b/drivers/infiniband/core/agent.c
+@@ -48,6 +48,8 @@
+ struct ib_agent_port_private {
+ 	struct list_head port_list;
+ 	struct ib_mad_agent *agent[2];
++	struct ib_device    *device;
++	u8		     port_num;
+ };
+ 
+ static DEFINE_SPINLOCK(ib_agent_port_list_lock);
+@@ -58,11 +60,10 @@ __ib_get_agent_port(struct ib_device *device, int port_num)
+ {
+ 	struct ib_agent_port_private *entry;
+ 
+-	list_for_each_entry(entry, &ib_agent_port_list, port_list) {
+-		if (entry->agent[0]->device == device &&
+-		    entry->agent[0]->port_num == port_num)
++	list_for_each_entry(entry, &ib_agent_port_list, port_list)
++		if (entry->device == device && entry->port_num == port_num)
+ 			return entry;
+-	}
++
+ 	return NULL;
+ }
+ 
+@@ -155,14 +156,16 @@ int ib_agent_port_open(struct ib_device *device, int port_num)
+ 		goto error1;
+ 	}
+ 
+-	/* Obtain send only MAD agent for SMI QP */
+-	port_priv->agent[0] = ib_register_mad_agent(device, port_num,
+-						    IB_QPT_SMI, NULL, 0,
+-						    &agent_send_handler,
+-						    NULL, NULL);
+-	if (IS_ERR(port_priv->agent[0])) {
+-		ret = PTR_ERR(port_priv->agent[0]);
+-		goto error2;
++	if (rdma_port_link_layer(device, port_num) == IB_LINK_LAYER_INFINIBAND) {
++		/* Obtain send only MAD agent for SMI QP */
++		port_priv->agent[0] = ib_register_mad_agent(device, port_num,
++							    IB_QPT_SMI, NULL, 0,
++							    &agent_send_handler,
++							    NULL, NULL);
++		if (IS_ERR(port_priv->agent[0])) {
++			ret = PTR_ERR(port_priv->agent[0]);
++			goto error2;
++		}
+ 	}
+ 
+ 	/* Obtain send only MAD agent for GSI QP */
+@@ -175,6 +178,9 @@ int ib_agent_port_open(struct ib_device *device, int port_num)
+ 		goto error3;
+ 	}
+ 
++	port_priv->device = device;
++	port_priv->port_num = port_num;
++
+ 	spin_lock_irqsave(&ib_agent_port_list_lock, flags);
+ 	list_add_tail(&port_priv->port_list, &ib_agent_port_list);
+ 	spin_unlock_irqrestore(&ib_agent_port_list_lock, flags);
+@@ -182,7 +188,8 @@ int ib_agent_port_open(struct ib_device *device, int port_num)
+ 	return 0;
+ 
+ error3:
+-	ib_unregister_mad_agent(port_priv->agent[0]);
++	if (rdma_port_link_layer(device, port_num) == IB_LINK_LAYER_INFINIBAND)
++		ib_unregister_mad_agent(port_priv->agent[0]);
+ error2:
+ 	kfree(port_priv);
+ error1:
+@@ -205,7 +212,9 @@ int ib_agent_port_close(struct ib_device *device, int port_num)
+ 	spin_unlock_irqrestore(&ib_agent_port_list_lock, flags);
+ 
+ 	ib_unregister_mad_agent(port_priv->agent[1]);
+-	ib_unregister_mad_agent(port_priv->agent[0]);
++	if (rdma_port_link_layer(device, port_num) == IB_LINK_LAYER_INFINIBAND)
++		ib_unregister_mad_agent(port_priv->agent[0]);
++
+ 	kfree(port_priv);
+ 	return 0;
+ }
+diff --git a/drivers/infiniband/core/mad.c b/drivers/infiniband/core/mad.c
+index 7522008..f546ab7 100644
+--- a/drivers/infiniband/core/mad.c
++++ b/drivers/infiniband/core/mad.c
+@@ -2610,6 +2610,9 @@ static void cleanup_recv_queue(struct ib_mad_qp_info *qp_info)
+ 	struct ib_mad_private *recv;
+ 	struct ib_mad_list_head *mad_list;
+ 
++	if (!qp_info->qp)
++		return;
++
+ 	while (!list_empty(&qp_info->recv_queue.list)) {
+ 
+ 		mad_list = list_entry(qp_info->recv_queue.list.next,
+@@ -2651,6 +2654,9 @@ static int ib_mad_port_start(struct ib_mad_port_private *port_priv)
+ 
+ 	for (i = 0; i < IB_MAD_QPS_CORE; i++) {
+ 		qp = port_priv->qp_info[i].qp;
++		if (!qp)
++			continue;
++
+ 		/*
+ 		 * PKey index for QP1 is irrelevant but
+ 		 * one is needed for the Reset to Init transition
+@@ -2692,6 +2698,9 @@ static int ib_mad_port_start(struct ib_mad_port_private *port_priv)
+ 	}
+ 
+ 	for (i = 0; i < IB_MAD_QPS_CORE; i++) {
++		if (!port_priv->qp_info[i].qp)
++			continue;
++
+ 		ret = ib_mad_post_receive_mads(&port_priv->qp_info[i], NULL);
+ 		if (ret) {
+ 			printk(KERN_ERR PFX "Couldn't post receive WRs\n");
+@@ -2770,6 +2779,9 @@ error:
+ 
+ static void destroy_mad_qp(struct ib_mad_qp_info *qp_info)
+ {
++	if (!qp_info->qp)
++		return;
++
+ 	ib_destroy_qp(qp_info->qp);
+ 	kfree(qp_info->snoop_table);
+ }
+@@ -2785,6 +2797,7 @@ static int ib_mad_port_open(struct ib_device *device,
+ 	struct ib_mad_port_private *port_priv;
+ 	unsigned long flags;
+ 	char name[sizeof "ib_mad123"];
++	int has_smi;
+ 
+ 	/* Create new device info */
+ 	port_priv = kzalloc(sizeof *port_priv, GFP_KERNEL);
+@@ -2800,7 +2813,11 @@ static int ib_mad_port_open(struct ib_device *device,
+ 	init_mad_qp(port_priv, &port_priv->qp_info[0]);
+ 	init_mad_qp(port_priv, &port_priv->qp_info[1]);
+ 
+-	cq_size = (mad_sendq_size + mad_recvq_size) * 2;
++	cq_size = mad_sendq_size + mad_recvq_size;
++	has_smi = rdma_port_link_layer(device, port_num) == IB_LINK_LAYER_INFINIBAND;
++	if (has_smi)
++		cq_size *= 2;
++
+ 	port_priv->cq = ib_create_cq(port_priv->device,
+ 				     ib_mad_thread_completion_handler,
+ 				     NULL, port_priv, cq_size, 0);
+@@ -2824,9 +2841,11 @@ static int ib_mad_port_open(struct ib_device *device,
+ 		goto error5;
+ 	}
+ 
+-	ret = create_mad_qp(&port_priv->qp_info[0], IB_QPT_SMI);
+-	if (ret)
+-		goto error6;
++	if (has_smi) {
++		ret = create_mad_qp(&port_priv->qp_info[0], IB_QPT_SMI);
++		if (ret)
++			goto error6;
++	}
+ 	ret = create_mad_qp(&port_priv->qp_info[1], IB_QPT_GSI);
+ 	if (ret)
+ 		goto error7;
+diff --git a/drivers/infiniband/core/multicast.c b/drivers/infiniband/core/multicast.c
+index 8d82ba1..55f24ff 100644
+--- a/drivers/infiniband/core/multicast.c
++++ b/drivers/infiniband/core/multicast.c
+@@ -773,6 +773,10 @@ static void mcast_event_handler(struct ib_event_handler *handler,
+ 	int index;
+ 
+ 	dev = container_of(handler, struct mcast_device, event_handler);
++	if (rdma_port_link_layer(dev->device, event->element.port_num) !=
++	    IB_LINK_LAYER_INFINIBAND)
++		return;
++
+ 	index = event->element.port_num - dev->start_port;
+ 
+ 	switch (event->event) {
+@@ -795,11 +799,12 @@ static void mcast_add_one(struct ib_device *device)
+ 	struct mcast_device *dev;
+ 	struct mcast_port *port;
+ 	int i;
++	int count = 0;
+ 
+ 	if (rdma_node_get_transport(device->node_type) != RDMA_TRANSPORT_IB)
+ 		return;
+ 
+-	dev = kmalloc(sizeof *dev + device->phys_port_cnt * sizeof *port,
++	dev = kzalloc(sizeof *dev + device->phys_port_cnt * sizeof *port,
+ 		      GFP_KERNEL);
+ 	if (!dev)
+ 		return;
+@@ -812,6 +817,9 @@ static void mcast_add_one(struct ib_device *device)
+ 	}
+ 
+ 	for (i = 0; i <= dev->end_port - dev->start_port; i++) {
++		if (rdma_port_link_layer(device, dev->start_port + i) !=
++		    IB_LINK_LAYER_INFINIBAND)
++			continue;
+ 		port = &dev->port[i];
+ 		port->dev = dev;
+ 		port->port_num = dev->start_port + i;
+@@ -819,6 +827,12 @@ static void mcast_add_one(struct ib_device *device)
+ 		port->table = RB_ROOT;
+ 		init_completion(&port->comp);
+ 		atomic_set(&port->refcount, 1);
++		++count;
++	}
++
++	if (!count) {
++		kfree(dev);
++		return;
+ 	}
+ 
+ 	dev->device = device;
+@@ -842,9 +856,12 @@ static void mcast_remove_one(struct ib_device *device)
+ 	flush_workqueue(mcast_wq);
+ 
+ 	for (i = 0; i <= dev->end_port - dev->start_port; i++) {
+-		port = &dev->port[i];
+-		deref_port(port);
+-		wait_for_completion(&port->comp);
++		if (rdma_port_link_layer(device, dev->start_port + i) ==
++		    IB_LINK_LAYER_INFINIBAND) {
++			port = &dev->port[i];
++			deref_port(port);
++			wait_for_completion(&port->comp);
++		}
+ 	}
+ 
+ 	kfree(dev);
+diff --git a/drivers/infiniband/core/sa_query.c b/drivers/infiniband/core/sa_query.c
+index 7e1ffd8..106284b 100644
+--- a/drivers/infiniband/core/sa_query.c
++++ b/drivers/infiniband/core/sa_query.c
+@@ -416,14 +416,17 @@ static void ib_sa_event(struct ib_event_handler *handler, struct ib_event *event
+ 		struct ib_sa_port *port =
+ 			&sa_dev->port[event->element.port_num - sa_dev->start_port];
+ 
+-		spin_lock_irqsave(&port->ah_lock, flags);
+-		if (port->sm_ah)
+-			kref_put(&port->sm_ah->ref, free_sm_ah);
+-		port->sm_ah = NULL;
+-		spin_unlock_irqrestore(&port->ah_lock, flags);
+-
+-		schedule_work(&sa_dev->port[event->element.port_num -
+-					    sa_dev->start_port].update_task);
++		if (rdma_port_link_layer(handler->device, port->port_num) == IB_LINK_LAYER_INFINIBAND) {
++			spin_lock_irqsave(&port->ah_lock, flags);
++			if (port->sm_ah)
++				kref_put(&port->sm_ah->ref, free_sm_ah);
++			port->sm_ah = NULL;
++			spin_unlock_irqrestore(&port->ah_lock, flags);
++
++			schedule_work(&sa_dev->port[event->element.port_num -
++				      sa_dev->start_port].update_task);
++		}
++
+ 	}
+ }
+ 
+@@ -1007,7 +1010,7 @@ static void ib_sa_add_one(struct ib_device *device)
+ 		e = device->phys_port_cnt;
+ 	}
+ 
+-	sa_dev = kmalloc(sizeof *sa_dev +
++	sa_dev = kzalloc(sizeof *sa_dev +
+ 			 (e - s + 1) * sizeof (struct ib_sa_port),
+ 			 GFP_KERNEL);
+ 	if (!sa_dev)
+@@ -1017,9 +1020,12 @@ static void ib_sa_add_one(struct ib_device *device)
+ 	sa_dev->end_port   = e;
+ 
+ 	for (i = 0; i <= e - s; ++i) {
++		spin_lock_init(&sa_dev->port[i].ah_lock);
++		if (rdma_port_link_layer(device, i + 1) != IB_LINK_LAYER_INFINIBAND)
++			continue;
++
+ 		sa_dev->port[i].sm_ah    = NULL;
+ 		sa_dev->port[i].port_num = i + s;
+-		spin_lock_init(&sa_dev->port[i].ah_lock);
+ 
+ 		sa_dev->port[i].agent =
+ 			ib_register_mad_agent(device, i + s, IB_QPT_GSI,
+@@ -1045,13 +1051,15 @@ static void ib_sa_add_one(struct ib_device *device)
+ 		goto err;
+ 
+ 	for (i = 0; i <= e - s; ++i)
+-		update_sm_ah(&sa_dev->port[i].update_task);
++		if (rdma_port_link_layer(device, i + 1) == IB_LINK_LAYER_INFINIBAND)
++			update_sm_ah(&sa_dev->port[i].update_task);
+ 
+ 	return;
+ 
+ err:
+ 	while (--i >= 0)
+-		ib_unregister_mad_agent(sa_dev->port[i].agent);
++		if (rdma_port_link_layer(device, i + 1) == IB_LINK_LAYER_INFINIBAND)
++			ib_unregister_mad_agent(sa_dev->port[i].agent);
+ 
+ 	kfree(sa_dev);
+ 
+@@ -1071,9 +1079,12 @@ static void ib_sa_remove_one(struct ib_device *device)
+ 	flush_scheduled_work();
+ 
+ 	for (i = 0; i <= sa_dev->end_port - sa_dev->start_port; ++i) {
+-		ib_unregister_mad_agent(sa_dev->port[i].agent);
+-		if (sa_dev->port[i].sm_ah)
+-			kref_put(&sa_dev->port[i].sm_ah->ref, free_sm_ah);
++		if (rdma_port_link_layer(device, i + 1) == IB_LINK_LAYER_INFINIBAND) {
++			ib_unregister_mad_agent(sa_dev->port[i].agent);
++			if (sa_dev->port[i].sm_ah)
++				kref_put(&sa_dev->port[i].sm_ah->ref, free_sm_ah);
++		}
++
+ 	}
+ 
+ 	kfree(sa_dev);
+-- 
+1.7.0
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
