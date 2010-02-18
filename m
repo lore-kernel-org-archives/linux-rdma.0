@@ -1,7 +1,7 @@
 From: Eli Cohen <eli-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
-Subject: [PATCHv8 08/11] mlx4: Allow interfaces to correspond to each other
-Date: Thu, 18 Feb 2010 19:24:30 +0200
-Message-ID: <20100218172430.GI12286@mtls03>
+Subject: [PATCHv8 10/11] ib_core: Add VLAN support to IBoE
+Date: Thu, 18 Feb 2010 19:24:43 +0200
+Message-ID: <20100218172443.GK12286@mtls03>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
@@ -11,144 +11,315 @@ To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 Cc: Linux RDMA list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ewg <ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Add a mechanism for mlx4 core interfaces to get a pointer to other interfaces'
-device object. For this, an exported function, mlx4_get_prot_dev() is added,
-which allows an interfaces to get some other interface's device based on the
-protocol that interface implements. Two new protocols are added, MLX4_PROT_IB
-and MLX4_PROT_EN. This comes as a preperation for IBoE so that mlx4_ib will be
-able to refer to the corresponding en device.
+Add 802.1q vlan support to IBoE. The vlan tag is encoded within the GID
+derived from a link local address in the following way:
+
+GID[11] GID[12] contain the vlan ID.
+The 3 bit user priority field is identical to the 3 bits of the SL.
+
+In case rdma_cm apps, the TOS field is used to generate the SL field by doing a
+shift right of 5 bits effectively taking to 3 MS bits of the TOS field. In
+order to support userspace verbs consumers, ib_uverbs_get_mac has changed into
+ib_uverbs_get_eth_l2_addr and now returns both MAC and VLAN information.
 
 Signed-off-by: Eli Cohen <eli-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
 ---
- drivers/net/mlx4/en_main.c  |   15 ++++++++++++---
- drivers/net/mlx4/intf.c     |   20 ++++++++++++++++++++
- drivers/net/mlx4/main.c     |    6 ++++++
- drivers/net/mlx4/mlx4.h     |    1 +
- include/linux/mlx4/driver.h |   16 ++++++++++++----
- 5 files changed, 51 insertions(+), 7 deletions(-)
+ drivers/infiniband/core/cma.c       |   20 ++++++++-----
+ drivers/infiniband/core/ucma.c      |   13 ++++++++-
+ drivers/infiniband/core/ud_header.c |   31 ++++++++++++++++++++-
+ include/rdma/ib_addr.h              |   49 ++++++++++++++++++++++++++++++++---
+ include/rdma/ib_pack.h              |   19 ++++++-------
+ 5 files changed, 106 insertions(+), 26 deletions(-)
 
-diff --git a/drivers/net/mlx4/en_main.c b/drivers/net/mlx4/en_main.c
-index 507e11f..00e72b3 100644
---- a/drivers/net/mlx4/en_main.c
-+++ b/drivers/net/mlx4/en_main.c
-@@ -100,6 +100,13 @@ static int mlx4_en_get_profile(struct mlx4_en_dev *mdev)
- 	return 0;
- }
+diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
+index df5f636..108d1bb 100644
+--- a/drivers/infiniband/core/cma.c
++++ b/drivers/infiniband/core/cma.c
+@@ -1763,6 +1763,7 @@ static int cma_resolve_iboe_route(struct rdma_id_private *id_priv)
+ 	struct sockaddr_in *src_addr = (struct sockaddr_in *)&route->addr.src_addr;
+ 	struct sockaddr_in *dst_addr = (struct sockaddr_in *)&route->addr.dst_addr;
+ 	struct net_device *ndev = NULL;
++	u16 vid;
  
-+static void *get_netdev(struct mlx4_dev *dev, void *ctx, u8 port)
-+{
-+	struct mlx4_en_dev *endev = ctx;
+ 	if (src_addr->sin_family != dst_addr->sin_family)
+ 		return -EINVAL;
+@@ -1782,14 +1783,6 @@ static int cma_resolve_iboe_route(struct rdma_id_private *id_priv)
+ 
+ 	route->num_paths = 1;
+ 
+-	iboe_mac_to_ll(&route->path_rec->sgid, addr->dev_addr.src_dev_addr);
+-	iboe_mac_to_ll(&route->path_rec->dgid, addr->dev_addr.dst_dev_addr);
+-
+-	route->path_rec->hop_limit = 1;
+-	route->path_rec->reversible = 1;
+-	route->path_rec->pkey = cpu_to_be16(0xffff);
+-	route->path_rec->mtu_selector = IB_SA_EQ;
+-
+ 	if (addr->dev_addr.bound_dev_if)
+ 		ndev = dev_get_by_index(&init_net, addr->dev_addr.bound_dev_if);
+ 	if (!ndev) {
+@@ -1797,6 +1790,17 @@ static int cma_resolve_iboe_route(struct rdma_id_private *id_priv)
+ 		goto err2;
+ 	}
+ 
++	vid = rdma_vlan_dev_vlan_id(ndev);
 +
-+	return endev->pndev[port];
-+}
++	iboe_mac_vlan_to_ll(&route->path_rec->sgid, addr->dev_addr.src_dev_addr, vid);
++	iboe_mac_vlan_to_ll(&route->path_rec->dgid, addr->dev_addr.dst_dev_addr, vid);
 +
- static void mlx4_en_event(struct mlx4_dev *dev, void *endev_ptr,
- 			  enum mlx4_dev_event event, int port)
++	route->path_rec->hop_limit = 1;
++	route->path_rec->reversible = 1;
++	route->path_rec->pkey = cpu_to_be16(0xffff);
++	route->path_rec->mtu_selector = IB_SA_EQ;
++	route->path_rec->sl = id_priv->tos >> 5;
++
+ 	route->path_rec->mtu = iboe_get_mtu(ndev->mtu);
+ 	route->path_rec->rate_selector = IB_SA_EQ;
+ 	route->path_rec->rate = iboe_get_rate(ndev);
+diff --git a/drivers/infiniband/core/ucma.c b/drivers/infiniband/core/ucma.c
+index fcc27bc..ed670f5 100644
+--- a/drivers/infiniband/core/ucma.c
++++ b/drivers/infiniband/core/ucma.c
+@@ -586,13 +586,22 @@ static void ucma_copy_iboe_route(struct rdma_ucm_query_route_resp *resp,
+ 				 struct rdma_route *route)
  {
-@@ -262,9 +269,11 @@ err_free_res:
- }
+ 	struct rdma_dev_addr *dev_addr;
++	struct net_device *dev;
++	u16 vid = 0;
  
- static struct mlx4_interface mlx4_en_interface = {
--	.add	= mlx4_en_add,
--	.remove	= mlx4_en_remove,
--	.event	= mlx4_en_event,
-+	.add		= mlx4_en_add,
-+	.remove		= mlx4_en_remove,
-+	.event		= mlx4_en_event,
-+	.get_prot_dev	= get_netdev,
-+	.protocol	= MLX4_PROT_EN,
+ 	resp->num_paths = route->num_paths;
+ 	switch (route->num_paths) {
+ 	case 0:
+ 		dev_addr = &route->addr.dev_addr;
+-		iboe_mac_to_ll((union ib_gid *) &resp->ib_route[0].dgid,
+-			       dev_addr->dst_dev_addr);
++		dev = dev_get_by_index(&init_net, dev_addr->bound_dev_if);
++			if (dev) {
++				vid = rdma_vlan_dev_vlan_id(dev);
++				dev_put(dev);
++			}
++
++
++		iboe_mac_vlan_to_ll((union ib_gid *) &resp->ib_route[0].dgid,
++				    dev_addr->dst_dev_addr, vid);
+ 		iboe_addr_get_sgid(dev_addr,
+ 				   (union ib_gid *) &resp->ib_route[0].sgid);
+ 		resp->ib_route[0].pkey = cpu_to_be16(0xffff);
+diff --git a/drivers/infiniband/core/ud_header.c b/drivers/infiniband/core/ud_header.c
+index 7650313..7d03cf1 100644
+--- a/drivers/infiniband/core/ud_header.c
++++ b/drivers/infiniband/core/ud_header.c
+@@ -33,6 +33,7 @@
+ 
+ #include <linux/errno.h>
+ #include <linux/string.h>
++#include <linux/if_ether.h>
+ 
+ #include <rdma/ib_pack.h>
+ 
+@@ -103,6 +104,17 @@ static const struct ib_field eth_table[]  = {
+ 	  .size_bits    = 16 }
  };
  
- static int __init mlx4_en_init(void)
-diff --git a/drivers/net/mlx4/intf.c b/drivers/net/mlx4/intf.c
-index 0e7eb10..d64530e 100644
---- a/drivers/net/mlx4/intf.c
-+++ b/drivers/net/mlx4/intf.c
-@@ -159,3 +159,23 @@ void mlx4_unregister_device(struct mlx4_dev *dev)
- 
- 	mutex_unlock(&intf_mutex);
- }
-+
-+void *mlx4_find_get_prot_dev(struct mlx4_dev *dev, enum mlx4_prot proto, int port)
-+{
-+	struct mlx4_priv *priv = mlx4_priv(dev);
-+	struct mlx4_device_context *dev_ctx;
-+	unsigned long flags;
-+	void *result = NULL;
-+
-+	spin_lock_irqsave(&priv->ctx_lock, flags);
-+
-+	list_for_each_entry(dev_ctx, &priv->ctx_list, list)
-+		if (dev_ctx->intf->protocol == proto && dev_ctx->intf->get_prot_dev) {
-+			result = dev_ctx->intf->get_prot_dev(dev, dev_ctx->context, port);
-+			break;
-+		}
-+
-+	spin_unlock_irqrestore(&priv->ctx_lock, flags);
-+
-+	return result;
-+}
-diff --git a/drivers/net/mlx4/main.c b/drivers/net/mlx4/main.c
-index 3cf56d9..91e9b90 100644
---- a/drivers/net/mlx4/main.c
-+++ b/drivers/net/mlx4/main.c
-@@ -104,6 +104,12 @@ static int log_mtts_per_seg = ilog2(MLX4_MTT_ENTRY_PER_SEG);
- module_param_named(log_mtts_per_seg, log_mtts_per_seg, int, 0444);
- MODULE_PARM_DESC(log_mtts_per_seg, "Log2 number of MTT entries per segment (1-5)");
- 
-+void *mlx4_get_prot_dev(struct mlx4_dev *dev, enum mlx4_prot proto, int port)
-+{
-+	return mlx4_find_get_prot_dev(dev, proto, port);
-+}
-+EXPORT_SYMBOL(mlx4_get_prot_dev);
-+
- int mlx4_check_port_params(struct mlx4_dev *dev,
- 			   enum mlx4_port_type *port_type)
- {
-diff --git a/drivers/net/mlx4/mlx4.h b/drivers/net/mlx4/mlx4.h
-index bc72d6e..ab63445 100644
---- a/drivers/net/mlx4/mlx4.h
-+++ b/drivers/net/mlx4/mlx4.h
-@@ -362,6 +362,7 @@ int mlx4_restart_one(struct pci_dev *pdev);
- int mlx4_register_device(struct mlx4_dev *dev);
- void mlx4_unregister_device(struct mlx4_dev *dev);
- void mlx4_dispatch_event(struct mlx4_dev *dev, enum mlx4_dev_event type, int port);
-+void *mlx4_find_get_prot_dev(struct mlx4_dev *dev, enum mlx4_prot proto, int port);
- 
- struct mlx4_dev_cap;
- struct mlx4_init_hca_param;
-diff --git a/include/linux/mlx4/driver.h b/include/linux/mlx4/driver.h
-index 53c5fdb..0083256 100644
---- a/include/linux/mlx4/driver.h
-+++ b/include/linux/mlx4/driver.h
-@@ -44,15 +44,23 @@ enum mlx4_dev_event {
- 	MLX4_DEV_EVENT_PORT_REINIT,
- };
- 
-+enum mlx4_prot {
-+	MLX4_PROT_IB,
-+	MLX4_PROT_EN,
++static const struct ib_field vlan_table[]  = {
++	{ STRUCT_FIELD(vlan, tag),
++	  .offset_words = 0,
++	  .offset_bits  = 0,
++	  .size_bits    = 16 },
++	{ STRUCT_FIELD(vlan, type),
++	  .offset_words = 0,
++	  .offset_bits  = 16,
++	  .size_bits    = 16 }
 +};
 +
- struct mlx4_interface {
--	void *			(*add)	 (struct mlx4_dev *dev);
--	void			(*remove)(struct mlx4_dev *dev, void *context);
--	void			(*event) (struct mlx4_dev *dev, void *context,
--					  enum mlx4_dev_event event, int port);
-+	void *	(*add)	 (struct mlx4_dev *dev);
-+	void   	(*remove)(struct mlx4_dev *dev, void *context);
-+	void   	(*event) (struct mlx4_dev *dev, void *context,
-+			  enum mlx4_dev_event event, int port);
-+	void *	(*get_prot_dev) (struct mlx4_dev *dev, void *context, u8 port);
-+	enum mlx4_prot		protocol;
- 	struct list_head	list;
+ static const struct ib_field grh_table[]  = {
+ 	{ STRUCT_FIELD(grh, ip_version),
+ 	  .offset_words = 0,
+@@ -205,6 +217,7 @@ static const struct ib_field deth_table[] = {
+  * @payload_bytes:Length of packet payload
+  * @lrh_present: specify if LRH is present
+  * @eth_present: specify if Eth header is present
++ * @vlan_present: packet is tagged vlan
+  * @grh_present:GRH flag (if non-zero, GRH will be included)
+  * @immediate_present: specify if immediate data is present
+  * @header:Structure to initialize
+@@ -212,6 +225,7 @@ static const struct ib_field deth_table[] = {
+ void ib_ud_header_init(int     		    payload_bytes,
+ 		       int		    lrh_present,
+ 		       int		    eth_present,
++		       int		    vlan_present,
+ 		       int    		    grh_present,
+ 		       int		    immediate_present,
+ 		       struct ib_ud_header *header)
+@@ -227,8 +241,14 @@ void ib_ud_header_init(int     		    payload_bytes,
+ 		packet_length = IB_LRH_BYTES;
+ 	}
+ 
+-	if (eth_present)
+-		packet_length = IB_ETH_BYTES;
++	if (eth_present) {
++		if (vlan_present) {
++			header->eth.type = cpu_to_be16(ETH_P_8021Q);
++			packet_length += IB_VLAN_BYTES;
++
++		}
++		packet_length += IB_ETH_BYTES;
++	}
+ 
+ 	packet_length += IB_BTH_BYTES + IB_DETH_BYTES + payload_bytes +
+ 		4       + /* ICRC     */
+@@ -258,6 +278,7 @@ void ib_ud_header_init(int     		    payload_bytes,
+ 
+ 	header->lrh_present = lrh_present;
+ 	header->eth_present = eth_present;
++	header->vlan_present = vlan_present;
+ 	header->grh_present = grh_present;
+ 	header->immediate_present = immediate_present;
+ }
+@@ -287,6 +308,12 @@ int ib_ud_header_pack(struct ib_ud_header *header,
+ 		len += IB_ETH_BYTES;
+ 	}
+ 
++	if (header->vlan_present) {
++		ib_pack(vlan_table, ARRAY_SIZE(vlan_table),
++			&header->vlan, buf + len);
++		len += IB_VLAN_BYTES;
++	}
++
+ 	if (header->grh_present) {
+ 		ib_pack(grh_table, ARRAY_SIZE(grh_table),
+ 			&header->grh, buf + len);
+diff --git a/include/rdma/ib_addr.h b/include/rdma/ib_addr.h
+index 23b184e..7e75bfa 100644
+--- a/include/rdma/ib_addr.h
++++ b/include/rdma/ib_addr.h
+@@ -41,6 +41,7 @@
+ #include <linux/socket.h>
+ #include <rdma/ib_verbs.h>
+ #include <rdma/ib_pack.h>
++#include <linux/if_vlan.h>
+ 
+ struct rdma_addr_client {
+ 	atomic_t refcount;
+@@ -129,12 +130,17 @@ static inline int rdma_addr_gid_offset(struct rdma_dev_addr *dev_addr)
+ 	return dev_addr->dev_type == ARPHRD_INFINIBAND ? 4 : 0;
+ }
+ 
+-static inline void iboe_mac_to_ll(union ib_gid *gid, u8 *mac)
++static inline void iboe_mac_vlan_to_ll(union ib_gid *gid, u8 *mac, u16 vid)
+ {
+ 	memset(gid->raw, 0, 16);
+ 	*((u32 *)gid->raw) = cpu_to_be32(0xfe800000);
+-	gid->raw[12] = 0xfe;
+-	gid->raw[11] = 0xff;
++	if (vid) {
++		gid->raw[12] = vid & 0xff;
++		gid->raw[11] = vid >> 8;
++	} else {
++		gid->raw[12] = 0xfe;
++		gid->raw[11] = 0xff;
++	}
+ 	memcpy(gid->raw + 13, mac + 3, 3);
+ 	memcpy(gid->raw + 8, mac, 3);
+ 	gid->raw[8] ^= 2;
+@@ -143,7 +149,16 @@ static inline void iboe_mac_to_ll(union ib_gid *gid, u8 *mac)
+ static inline void iboe_addr_get_sgid(struct rdma_dev_addr *dev_addr,
+ 				      union ib_gid *gid)
+ {
+-	iboe_mac_to_ll(gid, dev_addr->src_dev_addr);
++	struct net_device *dev;
++	u16 vid = 0;
++
++	dev = dev_get_by_index(&init_net, dev_addr->bound_dev_if);
++	if (dev) {
++		vid = vlan_dev_vlan_id(dev);
++		dev_put(dev);
++	}
++
++	iboe_mac_vlan_to_ll(gid, dev_addr->src_dev_addr, vid);
+ }
+ 
+ static inline void rdma_addr_get_sgid(struct rdma_dev_addr *dev_addr, union ib_gid *gid)
+@@ -243,4 +258,30 @@ static inline void rdma_get_mcast_mac(struct in6_addr *addr, u8 *mac)
+ 	for (i = 2; i < 6; ++i)
+ 		mac[i] = addr->s6_addr[i + 10];
+ }
++
++static inline u16 rdma_get_vlan_id(union ib_gid *dgid)
++{
++	u16 vid;
++
++	vid = dgid->raw[11] << 8 | dgid->raw[12];
++	return vid == 0xfffe ? 0 : vid  & 0xfff;
++}
++
++static inline u16 rdma_vlan_dev_vlan_id(const struct net_device *dev) {
++#if defined(CONFIG_VLAN_8021Q) || defined(CONFIG_VLAN_8021Q_MODULE)
++	return vlan_dev_vlan_id(dev);
++#else
++	return 0;
++#endif
++}
++
++static inline struct net_device *rdma_vlan_dev_real_dev(const struct net_device *dev)
++{
++#if defined(CONFIG_VLAN_8021Q) || defined(CONFIG_VLAN_8021Q_MODULE)
++	return vlan_dev_real_dev(dev);
++#else
++	return 0;
++#endif
++}
++
+ #endif /* IB_ADDR_H */
+diff --git a/include/rdma/ib_pack.h b/include/rdma/ib_pack.h
+index 67a85f3..1678be7 100644
+--- a/include/rdma/ib_pack.h
++++ b/include/rdma/ib_pack.h
+@@ -38,6 +38,7 @@
+ enum {
+ 	IB_LRH_BYTES  = 8,
+ 	IB_ETH_BYTES  = 14,
++	IB_VLAN_BYTES = 4,
+ 	IB_GRH_BYTES  = 40,
+ 	IB_BTH_BYTES  = 12,
+ 	IB_DETH_BYTES = 8
+@@ -219,21 +220,18 @@ struct ib_unpacked_eth {
+ 	__be16	type;
  };
  
- int mlx4_register_interface(struct mlx4_interface *intf);
- void mlx4_unregister_interface(struct mlx4_interface *intf);
-+void *mlx4_get_prot_dev(struct mlx4_dev *dev, enum mlx4_prot proto, int port);
- 
- #endif /* MLX4_DRIVER_H */
++struct ib_unpacked_vlan {
++	__be16  tag;
++	__be16  type;
++};
++
+ struct ib_ud_header {
+ 	int                     lrh_present;
+ 	struct ib_unpacked_lrh  lrh;
+ 	int                     eth_present;
+ 	struct ib_unpacked_eth  eth;
+-	int                     grh_present;
+-	struct ib_unpacked_grh  grh;
+-	struct ib_unpacked_bth  bth;
+-	struct ib_unpacked_deth deth;
+-	int            		immediate_present;
+-	__be32         		immediate_data;
+-};
+-
+-struct eth_ud_header {
+-	struct ib_unpacked_eth  eth;
++	int                     vlan_present;
++	struct ib_unpacked_vlan vlan;
+ 	int                     grh_present;
+ 	struct ib_unpacked_grh  grh;
+ 	struct ib_unpacked_bth  bth;
+@@ -255,6 +253,7 @@ void ib_unpack(const struct ib_field        *desc,
+ void ib_ud_header_init(int     		    payload_bytes,
+ 		       int		    lrh_present,
+ 		       int		    eth_present,
++		       int		    vlan_present,
+ 		       int    		    grh_present,
+ 		       int		    immediate_present,
+ 		       struct ib_ud_header *header);
 -- 
 1.7.0
 
