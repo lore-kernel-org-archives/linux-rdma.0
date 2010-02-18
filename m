@@ -1,44 +1,43 @@
-From: Eli Cohen <eli-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
-Subject: [PATCHv8 2/2] libmlx4: Add Eth devices to ib devices list
-Date: Thu, 18 Feb 2010 19:25:25 +0200
-Message-ID: <20100218172525.GR12286@mtls03>
+From: Ralph Campbell <ralph.campbell-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+Subject: Re: IPoIB memory use after free
+Date: Thu, 18 Feb 2010 11:22:13 -0800
+Message-ID: <1266520933.30078.42.camel@chromite.mv.qlogic.com>
+References: <1266436956.30078.23.camel@chromite.mv.qlogic.com>
+	 <20100217200831.GW20950@sgi.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <20100217200831.GW20950-sJ/iWh9BUns@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Cc: Linux RDMA list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ewg <ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+To: Arthur Kepner <akepner-sJ/iWh9BUns@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-With the new IBoE implementation, Ethernet devices expose also IB devices.
-Update the list of supported devices with that of the kernel.
+On Wed, 2010-02-17 at 12:08 -0800, Arthur Kepner wrote:
+> On Wed, Feb 17, 2010 at 12:02:36PM -0800, Ralph Campbell wrote:
+> > I have been tracking down a kernel panic while running qperf udp_bw
+> > tests and it looks like ib_ipoib is using memory after freeing it.
+> > 
+> > The problem is with connected mode. I don't see the panic with
+> > datagram mode. Looking at the source code, I see that the process
+> > of creating the QP with the connection manager, ipoib_cm_create_tx(),
+> > has pointers to struct ipoib_neigh and struct ipoib_path but there
+> > doesn't seem to be a reference count or struct completion similar to
+> > the way the SA path record look up process has to prevent this.
+> > 
+> > I'm working on a patch to test this theory but wanted to post
+> > this before going too far in case others are already aware
+> > of the problem and working on it.
+> > 
+> 
+> Could what you're seeing be related to what's reported here:
+> 
+> http://lists.openfabrics.org/pipermail/general/2008-April/049629.html
 
-Signed-off-by: Eli Cohen <eli-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
----
- src/mlx4.c |    7 +++++++
- 1 files changed, 7 insertions(+), 0 deletions(-)
-
-diff --git a/src/mlx4.c b/src/mlx4.c
-index 1295c53..6068208 100644
---- a/src/mlx4.c
-+++ b/src/mlx4.c
-@@ -66,6 +66,13 @@ struct {
- 	HCA(MELLANOX, 0x6354),	/* MT25408 "Hermon" QDR */
- 	HCA(MELLANOX, 0x6732),	/* MT25408 "Hermon" DDR PCIe gen2 */
- 	HCA(MELLANOX, 0x673c),	/* MT25408 "Hermon" QDR PCIe gen2 */
-+	HCA(MELLANOX, 0x6368), /* MT25448 [ConnectX EN 10GigE, PCIe 2.0 2.5GT/s] */
-+	HCA(MELLANOX, 0x6750), /* MT26448 [ConnectX EN 10GigE, PCIe 2.0 5GT/s] */
-+	HCA(MELLANOX, 0x6372), /* MT25408 [ConnectX EN 10GigE 10GBaseT, PCIe 2.0 2.5GT/s] */
-+	HCA(MELLANOX, 0x675a), /* MT25408 [ConnectX EN 10GigE 10GBaseT, PCIe Gen2 5GT/s] */
-+	HCA(MELLANOX, 0x6764), /* MT26468 [ConnectX EN 10GigE, PCIe 2.0 5GT/s] */
-+	HCA(MELLANOX, 0x6746), /* MT26438 ConnectX EN 40GigE PCIe gen2 5GT/s */
-+	HCA(MELLANOX, 0x676e), /* MT26478 ConnectX2 40GigE PCIe gen2 */
- };
- 
- static struct ibv_context_ops mlx4_ctx_ops = {
--- 
-1.7.0
+It is related but it is not the same since I'm talking about
+struct ipoib_cm_tx holding a stale pointer instead of in
+ipoib_neigh_cleanup().
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
