@@ -1,7 +1,7 @@
 From: Eli Cohen <eli-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
-Subject: [PATCHv8 04/11] ib_core: IBoE CMA device binding
-Date: Thu, 18 Feb 2010 19:24:03 +0200
-Message-ID: <20100218172403.GE12286@mtls03>
+Subject: [PATCHv8 05/11] ib_core: IBoE UD packet packing support
+Date: Thu, 18 Feb 2010 19:24:11 +0200
+Message-ID: <20100218172411.GF12286@mtls03>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
@@ -11,734 +11,228 @@ To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 Cc: Linux RDMA list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ewg <ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Add support for IBoE device binding and IP --> GID resolution. Path resolving
-and multicast joining are implemented within cma.c by filling the responses and
-pushing the callbacks to the cma work queue. IP->GID resolution always yields
-IPv6 link local addresses - remote GIDs are derived from the destination MAC
-address of the remote port. Multicast GIDs are always mapped to multicast MACs
-as is done in IPv6. Some helper functions are added to ib_addr.h.  IPv4
-multicast is enabled by translating IPv4 multicast addresses to IPv6 multicast
-as described in
-http://www.mail-archive.com/ipng-Va8kgSFw1KyzQ7sTrsxvMkEOCMrvLtNR@public.gmane.org/msg02134.html.
+Add support functions to aid in packing IBoE packets.
 
 Signed-off-by: Eli Cohen <eli-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
 ---
+ drivers/infiniband/core/ud_header.c |  100 ++++++++++++++++++++++------------
+ include/rdma/ib_pack.h              |   29 +++++++++-
+ 2 files changed, 92 insertions(+), 37 deletions(-)
 
-Chages from v7:
+Changes from v7:
 
-1. Add force_grh flag to ib_init_ah_from_path() to request IB_AH_GRH for
-   IB_LINK_LAYER_ETHERNET ports thus allowing to use hop limit 1 in path
-   records.
-2. cma_acquire_dev() finds the cma_dev by first assuming an iboe type device
-   for none ARPHRD_INFINIBAND dev type. If it fails to do that, it falls back to
-   old method.
+1. Re-work the changes so they extend the original idea behind these functions.
+2. Fix wrong implementation of ib_ud_header_init(). A different patch was sent
+   to Roland.
 
 
- drivers/infiniband/core/cm.c              |    5 +-
- drivers/infiniband/core/cma.c             |  283 +++++++++++++++++++++++++++--
- drivers/infiniband/core/sa_query.c        |    5 +-
- drivers/infiniband/core/ucma.c            |   45 ++++-
- drivers/infiniband/ulp/ipoib/ipoib_main.c |    2 +-
- include/rdma/ib_addr.h                    |   98 ++++++++++-
- include/rdma/ib_sa.h                      |    3 +-
- 7 files changed, 412 insertions(+), 29 deletions(-)
-
-diff --git a/drivers/infiniband/core/cm.c b/drivers/infiniband/core/cm.c
-index 5130fc5..6513b1c 100644
---- a/drivers/infiniband/core/cm.c
-+++ b/drivers/infiniband/core/cm.c
-@@ -351,6 +351,7 @@ static int cm_init_av_by_path(struct ib_sa_path_rec *path, struct cm_av *av)
- 	unsigned long flags;
- 	int ret;
- 	u8 p;
-+	int force_grh;
- 
- 	read_lock_irqsave(&cm.device_lock, flags);
- 	list_for_each_entry(cm_dev, &cm.device_list, list) {
-@@ -371,8 +372,10 @@ static int cm_init_av_by_path(struct ib_sa_path_rec *path, struct cm_av *av)
- 		return ret;
- 
- 	av->port = port;
-+	force_grh = rdma_port_link_layer(cm_dev->ib_device, port->port_num) ==
-+		IB_LINK_LAYER_ETHERNET ? 1 : 0;
- 	ib_init_ah_from_path(cm_dev->ib_device, port->port_num, path,
--			     &av->ah_attr);
-+			     &av->ah_attr, force_grh);
- 	av->timeout = path->packet_life_time + 1;
- 	return 0;
- }
-diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
-index cc9b594..df5f636 100644
---- a/drivers/infiniband/core/cma.c
-+++ b/drivers/infiniband/core/cma.c
-@@ -58,6 +58,7 @@ MODULE_LICENSE("Dual BSD/GPL");
- #define CMA_CM_RESPONSE_TIMEOUT 20
- #define CMA_MAX_CM_RETRIES 15
- #define CMA_CM_MRA_SETTING (IB_CM_MRA_FLAG_DELAY | 24)
-+#define IBOE_PACKET_LIFETIME 18
- 
- static void cma_add_one(struct ib_device *device);
- static void cma_remove_one(struct ib_device *device);
-@@ -157,6 +158,7 @@ struct cma_multicast {
- 	struct list_head	list;
- 	void			*context;
- 	struct sockaddr_storage	addr;
-+	struct kref		mcref;
+diff --git a/drivers/infiniband/core/ud_header.c b/drivers/infiniband/core/ud_header.c
+index 8ec7876..7650313 100644
+--- a/drivers/infiniband/core/ud_header.c
++++ b/drivers/infiniband/core/ud_header.c
+@@ -80,6 +80,29 @@ static const struct ib_field lrh_table[]  = {
+ 	  .size_bits    = 16 }
  };
  
- struct cma_work {
-@@ -173,6 +175,12 @@ struct cma_ndev_work {
- 	struct rdma_cm_event	event;
- };
- 
-+struct iboe_mcast_work {
-+	struct work_struct	 work;
-+	struct rdma_id_private	*id;
-+	struct cma_multicast	*mc;
++static const struct ib_field eth_table[]  = {
++	{ STRUCT_FIELD(eth, dmac_h),
++	  .offset_words = 0,
++	  .offset_bits  = 0,
++	  .size_bits    = 32 },
++	{ STRUCT_FIELD(eth, dmac_l),
++	  .offset_words = 1,
++	  .offset_bits  = 0,
++	  .size_bits    = 16 },
++	{ STRUCT_FIELD(eth, smac_h),
++	  .offset_words = 1,
++	  .offset_bits  = 16,
++	  .size_bits    = 16 },
++	{ STRUCT_FIELD(eth, smac_l),
++	  .offset_words = 2,
++	  .offset_bits  = 0,
++	  .size_bits    = 32 },
++	{ STRUCT_FIELD(eth, type),
++	  .offset_words = 3,
++	  .offset_bits  = 0,
++	  .size_bits    = 16 }
 +};
 +
- union cma_ip_addr {
- 	struct in6_addr ip6;
- 	struct {
-@@ -281,6 +289,8 @@ static void cma_attach_to_dev(struct rdma_id_private *id_priv,
- 	atomic_inc(&cma_dev->refcount);
- 	id_priv->cma_dev = cma_dev;
- 	id_priv->id.device = cma_dev->device;
-+	id_priv->id.route.addr.dev_addr.transport =
-+		rdma_node_get_transport(cma_dev->device->node_type);
- 	list_add_tail(&id_priv->list, &cma_dev->id_list);
- }
- 
-@@ -290,6 +300,14 @@ static inline void cma_deref_dev(struct cma_device *cma_dev)
- 		complete(&cma_dev->comp);
- }
- 
-+static inline void release_mc(struct kref *kref)
-+{
-+	struct cma_multicast *mc = container_of(kref, struct cma_multicast, mcref);
-+
-+	kfree(mc->multicast.ib);
-+	kfree(mc);
-+}
-+
- static void cma_detach_from_dev(struct rdma_id_private *id_priv)
+ static const struct ib_field grh_table[]  = {
+ 	{ STRUCT_FIELD(grh, ip_version),
+ 	  .offset_words = 0,
+@@ -180,56 +203,51 @@ static const struct ib_field deth_table[] = {
+ /**
+  * ib_ud_header_init - Initialize UD header structure
+  * @payload_bytes:Length of packet payload
++ * @lrh_present: specify if LRH is present
++ * @eth_present: specify if Eth header is present
+  * @grh_present:GRH flag (if non-zero, GRH will be included)
++ * @immediate_present: specify if immediate data is present
+  * @header:Structure to initialize
+- *
+- * ib_ud_header_init() initializes the lrh.link_version, lrh.link_next_header,
+- * lrh.packet_length, grh.ip_version, grh.payload_length,
+- * grh.next_header, bth.opcode, bth.pad_count and
+- * bth.transport_header_version fields of a &struct ib_ud_header given
+- * the payload length and whether a GRH will be included.
+  */
+ void ib_ud_header_init(int     		    payload_bytes,
++		       int		    lrh_present,
++		       int		    eth_present,
+ 		       int    		    grh_present,
++		       int		    immediate_present,
+ 		       struct ib_ud_header *header)
  {
- 	list_del(&id_priv->list);
-@@ -330,15 +348,29 @@ static int cma_acquire_dev(struct rdma_id_private *id_priv)
- 	union ib_gid gid;
- 	int ret = -ENODEV;
+-	int header_len;
+ 	u16 packet_length;
  
--	rdma_addr_get_sgid(dev_addr, &gid);
-+	if (dev_addr->dev_type != ARPHRD_INFINIBAND) {
-+		iboe_addr_get_sgid(dev_addr, &gid);
-+		list_for_each_entry(cma_dev, &dev_list, list) {
-+			ret = ib_find_cached_gid(cma_dev->device, &gid,
-+						 &id_priv->id.port_num, NULL);
-+			if (!ret)
-+				goto out;
-+		}
-+	}
-+
-+	memcpy(&gid, dev_addr->src_dev_addr +
-+	       rdma_addr_gid_offset(dev_addr), sizeof gid);
- 	list_for_each_entry(cma_dev, &dev_list, list) {
- 		ret = ib_find_cached_gid(cma_dev->device, &gid,
- 					 &id_priv->id.port_num, NULL);
--		if (!ret) {
--			cma_attach_to_dev(id_priv, cma_dev);
-+		if (!ret)
- 			break;
--		}
+ 	memset(header, 0, sizeof *header);
+ 
+-	header_len =
+-		IB_LRH_BYTES  +
+-		IB_BTH_BYTES  +
+-		IB_DETH_BYTES;
+-	if (grh_present) {
+-		header_len += IB_GRH_BYTES;
++	if (lrh_present) {
++		header->lrh.link_version     = 0;
++		header->lrh.link_next_header =
++			grh_present ? IB_LNH_IBA_GLOBAL : IB_LNH_IBA_LOCAL;
++		packet_length = IB_LRH_BYTES;
  	}
-+
-+out:
-+	if (!ret)
-+		cma_attach_to_dev(id_priv, cma_dev);
-+
- 	return ret;
- }
  
-@@ -556,10 +588,16 @@ static int cma_ib_init_qp_attr(struct rdma_id_private *id_priv,
+-	header->lrh.link_version     = 0;
+-	header->lrh.link_next_header =
+-		grh_present ? IB_LNH_IBA_GLOBAL : IB_LNH_IBA_LOCAL;
+-	packet_length		     = (IB_LRH_BYTES     +
+-					IB_BTH_BYTES     +
+-					IB_DETH_BYTES    +
+-					payload_bytes    +
+-					4                + /* ICRC     */
+-					3) / 4;            /* round up */
+-
+-	header->grh_present          = grh_present;
++	if (eth_present)
++		packet_length = IB_ETH_BYTES;
++
++	packet_length += IB_BTH_BYTES + IB_DETH_BYTES + payload_bytes +
++		4       + /* ICRC     */
++		3;        /* round up */
++	packet_length /= 4;
+ 	if (grh_present) {
+-		packet_length		   += IB_GRH_BYTES / 4;
+-		header->grh.ip_version      = 6;
+-		header->grh.payload_length  =
+-			cpu_to_be16((IB_BTH_BYTES     +
+-				     IB_DETH_BYTES    +
+-				     payload_bytes    +
+-				     4                + /* ICRC     */
+-				     3) & ~3);          /* round up */
++		packet_length += IB_GRH_BYTES / 4;
++		header->grh.ip_version = 6;
++		header->grh.payload_length =
++			cpu_to_be16((IB_BTH_BYTES  +
++				     IB_DETH_BYTES +
++				     payload_bytes +
++				     4             + /* ICRC     */
++				     3) & ~3);       /* round up */
+ 		header->grh.next_header     = 0x1b;
+ 	}
+ 
+-	header->lrh.packet_length = cpu_to_be16(packet_length);
++	if (lrh_present)
++		header->lrh.packet_length = cpu_to_be16(packet_length);
+ 
+ 	if (header->immediate_present)
+ 		header->bth.opcode           = IB_OPCODE_UD_SEND_ONLY_WITH_IMMEDIATE;
+@@ -237,6 +255,11 @@ void ib_ud_header_init(int     		    payload_bytes,
+ 		header->bth.opcode           = IB_OPCODE_UD_SEND_ONLY;
+ 	header->bth.pad_count                = (4 - payload_bytes) & 3;
+ 	header->bth.transport_header_version = 0;
++
++	header->lrh_present = lrh_present;
++	header->eth_present = eth_present;
++	header->grh_present = grh_present;
++	header->immediate_present = immediate_present;
+ }
+ EXPORT_SYMBOL(ib_ud_header_init);
+ 
+@@ -253,9 +276,16 @@ int ib_ud_header_pack(struct ib_ud_header *header,
  {
- 	struct rdma_dev_addr *dev_addr = &id_priv->id.route.addr.dev_addr;
- 	int ret;
-+	u16 pkey;
-+
-+	if (rdma_port_link_layer(id_priv->id.device, id_priv->id.port_num) ==
-+	    IB_LINK_LAYER_INFINIBAND)
-+		pkey = ib_addr_get_pkey(dev_addr);
-+	else
-+		pkey = 0xffff;
+ 	int len = 0;
  
- 	ret = ib_find_cached_pkey(id_priv->id.device, id_priv->id.port_num,
--				  ib_addr_get_pkey(dev_addr),
--				  &qp_attr->pkey_index);
-+				  pkey, &qp_attr->pkey_index);
- 	if (ret)
- 		return ret;
- 
-@@ -737,8 +775,8 @@ static inline int cma_user_data_offset(enum rdma_port_space ps)
- 
- static void cma_cancel_route(struct rdma_id_private *id_priv)
- {
--	switch (rdma_node_get_transport(id_priv->id.device->node_type)) {
--	case RDMA_TRANSPORT_IB:
-+	switch (rdma_port_link_layer(id_priv->id.device, id_priv->id.port_num)) {
-+	case IB_LINK_LAYER_INFINIBAND:
- 		if (id_priv->query)
- 			ib_sa_cancel_query(id_priv->query_id, id_priv->query);
- 		break;
-@@ -816,8 +854,17 @@ static void cma_leave_mc_groups(struct rdma_id_private *id_priv)
- 		mc = container_of(id_priv->mc_list.next,
- 				  struct cma_multicast, list);
- 		list_del(&mc->list);
--		ib_sa_free_multicast(mc->multicast.ib);
--		kfree(mc);
-+		switch (rdma_port_link_layer(id_priv->cma_dev->device, id_priv->id.port_num)) {
-+		case IB_LINK_LAYER_INFINIBAND:
-+			ib_sa_free_multicast(mc->multicast.ib);
-+			kfree(mc);
-+			break;
-+		case IB_LINK_LAYER_ETHERNET:
-+			kref_put(&mc->mcref, release_mc);
-+			break;
-+		default:
-+			break;
-+		}
- 	}
- }
- 
-@@ -833,7 +880,7 @@ void rdma_destroy_id(struct rdma_cm_id *id)
- 	mutex_lock(&lock);
- 	if (id_priv->cma_dev) {
- 		mutex_unlock(&lock);
--		switch (rdma_node_get_transport(id->device->node_type)) {
-+		switch (rdma_node_get_transport(id_priv->id.device->node_type)) {
- 		case RDMA_TRANSPORT_IB:
- 			if (id_priv->cm_id.ib && !IS_ERR(id_priv->cm_id.ib))
- 				ib_destroy_cm_id(id_priv->cm_id.ib);
-@@ -1707,6 +1754,77 @@ static int cma_resolve_iw_route(struct rdma_id_private *id_priv, int timeout_ms)
- 	return 0;
- }
- 
-+static int cma_resolve_iboe_route(struct rdma_id_private *id_priv)
-+{
-+	struct rdma_route *route = &id_priv->id.route;
-+	struct rdma_addr *addr = &route->addr;
-+	struct cma_work *work;
-+	int ret;
-+	struct sockaddr_in *src_addr = (struct sockaddr_in *)&route->addr.src_addr;
-+	struct sockaddr_in *dst_addr = (struct sockaddr_in *)&route->addr.dst_addr;
-+	struct net_device *ndev = NULL;
-+
-+	if (src_addr->sin_family != dst_addr->sin_family)
-+		return -EINVAL;
-+
-+	work = kzalloc(sizeof *work, GFP_KERNEL);
-+	if (!work)
-+		return -ENOMEM;
-+
-+	work->id = id_priv;
-+	INIT_WORK(&work->work, cma_work_handler);
-+
-+	route->path_rec = kzalloc(sizeof *route->path_rec, GFP_KERNEL);
-+	if (!route->path_rec) {
-+		ret = -ENOMEM;
-+		goto err1;
+-	ib_pack(lrh_table, ARRAY_SIZE(lrh_table),
+-		&header->lrh, buf);
+-	len += IB_LRH_BYTES;
++	if (header->lrh_present) {
++		ib_pack(lrh_table, ARRAY_SIZE(lrh_table),
++			&header->lrh, buf + len);
++		len += IB_LRH_BYTES;
 +	}
-+
-+	route->num_paths = 1;
-+
-+	iboe_mac_to_ll(&route->path_rec->sgid, addr->dev_addr.src_dev_addr);
-+	iboe_mac_to_ll(&route->path_rec->dgid, addr->dev_addr.dst_dev_addr);
-+
-+	route->path_rec->hop_limit = 1;
-+	route->path_rec->reversible = 1;
-+	route->path_rec->pkey = cpu_to_be16(0xffff);
-+	route->path_rec->mtu_selector = IB_SA_EQ;
-+
-+	if (addr->dev_addr.bound_dev_if)
-+		ndev = dev_get_by_index(&init_net, addr->dev_addr.bound_dev_if);
-+	if (!ndev) {
-+		ret = -EINVAL;
-+		goto err2;
++	if (header->eth_present) {
++		ib_pack(eth_table, ARRAY_SIZE(eth_table),
++			&header->eth, buf + len);
++		len += IB_ETH_BYTES;
 +	}
-+
-+	route->path_rec->mtu = iboe_get_mtu(ndev->mtu);
-+	route->path_rec->rate_selector = IB_SA_EQ;
-+	route->path_rec->rate = iboe_get_rate(ndev);
-+	dev_put(ndev);
-+	route->path_rec->packet_life_time_selector = IB_SA_EQ;
-+	route->path_rec->packet_life_time = IBOE_PACKET_LIFETIME;
-+	if (!route->path_rec->mtu) {
-+		ret = -EINVAL;
-+		goto err2;
-+	}
-+
-+	work->old_state = CMA_ROUTE_QUERY;
-+	work->new_state = CMA_ROUTE_RESOLVED;
-+	work->event.event = RDMA_CM_EVENT_ROUTE_RESOLVED;
-+	work->event.status = 0;
-+
-+	queue_work(cma_wq, &work->work);
-+
-+	return 0;
-+
-+err2:
-+	kfree(route->path_rec);
-+	route->path_rec = NULL;
-+err1:
-+	kfree(work);
-+	return ret;
-+}
-+
- int rdma_resolve_route(struct rdma_cm_id *id, int timeout_ms)
- {
- 	struct rdma_id_private *id_priv;
-@@ -1719,7 +1837,16 @@ int rdma_resolve_route(struct rdma_cm_id *id, int timeout_ms)
- 	atomic_inc(&id_priv->refcount);
- 	switch (rdma_node_get_transport(id->device->node_type)) {
- 	case RDMA_TRANSPORT_IB:
--		ret = cma_resolve_ib_route(id_priv, timeout_ms);
-+		switch (rdma_port_link_layer(id->device, id->port_num)) {
-+		case IB_LINK_LAYER_INFINIBAND:
-+			ret = cma_resolve_ib_route(id_priv, timeout_ms);
-+			break;
-+		case IB_LINK_LAYER_ETHERNET:
-+			ret = cma_resolve_iboe_route(id_priv);
-+			break;
-+		default:
-+			ret = -ENOSYS;
-+		}
- 		break;
- 	case RDMA_TRANSPORT_IWARP:
- 		ret = cma_resolve_iw_route(id_priv, timeout_ms);
-@@ -1772,7 +1899,7 @@ port_found:
- 		goto out;
  
- 	id_priv->id.route.addr.dev_addr.dev_type =
--		(rdma_node_get_transport(cma_dev->device->node_type) == RDMA_TRANSPORT_IB) ?
-+		(rdma_port_link_layer(cma_dev->device, p) == IB_LINK_LAYER_INFINIBAND) ?
- 		ARPHRD_INFINIBAND : ARPHRD_ETHER;
+ 	if (header->grh_present) {
+ 		ib_pack(grh_table, ARRAY_SIZE(grh_table),
+diff --git a/include/rdma/ib_pack.h b/include/rdma/ib_pack.h
+index d7fc45c..67a85f3 100644
+--- a/include/rdma/ib_pack.h
++++ b/include/rdma/ib_pack.h
+@@ -37,6 +37,7 @@
  
- 	rdma_addr_set_sgid(&id_priv->id.route.addr.dev_addr, &gid);
-@@ -2214,6 +2341,7 @@ static int cma_sidr_rep_handler(struct ib_cm_id *cm_id,
- 	struct rdma_cm_event event;
- 	struct ib_cm_sidr_rep_event_param *rep = &ib_event->param.sidr_rep_rcvd;
- 	int ret = 0;
-+	int force_grh;
- 
- 	if (cma_disable_callback(id_priv, CMA_CONNECT))
- 		return 0;
-@@ -2243,9 +2371,11 @@ static int cma_sidr_rep_handler(struct ib_cm_id *cm_id,
- 			event.status = -EINVAL;
- 			break;
- 		}
-+		force_grh = rdma_port_link_layer(cm_id->device, id_priv->id.port_num) ==
-+			IB_LINK_LAYER_ETHERNET ? 1 : 0;
- 		ib_init_ah_from_path(id_priv->id.device, id_priv->id.port_num,
- 				     id_priv->id.route.path_rec,
--				     &event.param.ud.ah_attr);
-+				     &event.param.ud.ah_attr, force_grh);
- 		event.param.ud.qp_num = rep->qpn;
- 		event.param.ud.qkey = rep->qkey;
- 		event.event = RDMA_CM_EVENT_ESTABLISHED;
-@@ -2773,6 +2903,103 @@ static int cma_join_ib_multicast(struct rdma_id_private *id_priv,
- 	return 0;
- }
- 
-+
-+static void iboe_mcast_work_handler(struct work_struct *work)
-+{
-+	struct iboe_mcast_work *mw = container_of(work, struct iboe_mcast_work, work);
-+	struct cma_multicast *mc = mw->mc;
-+	struct ib_sa_multicast *m = mc->multicast.ib;
-+
-+	mc->multicast.ib->context = mc;
-+	cma_ib_mc_handler(0, m);
-+	kref_put(&mc->mcref, release_mc);
-+	kfree(mw);
-+}
-+
-+static void cma_iboe_set_mgid(struct sockaddr *addr, union ib_gid *mgid)
-+{
-+	struct sockaddr_in *sin = (struct sockaddr_in *)addr;
-+	struct sockaddr_in6 *sin6 = (struct sockaddr_in6 *)addr;
-+
-+	if (cma_any_addr(addr)) {
-+		memset(mgid, 0, sizeof *mgid);
-+	} else if (addr->sa_family == AF_INET6)
-+		memcpy(mgid, &sin6->sin6_addr, sizeof *mgid);
-+	else {
-+		mgid->raw[0] = 0xff;
-+		mgid->raw[1] = 0x0e;
-+		mgid->raw[2] = 0;
-+		mgid->raw[3] = 0;
-+		mgid->raw[4] = 0;
-+		mgid->raw[5] = 0;
-+		mgid->raw[6] = 0;
-+		mgid->raw[7] = 0;
-+		mgid->raw[8] = 0;
-+		mgid->raw[9] = 0;
-+		mgid->raw[10] = 0xff;
-+		mgid->raw[11] = 0xff;
-+		*(__be32 *)(&mgid->raw[12]) = sin->sin_addr.s_addr;
-+	}
-+}
-+
-+static int cma_iboe_join_multicast(struct rdma_id_private *id_priv,
-+				   struct cma_multicast *mc)
-+{
-+	struct iboe_mcast_work *work;
-+	struct rdma_dev_addr *dev_addr = &id_priv->id.route.addr.dev_addr;
-+	int err;
-+	struct sockaddr *addr = (struct sockaddr *)&mc->addr;
-+	struct net_device *ndev = NULL;
-+
-+	if (cma_zero_addr((struct sockaddr *)&mc->addr))
-+		return -EINVAL;
-+
-+	work = kzalloc(sizeof *work, GFP_KERNEL);
-+	if (!work)
-+		return -ENOMEM;
-+
-+	mc->multicast.ib = kzalloc(sizeof(struct ib_sa_multicast), GFP_KERNEL);
-+	if (!mc->multicast.ib) {
-+		err = -ENOMEM;
-+		goto out1;
-+	}
-+
-+	cma_iboe_set_mgid(addr, &mc->multicast.ib->rec.mgid);
-+
-+	mc->multicast.ib->rec.pkey = cpu_to_be16(0xffff);
-+	if (id_priv->id.ps == RDMA_PS_UDP)
-+		mc->multicast.ib->rec.qkey = cpu_to_be32(RDMA_UDP_QKEY);
-+
-+	if (dev_addr->bound_dev_if)
-+		ndev = dev_get_by_index(&init_net, dev_addr->bound_dev_if);
-+	if (!ndev) {
-+		err = -ENODEV;
-+		goto out2;
-+	}
-+	mc->multicast.ib->rec.rate = iboe_get_rate(ndev);
-+	mc->multicast.ib->rec.hop_limit = 1;
-+	mc->multicast.ib->rec.mtu = iboe_get_mtu(ndev->mtu);
-+	dev_put(ndev);
-+	if (!mc->multicast.ib->rec.mtu) {
-+		err = -EINVAL;
-+		goto out2;
-+	}
-+	iboe_addr_get_sgid(dev_addr, &mc->multicast.ib->rec.port_gid);
-+	work->id = id_priv;
-+	work->mc = mc;
-+	INIT_WORK(&work->work, iboe_mcast_work_handler);
-+	kref_get(&mc->mcref);
-+	queue_work(cma_wq, &work->work);
-+
-+	return 0;
-+
-+out2:
-+	kfree(mc->multicast.ib);
-+out1:
-+	kfree(work);
-+	return err;
-+}
-+
- int rdma_join_multicast(struct rdma_cm_id *id, struct sockaddr *addr,
- 			void *context)
- {
-@@ -2799,7 +3026,17 @@ int rdma_join_multicast(struct rdma_cm_id *id, struct sockaddr *addr,
- 
- 	switch (rdma_node_get_transport(id->device->node_type)) {
- 	case RDMA_TRANSPORT_IB:
--		ret = cma_join_ib_multicast(id_priv, mc);
-+		switch (rdma_port_link_layer(id->device, id->port_num)) {
-+		case IB_LINK_LAYER_INFINIBAND:
-+			ret = cma_join_ib_multicast(id_priv, mc);
-+			break;
-+		case IB_LINK_LAYER_ETHERNET:
-+			kref_init(&mc->mcref);
-+			ret = cma_iboe_join_multicast(id_priv, mc);
-+			break;
-+		default:
-+			ret = -EINVAL;
-+		}
- 		break;
- 	default:
- 		ret = -ENOSYS;
-@@ -2812,6 +3049,7 @@ int rdma_join_multicast(struct rdma_cm_id *id, struct sockaddr *addr,
- 		spin_unlock_irq(&id_priv->lock);
- 		kfree(mc);
- 	}
-+
- 	return ret;
- }
- EXPORT_SYMBOL(rdma_join_multicast);
-@@ -2832,8 +3070,19 @@ void rdma_leave_multicast(struct rdma_cm_id *id, struct sockaddr *addr)
- 				ib_detach_mcast(id->qp,
- 						&mc->multicast.ib->rec.mgid,
- 						mc->multicast.ib->rec.mlid);
--			ib_sa_free_multicast(mc->multicast.ib);
--			kfree(mc);
-+			if (rdma_node_get_transport(id_priv->cma_dev->device->node_type) == RDMA_TRANSPORT_IB) {
-+				switch (rdma_port_link_layer(id->device, id->port_num)) {
-+				case IB_LINK_LAYER_INFINIBAND:
-+					ib_sa_free_multicast(mc->multicast.ib);
-+					kfree(mc);
-+					break;
-+				case IB_LINK_LAYER_ETHERNET:
-+					kref_put(&mc->mcref, release_mc);
-+					break;
-+				default:
-+					break;
-+				}
-+			}
- 			return;
- 		}
- 	}
-diff --git a/drivers/infiniband/core/sa_query.c b/drivers/infiniband/core/sa_query.c
-index 106284b..3e3821d 100644
---- a/drivers/infiniband/core/sa_query.c
-+++ b/drivers/infiniband/core/sa_query.c
-@@ -492,7 +492,8 @@ static u8 get_src_path_mask(struct ib_device *device, u8 port_num)
- }
- 
- int ib_init_ah_from_path(struct ib_device *device, u8 port_num,
--			 struct ib_sa_path_rec *rec, struct ib_ah_attr *ah_attr)
-+			 struct ib_sa_path_rec *rec, struct ib_ah_attr *ah_attr,
-+			 int force_grh)
- {
- 	int ret;
- 	u16 gid_index;
-@@ -505,7 +506,7 @@ int ib_init_ah_from_path(struct ib_device *device, u8 port_num,
- 	ah_attr->port_num = port_num;
- 	ah_attr->static_rate = rec->rate;
- 
--	if (rec->hop_limit > 1) {
-+	if (rec->hop_limit > 1 || force_grh) {
- 		ah_attr->ah_flags = IB_AH_GRH;
- 		ah_attr->grh.dgid = rec->dgid;
- 
-diff --git a/drivers/infiniband/core/ucma.c b/drivers/infiniband/core/ucma.c
-index b2e16c3..fcc27bc 100644
---- a/drivers/infiniband/core/ucma.c
-+++ b/drivers/infiniband/core/ucma.c
-@@ -582,6 +582,34 @@ static void ucma_copy_ib_route(struct rdma_ucm_query_route_resp *resp,
- 	}
- }
- 
-+static void ucma_copy_iboe_route(struct rdma_ucm_query_route_resp *resp,
-+				 struct rdma_route *route)
-+{
-+	struct rdma_dev_addr *dev_addr;
-+
-+	resp->num_paths = route->num_paths;
-+	switch (route->num_paths) {
-+	case 0:
-+		dev_addr = &route->addr.dev_addr;
-+		iboe_mac_to_ll((union ib_gid *) &resp->ib_route[0].dgid,
-+			       dev_addr->dst_dev_addr);
-+		iboe_addr_get_sgid(dev_addr,
-+				   (union ib_gid *) &resp->ib_route[0].sgid);
-+		resp->ib_route[0].pkey = cpu_to_be16(0xffff);
-+		break;
-+	case 2:
-+		ib_copy_path_rec_to_user(&resp->ib_route[1],
-+					 &route->path_rec[1]);
-+		/* fall through */
-+	case 1:
-+		ib_copy_path_rec_to_user(&resp->ib_route[0],
-+					 &route->path_rec[0]);
-+		break;
-+	default:
-+		break;
-+	}
-+}
-+
- static ssize_t ucma_query_route(struct ucma_file *file,
- 				const char __user *inbuf,
- 				int in_len, int out_len)
-@@ -616,12 +644,17 @@ static ssize_t ucma_query_route(struct ucma_file *file,
- 
- 	resp.node_guid = (__force __u64) ctx->cm_id->device->node_guid;
- 	resp.port_num = ctx->cm_id->port_num;
--	switch (rdma_node_get_transport(ctx->cm_id->device->node_type)) {
--	case RDMA_TRANSPORT_IB:
--		ucma_copy_ib_route(&resp, &ctx->cm_id->route);
--		break;
--	default:
--		break;
-+	if (rdma_node_get_transport(ctx->cm_id->device->node_type) == RDMA_TRANSPORT_IB) {
-+		switch (rdma_port_link_layer(ctx->cm_id->device, ctx->cm_id->port_num)) {
-+		case IB_LINK_LAYER_INFINIBAND:
-+			ucma_copy_ib_route(&resp, &ctx->cm_id->route);
-+			break;
-+		case IB_LINK_LAYER_ETHERNET:
-+			ucma_copy_iboe_route(&resp, &ctx->cm_id->route);
-+			break;
-+		default:
-+			break;
-+		}
- 	}
- 
- out:
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-index df3eb8c..06014d2 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
-+++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-@@ -425,7 +425,7 @@ static void path_rec_completion(int status,
- 	if (!status) {
- 		struct ib_ah_attr av;
- 
--		if (!ib_init_ah_from_path(priv->ca, priv->port, pathrec, &av))
-+		if (!ib_init_ah_from_path(priv->ca, priv->port, pathrec, &av, 0))
- 			ah = ipoib_create_ah(dev, priv->pd, &av);
- 	}
- 
-diff --git a/include/rdma/ib_addr.h b/include/rdma/ib_addr.h
-index fa0d52b..23b184e 100644
---- a/include/rdma/ib_addr.h
-+++ b/include/rdma/ib_addr.h
-@@ -40,6 +40,7 @@
- #include <linux/netdevice.h>
- #include <linux/socket.h>
- #include <rdma/ib_verbs.h>
-+#include <rdma/ib_pack.h>
- 
- struct rdma_addr_client {
- 	atomic_t refcount;
-@@ -63,6 +64,7 @@ struct rdma_dev_addr {
- 	unsigned char broadcast[MAX_ADDR_LEN];
- 	unsigned short dev_type;
- 	int bound_dev_if;
-+	enum rdma_transport_type transport;
+ enum {
+ 	IB_LRH_BYTES  = 8,
++	IB_ETH_BYTES  = 14,
+ 	IB_GRH_BYTES  = 40,
+ 	IB_BTH_BYTES  = 12,
+ 	IB_DETH_BYTES = 8
+@@ -210,8 +211,29 @@ struct ib_unpacked_deth {
+ 	__be32       source_qpn;
  };
  
- /**
-@@ -127,9 +129,31 @@ static inline int rdma_addr_gid_offset(struct rdma_dev_addr *dev_addr)
- 	return dev_addr->dev_type == ARPHRD_INFINIBAND ? 4 : 0;
- }
++struct ib_unpacked_eth {
++	u8	dmac_h[4];
++	u8	dmac_l[2];
++	u8	smac_h[2];
++	u8	smac_l[4];
++	__be16	type;
++};
++
+ struct ib_ud_header {
++	int                     lrh_present;
+ 	struct ib_unpacked_lrh  lrh;
++	int                     eth_present;
++	struct ib_unpacked_eth  eth;
++	int                     grh_present;
++	struct ib_unpacked_grh  grh;
++	struct ib_unpacked_bth  bth;
++	struct ib_unpacked_deth deth;
++	int            		immediate_present;
++	__be32         		immediate_data;
++};
++
++struct eth_ud_header {
++	struct ib_unpacked_eth  eth;
+ 	int                     grh_present;
+ 	struct ib_unpacked_grh  grh;
+ 	struct ib_unpacked_bth  bth;
+@@ -230,8 +252,11 @@ void ib_unpack(const struct ib_field        *desc,
+ 	       void                         *buf,
+ 	       void                         *structure);
  
-+static inline void iboe_mac_to_ll(union ib_gid *gid, u8 *mac)
-+{
-+	memset(gid->raw, 0, 16);
-+	*((u32 *)gid->raw) = cpu_to_be32(0xfe800000);
-+	gid->raw[12] = 0xfe;
-+	gid->raw[11] = 0xff;
-+	memcpy(gid->raw + 13, mac + 3, 3);
-+	memcpy(gid->raw + 8, mac, 3);
-+	gid->raw[8] ^= 2;
-+}
-+
-+static inline void iboe_addr_get_sgid(struct rdma_dev_addr *dev_addr,
-+				      union ib_gid *gid)
-+{
-+	iboe_mac_to_ll(gid, dev_addr->src_dev_addr);
-+}
-+
- static inline void rdma_addr_get_sgid(struct rdma_dev_addr *dev_addr, union ib_gid *gid)
- {
--	memcpy(gid, dev_addr->src_dev_addr + rdma_addr_gid_offset(dev_addr), sizeof *gid);
-+	if (dev_addr->transport == RDMA_TRANSPORT_IB &&
-+	    dev_addr->dev_type != ARPHRD_INFINIBAND)
-+		iboe_addr_get_sgid(dev_addr, gid);
-+	else
-+		memcpy(gid, dev_addr->src_dev_addr +
-+		       rdma_addr_gid_offset(dev_addr), sizeof *gid);
- }
+-void ib_ud_header_init(int     		   payload_bytes,
+-		       int    		   grh_present,
++void ib_ud_header_init(int     		    payload_bytes,
++		       int		    lrh_present,
++		       int		    eth_present,
++		       int    		    grh_present,
++		       int		    immediate_present,
+ 		       struct ib_ud_header *header);
  
- static inline void rdma_addr_set_sgid(struct rdma_dev_addr *dev_addr, union ib_gid *gid)
-@@ -147,4 +171,76 @@ static inline void rdma_addr_set_dgid(struct rdma_dev_addr *dev_addr, union ib_g
- 	memcpy(dev_addr->dst_dev_addr + rdma_addr_gid_offset(dev_addr), gid, sizeof *gid);
- }
- 
-+static inline enum ib_mtu iboe_get_mtu(int mtu)
-+{
-+	/*
-+	 * reduce IB headers from effective IBoE MTU. 28 stands for
-+	 * atomic header which is the biggest possible header after BTH
-+	 */
-+	mtu = mtu - IB_GRH_BYTES - IB_BTH_BYTES - 28;
-+
-+	if (mtu >= ib_mtu_enum_to_int(IB_MTU_4096))
-+		return IB_MTU_4096;
-+	else if (mtu >= ib_mtu_enum_to_int(IB_MTU_2048))
-+		return IB_MTU_2048;
-+	else if (mtu >= ib_mtu_enum_to_int(IB_MTU_1024))
-+		return IB_MTU_1024;
-+	else if (mtu >= ib_mtu_enum_to_int(IB_MTU_512))
-+		return IB_MTU_512;
-+	else if (mtu >= ib_mtu_enum_to_int(IB_MTU_256))
-+		return IB_MTU_256;
-+	else
-+		return 0;
-+}
-+
-+static inline int iboe_get_rate(struct net_device *dev)
-+{
-+	struct ethtool_cmd cmd;
-+
-+	if (!dev->ethtool_ops || !dev->ethtool_ops->get_settings ||
-+	    dev->ethtool_ops->get_settings(dev, &cmd))
-+		return IB_RATE_PORT_CURRENT;
-+
-+	if (cmd.speed >= 40000)
-+		return IB_RATE_40_GBPS;
-+	else if (cmd.speed >= 30000)
-+		return IB_RATE_30_GBPS;
-+	else if (cmd.speed >= 20000)
-+		return IB_RATE_20_GBPS;
-+	else if (cmd.speed >= 10000)
-+		return IB_RATE_10_GBPS;
-+	else
-+		return IB_RATE_PORT_CURRENT;
-+}
-+
-+static inline int rdma_link_local_addr(struct in6_addr *addr)
-+{
-+	if (addr->s6_addr32[0] == cpu_to_be32(0xfe800000) &&
-+	    addr->s6_addr32[1] == 0)
-+		return 1;
-+
-+	return 0;
-+}
-+
-+static inline void rdma_get_ll_mac(struct in6_addr *addr, u8 *mac)
-+{
-+	memcpy(mac, &addr->s6_addr[8], 3);
-+	memcpy(mac + 3, &addr->s6_addr[13], 3);
-+	mac[0] ^= 2;
-+}
-+
-+static inline int rdma_is_multicast_addr(struct in6_addr *addr)
-+{
-+	return addr->s6_addr[0] == 0xff ? 1 : 0;
-+}
-+
-+static inline void rdma_get_mcast_mac(struct in6_addr *addr, u8 *mac)
-+{
-+	int i;
-+
-+	mac[0] = 0x33;
-+	mac[1] = 0x33;
-+	for (i = 2; i < 6; ++i)
-+		mac[i] = addr->s6_addr[i + 10];
-+}
- #endif /* IB_ADDR_H */
-diff --git a/include/rdma/ib_sa.h b/include/rdma/ib_sa.h
-index 1082afa..3d1c3a7 100644
---- a/include/rdma/ib_sa.h
-+++ b/include/rdma/ib_sa.h
-@@ -377,7 +377,8 @@ int ib_init_ah_from_mcmember(struct ib_device *device, u8 port_num,
-  */
- int ib_init_ah_from_path(struct ib_device *device, u8 port_num,
- 			 struct ib_sa_path_rec *rec,
--			 struct ib_ah_attr *ah_attr);
-+			 struct ib_ah_attr *ah_attr,
-+			 int force_grh);
- 
- /**
-  * ib_sa_unpack_path - Convert a path record from MAD format to struct
+ int ib_ud_header_pack(struct ib_ud_header *header,
 -- 
 1.7.0
 
