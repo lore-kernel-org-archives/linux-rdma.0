@@ -1,175 +1,177 @@
-From: "Vu Pham" <vuhuong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: MLX4 Strangeness
-Date: Thu, 18 Feb 2010 16:03:35 -0800
-Message-ID: <9FA59C95FFCBB34EA5E42C1A8573784F02662B3F@mtiexch01.mti.com>
-References: <4B79AD88.8000101@opengridcomputing.com><4B7A4EF4.9090209@mellanox.co.il><4B7B0E98.9030506@opengridcomputing.com><4B7B35DD.1030609@opengridcomputing.com>
-	<4B7C3026.9070500@opengridcomputing.com>
+From: Arthur Kepner <akepner-sJ/iWh9BUns@public.gmane.org>
+Subject: [PATCH/RFC] opensm: toggle sweeping
+Date: Thu, 18 Feb 2010 17:31:07 -0800
+Message-ID: <20100219013107.GD20950@sgi.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
-Content-class: urn:content-classes:message
-List-Unsubscribe: <http://lists.openfabrics.org/cgi-bin/mailman/listinfo/ewg>,
-	<mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.openfabrics.org/pipermail/ewg>
-List-Post: <mailto:ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
-List-Help: <mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=help>
-List-Subscribe: <http://lists.openfabrics.org/cgi-bin/mailman/listinfo/ewg>,
-	<mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=subscribe>
-Sender: ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
-Errors-To: ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
-To: Tom Tucker <tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Tziporet Koren <tziporet-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: Dale Talcott <Dale.R.Talcott-NSQ8wuThN14@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Tom,
 
-Status 12 = IB_WC_RETRY_EXC_ERR
-Vendor_err = 129 --> Timeout and transport error counter exceeded
+One of our customers recently merged some new systems into a 
+large, existing cluster. They requested a mechanism to prevent 
+opensm from sweeping while the new equipment was being added to 
+the IB fabric, and then resume sweeping once they felt confident 
+that the newly added (sub)fabric was correctly cabled, and fully 
+functional. They used the following patch. 
 
-This indicates that we lost connection to the client ie. something went
-wrong on client side (bad operation cause QP error...) please try to
-catch any error on the client (qp async event, cq error status and
-vendor_err...)
+Would it be worth adding this (or something with similar functionality)  
+to opensm?
 
-Today I just run vdbench on big file and get error right away (lost
-connection and nfsrdma cannot recover from there)
+Signed-off-by: Dale Talcott <Dale.R.Talcott-NSQ8wuThN14@public.gmane.org>
+Signed-off-by: Arthur Kepner <akepner-sJ/iWh9BUns@public.gmane.org>
 
-Thanks,
--vu
+--- 
 
------Original Message-----
-From: ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
-[mailto:ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org] On Behalf Of Tom Tucker
-Sent: Wednesday, February 17, 2010 10:07 AM
-To: Tziporet Koren
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
-Subject: Re: [ewg] MLX4 Strangeness
+ main.c          |   16 ++++++++++++++++
+ osm_state_mgr.c |    9 ++++++++-
+ osm_trap_rcv.c  |   36 ++++++++++++++++++++++--------------
+ 3 files changed, 46 insertions(+), 15 deletions(-)
 
-Hi Tziporet:
-
-Here is a trace with the data for WR failing with status 12. The vendor 
-error is 129.
-
-Feb 17 12:27:33 vic10 kernel: rpcrdma_event_process:154 wr_id 
-0000000000000000 status 12 opcode 0 vendor_err 129 byte_len 0 qp 
-ffff81002a13ec00 ex 00000000 src_qp 00000000 wc_flags, 0 pkey_index
-Feb 17 12:27:33 vic10 kernel: rpcrdma_event_process:154 wr_id 
-ffff81002878d800 status 5 opcode 0 vendor_err 244 byte_len 0 qp 
-ffff81002a13ec00 ex 00000000 src_qp 00000000 wc_flags, 0 pkey_index
-Feb 17 12:27:33 vic10 kernel: rpcrdma_event_process:167 wr_id 
-ffff81002878d800 status 5 opcode 0 vendor_err 244 byte_len 0 qp 
-ffff81002a13ec00 ex 00000000 src_qp 00000000 wc_flags, 0 pkey_index
-
-Any thoughts?
-Tom
-
-Tom Tucker wrote:
-> Tom Tucker wrote:
->> Tziporet Koren wrote:
->>> On 2/15/2010 10:24 PM, Tom Tucker wrote:
->>>  
->>>> Hello,
->>>>
->>>> I am seeing some very strange behavior on my MLX4 adapters running
-2.7
->>>> firmware and the latest OFED 1.5.1. Two systems are involved and
-each
->>>> have dual ported MTHCA DDR adapter and MLX4 adapters.
->>>>
->>>> The scenario starts with NFSRDMA stress testing between the two 
->>>> systems
->>>> running bonnie++ and iozone concurrently. The test completes and
-there
->>>> is no issue. Then 6 minutes pass and the server "times out" the
->>>> connection and shuts down the RC connection to the client.
->>>>
->>>>   From this point on, using the RDMA CM, a new RC QP can be brought
-up
->>>> and moved to RTS, however, the first RDMA_SEND to the NFS SERVER 
->>>> system
->>>> fails with IB_WC_RETRY_EXC_ERR. I have confirmed:
->>>>
->>>> - that "arp" completed successfully and the neighbor entries are
->>>> populated on both the client and server
->>>> - that the QP are in the RTS state on both the client and server
->>>> - that there are RECV WR posted to the RQ on the server and they 
->>>> did not
->>>> error out
->>>> - that no RECV WR completed successfully or in error on the server
->>>> - that there are SEND WR posted to the QP on the client
->>>> - the client side SEND_WR fails with error 12 as mentioned above
->>>>
->>>> I have also confirmed the following with a different application
-(i.e.
->>>> rping):
->>>>
->>>> server# rping -s
->>>> client# rping -c -a 192.168.80.129
->>>>
->>>> fails with the exact same error, i.e.
->>>> client# rping -c -a 192.168.80.129
->>>> cq completion failed status 12
->>>> wait for RDMA_WRITE_ADV state 10
->>>> client DISCONNECT EVENT...
->>>>
->>>> However, if I run rping the other way, it works fine, that is,
->>>>
->>>> client# rping -s
->>>> server# rping -c -a 192.168.80.135
->>>>
->>>> It runs without error until I stop it.
->>>>
->>>> Does anyone have any ideas on how I might debug this?
->>>>
->>>>
->>>>        
->>> Tom
->>> What is the vendor syndrome error when you get a completion with
-error?
->>>
->>>   
->> Feb 16 15:08:29 vic10 kernel: rpcrdma: connection to 
->> 192.168.80.129:20049 closed (-103)
->> Feb 16 15:51:27 vic10 kernel: rpcrdma: connection to 
->> 192.168.80.129:20049 on mlx4_0, memreg 5 slots 32 ird 16
->> Feb 16 15:52:01 vic10 kernel: rpcrdma_event_process:160 wr_id 
->> ffff81002879a000 status 5 opcode 0 vendor_err 244 byte_len 0 qp 
->> ffff81003c9e3200 ex 00000000 src_qp 00000000 wc_flags, 0 pkey_index
->> Feb 16 15:52:06 vic10 kernel: rpcrdma: connection to 
->> 192.168.80.129:20049 closed (-103)
->> Feb 16 15:52:06 vic10 kernel: rpcrdma: connection to 
->> 192.168.80.129:20049 on mlx4_0, memreg 5 slots 32 ird 16
->> Feb 16 15:52:40 vic10 kernel: rpcrdma_event_process:160 wr_id 
->> ffff81002879a000 status 5 opcode 0 vendor_err 244 byte_len 0 qp 
->> ffff81002f2d8400 ex 00000000 src_qp 00000000 wc_flags, 0 pkey_index
->>
->> Repeat forever....
->>
->> So the vendor err is 244.
->>
->
-> Please ignore this. This log skips the failing WR (:-\). I need to do 
-> another trace.
->
->
->
->>> Does the issue occurs only on the ConnectX cards (mlx4) or also on 
->>> the InfiniHost cards (mthca)
->>>
->>> Tziporet
->>>
->>> _______________________________________________
->>> ewg mailing list
->>> ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
->>> http://lists.openfabrics.org/cgi-bin/mailman/listinfo/ewg
->>>   
->>
->>
->
->
-
-_______________________________________________
-ewg mailing list
-ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
-http://lists.openfabrics.org/cgi-bin/mailman/listinfo/ewg
+diff --git a/opensm/opensm/main.c b/opensm/opensm/main.c
+index f9a33af..ee29d22 100644
+--- a/opensm/opensm/main.c
++++ b/opensm/opensm/main.c
+@@ -86,6 +86,12 @@ static void mark_usr1_flag(int signum)
+ 	osm_usr1_flag = 1;
+ }
+ 
++int sweeping = 1;
++static void toggle_sweeping(int signum)
++{
++	sweeping = !sweeping;
++}
++
+ static sigset_t saved_sigset;
+ 
+ static void block_signals()
+@@ -99,6 +105,7 @@ static void block_signals()
+ #ifndef HAVE_OLD_LINUX_THREADS
+ 	sigaddset(&set, SIGUSR1);
+ #endif
++	sigaddset(&set, SIGUSR2);
+ 	pthread_sigmask(SIG_SETMASK, &set, &saved_sigset);
+ }
+ 
+@@ -118,6 +125,8 @@ static void setup_signals()
+ 	act.sa_handler = mark_usr1_flag;
+ 	sigaction(SIGUSR1, &act, NULL);
+ #endif
++	act.sa_handler = toggle_sweeping;
++	sigaction(SIGUSR2, &act, NULL);
+ 	pthread_sigmask(SIG_SETMASK, &saved_sigset, NULL);
+ }
+ 
+@@ -494,6 +503,7 @@ static int daemonize(osm_opensm_t * osm)
+ int osm_manager_loop(osm_subn_opt_t * p_opt, osm_opensm_t * p_osm)
+ {
+ 	int console_init_flag = 0;
++	int prev_sweeping = sweeping;
+ 
+ 	if (is_console_enabled(p_opt)) {
+ 		if (!osm_console_init(p_opt, &p_osm->console, &p_osm->log))
+@@ -520,6 +530,12 @@ int osm_manager_loop(osm_subn_opt_t * p_opt, osm_opensm_t * p_osm)
+ 			p_osm->subn.force_heavy_sweep = TRUE;
+ 			osm_opensm_sweep(p_osm);
+ 		}
++		if (prev_sweeping != sweeping) {
++			prev_sweeping = sweeping;
++			OSM_LOG(&p_osm->log, OSM_LOG_INFO,
++				"Sweeping is now %s\n",
++				 	(sweeping ? "enabled" : "disabled") );
++		}
+ 	}
+ 	if (is_console_enabled(p_opt))
+ 		osm_console_exit(&p_osm->console, &p_osm->log);
+diff --git a/opensm/opensm/osm_state_mgr.c b/opensm/opensm/osm_state_mgr.c
+index e43463f..e8eb47b 100644
+--- a/opensm/opensm/osm_state_mgr.c
++++ b/opensm/opensm/osm_state_mgr.c
+@@ -1405,6 +1405,7 @@ static void do_process_mgrp_queue(osm_sm_t * sm)
+ 
+ void osm_state_mgr_process(IN osm_sm_t * sm, IN osm_signal_t signal)
+ {
++	extern int sweeping;
+ 	CL_ASSERT(sm);
+ 
+ 	OSM_LOG_ENTER(sm->p_log);
+@@ -1415,7 +1416,13 @@ void osm_state_mgr_process(IN osm_sm_t * sm, IN osm_signal_t signal)
+ 
+ 	switch (signal) {
+ 	case OSM_SIGNAL_SWEEP:
+-		do_sweep(sm);
++		if (!sweeping)
++			OSM_LOG(sm->p_log, OSM_LOG_DEBUG, "sweeping disabled - "
++				"ignoring signal %s in state %s\n",
++				osm_get_sm_signal_str(signal),
++				osm_get_sm_mgr_state_str(sm->p_subn->sm_state));
++		else
++			do_sweep(sm);
+ 		break;
+ 	case OSM_SIGNAL_IDLE_TIME_PROCESS_REQUEST:
+ 		do_process_mgrp_queue(sm);
+diff --git a/opensm/opensm/osm_trap_rcv.c b/opensm/opensm/osm_trap_rcv.c
+index 52f8832..09cdd35 100644
+--- a/opensm/opensm/osm_trap_rcv.c
++++ b/opensm/opensm/osm_trap_rcv.c
+@@ -338,6 +338,7 @@ static void trap_rcv_process_request(IN osm_sm_t * sm,
+ 	boolean_t physp_change_trap = FALSE;
+ 	uint64_t event_wheel_timeout = OSM_DEFAULT_TRAP_SUPRESSION_TIMEOUT;
+ 	boolean_t run_heavy_sweep = FALSE;
++	extern int sweeping;
+ 
+ 	OSM_LOG_ENTER(sm->p_log);
+ 
+@@ -522,23 +523,30 @@ static void trap_rcv_process_request(IN osm_sm_t * sm,
+ check_sweep:
+ 	/* do a sweep if we received a trap */
+ 	if (sm->p_subn->opt.sweep_on_trap) {
+-		/* if this is trap number 128 or run_heavy_sweep is TRUE -
+-		   update the force_heavy_sweep flag of the subnet.
+-		   Sweep also on traps 144 - these traps signal a change of
+-		   certain port capabilities.
+-		   TODO: In the future this can be changed to just getting
+-		   PortInfo on this port instead of sweeping the entire subnet. */
+-		if (ib_notice_is_generic(p_ntci) &&
+-		    (cl_ntoh16(p_ntci->g_or_v.generic.trap_num) == 128 ||
+-		     cl_ntoh16(p_ntci->g_or_v.generic.trap_num) == 144 ||
+-		     run_heavy_sweep)) {
+-			OSM_LOG(sm->p_log, OSM_LOG_VERBOSE,
+-				"Forcing heavy sweep. Received trap:%u\n",
++		if (!sweeping) {
++			OSM_LOG(sm->p_log, OSM_LOG_DEBUG, "sweeping disabled - "
++				"ignoring trap %u\n", 
++				cl_ntoh16(p_ntci->g_or_v.generic.trap_num));
++		} else {
++			/* if this is trap number 128 or run_heavy_sweep is 
++			 * TRUE - update the force_heavy_sweep flag of the 
++			 * subnet. Sweep also on traps 144 - these traps signal
++			 * a change of certain port capabilities.
++		  	 * TODO: In the future this can be changed to just 
++			 * getting PortInfo on this port instead of sweeping 
++			 * the entire subnet. */
++			if (ib_notice_is_generic(p_ntci) &&
++			    (cl_ntoh16(p_ntci->g_or_v.generic.trap_num) == 128 ||
++			     cl_ntoh16(p_ntci->g_or_v.generic.trap_num) == 144 ||
++			     run_heavy_sweep)) {
++				OSM_LOG(sm->p_log, OSM_LOG_VERBOSE,
++					"Forcing heavy sweep. Received trap:%u\n", 
+ 				cl_ntoh16(p_ntci->g_or_v.generic.trap_num));
+ 
+-			sm->p_subn->force_heavy_sweep = TRUE;
++				sm->p_subn->force_heavy_sweep = TRUE;
++			}
++			osm_sm_signal(sm, OSM_SIGNAL_SWEEP);
+ 		}
+-		osm_sm_signal(sm, OSM_SIGNAL_SWEEP);
+ 	}
+ 
+ 	/* If we reached here due to trap 129/130/131 - do not need to do
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
