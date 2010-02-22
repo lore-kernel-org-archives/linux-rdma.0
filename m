@@ -1,31 +1,56 @@
-From: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH] libibnetdisc: fix typo in man page for
- ibnd_show_progress
-Date: Sun, 21 Feb 2010 15:33:41 +0200
-Message-ID: <20100221133341.GF31385@me>
-References: <20100218180911.31e3ff67.weiny2@llnl.gov>
+From: "Jim Schutt" <jaschut-4OHPYypu0djtX7QSmKvirg@public.gmane.org>
+Subject: Re: opensm: Status of torus-2QoS patchset?
+Date: Mon, 22 Feb 2010 09:25:54 -0700
+Message-ID: <1266855954.31472.229.camel@sale659.sandia.gov>
+References: <1266352441.31472.126.camel@sale659.sandia.gov>
+ <20100221114310.GD31385@me>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20100218180911.31e3ff67.weiny2-i2BcT+NCU+M@public.gmane.org>
+In-Reply-To: <20100221114310.GD31385@me>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+To: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
 Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 18:09 Thu 18 Feb     , Ira Weiny wrote:
-> 
-> From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-> Date: Tue, 2 Feb 2010 17:43:20 -0800
-> Subject: [PATCH] libibnetdisc: fix typo in man page for ibnd_show_progress
-> 
-> 
-> Signed-off-by: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
 
-Applied. Thanks.
+On Sun, 2010-02-21 at 04:43 -0700, Sasha Khapyorsky wrote:
+> Hi Jim,
+> 
+> On 13:34 Tue 16 Feb     , Jim Schutt wrote:
+> > 
+> > Do you have any feedback regarding my patches to add
+> > a new routing module specialized for 2D/3D torus topologies?
+> 
+> I've started to look at this. There is a lot of code, so it takes a
+> time. I will comment over patches.
 
-Sasha
+Thanks - I know it's a lot of code, and I appreciate that
+you don't want to add code until you understand how it
+works.
+
+> 
+> > I was hoping there was some chance this work might make it
+> > into the OFED 1.6 release.
+> 
+> 1.6 is realistic.
+
+Great.
+
+Thanks again for taking a look.
+
+-- Jim
+
+> 
+> Sasha
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
