@@ -1,44 +1,38 @@
 From: "Jim Schutt" <jaschut-4OHPYypu0djtX7QSmKvirg@public.gmane.org>
 Subject: Re: opensm: Status of torus-2QoS patchset?
-Date: Mon, 22 Feb 2010 09:25:54 -0700
-Message-ID: <1266855954.31472.229.camel@sale659.sandia.gov>
+Date: Mon, 22 Feb 2010 09:29:32 -0700
+Message-ID: <1266856172.31472.234.camel@sale659.sandia.gov>
 References: <1266352441.31472.126.camel@sale659.sandia.gov>
- <20100221114310.GD31385@me>
+ <20100221114310.GD31385@me> <20100221115805.GE31385@me>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20100221114310.GD31385@me>
+In-Reply-To: <20100221115805.GE31385@me>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
 Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
-On Sun, 2010-02-21 at 04:43 -0700, Sasha Khapyorsky wrote:
-> Hi Jim,
-> 
-> On 13:34 Tue 16 Feb     , Jim Schutt wrote:
+On Sun, 2010-02-21 at 04:58 -0700, Sasha Khapyorsky wrote:
+> On 13:43 Sun 21 Feb     , Sasha Khapyorsky wrote:
 > > 
-> > Do you have any feedback regarding my patches to add
-> > a new routing module specialized for 2D/3D torus topologies?
+> > I've started to look at this. There is a lot of code, so it takes a
+> > time. I will comment over patches.
 > 
-> I've started to look at this. There is a lot of code, so it takes a
-> time. I will comment over patches.
+> BTW, assuming that now we have three (0/11, 0/12 and 0/3) subsequent
+> patch series (basic + reworks + fixes) wouldn't it be simpler for review
+> and apply to merge everything into single "final" patch series?
 
-Thanks - I know it's a lot of code, and I appreciate that
-you don't want to add code until you understand how it
-works.
+I've been wondering which you prefer - I wasn't sure if
+you wanted to preserve some of the patch history, particularly
+for the bug fixes.
 
-> 
-> > I was hoping there was some chance this work might make it
-> > into the OFED 1.6 release.
-> 
-> 1.6 is realistic.
+I'm happy to merge everything into a new series, and
+rebase to latest development head if you would prefer that.
 
-Great.
-
-Thanks again for taking a look.
+Please let me know.
 
 -- Jim
 
