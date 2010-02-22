@@ -1,77 +1,76 @@
-From: Joachim Fenkes <fenkes-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH] sdp: Prevent kernel crash if device init fails (plus bonus fix)
-Date: Mon, 22 Feb 2010 18:06:56 +0100
-Message-ID: <201002221806.56390.fenkes@de.ibm.com>
+From: Jonathan Ferland <jonathan.ferland-IgX6TQnKqXwsA/PxXw9srA@public.gmane.org>
+Subject: ofed on xen
+Date: Mon, 22 Feb 2010 12:08:28 -0500
+Message-ID: <4B82BA0C.70906@rqchp.qc.ca>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tziporet Koren <tziporet-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Vladimir Sokolovsky <vlad-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, Amir Vadai <amirv-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, Linux-RDMA <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, OF-EWG <ewg@l>
-Cc: Alexander Schmidt <alexs-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, Christoph Raisch <raisch-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, Hoang-Nam Nguyen <hnguyen-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, Stefan Roscher <stefan.roscher-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-If sdp_add_device() fails, there is no client data stored in the IB device,
-leading to a kernel crash when a connection is being established. Fix this
-by rejecting connections when the device is not initialized.
+Hi All,
 
-Also, fix a bad goto target in an error case early in sdp_init_qp().
+I would like to setup a node under xen and use infiniband in it. Here is 
+the thing I would like to do :
 
-Signed-off-by: Joachim Fenkes <fenkes-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>
----
- kernel_patches/fixes/sdp-0001-fix-error-path.patch |   38 ++++++++++++++++++++
- 1 files changed, 38 insertions(+), 0 deletions(-)
- create mode 100644 kernel_patches/fixes/sdp-0001-fix-error-path.patch
+node :
+    07:00.0 InfiniBand: Mellanox Technologies MT26418 [ConnectX IB DDR, 
+PCIe 2.0 5GT/s] (rev a0)
 
-diff --git a/kernel_patches/fixes/sdp-0001-fix-error-path.patch b/kernel_patches/fixes/sdp-0001-fix-error-path.patch
-new file mode 100644
-index 0000000..5a5f784
---- /dev/null
-+++ b/kernel_patches/fixes/sdp-0001-fix-error-path.patch
-@@ -0,0 +1,38 @@
-+[PATCH] sdp: Prevent kernel crash if device init fails (plus bonus fix)
-+
-+If sdp_add_device() fails, there is no client data stored in the IB device,
-+leading to a kernel crash when a connection is being established. Fix this
-+by rejecting connections when the device is not initialized.
-+
-+Also, fix a bad goto target in an error case early in sdp_init_qp().
-+
-+Signed-off-by: Joachim Fenkes <fenkes-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>
-+
-+---
-+
-+ sdp_cma.c |    7 ++++++-
-+ 1 file changed, 6 insertions(+), 1 deletion(-)
-+
-+diff -urp a/drivers/infiniband/ulp/sdp/sdp_cma.c b/drivers/infiniband/ulp/sdp/sdp_cma.c
-+--- a/drivers/infiniband/ulp/sdp/sdp_cma.c	2010-02-19 15:39:32.000000000 +0100
-++++ b/drivers/infiniband/ulp/sdp/sdp_cma.c	2010-02-19 15:38:13.000000000 +0100
-+@@ -94,13 +94,18 @@ static int sdp_init_qp(struct sock *sk, 
-+ 		sdp_warn(sk, "recv sge's. capability: %d needed: %ld\n",
-+ 			sdp_sk(sk)->max_sge, SDP_MAX_RECV_SKB_FRAGS + 1);
-+ 		rc = -ENOMEM;
-+-		goto err_tx;
-++		goto err_rx;
-+ 	}
-+ 
-+ 	qp_init_attr.cap.max_send_sge = sdp_sk(sk)->max_sge;
-+ 	sdp_dbg(sk, "Setting max send sge to: %d\n", sdp_sk(sk)->max_sge);
-+ 		
-+ 	sdp_sk(sk)->sdp_dev = ib_get_client_data(device, &sdp_client);
-++	if (!sdp_sk(sk)->sdp_dev) {
-++		sdp_warn(sk, "SDP not available on device %s", device->name);
-++		rc = -ENODEV;
-++		goto err_rx;
-++	}
-+ 
-+ 	rc = sdp_rx_ring_create(sdp_sk(sk), device);
-+ 	if (rc)
--- 
-1.7.0
+    dom0: infiniband acess
+       -> domu1: infiniband acess
+       -> domu2: infiniband acess
+      
+ so I would like to share the infiniband connection between a single card.
 
+Is it possible? if yes, how? if not, is there plan to support something 
+like that, or what kind of setup virtualisation people are using with 
+infiniband?
+
+I installed xen 3.4.2 (kernel  2.6.18.8) under centos 5.3 and ofed 
+OFED-1.4-mlnx8. Then the infiniband card worked for dom0, but I found no 
+way to make it working on any domu...
+
+I then download OFED-1.5.1-rc1, and compile fine. but when i tried to 
+load the modules in dom0, it crashed with the following message :
+...
+mlx4_ib: Mellanox ConnectX InfiniBand driver v1.0 (April 4, 2008)
+PM: Adding info for No Bus:mlx4_0
+mlx4_en: Mellanox ConnectX HCA Ethernet driver v1.5.0 (Dec 2009)
+ADDRCONF(NETDEV_UP): ib0: link is not ready
+ADDRCONF(NETDEV_CHANGE): ib0: link becomes ready
+BUG: soft lockup detected on CPU#1!
+
+Call Trace:
+ <IRQ> [<ffffffff8025d01e>] softlockup_tick+0xd6/0xeb
+ [<ffffffff8020e2b5>] timer_interrupt+0x471/0x4cf
+ [<ffffffff8814c70d>] :e1000:e1000_swfw_sync_release+0x2c/0x54
+ [<ffffffff8025d318>] handle_IRQ_event+0x4e/0x95
+ [<ffffffff8025d418>] __do_IRQ+0xb9/0x11e
+ [<ffffffff8020be09>] do_IRQ+0x44/0x50
+ [<ffffffff80236b8e>] tasklet_action+0xa8/0x12e
+ [<ffffffff8039c289>] evtchn_do_upcall+0x193/0x284
+ [<ffffffff80236a59>] __do_softirq+0x8a/0x117
+ [<ffffffff80209dee>] do_hypervisor_callback+0x1e/0x2c
+ <EOI> [<ffffffff8020522a>] hypercall_page+0x22a/0x1000
+ [<ffffffff8020522a>] hypercall_page+0x22a/0x1000
+ [<ffffffff803ea398>] pci_conf1_read+0x0/0xca
+ [<ffffffff8039b5ca>] force_evtchn_callback+0xa/0xb
+ [<ffffffff8032bfb4>] pci_bus_read_config_word+0x6f/0x7e
+ [<ffffffff88375012>] :mlx4_en:vpd_read_dword+0x4e/0x7a
+ [<ffffffff8837509c>] :mlx4_en:mlx4_en_cache_vpd+0x5e/0x144
+ [<ffffffff88370557>] :mlx4_en:mlx4_en_add+0x403/0x53c
+ [<ffffffff8810c4ba>] :mlx4_core:mlx4_add_device+0x2e/0xa1
+ [<ffffffff8810c6a1>] :mlx4_core:mlx4_register_interface+0x75/0x9a
+ [<ffffffff8024fa40>] sys_init_module+0x1872/0x1a42
+ [<ffffffff80209812>] tracesys+0xab/0xb5
+
+
+thanks,
+
+Jonathan
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
