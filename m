@@ -1,7 +1,7 @@
 From: Vladimir Sokolovsky <vlad-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Subject: Re: [ANNOUNCE] dapl-2.0.27 and compat-dapl-1.2.16 release
-Date: Wed, 24 Feb 2010 08:51:49 +0200
-Message-ID: <4B84CC85.7000204@dev.mellanox.co.il>
+Date: Wed, 24 Feb 2010 09:19:53 +0200
+Message-ID: <4B84D319.6070605@dev.mellanox.co.il>
 References: <E3280858FA94444CA49D2BA02341C983B59811C2@orsmsx506.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
@@ -35,11 +35,51 @@ Davis, Arlin R wrote:
 > compat-dapl-1.2.16-1 
 > compat-dapl-devel-1.2.16-1 
 > 
+> Summary of changes: 
+> 
+> Release 2.0.27 fixes: 
+> - windows: add scm makefile 
+> - Windows does not require rdma_cma_abi.h, move the include from common code 
+> - Windows patch to fix IB_INVALID_HANDLE name collision 
+> - scm: dat_ep_connect fails on 32bit servers 
+> - undefined symbol: dapls_print_cm_list 
+> - Cleanup CM object lock before freeing CM object memory 
+> - destroy verbs completion channels created via ia_open or ep_create. 
+> - Update Copyright file and include the 3 license files in distribution 
+> - When copying private_data out of rdma_cm events, use the 
+> - dapl/cma: fix referencing freed address 
+> - dapl: move close device after async thread is done 
+> 
+> Release 1.2.16 fixes: 
+> - Update Copyright file and include the 3 license files in distribution 
+> - cma: max sge incorrectly decremented during ibv_device_query 
+> 
+> Thanks,
+> 
+> -arlin
+> 
+> 
 
-Done,
+Hi Arlin,
+Rpmbuild for compat-dapl fails:
+
+# rpmbuild -ts --nodeps --define '_topdir /tmp/vlad/topdir' /tmp/vlad/compat-dapl/compat-dapl-1.2.16.tar.gz
+error: %changelog not in descending chronological order
+
+The reason is the following typo (wrong year):
+
+%changelog
+* Tue Feb 23 2009 Arlin Davis <ardavis-+/W+9+QloQG75v1z/vFq2g@public.gmane.org> - 1.2.16
+
+Should be:
+%changelog
+* Tue Feb 23 2010 Arlin Davis <ardavis-+/W+9+QloQG75v1z/vFq2g@public.gmane.org> - 1.2.16
+
 
 Regards,
 Vladimir
+
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
