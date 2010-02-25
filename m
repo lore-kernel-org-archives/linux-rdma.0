@@ -1,44 +1,32 @@
-From: Dries Kimpe <dkimpe-zhzY/AYb9nBYTrM/R70HSA@public.gmane.org>
-Subject: link width question / opensm
-Date: Thu, 25 Feb 2010 00:39:05 -0600
-Message-ID: <20100225063905.GA4690@X300.wifi.conference.usenix.org>
+From: Or Gerlitz <ogerlitz-hKgKHo2Ms0FWk0Htik3J/w@public.gmane.org>
+Subject: Re: [net-next-2.6 PATCH] infiniband: convert to use	netdev_for_each_mc_addr
+Date: Thu, 25 Feb 2010 10:00:07 +0200
+Message-ID: <4B862E07.7020002@Voltaire.com>
+References: <20100224151108.GD2663@psychotron.lab.eng.brq.redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <20100224151108.GD2663-YzwxZg+R7evMbnheQZGK0N5OCZ2W11yPFxja6HXR22MAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jiri Pirko <jpirko-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+Jiri Pirko wrote:
+> --- a/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
+> +++ b/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
+> @@ -767,11 +767,8 @@ void ipoib_mcast_dev_flush(struct net_device *dev)
+> -static int ipoib_mcast_addr_is_valid(const u8 *addr, unsigned int addrlen,
+> -				     const u8 *broadcast)
+> +static int ipoib_mcast_addr_is_valid(const u8 *addr, const u8 *broadcast)
+>  {
+> -	if (addrlen != INFINIBAND_ALEN)
+> -		return 0;
 
-  Hi,
+This check was added by commit 5e47596b "IPoIB: Check multicast address format", may I ask what is the reason for removing it now?
 
-for various reasons I'm trying to force a specific setting for 
-the link speed and link width of an IB link.
-
-I know opensm has an option to force link speed to a certain value.  I
-modified OpenSM (3.3.5) and added a similar option for link width
-(link_width_enabled field of port info struct).
-
-Reading the IB spec, link_width_enabled is marked as read-write, just as
-the link speed field.
-
-However, it doesn't seem to work. I verified that link_width_enabled is
-correctly set.
-
-My questions:
-
-- Is support for changing link width dependent on driver version 
-or specific IB hardware?
-
-- Is there another way to get what I want (control over link width+speed)?
-
-  Thanks,
-  Dries
-
-PS. Please cc me. I'm not on the list.
-
-
+Or.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
