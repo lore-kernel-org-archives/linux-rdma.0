@@ -1,44 +1,41 @@
-From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Subject: Re: The SRP initiator and the endianness of tags in SRP information units
-Date: Thu, 25 Feb 2010 13:04:33 -0800
-Message-ID: <adatyt5vxge.fsf@roland-alpha.cisco.com>
-References: <e2e108261001020350h2a63377v153ff5dc7c1519b5@mail.gmail.com>
+From: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH] Add new device IDs for ConnectX VPI HCAs
+Date: Thu, 25 Feb 2010 23:08:50 +0200
+Message-ID: <20100225210850.GA26139@mtldesk030.lab.mtl.com>
+References: <20100208140455.GA24593@vlad-laptop>
+ <adazl2yxp7r.fsf@roland-alpha.cisco.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <e2e108261001020350h2a63377v153ff5dc7c1519b5-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-	(Bart Van Assche's message of "Sat, 2 Jan 2010 12:50:56 +0100")
+Content-Disposition: inline
+In-Reply-To: <adazl2yxp7r.fsf-BjVyx320WGW9gfZ95n9DRSW4+XlvGpQz@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <bart.vanassche-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: OFED mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Cc: vlad-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
- > I have a question about the SRP initiator available in the Linux
- > kernel. While consulting the SRP spec (r16a) I noticed that all
- > multi-byte integer fields of SRP information units must be sent using
- > the big endian byte order. This holds e.g. for the 64-bit tag fields
- > present in several information units. So I was expecting these tags to
- > be declared as __be64. However, in the header file <scsi/srp.h> these
- > tags are declared as type u64, that is, being stored in CPU order. As
- > a result, the byte order of the tags sent by the SRP initiator will
- > depend on the endianness of the CPU the SRP initiator is running on
- > (e.g. little endian on Intel CPU's, big endian on PowerPC CPU's).
- > While this doesn't harm -- an SRP target must send back the same tag
- > it received -- I found this confusing. Is this the intended behavior
- > of the SRP initiator ?
+On Wed, Feb 24, 2010 at 02:07:20PM -0800, Roland Dreier wrote:
+>  > +	HCA(MELLANOX, 0x6746),	/* MT26438 ConnectX VPI PCIe 2.0 5GT/s - IB QDR / 10GigE Virt+ */
+> 
+> The kernel calls this device ID "MT26438 ConnectX EN 40GigE PCIe gen2
+> 5GT/s".  Maybe we should just delete these comments, since we can't seem
+> to get them right?
 
-Didn't reply before... sorry.
+I guess it would be best if we take the description from
+http://pciids.sourceforge.net/v2.2/pci.ids
+> 
+>  > +	HCA(MELLANOX, 0x6778),	/* MT26488 ConnectX VPI PCIe 2.0 5GT/s - IB DDR / 10GigE Virt+ */
+> 
+> Are we missing a kernel patch?  I don't see this device ID in the kernel
+> driver.
 
-Anyway my view is that since tags are just an opaque 64-bit quantity, it
-doesn't really make sense to worry about endianness.  You wouldn't
-byte-swap a field that was an 8-byte string, and the tag is essentially
-the same thing.
+Looks like it is missing.
 
- - R.
--- 
-Roland Dreier  <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-For corporate legal information go to:
-http://www.cisco.com/web/about/doing_business/legal/cri/index.html
+If we agree on this, we'll send two patches - one for kernel and one
+for libmlx4 to sync all device IDs with descriptions from the
+mentioned url.
+
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
