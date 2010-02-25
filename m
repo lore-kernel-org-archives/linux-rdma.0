@@ -1,40 +1,50 @@
-From: "Tung, Chien Tin" <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH] RDMA/nes: add support for KR device id 0x0110
-Date: Thu, 25 Feb 2010 08:20:41 -0700
-Message-ID: <603F8A3875DCE940BA37B49D0A6EA0AE842C0E89@azsmsx501.amr.corp.intel.com>
-References: <20100223175210.GA6240@ctung-MOBL>
- <adavddmxnqf.fsf@roland-alpha.cisco.com>
+From: "Sean Hefty" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [Bug 1963] Cannot run Iometer between two ConnectX DDR HCAs
+Date: Thu, 25 Feb 2010 09:46:24 -0800
+Message-ID: <86DAB4257DD64013AD4DCB70EA83EE90@amr.corp.intel.com>
+References: <bug-1963-19@https.bugs.openfabrics.org/> <20100225170525.E15D2E626AA@openfabrics.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <adavddmxnqf.fsf-BjVyx320WGW9gfZ95n9DRSW4+XlvGpQz@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <20100225170525.E15D2E626AA-G2znmakfqn7U1rindQTSdQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, 'Usha Srinivasan' <usha.srinivasan-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
->By "deprecate NES_PHY_TYPE_IRIS" it seems you mean remove all support
->for this PHY type?
+>------- Comment #1 from usha.srinivasan-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org  2010-02-25 09:05 -------
+>This morning, I ran ib_send_bw between my two connectx systems and ran into a
+>send problem there as well.
+>
+>At system1 I ran these tests:
+>ib_send_bw -c UD
+>ib_send_bw -c UD -all
+>ib_send_bw -c UD -all -t 1500 -n 1500
+>ib_send_bw -c UD -all -t 1800 -n 1800
+>ib_send_bw -c UD -all -t 2000 -n 2000
+>
+>At system2, I ran:
+>ib_send_bw -c UD <sys1_ipoib_addr>
+>ib_send_bw -c UD -all <sys1_ipoib_addr>
+>ib_send_bw -c UD -all -n 1500 -t 1500 <sys1_ipoib_addr>
+>ib_send_bw -c UD -all -n 1800 -t 1800 <sys1_ipoib_addr>
+>ib_send_bw -c UD -all -n 2000 -t 2000 <sys1_ipoib_addr>
+>
+>All was well until I got to the 2000 packets; in that test, the sender stopped
+>after packet size 32.  I waited a bit and hit Ctrl-C. Then I ran vstat and it
+>would not run (sometimes I get a popup saying appcrashed but this time it just
+>went to end of job.)  All seems fine at sytem1 the receiver, but it can no
+>longer ping system2.
 
-yes, see below.
+Running ib_send_bw *shouldn't* have any affect on using ping.  Did system2
+crash, or is it still running?  Can you see if anything running to the HCA works
+(e.g. try ibv_devinfo or sminfo)?
 
->Were cards of this type sold?  Because I think it's way too early to
->drop support for any PHY variant (it's not like these are some 10BASE2
->cards from decades ago -- these are 10 gigabit NICs at most only a few
->years old) unless it is something like an experimental card that never
->escaped from your labs.
+>Am I doing something wrong? Or, is this a WinOF bug or a Windows 2008 bug?
+>(I'm CC'ing Sean & Stan for their advice on running ib-send-bw.)
 
-Iris is an XFP card.  NetEffect didn't make that many and maybe a few
-were given out as evals.  The biggest reason for removing the support
-is I don't have a card to test code changes.  There are other cards that
-I am supporting even though we no longer make them as Intel.  I will
-keep those around as long as I have cards, in a secret hiding place. :-)
-
-Chien
-
-
+Can you also try running with ibv_send_bw and see if the results are the same?
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
