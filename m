@@ -1,94 +1,50 @@
-From: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: link width question / opensm
-Date: Thu, 25 Feb 2010 18:01:07 -0500
-Message-ID: <f0e08f231002251501m74cb87c6sc1190ae9241f98e7@mail.gmail.com>
-References: <20100225063905.GA4690@X300.wifi.conference.usenix.org>
-	 <f0e08f231002250645u1a728u60e6269921affac8@mail.gmail.com>
-	 <20100225193721.GB15303@X300.wifi.conference.usenix.org>
+From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH] Add new device IDs for ConnectX VPI HCAs
+Date: Thu, 25 Feb 2010 15:28:16 -0800
+Message-ID: <adapr3sx5db.fsf@roland-alpha.cisco.com>
+References: <20100208140455.GA24593@vlad-laptop>
+	<adazl2yxp7r.fsf@roland-alpha.cisco.com>
+	<20100225210850.GA26139@mtldesk030.lab.mtl.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20100225193721.GB15303-XsFsJpinAmpgDlDR3U7vgBiktiNgz6Q3On3nfQqNrRM@public.gmane.org>
+In-Reply-To: <20100225210850.GA26139-8YAHvHwT2UEvbXDkjdHOrw/a8Rv0c6iv@public.gmane.org> (Eli Cohen's
+	message of "Thu, 25 Feb 2010 23:08:50 +0200")
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Dries Kimpe <dkimpe-zhzY/AYb9nBYTrM/R70HSA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: vlad-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Feb 25, 2010 at 2:37 PM, Dries Kimpe <dkimpe-zhzY/AYb9nBYTrM/R70HSA@public.gmane.org> wrote=
-:
->
-> * Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> [2010-02-25 09:45:04]:
->
->> The link won't renegotiate automatically. The link needs to be reset
->> after updating the speed/width enabled values. Was that done ?
->
-> I assumed OpenSM was resetting the link. Are you saying I need to run
-> ibportstate reset in addition to running a modified opensm?
+ > > The kernel calls this device ID "MT26438 ConnectX EN 40GigE PCIe gen2
+ > > 5GT/s".  Maybe we should just delete these comments, since we can't seem
+ > > to get them right?
+ > 
+ > I guess it would be best if we take the description from
+ > http://pciids.sourceforge.net/v2.2/pci.ids
 
-Yes.
+I wonder whether it's really worth having the text at all.  Maybe it's a
+bit useful, I'm not sure.  But the pciids text could probably use some
+cleaning up, eg:
 
-> (Or, using only ibportstate using ibportstate speed followed by a
-> ibportstate reset?)
+	634a  MT25418 [ConnectX VPI PCIe 2.0 2.5GT/s - IB DDR / 10GigE]
+	6368  MT25448 [ConnectX EN 10GigE, PCIe 2.0 2.5GT/s]
 
-That's another alternative (to using the modified opensm to change the
-speed/width.
+it would be nice to decide on a standard order of whether the PCIe or
+the network info comes first.
 
->> > - Is there another way to get what I want (control over link width=
-+speed)?
->
->> The latest ibportstate can do this.
->
-> I installed the latest version, and it indeed has width and speed.
-> However, it doesn't seem to have any effect:
->
->
-> [dkimpe@f28]~% sudo /usr/sbin/ibportstate 232 1 query
-> PortInfo:
-> # Port info: Lid 232 port 1
-> LinkState:.......................Active
-> PhysLinkState:...................LinkUp
-> LinkWidthSupported:..............1X or 4X
-> LinkWidthEnabled:................1X or 4X
-> LinkWidthActive:.................4X
-> LinkSpeedSupported:..............2.5 Gbps or 5.0 Gbps or 10.0 Gbps
-> LinkSpeedEnabled:................2.5 Gbps or 5.0 Gbps or 10.0 Gbps
-> LinkSpeedActive:.................10.0 Gbps
->
-> [dkimpe@f28]~% sudo /usr/sbin/ibportstate 232 1 speed 1
-> Initial PortInfo:
-> # Port info: Lid 232 port 1
-> LinkSpeedEnabled:................2.5 Gbps or 5.0 Gbps or 10.0 Gbps
->
-> After PortInfo set:
-> # Port info: Lid 232 port 1
-> LinkSpeedEnabled:................2.5 Gbps
-> [dkimpe@f28]~% sudo /usr/sbin/ibportstate 232 1 query
-> PortInfo:
-> # Port info: Lid 232 port 1
-> LinkState:.......................Active
-> PhysLinkState:...................LinkUp
-> LinkWidthSupported:..............1X or 4X
-> LinkWidthEnabled:................1X or 4X
-> LinkWidthActive:.................4X
-> LinkSpeedSupported:..............2.5 Gbps or 5.0 Gbps or 10.0 Gbps
-> LinkSpeedEnabled:................2.5 Gbps
-> LinkSpeedActive:.................10.0 Gbps
->
-> [dkimpe@f28]~% sudo /usr/sbin/ibportstate 232 1 reset
-> ibportstate: iberror: failed: smp query nodeinfo: Node type not switc=
-h
+And then to make things even better we have:
 
-You need to reset the peer switch port to get the link to renegotiate.
-Hopefully then you'll see the correct values for active.
+		103c 3313  HP NC542m Dual Port Flex-10 10GbE BLc Adapter
 
--- Hal
+so we can't even decide on 10GigE vs. 10GbE.
 
-> =C2=A0Thanks,
-> =C2=A0Dries
->
+But yeah, patches to get the ID list into shape with at least the right
+list of device IDs for kernel and userspace would be welcome.
+-- 
+Roland Dreier  <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+For corporate legal information go to:
+http://www.cisco.com/web/about/doing_business/legal/cri/index.html
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
