@@ -1,41 +1,51 @@
-From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH] IB/ipoib: fix dangling pointer references to ipoib_neigh and ipoib_path
-Date: Thu, 25 Feb 2010 12:15:19 -0800
-Message-ID: <aday6ihvzqg.fsf@roland-alpha.cisco.com>
+From: Arthur Kepner <akepner-sJ/iWh9BUns@public.gmane.org>
+Subject: Re: [PATCH] IB/ipoib: fix dangling pointer references to
+	ipoib_neigh and ipoib_path
+Date: Thu, 25 Feb 2010 12:03:57 -0800
+Message-ID: <20100225200357.GW29938@sgi.com>
 References: <1267126142.30294.25.camel@chromite.mv.qlogic.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1267126142.30294.25.camel-/vjeY7uYZjrPXfVEPVhPGq6RkeBMCJyt@public.gmane.org> (Ralph
-	Campbell's message of "Thu, 25 Feb 2010 11:29:02 -0800")
+Content-Disposition: inline
+In-Reply-To: <1267126142.30294.25.camel-/vjeY7uYZjrPXfVEPVhPGq6RkeBMCJyt@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Ralph Campbell <ralph.campbell-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
- > When using connected mode, ipoib_cm_create_tx() kmallocs a
- > struct ipoib_cm_tx which contains pointers to ipoib_neigh and
- > ipoib_path. If the paths are flushed or the struct neighbour is
- > destroyed, the pointers held by struct ipoib_cm_tx can reference
- > freed memory. The fix is to add reference counts to struct
- > ipoib_neigh and ipoib_path and to add locking when getting
- > new references.
+On Thu, Feb 25, 2010 at 11:29:02AM -0800, Ralph Campbell wrote:
+>  ....
 
-Good debugging.
+I haven't looked carefully at the whole patch, but this bit 
+looks wrong:
 
-First look at this patch is that it ends up being rather invasive.  I
-wonder if we could fix this in the other direction by keeping a list of
-the ipoib_cm_tx structures affected in the neigh and path structures,
-and clean the cm_tx stuff up when flushing?
+> @@ -848,61 +823,112 @@ static void ipoib_neigh_cleanup(struct neighbour *n)
+>  	struct ipoib_neigh *neigh;
+>  	struct ipoib_dev_priv *priv = netdev_priv(n->dev);
+>  	unsigned long flags;
+> -	struct ipoib_ah *ah = NULL;
+> +
+> +	spin_lock_irqsave(&priv->lock, flags);
+>  
+>  	neigh = *to_ipoib_neigh(n);
+> -	if (neigh)
+> -		priv = netdev_priv(neigh->dev);
+> -	else
+> +	if (neigh) {
 
-Also I don't see any issues from a first read, but can you confirm that
-you're not adding more locking/atomic ops (via kref) to the main data path?
+Should this be "if (!neigh)" ?
 
- - R.
+> +		spin_unlock_irqrestore(&priv->lock, flags);
+>  		return;
+> +	}
+> +	*to_ipoib_neigh(n) = NULL;
+> +	neigh->neighbour = NULL;
+> +
+
 -- 
-Roland Dreier  <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-For corporate legal information go to:
-http://www.cisco.com/web/about/doing_business/legal/cri/index.html
+Arthur
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
