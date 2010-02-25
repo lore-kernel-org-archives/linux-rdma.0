@@ -1,53 +1,55 @@
-From: Ralph Campbell <ralph.campbell-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] IB/ipoib: fix dangling pointer references to
-	ipoib_neigh and ipoib_path
-Date: Thu, 25 Feb 2010 15:43:25 -0800
-Message-ID: <1267141405.30294.32.camel@chromite.mv.qlogic.com>
-References: <1267126142.30294.25.camel@chromite.mv.qlogic.com>
-	 <20100225200357.GW29938@sgi.com>
+From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH V2 2/2] mlx4/IB: Add support for enhanced atomic operations
+Date: Thu, 25 Feb 2010 15:44:25 -0800
+Message-ID: <adahbp4x4me.fsf@roland-alpha.cisco.com>
+References: <20100214135426.GA7666@vlad-laptop>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20100225200357.GW29938-sJ/iWh9BUns@public.gmane.org>
+In-Reply-To: <20100214135426.GA7666@vlad-laptop> (Vladimir Sokolovsky's
+	message of "Sun, 14 Feb 2010 15:54:26 +0200")
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Arthur Kepner <akepner-sJ/iWh9BUns@public.gmane.org>
-Cc: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Vladimir Sokolovsky <vlad-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, 2010-02-25 at 12:03 -0800, Arthur Kepner wrote:
-> On Thu, Feb 25, 2010 at 11:29:02AM -0800, Ralph Campbell wrote:
-> >  ....
-> 
-> I haven't looked carefully at the whole patch, but this bit 
-> looks wrong:
-> 
-> > @@ -848,61 +823,112 @@ static void ipoib_neigh_cleanup(struct neighbour *n)
-> >  	struct ipoib_neigh *neigh;
-> >  	struct ipoib_dev_priv *priv = netdev_priv(n->dev);
-> >  	unsigned long flags;
-> > -	struct ipoib_ah *ah = NULL;
-> > +
-> > +	spin_lock_irqsave(&priv->lock, flags);
-> >  
-> >  	neigh = *to_ipoib_neigh(n);
-> > -	if (neigh)
-> > -		priv = netdev_priv(neigh->dev);
-> > -	else
-> > +	if (neigh) {
-> 
-> Should this be "if (!neigh)" ?
-> 
-> > +		spin_unlock_irqrestore(&priv->lock, flags);
-> >  		return;
-> > +	}
-> > +	*to_ipoib_neigh(n) = NULL;
-> > +	neigh->neighbour = NULL;
-> > +
+ > | atomic_response = *va
+ > | if (((cmp XOR *va) AND cmp_mask) is ZERO) then
+ > |     *va = (*va AND NOT(swap_mask)) OR (swap AND swap_mask)
+ > |
+ > | return atomic_response
 
-You are correct.    Homer Simpson Doh! :-)
-I will send an updated patch after resolving Roland's questions.
+This is a great, terse description of the masked compare and swap
+operation.  Do you think it would be more readable with C operations (ie
+^ for XOR, & for AND, ~ for NOT, and | for OR)?  Also, I think it would
+be good to use the exact field names as the work request field you add
+(ie compare_add and compare_add_mask instead of cmp and cmp_mask).
 
+(And as I said before, this belongs with the generic patch, not the mlx4
+patch description)
+
+ > Masked Fetch and Add (MFetchAdd)
+ > The MFetchAdd Atomic operation extends the functionality of the standard IB
+ > FetchAdd by allowing the user to split the target into multiple fields of
+ > selectable length. The atomic add is done independently on each one of this
+ > fields. A bit set in the field_boundary parameter specifies the field
+ > boundaries. The pseudo code below describes the operation:
+
+This is a bit harder to read, but I guess the operation is harder to
+describe.  But what is really missing is the statement that the relevant
+fields in the wr are compare_add and compare_add_mask.  Failing that,
+it's really hard to know how to use this operation without looking at
+the mlx4 source code.
+
+ > +	props->device_cap_flags |= IB_DEVICE_MASKED_ATOMIC;
+
+Is there no firmware dependency here?  If this really should be set
+unconditionally, then please just roll it into the other flags that get
+set for all devices.
+-- 
+Roland Dreier  <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+For corporate legal information go to:
+http://www.cisco.com/web/about/doing_business/legal/cri/index.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
