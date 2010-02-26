@@ -1,55 +1,65 @@
-From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH V2 2/2] mlx4/IB: Add support for enhanced atomic operations
-Date: Thu, 25 Feb 2010 15:44:25 -0800
-Message-ID: <adahbp4x4me.fsf@roland-alpha.cisco.com>
-References: <20100214135426.GA7666@vlad-laptop>
+From: Ralph Campbell <ralph.campbell-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH] IB/ipoib: fix dangling pointer references to
+	ipoib_neigh and ipoib_path
+Date: Thu, 25 Feb 2010 16:41:41 -0800
+Message-ID: <1267144901.30294.57.camel@chromite.mv.qlogic.com>
+References: <1267126142.30294.25.camel@chromite.mv.qlogic.com>
+	 <aday6ihvzqg.fsf@roland-alpha.cisco.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20100214135426.GA7666@vlad-laptop> (Vladimir Sokolovsky's
-	message of "Sun, 14 Feb 2010 15:54:26 +0200")
+In-Reply-To: <aday6ihvzqg.fsf-BjVyx320WGW9gfZ95n9DRSW4+XlvGpQz@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Vladimir Sokolovsky <vlad-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
- > | atomic_response = *va
- > | if (((cmp XOR *va) AND cmp_mask) is ZERO) then
- > |     *va = (*va AND NOT(swap_mask)) OR (swap AND swap_mask)
- > |
- > | return atomic_response
+On Thu, 2010-02-25 at 12:15 -0800, Roland Dreier wrote:
+> > When using connected mode, ipoib_cm_create_tx() kmallocs a
+>  > struct ipoib_cm_tx which contains pointers to ipoib_neigh and
+>  > ipoib_path. If the paths are flushed or the struct neighbour is
+>  > destroyed, the pointers held by struct ipoib_cm_tx can reference
+>  > freed memory. The fix is to add reference counts to struct
+>  > ipoib_neigh and ipoib_path and to add locking when getting
+>  > new references.
+> 
+> Good debugging.
+> 
+> First look at this patch is that it ends up being rather invasive.  I
+> wonder if we could fix this in the other direction by keeping a list of
+> the ipoib_cm_tx structures affected in the neigh and path structures,
+> and clean the cm_tx stuff up when flushing?
+> 
+> Also I don't see any issues from a first read, but can you confirm that
+> you're not adding more locking/atomic ops (via kref) to the main data path?
+> 
+>  - R.
 
-This is a great, terse description of the masked compare and swap
-operation.  Do you think it would be more readable with C operations (ie
-^ for XOR, & for AND, ~ for NOT, and | for OR)?  Also, I think it would
-be good to use the exact field names as the work request field you add
-(ie compare_add and compare_add_mask instead of cmp and cmp_mask).
+I agree it is invasive. I thought it would be easier to discuss
+an actual patch than me trying to hand wave about a solution.
+Plus, now that I understand the problems better, I'm thinking
+of new ways to fix them.
 
-(And as I said before, this belongs with the generic patch, not the mlx4
-patch description)
+There is most definitely a new lock/unlock in the normal send path
+because ipoib_start_xmit() now calls neighbour_priv() which
+acquires the priv->lock() and does a kref_get(). I'm not really
+sure what things can change while ipoib_start_xmit() is active so
+I was being cautious. I guess at a minimum, ipoib_neigh_cleanup()
+won't be called by the network stack while ipoib_start_xmit() is
+active so the to_ipoib_neigh(neighbour) should be valid without
+my added locking.
 
- > Masked Fetch and Add (MFetchAdd)
- > The MFetchAdd Atomic operation extends the functionality of the standard IB
- > FetchAdd by allowing the user to split the target into multiple fields of
- > selectable length. The atomic add is done independently on each one of this
- > fields. A bit set in the field_boundary parameter specifies the field
- > boundaries. The pseudo code below describes the operation:
+We could avoid adding a kref_t to struct ipoib_path by replacing
+the pointer to ipoib_path in struct ipoib_cm_tx with a
+struct ib_sa_path_rec. Otherwise, I think ipoib_flush_paths()
+could call into ipoib_cm.c to make sure no ipoib_cm_tx is queued
+on the priv->cm.start_list which points to the given struct ipoib_path
+(and remove it from the list if found).
 
-This is a bit harder to read, but I guess the operation is harder to
-describe.  But what is really missing is the statement that the relevant
-fields in the wr are compare_add and compare_add_mask.  Failing that,
-it's really hard to know how to use this operation without looking at
-the mlx4 source code.
+I will try these ideas out and send an updated patch based
+on the results.
 
- > +	props->device_cap_flags |= IB_DEVICE_MASKED_ATOMIC;
-
-Is there no firmware dependency here?  If this really should be set
-unconditionally, then please just roll it into the other flags that get
-set for all devices.
--- 
-Roland Dreier  <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-For corporate legal information go to:
-http://www.cisco.com/web/about/doing_business/legal/cri/index.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
