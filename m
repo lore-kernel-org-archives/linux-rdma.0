@@ -1,45 +1,26 @@
-From: Line Holen <Line.Holen-UdXhSnd/wVw@public.gmane.org>
-Subject: [PATCH] opensm/osm_pkey.h: Fix typo in comment
-Date: Fri, 26 Feb 2010 09:49:39 +0100
-Message-ID: <4B878B23.60001@Sun.COM>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [net-next-2.6 PATCH] infiniband: convert to use
+ netdev_for_each_mc_addr
+Date: Fri, 26 Feb 2010 04:22:47 -0800 (PST)
+Message-ID: <20100226.042247.171081493.davem@davemloft.net>
+References: <20100224151108.GD2663@psychotron.lab.eng.brq.redhat.com>
+	<4B862E07.7020002@Voltaire.com>
+	<20100225084915.GA3171@psychotron.redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; CHARSET=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20100225084915.GA3171@psychotron.redhat.com>
+Sender: netdev-owner@vger.kernel.org
+To: jpirko@redhat.com
+Cc: ogerlitz@voltaire.com, netdev@vger.kernel.org, jgunthorpe@obsidianresearch.com, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
+From: Jiri Pirko <jpirko@redhat.com>
+Date: Thu, 25 Feb 2010 09:49:15 +0100
 
-Signed-off-by: Line Holen <Line.Holen-xsfywfwIY+M@public.gmane.org>
+> Subject: [net-next-2.6 PATCH] net: add addr len check to dev_mc_add
+> 
+> Signed-off-by: Jiri Pirko <jpirko@redhat.com>
 
----
-
-diff --git a/opensm/include/opensm/osm_pkey.h b/opensm/include/opensm/osm_pkey.h
-index e6ec74a..d10479d 100644
---- a/opensm/include/opensm/osm_pkey.h
-+++ b/opensm/include/opensm/osm_pkey.h
-@@ -1,4 +1,5 @@
- /*
-+ * Copyright (c) 2010 Sun Microsystems, Inc. All rights reserved.
-  * Copyright (c) 2004-2009 Voltaire, Inc. All rights reserved.
-  * Copyright (c) 2002-2005 Mellanox Technologies LTD. All rights reserved.
-  * Copyright (c) 1996-2003 Intel Corporation. All rights reserved.
-@@ -211,9 +212,9 @@ void osm_pkey_tbl_destroy(IN osm_pkey_tbl_t * p_pkey_tbl);
- *
- *********/
- 
--/****f* OpenSM: osm_pkey_get_num_blocks
-+/****f* OpenSM: osm_pkey_tbl_get_num_blocks
- * NAME
--*  osm_pkey_get_num_blocks
-+*  osm_pkey_tbl_get_num_blocks
- *
- * DESCRIPTION
- *  Obtain the number of blocks in IB PKey table
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Applied.
