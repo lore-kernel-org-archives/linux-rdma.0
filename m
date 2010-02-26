@@ -1,49 +1,45 @@
-From: Stephen Rothwell <sfr@canb.auug.org.au>
-Subject: linux-next: manual merge of the infiniband tree with the vfs tree
-Date: Fri, 26 Feb 2010 13:05:18 +1100
-Message-ID: <20100226130518.94c5a5f8.sfr@canb.auug.org.au>
+From: Line Holen <Line.Holen-UdXhSnd/wVw@public.gmane.org>
+Subject: [PATCH] opensm/osm_pkey.h: Fix typo in comment
+Date: Fri, 26 Feb 2010 09:49:39 +0100
+Message-ID: <4B878B23.60001@Sun.COM>
 Mime-Version: 1.0
-Content-Type: multipart/signed; protocol="application/pgp-signature";
- micalg="PGP-SHA1";
- boundary="Signature=_Fri__26_Feb_2010_13_05_18_+1100_tBKt0T4jD4Jchka8"
-Return-path: <linux-next-owner@vger.kernel.org>
-Sender: linux-next-owner@vger.kernel.org
-To: Roland Dreier <rdreier@cisco.com>, linux-rdma@vger.kernel.org
-Cc: linux-next@vger.kernel.org, linux-kernel@vger.kernel.org, Al Viro <viro@zeniv.linux.org.uk>
+Content-Type: text/plain; CHARSET=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
---Signature=_Fri__26_Feb_2010_13_05_18_+1100_tBKt0T4jD4Jchka8
-Content-Type: text/plain; charset=US-ASCII
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
 
-Hi all,
+Signed-off-by: Line Holen <Line.Holen-xsfywfwIY+M@public.gmane.org>
 
-Today's linux-next merge of the infiniband tree got a conflict in
-drivers/infiniband/core/uverbs_main.c between commit
-ce916e2b935f8b3402da1457ff23b9f9f786c09b ("switch infiniband uverbs to
-anon_inodes") from the vfs tree and commit
-4169c4a9735d6434c9e39fa81ae5517e3afd4cd8 ("IB/uverbs: Use anon_inodes
-instead of private infinibandeventfs") from the infiniband tree.
+---
 
-These two commits purport to do something similar.  Someone should look
-at them both and decide which one is right.  For now I have used the
-version from the vfs tree - with the addition of the part from the
-infiniband tree version that selects ANON_INODES in the Kconfig file.
---=20
-Cheers,
-Stephen Rothwell                    sfr@canb.auug.org.au
-http://www.canb.auug.org.au/~sfr/
+diff --git a/opensm/include/opensm/osm_pkey.h b/opensm/include/opensm/osm_pkey.h
+index e6ec74a..d10479d 100644
+--- a/opensm/include/opensm/osm_pkey.h
++++ b/opensm/include/opensm/osm_pkey.h
+@@ -1,4 +1,5 @@
+ /*
++ * Copyright (c) 2010 Sun Microsystems, Inc. All rights reserved.
+  * Copyright (c) 2004-2009 Voltaire, Inc. All rights reserved.
+  * Copyright (c) 2002-2005 Mellanox Technologies LTD. All rights reserved.
+  * Copyright (c) 1996-2003 Intel Corporation. All rights reserved.
+@@ -211,9 +212,9 @@ void osm_pkey_tbl_destroy(IN osm_pkey_tbl_t * p_pkey_tbl);
+ *
+ *********/
+ 
+-/****f* OpenSM: osm_pkey_get_num_blocks
++/****f* OpenSM: osm_pkey_tbl_get_num_blocks
+ * NAME
+-*  osm_pkey_get_num_blocks
++*  osm_pkey_tbl_get_num_blocks
+ *
+ * DESCRIPTION
+ *  Obtain the number of blocks in IB PKey table
 
---Signature=_Fri__26_Feb_2010_13_05_18_+1100_tBKt0T4jD4Jchka8
-Content-Type: application/pgp-signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.10 (GNU/Linux)
-
-iEYEARECAAYFAkuHLF4ACgkQjjKRsyhoI8zA6QCgrKAd1mAG6FMO3j7BD04JU5aC
-fnEAniW23J7Z7Lc2/V2AiBDiv9hfDLTl
-=C5Cg
------END PGP SIGNATURE-----
-
---Signature=_Fri__26_Feb_2010_13_05_18_+1100_tBKt0T4jD4Jchka8--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
