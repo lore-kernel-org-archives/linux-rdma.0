@@ -1,28 +1,27 @@
-From: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
-Subject: Re: [net-next-2.6 PATCH] infiniband: convert to use
- netdev_for_each_mc_addr
-Date: Fri, 26 Feb 2010 04:22:53 -0800 (PST)
-Message-ID: <20100226.042253.149934046.davem@davemloft.net>
-References: <20100224151108.GD2663@psychotron.lab.eng.brq.redhat.com>
+From: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH] Add new device IDs for ConnectX VPI HCAs
+Date: Fri, 26 Feb 2010 15:55:02 +0200
+Message-ID: <20100226135502.GA27872@mtldesk030.lab.mtl.com>
+References: <20100208140455.GA24593@vlad-laptop>
+ <adazl2yxp7r.fsf@roland-alpha.cisco.com>
+ <20100225210850.GA26139@mtldesk030.lab.mtl.com>
+ <adapr3sx5db.fsf@roland-alpha.cisco.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20100224151108.GD2663-YzwxZg+R7evMbnheQZGK0N5OCZ2W11yPFxja6HXR22MAvxtiuMwx3w@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <adapr3sx5db.fsf-BjVyx320WGW9gfZ95n9DRSW4+XlvGpQz@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: jpirko-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org
-Cc: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Cc: vlad-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Jiri Pirko <jpirko-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Date: Wed, 24 Feb 2010 16:11:08 +0100
-
-> Due to the loop complexicity in nes_nic.c, I'm using char* to copy mc addresses
-> to it.
+On Thu, Feb 25, 2010 at 03:28:16PM -0800, Roland Dreier wrote:
 > 
-> Signed-off-by: Jiri Pirko <jpirko-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+> But yeah, patches to get the ID list into shape with at least the right
+> list of device IDs for kernel and userspace would be welcome.
 
-Applied.
+OK, we'll have them sent next week.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
