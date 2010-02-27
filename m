@@ -1,124 +1,47 @@
-From: Tom Ammon <tom.ammon-wbocuHtxKic@public.gmane.org>
-Subject: Re: looking for opensm mailing list
-Date: Fri, 26 Feb 2010 15:12:22 -0700
-Message-ID: <4B884746.5060504@utah.edu>
-References: <4B858330.2050406@utah.edu>	<f0e08f231002241203i4ec23ef2ob05536a189507181@mail.gmail.com>	<4B884217.4090503@utah.edu> <20100226135341.8046af65.weiny2@llnl.gov>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [net-next-2.6 PATCH] infiniband: convert to use netdev_for_each_mc_addr
+Date: Fri, 26 Feb 2010 23:01:46 -0700
+Message-ID: <20100227060146.GA13231@obsidianresearch.com>
+References: <20100224151108.GD2663@psychotron.lab.eng.brq.redhat.com> <4B862E07.7020002@Voltaire.com> <20100225084915.GA3171@psychotron.redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20100226135341.8046af65.weiny2-i2BcT+NCU+M@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20100225084915.GA3171-YzwxZg+R7et1/kRsl7OVgNvLeJWuRmrY@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-Cc: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Kelly Cash <kelly.cash-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+To: Jiri Pirko <jpirko-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Or Gerlitz <ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org>, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Ahh...
+On Thu, Feb 25, 2010 at 09:49:15AM +0100, Jiri Pirko wrote:
+> Thu, Feb 25, 2010 at 09:00:07AM CET, ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org wrote:
+> >Jiri Pirko wrote:
+> >> +++ b/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
+> >> @@ -767,11 +767,8 @@ void ipoib_mcast_dev_flush(struct net_device *dev)
+> >> -static int ipoib_mcast_addr_is_valid(const u8 *addr, unsigned int addrlen,
+> >> -				     const u8 *broadcast)
+> >> +static int ipoib_mcast_addr_is_valid(const u8 *addr, const u8 *broadcast)
+> >>  {
+> >> -	if (addrlen != INFINIBAND_ALEN)
+> >> -		return 0;
+> >
+> >This check was added by commit 5e47596b "IPoIB: Check multicast address format", may I ask what is the reason for removing it now?
+> 
+> Yes, at this very moment the check is not needless but it will be in a brief
+> future. dev_mc_add will look very similar like dev_unicast_add. But ok. Here's
+> patch adding the check in dev_mc_add right now to correct this state. Thanks Or.
 
-We are using QLogic's distribution of OFED, and they had disabled this 
-script. When I run it manually, it puts the hostname in the node 
-description and works like a charm.
+Is this enough?
 
-Thanks!
+The problem this statement is trying to solve had to do with bonding
+creating multicast addresess for ethernet rather than infiniband in
+some cases. This happens because bonding makes a device that switches
+from ethernet to infiniband during its lifetime. I'm not quite
+sure what kind of life cycle those addresses go through, but if they
+somehow stay on the mc_list then ipoib_mcast_addr_is_valid will still
+need to have the check.
 
-Tom
-
-On 02/26/2010 02:53 PM, Ira Weiny wrote:
-> On Fri, 26 Feb 2010 14:50:15 -0700
-> Tom Ammon<tom.ammon-wbocuHtxKic@public.gmane.org>  wrote:
->
->    
->> Okay, a different question has just come up.
->>
->> On my DDR IB fabric, using QLogic HCAs, when I run ibnetdiscover, I
->> don't see the hostname in the node description, but I do see "HCA-1". On
->> a different cluster, using Mellanox HCAs (and redhat's OFED), I do see
->> the hostnames in the node description.
->>      
-> set_nodedesc.sh is part of the infiniband-diags package.  I believe RHEL runs this by default at boot.  It will set the nodedesc as the hostname.  When I wrote the script, I asked on the list if the method I was using would work for all HCA's and I was told that it would.
->
-> Could you run that script on a node by hand and see if it will at least work with the QLogic HCA's?
->
-> If this works then you will need to figure out why it is not run at boot.
->
-> Thanks,
-> Ira
->
->    
->> So here's my questions: How does ibnetdiscover find the hostname/node
->> description? Is there an option somewhere in OFED on the node that I
->> need to set to allow this name to show in ibnetdiscover?
->>
->> Tom
->>
->> On 02/24/2010 01:03 PM, Hal Rosenstock wrote:
->>      
->>> On Wed, Feb 24, 2010 at 2:51 PM, Tom Ammon<tom.ammon-wbocuHtxKic@public.gmane.org>   wrote:
->>>
->>>        
->>>> Hi,
->>>>
->>>> I'm looking for a mailing list where opensm developers and/or users might be
->>>> listening. Does anyone here know where I could find a list with such people?
->>>>
->>>>          
->>> It's on this list too :-)
->>>
->>> -- Hal
->>>
->>>
->>>        
->>>> Tom
->>>>
->>>> --
->>>> --------------------------------------------------------------------
->>>> Tom Ammon
->>>> Network Engineer
->>>> Office: 801.587.0976
->>>> Mobile: 801.674.9273
->>>>
->>>> Center for High Performance Computing
->>>> University of Utah
->>>> http://*www.*chpc.utah.edu
->>>>
->>>> --
->>>> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
->>>> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->>>> More majordomo info at  http://*vger.kernel.org/majordomo-info.html
->>>>
->>>>
->>>>          
->> -- 
->> --------------------------------------------------------------------
->> Tom Ammon
->> Network Engineer
->> Office: 801.587.0976
->> Mobile: 801.674.9273
->>
->> Center for High Performance Computing
->> University of Utah
->> http://*www.*chpc.utah.edu
->>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
->> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->> More majordomo info at  http://*vger.kernel.org/majordomo-info.html
->>
->>      
->
->    
-
--- 
---------------------------------------------------------------------
-Tom Ammon
-Network Engineer
-Office: 801.587.0976
-Mobile: 801.674.9273
-
-Center for High Performance Computing
-University of Utah
-http://www.chpc.utah.edu
-
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
