@@ -1,31 +1,30 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [net-next-2.6 PATCH] infiniband: convert to use
- netdev_for_each_mc_addr
-Date: Sat, 27 Feb 2010 02:44:42 -0800 (PST)
-Message-ID: <20100227.024442.40098463.davem@davemloft.net>
-References: <20100225084915.GA3171@psychotron.redhat.com>
-	<20100227060146.GA13231@obsidianresearch.com>
-	<20100227103835.GA2862@psychotron.redhat.com>
+From: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+Subject: Re: opensm: Status of torus-2QoS patchset?
+Date: Sat, 27 Feb 2010 16:36:29 +0200
+Message-ID: <20100227143629.GC13592@me>
+References: <1266352441.31472.126.camel@sale659.sandia.gov>
+ <20100221114310.GD31385@me>
+ <20100221115805.GE31385@me>
+ <1266856172.31472.234.camel@sale659.sandia.gov>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20100227103835.GA2862@psychotron.redhat.com>
-Sender: netdev-owner@vger.kernel.org
-To: jpirko@redhat.com
-Cc: jgunthorpe@obsidianresearch.com, ogerlitz@voltaire.com, netdev@vger.kernel.org, linux-rdma@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1266856172.31472.234.camel-mgfCWIlwujvg4c9jKm7R2O1ftBKYq+Ku@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jim Schutt <jaschut-4OHPYypu0djtX7QSmKvirg@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Jiri Pirko <jpirko@redhat.com>
-Date: Sat, 27 Feb 2010 11:38:37 +0100
-
-> I see two solutions:
-> 1) check the length in all drivers to ensure correctness.
-> 2) when bonding changes it's type, flush mc addresses and start over.
+On 09:29 Mon 22 Feb     , Jim Schutt wrote:
 > 
-> Second option looks nicer to me, but I might be missing something, thouths?
+> I'm happy to merge everything into a new series, and
+> rebase to latest development head if you would prefer that.
 
-If bonding is causing this problem, perhaps we should make bonding
-go through a programmatic interface to do it's work so that the
-check can be done generically and in a place that will get
-caught during code changes and audits.
+Yes, that way it would be better. Thanks.
+
+Sasha
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
