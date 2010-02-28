@@ -1,38 +1,35 @@
-From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Subject: Re: [PATCH] IB/srp: reduce number of interrupts
-Date: Sun, 28 Feb 2010 12:02:38 +0100
-Message-ID: <e2e108261002280302pc0a63b0l9d4dc16ec7b901d@mail.gmail.com>
-References: <201002022023.54554.bart.vanassche@gmail.com>
-	 <adamxyyxm9s.fsf@roland-alpha.cisco.com>
+From: Andy Grover <andy.grover-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH V2 1/2] IB/core: Add support for enhanced atomic operations
+Date: Sun, 28 Feb 2010 13:09:29 -0800
+Message-ID: <4B8ADB89.3010700@oracle.com>
+References: <20100214135128.GA7607@vlad-laptop> <adaljegx4vz.fsf@roland-alpha.cisco.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <adamxyyxm9s.fsf-BjVyx320WGW9gfZ95n9DRSW4+XlvGpQz@public.gmane.org>
+In-Reply-To: <adaljegx4vz.fsf-BjVyx320WGW9gfZ95n9DRSW4+XlvGpQz@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Vladimir Sokolovsky <vlad-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Feb 25, 2010 at 12:10 AM, Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org> wrote:
->
-> thanks, applied, and I added the following cleanup on top too.
-> The old mess wasn't your fault of course but I think this makes things a
-> bit safer, assuming I didn't mess it up:
->
-> IB/srp: Clean up error path in srp_create_target_ib()
->
-> Instead of repeating the error unwinding steps in each place an error
-> can be detected, use the common idiom of gotos into an error flow.
->
-> Signed-off-by: Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Roland Dreier wrote:
+> I think I'd be OK adding this for 2.6.34, if there were some case made
+> that this would be useful for someone working on code that used this.
+> So what case can be made for adding this to 2.6.34 without an in-tree user?
 
-Thanks for applying the interrupt rate reduction patch, and thanks for
-cleaning up the error path of srp_create_target_ib(). I'm afraid that
-it's too late to add an acked-by to that patch ? Anyway:
+Support needs to be there before anyone can use it :)
 
-Acked-by: Bart Van Assche <bart.vanassche-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Here is a git tree of our atomics work so far:
+http://www.openfabrics.org/git/?p=~agrover/ofed_1_5/linux-2.6.git;a=shortlog;h=future/20100203
 
-Bart.
+Still in-development, but it should be ready very soon. We will be the
+first in-kernel user of atomics, as well as masked atomics. This tree
+does not support masked atomics yet because it is based on ofed 1.5.1.
+When 1.5.2 is officially released, I'll rebase, add mask support, and
+plan on pushing to mainline and ofed 1.6 as soon as it opens.
+
+Regards -- Andy
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
