@@ -1,35 +1,27 @@
-From: Andy Grover <andy.grover-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH V2 1/2] IB/core: Add support for enhanced atomic operations
-Date: Sun, 28 Feb 2010 13:09:29 -0800
-Message-ID: <4B8ADB89.3010700@oracle.com>
-References: <20100214135128.GA7607@vlad-laptop> <adaljegx4vz.fsf@roland-alpha.cisco.com>
+From: Or Gerlitz <ogerlitz-hKgKHo2Ms0FWk0Htik3J/w@public.gmane.org>
+Subject: Re: [net-next-2.6 PATCH] infiniband: convert to use	netdev_for_each_mc_addr
+Date: Mon, 01 Mar 2010 09:48:09 +0200
+Message-ID: <4B8B7139.9050707@Voltaire.com>
+References: <20100224151108.GD2663@psychotron.lab.eng.brq.redhat.com>	<4B862E07.7020002@Voltaire.com>	<20100225084915.GA3171@psychotron.redhat.com>	<20100227060146.GA13231@obsidianresearch.com>	<20100227103835.GA2862@psychotron.redhat.com> <20100227184410.GB13231@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <adaljegx4vz.fsf-BjVyx320WGW9gfZ95n9DRSW4+XlvGpQz@public.gmane.org>
+In-Reply-To: <20100227184410.GB13231-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Cc: Vladimir Sokolovsky <vlad-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Jiri Pirko <jpirko-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Moni Shoua <monis-hKgKHo2Ms0F+cjeuK/JdrQ@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Roland Dreier wrote:
-> I think I'd be OK adding this for 2.6.34, if there were some case made
-> that this would be useful for someone working on code that used this.
-> So what case can be made for adding this to 2.6.34 without an in-tree user?
+Jason Gunthorpe wrote:
+> Jiri Pirko wrote:
+>> when bonding changes it's type, flush mc addresses and start over.
 
-Support needs to be there before anyone can use it :)
+> There was a patch posted that tried to do something like what you are describing
 
-Here is a git tree of our atomics work so far:
-http://www.openfabrics.org/git/?p=~agrover/ofed_1_5/linux-2.6.git;a=shortlog;h=future/20100203
+Indeed, Jason, commit 75c785 "bonding: remap muticast addresses without using dev_close() and dev_open()" from Moni Shoua <monis-smomgflXvOZWk0Htik3J/w@public.gmane.org> does exactly that, isn't it?
 
-Still in-development, but it should be ready very soon. We will be the
-first in-kernel user of atomics, as well as masked atomics. This tree
-does not support masked atomics yet because it is based on ofed 1.5.1.
-When 1.5.2 is officially released, I'll rebase, add mask support, and
-plan on pushing to mainline and ofed 1.6 as soon as it opens.
-
-Regards -- Andy
+Or.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
