@@ -1,83 +1,33 @@
-From: Tom Tucker <tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: Re: rnfs: rq_respages pointer is bad
-Date: Mon, 01 Mar 2010 21:35:00 -0600
-Message-ID: <4B8C8764.9080409@opengridcomputing.com>
-References: <1267489621.9774.41.camel@wilder.ibm.com>
+From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Subject: Re: SRP initiator and iSER initiator performance
+Date: Tue, 2 Mar 2010 07:59:14 +0100
+Message-ID: <e2e108261003012259o7c9b217j5011006e3a772d6a@mail.gmail.com>
+References: <e2e108261002271127x253faa84lf6eb8aa77d3cf51a@mail.gmail.com>
+	 <4B8C1FBF.8060001@vlnb.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1267489621.9774.41.camel-XfwDJb4SXxnMbYB6QlFGEg@public.gmane.org>
+In-Reply-To: <4B8C1FBF.8060001-d+Crzxg7Rs0@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "David J. Wilder" <dwilder-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, pradeep-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org
+To: Vladislav Bolkhovitin <vst-d+Crzxg7Rs0@public.gmane.org>
+Cc: Chris Worley <worleys-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, David Dillow <dave-i1Mk8JYDVaaSihdK6806/g@public.gmane.org>, OFED mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, scst-devel <scst-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi David:
+On Mon, Mar 1, 2010 at 9:12 PM, Vladislav Bolkhovitin <vst-d+Crzxg7Rs0@public.gmane.org> wrote:
+> [ ... ]
+> It's good if my impression was wrong. But you've got suspiciously low IOPS
+> numbers. On your hardware you should have much more. Seems you experienced a
+> bottleneck on the initiator somewhere above the drivers level (fio? sg
+> engine? IRQs or context switches count?), so your results could be not
+> really related to the topic. Oprofile and lockstat output can shed more
+> light on this.
 
-That looks like a bug to me and it looks like what you propose is the 
-correct fix. My only reservation is that if you are correct then how did 
-this work at all without data corruption for large writes on x86_64?
+You didn't understand the purpose of the test. My goal was not to
+achieve record IOPS numbers but to stress the SRP and iSER initiators
+as much as possible. I choose the sg I/O engine in order to bypass the
+block layer.
 
-I'm on the road right now, so I can't dig too deep until Wednesday, but 
-at this point your analysis looks correct to me.
-
-Tom
-
-
-David J. Wilder wrote:
-> Tom
->
-> I have been chasing an rnfs related Oops in svc_process().  I have found
-> the source of the Oops but I am not sure of my fix.  I am seeing the
-> problem on ppc64, kernel 2.6.32, I have not tried other arch yet.
->
-> The source of the problem is in rdma_read_complete(), I am finding that
-> rqstp->rq_respages is set to point past the end of the rqstp->rq_pages
-> page list.  This results in a NULL reference in svc_process() when
-> passing rq_respages[0] to page_address().
->
-> In rdma_read_complete() we are using rqstp->rq_arg.pages as the base of
-> the page list then indexing by page_no, however rq_arg.pages is not
-> pointing to the start of the list so rq_respages ends up pointing to:
->
-> rqstp->rq_pages[(head->count+1) + head->hdr_count]
->
-> In my case, it ends up pointing one past the end of the list by one.
->
-> Here is the change I made.
->
-> static int rdma_read_complete(struct svc_rqst *rqstp,
->                               struct svc_rdma_op_ctxt *head)
-> {
->         int page_no;
->         int ret;
->
->         BUG_ON(!head);
->
->         /* Copy RPC pages */
->         for (page_no = 0; page_no < head->count; page_no++) {
->                 put_page(rqstp->rq_pages[page_no]);
->                 rqstp->rq_pages[page_no] = head->pages[page_no];
->         }
->         /* Point rq_arg.pages past header */
->         rqstp->rq_arg.pages = &rqstp->rq_pages[head->hdr_count];
->         rqstp->rq_arg.page_len = head->arg.page_len;
->         rqstp->rq_arg.page_base = head->arg.page_base;
->
->         /* rq_respages starts after the last arg page */
-> -       rqstp->rq_respages = &rqstp->rq_arg.pages[page_no];
-> +	rqstp->rq_respages = &rqstp->rq_pages[page_no];
-> .
-> .
-> .
->
-> The change works for me, but I am not sure it is safe to assume the
-> rqstp->rq_pages[head->count] will always point to the last arg page.
->
-> Dave.
->   
-
+Bart.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
