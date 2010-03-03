@@ -1,74 +1,97 @@
-From: Mike Heinz <michael.heinz-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH] infiniband-diags perfquery too noisy.
-Date: Wed, 3 Mar 2010 09:13:30 -0600
-Message-ID: <4C2744E8AD2982428C5BFE523DF8CDCB477C9726BB@MNEXMB1.qlogic.org>
+From: "David J. Wilder" <dwilder-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>
+Subject: Re: rnfs: rq_respages pointer is bad
+Date: Wed, 03 Mar 2010 08:20:54 -0800
+Message-ID: <1267633255.18434.5.camel@wilder.ibm.com>
+References: <1267489621.9774.41.camel@wilder.ibm.com>
+	 <4B8C8764.9080409@opengridcomputing.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="_002_4C2744E8AD2982428C5BFE523DF8CDCB477C9726BBMNEXMB1qlogic_"
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <4B8C8764.9080409-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Tom Tucker <tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, pradeep-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
---_002_4C2744E8AD2982428C5BFE523DF8CDCB477C9726BBMNEXMB1qlogic_
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
 
-When perfquery is run against fabrics that do not support PortXmitWait, it
-emits this warning for every port:
+On Mon, 2010-03-01 at 21:35 -0600, Tom Tucker wrote:
+> Hi David:
+> 
+> That looks like a bug to me and it looks like what you propose is the 
+> correct fix. My only reservation is that if you are correct then how did 
+> this work at all without data corruption for large writes on x86_64?
 
-ibwarn: [23225] dump_perfcounters: PortXmitWait not indicated so ignore thi=
-s
-counter
+The size of the page array is determined by page size (and some other
+parameters).  I am using 64k pages, that may be the key.  I don't know
+what page size was used on X86-64 but we may have been lucky and not
+fallen off the end of the array thus avoided the problem.
 
-When running ibcheckerrors on a large fabric, this leads to a flood of
-warnings.
+> 
+> I'm on the road right now, so I can't dig too deep until Wednesday, but 
+> at this point your analysis looks correct to me.
+> 
+> Tom
+> 
+> 
+> David J. Wilder wrote:
+> > Tom
+> >
+> > I have been chasing an rnfs related Oops in svc_process().  I have found
+> > the source of the Oops but I am not sure of my fix.  I am seeing the
+> > problem on ppc64, kernel 2.6.32, I have not tried other arch yet.
+> >
+> > The source of the problem is in rdma_read_complete(), I am finding that
+> > rqstp->rq_respages is set to point past the end of the rqstp->rq_pages
+> > page list.  This results in a NULL reference in svc_process() when
+> > passing rq_respages[0] to page_address().
+> >
+> > In rdma_read_complete() we are using rqstp->rq_arg.pages as the base of
+> > the page list then indexing by page_no, however rq_arg.pages is not
+> > pointing to the start of the list so rq_respages ends up pointing to:
+> >
+> > rqstp->rq_pages[(head->count+1) + head->hdr_count]
+> >
+> > In my case, it ends up pointing one past the end of the list by one.
+> >
+> > Here is the change I made.
+> >
+> > static int rdma_read_complete(struct svc_rqst *rqstp,
+> >                               struct svc_rdma_op_ctxt *head)
+> > {
+> >         int page_no;
+> >         int ret;
+> >
+> >         BUG_ON(!head);
+> >
+> >         /* Copy RPC pages */
+> >         for (page_no = 0; page_no < head->count; page_no++) {
+> >                 put_page(rqstp->rq_pages[page_no]);
+> >                 rqstp->rq_pages[page_no] = head->pages[page_no];
+> >         }
+> >         /* Point rq_arg.pages past header */
+> >         rqstp->rq_arg.pages = &rqstp->rq_pages[head->hdr_count];
+> >         rqstp->rq_arg.page_len = head->arg.page_len;
+> >         rqstp->rq_arg.page_base = head->arg.page_base;
+> >
+> >         /* rq_respages starts after the last arg page */
+> > -       rqstp->rq_respages = &rqstp->rq_arg.pages[page_no];
+> > +	rqstp->rq_respages = &rqstp->rq_pages[page_no];
+> > .
+> > .
+> > .
+> >
+> > The change works for me, but I am not sure it is safe to assume the
+> > rqstp->rq_pages[head->count] will always point to the last arg page.
+> >
+> > Dave.
+> >   
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-The proposed patch reduces the warning to a verbose message and, on fabrics=
- that do not support PortXmitWait, it suppresses the output of the XmitWait=
- attribute.
-
-I've also included this patch in PR 1970 on the openfabrics bugzilla.
-
-
---_002_4C2744E8AD2982428C5BFE523DF8CDCB477C9726BBMNEXMB1qlogic_
-Content-Type: application/octet-stream; name="perfquery.patch"
-Content-Description: perfquery.patch
-Content-Disposition: attachment; filename="perfquery.patch"; size=1485;
-	creation-date="Mon, 01 Mar 2010 11:33:26 GMT";
-	modification-date="Mon, 01 Mar 2010 11:33:26 GMT"
-Content-Transfer-Encoding: base64
-
-LS0tIC9ob21lL21oZWluei93b3JrL09GRURfU1JDL2luZmluaWJhbmQtZGlhZ3MtMS41LjUvc3Jj
-L3BlcmZxdWVyeS5jCTIwMDktMTItMTUgMDk6MDM6MTYuMDAwMDAwMDAwIC0wNTAwCisrKyBwZXJm
-cXVlcnkuYwkyMDEwLTAzLTAxIDExOjQ1OjA2LjQ0MTIxNzAwMCAtMDUwMApAQCAtMjgyLDYgKzI4
-MiwyNSBAQAogCSAgICAgICBBTExfUE9SVFMsIGJ1Zik7CiB9CiAKK3N0YXRpYyBpbnQgZHVtcF9m
-aWVsZHMoY2hhciAqYnVmLCBpbnQgYnVmc3osIHZvaWQgKmRhdGEsIGludCBzdGFydCwgaW50IGVu
-ZCkKK3sKKwljaGFyIHZhbFs2NF07CisJY2hhciAqcyA9IGJ1ZjsKKwlpbnQgbiwgZmllbGQ7CisJ
-Zm9yIChmaWVsZCA9IHN0YXJ0OyBmaWVsZCA8PSBlbmQgJiYgYnVmc3ogPiAwOyBmaWVsZCsrKSB7
-CisJCW1hZF9kZWNvZGVfZmllbGQoZGF0YSwgZmllbGQsIHZhbCk7CisJCWlmICghbWFkX2R1bXBf
-ZmllbGQoZmllbGQsIHMsIGJ1ZnN6LCB2YWwpKQorCQkJcmV0dXJuIC0xOworCQluID0gc3RybGVu
-KHMpOworCQlzICs9IG47CisJCSpzKysgPSAnXG4nOworCQkqcyA9IDA7CisJCW4rKzsKKwkJYnVm
-c3ogLT0gbjsKKwl9CisJcmV0dXJuIChpbnQpKHMgLSBidWYpOworfQorCiBzdGF0aWMgdm9pZCBk
-dW1wX3BlcmZjb3VudGVycyhpbnQgZXh0ZW5kZWQsIGludCB0aW1lb3V0LCB1aW50MTZfdCBjYXBf
-bWFzaywKIAkJCSAgICAgIGliX3BvcnRpZF90ICogcG9ydGlkLCBpbnQgcG9ydCwgaW50IGFnZ3Jl
-Z2F0ZSkKIHsKQEAgLTI5Myw4ICszMTIsNyBAQAogCQkJSUJFUlJPUigicGVyZnF1ZXJ5Iik7CiAJ
-CWlmICghKGNhcF9tYXNrICYgMHgxMDAwKSkgewogCQkJLyogaWYgUG9ydENvdW50ZXJzOlBvcnRY
-bWl0V2FpdCBub3Qgc3VwcG9ydGVkIGNsZWFyIHRoaXMgY291bnRlciAqLwotCQkJSUJXQVJOCi0J
-CQkgICAgKCJQb3J0WG1pdFdhaXQgbm90IGluZGljYXRlZCBzbyBpZ25vcmUgdGhpcyBjb3VudGVy
-Iik7CisJCQlWRVJCT1NFKCJQb3J0WG1pdFdhaXQgbm90IGluZGljYXRlZCBzbyBpZ25vcmUgdGhp
-cyBjb3VudGVyIik7CiAJCQlwZXJmX2NvdW50LnhtdHdhaXQgPSAwOwogCQkJbWFkX2VuY29kZV9m
-aWVsZChwYywgSUJfUENfWE1UX1dBSVRfRiwKIAkJCQkJICZwZXJmX2NvdW50LnhtdHdhaXQpOwpA
-QCAtMzAyLDcgKzMyMCw4IEBACiAJCWlmIChhZ2dyZWdhdGUpCiAJCQlhZ2dyZWdhdGVfcGVyZmNv
-dW50ZXJzKCk7CiAJCWVsc2UKLQkJCW1hZF9kdW1wX3BlcmZjb3VudGVycyhidWYsIHNpemVvZiBi
-dWYsIHBjLCBzaXplb2YgcGMpOworCQkJZHVtcF9maWVsZHMoYnVmLCBzaXplb2YgYnVmLCBwYywg
-SUJfUENfRklSU1RfRiwKKwkJCQkoY2FwX21hc2sgJiAweDEwMDApP0lCX1BDX0xBU1RfRjpJQl9Q
-Q19SQ1ZfUEtUU19GKTsKIAl9IGVsc2UgewogCQlpZiAoIShjYXBfbWFzayAmIDB4MjAwKSkJLyog
-MS4yIGVycmF0YTogYml0IDkgaXMgZXh0ZW5kZWQgY291bnRlciBzdXBwb3J0ICovCiAJCQlJQldB
-Uk4K
-
---_002_4C2744E8AD2982428C5BFE523DF8CDCB477C9726BBMNEXMB1qlogic_--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
