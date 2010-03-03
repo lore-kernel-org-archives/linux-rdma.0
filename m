@@ -1,54 +1,73 @@
-From: Eli Cohen <eli-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
-Subject: [PATCH] ipoib: Fix lockup of the tx queue
-Date: Wed, 3 Mar 2010 14:27:52 +0200
-Message-ID: <20100303122752.GA29784@mtldesk030.lab.mtl.com>
+From: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: IPoIB issues
+Date: Wed, 3 Mar 2010 14:29:37 +0200
+Message-ID: <20100303122937.GA1689@mtldesk030.lab.mtl.com>
+References: <a72123c41003021354y7880e74cud26d6010f23f9458@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
+In-Reply-To: <a72123c41003021354y7880e74cud26d6010f23f9458-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Cc: Linux RDMA list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ewg <ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+To: Josh England <jjengla-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-The ipoib UD QP reports send completions to priv->send_cq which is unarmed
-generally; it only gets armed when the number of outstanding send requests
-(e.g. those for which a completion was not polled yet) reaches the size of the
-tx queue. This arming (done using ib_req_notify_cq()) is done only in the send
-path for the UD QP. However, when sending CM packets, the net queue may be
-stopped for the same reasons but no measures are taken to recover the UD path
-from a lockup.
-Consider this scenario: a host sends high rate of both CM and UD packets.
-Suppose also that the tx queue length is N. If at some time the number of
-outstanding UD packets is more than N/2 and the overall outstanding packets is
-N-1, and now CM sends a packet making the number of outstanding equal N, the tx
-queue will be stopped. When all the CM packets will complete, the number of
-outstanding packets will still be higher than N/2 so the tx queue will not be
-enabled.
-Fix this by calling ib_req_notify_cq() when the queue is stopped in the CM
-path.
+I just posted a patch which might fix your problem. Please try it and
+let us know if it fixed anything.
 
-Signed-off-by: Eli Cohen <eli-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
----
- drivers/infiniband/ulp/ipoib/ipoib_cm.c |    2 ++
- 1 files changed, 2 insertions(+), 0 deletions(-)
-
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib_cm.c b/drivers/infiniband/ulp/ipoib/ipoib_cm.c
-index 30bdf42..f8302c2 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib_cm.c
-+++ b/drivers/infiniband/ulp/ipoib/ipoib_cm.c
-@@ -752,6 +752,8 @@ void ipoib_cm_send(struct net_device *dev, struct sk_buff *skb, struct ipoib_cm_
- 		if (++priv->tx_outstanding == ipoib_sendq_size) {
- 			ipoib_dbg(priv, "TX ring 0x%x full, stopping kernel net queue\n",
- 				  tx->qp->qp_num);
-+			if (ib_req_notify_cq(priv->send_cq, IB_CQ_NEXT_COMP))
-+				ipoib_warn(priv, "request notify on send CQ failed\n");
- 			netif_stop_queue(dev);
- 		}
- 	}
--- 
-1.7.0
-
+On Tue, Mar 02, 2010 at 01:54:09PM -0800, Josh England wrote:
+> Hello,
+> 
+> I've been running into several issues using IPoIB.  The 2 primary uses
+> are for read-only NFS to the clients (over TCP) and access to an
+> ethernet-connected parallel filesystem (Panasas) through router nodes
+> passing IPoIB<-->10GbE.
+> 
+> All nodes are running CentOS 5.3 and OFED 1.4.2, although a have played
+> with OFED 1.5 and seen similar results.  Client nodes mount their NFS root
+> from boot servers via IPoIB with a ratio of 80:1.  The boot servers are the
+> ones that seem to have issues.  The fabric itself consists of ~1000 nodes
+> interconnected such that their is 2:1 oversubscription within any single rack,
+> and 20:1 oversubscription between racks (through the core switch).  I
+> don't know how much the oversubscription comes into play here as I can
+> reproduce the error within a single rack.
+> 
+> In datagram mode, I see errors on the boot servers of the form.
+> 
+> ib0: post_send failed
+> ib0: post_send failed
+> ib0: post_send failed
+> 
+> 
+> When using connected mode, I hit a different error:
+> 
+> NETDEV WATCHDOG: ib0: transmit timed out
+> ib0: transmit timeout: latency 1999 msecs
+> ib0: queue stopped 1, tx_head 2154042680, tx_tail 2154039464
+> NETDEV WATCHDOG: ib0: transmit timed out
+> ib0: transmit timeout: latency 2999 msecs
+> ib0: queue stopped 1, tx_head 2154042680, tx_tail 2154039464
+> ...
+> ...
+> NETDEV WATCHDOG: ib0: transmit timed out
+> ib0: transmit timeout: latency 61824999 msecs
+> ib0: queue stopped 1, tx_head 2154042680, tx_tail 2154039464
+> 
+> 
+> The errors seem to hit only after NFS comes into play.  Once it
+> starts, the NETDEV WATCHDOG messages continue until I run
+> 'ifconfig ib0 down up'.  I've tried tuning send_queue_size and
+> recv_queue_size on both sides, the txqueuelen of the ib0 interface, the
+> NFS rsize/wsize.  None of it seems to help greatly.  Does anyone have
+> any ideas about what can I do to try to fix
+> these problems?
+> 
+> -JE
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
