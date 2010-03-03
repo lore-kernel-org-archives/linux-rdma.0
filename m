@@ -1,7 +1,7 @@
 From: Chien Tung <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH] RDMA/nes: fix CX4 link problem in back-to-back configuration
-Date: Wed, 3 Mar 2010 13:13:26 -0600
-Message-ID: <20100303191326.GA7916@ctung-MOBL>
+Subject: [PATCH] RDMA/nes: clear stall bit before destroying nic qp
+Date: Wed, 3 Mar 2010 13:13:28 -0600
+Message-ID: <20100303191328.GA4272@ctung-MOBL>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
@@ -12,77 +12,56 @@ Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 
-commit 09124e1913cf2140941f60ab4fdf8576e1e8fd8d took out
-too much code and broke CX4 link detection in back-to-back
-configuration.  This will put back the code that does the link
-check.
+Clear the stall bit to drop any incoming packets while destroying
+nic qp.  This will prevent a chip resource leak.
 
 Signed-off-by: Chien Tung <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/nes/nes_nic.c |   30 ++++++++++++++++++++++++++++--
- 1 files changed, 28 insertions(+), 2 deletions(-)
+ drivers/infiniband/hw/nes/nes_hw.c |    8 ++++++++
+ drivers/infiniband/hw/nes/nes_hw.h |    1 +
+ 2 files changed, 9 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/infiniband/hw/nes/nes_nic.c b/drivers/infiniband/hw/nes/nes_nic.c
-index 7dd6ce6..a60efee 100644
---- a/drivers/infiniband/hw/nes/nes_nic.c
-+++ b/drivers/infiniband/hw/nes/nes_nic.c
-@@ -1582,7 +1582,6 @@ struct net_device *nes_netdev_init(struct nes_device *nesdev,
- 	struct nes_vnic *nesvnic;
- 	struct net_device *netdev;
- 	struct nic_qp_map *curr_qp_map;
--	u32 u32temp;
- 	u8 phy_type = nesdev->nesadapter->phy_type[nesdev->mac_index];
+diff --git a/drivers/infiniband/hw/nes/nes_hw.c b/drivers/infiniband/hw/nes/nes_hw.c
+index ce7f538..9250755 100644
+--- a/drivers/infiniband/hw/nes/nes_hw.c
++++ b/drivers/infiniband/hw/nes/nes_hw.c
+@@ -1899,9 +1899,14 @@ void nes_destroy_nic_qp(struct nes_vnic *nesvnic)
+ 	u16  wqe_fragment_index;
+ 	u64 wqe_frag;
+ 	u32 cqp_head;
++	u32 wqm_cfg0;
+ 	unsigned long flags;
+ 	int ret;
  
- 	netdev = alloc_etherdev(sizeof(struct nes_vnic));
-@@ -1694,6 +1693,10 @@ struct net_device *nes_netdev_init(struct nes_device *nesdev,
- 	     ((phy_type == NES_PHY_TYPE_PUMA_1G) &&
- 	      (((PCI_FUNC(nesdev->pcidev->devfn) == 1) && (nesdev->mac_index == 2)) ||
- 	       ((PCI_FUNC(nesdev->pcidev->devfn) == 2) && (nesdev->mac_index == 1)))))) {
-+		u32 u32temp;
-+		u32 link_mask;
-+		u32 link_val;
++	/* clear wqe stall before destroying NIC QP */
++	wqm_cfg0 = nes_read_indexed(nesdev, NES_IDX_WQM_CONFIG0);
++	nes_write_indexed(nesdev, NES_IDX_WQM_CONFIG0, wqm_cfg0 & 0xFFFF7FFF);
 +
- 		u32temp = nes_read_indexed(nesdev, NES_IDX_PHY_PCS_CONTROL_STATUS0 +
- 				(0x200 * (nesdev->mac_index & 1)));
- 		if (phy_type != NES_PHY_TYPE_PUMA_1G) {
-@@ -1702,13 +1705,36 @@ struct net_device *nes_netdev_init(struct nes_device *nesdev,
- 				(0x200 * (nesdev->mac_index & 1)), u32temp);
- 		}
+ 	/* Free remaining NIC receive buffers */
+ 	while (nesvnic->nic.rq_head != nesvnic->nic.rq_tail) {
+ 		nic_rqe   = &nesvnic->nic.rq_vbase[nesvnic->nic.rq_tail];
+@@ -2020,6 +2025,9 @@ void nes_destroy_nic_qp(struct nes_vnic *nesvnic)
  
-+		/* Check and set linkup here.  This is for back to back */
-+		/* configuration where second port won't get link interrupt */
-+		switch (phy_type) {
-+		case NES_PHY_TYPE_PUMA_1G:
-+			if (nesdev->mac_index < 2) {
-+				link_mask = 0x01010000;
-+				link_val = 0x01010000;
-+			} else {
-+				link_mask = 0x02020000;
-+				link_val = 0x02020000;
-+			}
-+			break;
-+		default:
-+			link_mask = 0x0f1f0000;
-+			link_val = 0x0f0f0000;
-+			break;
-+		}
+ 	pci_free_consistent(nesdev->pcidev, nesvnic->nic_mem_size, nesvnic->nic_vbase,
+ 			nesvnic->nic_pbase);
 +
-+		u32temp = nes_read_indexed(nesdev,
-+					   NES_IDX_PHY_PCS_CONTROL_STATUS0 +
-+					   (0x200 * (nesdev->mac_index & 1)));
-+		if ((u32temp & link_mask) == link_val)
-+			nesvnic->linkup = 1;
-+
- 		/* clear the MAC interrupt status, assumes direct logical to physical mapping */
- 		u32temp = nes_read_indexed(nesdev, NES_IDX_MAC_INT_STATUS + (0x200 * nesdev->mac_index));
- 		nes_debug(NES_DBG_INIT, "Phy interrupt status = 0x%X.\n", u32temp);
- 		nes_write_indexed(nesdev, NES_IDX_MAC_INT_STATUS + (0x200 * nesdev->mac_index), u32temp);
++	/* restore old wqm_cfg0 value */
++	nes_write_indexed(nesdev, NES_IDX_WQM_CONFIG0, wqm_cfg0);
+ }
  
- 		nes_init_phy(nesdev);
--
- 	}
- 
- 	return netdev;
+ /**
+diff --git a/drivers/infiniband/hw/nes/nes_hw.h b/drivers/infiniband/hw/nes/nes_hw.h
+index 9b1e7f8..bbbfe9f 100644
+--- a/drivers/infiniband/hw/nes/nes_hw.h
++++ b/drivers/infiniband/hw/nes/nes_hw.h
+@@ -160,6 +160,7 @@ enum indexed_regs {
+ 	NES_IDX_ENDNODE0_NSTAT_TX_OCTETS_HI = 0x7004,
+ 	NES_IDX_ENDNODE0_NSTAT_TX_FRAMES_LO = 0x7008,
+ 	NES_IDX_ENDNODE0_NSTAT_TX_FRAMES_HI = 0x700c,
++	NES_IDX_WQM_CONFIG0 = 0x5000,
+ 	NES_IDX_WQM_CONFIG1 = 0x5004,
+ 	NES_IDX_CM_CONFIG = 0x5100,
+ 	NES_IDX_NIC_LOGPORT_TO_PHYPORT = 0x6000,
 -- 
 1.6.4.2
 
