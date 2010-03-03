@@ -1,73 +1,49 @@
-From: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: IPoIB issues
-Date: Wed, 3 Mar 2010 14:29:37 +0200
-Message-ID: <20100303122937.GA1689@mtldesk030.lab.mtl.com>
-References: <a72123c41003021354y7880e74cud26d6010f23f9458@mail.gmail.com>
+From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: [PATCH] RDMA/cxgb3: wait at least one schedule cycle during device
+	removal.
+Date: Wed, 03 Mar 2010 09:06:34 -0600
+Message-ID: <20100303150633.11256.9555.stgit@build.ogc.int>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <a72123c41003021354y7880e74cud26d6010f23f9458-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Josh England <jjengla-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, wenxiong-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-I just posted a patch which might fix your problem. Please try it and
-let us know if it fixed anything.
+During a hot-plug LLD removal event or an EEH error event, iw_cxgb3
+must ensure that any/all threads that might be in a cxgb3 exported function
+concurrently must return from the function before iw_cxgb3 returns from
+its event processing. Do this by calling synchronize_net().
 
-On Tue, Mar 02, 2010 at 01:54:09PM -0800, Josh England wrote:
-> Hello,
-> 
-> I've been running into several issues using IPoIB.  The 2 primary uses
-> are for read-only NFS to the clients (over TCP) and access to an
-> ethernet-connected parallel filesystem (Panasas) through router nodes
-> passing IPoIB<-->10GbE.
-> 
-> All nodes are running CentOS 5.3 and OFED 1.4.2, although a have played
-> with OFED 1.5 and seen similar results.  Client nodes mount their NFS root
-> from boot servers via IPoIB with a ratio of 80:1.  The boot servers are the
-> ones that seem to have issues.  The fabric itself consists of ~1000 nodes
-> interconnected such that their is 2:1 oversubscription within any single rack,
-> and 20:1 oversubscription between racks (through the core switch).  I
-> don't know how much the oversubscription comes into play here as I can
-> reproduce the error within a single rack.
-> 
-> In datagram mode, I see errors on the boot servers of the form.
-> 
-> ib0: post_send failed
-> ib0: post_send failed
-> ib0: post_send failed
-> 
-> 
-> When using connected mode, I hit a different error:
-> 
-> NETDEV WATCHDOG: ib0: transmit timed out
-> ib0: transmit timeout: latency 1999 msecs
-> ib0: queue stopped 1, tx_head 2154042680, tx_tail 2154039464
-> NETDEV WATCHDOG: ib0: transmit timed out
-> ib0: transmit timeout: latency 2999 msecs
-> ib0: queue stopped 1, tx_head 2154042680, tx_tail 2154039464
-> ...
-> ...
-> NETDEV WATCHDOG: ib0: transmit timed out
-> ib0: transmit timeout: latency 61824999 msecs
-> ib0: queue stopped 1, tx_head 2154042680, tx_tail 2154039464
-> 
-> 
-> The errors seem to hit only after NFS comes into play.  Once it
-> starts, the NETDEV WATCHDOG messages continue until I run
-> 'ifconfig ib0 down up'.  I've tried tuning send_queue_size and
-> recv_queue_size on both sides, the txqueuelen of the ib0 interface, the
-> NFS rsize/wsize.  None of it seems to help greatly.  Does anyone have
-> any ideas about what can I do to try to fix
-> these problems?
-> 
-> -JE
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+---
+
+ drivers/infiniband/hw/cxgb3/iwch.c |    2 ++
+ 1 files changed, 2 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/infiniband/hw/cxgb3/iwch.c b/drivers/infiniband/hw/cxgb3/iwch.c
+index ee1d8b4..63f975f 100644
+--- a/drivers/infiniband/hw/cxgb3/iwch.c
++++ b/drivers/infiniband/hw/cxgb3/iwch.c
+@@ -189,6 +189,7 @@ static void close_rnic_dev(struct t3cdev *tdev)
+ 	list_for_each_entry_safe(dev, tmp, &dev_list, entry) {
+ 		if (dev->rdev.t3cdev_p == tdev) {
+ 			dev->rdev.flags = CXIO_ERROR_FATAL;
++			synchronize_net();
+ 			cancel_delayed_work_sync(&dev->db_drop_task);
+ 			list_del(&dev->entry);
+ 			iwch_unregister_device(dev);
+@@ -217,6 +218,7 @@ static void iwch_event_handler(struct t3cdev *tdev, u32 evt, u32 port_id)
+ 	switch (evt) {
+ 	case OFFLOAD_STATUS_DOWN: {
+ 		rdev->flags = CXIO_ERROR_FATAL;
++		synchronize_net();
+ 		event.event  = IB_EVENT_DEVICE_FATAL;
+ 		dispatch = 1;
+ 		break;
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
