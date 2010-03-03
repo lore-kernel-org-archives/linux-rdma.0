@@ -1,49 +1,74 @@
-From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: [PATCH] RDMA/cxgb3: wait at least one schedule cycle during device
-	removal.
-Date: Wed, 03 Mar 2010 09:06:34 -0600
-Message-ID: <20100303150633.11256.9555.stgit@build.ogc.int>
+From: Mike Heinz <michael.heinz-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH] infiniband-diags perfquery too noisy.
+Date: Wed, 3 Mar 2010 09:13:30 -0600
+Message-ID: <4C2744E8AD2982428C5BFE523DF8CDCB477C9726BB@MNEXMB1.qlogic.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed;
+	boundary="_002_4C2744E8AD2982428C5BFE523DF8CDCB477C9726BBMNEXMB1qlogic_"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, wenxiong-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org
+To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-During a hot-plug LLD removal event or an EEH error event, iw_cxgb3
-must ensure that any/all threads that might be in a cxgb3 exported function
-concurrently must return from the function before iw_cxgb3 returns from
-its event processing. Do this by calling synchronize_net().
+--_002_4C2744E8AD2982428C5BFE523DF8CDCB477C9726BBMNEXMB1qlogic_
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 
-Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
----
+When perfquery is run against fabrics that do not support PortXmitWait, it
+emits this warning for every port:
 
- drivers/infiniband/hw/cxgb3/iwch.c |    2 ++
- 1 files changed, 2 insertions(+), 0 deletions(-)
+ibwarn: [23225] dump_perfcounters: PortXmitWait not indicated so ignore thi=
+s
+counter
 
-diff --git a/drivers/infiniband/hw/cxgb3/iwch.c b/drivers/infiniband/hw/cxgb3/iwch.c
-index ee1d8b4..63f975f 100644
---- a/drivers/infiniband/hw/cxgb3/iwch.c
-+++ b/drivers/infiniband/hw/cxgb3/iwch.c
-@@ -189,6 +189,7 @@ static void close_rnic_dev(struct t3cdev *tdev)
- 	list_for_each_entry_safe(dev, tmp, &dev_list, entry) {
- 		if (dev->rdev.t3cdev_p == tdev) {
- 			dev->rdev.flags = CXIO_ERROR_FATAL;
-+			synchronize_net();
- 			cancel_delayed_work_sync(&dev->db_drop_task);
- 			list_del(&dev->entry);
- 			iwch_unregister_device(dev);
-@@ -217,6 +218,7 @@ static void iwch_event_handler(struct t3cdev *tdev, u32 evt, u32 port_id)
- 	switch (evt) {
- 	case OFFLOAD_STATUS_DOWN: {
- 		rdev->flags = CXIO_ERROR_FATAL;
-+		synchronize_net();
- 		event.event  = IB_EVENT_DEVICE_FATAL;
- 		dispatch = 1;
- 		break;
+When running ibcheckerrors on a large fabric, this leads to a flood of
+warnings.
 
+The proposed patch reduces the warning to a verbose message and, on fabrics=
+ that do not support PortXmitWait, it suppresses the output of the XmitWait=
+ attribute.
+
+I've also included this patch in PR 1970 on the openfabrics bugzilla.
+
+
+--_002_4C2744E8AD2982428C5BFE523DF8CDCB477C9726BBMNEXMB1qlogic_
+Content-Type: application/octet-stream; name="perfquery.patch"
+Content-Description: perfquery.patch
+Content-Disposition: attachment; filename="perfquery.patch"; size=1485;
+	creation-date="Mon, 01 Mar 2010 11:33:26 GMT";
+	modification-date="Mon, 01 Mar 2010 11:33:26 GMT"
+Content-Transfer-Encoding: base64
+
+LS0tIC9ob21lL21oZWluei93b3JrL09GRURfU1JDL2luZmluaWJhbmQtZGlhZ3MtMS41LjUvc3Jj
+L3BlcmZxdWVyeS5jCTIwMDktMTItMTUgMDk6MDM6MTYuMDAwMDAwMDAwIC0wNTAwCisrKyBwZXJm
+cXVlcnkuYwkyMDEwLTAzLTAxIDExOjQ1OjA2LjQ0MTIxNzAwMCAtMDUwMApAQCAtMjgyLDYgKzI4
+MiwyNSBAQAogCSAgICAgICBBTExfUE9SVFMsIGJ1Zik7CiB9CiAKK3N0YXRpYyBpbnQgZHVtcF9m
+aWVsZHMoY2hhciAqYnVmLCBpbnQgYnVmc3osIHZvaWQgKmRhdGEsIGludCBzdGFydCwgaW50IGVu
+ZCkKK3sKKwljaGFyIHZhbFs2NF07CisJY2hhciAqcyA9IGJ1ZjsKKwlpbnQgbiwgZmllbGQ7CisJ
+Zm9yIChmaWVsZCA9IHN0YXJ0OyBmaWVsZCA8PSBlbmQgJiYgYnVmc3ogPiAwOyBmaWVsZCsrKSB7
+CisJCW1hZF9kZWNvZGVfZmllbGQoZGF0YSwgZmllbGQsIHZhbCk7CisJCWlmICghbWFkX2R1bXBf
+ZmllbGQoZmllbGQsIHMsIGJ1ZnN6LCB2YWwpKQorCQkJcmV0dXJuIC0xOworCQluID0gc3RybGVu
+KHMpOworCQlzICs9IG47CisJCSpzKysgPSAnXG4nOworCQkqcyA9IDA7CisJCW4rKzsKKwkJYnVm
+c3ogLT0gbjsKKwl9CisJcmV0dXJuIChpbnQpKHMgLSBidWYpOworfQorCiBzdGF0aWMgdm9pZCBk
+dW1wX3BlcmZjb3VudGVycyhpbnQgZXh0ZW5kZWQsIGludCB0aW1lb3V0LCB1aW50MTZfdCBjYXBf
+bWFzaywKIAkJCSAgICAgIGliX3BvcnRpZF90ICogcG9ydGlkLCBpbnQgcG9ydCwgaW50IGFnZ3Jl
+Z2F0ZSkKIHsKQEAgLTI5Myw4ICszMTIsNyBAQAogCQkJSUJFUlJPUigicGVyZnF1ZXJ5Iik7CiAJ
+CWlmICghKGNhcF9tYXNrICYgMHgxMDAwKSkgewogCQkJLyogaWYgUG9ydENvdW50ZXJzOlBvcnRY
+bWl0V2FpdCBub3Qgc3VwcG9ydGVkIGNsZWFyIHRoaXMgY291bnRlciAqLwotCQkJSUJXQVJOCi0J
+CQkgICAgKCJQb3J0WG1pdFdhaXQgbm90IGluZGljYXRlZCBzbyBpZ25vcmUgdGhpcyBjb3VudGVy
+Iik7CisJCQlWRVJCT1NFKCJQb3J0WG1pdFdhaXQgbm90IGluZGljYXRlZCBzbyBpZ25vcmUgdGhp
+cyBjb3VudGVyIik7CiAJCQlwZXJmX2NvdW50LnhtdHdhaXQgPSAwOwogCQkJbWFkX2VuY29kZV9m
+aWVsZChwYywgSUJfUENfWE1UX1dBSVRfRiwKIAkJCQkJICZwZXJmX2NvdW50LnhtdHdhaXQpOwpA
+QCAtMzAyLDcgKzMyMCw4IEBACiAJCWlmIChhZ2dyZWdhdGUpCiAJCQlhZ2dyZWdhdGVfcGVyZmNv
+dW50ZXJzKCk7CiAJCWVsc2UKLQkJCW1hZF9kdW1wX3BlcmZjb3VudGVycyhidWYsIHNpemVvZiBi
+dWYsIHBjLCBzaXplb2YgcGMpOworCQkJZHVtcF9maWVsZHMoYnVmLCBzaXplb2YgYnVmLCBwYywg
+SUJfUENfRklSU1RfRiwKKwkJCQkoY2FwX21hc2sgJiAweDEwMDApP0lCX1BDX0xBU1RfRjpJQl9Q
+Q19SQ1ZfUEtUU19GKTsKIAl9IGVsc2UgewogCQlpZiAoIShjYXBfbWFzayAmIDB4MjAwKSkJLyog
+MS4yIGVycmF0YTogYml0IDkgaXMgZXh0ZW5kZWQgY291bnRlciBzdXBwb3J0ICovCiAJCQlJQldB
+Uk4K
+
+--_002_4C2744E8AD2982428C5BFE523DF8CDCB477C9726BBMNEXMB1qlogic_--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
