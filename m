@@ -1,70 +1,46 @@
-From: Chien Tung <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH] RDMA/nes: clear stall bit before destroying nic qp
-Date: Wed, 3 Mar 2010 13:13:28 -0600
-Message-ID: <20100303191328.GA4272@ctung-MOBL>
+From: Vladislav Bolkhovitin <vst-d+Crzxg7Rs0@public.gmane.org>
+Subject: Re: SRP initiator and iSER initiator performance
+Date: Wed, 03 Mar 2010 23:23:05 +0300
+Message-ID: <4B8EC529.9010202@vlnb.net>
+References: <e2e108261002271127x253faa84lf6eb8aa77d3cf51a@mail.gmail.com>	 <4B8C1FBF.8060001@vlnb.net> <e2e108261003012259o7c9b217j5011006e3a772d6a@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <e2e108261003012259o7c9b217j5011006e3a772d6a-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Cc: Chris Worley <worleys-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, David Dillow <dave-i1Mk8JYDVaaSihdK6806/g@public.gmane.org>, OFED mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, scst-devel <scst-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+Bart Van Assche, on 03/02/2010 09:59 AM wrote:
+> On Mon, Mar 1, 2010 at 9:12 PM, Vladislav Bolkhovitin <vst-d+Crzxg7Rs0@public.gmane.org> wrote:
+>> [ ... ]
+>> It's good if my impression was wrong. But you've got suspiciously low IOPS
+>> numbers. On your hardware you should have much more. Seems you experienced a
+>> bottleneck on the initiator somewhere above the drivers level (fio? sg
+>> engine? IRQs or context switches count?), so your results could be not
+>> really related to the topic. Oprofile and lockstat output can shed more
+>> light on this.
+> 
+> You didn't understand the purpose of the test. My goal was not to
+> achieve record IOPS numbers but to stress the SRP and iSER initiators
+> as much as possible. I choose the sg I/O engine in order to bypass the
+> block layer.
 
-Clear the stall bit to drop any incoming packets while destroying
-nic qp.  This will prevent a chip resource leak.
+No, Bart, I understood your purpose very well. I'll illustrate my point 
+on example. Let's consider we want to compare a Ferrari and Toyota 
+Corolla cars. The only track we have to use has 60km/h speed limit, so 
+we used it strictly following the speed limit. Would we have a correct 
+comparison of the cars' capabilities, or would we compare only their 
+speedometers' mistakes? If Toyota's speedometer allows to stay more 
+closely to the limit, Toyota can win Ferrari. But would it win too on 
+180 km/h limit? Or without speed limit at all?
 
-Signed-off-by: Chien Tung <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
----
- drivers/infiniband/hw/nes/nes_hw.c |    8 ++++++++
- drivers/infiniband/hw/nes/nes_hw.h |    1 +
- 2 files changed, 9 insertions(+), 0 deletions(-)
+The same is in our topic. We can consider your experiment correct only 
+if the bottleneck is driver/hardware, which isn't likely to be.
 
-diff --git a/drivers/infiniband/hw/nes/nes_hw.c b/drivers/infiniband/hw/nes/nes_hw.c
-index ce7f538..9250755 100644
---- a/drivers/infiniband/hw/nes/nes_hw.c
-+++ b/drivers/infiniband/hw/nes/nes_hw.c
-@@ -1899,9 +1899,14 @@ void nes_destroy_nic_qp(struct nes_vnic *nesvnic)
- 	u16  wqe_fragment_index;
- 	u64 wqe_frag;
- 	u32 cqp_head;
-+	u32 wqm_cfg0;
- 	unsigned long flags;
- 	int ret;
- 
-+	/* clear wqe stall before destroying NIC QP */
-+	wqm_cfg0 = nes_read_indexed(nesdev, NES_IDX_WQM_CONFIG0);
-+	nes_write_indexed(nesdev, NES_IDX_WQM_CONFIG0, wqm_cfg0 & 0xFFFF7FFF);
-+
- 	/* Free remaining NIC receive buffers */
- 	while (nesvnic->nic.rq_head != nesvnic->nic.rq_tail) {
- 		nic_rqe   = &nesvnic->nic.rq_vbase[nesvnic->nic.rq_tail];
-@@ -2020,6 +2025,9 @@ void nes_destroy_nic_qp(struct nes_vnic *nesvnic)
- 
- 	pci_free_consistent(nesdev->pcidev, nesvnic->nic_mem_size, nesvnic->nic_vbase,
- 			nesvnic->nic_pbase);
-+
-+	/* restore old wqm_cfg0 value */
-+	nes_write_indexed(nesdev, NES_IDX_WQM_CONFIG0, wqm_cfg0);
- }
- 
- /**
-diff --git a/drivers/infiniband/hw/nes/nes_hw.h b/drivers/infiniband/hw/nes/nes_hw.h
-index 9b1e7f8..bbbfe9f 100644
---- a/drivers/infiniband/hw/nes/nes_hw.h
-+++ b/drivers/infiniband/hw/nes/nes_hw.h
-@@ -160,6 +160,7 @@ enum indexed_regs {
- 	NES_IDX_ENDNODE0_NSTAT_TX_OCTETS_HI = 0x7004,
- 	NES_IDX_ENDNODE0_NSTAT_TX_FRAMES_LO = 0x7008,
- 	NES_IDX_ENDNODE0_NSTAT_TX_FRAMES_HI = 0x700c,
-+	NES_IDX_WQM_CONFIG0 = 0x5000,
- 	NES_IDX_WQM_CONFIG1 = 0x5004,
- 	NES_IDX_CM_CONFIG = 0x5100,
- 	NES_IDX_NIC_LOGPORT_TO_PHYPORT = 0x6000,
--- 
-1.6.4.2
-
+Vlad
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
