@@ -1,96 +1,62 @@
-From: Josh England <jjengla-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: IPoIB issues
-Date: Wed, 3 Mar 2010 16:38:30 -0800
-Message-ID: <a72123c41003031638g11f0bae6kf4c79da755d52eb3@mail.gmail.com>
-References: <a72123c41003021354y7880e74cud26d6010f23f9458@mail.gmail.com>
-	 <20100303122937.GA1689@mtldesk030.lab.mtl.com>
+From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Subject: Re: SRP initiator and iSER initiator performance
+Date: Thu, 4 Mar 2010 08:03:02 +0100
+Message-ID: <e2e108261003032303g972b373t38886e5e8ad393bd@mail.gmail.com>
+References: <e2e108261002271127x253faa84lf6eb8aa77d3cf51a@mail.gmail.com>
+	 <4B8C1FBF.8060001@vlnb.net>
+	 <e2e108261003011238h331e473bge905b8ea695f7483@mail.gmail.com>
+	 <4B8EC526.4060006@vlnb.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20100303122937.GA1689-8YAHvHwT2UEvbXDkjdHOrw/a8Rv0c6iv@public.gmane.org>
+In-Reply-To: <4B8EC526.4060006-d+Crzxg7Rs0@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Vladislav Bolkhovitin <vst-d+Crzxg7Rs0@public.gmane.org>
+Cc: Chris Worley <worleys-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, David Dillow <dave-i1Mk8JYDVaaSihdK6806/g@public.gmane.org>, OFED mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, scst-devel <scst-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-I've applied the patch and initial testing has not produced any
-transmit timeout errors.  I'll be doing some heavier testing in the
-next couple days, but it looks good so far.  Thanks for the quick
-turn-around!
-
--JE
-
-On Wed, Mar 3, 2010 at 4:29 AM, Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wrot=
-e:
-> I just posted a patch which might fix your problem. Please try it and
-> let us know if it fixed anything.
+On Wed, Mar 3, 2010 at 9:23 PM, Vladislav Bolkhovitin <vst-d+Crzxg7Rs0@public.gmane.org> wr=
+ote:
+> Bart Van Assche, on 03/01/2010 11:38 PM wrote:
+>>
+>> On Mon, Mar 1, 2010 at 9:12 PM, Vladislav Bolkhovitin <vst-d+Crzxg7Rs0@public.gmane.org
+>> <mailto:vst-d+Crzxg7Rs0@public.gmane.org>> wrote:
+>>
+>> =A0 =A0[ ... ]
+>> =A0 =A0It's good if my impression was wrong. But you've got suspicio=
+usly
+>> =A0 =A0low IOPS numbers. On your hardware you should have much more.=
+ Seems
+>> =A0 =A0you experienced a bottleneck on the initiator somewhere above=
+ the
+>> =A0 =A0drivers level (fio? sg engine? IRQs or context switches count=
+?), so
+>> =A0 =A0your results could be not really related to the topic. Oprofi=
+le and
+>> =A0 =A0lockstat output can shed more light on this.
+>>
+>>
+>> The number of IOPS I obtained is really high considering that I used=
+ the
+>> sg I/O engine. This means that no buffering has been used and none o=
+f the
+>> I/O requests were combined into larger requests. I chose the sg I/O =
+engine
+>> on purpose in order to bypass the block layer. I was not interested =
+in
+>> record IOPS numbers but in a test where most of the time is spent in=
+ the SRP
+>> / iSER initiator instead of the block layer.
 >
-> On Tue, Mar 02, 2010 at 01:54:09PM -0800, Josh England wrote:
->> Hello,
->>
->> I've been running into several issues using IPoIB. =A0The 2 primary =
-uses
->> are for read-only NFS to the clients (over TCP) and access to an
->> ethernet-connected parallel filesystem (Panasas) through router node=
-s
->> passing IPoIB<-->10GbE.
->>
->> All nodes are running CentOS 5.3 and OFED 1.4.2, although a have pla=
-yed
->> with OFED 1.5 and seen similar results. =A0Client nodes mount their =
-NFS root
->> from boot servers via IPoIB with a ratio of 80:1. =A0The boot server=
-s are the
->> ones that seem to have issues. =A0The fabric itself consists of ~100=
-0 nodes
->> interconnected such that their is 2:1 oversubscription within any si=
-ngle rack,
->> and 20:1 oversubscription between racks (through the core switch). =A0=
-I
->> don't know how much the oversubscription comes into play here as I c=
-an
->> reproduce the error within a single rack.
->>
->> In datagram mode, I see errors on the boot servers of the form.
->>
->> ib0: post_send failed
->> ib0: post_send failed
->> ib0: post_send failed
->>
->>
->> When using connected mode, I hit a different error:
->>
->> NETDEV WATCHDOG: ib0: transmit timed out
->> ib0: transmit timeout: latency 1999 msecs
->> ib0: queue stopped 1, tx_head 2154042680, tx_tail 2154039464
->> NETDEV WATCHDOG: ib0: transmit timed out
->> ib0: transmit timeout: latency 2999 msecs
->> ib0: queue stopped 1, tx_head 2154042680, tx_tail 2154039464
->> ...
->> ...
->> NETDEV WATCHDOG: ib0: transmit timed out
->> ib0: transmit timeout: latency 61824999 msecs
->> ib0: queue stopped 1, tx_head 2154042680, tx_tail 2154039464
->>
->>
->> The errors seem to hit only after NFS comes into play. =A0Once it
->> starts, the NETDEV WATCHDOG messages continue until I run
->> 'ifconfig ib0 down up'. =A0I've tried tuning send_queue_size and
->> recv_queue_size on both sides, the txqueuelen of the ib0 interface, =
-the
->> NFS rsize/wsize. =A0None of it seems to help greatly. =A0Does anyone=
- have
->> any ideas about what can I do to try to fix
->> these problems?
->>
->> -JE
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-rdma=
-" in
->> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
->
+> 116K IOPS'es isn't high, it's pretty low for QDR IB. [ ... ]
+
+It looks like it's time that you make yourself familiar with the
+difference between CPU-bound, I/O bound and memory bound. It is
+essential to understand this terminology before starting to comment on
+performance tests.
+
+Bart.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
 n
