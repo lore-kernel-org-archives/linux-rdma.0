@@ -1,7 +1,7 @@
 From: Or Gerlitz <ogerlitz-hKgKHo2Ms0FWk0Htik3J/w@public.gmane.org>
 Subject: Re: [PATCH 1/2] ib/ipoib: allow disabling/enabling TSO through	ethtool
-Date: Thu, 04 Mar 2010 16:42:48 +0200
-Message-ID: <4B8FC6E8.9000009@Voltaire.com>
+Date: Thu, 04 Mar 2010 17:13:54 +0200
+Message-ID: <4B8FCE32.3090808@Voltaire.com>
 References: <Pine.LNX.4.64.1003041516300.2755@zuben.voltaire.com> <20100304134018.GA17107@mtldesk030.lab.mtl.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
@@ -16,9 +16,18 @@ List-Id: linux-rdma@vger.kernel.org
 Eli Cohen wrote:
 > I believe dev->features should be protected by rtnl lock.
 
-okay, will fix, thanks
+NAK.
+
+ethtool issues the SIOCETHTOOL ioctl which goes to net/core/dev.c :: dev_ioctl who in turn
+wraps the call to dev_ethtool with rtnl_lock/unlock, see below. I have also verified this in practice, that is rtnl_trylock() always fails if called from ipoib ethtool code
 
 Or.
+
+>         case SIOCETHTOOL:
+>                 dev_load(net, ifr.ifr_name);
+>                 rtnl_lock();
+>                 ret = dev_ethtool(net, &ifr);
+>                 rtnl_unlock();
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
