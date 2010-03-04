@@ -1,64 +1,61 @@
-From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Subject: Re: SRP initiator and iSER initiator performance
-Date: Thu, 4 Mar 2010 08:03:02 +0100
-Message-ID: <e2e108261003032303g972b373t38886e5e8ad393bd@mail.gmail.com>
-References: <e2e108261002271127x253faa84lf6eb8aa77d3cf51a@mail.gmail.com>
-	 <4B8C1FBF.8060001@vlnb.net>
-	 <e2e108261003011238h331e473bge905b8ea695f7483@mail.gmail.com>
-	 <4B8EC526.4060006@vlnb.net>
+From: Or Gerlitz <ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH 1/2] ib/ipoib: allow disabling/enabling TSO through ethtool
+Date: Thu, 4 Mar 2010 15:16:52 +0200 (IST)
+Message-ID: <Pine.LNX.4.64.1003041516300.2755@zuben.voltaire.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4B8EC526.4060006-d+Crzxg7Rs0@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Vladislav Bolkhovitin <vst-d+Crzxg7Rs0@public.gmane.org>
-Cc: Chris Worley <worleys-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, David Dillow <dave-i1Mk8JYDVaaSihdK6806/g@public.gmane.org>, OFED mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, scst-devel <scst-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Mar 3, 2010 at 9:23 PM, Vladislav Bolkhovitin <vst-d+Crzxg7Rs0@public.gmane.org> wr=
-ote:
-> Bart Van Assche, on 03/01/2010 11:38 PM wrote:
->>
->> On Mon, Mar 1, 2010 at 9:12 PM, Vladislav Bolkhovitin <vst-d+Crzxg7Rs0@public.gmane.org
->> <mailto:vst-d+Crzxg7Rs0@public.gmane.org>> wrote:
->>
->> =A0 =A0[ ... ]
->> =A0 =A0It's good if my impression was wrong. But you've got suspicio=
-usly
->> =A0 =A0low IOPS numbers. On your hardware you should have much more.=
- Seems
->> =A0 =A0you experienced a bottleneck on the initiator somewhere above=
- the
->> =A0 =A0drivers level (fio? sg engine? IRQs or context switches count=
-?), so
->> =A0 =A0your results could be not really related to the topic. Oprofi=
-le and
->> =A0 =A0lockstat output can shed more light on this.
->>
->>
->> The number of IOPS I obtained is really high considering that I used=
- the
->> sg I/O engine. This means that no buffering has been used and none o=
-f the
->> I/O requests were combined into larger requests. I chose the sg I/O =
-engine
->> on purpose in order to bypass the block layer. I was not interested =
-in
->> record IOPS numbers but in a test where most of the time is spent in=
- the SRP
->> / iSER initiator instead of the block layer.
->
-> 116K IOPS'es isn't high, it's pretty low for QDR IB. [ ... ]
+allow disabling/enabling TSO on the fly by ethtool
 
-It looks like it's time that you make yourself familiar with the
-difference between CPU-bound, I/O bound and memory bound. It is
-essential to understand this terminology before starting to comment on
-performance tests.
+Signed-off-by: Or Gerlitz <ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org>
 
-Bart.
+---
+ drivers/infiniband/ulp/ipoib/ipoib_ethtool.c |   19 +++++++++++++++++++
+ 1 file changed, 19 insertions(+)
+
+Index: linux-2.6.33/drivers/infiniband/ulp/ipoib/ipoib_ethtool.c
+===================================================================
+--- linux-2.6.33.orig/drivers/infiniband/ulp/ipoib/ipoib_ethtool.c
++++ linux-2.6.33/drivers/infiniband/ulp/ipoib/ipoib_ethtool.c
+@@ -49,6 +49,24 @@ static u32 ipoib_get_rx_csum(struct net_
+ 		!test_bit(IPOIB_FLAG_ADMIN_CM, &priv->flags);
+ }
+
++static int ipoib_set_tso(struct net_device *dev, u32 data)
++{
++	struct ipoib_dev_priv *priv = netdev_priv(dev);
++
++	if (data) {
++		if (!test_bit(IPOIB_FLAG_ADMIN_CM, &priv->flags) &&
++			(dev->features & NETIF_F_SG) &&
++				(priv->hca_caps & IB_DEVICE_UD_TSO))
++			dev->features |= NETIF_F_TSO;
++		else {
++			ipoib_warn(priv, "can't set TSO on\n");
++			return -EOPNOTSUPP;
++		}
++	} else
++		dev->features &= ~NETIF_F_TSO;
++	return 0;
++}
++
+ static int ipoib_get_coalesce(struct net_device *dev,
+ 			      struct ethtool_coalesce *coal)
+ {
+@@ -131,6 +149,7 @@ static void ipoib_get_ethtool_stats(stru
+ static const struct ethtool_ops ipoib_ethtool_ops = {
+ 	.get_drvinfo		= ipoib_get_drvinfo,
+ 	.get_rx_csum		= ipoib_get_rx_csum,
++	.set_tso		= ipoib_set_tso,
+ 	.get_coalesce		= ipoib_get_coalesce,
+ 	.set_coalesce		= ipoib_set_coalesce,
+ 	.get_flags		= ethtool_op_get_flags,
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
