@@ -1,38 +1,32 @@
-From: "Sean Hefty" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: Simplified iWARP Consumer Library
-Date: Fri, 5 Mar 2010 16:07:03 -0800
-Message-ID: <34C415061F244870BB8A526637CD04B0@amr.corp.intel.com>
-References: <4B796BBD.5050007@inf.ethz.ch> <02600C74DFEE41EFAD9D387CF5A837CC@amr.corp.intel.com> <4B91913C.8000705@inf.ethz.ch>
+From: "Davis, Arlin R" <arlin.r.davis-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH] dapl: fix ring buffer synchronization
+Date: Sat, 6 Mar 2010 16:21:56 -0800
+Message-ID: <E3280858FA94444CA49D2BA02341C983B5D1459C@orsmsx506.amr.corp.intel.com>
+References: <FAC9FE73F3AF47139AB1D34495A67D94@amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4B91913C.8000705-gy3b+zu4XSAfv37vnLkPlQ@public.gmane.org>
+In-Reply-To: <FAC9FE73F3AF47139AB1D34495A67D94-Zpru7NauK7drdx17CPfAsdBPR1lH4CV8@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: phil-dElbnslWKco@public.gmane.org
-Cc: rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org, bmt-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "ofw-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org" <ofw-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: "Smith, Stan" <stan.smith-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
->I'll have to look into that. So far, the library was intended as an add-on
->to the existing code with the option to fall back to the original API if
->need be.
+ 
+>The dapl ring buffer implementation is not thread safe.  Replace
+>the use of atomic variables with actual locking to ensure that
+>there are not races inserting and/or removing items at the same time.
+>
+>Without proper synchronization, the EVD can report invalid events or
+>the same event multiple times.
+>
 
-I think we keep this concept.
+Event synchronization is provided with EVD locking around every rbuf_ call.
+Did you find a case that is missing locking?
 
->Which of the features would you want to see in librdmacm? I guess the
->integration of the cm_id and qp as well as the simpler (synchronous) connection
->establishment and teardown functionality would fit. However, all cm events
->will thereafter be handled within the library rather than being presented to
->the user. Does that make sense?
-
-I wasn't thinking about replacing existing calls, but rather adding new
-functions.  I would start with just trying to integrate one feature, probably
-the simpler connection model for the active side, then look to expand from
-there.
-
-- Sean
-
+-arlin
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
