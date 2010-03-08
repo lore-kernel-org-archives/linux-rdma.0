@@ -1,32 +1,26 @@
-From: "Davis, Arlin R" <arlin.r.davis-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+From: "Sean Hefty" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Subject: RE: [PATCH] dapl: fix ring buffer synchronization
-Date: Sat, 6 Mar 2010 16:21:56 -0800
-Message-ID: <E3280858FA94444CA49D2BA02341C983B5D1459C@orsmsx506.amr.corp.intel.com>
-References: <FAC9FE73F3AF47139AB1D34495A67D94@amr.corp.intel.com>
+Date: Sun, 7 Mar 2010 21:04:10 -0800
+Message-ID: <88F96DBEF37C4CE595653116D75C6942@amr.corp.intel.com>
+References: <FAC9FE73F3AF47139AB1D34495A67D94@amr.corp.intel.com> <E3280858FA94444CA49D2BA02341C983B5D1459C@orsmsx506.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <FAC9FE73F3AF47139AB1D34495A67D94-Zpru7NauK7drdx17CPfAsdBPR1lH4CV8@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <E3280858FA94444CA49D2BA02341C983B5D1459C-osO9UTpF0URZtRGVdHMbwrfspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "ofw-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org" <ofw-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: "Davis, Arlin R" <arlin.r.davis-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, ofw-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: "Smith, Stan" <stan.smith-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
- 
->The dapl ring buffer implementation is not thread safe.  Replace
->the use of atomic variables with actual locking to ensure that
->there are not races inserting and/or removing items at the same time.
->
->Without proper synchronization, the EVD can report invalid events or
->the same event multiple times.
->
+>Event synchronization is provided with EVD locking around every rbuf_ call.
+>Did you find a case that is missing locking?
 
-Event synchronization is provided with EVD locking around every rbuf_ call.
-Did you find a case that is missing locking?
+If ring buffers are only used by EVDs and the locking must be provided at a
+higher level, then I'll remove the atomics and submit a patch under that
+assumption.
 
--arlin
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
