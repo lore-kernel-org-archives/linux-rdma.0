@@ -1,42 +1,47 @@
-From: "Davis, Arlin R" <arlin.r.davis-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: got DAT_INVALID_STATE_LMR_IN_USE with dapltest
-Date: Mon, 8 Mar 2010 12:34:57 -0800
-Message-ID: <E3280858FA94444CA49D2BA02341C983B5D14D35@orsmsx506.amr.corp.intel.com>
-References: <bb7677341003051038g60e537bft9bddaf57f24b0238@mail.gmail.com>
- <bb7677341003080045k7ff9c620i5e07f0c63004a492@mail.gmail.com>
+From: Eli Dorfman <dorfman.eli-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: add support of reload net topology file
+Date: Mon, 8 Mar 2010 23:51:36 +0200
+Message-ID: <694d48601003081351o2f661356seb17364cf5d734f9@mail.gmail.com>
+References: <4B7C0256.7080505@voltaire.com> <20100227152212.GG13592@me>
+	 <4B8BDF87.3020107@gmail.com> <20100302163511.GL13592@me>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <bb7677341003080045k7ff9c620i5e07f0c63004a492-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <20100302163511.GL13592@me>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: =?utf-8?B?4KSF4KSo4KWB4KSc?= <anuj01-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: Devesh Sharma <devesh28-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Aniket Agashe <agasheac-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, yogeshwar sonawane <yogyas-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+To: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+Cc: Doron Shoham <dorons-smomgflXvOZWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-IA0KDQo+SSB0cmllZCB0byBydW4gZGFwbHRlc3QgdXRpbGl0eSBmcm9tIE9GRUQuIEJ1dCBnb3Qg
-dGhlIG91dHB1dCBiZWxvdy4NCj7CoEFueSBjbHVlcyB3aHkgSSBnb3QgdGhpcyBlcnJvciBhbmQg
-aG93IGNhbiBJIHJlc29sdmUgdGhhdD8NCj4NCj5JIGFtIGhhdmluZyBzb21lIGJhY2tncm91bmQg
-b2YgSUIgdXZlcmJzLiBCdXQgSSdtIG5ldyB0byB1ZGFwbC4gU28gcGx6DQo+Y29ycmVjdCBtZSBp
-ZiBtIHdyb25nLg0KPg0KPkFzIHBlciBteSBrbm93bGVkZ2UsIGlmIHRoZXJlIGlzIGR1cGxpY2F0
-ZWQgbG1yIGNvbnRleHQgd2hpbGUNCj5yZWdpc3RlcmluZyB0aGUgbWVtb3J5LA0KPnRoZW4gYmVj
-YXVzZSBvZiB1c2Ugb2YgaGFzaCB0YWJsZXMgaW4gdWRhcGwgaW1wbGVtZW50YXRpb24NCj4oZGFw
-bF9sbXJfY3JlYXRlKSwgd2UgY2FuIGdldCBEQVRfSU5WQUxJRF9TVEFURV9MTVJfSU5fVVNFLg0K
-Pm0gSSByaWdodD8NCj5BbmQgaWYgeWVzLCB0aGVuIGlmIHVuZGVybHlpbmcgbmV0d29yayAoZHJp
-dmVyK2hjYSkgaXMgc3VjaCB0aGF0IGl0DQo+Y2FuIGdlbmVyYXRlIHRoZSBzYW1lIGxtciBjb250
-ZXh0IGZvcg0KPmRpZmZlcmVudCBtZW1vcnkgcmVnaW9ucyBiZWluZyByZWdpc3RlcmVkICggYW5k
-IGNhbiBhbHNvIHJlcHJlc2VudA0KPnRoYXQgcmVnaXN0ZXJlZCBtZW1vcnkgcmVnaW9uIHVuaXF1
-ZWx5DQo+YnkgdGhlIGNvbWJpbmF0aW9uIG9mIG1lbW9yeSByZWdpb24gdmlydHVhbCBhZGRyZXNz
-IChWQSkgYW5kIGxtcg0KPmNvbnRleHQuIFRoZW4gaW4gdGhpcyBjYXNlIGhvdyB0aGUgYWJvdmUg
-bWVudGlvbmVkIHByb2JsZW0NCj5jYW4gYmUgcmVzb2x2ZWQ/IEFueSBzdWdnZXN0aW9ucz8NCg0K
-V2hhdCBkZXZpY2UgYXJlIHlvdSB1c2luZz8gSSBoYXZlbid0IHJ1biBpbnRvIGEgZGV2aWNlIHll
-dCB0aGF0DQpkaWRuJ3QgZ2l2ZSB1bmlxdWUgbGtleSdzLiANCg0KSW4gYW55IGNhc2UsIHRoaXMg
-bG9va3MgYSBsaXR0bGUgcmVzdHJpY3RpdmUgd2l0aCBqdXN0IGxrZXkgaW5zdGVhZA0Kb2YgbGtl
-eSthZGRyZXNzLiBJbiBmYWN0LCBub3Qgc3VyZSBpZiB0aGlzIGNoZWNrIGlzIG5lZWRlZCBhdCBh
-bGwgDQpvbiB0b3Agb2YgdmVyYnMuDQoNCkkgd2lsbCB0YWtlIGEgY2xvc2VyIGxvb2sgYW5kIGdl
-dCBiYWNrIHRvIHlvdS4NCg0KLWFybGluDQoNCg0KDQogDQoNCg==
+On Tue, Mar 2, 2010 at 6:35 PM, Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org> =
+wrote:
+> On 17:38 Mon 01 Mar =C2=A0 =C2=A0 , Eli Dorfman (Voltaire) wrote:
+>> We can add the trap generation to this patch.
+>> what do you think?
+>
+> I think that if you need this feature than it should be implemented
+> correctly (without assumptions that use can provide a "proper" files)=
+,
+> this should include some sort of connected client handling (in case i=
+f
+> its port disappear it could be disconnected for example).
+
+We can verify local port is still available.
+
+>
+> For me it would seem more like topology "merge" rather then "reload"
+> feature.
+
+So if we call this option "merge" with local port validation this will
+be acceptable?
+
+Eli
+>
+> Sasha
+>
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
