@@ -1,36 +1,30 @@
-From: Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: infiniband-diags/ibstat.c: print link layer for RoCEE support
-Date: Tue, 09 Mar 2010 12:41:15 +0200
-Message-ID: <4B9625CB.5040700@dev.mellanox.co.il>
+From: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+Subject: Re: add support of reload net topology file
+Date: Tue, 9 Mar 2010 17:03:23 +0200
+Message-ID: <20100309150323.GJ6026@me>
+References: <4B7C0256.7080505@voltaire.com>
+ <20100227152212.GG13592@me>
+ <4B8BDF87.3020107@gmail.com>
+ <20100302163511.GL13592@me>
+ <694d48601003081351o2f661356seb17364cf5d734f9@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <694d48601003081351o2f661356seb17364cf5d734f9-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>, Linux RDMA <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Eli Dorfman <dorfman.eli-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Doron Shoham <dorons-smomgflXvOZWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+On 23:51 Mon 08 Mar     , Eli Dorfman wrote:
+> 
+> So if we call this option "merge" with local port validation this will
+> be acceptable?
 
-Signed-off-by: Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
----
- infiniband-diags/src/ibstat.c |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
+I was about "logical" action. How a command is named is less critical.
 
-diff --git a/infiniband-diags/src/ibstat.c b/infiniband-diags/src/ibstat.c
-index 987bf2b..c44d8c4 100644
---- a/infiniband-diags/src/ibstat.c
-+++ b/infiniband-diags/src/ibstat.c
-@@ -124,6 +124,7 @@ static int port_dump(umad_port_t * port, int alone)
- 	printf("%sCapability mask: 0x%08x\n", pre, ntohl(port->capmask));
- 	printf("%sPort GUID: 0x%016llx\n", pre,
- 	       (long long unsigned)ntohll(port->port_guid));
-+	printf("%sLink layer: %s\n", pre, port->link_layer);
- 	return 0;
- }
-
--- 
-1.5.1.4
-
+Sasha
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
