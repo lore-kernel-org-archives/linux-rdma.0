@@ -1,72 +1,50 @@
-From: Moni Shoua <monis-hKgKHo2Ms0F+cjeuK/JdrQ@public.gmane.org>
-Subject: Re: IPoIB issues
-Date: Wed, 10 Mar 2010 17:30:38 +0200
-Message-ID: <4B97BB1E.7010900@Voltaire.COM>
-References: <a72123c41003021354y7880e74cud26d6010f23f9458@mail.gmail.com> <20100303122937.GA1689@mtldesk030.lab.mtl.com>
+From: Vladimir Sokolovsky <vlad-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: [PATCH V3 0/2] Add support for enhanced atomic operations
+Date: Wed, 10 Mar 2010 17:57:49 +0200
+Message-ID: <20100310155749.GA25964@vlad-laptop>
+Reply-To: vlad-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20100303122937.GA1689-8YAHvHwT2UEvbXDkjdHOrw/a8Rv0c6iv@public.gmane.org>
+Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: Josh England <jjengla-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Eli Cohen wrote:
-> I just posted a patch which might fix your problem. Please try it and
-> let us know if it fixed anything.
-> 
-Hi Eli
-Although Josh already reported that the patch seems to fix the issue I have a question though.
+Hi Roland,
 
-"post_send failed" prints were during work in datagram mode. I don't know if Josh verified 
-that but I don't expect that these prints would go away, even with the patch. Am I right?
+This patchset adds support for the following enhanced atomic
+operations:
+- Masked atomic compare and swap
+- Masked atomic fetch and add
 
-BTW, what could be the reason for UD QP post_send() failures?
+These operations enable using a smaller amount of memory when using
+multiple locks by using portions of a 64 bit value in an atomic
+operation.
+For some applications the memory savings are very significant. One
+example is fine grain lock implementations for huge data sets. In
+other cases, the benefit is the ability to update multiple fields with
+a single io operation.
 
->>
->> In datagram mode, I see errors on the boot servers of the form.
->>
->> ib0: post_send failed
->> ib0: post_send failed
->> ib0: post_send failed
->>
->>
->> When using connected mode, I hit a different error:
->>
->> NETDEV WATCHDOG: ib0: transmit timed out
->> ib0: transmit timeout: latency 1999 msecs
->> ib0: queue stopped 1, tx_head 2154042680, tx_tail 2154039464
->> NETDEV WATCHDOG: ib0: transmit timed out
->> ib0: transmit timeout: latency 2999 msecs
->> ib0: queue stopped 1, tx_head 2154042680, tx_tail 2154039464
->> ...
->> ...
->> NETDEV WATCHDOG: ib0: transmit timed out
->> ib0: transmit timeout: latency 61824999 msecs
->> ib0: queue stopped 1, tx_head 2154042680, tx_tail 2154039464
->>
->>
->> The errors seem to hit only after NFS comes into play.  Once it
->> starts, the NETDEV WATCHDOG messages continue until I run
->> 'ifconfig ib0 down up'.  I've tried tuning send_queue_size and
->> recv_queue_size on both sides, the txqueuelen of the ib0 interface, the
->> NFS rsize/wsize.  None of it seems to help greatly.  Does anyone have
->> any ideas about what can I do to try to fix
->> these problems?
->>
->> -JE
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
->> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+Vladimir Sokolovsky(2):
+IB/core: Add support for enhanced atomic operations
+mlx4/IB: Add support for enhanced atomic operations
 
+changes from V2:
+- patch #1: 
+  Updated description
+  Renamed:
+        IB_WR_ATOMIC_MASKED_CMP_AND_SWP -> IB_WR_MASKED_ATOMIC_CMP_AND_SWP
+        IB_WR_ATOMIC_MASKED_FETCH_AND_ADD -> IB_WR_MASKED_ATOMIC_FETCH_AND_ADD
+  In the ib_send_wr struct the new fields added before the rkey field
+
+- patch #2:
+  Set IB_DEVICE_MASKED_ATOMIC flag with other flags that get set for
+  all devices
+
+Regards,
+Vladimir
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
