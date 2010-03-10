@@ -1,8 +1,8 @@
 From: "Jim Schutt" <jaschut-4OHPYypu0djtX7QSmKvirg@public.gmane.org>
-Subject: [PATCH v2 02/15] opensm: Allow the routing engine to influence
- SL2VL calculations.
-Date: Wed, 10 Mar 2010 11:06:44 -0700
-Message-ID: <1268244416-20351-3-git-send-email-jaschut@sandia.gov>
+Subject: [PATCH v2 03/15] opensm: Allow the routing engine to
+ participate in path SL calculations.
+Date: Wed, 10 Mar 2010 11:06:45 -0700
+Message-ID: <1268244416-20351-4-git-send-email-jaschut@sandia.gov>
 References: <1268244416-20351-1-git-send-email-jaschut@sandia.gov>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -14,157 +14,228 @@ To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org, eitan-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org, jaschut-4OHPYypu0djtX7QSmKvirg@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Note that the original code assumes that QoS setup is mostly static and
-based only on user configuration.  As a result, there is no provision for
-routing engines that want to compute contributions to the SL2VL maps.
+LASH already does this, in a hard-coded fashion.
 
-Fix this up by adding a callback to struct osm_routing_engine that computes
-a per-port SL2VL map, and call it from the appropriate place in the QoS
-setup path.  Assume that if a routing engine provides a update_sl2vl()
-callback that there will input-port dependence in the SL2VL maps, and
-so do not attempt to use optimized SL2VL map programming even if the
-switch supports it.
+Generalize this by adding a callback to struct osm_routing_engine that
+computes a path SL value, and fix up LASH to use it.
 
-Also need to move the call to osm_qos_setup() in do_sweep() to after the
-call to the routing engine, so that any SL2VL map contributions from the
-routing engine are based on the latest information.  Need to call
-osm_qos_setup() for requested reroute for the same reason.
+This patchset causes the requested or QoS-computed SL value to be passed
+to the routing engine path SL computation as a hint.  In the event the
+routing engine's use of SLs allows it to support more than one QoS level,
+it may be able to make use of the SL hint to do so.
+
+For now, LASH just ignores the hint.
+
+Note that before this change, if LASH was configured and a specific path
+SL value was requested that differed from what LASH needed to route the
+fabric without credit loops, the path SL lookup would fail.  Now LASH's
+SL value is always used.
+
+Possibly the choice between failing a path SL request when it conflicts
+with routing, vs. always providing an SL value that gives a credit-loop-
+free routing, should be user-configurable?
 
 Signed-off-by: Jim Schutt <jaschut-4OHPYypu0djtX7QSmKvirg@public.gmane.org>
 ---
- opensm/include/opensm/osm_opensm.h |   12 ++++++++++++
- opensm/opensm/osm_qos.c            |   27 +++++++++++++++++++++++----
- opensm/opensm/osm_state_mgr.c      |    5 +++--
- 3 files changed, 38 insertions(+), 6 deletions(-)
+ opensm/include/opensm/osm_opensm.h     |    6 +++++
+ opensm/include/opensm/osm_ucast_lash.h |    3 --
+ opensm/opensm/osm_link_mgr.c           |   15 ++++++++-----
+ opensm/opensm/osm_sa_path_record.c     |   34 +++++++++++--------------------
+ opensm/opensm/osm_ucast_lash.c         |    8 +++++-
+ 5 files changed, 33 insertions(+), 33 deletions(-)
 
 diff --git a/opensm/include/opensm/osm_opensm.h b/opensm/include/opensm/osm_opensm.h
-index e97142e..25a6f90 100644
+index 25a6f90..734a6db 100644
 --- a/opensm/include/opensm/osm_opensm.h
 +++ b/opensm/include/opensm/osm_opensm.h
-@@ -126,6 +126,9 @@ struct osm_routing_engine {
- 	int (*build_lid_matrices) (void *context);
- 	int (*ucast_build_fwd_tables) (void *context);
- 	void (*ucast_dump_tables) (void *context);
-+	void (*update_sl2vl)(void *context, IN osm_physp_t *port,
-+			     IN uint8_t in_port_num, IN uint8_t out_port_num,
-+			     IN OUT ib_slvl_table_t *t);
+@@ -129,6 +129,9 @@ struct osm_routing_engine {
+ 	void (*update_sl2vl)(void *context, IN osm_physp_t *port,
+ 			     IN uint8_t in_port_num, IN uint8_t out_port_num,
+ 			     IN OUT ib_slvl_table_t *t);
++	uint8_t (*path_sl)(void *context, IN uint8_t path_sl_hint,
++			   IN const osm_port_t *src_port,
++			   IN const osm_port_t *dst_port);
  	void (*delete) (void *context);
  	struct osm_routing_engine *next;
  };
-@@ -147,6 +150,15 @@ struct osm_routing_engine {
- *	ucast_dump_tables
- *		The callback for dumping unicast routing tables.
+@@ -159,6 +162,9 @@ struct osm_routing_engine {
+ *		which part of the SL2VL map to update.  For router/HCA ports,
+ *		in_port_num/out_port_num should be ignored.
  *
-+*	update_sl2vl(void *context, IN osm_physp_t *port,
-+*		     IN uint8_t in_port_num, IN uint8_t out_port_num,
-+*		     OUT ib_slvl_table_t *t)
-+*		The callback to allow routing engine input for SL2VL maps.
-+*		*port is the phyical port for which the SL2VL map is to be
-+*		updated. For switches, in_port_num/out_port_num identify
-+*		which part of the SL2VL map to update.  For router/HCA ports,
-+*		in_port_num/out_port_num should be ignored.
++*	path_sl
++*		The callback for computing path SL.
 +*
  *	delete
  *		The delete method, may be used for routing engine
  *		internals cleanup.
-diff --git a/opensm/opensm/osm_qos.c b/opensm/opensm/osm_qos.c
-index f814ea8..23fd316 100644
---- a/opensm/opensm/osm_qos.c
-+++ b/opensm/opensm/osm_qos.c
-@@ -207,6 +207,7 @@ static int qos_extports_setup(osm_sm_t * sm, osm_node_t *node,
- 	osm_physp_t *p0, *p;
- 	unsigned force_update;
- 	unsigned num_ports = osm_node_get_num_physp(node);
-+	struct osm_routing_engine *re = sm->p_subn->p_osm->routing_engine_used;
- 	int ret = 0;
- 	unsigned i, j;
+diff --git a/opensm/include/opensm/osm_ucast_lash.h b/opensm/include/opensm/osm_ucast_lash.h
+index 9e15d38..dd90d5d 100644
+--- a/opensm/include/opensm/osm_ucast_lash.h
++++ b/opensm/include/opensm/osm_ucast_lash.h
+@@ -94,7 +94,4 @@ typedef struct _lash {
+ 	int ***virtual_location;
+ } lash_t;
  
-@@ -223,7 +224,7 @@ static int qos_extports_setup(osm_sm_t * sm, osm_node_t *node,
- 		return ret;
+-uint8_t osm_get_lash_sl(osm_opensm_t * p_osm, const osm_port_t * p_src_port,
+-			const osm_port_t * p_dst_port);
+-
+ #endif
+diff --git a/opensm/opensm/osm_link_mgr.c b/opensm/opensm/osm_link_mgr.c
+index aaeebc7..02d6ec8 100644
+--- a/opensm/opensm/osm_link_mgr.c
++++ b/opensm/opensm/osm_link_mgr.c
+@@ -53,21 +53,23 @@
+ #include <opensm/osm_helper.h>
+ #include <opensm/osm_msgdef.h>
+ #include <opensm/osm_opensm.h>
+-#include <opensm/osm_ucast_lash.h>
  
- 	if (ib_switch_info_get_opt_sl2vlmapping(&node->sw->switch_info) &&
--	    sm->p_subn->opt.use_optimized_slvl) {
-+	    sm->p_subn->opt.use_optimized_slvl && !re->update_sl2vl) {
- 		p = osm_node_get_physp_ptr(node, 1);
- 		force_update = p->need_update || sm->p_subn->need_update;
- 		return sl2vl_update_table(sm, p, 1, 0x30000, force_update,
-@@ -233,10 +234,20 @@ static int qos_extports_setup(osm_sm_t * sm, osm_node_t *node,
- 	for (i = 1; i < num_ports; i++) {
- 		p = osm_node_get_physp_ptr(node, i);
- 		force_update = p->need_update || sm->p_subn->need_update;
--		for (j = 0; j < num_ports; j++)
-+		for (j = 0; j < num_ports; j++) {
-+			const ib_slvl_table_t *port_sl2vl = &qcfg->sl2vl;
-+			ib_slvl_table_t routing_sl2vl;
-+
-+			if (re->update_sl2vl) {
-+				routing_sl2vl = *port_sl2vl;
-+				re->update_sl2vl(re->context,
-+						 p, i, j, &routing_sl2vl);
-+				port_sl2vl = &routing_sl2vl;
-+			}
- 			if (sl2vl_update_table(sm, p, i, i << 8 | j,
--					       force_update, &qcfg->sl2vl))
-+					       force_update, port_sl2vl))
- 				ret = -1;
-+		}
+ static uint8_t link_mgr_get_smsl(IN osm_sm_t * sm, IN osm_physp_t * p_physp)
+ {
+ 	osm_opensm_t *p_osm = sm->p_subn->p_osm;
++	struct osm_routing_engine *re = p_osm->routing_engine_used;
+ 	const osm_port_t *p_sm_port, *p_src_port;
+ 	ib_net16_t slid, smlid;
+ 	uint8_t sl;
+ 
+ 	OSM_LOG_ENTER(sm->p_log);
+ 
+-	if (!(p_osm->routing_engine_used &&
+-	      p_osm->routing_engine_used->type == OSM_ROUTING_ENGINE_TYPE_LASH &&
++	if (!(re && re->path_sl &&
+ 	      (slid = osm_physp_get_base_lid(p_physp)))) {
+-		/* Use default SL if lash routing is not used */
++		/*
++		 * Use default SL if routing engine does not provide a
++		 * path SL lookup callback.
++		 */
+ 		OSM_LOG_EXIT(sm->p_log);
+ 		return sm->p_subn->opt.sm_sl;
+ 	}
+@@ -81,8 +83,9 @@ static uint8_t link_mgr_get_smsl(IN osm_sm_t * sm, IN osm_physp_t * p_physp)
+ 	p_src_port =
+ 	    cl_ptr_vector_get(&sm->p_subn->port_lid_tbl, cl_ntoh16(slid));
+ 
+-	/* Call lash to find proper SL */
+-	sl = osm_get_lash_sl(p_osm, p_src_port, p_sm_port);
++	/* Call into routing engine to find proper SL */
++	sl = re->path_sl(re->context, sm->p_subn->opt.sm_sl,
++			 p_src_port, p_sm_port);
+ 
+ 	OSM_LOG_EXIT(sm->p_log);
+ 	return sl;
+diff --git a/opensm/opensm/osm_sa_path_record.c b/opensm/opensm/osm_sa_path_record.c
+index d88832b..b55d94c 100644
+--- a/opensm/opensm/osm_sa_path_record.c
++++ b/opensm/opensm/osm_sa_path_record.c
+@@ -161,6 +161,7 @@ static ib_api_status_t pr_rcv_get_path_parms(IN osm_sa_t * sa,
+ 	const osm_physp_t *p_dest_physp;
+ 	const osm_prtn_t *p_prtn = NULL;
+ 	osm_opensm_t *p_osm;
++	struct osm_routing_engine *p_re;
+ 	const ib_port_info_t *p_pi;
+ 	ib_api_status_t status = IB_SUCCESS;
+ 	ib_net16_t pkey;
+@@ -177,7 +178,6 @@ static ib_api_status_t pr_rcv_get_path_parms(IN osm_sa_t * sa,
+ 	ib_slvl_table_t *p_slvl_tbl = NULL;
+ 	osm_qos_level_t *p_qos_level = NULL;
+ 	uint16_t valid_sl_mask = 0xffff;
+-	int is_lash;
+ 
+ 	OSM_LOG_ENTER(sa->p_log);
+ 
+@@ -188,6 +188,7 @@ static ib_api_status_t pr_rcv_get_path_parms(IN osm_sa_t * sa,
+ 	p_src_physp = p_physp;
+ 	p_pi = &p_physp->port_info;
+ 	p_osm = sa->p_subn->p_osm;
++	p_re = p_osm->routing_engine_used;
+ 
+ 	mtu = ib_port_info_get_mtu_cap(p_pi);
+ 	rate = ib_port_info_compute_rate(p_pi);
+@@ -646,9 +647,6 @@ static ib_api_status_t pr_rcv_get_path_parms(IN osm_sa_t * sa,
+ 	 * Set PathRecord SL
+ 	 */
+ 
+-	is_lash = (p_osm->routing_engine_used &&
+-		   p_osm->routing_engine_used->type == OSM_ROUTING_ENGINE_TYPE_LASH);
+-
+ 	if (comp_mask & IB_PR_COMPMASK_SL) {
+ 		/*
+ 		 * Specific SL was requested
+@@ -665,26 +663,10 @@ static ib_api_status_t pr_rcv_get_path_parms(IN osm_sa_t * sa,
+ 			goto Exit;
+ 		}
+ 
+-		if (is_lash
+-		    && osm_get_lash_sl(p_osm, p_src_port, p_dest_port) != sl) {
+-			OSM_LOG(sa->p_log, OSM_LOG_ERROR, "ERR 1F23: "
+-				"Required PathRecord SL (%u) doesn't "
+-				"match LASH SL\n", sl);
+-			status = IB_NOT_FOUND;
+-			goto Exit;
+-		}
+-
+-	} else if (is_lash) {
+-		/*
+-		 * No specific SL in PathRecord request.
+-		 * If it's LASH routing - use its SL.
+-		 * slid and dest_lid are stored in network in lash.
+-		 */
+-		sl = osm_get_lash_sl(p_osm, p_src_port, p_dest_port);
+ 	} else if (p_qos_level && p_qos_level->sl_set) {
+ 		/*
+-		 * No specific SL was requested, and we're not in
+-		 * LASH routing, but there is an SL in QoS level.
++		 * No specific SL was requested, but there is an SL in
++		 * QoS level.
+ 		 */
+ 		sl = p_qos_level->sl;
+ 
+@@ -725,6 +707,14 @@ static ib_api_status_t pr_rcv_get_path_parms(IN osm_sa_t * sa,
+ 		goto Exit;
  	}
  
- 	return ret;
-@@ -246,6 +257,9 @@ static int qos_endport_setup(osm_sm_t * sm, osm_physp_t * p,
- 			     const struct qos_config *qcfg)
++	/*
++	 * If the routing engine wants to have a say in path SL selection,
++	 * send the currently computed SL value as a hint and let the routing
++	 * engine override it.
++	 */
++	if (p_re && p_re->path_sl)
++		sl = p_re->path_sl(p_re->context, sl, p_src_port, p_dest_port);
++
+ 	/* reset pkey when raw traffic */
+ 	if (comp_mask & IB_PR_COMPMASK_RAWTRAFFIC &&
+ 	    cl_ntoh32(p_pr->hop_flow_raw) & (1 << 31))
+diff --git a/opensm/opensm/osm_ucast_lash.c b/opensm/opensm/osm_ucast_lash.c
+index 626887f..bbba6ee 100644
+--- a/opensm/opensm/osm_ucast_lash.c
++++ b/opensm/opensm/osm_ucast_lash.c
+@@ -1277,12 +1277,15 @@ static void lash_delete(void *context)
+ 	free(p_lash);
+ }
+ 
+-uint8_t osm_get_lash_sl(osm_opensm_t * p_osm, const osm_port_t * p_src_port,
+-			const osm_port_t * p_dst_port)
++static uint8_t get_lash_sl(void *context, uint8_t path_sl_hint,
++			   const osm_port_t *p_src_port,
++			   const osm_port_t *p_dst_port)
  {
- 	unsigned force_update = p->need_update || sm->p_subn->need_update;
-+	struct osm_routing_engine *re = sm->p_subn->p_osm->routing_engine_used;
-+	const ib_slvl_table_t *port_sl2vl = &qcfg->sl2vl;
-+	ib_slvl_table_t routing_sl2vl;
+ 	unsigned dst_id;
+ 	unsigned src_id;
+ 	osm_switch_t *p_sw;
++	lash_t *p_lash = context;
++	osm_opensm_t *p_osm = p_lash->p_osm;
  
- 	p->vl_high_limit = qcfg->vl_high_limit;
- 	if (vlarb_update(sm, p, 0, force_update, qcfg))
-@@ -254,7 +268,12 @@ static int qos_endport_setup(osm_sm_t * sm, osm_physp_t * p,
- 	if (!(p->port_info.capability_mask & IB_PORT_CAP_HAS_SL_MAP))
- 		return 0;
+ 	if (!(p_osm->routing_engine_used &&
+ 	      p_osm->routing_engine_used->type == OSM_ROUTING_ENGINE_TYPE_LASH))
+@@ -1312,6 +1315,7 @@ int osm_ucast_lash_setup(struct osm_routing_engine *r, osm_opensm_t *p_osm)
  
--	if (sl2vl_update_table(sm, p, 0, 0, force_update, &qcfg->sl2vl))
-+	if (re->update_sl2vl) {
-+		routing_sl2vl = *port_sl2vl;
-+		re->update_sl2vl(re->context, p, 0, 0, &routing_sl2vl);
-+		port_sl2vl = &routing_sl2vl;
-+	}
-+	if (sl2vl_update_table(sm, p, 0, 0, force_update, port_sl2vl))
- 		return -1;
+ 	r->context = p_lash;
+ 	r->ucast_build_fwd_tables = lash_process;
++	r->path_sl = get_lash_sl;
+ 	r->delete = lash_delete;
  
  	return 0;
-diff --git a/opensm/opensm/osm_state_mgr.c b/opensm/opensm/osm_state_mgr.c
-index e43463f..6fcccba 100644
---- a/opensm/opensm/osm_state_mgr.c
-+++ b/opensm/opensm/osm_state_mgr.c
-@@ -1141,6 +1141,7 @@ static void do_sweep(osm_sm_t * sm)
- 		sm->p_subn->ignore_existing_lfts = TRUE;
- 
- 		osm_ucast_mgr_process(&sm->ucast_mgr);
-+		osm_qos_setup(sm->p_subn->p_osm);
- 
- 		/* Reset flag */
- 		sm->p_subn->ignore_existing_lfts = FALSE;
-@@ -1259,8 +1260,6 @@ repeat_discovery:
- 
- 	osm_pkey_mgr_process(sm->p_subn->p_osm);
- 
--	osm_qos_setup(sm->p_subn->p_osm);
--
- 	/* try to restore SA DB (this should be before lid_mgr
- 	   because we may want to disable clients reregistration
- 	   when SA DB is restored) */
-@@ -1301,6 +1300,8 @@ repeat_discovery:
- 	    osm_ucast_cache_process(&sm->ucast_mgr))
- 		osm_ucast_mgr_process(&sm->ucast_mgr);
- 
-+	osm_qos_setup(sm->p_subn->p_osm);
-+
- 	if (wait_for_pending_transactions(&sm->p_subn->p_osm->stats))
- 		return;
- 
 -- 
 1.6.6.1
 
