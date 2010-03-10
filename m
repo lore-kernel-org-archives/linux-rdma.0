@@ -1,8 +1,8 @@
 From: "Jim Schutt" <jaschut-4OHPYypu0djtX7QSmKvirg@public.gmane.org>
-Subject: [PATCH v2 13/15] opensm: Avoid havoc in minhop caused by
- torus-2QoS persistent use of osm_port_t:priv.
-Date: Wed, 10 Mar 2010 11:06:54 -0700
-Message-ID: <1268244416-20351-13-git-send-email-jaschut@sandia.gov>
+Subject: [PATCH v2 10/15] opensm: Add opensm option to specify file name
+ for extra torus-2QoS configuration information.
+Date: Wed, 10 Mar 2010 11:06:51 -0700
+Message-ID: <1268244416-20351-10-git-send-email-jaschut@sandia.gov>
 References: <1268244416-20351-1-git-send-email-jaschut@sandia.gov>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -14,66 +14,127 @@ To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org, eitan-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org, jaschut-4OHPYypu0djtX7QSmKvirg@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Torus-2QoS makes persistent use of osm_port_t:priv to speed calculation
-of path SL values.
-
-It cannot clear osm_port_t:priv members when it tears down its persistent
-data for the following reason: If a port is removed from the fabric, the
-opensm core will delete the corresponding osm_port_t object, leaving
-torus-2QoS holding a dangling reference.  Torus-2QoS then has a use-after-free
-error when tearing down its persistent data if it tries to use its dangling
-osm_port_t reference to clear the priv member.
-
-When torus-2QoS is unable to route a fabric due to missing switches and
-opensm is configured to fall back to minhop, havoc will ensue because
-minhop uses a non-NULL osm_port_t:priv as a proxy for LMC > 0: it
-assumes if osm_port_t:priv is non-NULL it can only be because
-alloc_ports_priv() has been called.
-
-Fix this up by always calling alloc_ports_priv(), and have it set
-priv = NULL if LMC == 0.
 
 Signed-off-by: Jim Schutt <jaschut-4OHPYypu0djtX7QSmKvirg@public.gmane.org>
 ---
- opensm/opensm/osm_ucast_mgr.c |   10 +++++-----
- 1 files changed, 5 insertions(+), 5 deletions(-)
+ opensm/include/opensm/osm_base.h   |   18 ++++++++++++++++++
+ opensm/include/opensm/osm_subnet.h |    5 +++++
+ opensm/opensm/main.c               |    9 +++++++++
+ opensm/opensm/osm_subnet.c         |    1 +
+ opensm/opensm/osm_torus.c          |    2 +-
+ 5 files changed, 34 insertions(+), 1 deletions(-)
 
-diff --git a/opensm/opensm/osm_ucast_mgr.c b/opensm/opensm/osm_ucast_mgr.c
-index d7a4a8c..9a3ea25 100644
---- a/opensm/opensm/osm_ucast_mgr.c
-+++ b/opensm/opensm/osm_ucast_mgr.c
-@@ -314,8 +314,10 @@ static void alloc_ports_priv(osm_ucast_mgr_t * mgr)
- 	     item = cl_qmap_next(item)) {
- 		port = (osm_port_t *) item;
- 		lmc = ib_port_info_get_lmc(&port->p_physp->port_info);
--		if (!lmc)
-+		if (!lmc) {
-+			port->priv = NULL;
- 			continue;
-+		}
- 		r = malloc(sizeof(*r) + sizeof(r->guids[0]) * (1 << lmc));
- 		if (!r) {
- 			OSM_LOG(mgr->p_log, OSM_LOG_ERROR, "ERR 3A09: "
-@@ -362,8 +364,7 @@ static void ucast_mgr_process_tbl(IN cl_map_item_t * p_map_item,
- 	/* Initialize LIDs in buffer to invalid port number. */
- 	memset(p_sw->new_lft, OSM_NO_PATH, p_sw->max_lid_ho + 1);
+diff --git a/opensm/include/opensm/osm_base.h b/opensm/include/opensm/osm_base.h
+index 4e9aaa9..8720c38 100644
+--- a/opensm/include/opensm/osm_base.h
++++ b/opensm/include/opensm/osm_base.h
+@@ -277,6 +277,24 @@ BEGIN_C_DECLS
+ #endif /* __WIN__ */
+ /***********/
  
--	if (p_mgr->p_subn->opt.lmc)
--		alloc_ports_priv(p_mgr);
-+	alloc_ports_priv(p_mgr);
++/****d* OpenSM: Base/OSM_DEFAULT_TORUS_CONF_FILE
++* NAME
++*	OSM_DEFAULT_TORUS_CONF_FILE
++*
++* DESCRIPTION
++*	Specifies the default file name for extra torus-2QoS configuration
++*
++* SYNOPSIS
++*/
++#ifdef __WIN__
++#define OSM_DEFAULT_TORUS_CONF_FILE strcat(GetOsmCachePath(), "osm-torus-2QoS.conf")
++#elif defined(OPENSM_CONFIG_DIR)
++#define OSM_DEFAULT_TORUS_CONF_FILE OPENSM_CONFIG_DIR "/torus-2QoS.conf"
++#else
++#define OSM_DEFAULT_TORUS_CONF_FILE "/etc/opensm/torus-2QoS.conf"
++#endif /* __WIN__ */
++/***********/
++
+ /****d* OpenSM: Base/OSM_DEFAULT_PREFIX_ROUTES_FILE
+ * NAME
+ *	OSM_DEFAULT_PREFIX_ROUTES_FILE
+diff --git a/opensm/include/opensm/osm_subnet.h b/opensm/include/opensm/osm_subnet.h
+index d74a57c..d2d9661 100644
+--- a/opensm/include/opensm/osm_subnet.h
++++ b/opensm/include/opensm/osm_subnet.h
+@@ -201,6 +201,7 @@ typedef struct osm_subn_opt {
+ 	char *guid_routing_order_file;
+ 	char *sa_db_file;
+ 	boolean_t sa_db_dump;
++	char *torus_conf_file;
+ 	boolean_t do_mesh_analysis;
+ 	boolean_t exit_on_fatal;
+ 	boolean_t honor_guid2lid_file;
+@@ -418,6 +419,10 @@ typedef struct osm_subn_opt {
+ *		When TRUE causes OpenSM to dump SA DB at the end of every
+ *		light sweep regardless the current verbosity level.
+ *
++*	torus_conf_file
++*		Name of the file with extra configuration info for torus-2QoS
++*		routing engine.
++*
+ *	exit_on_fatal
+ *		If TRUE (default) - SM will exit on fatal subnet initialization
+ *		issues.
+diff --git a/opensm/opensm/main.c b/opensm/opensm/main.c
+index f396de4..578ae9f 100644
+--- a/opensm/opensm/main.c
++++ b/opensm/opensm/main.c
+@@ -231,6 +231,10 @@ static void show_usage(void)
+ 	       "          Set the order port guids will be routed for the MinHop\n"
+ 	       "          and Up/Down routing algorithms to the guids provided in the\n"
+ 	       "          given file (one to a line)\n\n");
++	printf("--torus_config <path to file>\n"
++	       "          This option defines the file name for the extra configuration\n"
++	       "          info needed for the torus-2QoS routing engine.   The default\n"
++	       "          name is \'"OSM_DEFAULT_TORUS_CONF_FILE"\'\n\n");
+ 	printf("--once, -o\n"
+ 	       "          This option causes OpenSM to configure the subnet\n"
+ 	       "          once, then exit.  Ports remain in the ACTIVE state.\n\n");
+@@ -610,6 +614,7 @@ int main(int argc, char *argv[])
+ 		{"sm_sl", 1, NULL, 7},
+ 		{"retries", 1, NULL, 8},
+ 		{"log_prefix", 1, NULL, 9},
++		{"torus_config", 1, NULL, 10},
+ 		{NULL, 0, NULL, 0}	/* Required at the end of the array */
+ 	};
  
- 	/*
- 	   Iterate through every port setting LID routes for each
-@@ -380,8 +381,7 @@ static void ucast_mgr_process_tbl(IN cl_map_item_t * p_map_item,
- 		}
- 	}
+@@ -992,6 +997,10 @@ int main(int argc, char *argv[])
+ 			SET_STR_OPT(opt.log_prefix, optarg);
+ 			printf("Log prefix = %s\n", opt.log_prefix);
+ 			break;
++		case 10:
++			SET_STR_OPT(opt.torus_conf_file, optarg);
++			printf("Torus-2QoS config file = %s\n", opt.torus_conf_file);
++			break;
+ 		case 'h':
+ 		case '?':
+ 		case ':':
+diff --git a/opensm/opensm/osm_subnet.c b/opensm/opensm/osm_subnet.c
+index 55b9384..47aa529 100644
+--- a/opensm/opensm/osm_subnet.c
++++ b/opensm/opensm/osm_subnet.c
+@@ -758,6 +758,7 @@ void osm_subn_set_default_opt(IN osm_subn_opt_t * p_opt)
+ 	p_opt->guid_routing_order_file = NULL;
+ 	p_opt->sa_db_file = NULL;
+ 	p_opt->sa_db_dump = FALSE;
++	p_opt->torus_conf_file = strdup(OSM_DEFAULT_TORUS_CONF_FILE);
+ 	p_opt->do_mesh_analysis = FALSE;
+ 	p_opt->exit_on_fatal = TRUE;
+ 	p_opt->enable_quirks = FALSE;
+diff --git a/opensm/opensm/osm_torus.c b/opensm/opensm/osm_torus.c
+index 7f80034..7c3b550 100644
+--- a/opensm/opensm/osm_torus.c
++++ b/opensm/opensm/osm_torus.c
+@@ -9043,7 +9043,7 @@ int torus_build_lfts(void *context)
+ 	torus->osm = ctx->osm;
+ 	fabric->osm = ctx->osm;
  
--	if (p_mgr->p_subn->opt.lmc)
--		free_ports_priv(p_mgr);
-+	free_ports_priv(p_mgr);
+-	if (!parse_config(OPENSM_CONFIG_DIR "/opensm-torus.conf",
++	if (!parse_config(ctx->osm->subn.opt.torus_conf_file,
+ 			  fabric, torus))
+ 		goto out;
  
- 	OSM_LOG_EXIT(p_mgr->p_log);
- }
 -- 
 1.6.6.1
 
