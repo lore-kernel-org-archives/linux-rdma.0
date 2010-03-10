@@ -1,8 +1,8 @@
 From: "Jim Schutt" <jaschut-4OHPYypu0djtX7QSmKvirg@public.gmane.org>
-Subject: [PATCH v2 01/15] opensm: Prepare for routing engine input to
- path record SL lookup and SL2VL map setup.
-Date: Wed, 10 Mar 2010 11:06:43 -0700
-Message-ID: <1268244416-20351-2-git-send-email-jaschut@sandia.gov>
+Subject: [PATCH v2 08/15] opensm: Update documentation to describe
+ torus-2QoS.
+Date: Wed, 10 Mar 2010 11:06:49 -0700
+Message-ID: <1268244416-20351-8-git-send-email-jaschut@sandia.gov>
 References: <1268244416-20351-1-git-send-email-jaschut@sandia.gov>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -14,272 +14,330 @@ To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org, eitan-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org, jaschut-4OHPYypu0djtX7QSmKvirg@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-In the event a routing engine needs to participate in SL assignment and
-SL2VL map setup in order to avoid credit loops in a fabric, it will be
-useful to make the routing engine context more widely available.
-
-To this end, have osm_opensm_t save a pointer to the routing engine used,
-rather than its type.  This will make the routing engine context easily
-available in, e.g., sl2vl_update() and pr_rcv_get_path_parms().
-
-Make the necessary adjustments to the code that used the old
-routing_engine_used as an enum _osm_routing_engine_type.  In order to
-keep the behavior where minhop was used if the configured routing engines
-failed, the easiest solution was to add a pointer to osm_opensm_t which
-pointed to the minhop struct osm_routing_engine.
 
 Signed-off-by: Jim Schutt <jaschut-4OHPYypu0djtX7QSmKvirg@public.gmane.org>
 ---
- opensm/include/opensm/osm_opensm.h |    4 ++-
- opensm/opensm/osm_console.c        |   10 ++++++--
- opensm/opensm/osm_dump.c           |    3 +-
- opensm/opensm/osm_link_mgr.c       |    5 ++-
- opensm/opensm/osm_opensm.c         |   43 +++++++++++++++++++++---------------
- opensm/opensm/osm_sa_path_record.c |    3 +-
- opensm/opensm/osm_ucast_lash.c     |    3 +-
- opensm/opensm/osm_ucast_mgr.c      |   17 ++++++++------
- 8 files changed, 54 insertions(+), 34 deletions(-)
+ opensm/doc/current-routing.txt |  269 +++++++++++++++++++++++++++++++++++++++-
+ opensm/man/opensm.8.in         |    9 ++-
+ 2 files changed, 275 insertions(+), 3 deletions(-)
 
-diff --git a/opensm/include/opensm/osm_opensm.h b/opensm/include/opensm/osm_opensm.h
-index c6c9bdb..e97142e 100644
---- a/opensm/include/opensm/osm_opensm.h
-+++ b/opensm/include/opensm/osm_opensm.h
-@@ -120,6 +120,7 @@ typedef enum _osm_routing_engine_type {
- *	added later.
- */
- struct osm_routing_engine {
-+	osm_routing_engine_type_t type;
- 	const char *name;
- 	void *context;
- 	int (*build_lid_matrices) (void *context);
-@@ -183,7 +184,8 @@ typedef struct osm_opensm {
- 	cl_dispatcher_t disp;
- 	cl_plock_t lock;
- 	struct osm_routing_engine *routing_engine_list;
--	osm_routing_engine_type_t routing_engine_used;
-+	struct osm_routing_engine *routing_engine_used;
-+	struct osm_routing_engine *default_routing_engine;
- 	osm_stats_t stats;
- 	osm_console_t console;
- 	nn_map_t *node_name_map;
-diff --git a/opensm/opensm/osm_console.c b/opensm/opensm/osm_console.c
-index a27bee3..31394a7 100644
---- a/opensm/opensm/osm_console.c
-+++ b/opensm/opensm/osm_console.c
-@@ -372,6 +372,8 @@ static void print_status(osm_opensm_t * p_osm, FILE * out)
- 	cl_list_item_t *item;
+diff --git a/opensm/doc/current-routing.txt b/opensm/doc/current-routing.txt
+index 1302860..78a2e01 100644
+--- a/opensm/doc/current-routing.txt
++++ b/opensm/doc/current-routing.txt
+@@ -1,7 +1,7 @@
+ Current OpenSM Routing
+-7/9/07
++10/9/09
  
- 	if (out) {
-+		const char *re_str;
+-OpenSM offers five routing engines:
++OpenSM offers six routing engines:
+ 
+ 1.  Min Hop Algorithm - based on the minimum hops to each node where the
+ path length is optimized.
+@@ -28,6 +28,13 @@ two switches.  This provides deadlock free routes for hypercubes when
+ the fabric is cabled as a hypercube and for meshes when cabled as a
+ mesh (see details below).
+ 
++6. Torus-2QoS unicast routing algorithm - a DOR-based routing algorithm
++specialized for 2D/3D torus topologies.  Torus-2QoS provides deadlock-free
++routing while supporting two quality of service (QoS) levels.  In addition
++it is able to route around multiple failed fabric links or a single failed
++fabric switch without introducing deadlocks, and without changing path SL
++values granted before the failure.
 +
- 		cl_plock_acquire(&p_osm->lock);
- 		fprintf(out, "   OpenSM Version       : %s\n", p_osm->osm_version);
- 		fprintf(out, "   SM State             : %s\n",
-@@ -380,9 +382,11 @@ static void print_status(osm_opensm_t * p_osm, FILE * out)
- 			p_osm->subn.opt.sm_priority);
- 		fprintf(out, "   SA State             : %s\n",
- 			sa_state_str(p_osm->sa.state));
--		fprintf(out, "   Routing Engine       : %s\n",
--			osm_routing_engine_type_str(p_osm->
--						    routing_engine_used));
+ OpenSM provides an optional unicast routing cache (enabled by -A or
+ --ucast_cache options). When enabled, unicast routing cache prevents
+ routing recalculation (which is a heavy task in a large cluster) when
+@@ -388,3 +395,261 @@ ports, one port on one end of the cable, and the other port on the
+ other end, continuing along the mesh dimension.
+ 
+ Use '-R dor' option to activate the DOR algorithm.
 +
-+		re_str = p_osm->routing_engine_used ?
-+			osm_routing_engine_type_str(p_osm->routing_engine_used->type) :
-+			osm_routing_engine_type_str(OSM_ROUTING_ENGINE_TYPE_NONE);
-+		fprintf(out, "   Routing Engine       : %s\n", re_str);
- 
- 		fprintf(out, "   Loaded event plugins :");
- 		if (cl_qlist_head(&p_osm->plugin_list) ==
-diff --git a/opensm/opensm/osm_dump.c b/opensm/opensm/osm_dump.c
-index 86e9c00..f3f4623 100644
---- a/opensm/opensm/osm_dump.c
-+++ b/opensm/opensm/osm_dump.c
-@@ -135,7 +135,8 @@ static void dump_ucast_routes(cl_map_item_t * item, FILE * file, void *cxt)
- 		"Switch 0x%016" PRIx64 "\nLID    : Port : Hops : Optimal\n",
- 		cl_ntoh64(osm_node_get_node_guid(p_node)));
- 
--	dor = (p_osm->routing_engine_used == OSM_ROUTING_ENGINE_TYPE_DOR);
-+	dor = (p_osm->routing_engine_used &&
-+	       p_osm->routing_engine_used->type == OSM_ROUTING_ENGINE_TYPE_DOR);
- 
- 	for (lid_ho = 1; lid_ho <= max_lid_ho; lid_ho++) {
- 		fprintf(file, "0x%04X : ", lid_ho);
-diff --git a/opensm/opensm/osm_link_mgr.c b/opensm/opensm/osm_link_mgr.c
-index 03a585b..aaeebc7 100644
---- a/opensm/opensm/osm_link_mgr.c
-+++ b/opensm/opensm/osm_link_mgr.c
-@@ -64,8 +64,9 @@ static uint8_t link_mgr_get_smsl(IN osm_sm_t * sm, IN osm_physp_t * p_physp)
- 
- 	OSM_LOG_ENTER(sm->p_log);
- 
--	if (p_osm->routing_engine_used != OSM_ROUTING_ENGINE_TYPE_LASH
--	    || !(slid = osm_physp_get_base_lid(p_physp))) {
-+	if (!(p_osm->routing_engine_used &&
-+	      p_osm->routing_engine_used->type == OSM_ROUTING_ENGINE_TYPE_LASH &&
-+	      (slid = osm_physp_get_base_lid(p_physp)))) {
- 		/* Use default SL if lash routing is not used */
- 		OSM_LOG_EXIT(sm->p_log);
- 		return sm->p_subn->opt.sm_sl;
-diff --git a/opensm/opensm/osm_opensm.c b/opensm/opensm/osm_opensm.c
-index d0f39da..be1f153 100644
---- a/opensm/opensm/osm_opensm.c
-+++ b/opensm/opensm/osm_opensm.c
-@@ -147,7 +147,8 @@ static void append_routing_engine(osm_opensm_t *osm,
- 	r->next = routing_engine;
- }
- 
--static void setup_routing_engine(osm_opensm_t *osm, const char *name)
-+static struct osm_routing_engine *setup_routing_engine(osm_opensm_t *osm,
-+						       const char *name)
- {
- 	struct osm_routing_engine *re;
- 	const struct routing_engine_module *m;
-@@ -158,47 +159,53 @@ static void setup_routing_engine(osm_opensm_t *osm, const char *name)
- 			if (!re) {
- 				OSM_LOG(&osm->log, OSM_LOG_VERBOSE,
- 					"memory allocation failed\n");
--				return;
-+				return NULL;
- 			}
- 			memset(re, 0, sizeof(struct osm_routing_engine));
- 
- 			re->name = m->name;
-+			re->type = osm_routing_engine_type(m->name);
- 			if (m->setup(re, osm)) {
- 				OSM_LOG(&osm->log, OSM_LOG_VERBOSE,
- 					"setup of routing"
- 					" engine \'%s\' failed\n", name);
--				return;
-+				free(re);
-+				return NULL;
- 			}
- 			OSM_LOG(&osm->log, OSM_LOG_DEBUG,
- 				"\'%s\' routing engine set up\n", re->name);
--			append_routing_engine(osm, re);
--			return;
-+			if (re->type == OSM_ROUTING_ENGINE_TYPE_MINHOP)
-+				osm->default_routing_engine = re;
-+			return re;
- 		}
- 	}
- 
- 	OSM_LOG(&osm->log, OSM_LOG_ERROR,
- 		"cannot find or setup routing engine \'%s\'\n", name);
-+	return NULL;
- }
- 
- static void setup_routing_engines(osm_opensm_t *osm, const char *engine_names)
- {
- 	char *name, *str, *p;
-+	struct osm_routing_engine *re;
- 
--	if (!engine_names || !*engine_names) {
--		setup_routing_engine(osm, "minhop");
--		return;
-+	if (engine_names && *engine_names) {
-+		str = strdup(engine_names);
-+		name = strtok_r(str, ", \t\n", &p);
-+		while (name && *name) {
-+			re = setup_routing_engine(osm, name);
-+			if (re)
-+				append_routing_engine(osm, re);
-+			name = strtok_r(NULL, ", \t\n", &p);
-+		}
-+		free(str);
- 	}
--
--	str = strdup(engine_names);
--	name = strtok_r(str, ", \t\n", &p);
--	while (name && *name) {
--		setup_routing_engine(osm, name);
--		name = strtok_r(NULL, ", \t\n", &p);
-+	if (!osm->default_routing_engine) {
-+		re = setup_routing_engine(osm, "minhop");
-+		if (!osm->routing_engine_list && re)
-+			append_routing_engine(osm, re);
- 	}
--	free(str);
--
--	if (!osm->routing_engine_list)
--		setup_routing_engine(osm, "minhop");
- }
- 
- void osm_opensm_construct(IN osm_opensm_t * p_osm)
-diff --git a/opensm/opensm/osm_sa_path_record.c b/opensm/opensm/osm_sa_path_record.c
-index c4c3f86..d88832b 100644
---- a/opensm/opensm/osm_sa_path_record.c
-+++ b/opensm/opensm/osm_sa_path_record.c
-@@ -646,7 +646,8 @@ static ib_api_status_t pr_rcv_get_path_parms(IN osm_sa_t * sa,
- 	 * Set PathRecord SL
- 	 */
- 
--	is_lash = (p_osm->routing_engine_used == OSM_ROUTING_ENGINE_TYPE_LASH);
-+	is_lash = (p_osm->routing_engine_used &&
-+		   p_osm->routing_engine_used->type == OSM_ROUTING_ENGINE_TYPE_LASH);
- 
- 	if (comp_mask & IB_PR_COMPMASK_SL) {
- 		/*
-diff --git a/opensm/opensm/osm_ucast_lash.c b/opensm/opensm/osm_ucast_lash.c
-index 3054a56..626887f 100644
---- a/opensm/opensm/osm_ucast_lash.c
-+++ b/opensm/opensm/osm_ucast_lash.c
-@@ -1284,7 +1284,8 @@ uint8_t osm_get_lash_sl(osm_opensm_t * p_osm, const osm_port_t * p_src_port,
- 	unsigned src_id;
- 	osm_switch_t *p_sw;
- 
--	if (p_osm->routing_engine_used != OSM_ROUTING_ENGINE_TYPE_LASH)
-+	if (!(p_osm->routing_engine_used &&
-+	      p_osm->routing_engine_used->type == OSM_ROUTING_ENGINE_TYPE_LASH))
- 		return OSM_DEFAULT_SL;
- 
- 	p_sw = get_osm_switch_from_port(p_dst_port);
-diff --git a/opensm/opensm/osm_ucast_mgr.c b/opensm/opensm/osm_ucast_mgr.c
-index 7ec58b5..dd6568f 100644
---- a/opensm/opensm/osm_ucast_mgr.c
-+++ b/opensm/opensm/osm_ucast_mgr.c
-@@ -942,7 +942,7 @@ static int ucast_mgr_route(struct osm_routing_engine *r, osm_opensm_t * osm)
- 		return ret;
- 	}
- 
--	osm->routing_engine_used = osm_routing_engine_type(r->name);
-+	osm->routing_engine_used = r;
- 
- 	osm_ucast_mgr_set_fwd_tables(&osm->sm.ucast_mgr);
- 
-@@ -970,24 +970,27 @@ int osm_ucast_mgr_process(IN osm_ucast_mgr_t * p_mgr)
- 	    ucast_mgr_setup_all_switches(p_mgr->p_subn) < 0)
- 		goto Exit;
- 
--	p_osm->routing_engine_used = OSM_ROUTING_ENGINE_TYPE_NONE;
-+	p_osm->routing_engine_used = NULL;
- 	while (p_routing_eng) {
- 		if (!ucast_mgr_route(p_routing_eng, p_osm))
- 			break;
- 		p_routing_eng = p_routing_eng->next;
- 	}
- 
--	if (p_osm->routing_engine_used == OSM_ROUTING_ENGINE_TYPE_NONE) {
-+	if (!p_osm->routing_engine_used) {
- 		/* If configured routing algorithm failed, use default MinHop */
--		osm_ucast_mgr_build_lid_matrices(p_mgr);
--		ucast_mgr_build_lfts(p_mgr);
-+		struct osm_routing_engine *r = p_osm->default_routing_engine;
++Torus-2QoS Routing Algorithm
++----------------------------
 +
-+		r->build_lid_matrices(r->context);
-+		r->ucast_build_fwd_tables(r->context);
-+		p_osm->routing_engine_used = r;
- 		osm_ucast_mgr_set_fwd_tables(p_mgr);
--		p_osm->routing_engine_used = OSM_ROUTING_ENGINE_TYPE_MINHOP;
- 	}
++Torus-2QoS is routing algorithm designed for large-scale 2D/3D torus fabrics.
++The torus-2QoS routing engine can provide the following functionality on
++a 2D/3D torus:
++- routing that is free of credit loops
++- two levels of QoS, assuming switches support 8 data VLs
++- ability to route around a single failed switch, and/or multiple failed
++    links, without
++    - introducing credit loops
++    - changing path SL values
++- very short run times, with good scaling properties as fabric size
++    increases
++
++Torus-2QoS is a DOR-based algorithm that avoids deadlocks that would otherwise
++occur in a torus using the concept of a dateline for each torus dimension.
++It encodes into a path SL which datelines the path crosses as follows:
++
++  sl = 0;
++  for (d = 0; d < torus_dimensions; d++)
++    /* path_crosses_dateline(d) returns 0 or 1 */
++    sl |= path_crosses_dateline(d) << d;
++
++For a 3D torus, that leaves one SL bit free, which torus-2QoS uses to
++implement two QoS levels.
++
++This is possible because torus-2QoS also makes use of the output port
++dependence of the switch SL2VL maps.  It computes in which torus coordinate
++direction each interswitch link "points", and writes SL2VL maps for such
++ports as follows:
++
++  for (sl = 0; sl < 16; sl ++)
++    /* cdir(port) reports which torus coordinate direction a switch port
++     * "points" in, and returns 0, 1, or 2 */
++    sl2vl(iport,oport,sl) = 0x1 & (sl >> cdir(oport));
++
++Thus torus-2QoS consumes 8 SL values (SL bits 0-2) and 2 VL values (VL bit 0)
++per QoS level to provide deadlock-free routing on a 3D torus.
++
++Torus-2QoS routes around link failure by "taking the long way around" any
++1D ring interrupted by a link failure.  For example, consider the 2D 6x5
++torus below, where switches are denoted by [+a-zA-Z]:
++
++        |    |    |    |    |    |
++   4  --+----+----+----+----+----+--
++        |    |    |    |    |    |
++   3  --+----+----+----D----+----+--
++        |    |    |    |    |    |
++   2  --+----+----I----r----+----+--
++        |    |    |    |    |    |
++   1  --m----S----n----T----o----p--
++        |    |    |    |    |    |
++ y=0  --+----+----+----+----+----+--
++        |    |    |    |    |    |
++
++      x=0    1    2    3    4    5
++
++For a pristine fabric the path from S to D would be S-n-T-r-d.  In the
++event that either link S-n or n-T has failed, torus-2QoS would use the path
++S-m-p-o-T-r-D.  Note that it can do this without changing the path SL
++value; once the 1D ring m-S-n-T-o-p-m has been broken by failure, path
++segments using it cannot contribute to deadlock, and the x-direction
++dateline (between, say, x=5 and x=0) can be ignored for path segments on
++that ring.
++
++One result of this is that torus-2QoS can route around many simultaneous
++link failures, as long as no 1D ring is broken into disjoint regions.  For
++example, if links n-T and T-o have both failed, that ring has been broken
++into two disjoint regions, T and o-p-m-S-n.  Torus-2QoS checks for such
++issues, reports if they are found, and refuses to route such fabrics.
++
++Handling a failed switch under DOR requires introducing into a path at
++least one turn that would be otherwise "illegal", i.e. not allowed by DOR
++rules.  Torus-2QoS will introduce such a turn as close as possible to the
++failed switch in order to route around it.
++
++In the above example, suppose switch T has failed, and consider the path
++from S to D.  Torus-2QoS will produce the path S-n-I-r-D, rather than the
++S-n-T-r-D path for a pristine torus, by introducing an early turn at n.
++For traffic arriving at switch I from n, normal DOR rules will generate an
++illegal turn in the path from S to D at I, and a legal turn at r.
++
++Torus-2QoS will also use the input port dependence of SL2VL maps to set VL
++bit 1 (which would be otherwise unused) for y-x, z-x, and z-y turns, i.e.,
++those turns that are illegal under DOR.  This causes the first hop after
++any such turn to use a separate set of VL values, and prevents deadlock in
++the presence of a single failed switch.
++
++For any given path, only the hops after a turn that is illegal under DOR
++can contribute to a credit loop that leads to deadlock.  So in the example
++above with failed switch T, the location of the illegal turn at I in the
++path from S to D requires that any credit loop caused by that turn must
++encircle the failed switch at T.  Thus the second and later hops after the
++illegal turn at I (i.e., hop r-D) cannot contribute to a credit loop
++because they cannot be used to construct a loop encircling T.  The hop I-r
++uses a separate VL, so it cannot contribute to a credit loop encircling T.
++
++Extending this argument shows that in addition to being capable of routing
++around a single switch failure without introducing deadlock, torus-2QoS can
++also route around multiple failed switches on the condition they are
++adjacent in the last dimension routed by DOR.  For example, consider the
++following case on a 6x6 2D torus:
++
++
++        |    |    |    |    |    |
++   5  --+----+----+----+----+----+--
++        |    |    |    |    |    |
++   4  --+----+----+----D----+----+--
++        |    |    |    |    |    |
++   3  --+----+----I----u----+----+--
++        |    |    |    |    |    |
++   2  --+----+----q----R----+----+--
++        |    |    |    |    |    |
++   1  --m----S----n----T----o----p--
++        |    |    |    |    |    |
++ y=0  --+----+----+----+----+----+--
++        |    |    |    |    |    |
++
++      x=0    1    2    3    4    5
++
++
++Suppose switches T and R have failed, and consider the path from S to D.
++Torus-2QoS will generate the path S-n-q-I-u-D, with an illegal turn at
++switch I, and with hop I-u using a VL with bit 1 set.
++
++As a further example, consider a case that torus-2QoS cannot route without
++deadlock: two failed switches adjacent in a dimension that is not the last
++dimension routed by DOR; here the failed switches are O and T:
++
++        |    |    |    |    |    |
++   5  --+----+----+----+----+----+--
++        |    |    |    |    |    |
++   4  --+----+----+----+----+----+--
++        |    |    |    |    |    |
++   3  --+----+----+----+----D----+--
++        |    |    |    |    |    |
++   2  --+----+----I----q----r----+--
++        |    |    |    |    |    |
++   1  --m----S----n----O----T----p--
++        |    |    |    |    |    |
++ y=0  --+----+----+----+----+----+--
++        |    |    |    |    |    |
++
++      x=0    1    2    3    4    5
++
++In a pristine fabric, torus-2QoS would generate the path from S to D as
++S-n-O-T-r-D.  With failed switches O and T, torus-2QoS will generate the
++path S-n-I-q-r-D, with illegal turn at switch I, and with hop I-q using a
++VL with bit 1 set.  In contrast to the earlier examples, the second hop
++after the illegal turn, q-r, can be used to construct a credit loop
++encircling the failed switches.
++
++Since torus-2QoS uses all four available SL bits, and the three data VL
++bits that are typically available in current switches, there is no way
++to use SL/VL values to separate multicast traffic from unicast traffic.
++Thus, torus-2QoS must generate multicast routing such that credit loops
++cannot arise from a combination of multicast and unicast path segments.
++
++It turns out that it is possible to construct spanning trees for multicast
++routing that have that property.  For the 2D 6x5 torus example above, here
++is the full-fabric spanning tree that torus-2QoS will construct, where "x"
++is the root switch and each "+" is a non-root switch:
++
++   4    +    +    +    +    +    +
++        |    |    |    |    |    |
++   3    +    +    +    +    +    +
++        |    |    |    |    |    |
++   2    +----+----+----x----+----+
++        |    |    |    |    |    |
++   1    +    +    +    +    +    +
++        |    |    |    |    |    |
++ y=0    +    +    +    +    +    +
++
++      x=0    1    2    3    4    5
++
++For multicast traffic routed from root to tip, every turn in the above
++spanning tree is a legal DOR turn.
++
++For traffic routed from tip to root, and some traffic routed through the
++root, turns are not legal DOR turns.  However, to construct a credit loop,
++the union of multicast routing on this spanning tree with DOR unicast
++routing can only provide 3 of the 4 turns needed for the loop.
++
++In addition, if none of the above spanning tree branches crosses a dateline
++used for unicast credit loop avoidance on a torus, and if multicast traffic
++is confined to SL 0 or SL 8 (recall that torus-2QoS uses SL bit 3 to
++differentiate QoS level), then multicast traffic also cannot contribute to
++the "ring" credit loops that are otherwise possible in a torus.
++
++Torus-2QoS uses these ideas to create a master spanning tree.  Every
++multicast group spanning tree will be constructed as a subset of the master
++tree, with the same root as the master tree.
++
++Such multicast group spanning trees will in general not be optimal for
++groups which are a subset of the full fabric. However, this compromise must
++be made to enable support for two QoS levels on a torus while preventing
++credit loops.
++
++In the presence of link or switch failures that result in a fabric for
++which torus-2QoS can generate credit-loop-free unicast routes, it is also
++possible to generate a master spanning tree for multicast that retains the
++required properties.  For example, consider that same 2D 6x5 torus, with
++the link from (2,2) to (3,2) failed.  Torus-2QoS will generate the following
++master spanning tree:
++
++   4    +    +    +    +    +    +
++        |    |    |    |    |    |
++   3    +    +    +    +    +    +
++        |    |    |    |    |    |
++   2  --+----+----+    x----+----+--
++        |    |    |    |    |    |
++   1    +    +    +    +    +    +
++        |    |    |    |    |    |
++ y=0    +    +    +    +    +    +
++
++      x=0    1    2    3    4    5
++
++Two things are notable about this master spanning tree.  First, assuming
++the x dateline was between x=5 and x=0, this spanning tree has a branch
++that crosses the dateline.  However, just as for unicast, crossing a
++dateline on a 1D ring (here, the ring for y=2) that is broken by a failure
++cannot contribute to a torus credit loop.
++
++Second, this spanning tree is no longer optimal even for multicast groups
++that encompass the entire fabric.  That, unfortunately, is a compromise that
++must be made to retain the other desirable properties of torus-2QoS routing.
++
++In the event that a single switch fails, torus-2QoS will generate a master
++spanning tree that has no "extra" turns by appropriately selecting a root
++switch.  In the 2D 6x5 torus example, assume now that the switch at (3,2),
++i.e. the root for a pristine fabric, fails.  Torus-2QoS will generate the
++following master spanning tree for that case:
++
++                       |
++   4    +    +    +    +    +    +
++        |    |    |    |    |    |
++   3    +    +    +    +    +    +
++        |    |    |         |    |
++   2    +    +    +         +    +
++        |    |    |         |    |
++   1    +----+----x----+----+----+
++        |    |    |    |    |    |
++ y=0    +    +    +    +    +    +
++                       |
++
++      x=0    1    2    3    4    5
++
++Assuming the y dateline was between y=4 and y=0, this spanning tree has
++a branch that crosses a dateline.  However, again this cannot contribute
++to credit loops as it occurs on a 1D ring (the ring for x=3) that is
++broken by a failure, as in the above example.
++
++Due to the use made by torus-2QoS of SLs and VLs, QoS configuration should
++only employ SL values 0 and 8, for both multicast and unicast.  Also,
++SL to VL map configuration must be under the complete control of torus-2QoS,
++so any user-supplied configuration must and will be ignored.
+diff --git a/opensm/man/opensm.8.in b/opensm/man/opensm.8.in
+index 7aca8f9..a0d2ccc 100644
+--- a/opensm/man/opensm.8.in
++++ b/opensm/man/opensm.8.in
+@@ -638,7 +638,7 @@ compiling opensm with -DROUTER_EXP which has been obsoleted.
  
- 	OSM_LOG(p_mgr->p_log, OSM_LOG_INFO,
- 		"%s tables configured on all switches\n",
--		osm_routing_engine_type_str(p_osm->routing_engine_used));
-+		osm_routing_engine_type_str(p_osm->
-+					    routing_engine_used->type));
+ .SH ROUTING
+ .PP
+-OpenSM now offers five routing engines:
++OpenSM now offers six routing engines:
  
- 	if (p_mgr->p_subn->opt.use_ucast_cache)
- 		p_mgr->cache_valid = TRUE;
+ 1.  Min Hop Algorithm - based on the minimum hops to each node where the
+ path length is optimized.
+@@ -667,6 +667,13 @@ two switches.  This provides deadlock free routes for hypercubes when
+ the fabric is cabled as a hypercube and for meshes when cabled as a
+ mesh (see details below).
+ 
++6. Torus-2QoS unicast routing algorithm - a DOR-based routing algorithm
++specialized for 2D/3D torus topologies.  Torus-2QoS provides deadlock-free
++routing while supporting two quality of service (QoS) levels.  In addition
++it is able to route around multiple failed fabric links or a single failed
++fabric switch without introducing deadlocks, and without changing path SL
++values granted before the failure.
++
+ OpenSM also supports a file method which
+ can load routes from a table. See \'Modular Routing Engine\' for more
+ information on this.
 -- 
 1.6.6.1
 
