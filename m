@@ -1,13 +1,13 @@
 From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH] RDMA/nes: ethtool to read hardware registers for Rx/Tx error stats
-Date: Thu, 11 Mar 2010 15:14:24 -0800
-Message-ID: <adapr3abgdr.fsf@roland-alpha.cisco.com>
-References: <20100302224419.GA39144@flatif-MOBL>
+Subject: Re: [PATCH v2] RDMA/nes: set assume_alligned_header  bit
+Date: Thu, 11 Mar 2010 15:14:28 -0800
+Message-ID: <adaljdybgdn.fsf@roland-alpha.cisco.com>
+References: <20100302232251.GA40928@flatif-MOBL>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20100302224419.GA39144@flatif-MOBL> (Faisal Latif's message of
-	"Tue, 2 Mar 2010 16:44:19 -0600")
+In-Reply-To: <20100302232251.GA40928@flatif-MOBL> (Faisal Latif's message of
+	"Tue, 2 Mar 2010 17:22:51 -0600")
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
