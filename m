@@ -1,35 +1,44 @@
-From: Ralph Campbell <ralph.campbell-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [ewg] [PATCH] ipoib: Fix lockup of the tx queue
-Date: Thu, 11 Mar 2010 14:04:08 -0800
-Message-ID: <1268345048.2255.51.camel@chromite.mv.qlogic.com>
-References: <20100303122752.GA29784@mtldesk030.lab.mtl.com>
-	 <adaiq92czdt.fsf@roland-alpha.cisco.com>
-	 <1268343670.2255.44.camel@chromite.mv.qlogic.com>
-	 <1268343937.2255.46.camel@chromite.mv.qlogic.com>
-	 <ada3a06cyqw.fsf@roland-alpha.cisco.com>
+From: "Sean Hefty" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: Simplified iWARP Consumer Library
+Date: Thu, 11 Mar 2010 14:49:32 -0800
+Message-ID: <D02FA836874E4D0BB034477ED376C46C@amr.corp.intel.com>
+References: <4B796BBD.5050007@inf.ethz.ch> <02600C74DFEE41EFAD9D387CF5A837CC@amr.corp.intel.com> <4B91913C.8000705@inf.ethz.ch> <34C415061F244870BB8A526637CD04B0@amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain;
+	charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <ada3a06cyqw.fsf-BjVyx320WGW9gfZ95n9DRSW4+XlvGpQz@public.gmane.org>
+In-Reply-To: <34C415061F244870BB8A526637CD04B0-Zpru7NauK7drdx17CPfAsdBPR1lH4CV8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Cc: Linux RDMA list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, ewg <ewg-G2znmakfqn7U1rindQTSdQ@public.gmane.org>
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, phil-dElbnslWKco@public.gmane.org
+Cc: rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org, bmt-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, 2010-03-11 at 13:52 -0800, Roland Dreier wrote:
-> > Sorry, I was referring to my patch not Eli's.
-> 
-> Heh, I never would have said anything about your patch was "obvious".
-> I skimmed yours once but I do want to read it more carefully.
-> 
-> Did you ever say what test case you are using to provoke the problem you're fixing?
+>>Which of the features would you want to see in librdmacm? I guess the
+>>integration of the cm_id and qp as well as the simpler (synchronous)
+>connection
+>>establishment and teardown functionality would fit. However, all cm events
+>>will thereafter be handled within the library rather than being presented to
+>>the user. Does that make sense?
 
-I think I did but it is just UDP stress tests in general.
-Throwing in some link failures and switching between connected
-and datagram modes helps too. netperf, qperf, etc. should work.
-Anything which causes the connected mode QP to fail should
-exercise the fix too.
+I have some ideas for simplifying connection establishment as part of my changes
+to support native IB addresses through the rdma_cm interface.  This includes
+adding new calls to the librdmacm: rdma_getaddrinfo and
+rdma_create_id_and_optional_qp_and_bind_addr_and_set_route.
+I'll pick a different name for the latter. :)  Combined, I think these calls
+could allow a user to more easily connect, while still providing low level
+control for anyone who wants it.
+
+I haven't looked at the details for this, but we may be able to support
+synchronous operation by allowing the user to provide a NULL rdma_event_channel
+when creating the rdma_cm_id.  We can take advantage of rdma_migrate_id to
+implement this, or even toggle between synchronous and asynchronous mode.  The
+hope is that the librdmacm can remain threadless.
+
+If you can give me a month or so to finish my current patches, I'll take a look
+at this as part of my work.
+
+- Sean
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
