@@ -1,23 +1,53 @@
-From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH] RDMA/nes: clear stall bit before destroying nic qp
-Date: Thu, 11 Mar 2010 15:15:10 -0800
-Message-ID: <ada8w9ybgch.fsf@roland-alpha.cisco.com>
-References: <20100303191328.GA4272@ctung-MOBL>
+From: philip.frey-gy3b+zu4XSAfv37vnLkPlQ@public.gmane.org
+Subject: Re: Simplified iWARP Consumer Library
+Date: Fri, 12 Mar 2010 06:44:08 +0000
+Message-ID: <136664641-1268376251-cardhu_decombobulator_blackberry.rim.net-498095736-@bda043.bisx.produk.on.blackberry>
+Reply-To: philip.frey-gy3b+zu4XSAfv37vnLkPlQ@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20100303191328.GA4272@ctung-MOBL> (Chien Tung's message of "Wed,
-	3 Mar 2010 13:13:28 -0600")
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Chien Tung <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, phil-dElbnslWKco@public.gmane.org
+Cc: rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org, Bernard Metzler <bmt-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-thanks, applied.
--- 
-Roland Dreier  <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-For corporate legal information go to:
-http://www.cisco.com/web/about/doing_business/legal/cri/index.html
+U291bmRzIGdvb2QgdG8gbWUuIEknbGwgd2FpdCB3aXRoIHRoZSBpbnRlZ3JhdGlvbiBvZiBteSBs
+aWJyYXJ5IHJvdXRpbmVzIGFzIHRoZXkgYXJlIGRlc2lnbmVkIGFyb3VuZCBhIENNIHRocmVhZC4N
+Cg0KTG9va2luZyBmb3J3YXJkIHRvIHlvdXIgdXBkYXRlLg0KDQogUGhpbA0KLS0tLS0tT3JpZ2lu
+YWwgTWVzc2FnZS0tLS0tLQ0KRnJvbTogU2VhbiBIZWZ0eQ0KU2VuZGVyOiBsaW51eC1yZG1hLW93
+bmVyQHZnZXIua2VybmVsLm9yZw0KVG86IEhlZnR5LCBTZWFuDQpUbzogcGhpbEBmcmV5LndzDQpD
+YzogcmRyZWllckBjaXNjby5jb20NCkNjOiBCZXJuYXJkIE1ldHpsZXINCkNjOiBsaW51eC1yZG1h
+QHZnZXIua2VybmVsLm9yZw0KU3ViamVjdDogUkU6IFNpbXBsaWZpZWQgaVdBUlAgQ29uc3VtZXIg
+TGlicmFyeQ0KU2VudDogTWFyIDExLCAyMDEwIDIzOjQ5DQoNCj4+V2hpY2ggb2YgdGhlIGZlYXR1
+cmVzIHdvdWxkIHlvdSB3YW50IHRvIHNlZSBpbiBsaWJyZG1hY20/IEkgZ3Vlc3MgdGhlDQo+Pmlu
+dGVncmF0aW9uIG9mIHRoZSBjbV9pZCBhbmQgcXAgYXMgd2VsbCBhcyB0aGUgc2ltcGxlciAoc3lu
+Y2hyb25vdXMpDQo+Y29ubmVjdGlvbg0KPj5lc3RhYmxpc2htZW50IGFuZCB0ZWFyZG93biBmdW5j
+dGlvbmFsaXR5IHdvdWxkIGZpdC4gSG93ZXZlciwgYWxsIGNtIGV2ZW50cw0KPj53aWxsIHRoZXJl
+YWZ0ZXIgYmUgaGFuZGxlZCB3aXRoaW4gdGhlIGxpYnJhcnkgcmF0aGVyIHRoYW4gYmVpbmcgcHJl
+c2VudGVkIHRvDQo+PnRoZSB1c2VyLiBEb2VzIHRoYXQgbWFrZSBzZW5zZT8NCg0KSSBoYXZlIHNv
+bWUgaWRlYXMgZm9yIHNpbXBsaWZ5aW5nIGNvbm5lY3Rpb24gZXN0YWJsaXNobWVudCBhcyBwYXJ0
+IG9mIG15IGNoYW5nZXMNCnRvIHN1cHBvcnQgbmF0aXZlIElCIGFkZHJlc3NlcyB0aHJvdWdoIHRo
+ZSByZG1hX2NtIGludGVyZmFjZS4gIFRoaXMgaW5jbHVkZXMNCmFkZGluZyBuZXcgY2FsbHMgdG8g
+dGhlIGxpYnJkbWFjbTogcmRtYV9nZXRhZGRyaW5mbyBhbmQNCnJkbWFfY3JlYXRlX2lkX2FuZF9v
+cHRpb25hbF9xcF9hbmRfYmluZF9hZGRyX2FuZF9zZXRfcm91dGUuDQpJJ2xsIHBpY2sgYSBkaWZm
+ZXJlbnQgbmFtZSBmb3IgdGhlIGxhdHRlci4gOikgIENvbWJpbmVkLCBJIHRoaW5rIHRoZXNlIGNh
+bGxzDQpjb3VsZCBhbGxvdyBhIHVzZXIgdG8gbW9yZSBlYXNpbHkgY29ubmVjdCwgd2hpbGUgc3Rp
+bGwgcHJvdmlkaW5nIGxvdyBsZXZlbA0KY29udHJvbCBmb3IgYW55b25lIHdobyB3YW50cyBpdC4N
+Cg0KSSBoYXZlbid0IGxvb2tlZCBhdCB0aGUgZGV0YWlscyBmb3IgdGhpcywgYnV0IHdlIG1heSBi
+ZSBhYmxlIHRvIHN1cHBvcnQNCnN5bmNocm9ub3VzIG9wZXJhdGlvbiBieSBhbGxvd2luZyB0aGUg
+dXNlciB0byBwcm92aWRlIGEgTlVMTCByZG1hX2V2ZW50X2NoYW5uZWwNCndoZW4gY3JlYXRpbmcg
+dGhlIHJkbWFfY21faWQuICBXZSBjYW4gdGFrZSBhZHZhbnRhZ2Ugb2YgcmRtYV9taWdyYXRlX2lk
+IHRvDQppbXBsZW1lbnQgdGhpcywgb3IgZXZlbiB0b2dnbGUgYmV0d2VlbiBzeW5jaHJvbm91cyBh
+bmQgYXN5bmNocm9ub3VzIG1vZGUuICBUaGUNCmhvcGUgaXMgdGhhdCB0aGUgbGlicmRtYWNtIGNh
+biByZW1haW4gdGhyZWFkbGVzcy4NCg0KSWYgeW91IGNhbiBnaXZlIG1lIGEgbW9udGggb3Igc28g
+dG8gZmluaXNoIG15IGN1cnJlbnQgcGF0Y2hlcywgSSdsbCB0YWtlIGEgbG9vaw0KYXQgdGhpcyBh
+cyBwYXJ0IG9mIG15IHdvcmsuDQoNCi0gU2Vhbg0KDQotLQ0KVG8gdW5zdWJzY3JpYmUgZnJvbSB0
+aGlzIGxpc3Q6IHNlbmQgdGhlIGxpbmUgInVuc3Vic2NyaWJlIGxpbnV4LXJkbWEiIGluDQp0aGUg
+Ym9keSBvZiBhIG1lc3NhZ2UgdG8gbWFqb3Jkb21vQHZnZXIua2VybmVsLm9yZw0KTW9yZSBtYWpv
+cmRvbW8gaW5mbyBhdCAgaHR0cDovL3ZnZXIua2VybmVsLm9yZy9tYWpvcmRvbW8taW5mby5odG1s
+DQoNCg==
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
