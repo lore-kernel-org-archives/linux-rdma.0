@@ -1,54 +1,54 @@
-From: philip.frey-gy3b+zu4XSAfv37vnLkPlQ@public.gmane.org
-Subject: Re: Simplified iWARP Consumer Library
-Date: Fri, 12 Mar 2010 06:44:08 +0000
-Message-ID: <136664641-1268376251-cardhu_decombobulator_blackberry.rim.net-498095736-@bda043.bisx.produk.on.blackberry>
-Reply-To: philip.frey-gy3b+zu4XSAfv37vnLkPlQ@public.gmane.org
+From: =?iso-8859-1?Q?H=E5kon_Bugge?= <Haakon.Bugge-UdXhSnd/wVw@public.gmane.org>
+Subject: Re: [PATCH V3 0/2] Add support for enhanced atomic operations
+Date: Fri, 12 Mar 2010 10:21:57 +0100
+Message-ID: <BA082DF0-B3C6-4405-B480-F69B0193BF17@Sun.COM>
+References: <20100310155749.GA25964@vlad-laptop>
+ <A27E2E88-63A0-45EE-9A70-F95B2A0C25AD@Sun.com>
+ <adaaaueelby.fsf@roland-alpha.cisco.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-reply-to: <adaaaueelby.fsf-BjVyx320WGW9gfZ95n9DRSW4+XlvGpQz@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, phil-dElbnslWKco@public.gmane.org
-Cc: rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org, Bernard Metzler <bmt-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Cc: vlad-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-U291bmRzIGdvb2QgdG8gbWUuIEknbGwgd2FpdCB3aXRoIHRoZSBpbnRlZ3JhdGlvbiBvZiBteSBs
-aWJyYXJ5IHJvdXRpbmVzIGFzIHRoZXkgYXJlIGRlc2lnbmVkIGFyb3VuZCBhIENNIHRocmVhZC4N
-Cg0KTG9va2luZyBmb3J3YXJkIHRvIHlvdXIgdXBkYXRlLg0KDQogUGhpbA0KLS0tLS0tT3JpZ2lu
-YWwgTWVzc2FnZS0tLS0tLQ0KRnJvbTogU2VhbiBIZWZ0eQ0KU2VuZGVyOiBsaW51eC1yZG1hLW93
-bmVyQHZnZXIua2VybmVsLm9yZw0KVG86IEhlZnR5LCBTZWFuDQpUbzogcGhpbEBmcmV5LndzDQpD
-YzogcmRyZWllckBjaXNjby5jb20NCkNjOiBCZXJuYXJkIE1ldHpsZXINCkNjOiBsaW51eC1yZG1h
-QHZnZXIua2VybmVsLm9yZw0KU3ViamVjdDogUkU6IFNpbXBsaWZpZWQgaVdBUlAgQ29uc3VtZXIg
-TGlicmFyeQ0KU2VudDogTWFyIDExLCAyMDEwIDIzOjQ5DQoNCj4+V2hpY2ggb2YgdGhlIGZlYXR1
-cmVzIHdvdWxkIHlvdSB3YW50IHRvIHNlZSBpbiBsaWJyZG1hY20/IEkgZ3Vlc3MgdGhlDQo+Pmlu
-dGVncmF0aW9uIG9mIHRoZSBjbV9pZCBhbmQgcXAgYXMgd2VsbCBhcyB0aGUgc2ltcGxlciAoc3lu
-Y2hyb25vdXMpDQo+Y29ubmVjdGlvbg0KPj5lc3RhYmxpc2htZW50IGFuZCB0ZWFyZG93biBmdW5j
-dGlvbmFsaXR5IHdvdWxkIGZpdC4gSG93ZXZlciwgYWxsIGNtIGV2ZW50cw0KPj53aWxsIHRoZXJl
-YWZ0ZXIgYmUgaGFuZGxlZCB3aXRoaW4gdGhlIGxpYnJhcnkgcmF0aGVyIHRoYW4gYmVpbmcgcHJl
-c2VudGVkIHRvDQo+PnRoZSB1c2VyLiBEb2VzIHRoYXQgbWFrZSBzZW5zZT8NCg0KSSBoYXZlIHNv
-bWUgaWRlYXMgZm9yIHNpbXBsaWZ5aW5nIGNvbm5lY3Rpb24gZXN0YWJsaXNobWVudCBhcyBwYXJ0
-IG9mIG15IGNoYW5nZXMNCnRvIHN1cHBvcnQgbmF0aXZlIElCIGFkZHJlc3NlcyB0aHJvdWdoIHRo
-ZSByZG1hX2NtIGludGVyZmFjZS4gIFRoaXMgaW5jbHVkZXMNCmFkZGluZyBuZXcgY2FsbHMgdG8g
-dGhlIGxpYnJkbWFjbTogcmRtYV9nZXRhZGRyaW5mbyBhbmQNCnJkbWFfY3JlYXRlX2lkX2FuZF9v
-cHRpb25hbF9xcF9hbmRfYmluZF9hZGRyX2FuZF9zZXRfcm91dGUuDQpJJ2xsIHBpY2sgYSBkaWZm
-ZXJlbnQgbmFtZSBmb3IgdGhlIGxhdHRlci4gOikgIENvbWJpbmVkLCBJIHRoaW5rIHRoZXNlIGNh
-bGxzDQpjb3VsZCBhbGxvdyBhIHVzZXIgdG8gbW9yZSBlYXNpbHkgY29ubmVjdCwgd2hpbGUgc3Rp
-bGwgcHJvdmlkaW5nIGxvdyBsZXZlbA0KY29udHJvbCBmb3IgYW55b25lIHdobyB3YW50cyBpdC4N
-Cg0KSSBoYXZlbid0IGxvb2tlZCBhdCB0aGUgZGV0YWlscyBmb3IgdGhpcywgYnV0IHdlIG1heSBi
-ZSBhYmxlIHRvIHN1cHBvcnQNCnN5bmNocm9ub3VzIG9wZXJhdGlvbiBieSBhbGxvd2luZyB0aGUg
-dXNlciB0byBwcm92aWRlIGEgTlVMTCByZG1hX2V2ZW50X2NoYW5uZWwNCndoZW4gY3JlYXRpbmcg
-dGhlIHJkbWFfY21faWQuICBXZSBjYW4gdGFrZSBhZHZhbnRhZ2Ugb2YgcmRtYV9taWdyYXRlX2lk
-IHRvDQppbXBsZW1lbnQgdGhpcywgb3IgZXZlbiB0b2dnbGUgYmV0d2VlbiBzeW5jaHJvbm91cyBh
-bmQgYXN5bmNocm9ub3VzIG1vZGUuICBUaGUNCmhvcGUgaXMgdGhhdCB0aGUgbGlicmRtYWNtIGNh
-biByZW1haW4gdGhyZWFkbGVzcy4NCg0KSWYgeW91IGNhbiBnaXZlIG1lIGEgbW9udGggb3Igc28g
-dG8gZmluaXNoIG15IGN1cnJlbnQgcGF0Y2hlcywgSSdsbCB0YWtlIGEgbG9vaw0KYXQgdGhpcyBh
-cyBwYXJ0IG9mIG15IHdvcmsuDQoNCi0gU2Vhbg0KDQotLQ0KVG8gdW5zdWJzY3JpYmUgZnJvbSB0
-aGlzIGxpc3Q6IHNlbmQgdGhlIGxpbmUgInVuc3Vic2NyaWJlIGxpbnV4LXJkbWEiIGluDQp0aGUg
-Ym9keSBvZiBhIG1lc3NhZ2UgdG8gbWFqb3Jkb21vQHZnZXIua2VybmVsLm9yZw0KTW9yZSBtYWpv
-cmRvbW8gaW5mbyBhdCAgaHR0cDovL3ZnZXIua2VybmVsLm9yZy9tYWpvcmRvbW8taW5mby5odG1s
-DQoNCg==
+On Mar 11, 2010, at 19:59 , Roland Dreier wrote:
+> I think we can worry about that if/when an HCA comes along that suppo=
+rts
+> global atomics for ordinary atomics but not enhanced atomics.
+
+With the proposed patches in place, how do you know if masked atomics a=
+re implemented or not? Guess apps need to know this information already=
+ on todays HCAs.
+
+> Although perhaps it would be cleaner to change the atomic_cap enum to=
+:
+>=20
+> 	/*
+> 	 * IB_ATOMIC_NONE:	no atomic capability
+> 	 * IB_ATOMIC_HCA:	all ops are atomic within HCA
+
+But IB_ATOMIC_HCA  does not tell you if the masked ones are supported o=
+r not.
+
+> 	 * IB_ATOMIC_GLOB:	standard ops atomic with respect to all
+> 				memory ops; masked ops atomic within HCA
+
+What if an HCA supports standards ops with respect to all memory ops, b=
+ut the HCA does not support masked atomics?
+
+Hence, I think it would be cleaner if a new capability, masked_atomic_c=
+ap, were introduced, using the original definitions (NONE, HCA, GLOB).
+
+
+Thanks, H=E5kon
+
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
