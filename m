@@ -1,54 +1,30 @@
-From: =?iso-8859-1?Q?H=E5kon_Bugge?= <Haakon.Bugge-UdXhSnd/wVw@public.gmane.org>
-Subject: Re: [PATCH V3 0/2] Add support for enhanced atomic operations
-Date: Fri, 12 Mar 2010 10:21:57 +0100
-Message-ID: <BA082DF0-B3C6-4405-B480-F69B0193BF17@Sun.COM>
-References: <20100310155749.GA25964@vlad-laptop>
- <A27E2E88-63A0-45EE-9A70-F95B2A0C25AD@Sun.com>
- <adaaaueelby.fsf@roland-alpha.cisco.com>
+From: "=?gb2312?B?0e698LjV?=" <yangjg-6gUaA8visnnQT0dZR+AlfA@public.gmane.org>
+Subject: infiniband RDMA connection to server is rejected when client reboot
+Date: Fri, 12 Mar 2010 17:52:25 +0800
+Message-ID: <MAILDRomQlDT6VxqM8E0004c9d0@mail.langchao.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain;
+	charset="gb2312"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-reply-to: <adaaaueelby.fsf-BjVyx320WGW9gfZ95n9DRSW4+XlvGpQz@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Cc: vlad-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mar 11, 2010, at 19:59 , Roland Dreier wrote:
-> I think we can worry about that if/when an HCA comes along that suppo=
-rts
-> global atomics for ordinary atomics but not enhanced atomics.
-
-With the proposed patches in place, how do you know if masked atomics a=
-re implemented or not? Guess apps need to know this information already=
- on todays HCAs.
-
-> Although perhaps it would be cleaner to change the atomic_cap enum to=
-:
->=20
-> 	/*
-> 	 * IB_ATOMIC_NONE:	no atomic capability
-> 	 * IB_ATOMIC_HCA:	all ops are atomic within HCA
-
-But IB_ATOMIC_HCA  does not tell you if the masked ones are supported o=
-r not.
-
-> 	 * IB_ATOMIC_GLOB:	standard ops atomic with respect to all
-> 				memory ops; masked ops atomic within HCA
-
-What if an HCA supports standards ops with respect to all memory ops, b=
-ut the HCA does not support masked atomics?
-
-Hence, I think it would be cleaner if a new capability, masked_atomic_c=
-ap, were introduced, using the original definitions (NONE, HCA, GLOB).
-
-
-Thanks, H=E5kon
-
+bGludXgtcmRtYW5vdyBJIGxlYXJuaW5nIFJETUEgcHJvZ3JhbW1pbmcsDQogIHdoZW4gaSB1c2Vy
+IHRoZSBuZXh0IGZvbGxvd2luZzoNCiAgICBzZXJ2ZXI6ICByZG1hX2NyZWF0ZV9pZKOscmRtYV9i
+aW5kX2FkZHKjrCByZG1hX2xpc3RlbihjYi0+Y21faWQsIDMpOw0KVGhlbiAgdGhlICBjbGllbnQg
+Y29ubmVjdHMgdGhlICBzZXJ2ZXIsIHRoZSAgY29ubmVjdGlvbiBpcyBzdWNlc3NmdWwuIFRoZW4g
+bm90aGluZyBpcyBkb25lIG9uIHRoZSBzZXJ2ZXIgYnV0ICB0aGUgY2xpZW50IGlzIHJlYm9vdGVk
+IC4gQWZ0ZXIgdGhlIGNsaWVudCBzdGFydHMsIGl0ICBjb25ubmV0cyB0aGUgc2VydmVyIGFnYWlu
+LiBFcnJvcnMgY29tZSBoZXJlLiBTb21ldGltZSB0aGlzIGNvbm5uZWN0aW9uIGNhbiBiZSBzdWNj
+ZXNzZnVsLCBhbmQgZmFpbHMgb3RoZXJ0aW1lLiBXaGVuIGl0IGZhaWxzLHRoZSBjbGllbnQgcmVj
+ZWl2ZXMgUkRNQV9DTV9FVkVOVF9SRUpFQ1RFRCBldmVudCxhbmQgdGhlIHNlcnZlciBkb2VzJ3Qg
+cmVjZWl2ZWQgUkRNQV9DTV9FVkVOVF9DT05ORUNUX1JFUVVFU1QgZXZlbnQgYXMgdGhlIHN1Y2Nl
+c3NmdWwgY29ubmVjdGlvbi4NCkkgZG9uJ3QgaG93IHRoaXMgaGFwcGVucy5DYW4gc29tZW9uZSBo
+ZWxwIG1lID9UaGFua3MhDQo=
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
