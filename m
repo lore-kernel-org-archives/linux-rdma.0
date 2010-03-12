@@ -1,33 +1,44 @@
-From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: udaddy.c question
-Date: Fri, 12 Mar 2010 09:25:14 -0600
-Message-ID: <4B9A5CDA.1030704@opengridcomputing.com>
+From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH V3 0/2] Add support for enhanced atomic operations
+Date: Fri, 12 Mar 2010 07:53:35 -0800
+Message-ID: <adavdd1a64g.fsf@roland-alpha.cisco.com>
+References: <20100310155749.GA25964@vlad-laptop>
+	<A27E2E88-63A0-45EE-9A70-F95B2A0C25AD@Sun.com>
+	<adaaaueelby.fsf@roland-alpha.cisco.com>
+	<BA082DF0-B3C6-4405-B480-F69B0193BF17@Sun.COM>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <BA082DF0-B3C6-4405-B480-F69B0193BF17-UdXhSnd/wVw@public.gmane.org> (=?utf-8?Q?=22?=
+ =?utf-8?Q?H=C3=A5kon?= Bugge"'s
+	message of "Fri, 12 Mar 2010 10:21:57 +0100")
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: =?utf-8?Q?H=C3=A5kon?= Bugge <Haakon.Bugge-UdXhSnd/wVw@public.gmane.org>
+Cc: vlad-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hello rdma wizards,
+ > With the proposed patches in place, how do you know if masked atomics
+ > are implemented or not? Guess apps need to know this information
+ > already on todays HCAs.
 
-I'm trying to understand how IB UD service works with the rdmacm in 
-linux.  According to the IBTA specification, I should be able to create 
-a single UD QP and exchange messages with any number of peers as long as 
-I know their qkeys.  Yet when I look at udaddy.c (and even mckey.c), it 
-appears that the UD service in the rdmacm is really connection oriented 
-and a QP is required for each pair of processes exchanging data.  I 
-think this is just the way udaddy.c was implemented, but I want to know 
-if it is possible with librdmacm to create a single cm_id with a single 
-QP, bind it to an IP address/port, and then send/recv to multiple peers 
-(via unicast).  Is this possible?
+>From the patch:
 
-Thanks!
+ > @@ -105,6 +105,7 @@ enum ib_device_cap_flags {
+ >  	IB_DEVICE_UD_TSO		= (1<<19),
+ >  	IB_DEVICE_MEM_MGT_EXTENSIONS	= (1<<21),
+ >  	IB_DEVICE_BLOCK_MULTICAST_LOOPBACK = (1<<22),
+ > +	IB_DEVICE_MASKED_ATOMIC		= (1<<23),
+ >  };
 
-Steve.
+ > Hence, I think it would be cleaner if a new capability,
+ > masked_atomic_cap, were introduced, using the original definitions
+ > (NONE, HCA, GLOB).
 
-
+Actually that does seem more orthogonal to me.
+-- 
+Roland Dreier  <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+For corporate legal information go to:
+http://www.cisco.com/web/about/doing_business/legal/cri/index.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
