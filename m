@@ -1,44 +1,59 @@
-From: "Sean Hefty" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: infiniband RDMA connection to server is rejected when client reboot
-Date: Fri, 12 Mar 2010 08:47:15 -0800
-Message-ID: <0D783A5934AD43FFAC5655D1FE23BA47@amr.corp.intel.com>
-References: <MAILDRomQlDT6VxqM8E0004c9d0@mail.langchao.com>
+From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: Re: udaddy.c question
+Date: Fri, 12 Mar 2010 11:06:44 -0600
+Message-ID: <4B9A74A4.8030404@opengridcomputing.com>
+References: <4B9A5CDA.1030704@opengridcomputing.com> <87571B1E12964DEE8582290B804E03A8@amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=gb2312
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <MAILDRomQlDT6VxqM8E0004c9d0-hsiVscFSYOJrXVYLWy1CrgC/G2K4zDHf@public.gmane.org>
+In-Reply-To: <87571B1E12964DEE8582290B804E03A8-Zpru7NauK7drdx17CPfAsdBPR1lH4CV8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: =?gb2312?B?J9HuvfC41Sc=?= <yangjg-6gUaA8visnnQT0dZR+AlfA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
->    server:  rdma_create_id=A3=ACrdma_bind_addr=A3=AC rdma_listen(cb->=
-cm_id, 3);
->Then  the  client connects the  server, the  connection is sucessful. =
-Then
->nothing is done on the server but  the client is rebooted . After the =
-client
->starts, it  connnets the server again. Errors come here. Sometime this
->connnection can be successful, and fails othertime. When it fails,the =
-client
->receives RDMA_CM_EVENT_REJECTED event,and the server does't received
->RDMA_CM_EVENT_CONNECT_REQUEST event as the successful connection.
->I don't how this happens.Can someone help me ?Thanks!
+Sean Hefty wrote:
+>> I'm trying to understand how IB UD service works with the rdmacm in
+>> linux.  According to the IBTA specification, I should be able to create
+>> a single UD QP and exchange messages with any number of peers as long as
+>> I know their qkeys.  Yet when I look at udaddy.c (and even mckey.c), it
+>> appears that the UD service in the rdmacm is really connection oriented
+>> and a QP is required for each pair of processes exchanging data.  I
+>> think this is just the way udaddy.c was implemented, but I want to know
+>> if it is possible with librdmacm to create a single cm_id with a single
+>> QP, bind it to an IP address/port, and then send/recv to multiple peers
+>> (via unicast).  Is this possible?
+>>     
+>
+> It's intended to be possible.  :)  The rdma_cm uses a single qkey be default in
+> order to handle mixed UD and multicast traffic.  You could override this by
+> exchanging whatever qkey you want via private data.  But you must discover the
+> remote qpn.
+>
+> To discover the remote qpn, you use the normal rdma calls (resolve_addr /
+> resolve_route / connect or listen / accept).  You need to do this for each
+> remote QP that you want to exchange data with.  You don't need a QP associated
+> with the rdma_cm_id's when resolving the remote qpn, or even need to keep the
+> rdma_cm_id's around afterwards.  Actually, I don't think there's any reason why
+> you can't create the UD QPs using ibv_create_qp, and only use the rdma cm to
+> discover the QPNs. 
+>
+> The udaddy code was derived from ucmatose, which is why it looks a lot like
+> connection oriented code.
+>
+> - Sean
+>   
 
-The server side may be rejecting the connection request as a duplicate.=
-  The
-event.status may provide some additional insight.  It should contain on=
-e of the
-enum ib_cm_rej_reason values given in ib_cm.h (assuming that you're usi=
-ng IB and
-not iWarp).  If the status is 'IB_CM_REJ_STALE_CONN' (=3D 10), then ret=
-rying the
-connection with a new QP may succeed.
+What if I don't want to use the qpn discovery mechanism from librdmacm?  
+IE I have have an out of band protocol for exchanging qkeys -and- qpns.  
+Can I avoid the connect on the active side, and the listen/accept on the 
+server side?
 
-- Sean
+
+
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
