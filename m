@@ -1,44 +1,47 @@
-From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH V3 0/2] Add support for enhanced atomic operations
-Date: Fri, 12 Mar 2010 07:53:35 -0800
-Message-ID: <adavdd1a64g.fsf@roland-alpha.cisco.com>
-References: <20100310155749.GA25964@vlad-laptop>
-	<A27E2E88-63A0-45EE-9A70-F95B2A0C25AD@Sun.com>
-	<adaaaueelby.fsf@roland-alpha.cisco.com>
-	<BA082DF0-B3C6-4405-B480-F69B0193BF17@Sun.COM>
+From: "Sean Hefty" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: udaddy.c question
+Date: Fri, 12 Mar 2010 08:37:02 -0800
+Message-ID: <87571B1E12964DEE8582290B804E03A8@amr.corp.intel.com>
+References: <4B9A5CDA.1030704@opengridcomputing.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <BA082DF0-B3C6-4405-B480-F69B0193BF17-UdXhSnd/wVw@public.gmane.org> (=?utf-8?Q?=22?=
- =?utf-8?Q?H=C3=A5kon?= Bugge"'s
-	message of "Fri, 12 Mar 2010 10:21:57 +0100")
+In-Reply-To: <4B9A5CDA.1030704-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: =?utf-8?Q?H=C3=A5kon?= Bugge <Haakon.Bugge-UdXhSnd/wVw@public.gmane.org>
-Cc: vlad-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: 'Steve Wise' <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
- > With the proposed patches in place, how do you know if masked atomics
- > are implemented or not? Guess apps need to know this information
- > already on todays HCAs.
+>I'm trying to understand how IB UD service works with the rdmacm in
+>linux.  According to the IBTA specification, I should be able to create
+>a single UD QP and exchange messages with any number of peers as long as
+>I know their qkeys.  Yet when I look at udaddy.c (and even mckey.c), it
+>appears that the UD service in the rdmacm is really connection oriented
+>and a QP is required for each pair of processes exchanging data.  I
+>think this is just the way udaddy.c was implemented, but I want to know
+>if it is possible with librdmacm to create a single cm_id with a single
+>QP, bind it to an IP address/port, and then send/recv to multiple peers
+>(via unicast).  Is this possible?
 
->From the patch:
+It's intended to be possible.  :)  The rdma_cm uses a single qkey be default in
+order to handle mixed UD and multicast traffic.  You could override this by
+exchanging whatever qkey you want via private data.  But you must discover the
+remote qpn.
 
- > @@ -105,6 +105,7 @@ enum ib_device_cap_flags {
- >  	IB_DEVICE_UD_TSO		= (1<<19),
- >  	IB_DEVICE_MEM_MGT_EXTENSIONS	= (1<<21),
- >  	IB_DEVICE_BLOCK_MULTICAST_LOOPBACK = (1<<22),
- > +	IB_DEVICE_MASKED_ATOMIC		= (1<<23),
- >  };
+To discover the remote qpn, you use the normal rdma calls (resolve_addr /
+resolve_route / connect or listen / accept).  You need to do this for each
+remote QP that you want to exchange data with.  You don't need a QP associated
+with the rdma_cm_id's when resolving the remote qpn, or even need to keep the
+rdma_cm_id's around afterwards.  Actually, I don't think there's any reason why
+you can't create the UD QPs using ibv_create_qp, and only use the rdma cm to
+discover the QPNs. 
 
- > Hence, I think it would be cleaner if a new capability,
- > masked_atomic_cap, were introduced, using the original definitions
- > (NONE, HCA, GLOB).
+The udaddy code was derived from ucmatose, which is why it looks a lot like
+connection oriented code.
 
-Actually that does seem more orthogonal to me.
--- 
-Roland Dreier  <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-For corporate legal information go to:
-http://www.cisco.com/web/about/doing_business/legal/cri/index.html
+- Sean
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
