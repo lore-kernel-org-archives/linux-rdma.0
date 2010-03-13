@@ -1,56 +1,63 @@
-From: Roland Dreier <rdreier@cisco.com>
-Subject: [GIT PULL] please pull infiniband.git
-Date: Fri, 12 Mar 2010 10:56:25 -0800
-Message-ID: <adar5np9xnq.fsf@roland-alpha.cisco.com>
+From: Tim Wright <tim.wright-c+vHNXOUHMmEK/hMebVsMw@public.gmane.org>
+Subject: =?iso-8859-1?Q?Na=EFve_question_wrt_ibv=5Freg=5Fmr(),_pinned_pages_and_Li?=
+ =?iso-8859-1?Q?nux_VM?=
+Date: Fri, 12 Mar 2010 21:36:48 -0500
+Message-ID: <C7C03A40.9C2%tim.wright@rnanetworks.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: torvalds@linux-foundation.org, akpm@linux-foundation.org
-Cc: linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Language: en
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Linus, please pull from
+Hello everybody,
+I have a question regarding behavior of the memory pinning using
+ibv_reg_mr() on RHEL/Centos 5.3/OFED-1.4.1. This may be more a Linux
+feature/issue, and I apologize if that is the case. Here is the scenari=
+o
 
-    master.kernel.org:/pub/scm/linux/kernel/git/roland/infiniband.git for-linus
+1. An application runs which allocates a significant fraction of the sy=
+stem
+memory as RDMA buffers (e.g. 3GB of ram on a 4GB system). These are set=
+up
+using ibv_reg_mr(). It is clear that the pages are pinned from the kern=
+el
+perspective. With just this program running, the resident set size of t=
+he
+program approaches the allocation size.
+2. If other memory-intensive processes are now started, the resident se=
+t
+size of the RDMA-using program shrinks dramatically.
+3. Even if the other memory-intensive programs are stopped, and the
+RDMA-using program is forced to read its memory, the resident set never
+grows to a =B3reasonable=B2 size again.
 
-This tree is also available from kernel.org mirrors at:
+My potentially foolish assumptions are/were that:
+i) Since the memory is pinned anyway, it would be locked into the proce=
+ss
+address space, and
+ii) even if that were not the case, that the process would be able to r=
+egain
+a large RSS when any competing processes stopped.
 
-    git://git.kernel.org/pub/scm/linux/kernel/git/roland/infiniband.git for-linus
+=46or ii), it almost seems that the VM doesn=B9t realize that the pages=
+ it would
+be grabbing back are already resident and therefore won=B9t actually ta=
+ke any
+more memory.
 
-This will get a few small fixes:
+Clearly, I can use mlock() to avoid the issue, but I was wondering if I=
+ have
+missed something obvious here. Any clues/brickbats gratefully received!
 
-Chien Tung (2):
-      RDMA/nes: Clear stall bit before destroying NIC QP
-      RDMA/nes: Fix CX4 link problem in back-to-back configuration
+Regards,
 
-Eli Cohen (1):
-      IPoIB: Fix TX queue lockup with mixed UD/CM traffic
+Tim Wright
 
-Faisal Latif (1):
-      RDMA/nes: Set assume_aligned_header bit
-
-Or Gerlitz (1):
-      IPoIB: Include return code in trace message for ib_post_send() failures
-
-Roland Dreier (1):
-      Merge branches 'cxgb3', 'ipoib', 'misc' and 'nes' into for-next
-
-Steve Wise (2):
-      IB/mad: Ignore iWARP devices on device removal
-      RDMA/cxgb3: Wait at least one schedule cycle during device removal
-
- drivers/infiniband/core/mad.c           |    3 +++
- drivers/infiniband/hw/cxgb3/iwch.c      |    2 ++
- drivers/infiniband/hw/nes/nes_hw.c      |    8 ++++++++
- drivers/infiniband/hw/nes/nes_hw.h      |    1 +
- drivers/infiniband/hw/nes/nes_nic.c     |   30 ++++++++++++++++++++++++++++--
- drivers/infiniband/hw/nes/nes_verbs.c   |    1 +
- drivers/infiniband/ulp/ipoib/ipoib_cm.c |   10 +++++++---
- drivers/infiniband/ulp/ipoib/ipoib_ib.c |    9 +++++----
- 8 files changed, 55 insertions(+), 9 deletions(-)
-
--- 
-Roland Dreier  <rolandd@cisco.com>
-For corporate legal information go to:
-http://www.cisco.com/web/about/doing_business/legal/cri/index.html
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
