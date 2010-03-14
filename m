@@ -1,79 +1,97 @@
-From: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: =?iso-8859-1?Q?Na=EFv?= =?iso-8859-1?Q?e?= question wrt
-	ibv_reg_mr(), pinned pages and Linux VM
-Date: Sun, 14 Mar 2010 12:22:39 +0200
-Message-ID: <20100314102239.GA23358@mtldesk030.lab.mtl.com>
-References: <C7C03A40.9C2%tim.wright@rnanetworks.com>
+From: Bernard Metzler <BMT-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>
+Subject: Software iWARP stack
+Date: Sun, 14 Mar 2010 17:37:59 +0100
+Message-ID: <OF64DD5621.D563EA15-ONC12576E6.00510BE1-C12576E6.005B5E57@ch.ibm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <C7C03A40.9C2%tim.wright-c+vHNXOUHMmEK/hMebVsMw@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tim Wright <tim.wright-c+vHNXOUHMmEK/hMebVsMw@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Bernard Metzler <BMT-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Tim,
-the memory you register using ibv_reg_mr() is pinned and the pages
-cannot be used for anything else until you release them through a
-call to ibv_dereg_mr() (or the process terminates). There is no need
-to use mlock.
-Did you check that the call to ibv_reg_mr() succedded?
 
-On Fri, Mar 12, 2010 at 09:36:48PM -0500, Tim Wright wrote:
-> Hello everybody,
-> I have a question regarding behavior of the memory pinning using
-> ibv_reg_mr() on RHEL/Centos 5.3/OFED-1.4.1. This may be more a Linux
-> feature/issue, and I apologize if that is the case. Here is the scena=
-rio
->=20
-> 1. An application runs which allocates a significant fraction of the =
-system
-> memory as RDMA buffers (e.g. 3GB of ram on a 4GB system). These are s=
-etup
-> using ibv_reg_mr(). It is clear that the pages are pinned from the ke=
-rnel
-> perspective. With just this program running, the resident set size of=
- the
-> program approaches the allocation size.
-> 2. If other memory-intensive processes are now started, the resident =
-set
-> size of the RDMA-using program shrinks dramatically.
-> 3. Even if the other memory-intensive programs are stopped, and the
-> RDMA-using program is forced to read its memory, the resident set nev=
-er
-> grows to a =B3reasonable=B2 size again.
->=20
-> My potentially foolish assumptions are/were that:
-> i) Since the memory is pinned anyway, it would be locked into the pro=
-cess
-> address space, and
-> ii) even if that were not the case, that the process would be able to=
- regain
-> a large RSS when any competing processes stopped.
->=20
-> For ii), it almost seems that the VM doesn=B9t realize that the pages=
- it would
-> be grabbing back are already resident and therefore won=B9t actually =
-take any
-> more memory.
->=20
-> Clearly, I can use mlock() to avoid the issue, but I was wondering if=
- I have
-> missed something obvious here. Any clues/brickbats gratefully receive=
-d!
->=20
-> Regards,
->=20
-> Tim Wright
->=20
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma"=
- in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+We at IBM Zurich Laboratory are developing a full-software
+iWARP stack to run within the OpenFabrics verbs framework.
+Today we open sourced that work to be available at
+http://gitorious.org/softiwarp. It consists of a kernel
+module (siw) and a user level library (libsiw).
+
+The Linux kernel module implements the iWARP protocol suite
+(MPA/DDP/RDMAP, IETF-RFC 5044/5041/5040) completely in software.
+Targeted for integration with OpenFabrics kernel interfaces,
+it appears as a kernel module in the drivers/infiniband/hw
+subdirectory of the Linux kernel. siw exports the OFA RDMA
+verbs interface, currently useable only for user level
+applications. The code assumes that connection management
+is done via the OpenFabrics connection manager.
+siw runs on top of TCP kernel sockets, which are used in
+non-blocking mode. Current development work is done in Linux
+kernel version 2.6.34-rc1.
+
+libsiw implements user level access to the siw modules.
+It attaches with the OpenFabrics user level verbs (libibvers)
+and the OpenFabrics rdma connection manager (librdmacm).
+It is tested to run in version 1.4.1 of OpenFabrics.
+
+
+We belief that a software only implementation of the
+iWARP protocol is beneficial for the wider acceptance
+of the RDMA communication semantics for many reasons,
+including:
+o It allows low end systems to peer with RDMA hardware).
+  equipped systems. This, conversely, makes the use of).
+  RDMA hardware in loaded systems like servers a more
+  interesting option.
+o It eases the migration of existing non-RDMA solutions.
+  to the RDMA model both at application and at network
+  stack level.
+o We expect that kernel clients like NSF and iSER can
+  benefit from the existence of a software kernel RDMA
+  stack.
+o While potentially not running at the full speed of an.
+  offloaded RDMA stack, the asynchronous and one-sided
+  communication model of RDMA itself may give the application
+  an advantage over running on plain sockets.
+o The explicit communication buffer ownership management of
+  RDMA enables the consistent implementation of user data copy
+  avoidance techniques without hardware support.
+o Last not least, softiwarp offers the application programmer
+  access to a well-documented asynchronous communication interface
+  w/o the need to install potentially expensive hardware.
+  Asynchronous I/O may become a viable option.
+
+
+We are making our work available under Dual License (BSD/Gnu) -
+see the Copyright statement within the source code files for details.
+Since the siw kernel module implements the iWARP protocol
+suite of the IETF, we refer to the IPR page of the IETF
+(http://www.ietf.org/ipr/).
+
+We explicitely declare our work as 'work-in-progress'. We make
+that work open source when its functionality and stability
+still has some limitations (see IMPLEMENTATION.txt in the
+infiniband/hw/softiwarp subdirectory). Some of the functional
+limitations are not the result of lack of time and labor:
+they are intentionally - we would like to discuss with the
+Community how to architect it the most appropriate way.
+
+We are completely open to any improvements of the code base
+and in fact hope to help establishing a community contributing
+to the improvement and completion of a software based RDMA
+stack.
+
+Thanks, Bernard.
+
+--
+Bernard Metzler, PhD
+IBM Zurich Research Laboratory
+S=E4umerstrasse 4
+CH-8803 R=FCschlikon/Switzerland
+bmt-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org
+phone +41-44-7248605
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
 n
