@@ -1,99 +1,47 @@
-From: Dan Carpenter <error27-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: [patch] infiniband: potential double free
-Date: Tue, 16 Mar 2010 11:09:26 +0300
-Message-ID: <20100316080925.GC5331@bicker>
-References: <20100315082332.GF18181@bicker> <20100315141846.GA1477@holoscopio.com> <20100315150735.GM18181@bicker> <15ddcffd1003160027q47286fcqa1344c964fe472b0@mail.gmail.com>
+From: Jiri Kosina <jkosina-AlSwsSmVLrQ@public.gmane.org>
+Subject: Re: [PATCH 0/4] Some typo fixing
+Date: Tue, 16 Mar 2010 11:32:24 +0100 (CET)
+Message-ID: <alpine.LNX.2.00.1003161127340.18642@pobox.suse.cz>
+References: <1268686558-28171-1-git-send-email-swirl@gmx.li>
+	<4B9EA214.7010203@xenotime.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <15ddcffd1003160027q47286fcqa1344c964fe472b0-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Thadeu Lima de Souza Cascardo <cascardo-DmMZpsCg3uxeGPcbtGPokg@public.gmane.org>, Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Or Gerlitz <ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org>, Jiri Kosina <jkosina-AlSwsSmVLrQ@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <containers-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+In-Reply-To: <4B9EA214.7010203-/UHa2rfvQTnk1uMJSBkQmQ@public.gmane.org>
+List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/containers>,
+	<mailto:containers-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linux-foundation.org/pipermail/containers>
+List-Post: <mailto:containers-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:containers-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/containers>,
+	<mailto:containers-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: containers-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: containers-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: Randy Dunlap <rdunlap-/UHa2rfvQTnk1uMJSBkQmQ@public.gmane.org>
+Cc: Karsten Keil <isdn-iHCpqvpFUx0uJkBD2foKsQ@public.gmane.org>, Lin Ming <ming.m.lin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Takashi Iwai <tiwai-l3A5Bk7waGM@public.gmane.org>, Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>, Jaroslav Kysela <perex-/Fr2/VpizcU@public.gmane.org>, Pavel Machek <pavel-AlSwsSmVLrQ@public.gmane.org>, David Brownell <dbrownell-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, KOSAKI Motohiro <kosaki.motohiro-+CUm20s59erQFUHtdCDX3A@public.gmane.org>, Bjorn Helgaas <bjorn.helgaas-VXdhtT5mjnY@public.gmane.org>, Rusty Russell <rusty-8n+1lVoiYb80n/F98K4Iww@public.gmane.org>, "John W. Linville" <linville-2XuSBdqkA4R54TAoqtyWWQ@public.gmane.org>, Steve Conklin <sconklin-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>, Ralph Campbell <infinipath-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>, Anton Vorontsov <avorontsov-hkdhdckH98+B+jHODAdFcQ@public.gmane.org>, cbe-oss-dev-mnsaURCQ41sdnm+yROfE0A@public.gmane.org, Liam Girdwood <lrg-kDsPt+C1G03kYMGBc/C6ZA@public.gmane.org>, Anthony Liguori <aliguori-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Joe Perches <joe-6d6DIl74uiNBDgjK7y7TUQ@public.gmane.org>, Andrew Morton <akpm>
 List-Id: linux-rdma@vger.kernel.org
 
-We shouldn't free things here because we free them later.  The call 
-tree looks like this:
-iser_connect() => iser_cma_handler() => iser_route_handler()
-        => iser_create_ib_conn_res()
+On Mon, 15 Mar 2010, Randy Dunlap wrote:
 
-                We fail here and return failures back down the tree.
+> > I have fixed some typos.
+> 
+> Acked-by: Randy Dunlap <rdunlap-/UHa2rfvQTnk1uMJSBkQmQ@public.gmane.org>
+> 
+> Jiri, can you merge these, please, unless someone objects (?).
 
-iser_connect() => iser_conn_release()
+Yes, I will take it, thanks. A couple comments though:
 
-                Double free.                                                                                                 
+- [important!] Thomas, it's not necessary to CC zillions of people on such 
+  patches. Just submit them to trivial-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org (and eventually CC 
+  lkml), and that's it. I believe many people might get annoyed by this.
+- I will not be applying the drivers/staging hunks. Staging patches are 
+  moving target, the code is changing quickly (including complete 
+  drops/rewrites) so we'll likely be getting conflicts there. I will 
+  reroute them to Greg.
+- I will fold all the patches into one. We don't need one commit per one 
+  specific typo.
 
-Also "ret" is already initialized to -ENOMEM so there is no need to
-set that here.
-
-Signed-off-by: Dan Carpenter <error27-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-
-diff --git a/drivers/infiniband/ulp/iser/iser_verbs.c b/drivers/infiniband/ulp/iser/iser_verbs.c
-index 308d17b..fde2c93 100644
---- a/drivers/infiniband/ulp/iser/iser_verbs.c
-+++ b/drivers/infiniband/ulp/iser/iser_verbs.c
-@@ -148,10 +148,8 @@ static int iser_create_ib_conn_res(struct iser_conn *ib_conn)
- 	device = ib_conn->device;
- 
- 	ib_conn->login_buf = kmalloc(ISER_RX_LOGIN_SIZE, GFP_KERNEL);
--	if (!ib_conn->login_buf) {
--		goto alloc_err;
--		ret = -ENOMEM;
--	}
-+	if (!ib_conn->login_buf)
-+		goto out_err;
- 
- 	ib_conn->login_dma = ib_dma_map_single(ib_conn->device->ib_device,
- 				(void *)ib_conn->login_buf, ISER_RX_LOGIN_SIZE,
-@@ -160,10 +158,9 @@ static int iser_create_ib_conn_res(struct iser_conn *ib_conn)
- 	ib_conn->page_vec = kmalloc(sizeof(struct iser_page_vec) +
- 				    (sizeof(u64) * (ISCSI_ISER_SG_TABLESIZE +1)),
- 				    GFP_KERNEL);
--	if (!ib_conn->page_vec) {
--		ret = -ENOMEM;
--		goto alloc_err;
--	}
-+	if (!ib_conn->page_vec)
-+		goto out_err;
-+
- 	ib_conn->page_vec->pages = (u64 *) (ib_conn->page_vec + 1);
- 
- 	params.page_shift        = SHIFT_4K;
-@@ -183,7 +180,7 @@ static int iser_create_ib_conn_res(struct iser_conn *ib_conn)
- 	ib_conn->fmr_pool = ib_create_fmr_pool(device->pd, &params);
- 	if (IS_ERR(ib_conn->fmr_pool)) {
- 		ret = PTR_ERR(ib_conn->fmr_pool);
--		goto fmr_pool_err;
-+		goto out_err;
- 	}
- 
- 	memset(&init_attr, 0, sizeof init_attr);
-@@ -201,7 +198,7 @@ static int iser_create_ib_conn_res(struct iser_conn *ib_conn)
- 
- 	ret = rdma_create_qp(ib_conn->cma_id, device->pd, &init_attr);
- 	if (ret)
--		goto qp_err;
-+		goto out_err;
- 
- 	ib_conn->qp = ib_conn->cma_id->qp;
- 	iser_err("setting conn %p cma_id %p: fmr_pool %p qp %p\n",
-@@ -209,12 +206,7 @@ static int iser_create_ib_conn_res(struct iser_conn *ib_conn)
- 		 ib_conn->fmr_pool, ib_conn->cma_id->qp);
- 	return ret;
- 
--qp_err:
--	(void)ib_destroy_fmr_pool(ib_conn->fmr_pool);
--fmr_pool_err:
--	kfree(ib_conn->page_vec);
--	kfree(ib_conn->login_buf);
--alloc_err:
-+out_err:
- 	iser_err("unable to alloc mem or create resource, err %d\n", ret);
- 	return ret;
- }
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+Jiri Kosina
+SUSE Labs, Novell Inc.
