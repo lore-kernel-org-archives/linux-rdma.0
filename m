@@ -1,32 +1,34 @@
-From: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH] ipoib: Fix lockup of the tx queue
-Date: Tue, 16 Mar 2010 08:33:23 +0200
-Message-ID: <20100316063323.GA1887@mtldesk030.lab.mtl.com>
-References: <20100303122752.GA29784@mtldesk030.lab.mtl.com>
-	<adaiq92czdt.fsf@roland-alpha.cisco.com>
-	<20100314065238.GA23263@mtldesk030.lab.mtl.com>
-	<a72123c41003150925t173815e6lc1e94c999be45357@mail.gmail.com>
+From: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [patch] infiniband: remove dead code
+Date: Tue, 16 Mar 2010 09:27:03 +0200
+Message-ID: <15ddcffd1003160027q47286fcqa1344c964fe472b0@mail.gmail.com>
+References: <20100315082332.GF18181@bicker>
+	 <20100315141846.GA1477@holoscopio.com> <20100315150735.GM18181@bicker>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <a72123c41003150925t173815e6lc1e94c999be45357-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <20100315150735.GM18181@bicker>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Josh England <jjengla-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, Linux RDMA list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ewg <ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+To: Dan Carpenter <error27-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Thadeu Lima de Souza Cascardo <cascardo-DmMZpsCg3uxeGPcbtGPokg@public.gmane.org>, Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Or Gerlitz <ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org>, Jiri Kosina <jkosina-AlSwsSmVLrQ@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Mar 15, 2010 at 08:25:51AM -0800, Josh England wrote:
-> Everything has MT264328 ConnectX cards using the mlx4_ib driver.
-> Boot/file servers are using an HP OEM 2.7.000 firmware.  Compute nodes
-> have cards using Sun OEM 2.6.200 FW.
-> 
+On Mon, Mar 15, 2010 at 5:07 PM, Dan Carpenter <error27-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrot=
+e:
+> Hm... =A0Actually it looks like we should just remove both those
+> calls to kfree() and the ib_destroy_fmr_pool(). =A0Otherwise we'll do
+> a double free when we get to iser_conn_release(). [...] I will send a=
+ patch for this tomorrow.
 
-You probably mean MT26428? Anyway, do you still see the post send
-failed messages? If you do, could you apply this patch so we'll have
-better insight as for the reason?
-http://patchwork.kernel.org/patch/83593/
+
+Dan, thanks for reporting that. I will be able to look on the problem
+and the suggested patch later this week
+
+
+Or.
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
