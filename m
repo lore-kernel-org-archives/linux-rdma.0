@@ -1,40 +1,40 @@
-From: "Sean Hefty" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: ?Re: RE: infiniband RDMA connection to server is rejected when client reboot
-Date: Wed, 17 Mar 2010 08:20:18 -0700
-Message-ID: <E9813D16FB6A491E9D4BEEEE940F9516@amr.corp.intel.com>
-References: <MAILt3HvoFOAmEaJswF0004deaa@mail.langchao.com>
+From: Vladimir Sokolovsky <vlad-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH V3 0/2] Add support for enhanced atomic operations
+Date: Wed, 17 Mar 2010 17:32:51 +0200
+Message-ID: <4BA0F623.1050606@dev.mellanox.co.il>
+References: <20100310155749.GA25964@vlad-laptop>	<A27E2E88-63A0-45EE-9A70-F95B2A0C25AD@Sun.com>	<adaaaueelby.fsf@roland-alpha.cisco.com>	<BA082DF0-B3C6-4405-B480-F69B0193BF17@Sun.COM>	<adavdd1a64g.fsf@roland-alpha.cisco.com> <adaeijj96a6.fsf@roland-alpha.cisco.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <MAILt3HvoFOAmEaJswF0004deaa-hsiVscFSYOJrXVYLWy1CrgC/G2K4zDHf@public.gmane.org>
+In-Reply-To: <adaeijj96a6.fsf-BjVyx320WGW9gfZ95n9DRSW4+XlvGpQz@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "'J.G Yang'" <yangjg-6gUaA8visnnQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Cc: =?ISO-8859-1?Q?H=E5kon_Bugge?= <Haakon.Bugge-UdXhSnd/wVw@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
->yes.when the client rebooted and failed to connect the server,  the
->event.status is
->'IB_CM_REJ_STALE_CONN' . On the client ,when I created a QP using the old
->rdma_cm_id which  failed in the first connection to retry connection to server,
->the call to function rdma_create_qp() returned    -22(-EINVAL) all the time.
+Roland Dreier wrote:
+>  > Hence, I think it would be cleaner if a new capability,
+>  > masked_atomic_cap, were introduced, using the original definitions
+>  > (NONE, HCA, GLOB).
+> 
+> Vlad, what do you think about that?  The more I think about it, the
+> cleaner this seems to me.  And it doesn't even consume a device
+> capability flag bit, which is a nice bonus.
 
-This is expected.  The rdma_cm_id can only be used for a single connection.  The
-underlying state machine does not reset.
+Hi Roland,
+Do you propose to use IB_ATOMIC_GLOB instead of IB_ATOMIC_HCA while setting
+atomic capability in the code below?
 
->My question: Are there some methods that the server can be notifed when it lose
->the connection such as the client's reboot?So the server can destroy the
->rdma_cm_id and pass the stale connection check. The client needs no retry for
->new rdma_cm_id after reboot.
+         props->atomic_cap          = dev->dev->caps.flags & MLX4_DEV_CAP_FLAG_ATOMIC ?
+                 IB_ATOMIC_HCA : IB_ATOMIC_NONE;
 
-If the server isn't using the connections, then they could stay around.  I don't
-know how you can avoid this for a general case short of keep-alive messages.
+Or add IB_MASKED_ATOMIC to ib_atomic_cap enum and use this one instead of IB_ATOMIC_HCA?
 
-For actual stale connections, it would require a kernel change, but the kernel
-detects this and _could_ force a disconnect on the local side. 
+All this, of course, comes to replace setting IB_DEVICE_MASKED_ATOMIC for device capability.
 
-- Sean
+Thanks,
+Vladimir
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
