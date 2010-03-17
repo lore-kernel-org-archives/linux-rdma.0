@@ -1,33 +1,57 @@
-From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH V3 0/2] Add support for enhanced atomic operations
-Date: Tue, 16 Mar 2010 16:49:05 -0700
-Message-ID: <adaeijj96a6.fsf@roland-alpha.cisco.com>
-References: <20100310155749.GA25964@vlad-laptop>
-	<A27E2E88-63A0-45EE-9A70-F95B2A0C25AD@Sun.com>
-	<adaaaueelby.fsf@roland-alpha.cisco.com>
-	<BA082DF0-B3C6-4405-B480-F69B0193BF17@Sun.COM>
-	<adavdd1a64g.fsf@roland-alpha.cisco.com>
+From: "J.G Yang" <yangjg-6gUaA8visnnQT0dZR+AlfA@public.gmane.org>
+Subject: ?Re: RE: infiniband RDMA connection to server is rejected when client reboot
+Date: Wed, 17 Mar 2010 14:51:53 +0800
+Message-ID: <MAILt3HvoFOAmEaJswF0004deaa@mail.langchao.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+	charset="gb2312"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <adavdd1a64g.fsf-BjVyx320WGW9gfZ95n9DRSW4+XlvGpQz@public.gmane.org> (Roland Dreier's message
-	of "Fri, 12 Mar 2010 07:53:35 -0800")
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: =?utf-8?Q?H=C3=A5kon?= Bugge <Haakon.Bugge-UdXhSnd/wVw@public.gmane.org>
-Cc: vlad-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "sean.hefty" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
- > Hence, I think it would be cleaner if a new capability,
- > masked_atomic_cap, were introduced, using the original definitions
- > (NONE, HCA, GLOB).
+eWVzLndoZW4gdGhlIGNsaWVudCByZWJvb3RlZCBhbmQgZmFpbGVkIHRvIGNvbm5lY3QgdGhlIHNl
+cnZlciwgIHRoZSBldmVudC5zdGF0dXMgaXMgDQonSUJfQ01fUkVKX1NUQUxFX0NPTk4nIC4gT24g
+dGhlIGNsaWVudCAsd2hlbiBJIGNyZWF0ZWQgYSBRUCB1c2luZyB0aGUgb2xkIHJkbWFfY21faWQg
+d2hpY2ggIGZhaWxlZCBpbiB0aGUgZmlyc3QgY29ubmVjdGlvbiB0byByZXRyeSBjb25uZWN0aW9u
+IHRvIHNlcnZlciwgdGhlIGNhbGwgdG8gZnVuY3Rpb24gcmRtYV9jcmVhdGVfcXAoKSByZXR1cm5l
+ZCAgICAtMjIoLUVJTlZBTCkgYWxsIHRoZSB0aW1lLiBTbyxJIHJlbGVhc2VkIGFsbCB0aGUgcmVz
+b3VyY2VzICxhbmQgdGhlbiBjcmVhdGVkIGFub3RoZXIgcmRtYV9jbV9pZCByZXR1cm5lZCBieSBm
+dW5jdGlvbiByZG1hX2NyZWF0ZV9pZCgpIGFuZCB1c2VkIGl0IGZvciBhbm90aGVyIGNvbm5lY3Rp
+b24gdG8gdGhlIHNlcnZlci4gVGhlIGNvbm5lY3Rpb24gd2FzIHN1Y2Nlc3NmdWwuIEJ1dCB0aGUg
+c2V2ZXIgc2hvd2VkIHR3byByZG1hX2NtX2lkIHMgdXNlZCBmb3IgY29ubmVjdGlvbi5UaGUgZmlz
+cnQgb25lIHdhcyB3aGljaCB1c2VkIGJlZm9yZSB0aGUgY2xpZW50IHJlYm9vdGVkIGFuZCBhbmQg
+dGhlIHNlY29uZCBvbmUgd2FzIHJkbWFfY21faWQgZm9yIHRoZSBjdXJyZW50IGNvbm5uZWN0aW9u
+LiBUaGVuLCBJIHJlYm9vdGVkIHRoZSBjbGllbnQgYWdhaW4gZm9yIHNldmVyYWwgdGltZXMgYW5k
+IGZvdW5kIHRoYXQgdGhlIG51bWJlciBvZiByZG1hX2NtX2lkcyBvbiB0aGUgc2VydmVyIGVxdWFs
+ZWQgdGhlIHRpbWVzIEkgcmVib290ZWQgdGhlIGNsaWVudC4gU28sdGhlIHNlcnZlciBzeXN0ZW0g
+Y29udGFpbmVkIG1hbnkgcmRtYV9jbV9pZHMgd2hpY2ggd2FzIG5vdCB1c2VkIGFnYWluLg0KTXkg
+cXVlc3Rpb246IEFyZSB0aGVyZSBzb21lIG1ldGhvZHMgdGhhdCB0aGUgc2VydmVyIGNhbiBiZSBu
+b3RpZmVkIHdoZW4gaXQgbG9zZSB0aGUgY29ubmVjdGlvbiBzdWNoIGFzIHRoZSBjbGllbnQncyBy
+ZWJvb3Q/U28gdGhlIHNlcnZlciBjYW4gZGVzdHJveSB0aGUgcmRtYV9jbV9pZCBhbmQgcGFzcyB0
+aGUgc3RhbGUgY29ubmVjdGlvbiBjaGVjay4gVGhlIGNsaWVudCBuZWVkcyBubyByZXRyeSBmb3Ig
+bmV3IHJkbWFfY21faWQgYWZ0ZXIgcmVib290Lg0KDQpKLkcgWWFuZwkNCg0KPT09PT09PSAyMDEw
+LTAzLTEzIDAwOjQ3OjE1PT09PT09PQ0KDQo+PiAgICBzZXJ2ZXI6ICByZG1hX2NyZWF0ZV9pZKOs
+cmRtYV9iaW5kX2FkZHKjrCByZG1hX2xpc3RlbihjYi0+Y21faWQsIDMpOw0KPj5UaGVuICB0aGUg
+IGNsaWVudCBjb25uZWN0cyB0aGUgIHNlcnZlciwgdGhlICBjb25uZWN0aW9uIGlzIHN1Y2Vzc2Z1
+bC4gVGhlbg0KPj5ub3RoaW5nIGlzIGRvbmUgb24gdGhlIHNlcnZlciBidXQgIHRoZSBjbGllbnQg
+aXMgcmVib290ZWQgLiBBZnRlciB0aGUgY2xpZW50DQo+PnN0YXJ0cywgaXQgIGNvbm5uZXRzIHRo
+ZSBzZXJ2ZXIgYWdhaW4uIEVycm9ycyBjb21lIGhlcmUuIFNvbWV0aW1lIHRoaXMNCj4+Y29ubm5l
+Y3Rpb24gY2FuIGJlIHN1Y2Nlc3NmdWwsIGFuZCBmYWlscyBvdGhlcnRpbWUuIFdoZW4gaXQgZmFp
+bHMsdGhlIGNsaWVudA0KPj5yZWNlaXZlcyBSRE1BX0NNX0VWRU5UX1JFSkVDVEVEIGV2ZW50LGFu
+ZCB0aGUgc2VydmVyIGRvZXMndCByZWNlaXZlZA0KPj5SRE1BX0NNX0VWRU5UX0NPTk5FQ1RfUkVR
+VUVTVCBldmVudCBhcyB0aGUgc3VjY2Vzc2Z1bCBjb25uZWN0aW9uLg0KPj5JIGRvbid0IGhvdyB0
+aGlzIGhhcHBlbnMuQ2FuIHNvbWVvbmUgaGVscCBtZSA/VGhhbmtzIQ0KPg0KPlRoZSBzZXJ2ZXIg
+c2lkZSBtYXkgYmUgcmVqZWN0aW5nIHRoZSBjb25uZWN0aW9uIHJlcXVlc3QgYXMgYSBkdXBsaWNh
+dGUuICBUaGUNCj5ldmVudC5zdGF0dXMgbWF5IHByb3ZpZGUgc29tZSBhZGRpdGlvbmFsIGluc2ln
+aHQuICBJdCBzaG91bGQgY29udGFpbiBvbmUgb2YgdGhlDQo+ZW51bSBpYl9jbV9yZWpfcmVhc29u
+IHZhbHVlcyBnaXZlbiBpbiBpYl9jbS5oIChhc3N1bWluZyB0aGF0IHlvdSdyZSB1c2luZyBJQiBh
+bmQNCj5ub3QgaVdhcnApLiAgSWYgdGhlIHN0YXR1cyBpcyAnSUJfQ01fUkVKX1NUQUxFX0NPTk4n
+ICg9IDEwKSwgdGhlbiByZXRyeWluZyB0aGUNCj5jb25uZWN0aW9uIHdpdGggYSBuZXcgUVAgbWF5
+IHN1Y2NlZWQuDQo+DQo+LSBTZWFuDQoNCg0KDQo=
 
-Vlad, what do you think about that?  The more I think about it, the
-cleaner this seems to me.  And it doesn't even consume a device
-capability flag bit, which is a nice bonus.
--- 
-Roland Dreier  <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-For corporate legal information go to:
-http://www.cisco.com/web/about/doing_business/legal/cri/index.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
