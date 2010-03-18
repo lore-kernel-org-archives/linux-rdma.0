@@ -1,38 +1,54 @@
-From: Akinobu Mita <akinobu.mita@gmail.com>
-Subject: [PATCH 09/12] ehca: convert cpu notifier to return encapsulate errno value
-Date: Thu, 18 Mar 2010 18:05:21 +0900
-Message-ID: <1268903124-10237-9-git-send-email-akinobu.mita@gmail.com>
-References: <1268903124-10237-1-git-send-email-akinobu.mita@gmail.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1268903124-10237-1-git-send-email-akinobu.mita@gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org, akpm@linux-foundation.org
-Cc: Akinobu Mita <akinobu.mita@gmail.com>, Hoang-Nam Nguyen <hnguyen@de.ibm.com>, Christoph Raisch <raisch@de.ibm.com>, linux-rdma@vger.kernel.org
+From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: Re: Fw: general protection fault
+Date: Thu, 18 Mar 2010 09:07:03 -0500
+Message-ID: <4BA23387.80609@opengridcomputing.com>
+References: <201003181055542343477@inspur.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=GB2312
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <201003181055542343477-6gUaA8visnnQT0dZR+AlfA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: lihaidong <lihaidong-6gUaA8visnnQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-By the previous modification, the cpu notifier can return encapsulate
-errno value. This converts the cpu notifiers for ehca.
+Without more info, I cannot help much. Are you calling it in a save
+context? You probably cannot call it from an interrupt context. Was
+there a stack trace?
 
-Signed-off-by: Akinobu Mita <akinobu.mita@gmail.com>
-Cc: Hoang-Nam Nguyen <hnguyen@de.ibm.com>
-Cc: Christoph Raisch <raisch@de.ibm.com>
-Cc: linux-rdma@vger.kernel.org
+
+
+lihaidong wrote:
+> Hi, Steve
+> Could you help me with this case.
+> The server has 16GB memory,linux-2.6.29, OFED-1.5
+> When using ib_dma_map_single, it report GFP error. I saw that krping
+> use dma_map_single directly.
+> >Hi=A3=BA
+> >Sorry to bother you.
+> >I don't know who you are, I saw you email address in linux-rdma mail
+> archive since I met the same problem as you met in July, 3th, 2009.
+> >Just like your email said
+> >"when I am trying to map allocated memory for DMA, I get GPF:
+> >general protection fault: 0000 [1] SMP
+> >.
+> >.
+> >.
+> >"
+> >I saw no comments on your email. So Did you get over this problem? I=
+f
+> so, could you give me some tips , please?
+> >
+> >Thanks.
+> >
+> 2010-03-17
+> ---------------------------------------------------------------------=
 ---
- drivers/infiniband/hw/ehca/ehca_irq.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+> lihaidong
 
-diff --git a/drivers/infiniband/hw/ehca/ehca_irq.c b/drivers/infiniband/hw/ehca/ehca_irq.c
-index b2b6fea..31f3ee1 100644
---- a/drivers/infiniband/hw/ehca/ehca_irq.c
-+++ b/drivers/infiniband/hw/ehca/ehca_irq.c
-@@ -845,7 +845,7 @@ static int __cpuinit comp_pool_callback(struct notifier_block *nfb,
- 		ehca_gen_dbg("CPU: %x (CPU_PREPARE)", cpu);
- 		if (!create_comp_task(pool, cpu)) {
- 			ehca_gen_err("Can't create comp_task for cpu: %x", cpu);
--			return NOTIFY_BAD;
-+			return notifier_from_errno(-ENOMEM);
- 		}
- 		break;
- 	case CPU_UP_CANCELED:
--- 
-1.6.0.6
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
