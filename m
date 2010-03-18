@@ -1,124 +1,243 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: adding path record wire format to libibverbs
-Date: Thu, 18 Mar 2010 12:20:15 -0600
-Message-ID: <20100318182015.GC29129@obsidianresearch.com>
-References: <77007DB2D13246B9A031DE3B0094C024@amr.corp.intel.com> <20100318060812.GB28042@obsidianresearch.com> <adar5nh7c6q.fsf@roland-alpha.cisco.com>
+From: Rui Machado <ruimario-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: problems running rdmaoe examples
+Date: Thu, 18 Mar 2010 19:22:06 +0100
+Message-ID: <6978b4af1003181122l7fbd454fj23c28cf108145ed1@mail.gmail.com>
+References: <6978b4af1003181041m3d03afc7t8687e88be2e4b179@mail.gmail.com>
+	 <1E3DCD1C63492545881FACB6063A57C1055E57FE@mtiexch01.mti.com>
+	 <6978b4af1003181101q56eb6ae7sdae2bb7e57623c16@mail.gmail.com>
+	 <1E3DCD1C63492545881FACB6063A57C1055E5819@mtiexch01.mti.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <adar5nh7c6q.fsf-BjVyx320WGW9gfZ95n9DRSW4+XlvGpQz@public.gmane.org>
+In-Reply-To: <1E3DCD1C63492545881FACB6063A57C1055E5819-SDnKeQl2TTymvrjiD8yIlgC/G2K4zDHf@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Boris Shpolyansky <boris-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Mar 18, 2010 at 10:49:01AM -0700, Roland Dreier wrote:
-> Including this structure is no problem in principle.
-> 
->  > Could we use the bitfield versions of this I posted awhile back? :)
-> 
-> I don't have that patch handy, but bitfields often end up ugly with
-> endian stuff, and also some compilers/architecture generate awful code
-> for it.  What's the advantage over Sean's patch?
+> Your are right, I missed it.
+>
+> Can you send me the output of ifconfig command on both ends?
+>
 
-It is user space code, the interface should be trivially usable
-without a huge hassle to the user. Bitfields can help provide
-that. The LE/BE issue is easy to solve, but I admit the solution I
-prefer (32 bit byte swap) might not fit very well with Sean's intended
-use.
+Sure!
 
-For instance if you want to override the hoplimit to 1:
- pr.flowlabel_hoplimit = htonl((ntohl(pr.flowlabel_hoplimit) & (~0xFF)) | 1);
-vs
- swap32_all(&pr, sizeof(pr);
- pr.hopLimit = 1;
- swap32_all(&pr, sizeof(ptr));
+=46irst machine:
 
-For this application I don't think the codegen is a concern, and I've
-seen that x86 and ppc generate acceptable code for this.. Certainly,
-this approach is definately faster than the pack/unpack scheme I've
-seen used in many place.
+eth0      Link encap:Ethernet  HWaddr 00:24:81:0E:6C:FD
+          inet addr:192.168.10.95  Bcast:192.168.255.255  Mask:255.255.=
+0.0
+          inet6 addr: fe80::224:81ff:fe0e:6cfd/64 Scope:Link
+          UP BROADCAST RUNNING MULTICAST  MTU:1500  Metric:1
+          RX packets:453847 errors:0 dropped:0 overruns:0 frame:0
+          TX packets:245179 errors:0 dropped:0 overruns:0 carrier:0
+          collisions:0 txqueuelen:1000
+          RX bytes:597238275 (569.5 Mb)  TX bytes:19574101 (18.6 Mb)
+          Interrupt:17
 
-#ifdef BIG_ENDIAN
-struct SAPathRecord {
-    uint32_t rsv0;
+eth2      Link encap:Ethernet  HWaddr 00:02:C9:02:CA:06
+          inet addr:192.168.60.100  Bcast:192.168.60.255  Mask:255.255.=
+255.0
+          inet6 addr: fe80::202:c9ff:fe02:ca06/64 Scope:Link
+          UP BROADCAST RUNNING MULTICAST  MTU:1500  Metric:1
+          RX packets:2297671 errors:0 dropped:0 overruns:0 frame:0
+          TX packets:46146504 errors:23 dropped:0 overruns:0 carrier:0
+          collisions:0 txqueuelen:1000
+          RX bytes:137879685 (131.4 Mb)  TX bytes:69864665042 (66628.1 =
+Mb)
 
-    uint32_t rsv1;
+lo        Link encap:Local Loopback
+          inet addr:127.0.0.1  Mask:255.0.0.0
+          inet6 addr: ::1/128 Scope:Host
+          UP LOOPBACK RUNNING  MTU:16436  Metric:1
+          RX packets:14142 errors:0 dropped:0 overruns:0 frame:0
+          TX packets:14142 errors:0 dropped:0 overruns:0 carrier:0
+          collisions:0 txqueuelen:0
+          RX bytes:2044414 (1.9 Mb)  TX bytes:2044414 (1.9 Mb)
 
-    uint8_t DGID[16];
+Second machine:
 
-    uint8_t SGID[16];
+eth0      Link encap:Ethernet  HWaddr 00:24:81:0E:6E:0D
+          inet addr:192.168.10.96  Bcast:192.168.10.255  Mask:255.255.2=
+55.0
+          inet6 addr: fe80::224:81ff:fe0e:6e0d/64 Scope:Link
+          UP BROADCAST RUNNING MULTICAST  MTU:1500  Metric:1
+          RX packets:30220 errors:0 dropped:0 overruns:0 frame:0
+          TX packets:21443 errors:0 dropped:0 overruns:0 carrier:0
+          collisions:0 txqueuelen:1000
+          RX bytes:12710557 (12.1 Mb)  TX bytes:2856949 (2.7 Mb)
+          Interrupt:17
 
-    uint16_t DLID;
-    uint16_t SLID;
 
-    uint32_t rawTraffic:1;
-    uint32_t rsv2:3;
-    uint32_t flowLabel:20;
-    uint32_t hopLimit:8;
+eth2      Link encap:Ethernet  HWaddr 00:02:C9:02:CA:02
+          inet addr:192.168.60.101  Bcast:192.168.60.255  Mask:255.255.=
+255.0
+          inet6 addr: fe80::202:c9ff:fe02:ca02/64 Scope:Link
+          UP BROADCAST RUNNING MULTICAST  MTU:1500  Metric:1
+          RX packets:46146483 errors:0 dropped:0 overruns:0 frame:0
+          TX packets:2297704 errors:0 dropped:0 overruns:0 carrier:0
+          collisions:0 txqueuelen:1000
+          RX bytes:69864660355 (66628.1 Mb)  TX bytes:137885351 (131.4 =
+Mb)
 
-    uint8_t TClass;
-    uint8_t reversible:1;
-    uint8_t numbPath:7;
-    uint16_t PKey;
+lo        Link encap:Local Loopback
+          inet addr:127.0.0.1  Mask:255.0.0.0
+          inet6 addr: ::1/128 Scope:Host
+          UP LOOPBACK RUNNING  MTU:16436  Metric:1
+          RX packets:7026 errors:0 dropped:0 overruns:0 frame:0
+          TX packets:7026 errors:0 dropped:0 overruns:0 carrier:0
+          collisions:0 txqueuelen:0
+          RX bytes:455835 (445.1 Kb)  TX bytes:455835 (445.1 Kb)
 
-    uint16_t rsv3:12;
-    uint16_t SL:4;
-    uint8_t MTUSelector:2;
-    uint8_t MTU:6;
-    uint8_t rateSelector:2;
-    uint8_t rate:6;
 
-    uint8_t packetLifeTimeSelector:2;
-    uint8_t packetLifeTime:6;
-    uint8_t preference;
-    uint16_t rsv4;
+Cheers,
+Rui
 
-    uint32_t rsv5;
-};
-#else
-// Must ntohl() every 32 bit word prior to appling this structure
-struct SAPathRecord {
-    uint32_t rsv0;
-
-    uint32_t rsv1;
-
-    uint8_t DGID[16];
-
-    uint8_t SGID[16];
-
-    uint16_t SLID;
-    uint16_t DLID;
-
-    uint32_t hopLimit:8;
-    uint32_t flowLabel:20;
-    uint32_t rsv2:3;
-    uint32_t rawTraffic:1;
-
-    uint16_t PKey;
-    uint8_t numbPath:7;
-    uint8_t reversible:1;
-    uint8_t TClass;
-
-    uint8_t rate:6;
-    uint8_t rateSelector:2;
-    uint8_t MTU:6;
-    uint8_t MTUSelector:2;
-    uint16_t SL:4;
-    uint16_t rsv3:12;
-
-    uint16_t rsv4;
-    uint8_t preference;
-    uint8_t packetLifeTime:6;
-    uint8_t packetLifeTimeSelector:2;
-
-    uint32_t rsv5;
-};
-#endif
-
-Jason
+> Boris Shpolyansky
+> Sr. Member of Technical Staff, Applications
+>
+> Mellanox Technologies Inc.
+> 350 Oakmead Parkway, Suite 100
+> Sunnyvale, CA 94085
+> Tel.: (408) 916 0014
+> Fax: (408) 585 0314
+> Cell: (408) 834 9365
+> www.mellanox.com
+>
+> Mellanox on Twitter and Facebook
+>
+>
+> -----Original Message-----
+> From: Rui Machado [mailto:ruimario-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org]
+> Sent: Thursday, March 18, 2010 11:02 AM
+> To: Boris Shpolyansky
+> Cc: linux-rdma
+> Subject: Re: problems running rdmaoe examples
+>
+> Hi Boris,
+>
+> thanks for the quick answer.
+>
+>>
+>> It seems that you are trying to run RDMAoE over InfiniBand device (a=
+nd
+>> probably over InfiniBand network). I believe you intent was to do ac=
+tual
+>> testing over 10GE network. Please, clarify.
+>>
+>
+> Yes, the intention is to test over 10GE. That's why I'm trying to run
+> the examples on port 2 (-i option). Or am I missing something?
+> It is Ethernet network( eth2 if).
+>
+> Thanks,
+> Rui
+>
+>
+>>
+>> -----Original Message-----
+>> From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+>> [mailto:linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Rui Machado
+>> Sent: Thursday, March 18, 2010 10:41 AM
+>> To: linux-rdma
+>> Subject: problems running rdmaoe examples
+>>
+>> Hi list,
+>>
+>> I installed OFED-1.5.1-rc4 on a couple of machines to give a try to
+>> mlx4_en and RDMAoE capabilities.
+>> Trying to run ibv_rc_pingpong as:
+>> server: ibv_rc_pingpong -i 2 -g 0
+>> client: ibv_rc_pingpong -i 2 -g 0 192.168.60.101
+>>
+>> results in the following output:
+>>
+>> (client)
+>> =A0local address: =A0LID 0x0000, QPN 0x5c004d, PSN 0x579776, GID
+>> fe80::202:c9ff:fe02:ca06
+>> =A0remote address: LID 0x0000, QPN 0x38004d, PSN 0xde57b8, GID
+>> fe80::202:c9ff:fe02:ca02
+>> Failed status transport retry counter exceeded (12) for wr_id 2
+>>
+>> (server)
+>> =A0local address: =A0LID 0x0000, QPN 0x38004d, PSN 0xde57b8, GID
+>> fe80::202:c9ff:fe02:ca02
+>> =A0remote address: LID 0x0000, QPN 0x5c004d, PSN 0x579776, GID
+>> fe80::202:c9ff:fe02:ca06
+>>
+>> My ibv_devinfo reports:
+>>
+>> hca_id: mlx4_0
+>> =A0 =A0 =A0 =A0transport: =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+InfiniBand (0)
+>> =A0 =A0 =A0 =A0fw_ver: =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ 2.7.000
+>> =A0 =A0 =A0 =A0node_guid: =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+0002:c903:0002:ca04
+>> =A0 =A0 =A0 =A0sys_image_guid: =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 0002:=
+c903:0002:ca07
+>> =A0 =A0 =A0 =A0vendor_id: =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+0x02c9
+>> =A0 =A0 =A0 =A0vendor_part_id: =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 26428
+>> =A0 =A0 =A0 =A0hw_ver: =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ 0xA0
+>> =A0 =A0 =A0 =A0board_id: =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ MT_04E0120005
+>> =A0 =A0 =A0 =A0phys_port_cnt: =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A02
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0port: =A0 1
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0state: =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 =A0 =A0PORT_ACTIVE (4)
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0max_mtu: =A0 =A0 =A0 =
+=A0 =A0 =A0 =A0 =A02048 (4)
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0active_mtu: =A0 =A0 =A0=
+ =A0 =A0 =A0 2048 (4)
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0sm_lid: =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 =A0 6
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0port_lid: =A0 =A0 =A0=
+ =A0 =A0 =A0 =A0 6
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0port_lmc: =A0 =A0 =A0=
+ =A0 =A0 =A0 =A0 0x00
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0link_layer: =A0 =A0 =A0=
+ =A0 =A0 =A0 IB
+>>
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0port: =A0 2
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0state: =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 =A0 =A0PORT_ACTIVE (4)
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0max_mtu: =A0 =A0 =A0 =
+=A0 =A0 =A0 =A0 =A02048 (4)
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0active_mtu: =A0 =A0 =A0=
+ =A0 =A0 =A0 1024 (3)
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0sm_lid: =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 =A0 0
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0port_lid: =A0 =A0 =A0=
+ =A0 =A0 =A0 =A0 0
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0port_lmc: =A0 =A0 =A0=
+ =A0 =A0 =A0 =A0 0x00
+>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0link_layer: =A0 =A0 =A0=
+ =A0 =A0 =A0 Ethernet
+>>
+>>
+>> Can someone give me any hint on what's the problem here (forgot to d=
+o
+>> something?)?
+>>
+>> Platform:
+>> Linux 2.6.27.7-9-default #1 SMP 2008-12-04 18:10:04 +0100 x86_64
+>> x86_64 x86_64 GNU/Linux
+>> openSUSE 11.1 (x86_64)
+>>
+>> Thanks in advance,
+>> Rui
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-rdma=
+" in
+>> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+>> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
+>>
+>
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
