@@ -1,87 +1,113 @@
-From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH v2 4/4] libibverbs: Undo changes in memory range tree when madvise() fails
-Date: Fri, 19 Mar 2010 11:15:19 -0700
-Message-ID: <adaeijg5gaw.fsf@roland-alpha.cisco.com>
-References: <4B666D56.4090708@gmail.com>
+From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+Subject: [PATCH] infiniband-diags: Ignore PortInfo data on down port.
+Date: Fri, 19 Mar 2010 11:19:43 -0700
+Message-ID: <20100319111943.80ae2e24.weiny2@llnl.gov>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4B666D56.4090708-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> (Alex Vainman's message of "Mon, 01
-	Feb 2010 07:57:42 +0200")
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: alexv-smomgflXvOZWk0Htik3J/w@public.gmane.org
-Cc: roland <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, alexr-smomgflXvOZWk0Htik3J/w@public.gmane.org
+To: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
- > +static struct ibv_mem_node *prepare_to_roll_back(struct ibv_mem_node *node,
- > +						 uintptr_t start,
- > +						 uintptr_t *end,
- > +						 int *inc,
- > +						 int *advice)
- > +{
- > +	struct ibv_mem_node *tmp = NULL;
- > +
- > +	*inc *= -1;
- > +	*advice = *inc == 1 ? MADV_DONTFORK : MADV_DOFORK;
- > +	tmp = __mm_prev(node);
- > +	node = NULL;
- > +	if (tmp) {
- > +		*end = tmp->end;
- > +		if (start <= *end)
- > +			node = get_start_node(start, *end, *inc);
- > +	}
- > +	return node;
- > +}
 
-I don't think this really makes sense as a separate function.
+From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+Date: Thu, 18 Mar 2010 18:35:34 -0700
+Subject: [PATCH] infiniband-diags: Ignore PortInfo data on down port.
 
-You could slightly rearrange the start of ibv_madvise_range:
+According to C14-24.2.1:
+If PortInfo:PortState == Down then only PortInfo:PortState and
+PortInfo:PortPhysicalState _must_ be valid.  Other fields may be invalid
+depending on the vendor.  Therefore ignore all PortInfo data other than those
+fields when reporting PortInfo on a down port.
 
-static int ibv_madvise_range(void *base, size_t size, int advice)
-{
-	uintptr_t start, end;
-	struct ibv_mem_node *node, *tmp;
-	int inc;
-+	int rolling_back = 0;
-	int ret = 0;
+Signed-off-by: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+---
+ infiniband-diags/src/iblinkinfo.c    |   32 +++++++++++++++++++++++---------
+ infiniband-diags/src/ibqueryerrors.c |   19 ++++++++++++++-----
+ 2 files changed, 37 insertions(+), 14 deletions(-)
 
-	if (!size)
-		return 0;
-
-+	start = (uintptr_t) base & ~(page_size - 1);
-+	end   = ((uintptr_t) (base + size + page_size - 1) &
-+		 ~(page_size - 1)) - 1;
-
-+	pthread_mutex_lock(&mm_mutex);
-
-+again:
-	inc = advice == MADV_DONTFORK ? 1 : -1;
-
-	node = get_start_node(start, end, inc);
-	if (!node) {
-		ret = -1;
-		goto out;
-	}
-
-and then for the rollback part, do:
-
-+				if (rolling_back || !node)
-+					goto out;
-+
-+				/* madvise failed, roll back previous changes */
-+				rolling_back = 1;
-+				advice = advice == MADV_DONTFORK ? MADV_DOFORK : MADV_DONTFORK;
-+				tmp = __mm_prev(node);
-+				if (!tmp)
-+					goto out;
-+				end = tmp->end;
-+				goto again;
-
-(All this untested/uncompiled etc).
+diff --git a/infiniband-diags/src/iblinkinfo.c b/infiniband-diags/src/iblinkinfo.c
+index d6a0a09..ecfd579 100644
+--- a/infiniband-diags/src/iblinkinfo.c
++++ b/infiniband-diags/src/iblinkinfo.c
+@@ -134,20 +134,34 @@ void print_port(ibnd_node_t * node, ibnd_port_t * port)
+ 	width_msg[0] = '\0';
+ 	speed_msg[0] = '\0';
+ 
+-	n = snprintf(link_str, 256, "(%3s %s %6s/%8s)",
++	/* C14-24.2.1 states that a down port allows for invalid data to be
++	 * returned for all PortInfo components except PortState and
++	 * PortPhysicalState */
++	if (istate != IB_LINK_DOWN) {
++		n = snprintf(link_str, 256, "(%3s %9s %6s/%8s)",
+ 		     mad_dump_val(IB_PORT_LINK_WIDTH_ACTIVE_F, width, 64,
+ 				  &iwidth),
+ 		     mad_dump_val(IB_PORT_LINK_SPEED_ACTIVE_F, speed, 64,
+-				  &ispeed), mad_dump_val(IB_PORT_STATE_F, state,
+-							 64, &istate),
++				  &ispeed),
++		     mad_dump_val(IB_PORT_STATE_F, state, 64, &istate),
+ 		     mad_dump_val(IB_PORT_PHYS_STATE_F, physstate, 64,
+ 				  &iphystate));
++	} else {
++		n = snprintf(link_str, 256, "(              %6s/%8s)",
++		     mad_dump_val(IB_PORT_STATE_F, state, 64, &istate),
++		     mad_dump_val(IB_PORT_PHYS_STATE_F, physstate, 64,
++				  &iphystate));
++	}
+ 
+-	if (add_sw_settings)
+-		snprintf(link_str + n, 256 - n, " (HOQ:%d VL_Stall:%d)",
+-			 mad_get_field(port->info, 0, IB_PORT_HOQ_LIFE_F),
+-			 mad_get_field(port->info, 0,
+-				       IB_PORT_VL_STALL_COUNT_F));
++	/* again default values due to C14-24.2.1 */
++	if (add_sw_settings && istate != IB_LINK_DOWN) {
++		snprintf(link_str + n, 256 - n,
++			" (HOQ:%d VL_Stall:%d)",
++			mad_get_field(port->info, 0,
++				IB_PORT_HOQ_LIFE_F),
++			mad_get_field(port->info, 0,
++				IB_PORT_VL_STALL_COUNT_F));
++	}
+ 
+ 	if (port->remoteport) {
+ 		char *remap =
+diff --git a/infiniband-diags/src/ibqueryerrors.c b/infiniband-diags/src/ibqueryerrors.c
+index 0b320ec..7d27806 100644
+--- a/infiniband-diags/src/ibqueryerrors.c
++++ b/infiniband-diags/src/ibqueryerrors.c
+@@ -142,11 +142,20 @@ static void print_port_config(char *node_name, ibnd_node_t * node, int portnum)
+ 	width_msg[0] = '\0';
+ 	speed_msg[0] = '\0';
+ 
+-	snprintf(link_str, 256, "(%3s %s %6s/%8s)",
+-		 mad_dump_val(IB_PORT_LINK_WIDTH_ACTIVE_F, width, 64, &iwidth),
+-		 mad_dump_val(IB_PORT_LINK_SPEED_ACTIVE_F, speed, 64, &ispeed),
+-		 mad_dump_val(IB_PORT_STATE_F, state, 64, &istate),
+-		 mad_dump_val(IB_PORT_PHYS_STATE_F, physstate, 64, &iphystate));
++	/* C14-24.2.1 states that a down port allows for invalid data to be
++	 * returned for all PortInfo components except PortState and
++	 * PortPhysicalState */
++	if (istate != IB_LINK_DOWN) {
++		snprintf(link_str, 256, "(%3s %9s %6s/%8s)",
++			 mad_dump_val(IB_PORT_LINK_WIDTH_ACTIVE_F, width, 64, &iwidth),
++			 mad_dump_val(IB_PORT_LINK_SPEED_ACTIVE_F, speed, 64, &ispeed),
++			 mad_dump_val(IB_PORT_STATE_F, state, 64, &istate),
++			 mad_dump_val(IB_PORT_PHYS_STATE_F, physstate, 64, &iphystate));
++	} else {
++		snprintf(link_str, 256, "(              %6s/%8s)",
++			 mad_dump_val(IB_PORT_STATE_F, state, 64, &istate),
++			 mad_dump_val(IB_PORT_PHYS_STATE_F, physstate, 64, &iphystate));
++	}
+ 
+ 	if (port->remoteport) {
+ 		char *rem_node_name = NULL;
 -- 
-Roland Dreier  <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-For corporate legal information go to:
-http://www.cisco.com/web/about/doing_business/legal/cri/index.html
+1.5.4.5
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
