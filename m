@@ -1,7 +1,7 @@
 From: Doron Shoham <dorons-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH 2/4] sim_ctl_get_pkeys
-Date: Sun, 21 Mar 2010 17:21:11 +0200
-Message-ID: <4BA63967.2000004@voltaire.com>
+Subject: [PATCH 3/4] set PartitionCap and PartitionEnforcementCap to be 32.
+Date: Sun, 21 Mar 2010 17:23:03 +0200
+Message-ID: <4BA639D7.1040304@voltaire.com>
 References: <4BA6391A.7020608@voltaire.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
@@ -13,42 +13,48 @@ To: sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-similar to sim_ctl_get_portinfo, return the correct
-port's pkey tables according to the port number.
+This is maximum number of pkeys that can be sent
+in one CTL message.
+This number is calculated from:
+SIM_CTL_MAX_DATA/sizeof(uint16_t)
+
 
 Signed-off-by: Doron Shoham <dorons-smomgflXvOZWk0Htik3J/w@public.gmane.org>
 ---
- ibsim/ibsim.c |   17 ++++++++++++-----
- 1 files changed, 12 insertions(+), 5 deletions(-)
+ ibsim/sim_net.c |    6 +++---
+ 1 files changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/ibsim/ibsim.c b/ibsim/ibsim.c
-index 9326d37..3cb97e4 100644
---- a/ibsim/ibsim.c
-+++ b/ibsim/ibsim.c
-@@ -354,11 +354,18 @@ static int sim_ctl_set_issm(Client * cl, struct sim_ctl * ctl)
+diff --git a/ibsim/sim_net.c b/ibsim/sim_net.c
+index 13c3b8c..6cdd40a 100644
+--- a/ibsim/sim_net.c
++++ b/ibsim/sim_net.c
+@@ -121,7 +121,7 @@ static const uint8_t hcaport_down[] = {
  
- static int sim_ctl_get_pkeys(Client * cl, struct sim_ctl * ctl)
- {
--	Port *port = cl->port;
--	unsigned size = (port->node->sw && port->portnum) ?
--	    mad_get_field(port->node->sw->switchinfo, 0,
--			  IB_SW_PARTITION_ENFORCE_CAP_F) :
--	    mad_get_field(port->node->nodeinfo, 0, IB_NODE_PARTITION_CAP_F);
-+	Port *port;
-+	uint8_t port_num = ctl->data[0];
-+	unsigned size;
-+
-+	if (port_num == 0 || port_num > cl->port->node->numports)
-+		port = cl->port;
-+	else
-+		port = node_get_port(cl->port->node, port_num);
-+	size = (port->node->sw && port->portnum) ?
-+			mad_get_field(port->node->sw->switchinfo, 0,
-+					IB_SW_PARTITION_ENFORCE_CAP_F) :
-+			mad_get_field(port->node->nodeinfo, 0, IB_NODE_PARTITION_CAP_F);
- 
- 	size *= sizeof(port->pkey_tbl[0]);
- 	if (size > sizeof(ctl->data))
+ static const uint8_t switchinfo[] = {
+ 	0xC0, 0x00, 0x00, 0x00, 0x04, 0x00, 0x00, 0x04,
+-	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x40,
++	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x20,
+ 	0x30, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+ 	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+ 	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+@@ -134,7 +134,7 @@ static const uint8_t swnodeinfo[] = {
+ 	0x01, 0x01, 0x02, 0x08, 0x00, 0x00, 0x00, 0x00,
+ 	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x08,
+ 	0xF1, 0x04, 0x00, 0x0D, 0x00, 0x00, 0x00, 0x08,
+-	0xF1, 0x04, 0x00, 0x0D, 0x00, 0x08, 0xA8, 0x7C,
++	0xF1, 0x04, 0x00, 0x0D, 0x00, 0x20, 0xA8, 0x7C,
+ 	0x00, 0x00, 0x00, 0xA1, 0x00, 0x00, 0x08, 0xF1,
+ 	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+ 	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+@@ -145,7 +145,7 @@ static const uint8_t hcanodeinfo[] = {
+ 	0x01, 0x01, 0x01, 0x02, 0x00, 0x02, 0xC9, 0x00,
+ 	0x01, 0x13, 0x6E, 0x40, 0x00, 0x02, 0xC9, 0x00,
+ 	0x01, 0x13, 0x6E, 0x40, 0x00, 0x02, 0xC9, 0x00,
+-	0x01, 0x13, 0x6E, 0x41, 0x00, 0x40, 0x5A, 0x44,
++	0x01, 0x13, 0x6E, 0x41, 0x00, 0x20, 0x5A, 0x44,
+ 	0x00, 0x00, 0x00, 0xA1, 0x01, 0x00, 0x02, 0xC9,
+ 	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+ 	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 -- 
 1.5.4
 
