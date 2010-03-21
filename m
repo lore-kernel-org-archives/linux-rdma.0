@@ -1,7 +1,7 @@
 From: Doron Shoham <dorons-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH 1/4] sim_ctl_get_portinfo:
-Date: Sun, 21 Mar 2010 17:20:41 +0200
-Message-ID: <4BA63949.90509@voltaire.com>
+Subject: [PATCH 2/4] sim_ctl_get_pkeys
+Date: Sun, 21 Mar 2010 17:21:11 +0200
+Message-ID: <4BA63967.2000004@voltaire.com>
 References: <4BA6391A.7020608@voltaire.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
@@ -13,32 +13,42 @@ To: sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-do not decrease port number.
-for hca port number can  be 1 or 2 and
-for switch its always 0.
-node_get_port() already handles by type.
+similar to sim_ctl_get_portinfo, return the correct
+port's pkey tables according to the port number.
 
 Signed-off-by: Doron Shoham <dorons-smomgflXvOZWk0Htik3J/w@public.gmane.org>
 ---
- ibsim/ibsim.c |    4 +---
- 1 files changed, 1 insertions(+), 3 deletions(-)
+ ibsim/ibsim.c |   17 ++++++++++++-----
+ 1 files changed, 12 insertions(+), 5 deletions(-)
 
 diff --git a/ibsim/ibsim.c b/ibsim/ibsim.c
-index e720f0d..9326d37 100644
+index 9326d37..3cb97e4 100644
 --- a/ibsim/ibsim.c
 +++ b/ibsim/ibsim.c
-@@ -318,10 +318,8 @@ static int sim_ctl_get_portinfo(Client * cl, struct sim_ctl * ctl)
- 	uint8_t port_num = ctl->data[0];
- 	if (port_num == 0 || port_num > cl->port->node->numports)
- 		p = cl->port;
--	else if (cl->port->node->type == SWITCH_NODE)
--		p = node_get_port(cl->port->node, port_num);
- 	else
--		p = node_get_port(cl->port->node, port_num - 1);
-+		p = node_get_port(cl->port->node, port_num);
- 	update_portinfo(p);
- 	memcpy(ctl->data, p->portinfo, sizeof(ctl->data));
- 	return 0;
+@@ -354,11 +354,18 @@ static int sim_ctl_set_issm(Client * cl, struct sim_ctl * ctl)
+ 
+ static int sim_ctl_get_pkeys(Client * cl, struct sim_ctl * ctl)
+ {
+-	Port *port = cl->port;
+-	unsigned size = (port->node->sw && port->portnum) ?
+-	    mad_get_field(port->node->sw->switchinfo, 0,
+-			  IB_SW_PARTITION_ENFORCE_CAP_F) :
+-	    mad_get_field(port->node->nodeinfo, 0, IB_NODE_PARTITION_CAP_F);
++	Port *port;
++	uint8_t port_num = ctl->data[0];
++	unsigned size;
++
++	if (port_num == 0 || port_num > cl->port->node->numports)
++		port = cl->port;
++	else
++		port = node_get_port(cl->port->node, port_num);
++	size = (port->node->sw && port->portnum) ?
++			mad_get_field(port->node->sw->switchinfo, 0,
++					IB_SW_PARTITION_ENFORCE_CAP_F) :
++			mad_get_field(port->node->nodeinfo, 0, IB_NODE_PARTITION_CAP_F);
+ 
+ 	size *= sizeof(port->pkey_tbl[0]);
+ 	if (size > sizeof(ctl->data))
 -- 
 1.5.4
 
