@@ -1,87 +1,54 @@
-From: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: "Unicast, no dst" warning from IPoIB
-Date: Mon, 22 Mar 2010 14:20:40 +0200
-Message-ID: <20100322122040.GA12224@mtldesk030.lab.mtl.com>
-References: <Pine.LNX.4.64.1003221142430.5956@zuben.voltaire.com>
+From: Jiri Pirko <jpirko-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: [net-next-2.6 PATCH] ipoib: remove addrlen check for mc addresses
+Date: Mon, 22 Mar 2010 14:21:39 +0100
+Message-ID: <20100322132138.GC2780@psychotron.lab.eng.brq.redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.64.1003221142430.5956-aDiYczhfhVLdX2U7gxhm1tBPR1lH4CV8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Cc: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, monis-smomgflXvOZWk0Htik3J/w@public.gmane.org, jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Mar 22, 2010 at 11:55:18AM +0200, Or Gerlitz wrote:
-> 
-> Recently (e.g now with 2.6.34-rc2) I came across this warning from ipoib_start_xmit.
-> I wasn't sure if it suggests that there's some real problem or not. It happens
-> few times and then vanishes, for some reason the type is always 0002 (ETH_P_AX25)
-> 
-> 	ib0: Unicast, no dst: type 0002, QPN 200800 1404:0001:8000:0048:fe80:0000:0000:0000
-> 	ib1: Unicast, no dst: type 0002, QPN 200800 1404:0001:8000:0049:fe80:0000:0000:0000
-> 
+Finally this bit can be removed. Currently, after the bonding driver is
+changed/fixed (32a806c194ea112cfab00f558482dd97bee5e44e net-next-2.6),
+that's not possible for an addr with different length than dev->addr_len
+to be present in list. Removing this check as in new mc_list there will be
+no addrlen in the record.
 
-The data printed is garbage - the correct data is at offset of 8
-bytes. Thus we have:
-protocol = 0x800 = IP
-The IPoIB inteface is connected mode
-The QP number is 0x48 which you're likely to find with mlx4 hardware.
-Then we see the beginning of the GID which starts with fw80...
+Signed-off-by: Jiri Pirko <jpirko-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+---
+ drivers/infiniband/ulp/ipoib/ipoib_multicast.c |    6 +-----
+ 1 files changed, 1 insertions(+), 5 deletions(-)
 
-Why did we get this? It could happen since the IPoIB neighbour that
-the specific instance of IPoIB CM is pointing to might have SKBs in
-its queue. When REP arrives for this connection, it will re-queue all
-the queued SKBs again but there may be no dst for them anymore.
-
-The following patch could avoid these messages:
-
-
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib_cm.c b/drivers/infiniband/ulp/ipoib/ipoib_cm.c
-index f8302c2..114404f 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib_cm.c
-+++ b/drivers/infiniband/ulp/ipoib/ipoib_cm.c
-@@ -996,9 +996,14 @@ static int ipoib_cm_rep_handler(struct ib_cm_id *cm_id, struct ib_cm_event *even
- 
- 	while ((skb = __skb_dequeue(&skqueue))) {
- 		skb->dev = p->dev;
--		if (dev_queue_xmit(skb))
--			ipoib_warn(priv, "dev_queue_xmit failed "
--				   "to requeue packet\n");
-+		if (skb_dst(skb) && skb_dst(skb)->neighbour) {
-+			if (dev_queue_xmit(skb))
-+				ipoib_warn(priv, "dev_queue_xmit failed "
-+					   "to requeue packet\n");
-+		} else {
-+			++p->dev->stats.tx_dropped;
-+			dev_kfree_skb_any(skb);
-+		}
- 	}
- 
- 	ret = ib_send_cm_rtu(cm_id, NULL, 0);
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-index 5e6c2de..12265b7 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
-+++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-@@ -490,9 +490,14 @@ static void path_rec_completion(int status,
- 
- 	while ((skb = __skb_dequeue(&skqueue))) {
- 		skb->dev = dev;
--		if (dev_queue_xmit(skb))
--			ipoib_warn(priv, "dev_queue_xmit failed "
--				   "to requeue packet\n");
-+		if (skb_dst(skb) && skb_dst(skb)->neighbour) {
-+			if (dev_queue_xmit(skb))
-+				ipoib_warn(priv, "dev_queue_xmit failed "
-+					   "to requeue packet\n");
-+		} else {
-+			++dev->stats.tx_dropped;
-+			dev_kfree_skb_any(skb);
-+		}
+diff --git a/drivers/infiniband/ulp/ipoib/ipoib_multicast.c b/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
+index d41ea27..19eba3c 100644
+--- a/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
++++ b/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
+@@ -767,11 +767,8 @@ void ipoib_mcast_dev_flush(struct net_device *dev)
  	}
  }
  
+-static int ipoib_mcast_addr_is_valid(const u8 *addr, unsigned int addrlen,
+-				     const u8 *broadcast)
++static int ipoib_mcast_addr_is_valid(const u8 *addr, const u8 *broadcast)
+ {
+-	if (addrlen != INFINIBAND_ALEN)
+-		return 0;
+ 	/* reserved QPN, prefix, scope */
+ 	if (memcmp(addr, broadcast, 6))
+ 		return 0;
+@@ -815,7 +812,6 @@ void ipoib_mcast_restart_task(struct work_struct *work)
+ 		union ib_gid mgid;
+ 
+ 		if (!ipoib_mcast_addr_is_valid(mclist->dmi_addr,
+-					       mclist->dmi_addrlen,
+ 					       dev->broadcast))
+ 			continue;
+ 
+-- 
+1.6.6.1
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
