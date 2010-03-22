@@ -1,172 +1,88 @@
-From: Or Gerlitz <ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Subject: "Unicast, no dst" warning from IPoIB
-Date: Mon, 22 Mar 2010 11:55:18 +0200 (IST)
-Message-ID: <Pine.LNX.4.64.1003221142430.5956@zuben.voltaire.com>
+From: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: "Unicast, no dst" warning from IPoIB
+Date: Mon, 22 Mar 2010 14:20:40 +0200
+Message-ID: <20100322122040.GA12224@mtldesk030.lab.mtl.com>
+References: <Pine.LNX.4.64.1003221142430.5956@zuben.voltaire.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset="us-ascii"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.64.1003221142430.5956-aDiYczhfhVLdX2U7gxhm1tBPR1lH4CV8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Or Gerlitz <ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+Cc: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Roland,
+On Mon, Mar 22, 2010 at 11:55:18AM +0200, Or Gerlitz wrote:
+> 
+> Recently (e.g now with 2.6.34-rc2) I came across this warning from ipoib_start_xmit.
+> I wasn't sure if it suggests that there's some real problem or not. It happens
+> few times and then vanishes, for some reason the type is always 0002 (ETH_P_AX25)
+> 
+> 	ib0: Unicast, no dst: type 0002, QPN 200800 1404:0001:8000:0048:fe80:0000:0000:0000
+> 	ib1: Unicast, no dst: type 0002, QPN 200800 1404:0001:8000:0049:fe80:0000:0000:0000
+> 
 
-Recently (e.g now with 2.6.34-rc2) I came across this warning from ipoib_start_xmit.
-I wasn't sure if it suggests that there's some real problem or not. It happens
-few times and then vanishes, for some reason the type is always 0002 (ETH_P_AX25)
+The data printed is garbage - the correct data is at offset of 8
+bytes. Thus we have:
+protocol = 0x800 = IP
+The IPoIB inteface is connected mode
+The QP number is 0x48 which you're likely to find with mlx4 hardware.
+Then we see the beginning of the GID which starts with fw80...
 
-	ib0: Unicast, no dst: type 0002, QPN 200800 1404:0001:8000:0048:fe80:0000:0000:0000
-	ib1: Unicast, no dst: type 0002, QPN 200800 1404:0001:8000:0049:fe80:0000:0000:0000
+Why did we get this? It could happen since the IPoIB neighbour that
+the specific instance of IPoIB CM is pointing to might have SKBs in
+its queue. When REP arrives for this connection, it will re-queue all
+the queued SKBs again but there may be no dst for them anymore.
 
-bringing up the driver with debug messages on, it happens few times but
-not with specific correlation to something I can point on
-
-Or.
+The following patch could avoid these messages:
 
 
-ib%d: max_srq_sge=31
-ib%d: max_cm_mtu = 0xfff0, num_frags=16
-ib%d: max_srq_sge=31
-ib%d: max_cm_mtu = 0xfff0, num_frags=16
-ib1: bringing up interface
-ib1: starting multicast thread
-ib1: joining MGID ff12:401b:ffff:0000:0000:0000:ffff:ffff
-ib1: restarting multicast task
-ib1: stopping multicast thread
-ib1: adding multicast entry for mgid ff12:401b:ffff:0000:0000:0000:0000:0001
-ib1: adding multicast entry for mgid ff12:601b:ffff:0000:0000:0000:0000:0001
-ib1: starting multicast thread
-ib1: join completion for ff12:401b:ffff:0000:0000:0000:ffff:ffff (status 0)
-ib1: Created ah ffff880223b0e000
-ib1: MGID ff12:401b:ffff:0000:0000:0000:ffff:ffff AV ffff880223b0e000, LID 0xc000, SL 0
-ib1: joining MGID ff12:401b:ffff:0000:0000:0000:0000:0001
-ADDRCONF(NETDEV_UP): ib1: link is not ready
-ADDRCONF(NETDEV_CHANGE): ib1: link becomes ready
-ib1: restarting multicast task
-ib1: stopping multicast thread
-ib0: bringing up interface
-ib1: adding multicast entry for mgid ff12:601b:ffff:0000:0000:0001:ff02:6be8
-ib1: starting multicast thread
-ib1: join completion for ff12:401b:ffff:0000:0000:0000:0000:0001 (status 0)
-ib1: joining MGID ff12:601b:ffff:0000:0000:0000:0000:0001
-ib1: Created ah ffff88022eed00c0
-ib1: MGID ff12:401b:ffff:0000:0000:0000:0000:0001 AV ffff88022eed00c0, LID 0xc001, SL 0
-ib1: join completion for ff12:601b:ffff:0000:0000:0000:0000:0001 (status 0)
-ib1: Created ah ffff88022d05d680
-ib1: MGID ff12:601b:ffff:0000:0000:0000:0000:0001 AV ffff88022d05d680, LID 0xc008, SL 0
-ib0: starting multicast thread
-ib1: joining MGID ff12:601b:ffff:0000:0000:0001:ff02:6be8
-ADDRCONF(NETDEV_UP): ib0: link is not ready
-ib1: successfully joined all multicast groups
-ib0: joining MGID ff12:401b:ffff:0000:0000:0000:ffff:ffff
-ib0: restarting multicast task
-ib0: stopping multicast thread
-ib0: adding multicast entry for mgid ff12:401b:ffff:0000:0000:0000:0000:0001
-ib0: adding multicast entry for mgid ff12:601b:ffff:0000:0000:0000:0000:0001
-ib0: starting multicast thread
-ib1: join completion for ff12:601b:ffff:0000:0000:0001:ff02:6be8 (status 0)
-ib0: join completion for ff12:401b:ffff:0000:0000:0000:ffff:ffff (status 0)
-ib1: Created ah ffff88022d05dc00
-ib1: MGID ff12:601b:ffff:0000:0000:0001:ff02:6be8 AV ffff88022d05dc00, LID 0xc009, SL 0
-ib0: Created ah ffff88022d05dec0
-ib0: MGID ff12:401b:ffff:0000:0000:0000:ffff:ffff AV ffff88022d05dec0, LID 0xc000, SL 0
-ib0: joining MGID ff12:401b:ffff:0000:0000:0000:0000:0001
-ib0: join completion for ff12:401b:ffff:0000:0000:0000:0000:0001 (status 0)
-ib1: Unicast, no dst: type 0002, QPN 200800 1404:0001:8010:0049:fe80:0000:0000:0000
-ib0: Created ah ffff880223b0e200
-ib0: MGID ff12:401b:ffff:0000:0000:0000:0000:0001 AV ffff880223b0e200, LID 0xc001, SL 0
-ADDRCONF(NETDEV_CHANGE): ib0: link becomes ready
-ib0: joining MGID ff12:601b:ffff:0000:0000:0000:0000:0001
-ib0: restarting multicast task
-ib0: stopping multicast thread
-ib0: adding multicast entry for mgid ff12:601b:ffff:0000:0000:0001:ff02:6be7
-ib0: starting multicast thread
-ib0: join completion for ff12:601b:ffff:0000:0000:0000:0000:0001 (status 0)
-ib0: joining MGID ff12:601b:ffff:0000:0000:0001:ff02:6be7
-ib0: Created ah ffff88022d05d480
-ib0: MGID ff12:601b:ffff:0000:0000:0000:0000:0001 AV ffff88022d05d480, LID 0xc008, SL 0
-ib0: join completion for ff12:601b:ffff:0000:0000:0001:ff02:6be7 (status 0)
-ib0: successfully joined all multicast groups
-ib0: Created ah ffff88022d05d980
-ib0: MGID ff12:601b:ffff:0000:0000:0001:ff02:6be7 AV ffff88022d05d980, LID 0xc012, SL 0
-ib0: Unicast, no dst: type 0002, QPN 200800 1404:0001:8010:0048:fe80:0000:0000:0000
-ib1: setting up send only multicast group for ff12:601b:ffff:0000:0000:0000:0000:0016
-ib1: no multicast record for ff12:601b:ffff:0000:0000:0000:0000:0016, starting join
-ib1: multicast join failed for ff12:601b:ffff:0000:0000:0000:0000:0016, status -22
-ib0: setting up send only multicast group for ff12:601b:ffff:0000:0000:0000:0000:0016
-ib0: no multicast record for ff12:601b:ffff:0000:0000:0000:0000:0016, starting join
-ib0: multicast join failed for ff12:601b:ffff:0000:0000:0000:0000:0016, status -22
-ib0: Unicast, no dst: type 0002, QPN 200800 1404:0001:8010:0048:fe80:0000:0000:0000
-ib1: Unicast, no dst: type 0002, QPN 200800 1404:0001:8010:0049:fe80:0000:0000:0000
-ib1: setting up send only multicast group for ff12:601b:ffff:0000:0000:0000:0000:0002
-ib1: no multicast record for ff12:601b:ffff:0000:0000:0000:0000:0002, starting join
-ib1: multicast join failed for ff12:601b:ffff:0000:0000:0000:0000:0002, status -22
-ib1: restarting multicast task
-ib1: stopping multicast thread
-ib1: adding multicast entry for mgid ff12:601b:ffff:0000:0000:0000:0000:00fb
-ib1: starting multicast thread
-ib1: joining MGID ff12:601b:ffff:0000:0000:0000:0000:00fb
-ib1: join completion for ff12:601b:ffff:0000:0000:0000:0000:00fb (status 0)
-ib1: Created ah ffff88022d05da00
-ib1: MGID ff12:601b:ffff:0000:0000:0000:0000:00fb AV ffff88022d05da00, LID 0xc005, SL 0
-ib1: successfully joined all multicast groups
-ib1: no multicast record for ff12:601b:ffff:0000:0000:0000:0000:0016, starting join
-ib1: multicast join failed for ff12:601b:ffff:0000:0000:0000:0000:0016, status -22
-ib0: restarting multicast task
-ib0: stopping multicast thread
-ib0: adding multicast entry for mgid ff12:401b:ffff:0000:0000:0000:0000:00fb
-ib0: starting multicast thread
-ib0: joining MGID ff12:401b:ffff:0000:0000:0000:0000:00fb
-ib0: join completion for ff12:401b:ffff:0000:0000:0000:0000:00fb (status 0)
-ib0: Created ah ffff88022d05dd80
-ib0: MGID ff12:401b:ffff:0000:0000:0000:0000:00fb AV ffff88022d05dd80, LID 0xc004, SL 0
-ib0: Unicast, no dst: type 0002, QPN 200800 1404:0002:8010:0048:fe80:0000:0000:0000
-ib1: Unicast, no dst: type 0002, QPN 200800 1404:0002:8010:0049:fe80:0000:0000:0000
-ib0: successfully joined all multicast groups
-ib1: restarting multicast task
-ib1: stopping multicast thread
-ib1: adding multicast entry for mgid ff12:401b:ffff:0000:0000:0000:0000:00fb
-ib1: starting multicast thread
-ib1: joining MGID ff12:401b:ffff:0000:0000:0000:0000:00fb
-ib1: join completion for ff12:401b:ffff:0000:0000:0000:0000:00fb (status 0)
-ib1: Created ah ffff88022d05d300
-ib1: MGID ff12:401b:ffff:0000:0000:0000:0000:00fb AV ffff88022d05d300, LID 0xc004, SL 0
-ib1: successfully joined all multicast groups
-ib0: setting up send only multicast group for ff12:401b:ffff:0000:0000:0000:0000:0016
-ib0: no multicast record for ff12:401b:ffff:0000:0000:0000:0000:0016, starting join
-ib1: setting up send only multicast group for ff12:401b:ffff:0000:0000:0000:0000:0016
-ib1: no multicast record for ff12:401b:ffff:0000:0000:0000:0000:0016, starting join
-ib0: multicast join failed for ff12:401b:ffff:0000:0000:0000:0000:0016, status -22
-ib1: multicast join failed for ff12:401b:ffff:0000:0000:0000:0000:0016, status -22
-ib0: setting up send only multicast group for ff12:601b:ffff:0000:0000:0000:0000:0002
-ib0: no multicast record for ff12:601b:ffff:0000:0000:0000:0000:0002, starting join
-ib0: multicast join failed for ff12:601b:ffff:0000:0000:0000:0000:0002, status -22
-ib0: restarting multicast task
-ib0: stopping multicast thread
-ib0: adding multicast entry for mgid ff12:601b:ffff:0000:0000:0000:0000:00fb
-ib0: starting multicast thread
-ib0: joining MGID ff12:601b:ffff:0000:0000:0000:0000:00fb
-ib0: join completion for ff12:601b:ffff:0000:0000:0000:0000:00fb (status 0)
-ib0: Created ah ffff88022e40cbc0
-ib0: MGID ff12:601b:ffff:0000:0000:0000:0000:00fb AV ffff88022e40cbc0, LID 0xc005, SL 0
-ib0: successfully joined all multicast groups
-ib0: no multicast record for ff12:601b:ffff:0000:0000:0000:0000:0016, starting join
-ib0: multicast join failed for ff12:601b:ffff:0000:0000:0000:0000:0016, status -22
-ib1: Unicast, no dst: type 0002, QPN 200800 1404:0001:8010:0049:fe80:0000:0000:0000
-ib0: Unicast, no dst: type 0002, QPN 200800 1404:0001:8010:0048:fe80:0000:0000:0000
-ib1: no multicast record for ff12:601b:ffff:0000:0000:0000:0000:0002, starting join
-ib1: multicast join failed for ff12:601b:ffff:0000:0000:0000:0000:0002, status -22
-ib0: no multicast record for ff12:601b:ffff:0000:0000:0000:0000:0002, starting join
-ib0: multicast join failed for ff12:601b:ffff:0000:0000:0000:0000:0002, status -22
-ib1: no multicast record for ff12:401b:ffff:0000:0000:0000:0000:0016, starting join
-ib1: multicast join failed for ff12:401b:ffff:0000:0000:0000:0000:0016, status -22
-ib1: no multicast record for ff12:601b:ffff:0000:0000:0000:0000:0016, starting join
-ib1: multicast join failed for ff12:601b:ffff:0000:0000:0000:0000:0016, status -22
-ib0: no multicast record for ff12:401b:ffff:0000:0000:0000:0000:0016, starting join
-ib0: multicast join failed for ff12:401b:ffff:0000:0000:0000:0000:0016, status -22
-ib0: no multicast record for ff12:601b:ffff:0000:0000:0000:0000:0016, starting join
-ib0: multicast join failed for ff12:601b:ffff:0000:0000:0000:0000:0016, status -22
+diff --git a/drivers/infiniband/ulp/ipoib/ipoib_cm.c b/drivers/infiniband/ulp/ipoib/ipoib_cm.c
+index f8302c2..114404f 100644
+--- a/drivers/infiniband/ulp/ipoib/ipoib_cm.c
++++ b/drivers/infiniband/ulp/ipoib/ipoib_cm.c
+@@ -996,9 +996,14 @@ static int ipoib_cm_rep_handler(struct ib_cm_id *cm_id, struct ib_cm_event *even
+ 
+ 	while ((skb = __skb_dequeue(&skqueue))) {
+ 		skb->dev = p->dev;
+-		if (dev_queue_xmit(skb))
+-			ipoib_warn(priv, "dev_queue_xmit failed "
+-				   "to requeue packet\n");
++		if (skb_dst(skb) && skb_dst(skb)->neighbour) {
++			if (dev_queue_xmit(skb))
++				ipoib_warn(priv, "dev_queue_xmit failed "
++					   "to requeue packet\n");
++		} else {
++			++p->dev->stats.tx_dropped;
++			dev_kfree_skb_any(skb);
++		}
+ 	}
+ 
+ 	ret = ib_send_cm_rtu(cm_id, NULL, 0);
+diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c b/drivers/infiniband/ulp/ipoib/ipoib_main.c
+index 5e6c2de..12265b7 100644
+--- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
++++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
+@@ -490,9 +490,14 @@ static void path_rec_completion(int status,
+ 
+ 	while ((skb = __skb_dequeue(&skqueue))) {
+ 		skb->dev = dev;
+-		if (dev_queue_xmit(skb))
+-			ipoib_warn(priv, "dev_queue_xmit failed "
+-				   "to requeue packet\n");
++		if (skb_dst(skb) && skb_dst(skb)->neighbour) {
++			if (dev_queue_xmit(skb))
++				ipoib_warn(priv, "dev_queue_xmit failed "
++					   "to requeue packet\n");
++		} else {
++			++dev->stats.tx_dropped;
++			dev_kfree_skb_any(skb);
++		}
+ 	}
+ }
+ 
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
