@@ -1,55 +1,26 @@
-From: Jiri Pirko <jpirko-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: [net-next-2.6 PATCH] ipoib: remove addrlen check for mc addresses
-Date: Mon, 22 Mar 2010 14:21:39 +0100
-Message-ID: <20100322132138.GC2780@psychotron.lab.eng.brq.redhat.com>
+From: Moni Shoua <monis-hKgKHo2Ms0F+cjeuK/JdrQ@public.gmane.org>
+Subject: Re: "Unicast, no dst" warning from IPoIB
+Date: Mon, 22 Mar 2010 18:13:08 +0200
+Message-ID: <4BA79714.8030600@Voltaire.COM>
+References: <Pine.LNX.4.64.1003221142430.5956@zuben.voltaire.com> <20100322122040.GA12224@mtldesk030.lab.mtl.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <20100322122040.GA12224-8YAHvHwT2UEvbXDkjdHOrw/a8Rv0c6iv@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, monis-smomgflXvOZWk0Htik3J/w@public.gmane.org, jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org
+To: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: Or Gerlitz <ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org>, Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Finally this bit can be removed. Currently, after the bonding driver is
-changed/fixed (32a806c194ea112cfab00f558482dd97bee5e44e net-next-2.6),
-that's not possible for an addr with different length than dev->addr_len
-to be present in list. Removing this check as in new mc_list there will be
-no addrlen in the record.
 
-Signed-off-by: Jiri Pirko <jpirko-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
----
- drivers/infiniband/ulp/ipoib/ipoib_multicast.c |    6 +-----
- 1 files changed, 1 insertions(+), 5 deletions(-)
-
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib_multicast.c b/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
-index d41ea27..19eba3c 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
-+++ b/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
-@@ -767,11 +767,8 @@ void ipoib_mcast_dev_flush(struct net_device *dev)
- 	}
- }
- 
--static int ipoib_mcast_addr_is_valid(const u8 *addr, unsigned int addrlen,
--				     const u8 *broadcast)
-+static int ipoib_mcast_addr_is_valid(const u8 *addr, const u8 *broadcast)
- {
--	if (addrlen != INFINIBAND_ALEN)
--		return 0;
- 	/* reserved QPN, prefix, scope */
- 	if (memcmp(addr, broadcast, 6))
- 		return 0;
-@@ -815,7 +812,6 @@ void ipoib_mcast_restart_task(struct work_struct *work)
- 		union ib_gid mgid;
- 
- 		if (!ipoib_mcast_addr_is_valid(mclist->dmi_addr,
--					       mclist->dmi_addrlen,
- 					       dev->broadcast))
- 			continue;
- 
--- 
-1.6.6.1
-
+> Why did we get this? It could happen since the IPoIB neighbour that
+> the specific instance of IPoIB CM is pointing to might have SKBs in
+> its queue. When REP arrives for this connection, it will re-queue all
+> the queued SKBs again but there may be no dst for them anymore.
+> 
+Do you mean that it ("no dst for them anymore.") happened due to aging of the neigh?
+My intuition tells me that it should be a very rare scenario, if I guess your intension correctly.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
