@@ -1,7 +1,7 @@
 From: "Sean Hefty" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [RFC] [PATCH 4/22] [for 2.6.36] ib/addr: add AF_IB support to ip_addr_size
-Date: Tue, 23 Mar 2010 10:57:20 -0700
-Message-ID: <6FC0868C919240BE8297BEEF32F383D7@amr.corp.intel.com>
+Subject: [RFC] [PATCH 5/22] [for 2.6.36] rdma/cm: update port reservation to support AF_IB
+Date: Tue, 23 Mar 2010 10:59:27 -0700
+Message-ID: <012F7D9E5E97445E9100EF170212AEE7@amr.corp.intel.com>
 References: <2F3826558E79459EAD2A457A604221C1@amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
@@ -13,143 +13,86 @@ Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Add support for AF_IB to ip_addr_size, and rename the function
-to account for the change.  Give the compiler more control over
-whether the call should be inline or not by moving the definition
-into the .c file, removing the static inline, and exporting it.
+Update the port reservation code path to support AF_IB addresses.
+AF_IB is limited to the port spaces defined by the RDMA CM IP Annex
+which are already supported by the rdma cm.
+
+AF_IB is used with a sockaddr_ib structure, which exposes a 64-bit
+service ID, rather than a 16-bit port number used by IP.  As a result,
+port numbers must be converted between the two formats as defined by
+the above annex.
 
 Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
 
- drivers/infiniband/core/addr.c |   20 ++++++++++++++++++--
- drivers/infiniband/core/cma.c  |   12 ++++++------
- include/rdma/ib_addr.h         |    6 +-----
- 3 files changed, 25 insertions(+), 13 deletions(-)
+ drivers/infiniband/core/cma.c |   38 +++++++++++++++++++++++++++++++-------
+ 1 files changed, 31 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/infiniband/core/addr.c b/drivers/infiniband/core/addr.c
-index abbb069..f73c5de 100644
---- a/drivers/infiniband/core/addr.c
-+++ b/drivers/infiniband/core/addr.c
-@@ -43,6 +43,7 @@
- #include <net/addrconf.h>
- #include <net/ip6_route.h>
- #include <rdma/ib_addr.h>
-+#include <rdma/ib.h>
+diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
+index ac57155..1546236 100644
+--- a/drivers/infiniband/core/cma.c
++++ b/drivers/infiniband/core/cma.c
+@@ -657,18 +657,28 @@ static int cma_addr_cmp(struct sockaddr *src, struct sockaddr *dst)
+ 	case AF_INET:
+ 		return ((struct sockaddr_in *) src)->sin_addr.s_addr !=
+ 		       ((struct sockaddr_in *) dst)->sin_addr.s_addr;
+-	default:
++	case AF_INET6:
+ 		return ipv6_addr_cmp(&((struct sockaddr_in6 *) src)->sin6_addr,
+ 				     &((struct sockaddr_in6 *) dst)->sin6_addr);
++	default:
++		return ib_addr_cmp(&((struct sockaddr_ib *) src)->sib_addr,
++				   &((struct sockaddr_ib *) dst)->sib_addr);
+ 	}
+ }
  
- MODULE_AUTHOR("Sean Hefty");
- MODULE_DESCRIPTION("IB Address Translation");
-@@ -68,6 +69,21 @@ static LIST_HEAD(req_list);
- static DECLARE_DELAYED_WORK(work, process_req);
- static struct workqueue_struct *addr_wq;
- 
-+int rdma_addr_size(struct sockaddr *addr)
-+{
+-static inline __be16 cma_port(struct sockaddr *addr)
++/* AF_IB must be using the RDMA CM IP Annex */
++static __be16 cma_port(struct sockaddr *addr)
+ {
+-	if (addr->sa_family == AF_INET)
 +	switch (addr->sa_family) {
 +	case AF_INET:
-+		return sizeof(struct sockaddr_in);
+ 		return ((struct sockaddr_in *) addr)->sin_port;
+-	else
 +	case AF_INET6:
-+		return sizeof(struct sockaddr_in6);
+ 		return ((struct sockaddr_in6 *) addr)->sin6_port;
 +	case AF_IB:
-+		return sizeof(struct sockaddr_ib);
++		return htons((u16) be64_to_cpu(((struct sockaddr_ib *) addr)->sib_sid));
 +	default:
 +		return 0;
 +	}
-+}
-+EXPORT_SYMBOL(rdma_addr_size);
+ }
+ 
+ static inline int cma_any_port(struct sockaddr *addr)
+@@ -1945,10 +1955,24 @@ EXPORT_SYMBOL(rdma_resolve_addr);
+ static void cma_bind_port(struct rdma_bind_list *bind_list,
+ 			  struct rdma_id_private *id_priv)
+ {
+-	struct sockaddr_in *sin;
++	struct sockaddr *addr;
++	__be16 port;
+ 
+-	sin = (struct sockaddr_in *) &id_priv->id.route.addr.src_addr;
+-	sin->sin_port = htons(bind_list->port);
++	addr = (struct sockaddr *) &id_priv->id.route.addr.src_addr;
++	port = htons(bind_list->port);
 +
- void rdma_addr_register_client(struct rdma_addr_client *client)
- {
- 	atomic_set(&client->refcount, 1);
-@@ -366,12 +382,12 @@ int rdma_resolve_ip(struct rdma_addr_client *client,
- 			goto err;
- 		}
- 
--		memcpy(src_in, src_addr, ip_addr_size(src_addr));
-+		memcpy(src_in, src_addr, rdma_addr_size(src_addr));
- 	} else {
- 		src_in->sa_family = dst_addr->sa_family;
- 	}
- 
--	memcpy(dst_in, dst_addr, ip_addr_size(dst_addr));
-+	memcpy(dst_in, dst_addr, rdma_addr_size(dst_addr));
- 	req->addr = addr;
- 	req->callback = callback;
- 	req->context = context;
-diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
-index 6460fbf..ac57155 100644
---- a/drivers/infiniband/core/cma.c
-+++ b/drivers/infiniband/core/cma.c
-@@ -1468,7 +1468,7 @@ static void cma_listen_on_dev(struct rdma_id_private *id_priv,
- 
- 	dev_id_priv->state = CMA_ADDR_BOUND;
- 	memcpy(&id->route.addr.src_addr, &id_priv->id.route.addr.src_addr,
--	       ip_addr_size((struct sockaddr *) &id_priv->id.route.addr.src_addr));
-+	       rdma_addr_size((struct sockaddr *) &id_priv->id.route.addr.src_addr));
- 
- 	cma_attach_to_dev(dev_id_priv, cma_dev);
- 	list_add_tail(&dev_id_priv->listen_list, &id_priv->listen_list);
-@@ -1834,7 +1834,7 @@ static void addr_handler(int status, struct sockaddr *src_addr,
- 		event.status = status;
- 	} else {
- 		memcpy(&id_priv->id.route.addr.src_addr, src_addr,
--		       ip_addr_size(src_addr));
-+		       rdma_addr_size(src_addr));
- 		event.event = RDMA_CM_EVENT_ADDR_RESOLVED;
- 	}
- 
-@@ -1924,7 +1924,7 @@ int rdma_resolve_addr(struct rdma_cm_id *id, struct sockaddr *src_addr,
- 		return -EINVAL;
- 
- 	atomic_inc(&id_priv->refcount);
--	memcpy(&id->route.addr.dst_addr, dst_addr, ip_addr_size(dst_addr));
-+	memcpy(&id->route.addr.dst_addr, dst_addr, rdma_addr_size(dst_addr));
- 	if (cma_any_addr(dst_addr))
- 		ret = cma_resolve_loopback(id_priv);
- 	else
-@@ -2147,7 +2147,7 @@ int rdma_bind_addr(struct rdma_cm_id *id, struct sockaddr *addr)
- 			goto err1;
- 	}
- 
--	memcpy(&id->route.addr.src_addr, addr, ip_addr_size(addr));
-+	memcpy(&id->route.addr.src_addr, addr, rdma_addr_size(addr));
- 	ret = cma_get_port(id_priv);
- 	if (ret)
- 		goto err2;
-@@ -2807,7 +2807,7 @@ int rdma_join_multicast(struct rdma_cm_id *id, struct sockaddr *addr,
- 	if (!mc)
- 		return -ENOMEM;
- 
--	memcpy(&mc->addr, addr, ip_addr_size(addr));
-+	memcpy(&mc->addr, addr, rdma_addr_size(addr));
- 	mc->context = context;
- 	mc->id_priv = id_priv;
- 
-@@ -2842,7 +2842,7 @@ void rdma_leave_multicast(struct rdma_cm_id *id, struct sockaddr *addr)
- 	id_priv = container_of(id, struct rdma_id_private, id);
- 	spin_lock_irq(&id_priv->lock);
- 	list_for_each_entry(mc, &id_priv->mc_list, list) {
--		if (!memcmp(&mc->addr, addr, ip_addr_size(addr))) {
-+		if (!memcmp(&mc->addr, addr, rdma_addr_size(addr))) {
- 			list_del(&mc->list);
- 			spin_unlock_irq(&id_priv->lock);
- 
-diff --git a/include/rdma/ib_addr.h b/include/rdma/ib_addr.h
-index fa0d52b..9e06769 100644
---- a/include/rdma/ib_addr.h
-+++ b/include/rdma/ib_addr.h
-@@ -99,11 +99,7 @@ void rdma_addr_cancel(struct rdma_dev_addr *addr);
- int rdma_copy_addr(struct rdma_dev_addr *dev_addr, struct net_device *dev,
- 	      const unsigned char *dst_dev_addr);
- 
--static inline int ip_addr_size(struct sockaddr *addr)
--{
--	return addr->sa_family == AF_INET6 ?
--	       sizeof(struct sockaddr_in6) : sizeof(struct sockaddr_in);
--}
-+int rdma_addr_size(struct sockaddr *addr);
- 
- static inline u16 ib_addr_get_pkey(struct rdma_dev_addr *dev_addr)
- {
++	switch (addr->sa_family) {
++	case AF_INET:
++		((struct sockaddr_in *) addr)->sin_port = port;
++		break;
++	case AF_INET6:
++		((struct sockaddr_in6 *) addr)->sin6_port = port;
++		break;
++	case AF_IB:
++		((struct sockaddr_ib *) addr)->sib_sid =
++			cpu_to_be64(((u64) bind_list->ps << 16) + ntohs(port));
++		break;
++	}
+ 	id_priv->bind_list = bind_list;
+ 	hlist_add_head(&id_priv->node, &bind_list->owners);
+ }
 
 
 
