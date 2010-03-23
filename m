@@ -1,7 +1,7 @@
 From: "Sean Hefty" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [RFC] [PATCH 15/22] [for 2.6.36] ib/sa: export function to pack a path record into wire format
-Date: Tue, 23 Mar 2010 11:16:15 -0700
-Message-ID: <6ECCDD929A8042498562F879091CC979@amr.corp.intel.com>
+Subject: [RFC] [PATCH 16/22] [for 2.6.36] rdma/ucm: support querying when IB paths are not reversible
+Date: Tue, 23 Mar 2010 11:18:13 -0700
+Message-ID: <D24A6CEAD7F54CE690000A494189C393@amr.corp.intel.com>
 References: <2F3826558E79459EAD2A457A604221C1@amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
@@ -13,49 +13,111 @@ Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Allow converting from struct ib_sa_path_rec to the IB defined
-SA path record wire format.  This will be used to report path
-data from the rdma cm into user space.
+The current query_route call can return up to two path records.
+The assumption being that one is the primary path, with optional
+support for an alternate path.  In both cases, the paths are
+assumed to be reversible and are used to send CM MADs.
+
+With the ability to manually set IB path data, the rdma cm
+can eventually be capable of using up to 6 paths per
+connection:
+
+	forward primary, reverse primary,
+	forward alternate, reverse alternate,
+	reversible primary path for CM MADs
+	reversible alternate path for CM MADs.
+
+(It is unclear at this time if IB routing will complicate this.)
+In order to handle more flexible routing topologies, add a new 
+command to report any number of paths.
 
 Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
 
- drivers/infiniband/core/sa_query.c |    6 ++++++
- include/rdma/ib_sa.h               |    6 ++++++
- 2 files changed, 12 insertions(+), 0 deletions(-)
+ drivers/infiniband/core/ucma.c |   35 +++++++++++++++++++++++++++++++++++
+ include/rdma/rdma_user_cm.h    |    9 ++++++++-
+ 2 files changed, 43 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/infiniband/core/sa_query.c b/drivers/infiniband/core/sa_query.c
-index 7e1ffd8..54ec971 100644
---- a/drivers/infiniband/core/sa_query.c
-+++ b/drivers/infiniband/core/sa_query.c
-@@ -610,6 +610,12 @@ void ib_sa_unpack_path(void *attribute, struct ib_sa_path_rec *rec)
+diff --git a/drivers/infiniband/core/ucma.c b/drivers/infiniband/core/ucma.c
+index da5a3ec..86115ec 100644
+--- a/drivers/infiniband/core/ucma.c
++++ b/drivers/infiniband/core/ucma.c
+@@ -674,6 +674,38 @@ static ssize_t ucma_query_addr(struct ucma_context *ctx,
+ 	return ret;
  }
- EXPORT_SYMBOL(ib_sa_unpack_path);
  
-+void ib_sa_pack_path(struct ib_sa_path_rec *rec, void *attribute)
++static ssize_t ucma_query_path(struct ucma_context *ctx,
++			       void __user *response, int out_len)
 +{
-+	ib_pack(path_rec_table, ARRAY_SIZE(path_rec_table), rec, attribute);
++	struct rdma_ucm_query_path_resp *resp;
++	int i, ret = 0;
++
++	if (out_len < sizeof(*resp))
++		return -ENOSPC;
++
++	resp = kzalloc(out_len, GFP_KERNEL);
++	if (!resp)
++		return -ENOMEM;
++
++	resp->num_paths = ctx->cm_id->route.num_paths;
++	for (i = 0, out_len -= sizeof(*resp);
++	     i < resp->num_paths && out_len > sizeof(struct ib_path_rec_data);
++	     i++, out_len -= sizeof(struct ib_path_rec_data)) {
++
++		resp->path_data[i].flags = IB_PATH_GMP | IB_PATH_PRIMARY |
++					   IB_PATH_BIDIRECTIONAL;
++		ib_sa_pack_path(&ctx->cm_id->route.path_rec[i],
++				&resp->path_data[i].path_rec);
++	}
++
++	if (copy_to_user(response, resp,
++			 sizeof(*resp) + (i * sizeof(struct ib_path_rec_data))))
++		ret = -EFAULT;
++
++	kfree(resp);
++	return ret;
 +}
-+EXPORT_SYMBOL(ib_sa_pack_path);
 +
- static void ib_sa_path_rec_callback(struct ib_sa_query *sa_query,
- 				    int status,
- 				    struct ib_sa_mad *mad)
-diff --git a/include/rdma/ib_sa.h b/include/rdma/ib_sa.h
-index 1082afa..86aa772 100644
---- a/include/rdma/ib_sa.h
-+++ b/include/rdma/ib_sa.h
-@@ -385,4 +385,10 @@ int ib_init_ah_from_path(struct ib_device *device, u8 port_num,
-  */
- void ib_sa_unpack_path(void *attribute, struct ib_sa_path_rec *rec);
+ static ssize_t ucma_query(struct ucma_file *file,
+ 			  const char __user *inbuf,
+ 			  int in_len, int out_len)
+@@ -695,6 +727,9 @@ static ssize_t ucma_query(struct ucma_file *file,
+ 	case RDMA_USER_CM_QUERY_ADDR:
+ 		ret = ucma_query_addr(ctx, response, out_len);
+ 		break;
++	case RDMA_USER_CM_QUERY_PATH:
++		ret = ucma_query_path(ctx, response, out_len);
++		break;
+ 	default:
+ 		ret = -ENOSYS;
+ 		break;
+diff --git a/include/rdma/rdma_user_cm.h b/include/rdma/rdma_user_cm.h
+index 0d9e984..ee48dde 100644
+--- a/include/rdma/rdma_user_cm.h
++++ b/include/rdma/rdma_user_cm.h
+@@ -114,7 +114,8 @@ struct rdma_ucm_resolve_route {
+ };
  
-+/**
-+ * ib_sa_pack_path - Conert a path record from struct ib_sa_path_rec
-+ * to IB MAD wire format.
-+ */
-+void ib_sa_pack_path(struct ib_sa_path_rec *rec, void *attribute);
+ enum {
+-	RDMA_USER_CM_QUERY_ADDR
++	RDMA_USER_CM_QUERY_ADDR,
++	RDMA_USER_CM_QUERY_PATH
+ };
+ 
+ struct rdma_ucm_query {
+@@ -144,6 +145,12 @@ struct rdma_ucm_query_addr_resp {
+ 	struct sockaddr_storage dst_addr;
+ };
+ 
++struct rdma_ucm_query_path_resp {
++	__u32 num_paths;
++	__u32 reserved;
++	struct ib_path_rec_data path_data[0];
++};
 +
- #endif /* IB_SA_H */
+ struct rdma_ucm_conn_param {
+ 	__u32 qp_num;
+ 	__u32 reserved;
 
 
 
