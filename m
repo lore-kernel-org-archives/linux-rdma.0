@@ -1,42 +1,47 @@
-From: Jeff Squyres <jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Subject: Re: Ummunotify: progress at last!
-Date: Tue, 23 Mar 2010 15:17:12 -0400
-Message-ID: <5F80899D-F989-4162-B050-7E4D6B389876@cisco.com>
-References: <1CDB2AA4-A8DF-4169-943E-4EA190814596@cisco.com> <20100323165920.GH29129@obsidianresearch.com> <D7DCABC9-4BB2-4FBA-A7B3-C06F4A848467@cisco.com> <20100323172953.GI29129@obsidianresearch.com>
-Mime-Version: 1.0 (Apple Message framework v1077)
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 8BIT
+From: "Sean Hefty" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [RFC] [PATCH 0/22] [for 2.6.36] rdma/cm: add support for native IB addressing
+Date: Tue, 23 Mar 2010 12:22:43 -0700
+Message-ID: <697CBBF2E8C34EFD975FAC2EE82F3277@amr.corp.intel.com>
+References: <2F3826558E79459EAD2A457A604221C1@amr.corp.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20100323172953.GI29129-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <2F3826558E79459EAD2A457A604221C1-Zpru7NauK7drdx17CPfAsdBPR1lH4CV8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Linux RDMA List <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Brad Benton <brad.benton-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mar 23, 2010, at 1:29 PM, Jason Gunthorpe wrote:
+>The following patch series extends the rdma_cm to support native
+>Infiniband addressing through the use of a new AF_IB address family.
+>It defines a new struct sockaddr_ib that may be used to specify an
+>IB GID, along with other IB address attributes, such as the pkey and
+>service ID.
 
-> > What do you poll on the fd for?
-> 
-> poll() is for apps that want to get the notifications without
-> spinning on the counter.
+The kernel patches are also available from:
 
-Ah, ok.
+	git://git.openfabrics.org/~shefty/rdma-dev.git af_ib
 
-I think even with the ummunotify interface, that would work, too.  Meaning: since you have to read() from the fd to get event details, poll() would *also* tell you if there was something to read (in addition to checking if (last_counter != counter)).  The counter is a fast way of checking -- e.g., if you need to check in your fast path (which MPI's likely will).  poll() could be used if you don't care if the check is slow.
+>The higher level intent is to support a user space call, rdma_getaddrinfo,
+>which can return AF_IB addresses to an application.  This allows the
+>rdma_cm to support transport specific features, such as failover and
+>non-reversible paths.  (An implementation of rdma_getaddrinfo is included
+>in a separate patch set to the librdmacm.)
 
-> If you don't think that is worth doing it
-> does simplify things alot, just add two new verbs calls:
-> 
-> ibv_set_mmu_counter(verbs, &my_counter);
-> ibv_get_mmu_notifications(verbs, &my_list, sizeof(my_list));
+User space patches are available from:
 
-I have no real opinion on whether the mmap/read should be hidden by the above ibv calls or not.  Either is fine with me.  I would *assume* that ibv_get_mmu_notifications() is non-blocking, right?  E.g., if you ask for N and only M are available (where M < N), then the call returns with only M items filled (and M could be 0).  Perhaps you need another parameter to indicate how many items in my_list were actually filled?  Or is that the return value?
+	git://git.openfabrics.org/~shefty/librdmacm.git af_ib
 
--- 
-Jeff Squyres
-jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org
-For corporate legal information go to:
-http://www.cisco.com/web/about/doing_business/legal/cri/
+Since there are 33 user space patches to the librdmacm, including new
+functionality to simplify establishing connections, I will wait a day or
+so before posting them.
+
+Updates to ib_acm are at:
+
+	git://git.openfabrics.org/~shefty/ibacm.git
+
+- Sean
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
