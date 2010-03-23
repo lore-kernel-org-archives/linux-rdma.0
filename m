@@ -1,7 +1,7 @@
 From: "Sean Hefty" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [RFC] [PATCH 7/22] [for 2.6.36] rdma/cm: do not modify sa_family when setting loopback address
-Date: Tue, 23 Mar 2010 11:03:02 -0700
-Message-ID: <07356581EBDF4A50823E4DAFBD6BDBDC@amr.corp.intel.com>
+Subject: [RFC] [PATCH 8/22] [for 2.6.36] rdma/cm: restrict AF_IB loopback to binding to IB devices only
+Date: Tue, 23 Mar 2010 11:04:27 -0700
+Message-ID: <C1F276CECBC24B9094E38F89D798B781@amr.corp.intel.com>
 References: <2F3826558E79459EAD2A457A604221C1@amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
@@ -13,88 +13,68 @@ Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-cma_resolve_loopback is called after an rdma_cm_id has been
-bound to a specific sa_family and port.  Once the
-source sa_family for the id has been set, do not modify it.
-Only the actual IP address portion of the source address
-needs to be set.
-
-As part of this fix, we can simplify setting the source address
-by moving the loopback address assignment from cma_resolve_loopback
-to cma_bind_loopback.  cma_bind_loopback is only invoked when
-the source address is the loopback address.
-
-Finally, add loopback support for AF_IB as part of the change.
+If a user specifies AF_IB as the source address for a loopback
+connection, limit the resolution to IB devices only.
 
 Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
 
- drivers/infiniband/core/cma.c |   31 ++++++++++++++++++-------------
- 1 files changed, 18 insertions(+), 13 deletions(-)
+ drivers/infiniband/core/cma.c |   30 ++++++++++++++++++++++--------
+ 1 files changed, 22 insertions(+), 8 deletions(-)
 
 diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
-index 0a3bbf9..7981a85 100644
+index 7981a85..0bc33cc 100644
 --- a/drivers/infiniband/core/cma.c
 +++ b/drivers/infiniband/core/cma.c
-@@ -1776,6 +1776,23 @@ err:
- }
- EXPORT_SYMBOL(rdma_resolve_route);
+@@ -1795,26 +1795,40 @@ static void cma_set_loopback(struct sockaddr *addr)
  
-+static void cma_set_loopback(struct sockaddr *addr)
-+{
-+	switch (addr->sa_family) {
-+	case AF_INET:
-+		((struct sockaddr_in *) addr)->sin_addr.s_addr = htonl(INADDR_LOOPBACK);
-+		break;
-+	case AF_INET6:
-+		ipv6_addr_set(&((struct sockaddr_in6 *) addr)->sin6_addr,
-+			      0, 0, 0, htonl(1));
-+		break;
-+	default:
-+		ib_addr_set(&((struct sockaddr_ib *) addr)->sib_addr,
-+			    0, 0, 0, htonl(1));
-+		break;
-+	}
-+}
-+
  static int cma_bind_loopback(struct rdma_id_private *id_priv)
  {
- 	struct cma_device *cma_dev;
-@@ -1816,6 +1833,7 @@ port_found:
- 	ib_addr_set_pkey(&id_priv->id.route.addr.dev_addr, pkey);
- 	id_priv->id.port_num = p;
- 	cma_attach_to_dev(id_priv, cma_dev);
-+	cma_set_loopback((struct sockaddr *) &id_priv->id.route.addr.src_addr);
- out:
- 	mutex_unlock(&lock);
- 	return ret;
-@@ -1870,7 +1888,6 @@ out:
- static int cma_resolve_loopback(struct rdma_id_private *id_priv)
- {
- 	struct cma_work *work;
--	struct sockaddr *src, *dst;
+-	struct cma_device *cma_dev;
++	struct cma_device *cma_dev, *cur_dev;
++	struct sockaddr *addr;
+ 	struct ib_port_attr port_attr;
  	union ib_gid gid;
+ 	u16 pkey;
  	int ret;
+ 	u8 p;
  
-@@ -1887,18 +1904,6 @@ static int cma_resolve_loopback(struct rdma_id_private *id_priv)
- 	rdma_addr_get_sgid(&id_priv->id.route.addr.dev_addr, &gid);
- 	rdma_addr_set_dgid(&id_priv->id.route.addr.dev_addr, &gid);
++	cma_dev = NULL;
++	addr = (struct sockaddr *) &id_priv->id.route.addr.src_addr;
+ 	mutex_lock(&lock);
+-	if (list_empty(&dev_list)) {
++	list_for_each_entry(cur_dev, &dev_list, list) {
++		if (addr->sa_family == AF_IB &&
++		    rdma_node_get_transport(cur_dev->device->node_type) != RDMA_TRANSPORT_IB)
++			continue;
++
++		if (!cma_dev)
++			cma_dev = cur_dev;
++
++		for (p = 1; p <= cur_dev->device->phys_port_cnt; ++p) {
++			if (!ib_query_port(cur_dev->device, p, &port_attr) &&
++			    port_attr.state == IB_PORT_ACTIVE) {
++				cma_dev = cur_dev;
++				goto port_found;
++			}
++		}
++	}
++
++	if (!cma_dev) {
+ 		ret = -ENODEV;
+ 		goto out;
+ 	}
+-	list_for_each_entry(cma_dev, &dev_list, list)
+-		for (p = 1; p <= cma_dev->device->phys_port_cnt; ++p)
+-			if (!ib_query_port(cma_dev->device, p, &port_attr) &&
+-			    port_attr.state == IB_PORT_ACTIVE)
+-				goto port_found;
  
--	src = (struct sockaddr *) &id_priv->id.route.addr.src_addr;
--	if (cma_zero_addr(src)) {
--		dst = (struct sockaddr *) &id_priv->id.route.addr.dst_addr;
--		if ((src->sa_family = dst->sa_family) == AF_INET) {
--			((struct sockaddr_in *) src)->sin_addr.s_addr =
--				((struct sockaddr_in *) dst)->sin_addr.s_addr;
--		} else {
--			ipv6_addr_copy(&((struct sockaddr_in6 *) src)->sin6_addr,
--				       &((struct sockaddr_in6 *) dst)->sin6_addr);
--		}
--	}
--
- 	work->id = id_priv;
- 	INIT_WORK(&work->work, cma_work_handler);
- 	work->old_state = CMA_ADDR_QUERY;
+ 	p = 1;
+-	cma_dev = list_entry(dev_list.next, struct cma_device, list);
+ 
+ port_found:
+ 	ret = ib_get_cached_gid(cma_dev->device, p, 0, &gid);
 
 
 
