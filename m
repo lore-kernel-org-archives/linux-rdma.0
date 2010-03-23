@@ -1,58 +1,63 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: Ummunotify: progress at last!
-Date: Tue, 23 Mar 2010 14:11:24 -0600
-Message-ID: <20100323201124.GK29129@obsidianresearch.com>
-References: <1CDB2AA4-A8DF-4169-943E-4EA190814596@cisco.com> <20100323165920.GH29129@obsidianresearch.com> <D7DCABC9-4BB2-4FBA-A7B3-C06F4A848467@cisco.com> <20100323172953.GI29129@obsidianresearch.com> <5F80899D-F989-4162-B050-7E4D6B389876@cisco.com> <20100323195251.GJ29129@obsidianresearch.com> <3B848E1F-C9B6-416A-9E6E-99604E71902A@cisco.com>
+From: Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: opensm/main.c: foce stdout to be line-buffered
+Date: Tue, 23 Mar 2010 23:36:10 +0200
+Message-ID: <4BA9344A.6010007@dev.mellanox.co.il>
+References: <4B8E1D46.4090106@dev.mellanox.co.il> <20100323103733.GD4808@me>
+	<4BA8B33E.8000003@dev.mellanox.co.il> <20100323163708.GI4808@me>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="ISO-8859-1"; format="flowed"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <3B848E1F-C9B6-416A-9E6E-99604E71902A-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <20100323163708.GI4808@me>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jeff Squyres <jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Cc: Linux RDMA List <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Brad Benton <brad.benton-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>
+To: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+Cc: Linux RDMA <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Mar 23, 2010 at 04:01:21PM -0400, Jeff Squyres wrote:
-> On Mar 23, 2010, at 3:52 PM, Jason Gunthorpe wrote:
-> 
-> > > > ibv_set_mmu_counter(verbs, &my_counter);
-> > > > ibv_get_mmu_notifications(verbs, &my_list, sizeof(my_list));
-> > 
-> > These are not hiding mmap/read, they are new uverbs 'syscalls' that
-> > get the kernel to perform that operation.
-> 
-> Oh -- so there's 2 mechanisms to get the counter info (for example):
-> 
-> 1. the above uverb
-> 2. mmap
-> 
-> Right?
+On 23/Mar/10 18:37, Sasha Khapyorsky wrote:
+> On 14:25 Tue 23 Mar     , Yevgeny Kliteynik wrote:
+>>
+>> I'm running "opensm>  somefile", and I don't see SM's stdout
+>> (such as "SUBNET UP" message, or new cached options after SIGHUP),
+>> because when stdout is assigned to file and not terminal, it is
+>> handled differently. Instead of flushing on printing '\n',
+>> it becomes buffered, which means that you don't control when
+>> is this buffer flushed.
+>> My fix forces stdout to always flush stdout when printing '\n'.
+>> It has no effect when stdout is assigned to terminal, and it
+>> changes buffering when SM's stdout is redirected.
+>>
+>> More details about stdout/stderr buffering:
+>>
+>> http://www.pixelbeat.org/programming/stdio_buffering/
+>
+> There you can find couple of ways to workaround this issue, for example:
+>
+>    stdbuf -o L opensm>  somefile
 
-No, there is no mmap. Like this:
+This is not a usual shell command, nor some common
+tool that is used in Linux distros. It's just a tool
+that is provided in some package called "coreutils 7.5".
+  
+> I would prefer to not change an external settings so the program would
+> work as expected.
 
-u64 my_counter = 0;
+IMHO, on the contrary - the expected behavior
+would be achieved with the patch.
 
-ibv_set_mmu_counter(verbs, &my_counter);
-[..]
-while (my_counter != last_my_counter) {
-    last_my_counter = my_counter;
-    ibv_get_mmu_notifications(verbs, ...);   // <- I am a memory barrier as well
-}
+But in any case, what exactly seems problematic here?
 
-The kernel 'syscall' ibv_set_mmu_counter would bind the given verbs to
-the 8 byte counter you specified without having to the mmap thing. As
-I understand it this is what perfevents does.
+I can't see any impact on any aspect whatsoever.
+It is somehow related to performance (more flushes
+when the stream is line-buffered instead of just
+buffered), but we're talking about stdout here, not
+the log file, so the performance is not affected too.
 
-Integrating with the verbs api avoids the need for another device
-file. That is good. Eliminating poll() from the API can remove the
-dedicated fd entirely. Within verbs I guess we could replace poll()
-with something like a completion channel (??) if anyone cares.
+-- Yevgeny
+  
+> Sasha
+>
 
-So the user space visible functionality boils down to 2 new 'syscalls'
-and the new flag to ibv_reg_mr.
-
-Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
