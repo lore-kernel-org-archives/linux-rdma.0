@@ -1,7 +1,7 @@
 From: "Sean Hefty" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [RFC] [PATCH 10/22] [for 2.6.36] rdma/cm: add support for AF_IB to cma_get_service_id
-Date: Tue, 23 Mar 2010 11:07:16 -0700
-Message-ID: <29BFB07581C9453EABFB24BED70B0B39@amr.corp.intel.com>
+Subject: [RFC] [PATCH 11/22] [for 2.6.36] rdma/cm: fixup white space
+Date: Tue, 23 Mar 2010 11:08:59 -0700
+Message-ID: <3B128358A06E4E209619FCCE32A6235F@amr.corp.intel.com>
 References: <2F3826558E79459EAD2A457A604221C1@amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
@@ -13,31 +13,27 @@ Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-cma_get_service_id forms the service ID based on the port space
-and port number of the rdma_cm_id.  Extend the call to support
-AF_IB, which contains the service ID directly.  This will
-be needed to support any arbitrary SID.
+Fix white space issue that bugs me.
 
 Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
 
- drivers/infiniband/core/cma.c |    3 +++
- 1 files changed, 3 insertions(+), 0 deletions(-)
+ drivers/infiniband/core/cma.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
 diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
-index c7b6912..326bda6 100644
+index 326bda6..b4adcc6 100644
 --- a/drivers/infiniband/core/cma.c
 +++ b/drivers/infiniband/core/cma.c
-@@ -1259,6 +1259,9 @@ out:
+@@ -1657,7 +1657,7 @@ static int cma_query_ib_route(struct rdma_id_private *id_priv, int timeout_ms,
+ 	path_rec.numb_path = 1;
+ 	path_rec.reversible = 1;
+ 	path_rec.service_id = cma_get_service_id(id_priv->id.ps,
+-							(struct sockaddr *) &addr->dst_addr);
++						 (struct sockaddr *) &addr->dst_addr);
  
- static __be64 cma_get_service_id(enum rdma_port_space ps, struct sockaddr *addr)
- {
-+	if (addr->sa_family == AF_IB)
-+		return ((struct sockaddr_ib *) addr)->sib_sid;
-+
- 	return cpu_to_be64(((u64)ps << 16) + be16_to_cpu(cma_port(addr)));
- }
- 
+ 	comp_mask = IB_SA_PATH_REC_DGID | IB_SA_PATH_REC_SGID |
+ 		    IB_SA_PATH_REC_PKEY | IB_SA_PATH_REC_NUMB_PATH |
 
 
 
