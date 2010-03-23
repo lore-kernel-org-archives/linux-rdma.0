@@ -1,7 +1,7 @@
 From: "Sean Hefty" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [RFC] [PATCH 5/22] [for 2.6.36] rdma/cm: update port reservation to support AF_IB
-Date: Tue, 23 Mar 2010 10:59:27 -0700
-Message-ID: <012F7D9E5E97445E9100EF170212AEE7@amr.corp.intel.com>
+Subject: [RFC] [PATCH 6/22] [for 2.6.36] rdma/cm: Allow user to specify AF_IB when binding
+Date: Tue, 23 Mar 2010 11:01:09 -0700
+Message-ID: <FFD5426A776B40B9B53DEEB2B812B56B@amr.corp.intel.com>
 References: <2F3826558E79459EAD2A457A604221C1@amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
@@ -13,86 +13,67 @@ Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Update the port reservation code path to support AF_IB addresses.
-AF_IB is limited to the port spaces defined by the RDMA CM IP Annex
-which are already supported by the rdma cm.
+Modify rdma_bind_addr to allow the user to specify AF_IB when
+binding to a device.  AF_IB indicates that the user is not
+mapping an IP address to the native IB addressing.  (The mapping
+may have already been done, or is not needed.)
 
-AF_IB is used with a sockaddr_ib structure, which exposes a 64-bit
-service ID, rather than a 16-bit port number used by IP.  As a result,
-port numbers must be converted between the two formats as defined by
-the above annex.
+The format of the SID is still controlled by the rdma cm,
+but is now exported in its entirety, rather than
+just the 16 bit port value based on the RDMA CM IP annex.
 
 Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
 
- drivers/infiniband/core/cma.c |   38 +++++++++++++++++++++++++++++++-------
- 1 files changed, 31 insertions(+), 7 deletions(-)
+ drivers/infiniband/core/cma.c |   21 +++++++++++++++++----
+ 1 files changed, 17 insertions(+), 4 deletions(-)
 
 diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
-index ac57155..1546236 100644
+index 1546236..0a3bbf9 100644
 --- a/drivers/infiniband/core/cma.c
 +++ b/drivers/infiniband/core/cma.c
-@@ -657,18 +657,28 @@ static int cma_addr_cmp(struct sockaddr *src, struct sockaddr *dst)
- 	case AF_INET:
- 		return ((struct sockaddr_in *) src)->sin_addr.s_addr !=
- 		       ((struct sockaddr_in *) dst)->sin_addr.s_addr;
--	default:
-+	case AF_INET6:
- 		return ipv6_addr_cmp(&((struct sockaddr_in6 *) src)->sin6_addr,
- 				     &((struct sockaddr_in6 *) dst)->sin6_addr);
-+	default:
-+		return ib_addr_cmp(&((struct sockaddr_ib *) src)->sib_addr,
-+				   &((struct sockaddr_ib *) dst)->sib_addr);
- 	}
+@@ -324,6 +324,13 @@ static int cma_set_qkey(struct rdma_id_private *id_priv)
+ 	return ret;
  }
  
--static inline __be16 cma_port(struct sockaddr *addr)
-+/* AF_IB must be using the RDMA CM IP Annex */
-+static __be16 cma_port(struct sockaddr *addr)
- {
--	if (addr->sa_family == AF_INET)
-+	switch (addr->sa_family) {
-+	case AF_INET:
- 		return ((struct sockaddr_in *) addr)->sin_port;
--	else
-+	case AF_INET6:
- 		return ((struct sockaddr_in6 *) addr)->sin6_port;
-+	case AF_IB:
-+		return htons((u16) be64_to_cpu(((struct sockaddr_ib *) addr)->sib_sid));
-+	default:
-+		return 0;
-+	}
- }
- 
- static inline int cma_any_port(struct sockaddr *addr)
-@@ -1945,10 +1955,24 @@ EXPORT_SYMBOL(rdma_resolve_addr);
- static void cma_bind_port(struct rdma_bind_list *bind_list,
- 			  struct rdma_id_private *id_priv)
- {
--	struct sockaddr_in *sin;
-+	struct sockaddr *addr;
-+	__be16 port;
- 
--	sin = (struct sockaddr_in *) &id_priv->id.route.addr.src_addr;
--	sin->sin_port = htons(bind_list->port);
-+	addr = (struct sockaddr *) &id_priv->id.route.addr.src_addr;
-+	port = htons(bind_list->port);
++static void cma_translate_ib(struct sockaddr_ib *addr, struct rdma_dev_addr *dev_addr)
++{
++	dev_addr->dev_type = ARPHRD_INFINIBAND;
++	rdma_addr_set_sgid(dev_addr, (union ib_gid *) &addr->sib_addr);
++	ib_addr_set_pkey(dev_addr, ntohs(addr->sib_pkey));
++}
 +
-+	switch (addr->sa_family) {
-+	case AF_INET:
-+		((struct sockaddr_in *) addr)->sin_port = port;
-+		break;
-+	case AF_INET6:
-+		((struct sockaddr_in6 *) addr)->sin6_port = port;
-+		break;
-+	case AF_IB:
-+		((struct sockaddr_ib *) addr)->sib_sid =
-+			cpu_to_be64(((u64) bind_list->ps << 16) + ntohs(port));
-+		break;
-+	}
- 	id_priv->bind_list = bind_list;
- 	hlist_add_head(&id_priv->node, &bind_list->owners);
- }
+ static int cma_acquire_dev(struct rdma_id_private *id_priv)
+ {
+ 	struct rdma_dev_addr *dev_addr = &id_priv->id.route.addr.dev_addr;
+@@ -2148,7 +2155,8 @@ int rdma_bind_addr(struct rdma_cm_id *id, struct sockaddr *addr)
+ 	struct rdma_id_private *id_priv;
+ 	int ret;
+ 
+-	if (addr->sa_family != AF_INET && addr->sa_family != AF_INET6)
++	if (addr->sa_family != AF_INET && addr->sa_family != AF_INET6 &&
++	    addr->sa_family != AF_IB)
+ 		return -EAFNOSUPPORT;
+ 
+ 	id_priv = container_of(id, struct rdma_id_private, id);
+@@ -2160,9 +2168,14 @@ int rdma_bind_addr(struct rdma_cm_id *id, struct sockaddr *addr)
+ 		goto err1;
+ 
+ 	if (!cma_any_addr(addr)) {
+-		ret = rdma_translate_ip(addr, &id->route.addr.dev_addr);
+-		if (ret)
+-			goto err1;
++		if (addr->sa_family == AF_IB) {
++			cma_translate_ib((struct sockaddr_ib *) addr,
++					 &id->route.addr.dev_addr);
++		} else {
++			ret = rdma_translate_ip(addr, &id->route.addr.dev_addr);
++			if (ret)
++				goto err1;
++		}
+ 
+ 		mutex_lock(&lock);
+ 		ret = cma_acquire_dev(id_priv);
 
 
 
