@@ -1,7 +1,7 @@
 From: "Sean Hefty" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [RFC] [PATCH 14/22] [for 2.6.36] rdma/ucm: support querying for AF_IB addresses
-Date: Tue, 23 Mar 2010 11:14:42 -0700
-Message-ID: <07FB6013CAC54988B2BB81C31ACD1AA2@amr.corp.intel.com>
+Subject: [RFC] [PATCH 15/22] [for 2.6.36] ib/sa: export function to pack a path record into wire format
+Date: Tue, 23 Mar 2010 11:16:15 -0700
+Message-ID: <6ECCDD929A8042498562F879091CC979@amr.corp.intel.com>
 References: <2F3826558E79459EAD2A457A604221C1@amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
@@ -13,180 +13,49 @@ Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-The sockaddr structure for AF_IB is larger than sockaddr_in6.
-The rdma cm user space ABI uses the latter to exchange address
-information between user space and the kernel.
-
-To support querying for larger addresses, define a new query
-command that exchanges data using sockaddr_storage, rather
-than sockaddr_in6.  Unlike the existing query_route command,
-the new command only returns address information.  Route
-(i.e. path record) data is separated.
+Allow converting from struct ib_sa_path_rec to the IB defined
+SA path record wire format.  This will be used to report path
+data from the rdma cm into user space.
 
 Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
 
- drivers/infiniband/core/ucma.c |   76 +++++++++++++++++++++++++++++++++++++++-
- include/rdma/rdma_user_cm.h    |   22 ++++++++++--
- 2 files changed, 93 insertions(+), 5 deletions(-)
+ drivers/infiniband/core/sa_query.c |    6 ++++++
+ include/rdma/ib_sa.h               |    6 ++++++
+ 2 files changed, 12 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/infiniband/core/ucma.c b/drivers/infiniband/core/ucma.c
-index b2e16c3..da5a3ec 100644
---- a/drivers/infiniband/core/ucma.c
-+++ b/drivers/infiniband/core/ucma.c
-@@ -44,6 +44,7 @@
- #include <rdma/ib_marshall.h>
- #include <rdma/rdma_cm.h>
- #include <rdma/rdma_cm_ib.h>
-+#include <rdma/ib_addr.h>
- 
- MODULE_AUTHOR("Sean Hefty");
- MODULE_DESCRIPTION("RDMA Userspace Connection Manager Access");
-@@ -586,7 +587,7 @@ static ssize_t ucma_query_route(struct ucma_file *file,
- 				const char __user *inbuf,
- 				int in_len, int out_len)
- {
--	struct rdma_ucm_query_route cmd;
-+	struct rdma_ucm_query cmd;
- 	struct rdma_ucm_query_route_resp resp;
- 	struct ucma_context *ctx;
- 	struct sockaddr *addr;
-@@ -633,6 +634,76 @@ out:
- 	return ret;
+diff --git a/drivers/infiniband/core/sa_query.c b/drivers/infiniband/core/sa_query.c
+index 7e1ffd8..54ec971 100644
+--- a/drivers/infiniband/core/sa_query.c
++++ b/drivers/infiniband/core/sa_query.c
+@@ -610,6 +610,12 @@ void ib_sa_unpack_path(void *attribute, struct ib_sa_path_rec *rec)
  }
+ EXPORT_SYMBOL(ib_sa_unpack_path);
  
-+static void ucma_query_device_addr(struct rdma_cm_id *cm_id,
-+				   struct rdma_ucm_query_addr_resp *resp)
++void ib_sa_pack_path(struct ib_sa_path_rec *rec, void *attribute)
 +{
-+	if (!cm_id->device)
-+		return;
-+
-+	resp->node_guid = (__force __u64) cm_id->device->node_guid;
-+	resp->port_num = cm_id->port_num;
-+	resp->pkey = (__force __u16) cpu_to_be16(
-+		     ib_addr_get_pkey(&cm_id->route.addr.dev_addr));
++	ib_pack(path_rec_table, ARRAY_SIZE(path_rec_table), rec, attribute);
 +}
++EXPORT_SYMBOL(ib_sa_pack_path);
 +
-+static ssize_t ucma_query_addr(struct ucma_context *ctx,
-+			       void __user *response, int out_len)
-+{
-+	struct rdma_ucm_query_addr_resp resp;
-+	struct sockaddr *addr;
-+	int ret = 0;
-+
-+	if (out_len < sizeof(resp))
-+		return -ENOSPC;
-+
-+	memset(&resp, 0, sizeof resp);
-+
-+	addr = (struct sockaddr *) &ctx->cm_id->route.addr.src_addr;
-+	resp.src_size = rdma_addr_size(addr);
-+	memcpy(&resp.src_addr, addr, resp.src_size);
-+
-+	addr = (struct sockaddr *) &ctx->cm_id->route.addr.dst_addr;
-+	resp.dst_size = rdma_addr_size(addr);
-+	memcpy(&resp.dst_addr, addr, resp.dst_size);
-+
-+	ucma_query_device_addr(ctx->cm_id, &resp);
-+
-+	if (copy_to_user(response, &resp, sizeof(resp)))
-+		ret = -EFAULT;
-+
-+	return ret;
-+}
-+
-+static ssize_t ucma_query(struct ucma_file *file,
-+			  const char __user *inbuf,
-+			  int in_len, int out_len)
-+{
-+	struct rdma_ucm_query cmd;
-+	struct ucma_context *ctx;
-+	void __user *response;
-+	int ret;
-+
-+	if (copy_from_user(&cmd, inbuf, sizeof(cmd)))
-+		return -EFAULT;
-+
-+	response = (void __user *)(unsigned long) cmd.response;
-+	ctx = ucma_get_ctx(file, cmd.id);
-+	if (IS_ERR(ctx))
-+		return PTR_ERR(ctx);
-+
-+	switch (cmd.option) {
-+	case RDMA_USER_CM_QUERY_ADDR:
-+		ret = ucma_query_addr(ctx, response, out_len);
-+		break;
-+	default:
-+		ret = -ENOSYS;
-+		break;
-+	}
-+
-+	ucma_put_ctx(ctx);
-+	return ret;
-+}
-+
- static void ucma_copy_conn_param(struct rdma_conn_param *dst,
- 				 struct rdma_ucm_conn_param *src)
- {
-@@ -1151,7 +1222,8 @@ static ssize_t (*ucma_cmd_table[])(struct ucma_file *file,
- 	[RDMA_USER_CM_CMD_NOTIFY]	= ucma_notify,
- 	[RDMA_USER_CM_CMD_JOIN_MCAST]	= ucma_join_multicast,
- 	[RDMA_USER_CM_CMD_LEAVE_MCAST]	= ucma_leave_multicast,
--	[RDMA_USER_CM_CMD_MIGRATE_ID]	= ucma_migrate_id
-+	[RDMA_USER_CM_CMD_MIGRATE_ID]	= ucma_migrate_id,
-+	[RDMA_USER_CM_CMD_QUERY]	= ucma_query
- };
+ static void ib_sa_path_rec_callback(struct ib_sa_query *sa_query,
+ 				    int status,
+ 				    struct ib_sa_mad *mad)
+diff --git a/include/rdma/ib_sa.h b/include/rdma/ib_sa.h
+index 1082afa..86aa772 100644
+--- a/include/rdma/ib_sa.h
++++ b/include/rdma/ib_sa.h
+@@ -385,4 +385,10 @@ int ib_init_ah_from_path(struct ib_device *device, u8 port_num,
+  */
+ void ib_sa_unpack_path(void *attribute, struct ib_sa_path_rec *rec);
  
- static ssize_t ucma_write(struct file *filp, const char __user *buf,
-diff --git a/include/rdma/rdma_user_cm.h b/include/rdma/rdma_user_cm.h
-index 1d16502..0d9e984 100644
---- a/include/rdma/rdma_user_cm.h
-+++ b/include/rdma/rdma_user_cm.h
-@@ -61,7 +61,8 @@ enum {
- 	RDMA_USER_CM_CMD_NOTIFY,
- 	RDMA_USER_CM_CMD_JOIN_MCAST,
- 	RDMA_USER_CM_CMD_LEAVE_MCAST,
--	RDMA_USER_CM_CMD_MIGRATE_ID
-+	RDMA_USER_CM_CMD_MIGRATE_ID,
-+	RDMA_USER_CM_CMD_QUERY
- };
- 
- /*
-@@ -112,10 +113,14 @@ struct rdma_ucm_resolve_route {
- 	__u32 timeout_ms;
- };
- 
--struct rdma_ucm_query_route {
-+enum {
-+	RDMA_USER_CM_QUERY_ADDR
-+};
++/**
++ * ib_sa_pack_path - Conert a path record from struct ib_sa_path_rec
++ * to IB MAD wire format.
++ */
++void ib_sa_pack_path(struct ib_sa_path_rec *rec, void *attribute);
 +
-+struct rdma_ucm_query {
- 	__u64 response;
- 	__u32 id;
--	__u32 reserved;
-+	__u32 option;
- };
- 
- struct rdma_ucm_query_route_resp {
-@@ -128,6 +133,17 @@ struct rdma_ucm_query_route_resp {
- 	__u8 reserved[3];
- };
- 
-+struct rdma_ucm_query_addr_resp {
-+	__u64 node_guid;
-+	__u8  port_num;
-+	__u8  reserved;
-+	__u16 pkey;
-+	__u16 src_size;
-+	__u16 dst_size;
-+	struct sockaddr_storage src_addr;
-+	struct sockaddr_storage dst_addr;
-+};
-+
- struct rdma_ucm_conn_param {
- 	__u32 qp_num;
- 	__u32 reserved;
+ #endif /* IB_SA_H */
 
 
 
