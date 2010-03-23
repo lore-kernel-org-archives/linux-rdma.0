@@ -1,165 +1,73 @@
-From: "Sean Hefty" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [RFC] [PATCH 22/22] [for 2.6.36] rdma/ucm: allow user space to specify AF_IB when joining multicast
-Date: Tue, 23 Mar 2010 11:30:02 -0700
-Message-ID: <48F1FC4C2F114E928EB38D690091185E@amr.corp.intel.com>
-References: <2F3826558E79459EAD2A457A604221C1@amr.corp.intel.com>
+From: Eli Cohen <eli-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
+Subject: [PATCH] IB core: Fix locking on device numbers allocation
+Date: Tue, 23 Mar 2010 21:13:17 +0200
+Message-ID: <20100323191317.GA14496@mtldesk030.lab.mtl.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <2F3826558E79459EAD2A457A604221C1-Zpru7NauK7drdx17CPfAsdBPR1lH4CV8@public.gmane.org>
+Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Cc: Linux RDMA list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Allow user space applications to join multicast groups using MGIDs
-directly.  MGIDs may be passed using AF_IB addresses.  Since the
-current multicast join command only supports addresses as large as
-sockaddr_in6, define a new structure for joining addresses specified
-using sockaddr_ib.
+When the driver needs to dynamically allocate char device numbers in systems
+with more than IB_UVERBS_MAX_DEVICES, it releases map lock, allocates a new
+range and a new device number from that range, and only then re-acquires the
+lock. This must be protected for the same reasoning that the map_lock spinlock
+is used. Without protecting we could also end up calling alloc_chrdev_region()
+a nubmer of times and cause a leakage. Fix this by replacing map_lock with a
+mutex and apply on the all the allocation code.
 
-Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Eli Cohen <eli-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
 ---
+ drivers/infiniband/core/uverbs_main.c |   12 ++++++------
+ 1 files changed, 6 insertions(+), 6 deletions(-)
 
- drivers/infiniband/core/ucma.c |   55 ++++++++++++++++++++++++++++++++--------
- include/rdma/rdma_user_cm.h    |   12 ++++++++-
- 2 files changed, 55 insertions(+), 12 deletions(-)
-
-diff --git a/drivers/infiniband/core/ucma.c b/drivers/infiniband/core/ucma.c
-index 2224a05..a9b917a 100644
---- a/drivers/infiniband/core/ucma.c
-+++ b/drivers/infiniband/core/ucma.c
-@@ -1139,23 +1139,23 @@ static ssize_t ucma_notify(struct ucma_file *file, const char __user *inbuf,
- 	return ret;
- }
+diff --git a/drivers/infiniband/core/uverbs_main.c b/drivers/infiniband/core/uverbs_main.c
+index d805cf3..9589c71 100644
+--- a/drivers/infiniband/core/uverbs_main.c
++++ b/drivers/infiniband/core/uverbs_main.c
+@@ -72,7 +72,7 @@ DEFINE_IDR(ib_uverbs_cq_idr);
+ DEFINE_IDR(ib_uverbs_qp_idr);
+ DEFINE_IDR(ib_uverbs_srq_idr);
  
--static ssize_t ucma_join_ip_multicast(struct ucma_file *file,
--				      const char __user *inbuf,
--				      int in_len, int out_len)
-+static ssize_t ucma_process_join(struct ucma_file *file,
-+				 struct rdma_ucm_join_mcast *cmd,  int out_len)
- {
--	struct rdma_ucm_join_ip_mcast cmd;
- 	struct rdma_ucm_create_id_resp resp;
- 	struct ucma_context *ctx;
- 	struct ucma_multicast *mc;
-+	struct sockaddr *addr;
- 	int ret;
+-static DEFINE_SPINLOCK(map_lock);
++static DEFINE_MUTEX(map_lock);
+ static DECLARE_BITMAP(dev_map, IB_UVERBS_MAX_DEVICES);
  
- 	if (out_len < sizeof(resp))
- 		return -ENOSPC;
+ static ssize_t (*uverbs_cmd_table[])(struct ib_uverbs_file *file,
+@@ -738,15 +738,15 @@ static void ib_uverbs_add_one(struct ib_device *device)
+ 	kref_init(&uverbs_dev->ref);
+ 	init_completion(&uverbs_dev->comp);
  
--	if (copy_from_user(&cmd, inbuf, sizeof(cmd)))
--		return -EFAULT;
-+	addr = (struct sockaddr *) &cmd->addr;
-+	if (cmd->reserved || !cmd->addr_size || (cmd->addr_size != rdma_addr_size(addr)))
-+		return -EINVAL;
+-	spin_lock(&map_lock);
++	mutex_lock(&map_lock);
+ 	devnum = find_first_zero_bit(dev_map, IB_UVERBS_MAX_DEVICES);
+ 	if (devnum >= IB_UVERBS_MAX_DEVICES) {
+-		spin_unlock(&map_lock);
+ 		devnum = find_overflow_devnum();
+-		if (devnum < 0)
++		if (devnum < 0) {
++			mutex_unlock(&map_lock);
+ 			goto err;
++		}
  
--	ctx = ucma_get_ctx(file, cmd.id);
-+	ctx = ucma_get_ctx(file, cmd->id);
- 	if (IS_ERR(ctx))
- 		return PTR_ERR(ctx);
- 
-@@ -1166,14 +1166,14 @@ static ssize_t ucma_join_ip_multicast(struct ucma_file *file,
- 		goto err1;
+-		spin_lock(&map_lock);
+ 		uverbs_dev->devnum = devnum + IB_UVERBS_MAX_DEVICES;
+ 		base = devnum + overflow_maj;
+ 		set_bit(devnum, overflow_map);
+@@ -755,7 +755,7 @@ static void ib_uverbs_add_one(struct ib_device *device)
+ 		base = devnum + IB_UVERBS_BASE_DEV;
+ 		set_bit(devnum, dev_map);
  	}
+-	spin_unlock(&map_lock);
++	mutex_unlock(&map_lock);
  
--	mc->uid = cmd.uid;
--	memcpy(&mc->addr, &cmd.addr, sizeof cmd.addr);
-+	mc->uid = cmd->uid;
-+	memcpy(&mc->addr, addr, cmd->addr_size);
- 	ret = rdma_join_multicast(ctx->cm_id, (struct sockaddr *) &mc->addr, mc);
- 	if (ret)
- 		goto err2;
- 
- 	resp.id = mc->id;
--	if (copy_to_user((void __user *)(unsigned long)cmd.response,
-+	if (copy_to_user((void __user *)(unsigned long) cmd->response,
- 			 &resp, sizeof(resp))) {
- 		ret = -EFAULT;
- 		goto err3;
-@@ -1198,6 +1198,38 @@ err1:
- 	return ret;
- }
- 
-+static ssize_t ucma_join_ip_multicast(struct ucma_file *file,
-+				      const char __user *inbuf,
-+				      int in_len, int out_len)
-+{
-+	struct rdma_ucm_join_ip_mcast cmd;
-+	struct rdma_ucm_join_mcast join_cmd;
-+
-+	if (copy_from_user(&cmd, inbuf, sizeof(cmd)))
-+		return -EFAULT;
-+
-+	join_cmd.response = cmd.response;
-+	join_cmd.uid = cmd.uid;
-+	join_cmd.id = cmd.id;
-+	join_cmd.addr_size = rdma_addr_size((struct sockaddr *) &cmd.addr);
-+	join_cmd.reserved = 0;
-+	memcpy(&join_cmd.addr, &cmd.addr, join_cmd.addr_size);
-+
-+	return ucma_process_join(file, &join_cmd, out_len);
-+}
-+
-+static ssize_t ucma_join_multicast(struct ucma_file *file,
-+				   const char __user *inbuf,
-+				   int in_len, int out_len)
-+{
-+	struct rdma_ucm_join_mcast cmd;
-+
-+	if (copy_from_user(&cmd, inbuf, sizeof(cmd)))
-+		return -EFAULT;
-+
-+	return ucma_process_join(file, &cmd, out_len);
-+}
-+
- static ssize_t ucma_leave_multicast(struct ucma_file *file,
- 				    const char __user *inbuf,
- 				    int in_len, int out_len)
-@@ -1361,7 +1393,8 @@ static ssize_t (*ucma_cmd_table[])(struct ucma_file *file,
- 	[RDMA_USER_CM_CMD_MIGRATE_ID]	= ucma_migrate_id,
- 	[RDMA_USER_CM_CMD_QUERY]	= ucma_query,
- 	[RDMA_USER_CM_CMD_BIND]		= ucma_bind,
--	[RDMA_USER_CM_CMD_RESOLVE_ADDR]	= ucma_resolve_addr
-+	[RDMA_USER_CM_CMD_RESOLVE_ADDR]	= ucma_resolve_addr,
-+	[RDMA_USER_CM_CMD_JOIN_MCAST]	= ucma_join_multicast
- };
- 
- static ssize_t ucma_write(struct file *filp, const char __user *buf,
-diff --git a/include/rdma/rdma_user_cm.h b/include/rdma/rdma_user_cm.h
-index c546e18..9f14ca8 100644
---- a/include/rdma/rdma_user_cm.h
-+++ b/include/rdma/rdma_user_cm.h
-@@ -64,7 +64,8 @@ enum {
- 	RDMA_USER_CM_CMD_MIGRATE_ID,
- 	RDMA_USER_CM_CMD_QUERY,
- 	RDMA_USER_CM_CMD_BIND,
--	RDMA_USER_CM_CMD_RESOLVE_ADDR
-+	RDMA_USER_CM_CMD_RESOLVE_ADDR,
-+	RDMA_USER_CM_CMD_JOIN_MCAST
- };
- 
- /*
-@@ -241,6 +242,15 @@ struct rdma_ucm_join_ip_mcast {
- 	__u32 id;
- };
- 
-+struct rdma_ucm_join_mcast {
-+	__u64 response;		/* rdma_ucma_create_id_resp */
-+	__u64 uid;
-+	__u32 id;
-+	__u16 addr_size;
-+	__u16 reserved;
-+	struct sockaddr_storage addr;
-+};
-+
- struct rdma_ucm_get_event {
- 	__u64 response;
- };
-
-
+ 	uverbs_dev->ib_dev           = device;
+ 	uverbs_dev->num_comp_vectors = device->num_comp_vectors;
+-- 
+1.7.0.3
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
