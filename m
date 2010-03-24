@@ -1,23 +1,39 @@
-From: Michael Robbert <mrobbert-/qOHPfZA4H6HXe+LvDLADg@public.gmane.org>
-Subject: Re: ibstat stuck in state initialized after reboot
-Date: Wed, 24 Mar 2010 13:42:55 -0600
-Message-ID: <13A62F2E-BA5E-41AD-B020-53A8102F2738@mines.edu>
+From: "Meyer, Donald J" <donald.j.meyer-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: ibstat stuck in state initialized after reboot
+Date: Wed, 24 Mar 2010 13:29:23 -0700
+Message-ID: <6203933669E90E4AB42B5BC4EDE38D350C9B63893C@orsmsx510.amr.corp.intel.com>
 References: <E25E098F-AFCA-4FEA-BE46-5AF59C408293@mines.edu>
  <20100324093805.4c7c1034.weiny2@llnl.gov>
  <4256D4F9-36CC-4C21-A459-B69B363F29C9@mines.edu>
  <6203933669E90E4AB42B5BC4EDE38D350C9B6386B6@orsmsx510.amr.corp.intel.com>
  <230744DB-D7A7-4A1C-973E-E0D7097554DE@mines.edu>
  <20100324112525.fc4a8eb9.weiny2@llnl.gov>
+ <13A62F2E-BA5E-41AD-B020-53A8102F2738@mines.edu>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20100324112525.fc4a8eb9.weiny2-i2BcT+NCU+M@public.gmane.org>
+In-Reply-To: <13A62F2E-BA5E-41AD-B020-53A8102F2738-/qOHPfZA4H6HXe+LvDLADg@public.gmane.org>
 Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-Cc: "Meyer, Donald J" <donald.j.meyer-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Michael Robbert <mrobbert-/qOHPfZA4H6HXe+LvDLADg@public.gmane.org>, Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
+
+I can't speak for all IB networks, but I do know on our network, the SM on our switch wouldn't last longer than a week.  That network had 288 nodes.  We cured all the SM problems by switching to a dedicated server running OpenSM only.  We tried running OpenSM on a server running other tasks too, but still had occasional problems.  Currently we have over 450 nodes and no SM problems at all by using a dedicated OpenSM server.  We do match the version of OpenSM to the version of OFED we are using.
+
+Thanks,
+Don Meyer
+Senior Network/System Engineer/Programmer
+US+ (253) 371-9532 iNet 8-371-9532
+*Other names and brands may be claimed as the property of others
+
+-----Original Message-----
+From: Michael Robbert [mailto:mrobbert-/qOHPfZA4H6HXe+LvDLADg@public.gmane.org] 
+Sent: Wednesday, March 24, 2010 12:43 PM
+To: Ira Weiny
+Cc: Meyer, Donald J; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Subject: Re: ibstat stuck in state initialized after reboot
 
 I've got good news. I was able to get opensm to take control. I gave it a priority of 15 and rebooted the 7000D. Unfortunately I'm not sure I can leave it like this forever. The only host I had with opensm installed is my test front end for an OS upgrade I'm testing. We're moving from Rocks 4.3 to Rocks 5.3 (RHEL 4.5 to RHEL 5.4). I may need to reboot this node from time to time over the next couple of weeks, but at least I'm working right now.
 So you say that a 288 node system will work "out of the box", what happens when you hit 289? Is that a magic number or just an estimate. We have 268 compute nodes plus a few auxiliary nodes so we're pretty close to that number. 
