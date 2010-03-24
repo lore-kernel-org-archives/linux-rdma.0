@@ -1,45 +1,59 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 Subject: Re: Ummunotify: progress at last!
-Date: Tue, 23 Mar 2010 23:59:13 -0600
-Message-ID: <20100324055913.GA9769@obsidianresearch.com>
-References: <1CDB2AA4-A8DF-4169-943E-4EA190814596@cisco.com> <20100323165920.GH29129@obsidianresearch.com> <adapr2u2rib.fsf@roland-alpha.cisco.com>
+Date: Tue, 23 Mar 2010 22:59:42 -0700
+Message-ID: <adaljdi2rap.fsf@roland-alpha.cisco.com>
+References: <1CDB2AA4-A8DF-4169-943E-4EA190814596@cisco.com>
+	<20100323165920.GH29129@obsidianresearch.com>
+	<D7DCABC9-4BB2-4FBA-A7B3-C06F4A848467@cisco.com>
+	<20100323172953.GI29129@obsidianresearch.com>
+	<5F80899D-F989-4162-B050-7E4D6B389876@cisco.com>
+	<20100323195251.GJ29129@obsidianresearch.com>
+	<3B848E1F-C9B6-416A-9E6E-99604E71902A@cisco.com>
+	<20100323201124.GK29129@obsidianresearch.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <adapr2u2rib.fsf-BjVyx320WGW9gfZ95n9DRSW4+XlvGpQz@public.gmane.org>
+In-Reply-To: <20100323201124.GK29129-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> (Jason Gunthorpe's
+	message of "Tue, 23 Mar 2010 14:11:24 -0600")
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Cc: Jeff Squyres <jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Linux RDMA List <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Brad Benton <brad.benton-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Mar 23, 2010 at 10:55:08PM -0700, Roland Dreier wrote:
->  > I would prefer to do this by adding a new verbs call that returns a fd
->  > directly. Ie use ib_uverbs_alloc_event_file and act like
->  > ibv_create_comp_channel.
->  > 
->  > The main reason for the new FD is so it can be polled on..
-> 
-> Agree, we don't want a new device node I don't think -- too hard to
-> associate an fd you get from a separate open() with a uverbs context.
+ > No, there is no mmap. Like this:
+ > 
+ > u64 my_counter = 0;
+ > 
+ > ibv_set_mmu_counter(verbs, &my_counter);
+ > [..]
+ > while (my_counter != last_my_counter) {
+ >     last_my_counter = my_counter;
+ >     ibv_get_mmu_notifications(verbs, ...);   // <- I am a memory barrier as well
+ > }
+ > 
+ > The kernel 'syscall' ibv_set_mmu_counter would bind the given verbs to
+ > the 8 byte counter you specified without having to the mmap thing. As
+ > I understand it this is what perfevents does.
+ > 
+ > Integrating with the verbs api avoids the need for another device
+ > file. That is good. Eliminating poll() from the API can remove the
+ > dedicated fd entirely. Within verbs I guess we could replace poll()
+ > with something like a completion channel (??) if anyone cares.
 
-Right, that would suck..
- 
->  > You can also avoid the mmap scheme by doing what perf events does,
->  > pass in a pointer from userspace and have the kernel pin that page it
->  > is on.
-> 
-> I wonder, is that a win?  I guess you don't even have to pin it, just do
-> copy_to_user() to update the counter, but mmap doesn't seem so bad.
+That is all definitely doable.  I wonder if it's better to get rid of
+the dedicated fd though.  After all, having the fd means a fancy app can
+do poll() or sigio or whatever internally.  Being able to integrate into
+an fd-driven event loop seems like a pretty big thing to give up.
 
-Not sure you can call copy_to_user from a mmu_notifier callback? What
-if it faults?
+Also, having a uverbs "syscall" that is exactly like read() seems a bit
+of a stretch, even within the ugliness that is the uverbs interface.
+(We love all our children, but sometimes we have to be realistic)
 
-I think the idea would be that by letting user space select the
-counter location it could place it in a sensible cachline/etc and
-probably avoid a pointer indirection.
-
-Jason
+ - R.
+-- 
+Roland Dreier  <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+For corporate legal information go to:
+http://www.cisco.com/web/about/doing_business/legal/cri/index.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
