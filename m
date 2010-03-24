@@ -1,40 +1,78 @@
-From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Subject: Re: Ummunotify: progress at last!
-Date: Tue, 23 Mar 2010 23:17:26 -0700
-Message-ID: <adavdcm1bwp.fsf@roland-alpha.cisco.com>
-References: <1CDB2AA4-A8DF-4169-943E-4EA190814596@cisco.com>
-	<20100323165920.GH29129@obsidianresearch.com>
-	<adapr2u2rib.fsf@roland-alpha.cisco.com>
-	<20100324055913.GA9769@obsidianresearch.com>
+From: Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: opensm/main.c: foce stdout to be line-buffered
+Date: Wed, 24 Mar 2010 09:09:45 +0200
+Message-ID: <4BA9BAB9.5040800@dev.mellanox.co.il>
+References: <4B8E1D46.4090106@dev.mellanox.co.il> <20100323103733.GD4808@me>
+	<4BA8B33E.8000003@dev.mellanox.co.il> <20100323163708.GI4808@me>
+	<4BA9344A.6010007@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="ISO-8859-1"; format="flowed"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20100324055913.GA9769-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> (Jason Gunthorpe's
-	message of "Tue, 23 Mar 2010 23:59:13 -0600")
+In-Reply-To: <4BA9344A.6010007-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Jeff Squyres <jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Linux RDMA List <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Brad Benton <brad.benton-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>
+To: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+Cc: Linux RDMA <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
- > > I wonder, is that a win?  I guess you don't even have to pin it, just do
- > > copy_to_user() to update the counter, but mmap doesn't seem so bad.
- > 
- > Not sure you can call copy_to_user from a mmu_notifier callback? What
- > if it faults?
+On 23/Mar/10 23:36, Yevgeny Kliteynik wrote:
+> On 23/Mar/10 18:37, Sasha Khapyorsky wrote:
+>> On 14:25 Tue 23 Mar , Yevgeny Kliteynik wrote:
+>>>
+>>> I'm running "opensm> somefile", and I don't see SM's stdout
+>>> (such as "SUBNET UP" message, or new cached options after SIGHUP),
+>>> because when stdout is assigned to file and not terminal, it is
+>>> handled differently. Instead of flushing on printing '\n',
+>>> it becomes buffered, which means that you don't control when
+>>> is this buffer flushed.
+>>> My fix forces stdout to always flush stdout when printing '\n'.
+>>> It has no effect when stdout is assigned to terminal, and it
+>>> changes buffering when SM's stdout is redirected.
+>>>
+>>> More details about stdout/stderr buffering:
+>>>
+>>> http://www.pixelbeat.org/programming/stdio_buffering/
+>>
+>> There you can find couple of ways to workaround this issue, for example:
+>>
+>> stdbuf -o L opensm> somefile
+>
+> This is not a usual shell command, nor some common
+> tool that is used in Linux distros. It's just a tool
+> that is provided in some package called "coreutils 7.5".
 
-Good point... we could defer it to a context where we could block but...
+Correction: the coreutils package is common, stdbuf isn't -
+it was added in coreutils 7.5.
+For instance, RH 5.3 has version 5.97, SLES 11 has version
+6.12
 
- > I think the idea would be that by letting user space select the
- > counter location it could place it in a sensible cachline/etc and
- > probably avoid a pointer indirection.
+-- Yevgeny
 
-OK, I have to look at the perf stuff.  That makes sense but OTOH
-userspace could (unknowingly) pick a highmen page and then we end up
-having to do kmap_atomic or something from an mmu notifier callback.
--- 
-Roland Dreier  <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-For corporate legal information go to:
-http://www.cisco.com/web/about/doing_business/legal/cri/index.html
+>> I would prefer to not change an external settings so the program would
+>> work as expected.
+>
+> IMHO, on the contrary - the expected behavior
+> would be achieved with the patch.
+>
+> But in any case, what exactly seems problematic here?
+>
+> I can't see any impact on any aspect whatsoever.
+> It is somehow related to performance (more flushes
+> when the stream is line-buffered instead of just
+> buffered), but we're talking about stdout here, not
+> the log file, so the performance is not affected too.
+>
+> -- Yevgeny
+>
+>> Sasha
+>>
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at http://vger.kernel.org/majordomo-info.html
+>
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
