@@ -1,55 +1,36 @@
 From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 Subject: Re: Ummunotify: progress at last!
-Date: Tue, 23 Mar 2010 22:59:42 -0700
-Message-ID: <adaljdi2rap.fsf@roland-alpha.cisco.com>
+Date: Tue, 23 Mar 2010 23:17:26 -0700
+Message-ID: <adavdcm1bwp.fsf@roland-alpha.cisco.com>
 References: <1CDB2AA4-A8DF-4169-943E-4EA190814596@cisco.com>
 	<20100323165920.GH29129@obsidianresearch.com>
-	<D7DCABC9-4BB2-4FBA-A7B3-C06F4A848467@cisco.com>
-	<20100323172953.GI29129@obsidianresearch.com>
-	<5F80899D-F989-4162-B050-7E4D6B389876@cisco.com>
-	<20100323195251.GJ29129@obsidianresearch.com>
-	<3B848E1F-C9B6-416A-9E6E-99604E71902A@cisco.com>
-	<20100323201124.GK29129@obsidianresearch.com>
+	<adapr2u2rib.fsf@roland-alpha.cisco.com>
+	<20100324055913.GA9769@obsidianresearch.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20100323201124.GK29129-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> (Jason Gunthorpe's
-	message of "Tue, 23 Mar 2010 14:11:24 -0600")
+In-Reply-To: <20100324055913.GA9769-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> (Jason Gunthorpe's
+	message of "Tue, 23 Mar 2010 23:59:13 -0600")
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Cc: Jeff Squyres <jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Linux RDMA List <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Brad Benton <brad.benton-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
- > No, there is no mmap. Like this:
+ > > I wonder, is that a win?  I guess you don't even have to pin it, just do
+ > > copy_to_user() to update the counter, but mmap doesn't seem so bad.
  > 
- > u64 my_counter = 0;
- > 
- > ibv_set_mmu_counter(verbs, &my_counter);
- > [..]
- > while (my_counter != last_my_counter) {
- >     last_my_counter = my_counter;
- >     ibv_get_mmu_notifications(verbs, ...);   // <- I am a memory barrier as well
- > }
- > 
- > The kernel 'syscall' ibv_set_mmu_counter would bind the given verbs to
- > the 8 byte counter you specified without having to the mmap thing. As
- > I understand it this is what perfevents does.
- > 
- > Integrating with the verbs api avoids the need for another device
- > file. That is good. Eliminating poll() from the API can remove the
- > dedicated fd entirely. Within verbs I guess we could replace poll()
- > with something like a completion channel (??) if anyone cares.
+ > Not sure you can call copy_to_user from a mmu_notifier callback? What
+ > if it faults?
 
-That is all definitely doable.  I wonder if it's better to get rid of
-the dedicated fd though.  After all, having the fd means a fancy app can
-do poll() or sigio or whatever internally.  Being able to integrate into
-an fd-driven event loop seems like a pretty big thing to give up.
+Good point... we could defer it to a context where we could block but...
 
-Also, having a uverbs "syscall" that is exactly like read() seems a bit
-of a stretch, even within the ugliness that is the uverbs interface.
-(We love all our children, but sometimes we have to be realistic)
+ > I think the idea would be that by letting user space select the
+ > counter location it could place it in a sensible cachline/etc and
+ > probably avoid a pointer indirection.
 
- - R.
+OK, I have to look at the perf stuff.  That makes sense but OTOH
+userspace could (unknowingly) pick a highmen page and then we end up
+having to do kmap_atomic or something from an mmu notifier callback.
 -- 
 Roland Dreier  <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 For corporate legal information go to:
