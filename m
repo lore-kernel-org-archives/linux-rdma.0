@@ -1,89 +1,50 @@
-From: Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH] opensm: fixing compilation issues in some header files
-Date: Wed, 24 Mar 2010 17:50:10 +0200
-Message-ID: <4BAA34B2.9060808@dev.mellanox.co.il>
+From: Michael Robbert <mrobbert-/qOHPfZA4H6HXe+LvDLADg@public.gmane.org>
+Subject: ibstat stuck in state initialized after reboot
+Date: Wed, 24 Mar 2010 10:26:02 -0600
+Message-ID: <E25E098F-AFCA-4FEA-BE46-5AF59C408293@mines.edu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>, Linux RDMA <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-All the compilation issues refer to implicit casting
-from "void*" to "some_struct_t*"
+I hope this is the correct place to get help with the problem I have. I have an IB fabric running on a Cisco SFS switch with a 7000D as the subnet manager and the whole thing has been running great for well over a year now, but today I noticed that after any node gets rebooted its IB link doesn't initialize. This has happened on 4 hosts now. What I see is as follows:
 
-Signed-off-by: Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
----
- opensm/include/opensm/osm_pkey.h   |    8 +++++---
- opensm/include/opensm/osm_port.h   |    4 ++--
- opensm/include/opensm/osm_subnet.h |    2 +-
- 3 files changed, 8 insertions(+), 6 deletions(-)
+[root@compute-2-7 ~]# ibstat
+CA 'mthca0'
+       CA type: MT25204
+       Number of ports: 1
+       Firmware version: 1.2.917
+       Hardware version: 20
+       Node GUID: 0x0005ad00000c0990
+       System image GUID: 0x0005ad000100d050
+       Port 1:
+               State: Initializing
+               Physical state: LinkUp
+               Rate: 20
+               Base lid: 0
+               LMC: 0
+               SM lid: 0
+               Capability mask: 0x02510a68
+               Port GUID: 0x0005ad00000c0991
 
-diff --git a/opensm/include/opensm/osm_pkey.h b/opensm/include/opensm/osm_pkey.h
-index d10479d..53e9657 100644
---- a/opensm/include/opensm/osm_pkey.h
-+++ b/opensm/include/opensm/osm_pkey.h
-@@ -252,7 +252,8 @@ static inline ib_pkey_table_t *osm_pkey_tbl_block_get(const osm_pkey_tbl_t *
- 						      uint16_t block)
- {
- 	return ((block < cl_ptr_vector_get_size(&p_pkey_tbl->blocks)) ?
--		cl_ptr_vector_get(&p_pkey_tbl->blocks, block) : NULL);
-+		(ib_pkey_table_t *)cl_ptr_vector_get(
-+		&p_pkey_tbl->blocks, block) : NULL);
- };
+I don't know much about subnet managers, since ours is in hardware and we've never had to configure anything on it, but I can login to the device and it isn't showing any errors. On a node that hasn't been rebooted recently and is still working I can see what appears to be a working subnet manager:
 
- /*
-@@ -282,8 +283,9 @@ static inline ib_pkey_table_t *osm_pkey_tbl_new_block_get(const osm_pkey_tbl_t *
- 							  p_pkey_tbl,
- 							  uint16_t block)
- {
--	return (block < cl_ptr_vector_get_size(&p_pkey_tbl->new_blocks)) ?
--	    cl_ptr_vector_get(&p_pkey_tbl->new_blocks, block) : NULL;
-+	return ((block < cl_ptr_vector_get_size(&p_pkey_tbl->new_blocks)) ?
-+		(ib_pkey_table_t *)cl_ptr_vector_get(
-+		&p_pkey_tbl->new_blocks, block) : NULL);
- };
+[root@compute-2-10 ~]# sminfo 
+sminfo: sm lid 2 sm guid 0x5ad00001df2a0, activity count 2146213408 priority 10 state 3 SMINFO_MASTER
 
- /****f* OpenSM: osm_pkey_tbl_set_new_entry
-diff --git a/opensm/include/opensm/osm_port.h b/opensm/include/opensm/osm_port.h
-index ff0a178..8c68c99 100644
---- a/opensm/include/opensm/osm_port.h
-+++ b/opensm/include/opensm/osm_port.h
-@@ -549,7 +549,7 @@ static inline void osm_physp_set_slvl_tbl(IN osm_physp_t * p_physp,
+The same command on a non-working node shows this:
 
- 	CL_ASSERT(p_slvl_tbl);
- 	CL_ASSERT(osm_physp_is_valid(p_physp));
--	p_tbl = cl_ptr_vector_get(&p_physp->slvl_by_port, in_port_num);
-+	p_tbl = (ib_slvl_table_t *)cl_ptr_vector_get(&p_physp->slvl_by_port, in_port_num);
- 	*p_tbl = *p_slvl_tbl;
- }
+[root@compute-2-7 ~]# sminfo 
+sminfo: sm lid 0 sm guid 0x0, activity count 0 priority 0 state 2 SMINFO_STANDBY
 
-@@ -590,7 +590,7 @@ static inline ib_slvl_table_t *osm_physp_get_slvl_tbl(IN const osm_physp_t *
- 	ib_slvl_table_t *p_tbl;
+So far I have reseated all the cables involved on both ends and I have moved the cables on the switch end to new ports and none of that has made a difference even after reboots. I am hoping to find a node that I can take offline tomorrow so I can actually test the cables, but since this seems to be happening to any host that reboots it doesn't appear to be a cabling problem. Can anybody suggest where I should go from here? Is there anything I can do from a working or non-working host to diagnose the problem? Should I try rebooting the subnet manager switch? Will that affect the rest of the fabric? 
 
- 	CL_ASSERT(osm_physp_is_valid(p_physp));
--	p_tbl = cl_ptr_vector_get(&p_physp->slvl_by_port, in_port_num);
-+	p_tbl = (ib_slvl_table_t *)cl_ptr_vector_get(&p_physp->slvl_by_port, in_port_num);
- 	return p_tbl;
- }
-
-diff --git a/opensm/include/opensm/osm_subnet.h b/opensm/include/opensm/osm_subnet.h
-index 3970e98..2eef9c7 100644
---- a/opensm/include/opensm/osm_subnet.h
-+++ b/opensm/include/opensm/osm_subnet.h
-@@ -1015,7 +1015,7 @@ struct osm_mgrp *osm_get_mgrp_by_mgid(IN osm_subn_t * subn, IN ib_gid_t * mgid);
- */
- static inline struct osm_mgrp_box *osm_get_mbox_by_mlid(osm_subn_t const *p_subn, ib_net16_t mlid)
- {
--	return p_subn->mboxes[cl_ntoh16(mlid) - IB_LID_MCAST_START_HO];
-+	return (struct osm_mgrp_box *)p_subn->mboxes[cl_ntoh16(mlid) - IB_LID_MCAST_START_HO];
- }
- /*
- * PARAMETERS
--- 
-1.5.1.4
-
+Thanks,
+Mike Robbert
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
