@@ -1,19 +1,39 @@
-From: Michael Robbert <mrobbert-/qOHPfZA4H6HXe+LvDLADg@public.gmane.org>
-Subject: Re: ibstat stuck in state initialized after reboot
-Date: Wed, 24 Mar 2010 10:59:37 -0600
-Message-ID: <4256D4F9-36CC-4C21-A459-B69B363F29C9@mines.edu>
+From: "Meyer, Donald J" <donald.j.meyer-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: ibstat stuck in state initialized after reboot
+Date: Wed, 24 Mar 2010 10:12:13 -0700
+Message-ID: <6203933669E90E4AB42B5BC4EDE38D350C9B6386B6@orsmsx510.amr.corp.intel.com>
 References: <E25E098F-AFCA-4FEA-BE46-5AF59C408293@mines.edu>
  <20100324093805.4c7c1034.weiny2@llnl.gov>
+ <4256D4F9-36CC-4C21-A459-B69B363F29C9@mines.edu>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20100324093805.4c7c1034.weiny2-i2BcT+NCU+M@public.gmane.org>
+In-Reply-To: <4256D4F9-36CC-4C21-A459-B69B363F29C9-/qOHPfZA4H6HXe+LvDLADg@public.gmane.org>
 Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+To: Michael Robbert <mrobbert-/qOHPfZA4H6HXe+LvDLADg@public.gmane.org>, Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
 Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
+
+http://www.cisco.com/en/US/docs/server_nw_virtual/7024/release_4.1/hardware/installation/guide/7024hig.pdf
+
+smControl
+Starts and stops the embedded subnet manager.
+Syntax:
+smControl start | stop | restart | status
+
+Thanks,
+Don Meyer
+Senior Network/System Engineer/Programmer
+US+ (253) 371-9532 iNet 8-371-9532
+*Other names and brands may be claimed as the property of others
+-----Original Message-----
+From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Michael Robbert
+Sent: Wednesday, March 24, 2010 10:00 AM
+To: Ira Weiny
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Subject: Re: ibstat stuck in state initialized after reboot
 
 Ira,
 Thanks for the quick response. That is what I was afraid of. I've been looking through the switch documentation, but it doesn't cover starting, stopping, or even checking the status of the SM service. I'll look into opening a TAC case, but since Cisco has gotten out of the IB business I'm not looking forward to seeing what kind of product support they still have. I can tell you a little more about our topology since it is pretty simple. All of our hosts are connected to the single large SFS switch, then the 7000D which is our subnet-manager is only plugged into that larger switch. 
@@ -102,6 +122,10 @@ On Mar 24, 2010, at 10:38 AM, Ira Weiny wrote:
 > 925-423-8008
 > weiny2-i2BcT+NCU+M@public.gmane.org
 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
