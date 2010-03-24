@@ -1,63 +1,35 @@
-From: Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: opensm/main.c: foce stdout to be line-buffered
-Date: Tue, 23 Mar 2010 23:36:10 +0200
-Message-ID: <4BA9344A.6010007@dev.mellanox.co.il>
-References: <4B8E1D46.4090106@dev.mellanox.co.il> <20100323103733.GD4808@me>
-	<4BA8B33E.8000003@dev.mellanox.co.il> <20100323163708.GI4808@me>
+From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Subject: Re: Ummunotify: progress at last!
+Date: Tue, 23 Mar 2010 22:53:17 -0700
+Message-ID: <adatys62rle.fsf@roland-alpha.cisco.com>
+References: <1CDB2AA4-A8DF-4169-943E-4EA190814596@cisco.com>
+	<20100323165920.GH29129@obsidianresearch.com>
+	<D7DCABC9-4BB2-4FBA-A7B3-C06F4A848467@cisco.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format="flowed"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20100323163708.GI4808@me>
+In-Reply-To: <D7DCABC9-4BB2-4FBA-A7B3-C06F4A848467-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org> (Jeff Squyres's
+	message of "Tue, 23 Mar 2010 13:17:40 -0400")
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Cc: Linux RDMA <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Jeff Squyres <jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Linux RDMA List <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Brad Benton <brad.benton-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 23/Mar/10 18:37, Sasha Khapyorsky wrote:
-> On 14:25 Tue 23 Mar     , Yevgeny Kliteynik wrote:
->>
->> I'm running "opensm>  somefile", and I don't see SM's stdout
->> (such as "SUBNET UP" message, or new cached options after SIGHUP),
->> because when stdout is assigned to file and not terminal, it is
->> handled differently. Instead of flushing on printing '\n',
->> it becomes buffered, which means that you don't control when
->> is this buffer flushed.
->> My fix forces stdout to always flush stdout when printing '\n'.
->> It has no effect when stdout is assigned to terminal, and it
->> changes buffering when SM's stdout is redirected.
->>
->> More details about stdout/stderr buffering:
->>
->> http://www.pixelbeat.org/programming/stdio_buffering/
->
-> There you can find couple of ways to workaround this issue, for example:
->
->    stdbuf -o L opensm>  somefile
+ > What do you poll on the fd for?
 
-This is not a usual shell command, nor some common
-tool that is used in Linux distros. It's just a tool
-that is provided in some package called "coreutils 7.5".
-  
-> I would prefer to not change an external settings so the program would
-> work as expected.
+ > With ummunotify, you only read() from the fd when (counter !=
+ > last_counter).  Were you thinking that the poll() would be for
+ > something else?
 
-IMHO, on the contrary - the expected behavior
-would be achieved with the patch.
+The ummunotify fd supported poll() (and SIGIO etc).  You don't have to
+use it if you don't want to, but I made it as much of a normal fd as
+possible.
 
-But in any case, what exactly seems problematic here?
-
-I can't see any impact on any aspect whatsoever.
-It is somehow related to performance (more flushes
-when the stream is line-buffered instead of just
-buffered), but we're talking about stdout here, not
-the log file, so the performance is not affected too.
-
--- Yevgeny
-  
-> Sasha
->
-
+ - R.
+-- 
+Roland Dreier  <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+For corporate legal information go to:
+http://www.cisco.com/web/about/doing_business/legal/cri/index.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
