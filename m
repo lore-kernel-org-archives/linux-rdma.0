@@ -1,103 +1,48 @@
-From: Eli Cohen <eli-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
-Subject: [PATCH v2] IB core: Fix locking on device numbers allocation
-Date: Thu, 25 Mar 2010 10:14:02 +0200
-Message-ID: <20100325081402.GA11123@mtldesk030.lab.mtl.com>
+From: Chien Tung <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH] RDMA/nes: correct cap.max_inline_data assignment in nes_query_qp
+Date: Thu, 25 Mar 2010 08:39:50 -0500
+Message-ID: <20100325133950.GA9752@ctung-MOBL>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Cc: Linux RDMA list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-When the driver needs to dynamically allocate char device numbers in systems
-with more than IB_UVERBS_MAX_DEVICES devices, it releases map lock, allocates a
-new range and a new device number from that range, and only then re-acquires
-the lock. This must be protected for the same reasoning that the map_lock
-spinlock is used. Without protecting we could also end up calling
-alloc_chrdev_region() a nubmer of times and cause a leakage. Fix this by
-replacing map_lock with a mutex and apply on the all the allocation code.
 
-Signed-off-by: Eli Cohen <eli-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
+cap.max_inline_data is incorrectly set in init_attr instead
+of attr.  Set it in attr so subsequent init_attr.cap assignment
+will get the correct value.
+
+Signed-off-by: Chien Tung <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
-Changes from previous version:
-Protect with the mutex the clear_bit on the map allocations.
+ drivers/infiniband/hw/nes/nes_verbs.c |    9 ++++-----
+ 1 files changed, 4 insertions(+), 5 deletions(-)
 
-
- drivers/infiniband/core/uverbs_main.c |   16 ++++++++++------
- 1 files changed, 10 insertions(+), 6 deletions(-)
-
-diff --git a/drivers/infiniband/core/uverbs_main.c b/drivers/infiniband/core/uverbs_main.c
-index d805cf3..a16d90d 100644
---- a/drivers/infiniband/core/uverbs_main.c
-+++ b/drivers/infiniband/core/uverbs_main.c
-@@ -72,7 +72,7 @@ DEFINE_IDR(ib_uverbs_cq_idr);
- DEFINE_IDR(ib_uverbs_qp_idr);
- DEFINE_IDR(ib_uverbs_srq_idr);
+diff --git a/drivers/infiniband/hw/nes/nes_verbs.c b/drivers/infiniband/hw/nes/nes_verbs.c
+index 6992829..36348bf 100644
+--- a/drivers/infiniband/hw/nes/nes_verbs.c
++++ b/drivers/infiniband/hw/nes/nes_verbs.c
+@@ -2820,11 +2820,10 @@ static int nes_query_qp(struct ib_qp *ibqp, struct ib_qp_attr *attr,
+ 	attr->cap.max_send_wr = nesqp->hwqp.sq_size;
+ 	attr->cap.max_recv_wr = nesqp->hwqp.rq_size;
+ 	attr->cap.max_recv_sge = 1;
+-	if (nes_drv_opt & NES_DRV_OPT_NO_INLINE_DATA) {
+-		init_attr->cap.max_inline_data = 0;
+-	} else {
+-		init_attr->cap.max_inline_data = 64;
+-	}
++	if (nes_drv_opt & NES_DRV_OPT_NO_INLINE_DATA)
++		attr->cap.max_inline_data = 0;
++	else
++		attr->cap.max_inline_data = 64;
  
--static DEFINE_SPINLOCK(map_lock);
-+static DEFINE_MUTEX(map_lock);
- static DECLARE_BITMAP(dev_map, IB_UVERBS_MAX_DEVICES);
- 
- static ssize_t (*uverbs_cmd_table[])(struct ib_uverbs_file *file,
-@@ -738,15 +738,15 @@ static void ib_uverbs_add_one(struct ib_device *device)
- 	kref_init(&uverbs_dev->ref);
- 	init_completion(&uverbs_dev->comp);
- 
--	spin_lock(&map_lock);
-+	mutex_lock(&map_lock);
- 	devnum = find_first_zero_bit(dev_map, IB_UVERBS_MAX_DEVICES);
- 	if (devnum >= IB_UVERBS_MAX_DEVICES) {
--		spin_unlock(&map_lock);
- 		devnum = find_overflow_devnum();
--		if (devnum < 0)
-+		if (devnum < 0) {
-+			mutex_unlock(&map_lock);
- 			goto err;
-+		}
- 
--		spin_lock(&map_lock);
- 		uverbs_dev->devnum = devnum + IB_UVERBS_MAX_DEVICES;
- 		base = devnum + overflow_maj;
- 		set_bit(devnum, overflow_map);
-@@ -755,7 +755,7 @@ static void ib_uverbs_add_one(struct ib_device *device)
- 		base = devnum + IB_UVERBS_BASE_DEV;
- 		set_bit(devnum, dev_map);
- 	}
--	spin_unlock(&map_lock);
-+	mutex_unlock(&map_lock);
- 
- 	uverbs_dev->ib_dev           = device;
- 	uverbs_dev->num_comp_vectors = device->num_comp_vectors;
-@@ -787,10 +787,12 @@ err_class:
- 
- err_cdev:
- 	cdev_del(&uverbs_dev->cdev);
-+	mutex_lock(&map_lock);
- 	if (uverbs_dev->devnum < IB_UVERBS_MAX_DEVICES)
- 		clear_bit(devnum, dev_map);
- 	else
- 		clear_bit(devnum, overflow_map);
-+	mutex_unlock(&map_lock);
- 
- err:
- 	kref_put(&uverbs_dev->ref, ib_uverbs_release_dev);
-@@ -810,10 +812,12 @@ static void ib_uverbs_remove_one(struct ib_device *device)
- 	device_destroy(uverbs_class, uverbs_dev->cdev.dev);
- 	cdev_del(&uverbs_dev->cdev);
- 
-+	mutex_lock(&map_lock);
- 	if (uverbs_dev->devnum < IB_UVERBS_MAX_DEVICES)
- 		clear_bit(uverbs_dev->devnum, dev_map);
- 	else
- 		clear_bit(uverbs_dev->devnum - IB_UVERBS_MAX_DEVICES, overflow_map);
-+	mutex_unlock(&map_lock);
- 
- 	kref_put(&uverbs_dev->ref, ib_uverbs_release_dev);
- 	wait_for_completion(&uverbs_dev->comp);
+ 	init_attr->event_handler = nesqp->ibqp.event_handler;
+ 	init_attr->qp_context = nesqp->ibqp.qp_context;
 -- 
-1.7.0.3
+1.6.4.2
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
