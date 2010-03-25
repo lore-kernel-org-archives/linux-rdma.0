@@ -1,106 +1,39 @@
-From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-Subject: Re: ibstat stuck in state initialized after reboot
-Date: Wed, 24 Mar 2010 13:37:25 -0700
-Message-ID: <20100324133725.3888f775.weiny2@llnl.gov>
-References: <E25E098F-AFCA-4FEA-BE46-5AF59C408293@mines.edu>
-	<20100324093805.4c7c1034.weiny2@llnl.gov>
-	<4256D4F9-36CC-4C21-A459-B69B363F29C9@mines.edu>
-	<6203933669E90E4AB42B5BC4EDE38D350C9B6386B6@orsmsx510.amr.corp.intel.com>
-	<230744DB-D7A7-4A1C-973E-E0D7097554DE@mines.edu>
-	<20100324112525.fc4a8eb9.weiny2@llnl.gov>
-	<13A62F2E-BA5E-41AD-B020-53A8102F2738@mines.edu>
+From: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH] IB core: Fix locking on device numbers allocation
+Date: Thu, 25 Mar 2010 09:36:35 +0200
+Message-ID: <20100325073635.GF12224@mtldesk030.lab.mtl.com>
+References: <20100323191317.GA14496@mtldesk030.lab.mtl.com>
+	<adaiq8l1uwp.fsf@roland-alpha.cisco.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <13A62F2E-BA5E-41AD-B020-53A8102F2738-/qOHPfZA4H6HXe+LvDLADg@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <adaiq8l1uwp.fsf-BjVyx320WGW9gfZ95n9DRSW4+XlvGpQz@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Michael Robbert <mrobbert-/qOHPfZA4H6HXe+LvDLADg@public.gmane.org>
-Cc: "Meyer, Donald J" <donald.j.meyer-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Cc: Eli Cohen <eli-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, Linux RDMA list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Alexander Chiang <achiang-VXdhtT5mjnY@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, 24 Mar 2010 13:42:55 -0600
-Michael Robbert <mrobbert-/qOHPfZA4H6HXe+LvDLADg@public.gmane.org> wrote:
+On Wed, Mar 24, 2010 at 10:39:18AM -0700, Roland Dreier wrote:
+> 
+> Looks like a good catch.  I assume you found this through inspection and
+> not hitting it practice?
+Correct, I caught this from inspecting the code.
 
-> I've got good news. I was able to get opensm to take control. I gave it a
-> priority of 15 and rebooted the 7000D. Unfortunately I'm not sure I can
-> leave it like this forever. The only host I had with opensm installed is my
-> test front end for an OS upgrade I'm testing. We're moving from Rocks 4.3 to
-> Rocks 5.3 (RHEL 4.5 to RHEL 5.4). I may need to reboot this node from time
-> to time over the next couple of weeks, but at least I'm working right now.
->
-> So you say that a 288 node system will work "out of the box", what happens
-> when you hit 289? Is that a magic number or just an estimate. We have 268
-> compute nodes plus a few auxiliary nodes so we're pretty close to that
-> number. 
-
-Nothing will happen when you hit 289.  I chose that number because a 7024 has
-288 ports which I assumed was the size of your cluster.
-
-There are those running large clusters (thousands of nodes) who have made some
-changes to OpenSM for specialized topologies or better SA scalability.  In the
-future those changes should be in OpenSM so as you grow, OpenSM grows with
-you!
-
-:-D
-
-Ira
+>  Also it seems user_mad.c would need the same fix.
+Yes, I missed that.
 
 > 
-> Thanks,
-> Mike
+> Although looking at this I wonder if we do need that lock... we don't
+> seem to do any locking when we do the clear_bit in the dev_map, and all
+> of this is done through the device add/remove callback, which seems to
+> be serialized by the device_mutex in device.c.  But we probably don't
+> want to make that a requirement in case we parallelize in the future.
 > 
-> On Mar 24, 2010, at 12:25 PM, Ira Weiny wrote:
-> 
-> > On Wed, 24 Mar 2010 11:34:02 -0600
-> > Michael Robbert <mrobbert-/qOHPfZA4H6HXe+LvDLADg@public.gmane.org> wrote:
-> > 
-> >> Interesting note! The 7024 is our large switch where all the hosts are
-> >> connected, but I was told that we were sold the 7000D because the 7024
-> >> didn't have a subnet manager. Unfortunately the 7000D has a different CLI
-> >> and that command is not available and I don't have the password for our 7024
-> >> so I can't log onto it. 
-> >> 
-> >> On another note I just noticed the uptime on the 7000D is just over 1 day so
-> >> that must have been the start of the problem, but I have no idea why it
-> >> rebooted nor why it didn't come up working. I'm pretty sure we tested a
-> >> reboot of the device during acceptance testing.
-> >> 
-> >> Oh, I just got your second note:
-> >> ==================================
-> >> BTW, I highly recommend running the opensm on a server instead of using the
-> >> sm on the switch.  We found running the sm on the switch was much less
-> >> reliable.  I also recommend using a server dedicated to opensm only.
-> >> ==================================
-> > 
-> > I will second this.  OpenSM has come a long way since the time Cisco was
-> > selling IB switches.  If I understand your situation you don't even need the
-> > 7000D you could just remove it and run OpenSM on a "management" node.  If you
-> > can afford it adding a node for OpenSM would be nice but I am not sure you
-> > _need_ it.
-> > 
-> > OpenSM is now managing many of the largest IB networks out there, on a 288
-> > node system it will have no problems at all "out of the box".
-> > 
-> > :D
-> > 
-> > Ira
-> > 
-> >> I will take that into consideration, but we bought this as a "turn-key"
-> >> solution from Dell. They designed it and we had no experience with IB so we
-> >> trusted their knowledge. 
-> > 
-> > <snip>
-> > 
-> 
-
-
--- 
-Ira Weiny
-Math Programmer/Computer Scientist
-Lawrence Livermore National Lab
-925-423-8008
-weiny2-i2BcT+NCU+M@public.gmane.org
+I missed the fact the clear_bit is not atomic. So to make this
+complete I will send a new patch with protection on the clear bit.
+Would you like me to send a patch for user_mad too or would you push
+that?
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
