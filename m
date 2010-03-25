@@ -1,47 +1,39 @@
-From: "Sean Hefty" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH] [for-2.6.34] rdma/cm: set num_paths when manually assigning path records
-Date: Thu, 25 Mar 2010 12:12:36 -0700
-Message-ID: <3946EFA63D2D4C2A93F45CF7CD715B5C@amr.corp.intel.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [RFC] [PATCH 5/22 v2] [for 2.6.36] rdma/cm: update port
+	reservation to support AF_IB
+Date: Thu, 25 Mar 2010 14:29:24 -0600
+Message-ID: <20100325202924.GO29129@obsidianresearch.com>
+References: <2F3826558E79459EAD2A457A604221C1@amr.corp.intel.com> <012F7D9E5E97445E9100EF170212AEE7@amr.corp.intel.com> <7451BD1514874F3E987E55040776EECC@amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <7451BD1514874F3E987E55040776EECC-Zpru7NauK7drdx17CPfAsdBPR1lH4CV8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+To: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-When manually assigning the path records to use for a connection,
-save the number of paths that were saved.  Otherwise, checks
-against num_path will show 0, even though path record data is
-available.
+On Thu, Mar 25, 2010 at 12:05:33PM -0700, Sean Hefty wrote:
+> +	case AF_IB:
+> +		((struct sockaddr_ib *) addr)->sib_sid =
+> +			cpu_to_be64(((u64) id_priv->id.ps << 16) + ntohs(port));
+> +		break;
+> +	}
 
-This was discovered by manually setting the path records from
-user space, then querying the kernel to see if the correct
-path records were assigned, only to discover that the kernel
-returned 0 path records to the query.
+Could you elaborate a bit on how you are mixing the port space and the
+SID?
 
-Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
----
+IMHO, after thinking about it for a bit, I would prefer to see the
+port space be unused from a user-space perspective when used with
+AF_IB.
 
- drivers/infiniband/core/cma.c |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
+If a ps is needed in the kernel then it should pick the ps based on
+the SID prefix that user space provided.. I guess prior to adding the
+mask bits this wouldn't have made sense, but now that they are in it
+seems like the way to go.
 
-diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
-index 42d51b5..38906f2 100644
---- a/drivers/infiniband/core/cma.c
-+++ b/drivers/infiniband/core/cma.c
-@@ -1783,6 +1783,7 @@ int rdma_set_ib_paths(struct rdma_cm_id *id,
- 	}
- 
- 	memcpy(id->route.path_rec, path_rec, sizeof *path_rec * num_paths);
-+	id->route.num_paths = num_paths;
- 	return 0;
- err:
- 	cma_comp_exch(id_priv, CMA_ROUTE_RESOLVED, CMA_ADDR_RESOLVED);
-
-
-
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
