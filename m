@@ -1,69 +1,52 @@
-From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: Problem with RDMA device removal architecture
-Date: Fri, 26 Mar 2010 10:57:57 -0500
-Message-ID: <4BACD985.1070906@opengridcomputing.com>
+From: "Sean Hefty" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [RFC] [PATCH 5/22 v2] [for 2.6.36] rdma/cm: update port	reservation to support AF_IB
+Date: Fri, 26 Mar 2010 09:06:56 -0700
+Message-ID: <57287E48AAAD47A4BD50719B889F4596@amr.corp.intel.com>
+References: <2F3826558E79459EAD2A457A604221C1@amr.corp.intel.com> <012F7D9E5E97445E9100EF170212AEE7@amr.corp.intel.com> <7451BD1514874F3E987E55040776EECC@amr.corp.intel.com> <20100325202924.GO29129@obsidianresearch.com> <AC26D518E7AE4BE6BA3BDFC11480F8DB@amr.corp.intel.com> <20100325220435.GP29129@obsidianresearch.com> <C70579E21917462C89AAEAE3C225A58B@amr.corp.intel.com> <FD7DFBFAF86D4EA99F82836CBCA8AB33@amr.corp.intel.com> <20100326040809.GD9769@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain;
+	charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20100326040809.GD9769-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: 'Jason Gunthorpe' <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hey Roland and RDMA experts,
+>Right :) I just don't understand why you think AF_IB/RDMA_PS_TCP has
+>to be a supported combination.
 
-I'd like to raise an issue with the the architecture of the Linux RDMA 
-subsystem regarding device removal and RDMA provider deregistration:
+I don't see any reason to prevent it.  It works unless a specific check is added
+in the kernel to prevent it.  Do I think it absolutely must be supported?  No -
+so I don't have a strong disagreement on this.
 
-IBM/PPC and probably other vendors/platforms have virtual or logical 
-partitions running Linux and they want to be able to add or remove 
-devices, including rdma devices, in a hot-plug fashion.  They also want 
-to be able to "reset" a failed device (EEH events). For other networking 
-devices, this works fine.  With RDMA devices, however, it is possible 
-for user mode RDMA applications to totally hang the device removal 
-process by virtue of the fact that they don't release all their uverb 
-contexts and rdma cm ids.  If an application, for example,  allocates 
-and binds an rdma cm id, then just goes to sleep forever, that will hang 
-the removal of the underlying device.   Here is the path I'm talking about:
+It just seems like the code ends up as either:
 
-0) an evil application has an rdma cm id bound to rdma device A.  The 
-application is just sleeping doing nothing else.
+	if (sa_family == AF_IB) {
+		if (ps != PS_IB)
+			fail;
+		use_ps = get_ps(sid, mask);
+	}
+or
 
-1) device A event happens causing the device to unregister itself with 
-the RDMA core.  This could be an EEH event requiring full device reset, 
-or a OS hot-plug removal event.
+	if (sa_family == AF_IB) {
+		if (get_ps(sid, mask) != ps)
+			fail;
+		use_ps = ps;
+	}
 
-2) device A calls ib_unregister_device().  This results in calls to all 
-RDMA kernel clients' remove() function.
+>Is there some use case you see where having RDMA_PS_TCP/UDP work with
+>AF_IB is an advantage?
 
-3) rdma_cm:cma_remove_one() and friends end up posting 
-RDMA_CM_EVENT_DEVICE_REMOVAL events to all kernel users.
+Consider UDP, an application can create an id and join multicast groups using
+AF_INET, AF_INET6, and/or AF_IB - whatever addressing scheme is most convenient.
 
-4) rdma_ucm gets this event and dutifully posts it for the use app to 
-reap.   But since the app doesn't reap this event and exit or at least 
-destroy the cm id, nothing else happens.
+What I have right now for user space support requires application changes to
+make use of AF_IB anyway, so only supporting PS_IB isn't a big deal.  The
+benefit to existing code is limited to user space path record queries. 
 
-5) rdma_cm blocks awaiting all references on the device to go away.  
-Since there is an allocated cm id, it will block forever.
-
-Similar logic exists in uverbs as well, I think, but with a uverbs 
-context as the object that must be released by the application. 
-
-I propose that this is actually a denial of service type issue and we 
-should consider ways to fix it.   I believe we've had this discussion 
-before but punted on it.  However, I think this is pretty important for 
-some OS/platform environments, and I'd like to discuss it again with the 
-goal to fix the code so this issue never happens.
-
-Thoughts? 
-
-
-
-
-Thanks,
-
-Steve.
+- Sean
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
