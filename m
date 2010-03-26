@@ -1,50 +1,31 @@
 From: "Sean Hefty" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [RFC] [PATCH 5/22 v2] [for 2.6.36] rdma/cm: update port	reservation to support AF_IB
-Date: Fri, 26 Mar 2010 09:06:56 -0700
-Message-ID: <57287E48AAAD47A4BD50719B889F4596@amr.corp.intel.com>
-References: <2F3826558E79459EAD2A457A604221C1@amr.corp.intel.com> <012F7D9E5E97445E9100EF170212AEE7@amr.corp.intel.com> <7451BD1514874F3E987E55040776EECC@amr.corp.intel.com> <20100325202924.GO29129@obsidianresearch.com> <AC26D518E7AE4BE6BA3BDFC11480F8DB@amr.corp.intel.com> <20100325220435.GP29129@obsidianresearch.com> <C70579E21917462C89AAEAE3C225A58B@amr.corp.intel.com> <FD7DFBFAF86D4EA99F82836CBCA8AB33@amr.corp.intel.com> <20100326040809.GD9769@obsidianresearch.com>
+Subject: RE: Problem with RDMA device removal architecture
+Date: Fri, 26 Mar 2010 09:16:23 -0700
+Message-ID: <DAF23AFA2B904B32B418D9C8798D4276@amr.corp.intel.com>
+References: <4BACD985.1070906@opengridcomputing.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20100326040809.GD9769-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <4BACD985.1070906-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: 'Jason Gunthorpe' <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+To: 'Steve Wise' <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
->Right :) I just don't understand why you think AF_IB/RDMA_PS_TCP has
->to be a supported combination.
+>4) rdma_ucm gets this event and dutifully posts it for the use app to
+>reap.   But since the app doesn't reap this event and exit or at least
+>destroy the cm id, nothing else happens.
 
-I don't see any reason to prevent it.  It works unless a specific check is added
-in the kernel to prevent it.  Do I think it absolutely must be supported?  No -
-so I don't have a strong disagreement on this.
+For the rdma_ucm, it should post the event, but destroy the underlying
+rdma_cm_id (possibly by returning non-zero from the remove callback or from
+another thread).  The only call that the rdma_ucm will succeed from user space
+at that point is destroy.  State checking and synchronization would need to be
+used to mark that the kernel id has already been freed.
 
-It just seems like the code ends up as either:
-
-	if (sa_family == AF_IB) {
-		if (ps != PS_IB)
-			fail;
-		use_ps = get_ps(sid, mask);
-	}
-or
-
-	if (sa_family == AF_IB) {
-		if (get_ps(sid, mask) != ps)
-			fail;
-		use_ps = ps;
-	}
-
->Is there some use case you see where having RDMA_PS_TCP/UDP work with
->AF_IB is an advantage?
-
-Consider UDP, an application can create an id and join multicast groups using
-AF_INET, AF_INET6, and/or AF_IB - whatever addressing scheme is most convenient.
-
-What I have right now for user space support requires application changes to
-make use of AF_IB anyway, so only supporting PS_IB isn't a big deal.  The
-benefit to existing code is limited to user space path record queries. 
+We just need to ensure that the rdma_ucm doesn't try to destroy an id that is in
+another downcall, and I think the synchronization will be non-trivial.
 
 - Sean
 
