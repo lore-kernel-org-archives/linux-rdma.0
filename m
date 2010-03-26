@@ -1,46 +1,67 @@
-From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Subject: Re: Problem with RDMA device removal architecture
-Date: Fri, 26 Mar 2010 13:45:27 -0700
-Message-ID: <adahbo2yfq0.fsf@roland-alpha.cisco.com>
-References: <4BACD985.1070906@opengridcomputing.com>
-	<DAF23AFA2B904B32B418D9C8798D4276@amr.corp.intel.com>
-	<4BACE28A.2080409@opengridcomputing.com>
-	<adazl1vxb7p.fsf@roland-alpha.cisco.com>
-	<603F8A3875DCE940BA37B49D0A6EA0AE84CFDB38@azsmsx501.amr.corp.intel.com>
+From: Pradeep Satyanarayana <pradeeps-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
+Subject: Re: How to monitor traffic with IBoE/RoCEE?
+Date: Fri, 26 Mar 2010 13:47:10 -0700
+Message-ID: <4BAD1D4E.8060208@linux.vnet.ibm.com>
+References: <4BABFD62.70608@linux.vnet.ibm.com>
+	<382A478CAD40FA4FB46605CF81FE39F455FF9847@orsmsx507.amr.corp.intel.com>
+	<4BACF226.6030201@utah.edu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <603F8A3875DCE940BA37B49D0A6EA0AE84CFDB38-uLM7Qlg6Mbekrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
-	(Chien Tin Tung's message of "Fri, 26 Mar 2010 13:18:35 -0700")
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Tung, Chien Tin" <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+In-Reply-To: <4BACF226.6030201-wbocuHtxKic@public.gmane.org>
+List-Unsubscribe: <http://lists.openfabrics.org/cgi-bin/mailman/listinfo/ewg>,
+	<mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.openfabrics.org/pipermail/ewg>
+List-Post: <mailto:ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+List-Help: <mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=help>
+List-Subscribe: <http://lists.openfabrics.org/cgi-bin/mailman/listinfo/ewg>,
+	<mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=subscribe>
+Sender: ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
+Errors-To: ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
+To: Tom Ammon <tom.ammon-wbocuHtxKic@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, EWG <Openfabrics-ewg-0P3JtQMG0aQdnm+yROfE0A@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
- > >uverbs is trickier, because a userspace process will typically have some
- > >hardware resources directly mmap'ed.  We need a way to "revoke" that
- > >mmap and have it point at a dummy page until userspace releases it --
- > >and last I looked I wasn't sure how to do that.
+Tom Ammon wrote:
+> A widely-supported method for collecting statistics from ethernet
+> switching devices is SNMP. As Woody said, you wouldn't manage your
+> ethernet network any differently than you do now. In addition many many
+> tools have been written to make use of SNMP counters, so you won't have
+> a hard time finding tools, both commercial and open source.
+> 
+> Tom
+> 
+> On 03/26/2010 11:29 AM, Woodruff, Robert J wrote:
+>> Pradeep wrote,
+>>
+>>   
+>>> With IBoE/RoCEE, the traditional SM in IB clusters is not needed.
+>>> Most of the current
+>>> IB tools rely on the SM and PM to get packet and error statistics and
+>>> so on. These
+>>> won't be applicable with IBoE/RoCEE. netstat will have no value since
+>>> the kernel
+>>> has been bypassed. So, how does one monitor traffic in such a cluster?
+>>>      
+>> Some managed Ethernet switches have the ability to log into them and
+>> get information
+>> on packets transmited/received on each port and errors that are
+>> detected. However,
+>> these are typically proprietary. I am not sure about the Mellanox card.
+>>
+>> So I guess the answer is that you manage RoCCE and iWarp clusters just
+>> like
+>> you would any Ethernet cluster, with existing management tools that
+>> are available
+>> for managing Ethernet.
+>>
+>> woody
 
- > Isn't "revoking" the mmap enough, why do we need to remap it
- > to a dummy page?  Why not just let the app hang on to the allocated virtual
- > memory until it exits?  I am thinking of registered memory here.
+True, I suspected that would be the case. However, that means we are using
+a different management model than with IB clusters. Hence, I was curious if
+Mellanox had any tools to get say some hardware counters without going to a
+different management model.
 
-If you revoke the mmap, then presumably the process will seg fault if it
-tries to access the page.  So you need to point the map to some real
-page to handle accesses until the process actually closes the device.
-
-(And I think what we'll want to do is queue up the "catastrophic error"
-async event and then immediately allow the low-level device to reset, so
-we need to handle the mmap in a way that doesn't kill the app; otherwise
-there's no way for even a well-behaved app to avoid crashing, since it
-might be about to do an MMIO to the mmapped registers just as the async
-event is created)
--- 
-Roland Dreier  <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-For corporate legal information go to:
-http://www.cisco.com/web/about/doing_business/legal/cri/index.html
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks
+Pradeep
