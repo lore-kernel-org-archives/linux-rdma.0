@@ -1,24 +1,34 @@
-From: "Sean Hefty" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: umad_register_oui
-Date: Fri, 26 Mar 2010 13:00:12 -0700
-Message-ID: <3F5FB92A829547AF927C59B5649489B9@amr.corp.intel.com>
+From: "Tung, Chien Tin" <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: Problem with RDMA device removal architecture
+Date: Fri, 26 Mar 2010 13:18:35 -0700
+Message-ID: <603F8A3875DCE940BA37B49D0A6EA0AE84CFDB38@azsmsx501.amr.corp.intel.com>
+References: <4BACD985.1070906@opengridcomputing.com>
+	<DAF23AFA2B904B32B418D9C8798D4276@amr.corp.intel.com>
+	<4BACE28A.2080409@opengridcomputing.com>
+ <adazl1vxb7p.fsf@roland-alpha.cisco.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <adazl1vxb7p.fsf-BjVyx320WGW9gfZ95n9DRSW4+XlvGpQz@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Cc: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Sasha,
+>uverbs is trickier, because a userspace process will typically have some
+>hardware resources directly mmap'ed.  We need a way to "revoke" that
+>mmap and have it point at a dummy page until userspace releases it --
+>and last I looked I wasn't sure how to do that.
 
-We hit a bug in our windows implementation of libibumad that highlights an issue
-with the umad interface.  umad_register_oui does not take the mgmt_class as
-input, where umad_register does.  umad_register_oui assumes that the
-mgmt_version is 1.  Not sure if or how you want to handle this.
 
-- Sean
+Isn't "revoking" the mmap enough, why do we need to remap it
+to a dummy page?  Why not just let the app hang on to the allocated virtual
+memory until it exits?  I am thinking of registered memory here.
+
+Chien
+
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
