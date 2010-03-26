@@ -1,36 +1,25 @@
 From: "Sean Hefty" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: Problem with RDMA device removal architecture
-Date: Fri, 26 Mar 2010 10:08:12 -0700
-Message-ID: <AB19885D9F4245DFABBCB131959382C5@amr.corp.intel.com>
-References: <4BACD985.1070906@opengridcomputing.com> <DAF23AFA2B904B32B418D9C8798D4276@amr.corp.intel.com> <4BACE28A.2080409@opengridcomputing.com>
+Subject: RE: [RFC] [PATCH 5/22 v2] [for 2.6.36] rdma/cm: update port	reservation to support AF_IB
+Date: Fri, 26 Mar 2010 10:17:13 -0700
+Message-ID: <350558935FCC47B6A5ABA8402109746C@amr.corp.intel.com>
+References: <2F3826558E79459EAD2A457A604221C1@amr.corp.intel.com> <012F7D9E5E97445E9100EF170212AEE7@amr.corp.intel.com> <7451BD1514874F3E987E55040776EECC@amr.corp.intel.com> <20100325202924.GO29129@obsidianresearch.com> <AC26D518E7AE4BE6BA3BDFC11480F8DB@amr.corp.intel.com> <20100325220435.GP29129@obsidianresearch.com> <C70579E21917462C89AAEAE3C225A58B@amr.corp.intel.com> <FD7DFBFAF86D4EA99F82836CBCA8AB33@amr.corp.intel.com> <20100326040809.GD9769@obsidianresearch.com> <57287E48AAAD47A4BD50719B889F4596@amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4BACE28A.2080409-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+In-Reply-To: <57287E48AAAD47A4BD50719B889F4596-Zpru7NauK7drdx17CPfAsdBPR1lH4CV8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: 'Steve Wise' <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Cc: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Jason Gunthorpe' <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
->In other words, I think we want the ucma context to stay around until
->the application destroys it (via explicit means or via exit).   But the
->rdma_cm_id gets destroyed immediately upon receiving a DEVICE_REMOVE event.
+>Consider UDP, an application can create an id and join multicast groups using
+>AF_INET, AF_INET6, and/or AF_IB - whatever addressing scheme is most
+>convenient.
 
-Yes - this is what I was trying to say.
-
-The problem is trying to destroy the rdma_cm_id 'immediately' upon receiving a
-device remove event.  The user could be in a separate downcall into the rdma_cm
-at the time the device removal occurs, and we cannot call rdma_destroy_id while
-calling rdma_foo() for the same id.  Plus, 'foo' may be 'destroy_id', and we
-can't destroy the id twice.
-
-For the trivial case, if the rdma_cm_id is not in use, we just return -1 to the
-remove device callback to destroy the id.  But if the rdma_cm_id is in use, then
-we must schedule the destruction of the rdma_cm_id to a separate thread and
-synchronize that thread against user space destroying the id before the thread
-can run.
+Actually, the port space doesn't matter when specifying a multicast group.  So,
+I can't think of any real advantage to supporting AF_IB/PS_TCP.
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
