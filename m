@@ -1,39 +1,36 @@
-From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Subject: Re: Problem with RDMA device removal architecture
-Date: Fri, 26 Mar 2010 16:00:05 -0700
-Message-ID: <adad3yqy9hm.fsf@roland-alpha.cisco.com>
-References: <4BACD985.1070906@opengridcomputing.com>
-	<DAF23AFA2B904B32B418D9C8798D4276@amr.corp.intel.com>
-	<4BACE28A.2080409@opengridcomputing.com>
-	<adazl1vxb7p.fsf@roland-alpha.cisco.com>
-	<06FEECB9AB064B309D21BA9AC0A4BFFD@amr.corp.intel.com>
+From: "Sean Hefty" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [RFC] [PATCH 5/22 v2] [for 2.6.36] rdma/cm: update port	reservation to support AF_IB
+Date: Fri, 26 Mar 2010 17:11:04 -0700
+Message-ID: <0F1BE18DBBF74165AEA2B3283B01F338@amr.corp.intel.com>
+References: <2F3826558E79459EAD2A457A604221C1@amr.corp.intel.com> <012F7D9E5E97445E9100EF170212AEE7@amr.corp.intel.com> <7451BD1514874F3E987E55040776EECC@amr.corp.intel.com> <20100325202924.GO29129@obsidianresearch.com> <AC26D518E7AE4BE6BA3BDFC11480F8DB@amr.corp.intel.com> <20100325220435.GP29129@obsidianresearch.com> <C70579E21917462C89AAEAE3C225A58B@amr.corp.intel.com> <FD7DFBFAF86D4EA99F82836CBCA8AB33@amr.corp.intel.com> <20100326040809.GD9769@obsidianresearch.com> <57287E48AAAD47A4BD50719B889F4596@amr.corp.intel.com> <350558935FCC47B6A5ABA8402109746C@amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <06FEECB9AB064B309D21BA9AC0A4BFFD-Zpru7NauK7drdx17CPfAsdBPR1lH4CV8@public.gmane.org> (Sean
-	Hefty's message of "Fri, 26 Mar 2010 15:54:58 -0700")
+In-Reply-To: <350558935FCC47B6A5ABA8402109746C-Zpru7NauK7drdx17CPfAsdBPR1lH4CV8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Jason Gunthorpe' <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Tom Tucker <tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
- > >uverbs is trickier, because a userspace process will typically have some
- > >hardware resources directly mmap'ed.  We need a way to "revoke" that
- > >mmap and have it point at a dummy page until userspace releases it --
+>Actually, the port space doesn't matter when specifying a multicast group.  So,
+>I can't think of any real advantage to supporting AF_IB/PS_TCP.
 
- > What exactly would the dummy page contain and could the application/library read
- > it assuming that it is obtaining valid data?
+Okay - I found one advantage - fewer changes.  :b
 
-It would be an all-0s page I guess (to avoid leaking kernel data).
+I've started adding RDMA_PS_IB.  But the rdma_cm code uses the port space to
+select between UD or RC operation, so additional changes are needed.  (I'm doing
+them now rather than deferring them, since it affects the user to kernel
+interface.)  Since PS IB is not sufficient, I'm adding the qp_type as a
+parameter into rdma_create_id, for that purpose instead.  (This change is only
+to the kernel API.)
 
-What the device driver library would do with it is device-specific but
-eg Mellanox uses it write-only.  Not sure if any other devices put
-something readable there -- if so I guess that driver should put a safe
-value there if possible.
--- 
-Roland Dreier  <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-For corporate legal information go to:
-http://www.cisco.com/web/about/doing_business/legal/cri/index.html
+This should allow for eventual support of UC QPs, for which there is an
+outstanding request.
+
+- Sean
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
