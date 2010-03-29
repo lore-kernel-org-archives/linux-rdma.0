@@ -1,26 +1,26 @@
-From: "Sean Hefty" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: nfsrdma broken on 2.6.34-rc1?
-Date: Mon, 29 Mar 2010 11:43:45 -0700
-Message-ID: <B18454F3200D4A43B57F175388845AAC@amr.corp.intel.com>
-References: <4BB0E670.3010507@opengridcomputing.com>
+From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: Re: nfsrdma broken on 2.6.34-rc1?
+Date: Mon, 29 Mar 2010 13:51:58 -0500
+Message-ID: <4BB0F6CE.50303@opengridcomputing.com>
+References: <4BB0E670.3010507@opengridcomputing.com> <B18454F3200D4A43B57F175388845AAC@amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4BB0E670.3010507-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+In-Reply-To: <B18454F3200D4A43B57F175388845AAC-Zpru7NauK7drdx17CPfAsdBPR1lH4CV8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: 'Steve Wise' <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+To: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Tom Tucker <tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
->Does the rdma-cm allow concurrent binds to PF_INET, INADDR_ANY, port=X
->and PF_INET6, IN6ADDR_ANY_INIT, port=X ?
+Sean Hefty wrote:
+>
+> The rdma_cm might be able to support this if the port space were separated based
+> on the address family, depending on how PS IB ends up.
 
-No, since this shows up in the rdma_cm as using the same port space.
+I think separate port spaces is the correct solution.
 
-The rdma_cm might be able to support this if the port space were separated based
-on the address family, depending on how PS IB ends up.
+Steve.
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
