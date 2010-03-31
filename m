@@ -1,56 +1,60 @@
-From: Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH] opensm/osm_dump.c: dump SL2VL tables
-Date: Wed, 31 Mar 2010 11:55:10 +0300
-Message-ID: <4BB30DEE.6000206@dev.mellanox.co.il>
-References: <4BAB879E.30203@dev.mellanox.co.il>
-	<1269535468.4618.159.camel@sale659.sandia.gov>
+From: Ralph Campbell <ralph.campbell-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH 1/3] IB/core: use IB_CQ_REPORT_MISSED_EVENTS to avoid missed
+	CQ callbacks
+Date: Wed, 31 Mar 2010 10:57:47 -0700
+Message-ID: <20100331175747.24522.88472.stgit@chromite.mv.qlogic.com>
+References: <20100331175742.24522.17850.stgit@chromite.mv.qlogic.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1255"; format="flowed"
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1269535468.4618.159.camel-mgfCWIlwujvg4c9jKm7R2O1ftBKYq+Ku@public.gmane.org>
+In-Reply-To: <20100331175742.24522.17850.stgit-/vjeY7uYZjrPXfVEPVhPGq6RkeBMCJyt@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jim Schutt <jaschut-4OHPYypu0djtX7QSmKvirg@public.gmane.org>
-Cc: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>, Linux RDMA <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Jim,
+ib_req_notify_cq(IB_CQ_NEXT_COMP) is not guaranteed to generate
+a callback for the next completion entered since there is a race
+between arming the callback and another CQE being added to the queue.
+The IB_CQ_REPORT_MISSED_EVENTS flag was added to detect this
+race and allow the verbs consumer to call ib_poll_cq() and
+ib_req_notify_cq() again to avoid delays in processing the CQE.
 
-On 25/Mar/10 18:44, Jim Schutt wrote:
->
-> Hi Yevgey,
->
-> On Thu, 2010-03-25 at 09:56 -0600, Yevgeny Kliteynik wrote:
->> Hi Sasha,
->>
->> Dumping SL2VL tables in ROUTING verbosity level when QoS is on.
->> This is needed for SL2VL tables analysis in general, and for
->> routing engines that are using IB VLs in particular, such as
->> torus-2QoS.
->>
->
-> Very cool.  Thanks.
+Signed-off-by: Ralph Campbell <ralph.campbell-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+---
 
-Sure, no problem.
-The next dump file would be path resolution file,  which
-will have SLs (and other parameters) for all the paths.
+ drivers/infiniband/core/mad.c |    7 ++++++-
+ 1 files changed, 6 insertions(+), 1 deletions(-)
 
--- Yevgeny
-  
-> -- Jim
->
->> Signed-off-by: Yevgeny Kliteynik<kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
->> ---
->>   opensm/opensm/osm_dump.c |   61 +++++++++++++++++++++++++++++++++++++++++++++-
->>   1 files changed, 60 insertions(+), 1 deletions(-)
->
->
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+diff --git a/drivers/infiniband/core/mad.c b/drivers/infiniband/core/mad.c
+index e351b15..54c413e 100644
+--- a/drivers/infiniband/core/mad.c
++++ b/drivers/infiniband/core/mad.c
+@@ -2226,10 +2226,11 @@ static void ib_mad_completion_handler(struct work_struct *work)
+ {
+ 	struct ib_mad_port_private *port_priv;
+ 	struct ib_wc wc;
++	int ret;
+ 
+ 	port_priv = container_of(work, struct ib_mad_port_private, work);
+-	ib_req_notify_cq(port_priv->cq, IB_CQ_NEXT_COMP);
+ 
++again:
+ 	while (ib_poll_cq(port_priv->cq, 1, &wc) == 1) {
+ 		if (wc.status == IB_WC_SUCCESS) {
+ 			switch (wc.opcode) {
+@@ -2246,6 +2247,10 @@ static void ib_mad_completion_handler(struct work_struct *work)
+ 		} else
+ 			mad_error_handler(port_priv, &wc);
+ 	}
++	ret = ib_req_notify_cq(port_priv->cq, IB_CQ_NEXT_COMP |
++					      IB_CQ_REPORT_MISSED_EVENTS);
++	if (ret > 0)
++		goto again;
+ }
+ 
+ static void cancel_mads(struct ib_mad_agent_private *mad_agent_priv)
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
