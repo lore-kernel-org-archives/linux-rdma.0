@@ -1,7 +1,7 @@
 From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 Subject: Re: [PATCH v2 13/51] IB/qib: Add qib_driver.c
-Date: Wed, 31 Mar 2010 16:20:22 -0700
-Message-ID: <adafx3743n6.fsf@roland-alpha.cisco.com>
+Date: Wed, 31 Mar 2010 16:23:33 -0700
+Message-ID: <ada4ojn43mm.fsf@roland-alpha.cisco.com>
 References: <20091203190305.29507.58158.stgit@chromite.mv.qlogic.com>
 	<20091203190413.29507.17962.stgit@chromite.mv.qlogic.com>
 Mime-Version: 1.0
@@ -12,17 +12,14 @@ To: Ralph Campbell <ralph.campbell-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
- > +unsigned qib_debug;
- > +module_param_named(debug, qib_debug, uint, S_IWUSR | S_IRUGO);
- > +MODULE_PARM_DESC(debug, "mask for debug prints");
+ > +DEFINE_MUTEX(qib_mutex);	/* general driver use */
 
-Did you look at using trace events for this stuff?  That gives you
-extremely low overhead when tracing is turned off (dynamic patching to
-NOP out the tracing when it's disabled) and also very fine-grained (per
-trace site) control over what gets printed; plus you get dumping of the
-trace buffer on crash, etc.
-
- - R.
+Rather than having this ill-defined mutex that I think is going to make
+it hard to understand the locking and get the lock ordering right, would
+it be better to have well-defined locking rules?  AFAICT this mutex is
+used in only two places, qib_diag.c and qib_file_op.c.  Are those two
+uses protecting the same thing?  Or could we have two static mutexes,
+one in each file, that protects what each file needs protected?
 -- 
 Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org> || For corporate legal information go to:
 http://www.cisco.com/web/about/doing_business/legal/cri/index.html
