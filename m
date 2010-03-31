@@ -1,56 +1,27 @@
 From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 1/3] IB/core: use IB_CQ_REPORT_MISSED_EVENTS to avoid missed CQ callbacks
-Date: Wed, 31 Mar 2010 11:17:16 -0700
-Message-ID: <ada4ojwjqz7.fsf@roland-alpha.cisco.com>
+Subject: Re: [PATCH 2/3] IB/srp: use IB_CQ_REPORT_MISSED_EVENTS to avoid  missed CQ callbacks
+Date: Wed, 31 Mar 2010 11:18:44 -0700
+Message-ID: <adazl1oiccb.fsf@roland-alpha.cisco.com>
 References: <20100331175742.24522.17850.stgit@chromite.mv.qlogic.com>
-	<20100331175747.24522.88472.stgit@chromite.mv.qlogic.com>
+	<20100331175752.24522.66519.stgit@chromite.mv.qlogic.com>
+	<y2ie2e108261003311111uec1ec00g746ba0ffe3d98799@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20100331175747.24522.88472.stgit-/vjeY7uYZjrPXfVEPVhPGq6RkeBMCJyt@public.gmane.org> (Ralph
-	Campbell's message of "Wed, 31 Mar 2010 10:57:47 -0700")
+In-Reply-To: <y2ie2e108261003311111uec1ec00g746ba0ffe3d98799-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+	(Bart Van Assche's message of "Wed, 31 Mar 2010 20:11:40 +0200")
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ralph Campbell <ralph.campbell-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Cc: Ralph Campbell <ralph.campbell-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
- > ib_req_notify_cq(IB_CQ_NEXT_COMP) is not guaranteed to generate
- > a callback for the next completion entered since there is a race
- > between arming the callback and another CQE being added to the queue.
- > The IB_CQ_REPORT_MISSED_EVENTS flag was added to detect this
- > race and allow the verbs consumer to call ib_poll_cq() and
- > ib_req_notify_cq() again to avoid delays in processing the CQE.
+ > The SRP initiator works fine without this patch, and this patch slows
+ > down the SRP initiator.
 
-I'm not sure I understand the race you're fixing here... the existing
-code does the rearm before polling:
-
- > +	int ret;
- >  
- >  	port_priv = container_of(work, struct ib_mad_port_private, work);
- > -	ib_req_notify_cq(port_priv->cq, IB_CQ_NEXT_COMP);
- >  
- > +again:
- >  	while (ib_poll_cq(port_priv->cq, 1, &wc) == 1) {
- >  		if (wc.status == IB_WC_SUCCESS) {
- >  			switch (wc.opcode) {
- > @@ -2246,6 +2247,10 @@ static void ib_mad_completion_handler(struct work_struct *work)
- >  		} else
- >  			mad_error_handler(port_priv, &wc);
- >  	}
- > +	ret = ib_req_notify_cq(port_priv->cq, IB_CQ_NEXT_COMP |
- > +					      IB_CQ_REPORT_MISSED_EVENTS);
- > +	if (ret > 0)
- > +		goto again;
-
-The only issue with the existing code is that it may trigger extra
-events that will find the CQ empty when polling.
-
-So this may be a valid optimization but I don't see it fixing any missed
-events.  Am I missing something?
-
-Also for all these fixes, I think you only want to rearm the CQ once and
-go back and poll if you get a missed events warning; the next time the
-CQ is empty, then you know another event will happen.
+I do agree that there are no missed callbacks without this patch, but I
+don't see how it would slow things down... it seems to me it would avoid
+some CQ event callbacks, especially for HCAs where
+IB_CQ_REPORT_MISSED_EVENTS never returns >0 for missed events.
 
  - R.
 -- 
