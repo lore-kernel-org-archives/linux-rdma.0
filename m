@@ -1,8 +1,8 @@
 From: Ralph Campbell <ralph.campbell-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH 2/3] IB/srp: use IB_CQ_REPORT_MISSED_EVENTS to avoid missed CQ
-	callbacks
-Date: Wed, 31 Mar 2010 10:57:52 -0700
-Message-ID: <20100331175752.24522.66519.stgit@chromite.mv.qlogic.com>
+Subject: [PATCH 3/3] IB/iser: use IB_CQ_REPORT_MISSED_EVENTS to avoid missed
+	CQ callbacks
+Date: Wed, 31 Mar 2010 10:57:58 -0700
+Message-ID: <20100331175757.24522.71999.stgit@chromite.mv.qlogic.com>
 References: <20100331175742.24522.17850.stgit@chromite.mv.qlogic.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -24,35 +24,39 @@ ib_req_notify_cq() again to avoid delays in processing the CQE.
 Signed-off-by: Ralph Campbell <ralph.campbell-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
 ---
 
- drivers/infiniband/ulp/srp/ib_srp.c |    7 ++++++-
- 1 files changed, 6 insertions(+), 1 deletions(-)
+ drivers/infiniband/ulp/iser/iser_verbs.c |   10 +++++++---
+ 1 files changed, 7 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
-index ed3f9eb..b0376f1 100644
---- a/drivers/infiniband/ulp/srp/ib_srp.c
-+++ b/drivers/infiniband/ulp/srp/ib_srp.c
-@@ -921,8 +921,9 @@ static void srp_recv_completion(struct ib_cq *cq, void *target_ptr)
- {
- 	struct srp_target_port *target = target_ptr;
- 	struct ib_wc wc;
+diff --git a/drivers/infiniband/ulp/iser/iser_verbs.c b/drivers/infiniband/ulp/iser/iser_verbs.c
+index 308d17b..8cfd1c0 100644
+--- a/drivers/infiniband/ulp/iser/iser_verbs.c
++++ b/drivers/infiniband/ulp/iser/iser_verbs.c
+@@ -783,8 +783,11 @@ static void iser_cq_tasklet_fn(unsigned long data)
+ 	 unsigned long	     xfer_len;
+ 	struct iser_conn *ib_conn;
+ 	int completed_tx, completed_rx;
 +	int ret;
++
+ 	completed_tx = completed_rx = 0;
  
--	ib_req_notify_cq(cq, IB_CQ_NEXT_COMP);
 +again:
- 	while (ib_poll_cq(cq, 1, &wc) > 0) {
- 		if (wc.status) {
- 			shost_printk(KERN_ERR, target->scsi_host,
-@@ -934,6 +935,10 @@ static void srp_recv_completion(struct ib_cq *cq, void *target_ptr)
- 
- 		srp_handle_recv(target, &wc);
+ 	while (ib_poll_cq(cq, 1, &wc) == 1) {
+ 		desc	 = (struct iser_rx_desc *) (unsigned long) wc.wr_id;
+ 		BUG_ON(desc == NULL);
+@@ -807,9 +810,10 @@ static void iser_cq_tasklet_fn(unsigned long data)
+ 		if (!(completed_rx & 63))
+ 			completed_tx += iser_drain_tx_cq(device);
  	}
+-	/* #warning "it is assumed here that arming CQ only once its empty" *
+-	 * " would not cause interrupts to be missed"                       */
+-	ib_req_notify_cq(cq, IB_CQ_NEXT_COMP);
 +	ret = ib_req_notify_cq(cq, IB_CQ_NEXT_COMP |
 +				   IB_CQ_REPORT_MISSED_EVENTS);
 +	if (ret > 0)
 +		goto again;
- }
  
- static void srp_send_completion(struct ib_cq *cq, void *target_ptr)
+ 	completed_tx += iser_drain_tx_cq(device);
+ 	iser_dbg("got %d rx %d tx completions\n", completed_rx, completed_tx);
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
