@@ -1,7 +1,7 @@
 From: "Sean Hefty" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 18/26] rdma/ucm: support querying for AF_IB addresses
+Subject: [PATCH 16/26] rdma/cm: expose private data when using AF_IB
 Date: Thu, 1 Apr 2010 10:08:41 -0700
-Message-ID: <90625C05F167432FB27BE6E40893FFF1@amr.corp.intel.com>
+Message-ID: <04C434500E4B462A899BC3666334D4E7@amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="us-ascii"
@@ -13,180 +13,112 @@ Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-The sockaddr structure for AF_IB is larger than sockaddr_in6.
-The rdma cm user space ABI uses the latter to exchange address
-information between user space and the kernel.
-
-To support querying for larger addresses, define a new query
-command that exchanges data using sockaddr_storage, rather
-than sockaddr_in6.  Unlike the existing query_route command,
-the new command only returns address information.  Route
-(i.e. path record) data is separated.
+If the source or destination address is AF_IB, then do not
+reserve a portion of the private data in the IB CM REQ or SIDR
+REQ messages for the cma header.  Instead, all private data
+should be exported to the user.  When AF_IB is used, the
+rdma cm does not have sufficient information to fill in the
+cma header.  Additionally, this will be necessary to support
+any IB connection through the rdma cm interface, 
 
 Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
 
- drivers/infiniband/core/ucma.c |   76 +++++++++++++++++++++++++++++++++++++++-
- include/rdma/rdma_user_cm.h    |   22 ++++++++++--
- 2 files changed, 93 insertions(+), 5 deletions(-)
+ drivers/infiniband/core/cma.c |   34 ++++++++++++++++++----------------
+ 1 files changed, 18 insertions(+), 16 deletions(-)
 
-diff --git a/drivers/infiniband/core/ucma.c b/drivers/infiniband/core/ucma.c
-index 723fe83..2b6b51a 100644
---- a/drivers/infiniband/core/ucma.c
-+++ b/drivers/infiniband/core/ucma.c
-@@ -44,6 +44,7 @@
- #include <rdma/ib_marshall.h>
- #include <rdma/rdma_cm.h>
- #include <rdma/rdma_cm_ib.h>
-+#include <rdma/ib_addr.h>
- 
- MODULE_AUTHOR("Sean Hefty");
- MODULE_DESCRIPTION("RDMA Userspace Connection Manager Access");
-@@ -608,7 +609,7 @@ static ssize_t ucma_query_route(struct ucma_file *file,
- 				const char __user *inbuf,
- 				int in_len, int out_len)
+diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
+index 0432eca..b3188fc 100644
+--- a/drivers/infiniband/core/cma.c
++++ b/drivers/infiniband/core/cma.c
+@@ -820,6 +820,7 @@ static inline int cma_user_data_offset(enum rdma_port_space ps)
  {
--	struct rdma_ucm_query_route cmd;
-+	struct rdma_ucm_query cmd;
- 	struct rdma_ucm_query_route_resp resp;
- 	struct ucma_context *ctx;
- 	struct sockaddr *addr;
-@@ -655,6 +656,76 @@ out:
- 	return ret;
+ 	switch (ps) {
+ 	case RDMA_PS_SDP:
++	case RDMA_PS_IB:
+ 		return 0;
+ 	default:
+ 		return sizeof(struct cma_hdr);
+@@ -2349,19 +2350,19 @@ err1:
  }
+ EXPORT_SYMBOL(rdma_bind_addr);
  
-+static void ucma_query_device_addr(struct rdma_cm_id *cm_id,
-+				   struct rdma_ucm_query_addr_resp *resp)
-+{
-+	if (!cm_id->device)
-+		return;
-+
-+	resp->node_guid = (__force __u64) cm_id->device->node_guid;
-+	resp->port_num = cm_id->port_num;
-+	resp->pkey = (__force __u16) cpu_to_be16(
-+		     ib_addr_get_pkey(&cm_id->route.addr.dev_addr));
-+}
-+
-+static ssize_t ucma_query_addr(struct ucma_context *ctx,
-+			       void __user *response, int out_len)
-+{
-+	struct rdma_ucm_query_addr_resp resp;
-+	struct sockaddr *addr;
-+	int ret = 0;
-+
-+	if (out_len < sizeof(resp))
-+		return -ENOSPC;
-+
-+	memset(&resp, 0, sizeof resp);
-+
-+	addr = (struct sockaddr *) &ctx->cm_id->route.addr.src_addr;
-+	resp.src_size = rdma_addr_size(addr);
-+	memcpy(&resp.src_addr, addr, resp.src_size);
-+
-+	addr = (struct sockaddr *) &ctx->cm_id->route.addr.dst_addr;
-+	resp.dst_size = rdma_addr_size(addr);
-+	memcpy(&resp.dst_addr, addr, resp.dst_size);
-+
-+	ucma_query_device_addr(ctx->cm_id, &resp);
-+
-+	if (copy_to_user(response, &resp, sizeof(resp)))
-+		ret = -EFAULT;
-+
-+	return ret;
-+}
-+
-+static ssize_t ucma_query(struct ucma_file *file,
-+			  const char __user *inbuf,
-+			  int in_len, int out_len)
-+{
-+	struct rdma_ucm_query cmd;
-+	struct ucma_context *ctx;
-+	void __user *response;
-+	int ret;
-+
-+	if (copy_from_user(&cmd, inbuf, sizeof(cmd)))
-+		return -EFAULT;
-+
-+	response = (void __user *)(unsigned long) cmd.response;
-+	ctx = ucma_get_ctx(file, cmd.id);
-+	if (IS_ERR(ctx))
-+		return PTR_ERR(ctx);
-+
-+	switch (cmd.option) {
-+	case RDMA_USER_CM_QUERY_ADDR:
-+		ret = ucma_query_addr(ctx, response, out_len);
-+		break;
-+	default:
-+		ret = -ENOSYS;
-+		break;
-+	}
-+
-+	ucma_put_ctx(ctx);
-+	return ret;
-+}
-+
- static void ucma_copy_conn_param(struct rdma_conn_param *dst,
- 				 struct rdma_ucm_conn_param *src)
+-static int cma_format_hdr(void *hdr, enum rdma_port_space ps,
+-			  struct rdma_route *route)
++static int cma_format_hdr(void *hdr, struct rdma_cm_id *id)
  {
-@@ -1173,7 +1244,8 @@ static ssize_t (*ucma_cmd_table[])(struct ucma_file *file,
- 	[RDMA_USER_CM_CMD_NOTIFY]	= ucma_notify,
- 	[RDMA_USER_CM_CMD_JOIN_MCAST]	= ucma_join_multicast,
- 	[RDMA_USER_CM_CMD_LEAVE_MCAST]	= ucma_leave_multicast,
--	[RDMA_USER_CM_CMD_MIGRATE_ID]	= ucma_migrate_id
-+	[RDMA_USER_CM_CMD_MIGRATE_ID]	= ucma_migrate_id,
-+	[RDMA_USER_CM_CMD_QUERY]	= ucma_query
- };
+ 	struct cma_hdr *cma_hdr;
+ 	struct sdp_hh *sdp_hdr;
  
- static ssize_t ucma_write(struct file *filp, const char __user *buf,
-diff --git a/include/rdma/rdma_user_cm.h b/include/rdma/rdma_user_cm.h
-index d88c23c..9687b2f 100644
---- a/include/rdma/rdma_user_cm.h
-+++ b/include/rdma/rdma_user_cm.h
-@@ -61,7 +61,8 @@ enum {
- 	RDMA_USER_CM_CMD_NOTIFY,
- 	RDMA_USER_CM_CMD_JOIN_MCAST,
- 	RDMA_USER_CM_CMD_LEAVE_MCAST,
--	RDMA_USER_CM_CMD_MIGRATE_ID
-+	RDMA_USER_CM_CMD_MIGRATE_ID,
-+	RDMA_USER_CM_CMD_QUERY
- };
+-	if (route->addr.src_addr.ss_family == AF_INET) {
++	if (id->route.addr.src_addr.ss_family == AF_INET &&
++	    id->route.addr.dst_addr.ss_family == AF_INET) {
+ 		struct sockaddr_in *src4, *dst4;
  
- /*
-@@ -113,10 +114,14 @@ struct rdma_ucm_resolve_route {
- 	__u32 timeout_ms;
- };
+-		src4 = (struct sockaddr_in *) &route->addr.src_addr;
+-		dst4 = (struct sockaddr_in *) &route->addr.dst_addr;
++		src4 = (struct sockaddr_in *) &id->route.addr.src_addr;
++		dst4 = (struct sockaddr_in *) &id->route.addr.dst_addr;
  
--struct rdma_ucm_query_route {
-+enum {
-+	RDMA_USER_CM_QUERY_ADDR
-+};
-+
-+struct rdma_ucm_query {
- 	__u64 response;
- 	__u32 id;
--	__u32 reserved;
-+	__u32 option;
- };
+-		switch (ps) {
++		switch (id->ps) {
+ 		case RDMA_PS_SDP:
+ 			sdp_hdr = hdr;
+ 			if (sdp_get_majv(sdp_hdr->sdp_version) != SDP_MAJ_VERSION)
+@@ -2380,13 +2381,14 @@ static int cma_format_hdr(void *hdr, enum rdma_port_space ps,
+ 			cma_hdr->port = src4->sin_port;
+ 			break;
+ 		}
+-	} else {
++	} else if (id->route.addr.src_addr.ss_family == AF_INET6 &&
++		   id->route.addr.dst_addr.ss_family == AF_INET6) {
+ 		struct sockaddr_in6 *src6, *dst6;
  
- struct rdma_ucm_query_route_resp {
-@@ -129,6 +134,17 @@ struct rdma_ucm_query_route_resp {
- 	__u8 reserved[3];
- };
+-		src6 = (struct sockaddr_in6 *) &route->addr.src_addr;
+-		dst6 = (struct sockaddr_in6 *) &route->addr.dst_addr;
++		src6 = (struct sockaddr_in6 *) &id->route.addr.src_addr;
++		dst6 = (struct sockaddr_in6 *) &id->route.addr.dst_addr;
  
-+struct rdma_ucm_query_addr_resp {
-+	__u64 node_guid;
-+	__u8  port_num;
-+	__u8  reserved;
-+	__u16 pkey;
-+	__u16 src_size;
-+	__u16 dst_size;
-+	struct sockaddr_storage src_addr;
-+	struct sockaddr_storage dst_addr;
-+};
-+
- struct rdma_ucm_conn_param {
- 	__u32 qp_num;
- 	__u32 reserved;
+-		switch (ps) {
++		switch (id->ps) {
+ 		case RDMA_PS_SDP:
+ 			sdp_hdr = hdr;
+ 			if (sdp_get_majv(sdp_hdr->sdp_version) != SDP_MAJ_VERSION)
+@@ -2478,20 +2480,20 @@ static int cma_resolve_ib_udp(struct rdma_id_private *id_priv,
+ {
+ 	struct ib_cm_sidr_req_param req;
+ 	struct rdma_route *route;
+-	int ret;
++	int offset, ret;
+ 
+-	req.private_data_len = sizeof(struct cma_hdr) +
+-			       conn_param->private_data_len;
++	offset = cma_user_data_offset(id_priv->id.ps);
++	req.private_data_len = offset + conn_param->private_data_len;
+ 	req.private_data = kzalloc(req.private_data_len, GFP_ATOMIC);
+ 	if (!req.private_data)
+ 		return -ENOMEM;
+ 
+ 	if (conn_param->private_data && conn_param->private_data_len)
+-		memcpy((void *) req.private_data + sizeof(struct cma_hdr),
++		memcpy((void *) req.private_data + offset,
+ 		       conn_param->private_data, conn_param->private_data_len);
+ 
+ 	route = &id_priv->id.route;
+-	ret = cma_format_hdr((void *) req.private_data, id_priv->id.ps, route);
++	ret = cma_format_hdr((void *) req.private_data, &id_priv->id);
+ 	if (ret)
+ 		goto out;
+ 
+@@ -2545,7 +2547,7 @@ static int cma_connect_ib(struct rdma_id_private *id_priv,
+ 	}
+ 
+ 	route = &id_priv->id.route;
+-	ret = cma_format_hdr(private_data, id_priv->id.ps, route);
++	ret = cma_format_hdr(private_data, &id_priv->id);
+ 	if (ret)
+ 		goto out;
+ 	req.private_data = private_data;
 
 
 
