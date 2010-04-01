@@ -1,60 +1,40 @@
-From: Tom Tucker <tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: [PATCH,RFC] nfsd: Make INET6 transport creation failure an informational
- message
-Date: Thu, 01 Apr 2010 17:48:47 -0500
-Message-ID: <4BB522CF.60503@opengridcomputing.com>
+From: "Sean Hefty" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH 26/26] rdma/ucm: allow user space to specify AF_IB when	joining multicast
+Date: Thu, 1 Apr 2010 16:10:02 -0700
+Message-ID: <C3DE686AA3B749D99B38AD3B2161D54B@amr.corp.intel.com>
+References: <9D903E76C4EA4CF48BF2548F2BC8D2EA@amr.corp.intel.com> <20100401173809.GA15629@obsidianresearch.com> <89AF89412472472786051768B3A22420@amr.corp.intel.com> <20100401182732.GD15629@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Type: text/plain;
+	charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "J. Bruce Fields" <bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org>, Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20100401182732.GD15629-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: 'Jason Gunthorpe' <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Bruce/Chuck,
+>Humm, interesting.. So you propose to accept addresses for families
+>other than the one used to create the cm_id?
+>
+>Just from a simplicity of the future perspective I'd say not to bother
 
-RDMA Transports are currently broken in 2.6.34 because they don't have a 
-V4ONLY setsockopt. So what happens is that when write_ports attempts to 
-create the PF_INET6 transport it fails because the port is already in 
-use. There is discussion on linux-rdma about how to fix this, but in the 
-interim and perhaps indefinitely, I propose the following:
+Part of the reasoning behind the existing code is that users requested the
+ability to join a multicast group using an address of 0, so the transport could
+select what the address.  Once the address was selected, it was communicated to
+remote peers, who would join using the assigned address.  Today, the assigned
+address is passed as AF_INET6.  This patch tries to 'fix' that and allow the
+address to be passed to the kernel as AF_IB instead.
 
-Tom
+For compatibility reasons, I think we want to continue to support AF_INET
+rdma_cm_id's using AF_INET6 or AF_IB.  Off the top of my head, I can't think of
+any reason why support for AF_IB id's would need AF_INET/AF_INET6.  I don't know
+if IBoE would want this or not, but I can update the patch to remove this
+support.
 
-nfsd: Make INET6 transport creation failure an informational message
-
-The write_ports code will fail both the INET4 and INET6 transport creation if
-the transport returns an error when PF_INET6 is specified. Some transports
-that do not support INET6 return an error other than EAFNOSUPPORT. We should
-allow communication on INET4 even if INET6 is not yet supported or fails
-for some reason.
-
-Signed-off-by: Tom Tucker <tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
----
-
- fs/nfsd/nfsctl.c |    6 ++++--
- 1 files changed, 4 insertions(+), 2 deletions(-)
-
-diff --git a/fs/nfsd/nfsctl.c b/fs/nfsd/nfsctl.c
-index 0f0e77f..934b624 100644
---- a/fs/nfsd/nfsctl.c
-+++ b/fs/nfsd/nfsctl.c
-@@ -1008,8 +1008,10 @@ static ssize_t __write_ports_addxprt(char *buf)
- 
- 	err = svc_create_xprt(nfsd_serv, transport,
- 				PF_INET6, port, SVC_SOCK_ANONYMOUS);
--	if (err < 0 && err != -EAFNOSUPPORT)
--		goto out_close;
-+	if (err < 0)
-+		printk(KERN_INFO "nfsd: Error creating PF_INET6 listener "
-+		       "for transport '%s'\n", transport);
-+
- 	return 0;
- out_close:
- 	xprt = svc_find_xprt(nfsd_serv, transport, PF_INET, port);
+- Sean
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
