@@ -1,7 +1,7 @@
 From: "Sean Hefty" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 11/26] rdma/cm: do not modify sa_family when setting loopback address
+Subject: [PATCH 7/26] rdma/ucm: add support for RDMA_PS_IB when creating an ID
 Date: Thu, 1 Apr 2010 10:08:41 -0700
-Message-ID: <ED172842B704497795EB8217B5EF2BD5@amr.corp.intel.com>
+Message-ID: <B2764842B58C432384BCF32526E85ECE@amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="us-ascii"
@@ -10,91 +10,51 @@ Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 References: 
 In-Reply-To: 
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-cma_resolve_loopback is called after an rdma_cm_id has been
-bound to a specific sa_family and port.  Once the
-source sa_family for the id has been set, do not modify it.
-Only the actual IP address portion of the source address
-needs to be set.
-
-As part of this fix, we can simplify setting the source address
-by moving the loopback address assignment from cma_resolve_loopback
-to cma_bind_loopback.  cma_bind_loopback is only invoked when
-the source address is the loopback address.
-
-Finally, add loopback support for AF_IB as part of the change.
+In order to support RDMA_PS_IB, we need to know the qp type
+to associated with the rdma cm id.  Receive the qp type from
+user space using currently reserved fields.  Previous kernels
+do not support RDMA_PS_IB, so we only read out the qp type
+data if PS_IB has been selected.  This avoids issues reading
+uninitialized data from existing applications.
 
 Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
 
- drivers/infiniband/core/cma.c |   31 ++++++++++++++++++-------------
- 1 files changed, 18 insertions(+), 13 deletions(-)
+ drivers/infiniband/core/ucma.c |    3 +++
+ include/rdma/rdma_user_cm.h    |    3 ++-
+ 2 files changed, 5 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
-index b724eac..224b817 100644
---- a/drivers/infiniband/core/cma.c
-+++ b/drivers/infiniband/core/cma.c
-@@ -1775,6 +1775,23 @@ err:
- }
- EXPORT_SYMBOL(rdma_resolve_route);
+diff --git a/drivers/infiniband/core/ucma.c b/drivers/infiniband/core/ucma.c
+index 9feb18b..7a59039 100644
+--- a/drivers/infiniband/core/ucma.c
++++ b/drivers/infiniband/core/ucma.c
+@@ -359,6 +359,9 @@ static int ucma_get_qp_type(struct rdma_ucm_create_id *cmd, enum ib_qp_type *qp_
+ 	case RDMA_PS_IPOIB:
+ 		*qp_type = IB_QPT_UD;
+ 		return 0;
++	case RDMA_PS_IB:
++		*qp_type = cmd->qp_type;
++		return 0;
+ 	default:
+ 		return -EINVAL;
+ 	}
+diff --git a/include/rdma/rdma_user_cm.h b/include/rdma/rdma_user_cm.h
+index 1d16502..d88c23c 100644
+--- a/include/rdma/rdma_user_cm.h
++++ b/include/rdma/rdma_user_cm.h
+@@ -77,7 +77,8 @@ struct rdma_ucm_create_id {
+ 	__u64 uid;
+ 	__u64 response;
+ 	__u16 ps;
+-	__u8  reserved[6];
++	__u8  qp_type;
++	__u8  reserved[5];
+ };
  
-+static void cma_set_loopback(struct sockaddr *addr)
-+{
-+	switch (addr->sa_family) {
-+	case AF_INET:
-+		((struct sockaddr_in *) addr)->sin_addr.s_addr = htonl(INADDR_LOOPBACK);
-+		break;
-+	case AF_INET6:
-+		ipv6_addr_set(&((struct sockaddr_in6 *) addr)->sin6_addr,
-+			      0, 0, 0, htonl(1));
-+		break;
-+	default:
-+		ib_addr_set(&((struct sockaddr_ib *) addr)->sib_addr,
-+			    0, 0, 0, htonl(1));
-+		break;
-+	}
-+}
-+
- static int cma_bind_loopback(struct rdma_id_private *id_priv)
- {
- 	struct cma_device *cma_dev;
-@@ -1815,6 +1832,7 @@ port_found:
- 	ib_addr_set_pkey(&id_priv->id.route.addr.dev_addr, pkey);
- 	id_priv->id.port_num = p;
- 	cma_attach_to_dev(id_priv, cma_dev);
-+	cma_set_loopback((struct sockaddr *) &id_priv->id.route.addr.src_addr);
- out:
- 	mutex_unlock(&lock);
- 	return ret;
-@@ -1869,7 +1887,6 @@ out:
- static int cma_resolve_loopback(struct rdma_id_private *id_priv)
- {
- 	struct cma_work *work;
--	struct sockaddr *src, *dst;
- 	union ib_gid gid;
- 	int ret;
- 
-@@ -1886,18 +1903,6 @@ static int cma_resolve_loopback(struct rdma_id_private *id_priv)
- 	rdma_addr_get_sgid(&id_priv->id.route.addr.dev_addr, &gid);
- 	rdma_addr_set_dgid(&id_priv->id.route.addr.dev_addr, &gid);
- 
--	src = (struct sockaddr *) &id_priv->id.route.addr.src_addr;
--	if (cma_zero_addr(src)) {
--		dst = (struct sockaddr *) &id_priv->id.route.addr.dst_addr;
--		if ((src->sa_family = dst->sa_family) == AF_INET) {
--			((struct sockaddr_in *) src)->sin_addr.s_addr =
--				((struct sockaddr_in *) dst)->sin_addr.s_addr;
--		} else {
--			ipv6_addr_copy(&((struct sockaddr_in6 *) src)->sin6_addr,
--				       &((struct sockaddr_in6 *) dst)->sin6_addr);
--		}
--	}
--
- 	work->id = id_priv;
- 	INIT_WORK(&work->work, cma_work_handler);
- 	work->old_state = CMA_ADDR_QUERY;
+ struct rdma_ucm_create_id_resp {
 
 
 
