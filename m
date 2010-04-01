@@ -1,159 +1,143 @@
-From: "Sean Hefty" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 4/26] ib/addr: add AF_IB support to ip_addr_size
+From: "Sean Hefty" <sean.hefty@intel.com>
+Subject: [PATCH 1/26] rdma/cm: define native IB address
 Date: Thu, 1 Apr 2010 10:08:41 -0700
-Message-ID: <520996FAEFE34FE5A5622E1341E66B3E@amr.corp.intel.com>
+Message-ID: <F4B90A5C68C04784A828ACBDDF917EF5@amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <netdev-owner@vger.kernel.org>
 References: 
 In-Reply-To: 
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Sender: netdev-owner@vger.kernel.org
+To: linux-rdma@vger.kernel.org, 'Linux Netdev List' <netdev@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Add support for AF_IB to ip_addr_size, and rename the function
-to account for the change.  Give the compiler more control over
-whether the call should be inline or not by moving the definition
-into the .c file, removing the static inline, and exporting it.
+Define AF_IB and sockaddr_ib to allow the rdma_cm to use native IB
+addressing.
 
-Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Sean Hefty <sean.hefty@intel.com>
 ---
 
- drivers/infiniband/core/addr.c |   20 ++++++++++++++++++--
- drivers/infiniband/core/cma.c  |   12 ++++++------
- include/rdma/ib_addr.h         |    6 +-----
- 3 files changed, 25 insertions(+), 13 deletions(-)
+ include/linux/socket.h |    2 +
+ include/rdma/ib.h      |   89 ++++++++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 91 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/infiniband/core/addr.c b/drivers/infiniband/core/addr.c
-index abbb069..f73c5de 100644
---- a/drivers/infiniband/core/addr.c
-+++ b/drivers/infiniband/core/addr.c
-@@ -43,6 +43,7 @@
- #include <net/addrconf.h>
- #include <net/ip6_route.h>
- #include <rdma/ib_addr.h>
-+#include <rdma/ib.h>
- 
- MODULE_AUTHOR("Sean Hefty");
- MODULE_DESCRIPTION("IB Address Translation");
-@@ -68,6 +69,21 @@ static LIST_HEAD(req_list);
- static DECLARE_DELAYED_WORK(work, process_req);
- static struct workqueue_struct *addr_wq;
- 
-+int rdma_addr_size(struct sockaddr *addr)
-+{
-+	switch (addr->sa_family) {
-+	case AF_INET:
-+		return sizeof(struct sockaddr_in);
-+	case AF_INET6:
-+		return sizeof(struct sockaddr_in6);
-+	case AF_IB:
-+		return sizeof(struct sockaddr_ib);
-+	default:
-+		return 0;
-+	}
-+}
-+EXPORT_SYMBOL(rdma_addr_size);
+diff --git a/include/linux/socket.h b/include/linux/socket.h
+index 7b3aae2..966e268 100644
+--- a/include/linux/socket.h
++++ b/include/linux/socket.h
+@@ -181,6 +181,7 @@ struct ucred {
+ #define AF_PPPOX	24	/* PPPoX sockets		*/
+ #define AF_WANPIPE	25	/* Wanpipe API Sockets */
+ #define AF_LLC		26	/* Linux LLC			*/
++#define AF_IB		27	/* Native InfiniBand address	*/
+ #define AF_CAN		29	/* Controller Area Network      */
+ #define AF_TIPC		30	/* TIPC sockets			*/
+ #define AF_BLUETOOTH	31	/* Bluetooth sockets 		*/
+@@ -221,6 +222,7 @@ struct ucred {
+ #define PF_PPPOX	AF_PPPOX
+ #define PF_WANPIPE	AF_WANPIPE
+ #define PF_LLC		AF_LLC
++#define PF_IB		AF_IB
+ #define PF_CAN		AF_CAN
+ #define PF_TIPC		AF_TIPC
+ #define PF_BLUETOOTH	AF_BLUETOOTH
+diff --git a/include/rdma/ib.h b/include/rdma/ib.h
+new file mode 100644
+index 0000000..cf8f9e7
+--- /dev/null
++++ b/include/rdma/ib.h
+@@ -0,0 +1,89 @@
++/*
++ * Copyright (c) 2010 Intel Corporation.  All rights reserved.
++ *
++ * This software is available to you under a choice of one of two
++ * licenses.  You may choose to be licensed under the terms of the GNU
++ * General Public License (GPL) Version 2, available from the file
++ * COPYING in the main directory of this source tree, or the
++ * OpenIB.org BSD license below:
++ *
++ *     Redistribution and use in source and binary forms, with or
++ *     without modification, are permitted provided that the following
++ *     conditions are met:
++ *
++ *      - Redistributions of source code must retain the above
++ *        copyright notice, this list of conditions and the following
++ *        disclaimer.
++ *
++ *      - Redistributions in binary form must reproduce the above
++ *        copyright notice, this list of conditions and the following
++ *        disclaimer in the documentation and/or other materials
++ *        provided with the distribution.
++ *
++ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
++ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
++ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
++ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
++ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
++ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
++ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
++ * SOFTWARE.
++ */
 +
- void rdma_addr_register_client(struct rdma_addr_client *client)
- {
- 	atomic_set(&client->refcount, 1);
-@@ -366,12 +382,12 @@ int rdma_resolve_ip(struct rdma_addr_client *client,
- 			goto err;
- 		}
- 
--		memcpy(src_in, src_addr, ip_addr_size(src_addr));
-+		memcpy(src_in, src_addr, rdma_addr_size(src_addr));
- 	} else {
- 		src_in->sa_family = dst_addr->sa_family;
- 	}
- 
--	memcpy(dst_in, dst_addr, ip_addr_size(dst_addr));
-+	memcpy(dst_in, dst_addr, rdma_addr_size(dst_addr));
- 	req->addr = addr;
- 	req->callback = callback;
- 	req->context = context;
-diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
-index 6460fbf..ac57155 100644
---- a/drivers/infiniband/core/cma.c
-+++ b/drivers/infiniband/core/cma.c
-@@ -1468,7 +1468,7 @@ static void cma_listen_on_dev(struct rdma_id_private *id_priv,
- 
- 	dev_id_priv->state = CMA_ADDR_BOUND;
- 	memcpy(&id->route.addr.src_addr, &id_priv->id.route.addr.src_addr,
--	       ip_addr_size((struct sockaddr *) &id_priv->id.route.addr.src_addr));
-+	       rdma_addr_size((struct sockaddr *) &id_priv->id.route.addr.src_addr));
- 
- 	cma_attach_to_dev(dev_id_priv, cma_dev);
- 	list_add_tail(&dev_id_priv->listen_list, &id_priv->listen_list);
-@@ -1834,7 +1834,7 @@ static void addr_handler(int status, struct sockaddr *src_addr,
- 		event.status = status;
- 	} else {
- 		memcpy(&id_priv->id.route.addr.src_addr, src_addr,
--		       ip_addr_size(src_addr));
-+		       rdma_addr_size(src_addr));
- 		event.event = RDMA_CM_EVENT_ADDR_RESOLVED;
- 	}
- 
-@@ -1924,7 +1924,7 @@ int rdma_resolve_addr(struct rdma_cm_id *id, struct sockaddr *src_addr,
- 		return -EINVAL;
- 
- 	atomic_inc(&id_priv->refcount);
--	memcpy(&id->route.addr.dst_addr, dst_addr, ip_addr_size(dst_addr));
-+	memcpy(&id->route.addr.dst_addr, dst_addr, rdma_addr_size(dst_addr));
- 	if (cma_any_addr(dst_addr))
- 		ret = cma_resolve_loopback(id_priv);
- 	else
-@@ -2147,7 +2147,7 @@ int rdma_bind_addr(struct rdma_cm_id *id, struct sockaddr *addr)
- 			goto err1;
- 	}
- 
--	memcpy(&id->route.addr.src_addr, addr, ip_addr_size(addr));
-+	memcpy(&id->route.addr.src_addr, addr, rdma_addr_size(addr));
- 	ret = cma_get_port(id_priv);
- 	if (ret)
- 		goto err2;
-@@ -2807,7 +2807,7 @@ int rdma_join_multicast(struct rdma_cm_id *id, struct sockaddr *addr,
- 	if (!mc)
- 		return -ENOMEM;
- 
--	memcpy(&mc->addr, addr, ip_addr_size(addr));
-+	memcpy(&mc->addr, addr, rdma_addr_size(addr));
- 	mc->context = context;
- 	mc->id_priv = id_priv;
- 
-@@ -2842,7 +2842,7 @@ void rdma_leave_multicast(struct rdma_cm_id *id, struct sockaddr *addr)
- 	id_priv = container_of(id, struct rdma_id_private, id);
- 	spin_lock_irq(&id_priv->lock);
- 	list_for_each_entry(mc, &id_priv->mc_list, list) {
--		if (!memcmp(&mc->addr, addr, ip_addr_size(addr))) {
-+		if (!memcmp(&mc->addr, addr, rdma_addr_size(addr))) {
- 			list_del(&mc->list);
- 			spin_unlock_irq(&id_priv->lock);
- 
-diff --git a/include/rdma/ib_addr.h b/include/rdma/ib_addr.h
-index fa0d52b..9e06769 100644
---- a/include/rdma/ib_addr.h
-+++ b/include/rdma/ib_addr.h
-@@ -99,11 +99,7 @@ void rdma_addr_cancel(struct rdma_dev_addr *addr);
- int rdma_copy_addr(struct rdma_dev_addr *dev_addr, struct net_device *dev,
- 	      const unsigned char *dst_dev_addr);
- 
--static inline int ip_addr_size(struct sockaddr *addr)
--{
--	return addr->sa_family == AF_INET6 ?
--	       sizeof(struct sockaddr_in6) : sizeof(struct sockaddr_in);
--}
-+int rdma_addr_size(struct sockaddr *addr);
- 
- static inline u16 ib_addr_get_pkey(struct rdma_dev_addr *dev_addr)
- {
++#if !defined(_RDMA_IB_H)
++#define _RDMA_IB_H
++
++#include <linux/types.h>
++
++struct ib_addr {
++	union {
++		__u8		uib_addr8[16];
++		__be16		uib_addr16[8];
++		__be32		uib_addr32[4];
++		__be64		uib_addr64[2];
++	} ib_u;
++#define sib_addr8		ib_u.uib_addr8
++#define sib_addr16		ib_u.uib_addr16
++#define sib_addr32		ib_u.uib_addr32
++#define sib_addr64		ib_u.uib_addr64
++#define sib_raw			ib_u.uib_addr8
++#define sib_subnet_prefix	ib_u.uib_addr64[0]
++#define sib_interface_id	ib_u.uib_addr64[1]
++};
++
++static inline int ib_addr_any(const struct ib_addr *a)
++{
++	return ((a->sib_addr64[0] | a->sib_addr64[1]) == 0);
++}
++
++static inline int ib_addr_loopback(const struct ib_addr *a)
++{
++	return ((a->sib_addr32[0] | a->sib_addr32[1] |
++		 a->sib_addr32[2] | (a->sib_addr32[3] ^ htonl(1))) == 0);
++}
++
++static inline void ib_addr_set(struct ib_addr *addr,
++			       __be32 w1, __be32 w2, __be32 w3, __be32 w4)
++{
++	addr->sib_addr32[0] = w1;
++	addr->sib_addr32[1] = w2;
++	addr->sib_addr32[2] = w3;
++	addr->sib_addr32[3] = w4;
++}
++
++static inline int ib_addr_cmp(const struct ib_addr *a1, const struct ib_addr *a2)
++{
++	return memcmp(a1, a2, sizeof(struct ib_addr));
++}
++
++struct sockaddr_ib {
++	unsigned short int	sib_family;	/* AF_IB */
++	__be16			sib_pkey;
++	__be32			sib_flowinfo;
++	struct ib_addr		sib_addr;
++	__be64			sib_sid;
++	__be64			sib_sid_mask;
++	__u64			sib_scope_id;
++};
++
++#endif /* _RDMA_IB_H */
 
 
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
