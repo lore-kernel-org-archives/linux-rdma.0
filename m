@@ -1,30 +1,25 @@
 From: "Sean Hefty" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH 9/26] rdma/cm: set qkey for port space IB
-Date: Thu, 1 Apr 2010 11:00:44 -0700
-Message-ID: <79A94ECADC4342D0A4C057DC158F0303@amr.corp.intel.com>
-References: <0B94CA7CD279474EAAF856BCEC45BDED@amr.corp.intel.com> <20100401174007.GB15629@obsidianresearch.com>
+Subject: RE: nfsrdma broken on 2.6.34-rc1?
+Date: Thu, 1 Apr 2010 11:03:35 -0700
+Message-ID: <4A8AA06C165A47A69C73CDA744EBDD48@amr.corp.intel.com>
+References: <4BB0E670.3010507@opengridcomputing.com>	<B18454F3200D4A43B57F175388845AAC@amr.corp.intel.com>	<adaiq8fvtos.fsf@roland-alpha.cisco.com>	<20100329193715.GA28070@obsidianresearch.com>	<4BB104D2.9080309@opengridcomputing.com> <adaaatqx4bo.fsf@roland-alpha.cisco.com> <4BB4DBF4.3040506@opengridcomputing.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20100401174007.GB15629-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <4BB4DBF4.3040506-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: 'Jason Gunthorpe' <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: 'Steve Wise' <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Tom Tucker <tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
->I know we talked about this, but seeing this patch makes me ask again,
->should the QKEY be part of sockaddr_ib? Or at least be settable somehow?
+>Sean, will you add this to the rdma_cm?
 
-I think so.  I'm not sure of the best approach.  With these patches, the qkey
-seems to be the one thing blocking the rdma_cm from supporting any IB UD
-application.
+Not immediately because I lack the time to do it.
 
-Another item that I wonder about putting into sockaddr_ib is the SL.  There's a
-way to set it today, but I wonder if it should be part of sockaddr_ib anyway.
-
-- Sean
+It would be really nice to share the kernel's port space code and remove the
+port code in the rdma_cm.
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
