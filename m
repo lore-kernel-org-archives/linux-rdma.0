@@ -1,7 +1,7 @@
 From: "Sean Hefty" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 9/26] rdma/cm: set qkey for port space IB
+Subject: [PATCH 17/26] rdma/cm: only listen on IB devices when using AF_IB
 Date: Thu, 1 Apr 2010 10:08:41 -0700
-Message-ID: <0B94CA7CD279474EAAF856BCEC45BDED@amr.corp.intel.com>
+Message-ID: <1FC8ACF0790D47FDA952402C21D3521A@amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="us-ascii"
@@ -13,26 +13,30 @@ Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Include RDMA_PS_IB checks when setting the qkey for UD QPs.
+If an rdma_cm_id is bound to AF_IB, with a wild card address,
+only listen on IB devices.
 
 Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
 
- drivers/infiniband/core/cma.c |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
+ drivers/infiniband/core/cma.c |    4 ++++
+ 1 files changed, 4 insertions(+), 0 deletions(-)
 
 diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
-index ccf47c6..84909b9 100644
+index b3188fc..8e22119 100644
 --- a/drivers/infiniband/core/cma.c
 +++ b/drivers/infiniband/core/cma.c
-@@ -303,6 +303,7 @@ static int cma_set_qkey(struct rdma_id_private *id_priv)
+@@ -1534,6 +1534,10 @@ static void cma_listen_on_dev(struct rdma_id_private *id_priv,
+ 	struct rdma_cm_id *id;
+ 	int ret;
  
- 	switch (id_priv->id.ps) {
- 	case RDMA_PS_UDP:
-+	case RDMA_PS_IB:
- 		id_priv->qkey = RDMA_UDP_QKEY;
- 		break;
- 	case RDMA_PS_IPOIB:
++	if (id_priv->id.route.addr.src_addr.ss_family == AF_IB &&
++	    rdma_node_get_transport(cma_dev->device->node_type) != RDMA_TRANSPORT_IB)
++		return;
++
+ 	id = rdma_create_id(cma_listen_handler, id_priv, id_priv->id.ps,
+ 			    id_priv->id.qp_type);
+ 	if (IS_ERR(id))
 
 
 
