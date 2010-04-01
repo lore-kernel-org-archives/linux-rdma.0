@@ -1,28 +1,58 @@
 From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH] IB/rds: use IB_CQ_REPORT_MISSED_EVENTS to avoid missed CQ callbacks
-Date: Wed, 31 Mar 2010 14:59:25 -0700
-Message-ID: <ada4ojwi24i.fsf@roland-alpha.cisco.com>
-References: <1269987841.4192.228.camel@chromite.mv.qlogic.com>
-	<adaeij1v14z.fsf@roland-alpha.cisco.com>
-	<1269993053.4192.235.camel@chromite.mv.qlogic.com>
+Subject: Re: [PATCH 1/3] IB/core: use IB_CQ_REPORT_MISSED_EVENTS to avoid missed CQ callbacks
+Date: Wed, 31 Mar 2010 17:12:05 -0700
+Message-ID: <ada4ojwghey.fsf@roland-alpha.cisco.com>
+References: <20100331175742.24522.17850.stgit@chromite.mv.qlogic.com>
+	<20100331175747.24522.88472.stgit@chromite.mv.qlogic.com>
+	<ada4ojwjqz7.fsf@roland-alpha.cisco.com>
+	<1270063245.4192.299.camel@chromite.mv.qlogic.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1269993053.4192.235.camel-/vjeY7uYZjrPXfVEPVhPGq6RkeBMCJyt@public.gmane.org> (Ralph
-	Campbell's message of "Tue, 30 Mar 2010 16:50:53 -0700")
+In-Reply-To: <1270063245.4192.299.camel-/vjeY7uYZjrPXfVEPVhPGq6RkeBMCJyt@public.gmane.org> (Ralph
+	Campbell's message of "Wed, 31 Mar 2010 12:20:45 -0700")
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Ralph Campbell <ralph.campbell-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-Cc: Andy Grover <andy.grover-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: "linux-rdma@vger.kernel.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
- > > Out of curiousity have you measured an improvement?
+ > The way I understand the sequence of events w/o the
+ > patch is:
  > 
- > It is a great improvement over a bunch of printks and then
- > hitting BUG_ON() in __rds_ib_ring_used().
+ > ib_req_notify_cq(IB_CQ_NEXT_COMP)
+ > CQE 1 added to queue
+ > 	callback scheduled via tasklet
+ > 	future callbacks disarmed
+ > callback function calls ib_req_notify_cq(IB_CQ_NEXT_COMP)
+ > callback function calls ib_poll_cq() and gets CQE 1
+ > callback function calls ib_poll_cq() and gets none
+ > CQE 2 added to queue via IRQ
+ > 	callback scheduled via tasklet
+ > 	future callbacks disarmed
+ > callback function returns
+ > some time later, tasklet runs and calls CQ callback function.
+ > callback function calls ib_req_notify_cq(IB_CQ_NEXT_COMP)
+ > callback function calls ib_poll_cq() and gets CQE 2
+ > 
+ > Since a tasklet or workqueue can be scheduled in the
+ > callback function, the second CQE isn't "missed" but
+ > there is a scheduling delay before the callback happens
+ > and sees CQE 2.
 
-I think it would be better to understand that problem, since this patch
-is not really fixing anything, just changing timing.  So at best you're
-hiding the problem until it pops up again.
+Sure but a tasklet at least is likely to have pretty low latency.  And
+maybe there's a better chance of batching completion processing by
+introducing a little delay there.  So maybe it helps, maybe it doesn't.
+
+ > I'm willing to withdraw the 1-3 patches.
+ > 
+ > I still don't understand why the timing difference matters
+ > to RDS.
+
+I'd like to have some data showing an improvement before making this
+change.  And as I already said it would be good to know what's really
+going on with RDS before we change that.
+
+ - R.
 -- 
 Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org> || For corporate legal information go to:
 http://www.cisco.com/web/about/doing_business/legal/cri/index.html
