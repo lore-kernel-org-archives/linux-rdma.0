@@ -1,33 +1,45 @@
-From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: Re: nfsrdma broken on 2.6.34-rc1?
-Date: Thu, 01 Apr 2010 12:46:28 -0500
-Message-ID: <4BB4DBF4.3040506@opengridcomputing.com>
-References: <4BB0E670.3010507@opengridcomputing.com>	<B18454F3200D4A43B57F175388845AAC@amr.corp.intel.com>	<adaiq8fvtos.fsf@roland-alpha.cisco.com>	<20100329193715.GA28070@obsidianresearch.com>	<4BB104D2.9080309@opengridcomputing.com> <adaaatqx4bo.fsf@roland-alpha.cisco.com>
+From: "Sean Hefty" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH 26/26] rdma/ucm: allow user space to specify AF_IB when	joining multicast
+Date: Thu, 1 Apr 2010 10:46:06 -0700
+Message-ID: <89AF89412472472786051768B3A22420@amr.corp.intel.com>
+References: <9D903E76C4EA4CF48BF2548F2BC8D2EA@amr.corp.intel.com> <20100401173809.GA15629@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain;
+	charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <adaaatqx4bo.fsf-BjVyx320WGW9gfZ95n9DRSW4+XlvGpQz@public.gmane.org>
+In-Reply-To: <20100401173809.GA15629-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Tom Tucker <tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+To: 'Jason Gunthorpe' <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Roland Dreier wrote:
->  > This issue is really not in the NFS-RDMA code.  the nfsd code is doing
->  > the binding.  See commit:
+>>  	} else if ((addr->sa_family == AF_INET6)) {
+>>  		ipv6_ib_mc_map(&sin6->sin6_addr, dev_addr->broadcast, mc_map);
+>> -		if (id_priv->id.ps == RDMA_PS_UDP)
+>> +		if (id_priv->id.ps == RDMA_PS_UDP || id_priv->id.ps ==
+RDMA_PS_IB)
+>>  			mc_map[7] = 0x01;	/* Use RDMA CM signature */
+>>  		*mgid = *(union ib_gid *) (mc_map + 4);
 >
-> I think the really relevant thing is 7d21c0f9 ("SUNRPC: Set IPV6ONLY
-> flag on PF_INET6 RPC listener sockets") and followups.  NFS expects to
-> have one IPv6-only socket and one IPv4-only socket.
->
-> It seems RDMA CM should create a similar V6ONLY option for binding (and
-> probably default to the /proc/sys/net/ipv6/bindv6only sysctl value) to
-> handle this.
->   
+>What does the combination of AF_INET/INET6 and RDMA_PS_IB mean?
 
-Sean, will you add this to the rdma_cm?
+This indicates that the rdma_cm_id is bound to AF_IB/RDMA_PS_IB, but that the
+multicast join address was provided using AF_INET6.  The 'else' code that
+follows the above code:
 
+	} else {
+ 		ip_ib_mc_map(sin->sin_addr.s_addr, dev_addr->broadcast, mc_map);
+-		if (id_priv->id.ps == RDMA_PS_UDP)
++		if (id_priv->id.ps == RDMA_PS_UDP || id_priv->id.ps ==
+RDMA_PS_IB)
+ 			mc_map[7] = 0x01;	/* Use RDMA CM signature */
+ 		*mgid = *(union ib_gid *) (mc_map + 4);
+ 	}
+
+is similar, except that the multicast join address was specified using AF_INET.
+
+- Sean
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
