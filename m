@@ -1,38 +1,123 @@
-From: "Sean Hefty" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH 26/26] rdma/ucm: allow user space to specify AF_IB when	joining multicast
-Date: Thu, 1 Apr 2010 16:10:02 -0700
-Message-ID: <C3DE686AA3B749D99B38AD3B2161D54B@amr.corp.intel.com>
-References: <9D903E76C4EA4CF48BF2548F2BC8D2EA@amr.corp.intel.com> <20100401173809.GA15629@obsidianresearch.com> <89AF89412472472786051768B3A22420@amr.corp.intel.com> <20100401182732.GD15629@obsidianresearch.com>
+From: FUJITA Tomonori <fujita.tomonori-Zyj7fXuS5i5L9jVzuh4AOg@public.gmane.org>
+Subject: [PATCH] RDMA/cxgb3: use the dma state API instead of the pci
+ equivalents
+Date: Fri, 2 Apr 2010 13:29:38 +0900
+Message-ID: <20100402132306I.fujita.tomonori@lab.ntt.co.jp>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20100401182732.GD15629-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: 'Jason Gunthorpe' <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: swise-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
->Humm, interesting.. So you propose to accept addresses for families
->other than the one used to create the cm_id?
->
->Just from a simplicity of the future perspective I'd say not to bother
+The DMA API is preferred.
 
-Part of the reasoning behind the existing code is that users requested the
-ability to join a multicast group using an address of 0, so the transport could
-select what the address.  Once the address was selected, it was communicated to
-remote peers, who would join using the assigned address.  Today, the assigned
-address is passed as AF_INET6.  This patch tries to 'fix' that and allow the
-address to be passed to the kernel as AF_IB instead.
+No functional change.
 
-For compatibility reasons, I think we want to continue to support AF_INET
-rdma_cm_id's using AF_INET6 or AF_IB.  Off the top of my head, I can't think of
-any reason why support for AF_IB id's would need AF_INET/AF_INET6.  I don't know
-if IBoE would want this or not, but I can update the patch to remove this
-support.
+Signed-off-by: FUJITA Tomonori <fujita.tomonori-Zyj7fXuS5i5L9jVzuh4AOg@public.gmane.org>
+---
+ drivers/infiniband/hw/cxgb3/cxio_hal.c |   12 ++++++------
+ drivers/infiniband/hw/cxgb3/cxio_hal.h |    2 +-
+ drivers/infiniband/hw/cxgb3/cxio_wr.h  |    4 ++--
+ 3 files changed, 9 insertions(+), 9 deletions(-)
 
-- Sean
+diff --git a/drivers/infiniband/hw/cxgb3/cxio_hal.c b/drivers/infiniband/hw/cxgb3/cxio_hal.c
+index a28e862..619bae2 100644
+--- a/drivers/infiniband/hw/cxgb3/cxio_hal.c
++++ b/drivers/infiniband/hw/cxgb3/cxio_hal.c
+@@ -173,7 +173,7 @@ int cxio_create_cq(struct cxio_rdev *rdev_p, struct t3_cq *cq, int kernel)
+ 		kfree(cq->sw_queue);
+ 		return -ENOMEM;
+ 	}
+-	pci_unmap_addr_set(cq, mapping, cq->dma_addr);
++	dma_unmap_addr_set(cq, mapping, cq->dma_addr);
+ 	memset(cq->queue, 0, size);
+ 	setup.id = cq->cqid;
+ 	setup.base_addr = (u64) (cq->dma_addr);
+@@ -296,7 +296,7 @@ int cxio_create_qp(struct cxio_rdev *rdev_p, u32 kernel_domain,
+ 		goto err4;
+ 
+ 	memset(wq->queue, 0, depth * sizeof(union t3_wr));
+-	pci_unmap_addr_set(wq, mapping, wq->dma_addr);
++	dma_unmap_addr_set(wq, mapping, wq->dma_addr);
+ 	wq->doorbell = (void __iomem *)rdev_p->rnic_info.kdb_addr;
+ 	if (!kernel_domain)
+ 		wq->udb = (u64)rdev_p->rnic_info.udbell_physbase +
+@@ -324,7 +324,7 @@ int cxio_destroy_cq(struct cxio_rdev *rdev_p, struct t3_cq *cq)
+ 	dma_free_coherent(&(rdev_p->rnic_info.pdev->dev),
+ 			  (1UL << (cq->size_log2))
+ 			  * sizeof(struct t3_cqe), cq->queue,
+-			  pci_unmap_addr(cq, mapping));
++			  dma_unmap_addr(cq, mapping));
+ 	cxio_hal_put_cqid(rdev_p->rscp, cq->cqid);
+ 	return err;
+ }
+@@ -335,7 +335,7 @@ int cxio_destroy_qp(struct cxio_rdev *rdev_p, struct t3_wq *wq,
+ 	dma_free_coherent(&(rdev_p->rnic_info.pdev->dev),
+ 			  (1UL << (wq->size_log2))
+ 			  * sizeof(union t3_wr), wq->queue,
+-			  pci_unmap_addr(wq, mapping));
++			  dma_unmap_addr(wq, mapping));
+ 	kfree(wq->sq);
+ 	cxio_hal_rqtpool_free(rdev_p, wq->rq_addr, (1UL << wq->rq_size_log2));
+ 	kfree(wq->rq);
+@@ -536,7 +536,7 @@ static int cxio_hal_init_ctrl_qp(struct cxio_rdev *rdev_p)
+ 		err = -ENOMEM;
+ 		goto err;
+ 	}
+-	pci_unmap_addr_set(&rdev_p->ctrl_qp, mapping,
++	dma_unmap_addr_set(&rdev_p->ctrl_qp, mapping,
+ 			   rdev_p->ctrl_qp.dma_addr);
+ 	rdev_p->ctrl_qp.doorbell = (void __iomem *)rdev_p->rnic_info.kdb_addr;
+ 	memset(rdev_p->ctrl_qp.workq, 0,
+@@ -582,7 +582,7 @@ static int cxio_hal_destroy_ctrl_qp(struct cxio_rdev *rdev_p)
+ 	dma_free_coherent(&(rdev_p->rnic_info.pdev->dev),
+ 			  (1UL << T3_CTRL_QP_SIZE_LOG2)
+ 			  * sizeof(union t3_wr), rdev_p->ctrl_qp.workq,
+-			  pci_unmap_addr(&rdev_p->ctrl_qp, mapping));
++			  dma_unmap_addr(&rdev_p->ctrl_qp, mapping));
+ 	return cxio_hal_clear_qp_ctx(rdev_p, T3_CTRL_QP_ID);
+ }
+ 
+diff --git a/drivers/infiniband/hw/cxgb3/cxio_hal.h b/drivers/infiniband/hw/cxgb3/cxio_hal.h
+index 073373c..8f0caf7 100644
+--- a/drivers/infiniband/hw/cxgb3/cxio_hal.h
++++ b/drivers/infiniband/hw/cxgb3/cxio_hal.h
+@@ -71,7 +71,7 @@ struct cxio_hal_ctrl_qp {
+ 	wait_queue_head_t waitq;/* wait for RspQ/CQE msg */
+ 	union t3_wr *workq;	/* the work request queue */
+ 	dma_addr_t dma_addr;	/* pci bus address of the workq */
+-	DECLARE_PCI_UNMAP_ADDR(mapping)
++	DEFINE_DMA_UNMAP_ADDR(mapping);
+ 	void __iomem *doorbell;
+ };
+ 
+diff --git a/drivers/infiniband/hw/cxgb3/cxio_wr.h b/drivers/infiniband/hw/cxgb3/cxio_wr.h
+index 15073b2..e5ddb63 100644
+--- a/drivers/infiniband/hw/cxgb3/cxio_wr.h
++++ b/drivers/infiniband/hw/cxgb3/cxio_wr.h
+@@ -691,7 +691,7 @@ struct t3_swrq {
+ struct t3_wq {
+ 	union t3_wr *queue;		/* DMA accessable memory */
+ 	dma_addr_t dma_addr;		/* DMA address for HW */
+-	DECLARE_PCI_UNMAP_ADDR(mapping)	/* unmap kruft */
++	DEFINE_DMA_UNMAP_ADDR(mapping); /* unmap kruft */
+ 	u32 error;			/* 1 once we go to ERROR */
+ 	u32 qpid;
+ 	u32 wptr;			/* idx to next available WR slot */
+@@ -718,7 +718,7 @@ struct t3_cq {
+ 	u32 wptr;
+ 	u32 size_log2;
+ 	dma_addr_t dma_addr;
+-	DECLARE_PCI_UNMAP_ADDR(mapping)
++	DEFINE_DMA_UNMAP_ADDR(mapping);
+ 	struct t3_cqe *queue;
+ 	struct t3_cqe *sw_queue;
+ 	u32 sw_rptr;
+-- 
+1.7.0
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
