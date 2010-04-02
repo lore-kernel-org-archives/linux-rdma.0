@@ -1,40 +1,70 @@
-From: "Sean Hefty" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH 9/26] rdma/cm: set qkey for port space IB
-Date: Fri, 2 Apr 2010 10:57:10 -0700
-Message-ID: <5B0AA6F24F4E4217A68B2A1BE9FFF2CD@amr.corp.intel.com>
-References: <0B94CA7CD279474EAAF856BCEC45BDED@amr.corp.intel.com> <20100401174007.GB15629@obsidianresearch.com> <79A94ECADC4342D0A4C057DC158F0303@amr.corp.intel.com> <20100401182332.GC15629@obsidianresearch.com>
+From: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH,RFC] nfsd: Make INET6 transport creation failure an informational
+ message
+Date: Fri, 02 Apr 2010 14:03:18 -0400
+Message-ID: <4BB63166.6050703@oracle.com>
+References: <4BB522CF.60503@opengridcomputing.com>	<4BB61F19.2000403@oracle.com> <adaljd57os6.fsf@roland-alpha.cisco.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20100401182332.GC15629-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <adaljd57os6.fsf-BjVyx320WGW9gfZ95n9DRSW4+XlvGpQz@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: 'Jason Gunthorpe' <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Cc: Tom Tucker <tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, "J. Bruce Fields" <bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org>, Linux NFS Mailing List <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
->> I think so.  I'm not sure of the best approach.  With these patches,
->> the qkey seems to be the one thing blocking the rdma_cm from
->> supporting any IB UD application.
+Hi Roland-
+
+On 04/02/2010 01:22 PM, Roland Dreier wrote:
+>   >  >  The write_ports code will fail both the INET4 and INET6 transport
+>   >  >  creation if
+>   >  >  the transport returns an error when PF_INET6 is specified. Some transports
+>   >  >  that do not support INET6 return an error other than EAFNOSUPPORT.
+>   >
+>   >  That's the real bug.  Any reason the RDMA RPC transport can't return
+>   >  EAFNOSUPPORT in this case?
 >
->Right.. qkey is kinda a funny thing, and pkey too I suppose.
->
->I'm not sure, I don't really know the usage model for qkey..
+> I think Tom's changelog is misleading.  The problem is that the RDMA
+> transport actually does support IPv6, but it doesn't support the
+> IPV6ONLY option yet.  So if NFS/RDMA binds to a port for IPv4, then the
+> IPv6 bind fails because of the port collision.
 
-After a little more thought, I'm leaning toward keeping the qkey out of
-sockaddr_ib, and instead keeping it closer tied with the qpn.  There's a 32-bit
-reserved field in struct rdma_ucm_conn_param that could carry it when resolving
-UD QPs.  I will update the patches to handle this.
+IPV6ONLY is a requirement for RPC over IPv6.  If the underlying 
+transport does not support IPV6ONLY, then it cannot properly support RPC 
+over IPv6.  It's easy enough to catch listener creation calls for IPv6 
+on such transports, and simply return EAFNOSUPPORT until support for 
+IPV6ONLY can be provided.
 
-Multicast is a little more difficult.  The user lacks the ability to fully
-specify the MCMemberRecord.  I can at least add the qkey to the new struct
-rdma_ucm_join_mcast definition.  Plus, I guess we can always define
-sockaddr_ib_mc with whatever additional information we may want to add.  Any
-thoughts on this?
+The __write_ports() interface is specifically designed to silently fall 
+back to IPv4-only when IPv6 transport creation fails with ENOAFSUPPORT. 
+  I don't see a good reason to change the generic logic in 
+__write_ports() if there is a problem with implementing RPC over IPv6 in 
+a specific transport capability.  __write_ports() will do the right 
+thing if the transport returns the correct error code.
 
-- Sean
+> Implementing the IPV6ONLY option for RDMA binding is probably not
+> feasible for 2.6.34, so the best band-aid for now seems to be Tom's
+> patch.
 
+My recent experience with similar changes suggests the specific solution 
+Tom proposed will trigger extra bug reports and e-mails, as the change 
+appears to affect non-RDMA transports as well.  This printk might fire, 
+for example, for INET transports on systems that are built without IPv6 
+support, or where ipv6.ko is blacklisted in user space.
+
+In other words, I agree that there's a bug that should be addressed in 
+2.6.34, and I don't have any problem with setting up only an IPv4 
+listener in this case.  But I think the addition of a printk that fires 
+for all transports in this case is problematic.
+
+It would be better to address this in the RPC/RDMA transport capability, 
+and not in generic upper level logic.  We already have correct behavior 
+in __write_ports, and the RPC/RDMA transport capability should be 
+changed to use it.
+
+-- 
+chuck[dot]lever[at]oracle[dot]com
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
