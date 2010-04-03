@@ -1,43 +1,41 @@
-From: Andy Grover <andy.grover-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH 1/3] IB/core: use IB_CQ_REPORT_MISSED_EVENTS to avoid
- missed CQ callbacks
-Date: Fri, 02 Apr 2010 12:54:59 -0700
-Message-ID: <4BB64B93.9050100@oracle.com>
-References: <20100331175742.24522.17850.stgit@chromite.mv.qlogic.com>	<20100331175747.24522.88472.stgit@chromite.mv.qlogic.com>	<ada4ojwjqz7.fsf@roland-alpha.cisco.com>	<1270063245.4192.299.camel@chromite.mv.qlogic.com> <ada4ojwghey.fsf@roland-alpha.cisco.com>
+From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+Subject: Re: [PATCH v3 0/2] Using multi-smps on the wire in libibnetdisc
+Date: Fri, 2 Apr 2010 17:23:30 -0700
+Message-ID: <20100402172330.819b8ef6.weiny2@llnl.gov>
+References: <20100218124931.4d6ef34b.weiny2@llnl.gov>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <ada4ojwghey.fsf-BjVyx320WGW9gfZ95n9DRSW4+XlvGpQz@public.gmane.org>
+In-Reply-To: <20100218124931.4d6ef34b.weiny2-i2BcT+NCU+M@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Cc: Ralph Campbell <ralph.campbell-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+Cc: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-(sorry to reply late -- bad mail rules.)
+Sasha,
 
-RDS used to do send and recv processing in the event handler.
+Have you had a chance to look at this yet?  If you want I can resend the latest version of the patches.
 
-It currently uses a tasklet for recv, and send is still in the event
-handler. When we moved the recv processing to a tasklet, we poll the cq,
-arm the cq, then poll it again, because it seems like 1) we want to do
-as much work as possible before rearming the event and 2) we need to
-poll after, to be sure to catch CQEs added between the time when the
-handler exited and we've gotten to this point in the tasklet. How does
-this approach (re-polling after calling notify_cq) compare with using
-REPORT_MISSED_EVENTS? Maybe it's two different ways to do the same thing?
+Thanks,
+Ira
 
-Anyways, this is off the point from your original patch that changed the
-send cq handling, which is all done in the event handler. I don't have
-an explanation for you seeing the 0xdeads, except that the comment above
-that code that mentions racing cleanly with the send path makes my
-antennae twitch a little bit...
+On Thu, 18 Feb 2010 12:49:31 -0800
+Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org> wrote:
 
-Regards -- Andy
+> After the discussion with Hal I decided it would be safer to just limit the number of outstanding MAD's to 2.  This v3 version changes that.  Patch 2/2 remains the same but I am just sending it to be complete.
+> 
+> Thanks,
+> Ira
+> 
 
-PS FWIW my dev branch moves RDS to a single CQ for send & recv events
-similar to srp, except using a tasklet, and notify_cq(IB_CQ_SOLICITED),
-and doing poll/arm/poll.
+
+-- 
+Ira Weiny
+Math Programmer/Computer Scientist
+Lawrence Livermore National Lab
+925-423-8008
+weiny2-i2BcT+NCU+M@public.gmane.org
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
