@@ -1,44 +1,32 @@
-From: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [patch] infiniband: potential double free
-Date: Sun, 4 Apr 2010 01:34:29 +0300
-Message-ID: <q2x15ddcffd1004031534p4483d916i595434a12dfd7696@mail.gmail.com>
-References: <20100315082332.GF18181@bicker>
-	 <20100315141846.GA1477@holoscopio.com> <20100315150735.GM18181@bicker>
-	 <15ddcffd1003160027q47286fcqa1344c964fe472b0@mail.gmail.com>
-	 <20100316080925.GC5331@bicker>
+From: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+Subject: Re: umad_register_oui
+Date: Sun, 4 Apr 2010 13:17:22 +0300
+Message-ID: <20100404101722.GO4808@me>
+References: <3F5FB92A829547AF927C59B5649489B9@amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20100316080925.GC5331@bicker>
+Content-Disposition: inline
+In-Reply-To: <3F5FB92A829547AF927C59B5649489B9-Zpru7NauK7drdx17CPfAsdBPR1lH4CV8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Dan Carpenter <error27-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Thadeu Lima de Souza Cascardo <cascardo-DmMZpsCg3uxeGPcbtGPokg@public.gmane.org>, Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Or Gerlitz <ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org>, Jiri Kosina <jkosina-AlSwsSmVLrQ@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Mar 16, 2010 at 10:09 AM, Dan Carpenter <error27-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wro=
-te:
-> We shouldn't free things here because we free them later. =A0The call=
- tree looks like this:
+Hi Sean,
 
+On 13:00 Fri 26 Mar     , Sean Hefty wrote:
+> 
+> We hit a bug in our windows implementation of libibumad that highlights an issue
+> with the umad interface.  umad_register_oui does not take the mgmt_class as
+> input, where umad_register does.  umad_register_oui assumes that the
+> mgmt_version is 1.  Not sure if or how you want to handle this.
 
-Hi Dan, Roland,
+Basically we could add another call umad_register_oui2() or so with all
+needed parameters.
 
-We're at a somehow high holiday (e.g Passover) season, and as such I
-haven't resolve the issue Dan brought yet. However, all in all this is
---not-- a regression but rather a bug in the error handling code of a
-path (synchronous connection establishment) which isn't used (e.g
-non_blocking is always true when called by the iscsi stack).
-
-I will make sure to fix the issue for the next merge window, and
-actually queue a fixed/reviewed patch (e.g review what Dan works on)
-way before that. So in that respect, Roland, you need not to deal with
-this directly. Please make sure to cc  linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org on
-each related mail, thanks
-
-Or.
+Sasha
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
