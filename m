@@ -1,72 +1,47 @@
-From: Tom Tucker <tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: Re: [PATCH] svcrdma: RDMA support not yet compatible with RPC6
-Date: Mon, 05 Apr 2010 11:19:40 -0500
-Message-ID: <4BBA0D9C.8080504@opengridcomputing.com>
-References: <4BB74241.4060308@ogc.us> <4BB9F9D0.1040203@oracle.com> <20100405154850.GG16370@fieldses.org> <4BBA06B8.3090201@opengridcomputing.com> <20100405161618.GI16370@fieldses.org> <20100405162020.GJ16370@fieldses.org>
+From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: [PATCH] RDMA/cxgb3: Don't free skbs on NET_XMIT_* indications from
+	LLD.
+Date: Mon, 05 Apr 2010 14:59:57 -0500
+Message-ID: <20100405195956.28814.29311.stgit@build.ogc.int>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20100405162020.GJ16370-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "J. Bruce Fields" <bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org>
-Cc: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Tom Tucker <tom-/Yg/VP3ZvrM@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, "linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-J. Bruce Fields wrote:
-> On Mon, Apr 05, 2010 at 12:16:18PM -0400, J. Bruce Fields wrote:
->   
->> On Mon, Apr 05, 2010 at 10:50:16AM -0500, Tom Tucker wrote:
->>     
->>> J. Bruce Fields wrote:
->>>       
->>>> On Mon, Apr 05, 2010 at 10:55:12AM -0400, Chuck Lever wrote:
->>>>   
->>>>         
->>>>> On 04/03/2010 09:27 AM, Tom Tucker wrote:
->>>>>     
->>>>>           
->>>>>> RPC6 requires that it be possible to create endpoints that listen
->>>>>> exclusively for IPv4 or IPv6 connection requests. This is not currently
->>>>>> supported by the RDMA API.
->>>>>>
->>>>>> Signed-off-by: Tom Tucker<tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
->>>>>> Tested-by: Steve Wise<swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
->>>>>>       
->>>>>>             
->>>>> Reviewed-by: Chuck Lever <chuck.lever-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
->>>>>     
->>>>>           
->>>> Thanks to all.  I take it the problem began with 37498292a "NFSD: Create
->>>> PF_INET6 listener in write_ports"?
->>>>
->>>>   
->>>>         
->>> Yes.
->>>       
->> Thanks.  I'll pass along
->>
->> 	git://linux-nfs.org/~bfields/linux.git for-2.6.34
->>
->> soon.
->>     
->
-> And: sorry we didn't catch this when it happened.  I have some of the
-> equipment I'd need to do basic regression tests, but haven't set it up.
->
-> I hope I get to it at some point....  For now I depend on others to
-> catch even basic rdma regressions--let me know if there's some way I
-> could make your testing easier.
->
->   
+The low level cxgb3 driver can return NET_XMIT_CN and friends.
+The iw_cxgb3 driver should _not_ treat these as errors.
 
-We were focused on older kernels..and probably should have caught it 
-quicker. No worries. Thanks,
+Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+---
 
-Tom
+ drivers/infiniband/hw/cxgb3/iwch_cm.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-> --b.
->   
+diff --git a/drivers/infiniband/hw/cxgb3/iwch_cm.c b/drivers/infiniband/hw/cxgb3/iwch_cm.c
+index d94388b..4953146 100644
+--- a/drivers/infiniband/hw/cxgb3/iwch_cm.c
++++ b/drivers/infiniband/hw/cxgb3/iwch_cm.c
+@@ -150,7 +150,7 @@ int iwch_l2t_send(struct t3cdev *tdev, struct sk_buff *skb, struct l2t_entry *l2
+ 		return -EIO;
+ 	}
+ 	error = l2t_send(tdev, skb, l2e);
+-	if (error)
++	if (error < 0)
+ 		kfree_skb(skb);
+ 	return error;
+ }
+@@ -166,7 +166,7 @@ int iwch_cxgb3_ofld_send(struct t3cdev *tdev, struct sk_buff *skb)
+ 		return -EIO;
+ 	}
+ 	error = cxgb3_ofld_send(tdev, skb);
+-	if (error)
++	if (error < 0)
+ 		kfree_skb(skb);
+ 	return error;
+ }
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
