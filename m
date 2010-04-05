@@ -1,48 +1,46 @@
-From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: [PATCH] RDMA/cxgb3: Don't free skbs on NET_XMIT_* indications from
-	LLD.
-Date: Mon, 05 Apr 2010 14:59:57 -0500
-Message-ID: <20100405195956.28814.29311.stgit@build.ogc.int>
+From: Justin Clift <justin-oNuxUQfTmABg9hUCZPvPmw@public.gmane.org>
+Subject: NFS-RDMA on SLES 10 SP3
+Date: Tue, 06 Apr 2010 05:53:57 +1000
+Message-ID: <4BBA3FD5.8070005@salasaga.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-The low level cxgb3 driver can return NET_XMIT_CN and friends.
-The iw_cxgb3 driver should _not_ treat these as errors.
+Hi all,
 
-Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
----
+After discovering that ofa kernel doesn't compile any more (with 1.5.1 
+GA and 1.5.2 latest nightly) on SLES 11 with the latest patches, now 
+trying on SLES 10 SP3.
 
- drivers/infiniband/hw/cxgb3/iwch_cm.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+I'm attempting to try out NFS-RDMA, however on SLES 10 SP3 it's not 
+being presented as an option from the "Custom" list.
 
-diff --git a/drivers/infiniband/hw/cxgb3/iwch_cm.c b/drivers/infiniband/hw/cxgb3/iwch_cm.c
-index d94388b..4953146 100644
---- a/drivers/infiniband/hw/cxgb3/iwch_cm.c
-+++ b/drivers/infiniband/hw/cxgb3/iwch_cm.c
-@@ -150,7 +150,7 @@ int iwch_l2t_send(struct t3cdev *tdev, struct sk_buff *skb, struct l2t_entry *l2
- 		return -EIO;
- 	}
- 	error = l2t_send(tdev, skb, l2e);
--	if (error)
-+	if (error < 0)
- 		kfree_skb(skb);
- 	return error;
- }
-@@ -166,7 +166,7 @@ int iwch_cxgb3_ofld_send(struct t3cdev *tdev, struct sk_buff *skb)
- 		return -EIO;
- 	}
- 	error = cxgb3_ofld_send(tdev, skb);
--	if (error)
-+	if (error < 0)
- 		kfree_skb(skb);
- 	return error;
- }
+i.e.:
 
+   Install rds-tools? [y/N]:n
+   Install rnfs-utils? [y/N]:y   <--- this line completely missing
+   Install ibutils? [y/N]: ...
+
+Thought I'd better ask if this is expected behaviour before I file a bug 
+report, as SLES10 SP3 is specifically mentioned in the NFS-RDMA release
+notes as being supported.
+
+?
+
+(I've worked around the above problem by just changing the install.pl 
+file.  Compiles fine.  But, thought it best to ask just in case.)
+
+Regards and best wishes,
+
+Justin Clift
+
+-- 
+Salasaga  -  Open Source eLearning IDE
+               http://www.salasaga.org
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
