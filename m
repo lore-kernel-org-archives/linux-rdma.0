@@ -1,32 +1,31 @@
-From: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Subject: Re: umad_register_oui
-Date: Tue, 6 Apr 2010 11:37:50 +0300
-Message-ID: <20100406083750.GS4808@me>
-References: <3F5FB92A829547AF927C59B5649489B9@amr.corp.intel.com>
- <20100404101722.GO4808@me>
- <14FF040973DD4244AAD62E2FCB4A4C3A@amr.corp.intel.com>
+From: Vladimir Sokolovsky <vlad-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: NFS-RDMA on SLES 10 SP3
+Date: Tue, 06 Apr 2010 11:54:49 +0300
+Message-ID: <4BBAF6D9.10502@dev.mellanox.co.il>
+References: <4BBA3FD5.8070005@salasaga.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <14FF040973DD4244AAD62E2FCB4A4C3A-Zpru7NauK7drdx17CPfAsdBPR1lH4CV8@public.gmane.org>
+In-Reply-To: <4BBA3FD5.8070005-oNuxUQfTmABg9hUCZPvPmw@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Justin Clift <justin-oNuxUQfTmABg9hUCZPvPmw@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 18:05 Sun 04 Apr     , Sean Hefty wrote:
-> >Basically we could add another call umad_register_oui2() or so with all
-> >needed parameters.
+Justin Clift wrote:
+> Hi all,
 > 
-> In that case, we can probably delay adding the call until it's actually needed.
+> After discovering that ofa kernel doesn't compile any more (with 1.5.1 
+> GA and 1.5.2 latest nightly) on SLES 11 with the latest patches, now 
+> trying on SLES 10 SP3.
 > 
-> I only hit the issue because I implemented umad_register to call
-> umad_register_oui.
 
-Ok, I see.
+Hi Justin,
+Can you send me the kernel version of SLES11 that you have and the ofa_kernel.rpmbuild.log?
 
-Sasha
+Thanks,
+Vladimir
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
