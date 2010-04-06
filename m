@@ -1,30 +1,32 @@
-From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: Re: [PATCH] RDMA/cxgb3: Don't free skbs on NET_XMIT_* indications
- from LLD.
-Date: Mon, 05 Apr 2010 15:41:17 -0500
-Message-ID: <4BBA4AED.50802@opengridcomputing.com>
-References: <20100405195956.28814.29311.stgit@build.ogc.int> <adapr2d7i1d.fsf@roland-alpha.cisco.com>
+From: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+Subject: Re: umad_register_oui
+Date: Tue, 6 Apr 2010 11:37:50 +0300
+Message-ID: <20100406083750.GS4808@me>
+References: <3F5FB92A829547AF927C59B5649489B9@amr.corp.intel.com>
+ <20100404101722.GO4808@me>
+ <14FF040973DD4244AAD62E2FCB4A4C3A@amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <adapr2d7i1d.fsf-BjVyx320WGW9gfZ95n9DRSW4+XlvGpQz@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <14FF040973DD4244AAD62E2FCB4A4C3A-Zpru7NauK7drdx17CPfAsdBPR1lH4CV8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Roland Dreier wrote:
-> Is this a regression fix for 2.6.34, or just something to queue for 2.6.35?
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->   
+On 18:05 Sun 04 Apr     , Sean Hefty wrote:
+> >Basically we could add another call umad_register_oui2() or so with all
+> >needed parameters.
+> 
+> In that case, we can probably delay adding the call until it's actually needed.
+> 
+> I only hit the issue because I implemented umad_register to call
+> umad_register_oui.
 
-Its not a regression.  It was discovered by code inspection.  2.6.35 is 
-fine methinks.
+Ok, I see.
 
+Sasha
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
