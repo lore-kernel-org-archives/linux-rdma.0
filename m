@@ -1,26 +1,33 @@
 From: Justin Clift <justin-oNuxUQfTmABg9hUCZPvPmw@public.gmane.org>
-Subject: Ok to edit the OpenFabrics wiki?
-Date: Tue, 06 Apr 2010 20:18:41 +1000
-Message-ID: <4BBB0A81.7020401@salasaga.org>
+Subject: Re: Ok to edit the OpenFabrics wiki?
+Date: Wed, 07 Apr 2010 02:33:12 +1000
+Message-ID: <4BBB6248.2040307@salasaga.org>
+References: <4BBB0A81.7020401@salasaga.org> <4BBB5083.6040401@nasa.gov>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <4BBB5083.6040401-NSQ8wuThN14@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jeff Becker <Jeffrey.C.Becker-NSQ8wuThN14@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi all,
+Jeff Becker wrote:
+<snip>
+> 
+> Hi. I'm aware of the problem, and have verified it. Although I spent
+> some time looking at it, I haven't been able to fix it yet. Part of the
+> issue is that we have a new server ready to go, and I am awaiting
+> instructions from an outside review panel (discussed at Sonoma) to
+> proceed. If I get some free cycles, I'll take a look, but I expect the
+> server (and wiki) move will happen soon, so the problem may be moot.
+> 
+> Thanks.
 
-Just went to update some of the info on the OpenFabrics wiki (ie 
-motherboard compatibility), plus remove some of the spam in comments 
-(ie. pr0n links).
-
-However, after registering and confirming email address, the wiki 
-doesn't appear to be actually logging me in.
-
-New problem, or do I need to be manually added to an approved editor 
-list or something? :)
+No worries.  I'll take a look again after the server + wiki move I 
+guess.  Seems like the wiki could do with some freshening up, so I'll 
+see what spare time I have then.
 
 Regards and best wishes,
 
