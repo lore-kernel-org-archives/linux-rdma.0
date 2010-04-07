@@ -1,49 +1,36 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH 26/37] librdmacm: set src_addr in rdma_getaddrinfo
-Date: Wed, 7 Apr 2010 16:22:11 -0600
-Message-ID: <20100407222211.GK15629@obsidianresearch.com>
-References: <B7B5C575DF7D4C51AB84AFFAC7A5D5C5@amr.corp.intel.com> <20100407192810.GG15629@obsidianresearch.com> <4BAFD82633A744729F9685D44B250100@amr.corp.intel.com> <20100407201417.GJ15629@obsidianresearch.com> <569EDABAE9F84A029ED7AC84AA5767D6@amr.corp.intel.com>
+From: "Sean Hefty" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: librdmacm meets libiwarp
+Date: Wed, 7 Apr 2010 15:26:02 -0700
+Message-ID: <BE20BCF9136E4FAFAC482D50D1A36306@amr.corp.intel.com>
+References: <942482910-1270678218-cardhu_decombobulator_blackberry.rim.net-106991531-@bda043.bisx.produk.on.blackberry>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <569EDABAE9F84A029ED7AC84AA5767D6-Zpru7NauK7drdx17CPfAsdBPR1lH4CV8@public.gmane.org>
+In-Reply-To: <942482910-1270678218-cardhu_decombobulator_blackberry.rim.net-106991531--vREwkvsugevjL2gL5RxOE1pMnUE8n+ufF6Q+nnUHFY8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: philip.frey-gy3b+zu4XSAfv37vnLkPlQ@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Bernard Metzler <bmt-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Apr 07, 2010 at 03:10:36PM -0700, Sean Hefty wrote:
+>it's nice to see, that you seem to have liked most of
+>my ideas and intentions of libiwarp :) thanks for
+>making that work a bit more sustainable!
 
-> >Not sure what you mean that ACM requires it? Doesn't ACM plug in at
-> >the rdma_getaddrinfo stage? If so it can get the source on its own
-> >like you did in this patch. I agree that ACM should always return
-> >results with the source set, because it is providing path records
-> >relative to a specific adaptor.
-> 
-> Yes - the code to set the source could move from librdmacm into ACM.
-> 
-> I can change rdma_getaddrinfo to only set the source address if
-> either the user provides one through a hint, or if resolved through
-> ACM.
+Thanks for the input.  I think there could still be a little more work done to
+handle completions across shared CQs, plus add in SRQ support.
 
-That would be my preference. I think the kernel calls should use a
-null source address in the common case and a set source should be an
-exceptional case. This matches sockets very well.
+>I was wondering where I could get a copy of your
+>latest code to look at it as a whole and (maybe)
+>comment on it.
 
-I'd see two cases for setting a source address, an app that wants to
-control the bind port - this is similar to socket cases, and is
-generally an exceptional case.
+The code is available from my git tree, in the af_ib branch:
 
-The other is that an app wants the connection to be usable with a
-certain PD. This is more like the DAPL case, as far as I understand it
-(ie resources have been allocated against a PD prior to the addresses
-being known). This would be best served by having the hints include a
-PD and have rdma_getaddrinfo generate a source address that works with
-that PD. A PD is more general than a source address - in single HCA
-cases a PD will be usable with all ports.
+	git://git.openfabrics.org/~shefty/librdmacm.git af_ib
 
-Jason
+- Sean
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
