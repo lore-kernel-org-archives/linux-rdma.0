@@ -1,7 +1,7 @@
 From: "Sean Hefty" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 5/37] librdmacm: replace query_route call with separate queries
+Subject: [PATCH 10/37] librdmacm: move common definitions to internal header file
 Date: Wed, 7 Apr 2010 10:12:44 -0700
-Message-ID: <D81E70C032A3452B9FD00D7EB445F6CF@amr.corp.intel.com>
+Message-ID: <A7B37FB6E15D43979E919E8956DC8C4F@amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="us-ascii"
@@ -13,133 +13,152 @@ Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-To support other address families and multiple path records,
-replace the query_route call with specific query calls to obtain
-only the desired information.
-
 Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
 
- src/cma.c |   69 +++++++++++++++++++++++++++++++++++++++++++++++++++++--------
- 1 files changed, 60 insertions(+), 9 deletions(-)
+ Makefile.am |    2 +-
+ src/cma.c   |   28 +---------------------
+ src/cma.h   |   74 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 76 insertions(+), 28 deletions(-)
 
+diff --git a/Makefile.am b/Makefile.am
+index 2898ad9..c9be437 100644
+--- a/Makefile.am
++++ b/Makefile.am
+@@ -70,7 +70,7 @@ man_MANS = \
+ 
+ EXTRA_DIST = include/rdma/rdma_cma_abi.h include/rdma/rdma_cma.h \
+ 	     include/infiniband/ib.h \
+-	     src/librdmacm.map librdmacm.spec.in $(man_MANS)
++	     src/cma.h src/librdmacm.map librdmacm.spec.in $(man_MANS)
+ 
+ dist-hook: librdmacm.spec
+ 	cp librdmacm.spec $(distdir)
 diff --git a/src/cma.c b/src/cma.c
-index 2a70d20..c57d166 100644
+index c83d9d2..a85448b 100644
 --- a/src/cma.c
 +++ b/src/cma.c
-@@ -161,6 +161,7 @@ static struct cma_device *cma_dev_array;
- static int cma_dev_cnt;
- static pthread_mutex_t mut = PTHREAD_MUTEX_INITIALIZER;
- static int abi_ver = RDMA_USER_CM_MAX_ABI_VERSION;
-+int af_ib_support;
+@@ -50,39 +50,13 @@
+ #include <byteswap.h>
+ #include <stddef.h>
  
- #define container_of(ptr, type, field) \
- 	((type *) ((void *)ptr - offsetof(type, field)))
-@@ -627,7 +628,7 @@ static int ucma_query_route(struct rdma_cm_id *id)
- 	struct cma_id_private *id_priv;
- 	void *msg;
- 	int ret, size, i;
--	
++#include "cma.h"
+ #include <infiniband/driver.h>
+ #include <infiniband/marshall.h>
+ #include <rdma/rdma_cma.h>
+ #include <rdma/rdma_cma_abi.h>
+ #include <infiniband/ib.h>
+ 
+-#ifdef INCLUDE_VALGRIND
+-#   include <valgrind/memcheck.h>
+-#   ifndef VALGRIND_MAKE_MEM_DEFINED
+-#       warning "Valgrind requested, but VALGRIND_MAKE_MEM_DEFINED undefined"
+-#   endif
+-#endif
+-
+-#ifndef VALGRIND_MAKE_MEM_DEFINED
+-#   define VALGRIND_MAKE_MEM_DEFINED(addr,len)
+-#endif
+-
+-#define PFX "librdmacm: "
+-
+-#if __BYTE_ORDER == __LITTLE_ENDIAN
+-static inline uint64_t htonll(uint64_t x) { return bswap_64(x); }
+-static inline uint64_t ntohll(uint64_t x) { return bswap_64(x); }
+-#else
+-static inline uint64_t htonll(uint64_t x) { return x; }
+-static inline uint64_t ntohll(uint64_t x) { return x; }
+-#endif
+-
+-static inline int ERR(int err)
+-{
+-	errno = err;
+-	return -1;
+-}
+-
+ #define CMA_CREATE_MSG_CMD_RESP(msg, cmd, resp, type, size) \
+ do {                                        \
+ 	struct ucma_abi_cmd_hdr *hdr;         \
+diff --git a/src/cma.h b/src/cma.h
+new file mode 100644
+index 0000000..1c0ab8b
+--- /dev/null
++++ b/src/cma.h
+@@ -0,0 +1,74 @@
++/*
++ * Copyright (c) 2005-2010 Intel Corporation.  All rights reserved.
++ *
++ * This software is available to you under a choice of one of two
++ * licenses.  You may choose to be licensed under the terms of the GNU
++ * General Public License (GPL) Version 2, available from the file
++ * COPYING in the main directory of this source tree, or the
++ * OpenIB.org BSD license below:
++ *
++ *     Redistribution and use in source and binary forms, with or
++ *     without modification, are permitted provided that the following
++ *     conditions are met:
++ *
++ *      - Redistributions of source code must retain the above
++ *        copyright notice, this list of conditions and the following
++ *        disclaimer.
++ *
++ *      - Redistributions in binary form must reproduce the above
++ *        copyright notice, this list of conditions and the following
++ *        disclaimer in the documentation and/or other materials
++ *        provided with the distribution.
++ *
++ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
++ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
++ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
++ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
++ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
++ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
++ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
++ * SOFTWARE.
++ *
++ */
 +
- 	CMA_CREATE_MSG_CMD_RESP(msg, cmd, resp, UCMA_CMD_QUERY_ROUTE, size);
- 	id_priv = container_of(id, struct cma_id_private, id);
- 	cmd->id = id_priv->handle;
-@@ -1060,7 +1061,10 @@ int rdma_listen(struct rdma_cm_id *id, int backlog)
- 	if (ret != size)
- 		return (ret >= 0) ? ERR(ENODATA) : -1;
- 
--	return ucma_query_route(id);
-+	if (af_ib_support)
-+		return ucma_query_addr(id);
-+	else
-+		return ucma_query_route(id);
- }
- 
- int rdma_accept(struct rdma_cm_id *id, struct rdma_conn_param *conn_param)
-@@ -1326,6 +1330,57 @@ int rdma_ack_cm_event(struct rdma_cm_event *event)
- 	return 0;
- }
- 
-+static void ucma_process_addr_resolved(struct cma_event *evt)
++#if !defined(CMA_H)
++#define CMA_H
++
++#if HAVE_CONFIG_H
++#  include <config.h>
++#endif /* HAVE_CONFIG_H */
++
++#include <stdlib.h>
++#include <errno.h>
++#include <endian.h>
++#include <byteswap.h>
++
++#ifdef INCLUDE_VALGRIND
++#   include <valgrind/memcheck.h>
++#   ifndef VALGRIND_MAKE_MEM_DEFINED
++#       warning "Valgrind requested, but VALGRIND_MAKE_MEM_DEFINED undefined"
++#   endif
++#endif
++
++#ifndef VALGRIND_MAKE_MEM_DEFINED
++#   define VALGRIND_MAKE_MEM_DEFINED(addr,len)
++#endif
++
++#define PFX "librdmacm: "
++
++#if __BYTE_ORDER == __LITTLE_ENDIAN
++static inline uint64_t htonll(uint64_t x) { return bswap_64(x); }
++static inline uint64_t ntohll(uint64_t x) { return bswap_64(x); }
++#else
++static inline uint64_t htonll(uint64_t x) { return x; }
++static inline uint64_t ntohll(uint64_t x) { return x; }
++#endif
++
++static inline int ERR(int err)
 +{
-+	if (af_ib_support) {
-+		evt->event.status = ucma_query_addr(&evt->id_priv->id);
-+		if (!evt->event.status &&
-+		    evt->id_priv->id.verbs->device->transport_type == IBV_TRANSPORT_IB)
-+			evt->event.status = ucma_query_gid(&evt->id_priv->id);
-+	} else {
-+		evt->event.status = ucma_query_route(&evt->id_priv->id);
-+	}
-+
-+	if (evt->event.status)
-+		evt->event.event = RDMA_CM_EVENT_ADDR_ERROR;
++	errno = err;
++	return -1;
 +}
 +
-+static void ucma_process_route_resolved(struct cma_event *evt)
-+{
-+	if (evt->id_priv->id.verbs->device->transport_type != IBV_TRANSPORT_IB)
-+		return;
++#endif /* CMA_H */
 +
-+	if (af_ib_support)
-+		evt->event.status = ucma_query_path(&evt->id_priv->id);
-+	else
-+		evt->event.status = ucma_query_route(&evt->id_priv->id);
-+
-+	if (evt->event.status)
-+		evt->event.event = RDMA_CM_EVENT_ROUTE_ERROR;
-+}
-+
-+static int ucma_query_req_info(struct rdma_cm_id *id)
-+{
-+	int ret;
-+
-+	if (!af_ib_support)
-+		return ucma_query_route(id);
-+
-+	ret = ucma_query_addr(id);
-+	if (ret)
-+		return ret;
-+
-+	ret = ucma_query_gid(id);
-+	if (ret)
-+		return ret;
-+
-+	ret = ucma_query_path(id);
-+	if (ret)
-+		return ret;
-+
-+	return 0;
-+}
-+
- static int ucma_process_conn_req(struct cma_event *evt,
- 				 uint32_t handle)
- {
-@@ -1344,7 +1399,7 @@ static int ucma_process_conn_req(struct cma_event *evt,
- 	evt->event.id = &id_priv->id;
- 	id_priv->handle = handle;
- 
--	ret = ucma_query_route(&id_priv->id);
-+	ret = ucma_query_req_info(&id_priv->id);
- 	if (ret) {
- 		rdma_destroy_id(&id_priv->id);
- 		goto err;
-@@ -1473,14 +1528,10 @@ retry:
- 
- 	switch (resp->event) {
- 	case RDMA_CM_EVENT_ADDR_RESOLVED:
--		evt->event.status = ucma_query_route(&evt->id_priv->id);
--		if (evt->event.status)
--			evt->event.event = RDMA_CM_EVENT_ADDR_ERROR;
-+		ucma_process_addr_resolved(evt);
- 		break;
- 	case RDMA_CM_EVENT_ROUTE_RESOLVED:
--		evt->event.status = ucma_query_route(&evt->id_priv->id);
--		if (evt->event.status)
--			evt->event.event = RDMA_CM_EVENT_ROUTE_ERROR;
-+		ucma_process_route_resolved(evt);
- 		break;
- 	case RDMA_CM_EVENT_CONNECT_REQUEST:
- 		evt->id_priv = (void *) (uintptr_t) resp->uid;
 
 
 
