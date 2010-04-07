@@ -1,40 +1,40 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH 11/37] librdmacm: add zalloc call
-Date: Wed, 7 Apr 2010 13:19:38 -0600
-Message-ID: <20100407191938.GF15629@obsidianresearch.com>
-References: <53A8AB949BCE4311B58A4881EC549E90@amr.corp.intel.com>
+From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: Re: [PATCH v2 13/51] IB/qib: Add qib_driver.c
+Date: Wed, 07 Apr 2010 14:24:06 -0500
+Message-ID: <4BBCDBD6.8010809@opengridcomputing.com>
+References: <20091203190305.29507.58158.stgit@chromite.mv.qlogic.com>	<20091203190413.29507.17962.stgit@chromite.mv.qlogic.com> <adafx3743n6.fsf@roland-alpha.cisco.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <53A8AB949BCE4311B58A4881EC549E90-Zpru7NauK7drdx17CPfAsdBPR1lH4CV8@public.gmane.org>
+In-Reply-To: <adafx3743n6.fsf-BjVyx320WGW9gfZ95n9DRSW4+XlvGpQz@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Cc: Ralph Campbell <ralph.campbell-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Apr 07, 2010 at 10:12:44AM -0700, Sean Hefty wrote:
-> Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> 
->  src/cma.c |    6 ++----
->  src/cma.h |   10 ++++++++++
->  2 files changed, 12 insertions(+), 4 deletions(-)
-> 
-> diff --git a/src/cma.c b/src/cma.c
-> index a85448b..4025aeb 100644
-> +++ b/src/cma.c
-> @@ -342,11 +342,10 @@ static struct cma_id_private *ucma_alloc_id(struct rdma_event_channel *channel,
->  {
->  	struct cma_id_private *id_priv;
->  
-> -	id_priv = malloc(sizeof *id_priv);
-> +	id_priv = zalloc(sizeof *id_priv);
->  	if (!id_priv)
->  		return NULL;
+Roland Dreier wrote:
+>  > +unsigned qib_debug;
+>  > +module_param_named(debug, qib_debug, uint, S_IWUSR | S_IRUGO);
+>  > +MODULE_PARM_DESC(debug, "mask for debug prints");
+>
+> Did you look at using trace events for this stuff?  That gives you
+> extremely low overhead when tracing is turned off (dynamic patching to
+> NOP out the tracing when it's disabled) and also very fine-grained (per
+> trace site) control over what gets printed; plus you get dumping of the
+> trace buffer on crash, etc.
+>
+>  - R.
+>   
 
-Maybe use calloc(,1 sizeof(x)); instead?
+Where can I find information on trace events?  Something in Documentation/*?
 
-Jason
+Thanks,
+
+
+Steve.
+
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
