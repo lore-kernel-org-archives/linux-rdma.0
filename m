@@ -1,16 +1,16 @@
 From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH] [for-2.6.34] rdma/cm: set num_paths when manually assigning path records
-Date: Wed, 07 Apr 2010 14:14:23 -0700
-Message-ID: <aday6gz0xu8.fsf@roland-alpha.cisco.com>
-References: <3946EFA63D2D4C2A93F45CF7CD715B5C@amr.corp.intel.com>
+Subject: Re: [PATCH] RDMA/nes: correct cap.max_inline_data assignment in nes_query_qp
+Date: Wed, 07 Apr 2010 14:16:18 -0700
+Message-ID: <adatyrn0xr1.fsf@roland-alpha.cisco.com>
+References: <20100325133950.GA9752@ctung-MOBL>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <3946EFA63D2D4C2A93F45CF7CD715B5C-Zpru7NauK7drdx17CPfAsdBPR1lH4CV8@public.gmane.org> (Sean
-	Hefty's message of "Thu, 25 Mar 2010 12:12:36 -0700")
+In-Reply-To: <20100325133950.GA9752@ctung-MOBL> (Chien Tung's message of "Thu,
+	25 Mar 2010 08:39:50 -0500")
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Chien Tung <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 thanks, applied
