@@ -1,84 +1,41 @@
-From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: Re: [PATCH 31/37] librdmacm: provide abstracted verb calls
-Date: Wed, 07 Apr 2010 17:07:21 -0500
-Message-ID: <4BBD0219.2080602@opengridcomputing.com>
-References: <27A4CFF94530491F88C8E528428FF93E@amr.corp.intel.com> <4BBCDF57.20303@opengridcomputing.com> <411E3A9BECF04B598FFEFFF08505DE6F@amr.corp.intel.com> <4BBCED37.9040708@opengridcomputing.com> <3F9969F0569A431A9B40B8DED7E18FB4@amr.corp.intel.com>
+From: "Sean Hefty" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH 26/37] librdmacm: set src_addr in rdma_getaddrinfo
+Date: Wed, 7 Apr 2010 15:10:36 -0700
+Message-ID: <569EDABAE9F84A029ED7AC84AA5767D6@amr.corp.intel.com>
+References: <B7B5C575DF7D4C51AB84AFFAC7A5D5C5@amr.corp.intel.com> <20100407192810.GG15629@obsidianresearch.com> <4BAFD82633A744729F9685D44B250100@amr.corp.intel.com> <20100407201417.GJ15629@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain;
+	charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <3F9969F0569A431A9B40B8DED7E18FB4-Zpru7NauK7drdx17CPfAsdBPR1lH4CV8@public.gmane.org>
+In-Reply-To: <20100407201417.GJ15629-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: 'Jason Gunthorpe' <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Sean Hefty wrote:
->>> I think it's possible for the function to return without having filled in a
->>>       
->> wc.
->>     
->> So its busted?  Or is this intended behavior?
->>     
->
-> Depends on the point of view, I guess.  :)  It would be nice to avoid that
-> situation.
->
->   
->> Is rdma_get_send_completion() supposed to return exactly one wc?  If so
->> then the 2 polls can cause a wc to get silently discarded.   I must
->> still not be understanding the intended use?
->>     
->
-> How can a wc get discarded?  Maybe the return code from ibv_poll_cq is confusing
-> you?  If the first poll finds a wc, ibv_poll_cq returns 1, and we exit the
-> function.  Otherwise, we rearm the cq, then poll again to make sure that nothing
-> got missed.
->
->   
+>I don't have a problem with ai_src_addr being set, when necessary, but
+>setting it unconditionally seems wrong to me. In most cases the kernel
+>should select the source during route resolution, not be forced to
+>something in userspace.
 
+Just to be precise, the source is selected during address resolution, and the
+existing APIs allow the user to indicate that a specific source should be used.
 
-Right.  I missed that.  poll will return 1 if there's a completion 
-returned.  Nevermind :)
+This is a requirement of some applications.
 
+>Not sure what you mean that ACM requires it? Doesn't ACM plug in at
+>the rdma_getaddrinfo stage? If so it can get the source on its own
+>like you did in this patch. I agree that ACM should always return
+>results with the source set, because it is providing path records
+>relative to a specific adaptor.
 
->> I would think this should just be:
->>
->> get_cq_event()
->> notify_cq()
->> poll()
->>     
->
-> This requires arming the CQ up front.  I was also trying to avoid the overhead
-> of always calling get_cq_event and notify_cq to just pull a completed request
-> off of the work queue.
->
->   
+Yes - the code to set the source could move from librdmacm into ACM.
 
+I can change rdma_getaddrinfo to only set the source address if either the user
+provides one through a hint, or if resolved through ACM.
 
-I was confused on the poll_cq return code (and I've been working in this 
-code for umpteen years :) ).
-
-
->>> The only drawback I see is that it's theoretically possible to build up a
->>>       
->> queue
->>     
->>> of cq events in the kernel.  Not sure how to fix that.  Any ideas?
->>>
->>>       
->> That can always happen, yes?
->>     
->
-> It seems like it should be avoidable.  Maybe 1 event can queue up, but I think
-> we can prevent more by not rearming until that event gets pulled.
->
-> If nothing else, I think this discussion shows why we need this sort of wrapper.
-> :)
->   
-
-Indeed!  I like the wrappers.
-
+- Sean
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
