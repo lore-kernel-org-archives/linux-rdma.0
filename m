@@ -1,196 +1,94 @@
-From: Al Chu <chu11-i2BcT+NCU+M@public.gmane.org>
-Subject: [infiniband-diags] [2/3] support --diffcheck in ibnetdiscover
-Date: Wed, 07 Apr 2010 10:06:32 -0700
-Message-ID: <1270659992.26381.40.camel@crazyclimber.llnl.gov>
-Reply-To: chu11-i2BcT+NCU+M@public.gmane.org
+From: Randy Dunlap <randy.dunlap-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH] [RFC] ummunotify: Userspace support for MMU
+ notifications
+Date: Wed, 7 Apr 2010 10:38:13 -0700
+Message-ID: <20100407103813.74b54a87.randy.dunlap@oracle.com>
+References: <1270643429-20688-1-git-send-email-ebmunson@us.ibm.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="=-v6BifIsGrF+9NJI4qOVK"
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1270643429-20688-1-git-send-email-ebmunson-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org" <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Eric B Munson <ebmunson-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>
+Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org, peterz-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, pavel-+ZI9xUNit7I@public.gmane.org, mingo-X9Un+BFzKDI@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+On Wed,  7 Apr 2010 13:30:29 +0100 Eric B Munson wrote:
 
---=-v6BifIsGrF+9NJI4qOVK
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+> Signed-off-by: Roland Dreier <rolandd <at> cisco.com>
 
-Hi Sasha,
+Use unobfuscated @.
 
-This patch adds basic --diffcheck support in ibnetdiscover, allowing
-configuration of the diff checks done in the default --diff option.
+> Signed-off-by: Eric B Munson <ebmunson-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>
+> 
+> ---
+> 
+> Changes since v3:
+>  - Fixed replaced [get|put] user with copy_[from|to]_user to fix x86
+>    builds
+> ---
+>  Documentation/Makefile    |    3 +-
+>  drivers/char/Kconfig      |   12 +
+>  drivers/char/Makefile     |    1 +
+>  drivers/char/ummunotify.c |  567 +++++++++++++++++++++++++++++++++++++++++++++
+>  4 files changed, 582 insertions(+), 1 deletions(-)
+>  create mode 100644 drivers/char/ummunotify.c
+> 
+> diff --git a/Documentation/Makefile b/Documentation/Makefile
+> index 6fc7ea1..27ba76a 100644
+> --- a/Documentation/Makefile
+> +++ b/Documentation/Makefile
+> @@ -1,3 +1,4 @@
+>  obj-m := DocBook/ accounting/ auxdisplay/ connector/ \
+>  	filesystems/ filesystems/configfs/ ia64/ laptops/ networking/ \
+> -	pcmcia/ spi/ timers/ video4linux/ vm/ watchdog/src/
+> +	pcmcia/ spi/ timers/ video4linux/ vm/ ummunotify/ \
+> +	watchdog/src/
 
-Al
-
--- 
-Albert Chu
-chu11-i2BcT+NCU+M@public.gmane.org
-Computer Scientist
-High Performance Systems Division
-Lawrence Livermore National Laboratory
-
---=-v6BifIsGrF+9NJI4qOVK
-Content-Disposition: attachment; filename=0002-support-diffcheck-in-ibnetdiscover.patch
-Content-Type: message/rfc822; name=0002-support-diffcheck-in-ibnetdiscover.patch
-
-From: Albert Chu <chu11-i2BcT+NCU+M@public.gmane.org>
-Date: Wed, 31 Mar 2010 11:13:37 -0700
-Subject: [PATCH] support --diffcheck in ibnetdiscover
-Message-Id: <1270659341.26381.29.camel-RLKWKRZIcZkVVsCFsIUZTRy+HRzXvqW9@public.gmane.org>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+What is this change to Documentation/Makefile for?
+Is there some file that should be added in Documentation/ummunotify/ ?
 
 
-Signed-off-by: Albert Chu <chu11-i2BcT+NCU+M@public.gmane.org>
+> diff --git a/drivers/char/Kconfig b/drivers/char/Kconfig
+> index 3141dd3..cf26019 100644
+> --- a/drivers/char/Kconfig
+> +++ b/drivers/char/Kconfig
+> @@ -1111,6 +1111,18 @@ config DEVPORT
+>  	depends on ISA || PCI
+>  	default y
+>  
+> +config UMMUNOTIFY
+> +       tristate "Userspace MMU notifications"
+> +       select MMU_NOTIFIER
+> +       help
+> +         The ummunotify (userspace MMU notification) driver creates a
+> +         character device that can be used by userspace libraries to
+> +         get notifications when an application's memory mapping
+> +         changed.  This is used, for example, by RDMA libraries to
+> +         improve the reliability of memory registration caching, since
+> +         the kernel's MMU notifications can be used to know precisely
+> +         when to shoot down a cached registration.
+> +
+>  source "drivers/s390/char/Kconfig"
+>  
+>  endmenu
+> diff --git a/drivers/char/Makefile b/drivers/char/Makefile
+> index f957edf..521e5de 100644
+> --- a/drivers/char/Makefile
+> +++ b/drivers/char/Makefile
+> @@ -97,6 +97,7 @@ obj-$(CONFIG_NSC_GPIO)		+= nsc_gpio.o
+>  obj-$(CONFIG_CS5535_GPIO)	+= cs5535_gpio.o
+>  obj-$(CONFIG_GPIO_TB0219)	+= tb0219.o
+>  obj-$(CONFIG_TELCLOCK)		+= tlclk.o
+> +obj-$(CONFIG_UMMUNOTIFY)	+= ummunotify.o
+>  
+>  obj-$(CONFIG_MWAVE)		+= mwave/
+>  obj-$(CONFIG_AGP)		+= agp/
+
+
 ---
- infiniband-diags/man/ibnetdiscover.8 |    8 +++++
- infiniband-diags/src/ibnetdiscover.c |   50 +++++++++++++++++++++++++---------
- 2 files changed, 45 insertions(+), 13 deletions(-)
-
-diff --git a/infiniband-diags/man/ibnetdiscover.8 b/infiniband-diags/man/ibnetdiscover.8
-index 975b999..e122736 100644
---- a/infiniband-diags/man/ibnetdiscover.8
-+++ b/infiniband-diags/man/ibnetdiscover.8
-@@ -64,6 +64,14 @@ output will be displayed showing differences between the old and current
- fabric.  By default, the following are compared for differences: switches,
- channel adapters, routers, and port connections.
- .TP
-+\fB\-\-diffcheck\fR <key(s)>
-+Specify what diff checks should be done in the \fB\-\-diff\fR option above.
-+Comma separate multiple diff check key(s).  The available diff checks
-+are: \fIsw\fR = switches, \fIca\fR = channel adapters, \fIrouter\fR = routers,
-+\fIport\fR = port connections descriptions.  Note that \fIport\fR is
-+checked only for the node types that are specified (e.g. \fIsw\fR,
-+\fIca\fR, \fIrouter\fR).
-+.TP
- \fB\-p\fR, \fB\-\-ports\fR
- Obtain a ports report which is a
- list of connected ports with relevant information (like LID, portnum,
-diff --git a/infiniband-diags/src/ibnetdiscover.c b/infiniband-diags/src/ibnetdiscover.c
-index 4da09ce..4435ade 100644
---- a/infiniband-diags/src/ibnetdiscover.c
-+++ b/infiniband-diags/src/ibnetdiscover.c
-@@ -57,10 +57,10 @@
- #define LIST_SWITCH_NODE (1 << IB_NODE_SWITCH)
- #define LIST_ROUTER_NODE (1 << IB_NODE_ROUTER)
- 
--#define DIFF_FLAG_SWITCH          0x00000001
--#define DIFF_FLAG_CA              0x00000002
--#define DIFF_FLAG_ROUTER          0x00000004
--#define DIFF_FLAG_PORT_CONNECTION 0x00000008
-+#define DIFF_FLAG_SWITCH           0x00000001
-+#define DIFF_FLAG_CA               0x00000002
-+#define DIFF_FLAG_ROUTER           0x00000004
-+#define DIFF_FLAG_PORT_CONNECTION  0x00000008
- 
- #define DIFF_FLAG_DEFAULT      (DIFF_FLAG_SWITCH \
- 				| DIFF_FLAG_CA \
-@@ -76,6 +76,7 @@ static nn_map_t *node_name_map = NULL;
- static char *cache_file = NULL;
- static char *load_cache_file = NULL;
- static char *diff_cache_file = NULL;
-+static uint32_t diffcheck_flags = DIFF_FLAG_DEFAULT;
- 
- static int report_max_hops = 0;
- 
-@@ -735,7 +736,9 @@ static int diff_common(ibnd_fabric_t * orig_fabric,
- 	 * in new_fabric but not in orig_fabric.
- 	 *
- 	 * In this diff, we don't need to check port connections,
--	 * since it has already been done before.
-+	 * lids, or node descriptions since it has already been
-+         * done (i.e. checks are only done when guid exists on both
-+	 * orig and new).
- 	 */
- 	iter_diff_data.diff_flags = diff_flags & ~DIFF_FLAG_PORT_CONNECTION;
- 	iter_diff_data.fabric1 = new_fabric;
-@@ -752,29 +755,27 @@ static int diff_common(ibnd_fabric_t * orig_fabric,
- 
- int diff(ibnd_fabric_t * orig_fabric, ibnd_fabric_t * new_fabric)
- {
--	uint32_t diff_flags = DIFF_FLAG_DEFAULT;
--
--	if (diff_flags & DIFF_FLAG_SWITCH)
-+	if (diffcheck_flags & DIFF_FLAG_SWITCH)
- 		diff_common(orig_fabric,
- 			    new_fabric,
- 			    IB_NODE_SWITCH,
--			    diff_flags,
-+			    diffcheck_flags,
- 			    out_switch,
- 			    out_switch_port);
- 
--	if (diff_flags & DIFF_FLAG_CA)
-+	if (diffcheck_flags & DIFF_FLAG_CA)
- 		diff_common(orig_fabric,
- 			    new_fabric,
- 			    IB_NODE_CA,
--			    diff_flags,
-+			    diffcheck_flags,
- 			    out_ca,
- 			    out_ca_port);
- 
--	if (diff_flags & DIFF_FLAG_ROUTER)
-+	if (diffcheck_flags & DIFF_FLAG_ROUTER)
- 		diff_common(orig_fabric,
- 			    new_fabric,
- 			    IB_NODE_ROUTER,
--			    diff_flags,
-+			    diffcheck_flags,
- 			    out_ca,
- 			    out_ca_port);
- 
-@@ -786,6 +787,8 @@ static int list, group, ports_report;
- 
- static int process_opt(void *context, int ch, char *optarg)
- {
-+	char *p;
-+
- 	switch (ch) {
- 	case 1:
- 		node_name_map_file = strdup(optarg);
-@@ -799,6 +802,25 @@ static int process_opt(void *context, int ch, char *optarg)
- 	case 4:
- 		diff_cache_file = strdup(optarg);
- 		break;
-+	case 5:
-+		diffcheck_flags = 0;
-+		p = strtok(optarg, ",");
-+		while (p) {
-+			if (!strcasecmp(p, "sw"))
-+				diffcheck_flags |= DIFF_FLAG_SWITCH;
-+			else if (!strcasecmp(p, "ca"))
-+				diffcheck_flags |= DIFF_FLAG_CA;
-+			else if (!strcasecmp(p, "router"))
-+				diffcheck_flags |= DIFF_FLAG_ROUTER;
-+			else if (!strcasecmp(p, "port"))
-+				diffcheck_flags |= DIFF_FLAG_PORT_CONNECTION;
-+			else {
-+				fprintf(stderr, "invalid diff check key: %s\n", p);
-+				return -1;
-+			}
-+			p = strtok(NULL, ",");
-+		}
-+		break;
- 	case 's':
- 		ibnd_show_progress(1);
- 		break;
-@@ -852,6 +874,8 @@ int main(int argc, char **argv)
- 		 "filename of ibnetdiscover cache to load"},
- 		{"diff", 4, 1, "<file>",
- 		 "filename of ibnetdiscover cache to diff"},
-+		{"diffcheck", 5, 1, "<key(s)>",
-+		 "specify checks to execute for --diff"},
- 		{"ports", 'p', 0, NULL, "obtain a ports report"},
- 		{"max_hops", 'm', 0, NULL,
- 		 "report max hops discovered by the library"},
--- 
-1.5.4.5
-
-
---=-v6BifIsGrF+9NJI4qOVK--
-
+~Randy
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
