@@ -1,97 +1,22 @@
-From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: Re: [PATCH 31/37] librdmacm: provide abstracted verb calls
-Date: Wed, 07 Apr 2010 15:38:15 -0500
-Message-ID: <4BBCED37.9040708@opengridcomputing.com>
-References: <27A4CFF94530491F88C8E528428FF93E@amr.corp.intel.com> <4BBCDF57.20303@opengridcomputing.com> <411E3A9BECF04B598FFEFFF08505DE6F@amr.corp.intel.com>
+From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH] [for-2.6.34] rdma/cm: set num_paths when manually assigning path records
+Date: Wed, 07 Apr 2010 14:14:23 -0700
+Message-ID: <aday6gz0xu8.fsf@roland-alpha.cisco.com>
+References: <3946EFA63D2D4C2A93F45CF7CD715B5C@amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <411E3A9BECF04B598FFEFFF08505DE6F-Zpru7NauK7drdx17CPfAsdBPR1lH4CV8@public.gmane.org>
+In-Reply-To: <3946EFA63D2D4C2A93F45CF7CD715B5C-Zpru7NauK7drdx17CPfAsdBPR1lH4CV8@public.gmane.org> (Sean
+	Hefty's message of "Thu, 25 Mar 2010 12:12:36 -0700")
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Sean Hefty wrote:
->>> +static inline int
->>> +rdma_get_send_comp(struct rdma_cm_id *id, struct ibv_wc *wc)
->>> +{
->>> +	struct ibv_cq *cq;
->>> +	void *context;
->>> +	int ret;
->>> +
->>> +	ret = ibv_poll_cq(id->send_cq, 1, wc);
->>> +	if (ret)
->>> +		return ret;
->>> +
->>> +	ret = ibv_req_notify_cq(id->send_cq, 0);
->>> +	if (ret)
->>> +		return ret;
->>> +
->>> +	ret = ibv_poll_cq(id->send_cq, 1, wc);
->>> +	if (ret)
->>> +		return ret;
->>> +
->>> +	ret = ibv_get_cq_event(id->send_cq_channel, &cq, &context);
->>> +	if (ret)
->>> +		return ret;
->>>
->>>       
->> This doesn't look correct.  If the send isn't complete by the time the
->> 2nd ibv_poll_cq() completes, then this function will return without
->> having filled in the wc.  Or am I missing something?  Shouldn't the
->> ibv_get_cq_event() be the first thing this function does?  The same
->> issue/question exists for rdma_get_recv_comp().
->>     
->
-> I think it's possible for the function to return without having filled in a wc.
->   
-
-
-So its busted?  Or is this intended behavior?
-
-
-> If the 2nd poll removes a completion, it can leave a cq event on the channel,
-> which a subsequent call could retrieve, but then find the cq empty.
->
-> The idea for this call is to abstract poll, notify_cq, and get_cq_event, but
-> still provide decent performance.  (Scalability is a separate matter.  I
-> couldn't find a decent way to abstract a CQ shared across QPs or between the
-> receive and send queues.)
->
-> To avoid returning from the call without a completion, I think the following
-> structure works:
->
-> poll()
-> notify_cq()
-> poll()
-> while (no completion) {
-> 	get_cq_event()
-> 	poll()
-> }
->   
-
-Is rdma_get_send_completion() supposed to return exactly one wc?  If so 
-then the 2 polls can cause a wc to get silently discarded.   I must 
-still not be understanding the intended use?
-
-I would think this should just be:
-
-get_cq_event()
-notify_cq()
-poll()
-
-
-> The only drawback I see is that it's theoretically possible to build up a queue
-> of cq events in the kernel.  Not sure how to fix that.  Any ideas?
->
->   
-
-That can always happen, yes?
-
-
-Steve.
+thanks, applied
+-- 
+Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org> || For corporate legal information go to:
+http://www.cisco.com/web/about/doing_business/legal/cri/index.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
