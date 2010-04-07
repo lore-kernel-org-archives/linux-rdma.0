@@ -1,43 +1,60 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: Ummunotify: progress at last!
-Date: Wed, 7 Apr 2010 14:05:14 -0600
-Message-ID: <20100407200514.GI15629@obsidianresearch.com>
-References: <1CDB2AA4-A8DF-4169-943E-4EA190814596@cisco.com> <20100323165920.GH29129@obsidianresearch.com> <D7DCABC9-4BB2-4FBA-A7B3-C06F4A848467@cisco.com> <20100323172953.GI29129@obsidianresearch.com> <5F80899D-F989-4162-B050-7E4D6B389876@cisco.com> <20100323195251.GJ29129@obsidianresearch.com> <3B848E1F-C9B6-416A-9E6E-99604E71902A@cisco.com> <20100323201124.GK29129@obsidianresearch.com> <ada39z72gww.fsf@roland-alpha.cisco.com>
+Subject: Re: [PATCH 26/37] librdmacm: set src_addr in rdma_getaddrinfo
+Date: Wed, 7 Apr 2010 14:14:17 -0600
+Message-ID: <20100407201417.GJ15629@obsidianresearch.com>
+References: <B7B5C575DF7D4C51AB84AFFAC7A5D5C5@amr.corp.intel.com> <20100407192810.GG15629@obsidianresearch.com> <4BAFD82633A744729F9685D44B250100@amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <ada39z72gww.fsf-BjVyx320WGW9gfZ95n9DRSW4+XlvGpQz@public.gmane.org>
+In-Reply-To: <4BAFD82633A744729F9685D44B250100-Zpru7NauK7drdx17CPfAsdBPR1lH4CV8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Cc: Jeff Squyres <jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Linux RDMA List <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Brad Benton <brad.benton-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>
+To: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Apr 07, 2010 at 12:37:03PM -0700, Roland Dreier wrote:
->  > No, there is no mmap. Like this:
->  > 
->  > u64 my_counter = 0;
->  > 
->  > ibv_set_mmu_counter(verbs, &my_counter);
->  > [..]
->  > while (my_counter != last_my_counter) {
->  >     last_my_counter = my_counter;
->  >     ibv_get_mmu_notifications(verbs, ...);   // <- I am a memory barrier as well
->  > }
->  > 
->  > The kernel 'syscall' ibv_set_mmu_counter would bind the given verbs to
->  > the 8 byte counter you specified without having to the mmap thing. As
->  > I understand it this is what perfevents does.
+On Wed, Apr 07, 2010 at 12:54:56PM -0700, Sean Hefty wrote:
+> >I haven't looked through everything you posted to make a suggestion
+> >here, but this bothers me..
+> >
+> >The resources should be allocated after the rdma_bind syscall, prior to
+> >listen/accept or connect, IMHO.
+> >
+> >How does tha rai->ai_src_addr get used to allocate resources anyhow?
 > 
-> I was trying to look at how perf events handles this, and AFAICT it
-> looks like kernel/perf_event.c just supports mmap().  Can you expand on
-> what you meant here?
+> Maybe the patch description is off.
 > 
-> (I was trying to figure out how one would handle the case where
-> userspace gives us a counter in highmem -- doing kmap_atomic() seems to
-> be to only option but then I'm not sure if I want to deal with that...)
+> All this does (in a very non-sexy way) is set ai_src_addr.  It does
+> not allocate any hardware resources.  A user can provide ai_src_addr
+> as input into rdma_bind or rdma_resolve_addr.
+> 
+> The motivation is twofold.  First, the user can select the
+> rdma_addrinfo for a connection by examining the src/dst address
+> pair.  This may be desired for failover or performance reasons.
+> Second, route resolution may require knowing both the source and
+> destination addresses.  For example, IB ACM requires both addresses
+> as input.
 
-I think I was mistaken here, disregard..
+Huumm
+
+I don't have a problem with ai_src_addr being set, when necessary, but
+setting it unconditionally seems wrong to me. In most cases the kernel
+should select the source during route resolution, not be forced to
+something in userspace.
+
+Certainly for AF_INET/6 I don't think this should be done..
+
+Apps doing complex things for failover should supply a source address
+in the hints and call rdma_getaddrinfo for each adaptor.
+
+AF_IB has the scope ID in the destination to specify the adaptor for
+link-local GIDs, so the source should not often be needed.
+
+Not sure what you mean that ACM requires it? Doesn't ACM plug in at
+the rdma_getaddrinfo stage? If so it can get the source on its own
+like you did in this patch. I agree that ACM should always return
+results with the source set, because it is providing path records
+relative to a specific adaptor.
 
 Jason
 --
