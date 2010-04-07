@@ -1,7 +1,7 @@
 From: "Sean Hefty" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 34/37] librdmacm: update man pages
+Subject: [PATCH 27/37] librdmacm: add support for IB ACM service
 Date: Wed, 7 Apr 2010 10:12:43 -0700
-Message-ID: <4080563C8473436DB118953312C0320C@amr.corp.intel.com>
+Message-ID: <63A656D773734ACAA7EA63BB2C02DDD6@amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="us-ascii"
@@ -13,280 +13,321 @@ Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Update man pages to reflect changes to the APIs.
+Allow the librdmacm to contact a service via sockets to obtain
+address mapping and path record data.  The use of the service
+is controlled through a build option (with-ib_acm).  If the
+library fails to contact the service, it falls back to using
+the kernel services to resolve address and routing data.
 
 Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
+Once IB ACM is proven, the build option can be removed.
 
- man/rdma_cm.7          |   56 +++++++++++++++++++++++++++++++++++++++++------
- man/rdma_create_ep.3   |   57 ++++++++++++++++++++++++++++++++++++++++++++++++
- man/rdma_create_id.3   |   14 ++++++++----
- man/rdma_create_qp.3   |   15 +++++++++++--
- man/rdma_get_request.3 |   31 ++++++++++++++++++++++++++
- man/rdma_migrate_id.3  |    6 ++++-
- 6 files changed, 165 insertions(+), 14 deletions(-)
+ Makefile.am    |    2 -
+ configure.in   |   14 +++++
+ src/acm.c      |  160 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ src/addrinfo.c |    3 +
+ src/cma.c      |    9 ++-
+ src/cma.h      |   13 ++++-
+ 6 files changed, 197 insertions(+), 4 deletions(-)
 
-diff --git a/man/rdma_cm.7 b/man/rdma_cm.7
-index fd04959..ff5d489 100644
---- a/man/rdma_cm.7
-+++ b/man/rdma_cm.7
-@@ -8,17 +8,59 @@ Used to establish communication over RDMA transports.
- .SH "NOTES"
- The RDMA CM is a communication manager used to setup reliable, connected
- and unreliable datagram data transfers.  It provides an RDMA transport
--neutral interface for establishing connections.  The API is based on sockets,
--but adapted for queue pair (QP) based semantics: communication must be
--over a specific RDMA device, and data transfers are message based.
-+neutral interface for establishing connections.  The API concepts are
-+is based on sockets, but adapted for queue pair (QP) based semantics:
-+communication must be over a specific RDMA device, and data transfers
-+are message based.
- .P
--The RDMA CM only provides the communication management (connection setup /
--teardown) portion of an RDMA API.  It works in conjunction with the verbs
-+The RDMA CM can control both the QP and communication management (connection setup /
-+teardown) portions of an RDMA API, or only the communication management
-+piece.  It works in conjunction with the verbs
- API defined by the libibverbs library.  The libibverbs library provides the
--interfaces needed to send and receive data.
-+underlying interfaces needed to send and receive data.
-+.P
-+The RDMA CM can operate asynchronously or synchronously.  The mode of
-+operation is controlled by the user through the use of the rdma_cm event channel
-+parameter in specific calls.  If an event channel is provided, an rdma_cm identifier
-+will report its event data (results of connecting, for example), on that channel.
-+If a channel is not provided, then all rdma_cm operations for the selected
-+rdma_cm identifier are will block until they complete.
-+.SH "RDMA VERBS"
-+The rdma_cm supports the full range of verbs available through the libibverbs
-+library and interfaces.  However, it also provides wrapper functions for some
-+of the more commonly used verbs funcationality.  The full set of abstracted
-+verb calls are:
-+.P rdma_reg_msgs  - register an array of buffers for sending and receiving
-+.P rdma_reg_read  - registers a buffer for RDMA read operations
-+.P rdma_reg_write - registers a buffer for RDMA write operations
-+.P rdma_dereg_mr  - deregisters a memory region
-+.P
-+.P rdma_post_recv  - post a buffer to receive a message
-+.P rdma_post_send  - post a buffer to send a message
-+.P rdma_post_read  - post an RDMA to read data into a buffer
-+.P rdma_post_write - post an RDMA to send data from a buffer
-+.P
-+.P rdma_post_recvv  - post a vector of buffers to receive a message
-+.P rdma_post_sendv  - post a vector of buffers to send a message
-+.P rdma_post_readv  - post a vector of buffers to receive an RDMA read
-+.P rdma_post_writev - post a vector of buffers to send an RDMA write
-+.P
-+.P rdma_post_ud_send - post a buffer to send a message on a UD QP
-+.P
-+.P rdma_get_send_comp - get completion status for a send or RDMA operation
-+.P rdma_get_recv_comp - get information about a completed receive
- .SH "CLIENT OPERATION"
- This section provides a general overview of the basic operation for the active,
--or client, side of communication.  A general connection flow would be:
-+or client, side of communication.  This flow assume asynchronous operation with
-+low level call details shown.  For
-+synchronous operation, calls to rdma_create_event_channel, rdma_get_cm_event,
-+rdma_ack_cm_event, and rdma_destroy_event_channel
-+would be eliminated.  Abstracted calls, such as rdma_create_ep encapsulate
-+serveral of these calls under a single API.
-+Users may also refer to the example applications for
-+code samples.  A general connection flow would be:
-+.IP rdma_getaddrinfo
-+retrieve address information of the destination
- .IP rdma_create_event_channel
- create channel to receive events
- .IP rdma_create_id
-diff --git a/man/rdma_create_ep.3 b/man/rdma_create_ep.3
+diff --git a/Makefile.am b/Makefile.am
+index be53c78..8d86045 100644
+--- a/Makefile.am
++++ b/Makefile.am
+@@ -12,7 +12,7 @@ else
+     librdmacm_version_script =
+ endif
+ 
+-src_librdmacm_la_SOURCES = src/cma.c src/addrinfo.c
++src_librdmacm_la_SOURCES = src/cma.c src/addrinfo.c src/acm.c
+ src_librdmacm_la_LDFLAGS = -version-info 1 -export-dynamic \
+ 			   $(librdmacm_version_script)
+ src_librdmacm_la_DEPENDENCIES =  $(srcdir)/src/librdmacm.map
+diff --git a/configure.in b/configure.in
+index 1122966..3db4247 100644
+--- a/configure.in
++++ b/configure.in
+@@ -21,6 +21,15 @@ if test "$with_valgrind" != "" && test "$with_valgrind" != "no"; then
+ 	fi
+ fi
+ 
++AC_ARG_WITH([ib_acm],
++    AC_HELP_STRING([--with-ib_acm],
++		   [Use IB ACM for route resolution - default NO]))
++
++if test "$with_ib_acm" != "" && test "$with_ib_acm" != "no"; then
++	AC_DEFINE([USE_IB_ACM], 1,
++		  [Define to 1 to use IB ACM for endpoint resolution])
++fi
++
+ AC_ARG_ENABLE(libcheck, [  --disable-libcheck      do not test for presence of ib libraries],
+ [       if test "$enableval" = "no"; then
+                 disable_libcheck=yes
+@@ -51,6 +60,11 @@ AC_CHECK_HEADER(valgrind/memcheck.h, [],
+     AC_MSG_ERROR([valgrind requested but <valgrind/memcheck.h> not found.]))
+ fi
+ 
++if test "$with_ib_acm" != "" && test "$with_ib_acm" != "no"; then
++AC_CHECK_HEADER(infiniband/acm.h, [],
++    AC_MSG_ERROR([IB ACM requested but <infiniband/acm.h> not found.]))
++fi
++
+ fi
+ 
+ AC_CACHE_CHECK(whether ld accepts --version-script, ac_cv_version_script,
+diff --git a/src/acm.c b/src/acm.c
 new file mode 100644
-index 0000000..ae07113
+index 0000000..34fdf3c
 --- /dev/null
-+++ b/man/rdma_create_ep.3
-@@ -0,0 +1,57 @@
-+.TH "RDMA_CREATE_EP" 3 "2007-08-06" "librdmacm" "Librdmacm Programmer's Manual" librdmacm
-+.SH NAME
-+rdma_create_ep \- Allocate a communication identifier and optional QP.
-+.SH SYNOPSIS
-+.B "#include <rdma/rdma_cma.h>"
-+.P
-+.B "int" rdma_create_ep
-+.BI "(struct rdma_cm_id **" id ","
-+.BI "struct rdma_addrinfo *" res ","
-+.BI "struct ibv_pd  *" pd ","
-+.BI "struct ibv_qp_init_attr *" qp_init_attr ");"
-+.SH ARGUMENTS
-+.IP "id" 12
-+A reference where the allocated communication identifier will be
-+returned.
-+.IP "res" 12
-+Address information associated with the rdma_cm_id returned from
-+rdma_getaddrinfo.
-+.IP "pd" 12
-+Optional protection domain if a QP is associated with the rdma_cm_id.
-+.IP "qp_init_attr" 12
-+Optional initial QP attributes.
-+.SH "DESCRIPTION"
-+Creates an identifier that is used to track communication information.
-+.SH "NOTES"
-+After resolving address information using rdma_getaddrinfo, a user
-+may use this call to allocate an rdma_cm_id based on the results.
-+.P
-+If the rdma_cm_id will be used on the active side of a connection,
-+meaning that res->ai_flag is not RAI_PASSIVE set, rdma_create_ep
-+will automatically create a QP on the rdma_cm_id if qp_init_attr is
-+not NULL.  The QP will be associated with the specified protection
-+domain, if provided, or a default protection domain if not.  Users
-+should see rdma_create_qp for details on the use of the pd and
-+qp_init_attr parameters.  After calling rdma_create_ep, the returned
-+rdma_cm_id may be connected by calling rdma_connect.  The active side
-+calls rdma_resolve_addr and rdma_resolve_route are not necessary.
-+.P
-+If the rdma_cm_id will be used on the passive side of a connection,
-+indicated by having res->ai_flag RAI_PASSIVE set, this call will save
-+the provided pd and qp_init_attr parameters.  When a new connection
-+request is retrieved by calling rdma_get_request, the rdma_cm_id
-+associated with the new connection will automatically be associated
-+with a QP using the pd and qp_init_attr parameters.  After calling
-+rdma_create_ep, the returned rdma_cm_id may be placed into a listening
-+state by immediately calling rdma_listen.  The passive side call
-+rdma_bind_addr is not necessary.  Connection requests may then be
-+retrieved by calling rdma_get_request.
-+.P
-+The newly created rdma_cm_id will be set to use synchronous operation.
-+Users that wish asynchronous operation must migrate the rdma_cm_id
-+to a user created event channel using rdma_migrate_id.
-+.P
-+Users must release the created rdma_cm_id by calling rdma_destroy_ep.
-+.SH "SEE ALSO"
-+rdma_cm(7), rdma_getaddrinfo(3), rdma_create_event_channel(3),
-+rdma_connect(3), rdma_listen(3), rdma_destroy_ep(3), rdma_migrate_id(3)
-diff --git a/man/rdma_create_id.3 b/man/rdma_create_id.3
-index eb29f3c..a7926d4 100644
---- a/man/rdma_create_id.3
-+++ b/man/rdma_create_id.3
-@@ -12,7 +12,7 @@ rdma_create_id \- Allocate a communication identifier.
- .SH ARGUMENTS
- .IP "channel" 12
- The communication channel that events associated with the
--allocated rdma_cm_id will be reported on.
-+allocated rdma_cm_id will be reported on.  This may be NULL.
- .IP "id" 12
- A reference where the allocated communication identifier will be
- returned.
-@@ -26,9 +26,15 @@ Creates an identifier that is used to track communication information.
- Rdma_cm_id's are conceptually equivalent to a socket for RDMA
- communication.  The difference is that RDMA communication requires
- explicitly binding to a specified RDMA device before communication
--can occur, and most operations are asynchronous in nature.  Communication
--events on an rdma_cm_id are reported through the associated event
--channel.  Users must release the rdma_cm_id by calling rdma_destroy_id.
-+can occur, and most operations are asynchronous in nature.  Asynchronous
-+communication events on an rdma_cm_id are reported through the associated
-+event channel.  If the channel paramet is NULL, the rdma_cm_id will
-+be placed into synchronous operation.  While operating synchronously,
-+calls that result in an event will block until the operation completes.
-+The event will be returned to the user through the rdma_cm_id structure,
-+and be available for access until another rdma_cm call is made.
-+.P
-+Users must release the rdma_cm_id by calling rdma_destroy_id.
- .SH "PORT SPACE"
- Details of the services provided by the different port spaces are outlined
- below.
-diff --git a/man/rdma_create_qp.3 b/man/rdma_create_qp.3
-index 0931499..ce1d862 100644
---- a/man/rdma_create_qp.3
-+++ b/man/rdma_create_qp.3
-@@ -12,9 +12,9 @@ rdma_create_qp \- Allocate a QP.
- .IP "id" 12
- RDMA identifier.
- .IP "pd" 12
--protection domain for the QP.
-+Optional protection domain for the QP.
- .IP "qp_init_attr" 12
--initial QP attributes.
-+Initial QP attributes.
- .SH "DESCRIPTION"
- Allocate a QP associated with the specified rdma_cm_id and transition it
- for sending and receiving.
-@@ -25,6 +25,17 @@ QPs allocated to an rdma_cm_id are automatically transitioned by the
- librdmacm through their states.  After being allocated, the QP will be
- ready to handle posting of receives.  If the QP is unconnected, it will
- be ready to post sends.
-+.P
-+If a protection domain is not given - pd parameter is NULL - then
-+the rdma_cm_id will be created using a default protection domain.  One
-+default protection domain is allocated per RDMA device.
-+.P
-+The initial QP attributes are specified by the qp_init_attr parameter.  The
-+send_cq and recv_cq fields in the ibv_qp_init_attr are optional.  If
-+a send or receive completion queue is not specified, then a CQ will be
-+allocated by the rdma_cm for the QP, along with corresponding completion
-+channels.  Completion channels and CQ data created by the rdma_cm are
-+exposed to the user through the rdma_cm_id structure.
- .SH "SEE ALSO"
- rdma_bind_addr(3), rdma_resolve_addr(3), rdma_destroy_qp(3), ibv_create_qp(3),
- ibv_modify_qp(3)
-diff --git a/man/rdma_get_request.3 b/man/rdma_get_request.3
-new file mode 100644
-index 0000000..cd48918
---- /dev/null
-+++ b/man/rdma_get_request.3
-@@ -0,0 +1,31 @@
-+.TH "RDMA_GET_REQUEST" 3 "2007-10-31" "librdmacm" "Librdmacm Programmer's Manual" librdmacm
-+.SH NAME
-+rdma_get_request \- Retrieves the next pending connection request event.
-+.SH SYNOPSIS
-+.B "#include <rdma/rdma_cma.h>"
-+.P
-+.B "int" rdma_get_request
-+.BI "(struct rdma_cm_id *" listen ","
-+.BI "struct rdma_cm_id **" id ");"
-+.SH ARGUMENTS
-+.IP "listen" 12
-+Listening rdma_cm_id.
-+.IP "id" 12
-+rdma_cm_id associated with the new connection.
-+.SH "DESCRIPTION"
-+Retrieves a connection request event.  If no requests are pending,
-+the call will block until an event is received.
-+.SH "NOTES"
-+This call may only be used on listening rdma_cm_id's operating
-+synchronously.  On success, a new rdma_cm_id representing the
-+connection request will be returned to the user.  The new rdma_cm_id
-+will reference event information associated with the request until
-+the user calls rdma_reject, rdma_accept, or rdma_destroy_id on the
-+newly created identifier.  For a description of the event data,
-+see rdma_get_cm_event.
-+.P
-+If QP attributes are associated with the listening endpoint, the
-+returned rdma_cm_id will also reference an allocated QP.
-+.SH "SEE ALSO"
-+rdma_get_cm_event(3), rdma_accept(3), rdma_reject(3),
-+rdma_connect(3), rdma_listen(3), rdma_destroy_id(3)
-diff --git a/man/rdma_migrate_id.3 b/man/rdma_migrate_id.3
-index ffbad45..64448f6 100644
---- a/man/rdma_migrate_id.3
-+++ b/man/rdma_migrate_id.3
-@@ -12,7 +12,7 @@ rdma_migrate_id \- Move a communication identifer to a different event channel.
- An existing communication identifier to migrate.
- .IP "channel" 12
- The communication channel that events associated with the
--allocated rdma_cm_id will be reported on.
-+allocated rdma_cm_id will be reported on.  May be NULL.
- .SH "DESCRIPTION"
- Migrates a communication identifier to a different event channel.
- .SH "NOTES"
-@@ -22,6 +22,10 @@ to the new channel.  Users should not poll for events on the
- rdma_cm_id's current event channel or invoke other routines on the
- rdma_cm_id while migrating between channels.  This call will block while
- there are any unacknowledged events on the current event channel.
-+.P
-+If the channel parameter is NULL, the specified rdma_cm_id will be
-+placed into synchronous operation mode.  All calls on the id
-+will block until the operation completes.
- .SH "SEE ALSO"
- rdma_cm(7), rdma_create_event_channel(3), rdma_create_id(3),
- rdma_get_cm_event(3)
++++ b/src/acm.c
+@@ -0,0 +1,160 @@
++/*
++ * Copyright (c) 2010 Intel Corporation.  All rights reserved.
++ *
++ * This software is available to you under a choice of one of two
++ * licenses.  You may choose to be licensed under the terms of the GNU
++ * General Public License (GPL) Version 2, available from the file
++ * COPYING in the main directory of this source tree, or the
++ * OpenIB.org BSD license below:
++ *
++ *     Redistribution and use in source and binary forms, with or
++ *     without modification, are permitted provided that the following
++ *     conditions are met:
++ *
++ *      - Redistributions of source code must retain the above
++ *        copyright notice, this list of conditions and the following
++ *        disclaimer.
++ *
++ *      - Redistributions in binary form must reproduce the above
++ *        copyright notice, this list of conditions and the following
++ *        disclaimer in the documentation and/or other materials
++ *        provided with the distribution.
++ *
++ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
++ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
++ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
++ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
++ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
++ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
++ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
++ * SOFTWARE.
++ */
++
++#if HAVE_CONFIG_H
++#  include <config.h>
++#endif /* HAVE_CONFIG_H */
++
++#include <sys/types.h>
++#include <sys/socket.h>
++#include <netdb.h>
++#include <unistd.h>
++
++#include "cma.h"
++#include <rdma/rdma_cma.h>
++#include <infiniband/ib.h>
++#include <infiniband/sa.h>
++
++#ifdef USE_IB_ACM
++#include <infiniband/acm.h>
++
++static pthread_mutex_t acm_lock = PTHREAD_MUTEX_INITIALIZER;
++static int sock;
++static short server_port = 6125;
++
++void ucma_ib_init(void)
++{
++	struct sockaddr_in addr;
++	int ret;
++
++	sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
++	if (sock < 0)
++		return;
++
++	memset(&addr, 0, sizeof addr);
++	addr.sin_family = AF_INET;
++	addr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
++	addr.sin_port = htons(server_port);
++	ret = connect(sock, (struct sockaddr *) &addr, sizeof(addr));
++	if (ret)
++		goto err;
++
++	return;
++
++err:
++	close(sock);
++	sock = 0;
++}
++
++void ucma_ib_cleanup(void)
++{
++	if (sock > 0) {
++		shutdown(sock, SHUT_RDWR);
++		close(sock);
++	}
++}
++
++static void ucma_ib_save_resp(struct rdma_addrinfo *rai, struct acm_resolve_msg *msg)
++{
++	struct ib_path_data *path_data = NULL;
++	int len, i, cnt;
++
++	len = msg->hdr.length - ACM_MSG_HDR_LENGTH;
++	cnt = len / sizeof(struct acm_ep_addr_data);
++	path_data = malloc(len);
++	if (!path_data)
++		return;
++
++	memcpy(path_data, msg->data, len);
++	for (i = 0; i < cnt; i++) {
++		if (msg->data[i].type != ACM_EP_INFO_PATH)
++			goto err;
++		path_data[i].reserved = 0;
++	}
++
++	rai->ai_route = path_data;
++	rai->ai_route_len = len;
++	return;
++err:
++	free(path_data);
++}
++
++void ucma_ib_resolve(struct rdma_addrinfo *rai)
++{
++	struct acm_msg msg;
++	struct acm_resolve_msg *resolve_msg = (struct acm_resolve_msg *) &msg;
++	struct acm_ep_addr_data *src_data, *dst_data;
++	int ret;
++
++	if (sock <= 0)
++		return;
++
++	memset(&msg, 0, sizeof msg);
++	msg.hdr.version = ACM_VERSION;
++	msg.hdr.opcode = ACM_OP_RESOLVE;
++	msg.hdr.length = ACM_MSG_HDR_LENGTH + (2 * ACM_MSG_EP_LENGTH);
++
++	src_data = &resolve_msg->data[0];
++	dst_data = &resolve_msg->data[1];
++
++	src_data->flags = ACM_EP_FLAG_SOURCE;
++	dst_data->flags = ACM_EP_FLAG_DEST;
++	if (rai->ai_family == AF_INET) {
++		src_data->type = dst_data->type = ACM_EP_INFO_ADDRESS_IP;
++		memcpy(src_data->info.addr,
++		       &((struct sockaddr_in *) rai->ai_src_addr)->sin_addr, 4);
++		memcpy(dst_data->info.addr,
++		       &((struct sockaddr_in *) rai->ai_dst_addr)->sin_addr, 4);
++	} else {
++		src_data->type = dst_data->type = ACM_EP_INFO_ADDRESS_IP6;
++		memcpy(src_data->info.addr,
++		       &((struct sockaddr_in6 *) rai->ai_src_addr)->sin6_addr, 16);
++		memcpy(dst_data->info.addr,
++		       &((struct sockaddr_in6 *) rai->ai_dst_addr)->sin6_addr, 16);
++	}
++	
++	pthread_mutex_lock(&acm_lock);
++	ret = send(sock, (char *) &msg, msg.hdr.length, 0);
++	if (ret != msg.hdr.length) {
++		pthread_mutex_unlock(&acm_lock);
++		return;
++	}
++
++	ret = recv(sock, (char *) &msg, sizeof msg, 0);
++	pthread_mutex_unlock(&acm_lock);
++	if (ret < ACM_MSG_HDR_LENGTH || ret != msg.hdr.length || msg.hdr.status)
++		return;
++
++	ucma_ib_save_resp(rai, resolve_msg);
++}
++
++#endif /* USE_IB_ACM */
+diff --git a/src/addrinfo.c b/src/addrinfo.c
+index dfaf9d5..dad9b82 100644
+--- a/src/addrinfo.c
++++ b/src/addrinfo.c
+@@ -219,6 +219,9 @@ int rdma_getaddrinfo(char *node, char *service,
+ 		}
+ 	}
+ 
++	if (!(rai->ai_flags & RAI_PASSIVE))
++		ucma_ib_resolve(rai);
++
+ 	freeaddrinfo(ai);
+ 	*res = rai;
+ 	return 0;
+diff --git a/src/cma.c b/src/cma.c
+index 1cc4f1f..6ac949a 100644
+--- a/src/cma.c
++++ b/src/cma.c
+@@ -149,6 +149,8 @@ int af_ib_support;
+ 
+ static void ucma_cleanup(void)
+ {
++	ucma_ib_cleanup();
++
+ 	if (cma_dev_cnt) {
+ 		while (cma_dev_cnt--) {
+ 			ibv_dealloc_pd(cma_dev_array[cma_dev_cnt].pd);
+@@ -196,7 +198,7 @@ int ucma_init(void)
+ 	struct ibv_device **dev_list = NULL;
+ 	struct cma_device *cma_dev;
+ 	struct ibv_device_attr attr;
+-	int i, ret, dev_cnt;
++	int i, ret, dev_cnt, ib;
+ 
+ 	/* Quick check without lock to see if we're already initialized */
+ 	if (cma_dev_cnt)
+@@ -225,7 +227,7 @@ int ucma_init(void)
+ 		goto err2;
+ 	}
+ 
+-	for (i = 0; dev_list[i];) {
++	for (i = 0, ib = 0; dev_list[i];) {
+ 		cma_dev = &cma_dev_array[i];
+ 
+ 		cma_dev->guid = ibv_get_device_guid(dev_list[i]);
+@@ -253,8 +255,11 @@ int ucma_init(void)
+ 		cma_dev->port_cnt = attr.phys_port_cnt;
+ 		cma_dev->max_initiator_depth = (uint8_t) attr.max_qp_init_rd_atom;
+ 		cma_dev->max_responder_resources = (uint8_t) attr.max_qp_rd_atom;
++		ib += (cma_dev->verbs->device->transport_type == IBV_TRANSPORT_IB);
+ 	}
+ 
++	if (ib)
++		ucma_ib_init();
+ 	cma_dev_cnt = dev_cnt;
+ 	pthread_mutex_unlock(&mut);
+ 	ibv_free_device_list(dev_list);
+diff --git a/src/cma.h b/src/cma.h
+index 06ca38c..62785de 100644
+--- a/src/cma.h
++++ b/src/cma.h
+@@ -44,6 +44,8 @@
+ #include <byteswap.h>
+ #include <string.h>
+ 
++#include <rdma/rdma_cma.h>
++
+ #ifdef INCLUDE_VALGRIND
+ #   include <valgrind/memcheck.h>
+ #   ifndef VALGRIND_MAKE_MEM_DEFINED
+@@ -84,5 +86,14 @@ static inline void *zalloc(size_t size)
+ 
+ int ucma_init();
+ 
+-#endif /* CMA_H */
++#ifdef USE_IB_ACM
++void ucma_ib_init();
++void ucma_ib_cleanup();
++void ucma_ib_resolve(struct rdma_addrinfo *rai);
++#else
++#define ucma_ib_init()
++#define ucma_ib_cleanup()
++#define ucma_ib_resolve(x)
++#endif
+ 
++#endif /* CMA_H */
 
 
 
