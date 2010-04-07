@@ -1,7 +1,7 @@
 From: "Sean Hefty" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 3/37] librdmacm: add ability to query IB path records
+Subject: [PATCH 18/37] librdmacm: add rdma_getaddrinfo
 Date: Wed, 7 Apr 2010 10:12:44 -0700
-Message-ID: <24E8C3E31E794941839B37DB267D6168@amr.corp.intel.com>
+Message-ID: <9E1B6F6D75F947F2B55DCCC66123FDC0@amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="us-ascii"
@@ -13,145 +13,313 @@ Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-The current query_route command only supports 2 path records.
-Add support for query_path, which is capable of supporting
-multiple paths.
+Provide a call similar to getaddrinfo for RDMA devices and
+connections.  rdma_get_addrinfo is modeled after getaddrinfo, with
+the following modifications:
+
+A source address is returned as part of the call to allow the
+user to allocate the necessary resources for connections.
+
+Optional routing information may be returned to support
+Infiniband fabrics.  IB routing information includes necessary
+path record data.
 
 Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
 
- include/rdma/rdma_cma_abi.h |   10 +++++
- src/cma.c                   |   82 +++++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 91 insertions(+), 1 deletions(-)
+ Makefile.am             |    2 
+ include/rdma/rdma_cma.h |   31 +++++++
+ src/addrinfo.c          |  201 +++++++++++++++++++++++++++++++++++++++++++++++
+ src/librdmacm.map       |    2 
+ 4 files changed, 234 insertions(+), 2 deletions(-)
 
-diff --git a/include/rdma/rdma_cma_abi.h b/include/rdma/rdma_cma_abi.h
-index 5c736fb..6c83fe8 100644
---- a/include/rdma/rdma_cma_abi.h
-+++ b/include/rdma/rdma_cma_abi.h
-@@ -35,6 +35,7 @@
+diff --git a/Makefile.am b/Makefile.am
+index c9be437..be53c78 100644
+--- a/Makefile.am
++++ b/Makefile.am
+@@ -12,7 +12,7 @@ else
+     librdmacm_version_script =
+ endif
  
- #include <infiniband/kern-abi.h>
- #include <infiniband/sa-kern-abi.h>
-+#include <infiniband/sa.h>
- 
+-src_librdmacm_la_SOURCES = src/cma.c
++src_librdmacm_la_SOURCES = src/cma.c src/addrinfo.c
+ src_librdmacm_la_LDFLAGS = -version-info 1 -export-dynamic \
+ 			   $(librdmacm_version_script)
+ src_librdmacm_la_DEPENDENCIES =  $(srcdir)/src/librdmacm.map
+diff --git a/include/rdma/rdma_cma.h b/include/rdma/rdma_cma.h
+index 88b3796..1db559e 100644
+--- a/include/rdma/rdma_cma.h
++++ b/include/rdma/rdma_cma.h
+@@ -1,6 +1,6 @@
  /*
-  * This file must be kept in sync with the kernel's version of rdma_user_cm.h
-@@ -114,7 +115,8 @@ struct ucma_abi_resolve_route {
+  * Copyright (c) 2005 Voltaire Inc.  All rights reserved.
+- * Copyright (c) 2005-2007 Intel Corporation.  All rights reserved.
++ * Copyright (c) 2005-2010 Intel Corporation.  All rights reserved.
+  *
+  * This software is available to you under a choice of one of two
+  * licenses.  You may choose to be licensed under the terms of the GNU
+@@ -158,6 +158,26 @@ struct rdma_cm_event {
+ 	} param;
  };
  
- enum {
--	UCMA_QUERY_ADDR
-+	UCMA_QUERY_ADDR,
-+	UCMA_QUERY_PATH
- };
- 
- struct ucma_abi_query {
-@@ -144,6 +146,12 @@ struct ucma_abi_query_addr_resp {
- 	struct sockaddr_storage dst_addr;
- };
- 
-+struct ucma_abi_query_path_resp {
-+	__u32 num_paths;
-+	__u32 reserved;
-+	struct ib_path_data path_data[0];
++#define RAI_PASSIVE		0x00000001
++
++struct rdma_addrinfo {
++	int			ai_flags;
++	int			ai_family;
++	int			ai_qp_type;
++	int			ai_port_space;
++	socklen_t		ai_src_len;
++	socklen_t		ai_dst_len;
++	struct sockaddr		*ai_src_addr;
++	struct sockaddr		*ai_dst_addr;
++	char			*ai_src_canonname;
++	char			*ai_dst_canonname;
++	size_t			ai_route_len;
++	void			*ai_route;
++	size_t			ai_connect_len;
++	void			*ai_connect;
++	struct rdma_addrinfo	*ai_next;
 +};
 +
- struct ucma_abi_conn_param {
- 	__u32 qp_num;
- 	__u32 reserved;
-diff --git a/src/cma.c b/src/cma.c
-index 2aef594..c3c6b73 100644
---- a/src/cma.c
-+++ b/src/cma.c
-@@ -506,6 +506,88 @@ static int ucma_query_addr(struct rdma_cm_id *id)
- 	return 0;
- }
+ /**
+  * rdma_create_event_channel - Open a channel used to report communication events.
+  * Description:
+@@ -589,6 +609,15 @@ int rdma_set_option(struct rdma_cm_id *id, int level, int optname,
+  */
+ int rdma_migrate_id(struct rdma_cm_id *id, struct rdma_event_channel *channel);
  
-+static void ucma_convert_path(struct ib_path_data *path_data,
-+			      struct ibv_sa_path_rec *sa_path)
++/**
++ * rdma_getaddrinfo - RDMA address and route resolution service.
++ */
++int rdma_getaddrinfo(char *node, char *service,
++		     struct rdma_addrinfo *hints,
++		     struct rdma_addrinfo **res);
++
++void rdma_freeaddrinfo(struct rdma_addrinfo *res);
++
+ #ifdef __cplusplus
+ }
+ #endif
+diff --git a/src/addrinfo.c b/src/addrinfo.c
+new file mode 100644
+index 0000000..15ae071
+--- /dev/null
++++ b/src/addrinfo.c
+@@ -0,0 +1,201 @@
++/*
++ * Copyright (c) 2010 Intel Corporation.  All rights reserved.
++ *
++ * This software is available to you under a choice of one of two
++ * licenses.  You may choose to be licensed under the terms of the GNU
++ * General Public License (GPL) Version 2, available from the file
++ * COPYING in the main directory of this source tree, or the
++ * OpenIB.org BSD license below:
++ *
++ *     Redistribution and use in source and binary forms, with or
++ *     without modification, are permitted provided that the following
++ *     conditions are met:
++ *
++ *      - Redistributions of source code must retain the above
++ *        copyright notice, this list of conditions and the following
++ *        disclaimer.
++ *
++ *      - Redistributions in binary form must reproduce the above
++ *        copyright notice, this list of conditions and the following
++ *        disclaimer in the documentation and/or other materials
++ *        provided with the distribution.
++ *
++ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
++ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
++ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
++ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
++ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
++ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
++ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
++ * SOFTWARE.
++ *
++ * $Id: cm.c 3453 2005-09-15 21:43:21Z sean.hefty $
++ */
++
++#if HAVE_CONFIG_H
++#  include <config.h>
++#endif /* HAVE_CONFIG_H */
++
++#include <sys/types.h>
++#include <sys/socket.h>
++#include <netdb.h>
++
++#include "cma.h"
++#include <rdma/rdma_cma.h>
++#include <infiniband/ib.h>
++
++static void ucma_convert_to_ai(struct addrinfo *ai, struct rdma_addrinfo *rai)
 +{
-+	uint32_t fl_hop;
++	memset(ai, 0, sizeof *ai);
++	ai->ai_flags = rai->ai_flags;
++	ai->ai_family = rai->ai_family;
 +
-+	sa_path->dgid = path_data->path.dgid;
-+	sa_path->sgid = path_data->path.sgid;
-+	sa_path->dlid = path_data->path.dlid;
-+	sa_path->slid = path_data->path.slid;
-+	sa_path->raw_traffic = 0;
++	switch (rai->ai_qp_type) {
++	case IBV_QPT_RC:
++		ai->ai_socktype = SOCK_STREAM;
++		break;
++	case IBV_QPT_UD:
++		ai->ai_socktype = SOCK_DGRAM;
++		break;
++	}
 +
-+	fl_hop = ntohl(path_data->path.flowlabel_hoplimit);
-+	sa_path->flow_label = htonl(fl_hop >> 8);
-+	sa_path->hop_limit = (uint8_t) fl_hop;
++	switch (rai->ai_port_space) {
++	case RDMA_PS_TCP:
++		ai->ai_protocol = IPPROTO_TCP;
++		break;
++	case RDMA_PS_IPOIB:
++	case RDMA_PS_UDP:
++		ai->ai_protocol = IPPROTO_UDP;
++		break;
++	}
 +
-+	sa_path->traffic_class = path_data->path.tclass;
-+	sa_path->reversible = path_data->path.reversible_numpath >> 7;
-+	sa_path->numb_path = 1;
-+	sa_path->pkey = path_data->path.pkey;
-+	sa_path->sl = ntohs(path_data->path.qosclass_sl) & 0xF;
-+	sa_path->mtu_selector = 1;
-+	sa_path->mtu = path_data->path.mtu & 0x1F;
-+	sa_path->rate_selector = 1;
-+	sa_path->rate = path_data->path.rate & 0x1F;
-+	sa_path->packet_life_time_selector = 1;
-+	sa_path->packet_life_time = path_data->path.packetlifetime & 0x1F;
-+
-+	sa_path->preference = (uint8_t) path_data->flags;
++	if (rai->ai_flags & RAI_PASSIVE) {
++		ai->ai_addrlen = rai->ai_src_len;
++		ai->ai_addr = rai->ai_src_addr;
++	} else {
++		ai->ai_addrlen = rai->ai_dst_len;
++		ai->ai_addr = rai->ai_dst_addr;
++	}
++	ai->ai_canonname = rai->ai_dst_canonname;
++	ai->ai_next = NULL;
 +}
 +
-+static int ucma_query_path(struct rdma_cm_id *id)
++static int ucma_convert_to_rai(struct rdma_addrinfo *rai, struct addrinfo *ai)
 +{
-+	struct ucma_abi_query_path_resp *resp;
-+	struct ucma_abi_query *cmd;
-+	struct ucma_abi_cmd_hdr *hdr;
-+	struct cma_id_private *id_priv;
-+	void *msg;
-+	int ret, size, i;
++	struct sockaddr *addr;
++	char *canonname;
 +
-+	size = sizeof(*hdr) + sizeof(*cmd);
-+	msg = alloca(size);
-+	if (!msg)
++	memset(rai, 0, sizeof *rai);
++	rai->ai_flags = ai->ai_flags;
++	rai->ai_family = ai->ai_family;
++
++	switch (ai->ai_socktype) {
++	case SOCK_STREAM:
++		rai->ai_qp_type = IBV_QPT_RC;
++		break;
++	case SOCK_DGRAM:
++		rai->ai_qp_type = IBV_QPT_UD;
++		break;
++	}
++
++	switch (ai->ai_protocol) {
++	case IPPROTO_TCP:
++		rai->ai_port_space = RDMA_PS_TCP;
++		break;
++	case IPPROTO_UDP:
++		rai->ai_port_space = RDMA_PS_UDP;
++		break;
++	}
++
++	addr = malloc(ai->ai_addrlen);
++	if (!addr)
 +		return ERR(ENOMEM);
 +
-+	hdr = msg;
-+	cmd = msg + sizeof(*hdr);
++	canonname = ai->ai_canonname ? malloc(strlen(ai->ai_canonname) + 1) : NULL;
++	if (canonname)
++		strcpy(canonname, ai->ai_canonname);
 +
-+	hdr->cmd = UCMA_CMD_QUERY;
-+	hdr->in  = sizeof(*cmd);
-+	hdr->out = sizeof(*resp) + sizeof(struct ib_path_data) * 6;
-+
-+	memset(cmd, 0, sizeof(*cmd));
-+
-+	resp = alloca(hdr->out);
-+	if (!resp)
-+		return ERR(ENOMEM);
-+
-+	id_priv = container_of(id, struct cma_id_private, id);
-+	cmd->response = (uintptr_t) resp;
-+	cmd->id = id_priv->handle;
-+	cmd->option = UCMA_QUERY_PATH;
-+
-+	ret = write(id->channel->fd, msg, size);
-+	if (ret != size)
-+		return (ret >= 0) ? ERR(ENODATA) : -1;
-+
-+	VALGRIND_MAKE_MEM_DEFINED(resp, hdr->out);
-+
-+	if (resp->num_paths) {
-+		id->route.path_rec = malloc(sizeof(*id->route.path_rec) *
-+					    resp->num_paths);
-+		if (!id->route.path_rec)
-+			return ERR(ENOMEM);
-+
-+		id->route.num_paths = resp->num_paths;
-+		for (i = 0; i < resp->num_paths; i++)
-+			ucma_convert_path(&resp->path_data[i], &id->route.path_rec[i]);
++	memcpy(addr, ai->ai_addr, ai->ai_addrlen);
++	if (ai->ai_flags & RAI_PASSIVE) {
++		rai->ai_src_addr = addr;
++		rai->ai_src_len = ai->ai_addrlen;
++		rai->ai_src_canonname = canonname;
++	} else {
++		rai->ai_dst_addr = addr;
++		rai->ai_dst_len = ai->ai_addrlen;
++		rai->ai_dst_canonname = canonname;
 +	}
 +
 +	return 0;
 +}
 +
- static int ucma_query_route(struct rdma_cm_id *id)
- {
- 	struct ucma_abi_query_route_resp *resp;
++int rdma_getaddrinfo(char *node, char *service,
++		     struct rdma_addrinfo *hints,
++		     struct rdma_addrinfo **res)
++{
++	struct rdma_addrinfo *rai;
++	struct addrinfo ai_hints;
++	struct addrinfo *ai;
++	int ret;
++
++	ret = ucma_init();
++	if (ret)
++		return ret;
++
++	if (hints)
++		ucma_convert_to_ai(&ai_hints, hints);
++
++	ret = getaddrinfo(node, service, &ai_hints, &ai);
++	if (ret)
++		return ret;
++
++	rai = malloc(sizeof(*rai));
++	if (!rai) {
++		ret = ERR(ENOMEM);
++		goto err1;
++	}
++
++	ret = ucma_convert_to_rai(rai, ai);
++	if (ret)
++		goto err2;
++
++	freeaddrinfo(ai);
++	*res = rai;
++	return 0;
++
++err2:
++	rdma_freeaddrinfo(rai);
++err1:
++	freeaddrinfo(ai);
++	return ret;
++}
++
++void rdma_freeaddrinfo(struct rdma_addrinfo *res)
++{
++	struct rdma_addrinfo *rai;
++
++	while (res) {
++		rai = res;
++		res = res->ai_next;
++
++		if (rai->ai_connect)
++			free(rai->ai_connect);
++
++		if (rai->ai_route)
++			free(rai->ai_route);
++
++		if (rai->ai_src_canonname)
++			free(rai->ai_src_canonname);
++
++		if (rai->ai_dst_canonname)
++			free(rai->ai_dst_canonname);
++
++		if (rai->ai_src_addr)
++			free(rai->ai_src_addr);
++
++		if (rai->ai_dst_addr)
++			free(rai->ai_dst_addr);
++
++		free(rai);
++	}
++}
+diff --git a/src/librdmacm.map b/src/librdmacm.map
+index cb94efe..1f07102 100644
+--- a/src/librdmacm.map
++++ b/src/librdmacm.map
+@@ -28,5 +28,7 @@ RDMACM_1.0 {
+ 		rdma_get_local_addr;
+ 		rdma_get_peer_addr;
+ 		rdma_migrate_id;
++		rdma_getaddrinfo;
++		rdma_freeaddrinfo;
+ 	local: *;
+ };
 
 
 
