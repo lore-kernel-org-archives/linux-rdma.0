@@ -1,7 +1,7 @@
 From: "Sean Hefty" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 14/37] librdmacm: make CQs optional for rdma_create_qp
+Subject: [PATCH 2/37] librdmacm: support querying AF_IB addresses
 Date: Wed, 7 Apr 2010 10:12:44 -0700
-Message-ID: <7F0BFAF4F69245DEAF7456EF7B660754@amr.corp.intel.com>
+Message-ID: <26DB836F8DEA4127BC17E7C72C4800DE@amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="us-ascii"
@@ -13,141 +13,117 @@ Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Allow the user to specify NULL for the send and receive CQs when
-creating a QP through rdma_create_qp.  The librdmacm will automatically
-create CQs for the user, along with completion channel.
+The current query route command returns path record data and address
+information.  The latter is restricted to sizeof(sockaddr_in6).  In
+order to support AF_IB, modify the library to use the new query addr
+command, which supports larger address sizes and avoids querying for
+path records data when none are available.
 
 Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
 
- include/rdma/rdma_cma.h |    4 +++
- src/cma.c               |   74 ++++++++++++++++++++++++++++++++++++++++++++---
- 2 files changed, 74 insertions(+), 4 deletions(-)
+ include/rdma/rdma_cma_abi.h |   22 +++++++++++++++++++---
+ src/cma.c                   |   35 ++++++++++++++++++++++++++++++++++-
+ 2 files changed, 53 insertions(+), 4 deletions(-)
 
-diff --git a/include/rdma/rdma_cma.h b/include/rdma/rdma_cma.h
-index ccf6cd4..d8cbb91 100644
---- a/include/rdma/rdma_cma.h
-+++ b/include/rdma/rdma_cma.h
-@@ -115,6 +115,10 @@ struct rdma_cm_id {
- 	enum rdma_port_space	 ps;
- 	uint8_t			 port_num;
- 	struct rdma_cm_event	*event;
-+	struct ibv_comp_channel *send_cq_channel;
-+	struct ibv_cq		*send_cq;
-+	struct ibv_comp_channel *recv_cq_channel;
-+	struct ibv_cq		*recv_cq;
+diff --git a/include/rdma/rdma_cma_abi.h b/include/rdma/rdma_cma_abi.h
+index e51a372..5c736fb 100644
+--- a/include/rdma/rdma_cma_abi.h
++++ b/include/rdma/rdma_cma_abi.h
+@@ -64,7 +64,8 @@ enum {
+ 	UCMA_CMD_NOTIFY,
+  	UCMA_CMD_JOIN_IP_MCAST,
+  	UCMA_CMD_LEAVE_MCAST,
+-	UCMA_CMD_MIGRATE_ID
++	UCMA_CMD_MIGRATE_ID,
++	UCMA_CMD_QUERY
  };
  
- struct rdma_conn_param {
+ struct ucma_abi_cmd_hdr {
+@@ -112,10 +113,14 @@ struct ucma_abi_resolve_route {
+ 	__u32 timeout_ms;
+ };
+ 
+-struct ucma_abi_query_route {
++enum {
++	UCMA_QUERY_ADDR
++};
++
++struct ucma_abi_query {
+ 	__u64 response;
+ 	__u32 id;
+-	__u32 reserved;
++	__u32 option;
+ };
+ 
+ struct ucma_abi_query_route_resp {
+@@ -128,6 +133,17 @@ struct ucma_abi_query_route_resp {
+ 	__u8 reserved[3];
+ };
+ 
++struct ucma_abi_query_addr_resp {
++	__u64 node_guid;
++	__u8  port_num;
++	__u8  reserved;
++	__u16 pkey;
++	__u16 src_size;
++	__u16 dst_size;
++	struct sockaddr_storage src_addr;
++	struct sockaddr_storage dst_addr;
++};
++
+ struct ucma_abi_conn_param {
+ 	__u32 qp_num;
+ 	__u32 reserved;
 diff --git a/src/cma.c b/src/cma.c
-index 0587ab3..805aca3 100644
+index b5f71d0..2aef594 100644
 --- a/src/cma.c
 +++ b/src/cma.c
-@@ -1025,6 +1025,63 @@ static int ucma_init_ud_qp(struct cma_id_private *id_priv, struct ibv_qp *qp)
- 	return ibv_modify_qp(qp, &qp_attr, IBV_QP_STATE | IBV_QP_SQ_PSN);
+@@ -473,10 +473,43 @@ static int ucma_addrlen(struct sockaddr *addr)
+ 	}
  }
  
-+static void ucma_destroy_cqs(struct rdma_cm_id *id)
++static int ucma_query_addr(struct rdma_cm_id *id)
 +{
-+	if (id->recv_cq)
-+		ibv_destroy_cq(id->recv_cq);
++	struct ucma_abi_query_addr_resp *resp;
++	struct ucma_abi_query *cmd;
++	struct cma_id_private *id_priv;
++	void *msg;
++	int ret, size;
++	
++	CMA_CREATE_MSG_CMD_RESP(msg, cmd, resp, UCMA_CMD_QUERY, size);
++	id_priv = container_of(id, struct cma_id_private, id);
++	cmd->id = id_priv->handle;
++	cmd->option = UCMA_QUERY_ADDR;
 +
-+	if (id->recv_cq_channel)
-+		ibv_destroy_comp_channel(id->recv_cq_channel);
++	ret = write(id->channel->fd, msg, size);
++	if (ret != size)
++		return (ret >= 0) ? ERR(ENODATA) : -1;
 +
-+	if (id->send_cq)
-+		ibv_destroy_cq(id->send_cq);
++	VALGRIND_MAKE_MEM_DEFINED(resp, sizeof *resp);
 +
-+	if (id->send_cq_channel)
-+		ibv_destroy_comp_channel(id->send_cq_channel);
-+}
++	memcpy(&id->route.addr.src_addr, &resp->src_addr, resp->src_size);
++	memcpy(&id->route.addr.dst_addr, &resp->dst_addr, resp->dst_size);
 +
-+static int ucma_create_cqs(struct rdma_cm_id *id, struct ibv_qp_init_attr *attr)
-+{
-+	int ret;
-+
-+	if (!attr->recv_cq) {
-+		id->recv_cq_channel = ibv_create_comp_channel(id->verbs);
-+		if (!id->recv_cq_channel) {
-+			ret = ERR(ENOMEM);
-+			goto err;
-+		}
-+
-+		id->recv_cq = ibv_create_cq(id->verbs, attr->cap.max_recv_wr,
-+					    id, id->recv_cq_channel, 0);
-+		if (!id->recv_cq) {
-+			ret = ERR(ENOMEM);
-+			goto err;
-+		}
-+		attr->recv_cq = id->recv_cq;
-+	}
-+
-+	if (!attr->send_cq) {
-+		id->send_cq_channel = ibv_create_comp_channel(id->verbs);
-+		if (!id->send_cq_channel) {
-+			ret = ERR(ENOMEM);
-+			goto err;
-+		}
-+
-+		id->send_cq = ibv_create_cq(id->verbs, attr->cap.max_send_wr,
-+					    id, id->send_cq_channel, 0);
-+		if (!id->send_cq) {
-+			ret = ERR(ENOMEM);
-+			goto err;
-+		}
-+		attr->send_cq = id->send_cq;
++	if (!id_priv->cma_dev && resp->node_guid) {
++		ret = ucma_get_device(id_priv, resp->node_guid);
++		if (ret)
++			return ret;
++		id->port_num = resp->port_num;
++		id->route.addr.addr.ibaddr.pkey = resp->pkey;
 +	}
 +
 +	return 0;
-+err:
-+	ucma_destroy_cqs(id);
-+	return ret;
 +}
 +
- int rdma_create_qp(struct rdma_cm_id *id, struct ibv_pd *pd,
- 		   struct ibv_qp_init_attr *qp_init_attr)
+ static int ucma_query_route(struct rdma_cm_id *id)
  {
-@@ -1038,27 +1095,36 @@ int rdma_create_qp(struct rdma_cm_id *id, struct ibv_pd *pd,
- 	else if (id->verbs != pd->context)
- 		return ERR(EINVAL);
- 
-+	ret = ucma_create_cqs(id, qp_init_attr);
-+	if (ret)
-+		return ret;
-+
- 	qp = ibv_create_qp(pd, qp_init_attr);
--	if (!qp)
--		return ERR(ENOMEM);
-+	if (!qp) {
-+		ret = ERR(ENOMEM);
-+		goto err1;
-+	}
- 
- 	if (ucma_is_ud_ps(id->ps))
- 		ret = ucma_init_ud_qp(id_priv, qp);
- 	else
- 		ret = ucma_init_conn_qp(id_priv, qp);
- 	if (ret)
--		goto err;
-+		goto err2;
- 
- 	id->qp = qp;
- 	return 0;
--err:
-+err2:
- 	ibv_destroy_qp(qp);
-+err1:
-+	ucma_destroy_cqs(id);
- 	return ret;
- }
- 
- void rdma_destroy_qp(struct rdma_cm_id *id)
- {
- 	ibv_destroy_qp(id->qp);
-+	ucma_destroy_cqs(id);
- }
- 
- static int ucma_valid_param(struct cma_id_private *id_priv,
+ 	struct ucma_abi_query_route_resp *resp;
+-	struct ucma_abi_query_route *cmd;
++	struct ucma_abi_query *cmd;
+ 	struct cma_id_private *id_priv;
+ 	void *msg;
+ 	int ret, size, i;
 
 
 
