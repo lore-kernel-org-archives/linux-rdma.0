@@ -1,35 +1,27 @@
-From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH v2 13/51] IB/qib: Add qib_driver.c
-Date: Wed, 07 Apr 2010 12:33:18 -0700
-Message-ID: <ada7hoj2h35.fsf@roland-alpha.cisco.com>
-References: <20091203190305.29507.58158.stgit@chromite.mv.qlogic.com>
-	<20091203190413.29507.17962.stgit@chromite.mv.qlogic.com>
-	<adafx3743n6.fsf@roland-alpha.cisco.com>
-	<4BBCDBD6.8010809@opengridcomputing.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH 22/37] librdmacm: add new call to create id
+Date: Wed, 7 Apr 2010 13:34:02 -0600
+Message-ID: <20100407193402.GH15629@obsidianresearch.com>
+References: <F818D641D3E64DA197E789362F5F0222@amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4BBCDBD6.8010809-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org> (Steve Wise's message of
-	"Wed, 07 Apr 2010 14:24:06 -0500")
+Content-Disposition: inline
+In-Reply-To: <F818D641D3E64DA197E789362F5F0222-Zpru7NauK7drdx17CPfAsdBPR1lH4CV8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Cc: Ralph Campbell <ralph.campbell-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
- > Where can I find information on trace events?  Something in Documentation/*?
+On Wed, Apr 07, 2010 at 10:12:44AM -0700, Sean Hefty wrote:
 
-Yep, Documentation/trace/events.txt.
+> + *   The rdma_cm_id will be set to use synchronous operations (connect,
+> + *   listen, and get_request).  To convert to synchronous operation, the
+                                               ^^^^^^^^^
 
-Also look at eg include/trace/events/ext4.h and how the trace_ext4_{xxx}
-functions are used in fs/ext4/*.
+asynchronous?
 
-It's much better than anything you're going to hack up for a single
-driver to use.
-
- - R.
--- 
-Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org> || For corporate legal information go to:
-http://www.cisco.com/web/about/doing_business/legal/cri/index.html
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
