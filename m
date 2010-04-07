@@ -1,62 +1,72 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH 26/37] librdmacm: set src_addr in rdma_getaddrinfo
-Date: Wed, 7 Apr 2010 14:14:17 -0600
-Message-ID: <20100407201417.GJ15629@obsidianresearch.com>
-References: <B7B5C575DF7D4C51AB84AFFAC7A5D5C5@amr.corp.intel.com> <20100407192810.GG15629@obsidianresearch.com> <4BAFD82633A744729F9685D44B250100@amr.corp.intel.com>
+From: "Sean Hefty" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH 31/37] librdmacm: provide abstracted verb calls
+Date: Wed, 7 Apr 2010 13:14:46 -0700
+Message-ID: <411E3A9BECF04B598FFEFFF08505DE6F@amr.corp.intel.com>
+References: <27A4CFF94530491F88C8E528428FF93E@amr.corp.intel.com> <4BBCDF57.20303@opengridcomputing.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <4BAFD82633A744729F9685D44B250100-Zpru7NauK7drdx17CPfAsdBPR1lH4CV8@public.gmane.org>
+In-Reply-To: <4BBCDF57.20303-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: 'Steve Wise' <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Apr 07, 2010 at 12:54:56PM -0700, Sean Hefty wrote:
-> >I haven't looked through everything you posted to make a suggestion
-> >here, but this bothers me..
-> >
-> >The resources should be allocated after the rdma_bind syscall, prior to
-> >listen/accept or connect, IMHO.
-> >
-> >How does tha rai->ai_src_addr get used to allocate resources anyhow?
-> 
-> Maybe the patch description is off.
-> 
-> All this does (in a very non-sexy way) is set ai_src_addr.  It does
-> not allocate any hardware resources.  A user can provide ai_src_addr
-> as input into rdma_bind or rdma_resolve_addr.
-> 
-> The motivation is twofold.  First, the user can select the
-> rdma_addrinfo for a connection by examining the src/dst address
-> pair.  This may be desired for failover or performance reasons.
-> Second, route resolution may require knowing both the source and
-> destination addresses.  For example, IB ACM requires both addresses
-> as input.
+>> +static inline int
+>> +rdma_get_send_comp(struct rdma_cm_id *id, struct ibv_wc *wc)
+>> +{
+>> +	struct ibv_cq *cq;
+>> +	void *context;
+>> +	int ret;
+>> +
+>> +	ret = ibv_poll_cq(id->send_cq, 1, wc);
+>> +	if (ret)
+>> +		return ret;
+>> +
+>> +	ret = ibv_req_notify_cq(id->send_cq, 0);
+>> +	if (ret)
+>> +		return ret;
+>> +
+>> +	ret = ibv_poll_cq(id->send_cq, 1, wc);
+>> +	if (ret)
+>> +		return ret;
+>> +
+>> +	ret = ibv_get_cq_event(id->send_cq_channel, &cq, &context);
+>> +	if (ret)
+>> +		return ret;
+>>
+>
+>This doesn't look correct.  If the send isn't complete by the time the
+>2nd ibv_poll_cq() completes, then this function will return without
+>having filled in the wc.  Or am I missing something?  Shouldn't the
+>ibv_get_cq_event() be the first thing this function does?  The same
+>issue/question exists for rdma_get_recv_comp().
 
-Huumm
+I think it's possible for the function to return without having filled in a wc.
+If the 2nd poll removes a completion, it can leave a cq event on the channel,
+which a subsequent call could retrieve, but then find the cq empty.
 
-I don't have a problem with ai_src_addr being set, when necessary, but
-setting it unconditionally seems wrong to me. In most cases the kernel
-should select the source during route resolution, not be forced to
-something in userspace.
+The idea for this call is to abstract poll, notify_cq, and get_cq_event, but
+still provide decent performance.  (Scalability is a separate matter.  I
+couldn't find a decent way to abstract a CQ shared across QPs or between the
+receive and send queues.)
 
-Certainly for AF_INET/6 I don't think this should be done..
+To avoid returning from the call without a completion, I think the following
+structure works:
 
-Apps doing complex things for failover should supply a source address
-in the hints and call rdma_getaddrinfo for each adaptor.
+poll()
+notify_cq()
+poll()
+while (no completion) {
+	get_cq_event()
+	poll()
+}
 
-AF_IB has the scope ID in the destination to specify the adaptor for
-link-local GIDs, so the source should not often be needed.
+The only drawback I see is that it's theoretically possible to build up a queue
+of cq events in the kernel.  Not sure how to fix that.  Any ideas?
 
-Not sure what you mean that ACM requires it? Doesn't ACM plug in at
-the rdma_getaddrinfo stage? If so it can get the source on its own
-like you did in this patch. I agree that ACM should always return
-results with the source set, because it is providing path records
-relative to a specific adaptor.
-
-Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
