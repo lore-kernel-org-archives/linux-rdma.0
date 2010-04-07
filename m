@@ -1,7 +1,7 @@
 From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 Subject: Re: [PATCH 05/10] iw_cxgb4: Add connection management functions.
-Date: Wed, 07 Apr 2010 14:36:31 -0700
-Message-ID: <adad3yb0wtc.fsf@roland-alpha.cisco.com>
+Date: Wed, 07 Apr 2010 14:37:56 -0700
+Message-ID: <ada8w8z0wqz.fsf@roland-alpha.cisco.com>
 References: <20100402192346.14117.92767.stgit@build.ogc.int>
 	<20100402192413.14117.56138.stgit@build.ogc.int>
 Mime-Version: 1.0
@@ -14,15 +14,10 @@ To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
- > +void _c4iw_free_ep(struct kref *kref)
- ...
- > +	ep = container_of(container_of(kref, struct c4iw_ep_common, kref),
- > +			  struct c4iw_ep, com);
+ > +		wr_waitp = (struct c4iw_wr_wait *)rpl->data[1];
 
-sparse warns of some internal container_of variable shadowing itself
-here.  You can avoid that and write this more simply as:
-
-	ep = container_of(kref, struct c4iw_ep, com.kref);
+Sparse complains about this case from __be64 to a pointer.  I assume
+this is OK but you probably want to stick a __force in there to annotate it.
 -- 
 Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org> || For corporate legal information go to:
 http://www.cisco.com/web/about/doing_business/legal/cri/index.html
