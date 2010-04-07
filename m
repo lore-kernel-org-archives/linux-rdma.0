@@ -1,7 +1,7 @@
 From: "Sean Hefty" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 36/37] librdmacm: check if kernel supports AF_IB
+Subject: [PATCH 37/37] librdmacm: use IB ACM to resolve IB path
 Date: Wed, 7 Apr 2010 10:12:43 -0700
-Message-ID: <393EDF2B00D64E9FB8B6027D854C5EF7@amr.corp.intel.com>
+Message-ID: <49283041F55F4D2C9A89060D59AB4107@amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="us-ascii"
@@ -13,60 +13,108 @@ Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Add check during initialization to determine if the kernel
-supports AF_IB.
+Starting with 2.6.33, the kernel supports the ability to
+manually specify the path record that a connection should
+use.  Allow the librdmacm to contact the IB ACM to acquire
+path record data, even if rdma_getaddrinfo is not used and
+the kernel does not support AF_IB.
 
 Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
 
- src/cma.c |   27 +++++++++++++++++++++++++++
- 1 files changed, 27 insertions(+), 0 deletions(-)
+ src/acm.c |    2 +-
+ src/cma.c |   37 +++++++++++++++++++++++++++++++++++--
+ src/cma.h |    2 ++
+ 3 files changed, 38 insertions(+), 3 deletions(-)
 
+diff --git a/src/acm.c b/src/acm.c
+index 8975b97..ca338bc 100644
+--- a/src/acm.c
++++ b/src/acm.c
+@@ -205,7 +205,7 @@ static void ucma_ib_save_resp(struct rdma_addrinfo *rai, struct acm_resolve_msg
+ 
+ 	rai->ai_route = path_data;
+ 	rai->ai_route_len = len;
+-	if (af_ib_support) {
++	if (af_ib_support && !(rai->ai_flags & RAI_ROUTEONLY)) {
+ 		ucma_ib_format_connect(rai);
+ 		if (ucma_ib_convert_addr(rai, pri_path) &&
+ 		    rai->ai_connect) {
 diff --git a/src/cma.c b/src/cma.c
-index faf4264..66a7643 100644
+index 66a7643..258a324 100644
 --- a/src/cma.c
 +++ b/src/cma.c
-@@ -195,6 +195,32 @@ static int check_abi_version(void)
- 	return 0;
+@@ -858,15 +858,47 @@ int rdma_resolve_addr(struct rdma_cm_id *id, struct sockaddr *src_addr,
+ 	return ucma_complete(id_priv);
  }
  
-+/*
-+ * This function is called holding the mutex lock
-+ * cma_dev_cnt must be set before calling this function to
-+ * ensure that the lock is not acquired recursively.
-+ */
-+static void ucma_set_af_ib_support(void)
++static int ucma_set_ib_route(struct rdma_cm_id *id)
 +{
-+	struct rdma_cm_id *id;
-+	struct sockaddr_ib sib;
-+	int ret;
++	struct rdma_addrinfo rai;
++	struct sockaddr_in6 src, dst;
++	int size, ret;
 +
-+	ret = rdma_create_id(NULL, &id, NULL, RDMA_PS_IB);
-+	if (ret)
-+		return;
++	memset(&rai, 0, sizeof rai);
++	rai.ai_flags = RAI_ROUTEONLY;
++	rai.ai_family = id->route.addr.src_addr.sa_family;
++	size = ucma_addrlen((struct sockaddr *) &id->route.addr.src_addr);
 +
-+	memset(&sib, 0, sizeof sib);
-+	sib.sib_family = AF_IB;
-+	sib.sib_sid = htonll(RDMA_IB_IP_PS_TCP);
-+	sib.sib_sid_mask = htonll(RDMA_IB_IP_PS_MASK);
-+	af_ib_support = 1;
-+	ret = rdma_bind_addr(id, (struct sockaddr *) &sib);
-+	af_ib_support = !ret;
++	memcpy(&src, &id->route.addr.src_addr, size);
++	memcpy(&dst, &id->route.addr.dst_addr, size);
++	rai.ai_src_addr = (struct sockaddr *) &src;
++	rai.ai_dst_addr = (struct sockaddr *) &dst;
 +
-+	rdma_destroy_id(id);
++	ucma_ib_resolve(&rai);
++	if (!rai.ai_route_len)
++		return ERR(ENODATA);
++
++	ret = rdma_set_option(id, RDMA_OPTION_IB, RDMA_OPTION_IB_PATH,
++			      rai.ai_route, rai.ai_route_len);
++	free(rai.ai_route);
++	return ret;
 +}
 +
- int ucma_init(void)
+ int rdma_resolve_route(struct rdma_cm_id *id, int timeout_ms)
  {
- 	struct ibv_device **dev_list = NULL;
-@@ -263,6 +289,7 @@ int ucma_init(void)
- 	if (ib)
- 		ucma_ib_init();
- 	cma_dev_cnt = dev_cnt;
-+	ucma_set_af_ib_support();
- 	pthread_mutex_unlock(&mut);
- 	ibv_free_device_list(dev_list);
- 	return 0;
+ 	struct ucma_abi_resolve_route *cmd;
+ 	struct cma_id_private *id_priv;
+ 	void *msg;
+ 	int ret, size;
+-	
+-	CMA_CREATE_MSG_CMD(msg, cmd, UCMA_CMD_RESOLVE_ROUTE, size);
++
+ 	id_priv = container_of(id, struct cma_id_private, id);
++	if (id->verbs->device->transport_type == IBV_TRANSPORT_IB) {
++		ret = ucma_set_ib_route(id);
++		if (!ret)
++			goto out;
++	}
++
++	CMA_CREATE_MSG_CMD(msg, cmd, UCMA_CMD_RESOLVE_ROUTE, size);
+ 	cmd->id = id_priv->handle;
+ 	cmd->timeout_ms = timeout_ms;
+ 
+@@ -874,6 +906,7 @@ int rdma_resolve_route(struct rdma_cm_id *id, int timeout_ms)
+ 	if (ret != size)
+ 		return (ret >= 0) ? ERR(ENODATA) : -1;
+ 
++out:
+ 	return ucma_complete(id_priv);
+ }
+ 
+diff --git a/src/cma.h b/src/cma.h
+index 1e0c571..d25cdea 100644
+--- a/src/cma.h
++++ b/src/cma.h
+@@ -87,6 +87,8 @@ static inline void *zalloc(size_t size)
+ int ucma_init();
+ extern int af_ib_support;
+ 
++#define RAI_ROUTEONLY 0x01000000
++
+ #ifdef USE_IB_ACM
+ void ucma_ib_init();
+ void ucma_ib_cleanup();
 
 
 
