@@ -1,7 +1,7 @@
 From: "Sean Hefty" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 19/37] librdmacm: add rdma_get_request
+Subject: [PATCH 11/37] librdmacm: add zalloc call
 Date: Wed, 7 Apr 2010 10:12:44 -0700
-Message-ID: <F269798811654E3583CB3286EAE7A6B4@amr.corp.intel.com>
+Message-ID: <53A8AB949BCE4311B58A4881EC549E90@amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="us-ascii"
@@ -13,96 +13,70 @@ Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-To simplify passive side operation and better support synchronous
-operations, add rdma_get_request().  This function is called on the
-listening side to retrieve a connection request event.
-
 Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
-Ideally, this call would have been rdma_accept, to match with the socket
-accept call, but it was already taken.
 
- include/rdma/rdma_cma.h |    5 +++++
- src/cma.c               |   38 ++++++++++++++++++++++++++++++++++++++
- src/librdmacm.map       |    1 +
- 3 files changed, 44 insertions(+), 0 deletions(-)
+ src/cma.c |    6 ++----
+ src/cma.h |   10 ++++++++++
+ 2 files changed, 12 insertions(+), 4 deletions(-)
 
-diff --git a/include/rdma/rdma_cma.h b/include/rdma/rdma_cma.h
-index 1db559e..89013a0 100644
---- a/include/rdma/rdma_cma.h
-+++ b/include/rdma/rdma_cma.h
-@@ -381,6 +381,11 @@ int rdma_connect(struct rdma_cm_id *id, struct rdma_conn_param *conn_param);
- int rdma_listen(struct rdma_cm_id *id, int backlog);
- 
- /**
-+ * rdma_get_request
-+ */
-+int rdma_get_request(struct rdma_cm_id *listen, struct rdma_cm_id **id);
-+
-+/**
-  * rdma_accept - Called to accept a connection request.
-  * @id: Connection identifier associated with the request.
-  * @conn_param: Optional information needed to establish the connection.
 diff --git a/src/cma.c b/src/cma.c
-index 8aa7b05..9de33d4 100644
+index a85448b..4025aeb 100644
 --- a/src/cma.c
 +++ b/src/cma.c
-@@ -1242,6 +1242,44 @@ int rdma_listen(struct rdma_cm_id *id, int backlog)
- 		return ucma_query_route(id);
+@@ -342,11 +342,10 @@ static struct cma_id_private *ucma_alloc_id(struct rdma_event_channel *channel,
+ {
+ 	struct cma_id_private *id_priv;
+ 
+-	id_priv = malloc(sizeof *id_priv);
++	id_priv = zalloc(sizeof *id_priv);
+ 	if (!id_priv)
+ 		return NULL;
+ 
+-	memset(id_priv, 0, sizeof *id_priv);
+ 	id_priv->id.context = context;
+ 	id_priv->id.ps = ps;
+ 	id_priv->id.channel = channel;
+@@ -1228,11 +1227,10 @@ static int rdma_join_multicast2(struct rdma_cm_id *id, struct sockaddr *addr,
+ 	int ret, size;
+ 	
+ 	id_priv = container_of(id, struct cma_id_private, id);
+-	mc = malloc(sizeof *mc);
++	mc = zalloc(sizeof *mc);
+ 	if (!mc)
+ 		return ERR(ENOMEM);
+ 
+-	memset(mc, 0, sizeof *mc);
+ 	mc->context = context;
+ 	mc->id_priv = id_priv;
+ 	memcpy(&mc->addr, addr, addrlen);
+diff --git a/src/cma.h b/src/cma.h
+index 1c0ab8b..fcfb1f7 100644
+--- a/src/cma.h
++++ b/src/cma.h
+@@ -42,6 +42,7 @@
+ #include <errno.h>
+ #include <endian.h>
+ #include <byteswap.h>
++#include <string.h>
+ 
+ #ifdef INCLUDE_VALGRIND
+ #   include <valgrind/memcheck.h>
+@@ -70,5 +71,14 @@ static inline int ERR(int err)
+ 	return -1;
  }
  
-+int rdma_get_request(struct rdma_cm_id *listen, struct rdma_cm_id **id)
++static inline void *zalloc(size_t size)
 +{
-+	struct cma_id_private *id_priv;
-+	struct rdma_cm_event *event;
-+	int ret;
++	void *buf;
 +
-+	id_priv = container_of(listen, struct cma_id_private, id);
-+	if (!id_priv->sync)
-+		return ERR(EINVAL);
-+
-+	if (listen->event) {
-+		rdma_ack_cm_event(listen->event);
-+		listen->event = NULL;
-+	}
-+
-+	ret = rdma_get_cm_event(listen->channel, &event);
-+	if (ret)
-+		return ret;
-+
-+	if (event->status) {
-+		ret = event->status;
-+		goto err;
-+	}
-+	
-+	if (event->event != RDMA_CM_EVENT_CONNECT_REQUEST) {
-+		ret = ERR(EINVAL);
-+		goto err;
-+	}
-+
-+	*id = event->id;
-+	(*id)->event = event;
-+	return 0;
-+
-+err:
-+	listen->event = event;
-+	return ret;
++	if ((buf = malloc(size)))
++		memset(buf, 0, size);
++	return buf;
 +}
 +
- int rdma_accept(struct rdma_cm_id *id, struct rdma_conn_param *conn_param)
- {
- 	struct ucma_abi_accept *cmd;
-diff --git a/src/librdmacm.map b/src/librdmacm.map
-index 1f07102..f6af452 100644
---- a/src/librdmacm.map
-+++ b/src/librdmacm.map
-@@ -30,5 +30,6 @@ RDMACM_1.0 {
- 		rdma_migrate_id;
- 		rdma_getaddrinfo;
- 		rdma_freeaddrinfo;
-+		rdma_get_request;
- 	local: *;
- };
+ #endif /* CMA_H */
+ 
 
 
 
