@@ -1,7 +1,7 @@
 From: "Sean Hefty" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 29/37] librdmacm: use sockaddr_ib addressing if IB ACM is in use
-Date: Wed, 7 Apr 2010 10:12:43 -0700
-Message-ID: <AFC921A6B56D41DCB9CE8F9447225860@amr.corp.intel.com>
+Subject: [PATCH 22/37] librdmacm: add new call to create id
+Date: Wed, 7 Apr 2010 10:12:44 -0700
+Message-ID: <F818D641D3E64DA197E789362F5F0222@amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="us-ascii"
@@ -13,125 +13,124 @@ Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-If IB ACM route resolution succeeds, provide the user with
-AF_IB addresses, rather than AF_INET or AF_INET6 addressing.
-AF_IB identifies the local and remote devices directly,
-eliminating the need to perform address resolution a second
-time via rdma_resolve_addr.
-
-AF_IB addresses are returned using sockaddr_ib as part of
+Provide a simple call to create an rdma_id, with optional QP.  The
+id is created using synchronous operation, using the output of
 rdma_getaddrinfo.
 
 Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
 
- src/acm.c |   65 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
- src/cma.h |    1 +
- 2 files changed, 66 insertions(+), 0 deletions(-)
+ include/rdma/rdma_cma.h |   26 ++++++++++++++++++++++++++
+ src/cma.c               |   43 +++++++++++++++++++++++++++++++++++++++++++
+ src/librdmacm.map       |    1 +
+ 3 files changed, 70 insertions(+), 0 deletions(-)
 
-diff --git a/src/acm.c b/src/acm.c
-index 34fdf3c..5dd8899 100644
---- a/src/acm.c
-+++ b/src/acm.c
-@@ -83,9 +83,69 @@ void ucma_ib_cleanup(void)
- 	}
+diff --git a/include/rdma/rdma_cma.h b/include/rdma/rdma_cma.h
+index 391c35c..74762a2 100644
+--- a/include/rdma/rdma_cma.h
++++ b/include/rdma/rdma_cma.h
+@@ -232,6 +232,32 @@ int rdma_create_id(struct rdma_event_channel *channel,
+ 		   enum rdma_port_space ps);
+ 
+ /**
++ * rdma_create_ep - Allocate a communication identifier and qp.
++ * @id: A reference where the allocated communication identifier will be
++ *   returned.
++ * @res: Result from rdma_getaddrinfo, which specifies the source and
++ *   destination addresses, plus optional routing and connection information.
++ * @pd: Optional protection domain.  This parameter is ignored if qp_init_attr
++ *   is NULL.
++ * @qp_init_attr: Optional attributes for a QP created on the rdma_cm_id.
++ * Description:
++ *   Create an identifier and option QP used for communication.
++ * Notes:
++ *   If qp_init_attr is provided, then a queue pair will be allocated and
++ *   associated with the rdma_cm_id.  If a pd is provided, the QP will be
++ *   created on that PD.  Otherwise, the QP will be allocated on a default
++ *   PD.
++ *   The rdma_cm_id will be set to use synchronous operations (connect,
++ *   listen, and get_request).  To convert to synchronous operation, the
++ *   rdma_cm_id should be migrated to a user allocated event channel.
++ * See also:
++ *   rdma_create_id, rdma_create_qp, rdma_migrate_id, rdma_connect,
++ *   rdma_listen
++ */
++int rdma_create_ep(struct rdma_cm_id **id, struct rdma_addrinfo *res,
++		   struct ibv_pd *pd, struct ibv_qp_init_attr *qp_init_attr);
++
++/**
+  * rdma_destroy_id - Release a communication identifier.
+  * @id: The communication identifier to destroy.
+  * Description:
+diff --git a/src/cma.c b/src/cma.c
+index e31fb8a..b911b3f 100644
+--- a/src/cma.c
++++ b/src/cma.c
+@@ -49,6 +49,7 @@
+ #include <endian.h>
+ #include <byteswap.h>
+ #include <stddef.h>
++#include <netdb.h>
+ 
+ #include "cma.h"
+ #include <infiniband/driver.h>
+@@ -1990,3 +1991,45 @@ int rdma_migrate_id(struct rdma_cm_id *id, struct rdma_event_channel *channel)
+ 
+ 	return 0;
  }
- 
-+static void ucma_set_sid(enum rdma_port_space ps, struct sockaddr *addr,
-+			 struct sockaddr_ib *sib)
++
++int rdma_create_ep(struct rdma_cm_id **id, struct rdma_addrinfo *res,
++		   struct ibv_pd *pd, struct ibv_qp_init_attr *qp_init_attr)
 +{
-+	uint16_t port;
++	struct rdma_cm_id *cm_id;
++	int ret;
 +
-+	if (addr->sa_family == AF_INET)
-+		port = ((struct sockaddr_in *) addr)->sin_port;
-+	else
-+		port = ((struct sockaddr_in6 *) addr)->sin6_port;
++	ret = rdma_create_id2(NULL, &cm_id, NULL, res->ai_port_space, res->ai_qp_type);
++	if (ret)
++		return ret;
 +
-+	sib->sib_sid = htonll(((uint64_t) ps << 16) + ntohs(port));
-+	if (port)
-+		sib->sib_sid_mask = ~0ULL;
-+	else
-+		sib->sib_sid_mask = htonll(RDMA_IB_IP_PS_MASK);
-+}
-+
-+static void ucma_ib_convert_addr(struct rdma_addrinfo *rai,
-+				 struct ib_path_record *path)
-+{
-+	struct sockaddr_ib *src, *dst;
-+
-+	if (!path)
-+		return;
-+
-+	src = zalloc(sizeof *src);
-+	if (!src)
-+		return;
-+
-+	dst = zalloc(sizeof *dst);
-+	if (!dst) {
-+		free(src);
-+		return;
-+	}
-+
-+	src->sib_family = AF_IB;
-+	src->sib_pkey = path->pkey;
-+	src->sib_flowinfo = htonl(ntohl(path->flowlabel_hoplimit) >> 8);
-+	memcpy(&src->sib_addr, &path->sgid, 16);
-+	ucma_set_sid(rai->ai_port_space, rai->ai_src_addr, src);
-+
-+	dst->sib_family = AF_IB;
-+	dst->sib_pkey = path->pkey;
-+	dst->sib_flowinfo = htonl(ntohl(path->flowlabel_hoplimit) >> 8);
-+	memcpy(&dst->sib_addr, &path->dgid, 16);
-+	ucma_set_sid(rai->ai_port_space, rai->ai_dst_addr, dst);
-+
-+	free(rai->ai_src_addr);
-+	rai->ai_src_addr = (struct sockaddr *) src;
-+	rai->ai_src_len = sizeof(*src);
-+
-+	free(rai->ai_dst_addr);
-+	rai->ai_dst_addr = (struct sockaddr *) dst;
-+	rai->ai_dst_len = sizeof(*dst);
-+
-+	rai->ai_family = AF_IB;
-+	rai->ai_port_space = RDMA_PS_IB;
-+}
-+
- static void ucma_ib_save_resp(struct rdma_addrinfo *rai, struct acm_resolve_msg *msg)
- {
- 	struct ib_path_data *path_data = NULL;
-+	struct ib_path_record *pri_path;
- 	int len, i, cnt;
- 
- 	len = msg->hdr.length - ACM_MSG_HDR_LENGTH;
-@@ -98,11 +158,16 @@ static void ucma_ib_save_resp(struct rdma_addrinfo *rai, struct acm_resolve_msg
- 	for (i = 0; i < cnt; i++) {
- 		if (msg->data[i].type != ACM_EP_INFO_PATH)
- 			goto err;
-+		if (path_data[i].flags |
-+		    (IB_PATH_FLAG_PRIMARY | IB_PATH_FLAG_OUTBOUND))
-+			pri_path = &path_data[i].path;
- 		path_data[i].reserved = 0;
- 	}
- 
- 	rai->ai_route = path_data;
- 	rai->ai_route_len = len;
 +	if (af_ib_support)
-+		ucma_ib_convert_addr(rai, pri_path);
- 	return;
- err:
- 	free(path_data);
-diff --git a/src/cma.h b/src/cma.h
-index 62785de..1e0c571 100644
---- a/src/cma.h
-+++ b/src/cma.h
-@@ -85,6 +85,7 @@ static inline void *zalloc(size_t size)
- }
- 
- int ucma_init();
-+extern int af_ib_support;
- 
- #ifdef USE_IB_ACM
- void ucma_ib_init();
++		ret = rdma_resolve_addr2(cm_id, res->ai_src_addr, res->ai_src_len,
++					 res->ai_dst_addr, res->ai_dst_len, 2000);
++	else
++		ret = rdma_resolve_addr(cm_id, res->ai_src_addr, res->ai_dst_addr, 2000);
++	if (ret)
++		goto err;
++
++	if (res->ai_route_len) {
++		ret = rdma_set_option(cm_id, RDMA_OPTION_IB, RDMA_OPTION_IB_PATH,
++				      res->ai_route, res->ai_route_len);
++		if (!ret)
++			ret = ucma_complete(container_of(cm_id, struct cma_id_private, id));
++	} else {
++		ret = rdma_resolve_route(cm_id, 2000);
++	}
++	if (ret)
++		goto err;
++
++	qp_init_attr->qp_type = res->ai_qp_type;
++	ret = rdma_create_qp(cm_id, pd, qp_init_attr);
++	if (ret)
++		goto err;
++
++	*id = cm_id;
++	return 0;
++
++err:
++	rdma_destroy_id(cm_id);
++	return ret;
++}
+diff --git a/src/librdmacm.map b/src/librdmacm.map
+index f6af452..85d5b3c 100644
+--- a/src/librdmacm.map
++++ b/src/librdmacm.map
+@@ -31,5 +31,6 @@ RDMACM_1.0 {
+ 		rdma_getaddrinfo;
+ 		rdma_freeaddrinfo;
+ 		rdma_get_request;
++		rdma_create_ep;
+ 	local: *;
+ };
 
 
 
