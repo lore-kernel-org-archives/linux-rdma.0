@@ -1,7 +1,7 @@
 From: "Sean Hefty" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 24/37] librdmacm: add support for passive side in rdma_create_ep
+Subject: [PATCH 19/37] librdmacm: add rdma_get_request
 Date: Wed, 7 Apr 2010 10:12:44 -0700
-Message-ID: <46E2BE50F33B455F90FC5A141AF1A590@amr.corp.intel.com>
+Message-ID: <F269798811654E3583CB3286EAE7A6B4@amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="us-ascii"
@@ -13,125 +13,96 @@ Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Allow calling rdma_create_ep for a listening rdma_cm_id.
+To simplify passive side operation and better support synchronous
+operations, add rdma_get_request().  This function is called on the
+listening side to retrieve a connection request event.
 
 Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
+Ideally, this call would have been rdma_accept, to match with the socket
+accept call, but it was already taken.
 
- src/cma.c |   69 ++++++++++++++++++++++++++++++++++++++++++++++++++-----------
- 1 files changed, 57 insertions(+), 12 deletions(-)
+ include/rdma/rdma_cma.h |    5 +++++
+ src/cma.c               |   38 ++++++++++++++++++++++++++++++++++++++
+ src/librdmacm.map       |    1 +
+ 3 files changed, 44 insertions(+), 0 deletions(-)
 
+diff --git a/include/rdma/rdma_cma.h b/include/rdma/rdma_cma.h
+index 1db559e..89013a0 100644
+--- a/include/rdma/rdma_cma.h
++++ b/include/rdma/rdma_cma.h
+@@ -381,6 +381,11 @@ int rdma_connect(struct rdma_cm_id *id, struct rdma_conn_param *conn_param);
+ int rdma_listen(struct rdma_cm_id *id, int backlog);
+ 
+ /**
++ * rdma_get_request
++ */
++int rdma_get_request(struct rdma_cm_id *listen, struct rdma_cm_id **id);
++
++/**
+  * rdma_accept - Called to accept a connection request.
+  * @id: Connection identifier associated with the request.
+  * @conn_param: Optional information needed to establish the connection.
 diff --git a/src/cma.c b/src/cma.c
-index 3b80542..c59f47b 100644
+index 8aa7b05..9de33d4 100644
 --- a/src/cma.c
 +++ b/src/cma.c
-@@ -104,17 +104,19 @@ struct cma_device {
- };
- 
- struct cma_id_private {
--	struct rdma_cm_id id;
--	struct cma_device *cma_dev;
--	int		  events_completed;
--	int		  connect_error;
--	int		  sync;
--	pthread_cond_t	  cond;
--	pthread_mutex_t	  mut;
--	uint32_t	  handle;
--	struct cma_multicast *mc_list;
--	uint8_t		  initiator_depth;
--	uint8_t		  responder_resources;
-+	struct rdma_cm_id	id;
-+	struct cma_device	*cma_dev;
-+	int			events_completed;
-+	int			connect_error;
-+	int			sync;
-+	pthread_cond_t		cond;
-+	pthread_mutex_t		mut;
-+	uint32_t		handle;
-+	struct cma_multicast	*mc_list;
-+	struct ibv_pd		*pd;
-+	struct ibv_qp_init_attr	*qp_init_attr;
-+	uint8_t			initiator_depth;
-+	uint8_t			responder_resources;
- };
- 
- struct cma_multicast {
-@@ -1993,6 +1995,34 @@ int rdma_migrate_id(struct rdma_cm_id *id, struct rdma_event_channel *channel)
- 	return 0;
+@@ -1242,6 +1242,44 @@ int rdma_listen(struct rdma_cm_id *id, int backlog)
+ 		return ucma_query_route(id);
  }
  
-+static int ucma_passive_ep(struct rdma_cm_id *id, struct rdma_addrinfo *res,
-+			   struct ibv_pd *pd, struct ibv_qp_init_attr *qp_init_attr)
++int rdma_get_request(struct rdma_cm_id *listen, struct rdma_cm_id **id)
 +{
 +	struct cma_id_private *id_priv;
++	struct rdma_cm_event *event;
 +	int ret;
 +
-+	if (af_ib_support)
-+		ret = rdma_bind_addr2(id, res->ai_src_addr, res->ai_src_len);
-+	else
-+		ret = rdma_bind_addr(id, res->ai_src_addr);
++	id_priv = container_of(listen, struct cma_id_private, id);
++	if (!id_priv->sync)
++		return ERR(EINVAL);
++
++	if (listen->event) {
++		rdma_ack_cm_event(listen->event);
++		listen->event = NULL;
++	}
++
++	ret = rdma_get_cm_event(listen->channel, &event);
 +	if (ret)
 +		return ret;
 +
-+	id_priv = container_of(id, struct cma_id_private, id);
-+	id_priv->pd = pd;
-+
-+	if (qp_init_attr) {
-+		id_priv->qp_init_attr = malloc(sizeof *qp_init_attr);
-+		if (!id_priv->qp_init_attr)
-+			return ERR(ENOMEM);
-+
-+		*id_priv->qp_init_attr = *qp_init_attr;
-+		id_priv->qp_init_attr->qp_type = res->ai_qp_type;
++	if (event->status) {
++		ret = event->status;
++		goto err;
++	}
++	
++	if (event->event != RDMA_CM_EVENT_CONNECT_REQUEST) {
++		ret = ERR(EINVAL);
++		goto err;
 +	}
 +
++	*id = event->id;
++	(*id)->event = event;
 +	return 0;
++
++err:
++	listen->event = event;
++	return ret;
 +}
 +
- int rdma_create_ep(struct rdma_cm_id **id, struct rdma_addrinfo *res,
- 		   struct ibv_pd *pd, struct ibv_qp_init_attr *qp_init_attr)
+ int rdma_accept(struct rdma_cm_id *id, struct rdma_conn_param *conn_param)
  {
-@@ -2003,6 +2033,13 @@ int rdma_create_ep(struct rdma_cm_id **id, struct rdma_addrinfo *res,
- 	if (ret)
- 		return ret;
- 
-+	if (res->ai_flags & RAI_PASSIVE) {
-+		ret = ucma_passive_ep(cm_id, res, pd, qp_init_attr);
-+		if (ret)
-+			goto err;
-+		goto out;
-+	}
-+
- 	if (af_ib_support)
- 		ret = rdma_resolve_addr2(cm_id, res->ai_src_addr, res->ai_src_len,
- 					 res->ai_dst_addr, res->ai_dst_len, 2000);
-@@ -2027,17 +2064,25 @@ int rdma_create_ep(struct rdma_cm_id **id, struct rdma_addrinfo *res,
- 	if (ret)
- 		goto err;
- 
-+out:
- 	*id = cm_id;
- 	return 0;
- 
- err:
--	rdma_destroy_id(cm_id);
-+	rdma_destroy_ep(cm_id);
- 	return ret;
- }
- 
- void rdma_destroy_ep(struct rdma_cm_id *id)
- {
-+	struct cma_id_private *id_priv;
-+
- 	if (id->qp)
- 		rdma_destroy_qp(id);
-+
-+	id_priv = container_of(id, struct cma_id_private, id);
-+	if (id_priv->qp_init_attr)
-+		free(id_priv->qp_init_attr);
-+
- 	rdma_destroy_id(id);
- }
+ 	struct ucma_abi_accept *cmd;
+diff --git a/src/librdmacm.map b/src/librdmacm.map
+index 1f07102..f6af452 100644
+--- a/src/librdmacm.map
++++ b/src/librdmacm.map
+@@ -30,5 +30,6 @@ RDMACM_1.0 {
+ 		rdma_migrate_id;
+ 		rdma_getaddrinfo;
+ 		rdma_freeaddrinfo;
++		rdma_get_request;
+ 	local: *;
+ };
 
 
 
