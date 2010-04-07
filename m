@@ -1,7 +1,7 @@
 From: "Sean Hefty" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 7/37] librdmacm: add support to bind using AF_IB
+Subject: [PATCH 5/37] librdmacm: replace query_route call with separate queries
 Date: Wed, 7 Apr 2010 10:12:44 -0700
-Message-ID: <452D818161DB4FBF80A4062ED61D6188@amr.corp.intel.com>
+Message-ID: <D81E70C032A3452B9FD00D7EB445F6CF@amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="us-ascii"
@@ -13,86 +13,133 @@ Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Allow rdma_bind_addr to accept AF_IB addresses.
+To support other address families and multiple path records,
+replace the query_route call with specific query calls to obtain
+only the desired information.
 
 Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
 
- include/rdma/rdma_cma_abi.h |   10 +++++++++-
- src/cma.c                   |   25 +++++++++++++++++++++++++
- 2 files changed, 34 insertions(+), 1 deletions(-)
+ src/cma.c |   69 +++++++++++++++++++++++++++++++++++++++++++++++++++++--------
+ 1 files changed, 60 insertions(+), 9 deletions(-)
 
-diff --git a/include/rdma/rdma_cma_abi.h b/include/rdma/rdma_cma_abi.h
-index 0ef9564..8add397 100644
---- a/include/rdma/rdma_cma_abi.h
-+++ b/include/rdma/rdma_cma_abi.h
-@@ -66,7 +66,8 @@ enum {
-  	UCMA_CMD_JOIN_IP_MCAST,
-  	UCMA_CMD_LEAVE_MCAST,
- 	UCMA_CMD_MIGRATE_ID,
--	UCMA_CMD_QUERY
-+	UCMA_CMD_QUERY,
-+	UCMA_CMD_BIND
- };
- 
- struct ucma_abi_cmd_hdr {
-@@ -102,6 +103,13 @@ struct ucma_abi_bind_ip {
- 	__u32 id;
- };
- 
-+struct ucma_abi_bind {
-+	__u32 id;
-+	__u16 addr_size;
-+	__u16 reserved;
-+	struct sockaddr_storage addr;
-+};
-+
- struct ucma_abi_resolve_ip {
- 	struct sockaddr_in6 src_addr;
- 	struct sockaddr_in6 dst_addr;
 diff --git a/src/cma.c b/src/cma.c
-index e85ef2d..be61333 100644
+index 2a70d20..c57d166 100644
 --- a/src/cma.c
 +++ b/src/cma.c
-@@ -673,6 +673,28 @@ static int ucma_query_route(struct rdma_cm_id *id)
+@@ -161,6 +161,7 @@ static struct cma_device *cma_dev_array;
+ static int cma_dev_cnt;
+ static pthread_mutex_t mut = PTHREAD_MUTEX_INITIALIZER;
+ static int abi_ver = RDMA_USER_CM_MAX_ABI_VERSION;
++int af_ib_support;
+ 
+ #define container_of(ptr, type, field) \
+ 	((type *) ((void *)ptr - offsetof(type, field)))
+@@ -627,7 +628,7 @@ static int ucma_query_route(struct rdma_cm_id *id)
+ 	struct cma_id_private *id_priv;
+ 	void *msg;
+ 	int ret, size, i;
+-	
++
+ 	CMA_CREATE_MSG_CMD_RESP(msg, cmd, resp, UCMA_CMD_QUERY_ROUTE, size);
+ 	id_priv = container_of(id, struct cma_id_private, id);
+ 	cmd->id = id_priv->handle;
+@@ -1060,7 +1061,10 @@ int rdma_listen(struct rdma_cm_id *id, int backlog)
+ 	if (ret != size)
+ 		return (ret >= 0) ? ERR(ENODATA) : -1;
+ 
+-	return ucma_query_route(id);
++	if (af_ib_support)
++		return ucma_query_addr(id);
++	else
++		return ucma_query_route(id);
+ }
+ 
+ int rdma_accept(struct rdma_cm_id *id, struct rdma_conn_param *conn_param)
+@@ -1326,6 +1330,57 @@ int rdma_ack_cm_event(struct rdma_cm_event *event)
  	return 0;
  }
  
-+static int rdma_bind_addr2(struct rdma_cm_id *id, struct sockaddr *addr,
-+			   socklen_t addrlen)
++static void ucma_process_addr_resolved(struct cma_event *evt)
 +{
-+	struct ucma_abi_bind *cmd;
-+	struct cma_id_private *id_priv;
-+	void *msg;
-+	int ret, size;
-+	
-+	CMA_CREATE_MSG_CMD(msg, cmd, UCMA_CMD_BIND, size);
-+	id_priv = container_of(id, struct cma_id_private, id);
-+	cmd->id = id_priv->handle;
-+	cmd->addr_size = addrlen;
-+	cmd->reserved = 0;
-+	memcpy(&cmd->addr, addr, addrlen);
++	if (af_ib_support) {
++		evt->event.status = ucma_query_addr(&evt->id_priv->id);
++		if (!evt->event.status &&
++		    evt->id_priv->id.verbs->device->transport_type == IBV_TRANSPORT_IB)
++			evt->event.status = ucma_query_gid(&evt->id_priv->id);
++	} else {
++		evt->event.status = ucma_query_route(&evt->id_priv->id);
++	}
 +
-+	ret = write(id->channel->fd, msg, size);
-+	if (ret != size)
-+		return (ret >= 0) ? ERR(ENODATA) : -1;
-+
-+	return ucma_query_addr(id);
++	if (evt->event.status)
++		evt->event.event = RDMA_CM_EVENT_ADDR_ERROR;
 +}
 +
- int rdma_bind_addr(struct rdma_cm_id *id, struct sockaddr *addr)
- {
- 	struct ucma_abi_bind_ip *cmd;
-@@ -684,6 +706,9 @@ int rdma_bind_addr(struct rdma_cm_id *id, struct sockaddr *addr)
- 	if (!addrlen)
- 		return ERR(EINVAL);
- 
-+	if (af_ib_support)
-+		return rdma_bind_addr2(id, addr, addrlen);
++static void ucma_process_route_resolved(struct cma_event *evt)
++{
++	if (evt->id_priv->id.verbs->device->transport_type != IBV_TRANSPORT_IB)
++		return;
 +
- 	CMA_CREATE_MSG_CMD(msg, cmd, UCMA_CMD_BIND_IP, size);
- 	id_priv = container_of(id, struct cma_id_private, id);
- 	cmd->id = id_priv->handle;
++	if (af_ib_support)
++		evt->event.status = ucma_query_path(&evt->id_priv->id);
++	else
++		evt->event.status = ucma_query_route(&evt->id_priv->id);
++
++	if (evt->event.status)
++		evt->event.event = RDMA_CM_EVENT_ROUTE_ERROR;
++}
++
++static int ucma_query_req_info(struct rdma_cm_id *id)
++{
++	int ret;
++
++	if (!af_ib_support)
++		return ucma_query_route(id);
++
++	ret = ucma_query_addr(id);
++	if (ret)
++		return ret;
++
++	ret = ucma_query_gid(id);
++	if (ret)
++		return ret;
++
++	ret = ucma_query_path(id);
++	if (ret)
++		return ret;
++
++	return 0;
++}
++
+ static int ucma_process_conn_req(struct cma_event *evt,
+ 				 uint32_t handle)
+ {
+@@ -1344,7 +1399,7 @@ static int ucma_process_conn_req(struct cma_event *evt,
+ 	evt->event.id = &id_priv->id;
+ 	id_priv->handle = handle;
+ 
+-	ret = ucma_query_route(&id_priv->id);
++	ret = ucma_query_req_info(&id_priv->id);
+ 	if (ret) {
+ 		rdma_destroy_id(&id_priv->id);
+ 		goto err;
+@@ -1473,14 +1528,10 @@ retry:
+ 
+ 	switch (resp->event) {
+ 	case RDMA_CM_EVENT_ADDR_RESOLVED:
+-		evt->event.status = ucma_query_route(&evt->id_priv->id);
+-		if (evt->event.status)
+-			evt->event.event = RDMA_CM_EVENT_ADDR_ERROR;
++		ucma_process_addr_resolved(evt);
+ 		break;
+ 	case RDMA_CM_EVENT_ROUTE_RESOLVED:
+-		evt->event.status = ucma_query_route(&evt->id_priv->id);
+-		if (evt->event.status)
+-			evt->event.event = RDMA_CM_EVENT_ROUTE_ERROR;
++		ucma_process_route_resolved(evt);
+ 		break;
+ 	case RDMA_CM_EVENT_CONNECT_REQUEST:
+ 		evt->id_priv = (void *) (uintptr_t) resp->uid;
 
 
 
