@@ -1,43 +1,28 @@
-From: Ralph Campbell <ralph.campbell-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v2 12/51] IB/qib: Add qib_dma.c
-Date: Thu, 8 Apr 2010 13:40:24 -0700
-Message-ID: <1270759224.2278.0.camel@chromite.mv.qlogic.com>
-References: <20091203190305.29507.58158.stgit@chromite.mv.qlogic.com>
-	 <20091203190408.29507.27708.stgit@chromite.mv.qlogic.com>
-	 <adaljcz43n9.fsf@roland-alpha.cisco.com>
+From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH v2] IB/core: allow HCAs to create IB port sysfs files
+Date: Thu, 08 Apr 2010 13:49:15 -0700
+Message-ID: <adamxxdwtys.fsf@roland-alpha.cisco.com>
+References: <1258486848.992.407.camel@chromite.mv.qlogic.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <adaljcz43n9.fsf-BjVyx320WGW9gfZ95n9DRSW4+XlvGpQz@public.gmane.org>
+In-Reply-To: <1258486848.992.407.camel-/vjeY7uYZjrPXfVEPVhPGq6RkeBMCJyt@public.gmane.org> (Ralph
+	Campbell's message of "Tue, 17 Nov 2009 11:40:48 -0800")
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Ralph Campbell <ralph.campbell-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-OK. This will be in v3.
+Rather than have the device driver call a new function that then calls
+it back, how about if we just add a parameter to the
+ib_register_device() call that is the callback to add the sysfs stuff?
+This would let us avoid the race where the device is registered but not
+all the sysfs stuff is created yet.
 
-On Wed, 2010-03-31 at 16:18 -0700, Roland Dreier wrote:
-> > +struct ib_dma_mapping_ops qib_dma_mapping_ops = {
->  > +	qib_mapping_error,
->  > +	qib_dma_map_single,
->  > +	qib_dma_unmap_single,
->  > +	qib_dma_map_page,
->  > +	qib_dma_unmap_page,
->  > +	qib_map_sg,
->  > +	qib_unmap_sg,
->  > +	qib_sg_dma_address,
->  > +	qib_sg_dma_len,
->  > +	qib_sync_single_for_cpu,
->  > +	qib_sync_single_for_device,
->  > +	qib_dma_alloc_coherent,
->  > +	qib_dma_free_coherent
->  > +};
-> 
-> I think it would be better to use designated initializers (".xxx = yyy,")
-> here to avoid problems if this struct ever changes layout.
-
-
+ - R.
+-- 
+Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org> || For corporate legal information go to:
+http://www.cisco.com/web/about/doing_business/legal/cri/index.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
