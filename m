@@ -1,55 +1,55 @@
-From: Aleksey Senin <aleksey-192fA4vuk7xBDLzU/O5InQ@public.gmane.org>
-Subject: ibdev2netdev optimization [ PATCH 1/1 ]
-Date: Thu, 8 Apr 2010 12:22:47 +0300
-Message-ID: <r2kcc473fa21004080222m5243730ve23b13ecd9a99155@mail.gmail.com>
+From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Subject: Re: [patch] infiniband: checking the wrong variable
+Date: Thu, 8 Apr 2010 12:13:42 +0200
+Message-ID: <g2ge2e108261004080313t32c2e1besd8a95e2f9bf418f9@mail.gmail.com>
+References: <20100407093901.GG5157@bicker>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary=0015174c3416d3fb7e0483b63814
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20100407093901.GG5157@bicker>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Dan Carpenter <error27-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Tejun Heo <tj-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Christoph Lameter <cl-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
---0015174c3416d3fb7e0483b63814
-Content-Type: text/plain; charset=UTF-8
+On Wed, Apr 7, 2010 at 11:39 AM, Dan Carpenter <error27-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrot=
+e:
+> The intent here was to check the "mfrpl->mapped_page_list" allocation=
+=2E
+> We checked "mfrpl->ibfrpl.page_list" earlier.
+>
+> Signed-off-by: Dan Carpenter <error27-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+>
+> diff --git a/drivers/infiniband/hw/mlx4/mr.c b/drivers/infiniband/hw/=
+mlx4/mr.c
+> index 56147b2..1d27b9a 100644
+> --- a/drivers/infiniband/hw/mlx4/mr.c
+> +++ b/drivers/infiniband/hw/mlx4/mr.c
+> @@ -240,7 +240,7 @@ struct ib_fast_reg_page_list *mlx4_ib_alloc_fast_=
+reg_page_list(struct ib_device
+> =A0 =A0 =A0 =A0mfrpl->mapped_page_list =3D dma_alloc_coherent(&dev->d=
+ev->pdev->dev,
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 size, &mfrpl->map,
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 GFP_KERNEL);
+> - =A0 =A0 =A0 if (!mfrpl->ibfrpl.page_list)
+> + =A0 =A0 =A0 if (!mfrpl->mapped_page_list)
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0goto err_free;
+>
+> =A0 =A0 =A0 =A0WARN_ON(mfrpl->map & 0x3f);
 
-Call just once all these sed/awk/cut etc. when finding mac addresses.
+Hello Dan,
 
---0015174c3416d3fb7e0483b63814
-Content-Type: text/x-patch; charset=US-ASCII;
-	name="0001-Optimized-when-looking-ethernet-data.patch"
-Content-Disposition: attachment;
-	filename="0001-Optimized-when-looking-ethernet-data.patch"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_g7rcz7qs0
+Have you already had the time to check whether this fix should be
+backported to already released kernels, and if so, to which kernel
+versions ? The easiest way to ask for backporting is to add "Cc:
+<stable-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>" in a patch.
 
-RnJvbSAyNDM3ZTk4MGU2YThmMGJjZDEyM2RkYWIwNzdmMDA5MDgwNjlkMzc5IE1vbiBTZXAgMTcg
-MDA6MDA6MDAgMjAwMQpGcm9tOiBBbGVrc2V5IFNlbmluIDxhbGVrc2V5c0B2b2x0YWlyZS5jb20+
-CkRhdGU6IFRodSwgOCBBcHIgMjAxMCAxMTo1MzowNyArMDMwMApTdWJqZWN0OiBbUEFUQ0hdIE9w
-dGltaXplZCB3aGVuIGxvb2tpbmcgZXRoZXJuZXQgZGF0YS4KCkkgaGF2ZSB0d28gYWRhcHRlcnMg
-d2l0aCB0d28gcG9ydHMgb24gZWFjaCBvbmUuIFRoaXMgb3B0aW1pemF0aW9uIGdpdmVzIG1lCjYg
-c2VjLiBydW4tdGltZSAgaW5zdGVhZCBvZiAxOSBzZWMuCgoKU2lnbmVkLW9mZi1ieTogQWxla3Nl
-eSBTZW5pbiA8YWxla3NleXNAdm9sdGFpcmUuY29tPgotLS0KIG9mZWRfc2NyaXB0cy9pYmRldjJu
-ZXRkZXYgfCAgICA4ICsrKystLS0tCiAxIGZpbGVzIGNoYW5nZWQsIDQgaW5zZXJ0aW9ucygrKSwg
-NCBkZWxldGlvbnMoLSkKCmRpZmYgLS1naXQgYS9vZmVkX3NjcmlwdHMvaWJkZXYybmV0ZGV2IGIv
-b2ZlZF9zY3JpcHRzL2liZGV2Mm5ldGRldgppbmRleCBiNDM2YzA1Li5hZGI1ZWJhIDEwMDc1NQot
-LS0gYS9vZmVkX3NjcmlwdHMvaWJkZXYybmV0ZGV2CisrKyBiL29mZWRfc2NyaXB0cy9pYmRldjJu
-ZXRkZXYKQEAgLTMwLDEyICszMCwxMiBAQCBmdW5jdGlvbiBmaW5kX21hYygpCiAJCWZvciBwb3J0
-IGluICRwb3J0czsgZG8KIAkJCWdpZHM9JChscyAvc3lzL2NsYXNzL2luZmluaWJhbmQvJGliZGV2
-L3BvcnRzLyRwb3J0L2dpZHMpCiAJCQlmb3IgZ2lkIGluICRnaWRzOyBkbwotCQkJCWZpcnN0PSQo
-Y2F0IC9zeXMvY2xhc3MvaW5maW5pYmFuZC8kaWJkZXYvcG9ydHMvJHBvcnQvZ2lkcy8kZ2lkIHwg
-Y3V0IC1iIDIxLTIyKQorCQkJCXBtYWM9JChjYXQgICAvc3lzL2NsYXNzL2luZmluaWJhbmQvJGli
-ZGV2L3BvcnRzLyRwb3J0L2dpZHMvJGdpZCAgIHwgY3V0IC1iIDIxLTI0LDI2LTI3LDMzLTM0LDM2
-LSkKKwkJCQlmaXJzdD0ke3BtYWM6MDoyfQorCQkJCXBtYWM9JHtwbWFjOjJ9CiAJCQkJZmlyc3Q9
-JCgoIGZpcnN0IF4gMiApKQogCQkJCWZpcnN0PSQocHJpbnRmICIlMDJ4IiAkZmlyc3QpCi0JCQkJ
-c2Vjb25kPSQoY2F0IC9zeXMvY2xhc3MvaW5maW5pYmFuZC8kaWJkZXYvcG9ydHMvJHBvcnQvZ2lk
-cy8kZ2lkIHwgY3V0IC1iIDIxLSB8IHNlZCAtZSAncy86Ly9nJyB8IGN1dCAtYiAzLTYpCi0JCQkJ
-dGhpcmQ9JChjYXQgL3N5cy9jbGFzcy9pbmZpbmliYW5kLyRpYmRldi9wb3J0cy8kcG9ydC9naWRz
-LyRnaWQgfCBjdXQgLWIgMjEtIHwgc2VkIC1lICdzLzovL2cnIHwgY3V0IC1iIDExLSkKLQkJCQlw
-bWFjPSRmaXJzdCRzZWNvbmQkdGhpcmQKKwkJCQlwbWFjPSRmaXJzdCRwbWFjCiAJCQkJaWYgWyB4
-JHBtYWMgPT0geCQxIF07IHRoZW4KIAkJCQkJcHJpbnRfbGluZSAkaWJkZXYgJHBvcnQgJDIKIAkJ
-CQlmaQotLSAKMS42LjQuMgoK
---0015174c3416d3fb7e0483b63814--
+Bart.
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
