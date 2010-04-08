@@ -1,7 +1,8 @@
 From: Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH 2/4] opensm: added 2 options: dump PRs and filename
-Date: Thu, 08 Apr 2010 16:29:20 +0300
-Message-ID: <4BBDDA30.6090302@dev.mellanox.co.il>
+Subject: [PATCH 3/4] opensm: dump PRs after every heavy sweep and after
+	reroute
+Date: Thu, 08 Apr 2010 16:30:12 +0300
+Message-ID: <4BBDDA64.1060603@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
@@ -14,70 +15,37 @@ List-Id: linux-rdma@vger.kernel.org
 
 Signed-off-by: Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 ---
- opensm/include/opensm/osm_subnet.h |   10 ++++++++++
- opensm/opensm/osm_subnet.c         |   14 ++++++++++++++
- 2 files changed, 24 insertions(+), 0 deletions(-)
+ opensm/opensm/osm_dump.c      |    3 +++
+ opensm/opensm/osm_state_mgr.c |    2 ++
+ 2 files changed, 5 insertions(+), 0 deletions(-)
 
-diff --git a/opensm/include/opensm/osm_subnet.h b/opensm/include/opensm/osm_subnet.h
-index 3970e98..8d7182b 100644
---- a/opensm/include/opensm/osm_subnet.h
-+++ b/opensm/include/opensm/osm_subnet.h
-@@ -201,6 +201,8 @@ typedef struct osm_subn_opt {
- 	char *guid_routing_order_file;
- 	char *sa_db_file;
- 	boolean_t sa_db_dump;
-+	boolean_t path_rec_dump;
-+	char *path_rec_file;
- 	boolean_t do_mesh_analysis;
- 	boolean_t exit_on_fatal;
- 	boolean_t honor_guid2lid_file;
-@@ -418,6 +420,14 @@ typedef struct osm_subn_opt {
- *		When TRUE causes OpenSM to dump SA DB at the end of every
- *		light sweep regardless the current verbosity level.
- *
-+*	path_rec_file
-+*		Name of the PathRecords dump file.
-+*
-+*	path_rec_dump
-+*		When TRUE causes OpenSM to dump PathRecords for all the
-+*		CA-2-CA paths at the end of every heavy sweep, regardless
-+*		of the verbosity level.
-+*
- *	exit_on_fatal
- *		If TRUE (default) - SM will exit on fatal subnet initialization
- *		issues.
-diff --git a/opensm/opensm/osm_subnet.c b/opensm/opensm/osm_subnet.c
-index e4126bc..c87ed2a 100644
---- a/opensm/opensm/osm_subnet.c
-+++ b/opensm/opensm/osm_subnet.c
-@@ -757,6 +757,8 @@ void osm_subn_set_default_opt(IN osm_subn_opt_t * p_opt)
- 	p_opt->guid_routing_order_file = NULL;
- 	p_opt->sa_db_file = NULL;
- 	p_opt->sa_db_dump = FALSE;
-+	p_opt->path_rec_file = NULL;
-+	p_opt->path_rec_dump = FALSE;
- 	p_opt->do_mesh_analysis = FALSE;
- 	p_opt->exit_on_fatal = TRUE;
- 	p_opt->enable_quirks = FALSE;
-@@ -1464,6 +1466,18 @@ int osm_subn_output_conf(FILE *out, IN osm_subn_opt_t * p_opts)
- 		p_opts->sa_db_dump ? "TRUE" : "FALSE");
+diff --git a/opensm/opensm/osm_dump.c b/opensm/opensm/osm_dump.c
+index 86e9c00..cedff24 100644
+--- a/opensm/opensm/osm_dump.c
++++ b/opensm/opensm/osm_dump.c
+@@ -634,6 +634,9 @@ void osm_dump_all(osm_opensm_t * osm)
+ 	osm_dump_qmap_to_file(osm, "opensm-subnet.lst",
+ 			      &osm->subn.node_guid_tbl, dump_topology_node,
+ 			      osm);
++	if (osm->subn.opt.path_rec_dump)
++		osm_sa_path_records_file_dump(osm);
++
+ 	if (osm_log_is_active(&osm->log, OSM_LOG_VERBOSE))
+ 		print_report(osm, stdout);
+ }
+diff --git a/opensm/opensm/osm_state_mgr.c b/opensm/opensm/osm_state_mgr.c
+index e43463f..e32ff18 100644
+--- a/opensm/opensm/osm_state_mgr.c
++++ b/opensm/opensm/osm_state_mgr.c
+@@ -1149,6 +1149,8 @@ static void do_sweep(osm_sm_t * sm)
+ 			return;
 
- 	fprintf(out,
-+		"# PathRecords dump file name\n"
-+		"path_rec_file %s\n\n",
-+		p_opts->path_rec_file ? p_opts->path_rec_file : null_str);
-+
-+	fprintf(out,
-+		"# If TRUE causes OpenSM to dump PathRecords for all the\n"
-+		"# CA-2-CA paths at the end of every heavy sweep, regardless\n"
-+		"# of the verbosity level\n"
-+		"path_rec_dump %s\n\n",
-+		p_opts->path_rec_dump ? "TRUE" : "FALSE");
-+
-+	fprintf(out,
- 		"#\n# HANDOVER - MULTIPLE SMs OPTIONS\n#\n"
- 		"# SM priority used for deciding who is the master\n"
- 		"# Range goes from 0 (lowest priority) to 15 (highest).\n"
+ 		if (!sm->p_subn->subnet_initialization_error) {
++			if (sm->p_subn->opt.path_rec_dump)
++				osm_sa_path_records_file_dump(sm->p_subn->p_osm);
+ 			OSM_LOG_MSG_BOX(sm->p_log, OSM_LOG_VERBOSE,
+ 					"REROUTE COMPLETE");
+ 			return;
 -- 
 1.5.1.4
 
