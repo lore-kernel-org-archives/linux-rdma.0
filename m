@@ -1,24 +1,45 @@
-From: "Ava Connelly" <poehfheju-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Credit Inquiries Database - 1 million Full Data Records all with emails
-Date: 9 Apr 2010 03:16:20 +0100
-Message-ID: <GLNT272T0giSftNtzsG0000045f__102.921090047126$1270779404$gmane$org@glnt272.glos.nhs.uk>
-Reply-To: pwetrjfvje-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
+From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Subject: [GIT PULL] please pull infiniband.git
+Date: Fri, 09 Apr 2010 09:13:40 -0700
+Message-ID: <adaiq80txhn.fsf@roland-alpha.cisco.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-parport-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-pci-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-pcmcia-owner-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-pcmcia-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-pm-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-I have many good quality American Contact Lists at much lower prices than most sites. Contact me here:  Addie.Cho-5YPRQHlKf8JHCvwvKO8SlA@public.gmane.org for a complete catalogue of what we have.
+Linus, please pull from
 
-Best Regards
+    git://git.kernel.org/pub/scm/linux/kernel/git/roland/infiniband.git for-linus
 
+This will get a few small fixes that have trickled in:
 
-Laurence Page
- 
-  
+Chien Tung (1):
+      RDMA/nes: Correct cap.max_inline_data assignment in nes_query_qp()
 
+Dan Carpenter (1):
+      IB/mlx4: Check correct variable for allocation failure
 
-to adjust your subscription status email to rembox-5YPRQHlKf8JHCvwvKO8SlA@public.gmane.org
+Jani Nikula (1):
+      IB/cm: Fix device_create() return value check
+
+Roland Dreier (1):
+      Merge branches 'cma', 'misc', 'mlx4' and 'nes' into for-linus
+
+shefty (1):
+      RDMA/cm: Set num_paths when manually assigning path records
+
+ drivers/infiniband/core/cm.c          |    2 +-
+ drivers/infiniband/core/cma.c         |    1 +
+ drivers/infiniband/hw/mlx4/mr.c       |    2 +-
+ drivers/infiniband/hw/nes/nes_verbs.c |    9 ++++-----
+ 4 files changed, 7 insertions(+), 7 deletions(-)
+
+-- 
+Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org> || For corporate legal information go to:
+http://www.cisco.com/web/about/doing_business/legal/cri/index.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
