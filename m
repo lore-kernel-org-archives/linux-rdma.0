@@ -1,60 +1,100 @@
-From: Ralph Campbell <ralph.campbell-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH v2 38/51] IB/qib: Add qib_sysfs.c
-Date: Fri, 9 Apr 2010 16:31:26 -0700
-Message-ID: <1270855886.2278.52.camel@chromite.mv.qlogic.com>
-References: <20091203190305.29507.58158.stgit@chromite.mv.qlogic.com>
-	 <20091203190624.29507.22110.stgit@chromite.mv.qlogic.com>
-	 <adaiq81wtw3.fsf@roland-alpha.cisco.com>
-	 <1270762193.2278.25.camel@chromite.mv.qlogic.com>
-	 <20100408220840.GO9769@obsidianresearch.com>
-	 <1270765601.2278.31.camel@chromite.mv.qlogic.com>
-	 <20100408225002.GS9769@obsidianresearch.com>
+From: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH] tests/subnet_discover: verbose node discovery printout
+Date: Sat, 10 Apr 2010 02:56:52 +0300
+Message-ID: <20100409235652.GG4808@me>
+References: <20100218124931.4d6ef34b.weiny2@llnl.gov>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20100408225002.GS9769-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20100218124931.4d6ef34b.weiny2-i2BcT+NCU+M@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, 2010-04-08 at 15:50 -0700, Jason Gunthorpe wrote:
-> On Thu, Apr 08, 2010 at 03:26:41PM -0700, Ralph Campbell wrote:
-> > On Thu, 2010-04-08 at 15:08 -0700, Jason Gunthorpe wrote:
-> > > On Thu, Apr 08, 2010 at 02:29:53PM -0700, Ralph Campbell wrote:
-> > > 
-> > > > One other place that has multiple values is dumping the QSFP
-> > > > data from the IB cable.
-> > > 
-> > > I was going to comment that building your own I2C subsystem is kinda
-> > > strange, can't the in-kernel stuff be used?
-> 
-> > It is a bit strange but we have had this discussion before with
-> > the ib_ipath driver. Basically, the devices connected to the bus
-> > weren't really I2C compliant. Since we had to support the
-> > non-standard parts, it was easier to have only one set of code
-> > that could handle both.
-> 
-> Is this still true on qib? I didn't notice anything too obviously
-> weird, and QSFPs are clearly standard i2c..
-> 
-> The i2c layer has a pretty flexible definition of i2c these days..
-> 
-> Jason
 
-I would be very reluctant to change this code.
-One device we have doesn't have an i2c address, the "address" is the
-address of memory within the chip, not the address of the chip on the
-bus.
+Improve verbosity levels: with '-v' print nodes as they are discovered,
+more 'v' - more noise.
 
-Reading some of the QSFP cable's EEPROM caused another EEPROM
-on the bus to be erased. We had to put in defensive code to
-check for this case.
+Signed-off-by: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+---
+ tests/subnet_discover.c |   25 ++++++++++++++++---------
+ 1 files changed, 16 insertions(+), 9 deletions(-)
 
-I'm not the expert who wrote this code (he retired) so I would have
-to do a lot of work making sure the older parts and cables with
-these problems worked after a major rewrite of the code.
+diff --git a/tests/subnet_discover.c b/tests/subnet_discover.c
+index 22b092a..44cd86e 100644
+--- a/tests/subnet_discover.c
++++ b/tests/subnet_discover.c
+@@ -52,7 +52,9 @@ static unsigned max_hops = 0;
+ 
+ #define ERROR(fmt, ...) fprintf(stderr, "ERR: " fmt, ##__VA_ARGS__)
+ #define VERBOSE(fmt, ...) if (verbose) fprintf(stderr, fmt, ##__VA_ARGS__)
+-#define NOISE(fmt, ...) if (verbose > 1) fprintf(stderr, fmt, ##__VA_ARGS__)
++#define VERBOSE1(fmt, ...) if (verbose > 1) fprintf(stderr, fmt, ##__VA_ARGS__)
++#define VERBOSE2(fmt, ...) if (verbose > 2) fprintf(stderr, fmt, ##__VA_ARGS__)
++#define NOISE(fmt, ...) VERBOSE2(fmt, ##__VA_ARGS__)
+ 
+ static const char *print_path(uint8_t path[], size_t path_cnt)
+ {
+@@ -116,8 +118,8 @@ static int send_request(int fd, int agent, uint64_t trid, uint8_t * path,
+ 		return -1;
+ 	}
+ 
+-	VERBOSE("send %016" PRIx64 ": attr %x, mod %x to %s\n", trid, attr_id,
+-		attr_mod, print_path(path, path_cnt));
++	VERBOSE1("send %016" PRIx64 ": attr %x, mod %x to %s\n", trid, attr_id,
++		 attr_mod, print_path(path, path_cnt));
+ 
+ 	return ret;
+ }
+@@ -239,8 +241,8 @@ static int send_query(int fd, int agent, unsigned node_id, uint8_t path[],
+ 		return -1;
+ 	}
+ 
+-	VERBOSE("queue %016" PRIx64 ": attr %x, mod %x to %s\n", trid, attr_id,
+-		attr_mod, print_path(path, path_cnt));
++	VERBOSE1("queue %016" PRIx64 ": attr %x, mod %x to %s\n", trid, attr_id,
++		 attr_mod, print_path(path, path_cnt));
+ 
+ 	run_request_queue(fd, agent);
+ 
+@@ -384,8 +386,8 @@ static void connect_ports(unsigned node1_id, unsigned port1_num,
+ {
+ 	struct port *port1 = &node_array[node1_id]->ports[port1_num];
+ 	struct port *port2 = &node_array[node2_id]->ports[port2_num];
+-	VERBOSE("connecting %u:%u <--> %u:%u\n",
+-		node1_id, port1_num, node2_id, port2_num);
++	VERBOSE1("connecting %u:%u <--> %u:%u\n",
++		 node1_id, port1_num, node2_id, port2_num);
+ 	port1->remote = port2;
+ 	port2->remote = port1;
+ }
+@@ -410,6 +412,11 @@ static int process_node(void *umad, unsigned remote_id, int fd, int agent,
+ 
+ 	node = node_array[id];
+ 
++	VERBOSE("%-5s %-6s with guid 0x%" PRIx64 " discovered at %s\n",
++		node_is_new ? "new" : "known",
++		node->is_switch ? "Switch" : "Ca", node->guid,
++		print_path(path, path_cnt));
++
+ 	node->ports[port_num].guid =
+ 	    mad_get_field64(node_info, 0, IB_NODE_PORT_GUID_F);
+ 
+@@ -472,8 +479,8 @@ static int recv_smp_resp(int fd, int agent, uint8_t * umad, uint8_t path[])
+ 
+ 	node_id = trid & 0xffff;
+ 
+-	VERBOSE("recv %016" PRIx64 ": attr %x, mod %x from %s\n", trid, attr_id,
+-		attr_mod, print_path(path, path_cnt));
++	VERBOSE1("recv %016" PRIx64 ": attr %x, mod %x from %s\n", trid,
++		 attr_id, attr_mod, print_path(path, path_cnt));
+ 
+ 	switch (attr_id) {
+ 	case IB_ATTR_NODE_INFO:
+-- 
+1.7.0.4
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
