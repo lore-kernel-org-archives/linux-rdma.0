@@ -1,28 +1,61 @@
-From: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH v3 0/2] Using multi-smps on the wire in libibnetdisc
-Date: Sat, 10 Apr 2010 02:21:25 +0300
-Message-ID: <20100409232125.GF4808@me>
-References: <20100218124931.4d6ef34b.weiny2@llnl.gov>
- <20100402172330.819b8ef6.weiny2@llnl.gov>
+From: Ralph Campbell <ralph.campbell-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v2 38/51] IB/qib: Add qib_sysfs.c
+Date: Fri, 9 Apr 2010 16:31:26 -0700
+Message-ID: <1270855886.2278.52.camel@chromite.mv.qlogic.com>
+References: <20091203190305.29507.58158.stgit@chromite.mv.qlogic.com>
+	 <20091203190624.29507.22110.stgit@chromite.mv.qlogic.com>
+	 <adaiq81wtw3.fsf@roland-alpha.cisco.com>
+	 <1270762193.2278.25.camel@chromite.mv.qlogic.com>
+	 <20100408220840.GO9769@obsidianresearch.com>
+	 <1270765601.2278.31.camel@chromite.mv.qlogic.com>
+	 <20100408225002.GS9769@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20100402172330.819b8ef6.weiny2-i2BcT+NCU+M@public.gmane.org>
+In-Reply-To: <20100408225002.GS9769-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Ira,
-
-On 17:23 Fri 02 Apr     , Ira Weiny wrote:
+On Thu, 2010-04-08 at 15:50 -0700, Jason Gunthorpe wrote:
+> On Thu, Apr 08, 2010 at 03:26:41PM -0700, Ralph Campbell wrote:
+> > On Thu, 2010-04-08 at 15:08 -0700, Jason Gunthorpe wrote:
+> > > On Thu, Apr 08, 2010 at 02:29:53PM -0700, Ralph Campbell wrote:
+> > > 
+> > > > One other place that has multiple values is dumping the QSFP
+> > > > data from the IB cable.
+> > > 
+> > > I was going to comment that building your own I2C subsystem is kinda
+> > > strange, can't the in-kernel stuff be used?
 > 
-> Have you had a chance to look at this yet?  If you want I can resend the latest version of the patches.
+> > It is a bit strange but we have had this discussion before with
+> > the ib_ipath driver. Basically, the devices connected to the bus
+> > weren't really I2C compliant. Since we had to support the
+> > non-standard parts, it was easier to have only one set of code
+> > that could handle both.
+> 
+> Is this still true on qib? I didn't notice anything too obviously
+> weird, and QSFPs are clearly standard i2c..
+> 
+> The i2c layer has a pretty flexible definition of i2c these days..
+> 
+> Jason
 
-No needs. I'm looking at this right now...
+I would be very reluctant to change this code.
+One device we have doesn't have an i2c address, the "address" is the
+address of memory within the chip, not the address of the chip on the
+bus.
 
-Sasha
+Reading some of the QSFP cable's EEPROM caused another EEPROM
+on the bus to be erased. We had to put in defensive code to
+check for this case.
+
+I'm not the expert who wrote this code (he retired) so I would have
+to do a lot of work making sure the older parts and cables with
+these problems worked after a major rewrite of the code.
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
