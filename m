@@ -1,8 +1,7 @@
 From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: [PATCH v2 03/10] iw_cxgb4: Add module and low level device interface
-	functions.
-Date: Fri, 09 Apr 2010 15:53:52 -0500
-Message-ID: <20100409205352.9813.73284.stgit@build.ogc.int>
+Subject: [PATCH v2 04/10] iw_cxgb4: Add rdma provider interface functions.
+Date: Fri, 09 Apr 2010 15:53:58 -0500
+Message-ID: <20100409205358.9813.60711.stgit@build.ogc.int>
 References: <20100409205336.9813.84868.stgit@build.ogc.int>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -16,16 +15,16 @@ List-Id: linux-rdma@vger.kernel.org
 Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 ---
 
- drivers/infiniband/hw/cxgb4/device.c |  520 ++++++++++++++++++++++++++++++++++
- 1 files changed, 520 insertions(+), 0 deletions(-)
- create mode 100644 drivers/infiniband/hw/cxgb4/device.c
+ drivers/infiniband/hw/cxgb4/provider.c |  518 ++++++++++++++++++++++++++++++++
+ 1 files changed, 518 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/infiniband/hw/cxgb4/provider.c
 
-diff --git a/drivers/infiniband/hw/cxgb4/device.c b/drivers/infiniband/hw/cxgb4/device.c
+diff --git a/drivers/infiniband/hw/cxgb4/provider.c b/drivers/infiniband/hw/cxgb4/provider.c
 new file mode 100644
-index 0000000..be23b5e
+index 0000000..3cb50af
 --- /dev/null
-+++ b/drivers/infiniband/hw/cxgb4/device.c
-@@ -0,0 +1,520 @@
++++ b/drivers/infiniband/hw/cxgb4/provider.c
+@@ -0,0 +1,518 @@
 +/*
 + * Copyright (c) 2009-2010 Chelsio, Inc. All rights reserved.
 + *
@@ -40,13 +39,13 @@ index 0000000..be23b5e
 + *     conditions are met:
 + *
 + *      - Redistributions of source code must retain the above
-+ *	  copyright notice, this list of conditions and the following
-+ *	  disclaimer.
++ *        copyright notice, this list of conditions and the following
++ *        disclaimer.
 + *
 + *      - Redistributions in binary form must reproduce the above
-+ *	  copyright notice, this list of conditions and the following
-+ *	  disclaimer in the documentation and/or other materials
-+ *	  provided with the distribution.
++ *        copyright notice, this list of conditions and the following
++ *        disclaimer in the documentation and/or other materials
++ *        provided with the distribution.
 + *
 + * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
 + * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
@@ -59,493 +58,491 @@ index 0000000..be23b5e
 + */
 +#include <linux/module.h>
 +#include <linux/moduleparam.h>
-+#include <linux/debugfs.h>
++#include <linux/device.h>
++#include <linux/netdevice.h>
++#include <linux/etherdevice.h>
++#include <linux/delay.h>
++#include <linux/errno.h>
++#include <linux/list.h>
++#include <linux/spinlock.h>
++#include <linux/ethtool.h>
++#include <linux/rtnetlink.h>
++#include <linux/inetdevice.h>
++#include <linux/io.h>
 +
++#include <asm/irq.h>
++#include <asm/byteorder.h>
++
++#include <rdma/iw_cm.h>
 +#include <rdma/ib_verbs.h>
++#include <rdma/ib_smi.h>
++#include <rdma/ib_umem.h>
++#include <rdma/ib_user_verbs.h>
 +
 +#include "iw_cxgb4.h"
 +
-+#define DRV_VERSION "0.1"
++static int fastreg_support;
++module_param(fastreg_support, int, 0644);
++MODULE_PARM_DESC(fastreg_support, "Advertise fastreg support (default=0)");
 +
-+MODULE_AUTHOR("Steve Wise");
-+MODULE_DESCRIPTION("Chelsio T4 RDMA Driver");
-+MODULE_LICENSE("Dual BSD/GPL");
-+MODULE_VERSION(DRV_VERSION);
-+
-+static LIST_HEAD(dev_list);
-+static DEFINE_MUTEX(dev_mutex);
-+
-+static struct dentry *c4iw_debugfs_root;
-+
-+struct debugfs_qp_data {
-+	struct c4iw_dev *devp;
-+	char *buf;
-+	int bufsize;
-+	int pos;
-+};
-+
-+static int count_qps(int id, void *p, void *data)
++static int c4iw_modify_port(struct ib_device *ibdev,
++			    u8 port, int port_modify_mask,
++			    struct ib_port_modify *props)
 +{
-+	struct c4iw_qp *qp = p;
-+	int *countp = data;
++	return -ENOSYS;
++}
 +
-+	if (id != qp->wq.sq.qid)
-+		return 0;
++static struct ib_ah *c4iw_ah_create(struct ib_pd *pd,
++				    struct ib_ah_attr *ah_attr)
++{
++	return ERR_PTR(-ENOSYS);
++}
 +
-+	*countp = *countp + 1;
++static int c4iw_ah_destroy(struct ib_ah *ah)
++{
++	return -ENOSYS;
++}
++
++static int c4iw_multicast_attach(struct ib_qp *ibqp, union ib_gid *gid, u16 lid)
++{
++	return -ENOSYS;
++}
++
++static int c4iw_multicast_detach(struct ib_qp *ibqp, union ib_gid *gid, u16 lid)
++{
++	return -ENOSYS;
++}
++
++static int c4iw_process_mad(struct ib_device *ibdev, int mad_flags,
++			    u8 port_num, struct ib_wc *in_wc,
++			    struct ib_grh *in_grh, struct ib_mad *in_mad,
++			    struct ib_mad *out_mad)
++{
++	return -ENOSYS;
++}
++
++static int c4iw_dealloc_ucontext(struct ib_ucontext *context)
++{
++	struct c4iw_dev *rhp = to_c4iw_dev(context->device);
++	struct c4iw_ucontext *ucontext = to_c4iw_ucontext(context);
++	struct c4iw_mm_entry *mm, *tmp;
++
++	PDBG("%s context %p\n", __func__, context);
++	list_for_each_entry_safe(mm, tmp, &ucontext->mmaps, entry)
++		kfree(mm);
++	c4iw_release_dev_ucontext(&rhp->rdev, &ucontext->uctx);
++	kfree(ucontext);
 +	return 0;
 +}
 +
-+static int dump_qps(int id, void *p, void *data)
++static struct ib_ucontext *c4iw_alloc_ucontext(struct ib_device *ibdev,
++					       struct ib_udata *udata)
 +{
-+	struct c4iw_qp *qp = p;
-+	struct debugfs_qp_data *qpd = data;
-+	int space;
-+	int cc;
++	struct c4iw_ucontext *context;
++	struct c4iw_dev *rhp = to_c4iw_dev(ibdev);
 +
-+	if (id != qp->wq.sq.qid)
-+		return 0;
-+
-+	space = qpd->bufsize - qpd->pos - 1;
-+	if (space == 0)
-+		return 1;
-+
-+	if (qp->ep)
-+		cc = snprintf(qpd->buf + qpd->pos, space, "qp id %u state %u "
-+			     "ep tid %u state %u %pI4:%u->%pI4:%u\n",
-+			     qp->wq.sq.qid, (int)qp->attr.state,
-+			     qp->ep->hwtid, (int)qp->ep->com.state,
-+			     &qp->ep->com.local_addr.sin_addr.s_addr,
-+			     ntohs(qp->ep->com.local_addr.sin_port),
-+			     &qp->ep->com.remote_addr.sin_addr.s_addr,
-+			     ntohs(qp->ep->com.remote_addr.sin_port));
-+	else
-+		cc = snprintf(qpd->buf + qpd->pos, space, "qp id %u state %u\n",
-+			      qp->wq.sq.qid, (int)qp->attr.state);
-+	if (cc < space)
-+		qpd->pos += cc;
-+	return 0;
++	PDBG("%s ibdev %p\n", __func__, ibdev);
++	context = kzalloc(sizeof(*context), GFP_KERNEL);
++	if (!context)
++		return ERR_PTR(-ENOMEM);
++	c4iw_init_dev_ucontext(&rhp->rdev, &context->uctx);
++	INIT_LIST_HEAD(&context->mmaps);
++	spin_lock_init(&context->mmap_lock);
++	return &context->ibucontext;
 +}
 +
-+static int qp_release(struct inode *inode, struct file *file)
++static int c4iw_mmap(struct ib_ucontext *context, struct vm_area_struct *vma)
 +{
-+	struct debugfs_qp_data *qpd = file->private_data;
-+	if (!qpd) {
-+		printk(KERN_INFO "%s null qpd?\n", __func__);
-+		return 0;
-+	}
-+	kfree(qpd->buf);
-+	kfree(qpd);
-+	return 0;
-+}
-+
-+static int qp_open(struct inode *inode, struct file *file)
-+{
-+	struct debugfs_qp_data *qpd;
++	int len = vma->vm_end - vma->vm_start;
++	u32 key = vma->vm_pgoff << PAGE_SHIFT;
++	struct c4iw_rdev *rdev;
 +	int ret = 0;
-+	int count = 1;
++	struct c4iw_mm_entry *mm;
++	struct c4iw_ucontext *ucontext;
++	u64 addr;
 +
-+	qpd = kmalloc(sizeof *qpd, GFP_KERNEL);
-+	if (!qpd) {
-+		ret = -ENOMEM;
-+		goto out;
++	PDBG("%s pgoff 0x%lx key 0x%x len %d\n", __func__, vma->vm_pgoff,
++	     key, len);
++
++	if (vma->vm_start & (PAGE_SIZE-1))
++		return -EINVAL;
++
++	rdev = &(to_c4iw_dev(context->device)->rdev);
++	ucontext = to_c4iw_ucontext(context);
++
++	mm = remove_mmap(ucontext, key, len);
++	if (!mm)
++		return -EINVAL;
++	addr = mm->addr;
++	kfree(mm);
++
++	if ((addr >= pci_resource_start(rdev->lldi.pdev, 2)) &&
++	    (addr < (pci_resource_start(rdev->lldi.pdev, 2) +
++		       pci_resource_len(rdev->lldi.pdev, 2)))) {
++
++		/*
++		 * Map T4 DB register.
++		 */
++		if (vma->vm_flags & VM_READ)
++			return -EPERM;
++
++		vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
++		vma->vm_flags |= VM_DONTCOPY | VM_DONTEXPAND;
++		vma->vm_flags &= ~VM_MAYREAD;
++		ret = io_remap_pfn_range(vma, vma->vm_start,
++					 addr >> PAGE_SHIFT,
++					 len, vma->vm_page_prot);
++	} else {
++
++		/*
++		 * Map WQ or CQ contig dma memory...
++		 */
++		ret = remap_pfn_range(vma, vma->vm_start,
++				      addr >> PAGE_SHIFT,
++				      len, vma->vm_page_prot);
 +	}
-+	qpd->devp = inode->i_private;
-+	qpd->pos = 0;
 +
-+	spin_lock_irq(&qpd->devp->lock);
-+	idr_for_each(&qpd->devp->qpidr, count_qps, &count);
-+	spin_unlock_irq(&qpd->devp->lock);
-+
-+	qpd->bufsize = count * 128;
-+	qpd->buf = kmalloc(qpd->bufsize, GFP_KERNEL);
-+	if (!qpd->buf) {
-+		ret = -ENOMEM;
-+		goto err1;
-+	}
-+
-+	spin_lock_irq(&qpd->devp->lock);
-+	idr_for_each(&qpd->devp->qpidr, dump_qps, qpd);
-+	spin_unlock_irq(&qpd->devp->lock);
-+
-+	qpd->buf[qpd->pos++] = 0;
-+	file->private_data = qpd;
-+	goto out;
-+err1:
-+	kfree(qpd);
-+out:
 +	return ret;
 +}
 +
-+static ssize_t qp_read(struct file *file, char __user *buf, size_t count,
-+			loff_t *ppos)
++static int c4iw_deallocate_pd(struct ib_pd *pd)
 +{
-+	struct debugfs_qp_data *qpd = file->private_data;
-+	loff_t pos = *ppos;
-+	loff_t avail = qpd->pos;
++	struct c4iw_dev *rhp;
++	struct c4iw_pd *php;
 +
-+	if (pos < 0)
-+		return -EINVAL;
-+	if (pos >= avail)
-+		return 0;
-+	if (count > avail - pos)
-+		count = avail - pos;
-+
-+	while (count) {
-+		size_t len = 0;
-+
-+		len = min((int)count, (int)qpd->pos - (int)pos);
-+		if (copy_to_user(buf, qpd->buf + pos, len))
-+			return -EFAULT;
-+		if (len == 0)
-+			return -EINVAL;
-+
-+		buf += len;
-+		pos += len;
-+		count -= len;
-+	}
-+	count = pos - *ppos;
-+	*ppos = pos;
-+	return count;
-+}
-+
-+static const struct file_operations qp_debugfs_fops = {
-+	.owner   = THIS_MODULE,
-+	.open    = qp_open,
-+	.release = qp_release,
-+	.read    = qp_read,
-+};
-+
-+static int setup_debugfs(struct c4iw_dev *devp)
-+{
-+	struct dentry *de;
-+
-+	if (!devp->debugfs_root)
-+		return -1;
-+
-+	de = debugfs_create_file("qps", S_IWUSR, devp->debugfs_root,
-+				 (void *)devp, &qp_debugfs_fops);
-+	if (de && de->d_inode)
-+		de->d_inode->i_size = 4096;
++	php = to_c4iw_pd(pd);
++	rhp = php->rhp;
++	PDBG("%s ibpd %p pdid 0x%x\n", __func__, pd, php->pdid);
++	c4iw_put_resource(&rhp->rdev.resource.pdid_fifo, php->pdid,
++			  &rhp->rdev.resource.pdid_fifo_lock);
++	kfree(php);
 +	return 0;
 +}
 +
-+void c4iw_release_dev_ucontext(struct c4iw_rdev *rdev,
-+			       struct c4iw_dev_ucontext *uctx)
++static struct ib_pd *c4iw_allocate_pd(struct ib_device *ibdev,
++				      struct ib_ucontext *context,
++				      struct ib_udata *udata)
 +{
-+	struct list_head *pos, *nxt;
-+	struct c4iw_qid_list *entry;
++	struct c4iw_pd *php;
++	u32 pdid;
++	struct c4iw_dev *rhp;
 +
-+	mutex_lock(&uctx->lock);
-+	list_for_each_safe(pos, nxt, &uctx->qpids) {
-+		entry = list_entry(pos, struct c4iw_qid_list, entry);
-+		list_del_init(&entry->entry);
-+		if (!(entry->qid & rdev->qpmask))
-+			c4iw_put_resource(&rdev->resource.qid_fifo, entry->qid,
-+					  &rdev->resource.qid_fifo_lock);
-+		kfree(entry);
++	PDBG("%s ibdev %p\n", __func__, ibdev);
++	rhp = (struct c4iw_dev *) ibdev;
++	pdid =  c4iw_get_resource(&rhp->rdev.resource.pdid_fifo,
++				  &rhp->rdev.resource.pdid_fifo_lock);
++	if (!pdid)
++		return ERR_PTR(-EINVAL);
++	php = kzalloc(sizeof(*php), GFP_KERNEL);
++	if (!php) {
++		c4iw_put_resource(&rhp->rdev.resource.pdid_fifo, pdid,
++				  &rhp->rdev.resource.pdid_fifo_lock);
++		return ERR_PTR(-ENOMEM);
 +	}
-+
-+	list_for_each_safe(pos, nxt, &uctx->qpids) {
-+		entry = list_entry(pos, struct c4iw_qid_list, entry);
-+		list_del_init(&entry->entry);
-+		kfree(entry);
++	php->pdid = pdid;
++	php->rhp = rhp;
++	if (context) {
++		if (ib_copy_to_udata(udata, &php->pdid, sizeof(u32))) {
++			c4iw_deallocate_pd(&php->ibpd);
++			return ERR_PTR(-EFAULT);
++		}
 +	}
-+	mutex_unlock(&uctx->lock);
++	PDBG("%s pdid 0x%0x ptr 0x%p\n", __func__, pdid, php);
++	return &php->ibpd;
 +}
 +
-+void c4iw_init_dev_ucontext(struct c4iw_rdev *rdev,
-+			    struct c4iw_dev_ucontext *uctx)
++static int c4iw_query_pkey(struct ib_device *ibdev, u8 port, u16 index,
++			   u16 *pkey)
 +{
-+	INIT_LIST_HEAD(&uctx->qpids);
-+	INIT_LIST_HEAD(&uctx->cqids);
-+	mutex_init(&uctx->lock);
-+}
-+
-+/* Caller takes care of locking if needed */
-+static int c4iw_rdev_open(struct c4iw_rdev *rdev)
-+{
-+	int err;
-+
-+	c4iw_init_dev_ucontext(rdev, &rdev->uctx);
-+
-+	/*
-+	 * qpshift is the number of bits to shift the qpid left in order
-+	 * to get the correct address of the doorbell for that qp.
-+	 */
-+	rdev->qpshift = PAGE_SHIFT - ilog2(rdev->lldi.udb_density);
-+	rdev->qpmask = rdev->lldi.udb_density - 1;
-+	rdev->cqshift = PAGE_SHIFT - ilog2(rdev->lldi.ucq_density);
-+	rdev->cqmask = rdev->lldi.ucq_density - 1;
-+	PDBG("%s dev %s stag start 0x%0x size 0x%0x num stags %d "
-+	     "pbl start 0x%0x size 0x%0x rq start 0x%0x size 0x%0x\n",
-+	     __func__, pci_name(rdev->lldi.pdev), rdev->lldi.vr->stag.start,
-+	     rdev->lldi.vr->stag.size, c4iw_num_stags(rdev),
-+	     rdev->lldi.vr->pbl.start,
-+	     rdev->lldi.vr->pbl.size, rdev->lldi.vr->rq.start,
-+	     rdev->lldi.vr->rq.size);
-+	PDBG("udb len 0x%x udb base %p db_reg %p gts_reg %p qpshift %lu "
-+	     "qpmask 0x%x cqshift %lu cqmask 0x%x\n",
-+	     (unsigned)pci_resource_len(rdev->lldi.pdev, 2),
-+	     (void *)pci_resource_start(rdev->lldi.pdev, 2),
-+	     rdev->lldi.db_reg,
-+	     rdev->lldi.gts_reg,
-+	     rdev->qpshift, rdev->qpmask,
-+	     rdev->cqshift, rdev->cqmask);
-+
-+	if (c4iw_num_stags(rdev) == 0) {
-+		err = -EINVAL;
-+		goto err1;
-+	}
-+
-+	err = c4iw_init_resource(rdev, c4iw_num_stags(rdev), T4_MAX_NUM_PD);
-+	if (err) {
-+		printk(KERN_ERR MOD "error %d initializing resources\n", err);
-+		goto err1;
-+	}
-+	err = c4iw_pblpool_create(rdev);
-+	if (err) {
-+		printk(KERN_ERR MOD "error %d initializing pbl pool\n", err);
-+		goto err2;
-+	}
-+	err = c4iw_rqtpool_create(rdev);
-+	if (err) {
-+		printk(KERN_ERR MOD "error %d initializing rqt pool\n", err);
-+		goto err3;
-+	}
++	PDBG("%s ibdev %p\n", __func__, ibdev);
++	*pkey = 0;
 +	return 0;
-+err3:
-+	c4iw_pblpool_destroy(rdev);
-+err2:
-+	c4iw_destroy_resource(&rdev->resource);
-+err1:
-+	return err;
 +}
 +
-+static void c4iw_rdev_close(struct c4iw_rdev *rdev)
-+{
-+	c4iw_pblpool_destroy(rdev);
-+	c4iw_rqtpool_destroy(rdev);
-+	c4iw_destroy_resource(&rdev->resource);
-+}
-+
-+static void c4iw_remove(struct c4iw_dev *dev)
-+{
-+	PDBG("%s c4iw_dev %p\n", __func__,  dev);
-+	cancel_delayed_work_sync(&dev->db_drop_task);
-+	list_del(&dev->entry);
-+	c4iw_unregister_device(dev);
-+	c4iw_rdev_close(&dev->rdev);
-+	idr_destroy(&dev->cqidr);
-+	idr_destroy(&dev->qpidr);
-+	idr_destroy(&dev->mmidr);
-+	ib_dealloc_device(&dev->ibdev);
-+}
-+
-+static struct c4iw_dev *c4iw_alloc(const struct cxgb4_lld_info *infop)
-+{
-+	struct c4iw_dev *devp;
-+	int ret;
-+
-+	devp = (struct c4iw_dev *)ib_alloc_device(sizeof(*devp));
-+	if (!devp) {
-+		printk(KERN_ERR MOD "Cannot allocate ib device\n");
-+		return NULL;
-+	}
-+	devp->rdev.lldi = *infop;
-+
-+	mutex_lock(&dev_mutex);
-+
-+	ret = c4iw_rdev_open(&devp->rdev);
-+	if (ret) {
-+		mutex_unlock(&dev_mutex);
-+		printk(KERN_ERR MOD "Unable to open CXIO rdev err %d\n", ret);
-+		ib_dealloc_device(&devp->ibdev);
-+		return NULL;
-+	}
-+
-+	idr_init(&devp->cqidr);
-+	idr_init(&devp->qpidr);
-+	idr_init(&devp->mmidr);
-+	spin_lock_init(&devp->lock);
-+	list_add_tail(&devp->entry, &dev_list);
-+	mutex_unlock(&dev_mutex);
-+
-+	if (c4iw_register_device(devp)) {
-+		printk(KERN_ERR MOD "Unable to register device\n");
-+		mutex_lock(&dev_mutex);
-+		c4iw_remove(devp);
-+		mutex_unlock(&dev_mutex);
-+	}
-+	if (c4iw_debugfs_root) {
-+		devp->debugfs_root = debugfs_create_dir(
-+					pci_name(devp->rdev.lldi.pdev),
-+					c4iw_debugfs_root);
-+		setup_debugfs(devp);
-+	}
-+	return devp;
-+}
-+
-+static void *c4iw_uld_add(const struct cxgb4_lld_info *infop)
++static int c4iw_query_gid(struct ib_device *ibdev, u8 port, int index,
++			  union ib_gid *gid)
 +{
 +	struct c4iw_dev *dev;
-+	static int vers_printed;
-+	int i;
 +
-+	if (!vers_printed++)
-+		printk(KERN_INFO MOD "Chelsio T4 RDMA Driver - version %s\n",
-+		       DRV_VERSION);
-+
-+	dev = c4iw_alloc(infop);
-+	if (!dev)
-+		goto out;
-+
-+	PDBG("%s found device %s nchan %u nrxq %u ntxq %u nports %u\n",
-+	     __func__, pci_name(dev->rdev.lldi.pdev),
-+	     dev->rdev.lldi.nchan, dev->rdev.lldi.nrxq,
-+	     dev->rdev.lldi.ntxq, dev->rdev.lldi.nports);
-+
-+	for (i = 0; i < dev->rdev.lldi.nrxq; i++)
-+		PDBG("rxqid[%u] %u\n", i, dev->rdev.lldi.rxq_ids[i]);
-+
-+	printk(KERN_INFO MOD "Initialized device %s\n",
-+	       pci_name(dev->rdev.lldi.pdev));
-+out:
-+	return dev;
++	PDBG("%s ibdev %p, port %d, index %d, gid %p\n",
++	       __func__, ibdev, port, index, gid);
++	dev = to_c4iw_dev(ibdev);
++	BUG_ON(port == 0);
++	memset(&(gid->raw[0]), 0, sizeof(gid->raw));
++	memcpy(&(gid->raw[0]), dev->rdev.lldi.ports[port-1]->dev_addr, 6);
++	return 0;
 +}
 +
-+static struct sk_buff *t4_pktgl_to_skb(const struct pkt_gl *gl,
-+				       unsigned int skb_len,
-+				       unsigned int pull_len)
++static int c4iw_query_device(struct ib_device *ibdev,
++			     struct ib_device_attr *props)
 +{
-+	struct sk_buff *skb;
-+	struct skb_shared_info *ssi;
 +
-+	if (gl->tot_len <= 512) {
-+		skb = alloc_skb(gl->tot_len, GFP_ATOMIC);
-+		if (unlikely(!skb))
-+			goto out;
-+		__skb_put(skb, gl->tot_len);
-+		skb_copy_to_linear_data(skb, gl->va, gl->tot_len);
-+	} else {
-+		skb = alloc_skb(skb_len, GFP_ATOMIC);
-+		if (unlikely(!skb))
-+			goto out;
-+		__skb_put(skb, pull_len);
-+		skb_copy_to_linear_data(skb, gl->va, pull_len);
++	struct c4iw_dev *dev;
++	PDBG("%s ibdev %p\n", __func__, ibdev);
 +
-+		ssi = skb_shinfo(skb);
-+		ssi->frags[0].page = gl->frags[0].page;
-+		ssi->frags[0].page_offset = gl->frags[0].page_offset + pull_len;
-+		ssi->frags[0].size = gl->frags[0].size - pull_len;
-+		if (gl->nfrags > 1)
-+			memcpy(&ssi->frags[1], &gl->frags[1],
-+			       (gl->nfrags - 1) * sizeof(skb_frag_t));
-+		ssi->nr_frags = gl->nfrags;
++	dev = to_c4iw_dev(ibdev);
++	memset(props, 0, sizeof *props);
++	memcpy(&props->sys_image_guid, dev->rdev.lldi.ports[0]->dev_addr, 6);
++	props->hw_ver = dev->rdev.lldi.adapter_type;
++	props->fw_ver = dev->rdev.lldi.fw_vers;
++	props->device_cap_flags = dev->device_cap_flags;
++	props->page_size_cap = T4_PAGESIZE_MASK;
++	props->vendor_id = (u32)dev->rdev.lldi.pdev->vendor;
++	props->vendor_part_id = (u32)dev->rdev.lldi.pdev->device;
++	props->max_mr_size = T4_MAX_MR_SIZE;
++	props->max_qp = T4_MAX_NUM_QP;
++	props->max_qp_wr = T4_MAX_QP_DEPTH;
++	props->max_sge = T4_MAX_RECV_SGE;
++	props->max_sge_rd = 1;
++	props->max_qp_rd_atom = T4_MAX_READ_DEPTH;
++	props->max_qp_init_rd_atom = T4_MAX_READ_DEPTH;
++	props->max_cq = T4_MAX_NUM_CQ;
++	props->max_cqe = T4_MAX_CQ_DEPTH;
++	props->max_mr = c4iw_num_stags(&dev->rdev);
++	props->max_pd = T4_MAX_NUM_PD;
++	props->local_ca_ack_delay = 0;
++	props->max_fast_reg_page_list_len = T4_MAX_FR_DEPTH;
 +
-+		skb->len = gl->tot_len;
-+		skb->data_len = skb->len - pull_len;
-+		skb->truesize += skb->data_len;
-+
-+		/* Get a reference for the last page, we don't own it */
-+		get_page(gl->frags[gl->nfrags - 1].page);
-+	}
-+out:
-+	return skb;
++	return 0;
 +}
 +
-+static int c4iw_uld_rx_handler(void *handle, const __be64 *rsp,
-+			const struct pkt_gl *gl)
++static int c4iw_query_port(struct ib_device *ibdev, u8 port,
++			   struct ib_port_attr *props)
 +{
-+	struct c4iw_dev *dev = handle;
-+	struct sk_buff *skb;
-+	const struct cpl_act_establish *rpl;
-+	unsigned int opcode;
++	struct c4iw_dev *dev;
++	struct net_device *netdev;
++	struct in_device *inetdev;
 +
-+	if (gl == NULL) {
-+		/* omit RSS and rsp_ctrl at end of descriptor */
-+		unsigned int len = 64 - sizeof(struct rsp_ctrl) - 8;
++	PDBG("%s ibdev %p\n", __func__, ibdev);
 +
-+		skb = alloc_skb(256, GFP_ATOMIC);
-+		if (!skb)
-+			goto nomem;
-+		__skb_put(skb, len);
-+		skb_copy_to_linear_data(skb, &rsp[1], len);
-+	} else if (gl == CXGB4_MSG_AN) {
-+		const struct rsp_ctrl *rc = (void *)rsp;
++	dev = to_c4iw_dev(ibdev);
++	netdev = dev->rdev.lldi.ports[port-1];
 +
-+		u32 qid = be32_to_cpu(rc->pldbuflen_qid);
-+		c4iw_ev_handler(dev, qid);
-+		return 0;
-+	} else {
-+		skb = t4_pktgl_to_skb(gl, 128, 128);
-+		if (unlikely(!skb))
-+			goto nomem;
-+	}
-+
-+	rpl = cplhdr(skb);
-+	opcode = rpl->ot.opcode;
-+
-+	if (c4iw_handlers[opcode])
-+		c4iw_handlers[opcode](dev, skb);
++	memset(props, 0, sizeof(struct ib_port_attr));
++	props->max_mtu = IB_MTU_4096;
++	if (netdev->mtu >= 4096)
++		props->active_mtu = IB_MTU_4096;
++	else if (netdev->mtu >= 2048)
++		props->active_mtu = IB_MTU_2048;
++	else if (netdev->mtu >= 1024)
++		props->active_mtu = IB_MTU_1024;
++	else if (netdev->mtu >= 512)
++		props->active_mtu = IB_MTU_512;
 +	else
-+		printk(KERN_INFO "%s no handler opcode 0x%x...\n", __func__,
-+		       opcode);
++		props->active_mtu = IB_MTU_256;
++
++	if (!netif_carrier_ok(netdev))
++		props->state = IB_PORT_DOWN;
++	else {
++		inetdev = in_dev_get(netdev);
++		if (inetdev) {
++			if (inetdev->ifa_list)
++				props->state = IB_PORT_ACTIVE;
++			else
++				props->state = IB_PORT_INIT;
++			in_dev_put(inetdev);
++		} else
++			props->state = IB_PORT_INIT;
++	}
++
++	props->port_cap_flags =
++	    IB_PORT_CM_SUP |
++	    IB_PORT_SNMP_TUNNEL_SUP |
++	    IB_PORT_REINIT_SUP |
++	    IB_PORT_DEVICE_MGMT_SUP |
++	    IB_PORT_VENDOR_CLASS_SUP | IB_PORT_BOOT_MGMT_SUP;
++	props->gid_tbl_len = 1;
++	props->pkey_tbl_len = 1;
++	props->active_width = 2;
++	props->active_speed = 2;
++	props->max_msg_sz = -1;
 +
 +	return 0;
-+nomem:
-+	return -1;
 +}
 +
-+static int c4iw_uld_state_change(void *handle, enum cxgb4_state new_state)
++static ssize_t show_rev(struct device *dev, struct device_attribute *attr,
++			char *buf)
 +{
-+	PDBG("%s new_state %u\n", __func__, new_state);
-+	return 0;
++	struct c4iw_dev *c4iw_dev = container_of(dev, struct c4iw_dev,
++						 ibdev.dev);
++	PDBG("%s dev 0x%p\n", __func__, dev);
++	return sprintf(buf, "%d\n", c4iw_dev->rdev.lldi.adapter_type);
 +}
 +
-+static struct cxgb4_uld_info c4iw_uld_info = {
-+	.name = DRV_NAME,
-+	.add = c4iw_uld_add,
-+	.rx_handler = c4iw_uld_rx_handler,
-+	.state_change = c4iw_uld_state_change,
++static ssize_t show_fw_ver(struct device *dev, struct device_attribute *attr,
++			   char *buf)
++{
++	struct c4iw_dev *c4iw_dev = container_of(dev, struct c4iw_dev,
++						 ibdev.dev);
++	PDBG("%s dev 0x%p\n", __func__, dev);
++
++	return sprintf(buf, "%u.%u.%u.%u\n",
++			FW_HDR_FW_VER_MAJOR_GET(c4iw_dev->rdev.lldi.fw_vers),
++			FW_HDR_FW_VER_MINOR_GET(c4iw_dev->rdev.lldi.fw_vers),
++			FW_HDR_FW_VER_MICRO_GET(c4iw_dev->rdev.lldi.fw_vers),
++			FW_HDR_FW_VER_BUILD_GET(c4iw_dev->rdev.lldi.fw_vers));
++}
++
++static ssize_t show_hca(struct device *dev, struct device_attribute *attr,
++			char *buf)
++{
++	struct c4iw_dev *c4iw_dev = container_of(dev, struct c4iw_dev,
++						 ibdev.dev);
++	struct ethtool_drvinfo info;
++	struct net_device *lldev = c4iw_dev->rdev.lldi.ports[0];
++
++	PDBG("%s dev 0x%p\n", __func__, dev);
++	lldev->ethtool_ops->get_drvinfo(lldev, &info);
++	return sprintf(buf, "%s\n", info.driver);
++}
++
++static ssize_t show_board(struct device *dev, struct device_attribute *attr,
++			  char *buf)
++{
++	struct c4iw_dev *c4iw_dev = container_of(dev, struct c4iw_dev,
++						 ibdev.dev);
++	PDBG("%s dev 0x%p\n", __func__, dev);
++	return sprintf(buf, "%x.%x\n", c4iw_dev->rdev.lldi.pdev->vendor,
++		       c4iw_dev->rdev.lldi.pdev->device);
++}
++
++static int c4iw_get_mib(struct ib_device *ibdev,
++			union rdma_protocol_stats *stats)
++{
++	return -ENOSYS;
++}
++
++static DEVICE_ATTR(hw_rev, S_IRUGO, show_rev, NULL);
++static DEVICE_ATTR(fw_ver, S_IRUGO, show_fw_ver, NULL);
++static DEVICE_ATTR(hca_type, S_IRUGO, show_hca, NULL);
++static DEVICE_ATTR(board_id, S_IRUGO, show_board, NULL);
++
++static struct device_attribute *c4iw_class_attributes[] = {
++	&dev_attr_hw_rev,
++	&dev_attr_fw_ver,
++	&dev_attr_hca_type,
++	&dev_attr_board_id,
 +};
 +
-+static int __init c4iw_init_module(void)
++int c4iw_register_device(struct c4iw_dev *dev)
 +{
-+	int err;
++	int ret;
++	int i;
 +
-+	err = c4iw_cm_init();
-+	if (err)
-+		return err;
++	PDBG("%s c4iw_dev %p\n", __func__, dev);
++	BUG_ON(!dev->rdev.lldi.ports[0]);
++	strlcpy(dev->ibdev.name, "cxgb4_%d", IB_DEVICE_NAME_MAX);
++	memset(&dev->ibdev.node_guid, 0, sizeof(dev->ibdev.node_guid));
++	memcpy(&dev->ibdev.node_guid, dev->rdev.lldi.ports[0]->dev_addr, 6);
++	dev->ibdev.owner = THIS_MODULE;
++	dev->device_cap_flags = IB_DEVICE_LOCAL_DMA_LKEY | IB_DEVICE_MEM_WINDOW;
++	if (fastreg_support)
++		dev->device_cap_flags |= IB_DEVICE_MEM_MGT_EXTENSIONS;
++	dev->ibdev.local_dma_lkey = 0;
++	dev->ibdev.uverbs_cmd_mask =
++	    (1ull << IB_USER_VERBS_CMD_GET_CONTEXT) |
++	    (1ull << IB_USER_VERBS_CMD_QUERY_DEVICE) |
++	    (1ull << IB_USER_VERBS_CMD_QUERY_PORT) |
++	    (1ull << IB_USER_VERBS_CMD_ALLOC_PD) |
++	    (1ull << IB_USER_VERBS_CMD_DEALLOC_PD) |
++	    (1ull << IB_USER_VERBS_CMD_REG_MR) |
++	    (1ull << IB_USER_VERBS_CMD_DEREG_MR) |
++	    (1ull << IB_USER_VERBS_CMD_CREATE_COMP_CHANNEL) |
++	    (1ull << IB_USER_VERBS_CMD_CREATE_CQ) |
++	    (1ull << IB_USER_VERBS_CMD_DESTROY_CQ) |
++	    (1ull << IB_USER_VERBS_CMD_REQ_NOTIFY_CQ) |
++	    (1ull << IB_USER_VERBS_CMD_CREATE_QP) |
++	    (1ull << IB_USER_VERBS_CMD_MODIFY_QP) |
++	    (1ull << IB_USER_VERBS_CMD_POLL_CQ) |
++	    (1ull << IB_USER_VERBS_CMD_DESTROY_QP) |
++	    (1ull << IB_USER_VERBS_CMD_POST_SEND) |
++	    (1ull << IB_USER_VERBS_CMD_POST_RECV);
++	dev->ibdev.node_type = RDMA_NODE_RNIC;
++	memcpy(dev->ibdev.node_desc, C4IW_NODE_DESC, sizeof(C4IW_NODE_DESC));
++	dev->ibdev.phys_port_cnt = dev->rdev.lldi.nports;
++	dev->ibdev.num_comp_vectors = 1;
++	dev->ibdev.dma_device = &(dev->rdev.lldi.pdev->dev);
++	dev->ibdev.query_device = c4iw_query_device;
++	dev->ibdev.query_port = c4iw_query_port;
++	dev->ibdev.modify_port = c4iw_modify_port;
++	dev->ibdev.query_pkey = c4iw_query_pkey;
++	dev->ibdev.query_gid = c4iw_query_gid;
++	dev->ibdev.alloc_ucontext = c4iw_alloc_ucontext;
++	dev->ibdev.dealloc_ucontext = c4iw_dealloc_ucontext;
++	dev->ibdev.mmap = c4iw_mmap;
++	dev->ibdev.alloc_pd = c4iw_allocate_pd;
++	dev->ibdev.dealloc_pd = c4iw_deallocate_pd;
++	dev->ibdev.create_ah = c4iw_ah_create;
++	dev->ibdev.destroy_ah = c4iw_ah_destroy;
++	dev->ibdev.create_qp = c4iw_create_qp;
++	dev->ibdev.modify_qp = c4iw_ib_modify_qp;
++	dev->ibdev.destroy_qp = c4iw_destroy_qp;
++	dev->ibdev.create_cq = c4iw_create_cq;
++	dev->ibdev.destroy_cq = c4iw_destroy_cq;
++	dev->ibdev.resize_cq = c4iw_resize_cq;
++	dev->ibdev.poll_cq = c4iw_poll_cq;
++	dev->ibdev.get_dma_mr = c4iw_get_dma_mr;
++	dev->ibdev.reg_phys_mr = c4iw_register_phys_mem;
++	dev->ibdev.rereg_phys_mr = c4iw_reregister_phys_mem;
++	dev->ibdev.reg_user_mr = c4iw_reg_user_mr;
++	dev->ibdev.dereg_mr = c4iw_dereg_mr;
++	dev->ibdev.alloc_mw = c4iw_alloc_mw;
++	dev->ibdev.bind_mw = c4iw_bind_mw;
++	dev->ibdev.dealloc_mw = c4iw_dealloc_mw;
++	dev->ibdev.alloc_fast_reg_mr = c4iw_alloc_fast_reg_mr;
++	dev->ibdev.alloc_fast_reg_page_list = c4iw_alloc_fastreg_pbl;
++	dev->ibdev.free_fast_reg_page_list = c4iw_free_fastreg_pbl;
++	dev->ibdev.attach_mcast = c4iw_multicast_attach;
++	dev->ibdev.detach_mcast = c4iw_multicast_detach;
++	dev->ibdev.process_mad = c4iw_process_mad;
++	dev->ibdev.req_notify_cq = c4iw_arm_cq;
++	dev->ibdev.post_send = c4iw_post_send;
++	dev->ibdev.post_recv = c4iw_post_receive;
++	dev->ibdev.get_protocol_stats = c4iw_get_mib;
 +
-+	c4iw_debugfs_root = debugfs_create_dir(DRV_NAME, NULL);
-+	if (!c4iw_debugfs_root)
-+		printk(KERN_WARNING MOD
-+		       "could not create debugfs entry, continuing\n");
++	dev->ibdev.iwcm = kmalloc(sizeof(struct iw_cm_verbs), GFP_KERNEL);
++	if (!dev->ibdev.iwcm)
++		return -ENOMEM;
 +
-+	cxgb4_register_uld(CXGB4_ULD_RDMA, &c4iw_uld_info);
++	dev->ibdev.iwcm->connect = c4iw_connect;
++	dev->ibdev.iwcm->accept = c4iw_accept_cr;
++	dev->ibdev.iwcm->reject = c4iw_reject_cr;
++	dev->ibdev.iwcm->create_listen = c4iw_create_listen;
++	dev->ibdev.iwcm->destroy_listen = c4iw_destroy_listen;
++	dev->ibdev.iwcm->add_ref = c4iw_qp_add_ref;
++	dev->ibdev.iwcm->rem_ref = c4iw_qp_rem_ref;
++	dev->ibdev.iwcm->get_qp = c4iw_get_qp;
 +
-+	return 0;
-+}
++	ret = ib_register_device(&dev->ibdev);
++	if (ret)
++		goto bail1;
 +
-+static void __exit c4iw_exit_module(void)
-+{
-+	struct c4iw_dev *dev, *tmp;
-+
-+	cxgb4_unregister_uld(CXGB4_ULD_RDMA);
-+
-+	mutex_lock(&dev_mutex);
-+	list_for_each_entry_safe(dev, tmp, &dev_list, entry) {
-+		c4iw_remove(dev);
++	for (i = 0; i < ARRAY_SIZE(c4iw_class_attributes); ++i) {
++		ret = device_create_file(&dev->ibdev.dev,
++					 c4iw_class_attributes[i]);
++		if (ret)
++			goto bail2;
 +	}
-+	mutex_unlock(&dev_mutex);
-+
-+	c4iw_cm_term();
-+	debugfs_remove_recursive(c4iw_debugfs_root);
++	return 0;
++bail2:
++	ib_unregister_device(&dev->ibdev);
++bail1:
++	kfree(dev->ibdev.iwcm);
++	return ret;
 +}
 +
-+module_init(c4iw_init_module);
-+module_exit(c4iw_exit_module);
++void c4iw_unregister_device(struct c4iw_dev *dev)
++{
++	int i;
++
++	PDBG("%s c4iw_dev %p\n", __func__, dev);
++	for (i = 0; i < ARRAY_SIZE(c4iw_class_attributes); ++i)
++		device_remove_file(&dev->ibdev.dev,
++				   c4iw_class_attributes[i]);
++	ib_unregister_device(&dev->ibdev);
++	kfree(dev->ibdev.iwcm);
++	return;
++}
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
