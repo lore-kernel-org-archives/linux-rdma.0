@@ -1,7 +1,8 @@
 From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: [PATCH v2 09/10] iw_cxgb4: Add event management functions.
-Date: Fri, 09 Apr 2010 15:54:25 -0500
-Message-ID: <20100409205425.9813.19892.stgit@build.ogc.int>
+Subject: [PATCH v2 10/10] iw_cxgb4: Add id and hw resource management
+	functions.
+Date: Fri, 09 Apr 2010 15:54:31 -0500
+Message-ID: <20100409205430.9813.31429.stgit@build.ogc.int>
 References: <20100409205336.9813.84868.stgit@build.ogc.int>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -15,16 +16,16 @@ List-Id: linux-rdma@vger.kernel.org
 Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 ---
 
- drivers/infiniband/hw/cxgb4/ev.c |  224 ++++++++++++++++++++++++++++++++++++++
- 1 files changed, 224 insertions(+), 0 deletions(-)
- create mode 100644 drivers/infiniband/hw/cxgb4/ev.c
+ drivers/infiniband/hw/cxgb4/resource.c |  417 ++++++++++++++++++++++++++++++++
+ 1 files changed, 417 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/infiniband/hw/cxgb4/resource.c
 
-diff --git a/drivers/infiniband/hw/cxgb4/ev.c b/drivers/infiniband/hw/cxgb4/ev.c
+diff --git a/drivers/infiniband/hw/cxgb4/resource.c b/drivers/infiniband/hw/cxgb4/resource.c
 new file mode 100644
-index 0000000..8d00415
+index 0000000..fb195d1
 --- /dev/null
-+++ b/drivers/infiniband/hw/cxgb4/ev.c
-@@ -0,0 +1,224 @@
++++ b/drivers/infiniband/hw/cxgb4/resource.c
+@@ -0,0 +1,417 @@
 +/*
 + * Copyright (c) 2009-2010 Chelsio, Inc. All rights reserved.
 + *
@@ -56,198 +57,391 @@ index 0000000..8d00415
 + * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 + * SOFTWARE.
 + */
++/* Crude resource management */
++#include <linux/kernel.h>
++#include <linux/random.h>
 +#include <linux/slab.h>
-+#include <linux/mman.h>
-+#include <net/sock.h>
-+
++#include <linux/kfifo.h>
++#include <linux/spinlock.h>
++#include <linux/errno.h>
++#include <linux/genalloc.h>
 +#include "iw_cxgb4.h"
 +
-+static void post_qp_event(struct c4iw_dev *dev, struct c4iw_cq *chp,
-+			  struct c4iw_qp *qhp,
-+			  struct t4_cqe *err_cqe,
-+			  enum ib_event_type ib_event,
-+			  int send_term)
++#define RANDOM_SIZE 16
++
++static int __c4iw_init_resource_fifo(struct kfifo *fifo,
++				   spinlock_t *fifo_lock,
++				   u32 nr, u32 skip_low,
++				   u32 skip_high,
++				   int random)
 +{
-+	struct ib_event event;
-+	struct c4iw_qp_attributes attrs;
++	u32 i, j, entry = 0, idx;
++	u32 random_bytes;
++	u32 rarray[16];
++	spin_lock_init(fifo_lock);
 +
-+	if ((qhp->attr.state == C4IW_QP_STATE_ERROR) ||
-+	    (qhp->attr.state == C4IW_QP_STATE_TERMINATE)) {
-+		PDBG("%s AE received after RTS - "
-+		     "qp state %d qpid 0x%x status 0x%x\n", __func__,
-+		     qhp->attr.state, qhp->wq.sq.qid, CQE_STATUS(err_cqe));
-+		return;
-+	}
++	if (kfifo_alloc(fifo, nr * sizeof(u32), GFP_KERNEL))
++		return -ENOMEM;
 +
-+	printk(KERN_ERR "%s - AE qpid 0x%x opcode %d status 0x%x "
-+	       "type %d wrid.hi 0x%x wrid.lo 0x%x\n", __func__,
-+	       CQE_QPID(err_cqe), CQE_OPCODE(err_cqe),
-+	       CQE_STATUS(err_cqe), CQE_TYPE(err_cqe),
-+	       CQE_WRID_HI(err_cqe), CQE_WRID_LOW(err_cqe));
-+
-+	if (qhp->attr.state == C4IW_QP_STATE_RTS) {
-+		attrs.next_state = C4IW_QP_STATE_TERMINATE;
-+		c4iw_modify_qp(qhp->rhp, qhp, C4IW_QP_ATTR_NEXT_STATE,
-+			       &attrs, 1);
-+		if (send_term)
-+			c4iw_post_terminate(qhp, err_cqe);
-+	}
-+
-+	event.event = ib_event;
-+	event.device = chp->ibcq.device;
-+	if (ib_event == IB_EVENT_CQ_ERR)
-+		event.element.cq = &chp->ibcq;
-+	else
-+		event.element.qp = &qhp->ibqp;
-+	if (qhp->ibqp.event_handler)
-+		(*qhp->ibqp.event_handler)(&event, qhp->ibqp.qp_context);
-+
-+	(*chp->ibcq.comp_handler)(&chp->ibcq, chp->ibcq.cq_context);
-+}
-+
-+void c4iw_ev_dispatch(struct c4iw_dev *dev, struct t4_cqe *err_cqe)
-+{
-+	struct c4iw_cq *chp;
-+	struct c4iw_qp *qhp;
-+	u32 cqid;
-+
-+	spin_lock(&dev->lock);
-+	qhp = get_qhp(dev, CQE_QPID(err_cqe));
-+	if (!qhp) {
-+		printk(KERN_ERR MOD "BAD AE qpid 0x%x opcode %d "
-+		       "status 0x%x type %d wrid.hi 0x%x wrid.lo 0x%x\n",
-+		       CQE_QPID(err_cqe),
-+		       CQE_OPCODE(err_cqe), CQE_STATUS(err_cqe),
-+		       CQE_TYPE(err_cqe), CQE_WRID_HI(err_cqe),
-+		       CQE_WRID_LOW(err_cqe));
-+		spin_unlock(&dev->lock);
-+		goto out;
-+	}
-+
-+	if (SQ_TYPE(err_cqe))
-+		cqid = qhp->attr.scq;
-+	else
-+		cqid = qhp->attr.rcq;
-+	chp = get_chp(dev, cqid);
-+	if (!chp) {
-+		printk(KERN_ERR MOD "BAD AE cqid 0x%x qpid 0x%x opcode %d "
-+		       "status 0x%x type %d wrid.hi 0x%x wrid.lo 0x%x\n",
-+		       cqid, CQE_QPID(err_cqe),
-+		       CQE_OPCODE(err_cqe), CQE_STATUS(err_cqe),
-+		       CQE_TYPE(err_cqe), CQE_WRID_HI(err_cqe),
-+		       CQE_WRID_LOW(err_cqe));
-+		spin_unlock(&dev->lock);
-+		goto out;
-+	}
-+
-+	c4iw_qp_add_ref(&qhp->ibqp);
-+	atomic_inc(&chp->refcnt);
-+	spin_unlock(&dev->lock);
-+
-+	/*
-+	 * 1) completion of our sending a TERMINATE.
-+	 * 2) incoming TERMINATE message.
-+	 */
-+	if ((CQE_OPCODE(err_cqe) == FW_RI_TERMINATE) &&
-+	    (CQE_STATUS(err_cqe) == 0)) {
-+		if (SQ_TYPE(err_cqe)) {
-+			PDBG("%s QPID 0x%x ep %p disconnecting\n",
-+			     __func__, qhp->wq.sq.qid, qhp->ep);
-+			c4iw_ep_disconnect(qhp->ep, 0, GFP_ATOMIC);
-+		} else {
-+			PDBG("%s post REQ_ERR AE QPID 0x%x\n", __func__,
-+			     qhp->wq.sq.qid);
-+			post_qp_event(dev, chp, qhp, err_cqe,
-+				      IB_EVENT_QP_REQ_ERR, 0);
-+			c4iw_ep_disconnect(qhp->ep, 0, GFP_ATOMIC);
++	for (i = 0; i < skip_low + skip_high; i++)
++		kfifo_in(fifo, (unsigned char *) &entry, sizeof(u32));
++	if (random) {
++		j = 0;
++		random_bytes = random32();
++		for (i = 0; i < RANDOM_SIZE; i++)
++			rarray[i] = i + skip_low;
++		for (i = skip_low + RANDOM_SIZE; i < nr - skip_high; i++) {
++			if (j >= RANDOM_SIZE) {
++				j = 0;
++				random_bytes = random32();
++			}
++			idx = (random_bytes >> (j * 2)) & 0xF;
++			kfifo_in(fifo,
++				(unsigned char *) &rarray[idx],
++				sizeof(u32));
++			rarray[idx] = i;
++			j++;
 +		}
-+		goto done;
-+	}
++		for (i = 0; i < RANDOM_SIZE; i++)
++			kfifo_in(fifo,
++				(unsigned char *) &rarray[i],
++				sizeof(u32));
++	} else
++		for (i = skip_low; i < nr - skip_high; i++)
++			kfifo_in(fifo, (unsigned char *) &i, sizeof(u32));
 +
-+	/* Bad incoming Read request */
-+	if (SQ_TYPE(err_cqe) &&
-+	    (CQE_OPCODE(err_cqe) == FW_RI_READ_RESP)) {
-+		post_qp_event(dev, chp, qhp, err_cqe, IB_EVENT_QP_REQ_ERR, 1);
-+		goto done;
-+	}
-+
-+	/* Bad incoming write */
-+	if (RQ_TYPE(err_cqe) &&
-+	    (CQE_OPCODE(err_cqe) == FW_RI_RDMA_WRITE)) {
-+		post_qp_event(dev, chp, qhp, err_cqe, IB_EVENT_QP_REQ_ERR, 1);
-+		goto done;
-+	}
-+
-+	switch (CQE_STATUS(err_cqe)) {
-+
-+	/* Completion Events */
-+	case T4_ERR_SUCCESS:
-+		printk(KERN_ERR MOD "AE with status 0!\n");
-+		break;
-+
-+	case T4_ERR_STAG:
-+	case T4_ERR_PDID:
-+	case T4_ERR_QPID:
-+	case T4_ERR_ACCESS:
-+	case T4_ERR_WRAP:
-+	case T4_ERR_BOUND:
-+	case T4_ERR_INVALIDATE_SHARED_MR:
-+	case T4_ERR_INVALIDATE_MR_WITH_MW_BOUND:
-+		post_qp_event(dev, chp, qhp, err_cqe, IB_EVENT_QP_ACCESS_ERR,
-+			      1);
-+		break;
-+
-+	/* Device Fatal Errors */
-+	case T4_ERR_ECC:
-+	case T4_ERR_ECC_PSTAG:
-+	case T4_ERR_INTERNAL_ERR:
-+		post_qp_event(dev, chp, qhp, err_cqe, IB_EVENT_DEVICE_FATAL, 1);
-+		break;
-+
-+	/* QP Fatal Errors */
-+	case T4_ERR_OUT_OF_RQE:
-+	case T4_ERR_PBL_ADDR_BOUND:
-+	case T4_ERR_CRC:
-+	case T4_ERR_MARKER:
-+	case T4_ERR_PDU_LEN_ERR:
-+	case T4_ERR_DDP_VERSION:
-+	case T4_ERR_RDMA_VERSION:
-+	case T4_ERR_OPCODE:
-+	case T4_ERR_DDP_QUEUE_NUM:
-+	case T4_ERR_MSN:
-+	case T4_ERR_TBIT:
-+	case T4_ERR_MO:
-+	case T4_ERR_MSN_GAP:
-+	case T4_ERR_MSN_RANGE:
-+	case T4_ERR_RQE_ADDR_BOUND:
-+	case T4_ERR_IRD_OVERFLOW:
-+		post_qp_event(dev, chp, qhp, err_cqe, IB_EVENT_QP_FATAL, 1);
-+		break;
-+
-+	default:
-+		printk(KERN_ERR MOD "Unknown T4 status 0x%x QPID 0x%x\n",
-+		       CQE_STATUS(err_cqe), qhp->wq.sq.qid);
-+		post_qp_event(dev, chp, qhp, err_cqe, IB_EVENT_QP_FATAL, 1);
-+		break;
-+	}
-+done:
-+	if (atomic_dec_and_test(&chp->refcnt))
-+		wake_up(&chp->wait);
-+	c4iw_qp_rem_ref(&qhp->ibqp);
-+out:
-+	return;
++	for (i = 0; i < skip_low + skip_high; i++)
++		if (kfifo_out_locked(fifo, (unsigned char *) &entry,
++				     sizeof(u32), fifo_lock))
++			break;
++	return 0;
 +}
 +
-+int c4iw_ev_handler(struct c4iw_dev *dev, u32 qid)
++static int c4iw_init_resource_fifo(struct kfifo *fifo, spinlock_t * fifo_lock,
++				   u32 nr, u32 skip_low, u32 skip_high)
 +{
-+	struct c4iw_cq *chp;
++	return __c4iw_init_resource_fifo(fifo, fifo_lock, nr, skip_low,
++					  skip_high, 0);
++}
 +
-+	chp = get_chp(dev, qid);
-+	if (chp)
-+		(*chp->ibcq.comp_handler)(&chp->ibcq, chp->ibcq.cq_context);
-+	else
-+		PDBG("%s unknown cqid 0x%x\n", __func__, qid);
++static int c4iw_init_resource_fifo_random(struct kfifo *fifo,
++				   spinlock_t *fifo_lock,
++				   u32 nr, u32 skip_low, u32 skip_high)
++{
++	return __c4iw_init_resource_fifo(fifo, fifo_lock, nr, skip_low,
++					  skip_high, 1);
++}
++
++static int c4iw_init_qid_fifo(struct c4iw_rdev *rdev)
++{
++	u32 i;
++
++	spin_lock_init(&rdev->resource.qid_fifo_lock);
++
++	if (kfifo_alloc(&rdev->resource.qid_fifo, T4_MAX_QIDS * sizeof(u32),
++			GFP_KERNEL))
++		return -ENOMEM;
++
++	for (i = T4_QID_BASE; i < T4_QID_BASE + T4_MAX_QIDS; i++)
++		if (!(i & rdev->qpmask))
++			kfifo_in(&rdev->resource.qid_fifo,
++				    (unsigned char *) &i, sizeof(u32));
 +	return 0;
++}
++
++/* nr_* must be power of 2 */
++int c4iw_init_resource(struct c4iw_rdev *rdev, u32 nr_tpt, u32 nr_pdid)
++{
++	int err = 0;
++	err = c4iw_init_resource_fifo_random(&rdev->resource.tpt_fifo,
++					     &rdev->resource.tpt_fifo_lock,
++					     nr_tpt, 1, 0);
++	if (err)
++		goto tpt_err;
++	err = c4iw_init_qid_fifo(rdev);
++	if (err)
++		goto qid_err;
++	err = c4iw_init_resource_fifo(&rdev->resource.pdid_fifo,
++				      &rdev->resource.pdid_fifo_lock,
++				      nr_pdid, 1, 0);
++	if (err)
++		goto pdid_err;
++	return 0;
++pdid_err:
++	kfifo_free(&rdev->resource.qid_fifo);
++qid_err:
++	kfifo_free(&rdev->resource.tpt_fifo);
++tpt_err:
++	return -ENOMEM;
++}
++
++/*
++ * returns 0 if no resource available
++ */
++u32 c4iw_get_resource(struct kfifo *fifo, spinlock_t *lock)
++{
++	u32 entry;
++	if (kfifo_out_locked(fifo, (unsigned char *) &entry, sizeof(u32), lock))
++		return entry;
++	else
++		return 0;
++}
++
++void c4iw_put_resource(struct kfifo *fifo, u32 entry, spinlock_t *lock)
++{
++	PDBG("%s entry 0x%x\n", __func__, entry);
++	kfifo_in_locked(fifo, (unsigned char *) &entry, sizeof(u32), lock);
++}
++
++u32 c4iw_get_cqid(struct c4iw_rdev *rdev, struct c4iw_dev_ucontext *uctx)
++{
++	struct c4iw_qid_list *entry;
++	u32 qid;
++	int i;
++
++	mutex_lock(&uctx->lock);
++	if (!list_empty(&uctx->cqids)) {
++		entry = list_entry(uctx->cqids.next, struct c4iw_qid_list,
++				   entry);
++		list_del(&entry->entry);
++		qid = entry->qid;
++		kfree(entry);
++	} else {
++		qid = c4iw_get_resource(&rdev->resource.qid_fifo,
++					&rdev->resource.qid_fifo_lock);
++		if (!qid)
++			goto out;
++		for (i = qid+1; i & rdev->qpmask; i++) {
++			entry = kmalloc(sizeof *entry, GFP_KERNEL);
++			if (!entry)
++				goto out;
++			entry->qid = i;
++			list_add_tail(&entry->entry, &uctx->cqids);
++		}
++
++		/*
++		 * now put the same ids on the qp list since they all
++		 * map to the same db/gts page.
++		 */
++		entry = kmalloc(sizeof *entry, GFP_KERNEL);
++		if (!entry)
++			goto out;
++		entry->qid = qid;
++		list_add_tail(&entry->entry, &uctx->qpids);
++		for (i = qid+1; i & rdev->qpmask; i++) {
++			entry = kmalloc(sizeof *entry, GFP_KERNEL);
++			if (!entry)
++				goto out;
++			entry->qid = i;
++			list_add_tail(&entry->entry, &uctx->qpids);
++		}
++	}
++out:
++	mutex_unlock(&uctx->lock);
++	PDBG("%s qid 0x%x\n", __func__, qid);
++	return qid;
++}
++
++void c4iw_put_cqid(struct c4iw_rdev *rdev, u32 qid,
++		   struct c4iw_dev_ucontext *uctx)
++{
++	struct c4iw_qid_list *entry;
++
++	entry = kmalloc(sizeof *entry, GFP_KERNEL);
++	if (!entry)
++		return;
++	PDBG("%s qid 0x%x\n", __func__, qid);
++	entry->qid = qid;
++	mutex_lock(&uctx->lock);
++	list_add_tail(&entry->entry, &uctx->cqids);
++	mutex_unlock(&uctx->lock);
++}
++
++u32 c4iw_get_qpid(struct c4iw_rdev *rdev, struct c4iw_dev_ucontext *uctx)
++{
++	struct c4iw_qid_list *entry;
++	u32 qid;
++	int i;
++
++	mutex_lock(&uctx->lock);
++	if (!list_empty(&uctx->qpids)) {
++		entry = list_entry(uctx->qpids.next, struct c4iw_qid_list,
++				   entry);
++		list_del(&entry->entry);
++		qid = entry->qid;
++		kfree(entry);
++	} else {
++		qid = c4iw_get_resource(&rdev->resource.qid_fifo,
++					&rdev->resource.qid_fifo_lock);
++		if (!qid)
++			goto out;
++		for (i = qid+1; i & rdev->qpmask; i++) {
++			entry = kmalloc(sizeof *entry, GFP_KERNEL);
++			if (!entry)
++				goto out;
++			entry->qid = i;
++			list_add_tail(&entry->entry, &uctx->qpids);
++		}
++
++		/*
++		 * now put the same ids on the cq list since they all
++		 * map to the same db/gts page.
++		 */
++		entry = kmalloc(sizeof *entry, GFP_KERNEL);
++		if (!entry)
++			goto out;
++		entry->qid = qid;
++		list_add_tail(&entry->entry, &uctx->cqids);
++		for (i = qid; i & rdev->qpmask; i++) {
++			entry = kmalloc(sizeof *entry, GFP_KERNEL);
++			if (!entry)
++				goto out;
++			entry->qid = i;
++			list_add_tail(&entry->entry, &uctx->cqids);
++		}
++	}
++out:
++	mutex_unlock(&uctx->lock);
++	PDBG("%s qid 0x%x\n", __func__, qid);
++	return qid;
++}
++
++void c4iw_put_qpid(struct c4iw_rdev *rdev, u32 qid,
++		   struct c4iw_dev_ucontext *uctx)
++{
++	struct c4iw_qid_list *entry;
++
++	entry = kmalloc(sizeof *entry, GFP_KERNEL);
++	if (!entry)
++		return;
++	PDBG("%s qid 0x%x\n", __func__, qid);
++	entry->qid = qid;
++	mutex_lock(&uctx->lock);
++	list_add_tail(&entry->entry, &uctx->qpids);
++	mutex_unlock(&uctx->lock);
++}
++
++void c4iw_destroy_resource(struct c4iw_resource *rscp)
++{
++	kfifo_free(&rscp->tpt_fifo);
++	kfifo_free(&rscp->qid_fifo);
++	kfifo_free(&rscp->pdid_fifo);
++}
++
++/*
++ * PBL Memory Manager.  Uses Linux generic allocator.
++ */
++
++#define MIN_PBL_SHIFT 8			/* 256B == min PBL size (32 entries) */
++
++u32 c4iw_pblpool_alloc(struct c4iw_rdev *rdev, int size)
++{
++	unsigned long addr = gen_pool_alloc(rdev->pbl_pool, size);
++	PDBG("%s addr 0x%x size %d\n", __func__, (u32)addr, size);
++	return (u32)addr;
++}
++
++void c4iw_pblpool_free(struct c4iw_rdev *rdev, u32 addr, int size)
++{
++	PDBG("%s addr 0x%x size %d\n", __func__, addr, size);
++	gen_pool_free(rdev->pbl_pool, (unsigned long)addr, size);
++}
++
++int c4iw_pblpool_create(struct c4iw_rdev *rdev)
++{
++	unsigned pbl_start, pbl_chunk, pbl_top;
++
++	rdev->pbl_pool = gen_pool_create(MIN_PBL_SHIFT, -1);
++	if (!rdev->pbl_pool)
++		return -ENOMEM;
++
++	pbl_start = rdev->lldi.vr->pbl.start;
++	pbl_chunk = rdev->lldi.vr->pbl.size;
++	pbl_top = pbl_start + pbl_chunk;
++
++	while (pbl_start < pbl_top) {
++		pbl_chunk = min(pbl_top - pbl_start + 1, pbl_chunk);
++		if (gen_pool_add(rdev->pbl_pool, pbl_start, pbl_chunk, -1)) {
++			PDBG("%s failed to add PBL chunk (%x/%x)\n",
++			     __func__, pbl_start, pbl_chunk);
++			if (pbl_chunk <= 1024 << MIN_PBL_SHIFT) {
++				printk(KERN_WARNING MOD
++				       "Failed to add all PBL chunks (%x/%x)\n",
++				       pbl_start,
++				       pbl_top - pbl_start);
++				return 0;
++			}
++			pbl_chunk >>= 1;
++		} else {
++			PDBG("%s added PBL chunk (%x/%x)\n",
++			     __func__, pbl_start, pbl_chunk);
++			pbl_start += pbl_chunk;
++		}
++	}
++
++	return 0;
++}
++
++void c4iw_pblpool_destroy(struct c4iw_rdev *rdev)
++{
++	gen_pool_destroy(rdev->pbl_pool);
++}
++
++/*
++ * RQT Memory Manager.  Uses Linux generic allocator.
++ */
++
++#define MIN_RQT_SHIFT 10	/* 1KB == min RQT size (16 entries) */
++
++u32 c4iw_rqtpool_alloc(struct c4iw_rdev *rdev, int size)
++{
++	unsigned long addr = gen_pool_alloc(rdev->rqt_pool, size << 6);
++	PDBG("%s addr 0x%x size %d\n", __func__, (u32)addr, size << 6);
++	return (u32)addr;
++}
++
++void c4iw_rqtpool_free(struct c4iw_rdev *rdev, u32 addr, int size)
++{
++	PDBG("%s addr 0x%x size %d\n", __func__, addr, size << 6);
++	gen_pool_free(rdev->rqt_pool, (unsigned long)addr, size << 6);
++}
++
++int c4iw_rqtpool_create(struct c4iw_rdev *rdev)
++{
++	unsigned rqt_start, rqt_chunk, rqt_top;
++
++	rdev->rqt_pool = gen_pool_create(MIN_RQT_SHIFT, -1);
++	if (!rdev->rqt_pool)
++		return -ENOMEM;
++
++	rqt_start = rdev->lldi.vr->rq.start;
++	rqt_chunk = rdev->lldi.vr->rq.size;
++	rqt_top = rqt_start + rqt_chunk;
++
++	while (rqt_start < rqt_top) {
++		rqt_chunk = min(rqt_top - rqt_start + 1, rqt_chunk);
++		if (gen_pool_add(rdev->rqt_pool, rqt_start, rqt_chunk, -1)) {
++			PDBG("%s failed to add RQT chunk (%x/%x)\n",
++			     __func__, rqt_start, rqt_chunk);
++			if (rqt_chunk <= 1024 << MIN_RQT_SHIFT) {
++				printk(KERN_WARNING MOD
++				       "Failed to add all RQT chunks (%x/%x)\n",
++				       rqt_start, rqt_top - rqt_start);
++				return 0;
++			}
++			rqt_chunk >>= 1;
++		} else {
++			PDBG("%s added RQT chunk (%x/%x)\n",
++			     __func__, rqt_start, rqt_chunk);
++			rqt_start += rqt_chunk;
++		}
++	}
++	return 0;
++}
++
++void c4iw_rqtpool_destroy(struct c4iw_rdev *rdev)
++{
++	gen_pool_destroy(rdev->rqt_pool);
 +}
 
 --
