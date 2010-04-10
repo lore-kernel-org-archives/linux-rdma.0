@@ -1,7 +1,7 @@
 From: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH] libibnetdisc: restore show_progress functionality
-Date: Sat, 10 Apr 2010 03:56:22 +0300
-Message-ID: <20100410005622.GJ4808@me>
+Subject: [PATCH] libibnetdisc: restore hops limited discovery
+Date: Sat, 10 Apr 2010 03:57:11 +0300
+Message-ID: <20100410005711.GK4808@me>
 References: <20100218124931.4d6ef34b.weiny2@llnl.gov>
  <20100410005245.GH4808@me>
  <20100410005536.GI4808@me>
@@ -16,48 +16,76 @@ Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY
 List-Id: linux-rdma@vger.kernel.org
 
 
-Restore show_progress functionality. This output is used by scripts like
-'dump_lfts.sh -D', also sometimes useful for debug.
+Restore hops limited discovery.
 
 Signed-off-by: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
 ---
- infiniband-diags/libibnetdisc/src/ibnetdisc.c |   16 ++++++++++++++++
- 1 files changed, 16 insertions(+), 0 deletions(-)
+ infiniband-diags/libibnetdisc/src/ibnetdisc.c |   12 ++++++------
+ infiniband-diags/libibnetdisc/src/internal.h  |    1 +
+ 2 files changed, 7 insertions(+), 6 deletions(-)
 
 diff --git a/infiniband-diags/libibnetdisc/src/ibnetdisc.c b/infiniband-diags/libibnetdisc/src/ibnetdisc.c
-index 4780810..b438d4f 100644
+index b438d4f..4012eff 100644
 --- a/infiniband-diags/libibnetdisc/src/ibnetdisc.c
 +++ b/infiniband-diags/libibnetdisc/src/ibnetdisc.c
-@@ -270,6 +270,18 @@ static void link_ports(ibnd_node_t * node, ibnd_port_t * port,
- 	remoteport->remoteport = port;
- }
+@@ -96,6 +96,9 @@ static int extend_dpath(smp_engine_t * engine, ib_portid_t * portid,
+ 	ibnd_scan_t *scan = engine->user_data;
+ 	ibnd_fabric_t *fabric = scan->fabric;
  
-+static void dump_endnode(ib_portid_t * path, char *prompt,
-+			 ibnd_node_t * node, ibnd_port_t * port)
-+{
-+	char type[64];
-+	mad_dump_node_type(type, sizeof(type), &node->type, sizeof(int));
-+	printf("%s -> %s %s {%016" PRIx64 "} portnum %d lid %d-%d \"%s\"\n",
-+	       portid2str(path), prompt, type, node->guid,
-+	       node->type == IB_NODE_SWITCH ? 0 : port->portnum,
-+	       port->base_lid, port->base_lid + (1 << port->lmc) - 1,
-+	       node->nodedesc);
-+}
++	if (scan->max_hops && fabric->maxhops_discovered >= scan->max_hops)
++		return 0;
 +
- static int recv_node_info(smp_engine_t * engine, ibnd_smp_t * smp,
- 			  uint8_t * mad, void *cb_data)
- {
-@@ -303,6 +315,10 @@ static int recv_node_info(smp_engine_t * engine, ibnd_smp_t * smp,
+ 	if (portid->lid) {
+ 		/* If we were LID routed we need to set up the drslid */
+ 		if (!scan->selfportid.lid)
+@@ -198,7 +201,7 @@ static int recv_port_info(smp_engine_t * engine, ibnd_smp_t * smp,
+ 	    == IB_PORT_PHYS_STATE_LINKUP
+ 	    && (node->type == IB_NODE_SWITCH || node == fabric->from_node)) {
+ 		ib_portid_t path = smp->path;
+-		if (extend_dpath(engine, &path, port_num) != -1)
++		if (extend_dpath(engine, &path, port_num) > 0)
+ 			query_node_info(engine, &path, node);
  	}
- 	port->guid = port_guid;
  
-+	if (show_progress)
-+		dump_endnode(&smp->path, node_is_new ? "new" : "known",
-+			     node, port);
-+
- 	if (rem_node == NULL)	/* this is the start node */
- 		fabric->from_node = node;
- 	else {
+@@ -471,17 +474,12 @@ ibnd_fabric_t *ibnd_discover_fabric(struct ibmad_port * ibmad_port,
+ {
+ 	ibnd_fabric_t *fabric = NULL;
+ 	ib_portid_t my_portid = { 0 };
+-	int max_hops = MAXHOPS - 1;	/* default find everything */
+ 	smp_engine_t engine;
+ 	ibnd_scan_t scan;
+ 
+ 	if (_check_ibmad_port(ibmad_port) < 0)
+ 		return NULL;
+ 
+-	/* if not everything how much? */
+-	if (hops >= 0)
+-		max_hops = hops;
+-
+ 	/* If not specified start from "my" port */
+ 	if (!from)
+ 		from = &my_portid;
+@@ -496,6 +494,8 @@ ibnd_fabric_t *ibnd_discover_fabric(struct ibmad_port * ibmad_port,
+ 
+ 	memset(&scan.selfportid, 0, sizeof(scan.selfportid));
+ 	scan.fabric = fabric;
++	if (hops >= 0)
++		scan.max_hops = hops;
+ 
+ 	smp_engine_init(&engine, ibmad_port, &scan, max_smps_on_wire);
+ 
+diff --git a/infiniband-diags/libibnetdisc/src/internal.h b/infiniband-diags/libibnetdisc/src/internal.h
+index 179eac6..05e254d 100644
+--- a/infiniband-diags/libibnetdisc/src/internal.h
++++ b/infiniband-diags/libibnetdisc/src/internal.h
+@@ -58,6 +58,7 @@
+ typedef struct ibnd_scan {
+ 	ib_portid_t selfportid;
+ 	ibnd_fabric_t *fabric;
++	unsigned max_hops;
+ } ibnd_scan_t;
+ 
+ typedef struct ibnd_smp ibnd_smp_t;
 -- 
 1.7.0.4
 
