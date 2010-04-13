@@ -1,32 +1,58 @@
-From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: Re: Socket Direct Protocol: help (2)
-Date: Tue, 13 Apr 2010 11:39:07 -0500
-Message-ID: <4BC49E2B.3000804@opengridcomputing.com>
-References: <13381_1271060138_o3C8FUH8013968_2977669.1271060085255.SLOX.WebMail.wwwrun@imap.lnl.infn.it> <1246722.1271082830120.SLOX.WebMail.wwwrun@imap.lnl.infn.it> <2EFBCAEF10980645BBCFB605689E08E9047C7402DA@azsmsx506.amr.corp.intel.com>
+From: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH] libibnetdisc: fix outstanding SMPs countung
+Date: Tue, 13 Apr 2010 19:38:36 +0300
+Message-ID: <20100413163836.GM10830@me>
+References: <20100218124933.c018a23d.weiny2@llnl.gov>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <2EFBCAEF10980645BBCFB605689E08E9047C7402DA-uLM7Qlg6MbdZtRGVdHMbwrfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20100218124933.c018a23d.weiny2-i2BcT+NCU+M@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Tung, Chien Tin" <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Andrea Gozzelino <Andrea.Gozzelino-PK20h7lG/Rc1GQ1Ptb7lUw@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org" <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, "peterz-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org" <peterz-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, "pavel-+ZI9xUNit7I@public.gmane.org" <pavel-+ZI9xUNit7I@public.gmane.org>, "mingo-X9Un+BFzKDI@public.gmane.org" <mingo-X9Un+BFzKDI@public.gmane.org>, Eric B Munson <ebmunson-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>
+To: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
+send_smp() failure blocks whole discovery execution (it never returns).
+Fix this by updating all outstanding SMPs related counters only after
+successful MAD sending.
 
-> NE020 supports 4 SGEs.  I don't know enough about SDP to know why it is
-> using this calculation for # of send_sge:
->
-> #define SDP_MAX_RECV_SKB_FRAGS (PAGE_SIZE > 0x8000 ? 1 : 0x8000 / PAGE_SIZE)
->
->   
+Signed-off-by: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+---
+ infiniband-diags/libibnetdisc/src/query_smp.c |    8 ++++----
+ 1 files changed, 4 insertions(+), 4 deletions(-)
 
-Chien, does the NE020 support FMRs?  I looked at the nes ofed-1.5 code 
-and it appears to do nothing in the map_phys_fmr functions.
-
-
-
+diff --git a/infiniband-diags/libibnetdisc/src/query_smp.c b/infiniband-diags/libibnetdisc/src/query_smp.c
+index b4322bc..08e3ef7 100644
+--- a/infiniband-diags/libibnetdisc/src/query_smp.c
++++ b/infiniband-diags/libibnetdisc/src/query_smp.c
+@@ -96,10 +96,12 @@ static int process_smp_queue(smp_engine_t * engine)
+ 		if (!smp)
+ 			return 0;
+ 
+-		cl_qmap_insert(&engine->smps_on_wire, (uint32_t) smp->rpc.trid,
+-			       (cl_map_item_t *) smp);
+ 		if ((rc = send_smp(smp, engine->ibmad_port)) != 0)
+ 			return rc;
++		engine->num_smps_outstanding++;
++		cl_qmap_insert(&engine->smps_on_wire, (uint32_t) smp->rpc.trid,
++			       (cl_map_item_t *) smp);
++		engine->total_smps++;
+ 	}
+ 	return 0;
+ }
+@@ -133,8 +135,6 @@ int issue_smp(smp_engine_t * engine, ib_portid_t * portid,
+ 	portid->sl = 0;
+ 	portid->qp = 0;
+ 
+-	engine->total_smps++;
+-	engine->num_smps_outstanding++;
+ 	queue_smp(engine, smp);
+ 	return process_smp_queue(engine);
+ }
+-- 
+1.7.0.4
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
