@@ -1,52 +1,45 @@
-From: Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH] opensm/osm_sa_path_record.c: adding wrapper for
-	pr_rcv_get_path_parms()
-Date: Tue, 13 Apr 2010 15:49:51 +0300
-Message-ID: <4BC4686F.9080702@dev.mellanox.co.il>
+From: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+Subject: Re: [infiniband-diags] [1/3] support --diff in ibnetdiscover
+Date: Tue, 13 Apr 2010 15:55:56 +0300
+Message-ID: <20100413125556.GF10830@me>
+References: <1270659938.26381.39.camel@crazyclimber.llnl.gov>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1270659938.26381.39.camel-RLKWKRZIcZkVVsCFsIUZTRy+HRzXvqW9@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Cc: Linux RDMA <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Al Chu <chu11-i2BcT+NCU+M@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Adding non-static wrapper function for pr_rcv_get_path_parms()
-fuction to enable calling path record calculation function from
-outside this file.
+On 10:05 Wed 07 Apr     , Al Chu wrote:
+> Hi Sasha,
+> 
+> This patch adds the default --diff support in ibnetdiscover.
+> 
+> Al
+> 
+> -- 
+> Albert Chu
+> chu11-i2BcT+NCU+M@public.gmane.org
+> Computer Scientist
+> High Performance Systems Division
+> Lawrence Livermore National Laboratory
 
-Signed-off-by: Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
----
- opensm/opensm/osm_sa_path_record.c |   12 ++++++++++++
- 1 files changed, 12 insertions(+), 0 deletions(-)
+> Date: Wed, 31 Mar 2010 11:10:34 -0700
+> From: Albert Chu <chu11-i2BcT+NCU+M@public.gmane.org>
+> Subject: [PATCH] support --diff in ibnetdiscover
+> Message-Id: <1270659341.26381.27.camel-RLKWKRZIcZkVVsCFsIUZTRy+HRzXvqW9@public.gmane.org>
+> Mime-Version: 1.0
+> Content-Transfer-Encoding: 7bit
+> 
+> 
+> Signed-off-by: Albert Chu <chu11-i2BcT+NCU+M@public.gmane.org>
 
-diff --git a/opensm/opensm/osm_sa_path_record.c b/opensm/opensm/osm_sa_path_record.c
-index c4c3f86..b168428 100644
---- a/opensm/opensm/osm_sa_path_record.c
-+++ b/opensm/opensm/osm_sa_path_record.c
-@@ -743,6 +743,18 @@ Exit:
- 	return status;
- }
+All three applied.Thanks.
 
-+ib_api_status_t osm_get_path_params(IN osm_sa_t * sa,
-+				    IN const osm_port_t * p_src_port,
-+				    IN const osm_port_t * p_dest_port,
-+				    IN const uint16_t dlid_ho,
-+				    OUT osm_path_parms_t * p_parms)
-+{
-+	ib_path_rec_t pr;
-+	memset(&pr, 0, sizeof(ib_path_rec_t));
-+	return pr_rcv_get_path_parms(sa, &pr,
-+		p_src_port, p_dest_port, dlid_ho, 0, p_parms);
-+}
-+
- static void pr_rcv_build_pr(IN osm_sa_t * sa, IN const osm_port_t * p_src_port,
- 			    IN const osm_port_t * p_dest_port,
- 			    IN const ib_gid_t * p_dgid,
--- 
-1.5.1.4
-
+Sasha
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
