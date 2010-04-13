@@ -1,55 +1,61 @@
 From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH V3 0/2] Add support for enhanced atomic operations
-Date: Tue, 13 Apr 2010 10:43:09 -0700
-Message-ID: <adatyrfmeoi.fsf@roland-alpha.cisco.com>
-References: <20100310155749.GA25964@vlad-laptop>
-	<A27E2E88-63A0-45EE-9A70-F95B2A0C25AD@Sun.com>
-	<adaaaueelby.fsf@roland-alpha.cisco.com>
-	<BA082DF0-B3C6-4405-B480-F69B0193BF17@Sun.COM>
-	<adavdd1a64g.fsf@roland-alpha.cisco.com>
-	<adaeijj96a6.fsf@roland-alpha.cisco.com>
-	<4BA0F623.1050606@dev.mellanox.co.il>
-	<4BC2EB7F.20804@dev.mellanox.co.il>
+Subject: Re: [PATCH] ummunotify: Userspace support for MMU notifications
+Date: Tue, 13 Apr 2010 10:57:32 -0700
+Message-ID: <adahbnfme0j.fsf@roland-alpha.cisco.com>
+References: <1271053337-7121-1-git-send-email-ebmunson@us.ibm.com>
+	<20100412160359.1d9074dc.akpm@linux-foundation.org>
+	<20100412235937.GF15629@obsidianresearch.com>
+	<3251DDDA-D705-4B1E-9595-9C24709EF146@Sun.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4BC2EB7F.20804-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> (Vladimir Sokolovsky's
-	message of "Mon, 12 Apr 2010 12:44:31 +0300")
+In-Reply-To: <3251DDDA-D705-4B1E-9595-9C24709EF146-U0mLk4xYmo8@public.gmane.org> (=?utf-8?Q?=22?=
+ =?utf-8?Q?H=C3=A5kon?= Bugge"'s
+	message of "Tue, 13 Apr 2010 10:29:41 +0200")
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Vladimir Sokolovsky <vlad-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: =?utf-8?Q?H=C3=A5kon?= Bugge <Haakon.Bugge-UdXhSnd/wVw@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: =?utf-8?Q?H=C3=A5kon?= Bugge <Haakon.Bugge-UdXhSnd/wVw@public.gmane.org>
+Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, Eric B Munson <ebmunson-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org, peterz-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, pavel-+ZI9xUNit7I@public.gmane.org, mingo-X9Un+BFzKDI@public.gmane.org, jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-> Do you propose to use IB_ATOMIC_GLOB instead of IB_ATOMIC_HCA while setting
-> atomic capability in the code below?
->
->         props->atomic_cap          = dev->dev->caps.flags &
-> MLX4_DEV_CAP_FLAG_ATOMIC ?
->                 IB_ATOMIC_HCA : IB_ATOMIC_NONE;
->
-> Or add IB_MASKED_ATOMIC to ib_atomic_cap enum and use this one
-> instead of IB_ATOMIC_HCA?
->
-> All this, of course, comes to replace setting
-> IB_DEVICE_MASKED_ATOMIC for device capability.
+ > I am not sure I agree with the premises here. ptMalloc and malloc
+ > hooks are not related to the issue in my opinion. User space library
+ > calls do not change virtual to physical mapping, system calls do. Th=
+e
+ > following sys calls might change virtual to physical mapping:
+ > munmap(), mremap(), sbrk(), madvice(). What we need is glibc to
+ > provide hooks for these 4 sys calls and the general syscall() when
+ > its argument is one of the four mentioned syscalls. To me, that is
+ > what is needed, and the ummunotify direction seems way too
+ > complicated to me.
 
-Sorry, missed this reply first time around I guess.
+Are those system calls the only possible way that virtual to physical
+mappings can change?  Can't page migration or something like that
+potentially affect things?  And even if you did have hooks into every
+system call that mattered (keep in mind that relying on glibc is not
+enough, since an MPI application may not use glibc) would decoding them
+and figuring out what happened really be preferable to a single event
+type that tells you exactly what address range was affected?
 
-Anyway, no I don't think we should use ATOMIC_GLOB unless an HCA truly
-provides global atomic ops; not possible without PCIe 3.0 atomic support
-I think.  But as I said, I think the original suggestion:
+ > It is further claimed that "=E2=80=A6 other tricks are not robust". =
+I wrote
+ > the code used in Scali/Platform MPI handling the issue. I do not
+ > think its fair to claim that this MPI is not robust in this matter
+ > nor that is performance is bad.
 
- > > Hence, I think it would be cleaner if a new capability,
- > > masked_atomic_cap, were introduced, using the original definitions
- > > (NONE, HCA, GLOB).
+The Open MPI developers have spent a lot of effort trying to handle thi=
+s
+purely in userspace and still do not believe that a truly robust
+solution is possible without kernel help.  Perhaps they can expand on
+what the obstacles are.
 
-makes sense, ie create a new props->masked_atomic_cap and set it to
-NONE, HCA or GLOB as appropriate (ie NONE for everyone except mlx4, and
-HCA for mlx4).
--- 
-Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org> || For corporate legal information go to:
+ - R.
+--=20
+Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org> || For corporate legal information go=
+ to:
 http://www.cisco.com/web/about/doing_business/legal/cri/index.html
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
