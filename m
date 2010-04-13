@@ -1,30 +1,37 @@
 From: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH v3 1/2] libibnetdisc: Convert to a multi-smp algorithm
-Date: Tue, 13 Apr 2010 16:25:31 +0300
-Message-ID: <20100413132531.GI10830@me>
-References: <20100218124933.c018a23d.weiny2@llnl.gov>
- <20100413104658.GA10830@me>
+Subject: Re: [PATCH] Dimension port order file support
+Date: Tue, 13 Apr 2010 17:02:10 +0300
+Message-ID: <20100413140210.GJ10830@me>
+References: <alpine.DEB.2.00.1003031803390.14048@cantor.americas.sgi.com>
+ <20100324133221.GK4808@me>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20100413104658.GA10830@me>
+In-Reply-To: <20100324133221.GK4808@me>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+To: Dale Purdy <purdy-sJ/iWh9BUns@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 13:46 Tue 13 Apr     , Sasha Khapyorsky wrote:
+On 15:32 Wed 24 Mar     , Sasha Khapyorsky wrote:
+> Hi Dale,
 > 
-> However see some comments and questions below.
+> On 18:06 Wed 03 Mar     , Dale Purdy wrote:
+> > 
+> > Provide a means to specify on a per switch basis the mapping (order)
+> > between switch ports and dimensions for Dimension Order Routing.  This
+> > allows the DOR routing engine to be used when the cabling is not
+> > properly aligned for DOR, either initially, or for an upgrade.
+> 
+> Nice stuff.
+> 
+> Is this something useful with ! '-R dor'?
+> 
+> > 
+> > Signed-off-by: Dale Purdy <purdy-sJ/iWh9BUns@public.gmane.org>
 
-Another thought. What about API like:
-
-	ibnd_discover_fabric(cosnt char *ca_name, unsigned port_num,
-			     struct ibnd_config *cfg);
-
-So libibnetdisc will be responsible for opening and closing its own port
-and in this way will be fully reenterable?
+Applied. Thanks.
 
 Sasha
 --
