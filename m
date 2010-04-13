@@ -1,28 +1,30 @@
 From: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Subject: Re: [infiniband-diags] [0/3] support --diff and --diffcheck in
- ibnetdiscover
-Date: Tue, 13 Apr 2010 16:10:33 +0300
-Message-ID: <20100413131033.GH10830@me>
-References: <1270659929.26381.38.camel@crazyclimber.llnl.gov>
- <20100413130803.GG10830@me>
+Subject: Re: [PATCH v3 1/2] libibnetdisc: Convert to a multi-smp algorithm
+Date: Tue, 13 Apr 2010 16:25:31 +0300
+Message-ID: <20100413132531.GI10830@me>
+References: <20100218124933.c018a23d.weiny2@llnl.gov>
+ <20100413104658.GA10830@me>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20100413130803.GG10830@me>
+In-Reply-To: <20100413104658.GA10830@me>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Al Chu <chu11-i2BcT+NCU+M@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 16:08 Tue 13 Apr     , Sasha Khapyorsky wrote:
+On 13:46 Tue 13 Apr     , Sasha Khapyorsky wrote:
 > 
-> Would it be better to keep cache in a regular human readable
-> ibnetdiscover output format, so '--diff' will be usable not just against
-> cache, but also against a regular ibnetdiscover output files?
+> However see some comments and questions below.
 
-BTW, such implementation could be simplified by the fact that we have
-already ibnetdiscover output parser in 'ibsim'.
+Another thought. What about API like:
+
+	ibnd_discover_fabric(cosnt char *ca_name, unsigned port_num,
+			     struct ibnd_config *cfg);
+
+So libibnetdisc will be responsible for opening and closing its own port
+and in this way will be fully reenterable?
 
 Sasha
 --
