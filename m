@@ -1,64 +1,32 @@
-From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-Subject: Re: [PATCH v3 1/2] libibnetdisc: Convert to a multi-smp algorithm
-Date: Tue, 13 Apr 2010 13:30:28 -0700
-Message-ID: <20100413133028.b55a0cb1.weiny2@llnl.gov>
-References: <20100218124933.c018a23d.weiny2@llnl.gov>
-	<20100413104658.GA10830@me>
-	<20100413132531.GI10830@me>
+From: zealot Minor <peter-0QtbT3KyO7HyDuV1+YyAcTvxTJZ2mn4gSIixnBpEgSkcWVvVuXF20w@public.gmane.org>
+Subject: Acupuncturists - 23,988 records 1,826 emails
+Date: Wed, 14 Apr 2010 06:05:49 +0930
+Message-ID: <0f1da807-aec6-45c7-a316-babe07f8dd93@SERVER.lecg.local>
+Reply-To: <dougsmith-revL73yDgGBWk0Htik3J/w@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20100413132531.GI10830@me>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+To: whelanmphrd-XauvlLoUTru+XT7JhA+gdA@public.gmane.org, garewade-rphTv4pjVZMJGwgDXS7ZQA@public.gmane.org, vhoe-YD6nxZs2PyH5UeND2KvAfvWi4VT69sRu@public.gmane.org, illmail-FXJ3zaHstaO0ok1jKN7RBg@public.gmane.org, mdownsborough-IPPw5sWYmMS35wUkaLeaMCp2UmYkHbXO@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, 13 Apr 2010 16:25:31 +0300
-Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org> wrote:
+Oscar,
 
-> On 13:46 Tue 13 Apr     , Sasha Khapyorsky wrote:
-> > 
-> > However see some comments and questions below.
-> 
-> Another thought. What about API like:
-> 
-> 	ibnd_discover_fabric(cosnt char *ca_name, unsigned port_num,
-> 			     struct ibnd_config *cfg);
-> 
-> So libibnetdisc will be responsible for opening and closing its own port
-> and in this way will be fully reenterable?
+Contact me at the email address below for a catalog of all our USA lists.
 
-If we are going to do something like this why not more like a context?
+Also, this week we are offering reduced costs for more than one list.  
+  
 
-Something like this?
-
-ibqueryerrors.c
-	query_errors_ibmad_port = mad_rpc_open_port(ibd_ca, ibd_ca_port, mgmt_classes, 4);
-
-	{
-		ibnd_context_t ctx;
-		ctx.ca_name = ibd_ca;
-		ctx.ca_port = ibd_ca_port;
-		ctx.portid = portid;
-		ctx.hops = hops;
-		fabric = ibnd_discover_fabric(&ctx);  /* opens it's own ibmad_port */
-	}
-...
-
-Ira
-
-> 
-> Sasha
+Regards,
 
 
--- 
-Ira Weiny
-Math Programmer/Computer Scientist
-Lawrence Livermore National Lab
-925-423-8008
-weiny2-i2BcT+NCU+M@public.gmane.org
+Abby Lin
+Email Address: Albert.Shook  @ expertdata2010.co.cc
+
+
+
+
+Forward email to rembox @  expertdata2010.co.cc to purge you from our records
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
