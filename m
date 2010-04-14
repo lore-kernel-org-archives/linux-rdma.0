@@ -1,77 +1,46 @@
-From: Al Chu <chu11-i2BcT+NCU+M@public.gmane.org>
-Subject: [infiniband-diags] fix libibnetdisc portguid hashing corner case
-Date: Wed, 14 Apr 2010 10:48:03 -0700
-Message-ID: <1271267283.17987.120.camel@auk31.llnl.gov>
+From: "Tung, Chien Tin" <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: Socket Direct Protocol: help (2)
+Date: Wed, 14 Apr 2010 11:48:07 -0700
+Message-ID: <2EFBCAEF10980645BBCFB605689E08E9047C79BD12@azsmsx506.amr.corp.intel.com>
+References: <13381_1271060138_o3C8FUH8013968_2977669.1271060085255.SLOX.WebMail.wwwrun@imap.lnl.infn.it>
+	<1246722.1271082830120.SLOX.WebMail.wwwrun@imap.lnl.infn.it>
+	<2EFBCAEF10980645BBCFB605689E08E9047C7402DA@azsmsx506.amr.corp.intel.com>
+	<4BC49E2B.3000804@opengridcomputing.com>
+	<2EFBCAEF10980645BBCFB605689E08E9047C7405A0@azsmsx506.amr.corp.intel.com>
+	<4BC4D22A.6020700@opengridcomputing.com>
+	<2EFBCAEF10980645BBCFB605689E08E9047C7405E9@azsmsx506.amr.corp.intel.com>
+	<7037536.1271235105513.SLOX.WebMail.wwwrun@imap.lnl.infn.it>
+	<4BC5D1D3.3020004@mellanox.co.il> <4BC5D529.1060701@mellanox.co.il>
+ <2EFBCAEF10980645BBCFB605689E08E9047C79B918@azsmsx506.amr.corp.intel.com>
+ <4BC5D9D4.7020702@opengridcomputing.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="=-AGpxeOJ1+9KcFodBXF9V"
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <4BC5D9D4.7020702-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Cc: Amir Vadai <amirv-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, Andrea Gozzelino <Andrea.Gozzelino-PK20h7lG/Rc1GQ1Ptb7lUw@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org" <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, "peterz-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org" <peterz-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, "pavel-+ZI9xUNit7I@public.gmane.org" <pavel-+ZI9xUNit7I@public.gmane.org>, "mingo-X9Un+BFzKDI@public.gmane.org" <mingo-X9Un+BFzKDI@public.gmane.org>, Eric B Munson <ebmunson-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-
---=-AGpxeOJ1+9KcFodBXF9V
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-
-Hey Sasha,
-
-This patch fixes a corner case in libibnetdisc that was storing
-portguids w/ a guid of 0.
-
-This bug was relatively innoucuous for ibnetdiscover b/c ibnetdiscover
-does not output these ports.  However, it became a problem for me in the
-caching library as I attempted to reconstruct a fabric, and multiple
-ports were identifying themselves with identical guids [1].
-
-Al
-
-[1] - The fact the caching code assumes duplicate guids can't exist is
-also a bug.  But that's for another patch.  This is a bug by itself.
-
--- 
-Albert Chu
-chu11-i2BcT+NCU+M@public.gmane.org
-Computer Scientist
-High Performance Systems Division
-Lawrence Livermore National Laboratory
-
---=-AGpxeOJ1+9KcFodBXF9V
-Content-Disposition: attachment; filename=0001-fix-libibnetdisc-portguid-hashing-corner-case.patch
-Content-Type: message/rfc822; name=0001-fix-libibnetdisc-portguid-hashing-corner-case.patch
-
-From: Albert Chu <chu11-i2BcT+NCU+M@public.gmane.org>
-Date: Tue, 13 Apr 2010 14:01:43 -0700
-Subject: [PATCH] fix libibnetdisc portguid hashing corner case
-Message-Id: <1271264633.17987.112.camel-X2zTWyBD0EhliZ7u+bvwcg@public.gmane.org>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+>Tung, Chien Tin wrote:
+>>> One more thing - Please open a bug regarding the num_sge limitation at:
+>>> https://bugs.openfabrics.org/
+>>>
+>>
+>> Done, Bug 2027.
+>>
+>> Chien
+>>
+>
+>And 2028 opened to request fastreg support.
+>
 
 
-Signed-off-by: Albert Chu <chu11-i2BcT+NCU+M@public.gmane.org>
----
- infiniband-diags/libibnetdisc/src/ibnetdisc.c |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
+I am open to test fixes for these two bugs.
 
-diff --git a/infiniband-diags/libibnetdisc/src/ibnetdisc.c b/infiniband-diags/libibnetdisc/src/ibnetdisc.c
-index c895de9..6010a28 100644
---- a/infiniband-diags/libibnetdisc/src/ibnetdisc.c
-+++ b/infiniband-diags/libibnetdisc/src/ibnetdisc.c
-@@ -173,6 +173,7 @@ static int recv_port_info(smp_engine_t * engine, ibnd_smp_t * smp,
- 			IBND_ERROR("Failed to allocate port\n");
- 			return -1;
- 		}
-+		port->guid = mad_get_field64(node->info, 0, IB_NODE_PORT_GUID_F);
- 	}
- 
- 	memcpy(port->info, port_info, sizeof(port->info));
--- 
-1.5.4.5
-
-
---=-AGpxeOJ1+9KcFodBXF9V--
-
+Chien
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
