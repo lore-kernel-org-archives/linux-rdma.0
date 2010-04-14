@@ -1,70 +1,42 @@
 From: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH] libibnetdisc: don't query CA ports not connected to a
- fabric
-Date: Wed, 14 Apr 2010 12:59:46 +0300
-Message-ID: <20100414095946.GS10830@me>
+Subject: Re: [PATCH] libibnetdisc: fix outstanding SMPs countung
+Date: Wed, 14 Apr 2010 13:23:35 +0300
+Message-ID: <20100414102335.GT10830@me>
 References: <20100218124933.c018a23d.weiny2@llnl.gov>
- <20100413104658.GA10830@me>
- <20100413171824.GP10830@me>
- <20100413112412.de66586d.weiny2@llnl.gov>
+ <20100413163836.GM10830@me>
+ <20100413133826.00a8afc5.weiny2@llnl.gov>
+ <20100413134446.72eb336a.weiny2@llnl.gov>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20100413112412.de66586d.weiny2-i2BcT+NCU+M@public.gmane.org>
+In-Reply-To: <20100413134446.72eb336a.weiny2-i2BcT+NCU+M@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
 Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On 13:44 Tue 13 Apr     , Ira Weiny wrote:
+> 
+> > This changes the logic.  "num_smps_outstanding" is NOT the number on the wire, but it appears you have made it so.
 
-We can save some amount of MADs by not querying CA/Router ports which
-is not connected to our fabric. When discovery reaches CA or Router
-node it will always get PortInfo for a port which was discovered and
-not others.
+Actually yes, it made it so.
 
-Signed-off-by: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
----
- infiniband-diags/libibnetdisc/src/ibnetdisc.c |   21 ++++++++++-----------
- 1 files changed, 10 insertions(+), 11 deletions(-)
+> > This is the number which will cause process_smp_queue to continue being called.
+> > 
+> > If you are going to do this I think you need to change process_mads as well as process_one_recv.  We discussed process_one_recv in the error case.
 
-diff --git a/infiniband-diags/libibnetdisc/src/ibnetdisc.c b/infiniband-diags/libibnetdisc/src/ibnetdisc.c
-index 2ce15b7..51b36e5 100644
---- a/infiniband-diags/libibnetdisc/src/ibnetdisc.c
-+++ b/infiniband-diags/libibnetdisc/src/ibnetdisc.c
-@@ -339,19 +339,18 @@ static int recv_node_info(smp_engine_t * engine, ibnd_smp_t * smp,
- 		link_ports(node, port, rem_node, rem_node->ports[rem_port_num]);
- 	}
- 
--	if (!node_is_new)
--		return 0;
--
--	query_node_desc(engine, &smp->path, node);
-+	if (node_is_new) {
-+		query_node_desc(engine, &smp->path, node);
- 
--	if (node->type == IB_NODE_SWITCH)
--		query_switch_info(engine, &smp->path, node);
--
--	/* process all the ports on this node */
--	for (i = (node->type == IB_NODE_SWITCH) ? 0 : 1;
--	     i <= node->numports; i++) {
--		query_port_info(engine, &smp->path, node, i);
-+		if (node->type == IB_NODE_SWITCH) {
-+			query_switch_info(engine, &smp->path, node);
-+			for (i = 0; i <= node->numports; i++)
-+				query_port_info(engine, &smp->path, node, i);
-+		}
- 	}
-+	
-+	if (node->type != IB_NODE_SWITCH)
-+		query_port_info(engine, &smp->path, node, port_num);
- 
- 	return 0;
- }
--- 
-1.7.0.4
+process_one_recv() failure breaks the loop anyway.
 
+> > What were you trying to fix?
+> 
+> Ok, I think I see.  We should move cl_qmap_insert to after a successful umad_send and putting total_smps here is ok.  But num_smps_outstanding should be put back I think.
+
+But then it blocks process_mads() to loop forever after single
+send_smp() failure (with all empty queues and umad_recv() running
+without timeout).
+
+Sasha
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
