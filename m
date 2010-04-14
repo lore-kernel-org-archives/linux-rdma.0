@@ -1,10 +1,11 @@
-From: Vladimir Sokolovsky <vlad-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH V4 0/2] Add support for enhanced atomic operations
-Date: Wed, 14 Apr 2010 17:22:24 +0300
-Message-ID: <20100414142223.GA16346@vlad-laptop>
+From: Vladimir Sokolovsky <vlad-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
+Subject: [PATCH V4 1/2] IB/core: Add support for enhanced atomic operations
+Date: Wed, 14 Apr 2010 17:23:01 +0300
+Message-ID: <20100414142300.GB16346@vlad-laptop>
 Reply-To: vlad-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
@@ -12,39 +13,125 @@ To: rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Roland,
+- Add a new IB_WR_MASKED_ATOMIC_CMP_AND_SWP and IB_WR_MASKED_ATOMIC_FET=
+CH_AND_ADD send
+  opcodes that can be used to mark a "masked atomic compare and swap" a=
+nd
+  "masked atomic fetch and add" work request correspondingly.
+- Add masked_atomic_cap capability.
+- Add mask fields to atomic struct of ib_send_wr
+- Add new opcodes to ib_wc_opcode
 
-This patchset adds support for the following enhanced atomic
-operations:
-- Masked atomic compare and swap
-- Masked atomic fetch and add
+Masked Compare and Swap (MskCmpSwap)
+The MskCmpSwap atomic operation is an extension to the CmpSwap operatio=
+n
+defined in the IB spec. MskCmpSwap allows the user to select a portion =
+of the
+64 bit target data for the =E2=80=9Ccompare=E2=80=9D check as well as t=
+o restrict the swap to a
+(possibly different) portion. The pseudo code below describes the opera=
+tion:
 
-These operations enable using a smaller amount of memory when using
-multiple locks by using portions of a 64 bit value in an atomic
-operation.
-For some applications the memory savings are very significant. One
-example is fine grain lock implementations for huge data sets. In
-other cases, the benefit is the ability to update multiple fields with
-a single io operation.
+| atomic_response =3D *va
+| if (!((compare_add ^ *va) & compare_add_mask)) then
+|     *va =3D (*va & ~(swap_mask)) | (swap & swap_mask)
+|
+| return atomic_response
 
-Vladimir Sokolovsky(2):
-IB/core: Add support for enhanced atomic operations
-mlx4/IB: Add support for enhanced atomic operations
+The additional operands are carried in the Extended Transport Header. A=
+tomic
+response generation and packet format for MskCmpSwap is as for standard=
+ IB
+Atomic operations.
 
-changes from V3:
-- patch #1: 
-  Add a new capability masked_atomic_cap instead of using
-  IB_DEVICE_MASKED_ATOMIC
-- patch #2:
-  Set props->masked_atomic_cap to IB_ATOMIC_HCA for mlx4
+Masked Fetch and Add (MFetchAdd)
+The MFetchAdd Atomic operation extends the functionality of the standar=
+d IB
+=46etchAdd by allowing the user to split the target into multiple field=
+s of
+selectable length. The atomic add is done independently on each one of =
+this
+fields. A bit set in the field_boundary parameter specifies the field
+boundaries. The pseudo code below describes the operation:
 
-Note that all drivers clear props with memset except amso1100. So, no
-need to define props->masked_atomic_cap to NONE for all drivers.
-I will send a patch that fixes amso1100 issue.
+| bit_adder(ci, b1, b2, *co)
+| {
+|	value =3D ci + b1 + b2
+|	*co =3D !!(value & 2)
+|
+|	return value & 1
+| }
+|
+| #define MASK_IS_SET(mask, attr)      (!!((mask)&(attr)))
+| bit_position =3D 1
+| carry =3D 0
+| atomic_response =3D 0
+|
+| for i =3D 0 to 63
+| {
+|         if ( i !=3D 0 )
+|                 bit_position =3D  bit_position << 1
+|
+|         bit_add_res =3D bit_adder(carry, MASK_IS_SET(*va, bit_positio=
+n), MASK_IS_SET(compare_add, bit_position), &new_carry)
+|         if (bit_add_res)
+|                 atomic_response |=3D bit_position
+|
+|         carry =3D ((new_carry) && (!MASK_IS_SET(compare_add_mask, bit=
+_position)))
+| }
+|
+| return atomic_response
 
-Regards,
-Vladimir
+Signed-off-by: Vladimir Sokolovsky <vlad-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
+---
+ include/rdma/ib_verbs.h |    7 +++++++
+ 1 files changed, 7 insertions(+), 0 deletions(-)
+
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index 09509ed..8ef6858 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -136,6 +136,7 @@ struct ib_device_attr {
+ 	int			max_qp_init_rd_atom;
+ 	int			max_ee_init_rd_atom;
+ 	enum ib_atomic_cap	atomic_cap;
++	enum ib_atomic_cap	masked_atomic_cap;
+ 	int			max_ee;
+ 	int			max_rdd;
+ 	int			max_mw;
+@@ -467,6 +468,8 @@ enum ib_wc_opcode {
+ 	IB_WC_LSO,
+ 	IB_WC_LOCAL_INV,
+ 	IB_WC_FAST_REG_MR,
++	IB_WC_MASKED_COMP_SWAP,
++	IB_WC_MASKED_FETCH_ADD,
+ /*
+  * Set value of IB_WC_RECV so consumers can test if a completion is a
+  * receive by testing (opcode & IB_WC_RECV).
+@@ -689,6 +692,8 @@ enum ib_wr_opcode {
+ 	IB_WR_RDMA_READ_WITH_INV,
+ 	IB_WR_LOCAL_INV,
+ 	IB_WR_FAST_REG_MR,
++	IB_WR_MASKED_ATOMIC_CMP_AND_SWP,
++	IB_WR_MASKED_ATOMIC_FETCH_AND_ADD,
+ };
+=20
+ enum ib_send_flags {
+@@ -731,6 +736,8 @@ struct ib_send_wr {
+ 			u64	remote_addr;
+ 			u64	compare_add;
+ 			u64	swap;
++			u64	compare_add_mask;
++			u64	swap_mask;
+ 			u32	rkey;
+ 		} atomic;
+ 		struct {
+--=20
+1.7.0.3
+
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
