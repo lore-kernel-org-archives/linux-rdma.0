@@ -1,94 +1,36 @@
-From: Amir Vadai <amirv@mellanox.co.il>
-Subject: Re: Socket Direct Protocol: help (2)
-Date: Wed, 14 Apr 2010 17:31:47 +0300
-Message-ID: <4BC5D1D3.3020004@mellanox.co.il>
-References: <13381_1271060138_o3C8FUH8013968_2977669.1271060085255.SLOX.WebMail.wwwrun@imap.lnl.infn.it>
-	<1246722.1271082830120.SLOX.WebMail.wwwrun@imap.lnl.infn.it>
-	<2EFBCAEF10980645BBCFB605689E08E9047C7402DA@azsmsx506.amr.corp.intel.com>
-	<4BC49E2B.3000804@opengridcomputing.com>
-	<2EFBCAEF10980645BBCFB605689E08E9047C7405A0@azsmsx506.amr.corp.intel.com>
-	<4BC4D22A.6020700@opengridcomputing.com>
-	<2EFBCAEF10980645BBCFB605689E08E9047C7405E9@azsmsx506.amr.corp.intel.com>
-	<7037536.1271235105513.SLOX.WebMail.wwwrun@imap.lnl.infn.it>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <7037536.1271235105513.SLOX.WebMail.wwwrun@imap.lnl.infn.it>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Andrea Gozzelino <Andrea.Gozzelino@lnl.infn.it>
-Cc: "Tung, Chien Tin" <chien.tin.tung@intel.com>, Steve Wise <swise@opengridcomputing.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "rolandd@cisco.com" <rolandd@cisco.com>, "peterz@infradead.org" <peterz@infradead.org>, "pavel@ucw.cz" <pavel@ucw.cz>, "mingo@elte.hu" <mingo@elte.hu>, Eric B Munson <ebmunson@us.ibm.com>
+From: Jeff Squyres <jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH] ummunotify: Userspace support for MMU notifications
+Date: Wed, 14 Apr 2010 10:36:21 -0400
+Message-ID: <7A16511A-25C7-4850-9E1A-2EFE53DAF6A4@cisco.com>
+References: <1271053337-7121-1-git-send-email-ebmunson@us.ibm.com> <20100412160359.1d9074dc.akpm@linux-foundation.org> <20100412235937.GF15629@obsidianresearch.com> <3251DDDA-D705-4B1E-9595-9C24709EF146@Sun.com> <adahbnfme0j.fsf@roland-alpha.cisco.com> <20100414090623.GM23554@redhat.com>
+Mime-Version: 1.0 (Apple Message framework v1078)
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20100414090623.GM23554-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Gleb Natapov <gleb-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: "Roland Dreier (rdreier)" <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, =?iso-8859-1?Q?H=E5kon_Bugge?= <Haakon.Bugge-UdXhSnd/wVw@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, Eric B Munson <ebmunson-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org, peterz-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, pavel-+ZI9xUNit7I@public.gmane.org, mingo-X9Un+BFzKDI@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hi,
+On Apr 14, 2010, at 5:06 AM, Gleb Natapov wrote:
 
-FMR are being used only in a special mode called ZCopy.
+> > The Open MPI developers have spent a lot of effort trying to handle this
+> > purely in userspace and still do not believe that a truly robust
+> > solution is possible without kernel help.  Perhaps they can expand on
+> > what the obstacles are.
 
-You could disable this mode by setting the module paramter
-sdp_zcopy_thresh to 0, or by issuing:
-# echo 0 > /sys/module/ib_sdp/parameters/sdp_zcopy_thresh
+By "truly robust" we mean that some other user-level code can't override the hooks installed by the MPI (user level) middleware.  All current glibc hooks are overridable by other user-level code -- and sometimes real applications do this (for their own good reasons).  Most of the time, apps blithely override our hooks because they either don't know or can't know that our hooks are installed.  It can be dicey to know what you can and cannot override pre-main(), for example (e.g., via the __malloc_initialize_hook).
 
-This means that you won't get the benefits of Zero-copy.
+Opening up a direct channel to the kernel and saying "hey, tell me when something changes" is robust because no other entity can hijack your notifications.  It also allows us to avoid using pre-main hooks, and makes it so that we don't have to hook into the memory subsystem (usually replacing it with our own).  Both of these things are extremely distasteful -- fixing these two things alone make doing something like ummunotify worthwhile, IMHO.
 
-- Amir
+-- 
+Jeff Squyres
+jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org
+For corporate legal information go to:
+http://www.cisco.com/web/about/doing_business/legal/cri/
 
-On 04/14/2010 11:51 AM, Andrea Gozzelino wrote:
-> On Apr 13, 2010 10:22 PM, "Tung, Chien Tin" <chien.tin.tung@intel.com>
-> wrote:
->
->   
->>>>> Chien, does the NE020 support FMRs? I looked at the nes ofed-1.5
->>>>> code
->>>>> and it appears to do nothing in the map_phys_fmr functions.
->>>>>
->>>>>           
->>>> We never implemented map_phys_fmr. Is it relevant to the # of SGEs?
->>>>
->>>>         
->>> No, but SDP uses FMRs. I don't think it will run without FMR support.
->>>
->>>       
->>
->> Good to know.  Thanks.
->>
->> Chien
->>
->>
->>     
-> Hi Steve and Chien,
->
-> I understand that NE020 cards have problem with SDP connected with
-> map_phy_fmr (FMR stands for Fast Memory Region).
-> Is it possible to solve/fix this point?
-> If yes, have you an idea about the time that is necessary to code
-> development/build?
-> If no, can you suggest me a card that supports SDP protocol?
->
-> I work on NE020 cards from February 2010 for an INFN experimental
-> proposal, called REDIGO (Read out at 10 Gbits/s), about the data
-> acquisition and movement systems. The covergence of storage protocols
-> around 10 Gigabits/s Ethernet protocols shows that one way could be the
-> Remote Direct Memory Access (RDMA). The goals are the investigations of
-> latency time, the throughput, the buffer size schemes and finally the
-> global event building bandwidth.
->
-> Do you know if NE020 cards have problems with librdma (RDMA procedures,
-> in general) and / or with MPI versions?
->
-> Thank you very much,
-> Andrea
->
-> Andrea Gozzelino
->
-> INFN - Laboratori Nazionali di Legnaro	(LNL)
-> Viale dell'Universita' 2
-> I-35020 - Legnaro (PD)- ITALIA
-> Tel: +39 049 8068346
-> Fax: +39 049 641925
-> Mail: andrea.gozzelino@lnl.infn.it			
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->   
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
