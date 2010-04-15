@@ -1,74 +1,55 @@
-From: Al Chu <chu11-i2BcT+NCU+M@public.gmane.org>
-Subject: [infiniband-diags] [2/2] check for duplicate port guids in
-	libibnetdisc cache
-Date: Wed, 14 Apr 2010 15:48:01 -0700
-Message-ID: <1271285281.17987.140.camel@auk31.llnl.gov>
+From: Amir Vadai <amirv-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
+Subject: Re: Socket Direct Protocol: help (2)
+Date: Thu, 15 Apr 2010 09:24:53 +0300
+Message-ID: <4BC6B135.2060004@mellanox.co.il>
+References: <13381_1271060138_o3C8FUH8013968_2977669.1271060085255.SLOX.WebMail.wwwrun@imap.lnl.infn.it>
+	<1246722.1271082830120.SLOX.WebMail.wwwrun@imap.lnl.infn.it>
+	<2EFBCAEF10980645BBCFB605689E08E9047C7402DA@azsmsx506.amr.corp.intel.com>
+	<4BC49E2B.3000804@opengridcomputing.com>
+	<2EFBCAEF10980645BBCFB605689E08E9047C7405A0@azsmsx506.amr.corp.intel.com>
+	<4BC4D22A.6020700@opengridcomputing.com>
+	<2EFBCAEF10980645BBCFB605689E08E9047C7405E9@azsmsx506.amr.corp.intel.com>
+	<7037536.1271235105513.SLOX.WebMail.wwwrun@imap.lnl.infn.it>
+	<4BC5D1D3.3020004@mellanox.co.il> <4BC5D529.1060701@mellanox.co.il>
+	<2EFBCAEF10980645BBCFB605689E08E9047C79B918@azsmsx506.amr.corp.intel.com>
+	<4BC5D9D4.7020702@opengridcomputing.com>
+	<2EFBCAEF10980645BBCFB605689E08E9047C79BD12@azsmsx506.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="=-ASlxzUHL6WNw67n2qiu9"
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <2EFBCAEF10980645BBCFB605689E08E9047C79BD12-uLM7Qlg6MbdZtRGVdHMbwrfspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: "Tung, Chien Tin" <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Andrea Gozzelino <Andrea.Gozzelino-PK20h7lG/Rc1GQ1Ptb7lUw@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org" <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, "peterz-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org" <peterz-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, "pavel-+ZI9xUNit7I@public.gmane.org" <pavel-+ZI9xUNit7I@public.gmane.org>, "mingo-X9Un+BFzKDI@public.gmane.org" <mingo-X9Un+BFzKDI@public.gmane.org>, Eric B Munson <ebmunson-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+I hope to have a fix next week for the first one.
 
---=-ASlxzUHL6WNw67n2qiu9
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Thanks,
+Amir
 
-Hey Sasha,
-
-This patch checks for duplicate port guids in a libibnetdisc cache when
-it is loaded and report an error back to the user appropriately.
-
-Al
-
--- 
-Albert Chu
-chu11-i2BcT+NCU+M@public.gmane.org
-Computer Scientist
-High Performance Systems Division
-Lawrence Livermore National Laboratory
-
---=-ASlxzUHL6WNw67n2qiu9
-Content-Disposition: attachment; filename*0=0002-check-for-duplicate-port-guids-in-libibnetdisc-cache.pat; filename*1=ch
-Content-Type: message/rfc822; name=0002-check-for-duplicate-port-guids-in-libibnetdisc-cache.patch
-
-From: Albert Chu <chu11-i2BcT+NCU+M@public.gmane.org>
-Date: Wed, 14 Apr 2010 15:25:11 -0700
-Subject: [PATCH] check for duplicate port guids in libibnetdisc cache
-Message-Id: <1271285070.17987.138.camel-X2zTWyBD0EhliZ7u+bvwcg@public.gmane.org>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
-
-
-Signed-off-by: Albert Chu <chu11-i2BcT+NCU+M@public.gmane.org>
----
- .../libibnetdisc/src/ibnetdisc_cache.c             |    5 +++++
- 1 files changed, 5 insertions(+), 0 deletions(-)
-
-diff --git a/infiniband-diags/libibnetdisc/src/ibnetdisc_cache.c b/infiniband-diags/libibnetdisc/src/ibnetdisc_cache.c
-index 2ec353d..a02fcba 100644
---- a/infiniband-diags/libibnetdisc/src/ibnetdisc_cache.c
-+++ b/infiniband-diags/libibnetdisc/src/ibnetdisc_cache.c
-@@ -505,6 +505,11 @@ static int _fill_port(ibnd_fabric_cache_t * fabric_cache, ibnd_node_t * node,
- 		return -1;
- 	}
- 
-+	if (port_cache->port_stored_to_fabric) {
-+		IBND_DEBUG("Cache invalid: duplicate port discovered\n");
-+		return -1;
-+	}
-+
- 	node->ports[port_cache->port->portnum] = port_cache->port;
- 	port_cache->port_stored_to_fabric++;
- 
--- 
-1.5.4.5
-
-
---=-ASlxzUHL6WNw67n2qiu9--
-
+On 04/14/2010 09:48 PM, Tung, Chien Tin wrote:
+>> Tung, Chien Tin wrote:
+>>     
+>>>> One more thing - Please open a bug regarding the num_sge limitation at:
+>>>> https://bugs.openfabrics.org/
+>>>>
+>>>>         
+>>> Done, Bug 2027.
+>>>
+>>> Chien
+>>>
+>>>       
+>> And 2028 opened to request fastreg support.
+>>
+>>     
+>
+> I am open to test fixes for these two bugs.
+>
+> Chien
+>
+>   
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
