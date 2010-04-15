@@ -1,65 +1,133 @@
 From: "Sean Hefty" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: two questions about RDMA-WRITE
-Date: Thu, 15 Apr 2010 10:17:03 -0700
-Message-ID: <4B0EDAC5753E48CD8CE32B6E3EF15949@amr.corp.intel.com>
-References: <q2v7bb361261004130308za7b4d6ccj6fdb657b7c7cc7e9@mail.gmail.com> <77BFFFE3D9C34D64A03DA5A9DC22F42D@amr.corp.intel.com> <20100414034142.GA5567@DINGDH.localhost.domain>
+Subject: [PATCH] rdma/cm: Randomize local port allocation.
+Date: Thu, 15 Apr 2010 12:55:29 -0700
+Message-ID: <5CE6BC7B954643FAAFFD2AD66F673CBD@amr.corp.intel.com>
+References: <20100412100744.5302.92442.sendpatchset@localhost.localdomain>	<20100412100816.5302.74919.sendpatchset@localhost.localdomain>	<201004130121.o3D1Lhh7099571@www262.sakura.ne.jp>	<4BC41994.7030707@redhat.com>	<4BC42FE0.4040601@redhat.com> <201004132207.GAJ52684.OJFtMQVFHOSFLO@I-love.SAKURA.ne.jp> <21DAC78125424ED291B5D6477CFF9657@amr.corp.intel.com> <201004140201.o3E21Aqn075978@www262.sakura.ne.jp> <195EB1AD388F455AA386EB214FCD09F4@amr.corp.intel.com> <201004150229.o3F2T4dZ054768@www262.sakura.ne.jp>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20100414034142.GA5567-6UwBTAaVBkEeWBJJgrHO4P1unptsbck7@public.gmane.org>
+In-Reply-To: <201004150229.o3F2T4dZ054768-etx+eQDEXHD7nzcFbJAaVXf5DAMn2ifp@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: 'Ding Dinghua' <dingdinghua85-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: 'Tetsuo Handa' <penguin-kernel-JPay3/Yim36HaxMnTkn67Xf5DAMn2ifp@public.gmane.org>
+Cc: amwang-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, opurdila-+zzKsuq53OdBDgjK7y7TUQ@public.gmane.org, eric.dumazet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, nhorman-2XuSBdqkA4R54TAoqtyWWQ@public.gmane.org, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, ebiederm-aS9lmoZGLiVWk0Htik3J/w@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
->static void jm_cq_comp_handler(struct ib_cq *cq, void *context) {
->        struct jm_rdma_conn *conn = context;
->        struct ib_wc wc;
->        struct jm_send_ctx *send;
+From: Tetsuo Handa <penguin-kernel-JPay3/Yim36HaxMnTkn67Xf5DAMn2ifp@public.gmane.org>
+
+>Randomize local port allocation in a way sctp_get_port_local() does.
+>Update rover at the end of loop since we're likely to pick a valid port
+>on the first try.
 >
->        /* No idea why it should be called twice. */
->        printk("cq comp for id %p\n", conn->jc_id);
->        ib_req_notify_cq(cq, IB_CQ_NEXT_COMP);
->        while (ib_poll_cq(cq, 1, &wc) == 1) {
->                if (wc.opcode != IB_WC_RDMA_WRITE) {
->                        printk("completed unknown opcode %d\n", wc.opcode);
->                        /* continue; */
->                }
->                send = (struct jm_send_ctx *)wc.wr_id;
->                printk("got send=%p\n", send);
->                printk("completed RDMA_WRITE of IO(%Lu, %u)\n",
->                       send->s_offset, send->s_size);
->                send->s_done = wc.status == IB_WC_SUCCESS ? 1 : -EIO;
->                wake_up_all(&send->s_wait);
->        }
->        ib_req_notify_cq(cq, IB_CQ_NEXT_COMP);
+>Signed-off-by: Tetsuo Handa <penguin-kernel-JPay3/Yim36HaxMnTkn67Xf5DAMn2ifp@public.gmane.org>
+Reviewed-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-unrelated to your problem, but this second call to ib_req_notify_cq isn't
-necessary.
+>---
 
->static int jm_rdma_cm_event_handler(struct rdma_cm_id *id, struct rdma_cm_event
->*event) {
-..
->        case RDMA_CM_EVENT_DISCONNECTED:
->                connstate = -ECONNABORTED;
->                goto connected;
-..
->connected:
->                printk("%pI4:%u (event 0x%x)\n",
->                       &conn->jc_remoteaddr.sin_addr.s_addr,
->                       ntohs(conn->jc_remoteaddr.sin_port),
->                       event->event << 11);
->                conn->jc_connstate = connstate;
->                wake_up_all(&conn->jc_connect_wait);
->                break;
+I like this version, thanks!  I'm not sure which tree to merge it through.
+Are you needing this for 2.6.34, or is 2.6.35 okay?
 
-How quickly do you respond to the disconnect event?  The remote side will wait
-until it receives a response or times out, which may be several seconds or
-minutes.
-
-- Sean
+> drivers/infiniband/core/cma.c |   70 +++++++++++++++--------------------------
+>-
+> 1 file changed, 25 insertions(+), 45 deletions(-)
+>
+>--- linux-2.6.34-rc4.orig/drivers/infiniband/core/cma.c
+>+++ linux-2.6.34-rc4/drivers/infiniband/core/cma.c
+>@@ -79,7 +79,6 @@ static DEFINE_IDR(sdp_ps);
+> static DEFINE_IDR(tcp_ps);
+> static DEFINE_IDR(udp_ps);
+> static DEFINE_IDR(ipoib_ps);
+>-static int next_port;
+>
+> struct cma_device {
+> 	struct list_head	list;
+>@@ -1970,47 +1969,33 @@ err1:
+>
+> static int cma_alloc_any_port(struct idr *ps, struct rdma_id_private *id_priv)
+> {
+>-	struct rdma_bind_list *bind_list;
+>-	int port, ret, low, high;
+>-
+>-	bind_list = kzalloc(sizeof *bind_list, GFP_KERNEL);
+>-	if (!bind_list)
+>-		return -ENOMEM;
+>-
+>-retry:
+>-	/* FIXME: add proper port randomization per like inet_csk_get_port */
+>-	do {
+>-		ret = idr_get_new_above(ps, bind_list, next_port, &port);
+>-	} while ((ret == -EAGAIN) && idr_pre_get(ps, GFP_KERNEL));
+>-
+>-	if (ret)
+>-		goto err1;
+>+	static unsigned int last_used_port;
+>+	int low, high, remaining;
+>+	unsigned int rover;
+>
+> 	inet_get_local_port_range(&low, &high);
+>-	if (port > high) {
+>-		if (next_port != low) {
+>-			idr_remove(ps, port);
+>-			next_port = low;
+>-			goto retry;
+>-		}
+>-		ret = -EADDRNOTAVAIL;
+>-		goto err2;
+>+	remaining = (high - low) + 1;
+>+	rover = net_random() % remaining + low;
+>+retry:
+>+	if (last_used_port != rover &&
+>+	    !idr_find(ps, (unsigned short) rover)) {
+>+		int ret = cma_alloc_port(ps, id_priv, rover);
+>+		/*
+>+		 * Remember previously used port number in order to avoid
+>+		 * re-using same port immediately after it is closed.
+>+		 */
+>+		if (!ret)
+>+			last_used_port = rover;
+>+		if (ret != -EADDRNOTAVAIL)
+>+			return ret;
+> 	}
+>-
+>-	if (port == high)
+>-		next_port = low;
+>-	else
+>-		next_port = port + 1;
+>-
+>-	bind_list->ps = ps;
+>-	bind_list->port = (unsigned short) port;
+>-	cma_bind_port(bind_list, id_priv);
+>-	return 0;
+>-err2:
+>-	idr_remove(ps, port);
+>-err1:
+>-	kfree(bind_list);
+>-	return ret;
+>+	if (--remaining) {
+>+		rover++;
+>+		if ((rover < low) || (rover > high))
+>+			rover = low;
+>+		goto retry;
+>+	}
+>+	return -EADDRNOTAVAIL;
+> }
+>
+> static int cma_use_port(struct idr *ps, struct rdma_id_private *id_priv)
+>@@ -2995,12 +2980,7 @@ static void cma_remove_one(struct ib_dev
+>
+> static int __init cma_init(void)
+> {
+>-	int ret, low, high, remaining;
+>-
+>-	get_random_bytes(&next_port, sizeof next_port);
+>-	inet_get_local_port_range(&low, &high);
+>-	remaining = (high - low) + 1;
+>-	next_port = ((unsigned int) next_port % remaining) + low;
+>+	int ret;
+>
+> 	cma_wq = create_singlethread_workqueue("rdma_cm");
+> 	if (!cma_wq)
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
