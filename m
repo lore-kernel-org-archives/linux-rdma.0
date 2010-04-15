@@ -1,44 +1,67 @@
-From: Peter Zijlstra <peterz@infradead.org>
-Subject: Re: [PATCH] ummunotify: Userspace support for MMU notifications
-Date: Thu, 15 Apr 2010 15:48:42 +0200
-Message-ID: <1271339322.1674.16.camel@laptop>
-References: <1271053337-7121-1-git-send-email-ebmunson@us.ibm.com>
-	 <20100412160359.1d9074dc.akpm@linux-foundation.org>
-	 <20100412235937.GF15629@obsidianresearch.com>
-	 <3251DDDA-D705-4B1E-9595-9C24709EF146@Sun.com>
-	 <adahbnfme0j.fsf@roland-alpha.cisco.com> <1271181774.4807.1868.camel@twins>
-	 <20100414085228.GL23554@redhat.com>
+From: "Sean Hefty" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: two questions about RDMA-WRITE
+Date: Thu, 15 Apr 2010 10:17:03 -0700
+Message-ID: <4B0EDAC5753E48CD8CE32B6E3EF15949@amr.corp.intel.com>
+References: <q2v7bb361261004130308za7b4d6ccj6fdb657b7c7cc7e9@mail.gmail.com> <77BFFFE3D9C34D64A03DA5A9DC22F42D@amr.corp.intel.com> <20100414034142.GA5567@DINGDH.localhost.domain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain;
+	charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20100414085228.GL23554@redhat.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Gleb Natapov <gleb@redhat.com>
-Cc: Roland Dreier <rdreier@cisco.com>, =?ISO-8859-1?Q?H=E5kon?= Bugge <Haakon.Bugge@Sun.COM>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Andrew Morton <akpm@linux-foundation.org>, Eric B Munson <ebmunson@us.ibm.com>, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, rolandd@cisco.com, pavel@ucw.cz, mingo@elte.hu, jsquyres@cisco.com
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20100414034142.GA5567-6UwBTAaVBkEeWBJJgrHO4P1unptsbck7@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: 'Ding Dinghua' <dingdinghua85-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, 2010-04-14 at 11:52 +0300, Gleb Natapov wrote:
-> On Tue, Apr 13, 2010 at 08:02:54PM +0200, Peter Zijlstra wrote:
-> > On Tue, 2010-04-13 at 10:57 -0700, Roland Dreier wrote:
-> > > Are those system calls the only possible way that virtual to physical
-> > > mappings can change?  Can't page migration or something like that
-> > > potentially affect things?  And even if you did have hooks into every
-> > > system call that mattered (keep in mind that relying on glibc is not
-> > > enough, since an MPI application may not use glibc) would decoding them
-> > > and figuring out what happened really be preferable to a single event
-> > > type that tells you exactly what address range was affected? 
-> > 
-> > Yeah, virtual<->physical maps can change through swapping, page
-> > migration, memory compaction, huge-page aggregation (the latter two not
-> > yet being upstream).
-> > 
-> > Even mlock() doesn't pin virtual<->physical maps.
-> Pages registered for RDMA are GUPed so no method above should touch
-> them. Fork+cow or unmap/map on the other hand can change
-> virtual<->physical maps. GUPed pages are still GUPed, but they are no
-> longer mapped into process' virtual address space. MPI copes with
-> Fork+cow by marking registered memory as MADV_DONTFORK.
+>static void jm_cq_comp_handler(struct ib_cq *cq, void *context) {
+>        struct jm_rdma_conn *conn = context;
+>        struct ib_wc wc;
+>        struct jm_send_ctx *send;
+>
+>        /* No idea why it should be called twice. */
+>        printk("cq comp for id %p\n", conn->jc_id);
+>        ib_req_notify_cq(cq, IB_CQ_NEXT_COMP);
+>        while (ib_poll_cq(cq, 1, &wc) == 1) {
+>                if (wc.opcode != IB_WC_RDMA_WRITE) {
+>                        printk("completed unknown opcode %d\n", wc.opcode);
+>                        /* continue; */
+>                }
+>                send = (struct jm_send_ctx *)wc.wr_id;
+>                printk("got send=%p\n", send);
+>                printk("completed RDMA_WRITE of IO(%Lu, %u)\n",
+>                       send->s_offset, send->s_size);
+>                send->s_done = wc.status == IB_WC_SUCCESS ? 1 : -EIO;
+>                wake_up_all(&send->s_wait);
+>        }
+>        ib_req_notify_cq(cq, IB_CQ_NEXT_COMP);
 
-Sure, holding a page-ref will pin the physical page, but that is not
-something userspace usually has means to.
+unrelated to your problem, but this second call to ib_req_notify_cq isn't
+necessary.
+
+>static int jm_rdma_cm_event_handler(struct rdma_cm_id *id, struct rdma_cm_event
+>*event) {
+..
+>        case RDMA_CM_EVENT_DISCONNECTED:
+>                connstate = -ECONNABORTED;
+>                goto connected;
+..
+>connected:
+>                printk("%pI4:%u (event 0x%x)\n",
+>                       &conn->jc_remoteaddr.sin_addr.s_addr,
+>                       ntohs(conn->jc_remoteaddr.sin_port),
+>                       event->event << 11);
+>                conn->jc_connstate = connstate;
+>                wake_up_all(&conn->jc_connect_wait);
+>                break;
+
+How quickly do you respond to the disconnect event?  The remote side will wait
+until it receives a response or times out, which may be several seconds or
+minutes.
+
+- Sean
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
