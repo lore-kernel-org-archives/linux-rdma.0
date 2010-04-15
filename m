@@ -1,67 +1,44 @@
-From: Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH 1/4] opensm: added function that dumps PathRecords
-Date: Thu, 15 Apr 2010 14:54:37 +0300
-Message-ID: <4BC6FE7D.6040501@dev.mellanox.co.il>
-References: <4BBDDA1E.7030102@dev.mellanox.co.il>
-	<1271283366.4092.145.camel@sale659.sandia.gov>
+From: Peter Zijlstra <peterz@infradead.org>
+Subject: Re: [PATCH] ummunotify: Userspace support for MMU notifications
+Date: Thu, 15 Apr 2010 15:48:42 +0200
+Message-ID: <1271339322.1674.16.camel@laptop>
+References: <1271053337-7121-1-git-send-email-ebmunson@us.ibm.com>
+	 <20100412160359.1d9074dc.akpm@linux-foundation.org>
+	 <20100412235937.GF15629@obsidianresearch.com>
+	 <3251DDDA-D705-4B1E-9595-9C24709EF146@Sun.com>
+	 <adahbnfme0j.fsf@roland-alpha.cisco.com> <1271181774.4807.1868.camel@twins>
+	 <20100414085228.GL23554@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1255"; format="flowed"
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1271283366.4092.145.camel-mgfCWIlwujvg4c9jKm7R2O1ftBKYq+Ku@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jim Schutt <jaschut-4OHPYypu0djtX7QSmKvirg@public.gmane.org>
-Cc: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>, Linux RDMA <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20100414085228.GL23554@redhat.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Gleb Natapov <gleb@redhat.com>
+Cc: Roland Dreier <rdreier@cisco.com>, =?ISO-8859-1?Q?H=E5kon?= Bugge <Haakon.Bugge@Sun.COM>, Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, Andrew Morton <akpm@linux-foundation.org>, Eric B Munson <ebmunson@us.ibm.com>, linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, rolandd@cisco.com, pavel@ucw.cz, mingo@elte.hu, jsquyres@cisco.com
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Jim,
+On Wed, 2010-04-14 at 11:52 +0300, Gleb Natapov wrote:
+> On Tue, Apr 13, 2010 at 08:02:54PM +0200, Peter Zijlstra wrote:
+> > On Tue, 2010-04-13 at 10:57 -0700, Roland Dreier wrote:
+> > > Are those system calls the only possible way that virtual to physical
+> > > mappings can change?  Can't page migration or something like that
+> > > potentially affect things?  And even if you did have hooks into every
+> > > system call that mattered (keep in mind that relying on glibc is not
+> > > enough, since an MPI application may not use glibc) would decoding them
+> > > and figuring out what happened really be preferable to a single event
+> > > type that tells you exactly what address range was affected? 
+> > 
+> > Yeah, virtual<->physical maps can change through swapping, page
+> > migration, memory compaction, huge-page aggregation (the latter two not
+> > yet being upstream).
+> > 
+> > Even mlock() doesn't pin virtual<->physical maps.
+> Pages registered for RDMA are GUPed so no method above should touch
+> them. Fork+cow or unmap/map on the other hand can change
+> virtual<->physical maps. GUPed pages are still GUPed, but they are no
+> longer mapped into process' virtual address space. MPI copes with
+> Fork+cow by marking registered memory as MADV_DONTFORK.
 
-On 15/Apr/10 01:16, Jim Schutt wrote:
-> Hi Yevgeny,
->
-> On Thu, 2010-04-08 at 07:29 -0600, Yevgeny Kliteynik wrote:
->> Dumping SL, MTU and Rate for all the
->> non-switch-2-non-switch paths in the subnet.
->>
->> PRs that are dumped:
->>
->>    for every non-switch source port
->>        for every non-switch target LID in the subnet
->>            dump PR between source port and target LID
->>
->> This way number of sources is equal to number of physical
->> non-switch ports in the subnet, and only number of targets
->> depends on LMC that is used.
->>
->> Signed-off-by: Yevgeny Kliteynik<kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
->> ---
-
-[snip]
-  
->> +		p_node = p_src_port->p_node;
->> +		if (p_node->node_info.node_type == IB_NODE_TYPE_SWITCH)
->> +			return;
->
-> -			return;
-> +			continue;
->
-> Otherwise we stop dumping at the first switch we encounter?
-
-Correct, thanks :)
-
--- Yevgeny
-
-> -- Jim
->
->
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Sure, holding a page-ref will pin the physical page, but that is not
+something userspace usually has means to.
