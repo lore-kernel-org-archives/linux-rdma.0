@@ -1,93 +1,39 @@
-From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: Re: [PATCH v3 00/10] iw_cxgb4 driver submission
-Date: Fri, 16 Apr 2010 13:41:53 -0500
-Message-ID: <4BC8AF71.2010605@opengridcomputing.com>
-References: <20100416182924.22495.59421.stgit@build.ogc.int>
+From: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+Subject: Re: [PATCH] rdma/cm: Randomize local port allocation.
+Date: Fri, 16 Apr 2010 13:30:01 -0700 (PDT)
+Message-ID: <20100416.133001.262206466.davem@davemloft.net>
+References: <5CE6BC7B954643FAAFFD2AD66F673CBD@amr.corp.intel.com>
+	<4BC7C9CF.20403@redhat.com>
+	<201004162254.FJF73478.SHOOMOFtQFVJLF@I-love.SAKURA.ne.jp>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20100416182924.22495.59421.stgit-T4OLL4TyM9aNDNWfRnPdfg@public.gmane.org>
+In-Reply-To: <201004162254.FJF73478.SHOOMOFtQFVJLF-JPay3/Yim36HaxMnTkn67Xf5DAMn2ifp@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: penguin-kernel-JPay3/Yim36HaxMnTkn67Xf5DAMn2ifp@public.gmane.org
+Cc: amwang-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, opurdila-+zzKsuq53OdBDgjK7y7TUQ@public.gmane.org, eric.dumazet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, nhorman-2XuSBdqkA4R54TAoqtyWWQ@public.gmane.org, ebiederm-aS9lmoZGLiVWk0Htik3J/w@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hey Roland,
+From: Tetsuo Handa <penguin-kernel-JPay3/Yim36HaxMnTkn67Xf5DAMn2ifp@public.gmane.org>
+Date: Fri, 16 Apr 2010 22:54:22 +0900
 
-I'll be off line next week, returning on 4/26.  I'll address any 
-comments/issues when I return.
+> Cong Wang wrote:
+>> Sean Hefty wrote:
+>> > I like this version, thanks!  I'm not sure which tree to merge it through.
+>> > Are you needing this for 2.6.34, or is 2.6.35 okay?
+>> > 
+>> 
+>> As soon as possible, so 2.6.34. :)
+>> 
+> Cong, merge window for 2.6.34 was already closed.
+> You need to make your patchset towards 2.6.35 (using net-next-2.6 tree)
+> rather than 2.6.34 (using linux-2.6 tree). Therefore, this patch being
+> queued for 2.6.35 (through net-next-2.6 tree) should be okay for you.
 
-Thanks!
-
-
-Steve.
-
-
-Steve Wise wrote:
-> Changes since version 2 of this series:
->
-> - termination fixes
->
-> - peer2peer fixes
->
-> ------
->
-> The following series adds the iw_cxgb4 rdma driver for Chelsio's new
-> 1G and 10G T4 adapters.   Please review and provide comments, and
-> I'll repost an updated patch series as I incorporate your feedback.
->
-> This series depends on the cxgb4 driver recently merged into:
->
-> git://git.kernel.org/pub/scm/linux/kernel/git/davem/net-2.6.git
->
-> You can find the final cxgb4 patch submission at:
->
-> http://www.spinics.net/lists/netdev/msg125898.html
->
-> The iw_cxgb4 patches are against the above net-2.6 tree as of cf16d7d.
-> You can also pull these from:
->
-> git://www.openfabrics.org/~swise/cxgb4.git iw_cxgb4
->
->  drivers/infiniband/Kconfig                |    1 
->  drivers/infiniband/Makefile               |    1 
->  drivers/infiniband/hw/cxgb4/Kconfig       |   19 
->  drivers/infiniband/hw/cxgb4/Makefile      |    5 
->  drivers/infiniband/hw/cxgb4/cm.c          | 2348 +++++++++++++++++++++++++++++
->  drivers/infiniband/hw/cxgb4/cq.c          |  882 +++++++++++
->  drivers/infiniband/hw/cxgb4/device.c      |  520 ++++++
->  drivers/infiniband/hw/cxgb4/ev.c          |  193 ++
->  drivers/infiniband/hw/cxgb4/iw_cxgb4.h    |  743 +++++++++
->  drivers/infiniband/hw/cxgb4/mem.c         |  811 ++++++++++
->  drivers/infiniband/hw/cxgb4/provider.c    |  518 ++++++
->  drivers/infiniband/hw/cxgb4/qp.c          | 1575 +++++++++++++++++++
->  drivers/infiniband/hw/cxgb4/resource.c    |  417 +++++
->  drivers/infiniband/hw/cxgb4/t4.h          |  536 +++++++
->  drivers/infiniband/hw/cxgb4/t4fw_ri_api.h |  829 ++++++++++
->  drivers/infiniband/hw/cxgb4/user.h        |   66 +
->  16 files changed, 9464 insertions(+), 0 deletions(-)
->  create mode 100644 drivers/infiniband/hw/cxgb4/Kconfig
->  create mode 100644 drivers/infiniband/hw/cxgb4/Makefile
->  create mode 100644 drivers/infiniband/hw/cxgb4/cm.c
->  create mode 100644 drivers/infiniband/hw/cxgb4/cq.c
->  create mode 100644 drivers/infiniband/hw/cxgb4/device.c
->  create mode 100644 drivers/infiniband/hw/cxgb4/ev.c
->  create mode 100644 drivers/infiniband/hw/cxgb4/iw_cxgb4.h
->  create mode 100644 drivers/infiniband/hw/cxgb4/mem.c
->  create mode 100644 drivers/infiniband/hw/cxgb4/provider.c
->  create mode 100644 drivers/infiniband/hw/cxgb4/qp.c
->  create mode 100644 drivers/infiniband/hw/cxgb4/resource.c
->  create mode 100644 drivers/infiniband/hw/cxgb4/t4.h
->  create mode 100644 drivers/infiniband/hw/cxgb4/t4fw_ri_api.h
->  create mode 100644 drivers/infiniband/hw/cxgb4/user.h
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->   
-
+I don't take RDMA patches into net-next-2.6, the less I touch this
+stack avoiding stuff the better and Roland has been taking this stuff
+into his own tree for some time now.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
