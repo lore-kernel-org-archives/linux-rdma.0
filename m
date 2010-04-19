@@ -1,114 +1,75 @@
-From: Line Holen <Line.Holen-xsfywfwIY+M@public.gmane.org>
-Subject: Re: [PATCH] opensm/osm_sa_path_record.c: livelock in
- pr_rcv_get_path_parms
-Date: Mon, 19 Apr 2010 20:32:37 +0200
-Message-ID: <4BCCA1C5.5000904@Sun.COM>
-References: <4BCC1F3F.5080000@Sun.COM> <20100419153421.GB23994@me>
+From: Al Chu <chu11-i2BcT+NCU+M@public.gmane.org>
+Subject: [infiniband-diags] [1/3] make libibnetdisc default behavior to
+	overwrite a cache
+Date: Mon, 19 Apr 2010 11:43:07 -0700
+Message-ID: <1271702587.17987.212.camel@auk31.llnl.gov>
 Mime-Version: 1.0
-Content-Type: text/plain; CHARSET=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: multipart/mixed; boundary="=-TPS8G2yRmVeIl9dlmNmu"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-reply-to: <20100419153421.GB23994@me>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 04/19/10 05:34 PM, Sasha Khapyorsky wrote:
-> On 11:15 Mon 19 Apr     , Line Holen wrote:
->> SA path request handling can end up in a livelock in pr_rcv_get_path_parms().
->> This can happen if a path request is handled while LFT updates to the fabric
->> are in progress. 
->> The LFT of the switch data structure is updated as part of the LFT response 
->> processing. So while the SM is busy pushing the LFT updates, some switches have
->> up to date LFT info while others are not yet updated and contains the LFT of
->> the previous routing. For a (short) time interval there is a potential for 
->> loops in the fabric. The livelock occurs if a path request is received during
->> this time interval.
->> Both LFT response handling and path request processing needs the SM lock.
->> When the livelock occurs the LFT response handling blocks forever waiting for 
->> the lock to be released.
->>
->> The suggested fix is simply to introduce a max number of hops that should
->> be traversed while handling the path request. If this max is reached then
->> the request will return with NO_RECORD response and release the SM lock.
->> This way the LFT processing will be able to complete.
->>
->> Signed-off-by: Line Holen <Line.Holen-xsfywfwIY+M@public.gmane.org>
-> 
-> Applied. Thanks. See minor question/note below.
-> 
->> ---
->>
->> diff --git a/opensm/opensm/osm_sa_path_record.c b/opensm/opensm/osm_sa_path_record.c
->> index c4c3f86..b399b70 100644
->> --- a/opensm/opensm/osm_sa_path_record.c
->> +++ b/opensm/opensm/osm_sa_path_record.c
->> @@ -4,6 +4,7 @@
->>   * Copyright (c) 1996-2003 Intel Corporation. All rights reserved.
->>   * Copyright (c) 2008 Xsigo Systems Inc. All rights reserved.
->>   * Copyright (c) 2009 HNR Consulting. All rights reserved.
->> + * Copyright (c) 2010 Sun Microsystems, Inc. All rights reserved.
->>   *
->>   * This software is available to you under a choice of one of two
->>   * licenses.  You may choose to be licensed under the terms of the GNU
->> @@ -69,6 +70,9 @@
->>  #include <opensm/osm_prefix_route.h>
->>  #include <opensm/osm_ucast_lash.h>
->>  
->> +
->> +#define MAX_HOPS 128
-> 
-> IB spec defines maximal number of hops for a fabric which is 64. Would
-> it be netter to use this value here?
-> 
-> Sasha
 
-The value of 128 was chosen as 2x max DR path allowing the SM to be in
-the middle of a fabric. But I have no problem lowering to 64.
+--=-TPS8G2yRmVeIl9dlmNmu
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 
-Line
+Hey Sasha,
 
-> 
->> +
->>  typedef struct osm_pr_item {
->>  	cl_list_item_t list_item;
->>  	ib_path_rec_t path_rec;
->> @@ -178,6 +182,7 @@ static ib_api_status_t pr_rcv_get_path_parms(IN osm_sa_t * sa,
->>  	osm_qos_level_t *p_qos_level = NULL;
->>  	uint16_t valid_sl_mask = 0xffff;
->>  	int is_lash;
->> +	int hops = 0;
->>  
->>  	OSM_LOG_ENTER(sa->p_log);
->>  
->> @@ -369,6 +374,25 @@ static ib_api_status_t pr_rcv_get_path_parms(IN osm_sa_t * sa,
->>  				goto Exit;
->>  			}
->>  		}
->> +
->> +		/* update number of hops traversed */
->> +		hops++;
->> +		if (hops > MAX_HOPS) {
->> +
->> +			OSM_LOG(sa->p_log, OSM_LOG_ERROR,
->> +			    "Path from GUID 0x%016" PRIx64 " (%s) to lid %u GUID 0x%016"
->> +			    PRIx64 " (%s) needs more than %d hops, "
->> +			    "max %d hops allowed\n",
->> +			    cl_ntoh64(osm_physp_get_port_guid(p_src_physp)),
->> +			    p_src_physp->p_node->print_desc,
->> +			    dest_lid_ho,
->> +			    cl_ntoh64(osm_physp_get_port_guid(p_dest_physp)),
->> +			    p_dest_physp->p_node->print_desc,
->> +			    hops, MAX_HOPS);
->> +
->> +			status = IB_NOT_FOUND;
->> +			goto Exit;
->> +		}
->>  	}
->>  
->>  	/*
->>
+As discussed in a previous thread, this patch makes the default caching
+behavior in libibnetdisc to overwrite a previous cache.
+
+Al
+
+-- 
+Albert Chu
+chu11-i2BcT+NCU+M@public.gmane.org
+Computer Scientist
+High Performance Systems Division
+Lawrence Livermore National Laboratory
+
+--=-TPS8G2yRmVeIl9dlmNmu
+Content-Disposition: attachment; filename*0=0001-make-libibnetdisc-default-behavior-to-overwrite-a-ca.pat; filename*1=ch
+Content-Type: message/rfc822; name=0001-make-libibnetdisc-default-behavior-to-overwrite-a-ca.patch
+
+From: Albert Chu <chu11-i2BcT+NCU+M@public.gmane.org>
+Date: Mon, 19 Apr 2010 10:52:14 -0700
+Subject: [PATCH] make libibnetdisc default behavior to overwrite a cache
+Message-Id: <1271702059.17987.211.camel-X2zTWyBD0EhliZ7u+bvwcg@public.gmane.org>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
+
+
+Signed-off-by: Albert Chu <chu11-i2BcT+NCU+M@public.gmane.org>
+---
+ .../libibnetdisc/src/ibnetdisc_cache.c             |    7 +++++--
+ 1 files changed, 5 insertions(+), 2 deletions(-)
+
+diff --git a/infiniband-diags/libibnetdisc/src/ibnetdisc_cache.c b/infiniband-diags/libibnetdisc/src/ibnetdisc_cache.c
+index 5acb8f6..e05ce99 100644
+--- a/infiniband-diags/libibnetdisc/src/ibnetdisc_cache.c
++++ b/infiniband-diags/libibnetdisc/src/ibnetdisc_cache.c
+@@ -889,8 +889,11 @@ int ibnd_cache_fabric(ibnd_fabric_t * fabric, const char *file,
+ 	}
+ 
+ 	if (!stat(file, &statbuf)) {
+-		IBND_DEBUG("file '%s' already exists\n", file);
+-		return -1;
++		if (unlink(file) < 0) {
++			IBND_DEBUG("error removing '%s': %s\n",
++				   file, strerror(errno));
++			return -1;
++		}
+ 	}
+ 
+ 	if ((fd = open(file, O_CREAT | O_EXCL | O_WRONLY, 0644)) < 0) {
+-- 
+1.5.4.5
+
+
+--=-TPS8G2yRmVeIl9dlmNmu--
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
