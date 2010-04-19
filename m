@@ -1,25 +1,24 @@
 From: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Subject: Re: [infiniband-diags] [1/2] fix libibnetdisc cache error path
- memleak
-Date: Mon, 19 Apr 2010 17:56:43 +0300
-Message-ID: <20100419145643.GN11943@me>
-References: <1271285269.17987.139.camel@auk31.llnl.gov>
+Subject: Re: [infiniband-diags] [2/2] check for duplicate port guids in
+ libibnetdisc cache
+Date: Mon, 19 Apr 2010 17:57:20 +0300
+Message-ID: <20100419145720.GO11943@me>
+References: <1271285281.17987.140.camel@auk31.llnl.gov>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1271285269.17987.139.camel-X2zTWyBD0EhliZ7u+bvwcg@public.gmane.org>
+In-Reply-To: <1271285281.17987.140.camel-X2zTWyBD0EhliZ7u+bvwcg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Al Chu <chu11-i2BcT+NCU+M@public.gmane.org>
 Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 15:47 Wed 14 Apr     , Al Chu wrote:
+On 15:48 Wed 14 Apr     , Al Chu wrote:
 > Hey Sasha,
 > 
-> This patch fixes a mem-leak through error paths in the libibnetdisc
-> cache loading.  If some data had not yet been "copied over" to the
-> fabric struct and an error occurred, that memory would be leaked.
+> This patch checks for duplicate port guids in a libibnetdisc cache when
+> it is loaded and report an error back to the user appropriately.
 > 
 > Al
 > 
@@ -30,10 +29,10 @@ On 15:47 Wed 14 Apr     , Al Chu wrote:
 > High Performance Systems Division
 > Lawrence Livermore National Laboratory
 
-> Date: Wed, 14 Apr 2010 14:11:27 -0700
+> Date: Wed, 14 Apr 2010 15:25:11 -0700
 > From: Albert Chu <chu11-i2BcT+NCU+M@public.gmane.org>
-> Subject: [PATCH] fix libibnetdisc cache error path memleak
-> Message-Id: <1271284770.17987.131.camel-X2zTWyBD0EhliZ7u+bvwcg@public.gmane.org>
+> Subject: [PATCH] check for duplicate port guids in libibnetdisc cache
+> Message-Id: <1271285070.17987.138.camel-X2zTWyBD0EhliZ7u+bvwcg@public.gmane.org>
 > Mime-Version: 1.0
 > Content-Transfer-Encoding: 7bit
 > 
