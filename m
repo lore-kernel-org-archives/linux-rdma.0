@@ -1,134 +1,41 @@
-From: Line Holen <Line.Holen-UdXhSnd/wVw@public.gmane.org>
-Subject: Re: [PATCH] opensm/osm_sa_path_record.c: livelock in
-	pr_rcv_get_path_parms
-Date: Mon, 19 Apr 2010 20:48:32 +0200
-Message-ID: <4BCCA580.3060700@Sun.COM>
-References: <4BCC1F3F.5080000@Sun.COM>
- <j2uf0e08f231004191120oc1e78130l683b9ae0ca51003a@mail.gmail.com>
+From: Cong Wang <amwang@redhat.com>
+Subject: Re: [PATCH] rdma/cm: Randomize local port allocation.
+Date: Tue, 20 Apr 2010 12:34:25 +0800
+Message-ID: <4BCD2ED1.4080702@redhat.com>
+References: <5CE6BC7B954643FAAFFD2AD66F673CBD@amr.corp.intel.com>	<4BC7C9CF.20403@redhat.com>	<201004162254.FJF73478.SHOOMOFtQFVJLF@I-love.SAKURA.ne.jp> <20100416.133001.262206466.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: text/plain; CHARSET=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-reply-to: <j2uf0e08f231004191120oc1e78130l683b9ae0ca51003a-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20100416.133001.262206466.davem@davemloft.net>
+Sender: netdev-owner@vger.kernel.org
+To: David Miller <davem@davemloft.net>
+Cc: penguin-kernel@I-love.SAKURA.ne.jp, sean.hefty@intel.com, opurdila@ixiacom.com, eric.dumazet@gmail.com, netdev@vger.kernel.org, nhorman@tuxdriver.com, ebiederm@xmission.com, linux-kernel@vger.kernel.org, rolandd@cisco.com, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 04/19/10 08:20 PM, Hal Rosenstock wrote:
-> On Mon, Apr 19, 2010 at 5:15 AM, Line Holen <Line.Holen-xsfywfwIY+M@public.gmane.org> wrote:
->> SA path request handling can end up in a livelock in pr_rcv_get_path_parms().
->> This can happen if a path request is handled while LFT updates to the fabric
->> are in progress.
->> The LFT of the switch data structure is updated as part of the LFT response
->> processing. So while the SM is busy pushing the LFT updates, some switches have
->> up to date LFT info while others are not yet updated and contains the LFT of
->> the previous routing. For a (short) time interval there is a potential for
->> loops in the fabric. The livelock occurs if a path request is received during
->> this time interval.
->> Both LFT response handling and path request processing needs the SM lock.
->> When the livelock occurs the LFT response handling blocks forever waiting for
->> the lock to be released.
->>
->> The suggested fix is simply to introduce a max number of hops that should
->> be traversed while handling the path request. If this max is reached then
->> the request will return with NO_RECORD response
+David Miller wrote:
+> From: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+> Date: Fri, 16 Apr 2010 22:54:22 +0900
 > 
-> To me, this begs the question of whether this should return a BUSY
-> status rather than no record (and whether SA clients should handle
-> those two differently) but that is a bigger change (and may require
-> some end node change as well).
-
-I think the fundamental issue here is that the path request handling is operating
-on inconsistent data - a mixture of old and new lft setup. A proper fix would
-be to use a consistent lft setup (either old or new) or deny service (return BUSY)
-while LFT updates are in progress. A check on number of hops still make sense
-though, because the routing could generate loops too.
-
+>> Cong Wang wrote:
+>>> Sean Hefty wrote:
+>>>> I like this version, thanks!  I'm not sure which tree to merge it through.
+>>>> Are you needing this for 2.6.34, or is 2.6.35 okay?
+>>>>
+>>> As soon as possible, so 2.6.34. :)
+>>>
+>> Cong, merge window for 2.6.34 was already closed.
+>> You need to make your patchset towards 2.6.35 (using net-next-2.6 tree)
+>> rather than 2.6.34 (using linux-2.6 tree). Therefore, this patch being
+>> queued for 2.6.35 (through net-next-2.6 tree) should be okay for you.
 > 
-> Also, should a similar change be made in SA MPR mpr_rcv_get_path_parms ?
+> I don't take RDMA patches into net-next-2.6, the less I touch this
+> stack avoiding stuff the better and Roland has been taking this stuff
+> into his own tree for some time now.
 
-Could be. I haven't checked that code.
+I left for a few days.
 
-Line
+Ok, so I will wait for this to be merged.
 
-> 
-> -- Hal
-> 
->> and release the SM lock.
->> This way the LFT processing will be able to complete.
->>
->> Signed-off-by: Line Holen <Line.Holen-xsfywfwIY+M@public.gmane.org>
->>
->> ---
->>
->> diff --git a/opensm/opensm/osm_sa_path_record.c b/opensm/opensm/osm_sa_path_record.c
->> index c4c3f86..b399b70 100644
->> --- a/opensm/opensm/osm_sa_path_record.c
->> +++ b/opensm/opensm/osm_sa_path_record.c
->> @@ -4,6 +4,7 @@
->>  * Copyright (c) 1996-2003 Intel Corporation. All rights reserved.
->>  * Copyright (c) 2008 Xsigo Systems Inc. All rights reserved.
->>  * Copyright (c) 2009 HNR Consulting. All rights reserved.
->> + * Copyright (c) 2010 Sun Microsystems, Inc. All rights reserved.
->>  *
->>  * This software is available to you under a choice of one of two
->>  * licenses.  You may choose to be licensed under the terms of the GNU
->> @@ -69,6 +70,9 @@
->>  #include <opensm/osm_prefix_route.h>
->>  #include <opensm/osm_ucast_lash.h>
->>
->> +
->> +#define MAX_HOPS 128
->> +
->>  typedef struct osm_pr_item {
->>        cl_list_item_t list_item;
->>        ib_path_rec_t path_rec;
->> @@ -178,6 +182,7 @@ static ib_api_status_t pr_rcv_get_path_parms(IN osm_sa_t * sa,
->>        osm_qos_level_t *p_qos_level = NULL;
->>        uint16_t valid_sl_mask = 0xffff;
->>        int is_lash;
->> +       int hops = 0;
->>
->>        OSM_LOG_ENTER(sa->p_log);
->>
->> @@ -369,6 +374,25 @@ static ib_api_status_t pr_rcv_get_path_parms(IN osm_sa_t * sa,
->>                                goto Exit;
->>                        }
->>                }
->> +
->> +               /* update number of hops traversed */
->> +               hops++;
->> +               if (hops > MAX_HOPS) {
->> +
->> +                       OSM_LOG(sa->p_log, OSM_LOG_ERROR,
->> +                           "Path from GUID 0x%016" PRIx64 " (%s) to lid %u GUID 0x%016"
->> +                           PRIx64 " (%s) needs more than %d hops, "
->> +                           "max %d hops allowed\n",
->> +                           cl_ntoh64(osm_physp_get_port_guid(p_src_physp)),
->> +                           p_src_physp->p_node->print_desc,
->> +                           dest_lid_ho,
->> +                           cl_ntoh64(osm_physp_get_port_guid(p_dest_physp)),
->> +                           p_dest_physp->p_node->print_desc,
->> +                           hops, MAX_HOPS);
->> +
->> +                       status = IB_NOT_FOUND;
->> +                       goto Exit;
->> +               }
->>        }
->>
->>        /*
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
->> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks, David and Tetsuo!
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
