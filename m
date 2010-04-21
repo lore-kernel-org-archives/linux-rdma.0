@@ -1,19 +1,19 @@
 From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH v3 4/4] libibverbs: Undo changes in memory range tree when madvise() fails
-Date: Wed, 21 Apr 2010 15:12:24 -0700
-Message-ID: <ada8w8gpi9j.fsf@roland-alpha.cisco.com>
-References: <4BAF8C88.80909@gmail.com>
+Subject: Re: [PATCH] RDMA/amso1100: use the dma state API instead of the pci equivalents
+Date: Wed, 21 Apr 2010 15:18:21 -0700
+Message-ID: <ada4oj4phzm.fsf@roland-alpha.cisco.com>
+References: <20100402132901M.fujita.tomonori@lab.ntt.co.jp>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4BAF8C88.80909-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> (Alex Vainman's message of "Sun, 28
-	Mar 2010 20:06:16 +0300")
+In-Reply-To: <20100402132901M.fujita.tomonori-Zyj7fXuS5i5L9jVzuh4AOg@public.gmane.org> (FUJITA
+	Tomonori's message of "Fri, 2 Apr 2010 13:29:41 +0900")
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: alexv-smomgflXvOZWk0Htik3J/w@public.gmane.org
-Cc: roland <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, alexr-smomgflXvOZWk0Htik3J/w@public.gmane.org
+To: FUJITA Tomonori <fujita.tomonori-Zyj7fXuS5i5L9jVzuh4AOg@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Thanks, looks great, applied.
+Thanks, applied all three of these conversion patches.
 -- 
 Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org> || For corporate legal information go to:
 http://www.cisco.com/web/about/doing_business/legal/cri/index.html
