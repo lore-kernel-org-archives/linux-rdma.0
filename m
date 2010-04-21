@@ -1,7 +1,7 @@
 From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 Subject: Re: [PATCH] RDMA/nes: make nesadapter->phy_lock usage consistent
-Date: Wed, 21 Apr 2010 15:46:48 -0700
-Message-ID: <adaochco23r.fsf@roland-alpha.cisco.com>
+Date: Wed, 21 Apr 2010 15:56:17 -0700
+Message-ID: <adak4s0o1ny.fsf@roland-alpha.cisco.com>
 References: <20100309215040.GA5912@ctung-MOBL>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
@@ -13,7 +13,8 @@ To: Chien Tung <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-thanks, applied.
+actually added a chunk to delete the (now-unused) nesadapter variable
+from nes_write_1G_phy_reg to fix a compile warning... no problem tho.
 -- 
 Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org> || For corporate legal information go to:
 http://www.cisco.com/web/about/doing_business/legal/cri/index.html
