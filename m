@@ -1,50 +1,47 @@
-From: Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: opensm with multiple IB subnets
-Date: Thu, 22 Apr 2010 17:38:38 +0300
-Message-ID: <4BD05F6E.3010606@dev.mellanox.co.il>
-References: <k2s2d0a59b21004201413ia115ae29u661f8df428d5ad08@mail.gmail.com>
-	<u2q2d0a59b21004201707gecf7f978pa585ada342ccb9b6@mail.gmail.com>
-	<4BCF1215.7070601@dev.mellanox.co.il> <4BD05BD2.9000600@salasaga.org>
+From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH 2/4] ib_core: implement XRC RCV qp's
+Date: Thu, 22 Apr 2010 11:03:54 -0700
+Message-ID: <adaljcfmkj9.fsf@roland-alpha.cisco.com>
+References: <201002281102.21207.jackm@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"; format="flowed"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4BD05BD2.9000600-oNuxUQfTmABg9hUCZPvPmw@public.gmane.org>
+In-Reply-To: <201002281102.21207.jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> (Jack Morgenstein's
+	message of "Sun, 28 Feb 2010 11:02:21 +0200")
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Justin Clift <justin-oNuxUQfTmABg9hUCZPvPmw@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 4/22/2010 5:23 PM, Justin Clift wrote:
-> We should really put this on the wiki. :)
+So I'm looking at merging this, and I'm wondering about one thing.
+Seems like it's just a mistake but I want to make sure I understand
+properly:
 
-Good idea :)
+ > @@ -1078,6 +1079,7 @@ ssize_t ib_uverbs_create_qp(struct ib_uverbs_file *file,
+ >  		goto err_put;
+ >  	}
+ >  
+ > +	attr.create_flags  = 0;
+ >  	attr.event_handler = ib_uverbs_qp_event_handler;
 
--- Yevgeny
-  
->
-> On 04/22/2010 12:56 AM, Yevgeny Kliteynik wrote:
-> <snip>
->> OpenSM dumps various files to /var/log and /var/cache/opensm folders.
->> When you have more than one OpenSM process, they will all dump the
->> same files, which is probably not a good idea.
->>
->> To change the output directories, set the OSM_TMP_DIR and
->> OSM_CACHE_DIR env. variables to some other place.
->> In addition, you need to make sure that each SM instance
->> prints its log in a different place. You need to do
->> something like this:
->>
->> foreach guid in guid_list
->> export OSM_TMP_DIR=/tmp/osm_dump_dir${guid}
->> export OSM_CACHE_DIR=/tmp/osm_dump_dir${guid}
->> opensm --log_file /tmp/osm_dump_dir${guid}/osm.log -g ${guid} [your
->> other options]
->>
->> -- Yevgeny
-> <snip>
->
+This looks redundant, because this function already sets create_flags to
+0 a few lines later.  So I think this line is just a remnant from some
+other patch.
 
+But then ib_uverbs_create_xrc_rcv_qp() doesn't set create_flags before
+the call to device->create_xrc_rcv_qp() -- which maybe is OK, since that
+function is not going to look at create_flags right now, but for the
+future we should probably set it to 0, right?
+
+Also it's not 100% clear to me why the low-level driver needs a special
+create_xrc_rcv_qp method, rather than having uverbs just call create_qp
+with the right parameters.  But I haven't looked throught carefully to
+see the differences between eg query_xrc_rcv_qp() vs query_qp() methods.
+
+ - R.
+-- 
+Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org> || For corporate legal information go to:
+http://www.cisco.com/web/about/doing_business/legal/cri/index.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
