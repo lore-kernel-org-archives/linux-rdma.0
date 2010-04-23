@@ -1,120 +1,109 @@
-From: Ken Teague <kteague-e+AXbWqSrlAAvxtiuMwx3w@public.gmane.org>
-Subject: Re: opensm with multiple IB subnets
-Date: Thu, 22 Apr 2010 12:47:09 -0700
-Message-ID: <i2v2d0a59b21004221247u56927b57m2fc033079e42ed73@mail.gmail.com>
-References: <k2s2d0a59b21004201413ia115ae29u661f8df428d5ad08@mail.gmail.com>
-	 <u2q2d0a59b21004201707gecf7f978pa585ada342ccb9b6@mail.gmail.com>
-	 <4BCF1215.7070601@dev.mellanox.co.il>
+From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+Subject: Re: [PATCH v3 1/2] libibnetdisc: Convert to a multi-smp algorithm
+Date: Thu, 22 Apr 2010 19:12:31 -0700
+Message-ID: <20100422191231.bf6021fb.weiny2@llnl.gov>
+References: <20100218124933.c018a23d.weiny2@llnl.gov>
+	<20100413104658.GA10830@me>
+	<20100413132531.GI10830@me>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4BCF1215.7070601-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+In-Reply-To: <20100413132531.GI10830@me>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Thank you, Yevgeny.  I've modified my init script accordingly and
-restarted opensm.  For anyone else that may find it useful, here is
-the "start" portion of my init script:
+On Tue, 13 Apr 2010 16:25:31 +0300
+Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org> wrote:
 
-start () {
-    echo -n "Starting opensm: "
-    for GUID in `${IBSTAT_BIN} ${IBSTAT_ARG}`
-    do
-        export OSM_TMP_DIR=3D"/tmp/opensm/${GUID}"
-        export OSM_CACHE_DIR=3D"/var/cache/opensm/${GUID}"
-        export OSM_LOG_DIR=3D"/var/log/opensm/${GUID}"
-        [ -d ${OSM_TMP_DIR} ] || mkdir -p ${OSM_TMP_DIR}
-        [ -d ${OSM_CACHE_DIR} ] || mkdir -p ${OSM_CACHE_DIR}
-        [ -d ${OSM_LOG_DIR} ] || mkdir ${OSM_LOG_DIR}
-        ${OPENSM_BIN} --log_file ${OSM_LOG_DIR}/opensm.log
-${OPENSM_ARG} ${GUID} > /dev/null
-    done
-    if [[ $RETVAL -eq 0 ]]; then
-        touch /var/lock/subsys/opensm
-        success
-    else
-        failure
-    fi
-    echo
+> On 13:46 Tue 13 Apr     , Sasha Khapyorsky wrote:
+> > 
+> > However see some comments and questions below.
+> 
+> Another thought. What about API like:
+> 
+> 	ibnd_discover_fabric(cosnt char *ca_name, unsigned port_num,
+> 			     struct ibnd_config *cfg);
+> 
+> So libibnetdisc will be responsible for opening and closing its own port
+> and in this way will be fully reenterable?
+
+I think we need this...  But this alone will not fix ibnetdisc...
+
+I found out why "iblinkinfo -S" is hanging for me.  The new algorithm has the
+library using both libibmad and libibumad calls simultaneously.
+
+These libraries were not designed to be used this way.  Therefore, I don't
+think there is any direct bug in those layers.  However, this is why I thought
+it was better for ibnetdisc to sit on top of ibmad and not use the umad layer.
+
+Anyway, I think it is a mistake to pass an ibmad_port construct directly to
+this library now.  Here is why.
+
+umad_recv in query_smp.c and ib_resolve_self_via in ibnetdisc.c conflicted.
+The underlying call to _do_madrpc was discarding the response MAD which
+query_smp.c:umad_recv was expecting.  This would result in a hang forever.[*]
+This will not happen unless you use -S because -S causes ibnetdisc.c to call
+ib_resolve_self_via to determine the "drslid".  Basically ibnetdisc needs to
+open an ibmad_port for any libibmad call and a fd via umad_open_port for the
+parallel stuff.[#]
+
+If we change the API to specify the ca name and port then the library can open
+2 ports (or as many as it wants) and use them appropriately.  I think this is
+the only solution which does not involve fixing libibmad.
+
+So what about something like this:
+
+   int ibnd_discover_fabric(ibnd_fabric_t **fabric,
+			    cosnt char *ca_name,  <== could we even default this?
+			    struct ibnd_config *cfg);
+
+I don't mind the ibnd_config_t struct but I don't think it should be visible
+to the user.  Make it opaque and use "set" functions.  Something like.
+
+ibnd_fabric_t *fabric;
+ibnd_config_t cfg;
+ib_portid_t * from;
+
+ibnd_set_hops(&cfg, hops);         <== default -1
+ibnd_set_port_num(&cfg, port_num); <== default 1
+ibnd_set_max_smps(&cfg, max_smps); <== default 2
+ibnd_set_from_node(&cfg, from);    <== default NULL
+
+if (ibnd_discover_fabric(&fabric, "foo", &cfg)) {  <== anything not in cfg is
+                                                       defaulted here
+   fprintf(stderr, "Wow it failed\n");
 }
 
+This allows us to change ibnd_config structure any time we want without
+affecting the API.  I don't think the "pad" you used is a good idea.
 
-On Wed, Apr 21, 2010 at 7:56 AM, Yevgeny Kliteynik
-<kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wrote:
-> Ken,
->
-> On 4/21/2010 3:07 AM, Ken Teague wrote:
->>
->> On Tue, Apr 20, 2010 at 2:13 PM, Ken Teague<kteague-e+AXbWqSrlAAvxtiuMwx3w@public.gmane.org> =C2=A0=
-wrote:
->>>
->>> I have a 17-node cluster and each node has a single IB card that ha=
-s
->>> 2x IB ports (ib0 and ib1).....
->>
->> After doing a little more research, I confirmed that my understandin=
-g
->> of the manual page is correct. =C2=A0To run opensm for each GUID, I
->> modified my init script to run a for loop based on the information
->> returned from "ibstat -p".
->>
->>
->> I added this near the beginning of the script where the other
->> environment variables are located:
->> <snip>
->> OFA_HOME=3D"/usr/local/sbin"
->> IBSTAT_BIN=3D"${OFA_HOME}/ibstat"
->> IBSTAT_ARG=3D"-p"
->> OPENSM_BIN=3D"${OFA_HOME}/opensm"
->> OPENSM_ARG=3D"-B -g"
->> <snip>
->>
->>
->> I replaced the single line which started opensm with this for loop:
->> for i in `${IBSTAT_BIN} ${IBSTAT_ARG}`
->> do
->> =C2=A0 =C2=A0 ${OPENSM_BIN} ${OPENSM_ARG} ${i}
->> done
->> <snip>
->>
->> If anyone has a more elegant way to handle this, I'm open to
->> suggestions. =C2=A0Many thanks.
->
-> OpenSM dumps various files to /var/log and /var/cache/opensm folders.
-> When you have more than one OpenSM process, they will all dump the
-> same files, which is probably not a good idea.
->
-> To change the output directories, set the OSM_TMP_DIR and
-> OSM_CACHE_DIR env. variables to some other place.
-> In addition, you need to make sure that each SM instance
-> prints its log in a different place. You need to do
-> something like this:
->
-> foreach guid in guid_list
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0export OSM_TMP_DIR=3D/tmp/osm_dump_dir${gu=
-id}
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0export OSM_CACHE_DIR=3D/tmp/osm_dump_dir${=
-guid}
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0opensm --log_file /tmp/osm_dump_dir${guid}=
-/osm.log -g ${guid} [your
-> other options]
->
-> -- Yevgeny
->
->> Ken
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-rdma=
-" in
->> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->> More majordomo info at =C2=A0http://vger.kernel.org/majordomo-info.h=
-tml
->>
->
->
+Also since we are breaking the API we might as well return the fabric as a
+parameter and have an error code.  But I could go either way on this one.
+
+Ira
+
+
+[*] query_smp.c probably should have it's own timeout here but we can discuss
+later.
+
+[#] What sucks about this is that libibmad already has the functionality to
+open the umad port and configure it (50 line function).  Now we will be
+duplicating this functionality.  I still maintain that making libibmad thread
+safe would be very beneficial, if not necessary.  For example handling RMPP
+and redirection is already in libibmad.  Why make people reimplement it on
+their own if they want concurrent execution of any kind?  <sigh>
+
+
+-- 
+Ira Weiny
+Math Programmer/Computer Scientist
+Lawrence Livermore National Lab
+925-423-8008
+weiny2-i2BcT+NCU+M@public.gmane.org
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
