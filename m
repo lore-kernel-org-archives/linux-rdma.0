@@ -1,108 +1,161 @@
-From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-Subject: Re: [PATCH v3 1/2] libibnetdisc: Convert to a multi-smp algorithm
-Date: Thu, 22 Apr 2010 19:12:31 -0700
-Message-ID: <20100422191231.bf6021fb.weiny2@llnl.gov>
-References: <20100218124933.c018a23d.weiny2@llnl.gov>
-	<20100413104658.GA10830@me>
-	<20100413132531.GI10830@me>
+From: Andrea Gozzelino <Andrea.Gozzelino-PK20h7lG/Rc1GQ1Ptb7lUw@public.gmane.org>
+Subject: SDP bugs 2027 and 2028
+Date: Fri, 23 Apr 2010 16:35:02 +0200 (CEST)
+Message-ID: <4828242.1272033302517.SLOX.WebMail.wwwrun@imap.lnl.infn.it>
+References: <13381_1271060138_o3C8FUH8013968_2977669.1271060085255.SLOX.WebMail.wwwrun@imap.lnl.infn.it> <1246722.1271082830120.SLOX.WebMail.wwwrun@imap.lnl.infn.it> <2EFBCAEF10980645BBCFB605689E08E9047C7402DA@azsmsx506.amr.corp.intel.com> <4BC49E2B.3000804@opengridcomputing.com> <2EFBCAEF10980645BBCFB605689E08E9047C7405A0@azsmsx506.amr.corp.intel.com> <4BC4D22A.6020700@opengridcomputing.com> <2EFBCAEF10980645BBCFB605689E08E9047C7405E9@azsmsx506.amr.corp.intel.com> <7037536.1271235105513.SLOX.WebMail.wwwrun@imap.lnl.infn.it> <4BC5D1D3.3020004@mellanox.co.il> <4BC5D529.1060701@mellanox.co.il> <2EFBCAEF10980645BBCFB605689E08E9047C79B918@azsmsx506.amr.corp.intel.com> <4BC5D9D4.7020702@opengridcomputing.com> <2EFBCAEF10980645BBCFB605689E08E9047C79BD12@azsmsx506.amr.corp.intel.com> <4BC6B135.20
+ 60004@mellanox.co.il> <1205877.1271315264088.SLOX.WebMail.wwwrun@imap.lnl.infn.it> <4BC6D075.1070405@mellanox.co.il> <6490876.1271771620997.SLOX.WebMail.wwwrun@imap.lnl.infn.it> <4BCEE8FE.6!
+ 050805@mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20100413132531.GI10830@me>
+In-Reply-To: <4BCEE8FE.6050805-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+To: Amir Vadai <amirv-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
+Cc: Andrea Gozzelino <Andrea.Gozzelino-PK20h7lG/Rc1GQ1Ptb7lUw@public.gmane.org>, "Tung, Chien Tin" <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org" <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, "peterz-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org" <peterz-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, "pavel-+ZI9xUNit7I@public.gmane.org" <pavel-+ZI9xUNit7I@public.gmane.org>, "mingo-X9Un+BFzKDI@public.gmane.org" <mingo-X9Un+BFzKDI@public.gmane.org>, Eric B Munson <ebmunson-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, 13 Apr 2010 16:25:31 +0300
-Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org> wrote:
+Hi Amir, 
 
-> On 13:46 Tue 13 Apr     , Sasha Khapyorsky wrote:
-> > 
-> > However see some comments and questions below.
+have you any news about bugs 2027 and 2028 (SDP)?
+
+Take care and keep in touch.
+Thamk you very much,
+Andrea
+
+
+On Apr 21, 2010 02:01 PM, Amir Vadai <amirv-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org> wrote:
+
+> Hi Andrea,
 > 
-> Another thought. What about API like:
+> I am preparing the fix right now.
 > 
-> 	ibnd_discover_fabric(cosnt char *ca_name, unsigned port_num,
-> 			     struct ibnd_config *cfg);
+> - Amir
 > 
-> So libibnetdisc will be responsible for opening and closing its own port
-> and in this way will be fully reenterable?
+> On 04/20/2010 04:53 PM, Andrea Gozzelino wrote:
+> > Hi Amir,
+> >
+> > have you any news about bugs 2027 "SDP not respecting # SGEs as
+> > reported
+> > from HW" and 2028 "SDP should support fastreg mrs"?
+> >
+> > When those bugs will be fixed, I will test the NE020 cards
+> > performance
+> > with SDP protocol and I will compare SDP and TCP.
+> >
+> > Keep in touch,
+> >
+> > Andrea Gozzelino
+> >
+> > INFN - Laboratori Nazionali di Legnaro	(LNL)
+> > Viale dell'Universita' 2
+> > I-35020 - Legnaro (PD)- ITALIA
+> > Tel: +39 049 8068346
+> > Fax: +39 049 641925
+> > Mail: andrea.gozzelino-PK20h7lG/Rc1GQ1Ptb7lUw@public.gmane.org
+> >
+> >
+> >
+> >
+> >
+> >
+> >
+> > On Apr 15, 2010 10:38 AM, Amir Vadai <amirv-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org> wrote:
+> >
+> >   
+> >> It should be a simple fix and I plan to do soon - just add yourself
+> >> as
+> >> CC in bugzilla  - that way I won't forget to notify you.
+> >>
+> >> - amir
+> >>
+> >> On 04/15/2010 10:07 AM, Andrea Gozzelino wrote:
+> >>     
+> >>> On Apr 15, 2010 08:24 AM, Amir Vadai <amirv-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org> wrote:
+> >>>
+> >>>   
+> >>>       
+> >>>> I hope to have a fix next week for the first one.
+> >>>>
+> >>>> Thanks,
+> >>>> Amir
+> >>>>
+> >>>> On 04/14/2010 09:48 PM, Tung, Chien Tin wrote:
+> >>>>     
+> >>>>         
+> >>>>>> Tung, Chien Tin wrote:
+> >>>>>>     
+> >>>>>>         
+> >>>>>>             
+> >>>>>>>> One more thing - Please open a bug regarding the num_sge
+> >>>>>>>> limitation at:
+> >>>>>>>> https://bugs.openfabrics.org/
+> >>>>>>>>
+> >>>>>>>>         
+> >>>>>>>>             
+> >>>>>>>>                 
+> >>>>>>> Done, Bug 2027.
+> >>>>>>>
+> >>>>>>> Chien
+> >>>>>>>
+> >>>>>>>       
+> >>>>>>>           
+> >>>>>>>               
+> >>>>>> And 2028 opened to request fastreg support.
+> >>>>>>
+> >>>>>>     
+> >>>>>>         
+> >>>>>>             
+> >>>>> I am open to test fixes for these two bugs.
+> >>>>>
+> >>>>> Chien
+> >>>>>
+> >>>>>   
+> >>>>>       
+> >>>>>           
+> >>>>     
+> >>>>         
+> >>> Hi Amir, 
+> >>> Hi Chien,
+> >>>
+> >>> I understand that the bug 2027 could be solved next week, so I
+> >>> will
+> >>> test
+> >>> SDP protocol performance on NE020 cards.
+> >>> Is it correct? 
+> >>> If yes, could you point out the code modifies?
+> >>>
+> >>> Keep in touch and take care.
+> >>> Regards,
+> >>> Andrea
+> >>>
+> >>>
+> >>> Andrea Gozzelino
+> >>>
+> >>> INFN - Laboratori Nazionali di Legnaro	(LNL)
+> >>> Viale dell'Universita' 2
+> >>> I-35020 - Legnaro (PD)- ITALIA
+> >>> Tel: +39 049 8068346
+> >>> Fax: +39 049 641925
+> >>> Mail: andrea.gozzelino-PK20h7lG/Rc1GQ1Ptb7lUw@public.gmane.org			
+> >>>
+> >>>
+> >>>   
+> >>>       
+> >>     
+> >
+> > 		
+> >
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe
+> > linux-rdma" in
+> > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> >   
+> 
 
-I think we need this...  But this alone will not fix ibnetdisc...
-
-I found out why "iblinkinfo -S" is hanging for me.  The new algorithm has the
-library using both libibmad and libibumad calls simultaneously.
-
-These libraries were not designed to be used this way.  Therefore, I don't
-think there is any direct bug in those layers.  However, this is why I thought
-it was better for ibnetdisc to sit on top of ibmad and not use the umad layer.
-
-Anyway, I think it is a mistake to pass an ibmad_port construct directly to
-this library now.  Here is why.
-
-umad_recv in query_smp.c and ib_resolve_self_via in ibnetdisc.c conflicted.
-The underlying call to _do_madrpc was discarding the response MAD which
-query_smp.c:umad_recv was expecting.  This would result in a hang forever.[*]
-This will not happen unless you use -S because -S causes ibnetdisc.c to call
-ib_resolve_self_via to determine the "drslid".  Basically ibnetdisc needs to
-open an ibmad_port for any libibmad call and a fd via umad_open_port for the
-parallel stuff.[#]
-
-If we change the API to specify the ca name and port then the library can open
-2 ports (or as many as it wants) and use them appropriately.  I think this is
-the only solution which does not involve fixing libibmad.
-
-So what about something like this:
-
-   int ibnd_discover_fabric(ibnd_fabric_t **fabric,
-			    cosnt char *ca_name,  <== could we even default this?
-			    struct ibnd_config *cfg);
-
-I don't mind the ibnd_config_t struct but I don't think it should be visible
-to the user.  Make it opaque and use "set" functions.  Something like.
-
-ibnd_fabric_t *fabric;
-ibnd_config_t cfg;
-ib_portid_t * from;
-
-ibnd_set_hops(&cfg, hops);         <== default -1
-ibnd_set_port_num(&cfg, port_num); <== default 1
-ibnd_set_max_smps(&cfg, max_smps); <== default 2
-ibnd_set_from_node(&cfg, from);    <== default NULL
-
-if (ibnd_discover_fabric(&fabric, "foo", &cfg)) {  <== anything not in cfg is
-                                                       defaulted here
-   fprintf(stderr, "Wow it failed\n");
-}
-
-This allows us to change ibnd_config structure any time we want without
-affecting the API.  I don't think the "pad" you used is a good idea.
-
-Also since we are breaking the API we might as well return the fabric as a
-parameter and have an error code.  But I could go either way on this one.
-
-Ira
 
 
-[*] query_smp.c probably should have it's own timeout here but we can discuss
-later.
-
-[#] What sucks about this is that libibmad already has the functionality to
-open the umad port and configure it (50 line function).  Now we will be
-duplicating this functionality.  I still maintain that making libibmad thread
-safe would be very beneficial, if not necessary.  For example handling RMPP
-and redirection is already in libibmad.  Why make people reimplement it on
-their own if they want concurrent execution of any kind?  <sigh>
-
-
--- 
-Ira Weiny
-Math Programmer/Computer Scientist
-Lawrence Livermore National Lab
-925-423-8008
-weiny2-i2BcT+NCU+M@public.gmane.org
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
