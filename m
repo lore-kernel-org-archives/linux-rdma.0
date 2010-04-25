@@ -1,201 +1,66 @@
-From: Amir Vadai <amirv-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
-Subject: Re: SDP bugs 2027 and 2028
-Date: Sun, 25 Apr 2010 10:35:05 +0300
-Message-ID: <4BD3F0A9.4080306@mellanox.co.il>
-References: <13381_1271060138_o3C8FUH8013968_2977669.1271060085255.SLOX.WebMail.wwwrun@imap.lnl.infn.it>
-	<4BC49E2B.3000804@opengridcomputing.com>
-	<2EFBCAEF10980645BBCFB605689E08E9047C7405A0@azsmsx506.amr.corp.intel.com>
-	<4BC4D22A.6020700@opengridcomputing.com>
-	<2EFBCAEF10980645BBCFB605689E08E9047C7405E9@azsmsx506.amr.corp.intel.com>
-	<7037536.1271235105513.SLOX.WebMail.wwwrun@imap.lnl.infn.it>
-	<4BC5D1D3.3020004@mellanox.co.il> <4BC5D529.1060701@mellanox.co.il>
-	<2EFBCAEF10980645BBCFB605689E08E9047C79B918@azsmsx506.amr.corp.intel.com>
-	<4BC5D9D4.7020702@opengridcomputing.com>
-	<2EFBCAEF10980645BBCFB605689E08E9047C79BD12@azsmsx506.amr.corp.intel.com>
-	<4BC6B135.2060004@mellanox.co.il>
-	<1205877.1271315264088.SLOX.WebMail.wwwrun@imap.lnl.infn.it>
-	<4BC6D075.1070405@mellanox.co.il>
-	<6490876.1271771620997.SLOX.WebMail.wwwrun@imap.lnl.infn.it> <4BCEE8FE.6!
-	050805@mellanox.co.il>
-	<484607.1272033291418.SLOX.WebMail.wwwrun@imap.lnl.infn.it>
+From: "Eli Dorfman (Voltaire)" <dorfman.eli-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH] opensm: Always set enabled speed and width
+Date: Sun, 25 Apr 2010 14:04:07 +0300
+Message-ID: <4BD421A7.7040009@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <484607.1272033291418.SLOX.WebMail.wwwrun-XDIR3SKYeFbgKi2NxijLtw@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Andrea Gozzelino <Andrea.Gozzelino-PK20h7lG/Rc1GQ1Ptb7lUw@public.gmane.org>
-Cc: "Tung, Chien Tin" <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org" <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, "peterz-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org" <peterz-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, "pavel-+ZI9xUNit7I@public.gmane.org" <pavel-+ZI9xUNit7I@public.gmane.org>, "mingo-X9Un+BFzKDI@public.gmane.org" <mingo-X9Un+BFzKDI@public.gmane.org>, Eric B Munson <ebmunson-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>
+To: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>, Erez Cohen <erezc-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-I have a fix for 2027 (number of SGE's issue) read.
-I'm busy with other things - but hopefully will succeed testing it and
-pushing it today.
+Initialize default link speed and width to "No State Change" and
+always set in SubnSet(PortInfo)
 
-As to 2028 (No FMR support) - I need pushed a fix to only disable ZCopy
-when no FMR facility.
-I don't have time right now to add support for fast memory registeration
-when FMR is not available - but Steve said he'll help with implementing it.
+Signed-off-by: Eli Dorfman <elid-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+---
+ infiniband-diags/src/ibportstate.c |   17 ++++++++---------
+ 1 files changed, 8 insertions(+), 9 deletions(-)
 
-- Amir
+diff --git a/infiniband-diags/src/ibportstate.c b/infiniband-diags/src/ibportstate.c
+index 66f069e..b99c0e1 100644
+--- a/infiniband-diags/src/ibportstate.c
++++ b/infiniband-diags/src/ibportstate.c
+@@ -64,13 +64,13 @@ enum port_ops {
+ };
+ 
+ struct ibmad_port *srcport;
+-int speed = 15;
+-int width = 255;
++int speed = 0; /* no state change */
++int width = 0; /* no state change */
+ int lid;
+ int smlid;
+ int lmc;
+ int mtu;
+-int vls;
++int vls = 0; /* no state change */
+ 
+ struct {
+ 	const char *name;
+@@ -394,12 +394,11 @@ int main(int argc, char **argv)
+ 			mad_set_field(data, 0, IB_PORT_STATE_F, 4);
+ 			break;
+ 		}
+-		if (port_args[SPEED].set)
+-			mad_set_field(data, 0, IB_PORT_LINK_SPEED_ENABLED_F,
+-				      speed);
+-		if (port_args[WIDTH].set)
+-			mad_set_field(data, 0, IB_PORT_LINK_WIDTH_ENABLED_F,
+-				      width);
++
++		/* always set enabled speed/width - defaults to NOP */
++		mad_set_field(data, 0, IB_PORT_LINK_SPEED_ENABLED_F, speed);
++		mad_set_field(data, 0, IB_PORT_LINK_WIDTH_ENABLED_F, width);
++
+ 		if (port_args[VLS].set)
+ 			mad_set_field(data, 0, IB_PORT_OPER_VLS_F, vls);
+ 		if (port_args[MTU].set)
+-- 
+1.5.5
 
-On 04/23/2010 05:34 PM, Andrea Gozzelino wrote:
-> Hi Amir, 
->
-> have you any news about bug 2027 and 2028 (SDP)?
->
-> Take care and keep in touch.
-> Thamk you very much,
-> Andrea
->
->
-> On Apr 21, 2010 02:01 PM, Amir Vadai <amirv-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org> wrote:
->
->   
->> Hi Andrea,
->>
->> I am preparing the fix right now.
->>
->> - Amir
->>
->> On 04/20/2010 04:53 PM, Andrea Gozzelino wrote:
->>     
->>> Hi Amir,
->>>
->>> have you any news about bugs 2027 "SDP not respecting # SGEs as
->>> reported
->>> from HW" and 2028 "SDP should support fastreg mrs"?
->>>
->>> When those bugs will be fixed, I will test the NE020 cards
->>> performance
->>> with SDP protocol and I will compare SDP and TCP.
->>>
->>> Keep in touch,
->>>
->>> Andrea Gozzelino
->>>
->>> INFN - Laboratori Nazionali di Legnaro	(LNL)
->>> Viale dell'Universita' 2
->>> I-35020 - Legnaro (PD)- ITALIA
->>> Tel: +39 049 8068346
->>> Fax: +39 049 641925
->>> Mail: andrea.gozzelino-PK20h7lG/Rc1GQ1Ptb7lUw@public.gmane.org
->>>
->>>
->>>
->>>
->>>
->>>
->>>
->>> On Apr 15, 2010 10:38 AM, Amir Vadai <amirv-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org> wrote:
->>>
->>>   
->>>       
->>>> It should be a simple fix and I plan to do soon - just add yourself
->>>> as
->>>> CC in bugzilla  - that way I won't forget to notify you.
->>>>
->>>> - amir
->>>>
->>>> On 04/15/2010 10:07 AM, Andrea Gozzelino wrote:
->>>>     
->>>>         
->>>>> On Apr 15, 2010 08:24 AM, Amir Vadai <amirv-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org> wrote:
->>>>>
->>>>>   
->>>>>       
->>>>>           
->>>>>> I hope to have a fix next week for the first one.
->>>>>>
->>>>>> Thanks,
->>>>>> Amir
->>>>>>
->>>>>> On 04/14/2010 09:48 PM, Tung, Chien Tin wrote:
->>>>>>     
->>>>>>         
->>>>>>             
->>>>>>>> Tung, Chien Tin wrote:
->>>>>>>>     
->>>>>>>>         
->>>>>>>>             
->>>>>>>>                 
->>>>>>>>>> One more thing - Please open a bug regarding the num_sge
->>>>>>>>>> limitation at:
->>>>>>>>>> https://bugs.openfabrics.org/
->>>>>>>>>>
->>>>>>>>>>         
->>>>>>>>>>             
->>>>>>>>>>                 
->>>>>>>>>>                     
->>>>>>>>> Done, Bug 2027.
->>>>>>>>>
->>>>>>>>> Chien
->>>>>>>>>
->>>>>>>>>       
->>>>>>>>>           
->>>>>>>>>               
->>>>>>>>>                   
->>>>>>>> And 2028 opened to request fastreg support.
->>>>>>>>
->>>>>>>>     
->>>>>>>>         
->>>>>>>>             
->>>>>>>>                 
->>>>>>> I am open to test fixes for these two bugs.
->>>>>>>
->>>>>>> Chien
->>>>>>>
->>>>>>>   
->>>>>>>       
->>>>>>>           
->>>>>>>               
->>>>>>     
->>>>>>         
->>>>>>             
->>>>> Hi Amir, 
->>>>> Hi Chien,
->>>>>
->>>>> I understand that the bug 2027 could be solved next week, so I
->>>>> will
->>>>> test
->>>>> SDP protocol performance on NE020 cards.
->>>>> Is it correct? 
->>>>> If yes, could you point out the code modifies?
->>>>>
->>>>> Keep in touch and take care.
->>>>> Regards,
->>>>> Andrea
->>>>>
->>>>>
->>>>> Andrea Gozzelino
->>>>>
->>>>> INFN - Laboratori Nazionali di Legnaro	(LNL)
->>>>> Viale dell'Universita' 2
->>>>> I-35020 - Legnaro (PD)- ITALIA
->>>>> Tel: +39 049 8068346
->>>>> Fax: +39 049 641925
->>>>> Mail: andrea.gozzelino-PK20h7lG/Rc1GQ1Ptb7lUw@public.gmane.org			
->>>>>
->>>>>
->>>>>   
->>>>>       
->>>>>           
->>>>     
->>>>         
->>> 		
->>>
->>> --
->>> To unsubscribe from this list: send the line "unsubscribe
->>> linux-rdma" in
->>> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>>   
->>>       
->>     
->
->
->
->   
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
