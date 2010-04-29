@@ -1,26 +1,39 @@
-From: Mirek Walukiewicz <miroslaw.walukiewicz-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 0/2] RDMA/core: add support for iWarp multicast acceleration
-	over IB_QPT_RAW_ETY QP type
-Date: Fri, 30 Apr 2010 18:53:43 +0200
-Message-ID: <20100430165249.1386.73960.stgit@gkslx010.igk.intel.com>
+From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH 2/4] ib_core: implement XRC RCV qp's
+Date: Thu, 29 Apr 2010 12:46:22 -0700
+Message-ID: <adavdbaxcs1.fsf@roland-alpha.cisco.com>
+References: <201002281102.21207.jackm@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <201002281102.21207.jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> (Jack Morgenstein's
+	message of "Sun, 28 Feb 2010 11:02:21 +0200")
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-This patch series implements iWarp multicast acceleration over raw eth QP type.
+ > Note that for users who do not wish to utilize the reg/unreg verbs,
+ > a destroy_xrc_rcv_qp verb is also provided.  Thus, usage is:
+ > Either: create/destroy_xrc_rcv_qp
+ > Or: create/reg/unreg_xrc_rcv_qp (the unreg is used in place of destroy) 
 
-In ibv_attach_mcast and ibv_detach_mcast, new case is added for RDMA_TRANSPORT_IWARP to allow multicast 
-on IB_QPT_RAW_ETY QP type. This change is for iWarp only and does not affect IB.
+I don't really understand the semantics here.  What is supposed to
+happen if I do create/reg/destroy?  What happens if one process does
+destroy while another process is still registered?  To make everything
+even more confusing, mlx4 defines unreg_rxc_rcv_qp to be equivalent to
+destroy_xrc_rcv_qp.  I'm not even clear why the low-level driver has two
+entry points for these two methods -- shouldn't the uverbs core be
+handling the counting/listing of xrc rcv qps and just ask the low-level
+driver to destroy the QP when it's really done with it?
 
-Changes to nes demenstrate how IB_QPT_RAW_ETY QP is used to accelerate multicast traffic.
+(By the way, should we use the name "target QP" instead of "rcv QP" to
+match the actual IB spec?)
 
-Miroslaw Walukiewicz
- 
+ - R.
+-- 
+Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org> || For corporate legal information go to:
+http://www.cisco.com/web/about/doing_business/legal/cri/index.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
