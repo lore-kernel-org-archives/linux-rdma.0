@@ -1,27 +1,44 @@
 From: "Sean Hefty" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: IB / MLX setup issues
-Date: Mon, 3 May 2010 15:24:11 -0700
-Message-ID: <DE26A35E22BF4C659D3A3708CEE1843C@amr.corp.intel.com>
-References: <4BDF48BB.4070209@exegy.com>
+Subject: RE: [ANNOUNCE] OFED 1.5.2 beta1 is available
+Date: Mon, 3 May 2010 16:51:54 -0700
+Message-ID: <F19F5F7668A84FCA82A2E0E3CDEF7001@amr.corp.intel.com>
+References: <4BDE7CB9.8020801@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4BDF48BB.4070209-YJJp1DzrooEAvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <4BDE7CB9.8020801-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: 'Todd Strader' <tstrader-YJJp1DzrooEAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: 'Vladimir Sokolovsky' <vlad-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, OpenFabrics EWG <ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
->Also, and I'm unsure if this is related, the link between machines C and
->A is in the initializing state when I bring up the machine.  Machine A
->has the subnet manager running, so I would think that should be enough.
->If I run another subnet manager on machine C, I get an active link, but
->I wouldn't think I need to be running two subnet managers.
+>Main changes from 1.5.1:
+>===========================
+>1. Updated packages:
+>    - Management
+>      Using latest daily builds from
+>http://www.openfabrics.org/downloads/management/daily
+>    - Updated libnes
+>      libnes-1.0.1-0.1.g89ea0ee.tar.gz
+>    - Updated libsdp
+>      libsdp-1.1.101-0.3.gc767eee.tar.gz
+>    - Updated perftest
+>      perftest-1.2.4-0.15.g82b7e29.tar.gz
+>    - Updated mpitests
+>      mpitests-3.2-923.src.rpm
+>2. Added RHEL5.5 support
+>3. Use files under /etc/modprobe.d/ instead of /etc/modprobe.conf
+>4. Bug fixes
 
-Assuming directly connected links between machines A <-> C and A <-> B, then
-these are separate subnets and each requires a subnet manager.  The SM is bound
-to a specific port when run, so one instance of the SM is not enough.
+I would like to add support for IB ACM path resolution (i.e. user space path
+record caching) into the 1.5.2 release.  Vlad pulled in the necessary kernel
+patch from 2.6.33 a few days ago.  All other changes are in user space -- an
+updated librdmacm release and a release of ibacm -- and must be enabled to be
+used.
+
+I hope to complete testing this week.
 
 - Sean
 
