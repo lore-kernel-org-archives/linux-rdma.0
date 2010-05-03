@@ -1,49 +1,54 @@
-From: Mike Heinz <michael.heinz-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-Subject: RE: Hang in ib_umad when attempting to unregister.
-Date: Mon, 3 May 2010 15:24:23 -0500
-Message-ID: <4C2744E8AD2982428C5BFE523DF8CDCB49A4740A3B@MNEXMB1.qlogic.org>
-References: <4C2744E8AD2982428C5BFE523DF8CDCB49A47409EA@MNEXMB1.qlogic.org>
- <57C080F9018D4C488FD7F575E2CE231F@amr.corp.intel.com>
- <4C2744E8AD2982428C5BFE523DF8CDCB49A47409F6@MNEXMB1.qlogic.org>
- <134418B1760843CCA935A71D17114ABA@amr.corp.intel.com>
- <4C2744E8AD2982428C5BFE523DF8CDCB49A47409FE@MNEXMB1.qlogic.org>
- <CF9C39F99A89134C9CF9C4CCB68B8DDF254C321EFA@orsmsx501.amr.corp.intel.com>
- <4C2744E8AD2982428C5BFE523DF8CDCB49A4740A0C@MNEXMB1.qlogic.org>
- <4C2744E8AD2982428C5BFE523DF8CDCB49A4740A1C@MNEXMB1.qlogic.org>
- <B552CE79A4134D83A6F5122C6A021FFF@amr.corp.intel.com>
- <4C2744E8AD2982428C5BFE523DF8CDCB49A4740A29@MNEXMB1.qlogic.org>
- <BC9A3E31E4234E599F7FC99094789B2F@amr.corp.intel.com>
+From: Todd Strader <tstrader-YJJp1DzrooEAvxtiuMwx3w@public.gmane.org>
+Subject: IB / MLX setup issues
+Date: Mon, 03 May 2010 17:05:47 -0500
+Message-ID: <4BDF48BB.4070209@exegy.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <BC9A3E31E4234E599F7FC99094789B2F-Zpru7NauK7drdx17CPfAsdBPR1lH4CV8@public.gmane.org>
-Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Cc: LINUX-RDMA <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Sorry - I'm not trying to force you to drag the info out of me.
+Hi,
 
-Yeah; I think it always uses GETTABLE rather than GET.
+I'm running into some issues when trying to set up a new IB cluster.  
+I've got machine A which has connections to machine B and C via a single 
+two-port ConnectX card.  A and B are connected and have no known 
+problems.  I just set up machine C (installed OFED-1.5.1) but whenever I 
+run ibv_devinfo I get:
 
+libibverbs: Warning: couldn't load driver 'mlx4': 
+/usr/local/lib/libmlx4-rdmav2.so: symbol ibv_cmd_get_eth_l2_addr, 
+version IBVERBS_1.0 not defined in file libibverbs.so.1 with link time 
+reference
+libibverbs: Warning: no userspace device-specific driver found for 
+/sys/class/infiniband_verbs/uverbs2
+libibverbs: Warning: no userspace device-specific driver found for 
+/sys/class/infiniband_verbs/uverbs1
+libibverbs: Warning: no userspace device-specific driver found for 
+/sys/class/infiniband_verbs/uverbs0
+No IB devices found
 
+The machine does have 3 HCAs.  For reference OFED 1.5.1 has deposited 
+the following RPMs on the system:
+libmlx4-1.0-0.7.g2432360
+libmlx4-devel-1.0-0.7.g2432360
+libibverbs-1.1.3-0.6.g932f1a2
+libibverbs-devel-1.1.3-0.6.g932f1a2
+libibverbs-devel-static-1.1.3-0.6.g932f1a2
 
------Original Message-----
-From: Sean Hefty [mailto:sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org] 
-Sent: Monday, May 03, 2010 4:17 PM
-To: Mike Heinz; Roland Dreier
-Cc: LINUX-RDMA
-Subject: RE: Hang in ib_umad when attempting to unregister.
+Also, and I'm unsure if this is related, the link between machines C and 
+A is in the initializing state when I bring up the machine.  Machine A 
+has the subnet manager running, so I would think that should be enough.  
+If I run another subnet manager on machine C, I get an active link, but 
+I wouldn't think I need to be running two subnet managers.
 
->In the recent hangs, the process that is triggering the hang is using the umad
->interface to query path records. Since we usually discover this problem long
->after the onset, I'm not sure if there are actual queries outstanding when the
->problem occurs.
+Any advice on these issues would be appreciated.
 
-Is it using GETTABLE to retrieve multiple paths?
+Thanks.
 
+Todd
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
