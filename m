@@ -1,47 +1,30 @@
-From: "Sean Hefty" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [ANNOUNCE] OFED 1.5.2 beta1 is available
-Date: Mon, 3 May 2010 16:51:54 -0700
-Message-ID: <F19F5F7668A84FCA82A2E0E3CDEF7001@amr.corp.intel.com>
-References: <4BDE7CB9.8020801@dev.mellanox.co.il>
+From: Kumar Vaibhav <kvaibhav-hiIyIPXX6BMxFYw1CcD5bw@public.gmane.org>
+Subject: NFS RDMA using autofs
+Date: Tue, 04 May 2010 17:13:02 +0530
+Message-ID: <4BE00846.70806@barc.gov.in>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4BDE7CB9.8020801-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: 'Vladimir Sokolovsky' <vlad-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, OpenFabrics EWG <ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: nfs-rdma-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
->Main changes from 1.5.1:
->===========================
->1. Updated packages:
->    - Management
->      Using latest daily builds from
->http://www.openfabrics.org/downloads/management/daily
->    - Updated libnes
->      libnes-1.0.1-0.1.g89ea0ee.tar.gz
->    - Updated libsdp
->      libsdp-1.1.101-0.3.gc767eee.tar.gz
->    - Updated perftest
->      perftest-1.2.4-0.15.g82b7e29.tar.gz
->    - Updated mpitests
->      mpitests-3.2-923.src.rpm
->2. Added RHEL5.5 support
->3. Use files under /etc/modprobe.d/ instead of /etc/modprobe.conf
->4. Bug fixes
+Hi,
 
-I would like to add support for IB ACM path resolution (i.e. user space path
-record caching) into the 1.5.2 release.  Vlad pulled in the necessary kernel
-patch from 2.6.33 a few days ago.  All other changes are in user space -- an
-updated librdmacm release and a release of ibacm -- and must be enabled to be
-used.
+I am trying to use NFS-RDMA on RHEL 5u4.
 
-I hope to complete testing this week.
+I can mount the exported filesystem manually on the client using
 
-- Sean
+mount.rnfs 190.3.18.185:/scratch/exports /mnt -i -o rdma,port=20049
 
+But the problem I have is that I want it to use it from autofs. So that 
+it is mounted based on requirement.
+
+How to make entry corresponfing to this in /etc/auto.master?
+
+Regards,
+Vaibhav
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
