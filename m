@@ -1,30 +1,52 @@
-From: Kumar Vaibhav <kvaibhav-hiIyIPXX6BMxFYw1CcD5bw@public.gmane.org>
-Subject: NFS RDMA using autofs
-Date: Tue, 04 May 2010 17:13:02 +0530
-Message-ID: <4BE00846.70806@barc.gov.in>
+From: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: IB / MLX setup issues
+Date: Tue, 4 May 2010 19:31:16 +0300
+Message-ID: <20100504163116.GA10080@mtldesk030.lab.mtl.com>
+References: <4BDF48BB.4070209@exegy.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <4BDF48BB.4070209-YJJp1DzrooEAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: nfs-rdma-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Todd Strader <tstrader-YJJp1DzrooEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hi,
+On Mon, May 03, 2010 at 05:05:47PM -0500, Todd Strader wrote:
+> Hi,
+> 
+> I'm running into some issues when trying to set up a new IB cluster.
+> I've got machine A which has connections to machine B and C via a
+> single two-port ConnectX card.  A and B are connected and have no
+> known problems.  I just set up machine C (installed OFED-1.5.1) but
+> whenever I run ibv_devinfo I get:
+> 
+> libibverbs: Warning: couldn't load driver 'mlx4':
+> /usr/local/lib/libmlx4-rdmav2.so: symbol ibv_cmd_get_eth_l2_addr,
+> version IBVERBS_1.0 not defined in file libibverbs.so.1 with link
+> time reference
+> libibverbs: Warning: no userspace device-specific driver found for
+> /sys/class/infiniband_verbs/uverbs2
+> libibverbs: Warning: no userspace device-specific driver found for
+> /sys/class/infiniband_verbs/uverbs1
+> libibverbs: Warning: no userspace device-specific driver found for
+> /sys/class/infiniband_verbs/uverbs0
+> No IB devices found
+> 
+> The machine does have 3 HCAs.  For reference OFED 1.5.1 has
+> deposited the following RPMs on the system:
+> libmlx4-1.0-0.7.g2432360
+> libmlx4-devel-1.0-0.7.g2432360
+> libibverbs-1.1.3-0.6.g932f1a2
+> libibverbs-devel-1.1.3-0.6.g932f1a2
+> libibverbs-devel-static-1.1.3-0.6.g932f1a2
+> 
 
-I am trying to use NFS-RDMA on RHEL 5u4.
-
-I can mount the exported filesystem manually on the client using
-
-mount.rnfs 190.3.18.185:/scratch/exports /mnt -i -o rdma,port=20049
-
-But the problem I have is that I want it to use it from autofs. So that 
-it is mounted based on requirement.
-
-How to make entry corresponfing to this in /etc/auto.master?
-
-Regards,
-Vaibhav
+So you only have some installation problem on machine C. By default, OFED
+installation script will install to /usr and I see that in C the
+prefix is /usr/local - is this what you intended? I think you may have
+old libraries in the library path so you may need to remve them.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
