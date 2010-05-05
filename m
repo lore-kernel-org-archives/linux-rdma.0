@@ -1,86 +1,55 @@
-From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH] mlx4: Fix chunk sg list overflow in mlx4_alloc_icm()
-Date: Wed, 05 May 2010 10:42:11 -0700
-Message-ID: <adatyqmmej0.fsf@roland-alpha.cisco.com>
-References: <20100430132131.0d829b3c@frecb007965>
+From: Mike Christie <michaelc-hcNo3dDEHLuVc3sceRu5cw@public.gmane.org>
+Subject: Re: [PATCH 2/3] ib/iser: remove buggy back-pointer setting
+Date: Wed, 05 May 2010 12:50:44 -0500
+Message-ID: <4BE1AFF4.30600@cs.wisc.edu>
+References: <Pine.LNX.4.64.1005051726110.29957@zuben.voltaire.com> <Pine.LNX.4.64.1005051730170.29957@zuben.voltaire.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20100430132131.0d829b3c@frecb007965> (sebastien dugue's message
-	of "Fri, 30 Apr 2010 13:21:31 +0200")
+In-Reply-To: <Pine.LNX.4.64.1005051730170.29957-aDiYczhfhVLdX2U7gxhm1tBPR1lH4CV8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: sebastien dugue <sebastien.dugue-6ktuUTfB/bM@public.gmane.org>
-Cc: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Or Gerlitz <ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+Cc: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-good catch, applied.  Did this hit you in practice?  I guess it would
-take a big coherent ICM allocation, were you getting those?
+On 05/05/2010 09:30 AM, Or Gerlitz wrote:
+> iscsi connection object life cycle includes binding and unbinding
+> (conn_stop) to/from the iscsi transport connection object. Since
+> iscsi connection objects are recycled, on the time the transport
+> connection (e.g iser's ib connection) is released it is illegal
+> to touch the iscsi connection tied to the transport back-pointer, as
+> it may already point to a different transport connection.
+>
+> Signed-off-by: Or Gerlitz<ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+>
+> ---
+>   drivers/infiniband/ulp/iser/iser_verbs.c |    2 --
+>   1 file changed, 2 deletions(-)
+>
+> Index: linux-2.6.34-rc6/drivers/infiniband/ulp/iser/iser_verbs.c
+> ===================================================================
+> --- linux-2.6.34-rc6.orig/drivers/infiniband/ulp/iser/iser_verbs.c
+> +++ linux-2.6.34-rc6/drivers/infiniband/ulp/iser/iser_verbs.c
+> @@ -346,8 +346,6 @@ static void iser_conn_release(struct ise
+>   	/* on EVENT_ADDR_ERROR there's no device yet for this conn */
+>   	if (device != NULL)
+>   		iser_device_try_release(device);
+> -	if (ib_conn->iser_conn)
+> -		ib_conn->iser_conn->ib_conn = NULL;
+>   	iscsi_destroy_endpoint(ib_conn->ep);
+>   }
+>
 
-Also what do you think of this independent cleanup on top of your patch?
-It handles the error case for allocation and then avoids having the
-common case inside a deeper nested block:
+I agree on it being a bug, but do you remember why that was added to 
+iscsi_iser_conn_destroy originally? I later moved it to 
+iser_conn_release in 
+http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;a=commitdiff;h=b40977d95fb3a1898ace6a7d97e4ed1a33a440a4) 
+but I think Erez had added that null and some checks for it being null 
+for a specific bug.
 
- drivers/net/mlx4/icm.c |   37 +++++++++++++++++++------------------
- 1 files changed, 19 insertions(+), 18 deletions(-)
-
-diff --git a/drivers/net/mlx4/icm.c b/drivers/net/mlx4/icm.c
-index ef62f17..b07e4de 100644
---- a/drivers/net/mlx4/icm.c
-+++ b/drivers/net/mlx4/icm.c
-@@ -163,29 +163,30 @@ struct mlx4_icm *mlx4_alloc_icm(struct mlx4_dev *dev, int npages,
- 			ret = mlx4_alloc_icm_pages(&chunk->mem[chunk->npages],
- 						   cur_order, gfp_mask);
- 
--		if (!ret) {
--			++chunk->npages;
--
--			if (coherent)
--				++chunk->nsg;
--			else if (chunk->npages == MLX4_ICM_CHUNK_LEN) {
--				chunk->nsg = pci_map_sg(dev->pdev, chunk->mem,
--							chunk->npages,
--							PCI_DMA_BIDIRECTIONAL);
--
--				if (chunk->nsg <= 0)
--					goto fail;
--			}
-+		if (ret) {
-+			if (--cur_order < 0)
-+				goto fail;
-+			else
-+				continue;
-+		}
- 
--			if (chunk->npages == MLX4_ICM_CHUNK_LEN)
--				chunk = NULL;
-+		++chunk->npages;
- 
--			npages -= 1 << cur_order;
--		} else {
--			--cur_order;
--			if (cur_order < 0)
-+		if (coherent)
-+			++chunk->nsg;
-+		else if (chunk->npages == MLX4_ICM_CHUNK_LEN) {
-+			chunk->nsg = pci_map_sg(dev->pdev, chunk->mem,
-+						chunk->npages,
-+						PCI_DMA_BIDIRECTIONAL);
-+
-+			if (chunk->nsg <= 0)
- 				goto fail;
- 		}
-+
-+		if (chunk->npages == MLX4_ICM_CHUNK_LEN)
-+			chunk = NULL;
-+
-+		npages -= 1 << cur_order;
- 	}
- 
- 	if (!coherent && chunk) {
-
--- 
-Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org> || For corporate legal information go to:
-http://www.cisco.com/web/about/doing_business/legal/cri/index.html
+I am not 100% sure. Look in the git logs to make sure. I will check them 
+too when I get some more time.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
