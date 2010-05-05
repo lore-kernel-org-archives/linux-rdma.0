@@ -1,63 +1,34 @@
-From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: Re: [PATCH 2/2] RDMA/nes: add support of iWARP multicast acceleration
- over IB_QPT_RAW_ETY QP type
-Date: Wed, 05 May 2010 09:56:16 -0500
-Message-ID: <4BE18710.9090304@opengridcomputing.com>
-References: <20100430165249.1386.73960.stgit@gkslx010.igk.intel.com> <20100430165434.1386.80375.stgit@gkslx010.igk.intel.com> <4BE05713.6030101@opengridcomputing.com> <BE2BFE91933D1B4089447C64486040801B6784ED@irsmsx503.ger.corp.intel.com> <4BE06425.6000104@opengridcomputing.com> <BE2BFE91933D1B4089447C64486040801D00D549@irsmsx503.ger.corp.intel.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH] mlx4_core: request MSIX vectors as much as there CPU
+	cores
+Date: Wed, 5 May 2010 10:32:52 -0600
+Message-ID: <20100505163252.GG15969@obsidianresearch.com>
+References: <20100505113047.GA12242@mtldesk030.lab.mtl.com> <adahbmmpfep.fsf@roland-alpha.cisco.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <BE2BFE91933D1B4089447C64486040801D00D549-IGOiFh9zz4wLt2AQoY/u9bfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <adahbmmpfep.fsf-BjVyx320WGW9gfZ95n9DRSW4+XlvGpQz@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Walukiewicz, Miroslaw" <Miroslaw.Walukiewicz-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org" <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Cc: Eli Cohen <eli-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, Linux RDMA list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ewg <ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On Wed, May 05, 2010 at 07:54:54AM -0700, Roland Dreier wrote:
+>  > The current code requires num_possible_cpus() + 1 MSIX vectors. However,
+>  > num_possible_cpus() stands for the max number of supported CPUs by the kernel.
+> 
+> I believe this is wrong -- num_possible_cpus() is the maximum number of
+> CPUs for the running system, including hotplug.
 
-> I see here some misunderstanding. Let me explain better how our tramsmit path works. 
->
-> In our implementation we use normal memory registration path using ibv_reg_mr and we use ibv_post_send() with lkey/vaddr/len.
->
-> The implementation of ibv_post_send (nes_post_send in libnes) for RAW QP passes lkey/virtual_addr/len information to kernel using shared page to our device driver (ud_post_send). There is no data copy here and the driver is used only for fast synchronization.
->
-> Because our RAW ETH QP must use physical addresses only,  ud_post_send() in kernel makes a virtual to physical memory translation and accesses the QP HW for packet transmission. Previously a packet buffer memory was registered and pinned by ibv_reg_mr to provide necessary information for making such translation.
->
->   
+FWIW, I've seen some systems running RH kernels that blow up here
+because they run out of interrupt numbers if you have two IB cards in
+them.
 
-I see.  Thanks!
+Mainline kernels have a reworked IRQ number allocator and don't have a
+problem, so maybe this is an ofed only patch?
 
-
-> The non-bypass post_send/recv channel (using /dev/infiniband/rdma_cm) is shared with all other user-kernel  communication and it is quite complex. It is a perfect path for QP/CQ/PD/mem management but for me it is too complex for traffic acceleration. 
->
-> The user<->kernel  path  through additional driver, shared page for lkey/vaddr/len passing and SW memory translation in kernel is much more effective. 
->
-> Maybe it is a good idea to make that API more official after some kind of standarization. Our tests proved that it works. We achieved twice better performance and latency. That way could open the way for adding some non-RDMA devices to devices supported OFED API. 
->
->   
-
-Sounds good.
-
-Do you have specific perf numbers to share?  Is this all just optimizing 
-mcast packets? 
-
-Also:
-
-Does this raw qp service share the mac address with the ports being used 
-by the host stack?  Or does each raw qp get its own mac address?
-
-Do you all have a user mode UDP/IP running on this raw qp?  If so, does 
-it use its own IP address separate from the host stack or does it share 
-the host's IP address.
-
-
-Thanks,
-
-Steve.
-
-
-
-
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
