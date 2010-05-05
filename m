@@ -1,69 +1,23 @@
-From: Divy Le Ray <divy-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH/RFC] cxgb4: Add MAINTAINERS info
-Date: Wed, 05 May 2010 14:40:38 -0700
-Message-ID: <4BE1E5D6.8060103@chelsio.com>
-References: <20100428164341.cee2911a.sfr@canb.auug.org.au>	<20100428103356.931ba48c.randy.dunlap@oracle.com> <adawrvijhpq.fsf_-_@roland-alpha.cisco.com> <4BE1CE39.1050707@opengridcomputing.com>
+From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [ewg] [PATCHv8 03/11] IB/umad: Enable support only for IB ports
+Date: Wed, 05 May 2010 15:11:09 -0700
+Message-ID: <adazl0eatj6.fsf@roland-alpha.cisco.com>
+References: <20100218172354.GD12286@mtls03>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4BE1CE39.1050707-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+In-Reply-To: <20100218172354.GD12286@mtls03> (Eli Cohen's message of "Thu, 18
+	Feb 2010 19:23:54 +0200")
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Cc: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dm-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org
+To: Eli Cohen <eli-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
+Cc: Linux RDMA list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ewg <ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 05/05/2010 12:59 PM, Steve Wise wrote:
-> Looks good to me.
-
-It looks right to me too.
-
-Cheers,
-Divy
-
->
-> Steve.
->
-> Roland Dreier wrote:
->> Hi guys, does this info for cxgb4/iw_cxgb4 (pretty much copied from
->> cxgb3, except with Dimitris instead of Divy) look right?  If so I'll add
->> it to my tree.
->>
->> Thanks,
->>   Roland
->> ---
->> diff --git a/MAINTAINERS b/MAINTAINERS
->> index 7a9ccda..a00231b 100644
->> --- a/MAINTAINERS
->> +++ b/MAINTAINERS
->> @@ -1719,6 +1719,20 @@ W:    http://www.openfabrics.org
->>  S:    Supported
->>  F:    drivers/infiniband/hw/cxgb3/
->>
->> +CXGB4 ETHERNET DRIVER (CXGB4)
->> +M:    Dimitris Michailidis <dm-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
->> +L:    netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->> +W:    http://www.chelsio.com
->> +S:    Supported
->> +F:    drivers/net/cxgb4/
->> +
->> +CXGB4 IWARP RNIC DRIVER (IW_CXGB4)
->> +M:    Steve Wise <swise-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
->> +L:    linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->> +W:    http://www.openfabrics.org
->> +S:    Supported
->> +F:    drivers/infiniband/hw/cxgb4/
->> +
->>  CYBERPRO FB DRIVER
->>  M:    Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>
->>  L:    linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org (moderated for 
->> non-subscribers)
->
-> -- 
-> To unsubscribe from this list: send the line "unsubscribe netdev" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
+Why do we not allow umad for IBoE ports?  I understand there's no QP0
+but why can't userspace use QP1 just like for IB link layer ports?
+-- 
+Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org> || For corporate legal information go to:
+http://www.cisco.com/web/about/doing_business/legal/cri/index.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
