@@ -1,127 +1,131 @@
-From: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH 4/4] mlx4: implement XRC RCV qp's
-Date: Wed, 5 May 2010 14:44:28 +0300
-Message-ID: <201005051444.28556.jackm@dev.mellanox.co.il>
-References: <201002281102.55944.jackm@dev.mellanox.co.il> <adar5lyxc01.fsf@roland-alpha.cisco.com>
+From: "Walukiewicz, Miroslaw" <Miroslaw.Walukiewicz-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH 2/2] RDMA/nes: add support of iWARP multicast
+ acceleration over IB_QPT_RAW_ETY QP type
+Date: Wed, 5 May 2010 14:42:15 +0100
+Message-ID: <BE2BFE91933D1B4089447C64486040801D00D549@irsmsx503.ger.corp.intel.com>
+References: <20100430165249.1386.73960.stgit@gkslx010.igk.intel.com>
+ <20100430165434.1386.80375.stgit@gkslx010.igk.intel.com>
+ <4BE05713.6030101@opengridcomputing.com>
+ <BE2BFE91933D1B4089447C64486040801B6784ED@irsmsx503.ger.corp.intel.com>
+ <4BE06425.6000104@opengridcomputing.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <adar5lyxc01.fsf-BjVyx320WGW9gfZ95n9DRSW4+XlvGpQz@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <4BE06425.6000104-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Cc: rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tziporet Koren <tziporet-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
+To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Cc: "rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org" <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thursday 29 April 2010 23:03, Roland Dreier wrote:
->  > @@ -175,7 +175,7 @@ struct ib_cq *mlx4_ib_create_cq(struct ib_device *ibdev, int entries, int vector
->  >  	if (entries < 1 || entries > dev->dev->caps.max_cqes)
->  >  		return ERR_PTR(-EINVAL);
->  >  
->  > -	cq = kmalloc(sizeof *cq, GFP_KERNEL);
->  > +	cq = kzalloc(sizeof *cq, GFP_KERNEL);
-> 
-> What's the reason for this change?
+Steve, 
 
-Because mlx4_ib_create_cq is used in mlx4_ib_alloc_xrcd (to allocate the dummy cq), and I did not
-want to worry about unitialized data being present in the struct ib_cq portion of struct mlx4_ib_cq.
+> ud_post_send and friends implements the transmit path for IMA. Our RAW ETH QP needs access to physical addresses from user space. Due to security reasons we should make a virtual-to-physical address translation in kernel. 
+>
+>   
+Steve Wise wrote:
+But why couldn't you just use the normal memory registration paths?  IE 
+the user mode app does ibv_reg_mr() and then uses lkey/addr/len in SGEs 
+in the ibv_post_send() which could do kernel bypass.
 
->  > @@ -477,23 +483,51 @@ static struct ib_xrcd *mlx4_ib_alloc_xrcd(struct ib_device *ibdev,
->  > +	pd = mlx4_ib_alloc_pd(ibdev, NULL, NULL);
->  > +	cq = mlx4_ib_create_cq(ibdev, 1, 0, NULL, NULL);
-> 
-> Why does every xrcd get a PD and a CQ now?  Just in case someone wants
-> to create a rcv QP?
- 
-Yes.  This way, we have a dummy PD and CQ available to satisfy the ConnectX requirement
-that every QP have a PD and CQ.
-  
-> (The spec is unclear on this -- for "create XRC 
-> target QP" it says "A set of initial QP attributes must be specified by
-> the Consumer," but then doesn't mention anything in the input modifiers,
-> so it's not clear what PD/CQ is supposed to be used)
+I see here some misunderstanding. Let me explain better how our tramsmit path works. 
 
->From the XRC Annex to the IB Spec:
+In our implementation we use normal memory registration path using ibv_reg_mr and we use ibv_post_send() with lkey/vaddr/len.
 
-A12.5.2.3 XRC TARGET QP
-A12.5.2.3.1 CREATE XRC TARGET QP
-Description:
-Creates a XRC Target QP for the specified HCA.
-A set of initial QP attributes must be specified by the Consumer.
-On success, a handle to the newly created XRC QP and the XRC QP 
-number are returned.
-Input Modifiers:
- Same as RC QP except for:
-==>   no SQ or RQ or SRQ (WQEs, num of s/g elements, CQs, signaling type, etc.)
-      no need for initiator resources (initiator depth)
-==>   no PD
-      add XRC domain to be associated with this QP. 
+The implementation of ibv_post_send (nes_post_send in libnes) for RAW QP passes lkey/virtual_addr/len information to kernel using shared page to our device driver (ud_post_send). There is no data copy here and the driver is used only for fast synchronization.
 
->  > +			(1ull << IB_USER_VERBS_CMD_DESTROY_XRC_RCV_QP);
->  >  	}
->  >  
->  > -
-> 
-> This seems to be repairing whitespace damage from the previous patch.
+Because our RAW ETH QP must use physical addresses only,  ud_post_send() in kernel makes a virtual to physical memory translation and accesses the QP HW for packet transmission. Previously a packet buffer memory was registered and pinned by ibv_reg_mr to provide necessary information for making such translation.
 
-I will fix both patches.
- 
->  > +int mlx4_ib_reg_xrc_rcv_qp(struct ib_xrcd *xrcd, void *context, u32 qp_num)
-> 
->  > +	mutex_lock(&mibqp->mutex);
->  > +	list_for_each_entry(tmp, &mibqp->xrc_reg_list, list)
->  > +		if (tmp->context == context) {
->  > +			mutex_unlock(&mibqp->mutex);
->  > +			kfree(ctx_entry);
->  > +			mutex_unlock(&to_mdev(xrcd->device)->xrc_reg_mutex);
->  > +			return 0;
->  > +		}
->  > +
->  > +	ctx_entry->context = context;
->  > +	list_add_tail(&ctx_entry->list, &mibqp->xrc_reg_list);
->  > +	mutex_unlock(&mibqp->mutex);
-> 
-> This list handling looks completely generic and is what I was saying
-> should probably be in the core uverbs module.
-This list is used to send async events for this xrc rcv QP to all processes using
-the QP (either registered for the qp, or the creating process).
+Steve Wise wrote:
+Seems like maybe you could fix the non-bypass post_send/recv paths 
+instead of implementing an entirely new user<->kernel interface...
 
-Moving this to the core layer would require significant modifications.  I responded to
-this in my response to your first mail.
+The non-bypass post_send/recv channel (using /dev/infiniband/rdma_cm) is shared with all other user-kernel  communication and it is quite complex. It is a perfect path for QP/CQ/PD/mem management but for me it is too complex for traffic acceleration. 
 
->  > +int mlx4_ib_query_xrc_rcv_qp(struct ib_xrcd *ibxrcd, u32 qp_num,
->  > +			     struct ib_qp_attr *qp_attr, int qp_attr_mask,
->  > +			     struct ib_qp_init_attr *qp_init_attr)
-> 
-> Virtually all of this function seems identical to the existing query QP
-> operation.  We should avoid the mass duplication of code.
-> 
-> Also I'm not clear why this function takes a qp_num instead of a QP
-> handle.  Why does the consumer have to pass in the XRCD?  The IB spec
-> XRC annex just shows the QP handle as input to this verb.  Is it because
-> the reg_xrc_rcv_qp doesn't give a QP handle back?
+The user<->kernel  path  through additional driver, shared page for lkey/vaddr/len passing and SW memory translation in kernel is much more effective. 
 
-Yes, I considered the handle to be the pair (xrc domain, qp_number).
+Maybe it is a good idea to make that API more official after some kind of standarization. Our tests proved that it works. We achieved twice better performance and latency. That way could open the way for adding some non-RDMA devices to devices supported OFED API. 
 
-> 
-> Finally, in this implementation, what happens if the consumer passes in
-> a QP that isn't an XRC rcv QP?
-> 
->  > +	mqp = __mlx4_qp_lookup(dev->dev, qp_num);
->  > +	if (unlikely(!mqp)) {
->  > +		printk(KERN_WARNING "mlx4_ib_reg_xrc_rcv_qp: "
->  > +		       "unknown QPN %06x\n", qp_num);
->  > +		goto err_out;
->  > +	}
->  > +
->  > +	qp = to_mibqp(mqp);
->  > +	if (xrcd->xrcdn != to_mxrcd(qp->ibqp.xrcd)->xrcdn)
->  > +		goto err_out;
-> 
-> In other words is that dereference of ->xrcdn safe if ibqp.xrcd is not set?
-> (And the error message talks about reg_xrc_rcv_qp instead of query)
-You are correct -- I will fix both of these (error msg and unprotected dereference).
+Regards,
+
+Mirek
+
+
+-----Original Message-----
+From: Steve Wise [mailto:swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org] 
+Sent: Tuesday, May 04, 2010 8:15 PM
+To: Walukiewicz, Miroslaw
+Cc: rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Subject: Re: [PATCH 2/2] RDMA/nes: add support of iWARP multicast acceleration over IB_QPT_RAW_ETY QP type
+
+Walukiewicz, Miroslaw wrote:
+> Hello Steve,
+>
+> Our Hw QP is not a UD type QP but L2 raw QP. In verbs API there is assumtion that user provides a data payload only for TX and similarly receives a payload only. The protocol headers (in case of UD - MAC/IP/UDP) are attached by HW. 
+>
+> Our QP implementation in HW  does not provide such possibity of attaching headers by HW for UD traffic so for multicast acceleration we choose L2 raw path. It provides some overhead for user application but it is still zero copy apprach.
+>
+> I thought about using a simulation of UD path using L2 raw QP to get the same result like for true UD QP (user handles a payload only). Such approach costs additional copy of payload in SW due to putting headers first and next payload to single tx buffer. Similar situation is for rx. It is a need for copy payload to posted buffers or provide data with some offset. 
+>
+> ud_post_send and friends implements the transmit path for IMA. Our RAW ETH QP needs access to physical addresses from user space. Due to security reasons we should make a virtual-to-physical address translation in kernel. 
+>
+>   
+
+But why couldn't you just use the normal memory registration paths?  IE 
+the user mode app does ibv_reg_mr() and then uses lkey/addr/len in SGEs 
+in the ibv_post_send() which could do kernel bypass.
+
+> Unfortunately an OFED path for ibv_post_send diving to kernel is quite slow due to some number of dynamic memory allocations in the path. We choose to create own private post_send channel to increase tx bandwidth using ud_post_send and friends.
+
+Seems like maybe you could fix the non-bypass post_send/recv paths 
+instead of implementing an entirely new user<->kernel interface...
+
+Steve.
+
+
+>  
+>
+> Regards,
+>
+> Mirek
+>
+> -----Original Message-----
+> From: Steve Wise [mailto:swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org] 
+> Sent: Tuesday, May 04, 2010 7:19 PM
+> To: Walukiewicz, Miroslaw
+> Cc: rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> Subject: Re: [PATCH 2/2] RDMA/nes: add support of iWARP multicast acceleration over IB_QPT_RAW_ETY QP type
+>
+> Hey Mirek,
+>
+> It looks like this patch adds a new file interface for a UD service.  
+> Why didn't you extend the existing UD interface as needed? 
+>
+> What IO is supported with these changes?  IMA via the raw QP, but what 
+> ud_post_send() and friends used for?
+>
+>
+> Steve.
+>
+>
+>
+> miroslaw.walukiewicz-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org wrote:
+>   
+>> This patch implements iWarp multicast acceleration (IMA)
+>> over IB_QPT_RAW_ETY QP type in nes driver.
+>>
+>> Application creates a raw eth QP (IBV_QPT_RAW_ETH in user-space) and
+>> manages the multicast via ibv_attach_mcast and ibv_detach_mcast calls.
+>>
+>> Calling ibv_attach_mcast/ibv_datach_mcast has an effect of
+>> enabling/disabling L2 MAC address filters in HW.
+>>
+>> Signed-off-by: Mirek Walukiewicz <miroslaw.walukiewicz-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+>>
+>>
+>>
+>>     
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
