@@ -1,50 +1,40 @@
-From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH/RFC] cxgb4: Add MAINTAINERS info
-Date: Wed, 05 May 2010 12:01:37 -0700
-Message-ID: <adawrvijhpq.fsf_-_@roland-alpha.cisco.com>
-References: <20100428164341.cee2911a.sfr@canb.auug.org.au>
-	<20100428103356.931ba48c.randy.dunlap@oracle.com>
+From: Tziporet Koren <tziporet-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [ewg] [PATCH] mlx4_core: request MSIX vectors as much as there
+ CPU	cores
+Date: Wed, 05 May 2010 22:34:07 +0300
+Message-ID: <4BE1C82F.4000009@mellanox.co.il>
+References: <20100505113047.GA12242@mtldesk030.lab.mtl.com>	<adahbmmpfep.fsf@roland-alpha.cisco.com> <20100505163252.GG15969@obsidianresearch.com>
+Reply-To: tziporet-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20100428103356.931ba48c.randy.dunlap-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> (Randy Dunlap's
-	message of "Wed, 28 Apr 2010 10:33:56 -0700")
+In-Reply-To: <20100505163252.GG15969-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, dm-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Linux RDMA list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, ewg <ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi guys, does this info for cxgb4/iw_cxgb4 (pretty much copied from
-cxgb3, except with Dimitris instead of Divy) look right?  If so I'll add
-it to my tree.
+On 5/5/2010 7:32 PM, Jason Gunthorpe wrote:
+> On Wed, May 05, 2010 at 07:54:54AM -0700, Roland Dreier wrote:
+>    
+>>   >  The current code requires num_possible_cpus() + 1 MSIX vectors. However,
+>>   >  num_possible_cpus() stands for the max number of supported CPUs by the kernel.
+>>
+>> I believe this is wrong -- num_possible_cpus() is the maximum number of
+>> CPUs for the running system, including hotplug.
+>>      
+> FWIW, I've seen some systems running RH kernels that blow up here
+> because they run out of interrupt numbers if you have two IB cards in
+> them.
+>
+> Mainline kernels have a reworked IRQ number allocator and don't have a
+> problem, so maybe this is an ofed only patch?
+>    
+This is not related to OFED
+We found it in performance work of our EN (10G) driver
 
-Thanks,
-  Roland
----
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 7a9ccda..a00231b 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -1719,6 +1719,20 @@ W:	http://www.openfabrics.org
- S:	Supported
- F:	drivers/infiniband/hw/cxgb3/
- 
-+CXGB4 ETHERNET DRIVER (CXGB4)
-+M:	Dimitris Michailidis <dm-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
-+L:	netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-+W:	http://www.chelsio.com
-+S:	Supported
-+F:	drivers/net/cxgb4/
-+
-+CXGB4 IWARP RNIC DRIVER (IW_CXGB4)
-+M:	Steve Wise <swise-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
-+L:	linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-+W:	http://www.openfabrics.org
-+S:	Supported
-+F:	drivers/infiniband/hw/cxgb4/
-+
- CYBERPRO FB DRIVER
- M:	Russell King <linux-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>
- L:	linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org (moderated for non-subscribers)
+Tziporet
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
