@@ -1,109 +1,179 @@
-From: Or Gerlitz <ogerlitz@Voltaire.com>
-Subject: Re: [patch v3] infiniband: ulp/iser, fix error retval in iser_create_ib_conn_res
-Date: Thu, 06 May 2010 16:22:21 +0300
-Message-ID: <4BE2C28D.1090108@Voltaire.com>
-References: <1268750962-13547-1-git-send-email-jslaby@suse.cz>	<ada634v9644.fsf@roland-alpha.cisco.com> <20100317151122.GF5331@bicker>	<adak4ssi4ky.fsf@roland-alpha.cisco.com> <20100402112736.GH5265@bicker> <ada4oimmd9p.fsf@roland-alpha.cisco.com>
+From: Mike Heinz <michael.heinz-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+Subject: RE: [ewg] ibcheckerrors "Port All FAILED" reported
+Date: Thu, 6 May 2010 08:26:55 -0500
+Message-ID: <4C2744E8AD2982428C5BFE523DF8CDCB49A4740C58@MNEXMB1.qlogic.org>
+References: <382A478CAD40FA4FB46605CF81FE39F45685DEAD@orsmsx507.amr.corp.intel.com>
+ <20100505180943.a9bbb74e.weiny2@llnl.gov>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <ada4oimmd9p.fsf@roland-alpha.cisco.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Roland Dreier <rdreier@cisco.com>
-Cc: Dan Carpenter <error27@gmail.com>, Jiri Slaby <jslaby@suse.cz>, linux-kernel@vger.kernel.org, jirislaby@gmail.com, linux-rdma <linux-rdma@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20100505180943.a9bbb74e.weiny2-i2BcT+NCU+M@public.gmane.org>
+Content-Language: en-US
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>, "Woodruff, Robert J" <robert.j.woodruff-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: EWG <Openfabrics-ewg-0P3JtQMG0aQdnm+yROfE0A@public.gmane.org>, "tziporet-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org" <tziporet-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Roland Dreier wrote:
-> Or, I don't think we ever fixed this.  This patch looks correct to me,
-> any problem with merging this for 2.6.35?
+Ira, 
 
-Roland, please use V4 below, the patch is okay and would apply before and after 
-applying the multipathing patches I sent yesterday (same goes for them).
+I'm pretty sure I already fixed this problem. I submitted a patch to Sasha back in April.
 
-[PATCH V4] ib/iser: fix error flow in iser_create_ib_conn_res
 
-From: Dan Carpenter <error27@gmail.com>
+-----Original Message-----
+From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Ira Weiny
+Sent: Wednesday, May 05, 2010 9:10 PM
+To: Woodruff, Robert J; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: EWG; tziporet-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org
+Subject: Re: [ewg] ibcheckerrors "Port All FAILED" reported
 
-We shouldn't free things here because we free them later. 
-The call tree looks like this: 
-	iser_connect() ==> initiating the connection establishment
-and later 
-	iser_cma_handler() => iser_route_handler() => iser_create_ib_conn_res()
-if we fail here, eventually iser_conn_release() is called, resulted in double free.
-                                                                                                 
-Signed-off-by: Dan Carpenter <error27@gmail.com>
-Signed-off-by: Or Gerlitz <ogerlitz@voltaire.com>
----
-V1 fixed unreachable code
-V2 noticed that the original code had a double free
-V3 Roland Dreier points out that I left a dangling ERR_PTR() in
-   "ib_conn->fmr_pool" which would be freed later on.
-V4 reviewed/enhanced the change-log
----
- drivers/infiniband/ulp/iser/iser_verbs.c |   25 +++++++++----------------
- 1 file changed, 9 insertions(+), 16 deletions(-)
+Interesting...
 
-Index: linux-2.6.34-rc6/drivers/infiniband/ulp/iser/iser_verbs.c
-===================================================================
---- linux-2.6.34-rc6.orig/drivers/infiniband/ulp/iser/iser_verbs.c
-+++ linux-2.6.34-rc6/drivers/infiniband/ulp/iser/iser_verbs.c
-@@ -163,10 +163,8 @@ static int iser_create_ib_conn_res(struc
- 	device = ib_conn->device;
- 
- 	ib_conn->login_buf = kmalloc(ISER_RX_LOGIN_SIZE, GFP_KERNEL);
--	if (!ib_conn->login_buf) {
--		goto alloc_err;
--		ret = -ENOMEM;
--	}
-+	if (!ib_conn->login_buf)
-+		goto out_err;
- 
- 	ib_conn->login_dma = ib_dma_map_single(ib_conn->device->ib_device,
- 				(void *)ib_conn->login_buf, ISER_RX_LOGIN_SIZE,
-@@ -175,10 +173,9 @@ static int iser_create_ib_conn_res(struc
- 	ib_conn->page_vec = kmalloc(sizeof(struct iser_page_vec) +
- 				    (sizeof(u64) * (ISCSI_ISER_SG_TABLESIZE +1)),
- 				    GFP_KERNEL);
--	if (!ib_conn->page_vec) {
--		ret = -ENOMEM;
--		goto alloc_err;
--	}
-+	if (!ib_conn->page_vec)
-+		goto out_err;
-+
- 	ib_conn->page_vec->pages = (u64 *) (ib_conn->page_vec + 1);
- 
- 	params.page_shift        = SHIFT_4K;
-@@ -198,7 +195,8 @@ static int iser_create_ib_conn_res(struc
- 	ib_conn->fmr_pool = ib_create_fmr_pool(device->pd, &params);
- 	if (IS_ERR(ib_conn->fmr_pool)) {
- 		ret = PTR_ERR(ib_conn->fmr_pool);
--		goto fmr_pool_err;
-+		ib_conn->fmr_pool = NULL;
-+		goto out_err;
- 	}
- 
- 	memset(&init_attr, 0, sizeof init_attr);
-@@ -216,7 +214,7 @@ static int iser_create_ib_conn_res(struc
- 
- 	ret = rdma_create_qp(ib_conn->cma_id, device->pd, &init_attr);
- 	if (ret)
--		goto qp_err;
-+		goto out_err;
- 
- 	ib_conn->qp = ib_conn->cma_id->qp;
- 	iser_err("setting conn %p cma_id %p: fmr_pool %p qp %p\n",
-@@ -224,12 +222,7 @@ static int iser_create_ib_conn_res(struc
- 		 ib_conn->fmr_pool, ib_conn->cma_id->qp);
- 	return ret;
- 
--qp_err:
--	(void)ib_destroy_fmr_pool(ib_conn->fmr_pool);
--fmr_pool_err:
--	kfree(ib_conn->page_vec);
--	kfree(ib_conn->login_buf);
--alloc_err:
-+out_err:
- 	iser_err("unable to alloc mem or create resource, err %d\n", ret);
- 	return ret;
- }
+I have a switch which does this as well.  Tracing through the scripts shows
+that the perfquery command is failing like this.
+
+14:29:03 > ./perfquery 40 255
+./perfquery: iberror: failed: AllPortSelect not supported
+
+It seems there is an issue with the CapabilityMask value...
+
+14:43:32 > ./perfquery 40 255
+cap_mask 0x400  <=== my debug output
+./perfquery: iberror: failed: AllPortSelect not supported
+
+14:43:38 > ./saquery CPI 40
+SA ClassPortInfo:
+...
+                Capability mask..........0x2602
+...
+
+Those don't match because...  perfquery has a bug...
+
+perfquery is issuing a PMA query when it should be issuing a SA query.  It
+just so happens that on some switches the result of that PMA query indicates
+AllPortSelect is available.  Patch to follow.
+
+Ira
+
+
+On Wed, 5 May 2010 13:47:54 -0700
+"Woodruff, Robert J" <robert.j.woodruff-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
+
+> 
+> Hi guys,
+> 
+> When I run ibcheckerrors on my Mellanox switch,
+> it is reporting that Port all FAILED. 
+> 
+> From what I can tell, the switch is working fine and
+> I think that this is a bogus error from the program.
+> 
+> If this is indeed not a real problem, can the diagnostic
+> be fixed to not report this as an error ?
+> 
+> 
+> ibcheckerrors -nocolor -v -t 100
+> 
+> # Checking Switch: nodeguid 0x0002c902004046a0
+> Node check lid 7: OK
+> Error check on lid 7 (Infiniscale-IV Mellanox Technologies) port all: FAILED   <------------
+> Error check on lid 7 (Infiniscale-IV Mellanox Technologies) port 2: OK
+> Error check on lid 7 (Infiniscale-IV Mellanox Technologies) port 3: OK
+> Error check on lid 7 (Infiniscale-IV Mellanox Technologies) port 7: OK
+> Error check on lid 7 (Infiniscale-IV Mellanox Technologies) port 8: OK
+> Error check on lid 7 (Infiniscale-IV Mellanox Technologies) port 9: OK
+> Error check on lid 7 (Infiniscale-IV Mellanox Technologies) port 10: OK
+> Error check on lid 7 (Infiniscale-IV Mellanox Technologies) port 17: OK
+> Error check on lid 7 (Infiniscale-IV Mellanox Technologies) port 18: OK
+> Error check on lid 7 (Infiniscale-IV Mellanox Technologies) port 20: OK
+> Error check on lid 7 (Infiniscale-IV Mellanox Technologies) port 25: OK
+> Error check on lid 7 (Infiniscale-IV Mellanox Technologies) port 26: OK
+> Error check on lid 7 (Infiniscale-IV Mellanox Technologies) port 27: OK
+> Error check on lid 7 (Infiniscale-IV Mellanox Technologies) port 28: OK
+> Error check on lid 7 (Infiniscale-IV Mellanox Technologies) port 34: OK
+> Error check on lid 7 (Infiniscale-IV Mellanox Technologies) port 35: OK
+> Error check on lid 7 (Infiniscale-IV Mellanox Technologies) port 36: OK
+> 
+>  Checking Ca: nodeguid 0x0002c9030002628a
+> Node check lid 14: OK
+> Error check on lid 14 (cstnh-2 HCA-1) port 1: OK
+> 
+> # Checking Ca: nodeguid 0x0002c90300025e0a
+> Node check lid 12: OK
+> Error check on lid 12 (cstnh-3 HCA-1) port 1: OK
+> 
+> # Checking Ca: nodeguid 0x0002c9030002615e
+> Node check lid 15: OK
+> Error check on lid 15 (cstnh-4 HCA-1) port 1: OK
+> 
+> # Checking Ca: nodeguid 0x0002c9030008e442
+> Node check lid 11: OK
+> Error check on lid 11 (cstnh-8 HCA-1) port 1: OK
+> 
+> # Checking Ca: nodeguid 0x0002c9030008e44e
+> Node check lid 8: OK
+> Error check on lid 8 (cstnh-11 HCA-1) port 1: OK
+> 
+> # Checking Ca: nodeguid 0x0002c9030008e3e6
+> Node check lid 2: OK
+> Error check on lid 2 (cstnh-13 HCA-1) port 1: OK
+> 
+> # Checking Ca: nodeguid 0x0002c9030008e44a
+> Node check lid 18: OK
+> Error check on lid 18 (cstnh-9 HCA-1) port 1: OK
+> 
+> # Checking Ca: nodeguid 0x0002c90300044fb4
+> Node check lid 13: OK
+> Error check on lid 13 (cstnh-7 HCA-1) port 1: OK
+> 
+> # Checking Ca: nodeguid 0x0002c90300044fbc
+> Node check lid 10: OK
+> Error check on lid 10 (cstnh-1 HCA-1) port 1: OK
+> 
+> # Checking Ca: nodeguid 0x0002c9030008e3ee
+> Node check lid 9: OK
+> Error check on lid 9 (cstnh-10 HCA-1) port 1: OK
+> 
+> # Checking Ca: nodeguid 0x0002c9030008e446
+> Node check lid 4: OK
+> Error check on lid 4 (cstnh-12 HCA-1) port 1: OK
+> 
+> # Checking Ca: nodeguid 0x0002c9030008e22e
+> Node check lid 1: OK
+> Error check on lid 1 (cstnh-14 HCA-1) port 1: OK
+> 
+> # Checking Ca: nodeguid 0x0002c9030008e43e
+> Node check lid 19: OK
+> Error check on lid 19 (cstnh-15 HCA-1) port 1: OK
+> 
+> # Checking Ca: nodeguid 0x0090270002000345
+> Node check lid 6: OK
+> Error check on lid 6 (cstnh-5 HCA-1) port 1: OK
+> 
+> # Checking Ca: nodeguid 0x0090270002000335
+> Node check lid 5: OK
+> Error check on lid 5 (cstnh-6 HCA-1) port 1: OK
+> 
+> # Checking Ca: nodeguid 0x0002c90300028238
+> Node check lid 3: OK
+> Error check on lid 3 (cst-linux HCA-1) port 1: OK
+> 
+> ## Summary: 17 nodes checked, 0 bad nodes found
+> ##          32 ports checked, 0 ports have errors beyond threshold
+> _______________________________________________
+> ewg mailing list
+> ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
+> http://*lists.openfabrics.org/cgi-bin/mailman/listinfo/ewg
+> 
+
+
+-- 
+Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
