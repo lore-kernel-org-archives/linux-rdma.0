@@ -1,28 +1,23 @@
 From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH/RFC] cxgb4: Add MAINTAINERS info
-Date: Thu, 06 May 2010 09:07:51 -0700
-Message-ID: <adapr199foo.fsf@roland-alpha.cisco.com>
-References: <20100428164341.cee2911a.sfr@canb.auug.org.au>
-	<20100428103356.931ba48c.randy.dunlap@oracle.com>
-	<adawrvijhpq.fsf_-_@roland-alpha.cisco.com>
-	<4BE25A3D.20800@voltaire.com>
+Subject: Re: [PATCH] mlx4: Fix chunk sg list overflow in mlx4_alloc_icm()
+Date: Thu, 06 May 2010 09:08:32 -0700
+Message-ID: <adaljbx9fnj.fsf@roland-alpha.cisco.com>
+References: <20100430132131.0d829b3c@frecb007965>
+	<adatyqmmej0.fsf@roland-alpha.cisco.com>
+	<20100506080453.43594a4b@frecb007965>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4BE25A3D.20800-smomgflXvOZWk0Htik3J/w@public.gmane.org> (Or Gerlitz's message of "Thu, 06
-	May 2010 08:57:17 +0300")
+In-Reply-To: <20100506080453.43594a4b@frecb007965> (sebastien dugue's message
+	of "Thu, 6 May 2010 08:04:53 +0200")
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, dm-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org
+To: sebastien dugue <sebastien.dugue-6ktuUTfB/bM@public.gmane.org>
+Cc: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
- > not sure who's the butterfly that caused this, but this was somehow
- > committed as  "CXGB4 ETHERNET DRIVER (CXGB3)" and same goes for the
- > IW_ piece
+ >  Yes, some customer got hit by this, which ended up corrupting memory.
 
-Thanks, I think I committed, saw the problem, fixed it up, sent the RFC,
-and then pushed my tree.  I fixed it up now.  Pretty impressive eagle
-eyes to notice that...
+I'll tag it for stable kernels too then.  Thanks.
 -- 
 Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org> || For corporate legal information go to:
 http://www.cisco.com/web/about/doing_business/legal/cri/index.html
