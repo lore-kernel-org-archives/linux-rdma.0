@@ -1,25 +1,31 @@
-From: "Vance Cornell" <jim-AEKUm4VYoz6Xwn1DuLNU1KjOwPajd7iwKZ4ELllBM5w@public.gmane.org>
-Subject: business marketing database
-Date: Thu,  6 May 2010 14:20:24 -0500 (PET)
-Message-ID: <20100506192024.AACD242839D@mail.maritimabusonich.com.pe>
-Reply-To: jim-AEKUm4VYoz6Xwn1DuLNU1KjOwPajd7iwKZ4ELllBM5w@public.gmane.org
+From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH] libibverbs: Add huge page support to ibv_madvise_range()
+Date: Thu, 06 May 2010 13:51:02 -0700
+Message-ID: <adazl0c92kp.fsf@roland-alpha.cisco.com>
+References: <4B12AA78.7090401@gmail.com>
+	<ada8wbzi490.fsf@roland-alpha.cisco.com> <4BCFFC48.4060401@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <4BCFFC48.4060401-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> (Alex Vainman's message of "Thu, 22
+	Apr 2010 10:35:36 +0300")
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: rollercoasterflight-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, 32353rbn-j9N7ZwQwUs0@public.gmane.org, info-T/zw26LcSym7ZbX1PVObng@public.gmane.org, webmaster-P0NvWEq3wAmshxzGDNidGixXY32XiHfO@public.gmane.org, paulbiz57-/E1597aS9LQAvxtiuMwx3w@public.gmane.org
+To: alexv-smomgflXvOZWk0Htik3J/w@public.gmane.org
+Cc: roland <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, alexr-smomgflXvOZWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Here's some of the healthcare lists we have:
+ > In order to avoid adding additional dependency to libibverbs, maybe
+ > we should just to enhance the get_huge_page_size() so it will support
+ > multiple huge page sizes?
 
-Pharmaceutical Companies - Email only list 47,000 emails of pharma company employees
-Physical Therapists - 125,460 total records with 5,483 emails and 4,405 fax numbers
-Oncology Doctors - 2,200 records all with emails
+I think that does make sense.  However see my reply to Alexander
+Schmidt -- maybe there is something clever we can do with /proc/*/maps
+to figure out when we need to use this?
 
-Theres many more too, just send me an email here for additional info/samples: Vivian.Temple-k2xzaFxgLweHQwpFp6j/jMXXUOn6P5/W@public.gmane.org
-
-  
-
-
-To invoke no further correspondence status please send an email to disappear-k2xzaFxgLweHQwpFp6j/jMXXUOn6P5/W@public.gmane.org
+ - R.
+-- 
+Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org> || For corporate legal information go to:
+http://www.cisco.com/web/about/doing_business/legal/cri/index.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
