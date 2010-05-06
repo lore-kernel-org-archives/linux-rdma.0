@@ -1,38 +1,109 @@
-From: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCHv8 06/11] ipoib: avoid ipoib over IBoE
-Date: Thu, 6 May 2010 14:02:33 +0300
-Message-ID: <20100506110233.GB29792@mtldesk030.lab.mtl.com>
-References: <20100218172420.GG12286@mtls03>
-	<adamxweasrc.fsf@roland-alpha.cisco.com>
+From: Or Gerlitz <ogerlitz@Voltaire.com>
+Subject: Re: [patch v3] infiniband: ulp/iser, fix error retval in iser_create_ib_conn_res
+Date: Thu, 06 May 2010 16:22:21 +0300
+Message-ID: <4BE2C28D.1090108@Voltaire.com>
+References: <1268750962-13547-1-git-send-email-jslaby@suse.cz>	<ada634v9644.fsf@roland-alpha.cisco.com> <20100317151122.GF5331@bicker>	<adak4ssi4ky.fsf@roland-alpha.cisco.com> <20100402112736.GH5265@bicker> <ada4oimmd9p.fsf@roland-alpha.cisco.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Return-path: <ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <adamxweasrc.fsf-BjVyx320WGW9gfZ95n9DRSW4+XlvGpQz@public.gmane.org>
-List-Unsubscribe: <http://lists.openfabrics.org/cgi-bin/mailman/listinfo/ewg>,
-	<mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.openfabrics.org/pipermail/ewg>
-List-Post: <mailto:ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
-List-Help: <mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=help>
-List-Subscribe: <http://lists.openfabrics.org/cgi-bin/mailman/listinfo/ewg>,
-	<mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=subscribe>
-Sender: ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
-Errors-To: ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
-To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Cc: Linux RDMA list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, ewg <ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <ada4oimmd9p.fsf@roland-alpha.cisco.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Roland Dreier <rdreier@cisco.com>
+Cc: Dan Carpenter <error27@gmail.com>, Jiri Slaby <jslaby@suse.cz>, linux-kernel@vger.kernel.org, jirislaby@gmail.com, linux-rdma <linux-rdma@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, May 05, 2010 at 03:27:51PM -0700, Roland Dreier wrote:
->  > @@ -1383,6 +1385,9 @@ static void ipoib_remove_one(struct ib_device *device)
->  >  	dev_list = ib_get_client_data(device, &ipoib_client);
->  >  
->  >  	list_for_each_entry_safe(priv, tmp, dev_list, list) {
->  > +		if (rdma_port_link_layer(device, priv->port) != IB_LINK_LAYER_INFINIBAND)
->  > +			continue;
-> 
-> Why do we need this chunk here?  How could a netdev get on our list if
-> we never create IPoIB interfaces for IBoE ports?
-> 
+Roland Dreier wrote:
+> Or, I don't think we ever fixed this.  This patch looks correct to me,
+> any problem with merging this for 2.6.35?
 
-Right, this is not necessary and can be removed.
+Roland, please use V4 below, the patch is okay and would apply before and after 
+applying the multipathing patches I sent yesterday (same goes for them).
+
+[PATCH V4] ib/iser: fix error flow in iser_create_ib_conn_res
+
+From: Dan Carpenter <error27@gmail.com>
+
+We shouldn't free things here because we free them later. 
+The call tree looks like this: 
+	iser_connect() ==> initiating the connection establishment
+and later 
+	iser_cma_handler() => iser_route_handler() => iser_create_ib_conn_res()
+if we fail here, eventually iser_conn_release() is called, resulted in double free.
+                                                                                                 
+Signed-off-by: Dan Carpenter <error27@gmail.com>
+Signed-off-by: Or Gerlitz <ogerlitz@voltaire.com>
+---
+V1 fixed unreachable code
+V2 noticed that the original code had a double free
+V3 Roland Dreier points out that I left a dangling ERR_PTR() in
+   "ib_conn->fmr_pool" which would be freed later on.
+V4 reviewed/enhanced the change-log
+---
+ drivers/infiniband/ulp/iser/iser_verbs.c |   25 +++++++++----------------
+ 1 file changed, 9 insertions(+), 16 deletions(-)
+
+Index: linux-2.6.34-rc6/drivers/infiniband/ulp/iser/iser_verbs.c
+===================================================================
+--- linux-2.6.34-rc6.orig/drivers/infiniband/ulp/iser/iser_verbs.c
++++ linux-2.6.34-rc6/drivers/infiniband/ulp/iser/iser_verbs.c
+@@ -163,10 +163,8 @@ static int iser_create_ib_conn_res(struc
+ 	device = ib_conn->device;
+ 
+ 	ib_conn->login_buf = kmalloc(ISER_RX_LOGIN_SIZE, GFP_KERNEL);
+-	if (!ib_conn->login_buf) {
+-		goto alloc_err;
+-		ret = -ENOMEM;
+-	}
++	if (!ib_conn->login_buf)
++		goto out_err;
+ 
+ 	ib_conn->login_dma = ib_dma_map_single(ib_conn->device->ib_device,
+ 				(void *)ib_conn->login_buf, ISER_RX_LOGIN_SIZE,
+@@ -175,10 +173,9 @@ static int iser_create_ib_conn_res(struc
+ 	ib_conn->page_vec = kmalloc(sizeof(struct iser_page_vec) +
+ 				    (sizeof(u64) * (ISCSI_ISER_SG_TABLESIZE +1)),
+ 				    GFP_KERNEL);
+-	if (!ib_conn->page_vec) {
+-		ret = -ENOMEM;
+-		goto alloc_err;
+-	}
++	if (!ib_conn->page_vec)
++		goto out_err;
++
+ 	ib_conn->page_vec->pages = (u64 *) (ib_conn->page_vec + 1);
+ 
+ 	params.page_shift        = SHIFT_4K;
+@@ -198,7 +195,8 @@ static int iser_create_ib_conn_res(struc
+ 	ib_conn->fmr_pool = ib_create_fmr_pool(device->pd, &params);
+ 	if (IS_ERR(ib_conn->fmr_pool)) {
+ 		ret = PTR_ERR(ib_conn->fmr_pool);
+-		goto fmr_pool_err;
++		ib_conn->fmr_pool = NULL;
++		goto out_err;
+ 	}
+ 
+ 	memset(&init_attr, 0, sizeof init_attr);
+@@ -216,7 +214,7 @@ static int iser_create_ib_conn_res(struc
+ 
+ 	ret = rdma_create_qp(ib_conn->cma_id, device->pd, &init_attr);
+ 	if (ret)
+-		goto qp_err;
++		goto out_err;
+ 
+ 	ib_conn->qp = ib_conn->cma_id->qp;
+ 	iser_err("setting conn %p cma_id %p: fmr_pool %p qp %p\n",
+@@ -224,12 +222,7 @@ static int iser_create_ib_conn_res(struc
+ 		 ib_conn->fmr_pool, ib_conn->cma_id->qp);
+ 	return ret;
+ 
+-qp_err:
+-	(void)ib_destroy_fmr_pool(ib_conn->fmr_pool);
+-fmr_pool_err:
+-	kfree(ib_conn->page_vec);
+-	kfree(ib_conn->login_buf);
+-alloc_err:
++out_err:
+ 	iser_err("unable to alloc mem or create resource, err %d\n", ret);
+ 	return ret;
+ }
