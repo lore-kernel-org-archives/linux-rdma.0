@@ -1,19 +1,30 @@
-From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-Subject: Re: [ewg] ibcheckerrors "Port All FAILED" reported
-Date: Thu, 6 May 2010 08:34:55 -0700
-Message-ID: <20100506083455.951377af.weiny2@llnl.gov>
+From: Mike Heinz <michael.heinz-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+Subject: RE: [ewg] ibcheckerrors "Port All FAILED" reported
+Date: Thu, 6 May 2010 10:41:55 -0500
+Message-ID: <4C2744E8AD2982428C5BFE523DF8CDCB49A4740C94@MNEXMB1.qlogic.org>
 References: <382A478CAD40FA4FB46605CF81FE39F45685DEAD@orsmsx507.amr.corp.intel.com>
 	<20100505180943.a9bbb74e.weiny2@llnl.gov>
 	<4C2744E8AD2982428C5BFE523DF8CDCB49A4740C58@MNEXMB1.qlogic.org>
+ <20100506083455.951377af.weiny2@llnl.gov>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4C2744E8AD2982428C5BFE523DF8CDCB49A4740C58-amwN6d8PyQWXx9kJd3VG2h2eb7JE58TQ@public.gmane.org>
+In-Reply-To: <20100506083455.951377af.weiny2-i2BcT+NCU+M@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Mike Heinz <michael.heinz-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>, Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+To: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>, Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
 Cc: "Woodruff, Robert J" <robert.j.woodruff-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, EWG <Openfabrics-ewg-0P3JtQMG0aQdnm+yROfE0A@public.gmane.org>, "tziporet-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org" <tziporet-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
+
+Yup - I've also sent a note to Sasha what happened to the patch.
+
+-----Original Message-----
+From: Ira Weiny [mailto:weiny2-i2BcT+NCU+M@public.gmane.org] 
+Sent: Thursday, May 06, 2010 11:35 AM
+To: Mike Heinz; Sasha Khapyorsky
+Cc: Woodruff, Robert J; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; EWG; tziporet-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org
+Subject: Re: [ewg] ibcheckerrors "Port All FAILED" reported
 
 On Thu, 6 May 2010 06:26:55 -0700
 Mike Heinz <michael.heinz-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org> wrote:
