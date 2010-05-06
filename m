@@ -1,7 +1,7 @@
 From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: [PATCH 5/7] RDMA/cxgb4: clean up a few printks.
-Date: Thu, 06 May 2010 18:06:41 -0500
-Message-ID: <20100506230641.25362.90934.stgit@build.ogc.int>
+Subject: [PATCH 6/7] RDMA/cxgb4: Avoid CQ arm overflows.
+Date: Thu, 06 May 2010 18:06:47 -0500
+Message-ID: <20100506230646.25362.35433.stgit@build.ogc.int>
 References: <20100506230619.25362.97591.stgit@build.ogc.int>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -12,41 +12,53 @@ Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+There are 2 limits that need to be taken into account when arming the CQ.
+1) the GTS register limits the delta idx to <= 0xfff.
+2) T4 HW limits it to < cq size.
+
+Update t4_arm_cq() to account for these limits.
+
 Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 ---
 
- drivers/infiniband/hw/cxgb4/cm.c |    2 +-
- drivers/infiniband/hw/cxgb4/ev.c |    4 ++--
- 2 files changed, 3 insertions(+), 3 deletions(-)
+ drivers/infiniband/hw/cxgb4/t4.h |   24 +++++++++++++++++++-----
+ 1 files changed, 19 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/infiniband/hw/cxgb4/cm.c b/drivers/infiniband/hw/cxgb4/cm.c
-index d146639..30ce0a8 100644
---- a/drivers/infiniband/hw/cxgb4/cm.c
-+++ b/drivers/infiniband/hw/cxgb4/cm.c
-@@ -2033,7 +2033,7 @@ int c4iw_create_listen(struct iw_cm_id *cm_id, int backlog)
- 	 */
- 	ep->stid = cxgb4_alloc_stid(dev->rdev.lldi.tids, PF_INET, ep);
- 	if (ep->stid == -1) {
--		printk(KERN_ERR MOD "%s - cannot alloc atid.\n", __func__);
-+		printk(KERN_ERR MOD "%s - cannot alloc stid.\n", __func__);
- 		err = -ENOMEM;
- 		goto fail2;
- 	}
-diff --git a/drivers/infiniband/hw/cxgb4/ev.c b/drivers/infiniband/hw/cxgb4/ev.c
-index ca05b5b..491e76a 100644
---- a/drivers/infiniband/hw/cxgb4/ev.c
-+++ b/drivers/infiniband/hw/cxgb4/ev.c
-@@ -51,8 +51,8 @@ static void post_qp_event(struct c4iw_dev *dev, struct c4iw_cq *chp,
- 		return;
- 	}
+diff --git a/drivers/infiniband/hw/cxgb4/t4.h b/drivers/infiniband/hw/cxgb4/t4.h
+index aeeb005..7f04dc5 100644
+--- a/drivers/infiniband/hw/cxgb4/t4.h
++++ b/drivers/infiniband/hw/cxgb4/t4.h
+@@ -449,11 +449,25 @@ struct t4_cq {
+ static inline int t4_arm_cq(struct t4_cq *cq, int se)
+ {
+ 	u32 val;
+-
+-	val = SEINTARM(se) | CIDXINC(cq->cidx_inc) | TIMERREG(6) |
+-	      INGRESSQID(cq->cqid);
+-	cq->cidx_inc = 0;
+-	writel(val, cq->gts);
++	u16 inc;
++
++	do {
++		/*
++		 * inc must be less the both the max update value -and-
++		 * the size of the CQ.
++		 */
++		inc = cq->cidx_inc <= CIDXINC_MASK ? cq->cidx_inc :
++						     CIDXINC_MASK;
++		inc = inc <= (cq->size - 1) ? inc : (cq->size - 1);
++		if (inc == cq->cidx_inc)
++			val = SEINTARM(se) | CIDXINC(inc) | TIMERREG(6) |
++			      INGRESSQID(cq->cqid);
++		else
++			val = SEINTARM(0) | CIDXINC(inc) | TIMERREG(7) |
++			      INGRESSQID(cq->cqid);
++		cq->cidx_inc -= inc;
++		writel(val, cq->gts);
++	} while (cq->cidx_inc);
+ 	return 0;
+ }
  
--	printk(KERN_ERR "%s - AE qpid 0x%x opcode %d status 0x%x "
--	       "type %d wrid.hi 0x%x wrid.lo 0x%x\n", __func__,
-+	printk(KERN_ERR MOD "AE qpid 0x%x opcode %d status 0x%x "
-+	       "type %d wrid.hi 0x%x wrid.lo 0x%x\n",
- 	       CQE_QPID(err_cqe), CQE_OPCODE(err_cqe),
- 	       CQE_STATUS(err_cqe), CQE_TYPE(err_cqe),
- 	       CQE_WRID_HI(err_cqe), CQE_WRID_LOW(err_cqe));
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
