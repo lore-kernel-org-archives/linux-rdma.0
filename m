@@ -1,63 +1,40 @@
-From: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [ewg] [PATCH] mlx4_core: request MSIX vectors as much as there
-	CPU	cores
-Date: Thu, 6 May 2010 10:49:40 +0300
-Message-ID: <20100506074940.GA23576@mtldesk030.lab.mtl.com>
-References: <20100505113047.GA12242@mtldesk030.lab.mtl.com>
-	<adahbmmpfep.fsf@roland-alpha.cisco.com>
-	<20100505163252.GG15969@obsidianresearch.com>
-	<4BE1C82F.4000009@mellanox.co.il> <adaaasejfew.fsf@roland-alpha.cisco.com>
-	<ada6332jf79.fsf@roland-alpha.cisco.com>
+From: Or Gerlitz <ogerlitz-hKgKHo2Ms0FWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH 2/3] ib/iser: remove buggy back-pointer setting
+Date: Thu, 06 May 2010 11:24:17 +0300
+Message-ID: <4BE27CB1.5000609@Voltaire.com>
+References: <Pine.LNX.4.64.1005051726110.29957@zuben.voltaire.com>	<Pine.LNX.4.64.1005051730170.29957@zuben.voltaire.com> <4BE1AFF4.30600@cs.wisc.edu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <ada6332jf79.fsf-BjVyx320WGW9gfZ95n9DRSW4+XlvGpQz@public.gmane.org>
+In-Reply-To: <4BE1AFF4.30600-hcNo3dDEHLuVc3sceRu5cw@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Cc: tziporet-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Linux RDMA list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, ewg <ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>, yevgenyp-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org
+To: Mike Christie <michaelc-hcNo3dDEHLuVc3sceRu5cw@public.gmane.org>
+Cc: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, May 05, 2010 at 12:55:54PM -0700, Roland Dreier wrote:
->  > We found it in performance work of our EN (10G) driver
-> 
-> By the way, it would certainly make sense for the ethernet driver to use
-> a number of queues that matches num_online_cpus() at the time the
-> interface is brought up.  Since we can't change the # of MSI-X vectors
-> very easily I think we need to allow for the possible CPUs, but bouncing
-> a net interface seems lighter weight to me.
-> 
-> Although perhaps reloading a driver on CPU hotplug is OK too?
-> 
+Mike Christie wrote:
+> I agree on it being a bug, but do you remember why that was added to iscsi_iser_conn_destroy originally? 
+> I later moved it to iser_conn_release in commit b40977d95fb3a1898ace6a7d97e4ed1a33a440a4)
+> but I think Erez had added that null and some checks for it being null for a specific bug.
+> I am not 100% sure. Look in the git logs to make sure. I will check them too when I get some more time.
 
-Yes, we have a system where num_possible_cpus is 32 and
-num_online_cpus is 16. It's a RH5.4 and the kernel has no problem
-allocating 33 MSI-X vectors. The point is that using more than one EQ
-per CPU core does not buy us anything; in fact it can contiribute to a
-higher rate of interrupts since the same EQ serves less CQs and the
-chances for coalescing EQEs are lower.
+Mike, I took a look on the git, in commit 87e8df7a273c7c1acb864c90b5253609c44375a6 "Have iSER data transaction object point to iSER conn", Erez added these two chunks,
 
-So what do you think about the following patch to mlx4_en:
+> @@ -317,6 +317,8 @@ iscsi_iser_conn_destroy(struct iscsi_cls_conn *cls_conn)
+> +       if (iser_conn->ib_conn)
+> +               iser_conn->ib_conn->iser_conn = NULL;
 
 
-diff --git a/drivers/net/mlx4/en_cq.c b/drivers/net/mlx4/en_cq.c
-index 21786ad..07c0779 100644
---- a/drivers/net/mlx4/en_cq.c
-+++ b/drivers/net/mlx4/en_cq.c
-@@ -49,11 +49,12 @@ int mlx4_en_create_cq(struct mlx4_en_priv *priv,
- {
- 	struct mlx4_en_dev *mdev = priv->mdev;
- 	int err;
-+	int num_active_vectors = min_t(int, num_online_cpus(), mdev->dev->caps.num_comp_vectors);
- 
- 	cq->size = entries;
- 	if (mode == RX) {
- 		cq->buf_size = cq->size * sizeof(struct mlx4_cqe);
--		cq->vector   = ring % mdev->dev->caps.num_comp_vectors;
-+		cq->vector   = ring % num_active_vectors;
- 	} else {
- 		cq->buf_size = sizeof(struct mlx4_cqe);
- 		cq->vector   = 0;
+> @@ -571,6 +571,8 @@ void iser_conn_release(struct iser_conn *ib_conn)
+> +       if (ib_conn->iser_conn)
+> +               ib_conn->iser_conn->ib_conn = NULL;
+
+The problem he was trying to solve was related to the processing of RX/TX buffers flushed by the QP throughout the disconnection flow, so he was shutting down the UP/DOWN pointers. 
+
+Later in commit b40977d95 you touched the UP NULL-ing, leaving it in different form. I don't see any specific reason to have the buggy DOWN NULL-ing in iser_conn_release, I believe it doesn't solve any problem and adds a bug, this is what my patch comes to solve, okay?
+
+Or.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
