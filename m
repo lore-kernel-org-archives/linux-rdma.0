@@ -1,50 +1,33 @@
 From: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Subject: Re: ibcheckerrors "Port All FAILED" reported
-Date: Fri, 7 May 2010 00:11:24 +0300
-Message-ID: <20100506211124.GH7099@me.iol.unh.edu>
-References: <382A478CAD40FA4FB46605CF81FE39F45685DEAD@orsmsx507.amr.corp.intel.com>
-	<20100505180943.a9bbb74e.weiny2@llnl.gov>
+Subject: Re: [PATCH] infiniband-diags/scripts/ibcheckerrs.in: emulate all
+ ports if necessary.
+Date: Fri, 7 May 2010 00:13:28 +0300
+Message-ID: <20100506211328.GI7099@me.iol.unh.edu>
+References: <20100505194720.6f9d434c.weiny2@llnl.gov>
+ <20100506091829.dd275edf.weiny2@llnl.gov>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20100505180943.a9bbb74e.weiny2-i2BcT+NCU+M@public.gmane.org>
-List-Unsubscribe: <http://lists.openfabrics.org/cgi-bin/mailman/listinfo/ewg>,
-	<mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.openfabrics.org/pipermail/ewg>
-List-Post: <mailto:ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
-List-Help: <mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=help>
-List-Subscribe: <http://lists.openfabrics.org/cgi-bin/mailman/listinfo/ewg>,
-	<mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=subscribe>
-Sender: ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
-Errors-To: ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
+In-Reply-To: <20100506091829.dd275edf.weiny2-i2BcT+NCU+M@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, EWG <Openfabrics-ewg-0P3JtQMG0aQdnm+yROfE0A@public.gmane.org>
+Cc: Robert Woodruff <robert.j.woodruff-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Michael Heinz <michael.heinz-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>, Openfabrics-ewg-0P3JtQMG0aQdnm+yROfE0A@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 18:09 Wed 05 May     , Ira Weiny wrote:
+On 09:18 Thu 06 May     , Ira Weiny wrote:
+> Upon thinking about this a bit more, and seeing Mikes patch.  I think that the
+> patch which Mike sent some time ago is a better fix.  This will work fine for
+> ibcheckerrs.  However ibcheckerrors will run AllPortSelect and then go on to
+> query all the ports individually.  The patch below will cause a double read
+> for each port which will kill ibcheckerrors performance on a large cluster.
 > 
-> 14:29:03 > ./perfquery 40 255
-> ./perfquery: iberror: failed: AllPortSelect not supported
-> 
-> It seems there is an issue with the CapabilityMask value...
-> 
-> 14:43:32 > ./perfquery 40 255
-> cap_mask 0x400  <=== my debug output
-> ./perfquery: iberror: failed: AllPortSelect not supported
-> 
-> 14:43:38 > ./saquery CPI 40
-> SA ClassPortInfo:
-> ...
->                 Capability mask..........0x2602
-> ...
-> 
-> Those don't match because...  perfquery has a bug...
-> 
-> perfquery is issuing a PMA query when it should be issuing a SA query.
+> Sasha, what is the status of Mikes patch?
 
-I'm not following. How should it be related to each other SA and PM
-ClassPortInfo(s)?
+Applied now.
 
 Sasha
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
