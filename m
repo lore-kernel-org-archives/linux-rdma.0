@@ -1,35 +1,29 @@
-From: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Subject: Re: libibnetdisc: Add grouping for Voltaire's ISR4700 switch
-Date: Fri, 7 May 2010 01:27:18 +0300
-Message-ID: <20100506222718.GL7099@me.iol.unh.edu>
-References: <20100427143529.75d64f9f@frecb007965>
+From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH] libibverbs: add path record definitions to sa.h
+Date: Thu, 06 May 2010 15:33:24 -0700
+Message-ID: <adapr18zmmj.fsf@roland-alpha.cisco.com>
+References: <2420730B531C4665BD842A7F46007DA2@amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20100427143529.75d64f9f@frecb007965>
+In-Reply-To: <2420730B531C4665BD842A7F46007DA2-Zpru7NauK7drdx17CPfAsdBPR1lH4CV8@public.gmane.org> (Sean
+	Hefty's message of "Thu, 6 May 2010 15:22:58 -0700")
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: sebastien dugue <sebastien.dugue-6ktuUTfB/bM@public.gmane.org>
-Cc: Yair Goldel <yairg-smomgflXvOZWk0Htik3J/w@public.gmane.org>, OF EWG <ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 14:35 Tue 27 Apr     , sebastien dugue wrote:
-> 
->   The ISR4700 features 3 kind of boards:
->     
->   - sLB-4018 line board with a single 36 port asic
->   - sFB-4700 fabric board with a single 36 port asic
->   - sFB-4700X2 double density fabric board with 2 36 port asics
->     
->   The double density fabric board (sFB-4700X2) features external 12X
-> connectors that are only an aggregation of 3 4X ports, therefore
-> ext_portnum is set to match the number printed on the faceplate.
->     
-> Signed-off-by: Sebastien Dugue <sebastien.dugue-6ktuUTfB/bM@public.gmane.org>
+ > +#define IB_PATH_RECORD_REVERSIBLE 0x80
+ > +
+ > +struct ib_path_record
 
-Applied. Thanks.
-
-Sasha
+Can we use IBV_ / ibv_ prefixes here to match the rest of libibverbs?
+Also having struct ibv_sa_path_rec and struct ibv_path_record is sort of
+unfortunate.  Not sure if I can think of a better name here though --
+ibv_raw_path_record?  ibv_packed_path_record?  Oh well...
+-- 
+Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org> || For corporate legal information go to:
+http://www.cisco.com/web/about/doing_business/legal/cri/index.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
