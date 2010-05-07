@@ -1,7 +1,7 @@
 From: Ralph Campbell <ralph.campbell-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v3 38/52] IB/qib: Add qib_twsi.c
-Date: Thu, 06 May 2010 17:02:11 -0700
-Message-ID: <20100507000211.3441.67028.stgit@chromite.mv.qlogic.com>
+Subject: [PATCH v3 39/52] IB/qib: Add qib_tx.c
+Date: Thu, 06 May 2010 17:02:16 -0700
+Message-ID: <20100507000216.3441.8061.stgit@chromite.mv.qlogic.com>
 References: <20100506235849.3441.85930.stgit@chromite.mv.qlogic.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -13,24 +13,23 @@ To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-creates the qib_twsi.c file.
+creates the qib_tx.c file.
 
 Signed-off-by: Ralph Campbell <ralph.campbell-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
 ---
 
- drivers/infiniband/hw/qib/qib_twsi.c |  498 ++++++++++++++++++++++++++++++++++
- 1 files changed, 498 insertions(+), 0 deletions(-)
- create mode 100644 drivers/infiniband/hw/qib/qib_twsi.c
+ drivers/infiniband/hw/qib/qib_tx.c |  557 ++++++++++++++++++++++++++++++++++++
+ 1 files changed, 557 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/infiniband/hw/qib/qib_tx.c
 
-diff --git a/drivers/infiniband/hw/qib/qib_twsi.c b/drivers/infiniband/hw/qib/qib_twsi.c
+diff --git a/drivers/infiniband/hw/qib/qib_tx.c b/drivers/infiniband/hw/qib/qib_tx.c
 new file mode 100644
-index 0000000..6f31ca5
+index 0000000..f7eb1dd
 --- /dev/null
-+++ b/drivers/infiniband/hw/qib/qib_twsi.c
-@@ -0,0 +1,498 @@
++++ b/drivers/infiniband/hw/qib/qib_tx.c
+@@ -0,0 +1,557 @@
 +/*
-+ * Copyright (c) 2006, 2007, 2008, 2009 QLogic Corporation. All rights reserved.
-+ * Copyright (c) 2003, 2004, 2005, 2006 PathScale, Inc. All rights reserved.
++ * Copyright (c) 2008, 2009, 2010 QLogic Corporation. All rights reserved.
 + *
 + * This software is available to you under a choice of one of two
 + * licenses.  You may choose to be licensed under the terms of the GNU
@@ -61,470 +60,530 @@ index 0000000..6f31ca5
 + * SOFTWARE.
 + */
 +
-+#include <linux/delay.h>
++#include <linux/spinlock.h>
 +#include <linux/pci.h>
++#include <linux/io.h>
++#include <linux/delay.h>
++#include <linux/netdevice.h>
 +#include <linux/vmalloc.h>
 +
 +#include "qib.h"
 +
-+/*
-+ * QLogic_IB "Two Wire Serial Interface" driver.
-+ * Originally written for a not-quite-i2c serial eeprom, which is
-+ * still used on some supported boards. Later boards have added a
-+ * variety of other uses, most board-specific, so teh bit-boffing
-+ * part has been split off to this file, while the other parts
-+ * have been moved to chip-specific files.
-+ *
-+ * We have also dropped all pretense of fully generic (e.g. pretend
-+ * we don't know whether '1' is the higher voltage) interface, as
-+ * the restrictions of the generic i2c interface (e.g. no access from
-+ * driver itself) make it unsuitable for this use.
-+ */
++static unsigned qib_hol_timeout_ms = 3000;
++module_param_named(hol_timeout_ms, qib_hol_timeout_ms, uint, S_IRUGO);
++MODULE_PARM_DESC(hol_timeout_ms,
++		 "duration of user app suspension after link failure");
 +
-+#define READ_CMD 1
-+#define WRITE_CMD 0
++unsigned qib_sdma_fetch_arb = 1;
++module_param_named(fetch_arb, qib_sdma_fetch_arb, uint, S_IRUGO);
++MODULE_PARM_DESC(fetch_arb, "IBA7220: change SDMA descriptor arbitration");
 +
 +/**
-+ * i2c_wait_for_writes - wait for a write
++ * qib_disarm_piobufs - cancel a range of PIO buffers
 + * @dd: the qlogic_ib device
++ * @first: the first PIO buffer to cancel
++ * @cnt: the number of PIO buffers to cancel
 + *
-+ * We use this instead of udelay directly, so we can make sure
-+ * that previous register writes have been flushed all the way
-+ * to the chip.  Since we are delaying anyway, the cost doesn't
-+ * hurt, and makes the bit twiddling more regular
++ * Cancel a range of PIO buffers. Used at user process close,
++ * in case it died while writing to a PIO buffer.
 + */
-+static void i2c_wait_for_writes(struct qib_devdata *dd)
++void qib_disarm_piobufs(struct qib_devdata *dd, unsigned first, unsigned cnt)
 +{
-+	/*
-+	 * implicit read of EXTStatus is as good as explicit
-+	 * read of scratch, if all we want to do is flush
-+	 * writes.
-+	 */
-+	dd->f_gpio_mod(dd, 0, 0, 0);
-+	rmb(); /* inlined, so prevent compiler reordering */
++	unsigned long flags;
++	unsigned i;
++	unsigned last;
++
++	last = first + cnt;
++	spin_lock_irqsave(&dd->pioavail_lock, flags);
++	for (i = first; i < last; i++) {
++		__clear_bit(i, dd->pio_need_disarm);
++		dd->f_sendctrl(dd->pport, QIB_SENDCTRL_DISARM_BUF(i));
++	}
++	spin_unlock_irqrestore(&dd->pioavail_lock, flags);
 +}
 +
 +/*
-+ * QSFP modules are allowed to hold SCL low for 500uSec. Allow twice that
-+ * for "almost compliant" modules
++ * This is called by a user process when it sees the DISARM_BUFS event
++ * bit is set.
 + */
-+#define SCL_WAIT_USEC 1000
-+
-+/* BUF_WAIT is time bus must be free between STOP or ACK and to next START.
-+ * Should be 20, but some chips need more.
-+ */
-+#define TWSI_BUF_WAIT_USEC 60
-+
-+static void scl_out(struct qib_devdata *dd, u8 bit)
++int qib_disarm_piobufs_ifneeded(struct qib_ctxtdata *rcd)
 +{
-+	u32 mask;
++	struct qib_devdata *dd = rcd->dd;
++	unsigned i;
++	unsigned last;
++	unsigned n = 0;
 +
-+	udelay(1);
-+
-+	mask = 1UL << dd->gpio_scl_num;
-+
-+	/* SCL is meant to be bare-drain, so never set "OUT", just DIR */
-+	dd->f_gpio_mod(dd, 0, bit ? 0 : mask, mask);
-+
++	last = rcd->pio_base + rcd->piocnt;
 +	/*
-+	 * Allow for slow slaves by simple
-+	 * delay for falling edge, sampling on rise.
++	 * Don't need uctxt_lock here, since user has called in to us.
++	 * Clear at start in case more interrupts set bits while we
++	 * are disarming
 +	 */
-+	if (!bit)
-+		udelay(2);
-+	else {
-+		int rise_usec;
-+		for (rise_usec = SCL_WAIT_USEC; rise_usec > 0; rise_usec -= 2) {
-+			if (mask & dd->f_gpio_mod(dd, 0, 0, 0))
-+				break;
-+			udelay(2);
-+		}
-+		if (rise_usec <= 0)
-+			qib_dev_err(dd, "SCL interface stuck low > %d uSec\n",
-+				    SCL_WAIT_USEC);
-+	}
-+	i2c_wait_for_writes(dd);
-+}
-+
-+static void sda_out(struct qib_devdata *dd, u8 bit)
-+{
-+	u32 mask;
-+
-+	mask = 1UL << dd->gpio_sda_num;
-+
-+	/* SDA is meant to be bare-drain, so never set "OUT", just DIR */
-+	dd->f_gpio_mod(dd, 0, bit ? 0 : mask, mask);
-+
-+	i2c_wait_for_writes(dd);
-+	udelay(2);
-+}
-+
-+static u8 sda_in(struct qib_devdata *dd, int wait)
-+{
-+	int bnum;
-+	u32 read_val, mask;
-+
-+	bnum = dd->gpio_sda_num;
-+	mask = (1UL << bnum);
-+	/* SDA is meant to be bare-drain, so never set "OUT", just DIR */
-+	dd->f_gpio_mod(dd, 0, 0, mask);
-+	read_val = dd->f_gpio_mod(dd, 0, 0, 0);
-+	if (wait)
-+		i2c_wait_for_writes(dd);
-+	return (read_val & mask) >> bnum;
-+}
-+
-+/**
-+ * i2c_ackrcv - see if ack following write is true
-+ * @dd: the qlogic_ib device
-+ */
-+static int i2c_ackrcv(struct qib_devdata *dd)
-+{
-+	u8 ack_received;
-+
-+	/* AT ENTRY SCL = LOW */
-+	/* change direction, ignore data */
-+	ack_received = sda_in(dd, 1);
-+	scl_out(dd, 1);
-+	ack_received = sda_in(dd, 1) == 0;
-+	scl_out(dd, 0);
-+	return ack_received;
-+}
-+
-+static void stop_cmd(struct qib_devdata *dd);
-+
-+/**
-+ * rd_byte - read a byte, sending STOP on last, else ACK
-+ * @dd: the qlogic_ib device
-+ *
-+ * Returns byte shifted out of device
-+ */
-+static int rd_byte(struct qib_devdata *dd, int last)
-+{
-+	int bit_cntr, data;
-+
-+	data = 0;
-+
-+	for (bit_cntr = 7; bit_cntr >= 0; --bit_cntr) {
-+		data <<= 1;
-+		scl_out(dd, 1);
-+		data |= sda_in(dd, 0);
-+		scl_out(dd, 0);
-+	}
-+	if (last) {
-+		scl_out(dd, 1);
-+		stop_cmd(dd);
-+	} else {
-+		sda_out(dd, 0);
-+		scl_out(dd, 1);
-+		scl_out(dd, 0);
-+		sda_out(dd, 1);
-+	}
-+	return data;
-+}
-+
-+/**
-+ * wr_byte - write a byte, one bit at a time
-+ * @dd: the qlogic_ib device
-+ * @data: the byte to write
-+ *
-+ * Returns 0 if we got the following ack, otherwise 1
-+ */
-+static int wr_byte(struct qib_devdata *dd, u8 data)
-+{
-+	int bit_cntr;
-+	u8 bit;
-+
-+	for (bit_cntr = 7; bit_cntr >= 0; bit_cntr--) {
-+		bit = (data >> bit_cntr) & 1;
-+		sda_out(dd, bit);
-+		scl_out(dd, 1);
-+		scl_out(dd, 0);
-+	}
-+	return (!i2c_ackrcv(dd)) ? 1 : 0;
-+}
-+
-+/*
-+ * issue TWSI start sequence:
-+ * (both clock/data high, clock high, data low while clock is high)
-+ */
-+static void start_seq(struct qib_devdata *dd)
-+{
-+	sda_out(dd, 1);
-+	scl_out(dd, 1);
-+	sda_out(dd, 0);
-+	udelay(1);
-+	scl_out(dd, 0);
-+}
-+
-+/**
-+ * stop_seq - transmit the stop sequence
-+ * @dd: the qlogic_ib device
-+ *
-+ * (both clock/data low, clock high, data high while clock is high)
-+ */
-+static void stop_seq(struct qib_devdata *dd)
-+{
-+	scl_out(dd, 0);
-+	sda_out(dd, 0);
-+	scl_out(dd, 1);
-+	sda_out(dd, 1);
-+}
-+
-+/**
-+ * stop_cmd - transmit the stop condition
-+ * @dd: the qlogic_ib device
-+ *
-+ * (both clock/data low, clock high, data high while clock is high)
-+ */
-+static void stop_cmd(struct qib_devdata *dd)
-+{
-+	stop_seq(dd);
-+	udelay(TWSI_BUF_WAIT_USEC);
-+}
-+
-+/**
-+ * qib_twsi_reset - reset I2C communication
-+ * @dd: the qlogic_ib device
-+ */
-+
-+int qib_twsi_reset(struct qib_devdata *dd)
-+{
-+	int clock_cycles_left = 9;
-+	int was_high = 0;
-+	u32 pins, mask;
-+
-+	/* Both SCL and SDA should be high. If not, there
-+	 * is something wrong.
-+	 */
-+	mask = (1UL << dd->gpio_scl_num) | (1UL << dd->gpio_sda_num);
-+
-+	/*
-+	 * Force pins to desired innocuous state.
-+	 * This is the default power-on state with out=0 and dir=0,
-+	 * So tri-stated and should be floating high (barring HW problems)
-+	 */
-+	dd->f_gpio_mod(dd, 0, 0, mask);
-+
-+	/*
-+	 * Clock nine times to get all listeners into a sane state.
-+	 * If SDA does not go high at any point, we are wedged.
-+	 * One vendor recommends then issuing START followed by STOP.
-+	 * we cannot use our "normal" functions to do that, because
-+	 * if SCL drops between them, another vendor's part will
-+	 * wedge, dropping SDA and keeping it low forever, at the end of
-+	 * the next transaction (even if it was not the device addressed).
-+	 * So our START and STOP take place with SCL held high.
-+	 */
-+	while (clock_cycles_left--) {
-+		scl_out(dd, 0);
-+		scl_out(dd, 1);
-+		/* Note if SDA is high, but keep clocking to sync slave */
-+		was_high |= sda_in(dd, 0);
-+	}
-+
-+	if (was_high) {
++	if (rcd->user_event_mask) {
 +		/*
-+		 * We saw a high, which we hope means the slave is sync'd.
-+		 * Issue START, STOP, pause for T_BUF.
++		 * subctxt_cnt is 0 if not shared, so do base
++		 * separately, first, then remaining subctxt, if any
 +		 */
-+
-+		pins = dd->f_gpio_mod(dd, 0, 0, 0);
-+		if ((pins & mask) != mask)
-+			qib_dev_err(dd, "GPIO pins not at rest: %d\n",
-+				    pins & mask);
-+		/* Drop SDA to issue START */
-+		udelay(1); /* Guarantee .6 uSec setup */
-+		sda_out(dd, 0);
-+		udelay(1); /* Guarantee .6 uSec hold */
-+		/* At this point, SCL is high, SDA low. Raise SDA for STOP */
-+		sda_out(dd, 1);
-+		udelay(TWSI_BUF_WAIT_USEC);
++		clear_bit(_QIB_EVENT_DISARM_BUFS_BIT, &rcd->user_event_mask[0]);
++		for (i = 1; i < rcd->subctxt_cnt; i++)
++			clear_bit(_QIB_EVENT_DISARM_BUFS_BIT,
++				  &rcd->user_event_mask[i]);
 +	}
-+
-+	return !was_high;
++	spin_lock_irq(&dd->pioavail_lock);
++	for (i = rcd->pio_base; i < last; i++) {
++		if (__test_and_clear_bit(i, dd->pio_need_disarm)) {
++			n++;
++			dd->f_sendctrl(rcd->ppd, QIB_SENDCTRL_DISARM_BUF(i));
++		}
++	}
++	spin_unlock_irq(&dd->pioavail_lock);
++	return 0;
 +}
 +
-+#define QIB_TWSI_START 0x100
-+#define QIB_TWSI_STOP 0x200
-+
-+/* Write byte to TWSI, optionally prefixed with START or suffixed with
-+ * STOP.
-+ * returns 0 if OK (ACK received), else != 0
-+ */
-+static int qib_twsi_wr(struct qib_devdata *dd, int data, int flags)
++static struct qib_pportdata *is_sdma_buf(struct qib_devdata *dd, unsigned i)
 +{
-+	int ret = 1;
-+	if (flags & QIB_TWSI_START)
-+		start_seq(dd);
++	struct qib_pportdata *ppd;
++	unsigned pidx;
 +
-+	ret = wr_byte(dd, data); /* Leaves SCL low (from i2c_ackrcv()) */
-+
-+	if (flags & QIB_TWSI_STOP)
-+		stop_cmd(dd);
-+	return ret;
++	for (pidx = 0; pidx < dd->num_pports; pidx++) {
++		ppd = dd->pport + pidx;
++		if (i >= ppd->sdma_state.first_sendbuf &&
++		    i < ppd->sdma_state.last_sendbuf)
++			return ppd;
++	}
++	return NULL;
 +}
-+
-+/* Added functionality for IBA7220-based cards */
-+#define QIB_TEMP_DEV 0x98
 +
 +/*
-+ * qib_twsi_blk_rd
-+ * Formerly called qib_eeprom_internal_read, and only used for eeprom,
-+ * but now the general interface for data transfer from twsi devices.
-+ * One vestige of its former role is that it recognizes a device
-+ * QIB_TWSI_NO_DEV and does the correct operation for the legacy part,
-+ * which responded to all TWSI device codes, interpreting them as
-+ * address within device. On all other devices found on board handled by
-+ * this driver, the device is followed by a one-byte "address" which selects
-+ * the "register" or "offset" within the device from which data should
-+ * be read.
++ * Return true if send buffer is being used by a user context.
++ * Sets  _QIB_EVENT_DISARM_BUFS_BIT in user_event_mask as a side effect
 + */
-+int qib_twsi_blk_rd(struct qib_devdata *dd, int dev, int addr,
-+		    void *buffer, int len)
++static int find_ctxt(struct qib_devdata *dd, unsigned bufn)
 +{
-+	int ret;
-+	u8 *bp = buffer;
++	struct qib_ctxtdata *rcd;
++	unsigned ctxt;
++	int ret = 0;
 +
-+	ret = 1;
-+
-+	if (dev == QIB_TWSI_NO_DEV) {
-+		/* legacy not-really-I2C */
-+		addr = (addr << 1) | READ_CMD;
-+		ret = qib_twsi_wr(dd, addr, QIB_TWSI_START);
-+	} else {
-+		/* Actual I2C */
-+		ret = qib_twsi_wr(dd, dev | WRITE_CMD, QIB_TWSI_START);
-+		if (ret) {
-+			stop_cmd(dd);
-+			ret = 1;
-+			goto bail;
++	spin_lock(&dd->uctxt_lock);
++	for (ctxt = dd->first_user_ctxt; ctxt < dd->cfgctxts; ctxt++) {
++		rcd = dd->rcd[ctxt];
++		if (!rcd || bufn < rcd->pio_base ||
++		    bufn >= rcd->pio_base + rcd->piocnt)
++			continue;
++		if (rcd->user_event_mask) {
++			int i;
++			/*
++			 * subctxt_cnt is 0 if not shared, so do base
++			 * separately, first, then remaining subctxt, if any
++			 */
++			set_bit(_QIB_EVENT_DISARM_BUFS_BIT,
++				&rcd->user_event_mask[0]);
++			for (i = 1; i < rcd->subctxt_cnt; i++)
++				set_bit(_QIB_EVENT_DISARM_BUFS_BIT,
++					&rcd->user_event_mask[i]);
 +		}
-+		/*
-+		 * SFF spec claims we do _not_ stop after the addr
-+		 * but simply issue a start with the "read" dev-addr.
-+		 * Since we are implicitely waiting for ACK here,
-+		 * we need t_buf (nominally 20uSec) before that start,
-+		 * and cannot rely on the delay built in to the STOP
-+		 */
-+		ret = qib_twsi_wr(dd, addr, 0);
-+		udelay(TWSI_BUF_WAIT_USEC);
-+
-+		if (ret) {
-+			qib_dev_err(dd,
-+				"Failed to write interface read addr %02X\n",
-+				addr);
-+			ret = 1;
-+			goto bail;
-+		}
-+		ret = qib_twsi_wr(dd, dev | READ_CMD, QIB_TWSI_START);
-+	}
-+	if (ret) {
-+		stop_cmd(dd);
 +		ret = 1;
-+		goto bail;
++		break;
 +	}
++	spin_unlock(&dd->uctxt_lock);
 +
-+	/*
-+	 * block devices keeps clocking data out as long as we ack,
-+	 * automatically incrementing the address. Some have "pages"
-+	 * whose boundaries will not be crossed, but the handling
-+	 * of these is left to the caller, who is in a better
-+	 * position to know.
-+	 */
-+	while (len-- > 0) {
-+		/*
-+		 * Get and store data, sending ACK if length remaining,
-+		 * else STOP
-+		 */
-+		*bp++ = rd_byte(dd, !len);
-+	}
-+
-+	ret = 0;
-+
-+bail:
 +	return ret;
 +}
 +
 +/*
-+ * qib_twsi_blk_wr
-+ * Formerly called qib_eeprom_internal_write, and only used for eeprom,
-+ * but now the general interface for data transfer to twsi devices.
-+ * One vestige of its former role is that it recognizes a device
-+ * QIB_TWSI_NO_DEV and does the correct operation for the legacy part,
-+ * which responded to all TWSI device codes, interpreting them as
-+ * address within device. On all other devices found on board handled by
-+ * this driver, the device is followed by a one-byte "address" which selects
-+ * the "register" or "offset" within the device to which data should
-+ * be written.
++ * Disarm a set of send buffers.  If the buffer might be actively being
++ * written to, mark the buffer to be disarmed later when it is not being
++ * written to.
++ *
++ * This should only be called from the IRQ error handler.
 + */
-+int qib_twsi_blk_wr(struct qib_devdata *dd, int dev, int addr,
-+		    const void *buffer, int len)
++void qib_disarm_piobufs_set(struct qib_devdata *dd, unsigned long *mask,
++			    unsigned cnt)
 +{
-+	int sub_len;
-+	const u8 *bp = buffer;
-+	int max_wait_time, i;
-+	int ret;
-+	ret = 1;
++	struct qib_pportdata *ppd, *pppd[dd->num_pports];
++	unsigned i;
++	unsigned long flags;
 +
-+	while (len > 0) {
-+		if (dev == QIB_TWSI_NO_DEV) {
-+			if (qib_twsi_wr(dd, (addr << 1) | WRITE_CMD,
-+					QIB_TWSI_START)) {
-+				goto failed_write;
-+			}
-+		} else {
-+			/* Real I2C */
-+			if (qib_twsi_wr(dd, dev | WRITE_CMD, QIB_TWSI_START))
-+				goto failed_write;
-+			ret = qib_twsi_wr(dd, addr, 0);
-+			if (ret) {
-+				qib_dev_err(dd, "Failed to write interface"
-+					    " write addr %02X\n", addr);
-+				goto failed_write;
-+			}
-+		}
++	for (i = 0; i < dd->num_pports; i++)
++		pppd[i] = NULL;
 +
-+		sub_len = min(len, 4);
-+		addr += sub_len;
-+		len -= sub_len;
-+
-+		for (i = 0; i < sub_len; i++)
-+			if (qib_twsi_wr(dd, *bp++, 0))
-+				goto failed_write;
-+
-+		stop_cmd(dd);
-+
++	for (i = 0; i < cnt; i++) {
++		int which;
++		if (!test_bit(i, mask))
++			continue;
 +		/*
-+		 * Wait for write complete by waiting for a successful
-+		 * read (the chip replies with a zero after the write
-+		 * cmd completes, and before it writes to the eeprom.
-+		 * The startcmd for the read will fail the ack until
-+		 * the writes have completed.   We do this inline to avoid
-+		 * the debug prints that are in the real read routine
-+		 * if the startcmd fails.
-+		 * We also use the proper device address, so it doesn't matter
-+		 * whether we have real eeprom_dev. Legacy likes any address.
++		 * If the buffer is owned by the DMA hardware,
++		 * reset the DMA engine.
 +		 */
-+		max_wait_time = 100;
-+		while (qib_twsi_wr(dd, dev | READ_CMD, QIB_TWSI_START)) {
-+			stop_cmd(dd);
-+			if (!--max_wait_time)
-+				goto failed_write;
++		ppd = is_sdma_buf(dd, i);
++		if (ppd) {
++			pppd[ppd->port] = ppd;
++			continue;
 +		}
-+		/* now read (and ignore) the resulting byte */
-+		rd_byte(dd, 1);
++		/*
++		 * If the kernel is writing the buffer or the buffer is
++		 * owned by a user process, we can't clear it yet.
++		 */
++		spin_lock_irqsave(&dd->pioavail_lock, flags);
++		if (test_bit(i, dd->pio_writing) ||
++		    (!test_bit(i << 1, dd->pioavailkernel) &&
++		     find_ctxt(dd, i))) {
++			__set_bit(i, dd->pio_need_disarm);
++			which = 0;
++		} else {
++			which = 1;
++			dd->f_sendctrl(dd->pport, QIB_SENDCTRL_DISARM_BUF(i));
++		}
++		spin_unlock_irqrestore(&dd->pioavail_lock, flags);
 +	}
 +
-+	ret = 0;
-+	goto bail;
++	/* do cancel_sends once per port that had sdma piobufs in error */
++	for (i = 0; i < dd->num_pports; i++)
++		if (pppd[i])
++			qib_cancel_sends(pppd[i]);
++}
 +
-+failed_write:
-+	stop_cmd(dd);
-+	ret = 1;
++/**
++ * update_send_bufs - update shadow copy of the PIO availability map
++ * @dd: the qlogic_ib device
++ *
++ * called whenever our local copy indicates we have run out of send buffers
++ */
++static void update_send_bufs(struct qib_devdata *dd)
++{
++	unsigned long flags;
++	unsigned i;
++	const unsigned piobregs = dd->pioavregs;
 +
-+bail:
-+	return ret;
++	/*
++	 * If the generation (check) bits have changed, then we update the
++	 * busy bit for the corresponding PIO buffer.  This algorithm will
++	 * modify positions to the value they already have in some cases
++	 * (i.e., no change), but it's faster than changing only the bits
++	 * that have changed.
++	 *
++	 * We would like to do this atomicly, to avoid spinlocks in the
++	 * critical send path, but that's not really possible, given the
++	 * type of changes, and that this routine could be called on
++	 * multiple cpu's simultaneously, so we lock in this routine only,
++	 * to avoid conflicting updates; all we change is the shadow, and
++	 * it's a single 64 bit memory location, so by definition the update
++	 * is atomic in terms of what other cpu's can see in testing the
++	 * bits.  The spin_lock overhead isn't too bad, since it only
++	 * happens when all buffers are in use, so only cpu overhead, not
++	 * latency or bandwidth is affected.
++	 */
++	if (!dd->pioavailregs_dma)
++		return;
++	spin_lock_irqsave(&dd->pioavail_lock, flags);
++	for (i = 0; i < piobregs; i++) {
++		u64 pchbusy, pchg, piov, pnew;
++
++		piov = le64_to_cpu(dd->pioavailregs_dma[i]);
++		pchg = dd->pioavailkernel[i] &
++			~(dd->pioavailshadow[i] ^ piov);
++		pchbusy = pchg << QLOGIC_IB_SENDPIOAVAIL_BUSY_SHIFT;
++		if (pchg && (pchbusy & dd->pioavailshadow[i])) {
++			pnew = dd->pioavailshadow[i] & ~pchbusy;
++			pnew |= piov & pchbusy;
++			dd->pioavailshadow[i] = pnew;
++		}
++	}
++	spin_unlock_irqrestore(&dd->pioavail_lock, flags);
++}
++
++/*
++ * Debugging code and stats updates if no pio buffers available.
++ */
++static noinline void no_send_bufs(struct qib_devdata *dd)
++{
++	dd->upd_pio_shadow = 1;
++
++	/* not atomic, but if we lose a stat count in a while, that's OK */
++	qib_stats.sps_nopiobufs++;
++}
++
++/*
++ * Common code for normal driver send buffer allocation, and reserved
++ * allocation.
++ *
++ * Do appropriate marking as busy, etc.
++ * Returns buffer pointer if one is found, otherwise NULL.
++ */
++u32 __iomem *qib_getsendbuf_range(struct qib_devdata *dd, u32 *pbufnum,
++				  u32 first, u32 last)
++{
++	unsigned i, j, updated = 0;
++	unsigned nbufs;
++	unsigned long flags;
++	unsigned long *shadow = dd->pioavailshadow;
++	u32 __iomem *buf;
++
++	if (!(dd->flags & QIB_PRESENT))
++		return NULL;
++
++	nbufs = last - first + 1; /* number in range to check */
++	if (dd->upd_pio_shadow) {
++		/*
++		 * Minor optimization.  If we had no buffers on last call,
++		 * start out by doing the update; continue and do scan even
++		 * if no buffers were updated, to be paranoid.
++		 */
++		update_send_bufs(dd);
++		updated++;
++	}
++	i = first;
++rescan:
++	/*
++	 * While test_and_set_bit() is atomic, we do that and then the
++	 * change_bit(), and the pair is not.  See if this is the cause
++	 * of the remaining armlaunch errors.
++	 */
++	spin_lock_irqsave(&dd->pioavail_lock, flags);
++	for (j = 0; j < nbufs; j++, i++) {
++		if (i > last)
++			i = first;
++		if (__test_and_set_bit((2 * i) + 1, shadow))
++			continue;
++		/* flip generation bit */
++		__change_bit(2 * i, shadow);
++		/* remember that the buffer can be written to now */
++		__set_bit(i, dd->pio_writing);
++		break;
++	}
++	spin_unlock_irqrestore(&dd->pioavail_lock, flags);
++
++	if (j == nbufs) {
++		if (!updated) {
++			/*
++			 * First time through; shadow exhausted, but may be
++			 * buffers available, try an update and then rescan.
++			 */
++			update_send_bufs(dd);
++			updated++;
++			i = first;
++			goto rescan;
++		}
++		no_send_bufs(dd);
++		buf = NULL;
++	} else {
++		if (i < dd->piobcnt2k)
++			buf = (u32 __iomem *)(dd->pio2kbase +
++				i * dd->palign);
++		else
++			buf = (u32 __iomem *)(dd->pio4kbase +
++				(i - dd->piobcnt2k) * dd->align4k);
++		if (pbufnum)
++			*pbufnum = i;
++		dd->upd_pio_shadow = 0;
++	}
++
++	return buf;
++}
++
++/*
++ * Record that the caller is finished writing to the buffer so we don't
++ * disarm it while it is being written and disarm it now if needed.
++ */
++void qib_sendbuf_done(struct qib_devdata *dd, unsigned n)
++{
++	unsigned long flags;
++
++	spin_lock_irqsave(&dd->pioavail_lock, flags);
++	__clear_bit(n, dd->pio_writing);
++	if (__test_and_clear_bit(n, dd->pio_need_disarm))
++		dd->f_sendctrl(dd->pport, QIB_SENDCTRL_DISARM_BUF(n));
++	spin_unlock_irqrestore(&dd->pioavail_lock, flags);
++}
++
++/**
++ * qib_chg_pioavailkernel - change which send buffers are available for kernel
++ * @dd: the qlogic_ib device
++ * @start: the starting send buffer number
++ * @len: the number of send buffers
++ * @avail: true if the buffers are available for kernel use, false otherwise
++ */
++void qib_chg_pioavailkernel(struct qib_devdata *dd, unsigned start,
++	unsigned len, u32 avail, struct qib_ctxtdata *rcd)
++{
++	unsigned long flags;
++	unsigned end;
++	unsigned ostart = start;
++
++	/* There are two bits per send buffer (busy and generation) */
++	start *= 2;
++	end = start + len * 2;
++
++	spin_lock_irqsave(&dd->pioavail_lock, flags);
++	/* Set or clear the busy bit in the shadow. */
++	while (start < end) {
++		if (avail) {
++			unsigned long dma;
++			int i;
++
++			/*
++			 * The BUSY bit will never be set, because we disarm
++			 * the user buffers before we hand them back to the
++			 * kernel.  We do have to make sure the generation
++			 * bit is set correctly in shadow, since it could
++			 * have changed many times while allocated to user.
++			 * We can't use the bitmap functions on the full
++			 * dma array because it is always little-endian, so
++			 * we have to flip to host-order first.
++			 * BITS_PER_LONG is slightly wrong, since it's
++			 * always 64 bits per register in chip...
++			 * We only work on 64 bit kernels, so that's OK.
++			 */
++			i = start / BITS_PER_LONG;
++			__clear_bit(QLOGIC_IB_SENDPIOAVAIL_BUSY_SHIFT + start,
++				    dd->pioavailshadow);
++			dma = (unsigned long)
++				le64_to_cpu(dd->pioavailregs_dma[i]);
++			if (test_bit((QLOGIC_IB_SENDPIOAVAIL_CHECK_SHIFT +
++				      start) % BITS_PER_LONG, &dma))
++				__set_bit(QLOGIC_IB_SENDPIOAVAIL_CHECK_SHIFT +
++					  start, dd->pioavailshadow);
++			else
++				__clear_bit(QLOGIC_IB_SENDPIOAVAIL_CHECK_SHIFT
++					    + start, dd->pioavailshadow);
++			__set_bit(start, dd->pioavailkernel);
++		} else {
++			__set_bit(start + QLOGIC_IB_SENDPIOAVAIL_BUSY_SHIFT,
++				  dd->pioavailshadow);
++			__clear_bit(start, dd->pioavailkernel);
++		}
++		start += 2;
++	}
++
++	spin_unlock_irqrestore(&dd->pioavail_lock, flags);
++
++	dd->f_txchk_change(dd, ostart, len, avail, rcd);
++}
++
++/*
++ * Flush all sends that might be in the ready to send state, as well as any
++ * that are in the process of being sent.  Used whenever we need to be
++ * sure the send side is idle.  Cleans up all buffer state by canceling
++ * all pio buffers, and issuing an abort, which cleans up anything in the
++ * launch fifo.  The cancel is superfluous on some chip versions, but
++ * it's safer to always do it.
++ * PIOAvail bits are updated by the chip as if a normal send had happened.
++ */
++void qib_cancel_sends(struct qib_pportdata *ppd)
++{
++	struct qib_devdata *dd = ppd->dd;
++	struct qib_ctxtdata *rcd;
++	unsigned long flags;
++	unsigned ctxt;
++	unsigned i;
++	unsigned last;
++
++	/*
++	 * Tell PSM to disarm buffers again before trying to reuse them.
++	 * We need to be sure the rcd doesn't change out from under us
++	 * while we do so.  We hold the two locks sequentially.  We might
++	 * needlessly set some need_disarm bits as a result, if the
++	 * context is closed after we release the uctxt_lock, but that's
++	 * fairly benign, and safer than nesting the locks.
++	 */
++	for (ctxt = dd->first_user_ctxt; ctxt < dd->cfgctxts; ctxt++) {
++		spin_lock_irqsave(&dd->uctxt_lock, flags);
++		rcd = dd->rcd[ctxt];
++		if (rcd && rcd->ppd == ppd) {
++			last = rcd->pio_base + rcd->piocnt;
++			if (rcd->user_event_mask) {
++				/*
++				 * subctxt_cnt is 0 if not shared, so do base
++				 * separately, first, then remaining subctxt,
++				 * if any
++				 */
++				set_bit(_QIB_EVENT_DISARM_BUFS_BIT,
++					&rcd->user_event_mask[0]);
++				for (i = 1; i < rcd->subctxt_cnt; i++)
++					set_bit(_QIB_EVENT_DISARM_BUFS_BIT,
++						&rcd->user_event_mask[i]);
++			}
++			i = rcd->pio_base;
++			spin_unlock_irqrestore(&dd->uctxt_lock, flags);
++			spin_lock_irqsave(&dd->pioavail_lock, flags);
++			for (; i < last; i++)
++				__set_bit(i, dd->pio_need_disarm);
++			spin_unlock_irqrestore(&dd->pioavail_lock, flags);
++		} else
++			spin_unlock_irqrestore(&dd->uctxt_lock, flags);
++	}
++
++	if (!(dd->flags & QIB_HAS_SEND_DMA))
++		dd->f_sendctrl(ppd, QIB_SENDCTRL_DISARM_ALL |
++				    QIB_SENDCTRL_FLUSH);
++}
++
++/*
++ * Force an update of in-memory copy of the pioavail registers, when
++ * needed for any of a variety of reasons.
++ * If already off, this routine is a nop, on the assumption that the
++ * caller (or set of callers) will "do the right thing".
++ * This is a per-device operation, so just the first port.
++ */
++void qib_force_pio_avail_update(struct qib_devdata *dd)
++{
++	dd->f_sendctrl(dd->pport, QIB_SENDCTRL_AVAIL_BLIP);
++}
++
++void qib_hol_down(struct qib_pportdata *ppd)
++{
++	/*
++	 * Cancel sends when the link goes DOWN so that we aren't doing it
++	 * at INIT when we might be trying to send SMI packets.
++	 */
++	if (!(ppd->lflags & QIBL_IB_AUTONEG_INPROG))
++		qib_cancel_sends(ppd);
++}
++
++/*
++ * Link is at INIT.
++ * We start the HoL timer so we can detect stuck packets blocking SMP replies.
++ * Timer may already be running, so use mod_timer, not add_timer.
++ */
++void qib_hol_init(struct qib_pportdata *ppd)
++{
++	if (ppd->hol_state != QIB_HOL_INIT) {
++		ppd->hol_state = QIB_HOL_INIT;
++		mod_timer(&ppd->hol_timer,
++			  jiffies + msecs_to_jiffies(qib_hol_timeout_ms));
++	}
++}
++
++/*
++ * Link is up, continue any user processes, and ensure timer
++ * is a nop, if running.  Let timer keep running, if set; it
++ * will nop when it sees the link is up.
++ */
++void qib_hol_up(struct qib_pportdata *ppd)
++{
++	ppd->hol_state = QIB_HOL_UP;
++}
++
++/*
++ * This is only called via the timer.
++ */
++void qib_hol_event(unsigned long opaque)
++{
++	struct qib_pportdata *ppd = (struct qib_pportdata *)opaque;
++
++	/* If hardware error, etc, skip. */
++	if (!(ppd->dd->flags & QIB_INITTED))
++		return;
++
++	if (ppd->hol_state != QIB_HOL_UP) {
++		/*
++		 * Try to flush sends in case a stuck packet is blocking
++		 * SMP replies.
++		 */
++		qib_hol_down(ppd);
++		mod_timer(&ppd->hol_timer,
++			  jiffies + msecs_to_jiffies(qib_hol_timeout_ms));
++	}
 +}
 
 --
