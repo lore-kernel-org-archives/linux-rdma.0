@@ -1,7 +1,7 @@
 From: Ralph Campbell <ralph.campbell-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v3 25/52] IB/qib: Add qib_mr.c
-Date: Thu, 06 May 2010 17:01:03 -0700
-Message-ID: <20100507000102.3441.24948.stgit@chromite.mv.qlogic.com>
+Subject: [PATCH v3 26/52] IB/qib: Add qib_pcie.c
+Date: Thu, 06 May 2010 17:01:08 -0700
+Message-ID: <20100507000108.3441.17375.stgit@chromite.mv.qlogic.com>
 References: <20100506235849.3441.85930.stgit@chromite.mv.qlogic.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -13,24 +13,23 @@ To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-creates the qib_mr.c file.
+creates the qib_pcie.c file.
 
 Signed-off-by: Ralph Campbell <ralph.campbell-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
 ---
 
- drivers/infiniband/hw/qib/qib_mr.c |  503 ++++++++++++++++++++++++++++++++++++
- 1 files changed, 503 insertions(+), 0 deletions(-)
- create mode 100644 drivers/infiniband/hw/qib/qib_mr.c
+ drivers/infiniband/hw/qib/qib_pcie.c |  738 ++++++++++++++++++++++++++++++++++
+ 1 files changed, 738 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/infiniband/hw/qib/qib_pcie.c
 
-diff --git a/drivers/infiniband/hw/qib/qib_mr.c b/drivers/infiniband/hw/qib/qib_mr.c
+diff --git a/drivers/infiniband/hw/qib/qib_pcie.c b/drivers/infiniband/hw/qib/qib_pcie.c
 new file mode 100644
-index 0000000..5f95f0f
+index 0000000..c926bf4
 --- /dev/null
-+++ b/drivers/infiniband/hw/qib/qib_mr.c
-@@ -0,0 +1,503 @@
++++ b/drivers/infiniband/hw/qib/qib_pcie.c
+@@ -0,0 +1,738 @@
 +/*
-+ * Copyright (c) 2006, 2007, 2008, 2009 QLogic Corporation. All rights reserved.
-+ * Copyright (c) 2005, 2006 PathScale, Inc. All rights reserved.
++ * Copyright (c) 2008, 2009 QLogic Corporation. All rights reserved.
 + *
 + * This software is available to you under a choice of one of two
 + * licenses.  You may choose to be licensed under the terms of the GNU
@@ -61,476 +60,712 @@ index 0000000..5f95f0f
 + * SOFTWARE.
 + */
 +
-+#include <rdma/ib_umem.h>
-+#include <rdma/ib_smi.h>
++#include <linux/pci.h>
++#include <linux/io.h>
++#include <linux/delay.h>
++#include <linux/vmalloc.h>
++#include <linux/aer.h>
 +
 +#include "qib.h"
 +
-+/* Fast memory region */
-+struct qib_fmr {
-+	struct ib_fmr ibfmr;
-+	u8 page_shift;
-+	struct qib_mregion mr;        /* must be last */
-+};
-+
-+static inline struct qib_fmr *to_ifmr(struct ib_fmr *ibfmr)
-+{
-+	return container_of(ibfmr, struct qib_fmr, ibfmr);
-+}
-+
-+/**
-+ * qib_get_dma_mr - get a DMA memory region
-+ * @pd: protection domain for this memory region
-+ * @acc: access flags
-+ *
-+ * Returns the memory region on success, otherwise returns an errno.
-+ * Note that all DMA addresses should be created via the
-+ * struct ib_dma_mapping_ops functions (see qib_dma.c).
++/*
++ * This file contains PCIe utility routines that are common to the
++ * various QLogic InfiniPath adapters
 + */
-+struct ib_mr *qib_get_dma_mr(struct ib_pd *pd, int acc)
++
++/*
++ * Code to adjust PCIe capabilities.
++ * To minimize the change footprint, we call it
++ * from qib_pcie_params, which every chip-specific
++ * file calls, even though this violates some
++ * expectations of harmlessness.
++ */
++static int qib_tune_pcie_caps(struct qib_devdata *);
++static int qib_tune_pcie_coalesce(struct qib_devdata *);
++
++/*
++ * Do all the common PCIe setup and initialization.
++ * devdata is not yet allocated, and is not allocated until after this
++ * routine returns success.  Therefore qib_dev_err() can't be used for error
++ * printing.
++ */
++int qib_pcie_init(struct pci_dev *pdev, const struct pci_device_id *ent)
 +{
-+	struct qib_ibdev *dev = to_idev(pd->device);
-+	struct qib_mr *mr;
-+	struct ib_mr *ret;
-+	unsigned long flags;
++	int ret;
 +
-+	if (to_ipd(pd)->user) {
-+		ret = ERR_PTR(-EPERM);
-+		goto bail;
-+	}
-+
-+	mr = kzalloc(sizeof *mr, GFP_KERNEL);
-+	if (!mr) {
-+		ret = ERR_PTR(-ENOMEM);
-+		goto bail;
-+	}
-+
-+	mr->mr.access_flags = acc;
-+	atomic_set(&mr->mr.refcount, 0);
-+
-+	spin_lock_irqsave(&dev->lk_table.lock, flags);
-+	if (!dev->dma_mr)
-+		dev->dma_mr = &mr->mr;
-+	spin_unlock_irqrestore(&dev->lk_table.lock, flags);
-+
-+	ret = &mr->ibmr;
-+
-+bail:
-+	return ret;
-+}
-+
-+static struct qib_mr *alloc_mr(int count, struct qib_lkey_table *lk_table)
-+{
-+	struct qib_mr *mr;
-+	int m, i = 0;
-+
-+	/* Allocate struct plus pointers to first level page tables. */
-+	m = (count + QIB_SEGSZ - 1) / QIB_SEGSZ;
-+	mr = kmalloc(sizeof *mr + m * sizeof mr->mr.map[0], GFP_KERNEL);
-+	if (!mr)
++	ret = pci_enable_device(pdev);
++	if (ret) {
++		/*
++		 * This can happen (in theory) iff:
++		 * We did a chip reset, and then failed to reprogram the
++		 * BAR, or the chip reset due to an internal error.  We then
++		 * unloaded the driver and reloaded it.
++		 *
++		 * Both reset cases set the BAR back to initial state.  For
++		 * the latter case, the AER sticky error bit at offset 0x718
++		 * should be set, but the Linux kernel doesn't yet know
++		 * about that, it appears.  If the original BAR was retained
++		 * in the kernel data structures, this may be OK.
++		 */
++		qib_early_err(&pdev->dev, "pci enable failed: error %d\n",
++			      -ret);
 +		goto done;
-+
-+	/* Allocate first level page tables. */
-+	for (; i < m; i++) {
-+		mr->mr.map[i] = kmalloc(sizeof *mr->mr.map[0], GFP_KERNEL);
-+		if (!mr->mr.map[i])
-+			goto bail;
 +	}
-+	mr->mr.mapsz = m;
-+	mr->mr.max_segs = count;
 +
-+	/*
-+	 * ib_reg_phys_mr() will initialize mr->ibmr except for
-+	 * lkey and rkey.
-+	 */
-+	if (!qib_alloc_lkey(lk_table, &mr->mr))
++	ret = pci_request_regions(pdev, QIB_DRV_NAME);
++	if (ret) {
++		qib_devinfo(pdev, "pci_request_regions fails: err %d\n", -ret);
 +		goto bail;
-+	mr->ibmr.lkey = mr->mr.lkey;
-+	mr->ibmr.rkey = mr->mr.lkey;
++	}
 +
-+	atomic_set(&mr->mr.refcount, 0);
++	ret = pci_set_dma_mask(pdev, DMA_BIT_MASK(64));
++	if (ret) {
++		/*
++		 * If the 64 bit setup fails, try 32 bit.  Some systems
++		 * do not setup 64 bit maps on systems with 2GB or less
++		 * memory installed.
++		 */
++		ret = pci_set_dma_mask(pdev, DMA_BIT_MASK(32));
++		if (ret) {
++			qib_devinfo(pdev, "Unable to set DMA mask: %d\n", ret);
++			goto bail;
++		}
++		ret = pci_set_consistent_dma_mask(pdev, DMA_BIT_MASK(32));
++	} else
++		ret = pci_set_consistent_dma_mask(pdev, DMA_BIT_MASK(64));
++	if (ret)
++		qib_early_err(&pdev->dev,
++			      "Unable to set DMA consistent mask: %d\n", ret);
++
++	pci_set_master(pdev);
++	ret = pci_enable_pcie_error_reporting(pdev);
++	if (ret)
++		qib_early_err(&pdev->dev,
++			      "Unable to enable pcie error reporting: %d\n",
++			      ret);
 +	goto done;
 +
 +bail:
-+	while (i)
-+		kfree(mr->mr.map[--i]);
-+	kfree(mr);
-+	mr = NULL;
-+
++	pci_disable_device(pdev);
++	pci_release_regions(pdev);
 +done:
-+	return mr;
-+}
-+
-+/**
-+ * qib_reg_phys_mr - register a physical memory region
-+ * @pd: protection domain for this memory region
-+ * @buffer_list: pointer to the list of physical buffers to register
-+ * @num_phys_buf: the number of physical buffers to register
-+ * @iova_start: the starting address passed over IB which maps to this MR
-+ *
-+ * Returns the memory region on success, otherwise returns an errno.
-+ */
-+struct ib_mr *qib_reg_phys_mr(struct ib_pd *pd,
-+			      struct ib_phys_buf *buffer_list,
-+			      int num_phys_buf, int acc, u64 *iova_start)
-+{
-+	struct qib_mr *mr;
-+	int n, m, i;
-+	struct ib_mr *ret;
-+
-+	mr = alloc_mr(num_phys_buf, &to_idev(pd->device)->lk_table);
-+	if (mr == NULL) {
-+		ret = ERR_PTR(-ENOMEM);
-+		goto bail;
-+	}
-+
-+	mr->mr.pd = pd;
-+	mr->mr.user_base = *iova_start;
-+	mr->mr.iova = *iova_start;
-+	mr->mr.length = 0;
-+	mr->mr.offset = 0;
-+	mr->mr.access_flags = acc;
-+	mr->umem = NULL;
-+
-+	m = 0;
-+	n = 0;
-+	for (i = 0; i < num_phys_buf; i++) {
-+		mr->mr.map[m]->segs[n].vaddr = (void *) buffer_list[i].addr;
-+		mr->mr.map[m]->segs[n].length = buffer_list[i].size;
-+		mr->mr.length += buffer_list[i].size;
-+		n++;
-+		if (n == QIB_SEGSZ) {
-+			m++;
-+			n = 0;
-+		}
-+	}
-+
-+	ret = &mr->ibmr;
-+
-+bail:
 +	return ret;
 +}
 +
-+/**
-+ * qib_reg_user_mr - register a userspace memory region
-+ * @pd: protection domain for this memory region
-+ * @start: starting userspace address
-+ * @length: length of region to register
-+ * @virt_addr: virtual address to use (from HCA's point of view)
-+ * @mr_access_flags: access flags for this memory region
-+ * @udata: unused by the QLogic_IB driver
-+ *
-+ * Returns the memory region on success, otherwise returns an errno.
++/*
++ * Do remaining PCIe setup, once dd is allocated, and save away
++ * fields required to re-initialize after a chip reset, or for
++ * various other purposes
 + */
-+struct ib_mr *qib_reg_user_mr(struct ib_pd *pd, u64 start, u64 length,
-+			      u64 virt_addr, int mr_access_flags,
-+			      struct ib_udata *udata)
++int qib_pcie_ddinit(struct qib_devdata *dd, struct pci_dev *pdev,
++		    const struct pci_device_id *ent)
 +{
-+	struct qib_mr *mr;
-+	struct ib_umem *umem;
-+	struct ib_umem_chunk *chunk;
-+	int n, m, i;
-+	struct ib_mr *ret;
++	unsigned long len;
++	resource_size_t addr;
 +
-+	if (length == 0) {
-+		ret = ERR_PTR(-EINVAL);
-+		goto bail;
-+	}
++	dd->pcidev = pdev;
++	pci_set_drvdata(pdev, dd);
 +
-+	umem = ib_umem_get(pd->uobject->context, start, length,
-+			   mr_access_flags, 0);
-+	if (IS_ERR(umem))
-+		return (void *) umem;
++	addr = pci_resource_start(pdev, 0);
++	len = pci_resource_len(pdev, 0);
 +
-+	n = 0;
-+	list_for_each_entry(chunk, &umem->chunk_list, list)
-+		n += chunk->nents;
++#if defined(__powerpc__)
++	/* There isn't a generic way to specify writethrough mappings */
++	dd->kregbase = __ioremap(addr, len, _PAGE_NO_CACHE | _PAGE_WRITETHRU);
++#else
++	dd->kregbase = ioremap_nocache(addr, len);
++#endif
 +
-+	mr = alloc_mr(n, &to_idev(pd->device)->lk_table);
-+	if (!mr) {
-+		ret = ERR_PTR(-ENOMEM);
-+		ib_umem_release(umem);
-+		goto bail;
-+	}
++	if (!dd->kregbase)
++		return -ENOMEM;
 +
-+	mr->mr.pd = pd;
-+	mr->mr.user_base = start;
-+	mr->mr.iova = virt_addr;
-+	mr->mr.length = length;
-+	mr->mr.offset = umem->offset;
-+	mr->mr.access_flags = mr_access_flags;
-+	mr->umem = umem;
++	dd->kregend = (u64 __iomem *)((void __iomem *) dd->kregbase + len);
++	dd->physaddr = addr;        /* used for io_remap, etc. */
 +
-+	m = 0;
-+	n = 0;
-+	list_for_each_entry(chunk, &umem->chunk_list, list) {
-+		for (i = 0; i < chunk->nents; i++) {
-+			void *vaddr;
++	/*
++	 * Save BARs to rewrite after device reset.  Save all 64 bits of
++	 * BAR, just in case.
++	 */
++	dd->pcibar0 = addr;
++	dd->pcibar1 = addr >> 32;
++	dd->deviceid = ent->device; /* save for later use */
++	dd->vendorid = ent->vendor;
 +
-+			vaddr = page_address(sg_page(&chunk->page_list[i]));
-+			if (!vaddr) {
-+				ret = ERR_PTR(-EINVAL);
-+				goto bail;
-+			}
-+			mr->mr.map[m]->segs[n].vaddr = vaddr;
-+			mr->mr.map[m]->segs[n].length = umem->page_size;
-+			n++;
-+			if (n == QIB_SEGSZ) {
-+				m++;
-+				n = 0;
-+			}
-+		}
-+	}
-+	ret = &mr->ibmr;
-+
-+bail:
-+	return ret;
-+}
-+
-+/**
-+ * qib_dereg_mr - unregister and free a memory region
-+ * @ibmr: the memory region to free
-+ *
-+ * Returns 0 on success.
-+ *
-+ * Note that this is called to free MRs created by qib_get_dma_mr()
-+ * or qib_reg_user_mr().
-+ */
-+int qib_dereg_mr(struct ib_mr *ibmr)
-+{
-+	struct qib_mr *mr = to_imr(ibmr);
-+	struct qib_ibdev *dev = to_idev(ibmr->device);
-+	int ret;
-+	int i;
-+
-+	ret = qib_free_lkey(dev, &mr->mr);
-+	if (ret)
-+		return ret;
-+
-+	i = mr->mr.mapsz;
-+	while (i)
-+		kfree(mr->mr.map[--i]);
-+	if (mr->umem)
-+		ib_umem_release(mr->umem);
-+	kfree(mr);
 +	return 0;
 +}
 +
 +/*
-+ * Allocate a memory region usable with the
-+ * IB_WR_FAST_REG_MR send work request.
-+ *
-+ * Return the memory region on success, otherwise return an errno.
++ * Do PCIe cleanup, after chip-specific cleanup, etc.  Just prior
++ * to releasing the dd memory.
++ * void because none of the core pcie cleanup returns are void
 + */
-+struct ib_mr *qib_alloc_fast_reg_mr(struct ib_pd *pd, int max_page_list_len)
++void qib_pcie_ddcleanup(struct qib_devdata *dd)
 +{
-+	struct qib_mr *mr;
++	u64 __iomem *base = (void __iomem *) dd->kregbase;
 +
-+	mr = alloc_mr(max_page_list_len, &to_idev(pd->device)->lk_table);
-+	if (mr == NULL)
-+		return ERR_PTR(-ENOMEM);
++	dd->kregbase = NULL;
++	iounmap(base);
++	if (dd->piobase)
++		iounmap(dd->piobase);
++	if (dd->userbase)
++		iounmap(dd->userbase);
 +
-+	mr->mr.pd = pd;
-+	mr->mr.user_base = 0;
-+	mr->mr.iova = 0;
-+	mr->mr.length = 0;
-+	mr->mr.offset = 0;
-+	mr->mr.access_flags = 0;
-+	mr->umem = NULL;
++	pci_disable_device(dd->pcidev);
++	pci_release_regions(dd->pcidev);
 +
-+	return &mr->ibmr;
++	pci_set_drvdata(dd->pcidev, NULL);
 +}
 +
-+struct ib_fast_reg_page_list *
-+qib_alloc_fast_reg_page_list(struct ib_device *ibdev, int page_list_len)
++static void qib_msix_setup(struct qib_devdata *dd, int pos, u32 *msixcnt,
++			   struct msix_entry *msix_entry)
 +{
-+	unsigned size = page_list_len * sizeof(u64);
-+	struct ib_fast_reg_page_list *pl;
-+
-+	if (size > PAGE_SIZE)
-+		return ERR_PTR(-EINVAL);
-+
-+	pl = kmalloc(sizeof *pl, GFP_KERNEL);
-+	if (!pl)
-+		return ERR_PTR(-ENOMEM);
-+
-+	pl->page_list = kmalloc(size, GFP_KERNEL);
-+	if (!pl->page_list)
-+		goto err_free;
-+
-+	return pl;
-+
-+err_free:
-+	kfree(pl);
-+	return ERR_PTR(-ENOMEM);
-+}
-+
-+void qib_free_fast_reg_page_list(struct ib_fast_reg_page_list *pl)
-+{
-+	kfree(pl->page_list);
-+	kfree(pl);
-+}
-+
-+/**
-+ * qib_alloc_fmr - allocate a fast memory region
-+ * @pd: the protection domain for this memory region
-+ * @mr_access_flags: access flags for this memory region
-+ * @fmr_attr: fast memory region attributes
-+ *
-+ * Returns the memory region on success, otherwise returns an errno.
-+ */
-+struct ib_fmr *qib_alloc_fmr(struct ib_pd *pd, int mr_access_flags,
-+			     struct ib_fmr_attr *fmr_attr)
-+{
-+	struct qib_fmr *fmr;
-+	int m, i = 0;
-+	struct ib_fmr *ret;
-+
-+	/* Allocate struct plus pointers to first level page tables. */
-+	m = (fmr_attr->max_pages + QIB_SEGSZ - 1) / QIB_SEGSZ;
-+	fmr = kmalloc(sizeof *fmr + m * sizeof fmr->mr.map[0], GFP_KERNEL);
-+	if (!fmr)
-+		goto bail;
-+
-+	/* Allocate first level page tables. */
-+	for (; i < m; i++) {
-+		fmr->mr.map[i] = kmalloc(sizeof *fmr->mr.map[0],
-+					 GFP_KERNEL);
-+		if (!fmr->mr.map[i])
-+			goto bail;
-+	}
-+	fmr->mr.mapsz = m;
-+
-+	/*
-+	 * ib_alloc_fmr() will initialize fmr->ibfmr except for lkey &
-+	 * rkey.
-+	 */
-+	if (!qib_alloc_lkey(&to_idev(pd->device)->lk_table, &fmr->mr))
-+		goto bail;
-+	fmr->ibfmr.rkey = fmr->mr.lkey;
-+	fmr->ibfmr.lkey = fmr->mr.lkey;
-+	/*
-+	 * Resources are allocated but no valid mapping (RKEY can't be
-+	 * used).
-+	 */
-+	fmr->mr.pd = pd;
-+	fmr->mr.user_base = 0;
-+	fmr->mr.iova = 0;
-+	fmr->mr.length = 0;
-+	fmr->mr.offset = 0;
-+	fmr->mr.access_flags = mr_access_flags;
-+	fmr->mr.max_segs = fmr_attr->max_pages;
-+	fmr->page_shift = fmr_attr->page_shift;
-+
-+	atomic_set(&fmr->mr.refcount, 0);
-+	ret = &fmr->ibfmr;
-+	goto done;
-+
-+bail:
-+	while (i)
-+		kfree(fmr->mr.map[--i]);
-+	kfree(fmr);
-+	ret = ERR_PTR(-ENOMEM);
-+
-+done:
-+	return ret;
-+}
-+
-+/**
-+ * qib_map_phys_fmr - set up a fast memory region
-+ * @ibmfr: the fast memory region to set up
-+ * @page_list: the list of pages to associate with the fast memory region
-+ * @list_len: the number of pages to associate with the fast memory region
-+ * @iova: the virtual address of the start of the fast memory region
-+ *
-+ * This may be called from interrupt context.
-+ */
-+
-+int qib_map_phys_fmr(struct ib_fmr *ibfmr, u64 *page_list,
-+		     int list_len, u64 iova)
-+{
-+	struct qib_fmr *fmr = to_ifmr(ibfmr);
-+	struct qib_lkey_table *rkt;
-+	unsigned long flags;
-+	int m, n, i;
-+	u32 ps;
 +	int ret;
++	u32 tabsize = 0;
++	u16 msix_flags;
 +
-+	if (atomic_read(&fmr->mr.refcount))
-+		return -EBUSY;
-+
-+	if (list_len > fmr->mr.max_segs) {
-+		ret = -EINVAL;
-+		goto bail;
++	pci_read_config_word(dd->pcidev, pos + PCI_MSIX_FLAGS, &msix_flags);
++	tabsize = 1 + (msix_flags & PCI_MSIX_FLAGS_QSIZE);
++	if (tabsize > *msixcnt)
++		tabsize = *msixcnt;
++	ret = pci_enable_msix(dd->pcidev, msix_entry, tabsize);
++	if (ret > 0) {
++		tabsize = ret;
++		ret = pci_enable_msix(dd->pcidev, msix_entry, tabsize);
 +	}
-+	rkt = &to_idev(ibfmr->device)->lk_table;
-+	spin_lock_irqsave(&rkt->lock, flags);
-+	fmr->mr.user_base = iova;
-+	fmr->mr.iova = iova;
-+	ps = 1 << fmr->page_shift;
-+	fmr->mr.length = list_len * ps;
-+	m = 0;
-+	n = 0;
-+	for (i = 0; i < list_len; i++) {
-+		fmr->mr.map[m]->segs[n].vaddr = (void *) page_list[i];
-+		fmr->mr.map[m]->segs[n].length = ps;
-+		if (++n == QIB_SEGSZ) {
-+			m++;
-+			n = 0;
-+		}
++	if (ret) {
++		qib_dev_err(dd, "pci_enable_msix %d vectors failed: %d, "
++			    "falling back to INTx\n", tabsize, ret);
++		tabsize = 0;
 +	}
-+	spin_unlock_irqrestore(&rkt->lock, flags);
-+	ret = 0;
++	*msixcnt = tabsize;
 +
-+bail:
-+	return ret;
-+}
-+
-+/**
-+ * qib_unmap_fmr - unmap fast memory regions
-+ * @fmr_list: the list of fast memory regions to unmap
-+ *
-+ * Returns 0 on success.
-+ */
-+int qib_unmap_fmr(struct list_head *fmr_list)
-+{
-+	struct qib_fmr *fmr;
-+	struct qib_lkey_table *rkt;
-+	unsigned long flags;
-+
-+	list_for_each_entry(fmr, fmr_list, ibfmr.list) {
-+		rkt = &to_idev(fmr->ibfmr.device)->lk_table;
-+		spin_lock_irqsave(&rkt->lock, flags);
-+		fmr->mr.user_base = 0;
-+		fmr->mr.iova = 0;
-+		fmr->mr.length = 0;
-+		spin_unlock_irqrestore(&rkt->lock, flags);
-+	}
-+	return 0;
-+}
-+
-+/**
-+ * qib_dealloc_fmr - deallocate a fast memory region
-+ * @ibfmr: the fast memory region to deallocate
-+ *
-+ * Returns 0 on success.
-+ */
-+int qib_dealloc_fmr(struct ib_fmr *ibfmr)
-+{
-+	struct qib_fmr *fmr = to_ifmr(ibfmr);
-+	int ret;
-+	int i;
-+
-+	ret = qib_free_lkey(to_idev(ibfmr->device), &fmr->mr);
 +	if (ret)
-+		return ret;
++		qib_enable_intx(dd->pcidev);
 +
-+	i = fmr->mr.mapsz;
-+	while (i)
-+		kfree(fmr->mr.map[--i]);
-+	kfree(fmr);
++}
++
++/**
++ * We save the msi lo and hi values, so we can restore them after
++ * chip reset (the kernel PCI infrastructure doesn't yet handle that
++ * correctly.
++ */
++static int qib_msi_setup(struct qib_devdata *dd, int pos)
++{
++	struct pci_dev *pdev = dd->pcidev;
++	u16 control;
++	int ret;
++
++	ret = pci_enable_msi(pdev);
++	if (ret)
++		qib_dev_err(dd, "pci_enable_msi failed: %d, "
++			    "interrupts may not work\n", ret);
++	/* continue even if it fails, we may still be OK... */
++
++	pci_read_config_dword(pdev, pos + PCI_MSI_ADDRESS_LO,
++			      &dd->msi_lo);
++	pci_read_config_dword(pdev, pos + PCI_MSI_ADDRESS_HI,
++			      &dd->msi_hi);
++	pci_read_config_word(pdev, pos + PCI_MSI_FLAGS, &control);
++	/* now save the data (vector) info */
++	pci_read_config_word(pdev, pos + ((control & PCI_MSI_FLAGS_64BIT)
++				    ? 12 : 8),
++			     &dd->msi_data);
++	return ret;
++}
++
++int qib_pcie_params(struct qib_devdata *dd, u32 minw, u32 *nent,
++		    struct msix_entry *entry)
++{
++	u16 linkstat, speed;
++	int pos = 0, pose, ret = 1;
++
++	pose = pci_find_capability(dd->pcidev, PCI_CAP_ID_EXP);
++	if (!pose) {
++		qib_dev_err(dd, "Can't find PCI Express capability!\n");
++		/* set up something... */
++		dd->lbus_width = 1;
++		dd->lbus_speed = 2500; /* Gen1, 2.5GHz */
++		goto bail;
++	}
++
++	pos = pci_find_capability(dd->pcidev, PCI_CAP_ID_MSIX);
++	if (nent && *nent && pos) {
++		qib_msix_setup(dd, pos, nent, entry);
++		ret = 0; /* did it, either MSIx or INTx */
++	} else {
++		pos = pci_find_capability(dd->pcidev, PCI_CAP_ID_MSI);
++		if (pos)
++			ret = qib_msi_setup(dd, pos);
++		else
++			qib_dev_err(dd, "No PCI MSI or MSIx capability!\n");
++	}
++	if (!pos)
++		qib_enable_intx(dd->pcidev);
++
++	pci_read_config_word(dd->pcidev, pose + PCI_EXP_LNKSTA, &linkstat);
++	/*
++	 * speed is bits 0-3, linkwidth is bits 4-8
++	 * no defines for them in headers
++	 */
++	speed = linkstat & 0xf;
++	linkstat >>= 4;
++	linkstat &= 0x1f;
++	dd->lbus_width = linkstat;
++
++	switch (speed) {
++	case 1:
++		dd->lbus_speed = 2500; /* Gen1, 2.5GHz */
++		break;
++	case 2:
++		dd->lbus_speed = 5000; /* Gen1, 5GHz */
++		break;
++	default: /* not defined, assume gen1 */
++		dd->lbus_speed = 2500;
++		break;
++	}
++
++	/*
++	 * Check against expected pcie width and complain if "wrong"
++	 * on first initialization, not afterwards (i.e., reset).
++	 */
++	if (minw && linkstat < minw)
++		qib_dev_err(dd,
++			    "PCIe width %u (x%u HCA), performance reduced\n",
++			    linkstat, minw);
++
++	qib_tune_pcie_caps(dd);
++
++	qib_tune_pcie_coalesce(dd);
++
++bail:
++	/* fill in string, even on errors */
++	snprintf(dd->lbus_info, sizeof(dd->lbus_info),
++		 "PCIe,%uMHz,x%u\n", dd->lbus_speed, dd->lbus_width);
++	return ret;
++}
++
++/*
++ * Setup pcie interrupt stuff again after a reset.  I'd like to just call
++ * pci_enable_msi() again for msi, but when I do that,
++ * the MSI enable bit doesn't get set in the command word, and
++ * we switch to to a different interrupt vector, which is confusing,
++ * so I instead just do it all inline.  Perhaps somehow can tie this
++ * into the PCIe hotplug support at some point
++ */
++int qib_reinit_intr(struct qib_devdata *dd)
++{
++	int pos;
++	u16 control;
++	int ret = 0;
++
++	/* If we aren't using MSI, don't restore it */
++	if (!dd->msi_lo)
++		goto bail;
++
++	pos = pci_find_capability(dd->pcidev, PCI_CAP_ID_MSI);
++	if (!pos) {
++		qib_dev_err(dd, "Can't find MSI capability, "
++			    "can't restore MSI settings\n");
++		ret = 0;
++		/* nothing special for MSIx, just MSI */
++		goto bail;
++	}
++	pci_write_config_dword(dd->pcidev, pos + PCI_MSI_ADDRESS_LO,
++			       dd->msi_lo);
++	pci_write_config_dword(dd->pcidev, pos + PCI_MSI_ADDRESS_HI,
++			       dd->msi_hi);
++	pci_read_config_word(dd->pcidev, pos + PCI_MSI_FLAGS, &control);
++	if (!(control & PCI_MSI_FLAGS_ENABLE)) {
++		control |= PCI_MSI_FLAGS_ENABLE;
++		pci_write_config_word(dd->pcidev, pos + PCI_MSI_FLAGS,
++				      control);
++	}
++	/* now rewrite the data (vector) info */
++	pci_write_config_word(dd->pcidev, pos +
++			      ((control & PCI_MSI_FLAGS_64BIT) ? 12 : 8),
++			      dd->msi_data);
++	ret = 1;
++bail:
++	if (!ret && (dd->flags & QIB_HAS_INTX)) {
++		qib_enable_intx(dd->pcidev);
++		ret = 1;
++	}
++
++	/* and now set the pci master bit again */
++	pci_set_master(dd->pcidev);
++
++	return ret;
++}
++
++/*
++ * Disable msi interrupt if enabled, and clear msi_lo.
++ * This is used primarily for the fallback to INTx, but
++ * is also used in reinit after reset, and during cleanup.
++ */
++void qib_nomsi(struct qib_devdata *dd)
++{
++	dd->msi_lo = 0;
++	pci_disable_msi(dd->pcidev);
++}
++
++/*
++ * Same as qib_nosmi, but for MSIx.
++ */
++void qib_nomsix(struct qib_devdata *dd)
++{
++	pci_disable_msix(dd->pcidev);
++}
++
++/*
++ * Similar to pci_intx(pdev, 1), except that we make sure
++ * msi(x) is off.
++ */
++void qib_enable_intx(struct pci_dev *pdev)
++{
++	u16 cw, new;
++	int pos;
++
++	/* first, turn on INTx */
++	pci_read_config_word(pdev, PCI_COMMAND, &cw);
++	new = cw & ~PCI_COMMAND_INTX_DISABLE;
++	if (new != cw)
++		pci_write_config_word(pdev, PCI_COMMAND, new);
++
++	pos = pci_find_capability(pdev, PCI_CAP_ID_MSI);
++	if (pos) {
++		/* then turn off MSI */
++		pci_read_config_word(pdev, pos + PCI_MSI_FLAGS, &cw);
++		new = cw & ~PCI_MSI_FLAGS_ENABLE;
++		if (new != cw)
++			pci_write_config_word(pdev, pos + PCI_MSI_FLAGS, new);
++	}
++	pos = pci_find_capability(pdev, PCI_CAP_ID_MSIX);
++	if (pos) {
++		/* then turn off MSIx */
++		pci_read_config_word(pdev, pos + PCI_MSIX_FLAGS, &cw);
++		new = cw & ~PCI_MSIX_FLAGS_ENABLE;
++		if (new != cw)
++			pci_write_config_word(pdev, pos + PCI_MSIX_FLAGS, new);
++	}
++}
++
++/*
++ * These two routines are helper routines for the device reset code
++ * to move all the pcie code out of the chip-specific driver code.
++ */
++void qib_pcie_getcmd(struct qib_devdata *dd, u16 *cmd, u8 *iline, u8 *cline)
++{
++	pci_read_config_word(dd->pcidev, PCI_COMMAND, cmd);
++	pci_read_config_byte(dd->pcidev, PCI_INTERRUPT_LINE, iline);
++	pci_read_config_byte(dd->pcidev, PCI_CACHE_LINE_SIZE, cline);
++}
++
++void qib_pcie_reenable(struct qib_devdata *dd, u16 cmd, u8 iline, u8 cline)
++{
++	int r;
++	r = pci_write_config_dword(dd->pcidev, PCI_BASE_ADDRESS_0,
++				   dd->pcibar0);
++	if (r)
++		qib_dev_err(dd, "rewrite of BAR0 failed: %d\n", r);
++	r = pci_write_config_dword(dd->pcidev, PCI_BASE_ADDRESS_1,
++				   dd->pcibar1);
++	if (r)
++		qib_dev_err(dd, "rewrite of BAR1 failed: %d\n", r);
++	/* now re-enable memory access, and restore cosmetic settings */
++	pci_write_config_word(dd->pcidev, PCI_COMMAND, cmd);
++	pci_write_config_byte(dd->pcidev, PCI_INTERRUPT_LINE, iline);
++	pci_write_config_byte(dd->pcidev, PCI_CACHE_LINE_SIZE, cline);
++	r = pci_enable_device(dd->pcidev);
++	if (r)
++		qib_dev_err(dd, "pci_enable_device failed after "
++			    "reset: %d\n", r);
++}
++
++/* code to adjust PCIe capabilities. */
++
++static int fld2val(int wd, int mask)
++{
++	int lsbmask;
++
++	if (!mask)
++		return 0;
++	wd &= mask;
++	lsbmask = mask ^ (mask & (mask - 1));
++	wd /= lsbmask;
++	return wd;
++}
++
++static int val2fld(int wd, int mask)
++{
++	int lsbmask;
++
++	if (!mask)
++		return 0;
++	lsbmask = mask ^ (mask & (mask - 1));
++	wd *= lsbmask;
++	return wd;
++}
++
++static int qib_pcie_coalesce;
++module_param_named(pcie_coalesce, qib_pcie_coalesce, int, S_IRUGO);
++MODULE_PARM_DESC(pcie_coalesce, "tune PCIe colescing on some Intel chipsets");
++
++/*
++ * Enable PCIe completion and data coalescing, on Intel 5x00 and 7300
++ * chipsets.   This is known to be unsafe for some revisions of some
++ * of these chipsets, with some BIOS settings, and enabling it on those
++ * systems may result in the system crashing, and/or data corruption.
++ */
++static int qib_tune_pcie_coalesce(struct qib_devdata *dd)
++{
++	int r;
++	struct pci_dev *parent;
++	int ppos;
++	u16 devid;
++	u32 mask, bits, val;
++
++	if (!qib_pcie_coalesce)
++		return 0;
++
++	/* Find out supported and configured values for parent (root) */
++	parent = dd->pcidev->bus->self;
++	if (parent->bus->parent) {
++		qib_devinfo(dd->pcidev, "Parent not root\n");
++		return 1;
++	}
++	ppos = pci_find_capability(parent, PCI_CAP_ID_EXP);
++	if (!ppos)
++		return 1;
++	if (parent->vendor != 0x8086)
++		return 1;
++
++	/*
++	 *  - bit 12: Max_rdcmp_Imt_EN: need to set to 1
++	 *  - bit 11: COALESCE_FORCE: need to set to 0
++	 *  - bit 10: COALESCE_EN: need to set to 1
++	 *  (but limitations on some on some chipsets)
++	 *
++	 *  On the Intel 5000, 5100, and 7300 chipsets, there is
++	 *  also: - bit 25:24: COALESCE_MODE, need to set to 0
++	 */
++	devid = parent->device;
++	if (devid >= 0x25e2 && devid <= 0x25fa) {
++		u8 rev;
++
++		/* 5000 P/V/X/Z */
++		pci_read_config_byte(parent, PCI_REVISION_ID, &rev);
++		if (rev <= 0xb2)
++			bits = 1U << 10;
++		else
++			bits = 7U << 10;
++		mask = (3U << 24) | (7U << 10);
++	} else if (devid >= 0x65e2 && devid <= 0x65fa) {
++		/* 5100 */
++		bits = 1U << 10;
++		mask = (3U << 24) | (7U << 10);
++	} else if (devid >= 0x4021 && devid <= 0x402e) {
++		/* 5400 */
++		bits = 7U << 10;
++		mask = 7U << 10;
++	} else if (devid >= 0x3604 && devid <= 0x360a) {
++		/* 7300 */
++		bits = 7U << 10;
++		mask = (3U << 24) | (7U << 10);
++	} else {
++		/* not one of the chipsets that we know about */
++		return 1;
++	}
++	pci_read_config_dword(parent, 0x48, &val);
++	val &= ~mask;
++	val |= bits;
++	r = pci_write_config_dword(parent, 0x48, val);
 +	return 0;
 +}
++
++/*
++ * BIOS may not set PCIe bus-utilization parameters for best performance.
++ * Check and optionally adjust them to maximize our throughput.
++ */
++static int qib_pcie_caps;
++module_param_named(pcie_caps, qib_pcie_caps, int, S_IRUGO);
++MODULE_PARM_DESC(pcie_caps, "Max PCIe tuning: Payload (4lsb), ReadReq (D4..7)");
++
++static int qib_tune_pcie_caps(struct qib_devdata *dd)
++{
++	int ret = 1; /* Assume the worst */
++	struct pci_dev *parent;
++	int ppos, epos;
++	u16 pcaps, pctl, ecaps, ectl;
++	int rc_sup, ep_sup;
++	int rc_cur, ep_cur;
++
++	/* Find out supported and configured values for parent (root) */
++	parent = dd->pcidev->bus->self;
++	if (parent->bus->parent) {
++		qib_devinfo(dd->pcidev, "Parent not root\n");
++		goto bail;
++	}
++	ppos = pci_find_capability(parent, PCI_CAP_ID_EXP);
++	if (ppos) {
++		pci_read_config_word(parent, ppos + PCI_EXP_DEVCAP, &pcaps);
++		pci_read_config_word(parent, ppos + PCI_EXP_DEVCTL, &pctl);
++	} else
++		goto bail;
++	/* Find out supported and configured values for endpoint (us) */
++	epos = pci_find_capability(dd->pcidev, PCI_CAP_ID_EXP);
++	if (epos) {
++		pci_read_config_word(dd->pcidev, epos + PCI_EXP_DEVCAP, &ecaps);
++		pci_read_config_word(dd->pcidev, epos + PCI_EXP_DEVCTL, &ectl);
++	} else
++		goto bail;
++	ret = 0;
++	/* Find max payload supported by root, endpoint */
++	rc_sup = fld2val(pcaps, PCI_EXP_DEVCAP_PAYLOAD);
++	ep_sup = fld2val(ecaps, PCI_EXP_DEVCAP_PAYLOAD);
++	if (rc_sup > ep_sup)
++		rc_sup = ep_sup;
++
++	rc_cur = fld2val(pctl, PCI_EXP_DEVCTL_PAYLOAD);
++	ep_cur = fld2val(ectl, PCI_EXP_DEVCTL_PAYLOAD);
++
++	/* If Supported greater than limit in module param, limit it */
++	if (rc_sup > (qib_pcie_caps & 7))
++		rc_sup = qib_pcie_caps & 7;
++	/* If less than (allowed, supported), bump root payload */
++	if (rc_sup > rc_cur) {
++		rc_cur = rc_sup;
++		pctl = (pctl & ~PCI_EXP_DEVCTL_PAYLOAD) |
++			val2fld(rc_cur, PCI_EXP_DEVCTL_PAYLOAD);
++		pci_write_config_word(parent, ppos + PCI_EXP_DEVCTL, pctl);
++	}
++	/* If less than (allowed, supported), bump endpoint payload */
++	if (rc_sup > ep_cur) {
++		ep_cur = rc_sup;
++		ectl = (ectl & ~PCI_EXP_DEVCTL_PAYLOAD) |
++			val2fld(ep_cur, PCI_EXP_DEVCTL_PAYLOAD);
++		pci_write_config_word(dd->pcidev, epos + PCI_EXP_DEVCTL, ectl);
++	}
++
++	/*
++	 * Now the Read Request size.
++	 * No field for max supported, but PCIe spec limits it to 4096,
++	 * which is code '5' (log2(4096) - 7)
++	 */
++	rc_sup = 5;
++	if (rc_sup > ((qib_pcie_caps >> 4) & 7))
++		rc_sup = (qib_pcie_caps >> 4) & 7;
++	rc_cur = fld2val(pctl, PCI_EXP_DEVCTL_READRQ);
++	ep_cur = fld2val(ectl, PCI_EXP_DEVCTL_READRQ);
++
++	if (rc_sup > rc_cur) {
++		rc_cur = rc_sup;
++		pctl = (pctl & ~PCI_EXP_DEVCTL_READRQ) |
++			val2fld(rc_cur, PCI_EXP_DEVCTL_READRQ);
++		pci_write_config_word(parent, ppos + PCI_EXP_DEVCTL, pctl);
++	}
++	if (rc_sup > ep_cur) {
++		ep_cur = rc_sup;
++		ectl = (ectl & ~PCI_EXP_DEVCTL_READRQ) |
++			val2fld(ep_cur, PCI_EXP_DEVCTL_READRQ);
++		pci_write_config_word(dd->pcidev, epos + PCI_EXP_DEVCTL, ectl);
++	}
++bail:
++	return ret;
++}
++/* End of PCIe capability tuning */
++
++/*
++ * From here through qib_pci_err_handler definition is invoked via
++ * PCI error infrastructure, registered via pci
++ */
++static pci_ers_result_t
++qib_pci_error_detected(struct pci_dev *pdev, pci_channel_state_t state)
++{
++	struct qib_devdata *dd = pci_get_drvdata(pdev);
++	pci_ers_result_t ret = PCI_ERS_RESULT_RECOVERED;
++
++	switch (state) {
++	case pci_channel_io_normal:
++		qib_devinfo(pdev, "State Normal, ignoring\n");
++		break;
++
++	case pci_channel_io_frozen:
++		qib_devinfo(pdev, "State Frozen, requesting reset\n");
++		pci_disable_device(pdev);
++		ret = PCI_ERS_RESULT_NEED_RESET;
++		break;
++
++	case pci_channel_io_perm_failure:
++		qib_devinfo(pdev, "State Permanent Failure, disabling\n");
++		if (dd) {
++			/* no more register accesses! */
++			dd->flags &= ~QIB_PRESENT;
++			qib_disable_after_error(dd);
++		}
++		 /* else early, or other problem */
++		ret =  PCI_ERS_RESULT_DISCONNECT;
++		break;
++
++	default: /* shouldn't happen */
++		qib_devinfo(pdev, "QIB PCI errors detected (state %d)\n",
++			state);
++		break;
++	}
++	return ret;
++}
++
++static pci_ers_result_t
++qib_pci_mmio_enabled(struct pci_dev *pdev)
++{
++	u64 words = 0U;
++	struct qib_devdata *dd = pci_get_drvdata(pdev);
++	pci_ers_result_t ret = PCI_ERS_RESULT_RECOVERED;
++
++	if (dd && dd->pport) {
++		words = dd->f_portcntr(dd->pport, QIBPORTCNTR_WORDRCV);
++		if (words == ~0ULL)
++			ret = PCI_ERS_RESULT_NEED_RESET;
++	}
++	qib_devinfo(pdev, "QIB mmio_enabled function called, "
++		 "read wordscntr %Lx, returning %d\n", words, ret);
++	return  ret;
++}
++
++static pci_ers_result_t
++qib_pci_slot_reset(struct pci_dev *pdev)
++{
++	qib_devinfo(pdev, "QIB link_reset function called, ignored\n");
++	return PCI_ERS_RESULT_CAN_RECOVER;
++}
++
++static pci_ers_result_t
++qib_pci_link_reset(struct pci_dev *pdev)
++{
++	qib_devinfo(pdev, "QIB link_reset function called, ignored\n");
++	return PCI_ERS_RESULT_CAN_RECOVER;
++}
++
++static void
++qib_pci_resume(struct pci_dev *pdev)
++{
++	struct qib_devdata *dd = pci_get_drvdata(pdev);
++	qib_devinfo(pdev, "QIB resume function called\n");
++	pci_cleanup_aer_uncorrect_error_status(pdev);
++	/*
++	 * Running jobs will fail, since it's asynchronous
++	 * unlike sysfs-requested reset.   Better than
++	 * doing nothing.
++	 */
++	qib_init(dd, 1); /* same as re-init after reset */
++}
++
++struct pci_error_handlers qib_pci_err_handler = {
++	.error_detected = qib_pci_error_detected,
++	.mmio_enabled = qib_pci_mmio_enabled,
++	.link_reset = qib_pci_link_reset,
++	.slot_reset = qib_pci_slot_reset,
++	.resume = qib_pci_resume,
++};
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
