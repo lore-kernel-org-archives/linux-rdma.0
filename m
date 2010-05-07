@@ -1,7 +1,7 @@
 From: Ralph Campbell <ralph.campbell-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v3 37/52] IB/qib: Add qib_sysfs.c
-Date: Thu, 06 May 2010 17:02:06 -0700
-Message-ID: <20100507000206.3441.67259.stgit@chromite.mv.qlogic.com>
+Subject: [PATCH v3 38/52] IB/qib: Add qib_twsi.c
+Date: Thu, 06 May 2010 17:02:11 -0700
+Message-ID: <20100507000211.3441.67028.stgit@chromite.mv.qlogic.com>
 References: <20100506235849.3441.85930.stgit@chromite.mv.qlogic.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -13,24 +13,24 @@ To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-creates the qib_sysfs.c file.
+creates the qib_twsi.c file.
 
 Signed-off-by: Ralph Campbell <ralph.campbell-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
 ---
 
- drivers/infiniband/hw/qib/qib_sysfs.c |  691 +++++++++++++++++++++++++++++++++
- 1 files changed, 691 insertions(+), 0 deletions(-)
- create mode 100644 drivers/infiniband/hw/qib/qib_sysfs.c
+ drivers/infiniband/hw/qib/qib_twsi.c |  498 ++++++++++++++++++++++++++++++++++
+ 1 files changed, 498 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/infiniband/hw/qib/qib_twsi.c
 
-diff --git a/drivers/infiniband/hw/qib/qib_sysfs.c b/drivers/infiniband/hw/qib/qib_sysfs.c
+diff --git a/drivers/infiniband/hw/qib/qib_twsi.c b/drivers/infiniband/hw/qib/qib_twsi.c
 new file mode 100644
-index 0000000..dab4d9f
+index 0000000..6f31ca5
 --- /dev/null
-+++ b/drivers/infiniband/hw/qib/qib_sysfs.c
-@@ -0,0 +1,691 @@
++++ b/drivers/infiniband/hw/qib/qib_twsi.c
+@@ -0,0 +1,498 @@
 +/*
 + * Copyright (c) 2006, 2007, 2008, 2009 QLogic Corporation. All rights reserved.
-+ * Copyright (c) 2006 PathScale, Inc. All rights reserved.
++ * Copyright (c) 2003, 2004, 2005, 2006 PathScale, Inc. All rights reserved.
 + *
 + * This software is available to you under a choice of one of two
 + * licenses.  You may choose to be licensed under the terms of the GNU
@@ -60,664 +60,471 @@ index 0000000..dab4d9f
 + * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 + * SOFTWARE.
 + */
-+#include <linux/ctype.h>
++
++#include <linux/delay.h>
++#include <linux/pci.h>
++#include <linux/vmalloc.h>
 +
 +#include "qib.h"
 +
-+/**
-+ * qib_parse_ushort - parse an unsigned short value in an arbitrary base
-+ * @str: the string containing the number
-+ * @valp: where to put the result
-+ *
-+ * Returns the number of bytes consumed, or negative value on error.
-+ */
-+static int qib_parse_ushort(const char *str, unsigned short *valp)
-+{
-+	unsigned long val;
-+	char *end;
-+	int ret;
-+
-+	if (!isdigit(str[0])) {
-+		ret = -EINVAL;
-+		goto bail;
-+	}
-+
-+	val = simple_strtoul(str, &end, 0);
-+
-+	if (val > 0xffff) {
-+		ret = -EINVAL;
-+		goto bail;
-+	}
-+
-+	*valp = val;
-+
-+	ret = end + 1 - str;
-+	if (ret == 0)
-+		ret = -EINVAL;
-+
-+bail:
-+	return ret;
-+}
-+
-+/* start of per-port functions */
 +/*
-+ * Get/Set heartbeat enable. OR of 1=enabled, 2=auto
++ * QLogic_IB "Two Wire Serial Interface" driver.
++ * Originally written for a not-quite-i2c serial eeprom, which is
++ * still used on some supported boards. Later boards have added a
++ * variety of other uses, most board-specific, so teh bit-boffing
++ * part has been split off to this file, while the other parts
++ * have been moved to chip-specific files.
++ *
++ * We have also dropped all pretense of fully generic (e.g. pretend
++ * we don't know whether '1' is the higher voltage) interface, as
++ * the restrictions of the generic i2c interface (e.g. no access from
++ * driver itself) make it unsuitable for this use.
 + */
-+static ssize_t show_hrtbt_enb(struct qib_pportdata *ppd, char *buf)
-+{
-+	struct qib_devdata *dd = ppd->dd;
-+	int ret;
 +
-+	ret = dd->f_get_ib_cfg(ppd, QIB_IB_CFG_HRTBT);
-+	ret = scnprintf(buf, PAGE_SIZE, "%d\n", ret);
-+	return ret;
++#define READ_CMD 1
++#define WRITE_CMD 0
++
++/**
++ * i2c_wait_for_writes - wait for a write
++ * @dd: the qlogic_ib device
++ *
++ * We use this instead of udelay directly, so we can make sure
++ * that previous register writes have been flushed all the way
++ * to the chip.  Since we are delaying anyway, the cost doesn't
++ * hurt, and makes the bit twiddling more regular
++ */
++static void i2c_wait_for_writes(struct qib_devdata *dd)
++{
++	/*
++	 * implicit read of EXTStatus is as good as explicit
++	 * read of scratch, if all we want to do is flush
++	 * writes.
++	 */
++	dd->f_gpio_mod(dd, 0, 0, 0);
++	rmb(); /* inlined, so prevent compiler reordering */
 +}
 +
-+static ssize_t store_hrtbt_enb(struct qib_pportdata *ppd, const char *buf,
-+			       size_t count)
-+{
-+	struct qib_devdata *dd = ppd->dd;
-+	int ret;
-+	u16 val;
++/*
++ * QSFP modules are allowed to hold SCL low for 500uSec. Allow twice that
++ * for "almost compliant" modules
++ */
++#define SCL_WAIT_USEC 1000
 +
-+	ret = qib_parse_ushort(buf, &val);
++/* BUF_WAIT is time bus must be free between STOP or ACK and to next START.
++ * Should be 20, but some chips need more.
++ */
++#define TWSI_BUF_WAIT_USEC 60
++
++static void scl_out(struct qib_devdata *dd, u8 bit)
++{
++	u32 mask;
++
++	udelay(1);
++
++	mask = 1UL << dd->gpio_scl_num;
++
++	/* SCL is meant to be bare-drain, so never set "OUT", just DIR */
++	dd->f_gpio_mod(dd, 0, bit ? 0 : mask, mask);
 +
 +	/*
-+	 * Set the "intentional" heartbeat enable per either of
-+	 * "Enable" and "Auto", as these are normally set together.
-+	 * This bit is consulted when leaving loopback mode,
-+	 * because entering loopback mode overrides it and automatically
-+	 * disables heartbeat.
++	 * Allow for slow slaves by simple
++	 * delay for falling edge, sampling on rise.
 +	 */
-+	if (ret >= 0)
-+		ret = dd->f_set_ib_cfg(ppd, QIB_IB_CFG_HRTBT, val);
-+	if (ret < 0)
-+		qib_dev_err(dd, "attempt to set invalid Heartbeat enable\n");
-+	return ret < 0 ? ret : count;
-+}
-+
-+static ssize_t store_loopback(struct qib_pportdata *ppd, const char *buf,
-+			      size_t count)
-+{
-+	struct qib_devdata *dd = ppd->dd;
-+	int ret = count, r;
-+
-+	r = dd->f_set_ib_loopback(ppd, buf);
-+	if (r < 0)
-+		ret = r;
-+
-+	return ret;
-+}
-+
-+static ssize_t store_led_override(struct qib_pportdata *ppd, const char *buf,
-+				  size_t count)
-+{
-+	struct qib_devdata *dd = ppd->dd;
-+	int ret;
-+	u16 val;
-+
-+	ret = qib_parse_ushort(buf, &val);
-+	if (ret > 0)
-+		qib_set_led_override(ppd, val);
-+	else
-+		qib_dev_err(dd, "attempt to set invalid LED override\n");
-+	return ret < 0 ? ret : count;
-+}
-+
-+static ssize_t show_status(struct qib_pportdata *ppd, char *buf)
-+{
-+	ssize_t ret;
-+
-+	if (!ppd->statusp)
-+		ret = -EINVAL;
-+	else
-+		ret = scnprintf(buf, PAGE_SIZE, "0x%llx\n",
-+				(unsigned long long) *(ppd->statusp));
-+	return ret;
-+}
-+
-+/*
-+ * For userland compatibility, these offsets must remain fixed.
-+ * They are strings for QIB_STATUS_*
-+ */
-+static const char *qib_status_str[] = {
-+	"Initted",
-+	"",
-+	"",
-+	"",
-+	"",
-+	"Present",
-+	"IB_link_up",
-+	"IB_configured",
-+	"",
-+	"Fatal_Hardware_Error",
-+	NULL,
-+};
-+
-+static ssize_t show_status_str(struct qib_pportdata *ppd, char *buf)
-+{
-+	int i, any;
-+	u64 s;
-+	ssize_t ret;
-+
-+	if (!ppd->statusp) {
-+		ret = -EINVAL;
-+		goto bail;
-+	}
-+
-+	s = *(ppd->statusp);
-+	*buf = '\0';
-+	for (any = i = 0; s && qib_status_str[i]; i++) {
-+		if (s & 1) {
-+			/* if overflow */
-+			if (any && strlcat(buf, " ", PAGE_SIZE) >= PAGE_SIZE)
++	if (!bit)
++		udelay(2);
++	else {
++		int rise_usec;
++		for (rise_usec = SCL_WAIT_USEC; rise_usec > 0; rise_usec -= 2) {
++			if (mask & dd->f_gpio_mod(dd, 0, 0, 0))
 +				break;
-+			if (strlcat(buf, qib_status_str[i], PAGE_SIZE) >=
-+					PAGE_SIZE)
-+				break;
-+			any = 1;
++			udelay(2);
 +		}
-+		s >>= 1;
++		if (rise_usec <= 0)
++			qib_dev_err(dd, "SCL interface stuck low > %d uSec\n",
++				    SCL_WAIT_USEC);
 +	}
-+	if (any)
-+		strlcat(buf, "\n", PAGE_SIZE);
++	i2c_wait_for_writes(dd);
++}
 +
-+	ret = strlen(buf);
++static void sda_out(struct qib_devdata *dd, u8 bit)
++{
++	u32 mask;
++
++	mask = 1UL << dd->gpio_sda_num;
++
++	/* SDA is meant to be bare-drain, so never set "OUT", just DIR */
++	dd->f_gpio_mod(dd, 0, bit ? 0 : mask, mask);
++
++	i2c_wait_for_writes(dd);
++	udelay(2);
++}
++
++static u8 sda_in(struct qib_devdata *dd, int wait)
++{
++	int bnum;
++	u32 read_val, mask;
++
++	bnum = dd->gpio_sda_num;
++	mask = (1UL << bnum);
++	/* SDA is meant to be bare-drain, so never set "OUT", just DIR */
++	dd->f_gpio_mod(dd, 0, 0, mask);
++	read_val = dd->f_gpio_mod(dd, 0, 0, 0);
++	if (wait)
++		i2c_wait_for_writes(dd);
++	return (read_val & mask) >> bnum;
++}
++
++/**
++ * i2c_ackrcv - see if ack following write is true
++ * @dd: the qlogic_ib device
++ */
++static int i2c_ackrcv(struct qib_devdata *dd)
++{
++	u8 ack_received;
++
++	/* AT ENTRY SCL = LOW */
++	/* change direction, ignore data */
++	ack_received = sda_in(dd, 1);
++	scl_out(dd, 1);
++	ack_received = sda_in(dd, 1) == 0;
++	scl_out(dd, 0);
++	return ack_received;
++}
++
++static void stop_cmd(struct qib_devdata *dd);
++
++/**
++ * rd_byte - read a byte, sending STOP on last, else ACK
++ * @dd: the qlogic_ib device
++ *
++ * Returns byte shifted out of device
++ */
++static int rd_byte(struct qib_devdata *dd, int last)
++{
++	int bit_cntr, data;
++
++	data = 0;
++
++	for (bit_cntr = 7; bit_cntr >= 0; --bit_cntr) {
++		data <<= 1;
++		scl_out(dd, 1);
++		data |= sda_in(dd, 0);
++		scl_out(dd, 0);
++	}
++	if (last) {
++		scl_out(dd, 1);
++		stop_cmd(dd);
++	} else {
++		sda_out(dd, 0);
++		scl_out(dd, 1);
++		scl_out(dd, 0);
++		sda_out(dd, 1);
++	}
++	return data;
++}
++
++/**
++ * wr_byte - write a byte, one bit at a time
++ * @dd: the qlogic_ib device
++ * @data: the byte to write
++ *
++ * Returns 0 if we got the following ack, otherwise 1
++ */
++static int wr_byte(struct qib_devdata *dd, u8 data)
++{
++	int bit_cntr;
++	u8 bit;
++
++	for (bit_cntr = 7; bit_cntr >= 0; bit_cntr--) {
++		bit = (data >> bit_cntr) & 1;
++		sda_out(dd, bit);
++		scl_out(dd, 1);
++		scl_out(dd, 0);
++	}
++	return (!i2c_ackrcv(dd)) ? 1 : 0;
++}
++
++/*
++ * issue TWSI start sequence:
++ * (both clock/data high, clock high, data low while clock is high)
++ */
++static void start_seq(struct qib_devdata *dd)
++{
++	sda_out(dd, 1);
++	scl_out(dd, 1);
++	sda_out(dd, 0);
++	udelay(1);
++	scl_out(dd, 0);
++}
++
++/**
++ * stop_seq - transmit the stop sequence
++ * @dd: the qlogic_ib device
++ *
++ * (both clock/data low, clock high, data high while clock is high)
++ */
++static void stop_seq(struct qib_devdata *dd)
++{
++	scl_out(dd, 0);
++	sda_out(dd, 0);
++	scl_out(dd, 1);
++	sda_out(dd, 1);
++}
++
++/**
++ * stop_cmd - transmit the stop condition
++ * @dd: the qlogic_ib device
++ *
++ * (both clock/data low, clock high, data high while clock is high)
++ */
++static void stop_cmd(struct qib_devdata *dd)
++{
++	stop_seq(dd);
++	udelay(TWSI_BUF_WAIT_USEC);
++}
++
++/**
++ * qib_twsi_reset - reset I2C communication
++ * @dd: the qlogic_ib device
++ */
++
++int qib_twsi_reset(struct qib_devdata *dd)
++{
++	int clock_cycles_left = 9;
++	int was_high = 0;
++	u32 pins, mask;
++
++	/* Both SCL and SDA should be high. If not, there
++	 * is something wrong.
++	 */
++	mask = (1UL << dd->gpio_scl_num) | (1UL << dd->gpio_sda_num);
++
++	/*
++	 * Force pins to desired innocuous state.
++	 * This is the default power-on state with out=0 and dir=0,
++	 * So tri-stated and should be floating high (barring HW problems)
++	 */
++	dd->f_gpio_mod(dd, 0, 0, mask);
++
++	/*
++	 * Clock nine times to get all listeners into a sane state.
++	 * If SDA does not go high at any point, we are wedged.
++	 * One vendor recommends then issuing START followed by STOP.
++	 * we cannot use our "normal" functions to do that, because
++	 * if SCL drops between them, another vendor's part will
++	 * wedge, dropping SDA and keeping it low forever, at the end of
++	 * the next transaction (even if it was not the device addressed).
++	 * So our START and STOP take place with SCL held high.
++	 */
++	while (clock_cycles_left--) {
++		scl_out(dd, 0);
++		scl_out(dd, 1);
++		/* Note if SDA is high, but keep clocking to sync slave */
++		was_high |= sda_in(dd, 0);
++	}
++
++	if (was_high) {
++		/*
++		 * We saw a high, which we hope means the slave is sync'd.
++		 * Issue START, STOP, pause for T_BUF.
++		 */
++
++		pins = dd->f_gpio_mod(dd, 0, 0, 0);
++		if ((pins & mask) != mask)
++			qib_dev_err(dd, "GPIO pins not at rest: %d\n",
++				    pins & mask);
++		/* Drop SDA to issue START */
++		udelay(1); /* Guarantee .6 uSec setup */
++		sda_out(dd, 0);
++		udelay(1); /* Guarantee .6 uSec hold */
++		/* At this point, SCL is high, SDA low. Raise SDA for STOP */
++		sda_out(dd, 1);
++		udelay(TWSI_BUF_WAIT_USEC);
++	}
++
++	return !was_high;
++}
++
++#define QIB_TWSI_START 0x100
++#define QIB_TWSI_STOP 0x200
++
++/* Write byte to TWSI, optionally prefixed with START or suffixed with
++ * STOP.
++ * returns 0 if OK (ACK received), else != 0
++ */
++static int qib_twsi_wr(struct qib_devdata *dd, int data, int flags)
++{
++	int ret = 1;
++	if (flags & QIB_TWSI_START)
++		start_seq(dd);
++
++	ret = wr_byte(dd, data); /* Leaves SCL low (from i2c_ackrcv()) */
++
++	if (flags & QIB_TWSI_STOP)
++		stop_cmd(dd);
++	return ret;
++}
++
++/* Added functionality for IBA7220-based cards */
++#define QIB_TEMP_DEV 0x98
++
++/*
++ * qib_twsi_blk_rd
++ * Formerly called qib_eeprom_internal_read, and only used for eeprom,
++ * but now the general interface for data transfer from twsi devices.
++ * One vestige of its former role is that it recognizes a device
++ * QIB_TWSI_NO_DEV and does the correct operation for the legacy part,
++ * which responded to all TWSI device codes, interpreting them as
++ * address within device. On all other devices found on board handled by
++ * this driver, the device is followed by a one-byte "address" which selects
++ * the "register" or "offset" within the device from which data should
++ * be read.
++ */
++int qib_twsi_blk_rd(struct qib_devdata *dd, int dev, int addr,
++		    void *buffer, int len)
++{
++	int ret;
++	u8 *bp = buffer;
++
++	ret = 1;
++
++	if (dev == QIB_TWSI_NO_DEV) {
++		/* legacy not-really-I2C */
++		addr = (addr << 1) | READ_CMD;
++		ret = qib_twsi_wr(dd, addr, QIB_TWSI_START);
++	} else {
++		/* Actual I2C */
++		ret = qib_twsi_wr(dd, dev | WRITE_CMD, QIB_TWSI_START);
++		if (ret) {
++			stop_cmd(dd);
++			ret = 1;
++			goto bail;
++		}
++		/*
++		 * SFF spec claims we do _not_ stop after the addr
++		 * but simply issue a start with the "read" dev-addr.
++		 * Since we are implicitely waiting for ACK here,
++		 * we need t_buf (nominally 20uSec) before that start,
++		 * and cannot rely on the delay built in to the STOP
++		 */
++		ret = qib_twsi_wr(dd, addr, 0);
++		udelay(TWSI_BUF_WAIT_USEC);
++
++		if (ret) {
++			qib_dev_err(dd,
++				"Failed to write interface read addr %02X\n",
++				addr);
++			ret = 1;
++			goto bail;
++		}
++		ret = qib_twsi_wr(dd, dev | READ_CMD, QIB_TWSI_START);
++	}
++	if (ret) {
++		stop_cmd(dd);
++		ret = 1;
++		goto bail;
++	}
++
++	/*
++	 * block devices keeps clocking data out as long as we ack,
++	 * automatically incrementing the address. Some have "pages"
++	 * whose boundaries will not be crossed, but the handling
++	 * of these is left to the caller, who is in a better
++	 * position to know.
++	 */
++	while (len-- > 0) {
++		/*
++		 * Get and store data, sending ACK if length remaining,
++		 * else STOP
++		 */
++		*bp++ = rd_byte(dd, !len);
++	}
++
++	ret = 0;
 +
 +bail:
 +	return ret;
 +}
 +
-+/* end of per-port functions */
-+
 +/*
-+ * Start of per-port file structures and support code
-+ * Because we are fitting into other infrastructure, we have to supply the
-+ * full set of kobject/sysfs_ops structures and routines.
++ * qib_twsi_blk_wr
++ * Formerly called qib_eeprom_internal_write, and only used for eeprom,
++ * but now the general interface for data transfer to twsi devices.
++ * One vestige of its former role is that it recognizes a device
++ * QIB_TWSI_NO_DEV and does the correct operation for the legacy part,
++ * which responded to all TWSI device codes, interpreting them as
++ * address within device. On all other devices found on board handled by
++ * this driver, the device is followed by a one-byte "address" which selects
++ * the "register" or "offset" within the device to which data should
++ * be written.
 + */
-+#define QIB_PORT_ATTR(name, mode, show, store) \
-+	static struct qib_port_attr qib_port_attr_##name = \
-+		__ATTR(name, mode, show, store)
-+
-+struct qib_port_attr {
-+	struct attribute attr;
-+	ssize_t (*show)(struct qib_pportdata *, char *);
-+	ssize_t (*store)(struct qib_pportdata *, const char *, size_t);
-+};
-+
-+QIB_PORT_ATTR(loopback, S_IWUSR, NULL, store_loopback);
-+QIB_PORT_ATTR(led_override, S_IWUSR, NULL, store_led_override);
-+QIB_PORT_ATTR(hrtbt_enable, S_IWUSR | S_IRUGO, show_hrtbt_enb,
-+	      store_hrtbt_enb);
-+QIB_PORT_ATTR(status, S_IRUGO, show_status, NULL);
-+QIB_PORT_ATTR(status_str, S_IRUGO, show_status_str, NULL);
-+
-+static struct attribute *port_default_attributes[] = {
-+	&qib_port_attr_loopback.attr,
-+	&qib_port_attr_led_override.attr,
-+	&qib_port_attr_hrtbt_enable.attr,
-+	&qib_port_attr_status.attr,
-+	&qib_port_attr_status_str.attr,
-+	NULL
-+};
-+
-+static ssize_t qib_portattr_show(struct kobject *kobj,
-+	struct attribute *attr, char *buf)
++int qib_twsi_blk_wr(struct qib_devdata *dd, int dev, int addr,
++		    const void *buffer, int len)
 +{
-+	struct qib_port_attr *pattr =
-+		container_of(attr, struct qib_port_attr, attr);
-+	struct qib_pportdata *ppd =
-+		container_of(kobj, struct qib_pportdata, pport_kobj);
-+
-+	return pattr->show(ppd, buf);
-+}
-+
-+static ssize_t qib_portattr_store(struct kobject *kobj,
-+	struct attribute *attr, const char *buf, size_t len)
-+{
-+	struct qib_port_attr *pattr =
-+		container_of(attr, struct qib_port_attr, attr);
-+	struct qib_pportdata *ppd =
-+		container_of(kobj, struct qib_pportdata, pport_kobj);
-+
-+	return pattr->store(ppd, buf, len);
-+}
-+
-+static void qib_port_release(struct kobject *kobj)
-+{
-+	/* nothing to do since memory is freed by qib_free_devdata() */
-+}
-+
-+static const struct sysfs_ops qib_port_ops = {
-+	.show = qib_portattr_show,
-+	.store = qib_portattr_store,
-+};
-+
-+static struct kobj_type qib_port_ktype = {
-+	.release = qib_port_release,
-+	.sysfs_ops = &qib_port_ops,
-+	.default_attrs = port_default_attributes
-+};
-+
-+/* Start sl2vl */
-+
-+#define QIB_SL2VL_ATTR(N) \
-+	static struct qib_sl2vl_attr qib_sl2vl_attr_##N = { \
-+		.attr = { .name = __stringify(N), .mode = 0444 }, \
-+		.sl = N \
-+	}
-+
-+struct qib_sl2vl_attr {
-+	struct attribute attr;
-+	int sl;
-+};
-+
-+QIB_SL2VL_ATTR(0);
-+QIB_SL2VL_ATTR(1);
-+QIB_SL2VL_ATTR(2);
-+QIB_SL2VL_ATTR(3);
-+QIB_SL2VL_ATTR(4);
-+QIB_SL2VL_ATTR(5);
-+QIB_SL2VL_ATTR(6);
-+QIB_SL2VL_ATTR(7);
-+QIB_SL2VL_ATTR(8);
-+QIB_SL2VL_ATTR(9);
-+QIB_SL2VL_ATTR(10);
-+QIB_SL2VL_ATTR(11);
-+QIB_SL2VL_ATTR(12);
-+QIB_SL2VL_ATTR(13);
-+QIB_SL2VL_ATTR(14);
-+QIB_SL2VL_ATTR(15);
-+
-+static struct attribute *sl2vl_default_attributes[] = {
-+	&qib_sl2vl_attr_0.attr,
-+	&qib_sl2vl_attr_1.attr,
-+	&qib_sl2vl_attr_2.attr,
-+	&qib_sl2vl_attr_3.attr,
-+	&qib_sl2vl_attr_4.attr,
-+	&qib_sl2vl_attr_5.attr,
-+	&qib_sl2vl_attr_6.attr,
-+	&qib_sl2vl_attr_7.attr,
-+	&qib_sl2vl_attr_8.attr,
-+	&qib_sl2vl_attr_9.attr,
-+	&qib_sl2vl_attr_10.attr,
-+	&qib_sl2vl_attr_11.attr,
-+	&qib_sl2vl_attr_12.attr,
-+	&qib_sl2vl_attr_13.attr,
-+	&qib_sl2vl_attr_14.attr,
-+	&qib_sl2vl_attr_15.attr,
-+	NULL
-+};
-+
-+static ssize_t sl2vl_attr_show(struct kobject *kobj, struct attribute *attr,
-+			       char *buf)
-+{
-+	struct qib_sl2vl_attr *sattr =
-+		container_of(attr, struct qib_sl2vl_attr, attr);
-+	struct qib_pportdata *ppd =
-+		container_of(kobj, struct qib_pportdata, sl2vl_kobj);
-+	struct qib_ibport *qibp = &ppd->ibport_data;
-+
-+	return sprintf(buf, "%u\n", qibp->sl_to_vl[sattr->sl]);
-+}
-+
-+static const struct sysfs_ops qib_sl2vl_ops = {
-+	.show = sl2vl_attr_show,
-+};
-+
-+static struct kobj_type qib_sl2vl_ktype = {
-+	.release = qib_port_release,
-+	.sysfs_ops = &qib_sl2vl_ops,
-+	.default_attrs = sl2vl_default_attributes
-+};
-+
-+/* End sl2vl */
-+
-+/* Start diag_counters */
-+
-+#define QIB_DIAGC_ATTR(N) \
-+	static struct qib_diagc_attr qib_diagc_attr_##N = { \
-+		.attr = { .name = __stringify(N), .mode = 0444 }, \
-+		.counter = offsetof(struct qib_ibport, n_##N) \
-+	}
-+
-+struct qib_diagc_attr {
-+	struct attribute attr;
-+	size_t counter;
-+};
-+
-+QIB_DIAGC_ATTR(rc_resends);
-+QIB_DIAGC_ATTR(rc_acks);
-+QIB_DIAGC_ATTR(rc_qacks);
-+QIB_DIAGC_ATTR(rc_delayed_comp);
-+QIB_DIAGC_ATTR(seq_naks);
-+QIB_DIAGC_ATTR(rdma_seq);
-+QIB_DIAGC_ATTR(rnr_naks);
-+QIB_DIAGC_ATTR(other_naks);
-+QIB_DIAGC_ATTR(rc_timeouts);
-+QIB_DIAGC_ATTR(loop_pkts);
-+QIB_DIAGC_ATTR(pkt_drops);
-+QIB_DIAGC_ATTR(dmawait);
-+QIB_DIAGC_ATTR(unaligned);
-+QIB_DIAGC_ATTR(rc_dupreq);
-+QIB_DIAGC_ATTR(rc_seqnak);
-+
-+static struct attribute *diagc_default_attributes[] = {
-+	&qib_diagc_attr_rc_resends.attr,
-+	&qib_diagc_attr_rc_acks.attr,
-+	&qib_diagc_attr_rc_qacks.attr,
-+	&qib_diagc_attr_rc_delayed_comp.attr,
-+	&qib_diagc_attr_seq_naks.attr,
-+	&qib_diagc_attr_rdma_seq.attr,
-+	&qib_diagc_attr_rnr_naks.attr,
-+	&qib_diagc_attr_other_naks.attr,
-+	&qib_diagc_attr_rc_timeouts.attr,
-+	&qib_diagc_attr_loop_pkts.attr,
-+	&qib_diagc_attr_pkt_drops.attr,
-+	&qib_diagc_attr_dmawait.attr,
-+	&qib_diagc_attr_unaligned.attr,
-+	&qib_diagc_attr_rc_dupreq.attr,
-+	&qib_diagc_attr_rc_seqnak.attr,
-+	NULL
-+};
-+
-+static ssize_t diagc_attr_show(struct kobject *kobj, struct attribute *attr,
-+			       char *buf)
-+{
-+	struct qib_diagc_attr *dattr =
-+		container_of(attr, struct qib_diagc_attr, attr);
-+	struct qib_pportdata *ppd =
-+		container_of(kobj, struct qib_pportdata, diagc_kobj);
-+	struct qib_ibport *qibp = &ppd->ibport_data;
-+
-+	return sprintf(buf, "%u\n", *(u32 *)((char *)qibp + dattr->counter));
-+}
-+
-+static const struct sysfs_ops qib_diagc_ops = {
-+	.show = diagc_attr_show,
-+};
-+
-+static struct kobj_type qib_diagc_ktype = {
-+	.release = qib_port_release,
-+	.sysfs_ops = &qib_diagc_ops,
-+	.default_attrs = diagc_default_attributes
-+};
-+
-+/* End diag_counters */
-+
-+/* end of per-port file structures and support code */
-+
-+/*
-+ * Start of per-unit (or driver, in some cases, but replicated
-+ * per unit) functions (these get a device *)
-+ */
-+static ssize_t show_rev(struct device *device, struct device_attribute *attr,
-+			char *buf)
-+{
-+	struct qib_ibdev *dev =
-+		container_of(device, struct qib_ibdev, ibdev.dev);
-+
-+	return sprintf(buf, "%x\n", dd_from_dev(dev)->minrev);
-+}
-+
-+static ssize_t show_hca(struct device *device, struct device_attribute *attr,
-+			char *buf)
-+{
-+	struct qib_ibdev *dev =
-+		container_of(device, struct qib_ibdev, ibdev.dev);
-+	struct qib_devdata *dd = dd_from_dev(dev);
++	int sub_len;
++	const u8 *bp = buffer;
++	int max_wait_time, i;
 +	int ret;
++	ret = 1;
 +
-+	if (!dd->boardname)
-+		ret = -EINVAL;
-+	else
-+		ret = scnprintf(buf, PAGE_SIZE, "%s\n", dd->boardname);
-+	return ret;
-+}
++	while (len > 0) {
++		if (dev == QIB_TWSI_NO_DEV) {
++			if (qib_twsi_wr(dd, (addr << 1) | WRITE_CMD,
++					QIB_TWSI_START)) {
++				goto failed_write;
++			}
++		} else {
++			/* Real I2C */
++			if (qib_twsi_wr(dd, dev | WRITE_CMD, QIB_TWSI_START))
++				goto failed_write;
++			ret = qib_twsi_wr(dd, addr, 0);
++			if (ret) {
++				qib_dev_err(dd, "Failed to write interface"
++					    " write addr %02X\n", addr);
++				goto failed_write;
++			}
++		}
 +
-+static ssize_t show_version(struct device *device,
-+			    struct device_attribute *attr, char *buf)
-+{
-+	/* The string printed here is already newline-terminated. */
-+	return scnprintf(buf, PAGE_SIZE, "%s", (char *)ib_qib_version);
-+}
++		sub_len = min(len, 4);
++		addr += sub_len;
++		len -= sub_len;
 +
-+static ssize_t show_boardversion(struct device *device,
-+				 struct device_attribute *attr, char *buf)
-+{
-+	struct qib_ibdev *dev =
-+		container_of(device, struct qib_ibdev, ibdev.dev);
-+	struct qib_devdata *dd = dd_from_dev(dev);
++		for (i = 0; i < sub_len; i++)
++			if (qib_twsi_wr(dd, *bp++, 0))
++				goto failed_write;
 +
-+	/* The string printed here is already newline-terminated. */
-+	return scnprintf(buf, PAGE_SIZE, "%s", dd->boardversion);
-+}
++		stop_cmd(dd);
 +
-+
-+static ssize_t show_localbus_info(struct device *device,
-+				  struct device_attribute *attr, char *buf)
-+{
-+	struct qib_ibdev *dev =
-+		container_of(device, struct qib_ibdev, ibdev.dev);
-+	struct qib_devdata *dd = dd_from_dev(dev);
-+
-+	/* The string printed here is already newline-terminated. */
-+	return scnprintf(buf, PAGE_SIZE, "%s", dd->lbus_info);
-+}
-+
-+
-+static ssize_t show_nctxts(struct device *device,
-+			   struct device_attribute *attr, char *buf)
-+{
-+	struct qib_ibdev *dev =
-+		container_of(device, struct qib_ibdev, ibdev.dev);
-+	struct qib_devdata *dd = dd_from_dev(dev);
-+
-+	/* Return the number of user ports (contexts) available. */
-+	return scnprintf(buf, PAGE_SIZE, "%u\n", dd->cfgctxts -
-+		dd->first_user_ctxt);
-+}
-+
-+static ssize_t show_serial(struct device *device,
-+			   struct device_attribute *attr, char *buf)
-+{
-+	struct qib_ibdev *dev =
-+		container_of(device, struct qib_ibdev, ibdev.dev);
-+	struct qib_devdata *dd = dd_from_dev(dev);
-+
-+	buf[sizeof dd->serial] = '\0';
-+	memcpy(buf, dd->serial, sizeof dd->serial);
-+	strcat(buf, "\n");
-+	return strlen(buf);
-+}
-+
-+static ssize_t store_chip_reset(struct device *device,
-+				struct device_attribute *attr, const char *buf,
-+				size_t count)
-+{
-+	struct qib_ibdev *dev =
-+		container_of(device, struct qib_ibdev, ibdev.dev);
-+	struct qib_devdata *dd = dd_from_dev(dev);
-+	int ret;
-+
-+	if (count < 5 || memcmp(buf, "reset", 5) || !dd->diag_client) {
-+		ret = -EINVAL;
-+		goto bail;
++		/*
++		 * Wait for write complete by waiting for a successful
++		 * read (the chip replies with a zero after the write
++		 * cmd completes, and before it writes to the eeprom.
++		 * The startcmd for the read will fail the ack until
++		 * the writes have completed.   We do this inline to avoid
++		 * the debug prints that are in the real read routine
++		 * if the startcmd fails.
++		 * We also use the proper device address, so it doesn't matter
++		 * whether we have real eeprom_dev. Legacy likes any address.
++		 */
++		max_wait_time = 100;
++		while (qib_twsi_wr(dd, dev | READ_CMD, QIB_TWSI_START)) {
++			stop_cmd(dd);
++			if (!--max_wait_time)
++				goto failed_write;
++		}
++		/* now read (and ignore) the resulting byte */
++		rd_byte(dd, 1);
 +	}
 +
-+	ret = qib_reset_device(dd->unit);
-+bail:
-+	return ret < 0 ? ret : count;
-+}
++	ret = 0;
++	goto bail;
 +
-+static ssize_t show_logged_errs(struct device *device,
-+				struct device_attribute *attr, char *buf)
-+{
-+	struct qib_ibdev *dev =
-+		container_of(device, struct qib_ibdev, ibdev.dev);
-+	struct qib_devdata *dd = dd_from_dev(dev);
-+	int idx, count;
++failed_write:
++	stop_cmd(dd);
++	ret = 1;
 +
-+	/* force consistency with actual EEPROM */
-+	if (qib_update_eeprom_log(dd) != 0)
-+		return -ENXIO;
-+
-+	count = 0;
-+	for (idx = 0; idx < QIB_EEP_LOG_CNT; ++idx) {
-+		count += scnprintf(buf + count, PAGE_SIZE - count, "%d%c",
-+				   dd->eep_st_errs[idx],
-+				   idx == (QIB_EEP_LOG_CNT - 1) ? '\n' : ' ');
-+	}
-+
-+	return count;
-+}
-+
-+/*
-+ * Dump tempsense regs. in decimal, to ease shell-scripts.
-+ */
-+static ssize_t show_tempsense(struct device *device,
-+			      struct device_attribute *attr, char *buf)
-+{
-+	struct qib_ibdev *dev =
-+		container_of(device, struct qib_ibdev, ibdev.dev);
-+	struct qib_devdata *dd = dd_from_dev(dev);
-+	int ret;
-+	int idx;
-+	u8 regvals[8];
-+
-+	ret = -ENXIO;
-+	for (idx = 0; idx < 8; ++idx) {
-+		if (idx == 6)
-+			continue;
-+		ret = dd->f_tempsense_rd(dd, idx);
-+		if (ret < 0)
-+			break;
-+		regvals[idx] = ret;
-+	}
-+	if (idx == 8)
-+		ret = scnprintf(buf, PAGE_SIZE, "%d %d %02X %02X %d %d\n",
-+				*(signed char *)(regvals),
-+				*(signed char *)(regvals + 1),
-+				regvals[2], regvals[3],
-+				*(signed char *)(regvals + 5),
-+				*(signed char *)(regvals + 7));
-+	return ret;
-+}
-+
-+/*
-+ * end of per-unit (or driver, in some cases, but replicated
-+ * per unit) functions
-+ */
-+
-+/* start of per-unit file structures and support code */
-+static DEVICE_ATTR(hw_rev, S_IRUGO, show_rev, NULL);
-+static DEVICE_ATTR(hca_type, S_IRUGO, show_hca, NULL);
-+static DEVICE_ATTR(board_id, S_IRUGO, show_hca, NULL);
-+static DEVICE_ATTR(version, S_IRUGO, show_version, NULL);
-+static DEVICE_ATTR(nctxts, S_IRUGO, show_nctxts, NULL);
-+static DEVICE_ATTR(serial, S_IRUGO, show_serial, NULL);
-+static DEVICE_ATTR(boardversion, S_IRUGO, show_boardversion, NULL);
-+static DEVICE_ATTR(logged_errors, S_IRUGO, show_logged_errs, NULL);
-+static DEVICE_ATTR(tempsense, S_IRUGO, show_tempsense, NULL);
-+static DEVICE_ATTR(localbus_info, S_IRUGO, show_localbus_info, NULL);
-+static DEVICE_ATTR(chip_reset, S_IWUSR, NULL, store_chip_reset);
-+
-+static struct device_attribute *qib_attributes[] = {
-+	&dev_attr_hw_rev,
-+	&dev_attr_hca_type,
-+	&dev_attr_board_id,
-+	&dev_attr_version,
-+	&dev_attr_nctxts,
-+	&dev_attr_serial,
-+	&dev_attr_boardversion,
-+	&dev_attr_logged_errors,
-+	&dev_attr_tempsense,
-+	&dev_attr_localbus_info,
-+	&dev_attr_chip_reset,
-+};
-+
-+int qib_create_port_files(struct ib_device *ibdev, u8 port_num,
-+			  struct kobject *kobj)
-+{
-+	struct qib_pportdata *ppd;
-+	struct qib_devdata *dd = dd_from_ibdev(ibdev);
-+	int ret;
-+
-+	if (!port_num || port_num > dd->num_pports) {
-+		qib_dev_err(dd, "Skipping infiniband class with "
-+			    "invalid port %u\n", port_num);
-+		ret = -ENODEV;
-+		goto bail;
-+	}
-+	ppd = &dd->pport[port_num - 1];
-+
-+	ret = kobject_init_and_add(&ppd->pport_kobj, &qib_port_ktype, kobj,
-+				   "linkcontrol");
-+	if (ret) {
-+		qib_dev_err(dd, "Skipping linkcontrol sysfs info, "
-+			    "(err %d) port %u\n", ret, port_num);
-+		goto bail;
-+	}
-+	kobject_uevent(&ppd->pport_kobj, KOBJ_ADD);
-+
-+	ret = kobject_init_and_add(&ppd->sl2vl_kobj, &qib_sl2vl_ktype, kobj,
-+				   "sl2vl");
-+	if (ret) {
-+		qib_dev_err(dd, "Skipping sl2vl sysfs info, "
-+			    "(err %d) port %u\n", ret, port_num);
-+		goto bail_sl;
-+	}
-+	kobject_uevent(&ppd->sl2vl_kobj, KOBJ_ADD);
-+
-+	ret = kobject_init_and_add(&ppd->diagc_kobj, &qib_diagc_ktype, kobj,
-+				   "diag_counters");
-+	if (ret) {
-+		qib_dev_err(dd, "Skipping diag_counters sysfs info, "
-+			    "(err %d) port %u\n", ret, port_num);
-+		goto bail_diagc;
-+	}
-+	kobject_uevent(&ppd->diagc_kobj, KOBJ_ADD);
-+
-+	return 0;
-+
-+bail_diagc:
-+	kobject_put(&ppd->sl2vl_kobj);
-+bail_sl:
-+	kobject_put(&ppd->pport_kobj);
 +bail:
 +	return ret;
-+}
-+
-+/*
-+ * Register and create our files in /sys/class/infiniband.
-+ */
-+int qib_verbs_register_sysfs(struct qib_devdata *dd)
-+{
-+	struct ib_device *dev = &dd->verbs_dev.ibdev;
-+	int i, ret;
-+
-+	for (i = 0; i < ARRAY_SIZE(qib_attributes); ++i) {
-+		ret = device_create_file(&dev->dev, qib_attributes[i]);
-+		if (ret)
-+			return ret;
-+	}
-+
-+	return 0;
-+}
-+
-+/*
-+ * Unregister and remove our files in /sys/class/infiniband.
-+ */
-+void qib_verbs_unregister_sysfs(struct qib_devdata *dd)
-+{
-+	struct qib_pportdata *ppd;
-+	int i;
-+
-+	for (i = 0; i < dd->num_pports; i++) {
-+		ppd = &dd->pport[i];
-+		kobject_put(&ppd->pport_kobj);
-+		kobject_put(&ppd->sl2vl_kobj);
-+	}
 +}
 
 --
