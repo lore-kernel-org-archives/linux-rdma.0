@@ -1,7 +1,7 @@
 From: Ralph Campbell <ralph.campbell-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v3 40/52] IB/qib: Add qib_uc.c
-Date: Thu, 06 May 2010 17:02:22 -0700
-Message-ID: <20100507000221.3441.98195.stgit@chromite.mv.qlogic.com>
+Subject: [PATCH v3 41/52] IB/qib: Add qib_ud.c
+Date: Thu, 06 May 2010 17:02:27 -0700
+Message-ID: <20100507000227.3441.42735.stgit@chromite.mv.qlogic.com>
 References: <20100506235849.3441.85930.stgit@chromite.mv.qlogic.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -13,24 +13,23 @@ To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-creates the qib_uc.c file.
+creates the qib_ud.c file.
 
 Signed-off-by: Ralph Campbell <ralph.campbell-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
 ---
 
- drivers/infiniband/hw/qib/qib_uc.c |  555 ++++++++++++++++++++++++++++++++++++
- 1 files changed, 555 insertions(+), 0 deletions(-)
- create mode 100644 drivers/infiniband/hw/qib/qib_uc.c
+ drivers/infiniband/hw/qib/qib_ud.c |  607 ++++++++++++++++++++++++++++++++++++
+ 1 files changed, 607 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/infiniband/hw/qib/qib_ud.c
 
-diff --git a/drivers/infiniband/hw/qib/qib_uc.c b/drivers/infiniband/hw/qib/qib_uc.c
+diff --git a/drivers/infiniband/hw/qib/qib_ud.c b/drivers/infiniband/hw/qib/qib_ud.c
 new file mode 100644
-index 0000000..6c7fe78
+index 0000000..c838cda
 --- /dev/null
-+++ b/drivers/infiniband/hw/qib/qib_uc.c
-@@ -0,0 +1,555 @@
++++ b/drivers/infiniband/hw/qib/qib_ud.c
+@@ -0,0 +1,607 @@
 +/*
-+ * Copyright (c) 2006, 2007, 2008, 2009, 2010 QLogic Corporation.
-+ * All rights reserved.
++ * Copyright (c) 2006, 2007, 2008, 2009 QLogic Corporation. All rights reserved.
 + * Copyright (c) 2005, 2006 PathScale, Inc. All rights reserved.
 + *
 + * This software is available to you under a choice of one of two
@@ -62,31 +61,223 @@ index 0000000..6c7fe78
 + * SOFTWARE.
 + */
 +
-+#include "qib.h"
++#include <rdma/ib_smi.h>
 +
-+/* cut down ridiculously long IB macro names */
-+#define OP(x) IB_OPCODE_UC_##x
++#include "qib.h"
++#include "qib_mad.h"
 +
 +/**
-+ * qib_make_uc_req - construct a request packet (SEND, RDMA write)
-+ * @qp: a pointer to the QP
++ * qib_ud_loopback - handle send on loopback QPs
++ * @sqp: the sending QP
++ * @swqe: the send work request
++ *
++ * This is called from qib_make_ud_req() to forward a WQE addressed
++ * to the same HCA.
++ * Note that the receive interrupt handler may be calling qib_ud_rcv()
++ * while this is being called.
++ */
++static void qib_ud_loopback(struct qib_qp *sqp, struct qib_swqe *swqe)
++{
++	struct qib_ibport *ibp = to_iport(sqp->ibqp.device, sqp->port_num);
++	struct qib_pportdata *ppd;
++	struct qib_qp *qp;
++	struct ib_ah_attr *ah_attr;
++	unsigned long flags;
++	struct qib_sge_state ssge;
++	struct qib_sge *sge;
++	struct ib_wc wc;
++	u32 length;
++
++	qp = qib_lookup_qpn(ibp, swqe->wr.wr.ud.remote_qpn);
++	if (!qp) {
++		ibp->n_pkt_drops++;
++		return;
++	}
++	if (qp->ibqp.qp_type != sqp->ibqp.qp_type ||
++	    !(ib_qib_state_ops[qp->state] & QIB_PROCESS_RECV_OK)) {
++		ibp->n_pkt_drops++;
++		goto drop;
++	}
++
++	ah_attr = &to_iah(swqe->wr.wr.ud.ah)->attr;
++	ppd = ppd_from_ibp(ibp);
++
++	if (qp->ibqp.qp_num > 1) {
++		u16 pkey1;
++		u16 pkey2;
++		u16 lid;
++
++		pkey1 = qib_get_pkey(ibp, sqp->s_pkey_index);
++		pkey2 = qib_get_pkey(ibp, qp->s_pkey_index);
++		if (unlikely(!qib_pkey_ok(pkey1, pkey2))) {
++			lid = ppd->lid | (ah_attr->src_path_bits &
++					  ((1 << ppd->lmc) - 1));
++			qib_bad_pqkey(ibp, IB_NOTICE_TRAP_BAD_PKEY, pkey1,
++				      ah_attr->sl,
++				      sqp->ibqp.qp_num, qp->ibqp.qp_num,
++				      cpu_to_be16(lid),
++				      cpu_to_be16(ah_attr->dlid));
++			goto drop;
++		}
++	}
++
++	/*
++	 * Check that the qkey matches (except for QP0, see 9.6.1.4.1).
++	 * Qkeys with the high order bit set mean use the
++	 * qkey from the QP context instead of the WR (see 10.2.5).
++	 */
++	if (qp->ibqp.qp_num) {
++		u32 qkey;
++
++		qkey = (int)swqe->wr.wr.ud.remote_qkey < 0 ?
++			sqp->qkey : swqe->wr.wr.ud.remote_qkey;
++		if (unlikely(qkey != qp->qkey)) {
++			u16 lid;
++
++			lid = ppd->lid | (ah_attr->src_path_bits &
++					  ((1 << ppd->lmc) - 1));
++			qib_bad_pqkey(ibp, IB_NOTICE_TRAP_BAD_QKEY, qkey,
++				      ah_attr->sl,
++				      sqp->ibqp.qp_num, qp->ibqp.qp_num,
++				      cpu_to_be16(lid),
++				      cpu_to_be16(ah_attr->dlid));
++			goto drop;
++		}
++	}
++
++	/*
++	 * A GRH is expected to preceed the data even if not
++	 * present on the wire.
++	 */
++	length = swqe->length;
++	memset(&wc, 0, sizeof wc);
++	wc.byte_len = length + sizeof(struct ib_grh);
++
++	if (swqe->wr.opcode == IB_WR_SEND_WITH_IMM) {
++		wc.wc_flags = IB_WC_WITH_IMM;
++		wc.ex.imm_data = swqe->wr.ex.imm_data;
++	}
++
++	spin_lock_irqsave(&qp->r_lock, flags);
++
++	/*
++	 * Get the next work request entry to find where to put the data.
++	 */
++	if (qp->r_flags & QIB_R_REUSE_SGE)
++		qp->r_flags &= ~QIB_R_REUSE_SGE;
++	else {
++		int ret;
++
++		ret = qib_get_rwqe(qp, 0);
++		if (ret < 0) {
++			qib_rc_error(qp, IB_WC_LOC_QP_OP_ERR);
++			goto bail_unlock;
++		}
++		if (!ret) {
++			if (qp->ibqp.qp_num == 0)
++				ibp->n_vl15_dropped++;
++			goto bail_unlock;
++		}
++	}
++	/* Silently drop packets which are too big. */
++	if (unlikely(wc.byte_len > qp->r_len)) {
++		qp->r_flags |= QIB_R_REUSE_SGE;
++		ibp->n_pkt_drops++;
++		goto bail_unlock;
++	}
++
++	if (ah_attr->ah_flags & IB_AH_GRH) {
++		qib_copy_sge(&qp->r_sge, &ah_attr->grh,
++			     sizeof(struct ib_grh), 1);
++		wc.wc_flags |= IB_WC_GRH;
++	} else
++		qib_skip_sge(&qp->r_sge, sizeof(struct ib_grh), 1);
++	ssge.sg_list = swqe->sg_list + 1;
++	ssge.sge = *swqe->sg_list;
++	ssge.num_sge = swqe->wr.num_sge;
++	sge = &ssge.sge;
++	while (length) {
++		u32 len = sge->length;
++
++		if (len > length)
++			len = length;
++		if (len > sge->sge_length)
++			len = sge->sge_length;
++		BUG_ON(len == 0);
++		qib_copy_sge(&qp->r_sge, sge->vaddr, len, 1);
++		sge->vaddr += len;
++		sge->length -= len;
++		sge->sge_length -= len;
++		if (sge->sge_length == 0) {
++			if (--ssge.num_sge)
++				*sge = *ssge.sg_list++;
++		} else if (sge->length == 0 && sge->mr->lkey) {
++			if (++sge->n >= QIB_SEGSZ) {
++				if (++sge->m >= sge->mr->mapsz)
++					break;
++				sge->n = 0;
++			}
++			sge->vaddr =
++				sge->mr->map[sge->m]->segs[sge->n].vaddr;
++			sge->length =
++				sge->mr->map[sge->m]->segs[sge->n].length;
++		}
++		length -= len;
++	}
++	while (qp->r_sge.num_sge) {
++		atomic_dec(&qp->r_sge.sge.mr->refcount);
++		if (--qp->r_sge.num_sge)
++			qp->r_sge.sge = *qp->r_sge.sg_list++;
++	}
++	if (!test_and_clear_bit(QIB_R_WRID_VALID, &qp->r_aflags))
++		goto bail_unlock;
++	wc.wr_id = qp->r_wr_id;
++	wc.status = IB_WC_SUCCESS;
++	wc.opcode = IB_WC_RECV;
++	wc.qp = &qp->ibqp;
++	wc.src_qp = sqp->ibqp.qp_num;
++	wc.pkey_index = qp->ibqp.qp_type == IB_QPT_GSI ?
++		swqe->wr.wr.ud.pkey_index : 0;
++	wc.slid = ppd->lid | (ah_attr->src_path_bits & ((1 << ppd->lmc) - 1));
++	wc.sl = ah_attr->sl;
++	wc.dlid_path_bits = ah_attr->dlid & ((1 << ppd->lmc) - 1);
++	wc.port_num = qp->port_num;
++	/* Signal completion event if the solicited bit is set. */
++	qib_cq_enter(to_icq(qp->ibqp.recv_cq), &wc,
++		     swqe->wr.send_flags & IB_SEND_SOLICITED);
++	ibp->n_loop_pkts++;
++bail_unlock:
++	spin_unlock_irqrestore(&qp->r_lock, flags);
++drop:
++	if (atomic_dec_and_test(&qp->refcount))
++		wake_up(&qp->wait);
++}
++
++/**
++ * qib_make_ud_req - construct a UD request packet
++ * @qp: the QP
 + *
 + * Return 1 if constructed; otherwise, return 0.
 + */
-+int qib_make_uc_req(struct qib_qp *qp)
++int qib_make_ud_req(struct qib_qp *qp)
 +{
 +	struct qib_other_headers *ohdr;
++	struct ib_ah_attr *ah_attr;
++	struct qib_pportdata *ppd;
++	struct qib_ibport *ibp;
 +	struct qib_swqe *wqe;
 +	unsigned long flags;
-+	u32 hwords;
++	u32 nwords;
++	u32 extra_bytes;
 +	u32 bth0;
-+	u32 len;
-+	u32 pmtu = ib_mtu_enum_to_int(qp->path_mtu);
++	u16 lrh0;
++	u16 lid;
 +	int ret = 0;
++	int next_cur;
 +
 +	spin_lock_irqsave(&qp->s_lock, flags);
 +
-+	if (!(ib_qib_state_ops[qp->state] & QIB_PROCESS_SEND_OK)) {
++	if (!(ib_qib_state_ops[qp->state] & QIB_PROCESS_NEXT_SEND_OK)) {
 +		if (!(ib_qib_state_ops[qp->state] & QIB_FLUSH_SEND))
 +			goto bail;
 +		/* We are in the error state, flush the work request. */
@@ -102,149 +293,121 @@ index 0000000..6c7fe78
 +		goto done;
 +	}
 +
-+	ohdr = &qp->s_hdr.u.oth;
-+	if (qp->remote_ah_attr.ah_flags & IB_AH_GRH)
-+		ohdr = &qp->s_hdr.u.l.oth;
++	if (qp->s_cur == qp->s_head)
++		goto bail;
 +
-+	/* header size in 32-bit words LRH+BTH = (8+12)/4. */
-+	hwords = 5;
-+	bth0 = 0;
-+
-+	/* Get the next send request. */
 +	wqe = get_swqe_ptr(qp, qp->s_cur);
-+	qp->s_wqe = NULL;
-+	switch (qp->s_state) {
-+	default:
-+		if (!(ib_qib_state_ops[qp->state] &
-+		    QIB_PROCESS_NEXT_SEND_OK))
-+			goto bail;
-+		/* Check if send work queue is empty. */
-+		if (qp->s_cur == qp->s_head)
-+			goto bail;
-+		/*
-+		 * Start a new request.
-+		 */
-+		wqe->psn = qp->s_next_psn;
-+		qp->s_psn = qp->s_next_psn;
-+		qp->s_sge.sge = wqe->sg_list[0];
-+		qp->s_sge.sg_list = wqe->sg_list + 1;
-+		qp->s_sge.num_sge = wqe->wr.num_sge;
-+		qp->s_sge.total_len = wqe->length;
-+		len = wqe->length;
-+		qp->s_len = len;
-+		switch (wqe->wr.opcode) {
-+		case IB_WR_SEND:
-+		case IB_WR_SEND_WITH_IMM:
-+			if (len > pmtu) {
-+				qp->s_state = OP(SEND_FIRST);
-+				len = pmtu;
-+				break;
-+			}
-+			if (wqe->wr.opcode == IB_WR_SEND)
-+				qp->s_state = OP(SEND_ONLY);
-+			else {
-+				qp->s_state =
-+					OP(SEND_ONLY_WITH_IMMEDIATE);
-+				/* Immediate data comes after the BTH */
-+				ohdr->u.imm_data = wqe->wr.ex.imm_data;
-+				hwords += 1;
-+			}
-+			if (wqe->wr.send_flags & IB_SEND_SOLICITED)
-+				bth0 |= IB_BTH_SOLICITED;
-+			qp->s_wqe = wqe;
-+			if (++qp->s_cur >= qp->s_size)
-+				qp->s_cur = 0;
-+			break;
++	next_cur = qp->s_cur + 1;
++	if (next_cur >= qp->s_size)
++		next_cur = 0;
 +
-+		case IB_WR_RDMA_WRITE:
-+		case IB_WR_RDMA_WRITE_WITH_IMM:
-+			ohdr->u.rc.reth.vaddr =
-+				cpu_to_be64(wqe->wr.wr.rdma.remote_addr);
-+			ohdr->u.rc.reth.rkey =
-+				cpu_to_be32(wqe->wr.wr.rdma.rkey);
-+			ohdr->u.rc.reth.length = cpu_to_be32(len);
-+			hwords += sizeof(struct ib_reth) / 4;
-+			if (len > pmtu) {
-+				qp->s_state = OP(RDMA_WRITE_FIRST);
-+				len = pmtu;
-+				break;
++	/* Construct the header. */
++	ibp = to_iport(qp->ibqp.device, qp->port_num);
++	ppd = ppd_from_ibp(ibp);
++	ah_attr = &to_iah(wqe->wr.wr.ud.ah)->attr;
++	if (ah_attr->dlid >= QIB_MULTICAST_LID_BASE) {
++		if (ah_attr->dlid != QIB_PERMISSIVE_LID)
++			ibp->n_multicast_xmit++;
++		else
++			ibp->n_unicast_xmit++;
++	} else {
++		ibp->n_unicast_xmit++;
++		lid = ah_attr->dlid & ~((1 << ppd->lmc) - 1);
++		if (unlikely(lid == ppd->lid)) {
++			/*
++			 * If DMAs are in progress, we can't generate
++			 * a completion for the loopback packet since
++			 * it would be out of order.
++			 * XXX Instead of waiting, we could queue a
++			 * zero length descriptor so we get a callback.
++			 */
++			if (atomic_read(&qp->s_dma_busy)) {
++				qp->s_flags |= QIB_S_WAIT_DMA;
++				goto bail;
 +			}
-+			if (wqe->wr.opcode == IB_WR_RDMA_WRITE)
-+				qp->s_state = OP(RDMA_WRITE_ONLY);
-+			else {
-+				qp->s_state =
-+					OP(RDMA_WRITE_ONLY_WITH_IMMEDIATE);
-+				/* Immediate data comes after the RETH */
-+				ohdr->u.rc.imm_data = wqe->wr.ex.imm_data;
-+				hwords += 1;
-+				if (wqe->wr.send_flags & IB_SEND_SOLICITED)
-+					bth0 |= IB_BTH_SOLICITED;
-+			}
-+			qp->s_wqe = wqe;
-+			if (++qp->s_cur >= qp->s_size)
-+				qp->s_cur = 0;
-+			break;
-+
-+		default:
-+			goto bail;
++			qp->s_cur = next_cur;
++			spin_unlock_irqrestore(&qp->s_lock, flags);
++			qib_ud_loopback(qp, wqe);
++			spin_lock_irqsave(&qp->s_lock, flags);
++			qib_send_complete(qp, wqe, IB_WC_SUCCESS);
++			goto done;
 +		}
-+		break;
-+
-+	case OP(SEND_FIRST):
-+		qp->s_state = OP(SEND_MIDDLE);
-+		/* FALLTHROUGH */
-+	case OP(SEND_MIDDLE):
-+		len = qp->s_len;
-+		if (len > pmtu) {
-+			len = pmtu;
-+			break;
-+		}
-+		if (wqe->wr.opcode == IB_WR_SEND)
-+			qp->s_state = OP(SEND_LAST);
-+		else {
-+			qp->s_state = OP(SEND_LAST_WITH_IMMEDIATE);
-+			/* Immediate data comes after the BTH */
-+			ohdr->u.imm_data = wqe->wr.ex.imm_data;
-+			hwords += 1;
-+		}
-+		if (wqe->wr.send_flags & IB_SEND_SOLICITED)
-+			bth0 |= IB_BTH_SOLICITED;
-+		qp->s_wqe = wqe;
-+		if (++qp->s_cur >= qp->s_size)
-+			qp->s_cur = 0;
-+		break;
-+
-+	case OP(RDMA_WRITE_FIRST):
-+		qp->s_state = OP(RDMA_WRITE_MIDDLE);
-+		/* FALLTHROUGH */
-+	case OP(RDMA_WRITE_MIDDLE):
-+		len = qp->s_len;
-+		if (len > pmtu) {
-+			len = pmtu;
-+			break;
-+		}
-+		if (wqe->wr.opcode == IB_WR_RDMA_WRITE)
-+			qp->s_state = OP(RDMA_WRITE_LAST);
-+		else {
-+			qp->s_state =
-+				OP(RDMA_WRITE_LAST_WITH_IMMEDIATE);
-+			/* Immediate data comes after the BTH */
-+			ohdr->u.imm_data = wqe->wr.ex.imm_data;
-+			hwords += 1;
-+			if (wqe->wr.send_flags & IB_SEND_SOLICITED)
-+				bth0 |= IB_BTH_SOLICITED;
-+		}
-+		qp->s_wqe = wqe;
-+		if (++qp->s_cur >= qp->s_size)
-+			qp->s_cur = 0;
-+		break;
 +	}
-+	qp->s_len -= len;
-+	qp->s_hdrwords = hwords;
++
++	qp->s_cur = next_cur;
++	extra_bytes = -wqe->length & 3;
++	nwords = (wqe->length + extra_bytes) >> 2;
++
++	/* header size in 32-bit words LRH+BTH+DETH = (8+12+8)/4. */
++	qp->s_hdrwords = 7;
++	qp->s_cur_size = wqe->length;
 +	qp->s_cur_sge = &qp->s_sge;
-+	qp->s_cur_size = len;
-+	qib_make_ruc_header(qp, ohdr, bth0 | (qp->s_state << 24),
-+			    qp->s_next_psn++ & QIB_PSN_MASK);
++	qp->s_srate = ah_attr->static_rate;
++	qp->s_wqe = wqe;
++	qp->s_sge.sge = wqe->sg_list[0];
++	qp->s_sge.sg_list = wqe->sg_list + 1;
++	qp->s_sge.num_sge = wqe->wr.num_sge;
++	qp->s_sge.total_len = wqe->length;
++
++	if (ah_attr->ah_flags & IB_AH_GRH) {
++		/* Header size in 32-bit words. */
++		qp->s_hdrwords += qib_make_grh(ibp, &qp->s_hdr.u.l.grh,
++					       &ah_attr->grh,
++					       qp->s_hdrwords, nwords);
++		lrh0 = QIB_LRH_GRH;
++		ohdr = &qp->s_hdr.u.l.oth;
++		/*
++		 * Don't worry about sending to locally attached multicast
++		 * QPs.  It is unspecified by the spec. what happens.
++		 */
++	} else {
++		/* Header size in 32-bit words. */
++		lrh0 = QIB_LRH_BTH;
++		ohdr = &qp->s_hdr.u.oth;
++	}
++	if (wqe->wr.opcode == IB_WR_SEND_WITH_IMM) {
++		qp->s_hdrwords++;
++		ohdr->u.ud.imm_data = wqe->wr.ex.imm_data;
++		bth0 = IB_OPCODE_UD_SEND_ONLY_WITH_IMMEDIATE << 24;
++	} else
++		bth0 = IB_OPCODE_UD_SEND_ONLY << 24;
++	lrh0 |= ah_attr->sl << 4;
++	if (qp->ibqp.qp_type == IB_QPT_SMI)
++		lrh0 |= 0xF000; /* Set VL (see ch. 13.5.3.1) */
++	else
++		lrh0 |= ibp->sl_to_vl[ah_attr->sl] << 12;
++	qp->s_hdr.lrh[0] = cpu_to_be16(lrh0);
++	qp->s_hdr.lrh[1] = cpu_to_be16(ah_attr->dlid);  /* DEST LID */
++	qp->s_hdr.lrh[2] = cpu_to_be16(qp->s_hdrwords + nwords + SIZE_OF_CRC);
++	lid = ppd->lid;
++	if (lid) {
++		lid |= ah_attr->src_path_bits & ((1 << ppd->lmc) - 1);
++		qp->s_hdr.lrh[3] = cpu_to_be16(lid);
++	} else
++		qp->s_hdr.lrh[3] = IB_LID_PERMISSIVE;
++	if (wqe->wr.send_flags & IB_SEND_SOLICITED)
++		bth0 |= IB_BTH_SOLICITED;
++	bth0 |= extra_bytes << 20;
++	bth0 |= qp->ibqp.qp_type == IB_QPT_SMI ? QIB_DEFAULT_P_KEY :
++		qib_get_pkey(ibp, qp->ibqp.qp_type == IB_QPT_GSI ?
++			     wqe->wr.wr.ud.pkey_index : qp->s_pkey_index);
++	ohdr->bth[0] = cpu_to_be32(bth0);
++	/*
++	 * Use the multicast QP if the destination LID is a multicast LID.
++	 */
++	ohdr->bth[1] = ah_attr->dlid >= QIB_MULTICAST_LID_BASE &&
++		ah_attr->dlid != QIB_PERMISSIVE_LID ?
++		cpu_to_be32(QIB_MULTICAST_QPN) :
++		cpu_to_be32(wqe->wr.wr.ud.remote_qpn);
++	ohdr->bth[2] = cpu_to_be32(qp->s_next_psn++ & QIB_PSN_MASK);
++	/*
++	 * Qkeys with the high order bit set mean use the
++	 * qkey from the QP context instead of the WR (see 10.2.5).
++	 */
++	ohdr->u.ud.deth[0] = cpu_to_be32((int)wqe->wr.wr.ud.remote_qkey < 0 ?
++					 qp->qkey : wqe->wr.wr.ud.remote_qkey);
++	ohdr->u.ud.deth[1] = cpu_to_be32(qp->ibqp.qp_num);
++
 +done:
 +	ret = 1;
 +	goto unlock;
@@ -256,332 +419,221 @@ index 0000000..6c7fe78
 +	return ret;
 +}
 +
++static unsigned qib_lookup_pkey(struct qib_ibport *ibp, u16 pkey)
++{
++	struct qib_pportdata *ppd = ppd_from_ibp(ibp);
++	struct qib_devdata *dd = ppd->dd;
++	unsigned ctxt = ppd->hw_pidx;
++	unsigned i;
++
++	pkey &= 0x7fff;	/* remove limited/full membership bit */
++
++	for (i = 0; i < ARRAY_SIZE(dd->rcd[ctxt]->pkeys); ++i)
++		if ((dd->rcd[ctxt]->pkeys[i] & 0x7fff) == pkey)
++			return i;
++
++	/*
++	 * Should not get here, this means hardware failed to validate pkeys.
++	 * Punt and return index 0.
++	 */
++	return 0;
++}
++
 +/**
-+ * qib_uc_rcv - handle an incoming UC packet
++ * qib_ud_rcv - receive an incoming UD packet
 + * @ibp: the port the packet came in on
-+ * @hdr: the header of the packet
++ * @hdr: the packet header
 + * @has_grh: true if the packet has a GRH
 + * @data: the packet data
-+ * @tlen: the length of the packet
-+ * @qp: the QP for this packet.
++ * @tlen: the packet length
++ * @qp: the QP the packet came on
 + *
-+ * This is called from qib_qp_rcv() to process an incoming UC packet
++ * This is called from qib_qp_rcv() to process an incoming UD packet
 + * for the given QP.
 + * Called at interrupt level.
 + */
-+void qib_uc_rcv(struct qib_ibport *ibp, struct qib_ib_header *hdr,
++void qib_ud_rcv(struct qib_ibport *ibp, struct qib_ib_header *hdr,
 +		int has_grh, void *data, u32 tlen, struct qib_qp *qp)
 +{
 +	struct qib_other_headers *ohdr;
-+	unsigned long flags;
-+	u32 opcode;
++	int opcode;
 +	u32 hdrsize;
-+	u32 psn;
 +	u32 pad;
 +	struct ib_wc wc;
-+	u32 pmtu = ib_mtu_enum_to_int(qp->path_mtu);
-+	struct ib_reth *reth;
-+	int ret;
++	u32 qkey;
++	u32 src_qp;
++	u16 dlid;
 +
 +	/* Check for GRH */
 +	if (!has_grh) {
 +		ohdr = &hdr->u.oth;
-+		hdrsize = 8 + 12;       /* LRH + BTH */
++		hdrsize = 8 + 12 + 8;   /* LRH + BTH + DETH */
 +	} else {
 +		ohdr = &hdr->u.l.oth;
-+		hdrsize = 8 + 40 + 12;  /* LRH + GRH + BTH */
++		hdrsize = 8 + 40 + 12 + 8; /* LRH + GRH + BTH + DETH */
++	}
++	qkey = be32_to_cpu(ohdr->u.ud.deth[0]);
++	src_qp = be32_to_cpu(ohdr->u.ud.deth[1]) & QIB_QPN_MASK;
++
++	/* Get the number of bytes the message was padded by. */
++	pad = (be32_to_cpu(ohdr->bth[0]) >> 20) & 3;
++	if (unlikely(tlen < (hdrsize + pad + 4))) {
++		/* Drop incomplete packets. */
++		ibp->n_pkt_drops++;
++		goto bail;
++	}
++	tlen -= hdrsize + pad + 4;
++
++	/*
++	 * Check that the permissive LID is only used on QP0
++	 * and the QKEY matches (see 9.6.1.4.1 and 9.6.1.5.1).
++	 */
++	if (qp->ibqp.qp_num) {
++		if (unlikely(hdr->lrh[1] == IB_LID_PERMISSIVE ||
++			     hdr->lrh[3] == IB_LID_PERMISSIVE)) {
++			ibp->n_pkt_drops++;
++			goto bail;
++		}
++		if (qp->ibqp.qp_num > 1) {
++			u16 pkey1, pkey2;
++
++			pkey1 = be32_to_cpu(ohdr->bth[0]);
++			pkey2 = qib_get_pkey(ibp, qp->s_pkey_index);
++			if (unlikely(!qib_pkey_ok(pkey1, pkey2))) {
++				qib_bad_pqkey(ibp, IB_NOTICE_TRAP_BAD_PKEY,
++					      pkey1,
++					      (be16_to_cpu(hdr->lrh[0]) >> 4) &
++						0xF,
++					      src_qp, qp->ibqp.qp_num,
++					      hdr->lrh[3], hdr->lrh[1]);
++				goto bail;
++			}
++		}
++		if (unlikely(qkey != qp->qkey)) {
++			qib_bad_pqkey(ibp, IB_NOTICE_TRAP_BAD_QKEY, qkey,
++				      (be16_to_cpu(hdr->lrh[0]) >> 4) & 0xF,
++				      src_qp, qp->ibqp.qp_num,
++				      hdr->lrh[3], hdr->lrh[1]);
++			goto bail;
++		}
++		/* Drop invalid MAD packets (see 13.5.3.1). */
++		if (unlikely(qp->ibqp.qp_num == 1 &&
++			     (tlen != 256 ||
++			      (be16_to_cpu(hdr->lrh[0]) >> 12) == 15))) {
++			ibp->n_pkt_drops++;
++			goto bail;
++		}
++	} else {
++		struct ib_smp *smp;
++
++		/* Drop invalid MAD packets (see 13.5.3.1). */
++		if (tlen != 256 || (be16_to_cpu(hdr->lrh[0]) >> 12) != 15) {
++			ibp->n_pkt_drops++;
++			goto bail;
++		}
++		smp = (struct ib_smp *) data;
++		if ((hdr->lrh[1] == IB_LID_PERMISSIVE ||
++		     hdr->lrh[3] == IB_LID_PERMISSIVE) &&
++		    smp->mgmt_class != IB_MGMT_CLASS_SUBN_DIRECTED_ROUTE) {
++			ibp->n_pkt_drops++;
++			goto bail;
++		}
 +	}
 +
-+	opcode = be32_to_cpu(ohdr->bth[0]);
-+	spin_lock_irqsave(&qp->s_lock, flags);
-+	if (qib_ruc_check_hdr(ibp, hdr, has_grh, qp, opcode))
-+		goto sunlock;
-+	spin_unlock_irqrestore(&qp->s_lock, flags);
++	/*
++	 * The opcode is in the low byte when its in network order
++	 * (top byte when in host order).
++	 */
++	opcode = be32_to_cpu(ohdr->bth[0]) >> 24;
++	if (qp->ibqp.qp_num > 1 &&
++	    opcode == IB_OPCODE_UD_SEND_ONLY_WITH_IMMEDIATE) {
++		wc.ex.imm_data = ohdr->u.ud.imm_data;
++		wc.wc_flags = IB_WC_WITH_IMM;
++		hdrsize += sizeof(u32);
++	} else if (opcode == IB_OPCODE_UD_SEND_ONLY) {
++		wc.ex.imm_data = 0;
++		wc.wc_flags = 0;
++	} else {
++		ibp->n_pkt_drops++;
++		goto bail;
++	}
 +
-+	psn = be32_to_cpu(ohdr->bth[2]);
-+	opcode >>= 24;
-+	memset(&wc, 0, sizeof wc);
++	/*
++	 * A GRH is expected to preceed the data even if not
++	 * present on the wire.
++	 */
++	wc.byte_len = tlen + sizeof(struct ib_grh);
 +
-+	/* Prevent simultaneous processing after APM on different CPUs */
++	/*
++	 * We need to serialize getting a receive work queue entry and
++	 * generating a completion for it against QPs sending to this QP
++	 * locally.
++	 */
 +	spin_lock(&qp->r_lock);
 +
-+	/* Compare the PSN verses the expected PSN. */
-+	if (unlikely(qib_cmp24(psn, qp->r_psn) != 0)) {
-+		/*
-+		 * Handle a sequence error.
-+		 * Silently drop any current message.
-+		 */
-+		qp->r_psn = psn;
-+inv:
-+		if (qp->r_state == OP(SEND_FIRST) ||
-+		    qp->r_state == OP(SEND_MIDDLE)) {
-+			set_bit(QIB_R_REWIND_SGE, &qp->r_aflags);
-+			qp->r_sge.num_sge = 0;
-+		} else
-+			while (qp->r_sge.num_sge) {
-+				atomic_dec(&qp->r_sge.sge.mr->refcount);
-+				if (--qp->r_sge.num_sge)
-+					qp->r_sge.sge = *qp->r_sge.sg_list++;
-+			}
-+		qp->r_state = OP(SEND_LAST);
-+		switch (opcode) {
-+		case OP(SEND_FIRST):
-+		case OP(SEND_ONLY):
-+		case OP(SEND_ONLY_WITH_IMMEDIATE):
-+			goto send_first;
++	/*
++	 * Get the next work request entry to find where to put the data.
++	 */
++	if (qp->r_flags & QIB_R_REUSE_SGE)
++		qp->r_flags &= ~QIB_R_REUSE_SGE;
++	else {
++		int ret;
 +
-+		case OP(RDMA_WRITE_FIRST):
-+		case OP(RDMA_WRITE_ONLY):
-+		case OP(RDMA_WRITE_ONLY_WITH_IMMEDIATE):
-+			goto rdma_first;
-+
-+		default:
-+			goto drop;
++		ret = qib_get_rwqe(qp, 0);
++		if (ret < 0) {
++			qib_rc_error(qp, IB_WC_LOC_QP_OP_ERR);
++			goto bail_unlock;
++		}
++		if (!ret) {
++			if (qp->ibqp.qp_num == 0)
++				ibp->n_vl15_dropped++;
++			goto bail_unlock;
 +		}
 +	}
-+
-+	/* Check for opcode sequence errors. */
-+	switch (qp->r_state) {
-+	case OP(SEND_FIRST):
-+	case OP(SEND_MIDDLE):
-+		if (opcode == OP(SEND_MIDDLE) ||
-+		    opcode == OP(SEND_LAST) ||
-+		    opcode == OP(SEND_LAST_WITH_IMMEDIATE))
-+			break;
-+		goto inv;
-+
-+	case OP(RDMA_WRITE_FIRST):
-+	case OP(RDMA_WRITE_MIDDLE):
-+		if (opcode == OP(RDMA_WRITE_MIDDLE) ||
-+		    opcode == OP(RDMA_WRITE_LAST) ||
-+		    opcode == OP(RDMA_WRITE_LAST_WITH_IMMEDIATE))
-+			break;
-+		goto inv;
-+
-+	default:
-+		if (opcode == OP(SEND_FIRST) ||
-+		    opcode == OP(SEND_ONLY) ||
-+		    opcode == OP(SEND_ONLY_WITH_IMMEDIATE) ||
-+		    opcode == OP(RDMA_WRITE_FIRST) ||
-+		    opcode == OP(RDMA_WRITE_ONLY) ||
-+		    opcode == OP(RDMA_WRITE_ONLY_WITH_IMMEDIATE))
-+			break;
-+		goto inv;
++	/* Silently drop packets which are too big. */
++	if (unlikely(wc.byte_len > qp->r_len)) {
++		qp->r_flags |= QIB_R_REUSE_SGE;
++		ibp->n_pkt_drops++;
++		goto bail_unlock;
 +	}
-+
-+	if (qp->state == IB_QPS_RTR && !(qp->r_flags & QIB_R_COMM_EST)) {
-+		qp->r_flags |= QIB_R_COMM_EST;
-+		if (qp->ibqp.event_handler) {
-+			struct ib_event ev;
-+
-+			ev.device = qp->ibqp.device;
-+			ev.element.qp = &qp->ibqp;
-+			ev.event = IB_EVENT_COMM_EST;
-+			qp->ibqp.event_handler(&ev, qp->ibqp.qp_context);
-+		}
++	if (has_grh) {
++		qib_copy_sge(&qp->r_sge, &hdr->u.l.grh,
++			     sizeof(struct ib_grh), 1);
++		wc.wc_flags |= IB_WC_GRH;
++	} else
++		qib_skip_sge(&qp->r_sge, sizeof(struct ib_grh), 1);
++	qib_copy_sge(&qp->r_sge, data, wc.byte_len - sizeof(struct ib_grh), 1);
++	while (qp->r_sge.num_sge) {
++		atomic_dec(&qp->r_sge.sge.mr->refcount);
++		if (--qp->r_sge.num_sge)
++			qp->r_sge.sge = *qp->r_sge.sg_list++;
 +	}
-+
-+	/* OK, process the packet. */
-+	switch (opcode) {
-+	case OP(SEND_FIRST):
-+	case OP(SEND_ONLY):
-+	case OP(SEND_ONLY_WITH_IMMEDIATE):
-+send_first:
-+		if (test_and_clear_bit(QIB_R_REWIND_SGE, &qp->r_aflags))
-+			qp->r_sge = qp->s_rdma_read_sge;
-+		else {
-+			ret = qib_get_rwqe(qp, 0);
-+			if (ret < 0)
-+				goto op_err;
-+			if (!ret)
-+				goto drop;
-+			/*
-+			 * qp->s_rdma_read_sge will be the owner
-+			 * of the mr references.
-+			 */
-+			qp->s_rdma_read_sge = qp->r_sge;
-+		}
-+		qp->r_rcv_len = 0;
-+		if (opcode == OP(SEND_ONLY))
-+			goto send_last;
-+		else if (opcode == OP(SEND_ONLY_WITH_IMMEDIATE))
-+			goto send_last_imm;
-+		/* FALLTHROUGH */
-+	case OP(SEND_MIDDLE):
-+		/* Check for invalid length PMTU or posted rwqe len. */
-+		if (unlikely(tlen != (hdrsize + pmtu + 4)))
-+			goto rewind;
-+		qp->r_rcv_len += pmtu;
-+		if (unlikely(qp->r_rcv_len > qp->r_len))
-+			goto rewind;
-+		qib_copy_sge(&qp->r_sge, data, pmtu, 0);
-+		break;
-+
-+	case OP(SEND_LAST_WITH_IMMEDIATE):
-+send_last_imm:
-+		wc.ex.imm_data = ohdr->u.imm_data;
-+		hdrsize += 4;
-+		wc.wc_flags = IB_WC_WITH_IMM;
-+		/* FALLTHROUGH */
-+	case OP(SEND_LAST):
-+send_last:
-+		/* Get the number of bytes the message was padded by. */
-+		pad = (be32_to_cpu(ohdr->bth[0]) >> 20) & 3;
-+		/* Check for invalid length. */
-+		/* XXX LAST len should be >= 1 */
-+		if (unlikely(tlen < (hdrsize + pad + 4)))
-+			goto rewind;
-+		/* Don't count the CRC. */
-+		tlen -= (hdrsize + pad + 4);
-+		wc.byte_len = tlen + qp->r_rcv_len;
-+		if (unlikely(wc.byte_len > qp->r_len))
-+			goto rewind;
-+		wc.opcode = IB_WC_RECV;
-+last_imm:
-+		qib_copy_sge(&qp->r_sge, data, tlen, 0);
-+		while (qp->s_rdma_read_sge.num_sge) {
-+			atomic_dec(&qp->s_rdma_read_sge.sge.mr->refcount);
-+			if (--qp->s_rdma_read_sge.num_sge)
-+				qp->s_rdma_read_sge.sge =
-+					*qp->s_rdma_read_sge.sg_list++;
-+		}
-+		wc.wr_id = qp->r_wr_id;
-+		wc.status = IB_WC_SUCCESS;
-+		wc.qp = &qp->ibqp;
-+		wc.src_qp = qp->remote_qpn;
-+		wc.slid = qp->remote_ah_attr.dlid;
-+		wc.sl = qp->remote_ah_attr.sl;
-+		/* Signal completion event if the solicited bit is set. */
-+		qib_cq_enter(to_icq(qp->ibqp.recv_cq), &wc,
-+			     (ohdr->bth[0] &
-+				cpu_to_be32(IB_BTH_SOLICITED)) != 0);
-+		break;
-+
-+	case OP(RDMA_WRITE_FIRST):
-+	case OP(RDMA_WRITE_ONLY):
-+	case OP(RDMA_WRITE_ONLY_WITH_IMMEDIATE): /* consume RWQE */
-+rdma_first:
-+		if (unlikely(!(qp->qp_access_flags &
-+			       IB_ACCESS_REMOTE_WRITE))) {
-+			goto drop;
-+		}
-+		reth = &ohdr->u.rc.reth;
-+		hdrsize += sizeof(*reth);
-+		qp->r_len = be32_to_cpu(reth->length);
-+		qp->r_rcv_len = 0;
-+		qp->r_sge.sg_list = NULL;
-+		if (qp->r_len != 0) {
-+			u32 rkey = be32_to_cpu(reth->rkey);
-+			u64 vaddr = be64_to_cpu(reth->vaddr);
-+			int ok;
-+
-+			/* Check rkey */
-+			ok = qib_rkey_ok(qp, &qp->r_sge.sge, qp->r_len,
-+					 vaddr, rkey, IB_ACCESS_REMOTE_WRITE);
-+			if (unlikely(!ok))
-+				goto drop;
-+			qp->r_sge.num_sge = 1;
-+		} else {
-+			qp->r_sge.num_sge = 0;
-+			qp->r_sge.sge.mr = NULL;
-+			qp->r_sge.sge.vaddr = NULL;
-+			qp->r_sge.sge.length = 0;
-+			qp->r_sge.sge.sge_length = 0;
-+		}
-+		if (opcode == OP(RDMA_WRITE_ONLY))
-+			goto rdma_last;
-+		else if (opcode == OP(RDMA_WRITE_ONLY_WITH_IMMEDIATE))
-+			goto rdma_last_imm;
-+		/* FALLTHROUGH */
-+	case OP(RDMA_WRITE_MIDDLE):
-+		/* Check for invalid length PMTU or posted rwqe len. */
-+		if (unlikely(tlen != (hdrsize + pmtu + 4)))
-+			goto drop;
-+		qp->r_rcv_len += pmtu;
-+		if (unlikely(qp->r_rcv_len > qp->r_len))
-+			goto drop;
-+		qib_copy_sge(&qp->r_sge, data, pmtu, 1);
-+		break;
-+
-+	case OP(RDMA_WRITE_LAST_WITH_IMMEDIATE):
-+rdma_last_imm:
-+		wc.ex.imm_data = ohdr->u.imm_data;
-+		hdrsize += 4;
-+		wc.wc_flags = IB_WC_WITH_IMM;
-+
-+		/* Get the number of bytes the message was padded by. */
-+		pad = (be32_to_cpu(ohdr->bth[0]) >> 20) & 3;
-+		/* Check for invalid length. */
-+		/* XXX LAST len should be >= 1 */
-+		if (unlikely(tlen < (hdrsize + pad + 4)))
-+			goto drop;
-+		/* Don't count the CRC. */
-+		tlen -= (hdrsize + pad + 4);
-+		if (unlikely(tlen + qp->r_rcv_len != qp->r_len))
-+			goto drop;
-+		if (test_and_clear_bit(QIB_R_REWIND_SGE, &qp->r_aflags))
-+			while (qp->s_rdma_read_sge.num_sge) {
-+				atomic_dec(&qp->s_rdma_read_sge.sge.mr->
-+					   refcount);
-+				if (--qp->s_rdma_read_sge.num_sge)
-+					qp->s_rdma_read_sge.sge =
-+						*qp->s_rdma_read_sge.sg_list++;
-+			}
-+		else {
-+			ret = qib_get_rwqe(qp, 1);
-+			if (ret < 0)
-+				goto op_err;
-+			if (!ret)
-+				goto drop;
-+		}
-+		wc.byte_len = qp->r_len;
-+		wc.opcode = IB_WC_RECV_RDMA_WITH_IMM;
-+		goto last_imm;
-+
-+	case OP(RDMA_WRITE_LAST):
-+rdma_last:
-+		/* Get the number of bytes the message was padded by. */
-+		pad = (be32_to_cpu(ohdr->bth[0]) >> 20) & 3;
-+		/* Check for invalid length. */
-+		/* XXX LAST len should be >= 1 */
-+		if (unlikely(tlen < (hdrsize + pad + 4)))
-+			goto drop;
-+		/* Don't count the CRC. */
-+		tlen -= (hdrsize + pad + 4);
-+		if (unlikely(tlen + qp->r_rcv_len != qp->r_len))
-+			goto drop;
-+		qib_copy_sge(&qp->r_sge, data, tlen, 1);
-+		while (qp->r_sge.num_sge) {
-+			atomic_dec(&qp->r_sge.sge.mr->refcount);
-+			if (--qp->r_sge.num_sge)
-+				qp->r_sge.sge = *qp->r_sge.sg_list++;
-+		}
-+		break;
-+
-+	default:
-+		/* Drop packet for unknown opcodes. */
-+		goto drop;
-+	}
-+	qp->r_psn++;
-+	qp->r_state = opcode;
++	if (!test_and_clear_bit(QIB_R_WRID_VALID, &qp->r_aflags))
++		goto bail_unlock;
++	wc.wr_id = qp->r_wr_id;
++	wc.status = IB_WC_SUCCESS;
++	wc.opcode = IB_WC_RECV;
++	wc.vendor_err = 0;
++	wc.qp = &qp->ibqp;
++	wc.src_qp = src_qp;
++	wc.pkey_index = qp->ibqp.qp_type == IB_QPT_GSI ?
++		qib_lookup_pkey(ibp, be32_to_cpu(ohdr->bth[0])) : 0;
++	wc.slid = be16_to_cpu(hdr->lrh[3]);
++	wc.sl = (be16_to_cpu(hdr->lrh[0]) >> 4) & 0xF;
++	dlid = be16_to_cpu(hdr->lrh[1]);
++	/*
++	 * Save the LMC lower bits if the destination LID is a unicast LID.
++	 */
++	wc.dlid_path_bits = dlid >= QIB_MULTICAST_LID_BASE ? 0 :
++		dlid & ((1 << ppd_from_ibp(ibp)->lmc) - 1);
++	wc.port_num = qp->port_num;
++	/* Signal completion event if the solicited bit is set. */
++	qib_cq_enter(to_icq(qp->ibqp.recv_cq), &wc,
++		     (ohdr->bth[0] &
++			cpu_to_be32(IB_BTH_SOLICITED)) != 0);
++bail_unlock:
 +	spin_unlock(&qp->r_lock);
-+	return;
-+
-+rewind:
-+	set_bit(QIB_R_REWIND_SGE, &qp->r_aflags);
-+	qp->r_sge.num_sge = 0;
-+drop:
-+	ibp->n_pkt_drops++;
-+	spin_unlock(&qp->r_lock);
-+	return;
-+
-+op_err:
-+	qib_rc_error(qp, IB_WC_LOC_QP_OP_ERR);
-+	spin_unlock(&qp->r_lock);
-+	return;
-+
-+sunlock:
-+	spin_unlock_irqrestore(&qp->s_lock, flags);
++bail:;
 +}
 
 --
