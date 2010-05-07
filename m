@@ -1,7 +1,7 @@
 From: Ralph Campbell <ralph.campbell-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v3 23/52] IB/qib: Add qib_mad.h
-Date: Thu, 06 May 2010 17:00:52 -0700
-Message-ID: <20100507000052.3441.67560.stgit@chromite.mv.qlogic.com>
+Subject: [PATCH v3 24/52] IB/qib: Add qib_mmap.c
+Date: Thu, 06 May 2010 17:00:57 -0700
+Message-ID: <20100507000057.3441.36574.stgit@chromite.mv.qlogic.com>
 References: <20100506235849.3441.85930.stgit@chromite.mv.qlogic.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -13,25 +13,23 @@ To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-creates the qib_mad.h file.
+creates the qib_mmap.c file.
 
 Signed-off-by: Ralph Campbell <ralph.campbell-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
 ---
 
- drivers/infiniband/hw/qib/qib_mad.h |  373 +++++++++++++++++++++++++++++++++++
- 1 files changed, 373 insertions(+), 0 deletions(-)
- create mode 100644 drivers/infiniband/hw/qib/qib_mad.h
+ drivers/infiniband/hw/qib/qib_mmap.c |  173 ++++++++++++++++++++++++++++++++++
+ 1 files changed, 173 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/infiniband/hw/qib/qib_mmap.c
 
-diff --git a/drivers/infiniband/hw/qib/qib_mad.h b/drivers/infiniband/hw/qib/qib_mad.h
+diff --git a/drivers/infiniband/hw/qib/qib_mmap.c b/drivers/infiniband/hw/qib/qib_mmap.c
 new file mode 100644
-index 0000000..147aff9
+index 0000000..ae15d38
 --- /dev/null
-+++ b/drivers/infiniband/hw/qib/qib_mad.h
-@@ -0,0 +1,373 @@
++++ b/drivers/infiniband/hw/qib/qib_mmap.c
+@@ -0,0 +1,173 @@
 +/*
-+ * Copyright (c) 2006, 2007, 2008, 2009, 2010 QLogic Corporation.
-+ * All rights reserved.
-+ * Copyright (c) 2005, 2006 PathScale, Inc. All rights reserved.
++ * Copyright (c) 2006, 2007, 2008, 2009 QLogic Corporation. All rights reserved.
 + *
 + * This software is available to you under a choice of one of two
 + * licenses.  You may choose to be licensed under the terms of the GNU
@@ -62,345 +60,147 @@ index 0000000..147aff9
 + * SOFTWARE.
 + */
 +
-+#define IB_SMP_UNSUP_VERSION    cpu_to_be16(0x0004)
-+#define IB_SMP_UNSUP_METHOD     cpu_to_be16(0x0008)
-+#define IB_SMP_UNSUP_METH_ATTR  cpu_to_be16(0x000C)
-+#define IB_SMP_INVALID_FIELD    cpu_to_be16(0x001C)
++#include <linux/module.h>
++#include <linux/vmalloc.h>
++#include <linux/mm.h>
++#include <linux/errno.h>
++#include <asm/pgtable.h>
 +
-+struct ib_node_info {
-+	u8 base_version;
-+	u8 class_version;
-+	u8 node_type;
-+	u8 num_ports;
-+	__be64 sys_guid;
-+	__be64 node_guid;
-+	__be64 port_guid;
-+	__be16 partition_cap;
-+	__be16 device_id;
-+	__be32 revision;
-+	u8 local_port_num;
-+	u8 vendor_id[3];
-+} __attribute__ ((packed));
++#include "qib_verbs.h"
 +
-+struct ib_mad_notice_attr {
-+	u8 generic_type;
-+	u8 prod_type_msb;
-+	__be16 prod_type_lsb;
-+	__be16 trap_num;
-+	__be16 issuer_lid;
-+	__be16 toggle_count;
++/**
++ * qib_release_mmap_info - free mmap info structure
++ * @ref: a pointer to the kref within struct qib_mmap_info
++ */
++void qib_release_mmap_info(struct kref *ref)
++{
++	struct qib_mmap_info *ip =
++		container_of(ref, struct qib_mmap_info, ref);
++	struct qib_ibdev *dev = to_idev(ip->context->device);
 +
-+	union {
-+		struct {
-+			u8	details[54];
-+		} raw_data;
++	spin_lock_irq(&dev->pending_lock);
++	list_del(&ip->pending_mmaps);
++	spin_unlock_irq(&dev->pending_lock);
 +
-+		struct {
-+			__be16	reserved;
-+			__be16	lid;		/* where violation happened */
-+			u8	port_num;	/* where violation happened */
-+		} __attribute__ ((packed)) ntc_129_131;
++	vfree(ip->obj);
++	kfree(ip);
++}
 +
-+		struct {
-+			__be16	reserved;
-+			__be16	lid;		/* LID where change occured */
-+			u8	reserved2;
-+			u8	local_changes;	/* low bit - local changes */
-+			__be32	new_cap_mask;	/* new capability mask */
-+			u8	reserved3;
-+			u8	change_flags;	/* low 3 bits only */
-+		} __attribute__ ((packed)) ntc_144;
++/*
++ * open and close keep track of how many times the CQ is mapped,
++ * to avoid releasing it.
++ */
++static void qib_vma_open(struct vm_area_struct *vma)
++{
++	struct qib_mmap_info *ip = vma->vm_private_data;
 +
-+		struct {
-+			__be16	reserved;
-+			__be16	lid;		/* lid where sys guid changed */
-+			__be16	reserved2;
-+			__be64	new_sys_guid;
-+		} __attribute__ ((packed)) ntc_145;
++	kref_get(&ip->ref);
++}
 +
-+		struct {
-+			__be16	reserved;
-+			__be16	lid;
-+			__be16	dr_slid;
-+			u8	method;
-+			u8	reserved2;
-+			__be16	attr_id;
-+			__be32	attr_mod;
-+			__be64	mkey;
-+			u8	reserved3;
-+			u8	dr_trunc_hop;
-+			u8	dr_rtn_path[30];
-+		} __attribute__ ((packed)) ntc_256;
++static void qib_vma_close(struct vm_area_struct *vma)
++{
++	struct qib_mmap_info *ip = vma->vm_private_data;
 +
-+		struct {
-+			__be16		reserved;
-+			__be16		lid1;
-+			__be16		lid2;
-+			__be32		key;
-+			__be32		sl_qp1;	/* SL: high 4 bits */
-+			__be32		qp2;	/* high 8 bits reserved */
-+			union ib_gid	gid1;
-+			union ib_gid	gid2;
-+		} __attribute__ ((packed)) ntc_257_258;
++	kref_put(&ip->ref, qib_release_mmap_info);
++}
 +
-+	} details;
++static struct vm_operations_struct qib_vm_ops = {
++	.open =     qib_vma_open,
++	.close =    qib_vma_close,
 +};
 +
-+/*
-+ * Generic trap/notice types
++/**
++ * qib_mmap - create a new mmap region
++ * @context: the IB user context of the process making the mmap() call
++ * @vma: the VMA to be initialized
++ * Return zero if the mmap is OK. Otherwise, return an errno.
 + */
-+#define IB_NOTICE_TYPE_FATAL	0x80
-+#define IB_NOTICE_TYPE_URGENT	0x81
-+#define IB_NOTICE_TYPE_SECURITY	0x82
-+#define IB_NOTICE_TYPE_SM	0x83
-+#define IB_NOTICE_TYPE_INFO	0x84
++int qib_mmap(struct ib_ucontext *context, struct vm_area_struct *vma)
++{
++	struct qib_ibdev *dev = to_idev(context->device);
++	unsigned long offset = vma->vm_pgoff << PAGE_SHIFT;
++	unsigned long size = vma->vm_end - vma->vm_start;
++	struct qib_mmap_info *ip, *pp;
++	int ret = -EINVAL;
 +
-+/*
-+ * Generic trap/notice producers
-+ */
-+#define IB_NOTICE_PROD_CA		cpu_to_be16(1)
-+#define IB_NOTICE_PROD_SWITCH		cpu_to_be16(2)
-+#define IB_NOTICE_PROD_ROUTER		cpu_to_be16(3)
-+#define IB_NOTICE_PROD_CLASS_MGR	cpu_to_be16(4)
++	/*
++	 * Search the device's list of objects waiting for a mmap call.
++	 * Normally, this list is very short since a call to create a
++	 * CQ, QP, or SRQ is soon followed by a call to mmap().
++	 */
++	spin_lock_irq(&dev->pending_lock);
++	list_for_each_entry_safe(ip, pp, &dev->pending_mmaps,
++				 pending_mmaps) {
++		/* Only the creator is allowed to mmap the object */
++		if (context != ip->context || (__u64) offset != ip->offset)
++			continue;
++		/* Don't allow a mmap larger than the object. */
++		if (size > ip->size)
++			break;
 +
-+/*
-+ * Generic trap/notice numbers
-+ */
-+#define IB_NOTICE_TRAP_LLI_THRESH	cpu_to_be16(129)
-+#define IB_NOTICE_TRAP_EBO_THRESH	cpu_to_be16(130)
-+#define IB_NOTICE_TRAP_FLOW_UPDATE	cpu_to_be16(131)
-+#define IB_NOTICE_TRAP_CAP_MASK_CHG	cpu_to_be16(144)
-+#define IB_NOTICE_TRAP_SYS_GUID_CHG	cpu_to_be16(145)
-+#define IB_NOTICE_TRAP_BAD_MKEY		cpu_to_be16(256)
-+#define IB_NOTICE_TRAP_BAD_PKEY		cpu_to_be16(257)
-+#define IB_NOTICE_TRAP_BAD_QKEY		cpu_to_be16(258)
++		list_del_init(&ip->pending_mmaps);
++		spin_unlock_irq(&dev->pending_lock);
 +
-+/*
-+ * Repress trap/notice flags
-+ */
-+#define IB_NOTICE_REPRESS_LLI_THRESH	(1 << 0)
-+#define IB_NOTICE_REPRESS_EBO_THRESH	(1 << 1)
-+#define IB_NOTICE_REPRESS_FLOW_UPDATE	(1 << 2)
-+#define IB_NOTICE_REPRESS_CAP_MASK_CHG	(1 << 3)
-+#define IB_NOTICE_REPRESS_SYS_GUID_CHG	(1 << 4)
-+#define IB_NOTICE_REPRESS_BAD_MKEY	(1 << 5)
-+#define IB_NOTICE_REPRESS_BAD_PKEY	(1 << 6)
-+#define IB_NOTICE_REPRESS_BAD_QKEY	(1 << 7)
-+
-+/*
-+ * Generic trap/notice other local changes flags (trap 144).
-+ */
-+#define IB_NOTICE_TRAP_LSE_CHG		0x04	/* Link Speed Enable changed */
-+#define IB_NOTICE_TRAP_LWE_CHG		0x02	/* Link Width Enable changed */
-+#define IB_NOTICE_TRAP_NODE_DESC_CHG	0x01
++		ret = remap_vmalloc_range(vma, ip->obj, 0);
++		if (ret)
++			goto done;
++		vma->vm_ops = &qib_vm_ops;
++		vma->vm_private_data = ip;
++		qib_vma_open(vma);
++		goto done;
++	}
++	spin_unlock_irq(&dev->pending_lock);
++done:
++	return ret;
++}
 +
 +/*
-+ * Generic trap/notice M_Key volation flags in dr_trunc_hop (trap 256).
++ * Allocate information for qib_mmap
 + */
-+#define IB_NOTICE_TRAP_DR_NOTICE	0x80
-+#define IB_NOTICE_TRAP_DR_TRUNC		0x40
++struct qib_mmap_info *qib_create_mmap_info(struct qib_ibdev *dev,
++					   u32 size,
++					   struct ib_ucontext *context,
++					   void *obj) {
++	struct qib_mmap_info *ip;
 +
-+struct ib_vl_weight_elem {
-+	u8      vl;     /* Only low 4 bits, upper 4 bits reserved */
-+	u8      weight;
-+};
++	ip = kmalloc(sizeof *ip, GFP_KERNEL);
++	if (!ip)
++		goto bail;
 +
-+#define IB_VLARB_LOWPRI_0_31    1
-+#define IB_VLARB_LOWPRI_32_63   2
-+#define IB_VLARB_HIGHPRI_0_31   3
-+#define IB_VLARB_HIGHPRI_32_63  4
++	size = PAGE_ALIGN(size);
 +
-+/*
-+ * PMA class portinfo capability mask bits
-+ */
-+#define IB_PMA_CLASS_CAP_ALLPORTSELECT  cpu_to_be16(1 << 8)
-+#define IB_PMA_CLASS_CAP_EXT_WIDTH      cpu_to_be16(1 << 9)
-+#define IB_PMA_CLASS_CAP_XMIT_WAIT      cpu_to_be16(1 << 12)
++	spin_lock_irq(&dev->mmap_offset_lock);
++	if (dev->mmap_offset == 0)
++		dev->mmap_offset = PAGE_SIZE;
++	ip->offset = dev->mmap_offset;
++	dev->mmap_offset += size;
++	spin_unlock_irq(&dev->mmap_offset_lock);
 +
-+#define IB_PMA_CLASS_PORT_INFO          cpu_to_be16(0x0001)
-+#define IB_PMA_PORT_SAMPLES_CONTROL     cpu_to_be16(0x0010)
-+#define IB_PMA_PORT_SAMPLES_RESULT      cpu_to_be16(0x0011)
-+#define IB_PMA_PORT_COUNTERS            cpu_to_be16(0x0012)
-+#define IB_PMA_PORT_COUNTERS_EXT        cpu_to_be16(0x001D)
-+#define IB_PMA_PORT_SAMPLES_RESULT_EXT  cpu_to_be16(0x001E)
-+#define IB_PMA_PORT_COUNTERS_CONG       cpu_to_be16(0xFF00)
++	INIT_LIST_HEAD(&ip->pending_mmaps);
++	ip->size = size;
++	ip->context = context;
++	ip->obj = obj;
++	kref_init(&ip->ref);
 +
-+struct ib_perf {
-+	u8 base_version;
-+	u8 mgmt_class;
-+	u8 class_version;
-+	u8 method;
-+	__be16 status;
-+	__be16 unused;
-+	__be64 tid;
-+	__be16 attr_id;
-+	__be16 resv;
-+	__be32 attr_mod;
-+	u8 reserved[40];
-+	u8 data[192];
-+} __attribute__ ((packed));
++bail:
++	return ip;
++}
 +
-+struct ib_pma_classportinfo {
-+	u8 base_version;
-+	u8 class_version;
-+	__be16 cap_mask;
-+	u8 reserved[3];
-+	u8 resp_time_value;     /* only lower 5 bits */
-+	union ib_gid redirect_gid;
-+	__be32 redirect_tc_sl_fl;       /* 8, 4, 20 bits respectively */
-+	__be16 redirect_lid;
-+	__be16 redirect_pkey;
-+	__be32 redirect_qp;     /* only lower 24 bits */
-+	__be32 redirect_qkey;
-+	union ib_gid trap_gid;
-+	__be32 trap_tc_sl_fl;   /* 8, 4, 20 bits respectively */
-+	__be16 trap_lid;
-+	__be16 trap_pkey;
-+	__be32 trap_hl_qp;      /* 8, 24 bits respectively */
-+	__be32 trap_qkey;
-+} __attribute__ ((packed));
++void qib_update_mmap_info(struct qib_ibdev *dev, struct qib_mmap_info *ip,
++			  u32 size, void *obj)
++{
++	size = PAGE_ALIGN(size);
 +
-+struct ib_pma_portsamplescontrol {
-+	u8 opcode;
-+	u8 port_select;
-+	u8 tick;
-+	u8 counter_width;       /* only lower 3 bits */
-+	__be32 counter_mask0_9; /* 2, 10 * 3, bits */
-+	__be16 counter_mask10_14;       /* 1, 5 * 3, bits */
-+	u8 sample_mechanisms;
-+	u8 sample_status;       /* only lower 2 bits */
-+	__be64 option_mask;
-+	__be64 vendor_mask;
-+	__be32 sample_start;
-+	__be32 sample_interval;
-+	__be16 tag;
-+	__be16 counter_select[15];
-+} __attribute__ ((packed));
++	spin_lock_irq(&dev->mmap_offset_lock);
++	if (dev->mmap_offset == 0)
++		dev->mmap_offset = PAGE_SIZE;
++	ip->offset = dev->mmap_offset;
++	dev->mmap_offset += size;
++	spin_unlock_irq(&dev->mmap_offset_lock);
 +
-+struct ib_pma_portsamplesresult {
-+	__be16 tag;
-+	__be16 sample_status;   /* only lower 2 bits */
-+	__be32 counter[15];
-+} __attribute__ ((packed));
-+
-+struct ib_pma_portsamplesresult_ext {
-+	__be16 tag;
-+	__be16 sample_status;   /* only lower 2 bits */
-+	__be32 extended_width;  /* only upper 2 bits */
-+	__be64 counter[15];
-+} __attribute__ ((packed));
-+
-+struct ib_pma_portcounters {
-+	u8 reserved;
-+	u8 port_select;
-+	__be16 counter_select;
-+	__be16 symbol_error_counter;
-+	u8 link_error_recovery_counter;
-+	u8 link_downed_counter;
-+	__be16 port_rcv_errors;
-+	__be16 port_rcv_remphys_errors;
-+	__be16 port_rcv_switch_relay_errors;
-+	__be16 port_xmit_discards;
-+	u8 port_xmit_constraint_errors;
-+	u8 port_rcv_constraint_errors;
-+	u8 reserved1;
-+	u8 lli_ebor_errors;     /* 4, 4, bits */
-+	__be16 reserved2;
-+	__be16 vl15_dropped;
-+	__be32 port_xmit_data;
-+	__be32 port_rcv_data;
-+	__be32 port_xmit_packets;
-+	__be32 port_rcv_packets;
-+} __attribute__ ((packed));
-+
-+struct ib_pma_portcounters_cong {
-+	u8 reserved;
-+	u8 reserved1;
-+	__be16 port_check_rate;
-+	__be16 symbol_error_counter;
-+	u8 link_error_recovery_counter;
-+	u8 link_downed_counter;
-+	__be16 port_rcv_errors;
-+	__be16 port_rcv_remphys_errors;
-+	__be16 port_rcv_switch_relay_errors;
-+	__be16 port_xmit_discards;
-+	u8 port_xmit_constraint_errors;
-+	u8 port_rcv_constraint_errors;
-+	u8 reserved2;
-+	u8 lli_ebor_errors;    /* 4, 4, bits */
-+	__be16 reserved3;
-+	__be16 vl15_dropped;
-+	__be64 port_xmit_data;
-+	__be64 port_rcv_data;
-+	__be64 port_xmit_packets;
-+	__be64 port_rcv_packets;
-+	__be64 port_xmit_wait;
-+	__be64 port_adr_events;
-+} __attribute__ ((packed));
-+
-+#define IB_PMA_CONG_HW_CONTROL_TIMER            0x00
-+#define IB_PMA_CONG_HW_CONTROL_SAMPLE           0x01
-+
-+#define QIB_XMIT_RATE_UNSUPPORTED               0x0
-+#define QIB_XMIT_RATE_PICO                      0x7
-+/* number of 4nsec cycles equaling 2secs */
-+#define QIB_CONG_TIMER_PSINTERVAL               0x1DCD64EC
-+
-+#define IB_PMA_SEL_SYMBOL_ERROR                 cpu_to_be16(0x0001)
-+#define IB_PMA_SEL_LINK_ERROR_RECOVERY          cpu_to_be16(0x0002)
-+#define IB_PMA_SEL_LINK_DOWNED                  cpu_to_be16(0x0004)
-+#define IB_PMA_SEL_PORT_RCV_ERRORS              cpu_to_be16(0x0008)
-+#define IB_PMA_SEL_PORT_RCV_REMPHYS_ERRORS      cpu_to_be16(0x0010)
-+#define IB_PMA_SEL_PORT_XMIT_DISCARDS           cpu_to_be16(0x0040)
-+#define IB_PMA_SEL_LOCAL_LINK_INTEGRITY_ERRORS  cpu_to_be16(0x0200)
-+#define IB_PMA_SEL_EXCESSIVE_BUFFER_OVERRUNS    cpu_to_be16(0x0400)
-+#define IB_PMA_SEL_PORT_VL15_DROPPED            cpu_to_be16(0x0800)
-+#define IB_PMA_SEL_PORT_XMIT_DATA               cpu_to_be16(0x1000)
-+#define IB_PMA_SEL_PORT_RCV_DATA                cpu_to_be16(0x2000)
-+#define IB_PMA_SEL_PORT_XMIT_PACKETS            cpu_to_be16(0x4000)
-+#define IB_PMA_SEL_PORT_RCV_PACKETS             cpu_to_be16(0x8000)
-+
-+#define IB_PMA_SEL_CONG_ALL                     0x01
-+#define IB_PMA_SEL_CONG_PORT_DATA               0x02
-+#define IB_PMA_SEL_CONG_XMIT                    0x04
-+#define IB_PMA_SEL_CONG_ROUTING                 0x08
-+
-+struct ib_pma_portcounters_ext {
-+	u8 reserved;
-+	u8 port_select;
-+	__be16 counter_select;
-+	__be32 reserved1;
-+	__be64 port_xmit_data;
-+	__be64 port_rcv_data;
-+	__be64 port_xmit_packets;
-+	__be64 port_rcv_packets;
-+	__be64 port_unicast_xmit_packets;
-+	__be64 port_unicast_rcv_packets;
-+	__be64 port_multicast_xmit_packets;
-+	__be64 port_multicast_rcv_packets;
-+} __attribute__ ((packed));
-+
-+#define IB_PMA_SELX_PORT_XMIT_DATA              cpu_to_be16(0x0001)
-+#define IB_PMA_SELX_PORT_RCV_DATA               cpu_to_be16(0x0002)
-+#define IB_PMA_SELX_PORT_XMIT_PACKETS           cpu_to_be16(0x0004)
-+#define IB_PMA_SELX_PORT_RCV_PACKETS            cpu_to_be16(0x0008)
-+#define IB_PMA_SELX_PORT_UNI_XMIT_PACKETS       cpu_to_be16(0x0010)
-+#define IB_PMA_SELX_PORT_UNI_RCV_PACKETS        cpu_to_be16(0x0020)
-+#define IB_PMA_SELX_PORT_MULTI_XMIT_PACKETS     cpu_to_be16(0x0040)
-+#define IB_PMA_SELX_PORT_MULTI_RCV_PACKETS      cpu_to_be16(0x0080)
-+
-+/*
-+ * The PortSamplesControl.CounterMasks field is an array of 3 bit fields
-+ * which specify the N'th counter's capabilities. See ch. 16.1.3.2.
-+ * We support 5 counters which only count the mandatory quantities.
-+ */
-+#define COUNTER_MASK(q, n) (q << ((9 - n) * 3))
-+#define COUNTER_MASK0_9 \
-+	cpu_to_be32(COUNTER_MASK(1, 0) | \
-+		    COUNTER_MASK(1, 1) | \
-+		    COUNTER_MASK(1, 2) | \
-+		    COUNTER_MASK(1, 3) | \
-+		    COUNTER_MASK(1, 4))
++	ip->size = size;
++	ip->obj = obj;
++}
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
