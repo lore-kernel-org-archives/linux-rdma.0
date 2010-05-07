@@ -1,224 +1,209 @@
-From: Ralph Campbell <ralph.campbell-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v3 52/52] IB/core: allow HCAs to create IB port sysfs files
-Date: Thu, 06 May 2010 17:03:25 -0700
-Message-ID: <20100507000325.3441.85248.stgit@chromite.mv.qlogic.com>
-References: <20100506235849.3441.85930.stgit@chromite.mv.qlogic.com>
+From: Alexander Schmidt <alexs-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
+Subject: Re: [RFC] libibverbs: ibv_fork_init() and libhugetlbfs
+Date: Fri, 7 May 2010 12:19:36 +0200
+Message-ID: <20100507121936.283a18c6@alex-laptop>
+References: <20100506093949.55916ab0@alex-laptop>
+	<adavdb092d8.fsf@roland-alpha.cisco.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20100506235849.3441.85930.stgit-/vjeY7uYZjrPXfVEPVhPGq6RkeBMCJyt@public.gmane.org>
+In-Reply-To: <adavdb092d8.fsf-BjVyx320WGW9gfZ95n9DRSW4+XlvGpQz@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: of-ewg <ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>, Linux RDMA <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Hoang-Nam Nguyen <hnguyen-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, Stefan Roscher <stefan.roscher-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, Joachim Fenkes <fenkes-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, Christoph Raisch <raisch-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, Alex Vainman <alexonlists-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This patch adds a new parameter to ib_register_device() so that
-HCAs can create files in /sys/class/infiniband/<hca>/ports/<N>/.
-There is no need for an unregister function since the kobject
-reference will go to zero when ib_unregister_device() is called.
+On Thu, 06 May 2010 13:55:31 -0700
+Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org> wrote:
+> I think that we cannot assume huge pages only come from libhugetlbfs --
+> we should support an application directly enabling huge pages (possibly
+> via another library too, so we can't assume that an application knows
+> the page size for a memory range it is about to register).
+> 
+> And also the 16 MB page size constant is of course not feasible -- with
+> all due respect, the x86 page size of 2 MB is much more likely in
+> practice :)  (Although perhaps the much slower PowerPC TLB refill makes
+> users more likely to try and use hugetlb pages ;)
+> 
+> Alex suggested parsing files in the same way as libhugetlbfs does to get
+> the page size, and that seems to be the best solution, since I don't
+> think the libhugetlbfs license is compatible with the BSD license for
+> libibverbs.
+> 
+> But your trick of using /proc/*/maps looks nice.  Does that only work
+> for libhugetlbfs or can we recognize direct mmap of hugetlb pages?
 
-Signed-off-by: Ralph Campbell <ralph.campbell-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+Hi Roland, thanks for your comments!
+
+I've reworked my patch:
+ * added get_huge_page_size() to read the huge page size from
+   /proc/meminfo. This is done at ibv_fork_init() time.
+ * I noticed that some applications like ibv_rc_pingpong already
+   get memory from libhugetlbfs when running ibv_fork_init(). So
+   I changed the code for testing madvise() to allocate a huge page
+   if the huge page size is set in the system.
+
+I have not tested this code with different libraries providing huge
+pages / mmaped pages yet, but I hope this can be added later on when
+we have agreed on an approach to handle huge pages.
+
+Signed-off-by: Alexander Schmidt <alexs-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
 ---
+ src/memory.c |  103 ++++++++++++++++++++++++++++++++++++++++++++++++++++++-----
+ 1 file changed, 95 insertions(+), 8 deletions(-)
 
- drivers/infiniband/core/core_priv.h          |    2 +-
- drivers/infiniband/core/device.c             |    4 ++--
- drivers/infiniband/core/sysfs.c              |   24 +++++++++++++++++++++++-
- drivers/infiniband/hw/amso1100/c2_provider.c |    2 +-
- drivers/infiniband/hw/cxgb3/iwch_provider.c  |    2 +-
- drivers/infiniband/hw/ehca/ehca_main.c       |    2 +-
- drivers/infiniband/hw/ipath/ipath_verbs.c    |    2 +-
- drivers/infiniband/hw/mlx4/main.c            |    2 +-
- drivers/infiniband/hw/mthca/mthca_provider.c |    2 +-
- drivers/infiniband/hw/nes/nes_verbs.c        |    2 +-
- include/rdma/ib_verbs.h                      |    5 ++++-
- 11 files changed, 37 insertions(+), 12 deletions(-)
-
-diff --git a/drivers/infiniband/core/core_priv.h b/drivers/infiniband/core/core_priv.h
-index 05ac36e..e70c809 100644
---- a/drivers/infiniband/core/core_priv.h
-+++ b/drivers/infiniband/core/core_priv.h
-@@ -38,7 +38,7 @@
+--- libibverbs-1.1.2.orig/src/memory.c
++++ libibverbs-1.1.2/src/memory.c
+@@ -40,6 +40,8 @@
+ #include <unistd.h>
+ #include <stdlib.h>
+ #include <stdint.h>
++#include <stdio.h>
++#include <string.h>
  
- #include <rdma/ib_verbs.h>
+ #include "ibverbs.h"
  
--int  ib_device_register_sysfs(struct ib_device *device);
-+int  ib_device_register_sysfs(struct ib_device *device, sysfs_cb cb);
- void ib_device_unregister_sysfs(struct ib_device *device);
+@@ -68,12 +70,45 @@ struct ibv_mem_node {
+ static struct ibv_mem_node *mm_root;
+ static pthread_mutex_t mm_mutex = PTHREAD_MUTEX_INITIALIZER;
+ static int page_size;
++static int huge_page_size;
+ static int too_late;
  
- int  ib_sysfs_setup(void);
-diff --git a/drivers/infiniband/core/device.c b/drivers/infiniband/core/device.c
-index d1fba41..9ef8093 100644
---- a/drivers/infiniband/core/device.c
-+++ b/drivers/infiniband/core/device.c
-@@ -267,7 +267,7 @@ out:
-  * callback for each device that is added. @device must be allocated
-  * with ib_alloc_device().
-  */
--int ib_register_device(struct ib_device *device)
-+int ib_register_device(struct ib_device *device, sysfs_cb cb)
- {
- 	int ret;
- 
-@@ -296,7 +296,7 @@ int ib_register_device(struct ib_device *device)
- 		goto out;
- 	}
- 
--	ret = ib_device_register_sysfs(device);
-+	ret = ib_device_register_sysfs(device, cb);
- 	if (ret) {
- 		printk(KERN_WARNING "Couldn't register device %s with driver model\n",
- 		       device->name);
-diff --git a/drivers/infiniband/core/sysfs.c b/drivers/infiniband/core/sysfs.c
-index f901957..a47bac8 100644
---- a/drivers/infiniband/core/sysfs.c
-+++ b/drivers/infiniband/core/sysfs.c
-@@ -754,7 +754,23 @@ static struct attribute_group iw_stats_group = {
- 	.attrs	= iw_proto_stats_attrs,
- };
- 
--int ib_device_register_sysfs(struct ib_device *device)
-+static int sysfs_create_port_files(struct ib_device *device, sysfs_cb cb)
++static int get_huge_page_size(void)
 +{
-+	struct kobject *p;
-+	struct ib_port *port;
-+	int ret = 0;
++	int ret = -1;
++	FILE *file;
++	char *path = "/proc/meminfo";
++	char buf[1024], type[128];
 +
-+	list_for_each_entry(p, &device->port_list, entry) {
-+		port = container_of(p, struct ib_port, kobj);
-+		ret = cb(device, port->port_num, &port->kobj);
-+		if (ret)
++	file = fopen(path, "r");
++	if (!file)
++		goto out;
++
++	while (fgets(buf, sizeof(buf), file) != NULL) {
++		int n;
++		unsigned long size;
++
++		n = sscanf(buf, "%127s %lu %*s", &type, &size);
++
++		if (n < 2)
++			continue;
++
++		if (!strcmp(type, "Hugepagesize:")) {
++			/* huge page size is printed in Kb */
++			ret = size * 1024;
 +			break;
++		}
 +	}
++	fclose(file);
 +
++out:
 +	return ret;
 +}
 +
-+int ib_device_register_sysfs(struct ib_device *device, sysfs_cb cb)
+ int ibv_fork_init(void)
  {
- 	struct device *class_dev = &device->dev;
- 	int ret;
-@@ -802,6 +818,12 @@ int ib_device_register_sysfs(struct ib_device *device)
- 			goto err_put;
- 	}
+ 	void *tmp;
+-	int ret;
++	int ret, size;
  
-+	if (cb) {
-+		ret = sysfs_create_port_files(device, cb);
-+		if (ret)
-+			goto err_put;
+ 	if (mm_root)
+ 		return 0;
+@@ -85,11 +120,18 @@ int ibv_fork_init(void)
+ 	if (page_size < 0)
+ 		return errno;
+ 
+-	if (posix_memalign(&tmp, page_size, page_size))
++	huge_page_size = get_huge_page_size();
++
++	if (huge_page_size > page_size)
++		size = huge_page_size;
++	else
++		size = page_size;
++
++	if (posix_memalign(&tmp, size, size))
+ 		return ENOMEM;
+ 
+-	ret = madvise(tmp, page_size, MADV_DONTFORK) ||
+-	      madvise(tmp, page_size, MADV_DOFORK);
++	ret = madvise(tmp, size, MADV_DONTFORK) ||
++	      madvise(tmp, size, MADV_DOFORK);
+ 
+ 	free(tmp);
+ 
+@@ -446,11 +488,51 @@ static struct ibv_mem_node *__mm_find_st
+ 	return node;
+ }
+ 
++static int is_huge_page(void *base)
++{
++	int ret = 0;
++	pid_t pid;
++	FILE *file;
++	char buf[1024], lib[128];
++
++	pid = getpid();
++	snprintf(buf, sizeof(buf), "/proc/%d/maps", pid);
++
++	file = fopen(buf, "r");
++	if (!file)
++		goto out;
++
++	while (fgets(buf, sizeof(buf), file) != NULL) {
++		int n;
++		char *substr;
++		uintptr_t range_start, range_end;
++
++		n = sscanf(buf, "%lx-%lx %*s %*x %*s %*u %127s",
++				&range_start, &range_end, &lib);
++
++		if (n < 3)
++			continue;
++
++		substr = strstr(lib, "libhugetlbfs");
++		if (substr) {
++			if ((uintptr_t) base >= range_start &&
++					(uintptr_t) base < range_end) {
++				ret = 1;
++				break;
++			}
++		}
 +	}
++	fclose(file);
 +
- 	return 0;
- 
- err_put:
-diff --git a/drivers/infiniband/hw/amso1100/c2_provider.c b/drivers/infiniband/hw/amso1100/c2_provider.c
-index ad723bd..d128386 100644
---- a/drivers/infiniband/hw/amso1100/c2_provider.c
-+++ b/drivers/infiniband/hw/amso1100/c2_provider.c
-@@ -864,7 +864,7 @@ int c2_register_device(struct c2_dev *dev)
- 	dev->ibdev.iwcm->create_listen = c2_service_create;
- 	dev->ibdev.iwcm->destroy_listen = c2_service_destroy;
- 
--	ret = ib_register_device(&dev->ibdev);
-+	ret = ib_register_device(&dev->ibdev, NULL);
- 	if (ret)
- 		goto out_free_iwcm;
- 
-diff --git a/drivers/infiniband/hw/cxgb3/iwch_provider.c b/drivers/infiniband/hw/cxgb3/iwch_provider.c
-index 47b35c6..26f22ec 100644
---- a/drivers/infiniband/hw/cxgb3/iwch_provider.c
-+++ b/drivers/infiniband/hw/cxgb3/iwch_provider.c
-@@ -1427,7 +1427,7 @@ int iwch_register_device(struct iwch_dev *dev)
- 	dev->ibdev.iwcm->rem_ref = iwch_qp_rem_ref;
- 	dev->ibdev.iwcm->get_qp = iwch_get_qp;
- 
--	ret = ib_register_device(&dev->ibdev);
-+	ret = ib_register_device(&dev->ibdev, NULL);
- 	if (ret)
- 		goto bail1;
- 
-diff --git a/drivers/infiniband/hw/ehca/ehca_main.c b/drivers/infiniband/hw/ehca/ehca_main.c
-index 129a6be..d1a9278 100644
---- a/drivers/infiniband/hw/ehca/ehca_main.c
-+++ b/drivers/infiniband/hw/ehca/ehca_main.c
-@@ -798,7 +798,7 @@ static int __devinit ehca_probe(struct of_device *dev,
- 		goto probe5;
- 	}
- 
--	ret = ib_register_device(&shca->ib_device);
-+	ret = ib_register_device(&shca->ib_device, NULL);
- 	if (ret) {
- 		ehca_err(&shca->ib_device,
- 			 "ib_register_device() failed ret=%i", ret);
-diff --git a/drivers/infiniband/hw/ipath/ipath_verbs.c b/drivers/infiniband/hw/ipath/ipath_verbs.c
-index 9289ab4..055e7fd 100644
---- a/drivers/infiniband/hw/ipath/ipath_verbs.c
-+++ b/drivers/infiniband/hw/ipath/ipath_verbs.c
-@@ -2181,7 +2181,7 @@ int ipath_register_ib_device(struct ipath_devdata *dd)
- 	snprintf(dev->node_desc, sizeof(dev->node_desc),
- 		 IPATH_IDSTR " %s", init_utsname()->nodename);
- 
--	ret = ib_register_device(dev);
-+	ret = ib_register_device(dev, NULL);
- 	if (ret)
- 		goto err_reg;
- 
-diff --git a/drivers/infiniband/hw/mlx4/main.c b/drivers/infiniband/hw/mlx4/main.c
-index e596537..76dcd81 100644
---- a/drivers/infiniband/hw/mlx4/main.c
-+++ b/drivers/infiniband/hw/mlx4/main.c
-@@ -660,7 +660,7 @@ static void *mlx4_ib_add(struct mlx4_dev *dev)
- 	spin_lock_init(&ibdev->sm_lock);
- 	mutex_init(&ibdev->cap_mask_mutex);
- 
--	if (ib_register_device(&ibdev->ib_dev))
-+	if (ib_register_device(&ibdev->ib_dev, NULL))
- 		goto err_map;
- 
- 	if (mlx4_ib_mad_init(ibdev))
-diff --git a/drivers/infiniband/hw/mthca/mthca_provider.c b/drivers/infiniband/hw/mthca/mthca_provider.c
-index bcf7a40..e53a773 100644
---- a/drivers/infiniband/hw/mthca/mthca_provider.c
-+++ b/drivers/infiniband/hw/mthca/mthca_provider.c
-@@ -1402,7 +1402,7 @@ int mthca_register_device(struct mthca_dev *dev)
- 
- 	mutex_init(&dev->cap_mask_mutex);
- 
--	ret = ib_register_device(&dev->ib_dev);
-+	ret = ib_register_device(&dev->ib_dev, NULL);
- 	if (ret)
- 		return ret;
- 
-diff --git a/drivers/infiniband/hw/nes/nes_verbs.c b/drivers/infiniband/hw/nes/nes_verbs.c
-index 36348bf..a45c749 100644
---- a/drivers/infiniband/hw/nes/nes_verbs.c
-+++ b/drivers/infiniband/hw/nes/nes_verbs.c
-@@ -3961,7 +3961,7 @@ int nes_register_ofa_device(struct nes_ib_device *nesibdev)
- 	struct nes_adapter *nesadapter = nesdev->nesadapter;
- 	int i, ret;
- 
--	ret = ib_register_device(&nesvnic->nesibdev->ibdev);
-+	ret = ib_register_device(&nesvnic->nesibdev->ibdev, NULL);
- 	if (ret) {
- 		return ret;
- 	}
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index 6ecd85c..c36a0bd 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -1189,7 +1189,10 @@ struct ib_client {
- struct ib_device *ib_alloc_device(size_t size);
- void ib_dealloc_device(struct ib_device *device);
- 
--int ib_register_device   (struct ib_device *device);
-+typedef int (*sysfs_cb)(struct ib_device *dev, u8 port_num,
-+			struct kobject *kobj);
++out:
++	return ret;
++}
 +
-+int ib_register_device(struct ib_device *device, sysfs_cb cb);
- void ib_unregister_device(struct ib_device *device);
+ static int ibv_madvise_range(void *base, size_t size, int advice)
+ {
+ 	uintptr_t start, end;
+ 	struct ibv_mem_node *node, *tmp;
+-	int inc;
++	int inc, range_page_size;
+ 	int ret = 0;
  
- int ib_register_client   (struct ib_client *client);
-
+ 	if (!size)
+@@ -458,9 +540,14 @@ static int ibv_madvise_range(void *base,
+ 
+ 	inc = advice == MADV_DONTFORK ? 1 : -1;
+ 
+-	start = (uintptr_t) base & ~(page_size - 1);
+-	end   = ((uintptr_t) (base + size + page_size - 1) &
+-		 ~(page_size - 1)) - 1;
++	if (huge_page_size > page_size && is_huge_page(base))
++		range_page_size = huge_page_size;
++	else
++		range_page_size = page_size;
++
++	start = (uintptr_t) base & ~(range_page_size - 1);
++	end   = ((uintptr_t) (base + size + range_page_size - 1) &
++		 ~(range_page_size - 1)) - 1;
+ 
+ 	pthread_mutex_lock(&mm_mutex);
+ 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
