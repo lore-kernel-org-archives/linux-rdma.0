@@ -1,7 +1,7 @@
 From: Ralph Campbell <ralph.campbell-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v3 39/52] IB/qib: Add qib_tx.c
-Date: Thu, 06 May 2010 17:02:16 -0700
-Message-ID: <20100507000216.3441.8061.stgit@chromite.mv.qlogic.com>
+Subject: [PATCH v3 40/52] IB/qib: Add qib_uc.c
+Date: Thu, 06 May 2010 17:02:22 -0700
+Message-ID: <20100507000221.3441.98195.stgit@chromite.mv.qlogic.com>
 References: <20100506235849.3441.85930.stgit@chromite.mv.qlogic.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -13,23 +13,25 @@ To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-creates the qib_tx.c file.
+creates the qib_uc.c file.
 
 Signed-off-by: Ralph Campbell <ralph.campbell-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
 ---
 
- drivers/infiniband/hw/qib/qib_tx.c |  557 ++++++++++++++++++++++++++++++++++++
- 1 files changed, 557 insertions(+), 0 deletions(-)
- create mode 100644 drivers/infiniband/hw/qib/qib_tx.c
+ drivers/infiniband/hw/qib/qib_uc.c |  555 ++++++++++++++++++++++++++++++++++++
+ 1 files changed, 555 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/infiniband/hw/qib/qib_uc.c
 
-diff --git a/drivers/infiniband/hw/qib/qib_tx.c b/drivers/infiniband/hw/qib/qib_tx.c
+diff --git a/drivers/infiniband/hw/qib/qib_uc.c b/drivers/infiniband/hw/qib/qib_uc.c
 new file mode 100644
-index 0000000..f7eb1dd
+index 0000000..6c7fe78
 --- /dev/null
-+++ b/drivers/infiniband/hw/qib/qib_tx.c
-@@ -0,0 +1,557 @@
++++ b/drivers/infiniband/hw/qib/qib_uc.c
+@@ -0,0 +1,555 @@
 +/*
-+ * Copyright (c) 2008, 2009, 2010 QLogic Corporation. All rights reserved.
++ * Copyright (c) 2006, 2007, 2008, 2009, 2010 QLogic Corporation.
++ * All rights reserved.
++ * Copyright (c) 2005, 2006 PathScale, Inc. All rights reserved.
 + *
 + * This software is available to you under a choice of one of two
 + * licenses.  You may choose to be licensed under the terms of the GNU
@@ -60,530 +62,526 @@ index 0000000..f7eb1dd
 + * SOFTWARE.
 + */
 +
-+#include <linux/spinlock.h>
-+#include <linux/pci.h>
-+#include <linux/io.h>
-+#include <linux/delay.h>
-+#include <linux/netdevice.h>
-+#include <linux/vmalloc.h>
-+
 +#include "qib.h"
 +
-+static unsigned qib_hol_timeout_ms = 3000;
-+module_param_named(hol_timeout_ms, qib_hol_timeout_ms, uint, S_IRUGO);
-+MODULE_PARM_DESC(hol_timeout_ms,
-+		 "duration of user app suspension after link failure");
-+
-+unsigned qib_sdma_fetch_arb = 1;
-+module_param_named(fetch_arb, qib_sdma_fetch_arb, uint, S_IRUGO);
-+MODULE_PARM_DESC(fetch_arb, "IBA7220: change SDMA descriptor arbitration");
++/* cut down ridiculously long IB macro names */
++#define OP(x) IB_OPCODE_UC_##x
 +
 +/**
-+ * qib_disarm_piobufs - cancel a range of PIO buffers
-+ * @dd: the qlogic_ib device
-+ * @first: the first PIO buffer to cancel
-+ * @cnt: the number of PIO buffers to cancel
++ * qib_make_uc_req - construct a request packet (SEND, RDMA write)
++ * @qp: a pointer to the QP
 + *
-+ * Cancel a range of PIO buffers. Used at user process close,
-+ * in case it died while writing to a PIO buffer.
++ * Return 1 if constructed; otherwise, return 0.
 + */
-+void qib_disarm_piobufs(struct qib_devdata *dd, unsigned first, unsigned cnt)
++int qib_make_uc_req(struct qib_qp *qp)
 +{
++	struct qib_other_headers *ohdr;
++	struct qib_swqe *wqe;
 +	unsigned long flags;
-+	unsigned i;
-+	unsigned last;
-+
-+	last = first + cnt;
-+	spin_lock_irqsave(&dd->pioavail_lock, flags);
-+	for (i = first; i < last; i++) {
-+		__clear_bit(i, dd->pio_need_disarm);
-+		dd->f_sendctrl(dd->pport, QIB_SENDCTRL_DISARM_BUF(i));
-+	}
-+	spin_unlock_irqrestore(&dd->pioavail_lock, flags);
-+}
-+
-+/*
-+ * This is called by a user process when it sees the DISARM_BUFS event
-+ * bit is set.
-+ */
-+int qib_disarm_piobufs_ifneeded(struct qib_ctxtdata *rcd)
-+{
-+	struct qib_devdata *dd = rcd->dd;
-+	unsigned i;
-+	unsigned last;
-+	unsigned n = 0;
-+
-+	last = rcd->pio_base + rcd->piocnt;
-+	/*
-+	 * Don't need uctxt_lock here, since user has called in to us.
-+	 * Clear at start in case more interrupts set bits while we
-+	 * are disarming
-+	 */
-+	if (rcd->user_event_mask) {
-+		/*
-+		 * subctxt_cnt is 0 if not shared, so do base
-+		 * separately, first, then remaining subctxt, if any
-+		 */
-+		clear_bit(_QIB_EVENT_DISARM_BUFS_BIT, &rcd->user_event_mask[0]);
-+		for (i = 1; i < rcd->subctxt_cnt; i++)
-+			clear_bit(_QIB_EVENT_DISARM_BUFS_BIT,
-+				  &rcd->user_event_mask[i]);
-+	}
-+	spin_lock_irq(&dd->pioavail_lock);
-+	for (i = rcd->pio_base; i < last; i++) {
-+		if (__test_and_clear_bit(i, dd->pio_need_disarm)) {
-+			n++;
-+			dd->f_sendctrl(rcd->ppd, QIB_SENDCTRL_DISARM_BUF(i));
-+		}
-+	}
-+	spin_unlock_irq(&dd->pioavail_lock);
-+	return 0;
-+}
-+
-+static struct qib_pportdata *is_sdma_buf(struct qib_devdata *dd, unsigned i)
-+{
-+	struct qib_pportdata *ppd;
-+	unsigned pidx;
-+
-+	for (pidx = 0; pidx < dd->num_pports; pidx++) {
-+		ppd = dd->pport + pidx;
-+		if (i >= ppd->sdma_state.first_sendbuf &&
-+		    i < ppd->sdma_state.last_sendbuf)
-+			return ppd;
-+	}
-+	return NULL;
-+}
-+
-+/*
-+ * Return true if send buffer is being used by a user context.
-+ * Sets  _QIB_EVENT_DISARM_BUFS_BIT in user_event_mask as a side effect
-+ */
-+static int find_ctxt(struct qib_devdata *dd, unsigned bufn)
-+{
-+	struct qib_ctxtdata *rcd;
-+	unsigned ctxt;
++	u32 hwords;
++	u32 bth0;
++	u32 len;
++	u32 pmtu = ib_mtu_enum_to_int(qp->path_mtu);
 +	int ret = 0;
 +
-+	spin_lock(&dd->uctxt_lock);
-+	for (ctxt = dd->first_user_ctxt; ctxt < dd->cfgctxts; ctxt++) {
-+		rcd = dd->rcd[ctxt];
-+		if (!rcd || bufn < rcd->pio_base ||
-+		    bufn >= rcd->pio_base + rcd->piocnt)
-+			continue;
-+		if (rcd->user_event_mask) {
-+			int i;
-+			/*
-+			 * subctxt_cnt is 0 if not shared, so do base
-+			 * separately, first, then remaining subctxt, if any
-+			 */
-+			set_bit(_QIB_EVENT_DISARM_BUFS_BIT,
-+				&rcd->user_event_mask[0]);
-+			for (i = 1; i < rcd->subctxt_cnt; i++)
-+				set_bit(_QIB_EVENT_DISARM_BUFS_BIT,
-+					&rcd->user_event_mask[i]);
++	spin_lock_irqsave(&qp->s_lock, flags);
++
++	if (!(ib_qib_state_ops[qp->state] & QIB_PROCESS_SEND_OK)) {
++		if (!(ib_qib_state_ops[qp->state] & QIB_FLUSH_SEND))
++			goto bail;
++		/* We are in the error state, flush the work request. */
++		if (qp->s_last == qp->s_head)
++			goto bail;
++		/* If DMAs are in progress, we can't flush immediately. */
++		if (atomic_read(&qp->s_dma_busy)) {
++			qp->s_flags |= QIB_S_WAIT_DMA;
++			goto bail;
 +		}
-+		ret = 1;
++		wqe = get_swqe_ptr(qp, qp->s_last);
++		qib_send_complete(qp, wqe, IB_WC_WR_FLUSH_ERR);
++		goto done;
++	}
++
++	ohdr = &qp->s_hdr.u.oth;
++	if (qp->remote_ah_attr.ah_flags & IB_AH_GRH)
++		ohdr = &qp->s_hdr.u.l.oth;
++
++	/* header size in 32-bit words LRH+BTH = (8+12)/4. */
++	hwords = 5;
++	bth0 = 0;
++
++	/* Get the next send request. */
++	wqe = get_swqe_ptr(qp, qp->s_cur);
++	qp->s_wqe = NULL;
++	switch (qp->s_state) {
++	default:
++		if (!(ib_qib_state_ops[qp->state] &
++		    QIB_PROCESS_NEXT_SEND_OK))
++			goto bail;
++		/* Check if send work queue is empty. */
++		if (qp->s_cur == qp->s_head)
++			goto bail;
++		/*
++		 * Start a new request.
++		 */
++		wqe->psn = qp->s_next_psn;
++		qp->s_psn = qp->s_next_psn;
++		qp->s_sge.sge = wqe->sg_list[0];
++		qp->s_sge.sg_list = wqe->sg_list + 1;
++		qp->s_sge.num_sge = wqe->wr.num_sge;
++		qp->s_sge.total_len = wqe->length;
++		len = wqe->length;
++		qp->s_len = len;
++		switch (wqe->wr.opcode) {
++		case IB_WR_SEND:
++		case IB_WR_SEND_WITH_IMM:
++			if (len > pmtu) {
++				qp->s_state = OP(SEND_FIRST);
++				len = pmtu;
++				break;
++			}
++			if (wqe->wr.opcode == IB_WR_SEND)
++				qp->s_state = OP(SEND_ONLY);
++			else {
++				qp->s_state =
++					OP(SEND_ONLY_WITH_IMMEDIATE);
++				/* Immediate data comes after the BTH */
++				ohdr->u.imm_data = wqe->wr.ex.imm_data;
++				hwords += 1;
++			}
++			if (wqe->wr.send_flags & IB_SEND_SOLICITED)
++				bth0 |= IB_BTH_SOLICITED;
++			qp->s_wqe = wqe;
++			if (++qp->s_cur >= qp->s_size)
++				qp->s_cur = 0;
++			break;
++
++		case IB_WR_RDMA_WRITE:
++		case IB_WR_RDMA_WRITE_WITH_IMM:
++			ohdr->u.rc.reth.vaddr =
++				cpu_to_be64(wqe->wr.wr.rdma.remote_addr);
++			ohdr->u.rc.reth.rkey =
++				cpu_to_be32(wqe->wr.wr.rdma.rkey);
++			ohdr->u.rc.reth.length = cpu_to_be32(len);
++			hwords += sizeof(struct ib_reth) / 4;
++			if (len > pmtu) {
++				qp->s_state = OP(RDMA_WRITE_FIRST);
++				len = pmtu;
++				break;
++			}
++			if (wqe->wr.opcode == IB_WR_RDMA_WRITE)
++				qp->s_state = OP(RDMA_WRITE_ONLY);
++			else {
++				qp->s_state =
++					OP(RDMA_WRITE_ONLY_WITH_IMMEDIATE);
++				/* Immediate data comes after the RETH */
++				ohdr->u.rc.imm_data = wqe->wr.ex.imm_data;
++				hwords += 1;
++				if (wqe->wr.send_flags & IB_SEND_SOLICITED)
++					bth0 |= IB_BTH_SOLICITED;
++			}
++			qp->s_wqe = wqe;
++			if (++qp->s_cur >= qp->s_size)
++				qp->s_cur = 0;
++			break;
++
++		default:
++			goto bail;
++		}
++		break;
++
++	case OP(SEND_FIRST):
++		qp->s_state = OP(SEND_MIDDLE);
++		/* FALLTHROUGH */
++	case OP(SEND_MIDDLE):
++		len = qp->s_len;
++		if (len > pmtu) {
++			len = pmtu;
++			break;
++		}
++		if (wqe->wr.opcode == IB_WR_SEND)
++			qp->s_state = OP(SEND_LAST);
++		else {
++			qp->s_state = OP(SEND_LAST_WITH_IMMEDIATE);
++			/* Immediate data comes after the BTH */
++			ohdr->u.imm_data = wqe->wr.ex.imm_data;
++			hwords += 1;
++		}
++		if (wqe->wr.send_flags & IB_SEND_SOLICITED)
++			bth0 |= IB_BTH_SOLICITED;
++		qp->s_wqe = wqe;
++		if (++qp->s_cur >= qp->s_size)
++			qp->s_cur = 0;
++		break;
++
++	case OP(RDMA_WRITE_FIRST):
++		qp->s_state = OP(RDMA_WRITE_MIDDLE);
++		/* FALLTHROUGH */
++	case OP(RDMA_WRITE_MIDDLE):
++		len = qp->s_len;
++		if (len > pmtu) {
++			len = pmtu;
++			break;
++		}
++		if (wqe->wr.opcode == IB_WR_RDMA_WRITE)
++			qp->s_state = OP(RDMA_WRITE_LAST);
++		else {
++			qp->s_state =
++				OP(RDMA_WRITE_LAST_WITH_IMMEDIATE);
++			/* Immediate data comes after the BTH */
++			ohdr->u.imm_data = wqe->wr.ex.imm_data;
++			hwords += 1;
++			if (wqe->wr.send_flags & IB_SEND_SOLICITED)
++				bth0 |= IB_BTH_SOLICITED;
++		}
++		qp->s_wqe = wqe;
++		if (++qp->s_cur >= qp->s_size)
++			qp->s_cur = 0;
 +		break;
 +	}
-+	spin_unlock(&dd->uctxt_lock);
++	qp->s_len -= len;
++	qp->s_hdrwords = hwords;
++	qp->s_cur_sge = &qp->s_sge;
++	qp->s_cur_size = len;
++	qib_make_ruc_header(qp, ohdr, bth0 | (qp->s_state << 24),
++			    qp->s_next_psn++ & QIB_PSN_MASK);
++done:
++	ret = 1;
++	goto unlock;
 +
++bail:
++	qp->s_flags &= ~QIB_S_BUSY;
++unlock:
++	spin_unlock_irqrestore(&qp->s_lock, flags);
 +	return ret;
 +}
 +
-+/*
-+ * Disarm a set of send buffers.  If the buffer might be actively being
-+ * written to, mark the buffer to be disarmed later when it is not being
-+ * written to.
-+ *
-+ * This should only be called from the IRQ error handler.
-+ */
-+void qib_disarm_piobufs_set(struct qib_devdata *dd, unsigned long *mask,
-+			    unsigned cnt)
-+{
-+	struct qib_pportdata *ppd, *pppd[dd->num_pports];
-+	unsigned i;
-+	unsigned long flags;
-+
-+	for (i = 0; i < dd->num_pports; i++)
-+		pppd[i] = NULL;
-+
-+	for (i = 0; i < cnt; i++) {
-+		int which;
-+		if (!test_bit(i, mask))
-+			continue;
-+		/*
-+		 * If the buffer is owned by the DMA hardware,
-+		 * reset the DMA engine.
-+		 */
-+		ppd = is_sdma_buf(dd, i);
-+		if (ppd) {
-+			pppd[ppd->port] = ppd;
-+			continue;
-+		}
-+		/*
-+		 * If the kernel is writing the buffer or the buffer is
-+		 * owned by a user process, we can't clear it yet.
-+		 */
-+		spin_lock_irqsave(&dd->pioavail_lock, flags);
-+		if (test_bit(i, dd->pio_writing) ||
-+		    (!test_bit(i << 1, dd->pioavailkernel) &&
-+		     find_ctxt(dd, i))) {
-+			__set_bit(i, dd->pio_need_disarm);
-+			which = 0;
-+		} else {
-+			which = 1;
-+			dd->f_sendctrl(dd->pport, QIB_SENDCTRL_DISARM_BUF(i));
-+		}
-+		spin_unlock_irqrestore(&dd->pioavail_lock, flags);
-+	}
-+
-+	/* do cancel_sends once per port that had sdma piobufs in error */
-+	for (i = 0; i < dd->num_pports; i++)
-+		if (pppd[i])
-+			qib_cancel_sends(pppd[i]);
-+}
-+
 +/**
-+ * update_send_bufs - update shadow copy of the PIO availability map
-+ * @dd: the qlogic_ib device
++ * qib_uc_rcv - handle an incoming UC packet
++ * @ibp: the port the packet came in on
++ * @hdr: the header of the packet
++ * @has_grh: true if the packet has a GRH
++ * @data: the packet data
++ * @tlen: the length of the packet
++ * @qp: the QP for this packet.
 + *
-+ * called whenever our local copy indicates we have run out of send buffers
++ * This is called from qib_qp_rcv() to process an incoming UC packet
++ * for the given QP.
++ * Called at interrupt level.
 + */
-+static void update_send_bufs(struct qib_devdata *dd)
++void qib_uc_rcv(struct qib_ibport *ibp, struct qib_ib_header *hdr,
++		int has_grh, void *data, u32 tlen, struct qib_qp *qp)
 +{
++	struct qib_other_headers *ohdr;
 +	unsigned long flags;
-+	unsigned i;
-+	const unsigned piobregs = dd->pioavregs;
++	u32 opcode;
++	u32 hdrsize;
++	u32 psn;
++	u32 pad;
++	struct ib_wc wc;
++	u32 pmtu = ib_mtu_enum_to_int(qp->path_mtu);
++	struct ib_reth *reth;
++	int ret;
 +
-+	/*
-+	 * If the generation (check) bits have changed, then we update the
-+	 * busy bit for the corresponding PIO buffer.  This algorithm will
-+	 * modify positions to the value they already have in some cases
-+	 * (i.e., no change), but it's faster than changing only the bits
-+	 * that have changed.
-+	 *
-+	 * We would like to do this atomicly, to avoid spinlocks in the
-+	 * critical send path, but that's not really possible, given the
-+	 * type of changes, and that this routine could be called on
-+	 * multiple cpu's simultaneously, so we lock in this routine only,
-+	 * to avoid conflicting updates; all we change is the shadow, and
-+	 * it's a single 64 bit memory location, so by definition the update
-+	 * is atomic in terms of what other cpu's can see in testing the
-+	 * bits.  The spin_lock overhead isn't too bad, since it only
-+	 * happens when all buffers are in use, so only cpu overhead, not
-+	 * latency or bandwidth is affected.
-+	 */
-+	if (!dd->pioavailregs_dma)
-+		return;
-+	spin_lock_irqsave(&dd->pioavail_lock, flags);
-+	for (i = 0; i < piobregs; i++) {
-+		u64 pchbusy, pchg, piov, pnew;
-+
-+		piov = le64_to_cpu(dd->pioavailregs_dma[i]);
-+		pchg = dd->pioavailkernel[i] &
-+			~(dd->pioavailshadow[i] ^ piov);
-+		pchbusy = pchg << QLOGIC_IB_SENDPIOAVAIL_BUSY_SHIFT;
-+		if (pchg && (pchbusy & dd->pioavailshadow[i])) {
-+			pnew = dd->pioavailshadow[i] & ~pchbusy;
-+			pnew |= piov & pchbusy;
-+			dd->pioavailshadow[i] = pnew;
-+		}
-+	}
-+	spin_unlock_irqrestore(&dd->pioavail_lock, flags);
-+}
-+
-+/*
-+ * Debugging code and stats updates if no pio buffers available.
-+ */
-+static noinline void no_send_bufs(struct qib_devdata *dd)
-+{
-+	dd->upd_pio_shadow = 1;
-+
-+	/* not atomic, but if we lose a stat count in a while, that's OK */
-+	qib_stats.sps_nopiobufs++;
-+}
-+
-+/*
-+ * Common code for normal driver send buffer allocation, and reserved
-+ * allocation.
-+ *
-+ * Do appropriate marking as busy, etc.
-+ * Returns buffer pointer if one is found, otherwise NULL.
-+ */
-+u32 __iomem *qib_getsendbuf_range(struct qib_devdata *dd, u32 *pbufnum,
-+				  u32 first, u32 last)
-+{
-+	unsigned i, j, updated = 0;
-+	unsigned nbufs;
-+	unsigned long flags;
-+	unsigned long *shadow = dd->pioavailshadow;
-+	u32 __iomem *buf;
-+
-+	if (!(dd->flags & QIB_PRESENT))
-+		return NULL;
-+
-+	nbufs = last - first + 1; /* number in range to check */
-+	if (dd->upd_pio_shadow) {
-+		/*
-+		 * Minor optimization.  If we had no buffers on last call,
-+		 * start out by doing the update; continue and do scan even
-+		 * if no buffers were updated, to be paranoid.
-+		 */
-+		update_send_bufs(dd);
-+		updated++;
-+	}
-+	i = first;
-+rescan:
-+	/*
-+	 * While test_and_set_bit() is atomic, we do that and then the
-+	 * change_bit(), and the pair is not.  See if this is the cause
-+	 * of the remaining armlaunch errors.
-+	 */
-+	spin_lock_irqsave(&dd->pioavail_lock, flags);
-+	for (j = 0; j < nbufs; j++, i++) {
-+		if (i > last)
-+			i = first;
-+		if (__test_and_set_bit((2 * i) + 1, shadow))
-+			continue;
-+		/* flip generation bit */
-+		__change_bit(2 * i, shadow);
-+		/* remember that the buffer can be written to now */
-+		__set_bit(i, dd->pio_writing);
-+		break;
-+	}
-+	spin_unlock_irqrestore(&dd->pioavail_lock, flags);
-+
-+	if (j == nbufs) {
-+		if (!updated) {
-+			/*
-+			 * First time through; shadow exhausted, but may be
-+			 * buffers available, try an update and then rescan.
-+			 */
-+			update_send_bufs(dd);
-+			updated++;
-+			i = first;
-+			goto rescan;
-+		}
-+		no_send_bufs(dd);
-+		buf = NULL;
++	/* Check for GRH */
++	if (!has_grh) {
++		ohdr = &hdr->u.oth;
++		hdrsize = 8 + 12;       /* LRH + BTH */
 +	} else {
-+		if (i < dd->piobcnt2k)
-+			buf = (u32 __iomem *)(dd->pio2kbase +
-+				i * dd->palign);
-+		else
-+			buf = (u32 __iomem *)(dd->pio4kbase +
-+				(i - dd->piobcnt2k) * dd->align4k);
-+		if (pbufnum)
-+			*pbufnum = i;
-+		dd->upd_pio_shadow = 0;
++		ohdr = &hdr->u.l.oth;
++		hdrsize = 8 + 40 + 12;  /* LRH + GRH + BTH */
 +	}
 +
-+	return buf;
-+}
++	opcode = be32_to_cpu(ohdr->bth[0]);
++	spin_lock_irqsave(&qp->s_lock, flags);
++	if (qib_ruc_check_hdr(ibp, hdr, has_grh, qp, opcode))
++		goto sunlock;
++	spin_unlock_irqrestore(&qp->s_lock, flags);
 +
-+/*
-+ * Record that the caller is finished writing to the buffer so we don't
-+ * disarm it while it is being written and disarm it now if needed.
-+ */
-+void qib_sendbuf_done(struct qib_devdata *dd, unsigned n)
-+{
-+	unsigned long flags;
++	psn = be32_to_cpu(ohdr->bth[2]);
++	opcode >>= 24;
++	memset(&wc, 0, sizeof wc);
 +
-+	spin_lock_irqsave(&dd->pioavail_lock, flags);
-+	__clear_bit(n, dd->pio_writing);
-+	if (__test_and_clear_bit(n, dd->pio_need_disarm))
-+		dd->f_sendctrl(dd->pport, QIB_SENDCTRL_DISARM_BUF(n));
-+	spin_unlock_irqrestore(&dd->pioavail_lock, flags);
-+}
++	/* Prevent simultaneous processing after APM on different CPUs */
++	spin_lock(&qp->r_lock);
 +
-+/**
-+ * qib_chg_pioavailkernel - change which send buffers are available for kernel
-+ * @dd: the qlogic_ib device
-+ * @start: the starting send buffer number
-+ * @len: the number of send buffers
-+ * @avail: true if the buffers are available for kernel use, false otherwise
-+ */
-+void qib_chg_pioavailkernel(struct qib_devdata *dd, unsigned start,
-+	unsigned len, u32 avail, struct qib_ctxtdata *rcd)
-+{
-+	unsigned long flags;
-+	unsigned end;
-+	unsigned ostart = start;
-+
-+	/* There are two bits per send buffer (busy and generation) */
-+	start *= 2;
-+	end = start + len * 2;
-+
-+	spin_lock_irqsave(&dd->pioavail_lock, flags);
-+	/* Set or clear the busy bit in the shadow. */
-+	while (start < end) {
-+		if (avail) {
-+			unsigned long dma;
-+			int i;
-+
-+			/*
-+			 * The BUSY bit will never be set, because we disarm
-+			 * the user buffers before we hand them back to the
-+			 * kernel.  We do have to make sure the generation
-+			 * bit is set correctly in shadow, since it could
-+			 * have changed many times while allocated to user.
-+			 * We can't use the bitmap functions on the full
-+			 * dma array because it is always little-endian, so
-+			 * we have to flip to host-order first.
-+			 * BITS_PER_LONG is slightly wrong, since it's
-+			 * always 64 bits per register in chip...
-+			 * We only work on 64 bit kernels, so that's OK.
-+			 */
-+			i = start / BITS_PER_LONG;
-+			__clear_bit(QLOGIC_IB_SENDPIOAVAIL_BUSY_SHIFT + start,
-+				    dd->pioavailshadow);
-+			dma = (unsigned long)
-+				le64_to_cpu(dd->pioavailregs_dma[i]);
-+			if (test_bit((QLOGIC_IB_SENDPIOAVAIL_CHECK_SHIFT +
-+				      start) % BITS_PER_LONG, &dma))
-+				__set_bit(QLOGIC_IB_SENDPIOAVAIL_CHECK_SHIFT +
-+					  start, dd->pioavailshadow);
-+			else
-+				__clear_bit(QLOGIC_IB_SENDPIOAVAIL_CHECK_SHIFT
-+					    + start, dd->pioavailshadow);
-+			__set_bit(start, dd->pioavailkernel);
-+		} else {
-+			__set_bit(start + QLOGIC_IB_SENDPIOAVAIL_BUSY_SHIFT,
-+				  dd->pioavailshadow);
-+			__clear_bit(start, dd->pioavailkernel);
-+		}
-+		start += 2;
-+	}
-+
-+	spin_unlock_irqrestore(&dd->pioavail_lock, flags);
-+
-+	dd->f_txchk_change(dd, ostart, len, avail, rcd);
-+}
-+
-+/*
-+ * Flush all sends that might be in the ready to send state, as well as any
-+ * that are in the process of being sent.  Used whenever we need to be
-+ * sure the send side is idle.  Cleans up all buffer state by canceling
-+ * all pio buffers, and issuing an abort, which cleans up anything in the
-+ * launch fifo.  The cancel is superfluous on some chip versions, but
-+ * it's safer to always do it.
-+ * PIOAvail bits are updated by the chip as if a normal send had happened.
-+ */
-+void qib_cancel_sends(struct qib_pportdata *ppd)
-+{
-+	struct qib_devdata *dd = ppd->dd;
-+	struct qib_ctxtdata *rcd;
-+	unsigned long flags;
-+	unsigned ctxt;
-+	unsigned i;
-+	unsigned last;
-+
-+	/*
-+	 * Tell PSM to disarm buffers again before trying to reuse them.
-+	 * We need to be sure the rcd doesn't change out from under us
-+	 * while we do so.  We hold the two locks sequentially.  We might
-+	 * needlessly set some need_disarm bits as a result, if the
-+	 * context is closed after we release the uctxt_lock, but that's
-+	 * fairly benign, and safer than nesting the locks.
-+	 */
-+	for (ctxt = dd->first_user_ctxt; ctxt < dd->cfgctxts; ctxt++) {
-+		spin_lock_irqsave(&dd->uctxt_lock, flags);
-+		rcd = dd->rcd[ctxt];
-+		if (rcd && rcd->ppd == ppd) {
-+			last = rcd->pio_base + rcd->piocnt;
-+			if (rcd->user_event_mask) {
-+				/*
-+				 * subctxt_cnt is 0 if not shared, so do base
-+				 * separately, first, then remaining subctxt,
-+				 * if any
-+				 */
-+				set_bit(_QIB_EVENT_DISARM_BUFS_BIT,
-+					&rcd->user_event_mask[0]);
-+				for (i = 1; i < rcd->subctxt_cnt; i++)
-+					set_bit(_QIB_EVENT_DISARM_BUFS_BIT,
-+						&rcd->user_event_mask[i]);
-+			}
-+			i = rcd->pio_base;
-+			spin_unlock_irqrestore(&dd->uctxt_lock, flags);
-+			spin_lock_irqsave(&dd->pioavail_lock, flags);
-+			for (; i < last; i++)
-+				__set_bit(i, dd->pio_need_disarm);
-+			spin_unlock_irqrestore(&dd->pioavail_lock, flags);
-+		} else
-+			spin_unlock_irqrestore(&dd->uctxt_lock, flags);
-+	}
-+
-+	if (!(dd->flags & QIB_HAS_SEND_DMA))
-+		dd->f_sendctrl(ppd, QIB_SENDCTRL_DISARM_ALL |
-+				    QIB_SENDCTRL_FLUSH);
-+}
-+
-+/*
-+ * Force an update of in-memory copy of the pioavail registers, when
-+ * needed for any of a variety of reasons.
-+ * If already off, this routine is a nop, on the assumption that the
-+ * caller (or set of callers) will "do the right thing".
-+ * This is a per-device operation, so just the first port.
-+ */
-+void qib_force_pio_avail_update(struct qib_devdata *dd)
-+{
-+	dd->f_sendctrl(dd->pport, QIB_SENDCTRL_AVAIL_BLIP);
-+}
-+
-+void qib_hol_down(struct qib_pportdata *ppd)
-+{
-+	/*
-+	 * Cancel sends when the link goes DOWN so that we aren't doing it
-+	 * at INIT when we might be trying to send SMI packets.
-+	 */
-+	if (!(ppd->lflags & QIBL_IB_AUTONEG_INPROG))
-+		qib_cancel_sends(ppd);
-+}
-+
-+/*
-+ * Link is at INIT.
-+ * We start the HoL timer so we can detect stuck packets blocking SMP replies.
-+ * Timer may already be running, so use mod_timer, not add_timer.
-+ */
-+void qib_hol_init(struct qib_pportdata *ppd)
-+{
-+	if (ppd->hol_state != QIB_HOL_INIT) {
-+		ppd->hol_state = QIB_HOL_INIT;
-+		mod_timer(&ppd->hol_timer,
-+			  jiffies + msecs_to_jiffies(qib_hol_timeout_ms));
-+	}
-+}
-+
-+/*
-+ * Link is up, continue any user processes, and ensure timer
-+ * is a nop, if running.  Let timer keep running, if set; it
-+ * will nop when it sees the link is up.
-+ */
-+void qib_hol_up(struct qib_pportdata *ppd)
-+{
-+	ppd->hol_state = QIB_HOL_UP;
-+}
-+
-+/*
-+ * This is only called via the timer.
-+ */
-+void qib_hol_event(unsigned long opaque)
-+{
-+	struct qib_pportdata *ppd = (struct qib_pportdata *)opaque;
-+
-+	/* If hardware error, etc, skip. */
-+	if (!(ppd->dd->flags & QIB_INITTED))
-+		return;
-+
-+	if (ppd->hol_state != QIB_HOL_UP) {
++	/* Compare the PSN verses the expected PSN. */
++	if (unlikely(qib_cmp24(psn, qp->r_psn) != 0)) {
 +		/*
-+		 * Try to flush sends in case a stuck packet is blocking
-+		 * SMP replies.
++		 * Handle a sequence error.
++		 * Silently drop any current message.
 +		 */
-+		qib_hol_down(ppd);
-+		mod_timer(&ppd->hol_timer,
-+			  jiffies + msecs_to_jiffies(qib_hol_timeout_ms));
++		qp->r_psn = psn;
++inv:
++		if (qp->r_state == OP(SEND_FIRST) ||
++		    qp->r_state == OP(SEND_MIDDLE)) {
++			set_bit(QIB_R_REWIND_SGE, &qp->r_aflags);
++			qp->r_sge.num_sge = 0;
++		} else
++			while (qp->r_sge.num_sge) {
++				atomic_dec(&qp->r_sge.sge.mr->refcount);
++				if (--qp->r_sge.num_sge)
++					qp->r_sge.sge = *qp->r_sge.sg_list++;
++			}
++		qp->r_state = OP(SEND_LAST);
++		switch (opcode) {
++		case OP(SEND_FIRST):
++		case OP(SEND_ONLY):
++		case OP(SEND_ONLY_WITH_IMMEDIATE):
++			goto send_first;
++
++		case OP(RDMA_WRITE_FIRST):
++		case OP(RDMA_WRITE_ONLY):
++		case OP(RDMA_WRITE_ONLY_WITH_IMMEDIATE):
++			goto rdma_first;
++
++		default:
++			goto drop;
++		}
 +	}
++
++	/* Check for opcode sequence errors. */
++	switch (qp->r_state) {
++	case OP(SEND_FIRST):
++	case OP(SEND_MIDDLE):
++		if (opcode == OP(SEND_MIDDLE) ||
++		    opcode == OP(SEND_LAST) ||
++		    opcode == OP(SEND_LAST_WITH_IMMEDIATE))
++			break;
++		goto inv;
++
++	case OP(RDMA_WRITE_FIRST):
++	case OP(RDMA_WRITE_MIDDLE):
++		if (opcode == OP(RDMA_WRITE_MIDDLE) ||
++		    opcode == OP(RDMA_WRITE_LAST) ||
++		    opcode == OP(RDMA_WRITE_LAST_WITH_IMMEDIATE))
++			break;
++		goto inv;
++
++	default:
++		if (opcode == OP(SEND_FIRST) ||
++		    opcode == OP(SEND_ONLY) ||
++		    opcode == OP(SEND_ONLY_WITH_IMMEDIATE) ||
++		    opcode == OP(RDMA_WRITE_FIRST) ||
++		    opcode == OP(RDMA_WRITE_ONLY) ||
++		    opcode == OP(RDMA_WRITE_ONLY_WITH_IMMEDIATE))
++			break;
++		goto inv;
++	}
++
++	if (qp->state == IB_QPS_RTR && !(qp->r_flags & QIB_R_COMM_EST)) {
++		qp->r_flags |= QIB_R_COMM_EST;
++		if (qp->ibqp.event_handler) {
++			struct ib_event ev;
++
++			ev.device = qp->ibqp.device;
++			ev.element.qp = &qp->ibqp;
++			ev.event = IB_EVENT_COMM_EST;
++			qp->ibqp.event_handler(&ev, qp->ibqp.qp_context);
++		}
++	}
++
++	/* OK, process the packet. */
++	switch (opcode) {
++	case OP(SEND_FIRST):
++	case OP(SEND_ONLY):
++	case OP(SEND_ONLY_WITH_IMMEDIATE):
++send_first:
++		if (test_and_clear_bit(QIB_R_REWIND_SGE, &qp->r_aflags))
++			qp->r_sge = qp->s_rdma_read_sge;
++		else {
++			ret = qib_get_rwqe(qp, 0);
++			if (ret < 0)
++				goto op_err;
++			if (!ret)
++				goto drop;
++			/*
++			 * qp->s_rdma_read_sge will be the owner
++			 * of the mr references.
++			 */
++			qp->s_rdma_read_sge = qp->r_sge;
++		}
++		qp->r_rcv_len = 0;
++		if (opcode == OP(SEND_ONLY))
++			goto send_last;
++		else if (opcode == OP(SEND_ONLY_WITH_IMMEDIATE))
++			goto send_last_imm;
++		/* FALLTHROUGH */
++	case OP(SEND_MIDDLE):
++		/* Check for invalid length PMTU or posted rwqe len. */
++		if (unlikely(tlen != (hdrsize + pmtu + 4)))
++			goto rewind;
++		qp->r_rcv_len += pmtu;
++		if (unlikely(qp->r_rcv_len > qp->r_len))
++			goto rewind;
++		qib_copy_sge(&qp->r_sge, data, pmtu, 0);
++		break;
++
++	case OP(SEND_LAST_WITH_IMMEDIATE):
++send_last_imm:
++		wc.ex.imm_data = ohdr->u.imm_data;
++		hdrsize += 4;
++		wc.wc_flags = IB_WC_WITH_IMM;
++		/* FALLTHROUGH */
++	case OP(SEND_LAST):
++send_last:
++		/* Get the number of bytes the message was padded by. */
++		pad = (be32_to_cpu(ohdr->bth[0]) >> 20) & 3;
++		/* Check for invalid length. */
++		/* XXX LAST len should be >= 1 */
++		if (unlikely(tlen < (hdrsize + pad + 4)))
++			goto rewind;
++		/* Don't count the CRC. */
++		tlen -= (hdrsize + pad + 4);
++		wc.byte_len = tlen + qp->r_rcv_len;
++		if (unlikely(wc.byte_len > qp->r_len))
++			goto rewind;
++		wc.opcode = IB_WC_RECV;
++last_imm:
++		qib_copy_sge(&qp->r_sge, data, tlen, 0);
++		while (qp->s_rdma_read_sge.num_sge) {
++			atomic_dec(&qp->s_rdma_read_sge.sge.mr->refcount);
++			if (--qp->s_rdma_read_sge.num_sge)
++				qp->s_rdma_read_sge.sge =
++					*qp->s_rdma_read_sge.sg_list++;
++		}
++		wc.wr_id = qp->r_wr_id;
++		wc.status = IB_WC_SUCCESS;
++		wc.qp = &qp->ibqp;
++		wc.src_qp = qp->remote_qpn;
++		wc.slid = qp->remote_ah_attr.dlid;
++		wc.sl = qp->remote_ah_attr.sl;
++		/* Signal completion event if the solicited bit is set. */
++		qib_cq_enter(to_icq(qp->ibqp.recv_cq), &wc,
++			     (ohdr->bth[0] &
++				cpu_to_be32(IB_BTH_SOLICITED)) != 0);
++		break;
++
++	case OP(RDMA_WRITE_FIRST):
++	case OP(RDMA_WRITE_ONLY):
++	case OP(RDMA_WRITE_ONLY_WITH_IMMEDIATE): /* consume RWQE */
++rdma_first:
++		if (unlikely(!(qp->qp_access_flags &
++			       IB_ACCESS_REMOTE_WRITE))) {
++			goto drop;
++		}
++		reth = &ohdr->u.rc.reth;
++		hdrsize += sizeof(*reth);
++		qp->r_len = be32_to_cpu(reth->length);
++		qp->r_rcv_len = 0;
++		qp->r_sge.sg_list = NULL;
++		if (qp->r_len != 0) {
++			u32 rkey = be32_to_cpu(reth->rkey);
++			u64 vaddr = be64_to_cpu(reth->vaddr);
++			int ok;
++
++			/* Check rkey */
++			ok = qib_rkey_ok(qp, &qp->r_sge.sge, qp->r_len,
++					 vaddr, rkey, IB_ACCESS_REMOTE_WRITE);
++			if (unlikely(!ok))
++				goto drop;
++			qp->r_sge.num_sge = 1;
++		} else {
++			qp->r_sge.num_sge = 0;
++			qp->r_sge.sge.mr = NULL;
++			qp->r_sge.sge.vaddr = NULL;
++			qp->r_sge.sge.length = 0;
++			qp->r_sge.sge.sge_length = 0;
++		}
++		if (opcode == OP(RDMA_WRITE_ONLY))
++			goto rdma_last;
++		else if (opcode == OP(RDMA_WRITE_ONLY_WITH_IMMEDIATE))
++			goto rdma_last_imm;
++		/* FALLTHROUGH */
++	case OP(RDMA_WRITE_MIDDLE):
++		/* Check for invalid length PMTU or posted rwqe len. */
++		if (unlikely(tlen != (hdrsize + pmtu + 4)))
++			goto drop;
++		qp->r_rcv_len += pmtu;
++		if (unlikely(qp->r_rcv_len > qp->r_len))
++			goto drop;
++		qib_copy_sge(&qp->r_sge, data, pmtu, 1);
++		break;
++
++	case OP(RDMA_WRITE_LAST_WITH_IMMEDIATE):
++rdma_last_imm:
++		wc.ex.imm_data = ohdr->u.imm_data;
++		hdrsize += 4;
++		wc.wc_flags = IB_WC_WITH_IMM;
++
++		/* Get the number of bytes the message was padded by. */
++		pad = (be32_to_cpu(ohdr->bth[0]) >> 20) & 3;
++		/* Check for invalid length. */
++		/* XXX LAST len should be >= 1 */
++		if (unlikely(tlen < (hdrsize + pad + 4)))
++			goto drop;
++		/* Don't count the CRC. */
++		tlen -= (hdrsize + pad + 4);
++		if (unlikely(tlen + qp->r_rcv_len != qp->r_len))
++			goto drop;
++		if (test_and_clear_bit(QIB_R_REWIND_SGE, &qp->r_aflags))
++			while (qp->s_rdma_read_sge.num_sge) {
++				atomic_dec(&qp->s_rdma_read_sge.sge.mr->
++					   refcount);
++				if (--qp->s_rdma_read_sge.num_sge)
++					qp->s_rdma_read_sge.sge =
++						*qp->s_rdma_read_sge.sg_list++;
++			}
++		else {
++			ret = qib_get_rwqe(qp, 1);
++			if (ret < 0)
++				goto op_err;
++			if (!ret)
++				goto drop;
++		}
++		wc.byte_len = qp->r_len;
++		wc.opcode = IB_WC_RECV_RDMA_WITH_IMM;
++		goto last_imm;
++
++	case OP(RDMA_WRITE_LAST):
++rdma_last:
++		/* Get the number of bytes the message was padded by. */
++		pad = (be32_to_cpu(ohdr->bth[0]) >> 20) & 3;
++		/* Check for invalid length. */
++		/* XXX LAST len should be >= 1 */
++		if (unlikely(tlen < (hdrsize + pad + 4)))
++			goto drop;
++		/* Don't count the CRC. */
++		tlen -= (hdrsize + pad + 4);
++		if (unlikely(tlen + qp->r_rcv_len != qp->r_len))
++			goto drop;
++		qib_copy_sge(&qp->r_sge, data, tlen, 1);
++		while (qp->r_sge.num_sge) {
++			atomic_dec(&qp->r_sge.sge.mr->refcount);
++			if (--qp->r_sge.num_sge)
++				qp->r_sge.sge = *qp->r_sge.sg_list++;
++		}
++		break;
++
++	default:
++		/* Drop packet for unknown opcodes. */
++		goto drop;
++	}
++	qp->r_psn++;
++	qp->r_state = opcode;
++	spin_unlock(&qp->r_lock);
++	return;
++
++rewind:
++	set_bit(QIB_R_REWIND_SGE, &qp->r_aflags);
++	qp->r_sge.num_sge = 0;
++drop:
++	ibp->n_pkt_drops++;
++	spin_unlock(&qp->r_lock);
++	return;
++
++op_err:
++	qib_rc_error(qp, IB_WC_LOC_QP_OP_ERR);
++	spin_unlock(&qp->r_lock);
++	return;
++
++sunlock:
++	spin_unlock_irqrestore(&qp->s_lock, flags);
 +}
 
 --
