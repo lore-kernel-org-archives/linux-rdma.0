@@ -1,7 +1,7 @@
 From: Ralph Campbell <ralph.campbell-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v3 13/52] IB/qib: Add qib_eeprom.c
-Date: Thu, 06 May 2010 17:00:00 -0700
-Message-ID: <20100506235959.3441.92434.stgit@chromite.mv.qlogic.com>
+Subject: [PATCH v3 15/52] IB/qib: Add qib_fs.c
+Date: Thu, 06 May 2010 17:00:10 -0700
+Message-ID: <20100507000010.3441.87750.stgit@chromite.mv.qlogic.com>
 References: <20100506235849.3441.85930.stgit@chromite.mv.qlogic.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -13,24 +13,24 @@ To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-creates the qib_eeprom.c file.
+creates the qib_fs.c file.
 
 Signed-off-by: Ralph Campbell <ralph.campbell-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
 ---
 
- drivers/infiniband/hw/qib/qib_eeprom.c |  451 ++++++++++++++++++++++++++++++++
- 1 files changed, 451 insertions(+), 0 deletions(-)
- create mode 100644 drivers/infiniband/hw/qib/qib_eeprom.c
+ drivers/infiniband/hw/qib/qib_fs.c |  613 ++++++++++++++++++++++++++++++++++++
+ 1 files changed, 613 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/infiniband/hw/qib/qib_fs.c
 
-diff --git a/drivers/infiniband/hw/qib/qib_eeprom.c b/drivers/infiniband/hw/qib/qib_eeprom.c
+diff --git a/drivers/infiniband/hw/qib/qib_fs.c b/drivers/infiniband/hw/qib/qib_fs.c
 new file mode 100644
-index 0000000..92d9cfe
+index 0000000..7554704
 --- /dev/null
-+++ b/drivers/infiniband/hw/qib/qib_eeprom.c
-@@ -0,0 +1,451 @@
++++ b/drivers/infiniband/hw/qib/qib_fs.c
+@@ -0,0 +1,613 @@
 +/*
 + * Copyright (c) 2006, 2007, 2008, 2009 QLogic Corporation. All rights reserved.
-+ * Copyright (c) 2003, 2004, 2005, 2006 PathScale, Inc. All rights reserved.
++ * Copyright (c) 2006 PathScale, Inc. All rights reserved.
 + *
 + * This software is available to you under a choice of one of two
 + * licenses.  You may choose to be licensed under the terms of the GNU
@@ -61,423 +61,585 @@ index 0000000..92d9cfe
 + * SOFTWARE.
 + */
 +
-+#include <linux/delay.h>
-+#include <linux/pci.h>
-+#include <linux/vmalloc.h>
++#include <linux/module.h>
++#include <linux/fs.h>
++#include <linux/mount.h>
++#include <linux/pagemap.h>
++#include <linux/init.h>
++#include <linux/namei.h>
 +
 +#include "qib.h"
 +
-+/*
-+ * Functions specific to the serial EEPROM on cards handled by ib_qib.
-+ * The actual serail interface code is in qib_twsi.c. This file is a client
-+ */
++#define QIBFS_MAGIC 0x726a77
 +
-+/**
-+ * qib_eeprom_read - receives bytes from the eeprom via I2C
-+ * @dd: the qlogic_ib device
-+ * @eeprom_offset: address to read from
-+ * @buffer: where to store result
-+ * @len: number of bytes to receive
-+ */
-+int qib_eeprom_read(struct qib_devdata *dd, u8 eeprom_offset,
-+		    void *buff, int len)
++static struct super_block *qib_super;
++
++#define private2dd(file) ((file)->f_dentry->d_inode->i_private)
++
++static int qibfs_mknod(struct inode *dir, struct dentry *dentry,
++		       int mode, const struct file_operations *fops,
++		       void *data)
 +{
-+	int ret;
++	int error;
++	struct inode *inode = new_inode(dir->i_sb);
 +
-+	ret = mutex_lock_interruptible(&dd->eep_lock);
-+	if (!ret) {
-+		ret = qib_twsi_reset(dd);
-+		if (ret)
-+			qib_dev_err(dd, "EEPROM Reset for read failed\n");
-+		else
-+			ret = qib_twsi_blk_rd(dd, dd->twsi_eeprom_dev,
-+					      eeprom_offset, buff, len);
-+		mutex_unlock(&dd->eep_lock);
++	if (!inode) {
++		error = -EPERM;
++		goto bail;
 +	}
 +
-+	return ret;
++	inode->i_mode = mode;
++	inode->i_uid = 0;
++	inode->i_gid = 0;
++	inode->i_blocks = 0;
++	inode->i_atime = CURRENT_TIME;
++	inode->i_mtime = inode->i_atime;
++	inode->i_ctime = inode->i_atime;
++	inode->i_private = data;
++	if ((mode & S_IFMT) == S_IFDIR) {
++		inode->i_op = &simple_dir_inode_operations;
++		inc_nlink(inode);
++		inc_nlink(dir);
++	}
++
++	inode->i_fop = fops;
++
++	d_instantiate(dentry, inode);
++	error = 0;
++
++bail:
++	return error;
 +}
 +
-+/*
-+ * Actually update the eeprom, first doing write enable if
-+ * needed, then restoring write enable state.
-+ * Must be called with eep_lock held
-+ */
-+static int eeprom_write_with_enable(struct qib_devdata *dd, u8 offset,
-+		     const void *buf, int len)
++static int create_file(const char *name, mode_t mode,
++		       struct dentry *parent, struct dentry **dentry,
++		       const struct file_operations *fops, void *data)
 +{
-+	int ret, pwen;
++	int error;
 +
-+	pwen = dd->f_eeprom_wen(dd, 1);
-+	ret = qib_twsi_reset(dd);
-+	if (ret)
-+		qib_dev_err(dd, "EEPROM Reset for write failed\n");
++	*dentry = NULL;
++	mutex_lock(&parent->d_inode->i_mutex);
++	*dentry = lookup_one_len(name, parent, strlen(name));
++	if (!IS_ERR(*dentry))
++		error = qibfs_mknod(parent->d_inode, *dentry,
++				    mode, fops, data);
 +	else
-+		ret = qib_twsi_blk_wr(dd, dd->twsi_eeprom_dev,
-+				      offset, buf, len);
-+	dd->f_eeprom_wen(dd, pwen);
-+	return ret;
++		error = PTR_ERR(*dentry);
++	mutex_unlock(&parent->d_inode->i_mutex);
++
++	return error;
 +}
 +
-+/**
-+ * qib_eeprom_write - writes data to the eeprom via I2C
-+ * @dd: the qlogic_ib device
-+ * @eeprom_offset: where to place data
-+ * @buffer: data to write
-+ * @len: number of bytes to write
-+ */
-+int qib_eeprom_write(struct qib_devdata *dd, u8 eeprom_offset,
-+		     const void *buff, int len)
++static ssize_t driver_stats_read(struct file *file, char __user *buf,
++				 size_t count, loff_t *ppos)
 +{
++	return simple_read_from_buffer(buf, count, ppos, &qib_stats,
++				       sizeof qib_stats);
++}
++
++/*
++ * driver stats field names, one line per stat, single string.  Used by
++ * programs like ipathstats to print the stats in a way which works for
++ * different versions of drivers, without changing program source.
++ * if qlogic_ib_stats changes, this needs to change.  Names need to be
++ * 12 chars or less (w/o newline), for proper display by ipathstats utility.
++ */
++static const char qib_statnames[] =
++	"KernIntr\n"
++	"ErrorIntr\n"
++	"Tx_Errs\n"
++	"Rcv_Errs\n"
++	"H/W_Errs\n"
++	"NoPIOBufs\n"
++	"CtxtsOpen\n"
++	"RcvLen_Errs\n"
++	"EgrBufFull\n"
++	"EgrHdrFull\n"
++	;
++
++static ssize_t driver_names_read(struct file *file, char __user *buf,
++				 size_t count, loff_t *ppos)
++{
++	return simple_read_from_buffer(buf, count, ppos, qib_statnames,
++		sizeof qib_statnames - 1); /* no null */
++}
++
++static const struct file_operations driver_ops[] = {
++	{ .read = driver_stats_read, },
++	{ .read = driver_names_read, },
++};
++
++/* read the per-device counters */
++static ssize_t dev_counters_read(struct file *file, char __user *buf,
++				 size_t count, loff_t *ppos)
++{
++	u64 *counters;
++	struct qib_devdata *dd = private2dd(file);
++
++	return simple_read_from_buffer(buf, count, ppos, counters,
++		dd->f_read_cntrs(dd, *ppos, NULL, &counters));
++}
++
++/* read the per-device counters */
++static ssize_t dev_names_read(struct file *file, char __user *buf,
++			      size_t count, loff_t *ppos)
++{
++	char *names;
++	struct qib_devdata *dd = private2dd(file);
++
++	return simple_read_from_buffer(buf, count, ppos, names,
++		dd->f_read_cntrs(dd, *ppos, &names, NULL));
++}
++
++static const struct file_operations cntr_ops[] = {
++	{ .read = dev_counters_read, },
++	{ .read = dev_names_read, },
++};
++
++/*
++ * Could use file->f_dentry->d_inode->i_ino to figure out which file,
++ * instead of separate routine for each, but for now, this works...
++ */
++
++/* read the per-port names (same for each port) */
++static ssize_t portnames_read(struct file *file, char __user *buf,
++			      size_t count, loff_t *ppos)
++{
++	char *names;
++	struct qib_devdata *dd = private2dd(file);
++
++	return simple_read_from_buffer(buf, count, ppos, names,
++		dd->f_read_portcntrs(dd, *ppos, 0, &names, NULL));
++}
++
++/* read the per-port counters for port 1 (pidx 0) */
++static ssize_t portcntrs_1_read(struct file *file, char __user *buf,
++				size_t count, loff_t *ppos)
++{
++	u64 *counters;
++	struct qib_devdata *dd = private2dd(file);
++
++	return simple_read_from_buffer(buf, count, ppos, counters,
++		dd->f_read_portcntrs(dd, *ppos, 0, NULL, &counters));
++}
++
++/* read the per-port counters for port 2 (pidx 1) */
++static ssize_t portcntrs_2_read(struct file *file, char __user *buf,
++				size_t count, loff_t *ppos)
++{
++	u64 *counters;
++	struct qib_devdata *dd = private2dd(file);
++
++	return simple_read_from_buffer(buf, count, ppos, counters,
++		dd->f_read_portcntrs(dd, *ppos, 1, NULL, &counters));
++}
++
++static const struct file_operations portcntr_ops[] = {
++	{ .read = portnames_read, },
++	{ .read = portcntrs_1_read, },
++	{ .read = portcntrs_2_read, },
++};
++
++/*
++ * read the per-port QSFP data for port 1 (pidx 0)
++ */
++static ssize_t qsfp_1_read(struct file *file, char __user *buf,
++			   size_t count, loff_t *ppos)
++{
++	struct qib_devdata *dd = private2dd(file);
++	char *tmp;
 +	int ret;
 +
-+	ret = mutex_lock_interruptible(&dd->eep_lock);
-+	if (!ret) {
-+		ret = eeprom_write_with_enable(dd, eeprom_offset, buff, len);
-+		mutex_unlock(&dd->eep_lock);
-+	}
++	tmp = kmalloc(PAGE_SIZE, GFP_KERNEL);
++	if (!tmp)
++		return -ENOMEM;
 +
++	ret = qib_qsfp_dump(dd->pport, tmp, PAGE_SIZE);
++	if (ret > 0)
++		ret = simple_read_from_buffer(buf, count, ppos, tmp, ret);
++	kfree(tmp);
 +	return ret;
 +}
 +
-+static u8 flash_csum(struct qib_flash *ifp, int adjust)
++/*
++ * read the per-port QSFP data for port 2 (pidx 1)
++ */
++static ssize_t qsfp_2_read(struct file *file, char __user *buf,
++			   size_t count, loff_t *ppos)
 +{
-+	u8 *ip = (u8 *) ifp;
-+	u8 csum = 0, len;
++	struct qib_devdata *dd = private2dd(file);
++	char *tmp;
++	int ret;
 +
-+	/*
-+	 * Limit length checksummed to max length of actual data.
-+	 * Checksum of erased eeprom will still be bad, but we avoid
-+	 * reading past the end of the buffer we were passed.
-+	 */
-+	len = ifp->if_length;
-+	if (len > sizeof(struct qib_flash))
-+		len = sizeof(struct qib_flash);
-+	while (len--)
-+		csum += *ip++;
-+	csum -= ifp->if_csum;
-+	csum = ~csum;
-+	if (adjust)
-+		ifp->if_csum = csum;
++	if (dd->num_pports < 2)
++		return -ENODEV;
 +
-+	return csum;
++	tmp = kmalloc(PAGE_SIZE, GFP_KERNEL);
++	if (!tmp)
++		return -ENOMEM;
++
++	ret = qib_qsfp_dump(dd->pport + 1, tmp, PAGE_SIZE);
++	if (ret > 0)
++		ret = simple_read_from_buffer(buf, count, ppos, tmp, ret);
++	kfree(tmp);
++	return ret;
 +}
 +
-+/**
-+ * qib_get_eeprom_info- get the GUID et al. from the TSWI EEPROM device
-+ * @dd: the qlogic_ib device
-+ *
-+ * We have the capability to use the nguid field, and get
-+ * the guid from the first chip's flash, to use for all of them.
-+ */
-+void qib_get_eeprom_info(struct qib_devdata *dd)
++static const struct file_operations qsfp_ops[] = {
++	{ .read = qsfp_1_read, },
++	{ .read = qsfp_2_read, },
++};
++
++static ssize_t flash_read(struct file *file, char __user *buf,
++			  size_t count, loff_t *ppos)
 +{
-+	void *buf;
-+	struct qib_flash *ifp;
-+	__be64 guid;
-+	int len, eep_stat;
-+	u8 csum, *bguid;
-+	int t = dd->unit;
-+	struct qib_devdata *dd0 = qib_lookup(0);
++	struct qib_devdata *dd;
++	ssize_t ret;
++	loff_t pos;
++	char *tmp;
 +
-+	if (t && dd0->nguid > 1 && t <= dd0->nguid) {
-+		u8 oguid;
-+		dd->base_guid = dd0->base_guid;
-+		bguid = (u8 *) &dd->base_guid;
++	pos = *ppos;
 +
-+		oguid = bguid[7];
-+		bguid[7] += t;
-+		if (oguid > bguid[7]) {
-+			if (bguid[6] == 0xff) {
-+				if (bguid[5] == 0xff) {
-+					qib_dev_err(dd, "Can't set %s GUID"
-+						    " from base, wraps to"
-+						    " OUI!\n",
-+						    qib_get_unit_name(t));
-+					dd->base_guid = 0;
-+					goto bail;
-+				}
-+				bguid[5]++;
-+			}
-+			bguid[6]++;
-+		}
-+		dd->nguid = 1;
++	if (pos < 0) {
++		ret = -EINVAL;
 +		goto bail;
 +	}
 +
-+	/*
-+	 * Read full flash, not just currently used part, since it may have
-+	 * been written with a newer definition.
-+	 * */
-+	len = sizeof(struct qib_flash);
-+	buf = vmalloc(len);
-+	if (!buf) {
-+		qib_dev_err(dd, "Couldn't allocate memory to read %u "
-+			    "bytes from eeprom for GUID\n", len);
++	if (pos >= sizeof(struct qib_flash)) {
++		ret = 0;
 +		goto bail;
 +	}
 +
-+	/*
-+	 * Use "public" eeprom read function, which does locking and
-+	 * figures out device. This will migrate to chip-specific.
-+	 */
-+	eep_stat = qib_eeprom_read(dd, 0, buf, len);
++	if (count > sizeof(struct qib_flash) - pos)
++		count = sizeof(struct qib_flash) - pos;
 +
-+	if (eep_stat) {
-+		qib_dev_err(dd, "Failed reading GUID from eeprom\n");
-+		goto done;
-+	}
-+	ifp = (struct qib_flash *)buf;
-+
-+	csum = flash_csum(ifp, 0);
-+	if (csum != ifp->if_csum) {
-+		qib_devinfo(dd->pcidev, "Bad I2C flash checksum: "
-+			 "0x%x, not 0x%x\n", csum, ifp->if_csum);
-+		goto done;
-+	}
-+	if (*(__be64 *) ifp->if_guid == cpu_to_be64(0) ||
-+	    *(__be64 *) ifp->if_guid == ~cpu_to_be64(0)) {
-+		qib_dev_err(dd, "Invalid GUID %llx from flash; ignoring\n",
-+			    *(unsigned long long *) ifp->if_guid);
-+		/* don't allow GUID if all 0 or all 1's */
-+		goto done;
-+	}
-+
-+	/* complain, but allow it */
-+	if (*(u64 *) ifp->if_guid == 0x100007511000000ULL)
-+		qib_devinfo(dd->pcidev, "Warning, GUID %llx is "
-+			 "default, probably not correct!\n",
-+			 *(unsigned long long *) ifp->if_guid);
-+
-+	bguid = ifp->if_guid;
-+	if (!bguid[0] && !bguid[1] && !bguid[2]) {
-+		/*
-+		 * Original incorrect GUID format in flash; fix in
-+		 * core copy, by shifting up 2 octets; don't need to
-+		 * change top octet, since both it and shifted are 0.
-+		 */
-+		bguid[1] = bguid[3];
-+		bguid[2] = bguid[4];
-+		bguid[3] = 0;
-+		bguid[4] = 0;
-+		guid = *(__be64 *) ifp->if_guid;
-+	} else
-+		guid = *(__be64 *) ifp->if_guid;
-+	dd->base_guid = guid;
-+	dd->nguid = ifp->if_numguid;
-+	/*
-+	 * Things are slightly complicated by the desire to transparently
-+	 * support both the Pathscale 10-digit serial number and the QLogic
-+	 * 13-character version.
-+	 */
-+	if ((ifp->if_fversion > 1) && ifp->if_sprefix[0] &&
-+	    ((u8 *) ifp->if_sprefix)[0] != 0xFF) {
-+		char *snp = dd->serial;
-+
-+		/*
-+		 * This board has a Serial-prefix, which is stored
-+		 * elsewhere for backward-compatibility.
-+		 */
-+		memcpy(snp, ifp->if_sprefix, sizeof ifp->if_sprefix);
-+		snp[sizeof ifp->if_sprefix] = '\0';
-+		len = strlen(snp);
-+		snp += len;
-+		len = (sizeof dd->serial) - len;
-+		if (len > sizeof ifp->if_serial)
-+			len = sizeof ifp->if_serial;
-+		memcpy(snp, ifp->if_serial, len);
-+	} else
-+		memcpy(dd->serial, ifp->if_serial,
-+		       sizeof ifp->if_serial);
-+	if (!strstr(ifp->if_comment, "Tested successfully"))
-+		qib_dev_err(dd, "Board SN %s did not pass functional "
-+			    "test: %s\n", dd->serial, ifp->if_comment);
-+
-+	memcpy(&dd->eep_st_errs, &ifp->if_errcntp, QIB_EEP_LOG_CNT);
-+	/*
-+	 * Power-on (actually "active") hours are kept as little-endian value
-+	 * in EEPROM, but as seconds in a (possibly as small as 24-bit)
-+	 * atomic_t while running.
-+	 */
-+	atomic_set(&dd->active_time, 0);
-+	dd->eep_hrs = ifp->if_powerhour[0] | (ifp->if_powerhour[1] << 8);
-+
-+done:
-+	vfree(buf);
-+
-+bail:;
-+}
-+
-+/**
-+ * qib_update_eeprom_log - copy active-time and error counters to eeprom
-+ * @dd: the qlogic_ib device
-+ *
-+ * Although the time is kept as seconds in the qib_devdata struct, it is
-+ * rounded to hours for re-write, as we have only 16 bits in EEPROM.
-+ * First-cut code reads whole (expected) struct qib_flash, modifies,
-+ * re-writes. Future direction: read/write only what we need, assuming
-+ * that the EEPROM had to have been "good enough" for driver init, and
-+ * if not, we aren't making it worse.
-+ *
-+ */
-+int qib_update_eeprom_log(struct qib_devdata *dd)
-+{
-+	void *buf;
-+	struct qib_flash *ifp;
-+	int len, hi_water;
-+	uint32_t new_time, new_hrs;
-+	u8 csum;
-+	int ret, idx;
-+	unsigned long flags;
-+
-+	/* first, check if we actually need to do anything. */
-+	ret = 0;
-+	for (idx = 0; idx < QIB_EEP_LOG_CNT; ++idx) {
-+		if (dd->eep_st_new_errs[idx]) {
-+			ret = 1;
-+			break;
-+		}
-+	}
-+	new_time = atomic_read(&dd->active_time);
-+
-+	if (ret == 0 && new_time < 3600)
-+		goto bail;
-+
-+	/*
-+	 * The quick-check above determined that there is something worthy
-+	 * of logging, so get current contents and do a more detailed idea.
-+	 * read full flash, not just currently used part, since it may have
-+	 * been written with a newer definition
-+	 */
-+	len = sizeof(struct qib_flash);
-+	buf = vmalloc(len);
-+	ret = 1;
-+	if (!buf) {
-+		qib_dev_err(dd, "Couldn't allocate memory to read %u "
-+			    "bytes from eeprom for logging\n", len);
++	tmp = kmalloc(count, GFP_KERNEL);
++	if (!tmp) {
++		ret = -ENOMEM;
 +		goto bail;
 +	}
 +
-+	/* Grab semaphore and read current EEPROM. If we get an
-+	 * error, let go, but if not, keep it until we finish write.
-+	 */
-+	ret = mutex_lock_interruptible(&dd->eep_lock);
-+	if (ret) {
-+		qib_dev_err(dd, "Unable to acquire EEPROM for logging\n");
-+		goto free_bail;
++	dd = private2dd(file);
++	if (qib_eeprom_read(dd, pos, tmp, count)) {
++		qib_dev_err(dd, "failed to read from flash\n");
++		ret = -ENXIO;
++		goto bail_tmp;
 +	}
-+	ret = qib_twsi_blk_rd(dd, dd->twsi_eeprom_dev, 0, buf, len);
-+	if (ret) {
-+		mutex_unlock(&dd->eep_lock);
-+		qib_dev_err(dd, "Unable read EEPROM for logging\n");
-+		goto free_bail;
-+	}
-+	ifp = (struct qib_flash *)buf;
 +
-+	csum = flash_csum(ifp, 0);
-+	if (csum != ifp->if_csum) {
-+		mutex_unlock(&dd->eep_lock);
-+		qib_dev_err(dd, "EEPROM cks err (0x%02X, S/B 0x%02X)\n",
-+			    csum, ifp->if_csum);
-+		ret = 1;
-+		goto free_bail;
++	if (copy_to_user(buf, tmp, count)) {
++		ret = -EFAULT;
++		goto bail_tmp;
 +	}
-+	hi_water = 0;
-+	spin_lock_irqsave(&dd->eep_st_lock, flags);
-+	for (idx = 0; idx < QIB_EEP_LOG_CNT; ++idx) {
-+		int new_val = dd->eep_st_new_errs[idx];
-+		if (new_val) {
-+			/*
-+			 * If we have seen any errors, add to EEPROM values
-+			 * We need to saturate at 0xFF (255) and we also
-+			 * would need to adjust the checksum if we were
-+			 * trying to minimize EEPROM traffic
-+			 * Note that we add to actual current count in EEPROM,
-+			 * in case it was altered while we were running.
-+			 */
-+			new_val += ifp->if_errcntp[idx];
-+			if (new_val > 0xFF)
-+				new_val = 0xFF;
-+			if (ifp->if_errcntp[idx] != new_val) {
-+				ifp->if_errcntp[idx] = new_val;
-+				hi_water = offsetof(struct qib_flash,
-+						    if_errcntp) + idx;
-+			}
-+			/*
-+			 * update our shadow (used to minimize EEPROM
-+			 * traffic), to match what we are about to write.
-+			 */
-+			dd->eep_st_errs[idx] = new_val;
-+			dd->eep_st_new_errs[idx] = 0;
-+		}
-+	}
-+	/*
-+	 * Now update active-time. We would like to round to the nearest hour
-+	 * but unless atomic_t are sure to be proper signed ints we cannot,
-+	 * because we need to account for what we "transfer" to EEPROM and
-+	 * if we log an hour at 31 minutes, then we would need to set
-+	 * active_time to -29 to accurately count the _next_ hour.
-+	 */
-+	if (new_time >= 3600) {
-+		new_hrs = new_time / 3600;
-+		atomic_sub((new_hrs * 3600), &dd->active_time);
-+		new_hrs += dd->eep_hrs;
-+		if (new_hrs > 0xFFFF)
-+			new_hrs = 0xFFFF;
-+		dd->eep_hrs = new_hrs;
-+		if ((new_hrs & 0xFF) != ifp->if_powerhour[0]) {
-+			ifp->if_powerhour[0] = new_hrs & 0xFF;
-+			hi_water = offsetof(struct qib_flash, if_powerhour);
-+		}
-+		if ((new_hrs >> 8) != ifp->if_powerhour[1]) {
-+			ifp->if_powerhour[1] = new_hrs >> 8;
-+			hi_water = offsetof(struct qib_flash, if_powerhour) + 1;
-+		}
-+	}
-+	/*
-+	 * There is a tiny possibility that we could somehow fail to write
-+	 * the EEPROM after updating our shadows, but problems from holding
-+	 * the spinlock too long are a much bigger issue.
-+	 */
-+	spin_unlock_irqrestore(&dd->eep_st_lock, flags);
-+	if (hi_water) {
-+		/* we made some change to the data, uopdate cksum and write */
-+		csum = flash_csum(ifp, 1);
-+		ret = eeprom_write_with_enable(dd, 0, buf, hi_water + 1);
-+	}
-+	mutex_unlock(&dd->eep_lock);
-+	if (ret)
-+		qib_dev_err(dd, "Failed updating EEPROM\n");
 +
-+free_bail:
-+	vfree(buf);
++	*ppos = pos + count;
++	ret = count;
++
++bail_tmp:
++	kfree(tmp);
++
 +bail:
 +	return ret;
 +}
 +
-+/**
-+ * qib_inc_eeprom_err - increment one of the four error counters
-+ * that are logged to EEPROM.
-+ * @dd: the qlogic_ib device
-+ * @eidx: 0..3, the counter to increment
-+ * @incr: how much to add
-+ *
-+ * Each counter is 8-bits, and saturates at 255 (0xFF). They
-+ * are copied to the EEPROM (aka flash) whenever qib_update_eeprom_log()
-+ * is called, but it can only be called in a context that allows sleep.
-+ * This function can be called even at interrupt level.
-+ */
-+void qib_inc_eeprom_err(struct qib_devdata *dd, u32 eidx, u32 incr)
++static ssize_t flash_write(struct file *file, const char __user *buf,
++			   size_t count, loff_t *ppos)
 +{
-+	uint new_val;
-+	unsigned long flags;
++	struct qib_devdata *dd;
++	ssize_t ret;
++	loff_t pos;
++	char *tmp;
 +
-+	spin_lock_irqsave(&dd->eep_st_lock, flags);
-+	new_val = dd->eep_st_new_errs[eidx] + incr;
-+	if (new_val > 255)
-+		new_val = 255;
-+	dd->eep_st_new_errs[eidx] = new_val;
-+	spin_unlock_irqrestore(&dd->eep_st_lock, flags);
++	pos = *ppos;
++
++	if (pos != 0) {
++		ret = -EINVAL;
++		goto bail;
++	}
++
++	if (count != sizeof(struct qib_flash)) {
++		ret = -EINVAL;
++		goto bail;
++	}
++
++	tmp = kmalloc(count, GFP_KERNEL);
++	if (!tmp) {
++		ret = -ENOMEM;
++		goto bail;
++	}
++
++	if (copy_from_user(tmp, buf, count)) {
++		ret = -EFAULT;
++		goto bail_tmp;
++	}
++
++	dd = private2dd(file);
++	if (qib_eeprom_write(dd, pos, tmp, count)) {
++		ret = -ENXIO;
++		qib_dev_err(dd, "failed to write to flash\n");
++		goto bail_tmp;
++	}
++
++	*ppos = pos + count;
++	ret = count;
++
++bail_tmp:
++	kfree(tmp);
++
++bail:
++	return ret;
++}
++
++static const struct file_operations flash_ops = {
++	.read = flash_read,
++	.write = flash_write,
++};
++
++static int add_cntr_files(struct super_block *sb, struct qib_devdata *dd)
++{
++	struct dentry *dir, *tmp;
++	char unit[10];
++	int ret, i;
++
++	/* create the per-unit directory */
++	snprintf(unit, sizeof unit, "%u", dd->unit);
++	ret = create_file(unit, S_IFDIR|S_IRUGO|S_IXUGO, sb->s_root, &dir,
++			  &simple_dir_operations, dd);
++	if (ret) {
++		printk(KERN_ERR "create_file(%s) failed: %d\n", unit, ret);
++		goto bail;
++	}
++
++	/* create the files in the new directory */
++	ret = create_file("counters", S_IFREG|S_IRUGO, dir, &tmp,
++			  &cntr_ops[0], dd);
++	if (ret) {
++		printk(KERN_ERR "create_file(%s/counters) failed: %d\n",
++		       unit, ret);
++		goto bail;
++	}
++	ret = create_file("counter_names", S_IFREG|S_IRUGO, dir, &tmp,
++			  &cntr_ops[1], dd);
++	if (ret) {
++		printk(KERN_ERR "create_file(%s/counter_names) failed: %d\n",
++		       unit, ret);
++		goto bail;
++	}
++	ret = create_file("portcounter_names", S_IFREG|S_IRUGO, dir, &tmp,
++			  &portcntr_ops[0], dd);
++	if (ret) {
++		printk(KERN_ERR "create_file(%s/%s) failed: %d\n",
++		       unit, "portcounter_names", ret);
++		goto bail;
++	}
++	for (i = 1; i <= dd->num_pports; i++) {
++		char fname[24];
++
++		sprintf(fname, "port%dcounters", i);
++		/* create the files in the new directory */
++		ret = create_file(fname, S_IFREG|S_IRUGO, dir, &tmp,
++				  &portcntr_ops[i], dd);
++		if (ret) {
++			printk(KERN_ERR "create_file(%s/%s) failed: %d\n",
++				unit, fname, ret);
++			goto bail;
++		}
++		if (!(dd->flags & QIB_HAS_QSFP))
++			continue;
++		sprintf(fname, "qsfp%d", i);
++		ret = create_file(fname, S_IFREG|S_IRUGO, dir, &tmp,
++				  &qsfp_ops[i - 1], dd);
++		if (ret) {
++			printk(KERN_ERR "create_file(%s/%s) failed: %d\n",
++				unit, fname, ret);
++			goto bail;
++		}
++	}
++
++	ret = create_file("flash", S_IFREG|S_IWUSR|S_IRUGO, dir, &tmp,
++			  &flash_ops, dd);
++	if (ret)
++		printk(KERN_ERR "create_file(%s/flash) failed: %d\n",
++			unit, ret);
++bail:
++	return ret;
++}
++
++static int remove_file(struct dentry *parent, char *name)
++{
++	struct dentry *tmp;
++	int ret;
++
++	tmp = lookup_one_len(name, parent, strlen(name));
++
++	if (IS_ERR(tmp)) {
++		ret = PTR_ERR(tmp);
++		goto bail;
++	}
++
++	spin_lock(&dcache_lock);
++	spin_lock(&tmp->d_lock);
++	if (!(d_unhashed(tmp) && tmp->d_inode)) {
++		dget_locked(tmp);
++		__d_drop(tmp);
++		spin_unlock(&tmp->d_lock);
++		spin_unlock(&dcache_lock);
++		simple_unlink(parent->d_inode, tmp);
++	} else {
++		spin_unlock(&tmp->d_lock);
++		spin_unlock(&dcache_lock);
++	}
++
++	ret = 0;
++bail:
++	/*
++	 * We don't expect clients to care about the return value, but
++	 * it's there if they need it.
++	 */
++	return ret;
++}
++
++static int remove_device_files(struct super_block *sb,
++			       struct qib_devdata *dd)
++{
++	struct dentry *dir, *root;
++	char unit[10];
++	int ret, i;
++
++	root = dget(sb->s_root);
++	mutex_lock(&root->d_inode->i_mutex);
++	snprintf(unit, sizeof unit, "%u", dd->unit);
++	dir = lookup_one_len(unit, root, strlen(unit));
++
++	if (IS_ERR(dir)) {
++		ret = PTR_ERR(dir);
++		printk(KERN_ERR "Lookup of %s failed\n", unit);
++		goto bail;
++	}
++
++	remove_file(dir, "counters");
++	remove_file(dir, "counter_names");
++	remove_file(dir, "portcounter_names");
++	for (i = 0; i < dd->num_pports; i++) {
++		char fname[24];
++
++		sprintf(fname, "port%dcounters", i + 1);
++		remove_file(dir, fname);
++		if (dd->flags & QIB_HAS_QSFP) {
++			sprintf(fname, "qsfp%d", i + 1);
++			remove_file(dir, fname);
++		}
++	}
++	remove_file(dir, "flash");
++	d_delete(dir);
++	ret = simple_rmdir(root->d_inode, dir);
++
++bail:
++	mutex_unlock(&root->d_inode->i_mutex);
++	dput(root);
++	return ret;
++}
++
++/*
++ * This fills everything in when the fs is mounted, to handle umount/mount
++ * after device init.  The direct add_cntr_files() call handles adding
++ * them from the init code, when the fs is already mounted.
++ */
++static int qibfs_fill_super(struct super_block *sb, void *data, int silent)
++{
++	struct qib_devdata *dd, *tmp;
++	unsigned long flags;
++	int ret;
++
++	static struct tree_descr files[] = {
++		[2] = {"driver_stats", &driver_ops[0], S_IRUGO},
++		[3] = {"driver_stats_names", &driver_ops[1], S_IRUGO},
++		{""},
++	};
++
++	ret = simple_fill_super(sb, QIBFS_MAGIC, files);
++	if (ret) {
++		printk(KERN_ERR "simple_fill_super failed: %d\n", ret);
++		goto bail;
++	}
++
++	spin_lock_irqsave(&qib_devs_lock, flags);
++
++	list_for_each_entry_safe(dd, tmp, &qib_dev_list, list) {
++		spin_unlock_irqrestore(&qib_devs_lock, flags);
++		ret = add_cntr_files(sb, dd);
++		if (ret) {
++			deactivate_super(sb);
++			goto bail;
++		}
++		spin_lock_irqsave(&qib_devs_lock, flags);
++	}
++
++	spin_unlock_irqrestore(&qib_devs_lock, flags);
++
++bail:
++	return ret;
++}
++
++static int qibfs_get_sb(struct file_system_type *fs_type, int flags,
++			const char *dev_name, void *data, struct vfsmount *mnt)
++{
++	int ret = get_sb_single(fs_type, flags, data,
++				qibfs_fill_super, mnt);
++	if (ret >= 0)
++		qib_super = mnt->mnt_sb;
++	return ret;
++}
++
++static void qibfs_kill_super(struct super_block *s)
++{
++	kill_litter_super(s);
++	qib_super = NULL;
++}
++
++int qibfs_add(struct qib_devdata *dd)
++{
++	int ret;
++
++	/*
++	 * On first unit initialized, qib_super will not yet exist
++	 * because nobody has yet tried to mount the filesystem, so
++	 * we can't consider that to be an error; if an error occurs
++	 * during the mount, that will get a complaint, so this is OK.
++	 * add_cntr_files() for all units is done at mount from
++	 * qibfs_fill_super(), so one way or another, everything works.
++	 */
++	if (qib_super == NULL)
++		ret = 0;
++	else
++		ret = add_cntr_files(qib_super, dd);
++	return ret;
++}
++
++int qibfs_remove(struct qib_devdata *dd)
++{
++	int ret = 0;
++
++	if (qib_super)
++		ret = remove_device_files(qib_super, dd);
++
++	return ret;
++}
++
++static struct file_system_type qibfs_fs_type = {
++	.owner =        THIS_MODULE,
++	.name =         "ipathfs",
++	.get_sb =       qibfs_get_sb,
++	.kill_sb =      qibfs_kill_super,
++};
++
++int __init qib_init_qibfs(void)
++{
++	return register_filesystem(&qibfs_fs_type);
++}
++
++int __exit qib_exit_qibfs(void)
++{
++	return unregister_filesystem(&qibfs_fs_type);
 +}
 
 --
