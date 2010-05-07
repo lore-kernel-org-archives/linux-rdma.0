@@ -1,7 +1,7 @@
 From: Ralph Campbell <ralph.campbell-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v3 36/52] IB/qib: Add qib_srq.c
-Date: Thu, 06 May 2010 17:02:01 -0700
-Message-ID: <20100507000200.3441.16904.stgit@chromite.mv.qlogic.com>
+Subject: [PATCH v3 37/52] IB/qib: Add qib_sysfs.c
+Date: Thu, 06 May 2010 17:02:06 -0700
+Message-ID: <20100507000206.3441.67259.stgit@chromite.mv.qlogic.com>
 References: <20100506235849.3441.85930.stgit@chromite.mv.qlogic.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -13,24 +13,24 @@ To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-creates the qib_srq.c file.
+creates the qib_sysfs.c file.
 
 Signed-off-by: Ralph Campbell <ralph.campbell-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
 ---
 
- drivers/infiniband/hw/qib/qib_srq.c |  374 +++++++++++++++++++++++++++++++++++
- 1 files changed, 374 insertions(+), 0 deletions(-)
- create mode 100644 drivers/infiniband/hw/qib/qib_srq.c
+ drivers/infiniband/hw/qib/qib_sysfs.c |  691 +++++++++++++++++++++++++++++++++
+ 1 files changed, 691 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/infiniband/hw/qib/qib_sysfs.c
 
-diff --git a/drivers/infiniband/hw/qib/qib_srq.c b/drivers/infiniband/hw/qib/qib_srq.c
+diff --git a/drivers/infiniband/hw/qib/qib_sysfs.c b/drivers/infiniband/hw/qib/qib_sysfs.c
 new file mode 100644
-index 0000000..d79ae33
+index 0000000..dab4d9f
 --- /dev/null
-+++ b/drivers/infiniband/hw/qib/qib_srq.c
-@@ -0,0 +1,374 @@
++++ b/drivers/infiniband/hw/qib/qib_sysfs.c
+@@ -0,0 +1,691 @@
 +/*
 + * Copyright (c) 2006, 2007, 2008, 2009 QLogic Corporation. All rights reserved.
-+ * Copyright (c) 2005, 2006 PathScale, Inc. All rights reserved.
++ * Copyright (c) 2006 PathScale, Inc. All rights reserved.
 + *
 + * This software is available to you under a choice of one of two
 + * licenses.  You may choose to be licensed under the terms of the GNU
@@ -60,347 +60,664 @@ index 0000000..d79ae33
 + * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 + * SOFTWARE.
 + */
++#include <linux/ctype.h>
 +
-+#include <linux/err.h>
-+#include <linux/vmalloc.h>
-+
-+#include "qib_verbs.h"
++#include "qib.h"
 +
 +/**
-+ * qib_post_srq_receive - post a receive on a shared receive queue
-+ * @ibsrq: the SRQ to post the receive on
-+ * @wr: the list of work requests to post
-+ * @bad_wr: A pointer to the first WR to cause a problem is put here
++ * qib_parse_ushort - parse an unsigned short value in an arbitrary base
++ * @str: the string containing the number
++ * @valp: where to put the result
 + *
-+ * This may be called from interrupt context.
++ * Returns the number of bytes consumed, or negative value on error.
 + */
-+int qib_post_srq_receive(struct ib_srq *ibsrq, struct ib_recv_wr *wr,
-+			 struct ib_recv_wr **bad_wr)
++static int qib_parse_ushort(const char *str, unsigned short *valp)
 +{
-+	struct qib_srq *srq = to_isrq(ibsrq);
-+	struct qib_rwq *wq;
-+	unsigned long flags;
++	unsigned long val;
++	char *end;
 +	int ret;
 +
-+	for (; wr; wr = wr->next) {
-+		struct qib_rwqe *wqe;
-+		u32 next;
-+		int i;
-+
-+		if ((unsigned) wr->num_sge > srq->rq.max_sge) {
-+			*bad_wr = wr;
-+			ret = -EINVAL;
-+			goto bail;
-+		}
-+
-+		spin_lock_irqsave(&srq->rq.lock, flags);
-+		wq = srq->rq.wq;
-+		next = wq->head + 1;
-+		if (next >= srq->rq.size)
-+			next = 0;
-+		if (next == wq->tail) {
-+			spin_unlock_irqrestore(&srq->rq.lock, flags);
-+			*bad_wr = wr;
-+			ret = -ENOMEM;
-+			goto bail;
-+		}
-+
-+		wqe = get_rwqe_ptr(&srq->rq, wq->head);
-+		wqe->wr_id = wr->wr_id;
-+		wqe->num_sge = wr->num_sge;
-+		for (i = 0; i < wr->num_sge; i++)
-+			wqe->sg_list[i] = wr->sg_list[i];
-+		/* Make sure queue entry is written before the head index. */
-+		smp_wmb();
-+		wq->head = next;
-+		spin_unlock_irqrestore(&srq->rq.lock, flags);
++	if (!isdigit(str[0])) {
++		ret = -EINVAL;
++		goto bail;
 +	}
-+	ret = 0;
++
++	val = simple_strtoul(str, &end, 0);
++
++	if (val > 0xffff) {
++		ret = -EINVAL;
++		goto bail;
++	}
++
++	*valp = val;
++
++	ret = end + 1 - str;
++	if (ret == 0)
++		ret = -EINVAL;
 +
 +bail:
 +	return ret;
 +}
 +
-+/**
-+ * qib_create_srq - create a shared receive queue
-+ * @ibpd: the protection domain of the SRQ to create
-+ * @srq_init_attr: the attributes of the SRQ
-+ * @udata: data from libibverbs when creating a user SRQ
++/* start of per-port functions */
++/*
++ * Get/Set heartbeat enable. OR of 1=enabled, 2=auto
 + */
-+struct ib_srq *qib_create_srq(struct ib_pd *ibpd,
-+			      struct ib_srq_init_attr *srq_init_attr,
-+			      struct ib_udata *udata)
++static ssize_t show_hrtbt_enb(struct qib_pportdata *ppd, char *buf)
 +{
-+	struct qib_ibdev *dev = to_idev(ibpd->device);
-+	struct qib_srq *srq;
-+	u32 sz;
-+	struct ib_srq *ret;
++	struct qib_devdata *dd = ppd->dd;
++	int ret;
 +
-+	if (srq_init_attr->attr.max_sge == 0 ||
-+	    srq_init_attr->attr.max_sge > ib_qib_max_srq_sges ||
-+	    srq_init_attr->attr.max_wr == 0 ||
-+	    srq_init_attr->attr.max_wr > ib_qib_max_srq_wrs) {
-+		ret = ERR_PTR(-EINVAL);
-+		goto done;
-+	}
-+
-+	srq = kmalloc(sizeof(*srq), GFP_KERNEL);
-+	if (!srq) {
-+		ret = ERR_PTR(-ENOMEM);
-+		goto done;
-+	}
-+
-+	/*
-+	 * Need to use vmalloc() if we want to support large #s of entries.
-+	 */
-+	srq->rq.size = srq_init_attr->attr.max_wr + 1;
-+	srq->rq.max_sge = srq_init_attr->attr.max_sge;
-+	sz = sizeof(struct ib_sge) * srq->rq.max_sge +
-+		sizeof(struct qib_rwqe);
-+	srq->rq.wq = vmalloc_user(sizeof(struct qib_rwq) + srq->rq.size * sz);
-+	if (!srq->rq.wq) {
-+		ret = ERR_PTR(-ENOMEM);
-+		goto bail_srq;
-+	}
-+
-+	/*
-+	 * Return the address of the RWQ as the offset to mmap.
-+	 * See qib_mmap() for details.
-+	 */
-+	if (udata && udata->outlen >= sizeof(__u64)) {
-+		int err;
-+		u32 s = sizeof(struct qib_rwq) + srq->rq.size * sz;
-+
-+		srq->ip =
-+		    qib_create_mmap_info(dev, s, ibpd->uobject->context,
-+					 srq->rq.wq);
-+		if (!srq->ip) {
-+			ret = ERR_PTR(-ENOMEM);
-+			goto bail_wq;
-+		}
-+
-+		err = ib_copy_to_udata(udata, &srq->ip->offset,
-+				       sizeof(srq->ip->offset));
-+		if (err) {
-+			ret = ERR_PTR(err);
-+			goto bail_ip;
-+		}
-+	} else
-+		srq->ip = NULL;
-+
-+	/*
-+	 * ib_create_srq() will initialize srq->ibsrq.
-+	 */
-+	spin_lock_init(&srq->rq.lock);
-+	srq->rq.wq->head = 0;
-+	srq->rq.wq->tail = 0;
-+	srq->limit = srq_init_attr->attr.srq_limit;
-+
-+	spin_lock(&dev->n_srqs_lock);
-+	if (dev->n_srqs_allocated == ib_qib_max_srqs) {
-+		spin_unlock(&dev->n_srqs_lock);
-+		ret = ERR_PTR(-ENOMEM);
-+		goto bail_ip;
-+	}
-+
-+	dev->n_srqs_allocated++;
-+	spin_unlock(&dev->n_srqs_lock);
-+
-+	if (srq->ip) {
-+		spin_lock_irq(&dev->pending_lock);
-+		list_add(&srq->ip->pending_mmaps, &dev->pending_mmaps);
-+		spin_unlock_irq(&dev->pending_lock);
-+	}
-+
-+	ret = &srq->ibsrq;
-+	goto done;
-+
-+bail_ip:
-+	kfree(srq->ip);
-+bail_wq:
-+	vfree(srq->rq.wq);
-+bail_srq:
-+	kfree(srq);
-+done:
++	ret = dd->f_get_ib_cfg(ppd, QIB_IB_CFG_HRTBT);
++	ret = scnprintf(buf, PAGE_SIZE, "%d\n", ret);
 +	return ret;
 +}
 +
-+/**
-+ * qib_modify_srq - modify a shared receive queue
-+ * @ibsrq: the SRQ to modify
-+ * @attr: the new attributes of the SRQ
-+ * @attr_mask: indicates which attributes to modify
-+ * @udata: user data for libibverbs.so
-+ */
-+int qib_modify_srq(struct ib_srq *ibsrq, struct ib_srq_attr *attr,
-+		   enum ib_srq_attr_mask attr_mask,
-+		   struct ib_udata *udata)
++static ssize_t store_hrtbt_enb(struct qib_pportdata *ppd, const char *buf,
++			       size_t count)
 +{
-+	struct qib_srq *srq = to_isrq(ibsrq);
-+	struct qib_rwq *wq;
-+	int ret = 0;
++	struct qib_devdata *dd = ppd->dd;
++	int ret;
++	u16 val;
 +
-+	if (attr_mask & IB_SRQ_MAX_WR) {
-+		struct qib_rwq *owq;
-+		struct qib_rwqe *p;
-+		u32 sz, size, n, head, tail;
++	ret = qib_parse_ushort(buf, &val);
 +
-+		/* Check that the requested sizes are below the limits. */
-+		if ((attr->max_wr > ib_qib_max_srq_wrs) ||
-+		    ((attr_mask & IB_SRQ_LIMIT) ?
-+		     attr->srq_limit : srq->limit) > attr->max_wr) {
-+			ret = -EINVAL;
-+			goto bail;
-+		}
++	/*
++	 * Set the "intentional" heartbeat enable per either of
++	 * "Enable" and "Auto", as these are normally set together.
++	 * This bit is consulted when leaving loopback mode,
++	 * because entering loopback mode overrides it and automatically
++	 * disables heartbeat.
++	 */
++	if (ret >= 0)
++		ret = dd->f_set_ib_cfg(ppd, QIB_IB_CFG_HRTBT, val);
++	if (ret < 0)
++		qib_dev_err(dd, "attempt to set invalid Heartbeat enable\n");
++	return ret < 0 ? ret : count;
++}
 +
-+		sz = sizeof(struct qib_rwqe) +
-+			srq->rq.max_sge * sizeof(struct ib_sge);
-+		size = attr->max_wr + 1;
-+		wq = vmalloc_user(sizeof(struct qib_rwq) + size * sz);
-+		if (!wq) {
-+			ret = -ENOMEM;
-+			goto bail;
-+		}
++static ssize_t store_loopback(struct qib_pportdata *ppd, const char *buf,
++			      size_t count)
++{
++	struct qib_devdata *dd = ppd->dd;
++	int ret = count, r;
 +
-+		/* Check that we can write the offset to mmap. */
-+		if (udata && udata->inlen >= sizeof(__u64)) {
-+			__u64 offset_addr;
-+			__u64 offset = 0;
++	r = dd->f_set_ib_loopback(ppd, buf);
++	if (r < 0)
++		ret = r;
 +
-+			ret = ib_copy_from_udata(&offset_addr, udata,
-+						 sizeof(offset_addr));
-+			if (ret)
-+				goto bail_free;
-+			udata->outbuf =
-+				(void __user *) (unsigned long) offset_addr;
-+			ret = ib_copy_to_udata(udata, &offset,
-+					       sizeof(offset));
-+			if (ret)
-+				goto bail_free;
-+		}
-+
-+		spin_lock_irq(&srq->rq.lock);
-+		/*
-+		 * validate head and tail pointer values and compute
-+		 * the number of remaining WQEs.
-+		 */
-+		owq = srq->rq.wq;
-+		head = owq->head;
-+		tail = owq->tail;
-+		if (head >= srq->rq.size || tail >= srq->rq.size) {
-+			ret = -EINVAL;
-+			goto bail_unlock;
-+		}
-+		n = head;
-+		if (n < tail)
-+			n += srq->rq.size - tail;
-+		else
-+			n -= tail;
-+		if (size <= n) {
-+			ret = -EINVAL;
-+			goto bail_unlock;
-+		}
-+		n = 0;
-+		p = wq->wq;
-+		while (tail != head) {
-+			struct qib_rwqe *wqe;
-+			int i;
-+
-+			wqe = get_rwqe_ptr(&srq->rq, tail);
-+			p->wr_id = wqe->wr_id;
-+			p->num_sge = wqe->num_sge;
-+			for (i = 0; i < wqe->num_sge; i++)
-+				p->sg_list[i] = wqe->sg_list[i];
-+			n++;
-+			p = (struct qib_rwqe *)((char *) p + sz);
-+			if (++tail >= srq->rq.size)
-+				tail = 0;
-+		}
-+		srq->rq.wq = wq;
-+		srq->rq.size = size;
-+		wq->head = n;
-+		wq->tail = 0;
-+		if (attr_mask & IB_SRQ_LIMIT)
-+			srq->limit = attr->srq_limit;
-+		spin_unlock_irq(&srq->rq.lock);
-+
-+		vfree(owq);
-+
-+		if (srq->ip) {
-+			struct qib_mmap_info *ip = srq->ip;
-+			struct qib_ibdev *dev = to_idev(srq->ibsrq.device);
-+			u32 s = sizeof(struct qib_rwq) + size * sz;
-+
-+			qib_update_mmap_info(dev, ip, s, wq);
-+
-+			/*
-+			 * Return the offset to mmap.
-+			 * See qib_mmap() for details.
-+			 */
-+			if (udata && udata->inlen >= sizeof(__u64)) {
-+				ret = ib_copy_to_udata(udata, &ip->offset,
-+						       sizeof(ip->offset));
-+				if (ret)
-+					goto bail;
-+			}
-+
-+			/*
-+			 * Put user mapping info onto the pending list
-+			 * unless it already is on the list.
-+			 */
-+			spin_lock_irq(&dev->pending_lock);
-+			if (list_empty(&ip->pending_mmaps))
-+				list_add(&ip->pending_mmaps,
-+					 &dev->pending_mmaps);
-+			spin_unlock_irq(&dev->pending_lock);
-+		}
-+	} else if (attr_mask & IB_SRQ_LIMIT) {
-+		spin_lock_irq(&srq->rq.lock);
-+		if (attr->srq_limit >= srq->rq.size)
-+			ret = -EINVAL;
-+		else
-+			srq->limit = attr->srq_limit;
-+		spin_unlock_irq(&srq->rq.lock);
-+	}
-+	goto bail;
-+
-+bail_unlock:
-+	spin_unlock_irq(&srq->rq.lock);
-+bail_free:
-+	vfree(wq);
-+bail:
 +	return ret;
 +}
 +
-+int qib_query_srq(struct ib_srq *ibsrq, struct ib_srq_attr *attr)
++static ssize_t store_led_override(struct qib_pportdata *ppd, const char *buf,
++				  size_t count)
 +{
-+	struct qib_srq *srq = to_isrq(ibsrq);
++	struct qib_devdata *dd = ppd->dd;
++	int ret;
++	u16 val;
 +
-+	attr->max_wr = srq->rq.size - 1;
-+	attr->max_sge = srq->rq.max_sge;
-+	attr->srq_limit = srq->limit;
-+	return 0;
-+}
-+
-+/**
-+ * qib_destroy_srq - destroy a shared receive queue
-+ * @ibsrq: the SRQ to destroy
-+ */
-+int qib_destroy_srq(struct ib_srq *ibsrq)
-+{
-+	struct qib_srq *srq = to_isrq(ibsrq);
-+	struct qib_ibdev *dev = to_idev(ibsrq->device);
-+
-+	spin_lock(&dev->n_srqs_lock);
-+	dev->n_srqs_allocated--;
-+	spin_unlock(&dev->n_srqs_lock);
-+	if (srq->ip)
-+		kref_put(&srq->ip->ref, qib_release_mmap_info);
++	ret = qib_parse_ushort(buf, &val);
++	if (ret > 0)
++		qib_set_led_override(ppd, val);
 +	else
-+		vfree(srq->rq.wq);
-+	kfree(srq);
++		qib_dev_err(dd, "attempt to set invalid LED override\n");
++	return ret < 0 ? ret : count;
++}
++
++static ssize_t show_status(struct qib_pportdata *ppd, char *buf)
++{
++	ssize_t ret;
++
++	if (!ppd->statusp)
++		ret = -EINVAL;
++	else
++		ret = scnprintf(buf, PAGE_SIZE, "0x%llx\n",
++				(unsigned long long) *(ppd->statusp));
++	return ret;
++}
++
++/*
++ * For userland compatibility, these offsets must remain fixed.
++ * They are strings for QIB_STATUS_*
++ */
++static const char *qib_status_str[] = {
++	"Initted",
++	"",
++	"",
++	"",
++	"",
++	"Present",
++	"IB_link_up",
++	"IB_configured",
++	"",
++	"Fatal_Hardware_Error",
++	NULL,
++};
++
++static ssize_t show_status_str(struct qib_pportdata *ppd, char *buf)
++{
++	int i, any;
++	u64 s;
++	ssize_t ret;
++
++	if (!ppd->statusp) {
++		ret = -EINVAL;
++		goto bail;
++	}
++
++	s = *(ppd->statusp);
++	*buf = '\0';
++	for (any = i = 0; s && qib_status_str[i]; i++) {
++		if (s & 1) {
++			/* if overflow */
++			if (any && strlcat(buf, " ", PAGE_SIZE) >= PAGE_SIZE)
++				break;
++			if (strlcat(buf, qib_status_str[i], PAGE_SIZE) >=
++					PAGE_SIZE)
++				break;
++			any = 1;
++		}
++		s >>= 1;
++	}
++	if (any)
++		strlcat(buf, "\n", PAGE_SIZE);
++
++	ret = strlen(buf);
++
++bail:
++	return ret;
++}
++
++/* end of per-port functions */
++
++/*
++ * Start of per-port file structures and support code
++ * Because we are fitting into other infrastructure, we have to supply the
++ * full set of kobject/sysfs_ops structures and routines.
++ */
++#define QIB_PORT_ATTR(name, mode, show, store) \
++	static struct qib_port_attr qib_port_attr_##name = \
++		__ATTR(name, mode, show, store)
++
++struct qib_port_attr {
++	struct attribute attr;
++	ssize_t (*show)(struct qib_pportdata *, char *);
++	ssize_t (*store)(struct qib_pportdata *, const char *, size_t);
++};
++
++QIB_PORT_ATTR(loopback, S_IWUSR, NULL, store_loopback);
++QIB_PORT_ATTR(led_override, S_IWUSR, NULL, store_led_override);
++QIB_PORT_ATTR(hrtbt_enable, S_IWUSR | S_IRUGO, show_hrtbt_enb,
++	      store_hrtbt_enb);
++QIB_PORT_ATTR(status, S_IRUGO, show_status, NULL);
++QIB_PORT_ATTR(status_str, S_IRUGO, show_status_str, NULL);
++
++static struct attribute *port_default_attributes[] = {
++	&qib_port_attr_loopback.attr,
++	&qib_port_attr_led_override.attr,
++	&qib_port_attr_hrtbt_enable.attr,
++	&qib_port_attr_status.attr,
++	&qib_port_attr_status_str.attr,
++	NULL
++};
++
++static ssize_t qib_portattr_show(struct kobject *kobj,
++	struct attribute *attr, char *buf)
++{
++	struct qib_port_attr *pattr =
++		container_of(attr, struct qib_port_attr, attr);
++	struct qib_pportdata *ppd =
++		container_of(kobj, struct qib_pportdata, pport_kobj);
++
++	return pattr->show(ppd, buf);
++}
++
++static ssize_t qib_portattr_store(struct kobject *kobj,
++	struct attribute *attr, const char *buf, size_t len)
++{
++	struct qib_port_attr *pattr =
++		container_of(attr, struct qib_port_attr, attr);
++	struct qib_pportdata *ppd =
++		container_of(kobj, struct qib_pportdata, pport_kobj);
++
++	return pattr->store(ppd, buf, len);
++}
++
++static void qib_port_release(struct kobject *kobj)
++{
++	/* nothing to do since memory is freed by qib_free_devdata() */
++}
++
++static const struct sysfs_ops qib_port_ops = {
++	.show = qib_portattr_show,
++	.store = qib_portattr_store,
++};
++
++static struct kobj_type qib_port_ktype = {
++	.release = qib_port_release,
++	.sysfs_ops = &qib_port_ops,
++	.default_attrs = port_default_attributes
++};
++
++/* Start sl2vl */
++
++#define QIB_SL2VL_ATTR(N) \
++	static struct qib_sl2vl_attr qib_sl2vl_attr_##N = { \
++		.attr = { .name = __stringify(N), .mode = 0444 }, \
++		.sl = N \
++	}
++
++struct qib_sl2vl_attr {
++	struct attribute attr;
++	int sl;
++};
++
++QIB_SL2VL_ATTR(0);
++QIB_SL2VL_ATTR(1);
++QIB_SL2VL_ATTR(2);
++QIB_SL2VL_ATTR(3);
++QIB_SL2VL_ATTR(4);
++QIB_SL2VL_ATTR(5);
++QIB_SL2VL_ATTR(6);
++QIB_SL2VL_ATTR(7);
++QIB_SL2VL_ATTR(8);
++QIB_SL2VL_ATTR(9);
++QIB_SL2VL_ATTR(10);
++QIB_SL2VL_ATTR(11);
++QIB_SL2VL_ATTR(12);
++QIB_SL2VL_ATTR(13);
++QIB_SL2VL_ATTR(14);
++QIB_SL2VL_ATTR(15);
++
++static struct attribute *sl2vl_default_attributes[] = {
++	&qib_sl2vl_attr_0.attr,
++	&qib_sl2vl_attr_1.attr,
++	&qib_sl2vl_attr_2.attr,
++	&qib_sl2vl_attr_3.attr,
++	&qib_sl2vl_attr_4.attr,
++	&qib_sl2vl_attr_5.attr,
++	&qib_sl2vl_attr_6.attr,
++	&qib_sl2vl_attr_7.attr,
++	&qib_sl2vl_attr_8.attr,
++	&qib_sl2vl_attr_9.attr,
++	&qib_sl2vl_attr_10.attr,
++	&qib_sl2vl_attr_11.attr,
++	&qib_sl2vl_attr_12.attr,
++	&qib_sl2vl_attr_13.attr,
++	&qib_sl2vl_attr_14.attr,
++	&qib_sl2vl_attr_15.attr,
++	NULL
++};
++
++static ssize_t sl2vl_attr_show(struct kobject *kobj, struct attribute *attr,
++			       char *buf)
++{
++	struct qib_sl2vl_attr *sattr =
++		container_of(attr, struct qib_sl2vl_attr, attr);
++	struct qib_pportdata *ppd =
++		container_of(kobj, struct qib_pportdata, sl2vl_kobj);
++	struct qib_ibport *qibp = &ppd->ibport_data;
++
++	return sprintf(buf, "%u\n", qibp->sl_to_vl[sattr->sl]);
++}
++
++static const struct sysfs_ops qib_sl2vl_ops = {
++	.show = sl2vl_attr_show,
++};
++
++static struct kobj_type qib_sl2vl_ktype = {
++	.release = qib_port_release,
++	.sysfs_ops = &qib_sl2vl_ops,
++	.default_attrs = sl2vl_default_attributes
++};
++
++/* End sl2vl */
++
++/* Start diag_counters */
++
++#define QIB_DIAGC_ATTR(N) \
++	static struct qib_diagc_attr qib_diagc_attr_##N = { \
++		.attr = { .name = __stringify(N), .mode = 0444 }, \
++		.counter = offsetof(struct qib_ibport, n_##N) \
++	}
++
++struct qib_diagc_attr {
++	struct attribute attr;
++	size_t counter;
++};
++
++QIB_DIAGC_ATTR(rc_resends);
++QIB_DIAGC_ATTR(rc_acks);
++QIB_DIAGC_ATTR(rc_qacks);
++QIB_DIAGC_ATTR(rc_delayed_comp);
++QIB_DIAGC_ATTR(seq_naks);
++QIB_DIAGC_ATTR(rdma_seq);
++QIB_DIAGC_ATTR(rnr_naks);
++QIB_DIAGC_ATTR(other_naks);
++QIB_DIAGC_ATTR(rc_timeouts);
++QIB_DIAGC_ATTR(loop_pkts);
++QIB_DIAGC_ATTR(pkt_drops);
++QIB_DIAGC_ATTR(dmawait);
++QIB_DIAGC_ATTR(unaligned);
++QIB_DIAGC_ATTR(rc_dupreq);
++QIB_DIAGC_ATTR(rc_seqnak);
++
++static struct attribute *diagc_default_attributes[] = {
++	&qib_diagc_attr_rc_resends.attr,
++	&qib_diagc_attr_rc_acks.attr,
++	&qib_diagc_attr_rc_qacks.attr,
++	&qib_diagc_attr_rc_delayed_comp.attr,
++	&qib_diagc_attr_seq_naks.attr,
++	&qib_diagc_attr_rdma_seq.attr,
++	&qib_diagc_attr_rnr_naks.attr,
++	&qib_diagc_attr_other_naks.attr,
++	&qib_diagc_attr_rc_timeouts.attr,
++	&qib_diagc_attr_loop_pkts.attr,
++	&qib_diagc_attr_pkt_drops.attr,
++	&qib_diagc_attr_dmawait.attr,
++	&qib_diagc_attr_unaligned.attr,
++	&qib_diagc_attr_rc_dupreq.attr,
++	&qib_diagc_attr_rc_seqnak.attr,
++	NULL
++};
++
++static ssize_t diagc_attr_show(struct kobject *kobj, struct attribute *attr,
++			       char *buf)
++{
++	struct qib_diagc_attr *dattr =
++		container_of(attr, struct qib_diagc_attr, attr);
++	struct qib_pportdata *ppd =
++		container_of(kobj, struct qib_pportdata, diagc_kobj);
++	struct qib_ibport *qibp = &ppd->ibport_data;
++
++	return sprintf(buf, "%u\n", *(u32 *)((char *)qibp + dattr->counter));
++}
++
++static const struct sysfs_ops qib_diagc_ops = {
++	.show = diagc_attr_show,
++};
++
++static struct kobj_type qib_diagc_ktype = {
++	.release = qib_port_release,
++	.sysfs_ops = &qib_diagc_ops,
++	.default_attrs = diagc_default_attributes
++};
++
++/* End diag_counters */
++
++/* end of per-port file structures and support code */
++
++/*
++ * Start of per-unit (or driver, in some cases, but replicated
++ * per unit) functions (these get a device *)
++ */
++static ssize_t show_rev(struct device *device, struct device_attribute *attr,
++			char *buf)
++{
++	struct qib_ibdev *dev =
++		container_of(device, struct qib_ibdev, ibdev.dev);
++
++	return sprintf(buf, "%x\n", dd_from_dev(dev)->minrev);
++}
++
++static ssize_t show_hca(struct device *device, struct device_attribute *attr,
++			char *buf)
++{
++	struct qib_ibdev *dev =
++		container_of(device, struct qib_ibdev, ibdev.dev);
++	struct qib_devdata *dd = dd_from_dev(dev);
++	int ret;
++
++	if (!dd->boardname)
++		ret = -EINVAL;
++	else
++		ret = scnprintf(buf, PAGE_SIZE, "%s\n", dd->boardname);
++	return ret;
++}
++
++static ssize_t show_version(struct device *device,
++			    struct device_attribute *attr, char *buf)
++{
++	/* The string printed here is already newline-terminated. */
++	return scnprintf(buf, PAGE_SIZE, "%s", (char *)ib_qib_version);
++}
++
++static ssize_t show_boardversion(struct device *device,
++				 struct device_attribute *attr, char *buf)
++{
++	struct qib_ibdev *dev =
++		container_of(device, struct qib_ibdev, ibdev.dev);
++	struct qib_devdata *dd = dd_from_dev(dev);
++
++	/* The string printed here is already newline-terminated. */
++	return scnprintf(buf, PAGE_SIZE, "%s", dd->boardversion);
++}
++
++
++static ssize_t show_localbus_info(struct device *device,
++				  struct device_attribute *attr, char *buf)
++{
++	struct qib_ibdev *dev =
++		container_of(device, struct qib_ibdev, ibdev.dev);
++	struct qib_devdata *dd = dd_from_dev(dev);
++
++	/* The string printed here is already newline-terminated. */
++	return scnprintf(buf, PAGE_SIZE, "%s", dd->lbus_info);
++}
++
++
++static ssize_t show_nctxts(struct device *device,
++			   struct device_attribute *attr, char *buf)
++{
++	struct qib_ibdev *dev =
++		container_of(device, struct qib_ibdev, ibdev.dev);
++	struct qib_devdata *dd = dd_from_dev(dev);
++
++	/* Return the number of user ports (contexts) available. */
++	return scnprintf(buf, PAGE_SIZE, "%u\n", dd->cfgctxts -
++		dd->first_user_ctxt);
++}
++
++static ssize_t show_serial(struct device *device,
++			   struct device_attribute *attr, char *buf)
++{
++	struct qib_ibdev *dev =
++		container_of(device, struct qib_ibdev, ibdev.dev);
++	struct qib_devdata *dd = dd_from_dev(dev);
++
++	buf[sizeof dd->serial] = '\0';
++	memcpy(buf, dd->serial, sizeof dd->serial);
++	strcat(buf, "\n");
++	return strlen(buf);
++}
++
++static ssize_t store_chip_reset(struct device *device,
++				struct device_attribute *attr, const char *buf,
++				size_t count)
++{
++	struct qib_ibdev *dev =
++		container_of(device, struct qib_ibdev, ibdev.dev);
++	struct qib_devdata *dd = dd_from_dev(dev);
++	int ret;
++
++	if (count < 5 || memcmp(buf, "reset", 5) || !dd->diag_client) {
++		ret = -EINVAL;
++		goto bail;
++	}
++
++	ret = qib_reset_device(dd->unit);
++bail:
++	return ret < 0 ? ret : count;
++}
++
++static ssize_t show_logged_errs(struct device *device,
++				struct device_attribute *attr, char *buf)
++{
++	struct qib_ibdev *dev =
++		container_of(device, struct qib_ibdev, ibdev.dev);
++	struct qib_devdata *dd = dd_from_dev(dev);
++	int idx, count;
++
++	/* force consistency with actual EEPROM */
++	if (qib_update_eeprom_log(dd) != 0)
++		return -ENXIO;
++
++	count = 0;
++	for (idx = 0; idx < QIB_EEP_LOG_CNT; ++idx) {
++		count += scnprintf(buf + count, PAGE_SIZE - count, "%d%c",
++				   dd->eep_st_errs[idx],
++				   idx == (QIB_EEP_LOG_CNT - 1) ? '\n' : ' ');
++	}
++
++	return count;
++}
++
++/*
++ * Dump tempsense regs. in decimal, to ease shell-scripts.
++ */
++static ssize_t show_tempsense(struct device *device,
++			      struct device_attribute *attr, char *buf)
++{
++	struct qib_ibdev *dev =
++		container_of(device, struct qib_ibdev, ibdev.dev);
++	struct qib_devdata *dd = dd_from_dev(dev);
++	int ret;
++	int idx;
++	u8 regvals[8];
++
++	ret = -ENXIO;
++	for (idx = 0; idx < 8; ++idx) {
++		if (idx == 6)
++			continue;
++		ret = dd->f_tempsense_rd(dd, idx);
++		if (ret < 0)
++			break;
++		regvals[idx] = ret;
++	}
++	if (idx == 8)
++		ret = scnprintf(buf, PAGE_SIZE, "%d %d %02X %02X %d %d\n",
++				*(signed char *)(regvals),
++				*(signed char *)(regvals + 1),
++				regvals[2], regvals[3],
++				*(signed char *)(regvals + 5),
++				*(signed char *)(regvals + 7));
++	return ret;
++}
++
++/*
++ * end of per-unit (or driver, in some cases, but replicated
++ * per unit) functions
++ */
++
++/* start of per-unit file structures and support code */
++static DEVICE_ATTR(hw_rev, S_IRUGO, show_rev, NULL);
++static DEVICE_ATTR(hca_type, S_IRUGO, show_hca, NULL);
++static DEVICE_ATTR(board_id, S_IRUGO, show_hca, NULL);
++static DEVICE_ATTR(version, S_IRUGO, show_version, NULL);
++static DEVICE_ATTR(nctxts, S_IRUGO, show_nctxts, NULL);
++static DEVICE_ATTR(serial, S_IRUGO, show_serial, NULL);
++static DEVICE_ATTR(boardversion, S_IRUGO, show_boardversion, NULL);
++static DEVICE_ATTR(logged_errors, S_IRUGO, show_logged_errs, NULL);
++static DEVICE_ATTR(tempsense, S_IRUGO, show_tempsense, NULL);
++static DEVICE_ATTR(localbus_info, S_IRUGO, show_localbus_info, NULL);
++static DEVICE_ATTR(chip_reset, S_IWUSR, NULL, store_chip_reset);
++
++static struct device_attribute *qib_attributes[] = {
++	&dev_attr_hw_rev,
++	&dev_attr_hca_type,
++	&dev_attr_board_id,
++	&dev_attr_version,
++	&dev_attr_nctxts,
++	&dev_attr_serial,
++	&dev_attr_boardversion,
++	&dev_attr_logged_errors,
++	&dev_attr_tempsense,
++	&dev_attr_localbus_info,
++	&dev_attr_chip_reset,
++};
++
++int qib_create_port_files(struct ib_device *ibdev, u8 port_num,
++			  struct kobject *kobj)
++{
++	struct qib_pportdata *ppd;
++	struct qib_devdata *dd = dd_from_ibdev(ibdev);
++	int ret;
++
++	if (!port_num || port_num > dd->num_pports) {
++		qib_dev_err(dd, "Skipping infiniband class with "
++			    "invalid port %u\n", port_num);
++		ret = -ENODEV;
++		goto bail;
++	}
++	ppd = &dd->pport[port_num - 1];
++
++	ret = kobject_init_and_add(&ppd->pport_kobj, &qib_port_ktype, kobj,
++				   "linkcontrol");
++	if (ret) {
++		qib_dev_err(dd, "Skipping linkcontrol sysfs info, "
++			    "(err %d) port %u\n", ret, port_num);
++		goto bail;
++	}
++	kobject_uevent(&ppd->pport_kobj, KOBJ_ADD);
++
++	ret = kobject_init_and_add(&ppd->sl2vl_kobj, &qib_sl2vl_ktype, kobj,
++				   "sl2vl");
++	if (ret) {
++		qib_dev_err(dd, "Skipping sl2vl sysfs info, "
++			    "(err %d) port %u\n", ret, port_num);
++		goto bail_sl;
++	}
++	kobject_uevent(&ppd->sl2vl_kobj, KOBJ_ADD);
++
++	ret = kobject_init_and_add(&ppd->diagc_kobj, &qib_diagc_ktype, kobj,
++				   "diag_counters");
++	if (ret) {
++		qib_dev_err(dd, "Skipping diag_counters sysfs info, "
++			    "(err %d) port %u\n", ret, port_num);
++		goto bail_diagc;
++	}
++	kobject_uevent(&ppd->diagc_kobj, KOBJ_ADD);
 +
 +	return 0;
++
++bail_diagc:
++	kobject_put(&ppd->sl2vl_kobj);
++bail_sl:
++	kobject_put(&ppd->pport_kobj);
++bail:
++	return ret;
++}
++
++/*
++ * Register and create our files in /sys/class/infiniband.
++ */
++int qib_verbs_register_sysfs(struct qib_devdata *dd)
++{
++	struct ib_device *dev = &dd->verbs_dev.ibdev;
++	int i, ret;
++
++	for (i = 0; i < ARRAY_SIZE(qib_attributes); ++i) {
++		ret = device_create_file(&dev->dev, qib_attributes[i]);
++		if (ret)
++			return ret;
++	}
++
++	return 0;
++}
++
++/*
++ * Unregister and remove our files in /sys/class/infiniband.
++ */
++void qib_verbs_unregister_sysfs(struct qib_devdata *dd)
++{
++	struct qib_pportdata *ppd;
++	int i;
++
++	for (i = 0; i < dd->num_pports; i++) {
++		ppd = &dd->pport[i];
++		kobject_put(&ppd->pport_kobj);
++		kobject_put(&ppd->sl2vl_kobj);
++	}
 +}
 
 --
