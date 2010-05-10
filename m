@@ -1,27 +1,155 @@
-From: "Sean Hefty" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH 5/37] librdmacm: replace query_route call with separate queries
-Date: Mon, 10 May 2010 11:33:41 -0700
-Message-ID: <053733AA9B7B4EBFB94A54DEF34DC73A@amr.corp.intel.com>
-References: <D81E70C032A3452B9FD00D7EB445F6CF@amr.corp.intel.com> <4BE84B7D.40703@opengridcomputing.com>
+From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+Subject: Re: [PATCH v3 1/2] libibnetdisc: Convert to a multi-smp algorithm
+Date: Mon, 10 May 2010 13:53:53 -0700
+Message-ID: <20100510135353.257d76c0.weiny2@llnl.gov>
+References: <20100218124933.c018a23d.weiny2@llnl.gov>
+	<20100413104658.GA10830@me>
+	<20100413132531.GI10830@me>
+	<20100422191231.bf6021fb.weiny2@llnl.gov>
+	<20100507205052.GW7099@me.iol.unh.edu>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4BE84B7D.40703-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+In-Reply-To: <20100507205052.GW7099-o14lFNPAa+WKTadZzrrH2Q@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: 'Steve Wise' <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
->You define global int af_ib_support.  It never gets set to non-zero.
->Was this debug code or does it get set somewhere else that I'm missing?
+On Fri, 7 May 2010 13:50:53 -0700
+Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org> wrote:
 
-It doesn't get set until a later patch in the series, once all the needed
-infrastructure is in place.
+> Hi Ira,
+> 
+> On 19:12 Thu 22 Apr     , Ira Weiny wrote:
+> > On Tue, 13 Apr 2010 16:25:31 +0300
+> > Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org> wrote:
+> > 
+> > > On 13:46 Tue 13 Apr     , Sasha Khapyorsky wrote:
+> > > > 
+> > > > However see some comments and questions below.
+> > > 
+> > > Another thought. What about API like:
+> > > 
+> > > 	ibnd_discover_fabric(cosnt char *ca_name, unsigned port_num,
+> > > 			     struct ibnd_config *cfg);
+> > > 
+> > > So libibnetdisc will be responsible for opening and closing its own port
+> > > and in this way will be fully reenterable?
+> > 
+> > I think we need this...  But this alone will not fix ibnetdisc...
+> > 
+> > I found out why "iblinkinfo -S" is hanging for me.  The new algorithm has the
+> > library using both libibmad and libibumad calls simultaneously.
+> > 
+> > These libraries were not designed to be used this way.  Therefore, I don't
+> > think there is any direct bug in those layers.  However, this is why I thought
+> > it was better for ibnetdisc to sit on top of ibmad and not use the umad layer.
+> > 
+> > Anyway, I think it is a mistake to pass an ibmad_port construct directly to
+> > this library now.  Here is why.
+> > 
+> > umad_recv in query_smp.c and ib_resolve_self_via in ibnetdisc.c conflicted.
+> > The underlying call to _do_madrpc was discarding the response MAD which
+> > query_smp.c:umad_recv was expecting.
+> 
+> This makes sense for me.
+> 
+> > If we change the API to specify the ca name and port then the library can open
+> > 2 ports (or as many as it wants) and use them appropriately.  I think this is
+> > the only solution which does not involve fixing libibmad.
+> > 
+> > So what about something like this:
+> > 
+> >    int ibnd_discover_fabric(ibnd_fabric_t **fabric,
+> > 			    cosnt char *ca_name,  <== could we even default this?
+> 
+> I would think about ca_name and port_number. And this is of course may
+> have default (NULL, 0).
 
-- Sean
+Ok, ca_name and ca_port will be explicit.
 
+> 
+> > 			    struct ibnd_config *cfg);
+> 
+> What is wrong with current ibdn_fabric_t *ibnd_discover_fabric(...)? Why
+> do we need an extra parameter?
+
+Well we are breaking the interface again so I figure we might as well clean some things up.  Returning an int allows us to have a reason for the failure returned to the caller rather than just "NULL".  We have cleaned up most of the internals of the library to allow for this.
+
+> 
+> > 
+> > I don't mind the ibnd_config_t struct but I don't think it should be visible
+> > to the user.  Make it opaque and use "set" functions.  Something like.
+> > 
+> > ibnd_fabric_t *fabric;
+> > ibnd_config_t cfg;
+> > ib_portid_t * from;
+> > 
+> > ibnd_set_hops(&cfg, hops);         <== default -1
+> > ibnd_set_port_num(&cfg, port_num); <== default 1
+> > ibnd_set_max_smps(&cfg, max_smps); <== default 2
+> > ibnd_set_from_node(&cfg, from);    <== default NULL
+> 
+> I would prefer to not complicate API with ibnd_set_this() helpers. It
+> would be necessary to add new ones in the future which will lead to API
+> changes.
+
+See below.
+
+> 
+> > if (ibnd_discover_fabric(&fabric, "foo", &cfg)) {  <== anything not in cfg is
+> >                                                        defaulted here
+> >    fprintf(stderr, "Wow it failed\n");
+> > }
+> > 
+> > This allows us to change ibnd_config structure any time we want without
+> > affecting the API.  I don't think the "pad" you used is a good idea.
+> 
+> Without padding we will break ABI each time when new field is added to
+> the config structure.
+
+No it does not iff you use the ibnd_set_this() helpers and make the config private.
+
+> 
+> > Also since we are breaking the API we might as well return the fabric as a
+> > parameter and have an error code.  But I could go either way on this one.
+> > 
+> > Ira
+> > 
+> > 
+> > [*] query_smp.c probably should have it's own timeout here but we can discuss
+> > later.
+> > 
+> > [#] What sucks about this is that libibmad already has the functionality to
+> > open the umad port and configure it (50 line function).  Now we will be
+> > duplicating this functionality.
+> 
+> I think you can use mad_rpc_open_port(ca_name, port_number, ...) just
+> fine (and so the rest of libibmad stuff) - it will open separate fd.
+
+Yes for the libibmad functionality we can do that.  I was speaking of the use of the umad layer.  To use that layer we have to duplicate the functionality of mad_rpc_open_port in every tool which requires umad layer access, correct?  Right now we are mixing the 2 layers (mad and umad) in saquery (get_bind_handle) as well as libibnetdisc.
+
+I think we need to be careful we don't do this again!
+
+Ira
+
+> 
+> Sasha
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://*vger.kernel.org/majordomo-info.html
+> 
+
+
+-- 
+Ira Weiny
+Math Programmer/Computer Scientist
+Lawrence Livermore National Lab
+925-423-8008
+weiny2-i2BcT+NCU+M@public.gmane.org
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
