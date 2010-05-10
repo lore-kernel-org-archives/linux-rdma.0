@@ -1,94 +1,39 @@
-From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: Re: [PATCH 1/2] RDMA/core: add support for iWarp multicast acceleration
- over IB_QPT_RAW_ETY QP type
-Date: Mon, 10 May 2010 10:51:40 -0500
-Message-ID: <4BE82B8C.8080103@opengridcomputing.com>
-References: <20100430165249.1386.73960.stgit@gkslx010.igk.intel.com> <20100430165348.1386.77503.stgit@gkslx010.igk.intel.com>
+From: "Sean Hefty" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH] ummunotify: Userspace support for MMU notifications V2
+Date: Mon, 10 May 2010 10:12:56 -0700
+Message-ID: <56643C62C30044F0A734365A5274C821@amr.corp.intel.com>
+References: <1271943493-12120-1-git-send-email-ebmunson@us.ibm.com> <01C0A6AB-E4B6-4B56-AFAE-52952D152110@cisco.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Type: text/plain;
+	charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20100430165348.1386.77503.stgit-dAdtdUp2yJRU7keBU/FxOFDQ4js95KgL@public.gmane.org>
+In-Reply-To: <01C0A6AB-E4B6-4B56-AFAE-52952D152110-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org
-Cc: miroslaw.walukiewicz-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: 'Jeff Squyres' <jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Eric B Munson <ebmunson-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>
+Cc: akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org, rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org, peterz-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, mingo-X9Un+BFzKDI@public.gmane.org, pavel-+ZI9xUNit7I@public.gmane.org, randy.dunlap-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hey Roland,
+>> As discussed in <http://article.gmane.org/gmane.linux.drivers.openib/61925>
+>> and follow-up messages, libraries using RDMA would like to track
+>> precisely when application code changes memory mapping via free(),
+>> munmap(), etc.  Current pure-userspace solutions using malloc hooks
+>> and other tricks are not robust, and the feeling among experts is that
+>> the issue is unfixable without kernel help.
+>
+>Sorry for not replying earlier -- just to throw in my $0.02 here: the MPI
+>community is *very interested* in having this stuff in upstream kernels.  It
+>solves a fairly major problem for us.
+>
+>Open MPI (www.open-mpi.org) is ready to pretty much immediately take advantage
+>of these capabilities.  The code to use ummunotify is in a Mercurial branch;
+>we're only waiting for ummunotify to go upstream before committing our support
+>for it to our main SVN development trunk.
 
-Do you have thoughts on this change?  It is useful along with the 
-IBV_QPT_RAW_ETY type added to libibverbs for cxgb devices too.
+Intel's MPI team has examined this proposal as well and would also like to see
+this merged upstream.  It is helpful implementing MPI over RDMA devices.
 
-Steve.
-
-miroslaw.walukiewicz-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org wrote:
-> The patch enables usage of attach_mcast()/detach_mcast driver
-> specific verbs for iWARP devices.
->
-> IB path is unchanged.
-> iWARP path adds checking for raw ethernet QP type
->
-> Signed-off-by: Mirek Walukiewicz <miroslaw.walukiewicz-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
->
->
->
-> ---
->
->  drivers/infiniband/core/verbs.c |   24 ++++++++++++++++++++----
->  1 files changed, 20 insertions(+), 4 deletions(-)
->
->
-> diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
-> index a7da9be..b5023f2 100644
-> --- a/drivers/infiniband/core/verbs.c
-> +++ b/drivers/infiniband/core/verbs.c
-> @@ -887,9 +887,17 @@ int ib_attach_mcast(struct ib_qp *qp, union ib_gid *gid, u16 lid)
->  {
->  	if (!qp->device->attach_mcast)
->  		return -ENOSYS;
-> -	if (gid->raw[0] != 0xff || qp->qp_type != IB_QPT_UD)
-> -		return -EINVAL;
->  
-> +	switch (qp->device->node_type) {
-> +	case RDMA_TRANSPORT_IB:
-> +		if (gid->raw[0] != 0xff || qp->qp_type != IB_QPT_UD)
-> +			return -EINVAL;
-> +		break;
-> +	case RDMA_TRANSPORT_IWARP:
-> +		if (qp->qp_type != IB_QPT_RAW_ETY)
-> +			return -EINVAL;
-> +		break;
-> +	}
->  	return qp->device->attach_mcast(qp, gid, lid);
->  }
->  EXPORT_SYMBOL(ib_attach_mcast);
-> @@ -898,9 +906,17 @@ int ib_detach_mcast(struct ib_qp *qp, union ib_gid *gid, u16 lid)
->  {
->  	if (!qp->device->detach_mcast)
->  		return -ENOSYS;
-> -	if (gid->raw[0] != 0xff || qp->qp_type != IB_QPT_UD)
-> -		return -EINVAL;
->  
-> +	switch (qp->device->node_type) {
-> +	case RDMA_TRANSPORT_IB:
-> +		if (gid->raw[0] != 0xff || qp->qp_type != IB_QPT_UD)
-> +			return -EINVAL;
-> +		break;
-> +	case RDMA_TRANSPORT_IWARP:
-> +		if (qp->qp_type != IB_QPT_RAW_ETY)
-> +			return -EINVAL;
-> +		break;
-> +	}
->  	return qp->device->detach_mcast(qp, gid, lid);
->  }
->  EXPORT_SYMBOL(ib_detach_mcast);
->
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->   
+- Sean
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
