@@ -1,79 +1,52 @@
-From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: Re: [PATCH] RDMA/ucma: Copy iWARP route information.
-Date: Tue, 11 May 2010 15:38:38 -0500
-Message-ID: <4BE9C04E.4040907@opengridcomputing.com>
-References: <20100510154656.22415.47740.stgit@build.ogc.int> <1C56604F650B44A8B00B3CA55D00B95D@amr.corp.intel.com> <B28805226A0F4AD7B53BD430925D3D20@amr.corp.intel.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: IPoIB multiqueue support?
+Date: Tue, 11 May 2010 14:43:58 -0600
+Message-ID: <20100511204358.GQ15969@obsidianresearch.com>
+References: <alpine.DEB.2.00.1005101607580.17916@router.home> <adawrvbxxyd.fsf@roland-alpha.cisco.com> <alpine.DEB.2.00.1005110851530.1500@router.home> <adawrvawhyc.fsf@roland-alpha.cisco.com> <alpine.DEB.2.00.1005111516500.1500@router.home>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <B28805226A0F4AD7B53BD430925D3D20-Zpru7NauK7drdx17CPfAsdBPR1lH4CV8@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <alpine.DEB.2.00.1005111516500.1500-sBS69tsa9Uj/9pzu0YdTqQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
+Cc: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Sean Hefty wrote:
->>> +static void ucma_copy_iw_route(struct rdma_ucm_query_route_resp *resp,
->>> +			       struct rdma_route *route)
->>> +{
->>> +	struct rdma_dev_addr *dev_addr;
->>> +
->>> +	dev_addr = &route->addr.dev_addr;
->>> +	rdma_addr_get_dgid(dev_addr, (union ib_gid *) &resp->ib_route[0].dgid);
->>> +	rdma_addr_get_sgid(dev_addr, (union ib_gid *) &resp->ib_route[0].sgid);
->>>       
->> essentially breaking the query_route call into query_addr, query_path, and
->> query_gid.
->>     
->
-> I'm unsure where exactly this change would fit into the newer query model.  Are
-> these values available after rdma_resolve_addr completes? 
+On Tue, May 11, 2010 at 03:17:36PM -0500, Christoph Lameter wrote:
+> On Tue, 11 May 2010, Roland Dreier wrote:
+> 
+> >  > I am mostly interested in multicast traffic. Connected mode is not
+> >  > relevant to that usage scenario.
+> >
+> > As I said, I don't think anyone is working on it.  However it wouldn't
+> > be that hard to get something pretty good for multicast, since the
+> > InfiniBand multicast join mechanism would let you have essentially a
+> > perfect filter for steering individual multicast groups to whichever QP
+> > (ring) you wanted to.
+> 
+> Right but then would each individual QP need its own IP address?
 
+I think Roland means that each IP multicast address is mapped into an
+IB multicast GID, and you can bind a QP to a set of MGIDs. Right now
+the driver binds all MGIDs to the rx QP and basically ignores the
+MGID on receive.
 
-Yes.
+To go multi-queue you'd create multiple QPs and spread the MGID binds
+amongst them.
 
+> > Of course you could also implement the equivalent thing in userspace and
+> > probably get even better performance.
+> 
+> Start a QP listening to IPoIB mc traffic?
 
->  Are the sgid and dgid
-> the same type of values (e.g. L2 addresses)?  
+Yes, but the downside is that if you rely on the kernel to the group
+join then the HCA will send the packet to user space and the kernel QP.
 
+Some of the weird features in the RDMA CM seem to be for supporting
+this..
 
-Yes.
-
-
-> If the device does ARP internally,
-> is the dgid value still set?
->
->   
-
-
-No.  But only Amso does this, and its old and crusty...
-
-
-> My current implementation for 'query_gid' returns GIDs using an AF_IB address
-> structure.  I'm trying to figure out what structure we should be using to return
-> the iwarp values -- some other sockaddr, an iw_path_record, other? 
->
->   
-
-
-I'll have to ponder this.   In the past, we've been using the gid.raw 
-areas to hold these mac addresses...
-
-> Here are links to the proposed changes:
->
-> http://www.openfabrics.org/git/?p=~shefty/rdma-dev.git;a=commitdiff;h=b87cccdb27
-> a7e75c0f9e03a9d37593ceab4d4ede
->
-> http://www.openfabrics.org/git/?p=~shefty/rdma-dev.git;a=commitdiff;h=1830722bb5
-> e84451e3b458719cea8c746a2fb6d4
->
-> http://www.openfabrics.org/git/?p=~shefty/rdma-dev.git;a=commitdiff;h=0257cc9298
-> aa70c4bfc1a8c393f970375a897825
->
-> - Sean
->   
-
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
