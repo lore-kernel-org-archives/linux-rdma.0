@@ -1,7 +1,7 @@
 From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 Subject: Re: [PATCHv8 04/11] ib_core: IBoE CMA device binding
-Date: Wed, 12 May 2010 13:03:42 -0700
-Message-ID: <ada1vdgvqe9.fsf@roland-alpha.cisco.com>
+Date: Wed, 12 May 2010 13:05:06 -0700
+Message-ID: <adawrv8ubrh.fsf@roland-alpha.cisco.com>
 References: <20100218172403.GE12286@mtls03>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
@@ -13,15 +13,24 @@ To: Eli Cohen <eli-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
 Cc: Linux RDMA list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ewg <ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
- >  int ib_init_ah_from_path(struct ib_device *device, u8 port_num,
- > -			 struct ib_sa_path_rec *rec, struct ib_ah_attr *ah_attr)
- > +			 struct ib_sa_path_rec *rec, struct ib_ah_attr *ah_attr,
- > +			 int force_grh)
+ > +static void iboe_mcast_work_handler(struct work_struct *work)
+ > +{
+ > +	struct iboe_mcast_work *mw = container_of(work, struct iboe_mcast_work, work);
+ > +	struct cma_multicast *mc = mw->mc;
+ > +	struct ib_sa_multicast *m = mc->multicast.ib;
+ > +
+ > +	mc->multicast.ib->context = mc;
+ > +	cma_ib_mc_handler(0, m);
+ > +	kref_put(&mc->mcref, release_mc);
+ > +	kfree(mw);
+ > +}
 
-Rather than this change in API, could we just have this function look at
-the link layer, and if it's ethernet, then always set the GRH flag?
-Seems simpler than requiring the upper layers to do this and then pass
-the result in?
+I'm having a hard time working out why the iboe case needs to schedule
+to a work queue here since its already in process context, right?  It
+seems it would be really preferable to avoid all the extra pointer
+munging and reference counting, and just call things directly.
+
+ - R.
 -- 
 Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org> || For corporate legal information go to:
 http://www.cisco.com/web/about/doing_business/legal/cri/index.html
