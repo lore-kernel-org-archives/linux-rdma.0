@@ -1,53 +1,60 @@
-From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCHv8 07/11] ib_core: Add API to support IBoE from
-	userspace
-Date: Thu, 13 May 2010 12:18:23 -0700
-Message-ID: <ada4oibsj9c.fsf@roland-alpha.cisco.com>
-References: <20100218172425.GH12286@mtls03>
-	<adak4r8uaog.fsf@roland-alpha.cisco.com>
-	<20100513135645.GL16073@mtldesk030.lab.mtl.com>
-	<8172EB57F9DF4F93BBFAD583235E8C3F@amr.corp.intel.com>
-	<20100513165447.GB19438@mtldesk030.lab.mtl.com>
-	<A2C75A9348C942C3BAB7A2F0FF1B6CAB@amr.corp.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
-In-Reply-To: <A2C75A9348C942C3BAB7A2F0FF1B6CAB-Zpru7NauK7drdx17CPfAsdBPR1lH4CV8@public.gmane.org> (Sean
-	Hefty's message of "Thu, 13 May 2010 12:11:45 -0700")
-List-Unsubscribe: <http://lists.openfabrics.org/cgi-bin/mailman/listinfo/ewg>,
-	<mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.openfabrics.org/pipermail/ewg>
-List-Post: <mailto:ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
-List-Help: <mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=help>
-List-Subscribe: <http://lists.openfabrics.org/cgi-bin/mailman/listinfo/ewg>,
-	<mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=subscribe>
-Sender: ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
-Errors-To: ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
-To: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Linux RDMA list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, ewg <ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+From: Andreas Dilger <andreas.dilger@oracle.com>
+Subject: Re: [PATCH 0/9] mm: generic adaptive large memory allocation APIs
+Date: Thu, 13 May 2010 15:56:43 -0600
+Message-ID: <7280ADBE-F4BF-43B4-8BAC-5BF129C9DDB3@oracle.com>
+References: <1273744147-7594-1-git-send-email-xiaosuo@gmail.com> <1273763055.4353.136.camel@mulgrave.site>
+Mime-Version: 1.0 (Apple Message framework v1078)
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: quoted-printable
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <1273763055.4353.136.camel@mulgrave.site>
+Sender: owner-linux-mm@kvack.org
+To: James Bottomley <James.Bottomley@suse.de>
+Cc: Changli Gao <xiaosuo@gmail.com>, Andrew Morton <akpm@linux-foundation.org>, Hoang-Nam Nguyen <hnguyen@de.ibm.com>, Christoph Raisch <raisch@de.ibm.com>, Roland Dreier <rolandd@cisco.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Divy Le Ray <divy@chelsio.com>, Theodore Ts'o <tytso@mit.edu>, Alexander Viro <viro@zeniv.linux.org.uk>, Paul Menage <menage@google.com>, Li Zefan <lizf@cn.fujitsu.com>, linux-rdma@vger.kernel.org, "linux-kernel@vger.kernel.org Mailinglist" <linux-kernel@vger.kernel.org>, netdev@vger.kernel.org, linux-scsi@vger.kernel.org, "linux-ext4@vger.kernel.org development" <linux-ext4@vger.kernel.org>, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, containers@lists.linux-foundation.org
 List-Id: linux-rdma@vger.kernel.org
 
- > Basically, what I want to understand is why does this change make sense?
- > 
- > @@ -1139,6 +1139,10 @@ struct ib_device {
- >  						  struct ib_grh *in_grh,
- >  						  struct ib_mad *in_mad,
- >  						  struct ib_mad *out_mad);
- > +	int			   (*get_eth_l2_addr)(struct ib_device *device,
- > u8 port,
- > +						      union ib_gid *dgid, int
- > sgid_idx,
- > +						      u8 *mac, u16 *vlan_id, u8
- > *tagged);
- > +
+On 2010-05-13, at 09:04, James Bottomley wrote:
+> This isn't necessarily true ... most drivers and filesystems have to
+> know what type they're getting.  Often they have to do extra tricks to
+> process vmalloc areas.  Conversely, large kmalloc areas are a very
+> precious commodity: if a driver or filesystem can handle vmalloc for
+> large allocations, it should: it's easier for us to expand the vmalloc
+> area than to try to make page reclaim keep large contiguous areas ... =
+I
+> notice your proposed API does the exact opposite of this ... tries
+> kmalloc first and then does vmalloc.
+>=20
+> Given this policy problem, isn't it easier simply to hand craft the
+> vmalloc fall back to kmalloc (or vice versa) in the driver than add =
+this
+> whole massive raft of APIs for it?
 
-Yes, that was pretty much my original question.  Why do we have a verb
-for userspace to call a device-specific method to do the mapping?  The
-layering seems wrong somewhere if we have a generic verb to do this
-mapping, but then put the mapping in device-specific code.
+I know we wouldn't mind using large vmalloc allocations for e.g. =
+per-group arrays in ext4 (allocated once per mount), but I'd always =
+understood that using vmalloc for general purpose uses can have a =
+significant impact because the vmalloc() engine has (had?) serious =
+performance problems.  That means it is better performance-wise to have =
+a wrapper function like this to switch between kmalloc() and vmalloc() =
+based on the allocation size, but it makes the code ugly.  Having the =
+wrapper in the kernel would at least identify the different places that =
+are using this kind of workaround.
 
- - R.
--- 
-Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org> || For corporate legal information go to:
-http://www.cisco.com/web/about/doing_business/legal/cri/index.html
+If the performance of vmalloc() has been improved in the last few years, =
+then I'd be happy to just use vmalloc() all the time.  That said, =
+vmalloc still isn't suitable for sub-page allocations, so if you have a =
+variable-sized allocation that may be very small or very large the small =
+allocations will waste a whole page and a wrapper is still needed, or =
+vmalloc should be changed to call kmalloc/kfree for the sub-page =
+allocations.
+
+Cheers, Andreas
+--
+Andreas Dilger
+Lustre Technical Lead
+Oracle Corporation Canada Inc.
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
