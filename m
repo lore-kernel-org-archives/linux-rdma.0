@@ -1,35 +1,80 @@
-From: Alex Vainman <alexonlists-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH] libibverbs: Add huge page support to ibv_madvise_range()
-Date: Thu, 13 May 2010 17:04:11 +0300
-Message-ID: <4BEC06DB.30505@gmail.com>
-References: <4B12AA78.7090401@gmail.com>	<ada8wbzi490.fsf@roland-alpha.cisco.com> <4BCFFC48.4060401@gmail.com> <adazl0c92kp.fsf@roland-alpha.cisco.com>
-Reply-To: alexv-smomgflXvOZWk0Htik3J/w@public.gmane.org
+From: Changli Gao <xiaosuo@gmail.com>
+Subject: Re: [PATCH 1/9] mm: add generic adaptive large memory allocation APIs
+Date: Thu, 13 May 2010 22:08:26 +0800
+Message-ID: <AANLkTinLT5g5SKjqmQlS2kxvvMq1gsi1jPDgOKTnrT-q@mail.gmail.com>
+References: <1273744285-8128-1-git-send-email-xiaosuo@gmail.com>
+	<1273756816.5605.3547.camel@twins>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <adazl0c92kp.fsf-BjVyx320WGW9gfZ95n9DRSW4+XlvGpQz@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Cc: alexv-smomgflXvOZWk0Htik3J/w@public.gmane.org, roland <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, alexr-smomgflXvOZWk0Htik3J/w@public.gmane.org, monis-smomgflXvOZWk0Htik3J/w@public.gmane.org, ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: base64
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <1273756816.5605.3547.camel@twins>
+Sender: owner-linux-mm@kvack.org
+To: Peter Zijlstra <peterz@infradead.org>
+Cc: akpm@linux-foundation.org, Hoang-Nam Nguyen <hnguyen@de.ibm.com>, Christoph Raisch <raisch@de.ibm.com>, Roland Dreier <rolandd@cisco.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Divy Le Ray <divy@chelsio.com>, "James E.J. Bottomley" <James.Bottomley@suse.de>, Theodore Ts'o <tytso@mit.edu>, Andreas Dilger <adilger@sun.com>, Alexander Viro <viro@zeniv.linux.org.uk>, Paul Menage <menage@google.com>, Li Zefan <lizf@cn.fujitsu.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, netdev@vger.kernel.org, linux-scsi@vger.kernel.org, linux-ext4@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, containers@lists.linux-foundation.org, Eric Dumazet <eric.dumazet@gmail.com>, Tetsuo Handa <penguin-kernel@i-love.sakura.ne.jp>
 List-Id: linux-rdma@vger.kernel.org
 
-Roland Dreier Wrote:
->  > In order to avoid adding additional dependency to libibverbs, maybe
->  > we should just to enhance the get_huge_page_size() so it will support
->  > multiple huge page sizes?
-> 
-> I think that does make sense.  However see my reply to Alexander
-> Schmidt -- maybe there is something clever we can do with /proc/*/maps
-> to figure out when we need to use this?
-> 
->  - R.
+T24gVGh1LCBNYXkgMTMsIDIwMTAgYXQgOToyMCBQTSwgUGV0ZXIgWmlqbHN0cmEgPHBldGVyekBp
+bmZyYWRlYWQub3JnPiB3cm90ZToKPiBPbiBUaHUsIDIwMTAtMDUtMTMgYXQgMTc6NTEgKzA4MDAs
+IENoYW5nbGkgR2FvIHdyb3RlOgo+PiArdm9pZCAqX19rdm1hbGxvYyhzaXplX3Qgc2l6ZSwgZ2Zw
+X3QgZmxhZ3MpCj4+ICt7Cj4+ICsgwqAgwqAgwqAgdm9pZCAqcHRyOwo+PiArCj4+ICsgwqAgwqAg
+wqAgaWYgKHNpemUgPCBQQUdFX1NJWkUpCj4+ICsgwqAgwqAgwqAgwqAgwqAgwqAgwqAgcmV0dXJu
+IGttYWxsb2Moc2l6ZSwgR0ZQX0tFUk5FTCB8IGZsYWdzKTsKPj4gKyDCoCDCoCDCoCBzaXplID0g
+UEFHRV9BTElHTihzaXplKTsKPj4gKyDCoCDCoCDCoCBpZiAoaXNfcG93ZXJfb2ZfMihzaXplKSkK
+Pj4gKyDCoCDCoCDCoCDCoCDCoCDCoCDCoCBwdHIgPSAodm9pZCAqKV9fZ2V0X2ZyZWVfcGFnZXMo
+R0ZQX0tFUk5FTCB8IGZsYWdzIHwKPj4gKyDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDC
+oCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoF9fR0ZQX05PV0FSTiwgZ2V0X29y
+ZGVyKHNpemUpKTsKPj4gKyDCoCDCoCDCoCBlbHNlCj4+ICsgwqAgwqAgwqAgwqAgwqAgwqAgwqAg
+cHRyID0gYWxsb2NfcGFnZXNfZXhhY3Qoc2l6ZSwgR0ZQX0tFUk5FTCB8IGZsYWdzIHwKPj4gKyDC
+oCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDC
+oCDCoCDCoCBfX0dGUF9OT1dBUk4pOwo+PiArIMKgIMKgIMKgIGlmIChwdHIgIT0gTlVMTCkgewo+
+PiArIMKgIMKgIMKgIMKgIMKgIMKgIMKgIHZpcnRfdG9faGVhZF9wYWdlKHB0ciktPnByaXZhdGUg
+PSBzaXplOwo+PiArIMKgIMKgIMKgIMKgIMKgIMKgIMKgIHJldHVybiBwdHI7Cj4+ICsgwqAgwqAg
+wqAgfQo+PiArCj4+ICsgwqAgwqAgwqAgcHRyID0gdm1hbGxvYyhzaXplKTsKPj4gKyDCoCDCoCDC
+oCBpZiAocHRyICE9IE5VTEwgJiYgKGZsYWdzICYgX19HRlBfWkVSTykpCj4+ICsgwqAgwqAgwqAg
+wqAgwqAgwqAgwqAgbWVtc2V0KHB0ciwgMCwgc2l6ZSk7Cj4+ICsKPj4gKyDCoCDCoCDCoCByZXR1
+cm4gcHRyOwo+PiArfQo+PiArRVhQT1JUX1NZTUJPTChfX2t2bWFsbG9jKTsKPgo+IFNvIGlmIEkg
+ZG8ga3ZtYWxsb2Moc2l6ZSwgR0ZQX0FUT01JQykgSSBnZXQgR0ZQX0tFUk5FTHxHRlBfQVRPTUlD
+LCB3aGljaAo+IGlzIG5vdCBhIHJlY29tbWVuZGVkIHZhcmlhdGlvbiBiZWNhdXNlIG9uZSBzaG91
+bGQgbm90IG1peCBfX0dGUF9XQUlUIGFuZAo+IF9fR0ZQX0hJR0guCgpfX2t2bWFsbG9jKCkgaXMg
+b25seSBmb3IgaW50ZXJuYWwgdXNlKGt2bWFsbG9jLCBrdmNhbGxvYywgYW5kCmt2emFsbG9jKSwg
+YW5kIHRoZSBvbmx5IHZhbHVlIG9mIGZsYWdzIGlzIF9fR0ZQX1pFUk8uIEhvdyBhYm91dApyZXBs
+YWNpbmcgZmxhZ3Mgd2l0aCBhIGJvb2wgdmFyaWFibGUgemVybz8KCnZvaWQgKl9fa3ZtYWxsb2Mo
+c2l6ZV90IHNpemUsIGJvb2wgemVybyk7CgogT3IgY2hlY2sgdGhlIHZhbHVlIG9mIGZsYWdzIGlu
+IHRoZSBmcm9udCBvZiBfX2t2bWFsbG9jKCkuCgpCVUdfT04oKGZsYWdzICYgKH5fX0dGUF9aRVJP
+KSkgIT0gMCk7Cgo+Cj4gU28gSSB3b3VsZCBzaW1wbHkgZHJvcCB0aGUgZ2ZwIGFyZ3VtZW50IHRv
+IGF2b2lkIGNvbmZ1c2lvbi4KPgo+PiArdm9pZCBfX2t2ZnJlZSh2b2lkICpwdHIsIGJvb2wgaW5h
+dG9taWMpCj4+ICt7Cj4+ICsgwqAgwqAgwqAgaWYgKHVubGlrZWx5KFpFUk9fT1JfTlVMTF9QVFIo
+cHRyKSkpCj4+ICsgwqAgwqAgwqAgwqAgwqAgwqAgwqAgcmV0dXJuOwo+PiArIMKgIMKgIMKgIGlm
+IChpc192bWFsbG9jX2FkZHIocHRyKSkgewo+PiArIMKgIMKgIMKgIMKgIMKgIMKgIMKgIGlmIChp
+bmF0b21pYykgewo+PiArIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIHN0cnVjdCB3
+b3JrX3N0cnVjdCAqd29yazsKPj4gKwo+PiArIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKg
+IMKgIHdvcmsgPSBwdHI7Cj4+ICsgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgQlVJ
+TERfQlVHX09OKHNpemVvZihzdHJ1Y3Qgd29ya19zdHJ1Y3QpID4gUEFHRV9TSVpFKTsKPj4gKyDC
+oCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCBJTklUX1dPUksod29yaywga3ZmcmVlX3dv
+cmspOwo+PiArIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIHNjaGVkdWxlX3dvcmso
+d29yayk7Cj4+ICsgwqAgwqAgwqAgwqAgwqAgwqAgwqAgfSBlbHNlIHsKPj4gKyDCoCDCoCDCoCDC
+oCDCoCDCoCDCoCDCoCDCoCDCoCDCoCB2ZnJlZShwdHIpOwo+PiArIMKgIMKgIMKgIMKgIMKgIMKg
+IMKgIH0KPj4gKyDCoCDCoCDCoCB9IGVsc2Ugewo+PiArIMKgIMKgIMKgIMKgIMKgIMKgIMKgIHN0
+cnVjdCBwYWdlICpwYWdlOwo+PiArCj4+ICsgwqAgwqAgwqAgwqAgwqAgwqAgwqAgcGFnZSA9IHZp
+cnRfdG9faGVhZF9wYWdlKHB0cik7Cj4+ICsgwqAgwqAgwqAgwqAgwqAgwqAgwqAgaWYgKFBhZ2VT
+bGFiKHBhZ2UpIHx8IFBhZ2VDb21wb3VuZChwYWdlKSkKPj4gKyDCoCDCoCDCoCDCoCDCoCDCoCDC
+oCDCoCDCoCDCoCDCoCBrZnJlZShwdHIpOwo+PiArIMKgIMKgIMKgIMKgIMKgIMKgIMKgIGVsc2Ug
+aWYgKGlzX3Bvd2VyX29mXzIocGFnZS0+cHJpdmF0ZSkpCj4+ICsgwqAgwqAgwqAgwqAgwqAgwqAg
+wqAgwqAgwqAgwqAgwqAgZnJlZV9wYWdlcygodW5zaWduZWQgbG9uZylwdHIsCj4+ICsgwqAgwqAg
+wqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqBnZXRfb3JkZXIocGFn
+ZS0+cHJpdmF0ZSkpOwo+PiArIMKgIMKgIMKgIMKgIMKgIMKgIMKgIGVsc2UKPj4gKyDCoCDCoCDC
+oCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCBmcmVlX3BhZ2VzX2V4YWN0KHB0ciwgcGFnZS0+cHJp
+dmF0ZSk7Cj4+ICsgwqAgwqAgwqAgfQo+PiArfQo+PiArRVhQT1JUX1NZTUJPTChfX2t2ZnJlZSk7
+Cj4KPiBOQUssIEkgcmVhbGx5IHV0dGVybHkgZGlzbGlrZSB0aGF0IGluYXRvbWljIGFyZ3VtZW50
+LiBUaGUgYWxsb2Mgc2lkZQo+IGRvZXNuJ3QgZnVuY3Rpb24gaW4gYXRvbWljIGNvbnRleHQgZWl0
+aGVyLiBQbGVhc2Uga2VlcCB0aGUgdGhpbmcKPiBzeW1tZXRyaWMgaW4gdGhhdCByZWdhcmRzLgo+
+CgpUaGVyZSBhcmUgc29tZSB1c2Vycywgd2hvIHJlbGVhc2UgbWVtb3J5IGluIGF0b21pYyBjb250
+ZXh0LiBmb3IKZXhhbXBsZTogZnMvZmlsZS5jOiBmZG1lbS4KCi0tIApSZWdhcmRz77yMCkNoYW5n
+bGkgR2FvKHhpYW9zdW9AZ21haWwuY29tKQo=
 
-Maybe we should use the /proc/pid/pagemap and /proc/kpageflags files? These files let a userspace process find out which physical frame each virtual page is mapped to and to get the properties of each page frame including the page size.
-The disadvantage of this method is, that it applicable on kernel >= 2.6.25, since this interface is supported starting from the kernel 2.6.25.
-
--Alex
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
