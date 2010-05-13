@@ -1,51 +1,90 @@
-From: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCHv8 04/11] ib_core: IBoE CMA device binding
-Date: Thu, 13 May 2010 16:07:52 +0300
-Message-ID: <20100513130752.GK16073@mtldesk030.lab.mtl.com>
-References: <20100218172403.GE12286@mtls03>
-	<adaocgkubbq.fsf@roland-alpha.cisco.com>
+From: Peter Zijlstra <peterz@infradead.org>
+Subject: Re: [PATCH 1/9] mm: add generic adaptive large memory allocation
+ APIs
+Date: Thu, 13 May 2010 15:20:16 +0200
+Message-ID: <1273756816.5605.3547.camel@twins>
+References: <1273744285-8128-1-git-send-email-xiaosuo@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <adaocgkubbq.fsf-BjVyx320WGW9gfZ95n9DRSW4+XlvGpQz@public.gmane.org>
-List-Unsubscribe: <http://lists.openfabrics.org/cgi-bin/mailman/listinfo/ewg>,
-	<mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.openfabrics.org/pipermail/ewg>
-List-Post: <mailto:ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
-List-Help: <mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=help>
-List-Subscribe: <http://lists.openfabrics.org/cgi-bin/mailman/listinfo/ewg>,
-	<mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=subscribe>
-Sender: ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
-Errors-To: ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
-To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Cc: Linux RDMA list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, ewg <ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <1273744285-8128-1-git-send-email-xiaosuo@gmail.com>
+Sender: owner-linux-mm@kvack.org
+To: Changli Gao <xiaosuo@gmail.com>
+Cc: akpm@linux-foundation.org, Hoang-Nam Nguyen <hnguyen@de.ibm.com>, Christoph Raisch <raisch@de.ibm.com>, Roland Dreier <rolandd@cisco.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Divy Le Ray <divy@chelsio.com>, "James E.J. Bottomley" <James.Bottomley@suse.de>, Theodore Ts'o <tytso@mit.edu>, Andreas Dilger <adilger@sun.com>, Alexander Viro <viro@zeniv.linux.org.uk>, Paul Menage <menage@google.com>, Li Zefan <lizf@cn.fujitsu.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, netdev@vger.kernel.org, linux-scsi@vger.kernel.org, linux-ext4@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, containers@lists.linux-foundation.org, Eric Dumazet <eric.dumazet@gmail.com>, Tetsuo Handa <penguin-kernel@i-love.sakura.ne.jp>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, May 12, 2010 at 01:14:33PM -0700, Roland Dreier wrote:
->  > Multicast GIDs are always mapped to multicast MACs
->  > as is done in IPv6. Some helper functions are added to ib_addr.h.  IPv4
->  > multicast is enabled by translating IPv4 multicast addresses to IPv6 multicast
->  > as described in
->  > http://www.mail-archive.com/ipng-Va8kgSFw1KyzQ7sTrsxvMkEOCMrvLtNR@public.gmane.org/msg02134.html.
-> 
-> I guess it's a bit unfortunate that the RoCE annex completely ignored
-> how to map multicast GIDs to ethernet addresses (I suppose as part of
-> the larger decision to ignore address resolution entirely).  Anyway,
-> looking at the email message you reference, it seems to be someone
-> asking what the right way to map IPv4 multicast addresses to IPv6
-> addresses is.  Is there a more definitive document you can point to?
+On Thu, 2010-05-13 at 17:51 +0800, Changli Gao wrote:
+> +void *__kvmalloc(size_t size, gfp_t flags)
+> +{
+> +       void *ptr;
+> +
+> +       if (size < PAGE_SIZE)
+> +               return kmalloc(size, GFP_KERNEL | flags);
+> +       size =3D PAGE_ALIGN(size);
+> +       if (is_power_of_2(size))
+> +               ptr =3D (void *)__get_free_pages(GFP_KERNEL | flags |
+> +                                              __GFP_NOWARN, get_order(si=
+ze));
+> +       else
+> +               ptr =3D alloc_pages_exact(size, GFP_KERNEL | flags |
+> +                                             __GFP_NOWARN);
+> +       if (ptr !=3D NULL) {
+> +               virt_to_head_page(ptr)->private =3D size;
+> +               return ptr;
+> +       }
+> +
+> +       ptr =3D vmalloc(size);
+> +       if (ptr !=3D NULL && (flags & __GFP_ZERO))
+> +               memset(ptr, 0, size);
+> +
+> +       return ptr;
+> +}
+> +EXPORT_SYMBOL(__kvmalloc);
 
-I am not aware of any definitive document that addresses this issue.
+So if I do kvmalloc(size, GFP_ATOMIC) I get GFP_KERNEL|GFP_ATOMIC, which
+is not a recommended variation because one should not mix __GFP_WAIT and
+__GFP_HIGH.
 
-> 
-> It seems that unfortunately the way the layering of addresses is done,
-> there's no way to just use the standard mapping of IPv4 multicast
-> addresses to Ethernet addresses (since IBoE is does addressing via
-> the CMA mapping to GIDs followed by an unspecified mapping from GIDs to
-> Ethernet addresses).
-> 
+So I would simply drop the gfp argument to avoid confusion.
 
-It is natural to treat gids as IPv6 addresses, so using the standard
-mapping from IPv6 multicast addresses to mac addresses seems reasonable.
+> +void __kvfree(void *ptr, bool inatomic)
+> +{
+> +       if (unlikely(ZERO_OR_NULL_PTR(ptr)))
+> +               return;
+> +       if (is_vmalloc_addr(ptr)) {
+> +               if (inatomic) {
+> +                       struct work_struct *work;
+> +
+> +                       work =3D ptr;
+> +                       BUILD_BUG_ON(sizeof(struct work_struct) > PAGE_SI=
+ZE);
+> +                       INIT_WORK(work, kvfree_work);
+> +                       schedule_work(work);
+> +               } else {
+> +                       vfree(ptr);
+> +               }
+> +       } else {
+> +               struct page *page;
+> +
+> +               page =3D virt_to_head_page(ptr);
+> +               if (PageSlab(page) || PageCompound(page))
+> +                       kfree(ptr);
+> +               else if (is_power_of_2(page->private))
+> +                       free_pages((unsigned long)ptr,
+> +                                  get_order(page->private));
+> +               else
+> +                       free_pages_exact(ptr, page->private);
+> +       }
+> +}
+> +EXPORT_SYMBOL(__kvfree);=20
+
+NAK, I really utterly dislike that inatomic argument. The alloc side
+doesn't function in atomic context either. Please keep the thing
+symmetric in that regards.
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
