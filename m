@@ -1,32 +1,77 @@
-From: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCHv8 08/11] mlx4: Allow interfaces to correspond to each
-	other
-Date: Thu, 13 May 2010 14:13:12 +0300
-Message-ID: <20100513111312.GG16073@mtldesk030.lab.mtl.com>
-References: <20100218172430.GI12286@mtls03>
-	<adafx1wuald.fsf@roland-alpha.cisco.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+From: Changli Gao <xiaosuo-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH 9/9] ehca: use kvcalloc and kvfree
+Date: Thu, 13 May 2010 19:18:15 +0800
+Message-ID: <1273749495-10526-1-git-send-email-xiaosuo@gmail.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <adafx1wuald.fsf-BjVyx320WGW9gfZ95n9DRSW4+XlvGpQz@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Cc: Eli Cohen <eli-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, Linux RDMA list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ewg <ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+To: akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org
+Cc: Hoang-Nam Nguyen <hnguyen-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, Christoph Raisch <raisch-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Changli Gao <xiaosuo-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, May 12, 2010 at 01:30:22PM -0700, Roland Dreier wrote:
->  > +void *mlx4_get_prot_dev(struct mlx4_dev *dev, enum mlx4_prot proto, int port)
->  > +{
->  > +	return mlx4_find_get_prot_dev(dev, proto, port);
->  > +}
->  > +EXPORT_SYMBOL(mlx4_get_prot_dev);
-> 
-> Not sure I understand why you have a wrapper to call another function
-> with exactly the same parameters?  Can't we get rid of this and just
-> rename mlx4_find_get_prot_dev() to mlx4_get_prot_dev()?
+use kvcalloc and kvfree
 
-Sure, let's change that.
+use kvcalloc and kvfree, but I haven't test it, as I don't have that machine.
+
+Signed-off-by: Changli Gao <xiaosuo-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+----
+ drivers/infiniband/hw/ehca/ipz_pt_fn.c |   22 +++++-----------------
+ 1 file changed, 5 insertions(+), 17 deletions(-)
+diff --git a/drivers/infiniband/hw/ehca/ipz_pt_fn.c b/drivers/infiniband/hw/ehca/ipz_pt_fn.c
+index 1596e30..f0e7bd4 100644
+--- a/drivers/infiniband/hw/ehca/ipz_pt_fn.c
++++ b/drivers/infiniband/hw/ehca/ipz_pt_fn.c
+@@ -38,8 +38,6 @@
+  * POSSIBILITY OF SUCH DAMAGE.
+  */
+ 
+-#include <linux/slab.h>
+-
+ #include "ehca_tools.h"
+ #include "ipz_pt_fn.h"
+ #include "ehca_classes.h"
+@@ -222,15 +220,11 @@ int ipz_queue_ctor(struct ehca_pd *pd, struct ipz_queue *queue,
+ 	queue->small_page = NULL;
+ 
+ 	/* allocate queue page pointers */
+-	queue->queue_pages = kmalloc(nr_of_pages * sizeof(void *), GFP_KERNEL);
++	queue->queue_pages = kvcalloc(nr_of_pages, sizeof(void *));
+ 	if (!queue->queue_pages) {
+-		queue->queue_pages = vmalloc(nr_of_pages * sizeof(void *));
+-		if (!queue->queue_pages) {
+-			ehca_gen_err("Couldn't allocate queue page list");
+-			return 0;
+-		}
++		ehca_gen_err("Couldn't allocate queue page list");
++		return 0;
+ 	}
+-	memset(queue->queue_pages, 0, nr_of_pages * sizeof(void *));
+ 
+ 	/* allocate actual queue pages */
+ 	if (is_small) {
+@@ -245,10 +239,7 @@ int ipz_queue_ctor(struct ehca_pd *pd, struct ipz_queue *queue,
+ ipz_queue_ctor_exit0:
+ 	ehca_gen_err("Couldn't alloc pages queue=%p "
+ 		 "nr_of_pages=%x",  queue, nr_of_pages);
+-	if (is_vmalloc_addr(queue->queue_pages))
+-		vfree(queue->queue_pages);
+-	else
+-		kfree(queue->queue_pages);
++	kvfree(queue->queue_pages);
+ 
+ 	return 0;
+ }
+@@ -270,10 +261,7 @@ int ipz_queue_dtor(struct ehca_pd *pd, struct ipz_queue *queue)
+ 			free_page((unsigned long)queue->queue_pages[i]);
+ 	}
+ 
+-	if (is_vmalloc_addr(queue->queue_pages))
+-		vfree(queue->queue_pages);
+-	else
+-		kfree(queue->queue_pages);
++	kvfree(queue->queue_pages);
+ 
+ 	return 1;
+ }
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
