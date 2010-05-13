@@ -1,32 +1,43 @@
-From: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCHv8 07/11] ib_core: Add API to support IBoE from userspace
-Date: Thu, 13 May 2010 19:54:47 +0300
-Message-ID: <20100513165447.GB19438@mtldesk030.lab.mtl.com>
-References: <20100218172425.GH12286@mtls03>
-	<adak4r8uaog.fsf@roland-alpha.cisco.com>
-	<20100513135645.GL16073@mtldesk030.lab.mtl.com>
-	<8172EB57F9DF4F93BBFAD583235E8C3F@amr.corp.intel.com>
+From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [ewg] [PATCHv8 02/11] ib_core: IBoE support only QP1
+Date: Thu, 13 May 2010 10:35:14 -0700
+Message-ID: <adahbmbso19.fsf@roland-alpha.cisco.com>
+References: <20100218172344.GC12286@mtls03>
+	<ada632svqph.fsf@roland-alpha.cisco.com>
+	<20100513065917.GA16073@mtldesk030.lab.mtl.com>
+	<adatyqbsszt.fsf@roland-alpha.cisco.com>
+	<20100513165201.GA19438@mtldesk030.lab.mtl.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <8172EB57F9DF4F93BBFAD583235E8C3F-Zpru7NauK7drdx17CPfAsdBPR1lH4CV8@public.gmane.org>
+In-Reply-To: <20100513165201.GA19438-8YAHvHwT2UEvbXDkjdHOrw/a8Rv0c6iv@public.gmane.org> (Eli Cohen's
+	message of "Thu, 13 May 2010 19:52:01 +0300")
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, Linux RDMA list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ewg <ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+To: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: Eli Cohen <eli-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, Linux RDMA list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ewg <ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, May 13, 2010 at 08:55:13AM -0700, Sean Hefty wrote:
-> >
-> >Interesting idea. Not sure what is better here: a seperate ABI
-> >call or some additional 'u8 ctx[32]' field in struct
-> >ib_uverbs_create_ah_resp that will be interpreted by the hw-specific
-> >user-space driver.
-> 
-> I don't understand why mapping remote addresses should be driver specific.
+ > One reason is that get_src_path_mask() may access ah_lock.
 
-In this case it will not be just mapping remote addresses but creating
-the required AH information which is unique to each device.
+I don't see that:
+
+static u8 get_src_path_mask(struct ib_device *device, u8 port_num)
+{
+	struct ib_sa_device *sa_dev;
+	struct ib_sa_port   *port;
+	unsigned long flags;
+	u8 src_path_mask;
+
+	sa_dev = ib_get_client_data(device, &sa_client);
+	if (!sa_dev)
+		return 0x7f;
+
+so if we never add the sa_client structure it just returns.
+
+ - R.
+-- 
+Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org> || For corporate legal information go to:
+http://www.cisco.com/web/about/doing_business/legal/cri/index.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
