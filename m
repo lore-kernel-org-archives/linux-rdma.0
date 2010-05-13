@@ -1,71 +1,35 @@
-From: James Bottomley <James.Bottomley@suse.de>
-Subject: Re: [PATCH 0/9] mm: generic adaptive large memory allocation APIs
-Date: Thu, 13 May 2010 10:04:15 -0500
-Message-ID: <1273763055.4353.136.camel@mulgrave.site>
-References: <1273744147-7594-1-git-send-email-xiaosuo@gmail.com>
+From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [ewg] [PATCHv8 02/11] ib_core: IBoE support only QP1
+Date: Thu, 13 May 2010 08:48:06 -0700
+Message-ID: <adatyqbsszt.fsf@roland-alpha.cisco.com>
+References: <20100218172344.GC12286@mtls03>
+	<ada632svqph.fsf@roland-alpha.cisco.com>
+	<20100513065917.GA16073@mtldesk030.lab.mtl.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <1273744147-7594-1-git-send-email-xiaosuo@gmail.com>
-Sender: owner-linux-mm@kvack.org
-To: Changli Gao <xiaosuo@gmail.com>
-Cc: akpm@linux-foundation.org, Hoang-Nam Nguyen <hnguyen@de.ibm.com>, Christoph Raisch <raisch@de.ibm.com>, Roland Dreier <rolandd@cisco.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Divy Le Ray <divy@chelsio.com>, Theodore Ts'o <tytso@mit.edu>, Andreas Dilger <adilger@sun.com>, Alexander Viro <viro@zeniv.linux.org.uk>, Paul Menage <menage@google.com>, Li Zefan <lizf@cn.fujitsu.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, netdev@vger.kernel.org, linux-scsi@vger.kernel.org, linux-ext4@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, containers@lists.linux-foundation.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20100513065917.GA16073-8YAHvHwT2UEvbXDkjdHOrw/a8Rv0c6iv@public.gmane.org> (Eli Cohen's
+	message of "Thu, 13 May 2010 09:59:18 +0300")
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: Eli Cohen <eli-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, Linux RDMA list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ewg <ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, 2010-05-13 at 17:49 +0800, Changli Gao wrote:
-> generic adaptive large memory allocation APIs
-> 
-> kv*alloc are used to allocate large contiguous memory and the users don't mind
-> whether the memory is physically or virtually contiguous. The allocator always
-> try its best to allocate physically contiguous memory first.
+ > > Also I'm wondering why you did the "count" stuff to ignore IBoE-only
+ > > devices in multicast.c but not sa_query.c?
 
-This isn't necessarily true ... most drivers and filesystems have to
-know what type they're getting.  Often they have to do extra tricks to
-process vmalloc areas.  Conversely, large kmalloc areas are a very
-precious commodity: if a driver or filesystem can handle vmalloc for
-large allocations, it should: it's easier for us to expand the vmalloc
-area than to try to make page reclaim keep large contiguous areas ... I
-notice your proposed API does the exact opposite of this ... tries
-kmalloc first and then does vmalloc.
+ > It seems to me the right place to put this logic as the mutlicast code
+ > registers as an IB client and the add_one implemntation is
+ > multicast.c.
 
-Given this policy problem, isn't it easier simply to hand craft the
-vmalloc fall back to kmalloc (or vice versa) in the driver than add this
-whole massive raft of APIs for it?
+Right, I'm not saying it shouldn't be in multicast.c.  I'm just
+wondering why you don't have the same thing for sa_query.c.
 
-> In this patch set, some APIs are introduced: kvmalloc(), kvzalloc(), kvcalloc(),
-> kvrealloc(), kvfree() and kvfree_inatomic().
-> 
-> Some code are converted to use the new generic APIs instead.
-> 
-> Signed-off-by: Changli Gao <xiaosuo@gmail.com>
-> ----
->  drivers/infiniband/hw/ehca/ipz_pt_fn.c |   22 +-----
->  drivers/net/cxgb3/cxgb3_defs.h         |    2 
->  drivers/net/cxgb3/cxgb3_offload.c      |   31 ---------
->  drivers/net/cxgb3/l2t.c                |    4 -
->  drivers/net/cxgb4/cxgb4.h              |    3 
->  drivers/net/cxgb4/cxgb4_main.c         |   37 +----------
->  drivers/net/cxgb4/l2t.c                |    2 
->  drivers/scsi/cxgb3i/cxgb3i_ddp.c       |   12 +--
->  drivers/scsi/cxgb3i/cxgb3i_ddp.h       |   26 -------
->  drivers/scsi/cxgb3i/cxgb3i_offload.c   |    6 -
->  fs/ext4/super.c                        |   21 +-----
->  fs/file.c                              |  109 ++++-----------------------------
->  include/linux/mm.h                     |   31 +++++++++
->  include/linux/vmalloc.h                |    1 
->  kernel/cgroup.c                        |   47 +-------------
->  kernel/relay.c                         |   35 ----------
->  mm/nommu.c                             |    6 +
->  mm/util.c                              |  104 +++++++++++++++++++++++++++++++
->  mm/vmalloc.c                           |   14 ++++
->  19 files changed, 207 insertions(+), 306 deletions(-)
-
-James
-
-
+ - R.
+-- 
+Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org> || For corporate legal information go to:
+http://www.cisco.com/web/about/doing_business/legal/cri/index.html
 --
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
