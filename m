@@ -1,42 +1,49 @@
-From: Yevgeny Petrilin <yevgenyp-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
-Subject: [PATCH 3/3] mlx4_en: use MLX4_LEAST_ATTACHED_VECTOR for TX cqs
-Date: Thu, 13 May 2010 12:25:23 +0300
-Message-ID: <4BEBC583.4050308@mellanox.co.il>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+From: Changli Gao <xiaosuo@gmail.com>
+Subject: [PATCH 0/9] mm: generic adaptive large memory allocation APIs
+Date: Thu, 13 May 2010 17:49:07 +0800
+Message-ID: <1273744147-7594-1-git-send-email-xiaosuo@gmail.com>
+Return-path: <owner-linux-mm@kvack.org>
+Sender: owner-linux-mm@kvack.org
+To: akpm@linux-foundation.org
+Cc: Hoang-Nam Nguyen <hnguyen@de.ibm.com>, Christoph Raisch <raisch@de.ibm.com>, Roland Dreier <rolandd@cisco.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Divy Le Ray <divy@chelsio.com>, "James E.J. Bottomley" <James.Bottomley@suse.de>, Theodore Ts'o <tytso@mit.edu>, Andreas Dilger <adilger@sun.com>, Alexander Viro <viro@zeniv.linux.org.uk>, Paul Menage <menage@google.com>, Li Zefan <lizf@cn.fujitsu.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, netdev@vger.kernel.org, linux-scsi@vger.kernel.org, linux-ext4@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, containers@lists.linux-foundation.org, Changli Gao <xiaosuo@gmail.com>
 List-Id: linux-rdma@vger.kernel.org
 
-Instead always setting all the TX cqs to use comletion vector 0,
-let the mlx4_core to distribute them to avoid situation where some eqs
-are very loaded while other do nothing.
+generic adaptive large memory allocation APIs
 
-Signed-off-by: Yevgeny Petrilin <yevgenyp-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
----
- drivers/net/mlx4/en_cq.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+kv*alloc are used to allocate large contiguous memory and the users don't mind
+whether the memory is physically or virtually contiguous. The allocator always
+try its best to allocate physically contiguous memory first.
 
-diff --git a/drivers/net/mlx4/en_cq.c b/drivers/net/mlx4/en_cq.c
-index 21786ad..f3dc8b7 100644
---- a/drivers/net/mlx4/en_cq.c
-+++ b/drivers/net/mlx4/en_cq.c
-@@ -56,7 +56,7 @@ int mlx4_en_create_cq(struct mlx4_en_priv *priv,
- 		cq->vector   = ring % mdev->dev->caps.num_comp_vectors;
- 	} else {
- 		cq->buf_size = sizeof(struct mlx4_cqe);
--		cq->vector   = 0;
-+		cq->vector   = MLX4_LEAST_ATTACHED_VECTOR;
- 	}
- 
- 	cq->ring = ring;
--- 
-1.6.1.3
+In this patch set, some APIs are introduced: kvmalloc(), kvzalloc(), kvcalloc(),
+kvrealloc(), kvfree() and kvfree_inatomic().
+
+Some code are converted to use the new generic APIs instead.
+
+Signed-off-by: Changli Gao <xiaosuo@gmail.com>
+----
+ drivers/infiniband/hw/ehca/ipz_pt_fn.c |   22 +-----
+ drivers/net/cxgb3/cxgb3_defs.h         |    2 
+ drivers/net/cxgb3/cxgb3_offload.c      |   31 ---------
+ drivers/net/cxgb3/l2t.c                |    4 -
+ drivers/net/cxgb4/cxgb4.h              |    3 
+ drivers/net/cxgb4/cxgb4_main.c         |   37 +----------
+ drivers/net/cxgb4/l2t.c                |    2 
+ drivers/scsi/cxgb3i/cxgb3i_ddp.c       |   12 +--
+ drivers/scsi/cxgb3i/cxgb3i_ddp.h       |   26 -------
+ drivers/scsi/cxgb3i/cxgb3i_offload.c   |    6 -
+ fs/ext4/super.c                        |   21 +-----
+ fs/file.c                              |  109 ++++-----------------------------
+ include/linux/mm.h                     |   31 +++++++++
+ include/linux/vmalloc.h                |    1 
+ kernel/cgroup.c                        |   47 +-------------
+ kernel/relay.c                         |   35 ----------
+ mm/nommu.c                             |    6 +
+ mm/util.c                              |  104 +++++++++++++++++++++++++++++++
+ mm/vmalloc.c                           |   14 ++++
+ 19 files changed, 207 insertions(+), 306 deletions(-)
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
