@@ -1,45 +1,39 @@
-From: Pradeep Satyanarayana <pradeeps-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
-Subject: Re: [PATCH] libibverbs: Add huge page support to ibv_madvise_range()
-Date: Thu, 13 May 2010 17:04:15 -0700
-Message-ID: <4BEC937F.5000808@linux.vnet.ibm.com>
-References: <4B12AA78.7090401@gmail.com> <ada8wbzi490.fsf@roland-alpha.cisco.com> <4BCFFC48.4060401@gmail.com> <adazl0c92kp.fsf@roland-alpha.cisco.com> <4BEC06DB.30505@gmail.com> <adapr0zsswc.fsf@roland-alpha.cisco.com>
+From: Peter Zijlstra <peterz@infradead.org>
+Subject: Re: [PATCH 1/9] mm: add generic adaptive large memory allocation
+ APIs
+Date: Fri, 14 May 2010 10:03:34 +0200
+Message-ID: <1273824214.5605.3625.camel@twins>
+References: <1273744285-8128-1-git-send-email-xiaosuo@gmail.com>
+	 <1273756816.5605.3547.camel@twins>
+	 <AANLkTinLT5g5SKjqmQlS2kxvvMq1gsi1jPDgOKTnrT-q@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <adapr0zsswc.fsf-BjVyx320WGW9gfZ95n9DRSW4+XlvGpQz@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Cc: alexv-smomgflXvOZWk0Htik3J/w@public.gmane.org, roland <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, alexr-smomgflXvOZWk0Htik3J/w@public.gmane.org, monis-smomgflXvOZWk0Htik3J/w@public.gmane.org, ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <AANLkTinLT5g5SKjqmQlS2kxvvMq1gsi1jPDgOKTnrT-q@mail.gmail.com>
+Sender: owner-linux-mm@kvack.org
+To: Changli Gao <xiaosuo@gmail.com>
+Cc: akpm@linux-foundation.org, Hoang-Nam Nguyen <hnguyen@de.ibm.com>, Christoph Raisch <raisch@de.ibm.com>, Roland Dreier <rolandd@cisco.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Divy Le Ray <divy@chelsio.com>, "James E.J. Bottomley" <James.Bottomley@suse.de>, Theodore Ts'o <tytso@mit.edu>, Andreas Dilger <adilger@sun.com>, Alexander Viro <viro@zeniv.linux.org.uk>, Paul Menage <menage@google.com>, Li Zefan <lizf@cn.fujitsu.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, netdev@vger.kernel.org, linux-scsi@vger.kernel.org, linux-ext4@vger.kernel.org, linux-fsdevel@vger.kernel.org, linux-mm@kvack.org, containers@lists.linux-foundation.org, Eric Dumazet <eric.dumazet@gmail.com>, Tetsuo Handa <penguin-kernel@i-love.sakura.ne.jp>
 List-Id: linux-rdma@vger.kernel.org
 
-Roland Dreier wrote:
->  > Maybe we should use the /proc/pid/pagemap and /proc/kpageflags files?
->  > These files let a userspace process find out which physical frame
->  > each virtual page is mapped to and to get the properties of each page
->  > frame including the page size.
-> 
-> Sounds interesting... the only problem is that /proc/kpageflags is
-> root-only, so we can't use that.  But does /proc/pid/pagemap give enough
-> information to be useful?
+On Thu, 2010-05-13 at 22:08 +0800, Changli Gao wrote:
+> > NAK, I really utterly dislike that inatomic argument. The alloc side
+> > doesn't function in atomic context either. Please keep the thing
+> > symmetric in that regards.
+> >
+>=20
+> There are some users, who release memory in atomic context. for
+> example: fs/file.c: fdmem.=20
 
-The most useful information that /proc/pid/pagemap provides the PFN (if the
-page is not swapped out). In fact there is very useful tool called 
-Documentation/vm/page-types.c which gives a lot of the information that we 
-need. Again the caveat is that it uses /proc/kpageflags.
+urgh, but yeah, aside from not using vmalloc to allocate fd tables one
+needs to deal with this.
 
-/proc/pid/pagemap also provided "page shift". I am not sure what that is
-in the context of huge pages.
-> 
->  > The disadvantage of this method is, that it applicable on kernel >=
->  > 2.6.25, since this interface is supported starting from the kernel
->  > 2.6.25.
-> 
-> I think that's OK
-
-Pradeep
+But if that is the only one, I'd let them do the workqueue thing that's
+already there. If there really are more people wanting to do this, then
+maybe add: kvfree_atomic().
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
