@@ -1,26 +1,24 @@
-From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: Re: [PATCH v2] libibverbs: add path record definitions to sa.h
-Date: Mon, 17 May 2010 08:38:58 -0500
-Message-ID: <4BF146F2.5060909@opengridcomputing.com>
-References: <2420730B531C4665BD842A7F46007DA2@amr.corp.intel.com>	<adapr18zmmj.fsf@roland-alpha.cisco.com>	<63BD07796ED544AEAC6E41E669DC6EAC@amr.corp.intel.com> <adavdano5lb.fsf@roland-alpha.cisco.com>
+From: Motorola Company Award 2010 <hughmcd-FGKo4X94FMn2fBVCVOL8/A@public.gmane.org>
+Subject: Dear Winner
+Date: Mon, 17 May 2010 07:44:26 -0700 (PDT)
+Message-ID: <1768615646.338762.1274107466453.JavaMail.root__10762.1022653349$1274107502$gmane$org@zm08.stanford.edu>
+Reply-To: "yorkshire.onlineuk-cG17fTKFUrW8rjiVs5Nzzw@public.gmane.org"
+	  <yorkshire.onlineuk-cG17fTKFUrW8rjiVs5Nzzw@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <adavdano5lb.fsf-BjVyx320WGW9gfZ95n9DRSW4+XlvGpQz@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: info-U2fvuRwOCqDQT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Roland Dreier wrote:
-> thanks, applied this.  Will roll a new libibverbs release early next week.
->   
 
-Can you add the RAW_ETY qp type in this release as well?
-
-
+You have been selected for a cash prize of =C2=A3400,000.00GBP  from Mo=
+torola Promotion 2010. Contact YORKSHIRE BANK OF LONDON U.K for your fu=
+nds release .Home Address: Age: Country: Sex: Occupation.  Reply this e=
+mail with the information for claim (yorkshire.onlineuk-cG17fTKFUrW8rjiVs5Nzzw@public.gmane.org)
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
