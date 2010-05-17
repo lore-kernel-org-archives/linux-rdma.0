@@ -1,68 +1,135 @@
-From: Liran Liss <liranl-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
-Subject: Re: [PATCHv8 07/11] ib_core: Add API to support IBoE from
-	userspace
-Date: Mon, 17 May 2010 19:31:21 +0300
-Message-ID: <E113D394D7C5DB4F8FF691FA7EE9DB4439A7327B0D@MTLMAIL.mtl.com>
-References: <20100218172425.GH12286@mtls03>
-	<adak4r8uaog.fsf@roland-alpha.cisco.com>
-	<20100513135645.GL16073@mtldesk030.lab.mtl.com>
-	<8172EB57F9DF4F93BBFAD583235E8C3F@amr.corp.intel.com>
-	<20100513165447.GB19438@mtldesk030.lab.mtl.com>
-	<A2C75A9348C942C3BAB7A2F0FF1B6CAB@amr.corp.intel.com>
-	<ada4oibsj9c.fsf@roland-alpha.cisco.com>
+From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Subject: InfiniBand/RDMA merge plans for 2.6.35
+Date: Mon, 17 May 2010 09:36:09 -0700
+Message-ID: <adaiq6mo58m.fsf@roland-alpha.cisco.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
-In-Reply-To: <ada4oibsj9c.fsf-BjVyx320WGW9gfZ95n9DRSW4+XlvGpQz@public.gmane.org>
-Content-Language: en-US
-List-Unsubscribe: <http://lists.openfabrics.org/cgi-bin/mailman/listinfo/ewg>,
-	<mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.openfabrics.org/pipermail/ewg>
-List-Post: <mailto:ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
-List-Help: <mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=help>
-List-Subscribe: <http://lists.openfabrics.org/cgi-bin/mailman/listinfo/ewg>,
-	<mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=subscribe>
-Sender: ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
-Errors-To: ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
-To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Linux RDMA list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, ewg <ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-If we have a dedicated ABI call for this mapping, then it seems reasonable to have it device independent.
-However, this mapping is really only used when creating address handles.
+Since 2.6.34 is here, it's probably a good time to talk about 2.6.35
+merge plans.  All the pending things that I'm aware of are listed below.
 
-So, we can base the mapping on the (device specific) create_ah() flow, but provide generic mapping functions for all devices to use (this is kind of what happens now).
-Also, using create_ah() doesn't introduce an ABI call that is specific to ib-->eth mappings.
+Boilerplate:
 
-This is similar to how device-specific ib_reg_user_mr() functions call the generic ib_umem_get()...
+If something isn't already in my tree and it isn't listed below, I
+probably missed it or dropped it unintentionally.  Please remind me.
 
------Original Message-----
-From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Roland Dreier
-Sent: Thursday, May 13, 2010 10:18 PM
-To: Sean Hefty
-Cc: 'Eli Cohen'; Eli Cohen; Linux RDMA list; ewg
-Subject: Re: [PATCHv8 07/11] ib_core: Add API to support IBoE from userspace
+As usual, when submitting a patch:
 
- > Basically, what I want to understand is why does this change make sense?
- >
- > @@ -1139,6 +1139,10 @@ struct ib_device {
- >  						  struct ib_grh *in_grh,
- >  						  struct ib_mad *in_mad,
- >  						  struct ib_mad *out_mad);
- > +	int			   (*get_eth_l2_addr)(struct ib_device *device,
- > u8 port,
- > +						      union ib_gid *dgid, int
- > sgid_idx,
- > +						      u8 *mac, u16 *vlan_id, u8
- > *tagged);
- > +
+ - Give a good changelog that explains what issue your patch
+   addresses, how you address the issue, how serious the issue is, and
+   any other information that would be useful to someone evaluating
+   your patch now, or trying to understand it years from now.
 
-Yes, that was pretty much my original question.  Why do we have a verb for userspace to call a device-specific method to do the mapping?  The layering seems wrong somewhere if we have a generic verb to do this mapping, but then put the mapping in device-specific code.
+ - Please make sure that you include a "Signed-off-by:" line, and put
+   any extra junk that should not go into the final kernel log *after*
+   the "---" line so that git tools strip it off automatically.  Make
+   the subject line be appropriate for inclusion in the kernel log as
+   well once the leading "[PATCH ...]" stuff is stripped off.  I waste a
+   lot of time fixing patches by hand that could otherwise be spent
+   doing something productive like watching youtube.
 
- - R.
---
+ - Run your patch through checkpatch.pl so I don't have to nag you to
+   fix trivial issues (or spend time fixing them myself).
+
+ - Check your patch over at least enough so I don't see a memory leak
+   or deadlock as soon as I look at it.
+
+ - Build your patch with sparse checking ("C=2 CF=-D__CHECK_ENDIAN__")
+   and make sure it doesn't introduce new warnings.  (A big bonus in
+   goodwill for sending patches that fix old warnings)
+
+ - Test your patch on a kernel with things like slab debugging and
+   lockdep turned on.
+
+And while you're waiting for me to get to your patch, I sure wouldn't
+mind if you read and commented on someone else's patch.  We currently
+have a big imbalance between people who are writing patches (many) and
+people who are reviewing patches (mostly me).  None of this means you
+shouldn't remind me about pending patches, since I often lose track of
+things and drop them accidentally.
+
+Core:
+
+ - Added support for masked atomic operations.
+
+ULPs:
+
+ - Merged a series of iSER failover improvements.
+
+HW specific:
+
+ - Added the iw_cxgb4 driver for new Chelsio T4 adapters.
+
+ - Added masked atomic support to mlx4.
+
+ - Removed use of the older PCI state API in favor of the new DMA
+   state API.
+
+ - A few other fixes here and there.
+
+Here are a few topics that are not ready in time for the 2.6.35 window
+and will need to wait for 2.6.36 at least:
+
+ - XRC.  While I think we made significant progress here, the fact is
+   that this is not ready to merge at the beginning of the merge
+   window, and so we'll need to keep working on it and wait for the
+   next merge window.
+
+ - IBoE.  Same as XRC; we made significant progress (and I opened an
+   iboe branch to track this), but we still do not have even the
+   user-kernel interface really nailed down yet.
+
+ - New QLogic qib driver.  If a new set of patches shows up soon, we
+   can probably sneak this in, since it is essentially a new hardware
+   driver that affects little else.  However the sheer size of the
+   driver means we need to get this in early in the release cycle.
+
+Here all the patches I already have in my for-next branch:
+
+Chien Tung (1):
+      RDMA/nes: Make nesadapter->phy_lock usage consistent
+
+Dan Carpenter (1):
+      IB/iser: Fix error flow in iser_create_ib_conn_res()
+
+FUJITA Tomonori (3):
+      RDMA/cxgb3: Use the dma state API instead of pci equivalents
+      RDMA/amso1100: Use the dma state API instead of pci equivalents
+      IB/mthca: Use the dma state API instead of pci equivalents
+
+Julia Lawall (1):
+      IB/core: Use kmemdup() instead of kmalloc()+memcpy()
+
+Or Gerlitz (4):
+      IPoIB: Allow disabling/enabling TSO on the fly through ethtool
+      IB/iser: Add asynchronous event handler
+      IB/iser: Remove buggy back-pointer setting
+      IB/iser: Enhance disconnection logic for multi-pathing
+
+Roland Dreier (4):
+      IB: Explicitly rule out llseek to avoid BKL in default_llseek()
+      RDMA/nes: Make unnecessarily global functions static
+      RDMA/cxgb3: Shrink .text with compile-time init of handlers arrays
+      MAINTAINERS: Add cxgb4 and iw_cxgb4 entries
+
+Steve Wise (2):
+      RDMA/cxgb3: Don't free skbs on NET_XMIT_* indications from LLD
+      RDMA/cxgb4: Add driver for Chelsio T4 RNIC
+
+Tetsuo Handa (1):
+      RDMA/cma: Randomize local port allocation
+
+Vladimir Sokolovsky (2):
+      IB/core: Add support for masked atomic operations
+      IB/mlx4: Add support for masked atomic operations
+-- 
 Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org> || For corporate legal information go to:
 http://www.cisco.com/web/about/doing_business/legal/cri/index.html
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org More majordomo info at  http://vger.kernel.org/majordomo-info.html
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
