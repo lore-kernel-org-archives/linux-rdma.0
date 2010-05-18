@@ -1,46 +1,100 @@
-From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: Re: [PATCH v2] libibverbs: add path record definitions to sa.h
-Date: Tue, 18 May 2010 09:03:41 -0500
-Message-ID: <4BF29E3D.40704@opengridcomputing.com>
-References: <2420730B531C4665BD842A7F46007DA2@amr.corp.intel.com>	<adapr18zmmj.fsf@roland-alpha.cisco.com>	<63BD07796ED544AEAC6E41E669DC6EAC@amr.corp.intel.com>	<adavdano5lb.fsf@roland-alpha.cisco.com>	<4BF146F2.5060909@opengridcomputing.com> <adask5pnav3.fsf@roland-alpha.cisco.com>
+From: "Sean Hefty" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH V2 1/4] ib_core: changes to support XRC RCV qp's
+Date: Tue, 18 May 2010 11:33:23 -0700
+Message-ID: <21985B556C0D42658109996B406ADC15@amr.corp.intel.com>
+References: <201005181455.02623.jackm@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain;
+	charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <adask5pnav3.fsf-BjVyx320WGW9gfZ95n9DRSW4+XlvGpQz@public.gmane.org>
+In-Reply-To: <201005181455.02623.jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: 'Jack Morgenstein' <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org
+Cc: Tziporet Koren <tziporet-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Roland Dreier wrote:
->  > Can you add the RAW_ETY qp type in this release as well?
->
-> To be honest I haven't looked at the iWARP datagram stuff at all.  I'm
-> not sure overloading the RAW_ETY QP type is necessarily the right thing
-> to do -- it has quite different (never implemented) semantics in the IB
-> case.  Is there any overview of what you guys are planning as far as
-> how work requests are created for such QPs?
->   
+>+struct ib_xrc_rcv_qp_table_entry *
+>+ib_xrc_rcv_tbl_find(struct ib_device *dev, u32 qpn)
+>+{
+>+        return radix_tree_lookup(&dev->xrc_rcv_qp_table, qpn);
+>+}
 
-The RAW_ETY qp would be just that:  A kernel-bypass/user mode qp that 
-allows sending/receiving ethernet packets.   It would also provide a way 
-for user applications to join/leave ethernet mcast groups (which 
-requires an rdma core kernel change that Intel posted too).  What the 
-iWARP vendors are doing on top of that is implementing some form of UDP 
-in user mode.  The main goal here is to provide an ultra low latency UDP 
-multicast and unicast channel for important market segments that desire 
-this paradigm.  Also, due to the nature of this (send/recv raw eth 
-frames), the interface would be privileged.
+nit - but do we need a wrapper around this single call?
 
-If you want to wait, then later I'll post patches on how this is being 
-done for cxgb4.  But I thought adding the RAW_ETY was definitely a 
-common requirement for Intel and Chelsio.
+>+int ib_xrc_rcv_qp_table_add_reg_entry(struct ib_device *dev, u32 qpn,
+>+				      void *context)
+>+{
+>+	struct ib_xrc_rcv_reg_entry *reg_entry, *tmp;
+>+	struct ib_xrc_rcv_qp_table_entry *qp;
+>+	unsigned long flags;
+>+	int err = -EINVAL, found = 0;
+>+
+>+	reg_entry = kzalloc(sizeof *reg_entry, GFP_KERNEL);
+>+	if (!reg_entry)
+>+		return -ENOMEM;
+>+	reg_entry->context = context;
+>+
+>+	spin_lock_irqsave(&dev->xrc_rcv_qp_table_lock, flags);
+>+	qp = ib_xrc_rcv_tbl_find(dev, qpn);
+>+	if (unlikely(!qp))
+>+		goto free_out;
+>+	list_for_each_entry(tmp, &qp->list, list)
+>+		if (tmp->context == context) {
+>+			found = 1;
+>+			break;
+>+		}
+>+	/* add only a single entry per user context */
+>+	if (unlikely(found)) {
+>+		err = 0;
+>+		goto free_out;
+>+	}
 
+Maybe this becomes clear later, but can a user add multiple entries?  Can't we
+just consider this a usage error?  Actually, why does it matter if the same
+context is added multiple times?
 
-Steve.
+>+	atomic_inc(&qp->xrcd->usecnt);
+>+	list_add_tail(&reg_entry->list, &qp->list);
+>+	spin_unlock_irqrestore(&dev->xrc_rcv_qp_table_lock, flags);
+>+	return 0;
+>+
+>+free_out:
+>+	spin_unlock_irqrestore(&dev->xrc_rcv_qp_table_lock, flags);
+>+	kfree(reg_entry);
+>+	return err;
+>+}
+>+EXPORT_SYMBOL(ib_xrc_rcv_qp_table_add_reg_entry);
 
+>+int ib_xrc_rcv_qp_table_remove(struct ib_device *dev, u32 qpn)
+>+{
+>+	struct ib_xrc_rcv_reg_entry *reg_entry, *tmp;
+>+	struct ib_xrc_rcv_qp_table_entry *qp;
+>+	struct list_head xrc_local;
+>+	unsigned long flags;
+>+
+>+	INIT_LIST_HEAD(&xrc_local);
+>+
+>+	spin_lock_irqsave(&dev->xrc_rcv_qp_table_lock, flags);
+>+
+>+	qp = ib_xrc_rcv_tbl_find(dev, qpn);
+>+	if (unlikely(!qp))
+>+		goto out;
+>+	/* ASSERT(!list_empty(&qp->list)); */
+>+	list_replace_init(&qp->list, &xrc_local);
+>+	radix_tree_delete(&dev->xrc_rcv_qp_table, qpn);
+>+	spin_unlock_irqrestore(&dev->xrc_rcv_qp_table_lock, flags);
+>+
+>+	dev->destroy_xrc_rcv_qp(qp->xrcd, qpn);
+>+	kfree(qp);
+>+	list_for_each_entry_safe(reg_entry, tmp, &xrc_local, list) {
+>+		list_del(&reg_entry->list);
+>+		kfree(reg_entry);
+>+		atomic_dec(&qp->xrcd->usecnt);
 
+qp was just freed a few lines up
+
+- Sean
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
