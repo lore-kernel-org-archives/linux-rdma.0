@@ -1,130 +1,56 @@
-From: Roland Dreier <rdreier@cisco.com>
-Subject: [GIT PULL] please pull infiniband.git
-Date: Mon, 17 May 2010 20:37:19 -0700
-Message-ID: <adaocgdnamo.fsf@roland-alpha.cisco.com>
+From: Pradeep Satyanarayana <pradeeps-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
+Subject: Re: [PATCH] libibverbs: Add huge page support to ibv_madvise_range()
+Date: Mon, 17 May 2010 22:29:30 -0700
+Message-ID: <4BF225BA.6060005@linux.vnet.ibm.com>
+References: <4B12AA78.7090401@gmail.com> <ada8wbzi490.fsf@roland-alpha.cisco.com> <4BCFFC48.4060401@gmail.com> <adazl0c92kp.fsf@roland-alpha.cisco.com> <4BEC06DB.30505@gmail.com> <adapr0zsswc.fsf@roland-alpha.cisco.com> <4BEC937F.5000808@linux.vnet.ibm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: torvalds@linux-foundation.org, linux-kernel@vger.kernel.org, akpm@linux-foundation.org
-Cc: linux-rdma@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <4BEC937F.5000808-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Cc: alexv-smomgflXvOZWk0Htik3J/w@public.gmane.org, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Or Gerlitz <ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org>linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Moni Shoua <monis-smomgflXvOZWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Linus, please pull from
+Pradeep Satyanarayana wrote:
+> Roland Dreier wrote:
+>>  > Maybe we should use the /proc/pid/pagemap and /proc/kpageflags files?
+>>  > These files let a userspace process find out which physical frame
+>>  > each virtual page is mapped to and to get the properties of each page
+>>  > frame including the page size.
+>>
+>> Sounds interesting... the only problem is that /proc/kpageflags is
+>> root-only, so we can't use that.  But does /proc/pid/pagemap give enough
+>> information to be useful?
+> 
+> The most useful information that /proc/pid/pagemap provides the PFN (if the
+> page is not swapped out). In fact there is very useful tool called 
+> Documentation/vm/page-types.c which gives a lot of the information that we 
+> need. Again the caveat is that it uses /proc/kpageflags.
 
-    master.kernel.org:/pub/scm/linux/kernel/git/roland/infiniband.git for-linus
+Roland,
 
-This tree is also available from kernel.org mirrors at:
+Documentation/vm/page-types didn't turn out to be as interesting as expected.
+It does show the usage of huge pages, but it seems to provide system information
+and not process specific.
 
-    git://git.kernel.org/pub/scm/linux/kernel/git/roland/infiniband.git for-linus
+The possible alternatives and their limitations are:
 
-This will get the first batch InfinBand/RDMA changes for the 2.6.35
-merge window:
+1. /proc/pid/maps - usable only with libhugetlfs
+2. page-type and friends -/proc/kpageflgs is readable by root only (plus additional
+limitations described above).
+3. /proc/pid/smaps -this provides KernelPageSize/MMUPageSize information 
+(on recent kernels) with and without libhugetlbfs. Parsing this may be slow, 
+but how often would it be used?
 
-Chien Tung (1):
-      RDMA/nes: Make nesadapter->phy_lock usage consistent
+Given the above, I see /proc/pid/smaps as one alternative that provides a complete
+solution. Are there others? What are your thoughts?
 
-Dan Carpenter (1):
-      IB/iser: Fix error flow in iser_create_ib_conn_res()
+Pradeep
 
-FUJITA Tomonori (3):
-      RDMA/cxgb3: Use the dma state API instead of pci equivalents
-      RDMA/amso1100: Use the dma state API instead of pci equivalents
-      IB/mthca: Use the dma state API instead of pci equivalents
 
-Julia Lawall (1):
-      IB/core: Use kmemdup() instead of kmalloc()+memcpy()
-
-Or Gerlitz (4):
-      IPoIB: Allow disabling/enabling TSO on the fly through ethtool
-      IB/iser: Add asynchronous event handler
-      IB/iser: Remove buggy back-pointer setting
-      IB/iser: Enhance disconnection logic for multi-pathing
-
-Roland Dreier (5):
-      IB: Explicitly rule out llseek to avoid BKL in default_llseek()
-      RDMA/nes: Make unnecessarily global functions static
-      RDMA/cxgb3: Shrink .text with compile-time init of handlers arrays
-      MAINTAINERS: Add cxgb4 and iw_cxgb4 entries
-      Merge branches 'amso1100', 'bkl', 'cma', 'cxgb3', 'cxgb4', 'ipoib', 'iser', 'masked-atomics', 'misc', 'mthca' and 'nes' into for-next
-
-Steve Wise (2):
-      RDMA/cxgb3: Don't free skbs on NET_XMIT_* indications from LLD
-      RDMA/cxgb4: Add driver for Chelsio T4 RNIC
-
-Tetsuo Handa (1):
-      RDMA/cma: Randomize local port allocation
-
-Vladimir Sokolovsky (2):
-      IB/core: Add support for masked atomic operations
-      IB/mlx4: Add support for masked atomic operations
-
- MAINTAINERS                                   |   14 +
- drivers/infiniband/Kconfig                    |    1 +
- drivers/infiniband/Makefile                   |    1 +
- drivers/infiniband/core/cma.c                 |   74 +-
- drivers/infiniband/core/mad.c                 |    4 +-
- drivers/infiniband/core/ucm.c                 |    3 +-
- drivers/infiniband/core/ucma.c                |    4 +-
- drivers/infiniband/core/user_mad.c            |   12 +-
- drivers/infiniband/core/uverbs_main.c         |   11 +-
- drivers/infiniband/hw/amso1100/c2.h           |    2 +-
- drivers/infiniband/hw/amso1100/c2_alloc.c     |    4 +-
- drivers/infiniband/hw/amso1100/c2_cq.c        |    4 +-
- drivers/infiniband/hw/amso1100/c2_mq.h        |    2 +-
- drivers/infiniband/hw/amso1100/c2_provider.h  |    2 +-
- drivers/infiniband/hw/amso1100/c2_rnic.c      |   12 +-
- drivers/infiniband/hw/cxgb3/cxio_hal.c        |   12 +-
- drivers/infiniband/hw/cxgb3/cxio_hal.h        |    2 +-
- drivers/infiniband/hw/cxgb3/cxio_wr.h         |    4 +-
- drivers/infiniband/hw/cxgb3/iwch.c            |    2 -
- drivers/infiniband/hw/cxgb3/iwch_cm.c         |  133 +-
- drivers/infiniband/hw/cxgb4/Kconfig           |   18 +
- drivers/infiniband/hw/cxgb4/Makefile          |    5 +
- drivers/infiniband/hw/cxgb4/cm.c              | 2374 +++++++++++++++++++++++++
- drivers/infiniband/hw/cxgb4/cq.c              |  882 +++++++++
- drivers/infiniband/hw/cxgb4/device.c          |  520 ++++++
- drivers/infiniband/hw/cxgb4/ev.c              |  193 ++
- drivers/infiniband/hw/cxgb4/iw_cxgb4.h        |  745 ++++++++
- drivers/infiniband/hw/cxgb4/mem.c             |  811 +++++++++
- drivers/infiniband/hw/cxgb4/provider.c        |  518 ++++++
- drivers/infiniband/hw/cxgb4/qp.c              | 1577 ++++++++++++++++
- drivers/infiniband/hw/cxgb4/resource.c        |  417 +++++
- drivers/infiniband/hw/cxgb4/t4.h              |  550 ++++++
- drivers/infiniband/hw/cxgb4/t4fw_ri_api.h     |  829 +++++++++
- drivers/infiniband/hw/cxgb4/user.h            |   66 +
- drivers/infiniband/hw/mlx4/cq.c               |    8 +
- drivers/infiniband/hw/mlx4/main.c             |    1 +
- drivers/infiniband/hw/mlx4/qp.c               |   50 +-
- drivers/infiniband/hw/mthca/mthca_allocator.c |    8 +-
- drivers/infiniband/hw/mthca/mthca_eq.c        |    6 +-
- drivers/infiniband/hw/mthca/mthca_provider.h  |    2 +-
- drivers/infiniband/hw/nes/nes_hw.c            |   12 +-
- drivers/infiniband/hw/nes/nes_nic.c           |   16 +-
- drivers/infiniband/hw/nes/nes_utils.c         |   10 -
- drivers/infiniband/hw/nes/nes_verbs.c         |    2 +-
- drivers/infiniband/ulp/ipoib/ipoib_ethtool.c  |   20 +
- drivers/infiniband/ulp/iser/iscsi_iser.c      |    9 +-
- drivers/infiniband/ulp/iser/iscsi_iser.h      |    4 +-
- drivers/infiniband/ulp/iser/iser_verbs.c      |  115 +-
- include/linux/mlx4/device.h                   |    4 +-
- include/linux/mlx4/qp.h                       |    7 +
- include/rdma/ib_verbs.h                       |    7 +
- 51 files changed, 9838 insertions(+), 251 deletions(-)
- create mode 100644 drivers/infiniband/hw/cxgb4/Kconfig
- create mode 100644 drivers/infiniband/hw/cxgb4/Makefile
- create mode 100644 drivers/infiniband/hw/cxgb4/cm.c
- create mode 100644 drivers/infiniband/hw/cxgb4/cq.c
- create mode 100644 drivers/infiniband/hw/cxgb4/device.c
- create mode 100644 drivers/infiniband/hw/cxgb4/ev.c
- create mode 100644 drivers/infiniband/hw/cxgb4/iw_cxgb4.h
- create mode 100644 drivers/infiniband/hw/cxgb4/mem.c
- create mode 100644 drivers/infiniband/hw/cxgb4/provider.c
- create mode 100644 drivers/infiniband/hw/cxgb4/qp.c
- create mode 100644 drivers/infiniband/hw/cxgb4/resource.c
- create mode 100644 drivers/infiniband/hw/cxgb4/t4.h
- create mode 100644 drivers/infiniband/hw/cxgb4/t4fw_ri_api.h
- create mode 100644 drivers/infiniband/hw/cxgb4/user.h
--- 
-Roland Dreier <rolandd@cisco.com> || For corporate legal information go to:
-http://www.cisco.com/web/about/doing_business/legal/cri/index.html
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
