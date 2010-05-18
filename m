@@ -1,33 +1,130 @@
-From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH v2] libibverbs: add path record definitions to sa.h
-Date: Mon, 17 May 2010 20:32:16 -0700
-Message-ID: <adask5pnav3.fsf@roland-alpha.cisco.com>
-References: <2420730B531C4665BD842A7F46007DA2@amr.corp.intel.com>
-	<adapr18zmmj.fsf@roland-alpha.cisco.com>
-	<63BD07796ED544AEAC6E41E669DC6EAC@amr.corp.intel.com>
-	<adavdano5lb.fsf@roland-alpha.cisco.com>
-	<4BF146F2.5060909@opengridcomputing.com>
+From: Roland Dreier <rdreier@cisco.com>
+Subject: [GIT PULL] please pull infiniband.git
+Date: Mon, 17 May 2010 20:37:19 -0700
+Message-ID: <adaocgdnamo.fsf@roland-alpha.cisco.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4BF146F2.5060909-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org> (Steve Wise's message of
-	"Mon, 17 May 2010 08:38:58 -0500")
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: torvalds@linux-foundation.org, linux-kernel@vger.kernel.org, akpm@linux-foundation.org
+Cc: linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
- > Can you add the RAW_ETY qp type in this release as well?
+Linus, please pull from
 
-To be honest I haven't looked at the iWARP datagram stuff at all.  I'm
-not sure overloading the RAW_ETY QP type is necessarily the right thing
-to do -- it has quite different (never implemented) semantics in the IB
-case.  Is there any overview of what you guys are planning as far as
-how work requests are created for such QPs?
+    master.kernel.org:/pub/scm/linux/kernel/git/roland/infiniband.git for-linus
+
+This tree is also available from kernel.org mirrors at:
+
+    git://git.kernel.org/pub/scm/linux/kernel/git/roland/infiniband.git for-linus
+
+This will get the first batch InfinBand/RDMA changes for the 2.6.35
+merge window:
+
+Chien Tung (1):
+      RDMA/nes: Make nesadapter->phy_lock usage consistent
+
+Dan Carpenter (1):
+      IB/iser: Fix error flow in iser_create_ib_conn_res()
+
+FUJITA Tomonori (3):
+      RDMA/cxgb3: Use the dma state API instead of pci equivalents
+      RDMA/amso1100: Use the dma state API instead of pci equivalents
+      IB/mthca: Use the dma state API instead of pci equivalents
+
+Julia Lawall (1):
+      IB/core: Use kmemdup() instead of kmalloc()+memcpy()
+
+Or Gerlitz (4):
+      IPoIB: Allow disabling/enabling TSO on the fly through ethtool
+      IB/iser: Add asynchronous event handler
+      IB/iser: Remove buggy back-pointer setting
+      IB/iser: Enhance disconnection logic for multi-pathing
+
+Roland Dreier (5):
+      IB: Explicitly rule out llseek to avoid BKL in default_llseek()
+      RDMA/nes: Make unnecessarily global functions static
+      RDMA/cxgb3: Shrink .text with compile-time init of handlers arrays
+      MAINTAINERS: Add cxgb4 and iw_cxgb4 entries
+      Merge branches 'amso1100', 'bkl', 'cma', 'cxgb3', 'cxgb4', 'ipoib', 'iser', 'masked-atomics', 'misc', 'mthca' and 'nes' into for-next
+
+Steve Wise (2):
+      RDMA/cxgb3: Don't free skbs on NET_XMIT_* indications from LLD
+      RDMA/cxgb4: Add driver for Chelsio T4 RNIC
+
+Tetsuo Handa (1):
+      RDMA/cma: Randomize local port allocation
+
+Vladimir Sokolovsky (2):
+      IB/core: Add support for masked atomic operations
+      IB/mlx4: Add support for masked atomic operations
+
+ MAINTAINERS                                   |   14 +
+ drivers/infiniband/Kconfig                    |    1 +
+ drivers/infiniband/Makefile                   |    1 +
+ drivers/infiniband/core/cma.c                 |   74 +-
+ drivers/infiniband/core/mad.c                 |    4 +-
+ drivers/infiniband/core/ucm.c                 |    3 +-
+ drivers/infiniband/core/ucma.c                |    4 +-
+ drivers/infiniband/core/user_mad.c            |   12 +-
+ drivers/infiniband/core/uverbs_main.c         |   11 +-
+ drivers/infiniband/hw/amso1100/c2.h           |    2 +-
+ drivers/infiniband/hw/amso1100/c2_alloc.c     |    4 +-
+ drivers/infiniband/hw/amso1100/c2_cq.c        |    4 +-
+ drivers/infiniband/hw/amso1100/c2_mq.h        |    2 +-
+ drivers/infiniband/hw/amso1100/c2_provider.h  |    2 +-
+ drivers/infiniband/hw/amso1100/c2_rnic.c      |   12 +-
+ drivers/infiniband/hw/cxgb3/cxio_hal.c        |   12 +-
+ drivers/infiniband/hw/cxgb3/cxio_hal.h        |    2 +-
+ drivers/infiniband/hw/cxgb3/cxio_wr.h         |    4 +-
+ drivers/infiniband/hw/cxgb3/iwch.c            |    2 -
+ drivers/infiniband/hw/cxgb3/iwch_cm.c         |  133 +-
+ drivers/infiniband/hw/cxgb4/Kconfig           |   18 +
+ drivers/infiniband/hw/cxgb4/Makefile          |    5 +
+ drivers/infiniband/hw/cxgb4/cm.c              | 2374 +++++++++++++++++++++++++
+ drivers/infiniband/hw/cxgb4/cq.c              |  882 +++++++++
+ drivers/infiniband/hw/cxgb4/device.c          |  520 ++++++
+ drivers/infiniband/hw/cxgb4/ev.c              |  193 ++
+ drivers/infiniband/hw/cxgb4/iw_cxgb4.h        |  745 ++++++++
+ drivers/infiniband/hw/cxgb4/mem.c             |  811 +++++++++
+ drivers/infiniband/hw/cxgb4/provider.c        |  518 ++++++
+ drivers/infiniband/hw/cxgb4/qp.c              | 1577 ++++++++++++++++
+ drivers/infiniband/hw/cxgb4/resource.c        |  417 +++++
+ drivers/infiniband/hw/cxgb4/t4.h              |  550 ++++++
+ drivers/infiniband/hw/cxgb4/t4fw_ri_api.h     |  829 +++++++++
+ drivers/infiniband/hw/cxgb4/user.h            |   66 +
+ drivers/infiniband/hw/mlx4/cq.c               |    8 +
+ drivers/infiniband/hw/mlx4/main.c             |    1 +
+ drivers/infiniband/hw/mlx4/qp.c               |   50 +-
+ drivers/infiniband/hw/mthca/mthca_allocator.c |    8 +-
+ drivers/infiniband/hw/mthca/mthca_eq.c        |    6 +-
+ drivers/infiniband/hw/mthca/mthca_provider.h  |    2 +-
+ drivers/infiniband/hw/nes/nes_hw.c            |   12 +-
+ drivers/infiniband/hw/nes/nes_nic.c           |   16 +-
+ drivers/infiniband/hw/nes/nes_utils.c         |   10 -
+ drivers/infiniband/hw/nes/nes_verbs.c         |    2 +-
+ drivers/infiniband/ulp/ipoib/ipoib_ethtool.c  |   20 +
+ drivers/infiniband/ulp/iser/iscsi_iser.c      |    9 +-
+ drivers/infiniband/ulp/iser/iscsi_iser.h      |    4 +-
+ drivers/infiniband/ulp/iser/iser_verbs.c      |  115 +-
+ include/linux/mlx4/device.h                   |    4 +-
+ include/linux/mlx4/qp.h                       |    7 +
+ include/rdma/ib_verbs.h                       |    7 +
+ 51 files changed, 9838 insertions(+), 251 deletions(-)
+ create mode 100644 drivers/infiniband/hw/cxgb4/Kconfig
+ create mode 100644 drivers/infiniband/hw/cxgb4/Makefile
+ create mode 100644 drivers/infiniband/hw/cxgb4/cm.c
+ create mode 100644 drivers/infiniband/hw/cxgb4/cq.c
+ create mode 100644 drivers/infiniband/hw/cxgb4/device.c
+ create mode 100644 drivers/infiniband/hw/cxgb4/ev.c
+ create mode 100644 drivers/infiniband/hw/cxgb4/iw_cxgb4.h
+ create mode 100644 drivers/infiniband/hw/cxgb4/mem.c
+ create mode 100644 drivers/infiniband/hw/cxgb4/provider.c
+ create mode 100644 drivers/infiniband/hw/cxgb4/qp.c
+ create mode 100644 drivers/infiniband/hw/cxgb4/resource.c
+ create mode 100644 drivers/infiniband/hw/cxgb4/t4.h
+ create mode 100644 drivers/infiniband/hw/cxgb4/t4fw_ri_api.h
+ create mode 100644 drivers/infiniband/hw/cxgb4/user.h
 -- 
-Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org> || For corporate legal information go to:
+Roland Dreier <rolandd@cisco.com> || For corporate legal information go to:
 http://www.cisco.com/web/about/doing_business/legal/cri/index.html
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
