@@ -1,7 +1,7 @@
 From: Ralph Campbell <ralph.campbell-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v4 09/11] IB/qib: Add qib_init.c
-Date: Tue, 18 May 2010 17:27:36 -0700
-Message-ID: <20100519002736.11950.18631.stgit@chromite.mv.qlogic.com>
+Subject: [PATCH v4 10/11] IB/qib: Add qib_sd7220.c
+Date: Tue, 18 May 2010 17:27:42 -0700
+Message-ID: <20100519002741.11950.89405.stgit@chromite.mv.qlogic.com>
 References: <20100519002647.11950.62870.stgit@chromite.mv.qlogic.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -13,24 +13,23 @@ To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-creates the qib_init.c file.
+creates the qib_sd7220.c file.
 
 Signed-off-by: Ralph Campbell <ralph.campbell-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
 ---
 
- drivers/infiniband/hw/qib/qib_init.c | 1580 ++++++++++++++++++++++++++++++++++
- 1 files changed, 1580 insertions(+), 0 deletions(-)
- create mode 100644 drivers/infiniband/hw/qib/qib_init.c
+ drivers/infiniband/hw/qib/qib_sd7220.c | 1413 ++++++++++++++++++++++++++++++++
+ 1 files changed, 1413 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/infiniband/hw/qib/qib_sd7220.c
 
-diff --git a/drivers/infiniband/hw/qib/qib_init.c b/drivers/infiniband/hw/qib/qib_init.c
+diff --git a/drivers/infiniband/hw/qib/qib_sd7220.c b/drivers/infiniband/hw/qib/qib_sd7220.c
 new file mode 100644
-index 0000000..c0139c0
+index 0000000..0aeed0e
 --- /dev/null
-+++ b/drivers/infiniband/hw/qib/qib_init.c
-@@ -0,0 +1,1580 @@
++++ b/drivers/infiniband/hw/qib/qib_sd7220.c
+@@ -0,0 +1,1413 @@
 +/*
-+ * Copyright (c) 2006, 2007, 2008, 2009, 2010 QLogic Corporation.
-+ * All rights reserved.
++ * Copyright (c) 2006, 2007, 2008, 2009 QLogic Corporation. All rights reserved.
 + * Copyright (c) 2003, 2004, 2005, 2006 PathScale, Inc. All rights reserved.
 + *
 + * This software is available to you under a choice of one of two
@@ -61,1552 +60,1386 @@ index 0000000..c0139c0
 + * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 + * SOFTWARE.
 + */
++/*
++ * This file contains all of the code that is specific to the SerDes
++ * on the QLogic_IB 7220 chip.
++ */
 +
 +#include <linux/pci.h>
-+#include <linux/netdevice.h>
-+#include <linux/vmalloc.h>
 +#include <linux/delay.h>
-+#include <linux/idr.h>
 +
 +#include "qib.h"
-+#include "qib_common.h"
++#include "qib_7220.h"
 +
 +/*
-+ * min buffers we want to have per context, after driver
++ * Same as in qib_iba7220.c, but just the registers needed here.
++ * Could move whole set to qib_7220.h, but decided better to keep
++ * local.
 + */
-+#define QIB_MIN_USER_CTXT_BUFCNT 7
-+
-+#define QLOGIC_IB_R_SOFTWARE_MASK 0xFF
-+#define QLOGIC_IB_R_SOFTWARE_SHIFT 24
-+#define QLOGIC_IB_R_EMULATOR_MASK (1ULL<<62)
++#define KREG_IDX(regname) (QIB_7220_##regname##_OFFS / sizeof(u64))
++#define kr_hwerrclear KREG_IDX(HwErrClear)
++#define kr_hwerrmask KREG_IDX(HwErrMask)
++#define kr_hwerrstatus KREG_IDX(HwErrStatus)
++#define kr_ibcstatus KREG_IDX(IBCStatus)
++#define kr_ibserdesctrl KREG_IDX(IBSerDesCtrl)
++#define kr_scratch KREG_IDX(Scratch)
++#define kr_xgxs_cfg KREG_IDX(XGXSCfg)
++/* these are used only here, not in qib_iba7220.c */
++#define kr_ibsd_epb_access_ctrl KREG_IDX(ibsd_epb_access_ctrl)
++#define kr_ibsd_epb_transaction_reg KREG_IDX(ibsd_epb_transaction_reg)
++#define kr_pciesd_epb_transaction_reg KREG_IDX(pciesd_epb_transaction_reg)
++#define kr_pciesd_epb_access_ctrl KREG_IDX(pciesd_epb_access_ctrl)
++#define kr_serdes_ddsrxeq0 KREG_IDX(SerDes_DDSRXEQ0)
 +
 +/*
-+ * Number of ctxts we are configured to use (to allow for more pio
-+ * buffers per ctxt, etc.)  Zero means use chip value.
++ * The IBSerDesMappTable is a memory that holds values to be stored in
++ * various SerDes registers by IBC.
 + */
-+ushort qib_cfgctxts;
-+module_param_named(cfgctxts, qib_cfgctxts, ushort, S_IRUGO);
-+MODULE_PARM_DESC(cfgctxts, "Set max number of contexts to use");
++#define kr_serdes_maptable KREG_IDX(IBSerDesMappTable)
 +
 +/*
-+ * If set, do not write to any regs if avoidable, hack to allow
-+ * check for deranged default register values.
++ * Below used for sdnum parameter, selecting one of the two sections
++ * used for PCIe, or the single SerDes used for IB.
 + */
-+ushort qib_mini_init;
-+module_param_named(mini_init, qib_mini_init, ushort, S_IRUGO);
-+MODULE_PARM_DESC(mini_init, "If set, do minimal diag init");
-+
-+unsigned qib_n_krcv_queues;
-+module_param_named(krcvqs, qib_n_krcv_queues, uint, S_IRUGO);
-+MODULE_PARM_DESC(krcvqs, "number of kernel receive queues per IB port");
++#define PCIE_SERDES0 0
++#define PCIE_SERDES1 1
 +
 +/*
-+ * qib_wc_pat parameter:
-+ *      0 is WC via MTRR
-+ *      1 is WC via PAT
-+ *      If PAT initialization fails, code reverts back to MTRR
++ * The EPB requires addressing in a particular form. EPB_LOC() is intended
++ * to make #definitions a little more readable.
 + */
-+unsigned qib_wc_pat = 1; /* default (1) is to use PAT, not MTRR */
-+module_param_named(wc_pat, qib_wc_pat, uint, S_IRUGO);
-+MODULE_PARM_DESC(wc_pat, "enable write-combining via PAT mechanism");
++#define EPB_ADDR_SHF 8
++#define EPB_LOC(chn, elt, reg) \
++	(((elt & 0xf) | ((chn & 7) << 4) | ((reg & 0x3f) << 9)) << \
++	 EPB_ADDR_SHF)
++#define EPB_IB_QUAD0_CS_SHF (25)
++#define EPB_IB_QUAD0_CS (1U <<  EPB_IB_QUAD0_CS_SHF)
++#define EPB_IB_UC_CS_SHF (26)
++#define EPB_PCIE_UC_CS_SHF (27)
++#define EPB_GLOBAL_WR (1U << (EPB_ADDR_SHF + 8))
 +
-+struct workqueue_struct *qib_wq;
-+struct workqueue_struct *qib_cq_wq;
-+
-+static void verify_interrupt(unsigned long);
-+
-+static struct idr qib_unit_table;
-+u32 qib_cpulist_count;
-+unsigned long *qib_cpulist;
-+
-+/* set number of contexts we'll actually use */
-+void qib_set_ctxtcnt(struct qib_devdata *dd)
-+{
-+	if (!qib_cfgctxts)
-+		dd->cfgctxts = dd->ctxtcnt;
-+	else if (qib_cfgctxts < dd->num_pports)
-+		dd->cfgctxts = dd->ctxtcnt;
-+	else if (qib_cfgctxts <= dd->ctxtcnt)
-+		dd->cfgctxts = qib_cfgctxts;
-+	else
-+		dd->cfgctxts = dd->ctxtcnt;
-+}
++/* Forward declarations. */
++static int qib_sd7220_reg_mod(struct qib_devdata *dd, int sdnum, u32 loc,
++			      u32 data, u32 mask);
++static int ibsd_mod_allchnls(struct qib_devdata *dd, int loc, int val,
++			     int mask);
++static int qib_sd_trimdone_poll(struct qib_devdata *dd);
++static void qib_sd_trimdone_monitor(struct qib_devdata *dd, const char *where);
++static int qib_sd_setvals(struct qib_devdata *dd);
++static int qib_sd_early(struct qib_devdata *dd);
++static int qib_sd_dactrim(struct qib_devdata *dd);
++static int qib_internal_presets(struct qib_devdata *dd);
++/* Tweak the register (CMUCTRL5) that contains the TRIMSELF controls */
++static int qib_sd_trimself(struct qib_devdata *dd, int val);
++static int epb_access(struct qib_devdata *dd, int sdnum, int claim);
 +
 +/*
-+ * Common code for creating the receive context array.
++ * Below keeps track of whether the "once per power-on" initialization has
++ * been done, because uC code Version 1.32.17 or higher allows the uC to
++ * be reset at will, and Automatic Equalization may require it. So the
++ * state of the reset "pin", is no longer valid. Instead, we check for the
++ * actual uC code having been loaded.
 + */
-+int qib_create_ctxts(struct qib_devdata *dd)
-+{
-+	unsigned i;
-+	int ret;
-+
-+	/*
-+	 * Allocate full ctxtcnt array, rather than just cfgctxts, because
-+	 * cleanup iterates across all possible ctxts.
-+	 */
-+	dd->rcd = kzalloc(sizeof(*dd->rcd) * dd->ctxtcnt, GFP_KERNEL);
-+	if (!dd->rcd) {
-+		qib_dev_err(dd, "Unable to allocate ctxtdata array, "
-+			    "failing\n");
-+		ret = -ENOMEM;
-+		goto done;
-+	}
-+
-+	/* create (one or more) kctxt */
-+	for (i = 0; i < dd->first_user_ctxt; ++i) {
-+		struct qib_pportdata *ppd;
-+		struct qib_ctxtdata *rcd;
-+
-+		if (dd->skip_kctxt_mask & (1 << i))
-+			continue;
-+
-+		ppd = dd->pport + (i % dd->num_pports);
-+		rcd = qib_create_ctxtdata(ppd, i);
-+		if (!rcd) {
-+			qib_dev_err(dd, "Unable to allocate ctxtdata"
-+				    " for Kernel ctxt, failing\n");
-+			ret = -ENOMEM;
-+			goto done;
-+		}
-+		rcd->pkeys[0] = QIB_DEFAULT_P_KEY;
-+		rcd->seq_cnt = 1;
-+	}
-+	ret = 0;
-+done:
-+	return ret;
-+}
-+
-+/*
-+ * Common code for user and kernel context setup.
-+ */
-+struct qib_ctxtdata *qib_create_ctxtdata(struct qib_pportdata *ppd, u32 ctxt)
++static int qib_ibsd_ucode_loaded(struct qib_pportdata *ppd)
 +{
 +	struct qib_devdata *dd = ppd->dd;
-+	struct qib_ctxtdata *rcd;
-+
-+	rcd = kzalloc(sizeof(*rcd), GFP_KERNEL);
-+	if (rcd) {
-+		INIT_LIST_HEAD(&rcd->qp_wait_list);
-+		rcd->ppd = ppd;
-+		rcd->dd = dd;
-+		rcd->cnt = 1;
-+		rcd->ctxt = ctxt;
-+		dd->rcd[ctxt] = rcd;
-+
-+		dd->f_init_ctxt(rcd);
-+
-+		/*
-+		 * To avoid wasting a lot of memory, we allocate 32KB chunks
-+		 * of physically contiguous memory, advance through it until
-+		 * used up and then allocate more.  Of course, we need
-+		 * memory to store those extra pointers, now.  32KB seems to
-+		 * be the most that is "safe" under memory pressure
-+		 * (creating large files and then copying them over
-+		 * NFS while doing lots of MPI jobs).  The OOM killer can
-+		 * get invoked, even though we say we can sleep and this can
-+		 * cause significant system problems....
-+		 */
-+		rcd->rcvegrbuf_size = 0x8000;
-+		rcd->rcvegrbufs_perchunk =
-+			rcd->rcvegrbuf_size / dd->rcvegrbufsize;
-+		rcd->rcvegrbuf_chunks = (rcd->rcvegrcnt +
-+			rcd->rcvegrbufs_perchunk - 1) /
-+			rcd->rcvegrbufs_perchunk;
-+	}
-+	return rcd;
++	if (!dd->cspec->serdes_first_init_done && (qib_sd7220_ib_vfy(dd) > 0))
++		dd->cspec->serdes_first_init_done = 1;
++	return dd->cspec->serdes_first_init_done;
 +}
 +
-+/*
-+ * Common code for initializing the physical port structure.
-+ */
-+void qib_init_pportdata(struct qib_pportdata *ppd, struct qib_devdata *dd,
-+			u8 hw_pidx, u8 port)
++/* repeat #define for local use. "Real" #define is in qib_iba7220.c */
++#define QLOGIC_IB_HWE_IB_UC_MEMORYPARITYERR      0x0000004000000000ULL
++#define IB_MPREG5 (EPB_LOC(6, 0, 0xE) | (1L << EPB_IB_UC_CS_SHF))
++#define IB_MPREG6 (EPB_LOC(6, 0, 0xF) | (1U << EPB_IB_UC_CS_SHF))
++#define UC_PAR_CLR_D 8
++#define UC_PAR_CLR_M 0xC
++#define IB_CTRL2(chn) (EPB_LOC(chn, 7, 3) | EPB_IB_QUAD0_CS)
++#define START_EQ1(chan) EPB_LOC(chan, 7, 0x27)
++
++void qib_sd7220_clr_ibpar(struct qib_devdata *dd)
 +{
-+	ppd->dd = dd;
-+	ppd->hw_pidx = hw_pidx;
-+	ppd->port = port; /* IB port number, not index */
++	int ret;
 +
-+	spin_lock_init(&ppd->sdma_lock);
-+	spin_lock_init(&ppd->lflags_lock);
-+	init_waitqueue_head(&ppd->state_wait);
-+
-+	init_timer(&ppd->symerr_clear_timer);
-+	ppd->symerr_clear_timer.function = qib_clear_symerror_on_linkup;
-+	ppd->symerr_clear_timer.data = (unsigned long)ppd;
-+}
-+
-+static int init_pioavailregs(struct qib_devdata *dd)
-+{
-+	int ret, pidx;
-+	u64 *status_page;
-+
-+	dd->pioavailregs_dma = dma_alloc_coherent(
-+		&dd->pcidev->dev, PAGE_SIZE, &dd->pioavailregs_phys,
-+		GFP_KERNEL);
-+	if (!dd->pioavailregs_dma) {
-+		qib_dev_err(dd, "failed to allocate PIOavail reg area "
-+			    "in memory\n");
-+		ret = -ENOMEM;
-+		goto done;
-+	}
-+
-+	/*
-+	 * We really want L2 cache aligned, but for current CPUs of
-+	 * interest, they are the same.
-+	 */
-+	status_page = (u64 *)
-+		((char *) dd->pioavailregs_dma +
-+		 ((2 * L1_CACHE_BYTES +
-+		   dd->pioavregs * sizeof(u64)) & ~L1_CACHE_BYTES));
-+	/* device status comes first, for backwards compatibility */
-+	dd->devstatusp = status_page;
-+	*status_page++ = 0;
-+	for (pidx = 0; pidx < dd->num_pports; ++pidx) {
-+		dd->pport[pidx].statusp = status_page;
-+		*status_page++ = 0;
-+	}
-+
-+	/*
-+	 * Setup buffer to hold freeze and other messages, accessible to
-+	 * apps, following statusp.  This is per-unit, not per port.
-+	 */
-+	dd->freezemsg = (char *) status_page;
-+	*dd->freezemsg = 0;
-+	/* length of msg buffer is "whatever is left" */
-+	ret = (char *) status_page - (char *) dd->pioavailregs_dma;
-+	dd->freezelen = PAGE_SIZE - ret;
-+
-+	ret = 0;
-+
-+done:
-+	return ret;
-+}
-+
-+/**
-+ * init_shadow_tids - allocate the shadow TID array
-+ * @dd: the qlogic_ib device
-+ *
-+ * allocate the shadow TID array, so we can qib_munlock previous
-+ * entries.  It may make more sense to move the pageshadow to the
-+ * ctxt data structure, so we only allocate memory for ctxts actually
-+ * in use, since we at 8k per ctxt, now.
-+ * We don't want failures here to prevent use of the driver/chip,
-+ * so no return value.
-+ */
-+static void init_shadow_tids(struct qib_devdata *dd)
-+{
-+	struct page **pages;
-+	dma_addr_t *addrs;
-+
-+	pages = vmalloc(dd->cfgctxts * dd->rcvtidcnt * sizeof(struct page *));
-+	if (!pages) {
-+		qib_dev_err(dd, "failed to allocate shadow page * "
-+			    "array, no expected sends!\n");
++	/* clear, then re-enable parity errs */
++	ret = qib_sd7220_reg_mod(dd, IB_7220_SERDES, IB_MPREG6,
++		UC_PAR_CLR_D, UC_PAR_CLR_M);
++	if (ret < 0) {
++		qib_dev_err(dd, "Failed clearing IBSerDes Parity err\n");
 +		goto bail;
 +	}
++	ret = qib_sd7220_reg_mod(dd, IB_7220_SERDES, IB_MPREG6, 0,
++		UC_PAR_CLR_M);
 +
-+	addrs = vmalloc(dd->cfgctxts * dd->rcvtidcnt * sizeof(dma_addr_t));
-+	if (!addrs) {
-+		qib_dev_err(dd, "failed to allocate shadow dma handle "
-+			    "array, no expected sends!\n");
-+		goto bail_free;
-+	}
-+
-+	memset(pages, 0, dd->cfgctxts * dd->rcvtidcnt * sizeof(struct page *));
-+	memset(addrs, 0, dd->cfgctxts * dd->rcvtidcnt * sizeof(dma_addr_t));
-+
-+	dd->pageshadow = pages;
-+	dd->physshadow = addrs;
++	qib_read_kreg32(dd, kr_scratch);
++	udelay(4);
++	qib_write_kreg(dd, kr_hwerrclear,
++		QLOGIC_IB_HWE_IB_UC_MEMORYPARITYERR);
++	qib_read_kreg32(dd, kr_scratch);
++bail:
 +	return;
-+
-+bail_free:
-+	vfree(pages);
-+bail:
-+	dd->pageshadow = NULL;
 +}
 +
 +/*
-+ * Do initialization for device that is only needed on
-+ * first detect, not on resets.
++ * After a reset or other unusual event, the epb interface may need
++ * to be re-synchronized, between the host and the uC.
++ * returns <0 for failure to resync within IBSD_RESYNC_TRIES (not expected)
 + */
-+static int loadtime_init(struct qib_devdata *dd)
++#define IBSD_RESYNC_TRIES 3
++#define IB_PGUDP(chn) (EPB_LOC((chn), 2, 1) | EPB_IB_QUAD0_CS)
++#define IB_CMUDONE(chn) (EPB_LOC((chn), 7, 0xF) | EPB_IB_QUAD0_CS)
++
++static int qib_resync_ibepb(struct qib_devdata *dd)
 +{
++	int ret, pat, tries, chn;
++	u32 loc;
++
++	ret = -1;
++	chn = 0;
++	for (tries = 0; tries < (4 * IBSD_RESYNC_TRIES); ++tries) {
++		loc = IB_PGUDP(chn);
++		ret = qib_sd7220_reg_mod(dd, IB_7220_SERDES, loc, 0, 0);
++		if (ret < 0) {
++			qib_dev_err(dd, "Failed read in resync\n");
++			continue;
++		}
++		if (ret != 0xF0 && ret != 0x55 && tries == 0)
++			qib_dev_err(dd, "unexpected pattern in resync\n");
++		pat = ret ^ 0xA5; /* alternate F0 and 55 */
++		ret = qib_sd7220_reg_mod(dd, IB_7220_SERDES, loc, pat, 0xFF);
++		if (ret < 0) {
++			qib_dev_err(dd, "Failed write in resync\n");
++			continue;
++		}
++		ret = qib_sd7220_reg_mod(dd, IB_7220_SERDES, loc, 0, 0);
++		if (ret < 0) {
++			qib_dev_err(dd, "Failed re-read in resync\n");
++			continue;
++		}
++		if (ret != pat) {
++			qib_dev_err(dd, "Failed compare1 in resync\n");
++			continue;
++		}
++		loc = IB_CMUDONE(chn);
++		ret = qib_sd7220_reg_mod(dd, IB_7220_SERDES, loc, 0, 0);
++		if (ret < 0) {
++			qib_dev_err(dd, "Failed CMUDONE rd in resync\n");
++			continue;
++		}
++		if ((ret & 0x70) != ((chn << 4) | 0x40)) {
++			qib_dev_err(dd, "Bad CMUDONE value %02X, chn %d\n",
++				    ret, chn);
++			continue;
++		}
++		if (++chn == 4)
++			break;  /* Success */
++	}
++	return (ret > 0) ? 0 : ret;
++}
++
++/*
++ * Localize the stuff that should be done to change IB uC reset
++ * returns <0 for errors.
++ */
++static int qib_ibsd_reset(struct qib_devdata *dd, int assert_rst)
++{
++	u64 rst_val;
 +	int ret = 0;
-+
-+	if (((dd->revision >> QLOGIC_IB_R_SOFTWARE_SHIFT) &
-+	     QLOGIC_IB_R_SOFTWARE_MASK) != QIB_CHIP_SWVERSION) {
-+		qib_dev_err(dd, "Driver only handles version %d, "
-+			    "chip swversion is %d (%llx), failng\n",
-+			    QIB_CHIP_SWVERSION,
-+			    (int)(dd->revision >>
-+				QLOGIC_IB_R_SOFTWARE_SHIFT) &
-+			    QLOGIC_IB_R_SOFTWARE_MASK,
-+			    (unsigned long long) dd->revision);
-+		ret = -ENOSYS;
-+		goto done;
-+	}
-+
-+	if (dd->revision & QLOGIC_IB_R_EMULATOR_MASK)
-+		qib_devinfo(dd->pcidev, "%s", dd->boardversion);
-+
-+	spin_lock_init(&dd->pioavail_lock);
-+	spin_lock_init(&dd->sendctrl_lock);
-+	spin_lock_init(&dd->uctxt_lock);
-+	spin_lock_init(&dd->qib_diag_trans_lock);
-+	spin_lock_init(&dd->eep_st_lock);
-+	mutex_init(&dd->eep_lock);
-+
-+	if (qib_mini_init)
-+		goto done;
-+
-+	ret = init_pioavailregs(dd);
-+	init_shadow_tids(dd);
-+
-+	qib_get_eeprom_info(dd);
-+
-+	/* setup time (don't start yet) to verify we got interrupt */
-+	init_timer(&dd->intrchk_timer);
-+	dd->intrchk_timer.function = verify_interrupt;
-+	dd->intrchk_timer.data = (unsigned long) dd;
-+
-+done:
-+	return ret;
-+}
-+
-+/**
-+ * init_after_reset - re-initialize after a reset
-+ * @dd: the qlogic_ib device
-+ *
-+ * sanity check at least some of the values after reset, and
-+ * ensure no receive or transmit (explictly, in case reset
-+ * failed
-+ */
-+static int init_after_reset(struct qib_devdata *dd)
-+{
-+	int i;
-+
-+	/*
-+	 * Ensure chip does no sends or receives, tail updates, or
-+	 * pioavail updates while we re-initialize.  This is mostly
-+	 * for the driver data structures, not chip registers.
-+	 */
-+	for (i = 0; i < dd->num_pports; ++i) {
-+		/*
-+		 * ctxt == -1 means "all contexts". Only really safe for
-+		 * _dis_abling things, as here.
-+		 */
-+		dd->f_rcvctrl(dd->pport + i, QIB_RCVCTRL_CTXT_DIS |
-+				  QIB_RCVCTRL_INTRAVAIL_DIS |
-+				  QIB_RCVCTRL_TAILUPD_DIS, -1);
-+		/* Redundant across ports for some, but no big deal.  */
-+		dd->f_sendctrl(dd->pport + i, QIB_SENDCTRL_SEND_DIS |
-+			QIB_SENDCTRL_AVAIL_DIS);
-+	}
-+
-+	return 0;
-+}
-+
-+static void enable_chip(struct qib_devdata *dd)
-+{
-+	u64 rcvmask;
-+	int i;
-+
-+	/*
-+	 * Enable PIO send, and update of PIOavail regs to memory.
-+	 */
-+	for (i = 0; i < dd->num_pports; ++i)
-+		dd->f_sendctrl(dd->pport + i, QIB_SENDCTRL_SEND_ENB |
-+			QIB_SENDCTRL_AVAIL_ENB);
-+	/*
-+	 * Enable kernel ctxts' receive and receive interrupt.
-+	 * Other ctxts done as user opens and inits them.
-+	 */
-+	rcvmask = QIB_RCVCTRL_CTXT_ENB | QIB_RCVCTRL_INTRAVAIL_ENB;
-+	rcvmask |= (dd->flags & QIB_NODMA_RTAIL) ?
-+		  QIB_RCVCTRL_TAILUPD_DIS : QIB_RCVCTRL_TAILUPD_ENB;
-+	for (i = 0; dd->rcd && i < dd->first_user_ctxt; ++i) {
-+		struct qib_ctxtdata *rcd = dd->rcd[i];
-+
-+		if (rcd)
-+			dd->f_rcvctrl(rcd->ppd, rcvmask, i);
-+	}
-+}
-+
-+static void verify_interrupt(unsigned long opaque)
-+{
-+	struct qib_devdata *dd = (struct qib_devdata *) opaque;
-+
-+	if (!dd)
-+		return; /* being torn down */
-+
-+	/*
-+	 * If we don't have a lid or any interrupts, let the user know and
-+	 * don't bother checking again.
-+	 */
-+	if (dd->int_counter == 0) {
-+		if (!dd->f_intr_fallback(dd))
-+			dev_err(&dd->pcidev->dev, "No interrupts detected, "
-+				"not usable.\n");
-+		else /* re-arm the timer to see if fallback works */
-+			mod_timer(&dd->intrchk_timer, jiffies + HZ/2);
-+	}
-+}
-+
-+static void init_piobuf_state(struct qib_devdata *dd)
-+{
-+	int i, pidx;
-+	u32 uctxts;
-+
-+	/*
-+	 * Ensure all buffers are free, and fifos empty.  Buffers
-+	 * are common, so only do once for port 0.
-+	 *
-+	 * After enable and qib_chg_pioavailkernel so we can safely
-+	 * enable pioavail updates and PIOENABLE.  After this, packets
-+	 * are ready and able to go out.
-+	 */
-+	dd->f_sendctrl(dd->pport, QIB_SENDCTRL_DISARM_ALL);
-+	for (pidx = 0; pidx < dd->num_pports; ++pidx)
-+		dd->f_sendctrl(dd->pport + pidx, QIB_SENDCTRL_FLUSH);
-+
-+	/*
-+	 * If not all sendbufs are used, add the one to each of the lower
-+	 * numbered contexts.  pbufsctxt and lastctxt_piobuf are
-+	 * calculated in chip-specific code because it may cause some
-+	 * chip-specific adjustments to be made.
-+	 */
-+	uctxts = dd->cfgctxts - dd->first_user_ctxt;
-+	dd->ctxts_extrabuf = dd->pbufsctxt ?
-+		dd->lastctxt_piobuf - (dd->pbufsctxt * uctxts) : 0;
-+
-+	/*
-+	 * Set up the shadow copies of the piobufavail registers,
-+	 * which we compare against the chip registers for now, and
-+	 * the in memory DMA'ed copies of the registers.
-+	 * By now pioavail updates to memory should have occurred, so
-+	 * copy them into our working/shadow registers; this is in
-+	 * case something went wrong with abort, but mostly to get the
-+	 * initial values of the generation bit correct.
-+	 */
-+	for (i = 0; i < dd->pioavregs; i++) {
-+		__le64 tmp;
-+
-+		tmp = dd->pioavailregs_dma[i];
-+		/*
-+		 * Don't need to worry about pioavailkernel here
-+		 * because we will call qib_chg_pioavailkernel() later
-+		 * in initialization, to busy out buffers as needed.
-+		 */
-+		dd->pioavailshadow[i] = le64_to_cpu(tmp);
-+	}
-+	while (i < ARRAY_SIZE(dd->pioavailshadow))
-+		dd->pioavailshadow[i++] = 0; /* for debugging sanity */
-+
-+	/* after pioavailshadow is setup */
-+	qib_chg_pioavailkernel(dd, 0, dd->piobcnt2k + dd->piobcnt4k,
-+			       TXCHK_CHG_TYPE_KERN, NULL);
-+	dd->f_initvl15_bufs(dd);
-+}
-+
-+/**
-+ * qib_init - do the actual initialization sequence on the chip
-+ * @dd: the qlogic_ib device
-+ * @reinit: reinitializing, so don't allocate new memory
-+ *
-+ * Do the actual initialization sequence on the chip.  This is done
-+ * both from the init routine called from the PCI infrastructure, and
-+ * when we reset the chip, or detect that it was reset internally,
-+ * or it's administratively re-enabled.
-+ *
-+ * Memory allocation here and in called routines is only done in
-+ * the first case (reinit == 0).  We have to be careful, because even
-+ * without memory allocation, we need to re-write all the chip registers
-+ * TIDs, etc. after the reset or enable has completed.
-+ */
-+int qib_init(struct qib_devdata *dd, int reinit)
-+{
-+	int ret = 0, pidx, lastfail = 0;
-+	u32 portok = 0;
-+	unsigned i;
-+	struct qib_ctxtdata *rcd;
-+	struct qib_pportdata *ppd;
 +	unsigned long flags;
 +
-+	/* Set linkstate to unknown, so we can watch for a transition. */
-+	for (pidx = 0; pidx < dd->num_pports; ++pidx) {
-+		ppd = dd->pport + pidx;
-+		spin_lock_irqsave(&ppd->lflags_lock, flags);
-+		ppd->lflags &= ~(QIBL_LINKACTIVE | QIBL_LINKARMED |
-+				 QIBL_LINKDOWN | QIBL_LINKINIT |
-+				 QIBL_LINKV);
-+		spin_unlock_irqrestore(&ppd->lflags_lock, flags);
-+	}
-+
-+	if (reinit)
-+		ret = init_after_reset(dd);
-+	else
-+		ret = loadtime_init(dd);
-+	if (ret)
-+		goto done;
-+
-+	/* Bypass most chip-init, to get to device creation */
-+	if (qib_mini_init)
-+		return 0;
-+
-+	ret = dd->f_late_initreg(dd);
-+	if (ret)
-+		goto done;
-+
-+	/* dd->rcd can be NULL if early init failed */
-+	for (i = 0; dd->rcd && i < dd->first_user_ctxt; ++i) {
++	rst_val = qib_read_kreg64(dd, kr_ibserdesctrl);
++	if (assert_rst) {
 +		/*
-+		 * Set up the (kernel) rcvhdr queue and egr TIDs.  If doing
-+		 * re-init, the simplest way to handle this is to free
-+		 * existing, and re-allocate.
-+		 * Need to re-create rest of ctxt 0 ctxtdata as well.
++		 * Vendor recommends "interrupting" uC before reset, to
++		 * minimize possible glitches.
 +		 */
-+		rcd = dd->rcd[i];
-+		if (!rcd)
-+			continue;
-+
-+		lastfail = qib_create_rcvhdrq(dd, rcd);
-+		if (!lastfail)
-+			lastfail = qib_setup_eagerbufs(rcd);
-+		if (lastfail) {
-+			qib_dev_err(dd, "failed to allocate kernel ctxt's "
-+				    "rcvhdrq and/or egr bufs\n");
-+			continue;
-+		}
-+	}
-+
-+	for (pidx = 0; pidx < dd->num_pports; ++pidx) {
-+		int mtu;
-+		if (lastfail)
-+			ret = lastfail;
-+		ppd = dd->pport + pidx;
-+		mtu = ib_mtu_enum_to_int(qib_ibmtu);
-+		if (mtu == -1) {
-+			mtu = QIB_DEFAULT_MTU;
-+			qib_ibmtu = 0; /* don't leave invalid value */
-+		}
-+		/* set max we can ever have for this driver load */
-+		ppd->init_ibmaxlen = min(mtu > 2048 ?
-+					 dd->piosize4k : dd->piosize2k,
-+					 dd->rcvegrbufsize +
-+					 (dd->rcvhdrentsize << 2));
++		spin_lock_irqsave(&dd->cspec->sdepb_lock, flags);
++		epb_access(dd, IB_7220_SERDES, 1);
++		rst_val |= 1ULL;
++		/* Squelch possible parity error from _asserting_ reset */
++		qib_write_kreg(dd, kr_hwerrmask,
++			       dd->cspec->hwerrmask &
++			       ~QLOGIC_IB_HWE_IB_UC_MEMORYPARITYERR);
++		qib_write_kreg(dd, kr_ibserdesctrl, rst_val);
++		/* flush write, delay to ensure it took effect */
++		qib_read_kreg32(dd, kr_scratch);
++		udelay(2);
++		/* once it's reset, can remove interrupt */
++		epb_access(dd, IB_7220_SERDES, -1);
++		spin_unlock_irqrestore(&dd->cspec->sdepb_lock, flags);
++	} else {
 +		/*
-+		 * Have to initialize ibmaxlen, but this will normally
-+		 * change immediately in qib_set_mtu().
++		 * Before we de-assert reset, we need to deal with
++		 * possible glitch on the Parity-error line.
++		 * Suppress it around the reset, both in chip-level
++		 * hwerrmask and in IB uC control reg. uC will allow
++		 * it again during startup.
 +		 */
-+		ppd->ibmaxlen = ppd->init_ibmaxlen;
-+		qib_set_mtu(ppd, mtu);
++		u64 val;
++		rst_val &= ~(1ULL);
++		qib_write_kreg(dd, kr_hwerrmask,
++			       dd->cspec->hwerrmask &
++			       ~QLOGIC_IB_HWE_IB_UC_MEMORYPARITYERR);
 +
-+		spin_lock_irqsave(&ppd->lflags_lock, flags);
-+		ppd->lflags |= QIBL_IB_LINK_DISABLED;
-+		spin_unlock_irqrestore(&ppd->lflags_lock, flags);
++		ret = qib_resync_ibepb(dd);
++		if (ret < 0)
++			qib_dev_err(dd, "unable to re-sync IB EPB\n");
 +
-+		lastfail = dd->f_bringup_serdes(ppd);
-+		if (lastfail) {
-+			qib_devinfo(dd->pcidev,
-+				 "Failed to bringup IB port %u\n", ppd->port);
-+			lastfail = -ENETDOWN;
-+			continue;
++		/* set uC control regs to suppress parity errs */
++		ret = qib_sd7220_reg_mod(dd, IB_7220_SERDES, IB_MPREG5, 1, 1);
++		if (ret < 0)
++			goto bail;
++		/* IB uC code past Version 1.32.17 allow suppression of wdog */
++		ret = qib_sd7220_reg_mod(dd, IB_7220_SERDES, IB_MPREG6, 0x80,
++			0x80);
++		if (ret < 0) {
++			qib_dev_err(dd, "Failed to set WDOG disable\n");
++			goto bail;
 +		}
-+
-+		/* let link come up, and enable IBC */
-+		spin_lock_irqsave(&ppd->lflags_lock, flags);
-+		ppd->lflags &= ~QIBL_IB_LINK_DISABLED;
-+		spin_unlock_irqrestore(&ppd->lflags_lock, flags);
-+		portok++;
-+	}
-+
-+	if (!portok) {
-+		/* none of the ports initialized */
-+		if (!ret && lastfail)
-+			ret = lastfail;
-+		else if (!ret)
-+			ret = -ENETDOWN;
-+		/* but continue on, so we can debug cause */
-+	}
-+
-+	enable_chip(dd);
-+
-+	init_piobuf_state(dd);
-+
-+done:
-+	if (!ret) {
-+		/* chip is OK for user apps; mark it as initialized */
-+		for (pidx = 0; pidx < dd->num_pports; ++pidx) {
-+			ppd = dd->pport + pidx;
-+			/*
-+			 * Set status even if port serdes is not initialized
-+			 * so that diags will work.
-+			 */
-+			*ppd->statusp |= QIB_STATUS_CHIP_PRESENT |
-+				QIB_STATUS_INITTED;
-+			if (!ppd->link_speed_enabled)
-+				continue;
-+			if (dd->flags & QIB_HAS_SEND_DMA)
-+				ret = qib_setup_sdma(ppd);
-+			init_timer(&ppd->hol_timer);
-+			ppd->hol_timer.function = qib_hol_event;
-+			ppd->hol_timer.data = (unsigned long)ppd;
-+			ppd->hol_state = QIB_HOL_UP;
-+		}
-+
-+		/* now we can enable all interrupts from the chip */
-+		dd->f_set_intr_state(dd, 1);
-+
-+		/*
-+		 * Setup to verify we get an interrupt, and fallback
-+		 * to an alternate if necessary and possible.
-+		 */
-+		mod_timer(&dd->intrchk_timer, jiffies + HZ/2);
-+		/* start stats retrieval timer */
-+		mod_timer(&dd->stats_timer, jiffies + HZ * ACTIVITY_TIMER);
-+	}
-+
-+	/* if ret is non-zero, we probably should do some cleanup here... */
-+	return ret;
-+}
-+
-+/*
-+ * These next two routines are placeholders in case we don't have per-arch
-+ * code for controlling write combining.  If explicit control of write
-+ * combining is not available, performance will probably be awful.
-+ */
-+
-+int __attribute__((weak)) qib_enable_wc(struct qib_devdata *dd)
-+{
-+	return -EOPNOTSUPP;
-+}
-+
-+void __attribute__((weak)) qib_disable_wc(struct qib_devdata *dd)
-+{
-+}
-+
-+static inline struct qib_devdata *__qib_lookup(int unit)
-+{
-+	return idr_find(&qib_unit_table, unit);
-+}
-+
-+struct qib_devdata *qib_lookup(int unit)
-+{
-+	struct qib_devdata *dd;
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&qib_devs_lock, flags);
-+	dd = __qib_lookup(unit);
-+	spin_unlock_irqrestore(&qib_devs_lock, flags);
-+
-+	return dd;
-+}
-+
-+/*
-+ * Stop the timers during unit shutdown, or after an error late
-+ * in initialization.
-+ */
-+static void qib_stop_timers(struct qib_devdata *dd)
-+{
-+	struct qib_pportdata *ppd;
-+	int pidx;
-+
-+	if (dd->stats_timer.data) {
-+		del_timer_sync(&dd->stats_timer);
-+		dd->stats_timer.data = 0;
-+	}
-+	if (dd->intrchk_timer.data) {
-+		del_timer_sync(&dd->intrchk_timer);
-+		dd->intrchk_timer.data = 0;
-+	}
-+	for (pidx = 0; pidx < dd->num_pports; ++pidx) {
-+		ppd = dd->pport + pidx;
-+		if (ppd->hol_timer.data)
-+			del_timer_sync(&ppd->hol_timer);
-+		if (ppd->led_override_timer.data) {
-+			del_timer_sync(&ppd->led_override_timer);
-+			atomic_set(&ppd->led_override_timer_active, 0);
-+		}
-+		if (ppd->symerr_clear_timer.data)
-+			del_timer_sync(&ppd->symerr_clear_timer);
-+	}
-+}
-+
-+/**
-+ * qib_shutdown_device - shut down a device
-+ * @dd: the qlogic_ib device
-+ *
-+ * This is called to make the device quiet when we are about to
-+ * unload the driver, and also when the device is administratively
-+ * disabled.   It does not free any data structures.
-+ * Everything it does has to be setup again by qib_init(dd, 1)
-+ */
-+static void qib_shutdown_device(struct qib_devdata *dd)
-+{
-+	struct qib_pportdata *ppd;
-+	unsigned pidx;
-+
-+	for (pidx = 0; pidx < dd->num_pports; ++pidx) {
-+		ppd = dd->pport + pidx;
-+
-+		spin_lock_irq(&ppd->lflags_lock);
-+		ppd->lflags &= ~(QIBL_LINKDOWN | QIBL_LINKINIT |
-+				 QIBL_LINKARMED | QIBL_LINKACTIVE |
-+				 QIBL_LINKV);
-+		spin_unlock_irq(&ppd->lflags_lock);
-+		*ppd->statusp &= ~(QIB_STATUS_IB_CONF | QIB_STATUS_IB_READY);
-+	}
-+	dd->flags &= ~QIB_INITTED;
-+
-+	/* mask interrupts, but not errors */
-+	dd->f_set_intr_state(dd, 0);
-+
-+	for (pidx = 0; pidx < dd->num_pports; ++pidx) {
-+		ppd = dd->pport + pidx;
-+		dd->f_rcvctrl(ppd, QIB_RCVCTRL_TAILUPD_DIS |
-+				   QIB_RCVCTRL_CTXT_DIS |
-+				   QIB_RCVCTRL_INTRAVAIL_DIS |
-+				   QIB_RCVCTRL_PKEY_ENB, -1);
-+		/*
-+		 * Gracefully stop all sends allowing any in progress to
-+		 * trickle out first.
-+		 */
-+		dd->f_sendctrl(ppd, QIB_SENDCTRL_CLEAR);
-+	}
-+
-+	/*
-+	 * Enough for anything that's going to trickle out to have actually
-+	 * done so.
-+	 */
-+	udelay(20);
-+
-+	for (pidx = 0; pidx < dd->num_pports; ++pidx) {
-+		ppd = dd->pport + pidx;
-+		dd->f_setextled(ppd, 0); /* make sure LEDs are off */
-+
-+		if (dd->flags & QIB_HAS_SEND_DMA)
-+			qib_teardown_sdma(ppd);
-+
-+		dd->f_sendctrl(ppd, QIB_SENDCTRL_AVAIL_DIS |
-+				    QIB_SENDCTRL_SEND_DIS);
-+		/*
-+		 * Clear SerdesEnable.
-+		 * We can't count on interrupts since we are stopping.
-+		 */
-+		dd->f_quiet_serdes(ppd);
-+	}
-+
-+	qib_update_eeprom_log(dd);
-+}
-+
-+/**
-+ * qib_free_ctxtdata - free a context's allocated data
-+ * @dd: the qlogic_ib device
-+ * @rcd: the ctxtdata structure
-+ *
-+ * free up any allocated data for a context
-+ * This should not touch anything that would affect a simultaneous
-+ * re-allocation of context data, because it is called after qib_mutex
-+ * is released (and can be called from reinit as well).
-+ * It should never change any chip state, or global driver state.
-+ */
-+void qib_free_ctxtdata(struct qib_devdata *dd, struct qib_ctxtdata *rcd)
-+{
-+	if (!rcd)
-+		return;
-+
-+	if (rcd->rcvhdrq) {
-+		dma_free_coherent(&dd->pcidev->dev, rcd->rcvhdrq_size,
-+				  rcd->rcvhdrq, rcd->rcvhdrq_phys);
-+		rcd->rcvhdrq = NULL;
-+		if (rcd->rcvhdrtail_kvaddr) {
-+			dma_free_coherent(&dd->pcidev->dev, PAGE_SIZE,
-+					  rcd->rcvhdrtail_kvaddr,
-+					  rcd->rcvhdrqtailaddr_phys);
-+			rcd->rcvhdrtail_kvaddr = NULL;
-+		}
-+	}
-+	if (rcd->rcvegrbuf) {
-+		unsigned e;
-+
-+		for (e = 0; e < rcd->rcvegrbuf_chunks; e++) {
-+			void *base = rcd->rcvegrbuf[e];
-+			size_t size = rcd->rcvegrbuf_size;
-+
-+			dma_free_coherent(&dd->pcidev->dev, size,
-+					  base, rcd->rcvegrbuf_phys[e]);
-+		}
-+		kfree(rcd->rcvegrbuf);
-+		rcd->rcvegrbuf = NULL;
-+		kfree(rcd->rcvegrbuf_phys);
-+		rcd->rcvegrbuf_phys = NULL;
-+		rcd->rcvegrbuf_chunks = 0;
-+	}
-+
-+	kfree(rcd->tid_pg_list);
-+	vfree(rcd->user_event_mask);
-+	vfree(rcd->subctxt_uregbase);
-+	vfree(rcd->subctxt_rcvegrbuf);
-+	vfree(rcd->subctxt_rcvhdr_base);
-+	kfree(rcd);
-+}
-+
-+/*
-+ * Perform a PIO buffer bandwidth write test, to verify proper system
-+ * configuration.  Even when all the setup calls work, occasionally
-+ * BIOS or other issues can prevent write combining from working, or
-+ * can cause other bandwidth problems to the chip.
-+ *
-+ * This test simply writes the same buffer over and over again, and
-+ * measures close to the peak bandwidth to the chip (not testing
-+ * data bandwidth to the wire).   On chips that use an address-based
-+ * trigger to send packets to the wire, this is easy.  On chips that
-+ * use a count to trigger, we want to make sure that the packet doesn't
-+ * go out on the wire, or trigger flow control checks.
-+ */
-+static void qib_verify_pioperf(struct qib_devdata *dd)
-+{
-+	u32 pbnum, cnt, lcnt;
-+	u32 __iomem *piobuf;
-+	u32 *addr;
-+	u64 msecs, emsecs;
-+
-+	piobuf = dd->f_getsendbuf(dd->pport, 0ULL, &pbnum);
-+	if (!piobuf) {
-+		qib_devinfo(dd->pcidev,
-+			 "No PIObufs for checking perf, skipping\n");
-+		return;
-+	}
-+
-+	/*
-+	 * Enough to give us a reasonable test, less than piobuf size, and
-+	 * likely multiple of store buffer length.
-+	 */
-+	cnt = 1024;
-+
-+	addr = vmalloc(cnt);
-+	if (!addr) {
-+		qib_devinfo(dd->pcidev,
-+			 "Couldn't get memory for checking PIO perf,"
-+			 " skipping\n");
-+		goto done;
-+	}
-+
-+	preempt_disable();  /* we want reasonably accurate elapsed time */
-+	msecs = 1 + jiffies_to_msecs(jiffies);
-+	for (lcnt = 0; lcnt < 10000U; lcnt++) {
-+		/* wait until we cross msec boundary */
-+		if (jiffies_to_msecs(jiffies) >= msecs)
-+			break;
++		qib_write_kreg(dd, kr_ibserdesctrl, rst_val);
++		/* flush write, delay for startup */
++		qib_read_kreg32(dd, kr_scratch);
 +		udelay(1);
++		/* clear, then re-enable parity errs */
++		qib_sd7220_clr_ibpar(dd);
++		val = qib_read_kreg64(dd, kr_hwerrstatus);
++		if (val & QLOGIC_IB_HWE_IB_UC_MEMORYPARITYERR) {
++			qib_dev_err(dd, "IBUC Parity still set after RST\n");
++			dd->cspec->hwerrmask &=
++				~QLOGIC_IB_HWE_IB_UC_MEMORYPARITYERR;
++		}
++		qib_write_kreg(dd, kr_hwerrmask,
++			dd->cspec->hwerrmask);
 +	}
 +
-+	dd->f_set_armlaunch(dd, 0);
-+
-+	/*
-+	 * length 0, no dwords actually sent
-+	 */
-+	writeq(0, piobuf);
-+	qib_flush_wc();
-+
-+	/*
-+	 * This is only roughly accurate, since even with preempt we
-+	 * still take interrupts that could take a while.   Running for
-+	 * >= 5 msec seems to get us "close enough" to accurate values.
-+	 */
-+	msecs = jiffies_to_msecs(jiffies);
-+	for (emsecs = lcnt = 0; emsecs <= 5UL; lcnt++) {
-+		qib_pio_copy(piobuf + 64, addr, cnt >> 2);
-+		emsecs = jiffies_to_msecs(jiffies) - msecs;
-+	}
-+
-+	/* 1 GiB/sec, slightly over IB SDR line rate */
-+	if (lcnt < (emsecs * 1024U))
-+		qib_dev_err(dd,
-+			    "Performance problem: bandwidth to PIO buffers is "
-+			    "only %u MiB/sec\n",
-+			    lcnt / (u32) emsecs);
-+
-+	preempt_enable();
-+
-+	vfree(addr);
-+
-+done:
-+	/* disarm piobuf, so it's available again */
-+	dd->f_sendctrl(dd->pport, QIB_SENDCTRL_DISARM_BUF(pbnum));
-+	qib_sendbuf_done(dd, pbnum);
-+	dd->f_set_armlaunch(dd, 1);
-+}
-+
-+
-+void qib_free_devdata(struct qib_devdata *dd)
-+{
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&qib_devs_lock, flags);
-+	idr_remove(&qib_unit_table, dd->unit);
-+	list_del(&dd->list);
-+	spin_unlock_irqrestore(&qib_devs_lock, flags);
-+
-+	ib_dealloc_device(&dd->verbs_dev.ibdev);
-+}
-+
-+/*
-+ * Allocate our primary per-unit data structure.  Must be done via verbs
-+ * allocator, because the verbs cleanup process both does cleanup and
-+ * free of the data structure.
-+ * "extra" is for chip-specific data.
-+ *
-+ * Use the idr mechanism to get a unit number for this unit.
-+ */
-+struct qib_devdata *qib_alloc_devdata(struct pci_dev *pdev, size_t extra)
-+{
-+	unsigned long flags;
-+	struct qib_devdata *dd;
-+	int ret;
-+
-+	if (!idr_pre_get(&qib_unit_table, GFP_KERNEL)) {
-+		dd = ERR_PTR(-ENOMEM);
-+		goto bail;
-+	}
-+
-+	dd = (struct qib_devdata *) ib_alloc_device(sizeof(*dd) + extra);
-+	if (!dd) {
-+		dd = ERR_PTR(-ENOMEM);
-+		goto bail;
-+	}
-+
-+	spin_lock_irqsave(&qib_devs_lock, flags);
-+	ret = idr_get_new(&qib_unit_table, dd, &dd->unit);
-+	if (ret >= 0)
-+		list_add(&dd->list, &qib_dev_list);
-+	spin_unlock_irqrestore(&qib_devs_lock, flags);
-+
-+	if (ret < 0) {
-+		qib_early_err(&pdev->dev,
-+			      "Could not allocate unit ID: error %d\n", -ret);
-+		ib_dealloc_device(&dd->verbs_dev.ibdev);
-+		dd = ERR_PTR(ret);
-+		goto bail;
-+	}
-+
-+	if (!qib_cpulist_count) {
-+		u32 count = num_online_cpus();
-+		qib_cpulist = kzalloc(BITS_TO_LONGS(count) *
-+				      sizeof(long), GFP_KERNEL);
-+		if (qib_cpulist)
-+			qib_cpulist_count = count;
-+		else
-+			qib_early_err(&pdev->dev, "Could not alloc cpulist "
-+				      "info, cpu affinity might be wrong\n");
-+	}
-+
-+bail:
-+	return dd;
-+}
-+
-+/*
-+ * Called from freeze mode handlers, and from PCI error
-+ * reporting code.  Should be paranoid about state of
-+ * system and data structures.
-+ */
-+void qib_disable_after_error(struct qib_devdata *dd)
-+{
-+	if (dd->flags & QIB_INITTED) {
-+		u32 pidx;
-+
-+		dd->flags &= ~QIB_INITTED;
-+		if (dd->pport)
-+			for (pidx = 0; pidx < dd->num_pports; ++pidx) {
-+				struct qib_pportdata *ppd;
-+
-+				ppd = dd->pport + pidx;
-+				if (dd->flags & QIB_PRESENT) {
-+					qib_set_linkstate(ppd,
-+						QIB_IB_LINKDOWN_DISABLE);
-+					dd->f_setextled(ppd, 0);
-+				}
-+				*ppd->statusp &= ~QIB_STATUS_IB_READY;
-+			}
-+	}
-+
-+	/*
-+	 * Mark as having had an error for driver, and also
-+	 * for /sys and status word mapped to user programs.
-+	 * This marks unit as not usable, until reset.
-+	 */
-+	if (dd->devstatusp)
-+		*dd->devstatusp |= QIB_STATUS_HWERROR;
-+}
-+
-+static void __devexit qib_remove_one(struct pci_dev *);
-+static int __devinit qib_init_one(struct pci_dev *,
-+				  const struct pci_device_id *);
-+
-+#define DRIVER_LOAD_MSG "QLogic " QIB_DRV_NAME " loaded: "
-+#define PFX QIB_DRV_NAME ": "
-+
-+static const struct pci_device_id qib_pci_tbl[] = {
-+	{ PCI_DEVICE(PCI_VENDOR_ID_PATHSCALE, PCI_DEVICE_ID_QLOGIC_IB_6120) },
-+	{ PCI_DEVICE(PCI_VENDOR_ID_QLOGIC, PCI_DEVICE_ID_QLOGIC_IB_7220) },
-+	{ PCI_DEVICE(PCI_VENDOR_ID_QLOGIC, PCI_DEVICE_ID_QLOGIC_IB_7322) },
-+	{ 0, }
-+};
-+
-+MODULE_DEVICE_TABLE(pci, qib_pci_tbl);
-+
-+struct pci_driver qib_driver = {
-+	.name = QIB_DRV_NAME,
-+	.probe = qib_init_one,
-+	.remove = __devexit_p(qib_remove_one),
-+	.id_table = qib_pci_tbl,
-+	.err_handler = &qib_pci_err_handler,
-+};
-+
-+/*
-+ * Do all the generic driver unit- and chip-independent memory
-+ * allocation and initialization.
-+ */
-+static int __init qlogic_ib_init(void)
-+{
-+	int ret;
-+
-+	ret = qib_dev_init();
-+	if (ret)
-+		goto bail;
-+
-+	/*
-+	 * We create our own workqueue mainly because we want to be
-+	 * able to flush it when devices are being removed.  We can't
-+	 * use schedule_work()/flush_scheduled_work() because both
-+	 * unregister_netdev() and linkwatch_event take the rtnl lock,
-+	 * so flush_scheduled_work() can deadlock during device
-+	 * removal.
-+	 */
-+	qib_wq = create_workqueue("qib");
-+	if (!qib_wq) {
-+		ret = -ENOMEM;
-+		goto bail_dev;
-+	}
-+
-+	qib_cq_wq = create_workqueue("qib_cq");
-+	if (!qib_cq_wq) {
-+		ret = -ENOMEM;
-+		goto bail_wq;
-+	}
-+
-+	/*
-+	 * These must be called before the driver is registered with
-+	 * the PCI subsystem.
-+	 */
-+	idr_init(&qib_unit_table);
-+	if (!idr_pre_get(&qib_unit_table, GFP_KERNEL)) {
-+		printk(KERN_ERR QIB_DRV_NAME ": idr_pre_get() failed\n");
-+		ret = -ENOMEM;
-+		goto bail_cq_wq;
-+	}
-+
-+	ret = pci_register_driver(&qib_driver);
-+	if (ret < 0) {
-+		printk(KERN_ERR QIB_DRV_NAME
-+		       ": Unable to register driver: error %d\n", -ret);
-+		goto bail_unit;
-+	}
-+
-+	/* not fatal if it doesn't work */
-+	if (qib_init_qibfs())
-+		printk(KERN_ERR QIB_DRV_NAME ": Unable to register ipathfs\n");
-+	goto bail; /* all OK */
-+
-+bail_unit:
-+	idr_destroy(&qib_unit_table);
-+bail_cq_wq:
-+	destroy_workqueue(qib_cq_wq);
-+bail_wq:
-+	destroy_workqueue(qib_wq);
-+bail_dev:
-+	qib_dev_cleanup();
 +bail:
 +	return ret;
 +}
 +
-+module_init(qlogic_ib_init);
-+
-+/*
-+ * Do the non-unit driver cleanup, memory free, etc. at unload.
-+ */
-+static void __exit qlogic_ib_cleanup(void)
++static void qib_sd_trimdone_monitor(struct qib_devdata *dd,
++       const char *where)
 +{
-+	int ret;
++	int ret, chn, baduns;
++	u64 val;
 +
-+	ret = qib_exit_qibfs();
-+	if (ret)
-+		printk(KERN_ERR QIB_DRV_NAME ": "
-+			"Unable to cleanup counter filesystem: "
-+			"error %d\n", -ret);
++	if (!where)
++		where = "?";
 +
-+	pci_unregister_driver(&qib_driver);
++	/* give time for reset to settle out in EPB */
++	udelay(2);
 +
-+	destroy_workqueue(qib_wq);
-+	destroy_workqueue(qib_cq_wq);
++	ret = qib_resync_ibepb(dd);
++	if (ret < 0)
++		qib_dev_err(dd, "not able to re-sync IB EPB (%s)\n", where);
 +
-+	qib_cpulist_count = 0;
-+	kfree(qib_cpulist);
++	/* Do "sacrificial read" to get EPB in sane state after reset */
++	ret = qib_sd7220_reg_mod(dd, IB_7220_SERDES, IB_CTRL2(0), 0, 0);
++	if (ret < 0)
++		qib_dev_err(dd, "Failed TRIMDONE 1st read, (%s)\n", where);
 +
-+	idr_destroy(&qib_unit_table);
-+	qib_dev_cleanup();
-+}
++	/* Check/show "summary" Trim-done bit in IBCStatus */
++	val = qib_read_kreg64(dd, kr_ibcstatus);
++	if (!(val & (1ULL << 11)))
++		qib_dev_err(dd, "IBCS TRIMDONE clear (%s)\n", where);
++	/*
++	 * Do "dummy read/mod/wr" to get EPB in sane state after reset
++	 * The default value for MPREG6 is 0.
++	 */
++	udelay(2);
 +
-+module_exit(qlogic_ib_cleanup);
++	ret = qib_sd7220_reg_mod(dd, IB_7220_SERDES, IB_MPREG6, 0x80, 0x80);
++	if (ret < 0)
++		qib_dev_err(dd, "Failed Dummy RMW, (%s)\n", where);
++	udelay(10);
 +
-+/* this can only be called after a successful initialization */
-+static void cleanup_device_data(struct qib_devdata *dd)
-+{
-+	int ctxt;
-+	int pidx;
-+	struct qib_ctxtdata **tmp;
-+	unsigned long flags;
++	baduns = 0;
 +
-+	/* users can't do anything more with chip */
-+	for (pidx = 0; pidx < dd->num_pports; ++pidx)
-+		if (dd->pport[pidx].statusp)
-+			*dd->pport[pidx].statusp &= ~QIB_STATUS_CHIP_PRESENT;
++	for (chn = 3; chn >= 0; --chn) {
++		/* Read CTRL reg for each channel to check TRIMDONE */
++		ret = qib_sd7220_reg_mod(dd, IB_7220_SERDES,
++			IB_CTRL2(chn), 0, 0);
++		if (ret < 0)
++			qib_dev_err(dd, "Failed checking TRIMDONE, chn %d"
++				    " (%s)\n", chn, where);
 +
-+	if (!qib_wc_pat)
-+		qib_disable_wc(dd);
++		if (!(ret & 0x10)) {
++			int probe;
 +
-+	if (dd->pioavailregs_dma) {
-+		dma_free_coherent(&dd->pcidev->dev, PAGE_SIZE,
-+				  (void *) dd->pioavailregs_dma,
-+				  dd->pioavailregs_phys);
-+		dd->pioavailregs_dma = NULL;
-+	}
-+
-+	if (dd->pageshadow) {
-+		struct page **tmpp = dd->pageshadow;
-+		dma_addr_t *tmpd = dd->physshadow;
-+		int i, cnt = 0;
-+
-+		for (ctxt = 0; ctxt < dd->cfgctxts; ctxt++) {
-+			int ctxt_tidbase = ctxt * dd->rcvtidcnt;
-+			int maxtid = ctxt_tidbase + dd->rcvtidcnt;
-+
-+			for (i = ctxt_tidbase; i < maxtid; i++) {
-+				if (!tmpp[i])
-+					continue;
-+				pci_unmap_page(dd->pcidev, tmpd[i],
-+					       PAGE_SIZE, PCI_DMA_FROMDEVICE);
-+				qib_release_user_pages(&tmpp[i], 1);
-+				tmpp[i] = NULL;
-+				cnt++;
-+			}
++			baduns |= (1 << chn);
++			qib_dev_err(dd, "TRIMDONE cleared on chn %d (%02X)."
++				" (%s)\n", chn, ret, where);
++			probe = qib_sd7220_reg_mod(dd, IB_7220_SERDES,
++				IB_PGUDP(0), 0, 0);
++			qib_dev_err(dd, "probe is %d (%02X)\n",
++				probe, probe);
++			probe = qib_sd7220_reg_mod(dd, IB_7220_SERDES,
++				IB_CTRL2(chn), 0, 0);
++			qib_dev_err(dd, "re-read: %d (%02X)\n",
++				probe, probe);
++			ret = qib_sd7220_reg_mod(dd, IB_7220_SERDES,
++				IB_CTRL2(chn), 0x10, 0x10);
++			if (ret < 0)
++				qib_dev_err(dd,
++					"Err on TRIMDONE rewrite1\n");
 +		}
-+
-+		tmpp = dd->pageshadow;
-+		dd->pageshadow = NULL;
-+		vfree(tmpp);
 +	}
-+
-+	/*
-+	 * Free any resources still in use (usually just kernel contexts)
-+	 * at unload; we do for ctxtcnt, because that's what we allocate.
-+	 * We acquire lock to be really paranoid that rcd isn't being
-+	 * accessed from some interrupt-related code (that should not happen,
-+	 * but best to be sure).
-+	 */
-+	spin_lock_irqsave(&dd->uctxt_lock, flags);
-+	tmp = dd->rcd;
-+	dd->rcd = NULL;
-+	spin_unlock_irqrestore(&dd->uctxt_lock, flags);
-+	for (ctxt = 0; tmp && ctxt < dd->ctxtcnt; ctxt++) {
-+		struct qib_ctxtdata *rcd = tmp[ctxt];
-+
-+		tmp[ctxt] = NULL; /* debugging paranoia */
-+		qib_free_ctxtdata(dd, rcd);
++	for (chn = 3; chn >= 0; --chn) {
++		/* Read CTRL reg for each channel to check TRIMDONE */
++		if (baduns & (1 << chn)) {
++			qib_dev_err(dd,
++				"Reseting TRIMDONE on chn %d (%s)\n",
++				chn, where);
++			ret = qib_sd7220_reg_mod(dd, IB_7220_SERDES,
++				IB_CTRL2(chn), 0x10, 0x10);
++			if (ret < 0)
++				qib_dev_err(dd, "Failed re-setting "
++					"TRIMDONE, chn %d (%s)\n",
++					chn, where);
++		}
 +	}
-+	kfree(tmp);
-+	kfree(dd->boardname);
 +}
 +
 +/*
-+ * Clean up on unit shutdown, or error during unit load after
-+ * successful initialization.
++ * Below is portion of IBA7220-specific bringup_serdes() that actually
++ * deals with registers and memory within the SerDes itself.
++ * Post IB uC code version 1.32.17, was_reset being 1 is not really
++ * informative, so we double-check.
 + */
-+static void qib_postinit_cleanup(struct qib_devdata *dd)
++int qib_sd7220_init(struct qib_devdata *dd)
 +{
-+	/*
-+	 * Clean up chip-specific stuff.
-+	 * We check for NULL here, because it's outside
-+	 * the kregbase check, and we need to call it
-+	 * after the free_irq.  Thus it's possible that
-+	 * the function pointers were never initialized.
-+	 */
-+	if (dd->f_cleanup)
-+		dd->f_cleanup(dd);
++	int ret = 1; /* default to failure */
++	int first_reset, was_reset;
 +
-+	qib_pcie_ddcleanup(dd);
-+
-+	cleanup_device_data(dd);
-+
-+	qib_free_devdata(dd);
-+}
-+
-+static int __devinit qib_init_one(struct pci_dev *pdev,
-+				  const struct pci_device_id *ent)
-+{
-+	int ret, j, pidx, initfail;
-+	struct qib_devdata *dd = NULL;
-+
-+	ret = qib_pcie_init(pdev, ent);
-+	if (ret)
++	/* SERDES MPU reset recorded in D0 */
++	was_reset = (qib_read_kreg64(dd, kr_ibserdesctrl) & 1);
++	if (!was_reset) {
++		/* entered with reset not asserted, we need to do it */
++		qib_ibsd_reset(dd, 1);
++		qib_sd_trimdone_monitor(dd, "Driver-reload");
++	}
++	/* Substitute our deduced value for was_reset */
++	ret = qib_ibsd_ucode_loaded(dd->pport);
++	if (ret < 0)
 +		goto bail;
 +
++	first_reset = !ret; /* First reset if IBSD uCode not yet loaded */
 +	/*
-+	 * Do device-specific initialiation, function table setup, dd
-+	 * allocation, etc.
++	 * Alter some regs per vendor latest doc, reset-defaults
++	 * are not right for IB.
 +	 */
-+	switch (ent->device) {
-+	case PCI_DEVICE_ID_QLOGIC_IB_6120:
-+		dd = qib_init_iba6120_funcs(pdev, ent);
++	ret = qib_sd_early(dd);
++	if (ret < 0) {
++		qib_dev_err(dd, "Failed to set IB SERDES early defaults\n");
++		goto bail;
++	}
++	/*
++	 * Set DAC manual trim IB.
++	 * We only do this once after chip has been reset (usually
++	 * same as once per system boot).
++	 */
++	if (first_reset) {
++		ret = qib_sd_dactrim(dd);
++		if (ret < 0) {
++			qib_dev_err(dd, "Failed IB SERDES DAC trim\n");
++			goto bail;
++		}
++	}
++	/*
++	 * Set various registers (DDS and RXEQ) that will be
++	 * controlled by IBC (in 1.2 mode) to reasonable preset values
++	 * Calling the "internal" version avoids the "check for needed"
++	 * and "trimdone monitor" that might be counter-productive.
++	 */
++	ret = qib_internal_presets(dd);
++	if (ret < 0) {
++		qib_dev_err(dd, "Failed to set IB SERDES presets\n");
++		goto bail;
++	}
++	ret = qib_sd_trimself(dd, 0x80);
++	if (ret < 0) {
++		qib_dev_err(dd, "Failed to set IB SERDES TRIMSELF\n");
++		goto bail;
++	}
++
++	/* Load image, then try to verify */
++	ret = 0;        /* Assume success */
++	if (first_reset) {
++		int vfy;
++		int trim_done;
++
++		ret = qib_sd7220_ib_load(dd);
++		if (ret < 0) {
++			qib_dev_err(dd, "Failed to load IB SERDES image\n");
++			goto bail;
++		} else {
++			/* Loaded image, try to verify */
++			vfy = qib_sd7220_ib_vfy(dd);
++			if (vfy != ret) {
++				qib_dev_err(dd, "SERDES PRAM VFY failed\n");
++				goto bail;
++			} /* end if verified */
++		} /* end if loaded */
++
++		/*
++		 * Loaded and verified. Almost good...
++		 * hold "success" in ret
++		 */
++		ret = 0;
++		/*
++		 * Prev steps all worked, continue bringup
++		 * De-assert RESET to uC, only in first reset, to allow
++		 * trimming.
++		 *
++		 * Since our default setup sets START_EQ1 to
++		 * PRESET, we need to clear that for this very first run.
++		 */
++		ret = ibsd_mod_allchnls(dd, START_EQ1(0), 0, 0x38);
++		if (ret < 0) {
++			qib_dev_err(dd, "Failed clearing START_EQ1\n");
++			goto bail;
++		}
++
++		qib_ibsd_reset(dd, 0);
++		/*
++		 * If this is not the first reset, trimdone should be set
++		 * already. We may need to check about this.
++		 */
++		trim_done = qib_sd_trimdone_poll(dd);
++		/*
++		 * Whether or not trimdone succeeded, we need to put the
++		 * uC back into reset to avoid a possible fight with the
++		 * IBC state-machine.
++		 */
++		qib_ibsd_reset(dd, 1);
++
++		if (!trim_done) {
++			qib_dev_err(dd, "No TRIMDONE seen\n");
++			goto bail;
++		}
++		/*
++		 * DEBUG: check each time we reset if trimdone bits have
++		 * gotten cleared, and re-set them.
++		 */
++		qib_sd_trimdone_monitor(dd, "First-reset");
++		/* Remember so we do not re-do the load, dactrim, etc. */
++		dd->cspec->serdes_first_init_done = 1;
++	}
++	/*
++	 * setup for channel training and load values for
++	 * RxEq and DDS in tables used by IBC in IB1.2 mode
++	 */
++	ret = 0;
++	if (qib_sd_setvals(dd) >= 0)
++		goto done;
++bail:
++	ret = 1;
++done:
++	/* start relock timer regardless, but start at 1 second */
++	set_7220_relock_poll(dd, -1);
++	return ret;
++}
++
++#define EPB_ACC_REQ 1
++#define EPB_ACC_GNT 0x100
++#define EPB_DATA_MASK 0xFF
++#define EPB_RD (1ULL << 24)
++#define EPB_TRANS_RDY (1ULL << 31)
++#define EPB_TRANS_ERR (1ULL << 30)
++#define EPB_TRANS_TRIES 5
++
++/*
++ * query, claim, release ownership of the EPB (External Parallel Bus)
++ * for a specified SERDES.
++ * the "claim" parameter is >0 to claim, <0 to release, 0 to query.
++ * Returns <0 for errors, >0 if we had ownership, else 0.
++ */
++static int epb_access(struct qib_devdata *dd, int sdnum, int claim)
++{
++	u16 acc;
++	u64 accval;
++	int owned = 0;
++	u64 oct_sel = 0;
++
++	switch (sdnum) {
++	case IB_7220_SERDES:
++		/*
++		 * The IB SERDES "ownership" is fairly simple. A single each
++		 * request/grant.
++		 */
++		acc = kr_ibsd_epb_access_ctrl;
 +		break;
 +
-+	case PCI_DEVICE_ID_QLOGIC_IB_7220:
-+		dd = qib_init_iba7220_funcs(pdev, ent);
-+		break;
-+
-+	case PCI_DEVICE_ID_QLOGIC_IB_7322:
-+		dd = qib_init_iba7322_funcs(pdev, ent);
++	case PCIE_SERDES0:
++	case PCIE_SERDES1:
++		/* PCIe SERDES has two "octants", need to select which */
++		acc = kr_pciesd_epb_access_ctrl;
++		oct_sel = (2 << (sdnum - PCIE_SERDES0));
 +		break;
 +
 +	default:
-+		qib_early_err(&pdev->dev, "Failing on unknown QLogic "
-+			      "deviceid 0x%x\n", ent->device);
-+		ret = -ENODEV;
++		return 0;
 +	}
 +
-+	if (IS_ERR(dd))
-+		ret = PTR_ERR(dd);
-+	if (ret)
-+		goto bail; /* error already printed */
++	/* Make sure any outstanding transaction was seen */
++	qib_read_kreg32(dd, kr_scratch);
++	udelay(15);
 +
-+	/* do the generic initialization */
-+	initfail = qib_init(dd, 0);
++	accval = qib_read_kreg32(dd, acc);
 +
-+	ret = qib_register_ib_device(dd);
++	owned = !!(accval & EPB_ACC_GNT);
++	if (claim < 0) {
++		/* Need to release */
++		u64 pollval;
++		/*
++		 * The only writeable bits are the request and CS.
++		 * Both should be clear
++		 */
++		u64 newval = 0;
++		qib_write_kreg(dd, acc, newval);
++		/* First read after write is not trustworthy */
++		pollval = qib_read_kreg32(dd, acc);
++		udelay(5);
++		pollval = qib_read_kreg32(dd, acc);
++		if (pollval & EPB_ACC_GNT)
++			owned = -1;
++	} else if (claim > 0) {
++		/* Need to claim */
++		u64 pollval;
++		u64 newval = EPB_ACC_REQ | oct_sel;
++		qib_write_kreg(dd, acc, newval);
++		/* First read after write is not trustworthy */
++		pollval = qib_read_kreg32(dd, acc);
++		udelay(5);
++		pollval = qib_read_kreg32(dd, acc);
++		if (!(pollval & EPB_ACC_GNT))
++			owned = -1;
++	}
++	return owned;
++}
++
++/*
++ * Lemma to deal with race condition of write..read to epb regs
++ */
++static int epb_trans(struct qib_devdata *dd, u16 reg, u64 i_val, u64 *o_vp)
++{
++	int tries;
++	u64 transval;
++
++	qib_write_kreg(dd, reg, i_val);
++	/* Throw away first read, as RDY bit may be stale */
++	transval = qib_read_kreg64(dd, reg);
++
++	for (tries = EPB_TRANS_TRIES; tries; --tries) {
++		transval = qib_read_kreg32(dd, reg);
++		if (transval & EPB_TRANS_RDY)
++			break;
++		udelay(5);
++	}
++	if (transval & EPB_TRANS_ERR)
++		return -1;
++	if (tries > 0 && o_vp)
++		*o_vp = transval;
++	return tries;
++}
++
++/**
++ * qib_sd7220_reg_mod - modify SERDES register
++ * @dd: the qlogic_ib device
++ * @sdnum: which SERDES to access
++ * @loc: location - channel, element, register, as packed by EPB_LOC() macro.
++ * @wd: Write Data - value to set in register
++ * @mask: ones where data should be spliced into reg.
++ *
++ * Basic register read/modify/write, with un-needed acesses elided. That is,
++ * a mask of zero will prevent write, while a mask of 0xFF will prevent read.
++ * returns current (presumed, if a write was done) contents of selected
++ * register, or <0 if errors.
++ */
++static int qib_sd7220_reg_mod(struct qib_devdata *dd, int sdnum, u32 loc,
++			      u32 wd, u32 mask)
++{
++	u16 trans;
++	u64 transval;
++	int owned;
++	int tries, ret;
++	unsigned long flags;
++
++	switch (sdnum) {
++	case IB_7220_SERDES:
++		trans = kr_ibsd_epb_transaction_reg;
++		break;
++
++	case PCIE_SERDES0:
++	case PCIE_SERDES1:
++		trans = kr_pciesd_epb_transaction_reg;
++		break;
++
++	default:
++		return -1;
++	}
 +
 +	/*
-+	 * Now ready for use.  this should be cleared whenever we
-+	 * detect a reset, or initiate one.  If earlier failure,
-+	 * we still create devices, so diags, etc. can be used
-+	 * to determine cause of problem.
++	 * All access is locked in software (vs other host threads) and
++	 * hardware (vs uC access).
 +	 */
-+	if (!qib_mini_init && !initfail && !ret)
-+		dd->flags |= QIB_INITTED;
++	spin_lock_irqsave(&dd->cspec->sdepb_lock, flags);
 +
-+	j = qib_device_create(dd);
-+	if (j)
-+		qib_dev_err(dd, "Failed to create /dev devices: %d\n", -j);
-+	j = qibfs_add(dd);
-+	if (j)
-+		qib_dev_err(dd, "Failed filesystem setup for counters: %d\n",
-+			    -j);
-+
-+	if (qib_mini_init || initfail || ret) {
-+		qib_stop_timers(dd);
-+		for (pidx = 0; pidx < dd->num_pports; ++pidx)
-+			dd->f_quiet_serdes(dd->pport + pidx);
-+		if (initfail)
-+			ret = initfail;
-+		goto bail;
++	owned = epb_access(dd, sdnum, 1);
++	if (owned < 0) {
++		spin_unlock_irqrestore(&dd->cspec->sdepb_lock, flags);
++		return -1;
++	}
++	ret = 0;
++	for (tries = EPB_TRANS_TRIES; tries; --tries) {
++		transval = qib_read_kreg32(dd, trans);
++		if (transval & EPB_TRANS_RDY)
++			break;
++		udelay(5);
 +	}
 +
-+	if (!qib_wc_pat) {
-+		ret = qib_enable_wc(dd);
-+		if (ret) {
-+			qib_dev_err(dd, "Write combining not enabled "
-+				    "(err %d): performance may be poor\n",
-+				    -ret);
-+			ret = 0;
++	if (tries > 0) {
++		tries = 1;      /* to make read-skip work */
++		if (mask != 0xFF) {
++			/*
++			 * Not a pure write, so need to read.
++			 * loc encodes chip-select as well as address
++			 */
++			transval = loc | EPB_RD;
++			tries = epb_trans(dd, trans, transval, &transval);
++		}
++		if (tries > 0 && mask != 0) {
++			/*
++			 * Not a pure read, so need to write.
++			 */
++			wd = (wd & mask) | (transval & ~mask);
++			transval = loc | (wd & EPB_DATA_MASK);
++			tries = epb_trans(dd, trans, transval, &transval);
 +		}
 +	}
++	/* else, failed to see ready, what error-handling? */
 +
-+	qib_verify_pioperf(dd);
++	/*
++	 * Release bus. Failure is an error.
++	 */
++	if (epb_access(dd, sdnum, -1) < 0)
++		ret = -1;
++	else
++		ret = transval & EPB_DATA_MASK;
++
++	spin_unlock_irqrestore(&dd->cspec->sdepb_lock, flags);
++	if (tries <= 0)
++		ret = -1;
++	return ret;
++}
++
++#define EPB_ROM_R (2)
++#define EPB_ROM_W (1)
++/*
++ * Below, all uC-related, use appropriate UC_CS, depending
++ * on which SerDes is used.
++ */
++#define EPB_UC_CTL EPB_LOC(6, 0, 0)
++#define EPB_MADDRL EPB_LOC(6, 0, 2)
++#define EPB_MADDRH EPB_LOC(6, 0, 3)
++#define EPB_ROMDATA EPB_LOC(6, 0, 4)
++#define EPB_RAMDATA EPB_LOC(6, 0, 5)
++
++/* Transfer date to/from uC Program RAM of IB or PCIe SerDes */
++static int qib_sd7220_ram_xfer(struct qib_devdata *dd, int sdnum, u32 loc,
++			       u8 *buf, int cnt, int rd_notwr)
++{
++	u16 trans;
++	u64 transval;
++	u64 csbit;
++	int owned;
++	int tries;
++	int sofar;
++	int addr;
++	int ret;
++	unsigned long flags;
++	const char *op;
++
++	/* Pick appropriate transaction reg and "Chip select" for this serdes */
++	switch (sdnum) {
++	case IB_7220_SERDES:
++		csbit = 1ULL << EPB_IB_UC_CS_SHF;
++		trans = kr_ibsd_epb_transaction_reg;
++		break;
++
++	case PCIE_SERDES0:
++	case PCIE_SERDES1:
++		/* PCIe SERDES has uC "chip select" in different bit, too */
++		csbit = 1ULL << EPB_PCIE_UC_CS_SHF;
++		trans = kr_pciesd_epb_transaction_reg;
++		break;
++
++	default:
++		return -1;
++	}
++
++	op = rd_notwr ? "Rd" : "Wr";
++	spin_lock_irqsave(&dd->cspec->sdepb_lock, flags);
++
++	owned = epb_access(dd, sdnum, 1);
++	if (owned < 0) {
++		spin_unlock_irqrestore(&dd->cspec->sdepb_lock, flags);
++		return -1;
++	}
++
++	/*
++	 * In future code, we may need to distinguish several address ranges,
++	 * and select various memories based on this. For now, just trim
++	 * "loc" (location including address and memory select) to
++	 * "addr" (address within memory). we will only support PRAM
++	 * The memory is 8KB.
++	 */
++	addr = loc & 0x1FFF;
++	for (tries = EPB_TRANS_TRIES; tries; --tries) {
++		transval = qib_read_kreg32(dd, trans);
++		if (transval & EPB_TRANS_RDY)
++			break;
++		udelay(5);
++	}
++
++	sofar = 0;
++	if (tries > 0) {
++		/*
++		 * Every "memory" access is doubly-indirect.
++		 * We set two bytes of address, then read/write
++		 * one or mores bytes of data.
++		 */
++
++		/* First, we set control to "Read" or "Write" */
++		transval = csbit | EPB_UC_CTL |
++			(rd_notwr ? EPB_ROM_R : EPB_ROM_W);
++		tries = epb_trans(dd, trans, transval, &transval);
++		while (tries > 0 && sofar < cnt) {
++			if (!sofar) {
++				/* Only set address at start of chunk */
++				int addrbyte = (addr + sofar) >> 8;
++				transval = csbit | EPB_MADDRH | addrbyte;
++				tries = epb_trans(dd, trans, transval,
++						  &transval);
++				if (tries <= 0)
++					break;
++				addrbyte = (addr + sofar) & 0xFF;
++				transval = csbit | EPB_MADDRL | addrbyte;
++				tries = epb_trans(dd, trans, transval,
++						 &transval);
++				if (tries <= 0)
++					break;
++			}
++
++			if (rd_notwr)
++				transval = csbit | EPB_ROMDATA | EPB_RD;
++			else
++				transval = csbit | EPB_ROMDATA | buf[sofar];
++			tries = epb_trans(dd, trans, transval, &transval);
++			if (tries <= 0)
++				break;
++			if (rd_notwr)
++				buf[sofar] = transval & EPB_DATA_MASK;
++			++sofar;
++		}
++		/* Finally, clear control-bit for Read or Write */
++		transval = csbit | EPB_UC_CTL;
++		tries = epb_trans(dd, trans, transval, &transval);
++	}
++
++	ret = sofar;
++	/* Release bus. Failure is an error */
++	if (epb_access(dd, sdnum, -1) < 0)
++		ret = -1;
++
++	spin_unlock_irqrestore(&dd->cspec->sdepb_lock, flags);
++	if (tries <= 0)
++		ret = -1;
++	return ret;
++}
++
++#define PROG_CHUNK 64
++
++int qib_sd7220_prog_ld(struct qib_devdata *dd, int sdnum,
++		       u8 *img, int len, int offset)
++{
++	int cnt, sofar, req;
++
++	sofar = 0;
++	while (sofar < len) {
++		req = len - sofar;
++		if (req > PROG_CHUNK)
++			req = PROG_CHUNK;
++		cnt = qib_sd7220_ram_xfer(dd, sdnum, offset + sofar,
++					  img + sofar, req, 0);
++		if (cnt < req) {
++			sofar = -1;
++			break;
++		}
++		sofar += req;
++	}
++	return sofar;
++}
++
++#define VFY_CHUNK 64
++#define SD_PRAM_ERROR_LIMIT 42
++
++int qib_sd7220_prog_vfy(struct qib_devdata *dd, int sdnum,
++			const u8 *img, int len, int offset)
++{
++	int cnt, sofar, req, idx, errors;
++	unsigned char readback[VFY_CHUNK];
++
++	errors = 0;
++	sofar = 0;
++	while (sofar < len) {
++		req = len - sofar;
++		if (req > VFY_CHUNK)
++			req = VFY_CHUNK;
++		cnt = qib_sd7220_ram_xfer(dd, sdnum, sofar + offset,
++					  readback, req, 1);
++		if (cnt < req) {
++			/* failed in read itself */
++			sofar = -1;
++			break;
++		}
++		for (idx = 0; idx < cnt; ++idx) {
++			if (readback[idx] != img[idx+sofar])
++				++errors;
++		}
++		sofar += cnt;
++	}
++	return errors ? -errors : sofar;
++}
++
++/*
++ * IRQ not set up at this point in init, so we poll.
++ */
++#define IB_SERDES_TRIM_DONE (1ULL << 11)
++#define TRIM_TMO (30)
++
++static int qib_sd_trimdone_poll(struct qib_devdata *dd)
++{
++	int trim_tmo, ret;
++	uint64_t val;
++
++	/*
++	 * Default to failure, so IBC will not start
++	 * without IB_SERDES_TRIM_DONE.
++	 */
++	ret = 0;
++	for (trim_tmo = 0; trim_tmo < TRIM_TMO; ++trim_tmo) {
++		val = qib_read_kreg64(dd, kr_ibcstatus);
++		if (val & IB_SERDES_TRIM_DONE) {
++			ret = 1;
++			break;
++		}
++		msleep(10);
++	}
++	if (trim_tmo >= TRIM_TMO) {
++		qib_dev_err(dd, "No TRIMDONE in %d tries\n", trim_tmo);
++		ret = 0;
++	}
++	return ret;
++}
++
++#define TX_FAST_ELT (9)
++
++/*
++ * Set the "negotiation" values for SERDES. These are used by the IB1.2
++ * link negotiation. Macros below are attempt to keep the values a
++ * little more human-editable.
++ * First, values related to Drive De-emphasis Settings.
++ */
++
++#define NUM_DDS_REGS 6
++#define DDS_REG_MAP 0x76A910 /* LSB-first list of regs (in elt 9) to mod */
++
++#define DDS_VAL(amp_d, main_d, ipst_d, ipre_d, amp_s, main_s, ipst_s, ipre_s) \
++	{ { ((amp_d & 0x1F) << 1) | 1, ((amp_s & 0x1F) << 1) | 1, \
++	  (main_d << 3) | 4 | (ipre_d >> 2), \
++	  (main_s << 3) | 4 | (ipre_s >> 2), \
++	  ((ipst_d & 0xF) << 1) | ((ipre_d & 3) << 6) | 0x21, \
++	  ((ipst_s & 0xF) << 1) | ((ipre_s & 3) << 6) | 0x21 } }
++
++static struct dds_init {
++	uint8_t reg_vals[NUM_DDS_REGS];
++} dds_init_vals[] = {
++	/*       DDR(FDR)       SDR(HDR)   */
++	/* Vendor recommends below for 3m cable */
++#define DDS_3M 0
++	DDS_VAL(31, 19, 12, 0, 29, 22,  9, 0),
++	DDS_VAL(31, 12, 15, 4, 31, 15, 15, 1),
++	DDS_VAL(31, 13, 15, 3, 31, 16, 15, 0),
++	DDS_VAL(31, 14, 15, 2, 31, 17, 14, 0),
++	DDS_VAL(31, 15, 15, 1, 31, 18, 13, 0),
++	DDS_VAL(31, 16, 15, 0, 31, 19, 12, 0),
++	DDS_VAL(31, 17, 14, 0, 31, 20, 11, 0),
++	DDS_VAL(31, 18, 13, 0, 30, 21, 10, 0),
++	DDS_VAL(31, 20, 11, 0, 28, 23,  8, 0),
++	DDS_VAL(31, 21, 10, 0, 27, 24,  7, 0),
++	DDS_VAL(31, 22,  9, 0, 26, 25,  6, 0),
++	DDS_VAL(30, 23,  8, 0, 25, 26,  5, 0),
++	DDS_VAL(29, 24,  7, 0, 23, 27,  4, 0),
++	/* Vendor recommends below for 1m cable */
++#define DDS_1M 13
++	DDS_VAL(28, 25,  6, 0, 21, 28,  3, 0),
++	DDS_VAL(27, 26,  5, 0, 19, 29,  2, 0),
++	DDS_VAL(25, 27,  4, 0, 17, 30,  1, 0)
++};
++
++/*
++ * Now the RXEQ section of the table.
++ */
++/* Hardware packs an element number and register address thus: */
++#define RXEQ_INIT_RDESC(elt, addr) (((elt) & 0xF) | ((addr) << 4))
++#define RXEQ_VAL(elt, adr, val0, val1, val2, val3) \
++	{RXEQ_INIT_RDESC((elt), (adr)), {(val0), (val1), (val2), (val3)} }
++
++#define RXEQ_VAL_ALL(elt, adr, val)  \
++	{RXEQ_INIT_RDESC((elt), (adr)), {(val), (val), (val), (val)} }
++
++#define RXEQ_SDR_DFELTH 0
++#define RXEQ_SDR_TLTH 0
++#define RXEQ_SDR_G1CNT_Z1CNT 0x11
++#define RXEQ_SDR_ZCNT 23
++
++static struct rxeq_init {
++	u16 rdesc;      /* in form used in SerDesDDSRXEQ */
++	u8  rdata[4];
++} rxeq_init_vals[] = {
++	/* Set Rcv Eq. to Preset node */
++	RXEQ_VAL_ALL(7, 0x27, 0x10),
++	/* Set DFELTHFDR/HDR thresholds */
++	RXEQ_VAL(7, 8,    0, 0, 0, 0), /* FDR, was 0, 1, 2, 3 */
++	RXEQ_VAL(7, 0x21, 0, 0, 0, 0), /* HDR */
++	/* Set TLTHFDR/HDR theshold */
++	RXEQ_VAL(7, 9,    2, 2, 2, 2), /* FDR, was 0, 2, 4, 6 */
++	RXEQ_VAL(7, 0x23, 2, 2, 2, 2), /* HDR, was  0, 1, 2, 3 */
++	/* Set Preamp setting 2 (ZFR/ZCNT) */
++	RXEQ_VAL(7, 0x1B, 12, 12, 12, 12), /* FDR, was 12, 16, 20, 24 */
++	RXEQ_VAL(7, 0x1C, 12, 12, 12, 12), /* HDR, was 12, 16, 20, 24 */
++	/* Set Preamp DC gain and Setting 1 (GFR/GHR) */
++	RXEQ_VAL(7, 0x1E, 16, 16, 16, 16), /* FDR, was 16, 17, 18, 20 */
++	RXEQ_VAL(7, 0x1F, 16, 16, 16, 16), /* HDR, was 16, 17, 18, 20 */
++	/* Toggle RELOCK (in VCDL_CTRL0) to lock to data */
++	RXEQ_VAL_ALL(6, 6, 0x20), /* Set D5 High */
++	RXEQ_VAL_ALL(6, 6, 0), /* Set D5 Low */
++};
++
++/* There are 17 values from vendor, but IBC only accesses the first 16 */
++#define DDS_ROWS (16)
++#define RXEQ_ROWS ARRAY_SIZE(rxeq_init_vals)
++
++static int qib_sd_setvals(struct qib_devdata *dd)
++{
++	int idx, midx;
++	int min_idx;     /* Minimum index for this portion of table */
++	uint32_t dds_reg_map;
++	u64 __iomem *taddr, *iaddr;
++	uint64_t data;
++	uint64_t sdctl;
++
++	taddr = dd->kregbase + kr_serdes_maptable;
++	iaddr = dd->kregbase + kr_serdes_ddsrxeq0;
++
++	/*
++	 * Init the DDS section of the table.
++	 * Each "row" of the table provokes NUM_DDS_REG writes, to the
++	 * registers indicated in DDS_REG_MAP.
++	 */
++	sdctl = qib_read_kreg64(dd, kr_ibserdesctrl);
++	sdctl = (sdctl & ~(0x1f << 8)) | (NUM_DDS_REGS << 8);
++	sdctl = (sdctl & ~(0x1f << 13)) | (RXEQ_ROWS << 13);
++	qib_write_kreg(dd, kr_ibserdesctrl, sdctl);
++
++	/*
++	 * Iterate down table within loop for each register to store.
++	 */
++	dds_reg_map = DDS_REG_MAP;
++	for (idx = 0; idx < NUM_DDS_REGS; ++idx) {
++		data = ((dds_reg_map & 0xF) << 4) | TX_FAST_ELT;
++		writeq(data, iaddr + idx);
++		mmiowb();
++		qib_read_kreg32(dd, kr_scratch);
++		dds_reg_map >>= 4;
++		for (midx = 0; midx < DDS_ROWS; ++midx) {
++			u64 __iomem *daddr = taddr + ((midx << 4) + idx);
++			data = dds_init_vals[midx].reg_vals[idx];
++			writeq(data, daddr);
++			mmiowb();
++			qib_read_kreg32(dd, kr_scratch);
++		} /* End inner for (vals for this reg, each row) */
++	} /* end outer for (regs to be stored) */
++
++	/*
++	 * Init the RXEQ section of the table.
++	 * This runs in a different order, as the pattern of
++	 * register references is more complex, but there are only
++	 * four "data" values per register.
++	 */
++	min_idx = idx; /* RXEQ indices pick up where DDS left off */
++	taddr += 0x100; /* RXEQ data is in second half of table */
++	/* Iterate through RXEQ register addresses */
++	for (idx = 0; idx < RXEQ_ROWS; ++idx) {
++		int didx; /* "destination" */
++		int vidx;
++
++		/* didx is offset by min_idx to address RXEQ range of regs */
++		didx = idx + min_idx;
++		/* Store the next RXEQ register address */
++		writeq(rxeq_init_vals[idx].rdesc, iaddr + didx);
++		mmiowb();
++		qib_read_kreg32(dd, kr_scratch);
++		/* Iterate through RXEQ values */
++		for (vidx = 0; vidx < 4; vidx++) {
++			data = rxeq_init_vals[idx].rdata[vidx];
++			writeq(data, taddr + (vidx << 6) + idx);
++			mmiowb();
++			qib_read_kreg32(dd, kr_scratch);
++		}
++	} /* end outer for (Reg-writes for RXEQ) */
++	return 0;
++}
++
++#define CMUCTRL5 EPB_LOC(7, 0, 0x15)
++#define RXHSCTRL0(chan) EPB_LOC(chan, 6, 0)
++#define VCDL_DAC2(chan) EPB_LOC(chan, 6, 5)
++#define VCDL_CTRL0(chan) EPB_LOC(chan, 6, 6)
++#define VCDL_CTRL2(chan) EPB_LOC(chan, 6, 8)
++#define START_EQ2(chan) EPB_LOC(chan, 7, 0x28)
++
++/*
++ * Repeat a "store" across all channels of the IB SerDes.
++ * Although nominally it inherits the "read value" of the last
++ * channel it modified, the only really useful return is <0 for
++ * failure, >= 0 for success. The parameter 'loc' is assumed to
++ * be the location in some channel of the register to be modified
++ * The caller can specify use of the "gang write" option of EPB,
++ * in which case we use the specified channel data for any fields
++ * not explicitely written.
++ */
++static int ibsd_mod_allchnls(struct qib_devdata *dd, int loc, int val,
++			     int mask)
++{
++	int ret = -1;
++	int chnl;
++
++	if (loc & EPB_GLOBAL_WR) {
++		/*
++		 * Our caller has assured us that we can set all four
++		 * channels at once. Trust that. If mask is not 0xFF,
++		 * we will read the _specified_ channel for our starting
++		 * value.
++		 */
++		loc |= (1U << EPB_IB_QUAD0_CS_SHF);
++		chnl = (loc >> (4 + EPB_ADDR_SHF)) & 7;
++		if (mask != 0xFF) {
++			ret = qib_sd7220_reg_mod(dd, IB_7220_SERDES,
++						 loc & ~EPB_GLOBAL_WR, 0, 0);
++			if (ret < 0) {
++				int sloc = loc >> EPB_ADDR_SHF;
++
++				qib_dev_err(dd, "pre-read failed: elt %d,"
++					    " addr 0x%X, chnl %d\n",
++					    (sloc & 0xF),
++					    (sloc >> 9) & 0x3f, chnl);
++				return ret;
++			}
++			val = (ret & ~mask) | (val & mask);
++		}
++		loc &=  ~(7 << (4+EPB_ADDR_SHF));
++		ret = qib_sd7220_reg_mod(dd, IB_7220_SERDES, loc, val, 0xFF);
++		if (ret < 0) {
++			int sloc = loc >> EPB_ADDR_SHF;
++
++			qib_dev_err(dd, "Global WR failed: elt %d,"
++				    " addr 0x%X, val %02X\n",
++				    (sloc & 0xF), (sloc >> 9) & 0x3f, val);
++		}
++		return ret;
++	}
++	/* Clear "channel" and set CS so we can simply iterate */
++	loc &=  ~(7 << (4+EPB_ADDR_SHF));
++	loc |= (1U << EPB_IB_QUAD0_CS_SHF);
++	for (chnl = 0; chnl < 4; ++chnl) {
++		int cloc = loc | (chnl << (4+EPB_ADDR_SHF));
++
++		ret = qib_sd7220_reg_mod(dd, IB_7220_SERDES, cloc, val, mask);
++		if (ret < 0) {
++			int sloc = loc >> EPB_ADDR_SHF;
++
++			qib_dev_err(dd, "Write failed: elt %d,"
++				    " addr 0x%X, chnl %d, val 0x%02X,"
++				    " mask 0x%02X\n",
++				    (sloc & 0xF), (sloc >> 9) & 0x3f, chnl,
++				    val & 0xFF, mask & 0xFF);
++			break;
++		}
++	}
++	return ret;
++}
++
++/*
++ * Set the Tx values normally modified by IBC in IB1.2 mode to default
++ * values, as gotten from first row of init table.
++ */
++static int set_dds_vals(struct qib_devdata *dd, struct dds_init *ddi)
++{
++	int ret;
++	int idx, reg, data;
++	uint32_t regmap;
++
++	regmap = DDS_REG_MAP;
++	for (idx = 0; idx < NUM_DDS_REGS; ++idx) {
++		reg = (regmap & 0xF);
++		regmap >>= 4;
++		data = ddi->reg_vals[idx];
++		/* Vendor says RMW not needed for these regs, use 0xFF mask */
++		ret = ibsd_mod_allchnls(dd, EPB_LOC(0, 9, reg), data, 0xFF);
++		if (ret < 0)
++			break;
++	}
++	return ret;
++}
++
++/*
++ * Set the Rx values normally modified by IBC in IB1.2 mode to default
++ * values, as gotten from selected column of init table.
++ */
++static int set_rxeq_vals(struct qib_devdata *dd, int vsel)
++{
++	int ret;
++	int ridx;
++	int cnt = ARRAY_SIZE(rxeq_init_vals);
++
++	for (ridx = 0; ridx < cnt; ++ridx) {
++		int elt, reg, val, loc;
++
++		elt = rxeq_init_vals[ridx].rdesc & 0xF;
++		reg = rxeq_init_vals[ridx].rdesc >> 4;
++		loc = EPB_LOC(0, elt, reg);
++		val = rxeq_init_vals[ridx].rdata[vsel];
++		/* mask of 0xFF, because hardware does full-byte store. */
++		ret = ibsd_mod_allchnls(dd, loc, val, 0xFF);
++		if (ret < 0)
++			break;
++	}
++	return ret;
++}
++
++/*
++ * Set the default values (row 0) for DDR Driver Demphasis.
++ * we do this initially and whenever we turn off IB-1.2
++ *
++ * The "default" values for Rx equalization are also stored to
++ * SerDes registers. Formerly (and still default), we used set 2.
++ * For experimenting with cables and link-partners, we allow changing
++ * that via a module parameter.
++ */
++static unsigned qib_rxeq_set = 2;
++module_param_named(rxeq_default_set, qib_rxeq_set, uint,
++		   S_IWUSR | S_IRUGO);
++MODULE_PARM_DESC(rxeq_default_set,
++		 "Which set [0..3] of Rx Equalization values is default");
++
++static int qib_internal_presets(struct qib_devdata *dd)
++{
++	int ret = 0;
++
++	ret = set_dds_vals(dd, dds_init_vals + DDS_3M);
++
++	if (ret < 0)
++		qib_dev_err(dd, "Failed to set default DDS values\n");
++	ret = set_rxeq_vals(dd, qib_rxeq_set & 3);
++	if (ret < 0)
++		qib_dev_err(dd, "Failed to set default RXEQ values\n");
++	return ret;
++}
++
++int qib_sd7220_presets(struct qib_devdata *dd)
++{
++	int ret = 0;
++
++	if (!dd->cspec->presets_needed)
++		return ret;
++	dd->cspec->presets_needed = 0;
++	/* Assert uC reset, so we don't clash with it. */
++	qib_ibsd_reset(dd, 1);
++	udelay(2);
++	qib_sd_trimdone_monitor(dd, "link-down");
++
++	ret = qib_internal_presets(dd);
++	return ret;
++}
++
++static int qib_sd_trimself(struct qib_devdata *dd, int val)
++{
++	int loc = CMUCTRL5 | (1U << EPB_IB_QUAD0_CS_SHF);
++
++	return qib_sd7220_reg_mod(dd, IB_7220_SERDES, loc, val, 0xFF);
++}
++
++static int qib_sd_early(struct qib_devdata *dd)
++{
++	int ret;
++
++	ret = ibsd_mod_allchnls(dd, RXHSCTRL0(0) | EPB_GLOBAL_WR, 0xD4, 0xFF);
++	if (ret < 0)
++		goto bail;
++	ret = ibsd_mod_allchnls(dd, START_EQ1(0) | EPB_GLOBAL_WR, 0x10, 0xFF);
++	if (ret < 0)
++		goto bail;
++	ret = ibsd_mod_allchnls(dd, START_EQ2(0) | EPB_GLOBAL_WR, 0x30, 0xFF);
 +bail:
 +	return ret;
 +}
 +
-+static void __devexit qib_remove_one(struct pci_dev *pdev)
++#define BACTRL(chnl) EPB_LOC(chnl, 6, 0x0E)
++#define LDOUTCTRL1(chnl) EPB_LOC(chnl, 7, 6)
++#define RXHSSTATUS(chnl) EPB_LOC(chnl, 6, 0xF)
++
++static int qib_sd_dactrim(struct qib_devdata *dd)
 +{
-+	struct qib_devdata *dd = pci_get_drvdata(pdev);
 +	int ret;
 +
-+	/* unregister from IB core */
-+	qib_unregister_ib_device(dd);
-+
-+	/*
-+	 * Disable the IB link, disable interrupts on the device,
-+	 * clear dma engines, etc.
-+	 */
-+	if (!qib_mini_init)
-+		qib_shutdown_device(dd);
-+
-+	qib_stop_timers(dd);
-+
-+	/* wait until all of our (qsfp) schedule_work() calls complete */
-+	flush_scheduled_work();
-+
-+	ret = qibfs_remove(dd);
-+	if (ret)
-+		qib_dev_err(dd, "Failed counters filesystem cleanup: %d\n",
-+			    -ret);
-+
-+	qib_device_remove(dd);
-+
-+	qib_postinit_cleanup(dd);
-+}
-+
-+/**
-+ * qib_create_rcvhdrq - create a receive header queue
-+ * @dd: the qlogic_ib device
-+ * @rcd: the context data
-+ *
-+ * This must be contiguous memory (from an i/o perspective), and must be
-+ * DMA'able (which means for some systems, it will go through an IOMMU,
-+ * or be forced into a low address range).
-+ */
-+int qib_create_rcvhdrq(struct qib_devdata *dd, struct qib_ctxtdata *rcd)
-+{
-+	unsigned amt;
-+
-+	if (!rcd->rcvhdrq) {
-+		dma_addr_t phys_hdrqtail;
-+		gfp_t gfp_flags;
-+
-+		amt = ALIGN(dd->rcvhdrcnt * dd->rcvhdrentsize *
-+			    sizeof(u32), PAGE_SIZE);
-+		gfp_flags = (rcd->ctxt >= dd->first_user_ctxt) ?
-+			GFP_USER : GFP_KERNEL;
-+		rcd->rcvhdrq = dma_alloc_coherent(
-+			&dd->pcidev->dev, amt, &rcd->rcvhdrq_phys,
-+			gfp_flags | __GFP_COMP);
-+
-+		if (!rcd->rcvhdrq) {
-+			qib_dev_err(dd, "attempt to allocate %d bytes "
-+				    "for ctxt %u rcvhdrq failed\n",
-+				    amt, rcd->ctxt);
-+			goto bail;
-+		}
-+
-+		if (rcd->ctxt >= dd->first_user_ctxt) {
-+			rcd->user_event_mask = vmalloc_user(PAGE_SIZE);
-+			if (!rcd->user_event_mask)
-+				goto bail_free_hdrq;
-+		}
-+
-+		if (!(dd->flags & QIB_NODMA_RTAIL)) {
-+			rcd->rcvhdrtail_kvaddr = dma_alloc_coherent(
-+				&dd->pcidev->dev, PAGE_SIZE, &phys_hdrqtail,
-+				gfp_flags);
-+			if (!rcd->rcvhdrtail_kvaddr)
-+				goto bail_free;
-+			rcd->rcvhdrqtailaddr_phys = phys_hdrqtail;
-+		}
-+
-+		rcd->rcvhdrq_size = amt;
-+	}
-+
-+	/* clear for security and sanity on each use */
-+	memset(rcd->rcvhdrq, 0, rcd->rcvhdrq_size);
-+	if (rcd->rcvhdrtail_kvaddr)
-+		memset(rcd->rcvhdrtail_kvaddr, 0, PAGE_SIZE);
-+	return 0;
-+
-+bail_free:
-+	qib_dev_err(dd, "attempt to allocate 1 page for ctxt %u "
-+		    "rcvhdrqtailaddr failed\n", rcd->ctxt);
-+	vfree(rcd->user_event_mask);
-+	rcd->user_event_mask = NULL;
-+bail_free_hdrq:
-+	dma_free_coherent(&dd->pcidev->dev, amt, rcd->rcvhdrq,
-+			  rcd->rcvhdrq_phys);
-+	rcd->rcvhdrq = NULL;
-+bail:
-+	return -ENOMEM;
-+}
-+
-+/**
-+ * allocate eager buffers, both kernel and user contexts.
-+ * @rcd: the context we are setting up.
-+ *
-+ * Allocate the eager TID buffers and program them into hip.
-+ * They are no longer completely contiguous, we do multiple allocation
-+ * calls.  Otherwise we get the OOM code involved, by asking for too
-+ * much per call, with disastrous results on some kernels.
-+ */
-+int qib_setup_eagerbufs(struct qib_ctxtdata *rcd)
-+{
-+	struct qib_devdata *dd = rcd->dd;
-+	unsigned e, egrcnt, egrperchunk, chunk, egrsize, egroff;
-+	size_t size;
-+	gfp_t gfp_flags;
-+
-+	/*
-+	 * GFP_USER, but without GFP_FS, so buffer cache can be
-+	 * coalesced (we hope); otherwise, even at order 4,
-+	 * heavy filesystem activity makes these fail, and we can
-+	 * use compound pages.
-+	 */
-+	gfp_flags = __GFP_WAIT | __GFP_IO | __GFP_COMP;
-+
-+	egrcnt = rcd->rcvegrcnt;
-+	egroff = rcd->rcvegr_tid_base;
-+	egrsize = dd->rcvegrbufsize;
-+
-+	chunk = rcd->rcvegrbuf_chunks;
-+	egrperchunk = rcd->rcvegrbufs_perchunk;
-+	size = rcd->rcvegrbuf_size;
-+	if (!rcd->rcvegrbuf) {
-+		rcd->rcvegrbuf =
-+			kzalloc(chunk * sizeof(rcd->rcvegrbuf[0]),
-+				GFP_KERNEL);
-+		if (!rcd->rcvegrbuf)
-+			goto bail;
-+	}
-+	if (!rcd->rcvegrbuf_phys) {
-+		rcd->rcvegrbuf_phys =
-+			kmalloc(chunk * sizeof(rcd->rcvegrbuf_phys[0]),
-+				GFP_KERNEL);
-+		if (!rcd->rcvegrbuf_phys)
-+			goto bail_rcvegrbuf;
-+	}
-+	for (e = 0; e < rcd->rcvegrbuf_chunks; e++) {
-+		if (rcd->rcvegrbuf[e])
-+			continue;
-+		rcd->rcvegrbuf[e] =
-+			dma_alloc_coherent(&dd->pcidev->dev, size,
-+					   &rcd->rcvegrbuf_phys[e],
-+					   gfp_flags);
-+		if (!rcd->rcvegrbuf[e])
-+			goto bail_rcvegrbuf_phys;
-+	}
-+
-+	rcd->rcvegr_phys = rcd->rcvegrbuf_phys[0];
-+
-+	for (e = chunk = 0; chunk < rcd->rcvegrbuf_chunks; chunk++) {
-+		dma_addr_t pa = rcd->rcvegrbuf_phys[chunk];
-+		unsigned i;
-+
-+		for (i = 0; e < egrcnt && i < egrperchunk; e++, i++) {
-+			dd->f_put_tid(dd, e + egroff +
-+					  (u64 __iomem *)
-+					  ((char __iomem *)
-+					   dd->kregbase +
-+					   dd->rcvegrbase),
-+					  RCVHQ_RCV_TYPE_EAGER, pa);
-+			pa += egrsize;
-+		}
-+		cond_resched(); /* don't hog the cpu */
-+	}
-+
-+	return 0;
-+
-+bail_rcvegrbuf_phys:
-+	for (e = 0; e < rcd->rcvegrbuf_chunks && rcd->rcvegrbuf[e]; e++)
-+		dma_free_coherent(&dd->pcidev->dev, size,
-+				  rcd->rcvegrbuf[e], rcd->rcvegrbuf_phys[e]);
-+	kfree(rcd->rcvegrbuf_phys);
-+	rcd->rcvegrbuf_phys = NULL;
-+bail_rcvegrbuf:
-+	kfree(rcd->rcvegrbuf);
-+	rcd->rcvegrbuf = NULL;
-+bail:
-+	return -ENOMEM;
-+}
-+
-+int init_chip_wc_pat(struct qib_devdata *dd, u32 vl15buflen)
-+{
-+	u64 __iomem *qib_kregbase = NULL;
-+	void __iomem *qib_piobase = NULL;
-+	u64 __iomem *qib_userbase = NULL;
-+	u64 qib_kreglen;
-+	u64 qib_pio2koffset = dd->piobufbase & 0xffffffff;
-+	u64 qib_pio4koffset = dd->piobufbase >> 32;
-+	u64 qib_pio2klen = dd->piobcnt2k * dd->palign;
-+	u64 qib_pio4klen = dd->piobcnt4k * dd->align4k;
-+	u64 qib_physaddr = dd->physaddr;
-+	u64 qib_piolen;
-+	u64 qib_userlen = 0;
-+
-+	/*
-+	 * Free the old mapping because the kernel will try to reuse the
-+	 * old mapping and not create a new mapping with the
-+	 * write combining attribute.
-+	 */
-+	iounmap(dd->kregbase);
-+	dd->kregbase = NULL;
-+
-+	/*
-+	 * Assumes chip address space looks like:
-+	 *	- kregs + sregs + cregs + uregs (in any order)
-+	 *	- piobufs (2K and 4K bufs in either order)
-+	 * or:
-+	 *	- kregs + sregs + cregs (in any order)
-+	 *	- piobufs (2K and 4K bufs in either order)
-+	 *	- uregs
-+	 */
-+	if (dd->piobcnt4k == 0) {
-+		qib_kreglen = qib_pio2koffset;
-+		qib_piolen = qib_pio2klen;
-+	} else if (qib_pio2koffset < qib_pio4koffset) {
-+		qib_kreglen = qib_pio2koffset;
-+		qib_piolen = qib_pio4koffset + qib_pio4klen - qib_kreglen;
-+	} else {
-+		qib_kreglen = qib_pio4koffset;
-+		qib_piolen = qib_pio2koffset + qib_pio2klen - qib_kreglen;
-+	}
-+	qib_piolen += vl15buflen;
-+	/* Map just the configured ports (not all hw ports) */
-+	if (dd->uregbase > qib_kreglen)
-+		qib_userlen = dd->ureg_align * dd->cfgctxts;
-+
-+	/* Sanity checks passed, now create the new mappings */
-+	qib_kregbase = ioremap_nocache(qib_physaddr, qib_kreglen);
-+	if (!qib_kregbase)
++	ret = ibsd_mod_allchnls(dd, VCDL_DAC2(0) | EPB_GLOBAL_WR, 0x2D, 0xFF);
++	if (ret < 0)
 +		goto bail;
 +
-+	qib_piobase = ioremap_wc(qib_physaddr + qib_kreglen, qib_piolen);
-+	if (!qib_piobase)
-+		goto bail_kregbase;
++	/* more fine-tuning of what will be default */
++	ret = ibsd_mod_allchnls(dd, VCDL_CTRL2(0), 3, 0xF);
++	if (ret < 0)
++		goto bail;
 +
-+	if (qib_userlen) {
-+		qib_userbase = ioremap_nocache(qib_physaddr + dd->uregbase,
-+					       qib_userlen);
-+		if (!qib_userbase)
-+			goto bail_piobase;
-+	}
++	ret = ibsd_mod_allchnls(dd, BACTRL(0) | EPB_GLOBAL_WR, 0x40, 0xFF);
++	if (ret < 0)
++		goto bail;
 +
-+	dd->kregbase = qib_kregbase;
-+	dd->kregend = (u64 __iomem *)
-+		((char __iomem *) qib_kregbase + qib_kreglen);
-+	dd->piobase = qib_piobase;
-+	dd->pio2kbase = (void __iomem *)
-+		(((char __iomem *) dd->piobase) +
-+		 qib_pio2koffset - qib_kreglen);
-+	if (dd->piobcnt4k)
-+		dd->pio4kbase = (void __iomem *)
-+			(((char __iomem *) dd->piobase) +
-+			 qib_pio4koffset - qib_kreglen);
-+	if (qib_userlen)
-+		/* ureg will now be accessed relative to dd->userbase */
-+		dd->userbase = qib_userbase;
-+	return 0;
++	ret = ibsd_mod_allchnls(dd, LDOUTCTRL1(0) | EPB_GLOBAL_WR, 0x04, 0xFF);
++	if (ret < 0)
++		goto bail;
 +
-+bail_piobase:
-+	iounmap(qib_piobase);
-+bail_kregbase:
-+	iounmap(qib_kregbase);
++	ret = ibsd_mod_allchnls(dd, RXHSSTATUS(0) | EPB_GLOBAL_WR, 0x04, 0xFF);
++	if (ret < 0)
++		goto bail;
++
++	/*
++	 * Delay for max possible number of steps, with slop.
++	 * Each step is about 4usec.
++	 */
++	udelay(415);
++
++	ret = ibsd_mod_allchnls(dd, LDOUTCTRL1(0) | EPB_GLOBAL_WR, 0x00, 0xFF);
++
 +bail:
-+	return -ENOMEM;
++	return ret;
++}
++
++#define RELOCK_FIRST_MS 3
++#define RXLSPPM(chan) EPB_LOC(chan, 0, 2)
++void toggle_7220_rclkrls(struct qib_devdata *dd)
++{
++	int loc = RXLSPPM(0) | EPB_GLOBAL_WR;
++	int ret;
++
++	ret = ibsd_mod_allchnls(dd, loc, 0, 0x80);
++	if (ret < 0)
++		qib_dev_err(dd, "RCLKRLS failed to clear D7\n");
++	else {
++		udelay(1);
++		ibsd_mod_allchnls(dd, loc, 0x80, 0x80);
++	}
++	/* And again for good measure */
++	udelay(1);
++	ret = ibsd_mod_allchnls(dd, loc, 0, 0x80);
++	if (ret < 0)
++		qib_dev_err(dd, "RCLKRLS failed to clear D7\n");
++	else {
++		udelay(1);
++		ibsd_mod_allchnls(dd, loc, 0x80, 0x80);
++	}
++	/* Now reset xgxs and IBC to complete the recovery */
++	dd->f_xgxs_reset(dd->pport);
++}
++
++/*
++ * Shut down the timer that polls for relock occasions, if needed
++ * this is "hooked" from qib_7220_quiet_serdes(), which is called
++ * just before qib_shutdown_device() in qib_driver.c shuts down all
++ * the other timers
++ */
++void shutdown_7220_relock_poll(struct qib_devdata *dd)
++{
++	if (dd->cspec->relock_timer_active)
++		del_timer_sync(&dd->cspec->relock_timer);
++}
++
++static unsigned qib_relock_by_timer = 1;
++module_param_named(relock_by_timer, qib_relock_by_timer, uint,
++		   S_IWUSR | S_IRUGO);
++MODULE_PARM_DESC(relock_by_timer, "Allow relock attempt if link not up");
++
++static void qib_run_relock(unsigned long opaque)
++{
++	struct qib_devdata *dd = (struct qib_devdata *)opaque;
++	struct qib_pportdata *ppd = dd->pport;
++	struct qib_chip_specific *cs = dd->cspec;
++	int timeoff;
++
++	/*
++	 * Check link-training state for "stuck" state, when down.
++	 * if found, try relock and schedule another try at
++	 * exponentially growing delay, maxed at one second.
++	 * if not stuck, our work is done.
++	 */
++	if ((dd->flags & QIB_INITTED) && !(ppd->lflags &
++	    (QIBL_IB_AUTONEG_INPROG | QIBL_LINKINIT | QIBL_LINKARMED |
++	     QIBL_LINKACTIVE))) {
++		if (qib_relock_by_timer) {
++			if (!(ppd->lflags & QIBL_IB_LINK_DISABLED))
++				toggle_7220_rclkrls(dd);
++		}
++		/* re-set timer for next check */
++		timeoff = cs->relock_interval << 1;
++		if (timeoff > HZ)
++			timeoff = HZ;
++		cs->relock_interval = timeoff;
++	} else
++		timeoff = HZ;
++	mod_timer(&cs->relock_timer, jiffies + timeoff);
++}
++
++void set_7220_relock_poll(struct qib_devdata *dd, int ibup)
++{
++	struct qib_chip_specific *cs = dd->cspec;
++
++	if (ibup) {
++		/* We are now up, relax timer to 1 second interval */
++		if (cs->relock_timer_active) {
++			cs->relock_interval = HZ;
++			mod_timer(&cs->relock_timer, jiffies + HZ);
++		}
++	} else {
++		/* Transition to down, (re-)set timer to short interval. */
++		unsigned int timeout;
++
++		timeout = msecs_to_jiffies(RELOCK_FIRST_MS);
++		if (timeout == 0)
++			timeout = 1;
++		/* If timer has not yet been started, do so. */
++		if (!cs->relock_timer_active) {
++			cs->relock_timer_active = 1;
++			init_timer(&cs->relock_timer);
++			cs->relock_timer.function = qib_run_relock;
++			cs->relock_timer.data = (unsigned long) dd;
++			cs->relock_interval = timeout;
++			cs->relock_timer.expires = jiffies + timeout;
++			add_timer(&cs->relock_timer);
++		} else {
++			cs->relock_interval = timeout;
++			mod_timer(&cs->relock_timer, jiffies + timeout);
++		}
++	}
 +}
 
 --
