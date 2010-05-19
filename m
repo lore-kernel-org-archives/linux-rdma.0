@@ -1,70 +1,65 @@
-From: "Davis, Arlin R" <arlin.r.davis@intel.com>
-Subject: [PATCH 02/12] dapl-2.0: common: missed linking changes from
- atomic to acquire/release
-Date: Wed, 19 May 2010 11:11:22 -0700
-Message-ID: <E3280858FA94444CA49D2BA02341C983C7013083@orsmsx506.amr.corp.intel.com>
+From: "Davis, Arlin R" <arlin.r.davis-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH 04/12] dapl-2.0: scm: add support for canceling conn request
+ that times out.
+Date: Wed, 19 May 2010 11:11:26 -0700
+Message-ID: <E3280858FA94444CA49D2BA02341C983C7013085@orsmsx506.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <ofw-bounces@lists.openfabrics.org>
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Language: en-US
-List-Unsubscribe: <http://lists.openfabrics.org/cgi-bin/mailman/listinfo/ofw>,
-	<mailto:ofw-request@lists.openfabrics.org?subject=unsubscribe>
-List-Archive: <http://lists.openfabrics.org/pipermail/ofw>
-List-Post: <mailto:ofw@lists.openfabrics.org>
-List-Help: <mailto:ofw-request@lists.openfabrics.org?subject=help>
-List-Subscribe: <http://lists.openfabrics.org/cgi-bin/mailman/listinfo/ofw>,
-	<mailto:ofw-request@lists.openfabrics.org?subject=subscribe>
-Sender: ofw-bounces@lists.openfabrics.org
-Errors-To: ofw-bounces@lists.openfabrics.org
-To: "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, ofw_list <ofw@lists.openfabrics.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ofw_list <ofw-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
- 
 
-Signed-off-by: Arlin Davis <arlin.r.davis@intel.com>
+print warning message during timeout.
+
+Signed-off-by: Arlin Davis <arlin.r.davis-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- dapl/common/dapl_ep_util.c |    7 +++----
- 1 files changed, 3 insertions(+), 4 deletions(-)
+ dapl/common/dapl_ep_connect.c |    2 ++
+ dapl/openib_scm/cm.c          |   11 ++++++++++-
+ 2 files changed, 12 insertions(+), 1 deletions(-)
 
-diff --git a/dapl/common/dapl_ep_util.c b/dapl/common/dapl_ep_util.c
-index bd7cdd9..daad78d 100644
---- a/dapl/common/dapl_ep_util.c
-+++ b/dapl/common/dapl_ep_util.c
-@@ -417,7 +417,7 @@ void dapls_ep_timeout(uintptr_t arg)
- 	 * The disconnect_clean interface requires the provided dependent 
- 	 *cm event number.
- 	 */
--	ib_cm_event = dapls_ib_get_cm_event(DAT_CONNECTION_EVENT_DISCONNECTED);
-+	ib_cm_event = dapls_ib_get_cm_event(DAT_CONNECTION_EVENT_TIMED_OUT);
- 	dapls_ib_disconnect_clean(ep_ptr, DAT_TRUE, ib_cm_event);
+diff --git a/dapl/common/dapl_ep_connect.c b/dapl/common/dapl_ep_connect.c
+index 4e5e112..1f193ae 100755
+--- a/dapl/common/dapl_ep_connect.c
++++ b/dapl/common/dapl_ep_connect.c
+@@ -334,6 +334,8 @@ dapl_ep_connect(IN DAT_EP_HANDLE ep_handle,
  
- 	(void)dapls_evd_post_connection_event((DAPL_EVD *) ep_ptr->param.
-@@ -590,7 +590,6 @@ dapl_ep_legacy_post_disconnect(DAPL_EP * ep_ptr,
-  *	dp_ib_cm_handle_t *cm_ptr  defined in provider's dapl_util.h
-  *
-  *	CM objects linked with EP using  ->list_entry
-- *      CM objects sync'ed with EP using ->ref_count
-  * Output:
-  * 	none
-  *
-@@ -601,7 +600,7 @@ dapl_ep_legacy_post_disconnect(DAPL_EP * ep_ptr,
- void dapl_ep_link_cm(IN DAPL_EP *ep_ptr, IN dp_ib_cm_handle_t cm_ptr)
+ 			dapls_timer_set(ep_ptr->cxn_timer,
+ 					dapls_ep_timeout, ep_ptr, timeout);
++
++			dapl_log(DAPL_DBG_TYPE_WARN, " dapl_ep_connect timeout = %d us\n", timeout);
+ 		}
+ 		dapl_os_unlock(&ep_ptr->header.lock);
+ 	}
+diff --git a/dapl/openib_scm/cm.c b/dapl/openib_scm/cm.c
+index 957066a..6958b67 100644
+--- a/dapl/openib_scm/cm.c
++++ b/dapl/openib_scm/cm.c
+@@ -1366,7 +1366,16 @@ dapls_ib_disconnect_clean(IN DAPL_EP * ep_ptr,
+ 			  IN DAT_BOOLEAN active,
+ 			  IN const ib_cm_events_t ib_cm_event)
  {
- 	dapl_os_lock(&ep_ptr->header.lock);
--	dapl_os_atomic_inc(&cm_ptr->ref_count);
-+	dapls_cm_acquire(cm_ptr);
- 	dapl_llist_add_tail(&ep_ptr->cm_list_head, &cm_ptr->list_entry, cm_ptr);
- 	dapl_os_unlock(&ep_ptr->header.lock);
- }
-@@ -610,7 +609,7 @@ void dapl_ep_unlink_cm(IN DAPL_EP *ep_ptr, IN dp_ib_cm_handle_t cm_ptr)
- {
- 	dapl_os_lock(&ep_ptr->header.lock);
- 	dapl_llist_remove_entry(&ep_ptr->cm_list_head, &cm_ptr->list_entry);
--	dapl_os_atomic_dec(&cm_ptr->ref_count);
-+	dapls_cm_release(cm_ptr);
- 	dapl_os_unlock(&ep_ptr->header.lock);
+-	/* nothing to cleanup */
++	if (ib_cm_event == IB_CME_TIMEOUT) {
++		dp_ib_cm_handle_t cm_ptr = dapl_get_cm_from_ep(ep_ptr);
++
++		dapl_log(DAPL_DBG_TYPE_WARN,
++			"dapls_ib_disc_clean: CONN_TIMEOUT ep %p cm %p %s\n",
++			ep_ptr, cm_ptr, dapl_cm_state_str(cm_ptr->state));
++		
++		/* schedule release of socket and local resources */
++		dapli_cm_free(cm_ptr);
++	}
  }
  
+ /*
 -- 
 1.5.2.5
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
