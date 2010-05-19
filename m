@@ -1,446 +1,547 @@
 From: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH V3 1/4] ib_core: changes to support XRC RCV qp's
-Date: Wed, 19 May 2010 10:42:02 +0300
-Message-ID: <201005191042.02472.jackm@dev.mellanox.co.il>
+Subject: [PATCH V3 2/4] ib_uverbs: XRC RCV qp implementation
+Date: Wed, 19 May 2010 10:42:14 +0300
+Message-ID: <201005191042.14396.jackm@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org, Tziporet Koren <tziporet-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-The core layer does reference counting on XRC RCV qp's,
-and also is responsible for distributing async events generated
-for XRC RCV qp's to all registered processes.
+Implement XRC target QPs (xrc rcv qps) for userspace.
+The basic verbs are: create/modify/query/destroy.
 
-Methods:  ib_create_xrc_rcv_qp, ib_destroy_xrc_rcv_qp, ib_reg_xrc_rcv_qp
-and ib_unreg_xrc_rcv_qp -- and a XRC RCV QP cleanup function called
-when a process terminates (this function removes all registrations for
-that process, and destroys any XRC RCV QPs which have no processes registered
-after the cleanup).
+In addition, added two additional verbs -- register and unregister.
 
-All other functions serve to support keeping track of the XRC RCV qp's
-(in a radix tree), and to distribute the async events.
+The motivation for register/unregister comes from MPI.
+MPI requires XRC receive QPs which are not destroyed when the creating
+process terminates (but persist so that other processes may still use
+them as XRC targets).
 
-V3: Fixed bug reported by Sean, remove EXPORT_SYMBOL from internal procedures
-ib_xrc_rcv_qp_table_xxx, and renamed ib_xrc_rcv_table_cleanup to
-ib_xrc_rcv_qp_table_cleanup for consistency.
+Solution:  Userspace requests that a QP be created in kernel space.
+Each userspace process using that QP (i.e. receiving packets on an XRC SRQ
+via the qp), registers with that QP. When the last userspace process unregisters with
+the QP, it is destroyed.  Unregistration is also part of userspace process
+cleanup, so there is no leakage.
+
+This patch implements the kernel procedures to implement the following
+(new) libibverbs API:
+ibv_create_xrc_rcv_qp
+ibv_modify_xrc_rcv_qp
+ibv_query_xrc_rcv_qp
+ibv_destroy_xrc_rcv_qp
+
+ibv_reg_xrc_rcv_qp
+ibv_unreg_xrc_rcv_qp
+
+Note that users who wish to make use of the reg/unreg capability should
+never call the destroy verb -- the XRC RCV qp is automatically destroyed
+when all registered processes have unregistered (or terminated).
+In this case, the process which called "create" may also unregister (or do
+nothing, and when it terminates, its reference to that QP is removed).
+
+Thus, usage is:
+Either: create/modify/query/destroy_xrc_rcv_qp
+Or: create/modify/query/reg/unreg_xrc_rcv_qp
+
+V3: renamed ib_xrc_rcv_table_cleanup to ib_xrc_rcv_qp_table_cleanup for consistency.
+
+>From 6571bf63dbbbca0e95faabd81a9e57f908d7df17 Mon Sep 17 00:00:00 2001
+From: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Date: Mon, 10 May 2010 20:23:24 +0300
+Subject: [PATCH 4/4] ib_uverbs: XRC RCV qp implementation.
 
 Signed-off-by: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 ---
- drivers/infiniband/core/device.c |    6 +-
- drivers/infiniband/core/verbs.c  |  275 ++++++++++++++++++++++++++++++++++++++
- include/rdma/ib_verbs.h          |   45 ++++++
- 3 files changed, 325 insertions(+), 1 deletions(-)
+ drivers/infiniband/core/uverbs.h      |    8 +
+ drivers/infiniband/core/uverbs_cmd.c  |  304 +++++++++++++++++++++++++++++++++
+ drivers/infiniband/core/uverbs_main.c |   15 ++
+ drivers/infiniband/hw/mlx4/main.c     |    4 +-
+ include/rdma/ib_user_verbs.h          |   87 +++++++++-
+ 5 files changed, 416 insertions(+), 2 deletions(-)
 
-Index: infiniband/drivers/infiniband/core/device.c
+Index: infiniband/drivers/infiniband/core/uverbs.h
 ===================================================================
---- infiniband.orig/drivers/infiniband/core/device.c
-+++ infiniband/drivers/infiniband/core/device.c
-@@ -172,9 +172,13 @@ static int end_port(struct ib_device *de
-  */
- struct ib_device *ib_alloc_device(size_t size)
- {
-+	struct ib_device *ibdev;
- 	BUG_ON(size < sizeof (struct ib_device));
+--- infiniband.orig/drivers/infiniband/core/uverbs.h
++++ infiniband/drivers/infiniband/core/uverbs.h
+@@ -175,6 +175,8 @@ void ib_uverbs_qp_event_handler(struct i
+ void ib_uverbs_srq_event_handler(struct ib_event *event, void *context_ptr);
+ void ib_uverbs_event_handler(struct ib_event_handler *handler,
+ 			     struct ib_event *event);
++void ib_uverbs_xrc_rcv_qp_event_handler(struct ib_event *event,
++					void *context_ptr);
+ void ib_uverbs_dealloc_xrcd(struct ib_uverbs_device *dev,
+ 			    struct ib_xrcd *xrcd);
  
--	return kzalloc(size, GFP_KERNEL);
-+	ibdev = kzalloc(size, GFP_KERNEL);
-+	if (ibdev)
-+		ib_xrc_rcv_qp_table_init(ibdev);
-+	return ibdev;
- }
- EXPORT_SYMBOL(ib_alloc_device);
+@@ -214,5 +216,11 @@ IB_UVERBS_DECLARE_CMD(destroy_srq);
+ IB_UVERBS_DECLARE_CMD(create_xrc_srq);
+ IB_UVERBS_DECLARE_CMD(open_xrcd);
+ IB_UVERBS_DECLARE_CMD(close_xrcd);
++IB_UVERBS_DECLARE_CMD(create_xrc_rcv_qp);
++IB_UVERBS_DECLARE_CMD(modify_xrc_rcv_qp);
++IB_UVERBS_DECLARE_CMD(query_xrc_rcv_qp);
++IB_UVERBS_DECLARE_CMD(destroy_xrc_rcv_qp);
++IB_UVERBS_DECLARE_CMD(reg_xrc_rcv_qp);
++IB_UVERBS_DECLARE_CMD(unreg_xrc_rcv_qp);
  
-Index: infiniband/drivers/infiniband/core/verbs.c
+ #endif /* UVERBS_H */
+Index: infiniband/drivers/infiniband/core/uverbs_cmd.c
 ===================================================================
---- infiniband.orig/drivers/infiniband/core/verbs.c
-+++ infiniband/drivers/infiniband/core/verbs.c
-@@ -39,6 +39,8 @@
- #include <linux/errno.h>
- #include <linux/err.h>
- #include <linux/string.h>
-+#include <linux/list.h>
-+#include <linux/slab.h>
- 
- #include <rdma/ib_verbs.h>
- #include <rdma/ib_cache.h>
-@@ -1030,3 +1032,276 @@ int ib_dealloc_xrcd(struct ib_xrcd *xrcd
- 	return xrcd->device->dealloc_xrcd(xrcd);
+--- infiniband.orig/drivers/infiniband/core/uverbs_cmd.c
++++ infiniband/drivers/infiniband/core/uverbs_cmd.c
+@@ -2661,3 +2661,311 @@ void ib_uverbs_dealloc_xrcd(struct ib_uv
+ 	if (inode)
+ 		xrcd_table_delete(dev, inode);
  }
- EXPORT_SYMBOL(ib_dealloc_xrcd);
 +
-+void ib_xrc_rcv_qp_table_init(struct ib_device *dev)
++ssize_t ib_uverbs_create_xrc_rcv_qp(struct ib_uverbs_file *file,
++				    const char __user *buf, int in_len,
++				    int out_len)
 +{
-+	spin_lock_init(&dev->xrc_rcv_qp_table_lock);
-+	INIT_RADIX_TREE(&dev->xrc_rcv_qp_table, GFP_ATOMIC);
-+}
++	struct ib_uverbs_create_xrc_rcv_qp	cmd;
++	struct ib_uverbs_create_xrc_rcv_qp_resp resp;
++	struct ib_qp_init_attr		init_attr = {0};
++	struct ib_xrcd		       *xrcd;
++	struct ib_uobject	       *xrcd_uobj;
++	u32				qp_num;
++	int				err;
 +
-+struct ib_xrc_rcv_qp_table_entry *
-+ib_xrc_rcv_tbl_find(struct ib_device *dev, u32 qpn)
-+{
-+        return radix_tree_lookup(&dev->xrc_rcv_qp_table, qpn);
-+}
++	if (out_len < sizeof resp)
++		return -ENOSPC;
 +
-+int ib_xrc_rcv_qp_table_new(struct ib_device *dev, void *event_handler,
-+			    u32 qpn, struct ib_xrcd *xrcd, void *context)
-+{
-+	struct ib_xrc_rcv_qp_table_entry *qp;
-+	struct ib_xrc_rcv_reg_entry *reg_entry;
-+	unsigned long flags;
-+	int rc = -ENOMEM;
++	if (copy_from_user(&cmd, buf, sizeof cmd))
++		return -EFAULT;
 +
-+	qp = kzalloc(sizeof *qp, GFP_ATOMIC);
-+	if (!qp)
-+		return -ENOMEM;
++	xrcd = idr_read_xrcd(cmd.xrcd_handle, file->ucontext, &xrcd_uobj);
++	if (!xrcd)
++		return -EINVAL;
 +
-+	reg_entry = kzalloc(sizeof *reg_entry, GFP_KERNEL);
-+	if (!reg_entry)
-+		goto out_alloc;
++	init_attr.event_handler = ib_uverbs_xrc_rcv_qp_event_handler;
++	init_attr.qp_context	= file;
++	init_attr.xrcd	= xrcd;
 +
-+	INIT_LIST_HEAD(&qp->list);
-+	qp->event_handler = event_handler;
-+	qp->xrcd = xrcd;
-+	qp->qpn = qpn;
++	err = ib_create_xrc_rcv_qp(xrcd, &init_attr, &qp_num);
++	if (err)
++		goto err_put;
 +
-+	reg_entry->context = context;
-+	list_add_tail(&reg_entry->list, &qp->list);
++	memset(&resp, 0, sizeof resp);
++	resp.qpn = qp_num;
 +
-+	spin_lock_irqsave(&dev->xrc_rcv_qp_table_lock, flags);
-+	rc = radix_tree_insert(&dev->xrc_rcv_qp_table, qpn, qp);
-+	spin_unlock_irqrestore(&dev->xrc_rcv_qp_table_lock, flags);
-+	if (rc)
-+		goto out_radix;
-+	atomic_inc(&xrcd->usecnt);
-+	return 0;
-+
-+out_radix:
-+	kfree(reg_entry);
-+out_alloc:
-+	kfree(qp);
-+	return rc;
-+}
-+
-+
-+int ib_xrc_rcv_qp_table_add_reg_entry(struct ib_device *dev, u32 qpn,
-+				      void *context)
-+{
-+	struct ib_xrc_rcv_reg_entry *reg_entry, *tmp;
-+	struct ib_xrc_rcv_qp_table_entry *qp;
-+	unsigned long flags;
-+	int err = -EINVAL, found = 0;
-+
-+	reg_entry = kzalloc(sizeof *reg_entry, GFP_KERNEL);
-+	if (!reg_entry)
-+		return -ENOMEM;
-+	reg_entry->context = context;
-+
-+	spin_lock_irqsave(&dev->xrc_rcv_qp_table_lock, flags);
-+	qp = ib_xrc_rcv_tbl_find(dev, qpn);
-+	if (unlikely(!qp))
-+		goto free_out;
-+	list_for_each_entry(tmp, &qp->list, list)
-+		if (tmp->context == context) {
-+			found = 1;
-+			break;
-+		}
-+	/* add only a single entry per user context */
-+	if (unlikely(found)) {
-+		err = 0;
-+		goto free_out;
++	if (copy_to_user((void __user *) (unsigned long) cmd.response,
++			 &resp, sizeof resp)) {
++		err = -EFAULT;
++		goto err_destroy;
 +	}
-+	atomic_inc(&qp->xrcd->usecnt);
-+	list_add_tail(&reg_entry->list, &qp->list);
-+	spin_unlock_irqrestore(&dev->xrc_rcv_qp_table_lock, flags);
-+	return 0;
 +
-+free_out:
-+	spin_unlock_irqrestore(&dev->xrc_rcv_qp_table_lock, flags);
-+	kfree(reg_entry);
++	put_uobj_read(xrcd_uobj);
++
++	return in_len;
++
++err_destroy:
++	ib_destroy_xrc_rcv_qp(xrcd, qp_num);
++err_put:
++	put_uobj_read(xrcd_uobj);
 +	return err;
 +}
 +
-+int ib_xrc_rcv_qp_table_remove_reg_entry(struct ib_device *dev, u32 qpn,
-+					 void *context)
++ssize_t ib_uverbs_modify_xrc_rcv_qp(struct ib_uverbs_file *file,
++				    const char __user *buf, int in_len,
++				    int out_len)
 +{
-+	struct ib_xrc_rcv_reg_entry *uninitialized_var(reg_entry), *tmp;
-+	struct ib_xrc_rcv_qp_table_entry *qp;
-+	unsigned long flags;
-+	int found = 0, destroy = 0;
++	struct ib_uverbs_modify_xrc_rcv_qp      cmd;
++	struct ib_qp_attr	       *attr;
++	struct ib_xrcd		       *xrcd;
++	struct ib_uobject	       *xrcd_uobj;
++	int				err;
 +
-+	spin_lock_irqsave(&dev->xrc_rcv_qp_table_lock, flags);
-+	qp = ib_xrc_rcv_tbl_find(dev, qpn);
-+	if (unlikely(!qp))
++	if (copy_from_user(&cmd, buf, sizeof cmd))
++		return -EFAULT;
++
++	attr = kzalloc(sizeof *attr, GFP_KERNEL);
++	if (!attr)
++		return -ENOMEM;
++
++	xrcd = idr_read_xrcd(cmd.xrc_domain_handle, file->ucontext, &xrcd_uobj);
++	if (!xrcd) {
++		kfree(attr);
++		return -EINVAL;
++	}
++
++	attr->qp_state		  = cmd.qp_state;
++	attr->cur_qp_state	  = cmd.cur_qp_state;
++	attr->qp_access_flags	  = cmd.qp_access_flags;
++	attr->pkey_index	  = cmd.pkey_index;
++	attr->port_num		  = cmd.port_num;
++	attr->path_mtu		  = cmd.path_mtu;
++	attr->path_mig_state	  = cmd.path_mig_state;
++	attr->qkey		  = cmd.qkey;
++	attr->rq_psn		  = cmd.rq_psn;
++	attr->sq_psn		  = cmd.sq_psn;
++	attr->dest_qp_num	  = cmd.dest_qp_num;
++	attr->alt_pkey_index	  = cmd.alt_pkey_index;
++	attr->en_sqd_async_notify = cmd.en_sqd_async_notify;
++	attr->max_rd_atomic	  = cmd.max_rd_atomic;
++	attr->max_dest_rd_atomic  = cmd.max_dest_rd_atomic;
++	attr->min_rnr_timer	  = cmd.min_rnr_timer;
++	attr->port_num		  = cmd.port_num;
++	attr->timeout		  = cmd.timeout;
++	attr->retry_cnt		  = cmd.retry_cnt;
++	attr->rnr_retry		  = cmd.rnr_retry;
++	attr->alt_port_num	  = cmd.alt_port_num;
++	attr->alt_timeout	  = cmd.alt_timeout;
++
++	memcpy(attr->ah_attr.grh.dgid.raw, cmd.dest.dgid, 16);
++	attr->ah_attr.grh.flow_label	    = cmd.dest.flow_label;
++	attr->ah_attr.grh.sgid_index	    = cmd.dest.sgid_index;
++	attr->ah_attr.grh.hop_limit	    = cmd.dest.hop_limit;
++	attr->ah_attr.grh.traffic_class	    = cmd.dest.traffic_class;
++	attr->ah_attr.dlid		    = cmd.dest.dlid;
++	attr->ah_attr.sl		    = cmd.dest.sl;
++	attr->ah_attr.src_path_bits	    = cmd.dest.src_path_bits;
++	attr->ah_attr.static_rate	    = cmd.dest.static_rate;
++	attr->ah_attr.ah_flags		    = cmd.dest.is_global ? IB_AH_GRH : 0;
++	attr->ah_attr.port_num		    = cmd.dest.port_num;
++
++	memcpy(attr->alt_ah_attr.grh.dgid.raw, cmd.alt_dest.dgid, 16);
++	attr->alt_ah_attr.grh.flow_label    = cmd.alt_dest.flow_label;
++	attr->alt_ah_attr.grh.sgid_index    = cmd.alt_dest.sgid_index;
++	attr->alt_ah_attr.grh.hop_limit     = cmd.alt_dest.hop_limit;
++	attr->alt_ah_attr.grh.traffic_class = cmd.alt_dest.traffic_class;
++	attr->alt_ah_attr.dlid		    = cmd.alt_dest.dlid;
++	attr->alt_ah_attr.sl		    = cmd.alt_dest.sl;
++	attr->alt_ah_attr.src_path_bits	    = cmd.alt_dest.src_path_bits;
++	attr->alt_ah_attr.static_rate	    = cmd.alt_dest.static_rate;
++	attr->alt_ah_attr.ah_flags	    = cmd.alt_dest.is_global ? IB_AH_GRH : 0;
++	attr->alt_ah_attr.port_num	    = cmd.alt_dest.port_num;
++
++	err = xrcd->device->modify_xrc_rcv_qp(xrcd, cmd.qp_num, attr, cmd.attr_mask);
++	put_uobj_read(xrcd_uobj);
++	kfree(attr);
++	return err ? err : in_len;
++}
++
++ssize_t ib_uverbs_query_xrc_rcv_qp(struct ib_uverbs_file *file,
++				   const char __user *buf, int in_len,
++				   int out_len)
++{
++	struct ib_uverbs_query_xrc_rcv_qp cmd;
++	struct ib_uverbs_query_qp_resp	 resp;
++	struct ib_qp_attr		*attr;
++	struct ib_qp_init_attr		*init_attr;
++	struct ib_xrcd			*xrcd;
++	struct ib_uobject		*xrcd_uobj;
++	int				 ret;
++
++	if (copy_from_user(&cmd, buf, sizeof cmd))
++		return -EFAULT;
++
++	attr      = kmalloc(sizeof *attr, GFP_KERNEL);
++	init_attr = kmalloc(sizeof *init_attr, GFP_KERNEL);
++	if (!attr || !init_attr) {
++		ret = -ENOMEM;
 +		goto out;
-+	if (!list_empty(&qp->list)) {
-+		list_for_each_entry_safe(reg_entry, tmp,
-+					 &qp->list, list) {
-+			if (reg_entry->context == context) {
-+				list_del(&reg_entry->list);
-+				found = 1;
-+				atomic_dec(&qp->xrcd->usecnt);
-+				break;
-+			}
-+		}
-+
-+		if (unlikely(!found))
-+			goto out;
 +	}
 +
-+	/* now, remove the entry if the list is empty */
-+	if (unlikely(list_empty(&qp->list))) {
-+		destroy = 1;
-+		radix_tree_delete(&dev->xrc_rcv_qp_table, qpn);
-+	}
-+	spin_unlock_irqrestore(&dev->xrc_rcv_qp_table_lock, flags);
-+	if (destroy) {
-+		dev->destroy_xrc_rcv_qp(qp->xrcd, qpn);
-+		kfree(qp);
-+	}
-+	if (found)
-+		kfree(reg_entry);
-+	return 0;
-+
-+out:
-+	spin_unlock_irqrestore(&dev->xrc_rcv_qp_table_lock, flags);
-+	return -EINVAL;
-+}
-+
-+int ib_xrc_rcv_qp_table_remove(struct ib_device *dev, u32 qpn)
-+{
-+	struct ib_xrc_rcv_reg_entry *reg_entry, *tmp;
-+	struct ib_xrc_rcv_qp_table_entry *qp;
-+	struct list_head xrc_local;
-+	unsigned long flags;
-+
-+	INIT_LIST_HEAD(&xrc_local);
-+
-+	spin_lock_irqsave(&dev->xrc_rcv_qp_table_lock, flags);
-+
-+	qp = ib_xrc_rcv_tbl_find(dev, qpn);
-+	if (unlikely(!qp))
++	xrcd = idr_read_xrcd(cmd.xrc_domain_handle, file->ucontext, &xrcd_uobj);
++	if (!xrcd) {
++		ret = -EINVAL;
 +		goto out;
-+	/* ASSERT(!list_empty(&qp->list)); */
-+	list_replace_init(&qp->list, &xrc_local);
-+	radix_tree_delete(&dev->xrc_rcv_qp_table, qpn);
-+	spin_unlock_irqrestore(&dev->xrc_rcv_qp_table_lock, flags);
-+
-+	list_for_each_entry_safe(reg_entry, tmp, &xrc_local, list) {
-+		list_del(&reg_entry->list);
-+		kfree(reg_entry);
-+		atomic_dec(&qp->xrcd->usecnt);
-+	}
-+	dev->destroy_xrc_rcv_qp(qp->xrcd, qpn);
-+	kfree(qp);
-+	return 0;
-+
-+out:
-+	spin_unlock_irqrestore(&dev->xrc_rcv_qp_table_lock, flags);
-+	return -EINVAL;
-+}
-+
-+/* cleanup.  If context is NULL, clean up everything */
-+void ib_xrc_rcv_qp_table_cleanup(struct ib_device *dev, void *context)
-+{
-+	struct ib_xrc_rcv_qp_table_entry *qp, *qp1, *qp2;
-+	struct ib_xrc_rcv_reg_entry *reg_entry, *tmp;
-+	struct list_head delete_list, qp_del_list;
-+	unsigned long flags, next = 0;
-+
-+	INIT_LIST_HEAD(&delete_list);
-+	INIT_LIST_HEAD(&qp_del_list);
-+
-+	spin_lock_irqsave(&dev->xrc_rcv_qp_table_lock, flags);
-+	while (radix_tree_gang_lookup(&dev->xrc_rcv_qp_table, (void **) &qp,
-+				      next, 1)) {
-+		next = qp->qpn + 1;
-+		list_for_each_entry_safe(reg_entry, tmp, &qp->list, list) {
-+			if (!context || reg_entry->context == context) {
-+				atomic_dec(&qp->xrcd->usecnt);
-+				list_move_tail(&reg_entry->list, &delete_list);
-+			}
-+		}
-+		if (unlikely(list_empty(&qp->list))) {
-+			qp = radix_tree_delete(&dev->xrc_rcv_qp_table, qp->qpn);
-+			if (qp)
-+				list_add(&qp->list, &qp_del_list);
-+		}
-+	}
-+	spin_unlock_irqrestore(&dev->xrc_rcv_qp_table_lock, flags);
-+
-+	list_for_each_entry_safe(reg_entry, tmp, &delete_list, list) {
-+		list_del(&reg_entry->list);
-+		kfree(reg_entry);
 +	}
 +
-+	list_for_each_entry_safe(qp1, qp2, &qp_del_list, list) {
-+		list_del(&qp1->list);
-+		dev->destroy_xrc_rcv_qp(qp1->xrcd, qp1->qpn);
-+		kfree(qp1);
-+	}
-+}
-+EXPORT_SYMBOL(ib_xrc_rcv_qp_table_cleanup);
++	ret = xrcd->device->query_xrc_rcv_qp(xrcd, cmd.qp_num, attr,
++					     cmd.attr_mask, init_attr);
 +
-+void ib_xrc_rcv_qp_event_handler(struct ib_event *event, void *context_ptr)
-+{
-+	struct ib_device *dev = context_ptr;
-+	struct ib_xrc_rcv_qp_table_entry *qp;
-+	struct ib_xrc_rcv_reg_entry *reg_entry;
-+	unsigned long flags;
++	put_uobj_read(xrcd_uobj);
 +
-+	spin_lock_irqsave(&dev->xrc_rcv_qp_table_lock, flags);
-+	qp = ib_xrc_rcv_tbl_find(dev, event->element.xrc_qp_num);
-+	if (unlikely(!qp))
++	if (ret)
 +		goto out;
 +
-+	list_for_each_entry(reg_entry, &qp->list, list) {
-+		qp->event_handler(event, reg_entry->context);
-+	}
++	memset(&resp, 0, sizeof resp);
++	resp.qp_state		    = attr->qp_state;
++	resp.cur_qp_state	    = attr->cur_qp_state;
++	resp.path_mtu		    = attr->path_mtu;
++	resp.path_mig_state	    = attr->path_mig_state;
++	resp.qkey		    = attr->qkey;
++	resp.rq_psn		    = attr->rq_psn;
++	resp.sq_psn		    = attr->sq_psn;
++	resp.dest_qp_num	    = attr->dest_qp_num;
++	resp.qp_access_flags	    = attr->qp_access_flags;
++	resp.pkey_index		    = attr->pkey_index;
++	resp.alt_pkey_index	    = attr->alt_pkey_index;
++	resp.sq_draining	    = attr->sq_draining;
++	resp.max_rd_atomic	    = attr->max_rd_atomic;
++	resp.max_dest_rd_atomic	    = attr->max_dest_rd_atomic;
++	resp.min_rnr_timer	    = attr->min_rnr_timer;
++	resp.port_num		    = attr->port_num;
++	resp.timeout		    = attr->timeout;
++	resp.retry_cnt		    = attr->retry_cnt;
++	resp.rnr_retry		    = attr->rnr_retry;
++	resp.alt_port_num	    = attr->alt_port_num;
++	resp.alt_timeout	    = attr->alt_timeout;
++
++	memcpy(resp.dest.dgid, attr->ah_attr.grh.dgid.raw, 16);
++	resp.dest.flow_label	    = attr->ah_attr.grh.flow_label;
++	resp.dest.sgid_index	    = attr->ah_attr.grh.sgid_index;
++	resp.dest.hop_limit	    = attr->ah_attr.grh.hop_limit;
++	resp.dest.traffic_class	    = attr->ah_attr.grh.traffic_class;
++	resp.dest.dlid		    = attr->ah_attr.dlid;
++	resp.dest.sl		    = attr->ah_attr.sl;
++	resp.dest.src_path_bits	    = attr->ah_attr.src_path_bits;
++	resp.dest.static_rate	    = attr->ah_attr.static_rate;
++	resp.dest.is_global	    = !!(attr->ah_attr.ah_flags & IB_AH_GRH);
++	resp.dest.port_num	    = attr->ah_attr.port_num;
++
++	memcpy(resp.alt_dest.dgid, attr->alt_ah_attr.grh.dgid.raw, 16);
++	resp.alt_dest.flow_label    = attr->alt_ah_attr.grh.flow_label;
++	resp.alt_dest.sgid_index    = attr->alt_ah_attr.grh.sgid_index;
++	resp.alt_dest.hop_limit     = attr->alt_ah_attr.grh.hop_limit;
++	resp.alt_dest.traffic_class = attr->alt_ah_attr.grh.traffic_class;
++	resp.alt_dest.dlid	    = attr->alt_ah_attr.dlid;
++	resp.alt_dest.sl	    = attr->alt_ah_attr.sl;
++	resp.alt_dest.src_path_bits = attr->alt_ah_attr.src_path_bits;
++	resp.alt_dest.static_rate   = attr->alt_ah_attr.static_rate;
++	resp.alt_dest.is_global	    = !!(attr->alt_ah_attr.ah_flags & IB_AH_GRH);
++	resp.alt_dest.port_num	    = attr->alt_ah_attr.port_num;
++
++	resp.max_send_wr	    = init_attr->cap.max_send_wr;
++	resp.max_recv_wr	    = init_attr->cap.max_recv_wr;
++	resp.max_send_sge	    = init_attr->cap.max_send_sge;
++	resp.max_recv_sge	    = init_attr->cap.max_recv_sge;
++	resp.max_inline_data	    = init_attr->cap.max_inline_data;
++	resp.sq_sig_all		    = init_attr->sq_sig_type == IB_SIGNAL_ALL_WR;
++
++	if (copy_to_user((void __user *) (unsigned long) cmd.response,
++			 &resp, sizeof resp))
++		ret = -EFAULT;
 +
 +out:
-+	spin_unlock_irqrestore(&dev->xrc_rcv_qp_table_lock, flags);
++	kfree(attr);
++	kfree(init_attr);
++
++	return ret ? ret : in_len;
 +}
 +
-+int ib_create_xrc_rcv_qp(struct ib_xrcd *xrcd, struct ib_qp_init_attr *attr,
-+			 u32 *qp_num)
++ssize_t ib_uverbs_reg_xrc_rcv_qp(struct ib_uverbs_file *file,
++				 const char __user *buf, int in_len,
++				 int out_len)
 +{
-+	struct ib_qp_init_attr init_attr;
-+	int err;
++	struct ib_uverbs_reg_xrc_rcv_qp  cmd;
++	struct ib_xrcd			*xrcd;
++	struct ib_uobject		*xrcd_uobj;
++	int				 ret;
 +
-+	memcpy(&init_attr, attr, sizeof(*attr));
-+	init_attr.event_handler = ib_xrc_rcv_qp_event_handler;
-+	init_attr.qp_context = xrcd->device;
-+	err = xrcd->device->create_xrc_rcv_qp(&init_attr, qp_num);
-+	if (err)
-+		return err;
++	if (copy_from_user(&cmd, buf, sizeof cmd))
++		return -EFAULT;
 +
-+	err = ib_xrc_rcv_qp_table_new(xrcd->device, attr->event_handler,
-+				      *qp_num, xrcd, attr->qp_context);
-+	if (err)
-+		xrcd->device->destroy_xrc_rcv_qp(xrcd, *qp_num);
-+	return err;
++	xrcd = idr_read_xrcd(cmd.xrc_domain_handle, file->ucontext, &xrcd_uobj);
++	if (!xrcd)
++		return -EINVAL;
++
++	ret = ib_reg_xrc_rcv_qp(xrcd, file, cmd.qp_num);
++	if (ret)
++		goto err_put;
++
++	put_uobj_read(xrcd_uobj);
++	return in_len;
++
++err_put:
++	put_uobj_read(xrcd_uobj);
++	return ret;
 +}
-+EXPORT_SYMBOL(ib_create_xrc_rcv_qp);
 +
-+int ib_destroy_xrc_rcv_qp(struct ib_xrcd *xrcd, u32 qp_num)
++ssize_t ib_uverbs_unreg_xrc_rcv_qp(struct ib_uverbs_file *file,
++				   const char __user *buf, int in_len,
++				   int out_len)
 +{
-+	return ib_xrc_rcv_qp_table_remove(xrcd->device, qp_num);
-+}
-+EXPORT_SYMBOL(ib_destroy_xrc_rcv_qp);
-+
-+int ib_reg_xrc_rcv_qp(struct ib_xrcd *xrcd, void *context, u32 qp_num)
-+{
-+	return ib_xrc_rcv_qp_table_add_reg_entry(xrcd->device, qp_num,
-+						 context);
-+}
-+EXPORT_SYMBOL(ib_reg_xrc_rcv_qp);
-+
-+int ib_unreg_xrc_rcv_qp(struct ib_xrcd *xrcd, void *context, u32 qp_num)
-+{
-+	return ib_xrc_rcv_qp_table_remove_reg_entry(xrcd->device, qp_num,
-+						    context);
-+}
-+EXPORT_SYMBOL(ib_unreg_xrc_rcv_qp);
-+
-Index: infiniband/include/rdma/ib_verbs.h
-===================================================================
---- infiniband.orig/include/rdma/ib_verbs.h
-+++ infiniband/include/rdma/ib_verbs.h
-@@ -47,6 +47,7 @@
- #include <linux/list.h>
- #include <linux/rwsem.h>
- #include <linux/scatterlist.h>
-+#include <linux/radix-tree.h>
- 
- #include <asm/atomic.h>
- #include <asm/uaccess.h>
-@@ -344,12 +345,17 @@ enum ib_event_type {
- 	IB_EVENT_CLIENT_REREGISTER
- };
- 
-+enum ib_event_flags {
-+	IB_XRC_QP_EVENT_FLAG = 0x80000000,
-+};
-+
- struct ib_event {
- 	struct ib_device	*device;
- 	union {
- 		struct ib_cq	*cq;
- 		struct ib_qp	*qp;
- 		struct ib_srq	*srq;
-+		u32		xrc_qp_num;
- 		u8		port_num;
- 	} element;
- 	enum ib_event_type	event;
-@@ -1154,6 +1160,23 @@ struct ib_device {
- 						 struct ib_ucontext *context,
- 						 struct ib_udata *udata);
- 	int			   (*dealloc_xrcd)(struct ib_xrcd *xrcd);
-+	int			   (*create_xrc_rcv_qp)(struct ib_qp_init_attr *init_attr,
-+							u32 *qp_num);
-+	int			   (*modify_xrc_rcv_qp)(struct ib_xrcd *xrcd,
-+							u32 qp_num,
-+							struct ib_qp_attr *attr,
-+							int attr_mask);
-+	int			   (*query_xrc_rcv_qp)(struct ib_xrcd *xrcd,
-+						       u32 qp_num,
-+						       struct ib_qp_attr *attr,
-+						       int attr_mask,
-+						       struct ib_qp_init_attr *init_attr);
-+	int 			   (*destroy_xrc_rcv_qp)(struct ib_xrcd *xrcd,
-+							 u32 qp_num);
-+	int 			   (*reg_xrc_rcv_qp)(struct ib_xrcd *xrcd, void *context,
-+						     u32 qp_num);
-+	int 			   (*unreg_xrc_rcv_qp)(struct ib_xrcd *xrcd, void *context,
-+						       u32 qp_num);
- 
- 	struct ib_dma_mapping_ops   *dma_ops;
- 
-@@ -1161,6 +1184,8 @@ struct ib_device {
- 	struct device                dev;
- 	struct kobject               *ports_parent;
- 	struct list_head             port_list;
-+	struct radix_tree_root       xrc_rcv_qp_table;
-+	spinlock_t                   xrc_rcv_qp_table_lock;
- 
- 	enum {
- 		IB_DEV_UNINITIALIZED,
-@@ -1178,6 +1203,18 @@ struct ib_device {
- 	u8                           phys_port_cnt;
- };
- 
-+struct ib_xrc_rcv_qp_table_entry {
-+	struct list_head list;
-+	void (*event_handler)(struct ib_event *, void *);
++	struct ib_uverbs_unreg_xrc_rcv_qp cmd;
 +	struct ib_xrcd *xrcd;
-+	u32 qpn;
-+};
++	struct ib_uobject *xrcd_uobj;
++	int ret;
 +
-+struct ib_xrc_rcv_reg_entry {
-+	struct list_head list;
-+	void *context;
-+};
++	if (copy_from_user(&cmd, buf, sizeof cmd))
++		return -EFAULT;
 +
- struct ib_client {
- 	char  *name;
- 	void (*add)   (struct ib_device *);
-@@ -2092,4 +2129,12 @@ struct ib_xrcd *ib_alloc_xrcd(struct ib_
-  */
- int ib_dealloc_xrcd(struct ib_xrcd *xrcd);
++	xrcd = idr_read_xrcd(cmd.xrc_domain_handle, file->ucontext, &xrcd_uobj);
++	if (!xrcd)
++		return -EINVAL;
++
++	ret = ib_unreg_xrc_rcv_qp(xrcd, file, cmd.qp_num);
++	if (ret) {
++		put_uobj_read(xrcd_uobj);
++		return -EINVAL;
++	}
++
++	put_uobj_read(xrcd_uobj);
++	return in_len;
++}
++
++ssize_t ib_uverbs_destroy_xrc_rcv_qp(struct ib_uverbs_file *file,
++				     const char __user *buf, int in_len,
++				     int out_len)
++{
++	struct ib_uverbs_unreg_xrc_rcv_qp cmd;
++	struct ib_xrcd *xrcd;
++	struct ib_uobject *xrcd_uobj;
++	int ret;
++
++	if (copy_from_user(&cmd, buf, sizeof cmd))
++		return -EFAULT;
++
++	xrcd = idr_read_xrcd(cmd.xrc_domain_handle, file->ucontext, &xrcd_uobj);
++	if (!xrcd)
++		return -EINVAL;
++
++	ret = ib_destroy_xrc_rcv_qp(xrcd, cmd.qp_num);
++	if (ret) {
++		put_uobj_read(xrcd_uobj);
++		return -EINVAL;
++	}
++
++	put_uobj_read(xrcd_uobj);
++	return in_len;
++}
++
+Index: infiniband/drivers/infiniband/core/uverbs_main.c
+===================================================================
+--- infiniband.orig/drivers/infiniband/core/uverbs_main.c
++++ infiniband/drivers/infiniband/core/uverbs_main.c
+@@ -111,6 +111,12 @@ static ssize_t (*uverbs_cmd_table[])(str
+ 	[IB_USER_VERBS_CMD_CREATE_XRC_SRQ]	= ib_uverbs_create_xrc_srq,
+ 	[IB_USER_VERBS_CMD_OPEN_XRCD]		= ib_uverbs_open_xrcd,
+ 	[IB_USER_VERBS_CMD_CLOSE_XRCD]		= ib_uverbs_close_xrcd,
++	[IB_USER_VERBS_CMD_CREATE_XRC_RCV_QP]	= ib_uverbs_create_xrc_rcv_qp,
++	[IB_USER_VERBS_CMD_MODIFY_XRC_RCV_QP]	= ib_uverbs_modify_xrc_rcv_qp,
++	[IB_USER_VERBS_CMD_QUERY_XRC_RCV_QP]	= ib_uverbs_query_xrc_rcv_qp,
++	[IB_USER_VERBS_CMD_DESTROY_XRC_RCV_QP]	= ib_uverbs_destroy_xrc_rcv_qp,
++	[IB_USER_VERBS_CMD_REG_XRC_RCV_QP]	= ib_uverbs_reg_xrc_rcv_qp,
++	[IB_USER_VERBS_CMD_UNREG_XRC_RCV_QP]	= ib_uverbs_unreg_xrc_rcv_qp,
+ };
  
-+void ib_xrc_rcv_qp_table_init(struct ib_device *dev);
-+void ib_xrc_rcv_qp_table_cleanup(struct ib_device *dev, void *context);
-+int ib_create_xrc_rcv_qp(struct ib_xrcd *xrcd, struct ib_qp_init_attr *attr,
-+			 u32 *qp_num);
-+int ib_destroy_xrc_rcv_qp(struct ib_xrcd *xrcd, u32 qp_num);
-+int ib_reg_xrc_rcv_qp(struct ib_xrcd *xrcd, void *context, u32 qp_num);
-+int ib_unreg_xrc_rcv_qp(struct ib_xrcd *xrcd, void *context, u32 qp_num);
+ static void ib_uverbs_add_one(struct ib_device *device);
+@@ -246,6 +252,8 @@ static int ib_uverbs_cleanup_ucontext(st
+ 		kfree(uobj);
+ 	}
+ 
++	ib_xrc_rcv_qp_table_cleanup(context->device, file);
 +
- #endif /* IB_VERBS_H */
+ 	mutex_lock(&file->device->xrcd_tree_mutex);
+ 	list_for_each_entry_safe(uobj, tmp, &context->xrcd_list, list) {
+ 		struct ib_xrcd *xrcd = uobj->object;
+@@ -479,6 +487,13 @@ void ib_uverbs_qp_event_handler(struct i
+ 				&uobj->events_reported);
+ }
+ 
++void ib_uverbs_xrc_rcv_qp_event_handler(struct ib_event *event,
++					void *context_ptr)
++{
++	ib_uverbs_async_handler(context_ptr, event->element.xrc_qp_num,
++				event->event, NULL, NULL);
++}
++
+ void ib_uverbs_srq_event_handler(struct ib_event *event, void *context_ptr)
+ {
+ 	struct ib_uevent_object *uobj;
+Index: infiniband/include/rdma/ib_user_verbs.h
+===================================================================
+--- infiniband.orig/include/rdma/ib_user_verbs.h
++++ infiniband/include/rdma/ib_user_verbs.h
+@@ -84,7 +84,13 @@ enum {
+ 	IB_USER_VERBS_CMD_POST_SRQ_RECV,
+ 	IB_USER_VERBS_CMD_CREATE_XRC_SRQ,
+ 	IB_USER_VERBS_CMD_OPEN_XRCD,
+-	IB_USER_VERBS_CMD_CLOSE_XRCD
++	IB_USER_VERBS_CMD_CLOSE_XRCD,
++	IB_USER_VERBS_CMD_CREATE_XRC_RCV_QP,
++	IB_USER_VERBS_CMD_MODIFY_XRC_RCV_QP,
++	IB_USER_VERBS_CMD_QUERY_XRC_RCV_QP,
++	IB_USER_VERBS_CMD_REG_XRC_RCV_QP,
++	IB_USER_VERBS_CMD_UNREG_XRC_RCV_QP,
++	IB_USER_VERBS_CMD_DESTROY_XRC_RCV_QP,
+ };
+ 
+ /*
+@@ -719,4 +725,76 @@ struct ib_uverbs_close_xrcd {
+ 	__u64 driver_data[0];
+ };
+ 
++struct ib_uverbs_create_xrc_rcv_qp {
++	__u64 response;
++	__u64 user_handle;
++	__u32 xrcd_handle;
++	__u8  reserved1[28];
++	__u64 driver_data[0];
++};
++
++struct ib_uverbs_create_xrc_rcv_qp_resp {
++	__u32 qpn;
++	__u32 reserved;
++};
++
++struct ib_uverbs_modify_xrc_rcv_qp {
++	__u32 xrc_domain_handle;
++	__u32 qp_num;
++	struct ib_uverbs_qp_dest dest;
++	struct ib_uverbs_qp_dest alt_dest;
++	__u32 attr_mask;
++	__u32 qkey;
++	__u32 rq_psn;
++	__u32 sq_psn;
++	__u32 dest_qp_num;
++	__u32 qp_access_flags;
++	__u16 pkey_index;
++	__u16 alt_pkey_index;
++	__u8  qp_state;
++	__u8  cur_qp_state;
++	__u8  path_mtu;
++	__u8  path_mig_state;
++	__u8  en_sqd_async_notify;
++	__u8  max_rd_atomic;
++	__u8  max_dest_rd_atomic;
++	__u8  min_rnr_timer;
++	__u8  port_num;
++	__u8  timeout;
++	__u8  retry_cnt;
++	__u8  rnr_retry;
++	__u8  alt_port_num;
++	__u8  alt_timeout;
++	__u8  reserved[6];
++	__u64 driver_data[0];
++};
++
++struct ib_uverbs_query_xrc_rcv_qp {
++	__u64 response;
++	__u32 xrc_domain_handle;
++	__u32 qp_num;
++	__u32 attr_mask;
++	__u32 reserved;
++	__u64 driver_data[0];
++};
++
++struct ib_uverbs_destroy_xrc_rcv_qp {
++	__u32 xrc_domain_handle;
++	__u32 qp_num;
++	__u64 driver_data[0];
++};
++
++struct ib_uverbs_reg_xrc_rcv_qp {
++	__u32 xrc_domain_handle;
++	__u32 qp_num;
++	__u64 driver_data[0];
++};
++
++struct ib_uverbs_unreg_xrc_rcv_qp {
++	__u32 xrc_domain_handle;
++	__u32 qp_num;
++	__u64 driver_data[0];
++};
++
++
+ #endif /* IB_USER_VERBS_H */
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
