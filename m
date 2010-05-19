@@ -1,8 +1,8 @@
 From: "Davis, Arlin R" <arlin.r.davis-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 1/9] dapl-2.0: scm: remove modify QP to ERR state during
- disconnect on UD type QP
-Date: Wed, 19 May 2010 11:23:08 -0700
-Message-ID: <E3280858FA94444CA49D2BA02341C983C70130D0@orsmsx506.amr.corp.intel.com>
+Subject: [PATCH 4/9] dapl-2.0: ucm: UD mode, active side cm object released
+ to soon, the RTU could be lost.
+Date: Wed, 19 May 2010 11:25:19 -0700
+Message-ID: <E3280858FA94444CA49D2BA02341C983C70130DD@orsmsx506.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
@@ -13,49 +13,45 @@ To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY
 List-Id: linux-rdma@vger.kernel.org
 
 
-Patch set of bug fixes as a result of scale-out testing on 128 nodes/1538 cores.
+Will see following message with DAPL_DBG_TYPE set for Errors & Warnings (0x3):
+ucm_recv: NO MATCH op REP 0x120 65487 i0x60005e c0x60005e < 0xd2 19824 0x60006a
 
-1/9 scm: remove modify QP to ERR state during disconnect on UD type QP
-2/9 ucm: increase default UCM retry count for connect reply to 15
-3/9 cma, ucm: cleanup issues with dat_ep_free on a connected EP without disconnecting.
-4/9 ucm: UD mode, active side cm object released to soon, the RTU could be lost.
-5/9 scm: SOCKOPT ERR Connection timed out on large clusters
-6/9 scm: cr_thread occasionally segv's when disconnecting all-to-all MPI static connections
-7/9 scm: add option to use other network devices with environment variable DAPL_SCM_NETDEV
-8/9 scm, cma: fini code can be called multiple times and hang via fork
-9/9 scm: check for hca object before signaling thread
-
-The disconnect on a UD type QP should not modify QP to error
-since this is a shared QP. The disconnect should be treated
-as a NOP on the UD type QP and only be transitioned during
-the QP destroy (dat_ep_free).
+The cm object was released on the active side after the connection
+was established, RTU sent. This is a problem if the RTU is lost
+and the remote side retries the REPLY. The RTU is never resent.
+Keep the cm object until the EP is destroyed.
 
 Signed-off-by: Arlin Davis <arlin.r.davis-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- dapl/openib_scm/cm.c |    6 +++---
- 1 files changed, 3 insertions(+), 3 deletions(-)
+ dapl/openib_ucm/cm.c |    8 --------
+ 1 files changed, 0 insertions(+), 8 deletions(-)
 
-diff --git a/dapl/openib_scm/cm.c b/dapl/openib_scm/cm.c
-index afd0d93..7465190 100644
---- a/dapl/openib_scm/cm.c
-+++ b/dapl/openib_scm/cm.c
-@@ -458,13 +458,13 @@ DAT_RETURN dapli_socket_disconnect(dp_ib_cm_handle_t cm_ptr)
- 	dapl_os_unlock(&cm_ptr->lock);
- 	
- 	/* send disc date, close socket, schedule destroy */
--	dapl_os_lock(&cm_ptr->ep->header.lock);
--	dapls_modify_qp_state(cm_ptr->ep->qp_handle, IBV_QPS_ERR, 0,0,0);
--	dapl_os_unlock(&cm_ptr->ep->header.lock);
- 	send(cm_ptr->socket, (char *)&disc_data, sizeof(disc_data), 0);
- 
- 	/* disconnect events for RC's only */
- 	if (cm_ptr->ep->param.ep_attr.service_type == DAT_SERVICE_TYPE_RC) {
-+		dapl_os_lock(&cm_ptr->ep->header.lock);
-+		dapls_modify_qp_state(cm_ptr->ep->qp_handle, IBV_QPS_ERR, 0,0,0);
-+		dapl_os_unlock(&cm_ptr->ep->header.lock);
- 		if (cm_ptr->ep->cr_ptr) {
- 			dapls_cr_callback(cm_ptr,
- 					  IB_CME_DISCONNECTED,
+diff --git a/dapl/openib_ucm/cm.c b/dapl/openib_ucm/cm.c
+index c82147e..94af988 100644
+--- a/dapl/openib_ucm/cm.c
++++ b/dapl/openib_ucm/cm.c
+@@ -1143,10 +1143,6 @@ ud_bail:
+ 				(DAT_COUNT)ntohs(cm->msg.p_size),
+ 				(DAT_PVOID *)cm->msg.p_data,
+ 				(DAT_PVOID *)&xevent);
+-
+-		/* release cm_ptr, EP refs will prevent destroy */
+-		dapli_cm_free(cm);
+-				
+ 	} else
+ #endif
+ 	{
+@@ -1310,10 +1306,6 @@ static void ucm_accept_rtu(dp_ib_cm_handle_t cm, ib_cm_msg_t *msg)
+ 				(DAT_COUNT)ntohs(cm->msg.p_size),
+ 				(DAT_PVOID *)cm->msg.p_data,
+ 				(DAT_PVOID *)&xevent);
+-
+-                /* done with CM object, EP ref will hold object for pdata */
+-		dapli_cm_free(cm);
+-		
+ 	} else {
+ #endif
+ 		dapls_cr_callback(cm, IB_CME_CONNECTED, NULL, 0, cm->sp);
 -- 
 1.5.2.5
 
