@@ -1,8 +1,8 @@
 From: "Davis, Arlin R" <arlin.r.davis-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH] dapl-2.0: windows: need to include linux directory to pick
- up _errno.h
-Date: Wed, 19 May 2010 16:27:36 -0700
-Message-ID: <E3280858FA94444CA49D2BA02341C983C70135EB@orsmsx506.amr.corp.intel.com>
+Subject: [PATCH] dapl-2.0: cma, scm: add new provider entries for Mellanox
+ RDMA over Ethernet device
+Date: Wed, 19 May 2010 16:31:16 -0700
+Message-ID: <E3280858FA94444CA49D2BA02341C983C701360E@orsmsx506.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
@@ -13,54 +13,49 @@ To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY
 List-Id: linux-rdma@vger.kernel.org
 
 
+Add options for netdev eth2/eth3 for cma and for device mlx4_0 port 1/2 for scm.
 
-Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+ofa-v2-cma-roe-eth2 u2.0 nonthreadsafe default libdaplofa.so.2 dapl.2.0 "eth2 0" ""
+ofa-v2-cma-roe-eth3 u2.0 nonthreadsafe default libdaplofa.so.2 dapl.2.0 "eth3 0" ""
+ofa-v2-scm-roe-mlx4_0-1 u2.0 nonthreadsafe default libdaploscm.so.2 dapl.2.0 "mlx4_0 1" ""
+ofa-v2-scm-roe-mlx4_0-2 u2.0 nonthreadsafe default libdaploscm.so.2 dapl.2.0 "mlx4_0 2" ""
+
+Signed-off-by: Arlin Davis <arlin.r.davis-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- dapl/openib_cma/SOURCES |    2 +-
- dapl/openib_scm/SOURCES |    2 +-
- dapl/openib_ucm/SOURCES |    3 ++-
- 3 files changed, 4 insertions(+), 3 deletions(-)
-
-diff --git a/dapl/openib_cma/SOURCES b/dapl/openib_cma/SOURCES
-index d6b97a2..0c3764b 100644
---- a/dapl/openib_cma/SOURCES
-+++ b/dapl/openib_cma/SOURCES
-@@ -25,7 +25,7 @@ SOURCES = \
- 	cm.c
  
- INCLUDES = ..\include;..\openib_common;..\common;windows;..\..\dat\include;\
--		   ..\..\dat\udat\windows;..\udapl\windows;\
-+		   ..\..\dat\udat\windows;..\udapl\windows;..\..\..\..\inc\user\linux;\
- 		   ..\..\..\..\inc;..\..\..\..\inc\user;..\..\..\libibverbs\include;\
- 		   ..\..\..\librdmacm\include
+diff --git a/Makefile.am b/Makefile.am
+index bf82853..bef95ec 100755
+--- a/Makefile.am
++++ b/Makefile.am
+@@ -562,7 +562,11 @@ install-exec-hook:
+ 	echo ofa-v2-mlx4_0-1u u2.0 nonthreadsafe default libdaploucm.so.2 dapl.2.0 '"mlx4_0 1" ""' >> $(DESTDIR)$(sysconfdir)/dat.conf; \
+ 	echo ofa-v2-mlx4_0-2u u2.0 nonthreadsafe default libdaploucm.so.2 dapl.2.0 '"mlx4_0 2" ""' >> $(DESTDIR)$(sysconfdir)/dat.conf; \
+ 	echo ofa-v2-mthca0-1u u2.0 nonthreadsafe default libdaploucm.so.2 dapl.2.0 '"mthca0 1" ""' >> $(DESTDIR)$(sysconfdir)/dat.conf; \
+-	echo ofa-v2-mthca0-2u u2.0 nonthreadsafe default libdaploucm.so.2 dapl.2.0 '"mthca0 2" ""' >> $(DESTDIR)$(sysconfdir)/dat.conf;
++	echo ofa-v2-mthca0-2u u2.0 nonthreadsafe default libdaploucm.so.2 dapl.2.0 '"mthca0 2" ""' >> $(DESTDIR)$(sysconfdir)/dat.conf; \
++	echo ofa-v2-cma-roe-eth2 u2.0 nonthreadsafe default libdaplofa.so.2 dapl.2.0 '"eth2 0" ""' >> $(DESTDIR)$(sysconfdir)/dat.conf; \
++	echo ofa-v2-cma-roe-eth3 u2.0 nonthreadsafe default libdaplofa.so.2 dapl.2.0 '"eth3 0" ""' >> $(DESTDIR)$(sysconfdir)/dat.conf; \
++	echo ofa-v2-scm-roe-mlx4_0-1 u2.0 nonthreadsafe default libdaploscm.so.2 dapl.2.0 '"mlx4_0 1" ""' >> $(DESTDIR)$(sysconfdir)/dat.conf; \
++	echo ofa-v2-scm-roe-mlx4_0-2 u2.0 nonthreadsafe default libdaploscm.so.2 dapl.2.0 '"mlx4_0 2" ""' >> $(DESTDIR)$(sysconfdir)/dat.conf; 
  
-diff --git a/dapl/openib_scm/SOURCES b/dapl/openib_scm/SOURCES
-index 6e4ad30..2129e27 100644
---- a/dapl/openib_scm/SOURCES
-+++ b/dapl/openib_scm/SOURCES
-@@ -25,7 +25,7 @@ SOURCES = \
-         cm.c
+ uninstall-hook:
+ 	if test -e $(DESTDIR)$(sysconfdir)/dat.conf; then \
  
- INCLUDES = ..\include;..\openib_common\;..\common;windows;..\..\dat\include;\
--		   ..\..\dat\udat\windows;..\udapl\windows;\
-+		   ..\..\dat\udat\windows;..\udapl\windows;..\..\..\..\inc\user\linux;\
- 		   ..\..\..\..\inc;..\..\..\..\inc\user;..\..\..\libibverbs\include
+diff --git a/dapl.spec.in b/dapl.spec.in
+index 0f2c380..45187db 100644
+--- a/dapl.spec.in
++++ b/dapl.spec.in
+@@ -110,6 +110,10 @@ echo ofa-v2-mlx4_0-1u u2.0 nonthreadsafe default libdaploucm.so.2 dapl.2.0 '"mlx
+ echo ofa-v2-mlx4_0-2u u2.0 nonthreadsafe default libdaploucm.so.2 dapl.2.0 '"mlx4_0 2" ""' >> %{_sysconfdir}/dat.conf
+ echo ofa-v2-mthca0-1u u2.0 nonthreadsafe default libdaploucm.so.2 dapl.2.0 '"mthca0 1" ""' >> %{_sysconfdir}/dat.conf
+ echo ofa-v2-mthca0-2u u2.0 nonthreadsafe default libdaploucm.so.2 dapl.2.0 '"mthca0 2" ""' >> %{_sysconfdir}/dat.conf
++echo ofa-v2-cma-roe-eth2 u2.0 nonthreadsafe default libdaplofa.so.2 dapl.2.0 '"eth2 0" ""' >> %{_sysconfdir}/dat.conf
++echo ofa-v2-cma-roe-eth3 u2.0 nonthreadsafe default libdaplofa.so.2 dapl.2.0 '"eth3 0" ""' >> %{_sysconfdir}/dat.conf
++echo ofa-v2-scm-roe-mlx4_0-1 u2.0 nonthreadsafe default libdaploscm.so.2 dapl.2.0 '"mlx4_0 1" ""' >> %{_sysconfdir}/dat.conf
++echo ofa-v2-scm-roe-mlx4_0-2 u2.0 nonthreadsafe default libdaploscm.so.2 dapl.2.0 '"mlx4_0 2" ""' >> %{_sysconfdir}/dat.conf
  
- DAPL_OPTS = -DEXPORT_DAPL_SYMBOLS -DDAT_EXTENSIONS -DSOCK_CM -DOPENIB -DCQ_WAIT_OBJECT
-diff --git a/dapl/openib_ucm/SOURCES b/dapl/openib_ucm/SOURCES
-index 7eecf48..a2b5dce 100644
---- a/dapl/openib_ucm/SOURCES
-+++ b/dapl/openib_ucm/SOURCES
-@@ -21,7 +21,8 @@ SOURCES = udapl.rc ..\dapl_common_src.c ..\dapl_udapl_src.c ..\openib_common.c \
- 
- INCLUDES = ..\include;..\openib_common\;..\common;windows;..\..\dat\include;\
- 		   ..\..\dat\udat\windows;..\udapl\windows;\
--		   ..\..\..\..\inc;..\..\..\..\inc\user;..\..\..\libibverbs\include
-+		   ..\..\..\..\inc;..\..\..\..\inc\user;..\..\..\libibverbs\include;\
-+		   ..\..\..\..\inc\user\linux;
- 
- DAPL_OPTS = -DEXPORT_DAPL_SYMBOLS -DDAT_EXTENSIONS -DOPENIB -DCQ_WAIT_OBJECT
- 
+ %postun 
+ /sbin/ldconfig
 -- 
 1.5.2.5
 
