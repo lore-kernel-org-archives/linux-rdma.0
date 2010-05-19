@@ -1,8 +1,8 @@
 From: "Davis, Arlin R" <arlin.r.davis-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 04/12] dapl-2.0: scm: add support for canceling conn request
- that times out.
-Date: Wed, 19 May 2010 11:11:26 -0700
-Message-ID: <E3280858FA94444CA49D2BA02341C983C7013085@orsmsx506.amr.corp.intel.com>
+Subject: [PATCH 07/12] dapl-2.0: common: dat_ep_connect should not set timer
+ UD endpoints
+Date: Wed, 19 May 2010 11:11:31 -0700
+Message-ID: <E3280858FA94444CA49D2BA02341C983C701308A@orsmsx506.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
@@ -13,49 +13,30 @@ To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY
 List-Id: linux-rdma@vger.kernel.org
 
 
-print warning message during timeout.
+connect for UD type is simply AH resolution and doesn't
+need timed. The common code is not designed to handle
+multiple timed events on connect requests so just ignore
+timing UD AH requests.
 
 Signed-off-by: Arlin Davis <arlin.r.davis-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- dapl/common/dapl_ep_connect.c |    2 ++
- dapl/openib_scm/cm.c          |   11 ++++++++++-
- 2 files changed, 12 insertions(+), 1 deletions(-)
+ dapl/common/dapl_ep_connect.c |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletions(-)
 
 diff --git a/dapl/common/dapl_ep_connect.c b/dapl/common/dapl_ep_connect.c
-index 4e5e112..1f193ae 100755
+index 1f193ae..9b5829e 100755
 --- a/dapl/common/dapl_ep_connect.c
 +++ b/dapl/common/dapl_ep_connect.c
-@@ -334,6 +334,8 @@ dapl_ep_connect(IN DAT_EP_HANDLE ep_handle,
- 
- 			dapls_timer_set(ep_ptr->cxn_timer,
- 					dapls_ep_timeout, ep_ptr, timeout);
-+
-+			dapl_log(DAPL_DBG_TYPE_WARN, " dapl_ep_connect timeout = %d us\n", timeout);
- 		}
- 		dapl_os_unlock(&ep_ptr->header.lock);
- 	}
-diff --git a/dapl/openib_scm/cm.c b/dapl/openib_scm/cm.c
-index 957066a..6958b67 100644
---- a/dapl/openib_scm/cm.c
-+++ b/dapl/openib_scm/cm.c
-@@ -1366,7 +1366,16 @@ dapls_ib_disconnect_clean(IN DAPL_EP * ep_ptr,
- 			  IN DAT_BOOLEAN active,
- 			  IN const ib_cm_events_t ib_cm_event)
- {
--	/* nothing to cleanup */
-+	if (ib_cm_event == IB_CME_TIMEOUT) {
-+		dp_ib_cm_handle_t cm_ptr = dapl_get_cm_from_ep(ep_ptr);
-+
-+		dapl_log(DAPL_DBG_TYPE_WARN,
-+			"dapls_ib_disc_clean: CONN_TIMEOUT ep %p cm %p %s\n",
-+			ep_ptr, cm_ptr, dapl_cm_state_str(cm_ptr->state));
-+		
-+		/* schedule release of socket and local resources */
-+		dapli_cm_free(cm_ptr);
-+	}
- }
- 
- /*
+@@ -327,7 +327,8 @@ dapl_ep_connect(IN DAT_EP_HANDLE ep_handle,
+ 		dapl_os_lock(&ep_ptr->header.lock);
+ 		if (ep_ptr->param.ep_state ==
+ 		    DAT_EP_STATE_ACTIVE_CONNECTION_PENDING
+-		    && timeout != DAT_TIMEOUT_INFINITE) {
++		    && timeout != DAT_TIMEOUT_INFINITE &&
++	    	    ep_ptr->param.ep_attr.service_type == DAT_SERVICE_TYPE_RC) {
+ 			ep_ptr->cxn_timer =
+ 			    (DAPL_OS_TIMER *)
+ 			    dapl_os_alloc(sizeof(DAPL_OS_TIMER));
 -- 
 1.5.2.5
 
