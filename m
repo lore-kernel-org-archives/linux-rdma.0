@@ -1,8 +1,8 @@
 From: "Davis, Arlin R" <arlin.r.davis-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 08/12] dapl-2.0: scm: new cm_ep linking broke UD mode over
- socket cm
-Date: Wed, 19 May 2010 11:11:33 -0700
-Message-ID: <E3280858FA94444CA49D2BA02341C983C701308B@orsmsx506.amr.corp.intel.com>
+Subject: [PATCH 03/12] dapl-2.0: scm, cma, ucm: consolidate dat
+ event/provider event translation
+Date: Wed, 19 May 2010 11:11:24 -0700
+Message-ID: <E3280858FA94444CA49D2BA02341C983C7013084@orsmsx506.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
@@ -13,456 +13,512 @@ To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY
 List-Id: linux-rdma@vger.kernel.org
 
 
-Add EP locking around modify_qp for EP state.
-Add new dapli_ep_check for debugging EP
-Cleanup extra CR's
-Change socket errno to dapl_socket_errno() abstraction
-
 Signed-off-by: Arlin Davis <arlin.r.davis-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- dapl/openib_scm/cm.c |  177 ++++++++++++++++++++++++++++++++++++--------------
- 1 files changed, 128 insertions(+), 49 deletions(-)
+ dapl/openib_cma/cm.c      |  108 -------------------------------------------
+ dapl/openib_common/util.c |  107 +++++++++++++++++++++++++++++++++++++++++++
+ dapl/openib_scm/cm.c      |  112 ++-------------------------------------------
+ dapl/openib_ucm/cm.c      |   99 ---------------------------------------
+ 4 files changed, 111 insertions(+), 315 deletions(-)
 
+diff --git a/dapl/openib_cma/cm.c b/dapl/openib_cma/cm.c
+index a85e6ae..1e846aa 100644
+--- a/dapl/openib_cma/cm.c
++++ b/dapl/openib_cma/cm.c
+@@ -1051,114 +1051,6 @@ int dapls_ib_private_data_size(IN DAPL_HCA * hca_ptr)
+ 	return RDMA_MAX_PRIVATE_DATA;
+ }
+ 
+-/*
+- * Map all CMA event codes to the DAT equivelent.
+- */
+-#define DAPL_IB_EVENT_CNT	13
+-
+-static struct ib_cm_event_map {
+-	const ib_cm_events_t ib_cm_event;
+-	DAT_EVENT_NUMBER dat_event_num;
+-} ib_cm_event_map[DAPL_IB_EVENT_CNT] = {
+-	/* 00 */  {
+-	IB_CME_CONNECTED, DAT_CONNECTION_EVENT_ESTABLISHED},
+-	    /* 01 */  {
+-	IB_CME_DISCONNECTED, DAT_CONNECTION_EVENT_DISCONNECTED},
+-	    /* 02 */  {
+-	IB_CME_DISCONNECTED_ON_LINK_DOWN,
+-		    DAT_CONNECTION_EVENT_DISCONNECTED},
+-	    /* 03 */  {
+-	IB_CME_CONNECTION_REQUEST_PENDING, DAT_CONNECTION_REQUEST_EVENT},
+-	    /* 04 */  {
+-	IB_CME_CONNECTION_REQUEST_PENDING_PRIVATE_DATA,
+-		    DAT_CONNECTION_REQUEST_EVENT},
+-	    /* 05 */  {
+-	IB_CME_CONNECTION_REQUEST_ACKED, DAT_CONNECTION_REQUEST_EVENT},
+-	    /* 06 */  {
+-	IB_CME_DESTINATION_REJECT,
+-		    DAT_CONNECTION_EVENT_NON_PEER_REJECTED},
+-	    /* 07 */  {
+-	IB_CME_DESTINATION_REJECT_PRIVATE_DATA,
+-		    DAT_CONNECTION_EVENT_PEER_REJECTED},
+-	    /* 08 */  {
+-	IB_CME_DESTINATION_UNREACHABLE, DAT_CONNECTION_EVENT_UNREACHABLE},
+-	    /* 09 */  {
+-	IB_CME_TOO_MANY_CONNECTION_REQUESTS,
+-		    DAT_CONNECTION_EVENT_NON_PEER_REJECTED},
+-	    /* 10 */  {
+-	IB_CME_LOCAL_FAILURE, DAT_CONNECTION_EVENT_BROKEN},
+-	    /* 11 */  {
+-	IB_CME_BROKEN, DAT_CONNECTION_EVENT_BROKEN},
+-	    /* 12 */  {
+-IB_CME_TIMEOUT, DAT_CONNECTION_EVENT_TIMED_OUT},};
+-
+-/*
+- * dapls_ib_get_cm_event
+- *
+- * Return a DAT connection event given a provider CM event.
+- *
+- * Input:
+- *	dat_event_num	DAT event we need an equivelent CM event for
+- *
+- * Output:
+- * 	none
+- *
+- * Returns:
+- * 	ib_cm_event of translated DAPL value
+- */
+-DAT_EVENT_NUMBER
+-dapls_ib_get_dat_event(IN const ib_cm_events_t ib_cm_event,
+-		       IN DAT_BOOLEAN active)
+-{
+-	DAT_EVENT_NUMBER dat_event_num;
+-	int i;
+-
+-	active = active;
+-
+-	dat_event_num = 0;
+-	for (i = 0; i < DAPL_IB_EVENT_CNT; i++) {
+-		if (ib_cm_event == ib_cm_event_map[i].ib_cm_event) {
+-			dat_event_num = ib_cm_event_map[i].dat_event_num;
+-			break;
+-		}
+-	}
+-	dapl_dbg_log(DAPL_DBG_TYPE_CALLBACK,
+-		     "dapls_ib_get_dat_event: event(%s) ib=0x%x dat=0x%x\n",
+-		     active ? "active" : "passive", ib_cm_event, dat_event_num);
+-
+-	return dat_event_num;
+-}
+-
+-/*
+- * dapls_ib_get_dat_event
+- *
+- * Return a DAT connection event given a provider CM event.
+- * 
+- * Input:
+- *	ib_cm_event	event provided to the dapl callback routine
+- *	active		switch indicating active or passive connection
+- *
+- * Output:
+- * 	none
+- *
+- * Returns:
+- * 	DAT_EVENT_NUMBER of translated provider value
+- */
+-ib_cm_events_t dapls_ib_get_cm_event(IN DAT_EVENT_NUMBER dat_event_num)
+-{
+-	ib_cm_events_t ib_cm_event;
+-	int i;
+-
+-	ib_cm_event = 0;
+-	for (i = 0; i < DAPL_IB_EVENT_CNT; i++) {
+-		if (dat_event_num == ib_cm_event_map[i].dat_event_num) {
+-			ib_cm_event = ib_cm_event_map[i].ib_cm_event;
+-			break;
+-		}
+-	}
+-	return ib_cm_event;
+-}
+-
+ void dapli_cma_event_cb(void)
+ {
+ 	struct rdma_cm_event *event;
+diff --git a/dapl/openib_common/util.c b/dapl/openib_common/util.c
+index 3963e1f..704d85a 100644
+--- a/dapl/openib_common/util.c
++++ b/dapl/openib_common/util.c
+@@ -471,3 +471,110 @@ void dapls_query_provider_specific_attr(IN DAPL_IA * ia_ptr,
+ 	/* set MTU to actual settings */
+ 	ib_attrs[0].value = ia_ptr->hca_ptr->ib_trans.named_attr.value;
+ }
++
++/*
++ * Map all socket CM event codes to the DAT equivelent. Common to all providers
++ */
++#define DAPL_IB_EVENT_CNT	13
++
++static struct ib_cm_event_map {
++	const ib_cm_events_t ib_cm_event;
++	DAT_EVENT_NUMBER dat_event_num;
++} ib_cm_event_map[DAPL_IB_EVENT_CNT] = {
++/* 00 */ {IB_CME_CONNECTED, 
++	  DAT_CONNECTION_EVENT_ESTABLISHED},
++/* 01 */ {IB_CME_DISCONNECTED, 
++	  DAT_CONNECTION_EVENT_DISCONNECTED},
++/* 02 */ {IB_CME_DISCONNECTED_ON_LINK_DOWN,
++	  DAT_CONNECTION_EVENT_DISCONNECTED},
++/* 03 */ {IB_CME_CONNECTION_REQUEST_PENDING, 
++	  DAT_CONNECTION_REQUEST_EVENT},
++/* 04 */ {IB_CME_CONNECTION_REQUEST_PENDING_PRIVATE_DATA,
++	  DAT_CONNECTION_REQUEST_EVENT},
++/* 05 */ {IB_CME_CONNECTION_REQUEST_ACKED,
++	  DAT_CONNECTION_EVENT_ESTABLISHED},
++/* 06 */ {IB_CME_DESTINATION_REJECT,
++	  DAT_CONNECTION_EVENT_NON_PEER_REJECTED},
++/* 07 */ {IB_CME_DESTINATION_REJECT_PRIVATE_DATA,
++	  DAT_CONNECTION_EVENT_PEER_REJECTED},
++/* 08 */ {IB_CME_DESTINATION_UNREACHABLE, 
++	  DAT_CONNECTION_EVENT_UNREACHABLE},
++/* 09 */ {IB_CME_TOO_MANY_CONNECTION_REQUESTS,
++	  DAT_CONNECTION_EVENT_NON_PEER_REJECTED},
++/* 10 */ {IB_CME_BROKEN, 
++	  DAT_CONNECTION_EVENT_BROKEN},
++/* 11 */ {IB_CME_TIMEOUT, 
++	  DAT_CONNECTION_EVENT_TIMED_OUT},
++/* 12 */ {IB_CME_LOCAL_FAILURE,		/* always last */
++	  DAT_CONNECTION_EVENT_BROKEN}
++};
++
++/*
++ * dapls_ib_get_cm_event
++ *
++ * Return a DAT connection event given a provider CM event.
++ *
++ * Input:
++ *	dat_event_num	DAT event we need an equivelent CM event for
++ *
++ * Output:
++ * 	none
++ *
++ * Returns:
++ * 	ib_cm_event of translated DAPL value
++ */
++DAT_EVENT_NUMBER
++dapls_ib_get_dat_event(IN const ib_cm_events_t ib_cm_event,
++		       IN DAT_BOOLEAN active)
++{
++	DAT_EVENT_NUMBER dat_event_num;
++	int i;
++
++	active = active;
++
++	if (ib_cm_event > IB_CME_LOCAL_FAILURE)
++		return (DAT_EVENT_NUMBER) 0;
++
++	dat_event_num = 0;
++	for (i = 0; i < DAPL_IB_EVENT_CNT; i++) {
++		if (ib_cm_event == ib_cm_event_map[i].ib_cm_event) {
++			dat_event_num = ib_cm_event_map[i].dat_event_num;
++			break;
++		}
++	}
++	dapl_dbg_log(DAPL_DBG_TYPE_CALLBACK,
++		     "dapls_ib_get_dat_event: event translate(%s) ib=0x%x dat=0x%x\n",
++		     active ? "active" : "passive", ib_cm_event, dat_event_num);
++
++	return dat_event_num;
++}
++
++/*
++ * dapls_ib_get_dat_event
++ *
++ * Return a DAT connection event given a provider CM event.
++ * 
++ * Input:
++ *	ib_cm_event	event provided to the dapl callback routine
++ *	active		switch indicating active or passive connection
++ *
++ * Output:
++ * 	none
++ *
++ * Returns:
++ * 	DAT_EVENT_NUMBER of translated provider value
++ */
++ib_cm_events_t dapls_ib_get_cm_event(IN DAT_EVENT_NUMBER dat_event_num)
++{
++	ib_cm_events_t ib_cm_event;
++	int i;
++
++	ib_cm_event = 0;
++	for (i = 0; i < DAPL_IB_EVENT_CNT; i++) {
++		if (dat_event_num == ib_cm_event_map[i].dat_event_num) {
++			ib_cm_event = ib_cm_event_map[i].ib_cm_event;
++			break;
++		}
++	}
++	return ib_cm_event;
++}
 diff --git a/dapl/openib_scm/cm.c b/dapl/openib_scm/cm.c
-index 6958b67..b6ffbe9 100644
+index 39f8417..957066a 100644
 --- a/dapl/openib_scm/cm.c
 +++ b/dapl/openib_scm/cm.c
-@@ -60,6 +60,48 @@
- #include "dapl_ep_util.h"
- #include "dapl_osd.h"
-
-+#ifdef DAPL_DBG
-+/* Check for EP linking to IA and proper connect state */
-+void dapli_ep_check(DAPL_EP *ep)
-+{
-+       DAPL_IA *ia_ptr = ep->header.owner_ia;
-+       DAPL_EP *ep_ptr, *next_ep_ptr;
-+       int found = 0;
-+
-+       dapl_os_lock(&ia_ptr->header.lock);
-+       ep_ptr = (dapl_llist_is_empty (&ia_ptr->ep_list_head)
-+               ? NULL : dapl_llist_peek_head (&ia_ptr->ep_list_head));
-+
-+       while (ep_ptr != NULL) {
-+               next_ep_ptr =
-+                       dapl_llist_next_entry(&ia_ptr->ep_list_head,
-+                                             &ep_ptr->header.ia_list_entry);
-+               if (ep == ep_ptr) {
-+                       found++;
-+                       if ((ep->cr_ptr && ep->param.ep_state
-+                               != DAT_EP_STATE_COMPLETION_PENDING) ||
-+                           (!ep->cr_ptr && ep->param.ep_state
-+                               != DAT_EP_STATE_ACTIVE_CONNECTION_PENDING))
-+                               goto err;
-+                       else
-+                               goto match;
-+               }
-+               ep_ptr = next_ep_ptr;
-+       }
-+err:
-+       dapl_log(DAPL_DBG_TYPE_ERR,
-+                " dapli_ep_check ERR: %s %s ep=%p state=%d magic=0x%x\n",
-+                ep->cr_ptr ? "PASSIVE":"ACTIVE",
-+                found ? "WRONG_STATE":"NOT_FOUND" ,
-+                ep, ep->param.ep_state, ep->header.magic);
-+match:
-+       dapl_os_unlock(&ia_ptr->header.lock);
-+       return;
-+}
-+#else
-+#define dapli_ep_check(ep)
-+#endif
-+
+@@ -501,7 +501,7 @@ static void dapli_socket_connected(dp_ib_cm_handle_t cm_ptr, int err)
+ 
+ bail:
+ 	/* mark CM object for cleanup */
+-	cm_ptr->state = DCM_FREE;
++	dapli_cm_free(cm_ptr);
+ 	dapl_evd_connection_callback(NULL, IB_CME_LOCAL_FAILURE, NULL, 0, ep_ptr);
+ }
+ 
+@@ -816,9 +816,7 @@ ud_bail:
+ 				(DAT_PVOID *) &xevent);
+ 
+ 		/* cleanup and release from local list */
+-		dapl_os_lock(&cm_ptr->lock);
+-		cm_ptr->state = DCM_FREE;
+-		dapl_os_unlock(&cm_ptr->lock);		
++		dapli_cm_free(cm_ptr);
+ 	
+ 	} else
+ #endif
+@@ -836,10 +834,9 @@ bail:
+ #endif
+ 	/* close socket, and post error event */
+ 	cm_ptr->state = DCM_REJECTED;
+-	closesocket(cm_ptr->socket);
+-        cm_ptr->socket = DAPL_INVALID_SOCKET;
+ 	dapl_evd_connection_callback(NULL, event, cm_ptr->msg.p_data,
+ 				     DCM_MAX_PDATA_SIZE, ep_ptr);
++	dapli_cm_free(cm_ptr);
+ }
+ 
+ /*
+@@ -1041,7 +1038,7 @@ static void dapli_socket_accept_data(ib_cm_srvc_handle_t acm_ptr)
+ 	return;
+ bail:
+ 	/* mark for destroy, active will see socket close as rej */
+-	acm_ptr->state = DCM_FREE;
++	dapli_cm_free(acm_ptr);
+ 	return;
+ }
+ 
+@@ -1573,107 +1570,6 @@ int dapls_ib_private_data_size(
+ 	return DCM_MAX_PDATA_SIZE;
+ }
+ 
+-/*
+- * Map all socket CM event codes to the DAT equivelent.
+- */
+-#define DAPL_IB_EVENT_CNT	10
+-
+-static struct ib_cm_event_map {
+-	const ib_cm_events_t ib_cm_event;
+-	DAT_EVENT_NUMBER dat_event_num;
+-} ib_cm_event_map[DAPL_IB_EVENT_CNT] = {
+-/* 00 */ {IB_CME_CONNECTED, 
+-	  DAT_CONNECTION_EVENT_ESTABLISHED},
+-/* 01 */ {IB_CME_DISCONNECTED, 
+-	  DAT_CONNECTION_EVENT_DISCONNECTED},
+-/* 02 */ {IB_CME_DISCONNECTED_ON_LINK_DOWN,
+-	  DAT_CONNECTION_EVENT_DISCONNECTED},
+-/* 03 */ {IB_CME_CONNECTION_REQUEST_PENDING, 
+-	  DAT_CONNECTION_REQUEST_EVENT},
+-/* 04 */ {IB_CME_CONNECTION_REQUEST_PENDING_PRIVATE_DATA,
+-	  DAT_CONNECTION_REQUEST_EVENT},
+-/* 05 */ {IB_CME_DESTINATION_REJECT,
+-	  DAT_CONNECTION_EVENT_NON_PEER_REJECTED},
+-/* 06 */ {IB_CME_DESTINATION_REJECT_PRIVATE_DATA,
+-	  DAT_CONNECTION_EVENT_PEER_REJECTED},
+-/* 07 */ {IB_CME_DESTINATION_UNREACHABLE, 
+-	  DAT_CONNECTION_EVENT_UNREACHABLE},
+-/* 08 */ {IB_CME_TOO_MANY_CONNECTION_REQUESTS,
+-	  DAT_CONNECTION_EVENT_NON_PEER_REJECTED},
+-/* 09 */ {IB_CME_LOCAL_FAILURE, 
+-	  DAT_CONNECTION_EVENT_BROKEN}
+-};
+-
+-/*
+- * dapls_ib_get_cm_event
+- *
+- * Return a DAT connection event given a provider CM event.
+- *
+- * Input:
+- *	dat_event_num	DAT event we need an equivelent CM event for
+- *
+- * Output:
+- * 	none
+- *
+- * Returns:
+- * 	ib_cm_event of translated DAPL value
+- */
+-DAT_EVENT_NUMBER
+-dapls_ib_get_dat_event(IN const ib_cm_events_t ib_cm_event,
+-		       IN DAT_BOOLEAN active)
+-{
+-	DAT_EVENT_NUMBER dat_event_num;
+-	int i;
+-
+-	active = active;
+-
+-	if (ib_cm_event > IB_CME_LOCAL_FAILURE)
+-		return (DAT_EVENT_NUMBER) 0;
+-
+-	dat_event_num = 0;
+-	for (i = 0; i < DAPL_IB_EVENT_CNT; i++) {
+-		if (ib_cm_event == ib_cm_event_map[i].ib_cm_event) {
+-			dat_event_num = ib_cm_event_map[i].dat_event_num;
+-			break;
+-		}
+-	}
+-	dapl_dbg_log(DAPL_DBG_TYPE_CALLBACK,
+-		     "dapls_ib_get_dat_event: event translate(%s) ib=0x%x dat=0x%x\n",
+-		     active ? "active" : "passive", ib_cm_event, dat_event_num);
+-
+-	return dat_event_num;
+-}
+-
+-/*
+- * dapls_ib_get_dat_event
+- *
+- * Return a DAT connection event given a provider CM event.
+- * 
+- * Input:
+- *	ib_cm_event	event provided to the dapl callback routine
+- *	active		switch indicating active or passive connection
+- *
+- * Output:
+- * 	none
+- *
+- * Returns:
+- * 	DAT_EVENT_NUMBER of translated provider value
+- */
+-ib_cm_events_t dapls_ib_get_cm_event(IN DAT_EVENT_NUMBER dat_event_num)
+-{
+-	ib_cm_events_t ib_cm_event;
+-	int i;
+-
+-	ib_cm_event = 0;
+-	for (i = 0; i < DAPL_IB_EVENT_CNT; i++) {
+-		if (dat_event_num == ib_cm_event_map[i].dat_event_num) {
+-			ib_cm_event = ib_cm_event_map[i].ib_cm_event;
+-			break;
+-		}
+-	}
+-	return ib_cm_event;
+-}
+-
+ /* outbound/inbound CR processing thread to avoid blocking applications */
+ void cr_thread(void *arg)
+ {
+diff --git a/dapl/openib_ucm/cm.c b/dapl/openib_ucm/cm.c
+index 6efa2f1..2cab529 100644
+--- a/dapl/openib_ucm/cm.c
++++ b/dapl/openib_ucm/cm.c
+@@ -1817,105 +1817,6 @@ int dapls_ib_private_data_size(
+ 	return DCM_MAX_PDATA_SIZE;
+ }
+ 
+-/*
+- * Map all socket CM event codes to the DAT equivelent.
+- */
+-#define DAPL_IB_EVENT_CNT	10
+-
+-static struct ib_cm_event_map {
+-	const ib_cm_events_t ib_cm_event;
+-	DAT_EVENT_NUMBER dat_event_num;
+-} ib_cm_event_map[DAPL_IB_EVENT_CNT] = {
+-/* 00 */ {IB_CME_CONNECTED, 
+-	  DAT_CONNECTION_EVENT_ESTABLISHED},
+-/* 01 */ {IB_CME_DISCONNECTED, 
+-	  DAT_CONNECTION_EVENT_DISCONNECTED},
+-/* 02 */ {IB_CME_DISCONNECTED_ON_LINK_DOWN,
+-	  DAT_CONNECTION_EVENT_DISCONNECTED},
+-/* 03 */ {IB_CME_CONNECTION_REQUEST_PENDING, 
+-	  DAT_CONNECTION_REQUEST_EVENT},
+-/* 04 */ {IB_CME_CONNECTION_REQUEST_PENDING_PRIVATE_DATA,
+-	  DAT_CONNECTION_REQUEST_EVENT},
+-/* 05 */ {IB_CME_DESTINATION_REJECT,
+-	  DAT_CONNECTION_EVENT_NON_PEER_REJECTED},
+-/* 06 */ {IB_CME_DESTINATION_REJECT_PRIVATE_DATA,
+-	  DAT_CONNECTION_EVENT_PEER_REJECTED},
+-/* 07 */ {IB_CME_DESTINATION_UNREACHABLE, 
+-	  DAT_CONNECTION_EVENT_UNREACHABLE},
+-/* 08 */ {IB_CME_TOO_MANY_CONNECTION_REQUESTS,
+-	  DAT_CONNECTION_EVENT_NON_PEER_REJECTED},
+-/* 09 */ {IB_CME_LOCAL_FAILURE, 
+-	  DAT_CONNECTION_EVENT_BROKEN}
+-};
+-
+-/*
+- * dapls_ib_get_cm_event
+- *
+- * Return a DAT connection event given a provider CM event.
+- *
+- * Input:
+- *	dat_event_num	DAT event we need an equivelent CM event for
+- *
+- * Output:
+- * 	none
+- *
+- * Returns:
+- * 	ib_cm_event of translated DAPL value
+- */
+-DAT_EVENT_NUMBER
+-dapls_ib_get_dat_event(IN const ib_cm_events_t ib_cm_event,
+-		       IN DAT_BOOLEAN active)
+-{
+-	DAT_EVENT_NUMBER dat_event_num;
+-	int i;
+-
+-	if (ib_cm_event > IB_CME_LOCAL_FAILURE)
+-		return (DAT_EVENT_NUMBER) 0;
+-
+-	dat_event_num = 0;
+-	for (i = 0; i < DAPL_IB_EVENT_CNT; i++) {
+-		if (ib_cm_event == ib_cm_event_map[i].ib_cm_event) {
+-			dat_event_num = ib_cm_event_map[i].dat_event_num;
+-			break;
+-		}
+-	}
+-	dapl_dbg_log(DAPL_DBG_TYPE_CALLBACK,
+-		     "dapls_ib_get_dat_event: event translate(%s) ib=0x%x dat=0x%x\n",
+-		     active ? "active" : "passive", ib_cm_event, dat_event_num);
+-
+-	return dat_event_num;
+-}
+-
+-/*
+- * dapls_ib_get_dat_event
+- *
+- * Return a DAT connection event given a provider CM event.
+- * 
+- * Input:
+- *	ib_cm_event	event provided to the dapl callback routine
+- *	active		switch indicating active or passive connection
+- *
+- * Output:
+- * 	none
+- *
+- * Returns:
+- * 	DAT_EVENT_NUMBER of translated provider value
+- */
+-ib_cm_events_t dapls_ib_get_cm_event(IN DAT_EVENT_NUMBER dat_event_num)
+-{
+-	ib_cm_events_t ib_cm_event;
+-	int i;
+-
+-	ib_cm_event = 0;
+-	for (i = 0; i < DAPL_IB_EVENT_CNT; i++) {
+-		if (dat_event_num == ib_cm_event_map[i].dat_event_num) {
+-			ib_cm_event = ib_cm_event_map[i].ib_cm_event;
+-			break;
+-		}
+-	}
+-	return ib_cm_event;
+-}
+-
  #if defined(_WIN32) || defined(_WIN64)
- enum DAPL_FD_EVENTS {
-        DAPL_FD_READ = 0x1,
-@@ -311,13 +353,13 @@ void dapls_cm_acquire(dp_ib_cm_handle_t cm_ptr)
- void dapls_cm_release(dp_ib_cm_handle_t cm_ptr)
- {
-        dapl_os_lock(&cm_ptr->lock);
--       cm_ptr->ref_count--;
--       if (cm_ptr->ref_count) {
--                dapl_os_unlock(&cm_ptr->lock);
--               return;
--       }
--       dapl_os_unlock(&cm_ptr->lock);
--       dapli_cm_dealloc(cm_ptr);
-+       cm_ptr->ref_count--;
-+       if (cm_ptr->ref_count) {
-+                dapl_os_unlock(&cm_ptr->lock);
-+               return;
-+       }
-+       dapl_os_unlock(&cm_ptr->lock);
-+       dapli_cm_dealloc(cm_ptr);
- }
-
- static dp_ib_cm_handle_t dapli_cm_alloc(DAPL_EP *ep_ptr)
-@@ -416,7 +458,9 @@ DAT_RETURN dapli_socket_disconnect(dp_ib_cm_handle_t cm_ptr)
-        dapl_os_unlock(&cm_ptr->lock);
-
-        /* send disc date, close socket, schedule destroy */
-+       dapl_os_lock(&cm_ptr->ep->header.lock);
-        dapls_modify_qp_state(cm_ptr->ep->qp_handle, IBV_QPS_ERR, 0,0,0);
-+       dapl_os_unlock(&cm_ptr->ep->header.lock);
-        send(cm_ptr->socket, (char *)&disc_data, sizeof(disc_data), 0);
-
-        /* disconnect events for RC's only */
-@@ -452,7 +496,7 @@ static void dapli_socket_connected(dp_ib_cm_handle_t cm_ptr, int err)
-                dapl_log(DAPL_DBG_TYPE_ERR,
-                         " CONN_PENDING: %s ERR %s -> %s %d\n",
-                         err == -1 ? "POLL" : "SOCKOPT",
--                        err == -1 ? strerror(errno) : strerror(err),
-+                        err == -1 ? strerror(dapl_socket_errno()) : strerror(err),
-                         inet_ntoa(((struct sockaddr_in *)
-                                &cm_ptr->addr)->sin_addr),
-                         ntohs(((struct sockaddr_in *)
-@@ -475,9 +519,10 @@ static void dapli_socket_connected(dp_ib_cm_handle_t cm_ptr, int err)
-        }
-
-        if (len != (exp + ntohs(cm_ptr->msg.p_size))) {
-+               int err = dapl_socket_errno();
-                dapl_log(DAPL_DBG_TYPE_ERR,
--                        " CONN_PENDING len ERR %s, wcnt=%d(%d) -> %s\n",
--                        strerror(errno), len,
-+                        " CONN_PENDING len ERR 0x%x %s, wcnt=%d(%d) -> %s\n",
-+                        err, strerror(err), len,
-                         exp + ntohs(cm_ptr->msg.p_size),
-                         inet_ntoa(((struct sockaddr_in *)
-                                   ep_ptr->param.
-@@ -530,16 +575,19 @@ dapli_socket_connect(DAPL_EP * ep_ptr,
-        /* create, connect, sockopt, and exchange QP information */
-        if ((cm_ptr->socket =
-             socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)) == DAPL_INVALID_SOCKET) {
-+               int err = dapl_socket_errno();
-                dapl_log(DAPL_DBG_TYPE_ERR,
--                        " connect: socket create ERR %s\n", strerror(errno));
-+                        " connect: socket create ERR 0x%x %s\n",
-+                        err, strerror(err));
-                goto bail;
-        }
-
-        ret = dapl_config_socket(cm_ptr->socket);
-        if (ret < 0) {
-                dapl_log(DAPL_DBG_TYPE_ERR,
--                        " connect: config socket %d ERR %d %s\n",
--                        cm_ptr->socket, ret, strerror(dapl_socket_errno()));
-+                        " connect: config socket %d RET %d ERR 0x%x %s\n",
-+                        cm_ptr->socket, ret,
-+                        dapl_socket_errno(), strerror(dapl_socket_errno()));
-                dat_ret = DAT_INTERNAL_ERROR;
-                goto bail;
-        }
-@@ -556,6 +604,10 @@ dapli_socket_connect(DAPL_EP * ep_ptr,
-        ret = dapl_connect_socket(cm_ptr->socket, (struct sockaddr *)&cm_ptr->addr,
-                                  sizeof(cm_ptr->addr));
-        if (ret && ret != EAGAIN) {
-+               dapl_log(DAPL_DBG_TYPE_ERR,
-+                        " connect: dapl_connect_socket RET %d ERR 0x%x %s\n",
-+                        ret, dapl_socket_errno(),
-+                        strerror(dapl_socket_errno()));
-                dat_ret = DAT_INVALID_ADDRESS;
-                goto bail;
-        }
-@@ -572,9 +624,10 @@ dapli_socket_connect(DAPL_EP * ep_ptr,
-        /* get local address information from socket */
-        sl = sizeof(cm_ptr->msg.daddr.so);
-        if (getsockname(cm_ptr->socket, (struct sockaddr *)&cm_ptr->msg.daddr.so, &sl)) {
-+               int err = dapl_socket_errno();
-                dapl_log(DAPL_DBG_TYPE_ERR,
--                       " connect getsockname ERROR: %s -> %s r_qual %d\n",
--                       strerror(errno),
-+                       " connect getsockname ERROR: 0x%x %s -> %s r_qual %d\n",
-+                       err, strerror(err),
-                        inet_ntoa(((struct sockaddr_in *)r_addr)->sin_addr),
-                        (unsigned int)r_qual);;
-        }
-@@ -604,8 +657,7 @@ dapli_socket_connect(DAPL_EP * ep_ptr,
-        return DAT_SUCCESS;
- bail:
-        dapl_log(DAPL_DBG_TYPE_ERR,
--                " connect ERROR: %s -> %s r_qual %d\n",
--                strerror(errno),
-+                " connect ERROR: -> %s r_qual %d\n",
-                 inet_ntoa(((struct sockaddr_in *)r_addr)->sin_addr),
-                 (unsigned int)r_qual);
-
-@@ -629,9 +681,10 @@ static void dapli_socket_connect_rtu(dp_ib_cm_handle_t cm_ptr)
-
-        len = recv(cm_ptr->socket, (char *)&cm_ptr->msg, exp, 0);
-        if (len != exp || ntohs(cm_ptr->msg.ver) != DCM_VER) {
-+               int err = dapl_socket_errno();
-                dapl_log(DAPL_DBG_TYPE_WARN,
--                        " CONN_RTU read: sk %d ERR %s, rcnt=%d, v=%d -> %s PORT L-%x R-%x PID L-%x R-%x\n",
--                        cm_ptr->socket, strerror(errno), len, ntohs(cm_ptr->msg.ver),
-+                        " CONN_RTU read: sk %d ERR 0x%x, rcnt=%d, v=%d -> %s PORT L-%x R-%x PID L-%x R-%x\n",
-+                        cm_ptr->socket, err, len, ntohs(cm_ptr->msg.ver),
-                         inet_ntoa(((struct sockaddr_in *)&cm_ptr->addr)->sin_addr),
-                         ntohs(((struct sockaddr_in *)&cm_ptr->msg.daddr.so)->sin_port),
-                         ntohs(((struct sockaddr_in *)&cm_ptr->addr)->sin_port),
-@@ -639,7 +692,7 @@ static void dapli_socket_connect_rtu(dp_ib_cm_handle_t cm_ptr)
-                         ntohs(*(uint16_t*)&cm_ptr->msg.resv[2]));
-
-                /* Retry; corner case where server tcp stack resets under load */
--               if (dapl_socket_errno() == ECONNRESET) {
-+               if (err == ECONNRESET) {
-                        closesocket(cm_ptr->socket);
-                        cm_ptr->socket = DAPL_INVALID_SOCKET;
-                        dapli_socket_connect(cm_ptr->ep, (DAT_IA_ADDRESS_PTR)&cm_ptr->addr,
-@@ -692,9 +745,10 @@ static void dapli_socket_connect_rtu(dp_ib_cm_handle_t cm_ptr)
-        if (exp) {
-                len = recv(cm_ptr->socket, cm_ptr->msg.p_data, exp, 0);
-                if (len != exp) {
-+                       int err = dapl_socket_errno();
-                        dapl_log(DAPL_DBG_TYPE_ERR,
--                                " CONN_RTU read pdata: ERR %s, rcnt=%d -> %s\n",
--                                strerror(errno), len,
-+                                " CONN_RTU read pdata: ERR 0x%x %s, rcnt=%d -> %s\n",
-+                                err, strerror(err), len,
-                                 inet_ntoa(((struct sockaddr_in *)
-                                            ep_ptr->param.
-                                            remote_ia_address_ptr)->sin_addr));
-@@ -721,6 +775,7 @@ static void dapli_socket_connect_rtu(dp_ib_cm_handle_t cm_ptr)
-        }
-
-        /* modify QP to RTR and then to RTS with remote info */
-+       dapl_os_lock(&ep_ptr->header.lock);
-        if (dapls_modify_qp_state(ep_ptr->qp_handle,
-                                  IBV_QPS_RTR,
-                                  cm_ptr->msg.saddr.ib.qpn,
-@@ -736,6 +791,7 @@ static void dapli_socket_connect_rtu(dp_ib_cm_handle_t cm_ptr)
-                                    &cm_ptr->msg.daddr.so)->sin_addr),
-                         ntohs(((struct sockaddr_in *)
-                                 &cm_ptr->msg.daddr.so)->sin_port));
-+               dapl_os_unlock(&ep_ptr->header.lock);
-                goto bail;
-        }
-        if (dapls_modify_qp_state(ep_ptr->qp_handle,
-@@ -753,16 +809,20 @@ static void dapli_socket_connect_rtu(dp_ib_cm_handle_t cm_ptr)
-                                    &cm_ptr->msg.daddr.so)->sin_addr),
-                         ntohs(((struct sockaddr_in *)
-                                 &cm_ptr->msg.daddr.so)->sin_port));
-+               dapl_os_unlock(&ep_ptr->header.lock);
-                goto bail;
-        }
-+       dapl_os_unlock(&ep_ptr->header.lock);
-        dapl_dbg_log(DAPL_DBG_TYPE_EP, " connect_rtu: send RTU\n");
-
-        /* complete handshake after final QP state change, Just ver+op */
-        cm_ptr->state = DCM_CONNECTED;
-        cm_ptr->msg.op = ntohs(DCM_RTU);
-        if (send(cm_ptr->socket, (char *)&cm_ptr->msg, 4, 0) == -1) {
-+               int err = dapl_socket_errno();
-                dapl_log(DAPL_DBG_TYPE_ERR,
--                        " CONN_RTU: write error = %s\n", strerror(errno));
-+                        " CONN_RTU: write ERR = 0x%x %s\n",
-+                        err, strerror(err));
-                goto bail;
-        }
-        /* post the event with private data */
-@@ -821,6 +881,7 @@ ud_bail:
-        } else
- #endif
-        {
-+               dapli_ep_check(cm_ptr->ep);
-                dapl_evd_connection_callback(cm_ptr, event, cm_ptr->msg.p_data,
-                                             DCM_MAX_PDATA_SIZE, ep_ptr);
-        }
-@@ -848,7 +909,7 @@ dapli_socket_listen(DAPL_IA * ia_ptr, DAT_CONN_QUAL serviceID, DAPL_SP * sp_ptr)
-        struct sockaddr_in addr;
-        ib_cm_srvc_handle_t cm_ptr = NULL;
-        DAT_RETURN dat_status = DAT_SUCCESS;
--       int opt = 1;
-+       int opt = 1;
-
-        dapl_dbg_log(DAPL_DBG_TYPE_CM,
-                     " setup listen(ia_ptr %p ServiceID %d sp_ptr %p)\n",
-@@ -864,23 +925,26 @@ dapli_socket_listen(DAPL_IA * ia_ptr, DAT_CONN_QUAL serviceID, DAPL_SP * sp_ptr)
-        /* bind, listen, set sockopt, accept, exchange data */
-        if ((cm_ptr->socket =
-             socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)) == DAPL_INVALID_SOCKET) {
--               dapl_log(DAPL_DBG_TYPE_ERR, " ERR: listen socket create: %s\n",
--                        strerror(errno));
-+               int err = dapl_socket_errno();
-+               dapl_log(DAPL_DBG_TYPE_ERR,
-+                        " listen: socket create: ERR 0x%x %s\n",
-+                        err, strerror(err));
-                dat_status = DAT_INSUFFICIENT_RESOURCES;
-                goto bail;
-        }
-
--       setsockopt(cm_ptr->socket, SOL_SOCKET, SO_REUSEADDR, (char*)&opt, sizeof(opt));
-+       setsockopt(cm_ptr->socket, SOL_SOCKET, SO_REUSEADDR, (char*)&opt, sizeof(opt));
-        addr.sin_port = htons(serviceID + 1000);
-        addr.sin_family = AF_INET;
-        addr.sin_addr = ((struct sockaddr_in *) &ia_ptr->hca_ptr->hca_address)->sin_addr;
-
-        if ((bind(cm_ptr->socket, (struct sockaddr *)&addr, sizeof(addr)) < 0)
-            || (listen(cm_ptr->socket, 128) < 0)) {
-+               int err = dapl_socket_errno();
-                dapl_log(DAPL_DBG_TYPE_CM,
--                        " listen: ERROR %s on port %d\n",
--                        strerror(errno), serviceID + 1000);
--               if (dapl_socket_errno() == EADDRINUSE)
-+                        " listen: ERROR 0x%x %s on port %d\n",
-+                        err, strerror(err), serviceID + 1000);
-+               if (err == EADDRINUSE)
-                        dat_status = DAT_CONN_QUAL_IN_USE;
-                else
-                        dat_status = DAT_CONN_QUAL_UNAVAILABLE;
-@@ -933,9 +997,10 @@ static void dapli_socket_accept(ib_cm_srvc_handle_t cm_ptr)
-                                        &acm_ptr->msg.daddr.so,
-                                        (socklen_t *) &len);
-                if (acm_ptr->socket == DAPL_INVALID_SOCKET) {
-+                       int err = dapl_socket_errno();
-                        dapl_log(DAPL_DBG_TYPE_ERR,
--                               " ACCEPT: ERR %s on FD %d l_cr %p\n",
--                               strerror(errno), cm_ptr->socket, cm_ptr);
-+                               " ACCEPT: ERR 0x%x %s on FD %d l_cr %p\n",
-+                               err, strerror(err), cm_ptr->socket, cm_ptr);
-                        dapls_cm_release(acm_ptr);
-                        return;
-                }
-@@ -948,11 +1013,14 @@ static void dapli_socket_accept(ib_cm_srvc_handle_t cm_ptr)
-                /* no delay for small packets */
-                ret = setsockopt(acm_ptr->socket, IPPROTO_TCP, TCP_NODELAY,
-                           (char *)&opt, sizeof(opt));
--               if (ret)
-+               if (ret) {
-+                       int err = dapl_socket_errno();
-                        dapl_log(DAPL_DBG_TYPE_ERR,
--                                " ACCEPT: NODELAY setsockopt: 0x%x 0x%x %s\n",
--                                ret, dapl_socket_errno(), strerror(dapl_socket_errno()));
--
-+                                " ACCEPT: NODELAY setsockopt:"
-+                                " RET %d ERR 0x%x %s\n",
-+                                ret, err, strerror(err));
-+               }
-+
-                /* get local address information from socket */
-                sl = sizeof(acm_ptr->addr);
-                getsockname(acm_ptr->socket, (struct sockaddr *)&acm_ptr->addr, &sl);
-@@ -975,9 +1043,10 @@ static void dapli_socket_accept_data(ib_cm_srvc_handle_t acm_ptr)
-        /* read in DST QP info, IA address. check for private data */
-        len = recv(acm_ptr->socket, (char *)&acm_ptr->msg, exp, 0);
-        if (len != exp || ntohs(acm_ptr->msg.ver) != DCM_VER) {
-+               int err = dapl_socket_errno();
-                dapl_log(DAPL_DBG_TYPE_ERR,
--                        " ACCEPT read: ERR %s, rcnt=%d, ver=%d\n",
--                        strerror(errno), len, ntohs(acm_ptr->msg.ver));
-+                        " ACCEPT read: ERR 0x%x %s, rcnt=%d, ver=%d\n",
-+                        err, strerror(err), len, ntohs(acm_ptr->msg.ver));
-                goto bail;
-        }
-
-@@ -996,9 +1065,10 @@ static void dapli_socket_accept_data(ib_cm_srvc_handle_t acm_ptr)
-        if (exp) {
-                len = recv(acm_ptr->socket, acm_ptr->msg.p_data, exp, 0);
-                if (len != exp) {
-+                       int err = dapl_socket_errno();
-                        dapl_log(DAPL_DBG_TYPE_ERR,
--                                " accept read pdata: ERR %s, rcnt=%d\n",
--                                strerror(errno), len);
-+                                " accept read pdata: ERR 0x%x %s, rcnt=%d\n",
-+                                err, strerror(err), len);
-                        goto bail;
-                }
-                p_data = acm_ptr->msg.p_data;
-@@ -1092,6 +1162,7 @@ dapli_socket_accept_usr(DAPL_EP * ep_ptr,
- #endif
-
-        /* modify QP to RTR and then to RTS with remote info already read */
-+       dapl_os_lock(&ep_ptr->header.lock);
-        if (dapls_modify_qp_state(ep_ptr->qp_handle,
-                                  IBV_QPS_RTR,
-                                  cm_ptr->msg.saddr.ib.qpn,
-@@ -1102,6 +1173,7 @@ dapli_socket_accept_usr(DAPL_EP * ep_ptr,
-                         strerror(errno),
-                         inet_ntoa(((struct sockaddr_in *)
-                                     &cm_ptr->msg.daddr.so)->sin_addr));
-+               dapl_os_unlock(&ep_ptr->header.lock);
-                goto bail;
-        }
-        if (dapls_modify_qp_state(ep_ptr->qp_handle,
-@@ -1114,8 +1186,10 @@ dapli_socket_accept_usr(DAPL_EP * ep_ptr,
-                         strerror(errno),
-                         inet_ntoa(((struct sockaddr_in *)
-                                     &cm_ptr->msg.daddr.so)->sin_addr));
-+               dapl_os_unlock(&ep_ptr->header.lock);
-                goto bail;
-        }
-+       dapl_os_unlock(&ep_ptr->header.lock);
-
-        /* save remote address information */
-        dapl_os_memcpy(&ep_ptr->remote_ia_address,
-@@ -1143,6 +1217,10 @@ dapli_socket_accept_usr(DAPL_EP * ep_ptr,
-        cm_ptr->hca = ia_ptr->hca_ptr;
-        cm_ptr->state = DCM_ACCEPTED;
-
-+       /* Link CM to EP, already queued on work thread */
-+       dapl_ep_link_cm(ep_ptr, cm_ptr);
-+       cm_ptr->ep = ep_ptr;
-+
-        local.p_size = htons(p_size);
-        iov[0].iov_base = (void *)&local;
-        iov[0].iov_len = exp;
-@@ -1155,11 +1233,14 @@ dapli_socket_accept_usr(DAPL_EP * ep_ptr,
-                len = writev(cm_ptr->socket, iov, 1);
-
-        if (len != (p_size + exp)) {
-+               int err = dapl_socket_errno();
-                dapl_log(DAPL_DBG_TYPE_ERR,
--                        " ACCEPT_USR: ERR %s, wcnt=%d -> %s\n",
--                        strerror(errno), len,
-+                        " ACCEPT_USR: ERR 0x%x %s, wcnt=%d -> %s\n",
-+                        err, strerror(err), len,
-                         inet_ntoa(((struct sockaddr_in *)
-                                   &cm_ptr->msg.daddr.so)->sin_addr));
-+               dapl_ep_unlink_cm(ep_ptr, cm_ptr);
-+               cm_ptr->ep = NULL;
-                goto bail;
-        }
-
-@@ -1176,9 +1257,6 @@ dapli_socket_accept_usr(DAPL_EP * ep_ptr,
-
-        dapl_dbg_log(DAPL_DBG_TYPE_EP, " PASSIVE: accepted!\n");
-
--       /* Link CM to EP, already queued on work thread */
--       dapl_ep_link_cm(ep_ptr, cm_ptr);
--       cm_ptr->ep = ep_ptr;
-        return DAT_SUCCESS;
- bail:
-        /* schedule cleanup from workq */
-@@ -1260,6 +1338,7 @@ ud_bail:
-        } else
- #endif
-        {
-+               dapli_ep_check(cm_ptr->ep);
-                dapls_cr_callback(cm_ptr, event, NULL, 0, cm_ptr->sp);
-        }
-        return;
-@@ -1336,9 +1415,6 @@ dapls_ib_disconnect(IN DAPL_EP * ep_ptr, IN DAT_CLOSE_FLAGS close_flags)
-                return DAT_SUCCESS;
-        }
-
--       /* RC. Transition to error state to flush queue */
--        dapls_modify_qp_state(ep_ptr->qp_handle, IBV_QPS_ERR, 0, 0, 0);
--
-        return (dapli_socket_disconnect(cm_ptr));
- }
-
-@@ -1367,7 +1443,10 @@ dapls_ib_disconnect_clean(IN DAPL_EP * ep_ptr,
-                          IN const ib_cm_events_t ib_cm_event)
- {
-        if (ib_cm_event == IB_CME_TIMEOUT) {
--               dp_ib_cm_handle_t cm_ptr = dapl_get_cm_from_ep(ep_ptr);
-+               dp_ib_cm_handle_t cm_ptr;
-+
-+               if ((cm_ptr = dapl_get_cm_from_ep(ep_ptr)) == NULL)
-+                       return;
-
-                dapl_log(DAPL_DBG_TYPE_WARN,
-                        "dapls_ib_disc_clean: CONN_TIMEOUT ep %p cm %p %s\n",
---
+ 
+ void cm_thread(void *arg)
+-- 
 1.5.2.5
 
 --
