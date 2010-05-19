@@ -1,28 +1,68 @@
-From: "Sean Hefty" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH v2] libibverbs: add path record definitions to sa.h
-Date: Wed, 19 May 2010 14:31:00 -0700
-Message-ID: <19BC9BFFCFA94F9E8A8DFE52A54846D2@amr.corp.intel.com>
-References: <2420730B531C4665BD842A7F46007DA2@amr.corp.intel.com>	<adapr18zmmj.fsf@roland-alpha.cisco.com>	<63BD07796ED544AEAC6E41E669DC6EAC@amr.corp.intel.com>	<adavdano5lb.fsf@roland-alpha.cisco.com>	<4BF146F2.5060909@opengridcomputing.com> <adask5pnav3.fsf@roland-alpha.cisco.com> <4BF29E3D.40704@opengridcomputing.com> <BE2BFE91933D1B4089447C64486040801D4D8232@irsmsx503.ger.corp.intel.com> <4BF40B09.6070809@opengridcomputing.com> <4BF4565B.4040208@opengridcomputing.com>
+From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: Re: [PATCH] RDMA/ucma: Copy iWARP route information.
+Date: Wed, 19 May 2010 16:58:50 -0500
+Message-ID: <4BF45F1A.4010707@opengridcomputing.com>
+References: <20100510154656.22415.47740.stgit@build.ogc.int>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4BF4565B.4040208-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+In-Reply-To: <20100510154656.22415.47740.stgit-T4OLL4TyM9aNDNWfRnPdfg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: 'Steve Wise' <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, "Walukiewicz, Miroslaw" <Miroslaw.Walukiewicz-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
->Also, There is a rdmacm kernel change to pass up iwarp L2 addresses once
->a cm_id has resolved the addresses.  I posted it earlier and I think
->Sean is going to integrate it for 2.6.36.
+Roland/Sean, is this ok for 2.6.35?
 
-I believe that the patch you posted earlier is sufficient for 2.6.35.  I just
-need to update my patch set for AF_IB support, which were written assuming that
-iWarp devices did not return L2 addresses.
 
-- Sean
+Steve Wise wrote:
+> For iWARP rdma_cm ids, the "route" information is the L2 src and
+> next hop addresses.
+>
+> Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+> ---
+>
+>  drivers/infiniband/core/ucma.c |   13 +++++++++++++
+>  1 files changed, 13 insertions(+), 0 deletions(-)
+>
+> diff --git a/drivers/infiniband/core/ucma.c b/drivers/infiniband/core/ucma.c
+> index ac7edc2..0498383 100644
+> --- a/drivers/infiniband/core/ucma.c
+> +++ b/drivers/infiniband/core/ucma.c
+> @@ -583,6 +583,16 @@ static void ucma_copy_ib_route(struct rdma_ucm_query_route_resp *resp,
+>  	}
+>  }
+>  
+> +static void ucma_copy_iw_route(struct rdma_ucm_query_route_resp *resp,
+> +			       struct rdma_route *route)
+> +{
+> +	struct rdma_dev_addr *dev_addr;
+> +
+> +	dev_addr = &route->addr.dev_addr;
+> +	rdma_addr_get_dgid(dev_addr, (union ib_gid *) &resp->ib_route[0].dgid);
+> +	rdma_addr_get_sgid(dev_addr, (union ib_gid *) &resp->ib_route[0].sgid);
+> +}
+> +
+>  static ssize_t ucma_query_route(struct ucma_file *file,
+>  				const char __user *inbuf,
+>  				int in_len, int out_len)
+> @@ -621,6 +631,9 @@ static ssize_t ucma_query_route(struct ucma_file *file,
+>  	case RDMA_TRANSPORT_IB:
+>  		ucma_copy_ib_route(&resp, &ctx->cm_id->route);
+>  		break;
+> +	case RDMA_TRANSPORT_IWARP:
+> +		ucma_copy_iw_route(&resp, &ctx->cm_id->route);
+> +		break;
+>  	default:
+>  		break;
+>  	}
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>   
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
