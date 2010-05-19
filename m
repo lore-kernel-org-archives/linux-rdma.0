@@ -1,8 +1,8 @@
 From: "Davis, Arlin R" <arlin.r.davis-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 07/12] dapl-2.0: common: dat_ep_connect should not set timer
- UD endpoints
-Date: Wed, 19 May 2010 11:11:31 -0700
-Message-ID: <E3280858FA94444CA49D2BA02341C983C701308A@orsmsx506.amr.corp.intel.com>
+Subject: [PATCH 06/12] dapl-2.0: ucm: fix error path during accept_usr reply
+ failure
+Date: Wed, 19 May 2010 11:11:30 -0700
+Message-ID: <E3280858FA94444CA49D2BA02341C983C7013088@orsmsx506.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
@@ -13,30 +13,27 @@ To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY
 List-Id: linux-rdma@vger.kernel.org
 
 
-connect for UD type is simply AH resolution and doesn't
-need timed. The common code is not designed to handle
-multiple timed events on connect requests so just ignore
-timing UD AH requests.
+if accept_usr fails when sending reply the EP was
+being linked to CM instead of properly unlinked.
 
 Signed-off-by: Arlin Davis <arlin.r.davis-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- dapl/common/dapl_ep_connect.c |    3 ++-
- 1 files changed, 2 insertions(+), 1 deletions(-)
+ dapl/openib_ucm/cm.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/dapl/common/dapl_ep_connect.c b/dapl/common/dapl_ep_connect.c
-index 1f193ae..9b5829e 100755
---- a/dapl/common/dapl_ep_connect.c
-+++ b/dapl/common/dapl_ep_connect.c
-@@ -327,7 +327,8 @@ dapl_ep_connect(IN DAT_EP_HANDLE ep_handle,
- 		dapl_os_lock(&ep_ptr->header.lock);
- 		if (ep_ptr->param.ep_state ==
- 		    DAT_EP_STATE_ACTIVE_CONNECTION_PENDING
--		    && timeout != DAT_TIMEOUT_INFINITE) {
-+		    && timeout != DAT_TIMEOUT_INFINITE &&
-+	    	    ep_ptr->param.ep_attr.service_type == DAT_SERVICE_TYPE_RC) {
- 			ep_ptr->cxn_timer =
- 			    (DAPL_OS_TIMER *)
- 			    dapl_os_alloc(sizeof(DAPL_OS_TIMER));
+diff --git a/dapl/openib_ucm/cm.c b/dapl/openib_ucm/cm.c
+index 2cab529..85c8b4b 100644
+--- a/dapl/openib_ucm/cm.c
++++ b/dapl/openib_ucm/cm.c
+@@ -1454,7 +1454,7 @@ dapli_accept_usr(DAPL_EP *ep, DAPL_CR *cr, DAT_COUNT p_size, DAT_PVOID p_data)
+ 	dapl_os_unlock(&cm->lock);
+ 
+ 	if (ucm_reply(cm)) {
+-		dapl_ep_link_cm(ep, cm);
++		dapl_ep_unlink_cm(ep, cm);
+ 		goto bail;
+ 	}
+ 	dapl_dbg_log(DAPL_DBG_TYPE_CM, " PASSIVE: accepted!\n");
 -- 
 1.5.2.5
 
