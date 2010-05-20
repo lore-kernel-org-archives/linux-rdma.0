@@ -1,8 +1,7 @@
 From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: [PATCH 06/11] RDMA/cxgb4: Return proper errors in fastreg mr/pbl
-	allocation.
-Date: Thu, 20 May 2010 16:57:54 -0500
-Message-ID: <20100520215754.32394.22638.stgit@build.ogc.int>
+Subject: [PATCH 07/11] RDMA/cxgb4: Don't limit fastreg page list depth.
+Date: Thu, 20 May 2010 16:57:59 -0500
+Message-ID: <20100520215759.32394.77626.stgit@build.ogc.int>
 References: <20100520215727.32394.90669.stgit@build.ogc.int>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -16,37 +15,23 @@ List-Id: linux-rdma@vger.kernel.org
 Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 ---
 
- drivers/infiniband/hw/cxgb4/mem.c |    8 ++++++--
- 1 files changed, 6 insertions(+), 2 deletions(-)
+ drivers/infiniband/hw/cxgb4/mem.c |    3 ---
+ 1 files changed, 0 insertions(+), 3 deletions(-)
 
 diff --git a/drivers/infiniband/hw/cxgb4/mem.c b/drivers/infiniband/hw/cxgb4/mem.c
-index e54ff6d..993ed1f 100644
+index 993ed1f..7f94da1 100644
 --- a/drivers/infiniband/hw/cxgb4/mem.c
 +++ b/drivers/infiniband/hw/cxgb4/mem.c
-@@ -712,8 +712,10 @@ struct ib_mr *c4iw_alloc_fast_reg_mr(struct ib_pd *pd, int pbl_depth)
- 	php = to_c4iw_pd(pd);
- 	rhp = php->rhp;
- 	mhp = kzalloc(sizeof(*mhp), GFP_KERNEL);
--	if (!mhp)
-+	if (!mhp) {
-+		ret = -ENOMEM;
- 		goto err;
-+	}
+@@ -759,9 +759,6 @@ struct ib_fast_reg_page_list *c4iw_alloc_fastreg_pbl(struct ib_device *device,
+ 	dma_addr_t dma_addr;
+ 	int size = sizeof *c4pl + page_list_len * sizeof(u64);
  
- 	mhp->rhp = rhp;
- 	ret = alloc_pbl(mhp, pbl_depth);
-@@ -730,8 +732,10 @@ struct ib_mr *c4iw_alloc_fast_reg_mr(struct ib_pd *pd, int pbl_depth)
- 	mhp->attr.state = 1;
- 	mmid = (stag) >> 8;
- 	mhp->ibmr.rkey = mhp->ibmr.lkey = stag;
--	if (insert_handle(rhp, &rhp->mmidr, mhp, mmid))
-+	if (insert_handle(rhp, &rhp->mmidr, mhp, mmid)) {
-+		ret = -ENOMEM;
- 		goto err3;
-+	}
- 
- 	PDBG("%s mmid 0x%x mhp %p stag 0x%x\n", __func__, mmid, mhp, stag);
- 	return &(mhp->ibmr);
+-	if (page_list_len > T4_MAX_FR_DEPTH)
+-		return ERR_PTR(-EINVAL);
+-
+ 	c4pl = dma_alloc_coherent(&dev->rdev.lldi.pdev->dev, size,
+ 				  &dma_addr, GFP_KERNEL);
+ 	if (!c4pl)
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
