@@ -1,7 +1,8 @@
 From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: [PATCH 05/11] RDMA/cxgb4: Fix overflow bug in cq arm.
-Date: Thu, 20 May 2010 16:57:49 -0500
-Message-ID: <20100520215748.32394.1063.stgit@build.ogc.int>
+Subject: [PATCH 06/11] RDMA/cxgb4: Return proper errors in fastreg mr/pbl
+	allocation.
+Date: Thu, 20 May 2010 16:57:54 -0500
+Message-ID: <20100520215754.32394.22638.stgit@build.ogc.int>
 References: <20100520215727.32394.90669.stgit@build.ogc.int>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -12,65 +13,40 @@ Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-- wrap cq->cqidx_inc based on cq size.
-- optimize t4_arm_cq logic.
-
 Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 ---
 
- drivers/infiniband/hw/cxgb4/t4.h |   31 ++++++++++++-------------------
- 1 files changed, 12 insertions(+), 19 deletions(-)
+ drivers/infiniband/hw/cxgb4/mem.c |    8 ++++++--
+ 1 files changed, 6 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/infiniband/hw/cxgb4/t4.h b/drivers/infiniband/hw/cxgb4/t4.h
-index 712bc56..333abd3 100644
---- a/drivers/infiniband/hw/cxgb4/t4.h
-+++ b/drivers/infiniband/hw/cxgb4/t4.h
-@@ -449,25 +449,17 @@ struct t4_cq {
- static inline int t4_arm_cq(struct t4_cq *cq, int se)
- {
- 	u32 val;
--	u16 inc;
--
--	do {
--		/*
--		 * inc must be less the both the max update value -and-
--		 * the size of the CQ.
--		 */
--		inc = cq->cidx_inc <= CIDXINC_MASK ? cq->cidx_inc :
--						     CIDXINC_MASK;
--		inc = inc <= (cq->size - 1) ? inc : (cq->size - 1);
--		if (inc == cq->cidx_inc)
--			val = SEINTARM(se) | CIDXINC(inc) | TIMERREG(6) |
--			      INGRESSQID(cq->cqid);
--		else
--			val = SEINTARM(0) | CIDXINC(inc) | TIMERREG(7) |
--			      INGRESSQID(cq->cqid);
--		cq->cidx_inc -= inc;
-+
-+	while (cq->cidx_inc > CIDXINC_MASK) {
-+		val = SEINTARM(0) | CIDXINC(CIDXINC_MASK) | TIMERREG(7) |
-+		      INGRESSQID(cq->cqid);
- 		writel(val, cq->gts);
--	} while (cq->cidx_inc);
-+		cq->cidx_inc -= CIDXINC_MASK;
+diff --git a/drivers/infiniband/hw/cxgb4/mem.c b/drivers/infiniband/hw/cxgb4/mem.c
+index e54ff6d..993ed1f 100644
+--- a/drivers/infiniband/hw/cxgb4/mem.c
++++ b/drivers/infiniband/hw/cxgb4/mem.c
+@@ -712,8 +712,10 @@ struct ib_mr *c4iw_alloc_fast_reg_mr(struct ib_pd *pd, int pbl_depth)
+ 	php = to_c4iw_pd(pd);
+ 	rhp = php->rhp;
+ 	mhp = kzalloc(sizeof(*mhp), GFP_KERNEL);
+-	if (!mhp)
++	if (!mhp) {
++		ret = -ENOMEM;
+ 		goto err;
 +	}
-+	val = SEINTARM(se) | CIDXINC(cq->cidx_inc) | TIMERREG(6) |
-+	      INGRESSQID(cq->cqid);
-+	writel(val, cq->gts);
-+	cq->cidx_inc = 0;
- 	return 0;
- }
  
-@@ -488,7 +480,8 @@ static inline void t4_swcq_consume(struct t4_cq *cq)
- static inline void t4_hwcq_consume(struct t4_cq *cq)
- {
- 	cq->bits_type_ts = cq->queue[cq->cidx].bits_type_ts;
--	cq->cidx_inc++;
-+	if (++cq->cidx_inc == cq->size)
-+		cq->cidx_inc = 0;
- 	if (++cq->cidx == cq->size) {
- 		cq->cidx = 0;
- 		cq->gen ^= 1;
+ 	mhp->rhp = rhp;
+ 	ret = alloc_pbl(mhp, pbl_depth);
+@@ -730,8 +732,10 @@ struct ib_mr *c4iw_alloc_fast_reg_mr(struct ib_pd *pd, int pbl_depth)
+ 	mhp->attr.state = 1;
+ 	mmid = (stag) >> 8;
+ 	mhp->ibmr.rkey = mhp->ibmr.lkey = stag;
+-	if (insert_handle(rhp, &rhp->mmidr, mhp, mmid))
++	if (insert_handle(rhp, &rhp->mmidr, mhp, mmid)) {
++		ret = -ENOMEM;
+ 		goto err3;
++	}
+ 
+ 	PDBG("%s mmid 0x%x mhp %p stag 0x%x\n", __func__, mmid, mhp, stag);
+ 	return &(mhp->ibmr);
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
