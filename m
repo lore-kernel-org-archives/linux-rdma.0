@@ -1,74 +1,43 @@
-From: Mike Heinz <michael.heinz-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-Subject: RE: Proposal for adding ib_usa to the Linux Infiniband Subsystem
-Date: Fri, 21 May 2010 12:04:17 -0500
-Message-ID: <4C2744E8AD2982428C5BFE523DF8CDCB49A488D181@MNEXMB1.qlogic.org>
-References: <4C2744E8AD2982428C5BFE523DF8CDCB49A488D12E@MNEXMB1.qlogic.org>
- <C14850BAABFD4BE789736D497B1DC825@amr.corp.intel.com>
- <4C2744E8AD2982428C5BFE523DF8CDCB49A488D170@MNEXMB1.qlogic.org>
- <20100521165018.GA8856@obsidianresearch.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: Proposal for adding ib_usa to the Linux Infiniband Subsystem
+Date: Fri, 21 May 2010 11:20:26 -0600
+Message-ID: <20100521172026.GW15969@obsidianresearch.com>
+References: <4C2744E8AD2982428C5BFE523DF8CDCB49A488D12E@MNEXMB1.qlogic.org> <C14850BAABFD4BE789736D497B1DC825@amr.corp.intel.com> <4C2744E8AD2982428C5BFE523DF8CDCB49A488D170@MNEXMB1.qlogic.org> <20100521165018.GA8856@obsidianresearch.com> <4C2744E8AD2982428C5BFE523DF8CDCB49A488D181@MNEXMB1.qlogic.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20100521165018.GA8856-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <4C2744E8AD2982428C5BFE523DF8CDCB49A488D181-amwN6d8PyQWXx9kJd3VG2h2eb7JE58TQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+To: Mike Heinz <michael.heinz-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
 Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-I have to agree that in some ways this seems a good fit with ibverbs. Also, without the multicast support, the whole thing is well under 1 kloc in the kernel, making it a good candidate for being combined with another module.
+On Fri, May 21, 2010 at 12:04:17PM -0500, Mike Heinz wrote:
 
-My biggest objections, though, would be:
+> I have to agree that in some ways this seems a good fit with
+> ibverbs. Also, without the multicast support, the whole thing is
+> well under 1 kloc in the kernel, making it a good candidate for
+> being combined with another module.
 
-1. If it's been working for a couple of years now, do we really need to change it?
-2. The async events in ibverbs are all local events, are we really keeping things simple by adding remote notifications to mix, or making a simple interface much more complicated?
+verbs? Why verbs?
 
------Original Message-----
-From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Jason Gunthorpe
-Sent: Friday, May 21, 2010 12:50 PM
-To: Mike Heinz
-Cc: Sean Hefty; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Subject: Re: Proposal for adding ib_usa to the Linux Infiniband Subsystem
+umad. The only thing that is needed is to subscribe to a GSI
+notification, replicate incoming notifications and route them as
+normal mads over the umad interface to all subscribers..
 
-I've said this before, but again..
+With some cleverness you could probably make the subscribe/unsubscribe
+fairly general..
 
-There are too many orthogonal interfaces here. We really don't need
-more libraries or kernel modules or /dev/ devices. Really.
+Remember SA notifications are not the only unsolicited events that can
+occure in the GSI framework.
 
-Subscribing and multiplexing notifications from a GSI service should
-just be a general function in the mad code..
+> 1. If it's been working for a couple of years now, do we really need
+> to change it?
 
-On Fri, May 21, 2010 at 10:57:48AM -0500, Mike Heinz wrote:
-> Would it be better to omit the multicast support from ib_usa and simply add it as a way to handle notifications?
-> 
-> From: Sean Hefty [mailto:sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org] 
-> Sent: Friday, May 21, 2010 11:30 AM
-> To: Mike Heinz; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> Subject: RE: Proposal for adding ib_usa to the Linux Infiniband Subsystem
-> 
-> >Why is this needed?
-> >The SA protocol allows notices and multicast membership to be managed at a CA
-> >port level.? As a result, if multiple processes want to receive notices or join
-> >multicast groups, that registration must be coordinated per CA port.? Existing
-> >code in the Linux kernel exists for this purpose, coordinating the needs of
-> >various Infiniband kernel modules and presenting a single "per server CA port"
-> >perspective to the SA.? The IB user space SA module provides a mechanism for
-> >user space applications to take advantage of this existing kernel code for
-> >managing SA registrations.
-> 
-> The AF_IB support that is being requested for the rdma_cm would provide greater
-> support for IB multicast join/leave membership.  Some additional work would be
-> needed to allow the user to specify the full MCMemberRecord, but the basic
-> infrastructure should be there.  Just mentioning this as a possibility.  (The IB
-> ACM code joins multicast groups using libibumad and sends MADs directly to the
-> SA.)
-> 
-> - Sean
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+We need to live with it forever once it is accepted..
+
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
