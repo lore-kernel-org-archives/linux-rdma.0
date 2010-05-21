@@ -1,35 +1,52 @@
-From: "Smith, Stan" <stan.smith-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH] opensm - use portable macro definition for tmp file path
-Date: Fri, 21 May 2010 09:48:36 -0700
-Message-ID: <3F6F638B8D880340AB536D29CD4C1E192562EBBAF6@orsmsx501.amr.corp.intel.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: Proposal for adding ib_usa to the Linux Infiniband Subsystem
+Date: Fri, 21 May 2010 10:50:18 -0600
+Message-ID: <20100521165018.GA8856@obsidianresearch.com>
+References: <4C2744E8AD2982428C5BFE523DF8CDCB49A488D12E@MNEXMB1.qlogic.org> <C14850BAABFD4BE789736D497B1DC825@amr.corp.intel.com> <4C2744E8AD2982428C5BFE523DF8CDCB49A488D170@MNEXMB1.qlogic.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <4C2744E8AD2982428C5BFE523DF8CDCB49A488D170-amwN6d8PyQWXx9kJd3VG2h2eb7JE58TQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Cc: "ofw-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org" <ofw-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Mike Heinz <michael.heinz-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+I've said this before, but again..
 
-Use defined macro for tmp file path.
+There are too many orthogonal interfaces here. We really don't need
+more libraries or kernel modules or /dev/ devices. Really.
 
-signed-off-by: stan smith <stan.smith-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subscribing and multiplexing notifications from a GSI service should
+just be a general function in the mad code..
 
-diff --git a/opensm/opensm/osm_db_files.c b/opensm/opensm/osm_db_files.c
-index dd9f772..5771e6e 100644
---- a/opensm/opensm/osm_db_files.c
-+++ b/opensm/opensm/osm_db_files.c
-@@ -615,7 +615,7 @@ int main(int argc, char **argv)
-        cl_list_construct(&keys);
-        cl_list_init(&keys, 10);
-
--       osm_log_init_v2(&log, TRUE, 0xff, "/var/log/osm_db_test.log", 0, FALSE);
-+       osm_log_init_v2(&log, TRUE, 0xff, OSM_DEFAULT_TMP_DIR "osm_db_test.log", 0, FALSE);
-
-        osm_db_construct(&db);
-        if (osm_db_init(&db, &log)) {
+On Fri, May 21, 2010 at 10:57:48AM -0500, Mike Heinz wrote:
+> Would it be better to omit the multicast support from ib_usa and simply add it as a way to handle notifications?
+> 
+> From: Sean Hefty [mailto:sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org] 
+> Sent: Friday, May 21, 2010 11:30 AM
+> To: Mike Heinz; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> Subject: RE: Proposal for adding ib_usa to the Linux Infiniband Subsystem
+> 
+> >Why is this needed?
+> >The SA protocol allows notices and multicast membership to be managed at a CA
+> >port level.? As a result, if multiple processes want to receive notices or join
+> >multicast groups, that registration must be coordinated per CA port.? Existing
+> >code in the Linux kernel exists for this purpose, coordinating the needs of
+> >various Infiniband kernel modules and presenting a single "per server CA port"
+> >perspective to the SA.? The IB user space SA module provides a mechanism for
+> >user space applications to take advantage of this existing kernel code for
+> >managing SA registrations.
+> 
+> The AF_IB support that is being requested for the rdma_cm would provide greater
+> support for IB multicast join/leave membership.  Some additional work would be
+> needed to allow the user to specify the full MCMemberRecord, but the basic
+> infrastructure should be there.  Just mentioning this as a possibility.  (The IB
+> ACM code joins multicast groups using libibumad and sends MADs directly to the
+> SA.)
+> 
+> - Sean
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
