@@ -1,30 +1,34 @@
-From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: Re: Problem with RDMA device removal architecture
-Date: Fri, 21 May 2010 13:06:34 -0500
-Message-ID: <4BF6CBAA.5020906@opengridcomputing.com>
-References: <4BACD985.1070906@opengridcomputing.com>	<DAF23AFA2B904B32B418D9C8798D4276@amr.corp.intel.com>	<4BACE28A.2080409@opengridcomputing.com>	<adazl1vxb7p.fsf@roland-alpha.cisco.com>	<4BACFCF5.6030501@opengridcomputing.com>	<adask7myktq.fsf@roland-alpha.cisco.com>	<4BAD047A.1000408@opengridcomputing.com> <adaociaykn1.fsf@roland-alpha.cisco.com>
+From: Mike Heinz <michael.heinz-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+Subject: RE: Proposal for adding ib_usa to the Linux Infiniband Subsystem
+Date: Fri, 21 May 2010 13:19:47 -0500
+Message-ID: <4C2744E8AD2982428C5BFE523DF8CDCB49A488D193@MNEXMB1.qlogic.org>
+References: <4C2744E8AD2982428C5BFE523DF8CDCB49A488D12E@MNEXMB1.qlogic.org>
+ <C14850BAABFD4BE789736D497B1DC825@amr.corp.intel.com>
+ <4C2744E8AD2982428C5BFE523DF8CDCB49A488D170@MNEXMB1.qlogic.org>
+ <20100521165018.GA8856@obsidianresearch.com>
+ <4C2744E8AD2982428C5BFE523DF8CDCB49A488D181@MNEXMB1.qlogic.org>
+ <20100521172026.GW15969@obsidianresearch.com>
+ <9EAF4B21EF0A4B0AB50AF7790DE2C046@amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <adaociaykn1.fsf-BjVyx320WGW9gfZ95n9DRSW4+XlvGpQz@public.gmane.org>
+In-Reply-To: <9EAF4B21EF0A4B0AB50AF7790DE2C046-Zpru7NauK7drdx17CPfAsdBPR1lH4CV8@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Wen Xiong <wenxiong-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>
+To: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Jason Gunthorpe' <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Roland Dreier wrote:
-> I'll ask the experts on LKML when I get a chance to write up the problem description.
->   
+> IMO, someone needs to propose a specific user space API that provides this
+> capability.  Personally, I don't think MADs provide the desired interface.
 
-Hey Roland,
+Agreed. I also agree with Jason that the proliferation of interfaces and modules is an impediment to IB adoption.
 
+And if we need to get the API nailed down first, so be it, that's why I made the proposal the way I did - to get feedback on what was needed.
 
-Did you ever get any feedback from the LKML folks?
+Let me spend a few days reviewing libibumad and libibverbs, see if can get an idea of what would be the better fit.
 
-Thanks,
-
-Steve.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
