@@ -1,7 +1,7 @@
 From: "Smith, Stan" <stan.smith-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH] opensm/complib use portable macro syntax
-Date: Fri, 21 May 2010 09:45:03 -0700
-Message-ID: <3F6F638B8D880340AB536D29CD4C1E192562EBBAE9@orsmsx501.amr.corp.intel.com>
+Subject: [PATCH] opensm - use portable macro definition for tmp file path
+Date: Fri, 21 May 2010 09:48:36 -0700
+Message-ID: <3F6F638B8D880340AB536D29CD4C1E192562EBBAF6@orsmsx501.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
@@ -13,23 +13,23 @@ Cc: "ofw-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org" <ofw-ZwoEplunGu1OwGh
 List-Id: linux-rdma@vger.kernel.org
 
 
-Use portable macro argument syntax.
+Use defined macro for tmp file path.
 
-signed-of-by: stan smith <stan.smith-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+signed-off-by: stan smith <stan.smith-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-diff --git a/opensm/complib/cl_event_wheel.c b/opensm/complib/cl_event_wheel.c
-index ef6d598..eb894a6 100644
---- a/opensm/complib/cl_event_wheel.c
-+++ b/opensm/complib/cl_event_wheel.c
-@@ -42,7 +42,7 @@
- #include <complib/cl_event_wheel.h>
- #include <complib/cl_debug.h>
+diff --git a/opensm/opensm/osm_db_files.c b/opensm/opensm/osm_db_files.c
+index dd9f772..5771e6e 100644
+--- a/opensm/opensm/osm_db_files.c
++++ b/opensm/opensm/osm_db_files.c
+@@ -615,7 +615,7 @@ int main(int argc, char **argv)
+        cl_list_construct(&keys);
+        cl_list_init(&keys, 10);
 
--#define CL_DBG(fmt, arg...)
-+#define CL_DBG(fmt, ...)
+-       osm_log_init_v2(&log, TRUE, 0xff, "/var/log/osm_db_test.log", 0, FALSE);
++       osm_log_init_v2(&log, TRUE, 0xff, OSM_DEFAULT_TMP_DIR "osm_db_test.log", 0, FALSE);
 
- static cl_status_t __event_will_age_before(IN const cl_list_item_t *
-                                           const p_list_item, IN void *context)
+        osm_db_construct(&db);
+        if (osm_db_init(&db, &log)) {
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
