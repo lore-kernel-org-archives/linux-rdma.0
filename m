@@ -1,27 +1,35 @@
-From: "Sean Hefty" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: Proposal for adding ib_usa to the Linux Infiniband Subsystem
-Date: Fri, 21 May 2010 09:31:10 -0700
-Message-ID: <91D2572C3FA443CA9CC632F4AEDFFD6E@amr.corp.intel.com>
-References: <4C2744E8AD2982428C5BFE523DF8CDCB49A488D12E@MNEXMB1.qlogic.org> <C14850BAABFD4BE789736D497B1DC825@amr.corp.intel.com> <4C2744E8AD2982428C5BFE523DF8CDCB49A488D170@MNEXMB1.qlogic.org>
+From: "Smith, Stan" <stan.smith-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH] opensm/complib use portable macro syntax
+Date: Fri, 21 May 2010 09:45:03 -0700
+Message-ID: <3F6F638B8D880340AB536D29CD4C1E192562EBBAE9@orsmsx501.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4C2744E8AD2982428C5BFE523DF8CDCB49A488D170-amwN6d8PyQWXx9kJd3VG2h2eb7JE58TQ@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: 'Mike Heinz' <michael.heinz-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+Cc: "ofw-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org" <ofw-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
->Would it be better to omit the multicast support from ib_usa and simply add it
->as a way to handle notifications?
 
-I think so, since it limits the number of interfaces and libraries that a user
-needs to learn.
+Use portable macro argument syntax.
 
-I'm not sure of the best userspace interface for notifications.  Maybe there's a
-way to extend the async event reporting in libibverbs?
+signed-of-by: stan smith <stan.smith-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
+diff --git a/opensm/complib/cl_event_wheel.c b/opensm/complib/cl_event_wheel.c
+index ef6d598..eb894a6 100644
+--- a/opensm/complib/cl_event_wheel.c
++++ b/opensm/complib/cl_event_wheel.c
+@@ -42,7 +42,7 @@
+ #include <complib/cl_event_wheel.h>
+ #include <complib/cl_debug.h>
+
+-#define CL_DBG(fmt, arg...)
++#define CL_DBG(fmt, ...)
+
+ static cl_status_t __event_will_age_before(IN const cl_list_item_t *
+                                           const p_list_item, IN void *context)
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
