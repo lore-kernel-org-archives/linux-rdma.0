@@ -1,38 +1,35 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: Proposal for adding ib_usa to the Linux Infiniband Subsystem
-Date: Fri, 21 May 2010 11:43:09 -0600
-Message-ID: <20100521174309.GX15969@obsidianresearch.com>
-References: <4C2744E8AD2982428C5BFE523DF8CDCB49A488D12E@MNEXMB1.qlogic.org> <C14850BAABFD4BE789736D497B1DC825@amr.corp.intel.com> <4C2744E8AD2982428C5BFE523DF8CDCB49A488D170@MNEXMB1.qlogic.org> <20100521165018.GA8856@obsidianresearch.com> <4C2744E8AD2982428C5BFE523DF8CDCB49A488D181@MNEXMB1.qlogic.org> <20100521172026.GW15969@obsidianresearch.com> <4C2744E8AD2982428C5BFE523DF8CDCB49A488D186@MNEXMB1.qlogic.org>
+From: "Smith, Stan" <stan.smith-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH] ib_types.h add debug assert
+Date: Fri, 21 May 2010 10:49:27 -0700
+Message-ID: <3F6F638B8D880340AB536D29CD4C1E192562EBBC01@orsmsx501.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <4C2744E8AD2982428C5BFE523DF8CDCB49A488D186-amwN6d8PyQWXx9kJd3VG2h2eb7JE58TQ@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Mike Heinz <michael.heinz-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, May 21, 2010 at 12:29:31PM -0500, Mike Heinz wrote:
 
->> umad. The only thing that is needed is to subscribe to a GSI
->> notification, replicate incoming notifications and route them as
->> normal mads over the umad interface to all subscribers..
+Add a debug assert to catch incorrect MAD attr offset size.
+This proved to be useful in catching incorrect struct sizes as MAD attrs need to be a multiple of 8 bytes.
 
-> However - you're wrong about "the only thing needed" being to
-> subscribe to a GSI notification; notifications are sent to ports,
-> not to individual queue pairs or processes - that's why the ib_sa
-> module has a mechanism for for managing notifications. Like ib_umad,
-> ib_usa is the mechanism for extending ib_sa into user space.
+signed-off-by: stan smith <stan.smith-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-To be fair I had two things in that statement..
+diff --git a/opensm/include/iba/ib_types.h b/opensm/include/iba/ib_types.h
+index e1bc102..203c319 100644
+--- a/opensm/include/iba/ib_types.h
++++ b/opensm/include/iba/ib_types.h
+@@ -4395,6 +4395,7 @@ static inline uint32_t OSM_API ib_get_attr_size(IN const ib_net16_t attr_offset)
 
-umad instances are per-port. You do an ioctl or something on the umad
-FD to register for the notification, and the umad module replicates an
-incoming notification GMP to all registrants. This seems totally
-straightforward to me..
+ static inline ib_net16_t OSM_API ib_get_attr_offset(IN const uint32_t attr_size)
+ {
++       CL_ASSERT((attr_size & 0x07) == 0);
+        return (cl_hton16((uint16_t) (attr_size >> 3)));
+ }
 
-Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
