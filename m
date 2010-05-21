@@ -1,23 +1,23 @@
 From: "Sean Hefty" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [ANNOUNCE] ib_acm 1.0.0
-Date: Fri, 21 May 2010 16:10:52 -0700
-Message-ID: <678EF995E2E84259B374F0746177D9D5@amr.corp.intel.com>
+Subject: RE: [ANNOUNCE] librdmacm 1.0.12
+Date: Fri, 21 May 2010 16:11:55 -0700
+Message-ID: <A04A50C5C9294B538ECAB7C44CEBE56D@amr.corp.intel.com>
+References: <CE35DBA4CC524BD3BDA61C7DE2BD39CD@amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CE35DBA4CC524BD3BDA61C7DE2BD39CD-Zpru7NauK7drdx17CPfAsdBPR1lH4CV8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, 'Vladimir Sokolovsky' <vlad-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-I've packaged an initial release of IB ACM for inclusion into OFED 1.5.2.  The
-IB ACM service provides user space path record caching for users of the
-librdmacm.  The download is available from:
+>I've pushed out release 1.0.12 of librdmacm.
 
-http://www.openfabrics.org/downloads/rdmacm/
+Uhm... the release is at:
 
-I will submit release notes for the ib_acm next week.
+http://www.openfabrics.org/downloads/rdmacm/librdmacm-1.0.12.tar.gz
 
 - Sean
 
