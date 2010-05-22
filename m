@@ -1,7 +1,7 @@
 From: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH] management: update shared library versions
-Date: Sun, 23 May 2010 00:29:47 +0300
-Message-ID: <20100522212947.GA28549@me>
+Subject: [PATCH] management: packages versions update
+Date: Sun, 23 May 2010 00:30:23 +0300
+Message-ID: <20100522213023.GB28549@me>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
@@ -11,78 +11,68 @@ To: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
-Update shared library version in accordance with recent changes.
+Management packages versions update.
 
 Signed-off-by: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
 ---
- infiniband-diags/libibnetdisc/libibnetdisc.ver |    2 +-
- libibmad/libibmad.ver                          |    2 +-
- libibumad/libibumad.ver                        |    2 +-
- opensm/complib/libosmcomp.ver                  |    2 +-
- opensm/libvendor/libosmvendor.ver              |    2 +-
- opensm/opensm/libopensm.ver                    |    2 +-
- 6 files changed, 6 insertions(+), 6 deletions(-)
+ infiniband-diags/configure.in |    2 +-
+ libibmad/configure.in         |    2 +-
+ libibumad/configure.in        |    2 +-
+ opensm/configure.in           |    2 +-
+ 4 files changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/infiniband-diags/libibnetdisc/libibnetdisc.ver b/infiniband-diags/libibnetdisc/libibnetdisc.ver
-index e811662..faee531 100644
---- a/infiniband-diags/libibnetdisc/libibnetdisc.ver
-+++ b/infiniband-diags/libibnetdisc/libibnetdisc.ver
-@@ -6,4 +6,4 @@
- # API_REV - advance on any added API
- # RUNNING_REV - advance any change to the vendor files
- # AGE - number of backward versions the API still supports
--LIBVERSION=3:0:0
-+LIBVERSION=4:0:0
-diff --git a/libibmad/libibmad.ver b/libibmad/libibmad.ver
-index c61611c..6c65a39 100644
---- a/libibmad/libibmad.ver
-+++ b/libibmad/libibmad.ver
-@@ -6,4 +6,4 @@
- # API_REV - advance on any added API
- # RUNNING_REV - advance any change to the vendor files
- # AGE - number of backward versions the API still supports
--LIBVERSION=5:0:0
-+LIBVERSION=6:0:1
-diff --git a/libibumad/libibumad.ver b/libibumad/libibumad.ver
-index d36fbbc..3c739b6 100644
---- a/libibumad/libibumad.ver
-+++ b/libibumad/libibumad.ver
-@@ -6,4 +6,4 @@
- # API_REV - advance on any added API
- # RUNNING_REV - advance any change to the vendor files
- # AGE - number of backward versions the API still supports
--LIBVERSION=2:2:0
-+LIBVERSION=3:0:0
-diff --git a/opensm/complib/libosmcomp.ver b/opensm/complib/libosmcomp.ver
-index 9596990..85faef0 100644
---- a/opensm/complib/libosmcomp.ver
-+++ b/opensm/complib/libosmcomp.ver
-@@ -6,4 +6,4 @@
- # API_REV - advance on any added API
- # RUNNING_REV - advance any change to the vendor files
- # AGE - number of backward versions the API still supports
--LIBVERSION=3:1:0
-+LIBVERSION=3:2:0
-diff --git a/opensm/libvendor/libosmvendor.ver b/opensm/libvendor/libosmvendor.ver
-index 49fe59c..cb41fe5 100644
---- a/opensm/libvendor/libosmvendor.ver
-+++ b/opensm/libvendor/libosmvendor.ver
-@@ -6,4 +6,4 @@
- # API_REV - advance on any added API
- # RUNNING_REV - advance any change to the vendor files
- # AGE - number of backward versions the API still supports
--LIBVERSION=3:2:0
-+LIBVERSION=3:3:0
-diff --git a/opensm/opensm/libopensm.ver b/opensm/opensm/libopensm.ver
-index 863d716..2490490 100644
---- a/opensm/opensm/libopensm.ver
-+++ b/opensm/opensm/libopensm.ver
-@@ -6,4 +6,4 @@
- # API_REV - advance on any added API
- # RUNNING_REV - advance any change to the vendor files
- # AGE - number of backward versions the API still supports
--LIBVERSION=3:5:1
-+LIBVERSION=4:0:0
+diff --git a/infiniband-diags/configure.in b/infiniband-diags/configure.in
+index 85913f0..f472b1b 100644
+--- a/infiniband-diags/configure.in
++++ b/infiniband-diags/configure.in
+@@ -1,7 +1,7 @@
+ dnl Process this file with autoconf to produce a configure script.
+ 
+ AC_PREREQ(2.57)
+-AC_INIT(infiniband-diags, 1.5.5, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)
++AC_INIT(infiniband-diags, 1.5.6, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)
+ AC_CONFIG_AUX_DIR(config)
+ AM_CONFIG_HEADER(config.h)
+ AM_INIT_AUTOMAKE
+diff --git a/libibmad/configure.in b/libibmad/configure.in
+index 068d99c..0a15862 100644
+--- a/libibmad/configure.in
++++ b/libibmad/configure.in
+@@ -1,7 +1,7 @@
+ dnl Process this file with autoconf to produce a configure script.
+ 
+ AC_PREREQ(2.57)
+-AC_INIT(libibmad, 1.3.4, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)
++AC_INIT(libibmad, 1.3.5, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)
+ AC_CONFIG_SRCDIR([src/sa.c])
+ AC_CONFIG_AUX_DIR(config)
+ AM_CONFIG_HEADER(config.h)
+diff --git a/libibumad/configure.in b/libibumad/configure.in
+index c211de8..435e55c 100644
+--- a/libibumad/configure.in
++++ b/libibumad/configure.in
+@@ -1,7 +1,7 @@
+ dnl Process this file with autoconf to produce a configure script.
+ 
+ AC_PREREQ(2.57)
+-AC_INIT(libibumad, 1.3.4, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)
++AC_INIT(libibumad, 1.3.5, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)
+ AC_CONFIG_SRCDIR([src/umad.c])
+ AC_CONFIG_AUX_DIR(config)
+ AM_CONFIG_HEADER(config.h)
+diff --git a/opensm/configure.in b/opensm/configure.in
+index ef1c126..5cdb0df 100644
+--- a/opensm/configure.in
++++ b/opensm/configure.in
+@@ -1,7 +1,7 @@
+ dnl Process this file with autoconf to produce a configure script.
+ 
+ AC_PREREQ(2.57)
+-AC_INIT(opensm, 3.3.5, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)
++AC_INIT(opensm, 3.3.6, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)
+ AC_CONFIG_SRCDIR([opensm/osm_opensm.c])
+ AC_CONFIG_AUX_DIR(config)
+ AC_CONFIG_HEADERS(include/config.h include/opensm/osm_config.h)
 -- 
 1.7.0.4
 
