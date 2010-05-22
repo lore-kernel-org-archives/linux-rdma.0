@@ -1,27 +1,72 @@
-From: "Sean Hefty" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [ANNOUNCE] librdmacm 1.0.12
-Date: Fri, 21 May 2010 16:11:55 -0700
-Message-ID: <A04A50C5C9294B538ECAB7C44CEBE56D@amr.corp.intel.com>
-References: <CE35DBA4CC524BD3BDA61C7DE2BD39CD@amr.corp.intel.com>
+From: Julia Lawall <julia@diku.dk>
+Subject: [PATCH 10/27] drivers/infiniband/core: Use memdup_user
+Date: Sat, 22 May 2010 10:21:27 +0200 (CEST)
+Message-ID: <Pine.LNX.4.64.1005221021030.13021@ask.diku.dk>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CE35DBA4CC524BD3BDA61C7DE2BD39CD-Zpru7NauK7drdx17CPfAsdBPR1lH4CV8@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, 'Vladimir Sokolovsky' <vlad-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Roland Dreier <rolandd@cisco.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, kernel-jani
 List-Id: linux-rdma@vger.kernel.org
 
->I've pushed out release 1.0.12 of librdmacm.
+From: Julia Lawall <julia@diku.dk>
 
-Uhm... the release is at:
+Use memdup_user when user data is immediately copied into the
+allocated region.
 
-http://www.openfabrics.org/downloads/rdmacm/librdmacm-1.0.12.tar.gz
+The semantic patch that makes this change is as follows:
+(http://coccinelle.lip6.fr/)
 
-- Sean
+// <smpl>
+@@
+expression from,to,size,flag;
+position p;
+identifier l1,l2;
+@@
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-  to = \(kmalloc@p\|kzalloc@p\)(size,flag);
++  to = memdup_user(from,size);
+   if (
+-      to==NULL
++      IS_ERR(to)
+                 || ...) {
+   <+... when != goto l1;
+-  -ENOMEM
++  PTR_ERR(to)
+   ...+>
+   }
+-  if (copy_from_user(to, from, size) != 0) {
+-    <+... when != goto l2;
+-    -EFAULT
+-    ...+>
+-  }
+// </smpl>
+
+Signed-off-by: Julia Lawall <julia@diku.dk>
+
+---
+ drivers/infiniband/core/ucm.c |   11 +++--------
+ 1 file changed, 3 insertions(+), 8 deletions(-)
+
+diff --git a/drivers/infiniband/core/ucm.c b/drivers/infiniband/core/ucm.c
+index 4647484..08f948d 100644
+--- a/drivers/infiniband/core/ucm.c
++++ b/drivers/infiniband/core/ucm.c
+@@ -706,14 +706,9 @@ static int ib_ucm_alloc_data(const void **dest, u64 src, u32 len)
+ 	if (!len)
+ 		return 0;
+ 
+-	data = kmalloc(len, GFP_KERNEL);
+-	if (!data)
+-		return -ENOMEM;
+-
+-	if (copy_from_user(data, (void __user *)(unsigned long)src, len)) {
+-		kfree(data);
+-		return -EFAULT;
+-	}
++	data = memdup_user((void __user *)(unsigned long)src, len);
++	if (IS_ERR(data))
++		return PTR_ERR(data);
+ 
+ 	*dest = data;
+ 	return 0;
