@@ -1,34 +1,32 @@
-From: "Sean Hefty" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [ANNOUNCE] librdmacm 1.0.12
-Date: Sun, 23 May 2010 21:52:17 -0700
-Message-ID: <0846C0BCE03D4EAD9B73A2522C1CC2AE@amr.corp.intel.com>
-References: <CE35DBA4CC524BD3BDA61C7DE2BD39CD@amr.corp.intel.com> <A04A50C5C9294B538ECAB7C44CEBE56D@amr.corp.intel.com> <4BF9486D.5000402@dev.mellanox.co.il>
+From: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCHv8 05/11] ib_core: IBoE UD packet packing support
+Date: Mon, 24 May 2010 08:27:14 +0300
+Message-ID: <20100524052714.GA15867@mtldesk030.lab.mtl.com>
+References: <20100218172411.GF12286@mtls03>
+	<adask5wuboz.fsf@roland-alpha.cisco.com>
+	<20100513082718.GD16073@mtldesk030.lab.mtl.com>
+	<adad3wzsnz8.fsf@roland-alpha.cisco.com>
+	<20100517123004.GC663@mtldesk030.lab.mtl.com>
+	<adamxvyo61d.fsf@roland-alpha.cisco.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4BF9486D.5000402-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <adamxvyo61d.fsf-BjVyx320WGW9gfZ95n9DRSW4+XlvGpQz@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: 'Vladimir Sokolovsky' <vlad-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Cc: Eli Cohen <eli-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, Linux RDMA list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ewg <ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
->Hi Sean,
->After updating librdmacm. compat-dapl compilation fails:
+On Mon, May 17, 2010 at 09:18:54AM -0700, Roland Dreier wrote:
+>  > I thought you were referring to the changes made by this patch
+>  > 920d706.  Should I re-send this patch?
+> 
+> Yes, please work out what changes are still required and send a new patch.
 
-Thanks - I'll look into this tomorrow.  Was DAPL updated at all?  And what is
-'compat-dapl'?
-
->In file included from ./dapl/include/dapl.h:246In file included from
->./dapl/include/dapl.h:246,
->                  from dapl/udapl/dapl_init.c:39:
->./dapl/openib_cma/dapl_ib_util.h:54:27: error: rdma/rdma_cma.h: No such file or
->directory
-
-I don't get this.  rdma/rdma_cma.h was modified, but it's still there.  Is only
-the redhat EL5 build affected, or do all builds fail?
-
+OK. I am sending a series of three patches. The first one contains the
+original changes. The following two are for mlx4 and mthca to sync
+with the API changes. The patches are made agianst the iboe branch.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
