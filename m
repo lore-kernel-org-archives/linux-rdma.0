@@ -1,108 +1,69 @@
-From: Mike Heinz <michael.heinz-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-Subject: API for Proposal for adding ib_usa to the Linux Infiniband Subsystem
-Date: Mon, 24 May 2010 14:31:07 -0500
-Message-ID: <4C2744E8AD2982428C5BFE523DF8CDCB49A488D2CF@MNEXMB1.qlogic.org>
+From: Hal Rosenstock <hnrose-Wuw85uim5zDR7s880joybQ@public.gmane.org>
+Subject: [PATCH] infiniband-diags/libibnetdisc/ibnetdisc.c: Fix compile
+	warns on 32 bit archs
+Date: Mon, 24 May 2010 15:45:08 -0400
+Message-ID: <20100524194508.GC26919@comcast.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Language: en-US
+Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Todd Rimmer <todd.rimmer-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+To: sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-I spent the weekend thinking about your feedback Friday, and I'm concerned that it widens the scope too far beyond what the current code is meant to do.
 
-ib_usa isn't meant to be a general GSI interface, it's meant to be a user API for accessing the existing functionality of the existing ib_sa module. In particular, ib_sa and ib_usa provide a mechanism for other processes to share SA/SM notices and traps. 
+src/ibnetdisc.c: In function `query_port_info':
+src/ibnetdisc.c:216: warning: long unsigned int format, different type arg (arg 5)
+src/ibnetdisc.c: In function `recv_node_info':
+src/ibnetdisc.c:311: warning: long unsigned int format, different type arg (arg 5)
+src/ibnetdisc.c:335: warning: long unsigned int format, different type arg (arg 6)
 
-As I mentioned earlier, the reason ib_sa acts as a single access point for SA/SM traps and notices is because traps and notices are sent to ports, not to queue pairs and not to processes. That means only one entity can be subscribed for notices and traps at any particular time, and must manage them, "sharing them out" among all processes that are interested in them.
+Signed-off-by: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+---
+ infiniband-diags/libibnetdisc/src/ibnetdisc.c |   12 +++++++-----
+ 1 files changed, 7 insertions(+), 5 deletions(-)
 
-Generalizing that to include other types of notices and traps would involve non-trivial changes to the ib_sa and might impact other parts of the infiniband subsystem, including the SM, since they would have to be rewritten to deal with the possibility that another component is now managing all notices and traps.
+diff --git a/infiniband-diags/libibnetdisc/src/ibnetdisc.c b/infiniband-diags/libibnetdisc/src/ibnetdisc.c
+index 98801de..157b866 100644
+--- a/infiniband-diags/libibnetdisc/src/ibnetdisc.c
++++ b/infiniband-diags/libibnetdisc/src/ibnetdisc.c
+@@ -211,8 +211,8 @@ static int recv_port_info(smp_engine_t * engine, ibnd_smp_t * smp,
+ static int query_port_info(smp_engine_t * engine, ib_portid_t * portid,
+ 			   ibnd_node_t * node, int portnum)
+ {
+-	IBND_DEBUG("Query Port Info; %s (%lx):%d\n", portid2str(portid),
+-		   node->guid, portnum);
++	IBND_DEBUG("Query Port Info; %s (0x%" PRIx64 "):%d\n",
++		   portid2str(portid), node->guid, portnum);
+ 	return issue_smp(engine, portid, IB_ATTR_PORT_INFO, portnum,
+ 			 recv_port_info, node);
+ }
+@@ -307,8 +307,9 @@ static int recv_node_info(smp_engine_t * engine, ibnd_smp_t * smp,
+ 			return -1;
+ 		node_is_new = 1;
+ 	}
+-	IBND_DEBUG("Found %s node GUID %lx (%s)\n", node_is_new ? "new" : "old",
+-		   node->guid, portid2str(&smp->path));
++	IBND_DEBUG("Found %s node GUID 0x%" PRIx64 "(%s)\n",
++		   node_is_new ? "new" : "old", node->guid,
++		   portid2str(&smp->path));
+ 
+ 	port = node->ports[port_num];
+ 	if (!port) {
+@@ -331,7 +332,8 @@ static int recv_node_info(smp_engine_t * engine, ibnd_smp_t * smp,
+ 
+ 		if (!rem_node->ports[rem_port_num]) {
+ 			IBND_ERROR("Internal Error; "
+-				   "Node(%p) %lx Port %d no port created!?!?!?\n\n",
++				   "Node(%p) 0x%" PRIx64
++				   "Port %d no port created!?!?!?\n\n",
+ 				   rem_node, rem_node->guid, rem_port_num);
+ 			return -1;
+ 		}
+-- 
+1.5.6.4
 
-Below you will find a proposed API for accessing the notifications functionality of the existing ib_sa and ib_usa modules. This is pretty much exactly what we are currently using, but since Sean has suggested rdma_cm is better suited for multi-casting, they have been omitted.
-
-Now, given that this API is stand-alone right now, it could still be added to either libibumad or to libibverbs - but I like Sean's suggestion that it be added to verbs, since the current security model restricts libibumad to root access and because the existing API already makes use of libibverbs' ibv_context data structure.
-
----------- current ib_usa API -------- 
-
-/* InformInfo:TrapNumber */
-enum {
-        IBV_SA_SM_TRAP_GID_IN_SERVICE              = __constant_cpu_to_be16(64),
-        IBV_SA_SM_TRAP_GID_OUT_OF_SERVICE          = __constant_cpu_to_be16(65),
-        IBV_SA_SM_TRAP_CREATE_MC_GROUP             = __constant_cpu_to_be16(66),
-        IBV_SA_SM_TRAP_DELETE_MC_GROUP             = __constant_cpu_to_be16(67),
-        IBV_SA_SM_TRAP_PORT_CHANGE_STATE           = __constant_cpu_to_be16(128),
-        IBV_SA_SM_TRAP_LINK_INTEGRITY              = __constant_cpu_to_be16(129),
-        IBV_SA_SM_TRAP_EXCESSIVE_BUFFER_OVERRUN    = __constant_cpu_to_be16(130),
-        IBV_SA_SM_TRAP_FLOW_CONTROL_UPDATE_EXPIRED = __constant_cpu_to_be16(131),
-        IBV_SA_SM_TRAP_BAD_M_KEY                   = __constant_cpu_to_be16(256),
-        IBV_SA_SM_TRAP_BAD_P_KEY                   = __constant_cpu_to_be16(257),
-        IBV_SA_SM_TRAP_BAD_Q_KEY                   = __constant_cpu_to_be16(258),
-        IBV_SA_SM_TRAP_ALL                         = __constant_cpu_to_be16(0xFFFF)
-};
-
-struct ibv_sa_event_channel;
-struct ibv_sa_event;
-struct ibv_sa_id;
-
-/**
- * ibv_sa_create_event_channel - Open a channel used to report events.
- */
-struct ibv_sa_event_channel *ibv_sa_create_event_channel();
-
-/**
- * ibv_sa_destroy_event_channel - Close the event channel.
- * @channel: The channel to destroy.
- */
-void ibv_sa_destroy_event_channel(struct ibv_sa_event_channel *channel);
-
-/**
- * ibv_sa_get_event - Retrieves the next pending event, if no event is
- *   pending waits for an event.
- * @channel: Event channel to check for events.
- * @event: Allocated information about the next event.
- *    Event should be freed using ibv_sa_ack_event()
- */
-int ibv_sa_get_event(struct ibv_sa_event_channel *channel,
-                     struct ibv_sa_event **event);
-
-/**
- * ibv_sa_ack_event - Free an event.
- * @event: Event to be released.
- *
- * All events which are allocated by ibv_sa_get_event() must be released,
- * there should be a one-to-one correspondence between successful gets
- * and acks.
- */
-int ibv_sa_ack_event(struct ibv_sa_event *event);
-
-/**
- * ibv_sa_register_inform_info - Registers to receive notice events.
- * @channel: Event channel to issue query on.
- * @device: Device associated with record.
- * @port_num: Port number of record.
- * @trap_number: InformInfo trap number to register for, in network byte
- *   order.
- * @context: User specified context associated with the registration.
- * @id: SA registration identifier.
- *
- * This call initiates a registration request with the SA for the specified
- * trap number.  If the operation is started successfully, it returns
- * an ibv_sa_id structure that is used to track the registration operation.
- * Users must free this structure by calling ibv_sa_free_id.
- *
- * An event status of -ENETRESET indicates that an error occurred which requires * reregisteration.
- */
-int ibv_sa_register_inform_info(struct ibv_sa_event_channel *channel,
-                                struct ibv_context *device, uint8_t port_num,
-                                uint16_t trap_number, void *context,
-                                struct ibv_sa_id **id);
-
-/**
- * ibv_sa_free_id - Releases SA registration.
- * @id: Registration tracking structure.
- */
-int ibv_sa_free_id(struct ibv_sa_id *id);
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
