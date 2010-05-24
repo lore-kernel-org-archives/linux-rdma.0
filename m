@@ -1,36 +1,56 @@
-From: Eli Cohen <eli-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
-Subject: [PATCH 3/3]  mthca: match API changes with ib_ud_header_init()
-Date: Mon, 24 May 2010 08:28:59 +0300
-Message-ID: <20100524052859.GA16171@mtldesk030.lab.mtl.com>
+From: Vladimir Sokolovsky <vlad-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [ANNOUNCE] librdmacm 1.0.12
+Date: Mon, 24 May 2010 10:22:22 +0300
+Message-ID: <4BFA292E.3090001@dev.mellanox.co.il>
+References: <CE35DBA4CC524BD3BDA61C7DE2BD39CD@amr.corp.intel.com> <A04A50C5C9294B538ECAB7C44CEBE56D@amr.corp.intel.com> <4BF9486D.5000402@dev.mellanox.co.il> <0846C0BCE03D4EAD9B73A2522C1CC2AE@amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <0846C0BCE03D4EAD9B73A2522C1CC2AE-Zpru7NauK7drdx17CPfAsdBPR1lH4CV8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Cc: Linux RDMA list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Signed-off-by: Eli Cohen <eli-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
----
- drivers/infiniband/hw/mthca/mthca_qp.c |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
+Sean Hefty wrote:
+>> Hi Sean,
+>> After updating librdmacm. compat-dapl compilation fails:
+> 
+> Thanks - I'll look into this tomorrow.  Was DAPL updated at all?  And what is
+> 'compat-dapl'?
+> 
+>> In file included from ./dapl/include/dapl.h:246In file included from
+>> ./dapl/include/dapl.h:246,
+>>                  from dapl/udapl/dapl_init.c:39:
+>> ./dapl/openib_cma/dapl_ib_util.h:54:27: error: rdma/rdma_cma.h: No such file or
+>> directory
+> 
+> I don't get this.  rdma/rdma_cma.h was modified, but it's still there.  Is only
+> the redhat EL5 build affected, or do all builds fail?
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
-diff --git a/drivers/infiniband/hw/mthca/mthca_qp.c b/drivers/infiniband/hw/mthca/mthca_qp.c
-index d2d172e..61a455a 100644
---- a/drivers/infiniband/hw/mthca/mthca_qp.c
-+++ b/drivers/infiniband/hw/mthca/mthca_qp.c
-@@ -1494,6 +1494,7 @@ static int build_mlx_header(struct mthca_dev *dev, struct mthca_sqp *sqp,
- 	u16 pkey;
- 
- 	ib_ud_header_init(256, /* assume a MAD */
-+			  1, 0,
- 			  mthca_ah_grh_present(to_mah(wr->wr.ud.ah)), 0,
- 			  &sqp->ud_header);
- 
--- 
-1.7.1
 
+Sean,
+The problem is in the Makefile.am:
+
+librdmacmincludedir = $(includedir)/rdma $(includedir)/infiniband
+
+This cause *.h files to be installed under "/usr/include/rdma\ /usr/include/infiniband":
+
+/usr/include/rdma /usr/include/infiniband/ib.h
+/usr/include/rdma /usr/include/infiniband/rdma_cma.h
+/usr/include/rdma /usr/include/infiniband/rdma_cma_abi.h
+/usr/include/rdma /usr/include/infiniband/rdma_verbs.h
+
+
+Regards,
+Vladimir
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
