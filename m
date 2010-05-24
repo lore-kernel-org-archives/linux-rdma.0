@@ -1,62 +1,137 @@
-From: "Davis, Arlin R" <arlin.r.davis-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH] compat-dapl-1.2: cma, scm: add new provider entries for
- Mellanox RDMA over Ethernet device for uDAPL v1.2
-Date: Mon, 24 May 2010 10:23:47 -0700
-Message-ID: <E3280858FA94444CA49D2BA02341C983C713AA5C@orsmsx506.amr.corp.intel.com>
+From: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH] opensm/qos.c: Revert port ranges for calls to
+	sl2vl_update_table().
+Date: Mon, 24 May 2010 14:03:01 -0400
+Message-ID: <AANLkTimzCMA8sdpT7W7bpBnb0fqdEhA5I3j-6Vqc7S2L@mail.gmail.com>
+References: <1851_1274473140_o4LKDZ3n001852_1274473115-3153-1-git-send-email-jaschut@sandia.gov>
+	 <1274473795.4773.43.camel@sale659.sandia.gov>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <1274473795.4773.43.camel-mgfCWIlwujvg4c9jKm7R2O1ftBKYq+Ku@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ofw_list <ofw-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+To: Jim Schutt <jaschut-4OHPYypu0djtX7QSmKvirg@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org" <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Add options for netdev eth2/eth3 for cma and for device mlx4_0 port 1/2 for scm for uDAPL v1.2.
+Hi Jim,
 
-OpenIB-cma-roe-eth2 u2.0 nonthreadsafe default libdaplofa.so.2 dapl.2.0 "eth2 0" ""
-OpenIB-cma-roe-eth3 u2.0 nonthreadsafe default libdaplofa.so.2 dapl.2.0 "eth3 0" ""
-OpenIB-scm-roe-mlx4_0-1 u2.0 nonthreadsafe default libdaploscm.so.2 dapl.2.0 "mlx4_0 1" ""
-OpenIB-scm-roe-mlx4_0-2 u2.0 nonthreadsafe default libdaploscm.so.2 dapl.2.0 "mlx4_0 2" ""
+On Fri, May 21, 2010 at 4:29 PM, Jim Schutt <jaschut-4OHPYypu0djtX7QSmKvirg@public.gmane.org> wrote:
+>
+> Sorry, I somehow got this wrong.
+>
+> Corrected patch below.
+>
+> -- Jim
+>
+> On Fri, 2010-05-21 at 14:18 -0600, Jim Schutt wrote:
+>> Before commit 051a1dd5 (opensm/osm_qos.c: split switch external and =
+end
+>> ports setup), osm_qos_setup() would end up calling sl2vl_update_tabl=
+e()
+>> for output ports 1-N, and inport ports 0-N.
+>>
+>> Commit 051a1dd5 changed this around to be output ports 0-N, and inpu=
+t
+>> ports 1-N, and an InfiniScale IV based fabric would log lots of erro=
+rs
+>> like these:
+>>
+>> =C2=A0 log_rcv_cb_error: ERR 3111: Received MAD with error status =3D=
+ 0x1C
+>> =C2=A0 SubnGetResp(SLtoVLMappingTable), attr_mod 0x2300, TID 0xad069
+>> =C2=A0 Initial path: 0,1,1,4,13 Return path: 0,25,1,7,10
+>>
+>> The attr_mod in every such message has 0x00 in the least significant
+>> byte.
 
-Signed-off-by: Arlin Davis <arlin.r.davis-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+This is the output port.
 
+>> With the port ranges restored to their old values, the above log mes=
+sages
+>> stop.
 
-diff --git a/Makefile.am b/Makefile.am
-index b353180..3dd9c3a 100644
---- a/Makefile.am
-+++ b/Makefile.am
-@@ -407,7 +407,11 @@ install-exec-hook:
-         echo OpenIB-ipath0-1 u1.2 nonthreadsafe default libdaplscm.so.2 dapl.1.2 '"ipath0 1" ""' >> $(DESTDIR)$(sysconfdir)/dat.conf; \
-         echo OpenIB-ipath0-2 u1.2 nonthreadsafe default libdaplscm.so.2 dapl.1.2 '"ipath0 2" ""' >> $(DESTDIR)$(sysconfdir)/dat.conf; \
-         echo OpenIB-ehca0-2 u1.2 nonthreadsafe default libdaplscm.so.2 dapl.1.2 '"ehca0 1" ""' >> $(DESTDIR)$(sysconfdir)/dat.conf; \
--        echo OpenIB-iwarp u1.2 nonthreadsafe default libdaplcma.so.1 dapl.1.2 '"eth2 0" ""' >> $(DESTDIR)$(sysconfdir)/dat.conf;
-+        echo OpenIB-iwarp u1.2 nonthreadsafe default libdaplcma.so.1 dapl.1.2 '"eth2 0" ""' >> $(DESTDIR)$(sysconfdir)/dat.conf; \
-+        echo OpenIB-cma-roe-eth2 u1.2 nonthreadsafe default libdaplcma.so.1 dapl.1.2 '"eth2 0" ""' >> $(DESTDIR)$(sysconfdir)/dat.conf; \
-+        echo OpenIB-cma-roe-eth3 u1.2 nonthreadsafe default libdaplcma.so.1 dapl.1.2 '"eth3 0" ""' >> $(DESTDIR)$(sysconfdir)/dat.conf; \
-+        echo OpenIB-scm-roe-mlx4_0-1 u1.2 nonthreadsafe default libdaplscm.so.1 dapl.1.2 '"mlx4_0 1" ""' >> $(DESTDIR)$(sysconfdir)/dat.conf; \
-+        echo OpenIB-scm-roe-mlx4_0-2 u1.2 nonthreadsafe default libdaplscm.so.1 dapl.1.2 '"mlx4_0 2" ""' >> $(DESTDIR)$(sysconfdir)/dat.conf;
- 
- uninstall-hook:
- 	if test -e $(DESTDIR)$(sysconfdir)/dat.conf; then \
-diff --git a/dapl.spec.in b/dapl.spec.in
-index 4b9234d..3cb8d09 100644
---- a/dapl.spec.in
-+++ b/dapl.spec.in
-@@ -106,6 +106,10 @@ echo OpenIB-ipath0-1 u1.2 nonthreadsafe default libdaplscm.so.1 dapl.1.2 '"ipath
- echo OpenIB-ipath0-2 u1.2 nonthreadsafe default libdaplscm.so.1 dapl.1.2 '"ipath0 2" ""' >> %{_sysconfdir}/dat.conf
- echo OpenIB-ehca0-1 u1.2 nonthreadsafe default libdaplscm.so.1 dapl.1.2 '"ehca0 1" ""' >> %{_sysconfdir}/dat.conf
- echo OpenIB-iwarp u1.2 nonthreadsafe default libdaplcma.so.1 dapl.1.2 '"eth2 0" ""'  >> %{_sysconfdir}/dat.conf
-+echo OpenIB-cma-roe-eth2 u1.2 nonthreadsafe default libdaplcma.so.1 dapl.1.2 '"eth2 0" ""'  >> %{_sysconfdir}/dat.conf
-+echo OpenIB-cma-roe-eth3 u1.2 nonthreadsafe default libdaplcma.so.1 dapl.1.2 '"eth3 0" ""'  >> %{_sysconfdir}/dat.conf
-+echo OpenIB-scm-roe-mlx4_0-1 u1.2 nonthreadsafe default libdaplscm.so.1 dapl.1.2 '"mlx4_0 1" ""' >> %{_sysconfdir}/dat.conf
-+echo OpenIB-scm-roe-mlx4_0-2 u1.2 nonthreadsafe default libdaplscm.so.1 dapl.1.2 '"mlx4_0 2" ""' >> %{_sysconfdir}/dat.conf
- 
- %postun
- /sbin/ldconfig
+Is this with base or enhanced port 0 ? I'm assuming base. See comment b=
+elow.
 
+Also, what firmware version is in use ?
 
+>> Signed-off-by: Jim Schutt <jaschut-4OHPYypu0djtX7QSmKvirg@public.gmane.org>
+>> ---
+>> =C2=A0opensm/opensm/osm_qos.c | =C2=A0 =C2=A08 ++++----
+>> =C2=A01 files changed, 4 insertions(+), 4 deletions(-)
+>>
+>> diff --git a/opensm/opensm/osm_qos.c b/opensm/opensm/osm_qos.c
+>> index 6bbbfa2..b8c3111 100644
+>> --- a/opensm/opensm/osm_qos.c
+>> +++ b/opensm/opensm/osm_qos.c
+>> @@ -230,12 +230,12 @@ static int qos_extports_setup(osm_sm_t * sm, o=
+sm_node_t *node,
+>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =
+&qcfg->sl2vl);
+>> =C2=A0 =C2=A0 =C2=A0 }
+>>
+>> - =C2=A0 =C2=A0 for (i =3D 1; i < num_ports; i++) {
+>> + =C2=A0 =C2=A0 for (i =3D 0; i < num_ports; i++) {
+>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 p =3D osm_node_get_=
+physp_ptr(node, i);
+>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 force_update =3D p-=
+>need_update || sm->p_subn->need_update;
+>> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 for (j =3D 0; j < num_po=
+rts; j++)
+>> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
+=A0 if (sl2vl_update_table(sm, p, i, i << 8 | j,
+>> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
+=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 =C2=A0force_update, &qcfg->sl2vl))
+>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 for (j =3D 1; j < num_po=
+rts; j++)
+>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
+=A0 if (sl2vl_update_table(sm, p, i, j, force_update,
+>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
+=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 =C2=A0&qcfg->sl2vl))
+>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 ret =3D -1;
+>> =C2=A0 =C2=A0 =C2=A0 }
+>>
+>
+> diff --git a/opensm/opensm/osm_qos.c b/opensm/opensm/osm_qos.c
+> index 6bbbfa2..7d76c75 100644
+> @@ -230,10 +230,10 @@ static int qos_extports_setup(osm_sm_t * sm, os=
+m_node_t *node,
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =
+=C2=A0&qcfg->sl2vl);
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0}
+>
+> - =C2=A0 =C2=A0 =C2=A0 for (i =3D 1; i < num_ports; i++) {
+> + =C2=A0 =C2=A0 =C2=A0 for (i =3D 0; i < num_ports; i++) {
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0p =3D osm_node=
+_get_physp_ptr(node, i);
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0force_update =3D=
+ p->need_update || sm->p_subn->need_update;
+> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 for (j =3D 0; j < =
+num_ports; j++)
+> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 for (j =3D 1; j < =
+num_ports; j++)
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 =C2=A0if (sl2vl_update_table(sm, p, i, i << 8 | j,
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =
+=C2=A0 =C2=A0 =C2=A0 force_update, &qcfg->sl2vl))
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0ret =3D -1;
+>
+
+I think the start for j depends on whether it is base or enhanced port
+0. Start should be 0 for enhanced and 1 for base.
+
+-- Hal
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
