@@ -1,8 +1,8 @@
 From: Hal Rosenstock <hnrose-Wuw85uim5zDR7s880joybQ@public.gmane.org>
-Subject: [PATCH] infiniband-diags/libibnetdisc/ibnetdisc.c: Fix compile
-	warns on 32 bit archs
-Date: Mon, 24 May 2010 15:45:08 -0400
-Message-ID: <20100524194508.GC26919@comcast.net>
+Subject: [PATCH] opensm/osm_sa_path_record.c: Add error code to newly added
+	log message
+Date: Mon, 24 May 2010 15:42:51 -0400
+Message-ID: <20100524194251.GA26919@comcast.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
@@ -13,54 +13,26 @@ Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 
-src/ibnetdisc.c: In function `query_port_info':
-src/ibnetdisc.c:216: warning: long unsigned int format, different type arg (arg 5)
-src/ibnetdisc.c: In function `recv_node_info':
-src/ibnetdisc.c:311: warning: long unsigned int format, different type arg (arg 5)
-src/ibnetdisc.c:335: warning: long unsigned int format, different type arg (arg 6)
+added in commit 1010c9c5014d5a6af2db33e27ae7156f239e7254
 
 Signed-off-by: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 ---
- infiniband-diags/libibnetdisc/src/ibnetdisc.c |   12 +++++++-----
- 1 files changed, 7 insertions(+), 5 deletions(-)
+ opensm/opensm/osm_sa_path_record.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/infiniband-diags/libibnetdisc/src/ibnetdisc.c b/infiniband-diags/libibnetdisc/src/ibnetdisc.c
-index 98801de..157b866 100644
---- a/infiniband-diags/libibnetdisc/src/ibnetdisc.c
-+++ b/infiniband-diags/libibnetdisc/src/ibnetdisc.c
-@@ -211,8 +211,8 @@ static int recv_port_info(smp_engine_t * engine, ibnd_smp_t * smp,
- static int query_port_info(smp_engine_t * engine, ib_portid_t * portid,
- 			   ibnd_node_t * node, int portnum)
- {
--	IBND_DEBUG("Query Port Info; %s (%lx):%d\n", portid2str(portid),
--		   node->guid, portnum);
-+	IBND_DEBUG("Query Port Info; %s (0x%" PRIx64 "):%d\n",
-+		   portid2str(portid), node->guid, portnum);
- 	return issue_smp(engine, portid, IB_ATTR_PORT_INFO, portnum,
- 			 recv_port_info, node);
- }
-@@ -307,8 +307,9 @@ static int recv_node_info(smp_engine_t * engine, ibnd_smp_t * smp,
- 			return -1;
- 		node_is_new = 1;
- 	}
--	IBND_DEBUG("Found %s node GUID %lx (%s)\n", node_is_new ? "new" : "old",
--		   node->guid, portid2str(&smp->path));
-+	IBND_DEBUG("Found %s node GUID 0x%" PRIx64 "(%s)\n",
-+		   node_is_new ? "new" : "old", node->guid,
-+		   portid2str(&smp->path));
- 
- 	port = node->ports[port_num];
- 	if (!port) {
-@@ -331,7 +332,8 @@ static int recv_node_info(smp_engine_t * engine, ibnd_smp_t * smp,
- 
- 		if (!rem_node->ports[rem_port_num]) {
- 			IBND_ERROR("Internal Error; "
--				   "Node(%p) %lx Port %d no port created!?!?!?\n\n",
-+				   "Node(%p) 0x%" PRIx64
-+				   "Port %d no port created!?!?!?\n\n",
- 				   rem_node, rem_node->guid, rem_port_num);
- 			return -1;
- 		}
+diff --git a/opensm/opensm/osm_sa_path_record.c b/opensm/opensm/osm_sa_path_record.c
+index 9fa0c1e..de97dcd 100644
+--- a/opensm/opensm/osm_sa_path_record.c
++++ b/opensm/opensm/osm_sa_path_record.c
+@@ -377,7 +377,7 @@ static ib_api_status_t pr_rcv_get_path_parms(IN osm_sa_t * sa,
+ 		/* update number of hops traversed */
+ 		hops++;
+ 		if (hops > MAX_HOPS) {
+-			OSM_LOG(sa->p_log, OSM_LOG_ERROR,
++			OSM_LOG(sa->p_log, OSM_LOG_ERROR, "ERR 1F25: "
+ 				"Path from GUID 0x%016" PRIx64 " (%s) to"
+ 				" lid %u GUID 0x%016" PRIx64 " (%s) needs"
+ 				" more than %d hops, max %d hops allowed\n",
 -- 
 1.5.6.4
 
