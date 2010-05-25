@@ -1,82 +1,150 @@
-From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-Subject: Re: [PATCH] ibnetdisc: Separate calls to umad and mad layer to
- avoid race condition on response MAD's
-Date: Tue, 25 May 2010 10:45:35 -0700
-Message-ID: <20100525104535.412009b1.weiny2@llnl.gov>
-References: <20100511164812.e16e41e6.weiny2@llnl.gov>
-	<20100522144010.GR28549@me>
+From: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH] infiniband-diags/vendstat: allow multiple config space
+ records
+Date: Tue, 25 May 2010 21:13:30 +0300
+Message-ID: <20100525181330.GU28549@me>
+References: <20100524205611.GJ28549@me>
+ <20100524210735.GK28549@me>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20100522144010.GR28549@me>
+Content-Disposition: inline
+In-Reply-To: <20100524210735.GK28549@me>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: Eli Dorfman <elid-smomgflXvOZWk0Htik3J/w@public.gmane.org>, Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Sat, 22 May 2010 07:40:10 -0700
-Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org> wrote:
 
-> On 16:48 Tue 11 May     , Ira Weiny wrote:
-> >
-> > From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-> > Date: Tue, 11 May 2010 15:36:08 -0700
-> > Subject: [PATCH] ibnetdisc: Separate calls to umad and mad layer to avoid race condition on response MAD's
-> >
-> >       Specify CA/Port to use which allows parallel scanning to other operations.
-> >
-> > Signed-off-by: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-> 
-> Applied. Thanks.
-> 
-> However see a minor comment below.
-> 
-> > ---
-> >  .../libibnetdisc/include/infiniband/ibnetdisc.h    |   15 ++--
-> >  infiniband-diags/libibnetdisc/src/ibnetdisc.c      |   52 +++++++-----
-> >  infiniband-diags/libibnetdisc/src/internal.h       |   11 ++-
-> >  infiniband-diags/libibnetdisc/src/query_smp.c      |   83 ++++++++++++++++----
-> >  infiniband-diags/libibnetdisc/test/testleaks.c     |   16 +---
-> >  infiniband-diags/src/iblinkinfo.c                  |    8 +-
-> >  infiniband-diags/src/ibnetdiscover.c               |   14 +---
-> >  infiniband-diags/src/ibqueryerrors.c               |   11 ++-
-> >  8 files changed, 134 insertions(+), 76 deletions(-)
-> 
-> [snip]
-> 
-> > diff --git a/infiniband-diags/libibnetdisc/src/internal.h b/infiniband-diags/libibnetdisc/src/internal.h
-> > index 2cfde02..d037a60 100644
-> > --- a/infiniband-diags/libibnetdisc/src/internal.h
-> > +++ b/infiniband-diags/libibnetdisc/src/internal.h
-> > @@ -54,6 +54,8 @@
-> >  #define MAXHOPS         63
-> >
-> >  #define DEFAULT_MAX_SMP_ON_WIRE 2
-> > +#define DEFAULT_TIMEOUT 1000
-> > +#define DEFAULT_RETRIES 3
-> >
-> >  typedef struct ibnd_scan {
-> >       ib_portid_t selfportid;
-> > @@ -76,16 +78,19 @@ struct ibnd_smp {
-> >
-> >  struct smp_engine {
-> >       struct ibmad_port *ibmad_port;
-> 
-> After this patch ibmad_port is not used by smp_engine, but instead by an
-> "upper" layer (ibnetdisc). So I would suggest to move this there (for
-> example to be a member of scan struct).
+Allow to use -R and -W options (config space record access) multiple
+number of times, so that multiple config space records will be reading
+and/or writing. Using both -R and -W is allowed as well. Example:
 
-Agreed.  I was trying to minimize the changes by this patch because it was
-mainly a bug fix.
+  vendstat -R 0x12345,0xffff -R 0x12346 -W 0x12347,0,0xfff <lid>
 
-Ira
+Note that now number of records is effectively limited by 18 (so that it
+fit single MAD), this could be increased with using multiple MADs.
 
-> 
-> Sasha
-> 
+Signed-off-by: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+---
+ infiniband-diags/src/vendstat.c |   69 +++++++++++++++++++++++++-------------
+ 1 files changed, 45 insertions(+), 24 deletions(-)
 
-[snip]
+diff --git a/infiniband-diags/src/vendstat.c b/infiniband-diags/src/vendstat.c
+index 0add06c..92a90c8 100644
+--- a/infiniband-diags/src/vendstat.c
++++ b/infiniband-diags/src/vendstat.c
+@@ -144,25 +144,30 @@ static int do_vendor(ib_portid_t *portid, struct ibmad_port *srcport,
+ 	return 0;
+ }
+ 
+-static unsigned int conf_addr, conf_val, conf_mask;
+-
+-static void do_config_space_record(ib_portid_t *portid, unsigned set)
++static void do_config_space_records(ib_portid_t *portid, unsigned set,
++				    is3_config_space_t *cs, unsigned records)
+ {
+-	is3_config_space_t cs;
+-
+-	memset(&cs, 0, sizeof(cs));
+-	cs.record[0].address = htonl(conf_addr);
+-	cs.record[0].data = htonl(conf_val);
+-	cs.record[0].mask = htonl(conf_mask);
++	unsigned i;
++
++	if (records > 18)
++		records = 18;
++	for (i = 0; i < records; i++) {
++		cs->record[i].address = htonl(cs->record[i].address);
++		cs->record[i].data = htonl(cs->record[i].data);
++		cs->record[i].mask = htonl(cs->record[i].mask);
++	}
+ 
+ 	if (do_vendor(portid, srcport, IB_MLX_VENDOR_CLASS,
+ 		      set ? IB_MAD_METHOD_SET : IB_MAD_METHOD_GET,
+-		      IB_MLX_IS3_CONFIG_SPACE_ACCESS, 2 << 22 | 1 << 16, &cs))
+-		IBERROR("cannot %s config space record", set ? "set" : "get");
+-
+-	printf("Config space record at 0x%x: 0x%x\n",
+-	       ntohl(cs.record[0].address),
+-	       ntohl(cs.record[0].data & cs.record[0].mask));
++		      IB_MLX_IS3_CONFIG_SPACE_ACCESS, 2 << 22 | records << 16,
++		      cs))
++		IBERROR("cannot %s config space records", set ? "set" : "get");
++
++	for (i = 0; i < records; i++) {
++		printf("Config space record at 0x%x: 0x%x\n",
++		       ntohl(cs->record[i].address),
++		       ntohl(cs->record[i].data & cs->record[i].mask));
++	}
+ }
+ 
+ static void counter_groups_info(ib_portid_t * portid, int port)
+@@ -224,7 +229,9 @@ static void config_counter_groups(ib_portid_t * portid, int port)
+ }
+ 
+ static int general_info, xmit_wait, counter_group_info, config_counter_group;
+-static unsigned int config_space_read, config_space_write;
++static is3_config_space_t write_cs, read_cs;
++static unsigned write_cs_records, read_cs_records;
++
+ 
+ static int process_opt(void *context, int ch, char *optarg)
+ {
+@@ -246,20 +253,29 @@ static int process_opt(void *context, int ch, char *optarg)
+ 			return -1;
+ 		break;
+ 	case 'R':
+-		config_space_read = 1;
+-		ret = sscanf(optarg, "%x,%x", &conf_addr, &conf_mask);
++		if (read_cs_records >= 18)
++			break;
++		ret = sscanf(optarg, "%x,%x",
++			     &read_cs.record[read_cs_records].address,
++			     &read_cs.record[read_cs_records].mask);
+ 		if (ret < 1)
+ 			return -1;
+ 		else if (ret == 1)
+-			conf_mask = 0xffffffff;
++			read_cs.record[read_cs_records].mask = 0xffffffff;
++		read_cs_records++;
+ 		break;
+ 	case 'W':
+-		config_space_write = 1;
+-		ret = sscanf(optarg, "%x,%x,%x", &conf_addr, &conf_val, &conf_mask);
++		if (write_cs_records >= 18)
++			break;
++		ret = sscanf(optarg, "%x,%x,%x",
++			     &write_cs.record[write_cs_records].address,
++			     &write_cs.record[write_cs_records].data,
++			     &write_cs.record[write_cs_records].mask);
+ 		if (ret < 2)
+ 			return -1;
+ 		else if (ret == 2)
+-			conf_mask = 0xffffffff;
++			write_cs.record[write_cs_records].mask = 0xffffffff;
++		write_cs_records++;
+ 		break;
+ 	default:
+ 		return -1;
+@@ -329,8 +345,13 @@ int main(int argc, char **argv)
+ 		exit(0);
+ 	}
+ 
+-	if (config_space_read || config_space_write) {
+-		do_config_space_record(&portid, config_space_write);
++	if (read_cs_records || write_cs_records) {
++		if (read_cs_records)
++			do_config_space_records(&portid, 0, &read_cs,
++						read_cs_records);
++		if (write_cs_records)
++			do_config_space_records(&portid, 1, &write_cs,
++						write_cs_records);
+ 		exit(0);
+ 	}
+ 
+-- 
+1.7.0.4
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
