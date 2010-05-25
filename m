@@ -1,37 +1,37 @@
-From: Randy Dunlap <randy.dunlap-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: linux-next: Tree for May 25 (infiniband/hw/qib)
-Date: Tue, 25 May 2010 10:23:17 -0700
-Message-ID: <4BFC0785.5010409@oracle.com>
-References: <20100525142657.c2ae7804.sfr@canb.auug.org.au>
+From: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH] mlx4_en: show device's port used
+Date: Tue, 25 May 2010 20:42:14 +0300
+Message-ID: <20100525174214.GA14745@mtldesk030.lab.mtl.com>
+References: <20100525135548.GA12749@mtldesk030.lab.mtl.com>
+	<adaaarnzzsc.fsf@roland-alpha.cisco.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20100525142657.c2ae7804.sfr-3FnU+UHB4dNDw9hX6IcOSA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <adaaarnzzsc.fsf-BjVyx320WGW9gfZ95n9DRSW4+XlvGpQz@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Stephen Rothwell <sfr-3FnU+UHB4dNDw9hX6IcOSA@public.gmane.org>
-Cc: linux-next-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Cc: Eli Cohen <eli-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux RDMA list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, yevgenyp-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Stephen Rothwell wrote:
-> Hi all,
+On Tue, May 25, 2010 at 09:55:47AM -0700, Roland Dreier wrote:
 > 
-> We are in the merge window again.  I remind you all not to add stuff for
-> 2.6.36 to your linux-next trees until after 2.6.35-rc1.
-> 
-> Changes since 20100524:
+> How do other multi-port ethernet devices handle this?
+I don't think there are many devices out there which have more than
+one port.
 
+>  Seems that the
+> cleanest way to handle this would be to add a place for drivers to set
+> the port number,
+So this will require changing all the drivers to put some value there
+or we would need to use a default value of 1 for drivers that don't
+explicitly set a value.
 
-when CONFIG_PCI_MSI is not enabled:
-
-ERROR: "qib_init_iba6120_funcs" [drivers/infiniband/hw/qib/ib_qib.ko] undefined!
-
-
-
-fwiw, I would make building iba6120 support dependent on PCI_MSI
-(i.e., change Kconfig), remove all of the PCI_MSI ifdef-ery
-in qib_iba6120.c, and add a printk or 2 in qib_init for unsupported
-devices.
+> and export it to userspace in generic code (so everyone
+> does it the same way).
+Something like ethtool? But we still need an entry under
+/sys/class/net/ethx/, right?
+ 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
