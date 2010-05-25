@@ -1,39 +1,41 @@
-From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Subject: nes: bug in phy_lock usage?
-Date: Mon, 24 May 2010 21:32:28 -0700
-Message-ID: <adask5gzjmr.fsf@roland-alpha.cisco.com>
+From: Or Gerlitz <ogerlitz-hKgKHo2Ms0FWk0Htik3J/w@public.gmane.org>
+Subject: Re: [ANNOUNCE] librdmacm 1.0.12
+Date: Tue, 25 May 2010 10:26:41 +0300
+Message-ID: <4BFB7BB1.8070004@Voltaire.com>
+References: <CE35DBA4CC524BD3BDA61C7DE2BD39CD@amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CE35DBA4CC524BD3BDA61C7DE2BD39CD-Zpru7NauK7drdx17CPfAsdBPR1lH4CV8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Chien Tung <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, 'Vladimir Sokolovsky' <vlad-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-It seems that ce6e74f2 ("RDMA/nes: Make nesadapter->phy_lock usage
-consistent") maybe introduced a locking bug.  sparse warns:
+Sean Hefty wrote:
+> I've pushed out release 1.0.12 of librdmacm.  
 
-drivers/infiniband/hw/nes/nes_hw.c:2642:9: warning: context imbalance in 'nes_process_mac_intr' - different lock contexts for basic block
+Hi Sean, below is a tiny patch which will help direct users to the correct mailing list
 
-And indeed in nes_process_mac_intr(), you do
 
-	spin_lock_irqsave(&nesadapter->phy_lock, flags);
+set the mailing list info to be linux-rdma instead of the ofa general list
 
-at the very beginning, but then the unlock only happens inside
+signed-off-by: Or Gerlitz <ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org>
 
-	if (nesadapter->mac_sw_state[mac_number] != NES_MAC_SW_IDLE) {
-
-or inside
-
-	if (mac_status & (NES_MAC_INT_LINK_STAT_CHG | NES_MAC_INT_XGMII_EXT)) {
-
-so it seems it is possible to return from this function with the lock
-held.
-
- - R.
--- 
-Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org> || For corporate legal information go to:
-http://www.cisco.com/web/about/doing_business/legal/cri/index.html
+diff --git a/configure.in b/configure.in
+index d6c4a62..d0f2623 100644
+--- a/configure.in
++++ b/configure.in
+@@ -1,7 +1,7 @@
+ dnl Process this file with autoconf to produce a configure script.
+ 
+ AC_PREREQ(2.57)
+-AC_INIT(librdmacm, 1.0.12, general-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org)
++AC_INIT(librdmacm, 1.0.12, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)
+ AC_CONFIG_SRCDIR([src/cma.c])
+ AC_CONFIG_AUX_DIR(config)
+ AM_CONFIG_HEADER(config.h)
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
