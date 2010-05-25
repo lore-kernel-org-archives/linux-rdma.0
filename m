@@ -1,23 +1,24 @@
 From: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH/RFC] opensm: toggle sweeping V3
-Date: Tue, 25 May 2010 21:20:51 +0300
-Message-ID: <20100525182051.GV28549@me>
-References: <20100525165330.GO2678@sgi.com>
+Subject: Re: [PATCH] opensm/osm_sa_path_record.c: Add error code to newly
+ added log message
+Date: Tue, 25 May 2010 21:38:43 +0300
+Message-ID: <20100525183843.GW28549@me>
+References: <20100524194251.GA26919@comcast.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20100525165330.GO2678-sJ/iWh9BUns@public.gmane.org>
+In-Reply-To: <20100524194251.GA26919-Wuw85uim5zDR7s880joybQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Arthur Kepner <akepner-sJ/iWh9BUns@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Dale.R.Talcott-NSQ8wuThN14@public.gmane.org
+To: Hal Rosenstock <hnrose-Wuw85uim5zDR7s880joybQ@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 09:53 Tue 25 May     , Arthur Kepner wrote:
+On 15:42 Mon 24 May     , Hal Rosenstock wrote:
 > 
-> Add option to toggle sweeping from opensm console.
+> added in commit 1010c9c5014d5a6af2db33e27ae7156f239e7254
 > 
-> Signed-off-by: Arthur Kepner <akepner-sJ/iWh9BUns@public.gmane.org>
+> Signed-off-by: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 
 Applied. Thanks.
 
