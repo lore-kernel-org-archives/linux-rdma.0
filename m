@@ -1,105 +1,61 @@
-From: Andrea Gozzelino <Andrea.Gozzelino-PK20h7lG/Rc1GQ1Ptb7lUw@public.gmane.org>
-Subject: Re: [ANNOUNCE] librdmacm 1.0.12
-Date: Tue, 25 May 2010 15:36:11 +0200 (CEST)
-Message-ID: <79817.1274794571169.SLOX.WebMail.wwwrun@imap.lnl.infn.it>
-References: <CE35DBA4CC524BD3BDA61C7DE2BD39CD@amr.corp.intel.com>
+From: Eli Cohen <eli-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
+Subject: [PATCH] mlx4_en: show device's port used
+Date: Tue, 25 May 2010 16:55:48 +0300
+Message-ID: <20100525135548.GA12749@mtldesk030.lab.mtl.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CE35DBA4CC524BD3BDA61C7DE2BD39CD-Zpru7NauK7drdx17CPfAsdBPR1lH4CV8@public.gmane.org>
+Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, arlin.r.davis-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, 'Vladimir Sokolovsky' <vlad-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
+To: davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org
+Cc: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux RDMA list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, yevgenyp-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On May 22, 2010 01:06 AM, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
+Add a sysfs file under /sys/class/net/<ethx> to show the port number within the
+device that this network interface is using. This is needed as ConnectX devices
+have two ports and it is useful to know which port the ethernet devices uses.
 
-> I've pushed out release 1.0.12 of librdmacm. This incorporates several
-> new APIs
-> that should make connecting and transferring data over RDMA devices
-> simpler for
-> user applications, plus adds support for user space path record
-> caching.
-> 
-> New APIs include simple wrappers for common verbs operations, such as
-> memory
-> registration, posting of work requests, and retrieving completions.
-> Support for
-> synchronous connection establishment was added, along with newer calls
-> that
-> combine the work done using multiple existing calls. To help address
-> MPI
-> scaling issues, this release provides support for IB ACM path record
-> caching
-> capabilities, enabled through the use of a compile time option. New
-> client and
-> server test applications were also added to demonstrate the use of the
-> new APIs.
-> 
-> (Note that the source code includes changes for AF_IB support, but
-> AF_IB has
-> been disabled in the code to avoid potential ABI compatibility issues
-> until the
-> kernel changes have been accepted upstream.) This version wants the
-> soon to be
-> released version of libibverbs, but will work with older versions
-> installed.
-> 
-> Please pull this release into OFED 1.5.2. I will provide a set of
-> release notes
-> next week.
-> 
-> - Sean
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma"
-> in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+Signed-off-by: Eli Cohen <eli-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
+---
+ drivers/net/mlx4/en_netdev.c |   16 ++++++++++++++++
+ 1 files changed, 16 insertions(+), 0 deletions(-)
 
-Hi Sean,
-Hi Arlin,
-
-I'm very interesting about librdmacm.
-
-I'm working on Intel Net Effect NE020 cards from February 2010 for an
-INFN experimental proposal, called REDIGO (Read out at 10 Gbits/s),
-about the data
-acquisition and movement systems. The covergence of storage protocols
-around 10 Gigabits/s Ethernet protocols shows that one way could be the
-Remote Direct Memory Access (RDMA). The goals are the investigations of
-latency time, the throughput, the buffer size schemes and finally the
-global event building bandwidth.
-I explore different ways as TCP, SDP, RDMA, FCoE, MPI, excluded
-Infiniband.
-
-Actually I transfer data (read/write) in a server/client system with
-RDMA. The transfer speed measured is about 1.17 Mbytes/s (93% of
-designed bandwith). I try to measure the latency, but I have a TCP
-socket as syncronization actor and the measure is not "clean". The card
-nominal latency value is 6 us.
-
-I'm not an expert of code, but I read this thread and I understand that
-new librdmacm version will be easier for users.
-
-I will wait your release notes to know if librdmacm 1.0.12 is better for
-my test configuration and simplier in performance evaluation.
-
-Thank you very much.
-Keep in touch,
-Andrea
-
-
-Andrea Gozzelino
-
-INFN - Laboratori Nazionali di Legnaro	(LNL)
-Viale dell'Universita' 2
-I-35020 - Legnaro (PD)- ITALIA
-Tel: +39 049 8068346
-Fax: +39 049 641925
-Mail: andrea.gozzelino-PK20h7lG/Rc1GQ1Ptb7lUw@public.gmane.org			
+diff --git a/drivers/net/mlx4/en_netdev.c b/drivers/net/mlx4/en_netdev.c
+index 73c3d20..5d6f811 100644
+--- a/drivers/net/mlx4/en_netdev.c
++++ b/drivers/net/mlx4/en_netdev.c
+@@ -871,6 +871,16 @@ err:
+ 	return -ENOMEM;
+ }
+ 
++static ssize_t show_port(struct device *d, struct device_attribute *attr,
++			 char *buf)
++{
++	struct mlx4_en_priv *priv = netdev_priv(to_net_dev(d));
++
++	return sprintf(buf, "%d\n", priv->port);
++	return 0;
++}
++
++static DEVICE_ATTR(port, S_IRUGO, show_port, NULL);
+ 
+ void mlx4_en_destroy_netdev(struct net_device *dev)
+ {
+@@ -1067,6 +1077,12 @@ int mlx4_en_init_netdev(struct mlx4_en_dev *mdev, int port,
+ 	en_warn(priv, "Using %d TX rings\n", prof->tx_ring_num);
+ 	en_warn(priv, "Using %d RX rings\n", prof->rx_ring_num);
+ 
++	err = device_create_file(&dev->dev, &dev_attr_port);
++	if (err) {
++		mlx4_err(mdev, "failed to create sysfs file\n");
++		goto out;
++	}
++
+ 	priv->registered = 1;
+ 	queue_delayed_work(mdev->workqueue, &priv->stats_task, STATS_DELAY);
+ 	return 0;
+-- 
+1.7.1
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
