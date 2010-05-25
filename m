@@ -1,51 +1,61 @@
-From: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH/RFC] opensm: toggle sweeping V2
-Date: Tue, 25 May 2010 18:14:02 +0300
-Message-ID: <20100525151402.GT28549@me>
-References: <20100519235727.GP7678@sgi.com>
- <20100522170431.GU28549@me>
- <20100524211830.GJ2678@sgi.com>
+From: "Smith, Stan" <stan.smith-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH] opensm/complib use portable macro syntax
+Date: Tue, 25 May 2010 08:18:31 -0700
+Message-ID: <3F6F638B8D880340AB536D29CD4C1E192562F581D4@orsmsx501.amr.corp.intel.com>
+References: <3F6F638B8D880340AB536D29CD4C1E192562EBBAE9@orsmsx501.amr.corp.intel.com>
+ <20100525105457.GN28549@me>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20100524211830.GJ2678-sJ/iWh9BUns@public.gmane.org>
+In-Reply-To: <20100525105457.GN28549@me>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Arthur Kepner <akepner-sJ/iWh9BUns@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Dale.R.Talcott-NSQ8wuThN14@public.gmane.org
+To: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+Cc: "ofw-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org" <ofw-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 14:18 Mon 24 May     , Arthur Kepner wrote:
-> > > .....
-> > >  	/* do a sweep if we received a trap */
-> > >  	if (sm->p_subn->opt.sweep_on_trap) {
-> > 
-> > > -		/* if this is trap number 128 or run_heavy_sweep is TRUE -
-> > > -		   update the force_heavy_sweep flag of the subnet.
-> > > -		   Sweep also on traps 144 - these traps signal a change of
-> > > -		   certain port capabilities.
-> > > -		   TODO: In the future this can be changed to just getting
-> > > -		   PortInfo on this port instead of sweeping the entire subnet. */
-> > > -		if (ib_notice_is_generic(p_ntci) &&
-> > > -		    (cl_ntoh16(p_ntci->g_or_v.generic.trap_num) == 128 ||
-> > > -		     cl_ntoh16(p_ntci->g_or_v.generic.trap_num) == 144 ||
-> > > -		     run_heavy_sweep)) {
-> > > -			OSM_LOG(sm->p_log, OSM_LOG_VERBOSE,
-> > > -				"Forcing heavy sweep. Received trap:%u\n",
-> > > +		if (!sm->p_subn->sweeping_enabled) {
-> > > +			OSM_LOG(sm->p_log, OSM_LOG_DEBUG,
-> > > +				"sweeping disabled - ignoring trap %u\n",
-> > >  				cl_ntoh16(p_ntci->g_or_v.generic.trap_num));
-> > 
-> > Isn't this case already handled in osm_state_mgr_process() and this code
-> > addition in osm_trap_rcv.c redundant?
-> 
-> It is redundant.
+Sasha Khapyorsky wrote:
+> Hi Stan,
+>
+> On 09:45 Fri 21 May     , Smith, Stan wrote:
+>>
+>> Use portable macro argument syntax.
+>>
+>> signed-of-by: stan smith <stan.smith-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+>   ^^^^^^^^^^^^
+>   Signed-off-by:
 
-So could you remove this part from the patch? The rest seems fine for
-me.
+oops.
 
-Sasha
+>
+>>
+>
+> The patch below is malformed - whitespaces are mangled (please check
+> your mailer).
+>
+> Applied by hands. Thanks.
+
+Sorry, will investigate.
+Perhaps I should resend once I've figured out the story.
+
+>
+> Sasha
+>
+>> diff --git a/opensm/complib/cl_event_wheel.c
+>> b/opensm/complib/cl_event_wheel.c index ef6d598..eb894a6 100644 ---
+>> a/opensm/complib/cl_event_wheel.c +++
+>> b/opensm/complib/cl_event_wheel.c @@ -42,7 +42,7 @@
+>>  #include <complib/cl_event_wheel.h>
+>>  #include <complib/cl_debug.h>
+>>
+>> -#define CL_DBG(fmt, arg...)
+>> +#define CL_DBG(fmt, ...)
+>>
+>>  static cl_status_t __event_will_age_before(IN const cl_list_item_t *
+>>                                            const p_list_item, IN
+>> void *context)
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
