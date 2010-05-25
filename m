@@ -1,27 +1,26 @@
-From: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH] opensm - cleanup
-Date: Tue, 25 May 2010 22:44:29 +0300
-Message-ID: <20100525194429.GB28549@me>
-References: <59F66ECB77704137A5F122AE78B5D554@amr.corp.intel.com>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [ANNOUNCE] librdmacm 1.0.12
+Date: Tue, 25 May 2010 11:59:50 -0700
+Message-ID: <CF9C39F99A89134C9CF9C4CCB68B8DDF255F243123@orsmsx501.amr.corp.intel.com>
+References: <CE35DBA4CC524BD3BDA61C7DE2BD39CD@amr.corp.intel.com>
+ <4BFB7BB1.8070004@Voltaire.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <59F66ECB77704137A5F122AE78B5D554-Zpru7NauK7drdx17CPfAsdBPR1lH4CV8@public.gmane.org>
+In-Reply-To: <4BFB7BB1.8070004-hKgKHo2Ms0FWk0Htik3J/w@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Stan C. Smith" <stan.smith-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Or Gerlitz <ogerlitz-hKgKHo2Ms0FWk0Htik3J/w@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, 'Vladimir Sokolovsky' <vlad-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 20:58 Mon 24 May     , Stan C. Smith wrote:
-> 
-> Cleanup __WIN__ clauses by using predefined macros.
-> 
-> signed-off-by: stan smith <stan.smith-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> Hi Sean, below is a tiny patch which will help direct users to the
+> correct mailing list
 
-Applied. Thanks.
+Thanks - I'll get this applied, so it will be there for the next release.
 
-Sasha
+- Sean
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
