@@ -1,64 +1,99 @@
-From: Stephen Rothwell <sfr-3FnU+UHB4dNDw9hX6IcOSA@public.gmane.org>
-Subject: linux-next: build warning after merge of the final tree
-Date: Wed, 26 May 2010 15:15:34 +1000
-Message-ID: <20100526151534.504a74f7.sfr@canb.auug.org.au>
+From: Eli Cohen <eli@mellanox.co.il>
+Subject: [PATCH] net/core: Save the port number a netdevice uses
+Date: Wed, 26 May 2010 11:17:02 +0300
+Message-ID: <20100526081702.GA17160@mtldesk030.lab.mtl.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; protocol="application/pgp-signature";
- micalg="PGP-SHA1";
- boundary="Signature=_Wed__26_May_2010_15_15_34_+1000_iBQx9.0MHt0CNOER"
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: linux-next-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linus <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, Ralph Campbell <ralph.campbell-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+Sender: netdev-owner@vger.kernel.org
+To: davem@davemloft.net
+Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, rdreier@cisco.com, yevgenyp@mellanox.co.il
 List-Id: linux-rdma@vger.kernel.org
 
---Signature=_Wed__26_May_2010_15_15_34_+1000_iBQx9.0MHt0CNOER
-Content-Type: text/plain; charset=US-ASCII
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Today, there are no means to know which port of a hardware device a netdev
+interface uses. This patch adds a new field to struct net_device that is used
+to store this value. The network driver should use the SET_NETDEV_PORT_NUM()
+macro to set the port number for the device it manages. For drivers that do not
+set a value, a default value of 1 is set at alloc_netdev_mq().
+This patch also makes use of this feature in the mlx4_en driver.
 
-Hi Roland,
+Signed-off-by: Eli Cohen <eli@mellanox.co.il>
+---
+ drivers/net/mlx4/en_netdev.c |    1 +
+ include/linux/netdevice.h    |    6 ++++++
+ net/core/dev.c               |    1 +
+ net/core/net-sysfs.c         |    2 ++
+ 4 files changed, 10 insertions(+), 0 deletions(-)
 
-After merging the final tree, today's linux-next build (powerpc
-allyesconfig) produced this warning:
+diff --git a/drivers/net/mlx4/en_netdev.c b/drivers/net/mlx4/en_netdev.c
+index 6c2b15b..d3df609 100644
+--- a/drivers/net/mlx4/en_netdev.c
++++ b/drivers/net/mlx4/en_netdev.c
+@@ -978,6 +978,7 @@ int mlx4_en_init_netdev(struct mlx4_en_dev *mdev, int port,
+ 	}
+ 
+ 	SET_NETDEV_DEV(dev, &mdev->dev->pdev->dev);
++	SET_NETDEV_PORT_NUM(dev, port);
+ 
+ 	/*
+ 	 * Initialize driver private data
+diff --git a/include/linux/netdevice.h b/include/linux/netdevice.h
+index 3857517..2a52a6a 100644
+--- a/include/linux/netdevice.h
++++ b/include/linux/netdevice.h
+@@ -843,6 +843,7 @@ struct net_device {
+ 	unsigned char		perm_addr[MAX_ADDR_LEN]; /* permanent hw address */
+ 	unsigned char		addr_len;	/* hardware address length	*/
+ 	unsigned short          dev_id;		/* for shared network cards */
++	unsigned short          port_num;	/* for multiport devices */
+ 
+ 	struct netdev_hw_addr_list	uc;	/* Secondary unicast
+ 						   mac addresses */
+@@ -1080,6 +1081,11 @@ static inline void *netdev_priv(const struct net_device *dev)
+  */
+ #define SET_NETDEV_DEVTYPE(net, devtype)	((net)->dev.type = (devtype))
+ 
++/*
++ * Set the port number of the physical device that this port net device uses
++ */
++#define SET_NETDEV_PORT_NUM(net, portnum)	((net)->port_num = (portnum))
++
+ /**
+  *	netif_napi_add - initialize a napi context
+  *	@dev:  network device
+diff --git a/net/core/dev.c b/net/core/dev.c
+index 264137f..8e2f5df 100644
+--- a/net/core/dev.c
++++ b/net/core/dev.c
+@@ -5471,6 +5471,7 @@ struct net_device *alloc_netdev_mq(int sizeof_priv, const char *name,
+ 	dev->_tx = tx;
+ 	dev->num_tx_queues = queue_count;
+ 	dev->real_num_tx_queues = queue_count;
++	dev->port_num = 1;
+ 
+ 	dev->gso_max_size = GSO_MAX_SIZE;
+ 
+diff --git a/net/core/net-sysfs.c b/net/core/net-sysfs.c
+index 59cfc7d..c3d9b39 100644
+--- a/net/core/net-sysfs.c
++++ b/net/core/net-sysfs.c
+@@ -97,6 +97,7 @@ NETDEVICE_SHOW(ifindex, fmt_dec);
+ NETDEVICE_SHOW(features, fmt_long_hex);
+ NETDEVICE_SHOW(type, fmt_dec);
+ NETDEVICE_SHOW(link_mode, fmt_dec);
++NETDEVICE_SHOW(port_num, fmt_dec);
+ 
+ /* use same locking rules as GIFHWADDR ioctl's */
+ static ssize_t show_address(struct device *dev, struct device_attribute *attr,
+@@ -299,6 +300,7 @@ static struct device_attribute net_class_attributes[] = {
+ 	__ATTR(features, S_IRUGO, show_features, NULL),
+ 	__ATTR(type, S_IRUGO, show_type, NULL),
+ 	__ATTR(link_mode, S_IRUGO, show_link_mode, NULL),
++	__ATTR(port_num, S_IRUGO, show_port_num, NULL),
+ 	__ATTR(address, S_IRUGO, show_address, NULL),
+ 	__ATTR(broadcast, S_IRUGO, show_broadcast, NULL),
+ 	__ATTR(carrier, S_IRUGO, show_carrier, NULL),
+-- 
+1.7.1
 
-drivers/infiniband/hw/qib/qib_fs.c: In function 'portcntrs_2_read':
-drivers/infiniband/hw/qib/qib_fs.c:203: warning: 'counters' is used uniniti=
-alized in this function
-drivers/infiniband/hw/qib/qib_fs.c: In function 'portcntrs_1_read':
-drivers/infiniband/hw/qib/qib_fs.c:192: warning: 'counters' is used uniniti=
-alized in this function
-drivers/infiniband/hw/qib/qib_fs.c: In function 'portnames_read':
-drivers/infiniband/hw/qib/qib_fs.c:181: warning: 'names' is used uninitiali=
-zed in this function
-drivers/infiniband/hw/qib/qib_fs.c: In function 'dev_names_read':
-drivers/infiniband/hw/qib/qib_fs.c:160: warning: 'names' is used uninitiali=
-zed in this function
-drivers/infiniband/hw/qib/qib_fs.c: In function 'dev_counters_read':
-drivers/infiniband/hw/qib/qib_fs.c:149: warning: 'counters' is used uniniti=
-alized in this function
-
-Introduced by commit f931551bafe1f10ded7f5282e2aa162c267a2e5d ("IB/qib:
-Add new qib driver for QLogic PCIe InfiniBand adapters").
-
---=20
-Cheers,
-Stephen Rothwell                    sfr-3FnU+UHB4dNDw9hX6IcOSA@public.gmane.org
-http://www.canb.auug.org.au/~sfr/
-
---Signature=_Wed__26_May_2010_15_15_34_+1000_iBQx9.0MHt0CNOER
-Content-Type: application/pgp-signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.10 (GNU/Linux)
-
-iEYEARECAAYFAkv8rnYACgkQjjKRsyhoI8xEdgCfeIwhGUzl5BV3TyaZfgOUD2yv
-REAAn14Xe95eJdOImF5og0gXNw/Fg/wz
-=jf2m
------END PGP SIGNATURE-----
-
---Signature=_Wed__26_May_2010_15_15_34_+1000_iBQx9.0MHt0CNOER--
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
