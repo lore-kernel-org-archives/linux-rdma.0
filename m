@@ -1,28 +1,57 @@
-From: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH] net/core: Save the port number a netdevice uses
-Date: Wed, 26 May 2010 12:19:39 +0300
-Message-ID: <20100526091939.GC28748@mtldesk030.lab.mtl.com>
-References: <20100526084523.GA28748@mtldesk030.lab.mtl.com>
-	<20100526.015526.102555441.davem@davemloft.net>
-	<20100526090850.GB28748@mtldesk030.lab.mtl.com>
-	<20100526.021635.179940939.davem@davemloft.net>
+From: Eli Cohen <eli@mellanox.co.il>
+Subject: [PATCH] net/core: use net_device dev_id to indicate port number
+Date: Wed, 26 May 2010 12:52:00 +0300
+Message-ID: <20100526095200.GA7370@mtldesk030.lab.mtl.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20100526.021635.179940939.davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
-Cc: eli-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org, yevgenyp-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org
+Sender: netdev-owner@vger.kernel.org
+To: davem@davemloft.net
+Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org, rdreier@cisco.com, yevgenyp@mellanox.co.il
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, May 26, 2010 at 02:16:35AM -0700, David Miller wrote:
-> 
-> I actually mean that the value "0" should mean the first port,
-> the value "1" should mean the second port, etc.
+Today, there are no means to know which port of a hardware device a netdev
+interface uses. struct net_device conatins a field, dev_id, that can be used
+for that. This patch adds a new macro, SET_NETDEV_DEV_ID(), to provide a
+standard way to set the value of this field.
+Also also make use of this feature in the mlx4_en driver to set the port
+number; port numbers are zero based.
 
-OK, thanks for clarifying. I'll send a new patch soon.
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Signed-off-by: Eli Cohen <eli@mellanox.co.il>
+---
+ drivers/net/mlx4/en_netdev.c |    1 +
+ include/linux/netdevice.h    |    5 +++++
+ 2 files changed, 6 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/net/mlx4/en_netdev.c b/drivers/net/mlx4/en_netdev.c
+index 6c2b15b..612df1e 100644
+--- a/drivers/net/mlx4/en_netdev.c
++++ b/drivers/net/mlx4/en_netdev.c
+@@ -978,6 +978,7 @@ int mlx4_en_init_netdev(struct mlx4_en_dev *mdev, int port,
+ 	}
+ 
+ 	SET_NETDEV_DEV(dev, &mdev->dev->pdev->dev);
++	SET_NETDEV_DEV_ID(dev, port - 1);
+ 
+ 	/*
+ 	 * Initialize driver private data
+diff --git a/include/linux/netdevice.h b/include/linux/netdevice.h
+index 3857517..8d5f2c7 100644
+--- a/include/linux/netdevice.h
++++ b/include/linux/netdevice.h
+@@ -1080,6 +1080,11 @@ static inline void *netdev_priv(const struct net_device *dev)
+  */
+ #define SET_NETDEV_DEVTYPE(net, devtype)	((net)->dev.type = (devtype))
+ 
++/*
++ * Set the port number of the physical device that this port net device uses
++ */
++#define SET_NETDEV_DEV_ID(net, devid)	((net)->dev_id = (devid))
++
+ /**
+  *	netif_napi_add - initialize a napi context
+  *	@dev:  network device
+-- 
+1.7.1
+
