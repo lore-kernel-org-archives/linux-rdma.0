@@ -1,129 +1,184 @@
-From: Mike Heinz <michael.heinz-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH] IB/core User RMPP patch
-Date: Wed, 26 May 2010 15:14:28 -0500
-Message-ID: <4C2744E8AD2982428C5BFE523DF8CDCB49A488D528@MNEXMB1.qlogic.org>
+From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH] IB/qib: fix powerpc compile warnings
+Date: Wed, 26 May 2010 13:15:47 -0700
+Message-ID: <ada8w76xvv0.fsf@roland-alpha.cisco.com>
+References: <20100526184205.11285.79404.stgit@chromite.mv.qlogic.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <20100526184205.11285.79404.stgit-/vjeY7uYZjrPXfVEPVhPGq6RkeBMCJyt@public.gmane.org> (Ralph
+	Campbell's message of "Wed, 26 May 2010 11:42:06 -0700")
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+To: Ralph Campbell <ralph.campbell-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Currently, if a user application calls umad_register() or umad_register_oui() with an rmpp_version of zero, incoming rmpp messages are discarded.
+ > Fix the compile warnings for uninitialized variables in qib_fs.c
+ > when compiling for powerpc.
 
-This patch changes this behavior so that rmpp_version of zero causes incoming rmpp packets to be passed through without alteration, instead. 
+ > -	u64 *counters;
+ > +	u64 *counters =3D NULL;
 
-Signed-off-by: Michael Heinz <michael.heinz-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-----
+I do not believe this is the correct fix.  The problem is the code like=
+:
 
-diff --git a/drivers/infiniband/core/mad.c b/drivers/infiniband/core/mad.c
-index 80282f1..b3457ae 100644
---- a/drivers/infiniband/core/mad.c
-+++ b/drivers/infiniband/core/mad.c
-@@ -1830,25 +1830,39 @@ static void ib_mad_complete_recv(struct ib_mad_agent_private *mad_agent_priv,
- 	if (ib_response_mad(mad_recv_wc->recv_buf.mad)) {
- 		spin_lock_irqsave(&mad_agent_priv->lock, flags);
- 		mad_send_wr = ib_find_send_mad(mad_agent_priv, mad_recv_wc);
--		if (!mad_send_wr) {
-+		if (mad_send_wr) {
-+			ib_mark_mad_done(mad_send_wr);
- 			spin_unlock_irqrestore(&mad_agent_priv->lock, flags);
--			ib_free_recv_mad(mad_recv_wc);
--			deref_mad_agent(mad_agent_priv);
--			return;
--		}
--		ib_mark_mad_done(mad_send_wr);
--		spin_unlock_irqrestore(&mad_agent_priv->lock, flags);
- 
--		/* Defined behavior is to complete response before request */
--		mad_recv_wc->wc->wr_id = (unsigned long) &mad_send_wr->send_buf;
--		mad_agent_priv->agent.recv_handler(&mad_agent_priv->agent,
--						   mad_recv_wc);
--		atomic_dec(&mad_agent_priv->refcount);
-+			/* Defined behavior is to complete response before request */
-+			mad_recv_wc->wc->wr_id = (unsigned long) &mad_send_wr->send_buf;
-+			mad_agent_priv->agent.recv_handler(&mad_agent_priv->agent,
-+							   mad_recv_wc);
-+			atomic_dec(&mad_agent_priv->refcount);
- 
--		mad_send_wc.status = IB_WC_SUCCESS;
--		mad_send_wc.vendor_err = 0;
--		mad_send_wc.send_buf = &mad_send_wr->send_buf;
--		ib_mad_complete_send_wr(mad_send_wr, &mad_send_wc);
-+			mad_send_wc.status = IB_WC_SUCCESS;
-+			mad_send_wc.vendor_err = 0;
-+			mad_send_wc.send_buf = &mad_send_wr->send_buf;
-+			ib_mad_complete_send_wr(mad_send_wr, &mad_send_wc);
-+		} else {
-+			if (  !mad_agent_priv->agent.rmpp_version
-+			   && ib_is_mad_class_rmpp(mad_recv_wc->recv_buf.mad->mad_hdr.mgmt_class)
-+			   && (ib_get_rmpp_flags(&((struct ib_rmpp_mad *)mad_recv_wc->recv_buf.mad)->rmpp_hdr) & IB_MGMT_RMPP_FLAG_ACTIVE)) {
-+				// user rmpp is in effect
-+				spin_unlock_irqrestore(&mad_agent_priv->lock, flags);
-+
-+				mad_recv_wc->wc->wr_id = 0;
-+				mad_agent_priv->agent.recv_handler(&mad_agent_priv->agent,
-+								   mad_recv_wc);
-+				atomic_dec(&mad_agent_priv->refcount);
-+			} else {
-+				// not user rmpp, revert to normal behavior and drop the mad
-+				spin_unlock_irqrestore(&mad_agent_priv->lock, flags);
-+				ib_free_recv_mad(mad_recv_wc);
-+				deref_mad_agent(mad_agent_priv);
-+				return;
-+			}
-+		}
- 	} else {
- 		mad_agent_priv->agent.recv_handler(&mad_agent_priv->agent,
- 						   mad_recv_wc);
-diff --git a/drivers/infiniband/core/user_mad.c b/drivers/infiniband/core/user_mad.c
-index 36f815c..f9cacbc 100644
---- a/drivers/infiniband/core/user_mad.c
-+++ b/drivers/infiniband/core/user_mad.c
-@@ -508,7 +508,7 @@ static ssize_t ib_umad_write(struct file *filp, const char __user *buf,
- 
- 	rmpp_mad = (struct ib_rmpp_mad *) packet->mad.data;
- 	hdr_len = ib_get_mad_data_offset(rmpp_mad->mad_hdr.mgmt_class);
--	if (!ib_is_mad_class_rmpp(rmpp_mad->mad_hdr.mgmt_class)) {
-+	if (!agent->rmpp_version || !ib_is_mad_class_rmpp(rmpp_mad->mad_hdr.mgmt_class)) {
- 		copy_offset = IB_MGMT_MAD_HDR;
- 		rmpp_active = 0;
- 	} else {
-@@ -560,14 +560,22 @@ static ssize_t ib_umad_write(struct file *filp, const char __user *buf,
- 		rmpp_mad->mad_hdr.tid = *tid;
- 	}
- 
--	spin_lock_irq(&file->send_lock);
--	ret = is_duplicate(file, packet);
--	if (!ret)
-+	if (  !agent->rmpp_version
-+	   && ib_is_mad_class_rmpp(rmpp_mad->mad_hdr.mgmt_class)
-+	   && (ib_get_rmpp_flags(&rmpp_mad->rmpp_hdr) & IB_MGMT_RMPP_FLAG_ACTIVE)) {
-+		spin_lock_irq(&file->send_lock);
- 		list_add_tail(&packet->list, &file->send_list);
--	spin_unlock_irq(&file->send_lock);
--	if (ret) {
--		ret = -EINVAL;
--		goto err_msg;
-+		spin_unlock_irq(&file->send_lock);
-+	} else {
-+		spin_lock_irq(&file->send_lock);
-+		ret = is_duplicate(file, packet);
-+		if (!ret)
-+			list_add_tail(&packet->list, &file->send_list);
-+		spin_unlock_irq(&file->send_lock);
-+		if (ret) {
-+			ret = -EINVAL;
-+			goto err_msg;
-+		}
- 	}
- 
- 	ret = ib_post_send_mad(packet->msg, NULL);
+	return simple_read_from_buffer(buf, count, ppos, counters,
+		dd->f_read_cntrs(dd, *ppos, NULL, &counters));
 
+which passes the pointer counters as a parameter to simple_read_from_bu=
+ffer()
+but relies on the call to dd->f_read_cntrs() to initialize the paramete=
+r.
+However the order of evaluation of function parameters is undefined in =
+C.
+So just initializing counters to NULL as you do means that you might be
+passing in NULL instead of an uninitialized value -- not much improveme=
+nt.
 
+The reason this code works for you I think is that gcc on x86 evaluates
+function parameters from right to left, and apparently powerpc does the
+opposite (hence the warning).  You can see that by compiling the code
+below -- with gcc -O2 -Wall, I see:
+
+    a.c: In function =E2=80=98b=E2=80=99:
+    a.c:14: warning: =E2=80=98ap=E2=80=99 is used uninitialized in this=
+ function
+
+so the warning comes from the particular order:
+
+	extern int x(int **xp);
+	extern int y(int *yp, int ypp);
+	extern int z(int zpp, int *zp);
+=09
+	int a(void)
+	{
+		int *ap;
+		return y(ap, x(&ap));
+	}
+=09
+	int b(void)
+	{
+		int *ap;
+		return z(x(&ap), ap);
+	}
+
+So I think the correct fix (which I queued up) is the following:
+
+commit f27ec1d6db4aa3348ca7be896f1466599aecea3e
+Author: Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Date:   Wed May 26 13:15:06 2010 -0700
+
+    IB/qib: Don't rely on (undefined) order of function parameter evalu=
+ation
+   =20
+    Some of the qib sysfs code passes a buffer pointer into
+    simple_read_from_buffer() but relies on a function call in another
+    parameter of the same call to initialize that pointer.  Since the o=
+rder
+    of evaluation of function parameters is undefined, this will break =
+if
+    gcc chooses the wrong order.
+   =20
+    Fix this by splitting the code into two separate function calls.
+   =20
+    This was noticed because of warnings like the following on ppc:
+   =20
+        drivers/infiniband/hw/qib/qib_fs.c: In function 'portcntrs_2_re=
+ad':
+        drivers/infiniband/hw/qib/qib_fs.c:203: warning: 'counters' is =
+used uninitialized in this function
+   =20
+    Reported-by: Stephen Rothwell <sfr-3FnU+UHB4dNDw9hX6IcOSA@public.gmane.org>
+    Signed-off-by: Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+
+diff --git a/drivers/infiniband/hw/qib/qib_fs.c b/drivers/infiniband/hw=
+/qib/qib_fs.c
+index 7554704..edef852 100644
+--- a/drivers/infiniband/hw/qib/qib_fs.c
++++ b/drivers/infiniband/hw/qib/qib_fs.c
+@@ -144,10 +144,11 @@ static ssize_t dev_counters_read(struct file *fil=
+e, char __user *buf,
+ 				 size_t count, loff_t *ppos)
+ {
+ 	u64 *counters;
++	size_t avail;
+ 	struct qib_devdata *dd =3D private2dd(file);
+=20
+-	return simple_read_from_buffer(buf, count, ppos, counters,
+-		dd->f_read_cntrs(dd, *ppos, NULL, &counters));
++	avail =3D dd->f_read_cntrs(dd, *ppos, NULL, &counters);
++	return simple_read_from_buffer(buf, count, ppos, counters, avail);
+ }
+=20
+ /* read the per-device counters */
+@@ -155,10 +156,11 @@ static ssize_t dev_names_read(struct file *file, =
+char __user *buf,
+ 			      size_t count, loff_t *ppos)
+ {
+ 	char *names;
++	size_t avail;
+ 	struct qib_devdata *dd =3D private2dd(file);
+=20
+-	return simple_read_from_buffer(buf, count, ppos, names,
+-		dd->f_read_cntrs(dd, *ppos, &names, NULL));
++	avail =3D dd->f_read_cntrs(dd, *ppos, &names, NULL);
++	return simple_read_from_buffer(buf, count, ppos, names, avail);
+ }
+=20
+ static const struct file_operations cntr_ops[] =3D {
+@@ -176,10 +178,11 @@ static ssize_t portnames_read(struct file *file, =
+char __user *buf,
+ 			      size_t count, loff_t *ppos)
+ {
+ 	char *names;
++	size_t avail;
+ 	struct qib_devdata *dd =3D private2dd(file);
+=20
+-	return simple_read_from_buffer(buf, count, ppos, names,
+-		dd->f_read_portcntrs(dd, *ppos, 0, &names, NULL));
++	avail =3D dd->f_read_portcntrs(dd, *ppos, 0, &names, NULL);
++	return simple_read_from_buffer(buf, count, ppos, names, avail);
+ }
+=20
+ /* read the per-port counters for port 1 (pidx 0) */
+@@ -187,10 +190,11 @@ static ssize_t portcntrs_1_read(struct file *file=
+, char __user *buf,
+ 				size_t count, loff_t *ppos)
+ {
+ 	u64 *counters;
++	size_t avail;
+ 	struct qib_devdata *dd =3D private2dd(file);
+=20
+-	return simple_read_from_buffer(buf, count, ppos, counters,
+-		dd->f_read_portcntrs(dd, *ppos, 0, NULL, &counters));
++	avail =3D dd->f_read_portcntrs(dd, *ppos, 0, NULL, &counters);
++	return simple_read_from_buffer(buf, count, ppos, counters, avail);
+ }
+=20
+ /* read the per-port counters for port 2 (pidx 1) */
+@@ -198,10 +202,11 @@ static ssize_t portcntrs_2_read(struct file *file=
+, char __user *buf,
+ 				size_t count, loff_t *ppos)
+ {
+ 	u64 *counters;
++	size_t avail;
+ 	struct qib_devdata *dd =3D private2dd(file);
+=20
+-	return simple_read_from_buffer(buf, count, ppos, counters,
+-		dd->f_read_portcntrs(dd, *ppos, 1, NULL, &counters));
++	avail =3D dd->f_read_portcntrs(dd, *ppos, 1, NULL, &counters);
++	return simple_read_from_buffer(buf, count, ppos, counters, avail);
+ }
+=20
+ static const struct file_operations portcntr_ops[] =3D {
+
+--=20
+Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org> || For corporate legal information go=
+ to:
+http://www.cisco.com/web/about/doing_business/legal/cri/index.html
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
