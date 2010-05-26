@@ -1,23 +1,19 @@
-From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH] IB/qib: fix undefined symbol error when CONFIG_PCI_MSI undefined
-Date: Tue, 25 May 2010 21:09:53 -0700
-Message-ID: <adaljb7xq0e.fsf@roland-alpha.cisco.com>
-References: <20100525192233.18292.56653.stgit@chromite.mv.qlogic.com>
+From: Roland Dreier <rdreier@cisco.com>
+Subject: Re: [PATCH 10/27] drivers/infiniband/core: Use memdup_user
+Date: Tue, 25 May 2010 21:11:04 -0700
+Message-ID: <adahblvxpyf.fsf@roland-alpha.cisco.com>
+References: <Pine.LNX.4.64.1005221021030.13021@ask.diku.dk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20100525192233.18292.56653.stgit-/vjeY7uYZjrPXfVEPVhPGq6RkeBMCJyt@public.gmane.org> (Ralph
-	Campbell's message of "Tue, 25 May 2010 12:22:33 -0700")
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ralph Campbell <ralph.campbell-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <Pine.LNX.4.64.1005221021030.13021@ask.diku.dk> (Julia Lawall's
+	message of "Sat, 22 May 2010 10:21:27 +0200 (CEST)")
+Sender: linux-kernel-owner@vger.kernel.org
+To: Julia Lawall <julia@diku.dk>
+Cc: Roland Dreier <rolandd@cisco.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
 thanks, applied.
 -- 
-Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org> || For corporate legal information go to:
+Roland Dreier <rolandd@cisco.com> || For corporate legal information go to:
 http://www.cisco.com/web/about/doing_business/legal/cri/index.html
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
