@@ -1,51 +1,48 @@
-From: Mike Heinz <michael.heinz-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-Subject: RE: [PATCH] IB/core User RMPP patch
-Date: Thu, 27 May 2010 11:04:46 -0500
-Message-ID: <4C2744E8AD2982428C5BFE523DF8CDCB49A488D5DA@MNEXMB1.qlogic.org>
-References: <Acr9EAtKD/028Ag3RWu6iemg4gN1Tg==>
-	<4C2744E8AD2982428C5BFE523DF8CDCB49A488D528@MNEXMB1.qlogic.org>
- <AANLkTikpYJXj9MjCwGUlK1SisooL_etjbE3BdwHtQjTj@mail.gmail.com>
- <4C2744E8AD2982428C5BFE523DF8CDCB49A488D5AF@MNEXMB1.qlogic.org>
- <CF9C39F99A89134C9CF9C4CCB68B8DDF255F32E2EF@orsmsx501.amr.corp.intel.com>
+From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: Re: linux-next: Tree for May 27 (infiniband: qib)
+Date: Thu, 27 May 2010 09:05:03 -0700
+Message-ID: <20100527090503.d229dc53.randy.dunlap@oracle.com>
+References: <20100527152628.b23a14c6.sfr@canb.auug.org.au>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CF9C39F99A89134C9CF9C4CCB68B8DDF255F32E2EF-osO9UTpF0USkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
-Content-Language: en-US
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-next-owner@vger.kernel.org>
+In-Reply-To: <20100527152628.b23a14c6.sfr@canb.auug.org.au>
+Sender: linux-next-owner@vger.kernel.org
+To: Stephen Rothwell <sfr@canb.auug.org.au>, Ralph Campbell <ralph.campbell@qlogic.com>
+Cc: linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-QWN0dWFsbHksIHdlJ3ZlIGJlZW4gdXNpbmcgdGhpcyBwYXRjaCBpbiBob3VzZSBmb3IgcXVpdGUg
-YSB3aGlsZSBhbmQgaXQncyBiZWVuIHdvcmtpbmcgZm9yIHVzLiBXZSB3ZXJlIGp1c3QgaG9waW5n
-IHRvIG1pZ3JhdGUgaXQgaW50byB0aGUga2VybmVsIHNvIHRoYXQgdGhlcmUgd291bGQgYmUgbm8g
-cmlzayBvZiBmdXR1cmUgaW5jb21wYXRpYmlsaXRpZXMgYXJpc2luZy4NCg0KV2UncmUgY3VycmVu
-dGx5IGRpc2N1c3NpbmcgaW4taG91c2UgaG93IHRvIGFkZHJlc3MgSGFsJ3MgcmVxdWVzdCB0aGF0
-IHdlIGRvIHRoaXMgd2l0aG91dCBicmVha2luZyB0aGUgZXhpc3RpbmcgZnVuY3Rpb25hbGl0eS4N
-Cg0KLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCkZyb206IEhlZnR5LCBTZWFuIFttYWlsdG86
-c2Vhbi5oZWZ0eUBpbnRlbC5jb21dIA0KU2VudDogVGh1cnNkYXksIE1heSAyNywgMjAxMCAxMjow
-MyBQTQ0KVG86IE1pa2UgSGVpbno7IEhhbCBSb3NlbnN0b2NrDQpDYzogbGludXgtcmRtYUB2Z2Vy
-Lmtlcm5lbC5vcmc7IFJvbGFuZCBEcmVpZXINClN1YmplY3Q6IFJFOiBbUEFUQ0hdIElCL2NvcmUg
-VXNlciBSTVBQIHBhdGNoDQoNCj4gVGhlcmUgYXJlIFFMb2dpYyBjdXN0b21lcnMgd2hvIGhhdmUg
-cmVxdWVzdGVkIHRoZSBhYmlsaXR5IHRvIHBlcmZvcm0gUk1QUA0KPiB0cmFuc2FjdGlvbiBoYW5k
-bGluZyBpbiB1c2VyIHNwYWNlLiAgVGhpcyB3YXMgYW4gb3B0aW9uIGluIG91ciBvbGQNCj4gcHJv
-cHJpZXRhcnkgc3RhY2sgYW5kIHRoZXJlIGFyZSBhIGZldyBjdXN0b21lcnMgc3RpbGwgdXNpbmcg
-aXQgd2hpY2ggbmVlZCBhDQo+IHdheSB0byBmb3J3YXJkIG1pZ3JhdGUgdG8gT0ZFRCB3aGlsZSBj
-b250YWluaW5nIHRoZSBzY29wZSBvZiB0aGVpcg0KPiBhcHBsaWNhdGlvbiBjaGFuZ2VzLiAgV2hp
-bGUgd2UgaGF2ZSBkZXZlbG9wZWQgYXBwcm9wcmlhdGUgInNoaW0iIGxpYnJhcmllcw0KPiB0byBh
-bGxvdyB0aGVpciBhcHBsaWNhdGlvbnMgdG8gbWlncmF0ZSwgd2UgY2FuJ3Qgc2ltdWxhdGUvc2hp
-bSBybXBwDQo+IHByb2Nlc3Npbmcgd2l0aG91dCBzb21lIGtlcm5lbCBzdXBwb3J0Lg0KDQpIYXZl
-IHlvdSBsb29rZWQgYXQgdXNpbmcgYSBRUCBvdGhlciB0aGFuIFFQMSBmb3IgdGhpcz8NCg0KSSBi
-ZWxpZXZlIHRoYXQgdGhlIGN1cnJlbnQga2VybmVsIGNvZGUgYXNzdW1lcyB0aGF0IGFsbCBub24t
-ZGF0YSBSTVBQIHBhY2tldHMgYXJlIGluaXRpYXRlZCBieSB0aGUga2VybmVsIGFuZCBkaXNjYXJk
-ZWQgdXBvbiBjb21wbGV0aW9uLiAgSSB3b3VsZCBleHBlY3QgdGhhdCBtb3JlIHdvcmsgd291bGQg
-YmUgbmVlZGVkIHRoYW4gdGhpcyBwYXRjaCB0byBleHBvc2Ugbm9uLWRhdGEgUk1QUCBNQURzIHRv
-IHRoZSB1c2VyLCBpbmNsdWRpbmcgdGhlaXIgY29tcGxldGlvbnMsIHBsdXMgcmVxdWlyZSB0aGUg
-dXNlciB0byBwZXJmb3JtIHRoZSBzZWdtZW50YXRpb24sIHJlYXNzZW1ibHksIGFuZCB0cmFuc2Fj
-dGlvbiBtYXRjaGluZy4gIChUaGlzIGlzIGp1c3QgYSBndWVzcy4pDQoNCi0gU2Vhbg0K
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+On Thu, 27 May 2010 15:26:28 +1000 Stephen Rothwell wrote:
+
+> Hi all,
+> 
+> We are in the merge window again.  I remind you all not to add stuff for
+> 2.6.36 to your linux-next trees until after 2.6.35-rc1.
+> 
+> Changes since 20100526:
+
+
+when CONFIG_INFINIBAND_QIB=y and CONFIG_DCA=m:
+
+drivers/built-in.o: In function `qib_update_sdma_dca':
+qib_iba7322.c:(.text+0x409219): undefined reference to `dca3_get_tag'
+drivers/built-in.o: In function `qib_update_rhdrq_dca':
+qib_iba7322.c:(.text+0x40a1f9): undefined reference to `dca3_get_tag'
+drivers/built-in.o: In function `qib_setup_7322_cleanup':
+qib_iba7322.c:(.text+0x40f91f): undefined reference to `dca_remove_requester'
+drivers/built-in.o: In function `qib_init_iba7322_funcs':
+(.text+0x419b6f): undefined reference to `dca_add_requester'
+
+
+However, it looks like qib needs to handle DCA config in a way that
+is similar to how it is handled in drivers/net/{myri10ge,igb,ixgbe}/
+instead of assuming that DCA is enabled.
+
+
+And please fix the linux-next 2010-may-25 reported qib problem:
+  http://lkml.org/lkml/2010/5/25/321
+
+---
+~Randy
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
