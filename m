@@ -1,7 +1,7 @@
 From: Mike Heinz <michael.heinz-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH] IB/util madeye.c
-Date: Thu, 27 May 2010 10:43:54 -0500
-Message-ID: <4C2744E8AD2982428C5BFE523DF8CDCB49A488D5D1@MNEXMB1.qlogic.org>
+Subject: [PATCH v2] IB/util madeye.c
+Date: Thu, 27 May 2010 10:51:34 -0500
+Message-ID: <4C2744E8AD2982428C5BFE523DF8CDCB49A488D5D7@MNEXMB1.qlogic.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
@@ -11,14 +11,46 @@ Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+Previous patchfile was missing the Kconfig and makefile changes. Sorry.
+---
 Madeye is a debugging/monitoring tool for infiniband fabrics. When loaded, by default it will log copies of all MAD traffic to the system log. In addition, it can be configured to log only those MADs which have a particular class or a particular attribute id.
 
-It has been part of the EWG version of the OFED stack for several years, but it is useful enough that I think it should be included in the standard RDMA stack.
+It has been part of the EWG version of the OFED stack for several years, but it is useful enough that I think it should be included in the standard RDMA stack. This patch includes a bug fix that has also been submitted to EWG.
 
 Signed-Off-By: Michael Heinz <michael.heinz-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
 
 ----
 
+diff --git a/drivers/infiniband/Makefile b/drivers/infiniband/Makefile
+index 9cc7a47..d4afe6c 100644
+--- a/drivers/infiniband/Makefile
++++ b/drivers/infiniband/Makefile
+@@ -11,3 +11,4 @@ obj-$(CONFIG_INFINIBAND_NES)          += hw/nes/
+ obj-$(CONFIG_INFINIBAND_IPOIB)         += ulp/ipoib/
+ obj-$(CONFIG_INFINIBAND_SRP)           += ulp/srp/
+ obj-$(CONFIG_INFINIBAND_ISER)          += ulp/iser/
++obj-$(CONFIG_INFINIBAND_MADEYE)                += util/
+diff --git a/drivers/infiniband/util/Kconfig b/drivers/infiniband/util/Kconfig
+new file mode 100644
+index 0000000..5e98eaa
+--- /dev/null
++++ b/drivers/infiniband/util/Kconfig
+@@ -0,0 +1,6 @@
++config INFINIBAND_MADEYE
++       tristate "MAD debug viewer for InfiniBand"
++       depends on INFINIBAND
++       ---help---
++         Prints sent and received MADs on QP 0/1 for debugging.
++
+diff --git a/drivers/infiniband/util/Makefile b/drivers/infiniband/util/Makefile
+new file mode 100644
+index 0000000..caf9471
+--- /dev/null
++++ b/drivers/infiniband/util/Makefile
+@@ -0,0 +1,3 @@
++obj-$(CONFIG_INFINIBAND_MADEYE)        += ib_madeye.o
++
++ib_madeye-y := madeye.o
 diff --git a/drivers/infiniband/util/madeye.c b/drivers/infiniband/util/madeye.c
 new file mode 100644
 index 0000000..2c650a3
