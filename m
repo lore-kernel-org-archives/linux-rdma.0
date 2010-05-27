@@ -1,279 +1,624 @@
-From: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH] IB/core User RMPP patch
-Date: Thu, 27 May 2010 11:12:45 -0400
-Message-ID: <AANLkTin1hUVSEkbAFMhmhH4Iy--PdMyS1FrVWcZU_ndS@mail.gmail.com>
-References: <4C2744E8AD2982428C5BFE523DF8CDCB49A488D528@MNEXMB1.qlogic.org>
-	<AANLkTikpYJXj9MjCwGUlK1SisooL_etjbE3BdwHtQjTj@mail.gmail.com>
-	<4C2744E8AD2982428C5BFE523DF8CDCB49A488D5AF@MNEXMB1.qlogic.org>
+From: Mike Heinz <michael.heinz-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH] IB/util madeye.c
+Date: Thu, 27 May 2010 10:43:54 -0500
+Message-ID: <4C2744E8AD2982428C5BFE523DF8CDCB49A488D5D1@MNEXMB1.qlogic.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4C2744E8AD2982428C5BFE523DF8CDCB49A488D5AF-amwN6d8PyQWXx9kJd3VG2h2eb7JE58TQ@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Mike Heinz <michael.heinz-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, May 27, 2010 at 10:32 AM, Mike Heinz <michael.heinz-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>=
- wrote:
-> There are QLogic customers who have requested the ability to perform =
-RMPP transaction handling in user space. =C2=A0This was an option in ou=
-r old proprietary stack and there are a few customers still using it wh=
-ich need a way to forward migrate to OFED while containing the scope of=
- their application changes. =C2=A0While we have developed appropriate "=
-shim" libraries to allow their applications to migrate, we can't simula=
-te/shim rmpp processing without some kernel support.
->
-> We also have some management applications which also need these capab=
-ilities. =C2=A0For those applications, the use of application RMPP cont=
-rol allows the application to perform some pacing of the RMPP transacti=
-ons, permits some parts of the RMPP response to be built on the fly and=
- also permits a degree of sharing of the response data between multiple=
- requestors.
->
-> The use of OFED kernel based RMPP transaction handling was unable to =
-meet all these requirements. =C2=A0So this simple option provides a min=
-imal change to OFED while permitting the application to have the contro=
-l it needs.
+Madeye is a debugging/monitoring tool for infiniband fabrics. When loaded, by default it will log copies of all MAD traffic to the system log. In addition, it can be configured to log only those MADs which have a particular class or a particular attribute id.
 
-The API would need to be extended for this mode (in some backward
-compatible manner) rather than supplanting the rmpp_version 0
-behavior. Changing that behavior breaks backward compatibility/some
-existing apps.
+It has been part of the EWG version of the OFED stack for several years, but it is useful enough that I think it should be included in the standard RDMA stack.
 
->
-> -----Original Message-----
-> From: Hal Rosenstock [mailto:hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org]
-> Sent: Thursday, May 27, 2010 9:07 AM
-> To: Mike Heinz
-> Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Roland Dreier
-> Subject: Re: [PATCH] IB/core User RMPP patch
->
-> On Wed, May 26, 2010 at 4:14 PM, Mike Heinz <michael.heinz-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org=
-> wrote:
->> Currently, if a user application calls umad_register() or umad_regis=
-ter_oui() with an rmpp_version of zero, incoming rmpp messages are disc=
-arded.
->
-> Actually, it's the underlying ib_register_mad_agent call and this dro=
-p
-> behavior is intentional.
->
->> This patch changes this behavior so that rmpp_version of zero causes=
- incoming rmpp packets to be passed through without alteration, instead=
-=2E
->
-> What's the motivation to make such a behavioral change ?
->
-> -- Hal
->
->>
->> Signed-off-by: Michael Heinz <michael.heinz-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
->> ----
->>
->> diff --git a/drivers/infiniband/core/mad.c b/drivers/infiniband/core=
-/mad.c
->> index 80282f1..b3457ae 100644
->> --- a/drivers/infiniband/core/mad.c
->> +++ b/drivers/infiniband/core/mad.c
->> @@ -1830,25 +1830,39 @@ static void ib_mad_complete_recv(struct ib_m=
-ad_agent_private *mad_agent_priv,
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0if (ib_response_mad(mad_recv_wc->recv_buf=
-=2Emad)) {
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0spin_lock_irq=
-save(&mad_agent_priv->lock, flags);
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0mad_send_wr =3D=
- ib_find_send_mad(mad_agent_priv, mad_recv_wc);
->> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 if (!mad_send_wr)=
- {
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 if (mad_send_wr) =
-{
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 ib_mark_mad_done(mad_send_wr);
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 =C2=A0spin_unlock_irqrestore(&mad_agent_priv->lock, flags);
->> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 ib_free_recv_mad(mad_recv_wc);
->> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 deref_mad_agent(mad_agent_priv);
->> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 return;
->> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 }
->> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 ib_mark_mad_done(=
-mad_send_wr);
->> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 spin_unlock_irqre=
-store(&mad_agent_priv->lock, flags);
->>
->> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 /* Defined behavi=
-or is to complete response before request */
->> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 mad_recv_wc->wc->=
-wr_id =3D (unsigned long) &mad_send_wr->send_buf;
->> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 mad_agent_priv->a=
-gent.recv_handler(&mad_agent_priv->agent,
->> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0mad_recv_wc);
->> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 atomic_dec(&mad_a=
-gent_priv->refcount);
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 /* Defined behavior is to complete response before request *=
-/
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 mad_recv_wc->wc->wr_id =3D (unsigned long) &mad_send_wr->sen=
-d_buf;
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 mad_agent_priv->agent.recv_handler(&mad_agent_priv->agent,
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0mad_recv=
-_wc);
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 atomic_dec(&mad_agent_priv->refcount);
->>
->> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 mad_send_wc.statu=
-s =3D IB_WC_SUCCESS;
->> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 mad_send_wc.vendo=
-r_err =3D 0;
->> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 mad_send_wc.send_=
-buf =3D &mad_send_wr->send_buf;
->> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 ib_mad_complete_s=
-end_wr(mad_send_wr, &mad_send_wc);
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 mad_send_wc.status =3D IB_WC_SUCCESS;
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 mad_send_wc.vendor_err =3D 0;
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 mad_send_wc.send_buf =3D &mad_send_wr->send_buf;
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 ib_mad_complete_send_wr(mad_send_wr, &mad_send_wc);
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 } else {
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 if ( =C2=A0!mad_agent_priv->agent.rmpp_version
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0 =C2=A0&& ib_is_mad_class_rmpp(mad_recv_wc->recv_buf.m=
-ad->mad_hdr.mgmt_class)
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0 =C2=A0&& (ib_get_rmpp_flags(&((struct ib_rmpp_mad *)m=
-ad_recv_wc->recv_buf.mad)->rmpp_hdr) & IB_MGMT_RMPP_FLAG_ACTIVE)) {
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 // user rmpp is in effect
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 spin_unlock_irqrestore(&mad_agen=
-t_priv->lock, flags);
->> +
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 mad_recv_wc->wc->wr_id =3D 0;
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 mad_agent_priv->agent.recv_handl=
-er(&mad_agent_priv->agent,
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =
-=C2=A0 =C2=A0 =C2=A0mad_recv_wc);
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 atomic_dec(&mad_agent_priv->refc=
-ount);
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 } else {
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 // not user rmpp, revert to norm=
-al behavior and drop the mad
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 spin_unlock_irqrestore(&mad_agen=
-t_priv->lock, flags);
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 ib_free_recv_mad(mad_recv_wc);
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 deref_mad_agent(mad_agent_priv);
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 return;
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 }
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 }
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0} else {
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0mad_agent_pri=
-v->agent.recv_handler(&mad_agent_priv->agent,
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =
-=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 mad_recv_wc);
->> diff --git a/drivers/infiniband/core/user_mad.c b/drivers/infiniband=
-/core/user_mad.c
->> index 36f815c..f9cacbc 100644
->> --- a/drivers/infiniband/core/user_mad.c
->> +++ b/drivers/infiniband/core/user_mad.c
->> @@ -508,7 +508,7 @@ static ssize_t ib_umad_write(struct file *filp, =
-const char __user *buf,
->>
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0rmpp_mad =3D (struct ib_rmpp_mad *) packe=
-t->mad.data;
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0hdr_len =3D ib_get_mad_data_offset(rmpp_m=
-ad->mad_hdr.mgmt_class);
->> - =C2=A0 =C2=A0 =C2=A0 if (!ib_is_mad_class_rmpp(rmpp_mad->mad_hdr.m=
-gmt_class)) {
->> + =C2=A0 =C2=A0 =C2=A0 if (!agent->rmpp_version || !ib_is_mad_class_=
-rmpp(rmpp_mad->mad_hdr.mgmt_class)) {
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0copy_offset =3D=
- IB_MGMT_MAD_HDR;
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0rmpp_active =3D=
- 0;
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0} else {
->> @@ -560,14 +560,22 @@ static ssize_t ib_umad_write(struct file *filp=
-, const char __user *buf,
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0rmpp_mad->mad=
-_hdr.tid =3D *tid;
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0}
->>
->> - =C2=A0 =C2=A0 =C2=A0 spin_lock_irq(&file->send_lock);
->> - =C2=A0 =C2=A0 =C2=A0 ret =3D is_duplicate(file, packet);
->> - =C2=A0 =C2=A0 =C2=A0 if (!ret)
->> + =C2=A0 =C2=A0 =C2=A0 if ( =C2=A0!agent->rmpp_version
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0&& ib_is_mad_class_rmpp(rmpp_mad=
-->mad_hdr.mgmt_class)
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0&& (ib_get_rmpp_flags(&rmpp_mad-=
->rmpp_hdr) & IB_MGMT_RMPP_FLAG_ACTIVE)) {
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 spin_lock_irq(&fi=
-le->send_lock);
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0list_add_tail=
-(&packet->list, &file->send_list);
->> - =C2=A0 =C2=A0 =C2=A0 spin_unlock_irq(&file->send_lock);
->> - =C2=A0 =C2=A0 =C2=A0 if (ret) {
->> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 ret =3D -EINVAL;
->> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 goto err_msg;
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 spin_unlock_irq(&=
-file->send_lock);
->> + =C2=A0 =C2=A0 =C2=A0 } else {
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 spin_lock_irq(&fi=
-le->send_lock);
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 ret =3D is_duplic=
-ate(file, packet);
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 if (!ret)
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 list_add_tail(&packet->list, &file->send_list);
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 spin_unlock_irq(&=
-file->send_lock);
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 if (ret) {
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 ret =3D -EINVAL;
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 goto err_msg;
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 }
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0}
->>
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0ret =3D ib_post_send_mad(packet->msg, NUL=
-L);
->>
->>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-rdma=
-" in
->> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->> More majordomo info at =C2=A0http://vger.kernel.org/majordomo-info.h=
-tml
->>
->
+Signed-Off-By: Michael Heinz <michael.heinz-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+
+----
+
+diff --git a/drivers/infiniband/util/madeye.c b/drivers/infiniband/util/madeye.c
+new file mode 100644
+index 0000000..2c650a3
+--- /dev/null
++++ b/drivers/infiniband/util/madeye.c
+@@ -0,0 +1,593 @@
++/*
++ * Copyright (c) 2004, 2005 Intel Corporation.  All rights reserved.
++ * Copyright (c) 2005, 2006 Voltaire Inc.  All rights reserved.
++ *
++ * This software is available to you under a choice of one of two
++ * licenses.  You may choose to be licensed under the terms of the GNU
++ * General Public License (GPL) Version 2, available from the file
++ * COPYING in the main directorY of this source tree, or the
++ * OpenIB.org BSD license below:
++ *
++ *     Redistribution and use in source and binary forms, with or
++ *     without modification, are permitted provided that the following
++ *     conditions are met:
++ *
++ *      - Redistributions of source code must retain the above
++ *        copyright notice, this list of conditions and the following
++ *        disclaimer.
++ *
++ *      - Redistributions in binary form must reproduce the above
++ *        copyright notice, this list of conditions and the following
++ *        disclaimer in the documentation and/or other materials
++ *        provided with the distribution.
++ *
++ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
++ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
++ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
++ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
++ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
++ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
++ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
++ * SOFTWARE.
++ *
++ * $Id$
++ */
++#include <linux/module.h>
++#include <linux/device.h>
++#include <linux/err.h>
++
++#include <rdma/ib_mad.h>
++#include <rdma/ib_smi.h>
++#include <rdma/ib_sa.h>
++
++MODULE_AUTHOR("Sean Hefty");
++MODULE_DESCRIPTION("InfiniBand MAD viewer");
++MODULE_LICENSE("Dual BSD/GPL");
++
++static void madeye_remove_one(struct ib_device *device);
++static void madeye_add_one(struct ib_device *device);
++
++static struct ib_client madeye_client = {
++       .name   = "madeye",
++       .add    = madeye_add_one,
++       .remove = madeye_remove_one
++};
++
++struct madeye_port {
++       struct ib_mad_agent *smi_agent;
++       struct ib_mad_agent *gsi_agent;
++};
++
++static int smp = 1;
++static int gmp = 1;
++static int mgmt_class = 0;
++static int attr_id = 0;
++static int data = 0;
++
++module_param(smp, int, 0444);
++module_param(gmp, int, 0444);
++module_param(mgmt_class, int, 0444);
++module_param(attr_id, int, 0444);
++module_param(data, int, 0444);
++
++MODULE_PARM_DESC(smp, "Display all SMPs (default=1)");
++MODULE_PARM_DESC(gmp, "Display all GMPs (default=1)");
++MODULE_PARM_DESC(mgmt_class, "Display all MADs of specified class (default=0)");
++MODULE_PARM_DESC(attr_id, "Display add MADs of specified attribute ID (default=0)");
++MODULE_PARM_DESC(data, "Display data area of MADs (default=0)");
++
++static char * get_class_name(u8 mgmt_class)
++{
++       switch(mgmt_class) {
++       case IB_MGMT_CLASS_SUBN_LID_ROUTED:
++               return "LID routed SMP";
++       case IB_MGMT_CLASS_SUBN_DIRECTED_ROUTE:
++               return "Directed route SMP";
++       case IB_MGMT_CLASS_SUBN_ADM:
++               return "Subnet admin.";
++       case IB_MGMT_CLASS_PERF_MGMT:
++               return "Perf. mgmt.";
++       case IB_MGMT_CLASS_BM:
++               return "Baseboard mgmt.";
++       case IB_MGMT_CLASS_DEVICE_MGMT:
++               return "Device mgmt.";
++       case IB_MGMT_CLASS_CM:
++               return "Comm. mgmt.";
++       case IB_MGMT_CLASS_SNMP:
++               return "SNMP";
++       default:
++               return "Unknown vendor/application";
++       }
++}
++
++static char * get_method_name(u8 mgmt_class, u8 method)
++{
++       switch(method) {
++       case IB_MGMT_METHOD_GET:
++               return "Get";
++       case IB_MGMT_METHOD_SET:
++               return "Set";
++       case IB_MGMT_METHOD_GET_RESP:
++               return "Get response";
++       case IB_MGMT_METHOD_SEND:
++               return "Send";
++       case IB_MGMT_METHOD_SEND | IB_MGMT_METHOD_RESP:
++               return "Send response";
++       case IB_MGMT_METHOD_TRAP:
++               return "Trap";
++       case IB_MGMT_METHOD_REPORT:
++               return "Report";
++       case IB_MGMT_METHOD_REPORT_RESP:
++               return "Report response";
++       case IB_MGMT_METHOD_TRAP_REPRESS:
++               return "Trap repress";
++       default:
++               break;
++       }
++
++       switch (mgmt_class) {
++       case IB_MGMT_CLASS_SUBN_ADM:
++               switch (method) {
++               case IB_SA_METHOD_GET_TABLE:
++                       return "Get table";
++               case IB_SA_METHOD_GET_TABLE_RESP:
++                       return "Get table response";
++               case IB_SA_METHOD_DELETE:
++                       return "Delete";
++               case IB_SA_METHOD_DELETE_RESP:
++                       return "Delete response";
++               case IB_SA_METHOD_GET_MULTI:
++                       return "Get Multi";
++               case IB_SA_METHOD_GET_MULTI_RESP:
++                       return "Get Multi response";
++               case IB_SA_METHOD_GET_TRACE_TBL:
++                       return "Get Trace Table response";
++               default:
++                       break;
++               }
++       default:
++               break;
++       }
++
++       return "Unknown";
++}
++
++static void print_status_details(u16 status)
++{
++       if (status & 0x0001)
++               printk("               busy\n");
++       if (status & 0x0002)
++               printk("               redirection required\n");
++       switch((status & 0x001C) >> 2) {
++       case 1:
++               printk("               bad version\n");
++               break;
++       case 2:
++               printk("               method not supported\n");
++               break;
++       case 3:
++               printk("               method/attribute combo not supported\n");
++               break;
++       case 7:
++               printk("               invalid attribute/modifier value\n");
++               break;
++       }
++}
++
++static char * get_sa_attr(__be16 attr)
++{
++       switch(attr) {
++       case IB_SA_ATTR_CLASS_PORTINFO:
++               return "Class Port Info";
++       case IB_SA_ATTR_NOTICE:
++               return "Notice";
++       case IB_SA_ATTR_INFORM_INFO:
++               return "Inform Info";
++       case IB_SA_ATTR_NODE_REC:
++               return "Node Record";
++       case IB_SA_ATTR_PORT_INFO_REC:
++               return "PortInfo Record";
++       case IB_SA_ATTR_SL2VL_REC:
++               return "SL to VL Record";
++       case IB_SA_ATTR_SWITCH_REC:
++               return "Switch Record";
++       case IB_SA_ATTR_LINEAR_FDB_REC:
++               return "Linear FDB Record";
++       case IB_SA_ATTR_RANDOM_FDB_REC:
++               return "Random FDB Record";
++       case IB_SA_ATTR_MCAST_FDB_REC:
++               return "Multicast FDB Record";
++       case IB_SA_ATTR_SM_INFO_REC:
++               return "SM Info Record";
++       case IB_SA_ATTR_LINK_REC:
++               return "Link Record";
++       case IB_SA_ATTR_GUID_INFO_REC:
++               return "Guid Info Record";
++       case IB_SA_ATTR_SERVICE_REC:
++               return "Service Record";
++       case IB_SA_ATTR_PARTITION_REC:
++               return "Partition Record";
++       case IB_SA_ATTR_PATH_REC:
++               return "Path Record";
++       case IB_SA_ATTR_VL_ARB_REC:
++               return "VL Arb Record";
++       case IB_SA_ATTR_MC_MEMBER_REC:
++               return "MC Member Record";
++       case IB_SA_ATTR_TRACE_REC:
++               return "Trace Record";
++       case IB_SA_ATTR_MULTI_PATH_REC:
++               return "Multi Path Record";
++       case IB_SA_ATTR_SERVICE_ASSOC_REC:
++               return "Service Assoc Record";
++       case IB_SA_ATTR_INFORM_INFO_REC:
++               return "Inform Info Record";
++       default:
++               return "";
++       }
++}
++
++static void print_mad_hdr(struct ib_mad_hdr *mad_hdr)
++{
++       printk("MAD version....0x%01x\n", mad_hdr->base_version);
++       printk("Class..........0x%01x (%s)\n", mad_hdr->mgmt_class,
++              get_class_name(mad_hdr->mgmt_class));
++       printk("Class version..0x%01x\n", mad_hdr->class_version);
++       printk("Method.........0x%01x (%s)\n", mad_hdr->method,
++              get_method_name(mad_hdr->mgmt_class, mad_hdr->method));
++       printk("Status.........0x%02x\n", be16_to_cpu(mad_hdr->status));
++       if (mad_hdr->status)
++               print_status_details(be16_to_cpu(mad_hdr->status));
++       printk("Class specific.0x%02x\n", be16_to_cpu(mad_hdr->class_specific));
++       printk("Trans ID.......0x%llx\n",
++               (unsigned long long)be64_to_cpu(mad_hdr->tid));
++       if (mad_hdr->mgmt_class == IB_MGMT_CLASS_SUBN_ADM)
++               printk("Attr ID........0x%02x (%s)\n",
++                      be16_to_cpu(mad_hdr->attr_id),
++                      get_sa_attr(be16_to_cpu(mad_hdr->attr_id)));
++       else
++               printk("Attr ID........0x%02x\n",
++                      be16_to_cpu(mad_hdr->attr_id));
++       printk("Attr modifier..0x%04x\n", be32_to_cpu(mad_hdr->attr_mod));
++}
++
++static char * get_rmpp_type(u8 rmpp_type)
++{
++       switch (rmpp_type) {
++       case IB_MGMT_RMPP_TYPE_DATA:
++               return "Data";
++       case IB_MGMT_RMPP_TYPE_ACK:
++               return "Ack";
++       case IB_MGMT_RMPP_TYPE_STOP:
++               return "Stop";
++       case IB_MGMT_RMPP_TYPE_ABORT:
++               return "Abort";
++       default:
++               return "Unknown";
++       }
++}
++
++static char * get_rmpp_flags(u8 rmpp_flags)
++{
++       if (rmpp_flags & IB_MGMT_RMPP_FLAG_ACTIVE)
++               if (rmpp_flags & IB_MGMT_RMPP_FLAG_FIRST)
++                       if (rmpp_flags & IB_MGMT_RMPP_FLAG_LAST)
++                               return "Active - First & Last";
++                       else
++                               return "Active - First";
++               else
++                       if (rmpp_flags & IB_MGMT_RMPP_FLAG_LAST)
++                               return "Active - Last";
++                       else
++                               return "Active";
++       else
++               return "Inactive";
++}
++
++static void print_rmpp_hdr(struct ib_rmpp_hdr *rmpp_hdr)
++{
++       printk("RMPP version...0x%01x\n", rmpp_hdr->rmpp_version);
++       printk("RMPP type......0x%01x (%s)\n", rmpp_hdr->rmpp_type,
++              get_rmpp_type(rmpp_hdr->rmpp_type));
++       printk("RMPP RRespTime.0x%01x\n", ib_get_rmpp_resptime(rmpp_hdr));
++       printk("RMPP flags.....0x%01x (%s)\n", ib_get_rmpp_flags(rmpp_hdr),
++              get_rmpp_flags(ib_get_rmpp_flags(rmpp_hdr)));
++       printk("RMPP status....0x%01x\n", rmpp_hdr->rmpp_status);
++       printk("Seg number.....0x%04x\n", be32_to_cpu(rmpp_hdr->seg_num));
++       switch (rmpp_hdr->rmpp_type) {
++       case IB_MGMT_RMPP_TYPE_DATA:
++               printk("Payload len....0x%04x\n",
++                      be32_to_cpu(rmpp_hdr->paylen_newwin));
++               break;
++       case IB_MGMT_RMPP_TYPE_ACK:
++               printk("New window.....0x%04x\n",
++                      be32_to_cpu(rmpp_hdr->paylen_newwin));
++               break;
++       default:
++               printk("Data 2.........0x%04x\n",
++                      be32_to_cpu(rmpp_hdr->paylen_newwin));
++               break;
++       }
++}
++
++static char * get_smp_attr(__be16 attr)
++{
++       switch (attr) {
++       case IB_SMP_ATTR_NOTICE:
++               return "notice";
++       case IB_SMP_ATTR_NODE_DESC:
++               return "node description";
++       case IB_SMP_ATTR_NODE_INFO:
++               return "node info";
++       case IB_SMP_ATTR_SWITCH_INFO:
++               return "switch info";
++       case IB_SMP_ATTR_GUID_INFO:
++               return "GUID info";
++       case IB_SMP_ATTR_PORT_INFO:
++               return "port info";
++       case IB_SMP_ATTR_PKEY_TABLE:
++               return "pkey table";
++       case IB_SMP_ATTR_SL_TO_VL_TABLE:
++               return "SL to VL table";
++       case IB_SMP_ATTR_VL_ARB_TABLE:
++               return "VL arbitration table";
++       case IB_SMP_ATTR_LINEAR_FORWARD_TABLE:
++               return "linear forwarding table";
++       case IB_SMP_ATTR_RANDOM_FORWARD_TABLE:
++               return "random forward table";
++       case IB_SMP_ATTR_MCAST_FORWARD_TABLE:
++               return "multicast forward table";
++       case IB_SMP_ATTR_SM_INFO:
++               return "SM info";
++       case IB_SMP_ATTR_VENDOR_DIAG:
++               return "vendor diags";
++       case IB_SMP_ATTR_LED_INFO:
++               return "LED info";
++       default:
++               return "";
++       }
++}
++
++static void print_smp(struct ib_smp *smp)
++{
++       int i;
++
++       printk("MAD version....0x%01x\n", smp->base_version);
++       printk("Class..........0x%01x (%s)\n", smp->mgmt_class,
++              get_class_name(smp->mgmt_class));
++       printk("Class version..0x%01x\n", smp->class_version);
++       printk("Method.........0x%01x (%s)\n", smp->method,
++              get_method_name(smp->mgmt_class, smp->method));
++       printk("Status.........0x%02x\n", be16_to_cpu(smp->status));
++       if (smp->status)
++               print_status_details(be16_to_cpu(smp->status));
++       printk("Hop pointer....0x%01x\n", smp->hop_ptr);
++       printk("Hop counter....0x%01x\n", smp->hop_cnt);
++       printk("Trans ID.......0x%llx\n",
++               (unsigned long long)be64_to_cpu(smp->tid));
++       printk("Attr ID........0x%02x (%s)\n", be16_to_cpu(smp->attr_id),
++               get_smp_attr(smp->attr_id));
++       printk("Attr modifier..0x%04x\n", be32_to_cpu(smp->attr_mod));
++
++       printk("Mkey...........0x%llx\n",
++               (unsigned long long)be64_to_cpu(smp->mkey));
++       printk("DR SLID........0x%02x\n", be16_to_cpu(smp->dr_slid));
++       printk("DR DLID........0x%02x", be16_to_cpu(smp->dr_dlid));
++
++       if (data) {
++               for (i = 0; i < IB_SMP_DATA_SIZE; i++) {
++                       if (i % 16 == 0)
++                               printk("\nSMP Data.......");
++                       printk("%01x ", smp->data[i]);
++               }
++               for (i = 0; i < IB_SMP_MAX_PATH_HOPS; i++) {
++                       if (i % 16 == 0)
++                               printk("\nInitial path...");
++                       printk("%01x ", smp->initial_path[i]);
++               }
++               for (i = 0; i < IB_SMP_MAX_PATH_HOPS; i++) {
++                       if (i % 16 == 0)
++                               printk("\nReturn path....");
++                       printk("%01x ", smp->return_path[i]);
++               }
++       }
++       printk("\n");
++}
++
++static void snoop_smi_handler(struct ib_mad_agent *mad_agent,
++                             struct ib_mad_send_buf *send_buf,
++                             struct ib_mad_send_wc *mad_send_wc)
++{
++       struct ib_mad_hdr *hdr = send_buf->mad;
++
++       if (!smp && hdr->mgmt_class != mgmt_class)
++               return;
++       if (attr_id && be16_to_cpu(hdr->attr_id) != attr_id)
++               return;
++
++       printk("Madeye:sent SMP\n");
++       print_smp(send_buf->mad);
++}
++
++static void recv_smi_handler(struct ib_mad_agent *mad_agent,
++                            struct ib_mad_recv_wc *mad_recv_wc)
++{
++       if (!smp && mad_recv_wc->recv_buf.mad->mad_hdr.mgmt_class != mgmt_class)
++               return;
++       if (attr_id && be16_to_cpu(mad_recv_wc->recv_buf.mad->mad_hdr.attr_id) != attr_id)
++               return;
++
++       printk("Madeye:recv SMP\n");
++       print_smp((struct ib_smp *)&mad_recv_wc->recv_buf.mad->mad_hdr);
++}
++
++static int is_rmpp_mad(struct ib_mad_hdr *mad_hdr)
++{
++       if (mad_hdr->mgmt_class == IB_MGMT_CLASS_SUBN_ADM) {
++               switch (mad_hdr->method) {
++               case IB_SA_METHOD_GET_TABLE:
++               case IB_SA_METHOD_GET_TABLE_RESP:
++               case IB_SA_METHOD_GET_MULTI_RESP:
++                       return 1;
++               default:
++                       break;
++               }
++       } else if ((mad_hdr->mgmt_class >= IB_MGMT_CLASS_VENDOR_RANGE2_START) &&
++                  (mad_hdr->mgmt_class <= IB_MGMT_CLASS_VENDOR_RANGE2_END))
++               return 1;
++
++       return 0;
++}
++
++static void snoop_gsi_handler(struct ib_mad_agent *mad_agent,
++                             struct ib_mad_send_buf *send_buf,
++                             struct ib_mad_send_wc *mad_send_wc)
++{
++       struct ib_mad_hdr *hdr = send_buf->mad;
++
++       if (!gmp && hdr->mgmt_class != mgmt_class)
++               return;
++       if (attr_id && be16_to_cpu(hdr->attr_id) != attr_id)
++               return;
++
++       printk("Madeye:sent GMP\n");
++       print_mad_hdr(hdr);
++
++       if (is_rmpp_mad(hdr))
++               print_rmpp_hdr(&((struct ib_rmpp_mad *) hdr)->rmpp_hdr);
++}
++
++static void recv_gsi_handler(struct ib_mad_agent *mad_agent,
++                            struct ib_mad_recv_wc *mad_recv_wc)
++{
++       struct ib_mad_hdr *hdr = &mad_recv_wc->recv_buf.mad->mad_hdr;
++       struct ib_rmpp_mad *mad = NULL;
++       struct ib_sa_mad *sa_mad;
++       struct ib_vendor_mad *vendor_mad;
++       u8 *mad_data;
++       int i, j;
++
++       if (!gmp && hdr->mgmt_class != mgmt_class)
++               return;
++       if (attr_id && be16_to_cpu(mad_recv_wc->recv_buf.mad->mad_hdr.attr_id) != attr_id)
++               return;
++
++       printk("Madeye:recv GMP\n");
++       print_mad_hdr(hdr);
++
++       if (is_rmpp_mad(hdr)) {
++               mad = (struct ib_rmpp_mad *) hdr;
++               print_rmpp_hdr(&mad->rmpp_hdr);
++       }
++
++       if (data) {
++               if (hdr->mgmt_class == IB_MGMT_CLASS_SUBN_ADM) {
++                       j = IB_MGMT_SA_DATA;
++                       /* Display SA header */
++                       if (is_rmpp_mad(hdr) &&
++                           mad->rmpp_hdr.rmpp_type != IB_MGMT_RMPP_TYPE_DATA)
++                               return;
++                       sa_mad = (struct ib_sa_mad *)
++                                &mad_recv_wc->recv_buf.mad;
++                       mad_data = sa_mad->data;
++               } else {
++                       if (is_rmpp_mad(hdr)) {
++                               j = IB_MGMT_VENDOR_DATA;
++                               /* Display OUI */
++                               vendor_mad = (struct ib_vendor_mad *)
++                                            &mad_recv_wc->recv_buf.mad;
++                               printk("Vendor OUI......%01x %01x %01x\n",
++                                       vendor_mad->oui[0],
++                                       vendor_mad->oui[1],
++                                       vendor_mad->oui[2]);
++                               mad_data = vendor_mad->data;
++                       } else {
++                               j = IB_MGMT_MAD_DATA;
++                               mad_data = mad_recv_wc->recv_buf.mad->data;
++                       }
++               }
++               for (i = 0; i < j; i++) {
++                       if (i % 16 == 0)
++                               printk("\nData...........");
++                       printk("%01x ", mad_data[i]);
++               }
++               printk("\n");
++       }
++}
++
++static void madeye_add_one(struct ib_device *device)
++{
++       struct madeye_port *port;
++       int reg_flags;
++       u8 i, s, e;
++
++       if (device->node_type == RDMA_NODE_IB_SWITCH) {
++               s = 0;
++               e = 0;
++       } else {
++               s = 1;
++               e = device->phys_port_cnt;
++       }
++
++       port = kmalloc(sizeof *port * (e - s + 1), GFP_KERNEL);
++       if (!port)
++               goto out;
++
++       reg_flags = IB_MAD_SNOOP_SEND_COMPLETIONS | IB_MAD_SNOOP_RECVS;
++       for (i = 0; i <= e - s; i++) {
++               port[i].smi_agent = ib_register_mad_snoop(device, i + s,
++                                                         IB_QPT_SMI,
++                                                         reg_flags,
++                                                         snoop_smi_handler,
++                                                         recv_smi_handler,
++                                                         &port[i]);
++               port[i].gsi_agent = ib_register_mad_snoop(device, i + s,
++                                                         IB_QPT_GSI,
++                                                         reg_flags,
++                                                         snoop_gsi_handler,
++                                                         recv_gsi_handler,
++                                                         &port[i]);
++       }
++
++out:
++       ib_set_client_data(device, &madeye_client, port);
++}
++
++static void madeye_remove_one(struct ib_device *device)
++{
++       struct madeye_port *port;
++       int i, s, e;
++
++       port = (struct madeye_port *)
++               ib_get_client_data(device, &madeye_client);
++       if (!port)
++               return;
++
++       if (device->node_type == RDMA_NODE_IB_SWITCH) {
++               s = 0;
++               e = 0;
++       } else {
++               s = 1;
++               e = device->phys_port_cnt;
++       }
++
++       for (i = 0; i <= e - s; i++) {
++               if (!IS_ERR(port[i].smi_agent))
++                       ib_unregister_mad_agent(port[i].smi_agent);
++               if (!IS_ERR(port[i].gsi_agent))
++                       ib_unregister_mad_agent(port[i].gsi_agent);
++       }
++       kfree(port);
++}
++
++static int __init ib_madeye_init(void)
++{
++       return ib_register_client(&madeye_client);
++}
++
++static void __exit ib_madeye_cleanup(void)
++{
++       ib_unregister_client(&madeye_client);
++}
++
++module_init(ib_madeye_init);
++module_exit(ib_madeye_cleanup);
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
