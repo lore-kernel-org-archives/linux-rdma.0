@@ -1,288 +1,201 @@
-From: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH] IB/core User RMPP patch
-Date: Thu, 27 May 2010 12:57:46 -0400
-Message-ID: <AANLkTikRFL183MG_92Qo1hIwSbyVgB8-oS2G8eDxZfgm@mail.gmail.com>
+From: Mike Heinz <michael.heinz-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+Subject: RE: [PATCH] IB/core User RMPP patch
+Date: Thu, 27 May 2010 12:25:17 -0500
+Message-ID: <4C2744E8AD2982428C5BFE523DF8CDCB49A488D5EE@MNEXMB1.qlogic.org>
 References: <4C2744E8AD2982428C5BFE523DF8CDCB49A488D528@MNEXMB1.qlogic.org>
 	<AANLkTikpYJXj9MjCwGUlK1SisooL_etjbE3BdwHtQjTj@mail.gmail.com>
 	<4C2744E8AD2982428C5BFE523DF8CDCB49A488D5AF@MNEXMB1.qlogic.org>
 	<AANLkTin1hUVSEkbAFMhmhH4Iy--PdMyS1FrVWcZU_ndS@mail.gmail.com>
+ <AANLkTikRFL183MG_92Qo1hIwSbyVgB8-oS2G8eDxZfgm@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <AANLkTin1hUVSEkbAFMhmhH4Iy--PdMyS1FrVWcZU_ndS-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <AANLkTikRFL183MG_92Qo1hIwSbyVgB8-oS2G8eDxZfgm-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Mike Heinz <michael.heinz-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+To: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Todd Rimmer <todd.rimmer-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, May 27, 2010 at 11:12 AM, Hal Rosenstock
-<hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
-> On Thu, May 27, 2010 at 10:32 AM, Mike Heinz <michael.heinz-h88ZbnxC6KBhl2p70BpVqQ@public.gmane.org=
-m> wrote:
->> There are QLogic customers who have requested the ability to perform=
- RMPP transaction handling in user space. =C2=A0This was an option in o=
-ur old proprietary stack and there are a few customers still using it w=
-hich need a way to forward migrate to OFED while containing the scope o=
-f their application changes. =C2=A0While we have developed appropriate =
-"shim" libraries to allow their applications to migrate, we can't simul=
-ate/shim rmpp processing without some kernel support.
->>
->> We also have some management applications which also need these capa=
-bilities. =C2=A0For those applications, the use of application RMPP con=
-trol allows the application to perform some pacing of the RMPP transact=
-ions, permits some parts of the RMPP response to be built on the fly an=
-d also permits a degree of sharing of the response data between multipl=
-e requestors.
->>
->> The use of OFED kernel based RMPP transaction handling was unable to=
- meet all these requirements. =C2=A0So this simple option provides a mi=
-nimal change to OFED while permitting the application to have the contr=
-ol it needs.
->
-> The API would need to be extended for this mode (in some backward
-> compatible manner) rather than supplanting the rmpp_version 0
-> behavior. Changing that behavior breaks backward compatibility/some
-> existing apps.
-
-I think the simplest change is to use rmpp_version 255 for this mode
-(and update doc/headers accordingly) and preserve existing
-rmpp_version behavior.
-
->
->>
->> -----Original Message-----
->> From: Hal Rosenstock [mailto:hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org]
->> Sent: Thursday, May 27, 2010 9:07 AM
->> To: Mike Heinz
->> Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Roland Dreier
->> Subject: Re: [PATCH] IB/core User RMPP patch
->>
->> On Wed, May 26, 2010 at 4:14 PM, Mike Heinz <michael.heinz-h88ZbnxC6KBhl2p70BpVqQ@public.gmane.org=
-m> wrote:
->>> Currently, if a user application calls umad_register() or umad_regi=
-ster_oui() with an rmpp_version of zero, incoming rmpp messages are dis=
-carded.
->>
->> Actually, it's the underlying ib_register_mad_agent call and this dr=
-op
->> behavior is intentional.
->>
->>> This patch changes this behavior so that rmpp_version of zero cause=
-s incoming rmpp packets to be passed through without alteration, instea=
-d.
->>
->> What's the motivation to make such a behavioral change ?
->>
->> -- Hal
->>
->>>
->>> Signed-off-by: Michael Heinz <michael.heinz-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
->>> ----
->>>
->>> diff --git a/drivers/infiniband/core/mad.c b/drivers/infiniband/cor=
-e/mad.c
->>> index 80282f1..b3457ae 100644
->>> --- a/drivers/infiniband/core/mad.c
->>> +++ b/drivers/infiniband/core/mad.c
->>> @@ -1830,25 +1830,39 @@ static void ib_mad_complete_recv(struct ib_=
-mad_agent_private *mad_agent_priv,
->>> =C2=A0 =C2=A0 =C2=A0 =C2=A0if (ib_response_mad(mad_recv_wc->recv_bu=
-f.mad)) {
->>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0spin_lock_ir=
-qsave(&mad_agent_priv->lock, flags);
->>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0mad_send_wr =
-=3D ib_find_send_mad(mad_agent_priv, mad_recv_wc);
->>> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 if (!mad_send_wr=
-) {
->>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 if (mad_send_wr)=
- {
->>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 ib_mark_mad_done(mad_send_wr);
->>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 =C2=A0spin_unlock_irqrestore(&mad_agent_priv->lock, flags);
->>> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 ib_free_recv_mad(mad_recv_wc);
->>> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 deref_mad_agent(mad_agent_priv);
->>> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 return;
->>> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 }
->>> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 ib_mark_mad_done=
-(mad_send_wr);
->>> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 spin_unlock_irqr=
-estore(&mad_agent_priv->lock, flags);
->>>
->>> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 /* Defined behav=
-ior is to complete response before request */
->>> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 mad_recv_wc->wc-=
->wr_id =3D (unsigned long) &mad_send_wr->send_buf;
->>> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 mad_agent_priv->=
-agent.recv_handler(&mad_agent_priv->agent,
->>> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0mad_recv_wc);
->>> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 atomic_dec(&mad_=
-agent_priv->refcount);
->>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 /* Defined behavior is to complete response before request *=
-/
->>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 mad_recv_wc->wc->wr_id =3D (unsigned long) &mad_send_wr->sen=
-d_buf;
->>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 mad_agent_priv->agent.recv_handler(&mad_agent_priv->agent,
->>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0mad_recv=
-_wc);
->>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 atomic_dec(&mad_agent_priv->refcount);
->>>
->>> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 mad_send_wc.stat=
-us =3D IB_WC_SUCCESS;
->>> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 mad_send_wc.vend=
-or_err =3D 0;
->>> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 mad_send_wc.send=
-_buf =3D &mad_send_wr->send_buf;
->>> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 ib_mad_complete_=
-send_wr(mad_send_wr, &mad_send_wc);
->>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 mad_send_wc.status =3D IB_WC_SUCCESS;
->>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 mad_send_wc.vendor_err =3D 0;
->>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 mad_send_wc.send_buf =3D &mad_send_wr->send_buf;
->>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 ib_mad_complete_send_wr(mad_send_wr, &mad_send_wc);
->>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 } else {
->>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 if ( =C2=A0!mad_agent_priv->agent.rmpp_version
->>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0 =C2=A0&& ib_is_mad_class_rmpp(mad_recv_wc->recv_buf.m=
-ad->mad_hdr.mgmt_class)
->>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0 =C2=A0&& (ib_get_rmpp_flags(&((struct ib_rmpp_mad *)m=
-ad_recv_wc->recv_buf.mad)->rmpp_hdr) & IB_MGMT_RMPP_FLAG_ACTIVE)) {
->>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 // user rmpp is in effect
->>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 spin_unlock_irqrestore(&mad_agen=
-t_priv->lock, flags);
->>> +
->>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 mad_recv_wc->wc->wr_id =3D 0;
->>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 mad_agent_priv->agent.recv_handl=
-er(&mad_agent_priv->agent,
->>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =
-=C2=A0 =C2=A0 =C2=A0mad_recv_wc);
->>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 atomic_dec(&mad_agent_priv->refc=
-ount);
->>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 } else {
->>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 // not user rmpp, revert to norm=
-al behavior and drop the mad
->>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 spin_unlock_irqrestore(&mad_agen=
-t_priv->lock, flags);
->>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 ib_free_recv_mad(mad_recv_wc);
->>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 deref_mad_agent(mad_agent_priv);
->>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 return;
->>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 }
->>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 }
->>> =C2=A0 =C2=A0 =C2=A0 =C2=A0} else {
->>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0mad_agent_pr=
-iv->agent.recv_handler(&mad_agent_priv->agent,
->>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =
-=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 mad_recv_wc);
->>> diff --git a/drivers/infiniband/core/user_mad.c b/drivers/infiniban=
-d/core/user_mad.c
->>> index 36f815c..f9cacbc 100644
->>> --- a/drivers/infiniband/core/user_mad.c
->>> +++ b/drivers/infiniband/core/user_mad.c
->>> @@ -508,7 +508,7 @@ static ssize_t ib_umad_write(struct file *filp,=
- const char __user *buf,
->>>
->>> =C2=A0 =C2=A0 =C2=A0 =C2=A0rmpp_mad =3D (struct ib_rmpp_mad *) pack=
-et->mad.data;
->>> =C2=A0 =C2=A0 =C2=A0 =C2=A0hdr_len =3D ib_get_mad_data_offset(rmpp_=
-mad->mad_hdr.mgmt_class);
->>> - =C2=A0 =C2=A0 =C2=A0 if (!ib_is_mad_class_rmpp(rmpp_mad->mad_hdr.=
-mgmt_class)) {
->>> + =C2=A0 =C2=A0 =C2=A0 if (!agent->rmpp_version || !ib_is_mad_class=
-_rmpp(rmpp_mad->mad_hdr.mgmt_class)) {
->>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0copy_offset =
-=3D IB_MGMT_MAD_HDR;
->>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0rmpp_active =
-=3D 0;
->>> =C2=A0 =C2=A0 =C2=A0 =C2=A0} else {
->>> @@ -560,14 +560,22 @@ static ssize_t ib_umad_write(struct file *fil=
-p, const char __user *buf,
->>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0rmpp_mad->ma=
-d_hdr.tid =3D *tid;
->>> =C2=A0 =C2=A0 =C2=A0 =C2=A0}
->>>
->>> - =C2=A0 =C2=A0 =C2=A0 spin_lock_irq(&file->send_lock);
->>> - =C2=A0 =C2=A0 =C2=A0 ret =3D is_duplicate(file, packet);
->>> - =C2=A0 =C2=A0 =C2=A0 if (!ret)
->>> + =C2=A0 =C2=A0 =C2=A0 if ( =C2=A0!agent->rmpp_version
->>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0&& ib_is_mad_class_rmpp(rmpp_ma=
-d->mad_hdr.mgmt_class)
->>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0&& (ib_get_rmpp_flags(&rmpp_mad=
-->rmpp_hdr) & IB_MGMT_RMPP_FLAG_ACTIVE)) {
->>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 spin_lock_irq(&f=
-ile->send_lock);
->>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0list_add_tai=
-l(&packet->list, &file->send_list);
->>> - =C2=A0 =C2=A0 =C2=A0 spin_unlock_irq(&file->send_lock);
->>> - =C2=A0 =C2=A0 =C2=A0 if (ret) {
->>> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 ret =3D -EINVAL;
->>> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 goto err_msg;
->>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 spin_unlock_irq(=
-&file->send_lock);
->>> + =C2=A0 =C2=A0 =C2=A0 } else {
->>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 spin_lock_irq(&f=
-ile->send_lock);
->>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 ret =3D is_dupli=
-cate(file, packet);
->>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 if (!ret)
->>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 list_add_tail(&packet->list, &file->send_list);
->>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 spin_unlock_irq(=
-&file->send_lock);
->>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 if (ret) {
->>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 ret =3D -EINVAL;
->>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 goto err_msg;
->>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 }
->>> =C2=A0 =C2=A0 =C2=A0 =C2=A0}
->>>
->>> =C2=A0 =C2=A0 =C2=A0 =C2=A0ret =3D ib_post_send_mad(packet->msg, NU=
-LL);
->>>
->>>
->>> --
->>> To unsubscribe from this list: send the line "unsubscribe linux-rdm=
-a" in
->>> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->>> More majordomo info at =C2=A0http://vger.kernel.org/majordomo-info.=
-html
->>>
->>
->
+SGFsLCBJIGhhZCBiZWVuIGNvbnNpZGVyaW5nIHVzaW5nIHZlcnNpb24gMiwgYnV0IDI1NSBtaWdo
+dCBtYWtlIG1vcmUgc2Vuc2UuIEknbGwgdHJ5IHRvIHdvcmsgdXAgYSBwYXRjaCBhbmQgdGVzdCBp
+dCBvdXQuDQoNCi0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQpGcm9tOiBsaW51eC1yZG1hLW93
+bmVyQHZnZXIua2VybmVsLm9yZyBbbWFpbHRvOmxpbnV4LXJkbWEtb3duZXJAdmdlci5rZXJuZWwu
+b3JnXSBPbiBCZWhhbGYgT2YgSGFsIFJvc2Vuc3RvY2sNClNlbnQ6IFRodXJzZGF5LCBNYXkgMjcs
+IDIwMTAgMTI6NTggUE0NClRvOiBNaWtlIEhlaW56DQpDYzogbGludXgtcmRtYUB2Z2VyLmtlcm5l
+bC5vcmc7IFJvbGFuZCBEcmVpZXINClN1YmplY3Q6IFJlOiBbUEFUQ0hdIElCL2NvcmUgVXNlciBS
+TVBQIHBhdGNoDQoNCk9uIFRodSwgTWF5IDI3LCAyMDEwIGF0IDExOjEyIEFNLCBIYWwgUm9zZW5z
+dG9jaw0KPGhhbC5yb3NlbnN0b2NrQGdtYWlsLmNvbT4gd3JvdGU6DQo+IE9uIFRodSwgTWF5IDI3
+LCAyMDEwIGF0IDEwOjMyIEFNLCBNaWtlIEhlaW56IDxtaWNoYWVsLmhlaW56QHFsb2dpYy5jb20+
+IHdyb3RlOg0KPj4gVGhlcmUgYXJlIFFMb2dpYyBjdXN0b21lcnMgd2hvIGhhdmUgcmVxdWVzdGVk
+IHRoZSBhYmlsaXR5IHRvIHBlcmZvcm0gUk1QUCB0cmFuc2FjdGlvbiBoYW5kbGluZyBpbiB1c2Vy
+IHNwYWNlLiDCoFRoaXMgd2FzIGFuIG9wdGlvbiBpbiBvdXIgb2xkIHByb3ByaWV0YXJ5IHN0YWNr
+IGFuZCB0aGVyZSBhcmUgYSBmZXcgY3VzdG9tZXJzIHN0aWxsIHVzaW5nIGl0IHdoaWNoIG5lZWQg
+YSB3YXkgdG8gZm9yd2FyZCBtaWdyYXRlIHRvIE9GRUQgd2hpbGUgY29udGFpbmluZyB0aGUgc2Nv
+cGUgb2YgdGhlaXIgYXBwbGljYXRpb24gY2hhbmdlcy4gwqBXaGlsZSB3ZSBoYXZlIGRldmVsb3Bl
+ZCBhcHByb3ByaWF0ZSAic2hpbSIgbGlicmFyaWVzIHRvIGFsbG93IHRoZWlyIGFwcGxpY2F0aW9u
+cyB0byBtaWdyYXRlLCB3ZSBjYW4ndCBzaW11bGF0ZS9zaGltIHJtcHAgcHJvY2Vzc2luZyB3aXRo
+b3V0IHNvbWUga2VybmVsIHN1cHBvcnQuDQo+Pg0KPj4gV2UgYWxzbyBoYXZlIHNvbWUgbWFuYWdl
+bWVudCBhcHBsaWNhdGlvbnMgd2hpY2ggYWxzbyBuZWVkIHRoZXNlIGNhcGFiaWxpdGllcy4gwqBG
+b3IgdGhvc2UgYXBwbGljYXRpb25zLCB0aGUgdXNlIG9mIGFwcGxpY2F0aW9uIFJNUFAgY29udHJv
+bCBhbGxvd3MgdGhlIGFwcGxpY2F0aW9uIHRvIHBlcmZvcm0gc29tZSBwYWNpbmcgb2YgdGhlIFJN
+UFAgdHJhbnNhY3Rpb25zLCBwZXJtaXRzIHNvbWUgcGFydHMgb2YgdGhlIFJNUFAgcmVzcG9uc2Ug
+dG8gYmUgYnVpbHQgb24gdGhlIGZseSBhbmQgYWxzbyBwZXJtaXRzIGEgZGVncmVlIG9mIHNoYXJp
+bmcgb2YgdGhlIHJlc3BvbnNlIGRhdGEgYmV0d2VlbiBtdWx0aXBsZSByZXF1ZXN0b3JzLg0KPj4N
+Cj4+IFRoZSB1c2Ugb2YgT0ZFRCBrZXJuZWwgYmFzZWQgUk1QUCB0cmFuc2FjdGlvbiBoYW5kbGlu
+ZyB3YXMgdW5hYmxlIHRvIG1lZXQgYWxsIHRoZXNlIHJlcXVpcmVtZW50cy4gwqBTbyB0aGlzIHNp
+bXBsZSBvcHRpb24gcHJvdmlkZXMgYSBtaW5pbWFsIGNoYW5nZSB0byBPRkVEIHdoaWxlIHBlcm1p
+dHRpbmcgdGhlIGFwcGxpY2F0aW9uIHRvIGhhdmUgdGhlIGNvbnRyb2wgaXQgbmVlZHMuDQo+DQo+
+IFRoZSBBUEkgd291bGQgbmVlZCB0byBiZSBleHRlbmRlZCBmb3IgdGhpcyBtb2RlIChpbiBzb21l
+IGJhY2t3YXJkDQo+IGNvbXBhdGlibGUgbWFubmVyKSByYXRoZXIgdGhhbiBzdXBwbGFudGluZyB0
+aGUgcm1wcF92ZXJzaW9uIDANCj4gYmVoYXZpb3IuIENoYW5naW5nIHRoYXQgYmVoYXZpb3IgYnJl
+YWtzIGJhY2t3YXJkIGNvbXBhdGliaWxpdHkvc29tZQ0KPiBleGlzdGluZyBhcHBzLg0KDQpJIHRo
+aW5rIHRoZSBzaW1wbGVzdCBjaGFuZ2UgaXMgdG8gdXNlIHJtcHBfdmVyc2lvbiAyNTUgZm9yIHRo
+aXMgbW9kZQ0KKGFuZCB1cGRhdGUgZG9jL2hlYWRlcnMgYWNjb3JkaW5nbHkpIGFuZCBwcmVzZXJ2
+ZSBleGlzdGluZw0Kcm1wcF92ZXJzaW9uIGJlaGF2aW9yLg0KDQo+DQo+Pg0KPj4gLS0tLS1Pcmln
+aW5hbCBNZXNzYWdlLS0tLS0NCj4+IEZyb206IEhhbCBSb3NlbnN0b2NrIFttYWlsdG86aGFsLnJv
+c2Vuc3RvY2tAZ21haWwuY29tXQ0KPj4gU2VudDogVGh1cnNkYXksIE1heSAyNywgMjAxMCA5OjA3
+IEFNDQo+PiBUbzogTWlrZSBIZWlueg0KPj4gQ2M6IGxpbnV4LXJkbWFAdmdlci5rZXJuZWwub3Jn
+OyBSb2xhbmQgRHJlaWVyDQo+PiBTdWJqZWN0OiBSZTogW1BBVENIXSBJQi9jb3JlIFVzZXIgUk1Q
+UCBwYXRjaA0KPj4NCj4+IE9uIFdlZCwgTWF5IDI2LCAyMDEwIGF0IDQ6MTQgUE0sIE1pa2UgSGVp
+bnogPG1pY2hhZWwuaGVpbnpAcWxvZ2ljLmNvbT4gd3JvdGU6DQo+Pj4gQ3VycmVudGx5LCBpZiBh
+IHVzZXIgYXBwbGljYXRpb24gY2FsbHMgdW1hZF9yZWdpc3RlcigpIG9yIHVtYWRfcmVnaXN0ZXJf
+b3VpKCkgd2l0aCBhbiBybXBwX3ZlcnNpb24gb2YgemVybywgaW5jb21pbmcgcm1wcCBtZXNzYWdl
+cyBhcmUgZGlzY2FyZGVkLg0KPj4NCj4+IEFjdHVhbGx5LCBpdCdzIHRoZSB1bmRlcmx5aW5nIGli
+X3JlZ2lzdGVyX21hZF9hZ2VudCBjYWxsIGFuZCB0aGlzIGRyb3ANCj4+IGJlaGF2aW9yIGlzIGlu
+dGVudGlvbmFsLg0KPj4NCj4+PiBUaGlzIHBhdGNoIGNoYW5nZXMgdGhpcyBiZWhhdmlvciBzbyB0
+aGF0IHJtcHBfdmVyc2lvbiBvZiB6ZXJvIGNhdXNlcyBpbmNvbWluZyBybXBwIHBhY2tldHMgdG8g
+YmUgcGFzc2VkIHRocm91Z2ggd2l0aG91dCBhbHRlcmF0aW9uLCBpbnN0ZWFkLg0KPj4NCj4+IFdo
+YXQncyB0aGUgbW90aXZhdGlvbiB0byBtYWtlIHN1Y2ggYSBiZWhhdmlvcmFsIGNoYW5nZSA/DQo+
+Pg0KPj4gLS0gSGFsDQo+Pg0KPj4+DQo+Pj4gU2lnbmVkLW9mZi1ieTogTWljaGFlbCBIZWlueiA8
+bWljaGFlbC5oZWluekBxbG9naWMuY29tPg0KPj4+IC0tLS0NCj4+Pg0KPj4+IGRpZmYgLS1naXQg
+YS9kcml2ZXJzL2luZmluaWJhbmQvY29yZS9tYWQuYyBiL2RyaXZlcnMvaW5maW5pYmFuZC9jb3Jl
+L21hZC5jDQo+Pj4gaW5kZXggODAyODJmMS4uYjM0NTdhZSAxMDA2NDQNCj4+PiAtLS0gYS9kcml2
+ZXJzL2luZmluaWJhbmQvY29yZS9tYWQuYw0KPj4+ICsrKyBiL2RyaXZlcnMvaW5maW5pYmFuZC9j
+b3JlL21hZC5jDQo+Pj4gQEAgLTE4MzAsMjUgKzE4MzAsMzkgQEAgc3RhdGljIHZvaWQgaWJfbWFk
+X2NvbXBsZXRlX3JlY3Yoc3RydWN0IGliX21hZF9hZ2VudF9wcml2YXRlICptYWRfYWdlbnRfcHJp
+diwNCj4+PiDCoCDCoCDCoCDCoGlmIChpYl9yZXNwb25zZV9tYWQobWFkX3JlY3Zfd2MtPnJlY3Zf
+YnVmLm1hZCkpIHsNCj4+PiDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoHNwaW5fbG9ja19pcnFzYXZl
+KCZtYWRfYWdlbnRfcHJpdi0+bG9jaywgZmxhZ3MpOw0KPj4+IMKgIMKgIMKgIMKgIMKgIMKgIMKg
+IMKgbWFkX3NlbmRfd3IgPSBpYl9maW5kX3NlbmRfbWFkKG1hZF9hZ2VudF9wcml2LCBtYWRfcmVj
+dl93Yyk7DQo+Pj4gLSDCoCDCoCDCoCDCoCDCoCDCoCDCoCBpZiAoIW1hZF9zZW5kX3dyKSB7DQo+
+Pj4gKyDCoCDCoCDCoCDCoCDCoCDCoCDCoCBpZiAobWFkX3NlbmRfd3IpIHsNCj4+PiArIMKgIMKg
+IMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIGliX21hcmtfbWFkX2RvbmUobWFkX3NlbmRfd3Ip
+Ow0KPj4+IMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgc3Bpbl91bmxvY2tfaXJx
+cmVzdG9yZSgmbWFkX2FnZW50X3ByaXYtPmxvY2ssIGZsYWdzKTsNCj4+PiAtIMKgIMKgIMKgIMKg
+IMKgIMKgIMKgIMKgIMKgIMKgIMKgIGliX2ZyZWVfcmVjdl9tYWQobWFkX3JlY3Zfd2MpOw0KPj4+
+IC0gwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgZGVyZWZfbWFkX2FnZW50KG1hZF9h
+Z2VudF9wcml2KTsNCj4+PiAtIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIHJldHVy
+bjsNCj4+PiAtIMKgIMKgIMKgIMKgIMKgIMKgIMKgIH0NCj4+PiAtIMKgIMKgIMKgIMKgIMKgIMKg
+IMKgIGliX21hcmtfbWFkX2RvbmUobWFkX3NlbmRfd3IpOw0KPj4+IC0gwqAgwqAgwqAgwqAgwqAg
+wqAgwqAgc3Bpbl91bmxvY2tfaXJxcmVzdG9yZSgmbWFkX2FnZW50X3ByaXYtPmxvY2ssIGZsYWdz
+KTsNCj4+Pg0KPj4+IC0gwqAgwqAgwqAgwqAgwqAgwqAgwqAgLyogRGVmaW5lZCBiZWhhdmlvciBp
+cyB0byBjb21wbGV0ZSByZXNwb25zZSBiZWZvcmUgcmVxdWVzdCAqLw0KPj4+IC0gwqAgwqAgwqAg
+wqAgwqAgwqAgwqAgbWFkX3JlY3Zfd2MtPndjLT53cl9pZCA9ICh1bnNpZ25lZCBsb25nKSAmbWFk
+X3NlbmRfd3ItPnNlbmRfYnVmOw0KPj4+IC0gwqAgwqAgwqAgwqAgwqAgwqAgwqAgbWFkX2FnZW50
+X3ByaXYtPmFnZW50LnJlY3ZfaGFuZGxlcigmbWFkX2FnZW50X3ByaXYtPmFnZW50LA0KPj4+IC0g
+wqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAg
+wqAgwqAgwqAgwqAgwqAgwqBtYWRfcmVjdl93Yyk7DQo+Pj4gLSDCoCDCoCDCoCDCoCDCoCDCoCDC
+oCBhdG9taWNfZGVjKCZtYWRfYWdlbnRfcHJpdi0+cmVmY291bnQpOw0KPj4+ICsgwqAgwqAgwqAg
+wqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgLyogRGVmaW5lZCBiZWhhdmlvciBpcyB0byBjb21wbGV0
+ZSByZXNwb25zZSBiZWZvcmUgcmVxdWVzdCAqLw0KPj4+ICsgwqAgwqAgwqAgwqAgwqAgwqAgwqAg
+wqAgwqAgwqAgwqAgbWFkX3JlY3Zfd2MtPndjLT53cl9pZCA9ICh1bnNpZ25lZCBsb25nKSAmbWFk
+X3NlbmRfd3ItPnNlbmRfYnVmOw0KPj4+ICsgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAg
+wqAgbWFkX2FnZW50X3ByaXYtPmFnZW50LnJlY3ZfaGFuZGxlcigmbWFkX2FnZW50X3ByaXYtPmFn
+ZW50LA0KPj4+ICsgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAg
+wqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqBtYWRfcmVjdl93Yyk7DQo+
+Pj4gKyDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCBhdG9taWNfZGVjKCZtYWRfYWdl
+bnRfcHJpdi0+cmVmY291bnQpOw0KPj4+DQo+Pj4gLSDCoCDCoCDCoCDCoCDCoCDCoCDCoCBtYWRf
+c2VuZF93Yy5zdGF0dXMgPSBJQl9XQ19TVUNDRVNTOw0KPj4+IC0gwqAgwqAgwqAgwqAgwqAgwqAg
+wqAgbWFkX3NlbmRfd2MudmVuZG9yX2VyciA9IDA7DQo+Pj4gLSDCoCDCoCDCoCDCoCDCoCDCoCDC
+oCBtYWRfc2VuZF93Yy5zZW5kX2J1ZiA9ICZtYWRfc2VuZF93ci0+c2VuZF9idWY7DQo+Pj4gLSDC
+oCDCoCDCoCDCoCDCoCDCoCDCoCBpYl9tYWRfY29tcGxldGVfc2VuZF93cihtYWRfc2VuZF93ciwg
+Jm1hZF9zZW5kX3djKTsNCj4+PiArIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIG1h
+ZF9zZW5kX3djLnN0YXR1cyA9IElCX1dDX1NVQ0NFU1M7DQo+Pj4gKyDCoCDCoCDCoCDCoCDCoCDC
+oCDCoCDCoCDCoCDCoCDCoCBtYWRfc2VuZF93Yy52ZW5kb3JfZXJyID0gMDsNCj4+PiArIMKgIMKg
+IMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIG1hZF9zZW5kX3djLnNlbmRfYnVmID0gJm1hZF9z
+ZW5kX3dyLT5zZW5kX2J1ZjsNCj4+PiArIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKg
+IGliX21hZF9jb21wbGV0ZV9zZW5kX3dyKG1hZF9zZW5kX3dyLCAmbWFkX3NlbmRfd2MpOw0KPj4+
+ICsgwqAgwqAgwqAgwqAgwqAgwqAgwqAgfSBlbHNlIHsNCj4+PiArIMKgIMKgIMKgIMKgIMKgIMKg
+IMKgIMKgIMKgIMKgIMKgIGlmICggwqAhbWFkX2FnZW50X3ByaXYtPmFnZW50LnJtcHBfdmVyc2lv
+bg0KPj4+ICsgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAmJiBpYl9pc19t
+YWRfY2xhc3Nfcm1wcChtYWRfcmVjdl93Yy0+cmVjdl9idWYubWFkLT5tYWRfaGRyLm1nbXRfY2xh
+c3MpDQo+Pj4gKyDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCYmIChpYl9n
+ZXRfcm1wcF9mbGFncygmKChzdHJ1Y3QgaWJfcm1wcF9tYWQgKiltYWRfcmVjdl93Yy0+cmVjdl9i
+dWYubWFkKS0+cm1wcF9oZHIpICYgSUJfTUdNVF9STVBQX0ZMQUdfQUNUSVZFKSkgew0KPj4+ICsg
+wqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgLy8gdXNlciBybXBw
+IGlzIGluIGVmZmVjdA0KPj4+ICsgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAg
+wqAgwqAgwqAgc3Bpbl91bmxvY2tfaXJxcmVzdG9yZSgmbWFkX2FnZW50X3ByaXYtPmxvY2ssIGZs
+YWdzKTsNCj4+PiArDQo+Pj4gKyDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDC
+oCDCoCDCoCBtYWRfcmVjdl93Yy0+d2MtPndyX2lkID0gMDsNCj4+PiArIMKgIMKgIMKgIMKgIMKg
+IMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIG1hZF9hZ2VudF9wcml2LT5hZ2VudC5yZWN2
+X2hhbmRsZXIoJm1hZF9hZ2VudF9wcml2LT5hZ2VudCwNCj4+PiArIMKgIMKgIMKgIMKgIMKgIMKg
+IMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKg
+IMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgbWFkX3JlY3Zfd2MpOw0KPj4+ICsgwqAgwqAgwqAgwqAg
+wqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgYXRvbWljX2RlYygmbWFkX2FnZW50X3By
+aXYtPnJlZmNvdW50KTsNCj4+PiArIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIH0g
+ZWxzZSB7DQo+Pj4gKyDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDC
+oCAvLyBub3QgdXNlciBybXBwLCByZXZlcnQgdG8gbm9ybWFsIGJlaGF2aW9yIGFuZCBkcm9wIHRo
+ZSBtYWQNCj4+PiArIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKg
+IHNwaW5fdW5sb2NrX2lycXJlc3RvcmUoJm1hZF9hZ2VudF9wcml2LT5sb2NrLCBmbGFncyk7DQo+
+Pj4gKyDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCBpYl9mcmVl
+X3JlY3ZfbWFkKG1hZF9yZWN2X3djKTsNCj4+PiArIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKg
+IMKgIMKgIMKgIMKgIMKgIMKgIGRlcmVmX21hZF9hZ2VudChtYWRfYWdlbnRfcHJpdik7DQo+Pj4g
+KyDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCByZXR1cm47DQo+
+Pj4gKyDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCB9DQo+Pj4gKyDCoCDCoCDCoCDC
+oCDCoCDCoCDCoCB9DQo+Pj4gwqAgwqAgwqAgwqB9IGVsc2Ugew0KPj4+IMKgIMKgIMKgIMKgIMKg
+IMKgIMKgIMKgbWFkX2FnZW50X3ByaXYtPmFnZW50LnJlY3ZfaGFuZGxlcigmbWFkX2FnZW50X3By
+aXYtPmFnZW50LA0KPj4+IMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKg
+IMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIG1hZF9yZWN2X3djKTsNCj4+PiBkaWZm
+IC0tZ2l0IGEvZHJpdmVycy9pbmZpbmliYW5kL2NvcmUvdXNlcl9tYWQuYyBiL2RyaXZlcnMvaW5m
+aW5pYmFuZC9jb3JlL3VzZXJfbWFkLmMNCj4+PiBpbmRleCAzNmY4MTVjLi5mOWNhY2JjIDEwMDY0
+NA0KPj4+IC0tLSBhL2RyaXZlcnMvaW5maW5pYmFuZC9jb3JlL3VzZXJfbWFkLmMNCj4+PiArKysg
+Yi9kcml2ZXJzL2luZmluaWJhbmQvY29yZS91c2VyX21hZC5jDQo+Pj4gQEAgLTUwOCw3ICs1MDgs
+NyBAQCBzdGF0aWMgc3NpemVfdCBpYl91bWFkX3dyaXRlKHN0cnVjdCBmaWxlICpmaWxwLCBjb25z
+dCBjaGFyIF9fdXNlciAqYnVmLA0KPj4+DQo+Pj4gwqAgwqAgwqAgwqBybXBwX21hZCA9IChzdHJ1
+Y3QgaWJfcm1wcF9tYWQgKikgcGFja2V0LT5tYWQuZGF0YTsNCj4+PiDCoCDCoCDCoCDCoGhkcl9s
+ZW4gPSBpYl9nZXRfbWFkX2RhdGFfb2Zmc2V0KHJtcHBfbWFkLT5tYWRfaGRyLm1nbXRfY2xhc3Mp
+Ow0KPj4+IC0gwqAgwqAgwqAgaWYgKCFpYl9pc19tYWRfY2xhc3Nfcm1wcChybXBwX21hZC0+bWFk
+X2hkci5tZ210X2NsYXNzKSkgew0KPj4+ICsgwqAgwqAgwqAgaWYgKCFhZ2VudC0+cm1wcF92ZXJz
+aW9uIHx8ICFpYl9pc19tYWRfY2xhc3Nfcm1wcChybXBwX21hZC0+bWFkX2hkci5tZ210X2NsYXNz
+KSkgew0KPj4+IMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgY29weV9vZmZzZXQgPSBJQl9NR01UX01B
+RF9IRFI7DQo+Pj4gwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqBybXBwX2FjdGl2ZSA9IDA7DQo+Pj4g
+wqAgwqAgwqAgwqB9IGVsc2Ugew0KPj4+IEBAIC01NjAsMTQgKzU2MCwyMiBAQCBzdGF0aWMgc3Np
+emVfdCBpYl91bWFkX3dyaXRlKHN0cnVjdCBmaWxlICpmaWxwLCBjb25zdCBjaGFyIF9fdXNlciAq
+YnVmLA0KPj4+IMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgcm1wcF9tYWQtPm1hZF9oZHIudGlkID0g
+KnRpZDsNCj4+PiDCoCDCoCDCoCDCoH0NCj4+Pg0KPj4+IC0gwqAgwqAgwqAgc3Bpbl9sb2NrX2ly
+cSgmZmlsZS0+c2VuZF9sb2NrKTsNCj4+PiAtIMKgIMKgIMKgIHJldCA9IGlzX2R1cGxpY2F0ZShm
+aWxlLCBwYWNrZXQpOw0KPj4+IC0gwqAgwqAgwqAgaWYgKCFyZXQpDQo+Pj4gKyDCoCDCoCDCoCBp
+ZiAoIMKgIWFnZW50LT5ybXBwX3ZlcnNpb24NCj4+PiArIMKgIMKgIMKgIMKgIMKgJiYgaWJfaXNf
+bWFkX2NsYXNzX3JtcHAocm1wcF9tYWQtPm1hZF9oZHIubWdtdF9jbGFzcykNCj4+PiArIMKgIMKg
+IMKgIMKgIMKgJiYgKGliX2dldF9ybXBwX2ZsYWdzKCZybXBwX21hZC0+cm1wcF9oZHIpICYgSUJf
+TUdNVF9STVBQX0ZMQUdfQUNUSVZFKSkgew0KPj4+ICsgwqAgwqAgwqAgwqAgwqAgwqAgwqAgc3Bp
+bl9sb2NrX2lycSgmZmlsZS0+c2VuZF9sb2NrKTsNCj4+PiDCoCDCoCDCoCDCoCDCoCDCoCDCoCDC
+oGxpc3RfYWRkX3RhaWwoJnBhY2tldC0+bGlzdCwgJmZpbGUtPnNlbmRfbGlzdCk7DQo+Pj4gLSDC
+oCDCoCDCoCBzcGluX3VubG9ja19pcnEoJmZpbGUtPnNlbmRfbG9jayk7DQo+Pj4gLSDCoCDCoCDC
+oCBpZiAocmV0KSB7DQo+Pj4gLSDCoCDCoCDCoCDCoCDCoCDCoCDCoCByZXQgPSAtRUlOVkFMOw0K
+Pj4+IC0gwqAgwqAgwqAgwqAgwqAgwqAgwqAgZ290byBlcnJfbXNnOw0KPj4+ICsgwqAgwqAgwqAg
+wqAgwqAgwqAgwqAgc3Bpbl91bmxvY2tfaXJxKCZmaWxlLT5zZW5kX2xvY2spOw0KPj4+ICsgwqAg
+wqAgwqAgfSBlbHNlIHsNCj4+PiArIMKgIMKgIMKgIMKgIMKgIMKgIMKgIHNwaW5fbG9ja19pcnEo
+JmZpbGUtPnNlbmRfbG9jayk7DQo+Pj4gKyDCoCDCoCDCoCDCoCDCoCDCoCDCoCByZXQgPSBpc19k
+dXBsaWNhdGUoZmlsZSwgcGFja2V0KTsNCj4+PiArIMKgIMKgIMKgIMKgIMKgIMKgIMKgIGlmICgh
+cmV0KQ0KPj4+ICsgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgbGlzdF9hZGRfdGFp
+bCgmcGFja2V0LT5saXN0LCAmZmlsZS0+c2VuZF9saXN0KTsNCj4+PiArIMKgIMKgIMKgIMKgIMKg
+IMKgIMKgIHNwaW5fdW5sb2NrX2lycSgmZmlsZS0+c2VuZF9sb2NrKTsNCj4+PiArIMKgIMKgIMKg
+IMKgIMKgIMKgIMKgIGlmIChyZXQpIHsNCj4+PiArIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKg
+IMKgIMKgIHJldCA9IC1FSU5WQUw7DQo+Pj4gKyDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDC
+oCDCoCBnb3RvIGVycl9tc2c7DQo+Pj4gKyDCoCDCoCDCoCDCoCDCoCDCoCDCoCB9DQo+Pj4gwqAg
+wqAgwqAgwqB9DQo+Pj4NCj4+PiDCoCDCoCDCoCDCoHJldCA9IGliX3Bvc3Rfc2VuZF9tYWQocGFj
+a2V0LT5tc2csIE5VTEwpOw0KPj4+DQo+Pj4NCj4+PiAtLQ0KPj4+IFRvIHVuc3Vic2NyaWJlIGZy
+b20gdGhpcyBsaXN0OiBzZW5kIHRoZSBsaW5lICJ1bnN1YnNjcmliZSBsaW51eC1yZG1hIiBpbg0K
+Pj4+IHRoZSBib2R5IG9mIGEgbWVzc2FnZSB0byBtYWpvcmRvbW9Admdlci5rZXJuZWwub3JnDQo+
+Pj4gTW9yZSBtYWpvcmRvbW8gaW5mbyBhdCDCoGh0dHA6Ly92Z2VyLmtlcm5lbC5vcmcvbWFqb3Jk
+b21vLWluZm8uaHRtbA0KPj4+DQo+Pg0KPg0KLS0NClRvIHVuc3Vic2NyaWJlIGZyb20gdGhpcyBs
+aXN0OiBzZW5kIHRoZSBsaW5lICJ1bnN1YnNjcmliZSBsaW51eC1yZG1hIiBpbg0KdGhlIGJvZHkg
+b2YgYSBtZXNzYWdlIHRvIG1ham9yZG9tb0B2Z2VyLmtlcm5lbC5vcmcNCk1vcmUgbWFqb3Jkb21v
+IGluZm8gYXQgIGh0dHA6Ly92Z2VyLmtlcm5lbC5vcmcvbWFqb3Jkb21vLWluZm8uaHRtbA0K
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
