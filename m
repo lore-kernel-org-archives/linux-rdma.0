@@ -1,57 +1,41 @@
-From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Subject: [GIT PULL] please pull infiniband.git
-Date: Thu, 27 May 2010 15:18:13 -0700
-Message-ID: <ada6329vviy.fsf@roland-alpha.cisco.com>
+From: Ralph Campbell <ralph.campbell@qlogic.com>
+Subject: Re: linux-next: Tree for May 27 (infiniband: qib)
+Date: Thu, 27 May 2010 15:22:03 -0700
+Message-ID: <1274998923.17393.28.camel@chromite.mv.qlogic.com>
+References: <20100527152628.b23a14c6.sfr@canb.auug.org.au>
+	 <20100527090503.d229dc53.randy.dunlap@oracle.com>
+	 <adaaarlvx0z.fsf@roland-alpha.cisco.com>  <4BFEECD3.7020203@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-next-owner@vger.kernel.org>
+In-Reply-To: <4BFEECD3.7020203@oracle.com>
+Sender: linux-next-owner@vger.kernel.org
+To: Randy Dunlap <randy.dunlap@oracle.com>
+Cc: Roland Dreier <rdreier@cisco.com>, Stephen Rothwell <sfr@canb.auug.org.au>, "linux-next@vger.kernel.org" <linux-next@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Linus, please pull from
+On Thu, 2010-05-27 at 15:06 -0700, Randy Dunlap wrote:
+> On 05/27/10 14:45, Roland Dreier wrote:
+> >  > However, it looks like qib needs to handle DCA config in a way that
+> >  > is similar to how it is handled in drivers/net/{myri10ge,igb,ixgbe}/
+> >  > instead of assuming that DCA is enabled.
+> > 
+> > Looks like we're just going to rip out DCA support for now.
+> > 
+> >  > And please fix the linux-next 2010-may-25 reported qib problem:
+> >  >   http://lkml.org/lkml/2010/5/25/321
+> > 
+> > I think that should be fixed in my for-next branch already (at least I
+> > have a patch from Ralph called "IB/qib: Fix undefined symbol error when
+> > CONFIG_PCI_MSI=n" in there).
+> 
+> Sounds good.  Was is posted to linux-rdma?
+> 
+> thanks,
 
-    master.kernel.org:/pub/scm/linux/kernel/git/roland/infiniband.git for-linus
+Yes, I posted it to linux-rdma.
 
-This tree is also available from kernel.org mirrors at:
+http://www.spinics.net/lists/linux-rdma/msg04140.html
 
-    git://git.kernel.org/pub/scm/linux/kernel/git/roland/infiniband.git for-linus
-
-This is pretty much settled down to fixes -- one semantic patch
-cleanup from Julia Lawall and then some fixes to the new qib driver.
-
-The following changes since commit ec96e2fe954c23a54bfdf2673437a39e193a1822:
-
-  Merge branch 'devel' of master.kernel.org:/home/rmk/linux-2.6-arm (2010-05-25 12:06:33 -0700)
-
-are available in the git repository at:
-
-  master.kernel.org:/pub/scm/linux/kernel/git/roland/infiniband.git for-linus
-
-Julia Lawall (1):
-      IB/ucm: Use memdup_user()
-
-Ralph Campbell (3):
-      IB/qib: Fix undefined symbol error when CONFIG_PCI_MSI=n
-      IB/qib: Use a single txselect module parameter for serdes tuning
-      IB/qib: Remove DCA support until feature is finished
-
-Roland Dreier (2):
-      IB/qib: Don't rely on (undefined) order of function parameter evaluation
-      Merge branches 'misc' and 'qib' into for-next
-
- drivers/infiniband/core/ucm.c           |   11 +-
- drivers/infiniband/hw/qib/qib_fs.c      |   25 +-
- drivers/infiniband/hw/qib/qib_iba6120.c |   12 -
- drivers/infiniband/hw/qib/qib_iba7322.c |  771 +++++++------------------------
- drivers/infiniband/hw/qib/qib_init.c    |    6 +
- 5 files changed, 203 insertions(+), 622 deletions(-)
-
--- 
-Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org> || For corporate legal information go to:
-http://www.cisco.com/web/about/doing_business/legal/cri/index.html
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+http://www.spinics.net/lists/linux-rdma/msg04187.html
