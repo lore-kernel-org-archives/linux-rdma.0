@@ -1,59 +1,146 @@
-From: Or Gerlitz <ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Subject: are IB port counters functioning over --IB-- with the RDMAoE  patch
- set?
-Date: Thu, 27 May 2010 12:04:55 +0300
-Message-ID: <4BFE35B7.80009@voltaire.com>
+From: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH] IB/core User RMPP patch
+Date: Thu, 27 May 2010 09:06:50 -0400
+Message-ID: <AANLkTikpYJXj9MjCwGUlK1SisooL_etjbE3BdwHtQjTj@mail.gmail.com>
+References: <Acr9EAtKD/028Ag3RWu6iemg4gN1Tg==>
+	<4C2744E8AD2982428C5BFE523DF8CDCB49A488D528@MNEXMB1.qlogic.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <4C2744E8AD2982428C5BFE523DF8CDCB49A488D528-amwN6d8PyQWXx9kJd3VG2h2eb7JE58TQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Vladimir Sokolovsky <vlad-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
-Cc: Linux RDMA list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Moni Shoua <monis-smomgflXvOZWk0Htik3J/w@public.gmane.org>, Shiri Franchi <shirif-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+To: Mike Heinz <michael.heinz-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Eli, Vlad, 
-
-Using some lab node here, I noticed that the IB port counters were not functioning over --IB-- with the RDMAoE patches present in an OFED drop named OFED-RDMAoE-1.5-rc6, see below.
-
-Was/is this a known issue? if yes, was it fixed? is/was there an ofa bz case open for this? I didn't find such... I was told that under ofed 1.5.1 this doesn't happen, but I wanted to 1st clarify with you.
-
-Or.
-
-
-> > [root@dodly4 ~]# rdma_bw dodly0
-> > 15050: | port=18515 | ib_port=1 | size=65536 | tx_depth=100 | sl=0 | iters=1000 | duplex=0 | cma=0 |
-> > 15050: Local address:  LID 0x03, QPN 0x14004a, PSN 0x5fb3a8 RKey 0x2804260c VAddr 0x002acb54d6a000
-> > 15050: Remote address: LID 0x04, QPN 0x250406, PSN 0xf6d97d, RKey 0x28043c04 VAddr 0x002b9026b6a000
-> > 15050: Bandwidth peak (#0 to #989): 938.697 MB/sec
-> > 15050: Bandwidth average: 938.695 MB/sec --> the link is SDR, so the result makes sense
-> > 15050: Service Demand peak (#0 to #989): 3113 cycles/KB
-> > 15050: Service Demand Avg  : 3113 cycles/KB
->   
-> > [root@dodly4 ~]# perfquery
-> > ibwarn: [15057] dump_perfcounters: PortXmitWait not indicated so ignore this counter
-> > # Port counters: Lid 3 port 1
-> > PortSelect:......................1
-> > CounterSelect:...................0x0000
-> > SymbolErrors:....................0
-> > LinkRecovers:....................0
-> > LinkDowned:......................0
-> > RcvErrors:.......................0
-> > RcvRemotePhysErrors:.............0
-> > RcvSwRelayErrors:................0
-> > XmtDiscards:.....................0
-> > XmtConstraintErrors:.............0
-> > RcvConstraintErrors:.............0
-> > CounterSelect2:..................0x00
-> > LinkIntegrityErrors:.............0
-> > ExcBufOverrunErrors:.............0
-> > VL15Dropped:.....................0
-> > XmtData:.........................72
-> > RcvData:.........................0
-> > XmtPkts:.........................1
-> > RcvPkts:.........................0
-> > XmtWait:.........................0
->   
+T24gV2VkLCBNYXkgMjYsIDIwMTAgYXQgNDoxNCBQTSwgTWlrZSBIZWlueiA8bWljaGFlbC5oZWlu
+ekBxbG9naWMuY29tPiB3cm90ZToKPiBDdXJyZW50bHksIGlmIGEgdXNlciBhcHBsaWNhdGlvbiBj
+YWxscyB1bWFkX3JlZ2lzdGVyKCkgb3IgdW1hZF9yZWdpc3Rlcl9vdWkoKSB3aXRoIGFuIHJtcHBf
+dmVyc2lvbiBvZiB6ZXJvLCBpbmNvbWluZyBybXBwIG1lc3NhZ2VzIGFyZSBkaXNjYXJkZWQuCgpB
+Y3R1YWxseSwgaXQncyB0aGUgdW5kZXJseWluZyBpYl9yZWdpc3Rlcl9tYWRfYWdlbnQgY2FsbCBh
+bmQgdGhpcyBkcm9wCmJlaGF2aW9yIGlzIGludGVudGlvbmFsLgoKPiBUaGlzIHBhdGNoIGNoYW5n
+ZXMgdGhpcyBiZWhhdmlvciBzbyB0aGF0IHJtcHBfdmVyc2lvbiBvZiB6ZXJvIGNhdXNlcyBpbmNv
+bWluZyBybXBwIHBhY2tldHMgdG8gYmUgcGFzc2VkIHRocm91Z2ggd2l0aG91dCBhbHRlcmF0aW9u
+LCBpbnN0ZWFkLgoKV2hhdCdzIHRoZSBtb3RpdmF0aW9uIHRvIG1ha2Ugc3VjaCBhIGJlaGF2aW9y
+YWwgY2hhbmdlID8KCi0tIEhhbAoKPgo+IFNpZ25lZC1vZmYtYnk6IE1pY2hhZWwgSGVpbnogPG1p
+Y2hhZWwuaGVpbnpAcWxvZ2ljLmNvbT4KPiAtLS0tCj4KPiBkaWZmIC0tZ2l0IGEvZHJpdmVycy9p
+bmZpbmliYW5kL2NvcmUvbWFkLmMgYi9kcml2ZXJzL2luZmluaWJhbmQvY29yZS9tYWQuYwo+IGlu
+ZGV4IDgwMjgyZjEuLmIzNDU3YWUgMTAwNjQ0Cj4gLS0tIGEvZHJpdmVycy9pbmZpbmliYW5kL2Nv
+cmUvbWFkLmMKPiArKysgYi9kcml2ZXJzL2luZmluaWJhbmQvY29yZS9tYWQuYwo+IEBAIC0xODMw
+LDI1ICsxODMwLDM5IEBAIHN0YXRpYyB2b2lkIGliX21hZF9jb21wbGV0ZV9yZWN2KHN0cnVjdCBp
+Yl9tYWRfYWdlbnRfcHJpdmF0ZSAqbWFkX2FnZW50X3ByaXYsCj4gwqAgwqAgwqAgwqBpZiAoaWJf
+cmVzcG9uc2VfbWFkKG1hZF9yZWN2X3djLT5yZWN2X2J1Zi5tYWQpKSB7Cj4gwqAgwqAgwqAgwqAg
+wqAgwqAgwqAgwqBzcGluX2xvY2tfaXJxc2F2ZSgmbWFkX2FnZW50X3ByaXYtPmxvY2ssIGZsYWdz
+KTsKPiDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoG1hZF9zZW5kX3dyID0gaWJfZmluZF9zZW5kX21h
+ZChtYWRfYWdlbnRfcHJpdiwgbWFkX3JlY3Zfd2MpOwo+IC0gwqAgwqAgwqAgwqAgwqAgwqAgwqAg
+aWYgKCFtYWRfc2VuZF93cikgewo+ICsgwqAgwqAgwqAgwqAgwqAgwqAgwqAgaWYgKG1hZF9zZW5k
+X3dyKSB7Cj4gKyDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCBpYl9tYXJrX21hZF9k
+b25lKG1hZF9zZW5kX3dyKTsKPiDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoHNw
+aW5fdW5sb2NrX2lycXJlc3RvcmUoJm1hZF9hZ2VudF9wcml2LT5sb2NrLCBmbGFncyk7Cj4gLSDC
+oCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCBpYl9mcmVlX3JlY3ZfbWFkKG1hZF9yZWN2
+X3djKTsKPiAtIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIGRlcmVmX21hZF9hZ2Vu
+dChtYWRfYWdlbnRfcHJpdik7Cj4gLSDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCBy
+ZXR1cm47Cj4gLSDCoCDCoCDCoCDCoCDCoCDCoCDCoCB9Cj4gLSDCoCDCoCDCoCDCoCDCoCDCoCDC
+oCBpYl9tYXJrX21hZF9kb25lKG1hZF9zZW5kX3dyKTsKPiAtIMKgIMKgIMKgIMKgIMKgIMKgIMKg
+IHNwaW5fdW5sb2NrX2lycXJlc3RvcmUoJm1hZF9hZ2VudF9wcml2LT5sb2NrLCBmbGFncyk7Cj4K
+PiAtIMKgIMKgIMKgIMKgIMKgIMKgIMKgIC8qIERlZmluZWQgYmVoYXZpb3IgaXMgdG8gY29tcGxl
+dGUgcmVzcG9uc2UgYmVmb3JlIHJlcXVlc3QgKi8KPiAtIMKgIMKgIMKgIMKgIMKgIMKgIMKgIG1h
+ZF9yZWN2X3djLT53Yy0+d3JfaWQgPSAodW5zaWduZWQgbG9uZykgJm1hZF9zZW5kX3dyLT5zZW5k
+X2J1ZjsKPiAtIMKgIMKgIMKgIMKgIMKgIMKgIMKgIG1hZF9hZ2VudF9wcml2LT5hZ2VudC5yZWN2
+X2hhbmRsZXIoJm1hZF9hZ2VudF9wcml2LT5hZ2VudCwKPiAtIMKgIMKgIMKgIMKgIMKgIMKgIMKg
+IMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgbWFk
+X3JlY3Zfd2MpOwo+IC0gwqAgwqAgwqAgwqAgwqAgwqAgwqAgYXRvbWljX2RlYygmbWFkX2FnZW50
+X3ByaXYtPnJlZmNvdW50KTsKPiArIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIC8q
+IERlZmluZWQgYmVoYXZpb3IgaXMgdG8gY29tcGxldGUgcmVzcG9uc2UgYmVmb3JlIHJlcXVlc3Qg
+Ki8KPiArIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIG1hZF9yZWN2X3djLT53Yy0+
+d3JfaWQgPSAodW5zaWduZWQgbG9uZykgJm1hZF9zZW5kX3dyLT5zZW5kX2J1ZjsKPiArIMKgIMKg
+IMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIG1hZF9hZ2VudF9wcml2LT5hZ2VudC5yZWN2X2hh
+bmRsZXIoJm1hZF9hZ2VudF9wcml2LT5hZ2VudCwKPiArIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKg
+IMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKg
+IMKgIMKgbWFkX3JlY3Zfd2MpOwo+ICsgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAg
+YXRvbWljX2RlYygmbWFkX2FnZW50X3ByaXYtPnJlZmNvdW50KTsKPgo+IC0gwqAgwqAgwqAgwqAg
+wqAgwqAgwqAgbWFkX3NlbmRfd2Muc3RhdHVzID0gSUJfV0NfU1VDQ0VTUzsKPiAtIMKgIMKgIMKg
+IMKgIMKgIMKgIMKgIG1hZF9zZW5kX3djLnZlbmRvcl9lcnIgPSAwOwo+IC0gwqAgwqAgwqAgwqAg
+wqAgwqAgwqAgbWFkX3NlbmRfd2Muc2VuZF9idWYgPSAmbWFkX3NlbmRfd3ItPnNlbmRfYnVmOwo+
+IC0gwqAgwqAgwqAgwqAgwqAgwqAgwqAgaWJfbWFkX2NvbXBsZXRlX3NlbmRfd3IobWFkX3NlbmRf
+d3IsICZtYWRfc2VuZF93Yyk7Cj4gKyDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCBt
+YWRfc2VuZF93Yy5zdGF0dXMgPSBJQl9XQ19TVUNDRVNTOwo+ICsgwqAgwqAgwqAgwqAgwqAgwqAg
+wqAgwqAgwqAgwqAgwqAgbWFkX3NlbmRfd2MudmVuZG9yX2VyciA9IDA7Cj4gKyDCoCDCoCDCoCDC
+oCDCoCDCoCDCoCDCoCDCoCDCoCDCoCBtYWRfc2VuZF93Yy5zZW5kX2J1ZiA9ICZtYWRfc2VuZF93
+ci0+c2VuZF9idWY7Cj4gKyDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCBpYl9tYWRf
+Y29tcGxldGVfc2VuZF93cihtYWRfc2VuZF93ciwgJm1hZF9zZW5kX3djKTsKPiArIMKgIMKgIMKg
+IMKgIMKgIMKgIMKgIH0gZWxzZSB7Cj4gKyDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDC
+oCBpZiAoIMKgIW1hZF9hZ2VudF9wcml2LT5hZ2VudC5ybXBwX3ZlcnNpb24KPiArIMKgIMKgIMKg
+IMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgJiYgaWJfaXNfbWFkX2NsYXNzX3JtcHAobWFk
+X3JlY3Zfd2MtPnJlY3ZfYnVmLm1hZC0+bWFkX2hkci5tZ210X2NsYXNzKQo+ICsgwqAgwqAgwqAg
+wqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAmJiAoaWJfZ2V0X3JtcHBfZmxhZ3MoJigoc3Ry
+dWN0IGliX3JtcHBfbWFkICopbWFkX3JlY3Zfd2MtPnJlY3ZfYnVmLm1hZCktPnJtcHBfaGRyKSAm
+IElCX01HTVRfUk1QUF9GTEFHX0FDVElWRSkpIHsKPiArIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKg
+IMKgIMKgIMKgIMKgIMKgIMKgIMKgIC8vIHVzZXIgcm1wcCBpcyBpbiBlZmZlY3QKPiArIMKgIMKg
+IMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIHNwaW5fdW5sb2NrX2lycXJl
+c3RvcmUoJm1hZF9hZ2VudF9wcml2LT5sb2NrLCBmbGFncyk7Cj4gKwo+ICsgwqAgwqAgwqAgwqAg
+wqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgbWFkX3JlY3Zfd2MtPndjLT53cl9pZCA9
+IDA7Cj4gKyDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCBtYWRf
+YWdlbnRfcHJpdi0+YWdlbnQucmVjdl9oYW5kbGVyKCZtYWRfYWdlbnRfcHJpdi0+YWdlbnQsCj4g
+KyDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDC
+oCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoG1hZF9yZWN2X3djKTsK
+PiArIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIGF0b21pY19k
+ZWMoJm1hZF9hZ2VudF9wcml2LT5yZWZjb3VudCk7Cj4gKyDCoCDCoCDCoCDCoCDCoCDCoCDCoCDC
+oCDCoCDCoCDCoCB9IGVsc2Ugewo+ICsgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAg
+wqAgwqAgwqAgwqAgLy8gbm90IHVzZXIgcm1wcCwgcmV2ZXJ0IHRvIG5vcm1hbCBiZWhhdmlvciBh
+bmQgZHJvcCB0aGUgbWFkCj4gKyDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDC
+oCDCoCDCoCBzcGluX3VubG9ja19pcnFyZXN0b3JlKCZtYWRfYWdlbnRfcHJpdi0+bG9jaywgZmxh
+Z3MpOwo+ICsgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgaWJf
+ZnJlZV9yZWN2X21hZChtYWRfcmVjdl93Yyk7Cj4gKyDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDC
+oCDCoCDCoCDCoCDCoCDCoCDCoCBkZXJlZl9tYWRfYWdlbnQobWFkX2FnZW50X3ByaXYpOwo+ICsg
+wqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgcmV0dXJuOwo+ICsg
+wqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgfQo+ICsgwqAgwqAgwqAgwqAgwqAgwqAg
+wqAgfQo+IMKgIMKgIMKgIMKgfSBlbHNlIHsKPiDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoG1hZF9h
+Z2VudF9wcml2LT5hZ2VudC5yZWN2X2hhbmRsZXIoJm1hZF9hZ2VudF9wcml2LT5hZ2VudCwKPiDC
+oCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDC
+oCDCoCDCoCDCoCDCoCDCoCBtYWRfcmVjdl93Yyk7Cj4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvaW5m
+aW5pYmFuZC9jb3JlL3VzZXJfbWFkLmMgYi9kcml2ZXJzL2luZmluaWJhbmQvY29yZS91c2VyX21h
+ZC5jCj4gaW5kZXggMzZmODE1Yy4uZjljYWNiYyAxMDA2NDQKPiAtLS0gYS9kcml2ZXJzL2luZmlu
+aWJhbmQvY29yZS91c2VyX21hZC5jCj4gKysrIGIvZHJpdmVycy9pbmZpbmliYW5kL2NvcmUvdXNl
+cl9tYWQuYwo+IEBAIC01MDgsNyArNTA4LDcgQEAgc3RhdGljIHNzaXplX3QgaWJfdW1hZF93cml0
+ZShzdHJ1Y3QgZmlsZSAqZmlscCwgY29uc3QgY2hhciBfX3VzZXIgKmJ1ZiwKPgo+IMKgIMKgIMKg
+IMKgcm1wcF9tYWQgPSAoc3RydWN0IGliX3JtcHBfbWFkICopIHBhY2tldC0+bWFkLmRhdGE7Cj4g
+wqAgwqAgwqAgwqBoZHJfbGVuID0gaWJfZ2V0X21hZF9kYXRhX29mZnNldChybXBwX21hZC0+bWFk
+X2hkci5tZ210X2NsYXNzKTsKPiAtIMKgIMKgIMKgIGlmICghaWJfaXNfbWFkX2NsYXNzX3JtcHAo
+cm1wcF9tYWQtPm1hZF9oZHIubWdtdF9jbGFzcykpIHsKPiArIMKgIMKgIMKgIGlmICghYWdlbnQt
+PnJtcHBfdmVyc2lvbiB8fCAhaWJfaXNfbWFkX2NsYXNzX3JtcHAocm1wcF9tYWQtPm1hZF9oZHIu
+bWdtdF9jbGFzcykpIHsKPiDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoGNvcHlfb2Zmc2V0ID0gSUJf
+TUdNVF9NQURfSERSOwo+IMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgcm1wcF9hY3RpdmUgPSAwOwo+
+IMKgIMKgIMKgIMKgfSBlbHNlIHsKPiBAQCAtNTYwLDE0ICs1NjAsMjIgQEAgc3RhdGljIHNzaXpl
+X3QgaWJfdW1hZF93cml0ZShzdHJ1Y3QgZmlsZSAqZmlscCwgY29uc3QgY2hhciBfX3VzZXIgKmJ1
+ZiwKPiDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoHJtcHBfbWFkLT5tYWRfaGRyLnRpZCA9ICp0aWQ7
+Cj4gwqAgwqAgwqAgwqB9Cj4KPiAtIMKgIMKgIMKgIHNwaW5fbG9ja19pcnEoJmZpbGUtPnNlbmRf
+bG9jayk7Cj4gLSDCoCDCoCDCoCByZXQgPSBpc19kdXBsaWNhdGUoZmlsZSwgcGFja2V0KTsKPiAt
+IMKgIMKgIMKgIGlmICghcmV0KQo+ICsgwqAgwqAgwqAgaWYgKCDCoCFhZ2VudC0+cm1wcF92ZXJz
+aW9uCj4gKyDCoCDCoCDCoCDCoCDCoCYmIGliX2lzX21hZF9jbGFzc19ybXBwKHJtcHBfbWFkLT5t
+YWRfaGRyLm1nbXRfY2xhc3MpCj4gKyDCoCDCoCDCoCDCoCDCoCYmIChpYl9nZXRfcm1wcF9mbGFn
+cygmcm1wcF9tYWQtPnJtcHBfaGRyKSAmIElCX01HTVRfUk1QUF9GTEFHX0FDVElWRSkpIHsKPiAr
+IMKgIMKgIMKgIMKgIMKgIMKgIMKgIHNwaW5fbG9ja19pcnEoJmZpbGUtPnNlbmRfbG9jayk7Cj4g
+wqAgwqAgwqAgwqAgwqAgwqAgwqAgwqBsaXN0X2FkZF90YWlsKCZwYWNrZXQtPmxpc3QsICZmaWxl
+LT5zZW5kX2xpc3QpOwo+IC0gwqAgwqAgwqAgc3Bpbl91bmxvY2tfaXJxKCZmaWxlLT5zZW5kX2xv
+Y2spOwo+IC0gwqAgwqAgwqAgaWYgKHJldCkgewo+IC0gwqAgwqAgwqAgwqAgwqAgwqAgwqAgcmV0
+ID0gLUVJTlZBTDsKPiAtIMKgIMKgIMKgIMKgIMKgIMKgIMKgIGdvdG8gZXJyX21zZzsKPiArIMKg
+IMKgIMKgIMKgIMKgIMKgIMKgIHNwaW5fdW5sb2NrX2lycSgmZmlsZS0+c2VuZF9sb2NrKTsKPiAr
+IMKgIMKgIMKgIH0gZWxzZSB7Cj4gKyDCoCDCoCDCoCDCoCDCoCDCoCDCoCBzcGluX2xvY2tfaXJx
+KCZmaWxlLT5zZW5kX2xvY2spOwo+ICsgwqAgwqAgwqAgwqAgwqAgwqAgwqAgcmV0ID0gaXNfZHVw
+bGljYXRlKGZpbGUsIHBhY2tldCk7Cj4gKyDCoCDCoCDCoCDCoCDCoCDCoCDCoCBpZiAoIXJldCkK
+PiArIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIGxpc3RfYWRkX3RhaWwoJnBhY2tl
+dC0+bGlzdCwgJmZpbGUtPnNlbmRfbGlzdCk7Cj4gKyDCoCDCoCDCoCDCoCDCoCDCoCDCoCBzcGlu
+X3VubG9ja19pcnEoJmZpbGUtPnNlbmRfbG9jayk7Cj4gKyDCoCDCoCDCoCDCoCDCoCDCoCDCoCBp
+ZiAocmV0KSB7Cj4gKyDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCByZXQgPSAtRUlO
+VkFMOwo+ICsgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgZ290byBlcnJfbXNnOwo+
+ICsgwqAgwqAgwqAgwqAgwqAgwqAgwqAgfQo+IMKgIMKgIMKgIMKgfQo+Cj4gwqAgwqAgwqAgwqBy
+ZXQgPSBpYl9wb3N0X3NlbmRfbWFkKHBhY2tldC0+bXNnLCBOVUxMKTsKPgo+Cj4gLS0KPiBUbyB1
+bnN1YnNjcmliZSBmcm9tIHRoaXMgbGlzdDogc2VuZCB0aGUgbGluZSAidW5zdWJzY3JpYmUgbGlu
+dXgtcmRtYSIgaW4KPiB0aGUgYm9keSBvZiBhIG1lc3NhZ2UgdG8gbWFqb3Jkb21vQHZnZXIua2Vy
+bmVsLm9yZwo+IE1vcmUgbWFqb3Jkb21vIGluZm8gYXQgwqBodHRwOi8vdmdlci5rZXJuZWwub3Jn
+L21ham9yZG9tby1pbmZvLmh0bWwKPgo=
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
