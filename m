@@ -1,48 +1,31 @@
-From: Randy Dunlap <randy.dunlap@oracle.com>
-Subject: Re: linux-next: Tree for May 27 (infiniband: qib)
-Date: Thu, 27 May 2010 09:05:03 -0700
-Message-ID: <20100527090503.d229dc53.randy.dunlap@oracle.com>
-References: <20100527152628.b23a14c6.sfr@canb.auug.org.au>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH] IB/core User RMPP patch
+Date: Thu, 27 May 2010 09:07:30 -0700
+Message-ID: <CF9C39F99A89134C9CF9C4CCB68B8DDF255F32E300@orsmsx501.amr.corp.intel.com>
+References: <Acr9EAtKD/028Ag3RWu6iemg4gN1Tg==>
+	<4C2744E8AD2982428C5BFE523DF8CDCB49A488D528@MNEXMB1.qlogic.org>
+ <AANLkTikpYJXj9MjCwGUlK1SisooL_etjbE3BdwHtQjTj@mail.gmail.com>
+ <4C2744E8AD2982428C5BFE523DF8CDCB49A488D5AF@MNEXMB1.qlogic.org>
+ <CF9C39F99A89134C9CF9C4CCB68B8DDF255F32E2EF@orsmsx501.amr.corp.intel.com>
+ <4C2744E8AD2982428C5BFE523DF8CDCB49A488D5DA@MNEXMB1.qlogic.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-next-owner@vger.kernel.org>
-In-Reply-To: <20100527152628.b23a14c6.sfr@canb.auug.org.au>
-Sender: linux-next-owner@vger.kernel.org
-To: Stephen Rothwell <sfr@canb.auug.org.au>, Ralph Campbell <ralph.campbell@qlogic.com>
-Cc: linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, linux-rdma@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <4C2744E8AD2982428C5BFE523DF8CDCB49A488D5DA-amwN6d8PyQWXx9kJd3VG2h2eb7JE58TQ@public.gmane.org>
+Content-Language: en-US
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Mike Heinz <michael.heinz-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, 27 May 2010 15:26:28 +1000 Stephen Rothwell wrote:
-
-> Hi all,
-> 
-> We are in the merge window again.  I remind you all not to add stuff for
-> 2.6.36 to your linux-next trees until after 2.6.35-rc1.
-> 
-> Changes since 20100526:
-
-
-when CONFIG_INFINIBAND_QIB=y and CONFIG_DCA=m:
-
-drivers/built-in.o: In function `qib_update_sdma_dca':
-qib_iba7322.c:(.text+0x409219): undefined reference to `dca3_get_tag'
-drivers/built-in.o: In function `qib_update_rhdrq_dca':
-qib_iba7322.c:(.text+0x40a1f9): undefined reference to `dca3_get_tag'
-drivers/built-in.o: In function `qib_setup_7322_cleanup':
-qib_iba7322.c:(.text+0x40f91f): undefined reference to `dca_remove_requester'
-drivers/built-in.o: In function `qib_init_iba7322_funcs':
-(.text+0x419b6f): undefined reference to `dca_add_requester'
-
-
-However, it looks like qib needs to handle DCA config in a way that
-is similar to how it is handled in drivers/net/{myri10ge,igb,ixgbe}/
-instead of assuming that DCA is enabled.
-
-
-And please fix the linux-next 2010-may-25 reported qib problem:
-  http://lkml.org/lkml/2010/5/25/321
-
----
-~Randy
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
+PiBBY3R1YWxseSwgd2UndmUgYmVlbiB1c2luZyB0aGlzIHBhdGNoIGluIGhvdXNlIGZvciBxdWl0
+ZSBhIHdoaWxlIGFuZCBpdCdzDQo+IGJlZW4gd29ya2luZyBmb3IgdXMuIFdlIHdlcmUganVzdCBo
+b3BpbmcgdG8gbWlncmF0ZSBpdCBpbnRvIHRoZSBrZXJuZWwgc28NCj4gdGhhdCB0aGVyZSB3b3Vs
+ZCBiZSBubyByaXNrIG9mIGZ1dHVyZSBpbmNvbXBhdGliaWxpdGllcyBhcmlzaW5nLg0KDQpEb2Vz
+IHRoaXMgcmVwb3J0IGNvbXBsZXRpb25zIGZvciBub24tZGF0YSBSTVBQIE1BRHMgdG8gdGhlIHVz
+ZXI/DQoNCi0gU2Vhbg0KDQo=
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
