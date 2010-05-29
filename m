@@ -1,41 +1,30 @@
-From: Ralph Campbell <ralph.campbell@qlogic.com>
-Subject: Re: linux-next: Tree for May 27 (infiniband: qib)
-Date: Thu, 27 May 2010 15:22:03 -0700
-Message-ID: <1274998923.17393.28.camel@chromite.mv.qlogic.com>
-References: <20100527152628.b23a14c6.sfr@canb.auug.org.au>
-	 <20100527090503.d229dc53.randy.dunlap@oracle.com>
-	 <adaaarlvx0z.fsf@roland-alpha.cisco.com>  <4BFEECD3.7020203@oracle.com>
+From: "Sam L. Carl" <mail-gBzS/BVVR8aCCrs3XMj5bNBPR1lH4CV8@public.gmane.org>
+Subject: RE: Hey, Opt In Email Lists Give Away!
+Date: Sat, 29 May 2010 14:45:59 +0100
+Message-ID: <00ec3901$40327$1c716152671065@regina>
+Reply-To: "Sam L. Carl" <mail-gBzS/BVVR8aCCrs3XMj5bNBPR1lH4CV8@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-next-owner@vger.kernel.org>
-In-Reply-To: <4BFEECD3.7020203@oracle.com>
-Sender: linux-next-owner@vger.kernel.org
-To: Randy Dunlap <randy.dunlap@oracle.com>
-Cc: Roland Dreier <rdreier@cisco.com>, Stephen Rothwell <sfr@canb.auug.org.au>, "linux-next@vger.kernel.org" <linux-next@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, 2010-05-27 at 15:06 -0700, Randy Dunlap wrote:
-> On 05/27/10 14:45, Roland Dreier wrote:
-> >  > However, it looks like qib needs to handle DCA config in a way that
-> >  > is similar to how it is handled in drivers/net/{myri10ge,igb,ixgbe}/
-> >  > instead of assuming that DCA is enabled.
-> > 
-> > Looks like we're just going to rip out DCA support for now.
-> > 
-> >  > And please fix the linux-next 2010-may-25 reported qib problem:
-> >  >   http://lkml.org/lkml/2010/5/25/321
-> > 
-> > I think that should be fixed in my for-next branch already (at least I
-> > have a patch from Ralph called "IB/qib: Fix undefined symbol error when
-> > CONFIG_PCI_MSI=n" in there).
-> 
-> Sounds good.  Was is posted to linux-rdma?
-> 
-> thanks,
+Hey, 
 
-Yes, I posted it to linux-rdma.
+You have to check this out if your a webmaster. http://www.traffictractor.com is giving away thousands of opt in emails. 
 
-http://www.spinics.net/lists/linux-rdma/msg04140.html
+This is huge! Everyone is talking about it now. With these opt in email addresses you can do so much. It takes years and a lot of money to build a list from scratch but now you have the chance to grab a massive list.
 
-http://www.spinics.net/lists/linux-rdma/msg04187.html
+Use it for ezine, email, autoresponders, they will bring your website a huge amount of power, traffic and sales. 
+
+You have to check it out at http://www.traffictractor.com
+
+All the best,
+Sam L. Carl
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
