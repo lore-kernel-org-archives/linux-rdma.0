@@ -1,57 +1,30 @@
-From: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH] opensm/qos.c: Revert port ranges for calls to
- sl2vl_update_table().
-Date: Mon, 31 May 2010 02:56:16 +0300
-Message-ID: <20100530235616.GK28549@me>
-References: <1851_1274473140_o4LKDZ3n001852_1274473115-3153-1-git-send-email-jaschut@sandia.gov>
- <1274473795.4773.43.camel@sale659.sandia.gov>
- <AANLkTimzCMA8sdpT7W7bpBnb0fqdEhA5I3j-6Vqc7S2L@mail.gmail.com>
- <1274737321.4773.68.camel@sale659.sandia.gov>
- <AANLkTimrixibqJWr4zIeSYRUH4-Y1_BOqOGCvuEMNOmQ@mail.gmail.com>
+From: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+Subject: Re: [PATCH] mlx4_en: use net_device dev_id to indicate port number
+Date: Mon, 31 May 2010 00:33:02 -0700 (PDT)
+Message-ID: <20100531.003302.70210008.davem@davemloft.net>
+References: <20100527055624.GA18736@mtldesk030.lab.mtl.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <AANLkTimrixibqJWr4zIeSYRUH4-Y1_BOqOGCvuEMNOmQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <20100527055624.GA18736-8YAHvHwT2UEvbXDkjdHOrw/a8Rv0c6iv@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jim Schutt <jaschut-4OHPYypu0djtX7QSmKvirg@public.gmane.org>
-Cc: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: eli-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org
+Cc: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org, yevgenyp-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org, shemminger-ZtmgI6mnKB3QT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Jim,
+From: Eli Cohen <eli-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
+Date: Thu, 27 May 2010 08:56:24 +0300
 
-On 11:57 Tue 25 May     , Hal Rosenstock wrote:
->=20
-> > --- a/opensm/opensm/osm_qos.c
-> > +++ b/opensm/opensm/osm_qos.c
-> > @@ -233,7 +233,8 @@ static int qos_extports_setup(osm_sm_t * sm, os=
-m_node_t *node,
-> > =A0 =A0 =A0 =A0for (i =3D 0; i < num_ports; i++) {
-> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0p =3D osm_node_get_physp_ptr(node, i=
-);
-> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0force_update =3D p->need_update || s=
-m->p_subn->need_update;
-> > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 for (j =3D 1; j < num_ports; j++)
-> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 j =3D ib_switch_info_is_enhanced_port=
-0(&node->sw->switch_info) ? 0 : 1;
-> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 for (; j < num_ports; j++)
-> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0if (sl2vl_update_tab=
-le(sm, p, i, i << 8 | j,
-> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0 =A0 =A0 force_update, &qcfg->sl2vl))
-> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0ret =
-=3D -1;
-> >
-> > Does that look OK to you?
->=20
-> Yes.
+> Today, there are no means to know which port of a hardware device a netdev
+> interface uses. struct net_device conatins a field, dev_id, that can be used
+> for that. Use this field to save the port number in ConnectX that is being used
+> by the net device; port numbers are zero based.
+> 
+> Signed-off-by: Eli Cohen <eli-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
 
-Could you repost up to date version of the patch? Thanks.
-
-Sasha
+Applied.
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
