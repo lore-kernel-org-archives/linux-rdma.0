@@ -1,37 +1,54 @@
 From: Dan Carpenter <error27-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: [patch 2/2] infiniband/cxgb4: add null check
-Date: Mon, 31 May 2010 16:01:52 +0200
-Message-ID: <20100531140152.GU5483@bicker>
+Subject: bug report: dereferencing before check
+Date: Mon, 31 May 2010 16:15:52 +0200
+Message-ID: <20100531141552.GW5483@bicker>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Steve Wise <swise-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
-Cc: Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Vladimir Sokolovsky <vlad-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Earlier in the function we assume that ep->com.cm_id can be null.  I
-looked through the code briefly but couldn't tell if it actually is ever
-null or not.  Adding a null check here seemed like a cautious thing to
-do.
+Hello,
 
-Signed-off-by: Dan Carpenter <error27-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+I was going through some smatch errors and I was wondering if you could
+help me.
 
-diff --git a/drivers/infiniband/hw/cxgb4/cm.c b/drivers/infiniband/hw/cxgb4/cm.c
-index 60b5beb..9d11946 100644
---- a/drivers/infiniband/hw/cxgb4/cm.c
-+++ b/drivers/infiniband/hw/cxgb4/cm.c
-@@ -786,7 +786,8 @@ static void connect_reply_upcall(struct c4iw_ep *ep, int status)
- 		ep->com.cm_id->event_handler(ep->com.cm_id, &event);
- 	}
- 	if (status < 0) {
--		ep->com.cm_id->rem_ref(ep->com.cm_id);
-+		if (ep->com.cm_id)
-+			ep->com.cm_id->rem_ref(ep->com.cm_id);
- 		ep->com.cm_id = NULL;
- 		ep->com.qp = NULL;
- 	}
+drivers/infiniband/hw/mlx4/cq.c +401 mlx4_ib_resize_cq(56)
+	warn: variable dereferenced before check 'cq->resize_buf'
+
+   385          err = mlx4_cq_resize(dev->dev, &cq->mcq, entries, &cq->resize_buf->buf.mtt);
+                                                                  ^^^^^^^^^^^^^^^^^^^^^^^^
+	Dereference "cq->resize_buf" here.  (Ok.  Technically we
+	dereference it inside the function).
+
+   386          if (err)
+   387                  goto err_buf;
+   388
+   389          mlx4_mtt_cleanup(dev->dev, &mtt);
+   390          if (ibcq->uobject) {
+   391                  cq->buf      = cq->resize_buf->buf;
+   392                  cq->ibcq.cqe = cq->resize_buf->cqe;
+   393                  ib_umem_release(cq->umem);
+   394                  cq->umem     = cq->resize_umem;
+   395
+   396                  kfree(cq->resize_buf);
+   397                  cq->resize_buf = NULL;
+   398                  cq->resize_umem = NULL;
+   399          } else {
+   400                  spin_lock_irq(&cq->lock);
+   401                  if (cq->resize_buf) {
+                            ^^^^^^^^^^^^^^
+	Check here.
+
+   402                          mlx4_ib_cq_resize_copy_cqes(cq);
+
+Can "cq->resize_buf" be NULL here?
+
+regards,
+dan carpenter
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
