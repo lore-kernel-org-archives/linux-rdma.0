@@ -1,126 +1,68 @@
-From: Mike Heinz <michael.heinz-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH] ipoib pkey race condition
-Date: Tue, 1 Jun 2010 09:35:27 -0500
-Message-ID: <4C2744E8AD2982428C5BFE523DF8CDCB49A488D743@MNEXMB1.qlogic.org>
+From: "Jim Schutt" <jaschut-4OHPYypu0djtX7QSmKvirg@public.gmane.org>
+Subject: [PATCH v2] opensm/qos.c: Revert port ranges for calls to
+ sl2vl_update_table().
+Date: Tue,  1 Jun 2010 08:56:52 -0600
+Message-ID: <1275404212-5646-1-git-send-email-jaschut@sandia.gov>
+References: <20100530235616.GK28549@me>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <20100530235616.GK28549@me>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, Jim Schutt <jaschut-4OHPYypu0djtX7QSmKvirg@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-IPoIB is coded to use the 1st PKey in the PKey table as its ib0 interface. 
-Additional ib0.pkey interfaces may be created using the /sys/class/...
-add_child interface.
+Before commit 051a1dd5 (opensm/osm_qos.c: split switch external and end
+ports setup), osm_qos_setup() would end up calling sl2vl_update_table()
+for output ports 1-N, and inport ports 0-N.
 
-However, there is a race.  During normal boot, IPoIB will be started before the
-port is Active.  Hence the pkey table has not yet been programmed and has a
-default pkey table (with 0xffff as only pkey).
+Commit 051a1dd5 changed this around to be output ports 0-N, and input
+ports 1-N, and an InfiniScale IV-based fabric would log lots of errors
+like these:
 
-Later when the SM moves the port to Active, the SM may program the pkey table
-differently.  However at this point IPoIB has already started using the
-incorrect pkey.
+  log_rcv_cb_error: ERR 3111: Received MAD with error status = 0x1C
+  SubnGetResp(SLtoVLMappingTable), attr_mod 0x2300, TID 0xad069
+  Initial path: 0,1,1,4,13 Return path: 0,25,1,7,10
 
-It appears that the initially formatted 'broadcast' mgid is never updated to
-supply actual pkey value if ipoib comes up before hca port. Proposed patch
-targets two issues:
+The attr_mod in every such message has 0x00 in the least significant
+byte, which specifies the output port.
 
-1. Suppress activation of interface and join multicast group queries (it will
-fail anyway) until hca port is initialized. When port becomes active - update
-pkey value and move on.
-2. Update broadcast mgid based on actual pkey, then issue join broadcast group
-request.
+With the port ranges restored to their old values, the above log messages
+stop.  Hal Rosenstock pointed out that we should not be attempting
+to program a base SP0 with SL2VL maps; see, e.g.,  IBA 1.2.1, section
+14.2.5.8, page 844.  So, this patch is a full reversion for
+switches supporting base SP0, but only a partial reversion for
+switches supporting enhanced SP0.
 
-Signed-Off-By: Michael Heinz <michael.heinz-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+Signed-off-by: Jim Schutt <jaschut-4OHPYypu0djtX7QSmKvirg@public.gmane.org>
+---
+ opensm/opensm/osm_qos.c |    5 +++--
+ 1 files changed, 3 insertions(+), 2 deletions(-)
 
--------
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib_ib.c b/drivers/infiniband/ulp/ipoib/ipoib_ib.c
-index ec6b4fb..496d96c 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib_ib.c
-+++ b/drivers/infiniband/ulp/ipoib/ipoib_ib.c
-@@ -51,6 +51,7 @@ MODULE_PARM_DESC(data_debug_level,
- #endif
- 
- static DEFINE_MUTEX(pkey_mutex);
-+static void ipoib_pkey_dev_check_presence(struct net_device *dev);
- 
- struct ipoib_ah *ipoib_create_ah(struct net_device *dev,
- 				 struct ib_pd *pd, struct ib_ah_attr *attr)
-@@ -654,12 +655,13 @@ int ipoib_ib_dev_open(struct net_device *dev)
- 	struct ipoib_dev_priv *priv = netdev_priv(dev);
- 	int ret;
- 
--	if (ib_find_pkey(priv->ca, priv->port, priv->pkey, &priv->pkey_index)) {
-+	ipoib_pkey_dev_check_presence(dev);
-+
-+	if (!test_bit(IPOIB_PKEY_ASSIGNED, &priv->flags)) {
- 		ipoib_warn(priv, "P_Key 0x%04x not found\n", priv->pkey);
- 		clear_bit(IPOIB_PKEY_ASSIGNED, &priv->flags);
- 		return -1;
+diff --git a/opensm/opensm/osm_qos.c b/opensm/opensm/osm_qos.c
+index f814ea8..cce59ee 100644
+--- a/opensm/opensm/osm_qos.c
++++ b/opensm/opensm/osm_qos.c
+@@ -230,10 +230,11 @@ static int qos_extports_setup(osm_sm_t * sm, osm_node_t *node,
+ 					  &qcfg->sl2vl);
  	}
--	set_bit(IPOIB_PKEY_ASSIGNED, &priv->flags);
  
- 	ret = ipoib_init_qp(dev);
- 	if (ret) {
-@@ -694,9 +696,26 @@ int ipoib_ib_dev_open(struct net_device *dev)
- static void ipoib_pkey_dev_check_presence(struct net_device *dev)
- {
- 	struct ipoib_dev_priv *priv = netdev_priv(dev);
--	u16 pkey_index = 0;
-+	struct ib_port_attr    port_attr;
-+
-+	if (!test_bit(IPOIB_FLAG_SUBINTERFACE, &priv->flags)) {
-+		clear_bit(IPOIB_PKEY_ASSIGNED, &priv->flags);
-+		if (ib_query_port(priv->ca, priv->port, &port_attr)) {
-+			ipoib_warn(priv, "Query port attrs failed\n");
-+			return;
-+		}
-+
-+		if (port_attr.state != IB_PORT_ACTIVE)
-+			return;
-+
-+		if (ib_query_pkey(priv->ca, priv->port, 0, &priv->pkey)) {
-+			ipoib_warn(priv, "Query P_Key table entry 0 failed\n");
-+			return;
-+		}
-+		set_bit(IPOIB_PKEY_ASSIGNED, &priv->flags);
-+	}
- 
--	if (ib_find_pkey(priv->ca, priv->port, priv->pkey, &pkey_index))
-+	if (ib_find_pkey(priv->ca, priv->port, priv->pkey, &priv->pkey_index))
- 		clear_bit(IPOIB_PKEY_ASSIGNED, &priv->flags);
- 	else
- 		set_bit(IPOIB_PKEY_ASSIGNED, &priv->flags);
-@@ -955,7 +974,8 @@ static void __ipoib_ib_dev_flush(struct ipoib_dev_priv *priv,
- 		}
- 
- 		/* restart QP only if P_Key index is changed */
--		if (test_and_set_bit(IPOIB_PKEY_ASSIGNED, &priv->flags) &&
-+		if (test_bit(IPOIB_FLAG_SUBINTERFACE, &priv->flags) &&
-+		    test_and_set_bit(IPOIB_PKEY_ASSIGNED, &priv->flags) &&
- 		    new_index == priv->pkey_index) {
- 			ipoib_dbg(priv, "Not flushing - P_Key index not changed.\n");
- 			return;
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib_multicast.c b/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
-index 3871ac6..6fe6527 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
-+++ b/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
-@@ -552,6 +552,13 @@ void ipoib_mcast_join_task(struct work_struct *work)
- 		}
- 
- 		spin_lock_irq(&priv->lock);
-+
-+		if (!test_bit(IPOIB_FLAG_SUBINTERFACE, &priv->flags)) {
-+			/* fix broadcast gid in case if pkey was changed */
-+			priv->pkey |= 0x8000;
-+			priv->dev->broadcast[8] = priv->pkey >> 8;
-+			priv->dev->broadcast[9] = priv->pkey & 0xff;
-+		}
- 		memcpy(broadcast->mcmember.mgid.raw, priv->dev->broadcast + 4,
- 		       sizeof (union ib_gid));
- 		priv->broadcast = broadcast;
+-	for (i = 1; i < num_ports; i++) {
++	for (i = 0; i < num_ports; i++) {
+ 		p = osm_node_get_physp_ptr(node, i);
+ 		force_update = p->need_update || sm->p_subn->need_update;
+-		for (j = 0; j < num_ports; j++)
++		j = ib_switch_info_is_enhanced_port0(&node->sw->switch_info) ? 0 : 1;
++		for (; j < num_ports; j++)
+ 			if (sl2vl_update_table(sm, p, i, i << 8 | j,
+ 					       force_update, &qcfg->sl2vl))
+ 				ret = -1;
+-- 
+1.6.2.2
+
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
