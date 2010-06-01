@@ -1,68 +1,52 @@
-From: "Jim Schutt" <jaschut-4OHPYypu0djtX7QSmKvirg@public.gmane.org>
-Subject: [PATCH v2] opensm/qos.c: Revert port ranges for calls to
- sl2vl_update_table().
-Date: Tue,  1 Jun 2010 08:56:52 -0600
-Message-ID: <1275404212-5646-1-git-send-email-jaschut@sandia.gov>
-References: <20100530235616.GK28549@me>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [ANNOUNCE] librdmacm 1.0.12
+Date: Tue, 1 Jun 2010 08:18:01 -0700
+Message-ID: <CF9C39F99A89134C9CF9C4CCB68B8DDF255F3A63BD@orsmsx501.amr.corp.intel.com>
+References: <CE35DBA4CC524BD3BDA61C7DE2BD39CD@amr.corp.intel.com>
+ <4C024C35.2090703@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20100530235616.GK28549@me>
+In-Reply-To: <4C024C35.2090703-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, Jim Schutt <jaschut-4OHPYypu0djtX7QSmKvirg@public.gmane.org>
+To: Vladimir Sokolovsky <vlad-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Before commit 051a1dd5 (opensm/osm_qos.c: split switch external and end
-ports setup), osm_qos_setup() would end up calling sl2vl_update_table()
-for output ports 1-N, and inport ports 0-N.
+>   gcc -DHAVE_CONFIG_H -I. -I. -I. -I./include -g -Wall -D_GNU_SOURCE -O2 -g
+> -pipe -m64 -MT src_librdmacm_la-acm.lo -MD -MP -MF .deps/src_librdmacm_la-
+> acm.Tpo -c src/acm.c  -fPIC -DPIC -o
+> .libs/src_librdmacm_la-acm.o
+> In file included from src/acm.c:44:
+> ./include/infiniband/ib.h:49: error: syntax error before "__be16"
 
-Commit 051a1dd5 changed this around to be output ports 0-N, and input
-ports 1-N, and an InfiniScale IV-based fabric would log lots of errors
-like these:
+At least the following definitions are missing from types.h in redhat 4.x, which is based on 2.6.9.  (These are from RH 5.x.)
 
-  log_rcv_cb_error: ERR 3111: Received MAD with error status = 0x1C
-  SubnGetResp(SLtoVLMappingTable), attr_mod 0x2300, TID 0xad069
-  Initial path: 0,1,1,4,13 Return path: 0,25,1,7,10
+158 #ifdef __CHECKER__
+159 #define __bitwise__ __attribute__((bitwise))
+160 #else
+161 #define __bitwise__
+162 #endif
+163 #ifdef __CHECK_ENDIAN__
+164 #define __bitwise __bitwise__
+165 #else
+166 #define __bitwise
+167 #endif
+168 
+169 typedef __u16 __bitwise __le16;
+170 typedef __u16 __bitwise __be16;
+171 typedef __u32 __bitwise __le32;
+172 typedef __u32 __bitwise __be32;
+173 #if defined(__GNUC__) && !defined(__STRICT_ANSI__)
+174 typedef __u64 __bitwise __le64;
+175 typedef __u64 __bitwise __be64;
+176 #endif
 
-The attr_mod in every such message has 0x00 in the least significant
-byte, which specifies the output port.
+Has OFED handled a similar problem in the past?  If so, how?  (I can think of a couple ways to deal with this.)
 
-With the port ranges restored to their old values, the above log messages
-stop.  Hal Rosenstock pointed out that we should not be attempting
-to program a base SP0 with SL2VL maps; see, e.g.,  IBA 1.2.1, section
-14.2.5.8, page 844.  So, this patch is a full reversion for
-switches supporting base SP0, but only a partial reversion for
-switches supporting enhanced SP0.
-
-Signed-off-by: Jim Schutt <jaschut-4OHPYypu0djtX7QSmKvirg@public.gmane.org>
----
- opensm/opensm/osm_qos.c |    5 +++--
- 1 files changed, 3 insertions(+), 2 deletions(-)
-
-diff --git a/opensm/opensm/osm_qos.c b/opensm/opensm/osm_qos.c
-index f814ea8..cce59ee 100644
---- a/opensm/opensm/osm_qos.c
-+++ b/opensm/opensm/osm_qos.c
-@@ -230,10 +230,11 @@ static int qos_extports_setup(osm_sm_t * sm, osm_node_t *node,
- 					  &qcfg->sl2vl);
- 	}
- 
--	for (i = 1; i < num_ports; i++) {
-+	for (i = 0; i < num_ports; i++) {
- 		p = osm_node_get_physp_ptr(node, i);
- 		force_update = p->need_update || sm->p_subn->need_update;
--		for (j = 0; j < num_ports; j++)
-+		j = ib_switch_info_is_enhanced_port0(&node->sw->switch_info) ? 0 : 1;
-+		for (; j < num_ports; j++)
- 			if (sl2vl_update_table(sm, p, i, i << 8 | j,
- 					       force_update, &qcfg->sl2vl))
- 				ret = -1;
--- 
-1.6.2.2
-
-
+- Sean
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
