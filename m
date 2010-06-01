@@ -1,55 +1,215 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH] librdmacm: support 2.6.9
-Date: Tue, 1 Jun 2010 10:33:51 -0700
-Message-ID: <CF9C39F99A89134C9CF9C4CCB68B8DDF255F3A661F@orsmsx501.amr.corp.intel.com>
-References: <CE35DBA4CC524BD3BDA61C7DE2BD39CD@amr.corp.intel.com>
- <4C024C35.2090703@dev.mellanox.co.il>
- <CF9C39F99A89134C9CF9C4CCB68B8DDF255F3A63BD@orsmsx501.amr.corp.intel.com>
+From: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH v2] opensm/osmeventplugin: added couple of events to
+ monitor SM
+Date: Tue, 1 Jun 2010 21:37:56 +0300
+Message-ID: <20100601183756.GS28549@me>
+References: <4B587AFA.9020102@dev.mellanox.co.il>
+ <4BBC4E4B.7080705@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CF9C39F99A89134C9CF9C4CCB68B8DDF255F3A63BD-osO9UTpF0USkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <4BBC4E4B.7080705-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Vladimir Sokolovsky <vlad-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, OpenFabrics EWG <ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+To: Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: Linux RDMA <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Redhat 4.x is based on 2.6.9.  Add support for older kernels.
+Hi Yevgeny,
 
-Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
----
-This should fix the OFED build errors on RH 4.x.  When testing this on a
-RH 4.x system, I noticed additional build warnings on 32-bit systems.
-I'll add a fix for these warnings separately. 
+On 12:20 Wed 07 Apr     , Yevgeny Kliteynik wrote:
+> 
+> I've added a couple of new events that allow event
+> plug-in to see what SM is doing, when it is sweeping
+> and when it updates dump files:
+> 
+>   OSM_EVENT_ID_L_SWEEP_STARTED,
+>   OSM_EVENT_ID_L_SWEEP_DONE,
+>   OSM_EVENT_ID_H_SWEEP_STARTED,
+>   OSM_EVENT_ID_H_SWEEP_DONE,
+>   OSM_EVENT_ID_REROUTE_DONE,
+>   OSM_EVENT_ID_ENTERING_STANDBY,
+>   OSM_EVENT_ID_SM_PORT_DOWN,
+>   OSM_EVENT_ID_SA_DB_DUMPED
+> 
+> The last event is reported when SA DB was actually dumped.
+> I'm thinking of similar optimization for guid2lid file - it
+> doesn't have to be dumped at the end of each heavy sweep,
+> as many heavy sweeps don't really happen because of nodes
+> appearing/disappearing.
 
- include/infiniband/ib.h |   10 ++++++++++
- 1 files changed, 10 insertions(+), 0 deletions(-)
+I don't think that having a lot of events and spamming OpenSM core code
+with osm_opensm_report_event() calls were an original goals. The
+plugin interface is done so that it has full access to OpenSM internal
+data structures, etc.. So only *really* important things (such as SUBNET
+UP) will be transferred as events.
 
-diff --git a/include/infiniband/ib.h b/include/infiniband/ib.h
-index 3a97322..2e5029a 100644
---- a/include/infiniband/ib.h
-+++ b/include/infiniband/ib.h
-@@ -43,6 +43,16 @@
- #define PF_IB AF_IB
- #endif
- 
-+#ifndef __be16
-+#define __be16 __u16
-+#endif
-+#ifndef __be32
-+#define __be32 __u32
-+#endif
-+#ifndef __be64
-+#define __be64 __u64
-+#endif
-+
- struct ib_addr {
- 	union {
- 		__u8		uib_addr8[16];
+Also when sending the patch like this it would be really nice to have
+some description about why this and that events are needed, where this
+will be used, etc..
 
+Sasha
 
+> 
+> Signed-off-by: Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+> ---
+> 
+> Changes from V1:
+>   - added reporting OSM_EVENT_ID_H_SWEEP_DONE event
+>   - rebased to latest master
+> 
+>  opensm/include/opensm/osm_event_plugin.h   |   10 +++++++++-
+>  opensm/opensm/osm_state_mgr.c              |   22 +++++++++++++++++++++-
+>  opensm/osmeventplugin/src/osmeventplugin.c |   24 ++++++++++++++++++++++++
+>  3 files changed, 54 insertions(+), 2 deletions(-)
+> 
+> diff --git a/opensm/include/opensm/osm_event_plugin.h b/opensm/include/opensm/osm_event_plugin.h
+> index 33d1920..f5a57d7 100644
+> --- a/opensm/include/opensm/osm_event_plugin.h
+> +++ b/opensm/include/opensm/osm_event_plugin.h
+> @@ -72,7 +72,15 @@ typedef enum {
+>  	OSM_EVENT_ID_PORT_SELECT,
+>  	OSM_EVENT_ID_TRAP,
+>  	OSM_EVENT_ID_SUBNET_UP,
+> -	OSM_EVENT_ID_MAX
+> +	OSM_EVENT_ID_MAX,
+> +	OSM_EVENT_ID_L_SWEEP_STARTED,
+> +	OSM_EVENT_ID_L_SWEEP_DONE,
+> +	OSM_EVENT_ID_H_SWEEP_STARTED,
+> +	OSM_EVENT_ID_H_SWEEP_DONE,
+> +	OSM_EVENT_ID_REROUTE_DONE,
+> +	OSM_EVENT_ID_ENTERING_STANDBY,
+> +	OSM_EVENT_ID_SM_PORT_DOWN,
+> +	OSM_EVENT_ID_SA_DB_DUMPED
+>  } osm_epi_event_id_t;
+> 
+>  typedef struct osm_epi_port_id {
+> diff --git a/opensm/opensm/osm_state_mgr.c b/opensm/opensm/osm_state_mgr.c
+> index e43463f..d5dff14 100644
+> --- a/opensm/opensm/osm_state_mgr.c
+> +++ b/opensm/opensm/osm_state_mgr.c
+> @@ -1076,6 +1076,9 @@ static void do_sweep(osm_sm_t * sm)
+>  	    sm->p_subn->sm_state != IB_SMINFO_STATE_DISCOVERING)
+>  		return;
+> 
+> +	osm_opensm_report_event(sm->p_subn->p_osm,
+> +				OSM_EVENT_ID_L_SWEEP_STARTED, NULL);
+> +
+>  	if (sm->p_subn->coming_out_of_standby)
+>  		/*
+>  		 * Need to force re-write of sm_base_lid to all ports
+> @@ -1111,6 +1114,8 @@ static void do_sweep(osm_sm_t * sm)
+>  				osm_sa_db_file_dump(sm->p_subn->p_osm);
+>  			OSM_LOG_MSG_BOX(sm->p_log, OSM_LOG_VERBOSE,
+>  					"LIGHT SWEEP COMPLETE");
+> +			osm_opensm_report_event(sm->p_subn->p_osm,
+> +				OSM_EVENT_ID_L_SWEEP_DONE, NULL);
+>  			return;
+>  		}
+>  	}
+> @@ -1151,6 +1156,8 @@ static void do_sweep(osm_sm_t * sm)
+>  		if (!sm->p_subn->subnet_initialization_error) {
+>  			OSM_LOG_MSG_BOX(sm->p_log, OSM_LOG_VERBOSE,
+>  					"REROUTE COMPLETE");
+> +			osm_opensm_report_event(sm->p_subn->p_osm,
+> +				OSM_EVENT_ID_REROUTE_DONE, NULL);
+>  			return;
+>  		}
+>  	}
+> @@ -1158,6 +1165,9 @@ static void do_sweep(osm_sm_t * sm)
+>  	/* go to heavy sweep */
+>  repeat_discovery:
+> 
+> +	osm_opensm_report_event(sm->p_subn->p_osm,
+> +				OSM_EVENT_ID_H_SWEEP_STARTED, NULL);
+> +
+>  	/* First of all - unset all flags */
+>  	sm->p_subn->force_heavy_sweep = FALSE;
+>  	sm->p_subn->force_reroute = FALSE;
+> @@ -1185,6 +1195,8 @@ repeat_discovery:
+> 
+>  		/* Move to DISCOVERING state */
+>  		osm_sm_state_mgr_process(sm, OSM_SM_SIGNAL_DISCOVER);
+> +		osm_opensm_report_event(sm->p_subn->p_osm,
+> +					OSM_EVENT_ID_SM_PORT_DOWN, NULL);
+>  		return;
+>  	}
+> 
+> @@ -1205,6 +1217,8 @@ repeat_discovery:
+>  				"ENTERING STANDBY STATE");
+>  		/* notify master SM about us */
+>  		osm_send_trap144(sm, 0);
+> +		osm_opensm_report_event(sm->p_subn->p_osm,
+> +				OSM_EVENT_ID_ENTERING_STANDBY, NULL);
+>  		return;
+>  	}
+> 
+> @@ -1212,6 +1226,9 @@ repeat_discovery:
+>  	if (sm->p_subn->force_heavy_sweep)
+>  		goto repeat_discovery;
+> 
+> +	osm_opensm_report_event(sm->p_subn->p_osm,
+> +				OSM_EVENT_ID_H_SWEEP_DONE, NULL);
+> +
+>  	OSM_LOG_MSG_BOX(sm->p_log, OSM_LOG_VERBOSE, "HEAVY SWEEP COMPLETE");
+> 
+>  	/* If we are MASTER - get the highest remote_sm, and
+> @@ -1375,7 +1392,10 @@ repeat_discovery:
+> 
+>  		if (osm_log_is_active(sm->p_log, OSM_LOG_VERBOSE) ||
+>  		    sm->p_subn->opt.sa_db_dump)
+> -			osm_sa_db_file_dump(sm->p_subn->p_osm);
+> +			if (!osm_sa_db_file_dump(sm->p_subn->p_osm))
+> +				osm_opensm_report_event(sm->p_subn->p_osm,
+> +					OSM_EVENT_ID_SA_DB_DUMPED, NULL);
+> +
+>  	}
+> 
+>  	/*
+> diff --git a/opensm/osmeventplugin/src/osmeventplugin.c b/opensm/osmeventplugin/src/osmeventplugin.c
+> index b4d9ce9..5029be2 100644
+> --- a/opensm/osmeventplugin/src/osmeventplugin.c
+> +++ b/opensm/osmeventplugin/src/osmeventplugin.c
+> @@ -176,6 +176,30 @@ static void report(void *_log, osm_epi_event_id_t event_id, void *event_data)
+>  	case OSM_EVENT_ID_SUBNET_UP:
+>  		fprintf(log->log_file, "Subnet up reported\n");
+>  		break;
+> +	case OSM_EVENT_ID_L_SWEEP_STARTED:
+> +		fprintf(log->log_file, "Light sweep started\n");
+> +		break;
+> +	case OSM_EVENT_ID_L_SWEEP_DONE:
+> +		fprintf(log->log_file, "Light sweep completed\n");
+> +		break;
+> +	case OSM_EVENT_ID_H_SWEEP_STARTED:
+> +		fprintf(log->log_file, "Heavy sweep started\n");
+> +		break;
+> +	case OSM_EVENT_ID_H_SWEEP_DONE:
+> +		fprintf(log->log_file, "Heavy sweep completed\n");
+> +		break;
+> +	case OSM_EVENT_ID_REROUTE_DONE:
+> +		fprintf(log->log_file, "Re-route completed\n");
+> +		break;
+> +	case OSM_EVENT_ID_ENTERING_STANDBY:
+> +		fprintf(log->log_file, "Entering stand-by state\n");
+> +		break;
+> +	case OSM_EVENT_ID_SM_PORT_DOWN:
+> +		fprintf(log->log_file, "SM port is down\n");
+> +		break;
+> +	case OSM_EVENT_ID_SA_DB_DUMPED:
+> +		fprintf(log->log_file, "SA DB dump file updated\n");
+> +		break;
+>  	case OSM_EVENT_ID_MAX:
+>  	default:
+>  		osm_log(log->osmlog, OSM_LOG_ERROR,
+> -- 
+> 1.5.1.4
+> 
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
