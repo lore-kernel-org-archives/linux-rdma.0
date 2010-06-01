@@ -1,215 +1,48 @@
 From: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH v2] opensm/osmeventplugin: added couple of events to
- monitor SM
-Date: Tue, 1 Jun 2010 21:37:56 +0300
-Message-ID: <20100601183756.GS28549@me>
-References: <4B587AFA.9020102@dev.mellanox.co.il>
- <4BBC4E4B.7080705@dev.mellanox.co.il>
+Subject: Re: [PATCH v2] opensm/qos.c: Revert port ranges for calls to
+ sl2vl_update_table().
+Date: Tue, 1 Jun 2010 21:39:28 +0300
+Message-ID: <20100601183928.GT28549@me>
+References: <20100530235616.GK28549@me>
+ <1275404212-5646-1-git-send-email-jaschut@sandia.gov>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <4BBC4E4B.7080705-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+In-Reply-To: <1275404212-5646-1-git-send-email-jaschut-4OHPYypu0djtX7QSmKvirg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: Linux RDMA <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Jim Schutt <jaschut-4OHPYypu0djtX7QSmKvirg@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Yevgeny,
-
-On 12:20 Wed 07 Apr     , Yevgeny Kliteynik wrote:
+On 08:56 Tue 01 Jun     , Jim Schutt wrote:
+> Before commit 051a1dd5 (opensm/osm_qos.c: split switch external and end
+> ports setup), osm_qos_setup() would end up calling sl2vl_update_table()
+> for output ports 1-N, and inport ports 0-N.
 > 
-> I've added a couple of new events that allow event
-> plug-in to see what SM is doing, when it is sweeping
-> and when it updates dump files:
+> Commit 051a1dd5 changed this around to be output ports 0-N, and input
+> ports 1-N, and an InfiniScale IV-based fabric would log lots of errors
+> like these:
 > 
->   OSM_EVENT_ID_L_SWEEP_STARTED,
->   OSM_EVENT_ID_L_SWEEP_DONE,
->   OSM_EVENT_ID_H_SWEEP_STARTED,
->   OSM_EVENT_ID_H_SWEEP_DONE,
->   OSM_EVENT_ID_REROUTE_DONE,
->   OSM_EVENT_ID_ENTERING_STANDBY,
->   OSM_EVENT_ID_SM_PORT_DOWN,
->   OSM_EVENT_ID_SA_DB_DUMPED
+>   log_rcv_cb_error: ERR 3111: Received MAD with error status = 0x1C
+>   SubnGetResp(SLtoVLMappingTable), attr_mod 0x2300, TID 0xad069
+>   Initial path: 0,1,1,4,13 Return path: 0,25,1,7,10
 > 
-> The last event is reported when SA DB was actually dumped.
-> I'm thinking of similar optimization for guid2lid file - it
-> doesn't have to be dumped at the end of each heavy sweep,
-> as many heavy sweeps don't really happen because of nodes
-> appearing/disappearing.
+> The attr_mod in every such message has 0x00 in the least significant
+> byte, which specifies the output port.
+> 
+> With the port ranges restored to their old values, the above log messages
+> stop.  Hal Rosenstock pointed out that we should not be attempting
+> to program a base SP0 with SL2VL maps; see, e.g.,  IBA 1.2.1, section
+> 14.2.5.8, page 844.  So, this patch is a full reversion for
+> switches supporting base SP0, but only a partial reversion for
+> switches supporting enhanced SP0.
+> 
+> Signed-off-by: Jim Schutt <jaschut-4OHPYypu0djtX7QSmKvirg@public.gmane.org>
 
-I don't think that having a lot of events and spamming OpenSM core code
-with osm_opensm_report_event() calls were an original goals. The
-plugin interface is done so that it has full access to OpenSM internal
-data structures, etc.. So only *really* important things (such as SUBNET
-UP) will be transferred as events.
-
-Also when sending the patch like this it would be really nice to have
-some description about why this and that events are needed, where this
-will be used, etc..
+Applied. Thanks.
 
 Sasha
-
-> 
-> Signed-off-by: Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-> ---
-> 
-> Changes from V1:
->   - added reporting OSM_EVENT_ID_H_SWEEP_DONE event
->   - rebased to latest master
-> 
->  opensm/include/opensm/osm_event_plugin.h   |   10 +++++++++-
->  opensm/opensm/osm_state_mgr.c              |   22 +++++++++++++++++++++-
->  opensm/osmeventplugin/src/osmeventplugin.c |   24 ++++++++++++++++++++++++
->  3 files changed, 54 insertions(+), 2 deletions(-)
-> 
-> diff --git a/opensm/include/opensm/osm_event_plugin.h b/opensm/include/opensm/osm_event_plugin.h
-> index 33d1920..f5a57d7 100644
-> --- a/opensm/include/opensm/osm_event_plugin.h
-> +++ b/opensm/include/opensm/osm_event_plugin.h
-> @@ -72,7 +72,15 @@ typedef enum {
->  	OSM_EVENT_ID_PORT_SELECT,
->  	OSM_EVENT_ID_TRAP,
->  	OSM_EVENT_ID_SUBNET_UP,
-> -	OSM_EVENT_ID_MAX
-> +	OSM_EVENT_ID_MAX,
-> +	OSM_EVENT_ID_L_SWEEP_STARTED,
-> +	OSM_EVENT_ID_L_SWEEP_DONE,
-> +	OSM_EVENT_ID_H_SWEEP_STARTED,
-> +	OSM_EVENT_ID_H_SWEEP_DONE,
-> +	OSM_EVENT_ID_REROUTE_DONE,
-> +	OSM_EVENT_ID_ENTERING_STANDBY,
-> +	OSM_EVENT_ID_SM_PORT_DOWN,
-> +	OSM_EVENT_ID_SA_DB_DUMPED
->  } osm_epi_event_id_t;
-> 
->  typedef struct osm_epi_port_id {
-> diff --git a/opensm/opensm/osm_state_mgr.c b/opensm/opensm/osm_state_mgr.c
-> index e43463f..d5dff14 100644
-> --- a/opensm/opensm/osm_state_mgr.c
-> +++ b/opensm/opensm/osm_state_mgr.c
-> @@ -1076,6 +1076,9 @@ static void do_sweep(osm_sm_t * sm)
->  	    sm->p_subn->sm_state != IB_SMINFO_STATE_DISCOVERING)
->  		return;
-> 
-> +	osm_opensm_report_event(sm->p_subn->p_osm,
-> +				OSM_EVENT_ID_L_SWEEP_STARTED, NULL);
-> +
->  	if (sm->p_subn->coming_out_of_standby)
->  		/*
->  		 * Need to force re-write of sm_base_lid to all ports
-> @@ -1111,6 +1114,8 @@ static void do_sweep(osm_sm_t * sm)
->  				osm_sa_db_file_dump(sm->p_subn->p_osm);
->  			OSM_LOG_MSG_BOX(sm->p_log, OSM_LOG_VERBOSE,
->  					"LIGHT SWEEP COMPLETE");
-> +			osm_opensm_report_event(sm->p_subn->p_osm,
-> +				OSM_EVENT_ID_L_SWEEP_DONE, NULL);
->  			return;
->  		}
->  	}
-> @@ -1151,6 +1156,8 @@ static void do_sweep(osm_sm_t * sm)
->  		if (!sm->p_subn->subnet_initialization_error) {
->  			OSM_LOG_MSG_BOX(sm->p_log, OSM_LOG_VERBOSE,
->  					"REROUTE COMPLETE");
-> +			osm_opensm_report_event(sm->p_subn->p_osm,
-> +				OSM_EVENT_ID_REROUTE_DONE, NULL);
->  			return;
->  		}
->  	}
-> @@ -1158,6 +1165,9 @@ static void do_sweep(osm_sm_t * sm)
->  	/* go to heavy sweep */
->  repeat_discovery:
-> 
-> +	osm_opensm_report_event(sm->p_subn->p_osm,
-> +				OSM_EVENT_ID_H_SWEEP_STARTED, NULL);
-> +
->  	/* First of all - unset all flags */
->  	sm->p_subn->force_heavy_sweep = FALSE;
->  	sm->p_subn->force_reroute = FALSE;
-> @@ -1185,6 +1195,8 @@ repeat_discovery:
-> 
->  		/* Move to DISCOVERING state */
->  		osm_sm_state_mgr_process(sm, OSM_SM_SIGNAL_DISCOVER);
-> +		osm_opensm_report_event(sm->p_subn->p_osm,
-> +					OSM_EVENT_ID_SM_PORT_DOWN, NULL);
->  		return;
->  	}
-> 
-> @@ -1205,6 +1217,8 @@ repeat_discovery:
->  				"ENTERING STANDBY STATE");
->  		/* notify master SM about us */
->  		osm_send_trap144(sm, 0);
-> +		osm_opensm_report_event(sm->p_subn->p_osm,
-> +				OSM_EVENT_ID_ENTERING_STANDBY, NULL);
->  		return;
->  	}
-> 
-> @@ -1212,6 +1226,9 @@ repeat_discovery:
->  	if (sm->p_subn->force_heavy_sweep)
->  		goto repeat_discovery;
-> 
-> +	osm_opensm_report_event(sm->p_subn->p_osm,
-> +				OSM_EVENT_ID_H_SWEEP_DONE, NULL);
-> +
->  	OSM_LOG_MSG_BOX(sm->p_log, OSM_LOG_VERBOSE, "HEAVY SWEEP COMPLETE");
-> 
->  	/* If we are MASTER - get the highest remote_sm, and
-> @@ -1375,7 +1392,10 @@ repeat_discovery:
-> 
->  		if (osm_log_is_active(sm->p_log, OSM_LOG_VERBOSE) ||
->  		    sm->p_subn->opt.sa_db_dump)
-> -			osm_sa_db_file_dump(sm->p_subn->p_osm);
-> +			if (!osm_sa_db_file_dump(sm->p_subn->p_osm))
-> +				osm_opensm_report_event(sm->p_subn->p_osm,
-> +					OSM_EVENT_ID_SA_DB_DUMPED, NULL);
-> +
->  	}
-> 
->  	/*
-> diff --git a/opensm/osmeventplugin/src/osmeventplugin.c b/opensm/osmeventplugin/src/osmeventplugin.c
-> index b4d9ce9..5029be2 100644
-> --- a/opensm/osmeventplugin/src/osmeventplugin.c
-> +++ b/opensm/osmeventplugin/src/osmeventplugin.c
-> @@ -176,6 +176,30 @@ static void report(void *_log, osm_epi_event_id_t event_id, void *event_data)
->  	case OSM_EVENT_ID_SUBNET_UP:
->  		fprintf(log->log_file, "Subnet up reported\n");
->  		break;
-> +	case OSM_EVENT_ID_L_SWEEP_STARTED:
-> +		fprintf(log->log_file, "Light sweep started\n");
-> +		break;
-> +	case OSM_EVENT_ID_L_SWEEP_DONE:
-> +		fprintf(log->log_file, "Light sweep completed\n");
-> +		break;
-> +	case OSM_EVENT_ID_H_SWEEP_STARTED:
-> +		fprintf(log->log_file, "Heavy sweep started\n");
-> +		break;
-> +	case OSM_EVENT_ID_H_SWEEP_DONE:
-> +		fprintf(log->log_file, "Heavy sweep completed\n");
-> +		break;
-> +	case OSM_EVENT_ID_REROUTE_DONE:
-> +		fprintf(log->log_file, "Re-route completed\n");
-> +		break;
-> +	case OSM_EVENT_ID_ENTERING_STANDBY:
-> +		fprintf(log->log_file, "Entering stand-by state\n");
-> +		break;
-> +	case OSM_EVENT_ID_SM_PORT_DOWN:
-> +		fprintf(log->log_file, "SM port is down\n");
-> +		break;
-> +	case OSM_EVENT_ID_SA_DB_DUMPED:
-> +		fprintf(log->log_file, "SA DB dump file updated\n");
-> +		break;
->  	case OSM_EVENT_ID_MAX:
->  	default:
->  		osm_log(log->osmlog, OSM_LOG_ERROR,
-> -- 
-> 1.5.1.4
-> 
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
