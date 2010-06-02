@@ -1,33 +1,28 @@
 From: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH] opensm: fixing compilation issues in some header files
-Date: Wed, 2 Jun 2010 19:05:47 +0300
-Message-ID: <20100602160547.GI28549@me>
-References: <4BAA34B2.9060808@dev.mellanox.co.il>
- <4C04F5E7.8030904@dev.mellanox.co.il>
- <20100601192205.GV28549@me>
- <4C057940.1020106@dev.mellanox.co.il>
- <20100602010314.GZ28549@me>
- <4C06084D.3070101@dev.mellanox.co.il>
- <20100602151806.GF28549@me>
- <AANLkTinyMA8WyFPee755nelj9gxJKTP7mQChYlDkUF4J@mail.gmail.com>
+Subject: Re: [PATCH] opensm: Add a rate based mechanism for SMP transactions
+Date: Wed, 2 Jun 2010 19:00:29 +0300
+Message-ID: <20100602160029.GH28549@me>
+References: <20091216151115.GA22639@comcast.net>
+ <20100601153234.GR28549@me>
+ <AANLkTimDPaT0m-2Qa-0dTpng5FmQRhzUhpiBWFdxwGsQ@mail.gmail.com>
+ <20100602153106.GG28549@me>
+ <AANLkTinNTrdjF2tfu0JHN09eYmzimLt2yfTBfaxSuZUV@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <AANLkTinyMA8WyFPee755nelj9gxJKTP7mQChYlDkUF4J-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <AANLkTinNTrdjF2tfu0JHN09eYmzimLt2yfTBfaxSuZUV-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Linux RDMA <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 11:30 Wed 02 Jun     , Hal Rosenstock wrote:
+On 11:36 Wed 02 Jun     , Hal Rosenstock wrote:
 > 
-> g++ can be used as a (better) C compiler. Shouldn't compilation with
-> g++ be supported ?
+> I'm saying that I think the approach proposed in the original patch is
+> better as it doesn't waste CPU although it's more complex.
 
-What would this buy for us?
-
-BTW why is g++ better as C compiler? 
+How do you see this, the code is almost equivalent in vl15_poller()?
 
 Sasha
 --
