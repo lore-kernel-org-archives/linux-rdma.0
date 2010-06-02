@@ -1,8 +1,8 @@
 From: Hal Rosenstock <hnrose-Wuw85uim5zDR7s880joybQ@public.gmane.org>
-Subject: [PATCH 1/2] infiniband-diags/libibnetdisc/chassis.c: In
-	group_nodes, pass on all nodes
-Date: Wed, 2 Jun 2010 09:02:54 -0400
-Message-ID: <20100602130254.GA4715@comcast.net>
+Subject: [PATCH 2/2] infiniband-diags/libibnetdisc/chassis.c: In
+	group_nodes, set fabric->chassis
+Date: Wed, 2 Jun 2010 09:04:15 -0400
+Message-ID: <20100602130415.GB4715@comcast.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
@@ -13,27 +13,45 @@ Cc: weiny2-i2BcT+NCU+M@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@publi
 List-Id: linux-rdma@vger.kernel.org
 
 
-rather than just switches for common SystemImageGUID
-Now consistent with original grouping.c from which this was ported
+when grouping by SystemImageGUID
+
+Without doing this, find_chassisguid will always return without
+finding the already discovered chassis so no grouping occurs
+when it should
 
 Signed-off-by: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 ---
- infiniband-diags/libibnetdisc/src/chassis.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ infiniband-diags/libibnetdisc/src/chassis.c |    4 ++++
+ 1 files changed, 4 insertions(+), 0 deletions(-)
 
 diff --git a/infiniband-diags/libibnetdisc/src/chassis.c b/infiniband-diags/libibnetdisc/src/chassis.c
-index cd2113f..f5f683e 100644
+index f5f683e..25d7473 100644
 --- a/infiniband-diags/libibnetdisc/src/chassis.c
 +++ b/infiniband-diags/libibnetdisc/src/chassis.c
-@@ -1059,7 +1059,7 @@ int group_nodes(ibnd_fabric_t * fabric)
- 
- 	/* now make pass on nodes for chassis which are not Voltaire */
- 	/* grouped by common SystemImageGUID */
--	for (node = fabric->switches; node; node = node->type_next) {
-+	for (node = fabric->nodes; node; node = node->next) {
- 		if (mad_get_field(node->info, 0,
- 				  IB_NODE_VENDORID_F) == VTR_VENDOR_ID)
- 			continue;
+@@ -2,6 +2,7 @@
+  * Copyright (c) 2004-2009 Voltaire Inc.  All rights reserved.
+  * Copyright (c) 2007 Xsigo Systems Inc.  All rights reserved.
+  * Copyright (c) 2008 Lawrence Livermore National Lab.  All rights reserved.
++ * Copyright (c) 2010 HNR Consulting.  All rights reserved.
+  *
+  * This software is available to you under a choice of one of two
+  * licenses.  You may choose to be licensed under the terms of the GNU
+@@ -1074,6 +1075,8 @@ int group_nodes(ibnd_fabric_t * fabric)
+ 				chassis_scan.current_chassis->chassisguid =
+ 				    get_chassisguid(node);
+ 				chassis_scan.current_chassis->nodecount = 1;
++				if (!fabric->chassis)
++					fabric->chassis = chassis_scan.first_chassis;
+ 			}
+ 		}
+ 	}
+@@ -1107,5 +1110,6 @@ cleanup:
+ 		free(ch);
+ 		ch = ch_next;
+ 	}
++	fabric->chassis = NULL;
+ 	return -1;
+ }
 -- 
 1.5.6.4
 
