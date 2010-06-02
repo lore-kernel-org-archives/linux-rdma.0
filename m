@@ -1,33 +1,42 @@
-From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH] libibverbs: Force line-buffering in ibv_asyncwatch
-Date: Wed, 02 Jun 2010 10:05:56 -0700
-Message-ID: <ada7hmhtle3.fsf@roland-alpha.cisco.com>
-References: <ED0695A5-CBE3-4CE2-A20C-BBC7BEF28C33@Sun.com>
-	<e2e108261001210618p476ed03bofa2e46c223578e1a@mail.gmail.com>
-	<C25CCF03-2542-4C8D-9AF4-122DBF56F856@Sun.COM>
+From: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+Subject: Re: [PATCH] net/core: Save the port number a netdevice uses
+Date: Wed, 02 Jun 2010 10:12:22 -0700 (PDT)
+Message-ID: <20100602.101222.51286679.davem@davemloft.net>
+References: <20100526090850.GB28748@mtldesk030.lab.mtl.com>
+	<20100526.021635.179940939.davem@davemloft.net>
+	<1275496949.2115.18.camel@achroite.uk.solarflarecom.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <C25CCF03-2542-4C8D-9AF4-122DBF56F856-UdXhSnd/wVw@public.gmane.org> (=?utf-8?Q?=22?=
- =?utf-8?Q?H=C3=A5kon?= Bugge"'s
-	message of "Thu, 21 Jan 2010 16:01:55 +0100")
+In-Reply-To: <1275496949.2115.18.camel-xQnnTUlwzDrdvaEqJLTMTA9jg9n5Vt1AMm0uRHvK7Nw@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: =?utf-8?Q?H=C3=A5kon?= Bugge <Haakon.Bugge-UdXhSnd/wVw@public.gmane.org>
-Cc: Bart Van Assche <bart.vanassche-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Vladimir Sokolovsky <vlad-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, OFED mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Or Gerlitz <ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+To: bhutchings-s/n/eUQHGBpZroRs9YW3xA@public.gmane.org
+Cc: eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org, yevgenyp-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
- > setlinebuf() is pretty intuitive to understand, compared to setvbuf().
+From: Ben Hutchings <bhutchings-s/n/eUQHGBpZroRs9YW3xA@public.gmane.org>
+Date: Wed, 02 Jun 2010 17:42:29 +0100
 
-I finally applied this; however in the end I decided to do
+> On Wed, 2010-05-26 at 02:16 -0700, David Miller wrote:
+>> From: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+>> Date: Wed, 26 May 2010 12:08:52 +0300
+>> 
+>> > So if I understand you correctly, you think that I should not bother
+>> > to set a default value of 1. Each driver that cares about the value
+>> > of this field, will set it however they want.
+>> 
+>> I actually mean that the value "0" should mean the first port,
+>> the value "1" should mean the second port, etc.
+> 
+> There's a compatibility problem here though: when user-space looks at
+> this number it can't tell whether "0" really means the first port or
+> that the driver isn't setting dev_id.
 
-	setvbuf(stdout, NULL, _IOLBF, 0);
+That's perfect, it means we don't have to add explicit settings to
+drivers which driver only one port.  Ie. the vast majority of
+cases.
 
-instead of setlinebuf(), since in the past I've prefered more pedantic
-stuff (eg posix_memalign instead of memalign) to the older simpler
-traditional functions.  Kind of a trivial issue either way anyway.
--- 
-Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org> || For corporate legal information go to:
-http://www.cisco.com/web/about/doing_business/legal/cri/index.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
