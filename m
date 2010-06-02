@@ -1,30 +1,26 @@
 From: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH 2/2] infiniband-diags/libibnetdisc/chassis.c: In
- group_nodes, set fabric->chassis
-Date: Wed, 2 Jun 2010 18:12:12 +0300
-Message-ID: <20100602151212.GD28549@me>
-References: <20100602130415.GB4715@comcast.net>
+Subject: Re: [PATCH] infiniband-diags/ibnetdiscover.c: Cosmetic changes
+Date: Wed, 2 Jun 2010 18:12:44 +0300
+Message-ID: <20100602151244.GE28549@me>
+References: <20100602130519.GC4715@comcast.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20100602130415.GB4715-Wuw85uim5zDR7s880joybQ@public.gmane.org>
+In-Reply-To: <20100602130519.GC4715-Wuw85uim5zDR7s880joybQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Hal Rosenstock <hnrose-Wuw85uim5zDR7s880joybQ@public.gmane.org>
 Cc: weiny2-i2BcT+NCU+M@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 09:04 Wed 02 Jun     , Hal Rosenstock wrote:
+On 09:05 Wed 02 Jun     , Hal Rosenstock wrote:
 > 
-> when grouping by SystemImageGUID
-> 
-> Without doing this, find_chassisguid will always return without
-> finding the already discovered chassis so no grouping occurs
-> when it should
+> Eliminate unneeded comment
+> Also, cosmetic formatting change
 > 
 > Signed-off-by: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 
-Both applied. Thanks.
+Applied. Thanks.
 
 Sasha
 --
