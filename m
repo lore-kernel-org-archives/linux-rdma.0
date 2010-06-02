@@ -1,35 +1,30 @@
 From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Subject: Re: libibverbs and versions
-Date: Wed, 02 Jun 2010 09:46:39 -0700
-Message-ID: <adaeigptma8.fsf@roland-alpha.cisco.com>
-References: <4C067DE0.8020508@opengridcomputing.com>
+Subject: Re: [PATCH] libibverbs: Force line-buffering in ibv_asyncwatch
+Date: Wed, 02 Jun 2010 10:05:56 -0700
+Message-ID: <ada7hmhtle3.fsf@roland-alpha.cisco.com>
+References: <ED0695A5-CBE3-4CE2-A20C-BBC7BEF28C33@Sun.com>
+	<e2e108261001210618p476ed03bofa2e46c223578e1a@mail.gmail.com>
+	<C25CCF03-2542-4C8D-9AF4-122DBF56F856@Sun.COM>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4C067DE0.8020508-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org> (Steve Wise's message of
-	"Wed, 02 Jun 2010 10:50:56 -0500")
+In-Reply-To: <C25CCF03-2542-4C8D-9AF4-122DBF56F856-UdXhSnd/wVw@public.gmane.org> (=?utf-8?Q?=22?=
+ =?utf-8?Q?H=C3=A5kon?= Bugge"'s
+	message of "Thu, 21 Jan 2010 16:01:55 +0100")
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: =?utf-8?Q?H=C3=A5kon?= Bugge <Haakon.Bugge-UdXhSnd/wVw@public.gmane.org>
+Cc: Bart Van Assche <bart.vanassche-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Vladimir Sokolovsky <vlad-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, OFED mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Or Gerlitz <ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
- > I have this library I'm writing that uses libibverbs.  Somehow it
- > seems to be using the 1.0 version instead of the newer version (I'm
- > guessing).  When I call ibv_create_cq()  I get a seg fault and the
- > stack looks like this:
- > 
- > #0  0x000000319d80871d in pthread_mutex_lock () from /lib64/libpthread.so.0
- > #1  0x00007f60e93fac9a in __ibv_create_cq (context=0x7f60e8597c51, cqe=256,
- >    cq_context=0x0, channel=0x0, comp_vector=0) at src/verbs.c:278
- > #2  0x00007f60e93f727f in __ibv_create_cq_1_0 (context=0x61db30, cqe=256,
- >    cq_context=0x0, channel=0x0, comp_vector=0) at src/compat-1_0.c:649
+ > setlinebuf() is pretty intuitive to understand, compared to setvbuf().
 
-Code compiled against libibverbs 1.1 shouldn't ever hit the 1.0
-compatibility code.  libibverbs is using versioned symbols, so if your
-library is built/linked correctly, it should pick up the 1.1 versions.
-How are you building your library?
+I finally applied this; however in the end I decided to do
 
- - R.
+	setvbuf(stdout, NULL, _IOLBF, 0);
+
+instead of setlinebuf(), since in the past I've prefered more pedantic
+stuff (eg posix_memalign instead of memalign) to the older simpler
+traditional functions.  Kind of a trivial issue either way anyway.
 -- 
 Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org> || For corporate legal information go to:
 http://www.cisco.com/web/about/doing_business/legal/cri/index.html
