@@ -1,42 +1,30 @@
-From: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
-Subject: Re: [PATCH] net/core: Save the port number a netdevice uses
-Date: Wed, 02 Jun 2010 10:12:22 -0700 (PDT)
-Message-ID: <20100602.101222.51286679.davem@davemloft.net>
-References: <20100526090850.GB28748@mtldesk030.lab.mtl.com>
-	<20100526.021635.179940939.davem@davemloft.net>
-	<1275496949.2115.18.camel@achroite.uk.solarflarecom.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: libibverbs and versions
+Date: Wed, 2 Jun 2010 11:32:45 -0600
+Message-ID: <20100602173245.GG15969@obsidianresearch.com>
+References: <4C067DE0.8020508@opengridcomputing.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1275496949.2115.18.camel-xQnnTUlwzDrdvaEqJLTMTA9jg9n5Vt1AMm0uRHvK7Nw@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <4C067DE0.8020508-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: bhutchings-s/n/eUQHGBpZroRs9YW3xA@public.gmane.org
-Cc: eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org, yevgenyp-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org
+To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Cc: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Ben Hutchings <bhutchings-s/n/eUQHGBpZroRs9YW3xA@public.gmane.org>
-Date: Wed, 02 Jun 2010 17:42:29 +0100
+On Wed, Jun 02, 2010 at 10:50:56AM -0500, Steve Wise wrote:
 
-> On Wed, 2010-05-26 at 02:16 -0700, David Miller wrote:
->> From: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
->> Date: Wed, 26 May 2010 12:08:52 +0300
->> 
->> > So if I understand you correctly, you think that I should not bother
->> > to set a default value of 1. Each driver that cares about the value
->> > of this field, will set it however they want.
->> 
->> I actually mean that the value "0" should mean the first port,
->> the value "1" should mean the second port, etc.
-> 
-> There's a compatibility problem here though: when user-space looks at
-> this number it can't tell whether "0" really means the first port or
-> that the driver isn't setting dev_id.
+> I have this library I'm writing that uses libibverbs.  Somehow it seems  
+> to be using the 1.0 version instead of the newer version (I'm guessing).  
+> When I call ibv_create_cq()  I get a seg fault and the stack looks like 
+> this:
 
-That's perfect, it means we don't have to add explicit settings to
-drivers which driver only one port.  Ie. the vast majority of
-cases.
+Make sure you link your library to libibverbs and do not rely on
+linking the app to libibverbs to resolve the symbols. Check with 
+ldd foo.so
 
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
