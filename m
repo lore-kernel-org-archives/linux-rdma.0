@@ -1,27 +1,33 @@
-From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [patch 2/2] infiniband/cxgb4: add null check
-Date: Wed, 02 Jun 2010 14:58:35 -0700
-Message-ID: <adaeigpqepg.fsf@roland-alpha.cisco.com>
-References: <20100531140152.GU5483@bicker>
+From: Ralph Campbell <ralph.campbell-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+Subject: Re: variable length array in qib
+Date: Wed, 2 Jun 2010 16:01:19 -0700
+Message-ID: <1275519679.32179.9.camel@chromite.mv.qlogic.com>
+References: <adar5kpqfpb.fsf@roland-alpha.cisco.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20100531140152.GU5483@bicker> (Dan Carpenter's message of "Mon,
-	31 May 2010 16:01:52 +0200")
+In-Reply-To: <adar5kpqfpb.fsf-BjVyx320WGW9gfZ95n9DRSW4+XlvGpQz@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Dan Carpenter <error27-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Steve Wise <swise-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
- >  	if (status < 0) {
- > -		ep->com.cm_id->rem_ref(ep->com.cm_id);
- > +		if (ep->com.cm_id)
- > +			ep->com.cm_id->rem_ref(ep->com.cm_id);
+Sure. I will work on a patch.
 
-Steve, does this make sense?
--- 
-Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org> || For corporate legal information go to:
-http://www.cisco.com/web/about/doing_business/legal/cri/index.html
+On Wed, 2010-06-02 at 14:37 -0700, Roland Dreier wrote:
+> qib has the code
+> 
+> 	void qib_disarm_piobufs_set(struct qib_devdata *dd, unsigned long *mask,
+> 				    unsigned cnt)
+> 	{
+> 		struct qib_pportdata *ppd, *pppd[dd->num_pports];
+> 
+> it would probably be safer to avoid the variable length array pppd[] on
+> the kernel stack here... could this code be easily refactored to avoid
+> doing that?
+
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
