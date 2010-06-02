@@ -1,26 +1,28 @@
 From: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH] infiniband-diags/ibnetdiscover.c: Cosmetic changes
-Date: Wed, 2 Jun 2010 18:12:44 +0300
-Message-ID: <20100602151244.GE28549@me>
-References: <20100602130519.GC4715@comcast.net>
+Subject: Re: [PATCH] opensm: fixing compilation issues in some header files
+Date: Wed, 2 Jun 2010 18:18:06 +0300
+Message-ID: <20100602151806.GF28549@me>
+References: <4BAA34B2.9060808@dev.mellanox.co.il>
+ <4C04F5E7.8030904@dev.mellanox.co.il>
+ <20100601192205.GV28549@me>
+ <4C057940.1020106@dev.mellanox.co.il>
+ <20100602010314.GZ28549@me>
+ <4C06084D.3070101@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20100602130519.GC4715-Wuw85uim5zDR7s880joybQ@public.gmane.org>
+In-Reply-To: <4C06084D.3070101-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Hal Rosenstock <hnrose-Wuw85uim5zDR7s880joybQ@public.gmane.org>
-Cc: weiny2-i2BcT+NCU+M@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: Linux RDMA <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 09:05 Wed 02 Jun     , Hal Rosenstock wrote:
+On 10:29 Wed 02 Jun     , Yevgeny Kliteynik wrote:
 > 
-> Eliminate unneeded comment
-> Also, cosmetic formatting change
-> 
-> Signed-off-by: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+> Right now gcc allows you to do implicit casting in both ways, g++ doesn't.
 
-Applied. Thanks.
+OpenSM is written in C, not C++.
 
 Sasha
 --
