@@ -1,24 +1,44 @@
 From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Subject: variable length array in qib
-Date: Wed, 02 Jun 2010 14:37:04 -0700
-Message-ID: <adar5kpqfpb.fsf@roland-alpha.cisco.com>
+Subject: Re: [PATCH v2] libibverbs: ibv_fork_init() and libhugetlbfs
+Date: Wed, 02 Jun 2010 14:49:37 -0700
+Message-ID: <adamxvdqf4e.fsf@roland-alpha.cisco.com>
+References: <20100531111359.4c0696ab@alex-laptop>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20100531111359.4c0696ab@alex-laptop> (Alexander Schmidt's
+	message of "Mon, 31 May 2010 11:13:59 +0200")
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ralph Campbell <ralph.campbell-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Alexander Schmidt <alexs-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
+Cc: Stefan Roscher <stefan.roscher-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, Christoph Raisch <raisch-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, of-ewg <ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>, Linux RDMA <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Alex Vainman <alexonlists-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-qib has the code
+ > without patch:
+ > 1M memory region    120usec
+ > 16M memory region  1970usec 
+ > 
+ > with patch v2:
+ > 1M memory region    172usec
+ > 16M memory region  2030usec
 
-	void qib_disarm_piobufs_set(struct qib_devdata *dd, unsigned long *mask,
-				    unsigned cnt)
-	{
-		struct qib_pportdata *ppd, *pppd[dd->num_pports];
+So if I read this correctly this patch introduces almost a 50% overhead
+in the 1M case... and probably much worse (as a fraction) in say the 64K
+or 4K case.  I wonder if that's acceptable?
 
-it would probably be safer to avoid the variable length array pppd[] on
-the kernel stack here... could this code be easily refactored to avoid
-doing that?
+Alex's original approach was to try the memadvise with normal page size
+and then fall back to huge page size if that failed.  But of course that
+wastes some time on the failed madvise in the hugepage case.
+
+I think it would be interesting to compare timings for registering, say,
+4K, 64K, 1M and 16M regions with and without huge page backing, for
+three possibilities:
+
+ - unpatched libibverbs (will obviously fail on hugepage backed regions)
+ - patched with this v2
+ - alternate patch that tries madvise and only does your /proc/pid/smaps
+ - parsing if the first madvise fails.
+
+ - R.
 -- 
 Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org> || For corporate legal information go to:
 http://www.cisco.com/web/about/doing_business/legal/cri/index.html
