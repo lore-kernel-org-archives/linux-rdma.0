@@ -1,53 +1,39 @@
-From: Ben Hutchings <bhutchings@solarflare.com>
-Subject: Re: [PATCH] net/core: Save the port number a netdevice uses
-Date: Wed, 02 Jun 2010 17:42:29 +0100
-Message-ID: <1275496949.2115.18.camel@achroite.uk.solarflarecom.com>
-References: <20100526084523.GA28748@mtldesk030.lab.mtl.com>
-	 <20100526.015526.102555441.davem@davemloft.net>
-	 <20100526090850.GB28748@mtldesk030.lab.mtl.com>
-	 <20100526.021635.179940939.davem@davemloft.net>
+From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Subject: Re: libibverbs and versions
+Date: Wed, 02 Jun 2010 09:46:39 -0700
+Message-ID: <adaeigptma8.fsf@roland-alpha.cisco.com>
+References: <4C067DE0.8020508@opengridcomputing.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20100526.021635.179940939.davem@davemloft.net>
-Sender: netdev-owner@vger.kernel.org
-To: David Miller <davem@davemloft.net>
-Cc: Eli Cohen <eli@dev.mellanox.co.il>, netdev <netdev@vger.kernel.org>, linux-rdma@vger.kernel.org, Roland Dreier <rdreier@cisco.com>, Yevgeny Petrilin <yevgenyp@mellanox.co.il>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <4C067DE0.8020508-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org> (Steve Wise's message of
+	"Wed, 02 Jun 2010 10:50:56 -0500")
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, 2010-05-26 at 02:16 -0700, David Miller wrote:
-> From: Eli Cohen <eli@dev.mellanox.co.il>
-> Date: Wed, 26 May 2010 12:08:52 +0300
-> 
-> > So if I understand you correctly, you think that I should not bother
-> > to set a default value of 1. Each driver that cares about the value
-> > of this field, will set it however they want.
-> 
-> I actually mean that the value "0" should mean the first port,
-> the value "1" should mean the second port, etc.
+ > I have this library I'm writing that uses libibverbs.  Somehow it
+ > seems to be using the 1.0 version instead of the newer version (I'm
+ > guessing).  When I call ibv_create_cq()  I get a seg fault and the
+ > stack looks like this:
+ > 
+ > #0  0x000000319d80871d in pthread_mutex_lock () from /lib64/libpthread.so.0
+ > #1  0x00007f60e93fac9a in __ibv_create_cq (context=0x7f60e8597c51, cqe=256,
+ >    cq_context=0x0, channel=0x0, comp_vector=0) at src/verbs.c:278
+ > #2  0x00007f60e93f727f in __ibv_create_cq_1_0 (context=0x61db30, cqe=256,
+ >    cq_context=0x0, channel=0x0, comp_vector=0) at src/compat-1_0.c:649
 
-There's a compatibility problem here though: when user-space looks at
-this number it can't tell whether "0" really means the first port or
-that the driver isn't setting dev_id.  In order to tell that it would
-have to check the driver or kernel version too, and this is really nasty
-(what if the driver was backported?).  So I think that 1-based numbering
-for drivers that previously didn't set dev_id.
+Code compiled against libibverbs 1.1 shouldn't ever hit the 1.0
+compatibility code.  libibverbs is using versioned symbols, so if your
+library is built/linked correctly, it should pick up the 1.1 versions.
+How are you building your library?
 
-Why does this matter?  I'm maintaining the firmware update program for
-Solarflare NICs under Linux.  Some of the firmware it updates is
-per-port and some of it is per-board.  It needs to be able to tell which
-net and PCI devices are associated with the same board.  At the moment
-it works on the basis of PCI addresses, but this is unreliable in the
-presence of virtualisation.  It would be better to use board serial
-number and the port identifier that I just changed the driver to use,
-but since there are existing driver versions always leave dev_id = 0, I
-it needs to be able to tell whether dev_id is meaningful.
-
-Ben.
-
+ - R.
 -- 
-Ben Hutchings, Senior Software Engineer, Solarflare Communications
-Not speaking for my employer; that's the marketing department's job.
-They asked us to note that Solarflare product names are trademarked.
-
+Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org> || For corporate legal information go to:
+http://www.cisco.com/web/about/doing_business/legal/cri/index.html
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
