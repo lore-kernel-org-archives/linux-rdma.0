@@ -1,26 +1,56 @@
-From: Or Gerlitz <ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Subject: Re: are IB port counters functioning over --IB-- with the RDMAoE
-  patch	set?
-Date: Thu, 03 Jun 2010 16:33:24 +0300
-Message-ID: <4C07AF24.6000006@voltaire.com>
-References: <4BFE35B7.80009@voltaire.com> <4C0796C1.1040106@voltaire.com> <7E95F01E94AB484F83061FCFA35B39F854FBAA@exil.voltaire.com>
+From: Hal Rosenstock <hnrose-Wuw85uim5zDR7s880joybQ@public.gmane.org>
+Subject: [PATCH] opensm/osm_sa.c: In osm_sa_respond, only fill in attr
+	offset if RMPP method
+Date: Thu, 3 Jun 2010 09:42:09 -0400
+Message-ID: <20100603134209.GA12225@comcast.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <7E95F01E94AB484F83061FCFA35B39F854FBAA-QfUkFaTmzUSUvQqKE/ONIwC/G2K4zDHf@public.gmane.org>
+Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Moni Shoua <monis-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Cc: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Vladimir Sokolovsky <vlad-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, Linux RDMA list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Moni Shoua wrote:
-> Did you try OFED-1.5.1 or even better, OFED-1.5.2? I know patches for counters with RoCEE were submitted since OFED-1.5 and I saw it working
-Mony, I'm not using ofed, sorry... I am interested in a clarification in 
-the context of the upstream submission, e.g does the problem exist in 
-the latest patch-set, is there a bz case tracking this, etc.
 
-Or.
+Signed-off-by: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+---
+ opensm/opensm/osm_sa.c |   12 ++++++++++--
+ 1 files changed, 10 insertions(+), 2 deletions(-)
+
+diff --git a/opensm/opensm/osm_sa.c b/opensm/opensm/osm_sa.c
+index 0aca81f..8325632 100644
+--- a/opensm/opensm/osm_sa.c
++++ b/opensm/opensm/osm_sa.c
+@@ -3,6 +3,7 @@
+  * Copyright (c) 2002-2010 Mellanox Technologies LTD. All rights reserved.
+  * Copyright (c) 1996-2003 Intel Corporation. All rights reserved.
+  * Copyright (c) 2008 Xsigo Systems Inc.  All rights reserved.
++ * Copyright (c) 2010 HNR Consulting. All rights reserved.
+  *
+  * This software is available to you under a choice of one of two
+  * licenses.  You may choose to be licensed under the terms of the GNU
+@@ -454,8 +455,15 @@ void osm_sa_respond(osm_sa_t *sa, osm_madw_t *madw, size_t attr_size,
+ 	/* C15-0.1.5 - always return SM_Key = 0 (table 185 p 884) */
+ 	resp_sa_mad->sm_key = 0;
+ 
+-	/* Fill in the offset (paylen will be done by the rmpp SAR) */
+-	resp_sa_mad->attr_offset = num_rec ? ib_get_attr_offset(attr_size) : 0;
++#ifdef DUAL_SIDED_RMPP
++	if (resp_sa_mad->method == IB_MAD_METHOD_GETTABLE_RESP ||
++	    resp_sa_mad->method == IB_MAD_METHOD_GETMULTI_RESP) {
++#else
++	if (resp_sa_mad->method == IB_MAD_METHOD_GETTABLE_RESP) {
++#endif
++		/* Fill in the offset (paylen will be done by the rmpp SAR) */
++		resp_sa_mad->attr_offset = num_rec ? ib_get_attr_offset(attr_size) : 0;
++	}
+ 
+ 	p = ib_sa_mad_get_payload_ptr(resp_sa_mad);
+ 
+-- 
+1.5.6.4
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
