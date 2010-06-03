@@ -1,46 +1,32 @@
 From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: Re: [patch 2/2] infiniband/cxgb4: add null check
-Date: Thu, 03 Jun 2010 09:38:46 -0500
-Message-ID: <4C07BE76.3000009@opengridcomputing.com>
-References: <20100531140152.GU5483@bicker>	<adaeigpqepg.fsf@roland-alpha.cisco.com>	<4C07177C.5050502@opengridcomputing.com> <adaaarcr8qo.fsf@roland-alpha.cisco.com>
+Subject: Re: [PATCH] cxgb4: use the DMA state API instead of the pci equivalents
+Date: Thu, 03 Jun 2010 09:40:07 -0500
+Message-ID: <4C07BEC7.7090607@opengridcomputing.com>
+References: <20100603143721A.fujita.tomonori@lab.ntt.co.jp>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <adaaarcr8qo.fsf-BjVyx320WGW9gfZ95n9DRSW4+XlvGpQz@public.gmane.org>
+In-Reply-To: <20100603143721A.fujita.tomonori-Zyj7fXuS5i5L9jVzuh4AOg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Cc: Dan Carpenter <error27-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Steve Wise <swise-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: FUJITA Tomonori <fujita.tomonori-Zyj7fXuS5i5L9jVzuh4AOg@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, swise-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Roland Dreier wrote:
->  > I actually think that ep->com.cm_id is always valid when
->  > connect_reply_upcall() is called.  But I'd have to test it more.  I'd
->  > rather not add this change unless someone convinces me that there
->  > actually is a path where the cm_id null...
+FUJITA Tomonori wrote:
+> This replace the PCI DMA state API (include/linux/pci-dma.h) with the
+> DMA equivalents since the PCI DMA state API will be obsolete.
 >
-> Then would it make sense to change the code
+> No functional change.
 >
-> 	if (ep->com.cm_id) {
-> 		PDBG("%s ep %p tid %u status %d\n", __func__, ep,
-> 		     ep->hwtid, status);
-> 		ep->com.cm_id->event_handler(ep->com.cm_id, &event);
-> 	}
+> For further information about the background:
 >
-> to just
+> http://marc.info/?l=linux-netdev&m=127037540020276&w=2
 >
-> 	PDBG("%s ep %p tid %u status %d\n", __func__, ep,
-> 	     ep->hwtid, status);
-> 	ep->com.cm_id->event_handler(ep->com.cm_id, &event);
->
-> ?
+> Signed-off-by: FUJITA Tomonori <fujita.tomonori-Zyj7fXuS5i5L9jVzuh4AOg@public.gmane.org>
 >   
 
-
-Yes.  I haven't tested it though.    But if you wanna push it, then I'll 
-test it here soon.
-
-Steve.
+Acked-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
