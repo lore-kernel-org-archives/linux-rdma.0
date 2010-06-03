@@ -1,32 +1,31 @@
-From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: Re: [PATCH] cxgb4: use the DMA state API instead of the pci equivalents
-Date: Thu, 03 Jun 2010 09:40:07 -0500
-Message-ID: <4C07BEC7.7090607@opengridcomputing.com>
-References: <20100603143721A.fujita.tomonori@lab.ntt.co.jp>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: librdmacm: select() gives false positive on cm channel file
+ descriptor
+Date: Thu, 3 Jun 2010 09:06:04 -0700
+Message-ID: <CF9C39F99A89134C9CF9C4CCB68B8DDF255F4634BE@orsmsx501.amr.corp.intel.com>
+References: <20100602000456.A4C10225DA@vis06.nas.nasa.gov>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20100603143721A.fujita.tomonori-Zyj7fXuS5i5L9jVzuh4AOg@public.gmane.org>
+In-Reply-To: <20100602000456.A4C10225DA-PJ7uzvdTSdjyYnqMeUxRc+1ftBKYq+Ku@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: FUJITA Tomonori <fujita.tomonori-Zyj7fXuS5i5L9jVzuh4AOg@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, swise-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org
+To: Bryan Green <bryan.d.green-NSQ8wuThN14@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-FUJITA Tomonori wrote:
-> This replace the PCI DMA state API (include/linux/pci-dma.h) with the
-> DMA equivalents since the PCI DMA state API will be obsolete.
->
-> No functional change.
->
-> For further information about the background:
->
-> http://marc.info/?l=linux-netdev&m=127037540020276&w=2
->
-> Signed-off-by: FUJITA Tomonori <fujita.tomonori-Zyj7fXuS5i5L9jVzuh4AOg@public.gmane.org>
->   
+> Any insights into what the problem might be?
+> I can provide code for a simple client and server that demonstrate the
+> problem.
+> I've been testing on a system with SLES 10, and the librdmacm version
+> appears
+> to be 1.0.11.
 
-Acked-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+I believe that uDAPL once (or still does) use poll() to check for CQ, async, and communication events, and I'm not aware of any problems with it.  (It may set the fd's to non-blocking though.)  The only thing different on the server side is that it queues connection request events.
+
+Can you post the code?
+
+- Sean
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
