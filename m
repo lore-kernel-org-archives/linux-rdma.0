@@ -1,31 +1,33 @@
 From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: librdmacm: select() gives false positive on cm channel file
- descriptor
-Date: Thu, 3 Jun 2010 09:06:04 -0700
-Message-ID: <CF9C39F99A89134C9CF9C4CCB68B8DDF255F4634BE@orsmsx501.amr.corp.intel.com>
-References: <20100602000456.A4C10225DA@vis06.nas.nasa.gov>
+Subject: RE: [PATCH v2] IB/util madeye.c
+Date: Thu, 3 Jun 2010 09:31:32 -0700
+Message-ID: <CF9C39F99A89134C9CF9C4CCB68B8DDF255F46352E@orsmsx501.amr.corp.intel.com>
+References: <4C2744E8AD2982428C5BFE523DF8CDCB49A488D5D7@MNEXMB1.qlogic.org>
+	<CF9C39F99A89134C9CF9C4CCB68B8DDF255F32E369@orsmsx501.amr.corp.intel.com>
+	<20100527094605.790bafee.weiny2@llnl.gov>
+	<CF9C39F99A89134C9CF9C4CCB68B8DDF255F32E4CC@orsmsx501.amr.corp.intel.com>
+ <adamxvlw6za.fsf@roland-alpha.cisco.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20100602000456.A4C10225DA-PJ7uzvdTSdjyYnqMeUxRc+1ftBKYq+Ku@public.gmane.org>
+In-Reply-To: <adamxvlw6za.fsf-BjVyx320WGW9gfZ95n9DRSW4+XlvGpQz@public.gmane.org>
 Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bryan Green <bryan.d.green-NSQ8wuThN14@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Cc: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>, Mike Heinz <michael.heinz-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> Any insights into what the problem might be?
-> I can provide code for a simple client and server that demonstrate the
-> problem.
-> I've been testing on a system with SLES 10, and the librdmacm version
-> appears
-> to be 1.0.11.
+> Another option would be to rip out all the MAD snooping stuff from the
+> core and replace it with something based on the kernel's tracing
+> infrastructure -- that would give us both a low-tech shell-based version
+> of madeye (based on just using the pretty-printed ASCII dumps from the
+> kernel trace stuff) and also allow for higher-tech userspace code to do
+> smarter processing based on the binary trace interface.
 
-I believe that uDAPL once (or still does) use poll() to check for CQ, async, and communication events, and I'm not aware of any problems with it.  (It may set the fd's to non-blocking though.)  The only thing different on the server side is that it queues connection request events.
+Mike, is this something that you could look at?  This doesn't look like it would be that difficult.
 
-Can you post the code?
 
-- Sean
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
