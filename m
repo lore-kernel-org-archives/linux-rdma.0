@@ -1,56 +1,46 @@
-From: Hal Rosenstock <hnrose-Wuw85uim5zDR7s880joybQ@public.gmane.org>
-Subject: [PATCH] opensm/osm_sa.c: In osm_sa_respond, only fill in attr
-	offset if RMPP method
-Date: Thu, 3 Jun 2010 09:42:09 -0400
-Message-ID: <20100603134209.GA12225@comcast.net>
+From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: Re: [patch 2/2] infiniband/cxgb4: add null check
+Date: Thu, 03 Jun 2010 09:38:46 -0500
+Message-ID: <4C07BE76.3000009@opengridcomputing.com>
+References: <20100531140152.GU5483@bicker>	<adaeigpqepg.fsf@roland-alpha.cisco.com>	<4C07177C.5050502@opengridcomputing.com> <adaaarcr8qo.fsf@roland-alpha.cisco.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <adaaarcr8qo.fsf-BjVyx320WGW9gfZ95n9DRSW4+XlvGpQz@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Cc: Dan Carpenter <error27-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Steve Wise <swise-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+Roland Dreier wrote:
+>  > I actually think that ep->com.cm_id is always valid when
+>  > connect_reply_upcall() is called.  But I'd have to test it more.  I'd
+>  > rather not add this change unless someone convinces me that there
+>  > actually is a path where the cm_id null...
+>
+> Then would it make sense to change the code
+>
+> 	if (ep->com.cm_id) {
+> 		PDBG("%s ep %p tid %u status %d\n", __func__, ep,
+> 		     ep->hwtid, status);
+> 		ep->com.cm_id->event_handler(ep->com.cm_id, &event);
+> 	}
+>
+> to just
+>
+> 	PDBG("%s ep %p tid %u status %d\n", __func__, ep,
+> 	     ep->hwtid, status);
+> 	ep->com.cm_id->event_handler(ep->com.cm_id, &event);
+>
+> ?
+>   
 
-Signed-off-by: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
----
- opensm/opensm/osm_sa.c |   12 ++++++++++--
- 1 files changed, 10 insertions(+), 2 deletions(-)
 
-diff --git a/opensm/opensm/osm_sa.c b/opensm/opensm/osm_sa.c
-index 0aca81f..8325632 100644
---- a/opensm/opensm/osm_sa.c
-+++ b/opensm/opensm/osm_sa.c
-@@ -3,6 +3,7 @@
-  * Copyright (c) 2002-2010 Mellanox Technologies LTD. All rights reserved.
-  * Copyright (c) 1996-2003 Intel Corporation. All rights reserved.
-  * Copyright (c) 2008 Xsigo Systems Inc.  All rights reserved.
-+ * Copyright (c) 2010 HNR Consulting. All rights reserved.
-  *
-  * This software is available to you under a choice of one of two
-  * licenses.  You may choose to be licensed under the terms of the GNU
-@@ -454,8 +455,15 @@ void osm_sa_respond(osm_sa_t *sa, osm_madw_t *madw, size_t attr_size,
- 	/* C15-0.1.5 - always return SM_Key = 0 (table 185 p 884) */
- 	resp_sa_mad->sm_key = 0;
- 
--	/* Fill in the offset (paylen will be done by the rmpp SAR) */
--	resp_sa_mad->attr_offset = num_rec ? ib_get_attr_offset(attr_size) : 0;
-+#ifdef DUAL_SIDED_RMPP
-+	if (resp_sa_mad->method == IB_MAD_METHOD_GETTABLE_RESP ||
-+	    resp_sa_mad->method == IB_MAD_METHOD_GETMULTI_RESP) {
-+#else
-+	if (resp_sa_mad->method == IB_MAD_METHOD_GETTABLE_RESP) {
-+#endif
-+		/* Fill in the offset (paylen will be done by the rmpp SAR) */
-+		resp_sa_mad->attr_offset = num_rec ? ib_get_attr_offset(attr_size) : 0;
-+	}
- 
- 	p = ib_sa_mad_get_payload_ptr(resp_sa_mad);
- 
--- 
-1.5.6.4
+Yes.  I haven't tested it though.    But if you wanna push it, then I'll 
+test it here soon.
 
+Steve.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
