@@ -1,44 +1,30 @@
-From: =?iso-8859-1?Q?H=E5kon_Bugge?= <Haakon.Bugge-UdXhSnd/wVw@public.gmane.org>
-Subject: Re: [PATCH] libibverbs: Force line-buffering in ibv_asyncwatch
-Date: Thu, 03 Jun 2010 12:54:31 +0200
-Message-ID: <E334136B-3CA6-4ABD-9F4F-94410908C76A@Sun.COM>
-References: <ED0695A5-CBE3-4CE2-A20C-BBC7BEF28C33@Sun.com>
- <e2e108261001210618p476ed03bofa2e46c223578e1a@mail.gmail.com>
- <C25CCF03-2542-4C8D-9AF4-122DBF56F856@Sun.COM>
- <ada7hmhtle3.fsf@roland-alpha.cisco.com>
+From: Or Gerlitz <ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+Subject: Re: are IB port counters functioning over --IB-- with the RDMAoE
+  patch	set?
+Date: Thu, 03 Jun 2010 14:49:21 +0300
+Message-ID: <4C0796C1.1040106@voltaire.com>
+References: <4BFE35B7.80009@voltaire.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-reply-to: <ada7hmhtle3.fsf-BjVyx320WGW9gfZ95n9DRSW4+XlvGpQz@public.gmane.org>
+In-Reply-To: <4BFE35B7.80009-smomgflXvOZWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Cc: Bart Van Assche <bart.vanassche-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Vladimir Sokolovsky <vlad-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, OFED mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Or Gerlitz <ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+To: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Vladimir Sokolovsky <vlad-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
+Cc: Linux RDMA list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Moni Shoua <monis-smomgflXvOZWk0Htik3J/w@public.gmane.org>, Shiri Franchi <shirif-smomgflXvOZWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
-On Jun 2, 2010, at 19:05 , Roland Dreier wrote:
+> Hi Eli, Vlad,  Using some lab node here, I noticed that the IB port 
+> counters were not functioning over --IB-- with the RDMAoE patches 
+> present in an OFED drop named OFED-RDMAoE-1.5-rc6, see below.
+> Was/is this a known issue? if yes, was it fixed? is/was there an ofa 
+> bz case open for this? I didn't find such... I was told that under 
+> ofed 1.5.1 this doesn't happen, but I wanted to 1st clarify with you.
+Eli, Vlad, anything you can comment here?
 
->> setlinebuf() is pretty intuitive to understand, compared to setvbuf(=
-).
->=20
-> I finally applied this; however in the end I decided to do
->=20
-> 	setvbuf(stdout, NULL, _IOLBF, 0);
->=20
-> instead of setlinebuf(), since in the past I've prefered more pedanti=
-c
-> stuff (eg posix_memalign instead of memalign) to the older simpler
-> traditional functions.  Kind of a trivial issue either way anyway.
-
-
-Agree. Thanks anyway.
-
-
-H=E5kon
-
+Or.
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
