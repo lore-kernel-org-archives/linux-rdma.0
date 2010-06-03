@@ -1,18 +1,32 @@
-From: Or Gerlitz <ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Subject: Re: are IB port counters functioning over --IB-- with the RDMAoE
-  patch	set?
-Date: Thu, 03 Jun 2010 14:49:21 +0300
-Message-ID: <4C0796C1.1040106@voltaire.com>
-References: <4BFE35B7.80009@voltaire.com>
+From: "Moni Shoua" <monis-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+Subject: RE: are IB port counters functioning over --IB-- with the RDMAoE  patch	set?
+Date: Thu, 3 Jun 2010 15:06:10 +0300
+Message-ID: <7E95F01E94AB484F83061FCFA35B39F854FBAA@exil.voltaire.com>
+References: <4BFE35B7.80009@voltaire.com> <4C0796C1.1040106@voltaire.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4BFE35B7.80009-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+Content-class: urn:content-classes:message
+In-Reply-To: <4C0796C1.1040106-smomgflXvOZWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Vladimir Sokolovsky <vlad-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
-Cc: Linux RDMA list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Moni Shoua <monis-smomgflXvOZWk0Htik3J/w@public.gmane.org>, Shiri Franchi <shirif-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+To: Or Gerlitz <ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org>, Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Vladimir Sokolovsky <vlad-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
+Cc: Linux RDMA list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Shiri Franchi <shirif-smomgflXvOZWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
+
+Did you try OFED-1.5.1 or even better, OFED-1.5.2?
+I know patches for counters with RoCEE were submitted since OFED-1.5 and
+I saw it working.
+
+
+-----Original Message-----
+From: Or Gerlitz 
+Sent: Thursday, June 03, 2010 14:49
+To: Eli Cohen; Vladimir Sokolovsky; Eli Cohen
+Cc: Linux RDMA list; Moni Shoua; Shiri Franchi
+Subject: Re: are IB port counters functioning over --IB-- with the
+RDMAoE patch set?
 
 
 > Hi Eli, Vlad,  Using some lab node here, I noticed that the IB port 
