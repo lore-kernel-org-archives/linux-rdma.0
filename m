@@ -1,29 +1,45 @@
-From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Subject: Re: librdmacm: select() gives false positive on cm channel file descriptor
-Date: Thu, 03 Jun 2010 12:31:52 -0700
-Message-ID: <adafx13q5ef.fsf@roland-alpha.cisco.com>
-References: <20100603190651.188C02270E@vis06.nas.nasa.gov>
+From: Sumeet Lahorani <sumeet.lahorani-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: root owned writeable files under /sys
+Date: Thu, 03 Jun 2010 14:58:48 -0700
+Message-ID: <4C082598.8000809@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20100603190651.188C02270E-PJ7uzvdTSdjyYnqMeUxRc+1ftBKYq+Ku@public.gmane.org> (Bryan Green's
-	message of "Thu, 03 Jun 2010 12:06:51 -0700")
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bryan Green <bryan.d.green-NSQ8wuThN14@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
- > Thanks for the advise about select.  In what way is select obsolete?
 
-The crazy fd_set stuff that forces a big bitmap to be copied into the
-kernel and scanned through there, and at the same set limits the number
-of fds that can be handled.  poll() is essentially the same interface
-made more efficient and with arbitrary limits removed.
+Hi All,
 
- - R.
--- 
-Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org> || For corporate legal information go to:
-http://www.cisco.com/web/about/doing_business/legal/cri/index.html
+With ofed 1.5.1 (and it appears to be the case in prior versions as 
+well), I see the following files created under /sys which are world 
+writeable
+
+# find /sys -type f -perm 222 -ls
+  6834    0 --w--w--w-   1 root     root            0 Jun  3 14:50 
+/sys/class/infiniband/mlx4_0/diag_counters/clear_diag
+  8344    0 --w--w--w-   1 root     root         4096 Jun  3 14:43 
+/sys/class/net/ib1/delete_child
+  8343    0 --w--w--w-   1 root     root         4096 Jun  3 14:43 
+/sys/class/net/ib1/create_child
+  8295    0 --w--w--w-   1 root     root         4096 Jun  3 14:43 
+/sys/class/net/ib0/delete_child
+  8294    0 --w--w--w-   1 root     root            0 Jun  3 14:39 
+/sys/class/net/ib0/create_child
+  6017    0 --w--w--w-   1 root     root         4096 Jun  3 14:43 
+/sys/devices/pci0000:00/0000:00:04.0/0000:13:00.0/port_trigger
+
+ib0 & ib1 are slave interfaces corresponding to the 2 ports on a 
+ConnectX HCA.
+
+At least the create_child & delete_child files appear to be dangerous to 
+leave as world writeable because they result in resources allocations. 
+I'm not sure about the others. Do these have to be world writeable?
+
+- Sumeet
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
