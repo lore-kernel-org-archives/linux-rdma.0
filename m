@@ -1,48 +1,50 @@
-From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH] Handling busy responses from the SA
-Date: Fri, 04 Jun 2010 12:59:13 -0700
-Message-ID: <adaocfqo9gu.fsf@roland-alpha.cisco.com>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH] Handling busy responses from the SA
+Date: Fri, 4 Jun 2010 14:05:10 -0700
+Message-ID: <CF9C39F99A89134C9CF9C4CCB68B8DDF255F4DC96C@orsmsx501.amr.corp.intel.com>
 References: <4C2744E8AD2982428C5BFE523DF8CDCB49A488DAF3@MNEXMB1.qlogic.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <4C2744E8AD2982428C5BFE523DF8CDCB49A488DAF3-amwN6d8PyQWXx9kJd3VG2h2eb7JE58TQ@public.gmane.org>
-	(Mike Heinz's message of "Fri, 4 Jun 2010 13:30:45 -0500")
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Mike Heinz <michael.heinz-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-Cc: "linux-rdma@vger.kernel.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "ewg@openfabrics.org" <ewg-G2znmakfqn7U1rindQTSdQ@public.gmane.org>
+To: Mike Heinz <michael.heinz-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "ewg-G2znmakfqn7U1rindQTSdQ@public.gmane.org" <ewg-G2znmakfqn7U1rindQTSdQ@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
- > The purpose of this patch is to cause the ib_mad driver to discard
- > busy responses from the SA, effectively causing busy responses to
- > become time outs.
+> This ensures that na=EFve IB applications cannot overwhelm the SA wit=
+h
+> queries, which could happen when a cluster is being rebooted, or when=
+ a
+> large HPC application is started.
 
-I don't have a strong opinion on this but it seems a bit odd.  If we're
-just going to drop the response anyway, why did the SA send it in the
-first place?  On the other hand, if the SA told us it's busy, it does
-seem we could do something more sensible than retrying immediately.
+I don't object to the concept of treating a busy response as a timeout,=
+ but how does this help prevent overwhelming the SA?  It continues to r=
+etry the queries, even if the SA says that it's too busy to respond wit=
+hout adjusting the timeout specified by the user.  I would think that y=
+ou'd at least want to adjust the timeout (double it or use some random =
+backoff).
 
-Any opinions from anyone who worked on fabric scalability?
+The general guideline that we've been using for adjusting timeouts has =
+been to report the failures and let the caller make the a necessary adj=
+ustments.  As far as I know, the only way for user space applications t=
+o query the SA are through the librdmacm, which sets retries to 0, or t=
+hrough the libibumad interface directly.  I would expect any applicatio=
+n using the latter to be intelligent enough to handle a busy response.
 
- > +				printk(KERN_NOTICE PFX "Response returned with MAD_STATUS_BUSY\n");
+Maybe we should re-think that guideline and allow users to simply indic=
+ate that the MAD layer should use reasonable defaults.  This would enab=
+le the ib_mad module to adjust the timeout values for all consumers bas=
+ed on actual destination response times.  It could also back off retryi=
+ng multiple requests that were initiated around the same time, instead =
+only retrying the first request, while simply increasing the timeout va=
+lues for the others.  This is more complex, but we should be able to st=
+art with something fairly simple.
 
-Do we want to spam kernel logs with this?  Seems it could generate a lot
-of messages.
-
- > +#define IB_MGMT_MAD_STATUS_SUCCESS						0x0000
- > +#define IB_MGMT_MAD_STATUS_BUSY							0x0001
- > +#define IB_MGMT_MAD_STATUS_REDIRECT_REQD				0x0002
- > +#define IB_MGMT_MAD_STATUS_BAD_VERERSION				0x0004	
- > +#define IB_MGMT_MAD_STATUS_UNSUPPORTED_METHOD			0x0008	
- > +#define IB_MGMT_MAD_STATUS_UNSUPPORTED_METHOD_ATTRIB	0x000c
- > +#define IB_MGMT_MAD_STATUS_INVALID_ATTRIB_VALUE			0x001c
-
-The indentation of values seems pretty crazy here.  Also I'm not sure
-what most of these defines are for?  They seem unused in this patch.
--- 
-Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org> || For corporate legal information go to:
-http://www.cisco.com/web/about/doing_business/legal/cri/index.html
+- Sean
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
