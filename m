@@ -1,50 +1,49 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH] Handling busy responses from the SA
-Date: Fri, 4 Jun 2010 14:05:10 -0700
-Message-ID: <CF9C39F99A89134C9CF9C4CCB68B8DDF255F4DC96C@orsmsx501.amr.corp.intel.com>
-References: <4C2744E8AD2982428C5BFE523DF8CDCB49A488DAF3@MNEXMB1.qlogic.org>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH] Handling busy responses from the SA
+Date: Fri, 4 Jun 2010 16:57:39 -0600
+Message-ID: <20100604225739.GK15969@obsidianresearch.com>
+References: <4C2744E8AD2982428C5BFE523DF8CDCB49A488DAF3@MNEXMB1.qlogic.org> <CF9C39F99A89134C9CF9C4CCB68B8DDF255F4DC96C@orsmsx501.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4C2744E8AD2982428C5BFE523DF8CDCB49A488DAF3-amwN6d8PyQWXx9kJd3VG2h2eb7JE58TQ@public.gmane.org>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <CF9C39F99A89134C9CF9C4CCB68B8DDF255F4DC96C-osO9UTpF0USkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Mike Heinz <michael.heinz-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "ewg-G2znmakfqn7U1rindQTSdQ@public.gmane.org" <ewg-G2znmakfqn7U1rindQTSdQ@public.gmane.org>
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Mike Heinz <michael.heinz-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "ewg-G2znmakfqn7U1rindQTSdQ@public.gmane.org" <ewg-G2znmakfqn7U1rindQTSdQ@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> This ensures that na=EFve IB applications cannot overwhelm the SA wit=
-h
-> queries, which could happen when a cluster is being rebooted, or when=
- a
-> large HPC application is started.
+On Fri, Jun 04, 2010 at 02:05:10PM -0700, Hefty, Sean wrote:
 
-I don't object to the concept of treating a busy response as a timeout,=
- but how does this help prevent overwhelming the SA?  It continues to r=
-etry the queries, even if the SA says that it's too busy to respond wit=
-hout adjusting the timeout specified by the user.  I would think that y=
-ou'd at least want to adjust the timeout (double it or use some random =
-backoff).
+> Maybe we should re-think that guideline and allow users to simply
+> indicate that the MAD layer should use reasonable defaults.  This
+> would enable the ib_mad module to adjust the timeout values for all
+> consumers based on actual destination response times.  It could also
+> back off retrying multiple requests that were initiated around the
+> same time, instead only retrying the first request, while simply
+> increasing the timeout values for the others.  This is more complex,
+> but we should be able to start with something fairly simple.
 
-The general guideline that we've been using for adjusting timeouts has =
-been to report the failures and let the caller make the a necessary adj=
-ustments.  As far as I know, the only way for user space applications t=
-o query the SA are through the librdmacm, which sets retries to 0, or t=
-hrough the libibumad interface directly.  I would expect any applicatio=
-n using the latter to be intelligent enough to handle a busy response.
+A common method for handling this sort of thing is to randomize
+the retry timeout. It would be a good idea to randomize all timeouts,
+but the BUSY replies should probably randomize over a longer time
+period.
 
-Maybe we should re-think that guideline and allow users to simply indic=
-ate that the MAD layer should use reasonable defaults.  This would enab=
-le the ib_mad module to adjust the timeout values for all consumers bas=
-ed on actual destination response times.  It could also back off retryi=
-ng multiple requests that were initiated around the same time, instead =
-only retrying the first request, while simply increasing the timeout va=
-lues for the others.  This is more complex, but we should be able to st=
-art with something fairly simple.
+Randomization prevents nodes in the cluster from self-synchronizing
+and making the load on the SA worse.
 
-- Sean
+But, I also agree with Roland.. having the SA return busy when it is
+under load seems insane :) But if you really want to do this then I
+think a different, larger, timeout should be used than the standard
+mad timeout.
+
+Also, I guess, it would be a good API choice if the caller could say
+'get me a reply for this mad or error within 60s' rather than specify
+details like retry counts, etc. The timeout values should be globally
+set and derived from the usual SA provided data for network transits...
+
+Jason
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
