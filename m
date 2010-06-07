@@ -1,42 +1,63 @@
 From: Mike Heinz <michael.heinz-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-Subject: RE: Handling busy responses from the SA
-Date: Mon, 7 Jun 2010 11:00:55 -0500
-Message-ID: <4C2744E8AD2982428C5BFE523DF8CDCB49A488DC0C@MNEXMB1.qlogic.org>
-References: <4C2744E8AD2982428C5BFE523DF8CDCB49A488DADA@MNEXMB1.qlogic.org>
- <AANLkTinEhSe7IjdzLPp6DLWGcgJd_iQuVeFvr0-HSCb-@mail.gmail.com>
+Subject: RE: [PATCH] Handling busy responses from the SA
+Date: Mon, 7 Jun 2010 11:02:10 -0500
+Message-ID: <4C2744E8AD2982428C5BFE523DF8CDCB49A488DC0D@MNEXMB1.qlogic.org>
+References: <4C2744E8AD2982428C5BFE523DF8CDCB49A488DAF3@MNEXMB1.qlogic.org>
+ <CF9C39F99A89134C9CF9C4CCB68B8DDF255F4DC96C@orsmsx501.amr.corp.intel.com>
+ <20100604225739.GK15969@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <AANLkTinEhSe7IjdzLPp6DLWGcgJd_iQuVeFvr0-HSCb--JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <20100604225739.GK15969-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "ewg-G2znmakfqn7U1rindQTSdQ@public.gmane.org" <ewg-G2znmakfqn7U1rindQTSdQ@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-SGFsIHNhaWQ6DQpTaG91bGQgYSBidXN5IGJlIHJldHJpZWQgYXQgYWxsIGF0IHRoZSBtYWQgbGF5
-ZXIgPyBJcyBhICJzcGVjaWFsIiBsb25nZXIpIHRpbWVvdXQgcG9saWN5IGZvciBidXN5IG5lZWRl
-ZCA/DQoNCkFsc28sIHNob3VsZCB0aGlzIGJlIGRvbmUgZm9yIGFsbCBNQURzIGNsYXNzaWZpZWQg
-YnkgaWJfcmVzcG9uc2VfbWFkIChlLmcuIHRyYXAgcmVwcmVzc2VzKSA/DQoNCkhhbCwgDQoNClRo
-ZSBpZGVhIG9mIHByb2Nlc3NpbmcgQlVTWSByZXNwb25zZXMgaW4gdGhlIE1BRCBsYXllciBpcyB0
-byBCVVNZIHJlc3BvbnNlcyBsaWtlIHRpbWVvdXRzIC0gd2hpY2ggYXJlIGN1cnJlbnRseSBoYW5k
-bGVkIGJ5IHRoZSBNQUQgbGF5ZXIuIFJpZ2h0IG5vdyB0aGVyZSBpcyBhbiBpc3N1ZSB3aGVyZSB2
-YXJpb3VzIGFwcHMgYW5kIFVMUHMgZWl0aGVyIHRyZWF0IEJVU1kgYXMgYSBjYXVzZSB0byBpbW1l
-ZGlhdGVseSByZXRyeSBvciBhcyBhIHBlcm1hbmVudCBlcnJvci4gVGhpcyBkb2Vzbid0IHNlZW0g
-dG8gYWZmZWN0IHVzZXJzIG9mIHRoZSBPcGVuU00gc28gbXVjaCBiZWNhdXNlIChhcyBJIHVuZGVy
-c3RhbmQgaXQpIHRoZSBPcGVuU00gc2VlbXMgdG8gZGlzY2FyZCByZXF1ZXN0cyB3aGVuIGl0IGdl
-dHMgdG9vIGJ1c3kgLSBidXQgZm9yIG90aGVyIFNBL1NNcywgaXQgY2FuIGNhdXNlIGEgbWFqb3Ig
-cGFja2V0IHN0b3JtIG9yLCB3b3JzZSwgYSBzaW1wbGUgbG9zcyBvZiBjb25uZWN0aXZpdHkgd2hl
-cmUgTVBJIGpvYnMgb3Iga2VybmVsIFVMUHMgc2ltcGx5IGFzc3VtZSB0aGUgU0EgaXMgYnJva2Vu
-IGJlY2F1c2UgdGhleSBnb3QgYSBCVVNZIHJlcGx5Lg0KDQpCeSB0cmVhdGluZyB0aGUgQlVTWSBy
-ZXBseSBhcyBhIHRpbWVvdXQsIHdlJ3JlIGFjdHVhbGx5IHNpbXBsaWZ5aW5nIG1hdHRlcnMgYnkg
-Zml0dGluZyBpbnRvIGV4aXN0aW5nIHByYWN0aWNlLg0KDQpBcyBmb3IgbmVlZGluZyBhIGxvbmdl
-ciB0aW1lb3V0IC0gaW4gb3VyIG9sZCBwcm9wcmlldGFyeSBzdGFjaywgUUxvZ2ljIGRpZCBoYXZl
-IGEgbG9uZ2VyIHRpbWVvdXQgZm9yIHJldHJ5aW5nIGJ1c3kgcmVwbGllcyB0aGFuIGZvciBub3Jt
-YWwgdGltZW91dHMgLSBidXQgd2Ugc2hvdWxkIHRyeSB0byBnZXQgdGhpcyBpbiBub3cgc28gd2Ug
-Y2FuIGdldCBzb21lIHJlbGllZiBiZWZvcmUgd2UgYmVnaW4gdGhlIGxvbmcgdGVybSBkaXNjdXNz
-aW9uIG9mIHRoZSBiZXN0IHdheSB0byBoYW5kbGUgdGhpcyBpc3N1ZSBvdmVyYWxsLg0KDQo=
+> But, I also agree with Roland.. having the SA return busy when it is
+under load seems insane :) 
+
+In that case, what is the purpose of the BUSY response? 
+
+-----Original Message-----
+From: Jason Gunthorpe [mailto:jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org] 
+Sent: Friday, June 04, 2010 6:58 PM
+To: Hefty, Sean
+Cc: Mike Heinz; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; ewg-G2znmakfqn7U1rindQTSdQ@public.gmane.org
+Subject: Re: [PATCH] Handling busy responses from the SA
+
+On Fri, Jun 04, 2010 at 02:05:10PM -0700, Hefty, Sean wrote:
+
+> Maybe we should re-think that guideline and allow users to simply
+> indicate that the MAD layer should use reasonable defaults.  This
+> would enable the ib_mad module to adjust the timeout values for all
+> consumers based on actual destination response times.  It could also
+> back off retrying multiple requests that were initiated around the
+> same time, instead only retrying the first request, while simply
+> increasing the timeout values for the others.  This is more complex,
+> but we should be able to start with something fairly simple.
+
+A common method for handling this sort of thing is to randomize
+the retry timeout. It would be a good idea to randomize all timeouts,
+but the BUSY replies should probably randomize over a longer time
+period.
+
+Randomization prevents nodes in the cluster from self-synchronizing
+and making the load on the SA worse.
+
+But, I also agree with Roland.. having the SA return busy when it is
+under load seems insane :) But if you really want to do this then I
+think a different, larger, timeout should be used than the standard
+mad timeout.
+
+Also, I guess, it would be a good API choice if the caller could say
+'get me a reply for this mad or error within 60s' rather than specify
+details like retry counts, etc. The timeout values should be globally
+set and derived from the usual SA provided data for network transits...
+
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
