@@ -1,32 +1,41 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH] Handling busy responses from the SA
-Date: Mon, 7 Jun 2010 10:41:42 -0600
-Message-ID: <20100607164142.GA32504@obsidianresearch.com>
-References: <4C2744E8AD2982428C5BFE523DF8CDCB49A488DAF3@MNEXMB1.qlogic.org> <CF9C39F99A89134C9CF9C4CCB68B8DDF255F4DC96C@orsmsx501.amr.corp.intel.com> <20100604225739.GK15969@obsidianresearch.com> <4C2744E8AD2982428C5BFE523DF8CDCB49A488DC0D@MNEXMB1.qlogic.org>
+From: Mike Heinz <michael.heinz-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+Subject: RE: [PATCH v2] allow passthrough of rmpp packets to user mad clients
+Date: Mon, 7 Jun 2010 12:55:37 -0500
+Message-ID: <4C2744E8AD2982428C5BFE523DF8CDCB49A488DC24@MNEXMB1.qlogic.org>
+References: <4C2744E8AD2982428C5BFE523DF8CDCB49A488DAD8@MNEXMB1.qlogic.org>
+ <adask52o9p6.fsf@roland-alpha.cisco.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <4C2744E8AD2982428C5BFE523DF8CDCB49A488DC0D-amwN6d8PyQWXx9kJd3VG2h2eb7JE58TQ@public.gmane.org>
+In-Reply-To: <adask52o9p6.fsf-BjVyx320WGW9gfZ95n9DRSW4+XlvGpQz@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Mike Heinz <michael.heinz-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-Cc: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "ewg-G2znmakfqn7U1rindQTSdQ@public.gmane.org" <ewg-G2znmakfqn7U1rindQTSdQ@public.gmane.org>
+To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Jun 07, 2010 at 11:02:10AM -0500, Mike Heinz wrote:
-> > But, I also agree with Roland.. having the SA return busy when it is
-> > under load seems insane :) 
-> 
-> In that case, what is the purpose of the BUSY response? 
+We also have some management applications which also need these capabilities.  For those applications, the use of application RMPP control allows the application to perform some pacing of the RMPP transactions, permits some parts of the RMPP response to be built on the fly and also permits a degree of sharing of the response data between multiple requestors.
 
-I would say to indicate that the SA is internally busy (ie computing
-routing tables, etc) and that the client should sit back and wait.
+-----Original Message-----
+From: Roland Dreier [mailto:rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org] 
+Sent: Friday, June 04, 2010 3:54 PM
+To: Mike Heinz
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Hal Rosenstock; Hefty, Sean
+Subject: Re: [PATCH v2] allow passthrough of rmpp packets to user mad clients
 
-Too busy to handle the request load should just rely on timeouts.
+ > This patch changes this behavior so that rmpp_version of 255 causes incoming rmpp packets to be passed through without alteration, instead.
+ > 
+ > There are IB users who have requested the ability to perform RMPP transaction handling in user space.  This was an option in old proprietary stacks and this is useful to migrate old applications to OFED while containing the scope of their application changes.  
 
+I'm a little dubious about this.  We have an RMPP implementation in the
+kernel, and it seems worthwhile to focus on stability and features
+there.  Allowing alternate RMPP implementations in userspace seems a bit
+iffy -- we don't have a socket option that lets us do TCP in userspace
+for a given connection, for example.
 -- 
-Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>        (780)4406067x832
-Chief Technology Officer, Obsidian Research Corp         Edmonton, Canada
+Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org> || For corporate legal information go to:
+http://www.cisco.com/web/about/doing_business/legal/cri/index.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
