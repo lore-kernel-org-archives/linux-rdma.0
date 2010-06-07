@@ -1,83 +1,42 @@
-From: Andrea Gozzelino <Andrea.Gozzelino-PK20h7lG/Rc1GQ1Ptb7lUw@public.gmane.org>
-Subject: RE: [ANNOUNCE] librdmacm 1.0.12: release notes text
-Date: Mon, 7 Jun 2010 17:59:51 +0200 (CEST)
-Message-ID: <4142561.1275926391163.SLOX.WebMail.wwwrun@imap.lnl.infn.it>
-References: <CE35DBA4CC524BD3BDA61C7DE2BD39CD@amr.corp.intel.com> <4C024C35.2090703@dev.mellanox.co.il> <CF9C39F99A89134C9CF9C4CCB68B8DDF255F3A63BD@orsmsx501.amr.corp.intel.com>
+From: Mike Heinz <michael.heinz-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+Subject: RE: Handling busy responses from the SA
+Date: Mon, 7 Jun 2010 11:00:55 -0500
+Message-ID: <4C2744E8AD2982428C5BFE523DF8CDCB49A488DC0C@MNEXMB1.qlogic.org>
+References: <4C2744E8AD2982428C5BFE523DF8CDCB49A488DADA@MNEXMB1.qlogic.org>
+ <AANLkTinEhSe7IjdzLPp6DLWGcgJd_iQuVeFvr0-HSCb-@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CF9C39F99A89134C9CF9C4CCB68B8DDF255F3A63BD-osO9UTpF0USkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
+In-Reply-To: <AANLkTinEhSe7IjdzLPp6DLWGcgJd_iQuVeFvr0-HSCb--JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Vladimir Sokolovsky <vlad-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Jun 01, 2010 05:18 PM, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
-
-> > gcc -DHAVE_CONFIG_H -I. -I. -I. -I./include -g -Wall -D_GNU_SOURCE
-> >   -O2 -g
-> > -pipe -m64 -MT src_librdmacm_la-acm.lo -MD -MP -MF
-> > .deps/src_librdmacm_la-
-> > acm.Tpo -c src/acm.c  -fPIC -DPIC -o
-> > .libs/src_librdmacm_la-acm.o
-> > In file included from src/acm.c:44:
-> > ./include/infiniband/ib.h:49: error: syntax error before "__be16"
-> 
-> At least the following definitions are missing from types.h in redhat
-> 4.x, which is based on 2.6.9. (These are from RH 5.x.)
-> 
-> 158 #ifdef __CHECKER__
-> 159 #define __bitwise__ __attribute__((bitwise))
-> 160 #else
-> 161 #define __bitwise__
-> 162 #endif
-> 163 #ifdef __CHECK_ENDIAN__
-> 164 #define __bitwise __bitwise__
-> 165 #else
-> 166 #define __bitwise
-> 167 #endif
-> 168 
-> 169 typedef __u16 __bitwise __le16;
-> 170 typedef __u16 __bitwise __be16;
-> 171 typedef __u32 __bitwise __le32;
-> 172 typedef __u32 __bitwise __be32;
-> 173 #if defined(__GNUC__) && !defined(__STRICT_ANSI__)
-> 174 typedef __u64 __bitwise __le64;
-> 175 typedef __u64 __bitwise __be64;
-> 176 #endif
-> 
-> Has OFED handled a similar problem in the past? If so, how? (I can
-> think of a couple ways to deal with this.)
-> 
-> - Sean
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma"
-> in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-
-Hi Sean,
-
-I'm sorry but I have not information about the release notes text of
-librdmacm version 1.0.12.
-It's possible that I have lost the announce email.
-Could you please send me the release notes, if they are ready?
-
-Thank you very much.
-Regards,
-Andrea
-
-Andrea Gozzelino
-
-INFN - Laboratori Nazionali di Legnaro	(LNL)
-Viale dell'Universita' 2
-I-35020 - Legnaro (PD)- ITALIA
-Tel: +39 049 8068346
-Fax: +39 049 641925
-Mail: andrea.gozzelino-PK20h7lG/Rc1GQ1Ptb7lUw@public.gmane.org			
-
+SGFsIHNhaWQ6DQpTaG91bGQgYSBidXN5IGJlIHJldHJpZWQgYXQgYWxsIGF0IHRoZSBtYWQgbGF5
+ZXIgPyBJcyBhICJzcGVjaWFsIiBsb25nZXIpIHRpbWVvdXQgcG9saWN5IGZvciBidXN5IG5lZWRl
+ZCA/DQoNCkFsc28sIHNob3VsZCB0aGlzIGJlIGRvbmUgZm9yIGFsbCBNQURzIGNsYXNzaWZpZWQg
+YnkgaWJfcmVzcG9uc2VfbWFkIChlLmcuIHRyYXAgcmVwcmVzc2VzKSA/DQoNCkhhbCwgDQoNClRo
+ZSBpZGVhIG9mIHByb2Nlc3NpbmcgQlVTWSByZXNwb25zZXMgaW4gdGhlIE1BRCBsYXllciBpcyB0
+byBCVVNZIHJlc3BvbnNlcyBsaWtlIHRpbWVvdXRzIC0gd2hpY2ggYXJlIGN1cnJlbnRseSBoYW5k
+bGVkIGJ5IHRoZSBNQUQgbGF5ZXIuIFJpZ2h0IG5vdyB0aGVyZSBpcyBhbiBpc3N1ZSB3aGVyZSB2
+YXJpb3VzIGFwcHMgYW5kIFVMUHMgZWl0aGVyIHRyZWF0IEJVU1kgYXMgYSBjYXVzZSB0byBpbW1l
+ZGlhdGVseSByZXRyeSBvciBhcyBhIHBlcm1hbmVudCBlcnJvci4gVGhpcyBkb2Vzbid0IHNlZW0g
+dG8gYWZmZWN0IHVzZXJzIG9mIHRoZSBPcGVuU00gc28gbXVjaCBiZWNhdXNlIChhcyBJIHVuZGVy
+c3RhbmQgaXQpIHRoZSBPcGVuU00gc2VlbXMgdG8gZGlzY2FyZCByZXF1ZXN0cyB3aGVuIGl0IGdl
+dHMgdG9vIGJ1c3kgLSBidXQgZm9yIG90aGVyIFNBL1NNcywgaXQgY2FuIGNhdXNlIGEgbWFqb3Ig
+cGFja2V0IHN0b3JtIG9yLCB3b3JzZSwgYSBzaW1wbGUgbG9zcyBvZiBjb25uZWN0aXZpdHkgd2hl
+cmUgTVBJIGpvYnMgb3Iga2VybmVsIFVMUHMgc2ltcGx5IGFzc3VtZSB0aGUgU0EgaXMgYnJva2Vu
+IGJlY2F1c2UgdGhleSBnb3QgYSBCVVNZIHJlcGx5Lg0KDQpCeSB0cmVhdGluZyB0aGUgQlVTWSBy
+ZXBseSBhcyBhIHRpbWVvdXQsIHdlJ3JlIGFjdHVhbGx5IHNpbXBsaWZ5aW5nIG1hdHRlcnMgYnkg
+Zml0dGluZyBpbnRvIGV4aXN0aW5nIHByYWN0aWNlLg0KDQpBcyBmb3IgbmVlZGluZyBhIGxvbmdl
+ciB0aW1lb3V0IC0gaW4gb3VyIG9sZCBwcm9wcmlldGFyeSBzdGFjaywgUUxvZ2ljIGRpZCBoYXZl
+IGEgbG9uZ2VyIHRpbWVvdXQgZm9yIHJldHJ5aW5nIGJ1c3kgcmVwbGllcyB0aGFuIGZvciBub3Jt
+YWwgdGltZW91dHMgLSBidXQgd2Ugc2hvdWxkIHRyeSB0byBnZXQgdGhpcyBpbiBub3cgc28gd2Ug
+Y2FuIGdldCBzb21lIHJlbGllZiBiZWZvcmUgd2UgYmVnaW4gdGhlIGxvbmcgdGVybSBkaXNjdXNz
+aW9uIG9mIHRoZSBiZXN0IHdheSB0byBoYW5kbGUgdGhpcyBpc3N1ZSBvdmVyYWxsLg0KDQo=
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
