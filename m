@@ -1,29 +1,40 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH] Handling busy responses from the SA
-Date: Tue, 8 Jun 2010 09:44:05 -0700
-Message-ID: <CF9C39F99A89134C9CF9C4CCB68B8DDF255F578BBE@orsmsx501.amr.corp.intel.com>
-References: <4C2744E8AD2982428C5BFE523DF8CDCB49A488DAF3@MNEXMB1.qlogic.org>
- <CF9C39F99A89134C9CF9C4CCB68B8DDF255F4DC96C@orsmsx501.amr.corp.intel.com>
- <20100604225739.GK15969@obsidianresearch.com>
+From: Mike Heinz <michael.heinz-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+Subject: RE: Handling busy responses from the SA
+Date: Tue, 8 Jun 2010 11:43:22 -0500
+Message-ID: <4C2744E8AD2982428C5BFE523DF8CDCB49A488DCE8@MNEXMB1.qlogic.org>
+References: <4C2744E8AD2982428C5BFE523DF8CDCB49A488DADA@MNEXMB1.qlogic.org>
+	<AANLkTinEhSe7IjdzLPp6DLWGcgJd_iQuVeFvr0-HSCb-@mail.gmail.com>
+	<4C2744E8AD2982428C5BFE523DF8CDCB49A488DC0C@MNEXMB1.qlogic.org>
+ <AANLkTiknVS0abJVMLSZd0GOBeKvHukzbN7A1xZQDFPmD@mail.gmail.com>
+ <4C2744E8AD2982428C5BFE523DF8CDCB49A488DCCA@MNEXMB1.qlogic.org>
+ <CF9C39F99A89134C9CF9C4CCB68B8DDF255F578B7A@orsmsx501.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20100604225739.GK15969-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <CF9C39F99A89134C9CF9C4CCB68B8DDF255F578B7A-osO9UTpF0USkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Mike Heinz <michael.heinz-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "ewg-G2znmakfqn7U1rindQTSdQ@public.gmane.org" <ewg-G2znmakfqn7U1rindQTSdQ@public.gmane.org>
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> Also, I guess, it would be a good API choice if the caller could say
-> 'get me a reply for this mad or error within 60s' rather than specify
-> details like retry counts, etc. The timeout values should be globally
-> set and derived from the usual SA provided data for network transits...
-
-I agree with this.  Within the framework of the existing umad ABI, this could be specified by setting the high bit in the ib_user_mad_hdr:timeout_ms field, assuming that no one is using that bit in practice.  The kernel could then freely select the retry/timeout policy for these clients, which for starters could include dropping BUSY responses and adjusting the timeout using an approach similar to what Mike mentioned in a separate email.  Kernel clients could be updated to use this new mode.
-
-Any disagreements to this approach?  
+U2VhbiAtDQoNCklzIHRoZXJlIGNhc2Ugd2hlcmUgd2Ugd291bGQgZXZlciB3YW50IHRvIHRyZWF0
+IEJVU1kgcmVzcG9uc2VzIGRpZmZlcmVudGx5IGZyb20gdGltZW91dHM/DQoNCg0KDQotLS0tLU9y
+aWdpbmFsIE1lc3NhZ2UtLS0tLQ0KRnJvbTogSGVmdHksIFNlYW4gW21haWx0bzpzZWFuLmhlZnR5
+QGludGVsLmNvbV0gDQpTZW50OiBUdWVzZGF5LCBKdW5lIDA4LCAyMDEwIDEyOjI3IFBNDQpUbzog
+TWlrZSBIZWluejsgSGFsIFJvc2Vuc3RvY2sNCkNjOiBsaW51eC1yZG1hQHZnZXIua2VybmVsLm9y
+Zw0KU3ViamVjdDogUkU6IEhhbmRsaW5nIGJ1c3kgcmVzcG9uc2VzIGZyb20gdGhlIFNBDQoNCj4g
+U2VhbiAtIHJlbWVtYmVyIHRoYXQgdGhpcyBwYXRjaCB3aWxsIHN0aWxsIHJldHVybiBhIEJVU1kg
+c3RhdHVzIHRvIHRoZQ0KPiBjYWxsZXIsIGlmIHJldHJpZXMgYXJlIGV4aGF1c3RlZCBhbmQgdGhl
+IGxhc3QgcmV0dXJuIGNvZGUgd2FzIEJVU1ksIHRoZW4NCj4gdGhhdCdzIHdoYXQgdGhlIGNhbGxl
+ciB3aWxsIGdldC4gVGh1cywgY29kZSB3aGljaCBzZXRzIHJldHJpZXMgdG8gemVybyB3aWxsDQo+
+IG5vdCBiZSBhZmZlY3RlZCBieSB0aGlzIHBhdGNoIGF0IGFsbC4NCg0KSXQgbG9va3MgbGlrZSBp
+dCBvbmx5IHJldHVybnMgdGhlIEJVU1kgcmVzcG9uc2UgaWYgdGhhdCBtYXRjaGVzIHdpdGggdGhl
+IGxhc3QgcmV0cnksIG90aGVyd2lzZSwgdGhlIEJVU1kgcmVzcG9uc2UgaXMgZHJvcHBlZC4gIEl0
+IGFsc28gbG9va3MgbGlrZSBpdCBhcHBsaWVzIHRvIGFsbCBNQURzLCBpbmNsdWRpbmcgdmVuZG9y
+IHNwZWNpZmljIG9uZXMsIGFuZCBub3QganVzdCB0aG9zZSBmcm9tIHRoZSBTQS4NCg0KLSBTZWFu
+DQo=
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
