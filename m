@@ -1,33 +1,25 @@
-From: Andy Grover <andy.grover-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: InfiniBand/RDMA merge plans for 2.6.35
-Date: Mon, 07 Jun 2010 15:49:48 -0700
-Message-ID: <4C0D778C.8070108@oracle.com>
-References: <adaiq6mo58m.fsf@roland-alpha.cisco.com>
+From: Cong Wang <amwang-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [Patch] infiniband: check local reserved ports
+Date: Tue, 08 Jun 2010 10:23:56 +0800
+Message-ID: <4C0DA9BC.1040701@redhat.com>
+References: <20100603083106.6047.7657.sendpatchset@localhost.localdomain>	<ada1vcoqde3.fsf@roland-alpha.cisco.com> <4C085C9A.30506@redhat.com>	<ada1vcmpyvu.fsf@roland-alpha.cisco.com> <4C0CB610.4010305@redhat.com> <adad3w2onhs.fsf@roland-alpha.cisco.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <adaiq6mo58m.fsf-BjVyx320WGW9gfZ95n9DRSW4+XlvGpQz@public.gmane.org>
+In-Reply-To: <adad3w2onhs.fsf-BjVyx320WGW9gfZ95n9DRSW4+XlvGpQz@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Yevgeny Petrilin <yevgenyp-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
+Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tetsuo Handa <penguin-kernel-1yMVhJb1mP/7nzcFbJAaVXf5DAMn2ifp@public.gmane.org>, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 05/17/2010 09:36 AM, Roland Dreier wrote:
-> Since 2.6.34 is here, it's probably a good time to talk about 2.6.35
-> merge plans.  All the pending things that I'm aware of are listed below.
+On 06/07/10 23:45, Roland Dreier wrote:
+>   >  So this patch looks good for you? :)
 >
-> Boilerplate:
->
-> If something isn't already in my tree and it isn't listed below, I
-> probably missed it or dropped it unintentionally.  Please remind me.
+> Yes, will queue it up, thanks.
 
-Hi Roland,
+Thanks!
 
-Please also pick up the 3-patch set "Least attached vector support" from 
-Yevgeny on 2010-5-13? RDS changes depend on these.
-
-Thanks -- Regards -- Andy
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
