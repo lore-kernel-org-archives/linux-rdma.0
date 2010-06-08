@@ -1,49 +1,50 @@
-From: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: Handling busy responses from the SA
-Date: Tue, 8 Jun 2010 15:08:35 -0400
-Message-ID: <AANLkTinDBQfcFpfU9PY_bLNyElXcyLlpQzoPLlj0jdAC@mail.gmail.com>
+From: Mike Heinz <michael.heinz-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+Subject: RE: Handling busy responses from the SA
+Date: Tue, 8 Jun 2010 14:59:18 -0500
+Message-ID: <4C2744E8AD2982428C5BFE523DF8CDCB49A488DD33@MNEXMB1.qlogic.org>
 References: <4C2744E8AD2982428C5BFE523DF8CDCB49A488DADA@MNEXMB1.qlogic.org>
 	<AANLkTinEhSe7IjdzLPp6DLWGcgJd_iQuVeFvr0-HSCb-@mail.gmail.com>
 	<4C2744E8AD2982428C5BFE523DF8CDCB49A488DC0C@MNEXMB1.qlogic.org>
 	<AANLkTiknVS0abJVMLSZd0GOBeKvHukzbN7A1xZQDFPmD@mail.gmail.com>
 	<4C2744E8AD2982428C5BFE523DF8CDCB49A488DCCA@MNEXMB1.qlogic.org>
 	<CF9C39F99A89134C9CF9C4CCB68B8DDF255F578B7A@orsmsx501.amr.corp.intel.com>
+ <AANLkTinDBQfcFpfU9PY_bLNyElXcyLlpQzoPLlj0jdAC@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CF9C39F99A89134C9CF9C4CCB68B8DDF255F578B7A-osO9UTpF0USkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
+In-Reply-To: <AANLkTinDBQfcFpfU9PY_bLNyElXcyLlpQzoPLlj0jdAC-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Mike Heinz <michael.heinz-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Jun 8, 2010 at 12:27 PM, Hefty, Sean <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wro=
-te:
->> Sean - remember that this patch will still return a BUSY status to t=
-he
->> caller, if retries are exhausted and the last return code was BUSY, =
-then
->> that's what the caller will get. Thus, code which sets retries to ze=
-ro will
->> not be affected by this patch at all.
->
-> It looks like it only returns the BUSY response if that matches with =
-the last retry, otherwise, the BUSY response is dropped. =C2=A0It also =
-looks like it applies to all MADs, including vendor specific ones, and =
-not just those from the SA.
-
-Per the proposed patch, it currently includes trap represses (as
-determined by ib_response_mad). Shouldn't busy be ignored for that
-case ? I don't think that would be used but it seems safer to me.
-
--- Hal
-
->
-> - Sean
->
+SGFsLA0KDQpJIG1heSBiZSBjb25mdXNlZCAtIGJ1dCBJIHRob3VnaHQgdGhlIHNwZWMgc2FpZCB0
+aGVyZSB3YXMgbm8gdmFsaWQgcmVzcG9uc2UgdG8gYSB0cmFwIHJlcHJlc3MuIEkgaW50ZXJwcmV0
+ZWQNCg0KIm8xNC0zLmE0OiBUaGUgU01BIHNoYWxsIG5vdCBzZW5kIGFueSBtZXNzYWdlIGluIHJl
+c3BvbnNlIHRvIGEgdmFsaWQgU3ViblRyYXBSZXByZXNzKCkgbWVzc2FnZSINCg0KdG8gbWVhbiB0
+aGF0IHRoZSBTTUEgaXNuJ3QgYWxsb3dlZCB0byByZXNwb25kIHdpdGggYSBCVVNZIHN0YXR1cyBm
+b3IgYSB0cmFwIHJlcHJlc3MuDQoNCi0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQpGcm9tOiBI
+YWwgUm9zZW5zdG9jayBbbWFpbHRvOmhhbC5yb3NlbnN0b2NrQGdtYWlsLmNvbV0gDQpTZW50OiBU
+dWVzZGF5LCBKdW5lIDA4LCAyMDEwIDM6MDkgUE0NClRvOiBIZWZ0eSwgU2Vhbg0KQ2M6IE1pa2Ug
+SGVpbno7IGxpbnV4LXJkbWFAdmdlci5rZXJuZWwub3JnDQpTdWJqZWN0OiBSZTogSGFuZGxpbmcg
+YnVzeSByZXNwb25zZXMgZnJvbSB0aGUgU0ENCg0KT24gVHVlLCBKdW4gOCwgMjAxMCBhdCAxMjoy
+NyBQTSwgSGVmdHksIFNlYW4gPHNlYW4uaGVmdHlAaW50ZWwuY29tPiB3cm90ZToNCj4+IFNlYW4g
+LSByZW1lbWJlciB0aGF0IHRoaXMgcGF0Y2ggd2lsbCBzdGlsbCByZXR1cm4gYSBCVVNZIHN0YXR1
+cyB0byB0aGUNCj4+IGNhbGxlciwgaWYgcmV0cmllcyBhcmUgZXhoYXVzdGVkIGFuZCB0aGUgbGFz
+dCByZXR1cm4gY29kZSB3YXMgQlVTWSwgdGhlbg0KPj4gdGhhdCdzIHdoYXQgdGhlIGNhbGxlciB3
+aWxsIGdldC4gVGh1cywgY29kZSB3aGljaCBzZXRzIHJldHJpZXMgdG8gemVybyB3aWxsDQo+PiBu
+b3QgYmUgYWZmZWN0ZWQgYnkgdGhpcyBwYXRjaCBhdCBhbGwuDQo+DQo+IEl0IGxvb2tzIGxpa2Ug
+aXQgb25seSByZXR1cm5zIHRoZSBCVVNZIHJlc3BvbnNlIGlmIHRoYXQgbWF0Y2hlcyB3aXRoIHRo
+ZSBsYXN0IHJldHJ5LCBvdGhlcndpc2UsIHRoZSBCVVNZIHJlc3BvbnNlIGlzIGRyb3BwZWQuIMKg
+SXQgYWxzbyBsb29rcyBsaWtlIGl0IGFwcGxpZXMgdG8gYWxsIE1BRHMsIGluY2x1ZGluZyB2ZW5k
+b3Igc3BlY2lmaWMgb25lcywgYW5kIG5vdCBqdXN0IHRob3NlIGZyb20gdGhlIFNBLg0KDQpQZXIg
+dGhlIHByb3Bvc2VkIHBhdGNoLCBpdCBjdXJyZW50bHkgaW5jbHVkZXMgdHJhcCByZXByZXNzZXMg
+KGFzDQpkZXRlcm1pbmVkIGJ5IGliX3Jlc3BvbnNlX21hZCkuIFNob3VsZG4ndCBidXN5IGJlIGln
+bm9yZWQgZm9yIHRoYXQNCmNhc2UgPyBJIGRvbid0IHRoaW5rIHRoYXQgd291bGQgYmUgdXNlZCBi
+dXQgaXQgc2VlbXMgc2FmZXIgdG8gbWUuDQoNCi0tIEhhbA0KDQo+DQo+IC0gU2Vhbg0KPg0K
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
