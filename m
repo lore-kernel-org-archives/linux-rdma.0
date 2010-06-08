@@ -1,33 +1,54 @@
-From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Subject: Re: Handling busy responses from the SA
-Date: Tue, 08 Jun 2010 14:20:37 -0700
-Message-ID: <adazkz5mday.fsf@roland-alpha.cisco.com>
-References: <4C2744E8AD2982428C5BFE523DF8CDCB49A488DADA@MNEXMB1.qlogic.org>
-	<AANLkTinEhSe7IjdzLPp6DLWGcgJd_iQuVeFvr0-HSCb-@mail.gmail.com>
-	<4C2744E8AD2982428C5BFE523DF8CDCB49A488DC0C@MNEXMB1.qlogic.org>
-	<AANLkTiknVS0abJVMLSZd0GOBeKvHukzbN7A1xZQDFPmD@mail.gmail.com>
-	<4C2744E8AD2982428C5BFE523DF8CDCB49A488DCCA@MNEXMB1.qlogic.org>
-	<CF9C39F99A89134C9CF9C4CCB68B8DDF255F578B7A@orsmsx501.amr.corp.intel.com>
-	<4C2744E8AD2982428C5BFE523DF8CDCB49A488DCE8@MNEXMB1.qlogic.org>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: API for Proposal for adding ib_usa to the Linux Infiniband
+ Subsystem
+Date: Tue, 8 Jun 2010 14:24:39 -0700
+Message-ID: <CF9C39F99A89134C9CF9C4CCB68B8DDF255F5DE7DE@orsmsx501.amr.corp.intel.com>
+References: <4C2744E8AD2982428C5BFE523DF8CDCB49A488D2CF@MNEXMB1.qlogic.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4C2744E8AD2982428C5BFE523DF8CDCB49A488DCE8-amwN6d8PyQWXx9kJd3VG2h2eb7JE58TQ@public.gmane.org>
-	(Mike Heinz's message of "Tue, 8 Jun 2010 11:43:22 -0500")
+In-Reply-To: <4C2744E8AD2982428C5BFE523DF8CDCB49A488D2CF-amwN6d8PyQWXx9kJd3VG2h2eb7JE58TQ@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Mike Heinz <michael.heinz-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-Cc: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-rdma@vger.kernel.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Mike Heinz <michael.heinz-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Todd Rimmer <todd.rimmer-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>, Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
- > Is there case where we would ever want to treat BUSY responses
- > differently from timeouts?
+> Now, given that this API is stand-alone right now, it could still be added
+> to either libibumad or to libibverbs - but I like Sean's suggestion that it
+> be added to verbs, since the current security model restricts libibumad to
+> root access and because the existing API already makes use of libibverbs'
+> ibv_context data structure.
 
-If there isn't then it's silly for the SA to ever send a BUSY response.
+Did we ever reach any consensus on this? 
 
- - R.
--- 
-Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org> || For corporate legal information go to:
-http://www.cisco.com/web/about/doing_business/legal/cri/index.html
+> int ibv_sa_register_inform_info(struct ibv_sa_event_channel *channel,
+>                                 struct ibv_context *device, uint8_t
+> port_num,
+>                                 uint16_t trap_number, void *context,
+>                                 struct ibv_sa_id **id);
+
+Would something like this work for you?
+
+enum ibv_event_type {
+	...
++	IBV_EVENT_SA
+	...
+
+struct ibv_async_event {
+        union {
++		struct ibv_sa_event *sa_event;
+		...
+
++ int ibv_reg_sa_event(struct ibv_context *context, uint8_t port_num,
+			uint16_t trap_number);
+
+This would tie in with the libibverbs async event reporting and provide a simple registration API.  (Deregistering would just be done automatically when closing the ibv_context.)
+
+Roland, do you have any thoughts about extending libibverbs/uverbs in this way?
+
+- Sean
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
