@@ -1,55 +1,26 @@
-From: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH] opensm/osm_sa.c: In osm_sa_respond, only fill in attr
-	offset if RMPP method
-Date: Wed, 9 Jun 2010 11:27:12 -0400
-Message-ID: <AANLkTinxeLPtxYPvPBZfWq96BZjxDqcAlCzP2v_1VJnv@mail.gmail.com>
-References: <20100603134209.GA12225@comcast.net>
-	<20100609054341.GK28549@me>
-	<AANLkTilkr6KYG_TVJYwvNl7sZ8XBKmFljktxg8qCA9t9@mail.gmail.com>
-	<20100609121036.GC20172@me>
-	<AANLkTikTxpvb-Nw2V1PrBcX4rZ1GwElXV22CBtBZx1iK@mail.gmail.com>
-	<20100609124848.GE20172@me>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH v2] allow passthrough of rmpp protocol to user mad
+ clients
+Date: Wed, 9 Jun 2010 09:03:06 -0700
+Message-ID: <CF9C39F99A89134C9CF9C4CCB68B8DDF255F5DEDA6@orsmsx501.amr.corp.intel.com>
+References: <4C2744E8AD2982428C5BFE523DF8CDCB49A488DAD8@MNEXMB1.qlogic.org>
+ <4C2744E8AD2982428C5BFE523DF8CDCB49A488DCEE@MNEXMB1.qlogic.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20100609124848.GE20172@me>
+In-Reply-To: <4C2744E8AD2982428C5BFE523DF8CDCB49A488DCEE-amwN6d8PyQWXx9kJd3VG2h2eb7JE58TQ@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Stan Smith <stan.smith-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Mike Heinz <michael.heinz-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Jun 9, 2010 at 8:48 AM, Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org> =
-wrote:
-> On 08:40 Wed 09 Jun =C2=A0 =C2=A0 , Hal Rosenstock wrote:
->>
->> I think the use of ib_get_attr_offset is being "overused". I'd rathe=
-r
->> see this patch used as it is the simplest way to address that rather
->> than conditionalize ib_get_attr_offset on the SA attribute or would
->> you rather see a patch along those lines ?
->
-> I just think that if the assertion is incorrect (and ib_get_attr_offs=
-et()
-> is generic function) we need to remove this. That is simplest.
+> On a different subject - have we come to any conclusions about this patch?
 
-The downside is that it loses the ability to catch SA records which
-were not properly padded out. It seems like a reasonable tradeoff to
-me to not set this field on the transmit side when it's going to be
-ignored on receive (treat it like a reserved field for this case) and
-keep the ability to catch the SA record issue which has bit the
-community a number of times.
+I agree with Roland's response on this.  I don't think we want to support a user space implementation of RMPP.  The posted receive buffers are ultimately owned by the kernel, so it should really control the windowing.  IMO, the other thread is showing that exposing simple things like as timeouts, retries, and BUSY responses to the user leads to issues; exposing the full RMPP implementation can't be better.
 
-The only other approach I see to maintain this is to add an additional
-calling parameter (allribute ID) to get_attr_offset and then inside
-check the attribute ID and return 0 for those SA attributes.
-
--- Hal
-
-> Sasha
->
+- Sean
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
