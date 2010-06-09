@@ -1,67 +1,33 @@
-From: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH] opensm/osm_sa.c: In osm_sa_respond, only fill in attr
- offset if RMPP method
-Date: Wed, 9 Jun 2010 20:15:16 +0300
-Message-ID: <20100609171516.GI20172@me>
-References: <20100603134209.GA12225@comcast.net>
- <20100609054341.GK28549@me>
- <AANLkTilkr6KYG_TVJYwvNl7sZ8XBKmFljktxg8qCA9t9@mail.gmail.com>
- <20100609121036.GC20172@me>
- <AANLkTikTxpvb-Nw2V1PrBcX4rZ1GwElXV22CBtBZx1iK@mail.gmail.com>
- <20100609124848.GE20172@me>
- <AANLkTinxeLPtxYPvPBZfWq96BZjxDqcAlCzP2v_1VJnv@mail.gmail.com>
+From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Subject: Re: InfiniBand/RDMA merge plans for 2.6.35
+Date: Wed, 09 Jun 2010 11:08:02 -0700
+Message-ID: <adar5kgm64d.fsf@roland-alpha.cisco.com>
+References: <adaiq6mo58m.fsf@roland-alpha.cisco.com>
+	<4C0D778C.8070108@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <AANLkTinxeLPtxYPvPBZfWq96BZjxDqcAlCzP2v_1VJnv-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <4C0D778C.8070108-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> (Andy Grover's message of "Mon, 07
+	Jun 2010 15:49:48 -0700")
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Stan Smith <stan.smith-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Andy Grover <andy.grover-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Yevgeny Petrilin <yevgenyp-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 11:27 Wed 09 Jun     , Hal Rosenstock wrote:
-> On Wed, Jun 9, 2010 at 8:48 AM, Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org=
-> wrote:
-> > On 08:40 Wed 09 Jun =A0 =A0 , Hal Rosenstock wrote:
-> >>
-> >> I think the use of ib_get_attr_offset is being "overused". I'd rat=
-her
-> >> see this patch used as it is the simplest way to address that rath=
-er
-> >> than conditionalize ib_get_attr_offset on the SA attribute or woul=
-d
-> >> you rather see a patch along those lines ?
-> >
-> > I just think that if the assertion is incorrect (and ib_get_attr_of=
-fset()
-> > is generic function) we need to remove this. That is simplest.
->=20
-> The downside is that it loses the ability to catch SA records which
-> were not properly padded out.
+ > Please also pick up the 3-patch set "Least attached vector support"
+ > from Yevgeny on 2010-5-13? RDS changes depend on these.
 
-It is not run-time error, so I don't think that such sort of debugging
-is a main function of OpenSM.
+It's now post -rc2, so these obviously wait for 2.6.36 at best.
 
-> It seems like a reasonable tradeoff to
-> me to not set this field on the transmit side when it's going to be
-> ignored on receive (treat it like a reserved field for this case) and
-> keep the ability to catch the SA record issue which has bit the
-> community a number of times.
+However, I haven't replied to these patches in detail but in general I
+don't like this approach of "pick a random vector" since it is
+non-deterministic and not likely to end up with an optimal result.
 
-This will cost in extra code.
-
-> The only other approach I see to maintain this is to add an additiona=
-l
-> calling parameter (allribute ID) to get_attr_offset and then inside
-> check the attribute ID and return 0 for those SA attributes.
-
-Which SA attributes?
-
-Sasha
+ - R.
+-- 
+Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org> || For corporate legal information go to:
+http://www.cisco.com/web/about/doing_business/legal/cri/index.html
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
