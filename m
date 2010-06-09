@@ -1,122 +1,45 @@
-From: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCHv2] opensm: Add a rate based mechanism for SMP transactions
-Date: Wed, 9 Jun 2010 09:02:09 -0400
-Message-ID: <AANLkTin1X450bG2WvV7y8wanYSBH4JyNgNiCsj2iugL8@mail.gmail.com>
-References: <20100607124057.GA2060@comcast.net>
-	<20100609060515.GL28549@me>
-	<AANLkTimE6n2e6z1pUXQPmqX5GrdLVl2kp7bbPipDfhy2@mail.gmail.com>
-	<20100609122905.GD20172@me>
+From: "Guay Wei Lin" <weilin-S8y2klWGCOFhl2p70BpVqQ@public.gmane.org>
+Subject: RE: MPI traffic with service Level
+Date: Wed, 9 Jun 2010 16:00:07 +0200
+Message-ID: <000101cb07dc$14fa2b10$3eee8130$@no>
+References: <000301cb074d$be1e63d0$3a5b2b70$@no> <CF9C39F99A89134C9CF9C4CCB68B8DDF255F5DE8D2@orsmsx501.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20100609122905.GD20172@me>
+In-Reply-To: <CF9C39F99A89134C9CF9C4CCB68B8DDF255F5DE8D2-osO9UTpF0USkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
+Content-Language: en-us
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "'Hefty, Sean'" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Jun 9, 2010 at 8:29 AM, Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org> =
-wrote:
-> On 06:27 Wed 09 Jun =C2=A0 =C2=A0 , Hal Rosenstock wrote:
->> Hi Sasha,
->>
->> On Wed, Jun 9, 2010 at 2:05 AM, Sasha Khapyorsky <sashak-smomgflXvObQFizaE/u3fw@public.gmane.org=
-m> wrote:
->> > Hi Hal,
->> >
->> > On 08:40 Mon 07 Jun =C2=A0 =C2=A0 , Hal Rosenstock wrote:
->> >>
->> >> In order to better handle non responsive SMAs (when link is physi=
-cally up
->> >> but the SMA does not respond), a rate based mechanism for SMPs is=
- added
->> >> to better enable forward progress in a more timely fashion. So ra=
-ther than
->> >> wait for timeouts and outstanding wire SMPs to drop below some co=
-nfigured
->> >> value, there is also a periodic rate for transaction based SMPs. =
-These
->> >> rate based SMPs are capped at a configured maximum value.
->> >>
->> >> Two new options are added for this:
->> >> rate_based_smp_usecs indicates the number of microseconds between=
- rate
->> >> based SMPs.
->> >> max_rate_based_smps indicates the maximum number of rate based SM=
-Ps
->> >> supported. When this limit is reached, rate based SMPs are no lon=
-ger
->> >> sent (until the number of outstanding ones drops below this limit=
-).
->> >>
->> >> The rate based SMP mechanism can be disabled by setting rate_base=
-d_smp_usecs
->> >> to 0. This is equivalent to the (current) algorithm prior to this=
- change.
->> >>
->> >> By default, this mechanism is disabled.
->> >
->> > I would strongly suggest to rework the terminology here to make th=
-ings
->> > clearer.
->> >
->> > Actually we don't have here any "rate based" SMPs,
->>
->> Doesn't the timeout value pace the second limit of SMPs ? If so, in =
-my
->> mind, that is rate based.
->
-> All those SMPs are equivalent in processing, etc., the only differenc=
-e
-> is in MADs injection mechanism.
+Thanks, Sean! It's working for me now. 
 
-And that difference in the MAD injection mechanism is rate based.
+-----Original Message-----
+From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+[mailto:linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Hefty, Sean
+Sent: Wednesday, June 09, 2010 12:16 AM
+To: Guay Wei Lin; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Subject: RE: MPI traffic with service Level 
 
-> So trying to differentiate MADs itself seems confused for me.
+> I'm interested in the MPI traffic that take into the consideration of the
+> SL(service level)-Path mapping (as decided by SA/SM). For e.g LASH routing
+> algorithm that uses SL/VL as the deadlock avoidance for routing. Is there
+> any way that I can make MPI traffic that uses the SL that as indicated by
+> the SA/SM? Any help/hints would be appreciated. Thanks again.
 
-I'm still not following why you say this.
+If MPI is set to use the rdma_cm, it will obtain SL information from the SA.
+I believe most MPIs support this option through some means.  Beyond that,
+there may be other ways to do this based on the MPI that you're using.
 
->
->> > but instead two mad
->> > injection limits (regular and timedout) and timeout value (which B=
-TW
->> > likely should be a function of --timeout parameter). Isn't it?
->>
->> The separate timeout for this provides finer control over pacing the
->> higher SMP limit rather than basing it on the transaction timeout. I=
-f
->> it is a function of the transaction timeout as you propose above, is
->> there admin control over it ? If there is, then there is another
->> config param to express this anyhow.
->
-> No problem to have this configurable for finer control, but in case
-> when requested smps_on_wire_limit_low < smps_on_wire_limit_high we co=
-uld
-> want to have some reasonable default value for the timeout.
-
-The default in the proposed patch is that this mechanism is disabled.
-Are you saying to change this to have it enabled with a default
-timeout ? I think it's better to leave the default disabled so the
-default is to behave same as today.
-
--- Hal
-
->> If there isn't, then what hard
->> coded function do you think is appropriate ?
->
-> timeout * retries ?
->
-> Sasha
->
->>
->> -- Hal
->>
->> > Sasha
->>
->
+- Sean
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
