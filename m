@@ -1,79 +1,80 @@
-From: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCHv2] opensm: Add a rate based mechanism for SMP transactions
-Date: Wed, 9 Jun 2010 06:27:21 -0400
-Message-ID: <AANLkTimE6n2e6z1pUXQPmqX5GrdLVl2kp7bbPipDfhy2@mail.gmail.com>
-References: <20100607124057.GA2060@comcast.net>
-	<20100609060515.GL28549@me>
+From: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH] opensm/osm_sa.c: In osm_sa_respond, only fill in attr
+ offset if RMPP method
+Date: Wed, 9 Jun 2010 15:10:36 +0300
+Message-ID: <20100609121036.GC20172@me>
+References: <20100603134209.GA12225@comcast.net>
+ <20100609054341.GK28549@me>
+ <AANLkTilkr6KYG_TVJYwvNl7sZ8XBKmFljktxg8qCA9t9@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20100609060515.GL28549@me>
+Content-Disposition: inline
+In-Reply-To: <AANLkTilkr6KYG_TVJYwvNl7sZ8XBKmFljktxg8qCA9t9-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Smith-11/JKNsLAEcNCZHLCRkIHg@public.gmane.org, Stan <stan.smith-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Sasha,
+On 06:23 Wed 09 Jun     , Hal Rosenstock wrote:
+> >>
+> >> Signed-off-by: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+> >> ---
+> >>  opensm/opensm/osm_sa.c |   12 ++++++++++--
+> >>  1 files changed, 10 insertions(+), 2 deletions(-)
+> >>
+> >> diff --git a/opensm/opensm/osm_sa.c b/opensm/opensm/osm_sa.c
+> >> index 0aca81f..8325632 100644
+> >> --- a/opensm/opensm/osm_sa.c
+> >> +++ b/opensm/opensm/osm_sa.c
+> >> @@ -3,6 +3,7 @@
+> >>   * Copyright (c) 2002-2010 Mellanox Technologies LTD. All rights reserved.
+> >>   * Copyright (c) 1996-2003 Intel Corporation. All rights reserved.
+> >>   * Copyright (c) 2008 Xsigo Systems Inc.  All rights reserved.
+> >> + * Copyright (c) 2010 HNR Consulting. All rights reserved.
+> >>   *
+> >>   * This software is available to you under a choice of one of two
+> >>   * licenses.  You may choose to be licensed under the terms of the GNU
+> >> @@ -454,8 +455,15 @@ void osm_sa_respond(osm_sa_t *sa, osm_madw_t *madw, size_t attr_size,
+> >>       /* C15-0.1.5 - always return SM_Key = 0 (table 185 p 884) */
+> >>       resp_sa_mad->sm_key = 0;
+> >>
+> >> -     /* Fill in the offset (paylen will be done by the rmpp SAR) */
+> >> -     resp_sa_mad->attr_offset = num_rec ? ib_get_attr_offset(attr_size) : 0;
+> >> +#ifdef DUAL_SIDED_RMPP
+> >> +     if (resp_sa_mad->method == IB_MAD_METHOD_GETTABLE_RESP ||
+> >> +         resp_sa_mad->method == IB_MAD_METHOD_GETMULTI_RESP) {
+> >> +#else
+> >> +     if (resp_sa_mad->method == IB_MAD_METHOD_GETTABLE_RESP) {
+> >> +#endif
+> >> +             /* Fill in the offset (paylen will be done by the rmpp SAR) */
+> >> +             resp_sa_mad->attr_offset = num_rec ? ib_get_attr_offset(attr_size) : 0;
+> >> +     }
+> >
+> > What is wrong with current implementation?
+> 
+> It's now needed for the debug version of OpenSM not to assert due to:
+> 
+> 7fc6cd3037f07190e483a047f17d37b6bebbb2b3
+> Author: Smith, Stan <stan.smith-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> Date:   Fri May 21 10:49:27 2010 -0700
+> 
+>     ib_types.h add debug assert
+> 
+>     Add a debug assert to catch incorrect MAD attr offset size.
+>     This proved to be useful in catching incorrect struct sizes as MAD attrs nee
+> d to be a multiple of 8 bytes.
+> 
+>     Signed-off-by: stan smith <stan.smith-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+>     Signed-off-by: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+> 
+> as not all SA attributes are multiple of 8 bytes.
 
-On Wed, Jun 9, 2010 at 2:05 AM, Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org> =
-wrote:
-> Hi Hal,
->
-> On 08:40 Mon 07 Jun =C2=A0 =C2=A0 , Hal Rosenstock wrote:
->>
->> In order to better handle non responsive SMAs (when link is physical=
-ly up
->> but the SMA does not respond), a rate based mechanism for SMPs is ad=
-ded
->> to better enable forward progress in a more timely fashion. So rathe=
-r than
->> wait for timeouts and outstanding wire SMPs to drop below some confi=
-gured
->> value, there is also a periodic rate for transaction based SMPs. The=
-se
->> rate based SMPs are capped at a configured maximum value.
->>
->> Two new options are added for this:
->> rate_based_smp_usecs indicates the number of microseconds between ra=
-te
->> based SMPs.
->> max_rate_based_smps indicates the maximum number of rate based SMPs
->> supported. When this limit is reached, rate based SMPs are no longer
->> sent (until the number of outstanding ones drops below this limit).
->>
->> The rate based SMP mechanism can be disabled by setting rate_based_s=
-mp_usecs
->> to 0. This is equivalent to the (current) algorithm prior to this ch=
-ange.
->>
->> By default, this mechanism is disabled.
->
-> I would strongly suggest to rework the terminology here to make thing=
-s
-> clearer.
->
-> Actually we don't have here any "rate based" SMPs,
+Then it seems that such assertion is incorrect and the patch should be
+reverted. Right?
 
-Doesn't the timeout value pace the second limit of SMPs ? If so, in my
-mind, that is rate based.
-
-> but instead two mad
-> injection limits (regular and timedout) and timeout value (which BTW
-> likely should be a function of --timeout parameter). Isn't it?
-
-The separate timeout for this provides finer control over pacing the
-higher SMP limit rather than basing it on the transaction timeout. If
-it is a function of the transaction timeout as you propose above, is
-there admin control over it ? If there is, then there is another
-config param to express this anyhow. If there isn't, then what hard
-coded function do you think is appropriate ?
-
--- Hal
-
-> Sasha
+Sasha
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
