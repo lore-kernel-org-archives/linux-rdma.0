@@ -1,52 +1,69 @@
-From: Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH resend] opensm/osm_sa_path_record.c: adding wrapper for
-	pr_rcv_get_path_parms()
-Date: Thu, 10 Jun 2010 16:49:19 +0300
-Message-ID: <4C10ED5F.9070205@dev.mellanox.co.il>
+From: "Jim Schutt" <jaschut-4OHPYypu0djtX7QSmKvirg@public.gmane.org>
+Subject: Re: [PATCH v2 10/15] opensm: Add opensm option to specify file
+ name for extra torus-2QoS configuration information.
+Date: Thu, 10 Jun 2010 08:22:33 -0600
+Message-ID: <1276179753.4570.19.camel@sale659.sandia.gov>
+References: <1268244416-20351-1-git-send-email-jaschut@sandia.gov>
+ <1268244416-20351-10-git-send-email-jaschut@sandia.gov>
+ <20100610112519.GO20172@me>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20100610112519.GO20172@me>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Cc: Linux RDMA <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "eitan-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org" <eitan-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Adding non-static wrapper function for pr_rcv_get_path_parms()
-function to enable calling path record calculation function from
-outside this file.
 
-Signed-off-by: Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 
----
- opensm/opensm/osm_sa_path_record.c |   12 ++++++++++++
- 1 files changed, 12 insertions(+), 0 deletions(-)
+Hi Sasha,
 
-diff --git a/opensm/opensm/osm_sa_path_record.c b/opensm/opensm/osm_sa_path_record.c
-index f0d7ca2..2897c7b 100644
---- a/opensm/opensm/osm_sa_path_record.c
-+++ b/opensm/opensm/osm_sa_path_record.c
-@@ -764,6 +764,18 @@ Exit:
- 	return status;
- }
+Thanks for taking a look at this.
 
-+ib_api_status_t osm_get_path_params(IN osm_sa_t * sa,
-+				    IN const osm_port_t * p_src_port,
-+				    IN const osm_port_t * p_dest_port,
-+				    IN const uint16_t dlid_ho,
-+				    OUT osm_path_parms_t * p_parms)
-+{
-+	ib_path_rec_t pr;
-+	memset(&pr, 0, sizeof(ib_path_rec_t));
-+	return pr_rcv_get_path_parms(sa, &pr,
-+		p_src_port, p_dest_port, dlid_ho, 0, p_parms);
-+}
-+
- static void pr_rcv_build_pr(IN osm_sa_t * sa, IN const osm_port_t * p_src_port,
- 			    IN const osm_port_t * p_dest_port,
- 			    IN const ib_gid_t * p_dgid,
--- 
-1.5.1.4
+
+On Thu, 2010-06-10 at 05:25 -0600, Sasha Khapyorsky wrote:
+> Hi Jim,
+> 
+> On 11:06 Wed 10 Mar     , Jim Schutt wrote:
+> > 
+> > Signed-off-by: Jim Schutt <jaschut-4OHPYypu0djtX7QSmKvirg@public.gmane.org>
+> > ---
+> >  opensm/include/opensm/osm_base.h   |   18 ++++++++++++++++++
+> >  opensm/include/opensm/osm_subnet.h |    5 +++++
+> >  opensm/opensm/main.c               |    9 +++++++++
+> >  opensm/opensm/osm_subnet.c         |    1 +
+> >  opensm/opensm/osm_torus.c          |    2 +-
+> 
+> It breaks to apply at this point. It is because file
+> 'opensm/opensm/osm_torus.c' doesn't exist in previous patches. Could
+> you
+> please resend the patch series with files included? Thanks.
+
+So 7/15 has the patch that adds osm_torus.c as a compressed attachment,
+because the patch is so big.
+
+I sent it that way because I was afraid it would otherwise be
+rejected by vger.
+
+So you want me to resend with that big patch inline?
+
+Also, I have accumulated a few bug fixes to torus-2QoS
+that I haven't posted yet.  I can
+
+1) repost the patch series with no attachments, and
+   add the bugfix patches at the end of series
+2) repost a v3 patchset with these fixes merged.
+3) do something else that you prefer.
+
+Let me know?
+
+-- Jim
+
+> 
+> Sasha
+> 
 
 
 --
