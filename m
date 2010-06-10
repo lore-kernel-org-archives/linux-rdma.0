@@ -1,70 +1,40 @@
-From: "Jim Schutt" <jaschut-4OHPYypu0djtX7QSmKvirg@public.gmane.org>
-Subject: Re: [PATCH v2 10/15] opensm: Add opensm option to specify file
- name for extra torus-2QoS configuration information.
-Date: Thu, 10 Jun 2010 08:22:33 -0600
-Message-ID: <1276179753.4570.19.camel@sale659.sandia.gov>
-References: <1268244416-20351-1-git-send-email-jaschut@sandia.gov>
- <1268244416-20351-10-git-send-email-jaschut@sandia.gov>
- <20100610112519.GO20172@me>
+From: "Eli Dorfman (Voltaire)" <dorfman.eli-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH] return no path when path does not exist
+Date: Thu, 10 Jun 2010 18:01:31 +0300
+Message-ID: <4C10FE4B.9080106@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20100610112519.GO20172@me>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "eitan-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org" <eitan-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
+return OSM_NO_PATH (instead of port num) when path does not exists.
+this will also be reported as error in the log.
 
-Hi Sasha,
+Signed-off-by: Eli Dorfman <elid-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+---
+ opensm/opensm/osm_switch.c |    2 ++
+ 1 files changed, 2 insertions(+), 0 deletions(-)
 
-Thanks for taking a look at this.
-
-
-On Thu, 2010-06-10 at 05:25 -0600, Sasha Khapyorsky wrote:
-> Hi Jim,
-> 
-> On 11:06 Wed 10 Mar     , Jim Schutt wrote:
-> > 
-> > Signed-off-by: Jim Schutt <jaschut-4OHPYypu0djtX7QSmKvirg@public.gmane.org>
-> > ---
-> >  opensm/include/opensm/osm_base.h   |   18 ++++++++++++++++++
-> >  opensm/include/opensm/osm_subnet.h |    5 +++++
-> >  opensm/opensm/main.c               |    9 +++++++++
-> >  opensm/opensm/osm_subnet.c         |    1 +
-> >  opensm/opensm/osm_torus.c          |    2 +-
-> 
-> It breaks to apply at this point. It is because file
-> 'opensm/opensm/osm_torus.c' doesn't exist in previous patches. Could
-> you
-> please resend the patch series with files included? Thanks.
-
-So 7/15 has the patch that adds osm_torus.c as a compressed attachment,
-because the patch is so big.
-
-I sent it that way because I was afraid it would otherwise be
-rejected by vger.
-
-So you want me to resend with that big patch inline?
-
-Also, I have accumulated a few bug fixes to torus-2QoS
-that I haven't posted yet.  I can
-
-1) repost the patch series with no attachments, and
-   add the bugfix patches at the end of series
-2) repost a v3 patchset with these fixes merged.
-3) do something else that you prefer.
-
-Let me know?
-
--- Jim
-
-> 
-> Sasha
-> 
-
+diff --git a/opensm/opensm/osm_switch.c b/opensm/opensm/osm_switch.c
+index 311c4f7..b621852 100644
+--- a/opensm/opensm/osm_switch.c
++++ b/opensm/opensm/osm_switch.c
+@@ -628,6 +628,8 @@ uint8_t osm_switch_recommend_mcast_path(IN osm_switch_t * p_sw,
+ 	   a black hole that will destroy the Earth in a firey conflagration.
+ 	 */
+ 	least_hops = osm_switch_get_least_hops(p_sw, base_lid);
++	if (least_hops == OSM_NO_PATH)
++		return OSM_NO_PATH;
+ 	for (port_num = 1; port_num < num_ports; port_num++)
+ 		if (osm_switch_get_hop_count(p_sw, base_lid, port_num) ==
+ 		    least_hops)
+-- 
+1.5.5
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
