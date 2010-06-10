@@ -1,52 +1,29 @@
-From: "Eli Dorfman (Voltaire)" <dorfman.eli-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH] fix MFT record dump
-Date: Thu, 10 Jun 2010 18:03:03 +0300
-Message-ID: <4C10FEA7.7030400@gmail.com>
+From: Alex Vainman <alexonlists-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH v2] libibverbs: ibv_fork_init() and libhugetlbfs
+Date: Thu, 10 Jun 2010 17:59:28 +0300
+Message-ID: <4C10FDD0.8000108@gmail.com>
+References: <20100531111359.4c0696ab@alex-laptop>	<adamxvdqf4e.fsf@roland-alpha.cisco.com>	<20100609114750.0798c664@alex-laptop> <adamxv4m620.fsf@roland-alpha.cisco.com>
+Reply-To: alexv-smomgflXvOZWk0Htik3J/w@public.gmane.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <adamxv4m620.fsf-BjVyx320WGW9gfZ95n9DRSW4+XlvGpQz@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Cc: Alexander Schmidt <alexs-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, Stefan Roscher <stefan.roscher-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, Christoph Raisch <raisch-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, of-ewg <ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>, Linux RDMA <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-fix wrong MLID calculation in MFT record dump.
+Wrote Roland Dreier:
+> Thanks, nice work.  I like this approach.  Alex (Vainman) any comments
+> on this?
+> 
+>  - R.
 
-Signed-off-by: Eli Dorfman <elid-smomgflXvOZWk0Htik3J/w@public.gmane.org>
----
- infiniband-diags/src/saquery.c |    8 +++++---
- 1 files changed, 5 insertions(+), 3 deletions(-)
+The solution looks great.
 
-diff --git a/infiniband-diags/src/saquery.c b/infiniband-diags/src/saquery.c
-index 5e9a5ad..cb4fc18 100644
---- a/infiniband-diags/src/saquery.c
-+++ b/infiniband-diags/src/saquery.c
-@@ -788,16 +788,18 @@ static void dump_one_mft_record(void *data)
- 	unsigned block = cl_ntoh16(mftr->position_block_num) &
- 	    IB_MCAST_BLOCK_ID_MASK_HO;
- 	int i;
-+	unsigned offset;
-+
- 	printf("MFT Record dump:\n"
- 	       "\t\tLID........................%u\n"
- 	       "\t\tPosition...................%u\n"
- 	       "\t\tBlock......................%u\n"
- 	       "\t\tMFT:\n\t\tMLID\tPort Mask\n",
- 	       cl_ntoh16(mftr->lid), position, block);
-+	offset = IB_LID_MCAST_START_HO + block * 32;
- 	for (i = 0; i < IB_MCAST_BLOCK_SIZE; i++)
--		printf("\t\t0x%x\t0x%x\n",
--		       IB_LID_MCAST_START_HO + block * 64 + i,
--		       cl_ntoh16(mftr->mft[i]));
-+		printf("\t\t0x%04x\t0x%04x\n",
-+		       offset + i, cl_ntoh16(mftr->mft[i]));
- 	printf("\n");
- }
- 
--- 
-1.5.5
-
+Thanks,
+Alex
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
