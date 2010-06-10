@@ -1,7 +1,7 @@
 From: "Eli Dorfman (Voltaire)" <dorfman.eli-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH] return no path when path does not exist
-Date: Thu, 10 Jun 2010 18:01:31 +0300
-Message-ID: <4C10FE4B.9080106@gmail.com>
+Subject: [PATCH] fix MFT record dump
+Date: Thu, 10 Jun 2010 18:03:03 +0300
+Message-ID: <4C10FEA7.7030400@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
@@ -11,28 +11,39 @@ To: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
 Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-
-return OSM_NO_PATH (instead of port num) when path does not exists.
-this will also be reported as error in the log.
+fix wrong MLID calculation in MFT record dump.
 
 Signed-off-by: Eli Dorfman <elid-smomgflXvOZWk0Htik3J/w@public.gmane.org>
 ---
- opensm/opensm/osm_switch.c |    2 ++
- 1 files changed, 2 insertions(+), 0 deletions(-)
+ infiniband-diags/src/saquery.c |    8 +++++---
+ 1 files changed, 5 insertions(+), 3 deletions(-)
 
-diff --git a/opensm/opensm/osm_switch.c b/opensm/opensm/osm_switch.c
-index 311c4f7..b621852 100644
---- a/opensm/opensm/osm_switch.c
-+++ b/opensm/opensm/osm_switch.c
-@@ -628,6 +628,8 @@ uint8_t osm_switch_recommend_mcast_path(IN osm_switch_t * p_sw,
- 	   a black hole that will destroy the Earth in a firey conflagration.
- 	 */
- 	least_hops = osm_switch_get_least_hops(p_sw, base_lid);
-+	if (least_hops == OSM_NO_PATH)
-+		return OSM_NO_PATH;
- 	for (port_num = 1; port_num < num_ports; port_num++)
- 		if (osm_switch_get_hop_count(p_sw, base_lid, port_num) ==
- 		    least_hops)
+diff --git a/infiniband-diags/src/saquery.c b/infiniband-diags/src/saquery.c
+index 5e9a5ad..cb4fc18 100644
+--- a/infiniband-diags/src/saquery.c
++++ b/infiniband-diags/src/saquery.c
+@@ -788,16 +788,18 @@ static void dump_one_mft_record(void *data)
+ 	unsigned block = cl_ntoh16(mftr->position_block_num) &
+ 	    IB_MCAST_BLOCK_ID_MASK_HO;
+ 	int i;
++	unsigned offset;
++
+ 	printf("MFT Record dump:\n"
+ 	       "\t\tLID........................%u\n"
+ 	       "\t\tPosition...................%u\n"
+ 	       "\t\tBlock......................%u\n"
+ 	       "\t\tMFT:\n\t\tMLID\tPort Mask\n",
+ 	       cl_ntoh16(mftr->lid), position, block);
++	offset = IB_LID_MCAST_START_HO + block * 32;
+ 	for (i = 0; i < IB_MCAST_BLOCK_SIZE; i++)
+-		printf("\t\t0x%x\t0x%x\n",
+-		       IB_LID_MCAST_START_HO + block * 64 + i,
+-		       cl_ntoh16(mftr->mft[i]));
++		printf("\t\t0x%04x\t0x%04x\n",
++		       offset + i, cl_ntoh16(mftr->mft[i]));
+ 	printf("\n");
+ }
+ 
 -- 
 1.5.5
 
