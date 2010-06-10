@@ -1,7 +1,7 @@
 From: Yevgeny Petrilin <yevgenyp-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
-Subject: [PATCH 07/19 V4] mlx4_core: per-function capabilitie
-Date: Thu, 10 Jun 2010 22:00:43 +0300
-Message-ID: <4C11365B.5050008@mellanox.co.il>
+Subject: [PATCH 08/19 V4] mlx4_core: multi-function resource setup
+Date: Thu, 10 Jun 2010 22:00:48 +0300
+Message-ID: <4C113660.6010409@mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
@@ -11,325 +11,405 @@ To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-The master function builds a HW profile, and manages all resources.
-Other functions query the master for function-specific capabilities.
-EQs, MSI-X vectors, and UARs are statically divided among all functions,
-while other resources are dynamically assigned later upon request.
+Only master function needs to configure eq asynch events, and initialize resource
+allocators.
+Only the master function polls for fatal events.
 
 Signed-off-by: Liran Liss <liranl-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
 Signed-off-by: Yevgeny Petrilin <yevgenyp-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
 ---
- drivers/net/mlx4/cmd.c      |    9 ++++++
- drivers/net/mlx4/fw.c       |   39 +++++++++++++++++++++++++
- drivers/net/mlx4/fw.h       |    4 ++
- drivers/net/mlx4/main.c     |   67 ++++++++++++++++++++++++++++++++++++++++++-
- drivers/net/mlx4/mlx4.h     |    8 ++++-
- drivers/net/mlx4/profile.c  |   26 ++++++++++++++--
- include/linux/mlx4/cmd.h    |    1 +
- include/linux/mlx4/device.h |    3 ++
- 8 files changed, 151 insertions(+), 6 deletions(-)
+ drivers/net/mlx4/cq.c       |    4 +++
+ drivers/net/mlx4/eq.c       |   52 +++++++++++++++++++++++++-----------------
+ drivers/net/mlx4/intf.c     |    6 +++-
+ drivers/net/mlx4/main.c     |   40 ++++++++++++++++++---------------
+ drivers/net/mlx4/mcg.c      |    6 +++++
+ drivers/net/mlx4/mr.c       |    6 +++++
+ drivers/net/mlx4/pd.c       |    7 ++++-
+ drivers/net/mlx4/qp.c       |   28 +++++++++++++++++++++-
+ drivers/net/mlx4/srq.c      |    4 +++
+ include/linux/mlx4/device.h |    1 +
+ 10 files changed, 109 insertions(+), 45 deletions(-)
 
-diff --git a/drivers/net/mlx4/cmd.c b/drivers/net/mlx4/cmd.c
-index ce467ca..a4722e2 100644
---- a/drivers/net/mlx4/cmd.c
-+++ b/drivers/net/mlx4/cmd.c
-@@ -40,6 +40,7 @@
- #include <asm/io.h>
+diff --git a/drivers/net/mlx4/cq.c b/drivers/net/mlx4/cq.c
+index c896f71..89af831 100644
+--- a/drivers/net/mlx4/cq.c
++++ b/drivers/net/mlx4/cq.c
+@@ -352,6 +352,8 @@ int mlx4_init_cq_table(struct mlx4_dev *dev)
  
- #include "mlx4.h"
-+#include "fw.h"
+ 	spin_lock_init(&cq_table->lock);
+ 	INIT_RADIX_TREE(&cq_table->tree, GFP_ATOMIC);
++	if (mlx4_is_slave(dev))
++		return 0;
  
- #define CMD_POLL_TOKEN 0xffff
+ 	err = mlx4_bitmap_init(&cq_table->bitmap, dev->caps.num_cqs,
+ 			       dev->caps.num_cqs - 1, dev->caps.reserved_cqs, 0);
+@@ -363,6 +365,8 @@ int mlx4_init_cq_table(struct mlx4_dev *dev)
  
-@@ -550,6 +551,14 @@ static struct mlx4_cmd_info {
- 		.wrapper = NULL
- 	},
- 	{
-+		.opcode = MLX4_CMD_QUERY_SLAVE_CAP,
-+		.has_inbox = false,
-+		.has_outbox = true,
-+		.out_is_imm = false,
-+		.verify = NULL,
-+		.wrapper = mlx4_QUERY_SLAVE_CAP_wrapper
-+	},
-+	{
- 		.opcode = MLX4_CMD_QUERY_ADAPTER,
- 		.has_inbox = false,
- 		.has_outbox = true,
-diff --git a/drivers/net/mlx4/fw.c b/drivers/net/mlx4/fw.c
-index c8c64bf..dc0570f 100644
---- a/drivers/net/mlx4/fw.c
-+++ b/drivers/net/mlx4/fw.c
-@@ -144,6 +144,45 @@ int mlx4_QUERY_PORT_wrapper(struct mlx4_dev *dev, int slave, struct mlx4_vhcr *v
- 					   MLX4_CMD_TIME_CLASS_B);
- }
- 
-+int mlx4_QUERY_SLAVE_CAP_wrapper(struct mlx4_dev *dev, int slave, struct mlx4_vhcr *vhcr,
-+						       struct mlx4_cmd_mailbox *inbox,
-+						       struct mlx4_cmd_mailbox *outbox)
-+{
-+	struct mlx4_caps *caps = outbox->buf;
-+
-+	memcpy(caps, &dev->caps, sizeof *caps);
-+
-+	/* PDs have the same range in every guest; the distinction is in the msbs,
-+	 * which contains the guest ID (vf + 1) */
-+	caps->pd_base = slave + 1;
-+
-+	/* All other resources are allocated by the master, but we still report
-+	 * 'num' and 'reserved' capabilities as follows:
-+	 * - num remains the maximum resource index
-+	 * - 'num - reserved' is the total available objects of a resource, but
-+	 *   resource indices may be less than 'reserved'
-+	 * TODO: set per-resource quotas */
-+	return 0;
-+}
-+
-+int mlx4_QUERY_SLAVE_CAP(struct mlx4_dev *dev, struct mlx4_caps *caps)
-+{
-+	struct mlx4_cmd_mailbox *mailbox;
-+	int err;
-+
-+	mailbox = mlx4_alloc_cmd_mailbox(dev);
-+	if (IS_ERR(mailbox))
-+		return PTR_ERR(mailbox);
-+
-+	err = mlx4_cmd_box(dev, 0, mailbox->dma, 0, 0, MLX4_CMD_QUERY_SLAVE_CAP,
-+			   MLX4_CMD_TIME_CLASS_A);
-+	if (!err)
-+		memcpy(caps, mailbox->buf, sizeof *caps);
-+
-+	mlx4_free_cmd_mailbox(dev, mailbox);
-+	return err;
-+}
-+
- int mlx4_QUERY_DEV_CAP(struct mlx4_dev *dev, struct mlx4_dev_cap *dev_cap)
+ void mlx4_cleanup_cq_table(struct mlx4_dev *dev)
  {
- 	struct mlx4_cmd_mailbox *mailbox;
-diff --git a/drivers/net/mlx4/fw.h b/drivers/net/mlx4/fw.h
-index 526d7f3..d066c69 100644
---- a/drivers/net/mlx4/fw.h
-+++ b/drivers/net/mlx4/fw.h
-@@ -160,6 +160,10 @@ struct mlx4_set_ib_param {
- };
++	if (mlx4_is_slave(dev))
++		return;
+ 	/* Nothing to do to clean up radix_tree */
+ 	mlx4_bitmap_cleanup(&mlx4_priv(dev)->cq_table.bitmap);
+ }
+diff --git a/drivers/net/mlx4/eq.c b/drivers/net/mlx4/eq.c
+index e0cba6f..1cb692d 100644
+--- a/drivers/net/mlx4/eq.c
++++ b/drivers/net/mlx4/eq.c
+@@ -699,6 +699,7 @@ int mlx4_init_eq_table(struct mlx4_dev *dev)
+ 	struct mlx4_priv *priv = mlx4_priv(dev);
+ 	int err;
+ 	int i;
++	u32 round_eqs = roundup_pow_of_two(dev->caps.num_eqs);
  
- int mlx4_QUERY_DEV_CAP(struct mlx4_dev *dev, struct mlx4_dev_cap *dev_cap);
-+int mlx4_QUERY_SLAVE_CAP(struct mlx4_dev *dev, struct mlx4_caps *caps);
-+int mlx4_QUERY_SLAVE_CAP_wrapper(struct mlx4_dev *dev, int slave, struct mlx4_vhcr *vhcr,
-+						    struct mlx4_cmd_mailbox *inbox,
-+						    struct mlx4_cmd_mailbox *outbox);
- int mlx4_MAP_FA(struct mlx4_dev *dev, struct mlx4_icm *icm);
- int mlx4_UNMAP_FA(struct mlx4_dev *dev);
- int mlx4_RUN_FW(struct mlx4_dev *dev);
-diff --git a/drivers/net/mlx4/main.c b/drivers/net/mlx4/main.c
-index 7d21c07..99e267c 100644
---- a/drivers/net/mlx4/main.c
-+++ b/drivers/net/mlx4/main.c
-@@ -186,6 +186,7 @@ static int mlx4_dev_cap(struct mlx4_dev *dev, struct mlx4_dev_cap *dev_cap)
- 		dev->caps.supported_type[i] = dev_cap->supported_port_types[i];
+ 	priv->eq_table.uar_map = kcalloc(sizeof *priv->eq_table.uar_map,
+ 					 mlx4_num_eq_uar(dev), GFP_KERNEL);
+@@ -707,33 +708,38 @@ int mlx4_init_eq_table(struct mlx4_dev *dev)
+ 		goto err_out_free;
  	}
  
-+	dev->caps.uar_page_size	     = PAGE_SIZE;
- 	dev->caps.num_uars	     = dev_cap->uar_size / PAGE_SIZE;
- 	dev->caps.local_ca_ack_delay = dev_cap->local_ca_ack_delay;
- 	dev->caps.bf_reg_size	     = dev_cap->bf_reg_size;
-@@ -212,7 +213,9 @@ static int mlx4_dev_cap(struct mlx4_dev *dev, struct mlx4_dev_cap *dev_cap)
- 	dev->caps.reserved_mtts	     = DIV_ROUND_UP(dev_cap->reserved_mtts,
- 						    dev->caps.mtts_per_seg);
- 	dev->caps.reserved_mrws	     = dev_cap->reserved_mrws;
--	dev->caps.reserved_uars	     = dev_cap->reserved_uars;
-+
-+	/* The first 128 UARs are used for EQ doorbells */
-+	dev->caps.reserved_uars	     = max_t(int, 128, dev_cap->reserved_uars);
- 	dev->caps.reserved_pds	     = dev_cap->reserved_pds;
- 	dev->caps.mtt_entry_sz	     = dev->caps.mtts_per_seg * dev_cap->mtt_entry_sz;
- 	dev->caps.max_msg_sz         = dev_cap->max_msg_sz;
-@@ -269,6 +272,68 @@ static int mlx4_dev_cap(struct mlx4_dev *dev, struct mlx4_dev_cap *dev_cap)
+-	err = mlx4_bitmap_init(&priv->eq_table.bitmap, dev->caps.num_eqs,
+-			       dev->caps.num_eqs - 1, dev->caps.reserved_eqs, 0);
++	err = mlx4_bitmap_init(&priv->eq_table.bitmap, round_eqs, round_eqs - 1,
++			       dev->caps.reserved_eqs, round_eqs - dev->caps.num_eqs);
+ 	if (err)
+ 		goto err_out_free;
+ 
+ 	for (i = 0; i < mlx4_num_eq_uar(dev); ++i)
+ 		priv->eq_table.uar_map[i] = NULL;
+ 
+-	err = mlx4_map_clr_int(dev);
+-	if (err)
+-		goto err_out_bitmap;
++	if (!mlx4_is_slave(dev)) {
++		err = mlx4_map_clr_int(dev);
++		if (err)
++			goto err_out_bitmap;
+ 
+-	priv->eq_table.clr_mask =
+-		swab32(1 << (priv->eq_table.inta_pin & 31));
+-	priv->eq_table.clr_int  = priv->clr_base +
+-		(priv->eq_table.inta_pin < 32 ? 4 : 0);
++		priv->eq_table.clr_mask =
++			swab32(1 << (priv->eq_table.inta_pin & 31));
++		priv->eq_table.clr_int  = priv->clr_base +
++			(priv->eq_table.inta_pin < 32 ? 4 : 0);
++	}
+ 
+ 	priv->eq_table.irq_names =
+ 		kmalloc(MLX4_IRQNAME_SIZE * (dev->caps.num_comp_vectors + 1),
+ 			GFP_KERNEL);
+ 	if (!priv->eq_table.irq_names) {
+ 		err = -ENOMEM;
+-		goto err_out_bitmap;
++		i = 0;
++		goto err_out_unmap;
+ 	}
+ 
+ 	for (i = 0; i < dev->caps.num_comp_vectors; ++i) {
+-		err = mlx4_create_eq(dev, dev->caps.num_cqs + MLX4_NUM_SPARE_EQE,
++		err = mlx4_create_eq(dev, dev->caps.num_cqs -
++					  dev->caps.reserved_cqs +
++					  MLX4_NUM_SPARE_EQE,
+ 				     (dev->flags & MLX4_FLAG_MSI_X) ? i : 0,
+ 				     &priv->eq_table.eq[i]);
+ 		if (err) {
+@@ -791,11 +797,13 @@ int mlx4_init_eq_table(struct mlx4_dev *dev)
+ 		priv->eq_table.have_irq = 1;
+ 	}
+ 
+-	err = mlx4_MAP_EQ(dev, MLX4_ASYNC_EVENT_MASK, 0,
+-			  priv->eq_table.eq[dev->caps.num_comp_vectors].eqn);
+-	if (err)
+-		mlx4_warn(dev, "MAP_EQ for async EQ %d failed (%d)\n",
+-			   priv->eq_table.eq[dev->caps.num_comp_vectors].eqn, err);
++	if (!mlx4_is_slave(dev)) { /* hw async events cannot be shared */
++		err = mlx4_MAP_EQ(dev, MLX4_ASYNC_EVENT_MASK, 0,
++				  priv->eq_table.eq[dev->caps.num_comp_vectors].eqn);
++		if (err)
++			mlx4_warn(dev, "MAP_EQ for async EQ %d failed (%d)\n",
++				   priv->eq_table.eq[dev->caps.num_comp_vectors].eqn, err);
++	}
+ 
+ 	for (i = 0; i < dev->caps.num_comp_vectors + 1; ++i)
+ 		eq_set_ci(&priv->eq_table.eq[i], 1);
+@@ -806,14 +814,15 @@ err_out_async:
+ 	mlx4_free_eq(dev, &priv->eq_table.eq[dev->caps.num_comp_vectors]);
+ 
+ err_out_comp:
+-	i = dev->caps.num_comp_vectors - 1;
++	i = dev->caps.num_comp_vectors;
+ 
+ err_out_unmap:
+-	while (i >= 0) {
+-		mlx4_free_eq(dev, &priv->eq_table.eq[i]);
++	while (i > 0) {
+ 		--i;
++		mlx4_free_eq(dev, &priv->eq_table.eq[i]);
+ 	}
+-	mlx4_unmap_clr_int(dev);
++	if (!mlx4_is_slave(dev))
++		mlx4_unmap_clr_int(dev);
+ 	mlx4_free_irqs(dev);
+ 
+ err_out_bitmap:
+@@ -840,7 +849,8 @@ void mlx4_cleanup_eq_table(struct mlx4_dev *dev)
+ 	for (i = 0; i < dev->caps.num_comp_vectors + !mlx4_is_slave(dev); ++i)
+ 		mlx4_free_eq(dev, &priv->eq_table.eq[i]);
+ 
+-	mlx4_unmap_clr_int(dev);
++	if (!mlx4_is_slave(dev))
++		mlx4_unmap_clr_int(dev);
+ 
+ 	for (i = 0; i < mlx4_num_eq_uar(dev); ++i)
+ 		if (priv->eq_table.uar_map[i])
+diff --git a/drivers/net/mlx4/intf.c b/drivers/net/mlx4/intf.c
+index 5550678..5871957 100644
+--- a/drivers/net/mlx4/intf.c
++++ b/drivers/net/mlx4/intf.c
+@@ -141,7 +141,8 @@ int mlx4_register_device(struct mlx4_dev *dev)
+ 		mlx4_add_device(intf, priv);
+ 
+ 	mutex_unlock(&intf_mutex);
+-	mlx4_start_catas_poll(dev);
++	if (!mlx4_is_slave(dev))
++		mlx4_start_catas_poll(dev);
+ 
  	return 0;
  }
+@@ -151,7 +152,8 @@ void mlx4_unregister_device(struct mlx4_dev *dev)
+ 	struct mlx4_priv *priv = mlx4_priv(dev);
+ 	struct mlx4_interface *intf;
  
-+int mlx4_slave_cap(struct mlx4_dev *dev)
-+{
-+	int err;
-+	u32 page_size;
-+
-+	err = mlx4_QUERY_SLAVE_CAP(dev, &dev->caps);
-+	if (err)
-+		return err;
-+
-+	page_size = ~dev->caps.page_size_cap + 1;
-+	mlx4_warn(dev, "HCA minimum page size:%d\n", page_size);
-+	if (page_size > PAGE_SIZE) {
-+		mlx4_err(dev, "HCA minimum page size of %d bigger than "
-+			 "kernel PAGE_SIZE of %ld, aborting.\n",
-+			 page_size, PAGE_SIZE);
-+		return -ENODEV;
-+	}
-+
-+	/* TODO: relax this assumption */
-+	if (dev->caps.uar_page_size != PAGE_SIZE) {
-+		mlx4_err(dev, "UAR size:%d != kernel PAGE_SIZE of %ld\n",
-+			 dev->caps.uar_page_size, PAGE_SIZE);
-+		return -ENODEV;
-+	}
-+
-+	if (dev->caps.num_ports > MLX4_MAX_PORTS) {
-+		mlx4_err(dev, "HCA has %d ports, but we only support %d, "
-+			 "aborting.\n", dev->caps.num_ports, MLX4_MAX_PORTS);
-+		return -ENODEV;
-+	}
-+
-+	if (dev->caps.uar_page_size * (dev->caps.num_uars -
-+				       dev->caps.reserved_uars) >
-+				       pci_resource_len(dev->pdev, 2)) {
-+		mlx4_err(dev, "HCA reported UAR region size of 0x%x bigger than "
-+			 "PCI resource 2 size of 0x%llx, aborting.\n",
-+			 dev->caps.uar_page_size * dev->caps.num_uars,
-+			 (unsigned long long) pci_resource_len(dev->pdev, 2));
-+		return -ENODEV;
-+	}
-+
-+	/* Adjust eq number */
-+	if (dev->caps.num_eqs - dev->caps.reserved_eqs > num_possible_cpus() + 1)
-+		dev->caps.num_eqs = dev->caps.reserved_eqs + num_possible_cpus() + 1;
-+
-+#if 0
-+	mlx4_warn(dev, "sqp_demux:%d\n", dev->caps.sqp_demux);
-+	mlx4_warn(dev, "num_uars:%d reserved_uars:%d uar region:0x%x bar2:0x%llx\n",
-+					  dev->caps.num_uars, dev->caps.reserved_uars,
-+					  dev->caps.uar_page_size * dev->caps.num_uars,
-+					  pci_resource_len(dev->pdev, 2));
-+	mlx4_warn(dev, "num_eqs:%d reserved_eqs:%d\n", dev->caps.num_eqs,
-+						       dev->caps.reserved_eqs);
-+	mlx4_warn(dev, "num_pds:%d reserved_pds:%d slave_pd_shift:%d pd_base:%d\n",
-+							dev->caps.num_pds,
-+							dev->caps.reserved_pds,
-+							dev->caps.slave_pd_shift,
-+							dev->caps.pd_base);
-+#endif
-+	return 0;
-+}
-+
- /*
-  * Change the port configuration of the device.
-  * Every user of this function must hold the port mutex.
-diff --git a/drivers/net/mlx4/mlx4.h b/drivers/net/mlx4/mlx4.h
-index 1d2971e..8ad45f3 100644
---- a/drivers/net/mlx4/mlx4.h
-+++ b/drivers/net/mlx4/mlx4.h
-@@ -70,7 +70,8 @@ enum {
- };
+-	mlx4_stop_catas_poll(dev);
++	if (!mlx4_is_slave(dev))
++		mlx4_stop_catas_poll(dev);
+ 	mutex_lock(&intf_mutex);
  
- enum {
--	MLX4_NUM_PDS		= 1 << 15
-+	MLX4_NUM_PDS		= 1 << 15,
-+	MLX4_SLAVE_PD_SHIFT	= 17, /* the 7 msbs encode the slave id */
- };
+ 	list_for_each_entry(intf, &intf_list, list)
+diff --git a/drivers/net/mlx4/main.c b/drivers/net/mlx4/main.c
+index 99e267c..f67f992 100644
+--- a/drivers/net/mlx4/main.c
++++ b/drivers/net/mlx4/main.c
+@@ -920,11 +920,13 @@ static int mlx4_setup_hca(struct mlx4_dev *dev)
+ 		goto err_mr_table_free;
+ 	}
  
- enum {
-@@ -115,6 +116,7 @@ enum mlx4_alloc_mode {
- };
- 
- enum {
-+	MLX4_MFUNC_EQ_NUM       = 4,
- 	MLX4_MFUNC_MAX_EQES     = 8,
- 	MLX4_MFUNC_EQE_MASK     = (MLX4_MFUNC_MAX_EQES - 1)
- };
-@@ -138,6 +140,10 @@ extern int mlx4_debug_level;
- #define mlx4_warn(mdev, format, arg...) \
- 	dev_warn(&mdev->pdev->dev, format, ## arg)
- 
-+#define MLX4_MAX_NUM_PF		16
-+#define MLX4_MAX_NUM_VF		64
-+#define MLX4_MAX_NUM_SLAVES	(MLX4_MAX_NUM_PF + MLX4_MAX_NUM_VF)
-+
- struct mlx4_bitmap {
- 	u32			last;
- 	u32			top;
-diff --git a/drivers/net/mlx4/profile.c b/drivers/net/mlx4/profile.c
-index 5caf011..6fc18e4 100644
---- a/drivers/net/mlx4/profile.c
-+++ b/drivers/net/mlx4/profile.c
-@@ -107,9 +107,19 @@ u64 mlx4_make_profile(struct mlx4_dev *dev,
- 	profile[MLX4_RES_AUXC].num    = request->num_qp;
- 	profile[MLX4_RES_SRQ].num     = request->num_srq;
- 	profile[MLX4_RES_CQ].num      = request->num_cq;
--	profile[MLX4_RES_EQ].num      = min_t(unsigned, dev_cap->max_eqs,
--					      dev_cap->reserved_eqs +
--					      num_possible_cpus() + 1);
-+	if (mlx4_is_master(dev)) {
-+		profile[MLX4_RES_EQ].num = dev_cap->reserved_eqs +
-+					   MLX4_MFUNC_EQ_NUM *
-+					   (dev->num_slaves + 1);
-+		if (profile[MLX4_RES_EQ].num > dev_cap->max_eqs) {
-+			mlx4_warn(dev, "Not enough eqs for:%ld slave functions\n", dev->num_slaves);
-+			kfree(profile);
-+			return -ENOMEM;
+-	err = mlx4_cmd_use_events(dev);
+-	if (err) {
+-		mlx4_err(dev, "Failed to switch to event-driven "
+-			 "firmware commands, aborting.\n");
+-		goto err_eq_table_free;
++	if (!mlx4_is_slave(dev)) {
++		err = mlx4_cmd_use_events(dev);
++		if (err) {
++			mlx4_err(dev, "Failed to switch to event-driven "
++				 "firmware commands, aborting.\n");
++			goto err_eq_table_free;
 +		}
-+	} else
-+		profile[MLX4_RES_EQ].num = min_t(unsigned, dev_cap->max_eqs,
-+						 dev_cap->reserved_eqs +
-+						 num_possible_cpus() + 1);
- 	profile[MLX4_RES_DMPT].num    = request->num_mpt;
- 	profile[MLX4_RES_CMPT].num    = MLX4_NUM_CMPTS;
- 	profile[MLX4_RES_MTT].num     = request->num_mtt;
-@@ -198,7 +208,13 @@ u64 mlx4_make_profile(struct mlx4_dev *dev,
- 			init_hca->log_num_cqs = profile[i].log_num;
- 			break;
- 		case MLX4_RES_EQ:
--			dev->caps.num_eqs     = profile[i].num;
-+			if (mlx4_is_master(dev)) {
-+				dev->caps.num_eqs = dev_cap->reserved_eqs +
-+						    min_t(unsigned,
-+							  MLX4_MFUNC_EQ_NUM,
-+							  num_possible_cpus() + 1);
-+			} else
-+				dev->caps.num_eqs     = profile[i].num;
- 			init_hca->eqc_base    = profile[i].start;
- 			init_hca->log_num_eqs = profile[i].log_num;
- 			break;
-@@ -234,6 +250,8 @@ u64 mlx4_make_profile(struct mlx4_dev *dev,
- 	 * of the HCA profile anyway.
- 	 */
- 	dev->caps.num_pds = MLX4_NUM_PDS;
-+	dev->caps.slave_pd_shift = MLX4_SLAVE_PD_SHIFT;
-+	dev->caps.pd_base = 0;
+ 	}
  
- 	kfree(profile);
- 	return total_size;
-diff --git a/include/linux/mlx4/cmd.h b/include/linux/mlx4/cmd.h
-index e6ade51..b8a2079 100644
---- a/include/linux/mlx4/cmd.h
-+++ b/include/linux/mlx4/cmd.h
-@@ -129,6 +129,7 @@ enum {
- 	MLX4_CMD_FREE_RES	 = 0xf01,
- 	MLX4_CMD_REPLACE_RES	 = 0xf02,
- 	MLX4_CMD_GET_EVENT	 = 0xf03,
-+	MLX4_CMD_QUERY_SLAVE_CAP = 0xf04,
+ 	err = mlx4_NOP(dev);
+@@ -974,19 +976,21 @@ static int mlx4_setup_hca(struct mlx4_dev *dev)
+ 		goto err_qp_table_free;
+ 	}
  
- 	/* debug commands */
- 	MLX4_CMD_QUERY_DEBUG_MSG = 0x2a,
+-	for (port = 1; port <= dev->caps.num_ports; port++) {
+-		ib_port_default_caps = 0;
+-		err = mlx4_get_port_ib_caps(dev, port, &ib_port_default_caps);
+-		if (err)
+-			mlx4_warn(dev, "failed to get port %d default "
+-				  "ib capabilities (%d). Continuing with "
+-				  "caps = 0\n", port, err);
+-		dev->caps.ib_port_def_cap[port] = ib_port_default_caps;
+-		err = mlx4_SET_PORT(dev, port);
+-		if (err) {
+-			mlx4_err(dev, "Failed to set port %d, aborting\n",
+-				port);
+-			goto err_mcg_table_free;
++	if (!mlx4_is_slave(dev)) {
++		for (port = 1; port <= dev->caps.num_ports; port++) {
++			ib_port_default_caps = 0;
++			err = mlx4_get_port_ib_caps(dev, port, &ib_port_default_caps);
++			if (err)
++				mlx4_warn(dev, "failed to get port %d default "
++					  "ib capabilities (%d). Continuing with "
++					  "caps = 0\n", port, err);
++			dev->caps.ib_port_def_cap[port] = ib_port_default_caps;
++			err = mlx4_SET_PORT(dev, port);
++			if (err) {
++				mlx4_err(dev, "Failed to set port %d, aborting\n",
++					port);
++				goto err_mcg_table_free;
++			}
+ 		}
+ 	}
+ 
+diff --git a/drivers/net/mlx4/mcg.c b/drivers/net/mlx4/mcg.c
+index c4f88b7..b8c7a72 100644
+--- a/drivers/net/mlx4/mcg.c
++++ b/drivers/net/mlx4/mcg.c
+@@ -347,6 +347,10 @@ int mlx4_init_mcg_table(struct mlx4_dev *dev)
+ 	struct mlx4_priv *priv = mlx4_priv(dev);
+ 	int err;
+ 
++	/* Nothing to do for slaves - mcg handling is para-virtualized */
++	if (mlx4_is_slave(dev))
++		return 0;
++
+ 	err = mlx4_bitmap_init(&priv->mcg_table.bitmap, dev->caps.num_amgms,
+ 			       dev->caps.num_amgms - 1, 0, 0);
+ 	if (err)
+@@ -359,5 +363,7 @@ int mlx4_init_mcg_table(struct mlx4_dev *dev)
+ 
+ void mlx4_cleanup_mcg_table(struct mlx4_dev *dev)
+ {
++	if (mlx4_is_slave(dev))
++		return;
+ 	mlx4_bitmap_cleanup(&mlx4_priv(dev)->mcg_table.bitmap);
+ }
+diff --git a/drivers/net/mlx4/mr.c b/drivers/net/mlx4/mr.c
+index a3f5a36..7ffe156 100644
+--- a/drivers/net/mlx4/mr.c
++++ b/drivers/net/mlx4/mr.c
+@@ -618,6 +618,10 @@ int mlx4_init_mr_table(struct mlx4_dev *dev)
+ 	struct mlx4_mr_table *mr_table = &mlx4_priv(dev)->mr_table;
+ 	int err;
+ 
++	/* Nothing to do for slaves - all MR handling is forwarded to the master */
++	if (mlx4_is_slave(dev))
++		return 0;
++
+ 	err = mlx4_bitmap_init(&mr_table->mpt_bitmap, dev->caps.num_mpts,
+ 			       ~0, dev->caps.reserved_mrws, 0);
+ 	if (err)
+@@ -652,6 +656,8 @@ void mlx4_cleanup_mr_table(struct mlx4_dev *dev)
+ {
+ 	struct mlx4_mr_table *mr_table = &mlx4_priv(dev)->mr_table;
+ 
++	if (mlx4_is_slave(dev))
++		return;
+ 	mlx4_buddy_cleanup(&mr_table->mtt_buddy);
+ 	mlx4_bitmap_cleanup(&mr_table->mpt_bitmap);
+ }
+diff --git a/drivers/net/mlx4/pd.c b/drivers/net/mlx4/pd.c
+index c4988d6..4b4d9cb 100644
+--- a/drivers/net/mlx4/pd.c
++++ b/drivers/net/mlx4/pd.c
+@@ -90,6 +90,8 @@ EXPORT_SYMBOL_GPL(mlx4_uar_free);
+ 
+ int mlx4_init_uar_table(struct mlx4_dev *dev)
+ {
++	u32 round_uars = roundup_pow_of_two(dev->caps.num_uars);
++
+ 	if (dev->caps.num_uars <= 128) {
+ 		mlx4_err(dev, "Only %d UAR pages (need more than 128)\n",
+ 			 dev->caps.num_uars);
+@@ -98,8 +100,9 @@ int mlx4_init_uar_table(struct mlx4_dev *dev)
+ 	}
+ 
+ 	return mlx4_bitmap_init(&mlx4_priv(dev)->uar_table.bitmap,
+-				dev->caps.num_uars, dev->caps.num_uars - 1,
+-				max(128, dev->caps.reserved_uars), 0);
++				round_uars, round_uars - 1,
++				dev->caps.reserved_uars,
++				round_uars - dev->caps.num_uars);
+ }
+ 
+ void mlx4_cleanup_uar_table(struct mlx4_dev *dev)
+diff --git a/drivers/net/mlx4/qp.c b/drivers/net/mlx4/qp.c
+index 5aa99b0..13b0008 100644
+--- a/drivers/net/mlx4/qp.c
++++ b/drivers/net/mlx4/qp.c
+@@ -340,6 +340,23 @@ int mlx4_init_qp_table(struct mlx4_dev *dev)
+ 
+ 	spin_lock_init(&qp_table->lock);
+ 	INIT_RADIX_TREE(&dev->qp_table_tree, GFP_ATOMIC);
++	if (mlx4_is_slave(dev)) {
++		/* For each slave, just allocate a normal 8-byte alligned special-QP
++		 * range intead of mlx4_init_qp_table() reservation */
++		err = mlx4_qp_reserve_range(dev, 8, 8, &dev->caps.sqp_start);
++		if (err) {
++			mlx4_err(dev, "Failed to allocate special QP range\n");
++			return err;
++		}
++
++		err = mlx4_CONF_SPECIAL_QP(dev, dev->caps.sqp_start);
++		if (err) {
++			mlx4_err(dev, "Failed to configure special QP range\n");
++			mlx4_qp_release_range(dev, dev->caps.sqp_start, 8);
++			return err;
++		}
++		return 0;
++	}
+ 
+ 	/*
+ 	 * We reserve 2 extra QPs per port for the special QPs.  The
+@@ -349,6 +366,9 @@ int mlx4_init_qp_table(struct mlx4_dev *dev)
+ 	dev->caps.sqp_start =
+ 		ALIGN(dev->caps.reserved_qps_cnt[MLX4_QP_REGION_FW], 8);
+ 
++	/* If multi-function is enabled, we reserve an additional QP for qp0/1 tunneling. */
++	dev->caps.tunnel_qpn = mlx4_is_master(dev) ? dev->caps.sqp_start + 8 : 0;
++
+ 	{
+ 		int sort[MLX4_NUM_QP_REGION];
+ 		int i, j, tmp;
+@@ -378,8 +398,8 @@ int mlx4_init_qp_table(struct mlx4_dev *dev)
+ 	}
+ 
+ 	err = mlx4_bitmap_init(&qp_table->bitmap, dev->caps.num_qps,
+-			       (1 << 23) - 1, dev->caps.sqp_start + 8,
+-			       reserved_from_top);
++			       (1 << 23) - 1, dev->caps.sqp_start + 8 +
++			       2 * !!dev->caps.tunnel_qpn, reserved_from_top);
+ 	if (err)
+ 		return err;
+ 
+@@ -389,6 +409,10 @@ int mlx4_init_qp_table(struct mlx4_dev *dev)
+ void mlx4_cleanup_qp_table(struct mlx4_dev *dev)
+ {
+ 	mlx4_CONF_SPECIAL_QP(dev, 0);
++	if (mlx4_is_slave(dev)) {
++		mlx4_qp_release_range(dev, dev->caps.sqp_start, 8);
++		return;
++	}
+ 	mlx4_bitmap_cleanup(&mlx4_priv(dev)->qp_table.bitmap);
+ }
+ 
+diff --git a/drivers/net/mlx4/srq.c b/drivers/net/mlx4/srq.c
+index 8bfb54a..57722d4 100644
+--- a/drivers/net/mlx4/srq.c
++++ b/drivers/net/mlx4/srq.c
+@@ -288,6 +288,8 @@ int mlx4_init_srq_table(struct mlx4_dev *dev)
+ 
+ 	spin_lock_init(&srq_table->lock);
+ 	INIT_RADIX_TREE(&srq_table->tree, GFP_ATOMIC);
++	if (mlx4_is_slave(dev))
++		return 0;
+ 
+ 	err = mlx4_bitmap_init(&srq_table->bitmap, dev->caps.num_srqs,
+ 			       dev->caps.num_srqs - 1, dev->caps.reserved_srqs, 0);
+@@ -299,5 +301,7 @@ int mlx4_init_srq_table(struct mlx4_dev *dev)
+ 
+ void mlx4_cleanup_srq_table(struct mlx4_dev *dev)
+ {
++	if (mlx4_is_slave(dev))
++		return;
+ 	mlx4_bitmap_cleanup(&mlx4_priv(dev)->srq_table.bitmap);
+ }
 diff --git a/include/linux/mlx4/device.h b/include/linux/mlx4/device.h
-index 8daca3d..efc8a90 100644
+index efc8a90..78a5fc9 100644
 --- a/include/linux/mlx4/device.h
 +++ b/include/linux/mlx4/device.h
-@@ -192,6 +192,7 @@ struct mlx4_caps {
- 	int			pkey_table_len[MLX4_MAX_PORTS + 1];
- 	int			local_ca_ack_delay;
- 	int			num_uars;
-+	int			uar_page_size;
- 	int			bf_reg_size;
- 	int			bf_regs_per_page;
- 	int			max_sq_sg;
-@@ -226,6 +227,8 @@ struct mlx4_caps {
- 	int			num_qp_per_mgm;
- 	int			num_pds;
- 	int			reserved_pds;
-+	int			slave_pd_shift;
-+	int			pd_base;
- 	int			mtt_entry_sz;
- 	u32			max_msg_sz;
- 	u32			page_size_cap;
+@@ -204,6 +204,7 @@ struct mlx4_caps {
+ 	int			max_qp_init_rdma;
+ 	int			max_qp_dest_rdma;
+ 	int			sqp_start;
++	int			tunnel_qpn;
+ 	int			num_srqs;
+ 	int			max_srq_wqes;
+ 	int			max_srq_sge;
 -- 
 1.6.0.2
 
