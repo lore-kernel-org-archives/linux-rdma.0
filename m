@@ -1,123 +1,64 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: help trying to track down issue with opensm port
-Date: Fri, 11 Jun 2010 11:29:24 -0700
-Message-ID: <CF9C39F99A89134C9CF9C4CCB68B8DDF255F643455@orsmsx501.amr.corp.intel.com>
+From: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH] opensm/osm_sa.c: In osm_sa_respond, only fill in attr
+	offset if RMPP method
+Date: Fri, 11 Jun 2010 15:04:28 -0400
+Message-ID: <AANLkTil8nl63FCXz6nN4JSIM5l8VqemrQYx2fsAzSjll@mail.gmail.com>
+References: <20100603134209.GA12225@comcast.net>
+	<20100609054341.GK28549@me>
+	<AANLkTilkr6KYG_TVJYwvNl7sZ8XBKmFljktxg8qCA9t9@mail.gmail.com>
+	<20100609121036.GC20172@me>
+	<AANLkTikTxpvb-Nw2V1PrBcX4rZ1GwElXV22CBtBZx1iK@mail.gmail.com>
+	<20100609124848.GE20172@me>
+	<AANLkTinxeLPtxYPvPBZfWq96BZjxDqcAlCzP2v_1VJnv@mail.gmail.com>
+	<20100609171516.GI20172@me>
+	<3F6F638B8D880340AB536D29CD4C1E1925634C8F42@orsmsx501.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <3F6F638B8D880340AB536D29CD4C1E1925634C8F42-osO9UTpF0USkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: "Smith, Stan" <stan.smith-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-The following opensm log is from a windows port of opensm 3.3.6.  Can anyone familiar with the error messages explain whether the errors that are reported should ever happen?  Error 9 is a timeout, so I'm not concerned about that.  I am concerned about the 'failed to obtain request madw' errors.
+On Fri, Jun 11, 2010 at 12:02 PM, Smith, Stan <stan.smith-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wr=
+ote:
+> <snip...>
+>
+> Following discussion is tangential to Hal's patch.
+>
+> Last night I came across an curious discovery.
+> sizeof(ib_inform_info_t) =C2=A0 =C2=A0 =C2=A0 =C2=A0=3D=3D 36.
+> sizeof(ib_inform_info_record_t) =3D=3D 64.
 
-- Sean
+Those match the IBA spec (InformInfoRecord being padded whereas
+InformInfo is not).
 
-[Jun-10-2010 15:45:37:486][0C2C] 0x03 -> OpenSM 3.3.6 UMAD
-[Jun-10-2010 15:45:37:486][0C2C] 0x80 -> OpenSM 3.3.6 UMAD
-[Jun-10-2010 15:45:37:501][0C2C] 0x02 -> osm_vendor_init: 1000 pending umads specified
-[Jun-10-2010 15:45:37:501][0C2C] 0x80 -> Entering DISCOVERING state
-[Jun-10-2010 15:45:37:501][0C2C] 0x02 -> osm_vendor_bind: Binding to port 0x2c9020000409d
-[Jun-10-2010 15:45:37:548][0C2C] 0x02 -> osm_vendor_bind: Binding to port 0x2c9020000409d
-[Jun-10-2010 15:45:37:548][0C2C] 0x02 -> osm_opensm_bind: Setting IS_SM on port 0x0002c9020000409d
-[Jun-10-2010 15:45:38:375][08E0] 0x01 -> umad_receiver: ERR 5411: DR SMP Send completed with error(9) -- dropping
-			Method 0x1, Attr 0x20, TID 0x12a5, Hop Ptr: 0x0
-[Jun-10-2010 15:45:38:375][08E0] 0x01 -> Received SMP on a 2 hop path: Initial path = 0,1,10, Return path  = 0,0,0
-[Jun-10-2010 15:45:38:375][08E0] 0x01 -> sm_mad_ctrl_send_err_cb: ERR 3113: MAD completed in error (IB_TIMEOUT): SubnGet(SMInfo), attr_mod 0x0, TID 0x12a5
-[Jun-10-2010 15:45:38:375][08E0] 0x01 -> umad_receiver: ERR 5411: DR SMP Send completed with error(9) -- dropping
-			Method 0x1, Attr 0x20, TID 0x12a8, Hop Ptr: 0x0
-[Jun-10-2010 15:45:38:375][08E0] 0x01 -> Received SMP on a 2 hop path: Initial path = 0,1,14, Return path  = 0,0,0
-[Jun-10-2010 15:45:38:375][08E0] 0x01 -> sm_mad_ctrl_send_err_cb: ERR 3113: MAD completed in error (IB_TIMEOUT): SubnGet(SMInfo), attr_mod 0x0, TID 0x12a8
-[Jun-10-2010 15:45:38:375][0CCC] 0x80 -> Entering MASTER state
-[Jun-10-2010 15:45:38:375][0CCC] 0x02 -> osm_ucast_mgr_process: minhop tables configured on all switches
-[Jun-10-2010 15:45:38:375][0A1C] 0x01 -> log_trap_info: Received Generic Notice type:4 num:144 (CapabilityMask, NodeDescription, Link [Width|Speed] Enabled, SM priority changed) Producer:1 (Channel Adapter) from LID:7 TID:0x0000000000000010
-[Jun-10-2010 15:45:38:375][0A1C] 0x01 -> osm_get_port_by_mad_addr: ERR 7504: Lid is out of range: 0
-[Jun-10-2010 15:45:38:375][0A1C] 0x01 -> trap_rcv_process_request: ERR 3809: Failed to find source physical port for trap
-[Jun-10-2010 15:45:38:375][0A1C] 0x02 -> log_notice: Reporting Generic Notice type:4 num:144 (CapabilityMask, NodeDescription, Link [Width|Speed] Enabled, SM priority changed) from LID:7 GID:fe80::2:c902:0:409d
+> My debug version of 'osmtest -f v' trips CL_ASSERT() in ib_get_attr_o=
+ffset() osmteset.c::osmtest_informinfo_request()for ib_get_attr_offset(=
+rec), where rec is ib_inform_info_t.
+>
+> The winOFED ib_types.h & OFED ib_types.h match w.r.t. definitions for=
+ ib_inform_info_t & ib_inform_info_record_t.
+>
+> Question: should ib_inform_info_t be 8-bye aligned with padding in ib=
+_inform_info_record_t adjusted or should we remove the CL_ASSERT() from=
+ ib_get_attr_offset()?
 
-[Jun-10-2010 15:45:38:375][0CCC] 0x80 -> SUBNET UP
+Why does osmtest need to call this routine ? I think most if not all
+of those calls should be removed. Attribute offset only needs setting
+when RMPP and most SA client invocations of things like Get and
+GetTable are not RMPP (response is). I know osmtest does some negative
+testing of SA like invalid methods for a given attribute.
 
-[Jun-10-2010 15:45:38:609][08E0] 0x01 -> umad_receiver: ERR 5410: Send completed with error(9) -- dropping
-			Class 0x3, Method 0x92, Attr 0x11, TID 0x10001b90b, LID 17
-[Jun-10-2010 15:45:38:609][08E0] 0x01 -> umad_receiver: ERR 5412: Failed to obtain request madw for timed out MAD (method=0x92 attr=0x11 tid=0x10001b90b) -- dropping
-[Jun-10-2010 15:45:38:609][08E0] 0x01 -> umad_receiver: ERR 5410: Send completed with error(9) -- dropping
-			Class 0x3, Method 0x92, Attr 0x35, TID 0x10001b90c, LID 17
-[Jun-10-2010 15:45:38:609][08E0] 0x01 -> umad_receiver: ERR 5412: Failed to obtain request madw for timed out MAD (method=0x92 attr=0x35 tid=0x10001b90c) -- dropping
-[Jun-10-2010 15:45:38:609][08E0] 0x01 -> umad_receiver: ERR 5410: Send completed with error(9) -- dropping
-			Class 0x3, Method 0x92, Attr 0x11, TID 0x10000012a, LID 1
-[Jun-10-2010 15:45:38:609][08E0] 0x01 -> umad_receiver: ERR 5412: Failed to obtain request madw for timed out MAD (method=0x92 attr=0x11 tid=0x10000012a) -- dropping
-[Jun-10-2010 15:45:38:625][08E0] 0x01 -> umad_receiver: ERR 5410: Send completed with error(9) -- dropping
-			Class 0x3, Method 0x92, Attr 0x35, TID 0x100016375, LID 4
-[Jun-10-2010 15:45:38:625][08E0] 0x01 -> umad_receiver: ERR 5412: Failed to obtain request madw for timed out MAD (method=0x92 attr=0x35 tid=0x100016375) -- dropping
-[Jun-10-2010 15:45:38:625][08E0] 0x01 -> umad_receiver: ERR 5410: Send completed with error(9) -- dropping
-			Class 0x3, Method 0x92, Attr 0x11, TID 0x100016374, LID 4
-[Jun-10-2010 15:45:38:625][08E0] 0x01 -> umad_receiver: ERR 5412: Failed to obtain request madw for timed out MAD (method=0x92 attr=0x11 tid=0x100016374) -- dropping
-[Jun-10-2010 15:45:38:625][08E0] 0x01 -> umad_receiver: ERR 5410: Send completed with error(9) -- dropping
-			Class 0x3, Method 0x92, Attr 0x35, TID 0x100000d38, LID 6
-[Jun-10-2010 15:45:38:625][08E0] 0x01 -> umad_receiver: ERR 5412: Failed to obtain request madw for timed out MAD (method=0x92 attr=0x35 tid=0x100000d38) -- dropping
-[Jun-10-2010 15:45:38:625][08E0] 0x01 -> umad_receiver: ERR 5410: Send completed with error(9) -- dropping
-			Class 0x3, Method 0x92, Attr 0x11, TID 0x100000d37, LID 6
-[Jun-10-2010 15:45:38:625][08E0] 0x01 -> umad_receiver: ERR 5412: Failed to obtain request madw for timed out MAD (method=0x92 attr=0x11 tid=0x100000d37) -- dropping
-[Jun-10-2010 15:45:38:874][0D5C] 0x02 -> log_notice: Reporting Generic Notice type:3 num:66 (New mcast group created) from LID:7 GID:ff12:401b:ffff::ffff:ffff
-[Jun-10-2010 15:45:38:874][0D5C] 0x02 -> log_notice: Reporting Generic Notice type:3 num:66 (New mcast group created) from LID:7 GID:ff12:401b:ffff::1
-[Jun-10-2010 15:45:38:874][0630] 0x02 -> log_notice: Reporting Generic Notice type:3 num:66 (New mcast group created) from LID:7 GID:ff12:401b:ffff::7f:fffa
-[Jun-10-2010 15:45:38:874][0EF0] 0x02 -> log_notice: Reporting Generic Notice type:3 num:66 (New mcast group created) from LID:7 GID:ff12:1405:ffff::3333:0:1
-[Jun-10-2010 15:45:38:874][0630] 0x02 -> log_notice: Reporting Generic Notice type:3 num:66 (New mcast group created) from LID:7 GID:ff12:1405:ffff::3333:1:3
-[Jun-10-2010 15:45:38:874][0A1C] 0x02 -> log_notice: Reporting Generic Notice type:3 num:66 (New mcast group created) from LID:7 GID:ff12:1405:ffff::3333:ffb7:99a9
-[Jun-10-2010 15:45:38:874][0EF0] 0x02 -> log_notice: Reporting Generic Notice type:3 num:66 (New mcast group created) from LID:7 GID:ff12:401b:ffff::fc
-[Jun-10-2010 15:45:38:874][0A1C] 0x02 -> log_notice: Reporting Generic Notice type:3 num:66 (New mcast group created) from LID:7 GID:ff12:1405:ffff::3333:ffb8:a9ed
-[Jun-10-2010 15:45:38:874][0D5C] 0x02 -> log_notice: Reporting Generic Notice type:3 num:66 (New mcast group created) from LID:7 GID:ff12:1405:ffff::3333:0:c
-[Jun-10-2010 15:45:38:874][0630] 0x02 -> log_notice: Reporting Generic Notice type:3 num:66 (New mcast group created) from LID:7 GID:ff12:1405:ffff::3333:ffe9:b65e
-[Jun-10-2010 15:45:38:890][08E0] 0x01 -> umad_receiver: ERR 5410: Send completed with error(9) -- dropping
-			Class 0x3, Method 0x92, Attr 0x38, TID 0x1000003cd, LID 7
-[Jun-10-2010 15:45:38:890][08E0] 0x01 -> umad_receiver: ERR 5412: Failed to obtain request madw for timed out MAD (method=0x92 attr=0x38 tid=0x1000003cd) -- dropping
-[Jun-10-2010 15:45:38:890][0D5C] 0x02 -> log_notice: Reporting Generic Notice type:3 num:66 (New mcast group created) from LID:7 GID:ff12:1405:ffff::3333:ffac:bad6
-[Jun-10-2010 15:45:38:890][08E0] 0x01 -> umad_receiver: ERR 5410: Send completed with error(9) -- dropping
-			Class 0x3, Method 0x92, Attr 0x38, TID 0x100000ddb, LID 15
-[Jun-10-2010 15:45:38:890][08E0] 0x01 -> umad_receiver: ERR 5412: Failed to obtain request madw for timed out MAD (method=0x92 attr=0x38 tid=0x100000ddb) -- dropping
-[Jun-10-2010 15:45:38:890][0EF0] 0x02 -> log_notice: Reporting Generic Notice type:3 num:66 (New mcast group created) from LID:7 GID:ff12:1405:ffff::3333:ff4a:4b54
-[Jun-10-2010 15:45:38:890][0630] 0x02 -> log_notice: Reporting Generic Notice type:3 num:66 (New mcast group created) from LID:7 GID:ff12:1405:ffff::180:c200:3
-[Jun-10-2010 15:45:38:890][0A1C] 0x02 -> log_notice: Reporting Generic Notice type:3 num:66 (New mcast group created) from LID:7 GID:ff12:1405:ffff::3333:ffc0:77dc
-[Jun-10-2010 15:45:38:890][0A1C] 0x02 -> log_notice: Reporting Generic Notice type:3 num:66 (New mcast group created) from LID:7 GID:ff12:1405:ffff::3333:ff90:fd62
-[Jun-10-2010 15:45:38:890][0A1C] 0x01 -> mcmr_rcv_leave_mgrp: ERR 1B25: Received an invalid delete request for MGID: ff12:401b:ffff::1 for PortGID: fe80::2:c902:0:25a5
-[Jun-10-2010 15:45:38:890][0A1C] 0x01 -> mcmr_rcv_leave_mgrp: ERR 1B25: Received an invalid delete request for MGID: ff12:1405:ffff::180:c200:3 for PortGID: fe80::2:c902:0:25a5
-[Jun-10-2010 15:45:38:890][0EF0] 0x01 -> mcmr_rcv_leave_mgrp: ERR 1B25: Received an invalid delete request for MGID: ff12:401b:ffff::ffff:ffff for PortGID: fe80::2:c902:0:25a5
-[Jun-10-2010 15:45:38:890][0EF0] 0x02 -> log_notice: Reporting Generic Notice type:3 num:66 (New mcast group created) from LID:7 GID:ff12:401b:ffff::16
-[Jun-10-2010 15:45:38:890][0D5C] 0x02 -> log_notice: Reporting Generic Notice type:3 num:66 (New mcast group created) from LID:7 GID:ff12:1405:ffff::3333:0:16
-[Jun-10-2010 15:45:38:890][0D5C] 0x02 -> log_notice: Reporting Generic Notice type:3 num:66 (New mcast group created) from LID:7 GID:ff12:1405:ffff::3333:ffeb:5867
-[Jun-10-2010 15:45:38:890][0EF0] 0x02 -> log_notice: Reporting Generic Notice type:3 num:66 (New mcast group created) from LID:7 GID:ff12:1405:ffff::3333:ff70:431e
-[Jun-10-2010 15:45:38:937][0630] 0x02 -> log_notice: Reporting Generic Notice type:3 num:66 (New mcast group created) from LID:7 GID:ff12:1405:ffff::3333:1:2
-[Jun-10-2010 15:45:39:202][08E0] 0x01 -> umad_receiver: ERR 5411: DR SMP Send completed with error(9) -- dropping
-			Method 0x1, Attr 0x20, TID 0x130a, Hop Ptr: 0x0
-[Jun-10-2010 15:45:39:202][08E0] 0x01 -> Received SMP on a 2 hop path: Initial path = 0,1,14, Return path  = 0,0,0
-[Jun-10-2010 15:45:39:202][08E0] 0x01 -> sm_mad_ctrl_send_err_cb: ERR 3113: MAD completed in error (IB_TIMEOUT): SubnGet(SMInfo), attr_mod 0x0, TID 0x130a
-[Jun-10-2010 15:45:39:202][08E0] 0x01 -> umad_receiver: ERR 5411: DR SMP Send completed with error(9) -- dropping
-			Method 0x1, Attr 0x20, TID 0x130b, Hop Ptr: 0x0
-[Jun-10-2010 15:45:39:202][08E0] 0x01 -> Received SMP on a 2 hop path: Initial path = 0,1,10, Return path  = 0,0,0
-[Jun-10-2010 15:45:39:202][08E0] 0x01 -> sm_mad_ctrl_send_err_cb: ERR 3113: MAD completed in error (IB_TIMEOUT): SubnGet(SMInfo), attr_mod 0x0, TID 0x130b
-[Jun-10-2010 15:45:39:202][0CCC] 0x02 -> osm_ucast_mgr_process: minhop tables configured on all switches
-[Jun-10-2010 15:45:39:217][0CCC] 0x02 -> SUBNET UP
-[Jun-10-2010 15:45:39:342][0630] 0x02 -> log_notice: Reporting Generic Notice type:3 num:66 (New mcast group created) from LID:7 GID:ff12:1405:ffff::3333:0:2
-[Jun-10-2010 15:45:40:372][0A1C] 0x02 -> log_notice: Reporting Generic Notice type:3 num:66 (New mcast group created) from LID:7 GID:ff12:401b:ffff::fb
-[Jun-10-2010 15:45:45:364][0EF0] 0x02 -> log_notice: Reporting Generic Notice type:3 num:66 (New mcast group created) from LID:7 GID:ff12:601b:ffff::fb
-[Jun-10-2010 15:45:45:379][0A1C] 0x02 -> log_notice: Reporting Generic Notice type:3 num:66 (New mcast group created) from LID:7 GID:ff12:601b:ffff::1:ff00:525d
-[Jun-10-2010 15:45:49:482][08E0] 0x01 -> umad_receiver: ERR 5410: Send completed with error(9) -- dropping
-			Class 0x3, Method 0x92, Attr 0x11, TID 0x400000002, LID 3
-[Jun-10-2010 15:45:49:482][08E0] 0x01 -> umad_receiver: ERR 5412: Failed to obtain request madw for timed out MAD (method=0x92 attr=0x11 tid=0x400000002) -- dropping
-[Jun-10-2010 15:45:50:481][08E0] 0x01 -> umad_receiver: ERR 5410: Send completed with error(9) -- dropping
-			Class 0x3, Method 0x92, Attr 0x11, TID 0x400000002, LID 3
-[Jun-10-2010 15:45:50:481][08E0] 0x01 -> umad_receiver: ERR 5412: Failed to obtain request madw for timed out MAD (method=0x92 attr=0x11 tid=0x400000002) -- dropping
-[Jun-10-2010 15:45:51:479][08E0] 0x01 -> umad_receiver: ERR 5410: Send completed with error(9) -- dropping
-			Class 0x3, Method 0x92, Attr 0x11, TID 0x400000002, LID 3
-[Jun-10-2010 15:45:51:479][08E0] 0x01 -> umad_receiver: ERR 5412: Failed to obtain request madw for timed out MAD (method=0x92 attr=0x11 tid=0x400000002) -- dropping
-[Jun-10-2010 15:45:52:477][08E0] 0x01 -> umad_receiver: ERR 5410: Send completed with error(9) -- dropping
-			Class 0x3, Method 0x92, Attr 0x11, TID 0x400000002, LID 3
-[Jun-10-2010 15:45:52:477][08E0] 0x01 -> umad_receiver: ERR 5412: Failed to obtain request madw for timed out MAD (method=0x92 attr=0x11 tid=0x400000002) -- dropping
-[Jun-10-2010 15:45:59:856][0C2C] 0x80 -> Exiting SM
-
+-- Hal
+
+>
+> stan.
+>
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
