@@ -1,29 +1,28 @@
-From: "Tung, Chien Tin" <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH v2] RDMA/CMA: fix iWARP adapter TCP port space usage
-Date: Fri, 11 Jun 2010 12:52:09 -0700
-Message-ID: <2EFBCAEF10980645BBCFB605689E08E904924CCE47@azsmsx506.amr.corp.intel.com>
-References: <20100611124746.GA2292@CTUNG-MOBL1>
- <AANLkTinDsfGtQZUc6kfW2-pWK51V2SK3CLjE-8jDjfzN@mail.gmail.com>
+From: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: FW: [PATCH] librdmacm/mcraw: Add a new test application for
+	user-space IBV_QPT_RAW_ETH QP type
+Date: Fri, 11 Jun 2010 23:12:53 +0300
+Message-ID: <AANLkTinTIv9vPgcPKBOt0N10BgsjuXgDaPIo5OKa5yzT@mail.gmail.com>
+References: <BE2BFE91933D1B4089447C64486040801E7635F7@irsmsx503.ger.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <AANLkTinDsfGtQZUc6kfW2-pWK51V2SK3CLjE-8jDjfzN-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <BE2BFE91933D1B4089447C64486040801E7635F7-IGOiFh9zz4wLt2AQoY/u9bfspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: "Walukiewicz, Miroslaw" <Miroslaw.Walukiewicz-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> > V2 changes:
-> 
-> What you consider to be V1, this thread from 2007?
+Walukiewicz, Miroslaw <Miroslaw.Walukiewicz-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
+> The patch adds a new test application describing a usage of the IBV_QPT_RAW_ETH
+> for IPv4 multicast acceleration on iWARP cards. See man mcraw for parameters description
 
-Yes.  V2 has changes from OFED plus a few more things.
+So this is the only raw qp related patch to librdmacm? any reason not
+to patch mckey to support both IB and Ethernet raw QPs? does raw qp
+has any relation to the iWARP/TOE HW stack? there's also raw qp patch
+posted to ewg for mlx4 which has no backing iwarp logic.
 
-Chien
-
-
+Or
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
