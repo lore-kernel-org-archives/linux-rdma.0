@@ -1,20 +1,25 @@
 From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH] ib/ehca: bitmask handling for lock_hcalls
-Date: Fri, 11 Jun 2010 09:02:43 -0700
-Message-ID: <adatyp9y2u4.fsf@roland-alpha.cisco.com>
-References: <20100610110653.17885a81@alex-laptop>
+Subject: Re: [PATCH v2] RDMA/CMA: fix iWARP adapter TCP port space usage
+Date: Fri, 11 Jun 2010 09:03:48 -0700
+Message-ID: <adapqzxy2sb.fsf@roland-alpha.cisco.com>
+References: <20100611124746.GA2292@CTUNG-MOBL1>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20100610110653.17885a81@alex-laptop> (Alexander Schmidt's
-	message of "Thu, 10 Jun 2010 11:06:53 +0200")
+In-Reply-To: <20100611124746.GA2292@CTUNG-MOBL1> (Chien Tung's message of
+	"Fri, 11 Jun 2010 07:47:46 -0500")
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Alexander Schmidt <alexs-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
-Cc: Linux RDMA <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, lkml <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Stefan Roscher <stefan.roscher-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, Joachim Fenkes <fenkes-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, Christoph Raisch <raisch-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, Hoang-Nam Nguyen <HNGUYEN-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
+To: Chien Tung <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-What is the impact of this problem?  ie is this something we need to fix
-for 2.6.35?  I suppose not, since the current code has been there a long time.
+ > This patch resolves the issue by allocating a kernel socket consuming
+ > the TCP port for the iWARP connection upon connection creation and
+ > freeing the socket once the iWARP connection is destroyed.
+
+Hasn't this exact approach been explicitly NAK'ed by David Miller?
+
+ - R.
 -- 
 Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org> || For corporate legal information go to:
 http://www.cisco.com/web/about/doing_business/legal/cri/index.html
