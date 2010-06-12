@@ -1,43 +1,49 @@
-From: Pradeep Satyanarayana <pradeeps-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
-Subject: Re: [PATCH v2] RDMA/CMA: fix iWARP adapter TCP port space usage
-Date: Fri, 11 Jun 2010 23:30:56 -0700
-Message-ID: <4C1329A0.6020109@linux.vnet.ibm.com>
-References: <20100611124746.GA2292@CTUNG-MOBL1> <adapqzxy2sb.fsf@roland-alpha.cisco.com> <2EFBCAEF10980645BBCFB605689E08E904924CCE42@azsmsx506.amr.corp.intel.com> <4C12A6E8.5040400@opengridcomputing.com> <adamxv1w7cb.fsf@roland-alpha.cisco.com> <20100611224126.GA4630@obsidianresearch.com> <4C12C971.4000909@opengridcomputing.com> <20100612000431.GC4630@obsidianresearch.com> <4C12E073.2040008@opengridcomputing.com> <20100612015652.GA7648@obsidianresearch.com> <4C12EC89.1030305@opengridcomputing.com> <Pine.WNT.4.64.1006112117160.6192@PPWASKIE-MOBL2.amr.corp.intel.com> <adaeigcx3hw.fsf@roland-alpha.cisco.com>
+From: Dotan Barak <dotanba-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: P
+Date: Sat, 12 Jun 2010 11:10:20 +0200
+Message-ID: <4C134EFC.5010207@gmail.com>
+References: <AANLkTiml1Q7sD9MFsg_q1nQx5091rNnzhK8oh1aUnxwT@mail.gmail.com>	<4C125697.1000508@gmail.com> <AANLkTilhV8JJTKxc4OpudTUgKqMyJ5mzcxt6XdSMurDS@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <adaeigcx3hw.fsf-BjVyx320WGW9gfZ95n9DRSW4+XlvGpQz@public.gmane.org>
+In-Reply-To: <AANLkTilhV8JJTKxc4OpudTUgKqMyJ5mzcxt6XdSMurDS-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Cc: Peter P Waskiewicz Jr <peter.p.waskiewicz.jr-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, "Tung, Chien Tin" <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Ding Dinghua <dingdinghua85-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Roland Dreier wrote:
->  > Other protocols are also running over networking today, such as iSCSI
->  > and FCoE.  These happily co-exist with other L2->L4 protocols in the
->  > stack. This iWARP patch allows iWARP to happily co-exist on a TCP
->  > connection, and does *not* negatively affect the networking stack at
->  > all.
-> 
-> How do iSCSI offload HBAs coexist?  As I understand it, they typically
-> just choose a separate IP address.
-> 
-> In any case I'm not going to slip in a patch that another maintainer has
-> explicitly NAKed.  Maybe one way to force things forward would be to
-> write up an exhaustive explanation of the underlying problem and the
-> impact on end users, include this patch, explain that it touches only
-> RDMA code, and point out that most end users are already using this
-> patch since it's shipped in OFED.  Then send the whole thing to Linus
-> and Andrew Morton, making sure to cc Dave Miller, netdev, and
-> linux-rdma.
+On 12/06/2010 03:22, Ding Dinghua wrote:
+> 2010/6/11 Dotan Barak<dotanba-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>:
+>    
+>> Hi.
+>>
+>> On 11/06/2010 10:51, Ding Dinghua wrote:
+>>      
+>>> Hi all:
+>>>           I'm using RDMA to do fs-metadata mirror between nodes. I
+>>> encountered a strange problem when the program was running:
+>>> Complete queue handler reported that the  RDMA-Write operation failed,
+>>>   the status of  corresponding "struct ib_wc" is "IB_WC_RETRY_EXC_ERR".
+>>> The problem is encountered randomly. I don't know the meaning of this
+>>> error code as well as what to do next. Would anyone give me some tips?
+>>> thanks a lot.
+>>>
+>>>        
+>> Do you sync between the sides before closing the QPs?
+>>      
+> Can you say it more detail? thanks.
+>    
+If you try to send a message from local QP to a remote QP before the 
+remote QP is in RTR state (or after it was closed/transferred to the 
+ERROR state),
+you may get RETRY EXCEEDED, because there isn't any QP in the remote 
+side that can accept your message (and send a response).
 
-Would it help to weigh in on the usage of RDMA, not so much a niche these days.
-The latest top500 list shows 207 systems (i.e. 41%) using RDMA (read IB)?
+How do you connect the QPs? (And how do you close the connection between 
+them)
 
-Thanks
-Pradeep
-
+Dotan
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
