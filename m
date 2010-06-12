@@ -1,34 +1,59 @@
-From: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH v2 10/15] opensm: Add opensm option to specify file
- name for extra torus-2QoS configuration information.
-Date: Sat, 12 Jun 2010 13:35:15 +0300
-Message-ID: <20100612103515.GP20172@me>
-References: <1268244416-20351-1-git-send-email-jaschut@sandia.gov>
- <1268244416-20351-10-git-send-email-jaschut@sandia.gov>
- <20100610112519.GO20172@me>
- <1276179753.4570.19.camel@sale659.sandia.gov>
+From: "Tung, Chien Tin" <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH v2] RDMA/CMA: fix iWARP adapter TCP port space usage
+Date: Sat, 12 Jun 2010 07:51:40 -0700
+Message-ID: <2EFBCAEF10980645BBCFB605689E08E904924CD101@azsmsx506.amr.corp.intel.com>
+References: <2EFBCAEF10980645BBCFB605689E08E904924CCE42@azsmsx506.amr.corp.intel.com>
+ <4C12A6E8.5040400@opengridcomputing.com>
+ <adamxv1w7cb.fsf@roland-alpha.cisco.com>
+ <20100611224126.GA4630@obsidianresearch.com>
+ <4C12C971.4000909@opengridcomputing.com>
+ <20100612000431.GC4630@obsidianresearch.com>
+ <4C12E073.2040008@opengridcomputing.com>
+ <20100612015652.GA7648@obsidianresearch.com>
+ <4C12EC89.1030305@opengridcomputing.com>
+ <Pine.WNT.4.64.1006112117160.6192@PPWASKIE-MOBL2.amr.corp.intel.com>
+ <20100612052242.GA17793@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1276179753.4570.19.camel-mgfCWIlwujvg4c9jKm7R2O1ftBKYq+Ku@public.gmane.org>
+In-Reply-To: <20100612052242.GA17793-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jim Schutt <jaschut-4OHPYypu0djtX7QSmKvirg@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "eitan-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org" <eitan-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, "Waskiewicz Jr, Peter P" <peter.p.waskiewicz.jr-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 08:22 Thu 10 Jun     , Jim Schutt wrote:
+> > The base argument is Dave Miller doesn't like RDMA or iWARP.  I completely
+> > respect Dave's opinions, but in this case, I don't think it's his call,
+> > since this patch is completely isolated to the IB tree and the RDMA stack.
+> > Not including this will directly affect anyone using iWARP with Linux.
+> > Hopefully those people will chime in at some point, but I'm not sure that
+> > will help because the arguments so far against this have been somewhat
+> > irrational, and nothing technical-oriented.
 > 
-> Also, I have accumulated a few bug fixes to torus-2QoS
-> that I haven't posted yet.  I can
-> 
-> 1) repost the patch series with no attachments, and
->    add the bugfix patches at the end of series
-> 2) repost a v3 patchset with these fixes merged.
+> My impression of the general netdev argument is that if it touches
+> sockets it has to have 100% of the behavior and functionality of the
+> Linux stack. iwarp fails that test.. There is absolutely no way to fix
+> that - that is rational, technical and not at all 'solution oriented' :)
 
-I think v3 with merged fixes will be simplest. Thanks.
+The socket is behaving 100% as in the Linux stack.  It is not even used for
+sending or receiving traffic.  Allocating a socket is the secondary solution.
+The problem is we need a way to reserve a TCP port.  We are not interested in
+mucking with networking resources anymore than we have to.
 
-Sasha
+>The only reason iwarp has got as far as it has in the offical tree is
+>because it piggy backed on IB's 'sandbox' approach to the RDMA
+>layer. So, if you want to play in that area you have to play by those
+>rules, and that means staying in the sandbox ..
+
+Can someone give me a history lesson here?  When/where is the "sandbox" agreement?
+I am still confused as to why a patch to an infiniband module has to be sent
+to netdev for approval instead of openly to linux-rdma!?
+
+Chien
+
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
