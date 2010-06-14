@@ -1,51 +1,34 @@
-From: Or Gerlitz <ogerlitz-hKgKHo2Ms0FWk0Htik3J/w@public.gmane.org>
-Subject: Re: [ewg] [PATCH] node description patch
-Date: Mon, 14 Jun 2010 10:43:06 +0300
-Message-ID: <4C15DD8A.3010806@Voltaire.com>
-References: <4C2744E8AD2982428C5BFE523DF8CDCB49A488D73B@MNEXMB1.qlogic.org>
+From: Giuseppe Aprea <giuseppe.aprea-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: multiple infiniband interfaces on single node
+Date: Mon, 14 Jun 2010 09:48:49 +0200
+Message-ID: <AANLkTikvB4pAHy3H3FZBcZWFU7rqSzIMeo6lb0QGpFaa@mail.gmail.com>
+References: <AANLkTimxrq4qhyatMWtm3z6rMDJxYYBU4bNunv5ex4l3@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4C2744E8AD2982428C5BFE523DF8CDCB49A488D73B-amwN6d8PyQWXx9kJd3VG2h2eb7JE58TQ@public.gmane.org>
+In-Reply-To: <AANLkTimxrq4qhyatMWtm3z6rMDJxYYBU4bNunv5ex4l3-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Mike Heinz <michael.heinz-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-Cc: Jack Morgenstein <jackm-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Mike Heinz wrote:
-> This patch fixes a problem with the openibd initialization script. 
-> On machines using slower DHCP servers, openibd frequently sets the HCA's node description 
-> to HCA-1. This patch modifies openibd to add a "@" instead of the hostname and adds a 
-> small hook in the core drivers to replace the "@" sign with the system's utsname().
-> Because this patch depends on changes to openibd, it cannot be submitted 
-> to the upstream kernel, but it still corrects an outstanding issue with OFED 
+Hi list,
+I am dealing with a set of 4 nodes (ibm x3850 ) binded together using
+ScaleXpander chip. Each node is equipped with a 20 Gb DDR infiniband
+network card so the new single image multi-node has 4 cards. We are
+using mellanox ofed to handle infiniband connectivity. Our problem now
+is how to exploit all 4 cards together. It seems that ofed
+"ib-bonding" can only be used for a kind of fail-over configuration of
+the cards and we wonder if it is possible to set up automatic
+bandwidths sum, i.e. if this node is included in a hostfile for an
+mpi-job together with other nodes it should be able to use the whole
+of its potential 20*4 Mb bandwidth, (possibly) without changing job
+submission parameters. I googled around unsuccessfully quite a lot but
+I may have missed the right keywords to find what I need. Any help
+will be much appreciated.
 
-Mike, 
+Thanks in advance.
 
-The fact that you patch is both to user and kernel space code doesn't mean the kernel part can't be submitted upstream. I suggested you re post the patches to linux-rdma in a series made of two patches, one to the kernel and one to the service script. The kernel part then could be picked by the maintainer and will come into play once there's user space code plugging to it. This is similar to cases where people have kernel netlink agent code, merging is not dependent on the existence of specific matching user space code.
-
-As for the user space part, the IB stack provided by the distros does have a service script and this service script attempts to set the node descriptor, e.g here's the RHEL6 beta rdma service code 
-
-> # grep -A 13 "node description" /etc/rc.d/init.d/rdma
->     # Add node description to sysfs
->     IBSYSDIR="/sys/class/infiniband"
->     if [ -d ${IBSYSDIR} ]; then
->         declare -i hca_id=1
->         for hca in ${IBSYSDIR}/*
->         do
->             if [ -w ${hca}/node_desc ]; then
->                 echo -n "$(hostname | cut -f 1 -d .) HCA-${hca_id}" >> ${hca}/node_desc 2> /dev/null
->             fi
->             let hca_id++
->         done
->     fi
-> 
->     errata_58
-
-If you want to patch this, you can here open a bugzilla case with the relevant distro and propose a patch.
-
-Or.
+Dr G. Aprea
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
