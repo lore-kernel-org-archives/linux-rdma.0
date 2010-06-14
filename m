@@ -1,50 +1,33 @@
-From: Hal Rosenstock <hnrose-Wuw85uim5zDR7s880joybQ@public.gmane.org>
-Subject: [PATCH] [RESEND] opensm/osm_mcast_mgr.c: Only route MLIDs with
-	more than 1 member
-Date: Mon, 14 Jun 2010 08:46:46 -0400
-Message-ID: <20100614124646.GA5930@comcast.net>
+From: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH] ibqueryerrors.c: Optimize by querying AllPortSelect
+ first
+Date: Mon, 14 Jun 2010 15:54:02 +0300
+Message-ID: <20100614125402.GX20172@me>
+References: <20100610173434.890ea8e7.weiny2@llnl.gov>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
+In-Reply-To: <20100610173434.890ea8e7.weiny2-i2BcT+NCU+M@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On 17:34 Thu 10 Jun     , Ira Weiny wrote:
+> 
+> From: Ira Weiny <weiny2-n5fQTqcq6rtliZ7u+bvwcg@public.gmane.org>
+> Date: Thu, 6 May 2010 13:49:55 -0700
+> Subject: [PATCH] ibqueryerrors.c: Optimize by querying AllPortSelect first
+> 
+> 	If errors are seen with AllPortSelect query individual ports for more
+> 	details.
+> 
+> Signed-off-by: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
 
-rather than just more than 0 members. There is no need to route MLIDs with
-only 1 member either. MLIDs only need routing when 2 or more members. Single
-member case is handled locally.
+Applied. Thanks.
 
-Signed-off-by: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
----
-diff --git a/opensm/opensm/osm_mcast_mgr.c b/opensm/opensm/osm_mcast_mgr.c
-index 322635d..e42070d 100644
---- a/opensm/opensm/osm_mcast_mgr.c
-+++ b/opensm/opensm/osm_mcast_mgr.c
-@@ -4,6 +4,7 @@
-  * Copyright (c) 1996-2003 Intel Corporation. All rights reserved.
-  * Copyright (c) 2008 Xsigo Systems Inc.  All rights reserved.
-  * Copyright (c) 2009 Sun Microsystems, Inc. All rights reserved.
-+ * Copyright (c) 2010 HNR Consulting. All rights reserved.
-  *
-  * This software is available to you under a choice of one of two
-  * licenses.  You may choose to be licensed under the terms of the GNU
-@@ -746,10 +747,10 @@ static ib_api_status_t mcast_mgr_build_spanning_tree(osm_sm_t * sm,
- 	}
- 
- 	num_ports = cl_qlist_count(&port_list);
--	if (num_ports == 0) {
-+	if (num_ports < 2) {
- 		OSM_LOG(sm->p_log, OSM_LOG_VERBOSE,
--			"MLID 0x%X has no members - nothing to do\n",
--			mbox->mlid);
-+			"MLID 0x%X has %u members - nothing to do\n",
-+			mbox->mlid, num_ports);
- 		goto Exit;
- 	}
- 
+Sasha
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
