@@ -1,63 +1,37 @@
-From: "Walukiewicz, Miroslaw" <Miroslaw.Walukiewicz-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: FW: [PATCH] librdmacm/mcraw: Add a new test application for
- 	user-space IBV_QPT_RAW_ETH QP type
-Date: Mon, 14 Jun 2010 10:21:38 +0100
-Message-ID: <BE2BFE91933D1B4089447C64486040801E763A5E@irsmsx503.ger.corp.intel.com>
-References: <BE2BFE91933D1B4089447C64486040801E7635F7@irsmsx503.ger.corp.intel.com>
- <AANLkTinTIv9vPgcPKBOt0N10BgsjuXgDaPIo5OKa5yzT@mail.gmail.com>
+From: Or Gerlitz <ogerlitz-hKgKHo2Ms0FWk0Htik3J/w@public.gmane.org>
+Subject: Re: FW: [PATCH] librdmacm/mcraw: Add a new test application for	user-space
+ IBV_QPT_RAW_ETH QP type
+Date: Mon, 14 Jun 2010 14:11:34 +0300
+Message-ID: <4C160E66.6040707@Voltaire.com>
+References: <BE2BFE91933D1B4089447C64486040801E7635F7@irsmsx503.ger.corp.intel.com>	<AANLkTinTIv9vPgcPKBOt0N10BgsjuXgDaPIo5OKa5yzT@mail.gmail.com> <BE2BFE91933D1B4089447C64486040801E763A5E@irsmsx503.ger.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <AANLkTinTIv9vPgcPKBOt0N10BgsjuXgDaPIo5OKa5yzT-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <BE2BFE91933D1B4089447C64486040801E763A5E-IGOiFh9zz4wLt2AQoY/u9bfspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+To: "Walukiewicz, Miroslaw" <Miroslaw.Walukiewicz-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Cc: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hello Or,
+Walukiewicz, Miroslaw wrote:
+> The mckey works on UD_QP type and mcraw works on RAW_QP type. 
+> The data payload prepared for UD and RAW_QP are on different layers. 
+> The mckey uses rdma_join_multicast() that triggers a state machine for IB multicast joining. 
+> The mcraw does not trigger such state machine because for sending the ethernet multicast there is 
+> no need for any multicast joining state machine. The multicast destination address on ethernet 
+> is determined by multicast group address.
 
-any reason not to patch mckey to support both IB and Ethernet raw QPs?
-The mckey works on UD_QP type and mcraw works on RAW_QP type. 
+Miroslaw,
 
-The data payload prepared for UD and RAW_QP are on different layers. 
+I tend not to agree with the entire set of your arguments, to start with, for example, the code issues IP_ADD_MEMBERSHIP call on a socket and also computes the actual L2 address derived from the L3 multicast address. 
 
-The mckey uses rdma_join_multicast() that triggers a state machine for IB multicast joining. 
+If these ops are required for raw ethernet multicast operation, you can enhance the rdmacm to have rdma_join_multicast carry these ops similarly to what it does for PS_UDP and PS_IPOIB over IB (determine the L2 address, join through the relevant state machine, etc).
 
-The mcraw does not trigger such state machine because for sending the  ethernet multicast there is no need for any multicast joining state machine. The multicast destination address on ethernet is determined by multicast group address.
+Its not that you claim to be able to run raw multicast without any relation to the rdma-cm, e.g. you even want this code to be shipped by librdmacm... so lets understand the architecture, for example what port space  is needed here, looking on the code, it looks like you want it to operate in the same manner as PS_IPOIB,so maybe extend this port space or declare an equivalent one for ethernet.
 
-For me the API changes between mcraw and mckey are quite large and adding additional options could be confused for users. 
+Or.
 
-does raw qp has any relation to the iWARP/TOE HW stack?
-
-Yes, As I told the logic for joining multicast group is different for IB and ethernet (I mention here about ethernet not iWARP specific). The mcraw handles an ethernet path sending multicasts that could be similar for nes and mlx4. 
-
-Regards,
-
-Mirek
-
------Original Message-----
-From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Or Gerlitz
-Sent: Friday, June 11, 2010 10:13 PM
-To: Walukiewicz, Miroslaw
-Cc: Hefty, Sean; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Subject: Re: FW: [PATCH] librdmacm/mcraw: Add a new test application for user-space IBV_QPT_RAW_ETH QP type
-
-Walukiewicz, Miroslaw <Miroslaw.Walukiewicz-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
-> The patch adds a new test application describing a usage of the IBV_QPT_RAW_ETH
-> for IPv4 multicast acceleration on iWARP cards. See man mcraw for parameters description
-
-So this is the only raw qp related patch to librdmacm? any reason not
-to patch mckey to support both IB and Ethernet raw QPs? does raw qp
-has any relation to the iWARP/TOE HW stack? there's also raw qp patch
-posted to ewg for mlx4 which has no backing iwarp logic.
-
-Or
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
