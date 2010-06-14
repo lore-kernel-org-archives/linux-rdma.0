@@ -1,48 +1,47 @@
-From: Hal Rosenstock <hnrose-Wuw85uim5zDR7s880joybQ@public.gmane.org>
-Subject: [PATCH] [RESEND] opensm/osm_trap_rcv.c: No need for heavy sweep
-	when just NodeDescription changes
-Date: Mon, 14 Jun 2010 07:11:49 -0400
-Message-ID: <20100614111148.GA25056@comcast.net>
+From: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+Subject: Re: [infiniband-diags] [1/3] make libibnetdisc default behavior to
+ overwrite a cache
+Date: Mon, 14 Jun 2010 14:34:01 +0300
+Message-ID: <20100614113401.GR20172@me>
+References: <1271702587.17987.212.camel@auk31.llnl.gov>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
+In-Reply-To: <1271702587.17987.212.camel-X2zTWyBD0EhliZ7u+bvwcg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Al Chu <chu11-i2BcT+NCU+M@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On 11:43 Mon 19 Apr     , Al Chu wrote:
+> Hey Sasha,
+> 
+> As discussed in a previous thread, this patch makes the default caching
+> behavior in libibnetdisc to overwrite a previous cache.
+> 
+> Al
+> 
+> -- 
+> Albert Chu
+> chu11-i2BcT+NCU+M@public.gmane.org
+> Computer Scientist
+> High Performance Systems Division
+> Lawrence Livermore National Laboratory
 
-For trap 144s which indicate NodeDescription changed, there is no need for
-a heavy sweep if that is the only change indicated by the trap. Determine that
-by checking that there are no other change flags set and that the 
-capability mask is unchanged. Still sweep if this is not the case (there
-is some other change).
+> Date: Mon, 19 Apr 2010 10:52:14 -0700
+> From: Albert Chu <chu11-i2BcT+NCU+M@public.gmane.org>
+> Subject: [PATCH] make libibnetdisc default behavior to overwrite a cache
+> Message-Id: <1271702059.17987.211.camel-X2zTWyBD0EhliZ7u+bvwcg@public.gmane.org>
+> Mime-Version: 1.0
+> Content-Transfer-Encoding: 7bit
+> 
+> 
+> Signed-off-by: Albert Chu <chu11-i2BcT+NCU+M@public.gmane.org>
 
-Signed-off-by: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
----
-diff --git a/opensm/opensm/osm_trap_rcv.c b/opensm/opensm/osm_trap_rcv.c
-index 52f8832..9024a1f 100644
---- a/opensm/opensm/osm_trap_rcv.c
-+++ b/opensm/opensm/osm_trap_rcv.c
-@@ -509,6 +509,9 @@ static void trap_rcv_process_request(IN osm_sm_t * sm,
- 			CL_PLOCK_ACQUIRE(sm->p_lock);
- 			osm_req_get_node_desc(sm, p_physp);
- 			CL_PLOCK_RELEASE(sm->p_lock);
-+			if (!(p_ntci->data_details.ntc_144.change_flgs & ~TRAP_144_MASK_NODE_DESCRIPTION_CHANGE) &&
-+			    p_ntci->data_details.ntc_144.new_cap_mask == p_physp->port_info.capability_mask)
-+				goto check_report;
- 		} else
- 			OSM_LOG(sm->p_log, OSM_LOG_ERROR,
- 				"ERR 3812: No physical port found for "
-@@ -547,6 +550,7 @@ check_sweep:
- 	if (physp_change_trap == TRUE)
- 		goto Exit;
- 
-+check_report:
- 	/* Add a call to osm_report_notice */
- 	/* We are going to report the notice - so need to fix the IssuerGID
- 	   accordingly. See IBA 1.2 p.739 or IBA 1.1 p.653 for details. */
+All three applied.
+
+Sasha
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
