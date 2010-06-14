@@ -1,78 +1,51 @@
-From: "Eli Dorfman (Voltaire)" <dorfman.eli-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH v2] opensm: Modify connect_roots to allow connectivity between
- all switches
-Date: Sun, 13 Jun 2010 18:10:00 +0300
-Message-ID: <4C14F4C8.1090102@gmail.com>
-References: <4C14E3D3.4070601@gmail.com>
+From: Or Gerlitz <ogerlitz-hKgKHo2Ms0FWk0Htik3J/w@public.gmane.org>
+Subject: Re: [ewg] [PATCH] node description patch
+Date: Mon, 14 Jun 2010 10:43:06 +0300
+Message-ID: <4C15DD8A.3010806@Voltaire.com>
+References: <4C2744E8AD2982428C5BFE523DF8CDCB49A488D73B@MNEXMB1.qlogic.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4C14E3D3.4070601-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <4C2744E8AD2982428C5BFE523DF8CDCB49A488D73B-amwN6d8PyQWXx9kJd3VG2h2eb7JE58TQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Yiftah Shahar <yiftahs-smomgflXvOZWk0Htik3J/w@public.gmane.org>, Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+To: Mike Heinz <michael.heinz-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+Cc: Jack Morgenstein <jackm-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-After a second thought and in order not to break current configuration,
-I send this modified patch that does not change connect_roots option but
-changes its functionality in up-down (I think that in fat-tree it is already implemented)
+Mike Heinz wrote:
+> This patch fixes a problem with the openibd initialization script. 
+> On machines using slower DHCP servers, openibd frequently sets the HCA's node description 
+> to HCA-1. This patch modifies openibd to add a "@" instead of the hostname and adds a 
+> small hook in the core drivers to replace the "@" sign with the system's utsname().
+> Because this patch depends on changes to openibd, it cannot be submitted 
+> to the upstream kernel, but it still corrects an outstanding issue with OFED 
 
-Modify connect_roots option to allow connectivity between
-all switches in up-down routing algorithm and in this way be
-fully IBA compliant
+Mike, 
 
-Signed-off-by: Eli Dorfman <elid-smomgflXvOZWk0Htik3J/w@public.gmane.org>
----
- opensm/man/opensm.8.in         |    2 +-
- opensm/opensm/main.c           |    2 +-
- opensm/opensm/osm_ucast_updn.c |    4 +---
- 3 files changed, 3 insertions(+), 5 deletions(-)
+The fact that you patch is both to user and kernel space code doesn't mean the kernel part can't be submitted upstream. I suggested you re post the patches to linux-rdma in a series made of two patches, one to the kernel and one to the service script. The kernel part then could be picked by the maintainer and will come into play once there's user space code plugging to it. This is similar to cases where people have kernel netlink agent code, merging is not dependent on the existence of specific matching user space code.
 
-diff --git a/opensm/man/opensm.8.in b/opensm/man/opensm.8.in
-index 9053611..c67126e 100644
---- a/opensm/man/opensm.8.in
-+++ b/opensm/man/opensm.8.in
-@@ -174,7 +174,7 @@ the host comes back online.
- .TP
- \fB\-z\fR, \fB\-\-connect_roots\fR
- This option enforces routing engines (up/down and
--fat-tree) to make connectivity between root switches and in
-+fat-tree) to make connectivity between all switches and in
- this way to be fully IBA complaint. In many cases this can
- violate "pure" deadlock free algorithm, so use it carefully.
- .TP
-diff --git a/opensm/opensm/main.c b/opensm/opensm/main.c
-index 0093aa7..82ca78f 100644
---- a/opensm/opensm/main.c
-+++ b/opensm/opensm/main.c
-@@ -187,7 +187,7 @@ static void show_usage(void)
- 	       "          Sets the SL to use to communicate with the SM/SA. Defaults to 0.\n\n");
- 	printf("--connect_roots, -z\n"
- 	       "          This option enforces routing engines (up/down and \n"
--	       "          fat-tree) to make connectivity between root switches\n"
-+	       "          fat-tree) to make connectivity between all switches\n"
- 	       "          and in this way be IBA compliant. In many cases,\n"
- 	       "          this can violate \"pure\" deadlock free algorithm, so\n"
- 	       "          use it carefully.\n\n");
-diff --git a/opensm/opensm/osm_ucast_updn.c b/opensm/opensm/osm_ucast_updn.c
-index 164c6f4..f44ca24 100644
---- a/opensm/opensm/osm_ucast_updn.c
-+++ b/opensm/opensm/osm_ucast_updn.c
-@@ -314,9 +314,7 @@ static int updn_set_min_hop_table(IN updn_t * p_updn)
- 	     item = cl_qmap_next(item)) {
- 		p_sw = (osm_switch_t *)item;
- 		/* Clear Min Hop Table */
--		if (p_subn->opt.connect_roots)
--			updn_clear_non_root_hops(p_updn, p_sw);
--		else
-+		if (!p_subn->opt.connect_roots)
- 			osm_switch_clear_hops(p_sw);
- 	}
- 
--- 
-1.5.5
+As for the user space part, the IB stack provided by the distros does have a service script and this service script attempts to set the node descriptor, e.g here's the RHEL6 beta rdma service code 
 
+> # grep -A 13 "node description" /etc/rc.d/init.d/rdma
+>     # Add node description to sysfs
+>     IBSYSDIR="/sys/class/infiniband"
+>     if [ -d ${IBSYSDIR} ]; then
+>         declare -i hca_id=1
+>         for hca in ${IBSYSDIR}/*
+>         do
+>             if [ -w ${hca}/node_desc ]; then
+>                 echo -n "$(hostname | cut -f 1 -d .) HCA-${hca_id}" >> ${hca}/node_desc 2> /dev/null
+>             fi
+>             let hca_id++
+>         done
+>     fi
+> 
+>     errata_58
+
+If you want to patch this, you can here open a bugzilla case with the relevant distro and propose a patch.
+
+Or.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
