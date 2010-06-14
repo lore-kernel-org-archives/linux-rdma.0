@@ -1,63 +1,62 @@
-From: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH] iba/ib_types.h: remove assertion in ib_get_attr_offset()
-Date: Mon, 14 Jun 2010 16:04:04 +0300
-Message-ID: <20100614130404.GZ20172@me>
-References: <20100603134209.GA12225@comcast.net>
- <20100609054341.GK28549@me>
- <AANLkTilkr6KYG_TVJYwvNl7sZ8XBKmFljktxg8qCA9t9@mail.gmail.com>
- <20100609121036.GC20172@me>
- <AANLkTikTxpvb-Nw2V1PrBcX4rZ1GwElXV22CBtBZx1iK@mail.gmail.com>
- <20100609124848.GE20172@me>
- <AANLkTinxeLPtxYPvPBZfWq96BZjxDqcAlCzP2v_1VJnv@mail.gmail.com>
- <20100609171516.GI20172@me>
- <3F6F638B8D880340AB536D29CD4C1E1925634C8FE9@orsmsx501.amr.corp.intel.com>
+From: Mike Heinz <michael.heinz-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+Subject: RE: [ewg] [PATCH] node description patch
+Date: Mon, 14 Jun 2010 08:05:10 -0500
+Message-ID: <4C2744E8AD2982428C5BFE523DF8CDCB49D0A28F7F@MNEXMB1.qlogic.org>
+References: <4C2744E8AD2982428C5BFE523DF8CDCB49A488D73B@MNEXMB1.qlogic.org>,<4C15DD8A.3010806@Voltaire.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <3F6F638B8D880340AB536D29CD4C1E1925634C8FE9-osO9UTpF0USkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
+In-Reply-To: <4C15DD8A.3010806-hKgKHo2Ms0FWk0Htik3J/w@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Smith, Stan" <stan.smith-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Or Gerlitz <ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+Cc: Jack Morgenstein <jackm-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+Or, 
 
-This reverts the commit:
+Thanks. I'll prep the updated script.
+________________________________________
+From: Or Gerlitz [ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org]
+Sent: Monday, June 14, 2010 2:43 AM
+To: Mike Heinz
+Cc: Jack Morgenstein; linux-rdma
+Subject: Re: [ewg] [PATCH] node description patch
 
-commit 7fc6cd3037f07190e483a047f17d37b6bebbb2b3
-Author: Smith, Stan <stan.smith-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Date:   Fri May 21 10:49:27 2010 -0700
+Mike Heinz wrote:
+> This patch fixes a problem with the openibd initialization script.
+> On machines using slower DHCP servers, openibd frequently sets the HCA's node description
+> to HCA-1. This patch modifies openibd to add a "@" instead of the hostname and adds a
+> small hook in the core drivers to replace the "@" sign with the system's utsname().
+> Because this patch depends on changes to openibd, it cannot be submitted
+> to the upstream kernel, but it still corrects an outstanding issue with OFED
 
-    ib_types.h add debug assert
+Mike,
 
-    Add a debug assert to catch incorrect MAD attr offset size.
-    This proved to be useful in catching incorrect struct sizes as MAD attrs need to be a multiple of 8 bytes.
+The fact that you patch is both to user and kernel space code doesn't mean the kernel part can't be submitted upstream. I suggested you re post the patches to linux-rdma in a series made of two patches, one to the kernel and one to the service script. The kernel part then could be picked by the maintainer and will come into play once there's user space code plugging to it. This is similar to cases where people have kernel netlink agent code, merging is not dependent on the existence of specific matching user space code.
 
-Since not all SA attributes should be multiple of 8 bytes (specifically
-InformInfo).
+As for the user space part, the IB stack provided by the distros does have a service script and this service script attempts to set the node descriptor, e.g here's the RHEL6 beta rdma service code
 
-The issue was discovered by Hal Rosenstock.
+> # grep -A 13 "node description" /etc/rc.d/init.d/rdma
+>     # Add node description to sysfs
+>     IBSYSDIR="/sys/class/infiniband"
+>     if [ -d ${IBSYSDIR} ]; then
+>         declare -i hca_id=1
+>         for hca in ${IBSYSDIR}/*
+>         do
+>             if [ -w ${hca}/node_desc ]; then
+>                 echo -n "$(hostname | cut -f 1 -d .) HCA-${hca_id}" >> ${hca}/node_desc 2> /dev/null
+>             fi
+>             let hca_id++
+>         done
+>     fi
+>
+>     errata_58
 
-Signed-off-by: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
----
- opensm/include/iba/ib_types.h |    1 -
- 1 files changed, 0 insertions(+), 1 deletions(-)
+If you want to patch this, you can here open a bugzilla case with the relevant distro and propose a patch.
 
-diff --git a/opensm/include/iba/ib_types.h b/opensm/include/iba/ib_types.h
-index 203c319..e1bc102 100644
---- a/opensm/include/iba/ib_types.h
-+++ b/opensm/include/iba/ib_types.h
-@@ -4395,7 +4395,6 @@ static inline uint32_t OSM_API ib_get_attr_size(IN const ib_net16_t attr_offset)
- 
- static inline ib_net16_t OSM_API ib_get_attr_offset(IN const uint32_t attr_size)
- {
--	CL_ASSERT((attr_size & 0x07) == 0);
- 	return (cl_hton16((uint16_t) (attr_size >> 3)));
- }
- 
--- 
-1.7.0.4
-
+Or.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
