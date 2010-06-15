@@ -1,172 +1,117 @@
 From: "Jim Schutt" <jaschut-4OHPYypu0djtX7QSmKvirg@public.gmane.org>
-Subject: [PATCH v3 02/17] opensm: Allow the routing engine to influence
- SL2VL calculations.
-Date: Tue, 15 Jun 2010 13:53:09 -0600
-Message-ID: <1276631604-29230-3-git-send-email-jaschut@sandia.gov>
-References: <1276631604-29230-1-git-send-email-jaschut@sandia.gov>
+Subject: [PATCH v3 00/17] opensm: Add new torus routing engine:
+ torus-2QoS
+Date: Tue, 15 Jun 2010 13:53:07 -0600
+Message-ID: <1276631604-29230-1-git-send-email-jaschut@sandia.gov>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1276631604-29230-1-git-send-email-jaschut-4OHPYypu0djtX7QSmKvirg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org, Jim Schutt <jaschut-4OHPYypu0djtX7QSmKvirg@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Note that the original code assumes that QoS setup is mostly static and
-based only on user configuration.  As a result, there is no provision for
-routing engines that want to compute contributions to the SL2VL maps.
+This is v3 of a patchset to add to opensm a new routing engine designed
+to handle large fabrics connected with a 2D/3D torus topology.
 
-Fix this up by adding a callback to struct osm_routing_engine that computes
-a per-port SL2VL map, and call it from the appropriate place in the QoS
-setup path.  Assume that if a routing engine provides a update_sl2vl()
-callback that there will input-port dependence in the SL2VL maps, and
-so do not attempt to use optimized SL2VL map programming even if the
-switch supports it.
+Changes since v2:
 
-Also need to move the call to osm_qos_setup() in do_sweep() to after the
-call to the routing engine, so that any SL2VL map contributions from the
-routing engine are based on the latest information.  Need to call
-osm_qos_setup() for requested reroute for the same reason.
+- Rebased to a3dec3a87a.
+- Divide "Add torus-2QoS routing engine" patch into three parts
+   to avoid rejection by mailing list.
+- Bug fix: reduce number of required seed links for a torus
+   with one or more dimensions of radix four.
+- Bug fix: don't let torus-2QoS be fooled into thinking it can route
+   a torus with two or more blocks of switches adjacent in z missing.
+- Bug fix: if osm_ucast_mgr_process() fails, no configured routing engine
+   could route the fabric, so wait for a trap or sweep interval before
+   next heavy sweep.
+- Bug fix: cut-n-paste error in handle_case_0x731().
 
-Signed-off-by: Jim Schutt <jaschut-4OHPYypu0djtX7QSmKvirg@public.gmane.org>
----
- opensm/include/opensm/osm_opensm.h |   12 ++++++++++++
- opensm/opensm/osm_qos.c            |   27 +++++++++++++++++++++++----
- opensm/opensm/osm_state_mgr.c      |    5 +++--
- 3 files changed, 38 insertions(+), 6 deletions(-)
+Changes since initial version:
 
-diff --git a/opensm/include/opensm/osm_opensm.h b/opensm/include/opensm/osm_opensm.h
-index e97142e..25a6f90 100644
---- a/opensm/include/opensm/osm_opensm.h
-+++ b/opensm/include/opensm/osm_opensm.h
-@@ -126,6 +126,9 @@ struct osm_routing_engine {
- 	int (*build_lid_matrices) (void *context);
- 	int (*ucast_build_fwd_tables) (void *context);
- 	void (*ucast_dump_tables) (void *context);
-+	void (*update_sl2vl)(void *context, IN osm_physp_t *port,
-+			     IN uint8_t in_port_num, IN uint8_t out_port_num,
-+			     IN OUT ib_slvl_table_t *t);
- 	void (*delete) (void *context);
- 	struct osm_routing_engine *next;
- };
-@@ -147,6 +150,15 @@ struct osm_routing_engine {
- *	ucast_dump_tables
- *		The callback for dumping unicast routing tables.
- *
-+*	update_sl2vl(void *context, IN osm_physp_t *port,
-+*		     IN uint8_t in_port_num, IN uint8_t out_port_num,
-+*		     OUT ib_slvl_table_t *t)
-+*		The callback to allow routing engine input for SL2VL maps.
-+*		*port is the phyical port for which the SL2VL map is to be
-+*		updated. For switches, in_port_num/out_port_num identify
-+*		which part of the SL2VL map to update.  For router/HCA ports,
-+*		in_port_num/out_port_num should be ignored.
-+*
- *	delete
- *		The delete method, may be used for routing engine
- *		internals cleanup.
-diff --git a/opensm/opensm/osm_qos.c b/opensm/opensm/osm_qos.c
-index cce59ee..dadef29 100644
---- a/opensm/opensm/osm_qos.c
-+++ b/opensm/opensm/osm_qos.c
-@@ -207,6 +207,7 @@ static int qos_extports_setup(osm_sm_t * sm, osm_node_t *node,
- 	osm_physp_t *p0, *p;
- 	unsigned force_update;
- 	unsigned num_ports = osm_node_get_num_physp(node);
-+	struct osm_routing_engine *re = sm->p_subn->p_osm->routing_engine_used;
- 	int ret = 0;
- 	unsigned i, j;
- 
-@@ -223,7 +224,7 @@ static int qos_extports_setup(osm_sm_t * sm, osm_node_t *node,
- 		return ret;
- 
- 	if (ib_switch_info_get_opt_sl2vlmapping(&node->sw->switch_info) &&
--	    sm->p_subn->opt.use_optimized_slvl) {
-+	    sm->p_subn->opt.use_optimized_slvl && !re->update_sl2vl) {
- 		p = osm_node_get_physp_ptr(node, 1);
- 		force_update = p->need_update || sm->p_subn->need_update;
- 		return sl2vl_update_table(sm, p, 1, 0x30000, force_update,
-@@ -234,10 +235,20 @@ static int qos_extports_setup(osm_sm_t * sm, osm_node_t *node,
- 		p = osm_node_get_physp_ptr(node, i);
- 		force_update = p->need_update || sm->p_subn->need_update;
- 		j = ib_switch_info_is_enhanced_port0(&node->sw->switch_info) ? 0 : 1;
--		for (; j < num_ports; j++)
-+		for (; j < num_ports; j++) {
-+			const ib_slvl_table_t *port_sl2vl = &qcfg->sl2vl;
-+			ib_slvl_table_t routing_sl2vl;
-+
-+			if (re->update_sl2vl) {
-+				routing_sl2vl = *port_sl2vl;
-+				re->update_sl2vl(re->context,
-+						 p, i, j, &routing_sl2vl);
-+				port_sl2vl = &routing_sl2vl;
-+			}
- 			if (sl2vl_update_table(sm, p, i, i << 8 | j,
--					       force_update, &qcfg->sl2vl))
-+					       force_update, port_sl2vl))
- 				ret = -1;
-+		}
- 	}
- 
- 	return ret;
-@@ -247,6 +258,9 @@ static int qos_endport_setup(osm_sm_t * sm, osm_physp_t * p,
- 			     const struct qos_config *qcfg)
- {
- 	unsigned force_update = p->need_update || sm->p_subn->need_update;
-+	struct osm_routing_engine *re = sm->p_subn->p_osm->routing_engine_used;
-+	const ib_slvl_table_t *port_sl2vl = &qcfg->sl2vl;
-+	ib_slvl_table_t routing_sl2vl;
- 
- 	p->vl_high_limit = qcfg->vl_high_limit;
- 	if (vlarb_update(sm, p, 0, force_update, qcfg))
-@@ -255,7 +269,12 @@ static int qos_endport_setup(osm_sm_t * sm, osm_physp_t * p,
- 	if (!(p->port_info.capability_mask & IB_PORT_CAP_HAS_SL_MAP))
- 		return 0;
- 
--	if (sl2vl_update_table(sm, p, 0, 0, force_update, &qcfg->sl2vl))
-+	if (re->update_sl2vl) {
-+		routing_sl2vl = *port_sl2vl;
-+		re->update_sl2vl(re->context, p, 0, 0, &routing_sl2vl);
-+		port_sl2vl = &routing_sl2vl;
-+	}
-+	if (sl2vl_update_table(sm, p, 0, 0, force_update, port_sl2vl))
- 		return -1;
- 
- 	return 0;
-diff --git a/opensm/opensm/osm_state_mgr.c b/opensm/opensm/osm_state_mgr.c
-index 81c8f54..cdd72c1 100644
---- a/opensm/opensm/osm_state_mgr.c
-+++ b/opensm/opensm/osm_state_mgr.c
-@@ -1141,6 +1141,7 @@ static void do_sweep(osm_sm_t * sm)
- 		sm->p_subn->ignore_existing_lfts = TRUE;
- 
- 		osm_ucast_mgr_process(&sm->ucast_mgr);
-+		osm_qos_setup(sm->p_subn->p_osm);
- 
- 		/* Reset flag */
- 		sm->p_subn->ignore_existing_lfts = FALSE;
-@@ -1259,8 +1260,6 @@ repeat_discovery:
- 
- 	osm_pkey_mgr_process(sm->p_subn->p_osm);
- 
--	osm_qos_setup(sm->p_subn->p_osm);
--
- 	/* try to restore SA DB (this should be before lid_mgr
- 	   because we may want to disable clients reregistration
- 	   when SA DB is restored) */
-@@ -1301,6 +1300,8 @@ repeat_discovery:
- 	    osm_ucast_cache_process(&sm->ucast_mgr))
- 		osm_ucast_mgr_process(&sm->ucast_mgr);
- 
-+	osm_qos_setup(sm->p_subn->p_osm);
-+
- 	if (wait_for_pending_transactions(&sm->p_subn->p_osm->stats))
- 		return;
- 
--- 
-1.6.2.2
+- Merged my patchsets from 11/20/2009, 12/18/2009, 2/16/2010.
+- Moved infomation contained in the earlier patch series introduction
+    emails into the appropriate commit messages.
+- Rebased to c183eb8c4c.
+- Addressed issues found by Yevgeny Kliteynik in original patchsets.
+    Yevgeny's --no_default_routing option patch is not included
+    in the merging, but would be a good addition.
+- Renamed osm_ucast_torus.c to osm_torus.c.
+    Since osm_torus.c contains code to implement both unicast and
+    multicast routing, the new name seems more appropriate.  The
+    multicast support depends heavily on the unicast routing code,
+    so it is more convenient to keep everything in one file.
+- Removed redundant check for changed sl2vl map.
+    This functionality already exists in sl2vl_update_table().
+- Set sl2vl maps on CA ports for torus-2QoS.
+    This was missing in the original patches.
+- Do not force torus-2QoS to use SLs 8-15 when not using "opensm -Q".
+    This was an interim measure introduced before multicast support was
+    working, that allowed multicast to use SL/VL 0 and thus not deadlock
+    against unicast.  I forget to take it out in the multicast patchset,
+    so I took it out when I merged.
+- Renamed torus variables referencing "origin" to "seed".
+    These things refer to switches used to seed the torus topology
+    appropriately, so the new name should reduce confusion going forward.
+    This also contains a keyword change in the torus configuration file,
+    so I'll repost an updated example.
+
+
+Jim Schutt (17):
+  opensm: Prepare for routing engine input to path record SL lookup and
+    SL2VL map setup.
+  opensm: Allow the routing engine to influence SL2VL calculations.
+  opensm: Allow the routing engine to participate in path SL
+    calculations.
+  opensm: Track the minimum value in the fabric of data VLs supported.
+  opensm: Add struct osm_routing_engine callback to build spanning
+    trees for multicast.
+  opensm: Make mcast_mgr_purge_tree() available outside
+    osm_mcast_mgr.c.
+  opensm: Add torus-2QoS routing engine, part 1.
+  opensm: Add torus-2QoS routing engine, part 2.
+  opensm: Add torus-2QoS routing engine, part 3.
+  opensm: Update documentation to describe torus-2QoS.
+  opensm: Enable torus-2QoS routing engine.
+  opensm: Add opensm option to specify file name for extra torus-2QoS
+    configuration information.
+  opensm: Do not require -Q option for torus-2QoS routing engine.
+  opensm: Make it possible to configure no fallback routing engine.
+  opensm: Avoid havoc in minhop caused by torus-2QoS persistent use of
+    osm_port_t:priv.
+  opensm: Avoid havoc in dump_ucast_routes() caused by torus-2QoS
+    persistent use of osm_port_t:priv.
+  opensm: Cause status of unicast routing attempt to propogate to
+    callers of osm_ucast_mgr_process().
+
+ opensm/doc/current-routing.txt         |  269 +-
+ opensm/include/opensm/osm_base.h       |   18 +
+ opensm/include/opensm/osm_multicast.h  |   33 +
+ opensm/include/opensm/osm_opensm.h     |   29 +-
+ opensm/include/opensm/osm_subnet.h     |    7 +
+ opensm/include/opensm/osm_switch.h     |   12 +
+ opensm/include/opensm/osm_ucast_lash.h |    3 -
+ opensm/man/opensm.8.in                 |    9 +-
+ opensm/opensm/Makefile.am              |    2 +-
+ opensm/opensm/main.c                   |   11 +-
+ opensm/opensm/osm_console.c            |   10 +-
+ opensm/opensm/osm_dump.c               |    5 +-
+ opensm/opensm/osm_link_mgr.c           |   16 +-
+ opensm/opensm/osm_mcast_mgr.c          |   11 +-
+ opensm/opensm/osm_opensm.c             |   54 +-
+ opensm/opensm/osm_port_info_rcv.c      |   13 +-
+ opensm/opensm/osm_qos.c                |   40 +-
+ opensm/opensm/osm_sa_path_record.c     |   33 +-
+ opensm/opensm/osm_state_mgr.c          |   23 +-
+ opensm/opensm/osm_subnet.c             |   20 +-
+ opensm/opensm/osm_switch.c             |    7 +-
+ opensm/opensm/osm_torus.c              | 9120 ++++++++++++++++++++++++++++++++
+ opensm/opensm/osm_ucast_lash.c         |   11 +-
+ opensm/opensm/osm_ucast_mgr.c          |   55 +-
+ 24 files changed, 9702 insertions(+), 109 deletions(-)
+ create mode 100644 opensm/opensm/osm_torus.c
 
 
 --
