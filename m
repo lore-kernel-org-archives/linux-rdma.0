@@ -1,8 +1,8 @@
 From: "Jim Schutt" <jaschut-4OHPYypu0djtX7QSmKvirg@public.gmane.org>
-Subject: [PATCH v3 13/17] opensm: Do not require -Q option for
- torus-2QoS routing engine.
-Date: Tue, 15 Jun 2010 13:53:20 -0600
-Message-ID: <1276631604-29230-14-git-send-email-jaschut@sandia.gov>
+Subject: [PATCH v3 15/17] opensm: Avoid havoc in minhop caused by
+ torus-2QoS persistent use of osm_port_t:priv.
+Date: Tue, 15 Jun 2010 13:53:22 -0600
+Message-ID: <1276631604-29230-16-git-send-email-jaschut@sandia.gov>
 References: <1276631604-29230-1-git-send-email-jaschut@sandia.gov>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -14,90 +14,66 @@ To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org, Jim Schutt <jaschut-4OHPYypu0djtX7QSmKvirg@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-The torus-2QoS engine provides a deadlock-free routing for a 2D/3D torus,
-but requires that switch SL2VL maps be programmed.  Before this change,
-"opensm -Q" was required for that to happen.
+Torus-2QoS makes persistent use of osm_port_t:priv to speed calculation
+of path SL values.
 
-When a routing engine sets the struct osm_routing_engine:update_sl2vl
-pointer, it is signalling its intent to participate in SL2VL map programming.
-So, don't return early from osm_qos_setup() in that case; instead do everything
-except attempt to read QoS configuration information.
+It cannot clear osm_port_t:priv members when it tears down its persistent
+data for the following reason: If a port is removed from the fabric, the
+opensm core will delete the corresponding osm_port_t object, leaving
+torus-2QoS holding a dangling reference.  Torus-2QoS then has a use-after-free
+error when tearing down its persistent data if it tries to use its dangling
+osm_port_t reference to clear the priv member.
 
-For that to work properly, need to also always set up the default QoS config
-information, instead of just when QoS is requested via -Q.
+When torus-2QoS is unable to route a fabric due to missing switches and
+opensm is configured to fall back to minhop, havoc will ensue because
+minhop uses a non-NULL osm_port_t:priv as a proxy for LMC > 0: it
+assumes if osm_port_t:priv is non-NULL it can only be because
+alloc_ports_priv() has been called.
 
-With that in place, the -Q option now means the same thing to torus-2QoS that
-it means to other routing engines: QoS configuration is requested.
+Fix this up by always calling alloc_ports_priv(), and have it set
+priv = NULL if LMC == 0.
 
 Signed-off-by: Jim Schutt <jaschut-4OHPYypu0djtX7QSmKvirg@public.gmane.org>
 ---
- opensm/opensm/osm_qos.c    |    7 +++++--
- opensm/opensm/osm_subnet.c |   18 +++++++++---------
- 2 files changed, 14 insertions(+), 11 deletions(-)
+ opensm/opensm/osm_ucast_mgr.c |   10 +++++-----
+ 1 files changed, 5 insertions(+), 5 deletions(-)
 
-diff --git a/opensm/opensm/osm_qos.c b/opensm/opensm/osm_qos.c
-index dadef29..6d2af55 100644
---- a/opensm/opensm/osm_qos.c
-+++ b/opensm/opensm/osm_qos.c
-@@ -290,7 +290,9 @@ int osm_qos_setup(osm_opensm_t * p_osm)
- 	osm_node_t *p_node;
- 	int ret = 0;
+diff --git a/opensm/opensm/osm_ucast_mgr.c b/opensm/opensm/osm_ucast_mgr.c
+index d1c485f..e6e40f0 100644
+--- a/opensm/opensm/osm_ucast_mgr.c
++++ b/opensm/opensm/osm_ucast_mgr.c
+@@ -315,8 +315,10 @@ static void alloc_ports_priv(osm_ucast_mgr_t * mgr)
+ 	     item = cl_qmap_next(item)) {
+ 		port = (osm_port_t *) item;
+ 		lmc = ib_port_info_get_lmc(&port->p_physp->port_info);
+-		if (!lmc)
++		if (!lmc) {
++			port->priv = NULL;
+ 			continue;
++		}
+ 		r = malloc(sizeof(*r) + sizeof(r->guids[0]) * (1 << lmc));
+ 		if (!r) {
+ 			OSM_LOG(mgr->p_log, OSM_LOG_ERROR, "ERR 3A09: "
+@@ -363,8 +365,7 @@ static void ucast_mgr_process_tbl(IN cl_map_item_t * p_map_item,
+ 	/* Initialize LIDs in buffer to invalid port number. */
+ 	memset(p_sw->new_lft, OSM_NO_PATH, p_sw->max_lid_ho + 1);
  
--	if (!p_osm->subn.opt.qos)
-+	if (!(p_osm->subn.opt.qos ||
-+	      (p_osm->routing_engine_used &&
-+	       p_osm->routing_engine_used->update_sl2vl)))
- 		return 0;
+-	if (p_mgr->p_subn->opt.lmc)
+-		alloc_ports_priv(p_mgr);
++	alloc_ports_priv(p_mgr);
  
- 	OSM_LOG_ENTER(&p_osm->log);
-@@ -307,7 +309,8 @@ int osm_qos_setup(osm_opensm_t * p_osm)
- 	cl_plock_excl_acquire(&p_osm->lock);
- 
- 	/* read QoS policy config file */
--	osm_qos_parse_policy_file(&p_osm->subn);
-+	if (p_osm->subn.opt.qos)
-+		osm_qos_parse_policy_file(&p_osm->subn);
- 
- 	p_tbl = &p_osm->subn.port_guid_tbl;
- 	p_next = cl_qmap_head(p_tbl);
-diff --git a/opensm/opensm/osm_subnet.c b/opensm/opensm/osm_subnet.c
-index bc34a0f..f714af7 100644
---- a/opensm/opensm/osm_subnet.c
-+++ b/opensm/opensm/osm_subnet.c
-@@ -1051,6 +1051,8 @@ static void subn_verify_qos_set(osm_qos_options_t *set, const char *prefix,
- 
- int osm_subn_verify_config(IN osm_subn_opt_t * p_opts)
- {
-+	osm_qos_options_t dflt;
-+
- 	if (p_opts->lmc > 7) {
- 		log_report(" Invalid Cached Option Value:lmc = %u:"
- 			   "Using Default:%u\n", p_opts->lmc, OSM_DEFAULT_LMC);
-@@ -1101,17 +1103,15 @@ int osm_subn_verify_config(IN osm_subn_opt_t * p_opts)
- 		p_opts->console = OSM_DEFAULT_CONSOLE;
+ 	/*
+ 	   Iterate through every port setting LID routes for each
+@@ -381,8 +382,7 @@ static void ucast_mgr_process_tbl(IN cl_map_item_t * p_map_item,
+ 		}
  	}
  
--	if (p_opts->qos) {
--		osm_qos_options_t dflt;
--
--		/* the default options in qos_options must be correct.
--		 * every other one need not be, b/c those will default
--		 * back to whatever is in qos_options.
--		 */
+-	if (p_mgr->p_subn->opt.lmc)
+-		free_ports_priv(p_mgr);
++	free_ports_priv(p_mgr);
  
--		subn_set_default_qos_options(&dflt);
-+	/* the default options in qos_options must be correct.
-+	 * every other one need not be, b/c those will default
-+	 * back to whatever is in qos_options.
-+	 */
-+	subn_set_default_qos_options(&dflt);
-+	subn_verify_qos_set(&p_opts->qos_options, "qos", &dflt);
- 
--		subn_verify_qos_set(&p_opts->qos_options, "qos", &dflt);
-+	if (p_opts->qos) {
- 		subn_verify_qos_set(&p_opts->qos_ca_options, "qos_ca",
- 				    &p_opts->qos_options);
- 		subn_verify_qos_set(&p_opts->qos_sw0_options, "qos_sw0",
+ 	OSM_LOG_EXIT(p_mgr->p_log);
+ }
 -- 
 1.6.2.2
 
