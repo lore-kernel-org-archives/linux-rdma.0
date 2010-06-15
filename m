@@ -1,8 +1,8 @@
 From: "Jim Schutt" <jaschut-4OHPYypu0djtX7QSmKvirg@public.gmane.org>
-Subject: [PATCH v3 12/17] opensm: Add opensm option to specify file name
- for extra torus-2QoS configuration information.
-Date: Tue, 15 Jun 2010 13:53:19 -0600
-Message-ID: <1276631604-29230-13-git-send-email-jaschut@sandia.gov>
+Subject: [PATCH v3 13/17] opensm: Do not require -Q option for
+ torus-2QoS routing engine.
+Date: Tue, 15 Jun 2010 13:53:20 -0600
+Message-ID: <1276631604-29230-14-git-send-email-jaschut@sandia.gov>
 References: <1276631604-29230-1-git-send-email-jaschut@sandia.gov>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -14,127 +14,90 @@ To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org, Jim Schutt <jaschut-4OHPYypu0djtX7QSmKvirg@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+The torus-2QoS engine provides a deadlock-free routing for a 2D/3D torus,
+but requires that switch SL2VL maps be programmed.  Before this change,
+"opensm -Q" was required for that to happen.
+
+When a routing engine sets the struct osm_routing_engine:update_sl2vl
+pointer, it is signalling its intent to participate in SL2VL map programming.
+So, don't return early from osm_qos_setup() in that case; instead do everything
+except attempt to read QoS configuration information.
+
+For that to work properly, need to also always set up the default QoS config
+information, instead of just when QoS is requested via -Q.
+
+With that in place, the -Q option now means the same thing to torus-2QoS that
+it means to other routing engines: QoS configuration is requested.
 
 Signed-off-by: Jim Schutt <jaschut-4OHPYypu0djtX7QSmKvirg@public.gmane.org>
 ---
- opensm/include/opensm/osm_base.h   |   18 ++++++++++++++++++
- opensm/include/opensm/osm_subnet.h |    5 +++++
- opensm/opensm/main.c               |    9 +++++++++
- opensm/opensm/osm_subnet.c         |    1 +
- opensm/opensm/osm_torus.c          |    2 +-
- 5 files changed, 34 insertions(+), 1 deletions(-)
+ opensm/opensm/osm_qos.c    |    7 +++++--
+ opensm/opensm/osm_subnet.c |   18 +++++++++---------
+ 2 files changed, 14 insertions(+), 11 deletions(-)
 
-diff --git a/opensm/include/opensm/osm_base.h b/opensm/include/opensm/osm_base.h
-index e0d6c66..fa4c78d 100644
---- a/opensm/include/opensm/osm_base.h
-+++ b/opensm/include/opensm/osm_base.h
-@@ -271,6 +271,24 @@ BEGIN_C_DECLS
- #endif
- /***********/
+diff --git a/opensm/opensm/osm_qos.c b/opensm/opensm/osm_qos.c
+index dadef29..6d2af55 100644
+--- a/opensm/opensm/osm_qos.c
++++ b/opensm/opensm/osm_qos.c
+@@ -290,7 +290,9 @@ int osm_qos_setup(osm_opensm_t * p_osm)
+ 	osm_node_t *p_node;
+ 	int ret = 0;
  
-+/****d* OpenSM: Base/OSM_DEFAULT_TORUS_CONF_FILE
-+* NAME
-+*	OSM_DEFAULT_TORUS_CONF_FILE
-+*
-+* DESCRIPTION
-+*	Specifies the default file name for extra torus-2QoS configuration
-+*
-+* SYNOPSIS
-+*/
-+#ifdef __WIN__
-+#define OSM_DEFAULT_TORUS_CONF_FILE strcat(GetOsmCachePath(), "osm-torus-2QoS.conf")
-+#elif defined(OPENSM_CONFIG_DIR)
-+#define OSM_DEFAULT_TORUS_CONF_FILE OPENSM_CONFIG_DIR "/torus-2QoS.conf"
-+#else
-+#define OSM_DEFAULT_TORUS_CONF_FILE "/etc/opensm/torus-2QoS.conf"
-+#endif /* __WIN__ */
-+/***********/
-+
- /****d* OpenSM: Base/OSM_DEFAULT_PREFIX_ROUTES_FILE
- * NAME
- *	OSM_DEFAULT_PREFIX_ROUTES_FILE
-diff --git a/opensm/include/opensm/osm_subnet.h b/opensm/include/opensm/osm_subnet.h
-index 4fa0161..fa3e46e 100644
---- a/opensm/include/opensm/osm_subnet.h
-+++ b/opensm/include/opensm/osm_subnet.h
-@@ -204,6 +204,7 @@ typedef struct osm_subn_opt {
- 	char *guid_routing_order_file;
- 	char *sa_db_file;
- 	boolean_t sa_db_dump;
-+	char *torus_conf_file;
- 	boolean_t do_mesh_analysis;
- 	boolean_t exit_on_fatal;
- 	boolean_t honor_guid2lid_file;
-@@ -431,6 +432,10 @@ typedef struct osm_subn_opt {
- *		When TRUE causes OpenSM to dump SA DB at the end of every
- *		light sweep regardless the current verbosity level.
- *
-+*	torus_conf_file
-+*		Name of the file with extra configuration info for torus-2QoS
-+*		routing engine.
-+*
- *	exit_on_fatal
- *		If TRUE (default) - SM will exit on fatal subnet initialization
- *		issues.
-diff --git a/opensm/opensm/main.c b/opensm/opensm/main.c
-index abc3282..b0bc372 100644
---- a/opensm/opensm/main.c
-+++ b/opensm/opensm/main.c
-@@ -231,6 +231,10 @@ static void show_usage(void)
- 	       "          Set the order port guids will be routed for the MinHop\n"
- 	       "          and Up/Down routing algorithms to the guids provided in the\n"
- 	       "          given file (one to a line)\n\n");
-+	printf("--torus_config <path to file>\n"
-+	       "          This option defines the file name for the extra configuration\n"
-+	       "          info needed for the torus-2QoS routing engine.   The default\n"
-+	       "          name is \'"OSM_DEFAULT_TORUS_CONF_FILE"\'\n\n");
- 	printf("--once, -o\n"
- 	       "          This option causes OpenSM to configure the subnet\n"
- 	       "          once, then exit.  Ports remain in the ACTIVE state.\n\n");
-@@ -615,6 +619,7 @@ int main(int argc, char *argv[])
- 		{"sm_sl", 1, NULL, 7},
- 		{"retries", 1, NULL, 8},
- 		{"log_prefix", 1, NULL, 9},
-+		{"torus_config", 1, NULL, 10},
- 		{NULL, 0, NULL, 0}	/* Required at the end of the array */
- 	};
+-	if (!p_osm->subn.opt.qos)
++	if (!(p_osm->subn.opt.qos ||
++	      (p_osm->routing_engine_used &&
++	       p_osm->routing_engine_used->update_sl2vl)))
+ 		return 0;
  
-@@ -1003,6 +1008,10 @@ int main(int argc, char *argv[])
- 			SET_STR_OPT(opt.log_prefix, optarg);
- 			printf("Log prefix = %s\n", opt.log_prefix);
- 			break;
-+		case 10:
-+			SET_STR_OPT(opt.torus_conf_file, optarg);
-+			printf("Torus-2QoS config file = %s\n", opt.torus_conf_file);
-+			break;
- 		case 'h':
- 		case '?':
- 		case ':':
+ 	OSM_LOG_ENTER(&p_osm->log);
+@@ -307,7 +309,8 @@ int osm_qos_setup(osm_opensm_t * p_osm)
+ 	cl_plock_excl_acquire(&p_osm->lock);
+ 
+ 	/* read QoS policy config file */
+-	osm_qos_parse_policy_file(&p_osm->subn);
++	if (p_osm->subn.opt.qos)
++		osm_qos_parse_policy_file(&p_osm->subn);
+ 
+ 	p_tbl = &p_osm->subn.port_guid_tbl;
+ 	p_next = cl_qmap_head(p_tbl);
 diff --git a/opensm/opensm/osm_subnet.c b/opensm/opensm/osm_subnet.c
-index 8224b5f..bc34a0f 100644
+index bc34a0f..f714af7 100644
 --- a/opensm/opensm/osm_subnet.c
 +++ b/opensm/opensm/osm_subnet.c
-@@ -753,6 +753,7 @@ void osm_subn_set_default_opt(IN osm_subn_opt_t * p_opt)
- 	p_opt->guid_routing_order_file = NULL;
- 	p_opt->sa_db_file = NULL;
- 	p_opt->sa_db_dump = FALSE;
-+	p_opt->torus_conf_file = strdup(OSM_DEFAULT_TORUS_CONF_FILE);
- 	p_opt->do_mesh_analysis = FALSE;
- 	p_opt->exit_on_fatal = TRUE;
- 	p_opt->enable_quirks = FALSE;
-diff --git a/opensm/opensm/osm_torus.c b/opensm/opensm/osm_torus.c
-index fe643f2..871a3f5 100644
---- a/opensm/opensm/osm_torus.c
-+++ b/opensm/opensm/osm_torus.c
-@@ -9049,7 +9049,7 @@ int torus_build_lfts(void *context)
- 	torus->osm = ctx->osm;
- 	fabric->osm = ctx->osm;
+@@ -1051,6 +1051,8 @@ static void subn_verify_qos_set(osm_qos_options_t *set, const char *prefix,
  
--	if (!parse_config(OPENSM_CONFIG_DIR "/opensm-torus.conf",
-+	if (!parse_config(ctx->osm->subn.opt.torus_conf_file,
- 			  fabric, torus))
- 		goto out;
+ int osm_subn_verify_config(IN osm_subn_opt_t * p_opts)
+ {
++	osm_qos_options_t dflt;
++
+ 	if (p_opts->lmc > 7) {
+ 		log_report(" Invalid Cached Option Value:lmc = %u:"
+ 			   "Using Default:%u\n", p_opts->lmc, OSM_DEFAULT_LMC);
+@@ -1101,17 +1103,15 @@ int osm_subn_verify_config(IN osm_subn_opt_t * p_opts)
+ 		p_opts->console = OSM_DEFAULT_CONSOLE;
+ 	}
  
+-	if (p_opts->qos) {
+-		osm_qos_options_t dflt;
+-
+-		/* the default options in qos_options must be correct.
+-		 * every other one need not be, b/c those will default
+-		 * back to whatever is in qos_options.
+-		 */
+ 
+-		subn_set_default_qos_options(&dflt);
++	/* the default options in qos_options must be correct.
++	 * every other one need not be, b/c those will default
++	 * back to whatever is in qos_options.
++	 */
++	subn_set_default_qos_options(&dflt);
++	subn_verify_qos_set(&p_opts->qos_options, "qos", &dflt);
+ 
+-		subn_verify_qos_set(&p_opts->qos_options, "qos", &dflt);
++	if (p_opts->qos) {
+ 		subn_verify_qos_set(&p_opts->qos_ca_options, "qos_ca",
+ 				    &p_opts->qos_options);
+ 		subn_verify_qos_set(&p_opts->qos_sw0_options, "qos_sw0",
 -- 
 1.6.2.2
 
