@@ -1,8 +1,7 @@
 From: "Jim Schutt" <jaschut-4OHPYypu0djtX7QSmKvirg@public.gmane.org>
-Subject: [PATCH v3 14/17] opensm: Make it possible to configure no
- fallback routing engine.
-Date: Tue, 15 Jun 2010 13:53:21 -0600
-Message-ID: <1276631604-29230-15-git-send-email-jaschut@sandia.gov>
+Subject: [PATCH v3 11/17] opensm: Enable torus-2QoS routing engine.
+Date: Tue, 15 Jun 2010 13:53:18 -0600
+Message-ID: <1276631604-29230-12-git-send-email-jaschut@sandia.gov>
 References: <1276631604-29230-1-git-send-email-jaschut@sandia.gov>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -14,116 +13,77 @@ To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org, Jim Schutt <jaschut-4OHPYypu0djtX7QSmKvirg@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-For a fabric that requires routing with an engine with special properties,
-say avoiding credit loops via making use of SLs in routing, it might
-be preferable to not fall back to minhop if the configured routing engine
-fails.
-
-E.g. the torus-2QoS routing engine uses both SL2VL maps and path SL values
-to provide routing free of credit loops, but cannot route fabrics for
-some patterns of failed switches.  Should a switch fail that creates such
-a pattern, it may be preferable to keep the previous routing information
-loaded in the switches until a switch can be replaced that restores
-torus-2QoS's ability to route the fabric.
-
-The alternative, having some other engine route the fabric, will immediately
-introduce credit loops.
 
 Signed-off-by: Jim Schutt <jaschut-4OHPYypu0djtX7QSmKvirg@public.gmane.org>
 ---
- opensm/include/opensm/osm_subnet.h |    1 +
- opensm/opensm/osm_opensm.c         |    5 +++++
- opensm/opensm/osm_qos.c            |    6 ++++++
- opensm/opensm/osm_ucast_mgr.c      |   23 +++++++++++++++--------
- 4 files changed, 27 insertions(+), 8 deletions(-)
+ opensm/include/opensm/osm_opensm.h |    1 +
+ opensm/opensm/main.c               |    2 +-
+ opensm/opensm/osm_opensm.c         |    6 ++++++
+ 3 files changed, 8 insertions(+), 1 deletions(-)
 
-diff --git a/opensm/include/opensm/osm_subnet.h b/opensm/include/opensm/osm_subnet.h
-index fa3e46e..42ae416 100644
---- a/opensm/include/opensm/osm_subnet.h
-+++ b/opensm/include/opensm/osm_subnet.h
-@@ -219,6 +219,7 @@ typedef struct osm_subn_opt {
- 	osm_qos_options_t qos_rtr_options;
- 	boolean_t enable_quirks;
- 	boolean_t no_clients_rereg;
-+	boolean_t no_fallback_routing_engine;
- #ifdef ENABLE_OSM_PERF_MGR
- 	boolean_t perfmgr;
- 	boolean_t perfmgr_redir;
+diff --git a/opensm/include/opensm/osm_opensm.h b/opensm/include/opensm/osm_opensm.h
+index fddcf53..8d63111 100644
+--- a/opensm/include/opensm/osm_opensm.h
++++ b/opensm/include/opensm/osm_opensm.h
+@@ -105,6 +105,7 @@ typedef enum _osm_routing_engine_type {
+ 	OSM_ROUTING_ENGINE_TYPE_FTREE,
+ 	OSM_ROUTING_ENGINE_TYPE_LASH,
+ 	OSM_ROUTING_ENGINE_TYPE_DOR,
++	OSM_ROUTING_ENGINE_TYPE_TORUS_2QOS,
+ 	OSM_ROUTING_ENGINE_TYPE_UNKNOWN
+ } osm_routing_engine_type_t;
+ /***********/
+diff --git a/opensm/opensm/main.c b/opensm/opensm/main.c
+index 0093aa7..abc3282 100644
+--- a/opensm/opensm/main.c
++++ b/opensm/opensm/main.c
+@@ -174,7 +174,7 @@ static void show_usage(void)
+ 	       "          Min Hop algorithm.  Multiple routing engines can be specified\n"
+ 	       "          separated by commas so that specific ordering of routing\n"
+ 	       "          algorithms will be tried if earlier routing engines fail.\n"
+-	       "          Supported engines: updn, file, ftree, lash, dor\n\n");
++	       "          Supported engines: updn, file, ftree, lash, dor, torus-2QoS\n\n");
+ 	printf("--do_mesh_analysis\n"
+ 	       "          This option enables additional analysis for the lash\n"
+ 	       "          routing engine to precondition switch port assignments\n"
 diff --git a/opensm/opensm/osm_opensm.c b/opensm/opensm/osm_opensm.c
-index 8b03947..e296812 100644
+index 5614240..8b03947 100644
 --- a/opensm/opensm/osm_opensm.c
 +++ b/opensm/opensm/osm_opensm.c
-@@ -159,6 +159,11 @@ static struct osm_routing_engine *setup_routing_engine(osm_opensm_t *osm,
- 	struct osm_routing_engine *re;
- 	const struct routing_engine_module *m;
+@@ -70,6 +70,7 @@ extern int osm_ucast_file_setup(struct osm_routing_engine *, osm_opensm_t *);
+ extern int osm_ucast_ftree_setup(struct osm_routing_engine *, osm_opensm_t *);
+ extern int osm_ucast_lash_setup(struct osm_routing_engine *, osm_opensm_t *);
+ extern int osm_ucast_dor_setup(struct osm_routing_engine *, osm_opensm_t *);
++extern int osm_ucast_torus2QoS_setup(struct osm_routing_engine *, osm_opensm_t *);
  
-+	if (!strcmp(name, "no_fallback")) {
-+		osm->subn.opt.no_fallback_routing_engine = TRUE;
-+		return NULL;
-+	}
-+
- 	for (m = routing_modules; m->name && *m->name; m++) {
- 		if (!strcmp(m->name, name)) {
- 			re = malloc(sizeof(struct osm_routing_engine));
-diff --git a/opensm/opensm/osm_qos.c b/opensm/opensm/osm_qos.c
-index 6d2af55..dc6a8ff 100644
---- a/opensm/opensm/osm_qos.c
-+++ b/opensm/opensm/osm_qos.c
-@@ -211,6 +211,12 @@ static int qos_extports_setup(osm_sm_t * sm, osm_node_t *node,
- 	int ret = 0;
- 	unsigned i, j;
+ const static struct routing_engine_module routing_modules[] = {
+ 	{"minhop", osm_ucast_minhop_setup},
+@@ -78,6 +79,7 @@ const static struct routing_engine_module routing_modules[] = {
+ 	{"ftree", osm_ucast_ftree_setup},
+ 	{"lash", osm_ucast_lash_setup},
+ 	{"dor", osm_ucast_dor_setup},
++	{"torus-2QoS", osm_ucast_torus2QoS_setup},
+ 	{NULL, NULL}
+ };
  
-+	/*
-+	 * Do nothing unless the most recent routing attempt was successful.
-+	 */
-+	if (!re)
-+		return ret;
-+
- 	for (i = 1; i < num_ports; i++) {
- 		p = osm_node_get_physp_ptr(node, i);
- 		force_update = p->need_update || sm->p_subn->need_update;
-diff --git a/opensm/opensm/osm_ucast_mgr.c b/opensm/opensm/osm_ucast_mgr.c
-index 10629cb..d1c485f 100644
---- a/opensm/opensm/osm_ucast_mgr.c
-+++ b/opensm/opensm/osm_ucast_mgr.c
-@@ -1091,7 +1091,8 @@ int osm_ucast_mgr_process(IN osm_ucast_mgr_t * p_mgr)
- 		p_routing_eng = p_routing_eng->next;
+@@ -98,6 +100,8 @@ const char *osm_routing_engine_type_str(IN osm_routing_engine_type_t type)
+ 		return "lash";
+ 	case OSM_ROUTING_ENGINE_TYPE_DOR:
+ 		return "dor";
++	case OSM_ROUTING_ENGINE_TYPE_TORUS_2QOS:
++		return "torus-2QoS";
+ 	default:
+ 		break;
  	}
- 
--	if (!p_osm->routing_engine_used) {
-+	if (!p_osm->routing_engine_used &&
-+	    p_osm->subn.opt.no_fallback_routing_engine != TRUE) {
- 		/* If configured routing algorithm failed, use default MinHop */
- 		struct osm_routing_engine *r = p_osm->default_routing_engine;
- 
-@@ -1101,14 +1102,20 @@ int osm_ucast_mgr_process(IN osm_ucast_mgr_t * p_mgr)
- 		osm_ucast_mgr_set_fwd_tables(p_mgr);
- 	}
- 
--	OSM_LOG(p_mgr->p_log, OSM_LOG_INFO,
--		"%s tables configured on all switches\n",
--		osm_routing_engine_type_str(p_osm->
--					    routing_engine_used->type));
--
--	if (p_mgr->p_subn->opt.use_ucast_cache)
--		p_mgr->cache_valid = TRUE;
-+	if (p_osm->routing_engine_used) {
-+		OSM_LOG(p_mgr->p_log, OSM_LOG_INFO,
-+			"%s tables configured on all switches\n",
-+			osm_routing_engine_type_str(p_osm->
-+						    routing_engine_used->type));
- 
-+		if (p_mgr->p_subn->opt.use_ucast_cache)
-+			p_mgr->cache_valid = TRUE;
-+	} else {
-+		p_mgr->p_subn->subnet_initialization_error = TRUE;
-+		OSM_LOG(p_mgr->p_log, OSM_LOG_ERROR,
-+			"No routing engine able to successfully configure "
-+			" switch tables on current fabric\n");
-+	}
- Exit:
- 	CL_PLOCK_RELEASE(p_mgr->p_lock);
- 	OSM_LOG_EXIT(p_mgr->p_log);
+@@ -124,6 +128,8 @@ osm_routing_engine_type_t osm_routing_engine_type(IN const char *str)
+ 		return OSM_ROUTING_ENGINE_TYPE_LASH;
+ 	else if (!strcasecmp(str, "dor"))
+ 		return OSM_ROUTING_ENGINE_TYPE_DOR;
++	else if (!strcasecmp(str, "torus-2QoS"))
++		return OSM_ROUTING_ENGINE_TYPE_TORUS_2QOS;
+ 	else
+ 		return OSM_ROUTING_ENGINE_TYPE_UNKNOWN;
+ }
 -- 
 1.6.2.2
 
