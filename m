@@ -1,117 +1,78 @@
-From: Mike Heinz <michael.heinz-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH] pkey fix for ipoib - resubmission
-Date: Wed, 16 Jun 2010 08:59:03 -0500
-Message-ID: <4C2744E8AD2982428C5BFE523DF8CDCB49D09E7A43@MNEXMB1.qlogic.org>
+From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: Re: [ewg] [PATCH v4] IB Core: RAW ETH support
+Date: Wed, 16 Jun 2010 09:09:59 -0500
+Message-ID: <4C18DB37.6050501@opengridcomputing.com>
+References: <E113D394D7C5DB4F8FF691FA7EE9DB4439A76E8632@MTLMAIL.mtl.com>	<1276513450.30132.51.camel@alst60.voltaire.com> <aday6eguhfn.fsf@roland-alpha.cisco.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <aday6eguhfn.fsf-BjVyx320WGW9gfZ95n9DRSW4+XlvGpQz@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Cc: Alekseys Senin <alekseys-smomgflXvOZWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Eli Cohen <eli-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, "ewg-G2znmakfqn7U1rindQTSdQ@public.gmane.org" <ewg-G2znmakfqn7U1rindQTSdQ@public.gmane.org>, Moni Shoua <monis-smomgflXvOZWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-I never got a response to this patch, so I'm sending it again.
+Roland Dreier wrote:
+>  > I tested it before on the Roland tree ( iboe branch ) and it fails,
+>  > because it writen in the way suitable for OFED. If adapt the patch to
+>  > the Roland tree, then appling Mellanox OFED patches will fail, because
+>  > it changes the same functions in the code.
+>  > Here is one example:
+>  > Look at __mlx4_ib_modify_qp at the Roland tree - there is no RAW_ETY
+>  > support. But in the OFED version of the same function this support is
+>  > present.
+>  > RAW_ETH patch modify this function and looking for RAW_ETY word and
+>  > without this RAW_ETH Mellanox patch will fail.
+>
+> Don't take this too personally -- I picked a semi-random email in this
+> thread to reply to; this is pretty broadly targeted.
+>
+> <rant>
+>
+> What the hell is the thinking behind introducing IB_QPT_RAW_ETH?  You're
+> inserting an enum value before IB_QPT_RAW_ETY, so any old userspace
+> passing in IB_QPT_RAW_ETY will silently get different behavior depending
+> on the kernel version.  And you're creating two constands that differ in
+> a single letter (IB_QPT_RAW_ETY vs. IB_QPT_RAW_ETH).  How are you going
+> to explain that to users?  How is anyone ever going to get it right?
+> For that matter, what exactly does IB_QPT_RAW_ETH mean?
+>
+> This all seems to be a symptom of how broken our development process
+> is.  Yes, unfortunately I can't spend as much time reviewing and
+> applying patches as I might like, and I apologize for that.  But if we
+> have all the RDMA developers piling up shit in their little area and
+> then sending it on to be merged as soon as it kind of works, without
+> thinking about design or maintainability and without ever doing any
+> review, then I'm always going to have an expanding review backlog.
+>
+> And then we have OFED compounding problems -- "Oh that's a nice pile of
+> shit you've built there.  We better ship it to users while it's still
+> steaming."  How about if OFED developers take a little time to think
+> things through?
+>
+> </rant>
+>
+> In other words, can someone explain the plan for this raw QP stuff to me?
+>
+>  - R.
+>   
 
------------------
 
-IPoIB is coded to use the 1st PKey in the PKey table as its ib0 interface. Additional ib0.pkey interfaces may be created using the /sys/class/... add_child interface.
+It doesn't even look like this patch and the mlx4 patch were ever posted 
+to linux-rdma. Only to the EWG list.
 
-However, there is a race.  During normal boot, IPoIB will be started before the port is Active.  Hence the pkey table has not yet been programmed and has a default pkey table (with 0xffff as only pkey).
+Granted our dev process may not be documented, but I always assumed the 
+general idea was to get changes accepted upstream, then pull into ofed. 
+OFED is just a mechanism to make top-of-tree linux work on distro 
+kernels. There are some exceptions, but this stuff shouldn't be an 
+exception.
 
-Later when the SM moves the port to Active, the SM may program the pkey table differently.  However at this point IPoIB has already started using the incorrect pkey.
+We should all follow this "upstream first" process IMO.
 
-It appears that the initially formatted 'broadcast' mgid is never updated to supply actual pkey value if ipoib comes up before hca port. Proposed patch targets two issues:
+Steve.
 
-1. Suppress activation of interface and join multicast group queries (it will fail anyway) until hca port is initialized. When port becomes active - update pkey value and move on.
-2. Update broadcast mgid based on actual pkey, then issue join broadcast group request.
 
-Signed-Off-By: Michael Heinz <michael.heinz-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-
--------
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib_ib.c b/drivers/infiniband/ulp/ipoib/ipoib_ib.c
-index ec6b4fb..496d96c 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib_ib.c
-+++ b/drivers/infiniband/ulp/ipoib/ipoib_ib.c
-@@ -51,6 +51,7 @@ MODULE_PARM_DESC(data_debug_level,
- #endif
- 
- static DEFINE_MUTEX(pkey_mutex);
-+static void ipoib_pkey_dev_check_presence(struct net_device *dev);
- 
- struct ipoib_ah *ipoib_create_ah(struct net_device *dev,
- 				 struct ib_pd *pd, struct ib_ah_attr *attr) @@ -654,12 +655,13 @@ int ipoib_ib_dev_open(struct net_device *dev)
- 	struct ipoib_dev_priv *priv = netdev_priv(dev);
- 	int ret;
- 
--	if (ib_find_pkey(priv->ca, priv->port, priv->pkey, &priv->pkey_index)) {
-+	ipoib_pkey_dev_check_presence(dev);
-+
-+	if (!test_bit(IPOIB_PKEY_ASSIGNED, &priv->flags)) {
- 		ipoib_warn(priv, "P_Key 0x%04x not found\n", priv->pkey);
- 		clear_bit(IPOIB_PKEY_ASSIGNED, &priv->flags);
- 		return -1;
- 	}
--	set_bit(IPOIB_PKEY_ASSIGNED, &priv->flags);
- 
- 	ret = ipoib_init_qp(dev);
- 	if (ret) {
-@@ -694,9 +696,26 @@ int ipoib_ib_dev_open(struct net_device *dev)  static void ipoib_pkey_dev_check_presence(struct net_device *dev)  {
- 	struct ipoib_dev_priv *priv = netdev_priv(dev);
--	u16 pkey_index = 0;
-+	struct ib_port_attr    port_attr;
-+
-+	if (!test_bit(IPOIB_FLAG_SUBINTERFACE, &priv->flags)) {
-+		clear_bit(IPOIB_PKEY_ASSIGNED, &priv->flags);
-+		if (ib_query_port(priv->ca, priv->port, &port_attr)) {
-+			ipoib_warn(priv, "Query port attrs failed\n");
-+			return;
-+		}
-+
-+		if (port_attr.state != IB_PORT_ACTIVE)
-+			return;
-+
-+		if (ib_query_pkey(priv->ca, priv->port, 0, &priv->pkey)) {
-+			ipoib_warn(priv, "Query P_Key table entry 0 failed\n");
-+			return;
-+		}
-+		set_bit(IPOIB_PKEY_ASSIGNED, &priv->flags);
-+	}
- 
--	if (ib_find_pkey(priv->ca, priv->port, priv->pkey, &pkey_index))
-+	if (ib_find_pkey(priv->ca, priv->port, priv->pkey, &priv->pkey_index))
- 		clear_bit(IPOIB_PKEY_ASSIGNED, &priv->flags);
- 	else
- 		set_bit(IPOIB_PKEY_ASSIGNED, &priv->flags); @@ -955,7 +974,8 @@ static void __ipoib_ib_dev_flush(struct ipoib_dev_priv *priv,
- 		}
- 
- 		/* restart QP only if P_Key index is changed */
--		if (test_and_set_bit(IPOIB_PKEY_ASSIGNED, &priv->flags) &&
-+		if (test_bit(IPOIB_FLAG_SUBINTERFACE, &priv->flags) &&
-+		    test_and_set_bit(IPOIB_PKEY_ASSIGNED, &priv->flags) &&
- 		    new_index == priv->pkey_index) {
- 			ipoib_dbg(priv, "Not flushing - P_Key index not changed.\n");
- 			return;
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib_multicast.c b/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
-index 3871ac6..6fe6527 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
-+++ b/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
-@@ -552,6 +552,13 @@ void ipoib_mcast_join_task(struct work_struct *work)
- 		}
- 
- 		spin_lock_irq(&priv->lock);
-+
-+		if (!test_bit(IPOIB_FLAG_SUBINTERFACE, &priv->flags)) {
-+			/* fix broadcast gid in case if pkey was changed */
-+			priv->pkey |= 0x8000;
-+			priv->dev->broadcast[8] = priv->pkey >> 8;
-+			priv->dev->broadcast[9] = priv->pkey & 0xff;
-+		}
- 		memcpy(broadcast->mcmember.mgid.raw, priv->dev->broadcast + 4,
- 		       sizeof (union ib_gid));
- 		priv->broadcast = broadcast;
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org More majordomo info at  http://vger.kernel.org/majordomo-info.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
