@@ -1,25 +1,46 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH 5/5] dapl-2.0 - scm, ucm: add pkey, pkey_index, sl
- override for QP's
-Date: Wed, 16 Jun 2010 12:03:23 -0700
-Message-ID: <CF9C39F99A89134C9CF9C4CCB68B8DDF259E4E065C@orsmsx501.amr.corp.intel.com>
-References: <E3280858FA94444CA49D2BA02341C9830103BF2437@orsmsx506.amr.corp.intel.com>
- <CF9C39F99A89134C9CF9C4CCB68B8DDF259E4E04A4@orsmsx501.amr.corp.intel.com>
- <E3280858FA94444CA49D2BA02341C9830103BF25EB@orsmsx506.amr.corp.intel.com>
+From: Mike Heinz <michael.heinz-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+Subject: RE: Handling busy responses from the SA
+Date: Wed, 16 Jun 2010 14:57:00 -0500
+Message-ID: <4C2744E8AD2982428C5BFE523DF8CDCB49D09E7ACD@MNEXMB1.qlogic.org>
+References: <4C2744E8AD2982428C5BFE523DF8CDCB49A488DADA@MNEXMB1.qlogic.org>
+	<AANLkTinEhSe7IjdzLPp6DLWGcgJd_iQuVeFvr0-HSCb-@mail.gmail.com>
+	<4C2744E8AD2982428C5BFE523DF8CDCB49A488DC0C@MNEXMB1.qlogic.org>
+	<AANLkTiknVS0abJVMLSZd0GOBeKvHukzbN7A1xZQDFPmD@mail.gmail.com>
+	<4C2744E8AD2982428C5BFE523DF8CDCB49A488DCCA@MNEXMB1.qlogic.org>
+	<CF9C39F99A89134C9CF9C4CCB68B8DDF255F578B7A@orsmsx501.amr.corp.intel.com>
+	<AANLkTinDBQfcFpfU9PY_bLNyElXcyLlpQzoPLlj0jdAC@mail.gmail.com>
+	<4C2744E8AD2982428C5BFE523DF8CDCB49A488DD33@MNEXMB1.qlogic.org>
+ <AANLkTilzAlDlx7NYuHALLSntR6Q7-Kpn9I3x-fvqmded@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <E3280858FA94444CA49D2BA02341C9830103BF25EB-osO9UTpF0URZtRGVdHMbwrfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+In-Reply-To: <AANLkTilzAlDlx7NYuHALLSntR6Q7-Kpn9I3x-fvqmded-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Davis, Arlin R" <arlin.r.davis-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ofw_list <ofw-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+To: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Todd Rimmer <todd.rimmer-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> You don't need both, it's just a matter of convenience
-> for consumers.
-
-I vote that it's a matter of confusion for consumers.  The index isn't guaranteed to be the same across all nodes.  If a consumer is going to manually control this, they should really be forced to use the actual pkey.
+SGFsLA0KDQpCdXQgaWYgdGhlIG9yaWdpbmFsIHRyYXAgaGFkIHJldHJpZXMgPiAwLCB3b3VsZG4n
+dCByZXNlbmRpbmcgdGhlIHRyYXAgYmUgd2hhdCB0aGUgaXNzdWVyIGludGVuZGVkPw0KDQpJIGd1
+ZXNzIEknbSBjb25mdXNlZCB3aHkgdHJlYXRpbmcgQlVTWSBhcyBzaW1pbGFyIHRvIHNpbXBseSBu
+ZXZlciBnZXR0aW5nIGEgcmVzcG9uc2UgYXQgYWxsIGlzIGEgYmFkIHRoaW5nLiBJbiBteSBtaW5k
+LCByZWNlaXZpbmcgYSBCVVNZIHJlc3BvbnNlIGlzIGxpa2UgZ2V0dGluZyBhIGJ1c3kgc2lnbmFs
+IHdoZW4geW91IGNhbGwgc29tZW9uZSBvbiB0aGUgcGhvbmUgLSBhIHNpZ24geW91IG5lZWQgdG8g
+d2FpdCBhIGJpdCB0aGVuIHRyeSBhZ2Fpbi4gU2ltaWxhcmx5LCBpZiBJIGNhbGwgc29tZW9uZSBh
+bmQgbmV2ZXIgZ2V0IGFuIGFuc3dlciBteSBzdHJhdGVneSBpcyBnb2luZyB0byBiZSB0byB3YWl0
+LCB0aGVuIHRyeSBhZ2Fpbi4gDQoNCi0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQpGcm9tOiBI
+YWwgUm9zZW5zdG9jayBbbWFpbHRvOmhhbC5yb3NlbnN0b2NrQGdtYWlsLmNvbV0gDQpTZW50OiBU
+dWVzZGF5LCBKdW5lIDA4LCAyMDEwIDg6MTYgUE0NClRvOiBNaWtlIEhlaW56DQpDYzogSGVmdHks
+IFNlYW47IGxpbnV4LXJkbWFAdmdlci5rZXJuZWwub3JnDQpTdWJqZWN0OiBSZTogSGFuZGxpbmcg
+YnVzeSByZXNwb25zZXMgZnJvbSB0aGUgU0ENCg0KTWlrZSwNCg0KSSdtIHJlZmVycmluZyB0byB0
+aGUgcmVjZWlwdCBvZiB0aGUgVHJhcFJlcHJlc3Mgd2l0aCBidXN5IHN0YXR1cy4NCldvdWxkbid0
+IHlvdXIgcGF0Y2ggY2F1c2UgdGhlIG9yaWdpbmFsIFRyYXAgdG8gYmUgcmVzZW50IHdoZW4gcmV0
+cmllcw0KPiAwID8gVHJhcFJlcHJlc3MgaXMgZXNzZW50aWFsbHkgYSByZXNwb25zZSB0byBUcmFw
+IGFuZCBjbGFzc2lmaWVkIGFzDQpzdWNoIGJ5IGliX3Jlc3BvbnNlX21hZC4gWW91ciBwcm9wb3Nl
+ZCBwYXRjaCB0cmVhdHMgYSBidXN5IGFzIGENCnRpbWVvdXQgYW5kIGNhbiBjYXVzZSByZXRyeSBv
+ZiB0aGUgb3JpZ2luYWwgc2VudCBUcmFwLg0KDQotLSBIYWwNCg==
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
