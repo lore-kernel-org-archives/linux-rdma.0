@@ -1,48 +1,51 @@
-From: Hal Rosenstock <hnrose-Wuw85uim5zDR7s880joybQ@public.gmane.org>
-Subject: [PATCH][TRIVIAL] infiniband-diags/perfquery.8: Add some missing
-	counters to description
-Date: Wed, 16 Jun 2010 07:05:42 -0400
-Message-ID: <20100616110542.GA11132@comcast.net>
+From: Webmail Help Desk <rubyriverresort-LzPWRcFV0Gjk1uMJSBkQmQ@public.gmane.org>
+Subject: ***IMPORTANT NOTICE***
+Date: Wed, 16 Jun 2010 14:00:52 +0200 (SAST)
+Message-ID: <1872307704.3851191276689652765.JavaMail.root@zimbra3-vm1.telkomsa.net>
+Reply-To: Webmail Help Desk <admincentre1-QQk5GQysHIZGsCc+L4TfMdBPR1lH4CV8@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+Dear Web-Mail Account Owner:
 
-Also, updated email address
 
-Signed-off-by: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
----
-diff --git a/infiniband-diags/man/perfquery.8 b/infiniband-diags/man/perfquery.8
-index 7e9636e..e01dc2f 100644
---- a/infiniband-diags/man/perfquery.8
-+++ b/infiniband-diags/man/perfquery.8
-@@ -1,4 +1,4 @@
--.TH PERFQUERY 8 "Dec 31, 2009" "OpenIB" "OpenIB Diagnostics"
-+.TH PERFQUERY 8 "Jun 16, 2010" "OpenIB" "OpenIB Diagnostics"
- 
- .SH NAME
- perfquery \- query InfiniBand port counters
-@@ -14,7 +14,8 @@ perfquery \- query InfiniBand port counters
- .SH DESCRIPTION
- .PP
- perfquery uses PerfMgt GMPs to obtain the PortCounters (basic performance
--and error counters), PortExtendedCounters, PortXmitDataSL, or PortRcvDataSL
-+and error counters), PortExtendedCounters, PortXmitDataSL, PortRcvDataSL,
-+PortRcvErrorDetails, PortXmitDiscardDetails, or PortSamplesControl
- from the PMA at the node/port specified. Optionally shows aggregated
- counters for all ports of node.
- Also, optionally, reset after read, or only reset counters.
-@@ -144,4 +145,4 @@ perfquery -R 32 2 0xf000 # reset only non-error counters of port 2
- .SH AUTHOR
- .TP
- Hal Rosenstock
--.RI < halr-smomgflXvOZWk0Htik3J/w@public.gmane.org >
-+.RI < hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org >
+It has come to our notice that your email has not passed the verification/Update
+process that we are presently working on.
+
+We are currently upgrading our data base and e-mail account center, thereby
+deleting all Old Web mail email account to create more space for new
+accounts. To prevent your account from closing you will have to update
+it so that we will know that it's a presently used account. To complete
+your account re-confirmation, you must reply to this email immediately
+and enter your account details as requested below.
+
+***********************************************
+Email User-name :........ .....
+EMAIL Password :...............
+Date of Birth :...............
+Country or Territory :........
+************************************************
+
+****IMPORTANT :
+
+This updating is compulsory as a result of our recent server changes. If you
+fail to update your email address you will soon be unable to receive/send
+mails.Also your email will not be equipped with the latest anti-virus system
+on our new servers.
+
+This will make your email and PC vulnerable to virus attacks from the internet.
+
+**** HOW TO UPDATE***
+To update simply reply the above to upgrading admin as appropriate.Failure
+to do so immediately will lead to SUSPENSION OF YOUR ACCOUNT.
+
+
+Thanks for your co-operation,
+Web-mail Administrator
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
