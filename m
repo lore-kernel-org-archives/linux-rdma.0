@@ -1,46 +1,24 @@
-From: Mike Heinz <michael.heinz-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-Subject: RE: Handling busy responses from the SA
-Date: Wed, 16 Jun 2010 14:57:00 -0500
-Message-ID: <4C2744E8AD2982428C5BFE523DF8CDCB49D09E7ACD@MNEXMB1.qlogic.org>
-References: <4C2744E8AD2982428C5BFE523DF8CDCB49A488DADA@MNEXMB1.qlogic.org>
-	<AANLkTinEhSe7IjdzLPp6DLWGcgJd_iQuVeFvr0-HSCb-@mail.gmail.com>
-	<4C2744E8AD2982428C5BFE523DF8CDCB49A488DC0C@MNEXMB1.qlogic.org>
-	<AANLkTiknVS0abJVMLSZd0GOBeKvHukzbN7A1xZQDFPmD@mail.gmail.com>
-	<4C2744E8AD2982428C5BFE523DF8CDCB49A488DCCA@MNEXMB1.qlogic.org>
-	<CF9C39F99A89134C9CF9C4CCB68B8DDF255F578B7A@orsmsx501.amr.corp.intel.com>
-	<AANLkTinDBQfcFpfU9PY_bLNyElXcyLlpQzoPLlj0jdAC@mail.gmail.com>
-	<4C2744E8AD2982428C5BFE523DF8CDCB49A488DD33@MNEXMB1.qlogic.org>
- <AANLkTilzAlDlx7NYuHALLSntR6Q7-Kpn9I3x-fvqmded@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+From: "merle" <crystallographylabbibpwmcist-J/blfnh8V8JBDgjK7y7TUQ@public.gmane.org>
+Subject: Credit Inquiries Database - 1 million Full Data Records all with emails
+Date: 16 Jun 2010 03:58:19 +0200
+Message-ID: <FBCL-MAIL-018QkoKcg00003361@FBCL-MAIL-01.fbcl.fbch.corp>
+Content-Type: text/plain;
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <AANLkTilzAlDlx7NYuHALLSntR6Q7-Kpn9I3x-fvqmded-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Todd Rimmer <todd.rimmer-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+To: juned_rehman-/E1597aS9LQ@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-SGFsLA0KDQpCdXQgaWYgdGhlIG9yaWdpbmFsIHRyYXAgaGFkIHJldHJpZXMgPiAwLCB3b3VsZG4n
-dCByZXNlbmRpbmcgdGhlIHRyYXAgYmUgd2hhdCB0aGUgaXNzdWVyIGludGVuZGVkPw0KDQpJIGd1
-ZXNzIEknbSBjb25mdXNlZCB3aHkgdHJlYXRpbmcgQlVTWSBhcyBzaW1pbGFyIHRvIHNpbXBseSBu
-ZXZlciBnZXR0aW5nIGEgcmVzcG9uc2UgYXQgYWxsIGlzIGEgYmFkIHRoaW5nLiBJbiBteSBtaW5k
-LCByZWNlaXZpbmcgYSBCVVNZIHJlc3BvbnNlIGlzIGxpa2UgZ2V0dGluZyBhIGJ1c3kgc2lnbmFs
-IHdoZW4geW91IGNhbGwgc29tZW9uZSBvbiB0aGUgcGhvbmUgLSBhIHNpZ24geW91IG5lZWQgdG8g
-d2FpdCBhIGJpdCB0aGVuIHRyeSBhZ2Fpbi4gU2ltaWxhcmx5LCBpZiBJIGNhbGwgc29tZW9uZSBh
-bmQgbmV2ZXIgZ2V0IGFuIGFuc3dlciBteSBzdHJhdGVneSBpcyBnb2luZyB0byBiZSB0byB3YWl0
-LCB0aGVuIHRyeSBhZ2Fpbi4gDQoNCi0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQpGcm9tOiBI
-YWwgUm9zZW5zdG9jayBbbWFpbHRvOmhhbC5yb3NlbnN0b2NrQGdtYWlsLmNvbV0gDQpTZW50OiBU
-dWVzZGF5LCBKdW5lIDA4LCAyMDEwIDg6MTYgUE0NClRvOiBNaWtlIEhlaW56DQpDYzogSGVmdHks
-IFNlYW47IGxpbnV4LXJkbWFAdmdlci5rZXJuZWwub3JnDQpTdWJqZWN0OiBSZTogSGFuZGxpbmcg
-YnVzeSByZXNwb25zZXMgZnJvbSB0aGUgU0ENCg0KTWlrZSwNCg0KSSdtIHJlZmVycmluZyB0byB0
-aGUgcmVjZWlwdCBvZiB0aGUgVHJhcFJlcHJlc3Mgd2l0aCBidXN5IHN0YXR1cy4NCldvdWxkbid0
-IHlvdXIgcGF0Y2ggY2F1c2UgdGhlIG9yaWdpbmFsIFRyYXAgdG8gYmUgcmVzZW50IHdoZW4gcmV0
-cmllcw0KPiAwID8gVHJhcFJlcHJlc3MgaXMgZXNzZW50aWFsbHkgYSByZXNwb25zZSB0byBUcmFw
-IGFuZCBjbGFzc2lmaWVkIGFzDQpzdWNoIGJ5IGliX3Jlc3BvbnNlX21hZC4gWW91ciBwcm9wb3Nl
-ZCBwYXRjaCB0cmVhdHMgYSBidXN5IGFzIGENCnRpbWVvdXQgYW5kIGNhbiBjYXVzZSByZXRyeSBv
-ZiB0aGUgb3JpZ2luYWwgc2VudCBUcmFwLg0KDQotLSBIYWwNCg==
+You can reach me at my other email address for details:    successandresults-KK0ffGbhmjU@public.gmane.org
+
+  
+
+
+
+
+you must press here to stop the mail please email remfiles-KK0ffGbhmjU@public.gmane.org 
+
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
