@@ -1,77 +1,151 @@
-From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: Re: [ewg] [PATCH v4] IB Core: RAW ETH support
-Date: Wed, 16 Jun 2010 09:09:59 -0500
-Message-ID: <4C18DB37.6050501@opengridcomputing.com>
-References: <E113D394D7C5DB4F8FF691FA7EE9DB4439A76E8632@MTLMAIL.mtl.com>	<1276513450.30132.51.camel@alst60.voltaire.com> <aday6eguhfn.fsf@roland-alpha.cisco.com>
+From: "Jim Schutt" <jaschut-4OHPYypu0djtX7QSmKvirg@public.gmane.org>
+Subject: [PATCH v3 08/17] opensm: Add new torus routing engine:
+ torus-2QoS, part 2.
+Date: Wed, 16 Jun 2010 08:11:52 -0600
+Message-ID: <1276697512.4570.23.camel@sale659.sandia.gov>
+References: <1276631604-29230-1-git-send-email-jaschut@sandia.gov>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed;
+ boundary="=-Ap9qDtfz0vWUV2Xdwdyd"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <aday6eguhfn.fsf-BjVyx320WGW9gfZ95n9DRSW4+XlvGpQz@public.gmane.org>
+In-Reply-To: <1276631604-29230-1-git-send-email-jaschut-4OHPYypu0djtX7QSmKvirg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Cc: Alekseys Senin <alekseys-smomgflXvOZWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Eli Cohen <eli-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, "ewg-G2znmakfqn7U1rindQTSdQ@public.gmane.org" <ewg-G2znmakfqn7U1rindQTSdQ@public.gmane.org>, Moni Shoua <monis-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: "sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org" <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Roland Dreier wrote:
->  > I tested it before on the Roland tree ( iboe branch ) and it fails,
->  > because it writen in the way suitable for OFED. If adapt the patch to
->  > the Roland tree, then appling Mellanox OFED patches will fail, because
->  > it changes the same functions in the code.
->  > Here is one example:
->  > Look at __mlx4_ib_modify_qp at the Roland tree - there is no RAW_ETY
->  > support. But in the OFED version of the same function this support is
->  > present.
->  > RAW_ETH patch modify this function and looking for RAW_ETY word and
->  > without this RAW_ETH Mellanox patch will fail.
->
-> Don't take this too personally -- I picked a semi-random email in this
-> thread to reply to; this is pretty broadly targeted.
->
-> <rant>
->
-> What the hell is the thinking behind introducing IB_QPT_RAW_ETH?  You're
-> inserting an enum value before IB_QPT_RAW_ETY, so any old userspace
-> passing in IB_QPT_RAW_ETY will silently get different behavior depending
-> on the kernel version.  And you're creating two constands that differ in
-> a single letter (IB_QPT_RAW_ETY vs. IB_QPT_RAW_ETH).  How are you going
-> to explain that to users?  How is anyone ever going to get it right?
-> For that matter, what exactly does IB_QPT_RAW_ETH mean?
->
-> This all seems to be a symptom of how broken our development process
-> is.  Yes, unfortunately I can't spend as much time reviewing and
-> applying patches as I might like, and I apologize for that.  But if we
-> have all the RDMA developers piling up shit in their little area and
-> then sending it on to be merged as soon as it kind of works, without
-> thinking about design or maintainability and without ever doing any
-> review, then I'm always going to have an expanding review backlog.
->
-> And then we have OFED compounding problems -- "Oh that's a nice pile of
-> shit you've built there.  We better ship it to users while it's still
-> steaming."  How about if OFED developers take a little time to think
-> things through?
->
-> </rant>
->
-> In other words, can someone explain the plan for this raw QP stuff to me?
->
->  - R.
->   
+
+--=-Ap9qDtfz0vWUV2Xdwdyd
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 
 
-It doesn't even look like this patch and the mlx4 patch were ever posted 
-to linux-rdma. Only to the EWG list.
+Signed-off-by: Jim Schutt <jaschut-4OHPYypu0djtX7QSmKvirg@public.gmane.org>
+---
 
-Granted our dev process may not be documented, but I always assumed the 
-general idea was to get changes accepted upstream, then pull into ofed. 
-OFED is just a mechanism to make top-of-tree linux work on distro 
-kernels. There are some exceptions, but this stuff shouldn't be an 
-exception.
+Hmmm, I tried to break up the addition of osm_torus.c into
+mailing-list-size hunks, but evidently failed on this one;
+it doesn't seem to have made it to the list.
 
-We should all follow this "upstream first" process IMO.
+I've attached the patch as a compressed file.
 
-Steve.
+Sorry.
 
+-- Jim
+
+ opensm/opensm/osm_torus.c | 3993
++++++++++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 3993 insertions(+), 0 deletions(-)
+
+
+--=-Ap9qDtfz0vWUV2Xdwdyd
+Content-Disposition: attachment;
+ filename=0008-opensm-Add-torus-2QoS-routing-engine-part-2.patch.bz2
+Content-Type: application/x-bzip;
+ name=0008-opensm-Add-torus-2QoS-routing-engine-part-2.patch.bz2
+Content-Transfer-Encoding: base64
+
+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
+
+
+--=-Ap9qDtfz0vWUV2Xdwdyd--
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
