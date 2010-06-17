@@ -1,27 +1,30 @@
 From: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH resend] opensm/osm_sa_path_record.c: adding wrapper for
- pr_rcv_get_path_parms()
-Date: Thu, 17 Jun 2010 17:30:26 +0300
-Message-ID: <20100617143026.GL20172@me>
-References: <4C10ED5F.9070205@dev.mellanox.co.il>
+Subject: Re: [PATCHv2] opensm/osm_qos.c: Eliminate unneeded endport SL to
+ VL setup
+Date: Thu, 17 Jun 2010 17:41:29 +0300
+Message-ID: <20100617144129.GM20172@me>
+References: <20100125202247.GA9197@comcast.net>
+ <20100126132605.GJ26338@me>
+ <f0e08f231001260530o6260986dice657109f4eea637@mail.gmail.com>
+ <AANLkTilHxkXWzb-eEyWMLOtZXAnURNRvtw8-nZVL0OvW@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <4C10ED5F.9070205-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+In-Reply-To: <AANLkTilHxkXWzb-eEyWMLOtZXAnURNRvtw8-nZVL0OvW-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: Linux RDMA <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 16:49 Thu 10 Jun     , Yevgeny Kliteynik wrote:
-> Adding non-static wrapper function for pr_rcv_get_path_parms()
-> function to enable calling path record calculation function from
-> outside this file.
+On 09:09 Mon 14 Jun     , Hal Rosenstock wrote:
+> >
+> > This is intended. It's not needed since it's only doing this in the
+> > wildcarded case and the wildcarding includes port 0.
 > 
-> Signed-off-by: Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+> Any reason not to move ahead on this ? Thanks.
 
-Applied. Thanks.
+No reason. Applied. Thanks.
 
 Sasha
 --
