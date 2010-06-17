@@ -1,28 +1,68 @@
-From: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH][TRIVIAL] infiniband-diags/perfquery.8: Add some
- missing counters to description
-Date: Thu, 17 Jun 2010 16:49:39 +0300
-Message-ID: <20100617134939.GD20172@me>
-References: <20100616110542.GA11132@comcast.net>
+From: Mike Heinz <michael.heinz-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+Subject: RE: Handling busy responses from the SA
+Date: Thu, 17 Jun 2010 08:55:06 -0500
+Message-ID: <4C2744E8AD2982428C5BFE523DF8CDCB49D09E7B21@MNEXMB1.qlogic.org>
+References: <4C2744E8AD2982428C5BFE523DF8CDCB49A488DADA@MNEXMB1.qlogic.org>
+	<AANLkTinEhSe7IjdzLPp6DLWGcgJd_iQuVeFvr0-HSCb-@mail.gmail.com>
+	<4C2744E8AD2982428C5BFE523DF8CDCB49A488DC0C@MNEXMB1.qlogic.org>
+	<AANLkTiknVS0abJVMLSZd0GOBeKvHukzbN7A1xZQDFPmD@mail.gmail.com>
+	<4C2744E8AD2982428C5BFE523DF8CDCB49A488DCCA@MNEXMB1.qlogic.org>
+	<CF9C39F99A89134C9CF9C4CCB68B8DDF255F578B7A@orsmsx501.amr.corp.intel.com>
+	<AANLkTinDBQfcFpfU9PY_bLNyElXcyLlpQzoPLlj0jdAC@mail.gmail.com>
+	<4C2744E8AD2982428C5BFE523DF8CDCB49A488DD33@MNEXMB1.qlogic.org>
+	<AANLkTilzAlDlx7NYuHALLSntR6Q7-Kpn9I3x-fvqmded@mail.gmail.com>
+	<4C2744E8AD2982428C5BFE523DF8CDCB49D09E7ACD@MNEXMB1.qlogic.org>
+ <AANLkTinfaefusFzjn6k6Ly2ti3EiEz5Qfczps7EscRCc@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20100616110542.GA11132-Wuw85uim5zDR7s880joybQ@public.gmane.org>
+In-Reply-To: <AANLkTinfaefusFzjn6k6Ly2ti3EiEz5Qfczps7EscRCc-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Hal Rosenstock <hnrose-Wuw85uim5zDR7s880joybQ@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Todd Rimmer <todd.rimmer-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 07:05 Wed 16 Jun     , Hal Rosenstock wrote:
-> 
-> Also, updated email address
-> 
-> Signed-off-by: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-
-Applied. Thanks.
-
-Sasha
+VG8gYmUgaG9uZXN0LCB3ZSBoYXZlbid0IGJlZW4gYWJsZSB0byB0aGluayBvZiBhIGNhc2Ugd2hl
+cmUgYSBzZW5kZXIgd291bGQgdXNlIHJldHJpZXMgb24gYSB0cmFwIG9yIGEgYnVzeSBvbiBhIHJl
+cHJlc3MgZWl0aGVyLCBidXQgSSBkb24ndCB0aGluayBpdCB3b3VsZCBodXJ0IHRvIG9taXQgcmVw
+cmVzc2VzIGZyb20gdGhlIGJ1c3kgaGFuZGxpbmcgZWl0aGVyLg0KDQpXb3VsZCB0aGF0IGJlIGFj
+Y2VwdGFibGUgdG8gZXZlcnlvbmU/IFRvIGFsdGVyIHRoZSBwYXRjaCB0byBhbGxvdyAiQlVTWSIg
+dHJhcCByZXByZXNzIE1BRHMgdG8gcGFzcyB0aHJvdWdoPw0KDQotLS0tLU9yaWdpbmFsIE1lc3Nh
+Z2UtLS0tLQ0KRnJvbTogbGludXgtcmRtYS1vd25lckB2Z2VyLmtlcm5lbC5vcmcgW21haWx0bzps
+aW51eC1yZG1hLW93bmVyQHZnZXIua2VybmVsLm9yZ10gT24gQmVoYWxmIE9mIEhhbCBSb3NlbnN0
+b2NrDQpTZW50OiBUaHVyc2RheSwgSnVuZSAxNywgMjAxMCA5OjMwIEFNDQpUbzogTWlrZSBIZWlu
+eg0KQ2M6IEhlZnR5LCBTZWFuOyBsaW51eC1yZG1hQHZnZXIua2VybmVsLm9yZzsgVG9kZCBSaW1t
+ZXINClN1YmplY3Q6IFJlOiBIYW5kbGluZyBidXN5IHJlc3BvbnNlcyBmcm9tIHRoZSBTQQ0KDQpN
+aWtlLA0KDQpPbiBXZWQsIEp1biAxNiwgMjAxMCBhdCAzOjU3IFBNLCBNaWtlIEhlaW56IDxtaWNo
+YWVsLmhlaW56QHFsb2dpYy5jb20+IHdyb3RlOg0KPiBIYWwsDQo+DQo+IEJ1dCBpZiB0aGUgb3Jp
+Z2luYWwgdHJhcCBoYWQgcmV0cmllcyA+IDAsIHdvdWxkbid0IHJlc2VuZGluZyB0aGUgdHJhcCBi
+ZSB3aGF0IHRoZSBpc3N1ZXIgaW50ZW5kZWQ/DQoNCkkgc3VwcG9zZSBhcyB0aGVyZSdzIG5vdGhp
+bmcgaW4gdGhlIElCQSBzcGVjIHRoYXQgcHJlY2x1ZGVzIHVzaW5nIGJ1c3kNCm9uIFRyYXBSZXBy
+ZXNzZXMgYWx0aG91Z2ggSSdkIGJlIGhhcmQgcHJlc3NlZCB0byByYXRpb25hbGl6ZSB1c2luZw0K
+dGhhdCBwYXJ0aWN1bGFybHkgZm9yIFNNUCB0cmFwcy4NCg0KLS0gSGFsDQoNCj4gSSBndWVzcyBJ
+J20gY29uZnVzZWQgd2h5IHRyZWF0aW5nIEJVU1kgYXMgc2ltaWxhciB0byBzaW1wbHkgbmV2ZXIg
+Z2V0dGluZyBhIHJlc3BvbnNlIGF0IGFsbCBpcyBhIGJhZCB0aGluZy4gSW4gbXkgbWluZCwgcmVj
+ZWl2aW5nIGEgQlVTWSByZXNwb25zZSBpcyBsaWtlIGdldHRpbmcgYSBidXN5IHNpZ25hbCB3aGVu
+IHlvdSBjYWxsIHNvbWVvbmUgb24gdGhlIHBob25lIC0gYSBzaWduIHlvdSBuZWVkIHRvIHdhaXQg
+YSBiaXQgdGhlbiB0cnkgYWdhaW4uIFNpbWlsYXJseSwgaWYgSSBjYWxsIHNvbWVvbmUgYW5kIG5l
+dmVyIGdldCBhbiBhbnN3ZXIgbXkgc3RyYXRlZ3kgaXMgZ29pbmcgdG8gYmUgdG8gd2FpdCwgdGhl
+biB0cnkgYWdhaW4uDQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogSGFs
+IFJvc2Vuc3RvY2sgW21haWx0bzpoYWwucm9zZW5zdG9ja0BnbWFpbC5jb21dDQo+IFNlbnQ6IFR1
+ZXNkYXksIEp1bmUgMDgsIDIwMTAgODoxNiBQTQ0KPiBUbzogTWlrZSBIZWlueg0KPiBDYzogSGVm
+dHksIFNlYW47IGxpbnV4LXJkbWFAdmdlci5rZXJuZWwub3JnDQo+IFN1YmplY3Q6IFJlOiBIYW5k
+bGluZyBidXN5IHJlc3BvbnNlcyBmcm9tIHRoZSBTQQ0KPg0KPiBNaWtlLA0KPg0KPiBJJ20gcmVm
+ZXJyaW5nIHRvIHRoZSByZWNlaXB0IG9mIHRoZSBUcmFwUmVwcmVzcyB3aXRoIGJ1c3kgc3RhdHVz
+Lg0KPiBXb3VsZG4ndCB5b3VyIHBhdGNoIGNhdXNlIHRoZSBvcmlnaW5hbCBUcmFwIHRvIGJlIHJl
+c2VudCB3aGVuIHJldHJpZXMNCj4+IDAgPyBUcmFwUmVwcmVzcyBpcyBlc3NlbnRpYWxseSBhIHJl
+c3BvbnNlIHRvIFRyYXAgYW5kIGNsYXNzaWZpZWQgYXMNCj4gc3VjaCBieSBpYl9yZXNwb25zZV9t
+YWQuIFlvdXIgcHJvcG9zZWQgcGF0Y2ggdHJlYXRzIGEgYnVzeSBhcyBhDQo+IHRpbWVvdXQgYW5k
+IGNhbiBjYXVzZSByZXRyeSBvZiB0aGUgb3JpZ2luYWwgc2VudCBUcmFwLg0KPg0KPiAtLSBIYWwN
+Cj4NCi0tDQpUbyB1bnN1YnNjcmliZSBmcm9tIHRoaXMgbGlzdDogc2VuZCB0aGUgbGluZSAidW5z
+dWJzY3JpYmUgbGludXgtcmRtYSIgaW4NCnRoZSBib2R5IG9mIGEgbWVzc2FnZSB0byBtYWpvcmRv
+bW9Admdlci5rZXJuZWwub3JnDQpNb3JlIG1ham9yZG9tbyBpbmZvIGF0ICBodHRwOi8vdmdlci5r
+ZXJuZWwub3JnL21ham9yZG9tby1pbmZvLmh0bWwNCg==
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
