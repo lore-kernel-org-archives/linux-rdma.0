@@ -1,7 +1,7 @@
 From: Ding Dinghua <dingdinghua85-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Subject: Re: P
-Date: Thu, 17 Jun 2010 15:07:55 +0800
-Message-ID: <AANLkTimdeZwZI3FlTncXY_d3QY8jFfNhHERTxl3BD3Bd@mail.gmail.com>
+Date: Thu, 17 Jun 2010 15:27:26 +0800
+Message-ID: <AANLkTimYmcx6Jl9u7QkY3wNJjcCbB6HrItrS-U1UtxmG@mail.gmail.com>
 References: <AANLkTiml1Q7sD9MFsg_q1nQx5091rNnzhK8oh1aUnxwT@mail.gmail.com>
 	<4C125697.1000508@gmail.com>
 	<AANLkTilhV8JJTKxc4OpudTUgKqMyJ5mzcxt6XdSMurDS@mail.gmail.com>
@@ -15,8 +15,6 @@ Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Dotan Barak <dotanba-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
-
-Sorry for late reply.
 
 2010/6/12 Dotan Barak <dotanba-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>:
 > On 12/06/2010 03:22, Ding Dinghua wrote:
@@ -63,27 +61,16 @@ side
 een
 > them)
 >
-I call rdma_create_id to create an ib id, then do resolve remote addr,
-resolve route work, then
-setup qp and call rdma_connect to setup connection, before ack or
-error replies, the thread will
-wait on a wait queue. The listening ib id of remote node will catch
-the connect request,
-setup qp, allocate and map pages to construct the RDMA-WRITE space,
-and call rdma_accept to reply
-the request.
+Sorry i forget the close issue.
 
-Some other information which may be useful:
-1.All the "RETRY EXCEEDED" problems happened when there were two
-connections which use RDMA-WRITE to transfer things.
-And the latter connection had a high possibility to get into this probl=
-em.
-2. All the "RETRY EXCEEDED" problems happened when the RMDA-WRITE
-space is 256MB each(that is, for two connections, consumes 512MB mem),
-when the RDMA-WRITE  space is 64MB, this problem never happened in our
-test. Remote node's total memory is 2GB.
-
-Thanks a lot.
+1. Local node call ib_poll_cq to process the remaining complete queue e=
+ntry,
+2. Local node call rdma_disconnect to destroy connection, before
+remote side ack, the thread will wait on a wait queue.
+3. After catching this request, the remote node will also call
+ib_poll_cq to process the remainning complete queue entry,
+then do some resource-release work, then send a reply.
+4. Local node was waken up and do resource-release work.
 
 
 > Dotan
