@@ -1,26 +1,59 @@
-From: Or Gerlitz <ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH 5/5] dapl-2.0 - scm, ucm: add pkey, pkey_index, sl	override
- for QP's
-Date: Thu, 17 Jun 2010 11:52:19 +0300
-Message-ID: <4C19E243.2020500@voltaire.com>
-References: <E3280858FA94444CA49D2BA02341C9830103BF2437@orsmsx506.amr.corp.intel.com>	<CF9C39F99A89134C9CF9C4CCB68B8DDF259E4E04A4@orsmsx501.amr.corp.intel.com>	<E3280858FA94444CA49D2BA02341C9830103BF25EB@orsmsx506.amr.corp.intel.com> <CF9C39F99A89134C9CF9C4CCB68B8DDF259E4E065C@orsmsx501.amr.corp.intel.com>
+From: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: Handling busy responses from the SA
+Date: Thu, 17 Jun 2010 09:29:45 -0400
+Message-ID: <AANLkTinfaefusFzjn6k6Ly2ti3EiEz5Qfczps7EscRCc@mail.gmail.com>
+References: <4C2744E8AD2982428C5BFE523DF8CDCB49A488DADA@MNEXMB1.qlogic.org>
+	<AANLkTinEhSe7IjdzLPp6DLWGcgJd_iQuVeFvr0-HSCb-@mail.gmail.com>
+	<4C2744E8AD2982428C5BFE523DF8CDCB49A488DC0C@MNEXMB1.qlogic.org>
+	<AANLkTiknVS0abJVMLSZd0GOBeKvHukzbN7A1xZQDFPmD@mail.gmail.com>
+	<4C2744E8AD2982428C5BFE523DF8CDCB49A488DCCA@MNEXMB1.qlogic.org>
+	<CF9C39F99A89134C9CF9C4CCB68B8DDF255F578B7A@orsmsx501.amr.corp.intel.com>
+	<AANLkTinDBQfcFpfU9PY_bLNyElXcyLlpQzoPLlj0jdAC@mail.gmail.com>
+	<4C2744E8AD2982428C5BFE523DF8CDCB49A488DD33@MNEXMB1.qlogic.org>
+	<AANLkTilzAlDlx7NYuHALLSntR6Q7-Kpn9I3x-fvqmded@mail.gmail.com>
+	<4C2744E8AD2982428C5BFE523DF8CDCB49D09E7ACD@MNEXMB1.qlogic.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CF9C39F99A89134C9CF9C4CCB68B8DDF259E4E065C-osO9UTpF0USkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
+In-Reply-To: <4C2744E8AD2982428C5BFE523DF8CDCB49D09E7ACD-amwN6d8PyQWXx9kJd3VG2h2eb7JE58TQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Davis, Arlin R" <arlin.r.davis-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ofw_list <ofw-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+To: Mike Heinz <michael.heinz-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+Cc: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Todd Rimmer <todd.rimmer-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hefty, Sean wrote:
-> The index isn't guaranteed to be the same across all nodes.  If a consumer is going to manually control this, they should really be forced to use the actual pkey.
-yes, I saw this confusion in action, for most users pkey index doesn't 
-mean anything, it may also change across time, which can break 
-scripts/setting to run specific jobs using specific partitions.
+Mike,
 
-Or.
+On Wed, Jun 16, 2010 at 3:57 PM, Mike Heinz <michael.heinz-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org> wrote:
+> Hal,
+>
+> But if the original trap had retries > 0, wouldn't resending the trap be what the issuer intended?
+
+I suppose as there's nothing in the IBA spec that precludes using busy
+on TrapRepresses although I'd be hard pressed to rationalize using
+that particularly for SMP traps.
+
+-- Hal
+
+> I guess I'm confused why treating BUSY as similar to simply never getting a response at all is a bad thing. In my mind, receiving a BUSY response is like getting a busy signal when you call someone on the phone - a sign you need to wait a bit then try again. Similarly, if I call someone and never get an answer my strategy is going to be to wait, then try again.
+
+> -----Original Message-----
+> From: Hal Rosenstock [mailto:hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org]
+> Sent: Tuesday, June 08, 2010 8:16 PM
+> To: Mike Heinz
+> Cc: Hefty, Sean; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> Subject: Re: Handling busy responses from the SA
+>
+> Mike,
+>
+> I'm referring to the receipt of the TrapRepress with busy status.
+> Wouldn't your patch cause the original Trap to be resent when retries
+>> 0 ? TrapRepress is essentially a response to Trap and classified as
+> such by ib_response_mad. Your proposed patch treats a busy as a
+> timeout and can cause retry of the original sent Trap.
+>
+> -- Hal
+>
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
