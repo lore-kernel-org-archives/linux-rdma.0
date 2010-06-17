@@ -1,8 +1,8 @@
 From: Ralph Campbell <ralph.campbell-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH 1/7] IB/qib: avoid a rare 7322 chip problem by not marking
-	VL15 bufs as WC
-Date: Thu, 17 Jun 2010 16:13:44 -0700
-Message-ID: <20100617231344.8006.26305.stgit@chromite.mv.qlogic.com>
+Subject: [PATCH 2/7] IB/qib: allow PSM to select from multiple port assignment
+	algorithms
+Date: Thu, 17 Jun 2010 16:13:49 -0700
+Message-ID: <20100617231349.8006.24712.stgit@chromite.mv.qlogic.com>
 References: <20100617231338.8006.18131.stgit@chromite.mv.qlogic.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -16,168 +16,334 @@ List-Id: linux-rdma@vger.kernel.org
 
 From: Dave Olson <dave.olson-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
 
-Don't set write combining via PAT on the VL15 buffers to avoid a
-rare problem with unaligned writes from interrupt-flushed store buffers.
+We formerly allowed only full specification, or using all contexts
+within an HCA before moving to the next HCA.  We now allow an additional
+method, of round-robining through HCAs, and make that the default.
 
 Signed-off-by: Dave Olson <dave.olson-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
 ---
 
- drivers/infiniband/hw/qib/qib.h         |    1 +
- drivers/infiniband/hw/qib/qib_diag.c    |   19 +++++++++++++++----
- drivers/infiniband/hw/qib/qib_iba7322.c |   18 +++++++++++++++++-
- drivers/infiniband/hw/qib/qib_init.c    |    6 ++++++
- drivers/infiniband/hw/qib/qib_pcie.c    |    2 ++
- drivers/infiniband/hw/qib/qib_tx.c      |    6 +++++-
- 6 files changed, 46 insertions(+), 6 deletions(-)
+ drivers/infiniband/hw/qib/qib_common.h   |   16 ++
+ drivers/infiniband/hw/qib/qib_file_ops.c |  203 +++++++++++++++---------------
+ 2 files changed, 118 insertions(+), 101 deletions(-)
 
-diff --git a/drivers/infiniband/hw/qib/qib.h b/drivers/infiniband/hw/qib/qib.h
-index 32d9208..3593983 100644
---- a/drivers/infiniband/hw/qib/qib.h
-+++ b/drivers/infiniband/hw/qib/qib.h
-@@ -686,6 +686,7 @@ struct qib_devdata {
- 	void __iomem *piobase;
- 	/* mem-mapped pointer to base of user chip regs (if using WC PAT) */
- 	u64 __iomem *userbase;
-+	void __iomem *piovl15base; /* base of VL15 buffers, if not WC */
+diff --git a/drivers/infiniband/hw/qib/qib_common.h b/drivers/infiniband/hw/qib/qib_common.h
+index b3955ed..145da40 100644
+--- a/drivers/infiniband/hw/qib/qib_common.h
++++ b/drivers/infiniband/hw/qib/qib_common.h
+@@ -279,7 +279,7 @@ struct qib_base_info {
+  * may not be implemented; the user code must deal with this if it
+  * cares, or it must abort after initialization reports the difference.
+  */
+-#define QIB_USER_SWMINOR 10
++#define QIB_USER_SWMINOR 11
+ 
+ #define QIB_USER_SWVERSION ((QIB_USER_SWMAJOR << 16) | QIB_USER_SWMINOR)
+ 
+@@ -302,6 +302,18 @@ struct qib_base_info {
+ #define QIB_KERN_SWVERSION ((QIB_KERN_TYPE << 31) | QIB_USER_SWVERSION)
+ 
+ /*
++ * If the unit is specified via open, HCA choice is fixed.  If port is
++ * specified, it's also fixed.  Otherwise we try to spread contexts
++ * across ports and HCAs, using different algorithims.  WITHIN is
++ * the old default, prior to this mechanism.
++ */
++#define QIB_PORT_ALG_ACROSS 0 /* round robin contexts across HCAs, then
++			       * ports; this is the default */
++#define QIB_PORT_ALG_WITHIN 1 /* use all contexts on an HCA (round robin
++			       * active ports within), then next HCA */
++#define QIB_PORT_ALG_COUNT 2 /* number of algorithm choices */
++
++/*
+  * This structure is passed to qib_userinit() to tell the driver where
+  * user code buffers are, sizes, etc.   The offsets and sizes of the
+  * fields must remain unchanged, for binary compatibility.  It can
+@@ -319,7 +331,7 @@ struct qib_user_info {
+ 	/* size of struct base_info to write to */
+ 	__u32 spu_base_info_size;
+ 
+-	__u32 _spu_unused3;
++	__u32 spu_port_alg; /* which QIB_PORT_ALG_*; unused user minor < 11 */
+ 
  	/*
- 	 * points to area where PIOavail registers will be DMA'ed.
- 	 * Has to be on a page of it's own, because the page will be
-diff --git a/drivers/infiniband/hw/qib/qib_diag.c b/drivers/infiniband/hw/qib/qib_diag.c
-index ca98dd5..05dcf0d 100644
---- a/drivers/infiniband/hw/qib/qib_diag.c
-+++ b/drivers/infiniband/hw/qib/qib_diag.c
-@@ -233,6 +233,7 @@ static u32 __iomem *qib_remap_ioaddr32(struct qib_devdata *dd, u32 offset,
- 	u32 __iomem *krb32 = (u32 __iomem *)dd->kregbase;
- 	u32 __iomem *map = NULL;
- 	u32 cnt = 0;
-+	u32 tot4k, offs4k;
- 
- 	/* First, simplest case, offset is within the first map. */
- 	kreglen = (dd->kregend - dd->kregbase) * sizeof(u64);
-@@ -250,7 +251,8 @@ static u32 __iomem *qib_remap_ioaddr32(struct qib_devdata *dd, u32 offset,
- 	if (dd->userbase) {
- 		/* If user regs mapped, they are after send, so set limit. */
- 		u32 ulim = (dd->cfgctxts * dd->ureg_align) + dd->uregbase;
--		snd_lim = dd->uregbase;
-+		if (!dd->piovl15base)
-+			snd_lim = dd->uregbase;
- 		krb32 = (u32 __iomem *)dd->userbase;
- 		if (offset >= dd->uregbase && offset < ulim) {
- 			map = krb32 + (offset - dd->uregbase) / sizeof(u32);
-@@ -277,14 +279,14 @@ static u32 __iomem *qib_remap_ioaddr32(struct qib_devdata *dd, u32 offset,
- 	/* If 4k buffers exist, account for them by bumping
- 	 * appropriate limit.
- 	 */
-+	tot4k = dd->piobcnt4k * dd->align4k;
-+	offs4k = dd->piobufbase >> 32;
- 	if (dd->piobcnt4k) {
--		u32 tot4k = dd->piobcnt4k * dd->align4k;
--		u32 offs4k = dd->piobufbase >> 32;
- 		if (snd_bottom > offs4k)
- 			snd_bottom = offs4k;
- 		else {
- 			/* 4k above 2k. Bump snd_lim, if needed*/
--			if (!dd->userbase)
-+			if (!dd->userbase || dd->piovl15base)
- 				snd_lim = offs4k + tot4k;
- 		}
- 	}
-@@ -298,6 +300,15 @@ static u32 __iomem *qib_remap_ioaddr32(struct qib_devdata *dd, u32 offset,
- 		cnt = snd_lim - offset;
- 	}
- 
-+	if (!map && offs4k && dd->piovl15base) {
-+		snd_lim = offs4k + tot4k + 2 * dd->align4k;
-+		if (offset >= (offs4k + tot4k) && offset < snd_lim) {
-+			map = (u32 __iomem *)dd->piovl15base +
-+				((offset - (offs4k + tot4k)) / sizeof(u32));
-+			cnt = snd_lim - offset;
-+		}
-+	}
-+
- mapped:
- 	if (cntp)
- 		*cntp = cnt;
-diff --git a/drivers/infiniband/hw/qib/qib_iba7322.c b/drivers/infiniband/hw/qib/qib_iba7322.c
-index 503992d..3e9828b 100644
---- a/drivers/infiniband/hw/qib/qib_iba7322.c
-+++ b/drivers/infiniband/hw/qib/qib_iba7322.c
-@@ -6119,9 +6119,25 @@ static int qib_init_7322_variables(struct qib_devdata *dd)
- 	qib_set_ctxtcnt(dd);
- 
- 	if (qib_wc_pat) {
--		ret = init_chip_wc_pat(dd, NUM_VL15_BUFS * dd->align4k);
-+		resource_size_t vl15off;
-+		/*
-+		 * We do not set WC on the VL15 buffers to avoid
-+		 * a rare problem with unaligned writes from
-+		 * interrupt-flushed store buffers, so we need
-+		 * to map those separately here.  We can't solve
-+		 * this for the rarely used mtrr case.
-+		 */
-+		ret = init_chip_wc_pat(dd, 0);
- 		if (ret)
- 			goto bail;
-+
-+		/* vl15 buffers start just after the 4k buffers */
-+		vl15off = dd->physaddr + (dd->piobufbase >> 32) +
-+			dd->piobcnt4k * dd->align4k;
-+		dd->piovl15base	= ioremap_nocache(vl15off,
-+						  NUM_VL15_BUFS * dd->align4k);
-+		if (!dd->piovl15base)
-+			goto bail;
- 	}
- 	qib_7322_set_baseaddrs(dd); /* set chip access pointers now */
- 
-diff --git a/drivers/infiniband/hw/qib/qib_init.c b/drivers/infiniband/hw/qib/qib_init.c
-index 9b40f34..2589599 100644
---- a/drivers/infiniband/hw/qib/qib_init.c
-+++ b/drivers/infiniband/hw/qib/qib_init.c
-@@ -1499,6 +1499,12 @@ bail:
- 	return -ENOMEM;
+ 	 * If two or more processes wish to share a context, each process
+diff --git a/drivers/infiniband/hw/qib/qib_file_ops.c b/drivers/infiniband/hw/qib/qib_file_ops.c
+index a142a9e..6b11645 100644
+--- a/drivers/infiniband/hw/qib/qib_file_ops.c
++++ b/drivers/infiniband/hw/qib/qib_file_ops.c
+@@ -1294,128 +1294,130 @@ bail:
+ 	return ret;
  }
  
-+/*
-+ * Note: Changes to this routine should be mirrored
-+ * for the diagnostics routine qib_remap_ioaddr32().
-+ * There is also related code for VL15 buffers in qib_init_7322_variables().
-+ * The teardown code that unmaps is in qib_pcie_ddcleanup()
-+ */
- int init_chip_wc_pat(struct qib_devdata *dd, u32 vl15buflen)
+-static inline int usable(struct qib_pportdata *ppd, int active_only)
++static inline int usable(struct qib_pportdata *ppd)
  {
- 	u64 __iomem *qib_kregbase = NULL;
-diff --git a/drivers/infiniband/hw/qib/qib_pcie.c b/drivers/infiniband/hw/qib/qib_pcie.c
-index c926bf4..7fa6e55 100644
---- a/drivers/infiniband/hw/qib/qib_pcie.c
-+++ b/drivers/infiniband/hw/qib/qib_pcie.c
-@@ -179,6 +179,8 @@ void qib_pcie_ddcleanup(struct qib_devdata *dd)
- 		iounmap(dd->piobase);
- 	if (dd->userbase)
- 		iounmap(dd->userbase);
-+	if (dd->piovl15base)
-+		iounmap(dd->piovl15base);
+ 	struct qib_devdata *dd = ppd->dd;
+-	u32 linkok = active_only ? QIBL_LINKACTIVE :
+-		 (QIBL_LINKINIT | QIBL_LINKARMED | QIBL_LINKACTIVE);
  
- 	pci_disable_device(dd->pcidev);
- 	pci_release_regions(dd->pcidev);
-diff --git a/drivers/infiniband/hw/qib/qib_tx.c b/drivers/infiniband/hw/qib/qib_tx.c
-index f7eb1dd..af30232 100644
---- a/drivers/infiniband/hw/qib/qib_tx.c
-+++ b/drivers/infiniband/hw/qib/qib_tx.c
-@@ -340,9 +340,13 @@ rescan:
- 		if (i < dd->piobcnt2k)
- 			buf = (u32 __iomem *)(dd->pio2kbase +
- 				i * dd->palign);
+ 	return dd && (dd->flags & QIB_PRESENT) && dd->kregbase && ppd->lid &&
+-		(ppd->lflags & linkok);
++		(ppd->lflags & QIBL_LINKACTIVE);
+ }
+ 
+-static int find_free_ctxt(int unit, struct file *fp,
+-			  const struct qib_user_info *uinfo)
++/*
++ * Select a context on the given device, either using a requested port
++ * or the port based on the context number.
++ */
++static int choose_port_ctxt(struct file *fp, struct qib_devdata *dd, u32 port,
++			    const struct qib_user_info *uinfo)
+ {
+-	struct qib_devdata *dd = qib_lookup(unit);
+ 	struct qib_pportdata *ppd = NULL;
+-	int ret;
+-	u32 ctxt;
++	int ret, ctxt;
+ 
+-	if (!dd || (uinfo->spu_port && uinfo->spu_port > dd->num_pports)) {
+-		ret = -ENODEV;
+-		goto bail;
+-	}
+-
+-	/*
+-	 * If users requests specific port, only try that one port, else
+-	 * select "best" port below, based on context.
+-	 */
+-	if (uinfo->spu_port) {
+-		ppd = dd->pport + uinfo->spu_port - 1;
+-		if (!usable(ppd, 0)) {
++	if (port) {
++		if (!usable(dd->pport + port - 1)) {
+ 			ret = -ENETDOWN;
+-			goto bail;
+-		}
++			goto done;
++		} else
++			ppd = dd->pport + port - 1;
+ 	}
+-
+-	for (ctxt = dd->first_user_ctxt; ctxt < dd->cfgctxts; ctxt++) {
+-		if (dd->rcd[ctxt])
+-			continue;
+-		/*
+-		 * The setting and clearing of user context rcd[x] protected
+-		 * by the qib_mutex
+-		 */
+-		if (!ppd) {
+-			/* choose port based on ctxt, if up, else 1st up */
+-			ppd = dd->pport + (ctxt % dd->num_pports);
+-			if (!usable(ppd, 0)) {
+-				int i;
+-				for (i = 0; i < dd->num_pports; i++) {
+-					ppd = dd->pport + i;
+-					if (usable(ppd, 0))
+-						break;
+-				}
+-				if (i == dd->num_pports) {
+-					ret = -ENETDOWN;
+-					goto bail;
+-				}
+-			}
++	for (ctxt = dd->first_user_ctxt; ctxt < dd->cfgctxts && dd->rcd[ctxt];
++	     ctxt++)
++		;
++	if (ctxt == dd->cfgctxts) {
++		ret = -EBUSY;
++		goto done;
++	}
++	if (!ppd) {
++		u32 pidx = ctxt % dd->num_pports;
++		if (usable(dd->pport + pidx))
++			ppd = dd->pport + pidx;
++		else {
++			for (pidx = 0; pidx < dd->num_pports && !ppd;
++			     pidx++)
++				if (usable(dd->pport + pidx))
++					ppd = dd->pport + pidx;
+ 		}
+-		ret = setup_ctxt(ppd, ctxt, fp, uinfo);
+-		goto bail;
+ 	}
+-	ret = -EBUSY;
++	ret = ppd ? setup_ctxt(ppd, ctxt, fp, uinfo) : -ENETDOWN;
++done:
++	return ret;
++}
++
++static int find_free_ctxt(int unit, struct file *fp,
++			  const struct qib_user_info *uinfo)
++{
++	struct qib_devdata *dd = qib_lookup(unit);
++	int ret;
++
++	if (!dd || (uinfo->spu_port && uinfo->spu_port > dd->num_pports))
++		ret = -ENODEV;
++	else
++		ret = choose_port_ctxt(fp, dd, uinfo->spu_port, uinfo);
+ 
+-bail:
+ 	return ret;
+ }
+ 
+-static int get_a_ctxt(struct file *fp, const struct qib_user_info *uinfo)
++static int get_a_ctxt(struct file *fp, const struct qib_user_info *uinfo,
++		      unsigned alg)
+ {
+-	struct qib_pportdata *ppd;
+-	int ret = 0, devmax;
+-	int npresent, nup;
+-	int ndev;
++	struct qib_devdata *udd = NULL;
++	int ret = 0, devmax, npresent, nup, ndev, dusable = 0, i;
+ 	u32 port = uinfo->spu_port, ctxt;
+ 
+ 	devmax = qib_count_units(&npresent, &nup);
++	if (!npresent) {
++		ret = -ENXIO;
++		goto done;
++	}
++	if (nup == 0) {
++		ret = -ENETDOWN;
++		goto done;
++	}
+ 
+-	for (ndev = 0; ndev < devmax; ndev++) {
+-		struct qib_devdata *dd = qib_lookup(ndev);
+-
+-		/* device portion of usable() */
+-		if (!(dd && (dd->flags & QIB_PRESENT) && dd->kregbase))
+-			continue;
+-		for (ctxt = dd->first_user_ctxt; ctxt < dd->cfgctxts; ctxt++) {
+-			if (dd->rcd[ctxt])
++	if (alg == QIB_PORT_ALG_ACROSS) {
++		unsigned inuse = ~0U;
++		/* find device (with ACTIVE ports) with fewest ctxts in use */
++		for (ndev = 0; ndev < devmax; ndev++) {
++			struct qib_devdata *dd = qib_lookup(ndev);
++			unsigned cused = 0, cfree = 0;
++			if (!dd)
+ 				continue;
+-			if (port) {
+-				if (port > dd->num_pports)
+-					continue;
+-				ppd = dd->pport + port - 1;
+-				if (!usable(ppd, 0))
+-					continue;
+-			} else {
+-				/*
+-				 * choose port based on ctxt, if up, else
+-				 * first port that's up for multi-port HCA
+-				 */
+-				ppd = dd->pport + (ctxt % dd->num_pports);
+-				if (!usable(ppd, 0)) {
+-					int j;
+-
+-					ppd = NULL;
+-					for (j = 0; j < dd->num_pports &&
+-						!ppd; j++)
+-						if (usable(dd->pport + j, 0))
+-							ppd = dd->pport + j;
+-					if (!ppd)
+-						continue; /* to next unit */
+-				}
++			if (port && port <= dd->num_pports &&
++			    usable(dd->pport + port - 1))
++				dusable = 1;
++			else
++				for (i = 0; i < dd->num_pports; i++)
++					if (usable(dd->pport + i))
++						dusable++;
++			if (!dusable)
++				continue;
++			for (ctxt = dd->first_user_ctxt; ctxt < dd->cfgctxts;
++			     ctxt++)
++				if (dd->rcd[ctxt])
++					cused++;
++				else
++					cfree++;
++			if (cfree && cused < inuse) {
++				udd = dd;
++				inuse = cused;
+ 			}
+-			ret = setup_ctxt(ppd, ctxt, fp, uinfo);
++		}
++		if (udd) {
++			ret = choose_port_ctxt(fp, udd, port, uinfo);
+ 			goto done;
+ 		}
++	} else {
++		for (ndev = 0; ndev < devmax; ndev++) {
++			struct qib_devdata *dd = qib_lookup(ndev);
++			if (dd) {
++				ret = choose_port_ctxt(fp, dd, port, uinfo);
++				if (!ret)
++					goto done;
++				if (ret == -EBUSY)
++					dusable++;
++			}
++		}
+ 	}
+-
+-	if (npresent) {
+-		if (nup == 0)
+-			ret = -ENETDOWN;
 -		else
-+		else if (i < dd->piobcnt2k + dd->piobcnt4k || !dd->piovl15base)
- 			buf = (u32 __iomem *)(dd->pio4kbase +
- 				(i - dd->piobcnt2k) * dd->align4k);
-+		else
-+			buf = (u32 __iomem *)(dd->piovl15base +
-+				(i - (dd->piobcnt2k + dd->piobcnt4k)) *
-+				dd->align4k);
- 		if (pbufnum)
- 			*pbufnum = i;
- 		dd->upd_pio_shadow = 0;
+-			ret = -EBUSY;
+-	} else
+-		ret = -ENXIO;
++	ret = dusable ? -EBUSY : -ENETDOWN;
+ 
+ done:
+ 	return ret;
+@@ -1481,7 +1483,7 @@ static int qib_assign_ctxt(struct file *fp, const struct qib_user_info *uinfo)
+ {
+ 	int ret;
+ 	int i_minor;
+-	unsigned swmajor, swminor;
++	unsigned swmajor, swminor, alg = QIB_PORT_ALG_ACROSS;
+ 
+ 	/* Check to be sure we haven't already initialized this file */
+ 	if (ctxt_fp(fp)) {
+@@ -1498,6 +1500,9 @@ static int qib_assign_ctxt(struct file *fp, const struct qib_user_info *uinfo)
+ 
+ 	swminor = uinfo->spu_userversion & 0xffff;
+ 
++	if (swminor >= 11 && uinfo->spu_port_alg < QIB_PORT_ALG_COUNT)
++		alg = uinfo->spu_port_alg;
++
+ 	mutex_lock(&qib_mutex);
+ 
+ 	if (qib_compatible_subctxts(swmajor, swminor) &&
+@@ -1514,7 +1519,7 @@ static int qib_assign_ctxt(struct file *fp, const struct qib_user_info *uinfo)
+ 	if (i_minor)
+ 		ret = find_free_ctxt(i_minor - 1, fp, uinfo);
+ 	else
+-		ret = get_a_ctxt(fp, uinfo);
++		ret = get_a_ctxt(fp, uinfo, alg);
+ 
+ done_chk_sdma:
+ 	if (!ret) {
+@@ -1862,7 +1867,7 @@ static int disarm_req_delay(struct qib_ctxtdata *rcd)
+ {
+ 	int ret = 0;
+ 
+-	if (!usable(rcd->ppd, 1)) {
++	if (!usable(rcd->ppd)) {
+ 		int i;
+ 		/*
+ 		 * if link is down, or otherwise not usable, delay
+@@ -1881,7 +1886,7 @@ static int disarm_req_delay(struct qib_ctxtdata *rcd)
+ 				set_bit(_QIB_EVENT_DISARM_BUFS_BIT,
+ 					&rcd->user_event_mask[i]);
+ 		}
+-		for (i = 0; !usable(rcd->ppd, 1) && i < 300; i++)
++		for (i = 0; !usable(rcd->ppd) && i < 300; i++)
+ 			msleep(100);
+ 		ret = -ENETDOWN;
+ 	}
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
