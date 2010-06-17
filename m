@@ -1,87 +1,27 @@
-From: Ding Dinghua <dingdinghua85-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: P
-Date: Thu, 17 Jun 2010 15:27:26 +0800
-Message-ID: <AANLkTimYmcx6Jl9u7QkY3wNJjcCbB6HrItrS-U1UtxmG@mail.gmail.com>
-References: <AANLkTiml1Q7sD9MFsg_q1nQx5091rNnzhK8oh1aUnxwT@mail.gmail.com>
-	<4C125697.1000508@gmail.com>
-	<AANLkTilhV8JJTKxc4OpudTUgKqMyJ5mzcxt6XdSMurDS@mail.gmail.com>
-	<4C134EFC.5010207@gmail.com>
+From: Or Gerlitz <ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH 5/5] dapl-2.0 - scm, ucm: add pkey, pkey_index, sl	override
+ for QP's
+Date: Thu, 17 Jun 2010 11:52:19 +0300
+Message-ID: <4C19E243.2020500@voltaire.com>
+References: <E3280858FA94444CA49D2BA02341C9830103BF2437@orsmsx506.amr.corp.intel.com>	<CF9C39F99A89134C9CF9C4CCB68B8DDF259E4E04A4@orsmsx501.amr.corp.intel.com>	<E3280858FA94444CA49D2BA02341C9830103BF25EB@orsmsx506.amr.corp.intel.com> <CF9C39F99A89134C9CF9C4CCB68B8DDF259E4E065C@orsmsx501.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4C134EFC.5010207-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <CF9C39F99A89134C9CF9C4CCB68B8DDF259E4E065C-osO9UTpF0USkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Dotan Barak <dotanba-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Davis, Arlin R" <arlin.r.davis-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ofw_list <ofw-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-2010/6/12 Dotan Barak <dotanba-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>:
-> On 12/06/2010 03:22, Ding Dinghua wrote:
->>
->> 2010/6/11 Dotan Barak<dotanba-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>:
->>
->>>
->>> Hi.
->>>
->>> On 11/06/2010 10:51, Ding Dinghua wrote:
->>>
->>>>
->>>> Hi all:
->>>> =A0 =A0 =A0 =A0 =A0I'm using RDMA to do fs-metadata mirror between=
- nodes. I
->>>> encountered a strange problem when the program was running:
->>>> Complete queue handler reported that the =A0RDMA-Write operation f=
-ailed,
->>>> =A0the status of =A0corresponding "struct ib_wc" is "IB_WC_RETRY_E=
-XC_ERR".
->>>> The problem is encountered randomly. I don't know the meaning of t=
-his
->>>> error code as well as what to do next. Would anyone give me some t=
-ips?
->>>> thanks a lot.
->>>>
->>>>
->>>
->>> Do you sync between the sides before closing the QPs?
->>>
->>
->> Can you say it more detail? thanks.
->>
->
-> If you try to send a message from local QP to a remote QP before the =
-remote
-> QP is in RTR state (or after it was closed/transferred to the ERROR s=
-tate),
-> you may get RETRY EXCEEDED, because there isn't any QP in the remote =
-side
-> that can accept your message (and send a response).
->
-> How do you connect the QPs? (And how do you close the connection betw=
-een
-> them)
->
-Sorry i forget the close issue.
+Hefty, Sean wrote:
+> The index isn't guaranteed to be the same across all nodes.  If a consumer is going to manually control this, they should really be forced to use the actual pkey.
+yes, I saw this confusion in action, for most users pkey index doesn't 
+mean anything, it may also change across time, which can break 
+scripts/setting to run specific jobs using specific partitions.
 
-1. Local node call ib_poll_cq to process the remaining complete queue e=
-ntry,
-2. Local node call rdma_disconnect to destroy connection, before
-remote side ack, the thread will wait on a wait queue.
-3. After catching this request, the remote node will also call
-ib_poll_cq to process the remainning complete queue entry,
-then do some resource-release work, then send a reply.
-4. Local node was waken up and do resource-release work.
-
-
-> Dotan
->
-
-
-
---=20
-Ding Dinghua
+Or.
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
