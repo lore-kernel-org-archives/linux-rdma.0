@@ -1,17 +1,43 @@
-From: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH] pkey fix for ipoib - resubmission
-Date: Thu, 17 Jun 2010 19:36:37 +0300
-Message-ID: <AANLkTimLfiuWMpiUFGIvotG0aWiebXC5jv5kfgKUmG4a@mail.gmail.com>
+From: Mike Heinz <michael.heinz-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+Subject: RE: [PATCH] pkey fix for ipoib - resubmission
+Date: Thu, 17 Jun 2010 11:39:38 -0500
+Message-ID: <4C2744E8AD2982428C5BFE523DF8CDCB49D09E7B78@MNEXMB1.qlogic.org>
 References: <4C2744E8AD2982428C5BFE523DF8CDCB49D09E7A43@MNEXMB1.qlogic.org>
+ <AANLkTimLfiuWMpiUFGIvotG0aWiebXC5jv5kfgKUmG4a@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4C2744E8AD2982428C5BFE523DF8CDCB49D09E7A43-amwN6d8PyQWXx9kJd3VG2h2eb7JE58TQ@public.gmane.org>
+In-Reply-To: <AANLkTimLfiuWMpiUFGIvotG0aWiebXC5jv5kfgKUmG4a-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Mike Heinz <michael.heinz-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+To: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Todd Rimmer <todd.rimmer-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
+
+> So what's wrong with using the default pkey? It is a valid and I don'=
+t
+see why we should ignore it.
+
+In fabrics using quality of service and virtual fabrics, the default pk=
+ey is probably the wrong one to use for network traffic - and may not w=
+ork at all. Remember, the real default pkey is 0x7fff, not 0xffff - and=
+ 0x7fff only guarantees communications with the SM not with other nodes=
+=2E
+
+> I don't think this is required.
+
+It is certainly required for any fabric that does not permit the use of=
+ 0xffff as a pkey for ipoib traffic.
+
+
+-----Original Message-----
+=46rom: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-owner@vger.=
+kernel.org] On Behalf Of Eli Cohen
+Sent: Thursday, June 17, 2010 12:37 PM
+To: Mike Heinz
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Roland Dreier
+Subject: Re: [PATCH] pkey fix for ipoib - resubmission
 
 On Wed, Jun 16, 2010 at 4:59 PM, Mike Heinz <michael.heinz-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org> =
 wrote:
@@ -177,6 +203,11 @@ nfo at =A0http://vger.kernel.org/majordomo-info.html
 > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 > More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
 >
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
 n
