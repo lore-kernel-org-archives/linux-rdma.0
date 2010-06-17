@@ -1,31 +1,28 @@
-From: Arthur Kepner <akepner-sJ/iWh9BUns@public.gmane.org>
-Subject: Re: [PATCH/RFC] mlx4_core: module param to limit msix vec
-	allocation
-Date: Thu, 17 Jun 2010 14:27:13 -0700
-Message-ID: <20100617212713.GH5778@sgi.com>
-References: <20100610165921.GF22247@sgi.com> <E113D394D7C5DB4F8FF691FA7EE9DB4439A77CCD66@MTLMAIL.mtl.com>
+From: Ralph Campbell <ralph.campbell-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH 0/7] various fixes for QIB driver
+Date: Thu, 17 Jun 2010 16:13:38 -0700
+Message-ID: <20100617231338.8006.18131.stgit@chromite.mv.qlogic.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <E113D394D7C5DB4F8FF691FA7EE9DB4439A77CCD66-WQlSmcKwN8Te+A/uUDamNg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yevgeny Petrilin <yevgenyp-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Jun 17, 2010 at 05:53:58PM +0300, Yevgeny Petrilin wrote:
-> I think that this patch would do the job,
+The following patches are for various bug fixes.
+I'm not sure what counts as a regression for code that is newly introduced.
+I'm hoping that all except #2 can be made for 2.6.35 whereas
+#2 can wait for 2.6.36 since it is actually a feature.
 
-(Is that an ack?)
-
-> Anyway we are thinking of ways to change our interrupt allocation scheme.
-> 
-
-Would be interested to know what you've got in mind.
-
--- 
-Arthur
+IB/qib: avoid a rare 7322 chip problem by not marking VL15 bufs as WC
+IB/qib: allow PSM to select from multiple port assignment algorithms
+IB/qib: mask hardware error during link reset
+IB/qib: clear eager buffer memory for each new process
+IB/qib: clear 6120 hardware error register
+IB/qib: update 7322 serdes tables
+IB/qib: completion queue callback needs to be single threaded
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
