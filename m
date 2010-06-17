@@ -1,231 +1,204 @@
-From: Hal Rosenstock <hnrose-Wuw85uim5zDR7s880joybQ@public.gmane.org>
-Subject: [PATCHv5 2/2][RESEND] opensm/osm_console.c: Add dump and clear
-	redir perfmgr command support
-Date: Thu, 17 Jun 2010 14:16:29 -0400
-Message-ID: <20100617181629.GA17408@comcast.net>
+From: "Davis, Arlin R" <arlin.r.davis-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH 5/5 v2] dapl-2.0 - scm, ucm: add pkey, pkey_index, sl
+ override for QP's
+Date: Thu, 17 Jun 2010 12:49:46 -0700
+Message-ID: <E3280858FA94444CA49D2BA02341C9830103CC866F@orsmsx506.amr.corp.intel.com>
+References: <E3280858FA94444CA49D2BA02341C9830103BF2437@orsmsx506.amr.corp.intel.com>
+	<CF9C39F99A89134C9CF9C4CCB68B8DDF259E4E04A4@orsmsx501.amr.corp.intel.com>
+	<E3280858FA94444CA49D2BA02341C9830103BF25EB@orsmsx506.amr.corp.intel.com>
+ <CF9C39F99A89134C9CF9C4CCB68B8DDF259E4E065C@orsmsx501.amr.corp.intel.com>
+ <4C19E243.2020500@voltaire.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <4C19E243.2020500-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Or Gerlitz <ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+Cc: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ofw_list <ofw-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Follows previous patch that adds better redirection support for PerfMgr
+Or/Sean, 
 
-Signed-off-by: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Good points. Here is v2 without index capabilities. 
+
+>Hefty, Sean wrote:
+>> The index isn't guaranteed to be the same across all nodes.  
+>If a consumer is going to manually control this, they should 
+>really be forced to use the actual pkey.
+>yes, I saw this confusion in action, for most users pkey index doesn't 
+>mean anything, it may also change across time, which can break 
+>scripts/setting to run specific jobs using specific partitions.
+>
+>Or.
+>
+
+On a per open basis, add environment variables
+DAPL_IB_SL and DAPL_IB_PKEY and use on
+connection setup (QP modify) to override default
+values of 0 for SL and PKEY index. If pkey is
+provided then find the pkey index with
+ibv_query_pkey for dev_attr.max_pkeys.
+Will be used for RC and UD type QP's.
+
+Signed-off-by: Arlin Davis <arlin.r.davis-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
-Changes since v4:
-Fixed rejection of Copyright hunk
+ dapl/openib_cma/dapl_ib_util.h |    4 +++-
+ dapl/openib_common/qp.c        |    8 ++++----
+ dapl/openib_common/util.c      |   39 +++++++++++++++++++++++++++++++++++++--
+ dapl/openib_scm/dapl_ib_util.h |    4 ++++
+ dapl/openib_ucm/dapl_ib_util.h |    3 +++
+ 5 files changed, 51 insertions(+), 7 deletions(-)
 
-Changes since v3:
-Fixed some formatting problems (spaces instead of tabs)
-
-Changes since v2:
-Rebased
-
-Changes since v1:
-Changes based on changes to PerfMgr redir support in v3 patch
-
-diff --git a/opensm/opensm/osm_console.c b/opensm/opensm/osm_console.c
-index bc7bea3..27f1e1e 100644
---- a/opensm/opensm/osm_console.c
-+++ b/opensm/opensm/osm_console.c
-@@ -1,6 +1,6 @@
- /*
-  * Copyright (c) 2005-2009 Voltaire, Inc. All rights reserved.
-- * Copyright (c) 2009 HNR Consulting. All rights reserved.
-+ * Copyright (c) 2009,2010 HNR Consulting. All rights reserved.
-  *
-  * This software is available to you under a choice of one of two
-  * licenses.  You may choose to be licensed under the terms of the GNU
-@@ -231,7 +231,7 @@ static void help_update_desc(FILE *out, int detail)
- static void help_perfmgr(FILE * out, int detail)
- {
- 	fprintf(out,
--		"perfmgr [enable|disable|clear_counters|dump_counters|print_counters|sweep_time[seconds]]\n");
-+		"perfmgr [enable|disable|clear_counters|dump_counters|print_counters|dump_redir|clear_redir|sweep_time[seconds]]\n");
- 	if (detail) {
- 		fprintf(out,
- 			"perfmgr -- print the performance manager state\n");
-@@ -245,6 +245,10 @@ static void help_perfmgr(FILE * out, int detail)
- 			"   [dump_counters [mach]] -- dump the counters (optionally in [mach]ine readable format)\n");
- 		fprintf(out,
- 			"   [print_counters <nodename|nodeguid>] -- print the counters for the specified node\n");
-+		fprintf(out,
-+			"   [dump_redir [<nodename|nodeguid>]] -- dump the redirection table\n");
-+		fprintf(out,
-+			"   [clear_redir [<nodename|nodeguid>]] -- clear the redirection table\n");
- 	}
- }
- #endif				/* ENABLE_OSM_PERF_MGR */
-@@ -1179,6 +1183,152 @@ static void update_desc_parse(char **p_last, osm_opensm_t * p_osm, FILE * out)
- }
+diff --git a/dapl/openib_cma/dapl_ib_util.h b/dapl/openib_cma/dapl_ib_util.h
+index a710195..471bd7f 100755
+--- a/dapl/openib_cma/dapl_ib_util.h
++++ b/dapl/openib_cma/dapl_ib_util.h
+@@ -121,7 +121,9 @@ typedef struct _ib_hca_transport
+ 	uint8_t			tclass;
+ 	uint8_t			mtu;
+ 	DAT_NAMED_ATTR		named_attr;
+-
++	uint8_t			sl;
++	uint16_t		pkey;
++	int			pkey_idx;
+ } ib_hca_transport_t;
  
- #ifdef ENABLE_OSM_PERF_MGR
-+static monitored_node_t *find_node_by_name(osm_opensm_t * p_osm,
-+					   char *nodename)
-+{
-+	cl_map_item_t *item;
-+	monitored_node_t *node;
+ /* prototypes */
+diff --git a/dapl/openib_common/qp.c b/dapl/openib_common/qp.c
+index 473604b..179eef0 100644
+--- a/dapl/openib_common/qp.c
++++ b/dapl/openib_common/qp.c
+@@ -422,7 +422,7 @@ dapls_modify_qp_state(IN ib_qp_handle_t		qp_handle,
+ 			qp_attr.ah_attr.grh.traffic_class =
+ 				ia_ptr->hca_ptr->ib_trans.tclass;
+ 		}
+-		qp_attr.ah_attr.sl = 0;
++		qp_attr.ah_attr.sl = ia_ptr->hca_ptr->ib_trans.sl;
+ 		qp_attr.ah_attr.src_path_bits = 0;
+ 		qp_attr.ah_attr.port_num = ia_ptr->hca_ptr->port_num;
+ 
+@@ -489,7 +489,7 @@ dapls_modify_qp_state(IN ib_qp_handle_t		qp_handle,
+ 			qp_attr.qkey = DAT_UD_QKEY;
+ 		}
+ 
+-		qp_attr.pkey_index = 0;
++		qp_attr.pkey_index = ia_ptr->hca_ptr->ib_trans.pkey_idx;
+ 		qp_attr.port_num = ia_ptr->hca_ptr->port_num;
+ 
+ 		dapl_dbg_log(DAPL_DBG_TYPE_EP,
+@@ -519,7 +519,7 @@ dapls_modify_qp_ud(IN DAPL_HCA *hca, IN ib_qp_handle_t qp)
+ 	/* modify QP, setup and prepost buffers */
+ 	dapl_os_memzero((void *)&qp_attr, sizeof(qp_attr));
+ 	qp_attr.qp_state = IBV_QPS_INIT;
+-        qp_attr.pkey_index = 0;
++        qp_attr.pkey_index = hca->ib_trans.pkey_idx;
+         qp_attr.port_num = hca->port_num;
+         qp_attr.qkey = DAT_UD_QKEY;
+ 	if (ibv_modify_qp(qp, &qp_attr, 
+@@ -582,7 +582,7 @@ dapls_create_ah(IN DAPL_HCA		*hca,
+ 		qp_attr.ah_attr.grh.hop_limit =	hca->ib_trans.hop_limit;
+ 		qp_attr.ah_attr.grh.traffic_class = hca->ib_trans.tclass;
+ 	}
+-	qp_attr.ah_attr.sl = 0;
++	qp_attr.ah_attr.sl = hca->ib_trans.sl;
+ 	qp_attr.ah_attr.src_path_bits = 0;
+ 	qp_attr.ah_attr.port_num = hca->port_num;
+ 
+diff --git a/dapl/openib_common/util.c b/dapl/openib_common/util.c
+index b83f609..a69261f 100644
+--- a/dapl/openib_common/util.c
++++ b/dapl/openib_common/util.c
+@@ -321,6 +321,38 @@ DAT_RETURN dapls_ib_query_hca(IN DAPL_HCA * hca_ptr,
+ 		hca_ptr->ib_trans.named_attr.value =
+ 		    dapl_ib_mtu_str(hca_ptr->ib_trans.mtu);
+ 
++		if (hca_ptr->ib_hca_handle->device->transport_type != IBV_TRANSPORT_IB)
++			goto skip_ib;
 +
-+	item = cl_qmap_head(&p_osm->perfmgr.monitored_map);
-+	while (item != cl_qmap_end(&p_osm->perfmgr.monitored_map)) {
-+		node = (monitored_node_t *)item;
-+		if (strcmp(node->name, nodename) == 0)
-+			return node;
-+		item = cl_qmap_next(item);
-+	}
++               /* set SL, PKEY values, defaults = 0 */
++               hca_ptr->ib_trans.pkey_idx = 0;
++               hca_ptr->ib_trans.pkey = dapl_os_get_env_val("DAPL_IB_PKEY", 0);
++               hca_ptr->ib_trans.sl = dapl_os_get_env_val("DAPL_IB_SL", 0);
 +
-+	return NULL;
-+}
-+
-+static monitored_node_t *find_node_by_guid(osm_opensm_t * p_osm,
-+					   uint64_t guid)
-+{
-+	cl_map_item_t *node;
-+
-+	node = cl_qmap_get(&p_osm->perfmgr.monitored_map, guid);
-+	if (node != cl_qmap_end(&p_osm->perfmgr.monitored_map))
-+		return (monitored_node_t *)node;
-+
-+	return NULL;
-+}
-+
-+static void dump_redir_entry(monitored_node_t *p_mon_node, FILE * out)
-+{
-+	int port, redir;
-+
-+	/* only display monitored nodes with redirection info */
-+	redir = 0;
-+	for (port = (p_mon_node->esp0) ? 0 : 1;
-+	     port < p_mon_node->num_ports; port++) {
-+		if (p_mon_node->port[port].redirection) {
-+			if (!redir) {
-+				fprintf(out, "   Node GUID       ESP0   Name\n");
-+				fprintf(out, "   ---------       ----   ----\n");
-+				fprintf(out, "   0x%" PRIx64 " %d      %s\n",
-+					p_mon_node->guid, p_mon_node->esp0,
-+					p_mon_node->name);
-+				fprintf(out, "\n   Port Valid  LIDs     PKey  QP    PKey Index\n");
-+				fprintf(out, "   ---- -----  ----     ----  --    ----------\n");
-+				redir = 1;
++		/* index provided, get pkey; pkey provided, get index */
++		if (hca_ptr->ib_trans.pkey) {
++			int i; uint16_t pkey = 0;
++			for (i=0; i < dev_attr.max_pkeys; i++) {
++				if (ibv_query_pkey(hca_ptr->ib_hca_handle,
++						   hca_ptr->port_num,
++						   i, &pkey)) {
++					i = dev_attr.max_pkeys;
++					break;
++				}
++				if (pkey == hca_ptr->ib_trans.pkey) {
++					hca_ptr->ib_trans.pkey_idx = i;
++					break;
++				}
 +			}
-+			fprintf(out, "   %d    %d      %u->%u  0x%x 0x%x   %d\n",
-+				port, p_mon_node->port[port].valid,
-+				cl_ntoh16(p_mon_node->port[port].orig_lid),
-+				cl_ntoh16(p_mon_node->port[port].lid),
-+				cl_ntoh16(p_mon_node->port[port].pkey),
-+				cl_ntoh32(p_mon_node->port[port].qp),
-+				p_mon_node->port[port].pkey_ix);
++			if (i == dev_attr.max_pkeys) {
++				dapl_log(DAPL_DBG_TYPE_WARN,
++					 " Warning: new pkey(%d), query (%s)"
++					 " err or key !found, using defaults\n",
++					 hca_ptr->ib_trans.pkey, strerror(errno));
++			}
 +		}
-+	}
-+	if (redir)
-+		fprintf(out, "\n");
-+}
++skip_ib:
 +
-+static void dump_redir(osm_opensm_t * p_osm, char *nodename, FILE * out)
-+{
-+	monitored_node_t *p_mon_node;
-+	uint64_t guid;
+ #ifdef DEFINE_ATTR_LINK_LAYER
+ #ifndef _OPENIB_CMA_
+ 		if (port_attr.link_layer == IBV_LINK_LAYER_ETHERNET)
+@@ -333,12 +365,15 @@ DAT_RETURN dapls_ib_query_hca(IN DAPL_HCA * hca_ptr,
+ #endif
+ 		dapl_log(DAPL_DBG_TYPE_UTIL,
+ 			     " query_hca: (%x.%x) eps %d, sz %d evds %d,"
+-			     " sz %d mtu %d\n",
++			     " sz %d mtu %d - pkey %d p_idx %d sl %d\n",
+ 			     ia_attr->hardware_version_major,
+ 			     ia_attr->hardware_version_minor,
+ 			     ia_attr->max_eps, ia_attr->max_dto_per_ep,
+ 			     ia_attr->max_evds, ia_attr->max_evd_qlen,
+-			     128 << hca_ptr->ib_trans.mtu);
++			     128 << hca_ptr->ib_trans.mtu,
++			     hca_ptr->ib_trans.pkey,
++			     hca_ptr->ib_trans.pkey_idx,
++			     hca_ptr->ib_trans.sl);
+ 
+ 		dapl_log(DAPL_DBG_TYPE_UTIL,
+ 			     " query_hca: msg %llu rdma %llu iov %d lmr %d rmr %d"
+diff --git a/dapl/openib_scm/dapl_ib_util.h b/dapl/openib_scm/dapl_ib_util.h
+index 497bc64..4bb1a4a 100644
+--- a/dapl/openib_scm/dapl_ib_util.h
++++ b/dapl/openib_scm/dapl_ib_util.h
+@@ -106,6 +106,10 @@ typedef struct _ib_hca_transport
+ 	uint8_t			mtu;
+ 	DAT_NAMED_ATTR		named_attr;
+ 	DAPL_SOCKET		scm[2];
++	uint8_t			sl;
++	uint16_t			pkey;
++	int				pkey_idx;
 +
-+	if (!p_osm->subn.opt.perfmgr_redir)
-+		fprintf(out, "Perfmgr redirection not enabled\n");
-+
-+	fprintf(out, "\nRedirection Table\n");
-+	fprintf(out, "-----------------\n");
-+	cl_plock_acquire(&p_osm->lock);
-+	if (nodename) {
-+		guid = strtoull(nodename, NULL, 0);
-+		if (guid == 0 && errno)
-+			p_mon_node = find_node_by_name(p_osm, nodename);
-+		else
-+			p_mon_node = find_node_by_guid(p_osm, guid);
-+		if (p_mon_node)
-+			dump_redir_entry(p_mon_node, out);
-+		else {
-+			if (guid == 0 && errno)
-+				fprintf(out, "Node %s not found...\n", nodename);
-+			else
-+				fprintf(out, "Node 0x%" PRIx64 " not found...\n", guid);
-+		}
-+	} else {
-+		p_mon_node = (monitored_node_t *) cl_qmap_head(&p_osm->perfmgr.monitored_map);
-+		while (p_mon_node != (monitored_node_t *) cl_qmap_end(&p_osm->perfmgr.monitored_map)) {
-+			dump_redir_entry(p_mon_node, out);
-+			p_mon_node = (monitored_node_t *) cl_qmap_next((const cl_map_item_t *)p_mon_node);
-+		}
-+	}
-+	cl_plock_release(&p_osm->lock);
-+}
-+
-+static void clear_redir_entry(monitored_node_t *p_mon_node)
-+{
-+	int port;
-+	ib_net16_t orig_lid;
-+
-+	for (port = (p_mon_node->esp0) ? 0 : 1;
-+	     port < p_mon_node->num_ports; port++) {
-+		if (p_mon_node->port[port].redirection) {
-+			orig_lid = p_mon_node->port[port].orig_lid;
-+			memset(&p_mon_node->port[port], 0,
-+			       sizeof(monitored_port_t));
-+			p_mon_node->port[port].valid = TRUE;
-+			p_mon_node->port[port].orig_lid = orig_lid;
-+		}
-+	}
-+}
-+
-+static void clear_redir(osm_opensm_t * p_osm, char *nodename, FILE * out)
-+{
-+	monitored_node_t *p_mon_node;
-+	uint64_t guid;
-+
-+	if (!p_osm->subn.opt.perfmgr_redir)
-+		fprintf(out, "Perfmgr redirection not enabled\n");
-+
-+	cl_plock_acquire(&p_osm->lock);
-+	if (nodename) {
-+		guid = strtoull(nodename, NULL, 0);
-+		if (guid == 0 && errno)
-+			p_mon_node = find_node_by_name(p_osm, nodename);
-+		else
-+			p_mon_node = find_node_by_guid(p_osm, guid);
-+		if (p_mon_node)
-+			clear_redir_entry(p_mon_node);
-+		else {
-+			if (guid == 0 && errno)
-+				fprintf(out, "Node %s not found...\n", nodename);
-+			else
-+				fprintf(out, "Node 0x%" PRIx64 " not found...\n", guid);
-+		}
-+	} else {
-+		p_mon_node = (monitored_node_t *) cl_qmap_head(&p_osm->perfmgr.monitored_map);
-+		while (p_mon_node != (monitored_node_t *) cl_qmap_end(&p_osm->perfmgr.monitored_map)) {
-+			clear_redir_entry(p_mon_node);
-+			p_mon_node = (monitored_node_t *) cl_qmap_next((const cl_map_item_t *)p_mon_node);
-+		}
-+	}
-+	cl_plock_release(&p_osm->lock);
-+}
-+
- static void perfmgr_parse(char **p_last, osm_opensm_t * p_osm, FILE * out)
- {
- 	char *p_cmd;
-@@ -1211,6 +1361,12 @@ static void perfmgr_parse(char **p_last, osm_opensm_t * p_osm, FILE * out)
- 				fprintf(out,
- 					"print_counters requires a node name or node GUID to be specified\n");
- 			}
-+		} else if (strcmp(p_cmd, "dump_redir") == 0) {
-+			p_cmd = name_token(p_last);
-+			dump_redir(p_osm, p_cmd, out);
-+		} else if (strcmp(p_cmd, "clear_redir") == 0) {
-+			p_cmd = name_token(p_last);
-+			clear_redir(p_osm, p_cmd, out);
- 		} else if (strcmp(p_cmd, "sweep_time") == 0) {
- 			p_cmd = next_token(p_last);
- 			if (p_cmd) {
+ } ib_hca_transport_t;
+ 
+ /* prototypes */
+diff --git a/dapl/openib_ucm/dapl_ib_util.h b/dapl/openib_ucm/dapl_ib_util.h
+index de17f04..25ce963 100644
+--- a/dapl/openib_ucm/dapl_ib_util.h
++++ b/dapl/openib_ucm/dapl_ib_util.h
+@@ -114,6 +114,9 @@ typedef struct _ib_hca_transport
+ 	struct ibv_ah		**ah;  
+ 	DAPL_OS_LOCK		plock;
+ 	uint8_t			*sid;  /* Sevice IDs, port space, bitarray? */
++	uint8_t			sl;
++	uint16_t			pkey;
++	int				pkey_idx;
+ 
+ } ib_hca_transport_t;
+ 
+-- 
+1.5.2.5
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
