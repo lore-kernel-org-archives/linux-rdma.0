@@ -1,8 +1,8 @@
 From: Hal Rosenstock <hnrose-Wuw85uim5zDR7s880joybQ@public.gmane.org>
-Subject: [PATCHv4 2/2][RESEND] opensm/osm_console.c: Add dump and clear
+Subject: [PATCHv5 2/2][RESEND] opensm/osm_console.c: Add dump and clear
 	redir perfmgr command support
-Date: Thu, 17 Jun 2010 13:30:44 -0400
-Message-ID: <20100617173044.GB17245@comcast.net>
+Date: Thu, 17 Jun 2010 14:16:29 -0400
+Message-ID: <20100617181629.GA17408@comcast.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
@@ -12,11 +12,13 @@ To: sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-
-Follows previous patch that adds better redirection support into PerfMgr
+Follows previous patch that adds better redirection support for PerfMgr
 
 Signed-off-by: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 ---
+Changes since v4:
+Fixed rejection of Copyright hunk
+
 Changes since v3:
 Fixed some formatting problems (spaces instead of tabs)
 
@@ -27,7 +29,7 @@ Changes since v1:
 Changes based on changes to PerfMgr redir support in v3 patch
 
 diff --git a/opensm/opensm/osm_console.c b/opensm/opensm/osm_console.c
-index 49b0ae0..764235a 100644
+index bc7bea3..27f1e1e 100644
 --- a/opensm/opensm/osm_console.c
 +++ b/opensm/opensm/osm_console.c
 @@ -1,6 +1,6 @@
@@ -35,10 +37,10 @@ index 49b0ae0..764235a 100644
   * Copyright (c) 2005-2009 Voltaire, Inc. All rights reserved.
 - * Copyright (c) 2009 HNR Consulting. All rights reserved.
 + * Copyright (c) 2009,2010 HNR Consulting. All rights reserved.
-  * Copyright (c) 2010 Mellanox Technologies LTD. All rights reserved.
   *
   * This software is available to you under a choice of one of two
-@@ -232,7 +232,7 @@ static void help_update_desc(FILE *out, int detail)
+  * licenses.  You may choose to be licensed under the terms of the GNU
+@@ -231,7 +231,7 @@ static void help_update_desc(FILE *out, int detail)
  static void help_perfmgr(FILE * out, int detail)
  {
  	fprintf(out,
@@ -47,7 +49,7 @@ index 49b0ae0..764235a 100644
  	if (detail) {
  		fprintf(out,
  			"perfmgr -- print the performance manager state\n");
-@@ -246,6 +246,10 @@ static void help_perfmgr(FILE * out, int detail)
+@@ -245,6 +245,10 @@ static void help_perfmgr(FILE * out, int detail)
  			"   [dump_counters [mach]] -- dump the counters (optionally in [mach]ine readable format)\n");
  		fprintf(out,
  			"   [print_counters <nodename|nodeguid>] -- print the counters for the specified node\n");
@@ -58,7 +60,7 @@ index 49b0ae0..764235a 100644
  	}
  }
  #endif				/* ENABLE_OSM_PERF_MGR */
-@@ -1180,6 +1184,152 @@ static void update_desc_parse(char **p_last, osm_opensm_t * p_osm, FILE * out)
+@@ -1179,6 +1183,152 @@ static void update_desc_parse(char **p_last, osm_opensm_t * p_osm, FILE * out)
  }
  
  #ifdef ENABLE_OSM_PERF_MGR
@@ -211,7 +213,7 @@ index 49b0ae0..764235a 100644
  static void perfmgr_parse(char **p_last, osm_opensm_t * p_osm, FILE * out)
  {
  	char *p_cmd;
-@@ -1212,6 +1362,12 @@ static void perfmgr_parse(char **p_last, osm_opensm_t * p_osm, FILE * out)
+@@ -1211,6 +1361,12 @@ static void perfmgr_parse(char **p_last, osm_opensm_t * p_osm, FILE * out)
  				fprintf(out,
  					"print_counters requires a node name or node GUID to be specified\n");
  			}
