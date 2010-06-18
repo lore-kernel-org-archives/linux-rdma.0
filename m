@@ -1,44 +1,53 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH v2] allow passthrough of rmpp packets to user mad clients
-Date: Fri, 18 Jun 2010 10:23:27 -0700
-Message-ID: <CF9C39F99A89134C9CF9C4CCB68B8DDF259E5A7C65@orsmsx501.amr.corp.intel.com>
-References: <4C2744E8AD2982428C5BFE523DF8CDCB49A488DAD8@MNEXMB1.qlogic.org>
- <adask52o9p6.fsf@roland-alpha.cisco.com>
- <4C2744E8AD2982428C5BFE523DF8CDCB49D09E7C2F@MNEXMB1.qlogic.org>
+From: Todd Rimmer <todd.rimmer-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+Subject: RE: [ewg] [PATCH] pkey fix for ipoib - resubmission
+Date: Fri, 18 Jun 2010 12:32:52 -0500
+Message-ID: <5AEC2602AE03EB46BFC16C6B9B200DA816B75308EF@MNEXMB2.qlogic.org>
+References: <4C2744E8AD2982428C5BFE523DF8CDCB49D09E7A43@MNEXMB1.qlogic.org>
+	<4C2744E8AD2982428C5BFE523DF8CDCB49D09E7C6D@MNEXMB1.qlogic.org>
+ <20100618172216.GK4630@obsidianresearch.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4C2744E8AD2982428C5BFE523DF8CDCB49D09E7C2F-amwN6d8PyQWXx9kJd3VG2h2eb7JE58TQ@public.gmane.org>
+In-Reply-To: <20100618172216.GK4630-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Mike Heinz <michael.heinz-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>, Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Mike Heinz <michael.heinz-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, "ewg-G2znmakfqn7U1rindQTSdQ@public.gmane.org" <ewg-G2znmakfqn7U1rindQTSdQ@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> Unfortunately for IB the size of an RMPP response and buffer cannot be
-> controlled by the kernel.  So if an application has a large response to
-> send, the entire buffer must be copied into the kernel and the kernel
-> cannot decide on its own segmentation boundaries.  Hence the ability for
-> selected management applications to control and limit the amount of kernel
-> memory space is desirable.  These issues become serious at scale when
-> larger RMPP responses are needed and more clients may also be issuing
-> requests.  The two can combine and result in N^2 types behavior for kernel
-> memory footprint relative to N=cluster node count or potentially N=cluster
-> CPU core count.
+Jason wrote:
 
-There's no requirement that an entire RMPP response be copied to the kernel before being sent.  The current implementation does this, but that behavior can be modified to copy the data only when needed.  The total number of outstanding sends that a client can have can also be restricted to throttle back a client trying to send large messages to everyone on the fabric.
+> What happens if the SM reprograms the pkey table later?
+> 
+> I'm not sure this is the right approach.. See the recent dicussion
+> about using pkey indexes at all.
+> 
+> Each ipoib interface is assigned a pkey, by number, not index. If the
+> SM has not supplied that pkey to the port then the ipoib should not
+> come up. If the SM adds it later then it should come up, if it the SM
+> removes it later then it should go down.
+> 
+> The default ipoib interface uses the default pkey. If your network
+> need ipoib to use a different pkey then you have to change the pkey
+> number assignment when the ipoib interface is created, not magically
+> attempt to autoconfigure.
+> 
+> I believe you cannot safely change the broadcast GID once the ipoib
+> interface has started.
 
-> >There are QLogic customers who have requested the ability to perform
-> >RMPP transaction handling in user space.  This was an option in our old
-> >proprietary stack and there are a few customers still using it which
-> >need a way to forward migrate to OFED while containing the scope of
-> >their application changes.  While we have developed appropriate "shim"
-> libraries to allow their applications to migrate, we can't simulate/shim
-> rmpp processing without some kernel support.
+The goal for IPoIB should be a mechanism which can mimic the ease of setting up VLANs in Ethernet.  In Ethernet a default VLAN can be programmed into a switch in which case no configuration of the server is needed.  Ethernet switch vendors often provide centralized tools for setting up VLANS in all the switches.  It is only when you want a given server to participate in multiple VLANs that you need to setup specific configuration on the server to do so.
 
-There's nothing that prevents RMPP from running between an application and a library, with the library exchanging reassembled mads with the kernel.  It may not be ideal from your perspective, but I don't see why it's not possible to support existing applications.
+For IB, the centralized tool is the SM and a "VLAN" is an IB Partition.  The present capability of using the 1st PKey table entry is a nice simple and powerful way to mimic the ease of use of Ethernet VLANs.  Only when a user wants IPoIB to run on two different partitions (which is rare) is a server specific configuration needed.
 
+When IPoIB sees a PKey table change, it will reregister with the broadcast GID.  PKey table changes typically also involve a restart of the SM and hence a reregistration request is necessary anyway.
+
+Todd Rimmer
+Chief Architect 
+QLogic Network Systems Group
+Voice: 610-233-4852     Fax: 610-233-4777
+Todd.Rimmer-8votvDbAKxjQT0dZR+AlfA@public.gmane.org  www.QLogic.com
+ 
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
