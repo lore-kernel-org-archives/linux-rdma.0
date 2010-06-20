@@ -1,152 +1,77 @@
-From: Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH v5] opensm/osmeventplugin: added new events to monitor SM
-Date: Sun, 20 Jun 2010 14:35:14 +0300
-Message-ID: <4C1DFCF2.1090907@dev.mellanox.co.il>
+From: Dotan Barak <dotanba-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: P
+Date: Sun, 20 Jun 2010 20:43:00 +0200
+Message-ID: <4C1E6134.6070304@gmail.com>
+References: <AANLkTiml1Q7sD9MFsg_q1nQx5091rNnzhK8oh1aUnxwT@mail.gmail.com>	<4C125697.1000508@gmail.com>	<AANLkTilhV8JJTKxc4OpudTUgKqMyJ5mzcxt6XdSMurDS@mail.gmail.com>	<4C134EFC.5010207@gmail.com>	<AANLkTimdeZwZI3FlTncXY_d3QY8jFfNhHERTxl3BD3Bd@mail.gmail.com>	<4C1C9EFC.4020304@gmail.com> <AANLkTinah43AD5N0ZryDsrGprkeVf9-BdLCyr125PQ3p@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <AANLkTinah43AD5N0ZryDsrGprkeVf9-BdLCyr125PQ3p-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Cc: Linux RDMA <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+To: Ding Dinghua <dingdinghua85-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Adding new events that allow event plug-in to see
-when SM finishes heavy sweep and routing configuration,
-when it updates dump files, when it is no longer master,
-when SM port is down, and when SA DB is actually dumped
-at the end of light sweep:
+On 20/06/2010 07:51, Ding Dinghua wrote:
+> hello,
+>
+> 2010/6/19 Dotan Barak<dotanba-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>:
+>    
+>>      
+>>> I call rdma_create_id to create an ib id, then do resolve remote addr,
+>>> resolve route work, then
+>>> setup qp and call rdma_connect to setup connection, before ack or
+>>> error replies, the thread will
+>>> wait on a wait queue. The listening ib id of remote node will catch
+>>> the connect request,
+>>> setup qp, allocate and map pages to construct the RDMA-WRITE space,
+>>> and call rdma_accept to reply
+>>> the request.
+>>>
+>>> Some other information which may be useful:
+>>> 1.All the "RETRY EXCEEDED" problems happened when there were two
+>>> connections which use RDMA-WRITE to transfer things.
+>>> And the latter connection had a high possibility to get into this problem.
+>>> 2. All the "RETRY EXCEEDED" problems happened when the RMDA-WRITE
+>>> space is 256MB each(that is, for two connections, consumes 512MB mem),
+>>> when the RDMA-WRITE  space is 64MB, this problem never happened in our
+>>> test. Remote node's total memory is 2GB.
+>>>
+>>> Thanks a lot.
+>>>
+>>>        
+>> Some more questions:
+>> * Is the WR that "produces" the RETRY EXCEEDED is the first one/last one/in
+>> the middle?
+>>      
+> it's the first one
+>
+>    
+>> * Which values are you using in the QP context for retry exceeded counter +
+>> retry timeout?
+>> * Did you try to increase those values?
+>>      
+> I haven't set these values(actually  I don't know where to set these
+> values), i just set max_send_wr and max_send_sge
+> fields of struct ib_qp_cap when creating qp.
+>
+>    
+Can you perform query QP after establishing a connection between the QPs 
+and check those values?
 
-  OSM_EVENT_ID_HEAVY_SWEEP_DONE
-  OSM_EVENT_ID_UCAST_ROUTING_DONE
-  OSM_EVENT_ID_STATE_CHANGE
-  OSM_EVENT_ID_SA_DB_DUMPED
+>> * How many more QPs do you have between those nodes and which operations do
+>> they use
+>>    (only RDMA-WRITEs?)
+>>
+>>      
+> 4096 QPs for each connection,  only do RDMA-WRITES.
+>    
+So, you send in parallel total of 4K (QPs) * 64M (Bytes)  = 256 GB
+(am i missing something, or this is the amount of data that will be sent 
+between two nodes?)
 
-Signed-off-by: Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
----
-
-Changes since v4:
- - OSM_EVENT_ID_SA_DB_DUMPED was still reported during
-   heavy sweep - removed.
-
-Changes since v3:
- - OSM_EVENT_ID_ENTERING_STANDBY and OSM_EVENT_ID_SM_PORT_DOWN
-   replaced by OSM_EVENT_STATE_CHANGE
- - OSM_EVENT_ID_SA_DB_DUMPED is not reported during
-   heavy sweep, but only if SA DB was actually dumped
-   at the end of light sweep
- - fixed bug with OSM_EVENT_ID_MAX
-
- opensm/include/opensm/osm_event_plugin.h   |    4 ++++
- opensm/opensm/osm_state_mgr.c              |   17 +++++++++++++++--
- opensm/osmeventplugin/src/osmeventplugin.c |   12 ++++++++++++
- 3 files changed, 31 insertions(+), 2 deletions(-)
-
-diff --git a/opensm/include/opensm/osm_event_plugin.h b/opensm/include/opensm/osm_event_plugin.h
-index 33d1920..0b3464e 100644
---- a/opensm/include/opensm/osm_event_plugin.h
-+++ b/opensm/include/opensm/osm_event_plugin.h
-@@ -72,6 +72,10 @@ typedef enum {
- 	OSM_EVENT_ID_PORT_SELECT,
- 	OSM_EVENT_ID_TRAP,
- 	OSM_EVENT_ID_SUBNET_UP,
-+	OSM_EVENT_ID_HEAVY_SWEEP_DONE,
-+	OSM_EVENT_ID_UCAST_ROUTING_DONE,
-+	OSM_EVENT_ID_STATE_CHANGE,
-+	OSM_EVENT_ID_SA_DB_DUMPED,
- 	OSM_EVENT_ID_MAX
- } osm_epi_event_id_t;
-
-diff --git a/opensm/opensm/osm_state_mgr.c b/opensm/opensm/osm_state_mgr.c
-index 81c8f54..299514b 100644
---- a/opensm/opensm/osm_state_mgr.c
-+++ b/opensm/opensm/osm_state_mgr.c
-@@ -1107,8 +1107,10 @@ static void do_sweep(osm_sm_t * sm)
- 		if (wait_for_pending_transactions(&sm->p_subn->p_osm->stats))
- 			return;
- 		if (!sm->p_subn->force_heavy_sweep) {
--			if (sm->p_subn->opt.sa_db_dump)
--				osm_sa_db_file_dump(sm->p_subn->p_osm);
-+			if (sm->p_subn->opt.sa_db_dump &&
-+			    !osm_sa_db_file_dump(sm->p_subn->p_osm))
-+				osm_opensm_report_event(sm->p_subn->p_osm,
-+					OSM_EVENT_ID_SA_DB_DUMPED, NULL);
- 			OSM_LOG_MSG_BOX(sm->p_log, OSM_LOG_VERBOSE,
- 					"LIGHT SWEEP COMPLETE");
- 			return;
-@@ -1151,6 +1153,8 @@ static void do_sweep(osm_sm_t * sm)
- 		if (!sm->p_subn->subnet_initialization_error) {
- 			OSM_LOG_MSG_BOX(sm->p_log, OSM_LOG_VERBOSE,
- 					"REROUTE COMPLETE");
-+			osm_opensm_report_event(sm->p_subn->p_osm,
-+				OSM_EVENT_ID_UCAST_ROUTING_DONE, NULL);
- 			return;
- 		}
- 	}
-@@ -1185,6 +1189,8 @@ repeat_discovery:
-
- 		/* Move to DISCOVERING state */
- 		osm_sm_state_mgr_process(sm, OSM_SM_SIGNAL_DISCOVER);
-+		osm_opensm_report_event(sm->p_subn->p_osm,
-+				OSM_EVENT_ID_STATE_CHANGE, NULL);
- 		return;
- 	}
-
-@@ -1205,6 +1211,8 @@ repeat_discovery:
- 				"ENTERING STANDBY STATE");
- 		/* notify master SM about us */
- 		osm_send_trap144(sm, 0);
-+		osm_opensm_report_event(sm->p_subn->p_osm,
-+				OSM_EVENT_ID_STATE_CHANGE, NULL);
- 		return;
- 	}
-
-@@ -1212,6 +1220,9 @@ repeat_discovery:
- 	if (sm->p_subn->force_heavy_sweep)
- 		goto repeat_discovery;
-
-+	osm_opensm_report_event(sm->p_subn->p_osm,
-+				OSM_EVENT_ID_HEAVY_SWEEP_DONE, NULL);
-+
- 	OSM_LOG_MSG_BOX(sm->p_log, OSM_LOG_VERBOSE, "HEAVY SWEEP COMPLETE");
-
- 	/* If we are MASTER - get the highest remote_sm, and
-@@ -1314,6 +1325,8 @@ repeat_discovery:
-
- 	OSM_LOG_MSG_BOX(sm->p_log, OSM_LOG_VERBOSE,
- 			"SWITCHES CONFIGURED FOR UNICAST");
-+	osm_opensm_report_event(sm->p_subn->p_osm,
-+			OSM_EVENT_ID_UCAST_ROUTING_DONE, NULL);
-
- 	if (!sm->p_subn->opt.disable_multicast) {
- 		osm_mcast_mgr_process(sm);
-diff --git a/opensm/osmeventplugin/src/osmeventplugin.c b/opensm/osmeventplugin/src/osmeventplugin.c
-index b4d9ce9..f40f7fe 100644
---- a/opensm/osmeventplugin/src/osmeventplugin.c
-+++ b/opensm/osmeventplugin/src/osmeventplugin.c
-@@ -176,6 +176,18 @@ static void report(void *_log, osm_epi_event_id_t event_id, void *event_data)
- 	case OSM_EVENT_ID_SUBNET_UP:
- 		fprintf(log->log_file, "Subnet up reported\n");
- 		break;
-+	case OSM_EVENT_ID_HEAVY_SWEEP_DONE:
-+		fprintf(log->log_file, "Heavy sweep completed\n");
-+		break;
-+	case OSM_EVENT_ID_UCAST_ROUTING_DONE:
-+		fprintf(log->log_file, "Unicast routing completed\n");
-+		break;
-+	case OSM_EVENT_ID_STATE_CHANGE:
-+		fprintf(log->log_file, "SM state changed\n");
-+		break;
-+	case OSM_EVENT_ID_SA_DB_DUMPED:
-+		fprintf(log->log_file, "SA DB dump file updated\n");
-+		break;
- 	case OSM_EVENT_ID_MAX:
- 	default:
- 		osm_log(log->osmlog, OSM_LOG_ERROR,
--- 
-1.5.1.4
-
-
+Dotan
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
