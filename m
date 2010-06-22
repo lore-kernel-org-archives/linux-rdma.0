@@ -1,28 +1,30 @@
-From: Or Gerlitz <ogerlitz-hKgKHo2Ms0FWk0Htik3J/w@public.gmane.org>
-Subject: Re: [ewg] [PATCH] pkey fix for ipoib - resubmission
-Date: Tue, 22 Jun 2010 09:09:01 +0300
-Message-ID: <4C20537D.5080903@Voltaire.com>
-References: <4C2744E8AD2982428C5BFE523DF8CDCB49D09E7A43@MNEXMB1.qlogic.org>	<4C2744E8AD2982428C5BFE523DF8CDCB49D09E7C6D@MNEXMB1.qlogic.org>	<20100618172216.GK4630@obsidianresearch.com>	<5AEC2602AE03EB46BFC16C6B9B200DA816B75308EF@MNEXMB2.qlogic.org>	<20100618174650.GL4630@obsidianresearch.com>	<5AEC2602AE03EB46BFC16C6B9B200DA816B75308F7@MNEXMB2.qlogic.org> <20100618181921.GM4630@obsidianresearch.com>
+From: Or Gerlitz <ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+Subject: mlx4 pci device table
+Date: Tue, 22 Jun 2010 10:30:17 +0300 (IDT)
+Message-ID: <Pine.LNX.4.64.1006221025130.11239@zuben.voltaire.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20100618181921.GM4630-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Todd Rimmer <todd.rimmer-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-Cc: Mike Heinz <michael.heinz-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+To: Yevgeny Petrilin <yevgenyp-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Jason Gunthorpe wrote:
-> Be aware that mainline and OFED are different in this regard, OFED overrides 
-> the pkey unconditionally for multicast addresses, while mainline doesn't
- 
-Can you clarify this, please?
+Hi Yevgeny, Roland
 
-> ipoib bonding had much the same problem with invalid maddrs, and a
-> patch was put in that flushed the maddr table in certain bond scenarios. 
+I wonder if you can spare few words what would be the correct location
+of the PCI Id table under the two tier architecture of the mlx4 driver?
 
-Yes, reading through this thread, I tend to agree with Jason that we're in the same boat (problem) that used to be for bonding/ipoib and was fixed in commit 75c78500ddad74b229cd0691496b8549490496a2  "bonding: remap multicast addresses without using dev_close() and dev_open()", so I assume a similar solution can/should be applied here as well, unless someone comes with a magic approach to eliminate the problem all together...
+If the table is placed in mlx4_core (as of today in upstream), then I
+assume the mlx4_en and _ib aren't being probed by pci hot-plug
+mechasnisms, correct? else if you put it in _en _ib et al files, then
+one has to maintain two copies of the table, but maybe this would be
+the correct approach? how this should work with multi-protcol mlx4
+devices and/or IBoE?
+
+Yevgeny, I see you placed in ofed some patch which isn't upstream
+who puts a copy or some modified clone of the table in mlx4_en, what
+the problem you were trying to solve?
 
 Or.
 --
