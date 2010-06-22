@@ -1,51 +1,34 @@
-From: "Walukiewicz, Miroslaw" <Miroslaw.Walukiewicz-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH] librdmacm/mcraw: Add a new test application for
- user-space IBV_QPT_RAW_ETH QP type
-Date: Tue, 22 Jun 2010 12:48:53 +0100
-Message-ID: <BE2BFE91933D1B4089447C64486040801E9851BD@irsmsx503.ger.corp.intel.com>
-References: <BE2BFE91933D1B4089447C64486040801E7635F7@irsmsx503.ger.corp.intel.com>
- <CF9C39F99A89134C9CF9C4CCB68B8DDF259E0EB554@orsmsx501.amr.corp.intel.com>
- <BE2BFE91933D1B4089447C64486040801E87423E@irsmsx503.ger.corp.intel.com>
- <4C1F4A2F.4060701@Voltaire.COM>
+From: Hal Rosenstock <hnrose-Wuw85uim5zDR7s880joybQ@public.gmane.org>
+Subject: [PATCH][MINOR] opensm/osm_req.c: In osm_send_trap144, eliminate
+	redundant clear of m_key in smp
+Date: Tue, 22 Jun 2010 10:13:41 -0400
+Message-ID: <20100622141341.GA28788@comcast.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4C1F4A2F.4060701-hKgKHo2Ms0F+cjeuK/JdrQ@public.gmane.org>
-Content-Language: en-US
+Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Moni Shoua <monis-hKgKHo2Ms0F+cjeuK/JdrQ@public.gmane.org>
-Cc: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Thanks Moni, 
 
-I treated them as accepted. 
+Already cleared by prior memset
 
-Sean,
-response for your question is that changes with RAW_QP patches should be accepted first to have that application working.
-
-Mirek
-
-
------Original Message-----
-From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Moni Shoua
-Sent: Monday, June 21, 2010 1:17 PM
-To: Walukiewicz, Miroslaw
-Cc: Hefty, Sean; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Subject: Re: [PATCH] librdmacm/mcraw: Add a new test application for user-space IBV_QPT_RAW_ETH QP type
-
-Walukiewicz, Miroslaw wrote:
-> No, no more changes are necessary. It is a standalone application.
-> 
-> Mirek
-> 
-Are you sure?
-AFAIK, patches to kernel and libibverbs are required which were not accepted yet.
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Signed-off-by: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+---
+diff --git a/opensm/opensm/osm_req.c b/opensm/opensm/osm_req.c
+index b452089..7e9e664 100644
+--- a/opensm/opensm/osm_req.c
++++ b/opensm/opensm/osm_req.c
+@@ -250,7 +250,6 @@ int osm_send_trap144(osm_sm_t * sm, ib_net16_t local)
+ 	smp->method = IB_MAD_METHOD_TRAP;
+ 	smp->trans_id = cl_hton64((uint64_t) cl_atomic_inc(&sm->sm_trans_id));
+ 	smp->attr_id = IB_MAD_ATTR_NOTICE;
+-	smp->m_key = 0;
+ 
+ 	ntc = (ib_mad_notice_attr_t *) smp->data;
+ 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
