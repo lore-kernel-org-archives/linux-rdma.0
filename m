@@ -1,34 +1,39 @@
-From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 0/7] various fixes for QIB driver
-Date: Wed, 23 Jun 2010 11:14:28 -0700
-Message-ID: <adavd99ty4b.fsf@roland-alpha.cisco.com>
-References: <20100617231338.8006.18131.stgit@chromite.mv.qlogic.com>
+From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: Re: [PATCH v2] RDMA/CMA: fix iWARP adapter TCP port space usage
+Date: Wed, 23 Jun 2010 13:20:40 -0500
+Message-ID: <4C225078.6050001@opengridcomputing.com>
+References: <OF026C9B22.332F6F2C-ONC1257745.00429E02-C1257745.004E411D@ch.ibm.com> <ada8w65veq4.fsf@roland-alpha.cisco.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20100617231338.8006.18131.stgit-/vjeY7uYZjrPXfVEPVhPGq6RkeBMCJyt@public.gmane.org> (Ralph
-	Campbell's message of "Thu, 17 Jun 2010 16:13:38 -0700")
+In-Reply-To: <ada8w65veq4.fsf-BjVyx320WGW9gfZ95n9DRSW4+XlvGpQz@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ralph Campbell <ralph.campbell-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Cc: Bernard Metzler <BMT-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>, "Tung, Chien Tin" <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Peter P Waskiewicz Jr <peter.p.waskiewicz.jr-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
- > The following patches are for various bug fixes.
- > I'm not sure what counts as a regression for code that is newly introduced.
- > I'm hoping that all except #2 can be made for 2.6.35 whereas
- > #2 can wait for 2.6.36 since it is actually a feature.
+Roland Dreier wrote:
+>  > iWARP is just another protocol on top of TCP - like iSCSI. There is
+>  > no good reason to invent another TCP port maintainer per TCP user
+>  > type trying to synchonize with the kernel if the resource is host
+>  > global and already maintained by the kernel.
+>
+> I think the counter-argument to this is than an iWARP offload NIC is an
+> independent TCP stack and hence should not be tied into the host stack.
+> It's interesting that you bring up iSCSI -- as I understand things,
+> iSCSI offload HBAs are typically configured with their own IP, through a
+> separate mechanism.  (The port collision problem is not likely to be hit
+> with iSCSI, since the HBA is an initiator and hence does only active
+> connections, and a 4-tuple collision between connections to the iSCSI
+> target is not likely and other host stack traffic is extremely unlikely)
+>
+>   
 
-All except #2 look OK for 2.6.35.  I'll hold #2 for 2.6.36 -- I hope
-it's independent?
+Roland, do you think the iSCSI approach is a "good design" for iWARP 
+devices?
 
-In the future it might be cleaner to send a series 1-6 of fixes for
-2.6.35 and then send the port assignment one as a 2.6.36 patch separate
-from the series.  (No need to resend here)
 
- - R.
--- 
-Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org> || For corporate legal information go to:
-http://www.cisco.com/web/about/doing_business/legal/cri/index.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
