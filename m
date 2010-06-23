@@ -1,48 +1,60 @@
-From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: Re: [PATCH v2] RDMA/CMA: fix iWARP adapter TCP port space usage
-Date: Wed, 23 Jun 2010 15:39:25 -0500
-Message-ID: <4C2270FD.4090108@opengridcomputing.com>
-References: <ada8w65veq4.fsf@roland-alpha.cisco.com> <4C225078.6050001@opengridcomputing.com> <adar5jxtxho.fsf@roland-alpha.cisco.com> <4C225697.6060702@opengridcomputing.com> <20100623192909.GT4630@obsidianresearch.com> <4C2263B3.9010608@opengridcomputing.com> <20100623195210.GU4630@obsidianresearch.com> <4C226A6F.4000801@opengridcomputing.com> <20100623200937.GV4630@obsidianresearch.com> <4C226C53.7080802@opengridcomputing.com> <20100623202607.GW4630@obsidianresearch.com>
+From: "Tung, Chien Tin" <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH v2] RDMA/CMA: fix iWARP adapter TCP port space usage
+Date: Wed, 23 Jun 2010 13:51:38 -0700
+Message-ID: <2EFBCAEF10980645BBCFB605689E08E90492697023@azsmsx506.amr.corp.intel.com>
+References: <OF026C9B22.332F6F2C-ONC1257745.00429E02-C1257745.004E411D@ch.ibm.com>
+	<ada8w65veq4.fsf@roland-alpha.cisco.com>
+	<4C225078.6050001@opengridcomputing.com>
+	<adar5jxtxho.fsf@roland-alpha.cisco.com>
+	<2EFBCAEF10980645BBCFB605689E08E90492696EF7@azsmsx506.amr.corp.intel.com>
+ <ada6319ttnj.fsf@roland-alpha.cisco.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20100623202607.GW4630-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <ada6319ttnj.fsf-BjVyx320WGW9gfZ95n9DRSW4+XlvGpQz@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Bernard Metzler <BMT-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>, "Tung, Chien Tin" <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Peter P Waskiewicz Jr <peter.p.waskiewicz.jr-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Cc: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Bernard Metzler <BMT-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Waskiewicz Jr, Peter P" <peter.p.waskiewicz.jr-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Jason Gunthorpe wrote:
-> On Wed, Jun 23, 2010 at 03:19:31PM -0500, Steve Wise wrote:
->
->   
->>> So who responds to neighbor queries, and how do outgoing queries get
->>> sent with the right IP? Sounds odd...
->>>       
->> The iscsi hba is only an initiator, so it doesn't need to respond to arp  
->> queries.  
->>     
->
-> Hmm.. The other side could arp you at any time, and if you don't answer
-> stuff can go bad, so something must be generating the replies.
->   
+>  > > On the other hand trying to hook offloaded iWARP into the normal stack
+>  > > does seem to lead to a mess.  I see DaveM's point: TCP port space is
+>  > > just the beginning -- filtering, queueing, etc also have config that
+>  > > ultimately an offload device would want to hook too.
+> 
+>  > TCP port space is just the beginning but then these features
+>  > didn't show up all at once in the kernel either.  Instead of
+>  > evolving iWARP implementation, we can't even take a baby step
+>  > and fix a flaw that exists in the current kernel.  Why are we
+>  > "replicating" everything offered by the host stack instead of
+>  > hooking in?  It does not sound like good engineering to me.
+> 
+> Well as I said I don't particularly see a clean solution.  But the point
+> I was making was that the net stack is already very complex with many
+> places where interface configs are controlled -- having to add hooks to
+> pass that config on to offload devices is going to add even more
+> complexity and also add constraints to the format of that config
+> information.  Which is not good.
+
+I don't want separate config file for L2 and iWARP as it adds more
+work and complexity for the user.  I want it dead simple.  I can see
+extending config format to include information specific for offload
+but I don't see how it can limit the format.  That has not been the
+case up to this point.  Also, port space patch is totally transparent
+to the user and config file.  There is no managing host TCP and iWARP
+TCP port space for the user.
+
+I'm not sure about passing config info to offload devices, if the info
+is outside of what L2 driver currently picks up then sure some work
+needs to be done.  Hopefully everything can be pass-through from L2 to iWARP.
 
 
-You're right!  The low level driver, cxgb3, handles it.  See 
-cxgb3_arp_process().   I missed this change in the original submission 
-of cxgb3i...
+Chien
 
 
-> But I guess that is seperate, sounds like iSCSI is in a similar boat
-> and they were not able to reconcile either? :(
->
-> Jason
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->   
+
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
