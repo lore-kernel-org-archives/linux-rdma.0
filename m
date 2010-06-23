@@ -1,42 +1,64 @@
-From: Or Gerlitz <ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Subject: Re: Name for a new type of QP
-Date: Wed, 23 Jun 2010 14:27:24 +0300
-Message-ID: <4C21EF9C.1020304@voltaire.com>
-References: <4C21D1AA.8060402@Voltaire.COM>	<BE2BFE91933D1B4089447C64486040801E9D892A@irsmsx503.ger.corp.intel.com> <7E95F01E94AB484F83061FCFA35B39F868D9D2@exil.voltaire.com>
+From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: [PATCH 1/3] RDMA/cxgb4: derive smac_idx from port viid.
+Date: Wed, 23 Jun 2010 10:00:55 -0500
+Message-ID: <20100623150055.22155.17833.stgit@build.ogc.int>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <7E95F01E94AB484F83061FCFA35B39F868D9D2-QfUkFaTmzUSUvQqKE/ONIwC/G2K4zDHf@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Alex Rosenbaum <Alexr-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+To: rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Alex Rosenbaum wrote:
-> I never fully understood what does IBV_QPT_RAW_ETY stand for? Maybe we should change its name to better represent what the code does.
-before, maybe take a look on the IB spec... see the spec references 
-mentioned by the patch to support IB_QPT_RAW_ETY which posted to the 
-list in the past, but didn't make it to upstream yet @ 
-http://lists.openfabrics.org/pipermail/general/2008-December/055954.html
+Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+---
 
-Also, IBA  chapter 2, states that "Raw Datagram - A packet that contains 
-an IBA Local Route Header, may contain an IBA Global Route Header, but 
-does not contain an IBA Transport header, and is not handled by IBA 
-transport services",
-&& chapter 3, section 3.6.2 "IBA TRANSPORT SERVICES" explains everything 
-in detail, including what is the difference between raw ethernet to raw 
-ipv6, look for "The Raw Datagram service is not technically a transport 
-but rather it is a data link service that allows a QP to send and 
-receive raw datagram messages" and following text.
+ drivers/infiniband/hw/cxgb4/cm.c |    9 +++++----
+ 1 files changed, 5 insertions(+), 4 deletions(-)
 
-Or.
+diff --git a/drivers/infiniband/hw/cxgb4/cm.c b/drivers/infiniband/hw/cxgb4/cm.c
+index f75108f..8c9b483 100644
+--- a/drivers/infiniband/hw/cxgb4/cm.c
++++ b/drivers/infiniband/hw/cxgb4/cm.c
+@@ -1373,7 +1373,7 @@ static int pass_accept_req(struct c4iw_dev *dev, struct sk_buff *skb)
+ 				    pdev, 0);
+ 		mtu = pdev->mtu;
+ 		tx_chan = cxgb4_port_chan(pdev);
+-		smac_idx = tx_chan << 1;
++		smac_idx = (cxgb4_port_viid(pdev) & 0x7F) << 1;
+ 		step = dev->rdev.lldi.ntxq / dev->rdev.lldi.nchan;
+ 		txq_idx = cxgb4_port_idx(pdev) * step;
+ 		step = dev->rdev.lldi.nrxq / dev->rdev.lldi.nchan;
+@@ -1384,7 +1384,7 @@ static int pass_accept_req(struct c4iw_dev *dev, struct sk_buff *skb)
+ 					dst->neighbour->dev, 0);
+ 		mtu = dst_mtu(dst);
+ 		tx_chan = cxgb4_port_chan(dst->neighbour->dev);
+-		smac_idx = tx_chan << 1;
++		smac_idx = (cxgb4_port_viid(dst->neighbour->dev) & 0x7F) << 1;
+ 		step = dev->rdev.lldi.ntxq / dev->rdev.lldi.nchan;
+ 		txq_idx = cxgb4_port_idx(dst->neighbour->dev) * step;
+ 		step = dev->rdev.lldi.nrxq / dev->rdev.lldi.nchan;
+@@ -1951,7 +1951,7 @@ int c4iw_connect(struct iw_cm_id *cm_id, struct iw_cm_conn_param *conn_param)
+ 					pdev, 0);
+ 		ep->mtu = pdev->mtu;
+ 		ep->tx_chan = cxgb4_port_chan(pdev);
+-		ep->smac_idx = ep->tx_chan << 1;
++		ep->smac_idx = (cxgb4_port_viid(pdev) & 0x7F) << 1;
+ 		step = ep->com.dev->rdev.lldi.ntxq /
+ 		       ep->com.dev->rdev.lldi.nchan;
+ 		ep->txq_idx = cxgb4_port_idx(pdev) * step;
+@@ -1966,7 +1966,8 @@ int c4iw_connect(struct iw_cm_id *cm_id, struct iw_cm_conn_param *conn_param)
+ 					ep->dst->neighbour->dev, 0);
+ 		ep->mtu = dst_mtu(ep->dst);
+ 		ep->tx_chan = cxgb4_port_chan(ep->dst->neighbour->dev);
+-		ep->smac_idx = ep->tx_chan << 1;
++		ep->smac_idx = (cxgb4_port_viid(ep->dst->neighbour->dev) &
++				0x7F) << 1;
+ 		step = ep->com.dev->rdev.lldi.ntxq /
+ 		       ep->com.dev->rdev.lldi.nchan;
+ 		ep->txq_idx = cxgb4_port_idx(ep->dst->neighbour->dev) * step;
 
-
-
-
-
-Or.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
