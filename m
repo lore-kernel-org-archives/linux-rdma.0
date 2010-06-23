@@ -1,15 +1,31 @@
-From: Moni Shoua <monis-hKgKHo2Ms0F+cjeuK/JdrQ@public.gmane.org>
-Subject: Name for a new type of QP
-Date: Wed, 23 Jun 2010 12:19:38 +0300
-Message-ID: <4C21D1AA.8060402@Voltaire.COM>
+From: "Walukiewicz, Miroslaw" <Miroslaw.Walukiewicz-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: Name for a new type of QP
+Date: Wed, 23 Jun 2010 11:20:40 +0100
+Message-ID: <BE2BFE91933D1B4089447C64486040801E9D892A@irsmsx503.ger.corp.intel.com>
+References: <4C21D1AA.8060402@Voltaire.COM>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <4C21D1AA.8060402-hKgKHo2Ms0F+cjeuK/JdrQ@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: "Walukiewicz, Miroslaw" <Miroslaw.Walukiewicz-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, alexr-smomgflXvOZWk0Htik3J/w@public.gmane.org
+To: Moni Shoua <monis-hKgKHo2Ms0F+cjeuK/JdrQ@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, "alexr-smomgflXvOZWk0Htik3J/w@public.gmane.org" <alexr-smomgflXvOZWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
+
+I would prefer a name IBV_QPT_FRAME so it is a L2 layerQP. The packet is reserved for L3.
+
+Regards,
+
+Mirek
+
+-----Original Message-----
+From: Moni Shoua [mailto:monis-hKgKHo2Ms0F+cjeuK/JdrQ@public.gmane.org] 
+Sent: Wednesday, June 23, 2010 11:20 AM
+To: linux-rdma
+Cc: Walukiewicz, Miroslaw; Roland Dreier; alexr-smomgflXvOZWk0Htik3J/w@public.gmane.org
+Subject: Name for a new type of QP
 
 Hi,
 This message follows a discussion in the EWG mailing list.
