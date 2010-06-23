@@ -1,29 +1,38 @@
-From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: Re: [PATCH v2 3/3] RDMA/cxgb4: Obtain RDMA QID ranges from LLD/FW.
-Date: Wed, 23 Jun 2010 14:31:43 -0500
-Message-ID: <4C22611F.5030906@opengridcomputing.com>
-References: <20100623154643.22600.20003.stgit@build.ogc.int>	<20100623154654.22600.13525.stgit@build.ogc.int> <adaaaqltwn7.fsf@roland-alpha.cisco.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH v2] RDMA/CMA: fix iWARP adapter TCP port space usage
+Date: Wed, 23 Jun 2010 13:29:09 -0600
+Message-ID: <20100623192909.GT4630@obsidianresearch.com>
+References: <OF026C9B22.332F6F2C-ONC1257745.00429E02-C1257745.004E411D@ch.ibm.com> <ada8w65veq4.fsf@roland-alpha.cisco.com> <4C225078.6050001@opengridcomputing.com> <adar5jxtxho.fsf@roland-alpha.cisco.com> <4C225697.6060702@opengridcomputing.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <adaaaqltwn7.fsf-BjVyx320WGW9gfZ95n9DRSW4+XlvGpQz@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <4C225697.6060702-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Cc: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Bernard Metzler <BMT-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>, "Tung, Chien Tin" <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Peter P Waskiewicz Jr <peter.p.waskiewicz.jr-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hey Roland,
+On Wed, Jun 23, 2010 at 01:46:47PM -0500, Steve Wise wrote:
 
-I'll try to start posting series that are all bug fixes or all 
-enhancements, not mixed.   That way we can target them easily to either 
-the -rc stream or the -next stream.  Sorry for the confusion. :)
+> Yes.  Perusing the drivers/scsi/cxgb3i code I see the iscsi ipaddr is  
+> actually stored in the port_info struct which is hung of the netdev_priv  
+> of the cxgb3 device.  It is set by cxgb3i_host_set_param() which is part  
+> of the iscsi transport interface.
 
+I wonder how does neighbor discovery, routing, etc work with iscsi?
 
-Roland Dreier wrote:
-> again fixing anything or just cleaning up?
->   
+> I just think the customer looses when we add iwarp-specific tools,  
+> ipaddrs, subnets, etc etc.  And what about software iwarp?  Will it use  
+> the host stack tools and not these new tools?  So then we end up with 2  
+> sets of tools for iwarp devices. :(
 
+Well, maybe you can get netdev to agree on some way to create an
+interface that has all the IP services, but no TCP protocol binding?
+Then the configuration could be largely the same. If you could share
+that with the iscsi world then maybe it isn't so bad?
+
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
