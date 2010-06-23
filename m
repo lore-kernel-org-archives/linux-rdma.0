@@ -1,11 +1,13 @@
 From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: [PATCH 1/3] RDMA/cxgb4: derive smac_idx from port viid.
-Date: Wed, 23 Jun 2010 10:00:55 -0500
-Message-ID: <20100623150055.22155.17833.stgit@build.ogc.int>
+Subject: [PATCH 2/3] RDMA/cxgb4: Add module option to tweak delayed ack.
+Date: Wed, 23 Jun 2010 10:01:01 -0500
+Message-ID: <20100623150101.22155.58769.stgit@build.ogc.int>
+References: <20100623150055.22155.17833.stgit@build.ogc.int>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20100623150055.22155.17833.stgit-T4OLL4TyM9aNDNWfRnPdfg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
@@ -14,50 +16,71 @@ List-Id: linux-rdma@vger.kernel.org
 Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 ---
 
- drivers/infiniband/hw/cxgb4/cm.c |    9 +++++----
- 1 files changed, 5 insertions(+), 4 deletions(-)
+ drivers/infiniband/hw/cxgb4/cm.c          |   10 +++++++++-
+ drivers/infiniband/hw/cxgb4/t4fw_ri_api.h |   10 ++++++++++
+ 2 files changed, 19 insertions(+), 1 deletions(-)
 
 diff --git a/drivers/infiniband/hw/cxgb4/cm.c b/drivers/infiniband/hw/cxgb4/cm.c
-index f75108f..8c9b483 100644
+index 8c9b483..fae6080 100644
 --- a/drivers/infiniband/hw/cxgb4/cm.c
 +++ b/drivers/infiniband/hw/cxgb4/cm.c
-@@ -1373,7 +1373,7 @@ static int pass_accept_req(struct c4iw_dev *dev, struct sk_buff *skb)
- 				    pdev, 0);
- 		mtu = pdev->mtu;
- 		tx_chan = cxgb4_port_chan(pdev);
--		smac_idx = tx_chan << 1;
-+		smac_idx = (cxgb4_port_viid(pdev) & 0x7F) << 1;
- 		step = dev->rdev.lldi.ntxq / dev->rdev.lldi.nchan;
- 		txq_idx = cxgb4_port_idx(pdev) * step;
- 		step = dev->rdev.lldi.nrxq / dev->rdev.lldi.nchan;
-@@ -1384,7 +1384,7 @@ static int pass_accept_req(struct c4iw_dev *dev, struct sk_buff *skb)
- 					dst->neighbour->dev, 0);
- 		mtu = dst_mtu(dst);
- 		tx_chan = cxgb4_port_chan(dst->neighbour->dev);
--		smac_idx = tx_chan << 1;
-+		smac_idx = (cxgb4_port_viid(dst->neighbour->dev) & 0x7F) << 1;
- 		step = dev->rdev.lldi.ntxq / dev->rdev.lldi.nchan;
- 		txq_idx = cxgb4_port_idx(dst->neighbour->dev) * step;
- 		step = dev->rdev.lldi.nrxq / dev->rdev.lldi.nchan;
-@@ -1951,7 +1951,7 @@ int c4iw_connect(struct iw_cm_id *cm_id, struct iw_cm_conn_param *conn_param)
- 					pdev, 0);
- 		ep->mtu = pdev->mtu;
- 		ep->tx_chan = cxgb4_port_chan(pdev);
--		ep->smac_idx = ep->tx_chan << 1;
-+		ep->smac_idx = (cxgb4_port_viid(pdev) & 0x7F) << 1;
- 		step = ep->com.dev->rdev.lldi.ntxq /
- 		       ep->com.dev->rdev.lldi.nchan;
- 		ep->txq_idx = cxgb4_port_idx(pdev) * step;
-@@ -1966,7 +1966,8 @@ int c4iw_connect(struct iw_cm_id *cm_id, struct iw_cm_conn_param *conn_param)
- 					ep->dst->neighbour->dev, 0);
- 		ep->mtu = dst_mtu(ep->dst);
- 		ep->tx_chan = cxgb4_port_chan(ep->dst->neighbour->dev);
--		ep->smac_idx = ep->tx_chan << 1;
-+		ep->smac_idx = (cxgb4_port_viid(ep->dst->neighbour->dev) &
-+				0x7F) << 1;
- 		step = ep->com.dev->rdev.lldi.ntxq /
- 		       ep->com.dev->rdev.lldi.nchan;
- 		ep->txq_idx = cxgb4_port_idx(ep->dst->neighbour->dev) * step;
+@@ -61,6 +61,10 @@ static char *states[] = {
+ 	NULL,
+ };
+ 
++static int dack_mode;
++module_param(dack_mode, int, 0644);
++MODULE_PARM_DESC(dack_mode, "Delayed ack mode (default=0)");
++
+ int c4iw_max_read_depth = 8;
+ module_param(c4iw_max_read_depth, int, 0644);
+ MODULE_PARM_DESC(c4iw_max_read_depth, "Per-connection max ORD/IRD (default=8)");
+@@ -474,6 +478,7 @@ static int send_connect(struct c4iw_ep *ep)
+ 	cxgb4_best_mtu(ep->com.dev->rdev.lldi.mtus, ep->mtu, &mtu_idx);
+ 	wscale = compute_wscale(rcv_win);
+ 	opt0 = KEEP_ALIVE(1) |
++	       DELACK(1) |
+ 	       WND_SCALE(wscale) |
+ 	       MSS_IDX(mtu_idx) |
+ 	       L2T_IDX(ep->l2t->idx) |
+@@ -845,7 +850,9 @@ static int update_rx_credits(struct c4iw_ep *ep, u32 credits)
+ 	INIT_TP_WR(req, ep->hwtid);
+ 	OPCODE_TID(req) = cpu_to_be32(MK_OPCODE_TID(CPL_RX_DATA_ACK,
+ 						    ep->hwtid));
+-	req->credit_dack = cpu_to_be32(credits);
++ 	req->credit_dack = cpu_to_be32(credits | RX_FORCE_ACK(1) |
++ 				       F_RX_DACK_CHANGE |
++ 				       V_RX_DACK_MODE(dack_mode));
+ 	set_wr_txq(skb, CPL_PRIORITY_ACK, ep->txq_idx);
+ 	c4iw_ofld_send(&ep->com.dev->rdev, skb);
+ 	return credits;
+@@ -1264,6 +1271,7 @@ static void accept_cr(struct c4iw_ep *ep, __be32 peer_ip, struct sk_buff *skb,
+ 	cxgb4_best_mtu(ep->com.dev->rdev.lldi.mtus, ep->mtu, &mtu_idx);
+ 	wscale = compute_wscale(rcv_win);
+ 	opt0 = KEEP_ALIVE(1) |
++	       DELACK(1) |
+ 	       WND_SCALE(wscale) |
+ 	       MSS_IDX(mtu_idx) |
+ 	       L2T_IDX(ep->l2t->idx) |
+diff --git a/drivers/infiniband/hw/cxgb4/t4fw_ri_api.h b/drivers/infiniband/hw/cxgb4/t4fw_ri_api.h
+index fc706bd..dc193c2 100644
+--- a/drivers/infiniband/hw/cxgb4/t4fw_ri_api.h
++++ b/drivers/infiniband/hw/cxgb4/t4fw_ri_api.h
+@@ -826,4 +826,14 @@ struct ulptx_idata {
+ #define S_ULPTX_NSGE    0
+ #define M_ULPTX_NSGE    0xFFFF
+ #define V_ULPTX_NSGE(x) ((x) << S_ULPTX_NSGE)
++
++#define S_RX_DACK_MODE    29
++#define M_RX_DACK_MODE    0x3
++#define V_RX_DACK_MODE(x) ((x) << S_RX_DACK_MODE)
++#define G_RX_DACK_MODE(x) (((x) >> S_RX_DACK_MODE) & M_RX_DACK_MODE)
++
++#define S_RX_DACK_CHANGE    31
++#define V_RX_DACK_CHANGE(x) ((x) << S_RX_DACK_CHANGE)
++#define F_RX_DACK_CHANGE    V_RX_DACK_CHANGE(1U)
++
+ #endif /* _T4FW_RI_API_H_ */
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
