@@ -1,29 +1,29 @@
 From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Subject: Re: Name for a new type of QP
-Date: Wed, 23 Jun 2010 10:58:57 -0700
-Message-ID: <adazkyltyu6.fsf@roland-alpha.cisco.com>
-References: <4C21D1AA.8060402@Voltaire.COM>
-	<BE2BFE91933D1B4089447C64486040801E9D892A@irsmsx503.ger.corp.intel.com>
-	<7E95F01E94AB484F83061FCFA35B39F868D9D2@exil.voltaire.com>
+Subject: Re: [PATCH 0/7] various fixes for QIB driver
+Date: Wed, 23 Jun 2010 11:14:28 -0700
+Message-ID: <adavd99ty4b.fsf@roland-alpha.cisco.com>
+References: <20100617231338.8006.18131.stgit@chromite.mv.qlogic.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <7E95F01E94AB484F83061FCFA35B39F868D9D2-QfUkFaTmzUSUvQqKE/ONIwC/G2K4zDHf@public.gmane.org> (Alex
-	Rosenbaum's message of "Wed, 23 Jun 2010 14:03:28 +0300")
+In-Reply-To: <20100617231338.8006.18131.stgit-/vjeY7uYZjrPXfVEPVhPGq6RkeBMCJyt@public.gmane.org> (Ralph
+	Campbell's message of "Thu, 17 Jun 2010 16:13:38 -0700")
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Alex Rosenbaum <Alexr-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Cc: "Walukiewicz, Miroslaw" <Miroslaw.Walukiewicz-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Moni Shoua <monis-smomgflXvOZWk0Htik3J/w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Ralph Campbell <ralph.campbell-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
- > On the other hand, I never fully understood what does IBV_QPT_RAW_ETY
- > stand for? Maybe we should change its name to better represent what the
- > code does.
+ > The following patches are for various bug fixes.
+ > I'm not sure what counts as a regression for code that is newly introduced.
+ > I'm hoping that all except #2 can be made for 2.6.35 whereas
+ > #2 can wait for 2.6.36 since it is actually a feature.
 
-Picking names for things is not my strongest suit, and I don't have a
-very good suggestion, so I'll leave that out.  But on the point above,
-RAW_ETY is for the IBA "raw ethertype" special QP type.  And I think it
-would probably be a good idea to change the enum from IBV_QPT_RAW_ETY to
-something like IBV_QPT_RAW_ETHERTYPE.
+All except #2 look OK for 2.6.35.  I'll hold #2 for 2.6.36 -- I hope
+it's independent?
+
+In the future it might be cleaner to send a series 1-6 of fixes for
+2.6.35 and then send the port assignment one as a 2.6.36 patch separate
+from the series.  (No need to resend here)
 
  - R.
 -- 
