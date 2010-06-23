@@ -1,41 +1,41 @@
 From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH v2] allow passthrough of rmpp packets to user mad clients
-Date: Wed, 23 Jun 2010 10:26:37 -0700
-Message-ID: <adad3vhvewi.fsf@roland-alpha.cisco.com>
-References: <4C2744E8AD2982428C5BFE523DF8CDCB49A488DAD8@MNEXMB1.qlogic.org>
-	<adask52o9p6.fsf@roland-alpha.cisco.com>
-	<4C2744E8AD2982428C5BFE523DF8CDCB49D09E7C2F@MNEXMB1.qlogic.org>
+Subject: Re: [PATCH v2] RDMA/CMA: fix iWARP adapter TCP port space usage
+Date: Wed, 23 Jun 2010 10:30:27 -0700
+Message-ID: <ada8w65veq4.fsf@roland-alpha.cisco.com>
+References: <OF026C9B22.332F6F2C-ONC1257745.00429E02-C1257745.004E411D@ch.ibm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4C2744E8AD2982428C5BFE523DF8CDCB49D09E7C2F-amwN6d8PyQWXx9kJd3VG2h2eb7JE58TQ@public.gmane.org>
-	(Mike Heinz's message of "Fri, 18 Jun 2010 08:42:38 -0500")
+In-Reply-To: <OF026C9B22.332F6F2C-ONC1257745.00429E02-C1257745.004E411D-Xeyd2O9EBijQT0dZR+AlfA@public.gmane.org>
+	(Bernard Metzler's message of "Thu, 17 Jun 2010 16:14:44 +0200")
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Mike Heinz <michael.heinz-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-Cc: "linux-rdma@vger.kernel.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Bernard Metzler <BMT-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>
+Cc: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, "Tung, Chien Tin" <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, "linux-rdma@vger.kernel.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Peter P Waskiewicz Jr <peter.p.waskiewicz.jr-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
- > Unfortunately for IB the size of an RMPP response and buffer cannot
- > be controlled by the kernel.  So if an application has a large
- > response to send, the entire buffer must be copied into the kernel
- > and the kernel cannot decide on its own segmentation boundaries.
- > Hence the ability for selected management applications to control and
- > limit the amount of kernel memory space is desirable.  These issues
- > become serious at scale when larger RMPP responses are needed and
- > more clients may also be issuing requests.  The two can combine and
- > result in N^2 types behavior for kernel memory footprint relative to
- > N=cluster node count or potentially N=cluster CPU core count.
+ > iWARP is just another protocol on top of TCP - like iSCSI. There is
+ > no good reason to invent another TCP port maintainer per TCP user
+ > type trying to synchonize with the kernel if the resource is host
+ > global and already maintained by the kernel.
 
-So this is an interesting point.  However I don't think we really want
-to solve this by adding some magic value of the version field that
-changes the umad interface into a completely different mode and then
-have every app implement its own copy of the RMPP protocol in userspace.
-It would seem a lot cleaner to me to just fix up the kernel RMPP
-implementation to avoid the huge double buffering; is that not possible?
+I think the counter-argument to this is than an iWARP offload NIC is an
+independent TCP stack and hence should not be tied into the host stack.
+It's interesting that you bring up iSCSI -- as I understand things,
+iSCSI offload HBAs are typically configured with their own IP, through a
+separate mechanism.  (The port collision problem is not likely to be hit
+with iSCSI, since the HBA is an initiator and hence does only active
+connections, and a 4-tuple collision between connections to the iSCSI
+target is not likely and other host stack traffic is extremely unlikely)
 
-The other argument (proprietary legacy apps) doesn't really carry any
-weight with me.  We're not going to introduce duplicate APIs just so
-someone doesn't have to port old code.
+ > Since we are developing and already open sourced a full software
+ > implementation (SoftiWARP) of RDMA, our view on the optimal solution
+ > must be different. Like kernel iSCSI, we are running on top of regular
+ > kernel sockets. With that, there is no point having a connection manager
+ > blocking just the port we wanted to use for communication - SoftiWARP
+ > uses kernel sockets for data communication.
+
+I think this is an extremely strong argument against the patch that
+started the thread.  Breaking soft iWARP seems a fatal flaw.
 
  - R.
 -- 
