@@ -1,59 +1,35 @@
-From: Chris Worley <worleys-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: How do I get scst_vdisk/IB_SRP(T) to properly handle drives w/
-	4KB sectors?
-Date: Wed, 23 Jun 2010 11:32:20 -0600
-Message-ID: <AANLkTikbO5oOPxC-luSLECFLLMsdD3QEoeY4XxIgu-_7@mail.gmail.com>
-References: <AANLkTin2bONNlTF8mseOt3-pPcFF523-6EWHFD2XBOPg@mail.gmail.com>
-	<4C223FA3.3090300@vlnb.net>
+From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: Re: [PATCH v2] RDMA/CMA: fix iWARP adapter TCP port space usage
+Date: Wed, 23 Jun 2010 12:37:22 -0500
+Message-ID: <4C224652.2060601@opengridcomputing.com>
+References: <OF026C9B22.332F6F2C-ONC1257745.00429E02-C1257745.004E411D@ch.ibm.com> <ada8w65veq4.fsf@roland-alpha.cisco.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4C223FA3.3090300-d+Crzxg7Rs0@public.gmane.org>
+In-Reply-To: <ada8w65veq4.fsf-BjVyx320WGW9gfZ95n9DRSW4+XlvGpQz@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Vladislav Bolkhovitin <vst-d+Crzxg7Rs0@public.gmane.org>
-Cc: scst-devel <scst-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>, OFED mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Cc: Bernard Metzler <BMT-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>, "Tung, Chien Tin" <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Peter P Waskiewicz Jr <peter.p.waskiewicz.jr-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Jun 23, 2010 at 11:08 AM, Vladislav Bolkhovitin <vst-d+Crzxg7Rs0@public.gmane.org> =
-wrote:
-> Chris Worley, on 06/22/2010 08:06 PM wrote:
->>
->> When given an LBA w/ a bad boundary, the drive returns an error and
->> the target side says:
->>
->> dev_vdisk: ***ERROR***: cmd ffff810196f58b70 returned error -22
->>
->> ... and the initiator:
->>
->> sd 8:0:0:0: SCSI error: return code =3D 0x08000002
->> sdc: Current: sense key: Medium Error
->> =A0 =A0Add. Sense: Unrecovered read error
->>
->> Is there a way to tell scst that this drive requires 4KB block sizes=
-,
->> and pass that upstream?
+Roland Dreier wrote:
+>  > Since we are developing and already open sourced a full software
+>  > implementation (SoftiWARP) of RDMA, our view on the optimal solution
+>  > must be different. Like kernel iSCSI, we are running on top of regular
+>  > kernel sockets. With that, there is no point having a connection manager
+>  > blocking just the port we wanted to use for communication - SoftiWARP
+>  > uses kernel sockets for data communication.
 >
-> I'm not sure what you mean here under "tell" and "pass upstream". Gen=
-erally,
-> such problems are outside of SCST scope and responsibilities. With vd=
-isk
-> kernel I/O stack should make sure you use correct alignment accessing=
- your
-> backend drive and you can always choose your own >512b block size for=
- all
-> vdisk devices.
-
-DOH!
-
-Thanks,
-
-Chris
+> I think this is an extremely strong argument against the patch that
+> started the thread.  Breaking soft iWARP seems a fatal flaw.
 >
-> Vlad
->
+>  - R.
+>   
+
+I agree.
+
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
