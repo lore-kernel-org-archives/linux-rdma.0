@@ -1,7 +1,7 @@
 From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: [PATCH 2/3] RDMA/cxgb4: Add module option to tweak delayed ack.
-Date: Wed, 23 Jun 2010 10:01:01 -0500
-Message-ID: <20100623150101.22155.58769.stgit@build.ogc.int>
+Subject: [PATCH 3/3] RDMA/cxgb4: Obtain RDMA QID ranges from LLD/FW.
+Date: Wed, 23 Jun 2010 10:01:06 -0500
+Message-ID: <20100623150106.22155.53531.stgit@build.ogc.int>
 References: <20100623150055.22155.17833.stgit@build.ogc.int>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -16,71 +16,68 @@ List-Id: linux-rdma@vger.kernel.org
 Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 ---
 
- drivers/infiniband/hw/cxgb4/cm.c          |   10 +++++++++-
- drivers/infiniband/hw/cxgb4/t4fw_ri_api.h |   10 ++++++++++
- 2 files changed, 19 insertions(+), 1 deletions(-)
+ drivers/infiniband/hw/cxgb4/device.c   |    9 +++++++--
+ drivers/infiniband/hw/cxgb4/resource.c |    7 ++++---
+ drivers/infiniband/hw/cxgb4/t4.h       |    2 --
+ 3 files changed, 11 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/infiniband/hw/cxgb4/cm.c b/drivers/infiniband/hw/cxgb4/cm.c
-index 8c9b483..fae6080 100644
---- a/drivers/infiniband/hw/cxgb4/cm.c
-+++ b/drivers/infiniband/hw/cxgb4/cm.c
-@@ -61,6 +61,10 @@ static char *states[] = {
- 	NULL,
- };
+diff --git a/drivers/infiniband/hw/cxgb4/device.c b/drivers/infiniband/hw/cxgb4/device.c
+index d870f9c..e047ee8 100644
+--- a/drivers/infiniband/hw/cxgb4/device.c
++++ b/drivers/infiniband/hw/cxgb4/device.c
+@@ -250,12 +250,17 @@ static int c4iw_rdev_open(struct c4iw_rdev *rdev)
+ 	rdev->cqshift = PAGE_SHIFT - ilog2(rdev->lldi.ucq_density);
+ 	rdev->cqmask = rdev->lldi.ucq_density - 1;
+ 	PDBG("%s dev %s stag start 0x%0x size 0x%0x num stags %d "
+-	     "pbl start 0x%0x size 0x%0x rq start 0x%0x size 0x%0x\n",
++	     "pbl start 0x%0x size 0x%0x rq start 0x%0x size 0x%0x "
++	     "qp qid start %u size %u cq qid start %u size %u\n",
+ 	     __func__, pci_name(rdev->lldi.pdev), rdev->lldi.vr->stag.start,
+ 	     rdev->lldi.vr->stag.size, c4iw_num_stags(rdev),
+ 	     rdev->lldi.vr->pbl.start,
+ 	     rdev->lldi.vr->pbl.size, rdev->lldi.vr->rq.start,
+-	     rdev->lldi.vr->rq.size);
++	     rdev->lldi.vr->rq.size,
++	     rdev->lldi.vr->qp.start, 
++	     rdev->lldi.vr->qp.size, 
++	     rdev->lldi.vr->cq.start, 
++	     rdev->lldi.vr->cq.size);
+ 	PDBG("udb len 0x%x udb base %p db_reg %p gts_reg %p qpshift %lu "
+ 	     "qpmask 0x%x cqshift %lu cqmask 0x%x\n",
+ 	     (unsigned)pci_resource_len(rdev->lldi.pdev, 2),
+diff --git a/drivers/infiniband/hw/cxgb4/resource.c b/drivers/infiniband/hw/cxgb4/resource.c
+index fb195d1..83b23df 100644
+--- a/drivers/infiniband/hw/cxgb4/resource.c
++++ b/drivers/infiniband/hw/cxgb4/resource.c
+@@ -110,11 +110,12 @@ static int c4iw_init_qid_fifo(struct c4iw_rdev *rdev)
  
-+static int dack_mode;
-+module_param(dack_mode, int, 0644);
-+MODULE_PARM_DESC(dack_mode, "Delayed ack mode (default=0)");
-+
- int c4iw_max_read_depth = 8;
- module_param(c4iw_max_read_depth, int, 0644);
- MODULE_PARM_DESC(c4iw_max_read_depth, "Per-connection max ORD/IRD (default=8)");
-@@ -474,6 +478,7 @@ static int send_connect(struct c4iw_ep *ep)
- 	cxgb4_best_mtu(ep->com.dev->rdev.lldi.mtus, ep->mtu, &mtu_idx);
- 	wscale = compute_wscale(rcv_win);
- 	opt0 = KEEP_ALIVE(1) |
-+	       DELACK(1) |
- 	       WND_SCALE(wscale) |
- 	       MSS_IDX(mtu_idx) |
- 	       L2T_IDX(ep->l2t->idx) |
-@@ -845,7 +850,9 @@ static int update_rx_credits(struct c4iw_ep *ep, u32 credits)
- 	INIT_TP_WR(req, ep->hwtid);
- 	OPCODE_TID(req) = cpu_to_be32(MK_OPCODE_TID(CPL_RX_DATA_ACK,
- 						    ep->hwtid));
--	req->credit_dack = cpu_to_be32(credits);
-+ 	req->credit_dack = cpu_to_be32(credits | RX_FORCE_ACK(1) |
-+ 				       F_RX_DACK_CHANGE |
-+ 				       V_RX_DACK_MODE(dack_mode));
- 	set_wr_txq(skb, CPL_PRIORITY_ACK, ep->txq_idx);
- 	c4iw_ofld_send(&ep->com.dev->rdev, skb);
- 	return credits;
-@@ -1264,6 +1271,7 @@ static void accept_cr(struct c4iw_ep *ep, __be32 peer_ip, struct sk_buff *skb,
- 	cxgb4_best_mtu(ep->com.dev->rdev.lldi.mtus, ep->mtu, &mtu_idx);
- 	wscale = compute_wscale(rcv_win);
- 	opt0 = KEEP_ALIVE(1) |
-+	       DELACK(1) |
- 	       WND_SCALE(wscale) |
- 	       MSS_IDX(mtu_idx) |
- 	       L2T_IDX(ep->l2t->idx) |
-diff --git a/drivers/infiniband/hw/cxgb4/t4fw_ri_api.h b/drivers/infiniband/hw/cxgb4/t4fw_ri_api.h
-index fc706bd..dc193c2 100644
---- a/drivers/infiniband/hw/cxgb4/t4fw_ri_api.h
-+++ b/drivers/infiniband/hw/cxgb4/t4fw_ri_api.h
-@@ -826,4 +826,14 @@ struct ulptx_idata {
- #define S_ULPTX_NSGE    0
- #define M_ULPTX_NSGE    0xFFFF
- #define V_ULPTX_NSGE(x) ((x) << S_ULPTX_NSGE)
-+
-+#define S_RX_DACK_MODE    29
-+#define M_RX_DACK_MODE    0x3
-+#define V_RX_DACK_MODE(x) ((x) << S_RX_DACK_MODE)
-+#define G_RX_DACK_MODE(x) (((x) >> S_RX_DACK_MODE) & M_RX_DACK_MODE)
-+
-+#define S_RX_DACK_CHANGE    31
-+#define V_RX_DACK_CHANGE(x) ((x) << S_RX_DACK_CHANGE)
-+#define F_RX_DACK_CHANGE    V_RX_DACK_CHANGE(1U)
-+
- #endif /* _T4FW_RI_API_H_ */
+ 	spin_lock_init(&rdev->resource.qid_fifo_lock);
+ 
+-	if (kfifo_alloc(&rdev->resource.qid_fifo, T4_MAX_QIDS * sizeof(u32),
+-			GFP_KERNEL))
++	if (kfifo_alloc(&rdev->resource.qid_fifo, rdev->lldi.vr->qp.size *
++			sizeof(u32), GFP_KERNEL))
+ 		return -ENOMEM;
+ 
+-	for (i = T4_QID_BASE; i < T4_QID_BASE + T4_MAX_QIDS; i++)
++	for (i = rdev->lldi.vr->qp.start;
++	     i < rdev->lldi.vr->qp.start + rdev->lldi.vr->qp.size; i++)
+ 		if (!(i & rdev->qpmask))
+ 			kfifo_in(&rdev->resource.qid_fifo,
+ 				    (unsigned char *) &i, sizeof(u32));
+diff --git a/drivers/infiniband/hw/cxgb4/t4.h b/drivers/infiniband/hw/cxgb4/t4.h
+index 97798d4..e0b4ae0 100644
+--- a/drivers/infiniband/hw/cxgb4/t4.h
++++ b/drivers/infiniband/hw/cxgb4/t4.h
+@@ -36,8 +36,6 @@
+ #include "t4_msg.h"
+ #include "t4fw_ri_api.h"
+ 
+-#define T4_QID_BASE 1024
+-#define T4_MAX_QIDS 256
+ #define T4_MAX_NUM_QP (1<<16)
+ #define T4_MAX_NUM_CQ (1<<15)
+ #define T4_MAX_NUM_PD (1<<15)
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
