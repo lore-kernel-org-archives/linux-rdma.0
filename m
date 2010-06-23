@@ -1,23 +1,31 @@
-From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH v2 3/3] RDMA/cxgb4: Obtain RDMA QID ranges from LLD/FW.
-Date: Wed, 23 Jun 2010 11:46:20 -0700
-Message-ID: <adaaaqltwn7.fsf@roland-alpha.cisco.com>
-References: <20100623154643.22600.20003.stgit@build.ogc.int>
-	<20100623154654.22600.13525.stgit@build.ogc.int>
+From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: Re: [PATCH v2 1/3] RDMA/cxgb4: derive smac_idx from port viid.
+Date: Wed, 23 Jun 2010 13:53:38 -0500
+Message-ID: <4C225832.1010501@opengridcomputing.com>
+References: <20100623154643.22600.20003.stgit@build.ogc.int> <adaiq59two6.fsf@roland-alpha.cisco.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20100623154654.22600.13525.stgit-T4OLL4TyM9aNDNWfRnPdfg@public.gmane.org> (Steve Wise's
-	message of "Wed, 23 Jun 2010 10:46:55 -0500")
+In-Reply-To: <adaiq59two6.fsf-BjVyx320WGW9gfZ95n9DRSW4+XlvGpQz@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-again fixing anything or just cleaning up?
--- 
-Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org> || For corporate legal information go to:
-http://www.cisco.com/web/about/doing_business/legal/cri/index.html
+Roland Dreier wrote:
+> what's smac_idx?  what's port viid?
+> hard to know what the heck this fixes :)
+>   
+
+smac_idx == source mac index:  the index into the HW source mac table. 
+
+viid = Virtual Interface ID: for virtualization, this allows having smac 
+tables, among other things, per virtual device.  I was incorrectly 
+computing the smac_idx in my previous code.  But it worked until a 
+recent FW change I think.
+
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
