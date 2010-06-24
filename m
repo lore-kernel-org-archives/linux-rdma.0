@@ -1,7 +1,7 @@
 From: Andrea Gozzelino <Andrea.Gozzelino-PK20h7lG/Rc1GQ1Ptb7lUw@public.gmane.org>
 Subject: RDMA synchronous operations
-Date: Thu, 24 Jun 2010 16:33:25 +0200 (CEST)
-Message-ID: <4896953.1277390005955.SLOX.WebMail.wwwrun@imap.lnl.infn.it>
+Date: Thu, 24 Jun 2010 16:33:21 +0200 (CEST)
+Message-ID: <3338966.1277390001416.SLOX.WebMail.wwwrun@imap.lnl.infn.it>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
