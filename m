@@ -1,83 +1,100 @@
-From: Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH] opensm: event plig-in API fixed to compile with g++
-Date: Thu, 24 Jun 2010 11:10:24 +0300
-Message-ID: <4C2312F0.8020308@dev.mellanox.co.il>
+From: Andrea Gozzelino <Andrea.Gozzelino-PK20h7lG/Rc1GQ1Ptb7lUw@public.gmane.org>
+Subject: RDMA synchronous operations
+Date: Thu, 24 Jun 2010 16:33:22 +0200 (CEST)
+Message-ID: <6432074.1277390002110.SLOX.WebMail.wwwrun@imap.lnl.infn.it>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Cc: Linux RDMA <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Event API should have been able to be used by libraries
-written both in C and C++. The problem is, one of the
-fields in struct osm_event_plugin is called "delete".
-Changing it to "destroy" and promoting the API version.
+Hi all,
 
-Signed-off-by: Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
----
- opensm/include/opensm/osm_event_plugin.h    |    2 +-
- opensm/opensm/osm_event_plugin.c            |    4 ++--
- opensm/osmeventplugin/libosmeventplugin.ver |    2 +-
- opensm/osmeventplugin/src/osmeventplugin.c  |    2 +-
- 4 files changed, 5 insertions(+), 5 deletions(-)
+I=E2=80=99m testing the latency time of an RDMA system (2 card and 1 sw=
+itch).
 
-diff --git a/opensm/include/opensm/osm_event_plugin.h b/opensm/include/opensm/osm_event_plugin.h
-index 0b3464e..aa3fed4 100644
---- a/opensm/include/opensm/osm_event_plugin.h
-+++ b/opensm/include/opensm/osm_event_plugin.h
-@@ -145,7 +145,7 @@ typedef struct osm_api_ps_event {
- typedef struct osm_event_plugin {
- 	const char *osm_version;
- 	void *(*create) (struct osm_opensm *osm);
--	void (*delete) (void *plugin_data);
-+	void (*destroy) (void *plugin_data);
- 	void (*report) (void *plugin_data, osm_epi_event_id_t event_id,
- 			void *event_data);
- } osm_event_plugin_t;
-diff --git a/opensm/opensm/osm_event_plugin.c b/opensm/opensm/osm_event_plugin.c
-index 2d67065..7f61960 100644
---- a/opensm/opensm/osm_event_plugin.c
-+++ b/opensm/opensm/osm_event_plugin.c
-@@ -141,8 +141,8 @@ DLOPENFAIL:
- void osm_epi_destroy(osm_epi_plugin_t * plugin)
- {
- 	if (plugin) {
--		if (plugin->impl->delete)
--			plugin->impl->delete(plugin->plugin_data);
-+		if (plugin->impl->destroy)
-+			plugin->impl->destroy(plugin->plugin_data);
- 		dlclose(plugin->handle);
- 		free(plugin->plugin_name);
- 		free(plugin);
-diff --git a/opensm/osmeventplugin/libosmeventplugin.ver b/opensm/osmeventplugin/libosmeventplugin.ver
-index f755ff6..0c3a85b 100644
---- a/opensm/osmeventplugin/libosmeventplugin.ver
-+++ b/opensm/osmeventplugin/libosmeventplugin.ver
-@@ -6,4 +6,4 @@
- # API_REV - advance on any added API
- # RUNNING_REV - advance any change to the vendor files
- # AGE - number of backward versions the API still supports
--LIBVERSION=1:0:0
-+LIBVERSION=2:0:0
-diff --git a/opensm/osmeventplugin/src/osmeventplugin.c b/opensm/osmeventplugin/src/osmeventplugin.c
-index f40f7fe..a82be07 100644
---- a/opensm/osmeventplugin/src/osmeventplugin.c
-+++ b/opensm/osmeventplugin/src/osmeventplugin.c
-@@ -207,6 +207,6 @@ static void report(void *_log, osm_epi_event_id_t event_id, void *event_data)
- osm_event_plugin_t osm_event_plugin = {
-       osm_version:OSM_VERSION,
-       create:construct,
--      delete:destroy,
-+      destroy:destroy,
-       report:report
- };
--- 
-1.5.1.4
+The connection server/client is established and the code is just as
+mirror on both sides.
+
+The RDMA action scheme is below:
+1-	client sends a buffer;
+2-	server receives a buffer;
+3-	server sends a buffer;
+4-	client receives a buffer.
+
+The scheme is in a for loop, so after step 4 client repeats step 1.
+On client side I put a clock: t_start is before loop and t_end is after
+loop.
+I consider the round trip time RTT as (t_end-t_start)/NTX where NTX is
+number of transfer (number of loop). The latency time is half RTT, if
+transfer time is negligible, i.e. for small (8 Bytes =E2=80=93 4 Kbytes=
+) buffer
+size and high NTX value (> 10000) is true.
+
+The RDMA communication stops casually with error status 5. It means tha=
+t
+the send or receive operation on one side (server or client) casually i=
+s
+not in time. I summarize post_send and post_receive operation are
+quasi-synchronous. I would like that RDMA operation are completely
+synchronous. I use the completion queue and the acknowledgement event.
+
+Do you see the same character in other RDMA use? How can I synchronize
+all RDMA operation?
+Could you please give me some suggestions?
+
+Thank you very much,
+Andrea
+
+Example of structure code:
+Ibv_recv_wr rrq(mr), *bad_rrq;
+		assert(!conn->post_recv(&rrq, &bad_rrq, 0));
+		assert(!conn->get_completion(&compl_queue));
+		//printf("ok %p %s
+", compl_queue, strerror(errno));
+		assert(1 =3D=3D compl_queue->poll(1, &wc));
+		//printf("status %i
+", (int)wc.status);
+		if (wc.status !=3D0){
+			printf("RDMA server closes.=20
+");
+			break;
+			}
+-----------------
+Ibv_send_wr srq((void *)rpd->address, rpd->rkey), *bad_srq;
+  		srq.add_sge(mr);
+  		assert(!conn.post_send(&srq, &bad_srq, 0));
+  		assert(!conn.get_completion(&compl_queue));
+  		assert(1 =3D=3D compl_queue->poll(1, &wc));
+ =20
+  		//printf("ok %p %s status %i
+", compl_queue, strerror(errno), wc.status);
+  		//printf("loop %i
+", i);
+ =20
+  		if (wc.status !=3D 0){
+  			//printf("KO %p %s status %i
+", compl_queue, strerror(errno), wc.status);
+  			printf("RDMA data sending problem in loop %i.
+", i);
+  			break;
+  		}
+-----------
+Andrea Gozzelino
+
+INFN - Laboratori Nazionali di Legnaro	(LNL)
+Viale dell'Universita' 2 -I-35020 - Legnaro (PD)- ITALIA
+Office: E-101
+Tel: +39 049 8068346
+=46ax: +39 049 641925
+Mail: andrea.gozzelino-PK20h7lG/Rc1GQ1Ptb7lUw@public.gmane.org
+Cell: +39 3488245552			=09
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
