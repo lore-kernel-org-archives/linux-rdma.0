@@ -1,76 +1,39 @@
-From: Jeff Becker <Jeffrey.C.Becker-NSQ8wuThN14@public.gmane.org>
-Subject: Fwd: [ewg] Updates to OFA Web site
-Date: Thu, 24 Jun 2010 10:33:32 -0700
-Message-ID: <4C2396EC.80009@nasa.gov>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: When IBoE will be merged to upstream?
+Date: Thu, 24 Jun 2010 11:05:30 -0700
+Message-ID: <CF9C39F99A89134C9CF9C4CCB68B8DDF259E7DE3D0@orsmsx501.amr.corp.intel.com>
+References: <AANLkTikXzoaRl61ivsc7fm8EdO9Ucz4iGGfclFOQl3kK@mail.gmail.com>
+	<adabpb1s58c.fsf@roland-alpha.cisco.com>
+ <E113D394D7C5DB4F8FF691FA7EE9DB4439A78AFE88@MTLMAIL.mtl.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <E113D394D7C5DB4F8FF691FA7EE9DB4439A78AFE88-WQlSmcKwN8Te+A/uUDamNg@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Liran Liss <liranl-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Aleksey Senin <aleksey-192fA4vuk7xBDLzU/O5InQ@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "monis-smomgflXvOZWk0Htik3J/w@public.gmane.org" <monis-smomgflXvOZWk0Htik3J/w@public.gmane.org>, "alekseys-smomgflXvOZWk0Htik3J/w@public.gmane.org" <alekseys-smomgflXvOZWk0Htik3J/w@public.gmane.org>, "yiftahs-smomgflXvOZWk0Htik3J/w@public.gmane.org" <yiftahs-smomgflXvOZWk0Htik3J/w@public.gmane.org>, Tziporet Koren <tziporet-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, "alexr-smomgflXvOZWk0Htik3J/w@public.gmane.org" <alexr-smomgflXvOZWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Resending....
+> Regarding GID to Eth mappings, we discussed using the standard create_ah()
+> Verb for this.
+> In the kernel, create_ah() will call a generic address resolution function
+> in the cma.
+> The returned information will be copied back to user-space in a device-
+> specific structure (since address handles are device-specific).
+> 
+> This eliminates adding a new get_eth_l2_addr() ABI call (device-specific or
+> not).
+> In fact, this approach eliminates adding new ABIs for any kind of address
+> translation...
+> 
+> Does this seem reasonable?
 
-Hi all. In conjunction with the update below, we will slowly begin
-migrating to sofa.openfabrics.org as our server (finally 8^)). I have
-already set up gitweb, so sofa.openfabrics.org/gitweb shows all the git
-trees on sofa. It might be a good idea to start migrating your trees
-over there. Also, Vlad, perhaps we should start doing the nightly build=
-s
-there.
+The current behavior of ibv_create_ah() requires that the caller provide the L2, and if needed, L3 addressing.  Any translation between the L3 and L2 addressing must be done before the call is made.  E.g. ibv_create_ah does not use the GID to query the SA to obtain LIDs.  Why doesn't IBoE follow this same model?
 
-In addition, I have set up mediawiki (sofa.openfabrics.org/mediawiki) s=
-o
-if you want to add wiki content (there's nothing there yet), go ahead,
-but please coordinate with Cheri at Owen Media, as their team is lookin=
-g
-at moving our old wiki content over. In particular, tell them about
-out-of-date content we don't want moved.
-
-Thanks, and let me know if you have any questions/issues.
-
--jeff
-
-
--------- Original Message --------
-Subject: 	[ewg] Updates to OFA Web site
-Date: 	Wed, 23 Jun 2010 20:52:17 -0500
-=46rom: 	Cheri Winterberg <cheriw-wiP6UGNpsDaB+jHODAdFcQ@public.gmane.org>
-To: 	ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org <ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
-
-
-
-EWG =E2=80=93 the OFA is in the early stages of updating several elemen=
-ts of the
-OFA Web site. We'll be looking at the look & feel, organization and
-content of the site. We're also considering adding a members-only area
-with password-protected pages.
-
-We'd like input from the technical working groups on the following:
-
-=C2=B7 What are the features of the current OFA Web site that you are u=
-sing
-and would like to see remain relatively unchanged?
-
-=C2=B7 What are we missing on the current OFA Web site that you would l=
-ike to
-see added?
-
-I'm with the marketing agency working on the site. If you have any inpu=
-t
-or feedback on potential changes, please e-mail me directly.
-
-
-Thanks!
-
-Cheri
-
-Cheri Winterberg =E2=94=82 Owen Media, Inc. =E2=94=82 978.660.6405 =E2=94=
-=82 cheriw-wiP6UGNpsDaB+jHODAdFcQ@public.gmane.org
-
+Callers can use some out of band mechanism for the mapping, call rdma_resolve_addr, or use some standard networking routine.
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
