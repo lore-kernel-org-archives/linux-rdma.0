@@ -1,65 +1,54 @@
-From: Dotan Barak <dotanba-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: RDMA synchronous operations
-Date: Thu, 24 Jun 2010 21:21:02 +0200
-Message-ID: <4C23B01E.2050100@gmail.com>
-References: <4C2312F0.8020308@dev.mellanox.co.il> <964270.1277390217198.SLOX.WebMail.wwwrun@imap.lnl.infn.it>
+From: Liran Liss <liranl-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
+Subject: RE: When IBoE will be merged to upstream?
+Date: Thu, 24 Jun 2010 21:41:21 +0300
+Message-ID: <E113D394D7C5DB4F8FF691FA7EE9DB4439A78AFF16@MTLMAIL.mtl.com>
+References: <AANLkTikXzoaRl61ivsc7fm8EdO9Ucz4iGGfclFOQl3kK@mail.gmail.com>
+	<adabpb1s58c.fsf@roland-alpha.cisco.com>
+	<E113D394D7C5DB4F8FF691FA7EE9DB4439A78AFE88@MTLMAIL.mtl.com>
+	<CF9C39F99A89134C9CF9C4CCB68B8DDF259E7DE3D0@orsmsx501.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <964270.1277390217198.SLOX.WebMail.wwwrun-XDIR3SKYeFbgKi2NxijLtw@public.gmane.org>
+In-Reply-To: <CF9C39F99A89134C9CF9C4CCB68B8DDF259E7DE3D0-osO9UTpF0USkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Andrea Gozzelino <Andrea.Gozzelino-PK20h7lG/Rc1GQ1Ptb7lUw@public.gmane.org>
-Cc: Linux RDMA <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Aleksey Senin <aleksey-192fA4vuk7xBDLzU/O5InQ@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "monis-smomgflXvOZWk0Htik3J/w@public.gmane.org" <monis-smomgflXvOZWk0Htik3J/w@public.gmane.org>, "alekseys-smomgflXvOZWk0Htik3J/w@public.gmane.org" <alekseys-smomgflXvOZWk0Htik3J/w@public.gmane.org>, "yiftahs-smomgflXvOZWk0Htik3J/w@public.gmane.org" <yiftahs-smomgflXvOZWk0Htik3J/w@public.gmane.org>, Tziporet Koren <tziporet-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, "alexr-smomgflXvOZWk0Htik3J/w@public.gmane.org" <alexr-smomgflXvOZWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi.
+S.B.
+--Liran 
 
-On 24/06/2010 16:36, Andrea Gozzelino wrote:
-> Hi all,
->
-> I=E2=80=99m testing the latency time of an RDMA system (2 card and 1 =
-switch).
-> The connection server/client is established and the code is just as
-> mirror on both sides.
->
-> The RDMA action scheme is below:
-> 1-	client sends a buffer;
-> 2-	server receives a buffer;
-> 3-	server sends a buffer;
-> 4-	client receives a buffer.
->
-> The scheme is in a for loop, so after step 4 client repeats step 1.
-> On client side I put a clock: t_start is before loop and t_end is aft=
-er
-> loop.
-> I consider the round trip time RTT as (t_end-t_start)/NTX where NTX i=
-s
-> number of transfer (number of loop). The latency time is half RTT, if
-> transfer time is negligible, i.e. for small (8 Bytes =E2=80=93 4 Kbyt=
-es) buffer
-> size and high NTX value (>  10000) is true.
->
-> The RDMA communication stops casually with error status 5. It means t=
-hat
-> the send or receive operation on one side (server or client) casually=
- is
-> not in time. I summarize post_send and post_receive operation are
-> quasi-synchronous. I would like that RDMA operation are completely
-> synchronous. I use the completion queue and the acknowledgement event=
-=2E
->
->   =20
-Do you have any asynchronous event handler on the QP/SRQ?
-(maybe there is an error on your QP/SRQ)
+-----Original Message-----
+From: Hefty, Sean [mailto:sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org] 
+Sent: Thursday, June 24, 2010 9:06 PM
+To: Liran Liss; Roland Dreier; Aleksey Senin
+Cc: linux-rdma; monis-smomgflXvOZWk0Htik3J/w@public.gmane.org; alekseys-smomgflXvOZWk0Htik3J/w@public.gmane.org; yiftahs-smomgflXvOZWk0Htik3J/w@public.gmane.org; Tziporet Koren; alexr-smomgflXvOZWk0Htik3J/w@public.gmane.org
+Subject: RE: When IBoE will be merged to upstream?
 
-Did you get any completion with error before the completion with status=
- 5?
+> Regarding GID to Eth mappings, we discussed using the standard 
+> create_ah() Verb for this.
+> In the kernel, create_ah() will call a generic address resolution 
+> function in the cma.
+> The returned information will be copied back to user-space in a 
+> device- specific structure (since address handles are device-specific).
+> 
+> This eliminates adding a new get_eth_l2_addr() ABI call 
+> (device-specific or not).
+> In fact, this approach eliminates adding new ABIs for any kind of 
+> address translation...
+> 
+> Does this seem reasonable?
 
-Dotan
+The current behavior of ibv_create_ah() requires that the caller provide the L2, and if needed, L3 addressing.  Any translation between the L3 and L2 addressing must be done before the call is made.  E.g. ibv_create_ah does not use the GID to query the SA to obtain LIDs.  Why doesn't IBoE follow this same model?
+
+LL: because of the RoCE spec, which states that only GID addressing is used at the Verbs level. The address handle fields are unchanged, and the L2 fields (e.g., lid) are reserved.
+Note that in Ethernet, you normally don't specify L2 addresses at the transport level (i.e., sockets).
+
+Callers can use some out of band mechanism for the mapping, call rdma_resolve_addr, or use some standard networking routine.
+LL: this would require changes to the Verbs API. rdmacm programs addresses using user-space Verbs, or even just passes the application just address handle attributes...
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
