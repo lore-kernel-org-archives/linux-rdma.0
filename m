@@ -1,53 +1,58 @@
-From: Liran Liss <liranl-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
-Subject: RE: When IBoE will be merged to upstream?
-Date: Thu, 24 Jun 2010 21:41:21 +0300
-Message-ID: <E113D394D7C5DB4F8FF691FA7EE9DB4439A78AFF16@MTLMAIL.mtl.com>
-References: <AANLkTikXzoaRl61ivsc7fm8EdO9Ucz4iGGfclFOQl3kK@mail.gmail.com>
-	<adabpb1s58c.fsf@roland-alpha.cisco.com>
-	<E113D394D7C5DB4F8FF691FA7EE9DB4439A78AFE88@MTLMAIL.mtl.com>
-	<CF9C39F99A89134C9CF9C4CCB68B8DDF259E7DE3D0@orsmsx501.amr.corp.intel.com>
+From: "Moni Shoua" <monis-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+Subject: RE: [ewg] [PATCH v4] IB Core: RAW ETH support
+Date: Thu, 24 Jun 2010 22:44:13 +0300
+Message-ID: <7E95F01E94AB484F83061FCFA35B39F868DF8F@exil.voltaire.com>
+References: <E113D394D7C5DB4F8FF691FA7EE9DB4439A76E8632@MTLMAIL.mtl.com><1276513450.30132.51.camel@alst60.voltaire.com><aday6eguhfn.fsf@roland-alpha.cisco.com> <4C18E557.5050804@Voltaire.COM> <ada4ogtvenr.fsf@roland-alpha.cisco.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain;
+	charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CF9C39F99A89134C9CF9C4CCB68B8DDF259E7DE3D0-osO9UTpF0USkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
-Content-Language: en-US
+Content-class: urn:content-classes:message
+In-Reply-To: <ada4ogtvenr.fsf-BjVyx320WGW9gfZ95n9DRSW4+XlvGpQz@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Aleksey Senin <aleksey-192fA4vuk7xBDLzU/O5InQ@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "monis-smomgflXvOZWk0Htik3J/w@public.gmane.org" <monis-smomgflXvOZWk0Htik3J/w@public.gmane.org>, "alekseys-smomgflXvOZWk0Htik3J/w@public.gmane.org" <alekseys-smomgflXvOZWk0Htik3J/w@public.gmane.org>, "yiftahs-smomgflXvOZWk0Htik3J/w@public.gmane.org" <yiftahs-smomgflXvOZWk0Htik3J/w@public.gmane.org>, Tziporet Koren <tziporet-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, "alexr-smomgflXvOZWk0Htik3J/w@public.gmane.org" <alexr-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Cc: Aleksey Senin <alekseys-smomgflXvOZWk0Htik3J/w@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, ewg-G2znmakfqn7U1rindQTSdQ@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tziporet Koren <tziporet-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, Yiftah Shahar <yiftahs-smomgflXvOZWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-S.B.
---Liran 
+Thanks. I accept this remark.
+We will try to address all the bothering issues regarding the patch set
+of RAW QP support and resubmit them linux-rdma.
+Since it won't work with Mellanox the patches will be only for Intel
+(nes) driver. When time comes and Mellanox cards  can be tested for RAQ
+QO feature they will benefit from the common part.
+
+
+
+---------------------------------------
+  Moni Shoua|  +972-54-5567934  
+
 
 -----Original Message-----
-From: Hefty, Sean [mailto:sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org] 
-Sent: Thursday, June 24, 2010 9:06 PM
-To: Liran Liss; Roland Dreier; Aleksey Senin
-Cc: linux-rdma; monis-smomgflXvOZWk0Htik3J/w@public.gmane.org; alekseys-smomgflXvOZWk0Htik3J/w@public.gmane.org; yiftahs-smomgflXvOZWk0Htik3J/w@public.gmane.org; Tziporet Koren; alexr-smomgflXvOZWk0Htik3J/w@public.gmane.org
-Subject: RE: When IBoE will be merged to upstream?
+From: Roland Dreier [mailto:rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org] 
+Sent: Wednesday, June 23, 2010 8:32 PM
+To: Moni Shoua
+Cc: Aleksey Senin; Eli Cohen; ewg-G2znmakfqn7U1rindQTSdQ@public.gmane.org;
+linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Tziporet Koren; Yiftah Shahar
+Subject: Re: [ewg] [PATCH v4] IB Core: RAW ETH support
 
-> Regarding GID to Eth mappings, we discussed using the standard 
-> create_ah() Verb for this.
-> In the kernel, create_ah() will call a generic address resolution 
-> function in the cma.
-> The returned information will be copied back to user-space in a 
-> device- specific structure (since address handles are device-specific).
-> 
-> This eliminates adding a new get_eth_l2_addr() ABI call 
-> (device-specific or not).
-> In fact, this approach eliminates adding new ABIs for any kind of 
-> address translation...
-> 
-> Does this seem reasonable?
+ > There is no qp type IBV_QPT_RAW_ETY in user space (at least not in
+the definitions  > coming with libibverbs). In fact, libibverbs that
+comes with OFED defines (in verbs.h)  > a qp type called IBV_QPT_RAW_ETT
+which equals to 7.
+ > The patch that is under discussion here adds a new qp type
+IB_QPT_RAW_ETH and equals it to 7  > to match the definition in user
+space. This indeed changes the value of IB_QPT_RAW_ETY to 8  > but I
+don't see who can be affected since  > 1. No user space program that
+uses IB_QPT_RAW_ETY exists  > 2. kernel is compiled as one piece of
+code.
 
-The current behavior of ibv_create_ah() requires that the caller provide the L2, and if needed, L3 addressing.  Any translation between the L3 and L2 addressing must be done before the call is made.  E.g. ibv_create_ah does not use the GID to query the SA to obtain LIDs.  Why doesn't IBoE follow this same model?
-
-LL: because of the RoCE spec, which states that only GID addressing is used at the Verbs level. The address handle fields are unchanged, and the L2 fields (e.g., lid) are reserved.
-Note that in Ethernet, you normally don't specify L2 addresses at the transport level (i.e., sockets).
-
-Callers can use some out of band mechanism for the mapping, call rdma_resolve_addr, or use some standard networking routine.
-LL: this would require changes to the Verbs API. rdmacm programs addresses using user-space Verbs, or even just passes the application just address handle attributes...
+Why renumber the _ETY enum?  Maybe it doesn't break anything serious but
+why risk it?
+--
+Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org> || For corporate legal information go
+to:
+http://www.cisco.com/web/about/doing_business/legal/cri/index.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
