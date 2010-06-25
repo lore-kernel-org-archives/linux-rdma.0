@@ -1,47 +1,43 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: When IBoE will be merged to upstream?
-Date: Thu, 24 Jun 2010 14:37:01 -0600
-Message-ID: <20100624203701.GA4630@obsidianresearch.com>
-References: <AANLkTikXzoaRl61ivsc7fm8EdO9Ucz4iGGfclFOQl3kK@mail.gmail.com> <adabpb1s58c.fsf@roland-alpha.cisco.com> <E113D394D7C5DB4F8FF691FA7EE9DB4439A78AFE88@MTLMAIL.mtl.com> <CF9C39F99A89134C9CF9C4CCB68B8DDF259E7DE3D0@orsmsx501.amr.corp.intel.com> <E113D394D7C5DB4F8FF691FA7EE9DB4439A78AFF16@MTLMAIL.mtl.com>
+From: "Bank Of China" <info@w.cn>
+Subject: I am Mr. Chen Guan
+Date: Fri, 25 Jun 2010 08:36:01 +0400 (MSD)
+Message-ID: <55660.193.220.26.130.1277440561.squirrel@mail.t-k.ru>
+Reply-To: chen_guan777@w.cn
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <E113D394D7C5DB4F8FF691FA7EE9DB4439A78AFF16-WQlSmcKwN8Te+A/uUDamNg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Liran Liss <liranl-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
-Cc: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Aleksey Senin <aleksey-192fA4vuk7xBDLzU/O5InQ@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "monis-smomgflXvOZWk0Htik3J/w@public.gmane.org" <monis-smomgflXvOZWk0Htik3J/w@public.gmane.org>, "alekseys-smomgflXvOZWk0Htik3J/w@public.gmane.org" <alekseys-smomgflXvOZWk0Htik3J/w@public.gmane.org>, "yiftahs-smomgflXvOZWk0Htik3J/w@public.gmane.org" <yiftahs-smomgflXvOZWk0Htik3J/w@public.gmane.org>, Tziporet Koren <tziporet-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, "alexr-smomgflXvOZWk0Htik3J/w@public.gmane.org" <alexr-smomgflXvOZWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> The current behavior of ibv_create_ah() requires that the caller
-> provide the L2, and if needed, L3 addressing.  Any translation
-> between the L3 and L2 addressing must be done before the call is
-> made.  E.g. ibv_create_ah does not use the GID to query the SA to
-> obtain LIDs.  Why doesn't IBoE follow this same model?
-> 
-> LL: because of the RoCE spec, which states that only GID addressing
-> is used at the Verbs level. The address handle fields are unchanged,
-> and the L2 fields (e.g., lid) are reserved.  Note that in Ethernet,
-> you normally don't specify L2 addresses at the transport level
-> (i.e., sockets).
+Dear Friend,
 
-We do not have to lavishly follow the IBTA spec in the Linux
-implementation, especially if it makes no sense.
+I have a business suggestion for you. let me start by introducing myself
+to you fully. I am Mr. Chen Guan, Foreign Operations Manager of the Bank
+of China (Hong Kong). Before the U.S and Iraqi war our client Late Ali
+Hussein who was with the Iraqi forces and also a businessman made a
+numbered fixed deposit for 12 calendar months, with a value of Seventeen
+Million Three Hundred Thousand United State Dollars only into an account
+with my branch. Upon maturity several notice was sent to him, even during
+the war . Again after the war another notification was sent and still no
+response came from him. We later found out that the Ali Hussein and his
+family had been killed during the war in bomb blast that hit their home.
+After further investigation it was also discovered that Ali Hussein did
+not declare any next of kin in his official papers including the paper
+work of his bank deposit. And he also confided in me the last time he was
+at my office that no one except me knew of his deposit in my bank. So,
+Seventeen Million Three Hundred Thousand United State
+Dollars(US$17,300,000.00) is still lying in my bank and no one will ever
+come forward to claim it. What bothers me most is that according to the
+laws of my country at the expiration 7 years the funds will revert to the
+ownership of the Hong Kong Government if nobody applies to claim the
+funds. Against this backdrop, my suggestion to you is that I will like you
+as a foreigner to stand as the next of kin to Ali Hussein so that you will
+be able to receive his funds. Please reply to my private email for more
+Details ( chen_guan777@w.cn ) Thank you for your time and understanding
 
-I think Sean is on the right track here, the AH should take the L2 as
-input just like for IB, and the resolution is done in librdmacm, or
-somehow manually.
-
-The verbs layer is not really analogous to sockets anyhow, the
-librdmacm is much closer to a socket like interface, and it having
-a GID go into rdmacm and a full AH with L2/L3 info come out seems
-entirely reasonable.
-
-BTW, what ever was decided about vlans tagging? Is that part of the AH
-or do you use seperate RDMA devices per vlan? Seems like a point worth
-considering now.
-
-Jason
+Kind Regards,
+Mr. Chen Guan.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
