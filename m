@@ -1,63 +1,25 @@
-From: "Tung, Chien Tin" <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH v2] RDMA/CMA: fix iWARP adapter TCP port space usage
-Date: Fri, 25 Jun 2010 13:14:54 -0700
-Message-ID: <2EFBCAEF10980645BBCFB605689E08E904926FF2A4@azsmsx506.amr.corp.intel.com>
-References: <ada6319ttnj.fsf@roland-alpha.cisco.com>
- <OFE69DF7DF.E7AB1B1F-ONC125774D.0035CCED-C125774D.005C2F46@ch.ibm.com>
+From: Or Gerlitz <ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+Subject: Re: mlx4 pci device table
+Date: Mon, 28 Jun 2010 16:11:35 +0300
+Message-ID: <4C289F87.8050803@voltaire.com>
+References: <Pine.LNX.4.64.1006221025130.11239@zuben.voltaire.com> <adafx0ds5jj.fsf@roland-alpha.cisco.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <OFE69DF7DF.E7AB1B1F-ONC125774D.0035CCED-C125774D.005C2F46-Xeyd2O9EBijQT0dZR+AlfA@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <adafx0ds5jj.fsf-BjVyx320WGW9gfZ95n9DRSW4+XlvGpQz@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bernard Metzler <BMT-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>, Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Waskiewicz Jr, Peter P" <peter.p.waskiewicz.jr-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Yevgeny Petrilin <yevgenyp-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> To my understanding, our discussion touches two topics. One is
-> to solve the TCP port space issue, the other is more general, its about
-> proper integration of offloaded TCP within Linux. So, the second
-> topic is a generalization of the first.
-> 
-> Regarding the first topic, what I was about to propose is that the
-> iWARP kernel driver (software iWARP or RNIC) itself should take care of
-> port space allocations. Port space maintenance functionality should
-> be minimized at iWARP CM level. It looks straightforward to me if
-> during the rdma_connect() call the driver picks a free port using
-> a socket/bind sequence for its local interface. The same would be possible
-> for
-> the passive connection setup, which always involves an rdma_bind_addr()
-> - we would have to pass the rdma_bind_addr() call down to the driver
-> and EADDRINUSE would be a reasonable return value.
-> Here things are getting a little more complicated, if it comes to
-> INADDR_ANY and port 0 bindings. In private email, Bob Sharp already
-> suggested it -  the iWARP CM would have to pick a port and
-> try it on all interfaces....maybe by starting with port 0 binding
-> on one interface and trying to extend with the returned port on
-> all remaining interfaces. That introduces an unbind() call if things
-> fail, too. In any case, the rdma_bind_addr() call would create additional
-> state
-> at driver level.
+Roland Dreier wrote:
+> I think the current upstream location is correct.  This matches the practice of eg iw_cxgb3 as well as cxgb3i, bnx2i etc.  This does have the disadvantage that mlx4_en and mlx4_ib are not auto-loaded by PCI hotplug, but so it goes.
+okay. Still, its too bad that ofed ships patches that do things the 
+other way around vs upstream. Yevgeny, if you have reasoning in place to 
+do things the other way, why not submit upstream?
 
-I am okay with adding rdma_bind_addr and rdma_unbind_addr calls.  I won't
-speak for Sean and the work that needs to go into the CM.  But this will allow
-all known iWARP implementations to work together.
- 
-> For softiwarp, during bind() or connect(), a TCP socket would be created
-> and bound, for an RNIC driver (currently) the same would happen. While with
-> softiwarp this socket would be used for communication later, the RNIC
-> driver
-> would simply have to keep it around until the connection endpoint gets
-> destroyed
-> or the port gets unbound.
-
-We want to be careful and make sure there is only one iWARP provider per IP address.
-If softiWARP binds and surfaces another verbs interface on an existing one,
-this scheme will not work.
-
-Chien
-
+Or.
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
