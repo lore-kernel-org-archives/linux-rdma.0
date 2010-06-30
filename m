@@ -1,167 +1,172 @@
-From: Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH v6] opensm/osmeventplugin: added new events to monitor SM
-Date: Wed, 30 Jun 2010 13:00:38 +0300
-Message-ID: <4C2B15C6.2050701@dev.mellanox.co.il>
+From: Andrea Gozzelino <Andrea.Gozzelino-PK20h7lG/Rc1GQ1Ptb7lUw@public.gmane.org>
+Subject: librdmacm 1.0.12: message size constrain?
+Date: Wed, 30 Jun 2010 12:29:00 +0200 (CEST)
+Message-ID: <185859.1277893740389.SLOX.WebMail.wwwrun@imap.lnl.infn.it>
+References: <CF9C39F99A89134C9CF9C4CCB68B8DDF255F5DE5D5@orsmsx501.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed;
+	boundary="----=_Part_286_3218297.1277893740388"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CF9C39F99A89134C9CF9C4CCB68B8DDF255F5DE5D5-osO9UTpF0USkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Cc: Linux RDMA <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "ewg-G2znmakfqn7U1rindQTSdQ@public.gmane.org" <ewg-G2znmakfqn7U1rindQTSdQ@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Adding new events that allow event plug-in to see
-when SM starts/finishes heavy sweep and routing
-configuration, when it updates dump files, when it
-is no longer master, when SM port is down, and when
-SA DB is actually dumped at the end of light sweep:
+------=_Part_286_3218297.1277893740388
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
-  OSM_EVENT_ID_HEAVY_SWEEP_START
-  OSM_EVENT_ID_HEAVY_SWEEP_DONE
-  OSM_EVENT_ID_UCAST_ROUTING_DONE
-  OSM_EVENT_ID_STATE_CHANGE
-  OSM_EVENT_ID_SA_DB_DUMPED
+On Jun 08, 2010 08:58 PM, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
 
-Signed-off-by: Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
----
+> Here is the first cut at release notes -- attached and inline -- for
+> the OFED 1.5.2 release of the librdmacm.
+> 
+> - Sean
+> 
+> ---
+> 
+> librdmacm release notes
+> -----------------------
+> Several enhancements were added to librdmacm release 1.0.12 that
+> are intended to simplify using RDMA devices and address scalability
+> issues.
+> These changes were in response to long standing requests to make
+> connection establishment 'more like sockets'.  For full details,
+> users should refer to the appropriate man pages. Major changes
+> include:
+> 
+> 
+> * Support synchronous operation for library calls.  Users can control
+> whether an rdma_cm_id operates asynchronously or synchronously based
+>   on
+>   the rdma_event_channel parameter.  Use of synchronous operations
+>   reduces the amount of application code required to use the librdmacm
+>   by eliminating the need for event processing code.
+> 
+>   An rdma_cm_id will be marked for synchronous operation if the
+>   rdma_event_channel parameter is NULL for rdma_create_id or
+>   rdma_migrate_id.  Users can toggle between synchronous and
+>   asynchronous operation through the rdma_migrate_id call.
+> 
+>   Calls that operate synchronously include rdma_resolve_addr,
+>   rdma_resolve_route, rdma_connect, rdma_accept, and rdma_get_request.
+>   Synchronous event data is returned to the user through the
+>   rdma_cm_id.
+> 
+> 
+> * The addition of a new API: rdma_getaddrinfo.  This call is modeled
+>   after getaddrinfo, but for RDMA devices and connections.  It has the
+>   following notable deviations from getaddrinfo:
+> 
+>   A source address is returned as part of the call to allow the
+>   user to allocate necessary local HW resources for connections.
+> 
+>   Optional routing information may be returned to support
+>   Infiniband fabrics.  IB routing information includes necessary
+>   path record data.  rdma_getaddrinfo will obtain this information
+>   if IB ACM support (see below) is enabled.  The use of IB ACM
+>   is not required for rdma_getaddrinfo.
+> 
+>   rdma_getaddrinfo provides future extensions to support
+>   more complex address and route resolution mechanisms, such as
+>   multiple path support and failover.
+> 
+> 
+> * Support for a new APIs: rdma_get_request, rdma_create_ep, and
+>   rdma_destroy_ep.  rdma_get_request simplifies the passive side
+>   implementation by adding synchronous support for accepting new
+>   connections.  rdma_create_ep combines the functionality of
+> rdma_create_id, rdma_create_qp, rdma_resolve_addr, and
+>   rdma_resolve_route
+> in a single API that uses the output of rdma_getaddrinfo as its input.
+> 
+>   
+> * Support for optional parameters. To simplify support for casual RDMA
+>   developers and researchers, the librdmacm can allocate protection
+>   domains, completion queues, and queue pairs on a user's behalf.
+>   This simplifies the amount of information that a developer
+>   must learn in order to use RDMA, plus allows the user to take
+>   advantage of higher-level completion processing abstractions.
+> 
+>   In addition to optional parameters, a user can also specify that the
+>   librdmacm should automatically select usable values for RDMA read
+>   operations.
+> 
+> 
+> * Add support for IB ACM. IB ACM (InfiniBand Assistant for
+> Communication
+> Management) defines a socket based protocol to an IB address and route
+>   resolution service.  One implementation of that service is provided
+> separately by the ibacm package, but anyone can implement the service
+> provided that they adhere to the IB ACM socket protocol. IB ACM is an
+> experimental service targeted at increasing the scalability of
+>   applications
+>   running on a large cluster.
+>   
+> Use of IB ACM is not required and is controlled through the build
+>   option
+> '--with-ib_acm'. If the librdmacm fails to contact the IB ACM service,
+>   it
+> reverts to using kernel services to resolve address and routing data.
+> 
+> 
+> * Add RDMA helper routines. The librdmacm provide a set of simpler
+> verbs
+> calls for posting work requests, registering memory, and checking for
+>   completions.  These calls are wrappers around libibverbs routines.
+> 
+> 
+> 
+Hi Sean,
 
-Changes since v5:
- - Added OSM_EVENT_ID_HEAVY_SWEEP_START event.
+I use the librdmacm version 1.0.12
+I write a test code from your example. It works fine if message buffer
+size (BUF_SIZE) is smaller than 64 bytes.
+Is there some constrain? 
 
-Changes since v4:
- - OSM_EVENT_ID_SA_DB_DUMPED was still reported during
-   heavy sweep - removed.
+I would like to use your new synchronous APIs -
+rdma_reg_msgs,rdma_post_recv,rdma_post_send - with 1 byte < message size
+< 4 Mbytes in my test.
 
-Changes since v3:
- - OSM_EVENT_ID_ENTERING_STANDBY and OSM_EVENT_ID_SM_PORT_DOWN
-   replaced by OSM_EVENT_STATE_CHANGE
- - OSM_EVENT_ID_SA_DB_DUMPED is not reported during
-   heavy sweep, but only if SA DB was actually dumped
-   at the end of light sweep
- - fixed bug with OSM_EVENT_ID_MAX
+Thank you very much for your help.
+Regards,
+Andrea
 
-Signed-off-by: Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
----
- opensm/include/opensm/osm_event_plugin.h   |    5 +++++
- opensm/opensm/osm_state_mgr.c              |   20 ++++++++++++++++++--
- opensm/osmeventplugin/src/osmeventplugin.c |   15 +++++++++++++++
- 3 files changed, 38 insertions(+), 2 deletions(-)
 
-diff --git a/opensm/include/opensm/osm_event_plugin.h b/opensm/include/opensm/osm_event_plugin.h
-index 33d1920..6a99ed9 100644
---- a/opensm/include/opensm/osm_event_plugin.h
-+++ b/opensm/include/opensm/osm_event_plugin.h
-@@ -72,6 +72,11 @@ typedef enum {
- 	OSM_EVENT_ID_PORT_SELECT,
- 	OSM_EVENT_ID_TRAP,
- 	OSM_EVENT_ID_SUBNET_UP,
-+	OSM_EVENT_ID_HEAVY_SWEEP_START,
-+	OSM_EVENT_ID_HEAVY_SWEEP_DONE,
-+	OSM_EVENT_ID_UCAST_ROUTING_DONE,
-+	OSM_EVENT_ID_STATE_CHANGE,
-+	OSM_EVENT_ID_SA_DB_DUMPED,
- 	OSM_EVENT_ID_MAX
- } osm_epi_event_id_t;
+Andrea Gozzelino
 
-diff --git a/opensm/opensm/osm_state_mgr.c b/opensm/opensm/osm_state_mgr.c
-index 81c8f54..e7bff46 100644
---- a/opensm/opensm/osm_state_mgr.c
-+++ b/opensm/opensm/osm_state_mgr.c
-@@ -1107,8 +1107,10 @@ static void do_sweep(osm_sm_t * sm)
- 		if (wait_for_pending_transactions(&sm->p_subn->p_osm->stats))
- 			return;
- 		if (!sm->p_subn->force_heavy_sweep) {
--			if (sm->p_subn->opt.sa_db_dump)
--				osm_sa_db_file_dump(sm->p_subn->p_osm);
-+			if (sm->p_subn->opt.sa_db_dump &&
-+			    !osm_sa_db_file_dump(sm->p_subn->p_osm))
-+				osm_opensm_report_event(sm->p_subn->p_osm,
-+					OSM_EVENT_ID_SA_DB_DUMPED, NULL);
- 			OSM_LOG_MSG_BOX(sm->p_log, OSM_LOG_VERBOSE,
- 					"LIGHT SWEEP COMPLETE");
- 			return;
-@@ -1151,10 +1153,15 @@ static void do_sweep(osm_sm_t * sm)
- 		if (!sm->p_subn->subnet_initialization_error) {
- 			OSM_LOG_MSG_BOX(sm->p_log, OSM_LOG_VERBOSE,
- 					"REROUTE COMPLETE");
-+			osm_opensm_report_event(sm->p_subn->p_osm,
-+				OSM_EVENT_ID_UCAST_ROUTING_DONE, NULL);
- 			return;
- 		}
- 	}
+INFN - Laboratori Nazionali di Legnaro	(LNL)
+Viale dell'Universita' 2 -I-35020 - Legnaro (PD)- ITALIA
+Office: E-101
+Tel: +39 049 8068346
+Fax: +39 049 641925
+Mail: andrea.gozzelino-PK20h7lG/Rc1GQ1Ptb7lUw@public.gmane.org
+Cell: +39 3488245552				
 
-+	osm_opensm_report_event(sm->p_subn->p_osm,
-+				OSM_EVENT_ID_HEAVY_SWEEP_START, NULL);
-+
- 	/* go to heavy sweep */
- repeat_discovery:
+------=_Part_286_3218297.1277893740388
+Content-Type: text/x-vcard
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment; filename="Andrea Gozzelino.vcf"
 
-@@ -1185,6 +1192,8 @@ repeat_discovery:
+BEGIN:VCARD
+VERSION:2.1
+N:Gozzelino;Andrea;;
+FN:Andrea Gozzelino
+ORG:INFN - Laboratori Nazionali Legnaro;
+NOTE:
+TEL;WORK;VOICE:0039 0498068346
+TEL;CELL;VOICE:
+TEL;PAGER;VOICE:
+TEL;WORK;FAX:
+ADR;WORK:;;;legnaro;;;IT
+LABEL;WORK;ENCODING=QUOTED-PRINTABLE:=0D=0Alegnaro,  =0D=0AD
+URL;WORK:
+EMAIL;PREF;INTERNET:Andrea.Gozzelino-PK20h7lG/Rc1GQ1Ptb7lUw@public.gmane.org
+MAILER:SuSE Linux Openexchange Server 4
+END:VCARD 
 
- 		/* Move to DISCOVERING state */
- 		osm_sm_state_mgr_process(sm, OSM_SM_SIGNAL_DISCOVER);
-+		osm_opensm_report_event(sm->p_subn->p_osm,
-+				OSM_EVENT_ID_STATE_CHANGE, NULL);
- 		return;
- 	}
-
-@@ -1205,6 +1214,8 @@ repeat_discovery:
- 				"ENTERING STANDBY STATE");
- 		/* notify master SM about us */
- 		osm_send_trap144(sm, 0);
-+		osm_opensm_report_event(sm->p_subn->p_osm,
-+				OSM_EVENT_ID_STATE_CHANGE, NULL);
- 		return;
- 	}
-
-@@ -1212,6 +1223,9 @@ repeat_discovery:
- 	if (sm->p_subn->force_heavy_sweep)
- 		goto repeat_discovery;
-
-+	osm_opensm_report_event(sm->p_subn->p_osm,
-+				OSM_EVENT_ID_HEAVY_SWEEP_DONE, NULL);
-+
- 	OSM_LOG_MSG_BOX(sm->p_log, OSM_LOG_VERBOSE, "HEAVY SWEEP COMPLETE");
-
- 	/* If we are MASTER - get the highest remote_sm, and
-@@ -1314,6 +1328,8 @@ repeat_discovery:
-
- 	OSM_LOG_MSG_BOX(sm->p_log, OSM_LOG_VERBOSE,
- 			"SWITCHES CONFIGURED FOR UNICAST");
-+	osm_opensm_report_event(sm->p_subn->p_osm,
-+			OSM_EVENT_ID_UCAST_ROUTING_DONE, NULL);
-
- 	if (!sm->p_subn->opt.disable_multicast) {
- 		osm_mcast_mgr_process(sm);
-diff --git a/opensm/osmeventplugin/src/osmeventplugin.c b/opensm/osmeventplugin/src/osmeventplugin.c
-index b4d9ce9..9caf184 100644
---- a/opensm/osmeventplugin/src/osmeventplugin.c
-+++ b/opensm/osmeventplugin/src/osmeventplugin.c
-@@ -176,6 +176,21 @@ static void report(void *_log, osm_epi_event_id_t event_id, void *event_data)
- 	case OSM_EVENT_ID_SUBNET_UP:
- 		fprintf(log->log_file, "Subnet up reported\n");
- 		break;
-+	case OSM_EVENT_ID_HEAVY_SWEEP_START:
-+		fprintf(log->log_file, "Heavy sweep started\n");
-+		break;
-+	case OSM_EVENT_ID_HEAVY_SWEEP_DONE:
-+		fprintf(log->log_file, "Heavy sweep completed\n");
-+		break;
-+	case OSM_EVENT_ID_UCAST_ROUTING_DONE:
-+		fprintf(log->log_file, "Unicast routing completed\n");
-+		break;
-+	case OSM_EVENT_ID_STATE_CHANGE:
-+		fprintf(log->log_file, "SM state changed\n");
-+		break;
-+	case OSM_EVENT_ID_SA_DB_DUMPED:
-+		fprintf(log->log_file, "SA DB dump file updated\n");
-+		break;
- 	case OSM_EVENT_ID_MAX:
- 	default:
- 		osm_log(log->osmlog, OSM_LOG_ERROR,
--- 
-1.5.1.4
+------=_Part_286_3218297.1277893740388--
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
