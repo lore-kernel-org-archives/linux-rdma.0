@@ -1,81 +1,65 @@
-From: Hal Rosenstock <hnrose-Wuw85uim5zDR7s880joybQ@public.gmane.org>
-Subject: [PATCHv2][RESEND] opensm/osm_vl15intf.c: In vl15_poller, drain
-	unicast even if max_wire_smps outstanding
-Date: Wed, 30 Jun 2010 09:00:48 -0400
-Message-ID: <20100630130048.GA22992@comcast.net>
+From: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH] opensm/osm_lid_mgr.c: Allow switch lids to be non LMC
+	aligned
+Date: Wed, 30 Jun 2010 09:01:39 -0400
+Message-ID: <AANLkTinrGhtz0ZKCnvW4d4GmN18QQnEI8ewLZ-vc1PVD@mail.gmail.com>
+References: <4C29F9E5.6030905@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <4C29F9E5.6030905-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Eli Dorfman (Voltaire)" <dorfman.eli-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Vladimir Koushnir <vladimirk-smomgflXvOZWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On Tue, Jun 29, 2010 at 9:49 AM, Eli Dorfman (Voltaire)
+<dorfman.eli-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
+>
+> Fixes a bug of failover between SM's that are running on a switch.
+> Both have lids below LMC start lid (equals to 2^LMC - 1)
+> In case of failover the LID range between 1 and start lid was considered not free
+> and their (switch's) lids were changed.
 
-Unicast sends should not be blocked by waiting transactions.
-In this case (one example is timeouts due to rebooting nodes),
-this can cause trap represses to be delayed (which is not a good thing).
+Was the problem case for this when LMC > 0 but num_lids is 1 ?
 
-Signed-off-by: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
----
-Changes since v1:
-Rebased
+> Signed-off-by: Eli Dorfman <elid-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+> ---
+>  opensm/opensm/osm_lid_mgr.c |    4 ----
+>  1 files changed, 0 insertions(+), 4 deletions(-)
+>
+> diff --git a/opensm/opensm/osm_lid_mgr.c b/opensm/opensm/osm_lid_mgr.c
+> index 97b1de6..5d0247a 100644
+> --- a/opensm/opensm/osm_lid_mgr.c
+> +++ b/opensm/opensm/osm_lid_mgr.c
+> @@ -563,10 +563,6 @@ static boolean_t lid_mgr_is_range_not_persistent(IN osm_lid_mgr_t * p_mgr,
+>                                                 IN uint16_t num_lids)
+>  {
+>        uint16_t i;
+> -       uint8_t start_lid = (uint8_t) (1 << p_mgr->p_subn->opt.lmc);
+> -
+> -       if (lid < start_lid)
+> -               return FALSE;
 
-diff --git a/opensm/opensm/osm_vl15intf.c b/opensm/opensm/osm_vl15intf.c
-index bb2c0c6..a343227 100644
---- a/opensm/opensm/osm_vl15intf.c
-+++ b/opensm/opensm/osm_vl15intf.c
-@@ -3,6 +3,7 @@
-  * Copyright (c) 2004-2009 Voltaire, Inc. All rights reserved.
-  * Copyright (c) 2002-2010 Mellanox Technologies LTD. All rights reserved.
-  * Copyright (c) 1996-2003 Intel Corporation. All rights reserved.
-+ * Copyright (c) 2009,2010 HNR Consulting. All rights reserved.
-  *
-  * This software is available to you under a choice of one of two
-  * licenses.  You may choose to be licensed under the terms of the GNU
-@@ -115,6 +116,7 @@ static void vl15_poller(IN void *p_ptr)
- 	cl_qlist_t *p_fifo;
- 	int32_t max_smps = p_vl->max_wire_smps;
- 	int32_t max_smps2 = p_vl->max_wire_smps2;
-+	uint32_t ufifo_count = 0;
- 
- 	OSM_LOG_ENTER(p_vl->p_log);
- 
-@@ -132,10 +134,15 @@ static void vl15_poller(IN void *p_ptr)
- 		 */
- 		cl_spinlock_acquire(&p_vl->lock);
- 
--		if (cl_qlist_count(&p_vl->ufifo) != 0)
-+		if (ufifo_count)
- 			p_fifo = &p_vl->ufifo;
--		else
--			p_fifo = &p_vl->rfifo;
-+		else {
-+			ufifo_count = cl_qlist_count(&p_vl->ufifo);
-+			if (ufifo_count != 0)
-+				p_fifo = &p_vl->ufifo;
-+			else
-+				p_fifo = &p_vl->rfifo;
-+		}
- 
- 		p_madw = (osm_madw_t *) cl_qlist_remove_head(p_fifo);
- 
-@@ -157,7 +164,13 @@ static void vl15_poller(IN void *p_ptr)
- 			status = cl_event_wait_on(&p_vl->signal,
- 						  EVENT_NO_TIMEOUT, TRUE);
- 
--		while (p_vl->p_stats->qp0_mads_outstanding_on_wire >= max_smps &&
-+		if (ufifo_count) {
-+			cl_spinlock_acquire(&p_vl->lock);
-+			ufifo_count = cl_qlist_count(&p_vl->ufifo);
-+			cl_spinlock_release(&p_vl->lock);
-+		}
-+		while (!ufifo_count &&
-+		       p_vl->p_stats->qp0_mads_outstanding_on_wire >= max_smps &&
- 		       p_vl->thread_state == OSM_THREAD_STATE_RUN) {
- 			status = cl_event_wait_on(&p_vl->signal,
- 						  p_vl->max_smps_timeout,
+I think eliminating this test can cause other breakage.
+
+Shouldn't it be the following:
+
+if (num_lids > 1 && lid < start_lid)
+    return FALSE;
+
+-- Hal
+
+>        for (i = lid; i < lid + num_lids; i++)
+>                if (p_mgr->used_lids[i])
+> --
+> 1.5.3.6
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
