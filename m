@@ -1,49 +1,52 @@
-From: Moni Shoua <monis-hKgKHo2Ms0F+cjeuK/JdrQ@public.gmane.org>
-Subject: [RFC] naming for new QP types
-Date: Thu, 01 Jul 2010 18:36:12 +0300
-Message-ID: <4C2CB5EC.1080501@Voltaire.COM>
+From: Ralph Campbell <ralph.campbell-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH] IB/qib: if qib_init() fails, driver fails to clean up properly
+Date: Thu, 01 Jul 2010 13:25:45 -0700
+Message-ID: <20100701202544.17064.62649.stgit@chromite.mv.qlogic.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Or Gerlitz <ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org>, "Walukiewicz, Miroslaw" <Miroslaw.Walukiewicz-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Aleksey Senin <alekseys-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hi,
-This message follows a discussion about names for a new QP type (see http://www.mail-archive.com/linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org/msg04512.html) and precedes a patch set for RAW QP that we intend to send.
+If qib_init() fails, the driver fails to free memory, unregister device
+files, and unregister with the PCIe framework. The driver will unload
+without error but a subsequent driver load will cause the system to panic.
+This was found by changing the 7220 code to load the serdes microcode
+separately and not installing the microcode file.
 
-The patch requires changes in enum ib_qp_type
-1. Rename IB_QPT_RAW_ETY to IB_QPT_RAW_ETHERTYPE - this is not really a requirement but an opportunity to improve an existing name.
-2. Add new QP type - IBV_QPT_RAW_PACKET. I'll delay the comments for the new name to later, when the patches are submitted, but ask another question instead.
+Signed-off-by: Ralph Campbell <ralph.campbell-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+---
 
-The xrc branch also includes modifications to the same structure and it adds a new type IBV_QPT_XRC before the end.
+ drivers/infiniband/hw/qib/qib_init.c |   10 ++++++++++
+ 1 files changed, 10 insertions(+), 0 deletions(-)
 
-In general, will it be acceptable if we submit the patches so that after they are applied the structure will look like this
+diff --git a/drivers/infiniband/hw/qib/qib_init.c b/drivers/infiniband/hw/qib/qib_init.c
+index 7831ff8..a873dd5 100644
+--- a/drivers/infiniband/hw/qib/qib_init.c
++++ b/drivers/infiniband/hw/qib/qib_init.c
+@@ -1289,8 +1289,18 @@ static int __devinit qib_init_one(struct pci_dev *pdev,
+ 
+ 	if (qib_mini_init || initfail || ret) {
+ 		qib_stop_timers(dd);
++		flush_scheduled_work();
+ 		for (pidx = 0; pidx < dd->num_pports; ++pidx)
+ 			dd->f_quiet_serdes(dd->pport + pidx);
++		if (qib_mini_init)
++			goto bail;
++		if (!j) {
++			(void) qibfs_remove(dd);
++			qib_device_remove(dd);
++		}
++		if (!ret)
++			qib_unregister_ib_device(dd);
++		qib_postinit_cleanup(dd);
+ 		if (initfail)
+ 			ret = initfail;
+ 		goto bail;
 
-enum ib_qp_type {
-        /*
-         * IB_QPT_SMI and IB_QPT_GSI have to be the first two entries
-         * here (and in that order) since the MAD layer uses them as
-         * indices into a 2-entry table.
-         */
-        IB_QPT_SMI,
-        IB_QPT_GSI,
-
-        IB_QPT_RC,
-        IB_QPT_UC,
-        IB_QPT_UD,
-        IB_QPT_RAW_IPV6,
-        IB_QPT_RAW_ETHERTYPE = 7,
-        IB_QPT_RAW_PACKET = 8
-};
-
-So when XRC is accepted we still keep the same values for the last 2?
-
-thanks
-
-MoniS
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
