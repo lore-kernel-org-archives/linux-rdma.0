@@ -1,60 +1,40 @@
-From: "Moni Shoua" <monis-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Subject: RE: [RFC] naming for new QP types
-Date: Fri, 2 Jul 2010 08:30:49 +0300
-Message-ID: <7E95F01E94AB484F83061FCFA35B39F86D8875@exil.voltaire.com>
-References: <4C2CB5EC.1080501@Voltaire.COM> <CF9C39F99A89134C9CF9C4CCB68B8DDF25A1002191@orsmsx501.amr.corp.intel.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: When IBoE will be merged to upstream?
+Date: Fri, 2 Jul 2010 01:35:36 -0600
+Message-ID: <20100702073536.GB7958@obsidianresearch.com>
+References: <AANLkTikXzoaRl61ivsc7fm8EdO9Ucz4iGGfclFOQl3kK@mail.gmail.com> <adabpb1s58c.fsf@roland-alpha.cisco.com> <E113D394D7C5DB4F8FF691FA7EE9DB4439A78AFE88@MTLMAIL.mtl.com> <CF9C39F99A89134C9CF9C4CCB68B8DDF259E7DE3D0@orsmsx501.amr.corp.intel.com> <E113D394D7C5DB4F8FF691FA7EE9DB4439A78AFF16@MTLMAIL.mtl.com> <20100624203701.GA4630@obsidianresearch.com> <E113D394D7C5DB4F8FF691FA7EE9DB4439A78B0042@MTLMAIL.mtl.com> <20100625155755.GC4630@obsidianresearch.com> <E113D394D7C5DB4F8FF691FA7EE9DB4439BA54B70E@MTLMAIL.mtl.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-class: urn:content-classes:message
-In-Reply-To: <CF9C39F99A89134C9CF9C4CCB68B8DDF25A1002191-osO9UTpF0USkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <E113D394D7C5DB4F8FF691FA7EE9DB4439BA54B70E-WQlSmcKwN8Te+A/uUDamNg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Or Gerlitz <ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org>, "Walukiewicz, Miroslaw" <Miroslaw.Walukiewicz-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Aleksey Senin <alekseys-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+To: Liran Liss <liranl-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
+Cc: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Aleksey Senin <aleksey-192fA4vuk7xBDLzU/O5InQ@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "monis-smomgflXvOZWk0Htik3J/w@public.gmane.org" <monis-smomgflXvOZWk0Htik3J/w@public.gmane.org>, "alekseys-smomgflXvOZWk0Htik3J/w@public.gmane.org" <alekseys-smomgflXvOZWk0Htik3J/w@public.gmane.org>, "yiftahs-smomgflXvOZWk0Htik3J/w@public.gmane.org" <yiftahs-smomgflXvOZWk0Htik3J/w@public.gmane.org>, Tziporet Koren <tziporet-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, "alexr-smomgflXvOZWk0Htik3J/w@public.gmane.org" <alexr-smomgflXvOZWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Along with the patches to the kernel we will send a patch to libibverbs
-to expose the new values
+On Thu, Jul 01, 2010 at 02:50:55PM +0300, Liran Liss wrote:
 
----------------------------------------
-  Moni Shoua|  +972-54-5567934  
+> We have a specification, we have an implementation, and we have
+> clean way of passing RoCE L2 information to user-space via address
+> handles.  I don't see any substantial reason to change the basic
+> approach.
 
+Actually, we have a spec that omits how to do the L3 to L2 address
+mapping - and there is much disagreement on this point. Since no
+standard was reached then agreement will have to be reached at least
+with the Linux maintainers before I think anything can realistically
+be merged.
 
------Original Message-----
-From: Hefty, Sean [mailto:sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org] 
-Sent: Friday, July 02, 2010 3:34 AM
-To: Moni Shoua; Roland Dreier
-Cc: linux-rdma; Or Gerlitz; Walukiewicz, Miroslaw; Aleksey Senin
-Subject: RE: [RFC] naming for new QP types
+The basic approach must be something people can agree on, and it seem
+pretty clear to me at least that the current approach is not agreeable
+to many people.
 
-> In general, will it be acceptable if we submit the patches so that 
-> after they are applied the structure will look like this
-> 
-> enum ib_qp_type {
->         /*
->          * IB_QPT_SMI and IB_QPT_GSI have to be the first two entries
->          * here (and in that order) since the MAD layer uses them as
->          * indices into a 2-entry table.
->          */
->         IB_QPT_SMI,
->         IB_QPT_GSI,
-> 
->         IB_QPT_RC,
->         IB_QPT_UC,
->         IB_QPT_UD,
->         IB_QPT_RAW_IPV6,
->         IB_QPT_RAW_ETHERTYPE = 7,
->         IB_QPT_RAW_PACKET = 8
-> };
-> 
-> So when XRC is accepted we still keep the same values for the last 2?
+All three of your points are all entirely avoidable if you simply
+stick to the idea that the L3 address is a GID and not an IP, and rely
+on IPoIB like RDMA-CM mechanisms to go from IP to GID to L2 MAC/VLAN.
 
-Have the existing values been exposed to user space in any way, even if
-not defined by libibverbs?
-
-- Sean
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
