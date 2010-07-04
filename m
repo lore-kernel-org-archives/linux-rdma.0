@@ -1,83 +1,137 @@
-From: Ben Hutchings <bhutchings@solarflare.com>
-Subject: Re: [PATCH net-next-2.6] IB/{nes,
- ipoib}: Pass supported flags to ethtool_op_set_flags()
-Date: Sat, 03 Jul 2010 21:40:26 +0100
-Message-ID: <1278189626.4878.574.camel@localhost>
-References: <1277901872.2082.10.camel@achroite.uk.solarflarecom.com>
-	<20100702095514.7fb324c8.randy.dunlap@oracle.com>
-	<20100702.220711.39188625.davem@davemloft.net>
-	<20100703120729.f2a2715b.randy.dunlap@oracle.com>
-	<1278184884.4878.559.camel@localhost>
-	<1278186089.4878.570.camel@localhost>
-	<adask40nxaa.fsf@roland-alpha.cisco.com>
+From: Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH] RDMA/nes: Sometimes ifdown command hangs
+Date: Sat, 3 Jul 2010 19:17:59 -0500
+Message-ID: <20100704001759.GA2716@FLATIF-MOBL3>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <e1000-devel-bounces@lists.sourceforge.net>
-In-Reply-To: <adask40nxaa.fsf@roland-alpha.cisco.com>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/e1000-devel>,
-	<mailto:e1000-devel-request@lists.sourceforge.net?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=e1000-devel>
-List-Post: <mailto:e1000-devel@lists.sourceforge.net>
-List-Help: <mailto:e1000-devel-request@lists.sourceforge.net?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/e1000-devel>,
-	<mailto:e1000-devel-request@lists.sourceforge.net?subject=subscribe>
-Errors-To: e1000-devel-bounces@lists.sourceforge.net
-To: Roland Dreier <rdreier@cisco.com>
-Cc: Randy Dunlap <randy.dunlap@oracle.com>, amit.salecha@qlogic.com, Chien Tung <chien.tin.tung@intel.com>, sgruszka@redhat.com, amwang@redhat.com, dm@chelsio.com, brice@myri.com, gallatin@myri.com, shemminger@linux-foundation.org, jgarzik@redhat.com, roprabhu@cisco.com, e1000-devel@lists.sourceforge.net, scofeldm@cisco.com, Roland Dreier <rolandd@cisco.com>, buytenh@wantstofly.org, Faisal Latif <faisal.latif@intel.com>, vkolluri@cisco.com, linux-net-drivers@solarflare.com, netdev@vger.kernel.org, anirban.chakraborty@qlogic.com, linux-rdma@vger.kernel.org, David Miller <davem@davemloft.net>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Sat, 2010-07-03 at 13:08 -0700, Roland Dreier wrote:
-> > Following commit 1437ce3983bcbc0447a0dedcd644c14fe833d266 "ethtool:
->  > Change ethtool_op_set_flags to validate flags", ethtool_op_set_flags
->  > takes a third parameter and cannot be used directly as an
->  > implementation of ethtool_ops::set_flags.
-> 
-> I assume this commit is in one of Dave's trees and breaks nes and ipoib
-> because it changed the ethtool_op_set_flags prototype?
+When ib_unregister_device() is called from netdev stop during ifdown, it
+sometimes hangs. Changes made to indicate port_err to ib_dispatch_event() during
+netdev stop and port_active during netdev open. The ib_unregister_device()
+is only called during remove of the module.
 
-Right.
+Signed-off-by: Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+---
+ drivers/infiniband/hw/nes/nes.h       |    2 ++
+ drivers/infiniband/hw/nes/nes_hw.c    |   12 +++++++++---
+ drivers/infiniband/hw/nes/nes_nic.c   |   13 ++++++++++---
+ drivers/infiniband/hw/nes/nes_verbs.c |   12 ++++++++++++
+ 4 files changed, 33 insertions(+), 6 deletions(-)
 
->  > Dave, Roland, you'd better decide between yourselves should apply this.
-> 
-> Since this depends on a commit already in Dave's tree, Dave should
-> probably take it into the same tree.  I guess there's no way to roll
-> this into the original patch to avoid breaking bisects once this ends up
-> upstream?
-
-Unfortunately it's too late to do that.
-
-> anyway,
-> 
-> Acked-by: Roland Dreier <rolandd@cisco.com>
-> 
->  > +static int nes_netdev_set_flags(struct net_device *netdev, u32 flags)
->  > +{
->  > +	return ethtool_op_set_flags(netdev, flags, ETH_FLAG_LRO);
->  > +}
->  > +
->  > +
->  >  static const struct ethtool_ops nes_ethtool_ops = {
-> 
-> Also would have been a bit nicer to avoid adding a double blank line
-> here, although that's obviously a trivial issue.
-
-This spacing is consistent with the surrounding code.
-
-Ben.
-
+diff --git a/drivers/infiniband/hw/nes/nes.h b/drivers/infiniband/hw/nes/nes.h
+index cc78fee..b3d145e 100644
+--- a/drivers/infiniband/hw/nes/nes.h
++++ b/drivers/infiniband/hw/nes/nes.h
+@@ -262,6 +262,7 @@ struct nes_device {
+ 	u16                    base_doorbell_index;
+ 	u16                    currcq_count;
+ 	u16                    deepcq_count;
++	u8                     iw_status;
+ 	u8                     msi_enabled;
+ 	u8                     netdev_count;
+ 	u8                     napi_isr_ran;
+@@ -527,6 +528,7 @@ void nes_cm_disconn_worker(void *);
+ int nes_hw_modify_qp(struct nes_device *, struct nes_qp *, u32, u32, u32);
+ int nes_modify_qp(struct ib_qp *, struct ib_qp_attr *, int, struct ib_udata *);
+ struct nes_ib_device *nes_init_ofa_device(struct net_device *);
++void  nes_port_ibevent(struct nes_vnic *nesvnic);
+ void nes_destroy_ofa_device(struct nes_ib_device *);
+ int nes_register_ofa_device(struct nes_ib_device *);
+ 
+diff --git a/drivers/infiniband/hw/nes/nes_hw.c b/drivers/infiniband/hw/nes/nes_hw.c
+index 57874a1..679dd01 100644
+--- a/drivers/infiniband/hw/nes/nes_hw.c
++++ b/drivers/infiniband/hw/nes/nes_hw.c
+@@ -3283,9 +3283,15 @@ static void nes_terminate_connection(struct nes_device *nesdev, struct nes_qp *n
+ 	else
+ 		mod_qp_flags |= NES_CQP_QP_TERM_DONT_SEND_TERM_MSG;
+ 
+-	nes_terminate_start_timer(nesqp);
+-	nesqp->term_flags |= NES_TERM_SENT;
+-	nes_hw_modify_qp(nesdev, nesqp, mod_qp_flags, termlen, 0);
++	if (!nesdev->iw_status)  {
++		nesqp->term_flags = NES_TERM_DONE;
++		nes_hw_modify_qp(nesdev, nesqp, NES_CQP_QP_IWARP_STATE_ERROR, 0, 0);
++		nes_cm_disconn(nesqp);
++	} else {
++		nes_terminate_start_timer(nesqp);
++		nesqp->term_flags |= NES_TERM_SENT;
++		nes_hw_modify_qp(nesdev, nesqp, mod_qp_flags, termlen, 0);
++	}
+ }
+ 
+ static void nes_terminate_send_fin(struct nes_device *nesdev,
+diff --git a/drivers/infiniband/hw/nes/nes_nic.c b/drivers/infiniband/hw/nes/nes_nic.c
+index 5cc0a9a..c0c404e 100644
+--- a/drivers/infiniband/hw/nes/nes_nic.c
++++ b/drivers/infiniband/hw/nes/nes_nic.c
+@@ -232,6 +232,13 @@ static int nes_netdev_open(struct net_device *netdev)
+ 				NES_MAC_INT_TX_UNDERFLOW | NES_MAC_INT_TX_ERROR));
+ 		first_nesvnic = nesvnic;
+ 	}
++
++	if (nesvnic->of_device_registered) {
++		nesdev->iw_status = 1;
++		nesdev->nesadapter->send_term_ok = 1;
++		nes_port_ibevent(nesvnic);
++	}
++
+ 	if (first_nesvnic->linkup) {
+ 		/* Enable network packets */
+ 		nesvnic->linkup = 1;
+@@ -309,9 +316,9 @@ static int nes_netdev_stop(struct net_device *netdev)
+ 
+ 
+ 	if (nesvnic->of_device_registered) {
+-		nes_destroy_ofa_device(nesvnic->nesibdev);
+-		nesvnic->nesibdev = NULL;
+-		nesvnic->of_device_registered = 0;
++		nesdev->nesadapter->send_term_ok = 0;
++		nesdev->iw_status = 0;
++		nes_port_ibevent(nesvnic);
+ 	}
+ 	nes_destroy_nic_qp(nesvnic);
+ 
+diff --git a/drivers/infiniband/hw/nes/nes_verbs.c b/drivers/infiniband/hw/nes/nes_verbs.c
+index 9bc2d74..3b95d04 100644
+--- a/drivers/infiniband/hw/nes/nes_verbs.c
++++ b/drivers/infiniband/hw/nes/nes_verbs.c
+@@ -3058,6 +3058,7 @@ int nes_modify_qp(struct ib_qp *ibqp, struct ib_qp_attr *attr,
+ 						nesqp->hte_added = 0;
+ 					}
+ 				if ((nesqp->hw_tcp_state > NES_AEQE_TCP_STATE_CLOSED) &&
++						(nesdev->iw_status) &&
+ 						(nesqp->hw_tcp_state != NES_AEQE_TCP_STATE_TIME_WAIT)) {
+ 					next_iwarp_state |= NES_CQP_QP_RESET;
+ 				} else {
+@@ -3936,6 +3937,17 @@ struct nes_ib_device *nes_init_ofa_device(struct net_device *netdev)
+ 	return nesibdev;
+ }
+ 
++void  nes_port_ibevent(struct nes_vnic *nesvnic)
++{
++	struct nes_ib_device *nesibdev = nesvnic->nesibdev;
++	struct nes_device *nesdev = nesvnic->nesdev;
++	struct ib_event event;
++	event.device = &nesibdev->ibdev;
++	event.element.port_num = nesvnic->logical_port + 1;
++	event.event = nesdev->iw_status ? IB_EVENT_PORT_ACTIVE : IB_EVENT_PORT_ERR;
++	ib_dispatch_event(&event);
++}
++
+ 
+ /**
+  * nes_destroy_ofa_device
 -- 
-Ben Hutchings, Senior Software Engineer, Solarflare Communications
-Not speaking for my employer; that's the marketing department's job.
-They asked us to note that Solarflare product names are trademarked.
+1.6.0
 
-
-------------------------------------------------------------------------------
-This SF.net email is sponsored by Sprint
-What will you do first with EVO, the first 4G phone?
-Visit sprint.com/first -- http://p.sf.net/sfu/sprint-com-first
-_______________________________________________
-E1000-devel mailing list
-E1000-devel@lists.sourceforge.net
-https://lists.sourceforge.net/lists/listinfo/e1000-devel
-To learn more about Intel&#174; Ethernet, visit http://communities.intel.com/community/wired
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
