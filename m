@@ -1,29 +1,55 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH net-next-2.6] IB/{nes,ipoib}: Pass supported flags to
- ethtool_op_set_flags()
-Date: Sun, 04 Jul 2010 11:48:33 -0700 (PDT)
-Message-ID: <20100704.114833.260086450.davem@davemloft.net>
-References: <1278184884.4878.559.camel@localhost>
-	<1278186089.4878.570.camel@localhost>
-	<adask40nxaa.fsf@roland-alpha.cisco.com>
+From: Alexander Schmidt <alexs-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
+Subject: [PATCH] ib/ehca: init irq tasklet before irq can happen
+Date: Mon, 5 Jul 2010 13:41:56 +0200
+Message-ID: <20100705134156.36803536@alex-laptop>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <adask40nxaa.fsf@roland-alpha.cisco.com>
-Sender: netdev-owner@vger.kernel.org
-To: rdreier@cisco.com
-Cc: bhutchings@solarflare.com, rolandd@cisco.com, randy.dunlap@oracle.com, netdev@vger.kernel.org, linux-net-drivers@solarflare.com, sgruszka@redhat.com, amit.salecha@qlogic.com, amwang@redhat.com, anirban.chakraborty@qlogic.com, dm@chelsio.com, scofeldm@cisco.com, vkolluri@cisco.com, roprabhu@cisco.com, e1000-devel@lists.sourceforge.net, buytenh@wantstofly.org, gallatin@myri.com, brice@myri.com, shemminger@linux-foundation.org, jgarzik@redhat.com, faisal.latif@intel.com, chien.tin.tung@intel.com, linux-rdma@vger.kernel.org
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Linux RDMA <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: lkml <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Stefan Roscher <stefan.roscher-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, Joachim Fenkes <fenkes-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, Christoph Raisch <raisch-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, Hoang-Nam Nguyen <HNGUYEN-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Roland Dreier <rdreier@cisco.com>
-Date: Sat, 03 Jul 2010 13:08:29 -0700
+Initialize tasklet before interrupts are requested to prevent scheduling of
+uninitialized tasklet.
 
->  > Following commit 1437ce3983bcbc0447a0dedcd644c14fe833d266 "ethtool:
->  > Change ethtool_op_set_flags to validate flags", ethtool_op_set_flags
->  > takes a third parameter and cannot be used directly as an
->  > implementation of ethtool_ops::set_flags.
-> 
-> Acked-by: Roland Dreier <rolandd@cisco.com>
+Signed-off-by: Alexander Schmidt <alexs-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
+---
+Hi Roland, please queue this fix for 2.6.36, thanks!
 
-Applied, thanks guys.
+ drivers/infiniband/hw/ehca/ehca_eq.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+--- linux-2.6.orig/drivers/infiniband/hw/ehca/ehca_eq.c
++++ linux-2.6/drivers/infiniband/hw/ehca/ehca_eq.c
+@@ -122,21 +122,21 @@ int ehca_create_eq(struct ehca_shca *shc
+ 
+ 	/* register interrupt handlers and initialize work queues */
+ 	if (type == EHCA_EQ) {
++		tasklet_init(&eq->interrupt_task, ehca_tasklet_eq, (long)shca);
++
+ 		ret = ibmebus_request_irq(eq->ist, ehca_interrupt_eq,
+ 					  IRQF_DISABLED, "ehca_eq",
+ 					  (void *)shca);
+ 		if (ret < 0)
+ 			ehca_err(ib_dev, "Can't map interrupt handler.");
+-
+-		tasklet_init(&eq->interrupt_task, ehca_tasklet_eq, (long)shca);
+ 	} else if (type == EHCA_NEQ) {
++		tasklet_init(&eq->interrupt_task, ehca_tasklet_neq, (long)shca);
++
+ 		ret = ibmebus_request_irq(eq->ist, ehca_interrupt_neq,
+ 					  IRQF_DISABLED, "ehca_neq",
+ 					  (void *)shca);
+ 		if (ret < 0)
+ 			ehca_err(ib_dev, "Can't map interrupt handler.");
+-
+-		tasklet_init(&eq->interrupt_task, ehca_tasklet_neq, (long)shca);
+ 	}
+ 
+ 	eq->is_initialized = 1;
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
