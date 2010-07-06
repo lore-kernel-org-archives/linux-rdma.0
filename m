@@ -1,66 +1,65 @@
-From: Liran Liss <liranl-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
-Subject: RE: When IBoE will be merged to upstream?
-Date: Tue, 6 Jul 2010 14:01:01 +0300
-Message-ID: <E113D394D7C5DB4F8FF691FA7EE9DB443A8E2E552A@MTLMAIL.mtl.com>
-References: <AANLkTikXzoaRl61ivsc7fm8EdO9Ucz4iGGfclFOQl3kK@mail.gmail.com>
-	<adabpb1s58c.fsf@roland-alpha.cisco.com>
-	<E113D394D7C5DB4F8FF691FA7EE9DB4439A78AFE88@MTLMAIL.mtl.com>
-	<CF9C39F99A89134C9CF9C4CCB68B8DDF259E7DE3D0@orsmsx501.amr.corp.intel.com>
-	<E113D394D7C5DB4F8FF691FA7EE9DB4439A78AFF16@MTLMAIL.mtl.com>
-	<20100624203701.GA4630@obsidianresearch.com>
-	<E113D394D7C5DB4F8FF691FA7EE9DB4439A78B0042@MTLMAIL.mtl.com>
-	<20100625155755.GC4630@obsidianresearch.com>
-	<E113D394D7C5DB4F8FF691FA7EE9DB4439BA54B70E@MTLMAIL.mtl.com>
-	<adak4pcnw3c.fsf@roland-alpha.cisco.com>
-	<E113D394D7C5DB4F8FF691FA7EE9DB443A8E048000@MTLMAIL.mtl.com>
-	<4C32D0BD.3030902@Voltaire.com>
+From: Alexander Schmidt <alexs-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
+Subject: Re: [ewg] [PATCH v2] libibverbs: ibv_fork_init() and libhugetlbfs
+Date: Tue, 6 Jul 2010 17:25:16 +0200
+Message-ID: <20100706172516.19d5b7dd@alex-laptop>
+References: <20100531111359.4c0696ab@alex-laptop>
+	<adamxvdqf4e.fsf@roland-alpha.cisco.com>
+	<20100609114750.0798c664@alex-laptop>
+	<adamxv4m620.fsf@roland-alpha.cisco.com>
+	<4C10FDD0.8000108@gmail.com>
+	<20100628171829.7749f145@alex-laptop>
+	<adaoceonwsk.fsf@roland-alpha.cisco.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4C32D0BD.3030902-hKgKHo2Ms0FWk0Htik3J/w@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <adaoceonwsk.fsf-BjVyx320WGW9gfZ95n9DRSW4+XlvGpQz@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <ogerlitz-hKgKHo2Ms0FWk0Htik3J/w@public.gmane.org>
-Cc: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Aleksey Senin <aleksey-192fA4vuk7xBDLzU/O5InQ@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "monis-smomgflXvOZWk0Htik3J/w@public.gmane.org" <monis-smomgflXvOZWk0Htik3J/w@public.gmane.org>, "alekseys-smomgflXvOZWk0Htik3J/w@public.gmane.org" <alekseys-smomgflXvOZWk0Htik3J/w@public.gmane.org>, "yiftahs-smomgflXvOZWk0Htik3J/w@public.gmane.org" <yiftahs-smomgflXvOZWk0Htik3J/w@public.gmane.org>, Tziporet Koren <tziporet-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, "alexr-smomgflXvOZWk0Htik3J/w@public.gmane.org" <alexr-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Cc: alexv-smomgflXvOZWk0Htik3J/w@public.gmane.org, alexonlists-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, of-ewg <ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>, Linux RDMA <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Christoph Raisch <raisch-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, Stefan Roscher <stefan.roscher-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> reading your replies would be much easier if you use strict 
-> bottom posting
+On Sat, 03 Jul 2010 13:19:07 -0700
+Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org> wrote:
 
-OK :)
+>  >  When registering two memory regions A and B from within
+>  > the same huge page, we will end up with one node in the tree which covers the
+>  > whole huge page after registering A. When the second MR is registered, a node
+>  > is created with the MR size rounded to the system page size (as there is no
+>  > need to call madvise(), it is not noticed that MR B is part of a huge page).
+>  > 
+>  > Now if MR A is deregistered before MR B, I see that the tree containing
+>  > mem_nodes is empty afterwards, which causes problems for the deregistration of
+>  > MR B, leaving the tree in a corrupted state with negative refcounts. This also
+>  > breaks later registrations of other memory regions within this huge page.
+> 
+> Good thing I didn't get around to applying the patch yet ;)
+> 
+> I haven't thought this through fully, but it seems that maybe we could
+> extend the madvise tracking tree to keep track of the page size used for
+> each node in the tree.  Then for the registration of MR B above, we
+> would find the node for MR A covered MR B and we should be able to get
+> the ref counting right.
 
-> 
-> >> For a long time we've assumed that the create_ah verb 
-> can't sleep, so 
-> >> where are you going to do neighbor discovery?
-> 
-> > re [...] implementation, there is no inherent issue that 
-> prevents create_ah() from sleeping:
-> > - Change a few spinlocks to mutexes in the cma (which 
-> sleeps a lot anyway because is 
-> >   modifies QP states)
-> > - Trivial for user-space calls...
-> 
-> Documentation/infiniband/core_locking.txt states that "The 
-> corresponding functions exported to upper level protocol 
-> consumers: ... ib_create_ah ... are therefore safe to call 
-> from any context." 
-> 
-> Which is in turn assumed by bunch of components in the kernel 
-> IB stack (look for ib_create_ah calls  under 
-> drivers/infiniband/core/). The examples you brought here, 
-> don't cover them. This way or another, I don't see any reason 
-> to break that convension just for the sake of this aspect of 
-> the iboe implementation, simply, code with this assumption at hand.
-> 
-> Or.
-> 
+We thought about this too, but in some special cases, we do not know the
+correct page size of a memory range. For example when getting a 16M chunk
+from a 16M huge page region which is also aligned to 16M, the first madvise()
+will work fine and the code will assume that the page size is 64K.
 
-I understand this, but keeping ib_create_ah() callable from any context is not a goal by itself.
-I am looking for constructive ideas for supporting iboe without breaking Verbs/CQE/CM syntax.
+If trying to register a 16M - 64K + 1 byte region, the first madvise() also
+works fine. Now if a second memory region which resides in the last 64K is
+registered, we end up with the same situation as above.
 
-What do you propose?--
+As this issue was not present in version 2 of the code, but there we had
+a big performance penalty, I suggest the following: we could go back to
+version 2 and introduce a new RDMAV_HUGEPAGE_SAFE env variable to let the user
+decide between huge page support and better performance (the same approach we
+use for the COW protection itself). Would this be okay or do you see a problem
+with this?
+
+Regards,
+Alex
+--
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
