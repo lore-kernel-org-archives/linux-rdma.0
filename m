@@ -1,20 +1,19 @@
 From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 7/7] IB/qib: completion queue callback needs to be single threaded
-Date: Tue, 06 Jul 2010 14:24:45 -0700
-Message-ID: <ada630smhgi.fsf@roland-alpha.cisco.com>
-References: <20100617231338.8006.18131.stgit@chromite.mv.qlogic.com>
-	<20100617231414.8006.57924.stgit@chromite.mv.qlogic.com>
+Subject: Re: [PATCH v2 1/3] RDMA/cxgb4: derive smac_idx from port viid.
+Date: Tue, 06 Jul 2010 14:25:14 -0700
+Message-ID: <ada1vbgmhfp.fsf@roland-alpha.cisco.com>
+References: <20100623154643.22600.20003.stgit@build.ogc.int>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20100617231414.8006.57924.stgit-/vjeY7uYZjrPXfVEPVhPGq6RkeBMCJyt@public.gmane.org> (Ralph
-	Campbell's message of "Thu, 17 Jun 2010 16:14:15 -0700")
+In-Reply-To: <20100623154643.22600.20003.stgit-T4OLL4TyM9aNDNWfRnPdfg@public.gmane.org> (Steve Wise's
+	message of "Wed, 23 Jun 2010 10:46:44 -0500")
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ralph Campbell <ralph.campbell-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-thanks, applied all except 2/7 (which seems to be only an optimization)
+thanks, applied
 -- 
 Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org> || For corporate legal information go to:
 http://www.cisco.com/web/about/doing_business/legal/cri/index.html
