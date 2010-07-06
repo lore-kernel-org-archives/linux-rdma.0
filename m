@@ -1,24 +1,34 @@
-From: Or Gerlitz <ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH V1 2/4]  New RAW_PACKET QP  type definition
-Date: Tue, 06 Jul 2010 09:13:17 +0300
-Message-ID: <4C32C97C.6020100@voltaire.com>
-References: <4C308E07.7050903@senin.name> <4C3092ED.6000701@senin.name>	<4C3095CB.2000205@senin.name> <4C31E3E4.8020508@opengridcomputing.com>
+From: Or Gerlitz <ogerlitz-hKgKHo2Ms0FWk0Htik3J/w@public.gmane.org>
+Subject: Re: When IBoE will be merged to upstream?
+Date: Tue, 06 Jul 2010 09:44:13 +0300
+Message-ID: <4C32D0BD.3030902@Voltaire.com>
+References: <AANLkTikXzoaRl61ivsc7fm8EdO9Ucz4iGGfclFOQl3kK@mail.gmail.com>	<adabpb1s58c.fsf@roland-alpha.cisco.com>	<E113D394D7C5DB4F8FF691FA7EE9DB4439A78AFE88@MTLMAIL.mtl.com>	<CF9C39F99A89134C9CF9C4CCB68B8DDF259E7DE3D0@orsmsx501.amr.corp.intel.com>	<E113D394D7C5DB4F8FF691FA7EE9DB4439A78AFF16@MTLMAIL.mtl.com>	<20100624203701.GA4630@obsidianresearch.com>	<E113D394D7C5DB4F8FF691FA7EE9DB4439A78B0042@MTLMAIL.mtl.com>	<20100625155755.GC4630@obsidianresearch.com>	<E113D394D7C5DB4F8FF691FA7EE9DB4439BA54B70E@MTLMAIL.mtl.com>	<adak4pcnw3c.fsf@roland-alpha.cisco.com> <E113D394D7C5DB4F8FF691FA7EE9DB443A8E048000@MTLMAIL.mtl.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4C31E3E4.8020508-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+In-Reply-To: <E113D394D7C5DB4F8FF691FA7EE9DB443A8E048000-WQlSmcKwN8Te+A/uUDamNg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Cc: Aleksey Senin <alex-192fA4vuk7xBDLzU/O5InQ@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+To: Liran Liss <liranl-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
+Cc: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Aleksey Senin <aleksey-192fA4vuk7xBDLzU/O5InQ@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "monis-smomgflXvOZWk0Htik3J/w@public.gmane.org" <monis-smomgflXvOZWk0Htik3J/w@public.gmane.org>, "alekseys-smomgflXvOZWk0Htik3J/w@public.gmane.org" <alekseys-smomgflXvOZWk0Htik3J/w@public.gmane.org>, "yiftahs-smomgflXvOZWk0Htik3J/w@public.gmane.org" <yiftahs-smomgflXvOZWk0Htik3J/w@public.gmane.org>, Tziporet Koren <tziporet-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, "alexr-smomgflXvOZWk0Htik3J/w@public.gmane.org" <alexr-smomgflXvOZWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Steve Wise wrote:
-> Would it be better to just put the XRC QP type enum in with this patch? 
-You can take a look on the xrc branch @ Roland's kernel.org git tree, it 
-has a patch with the XRC QP enum, and I believe what this patch is 
-attempting to do, is not introducing a dependency  among the xrc and 
-"raw" qp patch sets.
+Liran Liss wrote:
+> S.B
+
+reading your replies would be much easier if you use strict bottom posting
+
+>> For a long time we've assumed that the create_ah verb can't sleep, 
+>> so where are you going to do neighbor discovery?
+
+> re [...] implementation, there is no inherent issue that prevents create_ah() from sleeping:
+> - Change a few spinlocks to mutexes in the cma (which sleeps a lot anyway because is 
+>   modifies QP states)
+> - Trivial for user-space calls...
+
+Documentation/infiniband/core_locking.txt states that "The corresponding functions exported to upper level protocol consumers: ... ib_create_ah ... are therefore safe to call from any context." 
+
+Which is in turn assumed by bunch of components in the kernel IB stack (look for ib_create_ah calls  under drivers/infiniband/core/). The examples you brought here, don't cover them. This way or another, I don't see any reason to break that convension just for the sake of this aspect of the iboe implementation, simply, code with this assumption at hand.
 
 Or.
 --
