@@ -1,13 +1,14 @@
 From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 2.6.35 1/3] RDMA/cxgb4: Don't call abort_connection() for active connect failures.
-Date: Tue, 06 Jul 2010 14:25:26 -0700
-Message-ID: <adawrt8l2ux.fsf@roland-alpha.cisco.com>
+Subject: Re: [PATCH 2.6.35 3/3] RDMA/cxgb4: Avoid false GTS CIDX_INC overflows.
+Date: Tue, 06 Jul 2010 14:25:29 -0700
+Message-ID: <adask3wl2uu.fsf@roland-alpha.cisco.com>
 References: <20100610190255.18331.20027.stgit@build.ogc.int>
+	<20100610190306.18331.87083.stgit@build.ogc.int>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20100610190255.18331.20027.stgit-T4OLL4TyM9aNDNWfRnPdfg@public.gmane.org> (Steve Wise's
-	message of "Thu, 10 Jun 2010 14:02:55 -0500")
+In-Reply-To: <20100610190306.18331.87083.stgit-T4OLL4TyM9aNDNWfRnPdfg@public.gmane.org> (Steve Wise's
+	message of "Thu, 10 Jun 2010 14:03:06 -0500")
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
