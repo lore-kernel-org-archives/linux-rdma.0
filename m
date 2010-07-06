@@ -1,102 +1,110 @@
-From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: Re: [PATCH v2] RDMA/CMA: fix iWARP adapter TCP port space usage
-Date: Tue, 06 Jul 2010 14:03:15 -0700
-Message-ID: <4C339A13.3030802@opengridcomputing.com>
-References: <ada6319ttnj.fsf@roland-alpha.cisco.com> <OFE69DF7DF.E7AB1B1F-ONC125774D.0035CCED-C125774D.005C2F46@ch.ibm.com> <2EFBCAEF10980645BBCFB605689E08E904926FF2A4@azsmsx506.amr.corp.intel.com> <2EFBCAEF10980645BBCFB605689E08E904928D9C9B@azsmsx506.amr.corp.intel.com>
+From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+Subject: Re: [PATCH] opensm: event plig-in API fixed to compile with g++
+Date: Tue, 6 Jul 2010 14:03:35 -0700
+Message-ID: <20100706140335.81e25f4c.weiny2@llnl.gov>
+References: <4C2312F0.8020308@dev.mellanox.co.il>
+	<20100705181143.GG22860@me>
+	<AANLkTilUABmkKA8W-vIVWyTuDR8Gte9jtxmDUL1SiAte@mail.gmail.com>
+	<20100705184144.GH22860@me>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <2EFBCAEF10980645BBCFB605689E08E904928D9C9B-uLM7Qlg6MbdZtRGVdHMbwrfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+In-Reply-To: <20100705184144.GH22860@me>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Tung, Chien Tin" <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Bernard Metzler <BMT-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>, Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Waskiewicz Jr, Peter P" <peter.p.waskiewicz.jr-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+Cc: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Linux RDMA <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-I haven't thought through all the details, but in principal this should 
-work.  But this isn't just and iWARP issue.  Currently all RDMA-CM users 
-share the same port space.   I think we need to maintain this, so a 
-transport-independent RDMA app can run over both IB and IW.  This goes 
-for server side wrt listen/accept as well.
+On Mon, 5 Jul 2010 11:41:44 -0700
+Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org> wrote:
 
-Steve.
+> On 14:30 Mon 05 Jul     , Hal Rosenstock wrote:
+> > On Mon, Jul 5, 2010 at 2:11 PM, Sasha Khapyorsky <sashak@voltaire.c=
+om> wrote:
+> > > On 11:10 Thu 24 Jun =A0 =A0 , Yevgeny Kliteynik wrote:
+> > >> Event API should have been able to be used by libraries
+> > >> written both in C and C++.
+> > >
+> > > I don't know about such requirement.
+> >=20
+> > Are you saying it isn't a valid requirement to allow OpenSM plugins=
+ to
+> > be C++ based ? If so, why not ?
+>=20
+> I'm saying that there is no requirement for plugin API to support C++=
+ -
+> obviously (following method names) plugin API was never developed for
+> using it in C++.
 
+Actually IMO this is not correct.  The use of "delete" was introduced b=
+y commit a5963f93fa3d4514cc526e4ad029b036724b8167.  I was at fault to n=
+ot have objected back then.  The use of "extern C" in all of the header=
+ files below implies a desire to support C++.
 
-Tung, Chien Tin wrote:
-> Steve,
->
-> Do you see any issues with Bernard's proposal?  Is this something we can agree on?
->
-> Chien
->
->   
->> -----Original Message-----
->> From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Tung,
->> Chien Tin
->> Sent: Friday, June 25, 2010 3:15 PM
->> To: Bernard Metzler; Roland Dreier
->> Cc: Jason Gunthorpe; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Waskiewicz Jr,
->> Peter P; Steve Wise
->> Subject: RE: [PATCH v2] RDMA/CMA: fix iWARP adapter TCP port space usage
->>
->>     
->>> To my understanding, our discussion touches two topics. One is
->>> to solve the TCP port space issue, the other is more general, its about
->>> proper integration of offloaded TCP within Linux. So, the second
->>> topic is a generalization of the first.
->>>
->>> Regarding the first topic, what I was about to propose is that the
->>> iWARP kernel driver (software iWARP or RNIC) itself should take care of
->>> port space allocations. Port space maintenance functionality should
->>> be minimized at iWARP CM level. It looks straightforward to me if
->>> during the rdma_connect() call the driver picks a free port using
->>> a socket/bind sequence for its local interface. The same would be possible
->>> for
->>> the passive connection setup, which always involves an rdma_bind_addr()
->>> - we would have to pass the rdma_bind_addr() call down to the driver
->>> and EADDRINUSE would be a reasonable return value.
->>> Here things are getting a little more complicated, if it comes to
->>> INADDR_ANY and port 0 bindings. In private email, Bob Sharp already
->>> suggested it -  the iWARP CM would have to pick a port and
->>> try it on all interfaces....maybe by starting with port 0 binding
->>> on one interface and trying to extend with the returned port on
->>> all remaining interfaces. That introduces an unbind() call if things
->>> fail, too. In any case, the rdma_bind_addr() call would create additional
->>> state
->>> at driver level.
->>>       
->> I am okay with adding rdma_bind_addr and rdma_unbind_addr calls.  I won't
->> speak for Sean and the work that needs to go into the CM.  But this will allow
->> all known iWARP implementations to work together.
->>
->>     
->>> For softiwarp, during bind() or connect(), a TCP socket would be created
->>> and bound, for an RNIC driver (currently) the same would happen. While with
->>> softiwarp this socket would be used for communication later, the RNIC
->>> driver
->>> would simply have to keep it around until the connection endpoint gets
->>> destroyed
->>> or the port gets unbound.
->>>       
->> We want to be careful and make sure there is only one iWARP provider per IP address.
->> If softiWARP binds and surfaces another verbs interface on an existing one,
->> this scheme will not work.
->>
->> Chien
->>
->>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
->> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>     
+10:28:14 > pwd; grep "BEGIN_C_DECLS extern" *
+/home/weiny2/OpenIB/git-trees/management/opensm/include/opensm
+osm_attrib_req.h:#  define BEGIN_C_DECLS extern "C" {
+osm_base.h:#  define BEGIN_C_DECLS extern "C" {
+osm_console.h:#  define BEGIN_C_DECLS extern "C" {
+osm_console_io.h:#  define BEGIN_C_DECLS extern "C" {
+osm_db.h:#  define BEGIN_C_DECLS extern "C" {
+osm_db_pack.h:#  define BEGIN_C_DECLS extern "C" {
+osm_event_plugin.h:#  define BEGIN_C_DECLS extern "C" {
+osm_helper.h:#  define BEGIN_C_DECLS extern "C" {
+osm_inform.h:#  define BEGIN_C_DECLS extern "C" {
+osm_lid_mgr.h:#  define BEGIN_C_DECLS extern "C" {
+osm_log.h:#  define BEGIN_C_DECLS extern "C" {
+osm_mad_pool.h:#  define BEGIN_C_DECLS extern "C" {
+osm_madw.h:#  define BEGIN_C_DECLS extern "C" {
+osm_mcast_tbl.h:#  define BEGIN_C_DECLS extern "C" {
+osm_mcm_port.h:#  define BEGIN_C_DECLS extern "C" {
+osm_msgdef.h:#  define BEGIN_C_DECLS extern "C" {
+osm_mtree.h:#  define BEGIN_C_DECLS extern "C" {
+osm_multicast.h:#  define BEGIN_C_DECLS extern "C" {
+osm_node.h:#  define BEGIN_C_DECLS extern "C" {
+osm_opensm.h:#  define BEGIN_C_DECLS extern "C" {
+osm_partition.h:#  define BEGIN_C_DECLS extern "C" {
+osm_path.h:#  define BEGIN_C_DECLS extern "C" {
+osm_perfmgr_db.h:#  define BEGIN_C_DECLS extern "C" {
+osm_pkey.h:#  define BEGIN_C_DECLS extern "C" {
+osm_port.h:#  define BEGIN_C_DECLS extern "C" {
+osm_port_profile.h:#  define BEGIN_C_DECLS extern "C" {
+osm_prefix_route.h:#  define BEGIN_C_DECLS extern "C" {
+osm_remote_sm.h:#  define BEGIN_C_DECLS extern "C" {
+osm_router.h:#  define BEGIN_C_DECLS extern "C" {
+osm_sa.h:#  define BEGIN_C_DECLS extern "C" {
+osm_sa_mad_ctrl.h:#  define BEGIN_C_DECLS extern "C" {
+osm_service.h:#  define BEGIN_C_DECLS extern "C" {
+osm_sm.h:#  define BEGIN_C_DECLS extern "C" {
+osm_sm.h.orig:#  define BEGIN_C_DECLS extern "C" {
+osm_sm_mad_ctrl.h:#  define BEGIN_C_DECLS extern "C" {
+osm_stats.h:#  define BEGIN_C_DECLS extern "C" {
+osm_subnet.h:#  define BEGIN_C_DECLS extern "C" {
+osm_subnet.h.orig:#  define BEGIN_C_DECLS extern "C" {
+osm_switch.h:#  define BEGIN_C_DECLS extern "C" {
+osm_ucast_cache.h:#  define BEGIN_C_DECLS extern "C" {
+osm_ucast_mgr.h:#  define BEGIN_C_DECLS extern "C" {
+osm_vl15intf.h:#  define BEGIN_C_DECLS extern "C" {
+st.h:#  define BEGIN_C_DECLS extern "C" {
+
+Ira
+
+>=20
+> Why not is another question - for instance in order to not deal with
+> C/C++ compatibility issues (such as castings, function names limitati=
+on,
+> linking mess, etc.)
+>=20
+> Sasha
 > --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma"=
+ in
 > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->   
-
+> More majordomo info at  http://*vger.kernel.org/majordomo-info.html
+>=20
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
