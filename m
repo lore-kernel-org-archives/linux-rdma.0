@@ -1,85 +1,66 @@
-From: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
-Subject: [PATCH 04/18] ib/qib: use generic_file_llseek
-Date: Wed,  7 Jul 2010 23:40:06 +0200
-Message-ID: <1278538820-1392-5-git-send-email-arnd@arndb.de>
-References: <1278538820-1392-1-git-send-email-arnd@arndb.de>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH] change thread-unsafe readdir to thread-safe readdir_r
+	calls
+Date: Wed, 7 Jul 2010 15:49:20 -0600
+Message-ID: <20100707214920.GN4630@obsidianresearch.com>
+References: <1278527821-14804-1-git-send-email-sdake@redhat.com> <20100707185257.GJ4630@obsidianresearch.com> <4C34D208.1000705@redhat.com> <20100707204712.GK4630@obsidianresearch.com> <4C34F09D.6080908@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1278538820-1392-1-git-send-email-arnd-r2nGTMty4D4@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <4C34F09D.6080908-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: John Kacur <jkacur-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Frederic Weisbecker <fweisbec-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Steven Dake <sdake-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-When the default llseek action gets changed to
-no_llseek, all file systems relying on the
-current behaviour need to set explicit .llseek
-operations.
+On Wed, Jul 07, 2010 at 02:24:45PM -0700, Steven Dake wrote:
 
-In case of qib_fs, we want the files to be
-seekable, so generic_file_llseek fits best.
+> Not sure how to map a readdir to readdir_r on a thread unsafe system...  
+> perhaps with thread keys.  In any regard, seems pointless, readdir_r is 
+> there and what POSIX specifies for this purpose.
 
-Signed-off-by: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
-Cc: Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
----
- drivers/infiniband/hw/qib/qib_fs.c |   18 +++++++++---------
- 1 files changed, 9 insertions(+), 9 deletions(-)
+Override opendir and allocate the buffer then and return a pointer to it
+through a custom 'DIR *'.
 
-diff --git a/drivers/infiniband/hw/qib/qib_fs.c b/drivers/infiniband/hw/qib/qib_fs.c
-index 844954b..9f989c0 100644
---- a/drivers/infiniband/hw/qib/qib_fs.c
-+++ b/drivers/infiniband/hw/qib/qib_fs.c
-@@ -135,8 +135,8 @@ static ssize_t driver_names_read(struct file *file, char __user *buf,
- }
- 
- static const struct file_operations driver_ops[] = {
--	{ .read = driver_stats_read, },
--	{ .read = driver_names_read, },
-+	{ .read = driver_stats_read, .llseek = generic_file_llseek, },
-+	{ .read = driver_names_read, .llseek = generic_file_llseek, },
- };
- 
- /* read the per-device counters */
-@@ -164,8 +164,8 @@ static ssize_t dev_names_read(struct file *file, char __user *buf,
- }
- 
- static const struct file_operations cntr_ops[] = {
--	{ .read = dev_counters_read, },
--	{ .read = dev_names_read, },
-+	{ .read = dev_counters_read, .llseek = generic_file_llseek, },
-+	{ .read = dev_names_read, .llseek = generic_file_llseek, },
- };
- 
- /*
-@@ -210,9 +210,9 @@ static ssize_t portcntrs_2_read(struct file *file, char __user *buf,
- }
- 
- static const struct file_operations portcntr_ops[] = {
--	{ .read = portnames_read, },
--	{ .read = portcntrs_1_read, },
--	{ .read = portcntrs_2_read, },
-+	{ .read = portnames_read, .llseek = generic_file_llseek, },
-+	{ .read = portcntrs_1_read, .llseek = generic_file_llseek, },
-+	{ .read = portcntrs_2_read, .llseek = generic_file_llseek, },
- };
- 
- /*
-@@ -261,8 +261,8 @@ static ssize_t qsfp_2_read(struct file *file, char __user *buf,
- }
- 
- static const struct file_operations qsfp_ops[] = {
--	{ .read = qsfp_1_read, },
--	{ .read = qsfp_2_read, },
-+	{ .read = qsfp_1_read, .llseek = generic_file_llseek, },
-+	{ .read = qsfp_2_read, .llseek = generic_file_llseek, },
- };
- 
- static ssize_t flash_read(struct file *file, char __user *buf,
--- 
-1.7.1
+>> FWIW, I've always considered readdir_r to be broken, you pass in a
+>> buffer without passing in a size and hope everything works out. Your
+>
+> I also have objections to some POSIX standard APIs - however, using  
+> non-reentrant POSIX apis when reentrant POSIX APIs are available seems  
+> counterproductive.
 
+Well, if the non-reentrant ones are badly designed I'm not sure it is
+a good trade.. Ie Solaris's man pages say:
+
+ It is safe to use readdir() in a threaded application, so long as only
+ one thread reads from the directory stream at any given time. The
+ readdir() function is generally preferred over the readdir_r()
+ function.
+
+Also see
+
+http://lists.grok.org.uk/pipermail/full-disclosure/2005-November/038295.html
+
+The horribleness of readdir_r is well documented, and is partly why
+libc's advocate thread safe readdir() desipte the existence of
+readdir_r.
+
+>> proposed patch to libibverbs is also not-portable because it uses
+>> NAME_MAX, not pathconf.. Sigh POSIX.
+
+> On bsd/solaris/darwin/linux, NAME_MAX is defined.  Not sure which other  
+> POSIX systems one would care about..
+
+If all you care able is bsd/solaris/darwin/linux then this is a
+non-problem, AFAIK they have sane libc's :) Ie I just checked and
+openbsd libc has been using a dynamic buffer allocated at opendir
+since 1996.
+
+If you care about theortical portability then you have to worry about
+NAME_MAX too..
+
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
