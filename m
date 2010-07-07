@@ -1,66 +1,88 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH] change thread-unsafe readdir to thread-safe readdir_r
-	calls
-Date: Wed, 7 Jul 2010 15:49:20 -0600
-Message-ID: <20100707214920.GN4630@obsidianresearch.com>
-References: <1278527821-14804-1-git-send-email-sdake@redhat.com> <20100707185257.GJ4630@obsidianresearch.com> <4C34D208.1000705@redhat.com> <20100707204712.GK4630@obsidianresearch.com> <4C34F09D.6080908@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Steven Dake <sdake-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH] change thread-unsafe readdir to thread-safe readdir_r calls
+Date: Wed,  7 Jul 2010 15:14:33 -0700
+Message-ID: <1278540873-3857-1-git-send-email-sdake@redhat.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <4C34F09D.6080908-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Steven Dake <sdake-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Steven Dake <sdake-AqqL/iNfm4CbU/LNMs03Rw@public.gmane.org>, Steven Dake <sdake-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Jul 07, 2010 at 02:24:45PM -0700, Steven Dake wrote:
+From: Steven Dake <sdake-AqqL/iNfm4CbU/LNMs03Rw@public.gmane.org>
 
-> Not sure how to map a readdir to readdir_r on a thread unsafe system...  
-> perhaps with thread keys.  In any regard, seems pointless, readdir_r is 
-> there and what POSIX specifies for this purpose.
+The readdir POSIX api is not thread safe.  This presents problems in
+multithreaded programs that use the libibverbs APIs.  This patch has been
+tested with a libibverbs application (http://www.corosync.org) on
+Mellanox MT26428 cards.
 
-Override opendir and allocate the buffer then and return a pointer to it
-through a custom 'DIR *'.
+This updated version uses alloca instead of malloc.
 
->> FWIW, I've always considered readdir_r to be broken, you pass in a
->> buffer without passing in a size and hope everything works out. Your
->
-> I also have objections to some POSIX standard APIs - however, using  
-> non-reentrant POSIX apis when reentrant POSIX APIs are available seems  
-> counterproductive.
+Signed-off-by: Steven Dake <sdake-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+---
+ src/init.c |   12 ++++++++++--
+ 1 files changed, 10 insertions(+), 2 deletions(-)
 
-Well, if the non-reentrant ones are badly designed I'm not sure it is
-a good trade.. Ie Solaris's man pages say:
+diff --git a/src/init.c b/src/init.c
+index 4f0130e..11b8415 100644
+--- a/src/init.c
++++ b/src/init.c
+@@ -35,6 +35,9 @@
+ #  include <config.h>
+ #endif /* HAVE_CONFIG_H */
+ 
++#if HAVE_ALLOCA_H
++#include <alloca.h>
++#endif
+ #include <stdlib.h>
+ #include <string.h>
+ #include <glob.h>
+@@ -46,6 +49,7 @@
+ #include <sys/time.h>
+ #include <sys/resource.h>
+ #include <dirent.h>
++#include <stddef.h>
+ #include <errno.h>
+ 
+ #include "ibverbs.h"
+@@ -85,6 +89,7 @@ static int find_sysfs_devs(void)
+ 	struct ibv_sysfs_dev *sysfs_dev = NULL;
+ 	char value[8];
+ 	int ret = 0;
++	struct dirent *buf;
+ 
+ 	snprintf(class_path, sizeof class_path, "%s/class/infiniband_verbs",
+ 		 ibv_get_sysfs_path());
+@@ -93,7 +98,8 @@ static int find_sysfs_devs(void)
+ 	if (!class_dir)
+ 		return ENOSYS;
+ 
+-	while ((dent = readdir(class_dir))) {
++	buf = alloca(offsetof(struct dirent, d_name) + NAME_MAX + 1);
++	while (readdir_r(class_dir, buf, &dent) == 0 && dent) {
+ 		struct stat buf;
+ 
+ 		if (dent->d_name[0] == '.')
+@@ -294,6 +300,7 @@ static void read_config(void)
+ {
+ 	DIR *conf_dir;
+ 	struct dirent *dent;
++	struct dirent *buf;
+ 	char *path;
+ 
+ 	conf_dir = opendir(IBV_CONFIG_DIR);
+@@ -303,7 +310,8 @@ static void read_config(void)
+ 		return;
+ 	}
+ 
+-	while ((dent = readdir(conf_dir))) {
++	buf = alloca(offsetof(struct dirent, d_name) + NAME_MAX + 1);
++	while (readdir_r(conf_dir, buf, &dent) == 0 && dent) {
+ 		struct stat buf;
+ 
+ 		if (asprintf(&path, "%s/%s", IBV_CONFIG_DIR, dent->d_name) < 0) {
+-- 
+1.6.6.1
 
- It is safe to use readdir() in a threaded application, so long as only
- one thread reads from the directory stream at any given time. The
- readdir() function is generally preferred over the readdir_r()
- function.
-
-Also see
-
-http://lists.grok.org.uk/pipermail/full-disclosure/2005-November/038295.html
-
-The horribleness of readdir_r is well documented, and is partly why
-libc's advocate thread safe readdir() desipte the existence of
-readdir_r.
-
->> proposed patch to libibverbs is also not-portable because it uses
->> NAME_MAX, not pathconf.. Sigh POSIX.
-
-> On bsd/solaris/darwin/linux, NAME_MAX is defined.  Not sure which other  
-> POSIX systems one would care about..
-
-If all you care able is bsd/solaris/darwin/linux then this is a
-non-problem, AFAIK they have sane libc's :) Ie I just checked and
-openbsd libc has been using a dynamic buffer allocated at opendir
-since 1996.
-
-If you care about theortical portability then you have to worry about
-NAME_MAX too..
-
-Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
