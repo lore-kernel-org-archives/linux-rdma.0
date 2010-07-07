@@ -1,57 +1,135 @@
-From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: Re: [PATCH v2] RDMA/CMA: fix iWARP adapter TCP port space usage
-Date: Wed, 07 Jul 2010 11:12:28 -0700
-Message-ID: <4C34C38C.5060803@opengridcomputing.com>
-References: <OF9B577A15.49E0F3EB-ONC1257759.005129F2-C1257759.0055D7D7@ch.ibm.com> <4C34AAA6.2080909@opengridcomputing.com> <2EFBCAEF10980645BBCFB605689E08E904928DA373@azsmsx506.amr.corp.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Steven Dake <sdake-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH] change thread-unsafe readdir to thread-safe readdir_r calls
+Date: Wed,  7 Jul 2010 11:37:01 -0700
+Message-ID: <1278527821-14804-1-git-send-email-sdake@redhat.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <2EFBCAEF10980645BBCFB605689E08E904928DA373-uLM7Qlg6MbdZtRGVdHMbwrfspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Tung, Chien Tin" <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Bernard Metzler <BMT-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Waskiewicz Jr, Peter P" <peter.p.waskiewicz.jr-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Steven Dake <sdake-AqqL/iNfm4CbU/LNMs03Rw@public.gmane.org>, Steven Dake <sdake-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Tung, Chien Tin wrote:
->> But the IB and IW port space is _already_ merged by the RDMA_CM.  That's
->> my point.  So a solution that breaks this impacts transport-independent
->> applications that use the rdma cm...
->>
->>     
->>> Could we prove a strong need for that short-cut?
->>> If its really needed, one global RDMA_CM instance should be able
->>> to achive that requirement. But wouldn't that go together with a waste
->>> of unused transports resources (i.e., IB binds would create
->>> and bind also TCP sockets..?).
->>>
->>>       
->> My comment has nothing to do with TCP ports but rather RDMA ports as
->> abstracted by the RDMA_CM.  The RDMA_PS_TCP port space is shared among
->> all the RDMA transports.  So if you rdma_bind() to port space
->> RDMA_PS_TCP, addr INADDR_ANY, port 9999, then it will bind the cm_id to
->> all IB and IW providers for that address/port (note the providers don't
->> really get called until rdma_listen()).  Thus if you propose moving the
->> bind operation down into the device providers, then the IB providers
->> will also have to add this logic.  Or some solution must be defined to
->> keep the IB and IW port spaces common.  Otherwise the RDMA_CM cannot
->> support transport independent applications...
->>     
->
-> I didn't think about this before, a bit too focused on solving the iWARP side.
-> Bernard, what about letting RDMA CM allocate the socket and exposing it to 
-> softiWARP?
->
->   
+From: Steven Dake <sdake-AqqL/iNfm4CbU/LNMs03Rw@public.gmane.org>
 
-We don't want the RDMA CM allocating sockets.  That won't fly upstream 
-eh?  Unless we have a provider attribute or something that tells the 
-RDMA CM that this provider uses a host socket.  And this might really 
-need to go into the IWCM...
+The readdir POSIX api is not thread safe.  This presents problems in
+multithreaded programs that use the libibverbs APIs.  This patch has been
+tested with a libibverbs application (http://www.corosync.org) on
+Mellanox MT26428 cards.
 
+Signed-off-by: Steven Dake <sdake-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+---
+ src/init.c |   31 +++++++++++++++++++++++++------
+ 1 files changed, 25 insertions(+), 6 deletions(-)
 
-
-
+diff --git a/src/init.c b/src/init.c
+index 4f0130e..ac3efdc 100644
+--- a/src/init.c
++++ b/src/init.c
+@@ -46,10 +46,12 @@
+ #include <sys/time.h>
+ #include <sys/resource.h>
+ #include <dirent.h>
++#include <stddef.h>
+ #include <errno.h>
+ 
+ #include "ibverbs.h"
+ 
++
+ HIDDEN int abi_ver;
+ 
+ struct ibv_sysfs_dev {
+@@ -85,6 +87,7 @@ static int find_sysfs_devs(void)
+ 	struct ibv_sysfs_dev *sysfs_dev = NULL;
+ 	char value[8];
+ 	int ret = 0;
++	struct dirent *buf;
+ 
+ 	snprintf(class_path, sizeof class_path, "%s/class/infiniband_verbs",
+ 		 ibv_get_sysfs_path());
+@@ -93,7 +96,12 @@ static int find_sysfs_devs(void)
+ 	if (!class_dir)
+ 		return ENOSYS;
+ 
+-	while ((dent = readdir(class_dir))) {
++	buf = (struct dirent *)malloc(offsetof(struct dirent, d_name) + NAME_MAX + 1);
++	if (buf == NULL) {
++		goto out_closedir;
++		ret = ENOMEM;
++	}
++	while (readdir_r(class_dir, buf, &dent) == 0 && dent) {
+ 		struct stat buf;
+ 
+ 		if (dent->d_name[0] == '.')
+@@ -146,9 +154,11 @@ static int find_sysfs_devs(void)
+ 	}
+ 
+  out:
++	free (buf);
+ 	if (sysfs_dev)
+ 		free(sysfs_dev);
+ 
++out_closedir:
+ 	closedir(class_dir);
+ 	return ret;
+ }
+@@ -290,26 +300,31 @@ static void read_config_file(const char *path)
+ 	fclose(conf);
+ }
+ 
+-static void read_config(void)
++static int read_config(void)
+ {
+ 	DIR *conf_dir;
+ 	struct dirent *dent;
++	struct dirent *buf;
+ 	char *path;
+ 
+ 	conf_dir = opendir(IBV_CONFIG_DIR);
+ 	if (!conf_dir) {
+ 		fprintf(stderr, PFX "Warning: couldn't open config directory '%s'.\n",
+ 			IBV_CONFIG_DIR);
+-		return;
++		return 0;
+ 	}
+ 
+-	while ((dent = readdir(conf_dir))) {
++	buf = (struct dirent *)malloc(offsetof(struct dirent, d_name) + NAME_MAX + 1);
++	if (buf == NULL)
++		return ENOMEM;
++
++	while (readdir_r(conf_dir, buf, &dent) == 0 && dent) {
+ 		struct stat buf;
+ 
+ 		if (asprintf(&path, "%s/%s", IBV_CONFIG_DIR, dent->d_name) < 0) {
+ 			fprintf(stderr, PFX "Warning: couldn't read config file %s/%s.\n",
+ 				IBV_CONFIG_DIR, dent->d_name);
+-			return;
++			return 0;
+ 		}
+ 
+ 		if (stat(path, &buf)) {
+@@ -326,7 +341,9 @@ next:
+ 		free(path);
+ 	}
+ 
++	free(buf);
+ 	closedir(conf_dir);
++	return 0;
+ }
+ 
+ static struct ibv_device *try_driver(struct ibv_driver *driver,
+@@ -471,7 +488,9 @@ HIDDEN int ibverbs_init(struct ibv_device ***list)
+ 
+ 	check_memlock_limit();
+ 
+-	read_config();
++	ret = read_config();
++	if (ret)
++		return -ret;
+ 
+ 	ret = find_sysfs_devs();
+ 	if (ret)
+-- 
+1.6.6.1
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
