@@ -1,55 +1,46 @@
-From: Steven Dake <sdake-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Subject: Re: [PATCH] change thread-unsafe readdir to thread-safe readdir_r
- calls
-Date: Wed, 07 Jul 2010 12:17:16 -0700
-Message-ID: <4C34D2BC.60101@redhat.com>
-References: <1278527821-14804-1-git-send-email-sdake@redhat.com> <adatyobyvg7.fsf@roland-alpha.cisco.com>
+	calls
+Date: Wed, 7 Jul 2010 14:47:12 -0600
+Message-ID: <20100707204712.GK4630@obsidianresearch.com>
+References: <1278527821-14804-1-git-send-email-sdake@redhat.com> <20100707185257.GJ4630@obsidianresearch.com> <4C34D208.1000705@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <adatyobyvg7.fsf-BjVyx320WGW9gfZ95n9DRSW4+XlvGpQz@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <4C34D208.1000705-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+To: Steven Dake <sdake-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Steven Dake <sdake-AqqL/iNfm4CbU/LNMs03Rw@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 07/07/2010 11:54 AM, Roland Dreier wrote:
->   >  The readdir POSIX api is not thread safe.  This presents problems in
->   >  multithreaded programs that use the libibverbs APIs.  This patch has been
->   >  tested with a libibverbs application (http://www.corosync.org) on
->   >  Mellanox MT26428 cards.
->
-> This is a bit vague.  Is the problem that other threads may do readdir()
-> while libibverbs initializes?
->
->   >   #include "ibverbs.h"
->   >
->   >  +
->   >   HIDDEN int abi_ver;
->
-> whitespace damage here.
->
+On Wed, Jul 07, 2010 at 12:14:16PM -0700, Steven Dake wrote:
 
-thanks I'll fix
+>> But, you surely could not have seen a bug on Linux that was caused by
+>> this - so why was this patch prepared?
 
->   >  +	buf = (struct dirent *)malloc(offsetof(struct dirent, d_name) + NAME_MAX + 1);
->
-> cast of void* is not needed.  Also it seems this could be alloca() and
-> simplify things (avoid error checking and freeing).
->
+> We redefine all the non-thread-safe posix calls in our package (such as  
+> readdir) to assert(0).  This prevents their usage in our app.  The  
+> reason we do this is to prevent plugin developers from writing plugins  
+> that use non-thread-safe posix APIs.  Our app is portable, where the  
+> glibc semantics you describe above are not present.  POSIX is blank on  
+> this issue, and was addressed in readdir_r.
 
-yes..  I can change if you like.  Never been fond of alloca because of 
-its limitation on error checking with stack overflow which is unlikely 
-in this call path.
+Well, if you are already creating wrappers, wouldn't it be better to
+provide wrappers that provide the glibc functionality on platforms you
+port to that don't already do that, rather than forbid a perfectly
+functional, and thread safe, call?
 
-Regards
--steve
+FWIW, I've always considered readdir_r to be broken, you pass in a
+buffer without passing in a size and hope everything works out. Your
+proposed patch to libibverbs is also not-portable because it uses
+NAME_MAX, not pathconf.. Sigh POSIX.
 
-> Thanks,
->    Roland
->
+I guess, as a general question, do you know of any libc
+implementations that actually use a static buffer for readdir and
+would require readdir_r to function properly?
 
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
