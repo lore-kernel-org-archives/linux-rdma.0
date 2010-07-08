@@ -1,7 +1,8 @@
 From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-Subject: ib_qib: Allow writes to the diag_counters to be able to clear them
-Date: Wed, 7 Jul 2010 17:33:13 -0700
-Message-ID: <20100707173313.675cd665.weiny2@llnl.gov>
+Subject: [PATCH] [RESEND] ib_qib: Allow writes to the diag_counters to be
+ able to clear them
+Date: Wed, 7 Jul 2010 17:38:10 -0700
+Message-ID: <20100707173810.1baf98f5.weiny2@llnl.gov>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
@@ -11,7 +12,7 @@ To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY
 Cc: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Ralph Campbell <ralph.campbell-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
->From 80eecc4046455999254fb312c4ba229b3a52d4c6 Mon Sep 17 00:00:00 2001
+
 From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
 Date: Wed, 7 Jul 2010 17:35:34 -0700
 Subject: [PATCH] ib_qib: Allow writes to the diag_counters to be able to clear them
