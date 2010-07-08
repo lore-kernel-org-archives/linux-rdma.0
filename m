@@ -1,47 +1,77 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH] change thread-unsafe readdir to thread-safe readdir_r
-	calls
-Date: Thu, 8 Jul 2010 12:47:01 -0600
-Message-ID: <20100708184701.GP4630@obsidianresearch.com>
-References: <1278540873-3857-1-git-send-email-sdake@redhat.com> <adalj9lzv4r.fsf@roland-alpha.cisco.com>
+From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+Subject: [PATCH V2] ib_qib: Allow writes to the diag_counters to be able to
+ clear them
+Date: Thu, 8 Jul 2010 13:11:05 -0700
+Message-ID: <20100708131105.4103a6e3.weiny2@llnl.gov>
+References: <20100707173313.675cd665.weiny2@llnl.gov>
+	<AANLkTin_OHC8r__FDXPY6QhCaXDYgNFDY9SeE8ffdc35@mail.gmail.com>
+	<20100708110446.97317098.weiny2@llnl.gov>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <adalj9lzv4r.fsf-BjVyx320WGW9gfZ95n9DRSW4+XlvGpQz@public.gmane.org>
+In-Reply-To: <20100708110446.97317098.weiny2-i2BcT+NCU+M@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Cc: Steven Dake <sdake-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Steven Dake <sdake-AqqL/iNfm4CbU/LNMs03Rw@public.gmane.org>
+To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Ralph Campbell <ralph.campbell-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Jul 08, 2010 at 11:27:48AM -0700, Roland Dreier wrote:
 
-> I'm really not sure about this patch one way or another.  With alloca,
-> it ends up looking pretty clean, but we do introduce the tiny
-> possibility of buffer overrun (since readdir_r uses a user-supplied
-> buffer of poorly-specified size); the benefit is that we work within
-> corosync's constraints.  I honestly don't have a good feeling whether
-> the benefit exceeds the cost.
-> 
-> Jason, any opinion one way or another?
+From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+Date: Wed, 7 Jul 2010 17:35:34 -0700
+Subject: [PATCH] ib_qib: Allow writes to the diag_counters to be able to clear them
 
-Well, my view is that this is needless churn/risk for a very bad
-choice made by another project. Aliasing a perfectly thread safe
-readdir() to assert is anti-social :)
+Changes in V2:
+	Add check for negative values
+	Return proper length
 
-I also do not think it enhances theoretical portability, as NAME_MAX
-is not guarenteed to exist by POSIX and alloca is not a C or POSIX
-standard function. (C99 stadardized alloca as variable sized arrays)
+Signed-off-by: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+---
+ drivers/infiniband/hw/qib/qib_sysfs.c |   20 +++++++++++++++++++-
+ 1 files changed, 19 insertions(+), 1 deletions(-)
 
-Frankly, as a Linux only low level library, relying on glibc behavior
-to make it simpler and more correct is perfectly acceptable to me..
+diff --git a/drivers/infiniband/hw/qib/qib_sysfs.c b/drivers/infiniband/hw/qib/qib_sysfs.c
+index dab4d9f..e4ec50e 100644
+--- a/drivers/infiniband/hw/qib/qib_sysfs.c
++++ b/drivers/infiniband/hw/qib/qib_sysfs.c
+@@ -347,7 +347,7 @@ static struct kobj_type qib_sl2vl_ktype = {
+ 
+ #define QIB_DIAGC_ATTR(N) \
+ 	static struct qib_diagc_attr qib_diagc_attr_##N = { \
+-		.attr = { .name = __stringify(N), .mode = 0444 }, \
++		.attr = { .name = __stringify(N), .mode = 0664 }, \
+ 		.counter = offsetof(struct qib_ibport, n_##N) \
+ 	}
+ 
+@@ -403,8 +403,26 @@ static ssize_t diagc_attr_show(struct kobject *kobj, struct attribute *attr,
+ 	return sprintf(buf, "%u\n", *(u32 *)((char *)qibp + dattr->counter));
+ }
+ 
++static ssize_t diagc_attr_store(struct kobject *kobj, struct attribute *attr,
++				const char *buf, size_t size)
++{
++	struct qib_diagc_attr *dattr =
++		container_of(attr, struct qib_diagc_attr, attr);
++	struct qib_pportdata *ppd =
++		container_of(kobj, struct qib_pportdata, diagc_kobj);
++	struct qib_ibport *qibp = &ppd->ibport_data;
++	long val = simple_strtol(buf, NULL, 0);
++
++	if (val < 0)
++		return -EINVAL;
++
++	*(u32 *)((char *)qibp + dattr->counter) = (u32)val;
++	return strnlen(buf, PAGE_SIZE);
++}
++
+ static const struct sysfs_ops qib_diagc_ops = {
+ 	.show = diagc_attr_show,
++	.store = diagc_attr_store,
+ };
+ 
+ static struct kobj_type qib_diagc_ktype = {
+-- 
+1.5.4.5
 
-It isn't even the case that libibverbs is an outlier here, common
-things like libcrypto even use readdir! Purging readdir from every
-library your app might want to load via a plugin is a really futile
-quest :(
-
-Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
