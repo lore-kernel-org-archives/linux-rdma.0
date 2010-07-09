@@ -1,110 +1,44 @@
-From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Subject: Re: ib_qib: Allow writes to the diag_counters to be able to clear
-	them
-Date: Fri, 9 Jul 2010 21:33:14 +0200
-Message-ID: <AANLkTik07Zp9uONyzBTAH4UnviviS-lopUJ42rZ5iQ_m@mail.gmail.com>
-References: <20100707173313.675cd665.weiny2@llnl.gov>
-	<AANLkTin_OHC8r__FDXPY6QhCaXDYgNFDY9SeE8ffdc35@mail.gmail.com>
-	<20100708110446.97317098.weiny2@llnl.gov>
+From: Sunil Joshi <Sunil.J-UdXhSnd/wVw@public.gmane.org>
+Subject: Re: https://bugs.openfabrics.org/show_bug.cgi?id=2074
+Date: Sat, 10 Jul 2010 04:24:50 +0530
+Message-ID: <4C37A8BA.3090403@Sun.COM>
+References: <4C37A4AF.50007@Sun.COM>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20100708110446.97317098.weiny2-i2BcT+NCU+M@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Ralph Campbell <ralph.campbell-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+In-reply-to: <4C37A4AF.50007-UdXhSnd/wVw@public.gmane.org>
+List-Unsubscribe: <http://lists.openfabrics.org/cgi-bin/mailman/listinfo/ewg>,
+	<mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.openfabrics.org/pipermail/ewg>
+List-Post: <mailto:ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+List-Help: <mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=help>
+List-Subscribe: <http://lists.openfabrics.org/cgi-bin/mailman/listinfo/ewg>,
+	<mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=subscribe>
+Sender: ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
+Errors-To: ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ewg-G2znmakfqn7U1rindQTSdQ@public.gmane.org
+Cc: rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Jul 8, 2010 at 8:04 PM, Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org> wrote:
->
-> On Thu, 8 Jul 2010 10:37:26 -0700
-> Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org> wrote:
->
-> > On Thu, Jul 8, 2010 at 2:33 AM, Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org> wrote:
-> > > From 80eecc4046455999254fb312c4ba229b3a52d4c6 Mon Sep 17 00:00:00=
- 2001
-> > > From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-> > > Date: Wed, 7 Jul 2010 17:35:34 -0700
-> > > Subject: [PATCH] ib_qib: Allow writes to the diag_counters to be =
-able to clear them
-> > >
-> > >
-> > > Signed-off-by: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-> > > ---
-> > > =A0drivers/infiniband/hw/qib/qib_sysfs.c | =A0 16 +++++++++++++++=
--
-> > > =A01 files changed, 15 insertions(+), 1 deletions(-)
-> > >
-> > > diff --git a/drivers/infiniband/hw/qib/qib_sysfs.c b/drivers/infi=
-niband/hw/qib/qib_sysfs.c
-> > > index dab4d9f..91cd1b8 100644
-> > > --- a/drivers/infiniband/hw/qib/qib_sysfs.c
-> > > +++ b/drivers/infiniband/hw/qib/qib_sysfs.c
-> > > @@ -347,7 +347,7 @@ static struct kobj_type qib_sl2vl_ktype =3D {
-> > >
-> > > =A0#define QIB_DIAGC_ATTR(N) \
-> > > =A0 =A0 =A0 =A0static struct qib_diagc_attr qib_diagc_attr_##N =3D=
- { \
-> > > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 .attr =3D { .name =3D __stringify(N=
-), .mode =3D 0444 }, \
-> > > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .attr =3D { .name =3D __stringify(N=
-), .mode =3D 0664 }, \
-> > > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0.counter =3D offsetof(struct qib_i=
-bport, n_##N) \
-> > > =A0 =A0 =A0 =A0}
-> > >
-> > > @@ -403,8 +403,22 @@ static ssize_t diagc_attr_show(struct kobjec=
-t *kobj, struct attribute *attr,
-> > > =A0 =A0 =A0 =A0return sprintf(buf, "%u\n", *(u32 *)((char *)qibp =
-+ dattr->counter));
-> > > =A0}
-> > >
-> > > +static ssize_t diagc_attr_store(struct kobject *kobj, struct att=
-ribute *attr,
-> > > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 con=
-st char *buf, size_t size)
-> > > +{
-> > > + =A0 =A0 =A0 struct qib_diagc_attr *dattr =3D
-> > > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 container_of(attr, struct qib_diagc=
-_attr, attr);
-> > > + =A0 =A0 =A0 struct qib_pportdata *ppd =3D
-> > > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 container_of(kobj, struct qib_pport=
-data, diagc_kobj);
-> > > + =A0 =A0 =A0 struct qib_ibport *qibp =3D &ppd->ibport_data;
-> > > +
-> > > + =A0 =A0 =A0 *(u32 *)((char *)qibp + dattr->counter) =3D simple_=
-strtol(buf, NULL, 0);
-> > > + =A0 =A0 =A0 return 4;
-> >
-> > The above line is not correct -- it should probably be something li=
-ke
-> > "return size;". See also
-> > http://*git.kernel.org/?p=3Dlinux/kernel/git/torvalds/linux-2.6.git=
-;a=3Dblob;f=3DDocumentation/filesystems/sysfs.txt.
->
-> My mistake. =A0From the document above the return should be:
->
-> return strnlen(buf, PAGE_SIZE);
->
-> Correct?
->
-> Also I think I should check for invalid values as well.
+Hi ,
+ As per the comment in the following bugzilla bug, Can someone please 
+help in getting things resolved.
 
-(resending as plain text)
+Thanks.
 
-The documented I referred to was written before the "size" argument
-was added to sysfs store methods. I'm not sure it is still required
-that the "buf" argument that is passed to store methods is
-'\0'-terminated. So both "return 4" and "return strnlen(buf,
-PAGE_SIZE)" can potentially return a value that is larger than the
-"size" argument, which I think is incorrect.
-
-Sorry that I pointed you to misleading documentation.
-
-Bart.
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Regards
+Sunil Joshi
+>  
+>
+> ------- Comment #4 from vu-rOwS8X3CFV5BDgjK7y7TUQ@public.gmane.org  2010-07-09 09:20 -------
+> If you don't see /dev/infiniband directory, it's the libibverbs problem
+>
+> I don't see this problemm on my x86-64 sles11 system. libibverbs could 
+> have
+> issue with 32-bit.
+>
+> Could you send email to Roland <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org> (owner of 
+> libibverbs) and
+> rdma list about this problem?
+> -------------Comment Ends Here-------------------------
