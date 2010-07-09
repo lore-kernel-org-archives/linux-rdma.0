@@ -1,33 +1,41 @@
-From: Hal Rosenstock <hnrose-Wuw85uim5zDR7s880joybQ@public.gmane.org>
-Subject: [PATCH] opensm/osm_helper.c: Add some missing message names to
-	disp_msg_str
-Date: Fri, 9 Jul 2010 10:27:05 -0400
-Message-ID: <20100709142705.GA29153@comcast.net>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: RDMA transfer speed performance test
+Date: Fri, 9 Jul 2010 10:13:30 -0700
+Message-ID: <CF9C39F99A89134C9CF9C4CCB68B8DDF25A127CDC0@orsmsx501.amr.corp.intel.com>
+References: <8214320.1278667993311.SLOX.WebMail.wwwrun@imap.lnl.infn.it>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <8214320.1278667993311.SLOX.WebMail.wwwrun-XDIR3SKYeFbgKi2NxijLtw@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Andrea Gozzelino <Andrea.Gozzelino-PK20h7lG/Rc1GQ1Ptb7lUw@public.gmane.org>
+Cc: "Tung, Chien Tin" <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "dotanba-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <dotanba-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-
-Signed-off-by: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
----
-diff --git a/opensm/opensm/osm_helper.c b/opensm/opensm/osm_helper.c
-index 60724f2..196d5aa 100644
---- a/opensm/opensm/osm_helper.c
-+++ b/opensm/opensm/osm_helper.c
-@@ -2021,6 +2021,8 @@ static const char *disp_msg_str[] = {
- 	"OSM_MSG_MAD_SLVL",
- 	"OSM_MSG_MAD_GUIDINFO_RECORD",
- 	"OSM_MSG_MAD_INFORM_INFO_RECORD",
-+	"OSM_MSG_MAD_SWITCH_INFO_RECORD",
-+	"OSM_MSG_MAD_MFT_RECORD",
- #if defined (VENDOR_RMPP_SUPPORT) && defined (DUAL_SIDED_RMPP)
- 	"OSM_MSG_MAD_MULTIPATH_RECORD",
- #endif
+PiBJcyBsaWJyZG1hY20gdmVyc2lvbiAxLjAuMTIgc3RhYmxlPw0KDQpZZXMgLSBidXQgeW91IGFy
+ZSB1c2luZyBBUElzIHRoYXQgYXJlIG5ldyB0byB0aGlzIHJlbGVhc2UuICBCdXQgdGhvc2UgY2Fs
+bHMgYXJlIHdyYXBwZXJzIGFyb3VuZCBleGlzdGluZyBsaWJpYnZlcmJzIGNhbGxzLg0KIA0KPiBU
+aGUgZmxhZyBJQlZfU0VORF9JTkxJTkUgc3VwcG9ydHMgYnVmZmVyIHNpemUgdW50aWwgNjQgYnl0
+ZXMgKGNhcmRzJw0KPiBmZWF0dXJlKS4NCj4gDQo+IEkga25vdyB0aGF0IFJETUEgaXMgYSBwcm90
+b2NvbCBjb25uZWN0ZWQgd2l0aCAxMCBHaWdhYml0L3MgRXRoZXJuZXQuDQo+IEhvdyBjYW4gSSBz
+ZWUgdGhpcyB0cmFzZmVyIHNwZWVkPyBDYW4geW91IHN1Z2dlc3QgdGhlICJwYXRoIj8NCj4gSSBh
+dHRhY2hlZCB0aGUgc3RhcnRpbmcgbGF0ZW5jeV9SRE1BLmNwcCBjb2RlLCB3aGljaCB3b3JrcyB3
+aXRoDQo+IGxpYnJkbWFjbSB2ZXJzaW9uIDEuMC4xMiB3aXRoIEJVRl9TSVpFIDwgPSA2NCBieXRl
+cyAodGhhbmtzIHRvIENoaWVuKS4NCj4gSSB3b3VsZCBsaWtlIHRvIGV4cGxvcmUgdHJhbnNmZXIg
+c3BlZWQgaW4gcmFuZ2UgMSBieXRlcyA8IEJVRl9TSVpFIDwgNA0KPiBNYnl0ZXMuDQoNClRoZSB1
+c2Ugb2YgSU5MSU5FIGFsbG93cyB5b3UgdG8gcG9zdCBhIHNlbmQgbWVzc2FnZSB3aXRob3V0IHRo
+ZSBidWZmZXIgYmVpbmcgcmVnaXN0ZXJlZC4gIEFzIHNvb24gYXMgeW91IHRyeSB0byBwb3N0IGEg
+c2VuZCB3aXRoIGEgYnVmZmVyIGxhcmdlciB0aGFuIHdoYXQgY2FuIGJlIHN1cHBvcnRlZCBhcyBp
+bmxpbmUsIHRoZSBidWZmZXIgbXVzdCBiZSByZWdpc3RlcmVkLCBhbmQgdGhlIG1lbW9yeSByZWdp
+b24gc2hvdWxkIGJlIHBhc3NlZCBpbnRvIHRoZSBzZW5kIGNvbW1hbmQuICBBZGQgc29tZXRoaW5n
+IGxpa2UgdGhpcyB0byBib3RoIHRoZSBjbGllbnQgYW5kIHNlcnZlcjoNCg0Kc3RydWN0IGlidl9t
+ciAqc2VuZF9tcjsNCg0KLi4uDQoNCnNlbmRfbXIgPSByZG1hX3JlZ19tc2dzKGlkLCBzZW5kX21z
+ZywgQlVGX1NJWkUpOw0KLy8gYWRkIG1hdGNoaW5nIHJkbWFfZGVyZWdfbXIoc2VuZF9tcik7IGF0
+IGVuZA0KDQphbmQgY2hhbmdlIHlvdXIgcmRtYV9wb3N0X3NlbmQgY2FsbHMgdG86DQoNCnJldCA9
+IHJkbWFfcG9zdF9zZW5kKGlkLCBOVUxMLCBzZW5kX21zZywgQlVGX1NJWkUsIHNlbmRfbXIsIElC
+Vl9TRU5EX0lOTElORSk7DQoNCi0gU2Vhbg0K
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
