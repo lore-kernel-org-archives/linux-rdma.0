@@ -1,30 +1,110 @@
-From: "Tung, Chien Tin" <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: RDMA transfer speed performance test
-Date: Fri, 9 Jul 2010 11:23:25 -0700
-Message-ID: <2EFBCAEF10980645BBCFB605689E08E9049293C736@azsmsx506.amr.corp.intel.com>
-References: <8214320.1278667993311.SLOX.WebMail.wwwrun@imap.lnl.infn.it>
+From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Subject: Re: ib_qib: Allow writes to the diag_counters to be able to clear
+	them
+Date: Fri, 9 Jul 2010 21:33:14 +0200
+Message-ID: <AANLkTik07Zp9uONyzBTAH4UnviviS-lopUJ42rZ5iQ_m@mail.gmail.com>
+References: <20100707173313.675cd665.weiny2@llnl.gov>
+	<AANLkTin_OHC8r__FDXPY6QhCaXDYgNFDY9SeE8ffdc35@mail.gmail.com>
+	<20100708110446.97317098.weiny2@llnl.gov>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <8214320.1278667993311.SLOX.WebMail.wwwrun-XDIR3SKYeFbgKi2NxijLtw@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <20100708110446.97317098.weiny2-i2BcT+NCU+M@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Andrea Gozzelino <Andrea.Gozzelino-PK20h7lG/Rc1GQ1Ptb7lUw@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "dotanba-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <dotanba-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Ralph Campbell <ralph.campbell-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-PiBJIGtub3cgdGhhdCBSRE1BIGlzIGEgcHJvdG9jb2wgY29ubmVjdGVkIHdpdGggMTAgR2lnYWJp
-dC9zIEV0aGVybmV0Lg0KPiBIb3cgY2FuIEkgc2VlIHRoaXMgdHJhc2ZlciBzcGVlZD8gQ2FuIHlv
-dSBzdWdnZXN0IHRoZSAicGF0aCI/DQo+IEkgYXR0YWNoZWQgdGhlIHN0YXJ0aW5nIGxhdGVuY3lf
-UkRNQS5jcHAgY29kZSwgd2hpY2ggd29ya3Mgd2l0aA0KPiBsaWJyZG1hY20gdmVyc2lvbiAxLjAu
-MTIgd2l0aCBCVUZfU0laRSA8ID0gNjQgYnl0ZXMgKHRoYW5rcyB0byBDaGllbikuDQo+IEkgd291
-bGQgbGlrZSB0byBleHBsb3JlIHRyYW5zZmVyIHNwZWVkIGluIHJhbmdlIDEgYnl0ZXMgPCBCVUZf
-U0laRSA8IDQNCj4gTWJ5dGVzLg0KDQpJbiBnZW5lcmFsLCB1c2UgbGFyZ2VyIG1lc3NhZ2Ugc2l6
-ZSwgZGVlcGVyIHF1ZXVlIGFuZCBldmVuIG11bHRpcGxlIGNvbm5lY3Rpb25zDQp0byBnZXQgYmV0
-dGVyIGJhbmR3aWR0aCBudW1iZXJzLiAgTG9vayBhdCByZG1hX2J3IGZvciBoaW50cyBvbiBob3cg
-dG8gZG8gc29tZSBvZg0KdGhvc2UgdGhpbmdzLg0KDQpDaGllbg0KDQoNCg0K
+On Thu, Jul 8, 2010 at 8:04 PM, Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org> wrote:
+>
+> On Thu, 8 Jul 2010 10:37:26 -0700
+> Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org> wrote:
+>
+> > On Thu, Jul 8, 2010 at 2:33 AM, Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org> wrote:
+> > > From 80eecc4046455999254fb312c4ba229b3a52d4c6 Mon Sep 17 00:00:00=
+ 2001
+> > > From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+> > > Date: Wed, 7 Jul 2010 17:35:34 -0700
+> > > Subject: [PATCH] ib_qib: Allow writes to the diag_counters to be =
+able to clear them
+> > >
+> > >
+> > > Signed-off-by: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+> > > ---
+> > > =A0drivers/infiniband/hw/qib/qib_sysfs.c | =A0 16 +++++++++++++++=
+-
+> > > =A01 files changed, 15 insertions(+), 1 deletions(-)
+> > >
+> > > diff --git a/drivers/infiniband/hw/qib/qib_sysfs.c b/drivers/infi=
+niband/hw/qib/qib_sysfs.c
+> > > index dab4d9f..91cd1b8 100644
+> > > --- a/drivers/infiniband/hw/qib/qib_sysfs.c
+> > > +++ b/drivers/infiniband/hw/qib/qib_sysfs.c
+> > > @@ -347,7 +347,7 @@ static struct kobj_type qib_sl2vl_ktype =3D {
+> > >
+> > > =A0#define QIB_DIAGC_ATTR(N) \
+> > > =A0 =A0 =A0 =A0static struct qib_diagc_attr qib_diagc_attr_##N =3D=
+ { \
+> > > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 .attr =3D { .name =3D __stringify(N=
+), .mode =3D 0444 }, \
+> > > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .attr =3D { .name =3D __stringify(N=
+), .mode =3D 0664 }, \
+> > > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0.counter =3D offsetof(struct qib_i=
+bport, n_##N) \
+> > > =A0 =A0 =A0 =A0}
+> > >
+> > > @@ -403,8 +403,22 @@ static ssize_t diagc_attr_show(struct kobjec=
+t *kobj, struct attribute *attr,
+> > > =A0 =A0 =A0 =A0return sprintf(buf, "%u\n", *(u32 *)((char *)qibp =
++ dattr->counter));
+> > > =A0}
+> > >
+> > > +static ssize_t diagc_attr_store(struct kobject *kobj, struct att=
+ribute *attr,
+> > > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 con=
+st char *buf, size_t size)
+> > > +{
+> > > + =A0 =A0 =A0 struct qib_diagc_attr *dattr =3D
+> > > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 container_of(attr, struct qib_diagc=
+_attr, attr);
+> > > + =A0 =A0 =A0 struct qib_pportdata *ppd =3D
+> > > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 container_of(kobj, struct qib_pport=
+data, diagc_kobj);
+> > > + =A0 =A0 =A0 struct qib_ibport *qibp =3D &ppd->ibport_data;
+> > > +
+> > > + =A0 =A0 =A0 *(u32 *)((char *)qibp + dattr->counter) =3D simple_=
+strtol(buf, NULL, 0);
+> > > + =A0 =A0 =A0 return 4;
+> >
+> > The above line is not correct -- it should probably be something li=
+ke
+> > "return size;". See also
+> > http://*git.kernel.org/?p=3Dlinux/kernel/git/torvalds/linux-2.6.git=
+;a=3Dblob;f=3DDocumentation/filesystems/sysfs.txt.
+>
+> My mistake. =A0From the document above the return should be:
+>
+> return strnlen(buf, PAGE_SIZE);
+>
+> Correct?
+>
+> Also I think I should check for invalid values as well.
+
+(resending as plain text)
+
+The documented I referred to was written before the "size" argument
+was added to sysfs store methods. I'm not sure it is still required
+that the "buf" argument that is passed to store methods is
+'\0'-terminated. So both "return 4" and "return strnlen(buf,
+PAGE_SIZE)" can potentially return a value that is larger than the
+"size" argument, which I think is incorrect.
+
+Sorry that I pointed you to misleading documentation.
+
+Bart.
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
