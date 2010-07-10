@@ -1,127 +1,134 @@
-From: Liran Liss <liranl-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
-Subject: RE: When IBoE will be merged to upstream?
-Date: Sat, 10 Jul 2010 11:55:18 +0300
-Message-ID: <E113D394D7C5DB4F8FF691FA7EE9DB443AAB6D59C0@MTLMAIL.mtl.com>
-References: <AANLkTikXzoaRl61ivsc7fm8EdO9Ucz4iGGfclFOQl3kK@mail.gmail.com>
-	<adabpb1s58c.fsf@roland-alpha.cisco.com>
-	<E113D394D7C5DB4F8FF691FA7EE9DB4439A78AFE88@MTLMAIL.mtl.com>
-	<CF9C39F99A89134C9CF9C4CCB68B8DDF259E7DE3D0@orsmsx501.amr.corp.intel.com>
-	<E113D394D7C5DB4F8FF691FA7EE9DB4439A78AFF16@MTLMAIL.mtl.com>
-	<20100624203701.GA4630@obsidianresearch.com>
-	<E113D394D7C5DB4F8FF691FA7EE9DB4439A78B0042@MTLMAIL.mtl.com>
-	<20100625155755.GC4630@obsidianresearch.com>
-	<E113D394D7C5DB4F8FF691FA7EE9DB4439BA54B70E@MTLMAIL.mtl.com>
-	<adak4pcnw3c.fsf@roland-alpha.cisco.com>
-	<E113D394D7C5DB4F8FF691FA7EE9DB443A8E048000@MTLMAIL.mtl.com>
-	<4C32D0BD.3030902@Voltaire.com>
-	<E113D394D7C5DB4F8FF691FA7EE9DB443A8E2E552A@MTLMAIL.mtl.com>
-	<4C3417FA.7000600@Voltaire.com>
+From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Subject: Re: ib_qib: Allow writes to the diag_counters to be able to clear
+	them
+Date: Sat, 10 Jul 2010 17:25:34 +0200
+Message-ID: <AANLkTik7MnJGL3Hlz1vqkmyruK7pRwyBWgKfTd0Lknpe@mail.gmail.com>
+References: <20100707173313.675cd665.weiny2@llnl.gov>
+	<AANLkTin_OHC8r__FDXPY6QhCaXDYgNFDY9SeE8ffdc35@mail.gmail.com>
+	<20100708110446.97317098.weiny2@llnl.gov>
+	<AANLkTik07Zp9uONyzBTAH4UnviviS-lopUJ42rZ5iQ_m@mail.gmail.com>
+	<20100709175615.2e093989.weiny2@llnl.gov>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4C3417FA.7000600-hKgKHo2Ms0FWk0Htik3J/w@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <20100709175615.2e093989.weiny2-i2BcT+NCU+M@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <ogerlitz-hKgKHo2Ms0FWk0Htik3J/w@public.gmane.org>
-Cc: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Aleksey Senin <aleksey-192fA4vuk7xBDLzU/O5InQ@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "monis-smomgflXvOZWk0Htik3J/w@public.gmane.org" <monis-smomgflXvOZWk0Htik3J/w@public.gmane.org>, "alekseys-smomgflXvOZWk0Htik3J/w@public.gmane.org" <alekseys-smomgflXvOZWk0Htik3J/w@public.gmane.org>, "yiftahs-smomgflXvOZWk0Htik3J/w@public.gmane.org" <yiftahs-smomgflXvOZWk0Htik3J/w@public.gmane.org>, Tziporet Koren <tziporet-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, "alexr-smomgflXvOZWk0Htik3J/w@public.gmane.org" <alexr-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+To: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Ralph Campbell <ralph.campbell-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This discussion has derived into whether we need to expose Eth L2 params across the Verbs interface.
-This point has been discussed extensively in the IBTA during the development of the RoCE spec. And the direction chosen by the spec is clear:
+On Sat, Jul 10, 2010 at 2:56 AM, Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org> wrote:
+>
+> On Fri, 9 Jul 2010 12:33:14 -0700
+> Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org> wrote:
+>
+> > On Thu, Jul 8, 2010 at 8:04 PM, Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org> wrote:
+> > >
+> > > On Thu, 8 Jul 2010 10:37:26 -0700
+> > > Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org> wrote:
+> > >
+> > > > On Thu, Jul 8, 2010 at 2:33 AM, Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org> wro=
+te:
+> > > > > From 80eecc4046455999254fb312c4ba229b3a52d4c6 Mon Sep 17 00:0=
+0:00 2001
+> > > > > From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+> > > > > Date: Wed, 7 Jul 2010 17:35:34 -0700
+> > > > > Subject: [PATCH] ib_qib: Allow writes to the diag_counters to=
+ be able to clear them
+> > > > >
+> > > > >
+> > > > > Signed-off-by: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+> > > > > ---
+> > > > > =A0drivers/infiniband/hw/qib/qib_sysfs.c | =A0 16 +++++++++++=
+++++-
+> > > > > =A01 files changed, 15 insertions(+), 1 deletions(-)
+> > > > >
+> > > > > diff --git a/drivers/infiniband/hw/qib/qib_sysfs.c b/drivers/=
+infiniband/hw/qib/qib_sysfs.c
+> > > > > index dab4d9f..91cd1b8 100644
+> > > > > --- a/drivers/infiniband/hw/qib/qib_sysfs.c
+> > > > > +++ b/drivers/infiniband/hw/qib/qib_sysfs.c
+> > > > > @@ -347,7 +347,7 @@ static struct kobj_type qib_sl2vl_ktype =3D=
+ {
+> > > > >
+> > > > > =A0#define QIB_DIAGC_ATTR(N) \
+> > > > > =A0 =A0 =A0 =A0static struct qib_diagc_attr qib_diagc_attr_##=
+N =3D { \
+> > > > > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 .attr =3D { .name =3D __stringi=
+fy(N), .mode =3D 0444 }, \
+> > > > > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 .attr =3D { .name =3D __stringi=
+fy(N), .mode =3D 0664 }, \
+> > > > > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0.counter =3D offsetof(struct q=
+ib_ibport, n_##N) \
+> > > > > =A0 =A0 =A0 =A0}
+> > > > >
+> > > > > @@ -403,8 +403,22 @@ static ssize_t diagc_attr_show(struct ko=
+bject *kobj, struct attribute *attr,
+> > > > > =A0 =A0 =A0 =A0return sprintf(buf, "%u\n", *(u32 *)((char *)q=
+ibp + dattr->counter));
+> > > > > =A0}
+> > > > >
+> > > > > +static ssize_t diagc_attr_store(struct kobject *kobj, struct=
+ attribute *attr,
+> > > > > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ const char *buf, size_t size)
+> > > > > +{
+> > > > > + =A0 =A0 =A0 struct qib_diagc_attr *dattr =3D
+> > > > > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 container_of(attr, struct qib_d=
+iagc_attr, attr);
+> > > > > + =A0 =A0 =A0 struct qib_pportdata *ppd =3D
+> > > > > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 container_of(kobj, struct qib_p=
+portdata, diagc_kobj);
+> > > > > + =A0 =A0 =A0 struct qib_ibport *qibp =3D &ppd->ibport_data;
+> > > > > +
+> > > > > + =A0 =A0 =A0 *(u32 *)((char *)qibp + dattr->counter) =3D sim=
+ple_strtol(buf, NULL, 0);
+> > > > > + =A0 =A0 =A0 return 4;
+> > > >
+> > > > The above line is not correct -- it should probably be somethin=
+g like
+> > > > "return size;". See also
+> > > > http://**git.kernel.org/?p=3Dlinux/kernel/git/torvalds/linux-2.=
+6.git;a=3Dblob;f=3DDocumentation/filesystems/sysfs.txt.
+> > >
+> > > My mistake. =A0From the document above the return should be:
+> > >
+> > > return strnlen(buf, PAGE_SIZE);
+> > >
+> > > Correct?
+> > >
+> > > Also I think I should check for invalid values as well.
+> >
+> > (resending as plain text)
+> >
+> > The documented I referred to was written before the "size" argument
+> > was added to sysfs store methods.
+>
+> Are you sure? =A0The document's signature for store methods includes =
+the size
+> argument?
+>
+> > I'm not sure it is still required
+> > that the "buf" argument that is passed to store methods is
+> > '\0'-terminated. So both "return 4" and "return strnlen(buf,
+> > PAGE_SIZE)" can potentially return a value that is larger than the
+> > "size" argument, which I think is incorrect.
+> >
+> > Sorry that I pointed you to misleading documentation.
+>
+> Also, the document is the same as the one in Roland's latest master. =
+=A0Is the
+> document wrong? =A0I have not found anything newer (22 February 2009)=
+=2E
 
-"...A verbs consumer using a RoCE network relies strictly on so-called Layer
-3 addressing (GIDs); layer 2 addresses (e.g. subnet local identifiers) are not passed across the verbs interface..."
+Let's ask the experts. The feedback on the sysfs documentation patch
+that I just submitted will tell us whether or not the sysfs
+documentation is correct (http://lkml.org/lkml/2010/7/10/72).
 
-The motivation behind this direction had to do with preserving API transparency for applications.
-The goal was to allow existing and future applications to run above RoCE and native IB without changes. 
-
-As opposed to what it may seem at first sight, adding Eth L2 parameters to the address vector, *does not* make RoCE closer to IB.
-It actually goes the other way around.
-Here is a quick list of what would have to be changed if we were to include Eth L2 address parameters to the Address Vector and other structures/functions that expose L2 params:
-
-Structure changes:
-- ibv_wc
-- ibv_ah_attr
--- ibv_qp_attr
--- rdma_ud_param
---- rdma_cm_event
-- ibv_port_attr
-
-Verb API changes:
-- ibv_poll_cq()
-- ibv_init_ah_from_wc()
-- ibv_create_ah()
-
-- ibv_query_qp()
-- ibv_modify_qp()
-
-- ibv_query_port()
-
-- ibv_attach_mcast()
-- ibv_detach_mcast()
-
-rdmacm API changes:
-- rdma_post_ud_send()
-- rdma_get_cm_event()
-- rdma_ack_cm_event()
- 
-As a result of this:
-- Existing IB binaries would cease working over RoCE.
-- Due to added fields in structures, even just recompiling existing applications from source would be problematic.
-- To make future applications work on both ib and RoCE transparently, you would need additional wrappers such as init_ah(), copy_ah(), and ah_is_equal(), and never inspect address handle fields directly.
-
-So why introduce differences between RoCE and IB (for the Application writers!!) when they *aren't* needed? Using rdmacm won't solve this either (UD traffic).
-By following the direction set forth by the RoCE spec none of this is required. Existing (rdmacm) application binaries do run over RoCE or IB unchanged.
-
-Granted, the RoCE spec approach introduces 2 *implementation* issues that we need to tackle:
-1. Address resolution, which is a generic function, should not be a device-specific call.
-In this matter, we already proposed a solution where resolution is done, as required, in generic functions in the kernel.
-Specifically, we provide L2 information to user-space drivers via create_ah(), avoiding the need to add a new ABI call altogether, while the resolution would take place in a generic CMA routine.
-
-2. The Kernel currently assumes that create_ah() can execute in atomic context.
-One option is to distinguish between the create_ah() calls (in the kernel) that are done for iboe, which are very few, and the rest of the calls that are ib-only.
-There are other approaches to solve this as well.
-
-It seems clear that our goal should be to solve these issues inside the kernel, in the cleanest manner as possible, while preserving transparency to the applications.
-
-Comments are welcome.
-
-Liran 
-
-> -----Original Message-----
-> From: Or Gerlitz [mailto:ogerlitz-hKgKHo2Ms0FWk0Htik3J/w@public.gmane.org] 
-> Sent: Wednesday, July 07, 2010 9:00 AM
-> To: Liran Liss
-> Cc: Roland Dreier; Jason Gunthorpe; Hefty, Sean; Aleksey 
-> Senin; linux-rdma; monis-smomgflXvOZWk0Htik3J/w@public.gmane.org; alekseys-smomgflXvOZWk0Htik3J/w@public.gmane.org; 
-> yiftahs-smomgflXvOZWk0Htik3J/w@public.gmane.org; Tziporet Koren; alexr-smomgflXvOZWk0Htik3J/w@public.gmane.org
-> Subject: Re: When IBoE will be merged to upstream?
-> 
-> Liran Liss wrote:
-> > but keeping ib_create_ah() callable from any context is not 
-> a goal by itself.
-> 
-> going with your approach, if your proposed design is 
-> accepted, I believe that you probably need to patch all the 
-> code-chains that makes calls under the current assumption
-> 
-> > I am looking for constructive ideas for supporting iboe without 
-> > breaking Verbs/CQE/CM syntax.
-> 
-> I don't agree that exposing the Ethernet L2 related 
-> information to the caller is breaking something, the 
-> converse, it is a required enhancement. 
-> 
-> I think we need to let resolve through the rdma-cm && get to 
-> know at the consumer level, what are the source / destination 
-> macs, vlan id and vlan priority used by an IBoE QP, in the 
-> exact manner all the IB equivalents (src/dst lid, pkey, sl) 
-> are resolved by the rdma-cm and exposed to the consmer app for IB QP.
-> 
-> Or.
-> 
-> --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+Bart.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
