@@ -1,22 +1,28 @@
-From: =?koi8-r?Q?=ED=C1=D2=C9=D1_=F3=C5=D2=C7=C5=C5=D7=C1?=
-	<nikolasergeeee-JGs/UdohzUI@public.gmane.org>
-Subject: Hi!
-Date: Sun, 11 Jul 2010 12:22:33 +0400
-Message-ID: <E1OXro1-0004Wa-00.nikolasergeeee-mail-ru@f239.mail.ru>
-Reply-To: =?koi8-r?Q?=ED=C1=D2=C9=D1_=F3=C5=D2=C7=C5=C5=D7=C1?=
-	  <nikolasergeeee-JGs/UdohzUI@public.gmane.org>
+From: Tziporet Koren <tziporet-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [ewg] https://bugs.openfabrics.org/show_bug.cgi?id=2074
+Date: Sun, 11 Jul 2010 16:58:13 +0300
+Message-ID: <4C39CDF5.3060204@mellanox.co.il>
+References: <4C37A4AF.50007@Sun.COM> <4C37A8BA.3090403@Sun.COM>
+Reply-To: tziporet-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <4C37A8BA.3090403-UdXhSnd/wVw@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sunil Joshi <Sunil.J-UdXhSnd/wVw@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ewg-G2znmakfqn7U1rindQTSdQ@public.gmane.org, rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hi 2 all! Good subscrubtion, thx!
-________________________________________________
-http://stydentkam.ru , http://ekzameny.net , http://referat-na-5.ru , http://hellocafe.ru , http://home-happy.ru , http://samkon.ru , http://scouts-russia.ru , http://bestxenon.ru , http://harmonia-plus.ru , http://kond-galereya.ru , http://divi-media.ru , http://v-peremen.ru , http://tonyfill.ru , http://v-peremen.ru , http://tbcom.ru , http://informkom.ru , http://aidsprint.ru , http://stydentam.ru , http://virtuallight.ru
+On 7/10/2010 1:54 AM, Sunil Joshi wrote:
+> Hi ,
+>   As per the comment in the following bugzilla bug, Can someone please
+> help in getting things resolved.
+>
+>    
+I assigned it to Vlad, I hope he can help you
 
+Tziporet
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
