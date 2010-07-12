@@ -1,81 +1,92 @@
-From: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+From: Tom Ammon <tom.ammon-wbocuHtxKic@public.gmane.org>
 Subject: Re: basic questions about partitions
-Date: Mon, 12 Jul 2010 15:06:07 -0400
-Message-ID: <AANLkTikmGjn3zXsAFyH3MUEk41Tt2Iz8oJYcb0b0ocUC@mail.gmail.com>
-References: <4C3B5FEA.1020904@utah.edu>
-	<AANLkTil-bN-x31UkuPh38HWy5hhctp2x3rlZKyCCzoha@mail.gmail.com>
+Date: Mon, 12 Jul 2010 13:28:40 -0600
+Message-ID: <4C3B6CE8.7080800@utah.edu>
+References: <4C3B5FEA.1020904@utah.edu>	<AANLkTil-bN-x31UkuPh38HWy5hhctp2x3rlZKyCCzoha@mail.gmail.com> <AANLkTikmGjn3zXsAFyH3MUEk41Tt2Iz8oJYcb0b0ocUC@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <AANLkTil-bN-x31UkuPh38HWy5hhctp2x3rlZKyCCzoha-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <AANLkTikmGjn3zXsAFyH3MUEk41Tt2Iz8oJYcb0b0ocUC-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tom Ammon <tom.ammon-wbocuHtxKic@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Jul 12, 2010 at 3:03 PM, Hal Rosenstock
-<hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
-> Hi Tom,
->
-> On 7/12/10, Tom Ammon <tom.ammon-wbocuHtxKic@public.gmane.org> wrote:
->> =C2=A0 Hi,
+  Okay, how about this.
+
+With ethernet and a linux server, I can set up up aliases (virtual IP 
+addresses) and assign multiple IPs to a single NIC. Can this be done 
+with an HCA and IPoIB? For example, could I configure ib0:1 to be 
+192.168.0.1/24 and ib0:2 to be 10.0.0.1/24?
+
+I have tried this on a RHEL5 box and it doesn't seem to want to accept 
+it, but I don't know if there is another piece somewhere that I need to 
+configure.
+
+Tom
+
+On 7/12/2010 1:06 PM, Hal Rosenstock wrote:
+> On Mon, Jul 12, 2010 at 3:03 PM, Hal Rosenstock
+> <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>  wrote:
+>> Hi Tom,
 >>
->> I have some basic questions about IB partitions.
+>> On 7/12/10, Tom Ammon<tom.ammon-wbocuHtxKic@public.gmane.org>  wrote:
+>>>    Hi,
+>>>
+>>> I have some basic questions about IB partitions.
+>>>
+>>> Can an HCA port belong to more than 1 partition at a time?
+>> Yes.
 >>
->> Can an HCA port belong to more than 1 partition at a time?
+>>> How do you configure partitions with opensm? From reading the opensmd
+>>> man page, it looks like you just create a file called
+>>> /etc/osm-partitions.conf, with port GUIDs and such, but is this current?
+>> The default location depends on how OpenSM is configured/built.
+> I missed this the first time around:
 >
-> Yes.
->
->> How do you configure partitions with opensm? From reading the opensm=
-d
->> man page, it looks like you just create a file called
->> /etc/osm-partitions.conf, with port GUIDs and such, but is this curr=
-ent?
->
-> The default location depends on how OpenSM is configured/built.
-
-I missed this the first time around:
-
-and yes, the syntax indicated is current.
-
--- Hal
-
->
->> I ask because according to the man page the opensm configuration fil=
-e is
->> in /etc/opensm/ . Can you tell opensm where to look for the partitio=
-ns file?
->
-> Yes, with either the -P option on the command line or
-> partition_config_file line in the options file.
+> and yes, the syntax indicated is current.
 >
 > -- Hal
 >
->> Thanks,
+>>> I ask because according to the man page the opensm configuration file is
+>>> in /etc/opensm/ . Can you tell opensm where to look for the partitions file?
+>> Yes, with either the -P option on the command line or
+>> partition_config_file line in the options file.
 >>
->> Tom
+>> -- Hal
 >>
->> --
->> Tom Ammon
->> Network Engineer
->> Office: 801.587.0976
->> Mobile: 801.674.9273
->>
->> Center for High Performance Computing
->> University of Utah
->> http://www.chpc.utah.edu
->>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-rdma=
-" in
->> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->> More majordomo info at =C2=A0http://vger.kernel.org/majordomo-info.h=
-tml
->>
->
+>>> Thanks,
+>>>
+>>> Tom
+>>>
+>>> --
+>>> Tom Ammon
+>>> Network Engineer
+>>> Office: 801.587.0976
+>>> Mobile: 801.674.9273
+>>>
+>>> Center for High Performance Computing
+>>> University of Utah
+>>> http://www.chpc.utah.edu
+>>>
+>>> --
+>>> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+>>> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>>
+
+-- 
+Tom Ammon
+Network Engineer
+Office: 801.587.0976
+Mobile: 801.674.9273
+
+Center for High Performance Computing
+University of Utah
+http://www.chpc.utah.edu
+
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
