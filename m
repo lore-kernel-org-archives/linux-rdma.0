@@ -1,113 +1,31 @@
-From: Tom Ammon <tom.ammon-wbocuHtxKic@public.gmane.org>
-Subject: Re: basic questions about partitions
-Date: Tue, 13 Jul 2010 10:50:56 -0600
-Message-ID: <4C3C9970.2060100@utah.edu>
-References: <4C3B5FEA.1020904@utah.edu>	<AANLkTil-bN-x31UkuPh38HWy5hhctp2x3rlZKyCCzoha@mail.gmail.com>	<AANLkTikmGjn3zXsAFyH3MUEk41Tt2Iz8oJYcb0b0ocUC@mail.gmail.com>	<4C3B6CE8.7080800@utah.edu> <AANLkTilajOitn1UidBCWeI7njymfwOTx9rl6bHo5Rv4G@mail.gmail.com>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: RDMA test performance comment
+Date: Tue, 13 Jul 2010 09:55:09 -0700
+Message-ID: <CF9C39F99A89134C9CF9C4CCB68B8DDF25A1317C33@orsmsx501.amr.corp.intel.com>
+References: <8214320.1278667993311.SLOX.WebMail.wwwrun@imap.lnl.infn.it>
+ <CF9C39F99A89134C9CF9C4CCB68B8DDF25A127CDC0@orsmsx501.amr.corp.intel.com>
+ <3558891.1279010158142.SLOX.WebMail.wwwrun@imap.lnl.infn.it>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <AANLkTilajOitn1UidBCWeI7njymfwOTx9rl6bHo5Rv4G-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <3558891.1279010158142.SLOX.WebMail.wwwrun-XDIR3SKYeFbgKi2NxijLtw@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Andrea Gozzelino <Andrea.Gozzelino-PK20h7lG/Rc1GQ1Ptb7lUw@public.gmane.org>
+Cc: "Tung, Chien Tin" <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "dotanba-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <dotanba-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-  Hal,
-
-> The procedure is a little different. You'll need to create a child
-> interface (on a partition) first and then you will be able to
-> configure it as follows:
->
-> echo 0x8001>  /sys/class/net/ib0/create_child
-> ifconfig ib0.8001 ...
->
-> Note that you'll want the 0x8000 bit on for full membership.
-What does "full membership" mean? And are you saying that for full 
-membership, any value beginning with 0x8 would work? Can an HCA have 
-full membership on multiple partitions simultaneously?
-
-Thanks,
-
-Tom
-
-
-> -- Hal
->
->> Tom
->>
->> On 7/12/2010 1:06 PM, Hal Rosenstock wrote:
->>> On Mon, Jul 12, 2010 at 3:03 PM, Hal Rosenstock
->>> <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>    wrote:
->>>> Hi Tom,
->>>>
->>>> On 7/12/10, Tom Ammon<tom.ammon-wbocuHtxKic@public.gmane.org>    wrote:
->>>>>    Hi,
->>>>>
->>>>> I have some basic questions about IB partitions.
->>>>>
->>>>> Can an HCA port belong to more than 1 partition at a time?
->>>> Yes.
->>>>
->>>>> How do you configure partitions with opensm? From reading the opensmd
->>>>> man page, it looks like you just create a file called
->>>>> /etc/osm-partitions.conf, with port GUIDs and such, but is this current?
->>>> The default location depends on how OpenSM is configured/built.
->>> I missed this the first time around:
->>>
->>> and yes, the syntax indicated is current.
->>>
->>> -- Hal
->>>
->>>>> I ask because according to the man page the opensm configuration file is
->>>>> in /etc/opensm/ . Can you tell opensm where to look for the partitions
->>>>> file?
->>>> Yes, with either the -P option on the command line or
->>>> partition_config_file line in the options file.
->>>>
->>>> -- Hal
->>>>
->>>>> Thanks,
->>>>>
->>>>> Tom
->>>>>
->>>>> --
->>>>> Tom Ammon
->>>>> Network Engineer
->>>>> Office: 801.587.0976
->>>>> Mobile: 801.674.9273
->>>>>
->>>>> Center for High Performance Computing
->>>>> University of Utah
->>>>> http://www.chpc.utah.edu
->>>>>
->>>>> --
->>>>> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
->>>>> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->>>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>>>>
->> --
->> Tom Ammon
->> Network Engineer
->> Office: 801.587.0976
->> Mobile: 801.674.9273
->>
->> Center for High Performance Computing
->> University of Utah
->> http://www.chpc.utah.edu
->>
->>
-
--- 
-Tom Ammon
-Network Engineer
-Office: 801.587.0976
-Mobile: 801.674.9273
-
-Center for High Performance Computing
-University of Utah
-http://www.chpc.utah.edu
-
+PiBJIHNlZSB0aGF0IHRoaXMgcmRtYV9wb3N0X3NlbmQgY2FsbCBnaXZlcyBhIGJpZyBjb250cmli
+dXRlIHRvIENQVSB1c2Ugb24NCj4gY2xpZW50IHNpZGUuIE5vdyB0aGUgQ1BVIHVzYWdlICglKSBp
+cyBhYm91dCA5NSUtOTklLg0KDQpDUFUgdXRpbGl6YXRpb24gaXMgdXN1YWxseSByZWxhdGVkIHRv
+IGhvdyB5b3UgcHJvY2VzcyBjb21wbGV0aW9ucy4gIElmIHlvdSBzd2l0Y2ggZnJvbSBwb2xsaW5n
+IHRoZSBDUSB0byB1c2luZyBldmVudHMsIHRoZSBDUFUgdXRpbGl6YXRpb24gd2lsbCBnbyBkb3du
+LiAgVGhpcyB3aWxsIGFsc28gcmVzdWx0IGluIHRoZSBsYXRlbmN5IGdvaW5nIHVwLg0KDQo+IENv
+dWxkIHlvdSBwbGVhc2Ugc2VuZCBtZSBhIGNvbW1lbnQgYWxzbyBhYm91dCB0aGUgInBsYXRlYXUg
+bm9uIHN0YWJsZSINCj4gaW4gZ3JhcGggc3BlZWQgdmVyc3VzIGJ1ZmZlciBzaXplIHdpdGggYnVm
+ZmVyIHNpemUgPiAxMF41IGJ5dGVzPw0KPiAoYXR0YWNoZWQgZmlsZXMpDQoNClRoaXMgaXMgbGlr
+ZWx5IGp1c3QgYW4gYXJ0aWZhY3Qgb2YgdGhlIHRlc3QgYW5kIGhhcmR3YXJlLg0K
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
