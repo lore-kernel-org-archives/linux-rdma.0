@@ -1,131 +1,114 @@
-From: "Davis, Arlin R" <arlin.r.davis-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: some dapl assistance
-Date: Tue, 13 Jul 2010 09:18:30 -0700
-Message-ID: <E3280858FA94444CA49D2BA02341C9830104493030@orsmsx506.amr.corp.intel.com>
-References: <4C344493.2030600@Voltaire.com>
- <E3280858FA94444CA49D2BA02341C983010435A1A8@orsmsx506.amr.corp.intel.com>
- <4C3C50CC.7000508@Voltaire.com>
+From: Tom Ammon <tom.ammon-wbocuHtxKic@public.gmane.org>
+Subject: Re: basic questions about partitions
+Date: Tue, 13 Jul 2010 10:50:56 -0600
+Message-ID: <4C3C9970.2060100@utah.edu>
+References: <4C3B5FEA.1020904@utah.edu>	<AANLkTil-bN-x31UkuPh38HWy5hhctp2x3rlZKyCCzoha@mail.gmail.com>	<AANLkTikmGjn3zXsAFyH3MUEk41Tt2Iz8oJYcb0b0ocUC@mail.gmail.com>	<4C3B6CE8.7080800@utah.edu> <AANLkTilajOitn1UidBCWeI7njymfwOTx9rl6bHo5Rv4G@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4C3C50CC.7000508-hKgKHo2Ms0FWk0Htik3J/w@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <AANLkTilajOitn1UidBCWeI7njymfwOTx9rl6bHo5Rv4G-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <ogerlitz-hKgKHo2Ms0FWk0Htik3J/w@public.gmane.org>
-Cc: Itay Berman <itayb-smomgflXvOZWk0Htik3J/w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Sorry, Intel MPI requires development packages which include libdat.so and libdat2.so  
+  Hal,
 
-Please see the install instructions on http://www.openfabrics.org/downloads/dapl/
+> The procedure is a little different. You'll need to create a child
+> interface (on a partition) first and then you will be able to
+> configure it as follows:
+>
+> echo 0x8001>  /sys/class/net/ib0/create_child
+> ifconfig ib0.8001 ...
+>
+> Note that you'll want the 0x8000 bit on for full membership.
+What does "full membership" mean? And are you saying that for full 
+membership, any value beginning with 0x8 would work? Can an HCA have 
+full membership on multiple partitions simultaneously?
 
----
+Thanks,
 
-For 1.2 and 2.0 support on same system, including development, install RPM packages as follow: 
+Tom
 
-dapl-2.0.29-1 
-dapl-utils-2.0.29-1 
-dapl-devel-2.0.29-1      <<<<
-dapl-debuginfo-2.0.29-1 
-compat-dapl-1.2.18-1 
-compat-dapl-devel-1.2.18-1  <<<<
 
----
+> -- Hal
+>
+>> Tom
+>>
+>> On 7/12/2010 1:06 PM, Hal Rosenstock wrote:
+>>> On Mon, Jul 12, 2010 at 3:03 PM, Hal Rosenstock
+>>> <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>    wrote:
+>>>> Hi Tom,
+>>>>
+>>>> On 7/12/10, Tom Ammon<tom.ammon-wbocuHtxKic@public.gmane.org>    wrote:
+>>>>>    Hi,
+>>>>>
+>>>>> I have some basic questions about IB partitions.
+>>>>>
+>>>>> Can an HCA port belong to more than 1 partition at a time?
+>>>> Yes.
+>>>>
+>>>>> How do you configure partitions with opensm? From reading the opensmd
+>>>>> man page, it looks like you just create a file called
+>>>>> /etc/osm-partitions.conf, with port GUIDs and such, but is this current?
+>>>> The default location depends on how OpenSM is configured/built.
+>>> I missed this the first time around:
+>>>
+>>> and yes, the syntax indicated is current.
+>>>
+>>> -- Hal
+>>>
+>>>>> I ask because according to the man page the opensm configuration file is
+>>>>> in /etc/opensm/ . Can you tell opensm where to look for the partitions
+>>>>> file?
+>>>> Yes, with either the -P option on the command line or
+>>>> partition_config_file line in the options file.
+>>>>
+>>>> -- Hal
+>>>>
+>>>>> Thanks,
+>>>>>
+>>>>> Tom
+>>>>>
+>>>>> --
+>>>>> Tom Ammon
+>>>>> Network Engineer
+>>>>> Office: 801.587.0976
+>>>>> Mobile: 801.674.9273
+>>>>>
+>>>>> Center for High Performance Computing
+>>>>> University of Utah
+>>>>> http://www.chpc.utah.edu
+>>>>>
+>>>>> --
+>>>>> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+>>>>> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+>>>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>>>>
+>> --
+>> Tom Ammon
+>> Network Engineer
+>> Office: 801.587.0976
+>> Mobile: 801.674.9273
+>>
+>> Center for High Performance Computing
+>> University of Utah
+>> http://www.chpc.utah.edu
+>>
+>>
 
-Thanks for the heads up on dat.conf manpage. I will fix the conflict in next release.
+-- 
+Tom Ammon
+Network Engineer
+Office: 801.587.0976
+Mobile: 801.674.9273
 
--arlin
+Center for High Performance Computing
+University of Utah
+http://www.chpc.utah.edu
 
->-----Original Message-----
->From: Or Gerlitz [mailto:ogerlitz-hKgKHo2Ms0FWk0Htik3J/w@public.gmane.org] 
->Sent: Tuesday, July 13, 2010 4:41 AM
->To: Davis, Arlin R
->Cc: Itay Berman; linux-rdma
->Subject: Re: some dapl assistance
->
->Davis, Arlin R wrote:
->> There is limited debug in the non-debug builds. If you want 
->full debugging capabilities
->> you can install the source RPM and configure and make as 
->follows [..] (OFED target example):
->
->okay, got that, once I built the sources by hand as you 
->suggested I could see debug prints
->but things didn't really work, so I stepped back and installed 
->the latest rpms - dapl-2.0.29-1
->and compat-dapl-1.2.18-1, now I couldn't get intel-mpi to run:
->
->> [root@dodly0 ~]# rpm -qav | grep dapl
->> dapl-utils-2.0.29-1
->> dapl-2.0.29-1
->> compat-dapl-1.2.18-1
->
->> [root@dodly0 ~]# ldconfig -p | grep libdat
->>         libdat2.so.2 (libc6,x86-64) => /usr/lib64/libdat2.so.2
->>         libdat.so.1 (libc6,x86-64) => /usr/lib64/libdat.so.1
->
->> [root@dodly0 ~]# rpm -qf /usr/lib64/libdat.so.1
->> compat-dapl-1.2.18-1
->> [root@dodly0 ~]# rpm -qf /usr/lib64/libdat2.so.2
->> dapl-2.0.29-1
->
->> [root@dodly0 ~]# 
->/opt/intel/impi/4.0.0.027/intel64/bin/mpiexec -ppn 1 -n 2  
->-env DAPL_IB_PKEY 0x8002 -env DAPL_DBG_TYPE 0xff -env 
->DAPL_DBG_DEST 0x3  -env I_MPI_DEBUG 3 -env 
->I_MPI_CHECK_DAPL_PROVIDER_MISMATCH none -env I_MPI_FABRICS 
->dapl:dapl /tmp/osu
->> [0] MPI startup(): cannot open dynamic library libdat.so
->> [1] MPI startup(): cannot open dynamic library libdat.so
->> [0] MPI startup(): cannot open dynamic library libdat2.so
->> [0] dapl fabric is not available and fallback fabric is not enabled
->> [1] MPI startup(): cannot open dynamic library libdat2.so
->> [1] dapl fabric is not available and fallback fabric is not enabled
->> rank 1 in job 5  dodly0_54941   caused collective abort of all ranks
->>   exit status of rank 1: return code 254
->> rank 0 in job 5  dodly0_54941   caused collective abort of all ranks
->>   exit status of rank 0: return code 254
->
->Any idea what we're doing wrong?
->
->BTW - before things stopped to work, exporting LD_DEBUG=libs 
->to the MPI rank, 
->I noticed that it used the compat-1.2 rpm ...
->
->Now, I can run dapltest fine,
->> [root@dodly0 ~]# dapltest -T S -D ofa-v2-mthca0-1
->> Dapltest: Service Point Ready - ofa-v2-mthca0-1
->> Dapltest: Service Point Ready - ofa-v2-mthca0-1
->> Server: Transaction Test Finished for this client
->
->> [root@dodly4 ~]# dapltest -T T -D ofa-v2-mlx4_0-1 -s dodly0 
->-i 1000 server SR 65536 4 client SR 65536 4
->> Server Name: dodly0
->> Server Net Address: 172.30.3.230
->> DT_cs_Client: Starting Test ...
->> ----- Stats ---- : 1 threads, 1 EPs
->> Total WQE        :    2919.70 WQE/Sec
->> Total Time       :       0.68 sec
->> Total Send       :     262.14 MB -     382.69 MB/Sec
->> Total Recv       :     262.14 MB -     382.69 MB/Sec
->> Total RDMA Read  :       0.00 MB -       0.00 MB/Sec
->> Total RDMA Write :       0.00 MB -       0.00 MB/Sec
->> DT_cs_Client: ========== End of Work -- Client Exiting
->
->I also noted that the dapl-utils and the compat-dapl-utils are 
->mutual exclusive as both 
->attempt to install the same man page for dat.conf
->> # rpm -Uvh 
->/usr/src/redhat/RPMS/x86_64/compat-dapl-utils-1.2.18-1.x86_64.rpm
->> Preparing...                
->########################################### [100%]
->>         file /usr/share/man/man5/dat.conf.5.gz from install 
->of compat-dapl-utils-1.2.18-1.x86_64 conflicts with file from 
->package dapl-utils-2.0.29-1.x86_64
->
->Or.
->--
+--
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
