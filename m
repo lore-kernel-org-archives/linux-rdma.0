@@ -1,54 +1,118 @@
-From: Pradeep Satyanarayana <pradeeps-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
-Subject: Re: IB/ipoib: fix dangling pointer reference to ipoib_neigh and ipoib_path
- -when will it go upstream?
-Date: Wed, 14 Jul 2010 09:25:54 -0700
-Message-ID: <4C3DE512.3020903@linux.vnet.ibm.com>
-References: <4C3AA0A2.3090406@linux.vnet.ibm.com> <adapqysxup6.fsf@roland-alpha.cisco.com> <4C3C02B2.9040408@linux.vnet.ibm.com> <adaeif7xwwz.fsf@roland-alpha.cisco.com> <4C3D26D0.3090508@linux.vnet.ibm.com>
+From: Albert Chu <chu11-i2BcT+NCU+M@public.gmane.org>
+Subject: [infiniband-diags] [2/4] support --diffcheck in iblinkinfo [REPOST]
+Date: Wed, 14 Jul 2010 09:29:52 -0700
+Message-ID: <1279124992.20914.214.camel@auk31.llnl.gov>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="=-ty6lsOLRU1SepFZkLRlC"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4C3D26D0.3090508-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Pradeep Satyanarayana wrote:
-> Roland Dreier wrote:
->>  > I guess I came to a premature conclusion. One set of tests ran fine and I made that
->>  > conclusion. Another set of tests caused the following crash:
->>
->> I don't really know how to interpret this.  Is this crash new, or is it
->> the same crash you were hoping this patch fixed?
-> 
-> This is a new crash.
 
-I see other manifestations resulting in different crashes :
+--=-ty6lsOLRU1SepFZkLRlC
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 
-:mon> t
-[c00000074603ba20] d0000000193527ac .ipoib_neigh_flush+0x6c/0x350 [ib_ipoib]
-[c00000074603bb10] d000000019356dac .ipoib_mcast_free+0x74/0x2a0 [ib_ipoib]
-[c00000074603bbe0] d000000019358558 .ipoib_mcast_restart_task+0x3d0/0x560 [ib_ipoib]
-[c00000074603bd40] c0000000000c6fe4 .run_workqueue+0xf4/0x1e0
-[c00000074603be00] c0000000000c7190 .worker_thread+0xc0/0x180
-[c00000074603bed0] c0000000000ccf4c .kthread+0xb4/0xc0
-[c00000074603bf90] c0000000000309fc .kernel_thread+0x54/0x70
-9:mon> e
-cpu 0x9: Vector: 300 (Data Access) at [c00000074603b720]
-    pc: c0000000005ac390: ._spin_lock+0x20/0xc8
-    lr: d0000000193527ac: .ipoib_neigh_flush+0x6c/0x350 [ib_ipoib]
-    sp: c00000074603b9a0
-   msr: 8000000000009032
-   dar: 3a0
- dsisr: 40000000
-  current = 0xc000000756ce8b00
-  paca    = 0xc000000000f63800
-    pid   = 18095, comm = ipoib
-9:mon>
+Hi Sasha,
 
-Thanks
-Pradeep
+Similar to ibnetdiscover, this patch support a --diffcheck option in
+iblinkinfo.
+
+Al
+
+-- 
+Albert Chu
+chu11-i2BcT+NCU+M@public.gmane.org
+Computer Scientist
+High Performance Systems Division
+Lawrence Livermore National Laboratory
+
+--=-ty6lsOLRU1SepFZkLRlC
+Content-Disposition: attachment; filename=0002-support-diffcheck-in-iblinkinfo.patch
+Content-Type: message/rfc822; name=0002-support-diffcheck-in-iblinkinfo.patch
+
+From: Albert Chu <chu11-i2BcT+NCU+M@public.gmane.org>
+Date: Tue, 20 Apr 2010 09:53:53 -0700
+Subject: [PATCH] support --diffcheck in iblinkinfo
+Message-Id: <1279124683.20914.208.camel-X2zTWyBD0EhliZ7u+bvwcg@public.gmane.org>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
+
+
+Signed-off-by: Albert Chu <chu11-i2BcT+NCU+M@public.gmane.org>
+---
+ infiniband-diags/man/iblinkinfo.8 |    5 +++++
+ infiniband-diags/src/iblinkinfo.c |   20 ++++++++++++++++++++
+ 2 files changed, 25 insertions(+), 0 deletions(-)
+
+diff --git a/infiniband-diags/man/iblinkinfo.8 b/infiniband-diags/man/iblinkinfo.8
+index b91afbd..431ab0e 100644
+--- a/infiniband-diags/man/iblinkinfo.8
++++ b/infiniband-diags/man/iblinkinfo.8
+@@ -58,6 +58,11 @@ output will be displayed showing differences between the old and current
+ fabric links.  See
+ .B ibnetdiscover
+ for information on caching ibnetdiscover output.
++.TP
++\fB\-\-diffcheck\fR <key(s)>
++Specify what diff checks should be done in the \fB\-\-diff\fR option above.
++Comma separate multiple diff check key(s).  The available diff checks
++are:\fIport\fR = port connections, \fIstate\fR = port state.
+ 
+ .SH AUTHOR
+ .TP
+diff --git a/infiniband-diags/src/iblinkinfo.c b/infiniband-diags/src/iblinkinfo.c
+index 4b922af..b9c1c32 100644
+--- a/infiniband-diags/src/iblinkinfo.c
++++ b/infiniband-diags/src/iblinkinfo.c
+@@ -400,6 +400,8 @@ int diff_switch(ibnd_node_t * node, ibnd_fabric_t * orig_fabric,
+ static int process_opt(void *context, int ch, char *optarg)
+ {
+ 	struct ibnd_config *cfg = context;
++	char *p;
++
+ 	switch (ch) {
+ 	case 1:
+ 		node_name_map_file = strdup(optarg);
+@@ -410,6 +412,22 @@ static int process_opt(void *context, int ch, char *optarg)
+ 	case 3:
+ 		diff_cache_file = strdup(optarg);
+ 		break;
++	case 4:
++		diffcheck_flags = 0;
++		p = strtok(optarg, ",");
++		while (p) {
++			if (!strcasecmp(p, "port"))
++				diffcheck_flags |= DIFF_FLAG_PORT_CONNECTION;
++			else if (!strcasecmp(p, "state"))
++				diffcheck_flags |= DIFF_FLAG_PORT_STATE;
++			else {
++				fprintf(stderr, "invalid diff check key: %s\n",
++					p);
++				return -1;
++			}
++			p = strtok(NULL, ",");
++		}
++		break;
+ 	case 'S':
+ 		guid_str = optarg;
+ 		guid = (uint64_t) strtoull(guid_str, 0, 0);
+@@ -480,6 +498,8 @@ int main(int argc, char **argv)
+ 		 "filename of ibnetdiscover cache to load"},
+ 		{"diff", 3, 1, "<file>",
+ 		 "filename of ibnetdiscover cache to diff"},
++		{"diffcheck", 4, 1, "<key(s)>",
++		 "specify checks to execute for --diff"},
+ 		{"outstanding_smps", 'o', 1, NULL,
+ 		 "specify the number of outstanding SMP's which should be "
+ 		 "issued during the scan"},
+-- 
+1.5.4.5
+
+
+--=-ty6lsOLRU1SepFZkLRlC--
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
