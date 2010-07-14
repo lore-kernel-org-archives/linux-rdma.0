@@ -1,31 +1,34 @@
-From: Pradeep Satyanarayana <pradeeps-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
-Subject: Re: IB/ipoib: fix dangling pointer reference to ipoib_neigh and ipoib_path
- -when will it go upstream?
-Date: Tue, 13 Jul 2010 19:54:08 -0700
-Message-ID: <4C3D26D0.3090508@linux.vnet.ibm.com>
-References: <4C3AA0A2.3090406@linux.vnet.ibm.com> <adapqysxup6.fsf@roland-alpha.cisco.com> <4C3C02B2.9040408@linux.vnet.ibm.com> <adaeif7xwwz.fsf@roland-alpha.cisco.com>
+From: "Walukiewicz, Miroslaw" <Miroslaw.Walukiewicz-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH] RDMA/nes: corrected firmware version update
+Date: Wed, 14 Jul 2010 10:06:43 +0100
+Message-ID: <BE2BFE91933D1B4089447C64486040801ECE392C@irsmsx503.ger.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <adaeif7xwwz.fsf-BjVyx320WGW9gfZ95n9DRSW4+XlvGpQz@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: "rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org" <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Roland Dreier wrote:
->  > I guess I came to a premature conclusion. One set of tests ran fine and I made that
->  > conclusion. Another set of tests caused the following crash:
-> 
-> I don't really know how to interpret this.  Is this crash new, or is it
-> the same crash you were hoping this patch fixed?
-
-This is a new crash.
-
-Thanks
-Pradeep
-
+Tm93IGZpcm13YXJlIHZlcnNpb24gaXMgcmVhZCBmcm9tIGNvcnJlY3QgcGxhY2UNCg0KU2lnbmVk
+LW9mZi1ieTogTWlyZWsgV2FsdWtpZXdpY3ogPG1pcm9zbGF3LndhbHVraWV3aWN6QGludGVsLmNv
+bT4NCi0tLQ0KDQogZHJpdmVycy9pbmZpbmliYW5kL2h3L25lcy9uZXNfdmVyYnMuYyB8ICAgIDIg
+Ky0NCiAxIGZpbGVzIGNoYW5nZWQsIDEgaW5zZXJ0aW9ucygrKSwgMSBkZWxldGlvbnMoLSkNCg0K
+DQpkaWZmIC0tZ2l0IGEvZHJpdmVycy9pbmZpbmliYW5kL2h3L25lcy9uZXNfdmVyYnMuYyBiL2Ry
+aXZlcnMvaW5maW5pYmFuZC9ody9uZXMvbmVzX3ZlcmJzLmMNCmluZGV4IDBhYmQ0ZjIuLmYxNzk1
+ODYgMTAwNjQ0DQotLS0gYS9kcml2ZXJzL2luZmluaWJhbmQvaHcvbmVzL25lc192ZXJicy5jDQor
+KysgYi9kcml2ZXJzL2luZmluaWJhbmQvaHcvbmVzL25lc192ZXJicy5jDQpAQCAtNTIwLDcgKzUy
+MCw3IEBAIHN0YXRpYyBpbnQgbmVzX3F1ZXJ5X2RldmljZShzdHJ1Y3QgaWJfZGV2aWNlICppYmRl
+diwgc3RydWN0IGliX2RldmljZV9hdHRyICpwcm9wDQogCW1lbXNldChwcm9wcywgMCwgc2l6ZW9m
+KCpwcm9wcykpOw0KIAltZW1jcHkoJnByb3BzLT5zeXNfaW1hZ2VfZ3VpZCwgbmVzdm5pYy0+bmV0
+ZGV2LT5kZXZfYWRkciwgNik7DQogDQotCXByb3BzLT5md192ZXIgPSBuZXNkZXYtPm5lc2FkYXB0
+ZXItPmZ3X3ZlcjsNCisJcHJvcHMtPmZ3X3ZlciA9IG5lc2Rldi0+bmVzYWRhcHRlci0+ZmlybXdh
+cmVfdmVyc2lvbjsNCiAJcHJvcHMtPmRldmljZV9jYXBfZmxhZ3MgPSBuZXNkZXYtPm5lc2FkYXB0
+ZXItPmRldmljZV9jYXBfZmxhZ3M7DQogCXByb3BzLT52ZW5kb3JfaWQgPSBuZXNkZXYtPm5lc2Fk
+YXB0ZXItPnZlbmRvcl9pZDsNCiAJcHJvcHMtPnZlbmRvcl9wYXJ0X2lkID0gbmVzZGV2LT5uZXNh
+ZGFwdGVyLT52ZW5kb3JfcGFydF9pZDsNCg0KDQo=
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
