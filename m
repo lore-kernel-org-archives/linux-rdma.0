@@ -1,40 +1,80 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: IB perf test questions
-Date: Wed, 14 Jul 2010 15:16:50 -0600
-Message-ID: <20100714211650.GA7348@obsidianresearch.com>
-References: <4C3E1DDF.1090305@utah.edu>
+From: Gyorgy Jeney <nog.lkml-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: NFS over RDMA problem: svcrdma: Error fast registering memory for
+	xprt ffff8803307d7400
+Date: Wed, 14 Jul 2010 23:17:23 +0200
+Message-ID: <AANLkTik-BR1txJIbbzaB8YKJQM5lswbmWpbhKSdeUseg@mail.gmail.com>
+References: <AANLkTinjZfpICMjP1EcU4CPAe1TwxKp1zsk-lwX6fmzA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <4C3E1DDF.1090305-wbocuHtxKic@public.gmane.org>
+In-Reply-To: <AANLkTinjZfpICMjP1EcU4CPAe1TwxKp1zsk-lwX6fmzA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tom Ammon <tom.ammon-wbocuHtxKic@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Jul 14, 2010 at 02:28:15PM -0600, Tom Ammon wrote:
+> I am attempting to use NFS over RDMA (over infiniband), but there is =
+some
+> problem. =A0The NFS filesystem can be mounted on the client, and thin=
+gs
+> will work for some time (can read, modify, etc. the files over the mo=
+unt),
+> but then (at a seemingly random time) the NFS server will dump these
+> lines to the logs:
+>
+> [ 4380.623922] svcrdma: Error fast registering memory for xprt ffff88=
+03307d7400
+> [ 4413.343161] svcrdma: error fast registering xdr for xprt ffff88033=
+19edc00
 
-> Also, whether I use ib_read_bw or ib_write_bw, the machine I initiate 
-> the test from (in this case "taildrop") shows one of its CPU cores 
-> pegged at 100% for the duration of the test, but I see no CPU 
-> utilization at all on the receiving node. Can someone explain to me 
-> what's going on under the hood, here? I would think that read_bw would 
-> load up the sending host but that write_bw would load up the receiving 
-> host (or maybe vice versa), so this seems counterintuitive to me. when I 
-> use the -b flag to do a bidirectional test, a single CPU core on both 
-> machines pegs at 100%.
+Digging into it further, it seems like the Mellanox Infiniband driver
+could somehow be involved.  Adding some trace's to the code, it's obvio=
+us
+something like this is happening:
 
-In all cases the master machine sits in a CPU bound loop waiting for
-completions so it can issue more RDMA operations. The difference
-between write and read is simply the RDMA op that is issued.
+At some time sq_cq_reap() is called, which ends up like this:
 
-The slave side just sits there and the NIC does all the work.
+  sq_cq_reap()
+    ib_poll_cq()
+      mlx4_ib_poll_cq()
+        mlx4_ib_poll_one()
+          mlx4_ib_handle_error_cqe()
+            - Which then sets wc->status to IB_WC_WR_FLUSH_ERR rather
+              often, but the killer blow seems to be when
+              IB_WC_REM_ACCESS_ERR is set.
+    - Because of the error previously, sq_cq_reap sets the XPT_CLOSE
+      flag
 
-Bi-directional mode runs a master operation on both sides..
+Then, sometime later:
 
-Jason
+  fast_reg_read_chunks()
+    svc_rdma_fastreg()
+      svc_rdma_send()
+        svc_rdma_send()
+          - XPT_CLOSE is set and hence -ENOTCONN is returned
+    - Since svc_rdma_fastreg() had an error fast_reg_read_chunks() bail=
+s
+      and the client seems to then hang.
+
+I'd ask the infiband guys, what does IB_WC_WR_FLUSH_ERR and
+IB_WC_REM_ACCESS_ERR mean?  Is it something drastic that should result
+in hangs?
+
+nog.
+
+> Both client and server are running the latest vanilla 2.6.34.1 kernel
+> with Mellanox Connect-X infiniband cards. =A0If more information is
+> required, please do ask.
+>
+> BTW: I can reproduce the problem quite reliably by running the bonnie=
+++
+> "benchmark" on the NFS mounted filesystem.
+>
+> nog.
+>
+> ps: I'm not subscribed to the list, please CC me on all replies.
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
