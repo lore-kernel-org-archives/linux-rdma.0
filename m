@@ -1,10 +1,10 @@
 From: Albert Chu <chu11-i2BcT+NCU+M@public.gmane.org>
-Subject: [infiniband-diags] [4/4] support --filterdownports in iblinkinfo
-	[REPOST]
-Date: Wed, 14 Jul 2010 09:30:01 -0700
-Message-ID: <1279125001.20914.216.camel@auk31.llnl.gov>
+Subject: [infiniband-diags] [3/4] Add lid and node description diff options
+	for --diffcheck in iblinkinfo [REPOST]
+Date: Wed, 14 Jul 2010 09:29:58 -0700
+Message-ID: <1279124998.20914.215.camel@auk31.llnl.gov>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="=-MBTRVT2QelAdHKxD4Vvp"
+Content-Type: multipart/mixed; boundary="=-hd+NSjrBzb0peWhaqoPR"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
@@ -12,21 +12,15 @@ Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY
 List-Id: linux-rdma@vger.kernel.org
 
 
---=-MBTRVT2QelAdHKxD4Vvp
+--=-hd+NSjrBzb0peWhaqoPR
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 
 Hi Sasha,
 
-This patch supports a new option called --filterdownports.  The option
-will remove downports from the output if they were previously listed as
-down in a cache.
-
-This option is useful for clusters that have unpopulated switch ports.
-Many system administrators look for the word "Down" in the iblinkinfo
-output, however, that ability is limited when so many of the ports are
-down all the time b/c of unpopulated ports.  This option attempts to
-remove that limitation for clusters with unpopulated ports.
+This patch supports additional lid and node description diffing options
+in iblinkinfo.  This is similar to the lid and nodescription --diffcheck
+options in ibnetdiscover.
 
 Al
 
@@ -37,135 +31,166 @@ Computer Scientist
 High Performance Systems Division
 Lawrence Livermore National Laboratory
 
---=-MBTRVT2QelAdHKxD4Vvp
-Content-Disposition: attachment; filename=0004-support-filterdownports-in-iblinkinfo.patch
-Content-Type: message/rfc822; name=0004-support-filterdownports-in-iblinkinfo.patch
+--=-hd+NSjrBzb0peWhaqoPR
+Content-Disposition: attachment; filename=0003-Add-lid-and-node-description-diff-options-for-diff.patch
+Content-Type: message/rfc822; name=0003-Add-lid-and-node-description-diff-options-for-diff.patch
 
 From: Albert Chu <chu11-i2BcT+NCU+M@public.gmane.org>
-Date: Wed, 21 Apr 2010 17:04:02 -0700
-Subject: [PATCH] support --filterdownports in iblinkinfo
-Message-Id: <1279124743.20914.210.camel-X2zTWyBD0EhliZ7u+bvwcg@public.gmane.org>
+Date: Tue, 20 Apr 2010 10:13:05 -0700
+Subject: [PATCH] Add lid and node description diff options for --diffcheck
+	in iblinkinfo
+Message-Id: <1279124743.20914.212.camel-X2zTWyBD0EhliZ7u+bvwcg@public.gmane.org>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 
 
 Signed-off-by: Albert Chu <chu11-i2BcT+NCU+M@public.gmane.org>
 ---
- infiniband-diags/man/iblinkinfo.8 |    9 ++++++++
- infiniband-diags/src/iblinkinfo.c |   40 +++++++++++++++++++++++++++++++++++++
- 2 files changed, 49 insertions(+), 0 deletions(-)
+ infiniband-diags/man/iblinkinfo.8 |    7 +++-
+ infiniband-diags/src/iblinkinfo.c |   53 ++++++++++++++++++++++++++++++++-----
+ 2 files changed, 51 insertions(+), 9 deletions(-)
 
 diff --git a/infiniband-diags/man/iblinkinfo.8 b/infiniband-diags/man/iblinkinfo.8
-index 65ea919..940d008 100644
+index 431ab0e..65ea919 100644
 --- a/infiniband-diags/man/iblinkinfo.8
 +++ b/infiniband-diags/man/iblinkinfo.8
-@@ -66,6 +66,15 @@ Comma separate multiple diff check key(s).  The available diff checks
- are:\fIport\fR = port connections, \fIstate\fR = port state, \fIlid\fR = lids,
- \fInodedesc\fR = node descriptions.  If \fIport\fR is specified alongside \fIlid\fR
- or \fInodedesc\fR, remote port lids and node descriptions will also be compared.
-+.TP
-+\fB\-\-filterdownports\fR <filename>
-+Filter downports indicated in a ibnetdiscover cache.  If a port was previously
-+indicated as down in the specified cache, and is still down, do not output it in the
-+resulting output.  This option may be particularly useful for environments
-+where switches are not fully populated, thus much of the default iblinkinfo
-+info is considered unuseful.  See
-+.B ibnetdiscover
-+for information on caching ibnetdiscover output.
+@@ -55,14 +55,17 @@ for information on caching ibnetdiscover output.
+ Load cached ibnetdiscover data and do a diff comparison to the current
+ network or another cache.  A special diff output for iblinkinfo
+ output will be displayed showing differences between the old and current
+-fabric links.  See
++fabric links.  Be default, the following are compared for differences:
++port connections and port state.  See
+ .B ibnetdiscover
+ for information on caching ibnetdiscover output.
+ .TP
+ \fB\-\-diffcheck\fR <key(s)>
+ Specify what diff checks should be done in the \fB\-\-diff\fR option above.
+ Comma separate multiple diff check key(s).  The available diff checks
+-are:\fIport\fR = port connections, \fIstate\fR = port state.
++are:\fIport\fR = port connections, \fIstate\fR = port state, \fIlid\fR = lids,
++\fInodedesc\fR = node descriptions.  If \fIport\fR is specified alongside \fIlid\fR
++or \fInodedesc\fR, remote port lids and node descriptions will also be compared.
  
  .SH AUTHOR
  .TP
 diff --git a/infiniband-diags/src/iblinkinfo.c b/infiniband-diags/src/iblinkinfo.c
-index ae7bbf3..80837ec 100644
+index b9c1c32..ae7bbf3 100644
 --- a/infiniband-diags/src/iblinkinfo.c
 +++ b/infiniband-diags/src/iblinkinfo.c
-@@ -65,6 +65,8 @@ static nn_map_t *node_name_map = NULL;
- static char *load_cache_file = NULL;
- static char *diff_cache_file = NULL;
- static unsigned diffcheck_flags = DIFF_FLAG_DEFAULT;
-+static char *filterdownports_cache_file = NULL;
-+static ibnd_fabric_t *filterdownports_fabric = NULL;
+@@ -55,6 +55,8 @@
  
- static uint64_t guid = 0;
- static char *guid_str = NULL;
-@@ -116,6 +118,30 @@ void get_msg(char *width_msg, char *speed_msg, int msg_size, ibnd_port_t * port)
- 				      buf, 64, &max_speed));
- }
+ #define DIFF_FLAG_PORT_CONNECTION  0x01
+ #define DIFF_FLAG_PORT_STATE       0x02
++#define DIFF_FLAG_LID              0x04
++#define DIFF_FLAG_NODE_DESCRIPTION 0x08
  
-+int filterdownport_check(ibnd_node_t * node, ibnd_port_t * port)
-+{
-+	ibnd_node_t *fsw;
-+	ibnd_port_t *fport;
-+	int fistate;
-+
-+	fsw = ibnd_find_node_guid(filterdownports_fabric, node->guid);
-+
-+	if (!fsw)
-+		return 0;
-+
-+	if (port->portnum > fsw->numports)
-+		return 0;
-+
-+	fport = fsw->ports[port->portnum];
-+
-+	if (!fport)
-+		return 0;
-+
-+	fistate = mad_get_field(fport->info, 0, IB_PORT_STATE_F);
-+
-+	return (fistate == IB_LINK_DOWN) ? 1 : 0;
-+}
-+
- void print_port(ibnd_node_t * node, ibnd_port_t * port, char *out_prefix)
+ #define DIFF_FLAG_DEFAULT (DIFF_FLAG_PORT_CONNECTION | DIFF_FLAG_PORT_STATE)
+ 
+@@ -224,7 +226,7 @@ void print_port(ibnd_node_t * node, ibnd_port_t * port, char *out_prefix)
+ 
+ void print_switch_header(ibnd_node_t *node, int *out_header_flag, char *out_prefix)
  {
- 	char width[64], speed[64], state[64], physstate[64];
-@@ -142,6 +168,11 @@ void print_port(ibnd_node_t * node, ibnd_port_t * port, char *out_prefix)
- 	width_msg[0] = '\0';
- 	speed_msg[0] = '\0';
- 
-+	if (istate == IB_LINK_DOWN
-+	    && filterdownports_fabric
-+	    && filterdownport_check(node, port))
-+		return;
-+
- 	/* C14-24.2.1 states that a down port allows for invalid data to be
- 	 * returned for all PortInfo components except PortState and
- 	 * PortPhysicalState */
-@@ -467,6 +498,9 @@ static int process_opt(void *context, int ch, char *optarg)
- 			p = strtok(NULL, ",");
+-	if (!(*out_header_flag) && !line_mode) {
++	if ((!out_header_flag || !(*out_header_flag)) && !line_mode) {
+ 		char *remap =
+ 			remap_node_name(node_name_map, node->guid, node->nodedesc);
+ 		printf("%sSwitch 0x%016" PRIx64 " %s:\n",
+@@ -308,9 +310,25 @@ void diff_switch_ports(ibnd_node_t * fabric1_node, ibnd_node_t * fabric2_node,
+ 				output_diff++;
  		}
- 		break;
-+	case 5:
-+		filterdownports_cache_file = strdup(optarg);
-+		break;
- 	case 'S':
- 		guid_str = optarg;
- 		guid = (uint64_t) strtoull(guid_str, 0, 0);
-@@ -539,6 +573,8 @@ int main(int argc, char **argv)
- 		 "filename of ibnetdiscover cache to diff"},
- 		{"diffcheck", 4, 1, "<key(s)>",
- 		 "specify checks to execute for --diff"},
-+		{"filterdownports", 5, 1, "<file>",
-+		 "filename of ibnetdiscover cache to filter downports"},
- 		{"outstanding_smps", 'o', 1, NULL,
- 		 "specify the number of outstanding SMP's which should be "
- 		 "issued during the scan"},
-@@ -593,6 +629,10 @@ int main(int argc, char **argv)
- 	    !(diff_fabric = ibnd_load_fabric(diff_cache_file, 0)))
- 		IBERROR("loading cached fabric for diff failed\n");
  
-+	if (filterdownports_cache_file &&
-+	    !(filterdownports_fabric = ibnd_load_fabric(filterdownports_cache_file, 0)))
-+		IBERROR("loading cached fabric for filterdownports failed\n");
++		if (data->diff_flags & DIFF_FLAG_PORT_CONNECTION
++		    && data->diff_flags & DIFF_FLAG_LID
++		    && fabric1_port && fabric2_port
++		    && fabric1_port->remoteport && fabric2_port->remoteport
++		    && fabric1_port->remoteport->base_lid != fabric2_port->remoteport->base_lid)
++			output_diff++;
 +
- 	if (load_cache_file) {
- 		if ((fabric = ibnd_load_fabric(load_cache_file, 0)) == NULL) {
- 			fprintf(stderr, "loading cached fabric failed\n");
++		if (data->diff_flags & DIFF_FLAG_PORT_CONNECTION
++		    && data->diff_flags & DIFF_FLAG_NODE_DESCRIPTION
++		    && fabric1_port && fabric2_port
++		    && fabric1_port->remoteport && fabric2_port->remoteport
++		    && memcmp(fabric1_port->remoteport->node->nodedesc,
++			      fabric2_port->remoteport->node->nodedesc,
++			      IB_SMP_DATA_SIZE))
++			output_diff++;
++
+ 		if (output_diff && fabric1_port) {
+ 			print_switch_header(fabric1_node,
+-					    &head_print,
++					    head_print,
+ 					    NULL);
+ 			print_port(fabric1_node,
+ 				   fabric1_port,
+@@ -319,7 +337,7 @@ void diff_switch_ports(ibnd_node_t * fabric1_node, ibnd_node_t * fabric2_node,
+ 
+ 		if (output_diff && fabric2_port) {
+ 			print_switch_header(fabric1_node,
+-					    &head_print,
++					    head_print,
+ 					    NULL);
+ 			print_port(fabric2_node,
+ 				   fabric2_port,
+@@ -340,7 +358,22 @@ void diff_switch_iter(ibnd_node_t * fabric1_node, void *iter_user_data)
+ 	if (!fabric2_node)
+ 		print_switch(fabric1_node, data->fabric1_prefix);
+ 	else if (data->diff_flags &
+-		 (DIFF_FLAG_PORT_CONNECTION | DIFF_FLAG_PORT_STATE)) {
++		 (DIFF_FLAG_PORT_CONNECTION | DIFF_FLAG_PORT_STATE
++		  | DIFF_FLAG_LID | DIFF_FLAG_NODE_DESCRIPTION)) {
++
++		if ((data->diff_flags & DIFF_FLAG_LID
++		     && fabric1_node->smalid != fabric2_node->smalid) ||
++		    (data->diff_flags & DIFF_FLAG_NODE_DESCRIPTION
++		     && memcmp(fabric1_node->nodedesc, fabric2_node->nodedesc,
++			       IB_SMP_DATA_SIZE))) {
++			print_switch_header(fabric1_node,
++					    NULL,
++					    data->fabric1_prefix);
++			print_switch_header(fabric2_node,
++					    NULL,
++					    data->fabric2_prefix);
++			head_print++;
++		}
+ 
+ 		if (fabric1_node->numports != fabric2_node->numports) {
+ 			print_switch_header(fabric1_node,
+@@ -377,13 +410,15 @@ int diff_switch(ibnd_node_t * node, ibnd_fabric_t * orig_fabric,
+ 	/* Do opposite diff to find existence of node types
+ 	 * in new_fabric but not in orig_fabric.
+ 	 *
+-	 * In this diff, we don't need to check port connections
+-	 * or port state since it has already been done (i.e.
+-	 * checks are only done when guid exists on both
++	 * In this diff, we don't need to check port connections,
++	 * port state, lids, or node descriptions since it has already
++	 * been done (i.e. checks are only done when guid exists on both
+ 	 * orig and new).
+ 	 */
+ 	iter_diff_data.diff_flags = diffcheck_flags & ~DIFF_FLAG_PORT_CONNECTION;
+ 	iter_diff_data.diff_flags &= ~DIFF_FLAG_PORT_STATE;
++	iter_diff_data.diff_flags &= ~DIFF_FLAG_LID;
++	iter_diff_data.diff_flags &= ~DIFF_FLAG_NODE_DESCRIPTION;
+ 	iter_diff_data.fabric1 = new_fabric;
+ 	iter_diff_data.fabric2 = orig_fabric;
+ 	iter_diff_data.fabric1_prefix = "> ";
+@@ -420,6 +455,10 @@ static int process_opt(void *context, int ch, char *optarg)
+ 				diffcheck_flags |= DIFF_FLAG_PORT_CONNECTION;
+ 			else if (!strcasecmp(p, "state"))
+ 				diffcheck_flags |= DIFF_FLAG_PORT_STATE;
++			else if (!strcasecmp(p, "lid"))
++				diffcheck_flags |= DIFF_FLAG_LID;
++			else if (!strcasecmp(p, "nodedesc"))
++				diffcheck_flags |= DIFF_FLAG_NODE_DESCRIPTION;
+ 			else {
+ 				fprintf(stderr, "invalid diff check key: %s\n",
+ 					p);
 -- 
 1.5.4.5
 
 
---=-MBTRVT2QelAdHKxD4Vvp--
+--=-hd+NSjrBzb0peWhaqoPR--
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
