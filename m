@@ -1,68 +1,398 @@
-From: Pradeep Satyanarayana <pradeeps-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
-Subject: Re: IB/ipoib: fix dangling pointer reference to ipoib_neigh and ipoib_path
- -when will it go upstream?
-Date: Thu, 15 Jul 2010 04:56:04 -0700
-Message-ID: <4C3EF754.4060502@linux.vnet.ibm.com>
-References: <4C3AA0A2.3090406@linux.vnet.ibm.com> <adapqysxup6.fsf@roland-alpha.cisco.com> <4C3C02B2.9040408@linux.vnet.ibm.com> <adaeif7xwwz.fsf@roland-alpha.cisco.com> <4C3D26D0.3090508@linux.vnet.ibm.com> <4C3DE512.3020903@linux.vnet.ibm.com>
+From: "Itay Berman" <itayb-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+Subject: RE: some dapl assistance
+Date: Thu, 15 Jul 2010 17:29:22 +0300
+Message-ID: <6D1AA8ED7402FF49AFAB26F0C948ACF5014B9894@exil.voltaire.com>
+References: <4C344493.2030600@Voltaire.com><E3280858FA94444CA49D2BA02341C983010435A1A8@orsmsx506.amr.corp.intel.com><4C3C50CC.7000508@Voltaire.com> <E3280858FA94444CA49D2BA02341C9830104493030@orsmsx506.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed;
+	boundary="----_=_NextPart_001_01CB242A.1E789360"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4C3DE512.3020903-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
+Content-class: urn:content-classes:message
+In-Reply-To: <E3280858FA94444CA49D2BA02341C9830104493030-osO9UTpF0URZtRGVdHMbwrfspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ralph Campbell <ralph.campbell-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>, Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+To: "Davis, Arlin R" <arlin.r.davis-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Or Gerlitz <ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org>
 Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Pradeep Satyanarayana wrote:
-> Pradeep Satyanarayana wrote:
->> Roland Dreier wrote:
->>>  > I guess I came to a premature conclusion. One set of tests ran fine and I made that
->>>  > conclusion. Another set of tests caused the following crash:
->>>
->>> I don't really know how to interpret this.  Is this crash new, or is it
->>> the same crash you were hoping this patch fixed?
->> This is a new crash.
-> 
-> I see other manifestations resulting in different crashes :
-> 
-> :mon> t
-> [c00000074603ba20] d0000000193527ac .ipoib_neigh_flush+0x6c/0x350 [ib_ipoib]
-> [c00000074603bb10] d000000019356dac .ipoib_mcast_free+0x74/0x2a0 [ib_ipoib]
-> [c00000074603bbe0] d000000019358558 .ipoib_mcast_restart_task+0x3d0/0x560 [ib_ipoib]
-> [c00000074603bd40] c0000000000c6fe4 .run_workqueue+0xf4/0x1e0
-> [c00000074603be00] c0000000000c7190 .worker_thread+0xc0/0x180
-> [c00000074603bed0] c0000000000ccf4c .kthread+0xb4/0xc0
-> [c00000074603bf90] c0000000000309fc .kernel_thread+0x54/0x70
-> 9:mon> e
-> cpu 0x9: Vector: 300 (Data Access) at [c00000074603b720]
->     pc: c0000000005ac390: ._spin_lock+0x20/0xc8
->     lr: d0000000193527ac: .ipoib_neigh_flush+0x6c/0x350 [ib_ipoib]
->     sp: c00000074603b9a0
->    msr: 8000000000009032
->    dar: 3a0
->  dsisr: 40000000
->   current = 0xc000000756ce8b00
->   paca    = 0xc000000000f63800
->     pid   = 18095, comm = ipoib
-> 9:mon>
+This is a multi-part message in MIME format.
 
-Recreating the crash has been tricky. I have tried several several hundred times today
-to unload and reload IPoIB while there is traffic and no crashes happened. I took
-a closer look at the IPoIB CM code and I see a few things that look suspicious.
+------_=_NextPart_001_01CB242A.1E789360
+Content-Type: text/plain;
+	charset="windows-1255"
+Content-Transfer-Encoding: quoted-printable
 
-In the ipoib_cm_send() path no priv->lock is held, whereas the priv->lock is held before 
-calling ipoib_cm_destroy_tx(). This is true with and without Ralph's patch (fix dangling pointer).
-Is this a potential race?
+Hello Arlin,
 
-In Roland's git tree I do see a test_and_clear_bit(IPOIB_FLAG_INITIALIZED, &tx->flags) in 
-ipoib_cm_destroy_tx() which seems to be missing in Ralph's patch. In Ralph's patch) there is a 
-clear_bit(IPOIB_FLAG_OPER_UP, &tx->flags) called before calling ipoib_cm_destroy_tx() only in 
-select cases. Was that intended?
+I am Or's colleague whom he assist with this manner.
 
-Thanks
-Pradeep
+OK, we got Intel MPI to run. To test the pkey usage we configured it to =
+run over pkey that is not configured on the node. In this case the MPI =
+should have failed, but it didn't.
+The dapl debug reports the given pkey (0x8001 =3D 32769).
+How can that be?
 
+See attached the different mpi run. I believe the devices are the =
+correct ones (ofa-v2*).=20
+
+Itay
+  =20
+
+-----Original Message-----
+From: Davis, Arlin R [mailto:arlin.r.davis-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org]=20
+Sent: =E2 13 =E9=E5=EC=E9 2010 19:19
+To: Or Gerlitz
+Cc: Itay Berman; linux-rdma
+Subject: RE: some dapl assistance
+
+Sorry, Intel MPI requires development packages which include libdat.so =
+and libdat2.so =20
+
+Please see the install instructions on =
+http://www.openfabrics.org/downloads/dapl/
+
+---
+
+For 1.2 and 2.0 support on same system, including development, install =
+RPM packages as follow:=20
+
+dapl-2.0.29-1=20
+dapl-utils-2.0.29-1=20
+dapl-devel-2.0.29-1      <<<<
+dapl-debuginfo-2.0.29-1=20
+compat-dapl-1.2.18-1=20
+compat-dapl-devel-1.2.18-1  <<<<
+
+---
+
+Thanks for the heads up on dat.conf manpage. I will fix the conflict in =
+next release.
+
+-arlin
+
+>-----Original Message-----
+>From: Or Gerlitz [mailto:ogerlitz-hKgKHo2Ms0FWk0Htik3J/w@public.gmane.org]=20
+>Sent: Tuesday, July 13, 2010 4:41 AM
+>To: Davis, Arlin R
+>Cc: Itay Berman; linux-rdma
+>Subject: Re: some dapl assistance
+>
+>Davis, Arlin R wrote:
+>> There is limited debug in the non-debug builds. If you want=20
+>full debugging capabilities
+>> you can install the source RPM and configure and make as=20
+>follows [..] (OFED target example):
+>
+>okay, got that, once I built the sources by hand as you=20
+>suggested I could see debug prints
+>but things didn't really work, so I stepped back and installed=20
+>the latest rpms - dapl-2.0.29-1
+>and compat-dapl-1.2.18-1, now I couldn't get intel-mpi to run:
+>
+>> [root@dodly0 ~]# rpm -qav | grep dapl
+>> dapl-utils-2.0.29-1
+>> dapl-2.0.29-1
+>> compat-dapl-1.2.18-1
+>
+>> [root@dodly0 ~]# ldconfig -p | grep libdat
+>>         libdat2.so.2 (libc6,x86-64) =3D> /usr/lib64/libdat2.so.2
+>>         libdat.so.1 (libc6,x86-64) =3D> /usr/lib64/libdat.so.1
+>
+>> [root@dodly0 ~]# rpm -qf /usr/lib64/libdat.so.1
+>> compat-dapl-1.2.18-1
+>> [root@dodly0 ~]# rpm -qf /usr/lib64/libdat2.so.2
+>> dapl-2.0.29-1
+>
+>> [root@dodly0 ~]#=20
+>/opt/intel/impi/4.0.0.027/intel64/bin/mpiexec -ppn 1 -n 2 =20
+>-env DAPL_IB_PKEY 0x8002 -env DAPL_DBG_TYPE 0xff -env=20
+>DAPL_DBG_DEST 0x3  -env I_MPI_DEBUG 3 -env=20
+>I_MPI_CHECK_DAPL_PROVIDER_MISMATCH none -env I_MPI_FABRICS=20
+>dapl:dapl /tmp/osu
+>> [0] MPI startup(): cannot open dynamic library libdat.so
+>> [1] MPI startup(): cannot open dynamic library libdat.so
+>> [0] MPI startup(): cannot open dynamic library libdat2.so
+>> [0] dapl fabric is not available and fallback fabric is not enabled
+>> [1] MPI startup(): cannot open dynamic library libdat2.so
+>> [1] dapl fabric is not available and fallback fabric is not enabled
+>> rank 1 in job 5  dodly0_54941   caused collective abort of all ranks
+>>   exit status of rank 1: return code 254
+>> rank 0 in job 5  dodly0_54941   caused collective abort of all ranks
+>>   exit status of rank 0: return code 254
+>
+>Any idea what we're doing wrong?
+>
+>BTW - before things stopped to work, exporting LD_DEBUG=3Dlibs=20
+>to the MPI rank,=20
+>I noticed that it used the compat-1.2 rpm ...
+>
+>Now, I can run dapltest fine,
+>> [root@dodly0 ~]# dapltest -T S -D ofa-v2-mthca0-1
+>> Dapltest: Service Point Ready - ofa-v2-mthca0-1
+>> Dapltest: Service Point Ready - ofa-v2-mthca0-1
+>> Server: Transaction Test Finished for this client
+>
+>> [root@dodly4 ~]# dapltest -T T -D ofa-v2-mlx4_0-1 -s dodly0=20
+>-i 1000 server SR 65536 4 client SR 65536 4
+>> Server Name: dodly0
+>> Server Net Address: 172.30.3.230
+>> DT_cs_Client: Starting Test ...
+>> ----- Stats ---- : 1 threads, 1 EPs
+>> Total WQE        :    2919.70 WQE/Sec
+>> Total Time       :       0.68 sec
+>> Total Send       :     262.14 MB -     382.69 MB/Sec
+>> Total Recv       :     262.14 MB -     382.69 MB/Sec
+>> Total RDMA Read  :       0.00 MB -       0.00 MB/Sec
+>> Total RDMA Write :       0.00 MB -       0.00 MB/Sec
+>> DT_cs_Client: =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D End of Work -- Client =
+Exiting
+>
+>I also noted that the dapl-utils and the compat-dapl-utils are=20
+>mutual exclusive as both=20
+>attempt to install the same man page for dat.conf
+>> # rpm -Uvh=20
+>/usr/src/redhat/RPMS/x86_64/compat-dapl-utils-1.2.18-1.x86_64.rpm
+>> Preparing...               =20
+>########################################### [100%]
+>>         file /usr/share/man/man5/dat.conf.5.gz from install=20
+>of compat-dapl-utils-1.2.18-1.x86_64 conflicts with file from=20
+>package dapl-utils-2.0.29-1.x86_64
+>
+>Or.
+>
+
+------_=_NextPart_001_01CB242A.1E789360
+Content-Type: text/plain;
+	name="impi.txt"
+Content-Transfer-Encoding: base64
+Content-Description: impi.txt
+Content-Disposition: attachment;
+	filename="impi.txt"
+
+DQpbcm9vdEBkb2RseTAgY29tcGF0LWRhcGwtMS4yLjE4XSMgbXBpZXhlYyAtcHBuIDEgLW4gMiAt
+ZW52IElfTVBJX0ZBQlJJQ1MgZGFwbDpkYXBsIC1lbnYgSV9NUElfREVCVUcgMiAtZW52IElfTVBJ
+X0NIRUNLX0RBUExfUFJPVklERVJfTUlTTUFUQ0ggbm9uZSAtZW52IERBUExfREJHX1RZUEUgMHhm
+ZmZmIC90bXAvb3N1DQpkb2RseTA6NDdiYTogZGFwbF9pbml0OiBkYmdfdHlwZT0weGZmZmYsZGJn
+X2Rlc3Q9MHgxDQpkb2RseTQ6ZTMyOiBkYXBsX2luaXQ6IGRiZ190eXBlPTB4ZmZmZixkYmdfZGVz
+dD0weDENCmRvZGx5MDo0N2JhOiAgb3Blbl9oY2E6IGRldmljZSBtbHg0XzAgbm90IGZvdW5kDQpk
+b2RseTA6NDdiYTogIG9wZW5faGNhOiBkZXZpY2UgbWx4NF8wIG5vdCBmb3VuZA0KZG9kbHkwOjQ3
+YmE6ICBxdWVyeV9oY2E6IHBvcnQubGlua19sYXllciA9IDB4MQ0KZG9kbHkwOjQ3YmE6ICBxdWVy
+eV9oY2E6IChhMC4wKSBlcHMgNjQ1MTIsIHN6IDE2Mzg0IGV2ZHMgNjU0MDgsIHN6IDEzMTA3MSBt
+dHUgMjA0OCAtIHBrZXkgMCBwX2lkeCAwIHNsIDANCmRvZGx5MDo0N2JhOiAgcXVlcnlfaGNhOiBt
+c2cgMjE0NzQ4MzY0OCByZG1hIDIxNDc0ODM2NDggaW92IDI3IGxtciAxMzEwNTYgcm1yIDAgYWNr
+X3RpbWUgMTYgbXIgNDI5NDk2NzI5NQ0KZG9kbHkwOjQ3YmE6ICBxdWVyeV9oY2E6IHBvcnQubGlu
+a19sYXllciA9IDB4MQ0KZG9kbHkwOjQ3YmE6ICBxdWVyeV9oY2E6IChhMC4wKSBlcHMgNjQ1MTIs
+IHN6IDE2Mzg0IGV2ZHMgNjU0MDgsIHN6IDEzMTA3MSBtdHUgMjA0OCAtIHBrZXkgMCBwX2lkeCAw
+IHNsIDANCmRvZGx5MDo0N2JhOiAgcXVlcnlfaGNhOiBtc2cgMjE0NzQ4MzY0OCByZG1hIDIxNDc0
+ODM2NDggaW92IDI3IGxtciAxMzEwNTYgcm1yIDAgYWNrX3RpbWUgMTYgbXIgNDI5NDk2NzI5NQ0K
+ZG9kbHkwOjQ3YmE6ICBxdWVyeV9oY2E6IHBvcnQubGlua19sYXllciA9IDB4MQ0KZG9kbHkwOjQ3
+YmE6ICBxdWVyeV9oY2E6IChhMC4wKSBlcHMgNjQ1MTIsIHN6IDE2Mzg0IGV2ZHMgNjU0MDgsIHN6
+IDEzMTA3MSBtdHUgMjA0OCAtIHBrZXkgMCBwX2lkeCAwIHNsIDANCmRvZGx5MDo0N2JhOiAgcXVl
+cnlfaGNhOiBtc2cgMjE0NzQ4MzY0OCByZG1hIDIxNDc0ODM2NDggaW92IDI3IGxtciAxMzEwNTYg
+cm1yIDAgYWNrX3RpbWUgMTYgbXIgNDI5NDk2NzI5NQ0KZG9kbHkwOjQ3YmE6ICBkYXBsX3BvbGw6
+IGZkPTE3IHJldD0xLCBldm50cz0weDENCmRvZGx5MDo0N2JhOiAgZGFwbF9wb2xsOiBmZD0xNyBy
+ZXQ9MCwgZXZudHM9MHgwDQpkb2RseTA6NDdiYTogIGRhcGxfcG9sbDogZmQ9MTQgcmV0PTAsIGV2
+bnRzPTB4MA0KWzBdIE1QSSBzdGFydHVwKCk6IERBUEwgcHJvdmlkZXIgb2ZhLXYyLW10aGNhMC0x
+DQpbMF0gTVBJIHN0YXJ0dXAoKTogZGFwbCBkYXRhIHRyYW5zZmVyIG1vZGUNCmRvZGx5NDplMzI6
+ICBxdWVyeV9oY2E6IHBvcnQubGlua19sYXllciA9IDB4MQ0KZG9kbHk0OmUzMjogIHF1ZXJ5X2hj
+YTogKGEwLjApIGVwcyAyNjIwNzYsIHN6IDE2MzUxIGV2ZHMgNjU0MDgsIHN6IDQxOTQzMDMgbXR1
+IDIwNDggLSBwa2V5IDAgcF9pZHggMCBzbCAwDQpkb2RseTQ6ZTMyOiAgcXVlcnlfaGNhOiBtc2cg
+MTA3Mzc0MTgyNCByZG1hIDEwNzM3NDE4MjQgaW92IDMyIGxtciA1MjQyNzIgcm1yIDAgYWNrX3Rp
+bWUgMTYgbXIgNDI5NDk2NzI5NQ0KZG9kbHk0OmUzMjogIHF1ZXJ5X2hjYTogcG9ydC5saW5rX2xh
+eWVyID0gMHgxDQpkb2RseTQ6ZTMyOiAgcXVlcnlfaGNhOiAoYTAuMCkgZXBzIDI2MjA3Niwgc3og
+MTYzNTEgZXZkcyA2NTQwOCwgc3ogNDE5NDMwMyBtdHUgMjA0OCAtIHBrZXkgMCBwX2lkeCAwIHNs
+IDANCmRvZGx5NDplMzI6ICBxdWVyeV9oY2E6IG1zZyAxMDczNzQxODI0IHJkbWEgMTA3Mzc0MTgy
+NCBpb3YgMzIgbG1yIDUyNDI3MiBybXIgMCBhY2tfdGltZSAxNiBtciA0Mjk0OTY3Mjk1DQpkb2Rs
+eTQ6ZTMyOiAgcXVlcnlfaGNhOiBwb3J0LmxpbmtfbGF5ZXIgPSAweDENCmRvZGx5NDplMzI6ICBx
+dWVyeV9oY2E6IChhMC4wKSBlcHMgMjYyMDc2LCBzeiAxNjM1MSBldmRzIDY1NDA4LCBzeiA0MTk0
+MzAzIG10dSAyMDQ4IC0gcGtleSAwIHBfaWR4IDAgc2wgMA0KZG9kbHk0OmUzMjogIHF1ZXJ5X2hj
+YTogbXNnIDEwNzM3NDE4MjQgcmRtYSAxMDczNzQxODI0IGlvdiAzMiBsbXIgNTI0MjcyIHJtciAw
+IGFja190aW1lIDE2IG1yIDQyOTQ5NjcyOTUNCmRvZGx5NDplMzI6ICBkYXBsX3BvbGw6IGZkPTE1
+IHJldD0xLCBldm50cz0weDENCmRvZGx5NDplMzI6ICBkYXBsX3BvbGw6IGZkPTE1IHJldD0wLCBl
+dm50cz0weDANCmRvZGx5NDplMzI6ICBkYXBsX3BvbGw6IGZkPTEzIHJldD0wLCBldm50cz0weDAN
+ClsxXSBNUEkgc3RhcnR1cCgpOiBEQVBMIHByb3ZpZGVyIG9mYS12Mi1tbHg0XzAtMQ0KWzFdIE1Q
+SSBzdGFydHVwKCk6IGRhcGwgZGF0YSB0cmFuc2ZlciBtb2RlDQpbMF0gTVBJIHN0YXJ0dXAoKTog
+c3RhdGljIGNvbm5lY3Rpb25zIHN0b3JtIGFsZ28NCmRvZGx5MDo0N2JhOiAgZGFwbF9wb2xsOiBm
+ZD0xNyByZXQ9MSwgZXZudHM9MHgxDQpkb2RseTA6NDdiYTogIGRhcGxfcG9sbDogZmQ9MTcgcmV0
+PTAsIGV2bnRzPTB4MA0KZG9kbHkwOjQ3YmE6ICBkYXBsX3BvbGw6IGZkPTE0IHJldD0wLCBldm50
+cz0weDANCmRvZGx5MDo0N2JhOiAgZGFwbF9wb2xsOiBmZD0xOSByZXQ9MCwgZXZudHM9MHgwDQpk
+b2RseTA6NDdiYTogIGRhcGxfcG9sbDogZmQ9MTcgcmV0PTAsIGV2bnRzPTB4MA0KZG9kbHkwOjQ3
+YmE6ICBkYXBsX3BvbGw6IGZkPTE0IHJldD0wLCBldm50cz0weDANCmRvZGx5MDo0N2JhOiAgZGFw
+bF9wb2xsOiBmZD0xOSByZXQ9MSwgZXZudHM9MHg0DQpkb2RseTA6NDdiYTogIGRhcGxfcG9sbDog
+ZmQ9MTcgcmV0PTAsIGV2bnRzPTB4MA0KZG9kbHkwOjQ3YmE6ICBkYXBsX3BvbGw6IGZkPTE0IHJl
+dD0wLCBldm50cz0weDANCmRvZGx5MDo0N2JhOiAgZGFwbF9wb2xsOiBmZD0xOSByZXQ9MCwgZXZu
+dHM9MHgwDQpkb2RseTQ6ZTMyOiAgZGFwbF9wb2xsOiBmZD0xNSByZXQ9MCwgZXZudHM9MHgwDQpk
+b2RseTQ6ZTMyOiAgZGFwbF9wb2xsOiBmZD0xMyByZXQ9MSwgZXZudHM9MHgxDQpkb2RseTQ6ZTMy
+OiAgZGFwbF9wb2xsOiBmZD0xMyByZXQ9MCwgZXZudHM9MHgwDQpkb2RseTQ6ZTMyOiAgZGFwbF9w
+b2xsOiBmZD0xNSByZXQ9MSwgZXZudHM9MHgxDQpkb2RseTQ6ZTMyOiAgZGFwbF9wb2xsOiBmZD0x
+NSByZXQ9MCwgZXZudHM9MHgwDQpkb2RseTQ6ZTMyOiAgZGFwbF9wb2xsOiBmZD0xMyByZXQ9MCwg
+ZXZudHM9MHgwDQpkb2RseTQ6ZTMyOiAgZGFwbF9wb2xsOiBmZD0xNyByZXQ9MSwgZXZudHM9MHgx
+DQpkb2RseTA6NDdiYTogIGRhcGxfcG9sbDogZmQ9MTcgcmV0PTAsIGV2bnRzPTB4MA0KZG9kbHkw
+OjQ3YmE6ICBkYXBsX3BvbGw6IGZkPTE0IHJldD0wLCBldm50cz0weDANCmRvZGx5MDo0N2JhOiAg
+ZGFwbF9wb2xsOiBmZD0xOSByZXQ9MSwgZXZudHM9MHgxDQpkb2RseTQ6ZTMyOiAgZGFwbF9wb2xs
+OiBmZD0xNSByZXQ9MCwgZXZudHM9MHgwDQpkb2RseTQ6ZTMyOiAgZGFwbF9wb2xsOiBmZD0xMyBy
+ZXQ9MCwgZXZudHM9MHgwDQpkb2RseTQ6ZTMyOiAgZGFwbF9wb2xsOiBmZD0xNyByZXQ9MSwgZXZu
+dHM9MHgxDQojIE9TVSBNUEkgQmFuZHdpZHRoIFRlc3QgdjMuMS4xDQojIFNpemUgICAgICAgIEJh
+bmR3aWR0aCAoTUIvcykNCjEgICAgICAgICAgICAgICAgICAgICAgICAgMC40Mg0KMiAgICAgICAg
+ICAgICAgICAgICAgICAgICAwLjg1DQo0ICAgICAgICAgICAgICAgICAgICAgICAgIDEuNzANCjgg
+ICAgICAgICAgICAgICAgICAgICAgICAgMy4zOA0KMTYgICAgICAgICAgICAgICAgICAgICAgICA2
+Ljc1DQozMiAgICAgICAgICAgICAgICAgICAgICAgMTMuNDUNCjY0ICAgICAgICAgICAgICAgICAg
+ICAgICAyNi42Ng0KMTI4ICAgICAgICAgICAgICAgICAgICAgIDUyLjQzDQoyNTYgICAgICAgICAg
+ICAgICAgICAgICAxMDIuNDENCjUxMiAgICAgICAgICAgICAgICAgICAgIDE5Ni4wNQ0KMTAyNCAg
+ICAgICAgICAgICAgICAgICAgMzUwLjgwDQoyMDQ4ICAgICAgICAgICAgICAgICAgICA1NTkuOTIN
+CjQwOTYgICAgICAgICAgICAgICAgICAgIDY4Mi4zMw0KODE5MiAgICAgICAgICAgICAgICAgICAg
+NzQ4LjcyDQoxNjM4NCAgICAgICAgICAgICAgICAgICA3ODYuODMNCjMyNzY4ICAgICAgICAgICAg
+ICAgICAgIDY3NC4wOA0KNjU1MzYgICAgICAgICAgICAgICAgICAgNzk1Ljg0DQoxMzEwNzIgICAg
+ICAgICAgICAgICAgICA4NzguNzgNCjI2MjE0NCAgICAgICAgICAgICAgICAgIDkyNy43NQ0KNTI0
+Mjg4ICAgICAgICAgICAgICAgICAgOTQ5LjYxDQoxMDQ4NTc2ICAgICAgICAgICAgICAgICA5NjUu
+NTENCjIwOTcxNTIgICAgICAgICAgICAgICAgIDk3NC4xNA0KNDE5NDMwNCAgICAgICAgICAgICAg
+ICAgOTc4LjY0DQpkb2RseTA6NDdiYTogIGRhcGxfcG9sbDogZmQ9MTcgcmV0PTEsIGV2bnRzPTB4
+MQ0KZG9kbHkwOjQ3YmE6ICBkYXBsX3BvbGw6IGZkPTE3IHJldD0wLCBldm50cz0weDANCmRvZGx5
+MDo0N2JhOiAgZGFwbF9wb2xsOiBmZD0xNCByZXQ9MCwgZXZudHM9MHgwDQpkb2RseTA6NDdiYTog
+IENNIEZSRUU6IDB4MTNjOTM5YzAgZXA9MHgxM2M4MGI2MCBzdD1DTV9GUkVFIHNjaz0xOSByZWZz
+PTQNCmRvZGx5NDplMzI6ICBkYXBsX3BvbGw6IGZkPTE1IHJldD0wLCBldm50cz0weDANCmRvZGx5
+NDplMzI6ICBkYXBsX3BvbGw6IGZkPTEzIHJldD0wLCBldm50cz0weDANCmRvZGx5NDplMzI6ICBk
+YXBsX3BvbGw6IGZkPTE3IHJldD0xLCBldm50cz0weDENCmRvZGx5MDo0N2JhOiBkYXBsX2VwX2Zy
+ZWU6IEZyZWUgQ006IEVQPTB4MTNjODBiNjAgQ009MHgxM2M5MzljMA0KZG9kbHk0OmUzMjogIGRh
+cGxfcG9sbDogZmQ9MTUgcmV0PTEsIGV2bnRzPTB4MQ0KZG9kbHk0OmUzMjogIGRhcGxfcG9sbDog
+ZmQ9MTUgcmV0PTAsIGV2bnRzPTB4MA0KZG9kbHk0OmUzMjogIGRhcGxfcG9sbDogZmQ9MTMgcmV0
+PTAsIGV2bnRzPTB4MA0KZG9kbHk0OmUzMjogIENNIEZSRUU6IDB4MmYwOGY3MCBlcD0weDJmMDkz
+NzAgc3Q9Q01fRlJFRSBzY2s9MTcgcmVmcz00DQpkb2RseTA6NDdiYTogIGNtX2ZyZWU6IGNtIDB4
+MTNjOTM5YzAgQ01fRlJFRSBlcCAweDEzYzgwYjYwIHJlZnM9MQ0KZG9kbHk0OmUzMjogZGFwbF9l
+cF9mcmVlOiBGcmVlIENNOiBFUD0weDJmMDkzNzAgQ009MHgyZjA4ZjcwDQpkb2RseTQ6ZTMyOiAg
+Y21fZnJlZTogY20gMHgyZjA4ZjcwIENNX0ZSRUUgZXAgMHgyZjA5MzcwIHJlZnM9MQ0KZG9kbHk0
+OmUzMjogIGRhcGxfcG9sbDogZmQ9MTUgcmV0PTEsIGV2bnRzPTB4MQ0KZG9kbHk0OmUzMjogIGRh
+cGxfcG9sbDogZmQ9MTUgcmV0PTAsIGV2bnRzPTB4MA0KZG9kbHk0OmUzMjogIENNIEZSRUU6IDB4
+MmYxOWNlMCBlcD0obmlsKSBzdD1DTV9GUkVFIHNjaz0xMyByZWZzPTMNCmRvZGx5MDo0N2JhOiBk
+b2RseTQ6ZTMyOiAgZGFwbF9wb2xsOiBmZD0xNSByZXQ9MSwgZXZudHM9MHgxDQpkb2RseTQ6ZTMy
+OiAgZGFwbF9wb2xsOiBmZD0xNSByZXQ9MCwgZXZudHM9MHgwDQogZGFwbF9wb2xsOiBmZD0xNyBy
+ZXQ9MSwgZXZudHM9MHgxDQpkb2RseTA6NDdiYTogIGRhcGxfcG9sbDogZmQ9MTcgcmV0PTEsIGV2
+bnRzPTB4MQ0KZG9kbHkwOjQ3YmE6ICBkYXBsX3BvbGw6IGZkPTE3IHJldD0xLCBldm50cz0weDEN
+CmRvZGx5MDo0N2JhOiAgZGFwbF9wb2xsOiBmZD0xNyByZXQ9MCwgZXZudHM9MHgwDQpkb2RseTA6
+NDdiYTogIENNIEZSRUU6IDB4MTNjN2Y5NDAgZXA9KG5pbCkgc3Q9Q01fRlJFRSBzY2s9MTQgcmVm
+cz0zDQoNCg0KDQpbcm9vdEBkb2RseTAgY29tcGF0LWRhcGwtMS4yLjE4XSMgbXBpZXhlYyAtcHBu
+IDEgLW4gMiAtZW52IElfTVBJX0ZBQlJJQ1MgZGFwbDpkYXBsIC1lbnYgSV9NUElfREVCVUcgMiAt
+ZW52IElfTVBJX0NIRUNLX0RBUExfUFJPVklERVJfTUlTTUFUQ0ggbm9uZSAtZW52IERBUExfREJH
+X1RZUEUgMHhmZmZmIC90bXAvb3N1DQpkb2RseTA6M2IzNzogZGFwbF9pbml0OiBkYmdfdHlwZT0w
+eGZmZmYsZGJnX2Rlc3Q9MHgxDQpkb2RseTQ6MjM3OiBkYXBsX2luaXQ6IGRiZ190eXBlPTB4ZmZm
+ZixkYmdfZGVzdD0weDENCmRvZGx5MDozYjM3OiAgb3Blbl9oY2E6IGRldmljZSBtbHg0XzAgbm90
+IGZvdW5kDQpkb2RseTA6M2IzNzogIG9wZW5faGNhOiBkZXZpY2UgbWx4NF8wIG5vdCBmb3VuZA0K
+ZG9kbHkwOjNiMzc6ICBXYXJuaW5nOiBuZXcgcGtleSgzMjc2OSksIHF1ZXJ5IChTdWNjZXNzKSBl
+cnIgb3Iga2V5ICFmb3VuZCwgdXNpbmcgZGVmYXVsdHMNCmRvZGx5MDozYjM3OiAgcXVlcnlfaGNh
+OiBwb3J0LmxpbmtfbGF5ZXIgPSAweDENCmRvZGx5MDozYjM3OiAgcXVlcnlfaGNhOiAoYTAuMCkg
+ZXBzIDY0NTEyLCBzeiAxNjM4NCBldmRzIDY1NDA4LCBzeiAxMzEwNzEgbXR1IDIwNDggLSBwa2V5
+IDMyNzY5IHBfaWR4IDAgc2wgMA0KZG9kbHkwOjNiMzc6ICBxdWVyeV9oY2E6IG1zZyAyMTQ3NDgz
+NjQ4IHJkbWEgMjE0NzQ4MzY0OCBpb3YgMjcgbG1yIDEzMTA1NiBybXIgMCBhY2tfdGltZSAxNiBt
+ciA0Mjk0OTY3Mjk1DQpkb2RseTA6M2IzNzogIFdhcm5pbmc6IG5ldyBwa2V5KDMyNzY5KSwgcXVl
+cnkgKFN1Y2Nlc3MpIGVyciBvciBrZXkgIWZvdW5kLCB1c2luZyBkZWZhdWx0cw0KZG9kbHkwOjNi
+Mzc6ICBxdWVyeV9oY2E6IHBvcnQubGlua19sYXllciA9IDB4MQ0KZG9kbHkwOjNiMzc6ICBxdWVy
+eV9oY2E6IChhMC4wKSBlcHMgNjQ1MTIsIHN6IDE2Mzg0IGV2ZHMgNjU0MDgsIHN6IDEzMTA3MSBt
+dHUgMjA0OCAtIHBrZXkgMzI3NjkgcF9pZHggMCBzbCAwDQpkb2RseTA6M2IzNzogIHF1ZXJ5X2hj
+YTogbXNnIDIxNDc0ODM2NDggcmRtYSAyMTQ3NDgzNjQ4IGlvdiAyNyBsbXIgMTMxMDU2IHJtciAw
+IGFja190aW1lIDE2IG1yIDQyOTQ5NjcyOTUNCmRvZGx5MDozYjM3OiAgV2FybmluZzogbmV3IHBr
+ZXkoMzI3NjkpLCBxdWVyeSAoU3VjY2VzcykgZXJyIG9yIGtleSAhZm91bmQsIHVzaW5nIGRlZmF1
+bHRzDQpkb2RseTA6M2IzNzogIHF1ZXJ5X2hjYTogcG9ydC5saW5rX2xheWVyID0gMHgxDQpkb2Rs
+eTA6M2IzNzogIHF1ZXJ5X2hjYTogKGEwLjApIGVwcyA2NDUxMiwgc3ogMTYzODQgZXZkcyA2NTQw
+OCwgc3ogMTMxMDcxIG10dSAyMDQ4IC0gcGtleSAzMjc2OSBwX2lkeCAwIHNsIDANCmRvZGx5MDoz
+YjM3OiAgcXVlcnlfaGNhOiBtc2cgMjE0NzQ4MzY0OCByZG1hIDIxNDc0ODM2NDggaW92IDI3IGxt
+ciAxMzEwNTYgcm1yIDAgYWNrX3RpbWUgMTYgbXIgNDI5NDk2NzI5NQ0KZG9kbHkwOjNiMzc6ICBk
+YXBsX3BvbGw6IGZkPTE3IHJldD0xLCBldm50cz0weDENCmRvZGx5MDozYjM3OiAgZGFwbF9wb2xs
+OiBmZD0xNyByZXQ9MCwgZXZudHM9MHgwDQpkb2RseTA6M2IzNzogIGRhcGxfcG9sbDogZmQ9MTQg
+cmV0PTAsIGV2bnRzPTB4MA0KZG9kbHk0OjIzNzogIFdhcm5pbmc6IG5ldyBwa2V5KDMyNzY5KSwg
+cXVlcnkgKFN1Y2Nlc3MpIGVyciBvciBrZXkgIWZvdW5kLCB1c2luZyBkZWZhdWx0cw0KZG9kbHk0
+OjIzNzogIHF1ZXJ5X2hjYTogcG9ydC5saW5rX2xheWVyID0gMHgxDQpkb2RseTQ6MjM3OiAgcXVl
+cnlfaGNhOiAoYTAuMCkgZXBzIDI2MjA3Niwgc3ogMTYzNTEgZXZkcyA2NTQwOCwgc3ogNDE5NDMw
+MyBtdHUgMjA0OCAtIHBrZXkgMzI3NjkgcF9pZHggMCBzbCAwDQpkb2RseTQ6MjM3OiAgcXVlcnlf
+aGNhOiBtc2cgMTA3Mzc0MTgyNCByZG1hIDEwNzM3NDE4MjQgaW92IDMyIGxtciA1MjQyNzIgcm1y
+IDAgYWNrX3RpbWUgMTYgbXIgNDI5NDk2NzI5NQ0KWzBdIE1QSSBzdGFydHVwKCk6IERBUEwgcHJv
+dmlkZXIgb2ZhLXYyLW10aGNhMC0xDQpbMF0gTVBJIHN0YXJ0dXAoKTogZGFwbCBkYXRhIHRyYW5z
+ZmVyIG1vZGUNCmRvZGx5NDoyMzc6ICBXYXJuaW5nOiBuZXcgcGtleSgzMjc2OSksIHF1ZXJ5IChT
+dWNjZXNzKSBlcnIgb3Iga2V5ICFmb3VuZCwgdXNpbmcgZGVmYXVsdHMNCmRvZGx5NDoyMzc6ICBx
+dWVyeV9oY2E6IHBvcnQubGlua19sYXllciA9IDB4MQ0KZG9kbHk0OjIzNzogIHF1ZXJ5X2hjYTog
+KGEwLjApIGVwcyAyNjIwNzYsIHN6IDE2MzUxIGV2ZHMgNjU0MDgsIHN6IDQxOTQzMDMgbXR1IDIw
+NDggLSBwa2V5IDMyNzY5IHBfaWR4IDAgc2wgMA0KZG9kbHk0OjIzNzogIHF1ZXJ5X2hjYTogbXNn
+IDEwNzM3NDE4MjQgcmRtYSAxMDczNzQxODI0IGlvdiAzMiBsbXIgNTI0MjcyIHJtciAwIGFja190
+aW1lIDE2IG1yIDQyOTQ5NjcyOTUNCmRvZGx5NDoyMzc6ICBXYXJuaW5nOiBuZXcgcGtleSgzMjc2
+OSksIHF1ZXJ5IChTdWNjZXNzKSBlcnIgb3Iga2V5ICFmb3VuZCwgdXNpbmcgZGVmYXVsdHMNCmRv
+ZGx5NDoyMzc6ICBxdWVyeV9oY2E6IHBvcnQubGlua19sYXllciA9IDB4MQ0KZG9kbHk0OjIzNzog
+IHF1ZXJ5X2hjYTogKGEwLjApIGVwcyAyNjIwNzYsIHN6IDE2MzUxIGV2ZHMgNjU0MDgsIHN6IDQx
+OTQzMDMgbXR1IDIwNDggLSBwa2V5IDMyNzY5IHBfaWR4IDAgc2wgMA0KZG9kbHk0OjIzNzogIHF1
+ZXJ5X2hjYTogbXNnIDEwNzM3NDE4MjQgcmRtYSAxMDczNzQxODI0IGlvdiAzMiBsbXIgNTI0Mjcy
+IHJtciAwIGFja190aW1lIDE2IG1yIDQyOTQ5NjcyOTUNCmRvZGx5NDoyMzc6ICBkYXBsX3BvbGw6
+IGZkPTE1IHJldD0xLCBldm50cz0weDENCmRvZGx5NDoyMzc6ICBkYXBsX3BvbGw6IGZkPTE1IHJl
+dD0wLCBldm50cz0weDANCmRvZGx5NDoyMzc6ICBkYXBsX3BvbGw6IGZkPTEzIHJldD0wLCBldm50
+cz0weDANClsxXSBNUEkgc3RhcnR1cCgpOiBEQVBMIHByb3ZpZGVyIG9mYS12Mi1tbHg0XzAtMQ0K
+WzFdIE1QSSBzdGFydHVwKCk6IGRhcGwgZGF0YSB0cmFuc2ZlciBtb2RlDQpbMF0gTVBJIHN0YXJ0
+dXAoKTogc3RhdGljIGNvbm5lY3Rpb25zIHN0b3JtIGFsZ28NCmRvZGx5MDozYjM3OiAgZGFwbF9w
+b2xsOiBmZD0xNyByZXQ9MSwgZXZudHM9MHgxDQpkb2RseTA6M2IzNzogIGRhcGxfcG9sbDogZmQ9
+MTcgcmV0PTAsIGV2bnRzPTB4MA0KZG9kbHkwOjNiMzc6ICBkYXBsX3BvbGw6IGZkPTE0IHJldD0w
+LCBldm50cz0weDANCmRvZGx5MDozYjM3OiAgZGFwbF9wb2xsOiBmZD0xOSByZXQ9MCwgZXZudHM9
+MHgwDQpkb2RseTA6M2IzNzogIGRhcGxfcG9sbDogZmQ9MTcgcmV0PTAsIGV2bnRzPTB4MA0KZG9k
+bHkwOjNiMzc6ICBkYXBsX3BvbGw6IGZkPTE0IHJldD0wLCBldm50cz0weDANCmRvZGx5MDozYjM3
+OiAgZGFwbF9wb2xsOiBmZD0xOSByZXQ9MSwgZXZudHM9MHg0DQpkb2RseTA6M2IzNzogIGRhcGxf
+cG9sbDogZmQ9MTcgcmV0PTAsIGV2bnRzPTB4MA0KZG9kbHkwOjNiMzc6ICBkYXBsX3BvbGw6IGZk
+PTE0IHJldD0wLCBldm50cz0weDANCmRvZGx5MDozYjM3OiAgZGFwbF9wb2xsOiBmZD0xOSByZXQ9
+MCwgZXZudHM9MHgwDQpkb2RseTQ6MjM3OiAgZGFwbF9wb2xsOiBmZD0xNSByZXQ9MCwgZXZudHM9
+MHgwDQpkb2RseTQ6MjM3OiAgZGFwbF9wb2xsOiBmZD0xMyByZXQ9MSwgZXZudHM9MHgxDQpkb2Rs
+eTQ6MjM3OiAgZGFwbF9wb2xsOiBmZD0xMyByZXQ9MCwgZXZudHM9MHgwDQpkb2RseTQ6MjM3OiAg
+ZGFwbF9wb2xsOiBmZD0xNSByZXQ9MSwgZXZudHM9MHgxDQpkb2RseTQ6MjM3OiAgZGFwbF9wb2xs
+OiBmZD0xNSByZXQ9MCwgZXZudHM9MHgwDQpkb2RseTQ6MjM3OiAgZGFwbF9wb2xsOiBmZD0xMyBy
+ZXQ9MCwgZXZudHM9MHgwDQpkb2RseTQ6MjM3OiAgZGFwbF9wb2xsOiBmZD0xNyByZXQ9MSwgZXZu
+dHM9MHgxDQpkb2RseTA6M2IzNzogIGRhcGxfcG9sbDogZmQ9MTcgcmV0PTAsIGV2bnRzPTB4MA0K
+ZG9kbHkwOjNiMzc6ICBkYXBsX3BvbGw6IGZkPTE0IHJldD0wLCBldm50cz0weDANCmRvZGx5MDoz
+YjM3OiAgZGFwbF9wb2xsOiBmZD0xOSByZXQ9MSwgZXZudHM9MHgxDQpkb2RseTQ6MjM3OiAgZGFw
+bF9wb2xsOiBmZD0xNSByZXQ9MCwgZXZudHM9MHgwDQpkb2RseTQ6MjM3OiAgZGFwbF9wb2xsOiBm
+ZD0xMyByZXQ9MCwgZXZudHM9MHgwDQpkb2RseTQ6MjM3OiAgZGFwbF9wb2xsOiBmZD0xNyByZXQ9
+MSwgZXZudHM9MHgxDQojIE9TVSBNUEkgQmFuZHdpZHRoIFRlc3QgdjMuMS4xDQojIFNpemUgICAg
+ICAgIEJhbmR3aWR0aCAoTUIvcykNCjEgICAgICAgICAgICAgICAgICAgICAgICAgMC40Mg0KMiAg
+ICAgICAgICAgICAgICAgICAgICAgICAwLjg1DQo0ICAgICAgICAgICAgICAgICAgICAgICAgIDEu
+NjkNCjggICAgICAgICAgICAgICAgICAgICAgICAgMy4zNw0KMTYgICAgICAgICAgICAgICAgICAg
+ICAgICA2Ljc0DQozMiAgICAgICAgICAgICAgICAgICAgICAgMTMuNDUNCjY0ICAgICAgICAgICAg
+ICAgICAgICAgICAyNi43MA0KMTI4ICAgICAgICAgICAgICAgICAgICAgIDUyLjQ1DQoyNTYgICAg
+ICAgICAgICAgICAgICAgICAxMDIuMTINCjUxMiAgICAgICAgICAgICAgICAgICAgIDE5NS42OA0K
+MTAyNCAgICAgICAgICAgICAgICAgICAgMzQ5Ljc1DQoyMDQ4ICAgICAgICAgICAgICAgICAgICA1
+NTUuOTgNCjQwOTYgICAgICAgICAgICAgICAgICAgIDY4MS45NA0KODE5MiAgICAgICAgICAgICAg
+ICAgICAgNzQ3LjI5DQoxNjM4NCAgICAgICAgICAgICAgICAgICA3ODUuNzINCjMyNzY4ICAgICAg
+ICAgICAgICAgICAgIDY3NS4yNw0KNjU1MzYgICAgICAgICAgICAgICAgICAgNzk3LjM4DQoxMzEw
+NzIgICAgICAgICAgICAgICAgICA4NzkuMTcNCjI2MjE0NCAgICAgICAgICAgICAgICAgIDkyOC4x
+Ng0KNTI0Mjg4ICAgICAgICAgICAgICAgICAgOTQ5LjIwDQoxMDQ4NTc2ICAgICAgICAgICAgICAg
+ICA5NjUuMzgNCjIwOTcxNTIgICAgICAgICAgICAgICAgIDk3NC4xMQ0KNDE5NDMwNCAgICAgICAg
+ICAgICAgICAgOTc4LjU2DQpkb2RseTA6M2IzNzogIGRhcGxfcG9sbDogZmQ9MTcgcmV0PTEsIGV2
+bnRzPTB4MQ0KZG9kbHkwOjNiMzc6ICBkYXBsX3BvbGw6IGZkPTE3IHJldD0wLCBldm50cz0weDAN
+CmRvZGx5MDozYjM3OiAgZGFwbF9wb2xsOiBmZD0xNCByZXQ9MCwgZXZudHM9MHgwDQpkb2RseTA6
+M2IzNzogIENNIEZSRUU6IDB4MWYyZDRiNDAgZXA9MHgxZjJjMWI5MCBzdD1DTV9GUkVFIHNjaz0x
+OSByZWZzPTQNCmRvZGx5NDoyMzc6ICBkYXBsX3BvbGw6IGZkPTE1IHJldD0wLCBldm50cz0weDAN
+CmRvZGx5NDoyMzc6ICBkYXBsX3BvbGw6IGZkPTEzIHJldD0wLCBldm50cz0weDANCmRvZGx5NDoy
+Mzc6ICBkYXBsX3BvbGw6IGZkPTE3IHJldD0xLCBldm50cz0weDENCmRvZGx5NDoyMzc6ICBkYXBs
+X3BvbGw6IGZkPTE1IHJldD0xLCBldm50cz0weDENCmRvZGx5NDoyMzc6ICBkYXBsX3BvbGw6IGZk
+PTE1IHJldD0wLCBldm50cz0weDANCmRvZGx5NDoyMzc6ICBkYXBsX3BvbGw6IGZkPTEzIHJldD0w
+LCBldm50cz0weDANCmRvZGx5NDoyMzc6ICBDTSBGUkVFOiAweDE3MGYzZjcwIGVwPTB4MTcwZjQz
+NzAgc3Q9Q01fRlJFRSBzY2s9MTcgcmVmcz00DQpkb2RseTA6M2IzNzogZGFwbF9lcF9mcmVlOiBG
+cmVlIENNOiBFUD0weDFmMmMxYjkwIENNPTB4MWYyZDRiNDANCmRvZGx5MDozYjM3OiAgY21fZnJl
+ZTogY20gMHgxZjJkNGI0MCBDTV9GUkVFIGVwIDB4MWYyYzFiOTAgcmVmcz0xDQpkb2RseTQ6MjM3
+OiBkYXBsX2VwX2ZyZWU6IEZyZWUgQ006IEVQPTB4MTcwZjQzNzAgQ009MHgxNzBmM2Y3MA0KZG9k
+bHk0OjIzNzogIGNtX2ZyZWU6IGNtIDB4MTcwZjNmNzAgQ01fRlJFRSBlcCAweDE3MGY0MzcwIHJl
+ZnM9MQ0KZG9kbHkwOjNiMzc6ICBkYXBsX3BvbGw6IGZkPTE3IHJldD0xLCBldm50cz0weDENCmRv
+ZGx5NDoyMzc6ICBkYXBsX3BvbGw6IGZkPTE1IHJldD0xLCBldm50cz0weDENCmRvZGx5NDoyMzc6
+ICBkYXBsX3BvbGw6IGZkPTE1IHJldD0xLCBldm50cz0weDENCmRvZGx5NDoyMzc6ICBkYXBsX3Bv
+bGw6IGZkPTE1IHJldD0xLCBldm50cz0weDENCmRvZGx5NDoyMzc6ICBkYXBsX3BvbGw6IGZkPTE1
+IHJldD0wLCBldm50cz0weDANCmRvZGx5NDoyMzc6ICBDTSBGUkVFOiAweDE3MTA0ZDkwIGVwPShu
+aWwpIHN0PUNNX0ZSRUUgc2NrPTEzIHJlZnM9Mw0KZG9kbHkwOjNiMzc6ICBkYXBsX3BvbGw6IGZk
+PTE3IHJldD0xLCBldm50cz0weDENCmRvZGx5MDozYjM3OiAgZGFwbF9wb2xsOiBmZD0xNyByZXQ9
+MSwgZXZudHM9MHgxDQpkb2RseTA6M2IzNzogIGRhcGxfcG9sbDogZmQ9MTcgcmV0PTAsIGV2bnRz
+PTB4MA0KZG9kbHkwOjNiMzc6ICBDTSBGUkVFOiAweDFmMmMwOWYwIGVwPShuaWwpIHN0PUNNX0ZS
+RUUgc2NrPTE0IHJlZnM9Mw0KDQoNCltyb290QGRvZGx5MCBjb21wYXQtZGFwbC0xLjIuMThdIyBz
+bXBxdWVyeSBQS2V5VGFibGUgNA0KICAgMDogMHhmZmZmIDB4ODAwMiAweDAwMDAgMHgwMDAwIDB4
+MDAwMCAweDAwMDAgMHgwMDAwIDB4MDAwMA0KICAgODogMHgwMDAwIDB4MDAwMCAweDAwMDAgMHgw
+MDAwIDB4MDAwMCAweDAwMDAgMHgwMDAwIDB4MDAwMA0KICAxNjogMHgwMDAwIDB4MDAwMCAweDAw
+MDAgMHgwMDAwIDB4MDAwMCAweDAwMDAgMHgwMDAwIDB4MDAwMA0KICAyNDogMHgwMDAwIDB4MDAw
+MCAweDAwMDAgMHgwMDAwIDB4MDAwMCAweDAwMDAgMHgwMDAwIDB4MDAwMA0KICAzMjogMHgwMDAw
+IDB4MDAwMCAweDAwMDAgMHgwMDAwIDB4MDAwMCAweDAwMDAgMHgwMDAwIDB4MDAwMA0KICA0MDog
+MHgwMDAwIDB4MDAwMCAweDAwMDAgMHgwMDAwIDB4MDAwMCAweDAwMDAgMHgwMDAwIDB4MDAwMA0K
+ICA0ODogMHgwMDAwIDB4MDAwMCAweDAwMDAgMHgwMDAwIDB4MDAwMCAweDAwMDAgMHgwMDAwIDB4
+MDAwMA0KICA1NjogMHgwMDAwIDB4MDAwMCAweDAwMDAgMHgwMDAwIDB4MDAwMCAweDAwMDAgMHgw
+MDAwIDB4MDAwMA0KNjQgcGtleXMgY2FwYWNpdHkgZm9yIHRoaXMgcG9ydA0KDQoNCg==
+
+------_=_NextPart_001_01CB242A.1E789360--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
