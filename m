@@ -1,80 +1,67 @@
-From: Gyorgy Jeney <nog.lkml-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: NFS over RDMA problem: svcrdma: Error fast registering memory for
-	xprt ffff8803307d7400
-Date: Wed, 14 Jul 2010 23:17:23 +0200
-Message-ID: <AANLkTik-BR1txJIbbzaB8YKJQM5lswbmWpbhKSdeUseg@mail.gmail.com>
-References: <AANLkTinjZfpICMjP1EcU4CPAe1TwxKp1zsk-lwX6fmzA@mail.gmail.com>
+From: Arthur Kepner <akepner-sJ/iWh9BUns@public.gmane.org>
+Subject: [PATCH/RESEND] mlx4_core: module param to limit msix vec allocation
+Date: Wed, 14 Jul 2010 18:17:53 -0700
+Message-ID: <20100715011753.GO5823@sgi.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <AANLkTinjZfpICMjP1EcU4CPAe1TwxKp1zsk-lwX6fmzA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-> I am attempting to use NFS over RDMA (over infiniband), but there is =
-some
-> problem. =A0The NFS filesystem can be mounted on the client, and thin=
-gs
-> will work for some time (can read, modify, etc. the files over the mo=
-unt),
-> but then (at a seemingly random time) the NFS server will dump these
-> lines to the logs:
->
-> [ 4380.623922] svcrdma: Error fast registering memory for xprt ffff88=
-03307d7400
-> [ 4413.343161] svcrdma: error fast registering xdr for xprt ffff88033=
-19edc00
 
-Digging into it further, it seems like the Mellanox Infiniband driver
-could somehow be involved.  Adding some trace's to the code, it's obvio=
-us
-something like this is happening:
+The mlx4_core driver allocates 'nreq' msix vectors (and irqs), 
+where:
 
-At some time sq_cq_reap() is called, which ends up like this:
+  nreq = min_t(int, dev->caps.num_eqs - dev->caps.reserved_eqs,
+               num_possible_cpus() + 1);
 
-  sq_cq_reap()
-    ib_poll_cq()
-      mlx4_ib_poll_cq()
-        mlx4_ib_poll_one()
-          mlx4_ib_handle_error_cqe()
-            - Which then sets wc->status to IB_WC_WR_FLUSH_ERR rather
-              often, but the killer blow seems to be when
-              IB_WC_REM_ACCESS_ERR is set.
-    - Because of the error previously, sq_cq_reap sets the XPT_CLOSE
-      flag
+ConnectX HCAs support 512 event queues (4 reserved). On a system 
+with enough processors, we get:
 
-Then, sometime later:
+  mlx4_core 0006:01:00.0: Requested 508 vectors, but only 256 MSI-X vectors available, trying again
 
-  fast_reg_read_chunks()
-    svc_rdma_fastreg()
-      svc_rdma_send()
-        svc_rdma_send()
-          - XPT_CLOSE is set and hence -ENOTCONN is returned
-    - Since svc_rdma_fastreg() had an error fast_reg_read_chunks() bail=
-s
-      and the client seems to then hang.
+Further attempts (by other drivers) to allocate interrupts fail, 
+because mlx4_core got 'em all.
 
-I'd ask the infiband guys, what does IB_WC_WR_FLUSH_ERR and
-IB_WC_REM_ACCESS_ERR mean?  Is it something drastic that should result
-in hangs?
+How about this?
 
-nog.
+Signed-off-by: Arthur Kepner <akepner-sJ/iWh9BUns@public.gmane.org>
 
-> Both client and server are running the latest vanilla 2.6.34.1 kernel
-> with Mellanox Connect-X infiniband cards. =A0If more information is
-> required, please do ask.
->
-> BTW: I can reproduce the problem quite reliably by running the bonnie=
-++
-> "benchmark" on the NFS mounted filesystem.
->
-> nog.
->
-> ps: I'm not subscribed to the list, please CC me on all replies.
+---
+
+ main.c |    8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
+diff --git a/drivers/net/mlx4/main.c b/drivers/net/mlx4/main.c
+index e3e0d54..0a316d0 100644
+--- a/drivers/net/mlx4/main.c
++++ b/drivers/net/mlx4/main.c
+@@ -68,6 +68,10 @@ static int msi_x = 1;
+ module_param(msi_x, int, 0444);
+ MODULE_PARM_DESC(msi_x, "attempt to use MSI-X if nonzero");
+ 
++static int max_msi_x_vec = 64;
++module_param(max_msi_x_vec, int, 0444);
++MODULE_PARM_DESC(max_msi_x_vec, "max MSI-X vectors we'll attempt to allocate");
++
+ #else /* CONFIG_PCI_MSI */
+ 
+ #define msi_x (0)
+@@ -968,8 +972,10 @@ static void mlx4_enable_msi_x(struct mlx4_dev *dev)
+ 	int i;
+ 
+ 	if (msi_x) {
++		nreq = min_t(int, num_possible_cpus() + 1, max_msi_x_vec);
+ 		nreq = min_t(int, dev->caps.num_eqs - dev->caps.reserved_eqs,
+-			     num_possible_cpus() + 1);
++			     nreq);
++
+ 		entries = kcalloc(nreq, sizeof *entries, GFP_KERNEL);
+ 		if (!entries)
+ 			goto no_msi;
+
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
