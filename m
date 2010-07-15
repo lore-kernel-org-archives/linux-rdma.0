@@ -1,34 +1,79 @@
-From: "Alex Rosenbaum" <Alexr-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Subject: RE: When IBoE will be merged to upstream?
-Date: Thu, 15 Jul 2010 22:20:12 +0300
-Message-ID: <7E95F01E94AB484F83061FCFA35B39F87A7D2C@exil.voltaire.com>
-References: <E113D394D7C5DB4F8FF691FA7EE9DB4439BA54B70E@MTLMAIL.mtl.com><adak4pcnw3c.fsf@roland-alpha.cisco.com><E113D394D7C5DB4F8FF691FA7EE9DB443A8E048000@MTLMAIL.mtl.com><4C32D0BD.3030902@Voltaire.com><E113D394D7C5DB4F8FF691FA7EE9DB443A8E2E552A@MTLMAIL.mtl.com><4C3417FA.7000600@Voltaire.com><E113D394D7C5DB4F8FF691FA7EE9DB443AAB6D59C0@MTLMAIL.mtl.com><20100711043449.GA31404@obsidianresearch.com><E113D394D7C5DB4F8FF691FA7EE9DB443AACB08EA5@MTLMAIL.mtl.com><adatyo4xuqx.fsf@roland-alpha.cisco.com><20100713193828.GB12614@obsidianresearch.com><ada8w5fxenn.fsf@roland-alpha.cisco.com><E113D394D7C5DB4F8FF691FA7EE9DB443ABB321050@MTLMAIL.mtl.com> <adalj9cveyd.fsf@roland-alpha.cisco.com>
+From: Ralph Campbell <ralph.campbell-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+Subject: Re: IB/ipoib: fix dangling pointer reference to ipoib_neigh and
+ ipoib_path -when will it go upstream?
+Date: Thu, 15 Jul 2010 12:59:33 -0700
+Message-ID: <1279223973.31421.10.camel@chromite.mv.qlogic.com>
+References: <4C3AA0A2.3090406@linux.vnet.ibm.com>
+	 <adapqysxup6.fsf@roland-alpha.cisco.com>
+	 <4C3C02B2.9040408@linux.vnet.ibm.com>
+	 <adaeif7xwwz.fsf@roland-alpha.cisco.com>
+	 <4C3D26D0.3090508@linux.vnet.ibm.com> <4C3DE512.3020903@linux.vnet.ibm.com>
+	 <4C3EF754.4060502@linux.vnet.ibm.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-class: urn:content-classes:message
-In-Reply-To: <adalj9cveyd.fsf-BjVyx320WGW9gfZ95n9DRSW4+XlvGpQz@public.gmane.org>
+In-Reply-To: <4C3EF754.4060502-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Liran Liss <liranl-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
-Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Or Gerlitz <ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, AlekseySenin <aleksey-192fA4vuk7xBDLzU/O5InQ@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Moni Shoua <monis-smomgflXvOZWk0Htik3J/w@public.gmane.org>, Aleksey Senin <alekseys-smomgflXvOZWk0Htik3J/w@public.gmane.org>, Yiftah Shahar <yiftahs-smomgflXvOZWk0Htik3J/w@public.gmane.org>, Tziporet Koren <tziporet-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
+To: Pradeep Satyanarayana <pradeeps-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
+Cc: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> No, I think all switches will flood unknown multicast packets.  But
-> there is a reason that IGMP snooping was invented -- it is inefficient
-> (to say the least) to flood all multicast traffic.
->
-> - R.
+I will write up a description of the locking as I
+understand it and the changes I made. Give
+me a day or two to write it up and check it.
 
+On Thu, 2010-07-15 at 04:56 -0700, Pradeep Satyanarayana wrote:
+> Pradeep Satyanarayana wrote:
+> > Pradeep Satyanarayana wrote:
+> >> Roland Dreier wrote:
+> >>>  > I guess I came to a premature conclusion. One set of tests ran fine and I made that
+> >>>  > conclusion. Another set of tests caused the following crash:
+> >>>
+> >>> I don't really know how to interpret this.  Is this crash new, or is it
+> >>> the same crash you were hoping this patch fixed?
+> >> This is a new crash.
+> > 
+> > I see other manifestations resulting in different crashes :
+> > 
+> > :mon> t
+> > [c00000074603ba20] d0000000193527ac .ipoib_neigh_flush+0x6c/0x350 [ib_ipoib]
+> > [c00000074603bb10] d000000019356dac .ipoib_mcast_free+0x74/0x2a0 [ib_ipoib]
+> > [c00000074603bbe0] d000000019358558 .ipoib_mcast_restart_task+0x3d0/0x560 [ib_ipoib]
+> > [c00000074603bd40] c0000000000c6fe4 .run_workqueue+0xf4/0x1e0
+> > [c00000074603be00] c0000000000c7190 .worker_thread+0xc0/0x180
+> > [c00000074603bed0] c0000000000ccf4c .kthread+0xb4/0xc0
+> > [c00000074603bf90] c0000000000309fc .kernel_thread+0x54/0x70
+> > 9:mon> e
+> > cpu 0x9: Vector: 300 (Data Access) at [c00000074603b720]
+> >     pc: c0000000005ac390: ._spin_lock+0x20/0xc8
+> >     lr: d0000000193527ac: .ipoib_neigh_flush+0x6c/0x350 [ib_ipoib]
+> >     sp: c00000074603b9a0
+> >    msr: 8000000000009032
+> >    dar: 3a0
+> >  dsisr: 40000000
+> >   current = 0xc000000756ce8b00
+> >   paca    = 0xc000000000f63800
+> >     pid   = 18095, comm = ipoib
+> > 9:mon>
+> 
+> Recreating the crash has been tricky. I have tried several several hundred times today
+> to unload and reload IPoIB while there is traffic and no crashes happened. I took
+> a closer look at the IPoIB CM code and I see a few things that look suspicious.
+> 
+> In the ipoib_cm_send() path no priv->lock is held, whereas the priv->lock is held before 
+> calling ipoib_cm_destroy_tx(). This is true with and without Ralph's patch (fix dangling pointer).
+> Is this a potential race?
+> 
+> In Roland's git tree I do see a test_and_clear_bit(IPOIB_FLAG_INITIALIZED, &tx->flags) in 
+> ipoib_cm_destroy_tx() which seems to be missing in Ralph's patch. In Ralph's patch) there is a 
+> clear_bit(IPOIB_FLAG_OPER_UP, &tx->flags) called before calling ipoib_cm_destroy_tx() only in 
+> select cases. Was that intended?
+> 
+> Thanks
+> Pradeep
+> 
 
-Small correction needed regarding the multicast forwarding.
-Since we are talking about IPv6 multicast groups, which translate to
-33:33:xx:xx:xx:xx MAC address, the router listener notification protocol
-is going to be MLD and not IGMP. Still there are switches which support
-MLD forwarding to prevent the network flooding.
-
-Alex
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
