@@ -1,44 +1,58 @@
-From: "Davis, Arlin R" <arlin.r.davis-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: some dapl assistance
-Date: Thu, 15 Jul 2010 08:56:23 -0700
-Message-ID: <E3280858FA94444CA49D2BA02341C983010458ECD5@orsmsx506.amr.corp.intel.com>
-References: <4C344493.2030600@Voltaire.com><E3280858FA94444CA49D2BA02341C983010435A1A8@orsmsx506.amr.corp.intel.com><4C3C50CC.7000508@Voltaire.com>
- <E3280858FA94444CA49D2BA02341C9830104493030@orsmsx506.amr.corp.intel.com>
- <6D1AA8ED7402FF49AFAB26F0C948ACF5014B9894@exil.voltaire.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: When IBoE will be merged to upstream?
+Date: Thu, 15 Jul 2010 10:59:25 -0600
+Message-ID: <20100715165925.GA18583@obsidianresearch.com>
+References: <4C32D0BD.3030902@Voltaire.com> <E113D394D7C5DB4F8FF691FA7EE9DB443A8E2E552A@MTLMAIL.mtl.com> <4C3417FA.7000600@Voltaire.com> <E113D394D7C5DB4F8FF691FA7EE9DB443AAB6D59C0@MTLMAIL.mtl.com> <20100711043449.GA31404@obsidianresearch.com> <E113D394D7C5DB4F8FF691FA7EE9DB443AACB08EA5@MTLMAIL.mtl.com> <20100712162131.GB15392@obsidianresearch.com> <E113D394D7C5DB4F8FF691FA7EE9DB443AACDEE865@MTLMAIL.mtl.com> <20100713193138.GA12614@obsidianresearch.com> <E113D394D7C5DB4F8FF691FA7EE9DB443ABB321006@MTLMAIL.mtl.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <6D1AA8ED7402FF49AFAB26F0C948ACF5014B9894-QfUkFaTmzUSUvQqKE/ONIwC/G2K4zDHf@public.gmane.org>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <E113D394D7C5DB4F8FF691FA7EE9DB443ABB321006-WQlSmcKwN8Te+A/uUDamNg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Itay Berman <itayb-smomgflXvOZWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Liran Liss <liranl-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
+Cc: Or Gerlitz <ogerlitz-hKgKHo2Ms0FWk0Htik3J/w@public.gmane.org>, Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Aleksey Senin <aleksey-192fA4vuk7xBDLzU/O5InQ@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "monis-smomgflXvOZWk0Htik3J/w@public.gmane.org" <monis-smomgflXvOZWk0Htik3J/w@public.gmane.org>, "alekseys-smomgflXvOZWk0Htik3J/w@public.gmane.org" <alekseys-smomgflXvOZWk0Htik3J/w@public.gmane.org>, "yiftahs-smomgflXvOZWk0Htik3J/w@public.gmane.org" <yiftahs-smomgflXvOZWk0Htik3J/w@public.gmane.org>, Tziporet Koren <tziporet-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, "alexr-smomgflXvOZWk0Htik3J/w@public.gmane.org" <alexr-smomgflXvOZWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On Thu, Jul 15, 2010 at 01:55:32PM +0300, Liran Liss wrote:
 
->OK, we got Intel MPI to run. To test the pkey usage we 
->configured it to run over pkey that is not configured on the 
->node. In this case the MPI should have failed, but it didn't.
->The dapl debug reports the given pkey (0x8001 = 32769).
->How can that be?
->
+> > I objected to the draft spec leaving this area 
+> > absent, even.
+> 
+> You should submit a comment on this matter using the IBTA comment
+> tracker database if you intend your concern to be taken into account.
 
-Itay,
+The position of IBTA is that the L2 layer is not specified as part of
+the spec, so of course there is no talk of how to get/create L2
+information. The spec is *silent* on the issue of L2 addressing, so,
+IMHO, it is compltely wrong to assume it specs one approach over
+another, just because it omits L2 addressing related
+discussion/fields/etc.
 
-If the pkey override is not valid it uses default idx of 0 and ignores pkey value given. 
+It, unfortunately, becomes implementation defined - and if that means
+an implementation chooses to extend the AH, then so be it.
 
-Notice the Warning message:
+This is the problem with rushing incomplete specs through :)
 
-odly0:3b37:  Warning: new pkey(32769), query (Success) err or key !found, using defaults 
-odly0:3b37:  query_hca: (a0.0) eps 64512, sz 16384 evds 65408, sz 131071 mtu 2048 - pkey 32769 p_idx 0 sl 0
+> > It wouldn't be adding another L3 itentifier it would be an L2 
+> > next hop MAC address for the router. It would be nice to do 
+> > this from the start but if growing the AH is really that 
+> > scary then it should wait until someone figures out how to 
+> > solve the lossless routing problem on ethernet.
 
-When you override with a correct value of 8002 does it move to p_idx=1 and work?
+> Augmenting the AH has a significant cost. There is a tradeoff here
+> between preserving the verbs api vs. dealing with the implementation
+> challenges associated with doing address resolution below the
+> verbs. The RoCE spec deliberately chooses one direction. You seem to
+> favor the other one. But in the interest of progress and since we
+> all seem to agree on the way things work when we use link local
+> GIDs, let us move forward with that approach for now. And we can get
+> back to non local GIDs later.
 
--arlin
+You still have to solve the problem with vlan tags, and either each
+vlan interface has a seperate rdma interface or the tag has to flow
+into the AH from the RDMA-CM.
 
-
-
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
