@@ -1,38 +1,42 @@
-From: miroslaw.walukiewicz-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Subject: [PATCH resend] RDMA/nes: corrected link type for nes card
-Date: Thu, 15 Jul 2010 17:01:05 +0200
-Message-ID: <20100715145854.2995.87831.stgit@gkslx010.igk.intel.com>
+From: "Davis, Arlin R" <arlin.r.davis-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: some dapl assistance
+Date: Thu, 15 Jul 2010 08:56:23 -0700
+Message-ID: <E3280858FA94444CA49D2BA02341C983010458ECD5@orsmsx506.amr.corp.intel.com>
+References: <4C344493.2030600@Voltaire.com><E3280858FA94444CA49D2BA02341C983010435A1A8@orsmsx506.amr.corp.intel.com><4C3C50CC.7000508@Voltaire.com>
+ <E3280858FA94444CA49D2BA02341C9830104493030@orsmsx506.amr.corp.intel.com>
+ <6D1AA8ED7402FF49AFAB26F0C948ACF5014B9894@exil.voltaire.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <6D1AA8ED7402FF49AFAB26F0C948ACF5014B9894-QfUkFaTmzUSUvQqKE/ONIwC/G2K4zDHf@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Itay Berman <itayb-smomgflXvOZWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Now correct interface link type is set for ibv_query_port()
 
-Signed-off-by: Mirek Walukiewicz <miroslaw.walukiewicz-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
----
+>OK, we got Intel MPI to run. To test the pkey usage we 
+>configured it to run over pkey that is not configured on the 
+>node. In this case the MPI should have failed, but it didn't.
+>The dapl debug reports the given pkey (0x8001 = 32769).
+>How can that be?
+>
 
- drivers/infiniband/hw/nes/nes_verbs.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+Itay,
 
+If the pkey override is not valid it uses default idx of 0 and ignores pkey value given. 
 
-diff --git a/drivers/infiniband/hw/nes/nes_verbs.c b/drivers/infiniband/hw/nes/nes_verbs.c
-index f179586..45bf56c 100644
---- a/drivers/infiniband/hw/nes/nes_verbs.c
-+++ b/drivers/infiniband/hw/nes/nes_verbs.c
-@@ -599,7 +599,7 @@ static int nes_query_port(struct ib_device *ibdev, u8 port, struct ib_port_attr
- 	props->active_width = IB_WIDTH_4X;
- 	props->active_speed = 1;
- 	props->max_msg_sz = 0x80000000;
--
-+	props->link_layer = IB_LINK_LAYER_ETHERNET;
- 	return 0;
- }
- 
+Notice the Warning message:
+
+odly0:3b37:  Warning: new pkey(32769), query (Success) err or key !found, using defaults 
+odly0:3b37:  query_hca: (a0.0) eps 64512, sz 16384 evds 65408, sz 131071 mtu 2048 - pkey 32769 p_idx 0 sl 0
+
+When you override with a correct value of 8002 does it move to p_idx=1 and work?
+
+-arlin
+
 
 
 --
