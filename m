@@ -1,63 +1,41 @@
-From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: Re: [patch] infiniband: cxgb3: fix signed bug
-Date: Mon, 19 Jul 2010 09:45:29 -0500
-Message-ID: <4C446509.3010400@opengridcomputing.com>
-References: <20100717102900.GG17585@bicker>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: Question Regarding rdma/ucm
+Date: Mon, 19 Jul 2010 10:32:43 -0700
+Message-ID: <CF9C39F99A89134C9CF9C4CCB68B8DDF25A6E49D90@orsmsx501.amr.corp.intel.com>
+References: <4C41EAF8.1050901@tcd.ie>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20100717102900.GG17585@bicker>
+In-Reply-To: <4C41EAF8.1050901-/Zw1syy4LHg@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Dan Carpenter <error27-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Steve Wise <swise-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Frank Zago <fzago-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Mark O'C <mjocalla-/Zw1syy4LHg@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Dan Carpenter wrote:
-> "num_wrs" should be signed so that the "if (num_wrs <= 0)" checks work.
->
-> Signed-off-by: Dan Carpenter <error27-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
->
-> diff --git a/drivers/infiniband/hw/cxgb3/iwch_qp.c b/drivers/infiniband/hw/cxgb3/iwch_qp.c
-> index ae47bfd..e90fb2d 100644
-> --- a/drivers/infiniband/hw/cxgb3/iwch_qp.c
-> +++ b/drivers/infiniband/hw/cxgb3/iwch_qp.c
-> @@ -357,7 +357,7 @@ int iwch_post_send(struct ib_qp *ibqp, struct ib_send_wr *wr,
->  	struct iwch_qp *qhp;
->  	u32 idx;
->  	union t3_wr *wqe;
-> -	u32 num_wrs;
-> +	int num_wrs;
->  	unsigned long flag;
->  	struct t3_swsq *sqp;
->  	int wr_cnt = 1;
-> @@ -535,7 +535,7 @@ int iwch_bind_mw(struct ib_qp *qp,
->  	union t3_wr *wqe;
->  	u32 pbl_addr;
->  	u8 page_size;
-> -	u32 num_wrs;
-> +	int num_wrs;
->  	unsigned long flag;
->  	struct ib_sge sgl;
->  	int err=0;
-> @@ -554,7 +554,7 @@ int iwch_bind_mw(struct ib_qp *qp,
->  	}
->  	num_wrs = Q_FREECNT(qhp->wq.sq_rptr, qhp->wq.sq_wptr,
->  			    qhp->wq.sq_size_log2);
-> -	if ((num_wrs) <= 0) {
-> +	if (num_wrs <= 0) {
->  		spin_unlock_irqrestore(&qhp->lock, flag);
->  		return -ENOMEM;
->  	}
->   
+Copying linux-rdma mail list on the response.  It helps to show interest in specific features and patches for merging things.
 
+> I have seen recently that you submitted a number of patches which allow
+> users to join multicast groups using MGIDs directly. I see that the APIs
+> for these come under /include/rdma/rdma_user_cm.h
+> 
+> Can you tell me will these APIs be available in OFED 1.5.2? I am looking
+> through rc2 but this file is not present.
 
-The macro Q_FREECNT() must never return <0 or things are badly broken, 
-so this patch should really leave num_wrs as unsigned and just check for 
-num_wrs == 0.
+I'm assuming that you're referring to the patches that deal with AF_IB.  Those will NOT be available in OFED until they have been queued for inclusion upstream.   I don't know of any issues with those patches; I just don't think others have had time to review them in detail.
 
-Steve.
+That said, the current code does support MGIDs directly to a limited degree.  The MGID must be specified as an IPv6 address that meets the following check (done in the kernel):
 
+       } else if ((addr->sa_family == AF_INET6) &&
+                  ((be32_to_cpu(sin6->sin6_addr.s6_addr32[0]) & 0xFFF0FFFF) ==
+                                                                0xFF10A01B)) {
+                 /* IPv6 address is an SA assigned MGID. */
+                 memcpy(mgid, &sin6->sin6_addr, sizeof *mgid);
+
+MGIDs obtained by joining a multicast group and letting the IB SA select the MGID should have this format.  The AF_IB patches remove this special handling and allow specifying the full range of MGIDs.
+
+- Sean
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
