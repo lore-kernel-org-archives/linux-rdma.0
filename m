@@ -1,31 +1,63 @@
-From: Or Gerlitz <ogerlitz-hKgKHo2Ms0FWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH] RDMA/nes: IB_QPT_RAW_PACKET QP type support for nes	driver
-Date: Mon, 19 Jul 2010 16:44:06 +0300
-Message-ID: <4C4456A6.8070206@Voltaire.com>
-References: <20100705135438.26042.55865.stgit@gkslx010.igk.intel.com>	<4C32EE45.9030906@Voltaire.com>	<BE2BFE91933D1B4089447C64486040801EBB3C34@irsmsx503.ger.corp.intel.com>	<4C342288.4070803@voltaire.com> <4C433148.1090503@Voltaire.com> <BE2BFE91933D1B4089447C64486040804DF682AC@irsmsx503.ger.corp.intel.com>
+From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: Re: [patch] infiniband: cxgb3: fix signed bug
+Date: Mon, 19 Jul 2010 09:45:29 -0500
+Message-ID: <4C446509.3010400@opengridcomputing.com>
+References: <20100717102900.GG17585@bicker>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <BE2BFE91933D1B4089447C64486040804DF682AC-IGOiFh9zz4wLt2AQoY/u9bfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+In-Reply-To: <20100717102900.GG17585@bicker>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Walukiewicz, Miroslaw" <Miroslaw.Walukiewicz-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org" <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Dan Carpenter <error27-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Steve Wise <swise-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Frank Zago <fzago-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Walukiewicz, Miroslaw wrote:
-> I agree with you that it is possible to fix the post_send path in OFED.
-> Let me think a few days yet.
+Dan Carpenter wrote:
+> "num_wrs" should be signed so that the "if (num_wrs <= 0)" checks work.
+>
+> Signed-off-by: Dan Carpenter <error27-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+>
+> diff --git a/drivers/infiniband/hw/cxgb3/iwch_qp.c b/drivers/infiniband/hw/cxgb3/iwch_qp.c
+> index ae47bfd..e90fb2d 100644
+> --- a/drivers/infiniband/hw/cxgb3/iwch_qp.c
+> +++ b/drivers/infiniband/hw/cxgb3/iwch_qp.c
+> @@ -357,7 +357,7 @@ int iwch_post_send(struct ib_qp *ibqp, struct ib_send_wr *wr,
+>  	struct iwch_qp *qhp;
+>  	u32 idx;
+>  	union t3_wr *wqe;
+> -	u32 num_wrs;
+> +	int num_wrs;
+>  	unsigned long flag;
+>  	struct t3_swsq *sqp;
+>  	int wr_cnt = 1;
+> @@ -535,7 +535,7 @@ int iwch_bind_mw(struct ib_qp *qp,
+>  	union t3_wr *wqe;
+>  	u32 pbl_addr;
+>  	u8 page_size;
+> -	u32 num_wrs;
+> +	int num_wrs;
+>  	unsigned long flag;
+>  	struct ib_sge sgl;
+>  	int err=0;
+> @@ -554,7 +554,7 @@ int iwch_bind_mw(struct ib_qp *qp,
+>  	}
+>  	num_wrs = Q_FREECNT(qhp->wq.sq_rptr, qhp->wq.sq_wptr,
+>  			    qhp->wq.sq_size_log2);
+> -	if ((num_wrs) <= 0) {
+> +	if (num_wrs <= 0) {
+>  		spin_unlock_irqrestore(&qhp->lock, flag);
+>  		return -ENOMEM;
+>  	}
+>   
 
-Hi Mirek,
 
-okay. 
+The macro Q_FREECNT() must never return <0 or things are badly broken, 
+so this patch should really leave num_wrs as unsigned and just check for 
+num_wrs == 0.
 
-Just one comment, the way I see it, ofed is very much not something that has "post_send path", its a temporary, ad-hock, very far from being well organized, and actually much worse then you may think (try the archives for "shovel in unreviewed junk" or "pile of shit") collection of bits which pretend to be a distribution of the Linux IB stack 
+Steve.
 
-The credit or discredit and or questions, patches, bugs && flames for this or that element of the IB stack, should all go to the maintainer/s. Specifically of libibverbs, ib_uverbs etc (happen to be CC-ed here...)
-
-Or.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
