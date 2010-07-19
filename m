@@ -1,41 +1,83 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: Question Regarding rdma/ucm
-Date: Mon, 19 Jul 2010 10:32:43 -0700
-Message-ID: <CF9C39F99A89134C9CF9C4CCB68B8DDF25A6E49D90@orsmsx501.amr.corp.intel.com>
-References: <4C41EAF8.1050901@tcd.ie>
+From: Tom Ammon <tom.ammon-wbocuHtxKic@public.gmane.org>
+Subject: more partition questions
+Date: Mon, 19 Jul 2010 11:39:25 -0600
+Message-ID: <4C448DCD.80809@utah.edu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4C41EAF8.1050901-/Zw1syy4LHg@public.gmane.org>
-Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Mark O'C <mjocalla-/Zw1syy4LHg@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Copying linux-rdma mail list on the response.  It helps to show interest in specific features and patches for merging things.
+I'm trying to set up partitions in a little test environment, and I'm 
+having trouble.
 
-> I have seen recently that you submitted a number of patches which allow
-> users to join multicast groups using MGIDs directly. I see that the APIs
-> for these come under /include/rdma/rdma_user_cm.h
-> 
-> Can you tell me will these APIs be available in OFED 1.5.2? I am looking
-> through rc2 but this file is not present.
+I have opensm running on a machine attached to the fabric, and sminfo on 
+the other machines confirm that this is indeed the master SM. Here's my 
+/etc/opensm/partitions.conf:
 
-I'm assuming that you're referring to the patches that deal with AF_IB.  Those will NOT be available in OFED until they have been queued for inclusion upstream.   I don't know of any issues with those patches; I just don't think others have had time to review them in detail.
+Default=0xffff , ipoib : ALL, SELF=full ;
+PartitionBlue=0x8004, ipoib : 0x0002c9030009cb3f=full, 
+0x0002c90200252841=full, 0x0002c90200243471=full ;
+PartitionRed=0x8005, ipoib : 0x0002c90200252841=full, 
+0x0002c90200243591=full, 0x0002c9030009cb2b=full ;
 
-That said, the current code does support MGIDs directly to a limited degree.  The MGID must be specified as an IPv6 address that meets the following check (done in the kernel):
+But when I go to the machine with port GUID 0x0002c90200243471, it 
+doesn't appear that it's getting the pkey I wanted:
 
-       } else if ((addr->sa_family == AF_INET6) &&
-                  ((be32_to_cpu(sin6->sin6_addr.s6_addr32[0]) & 0xFFF0FFFF) ==
-                                                                0xFF10A01B)) {
-                 /* IPv6 address is an SA assigned MGID. */
-                 memcpy(mgid, &sin6->sin6_addr, sizeof *mgid);
+[root@stagnate ~]# ibstat
+CA 'mthca0'
+         CA type: MT23108
+         Number of ports: 2
+         Firmware version: 3.3.5
+         Hardware version: a1
+         Node GUID: 0x0002c90200243470
+         System image GUID: 0x0002c90200243473
+         Port 1:
+                 State: Active
+                 Physical state: LinkUp
+                 Rate: 10
+                 Base lid: 10
+                 LMC: 0
+                 SM lid: 4
+                 Capability mask: 0x02510a68
+                 Port GUID: 0x0002c90200243471
+         Port 2:
+                 State: Down
+                 Physical state: Polling
+                 Rate: 2
+                 Base lid: 0
+                 LMC: 0
+                 SM lid: 0
+                 Capability mask: 0x02510a68
+                 Port GUID: 0x0002c90200243472
 
-MGIDs obtained by joining a multicast group and letting the IB SA select the MGID should have this format.  The AF_IB patches remove this special handling and allow specifying the full range of MGIDs.
+[root@stagnate ~]# cat /sys/class/net/ib0/pkey
+0xffff
 
-- Sean
+
+I'm trying to run one ipoib subnet in each partition, and then 
+eventually the goal is to have a different server that has 2 child 
+interfaces, one on each subnet. But it doesn't appear that my partition 
+configuration is even correct. Is there a syntax error, or something 
+else I am missing?
+
+Thanks,
+
+Tom
+
+
+
+-- 
+Tom Ammon
+Network Engineer
+Office: 801.587.0976
+Mobile: 801.674.9273
+
+Center for High Performance Computing
+University of Utah
+http://www.chpc.utah.edu
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
