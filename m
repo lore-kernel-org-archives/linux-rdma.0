@@ -1,43 +1,45 @@
-From: "Tung, Chien Tin" <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH for-2.6.36] ib: fix some sparse warnings
-Date: Tue, 20 Jul 2010 06:53:00 -0700
-Message-ID: <2EFBCAEF10980645BBCFB605689E08E9049B2B666C@azsmsx506.amr.corp.intel.com>
-References: <Pine.LNX.4.64.1007201458210.3835@zuben.voltaire.com>
+From: Jiri Kosina <jkosina@suse.cz>
+Subject: Re: [PATCH 09/36] drivers/infiniband: Remove unnecessary casts of
+ private_data
+Date: Tue, 20 Jul 2010 17:24:19 +0200 (CEST)
+Message-ID: <alpine.LNX.2.00.1007201724010.4741@pobox.suse.cz>
+References: <cover.1278967120.git.joe@perches.com>  <0074ff36bc27b141d3639e2d516cc6cd48364df6.1278967120.git.joe@perches.com> <1279046497.2296.170.camel@chromite.mv.qlogic.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <Pine.LNX.4.64.1007201458210.3835-aDiYczhfhVLdX2U7gxhm1tBPR1lH4CV8@public.gmane.org>
-Content-Language: en-US
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org>, Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Cc: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1279046497.2296.170.camel@chromite.mv.qlogic.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Ralph Campbell <ralph.campbell@qlogic.com>
+Cc: Joe Perches <joe@perches.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Infinipath <Infinipath@qlogic.com>, Roland Dreier <rolandd@cisco.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> Subject: [PATCH for-2.6.36] ib: fix some sparse warnings
+On Tue, 13 Jul 2010, Ralph Campbell wrote:
+
+> Acked-by: Ralph Campbell <ralph.campbell@qlogic.com>
 > 
-> fixed the following drivers/infiniband sparse pointed issues
-> 
+> On Mon, 2010-07-12 at 13:50 -0700, Joe Perches wrote:
+> > Signed-off-by: Joe Perches <joe@perches.com>
+> > ---
+> >  drivers/infiniband/hw/ipath/ipath_file_ops.c |    2 +-
+> >  1 files changed, 1 insertions(+), 1 deletions(-)
+> > 
+> > diff --git a/drivers/infiniband/hw/ipath/ipath_file_ops.c b/drivers/infiniband/hw/ipath/ipath_file_ops.c
+> > index 9c5c66d..65eb892 100644
+> > --- a/drivers/infiniband/hw/ipath/ipath_file_ops.c
+> > +++ b/drivers/infiniband/hw/ipath/ipath_file_ops.c
+> > @@ -2055,7 +2055,7 @@ static int ipath_close(struct inode *in, struct file *fp)
+> >  
+> >  	mutex_lock(&ipath_mutex);
+> >  
+> > -	fd = (struct ipath_filedata *) fp->private_data;
+> > +	fd = fp->private_data;
+> >  	fp->private_data = NULL;
+> >  	pd = fd->pd;
+> >  	if (!pd) {
 
-> nes_verbs.c:1944:45: warning: Using plain integer as NULL pointer
-> nes_verbs.c:1944:48: warning: Using plain integer as NULL pointer
->   CHECK   drivers/infiniband/hw/nes/nes_cm.c
-> nes_cm.c:2645:43: warning: mixing different enum types
-> nes_cm.c:2645:43:     int enum iw_cm_event_type  versus
-> nes_cm.c:2645:43:     int enum iw_cm_event_status
+As the patch is not present in linux-next as of today, I have applied it. 
+Thanks,
 
-
-> 
-> Signed-off-by: Or Gerlitz <ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-
-
-Thanks Or!
-
-Acked-by: Chien Tung <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-
-
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+Jiri Kosina
+SUSE Labs, Novell Inc.
