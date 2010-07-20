@@ -1,62 +1,61 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: When IBoE will be merged to upstream?
-Date: Tue, 20 Jul 2010 11:06:35 -0600
-Message-ID: <20100720170635.GB25070@obsidianresearch.com>
-References: <adak4pcnw3c.fsf@roland-alpha.cisco.com> <E113D394D7C5DB4F8FF691FA7EE9DB443A8E048000@MTLMAIL.mtl.com> <4C32D0BD.3030902@Voltaire.com> <E113D394D7C5DB4F8FF691FA7EE9DB443A8E2E552A@MTLMAIL.mtl.com> <4C3417FA.7000600@Voltaire.com> <E113D394D7C5DB4F8FF691FA7EE9DB443AAB6D59C0@MTLMAIL.mtl.com> <20100711043449.GA31404@obsidianresearch.com> <E113D394D7C5DB4F8FF691FA7EE9DB443AACB08EA5@MTLMAIL.mtl.com> <20100712162131.GB15392@obsidianresearch.com> <004e01cb27cc$61807010$24815030$@com>
+Subject: Re: sense remote hardware address change by rdma-cm applications
+Date: Tue, 20 Jul 2010 11:22:04 -0600
+Message-ID: <20100720172204.GI7920@obsidianresearch.com>
+References: <AANLkTimmWiNqHJIqSEKbY-X6mSx6zA19p__JDYPEmp8b@mail.gmail.com> <20100720001436.GH7920@obsidianresearch.com> <4C454F80.1060808@Voltaire.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <004e01cb27cc$61807010$24815030$@com>
+In-Reply-To: <4C454F80.1060808-hKgKHo2Ms0FWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Paul Grun <pgrun-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org>
-Cc: 'Liran Liss' <liranl-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, 'Or Gerlitz' <ogerlitz-hKgKHo2Ms0FWk0Htik3J/w@public.gmane.org>, 'Roland Dreier' <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, "'Hefty, Sean'" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Aleksey Senin' <aleksey-192fA4vuk7xBDLzU/O5InQ@public.gmane.org>, 'linux-rdma' <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, monis-smomgflXvOZWk0Htik3J/w@public.gmane.org, alekseys-smomgflXvOZWk0Htik3J/w@public.gmane.org, yiftahs-smomgflXvOZWk0Htik3J/w@public.gmane.org, 'Tziporet Koren' <tziporet-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, alexr-smomgflXvOZWk0Htik3J/w@public.gmane.org
+To: Or Gerlitz <ogerlitz-hKgKHo2Ms0FWk0Htik3J/w@public.gmane.org>
+Cc: Sean Hefty <mshefty-+/W+9+QloQG75v1z/vFq2g@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Jul 19, 2010 at 10:28:24PM -0700, Paul Grun wrote:
+On Tue, Jul 20, 2010 at 10:25:52AM +0300, Or Gerlitz wrote:
 
-> This is incorrect.  The intent of the text is that a verbs consumer deals
-> ONLY in layer 3 addresses (GIDs).  It doesn't make any sense to restrict the
-> interpretation to mean 'LIDs', since LIDs are a NOP for RoCE.  
+> > So.. I think to tackle this you need to start looking at how the
+> > dst_entry structure works in netdev and apply the same idea to RDMA-CM
+> > and reflect the changes in AH back to the QP owner.
 > 
-> CA16-17: When accessing the services of a RoCE verbs provider, the
-> source and destination identifiers contained in the address vector shall
-> consist of GIDs; the address vector shall not contain layer 2 references
-> (e.g. local addresses). Layer 2 references include source and destination
-> local identifiers and LID Path Bits.
-> 
-> "layer 2 references" refers to LIDs, MAC IDs or any other form of layer 2
-> address.  If the wording of the text is insufficiently clear, please post a
-> comment on comment tracker on the IBTA website.  Nevertheless, that is the
-> intent.  
+> I can take a look (pointer would be very much appreciated...) still,
+> the dst entry is used for every netdev xmit where here the xmit is
+> offloaded, so I don't see what could be really used from the dst
+> code, but I might be wrong. The rdma app uses the neighbour once,
+> upon address resolving, and I was trying to see if we can ref the
+> neighbour so the neigh sub-system probes would keep going even
+> though the neighbour is not directly used.
 
-Since it never actually says MAC address it reads like it is just
-excluding existing IB L2 addresses from use in ROCEE which makes alot
-sense. If MAC address was ment, it should have been listed explicitly!
+It has been a while since I looked through this .. but, IIRC, the
+general idea was that the socket held onto a cached dst and then at
+each send it would use that dst to generate the L2 headers. Somehow
+the dst would become invalidated when the routing cache was flushed
+out.
 
-> > Exactly how and where the MAC address comes about was never decided,
-> 
-> Correct.  The IBTA IBXoE WG felt that defining the mapping from GID to MAC
-> ID should be a function of the underlying fabric (Ethernet) and thus was out
-> of scope for us to define the mapping mechanism.
+So, basically, if you can add to RDMA-CM a way to get, hold and re-get
+the dst you have solved the first problem, - how do know the current
+routing information, and hold onto it, keep it in caches, etc.
 
-IHMO, it is a bad design to create a architecture that requires the L2
-information in the AH, forbid the L2 information from being passed
-into the AH APIs, and then not specify how the L2 information is
-created.
+The second problem, is how do you get notified that the dst may have
+been changed? sockets seem to basically just poll every packet, so you
+might need to use some netdev notifications, maybe also a timer?
 
-How is anyone supposed to implement this?
+I'd see a flow like this:
+ - in the current route lookup code stash the dst
+ - add a function to freshen the dst
+ - hook events that might indicate the dst is invalid
+ - on event trigger freshen the dst, regenerate the L2 address info
+   and compare it to what is already in use
+ - If different, send an event to user space.
 
-> > BTW, I absolutely hate the mixing of 'Sometimes it is a IPv4,
-> > sometimes it is a GID, and sometimes it is an IPv6' in the same
-> > field. That is just so nasty. The GID is a GID, don't overload it in
-> > an ambiguous way to mean 2 other things!
-> 
-> I am unaware of any overloading, at least in the RoCE spec.
+stashing the dst lets you get back to the L2 information by using the
+routing cache, and by holding onto a neighbor reference (in the dst)
 
-This is a feature added as part of the proposed patch set that spurned
-this whole discussion. It is this feature that made create_ah into a
-blocking call ...
+Also, while doing this you are going to need to do something to have
+the kernel send ND probes to keep the ND entry fresh when the
+connection is open. Not sure, but I think this also has something to
+do with the DST.
 
 Jason
 --
