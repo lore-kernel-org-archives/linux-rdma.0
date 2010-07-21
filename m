@@ -1,40 +1,58 @@
-From: Josh England <jjengla-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: NULL pointer dereference in rdma_ucm
-Date: Wed, 21 Jul 2010 14:01:52 -0700
-Message-ID: <AANLkTimaEocwvCNrqujSB33D2HQ3s1wUWLgJ7qjxfGDZ@mail.gmail.com>
-References: <AANLkTikwDEJY_F1ziGNPhYMBJEBC5UqD2XOLM7wSByj1@mail.gmail.com>
-	<CF9C39F99A89134C9CF9C4CCB68B8DDF25A71DAA57@orsmsx501.amr.corp.intel.com>
-	<AANLkTikgvfJ85iCaYaG2My7A92FFXz0Fb9vFhVXtUYyx@mail.gmail.com>
-	<CF9C39F99A89134C9CF9C4CCB68B8DDF25A71DAC7A@orsmsx501.amr.corp.intel.com>
+From: Ralph Campbell <ralph.campbell-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH] IB/qib: set cfgctxts to number of CPUs by default
+Date: Wed, 21 Jul 2010 15:46:11 -0700
+Message-ID: <20100721224610.10126.76859.stgit@chromite.mv.qlogic.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CF9C39F99A89134C9CF9C4CCB68B8DDF25A71DAC7A-osO9UTpF0USkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Linux RDMA list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Upgrading 1.5.1 is the way to go for me.  I have other dependencies
-tying me down to the CentOS kernel for the time being.  Hopefully any
-patch to mainstream should apply fairly cleanly to 1.5.1.
+Up to now, we have set the number of available user contexts based on
+the number of hardware contexts which is set according to the number
+of available CPUs. This was fine since most CPUs had a power of two
+number of cores and the chip supported 4, 8, or 16 user contexts.
+Now that some systems have 12 cores, the default isn't optimal and
+should be set to 12 even though 16 hardware contexts need to be enabled.
 
--JE
+Signed-off-by: Ralph Campbell <ralph.campbell-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+---
 
-On Wed, Jul 21, 2010 at 1:51 PM, Hefty, Sean <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wro=
-te:
->> Timed out connections might be something that can be compensated for
->> in the app. =A0It is definitely preferable to a kernel panic. =A0Sti=
-ll,
->> I'll work on making OFED-1.5.1 happy before playing around with
->> removing the ib_send_cm_mra() call.
->
-> FYI - the possible issue I'm describing is in the upstream kernel, so=
- it would also be in 1.5.1.
->
+ drivers/infiniband/hw/qib/qib_iba7322.c |    2 +-
+ drivers/infiniband/hw/qib/qib_init.c    |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/infiniband/hw/qib/qib_iba7322.c b/drivers/infiniband/hw/qib/qib_iba7322.c
+index 5eedf83..9031cd8 100644
+--- a/drivers/infiniband/hw/qib/qib_iba7322.c
++++ b/drivers/infiniband/hw/qib/qib_iba7322.c
+@@ -5864,7 +5864,7 @@ static void write_7322_initregs(struct qib_devdata *dd)
+ 	 * Doesn't clear any of the error bits that might be set.
+ 	 */
+ 	val = TIDFLOW_ERRBITS; /* these are W1C */
+-	for (i = 0; i < dd->ctxtcnt; i++) {
++	for (i = 0; i < dd->cfgctxts; i++) {
+ 		int flow;
+ 		for (flow = 0; flow < NUM_TIDFLOWS_CTXT; flow++)
+ 			qib_write_ureg(dd, ur_rcvflowtable+flow, val, i);
+diff --git a/drivers/infiniband/hw/qib/qib_init.c b/drivers/infiniband/hw/qib/qib_init.c
+index a873dd5..f1d16d3 100644
+--- a/drivers/infiniband/hw/qib/qib_init.c
++++ b/drivers/infiniband/hw/qib/qib_init.c
+@@ -93,7 +93,7 @@ unsigned long *qib_cpulist;
+ void qib_set_ctxtcnt(struct qib_devdata *dd)
+ {
+ 	if (!qib_cfgctxts)
+-		dd->cfgctxts = dd->ctxtcnt;
++		dd->cfgctxts = dd->first_user_ctxt + num_online_cpus();
+ 	else if (qib_cfgctxts < dd->num_pports)
+ 		dd->cfgctxts = dd->ctxtcnt;
+ 	else if (qib_cfgctxts <= dd->ctxtcnt)
+
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
