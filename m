@@ -1,17 +1,17 @@
 From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 04/18] ib/qib: use generic_file_llseek
-Date: Wed, 21 Jul 2010 11:40:41 -0700
-Message-ID: <ada7hkooeza.fsf@roland-alpha.cisco.com>
-References: <1278538820-1392-1-git-send-email-arnd@arndb.de>
-	<1278538820-1392-5-git-send-email-arnd@arndb.de>
+Subject: Re: [PATCH 2/7] IB/qib: allow PSM to select from multiple port assignment algorithms
+Date: Wed, 21 Jul 2010 11:40:53 -0700
+Message-ID: <ada39vcoeyy.fsf@roland-alpha.cisco.com>
+References: <20100617231338.8006.18131.stgit@chromite.mv.qlogic.com>
+	<20100617231349.8006.24712.stgit@chromite.mv.qlogic.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1278538820-1392-5-git-send-email-arnd-r2nGTMty4D4@public.gmane.org> (Arnd Bergmann's
-	message of "Wed, 7 Jul 2010 23:40:06 +0200")
+In-Reply-To: <20100617231349.8006.24712.stgit-/vjeY7uYZjrPXfVEPVhPGq6RkeBMCJyt@public.gmane.org> (Ralph
+	Campbell's message of "Thu, 17 Jun 2010 16:13:49 -0700")
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
-Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, John Kacur <jkacur-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Frederic Weisbecker <fweisbec-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Ralph Campbell <ralph.campbell-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 thanks, applied
