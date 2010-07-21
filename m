@@ -1,38 +1,34 @@
-From: Steven Dake <sdake-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] change thread-unsafe readdir to thread-safe readdir_r
- calls
-Date: Wed, 21 Jul 2010 11:33:53 -0700
-Message-ID: <4C473D91.8000704@redhat.com>
-References: <1278540873-3857-1-git-send-email-sdake@redhat.com> <adak4ooogjj.fsf@roland-alpha.cisco.com>
+From: Josh England <jjengla-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: NULL pointer dereference in rdma_ucm
+Date: Wed, 21 Jul 2010 11:40:06 -0700
+Message-ID: <AANLkTikgvfJ85iCaYaG2My7A92FFXz0Fb9vFhVXtUYyx@mail.gmail.com>
+References: <AANLkTikwDEJY_F1ziGNPhYMBJEBC5UqD2XOLM7wSByj1@mail.gmail.com>
+	<CF9C39F99A89134C9CF9C4CCB68B8DDF25A71DAA57@orsmsx501.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <adak4ooogjj.fsf-BjVyx320WGW9gfZ95n9DRSW4+XlvGpQz@public.gmane.org>
+In-Reply-To: <CF9C39F99A89134C9CF9C4CCB68B8DDF25A71DAA57-osO9UTpF0USkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Linux RDMA list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 07/21/2010 11:06 AM, Roland Dreier wrote:
->   >  +	buf = alloca(offsetof(struct dirent, d_name) + NAME_MAX + 1);
->   >  +	while (readdir_r(class_dir, buf,&dent) == 0&&  dent) {
->
-> So after thinking this over, I don't think I'm going to apply this
-> patch.  I think the right fix is for corosync to allow readdir() -- in
-> general pushing people to safer APIs is probably a good thing, but I
-> think in this particular case it doesn't make sense.  In fact it seems
-> that readdir_r() is actually worse since the "buf" parameter does not
-> have a well-defined required size, while readdir() is actually safe in
-> most uses.
->
->   - R.
+On Wed, Jul 21, 2010 at 11:13 AM, Hefty, Sean <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wr=
+ote:
+> If this is what is happening, then removing the call to ib_send_cm_mr=
+a() from cma_req_handler() should eliminate the crash. =A0The drawback =
+is that connections may begin timing out under load, but it may be wort=
+h trying. =A0I'll see if I can come up with a better fix.
 
-thanks for considering
+Timed out connections might be something that can be compensated for
+in the app.  It is definitely preferable to a kernel panic.  Still,
+I'll work on making OFED-1.5.1 happy before playing around with
+removing the ib_send_cm_mra() call.
 
-regards
--steve
+-JE
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
