@@ -1,34 +1,26 @@
-From: Josh England <jjengla-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: NULL pointer dereference in rdma_ucm
-Date: Wed, 21 Jul 2010 11:40:06 -0700
-Message-ID: <AANLkTikgvfJ85iCaYaG2My7A92FFXz0Fb9vFhVXtUYyx@mail.gmail.com>
-References: <AANLkTikwDEJY_F1ziGNPhYMBJEBC5UqD2XOLM7wSByj1@mail.gmail.com>
-	<CF9C39F99A89134C9CF9C4CCB68B8DDF25A71DAA57@orsmsx501.amr.corp.intel.com>
+From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH V2] ib_qib: Allow writes to the diag_counters to be able to clear them
+Date: Wed, 21 Jul 2010 11:40:36 -0700
+Message-ID: <adabpa0oezf.fsf@roland-alpha.cisco.com>
+References: <20100707173313.675cd665.weiny2@llnl.gov>
+	<AANLkTin_OHC8r__FDXPY6QhCaXDYgNFDY9SeE8ffdc35@mail.gmail.com>
+	<20100708110446.97317098.weiny2@llnl.gov>
+	<20100708131105.4103a6e3.weiny2@llnl.gov>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CF9C39F99A89134C9CF9C4CCB68B8DDF25A71DAA57-osO9UTpF0USkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
+In-Reply-To: <20100708131105.4103a6e3.weiny2-i2BcT+NCU+M@public.gmane.org> (Ira Weiny's message of
+	"Thu, 8 Jul 2010 13:11:05 -0700")
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Linux RDMA list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+Cc: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>, "linux-rdma@vger.kernel.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Ralph Campbell <ralph.campbell-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Jul 21, 2010 at 11:13 AM, Hefty, Sean <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wr=
-ote:
-> If this is what is happening, then removing the call to ib_send_cm_mr=
-a() from cma_req_handler() should eliminate the crash. =A0The drawback =
-is that connections may begin timing out under load, but it may be wort=
-h trying. =A0I'll see if I can come up with a better fix.
-
-Timed out connections might be something that can be compensated for
-in the app.  It is definitely preferable to a kernel panic.  Still,
-I'll work on making OFED-1.5.1 happy before playing around with
-removing the ib_send_cm_mra() call.
-
--JE
+So Ralph, I'm relying on you to decide if this makes sense...
+-- 
+Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org> || For corporate legal information go to:
+http://www.cisco.com/web/about/doing_business/legal/cri/index.html
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
