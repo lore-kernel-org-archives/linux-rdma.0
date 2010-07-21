@@ -1,31 +1,22 @@
-From: Bob Ciotti <Bob.Ciotti-NSQ8wuThN14@public.gmane.org>
-Subject: Re: knockdown voltaire switch with ARP multicast
-Date: Wed, 21 Jul 2010 09:09:21 -0700
-Message-ID: <20100721160921.GB20367@nas.nasa.gov>
-References: <20100721073543.GA16373@nas.nasa.gov>
- <4C46DC22.6080100@voltaire.com>
+From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH 1/2] ib_ipath: Fix probe failure path
+Date: Wed, 21 Jul 2010 10:49:01 -0700
+Message-ID: <adaeiewpvxu.fsf@roland-alpha.cisco.com>
+References: <1276309509.14011.173.camel@localhost>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <4C46DC22.6080100-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <1276309509.14011.173.camel@localhost> (Ben Hutchings's message
+	of "Sat, 12 Jun 2010 03:25:09 +0100")
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Ben Hutchings <ben-/+tVBieCtBitmTQ+vhA3Yw@public.gmane.org>
+Cc: Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Ralph Campbell <ralph.campbell-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-
-Yes. Good progress - most likely idnetify workaround.
-
-On Wed, Jul 21, 2010 at 06:38:10AM -0500, Or Gerlitz wrote:
-> Bob Ciotti wrote:
-> > Maybe someone on the voltaire side can help.
-> > I'm working the issue now Wed Jul 21 00:34:14 PDT 2010
-> Hi Bob,
-> 
-> I understand that some folks from Voltaire are working with you directly.
-> 
-> Or.
+thanks, applied.
+-- 
+Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org> || For corporate legal information go to:
+http://www.cisco.com/web/about/doing_business/legal/cri/index.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
