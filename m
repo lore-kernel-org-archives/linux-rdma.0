@@ -1,69 +1,70 @@
-From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: Re: sense remote hardware address change by rdma-cm applications
-Date: Tue, 20 Jul 2010 16:15:22 -0500
-Message-ID: <4C4611EA.6000700@opengridcomputing.com>
-References: <AANLkTimmWiNqHJIqSEKbY-X6mSx6zA19p__JDYPEmp8b@mail.gmail.com> <20100720001436.GH7920@obsidianresearch.com> <4C454F80.1060808@Voltaire.com> <4C45E701.7030501@opengridcomputing.com> <20100720184620.GJ7920@obsidianresearch.com> <4C45F6F5.6050008@opengridcomputing.com> <20100720203044.GK7920@obsidianresearch.com> <4C460BFD.5010707@opengridcomputing.com> <20100720205746.GL7920@obsidianresearch.com> <4C460F08.7030304@opengridcomputing.com>
+From: Josh England <jjengla-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: NULL pointer dereference in rdma_ucm
+Date: Tue, 20 Jul 2010 17:14:55 -0700
+Message-ID: <AANLkTimdl7BRoX7O_T68BwjUGSIQ7c0X5Syn4eDDkk9K@mail.gmail.com>
+References: <AANLkTikwDEJY_F1ziGNPhYMBJEBC5UqD2XOLM7wSByj1@mail.gmail.com>
+	<adazkxlq3jn.fsf@roland-alpha.cisco.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4C460F08.7030304-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+In-Reply-To: <adazkxlq3jn.fsf-BjVyx320WGW9gfZ95n9DRSW4+XlvGpQz@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Or Gerlitz <ogerlitz-hKgKHo2Ms0FWk0Htik3J/w@public.gmane.org>, Sean Hefty <mshefty-+/W+9+QloQG75v1z/vFq2g@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Tung, Chien Tin" <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Cc: Linux RDMA list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+My kernel selections are limited to which versions I can get a panfs
+module for.  The most recent kernel I see support for is a 2.6.31
+variant from FC12.  I could ask them for a custom port for a newer
+mainline kernel but the turn-around will likely be several weeks.
+I'll go ahead and ask for one I guess.
 
-Steve Wise wrote:
-> Jason Gunthorpe wrote:
->> On Tue, Jul 20, 2010 at 03:50:05PM -0500, Steve Wise wrote:
->>
->>  
->>>> I think if RDMACM manages the dst and lets the devices access it then
->>>> all the existing netdev infrastructure for poking at a dst should be
->>>> available to the device?
->>>>       
->>> Yes. But I'm not sure exactly how the logic I described previous 
->>> for  cxgb* would be handled in the design being ironed out here.
->>>     
->>
->> I'm thinking something like this..
->>
->> - The RDMA CM gets the dst from its route lookup locks it and stores
->>   it.
->> - Instead of doing a route lookup cxgb gets the dst from RDMA CM,
->>   locks it and stores it
->> - RDMA CM traps all notifications/etc and generates callback to cxgb
->>   to say the dst has changed.
->> - cxgb releases the old dst and grabs the new one, updates the HW,
->>   etc.
->>
->> Basically the same as what you have now, but all the logic to find
->> and monitor the dst moves to RDMA CM..
->>
->> redirects/etc are all handled by netdev/rdma cm and just generate the
->> same 'dst has changed' call back to cxgb..
->>
->> Or's user space notification stuff hooks the same callback to generate
->> a notification to userspace about the new dst.
->>
->> All the stuff you do now with the dst you can keep doing, you just
->> remove all the route lookup and netdev hooking to get the dst from
->> RDMA CM.
->>
->> Jason
->>   
->
-> Sounds like this would work nicely.
->
->
-> Steve.
->
+It looks like 2.6.18 WARN_ON doesn't really do much:
+#define WARN_ON(condition) do { if (condition) ; } while (0)
 
-Need to hear from Intel.  CCing Chien.
+-JE
 
-
+On Tue, Jul 20, 2010 at 1:52 PM, Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org> wrot=
+e:
+> =A0> I'm experimenting with an rdma_cm application to push data aroun=
+d
+> =A0> between nodes on an ~1000 node cluster (CentOS-5.3 with 2.6.18-1=
+28.el5
+> =A0> and OFED-1.4.2). =A0Under heavy load, I'm seeing several nodes p=
+er day
+> =A0> kernel panic due to a NULL pointer dereference. =A0It may be tha=
+t the
+> =A0> in-kernel field cm_id_priv has a NULL ->alt_av.port , causing th=
+e
+> =A0> Oops, but I don't know for sure. =A0Any ideas on how to debug th=
+is?
+>
+> You have a pretty unsupportable combination of ancient kernel and old
+> OFED stack. =A0Is there any way you can test this with a recent mainl=
+ine
+> kernel?
+>
+> If I were debugging this I guess I would try to find out for sure whe=
+re
+> the NULL dereference occurs -- I guess ib_cm_init_qp_attr() has all t=
+he
+> leaf functions (cm_init_qp_init_attr etc) inlined, so the first step
+> would be to figure out which one of those functions you're crashing i=
+n
+> (and also confirm that it's always the same one). =A0You could do tha=
+t by
+> marking them noinline, or just put a WARN_ON(!<ptr>) before every
+> pointer dereference (does 2.6.18 even have WARN_ON?).
+>
+> =A0- R.
+> --
+> Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org> || For corporate legal information =
+go to:
+> http://www.cisco.com/web/about/doing_business/legal/cri/index.html
+>
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
