@@ -1,182 +1,360 @@
-From: Tom Ammon <tom.ammon-wbocuHtxKic@public.gmane.org>
-Subject: Re: more partition questions
-Date: Thu, 22 Jul 2010 11:19:11 -0600
-Message-ID: <4C487D8F.80203@utah.edu>
-References: <4C448DCD.80809@utah.edu> <AANLkTikDh5Em28cj9WSy2nNC-vrcZe4MwFHOYt9OmeuU@mail.gmail.com>
+From: Hari Subramoni <subramon-wPOY3OvGL++pAIv7I8X2sze48wsgrGvP@public.gmane.org>
+Subject: Re: Issue with RDMA_CM on systems with multiple IB HCA's.
+Date: Thu, 22 Jul 2010 13:23:55 -0400 (EDT)
+Message-ID: <Pine.GSO.4.40.1007221320200.17-300000@kappa.cse.ohio-state.edu>
+References: <AANLkTinco6znrHkoE9vL1n7KrrZ68zPExPUPQeDHD64i@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: MULTIPART/MIXED; BOUNDARY="-559023410-1817792895-1279819435=:17"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <AANLkTikDh5Em28cj9WSy2nNC-vrcZe4MwFHOYt9OmeuU-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <AANLkTinco6znrHkoE9vL1n7KrrZ68zPExPUPQeDHD64i-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Or Gerlitz <ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hal,
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
+  Send mail to mime-oOUblnuQwHKola3qYQ6TW/IULO3mGbRi9nwVQlTi/Pw@public.gmane.org for more info.
 
-On 7/21/2010 2:45 PM, Hal Rosenstock wrote:
-> Hi Tom,
+---559023410-1817792895-1279819435=:17
+Content-Type: TEXT/PLAIN; charset=X-UNKNOWN
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+
+Hi Or,
+
+Thanks a lot for your quick response.
+
+The nodes have LID's assigned to them and OpenSM is running fine. The
+reason why the test doesn't print out the LID's seems to be because the
+test does not print those fields properly when using RDMA_CM for
+establishing connections. I've attached the configurations of the two
+hosts along with this e-mail. As Jonathan mentioned, we are able to ping
+between them.
+
+The issue is intermittent. It happens at times and at other times, things
+work fine. Please let us know if you need any more information.
+
+Thx,
+Hari.
+
+On Thu, 22 Jul 2010, Jonathan Perkins wrote:
+
+> On Thu, Jul 22, 2010 at 3:15 AM, Or Gerlitz <ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org> wrote=
+:
+> > Hari Subramoni wrote:
+> >> [subramon@amd6 perftest]$ ./ib_rdma_bw -c 172.16.1.5
+> >> 11928: | port=3D18515 | ib_port=3D1 | size=3D65536 | tx_depth=3D100 | =
+iters=3D1000 | duplex=3D0 | cma=3D1 |
+> >> 11928: Local address: =A0LID 0000, QPN 000000, PSN 0x5bfbba RKey 0x900=
+42602 VAddr 0x002b27feabe000
+> >> 11928: Remote address: LID 0000, QPN 000000, PSN 0x392fe6, RKey 0xf804=
+2605 VAddr 0x002b9d5c93b000
+> >
+> >
+> > you can see the lid and qp numbers are zero, something is broken... whe=
+n you use the rdma-cm,
+> > the address to be provided to the utility should be on an IPoIB subnet,=
+ is that what you're doing?
+> >
+> > Basically, I would suggest that you first use rping(1) provided by libr=
+dmacm-utils to make
+> > sure things are working well in your configuration and then move to the=
+ perftest utils.
 >
-> On 7/19/10, Tom Ammon<tom.ammon-wbocuHtxKic@public.gmane.org>  wrote:
->> I'm trying to set up partitions in a little test environment, and I'm
->> having trouble.
->>
->> I have opensm running on a machine attached to the fabric, and sminfo on
->> the other machines confirm that this is indeed the master SM. Here's my
->> /etc/opensm/partitions.conf:
->>
->> Default=0xffff , ipoib : ALL, SELF=full ;
->> PartitionBlue=0x8004, ipoib : 0x0002c9030009cb3f=full,
->> 0x0002c90200252841=full, 0x0002c90200243471=full ;
->> PartitionRed=0x8005, ipoib : 0x0002c90200252841=full,
->> 0x0002c90200243591=full, 0x0002c9030009cb2b=full ;
+> Thanks for the response Or.  I'm posting some information below.
 >
-> You don't really need the 0x8000 bit on in the pkeys but I don't think
-> it does any harm.
+> Here is the output I get when running rping...
 >
->> But when I go to the machine with port GUID 0x0002c90200243471, it
->> doesn't appear that it's getting the pkey I wanted:
->>
->> [root@stagnate ~]# ibstat
->> CA 'mthca0'
->>           CA type: MT23108
->>           Number of ports: 2
->>           Firmware version: 3.3.5
->>           Hardware version: a1
->>           Node GUID: 0x0002c90200243470
->>           System image GUID: 0x0002c90200243473
->>           Port 1:
->>                   State: Active
->>                   Physical state: LinkUp
->>                   Rate: 10
->>                   Base lid: 10
->>                   LMC: 0
->>                   SM lid: 4
->>                   Capability mask: 0x02510a68
->>                   Port GUID: 0x0002c90200243471
->>           Port 2:
->>                   State: Down
->>                   Physical state: Polling
->>                   Rate: 2
->>                   Base lid: 0
->>                   LMC: 0
->>                   SM lid: 0
->>                   Capability mask: 0x02510a68
->>                   Port GUID: 0x0002c90200243472
->>
->> [root@stagnate ~]# cat /sys/class/net/ib0/pkey
->> 0xffff
+> [perkinjo@amd5 ~]$ rping -v -s -a 172.16.1.5
 >
-> What does:
+> [perkinjo@amd6 ~]$ rping -v -c -a 172.16.1.5
+> cq completion failed status 5
+> cma event RDMA_CM_EVENT_REJECTED, error 8
+> wait for CONNECTED state 10
+> connect error -1
+> [perkinjo@amd6 ~]$ ping 172.16.1.5
+> PING 172.16.1.5 (172.16.1.5) 56(84) bytes of data.
+> 64 bytes from 172.16.1.5: icmp_seq=3D1 ttl=3D64 time=3D3.45 ms
+> 64 bytes from 172.16.1.5: icmp_seq=3D2 ttl=3D64 time=3D1.00 ms
 >
-> smpquery pkeys 10 1
+> We are able to ping the addresses but you can see that rping results
+> in a failure.
 >
-> say ? Do you see the other pkey(s) on that port ?
-
-[root@stagnate ~]# smpquery pkeys 10 1
-    0: 0x7fff 0x8004 0x0000 0x0000 0x0000 0x0000 0x0000 0x0000
-    8: 0x0000 0x0000 0x0000 0x0000 0x0000 0x0000 0x0000 0x0000
-   16: 0x0000 0x0000 0x0000 0x0000 0x0000 0x0000 0x0000 0x0000
-   24: 0x0000 0x0000 0x0000 0x0000 0x0000 0x0000 0x0000 0x0000
-   32: 0x0000 0x0000 0x0000 0x0000 0x0000 0x0000 0x0000 0x0000
-   40: 0x0000 0x0000 0x0000 0x0000 0x0000 0x0000 0x0000 0x0000
-   48: 0x0000 0x0000 0x0000 0x0000 0x0000 0x0000 0x0000 0x0000
-   56: 0x0000 0x0000 0x0000 0x0000 0x0000 0x0000 0x0000 0x0000
-64 pkeys capacity for this port
-
-So I see that both 7fff and 8004 are being assigned to this port. Is 
-that okay? Is there any problem with the machine also being in the 
-default partition?
-
-As I look around at all of the machines with smpquery, it appears that 
-they are all being assigned 7fff and the pkey that I assigned in 
-partitions.conf.
-
-But the machine that I want to run 2 child interfaces on is having 
-issues. It's at LID 7 and here's what smpquery says:
-
-[root@stagnate ~]# smpquery pkeys 7 1
-    0: 0x7fff 0x8004 0x8005 0x0000 0x0000 0x0000 0x0000 0x0000
-    8: 0x0000 0x0000 0x0000 0x0000 0x0000 0x0000 0x0000 0x0000
-   16: 0x0000 0x0000 0x0000 0x0000 0x0000 0x0000 0x0000 0x0000
-   24: 0x0000 0x0000 0x0000 0x0000 0x0000 0x0000 0x0000 0x0000
-   32: 0x0000 0x0000 0x0000 0x0000 0x0000 0x0000 0x0000 0x0000
-   40: 0x0000 0x0000 0x0000 0x0000 0x0000 0x0000 0x0000 0x0000
-   48: 0x0000 0x0000 0x0000 0x0000 0x0000 0x0000 0x0000 0x0000
-   56: 0x0000 0x0000 0x0000 0x0000 0x0000 0x0000 0x0000 0x0000
-64 pkeys capacity for this port
-
-So that's fine, but when I try to create a child interface I get this:
-
-[root@labdisk01 ~]# echo 0x8004 > /sys/class/net/ib0/create_child
--bash: echo: write error: Name not unique on network
-
-My plan was to create two child interfaces (0x8004 and 0x8005) and then 
-ifconfig ib0.8004 and ifconfig ib0.8005 to assign them to separate subnets.
-
-Tom
-
-
+> We have two interfaces exposed on each machine both on different
+> subnets (172.16.1.0/24 and 172.16.2.0/24).  We're using ofed-1.5.1 on
+> these systems.  Any idea of what could be going on?
 >
-> The pkey you are seeing is the only one for ib0 interface.
+> --
+> Jonathan Perkins
 >
 
+---559023410-1817792895-1279819435=:17
+Content-Type: TEXT/PLAIN; charset=US-ASCII; name=host2
+Content-Transfer-Encoding: BASE64
+Content-ID: <Pine.GSO.4.40.1007221323550.17-ItQMRKI8FOvVp4Hyp30HIZ9NZdITTVap@public.gmane.org>
+Content-Description: 
+Content-Disposition: attachment; filename=host2
 
+W3N1YnJhbW9uQGFtZDYgfl0kIGlic3RhdA0KQ0EgJ21seDRfMCcNCiAgICAg
+ICAgQ0EgdHlwZTogTVQyNTQxOA0KICAgICAgICBOdW1iZXIgb2YgcG9ydHM6
+IDINCiAgICAgICAgRmlybXdhcmUgdmVyc2lvbjogMi42LjANCiAgICAgICAg
+SGFyZHdhcmUgdmVyc2lvbjogYTANCiAgICAgICAgTm9kZSBHVUlEOiAweDAw
+MDJjOTAzMDAwMWU0NDINCiAgICAgICAgU3lzdGVtIGltYWdlIEdVSUQ6IDB4
+MDAwMmM5MDMwMDAxZTQ0NQ0KICAgICAgICBQb3J0IDE6DQogICAgICAgICAg
+ICAgICAgU3RhdGU6IEFjdGl2ZQ0KICAgICAgICAgICAgICAgIFBoeXNpY2Fs
+IHN0YXRlOiBMaW5rVXANCiAgICAgICAgICAgICAgICBSYXRlOiAyMA0KICAg
+ICAgICAgICAgICAgIEJhc2UgbGlkOiA0DQogICAgICAgICAgICAgICAgTE1D
+OiAwDQogICAgICAgICAgICAgICAgU00gbGlkOiAxDQogICAgICAgICAgICAg
+ICAgQ2FwYWJpbGl0eSBtYXNrOiAweDAyNTEwODY4DQogICAgICAgICAgICAg
+ICAgUG9ydCBHVUlEOiAweDAwMDJjOTAzMDAwMWU0NDMNCiAgICAgICAgUG9y
+dCAyOg0KICAgICAgICAgICAgICAgIFN0YXRlOiBEb3duDQogICAgICAgICAg
+ICAgICAgUGh5c2ljYWwgc3RhdGU6IFBvbGxpbmcNCiAgICAgICAgICAgICAg
+ICBSYXRlOiAxMA0KICAgICAgICAgICAgICAgIEJhc2UgbGlkOiAwDQogICAg
+ICAgICAgICAgICAgTE1DOiAwDQogICAgICAgICAgICAgICAgU00gbGlkOiAw
+DQogICAgICAgICAgICAgICAgQ2FwYWJpbGl0eSBtYXNrOiAweDAyNTEwODY4
+DQogICAgICAgICAgICAgICAgUG9ydCBHVUlEOiAweDAwMDJjOTAzMDAwMWU0
+NDQNCkNBICdtbHg0XzEnDQogICAgICAgIENBIHR5cGU6IE1UMjU0MTgNCiAg
+ICAgICAgTnVtYmVyIG9mIHBvcnRzOiAyDQogICAgICAgIEZpcm13YXJlIHZl
+cnNpb246IDIuNi4wDQogICAgICAgIEhhcmR3YXJlIHZlcnNpb246IGEwDQog
+ICAgICAgIE5vZGUgR1VJRDogMHgwMDAyYzkwMzAwMDFlNDRlDQogICAgICAg
+IFN5c3RlbSBpbWFnZSBHVUlEOiAweDAwMDJjOTAzMDAwMWU0NTENCiAgICAg
+ICAgUG9ydCAxOg0KICAgICAgICAgICAgICAgIFN0YXRlOiBBY3RpdmUNCiAg
+ICAgICAgICAgICAgICBQaHlzaWNhbCBzdGF0ZTogTGlua1VwDQogICAgICAg
+ICAgICAgICAgUmF0ZTogMjANCiAgICAgICAgICAgICAgICBCYXNlIGxpZDog
+Ng0KICAgICAgICAgICAgICAgIExNQzogMA0KICAgICAgICAgICAgICAgIFNN
+IGxpZDogMQ0KICAgICAgICAgICAgICAgIENhcGFiaWxpdHkgbWFzazogMHgw
+MjUxMDg2OA0KICAgICAgICAgICAgICAgIFBvcnQgR1VJRDogMHgwMDAyYzkw
+MzAwMDFlNDRmDQogICAgICAgIFBvcnQgMjoNCiAgICAgICAgICAgICAgICBT
+dGF0ZTogRG93bg0KICAgICAgICAgICAgICAgIFBoeXNpY2FsIHN0YXRlOiBQ
+b2xsaW5nDQogICAgICAgICAgICAgICAgUmF0ZTogMTANCiAgICAgICAgICAg
+ICAgICBCYXNlIGxpZDogMA0KICAgICAgICAgICAgICAgIExNQzogMA0KICAg
+ICAgICAgICAgICAgIFNNIGxpZDogMA0KICAgICAgICAgICAgICAgIENhcGFi
+aWxpdHkgbWFzazogMHgwMjUxMDg2OA0KICAgICAgICAgICAgICAgIFBvcnQg
+R1VJRDogMHgwMDAyYzkwMzAwMDFlNDUwDQpbc3VicmFtb25AYW1kNiB+XSQN
+CltzdWJyYW1vbkBhbWQ2IH5dJCBpZmNvbmZpZw0KZXRoMCAgICAgIExpbmsg
+ZW5jYXA6RXRoZXJuZXQgIEhXYWRkciAwMDozMDo0ODpEMDoxOTpDQQ0KICAg
+ICAgICAgIGluZXQgYWRkcjoxNjQuMTA3LjExOS4yMzcgIEJjYXN0OjE2NC4x
+MDcuMTE5LjI1NSAgTWFzazoyNTUuMjU1LjI1NS4wDQogICAgICAgICAgaW5l
+dDYgYWRkcjogZmU4MDo6MjMwOjQ4ZmY6ZmVkMDoxOWNhLzY0IFNjb3BlOkxp
+bmsNCiAgICAgICAgICBVUCBCUk9BRENBU1QgUlVOTklORyBNVUxUSUNBU1Qg
+IE1UVToxNTAwICBNZXRyaWM6MQ0KICAgICAgICAgIFJYIHBhY2tldHM6MTMy
+NzQxIGVycm9yczowIGRyb3BwZWQ6MCBvdmVycnVuczowIGZyYW1lOjANCiAg
+ICAgICAgICBUWCBwYWNrZXRzOjUxMDkxIGVycm9yczowIGRyb3BwZWQ6MCBv
+dmVycnVuczowIGNhcnJpZXI6MA0KICAgICAgICAgIGNvbGxpc2lvbnM6MCB0
+eHF1ZXVlbGVuOjEwMDANCiAgICAgICAgICBSWCBieXRlczoyNTM0Njc3MSAo
+MjQuMSBNaUIpICBUWCBieXRlczoxODgwMDc0MCAoMTcuOSBNaUIpDQogICAg
+ICAgICAgQmFzZSBhZGRyZXNzOjB4YmMwMCBNZW1vcnk6ZDdmZTAwMDAtZDgw
+MDAwMDANCg0KaWIwICAgICAgIExpbmsgZW5jYXA6SW5maW5pQmFuZCAgSFdh
+ZGRyDQo4MDowMDowMDo0ODpGRTo4MDowMDowMDowMDowMDowMDowMDowMDow
+MDowMDowMDowMDowMDowMDowMA0KICAgICAgICAgIGluZXQgYWRkcjoxNzIu
+MTYuMS42ICBCY2FzdDoxNzIuMTYuMS4yNTUgIE1hc2s6MjU1LjI1NS4yNTUu
+MA0KICAgICAgICAgIGluZXQ2IGFkZHI6IGZlODA6OjIwMjpjOTAzOjE6ZTQ0
+My82NCBTY29wZTpMaW5rDQogICAgICAgICAgVVAgQlJPQURDQVNUIFJVTk5J
+TkcgTVVMVElDQVNUICBNVFU6NjU1MjAgIE1ldHJpYzoxDQogICAgICAgICAg
+UlggcGFja2V0czoxMjEgZXJyb3JzOjAgZHJvcHBlZDowIG92ZXJydW5zOjAg
+ZnJhbWU6MA0KICAgICAgICAgIFRYIHBhY2tldHM6NjYgZXJyb3JzOjAgZHJv
+cHBlZDoxMCBvdmVycnVuczowIGNhcnJpZXI6MA0KICAgICAgICAgIGNvbGxp
+c2lvbnM6MCB0eHF1ZXVlbGVuOjI1Ng0KICAgICAgICAgIFJYIGJ5dGVzOjM0
+ODg1ICgzNC4wIEtpQikgIFRYIGJ5dGVzOjEzOTEzICgxMy41IEtpQikNCg0K
+aWIyICAgICAgIExpbmsgZW5jYXA6SW5maW5pQmFuZCAgSFdhZGRyDQo4MDow
+MDowMDo0ODpGRTo4MDowMDowMDowMDowMDowMDowMDowMDowMDowMDowMDow
+MDowMDowMDowMA0KICAgICAgICAgIGluZXQgYWRkcjoxNzIuMTYuMi42ICBC
+Y2FzdDoxNzIuMTYuMi4yNTUgIE1hc2s6MjU1LjI1NS4yNTUuMA0KICAgICAg
+ICAgIGluZXQ2IGFkZHI6IGZlODA6OjIwMjpjOTAzOjE6ZTQ0Zi82NCBTY29w
+ZTpMaW5rDQogICAgICAgICAgVVAgQlJPQURDQVNUIFJVTk5JTkcgTVVMVElD
+QVNUICBNVFU6NjU1MjAgIE1ldHJpYzoxDQogICAgICAgICAgUlggcGFja2V0
+czo3NiBlcnJvcnM6MCBkcm9wcGVkOjAgb3ZlcnJ1bnM6MCBmcmFtZTowDQog
+ICAgICAgICAgVFggcGFja2V0czo0OCBlcnJvcnM6MCBkcm9wcGVkOjEwIG92
+ZXJydW5zOjAgY2FycmllcjowDQogICAgICAgICAgY29sbGlzaW9uczowIHR4
+cXVldWVsZW46MjU2DQogICAgICAgICAgUlggYnl0ZXM6MjQ3NzUgKDI0LjEg
+S2lCKSAgVFggYnl0ZXM6MTUzMjcgKDE0LjkgS2lCKQ0KDQpsbyAgICAgICAg
+TGluayBlbmNhcDpMb2NhbCBMb29wYmFjaw0KICAgICAgICAgIGluZXQgYWRk
+cjoxMjcuMC4wLjEgIE1hc2s6MjU1LjAuMC4wDQogICAgICAgICAgaW5ldDYg
+YWRkcjogOjoxLzEyOCBTY29wZTpIb3N0DQogICAgICAgICAgVVAgTE9PUEJB
+Q0sgUlVOTklORyAgTVRVOjE2NDM2ICBNZXRyaWM6MQ0KICAgICAgICAgIFJY
+IHBhY2tldHM6Nzg3MCBlcnJvcnM6MCBkcm9wcGVkOjAgb3ZlcnJ1bnM6MCBm
+cmFtZTowDQogICAgICAgICAgVFggcGFja2V0czo3ODcwIGVycm9yczowIGRy
+b3BwZWQ6MCBvdmVycnVuczowIGNhcnJpZXI6MA0KICAgICAgICAgIGNvbGxp
+c2lvbnM6MCB0eHF1ZXVlbGVuOjANCiAgICAgICAgICBSWCBieXRlczo4NTU1
+NzQgKDgzNS41IEtpQikgIFRYIGJ5dGVzOjg1NTU3NCAoODM1LjUgS2lCKQ0K
+DQp2aXJicjAgICAgTGluayBlbmNhcDpFdGhlcm5ldCAgSFdhZGRyIDAwOjAw
+OjAwOjAwOjAwOjAwDQogICAgICAgICAgaW5ldCBhZGRyOjE5Mi4xNjguMTIy
+LjEgIEJjYXN0OjE5Mi4xNjguMTIyLjI1NSAgTWFzazoyNTUuMjU1LjI1NS4w
+DQogICAgICAgICAgaW5ldDYgYWRkcjogZmU4MDo6MjAwOmZmOmZlMDA6MC82
+NCBTY29wZTpMaW5rDQogICAgICAgICAgVVAgQlJPQURDQVNUIFJVTk5JTkcg
+TVVMVElDQVNUICBNVFU6MTUwMCAgTWV0cmljOjENCiAgICAgICAgICBSWCBw
+YWNrZXRzOjAgZXJyb3JzOjAgZHJvcHBlZDowIG92ZXJydW5zOjAgZnJhbWU6
+MA0KICAgICAgICAgIFRYIHBhY2tldHM6MjggZXJyb3JzOjAgZHJvcHBlZDow
+IG92ZXJydW5zOjAgY2FycmllcjowDQogICAgICAgICAgY29sbGlzaW9uczow
+IHR4cXVldWVsZW46MA0KICAgICAgICAgIFJYIGJ5dGVzOjAgKDAuMCBiKSAg
+VFggYnl0ZXM6NjE3NSAoNi4wIEtpQikNCg0KW3N1YnJhbW9uQGFtZDYgfl0k
+DQpbc3VicmFtb25AYW1kNiB+XSQgbmV0c3RhdCAtcm4NCktlcm5lbCBJUCBy
+b3V0aW5nIHRhYmxlDQpEZXN0aW5hdGlvbiAgICAgR2F0ZXdheSAgICAgICAg
+IEdlbm1hc2sgICAgICAgICBGbGFncyAgIE1TUyBXaW5kb3cgIGlydHQgSWZh
+Y2UNCjE3Mi4xNi4yLjAgICAgICAwLjAuMC4wICAgICAgICAgMjU1LjI1NS4y
+NTUuMCAgIFUgICAgICAgICAwIDAgICAgICAgICAgMCBpYjINCjE2NC4xMDcu
+MTE5LjAgICAwLjAuMC4wICAgICAgICAgMjU1LjI1NS4yNTUuMCAgIFUgICAg
+ICAgICAwIDAgICAgICAgICAgMCBldGgwDQoxNzIuMTYuMS4wICAgICAgMC4w
+LjAuMCAgICAgICAgIDI1NS4yNTUuMjU1LjAgICBVICAgICAgICAgMCAwICAg
+ICAgICAgIDAgaWIwDQoxOTIuMTY4LjEyMi4wICAgMC4wLjAuMCAgICAgICAg
+IDI1NS4yNTUuMjU1LjAgICBVICAgICAgICAgMCAwICAgICAgICAgIDAgdmly
+YnIwDQoxNjkuMjU0LjAuMCAgICAgMC4wLjAuMCAgICAgICAgIDI1NS4yNTUu
+MC4wICAgICBVICAgICAgICAgMCAwICAgICAgICAgIDAgZXRoMA0KMC4wLjAu
+MCAgICAgICAgIDE2NC4xMDcuMTE5LjEgICAwLjAuMC4wICAgICAgICAgVUcg
+ICAgICAgIDAgMCAgICAgICAgICAwIGV0aDANCltzdWJyYW1vbkBhbWQ2IH5d
+JA0KW3N1YnJhbW9uQGFtZDYgfl0kIHBpbmcgMTcyLjE2LjEuNQ0KUElORyAx
+NzIuMTYuMS41ICgxNzIuMTYuMS41KSA1Nig4NCkgYnl0ZXMgb2YgZGF0YS4N
+CjY0IGJ5dGVzIGZyb20gMTcyLjE2LjEuNTogaWNtcF9zZXE9MSB0dGw9NjQg
+dGltZT0yLjMxIG1zDQo2NCBieXRlcyBmcm9tIDE3Mi4xNi4xLjU6IGljbXBf
+c2VxPTIgdHRsPTY0IHRpbWU9MC4xMDkgbXMNCjY0IGJ5dGVzIGZyb20gMTcy
+LjE2LjEuNTogaWNtcF9zZXE9MyB0dGw9NjQgdGltZT0wLjA3OCBtcw0KDQot
+LS0gMTcyLjE2LjEuNSBwaW5nIHN0YXRpc3RpY3MgLS0tDQozIHBhY2tldHMg
+dHJhbnNtaXR0ZWQsIDMgcmVjZWl2ZWQsIDAlIHBhY2tldCBsb3NzLCB0aW1l
+IDE5OTltcw0KcnR0IG1pbi9hdmcvbWF4L21kZXYgPSAwLjA3OC8wLjgzNC8y
+LjMxNS8xLjA0NyBtcw0KW3N1YnJhbW9uQGFtZDYgfl0kIHBpbmcgMTcyLjE2
+LjEuNg0KUElORyAxNzIuMTYuMS42ICgxNzIuMTYuMS42KSA1Nig4NCkgYnl0
+ZXMgb2YgZGF0YS4NCjY0IGJ5dGVzIGZyb20gMTcyLjE2LjEuNjogaWNtcF9z
+ZXE9MSB0dGw9NjQgdGltZT0wLjA0NiBtcw0KNjQgYnl0ZXMgZnJvbSAxNzIu
+MTYuMS42OiBpY21wX3NlcT0yIHR0bD02NCB0aW1lPTAuMDEzIG1zDQo2NCBi
+eXRlcyBmcm9tIDE3Mi4xNi4xLjY6IGljbXBfc2VxPTMgdHRsPTY0IHRpbWU9
+MC4wMTQgbXMNCg0KLS0tIDE3Mi4xNi4xLjYgcGluZyBzdGF0aXN0aWNzIC0t
+LQ0KMyBwYWNrZXRzIHRyYW5zbWl0dGVkLCAzIHJlY2VpdmVkLCAwJSBwYWNr
+ZXQgbG9zcywgdGltZSAxOTk5bXMNCnJ0dCBtaW4vYXZnL21heC9tZGV2ID0g
+MC4wMTMvMC4wMjQvMC4wNDYvMC4wMTUgbXMNCltzdWJyYW1vbkBhbWQ2IH5d
+JA0K
+---559023410-1817792895-1279819435=:17
+Content-Type: TEXT/PLAIN; charset=US-ASCII; name=host1
+Content-Transfer-Encoding: BASE64
+Content-ID: <Pine.GSO.4.40.1007221323551.17-ItQMRKI8FOvVp4Hyp30HIZ9NZdITTVap@public.gmane.org>
+Content-Description: 
+Content-Disposition: attachment; filename=host1
 
-
-
-
-
-
-
-
-
-
-> If you want to have IPoIB interfaces on the other partitions too, you
-> need to set this up by creating a child interface on those nodes; you
-> had asked about that in a previous email
-> (http://www.mail-archive.com/linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org/msg04728.html).
->
-> -- Hal
->
->>
->> I'm trying to run one ipoib subnet in each partition, and then
->> eventually the goal is to have a different server that has 2 child
->> interfaces, one on each subnet. But it doesn't appear that my partition
->> configuration is even correct. Is there a syntax error, or something
->> else I am missing?
->>
->> Thanks,
->>
->> Tom
->>
->>
->>
->> --
->> Tom Ammon
->> Network Engineer
->> Office: 801.587.0976
->> Mobile: 801.674.9273
->>
->> Center for High Performance Computing
->> University of Utah
->> http://www.chpc.utah.edu
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
->> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>
-
--- 
-Tom Ammon
-Network Engineer
-Office: 801.587.0976
-Mobile: 801.674.9273
-
-Center for High Performance Computing
-University of Utah
-http://www.chpc.utah.edu
+W3N1YnJhbW9uQGFtZDUgfl0kIGlic3RhdA0KQ0EgJ21seDRfMCcNCiAgICAg
+ICAgQ0EgdHlwZTogTVQyNTQxOA0KICAgICAgICBOdW1iZXIgb2YgcG9ydHM6
+IDINCiAgICAgICAgRmlybXdhcmUgdmVyc2lvbjogMi42LjANCiAgICAgICAg
+SGFyZHdhcmUgdmVyc2lvbjogYTANCiAgICAgICAgTm9kZSBHVUlEOiAweDAw
+MDJjOTAzMDAwMWUzODYNCiAgICAgICAgU3lzdGVtIGltYWdlIEdVSUQ6IDB4
+MDAwMmM5MDMwMDAxZTM4OQ0KICAgICAgICBQb3J0IDE6DQogICAgICAgICAg
+ICAgICAgU3RhdGU6IEFjdGl2ZQ0KICAgICAgICAgICAgICAgIFBoeXNpY2Fs
+IHN0YXRlOiBMaW5rVXANCiAgICAgICAgICAgICAgICBSYXRlOiAyMA0KICAg
+ICAgICAgICAgICAgIEJhc2UgbGlkOiAxMg0KICAgICAgICAgICAgICAgIExN
+QzogMA0KICAgICAgICAgICAgICAgIFNNIGxpZDogMQ0KICAgICAgICAgICAg
+ICAgIENhcGFiaWxpdHkgbWFzazogMHgwMjUxMDg2OA0KICAgICAgICAgICAg
+ICAgIFBvcnQgR1VJRDogMHgwMDAyYzkwMzAwMDFlMzg3DQogICAgICAgIFBv
+cnQgMjoNCiAgICAgICAgICAgICAgICBTdGF0ZTogRG93bg0KICAgICAgICAg
+ICAgICAgIFBoeXNpY2FsIHN0YXRlOiBQb2xsaW5nDQogICAgICAgICAgICAg
+ICAgUmF0ZTogMTANCiAgICAgICAgICAgICAgICBCYXNlIGxpZDogMA0KICAg
+ICAgICAgICAgICAgIExNQzogMA0KICAgICAgICAgICAgICAgIFNNIGxpZDog
+MA0KICAgICAgICAgICAgICAgIENhcGFiaWxpdHkgbWFzazogMHgwMjUxMDg2
+OA0KICAgICAgICAgICAgICAgIFBvcnQgR1VJRDogMHgwMDAyYzkwMzAwMDFl
+Mzg4DQpDQSAnbWx4NF8xJw0KICAgICAgICBDQSB0eXBlOiBNVDI1NDE4DQog
+ICAgICAgIE51bWJlciBvZiBwb3J0czogMg0KICAgICAgICBGaXJtd2FyZSB2
+ZXJzaW9uOiAyLjYuMA0KICAgICAgICBIYXJkd2FyZSB2ZXJzaW9uOiBhMA0K
+ICAgICAgICBOb2RlIEdVSUQ6IDB4MDAwMmM5MDMwMDAxZTQ1Mg0KICAgICAg
+ICBTeXN0ZW0gaW1hZ2UgR1VJRDogMHgwMDAyYzkwMzAwMDFlNDU1DQogICAg
+ICAgIFBvcnQgMToNCiAgICAgICAgICAgICAgICBTdGF0ZTogQWN0aXZlDQog
+ICAgICAgICAgICAgICAgUGh5c2ljYWwgc3RhdGU6IExpbmtVcA0KICAgICAg
+ICAgICAgICAgIFJhdGU6IDIwDQogICAgICAgICAgICAgICAgQmFzZSBsaWQ6
+IDcNCiAgICAgICAgICAgICAgICBMTUM6IDANCiAgICAgICAgICAgICAgICBT
+TSBsaWQ6IDENCiAgICAgICAgICAgICAgICBDYXBhYmlsaXR5IG1hc2s6IDB4
+MDI1MTA4NjgNCiAgICAgICAgICAgICAgICBQb3J0IEdVSUQ6IDB4MDAwMmM5
+MDMwMDAxZTQ1Mw0KICAgICAgICBQb3J0IDI6DQogICAgICAgICAgICAgICAg
+U3RhdGU6IERvd24NCiAgICAgICAgICAgICAgICBQaHlzaWNhbCBzdGF0ZTog
+UG9sbGluZw0KICAgICAgICAgICAgICAgIFJhdGU6IDEwDQogICAgICAgICAg
+ICAgICAgQmFzZSBsaWQ6IDANCiAgICAgICAgICAgICAgICBMTUM6IDANCiAg
+ICAgICAgICAgICAgICBTTSBsaWQ6IDANCiAgICAgICAgICAgICAgICBDYXBh
+YmlsaXR5IG1hc2s6IDB4MDI1MTA4NjgNCiAgICAgICAgICAgICAgICBQb3J0
+IEdVSUQ6IDB4MDAwMmM5MDMwMDAxZTQ1NA0KW3N1YnJhbW9uQGFtZDUgfl0k
+IGlmY29uZmlnDQpldGgwICAgICAgTGluayBlbmNhcDpFdGhlcm5ldCAgSFdh
+ZGRyIDAwOjMwOjQ4OkQwOjE5OkJFDQogICAgICAgICAgaW5ldCBhZGRyOjE2
+NC4xMDcuMTE5LjIzNiAgQmNhc3Q6MTY0LjEwNy4xMTkuMjU1ICBNYXNrOjI1
+NS4yNTUuMjU1LjANCiAgICAgICAgICBpbmV0NiBhZGRyOiBmZTgwOjoyMzA6
+NDhmZjpmZWQwOjE5YmUvNjQgU2NvcGU6TGluaw0KICAgICAgICAgIFVQIEJS
+T0FEQ0FTVCBSVU5OSU5HIE1VTFRJQ0FTVCAgTVRVOjE1MDAgIE1ldHJpYzox
+DQogICAgICAgICAgUlggcGFja2V0czoyMzgxOTYgZXJyb3JzOjAgZHJvcHBl
+ZDowIG92ZXJydW5zOjAgZnJhbWU6MA0KICAgICAgICAgIFRYIHBhY2tldHM6
+MTcyNDkxIGVycm9yczowIGRyb3BwZWQ6MCBvdmVycnVuczowIGNhcnJpZXI6
+MA0KICAgICAgICAgIGNvbGxpc2lvbnM6MCB0eHF1ZXVlbGVuOjEwMDANCiAg
+ICAgICAgICBSWCBieXRlczo2MjM0MTcxMCAoNTkuNCBNaUIpICBUWCBieXRl
+czo5NDc2ODg3NSAoOTAuMyBNaUIpDQogICAgICAgICAgQmFzZSBhZGRyZXNz
+OjB4YmMwMCBNZW1vcnk6ZDdmZTAwMDAtZDgwMDAwMDANCg0KaWIwICAgICAg
+IExpbmsgZW5jYXA6SW5maW5pQmFuZCAgSFdhZGRyDQo4MDowMDowMDo0ODpG
+RTo4MDowMDowMDowMDowMDowMDowMDowMDowMDowMDowMDowMDowMDowMDow
+MA0KICAgICAgICAgIGluZXQgYWRkcjoxNzIuMTYuMS41ICBCY2FzdDoxNzIu
+MTYuMS4yNTUgIE1hc2s6MjU1LjI1NS4yNTUuMA0KICAgICAgICAgIGluZXQ2
+IGFkZHI6IGZlODA6OjIwMjpjOTAzOjE6ZTM4Ny82NCBTY29wZTpMaW5rDQog
+ICAgICAgICAgVVAgQlJPQURDQVNUIFJVTk5JTkcgTVVMVElDQVNUICBNVFU6
+NjU1MjAgIE1ldHJpYzoxDQogICAgICAgICAgUlggcGFja2V0czoxMjEgZXJy
+b3JzOjAgZHJvcHBlZDowIG92ZXJydW5zOjAgZnJhbWU6MA0KICAgICAgICAg
+IFRYIHBhY2tldHM6NzggZXJyb3JzOjAgZHJvcHBlZDoxMyBvdmVycnVuczow
+IGNhcnJpZXI6MA0KICAgICAgICAgIGNvbGxpc2lvbnM6MCB0eHF1ZXVlbGVu
+OjI1Ng0KICAgICAgICAgIFJYIGJ5dGVzOjQ3NDIxICg0Ni4zIEtpQikgIFRY
+IGJ5dGVzOjIxNTMzICgyMS4wIEtpQikNCg0KaWIyICAgICAgIExpbmsgZW5j
+YXA6SW5maW5pQmFuZCAgSFdhZGRyDQo4MDowMDowMDo0ODpGRTo4MDowMDow
+MDowMDowMDowMDowMDowMDowMDowMDowMDowMDowMDowMDowMA0KICAgICAg
+ICAgIGluZXQgYWRkcjoxNzIuMTYuMi41ICBCY2FzdDoxNzIuMTYuMi4yNTUg
+IE1hc2s6MjU1LjI1NS4yNTUuMA0KICAgICAgICAgIGluZXQ2IGFkZHI6IGZl
+ODA6OjIwMjpjOTAzOjE6ZTQ1My82NCBTY29wZTpMaW5rDQogICAgICAgICAg
+VVAgQlJPQURDQVNUIFJVTk5JTkcgTVVMVElDQVNUICBNVFU6NjU1MjAgIE1l
+dHJpYzoxDQogICAgICAgICAgUlggcGFja2V0czoxMjAgZXJyb3JzOjAgZHJv
+cHBlZDowIG92ZXJydW5zOjAgZnJhbWU6MA0KICAgICAgICAgIFRYIHBhY2tl
+dHM6NDUgZXJyb3JzOjAgZHJvcHBlZDoxMyBvdmVycnVuczowIGNhcnJpZXI6
+MA0KICAgICAgICAgIGNvbGxpc2lvbnM6MCB0eHF1ZXVlbGVuOjI1Ng0KICAg
+ICAgICAgIFJYIGJ5dGVzOjQwMzY1ICgzOS40IEtpQikgIFRYIGJ5dGVzOjEz
+NTY3ICgxMy4yIEtpQikNCg0KbG8gICAgICAgIExpbmsgZW5jYXA6TG9jYWwg
+TG9vcGJhY2sNCiAgICAgICAgICBpbmV0IGFkZHI6MTI3LjAuMC4xICBNYXNr
+OjI1NS4wLjAuMA0KICAgICAgICAgIGluZXQ2IGFkZHI6IDo6MS8xMjggU2Nv
+cGU6SG9zdA0KICAgICAgICAgIFVQIExPT1BCQUNLIFJVTk5JTkcgIE1UVTox
+NjQzNiAgTWV0cmljOjENCiAgICAgICAgICBSWCBwYWNrZXRzOjg1MDYgZXJy
+b3JzOjAgZHJvcHBlZDowIG92ZXJydW5zOjAgZnJhbWU6MA0KICAgICAgICAg
+IFRYIHBhY2tldHM6ODUwNiBlcnJvcnM6MCBkcm9wcGVkOjAgb3ZlcnJ1bnM6
+MCBjYXJyaWVyOjANCiAgICAgICAgICBjb2xsaXNpb25zOjAgdHhxdWV1ZWxl
+bjowDQogICAgICAgICAgUlggYnl0ZXM6OTQxNDc4ICg5MTkuNCBLaUIpICBU
+WCBieXRlczo5NDE0NzggKDkxOS40IEtpQikNCg0KdmlyYnIwICAgIExpbmsg
+ZW5jYXA6RXRoZXJuZXQgIEhXYWRkciAwMDowMDowMDowMDowMDowMA0KICAg
+ICAgICAgIGluZXQgYWRkcjoxOTIuMTY4LjEyMi4xICBCY2FzdDoxOTIuMTY4
+LjEyMi4yNTUgIE1hc2s6MjU1LjI1NS4yNTUuMA0KICAgICAgICAgIGluZXQ2
+IGFkZHI6IGZlODA6OjIwMDpmZjpmZTAwOjAvNjQgU2NvcGU6TGluaw0KICAg
+ICAgICAgIFVQIEJST0FEQ0FTVCBSVU5OSU5HIE1VTFRJQ0FTVCAgTVRVOjE1
+MDAgIE1ldHJpYzoxDQogICAgICAgICAgUlggcGFja2V0czowIGVycm9yczow
+IGRyb3BwZWQ6MCBvdmVycnVuczowIGZyYW1lOjANCiAgICAgICAgICBUWCBw
+YWNrZXRzOjM4IGVycm9yczowIGRyb3BwZWQ6MCBvdmVycnVuczowIGNhcnJp
+ZXI6MA0KICAgICAgICAgIGNvbGxpc2lvbnM6MCB0eHF1ZXVlbGVuOjANCiAg
+ICAgICAgICBSWCBieXRlczowICgwLjAgYikgIFRYIGJ5dGVzOjc5NjkgKDcu
+NyBLaUIpDQoNCltzdWJyYW1vbkBhbWQ1IH5dJA0KW3N1YnJhbW9uQGFtZDUg
+fl0kDQpbc3VicmFtb25AYW1kNSB+XSQgcGluZyAxNzIuMTYuMS42DQpQSU5H
+IDE3Mi4xNi4xLjYgKDE3Mi4xNi4xLjYpIDU2KDg0KSBieXRlcyBvZiBkYXRh
+Lg0KNjQgYnl0ZXMgZnJvbSAxNzIuMTYuMS42OiBpY21wX3NlcT0xIHR0bD02
+NCB0aW1lPTIuMjMgbXMNCjY0IGJ5dGVzIGZyb20gMTcyLjE2LjEuNjogaWNt
+cF9zZXE9MiB0dGw9NjQgdGltZT0wLjExMSBtcw0KDQotLS0gMTcyLjE2LjEu
+NiBwaW5nIHN0YXRpc3RpY3MgLS0tDQoyIHBhY2tldHMgdHJhbnNtaXR0ZWQs
+IDIgcmVjZWl2ZWQsIDAlIHBhY2tldCBsb3NzLCB0aW1lIDEwMDBtcw0KcnR0
+IG1pbi9hdmcvbWF4L21kZXYgPSAwLjExMS8xLjE3Mi8yLjIzNC8xLjA2MiBt
+cw0KW3N1YnJhbW9uQGFtZDUgfl0kIHBpbmcgMTcyLjE2LjIuNg0KUElORyAx
+NzIuMTYuMi42ICgxNzIuMTYuMi42KSA1Nig4NCkgYnl0ZXMgb2YgZGF0YS4N
+CjY0IGJ5dGVzIGZyb20gMTcyLjE2LjIuNjogaWNtcF9zZXE9MSB0dGw9NjQg
+dGltZT0xLjcwIG1zDQo2NCBieXRlcyBmcm9tIDE3Mi4xNi4yLjY6IGljbXBf
+c2VxPTIgdHRsPTY0IHRpbWU9MC4xMDQgbXMNCjY0IGJ5dGVzIGZyb20gMTcy
+LjE2LjIuNjogaWNtcF9zZXE9MyB0dGw9NjQgdGltZT0wLjA4MyBtcw0KDQot
+LS0gMTcyLjE2LjIuNiBwaW5nIHN0YXRpc3RpY3MgLS0tDQozIHBhY2tldHMg
+dHJhbnNtaXR0ZWQsIDMgcmVjZWl2ZWQsIDAlIHBhY2tldCBsb3NzLCB0aW1l
+IDIwMDBtcw0KcnR0IG1pbi9hdmcvbWF4L21kZXYgPSAwLjA4My8wLjYzMS8x
+LjcwNy8wLjc2MCBtcw0KW3N1YnJhbW9uQGFtZDUgfl0kDQpbc3VicmFtb25A
+YW1kNSB+XSQgbmV0c3RhdCAtcm4NCktlcm5lbCBJUCByb3V0aW5nIHRhYmxl
+DQpEZXN0aW5hdGlvbiAgICAgR2F0ZXdheSAgICAgICAgIEdlbm1hc2sgICAg
+ICAgICBGbGFncyAgIE1TUyBXaW5kb3cgIGlydHQgSWZhY2UNCjE3Mi4xNi4y
+LjAgICAgICAwLjAuMC4wICAgICAgICAgMjU1LjI1NS4yNTUuMCAgIFUgICAg
+ICAgICAwIDAgICAgICAgICAgMCBpYjINCjE2NC4xMDcuMTE5LjAgICAwLjAu
+MC4wICAgICAgICAgMjU1LjI1NS4yNTUuMCAgIFUgICAgICAgICAwIDAgICAg
+ICAgICAgMCBldGgwDQoxNzIuMTYuMS4wICAgICAgMC4wLjAuMCAgICAgICAg
+IDI1NS4yNTUuMjU1LjAgICBVICAgICAgICAgMCAwICAgICAgICAgIDAgaWIw
+DQoxOTIuMTY4LjEyMi4wICAgMC4wLjAuMCAgICAgICAgIDI1NS4yNTUuMjU1
+LjAgICBVICAgICAgICAgMCAwICAgICAgICAgIDAgdmlyYnIwDQoxNjkuMjU0
+LjAuMCAgICAgMC4wLjAuMCAgICAgICAgIDI1NS4yNTUuMC4wICAgICBVICAg
+ICAgICAgMCAwICAgICAgICAgIDAgZXRoMA0KMC4wLjAuMCAgICAgICAgIDE2
+NC4xMDcuMTE5LjEgICAwLjAuMC4wICAgICAgICAgVUcgICAgICAgIDAgMCAg
+ICAgICAgICAwIGV0aDANCltzdWJyYW1vbkBhbWQ1IH5dJA0KDQo=
+---559023410-1817792895-1279819435=:17--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
