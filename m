@@ -1,36 +1,29 @@
-From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: Re: about cxgb3 and cxgb4
-Date: Thu, 22 Jul 2010 08:43:21 -0500
-Message-ID: <4C484AF9.7010909@opengridcomputing.com>
-References: <3669127.1279790079150.SLOX.WebMail.wwwrun@imap.lnl.infn.it>
+From: Arthur Kepner <akepner-sJ/iWh9BUns@public.gmane.org>
+Subject: Re: [PATCH] rdma/ib_cm: check LAP state before sending an MRA
+Date: Thu, 22 Jul 2010 08:43:19 -0700
+Message-ID: <20100722154319.GQ28497@sgi.com>
+References: <AANLkTikwDEJY_F1ziGNPhYMBJEBC5UqD2XOLM7wSByj1@mail.gmail.com> <CF9C39F99A89134C9CF9C4CCB68B8DDF25A71DAEF8@orsmsx501.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <3669127.1279790079150.SLOX.WebMail.wwwrun-XDIR3SKYeFbgKi2NxijLtw@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <CF9C39F99A89134C9CF9C4CCB68B8DDF25A71DAEF8-osO9UTpF0USkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Andrea Gozzelino <Andrea.Gozzelino-PK20h7lG/Rc1GQ1Ptb7lUw@public.gmane.org>
-Cc: rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Josh England <jjengla-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Linux RDMA list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On Wed, Jul 21, 2010 at 04:36:52PM -0700, Hefty, Sean wrote:
+> ...
+> Josh or Arthur, can either of you confirm if this patch fixes the 
+> crashes that you've seen?
+> 
 
+I can't. It's been practically impossible for us to reproduce.
+(Only our customer seems to have the magic recipe.) 
 
-Andrea Gozzelino wrote:
-> Hi all,
->
-> I ask you an opinion about RDMA driver cxgb3 and cxb4.
->
-> I installed two NetEffect Intel cards on machines with OS Linux and
-> driver cxgb3. Please see the detail below:
->
->   
-
-cxgb3/4 is for the Chelsio T3/T4 hardware, not the NetEffect/Intel hardware.
-
-You want iw_nes.ko.
-
-Steve,
-
+-- 
+Arthur
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
