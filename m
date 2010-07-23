@@ -1,7 +1,7 @@
 From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: [PATCH 2/4] RDMA/cxgb4: Use correct control txq.
-Date: Fri, 23 Jul 2010 14:12:32 -0500
-Message-ID: <20100723191232.15832.18267.stgit@build.ogc.int>
+Subject: [PATCH 3/4] RDMA/cxgb4: Set/Reset the EP timer inside EP lock.
+Date: Fri, 23 Jul 2010 14:12:37 -0500
+Message-ID: <20100723191237.15832.57689.stgit@build.ogc.int>
 References: <20100723191221.15832.79704.stgit@build.ogc.int>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -12,108 +12,161 @@ Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-There is only one control txq per tx channel.  So use the port number
-as the queue index when sending.
+Endpoint timer manipulation needs to be done inside the lock.  Otherwise
+we can get into a situation where a timer is stopped before it is started,
+which hits the WARN_ON() in stop_ep_timer().
 
 Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 ---
 
- drivers/infiniband/hw/cxgb4/cm.c       |   13 +++++++++----
- drivers/infiniband/hw/cxgb4/iw_cxgb4.h |    1 +
- 2 files changed, 10 insertions(+), 4 deletions(-)
+ drivers/infiniband/hw/cxgb4/cm.c |   34 ++++++++--------------------------
+ 1 files changed, 8 insertions(+), 26 deletions(-)
 
 diff --git a/drivers/infiniband/hw/cxgb4/cm.c b/drivers/infiniband/hw/cxgb4/cm.c
-index 8d1f09b..6e480cd 100644
+index 6e480cd..bc3f9f0 100644
 --- a/drivers/infiniband/hw/cxgb4/cm.c
 +++ b/drivers/infiniband/hw/cxgb4/cm.c
-@@ -473,7 +473,7 @@ static int send_connect(struct c4iw_ep *ep)
- 		       __func__);
- 		return -ENOMEM;
+@@ -1484,8 +1484,6 @@ static int peer_close(struct c4iw_dev *dev, struct sk_buff *skb)
+ 	int closing = 0;
+ 	struct tid_info *t = dev->rdev.lldi.tids;
+ 	unsigned int tid = GET_TID(hdr);
+-	int start_timer = 0;
+-	int stop_timer = 0;
+ 
+ 	ep = lookup_tid(t, tid);
+ 	PDBG("%s ep %p tid %u\n", __func__, ep, ep->hwtid);
+@@ -1522,7 +1520,7 @@ static int peer_close(struct c4iw_dev *dev, struct sk_buff *skb)
+ 		wake_up(&ep->com.waitq);
+ 		break;
+ 	case FPDU_MODE:
+-		start_timer = 1;
++		start_ep_timer(ep);
+ 		__state_set(&ep->com, CLOSING);
+ 		closing = 1;
+ 		peer_close_upcall(ep);
+@@ -1535,7 +1533,7 @@ static int peer_close(struct c4iw_dev *dev, struct sk_buff *skb)
+ 		disconnect = 0;
+ 		break;
+ 	case MORIBUND:
+-		stop_timer = 1;
++		stop_ep_timer(ep);
+ 		if (ep->com.cm_id && ep->com.qp) {
+ 			attrs.next_state = C4IW_QP_STATE_IDLE;
+ 			c4iw_modify_qp(ep->com.qp->rhp, ep->com.qp,
+@@ -1558,10 +1556,6 @@ static int peer_close(struct c4iw_dev *dev, struct sk_buff *skb)
+ 		c4iw_modify_qp(ep->com.qp->rhp, ep->com.qp,
+ 			       C4IW_QP_ATTR_NEXT_STATE, &attrs, 1);
  	}
--	set_wr_txq(skb, CPL_PRIORITY_SETUP, ep->txq_idx);
-+	set_wr_txq(skb, CPL_PRIORITY_SETUP, ep->ctrlq_idx);
+-	if (start_timer)
+-		start_ep_timer(ep);
+-	if (stop_timer)
+-		stop_ep_timer(ep);
+ 	if (disconnect)
+ 		c4iw_ep_disconnect(ep, 0, GFP_KERNEL);
+ 	if (release)
+@@ -1590,7 +1584,6 @@ static int peer_abort(struct c4iw_dev *dev, struct sk_buff *skb)
+ 	unsigned long flags;
+ 	struct tid_info *t = dev->rdev.lldi.tids;
+ 	unsigned int tid = GET_TID(req);
+-	int stop_timer = 0;
  
- 	cxgb4_best_mtu(ep->com.dev->rdev.lldi.mtus, ep->mtu, &mtu_idx);
- 	wscale = compute_wscale(rcv_win);
-@@ -853,7 +853,7 @@ static int update_rx_credits(struct c4iw_ep *ep, u32 credits)
- 	req->credit_dack = cpu_to_be32(credits | RX_FORCE_ACK(1) |
- 				       F_RX_DACK_CHANGE |
- 				       V_RX_DACK_MODE(dack_mode));
--	set_wr_txq(skb, CPL_PRIORITY_ACK, ep->txq_idx);
-+	set_wr_txq(skb, CPL_PRIORITY_ACK, ep->ctrlq_idx);
- 	c4iw_ofld_send(&ep->com.dev->rdev, skb);
- 	return credits;
- }
-@@ -1295,7 +1295,7 @@ static void accept_cr(struct c4iw_ep *ep, __be32 peer_ip, struct sk_buff *skb,
- 				      ep->hwtid));
- 	rpl->opt0 = cpu_to_be64(opt0);
- 	rpl->opt2 = cpu_to_be32(opt2);
--	set_wr_txq(skb, CPL_PRIORITY_SETUP, ep->txq_idx);
-+	set_wr_txq(skb, CPL_PRIORITY_SETUP, ep->ctrlq_idx);
- 	c4iw_l2t_send(&ep->com.dev->rdev, skb, ep->l2t);
+ 	ep = lookup_tid(t, tid);
+ 	if (is_neg_adv_abort(req->status)) {
+@@ -1605,10 +1598,10 @@ static int peer_abort(struct c4iw_dev *dev, struct sk_buff *skb)
+ 	case CONNECTING:
+ 		break;
+ 	case MPA_REQ_WAIT:
+-		stop_timer = 1;
++		stop_ep_timer(ep);
+ 		break;
+ 	case MPA_REQ_SENT:
+-		stop_timer = 1;
++		stop_ep_timer(ep);
+ 		connect_reply_upcall(ep, -ECONNRESET);
+ 		break;
+ 	case MPA_REP_SENT:
+@@ -1632,7 +1625,7 @@ static int peer_abort(struct c4iw_dev *dev, struct sk_buff *skb)
+ 		break;
+ 	case MORIBUND:
+ 	case CLOSING:
+-		stop_timer = 1;
++		stop_ep_timer(ep);
+ 		/*FALLTHROUGH*/
+ 	case FPDU_MODE:
+ 		if (ep->com.cm_id && ep->com.qp) {
+@@ -1678,8 +1671,6 @@ static int peer_abort(struct c4iw_dev *dev, struct sk_buff *skb)
+ 	rpl->cmd = CPL_ABORT_NO_RST;
+ 	c4iw_ofld_send(&ep->com.dev->rdev, rpl_skb);
+ out:
+-	if (stop_timer)
+-		stop_ep_timer(ep);
+ 	if (release)
+ 		release_ep_resources(ep);
+ 	return 0;
+@@ -1694,7 +1685,6 @@ static int close_con_rpl(struct c4iw_dev *dev, struct sk_buff *skb)
+ 	int release = 0;
+ 	struct tid_info *t = dev->rdev.lldi.tids;
+ 	unsigned int tid = GET_TID(rpl);
+-	int stop_timer = 0;
  
- 	return;
-@@ -1352,7 +1352,7 @@ static int pass_accept_req(struct c4iw_dev *dev, struct sk_buff *skb)
- 	u16 rss_qid;
- 	u32 mtu;
- 	int step;
--	int txq_idx;
-+	int txq_idx, ctrlq_idx;
+ 	ep = lookup_tid(t, tid);
  
- 	parent_ep = lookup_stid(t, stid);
- 	PDBG("%s parent ep %p tid %u\n", __func__, parent_ep, hwtid);
-@@ -1384,6 +1384,7 @@ static int pass_accept_req(struct c4iw_dev *dev, struct sk_buff *skb)
- 		smac_idx = (cxgb4_port_viid(pdev) & 0x7F) << 1;
- 		step = dev->rdev.lldi.ntxq / dev->rdev.lldi.nchan;
- 		txq_idx = cxgb4_port_idx(pdev) * step;
-+		ctrlq_idx = cxgb4_port_idx(pdev);
- 		step = dev->rdev.lldi.nrxq / dev->rdev.lldi.nchan;
- 		rss_qid = dev->rdev.lldi.rxq_ids[cxgb4_port_idx(pdev) * step];
- 		dev_put(pdev);
-@@ -1395,6 +1396,7 @@ static int pass_accept_req(struct c4iw_dev *dev, struct sk_buff *skb)
- 		smac_idx = (cxgb4_port_viid(dst->neighbour->dev) & 0x7F) << 1;
- 		step = dev->rdev.lldi.ntxq / dev->rdev.lldi.nchan;
- 		txq_idx = cxgb4_port_idx(dst->neighbour->dev) * step;
-+		ctrlq_idx = cxgb4_port_idx(dst->neighbour->dev);
- 		step = dev->rdev.lldi.nrxq / dev->rdev.lldi.nchan;
- 		rss_qid = dev->rdev.lldi.rxq_ids[
- 			  cxgb4_port_idx(dst->neighbour->dev) * step];
-@@ -1434,6 +1436,7 @@ static int pass_accept_req(struct c4iw_dev *dev, struct sk_buff *skb)
- 	child_ep->rss_qid = rss_qid;
- 	child_ep->mtu = mtu;
- 	child_ep->txq_idx = txq_idx;
-+	child_ep->ctrlq_idx = ctrlq_idx;
+@@ -1708,7 +1698,7 @@ static int close_con_rpl(struct c4iw_dev *dev, struct sk_buff *skb)
+ 		__state_set(&ep->com, MORIBUND);
+ 		break;
+ 	case MORIBUND:
+-		stop_timer = 1;
++		stop_ep_timer(ep);
+ 		if ((ep->com.cm_id) && (ep->com.qp)) {
+ 			attrs.next_state = C4IW_QP_STATE_IDLE;
+ 			c4iw_modify_qp(ep->com.qp->rhp,
+@@ -1728,8 +1718,6 @@ static int close_con_rpl(struct c4iw_dev *dev, struct sk_buff *skb)
+ 		break;
+ 	}
+ 	spin_unlock_irqrestore(&ep->com.lock, flags);
+-	if (stop_timer)
+-		stop_ep_timer(ep);
+ 	if (release)
+ 		release_ep_resources(ep);
+ 	return 0;
+@@ -2108,8 +2096,6 @@ int c4iw_ep_disconnect(struct c4iw_ep *ep, int abrupt, gfp_t gfp)
+ 	int close = 0;
+ 	int fatal = 0;
+ 	struct c4iw_rdev *rdev;
+-	int start_timer = 0;
+-	int stop_timer = 0;
  
- 	PDBG("%s tx_chan %u smac_idx %u rss_qid %u\n", __func__,
- 	     tx_chan, smac_idx, rss_qid);
-@@ -1965,6 +1968,7 @@ int c4iw_connect(struct iw_cm_id *cm_id, struct iw_cm_conn_param *conn_param)
- 		ep->txq_idx = cxgb4_port_idx(pdev) * step;
- 		step = ep->com.dev->rdev.lldi.nrxq /
- 		       ep->com.dev->rdev.lldi.nchan;
-+		ep->ctrlq_idx = cxgb4_port_idx(pdev);
- 		ep->rss_qid = ep->com.dev->rdev.lldi.rxq_ids[
- 			      cxgb4_port_idx(pdev) * step];
- 		dev_put(pdev);
-@@ -1979,6 +1983,7 @@ int c4iw_connect(struct iw_cm_id *cm_id, struct iw_cm_conn_param *conn_param)
- 		step = ep->com.dev->rdev.lldi.ntxq /
- 		       ep->com.dev->rdev.lldi.nchan;
- 		ep->txq_idx = cxgb4_port_idx(ep->dst->neighbour->dev) * step;
-+		ep->ctrlq_idx = cxgb4_port_idx(ep->dst->neighbour->dev);
- 		step = ep->com.dev->rdev.lldi.nrxq /
- 		       ep->com.dev->rdev.lldi.nchan;
- 		ep->rss_qid = ep->com.dev->rdev.lldi.rxq_ids[
-diff --git a/drivers/infiniband/hw/cxgb4/iw_cxgb4.h b/drivers/infiniband/hw/cxgb4/iw_cxgb4.h
-index 277ab58..bda0af7 100644
---- a/drivers/infiniband/hw/cxgb4/iw_cxgb4.h
-+++ b/drivers/infiniband/hw/cxgb4/iw_cxgb4.h
-@@ -619,6 +619,7 @@ struct c4iw_ep {
- 	u16 plen;
- 	u16 rss_qid;
- 	u16 txq_idx;
-+	u16 ctrlq_idx;
- 	u8 tos;
- };
+ 	spin_lock_irqsave(&ep->com.lock, flags);
  
+@@ -2133,7 +2119,7 @@ int c4iw_ep_disconnect(struct c4iw_ep *ep, int abrupt, gfp_t gfp)
+ 			ep->com.state = ABORTING;
+ 		else {
+ 			ep->com.state = CLOSING;
+-			start_timer = 1;
++			start_ep_timer(ep);
+ 		}
+ 		set_bit(CLOSE_SENT, &ep->com.flags);
+ 		break;
+@@ -2141,7 +2127,7 @@ int c4iw_ep_disconnect(struct c4iw_ep *ep, int abrupt, gfp_t gfp)
+ 		if (!test_and_set_bit(CLOSE_SENT, &ep->com.flags)) {
+ 			close = 1;
+ 			if (abrupt) {
+-				stop_timer = 1;
++				stop_ep_timer(ep);
+ 				ep->com.state = ABORTING;
+ 			} else
+ 				ep->com.state = MORIBUND;
+@@ -2159,10 +2145,6 @@ int c4iw_ep_disconnect(struct c4iw_ep *ep, int abrupt, gfp_t gfp)
+ 	}
+ 
+ 	spin_unlock_irqrestore(&ep->com.lock, flags);
+-	if (start_timer)
+-		start_ep_timer(ep);
+-	if (stop_timer)
+-		stop_ep_timer(ep);
+ 	if (close) {
+ 		if (abrupt)
+ 			ret = abort_connection(ep, NULL, gfp);
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
