@@ -1,29 +1,29 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: Issue with RDMA_CM on systems with multiple IB HCA's.
-Date: Fri, 23 Jul 2010 08:48:15 -0700
-Message-ID: <CF9C39F99A89134C9CF9C4CCB68B8DDF25A732D7B7@orsmsx501.amr.corp.intel.com>
-References: <Pine.GSO.4.40.1007212046022.17-100000@kappa.cse.ohio-state.edu>
-	<4C47EFFB.1040808@Voltaire.com>
- <AANLkTinPRAPDZi8xn5zOr5k26-=040N45vVWk1usf8H5@mail.gmail.com>
+From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: [PATCH 0/4] RDMA/cxgb4: bug fixes.
+Date: Fri, 23 Jul 2010 14:12:21 -0500
+Message-ID: <20100723191221.15832.79704.stgit@build.ogc.int>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <AANLkTinPRAPDZi8xn5zOr5k26-=040N45vVWk1usf8H5-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Larry <tsrjzq-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Or Gerlitz <ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Cc: Hari Subramoni <subramon-wPOY3OvGL++pAIv7I8X2sze48wsgrGvP@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-> > you can see the lid and qp numbers are zero, something is broken... when you use the rdma-cm,
-> > the address to be provided to the utility should be on an IPoIB subnet, is that what you're doing?
->   The address may not have to be IPoIB interface, any interface which
-> can find the other side will be OK.
+Here are some bug fixes for 2.6.36.
 
-Use of the rdma_cm requires that the address be associated with an RDMA device.  In the case of IB, the address should refer to an IP address assigned to an ipoib device.  If you remove the -c option from the perftest, any IP address should work.
+Steve Wise (4):
+      RDMA/cxgb4: Add timeouts when waiting for FW responses.
+      RDMA/cxgb4: Set/Reset the EP timer inside EP lock.
+      RDMA/cxgb4: Use correct control txq.
+      RDMA/cxgb4: Fix race in fini path.
 
-- Sean
+
+ drivers/infiniband/hw/cxgb4/cm.c       |   69 ++++++++++++++++----------------
+ drivers/infiniband/hw/cxgb4/iw_cxgb4.h |    1 
+ drivers/infiniband/hw/cxgb4/qp.c       |   14 +++---
+ 3 files changed, 43 insertions(+), 41 deletions(-)
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
