@@ -1,49 +1,61 @@
-From: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Subject: Re: libibnetdisc: fix cast in unmarshall16
-Date: Mon, 26 Jul 2010 22:01:24 +0300
-Message-ID: <20100726190124.GW22860@me>
-References: <CF9C39F99A89134C9CF9C4CCB68B8DDF25A8D7F5F5@orsmsx501.amr.corp.intel.com>
+From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Subject: Re: About a shortcoming of the verbs API
+Date: Mon, 26 Jul 2010 12:22:35 -0700
+Message-ID: <adamxtejbes.fsf@roland-alpha.cisco.com>
+References: <AANLkTi=zowawGDjyh+uKve_NiRNMXcrqjAk0hRxGSMOv@mail.gmail.com>
+	<AANLkTinHRnt-jvy0xBOAPUDGcfx6=V6rkRT3t0Ja52FP@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <CF9C39F99A89134C9CF9C4CCB68B8DDF25A8D7F5F5-osO9UTpF0USkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
+In-Reply-To: <AANLkTinHRnt-jvy0xBOAPUDGcfx6=V6rkRT3t0Ja52FP-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+	(Bart Van Assche's message of "Sun, 25 Jul 2010 20:54:07 +0200")
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "ofw-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org" <ofw-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>, Albert Chu <chu11-i2BcT+NCU+M@public.gmane.org>
+To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Cc: Linux-RDMA <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 11:40 Mon 26 Jul     , Hefty, Sean wrote:
-> Uri Habusha reported a build error on windows as a result of an
-> incorrect cast to uint64_t.
-> 
-> Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+ > 2. Double completion processing loop
+ >=20
+ > * Initialization:
+ > ib_req_notify_cq(cq, IB_CQ_NEXT_COMP);
+ >=20
+ > * Notification handler:
+ >=20
+ > struct ib_wc wc;
+ > do {
+ > =C2=A0=C2=A0=C2=A0 while (ib_poll_cq(cq, 1, &wc) > 0)
+ > =C2=A0=C2=A0=C2=A0 =C2=A0=C2=A0=C2=A0 /* process wc */
+ > } while (ib_req_notify_cq(cq, IB_CQ_NEXT_COMP |
+ > IB_CQ_REPORT_MISSED_EVENTS) > 0);
 
-Applied. Thanks.
+This approach can be used to have race-free in-order processing of
+completions using a scheme such as the NAPI processing loop used by the
+IPoIB driver (with help from the core networking stack).  Essentially a
+completion notification just marks the completion processing routine as
+runnable, and the networking core schedules that processing routine in =
+a
+single-threaded way until the CQ is drained.
 
-Sasha
+Another approach is to just always run the completion processing for a
+given CQ on a single CPU and avoid locking entirely.  If you want more
+CPUs to spread the work, just use multiple CQs and multiple event vecto=
+rs.
 
-> ---
->  .../libibnetdisc/src/ibnetdisc_cache.c             |    3 +--
->  1 files changed, 1 insertions(+), 2 deletions(-)
-> 
-> diff --git a/infiniband-diags/libibnetdisc/src/ibnetdisc_cache.c b/infiniband-diags/libibnetdisc/src/ibnetdisc_cache.c
-> index 1de42eb..199bf33 100644
-> --- a/infiniband-diags/libibnetdisc/src/ibnetdisc_cache.c
-> +++ b/infiniband-diags/libibnetdisc/src/ibnetdisc_cache.c
-> @@ -183,8 +183,7 @@ static size_t _unmarshall8(uint8_t * inbuf, uint8_t * num)
->  
->  static size_t _unmarshall16(uint8_t * inbuf, uint16_t * num)
->  {
-> -	(*num) = (uint64_t) inbuf[0];
-> -	(*num) |= ((uint16_t) inbuf[1] << 8);
-> +	(*num) = ((uint16_t) inbuf[1] << 8) | inbuf[0];
->  
->  	return (sizeof(*num));
->  }
-> 
-> 
+ > see e.g. VipCQNotify() in the Virtual Interface Architecture
+ > Specification.
+
+I don't know of an efficient way to implement this type of "atomic
+dequeue completion or enable completions" with any existing hardware.
+Do you have an idea how this could be done?
+
+ - R.
+--=20
+Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org> || For corporate legal information go=
+ to:
+http://www.cisco.com/web/about/doing_business/legal/cri/index.html
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
