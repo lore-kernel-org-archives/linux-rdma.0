@@ -1,50 +1,48 @@
-From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Subject: Re: About a shortcoming of the verbs API
-Date: Mon, 26 Jul 2010 19:59:44 +0200
-Message-ID: <AANLkTi=phE--i0Bu_Hi7XSsem31K5U38H6h6imvo__H+@mail.gmail.com>
-References: <AANLkTi=zowawGDjyh+uKve_NiRNMXcrqjAk0hRxGSMOv@mail.gmail.com>
-	<AANLkTinHRnt-jvy0xBOAPUDGcfx6=V6rkRT3t0Ja52FP@mail.gmail.com>
-	<4C4D99F8.3090206@opengridcomputing.com>
+From: Uri Habusha <urih-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
+Subject: RE: error when compiling ofed ulp\libibnetdisc
+Date: Mon, 26 Jul 2010 21:24:20 +0300
+Message-ID: <E113D394D7C5DB4F8FF691FA7EE9DB443B38FD8063@MTLMAIL.mtl.com>
+References: <E113D394D7C5DB4F8FF691FA7EE9DB443B38F543A9@MTLMAIL.mtl.com>
+	<3F6F638B8D880340AB536D29CD4C1E1925ABDFF8EF@orsmsx501.amr.corp.intel.com>
+	<CF9C39F99A89134C9CF9C4CCB68B8DDF25A8D7F38F@orsmsx501.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4C4D99F8.3090206-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+In-Reply-To: <CF9C39F99A89134C9CF9C4CCB68B8DDF25A8D7F38F-osO9UTpF0USkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Cc: Linux-RDMA <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Smith, Stan" <stan.smith-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "ofw-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org" <ofw-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+Cc: Leonid Keller <leonid-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, Tzachi Dar <tzachid-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, Irena Kruchkovsky <irena-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, Alex Naslednikov <xalex-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>, Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Jul 26, 2010 at 4:21 PM, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org> wrote:
-> On 07/25/2010 01:54 PM, Bart Van Assche wrote:
->>
->> [ ... ]
->>
->> The only way I know of to prevent out-of-order completion processing
->> with the current OFED verbs API is to protect the whole completion
->> processing loop against concurrent execution with a spinlock. Maybe it
->> should be considered to extend the verbs API such that it is possible
->> to process completions in order without additional locking. Apparently
->> API functions that allow this in a similar context have already been
->> invented in the past -- see e.g. VipCQNotify() in the Virtual
->> Interface Architecture Specification.
->
-> Is this the API to which you refer?
->
-> http://docsrv.sco.com/cgi-bin/man/man?VipCQNotify+3VI
->
-> I don't see how it provides the semantics you desire?
+The fix is okay. However I wonder how you don't get the error in your environment and we got it. Any idea?
 
-The web page you refer to is owned by a company that is controversial
-in the Linux world. A more neutral source is the book "The Virtual
-Interface Architecture" (Intel Press, 2002) or the document "Virtual
-Interface Architecture Specification" (1997, available online at
-http://pllab.cs.nthu.edu.tw/cs5403/Readings/EJB/san_10.pdf). In both
-documents it is described that VipCQNotify atomically either dequeues
-a work completion or enables notifications. As far as I know none of
-the verb extensions defined by the IBTA allows to perform both
-operations in an atomic way.
+-----Original Message-----
+From: Hefty, Sean [mailto:sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org] 
+Sent: Monday, July 26, 2010 7:23 PM
+To: Smith, Stan; Uri Habusha; ofw-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
+Cc: Leonid Keller; Tzachi Dar; Irena Kruchkovsky; Alex Naslednikov; Sasha Khapyorsky; Ira Weiny; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Subject: RE: error when compiling ofed ulp\libibnetdisc
 
-Bart.
+> When compiling the ulp\libibnetdisc  on OFW I got the following casting error. When looking the code
+> it really looks problematic. I wonder how you don't see it in your environment.
+
+I just checked, and this error doesn't show up in my build (7600.16385).
+
+> static size_t _unmarshall16(uint8_t * inbuf, uint16_t * num)
+> 
+> {
+> 
+>                 (*num) = (uint64_t) inbuf[0];
+> 
+>                 (*num) |= ((uint16_t) inbuf[1] << 8);
+
+The cast to uint64_t is wrong.  We can replace the above with:
+
+	(*num) = ((uint16_t) inbuf[1] << 8) | inbuf[0];
+
+- Sean
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
