@@ -1,40 +1,46 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: libibnetdisc: fix cast in unmarshall16
-Date: Mon, 26 Jul 2010 11:40:30 -0700
-Message-ID: <CF9C39F99A89134C9CF9C4CCB68B8DDF25A8D7F5F5@orsmsx501.amr.corp.intel.com>
+From: Hari Subramoni <subramon-wPOY3OvGL++pAIv7I8X2sze48wsgrGvP@public.gmane.org>
+Subject: Re: Issue with RDMA_CM on systems with multiple IB HCA's.
+Date: Mon, 26 Jul 2010 14:42:41 -0400 (EDT)
+Message-ID: <Pine.GSO.4.40.1007261442050.20664-100000@omicron.cse.ohio-state.edu>
+References: <AANLkTi=s4TWfji7Jkz7SipK6WABKGdB5CurhSqPMxXPw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <AANLkTi=s4TWfji7Jkz7SipK6WABKGdB5CurhSqPMxXPw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "ofw-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org" <ofw-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+To: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Or Gerlitz <ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Uri Habusha reported a build error on windows as a result of an
-incorrect cast to uint64_t.
+Hi,
 
-Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
----
- .../libibnetdisc/src/ibnetdisc_cache.c             |    3 +--
- 1 files changed, 1 insertions(+), 2 deletions(-)
+Yes, both cards are on the same IB subnet.
 
-diff --git a/infiniband-diags/libibnetdisc/src/ibnetdisc_cache.c b/infiniband-diags/libibnetdisc/src/ibnetdisc_cache.c
-index 1de42eb..199bf33 100644
---- a/infiniband-diags/libibnetdisc/src/ibnetdisc_cache.c
-+++ b/infiniband-diags/libibnetdisc/src/ibnetdisc_cache.c
-@@ -183,8 +183,7 @@ static size_t _unmarshall8(uint8_t * inbuf, uint8_t * num)
- 
- static size_t _unmarshall16(uint8_t * inbuf, uint16_t * num)
- {
--	(*num) = (uint64_t) inbuf[0];
--	(*num) |= ((uint16_t) inbuf[1] << 8);
-+	(*num) = ((uint16_t) inbuf[1] << 8) | inbuf[0];
- 
- 	return (sizeof(*num));
- }
+The machines are down for maintanence now. We will send out the
+information you requested as soon as they are up.
 
+Thanks a lot,
+Hari.
+
+On Fri, 23 Jul 2010, Or Gerlitz wrote:
+
+> Hari Subramoni <subramon-wPOY3OvGL++pAIv7I8X2sze48wsgrGvP@public.gmane.org> wrote:
+>
+> > The nodes have LID's assigned to them and OpenSM is running fine.
+> > I've attached the configurations of the two hosts along with this e-mail.
+> >  As Jonathan mentioned, we are able to ping between them.
+>
+> are the two HCAs on each of the nodes connected to the same IB subnet?
+>
+> > The issue is intermittent. It happens at times and at other times, things
+> > work fine. Please let us know if you need any more information.
+>
+> lets focus on rping, please use both -v -d  flags with rping, also
+> when  rping fails, please send the neighbours info (#ip neigh show)
+> from host .5
+>
+> Or.
+>
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
