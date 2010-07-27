@@ -1,25 +1,51 @@
-From: Or Gerlitz <ogerlitz-hKgKHo2Ms0FWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH] ib/mlx4: add IB_CQ_REPORT_MISSED_EVENTS support
-Date: Tue, 27 Jul 2010 13:55:22 +0300
-Message-ID: <4C4EBB1A.90003@Voltaire.com>
-References: <4C4E96F9.4040503@Voltaire.com> <AANLkTinPRO6mOnCS-SJynkRXmt6J1uV3w5+8PfF6ubxN@mail.gmail.com>
+From: Andrea Gozzelino <Andrea.Gozzelino-PK20h7lG/Rc1GQ1Ptb7lUw@public.gmane.org>
+Subject: MTU value affected RDMA performance?
+Date: Tue, 27 Jul 2010 15:07:01 +0200 (CEST)
+Message-ID: <7686034.1280236021632.SLOX.WebMail.wwwrun@imap.lnl.infn.it>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <AANLkTinPRO6mOnCS-SJynkRXmt6J1uV3w5+8PfF6ubxN-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Jack Morgenstein <jackm-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
+To: swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Eli Cohen wrote:
-> returning 1 means that you must poll the CQ to avoid a race condition
-> which is not true for mlx4. 
+Hi,
 
-makes sense, thanks for clarifying that.
+I have a question about RDMA. 
 
-Or.
+I work with Intel NetEffect NE020 cards and Extreme Summit x650 switch. 
+I installed cards on two PCs IBM x3455 type 7986 | Dual-Core AMD Opteron
+Processor 2214 2200MHz with Scientific Linux SL release
+5.4|2.6.18-164.2.1.el5.
+Driver is iw_nes and 10Gb Ethernet is eth2.
+I run latency and bandwidth test with MTU=1500 Bytes.
+
+Does MTU value affect the performance? 
+If I change MTU value, why code does not work? 
+(command line: ifconfig eth2 mtu 9000)
+Is it possible to use jumbo frames MTU = 9000 Bytes at 10 Gb Ethernet?
+
+I'm bit confuse about the role playes by MTU parameter.
+
+Thank you in advance for clarification.
+
+Regards,
+Andrea
+
+
+
+Andrea Gozzelino
+
+INFN - Laboratori Nazionali di Legnaro	(LNL)
+Viale dell'Universita' 2 -I-35020 - Legnaro (PD)- ITALIA
+Office: E-101
+Tel: +39 049 8068346
+Fax: +39 049 641925
+Mail: andrea.gozzelino-PK20h7lG/Rc1GQ1Ptb7lUw@public.gmane.org
+Cell: +39 3488245552				
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
