@@ -1,46 +1,56 @@
-From: Or Gerlitz <ogerlitz-hKgKHo2Ms0FWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH] ib/mlx4: add IB_CQ_REPORT_MISSED_EVENTS support
-Date: Tue, 27 Jul 2010 11:21:13 +0300
-Message-ID: <4C4E96F9.4040503@Voltaire.com>
+From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Subject: Re: About a shortcoming of the verbs API
+Date: Tue, 27 Jul 2010 10:33:42 +0200
+Message-ID: <AANLkTinYuyCqJ6_wq6GH0vQGAY-mwC=7ZLicBnXO+efB@mail.gmail.com>
+References: <AANLkTi=zowawGDjyh+uKve_NiRNMXcrqjAk0hRxGSMOv@mail.gmail.com>
+	<AANLkTinHRnt-jvy0xBOAPUDGcfx6=V6rkRT3t0Ja52FP@mail.gmail.com>
+	<adamxtejbes.fsf@roland-alpha.cisco.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <adamxtejbes.fsf-BjVyx320WGW9gfZ95n9DRSW4+XlvGpQz@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Jack Morgenstein <jackm-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
+Cc: Linux-RDMA <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-enhance the cq arming code to support IB_CQ_REPORT_MISSED_EVENTS
+On Mon, Jul 26, 2010 at 9:22 PM, Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org> wrot=
+e:
+> [ ... ]
+>
+> Another approach is to just always run the completion processing for =
+a
+> given CQ on a single CPU and avoid locking entirely. =A0If you want m=
+ore
+> CPUs to spread the work, just use multiple CQs and multiple event vec=
+tors.
 
-Signed-off-by: Or Gerlitz <ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+In the applications I'm familiar with InfiniBand is being used not
+only because of its low latency but also because of its high
+throughput. In order to handle such loads efficiently, interrupts have
+to be spread over multiple CPUs.
 
-----
+Switching from a single receive queue to multiple receive queues is an
+interesting alternative, but is not possible without changing the
+communication protocol between client and server. Changing the
+communication protocol is not always possible, especially when the
+communication protocol has been defined by a standards organization.
 
-I noted that the IB_CQ_REPORT_MISSED_EVENTS flag was added in the same cycle with mlx4
-and maybe as of this, mlx4 didn't implement the flag, which is used by IPoIB
+> =A0> see e.g. VipCQNotify() in the Virtual Interface Architecture
+> =A0> Specification.
+>
+> I don't know of an efficient way to implement this type of "atomic
+> dequeue completion or enable completions" with any existing hardware.
+> Do you have an idea how this could be done?
 
-The patch is compile tested only, if the patch seems okay, I can conduct further testing.
+I am not an expert with regard to HCA programming. But I assume the
+above should refer to "reprogrammable firmware" instead of "hardware"
+?
 
-diff --git a/drivers/infiniband/hw/mlx4/cq.c b/drivers/infiniband/hw/mlx4/cq.c
-index 5a219a2..4366811 100644
---- a/drivers/infiniband/hw/mlx4/cq.c
-+++ b/drivers/infiniband/hw/mlx4/cq.c
-@@ -755,6 +755,13 @@ int mlx4_ib_arm_cq(struct ib_cq *ibcq, enum ib_cq_notify_flags flags)
- 		    to_mdev(ibcq->device)->uar_map,
- 		    MLX4_GET_DOORBELL_LOCK(&to_mdev(ibcq->device)->uar_lock));
- 
-+	if (flags & IB_CQ_REPORT_MISSED_EVENTS) {
-+		struct mlx4_cqe *cqe;
-+		cqe = next_cqe_sw(to_mcq(ibcq));
-+		if (cqe)
-+			return 1;
-+	}
-+
- 	return 0;
- }
- 
+Bart.
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
