@@ -1,72 +1,79 @@
-From: Andrea Gozzelino <Andrea.Gozzelino-PK20h7lG/Rc1GQ1Ptb7lUw@public.gmane.org>
-Subject: RE: MTU value affected RDMA performance?
-Date: Tue, 27 Jul 2010 15:58:39 +0200 (CEST)
-Message-ID: <5912490.1280239119794.SLOX.WebMail.wwwrun@imap.lnl.infn.it>
-References: <7686034.1280236021632.SLOX.WebMail.wwwrun@imap.lnl.infn.it> <2EFBCAEF10980645BBCFB605689E08E9049ED0AA33@azsmsx506.amr.corp.intel.com>
+From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Subject: Re: About a shortcoming of the verbs API
+Date: Tue, 27 Jul 2010 09:50:04 -0700
+Message-ID: <adafwz4g98j.fsf@roland-alpha.cisco.com>
+References: <AANLkTi=zowawGDjyh+uKve_NiRNMXcrqjAk0hRxGSMOv@mail.gmail.com>
+	<AANLkTinHRnt-jvy0xBOAPUDGcfx6=V6rkRT3t0Ja52FP@mail.gmail.com>
+	<adamxtejbes.fsf@roland-alpha.cisco.com>
+	<AANLkTinYuyCqJ6_wq6GH0vQGAY-mwC=7ZLicBnXO+efB@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <2EFBCAEF10980645BBCFB605689E08E9049ED0AA33-uLM7Qlg6MbdZtRGVdHMbwrfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+In-Reply-To: <AANLkTinYuyCqJ6_wq6GH0vQGAY-mwC=7ZLicBnXO+efB-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+	(Bart Van Assche's message of "Tue, 27 Jul 2010 10:33:42 +0200")
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Tung, Chien Tin" <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, "rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org" <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Cc: Linux-RDMA <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Jul 27, 2010 03:18 PM, "Tung, Chien Tin" <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-wrote:
+ > In the applications I'm familiar with InfiniBand is being used not
+ > only because of its low latency but also because of its high
+ > throughput.
 
-> > I work with Intel NetEffect NE020 cards and Extreme Summit x650
-> > switch.
-> > I installed cards on two PCs IBM x3455 type 7986 | Dual-Core AMD
-> > Opteron
-> > Processor 2214 2200MHz with Scientific Linux SL release
-> > 5.4|2.6.18-164.2.1.el5.
-> > Driver is iw_nes and 10Gb Ethernet is eth2.
-> > I run latency and bandwidth test with MTU=1500 Bytes.
-> > 
-> > Does MTU value affect the performance?
-> 
-> Yes it does make a difference.
-> 
-> > If I change MTU value, why code does not work?
-> 
-> Can you be more specific on what does not work?
-> Is your switch configured to work with MTU of 9000?
-> 
-> Chien
-> 
-> 
-> 
-Hi Chien,
+Yes, I seem to recall hearing that people care about throughput as well.
 
-I read from the switch manual (paragraph "general specification"):
-9216 Bytes maximum packet size (Jumbo Frame)
+ > In order to handle such loads efficiently, interrupts have to be
+ > spread over multiple CPUs.
 
-So switch can work with MTU=9000 Bytes, but I have not configured yet. 
+Let's look at what you say you want here:
 
-I have not idea about RDMA performance and MTU relationship.
-MTU=9000 Bytes; latency decreases and throughpt increases. 
-Is the statement above correct?
+ - strict in-order processing of completions
+ - work spread across multiple CPUs
 
-I will study how operate on swicth. 
-Actually, I modify MTU value on two machines, I run test and it stops
-when client RDMA sends buffers to RDMA server: it seems there is no
-communication channel. Both machines are in pending status probably
-because the switch is not configured with MTU=9000 Bytes.
+Do you see that the two goals are contradictory?  If you are running
+work on multiple CPUs in parallel, then there can't be an order assumed
+between CPUs -- otherwise you serialize the processing and lose all the
+benefit of parallelism.
 
-Andrea
+ > Switching from a single receive queue to multiple receive queues is an
+ > interesting alternative, but is not possible without changing the
+ > communication protocol between client and server. Changing the
+ > communication protocol is not always possible, especially when the
+ > communication protocol has been defined by a standards organization.
 
-Andrea Gozzelino
+If you only have a single client talking to a single server over a
+single connection, then yes the opportunities for parallelism are
+limited.
 
-INFN - Laboratori Nazionali di Legnaro	(LNL)
-Viale dell'Universita' 2 -I-35020 - Legnaro (PD)- ITALIA
-Office: E-101
-Tel: +39 049 8068346
-Fax: +39 049 641925
-Mail: andrea.gozzelino-PK20h7lG/Rc1GQ1Ptb7lUw@public.gmane.org
-Cell: +39 3488245552				
+By the way, looking at VipCQNotify further, I'm not sure I follow
+exactly the race you're worried about.  If you're willing to do your
+processing from the completion notification callback (which seems to be
+the approach that VipCQNotify forces), then doesn't the following (from
+Documentation/infiniband/core_locking.txt):
 
+  The low-level driver is responsible for ensuring that multiple
+  completion event handlers for the same CQ are not called
+  simultaneously.  The driver must guarantee that only one CQ event
+  handler for a given CQ is running at a time.  In other words, the
+  following situation is not allowed:
+
+        CPU1                                    CPU2
+
+  low-level driver ->
+    consumer CQ event callback:
+      /* ... */
+      ib_req_notify_cq(cq, ...);
+                                        low-level driver ->
+      /* ... */                           consumer CQ event callback:
+                                            /* ... */
+      return from CQ event handler
+
+mean that the problem you are complaining about doesn't actually exist?
+
+ - R.
+-- 
+Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org> || For corporate legal information go to:
+http://www.cisco.com/web/about/doing_business/legal/cri/index.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
