@@ -1,54 +1,79 @@
-From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Subject: Re: About a shortcoming of the verbs API
-Date: Tue, 27 Jul 2010 10:33:42 +0200
-Message-ID: <AANLkTinYuyCqJ6_wq6GH0vQGAY-mwC=7ZLicBnXO+efB@mail.gmail.com>
-References: <AANLkTi=zowawGDjyh+uKve_NiRNMXcrqjAk0hRxGSMOv@mail.gmail.com>
-	<AANLkTinHRnt-jvy0xBOAPUDGcfx6=V6rkRT3t0Ja52FP@mail.gmail.com>
-	<adamxtejbes.fsf@roland-alpha.cisco.com>
+From: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH] ib/mlx4: add IB_CQ_REPORT_MISSED_EVENTS support
+Date: Tue, 27 Jul 2010 12:14:11 +0300
+Message-ID: <AANLkTinPRO6mOnCS-SJynkRXmt6J1uV3w5+8PfF6ubxN@mail.gmail.com>
+References: <4C4E96F9.4040503@Voltaire.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <adamxtejbes.fsf-BjVyx320WGW9gfZ95n9DRSW4+XlvGpQz@public.gmane.org>
+In-Reply-To: <4C4E96F9.4040503-hKgKHo2Ms0FWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Cc: Linux-RDMA <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Or Gerlitz <ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+Cc: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Jack Morgenstein <jackm-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Jul 26, 2010 at 9:22 PM, Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org> wrot=
-e:
-> [ ... ]
+I don't think this patch is required for mlx4.
+
+         < 0    means an error occurred while requesting notification
+        =3D=3D 0    means notification was requested successfully, and =
+if
+                IB_CQ_REPORT_MISSED_EVENTS was passed in, then no
+                events were missed and it is safe to wait for another
+                event.
+         > 0    is only returned if IB_CQ_REPORT_MISSED_EVENTS was
+                passed in.  It means that the consumer must poll the
+                CQ again to make sure it is empty to avoid the race
+                described above.
+
+returning 1 means that you must poll the CQ to avoid a race condition
+which is not true for mlx4. For example if you return always 0 than
+you don't violate what the changelog says.
+
+On Tue, Jul 27, 2010 at 11:21 AM, Or Gerlitz <ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org> wr=
+ote:
+> enhance the cq arming code to support IB_CQ_REPORT_MISSED_EVENTS
 >
-> Another approach is to just always run the completion processing for =
-a
-> given CQ on a single CPU and avoid locking entirely. =A0If you want m=
-ore
-> CPUs to spread the work, just use multiple CQs and multiple event vec=
-tors.
-
-In the applications I'm familiar with InfiniBand is being used not
-only because of its low latency but also because of its high
-throughput. In order to handle such loads efficiently, interrupts have
-to be spread over multiple CPUs.
-
-Switching from a single receive queue to multiple receive queues is an
-interesting alternative, but is not possible without changing the
-communication protocol between client and server. Changing the
-communication protocol is not always possible, especially when the
-communication protocol has been defined by a standards organization.
-
-> =A0> see e.g. VipCQNotify() in the Virtual Interface Architecture
-> =A0> Specification.
+> Signed-off-by: Or Gerlitz <ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org>
 >
-> I don't know of an efficient way to implement this type of "atomic
-> dequeue completion or enable completions" with any existing hardware.
-> Do you have an idea how this could be done?
-
-I am not an expert with regard to HCA programming. But I assume the
-above should refer to "reprogrammable firmware" instead of "hardware"
-?
-
-Bart.
+> ----
+>
+> I noted that the IB_CQ_REPORT_MISSED_EVENTS flag was added in the sam=
+e cycle with mlx4
+> and maybe as of this, mlx4 didn't implement the flag, which is used b=
+y IPoIB
+>
+> The patch is compile tested only, if the patch seems okay, I can cond=
+uct further testing.
+>
+> diff --git a/drivers/infiniband/hw/mlx4/cq.c b/drivers/infiniband/hw/=
+mlx4/cq.c
+> index 5a219a2..4366811 100644
+> --- a/drivers/infiniband/hw/mlx4/cq.c
+> +++ b/drivers/infiniband/hw/mlx4/cq.c
+> @@ -755,6 +755,13 @@ int mlx4_ib_arm_cq(struct ib_cq *ibcq, enum ib_c=
+q_notify_flags flags)
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0to_mdev(ibcq->device)->uar_map=
+,
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0MLX4_GET_DOORBELL_LOCK(&to_mde=
+v(ibcq->device)->uar_lock));
+>
+> + =A0 =A0 =A0 if (flags & IB_CQ_REPORT_MISSED_EVENTS) {
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 struct mlx4_cqe *cqe;
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 cqe =3D next_cqe_sw(to_mcq(ibcq));
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (cqe)
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 return 1;
+> + =A0 =A0 =A0 }
+> +
+> =A0 =A0 =A0 =A0return 0;
+> =A0}
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma"=
+ in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
+>
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
 n
