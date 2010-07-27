@@ -1,40 +1,47 @@
 From: Or Gerlitz <ogerlitz-hKgKHo2Ms0FWk0Htik3J/w@public.gmane.org>
-Subject: Re: CMA handler status code
-Date: Tue, 27 Jul 2010 09:48:14 +0300
-Message-ID: <4C4E812E.1090505@Voltaire.com>
-References: <AANLkTik2eOWELUAwjL+tfjMb28L3OjWB57iMyvDpOWDm@mail.gmail.com> <4C4E7F5E.6070306@Voltaire.com>
+Subject: Re: About a shortcoming of the verbs API
+Date: Tue, 27 Jul 2010 10:54:30 +0300
+Message-ID: <4C4E90B6.5070002@Voltaire.com>
+References: <AANLkTi=zowawGDjyh+uKve_NiRNMXcrqjAk0hRxGSMOv@mail.gmail.com>	<AANLkTinHRnt-jvy0xBOAPUDGcfx6=V6rkRT3t0Ja52FP@mail.gmail.com> <adamxtejbes.fsf@roland-alpha.cisco.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4C4E7F5E.6070306-hKgKHo2Ms0FWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <adamxtejbes.fsf-BjVyx320WGW9gfZ95n9DRSW4+XlvGpQz@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Eldad Zinger <eldadz-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Cc: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>, Linux-RDMA <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> For user space, I would add a comment in the man pages
+Roland Dreier wrote:
+>  > do {
+>  >     while (ib_poll_cq(cq, 1, &wc) > 0)
+>  >         /* process wc */
+>  > } while (ib_req_notify_cq(cq, IB_CQ_NEXT_COMP |
+>  > IB_CQ_REPORT_MISSED_EVENTS) > 0);
 
-[PATCH] librdmacm/man: document status field semantics for rejected event
+> This approach can be used to have race-free in-order processing of
+> completions using a scheme such as the NAPI processing loop used by the
+> IPoIB driver (with help from the core networking stack).
 
-document status being the IB reject reason for RDMA_CM_EVENT_REJECTED event
+Roland, I'm wasn't sure if/howmuch the results are buggy, but the IPoIB poll loop doesn't check whether the return code of ib_req_notify_cq is negative (error) or positive (more completions to poll), any thoughts on the matter?
 
-Signed-off-by: Or Gerlitz <ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+   444		if (done < budget) {
+   445			if (dev->features & NETIF_F_LRO)
+   446				lro_flush_all(&priv->lro.lro_mgr);
+   447	
+   448			napi_complete(napi);
+   449			if (unlikely(ib_req_notify_cq(priv->recv_cq,
+   450						      IB_CQ_NEXT_COMP |
+   451						      IB_CQ_REPORT_MISSED_EVENTS)) &&
+   452			    napi_reschedule(napi))
+   453				goto poll_more;
+   454		}
+   455	
+   456		return done;
+   457	}
 
-diff --git a/man/rdma_get_cm_event.3 b/man/rdma_get_cm_event.3
-index 79bf606..91317c4 100644
---- a/man/rdma_get_cm_event.3
-+++ b/man/rdma_get_cm_event.3
-@@ -126,7 +126,8 @@ Generated on the active side to notify the user that the remote server is
- not reachable or unable to respond to a connection request.
- .IP RDMA_CM_EVENT_REJECTED
- Indicates that a connection request or response was rejected by the remote
--end point.
-+end point. Under Infiniband, the event status field contains the reject reason
-+as provided by the IB CM.
- .IP RDMA_CM_EVENT_ESTABLISHED
- Indicates that a connection has been established with the remote end point.
- .IP RDMA_CM_EVENT_DISCONNECTED
+Or.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
