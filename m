@@ -1,43 +1,65 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: About a shortcoming of the verbs API
-Date: Tue, 27 Jul 2010 14:15:27 -0600
-Message-ID: <20100727201527.GU7920@obsidianresearch.com>
-References: <AANLkTi=zowawGDjyh+uKve_NiRNMXcrqjAk0hRxGSMOv@mail.gmail.com> <AANLkTinHRnt-jvy0xBOAPUDGcfx6=V6rkRT3t0Ja52FP@mail.gmail.com> <adamxtejbes.fsf@roland-alpha.cisco.com> <AANLkTinYuyCqJ6_wq6GH0vQGAY-mwC=7ZLicBnXO+efB@mail.gmail.com> <adafwz4g98j.fsf@roland-alpha.cisco.com> <AANLkTimAk0k-q1EKjaXOadoXvKXbEN9nAky0w1rjixxB@mail.gmail.com> <20100727182046.GT7920@obsidianresearch.com> <AANLkTimAS6znoCCw33ipVV-W-e1BJS93Fxzp-oe0jO4u@mail.gmail.com>
+From: "Jim Schutt" <jaschut-4OHPYypu0djtX7QSmKvirg@public.gmane.org>
+Subject: rds-tools issue starting with OFED-1.5.2-20100718-0600.tgz
+Date: Tue, 27 Jul 2010 14:58:47 -0600
+Message-ID: <1280264327.4816.18.camel@sale659.sandia.gov>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <AANLkTimAS6znoCCw33ipVV-W-e1BJS93Fxzp-oe0jO4u-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Cc: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Linux-RDMA <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: rds-devel-N0ozoZBvEnrZJqsBc5GL+g@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Jul 27, 2010 at 09:28:54PM +0200, Bart Van Assche wrote:
+Hi,
 
-> I have two more questions: - Some time ago I observed that the
-> kernel reported soft lockups because of spin_lock() calls inside a
-> completion handler. These spinlocks were not locked in any other
-> context than the completion handler itself. And the lockups
-> disappeared after having replaced the spin_lock() calls by
-> spin_lock_irqsave(). Can it be concluded from this observation that
-> completion handlers are not always invoked from interrupt context ?
+It looks like starting on July 18, the daily snapshot for OFED-1.5.2
+changed what version of rds-tools it was based on:
 
-I don't know.. It wouldn't surprise me if there were some error paths
-that called completion handlers outside an IRQ context, but as Roland
-pointed out the API guarantee is that this never happens in parallel
-with interrupt called cases.
+diff -urN OFED-1.5.2-20100717-0600/BUILD_ID OFED-1.5.2-20100718-0600/BUILD_ID
+--- OFED-1.5.2-20100717-0600/BUILD_ID   2010-07-17 07:13:29.000000000 -0600
++++ OFED-1.5.2-20100718-0600/BUILD_ID   2010-07-18 07:13:29.000000000 -0600
+@@ -1,4 +1,4 @@
+-OFED-1.5.2-20100717-0600:
++OFED-1.5.2-20100718-0600:
+ 
+ compat-dapl:
+ http://www.openfabrics.org/downloads/dapl/compat-dapl-1.2.18.tar.gz
+@@ -77,7 +77,7 @@
+ 
+ ofa_kernel:
+ git://git.openfabrics.org/ofed_1_5/linux-2.6.git ofed_kernel_1_5
+-commit 0c842405cd3d204b23125836a8749fe7cd40b566
++commit 6bcc8f2eb4f005f430ee8f1d6962ba6778d6bbd8
+ 
+ ofed-docs:
+ git://git.openfabrics.org/~tziporet/docs.git ofed_1_5
+@@ -105,7 +105,7 @@
+ http://www.openfabrics.org/downloads/qperf/qperf-0.4.6-0.1.gb81434e.tar.gz
+ 
+ rds-tools:
+-http://www.openfabrics.org/~vlad/ofed_1_5/rds-tools/rds-tools-1.5-1.src.rpm
++http://www.openfabrics.org/downloads/rds-tools/rds-tools-2.0.3.tar.gz
+ 
 
-> - The function handle_edge_irq() in kernel/irq/chip.c invokes the
-> actual interrupt handler while the spinlock desc->lock is not
-> locked.  Does that mean that a completion interrupt can get lost due
-> to the
 
-It holds desc->lock while manipulating the flags, so IRQ_PENDING will
-be set by CPU 2 and CPU 1 will notice once and re-invoke the handler
-once it re-locks desc.
+It also looks like, from 
+  http://oss.oracle.com/git/?p=agrover/rds-tools.git;a=summary
 
-Jason
+that rds-tools now builds into two RPMs, rds-tools and rds-devel,
+but the OFED build scripts don't seem to know about that change.
+
+I'd like to learn how to write apps that use RDS, so I thought
+I needed rds.h to compile against, in hopes of running against the
+latest upstream kernel RDS.  But, I can't seem to get it from
+the 1.5.2 daily snapshot, as a rds-devel rpm isn't getting installed.
+
+Is there somewhere else to get the appropriate rds.h from?
+
+Thanks -- Jim
+
+
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
