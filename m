@@ -1,15 +1,15 @@
 From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH] RDMA/nes: get and print eeprom version
-Date: Wed, 28 Jul 2010 15:12:59 -0700
-Message-ID: <ada62zzdzmc.fsf@roland-alpha.cisco.com>
-References: <20100609201953.GA2304@CTUNG-MOBL1>
+Subject: Re: [PATCH] RDMA/nes: Sometimes ifdown command hangs
+Date: Wed, 28 Jul 2010 15:14:46 -0700
+Message-ID: <ada1vandzjd.fsf@roland-alpha.cisco.com>
+References: <20100704001759.GA2716@FLATIF-MOBL3>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20100609201953.GA2304@CTUNG-MOBL1> (Chien Tung's message of
-	"Wed, 9 Jun 2010 15:19:53 -0500")
+In-Reply-To: <20100704001759.GA2716@FLATIF-MOBL3> (Faisal Latif's message of
+	"Sat, 3 Jul 2010 19:17:59 -0500")
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Chien Tung <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
