@@ -1,65 +1,42 @@
-From: "Jim Schutt" <jaschut-4OHPYypu0djtX7QSmKvirg@public.gmane.org>
-Subject: rds-tools issue starting with OFED-1.5.2-20100718-0600.tgz
-Date: Tue, 27 Jul 2010 14:58:47 -0600
-Message-ID: <1280264327.4816.18.camel@sale659.sandia.gov>
+From: Viral Mehta <Viral.Mehta-oonXi/34qI7c+919tysfdA@public.gmane.org>
+Subject: RE: MTU value affected RDMA performance?
+Date: Wed, 28 Jul 2010 10:23:05 +0530
+Message-ID: <70376CA23424B34D86F1C7DE6B997343068C875FA7@VSHINMSMBX01.vshodc.lntinfotech.com>
+References: <7686034.1280236021632.SLOX.WebMail.wwwrun@imap.lnl.infn.it>
+ <2EFBCAEF10980645BBCFB605689E08E9049ED0AA33@azsmsx506.amr.corp.intel.com>,<5912490.1280239119794.SLOX.WebMail.wwwrun@imap.lnl.infn.it>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <5912490.1280239119794.SLOX.WebMail.wwwrun-XDIR3SKYeFbgKi2NxijLtw@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: rds-devel-N0ozoZBvEnrZJqsBc5GL+g@public.gmane.org
+To: Andrea Gozzelino <Andrea.Gozzelino-PK20h7lG/Rc1GQ1Ptb7lUw@public.gmane.org>, "Tung, Chien Tin" <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org" <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, "rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org" <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 Hi,
 
-It looks like starting on July 18, the daily snapshot for OFED-1.5.2
-changed what version of rds-tools it was based on:
+>I have not idea about RDMA performance and MTU relationship.
+>MTU=9000 Bytes; latency decreases and throughpt increases.
+>Is the statement above correct?
 
-diff -urN OFED-1.5.2-20100717-0600/BUILD_ID OFED-1.5.2-20100718-0600/BUILD_ID
---- OFED-1.5.2-20100717-0600/BUILD_ID   2010-07-17 07:13:29.000000000 -0600
-+++ OFED-1.5.2-20100718-0600/BUILD_ID   2010-07-18 07:13:29.000000000 -0600
-@@ -1,4 +1,4 @@
--OFED-1.5.2-20100717-0600:
-+OFED-1.5.2-20100718-0600:
- 
- compat-dapl:
- http://www.openfabrics.org/downloads/dapl/compat-dapl-1.2.18.tar.gz
-@@ -77,7 +77,7 @@
- 
- ofa_kernel:
- git://git.openfabrics.org/ofed_1_5/linux-2.6.git ofed_kernel_1_5
--commit 0c842405cd3d204b23125836a8749fe7cd40b566
-+commit 6bcc8f2eb4f005f430ee8f1d6962ba6778d6bbd8
- 
- ofed-docs:
- git://git.openfabrics.org/~tziporet/docs.git ofed_1_5
-@@ -105,7 +105,7 @@
- http://www.openfabrics.org/downloads/qperf/qperf-0.4.6-0.1.gb81434e.tar.gz
- 
- rds-tools:
--http://www.openfabrics.org/~vlad/ofed_1_5/rds-tools/rds-tools-1.5-1.src.rpm
-+http://www.openfabrics.org/downloads/rds-tools/rds-tools-2.0.3.tar.gz
- 
+Yes.
 
+>I will study how operate on swicth.
+>Actually, I modify MTU value on two machines, I run test and it stops
+>when client RDMA sends buffers to RDMA server: it seems there is no
+>communication channel. Both machines are in pending status probably
+>because the switch is not configured with MTU=9000 Bytes.
 
-It also looks like, from 
-  http://oss.oracle.com/git/?p=agrover/rds-tools.git;a=summary
+See, if you can connect two machines back-to-back and it works...
+This will eliminate the switch issue...
 
-that rds-tools now builds into two RPMs, rds-tools and rds-devel,
-but the OFED build scripts don't seem to know about that change.
+Viral
 
-I'd like to learn how to write apps that use RDS, so I thought
-I needed rds.h to compile against, in hopes of running against the
-latest upstream kernel RDS.  But, I can't seem to get it from
-the 1.5.2 daily snapshot, as a rds-devel rpm isn't getting installed.
+This Email may contain confidential or privileged information for the intended recipient (s) If you are not the intended recipient, please do not use or disseminate the information, notify the sender and delete it from your system.
 
-Is there somewhere else to get the appropriate rds.h from?
-
-Thanks -- Jim
-
-
-
+______________________________________________________________________
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
