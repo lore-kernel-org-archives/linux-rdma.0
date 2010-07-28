@@ -1,26 +1,52 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: RDMA Multicast APM
-Date: Wed, 28 Jul 2010 09:12:57 -0700
-Message-ID: <CF9C39F99A89134C9CF9C4CCB68B8DDF25A911AA4A@orsmsx501.amr.corp.intel.com>
-References: <004d01cb2e47$e816dfc0$b8449f40$@com>
+From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Subject: Re: About a shortcoming of the verbs API
+Date: Wed, 28 Jul 2010 10:42:32 -0700
+Message-ID: <ada62zzfqpj.fsf@roland-alpha.cisco.com>
+References: <AANLkTi=zowawGDjyh+uKve_NiRNMXcrqjAk0hRxGSMOv@mail.gmail.com>
+	<AANLkTinHRnt-jvy0xBOAPUDGcfx6=V6rkRT3t0Ja52FP@mail.gmail.com>
+	<adamxtejbes.fsf@roland-alpha.cisco.com>
+	<AANLkTinYuyCqJ6_wq6GH0vQGAY-mwC=7ZLicBnXO+efB@mail.gmail.com>
+	<adafwz4g98j.fsf@roland-alpha.cisco.com>
+	<AANLkTimAk0k-q1EKjaXOadoXvKXbEN9nAky0w1rjixxB@mail.gmail.com>
+	<20100727182046.GT7920@obsidianresearch.com>
+	<AANLkTimAS6znoCCw33ipVV-W-e1BJS93Fxzp-oe0jO4u@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <004d01cb2e47$e816dfc0$b8449f40$@com>
-Content-Language: en-US
+In-Reply-To: <AANLkTimAS6znoCCw33ipVV-W-e1BJS93Fxzp-oe0jO4u-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+	(Bart Van Assche's message of "Tue, 27 Jul 2010 21:28:54 +0200")
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Nuwan Sanjeewa Abeysiriwardana <nuwansa-d0YwtTOpHbYQCxfLn1kDAA@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Linux-RDMA <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-copying linux-rdma list
+ > - Some time ago I observed that the kernel reported soft lockups
+ > because of spin_lock() calls inside a completion handler. These
+ > spinlocks were not locked in any other context than the completion
+ > handler itself. And the lockups disappeared after having replaced the
+ > spin_lock() calls by spin_lock_irqsave(). Can it be concluded from
+ > this observation that completion handlers are not always invoked from
+ > interrupt context ?
 
->                 We have done some native IB multicast  development. It's working fine at the moment.
-> But I have no idea how to setup APM  for the IB multicast. How do we handle switch failover  with IB
-> multicast. It's very helpful if you can give some information about the how  APM works with UD QPs.
+Did you get a soft lockup report or a lockdep report?  Anyway, the very
+next paragraph of the documentation I quoted says:
 
-APM doesn't apply to UD QPs.  For multicast, it's up to the SM to detect any switch issues and reconfigure the fabric so that multicast traffic continues to work.
+  The context in which completion event and asynchronous event
+  callbacks run is not defined.  Depending on the low-level driver, it
+  may be process context, softirq context, or interrupt context.
+  Upper level protocol consumers may not sleep in a callback.
+
+So yes, it is possible that a completion callback gets called in
+non-interrupt context.
+
+However as far as I know, at least mthca and mlx4 only call completion
+callbacks from the interrupt handler.  But without the actual code in
+question it's hard to know what the real problem was.
+
+ - R.
+-- 
+Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org> || For corporate legal information go to:
+http://www.cisco.com/web/about/doing_business/legal/cri/index.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
