@@ -1,25 +1,23 @@
-From: Or Gerlitz <ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Subject: Re: About a shortcoming of the verbs API
-Date: Thu, 29 Jul 2010 09:27:16 +0300
-Message-ID: <4C511F44.9050102@voltaire.com>
-References: <AANLkTi=zowawGDjyh+uKve_NiRNMXcrqjAk0hRxGSMOv@mail.gmail.com>	<AANLkTinHRnt-jvy0xBOAPUDGcfx6=V6rkRT3t0Ja52FP@mail.gmail.com>	<adamxtejbes.fsf@roland-alpha.cisco.com> <4C4E90B6.5070002@Voltaire.com> <ada1vanfqn1.fsf@roland-alpha.cisco.com>
+From: Or Gerlitz <ogerlitz-hKgKHo2Ms0FWk0Htik3J/w@public.gmane.org>
+Subject: Re: CMA handler status code
+Date: Thu, 29 Jul 2010 09:38:15 +0300
+Message-ID: <4C5121D7.7070604@Voltaire.com>
+References: <AANLkTik2eOWELUAwjL+tfjMb28L3OjWB57iMyvDpOWDm@mail.gmail.com> <CF9C39F99A89134C9CF9C4CCB68B8DDF25A8D7FBFB@orsmsx501.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <ada1vanfqn1.fsf-BjVyx320WGW9gfZ95n9DRSW4+XlvGpQz@public.gmane.org>
+In-Reply-To: <CF9C39F99A89134C9CF9C4CCB68B8DDF25A8D7FBFB-osO9UTpF0USkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Cc: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>, Linux-RDMA <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Eldad Zinger <eldadz-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Roland Dreier wrote:
->  - If we did get an error, there's not much we can do except keep
->    polling and try to request notification again later -- exactly the
->    same thing we would do if we got a positive return value.
-Basically, you're right. My only concern is a case where a hw driver 
-keeps returning error from the notify verb and ipoib isn't aware of 
-that. But as no one returns such error, this can be leaved for now.
+Hefty, Sean wrote:
+> The original intent was to expose the transport specific status values to the user, 
+> rather than trying to map them.
+
+yes, this makes sense, are you okay with documenting that, e.g in the spirit of the patch I sent?
 
 Or.
 --
