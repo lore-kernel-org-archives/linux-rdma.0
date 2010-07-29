@@ -1,64 +1,63 @@
-From: Tom Tucker <tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: Re: [RFC PATCH 2/4] uverbs: Add common ib_iomem_get service
-Date: Thu, 29 Jul 2010 16:20:19 -0500
-Message-ID: <4C51F093.6030009@opengridcomputing.com>
-References: <20100729162339.14674.15788.stgit@build.ogc.int> <20100729162509.14674.34237.stgit@build.ogc.int>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH] librdmacm: document event status field
+Date: Thu, 29 Jul 2010 14:37:57 -0700
+Message-ID: <CF9C39F99A89134C9CF9C4CCB68B8DDF25A927290C@orsmsx501.amr.corp.intel.com>
+References: <AANLkTik2eOWELUAwjL+tfjMb28L3OjWB57iMyvDpOWDm@mail.gmail.com>
+ <CF9C39F99A89134C9CF9C4CCB68B8DDF25A8D7FBFB@orsmsx501.amr.corp.intel.com>
+ <4C5121D7.7070604@Voltaire.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20100729162509.14674.34237.stgit-T4OLL4TyM9aNDNWfRnPdfg@public.gmane.org>
+In-Reply-To: <4C5121D7.7070604-hKgKHo2Ms0FWk0Htik3J/w@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tom Tucker <tom-/Yg/VP3ZvrM@public.gmane.org>
-Cc: rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, brandt-4OHPYypu0djtX7QSmKvirg@public.gmane.org, swise-/Yg/VP3ZvrM@public.gmane.org
+To: Or Gerlitz <ogerlitz-hKgKHo2Ms0FWk0Htik3J/w@public.gmane.org>, Eldad Zinger <eldadz-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 7/29/10 11:25 AM, Tom Tucker wrote:
-> From: Tom Tucker<tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
->
-> Add an ib_iomem_get service that converts a vma to an array of
-> physical addresses. This makes it easier for each device driver to
-> add support for the reg_io_mr provider method.
->
-> Signed-off-by: Tom Tucker<tom-/Yg/VP3ZvrM@public.gmane.org>
-> ---
->
->   drivers/infiniband/core/umem.c |  248 ++++++++++++++++++++++++++++++++++++++--
->   include/rdma/ib_umem.h         |   14 ++
->   2 files changed, 251 insertions(+), 11 deletions(-)
->
-> [...snip...]
->    
+Clarify the value returned in the event status field.
 
-> +			/* The pfn_list we built is a set of Page
-> +			 * Frame Numbers (PFN) whose physical address
-> +			 * is PFN<<  PAGE_SHIFT. The SG DMA mapping
-> +			 * services expect page addresses, not PFN,
-> +			 * therefore, we have to do the dma mapping
-> +			 * ourselves here. */
-> +			for (i = 0; i<  chunk->nents; ++i) {
-> +				sg_set_page(&chunk->page_list[i], 0,
-> +					    PAGE_SIZE, 0);
-> +				chunk->page_list[i].dma_address =
-> +					(pfn_list[i]<<  PAGE_SHIFT);
->    
+Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+---
+ man/rdma_get_cm_event.3 |   14 +++++++++++---
+ 1 files changed, 11 insertions(+), 3 deletions(-)
 
-This is not architecture independent. Does anyone have any thoughts on 
-how this ought to be done?
+diff --git a/man/rdma_get_cm_event.3 b/man/rdma_get_cm_event.3
+index 2ea1b56..b0c4970 100644
+--- a/man/rdma_get_cm_event.3
++++ b/man/rdma_get_cm_event.3
+@@ -41,7 +41,10 @@ Specifies the type of communication event which occurred.  See EVENT TYPES
+ below.
+ .IP "status" 12
+ Returns any asynchronous error information associated with an event.  The
+-status is zero unless the corresponding operation failed.
++status is zero if the operation was successful, otherwise the status value
++is non-zero and is either set to an errno or a transport specific value.
++For details on transport specific status values, see the event type information
++below.
+ .IP "param" 12
+ Provides additional details based on the type of event.  Users should
+ select the conn or ud subfields based on the rdma_port_space of the
+@@ -126,10 +129,15 @@ Indicates that an error has occurred trying to establish or a connection.
+ May be generated on the active or passive side of a connection.
+ .IP RDMA_CM_EVENT_UNREACHABLE
+ Generated on the active side to notify the user that the remote server is
+-not reachable or unable to respond to a connection request.
++not reachable or unable to respond to a connection request.  If this event
++is generated in response to a UD QP resolution request over InfiniBand,
++the event status field will contain an errno, if negative, or the status
++result carried in the IB CM SIDR REP message.
+ .IP RDMA_CM_EVENT_REJECTED
+ Indicates that a connection request or response was rejected by the remote
+-end point.
++end point.  The event status field will contain the transport specific
++reject reason if available.  Under InfiniBand, this is the reject reason
++carried in the IB CM REJ message.
+ .IP RDMA_CM_EVENT_ESTABLISHED
+ Indicates that a connection has been established with the remote end point.
+ .IP RDMA_CM_EVENT_DISCONNECTED
 
-> +				chunk->page_list[i].dma_length = PAGE_SIZE;
-> +			}
-> +			chunk->nmap = chunk->nents;
-> +			ret -= chunk->nents;
-> +			off += chunk->nents;
-> +			list_add_tail(&chunk->list,&umem->chunk_list);
-> +		}
-> +
-> +		ret = 0;
-> +	}
-> +
->    
-[...snip...]
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
