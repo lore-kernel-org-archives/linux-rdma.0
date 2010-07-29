@@ -1,7 +1,7 @@
 From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Subject: [PATCH] IB/srp: avoid NULL pointer dereference when processing invalid SRP_RSP
-Date: Thu, 29 Jul 2010 17:56:31 +0200
-Message-ID: <201007291756.31172.bvanassche@acm.org>
+Subject: [PATCH] IB/srp: introduce print_hex_dump()
+Date: Thu, 29 Jul 2010 17:56:37 +0200
+Message-ID: <201007291756.37672.bvanassche@acm.org>
 Mime-Version: 1.0
 Content-Type: Text/Plain;
   charset="us-ascii"
@@ -12,40 +12,37 @@ To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-If an SRP target sends an invalid SRP_RSP information unit to the SRP
-initiator this can cause a NULL pointer dereference on the initiator system.
-This patch avoids such NULL pointer dereferences and makes sure the SRP
-inititator keeps working.
-
-Signed-off-by: Bart Van Assche <bart.vanassche-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Reduces the number of source code lines in ib_srp.c by replacing an explicit
+loop by a call to print_hex_dump().
 
 diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
-index ed3f9eb..330452c 100644
+index ed3f9eb..a072719 100644
 --- a/drivers/infiniband/ulp/srp/ib_srp.c
 +++ b/drivers/infiniband/ulp/srp/ib_srp.c
-@@ -834,10 +834,12 @@ static void srp_process_rsp(struct srp_target_port *target, struct srp_rsp *rsp)
- 		complete(&req->done);
- 	} else {
- 		scmnd = req->scmnd;
--		if (!scmnd)
-+		if (!scmnd) {
- 			shost_printk(KERN_ERR, target->scsi_host,
- 				     "Null scmnd for RSP w/tag %016llx\n",
- 				     (unsigned long long) rsp->tag);
-+			goto out_unlock;
-+		}
- 		scmnd->result = rsp->status;
+@@ -879,21 +879,10 @@ static void srp_handle_recv(struct srp_target_port *target, struct ib_wc *wc)
+ 	opcode = *(u8 *) iu->buf;
  
- 		if (rsp->flags & SRP_RSP_FLAG_SNSVALID) {
-@@ -861,6 +863,7 @@ static void srp_process_rsp(struct srp_target_port *target, struct srp_rsp *rsp)
- 			req->cmd_done = 1;
+ 	if (0) {
+-		int i;
+-
+ 		shost_printk(KERN_ERR, target->scsi_host,
+ 			     PFX "recv completion, opcode 0x%02x\n", opcode);
+-
+-		for (i = 0; i < wc->byte_len; ++i) {
+-			if (i % 8 == 0)
+-				printk(KERN_ERR "  [%02x] ", i);
+-			printk(" %02x", ((u8 *) iu->buf)[i]);
+-			if ((i + 1) % 8 == 0)
+-				printk("\n");
+-		}
+-
+-		if (wc->byte_len % 8)
+-			printk("\n");
++		print_hex_dump(KERN_ERR, "", DUMP_PREFIX_OFFSET, 8, 1,
++			       iu->buf, wc->byte_len, true);
  	}
  
-+out_unlock:
- 	spin_unlock_irqrestore(target->scsi_host->host_lock, flags);
- }
- 
+ 	switch (opcode) {
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
