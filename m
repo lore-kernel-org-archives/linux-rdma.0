@@ -1,63 +1,62 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH] librdmacm: document event status field
-Date: Thu, 29 Jul 2010 14:37:57 -0700
-Message-ID: <CF9C39F99A89134C9CF9C4CCB68B8DDF25A927290C@orsmsx501.amr.corp.intel.com>
-References: <AANLkTik2eOWELUAwjL+tfjMb28L3OjWB57iMyvDpOWDm@mail.gmail.com>
- <CF9C39F99A89134C9CF9C4CCB68B8DDF25A8D7FBFB@orsmsx501.amr.corp.intel.com>
- <4C5121D7.7070604@Voltaire.com>
+From: David Dillow <dave-i1Mk8JYDVaaSihdK6806/g@public.gmane.org>
+Subject: Re: [PATCH] IB/srp: avoid NULL pointer dereference when processing
+  invalid SRP_RSP
+Date: Thu, 29 Jul 2010 18:36:14 -0400
+Message-ID: <1280442974.31468.23.camel@obelisk.thedillows.org>
+References: <201007291756.31172.bvanassche@acm.org>
+	 <1280424106.20975.11.camel@lap75545.ornl.gov>
+	 <AANLkTinecqHFervVh6t+QFcvW0Zhhz-VU43nq1N3rdnD@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4C5121D7.7070604-hKgKHo2Ms0FWk0Htik3J/w@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <AANLkTinecqHFervVh6t+QFcvW0Zhhz-VU43nq1N3rdnD-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <ogerlitz-hKgKHo2Ms0FWk0Htik3J/w@public.gmane.org>, Eldad Zinger <eldadz-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Clarify the value returned in the event status field.
+On Thu, 2010-07-29 at 20:07 +0200, Bart Van Assche wrote:
+> On Thu, Jul 29, 2010 at 7:21 PM, David Dillow <dave-i1Mk8JYDVaaSihdK6806/g@public.gmane.org> wrote:
+> > While I'm all for increasing the robustness of the initiator, I'm
+> > curious how you would hit this -- I don't see where we would send a SRP
+> > request without an associated SCSI command.
+> >
+> > I'm also not sure you're doing the right thing here -- you seem to skip
+> > the cleanup of the associated SRP request. I suppose that may be handled
+> > for you if/when srp_abort() gets called for a missed SCSI request, but
+> > again, we should never be in the situation where a request doesn't have
+> > a SCSI command. And if srp_abort() doesn't get called, we've leaked a
+> > request and possibly a DMA mapping, no?
+> 
+> This condition was hit accidentally while testing newly added target
+> code that sent an SRP_RSP not associated with an SRP_CMD or
+> SRP_TSK_MGMT information unit. Since I was surprised to find a test of
+> the scmnd pointer in ib_srp.c followed by an unconditional dereference
+> of it, I coded up this patch.
 
-Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
----
- man/rdma_get_cm_event.3 |   14 +++++++++++---
- 1 files changed, 11 insertions(+), 3 deletions(-)
+Hmm, looking at it, it seems you got lucky or unlucky depending on the
+viewpoint -- you must have either sent the SRP_RSP early on with a tag
+that matched an unused request (so that req->scmnd would still be NULL)
+or the tag value was garbage that happened to have a NULL pointer at the
+correct offset.
 
-diff --git a/man/rdma_get_cm_event.3 b/man/rdma_get_cm_event.3
-index 2ea1b56..b0c4970 100644
---- a/man/rdma_get_cm_event.3
-+++ b/man/rdma_get_cm_event.3
-@@ -41,7 +41,10 @@ Specifies the type of communication event which occurred.  See EVENT TYPES
- below.
- .IP "status" 12
- Returns any asynchronous error information associated with an event.  The
--status is zero unless the corresponding operation failed.
-+status is zero if the operation was successful, otherwise the status value
-+is non-zero and is either set to an errno or a transport specific value.
-+For details on transport specific status values, see the event type information
-+below.
- .IP "param" 12
- Provides additional details based on the type of event.  Users should
- select the conn or ud subfields based on the rdma_port_space of the
-@@ -126,10 +129,15 @@ Indicates that an error has occurred trying to establish or a connection.
- May be generated on the active or passive side of a connection.
- .IP RDMA_CM_EVENT_UNREACHABLE
- Generated on the active side to notify the user that the remote server is
--not reachable or unable to respond to a connection request.
-+not reachable or unable to respond to a connection request.  If this event
-+is generated in response to a UD QP resolution request over InfiniBand,
-+the event status field will contain an errno, if negative, or the status
-+result carried in the IB CM SIDR REP message.
- .IP RDMA_CM_EVENT_REJECTED
- Indicates that a connection request or response was rejected by the remote
--end point.
-+end point.  The event status field will contain the transport specific
-+reject reason if available.  Under InfiniBand, this is the reject reason
-+carried in the IB CM REJ message.
- .IP RDMA_CM_EVENT_ESTABLISHED
- Indicates that a connection has been established with the remote end point.
- .IP RDMA_CM_EVENT_DISCONNECTED
+In any event, it would seem that the initiator is a bit too trusting of
+the target's returned tag. I hate to add a conditional check to the
+path, but it does seem preferable to letting a buggy or malicious target
+induce us to read random kernel memory.
 
+> The target code that triggered this condition has been fixed by now
+> and even was never committed to its source code repository, so this
+> patch isn't important to me.
+> 
+> Regarding leaks: isn't there already a leak in the current ib_srp code
+> if any information unit with another opcode than SRP_RSP is received ?
+
+I don't think so -- we only allocate them for SCSI commands we send, and
+look them up based on the tag value in the SRP_RSP.
+
+Dave
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
