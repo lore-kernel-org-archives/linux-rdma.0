@@ -1,334 +1,487 @@
 From: frank zago <fzago-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org>
-Subject: [PATCH] rdma cm + XRC
-Date: Fri, 30 Jul 2010 15:11:08 -0500
-Message-ID: <4C5331DC.9080109@systemfabricworks.com>
+Subject: [PATCH] perftest/rdma_bw for XRC
+Date: Fri, 30 Jul 2010 15:11:57 -0500
+Message-ID: <4C53320D.9040708@systemfabricworks.com>
 Mime-Version: 1.0
 Content-Type: multipart/mixed;
- boundary="------------060303090503080503060608"
+ boundary="------------080805050801070309040407"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 This is a multi-part message in MIME format.
---------------060303090503080503060608
+--------------080805050801070309040407
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 
 Hello,
 
-This allow rdma ucm to establish an XRC connection between two nodes. Most
-of the changes are related to modify_qp since the API is different
-whether the QP is on the send or receive side.
-To create an XRC receive QP, the cap.max_send_wr must be set to 0.
-Conversely, to create the send XRC QP, that attribute must be non-zero.
+This is a sample code to use rdma_bw with XRC, both with rdma CM and out of band connection.
+This modified rdma_bw code, uses a 1 to 1 connection to demonstrate that RDMA CM can establish
+a connection for XRC QPs.
 
 Regards,
-  Frank
+  frank.
 
 
 
-
---------------060303090503080503060608
+--------------080805050801070309040407
 Content-Type: text/x-patch;
- name="rdmacm-xrc-v1.diff"
+ name="rdma-bw-xrc-v1.diff"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: attachment;
- filename="rdmacm-xrc-v1.diff"
+ filename="rdma-bw-xrc-v1.diff"
 
-diff -ru /usr/src/redhat/BUILD/librdmacm-1.0.11/include/rdma/rdma_cma.h librdmacm-1.0.11/include/rdma/rdma_cma.h
---- /usr/src/redhat/BUILD/librdmacm-1.0.11/include/rdma/rdma_cma.h	2008-07-31 18:01:42.000000000 -0500
-+++ librdmacm-1.0.11/include/rdma/rdma_cma.h	2010-07-29 17:00:15.000000000 -0500
-@@ -114,6 +114,8 @@
- 	struct rdma_route	 route;
- 	enum rdma_port_space	 ps;
- 	uint8_t			 port_num;
+diff -ruw /usr/src/redhat/BUILD/perftest-1.2.3/rdma_bw.c perftest-1.2.3/rdma_bw.c
+--- /usr/src/redhat/BUILD/perftest-1.2.3/rdma_bw.c	2009-12-10 08:33:52.000000000 -0600
++++ perftest-1.2.3/rdma_bw.c	2010-07-30 14:54:05.000000000 -0500
+@@ -52,6 +52,7 @@
+ #include <arpa/inet.h>
+ #include <byteswap.h>
+ #include <time.h>
++#include <fcntl.h>
+ 
+ #include <infiniband/verbs.h>
+ #include <rdma/rdma_cma.h>
+@@ -77,6 +78,11 @@
+ 	int                 tx_depth;
+ 	struct ibv_sge      list;
+ 	struct ibv_send_wr  wr;
++
++	/* XRC support. */
 +	struct ibv_xrc_domain *xrc_domain;
++	struct ibv_srq *xrc_srq;
 +	uint32_t xrc_rcv_qpn;
  };
  
- struct rdma_conn_param {
-diff -ru /usr/src/redhat/BUILD/librdmacm-1.0.11/src/cma.c librdmacm-1.0.11/src/cma.c
---- /usr/src/redhat/BUILD/librdmacm-1.0.11/src/cma.c	2009-10-26 19:08:34.000000000 -0500
-+++ librdmacm-1.0.11/src/cma.c	2010-07-30 13:45:51.000000000 -0500
-@@ -623,33 +623,51 @@
- 	return 0;
+ struct pingpong_dest {
+@@ -85,6 +91,7 @@
+ 	int psn;
+ 	unsigned rkey;
+ 	unsigned long long vaddr;
++	uint32_t xrc_srq_num;
+ };
+ 
+ struct pp_data {
+@@ -93,6 +100,7 @@
+ 	unsigned            		size;
+ 	int                 		tx_depth;
+ 	int				use_cma;
++	int				use_xrc;
+ 	int 		    		sockfd;
+ 	char				*servername;
+ 	struct pingpong_dest		my_dest;
+@@ -107,7 +115,7 @@
+ static void pp_wait_for_done(struct pingpong_context *);
+ static void pp_send_done(struct pingpong_context *);
+ static void pp_wait_for_start(struct pingpong_context *);
+-static void pp_send_start(struct pingpong_context *);
++static void pp_send_start(struct pingpong_context *, struct pp_data *);
+ static void pp_close_cma(struct pp_data );
+ static struct pingpong_context *pp_init_ctx(void *, struct pp_data *);
+ 
+@@ -283,13 +291,14 @@
+ 
+ static int pp_client_exch_dest(struct pp_data *data)
+ {
+-	char msg[sizeof "0000:000000:000000:00000000:0000000000000000"];
++	char msg[sizeof "0000:000000:000000:00000000:0000000000000000:000000"];
+ 	int parsed;
+ 	
+ 	if (!data->use_cma) {
+-		sprintf(msg, "%04x:%06x:%06x:%08x:%016Lx", data->my_dest.lid, 
++		sprintf(msg, "%04x:%06x:%06x:%08x:%016Lx:%06x", data->my_dest.lid, 
+ 				data->my_dest.qpn, data->my_dest.psn,
+-				data->my_dest.rkey, data->my_dest.vaddr);
++				data->my_dest.rkey, data->my_dest.vaddr, 0);
++
+ 		if (write(data->sockfd, msg, sizeof msg) != sizeof msg) {
+ 			perror("client write");
+ 			fprintf(stderr, "%d:%s: Couldn't send local address\n", 
+@@ -310,11 +319,12 @@
+ 		if (!data->rem_dest)
+ 			goto err;
+ 	
+-		parsed = sscanf(msg, "%x:%x:%x:%x:%Lx", &data->rem_dest->lid,
++		parsed = sscanf(msg, "%x:%x:%x:%x:%Lx:%x", &data->rem_dest->lid,
+ 				&data->rem_dest->qpn, &data->rem_dest->psn,
+-				&data->rem_dest->rkey, &data->rem_dest->vaddr);
++						&data->rem_dest->rkey, &data->rem_dest->vaddr,
++						&data->rem_dest->xrc_srq_num);
+ 	
+-		if (parsed != 5) {
++		if (parsed != 6) {
+ 			fprintf(stderr, "%d:%s: Couldn't parse line <%.*s>\n",
+ 					pid, __func__, (int)sizeof msg, msg);
+ 			free(data->rem_dest);
+@@ -404,6 +414,11 @@
+ 		conn_param.initiator_depth = 1;
+ 		conn_param.private_data = &data->my_dest;
+ 		conn_param.private_data_len = sizeof(data->my_dest);
++
++		if (data->use_xrc) {
++			data->my_dest.xrc_srq_num = ctx->xrc_srq->xrc_srq_num;
++		}
++
+ 		if (rdma_accept(child_cm_id, &conn_param)) {
+ 			fprintf(stderr, "%d:%s: rdma_accept failed\n", pid, __func__);
+ 			goto err1;
+@@ -476,7 +491,7 @@
+ 
+ static int pp_server_exch_dest(struct pp_data *data)
+ {
+-	char msg[sizeof "0000:000000:000000:00000000:0000000000000000"];
++	char msg[sizeof "0000:000000:000000:00000000:0000000000000000:000000"];
+ 	int parsed;
+ 	int n;
+ 	
+@@ -495,19 +510,22 @@
+ 		if (!data->rem_dest)
+ 			goto err;
+ 	
+-		parsed = sscanf(msg, "%x:%x:%x:%x:%Lx", &data->rem_dest->lid,
++		parsed = sscanf(msg, "%x:%x:%x:%x:%Lx:%x", &data->rem_dest->lid,
+ 			      &data->rem_dest->qpn, &data->rem_dest->psn,
+-			      &data->rem_dest->rkey, &data->rem_dest->vaddr);
+-		if (parsed != 5) {
++						&data->rem_dest->rkey, &data->rem_dest->vaddr,
++						&data->rem_dest->xrc_srq_num);
++		if (parsed != 6) {
+ 			fprintf(stderr, "%d:%s: Couldn't parse line <%.*s>\n", pid,
+ 						 __func__, (int)sizeof msg, msg);
+ 			free(data->rem_dest);
+ 			goto err;
+ 		}
+ 	
+-		sprintf(msg, "%04x:%06x:%06x:%08x:%016Lx", data->my_dest.lid,
++		sprintf(msg, "%04x:%06x:%06x:%08x:%016Lx:%06x", data->my_dest.lid,
+ 					 data->my_dest.qpn, data->my_dest.psn,
+-					 data->my_dest.rkey, data->my_dest.vaddr);
++				data->my_dest.rkey, data->my_dest.vaddr,
++				data->my_dest.xrc_srq_num);
++
+ 		if (write(data->sockfd, msg, sizeof msg) != sizeof msg) {
+ 			perror("server write");
+ 			fprintf(stderr, "%d:%s: Couldn't send local address\n", 
+@@ -522,13 +540,27 @@
+ 	return 1;
  }
  
-+static int rdma_modify_qp(struct rdma_cm_id *id, 
-+					  struct ibv_qp_attr *qp_attr,
-+					  int qp_attr_mask)
++static int my_modify_qp(struct pingpong_context *ctx, struct pp_data *data, struct ibv_qp_attr *attr,
++						int attr_mask)
 +{
-+	int ret;
++	int rc;
 +
-+	if (id->qp)
-+		ret = ibv_modify_qp(id->qp, qp_attr, qp_attr_mask);
-+	else if (id->xrc_domain)
-+		ret = ibv_modify_xrc_rcv_qp(id->xrc_domain, id->xrc_rcv_qpn,
-+									qp_attr, qp_attr_mask);
-+	else 
-+		ret = ERR(EINVAL);
++	if (data->use_xrc && ctx->xrc_rcv_qpn)
++		rc = ibv_modify_xrc_rcv_qp(ctx->xrc_domain, ctx->xrc_rcv_qpn,
++								   attr, attr_mask);
++	else
++		rc = ibv_modify_qp(ctx->qp, attr, attr_mask);
 +
-+	return ret;
++	return rc;
 +}
 +
- static int ucma_modify_qp_rtr(struct rdma_cm_id *id,
- 			      struct rdma_conn_param *conn_param)
+ static struct pingpong_context *pp_init_ctx(void *ptr, struct pp_data *data)
  {
- 	struct ibv_qp_attr qp_attr;
- 	int qp_attr_mask, ret;
+ 	struct pingpong_context *ctx;
+ 	struct ibv_device *ib_dev;
+ 	struct rdma_cm_id *cm_id = NULL;
  
--	if (!id->qp)
--		return ERR(EINVAL);
--
--	/* Need to update QP attributes from default values. */
--	qp_attr.qp_state = IBV_QPS_INIT;
--	ret = rdma_init_qp_attr(id, &qp_attr, &qp_attr_mask);
--	if (ret)
--		return ret;
-+	if (id->qp || id->xrc_domain) {
-+		/* Need to update QP attributes from default values. */
-+		qp_attr.qp_state = IBV_QPS_INIT;
-+		ret = rdma_init_qp_attr(id, &qp_attr, &qp_attr_mask);
-+		if (ret)
-+			return ret;
+-	ctx = malloc(sizeof *ctx);
++	ctx = calloc(1, sizeof *ctx);
+ 	if (!ctx)
+ 		return NULL;
  
--	ret = ibv_modify_qp(id->qp, &qp_attr, qp_attr_mask);
--	if (ret)
--		return ret;
-+		ret = rdma_modify_qp(id, &qp_attr, qp_attr_mask);
-+		if (ret)
-+			return ret;
+@@ -601,8 +633,35 @@
+ 		return NULL;
+ 	}
  
--	qp_attr.qp_state = IBV_QPS_RTR;
--	ret = rdma_init_qp_attr(id, &qp_attr, &qp_attr_mask);
--	if (ret)
--		return ret;
-+		qp_attr.qp_state = IBV_QPS_RTR;
-+		ret = rdma_init_qp_attr(id, &qp_attr, &qp_attr_mask);
-+		if (ret)
-+			return ret;
- 
--	if (conn_param)
--		qp_attr.max_dest_rd_atomic = conn_param->responder_resources;
--	return ibv_modify_qp(id->qp, &qp_attr, qp_attr_mask);
-+		if (conn_param)
-+			qp_attr.max_dest_rd_atomic = conn_param->responder_resources;
-+		return rdma_modify_qp(id, &qp_attr, qp_attr_mask);
++	if (data->use_xrc) {
++		struct ibv_srq_init_attr srq_init_attr;
++
++		/* Open XRC domain. */
++		int fd = -1;
++		ctx->xrc_domain = ibv_open_xrc_domain(ctx->context, fd, O_CREAT);
++		if (!ctx->xrc_domain) {
++			fprintf(stderr, "%d:%s: Couldn't create XRC domain.\n", pid, __func__);
++			return NULL;
++		}
++
++		srq_init_attr.srq_context = data->ib_dev;
++		srq_init_attr.attr.max_wr = 1;
++		srq_init_attr.attr.max_sge = 1;
++		srq_init_attr.attr.srq_limit = 30; /* should be ignored */
++
++		if (!data->servername) {
++			ctx->xrc_srq = ibv_create_xrc_srq(ctx->pd,
++											  ctx->xrc_domain,
++											  ctx->rcq,
++											  &srq_init_attr);
++			if (!ctx->xrc_srq) {
++				fprintf(stderr, "Failed to create SRQ.\n");
++				return NULL;
++			}
++		}
 +	}
-+	else
-+		return ERR(EINVAL);
- }
  
- static int ucma_modify_qp_rts(struct rdma_cm_id *id)
-@@ -662,7 +680,7 @@
- 	if (ret)
- 		return ret;
+-	struct ibv_qp_init_attr attr = {
++	struct ibv_qp_init_attr init_attr = {
+ 		.send_cq = ctx->scq,
+ 		.recv_cq = ctx->rcq,
+ 		.cap     = {
+@@ -614,32 +673,55 @@
+ 			.max_recv_sge = 1,
+ 			.max_inline_data = 0
+ 		},
+-		.qp_type = IBV_QPT_RC
+ 	};
  
--	return ibv_modify_qp(id->qp, &qp_attr, qp_attr_mask);
-+	return rdma_modify_qp(id, &qp_attr, qp_attr_mask);
- }
- 
- static int ucma_modify_qp_sqd(struct rdma_cm_id *id)
-@@ -673,18 +691,18 @@
- 		return 0;
- 
- 	qp_attr.qp_state = IBV_QPS_SQD;
--	return ibv_modify_qp(id->qp, &qp_attr, IBV_QP_STATE);
-+	return rdma_modify_qp(id, &qp_attr, IBV_QP_STATE);
- }
- 
- static int ucma_modify_qp_err(struct rdma_cm_id *id)
- {
- 	struct ibv_qp_attr qp_attr;
- 
--	if (!id->qp)
-+	if (id->qp || id->xrc_domain) {
-+		qp_attr.qp_state = IBV_QPS_ERR;
-+		return rdma_modify_qp(id, &qp_attr, IBV_QP_STATE);
-+	} else
- 		return 0;
--
--	qp_attr.qp_state = IBV_QPS_ERR;
--	return ibv_modify_qp(id->qp, &qp_attr, IBV_QP_STATE);
- }
- 
- static int ucma_find_pkey(struct cma_device *cma_dev, uint8_t port_num,
-@@ -703,7 +721,7 @@
- 	return ERR(EINVAL);
- }
- 
--static int ucma_init_conn_qp3(struct cma_id_private *id_priv, struct ibv_qp *qp)
-+static int ucma_init_conn_qp3(struct cma_id_private *id_priv)
- {
- 	struct ibv_qp_attr qp_attr;
- 	int ret;
-@@ -718,27 +736,27 @@
- 	qp_attr.qp_state = IBV_QPS_INIT;
- 	qp_attr.qp_access_flags = 0;
- 
--	return ibv_modify_qp(qp, &qp_attr, IBV_QP_STATE | IBV_QP_ACCESS_FLAGS |
-+	return rdma_modify_qp(&id_priv->id, &qp_attr, IBV_QP_STATE | IBV_QP_ACCESS_FLAGS |
- 					   IBV_QP_PKEY_INDEX | IBV_QP_PORT);
- }
- 
--static int ucma_init_conn_qp(struct cma_id_private *id_priv, struct ibv_qp *qp)
-+static int ucma_init_conn_qp(struct cma_id_private *id_priv)
- {
- 	struct ibv_qp_attr qp_attr;
- 	int qp_attr_mask, ret;
- 
- 	if (abi_ver == 3)
--		return ucma_init_conn_qp3(id_priv, qp);
-+		return ucma_init_conn_qp3(id_priv);
- 
- 	qp_attr.qp_state = IBV_QPS_INIT;
- 	ret = rdma_init_qp_attr(&id_priv->id, &qp_attr, &qp_attr_mask);
- 	if (ret)
- 		return ret;
- 
--	return ibv_modify_qp(qp, &qp_attr, qp_attr_mask);
-+	return rdma_modify_qp(&id_priv->id, &qp_attr, qp_attr_mask);
- }
- 
--static int ucma_init_ud_qp3(struct cma_id_private *id_priv, struct ibv_qp *qp)
-+static int ucma_init_ud_qp3(struct cma_id_private *id_priv)
- {
- 	struct ibv_qp_attr qp_attr;
- 	int ret;
-@@ -753,46 +771,46 @@
- 	qp_attr.qp_state = IBV_QPS_INIT;
- 	qp_attr.qkey = RDMA_UDP_QKEY;
- 
--	ret = ibv_modify_qp(qp, &qp_attr, IBV_QP_STATE | IBV_QP_QKEY |
-+	ret = rdma_modify_qp(&id_priv->id, &qp_attr, IBV_QP_STATE | IBV_QP_QKEY |
- 					  IBV_QP_PKEY_INDEX | IBV_QP_PORT);
- 	if (ret)
- 		return ret;
- 
- 	qp_attr.qp_state = IBV_QPS_RTR;
--	ret = ibv_modify_qp(qp, &qp_attr, IBV_QP_STATE);
-+	ret = rdma_modify_qp(&id_priv->id, &qp_attr, IBV_QP_STATE);
- 	if (ret)
- 		return ret;
- 
- 	qp_attr.qp_state = IBV_QPS_RTS;
- 	qp_attr.sq_psn = 0;
--	return ibv_modify_qp(qp, &qp_attr, IBV_QP_STATE | IBV_QP_SQ_PSN);
-+	return rdma_modify_qp(&id_priv->id, &qp_attr, IBV_QP_STATE | IBV_QP_SQ_PSN);
- }
- 
--static int ucma_init_ud_qp(struct cma_id_private *id_priv, struct ibv_qp *qp)
-+static int ucma_init_ud_qp(struct cma_id_private *id_priv)
- {
- 	struct ibv_qp_attr qp_attr;
- 	int qp_attr_mask, ret;
- 
- 	if (abi_ver == 3)
--		return ucma_init_ud_qp3(id_priv, qp);
-+		return ucma_init_ud_qp3(id_priv);
- 
- 	qp_attr.qp_state = IBV_QPS_INIT;
- 	ret = rdma_init_qp_attr(&id_priv->id, &qp_attr, &qp_attr_mask);
- 	if (ret)
- 		return ret;
- 
--	ret = ibv_modify_qp(qp, &qp_attr, qp_attr_mask);
-+	ret = rdma_modify_qp(&id_priv->id, &qp_attr, qp_attr_mask);
- 	if (ret)
- 		return ret;
- 
- 	qp_attr.qp_state = IBV_QPS_RTR;
--	ret = ibv_modify_qp(qp, &qp_attr, IBV_QP_STATE);
-+	ret = rdma_modify_qp(&id_priv->id, &qp_attr, IBV_QP_STATE);
- 	if (ret)
- 		return ret;
- 
- 	qp_attr.qp_state = IBV_QPS_RTS;
- 	qp_attr.sq_psn = 0;
--	return ibv_modify_qp(qp, &qp_attr, IBV_QP_STATE | IBV_QP_SQ_PSN);
-+	return rdma_modify_qp(&id_priv->id, &qp_attr, IBV_QP_STATE | IBV_QP_SQ_PSN);
- }
- 
- int rdma_create_qp(struct rdma_cm_id *id, struct ibv_pd *pd,
-@@ -806,27 +824,43 @@
- 	if (id->verbs != pd->context)
- 		return ERR(EINVAL);
- 
--	qp = ibv_create_qp(pd, qp_init_attr);
--	if (!qp)
--		return ERR(ENOMEM);
-+	if (qp_init_attr->qp_type == IBV_QPT_XRC &&
-+		qp_init_attr->cap.max_send_wr == 0) {
-+		/* Special case: this is a receive XRC QP. */
-+		ret = ibv_create_xrc_rcv_qp(qp_init_attr, &id->xrc_rcv_qpn);
-+		if (ret)
-+			return ERR(EINVAL);
-+		id->xrc_domain = qp_init_attr->xrc_domain;
-+		qp = NULL;
++	if (data->use_xrc) {
++		init_attr.qp_type = IBV_QPT_XRC;
++		init_attr.xrc_domain = ctx->xrc_domain;
++
++		if (!data->servername)
++			init_attr.cap.max_send_wr = 0; /* important */
++
 +	} else {
-+		qp = ibv_create_qp(pd, qp_init_attr);
-+		if (!qp)
-+			return ERR(ENOMEM);
++		init_attr.qp_type = IBV_QPT_RC;
 +	}
++	
+ 	if (data->use_cma) {
+-		if (rdma_create_qp(cm_id, ctx->pd, &attr)) {
++		if (rdma_create_qp(cm_id, ctx->pd, &init_attr)) {
+ 			fprintf(stderr, "%d:%s: Couldn't create QP\n", pid, __func__);
+ 			return NULL;
+ 		}
++		
+ 		ctx->qp = cm_id->qp;
++		
++		/* Don't post anything on the XRC send side. */
++		if (!(data->use_xrc && data->servername))
+ 		pp_post_recv(ctx);
+-		return ctx;
 +
-+	id->qp = qp;
- 
- 	if (ucma_is_ud_ps(id->ps))
--		ret = ucma_init_ud_qp(id_priv, qp);
-+		ret = ucma_init_ud_qp(id_priv);
- 	else
--		ret = ucma_init_conn_qp(id_priv, qp);
-+		ret = ucma_init_conn_qp(id_priv);
- 	if (ret)
- 		goto err;
- 
--	id->qp = qp;
- 	return 0;
- err:
--	ibv_destroy_qp(qp);
-+	id->qp = NULL;
-+	if (qp)
-+		ibv_destroy_qp(qp);
- 	return ret;
- }
- 
- void rdma_destroy_qp(struct rdma_cm_id *id)
+ 	} else {
+-		ctx->qp = ibv_create_qp(ctx->pd, &attr);
++		if (data->use_xrc && !data->servername) {
++			/* Server. Create XRC receive QP. */
++			if (ibv_create_xrc_rcv_qp(&init_attr, &ctx->xrc_rcv_qpn)) {
++				fprintf(stderr, "%d:%s: Failed to create XRC receive QP.\n", pid, __func__);
++				return NULL;
++			}
++		} else {
++			ctx->qp = ibv_create_qp(ctx->pd, &init_attr);
++
+ 		if (!ctx->qp)  {
+ 			fprintf(stderr, "%d:%s: Couldn't create QP\n", pid, __func__);
+ 			return NULL;
+ 		}
+-		{
+-			struct ibv_qp_attr attr;
++		}
+ 	
+-			attr.qp_state        = IBV_QPS_INIT;
+-			attr.pkey_index      = 0;
+-			attr.port_num        = data->ib_port;
+-			attr.qp_access_flags = IBV_ACCESS_REMOTE_WRITE;
++		struct ibv_qp_attr attr = {
++			.qp_state        = IBV_QPS_INIT,
++			.pkey_index      = 0,
++			.port_num        = data->ib_port,
++			.qp_access_flags = IBV_ACCESS_REMOTE_WRITE,
++		};
+ 	
+-			if (ibv_modify_qp(ctx->qp, &attr,
++		if (my_modify_qp(ctx, data, &attr,
+ 					IBV_QP_STATE              |
+ 					IBV_QP_PKEY_INDEX         |
+ 					IBV_QP_PORT               |
+@@ -653,8 +735,6 @@
+ 		return ctx;
+ 	}
+ 	
+-}
+-
+ static int pp_connect_ctx(struct pingpong_context *ctx, struct pp_data data)			  
  {
--	ibv_destroy_qp(id->qp);
-+	if (id->xrc_domain)
-+		ibv_unreg_xrc_rcv_qp(id->xrc_domain, id->xrc_rcv_qpn);
-+	else
-+		ibv_destroy_qp(id->qp);
+ 	struct ibv_qp_attr attr;
+@@ -671,7 +751,7 @@
+ 	attr.ah_attr.sl         = sl;
+ 	attr.ah_attr.src_path_bits = 0;
+ 	attr.ah_attr.port_num   = data.ib_port;
+-	if (ibv_modify_qp(ctx->qp, &attr,
++	if (my_modify_qp(ctx, &data, &attr,
+ 			  IBV_QP_STATE              |
+ 			  IBV_QP_AV                 |
+ 			  IBV_QP_PATH_MTU           |
+@@ -689,7 +769,7 @@
+ 	attr.rnr_retry 	    = 7;
+ 	attr.sq_psn 	    =  data.my_dest.psn;
+ 	attr.max_rd_atomic  = 1;
+-	if (ibv_modify_qp(ctx->qp, &attr,
++	if (my_modify_qp(ctx, &data, &attr,
+ 			  IBV_QP_STATE              |
+ 			  IBV_QP_TIMEOUT            |
+ 			  IBV_QP_RETRY_CNT          |
+@@ -717,7 +797,11 @@
+         wr.sg_list = &list;
+         wr.num_sge = 1;
+ 
++		if (ctx->xrc_srq) {
++			rc = ibv_post_srq_recv(ctx->xrc_srq, &wr, &bad_wr);
++		} else {
+         rc = ibv_post_recv(ctx->qp, &wr, &bad_wr);
++		}
+         if (rc) {
+                 perror("ibv_post_recv");
+                 fprintf(stderr, "%d:%s: ibv_post_recv failed %d\n", pid,
+@@ -761,6 +845,7 @@
+ 	ctx->wr.opcode     = IBV_WR_SEND;
+ 	ctx->wr.send_flags = IBV_SEND_SIGNALED;
+ 	ctx->wr.next       = NULL;
++
+ 	if (ibv_post_send(ctx->qp, &ctx->wr, &bad_wr)) {
+ 		fprintf(stderr, "%d:%s: ibv_post_send failed\n", pid, __func__);
+ 		return;
+@@ -803,7 +888,7 @@
+ 	pp_post_recv(ctx);
  }
  
- static int ucma_valid_param(struct cma_id_private *id_priv,
-@@ -938,10 +972,18 @@
- 		ucma_copy_conn_param_to_kern(&cmd->conn_param, conn_param,
- 					     id->qp->qp_num,
- 					     (id->qp->srq != NULL));
--	else
-+	else {
-+		uint32_t qp_num;
+-static void pp_send_start(struct pingpong_context *ctx)
++static void pp_send_start(struct pingpong_context *ctx, struct pp_data *data)
+ {
+ 	struct ibv_send_wr *bad_wr;
+ 	struct ibv_wc wc;
+@@ -818,6 +903,10 @@
+ 	ctx->wr.opcode     = IBV_WR_SEND;
+ 	ctx->wr.send_flags = IBV_SEND_SIGNALED;
+ 	ctx->wr.next       = NULL;
 +
-+		if (id->xrc_domain)
-+			qp_num = id->xrc_rcv_qpn;
-+		else
-+			qp_num = conn_param->qp_num;
++	if (data->use_xrc)
++		ctx->wr.xrc_remote_srq_num = data->rem_dest->xrc_srq_num;
 +
- 		ucma_copy_conn_param_to_kern(&cmd->conn_param, conn_param,
--					     conn_param->qp_num,
--					     conn_param->srq);
-+									 qp_num,
-+									 conn_param->srq);
-+	}
+ 	if (ibv_post_send(ctx->qp, &ctx->wr, &bad_wr)) {
+ 		fprintf(stderr, "%d:%s: ibv_post_send failed\n", pid, __func__);
+ 		return;
+@@ -964,10 +1053,11 @@
+ 			{ .name = "sl",             .has_arg = 1, .val = 'S' },
+ 			{ .name = "bidirectional",  .has_arg = 0, .val = 'b' },
+ 			{ .name = "cma", 	    .has_arg = 0, .val = 'c' },
++			{ .name = "xrc", 	    .has_arg = 0, .val = 'x' },
+ 			{ 0 }
+ 		};
  
- 	ret = write(id->channel->fd, msg, size);
- 	if (ret != size) {
+-		c = getopt_long(argc, argv, "p:d:i:s:n:t:S:bc", long_options, NULL);
++		c = getopt_long(argc, argv, "p:d:i:s:n:t:S:bcx", long_options, NULL);
+ 		if (c == -1)
+ 			break;
+ 
+@@ -1026,6 +1116,11 @@
+ 		case 'c':
+ 			data.use_cma = 1;
+ 			break;
++
++		case 'x':
++			data.use_xrc = 1;
++			break;
++
+ 		default:
+ 			usage(argv[0]);
+ 			return 1;
+@@ -1039,6 +1134,13 @@
+ 		return 1;
+ 	}
+ 
++#if 0
++	if (data.use_cma && data.use_xrc) {
++		fprintf(stderr, "RDMA CM and XRC are not compatible.\n");
++		return 1;
++	}
++#endif
++
+ 	/* Get the PID and prepend it to every output on stdout/stderr
+ 	 * This helps to parse output when multiple client/server are
+ 	 * run from single host
+@@ -1112,7 +1214,16 @@
+ 						pid, __func__);
+ 			return 1;
+ 		}
++
++		if (data.use_xrc && !data.servername) {
++			data.my_dest.qpn = ctx->xrc_rcv_qpn;
++			data.my_dest.xrc_srq_num = ctx->xrc_srq->xrc_srq_num;
++		}
++		else {
+ 		data.my_dest.qpn = ctx->qp->qp_num;
++			data.my_dest.xrc_srq_num = 0;
++		}
++
+ 		data.my_dest.psn = lrand48() & 0xffffff;
+ 		data.my_dest.rkey = ctx->mr->rkey;
+ 		data.my_dest.vaddr = (uintptr_t)ctx->buf + ctx->size;
+@@ -1129,14 +1240,20 @@
+ 	}
+ 
+ 	printf("%d: Local address:  LID %#04x, QPN %#06x, PSN %#06x "
+-			"RKey %#08x VAddr %#016Lx\n", pid, 
++			"RKey %#08x VAddr %#016Lx", pid, 
+ 			data.my_dest.lid, data.my_dest.qpn, data.my_dest.psn,
+ 			data.my_dest.rkey, data.my_dest.vaddr);	
++	if (data.use_xrc && !data.servername)
++		printf(", XRCSRQ %#06x", data.my_dest.xrc_srq_num);
++	printf("\n");
+ 
+ 	printf("%d: Remote address: LID %#04x, QPN %#06x, PSN %#06x, "
+-			"RKey %#08x VAddr %#016Lx\n\n", pid, 
++			"RKey %#08x VAddr %#016Lx", pid, 
+ 			data.rem_dest->lid, data.rem_dest->qpn, data.rem_dest->psn,
+ 			data.rem_dest->rkey, data.rem_dest->vaddr);
++	if (data.use_xrc && data.servername)
++		printf(", XRCSRQ %#06x", data.rem_dest->xrc_srq_num);
++	printf("\n\n");
+ 
+ 	if (data.use_cma) {
+ 		/*
+@@ -1144,7 +1261,7 @@
+ 		 * the first message (MPA requirement).
+ 		 */
+ 		if (data.servername) {			
+-			pp_send_start(ctx);
++			pp_send_start(ctx, &data);
+ 		} else {
+ 			pp_wait_for_start(ctx);
+ 		}
+@@ -1168,6 +1285,7 @@
+ 	if (!data.servername && !duplex) {
+ 		if (data.use_cma) {
+ 			pp_wait_for_done(ctx);
++			if (!data.use_xrc)
+                         pp_send_done(ctx);
+ 			pp_close_cma(data);
+ 		} else {
+@@ -1189,6 +1307,7 @@
+ 	ctx->wr.opcode     = IBV_WR_RDMA_WRITE;
+ 	ctx->wr.send_flags = IBV_SEND_SIGNALED;
+ 	ctx->wr.next       = NULL;
++	ctx->wr.xrc_remote_srq_num = data.rem_dest->xrc_srq_num;
+ 
+ 	scnt = 0;
+ 	ccnt = 0;
+@@ -1254,7 +1373,9 @@
+ 
+ 	if (data.use_cma) {
+ 		/* This is racy when duplex mode is used*/
++		if (!(data.use_xrc && !data.servername))
+ 		pp_send_done(ctx);
++		if (!(data.use_xrc && data.servername))
+                	pp_wait_for_done(ctx);
+ 		pp_close_cma(data);
+ 	} else {
 
 
 
---------------060303090503080503060608--
+--------------080805050801070309040407--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
