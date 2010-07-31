@@ -1,137 +1,129 @@
-From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-Subject: [PATCH] ibnetdisc.c: Fix partial scan of the fabric.
-Date: Fri, 30 Jul 2010 17:51:42 -0700
-Message-ID: <20100730175142.08649dfa.weiny2@llnl.gov>
+From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Subject: [PATCH] IB/srp: remove forward declaration of srp_post_recv()
+Date: Sat, 31 Jul 2010 10:15:58 +0200
+Message-ID: <201007311015.58169.bvanassche@acm.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: Text/Plain;
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, David Dillow <dave-i1Mk8JYDVaaSihdK6806/g@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+This patch removes the forward declaration of srp_post_recv() that was
+introduced in the patch called "IB/srp: receive buffer handling robustness
+improvement" by changing the order of the function definitions in ib_srp.c.
 
-From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-Date: Fri, 30 Jul 2010 14:26:39 -0700
-Subject: [PATCH] ibnetdisc.c: Fix partial scan of the fabric.
+Signed-off-by: Bart Van Assche <bart.vanassche-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Cc: David Dillow <dave-i1Mk8JYDVaaSihdK6806/g@public.gmane.org>
 
-   When max_hops was specified it did not result in a correct limited scan of
-   the fabric.
-   In addition the -S and -D options of iblinkinfo/ibqueryerrors should by
-   default only scan 1 hop from the node specified to allow for faster
-   processing.
-
-Signed-off-by: Ira Weiny <weiny2-eSE4LqFkL++LYFxP40JT4w@public.gmane.org>
----
- infiniband-diags/libibnetdisc/src/ibnetdisc.c |   17 ++++++++++-------
- infiniband-diags/src/iblinkinfo.c             |   13 ++++++++-----
- infiniband-diags/src/ibqueryerrors.c          |   11 +++++++----
- 3 files changed, 25 insertions(+), 16 deletions(-)
-
-diff --git a/infiniband-diags/libibnetdisc/src/ibnetdisc.c b/infiniband-diags/libibnetdisc/src/ibnetdisc.c
-index f525d71..83353b1 100644
---- a/infiniband-diags/libibnetdisc/src/ibnetdisc.c
-+++ b/infiniband-diags/libibnetdisc/src/ibnetdisc.c
-@@ -93,7 +93,7 @@ static int extend_dpath(smp_engine_t * engine, ib_portid_t * portid,
- 	ibnd_fabric_t *fabric = scan->fabric;
+diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
+index b9a38c2..8420fbc 100644
+--- a/drivers/infiniband/ulp/srp/ib_srp.c
++++ b/drivers/infiniband/ulp/srp/ib_srp.c
+@@ -82,7 +82,6 @@ static void srp_add_one(struct ib_device *device);
+ static void srp_remove_one(struct ib_device *device);
+ static void srp_recv_completion(struct ib_cq *cq, void *target_ptr);
+ static void srp_send_completion(struct ib_cq *cq, void *target_ptr);
+-static int srp_post_recv(struct srp_target_port *target);
+ static int srp_cm_handler(struct ib_cm_id *cm_id, struct ib_cm_event *event);
  
- 	if (scan->cfg->max_hops &&
--	    fabric->maxhops_discovered >= scan->cfg->max_hops)
-+	    fabric->maxhops_discovered > scan->cfg->max_hops)
- 		return 0;
+ static struct scsi_transport_template *ib_srp_transport_template;
+@@ -812,6 +811,45 @@ static int srp_map_data(struct scsi_cmnd *scmnd, struct srp_target_port *target,
+ 	return len;
+ }
  
- 	if (portid->lid) {
-@@ -449,7 +449,8 @@ void add_to_type_list(ibnd_node_t * node, ibnd_fabric_t * fabric)
++static int __srp_post_recv(struct srp_target_port *target)
++{
++	struct srp_iu *iu;
++	struct ib_sge list;
++	struct ib_recv_wr wr, *bad_wr;
++	unsigned int next;
++	int ret;
++
++	next	 = target->rx_head & (SRP_RQ_SIZE - 1);
++	wr.wr_id = next;
++	iu	 = target->rx_ring[next];
++
++	list.addr   = iu->dma;
++	list.length = iu->size;
++	list.lkey   = target->srp_host->srp_dev->mr->lkey;
++
++	wr.next     = NULL;
++	wr.sg_list  = &list;
++	wr.num_sge  = 1;
++
++	ret = ib_post_recv(target->qp, &wr, &bad_wr);
++	if (!ret)
++		++target->rx_head;
++
++	return ret;
++}
++
++static int srp_post_recv(struct srp_target_port *target)
++{
++	unsigned long flags;
++	int ret;
++
++	spin_lock_irqsave(target->scsi_host->host_lock, flags);
++	ret = __srp_post_recv(target);
++	spin_unlock_irqrestore(target->scsi_host->host_lock, flags);
++
++	return ret;
++}
++
+ static void srp_process_rsp(struct srp_target_port *target, struct srp_rsp *rsp)
+ {
+ 	struct srp_request *req;
+@@ -961,45 +999,6 @@ static void srp_send_completion(struct ib_cq *cq, void *target_ptr)
  	}
  }
  
--static int set_config(struct ibnd_config *config, struct ibnd_config *cfg)
-+static int set_config(struct ibnd_config *config, struct ibnd_config *cfg,
-+		      int initial_hops)
- {
- 	if (!config)
- 		return (-EINVAL);
-@@ -463,6 +464,8 @@ static int set_config(struct ibnd_config *config, struct ibnd_config *cfg)
- 		config->timeout_ms = DEFAULT_TIMEOUT;
- 	if (!config->retries)
- 		config->retries = DEFAULT_RETRIES;
-+	if (config->max_hops)
-+		config->max_hops += initial_hops;
- 
- 	return (0);
- }
-@@ -479,15 +482,15 @@ ibnd_fabric_t *ibnd_discover_fabric(char * ca_name, int ca_port,
- 	int nc = 2;
- 	int mc[2] = { IB_SMI_CLASS, IB_SMI_DIRECT_CLASS };
- 
--	if (set_config(&config, cfg)) {
--		IBND_ERROR("Invalid ibnd_config\n");
--		return NULL;
--	}
+-static int __srp_post_recv(struct srp_target_port *target)
+-{
+-	struct srp_iu *iu;
+-	struct ib_sge list;
+-	struct ib_recv_wr wr, *bad_wr;
+-	unsigned int next;
+-	int ret;
 -
- 	/* If not specified start from "my" port */
- 	if (!from)
- 		from = &my_portid;
- 
-+	if (set_config(&config, cfg, from->drpath.cnt)) {
-+		IBND_ERROR("Invalid ibnd_config\n");
-+		return NULL;
-+	}
-+
- 	fabric = calloc(1, sizeof(*fabric));
- 	if (!fabric) {
- 		IBND_ERROR("OOM: failed to calloc ibnd_fabric_t\n");
-diff --git a/infiniband-diags/src/iblinkinfo.c b/infiniband-diags/src/iblinkinfo.c
-index d0c9b13..b075fd0 100644
---- a/infiniband-diags/src/iblinkinfo.c
-+++ b/infiniband-diags/src/iblinkinfo.c
-@@ -371,11 +371,14 @@ int main(int argc, char **argv)
- 			exit(1);
- 		}
- 	} else {
--		if (resolved >= 0 &&
--		    !(fabric =
--		      ibnd_discover_fabric(ibd_ca, ibd_ca_port, &port_id, &config)))
--			IBWARN("Single node discover failed;"
--			       " attempting full scan\n");
-+		if (resolved >= 0) {
-+			if (!config.max_hops)
-+				config.max_hops = 1;
-+			if (!(fabric =
-+			    ibnd_discover_fabric(ibd_ca, ibd_ca_port, &port_id, &config)))
-+				IBWARN("Single node discover failed;"
-+				       " attempting full scan\n");
-+		}
- 
- 		if (!fabric &&
- 		    !(fabric = ibnd_discover_fabric(ibd_ca, ibd_ca_port, NULL, &config))) {
-diff --git a/infiniband-diags/src/ibqueryerrors.c b/infiniband-diags/src/ibqueryerrors.c
-index e0b1c0b..4317b67 100644
---- a/infiniband-diags/src/ibqueryerrors.c
-+++ b/infiniband-diags/src/ibqueryerrors.c
-@@ -655,11 +655,14 @@ int main(int argc, char **argv)
- 			exit(1);
- 		}
- 	} else {
--		if (resolved >= 0 &&
--		    !(fabric = ibnd_discover_fabric(ibd_ca, ibd_ca_port,
-+		if (resolved >= 0) {
-+			if (!config.max_hops)
-+				config.max_hops = 1;
-+			if (!(fabric = ibnd_discover_fabric(ibd_ca, ibd_ca_port,
- 						    &portid, &config)))
--			IBWARN("Single node discover failed;"
--			       " attempting full scan");
-+				IBWARN("Single node discover failed;"
-+				       " attempting full scan");
-+		}
- 
- 		if (!fabric && !(fabric = ibnd_discover_fabric(ibd_ca,
- 							       ibd_ca_port,
--- 
-1.5.4.5
-
+-	next 	 = target->rx_head & (SRP_RQ_SIZE - 1);
+-	wr.wr_id = next;
+-	iu 	 = target->rx_ring[next];
+-
+-	list.addr   = iu->dma;
+-	list.length = iu->size;
+-	list.lkey   = target->srp_host->srp_dev->mr->lkey;
+-
+-	wr.next     = NULL;
+-	wr.sg_list  = &list;
+-	wr.num_sge  = 1;
+-
+-	ret = ib_post_recv(target->qp, &wr, &bad_wr);
+-	if (!ret)
+-		++target->rx_head;
+-
+-	return ret;
+-}
+-
+-static int srp_post_recv(struct srp_target_port *target)
+-{
+-	unsigned long flags;
+-	int ret;
+-
+-	spin_lock_irqsave(target->scsi_host->host_lock, flags);
+-	ret = __srp_post_recv(target);
+-	spin_unlock_irqrestore(target->scsi_host->host_lock, flags);
+-
+-	return ret;
+-}
+-
+ /*
+  * Must be called with target->scsi_host->host_lock held to protect
+  * req_lim and tx_head.  Lock cannot be dropped between call here and
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
