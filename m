@@ -1,7 +1,7 @@
 From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Subject: [PATCH 4/4] IB/srp: export req_lim via sysfs
-Date: Mon, 2 Aug 2010 17:32:49 +0200
-Message-ID: <201008021732.49878.bvanassche@acm.org>
+Subject: [PATCH 1/4] IB/srp: rename some symbolic constants
+Date: Mon, 2 Aug 2010 17:32:38 +0200
+Message-ID: <201008021732.38682.bvanassche@acm.org>
 Mime-Version: 1.0
 Content-Type: Text/Plain;
   charset="us-ascii"
@@ -12,55 +12,172 @@ To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, David Dillow <dave-i1Mk8JYDVaaSihdK6806/g@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Exports req_lim via sysfs, which is convenient for debugging purposes.
+The patch below realizes the following transformations on the symbolic
+constants defined in ib_srp.h and used in ib_srp.h and ib_srp.c:
+* Added the constants SRP_RQ_MASK and SRP_SQ_MASK.
+* Renamed SRP_SQ_SIZE into SRP_REQ_SQ_SIZE.
+* Changed the value of SRP_SQ_SIZE from 63 to 64.
+
+Note: this patch does not change the behavior of ib_srp in any way.
 
 Signed-off-by: Bart Van Assche <bart.vanassche-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Cc: Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 Cc: David Dillow <dave-i1Mk8JYDVaaSihdK6806/g@public.gmane.org>
 
 ---
- drivers/infiniband/ulp/srp/ib_srp.c |   14 ++++++++++++++
- 1 files changed, 14 insertions(+), 0 deletions(-)
+ drivers/infiniband/ulp/srp/ib_srp.c |   28 +++++++++++++++-------------
+ drivers/infiniband/ulp/srp/ib_srp.h |   11 ++++++++---
+ 2 files changed, 23 insertions(+), 16 deletions(-)
 
 diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
-index c810e52..bf546ac 100644
+index 39a69b7..8252a45 100644
 --- a/drivers/infiniband/ulp/srp/ib_srp.c
 +++ b/drivers/infiniband/ulp/srp/ib_srp.c
-@@ -1732,6 +1732,18 @@ static ssize_t show_orig_dgid(struct device *dev,
- 	return sprintf(buf, "%pI6\n", target->orig_dgid);
+@@ -248,7 +248,8 @@ static int srp_create_target_ib(struct srp_target_port *target)
+ 	}
+ 
+ 	target->send_cq = ib_create_cq(target->srp_host->srp_dev->dev,
+-				       srp_send_completion, NULL, target, SRP_SQ_SIZE, 0);
++				       srp_send_completion, NULL, target,
++				       SRP_REQ_SQ_SIZE, 0);
+ 	if (IS_ERR(target->send_cq)) {
+ 		ret = PTR_ERR(target->send_cq);
+ 		goto err_recv_cq;
+@@ -268,7 +269,7 @@ static int srp_create_target_ib(struct srp_target_port *target)
+ 	}
+ 
+ 	init_attr->event_handler       = srp_qp_event;
+-	init_attr->cap.max_send_wr     = SRP_SQ_SIZE;
++	init_attr->cap.max_send_wr     = SRP_REQ_SQ_SIZE;
+ 	init_attr->cap.max_recv_wr     = SRP_RQ_SIZE;
+ 	init_attr->cap.max_recv_sge    = 1;
+ 	init_attr->cap.max_send_sge    = 1;
+@@ -320,7 +321,7 @@ static void srp_free_target_ib(struct srp_target_port *target)
+ 
+ 	for (i = 0; i < SRP_RQ_SIZE; ++i)
+ 		srp_free_iu(target->srp_host, target->rx_ring[i]);
+-	for (i = 0; i < SRP_SQ_SIZE + 1; ++i)
++	for (i = 0; i < SRP_SQ_SIZE; ++i)
+ 		srp_free_iu(target->srp_host, target->tx_ring[i]);
  }
  
-+static ssize_t show_req_lim(struct device *dev,
-+			    struct device_attribute *attr, char *buf)
-+{
-+	struct srp_target_port *target = host_to_target(class_to_shost(dev));
+@@ -848,7 +849,7 @@ static int __srp_post_recv(struct srp_target_port *target)
+ 	unsigned int next;
+ 	int ret;
+ 
+-	next	 = target->rx_head & (SRP_RQ_SIZE - 1);
++	next	 = target->rx_head & SRP_RQ_MASK;
+ 	wr.wr_id = next;
+ 	iu	 = target->rx_ring[next];
+ 
+@@ -1051,7 +1052,7 @@ static struct srp_iu *__srp_get_tx_iu(struct srp_target_port *target,
+ 
+ 	srp_send_completion(target->send_cq, target);
+ 
+-	if (target->tx_head - target->tx_tail >= SRP_SQ_SIZE)
++	if (target->tx_head - target->tx_tail >= SRP_REQ_SQ_SIZE)
+ 		return NULL;
+ 
+ 	if (target->req_lim < min) {
+@@ -1059,7 +1060,7 @@ static struct srp_iu *__srp_get_tx_iu(struct srp_target_port *target,
+ 		return NULL;
+ 	}
+ 
+-	return target->tx_ring[target->tx_head & SRP_SQ_SIZE];
++	return target->tx_ring[target->tx_head & SRP_SQ_MASK];
+ }
+ 
+ /*
+@@ -1078,7 +1079,7 @@ static int __srp_post_send(struct srp_target_port *target,
+ 	list.lkey   = target->srp_host->srp_dev->mr->lkey;
+ 
+ 	wr.next       = NULL;
+-	wr.wr_id      = target->tx_head & SRP_SQ_SIZE;
++	wr.wr_id      = target->tx_head & SRP_SQ_MASK;
+ 	wr.sg_list    = &list;
+ 	wr.num_sge    = 1;
+ 	wr.opcode     = IB_WR_SEND;
+@@ -1179,7 +1180,7 @@ static int srp_alloc_iu_bufs(struct srp_target_port *target)
+ 			goto err;
+ 	}
+ 
+-	for (i = 0; i < SRP_SQ_SIZE + 1; ++i) {
++	for (i = 0; i < SRP_SQ_SIZE; ++i) {
+ 		target->tx_ring[i] = srp_alloc_iu(target->srp_host,
+ 						  srp_max_iu_len,
+ 						  GFP_KERNEL, DMA_TO_DEVICE);
+@@ -1195,7 +1196,7 @@ err:
+ 		target->rx_ring[i] = NULL;
+ 	}
+ 
+-	for (i = 0; i < SRP_SQ_SIZE + 1; ++i) {
++	for (i = 0; i < SRP_SQ_SIZE; ++i) {
+ 		srp_free_iu(target->srp_host, target->tx_ring[i]);
+ 		target->tx_ring[i] = NULL;
+ 	}
+@@ -1670,9 +1671,9 @@ static struct scsi_host_template srp_template = {
+ 	.eh_abort_handler		= srp_abort,
+ 	.eh_device_reset_handler	= srp_reset_device,
+ 	.eh_host_reset_handler		= srp_reset_host,
+-	.can_queue			= SRP_SQ_SIZE,
++	.can_queue			= SRP_REQ_SQ_SIZE,
+ 	.this_id			= -1,
+-	.cmd_per_lun			= SRP_SQ_SIZE,
++	.cmd_per_lun			= SRP_REQ_SQ_SIZE,
+ 	.use_clustering			= ENABLE_CLUSTERING,
+ 	.shost_attrs			= srp_host_attrs
+ };
+@@ -1857,7 +1858,8 @@ static int srp_parse_options(const char *buf, struct srp_target_port *target)
+ 				printk(KERN_WARNING PFX "bad max cmd_per_lun parameter '%s'\n", p);
+ 				goto out;
+ 			}
+-			target->scsi_host->cmd_per_lun = min(token, SRP_SQ_SIZE);
++			target->scsi_host->cmd_per_lun = min(token,
++							     SRP_REQ_SQ_SIZE);
+ 			break;
+ 
+ 		case SRP_OPT_IO_CLASS:
+@@ -1935,7 +1937,7 @@ static ssize_t srp_create_target(struct device *dev,
+ 
+ 	INIT_LIST_HEAD(&target->free_reqs);
+ 	INIT_LIST_HEAD(&target->req_queue);
+-	for (i = 0; i < SRP_SQ_SIZE; ++i) {
++	for (i = 0; i < SRP_REQ_SQ_SIZE; ++i) {
+ 		target->req_ring[i].index = i;
+ 		list_add_tail(&target->req_ring[i].list, &target->free_reqs);
+ 	}
+diff --git a/drivers/infiniband/ulp/srp/ib_srp.h b/drivers/infiniband/ulp/srp/ib_srp.h
+index 5ceb4a4..9efff05 100644
+--- a/drivers/infiniband/ulp/srp/ib_srp.h
++++ b/drivers/infiniband/ulp/srp/ib_srp.h
+@@ -59,7 +59,12 @@ enum {
+ 
+ 	SRP_RQ_SHIFT    	= 6,
+ 	SRP_RQ_SIZE		= 1 << SRP_RQ_SHIFT,
+-	SRP_SQ_SIZE		= SRP_RQ_SIZE - 1,
++	SRP_RQ_MASK		= SRP_RQ_SIZE - 1,
 +
-+	if (target->state == SRP_TARGET_DEAD ||
-+	    target->state == SRP_TARGET_REMOVED)
-+		return -ENODEV;
-+
-+	return sprintf(buf, "%d\n", target->req_lim);
-+}
-+
- static ssize_t show_zero_req_lim(struct device *dev,
- 				 struct device_attribute *attr, char *buf)
- {
-@@ -1766,6 +1778,7 @@ static DEVICE_ATTR(service_id,	    S_IRUGO, show_service_id,	   NULL);
- static DEVICE_ATTR(pkey,	    S_IRUGO, show_pkey,		   NULL);
- static DEVICE_ATTR(dgid,	    S_IRUGO, show_dgid,		   NULL);
- static DEVICE_ATTR(orig_dgid,	    S_IRUGO, show_orig_dgid,	   NULL);
-+static DEVICE_ATTR(req_lim,         S_IRUGO, show_req_lim,         NULL);
- static DEVICE_ATTR(zero_req_lim,    S_IRUGO, show_zero_req_lim,	   NULL);
- static DEVICE_ATTR(local_ib_port,   S_IRUGO, show_local_ib_port,   NULL);
- static DEVICE_ATTR(local_ib_device, S_IRUGO, show_local_ib_device, NULL);
-@@ -1777,6 +1790,7 @@ static struct device_attribute *srp_host_attrs[] = {
- 	&dev_attr_pkey,
- 	&dev_attr_dgid,
- 	&dev_attr_orig_dgid,
-+	&dev_attr_req_lim,
- 	&dev_attr_zero_req_lim,
- 	&dev_attr_local_ib_port,
- 	&dev_attr_local_ib_device,
++	SRP_SQ_SIZE		= SRP_RQ_SIZE,
++	SRP_SQ_MASK		= SRP_SQ_SIZE - 1,
++	SRP_RSP_SQ_SIZE		= 1,
++	SRP_REQ_SQ_SIZE		= SRP_SQ_SIZE - SRP_RSP_SQ_SIZE,
+ 
+ 	SRP_TAG_TSK_MGMT	= 1 << (SRP_RQ_SHIFT + 1),
+ 
+@@ -146,11 +151,11 @@ struct srp_target_port {
+ 
+ 	unsigned		tx_head;
+ 	unsigned		tx_tail;
+-	struct srp_iu	       *tx_ring[SRP_SQ_SIZE + 1];
++	struct srp_iu	       *tx_ring[SRP_SQ_SIZE];
+ 
+ 	struct list_head	free_reqs;
+ 	struct list_head	req_queue;
+-	struct srp_request	req_ring[SRP_SQ_SIZE];
++	struct srp_request	req_ring[SRP_REQ_SQ_SIZE];
+ 
+ 	struct work_struct	work;
+ 
 -- 
 1.6.4.2
 
