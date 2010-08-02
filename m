@@ -1,8 +1,7 @@
 From: "Davis, Arlin R" <arlin.r.davis-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH] dapl-2.0 - scm, ucm: improperly handles pkey check/query in
- host order
-Date: Mon, 2 Aug 2010 11:30:42 -0700
-Message-ID: <E3280858FA94444CA49D2BA02341C983010FE6D301@orsmsx506.amr.corp.intel.com>
+Subject: [PATCH] dapl-2.0 - ucm: cleanup CM debug warning messages
+Date: Mon, 2 Aug 2010 11:30:50 -0700
+Message-ID: <E3280858FA94444CA49D2BA02341C983010FE6D303@orsmsx506.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
@@ -13,58 +12,70 @@ To: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "ofw-ZwoEpl
 List-Id: linux-rdma@vger.kernel.org
 
 
-Convert consumer input to network order before verbs query pkey check.
-Change appropriate debug messages, increase level of bad key message.
-
 Signed-off-by: Arlin Davis <arlin.r.davis-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- dapl/openib_common/util.c |   14 +++++++-------
- 1 files changed, 7 insertions(+), 7 deletions(-)
+ dapl/openib_ucm/cm.c |   20 +++++++++++---------
+ 1 files changed, 11 insertions(+), 9 deletions(-)
 
-diff --git a/dapl/openib_common/util.c b/dapl/openib_common/util.c
-index a69261f..5076df8 100644
---- a/dapl/openib_common/util.c
-+++ b/dapl/openib_common/util.c
-@@ -326,7 +326,7 @@ DAT_RETURN dapls_ib_query_hca(IN DAPL_HCA * hca_ptr,
- 
-                /* set SL, PKEY values, defaults = 0 */
-                hca_ptr->ib_trans.pkey_idx = 0;
--               hca_ptr->ib_trans.pkey = dapl_os_get_env_val("DAPL_IB_PKEY", 0);
-+               hca_ptr->ib_trans.pkey = htons(dapl_os_get_env_val("DAPL_IB_PKEY", 0));
-                hca_ptr->ib_trans.sl = dapl_os_get_env_val("DAPL_IB_SL", 0);
- 
- 		/* index provided, get pkey; pkey provided, get index */
-@@ -345,10 +345,10 @@ DAT_RETURN dapls_ib_query_hca(IN DAPL_HCA * hca_ptr,
- 				}
- 			}
- 			if (i == dev_attr.max_pkeys) {
--				dapl_log(DAPL_DBG_TYPE_WARN,
--					 " Warning: new pkey(%d), query (%s)"
--					 " err or key !found, using defaults\n",
--					 hca_ptr->ib_trans.pkey, strerror(errno));
-+				dapl_log(DAPL_DBG_TYPE_ERR,
-+					 " ERR: new pkey(0x%x), query (%s)"
-+					 " err or key !found, using default pkey_idx=0\n",
-+					 ntohs(hca_ptr->ib_trans.pkey), strerror(errno));
- 			}
- 		}
- skip_ib:
-@@ -365,13 +365,13 @@ skip_ib:
- #endif
- 		dapl_log(DAPL_DBG_TYPE_UTIL,
- 			     " query_hca: (%x.%x) eps %d, sz %d evds %d,"
--			     " sz %d mtu %d - pkey %d p_idx %d sl %d\n",
-+			     " sz %d mtu %d - pkey %x p_idx %d sl %d\n",
- 			     ia_attr->hardware_version_major,
- 			     ia_attr->hardware_version_minor,
- 			     ia_attr->max_eps, ia_attr->max_dto_per_ep,
- 			     ia_attr->max_evds, ia_attr->max_evd_qlen,
- 			     128 << hca_ptr->ib_trans.mtu,
--			     hca_ptr->ib_trans.pkey,
-+			     ntohs(hca_ptr->ib_trans.pkey),
- 			     hca_ptr->ib_trans.pkey_idx,
- 			     hca_ptr->ib_trans.sl);
- 
+diff --git a/dapl/openib_ucm/cm.c b/dapl/openib_ucm/cm.c
+index b874c8b..05b5af5 100644
+--- a/dapl/openib_ucm/cm.c
++++ b/dapl/openib_ucm/cm.c
+@@ -165,9 +165,9 @@ static void ucm_check_timers(dp_ib_cm_handle_t cm, int *timer)
+ 		if ((time - cm->timer)/1000 > 
+ 		    (cm->hca->ib_trans.rep_time << cm->retries)) {
+ 			dapl_log(DAPL_DBG_TYPE_WARN,
+-				 " CM_REQ retry %d %p [lid, port, qpn]:"
+-				 " %x %x %x -> %x %x %x Time(ms) %llu > %llu\n", 
+-				 cm, cm->retries, ntohs(cm->msg.saddr.ib.lid), 
++				 " CM_REQ retry %p %d [lid, port, qpn]:"
++				 " %x %x %x -> %x %x %x Time(ms) %llu > %d\n", 
++				 cm, cm->retries+1, ntohs(cm->msg.saddr.ib.lid), 
+ 				 ntohs(cm->msg.sport), ntohl(cm->msg.saddr.ib.qpn), 
+ 				 ntohs(cm->msg.daddr.ib.lid), ntohs(cm->msg.dport),
+ 				 ntohl(cm->msg.dqpn), (time - cm->timer)/1000, 
+@@ -184,8 +184,8 @@ static void ucm_check_timers(dp_ib_cm_handle_t cm, int *timer)
+ 		    (cm->hca->ib_trans.rtu_time << cm->retries)) {
+ 			dapl_log(DAPL_DBG_TYPE_WARN,
+ 				 " CM_REPLY retry %d [lid, port, qpn]:"
+-				 " %x %x %x -> %x %x %x r_pid %x (%x) Time(ms) %llu > %llu\n", 
+-				 cm->retries,
++				 " %x %x %x -> %x %x %x r_pid %x (%x) Time(ms) %llu > %d\n", 
++				 cm->retries+1,
+ 				 ntohs(cm->msg.saddr.ib.lid), 
+ 				 ntohs(cm->msg.sport),
+ 				 ntohl(cm->msg.saddr.ib.qpn), 
+@@ -194,7 +194,8 @@ static void ucm_check_timers(dp_ib_cm_handle_t cm, int *timer)
+ 				 ntohl(cm->msg.daddr.ib.qpn),  
+ 				 ntohl(*(DAT_UINT32*)cm->msg.resv),
+ 				 ntohl(*(DAT_UINT32*)cm->msg.resv), 
+-				 (time - cm->timer)/1000, cm->hca->ib_trans.rtu_time << cm->retries);
++				 (time - cm->timer)/1000, 
++				 cm->hca->ib_trans.rtu_time << cm->retries);
+ 			cm->retries++;
+ 			dapl_os_unlock(&cm->lock);
+ 			ucm_reply(cm);
+@@ -208,8 +209,8 @@ static void ucm_check_timers(dp_ib_cm_handle_t cm, int *timer)
+ 		    (cm->hca->ib_trans.rtu_time << cm->retries)) {
+ 			dapl_log(DAPL_DBG_TYPE_WARN,
+ 				 " CM_DREQ retry %d [lid, port, qpn]:"
+-				 " %x %x %x -> %x %x %x r_pid %x (%x) Time(ms) %llu > %llu\n", 
+-				 cm->retries,
++				 " %x %x %x -> %x %x %x r_pid %x (%x) Time(ms) %llu > %d\n", 
++				 cm->retries+1,
+ 				 ntohs(cm->msg.saddr.ib.lid), 
+ 				 ntohs(cm->msg.sport),
+ 				 ntohl(cm->msg.saddr.ib.qpn), 
+@@ -218,7 +219,8 @@ static void ucm_check_timers(dp_ib_cm_handle_t cm, int *timer)
+ 				 ntohl(cm->msg.dqpn), 
+ 				 ntohl(*(DAT_UINT32*)cm->msg.resv),
+ 				 ntohl(*(DAT_UINT32*)cm->msg.resv), 
+-				 (time - cm->timer)/1000, cm->hca->ib_trans.rtu_time << cm->retries);
++				 (time - cm->timer)/1000, 
++				 cm->hca->ib_trans.rtu_time << cm->retries);
+ 			cm->retries++;
+ 			dapl_os_unlock(&cm->lock);
+ 			dapli_cm_disconnect(cm);
 -- 
 1.5.2.5
 
