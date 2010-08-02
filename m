@@ -1,55 +1,27 @@
-From: Vladislav Bolkhovitin <vst-d+Crzxg7Rs0@public.gmane.org>
-Subject: Re: [PATCH] IB/srp: use multiple CPU cores more effectively
-Date: Mon, 02 Aug 2010 17:08:06 +0400
-Message-ID: <4C56C336.4040009@vlnb.net>
-References: <201008021015.40472.bvanassche@acm.org>
+From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Subject: [PATCH 0/4] IB/srp: add SRP_CRED_REQ support
+Date: Mon, 2 Aug 2010 17:32:30 +0200
+Message-ID: <201008021732.30253.bvanassche@acm.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: Text/Plain;
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <201008021015.40472.bvanassche-HInyCGIudOg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, David Dillow <dave-i1Mk8JYDVaaSihdK6806/g@public.gmane.org>, Ralph Campbell <ralph.campbell-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, David Dillow <dave-i1Mk8JYDVaaSihdK6806/g@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Bart Van Assche, on 08/02/2010 12:15 PM wrote:
-> SRP I/O with small block sizes causes a high CPU load. Processing IB
-> completions on the context of a kernel thread instead of in interrupt context
-> allows to process up to 25% more I/O operations per second. This patch does
-> add a kernel parameter 'thread' that allows to specify whether to process IB
-> completions in interrupt context or in kernel thread context. Also, the IB
-> receive notification processing loop is rewritten as proposed earlier by Ralph
-> Campbell (see also https://patchwork.kernel.org/patch/89426/). As the
-> measurement results below show, rewriting the IB receive notification
-> processing loop did not have a measurable impact on performance. Processing
-> IB receive notifications in thread context however does have a measurable
-> impact: workloads with I/O depth one are processed at most 10% slower and
-> workloads with larger I/O depths are processed up to 25% faster.
->
-> block size  number of    IOPS        IOPS      IOPS
->   in bytes    threads     without     with      with
->    ($bs)     ($numjobs)  this patch  thread=n  thread=y
->     512           1        25,400      25,400    23,100
->     512         128       122,000     122,000   153,000
->    4096           1        25,000      25,000    22,700
->    4096         128       122,000     121,000   157,000
->   65536           1        14,300      14,400    13,600
->   65536           4        36,700      36,700    36,600
-> 524288           1         3,470       3,430     3,420
-> 524288           4         5,020       5,020     4,990
->
-> performance test used to gather the above results:
->    fio --bs=${bs} --ioengine=sg --buffered=0 --size=128M --rw=read \
->        --thread --numjobs=${numjobs} --loops=100 --group_reporting \
->        --gtod_reduce=1 --name=${dev} --filename=${dev}
-> other ib_srp kernel module parameters: srp_sg_tablesize=128
+This series of four patches adds SRP_CRED_REQ support in ib_srp, which is a
+feature defined by the SRP (draft) standard. Compared to an earlier patch for
+implementing this functionality that I posted a few months ago I have done my
+best to address all comments that were posted to this mailing list, especially:
+- Split the big patch into multiple patches, which makes reviewing easier.
+- Instead of defining separate queues for transmitting requests and responses,
+  a single queue is now used.
 
-How about results of "dd Xflags=direct" in different modes to find out 
-the lowest latency the driver can process 512 and 4K packets? Sorry, I 
-don't trust fio, when it comes to precise latency measurements.
-
-Vlad
+These patches depend on the "IB/srp receive buffer handling robustness improvement"
+patch posted a few days ago.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
