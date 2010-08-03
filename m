@@ -1,23 +1,27 @@
-From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 4/4] RDMA/cxgb4: Add timeouts when waiting for FW responses.
-Date: Mon, 02 Aug 2010 21:07:54 -0700
-Message-ID: <adaiq3s9w4l.fsf@roland-alpha.cisco.com>
-References: <20100723191221.15832.79704.stgit@build.ogc.int>
-	<20100723191242.15832.77852.stgit@build.ogc.int>
+From: Or Gerlitz <ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH for-2.6.36] ib: fix some sparse warnings
+Date: Tue, 03 Aug 2010 12:54:24 +0300
+Message-ID: <4C57E750.6080201@voltaire.com>
+References: <Pine.LNX.4.64.1007201458210.3835@zuben.voltaire.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20100723191242.15832.77852.stgit-T4OLL4TyM9aNDNWfRnPdfg@public.gmane.org> (Steve Wise's
-	message of "Fri, 23 Jul 2010 14:12:43 -0500")
+In-Reply-To: <Pine.LNX.4.64.1007201458210.3835-aDiYczhfhVLdX2U7gxhm1tBPR1lH4CV8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Cc: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Chien Tung <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-thanks, applied all 4
--- 
-Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org> || For corporate legal information go to:
-http://www.cisco.com/web/about/doing_business/legal/cri/index.html
+Or Gerlitz wrote:
+> fixed the following drivers/infiniband sparse pointed issues
+Hi Roland,
+
+Did you notice this patch? I saw that you've merged some patches which 
+were posted later, so I assumed you might missed it. Steve and Chien 
+acked on the thread.
+
+Or.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
