@@ -1,7 +1,7 @@
 From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 2/3] RDMA/nes: Fix showing wqm_quanta
-Date: Wed, 04 Aug 2010 14:32:43 -0700
-Message-ID: <ada39uu6p38.fsf@roland-alpha.cisco.com>
+Subject: [PATCH] RDMA/nes: Fix misindented code
+Date: Wed, 04 Aug 2010 14:33:31 -0700
+Message-ID: <aday6cm5ahg.fsf@roland-alpha.cisco.com>
 References: <adabp9i6p63.fsf@roland-alpha.cisco.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
@@ -13,26 +13,53 @@ To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Chien Tung <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-In nes_show_wqm_quanta(), the wrong value is printed.  Fix this.
+In nes_probe(), a bit of code is indented one tab stop too far.  Fix this.
 
 Signed-off-by: Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/nes/nes.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ drivers/infiniband/hw/nes/nes.c |   26 ++++++++++++--------------
+ 1 files changed, 12 insertions(+), 14 deletions(-)
 
 diff --git a/drivers/infiniband/hw/nes/nes.c b/drivers/infiniband/hw/nes/nes.c
-index 969a01c..d53480e 100644
+index d53480e..0c9f0aa 100644
 --- a/drivers/infiniband/hw/nes/nes.c
 +++ b/drivers/infiniband/hw/nes/nes.c
-@@ -1099,7 +1099,7 @@ static ssize_t nes_show_wqm_quanta(struct device_driver *ddp, char *buf)
- 		i++;
- 	}
+@@ -661,23 +661,21 @@ static int __devinit nes_probe(struct pci_dev *pcidev, const struct pci_device_i
+ 	nes_notifiers_registered++;
  
--	return  snprintf(buf, PAGE_SIZE, "0x%X\n", wqm_quanta);
-+	return  snprintf(buf, PAGE_SIZE, "0x%X\n", wqm_quanta_value);
- }
+ 	/* Initialize network devices */
+-		if ((netdev = nes_netdev_init(nesdev, mmio_regs)) == NULL) {
+-			goto bail7;
+-		}
+-
+-		/* Register network device */
+-		ret = register_netdev(netdev);
+-		if (ret) {
+-			printk(KERN_ERR PFX "Unable to register netdev, ret = %d\n", ret);
+-			nes_netdev_destroy(netdev);
+-			goto bail7;
+-		}
++	if ((netdev = nes_netdev_init(nesdev, mmio_regs)) == NULL)
++		goto bail7;
  
+-		nes_print_macaddr(netdev);
++	/* Register network device */
++	ret = register_netdev(netdev);
++	if (ret) {
++		printk(KERN_ERR PFX "Unable to register netdev, ret = %d\n", ret);
++		nes_netdev_destroy(netdev);
++		goto bail7;
++	}
  
+-		nesdev->netdev_count++;
+-		nesdev->nesadapter->netdev_count++;
++	nes_print_macaddr(netdev);
+ 
++	nesdev->netdev_count++;
++	nesdev->nesadapter->netdev_count++;
+ 
+ 	printk(KERN_ERR PFX "%s: NetEffect RNIC driver successfully loaded.\n",
+ 			pci_name(pcidev));
 -- 
 1.7.2
 
