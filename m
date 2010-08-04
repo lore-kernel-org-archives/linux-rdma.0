@@ -1,17 +1,31 @@
-From: Vladimir Sokolovsky <vlad-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [ewg] [ANNOUNCE] OFED 1.5.2 rc3 is available
-Date: Wed, 04 Aug 2010 11:40:02 +0300
-Message-ID: <4C592762.8000301@dev.mellanox.co.il>
-References: <4C591A49.4000807@dev.mellanox.co.il> <7E95F01E94AB484F83061FCFA35B39F88E15EA@exil.voltaire.com>
+From: "Shiri Franchi" <shirif-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+Subject: RE: [ewg] [ANNOUNCE] OFED 1.5.2 rc3 is available
+Date: Wed, 4 Aug 2010 11:44:26 +0300
+Message-ID: <7E95F01E94AB484F83061FCFA35B39F88E15FE@exil.voltaire.com>
+References: <4C591A49.4000807@dev.mellanox.co.il><7E95F01E94AB484F83061FCFA35B39F88E15EA@exil.voltaire.com> <4C592762.8000301@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <7E95F01E94AB484F83061FCFA35B39F88E15EA-QfUkFaTmzUSUvQqKE/ONIwC/G2K4zDHf@public.gmane.org>
+Content-class: urn:content-classes:message
+In-Reply-To: <4C592762.8000301-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Shiri Franchi <shirif-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+To: Vladimir Sokolovsky <vlad-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Cc: OpenFabrics EWG <ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
+
+So, need to add it to supported O.S list?
+
+Thanks,
+Shiri
+
+-----Original Message-----
+From: Vladimir Sokolovsky [mailto:vlad-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org] 
+Sent: Wednesday, August 04, 2010 11:40 AM
+To: Shiri Franchi
+Cc: OpenFabrics EWG; linux-rdma
+Subject: Re: [ewg] [ANNOUNCE] OFED 1.5.2 rc3 is available
 
 Shiri Franchi wrote:
 > Hi,
@@ -46,16 +60,19 @@ Vladimir
 > Notes:
 > 
 > The tarball is available on:
-> http://www.openfabrics.org/downloads/OFED/ofed-1.5.2/OFED-1.5.2-rc3.tgz
+>
+http://www.openfabrics.org/downloads/OFED/ofed-1.5.2/OFED-1.5.2-rc3.tgz
 > 
 > To get BUILD_ID run ofed_info
 > 
-> Please report any issues in bugzilla https://bugs.openfabrics.org/  for
+> Please report any issues in bugzilla https://bugs.openfabrics.org/
+for
 > OFED 1.5.2
 > 
 > Vladimir & Tziporet
 > 
-> ========================================================================
+>
+========================================================================
 > Supported Platforms and Operating Systems
 > ---------------------------------------------
 >       o   CPU architectures:
@@ -102,7 +119,8 @@ Vladimir
 > 2. New features
 > 	ibacm-1.0.1
 > --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma"
+in
 > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 > More majordomo info at  http://vger.kernel.org/majordomo-info.html
 > 
