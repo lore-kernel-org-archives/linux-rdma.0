@@ -1,19 +1,20 @@
 From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH for-2.6.36] ib: fix some sparse warnings
-Date: Wed, 04 Aug 2010 10:01:41 -0700
-Message-ID: <ada39uu9uru.fsf@roland-alpha.cisco.com>
-References: <Pine.LNX.4.64.1007201458210.3835@zuben.voltaire.com>
+Subject: Re: [PATCH 2/2] IB/qib: fix race between qib_error_qp() and receive packet processing
+Date: Wed, 04 Aug 2010 10:16:02 -0700
+Message-ID: <aday6cm8fjh.fsf@roland-alpha.cisco.com>
+References: <20100802223924.8701.14389.stgit@chromite.mv.qlogic.com>
+	<20100802223929.8701.62691.stgit@chromite.mv.qlogic.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <Pine.LNX.4.64.1007201458210.3835-aDiYczhfhVLdX2U7gxhm1tBPR1lH4CV8@public.gmane.org> (Or
-	Gerlitz's message of "Tue, 20 Jul 2010 15:00:20 +0300 (IDT)")
+In-Reply-To: <20100802223929.8701.62691.stgit-/vjeY7uYZjrPXfVEPVhPGq6RkeBMCJyt@public.gmane.org> (Ralph
+	Campbell's message of "Mon, 02 Aug 2010 15:39:30 -0700")
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Cc: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Chien Tung <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Ralph Campbell <ralph.campbell-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-thanks, applied split into 3 patches (cxgb3, iser and nes)
+thanks, applied both.
 -- 
 Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org> || For corporate legal information go to:
 http://www.cisco.com/web/about/doing_business/legal/cri/index.html
