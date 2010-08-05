@@ -1,25 +1,26 @@
-From: Alexander Schmidt <alexs@linux.vnet.ibm.com>
-Subject: Re: [PATCH 9/9] drivers/infiniband/hw/ehca: Drop unnecessary null
- test
-Date: Thu, 5 Aug 2010 15:38:53 +0200
-Message-ID: <20100805153853.497d4d9a@alex-laptop>
-References: <Pine.LNX.4.64.1008032335190.20393@ask.diku.dk>
-	<ada1vae8b6q.fsf@roland-alpha.cisco.com>
+From: "Tung, Chien Tin" <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH 0/3] A few nes fixes and cleanups
+Date: Thu, 5 Aug 2010 07:17:35 -0700
+Message-ID: <2EFBCAEF10980645BBCFB605689E08E9049F2C43EB@azsmsx506.amr.corp.intel.com>
+References: <adabp9i6p63.fsf@roland-alpha.cisco.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <ada1vae8b6q.fsf@roland-alpha.cisco.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Roland Dreier <rdreier@cisco.com>
-Cc: Julia Lawall <julia@diku.dk>, Hoang-Nam Nguyen <hnguyen@de.ibm.com>, Christoph Raisch <raisch@de.ibm.com>, Roland Dreier <rolandd@cisco.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <adabp9i6p63.fsf-BjVyx320WGW9gfZ95n9DRSW4+XlvGpQz@public.gmane.org>
+Content-Language: en-US
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Latif, Faisal" <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, 04 Aug 2010 11:50:05 -0700
-Roland Dreier <rdreier@cisco.com> wrote:
+> Hi guys, here are a few trivial patches I have for nes.  Let me know if
+> you see any problems with them.
 
-> Looks fine to me.  ehca guys, any objection?
+All three patches look good, thank you.
 
-We don't have any objections.
+Chien
 
-Acked-by: Alexander Schmidt <alexs@linux.vnet.ibm.com>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
