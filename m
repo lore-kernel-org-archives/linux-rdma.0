@@ -1,53 +1,63 @@
-From: Todd Strader <tstrader-YJJp1DzrooEAvxtiuMwx3w@public.gmane.org>
-Subject: Multicast Scaling
-Date: Thu, 05 Aug 2010 14:34:34 -0500
-Message-ID: <4C5B124A.7030409@exegy.com>
+From: Julia Lawall <julia-dAYI7NvHqcQ@public.gmane.org>
+Subject: [PATCH 4/42] drivers/infiniband/hw/nes: Adjust confusing if indentation
+Date: Thu, 5 Aug 2010 22:18:01 +0200 (CEST)
+Message-ID: <Pine.LNX.4.64.1008052217430.31692__15885.5088557631$1281039517$gmane$org@ask.diku.dk>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset=ISO-8859-1;
-	format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Chien Tung <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock@gma>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi,
+From: Julia Lawall <julia-dAYI7NvHqcQ@public.gmane.org>
 
-I'm running ib_send_bw (version 1.20) over ConnectX HCAs on an 
-Infiniscale III switch.  If I run:
-ib_send_bw -s 256 -c RC
-I get 790 MB/s
-ib_send_bw -s 256 -c UD
-still gets me 790 MB/s
-ib_send_bw -s 256 -c UD -g 1
-which runs over a multicast GID/LID gets 790 MB/s when there are two 
-HCAs on the switch.  However:
-3 HCAs - 726 MB/s
-4 HCAs - 701 MB/s
-. . .
-12 HCAs - 205 MB/s
+It is not clear whether the assignment should be part of the if branch
+suggested by its indentation.  The patch preserves the current semantics.
 
-I'm trying to understand why this drops off for each new HCA I add to 
-the switch.  All the HCAs and the switch are running the latest firmware 
-(2.7.0 and 1.0.5 respectively).  Only one HCA is transmitting and only 
-one is receiving.  All the other HCAs are quiet.
+The semantic match that finds this problem is as follows:
+(http://coccinelle.lip6.fr/)
 
-I'm wondering if anyone has any suggestions on what causes this effect 
-and how I might deal with it.
+// <smpl>
+@r disable braces4@
+position p1,p2;
+statement S1,S2;
+@@
 
-Thanks.
+(
+if (...) { ... }
+|
+if (...) S1@p1 S2@p2
+)
 
-Todd
-**********************************************************************************************
-This e-mail and any documents accompanying it may contain legally privileged and/or confidential information 
-belonging to Exegy, Inc. Such information may be protected from disclosure by law. The information is 
-intended for use by only the addressee. If you are not the intended recipient, you are hereby notified that any 
-disclosure or use of the information is strictly prohibited. If you have received this e-mail in error, please 
-immediately contact the sender by e-mail or phone regarding instructions for return or destruction and do not 
-use or disclose the content to others.
-**********************************************************************************************
+@script:python@
+p1 << r.p1;
+p2 << r.p2;
+@@
 
+if (p1[0].column == p2[0].column):
+  cocci.print_main("branch",p1)
+  cocci.print_secs("after",p2)
+// </smpl>
+
+Signed-off-by: Julia Lawall <julia-dAYI7NvHqcQ@public.gmane.org>
+
+---
+ drivers/infiniband/hw/nes/nes_hw.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/infiniband/hw/nes/nes_hw.c b/drivers/infiniband/hw/nes/nes_hw.c
+index f41d890..9a379d4 100644
+--- a/drivers/infiniband/hw/nes/nes_hw.c
++++ b/drivers/infiniband/hw/nes/nes_hw.c
+@@ -2740,7 +2740,7 @@ void nes_nic_ce_handler(struct nes_device *nesdev, struct nes_hw_nic_cq *cq)
+ 				/* restart the queue if it had been stopped */
+ 				if (netif_queue_stopped(nesvnic->netdev))
+ 					netif_wake_queue(nesvnic->netdev);
+-					sq_cqes = 0;
++				sq_cqes = 0;
+ 				}
+ 			} else {
+ 				rqes_processed ++;
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
