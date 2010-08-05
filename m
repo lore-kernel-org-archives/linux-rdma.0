@@ -1,50 +1,25 @@
-From: "Walukiewicz, Miroslaw" <Miroslaw.Walukiewicz-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: InfiniBand/RDMA merge plans for 2.6.36
-Date: Thu, 5 Aug 2010 13:51:20 +0100
-Message-ID: <BE2BFE91933D1B4089447C64486040805BD8392A@irsmsx503.ger.corp.intel.com>
-References: <adak4o654x9.fsf@roland-alpha.cisco.com>
- <BE2BFE91933D1B4089447C64486040805BD838C4@irsmsx503.ger.corp.intel.com>
- <4C5AAE5F.2080008@voltaire.com>
+From: Alexander Schmidt <alexs@linux.vnet.ibm.com>
+Subject: Re: [PATCH 9/9] drivers/infiniband/hw/ehca: Drop unnecessary null
+ test
+Date: Thu, 5 Aug 2010 15:38:53 +0200
+Message-ID: <20100805153853.497d4d9a@alex-laptop>
+References: <Pine.LNX.4.64.1008032335190.20393@ask.diku.dk>
+	<ada1vae8b6q.fsf@roland-alpha.cisco.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4C5AAE5F.2080008-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Content-Language: en-US
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Cc: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <ada1vae8b6q.fsf@roland-alpha.cisco.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Roland Dreier <rdreier@cisco.com>
+Cc: Julia Lawall <julia@diku.dk>, Hoang-Nam Nguyen <hnguyen@de.ibm.com>, Christoph Raisch <raisch@de.ibm.com>, Roland Dreier <rolandd@cisco.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hello Or, 
-My patch was implemented using the most effective method available for current version of code and it is ready and working as a functionality. 
+On Wed, 04 Aug 2010 11:50:05 -0700
+Roland Dreier <rdreier@cisco.com> wrote:
 
-For me another thing then functionality is an optimization of the existing SW paths in infiniband code and modification earlier written code to new interfaces. 
+> Looks fine to me.  ehca guys, any objection?
 
-Tomorrow I will start a new discussion regarding an optimization of the post_send/post_recv path. Thank you for reminder.
+We don't have any objections.
 
-Regards,
-
-Mirek
-
------Original Message-----
-From: Or Gerlitz [mailto:ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org] 
-Sent: Thursday, August 05, 2010 2:28 PM
-To: Walukiewicz, Miroslaw
-Cc: Roland Dreier; linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Subject: Re: InfiniBand/RDMA merge plans for 2.6.36
-
-Walukiewicz, Miroslaw wrote:
-> Hello Roland,  What about a series from Aleksey Senin [...] And my patch RDMA/nes: IB_QPT_RAW_PACKET QP type support for nes driver https://patchwork.kernel.org/patch/110252
-Hi Mirek,
-
-Reading your response @ http://marc.info/?l=linux-rdma&m=127954552519544 
-to the comments made during the review, I was under the impression that 
-you're going to try and modify the NES implementation, isn't this the 
-case any more?
-
-Or.
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Acked-by: Alexander Schmidt <alexs@linux.vnet.ibm.com>
