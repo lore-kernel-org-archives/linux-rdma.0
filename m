@@ -1,32 +1,19 @@
 From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH] infiniband: qib: Missing linux/slab.h include
-Date: Thu, 05 Aug 2010 14:19:37 -0700
-Message-ID: <adaeiec4v12.fsf@roland-alpha.cisco.com>
-References: <20100804.225552.241946831.davem@davemloft.net>
-	<adafwyt58ft.fsf@roland-alpha.cisco.com>
-	<20100805.120946.45921714.davem@davemloft.net>
+Subject: Re: [PATCH 9/9] drivers/infiniband/hw/ehca: Drop unnecessary null test
+Date: Thu, 05 Aug 2010 14:25:21 -0700
+Message-ID: <adaaap04uri.fsf@roland-alpha.cisco.com>
+References: <Pine.LNX.4.64.1008032335190.20393@ask.diku.dk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20100805.120946.45921714.davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org> (David Miller's
-	message of "Thu, 05 Aug 2010 12:09:46 -0700 (PDT)")
+In-Reply-To: <Pine.LNX.4.64.1008032335190.20393-QfmoRoYWmW9knbxzx/v8hQ@public.gmane.org> (Julia Lawall's
+	message of "Tue, 3 Aug 2010 23:35:36 +0200 (CEST)")
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Julia Lawall <julia-dAYI7NvHqcQ@public.gmane.org>
+Cc: Hoang-Nam Nguyen <hnguyen-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, Christoph Raisch <raisch-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
- > > No objection to adding this and I will include it for my next pull.  But
- > > out of curiousity what arch are you seeing this on?  I'm not seeing any
- > > problems on x86 and I haven't heard any complaints about -next so I'm
- > > curious what the error you're seeing is.
-
- > sparc64 allmodconfig
-
-Got it.  Interestingly x86, powerpc and ia64 all include linux/slab.h
-via asm/pci.h (for no very obvious reason that I can see from a quick
-look at what their asm/pci.h have), which is why I missed this.
-
-anyway, applied your patch and will pass on to Linus shortly.
+thanks, applied
 -- 
 Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org> || For corporate legal information go to:
 http://www.cisco.com/web/about/doing_business/legal/cri/index.html
