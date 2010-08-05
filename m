@@ -1,29 +1,35 @@
-From: Or Gerlitz <ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Subject: Re: InfiniBand/RDMA merge plans for 2.6.36
-Date: Thu, 05 Aug 2010 23:50:42 +0300
-Message-ID: <4C5B2422.1040708@voltaire.com>
-References: <adak4o654x9.fsf@roland-alpha.cisco.com>	<BE2BFE91933D1B4089447C64486040805BD838C4@irsmsx503.ger.corp.intel.com>	<4C5AAE5F.2080008@voltaire.com> <BE2BFE91933D1B4089447C64486040805BD8392A@irsmsx503.ger.corp.intel.com>
+From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH] infiniband: qib: Missing linux/slab.h include
+Date: Thu, 05 Aug 2010 14:19:37 -0700
+Message-ID: <adaeiec4v12.fsf@roland-alpha.cisco.com>
+References: <20100804.225552.241946831.davem@davemloft.net>
+	<adafwyt58ft.fsf@roland-alpha.cisco.com>
+	<20100805.120946.45921714.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <BE2BFE91933D1B4089447C64486040805BD8392A-IGOiFh9zz4wLt2AQoY/u9bfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+In-Reply-To: <20100805.120946.45921714.davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org> (David Miller's
+	message of "Thu, 05 Aug 2010 12:09:46 -0700 (PDT)")
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Walukiewicz, Miroslaw" <Miroslaw.Walukiewicz-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Walukiewicz, Miroslaw wrote:
-> My patch was implemented using the most effective method available for current version of code and it is ready and working as a functionality. 
-> [...] I will start a new discussion regarding an optimization of the post_send/post_recv path. Thank you for reminder.
-Hi Mirek,
+ > > No objection to adding this and I will include it for my next pull.  But
+ > > out of curiousity what arch are you seeing this on?  I'm not seeing any
+ > > problems on x86 and I haven't heard any complaints about -next so I'm
+ > > curious what the error you're seeing is.
 
-As suggested over the review (and you basically agreed it make sense), 
-it looks like the current code path in the IB stack (libibverbs and 
-kernel uverbs) can be patched to be more efficient such that an 
-alternative implementation as you did within libibnes/nes can be avoided.
+ > sparc64 allmodconfig
 
-Or.
+Got it.  Interestingly x86, powerpc and ia64 all include linux/slab.h
+via asm/pci.h (for no very obvious reason that I can see from a quick
+look at what their asm/pci.h have), which is why I missed this.
+
+anyway, applied your patch and will pass on to Linus shortly.
+-- 
+Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org> || For corporate legal information go to:
+http://www.cisco.com/web/about/doing_business/legal/cri/index.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
