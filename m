@@ -1,45 +1,40 @@
-From: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCHv9 2/2] libmlx4: Add Eth devices to ib devices list
-Date: Fri, 6 Aug 2010 17:44:22 +0300
-Message-ID: <20100806144422.GS20588@mtldesk30>
+From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Subject: Re: yet again the atomic operations
+Date: Fri, 06 Aug 2010 08:49:16 -0700
+Message-ID: <adaocdf2137.fsf@roland-alpha.cisco.com>
+References: <AANLkTikQX+CKvs_pjkH_Ap358jfjp4dYKYyKG95+eZmt@mail.gmail.com>
+	<1281033688.7414.30.camel@chromite.mv.qlogic.com>
+	<AANLkTimVTjHOubAaJ5oRHju6C7k7FZMqqq0Mvb4SBztB@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <AANLkTimVTjHOubAaJ5oRHju6C7k7FZMqqq0Mvb4SBztB-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+	(Rui Machado's message of "Fri, 6 Aug 2010 13:43:22 +0200")
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Cc: RDMA list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Rui Machado <ruimario-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Ralph Campbell <ralph.campbell-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-With the new IBoE implementation, Ethernet devices expose also IB devices.
-Update the list of supported devices with that of the kernel.
+ > So if the CPU writes/reads to/from the same address, even atomically
+ > (lock), there might be room for some inconsistency on the values? It
+ > is not really atomic from the whole system point of view, just for the
+ > HCA? If so, is there any possibility to make the whole operation
+ > 'system-wide' atomic?
 
-Signed-off-by: Eli Cohen <eli-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
----
- src/mlx4.c |    7 +++++++
- 1 files changed, 7 insertions(+), 0 deletions(-)
+PCI does not have any capability for atomic operations until PCI Express
+3.0 (not available in any real devices yet).  So any current HCA
+performing atomic operations across a PCI bus will always have to do
+read-modify-write which leaves a window for the CPU to mess things up if
+it accesses the same location.
 
-diff --git a/src/mlx4.c b/src/mlx4.c
-index 1295c53..6068208 100644
---- a/src/mlx4.c
-+++ b/src/mlx4.c
-@@ -66,6 +66,13 @@ struct {
- 	HCA(MELLANOX, 0x6354),	/* MT25408 "Hermon" QDR */
- 	HCA(MELLANOX, 0x6732),	/* MT25408 "Hermon" DDR PCIe gen2 */
- 	HCA(MELLANOX, 0x673c),	/* MT25408 "Hermon" QDR PCIe gen2 */
-+	HCA(MELLANOX, 0x6368), /* MT25448 [ConnectX EN 10GigE, PCIe 2.0 2.5GT/s] */
-+	HCA(MELLANOX, 0x6750), /* MT26448 [ConnectX EN 10GigE, PCIe 2.0 5GT/s] */
-+	HCA(MELLANOX, 0x6372), /* MT25408 [ConnectX EN 10GigE 10GBaseT, PCIe 2.0 2.5GT/s] */
-+	HCA(MELLANOX, 0x675a), /* MT25408 [ConnectX EN 10GigE 10GBaseT, PCIe Gen2 5GT/s] */
-+	HCA(MELLANOX, 0x6764), /* MT26468 [ConnectX EN 10GigE, PCIe 2.0 5GT/s] */
-+	HCA(MELLANOX, 0x6746), /* MT26438 ConnectX EN 40GigE PCIe gen2 5GT/s */
-+	HCA(MELLANOX, 0x676e), /* MT26478 ConnectX2 40GigE PCIe gen2 */
- };
- 
- static struct ibv_context_ops mlx4_ctx_ops = {
+You can work around this by creating a loopback connection (ie an RC
+connection from the local HCA to itself) and post atomic operations to
+that QP instead of accessing the memory directly with the CPU.
+
+ - R.
 -- 
-1.7.2
-
+Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org> || For corporate legal information go to:
+http://www.cisco.com/web/about/doing_business/legal/cri/index.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
