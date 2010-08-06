@@ -1,42 +1,65 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCHv9 09/12] ib_core: Add VLAN support to IBoE
-Date: Fri, 6 Aug 2010 10:49:15 -0600
-Message-ID: <20100806164915.GL11306@obsidianresearch.com>
-References: <20100806144153.GJ20588@mtldesk30>
+From: Ralph Campbell <ralph.campbell-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+Subject: Re: yet again the atomic operations
+Date: Fri, 6 Aug 2010 10:26:05 -0700
+Message-ID: <1281115565.7414.52.camel@chromite.mv.qlogic.com>
+References: <AANLkTikQX+CKvs_pjkH_Ap358jfjp4dYKYyKG95+eZmt@mail.gmail.com>
+	 <1281033688.7414.30.camel@chromite.mv.qlogic.com>
+	 <AANLkTimVTjHOubAaJ5oRHju6C7k7FZMqqq0Mvb4SBztB@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20100806144153.GJ20588@mtldesk30>
+In-Reply-To: <AANLkTimVTjHOubAaJ5oRHju6C7k7FZMqqq0Mvb4SBztB-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, RDMA list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Rui Machado <ruimario-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Aug 06, 2010 at 05:41:53PM +0300, Eli Cohen wrote:
-> -static inline void iboe_mac_to_ll(union ib_gid *gid, u8 *mac)
-> +static inline void iboe_mac_vlan_to_ll(union ib_gid *gid, u8 *mac, u16 vid)
->  {
->  	memset(gid->raw, 0, 16);
->  	*((u32 *)gid->raw) = cpu_to_be32(0xfe800000);
-> -	gid->raw[12] = 0xfe;
-> -	gid->raw[11] = 0xff;
-> +	if (vid) {
-> +		gid->raw[12] = vid & 0xff;
-> +		gid->raw[11] = vid >> 8;
-> +	} else {
-> +		gid->raw[12] = 0xfe;
-> +		gid->raw[11] = 0xff;
-> +	}
->  	memcpy(gid->raw + 13, mac + 3, 3);
->  	memcpy(gid->raw + 8, mac, 3);
->  	gid->raw[8] ^= 2;
+On Fri, 2010-08-06 at 04:43 -0700, Rui Machado wrote:
+> Hi there,
+> 
+> > There are two kinds supported. QLogic's driver does them in
+> > the host driver so they are atomic with respect to all the CPUs
+> > in the host. Mellanox uses HCA wide atomic which means the
+> > HCA will do a memory read/write without allowing other reads
+> > or writes from different QP operations passing through that
+> > HCA to get in between. The CPUs on the host won't see
+> > atomic operations since from their perspective, it looks
+> > like a normal read and write from the PCIe bus.
+> 
+> So if the CPU writes/reads to/from the same address, even atomically
+> (lock), there might be room for some inconsistency on the values? It
+> is not really atomic from the whole system point of view, just for the
+> HCA? If so, is there any possibility to make the whole operation
+> 'system-wide' atomic?
 
-My general comment on this would be the same I made for userspace:
-Don't assume VID == 0 means no vlan tag. Use 0xFFFF or something that
-is actually invalid.
+Correct.
+It won't be consistent from the HCA's point of view if other HCAs
+or CPUs are modifying the memory - even if they do it atomically.
+It is only consistent if a single HCA is doing atomic ops to the
+memory.
 
-Jason
+There is no possibility to change this unless PCIe atomic
+operations are used by the HCA and if the root complex supports
+atomic operations. I don't know of any HCAs or root complex
+chips which have this support yet.
+
+> > You can see what type the HCA supports with "ibv_devinfo -v"
+> > and look for "atomic_cap: ATOMIC_HCA (1)" or
+> > "atomic_cap: ATOMIC_GLOB (2)".
+> 
+> ATOMIC_HCA (1) is what I see in my Mellanox hardware. This is the case
+> you mentioned, "without allowing other reads or writes from different
+> QP operations passing through that HCA to get in between"
+> ATOMIC_GLOB (2) means with respect to all HCAs and even the CPU?
+
+Correct.
+
+> Cheers,
+> Rui
+> 
+
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
