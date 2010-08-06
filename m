@@ -1,9 +1,9 @@
 From: Vu Pham <vuhuong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH 05/10]  query ib device from given mlx4 device
-Date: Fri, 06 Aug 2010 15:50:42 -0700
-Message-ID: <4C5C91C2.5040803@mellanox.com>
+Subject: [PATCH 06/10] enable T11 bit for mlx4 device
+Date: Fri, 06 Aug 2010 15:51:03 -0700
+Message-ID: <4C5C91D7.7050202@mellanox.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------010401050606070409040907"
+Content-Type: multipart/mixed; boundary="------------070403090104040304010402"
 Return-path: <ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
 List-Unsubscribe: <http://lists.openfabrics.org/cgi-bin/mailman/listinfo/ewg>,
 	<mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=unsubscribe>
@@ -19,161 +19,94 @@ Cc: Linux RDMA <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, OpenFabrics
 List-Id: linux-rdma@vger.kernel.org
 
 This is a multi-part message in MIME format.
---------------010401050606070409040907
+--------------070403090104040304010402
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 
-Adding API to query ib_device with mlx4_dev
+Enable T11 bit support on mlx4 device
 
 Signed-off-by: Oren Duer <oren-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
 Signed-off-by: Vu Pham <vu-jyKWETY2nSZBDgjK7y7TUQ@public.gmane.org>
 
- drivers/infiniband/hw/mlx4/main.c |   10 +++++++++-
- drivers/net/mlx4/intf.c           |   20 ++++++++++++++++++++
- drivers/net/mlx4/main.c           |   10 +++++++---
- drivers/net/mlx4/mlx4.h           |    1 +
- include/linux/mlx4/driver.h       |   10 ++++++++++
- 7 files changed, 72 insertions(+), 15 deletions(-)
+ drivers/net/mlx4/fw.c       |   13 +++++++++++++
+ include/linux/mlx4/device.h |    5 ++++-
+ 2 files changed, 17 insertions(+), 1 deletions(-)
 
 
---------------010401050606070409040907
+--------------070403090104040304010402
 Content-Type: text/x-patch;
- name="mlx4_fc_0005_get_ib_dev_from_mlx4dev.patch"
+ name="mlx4_fc_0006_fc_t11_settings.patch"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline;
- filename="mlx4_fc_0005_get_ib_dev_from_mlx4dev.patch"
+ filename="mlx4_fc_0006_fc_t11_settings.patch"
 
-Adding API to query ib_device with mlx4_dev
+Enable T11 bit in mlx4 device
 
 Signed-off-by: Oren Duer <oren-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
 Signed-off-by: Vu Pham <vu-jyKWETY2nSZBDgjK7y7TUQ@public.gmane.org>
 
- drivers/infiniband/hw/mlx4/main.c |   10 +++++++++-
- drivers/net/mlx4/intf.c           |   20 ++++++++++++++++++++
- drivers/net/mlx4/main.c           |   10 +++++++---
- drivers/net/mlx4/mlx4.h           |    1 +
- include/linux/mlx4/driver.h       |   10 ++++++++++
- 7 files changed, 72 insertions(+), 15 deletions(-)
+ drivers/net/mlx4/fw.c       |   13 +++++++++++++
+ include/linux/mlx4/device.h |    5 ++++-
+ 2 files changed, 17 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx4/main.c b/drivers/infiniband/hw/mlx4/main.c
-index 4e94e36..e071229 100644
---- a/drivers/infiniband/hw/mlx4/main.c
-+++ b/drivers/infiniband/hw/mlx4/main.c
-@@ -58,6 +58,12 @@ static const char mlx4_ib_version[] =
- 	DRV_NAME ": Mellanox ConnectX InfiniBand driver v"
- 	DRV_VERSION " (" DRV_RELDATE ")\n";
+diff --git a/drivers/net/mlx4/fw.c b/drivers/net/mlx4/fw.c
+index 04f42ae..1286b72 100644
+--- a/drivers/net/mlx4/fw.c
++++ b/drivers/net/mlx4/fw.c
+@@ -51,6 +51,10 @@ static int enable_qos;
+ module_param(enable_qos, bool, 0444);
+ MODULE_PARM_DESC(enable_qos, "Enable Quality of Service support in the HCA (default: off)");
  
-+static void *get_ibdev(struct mlx4_dev *dev, void *ctx, u8 port)
-+{
-+       struct mlx4_ib_dev *mlxibdev = ctx;
-+       return &mlxibdev->ib_dev;
-+}
++static int mlx4_pre_t11_mode = 0;
++module_param_named(enable_pre_t11_mode, mlx4_pre_t11_mode, int, 0644);
++MODULE_PARM_DESC(enable_pre_t11_mode, "For FCoXX, enable pre-t11 mode if non-zero (default: 0)");
 +
- static void init_query_mad(struct ib_smp *mad)
- {
- 	mad->base_version  = 1;
-@@ -749,7 +755,9 @@ static void mlx4_ib_event(struct mlx4_dev *dev, void *ibdev_ptr,
- static struct mlx4_interface mlx4_ib_interface = {
- 	.add	= mlx4_ib_add,
- 	.remove	= mlx4_ib_remove,
--	.event	= mlx4_ib_event
-+	.event	= mlx4_ib_event,
-+	.get_prot_dev = get_ibdev,
-+	.protocol = MLX4_PROT_IB
- };
+ #define MLX4_GET(dest, source, offset)				      \
+ 	do {							      \
+ 		void *__p = (char *) (source) + (offset);	      \
+@@ -792,6 +796,8 @@ int mlx4_INIT_HCA(struct mlx4_dev *dev, struct mlx4_init_hca_param *param)
  
- static int __init mlx4_ib_init(void)
-diff --git a/drivers/net/mlx4/intf.c b/drivers/net/mlx4/intf.c
-index beeed80..f8f97f9 100644
---- a/drivers/net/mlx4/intf.c
-+++ b/drivers/net/mlx4/intf.c
-@@ -191,3 +191,23 @@ void mlx4_unregister_device(struct mlx4_dev *dev)
+ 	MLX4_PUT(inbox, (u8) (PAGE_SHIFT - 12), INIT_HCA_UAR_PAGE_SZ_OFFSET);
+ 	MLX4_PUT(inbox, param->log_uar_sz,      INIT_HCA_LOG_UAR_SZ_OFFSET);
++	if (!mlx4_pre_t11_mode && dev->caps.flags & (u32) MLX4_DEV_CAP_FLAG_FC_T11)
++		*(inbox + INIT_HCA_FLAGS_OFFSET / 4) |= cpu_to_be32(1 << 10);
  
- 	mutex_unlock(&intf_mutex);
+ 	err = mlx4_cmd(dev, mailbox->dma, 0, 0, MLX4_CMD_INIT_HCA, 10000);
+ 
+@@ -890,3 +896,10 @@ int mlx4_NOP(struct mlx4_dev *dev)
+ 	/* Input modifier of 0x1f means "finish as soon as possible." */
+ 	return mlx4_cmd(dev, 0, 0x1f, 0, MLX4_CMD_NOP, 100);
  }
 +
-+void *mlx4_find_get_prot_dev(struct mlx4_dev *dev, enum mlx4_prot proto, int port)
++void mlx4_get_fc_t11_settings(struct mlx4_dev *dev, int *enable_pre_t11, int *t11_supported)
 +{
-+	struct mlx4_priv *priv = mlx4_priv(dev);
-+	struct mlx4_device_context *dev_ctx;
-+	unsigned long flags;
-+	void *result = NULL;
-+
-+	spin_lock_irqsave(&priv->ctx_lock, flags);
-+
-+	list_for_each_entry(dev_ctx, &priv->ctx_list, list)
-+		if (dev_ctx->intf->protocol == proto && dev_ctx->intf->get_prot_dev) {
-+			result = dev_ctx->intf->get_prot_dev(dev, dev_ctx->context, port);
-+			break;
-+	}
-+
-+	spin_unlock_irqrestore(&priv->ctx_lock, flags);
-+
-+	return result;
++	*enable_pre_t11 = mlx4_pre_t11_mode;
++	*t11_supported = dev->caps.flags & MLX4_DEV_CAP_FLAG_FC_T11;
 +}
-diff --git a/drivers/net/mlx4/main.c b/drivers/net/mlx4/main.c
-index 38fbf01..f14f0d6 100644
---- a/drivers/net/mlx4/main.c
-+++ b/drivers/net/mlx4/main.c
-@@ -105,6 +105,12 @@ static int log_mtts_per_seg = ilog2(MLX4_MTT_ENTRY_PER_SEG);
- module_param_named(log_mtts_per_seg, log_mtts_per_seg, int, 0444);
- MODULE_PARM_DESC(log_mtts_per_seg, "Log2 number of MTT entries per segment (1-5)");
- 
-+void *mlx4_get_prot_dev(struct mlx4_dev *dev, enum mlx4_prot proto, int port)
-+{
-+	return mlx4_find_get_prot_dev(dev, proto, port);
-+}
-+EXPORT_SYMBOL(mlx4_get_prot_dev);
-+
- int mlx4_check_port_params(struct mlx4_dev *dev,
- 			   enum mlx4_port_type *port_type)
- {
-diff --git a/drivers/net/mlx4/mlx4.h b/drivers/net/mlx4/mlx4.h
-index 416aeca..9c62019 100644
---- a/drivers/net/mlx4/mlx4.h
-+++ b/drivers/net/mlx4/mlx4.h
-@@ -364,6 +364,7 @@ int mlx4_restart_one(struct pci_dev *pdev);
- int mlx4_register_device(struct mlx4_dev *dev);
- void mlx4_unregister_device(struct mlx4_dev *dev);
- void mlx4_dispatch_event(struct mlx4_dev *dev, enum mlx4_dev_event type, int port);
-+void *mlx4_find_get_prot_dev(struct mlx4_dev *dev, enum mlx4_prot proto, int port);
- 
- struct mlx4_dev_cap;
- struct mlx4_init_hca_param;
-diff --git a/include/linux/mlx4/driver.h b/include/linux/mlx4/driver.h
-index 55b45a6..94c9617 100644
---- a/include/linux/mlx4/driver.h
-+++ b/include/linux/mlx4/driver.h
-@@ -49,17 +49,27 @@ enum mlx4_query_reply {
- 	MLX4_QUERY_MINE_NOPORT 	= 0
++EXPORT_SYMBOL_GPL(mlx4_get_fc_t11_settings);
+diff --git a/include/linux/mlx4/device.h b/include/linux/mlx4/device.h
+index 8afac02..d173008 100644
+--- a/include/linux/mlx4/device.h
++++ b/include/linux/mlx4/device.h
+@@ -67,7 +67,8 @@ enum {
+ 	MLX4_DEV_CAP_FLAG_ATOMIC	= 1 << 18,
+ 	MLX4_DEV_CAP_FLAG_RAW_MCAST	= 1 << 19,
+ 	MLX4_DEV_CAP_FLAG_UD_AV_PORT	= 1 << 20,
+-	MLX4_DEV_CAP_FLAG_UD_MCAST	= 1 << 21
++	MLX4_DEV_CAP_FLAG_UD_MCAST	= 1 << 21,
++	MLX4_DEV_CAP_FLAG_FC_T11	= 1 << 31
  };
  
-+enum mlx4_prot {
-+	MLX4_PROT_IB,
-+	MLX4_PROT_EN,
-+};
-+
- struct mlx4_interface {
- 	void *			(*add)	 (struct mlx4_dev *dev);
- 	void			(*remove)(struct mlx4_dev *dev, void *context);
- 	void			(*event) (struct mlx4_dev *dev, void *context,
- 					  enum mlx4_dev_event event, int port);
-+	void *  (*get_prot_dev) (struct mlx4_dev *dev, void *context, u8 port);
-+	enum mlx4_prot          protocol;
-+
- 	enum mlx4_query_reply	(*query) (void *context, void *);
- 	struct list_head	list;
- };
+ enum {
+@@ -491,4 +492,6 @@ int mlx4_fmr_free_reserved(struct mlx4_dev *dev, struct mlx4_fmr *fmr);
+ int mlx4_fmr_free(struct mlx4_dev *dev, struct mlx4_fmr *fmr);
+ int mlx4_SYNC_TPT(struct mlx4_dev *dev);
  
- int mlx4_register_interface(struct mlx4_interface *intf);
- void mlx4_unregister_interface(struct mlx4_interface *intf);
-+void *mlx4_get_prot_dev(struct mlx4_dev *dev, enum mlx4_prot proto, int port);
++void mlx4_get_fc_t11_settings(struct mlx4_dev *dev, int *enable_pre_t11, int *t11_supported);
 +
- struct mlx4_dev *mlx4_query_interface(void *, int *port);
- 
- #endif /* MLX4_DRIVER_H */
+ #endif /* MLX4_DEVICE_H */
 
---------------010401050606070409040907
+--------------070403090104040304010402
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -183,4 +116,4 @@ _______________________________________________
 ewg mailing list
 ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
 http://lists.openfabrics.org/cgi-bin/mailman/listinfo/ewg
---------------010401050606070409040907--
+--------------070403090104040304010402--
