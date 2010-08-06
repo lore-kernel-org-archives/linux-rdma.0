@@ -1,43 +1,29 @@
-From: Dan Carpenter <error27@gmail.com>
-Subject: [PATCH 4/42 v2] drivers/infiniband/hw/nes: Adjust confusing if
-	indentation
-Date: Fri, 6 Aug 2010 01:48:32 +0200
-Message-ID: <20100805234831.GK9031@bicker>
-References: <Pine.LNX.4.64.1008052217430.31692@ask.diku.dk>
+From: Tziporet Koren <tziporet-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
+Subject: RE: InfiniBand/RDMA merger plans for 2.6.36
+Date: Fri, 6 Aug 2010 12:19:12 +0300
+Message-ID: <E113D394D7C5DB4F8FF691FA7EE9DB443B561E4C95@MTLMAIL.mtl.com>
+References: <adak4o654x9.fsf@roland-alpha.cisco.com>
+	<E113D394D7C5DB4F8FF691FA7EE9DB443B50B5FD12@MTLMAIL.mtl.com>
+	<ada7hk557vx.fsf@roland-alpha.cisco.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.64.1008052217430.31692@ask.diku.dk>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Julia Lawall <julia@diku.dk>
-Cc: Faisal Latif <faisal.latif@intel.com>, Chien Tung <chien.tin.tung@intel.com>, Roland Dreier <rolandd@cisco.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Language: en-US
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tziporet Koren <tziporet-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Cc: "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-I think the white space is meant to look like this.  I did look at
-whether the "sq_cqes = 0;" should only be done if netif_queue_stopped().
-In the end I decided this was what was intended, but it would be
-better if someone more familiar with the code reviewed it.
+> It's not personal -- it was a combination of when things were ready and
+> when I had time to work on things, and unfortunately it all lined up so
+> I wasn't able to get anything big queued up this cycle.
 
-Reported-by: Julia Lawall <julia@diku.dk>
-Signed-off-by: Dan Carpenter <error27@gmail.com>
----
-v2: changed different indents
+Can you confirm it will be in 2.6.37?
 
-diff --git a/drivers/infiniband/hw/nes/nes_hw.c b/drivers/infiniband/hw/nes/nes_hw.c
-index 57874a1..293977b 100644
---- a/drivers/infiniband/hw/nes/nes_hw.c
-+++ b/drivers/infiniband/hw/nes/nes_hw.c
-@@ -2737,9 +2737,9 @@ void nes_nic_ce_handler(struct nes_device *nesdev, struct nes_hw_nic_cq *cq)
- 				nesnic->sq_tail &= nesnic->sq_size-1;
- 				if (sq_cqes > 128) {
- 					barrier();
--				/* restart the queue if it had been stopped */
--				if (netif_queue_stopped(nesvnic->netdev))
--					netif_wake_queue(nesvnic->netdev);
-+					/* restart the queue if it had been stopped */
-+					if (netif_queue_stopped(nesvnic->netdev))
-+						netif_wake_queue(nesvnic->netdev);
- 					sq_cqes = 0;
- 				}
- 			} else {
+
+Tziporet
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
