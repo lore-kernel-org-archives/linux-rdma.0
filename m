@@ -1,7 +1,7 @@
 From: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCHv9 4/4] libibverbs: Update examples for IBoE
-Date: Fri, 6 Aug 2010 17:43:53 +0300
-Message-ID: <20100806144353.GQ20588@mtldesk30>
+Subject: [PATCHv9 1/2] libmlx4: Add IBoE support
+Date: Fri, 6 Aug 2010 17:44:07 +0300
+Message-ID: <20100806144407.GR20588@mtldesk30>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
@@ -11,1056 +11,154 @@ To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 Cc: RDMA list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Since IBoE requires usage of GRH, update ibv_*_pinpong examples to accept GIDs.
-GIDs are given as an index to the local port's table and are exchanged between
-the client and the server through the socket connection. The examples are also
-modified to pass the gid index to the code that creates the address vector as a
-preparation to using gids other the the on in index 0.
+Modify libmlx4 to support IBoE. The change involves retrieving the ethernet
+layer 2 address of a port based on its GID and source index through a new
+userspace call, resolve_eth_gid(), and embedding the layer 2 information in
+the address vector representation of mlx4.
 
 Signed-off-by: Eli Cohen <eli-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
 ---
- examples/devinfo.c      |   14 +++++++
- examples/pingpong.c     |   31 ++++++++++++++++
- examples/pingpong.h     |    4 ++
- examples/rc_pingpong.c  |   91 ++++++++++++++++++++++++++++++++++------------
- examples/srq_pingpong.c |   84 ++++++++++++++++++++++++++++++++-----------
- examples/uc_pingpong.c  |   82 +++++++++++++++++++++++++++++++-----------
- examples/ud_pingpong.c  |   81 ++++++++++++++++++++++++++++++------------
- 7 files changed, 297 insertions(+), 90 deletions(-)
 
-diff --git a/examples/devinfo.c b/examples/devinfo.c
-index 84f95c7..393ec04 100644
---- a/examples/devinfo.c
-+++ b/examples/devinfo.c
-@@ -184,6 +184,19 @@ static int print_all_port_gids(struct ibv_context *ctx, uint8_t port_num, int tb
- 	return rc;
- }
- 
-+static const char *link_layer_str(uint8_t link_layer)
-+{
-+	switch (link_layer) {
-+	case IBV_LINK_LAYER_UNSPECIFIED:
-+	case IBV_LINK_LAYER_INFINIBAND:
-+		return "IB";
-+	case IBV_LINK_LAYER_ETHERNET:
-+		return "Ethernet";
-+	default:
-+		return "Unknown";
-+	}
-+}
-+
- static int print_hca_cap(struct ibv_device *ib_dev, uint8_t ib_port)
- {
- 	struct ibv_context *ctx;
-@@ -284,6 +297,7 @@ static int print_hca_cap(struct ibv_device *ib_dev, uint8_t ib_port)
- 		printf("\t\t\tsm_lid:\t\t\t%d\n", port_attr.sm_lid);
- 		printf("\t\t\tport_lid:\t\t%d\n", port_attr.lid);
- 		printf("\t\t\tport_lmc:\t\t0x%02x\n", port_attr.lmc);
-+		printf("\t\t\tlink_layer:\t\t%s\n", link_layer_str(port_attr.link_layer));
- 
- 		if (verbose) {
- 			printf("\t\t\tmax_msg_sz:\t\t0x%x\n", port_attr.max_msg_sz);
-diff --git a/examples/pingpong.c b/examples/pingpong.c
-index b916f59..806f446 100644
---- a/examples/pingpong.c
-+++ b/examples/pingpong.c
-@@ -31,6 +31,10 @@
-  */
- 
- #include "pingpong.h"
-+#include <arpa/inet.h>
-+#include <stdlib.h>
-+#include <stdio.h>
-+#include <string.h>
- 
- enum ibv_mtu pp_mtu_to_enum(int mtu)
- {
-@@ -53,3 +57,30 @@ uint16_t pp_get_local_lid(struct ibv_context *context, int port)
- 
- 	return attr.lid;
- }
-+
-+int pp_get_port_info(struct ibv_context *context, int port,
-+		     struct ibv_port_attr *attr)
-+{
-+	return ibv_query_port(context, port, attr);
-+}
-+
-+void wire_gid_to_gid(const char *wgid, union ibv_gid *gid)
-+{
-+	char tmp[9];
-+	uint32_t v32;
-+	int i;
-+
-+	for (tmp[8] = 0, i = 0; i < 4; ++i) {
-+		memcpy(tmp, wgid + i * 8, 8);
-+		sscanf(tmp, "%x", &v32);
-+		*(uint32_t *)(&gid->raw[i * 4]) = ntohl(v32);
-+	}
-+}
-+
-+void gid_to_wire_gid(const union ibv_gid *gid, char wgid[])
-+{
-+	int i;
-+
-+	for (i = 0; i < 4; ++i)
-+		sprintf(&wgid[i * 8], "%08x", htonl(*(uint32_t *)(gid->raw + i * 4)));
-+}
-diff --git a/examples/pingpong.h b/examples/pingpong.h
-index 71d7c3f..9cdc03e 100644
---- a/examples/pingpong.h
-+++ b/examples/pingpong.h
-@@ -37,5 +37,9 @@
- 
- enum ibv_mtu pp_mtu_to_enum(int mtu);
- uint16_t pp_get_local_lid(struct ibv_context *context, int port);
-+int pp_get_port_info(struct ibv_context *context, int port,
-+		     struct ibv_port_attr *attr);
-+void wire_gid_to_gid(const char *wgid, union ibv_gid *gid);
-+void gid_to_wire_gid(const union ibv_gid *gid, char wgid[]);
- 
- #endif /* IBV_PINGPONG_H */
-diff --git a/examples/rc_pingpong.c b/examples/rc_pingpong.c
-index fa969e0..a63905d 100644
---- a/examples/rc_pingpong.c
-+++ b/examples/rc_pingpong.c
-@@ -67,17 +67,19 @@ struct pingpong_context {
- 	int			 size;
- 	int			 rx_depth;
- 	int			 pending;
-+	struct ibv_port_attr     portinfo;
+Changes from V8:
+1. Move resolving of GID to MAC from kernel space to user space.
+
+ src/mlx4.h  |    4 ++++
+ src/qp.c    |    8 +++++++-
+ src/verbs.c |   28 ++++++++++++++++++++++++++++
+ src/wqe.h   |    6 ++++--
+ 4 files changed, 43 insertions(+), 3 deletions(-)
+
+diff --git a/src/mlx4.h b/src/mlx4.h
+index 4445998..4b12456 100644
+--- a/src/mlx4.h
++++ b/src/mlx4.h
+@@ -236,11 +236,15 @@ struct mlx4_av {
+ 	uint8_t				hop_limit;
+ 	uint32_t			sl_tclass_flowlabel;
+ 	uint8_t				dgid[16];
++	uint8_t				mac[8];
  };
  
- struct pingpong_dest {
- 	int lid;
- 	int qpn;
- 	int psn;
-+	union ibv_gid gid;
+ struct mlx4_ah {
+ 	struct ibv_ah			ibv_ah;
+ 	struct mlx4_av			av;
++	uint16_t			vlan;
++	uint8_t				mac[6];
++	uint8_t				tagged;
  };
  
- static int pp_connect_ctx(struct pingpong_context *ctx, int port, int my_psn,
- 			  enum ibv_mtu mtu, int sl,
--			  struct pingpong_dest *dest)
-+			  struct pingpong_dest *dest, int sgid_idx)
- {
- 	struct ibv_qp_attr attr = {
- 		.qp_state		= IBV_QPS_RTR,
-@@ -94,6 +96,13 @@ static int pp_connect_ctx(struct pingpong_context *ctx, int port, int my_psn,
- 			.port_num	= port
- 		}
- 	};
-+
-+	if (dest->gid.global.interface_id) {
-+		attr.ah_attr.is_global = 1;
-+		attr.ah_attr.grh.hop_limit = 1;
-+		attr.ah_attr.grh.dgid = dest->gid;
-+		attr.ah_attr.grh.sgid_index = sgid_idx;
-+	}
- 	if (ibv_modify_qp(ctx->qp, &attr,
- 			  IBV_QP_STATE              |
- 			  IBV_QP_AV                 |
-@@ -135,10 +144,11 @@ static struct pingpong_dest *pp_client_exch_dest(const char *servername, int por
- 		.ai_socktype = SOCK_STREAM
- 	};
- 	char *service;
--	char msg[sizeof "0000:000000:000000"];
-+	char msg[sizeof "0000:000000:000000:00000000000000000000000000000000"];
- 	int n;
- 	int sockfd = -1;
- 	struct pingpong_dest *rem_dest = NULL;
-+	char gid[33];
- 
- 	if (asprintf(&service, "%d", port) < 0)
- 		return NULL;
-@@ -169,7 +179,8 @@ static struct pingpong_dest *pp_client_exch_dest(const char *servername, int por
- 		return NULL;
- 	}
- 
--	sprintf(msg, "%04x:%06x:%06x", my_dest->lid, my_dest->qpn, my_dest->psn);
-+	gid_to_wire_gid(&my_dest->gid, gid);
-+	sprintf(msg, "%04x:%06x:%06x:%s", my_dest->lid, my_dest->qpn, my_dest->psn, gid);
- 	if (write(sockfd, msg, sizeof msg) != sizeof msg) {
- 		fprintf(stderr, "Couldn't send local address\n");
- 		goto out;
-@@ -187,7 +198,8 @@ static struct pingpong_dest *pp_client_exch_dest(const char *servername, int por
- 	if (!rem_dest)
- 		goto out;
- 
--	sscanf(msg, "%x:%x:%x", &rem_dest->lid, &rem_dest->qpn, &rem_dest->psn);
-+	sscanf(msg, "%x:%x:%x:%s", &rem_dest->lid, &rem_dest->qpn, &rem_dest->psn, gid);
-+	wire_gid_to_gid(gid, &rem_dest->gid);
- 
- out:
- 	close(sockfd);
-@@ -197,7 +209,8 @@ out:
- static struct pingpong_dest *pp_server_exch_dest(struct pingpong_context *ctx,
- 						 int ib_port, enum ibv_mtu mtu,
- 						 int port, int sl,
--						 const struct pingpong_dest *my_dest)
-+						 const struct pingpong_dest *my_dest,
-+						 int sgid_idx)
- {
- 	struct addrinfo *res, *t;
- 	struct addrinfo hints = {
-@@ -206,10 +219,11 @@ static struct pingpong_dest *pp_server_exch_dest(struct pingpong_context *ctx,
- 		.ai_socktype = SOCK_STREAM
- 	};
- 	char *service;
--	char msg[sizeof "0000:000000:000000"];
-+	char msg[sizeof "0000:000000:000000:00000000000000000000000000000000"];
- 	int n;
- 	int sockfd = -1, connfd;
- 	struct pingpong_dest *rem_dest = NULL;
-+	char gid[33];
- 
- 	if (asprintf(&service, "%d", port) < 0)
- 		return NULL;
-@@ -263,16 +277,19 @@ static struct pingpong_dest *pp_server_exch_dest(struct pingpong_context *ctx,
- 	if (!rem_dest)
- 		goto out;
- 
--	sscanf(msg, "%x:%x:%x", &rem_dest->lid, &rem_dest->qpn, &rem_dest->psn);
-+	sscanf(msg, "%x:%x:%x:%s", &rem_dest->lid, &rem_dest->qpn, &rem_dest->psn, gid);
-+	wire_gid_to_gid(gid, &rem_dest->gid);
- 
--	if (pp_connect_ctx(ctx, ib_port, my_dest->psn, mtu, sl, rem_dest)) {
-+	if (pp_connect_ctx(ctx, ib_port, my_dest->psn, mtu, sl, rem_dest, sgid_idx)) {
- 		fprintf(stderr, "Couldn't connect to remote QP\n");
- 		free(rem_dest);
- 		rem_dest = NULL;
- 		goto out;
- 	}
- 
--	sprintf(msg, "%04x:%06x:%06x", my_dest->lid, my_dest->qpn, my_dest->psn);
-+
-+	gid_to_wire_gid(&my_dest->gid, gid);
-+	sprintf(msg, "%04x:%06x:%06x:%s", my_dest->lid, my_dest->qpn, my_dest->psn, gid);
- 	if (write(connfd, msg, sizeof msg) != sizeof msg) {
- 		fprintf(stderr, "Couldn't send local address\n");
- 		free(rem_dest);
-@@ -289,11 +306,11 @@ out:
- 
- static struct pingpong_context *pp_init_ctx(struct ibv_device *ib_dev, int size,
- 					    int rx_depth, int port,
--					    int use_event)
-+					    int use_event, int is_server)
- {
- 	struct pingpong_context *ctx;
- 
--	ctx = malloc(sizeof *ctx);
-+	ctx = calloc(1, sizeof *ctx);
- 	if (!ctx)
- 		return NULL;
- 
-@@ -306,7 +323,7 @@ static struct pingpong_context *pp_init_ctx(struct ibv_device *ib_dev, int size,
- 		return NULL;
- 	}
- 
--	memset(ctx->buf, 0, size);
-+	memset(ctx->buf, 0x7b + is_server, size);
- 
- 	ctx->context = ibv_open_device(ib_dev);
- 	if (!ctx->context) {
-@@ -481,6 +498,7 @@ static void usage(const char *argv0)
- 	printf("  -n, --iters=<iters>    number of exchanges (default 1000)\n");
- 	printf("  -l, --sl=<sl>          service level value\n");
- 	printf("  -e, --events           sleep on CQ events (default poll)\n");
-+	printf("  -g, --gid-idx=<gid index> local port gid index\n");
+ static inline unsigned long align(unsigned long val, unsigned long align)
+diff --git a/src/qp.c b/src/qp.c
+index d194ae3..fa70889 100644
+--- a/src/qp.c
++++ b/src/qp.c
+@@ -143,6 +143,8 @@ static void set_datagram_seg(struct mlx4_wqe_datagram_seg *dseg,
+ 	memcpy(dseg->av, &to_mah(wr->wr.ud.ah)->av, sizeof (struct mlx4_av));
+ 	dseg->dqpn = htonl(wr->wr.ud.remote_qpn);
+ 	dseg->qkey = htonl(wr->wr.ud.remote_qkey);
++	dseg->vlan = htons(to_mah(wr->wr.ud.ah)->vlan);
++	memcpy(dseg->mac, to_mah(wr->wr.ud.ah)->mac, 6);
  }
  
- int main(int argc, char *argv[])
-@@ -504,6 +522,8 @@ int main(int argc, char *argv[])
- 	int                      rcnt, scnt;
- 	int                      num_cq_events = 0;
- 	int                      sl = 0;
-+	int			 gidx = -1;
-+	char			 gid[33];
- 
- 	srand48(getpid() * time(NULL));
- 
-@@ -520,10 +540,11 @@ int main(int argc, char *argv[])
- 			{ .name = "iters",    .has_arg = 1, .val = 'n' },
- 			{ .name = "sl",       .has_arg = 1, .val = 'l' },
- 			{ .name = "events",   .has_arg = 0, .val = 'e' },
-+			{ .name = "gid-idx",  .has_arg = 1, .val = 'g' },
- 			{ 0 }
- 		};
- 
--		c = getopt_long(argc, argv, "p:d:i:s:m:r:n:l:e", long_options, NULL);
-+		c = getopt_long(argc, argv, "p:d:i:s:m:r:n:l:eg:", long_options, NULL);
- 		if (c == -1)
- 			break;
- 
-@@ -576,6 +597,10 @@ int main(int argc, char *argv[])
- 			++use_event;
- 			break;
- 
-+		case 'g':
-+			gidx = strtol(optarg, NULL, 0);
-+			break;
-+
- 		default:
- 			usage(argv[0]);
- 			return 1;
-@@ -615,7 +640,7 @@ int main(int argc, char *argv[])
- 		}
- 	}
- 
--	ctx = pp_init_ctx(ib_dev, size, rx_depth, ib_port, use_event);
-+	ctx = pp_init_ctx(ib_dev, size, rx_depth, ib_port, use_event, !servername);
- 	if (!ctx)
- 		return 1;
- 
-@@ -631,30 +656,47 @@ int main(int argc, char *argv[])
- 			return 1;
- 		}
- 
--	my_dest.lid = pp_get_local_lid(ctx->context, ib_port);
--	my_dest.qpn = ctx->qp->qp_num;
--	my_dest.psn = lrand48() & 0xffffff;
--	if (!my_dest.lid) {
-+
-+	if (pp_get_port_info(ctx->context, ib_port, &ctx->portinfo)) {
-+		fprintf(stderr, "Couldn't get port info\n");
-+		return 1;
-+	}
-+
-+	my_dest.lid = ctx->portinfo.lid;
-+	if (ctx->portinfo.link_layer == IBV_LINK_LAYER_INFINIBAND && !my_dest.lid) {
- 		fprintf(stderr, "Couldn't get local LID\n");
- 		return 1;
- 	}
- 
--	printf("  local address:  LID 0x%04x, QPN 0x%06x, PSN 0x%06x\n",
--	       my_dest.lid, my_dest.qpn, my_dest.psn);
-+	if (gidx >= 0) {
-+		if (ibv_query_gid(ctx->context, ib_port, gidx, &my_dest.gid)) {
-+			fprintf(stderr, "Could not get local gid for gid index %d\n", gidx);
-+			return 1;
-+		}
-+	} else
-+		memset(&my_dest.gid, 0, sizeof my_dest.gid);
-+
-+	my_dest.qpn = ctx->qp->qp_num;
-+	my_dest.psn = lrand48() & 0xffffff;
-+	inet_ntop(AF_INET6, &my_dest.gid, gid, sizeof gid);
-+	printf("  local address:  LID 0x%04x, QPN 0x%06x, PSN 0x%06x, GID %s\n",
-+	       my_dest.lid, my_dest.qpn, my_dest.psn, gid);
-+
- 
- 	if (servername)
- 		rem_dest = pp_client_exch_dest(servername, port, &my_dest);
- 	else
--		rem_dest = pp_server_exch_dest(ctx, ib_port, mtu, port, sl, &my_dest);
-+		rem_dest = pp_server_exch_dest(ctx, ib_port, mtu, port, sl, &my_dest, gidx);
- 
- 	if (!rem_dest)
- 		return 1;
- 
--	printf("  remote address: LID 0x%04x, QPN 0x%06x, PSN 0x%06x\n",
--	       rem_dest->lid, rem_dest->qpn, rem_dest->psn);
-+	inet_ntop(AF_INET6, &rem_dest->gid, gid, sizeof gid);
-+	printf("  remote address: LID 0x%04x, QPN 0x%06x, PSN 0x%06x, GID %s\n",
-+	       rem_dest->lid, rem_dest->qpn, rem_dest->psn, gid);
- 
- 	if (servername)
--		if (pp_connect_ctx(ctx, ib_port, my_dest.psn, mtu, sl, rem_dest))
-+		if (pp_connect_ctx(ctx, ib_port, my_dest.psn, mtu, sl, rem_dest, gidx))
- 			return 1;
- 
- 	ctx->pending = PINGPONG_RECV_WRID;
-@@ -706,6 +748,7 @@ int main(int argc, char *argv[])
- 					fprintf(stderr, "poll CQ failed %d\n", ne);
- 					return 1;
- 				}
-+
- 			} while (!use_event && ne < 1);
- 
- 			for (i = 0; i < ne; ++i) {
-diff --git a/examples/srq_pingpong.c b/examples/srq_pingpong.c
-index 1e36c57..46a0c11 100644
---- a/examples/srq_pingpong.c
-+++ b/examples/srq_pingpong.c
-@@ -71,17 +71,19 @@ struct pingpong_context {
- 	int			 num_qp;
- 	int			 rx_depth;
- 	int			 pending[MAX_QP];
-+	struct ibv_port_attr	 portinfo;
- };
- 
- struct pingpong_dest {
- 	int lid;
- 	int qpn;
- 	int psn;
-+	union ibv_gid gid;
- };
- 
- static int pp_connect_ctx(struct pingpong_context *ctx, int port, enum ibv_mtu mtu,
- 			  int sl, const struct pingpong_dest *my_dest,
--			  const struct pingpong_dest *dest)
-+			  const struct pingpong_dest *dest, int sgid_idx)
- {
- 	int i;
- 
-@@ -101,6 +103,13 @@ static int pp_connect_ctx(struct pingpong_context *ctx, int port, enum ibv_mtu m
- 				.port_num	= port
- 			}
- 		};
-+
-+		if (dest->gid.global.interface_id) {
-+			attr.ah_attr.is_global = 1;
-+			attr.ah_attr.grh.hop_limit = 1;
-+			attr.ah_attr.grh.dgid = dest->gid;
-+			attr.ah_attr.grh.sgid_index = sgid_idx;
-+		}
- 		if (ibv_modify_qp(ctx->qp[i], &attr,
- 				  IBV_QP_STATE              |
- 				  IBV_QP_AV                 |
-@@ -143,12 +152,13 @@ static struct pingpong_dest *pp_client_exch_dest(const char *servername, int por
- 		.ai_socktype = SOCK_STREAM
- 	};
- 	char *service;
--	char msg[sizeof "0000:000000:000000"];
-+	char msg[sizeof "0000:000000:000000:00000000000000000000000000000000"];
- 	int n;
- 	int r;
- 	int i;
- 	int sockfd = -1;
- 	struct pingpong_dest *rem_dest = NULL;
-+	char gid[33];
- 
- 	if (asprintf(&service, "%d", port) < 0)
- 		return NULL;
-@@ -180,7 +190,8 @@ static struct pingpong_dest *pp_client_exch_dest(const char *servername, int por
- 	}
- 
- 	for (i = 0; i < MAX_QP; ++i) {
--		sprintf(msg, "%04x:%06x:%06x", my_dest[i].lid, my_dest[i].qpn, my_dest[i].psn);
-+		gid_to_wire_gid(&my_dest[i].gid, gid);
-+		sprintf(msg, "%04x:%06x:%06x:%s", my_dest[i].lid, my_dest[i].qpn, my_dest[i].psn, gid);
- 		if (write(sockfd, msg, sizeof msg) != sizeof msg) {
- 			fprintf(stderr, "Couldn't send local address\n");
- 			goto out;
-@@ -204,8 +215,9 @@ static struct pingpong_dest *pp_client_exch_dest(const char *servername, int por
- 			n += r;
- 		}
- 
--		sscanf(msg, "%x:%x:%x",
--		       &rem_dest[i].lid, &rem_dest[i].qpn, &rem_dest[i].psn);
-+		sscanf(msg, "%x:%x:%x:%s",
-+		       &rem_dest[i].lid, &rem_dest[i].qpn, &rem_dest[i].psn, gid);
-+		wire_gid_to_gid(gid, &rem_dest[i].gid);
- 	}
- 
- 	write(sockfd, "done", sizeof "done");
-@@ -218,7 +230,8 @@ out:
- static struct pingpong_dest *pp_server_exch_dest(struct pingpong_context *ctx,
- 						 int ib_port, enum ibv_mtu mtu,
- 						 int port, int sl,
--						 const struct pingpong_dest *my_dest)
-+						 const struct pingpong_dest *my_dest,
-+						 int sgid_idx)
- {
- 	struct addrinfo *res, *t;
- 	struct addrinfo hints = {
-@@ -227,12 +240,13 @@ static struct pingpong_dest *pp_server_exch_dest(struct pingpong_context *ctx,
- 		.ai_socktype = SOCK_STREAM
- 	};
- 	char *service;
--	char msg[sizeof "0000:000000:000000"];
-+	char msg[sizeof "0000:000000:000000:00000000000000000000000000000000"];
- 	int n;
- 	int r;
- 	int i;
- 	int sockfd = -1, connfd;
- 	struct pingpong_dest *rem_dest = NULL;
-+	char gid[33];
- 
- 	if (asprintf(&service, "%d", port) < 0)
- 		return NULL;
-@@ -292,11 +306,12 @@ static struct pingpong_dest *pp_server_exch_dest(struct pingpong_context *ctx,
- 			n += r;
- 		}
- 
--		sscanf(msg, "%x:%x:%x",
--		       &rem_dest[i].lid, &rem_dest[i].qpn, &rem_dest[i].psn);
-+		sscanf(msg, "%x:%x:%x:%s",
-+		       &rem_dest[i].lid, &rem_dest[i].qpn, &rem_dest[i].psn, gid);
-+		wire_gid_to_gid(gid, &rem_dest[i].gid);
- 	}
- 
--	if (pp_connect_ctx(ctx, ib_port, mtu, sl, my_dest, rem_dest)) {
-+	if (pp_connect_ctx(ctx, ib_port, mtu, sl, my_dest, rem_dest, sgid_idx)) {
- 		fprintf(stderr, "Couldn't connect to remote QP\n");
- 		free(rem_dest);
- 		rem_dest = NULL;
-@@ -304,7 +319,8 @@ static struct pingpong_dest *pp_server_exch_dest(struct pingpong_context *ctx,
- 	}
- 
- 	for (i = 0; i < MAX_QP; ++i) {
--		sprintf(msg, "%04x:%06x:%06x", my_dest[i].lid, my_dest[i].qpn, my_dest[i].psn);
-+		gid_to_wire_gid(&my_dest[i].gid, gid);
-+		sprintf(msg, "%04x:%06x:%06x:%s", my_dest[i].lid, my_dest[i].qpn, my_dest[i].psn, gid);
- 		if (write(connfd, msg, sizeof msg) != sizeof msg) {
- 			fprintf(stderr, "Couldn't send local address\n");
- 			free(rem_dest);
-@@ -327,7 +343,7 @@ static struct pingpong_context *pp_init_ctx(struct ibv_device *ib_dev, int size,
- 	struct pingpong_context *ctx;
- 	int i;
- 
--	ctx = malloc(sizeof *ctx);
-+	ctx = calloc(1, sizeof *ctx);
- 	if (!ctx)
- 		return NULL;
- 
-@@ -551,6 +567,7 @@ static void usage(const char *argv0)
- 	printf("  -n, --iters=<iters>    number of exchanges per QP(default 1000)\n");
- 	printf("  -l, --sl=<sl>          service level value\n");
- 	printf("  -e, --events           sleep on CQ events (default poll)\n");
-+	printf("  -g, --gid-idx=<gid index> local port gid index\n");
- }
- 
- int main(int argc, char *argv[])
-@@ -578,6 +595,8 @@ int main(int argc, char *argv[])
- 	int                      i;
- 	int                      num_cq_events = 0;
- 	int                      sl = 0;
-+	int			 gidx = -1;
-+	char			 gid[33];
- 
- 	srand48(getpid() * time(NULL));
- 
-@@ -595,10 +614,11 @@ int main(int argc, char *argv[])
- 			{ .name = "iters",    .has_arg = 1, .val = 'n' },
- 			{ .name = "sl",       .has_arg = 1, .val = 'l' },
- 			{ .name = "events",   .has_arg = 0, .val = 'e' },
-+			{ .name = "gid-idx",  .has_arg = 1, .val = 'g' },
- 			{ 0 }
- 		};
- 
--		c = getopt_long(argc, argv, "p:d:i:s:m:q:r:n:l:e", long_options, NULL);
-+		c = getopt_long(argc, argv, "p:d:i:s:m:q:r:n:l:eg:", long_options, NULL);
- 		if (c == -1)
- 			break;
- 
-@@ -655,6 +675,10 @@ int main(int argc, char *argv[])
- 			++use_event;
- 			break;
- 
-+		case 'g':
-+			gidx = strtol(optarg, NULL, 0);
-+			break;
-+
- 		default:
- 			usage(argv[0]);
- 			return 1;
-@@ -722,33 +746,49 @@ int main(int argc, char *argv[])
- 
- 	memset(my_dest, 0, sizeof my_dest);
- 
-+	if (pp_get_port_info(ctx->context, ib_port, &ctx->portinfo)) {
-+		fprintf(stderr, "Couldn't get port info\n");
-+		return 1;
-+	}
- 	for (i = 0; i < num_qp; ++i) {
- 		my_dest[i].qpn = ctx->qp[i]->qp_num;
- 		my_dest[i].psn = lrand48() & 0xffffff;
--		my_dest[i].lid = pp_get_local_lid(ctx->context, ib_port);
--		if (!my_dest[i].lid) {
-+		if (ctx->portinfo.link_layer == IBV_LINK_LAYER_INFINIBAND && !my_dest[i].lid) {
- 			fprintf(stderr, "Couldn't get local LID\n");
- 			return 1;
- 		}
- 
--		printf("  local address:  LID 0x%04x, QPN 0x%06x, PSN 0x%06x\n",
--		       my_dest[i].lid, my_dest[i].qpn, my_dest[i].psn);
-+		if (gidx >= 0) {
-+			if (ibv_query_gid(ctx->context, ib_port, gidx, &my_dest[i].gid)) {
-+				fprintf(stderr, "Could not get local gid for gid index %d\n", gidx);
-+				return 1;
+ static void __set_data_seg(struct mlx4_wqe_data_seg *dseg, struct ibv_sge *sg)
+@@ -281,6 +283,10 @@ int mlx4_post_send(struct ibv_qp *ibqp, struct ibv_send_wr *wr,
+ 			set_datagram_seg(wqe, wr);
+ 			wqe  += sizeof (struct mlx4_wqe_datagram_seg);
+ 			size += sizeof (struct mlx4_wqe_datagram_seg) / 16;
++			if (to_mah(wr->wr.ud.ah)->tagged) {
++				ctrl->ins_vlan = 1 << 6;
++				ctrl->vlan_tag = htons(to_mah(wr->wr.ud.ah)->vlan);
 +			}
-+		} else
-+			memset(&my_dest[i].gid, 0, sizeof my_dest[i].gid);
-+
-+		inet_ntop(AF_INET6, &my_dest[i].gid, gid, sizeof gid);
-+		printf("  local address:  LID 0x%04x, QPN 0x%06x, PSN 0x%06x, GID %s\n",
-+		       my_dest[i].lid, my_dest[i].qpn, my_dest[i].psn, gid);
+ 			break;
+ 
+ 		default:
+@@ -393,7 +399,7 @@ out:
+ 
+ 	if (nreq == 1 && inl && size > 1 && size < ctx->bf_buf_size / 16) {
+ 		ctrl->owner_opcode |= htonl((qp->sq.head & 0xffff) << 8);
+-		*(uint32_t *) ctrl->reserved |= qp->doorbell_qpn;
++		*(uint32_t *) (&ctrl->vlan_tag) |= qp->doorbell_qpn;
+ 		/*
+ 		 * Make sure that descriptor is written to memory
+ 		 * before writing to BlueFlame page.
+diff --git a/src/verbs.c b/src/verbs.c
+index 1ac1362..756796f 100644
+--- a/src/verbs.c
++++ b/src/verbs.c
+@@ -40,6 +40,7 @@
+ #include <pthread.h>
+ #include <errno.h>
+ #include <netinet/in.h>
++#include <infiniband/driver.h>
+ 
+ #include "mlx4.h"
+ #include "mlx4-abi.h"
+@@ -617,6 +618,8 @@ int mlx4_destroy_qp(struct ibv_qp *ibqp)
+ struct ibv_ah *mlx4_create_ah(struct ibv_pd *pd, struct ibv_ah_attr *attr)
+ {
+ 	struct mlx4_ah *ah;
++	struct ibv_port_attr port_attr;
++	uint8_t is_mcast;
+ 
+ 	ah = malloc(sizeof *ah);
+ 	if (!ah)
+@@ -642,7 +645,32 @@ struct ibv_ah *mlx4_create_ah(struct ibv_pd *pd, struct ibv_ah_attr *attr)
+ 		memcpy(ah->av.dgid, attr->grh.dgid.raw, 16);
  	}
  
- 	if (servername)
- 		rem_dest = pp_client_exch_dest(servername, port, my_dest);
- 	else
--		rem_dest = pp_server_exch_dest(ctx, ib_port, mtu, port, sl, my_dest);
-+		rem_dest = pp_server_exch_dest(ctx, ib_port, mtu, port, sl, my_dest, gidx);
- 
- 	if (!rem_dest)
- 		return 1;
- 
--	for (i = 0; i < num_qp; ++i)
--		printf("  remote address: LID 0x%04x, QPN 0x%06x, PSN 0x%06x\n",
--		       rem_dest[i].lid, rem_dest[i].qpn, rem_dest[i].psn);
-+	inet_ntop(AF_INET6, &rem_dest->gid, gid, sizeof gid);
++	if (ibv_query_port(pd->context, attr->port_num, &port_attr))
++		goto err;
 +
-+	for (i = 0; i < num_qp; ++i) {
-+		inet_ntop(AF_INET6, &rem_dest[i].gid, gid, sizeof gid);
-+		printf("  remote address: LID 0x%04x, QPN 0x%06x, PSN 0x%06x, GID %s\n",
-+		       rem_dest[i].lid, rem_dest[i].qpn, rem_dest[i].psn, gid);
-+	}
- 
- 	if (servername)
--		if (pp_connect_ctx(ctx, ib_port, mtu, sl, my_dest, rem_dest))
-+		if (pp_connect_ctx(ctx, ib_port, mtu, sl, my_dest, rem_dest, gidx))
- 			return 1;
- 
- 	if (servername)
-diff --git a/examples/uc_pingpong.c b/examples/uc_pingpong.c
-index 6f31247..848a908 100644
---- a/examples/uc_pingpong.c
-+++ b/examples/uc_pingpong.c
-@@ -67,17 +67,19 @@ struct pingpong_context {
- 	int			 size;
- 	int			 rx_depth;
- 	int			 pending;
-+	struct ibv_port_attr	 portinfo;
- };
- 
- struct pingpong_dest {
- 	int lid;
- 	int qpn;
- 	int psn;
-+	union ibv_gid gid;
- };
- 
- static int pp_connect_ctx(struct pingpong_context *ctx, int port, int my_psn,
- 			  enum ibv_mtu mtu, int sl,
--			  struct pingpong_dest *dest)
-+			  struct pingpong_dest *dest, int sgid_idx)
- {
- 	struct ibv_qp_attr attr = {
- 		.qp_state		= IBV_QPS_RTR,
-@@ -92,6 +94,14 @@ static int pp_connect_ctx(struct pingpong_context *ctx, int port, int my_psn,
- 			.port_num	= port
- 		}
- 	};
++	if (port_attr.link_layer == IBV_LINK_LAYER_ETHERNET) {
++		if (resolve_eth_gid(pd, attr->port_num,
++				    (union ibv_gid *)ah->av.dgid,
++				    attr->grh.sgid_index,
++				    ah->mac, &ah->vlan,
++				    &ah->tagged, &is_mcast))
++			goto err;
 +
-+	if (dest->gid.global.interface_id) {
-+		attr.ah_attr.is_global = 1;
-+		attr.ah_attr.grh.hop_limit = 1;
-+		attr.ah_attr.grh.dgid = dest->gid;
-+		attr.ah_attr.grh.sgid_index = sgid_idx;
++		if (is_mcast) {
++			ah->av.dlid = htons(0xc000);
++			ah->av.port_pd |= htonl(1 << 31);
++		}
++		if (ah->tagged) {
++			ah->av.port_pd |= htonl(1 << 29);
++			ah->vlan |= (attr->sl & 7) << 13;
++		}
 +	}
 +
- 	if (ibv_modify_qp(ctx->qp, &attr,
- 			  IBV_QP_STATE              |
- 			  IBV_QP_AV                 |
-@@ -123,10 +133,11 @@ static struct pingpong_dest *pp_client_exch_dest(const char *servername, int por
- 		.ai_socktype = SOCK_STREAM
- 	};
- 	char *service;
--	char msg[sizeof "0000:000000:000000"];
-+	char msg[sizeof "0000:000000:000000:00000000000000000000000000000000"];
- 	int n;
- 	int sockfd = -1;
- 	struct pingpong_dest *rem_dest = NULL;
-+	char gid[33];
- 
- 	if (asprintf(&service, "%d", port) < 0)
- 		return NULL;
-@@ -157,7 +168,8 @@ static struct pingpong_dest *pp_client_exch_dest(const char *servername, int por
- 		return NULL;
- 	}
- 
--	sprintf(msg, "%04x:%06x:%06x", my_dest->lid, my_dest->qpn, my_dest->psn);
-+	gid_to_wire_gid(&my_dest->gid, gid);
-+	sprintf(msg, "%04x:%06x:%06x:%s", my_dest->lid, my_dest->qpn, my_dest->psn, gid);
- 	if (write(sockfd, msg, sizeof msg) != sizeof msg) {
- 		fprintf(stderr, "Couldn't send local address\n");
- 		goto out;
-@@ -175,7 +187,8 @@ static struct pingpong_dest *pp_client_exch_dest(const char *servername, int por
- 	if (!rem_dest)
- 		goto out;
- 
--	sscanf(msg, "%x:%x:%x", &rem_dest->lid, &rem_dest->qpn, &rem_dest->psn);
-+	sscanf(msg, "%x:%x:%x:%s", &rem_dest->lid, &rem_dest->qpn, &rem_dest->psn, gid);
-+	wire_gid_to_gid(gid, &rem_dest->gid);
- 
- out:
- 	close(sockfd);
-@@ -185,7 +198,8 @@ out:
- static struct pingpong_dest *pp_server_exch_dest(struct pingpong_context *ctx,
- 						 int ib_port, enum ibv_mtu mtu,
- 						 int port, int sl,
--						 const struct pingpong_dest *my_dest)
-+						 const struct pingpong_dest *my_dest,
-+						 int sgid_idx)
- {
- 	struct addrinfo *res, *t;
- 	struct addrinfo hints = {
-@@ -194,10 +208,11 @@ static struct pingpong_dest *pp_server_exch_dest(struct pingpong_context *ctx,
- 		.ai_socktype = SOCK_STREAM
- 	};
- 	char *service;
--	char msg[sizeof "0000:000000:000000"];
-+	char msg[sizeof "0000:000000:000000:00000000000000000000000000000000"];
- 	int n;
- 	int sockfd = -1, connfd;
- 	struct pingpong_dest *rem_dest = NULL;
-+	char gid[33];
- 
- 	if (asprintf(&service, "%d", port) < 0)
- 		return NULL;
-@@ -251,16 +266,18 @@ static struct pingpong_dest *pp_server_exch_dest(struct pingpong_context *ctx,
- 	if (!rem_dest)
- 		goto out;
- 
--	sscanf(msg, "%x:%x:%x", &rem_dest->lid, &rem_dest->qpn, &rem_dest->psn);
-+	sscanf(msg, "%x:%x:%x:%s", &rem_dest->lid, &rem_dest->qpn, &rem_dest->psn, gid);
-+	wire_gid_to_gid(gid, &rem_dest->gid);
- 
--	if (pp_connect_ctx(ctx, ib_port, my_dest->psn, mtu, sl, rem_dest)) {
-+	if (pp_connect_ctx(ctx, ib_port, my_dest->psn, mtu, sl, rem_dest, sgid_idx)) {
- 		fprintf(stderr, "Couldn't connect to remote QP\n");
- 		free(rem_dest);
- 		rem_dest = NULL;
- 		goto out;
- 	}
- 
--	sprintf(msg, "%04x:%06x:%06x", my_dest->lid, my_dest->qpn, my_dest->psn);
-+	gid_to_wire_gid(&my_dest->gid, gid);
-+	sprintf(msg, "%04x:%06x:%06x:%s", my_dest->lid, my_dest->qpn, my_dest->psn, gid);
- 	if (write(connfd, msg, sizeof msg) != sizeof msg) {
- 		fprintf(stderr, "Couldn't send local address\n");
- 		free(rem_dest);
-@@ -281,7 +298,7 @@ static struct pingpong_context *pp_init_ctx(struct ibv_device *ib_dev, int size,
- {
- 	struct pingpong_context *ctx;
- 
--	ctx = malloc(sizeof *ctx);
-+	ctx = calloc(1, sizeof *ctx);
- 	if (!ctx)
- 		return NULL;
- 
-@@ -469,6 +486,7 @@ static void usage(const char *argv0)
- 	printf("  -n, --iters=<iters>    number of exchanges (default 1000)\n");
- 	printf("  -l, --sl=<sl>          service level value\n");
- 	printf("  -e, --events           sleep on CQ events (default poll)\n");
-+	printf("  -g, --gid-idx=<gid index> local port gid index\n");
++
+ 	return &ah->ibv_ah;
++err:
++	free(ah);
++	return NULL;
  }
  
- int main(int argc, char *argv[])
-@@ -492,6 +510,8 @@ int main(int argc, char *argv[])
- 	int                      rcnt, scnt;
- 	int                      num_cq_events = 0;
- 	int                      sl = 0;
-+	int			 gidx = -1;
-+	char			 gid[33];
+ int mlx4_destroy_ah(struct ibv_ah *ah)
+diff --git a/src/wqe.h b/src/wqe.h
+index 6f7f309..1e6159c 100644
+--- a/src/wqe.h
++++ b/src/wqe.h
+@@ -54,7 +54,8 @@ enum {
  
- 	srand48(getpid() * time(NULL));
- 
-@@ -508,10 +528,11 @@ int main(int argc, char *argv[])
- 			{ .name = "iters",    .has_arg = 1, .val = 'n' },
- 			{ .name = "sl",       .has_arg = 1, .val = 'l' },
- 			{ .name = "events",   .has_arg = 0, .val = 'e' },
-+			{ .name = "gid-idx",  .has_arg = 1, .val = 'g' },
- 			{ 0 }
- 		};
- 
--		c = getopt_long(argc, argv, "p:d:i:s:m:r:n:l:e", long_options, NULL);
-+		c = getopt_long(argc, argv, "p:d:i:s:m:r:n:l:eg:", long_options, NULL);
- 		if (c == -1)
- 			break;
- 
-@@ -564,6 +585,10 @@ int main(int argc, char *argv[])
- 			++use_event;
- 			break;
- 
-+		case 'g':
-+			gidx = strtol(optarg, NULL, 0);
-+			break;
-+
- 		default:
- 			usage(argv[0]);
- 			return 1;
-@@ -619,30 +644,45 @@ int main(int argc, char *argv[])
- 			return 1;
- 		}
- 
--	my_dest.lid = pp_get_local_lid(ctx->context, ib_port);
--	my_dest.qpn = ctx->qp->qp_num;
--	my_dest.psn = lrand48() & 0xffffff;
--	if (!my_dest.lid) {
-+	if (pp_get_port_info(ctx->context, ib_port, &ctx->portinfo)) {
-+		fprintf(stderr, "Couldn't get port info\n");
-+		return 1;
-+	}
-+
-+	my_dest.lid = ctx->portinfo.lid;
-+	if (ctx->portinfo.link_layer == IBV_LINK_LAYER_INFINIBAND && !my_dest.lid) {
- 		fprintf(stderr, "Couldn't get local LID\n");
- 		return 1;
- 	}
- 
--	printf("  local address:  LID 0x%04x, QPN 0x%06x, PSN 0x%06x\n",
--	       my_dest.lid, my_dest.qpn, my_dest.psn);
-+	if (gidx >= 0) {
-+		if (ibv_query_gid(ctx->context, ib_port, gidx, &my_dest.gid)) {
-+			fprintf(stderr, "Could not get local gid for gid index %d\n", gidx);
-+			return 1;
-+		}
-+	} else
-+		memset(&my_dest.gid, 0, sizeof my_dest.gid);
-+
-+	my_dest.qpn = ctx->qp->qp_num;
-+	my_dest.psn = lrand48() & 0xffffff;
-+	inet_ntop(AF_INET6, &my_dest.gid, gid, sizeof gid);
-+	printf("  local address:  LID 0x%04x, QPN 0x%06x, PSN 0x%06x, GID %s\n",
-+	       my_dest.lid, my_dest.qpn, my_dest.psn, gid);
- 
- 	if (servername)
- 		rem_dest = pp_client_exch_dest(servername, port, &my_dest);
- 	else
--		rem_dest = pp_server_exch_dest(ctx, ib_port, mtu, port, sl, &my_dest);
-+		rem_dest = pp_server_exch_dest(ctx, ib_port, mtu, port, sl, &my_dest, gidx);
- 
- 	if (!rem_dest)
- 		return 1;
- 
--	printf("  remote address: LID 0x%04x, QPN 0x%06x, PSN 0x%06x\n",
--	       rem_dest->lid, rem_dest->qpn, rem_dest->psn);
-+	inet_ntop(AF_INET6, &rem_dest->gid, gid, sizeof gid);
-+	printf("  remote address: LID 0x%04x, QPN 0x%06x, PSN 0x%06x, GID %s\n",
-+	       rem_dest->lid, rem_dest->qpn, rem_dest->psn, gid);
- 
- 	if (servername)
--		if (pp_connect_ctx(ctx, ib_port, my_dest.psn, mtu, sl, rem_dest))
-+		if (pp_connect_ctx(ctx, ib_port, my_dest.psn, mtu, sl, rem_dest, gidx))
- 			return 1;
- 
- 	ctx->pending = PINGPONG_RECV_WRID;
-diff --git a/examples/ud_pingpong.c b/examples/ud_pingpong.c
-index 6f10212..36a905a 100644
---- a/examples/ud_pingpong.c
-+++ b/examples/ud_pingpong.c
-@@ -68,16 +68,18 @@ struct pingpong_context {
- 	int			 size;
- 	int			 rx_depth;
- 	int			 pending;
-+	struct ibv_port_attr     portinfo;
+ struct mlx4_wqe_ctrl_seg {
+ 	uint32_t		owner_opcode;
+-	uint8_t			reserved[3];
++	uint16_t		vlan_tag;
++	uint8_t			ins_vlan;
+ 	uint8_t			fence_size;
+ 	/*
+ 	 * High 24 bits are SRC remote buffer; low 8 bits are flags:
+@@ -78,7 +79,8 @@ struct mlx4_wqe_datagram_seg {
+ 	uint32_t		av[8];
+ 	uint32_t		dqpn;
+ 	uint32_t		qkey;
+-	uint32_t		reserved[2];
++	uint16_t		vlan;
++	uint8_t			mac[6];
  };
  
- struct pingpong_dest {
- 	int lid;
- 	int qpn;
- 	int psn;
-+	union ibv_gid gid;
- };
- 
- static int pp_connect_ctx(struct pingpong_context *ctx, int port, int my_psn,
--			  int sl, struct pingpong_dest *dest)
-+			  int sl, struct pingpong_dest *dest, int sgid_idx)
- {
- 	struct ibv_ah_attr ah_attr = {
- 		.is_global     = 0,
-@@ -105,6 +107,13 @@ static int pp_connect_ctx(struct pingpong_context *ctx, int port, int my_psn,
- 		return 1;
- 	}
- 
-+	if (dest->gid.global.interface_id) {
-+		ah_attr.is_global = 1;
-+		ah_attr.grh.hop_limit = 1;
-+		ah_attr.grh.dgid = dest->gid;
-+		ah_attr.grh.sgid_index = sgid_idx;
-+	}
-+
- 	ctx->ah = ibv_create_ah(ctx->pd, &ah_attr);
- 	if (!ctx->ah) {
- 		fprintf(stderr, "Failed to create AH\n");
-@@ -123,10 +132,11 @@ static struct pingpong_dest *pp_client_exch_dest(const char *servername, int por
- 		.ai_socktype = SOCK_STREAM
- 	};
- 	char *service;
--	char msg[sizeof "0000:000000:000000"];
-+	char msg[sizeof "0000:000000:000000:00000000000000000000000000000000"];
- 	int n;
- 	int sockfd = -1;
- 	struct pingpong_dest *rem_dest = NULL;
-+	char gid[33];
- 
- 	if (asprintf(&service, "%d", port) < 0)
- 		return NULL;
-@@ -157,7 +167,8 @@ static struct pingpong_dest *pp_client_exch_dest(const char *servername, int por
- 		return NULL;
- 	}
- 
--	sprintf(msg, "%04x:%06x:%06x", my_dest->lid, my_dest->qpn, my_dest->psn);
-+	gid_to_wire_gid(&my_dest->gid, gid);
-+	sprintf(msg, "%04x:%06x:%06x:%s", my_dest->lid, my_dest->qpn, my_dest->psn, gid);
- 	if (write(sockfd, msg, sizeof msg) != sizeof msg) {
- 		fprintf(stderr, "Couldn't send local address\n");
- 		goto out;
-@@ -175,7 +186,8 @@ static struct pingpong_dest *pp_client_exch_dest(const char *servername, int por
- 	if (!rem_dest)
- 		goto out;
- 
--	sscanf(msg, "%x:%x:%x", &rem_dest->lid, &rem_dest->qpn, &rem_dest->psn);
-+	sscanf(msg, "%x:%x:%x:%s", &rem_dest->lid, &rem_dest->qpn, &rem_dest->psn, gid);
-+	wire_gid_to_gid(gid, &rem_dest->gid);
- 
- out:
- 	close(sockfd);
-@@ -184,7 +196,8 @@ out:
- 
- static struct pingpong_dest *pp_server_exch_dest(struct pingpong_context *ctx,
- 						 int ib_port, int port, int sl,
--						 const struct pingpong_dest *my_dest)
-+						 const struct pingpong_dest *my_dest,
-+						 int sgid_idx)
- {
- 	struct addrinfo *res, *t;
- 	struct addrinfo hints = {
-@@ -193,10 +206,11 @@ static struct pingpong_dest *pp_server_exch_dest(struct pingpong_context *ctx,
- 		.ai_socktype = SOCK_STREAM
- 	};
- 	char *service;
--	char msg[sizeof "0000:000000:000000"];
-+	char msg[sizeof "0000:000000:000000:00000000000000000000000000000000"];
- 	int n;
- 	int sockfd = -1, connfd;
- 	struct pingpong_dest *rem_dest = NULL;
-+	char gid[33];
- 
- 	if (asprintf(&service, "%d", port) < 0)
- 		return NULL;
-@@ -250,16 +264,18 @@ static struct pingpong_dest *pp_server_exch_dest(struct pingpong_context *ctx,
- 	if (!rem_dest)
- 		goto out;
- 
--	sscanf(msg, "%x:%x:%x", &rem_dest->lid, &rem_dest->qpn, &rem_dest->psn);
-+	sscanf(msg, "%x:%x:%x:%s", &rem_dest->lid, &rem_dest->qpn, &rem_dest->psn, gid);
-+	wire_gid_to_gid(gid, &rem_dest->gid);
- 
--	if (pp_connect_ctx(ctx, ib_port, my_dest->psn, sl, rem_dest)) {
-+	if (pp_connect_ctx(ctx, ib_port, my_dest->psn, sl, rem_dest, sgid_idx)) {
- 		fprintf(stderr, "Couldn't connect to remote QP\n");
- 		free(rem_dest);
- 		rem_dest = NULL;
- 		goto out;
- 	}
- 
--	sprintf(msg, "%04x:%06x:%06x", my_dest->lid, my_dest->qpn, my_dest->psn);
-+	gid_to_wire_gid(&my_dest->gid, gid);
-+	sprintf(msg, "%04x:%06x:%06x:%s", my_dest->lid, my_dest->qpn, my_dest->psn, gid);
- 	if (write(connfd, msg, sizeof msg) != sizeof msg) {
- 		fprintf(stderr, "Couldn't send local address\n");
- 		free(rem_dest);
-@@ -474,10 +490,11 @@ static void usage(const char *argv0)
- 	printf("  -p, --port=<port>      listen on/connect to port <port> (default 18515)\n");
- 	printf("  -d, --ib-dev=<dev>     use IB device <dev> (default first device found)\n");
- 	printf("  -i, --ib-port=<port>   use port <port> of IB device (default 1)\n");
--	printf("  -s, --size=<size>      size of message to exchange (default 2048)\n");
-+	printf("  -s, --size=<size>      size of message to exchange (default 1024)\n");
- 	printf("  -r, --rx-depth=<dep>   number of receives to post at a time (default 500)\n");
- 	printf("  -n, --iters=<iters>    number of exchanges (default 1000)\n");
- 	printf("  -e, --events           sleep on CQ events (default poll)\n");
-+	printf("  -g, --gid-idx=<gid index> local port gid index\n");
- }
- 
- int main(int argc, char *argv[])
-@@ -492,7 +509,7 @@ int main(int argc, char *argv[])
- 	char                    *servername = NULL;
- 	int                      port = 18515;
- 	int                      ib_port = 1;
--	int                      size = 2048;
-+	int                      size = 1024;
- 	int                      rx_depth = 500;
- 	int                      iters = 1000;
- 	int                      use_event = 0;
-@@ -500,6 +517,8 @@ int main(int argc, char *argv[])
- 	int                      rcnt, scnt;
- 	int                      num_cq_events = 0;
- 	int                      sl = 0;
-+	int 			 gidx = -1;
-+	char			 gid[33];
- 
- 	srand48(getpid() * time(NULL));
- 
-@@ -515,10 +534,11 @@ int main(int argc, char *argv[])
- 			{ .name = "iters",    .has_arg = 1, .val = 'n' },
- 			{ .name = "sl",       .has_arg = 1, .val = 'l' },
- 			{ .name = "events",   .has_arg = 0, .val = 'e' },
-+			{ .name = "gid-idx",  .has_arg = 1, .val = 'g' },
- 			{ 0 }
- 		};
- 
--		c = getopt_long(argc, argv, "p:d:i:s:r:n:l:e", long_options, NULL);
-+		c = getopt_long(argc, argv, "p:d:i:s:r:n:l:eg:", long_options, NULL);
- 		if (c == -1)
- 			break;
- 
-@@ -563,6 +583,10 @@ int main(int argc, char *argv[])
- 			++use_event;
- 			break;
- 
-+		case 'g':
-+			gidx = strtol(optarg, NULL, 0);
-+			break;
-+
- 		default:
- 			usage(argv[0]);
- 			return 1;
-@@ -618,30 +642,41 @@ int main(int argc, char *argv[])
- 			return 1;
- 		}
- 
--	my_dest.lid = pp_get_local_lid(ctx->context, ib_port);
--	my_dest.qpn = ctx->qp->qp_num;
--	my_dest.psn = lrand48() & 0xffffff;
--	if (!my_dest.lid) {
--		fprintf(stderr, "Couldn't get local LID\n");
-+	if (pp_get_port_info(ctx->context, ib_port, &ctx->portinfo)) {
-+		fprintf(stderr, "Couldn't get port info\n");
- 		return 1;
- 	}
-+	my_dest.lid = ctx->portinfo.lid;
-+
-+	my_dest.qpn = ctx->qp->qp_num;
-+	my_dest.psn = lrand48() & 0xffffff;
-+
-+	if (gidx >= 0) {
-+		if (ibv_query_gid(ctx->context, ib_port, gidx, &my_dest.gid)) {
-+			fprintf(stderr, "Could not get local gid for gid index %d\n", gidx);
-+			return 1;
-+		}
-+	} else
-+		memset(&my_dest.gid, 0, sizeof my_dest.gid);
- 
--	printf("  local address:  LID 0x%04x, QPN 0x%06x, PSN 0x%06x\n",
--	       my_dest.lid, my_dest.qpn, my_dest.psn);
-+	inet_ntop(AF_INET6, &my_dest.gid, gid, sizeof gid);
-+	printf("  local address:  LID 0x%04x, QPN 0x%06x, PSN 0x%06x: GID %s\n",
-+	       my_dest.lid, my_dest.qpn, my_dest.psn, gid);
- 
- 	if (servername)
- 		rem_dest = pp_client_exch_dest(servername, port, &my_dest);
- 	else
--		rem_dest = pp_server_exch_dest(ctx, ib_port, port, sl, &my_dest);
-+		rem_dest = pp_server_exch_dest(ctx, ib_port, port, sl, &my_dest, gidx);
- 
- 	if (!rem_dest)
- 		return 1;
- 
--	printf("  remote address: LID 0x%04x, QPN 0x%06x, PSN 0x%06x\n",
--	       rem_dest->lid, rem_dest->qpn, rem_dest->psn);
-+	inet_ntop(AF_INET6, &rem_dest->gid, gid, sizeof gid);
-+	printf("  remote address: LID 0x%04x, QPN 0x%06x, PSN 0x%06x, GID %s\n",
-+	       rem_dest->lid, rem_dest->qpn, rem_dest->psn, gid);
- 
- 	if (servername)
--		if (pp_connect_ctx(ctx, ib_port, my_dest.psn, sl, rem_dest))
-+		if (pp_connect_ctx(ctx, ib_port, my_dest.psn, sl, rem_dest, gidx))
- 			return 1;
- 
- 	ctx->pending = PINGPONG_RECV_WRID;
+ struct mlx4_wqe_data_seg {
 -- 
 1.7.2
 
