@@ -1,64 +1,86 @@
 From: Ralph Campbell <ralph.campbell-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-Subject: Re: yet again the atomic operations
-Date: Fri, 6 Aug 2010 10:26:05 -0700
-Message-ID: <1281115565.7414.52.camel@chromite.mv.qlogic.com>
-References: <AANLkTikQX+CKvs_pjkH_Ap358jfjp4dYKYyKG95+eZmt@mail.gmail.com>
-	 <1281033688.7414.30.camel@chromite.mv.qlogic.com>
-	 <AANLkTimVTjHOubAaJ5oRHju6C7k7FZMqqq0Mvb4SBztB@mail.gmail.com>
+Subject: Re: {RFC] ibv_post_send()/ibv_post_recv() kernel path optimizations
+Date: Fri, 6 Aug 2010 11:00:16 -0700
+Message-ID: <1281117616.7414.92.camel@chromite.mv.qlogic.com>
+References: <BE2BFE91933D1B4089447C64486040805BD83E5F@irsmsx503.ger.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <AANLkTimVTjHOubAaJ5oRHju6C7k7FZMqqq0Mvb4SBztB-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <BE2BFE91933D1B4089447C64486040805BD83E5F-IGOiFh9zz4wLt2AQoY/u9bfspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Rui Machado <ruimario-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: "Walukiewicz, Miroslaw" <Miroslaw.Walukiewicz-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, 2010-08-06 at 04:43 -0700, Rui Machado wrote:
-> Hi there,
+On Fri, 2010-08-06 at 03:03 -0700, Walukiewicz, Miroslaw wrote:
+> Currently the ibv_post_send()/ibv_post_recv() path through kernel 
+> (using /dev/infiniband/rdmacm) could be optimized by removing dynamic memory allocations on the path. 
 > 
-> > There are two kinds supported. QLogic's driver does them in
-> > the host driver so they are atomic with respect to all the CPUs
-> > in the host. Mellanox uses HCA wide atomic which means the
-> > HCA will do a memory read/write without allowing other reads
-> > or writes from different QP operations passing through that
-> > HCA to get in between. The CPUs on the host won't see
-> > atomic operations since from their perspective, it looks
-> > like a normal read and write from the PCIe bus.
+> Currently the transmit/receive path works following way:
+> User calls ibv_post_send() where vendor specific function is called. 
+> When the path should go through kernel the ibv_cmd_post_send() is called.
+>  The function creates the POST_SEND message body that is passed to kernel. 
+> As the number of sges is unknown the dynamic allocation for message body is performed. 
+> (see libibverbs/src/cmd.c)
 > 
-> So if the CPU writes/reads to/from the same address, even atomically
-> (lock), there might be room for some inconsistency on the values? It
-> is not really atomic from the whole system point of view, just for the
-> HCA? If so, is there any possibility to make the whole operation
-> 'system-wide' atomic?
-
-Correct.
-It won't be consistent from the HCA's point of view if other HCAs
-or CPUs are modifying the memory - even if they do it atomically.
-It is only consistent if a single HCA is doing atomic ops to the
-memory.
-
-There is no possibility to change this unless PCIe atomic
-operations are used by the HCA and if the root complex supports
-atomic operations. I don't know of any HCAs or root complex
-chips which have this support yet.
-
-> > You can see what type the HCA supports with "ibv_devinfo -v"
-> > and look for "atomic_cap: ATOMIC_HCA (1)" or
-> > "atomic_cap: ATOMIC_GLOB (2)".
+> In the kernel the message body is parsed and a structure of wr and sges is recreated using dynamic allocations in kernel 
+> The goal of this operation is having a similar structure like in user space. 
 > 
-> ATOMIC_HCA (1) is what I see in my Mellanox hardware. This is the case
-> you mentioned, "without allowing other reads or writes from different
-> QP operations passing through that HCA to get in between"
-> ATOMIC_GLOB (2) means with respect to all HCAs and even the CPU?
-
-Correct.
-
-> Cheers,
-> Rui
+> The proposed path optimization is removing of dynamic allocations 
+> by redefining a structure definition passed to kernel. 
+> From 
 > 
+> struct ibv_post_send {
+>         __u32 command;
+>         __u16 in_words;
+>         __u16 out_words;
+>         __u64 response;
+>         __u32 qp_handle;
+>         __u32 wr_count;
+>         __u32 sge_count;
+>         __u32 wqe_size;
+>         struct ibv_kern_send_wr send_wr[0];
+> };
+> To 
+> 
+> struct ibv_post_send {
+>         __u32 command;
+>         __u16 in_words;
+>         __u16 out_words;
+>         __u64 response;
+>         __u32 qp_handle;
+>         __u32 wr_count;
+>         __u32 sge_count;
+>         __u32 wqe_size;
+>         struct ibv_kern_send_wr send_wr[512];
+> };
+> 
+> Similar change is required in kernel  struct ib_uverbs_post_send defined in /ofa_kernel/include/rdma/ib_uverbs.h
+> 
+> This change limits a number of send_wr passed from unlimited (assured by dynamic allocation) to reasonable number of 512. 
+> I think this number should be a max number of QP entries available to send. 
+> As the all iB/iWARP applications are low latency applications so the number of WRs passed are never unlimited.
+> 
+> As the result instead of dynamic allocation the ibv_cmd_post_send() fills the proposed structure 
+> directly and passes it to kernel. Whenever the number of send_wr number exceeds the limit the ENOMEM error is returned.
+> 
+> In kernel  in ib_uverbs_post_send() instead of dynamic allocation of the ib_send_wr structures 
+> the table of 512  ib_send_wr structures  will be defined and 
+> all entries will be linked to unidirectional list so qp->device->post_send(qp, wr, &bad_wr) API will be not changed. 
+> 
+> As I know no driver uses that kernel path to posting buffers so iWARP multicast acceleration implemented in NES driver 
+> Would be a first application that can utilize the optimized path. 
+> 
+> Regards,
+> 
+> Mirek
+> 
+> Signed-off-by: Mirek Walukiewicz <miroslaw.walukiewicz-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
+The libipathverbs.so plug-in for libibverbs and
+the ib_ipath and ib_qib kernel modules use this path for
+ibv_post_send().
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
