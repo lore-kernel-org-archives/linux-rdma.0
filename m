@@ -1,7 +1,7 @@
 From: "Robert Pearson" <rpearson-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org>
-Subject: [PATCH] rdma/ib_pack.h: add new bth opcodes
-Date: Mon, 9 Aug 2010 00:00:24 -0500
-Message-ID: <009e01cb377f$cc2bfc00$6483f400$@com>
+Subject: FW: [PATCH v2] rdma/ib_pack.h: add new bth opcodes
+Date: Mon, 9 Aug 2010 00:39:50 -0500
+Message-ID: <00a901cb3785$4a032810$de097830$@com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="us-ascii"
@@ -12,6 +12,15 @@ Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+Resending. Managed to mangle the patch in the first send.
+Please ignore the previous send.
+
+-----Original Message-----
+From: Robert Pearson [mailto:rpearson-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org] 
+Sent: Monday, August 09, 2010 12:00 AM
+To: 'linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org'
+Subject: [PATCH] rdma/ib_pack.h: add new bth opcodes
+
 Several new opcodes have been added since the last time ib_pack.h was
 updated.
 These changes add them.
@@ -20,7 +29,7 @@ Signed-off-by: Bob Pearson <rpearson-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gma
 ---
 
 diff --git a/include/rdma/ib_pack.h b/include/rdma/ib_pack.h
-index cbb50f4..42b43d4 100644
+index cbb50f4..df10acc 100644
 --- a/include/rdma/ib_pack.h
 +++ b/include/rdma/ib_pack.h
 @@ -73,8 +73,11 @@ enum {
@@ -62,7 +71,8 @@ index cbb50f4..42b43d4 100644
 
         /* UD */
         IB_OPCODE(UD, SEND_ONLY),
-        IB_OPCODE(UD, SEND_ONLY_WITH_IMMEDIATE)
+-       IB_OPCODE(UD, SEND_ONLY_WITH_IMMEDIATE)
++       IB_OPCODE(UD, SEND_ONLY_WITH_IMMEDIATE),
 +
 +       /* CN */
 +       IB_OPCODE(CN, CNP),
