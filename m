@@ -1,111 +1,102 @@
-From: "Robert Pearson" <rpearson-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org>
-Subject: FW: [PATCH v2] rdma/ib_pack.h: add new bth opcodes
-Date: Mon, 9 Aug 2010 00:39:50 -0500
-Message-ID: <00a901cb3785$4a032810$de097830$@com>
+From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Subject: Re: About a shortcoming of the verbs API
+Date: Mon, 9 Aug 2010 09:57:56 +0200
+Message-ID: <AANLkTimfouLhLCcbxx84d94iztT7PJza+2ZaK50XczT=@mail.gmail.com>
+References: <AANLkTi=zowawGDjyh+uKve_NiRNMXcrqjAk0hRxGSMOv@mail.gmail.com>
+	<AANLkTinHRnt-jvy0xBOAPUDGcfx6=V6rkRT3t0Ja52FP@mail.gmail.com>
+	<adamxtejbes.fsf@roland-alpha.cisco.com>
+	<AANLkTinYuyCqJ6_wq6GH0vQGAY-mwC=7ZLicBnXO+efB@mail.gmail.com>
+	<adafwz4g98j.fsf@roland-alpha.cisco.com>
+	<AANLkTimAk0k-q1EKjaXOadoXvKXbEN9nAky0w1rjixxB@mail.gmail.com>
+	<20100727182046.GT7920@obsidianresearch.com>
+	<AANLkTimc3iS8=8ZQ9u8tOLP4-q_e+o0=AncZj-Mbre2g@mail.gmail.com>
+	<20100808013822.GA15146@obsidianresearch.com>
+	<AANLkTi=My1aK3VsYejeVeRSqo+7RNMX2x6osGNbBERvx@mail.gmail.com>
+	<20100808235104.GA32488@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Language: en-us
+In-Reply-To: <20100808235104.GA32488-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Linux-RDMA <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Resending. Managed to mangle the patch in the first send.
-Please ignore the previous send.
+On Mon, Aug 9, 2010 at 1:51 AM, Jason Gunthorpe
+<jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
+>
+> [ ... ]
+>
+> Further, the approach you outline in your follow on message for
+> blkio, has problems.. Look at how IPOIB does NAPI to see how
+> this must look.
+>
+> 1) ib_req_notify_cq must only be called if you are processing less
+> =A0 the budget
+> 2) blk_iopoll_complete must be called prior to ib_req_notify_cq, sinc=
+e
+> =A0 call ib_req_notify_cq can immediately generate an interrupt, and
+> =A0 that interrupt must see the sched bit as cleared. If
+> =A0 ib_req_notify_cq races then you have to blkiopoll_reschedual.
+> =A0 (and maybe continue looping depending on your strategy for
+> =A0 =A0call blkio_poll_disable elsewhere)
+> 3) The idea you can hand off to normal processing if
+> =A0 blk_iopoll_sched_prep fails in the ISR does not work for anything
+> =A0 relying on the non-rentrancy of the blkio_poll call back for
+> =A0 locking. This seems to describe the SRP driver.
 
------Original Message-----
-From: Robert Pearson [mailto:rpearson-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org] 
-Sent: Monday, August 09, 2010 12:00 AM
-To: 'linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org'
-Subject: [PATCH] rdma/ib_pack.h: add new bth opcodes
+Good catches.
 
-Several new opcodes have been added since the last time ib_pack.h was
-updated.
-These changes add them.
+> There is no easy way you can switch from processing in a non-ISR
+> context to processing in an interrupt on the fly.. Each relies on
+> different implicit locking and switching between those two domains is
+> ugly. Something like this pseudo-code:
+>
+> srp_supress_ib_req_notify_cq =3D 1;
+> blkio_poll_disable();
+>
+> // now there will be no more blkio calls, and no more interrupts!
+>
+> // Neuter the ISR while we are piddling:
+> set_bit(IOPOLL_F_DISABLE, &iop->state);
+>
+> // Drain the CQ
+> poll_again:
+> while (srp_recv_poll_once())
+> =A0 ;
+>
+> // Try to swith back to interrupts!
+> disable_interrupts();
+> ret =3D ib_req_notify_cq(priv->recv_cq,
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 IB_CQ_NEXT_COMP |
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 IB_CQ_REPORT_MISSED_EVENT=
+S));
+> if (ret) {
+> =A0 enable_interrupts();
+> =A0 goto poll_agian;
+> }
+>
+> // OK! We will *definately* get an interrupt now!
+> srp_do_not_use_blkio_poll =3D 1;
+> enable_interrupts();
 
-Signed-off-by: Bob Pearson <rpearson-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org>
----
+Regarding the above pseudo-code: I do not know of any Linux kernel
+version that defines the functions disable_interrupts() and
+enable_interrupts(). There exist functions however that allow to
+disable and re-enable interrupts on the local CPU. But for the above
+pseudo-code, disabling interrupts on the local CPU only would make the
+above code behave incorrectly on multiprocessor systems. And as far as
+I know there are no functions available to disable all interrupts on
+all CPUs - which would be a very expensive operation anyway. Invoking
+disable_irq() and enable_irq() could help, but this requires knowledge
+of the interrupt number, which is not available in the context of a
+completion handler. So I'm not sure whether it is possible to
+translate the above approach from pseudo-code to real code.
 
-diff --git a/include/rdma/ib_pack.h b/include/rdma/ib_pack.h
-index cbb50f4..df10acc 100644
---- a/include/rdma/ib_pack.h
-+++ b/include/rdma/ib_pack.h
-@@ -73,8 +73,11 @@ enum {
-        IB_OPCODE_UC                                = 0x20,
-        IB_OPCODE_RD                                = 0x40,
-        IB_OPCODE_UD                                = 0x60,
-+       IB_OPCODE_CN                                = 0x80,
-+       IB_OPCODE_XRC                               = 0xA0,
-
-        /* operations -- just used to define real constants */
-+       IB_OPCODE_CNP                               = 0x00,
-        IB_OPCODE_SEND_FIRST                        = 0x00,
-        IB_OPCODE_SEND_MIDDLE                       = 0x01,
-        IB_OPCODE_SEND_LAST                         = 0x02,
-@@ -96,6 +99,9 @@ enum {
-        IB_OPCODE_ATOMIC_ACKNOWLEDGE                = 0x12,
-        IB_OPCODE_COMPARE_SWAP                      = 0x13,
-        IB_OPCODE_FETCH_ADD                         = 0x14,
-+       IB_OPCODE_RESYNC                            = 0x15,
-+       IB_OPCODE_SEND_LAST_WITH_INVALIDATE         = 0x16,
-+       IB_OPCODE_SEND_ONLY_WITH_INVALIDATE         = 0x17,
-
-        /* real constants follow -- see comment about above IB_OPCODE()
-           macro for more details */
-@@ -122,6 +128,8 @@ enum {
-        IB_OPCODE(RC, ATOMIC_ACKNOWLEDGE),
-        IB_OPCODE(RC, COMPARE_SWAP),
-        IB_OPCODE(RC, FETCH_ADD),
-+       IB_OPCODE(RC, SEND_LAST_WITH_INVALIDATE),
-+       IB_OPCODE(RC, SEND_ONLY_WITH_INVALIDATE),
-
-        /* UC */
-        IB_OPCODE(UC, SEND_FIRST),
-@@ -159,10 +167,39 @@ enum {
-        IB_OPCODE(RD, ATOMIC_ACKNOWLEDGE),
-        IB_OPCODE(RD, COMPARE_SWAP),
-        IB_OPCODE(RD, FETCH_ADD),
-+       IB_OPCODE(RD, RESYNC),
-
-        /* UD */
-        IB_OPCODE(UD, SEND_ONLY),
--       IB_OPCODE(UD, SEND_ONLY_WITH_IMMEDIATE)
-+       IB_OPCODE(UD, SEND_ONLY_WITH_IMMEDIATE),
-+
-+       /* CN */
-+       IB_OPCODE(CN, CNP),
-+
-+       /* XRC */
-+       IB_OPCODE(XRC, SEND_FIRST),
-+       IB_OPCODE(XRC, SEND_MIDDLE),
-+       IB_OPCODE(XRC, SEND_LAST),
-+       IB_OPCODE(XRC, SEND_LAST_WITH_IMMEDIATE),
-+       IB_OPCODE(XRC, SEND_ONLY),
-+       IB_OPCODE(XRC, SEND_ONLY_WITH_IMMEDIATE),
-+       IB_OPCODE(XRC, RDMA_WRITE_FIRST),
-+       IB_OPCODE(XRC, RDMA_WRITE_MIDDLE),
-+       IB_OPCODE(XRC, RDMA_WRITE_LAST),
-+       IB_OPCODE(XRC, RDMA_WRITE_LAST_WITH_IMMEDIATE),
-+       IB_OPCODE(XRC, RDMA_WRITE_ONLY),
-+       IB_OPCODE(XRC, RDMA_WRITE_ONLY_WITH_IMMEDIATE),
-+       IB_OPCODE(XRC, RDMA_READ_REQUEST),
-+       IB_OPCODE(XRC, RDMA_READ_RESPONSE_FIRST),
-+       IB_OPCODE(XRC, RDMA_READ_RESPONSE_MIDDLE),
-+       IB_OPCODE(XRC, RDMA_READ_RESPONSE_LAST),
-+       IB_OPCODE(XRC, RDMA_READ_RESPONSE_ONLY),
-+       IB_OPCODE(XRC, ACKNOWLEDGE),
-+       IB_OPCODE(XRC, ATOMIC_ACKNOWLEDGE),
-+       IB_OPCODE(XRC, COMPARE_SWAP),
-+       IB_OPCODE(XRC, FETCH_ADD),
-+       IB_OPCODE(XRC, SEND_LAST_WITH_INVALIDATE),
-+       IB_OPCODE(XRC, SEND_ONLY_WITH_INVALIDATE),
- };
-
- enum {
-
+Bart.
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
