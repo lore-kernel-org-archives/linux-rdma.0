@@ -1,101 +1,100 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: About a shortcoming of the verbs API
-Date: Sun, 8 Aug 2010 17:51:04 -0600
-Message-ID: <20100808235104.GA32488@obsidianresearch.com>
-References: <AANLkTi=zowawGDjyh+uKve_NiRNMXcrqjAk0hRxGSMOv@mail.gmail.com> <AANLkTinHRnt-jvy0xBOAPUDGcfx6=V6rkRT3t0Ja52FP@mail.gmail.com> <adamxtejbes.fsf@roland-alpha.cisco.com> <AANLkTinYuyCqJ6_wq6GH0vQGAY-mwC=7ZLicBnXO+efB@mail.gmail.com> <adafwz4g98j.fsf@roland-alpha.cisco.com> <AANLkTimAk0k-q1EKjaXOadoXvKXbEN9nAky0w1rjixxB@mail.gmail.com> <20100727182046.GT7920@obsidianresearch.com> <AANLkTimc3iS8=8ZQ9u8tOLP4-q_e+o0=AncZj-Mbre2g@mail.gmail.com> <20100808013822.GA15146@obsidianresearch.com> <AANLkTi=My1aK3VsYejeVeRSqo+7RNMX2x6osGNbBERvx@mail.gmail.com>
+From: "Robert Pearson" <rpearson-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org>
+Subject: [PATCH] rdma/ib_pack.h: add new bth opcodes
+Date: Mon, 9 Aug 2010 00:00:24 -0500
+Message-ID: <009e01cb377f$cc2bfc00$6483f400$@com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <AANLkTi=My1aK3VsYejeVeRSqo+7RNMX2x6osGNbBERvx-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Content-Language: en-us
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Cc: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Linux-RDMA <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Sun, Aug 08, 2010 at 08:16:55PM +0200, Bart Van Assche wrote:
-> On Sun, Aug 8, 2010 at 3:38 AM, Jason Gunthorpe
-> <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
-> > [ ... ]
-> >
-> > No, all hardware pretty much works like this. The general flow is:
-> >
-> > IRQ happens
-> > ?(if level triggered 'ack' the IRQ to the HW, to suppress the level)
-> > SW processes
-> > SW 'does something' to the HW to cause new IRQs to happen
-> > IRQ happens.. repeat..
-> >
-> > [ ... ]
-> 
-> You might have missed or forgotten the point that was made in the
-> first message of this thread.
+Several new opcodes have been added since the last time ib_pack.h was
+updated.
+These changes add them.
 
-Erm, Roland asserted the problem you were thinking about did not exist
-in Linux, and I thought you agreed?
+Signed-off-by: Bob Pearson <rpearson-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org>
+---
 
-http://www.spinics.net/lists/linux-rdma/msg05031.html
+diff --git a/include/rdma/ib_pack.h b/include/rdma/ib_pack.h
+index cbb50f4..42b43d4 100644
+--- a/include/rdma/ib_pack.h
++++ b/include/rdma/ib_pack.h
+@@ -73,8 +73,11 @@ enum {
+        IB_OPCODE_UC                                = 0x20,
+        IB_OPCODE_RD                                = 0x40,
+        IB_OPCODE_UD                                = 0x60,
++       IB_OPCODE_CN                                = 0x80,
++       IB_OPCODE_XRC                               = 0xA0,
 
-Was there something else in that message?
+        /* operations -- just used to define real constants */
++       IB_OPCODE_CNP                               = 0x00,
+        IB_OPCODE_SEND_FIRST                        = 0x00,
+        IB_OPCODE_SEND_MIDDLE                       = 0x01,
+        IB_OPCODE_SEND_LAST                         = 0x02,
+@@ -96,6 +99,9 @@ enum {
+        IB_OPCODE_ATOMIC_ACKNOWLEDGE                = 0x12,
+        IB_OPCODE_COMPARE_SWAP                      = 0x13,
+        IB_OPCODE_FETCH_ADD                         = 0x14,
++       IB_OPCODE_RESYNC                            = 0x15,
++       IB_OPCODE_SEND_LAST_WITH_INVALIDATE         = 0x16,
++       IB_OPCODE_SEND_ONLY_WITH_INVALIDATE         = 0x17,
 
-I agree there is some variation in what HW is sensitive to for
-generating IRQs, and I do agree that making ib_req_notify_cq an event
-sensitive condition (ie a new CQ was added) rather than a state
-sensitive call back (ie the CQ is not empty) often requires more
-code. But it does not fundamentally make IB any different than every
-thing else - and it fits within the general flow I outline above.
+        /* real constants follow -- see comment about above IB_OPCODE()
+           macro for more details */
+@@ -122,6 +128,8 @@ enum {
+        IB_OPCODE(RC, ATOMIC_ACKNOWLEDGE),
+        IB_OPCODE(RC, COMPARE_SWAP),
+        IB_OPCODE(RC, FETCH_ADD),
++       IB_OPCODE(RC, SEND_LAST_WITH_INVALIDATE),
++       IB_OPCODE(RC, SEND_ONLY_WITH_INVALIDATE),
 
-Further, the approach you outline in your follow on message for
-blkio, has problems.. Look at how IPOIB does NAPI to see how
-this must look.
+        /* UC */
+        IB_OPCODE(UC, SEND_FIRST),
+@@ -159,10 +167,39 @@ enum {
+        IB_OPCODE(RD, ATOMIC_ACKNOWLEDGE),
+        IB_OPCODE(RD, COMPARE_SWAP),
+        IB_OPCODE(RD, FETCH_ADD),
++       IB_OPCODE(RD, RESYNC),
 
-1) ib_req_notify_cq must only be called if you are processing less
-   the budget
-2) blk_iopoll_complete must be called prior to ib_req_notify_cq, since
-   call ib_req_notify_cq can immediately generate an interrupt, and
-   that interrupt must see the sched bit as cleared. If
-   ib_req_notify_cq races then you have to blkiopoll_reschedual.
-   (and maybe continue looping depending on your strategy for
-    call blkio_poll_disable elsewhere)
-3) The idea you can hand off to normal processing if
-   blk_iopoll_sched_prep fails in the ISR does not work for anything
-   relying on the non-rentrancy of the blkio_poll call back for
-   locking. This seems to describe the SRP driver.
+        /* UD */
+        IB_OPCODE(UD, SEND_ONLY),
+        IB_OPCODE(UD, SEND_ONLY_WITH_IMMEDIATE)
++
++       /* CN */
++       IB_OPCODE(CN, CNP),
++
++       /* XRC */
++       IB_OPCODE(XRC, SEND_FIRST),
++       IB_OPCODE(XRC, SEND_MIDDLE),
++       IB_OPCODE(XRC, SEND_LAST),
++       IB_OPCODE(XRC, SEND_LAST_WITH_IMMEDIATE),
++       IB_OPCODE(XRC, SEND_ONLY),
++       IB_OPCODE(XRC, SEND_ONLY_WITH_IMMEDIATE),
++       IB_OPCODE(XRC, RDMA_WRITE_FIRST),
++       IB_OPCODE(XRC, RDMA_WRITE_MIDDLE),
++       IB_OPCODE(XRC, RDMA_WRITE_LAST),
++       IB_OPCODE(XRC, RDMA_WRITE_LAST_WITH_IMMEDIATE),
++       IB_OPCODE(XRC, RDMA_WRITE_ONLY),
++       IB_OPCODE(XRC, RDMA_WRITE_ONLY_WITH_IMMEDIATE),
++       IB_OPCODE(XRC, RDMA_READ_REQUEST),
++       IB_OPCODE(XRC, RDMA_READ_RESPONSE_FIRST),
++       IB_OPCODE(XRC, RDMA_READ_RESPONSE_MIDDLE),
++       IB_OPCODE(XRC, RDMA_READ_RESPONSE_LAST),
++       IB_OPCODE(XRC, RDMA_READ_RESPONSE_ONLY),
++       IB_OPCODE(XRC, ACKNOWLEDGE),
++       IB_OPCODE(XRC, ATOMIC_ACKNOWLEDGE),
++       IB_OPCODE(XRC, COMPARE_SWAP),
++       IB_OPCODE(XRC, FETCH_ADD),
++       IB_OPCODE(XRC, SEND_LAST_WITH_INVALIDATE),
++       IB_OPCODE(XRC, SEND_ONLY_WITH_INVALIDATE),
+ };
 
-There is no easy way you can switch from processing in a non-ISR
-context to processing in an interrupt on the fly.. Each relies on
-different implicit locking and switching between those two domains is
-ugly. Something like this pseudo-code:
+ enum {
 
-srp_supress_ib_req_notify_cq = 1;
-blkio_poll_disable();
-
-// now there will be no more blkio calls, and no more interrupts!
-
-// Neuter the ISR while we are piddling:
-set_bit(IOPOLL_F_DISABLE, &iop->state);
-
-// Drain the CQ
-poll_again:
-while (srp_recv_poll_once())
-   ;
-
-// Try to swith back to interrupts!
-disable_interrupts();
-ret = ib_req_notify_cq(priv->recv_cq,
-	               IB_CQ_NEXT_COMP |
-                       IB_CQ_REPORT_MISSED_EVENTS));
-if (ret) {
-   enable_interrupts();
-   goto poll_agian;
-}
-
-// OK! We will *definately* get an interrupt now!
-srp_do_not_use_blkio_poll = 1;
-enable_interrupts();
-
-Hope this helps,
-Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
