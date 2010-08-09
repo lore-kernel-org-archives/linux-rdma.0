@@ -1,66 +1,36 @@
-From: Bernard Metzler <BMT-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>
-Subject: Re: ucma question - backlog limit
-Date: Mon, 9 Aug 2010 22:05:45 +0200
-Message-ID: <OF3246003B.2B80F29F-ONC125777A.006C2205-C125777A.006E6442@ch.ibm.com>
-References: <4C6049EE.1020907@opengridcomputing.com>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH] rdma cm + XRC
+Date: Mon, 9 Aug 2010 13:53:32 -0700
+Message-ID: <CF9C39F99A89134C9CF9C4CCB68B8DDF25A954BA1C@orsmsx501.amr.corp.intel.com>
+References: <4C5331DC.9080109@systemfabricworks.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4C6049EE.1020907-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+In-Reply-To: <4C5331DC.9080109-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: frank zago <fzago-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Agreed.
+> This allow rdma ucm to establish an XRC connection between two nodes. Most
+> of the changes are related to modify_qp since the API is different
+> whether the QP is on the send or receive side.
+> To create an XRC receive QP, the cap.max_send_wr must be set to 0.
+> Conversely, to create the send XRC QP, that attribute must be non-zero.
 
-Currently, if running out of backlog, the cm actively
-rejects the connection with -ENOMEM back to the provider
-(see ucma_event_handler(), and cm_conn_req_handler()).
-That should allow the provider to zap the TCP connection,
-but its not very productive ;)
+I need to give XRC support to the librdmacm more thought, but here are at least the initial concerns:
 
-Bernard.
+- XRC support upstream (kernel and user space) is still pending.
+  (I can start a librdmacm branch for XRC support.)
+- Changes are needed to the kernel rdma_cm.
+  We could start submitting patches against Roland's xrc branch for these.
+- Please update to the latest librdmacm tree.
+  More specifically, rdma_getaddrinfo should support XRC as well.
 
-Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org> wrote on 08/09/2010 08:33:18 PM:
+In general, I'd like to find a way to add XRC support to the librdmacm that makes things as simple for the user as possible.
 
-> On 08/09/2010 12:51 PM, Hefty, Sean wrote:
-> >> I agree.  I think it should default to say 1024.  Further, I propose
-we
-> >> make this a sysctl variable such that admins can tweak it as needed.
-> >>
-> > The default is based on:
-> >
-> > #define SOMAXCONN       128
-> >
-> > I have no objection to making it adjustable.
-> >
-> > - Sean
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-rdma"
-in
-> > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> >
->
->
-> For TCP, a dropped SYN will cause the peer to retransmit the SYN, and
-> the connection will be eventually established.  So a small backlog limit
-> is probably ok for TCP.  With iWARP, the connect request is TCP payload
-> an on established connection.  So the connection request is transmitted
-> and acked at the TCP level by the time the connect request gets dropped
-> in the ucma.  What finally happens is the peer times out (after many
-> seconds typically) and kills the connection.  Further, a 32 node 256NP
-> OpenMPI job will generate > 128 connect requests on some ranks.
->
-> So I think its reasonable to up default max value.   I'll post a patch
-> to change the max and make it a sysctl variable as well.
->
-> Ok?
->
-> Steve.
->
-
+- Sean
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
