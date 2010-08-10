@@ -1,94 +1,93 @@
-From: "Walukiewicz, Miroslaw" <Miroslaw.Walukiewicz-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: {RFC] ibv_post_send()/ibv_post_recv() kernel path optimizations
-Date: Tue, 10 Aug 2010 08:39:17 +0100
-Message-ID: <BE2BFE91933D1B4089447C64486040805BE11F7D@irsmsx503.ger.corp.intel.com>
-References: <BE2BFE91933D1B4089447C64486040805BD83E5F@irsmsx503.ger.corp.intel.com>
- <20100806163237.GJ11306@obsidianresearch.com>
+From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Subject: Re: [PATCH 2/4] IB/srp: implement SRP_CRED_REQ
+Date: Tue, 10 Aug 2010 09:55:40 +0200
+Message-ID: <AANLkTikmh4+15_3wPGaBkb5o5wkyyiLnRbqKu2Tzmbgp@mail.gmail.com>
+References: <201008021732.44769.bvanassche@acm.org>
+	<1280785473.2451.90.camel@lap75545.ornl.gov>
+	<AANLkTikSFgcjZ0z-Py1+yeFZ8oAohBS=fpRAMqWRBnHy@mail.gmail.com>
+	<1280847933.20446.29.camel@lap75545.ornl.gov>
+	<AANLkTinMU8QkX-5WrsW18UJ7qNfp7ZDchpqcPw0JGAJz@mail.gmail.com>
+	<1280850256.20446.56.camel@lap75545.ornl.gov>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20100806163237.GJ11306-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <1280850256.20446.56.camel-FqX9LgGZnHWDB2HL1qBt2PIbXMQ5te18@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: David Dillow <dave-i1Mk8JYDVaaSihdK6806/g@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hello Jason, 
+On Tue, Aug 3, 2010 at 5:44 PM, David Dillow <dave-i1Mk8JYDVaaSihdK6806/g@public.gmane.org> wrot=
+e:
+>
+> On Tue, 2010-08-03 at 17:26 +0200, Bart Van Assche wrote:
+> [ ... ]
+> > I'm not sure it is a good idea to allow that all transmit buffers g=
+et
+> > allocated for sending CMD_RSP information units and that none remai=
+n
+> > for replying to incoming SRP_CRED_REQ / SRP_AER_REQ / SRP_T_LOGOUT
+> > requests. Wouldn't that be a protocol violation ?
+>
+> You mean SRP_CMD? We don't do that, we clamp the outstanding requests=
+ we
+> generate so we'll always have a buffer to reply to SRP_CRED_REQ et al=
+=2E
+>
+> If SRQ_SQ_SIZE is 64, we set .can_queue to 63 which will leave a buff=
+er
+> available for the reply.
+>
+> Now, if the target sends us multiple SRP_CRED_REQ without waiting for=
+ a
+> reply, then we could use up buffers and not be able to send requests,
+> but that would be a protocol violation on the target's side.
 
-Do you have any benchmarks that show the alloca is a measurable
-overhead?  
+(resending as plain text)
 
-We changed overall path (both kernel and user space) to allocation-less approach and 
-We achieved twice better latency using call to kernel driver. I have no data which path 
-Is dominant - kernel or user space. I think I will have some measurements next week, so I will share 
-My results.
+I have been looking further into this. There is a slight asymmetry in
+the current transmit buffer allocation code: one buffer element is
+reserved on the target for task management requests but not on the
+initiator. So - at least in theory - it is possible that all elements
+of the initiator transmit ring are allocated for SRP_CMD requests at
+the time an SRP_TSK_MGMT request should be sent. Wouldn't it be more
+symmetric to change __srp_get_tx_iu() as follows (diff against the
+current for-next branch) ?
 
-Roland is right, all you
-really need is a per-context (+per-cpu?) buffer you can grab, fill,
-and put back.
+--- a/drivers/infiniband/ulp/srp/
+ib_srp.c
++++ b/drivers/infiniband/ulp/srp/ib_srp.c
+@@ -989,14 +989,14 @@ static void srp_send_completion(struct ib_cq
+*cq, void *target_ptr)
+=A0static struct srp_iu *__srp_get_tx_iu(struct srp_target_port *target=
+,
+=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
+=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 enum srp_request_type req=
+_type)
+=A0{
+-=A0=A0=A0=A0=A0=A0 s32 min =3D (req_type =3D=3D SRP_REQ_TASK_MGMT) ? 1=
+ : 2;
++=A0=A0=A0=A0=A0=A0 s32 rsv =3D (req_type =3D=3D SRP_REQ_TASK_MGMT) ? 0=
+ : 1;
 
-I agree. I will go into this direction.
+=A0=A0=A0=A0=A0=A0=A0 srp_send_completion(target->send_cq, target);
 
-Regards,
+-=A0=A0=A0=A0=A0=A0 if (target->tx_head - target->tx_tail >=3D SRP_SQ_S=
+IZE)
++=A0=A0=A0=A0=A0=A0 if (target->tx_head - target->tx_tail >=3D SRP_SQ_S=
+IZE - rsv)
+=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 return NULL;
 
-Mirek
+-=A0=A0=A0=A0=A0=A0 if (target->req_lim < min) {
++=A0=A0=A0=A0=A0=A0 if (target->req_lim <=3D rsv) {
+=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 ++target->zero_req_lim;
+=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 return NULL;
+=A0=A0=A0=A0=A0=A0=A0 }
 
------Original Message-----
-From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Jason Gunthorpe
-Sent: Friday, August 06, 2010 6:33 PM
-To: Walukiewicz, Miroslaw
-Cc: Roland Dreier; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Subject: Re: {RFC] ibv_post_send()/ibv_post_recv() kernel path optimizations
-
-On Fri, Aug 06, 2010 at 11:03:36AM +0100, Walukiewicz, Miroslaw wrote:
-
-> Currently the transmit/receive path works following way: User calls
-> ibv_post_send() where vendor specific function is called.  When the
-> path should go through kernel the ibv_cmd_post_send() is called.
-> The function creates the POST_SEND message body that is passed to
-> kernel.  As the number of sges is unknown the dynamic allocation for
-> message body is performed.  (see libibverbs/src/cmd.c)
-
-Do you have any benchmarks that show the alloca is a measurable
-overhead?  I'm pretty skeptical... alloca will generally boil down to
-one or two assembly instructions adjusting the stack pointer, and not
-even that if you are lucky and it can be merged into the function
-prologe.
-
-> In the kernel the message body is parsed and a structure of wr and
-> sges is recreated using dynamic allocations in kernel The goal of
-> this operation is having a similar structure like in user space.
-
-.. the kmalloc call(s) on the other hand definately seems worth
-looking at ..
-
-> In kernel in ib_uverbs_post_send() instead of dynamic allocation of
-> the ib_send_wr structures the table of 512 ib_send_wr structures
-> will be defined and all entries will be linked to unidirectional
-> list so qp->device->post_send(qp, wr, &bad_wr) API will be not
-> changed.
-
-Isn't there a kernel API already for managing a pool of
-pre-allocated fixed-size allocations?
-
-It isn't clear to me that is even necessary, Roland is right, all you
-really need is a per-context (+per-cpu?) buffer you can grab, fill,
-and put back.
-
-> As I know no driver uses that kernel path to posting buffers so
-> iWARP multicast acceleration implemented in NES driver Would be a
-> first application that can utilize the optimized path.
-
-??
-
-Jason
+Bart.
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
