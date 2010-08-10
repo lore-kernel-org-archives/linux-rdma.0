@@ -1,55 +1,31 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH] rdma cm + XRC
-Date: Tue, 10 Aug 2010 10:22:54 -0700
-Message-ID: <CF9C39F99A89134C9CF9C4CCB68B8DDF25A954C106@orsmsx501.amr.corp.intel.com>
-References: <4C5331DC.9080109@systemfabricworks.com>
- <CF9C39F99A89134C9CF9C4CCB68B8DDF25A954BA1C@orsmsx501.amr.corp.intel.com>
- <4C618334.7010106@systemfabricworks.com>
- <CF9C39F99A89134C9CF9C4CCB68B8DDF25A954C0C2@orsmsx501.amr.corp.intel.com>
- <20100810171405.GM11306@obsidianresearch.com>
+From: Ralph Campbell <ralph.campbell-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+Subject: Re: yet again the atomic operations
+Date: Tue, 10 Aug 2010 10:26:33 -0700
+Message-ID: <1281461193.7414.152.camel@chromite.mv.qlogic.com>
+References: <AANLkTikQX+CKvs_pjkH_Ap358jfjp4dYKYyKG95+eZmt@mail.gmail.com>
+	 <1281033688.7414.30.camel@chromite.mv.qlogic.com>
+	 <AANLkTikPAqopgFR_vSnj9qkQu77S1RWixgM0POUQ5LM9@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20100810171405.GM11306-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <AANLkTikPAqopgFR_vSnj9qkQu77S1RWixgM0POUQ5LM9-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: frank zago <fzago-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Rui Machado <ruimario-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> > There's a ai_qp_type field available.  I think the RDMA TCP port
-> > space would work.
+On Tue, 2010-08-10 at 04:46 -0700, Rui Machado wrote:
+> > There are two kinds supported. QLogic's driver does them in
+> > the host driver so they are atomic with respect to all the CPUs
+> > in the host.
 > 
-> Not sure the port space matters at all?
-> 
-> Is there anything additional CM information for XRC other than
-> requesting an XRC QP type? (XRCSRQ or something?)
+> I'm just curious about this: how does this work? Is the CPU getting
+> interrupted and doing the operation while the Mellanox HCA does
+> everything in hardware?
 
-It's nothing huge:
+Yes.
 
-Modifications to Table 99:
-* Responder Resources field, Values column: 0 for XRC
-* Transport Service Type field, Description column: See
-  Section 14.6.3.1 Transport Service Type.
-* Retry Count field, Values column: 0 for XRC
-* RNR Retry Count field, Values column: 0 for XRC
-* SRQ field, Values column: 0 for XRC
-* Change (reserved) field at position byte 51, bit 5 to:
-  * Field: Extended Transport Type
-  * Description: See Section 14.6.3.2 Extended Transport Type
-  * Used for Purpose: C
-  * Byte [Bit] Offset: 51 [5]
-  * Length, Bits: 3
-
-Modifications to Table 103:
-* Initiator Depth field, Values column: 0 for XRC
-* End-to-End Flow Control field, Values column: 0 for XRC
-* SRQ field, Values column: 1 for XRC
-
-But should still be set correctly.
-
-- Sean
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
