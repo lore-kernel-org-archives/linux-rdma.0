@@ -1,48 +1,42 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH] rdma cm + XRC
-Date: Tue, 10 Aug 2010 09:59:50 -0700
-Message-ID: <CF9C39F99A89134C9CF9C4CCB68B8DDF25A954C0C2@orsmsx501.amr.corp.intel.com>
-References: <4C5331DC.9080109@systemfabricworks.com>
- <CF9C39F99A89134C9CF9C4CCB68B8DDF25A954BA1C@orsmsx501.amr.corp.intel.com>
- <4C618334.7010106@systemfabricworks.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH] rdma cm + XRC
+Date: Tue, 10 Aug 2010 11:14:05 -0600
+Message-ID: <20100810171405.GM11306@obsidianresearch.com>
+References: <4C5331DC.9080109@systemfabricworks.com> <CF9C39F99A89134C9CF9C4CCB68B8DDF25A954BA1C@orsmsx501.amr.corp.intel.com> <4C618334.7010106@systemfabricworks.com> <CF9C39F99A89134C9CF9C4CCB68B8DDF25A954C0C2@orsmsx501.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4C618334.7010106-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <CF9C39F99A89134C9CF9C4CCB68B8DDF25A954C0C2-osO9UTpF0USkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: frank zago <fzago-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: frank zago <fzago-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> > - XRC support upstream (kernel and user space) is still pending.
-> >   (I can start a librdmacm branch for XRC support.)
-> > - Changes are needed to the kernel rdma_cm.
-> >   We could start submitting patches against Roland's xrc branch for
-> these.
-> > - Please update to the latest librdmacm tree.
-> >   More specifically, rdma_getaddrinfo should support XRC as well.
+On Tue, Aug 10, 2010 at 09:59:50AM -0700, Hefty, Sean wrote:
+
+> > The general parameters would be the same as for RC. Should we create a new
+> > ai_flag ? or a new port space ?
 > 
-> The general parameters would be the same as for RC. Should we create a new
-> ai_flag ? or a new port space ?
+> There's a ai_qp_type field available.  I think the RDMA TCP port
+> space would work.
 
-There's a ai_qp_type field available.  I think the RDMA TCP port space would work.
+Not sure the port space matters at all?
 
-> Is it really necessary to support rdma_getaddrinfo, rdma_create_ep and the
-> new APIs ?
+Is there anything additional CM information for XRC other than
+requesting an XRC QP type? (XRCSRQ or something?)
 
-I think so, yes.  At least XRC needs to be handled, even if some of the calls just fail as unsupported.
-
-> > In general, I'd like to find a way to add XRC support to the librdmacm
-> that makes things as simple for the user as possible.
+> > Is it really necessary to support rdma_getaddrinfo, rdma_create_ep and the
+> > new APIs ?
 > 
-> Besides the need to correctly set cap.max_send_wr, the user API is
-> unchanged.
+> I think so, yes.  At least XRC needs to be handled, even if some of
+> the calls just fail as unsupported.
 
-I'm also concerned that the kernel must format the IB CM messages correctly when XRC is in use.  The kernel currently formats the messages assuming that the QP is RC.
+I'd like to see a strong rational for leaving any of the new API
+unsupported for XRC - IMHO it should all be doable. The new API is
+supposed to be simplifying, we want people to use it..
 
-- Sean
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
