@@ -1,40 +1,48 @@
-From: Todd Rimmer <todd.rimmer-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-Subject: RE: Update proposal for handling BUSY responses from the SA/SM
-Date: Wed, 11 Aug 2010 14:05:51 -0500
-Message-ID: <5AEC2602AE03EB46BFC16C6B9B200DA816BB467C5A@MNEXMB2.qlogic.org>
-References: <4C2744E8AD2982428C5BFE523DF8CDCB49D4493A43@MNEXMB1.qlogic.org>
- <CF9C39F99A89134C9CF9C4CCB68B8DDF25A96016FF@orsmsx501.amr.corp.intel.com>
- <4C2744E8AD2982428C5BFE523DF8CDCB49D4493A87@MNEXMB1.qlogic.org>
- <CF9C39F99A89134C9CF9C4CCB68B8DDF25A9601761@orsmsx501.amr.corp.intel.com>
- <5AEC2602AE03EB46BFC16C6B9B200DA816BB467C46@MNEXMB2.qlogic.org>
- <CF9C39F99A89134C9CF9C4CCB68B8DDF25A96017FE@orsmsx501.amr.corp.intel.com>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH] rdma cm + XRC
+Date: Wed, 11 Aug 2010 15:22:45 -0700
+Message-ID: <CF9C39F99A89134C9CF9C4CCB68B8DDF25A9601BE4@orsmsx501.amr.corp.intel.com>
+References: <4C5331DC.9080109@systemfabricworks.com>
+ <CF9C39F99A89134C9CF9C4CCB68B8DDF25A954BA1C@orsmsx501.amr.corp.intel.com>
+ <4C618334.7010106@systemfabricworks.com>
+ <CF9C39F99A89134C9CF9C4CCB68B8DDF25A954C0C2@orsmsx501.amr.corp.intel.com>
+ <20100810171405.GM11306@obsidianresearch.com>
+ <4C61BF26.9060003@systemfabricworks.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CF9C39F99A89134C9CF9C4CCB68B8DDF25A96017FE-osO9UTpF0USkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
+In-Reply-To: <4C61BF26.9060003-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org>
 Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Mike Heinz <michael.heinz-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Jason
+To: frank zago <fzago-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> From: Hefty, Sean [mailto:sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org]
-> It breaks the ABI and existing apps that *do* handle BUSY replies.  We
-> can't assume that no apps out there aren't written correctly.
-> ....
-> The mad interface is privileged, not some generic API available to any
-> user space app.
+> It seems the new API has too many constraints for XRC. There are a couple
+> things that don't fit:
+> 
+> - XRC needs a domain, which must be created before creating the QP, but
+> after we know
+>   the device to use. In addition it also needs a file descriptor. The
+> application may
+>   want to use a different fd depending on the device. Currently the domain
+> can only
+>   be created in the middle of rdma_create_ep().
 
-I have yet to find a single app (OFA or 3rd party) which handles BUSY properly.  Right now we can identify numerous apps which are broken.
+This looks like a gap in the APIs.  There's no easy way to associate the data returned by rdma_addrinfo to a specific ibv_device.  Part of the issue is that rdma_addrinfo may not have an ai_src_addr.  gurgle...
 
-While umad is privileged, the SA queries it allows are used by every IB compliant app and ULP.  If is also used by many management apps which are also priviledged.
+I agree with Jason that we can still change the newer calls.  In this case, the problem isn't limited to XRC.  The user will have issues just trying to specify the CQs that should be associated with the QP.  Maybe the 'fix' here is to remove rdma_create_qp() from rdma_create_ep() -- which basically replaces that API with rdma_create_id2(**id, *res).
 
-The proposed change will not break any apps and does not change the ABI, it will simply limit when they see busy (in Mike's most recently posted patch, after all retries were exhausted, a BUSY would be returned so the app could handle "long duration BUSY", while the kernel would handle "short duration BUSY").
+> - The server side of the connection also needs an SRQ. It's not obvious
+> whether it's
+>   the application or rdma cm to create that SRQ. And that SRQ number must
+> be
+>   given to the client side, presumably in the private data.
 
+The desired mapping of XRC to the librdmacm isn't clear to me.  For example, after 'connecting' is two-way communication possible (setting up INI/TGT pairs on both nodes), or is a connection only one-way (setup local INI to remote TGT)?  Also, as you point out, how are SRQ values exchanged?  Does private data carry one SRQ value, all SRQ values for remote processes, none?
 
-Todd Rimmer
-
-
+- Sean
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
