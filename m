@@ -1,48 +1,42 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH] rdma cm + XRC
-Date: Wed, 11 Aug 2010 15:22:45 -0700
-Message-ID: <CF9C39F99A89134C9CF9C4CCB68B8DDF25A9601BE4@orsmsx501.amr.corp.intel.com>
-References: <4C5331DC.9080109@systemfabricworks.com>
- <CF9C39F99A89134C9CF9C4CCB68B8DDF25A954BA1C@orsmsx501.amr.corp.intel.com>
- <4C618334.7010106@systemfabricworks.com>
- <CF9C39F99A89134C9CF9C4CCB68B8DDF25A954C0C2@orsmsx501.amr.corp.intel.com>
- <20100810171405.GM11306@obsidianresearch.com>
- <4C61BF26.9060003@systemfabricworks.com>
+From: frank zago <fzago-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org>
+Subject: Re: [PATCH] rdma cm + XRC
+Date: Wed, 11 Aug 2010 17:58:33 -0500
+Message-ID: <4C632B19.9090109@systemfabricworks.com>
+References: <4C5331DC.9080109@systemfabricworks.com> <CF9C39F99A89134C9CF9C4CCB68B8DDF25A954BA1C@orsmsx501.amr.corp.intel.com> <4C618334.7010106@systemfabricworks.com> <CF9C39F99A89134C9CF9C4CCB68B8DDF25A954C0C2@orsmsx501.amr.corp.intel.com> <20100810171405.GM11306@obsidianresearch.com> <4C61BF26.9060003@systemfabricworks.com> <CF9C39F99A89134C9CF9C4CCB68B8DDF25A9601BE4@orsmsx501.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4C61BF26.9060003-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <CF9C39F99A89134C9CF9C4CCB68B8DDF25A9601BE4-osO9UTpF0USkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: frank zago <fzago-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> It seems the new API has too many constraints for XRC. There are a couple
-> things that don't fit:
+On 08/11/2010 05:22 PM, Hefty, Sean wrote:
+>> - The server side of the connection also needs an SRQ. It's not 
+>> obvious whether it's the application or rdma cm to create that SRQ.
+>> And that SRQ number must be given to the client side, presumably in
+>> the private data.
 > 
-> - XRC needs a domain, which must be created before creating the QP, but
-> after we know
->   the device to use. In addition it also needs a file descriptor. The
-> application may
->   want to use a different fd depending on the device. Currently the domain
-> can only
->   be created in the middle of rdma_create_ep().
+> The desired mapping of XRC to the librdmacm isn't clear to me.  For 
+> example, after 'connecting' is two-way communication possible 
+> (setting up INI/TGT pairs on both nodes), or is a connection only 
+> one-way (setup local INI to remote TGT)?  Also, as you point out, how
+> are SRQ values exchanged?  Does private data carry one SRQ value, all
+> SRQ values for remote processes, none?
 
-This looks like a gap in the APIs.  There's no easy way to associate the data returned by rdma_addrinfo to a specific ibv_device.  Part of the issue is that rdma_addrinfo may not have an ai_src_addr.  gurgle...
+XRC is one way. There is a send QP (which looks like a regular RC QP),
+and a receive QP. Logically, the listen side would create an XRC receive QP,
+and for each incoming connection would create/attach an SRQ to it. But the
+initiator would have to know the SRQ number to be able to send data, and
+the easiest way to pass that informations is in the CM REP private data.
 
-I agree with Jason that we can still change the newer calls.  In this case, the problem isn't limited to XRC.  The user will have issues just trying to specify the CQs that should be associated with the QP.  Maybe the 'fix' here is to remove rdma_create_qp() from rdma_create_ep() -- which basically replaces that API with rdma_create_id2(**id, *res).
+I think one way to see is that you connect a QP on one side to an SRQs 
+on the other side. In case of XRC, rdma_get_request() could create that SRQ
+instead of a QP. 
 
-> - The server side of the connection also needs an SRQ. It's not obvious
-> whether it's
->   the application or rdma cm to create that SRQ. And that SRQ number must
-> be
->   given to the client side, presumably in the private data.
-
-The desired mapping of XRC to the librdmacm isn't clear to me.  For example, after 'connecting' is two-way communication possible (setting up INI/TGT pairs on both nodes), or is a connection only one-way (setup local INI to remote TGT)?  Also, as you point out, how are SRQ values exchanged?  Does private data carry one SRQ value, all SRQ values for remote processes, none?
-
-- Sean
+Frank.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
