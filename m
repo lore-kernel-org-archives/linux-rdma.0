@@ -1,54 +1,29 @@
-From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Subject: [PATCH 3/3 v4b] IB/srp: Reduce number of BUSY conditions
-Date: Wed, 11 Aug 2010 08:56:04 +0200
-Message-ID: <201008110856.04707.bvanassche@acm.org>
+From: Or Gerlitz <ogerlitz-hKgKHo2Ms0FWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH v2] rdma/ib_pack.h: add new bth opcodes
+Date: Wed, 11 Aug 2010 10:12:56 +0300
+Message-ID: <4C624D78.8030407@Voltaire.com>
+References: <00a901cb3785$4a032810$de097830$@com>	<CF9C39F99A89134C9CF9C4CCB68B8DDF25A954BCAF@orsmsx501.amr.corp.intel.com> <4C616D38.7090506@systemfabricworks.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <4C616D38.7090506-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, David Dillow <dave-i1Mk8JYDVaaSihdK6806/g@public.gmane.org>
+To: Bob Pearson <rpearson-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org>, Paul Grun <pgrun-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org>
+Cc: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-As proposed by the SRP (draft) standard, ib_srp reserves one ring element for
-SRP_TSK_MGMT requests. This patch makes sure that the SCSI mid-layer never
-tries to queue more than (SRP request limit) - 1 SCSI commands to ib_srp. This
-improves performance for targets whose request limit is less than or equal to
-SRP_SQ_REQ_SIZE - SRP_TSK_MGMT_RSV (62) by reducing the number of BUSY
-responses reported by ib_srp to the SCSI mid-layer.
+Bob Pearson wrote:
+> My interest is supporting the rxe driver, a software implementation of
+> the IB transport over Ethernet, [...] I spent a little time looking at
+> trying to exploit congestion notification to see if it would bu useful in this context.
 
-Signed-off-by: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Cc: Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Cc: David Dillow <dave-i1Mk8JYDVaaSihdK6806/g@public.gmane.org>
+Hi Bob,
 
----
- drivers/infiniband/ulp/srp/ib_srp.c |    9 +++++++--
- 1 files changed, 7 insertions(+), 2 deletions(-)
+As the IB congestion control / notification has the part of the IB switches marking 
+packets with FECNs, I don't see how does IB CCA fits into IBoE scheme, Paul?
 
-diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
-index cc6a713..93d6d0f 100644
---- a/drivers/infiniband/ulp/srp/ib_srp.c
-+++ b/drivers/infiniband/ulp/srp/ib_srp.c
-@@ -1354,8 +1354,13 @@ static int srp_cm_handler(struct ib_cm_id *cm_id, struct ib_cm_event *event)
- 			target->max_ti_iu_len = be32_to_cpu(rsp->max_ti_iu_len);
- 			target->req_lim       = be32_to_cpu(rsp->req_lim_delta);
- 
--			target->scsi_host->can_queue = min(target->req_lim,
--							   target->scsi_host->can_queue);
-+			/*
-+			 * Set can_queue such that the SCSI mid-layer
-+			 * never causes __srp_get_tx_iu() to fail.
-+			 */
-+			target->scsi_host->can_queue
-+				= min(target->req_lim - SRP_TSK_MGMT_RSV,
-+				      target->scsi_host->can_queue);
- 		} else {
- 			shost_printk(KERN_WARNING, target->scsi_host,
- 				    PFX "Unhandled RSP opcode %#x\n", opcode);
--- 
-1.6.4.2
+Or.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
