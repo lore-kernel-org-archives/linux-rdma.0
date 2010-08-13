@@ -1,109 +1,27 @@
-From: Ralph Campbell <ralph.campbell-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-Subject: Re: CQ overrun with ib_send_bw
-Date: Fri, 13 Aug 2010 12:06:36 -0700
-Message-ID: <1281726396.2313.44.camel@chromite.mv.qlogic.com>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: CQ overrun with ib_send_bw
+Date: Fri, 13 Aug 2010 12:14:38 -0700
+Message-ID: <CF9C39F99A89134C9CF9C4CCB68B8DDF25A96887A2@orsmsx501.amr.corp.intel.com>
 References: <4C659288.4030402@oracle.com>
+ <1281726396.2313.44.camel@chromite.mv.qlogic.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4C659288.4030402-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <1281726396.2313.44.camel-/vjeY7uYZjrPXfVEPVhPGq6RkeBMCJyt@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sumeet Lahorani <Sumeet.Lahorani-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+To: Ralph Campbell <ralph.campbell-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>, Sumeet Lahorani <Sumeet.Lahorani-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-I know there is a bug with "ib_send_bw -b" (bi-directional)
-since it doesn't create a CQ that is large enough for all the
-posted sends *and* receives.  I have tried several times to get the
-following patch applied but I never got a reply and nothing was
-done.
+> I know there is a bug with "ib_send_bw -b" (bi-directional)
+> since it doesn't create a CQ that is large enough for all the
+> posted sends *and* receives.  I have tried several times to get the
+> following patch applied but I never got a reply and nothing was
+> done.
 
-diff --git a/send_bw.c b/send_bw.c
-index ddd2b73..e3f644a 100644
---- a/send_bw.c
-+++ b/send_bw.c
-@@ -746,6 +746,8 @@ static struct pingpong_context *pp_init_ctx(struct ibv_device *ib_dev,
- 	if (user_parm->use_mcg && !user_parm->servername) {
- 		cq_rx_depth *= user_parm->num_of_clients_mcg;
- 	}
-+	if (user_parm->duplex)
-+		cq_rx_depth += ctx->tx_depth;
- 	ctx->cq = ibv_create_cq(ctx->context,cq_rx_depth, NULL, ctx->channel, 0);
- 	if (!ctx->cq) {
- 		fprintf(stderr, "Couldn't create CQ\n");
-
-There should be enough CQEs in the normal case though.
-
-On Fri, 2010-08-13 at 11:44 -0700, Sumeet Lahorani wrote:
-> Hi,
-> 
-> If I run ib_send_bw with the -a option, we seem to be getting CQ overrun 
-> errors.
-> 
-> Server :
-> [root@dscbad01 ~]# ib_send_bw
-> ------------------------------------------------------------------
->                     Send BW Test
-> Connection type : RC
-> Inline data is used up to 1 bytes message
->   local address:  LID 0x24, QPN 0x1c004c, PSN 0x85c292
->   remote address: LID 0x2a, QPN 0x14004a, PSN 0x858358
-> Mtu : 2048
-> ------------------------------------------------------------------
->  #bytes #iterations    BW peak[MB/sec]    BW average[MB/sec] 
-> ------------------------------------------------------------------
-> 
-> Client :
-> [root@dscbad03 ~]# ib_send_bw -a dscbad01
-> ------------------------------------------------------------------
->                     Send BW Test
-> Connection type : RC
-> Inline data is used up to 1 bytes message
->   local address:  LID 0x2a, QPN 0x14004a, PSN 0x858358
->   remote address: LID 0x24, QPN 0x1c004c, PSN 0x85c292
-> Mtu : 2048
-> ------------------------------------------------------------------
->  #bytes #iterations    BW peak[MB/sec]    BW average[MB/sec] 
->       2        1000               5.99                  5.45
-> Completion wth error at client:
-> Failed status 12: wr_id 1 syndrom 0x81
-> scnt=600, ccnt=300
-> 
-> and on the client console
-> 
-> mlx4_core 0000:13:00.0: CQ overrun on CQN 000086
-> mlx4_core 0000:13:00.0: Internal error detected:
-> mlx4_core 0000:13:00.0:   buf[00]: 00328f6f
-> mlx4_core 0000:13:00.0:   buf[01]: 00000000
-> mlx4_core 0000:13:00.0:   buf[02]: 20070000
-> mlx4_core 0000:13:00.0:   buf[03]: 00000000
-> mlx4_core 0000:13:00.0:   buf[04]: 00328f3c
-> mlx4_core 0000:13:00.0:   buf[05]: 0014004a
-> mlx4_core 0000:13:00.0:   buf[06]: 00340000
-> mlx4_core 0000:13:00.0:   buf[07]: 00000044
-> mlx4_core 0000:13:00.0:   buf[08]: 00000804
-> mlx4_core 0000:13:00.0:   buf[09]: 00000804
-> mlx4_core 0000:13:00.0:   buf[0a]: 00000000
-> mlx4_core 0000:13:00.0:   buf[0b]: 00000000
-> mlx4_core 0000:13:00.0:   buf[0c]: 00000000
-> mlx4_core 0000:13:00.0:   buf[0d]: 00000000
-> mlx4_core 0000:13:00.0:   buf[0e]: 00000000
-> mlx4_core 0000:13:00.0:   buf[0f]: 00000000
-> 
-> This is with OFED 1.5.1 but it also happens with OFED 1.4.2. Sometimes, 
-> the node crashes because it runs out of memory but most of the time, I 
-> see just the above errors. What could be wrong?
-> 
-> - Sumeet
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-
-
+Who's the maintainer of these tests?
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
