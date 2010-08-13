@@ -1,126 +1,67 @@
-From: Randy Dunlap <rdunlap-/UHa2rfvQTnk1uMJSBkQmQ@public.gmane.org>
-Subject: Re: i386 allmodconfig, current mainline
-Date: Fri, 13 Aug 2010 09:23:09 -0700
-Message-ID: <20100813092309.fd54fc28.rdunlap@xenotime.net>
-References: <20100809164346.6e30cf8c.akpm@linux-foundation.org>
-	<20100810101521.0dcd4393.sfr@canb.auug.org.au>
-	<AANLkTimtZ7H=rT68V6UGC2GBky8z9VJ5m6-pwFHfm7yw@mail.gmail.com>
+From: David Dillow <dave-i1Mk8JYDVaaSihdK6806/g@public.gmane.org>
+Subject: Re: [PATCH 2/4] IB/srp: implement SRP_CRED_REQ
+Date: Fri, 13 Aug 2010 14:12:44 -0400
+Message-ID: <1281723164.2437.40.camel@lap75545.ornl.gov>
+References: <201008021732.44769.bvanassche@acm.org>
+ <1280785473.2451.90.camel@lap75545.ornl.gov>
+ <AANLkTikSFgcjZ0z-Py1+yeFZ8oAohBS=fpRAMqWRBnHy@mail.gmail.com>
+ <1280847933.20446.29.camel@lap75545.ornl.gov>
+ <AANLkTinMU8QkX-5WrsW18UJ7qNfp7ZDchpqcPw0JGAJz@mail.gmail.com>
+ <1280850256.20446.56.camel@lap75545.ornl.gov>
+ <AANLkTikmh4+15_3wPGaBkb5o5wkyyiLnRbqKu2Tzmbgp@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <AANLkTimtZ7H=rT68V6UGC2GBky8z9VJ5m6-pwFHfm7yw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Geert Uytterhoeven <geert-Td1EMuHUCqxL1ZNQvxDV9g@public.gmane.org>
-Cc: Stephen Rothwell <sfr-3FnU+UHB4dNDw9hX6IcOSA@public.gmane.org>, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, Greg KH <greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>, David Woodhouse <dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Mike Frysinger <vapier-aBrp7R+bbdUdnm+yROfE0A@public.gmane.org>, Jesse Barnes <jbarnes-Y1mF5jBUw70BENJcbMCuUQ@public.gmane.org>, Kevin Curtis <kevin.curtis-AP8L3A0T/wQqdlJmJB21zg@public.gmane.org>, Phillip Lougher <phillip-cnXvMjJKhjYG2Il/BtU0GPXRex20P6io@public.gmane.org>, Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Chien Tung <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Samuel Ortiz <samuel.ortiz-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, x86-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-reply-to: <AANLkTikmh4+15_3wPGaBkb5o5wkyyiLnRbqKu2Tzmbgp-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, 10 Aug 2010 18:53:20 +0200 Geert Uytterhoeven wrote:
-
-> On Tue, Aug 10, 2010 at 02:15, Stephen Rothwell <sfr-3FnU+UHB4dNDw9hX6IcOSA@public.gmane.org=
-> wrote:
-> > On Mon, 9 Aug 2010 16:43:46 -0700 Andrew Morton <akpm@linux-foundat=
-ion.org> wrote:
-> >>
-> >> Guys. =A0What's goin' on out there?
+On Tue, 2010-08-10 at 09:55 +0200, Bart Van Assche wrote:
+> On Tue, Aug 3, 2010 at 5:44 PM, David Dillow <dave-i1Mk8JYDVaaSihdK6806/g@public.gmane.org> wrote:
 > >
-> > I guess we are all so up to date that noone does 32 bit builds any
-> > more ... =A0Also noone is bothering to look at the build logs:
+> > On Tue, 2010-08-03 at 17:26 +0200, Bart Van Assche wrote:
+> > [ ... ]
+> > > I'm not sure it is a good idea to allow that all transmit buffers get
+> > > allocated for sending CMD_RSP information units and that none remain
+> > > for replying to incoming SRP_CRED_REQ / SRP_AER_REQ / SRP_T_LOGOUT
+> > > requests. Wouldn't that be a protocol violation ?
 > >
-> > linus tree: http://kisskb.ellerman.id.au/kisskb/branch/3/
-> > linux-next: http://kisskb.ellerman.id.au/kisskb/branch/9/
->=20
-> Yeah, we have build failures migrating from -next to -linus :-(
->=20
-> BTW, still no one has commented on http://lkml.org/lkml/2010/7/13/378=
-?
+> > You mean SRP_CMD? We don't do that, we clamp the outstanding requests we
+> > generate so we'll always have a buffer to reply to SRP_CRED_REQ et al.
+> >
+> > If SRQ_SQ_SIZE is 64, we set .can_queue to 63 which will leave a buffer
+> > available for the reply.
+> >
+> > Now, if the target sends us multiple SRP_CRED_REQ without waiting for a
+> > reply, then we could use up buffers and not be able to send requests,
+> > but that would be a protocol violation on the target's side.
+> 
+> (resending as plain text)
+> 
+> I have been looking further into this. There is a slight asymmetry in
+> the current transmit buffer allocation code: one buffer element is
+> reserved on the target for task management requests but not on the
+> initiator. So - at least in theory - it is possible that all elements
+> of the initiator transmit ring are allocated for SRP_CMD requests at
+> the time an SRP_TSK_MGMT request should be sent. Wouldn't it be more
+> symmetric to change __srp_get_tx_iu() as follows (diff against the
+> current for-next branch) ?
 
-OK.
+This is not needed in the code as it currently stands. We cannot have
+all elements of the tx ring allocated for SRP_CMD requests, because we
+don't send one if we don't have a credit for it, and we save a credit
+for the SRP_TSK_MGMT request. Hence, there will always be a buffer
+available for the management request.
 
-The diff (regression) script output looks useful to me.
-The log summary is still quite (too) verbose, or maybe that's partly du=
-e
-to the number of warnings & errors.  :(
+We don't need it for when we start replying to target requests in the
+future, because we already reserve that buffer by limiting our view of
+credits to one less than the actual ring size.
 
-
-Maybe someone could look at http://www.xenotime.net/linux/scripts/build=
-summary.pl also.
-
-Here is today's linux-next *i386* build summary, short mode (totals onl=
-y):
-
-> buildsummary.pl -t build*.out | more
-build-r5372.out: totals: error/warning files: 27, errors: 3, warnings: =
-44, Section mismatches: 36
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-build-r5373.out: totals: error/warning files: 10, errors: 3, warnings: =
-14, Section mismatches: 36
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-build-r5374.out: totals: error/warning files: 29, errors: 0, warnings: =
-45, Section mismatches: 38
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-build-r5375.out: totals: error/warning files: 18, errors: 3, warnings: =
-36, Section mismatches: 38
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-build-r5377.out: totals: error/warning files: 21, errors: 0, warnings: =
-43, Section mismatches: 67
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-build-r5380.out: totals: error/warning files: 16, errors: 4, warnings: =
-22, Section mismatches: 81
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-build-r5381.out: totals: error/warning files: 17, errors: 3, warnings: =
-75, Section mismatches: 88
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-build-r5383.out: totals: error/warning files: 11, errors: 0, warnings: =
-32, Section mismatches: 130
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-build-r5384.out: totals: error/warning files: 23, errors: 3, warnings: =
-47, Section mismatches: 150
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-build-r5385.out: totals: error/warning files: 6, errors: 12, warnings: =
-9, Section mismatches: 160
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-build-r5386.out: totals: error/warning files: 10, errors: 1, warnings: =
-53, Section mismatches: 163
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-build-r5387.out: totals: error/warning files: 18, errors: 0, warnings: =
-45, Section mismatches: 164
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-build-r5388.out: totals: error/warning files: 7, errors: 1, warnings: 8=
-, Section mismatches: 164
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-build-r5389.out: totals: error/warning files: 43, errors: 0, warnings: =
-80, Section mismatches: 167
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-build-r5390.out: totals: error/warning files: 12, errors: 0, warnings: =
-18, Section mismatches: 167
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-build-r5391.out: totals: error/warning files: 46, errors: 0, warnings: =
-77, Section mismatches: 170
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-build-r5392.out: totals: error/warning files: 15, errors: 12, warnings:=
- 31, Section mismatches: 184
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-build-r5393.out: totals: error/warning files: 15, errors: 0, warnings: =
-23, Section mismatches: 187
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-build-r5394.out: totals: error/warning files: 76, errors: 0, warnings: =
-141, Section mismatches: 190
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-build-r5395.out: totals: error/warning files: 11, errors: 0, warnings: =
-18, Section mismatches: 192
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-build-r5396.out: totals: error/warning files: 22, errors: 0, warnings: =
-28, Section mismatches: 193
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-
----
-~Randy
-*** Remember to use Documentation/SubmitChecklist when testing your cod=
-e ***
+Dave
 --
-To unsubscribe from this list: send the line "unsubscribe linux-wireles=
-s" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
