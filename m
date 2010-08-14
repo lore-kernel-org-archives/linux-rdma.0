@@ -1,112 +1,39 @@
-From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: [RFC PATCH] RDMA/UCMA: Allow tuning the max backlog.
-Date: Fri, 13 Aug 2010 15:56:34 -0500
-Message-ID: <20100813205634.3763.55419.stgit@build.ogc.int>
+From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Subject: Re: [PATCH 2/3 v4] IB/srp: Implement SRP_CRED_REQ
+Date: Sat, 14 Aug 2010 09:22:32 +0200
+Message-ID: <AANLkTi=Wy50xcE=-+Y67HB+GbOyLmWe72jZLYu8Cjoep@mail.gmail.com>
+References: <201008102033.57038.bvanassche@acm.org>
+	<1281729320.2437.142.camel@lap75545.ornl.gov>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1281729320.2437.142.camel-FqX9LgGZnHWDB2HL1qBt2PIbXMQ5te18@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: David Dillow <dave-i1Mk8JYDVaaSihdK6806/g@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-For iWARP connections, the connect request is TCP payload an on already
-established TCP connection.  So the connection request is transmitted
-and acked at the TCP level by the time the connect request gets dropped
-in the ucma.  The end result is the connection gets rejected by the
-iWARP provider.  Further, a 32 node 256NP OpenMPI job will generate >
-128 connect requests on some ranks.
+On Fri, Aug 13, 2010 at 9:55 PM, David Dillow <dave-i1Mk8JYDVaaSihdK6806/g@public.gmane.org> wrote:
+>
+> On Tue, 2010-08-10 at 20:33 +0200, Bart Van Assche wrote:
+> > Implements SRP_CRED_REQ, which is an information unit defined in the SRP
+> > (draft) standard and that allows an SRP target to inform an SRP initiator that
+> > more requests may be sent by the initiator. Adds declarations for the
+> > SRP_CRED_REQ and SRP_CRED_RSP information units to include/scsi/srp.h.
+>
+> I don't seem to be communicating my comments very clearly, so let me try
+> the language of code. Here's a proposed alternative version. Compile
+> tested only, based on your patch 1/3 v4, with the __srp_get_tx_iu()
+> changes partially reverted. It would need to be rebased once you send a
+> revised 1/3 and would need testing.
 
-This patch increases the default max backlog to 1024, and adds a sysctl
-variable so the backlog can be adjusted at run time.
+It's not that your communication is not clear but that I'm not sure
+whether it's a good idea to ignore the sense data included in an
+SRP_AER_REQ message. Supporting SRP_AER_REQ properly does not only
+mean processing the credit data included in that message but also
+processing the sense data included in that message.
 
-Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
----
-
- drivers/infiniband/core/ucma.c |   39 +++++++++++++++++++++++++++++++++------
- 1 files changed, 33 insertions(+), 6 deletions(-)
-
-diff --git a/drivers/infiniband/core/ucma.c b/drivers/infiniband/core/ucma.c
-index ac7edc2..12d8c0f 100644
---- a/drivers/infiniband/core/ucma.c
-+++ b/drivers/infiniband/core/ucma.c
-@@ -40,6 +40,7 @@
- #include <linux/in6.h>
- #include <linux/miscdevice.h>
- #include <linux/slab.h>
-+#include <linux/sysctl.h>
- 
- #include <rdma/rdma_user_cm.h>
- #include <rdma/ib_marshall.h>
-@@ -50,8 +51,24 @@ MODULE_AUTHOR("Sean Hefty");
- MODULE_DESCRIPTION("RDMA Userspace Connection Manager Access");
- MODULE_LICENSE("Dual BSD/GPL");
- 
--enum {
--	UCMA_MAX_BACKLOG	= 128
-+static unsigned int max_backlog = 1024;
-+
-+static struct ctl_table_header *ucma_ctl_table_hdr;
-+static ctl_table ucma_ctl_table[] = {
-+	{
-+		.procname 	= "max_backlog",
-+		.data 		= &max_backlog,
-+		.maxlen 	= sizeof max_backlog,
-+		.mode 		= 0644,
-+		.proc_handler 	= proc_dointvec,
-+	},
-+	{ }
-+};
-+
-+struct ctl_path ucma_ctl_path[] = {
-+	{ .procname = "net" },
-+	{ .procname = "rdma_ucm" },
-+	{ }
- };
- 
- struct ucma_file {
-@@ -686,8 +703,8 @@ static ssize_t ucma_listen(struct ucma_file *file, const char __user *inbuf,
- 	if (IS_ERR(ctx))
- 		return PTR_ERR(ctx);
- 
--	ctx->backlog = cmd.backlog > 0 && cmd.backlog < UCMA_MAX_BACKLOG ?
--		       cmd.backlog : UCMA_MAX_BACKLOG;
-+	ctx->backlog = cmd.backlog > 0 && cmd.backlog < max_backlog ?
-+		       cmd.backlog : max_backlog;
- 	ret = rdma_listen(ctx->cm_id, ctx->backlog);
- 	ucma_put_ctx(ctx);
- 	return ret;
-@@ -1279,16 +1296,26 @@ static int __init ucma_init(void)
- 	ret = device_create_file(ucma_misc.this_device, &dev_attr_abi_version);
- 	if (ret) {
- 		printk(KERN_ERR "rdma_ucm: couldn't create abi_version attr\n");
--		goto err;
-+		goto err1;
-+	}
-+	
-+	ucma_ctl_table_hdr = register_sysctl_paths(ucma_ctl_path, ucma_ctl_table);
-+	if (!ucma_ctl_table_hdr) {
-+		printk(KERN_ERR "rdma_ucm: couldn't register sysctl paths\n");
-+		ret = -ENOMEM;
-+		goto err2;
- 	}
- 	return 0;
--err:
-+err2:
-+	device_remove_file(ucma_misc.this_device, &dev_attr_abi_version);
-+err1:
- 	misc_deregister(&ucma_misc);
- 	return ret;
- }
- 
- static void __exit ucma_cleanup(void)
- {
-+	unregister_sysctl_table(ucma_ctl_table_hdr);
- 	device_remove_file(ucma_misc.this_device, &dev_attr_abi_version);
- 	misc_deregister(&ucma_misc);
- 	idr_destroy(&ctx_idr);
-
+Bart.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
