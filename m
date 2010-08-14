@@ -1,82 +1,96 @@
-From: David Dillow <dave-i1Mk8JYDVaaSihdK6806/g@public.gmane.org>
-Subject: Re: [PATCH 2/4] IB/srp: implement SRP_CRED_REQ
-Date: Sat, 14 Aug 2010 13:08:51 -0400
-Message-ID: <1281805731.2670.14.camel@obelisk.thedillows.org>
-References: <201008021732.44769.bvanassche@acm.org>
-	 <1280785473.2451.90.camel@lap75545.ornl.gov>
-	 <AANLkTikSFgcjZ0z-Py1+yeFZ8oAohBS=fpRAMqWRBnHy@mail.gmail.com>
-	 <1280847933.20446.29.camel@lap75545.ornl.gov>
-	 <AANLkTinMU8QkX-5WrsW18UJ7qNfp7ZDchpqcPw0JGAJz@mail.gmail.com>
-	 <1280850256.20446.56.camel@lap75545.ornl.gov>
-	 <AANLkTikmh4+15_3wPGaBkb5o5wkyyiLnRbqKu2Tzmbgp@mail.gmail.com>
-	 <1281723164.2437.40.camel@lap75545.ornl.gov>
-	 <AANLkTim_qOd_pX2pnSVv5NJJsQ0jYqJP5fo-5YC8TRV=@mail.gmail.com>
+From: Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH] RDMA/nes: double CLOSE event indication crash
+Date: Sat, 14 Aug 2010 16:04:56 -0500
+Message-ID: <20100814210456.GA7116@FLATIF-MOBL3>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <AANLkTim_qOd_pX2pnSVv5NJJsQ0jYqJP5fo-5YC8TRV=@mail.gmail.com>
+Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Sat, 2010-08-14 at 10:21 +0200, Bart Van Assche wrote:
-> On Fri, Aug 13, 2010 at 8:12 PM, David Dillow <dave-i1Mk8JYDVaaSihdK6806/g@public.gmane.org> wrote:
-> > On Tue, 2010-08-10 at 09:55 +0200, Bart Van Assche wrote:
-> >> On Tue, Aug 3, 2010 at 5:44 PM, David Dillow <dave-i1Mk8JYDVaaSihdK6806/g@public.gmane.org> wrote:
-> >> >
-> >> > On Tue, 2010-08-03 at 17:26 +0200, Bart Van Assche wrote:
-> >> > [ ... ]
-> >> > > I'm not sure it is a good idea to allow that all transmit buffers get
-> >> > > allocated for sending CMD_RSP information units and that none remain
-> >> > > for replying to incoming SRP_CRED_REQ / SRP_AER_REQ / SRP_T_LOGOUT
-> >> > > requests. Wouldn't that be a protocol violation ?
-> >> >
-> >> > You mean SRP_CMD? We don't do that, we clamp the outstanding requests we
-> >> > generate so we'll always have a buffer to reply to SRP_CRED_REQ et al.
-> >> >
-> >> > If SRQ_SQ_SIZE is 64, we set .can_queue to 63 which will leave a buffer
-> >> > available for the reply.
-> >> >
-> >> > Now, if the target sends us multiple SRP_CRED_REQ without waiting for a
-> >> > reply, then we could use up buffers and not be able to send requests,
-> >> > but that would be a protocol violation on the target's side.
-> >>
-> >> (resending as plain text)
-> >>
-> >> I have been looking further into this. There is a slight asymmetry in
-> >> the current transmit buffer allocation code: one buffer element is
-> >> reserved on the target for task management requests but not on the
-> >> initiator. So - at least in theory - it is possible that all elements
-> >> of the initiator transmit ring are allocated for SRP_CMD requests at
-> >> the time an SRP_TSK_MGMT request should be sent. Wouldn't it be more
-> >> symmetric to change __srp_get_tx_iu() as follows (diff against the
-> >> current for-next branch) ?
-> >
-> > This is not needed in the code as it currently stands. We cannot have
-> > all elements of the tx ring allocated for SRP_CMD requests, because we
-> > don't send one if we don't have a credit for it, and we save a credit
-> > for the SRP_TSK_MGMT request. Hence, there will always be a buffer
-> > available for the management request.
-> >
-> > We don't need it for when we start replying to target requests in the
-> > future, because we already reserve that buffer by limiting our view of
-> > credits to one less than the actual ring size.
-> 
-> It is not needed as long as the target respects the limit of at most
-> one outstanding request, as required by the SRP (draft) standard. The
-> test in question is a single if-statement that provides some
-> additional robustness and no measurable overhead. So I don't see why
-> it should be removed.
+During a stress testing in a large cluster, multiple close event is detected
+and BUG() is hit in core. The cause is that active node gave up while waitings
+for MPA response from the peer and tried to close the connection by sending RST.
+The passive node driver receives the RST but is waiting for MPA response from
+user. When MPA accept is receives, the driver send offloads the connection and
+sends CLOSE event. The driver get an AE indicating RESET receive and also send
+CLOSE event causing BUG() to hit in the core. RESET handling and sending CLOSE
+events are fixed.
 
-I didn't say remove it, I'm objecting to your changes to it. They are
-unnecessary because we will keep a Tx buffer around for the response to
-a conforming target. Keeping the guard is needed for the reasons you
-point out about non-conforming targets.
+Signed-off-by: Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+---
+ drivers/infiniband/hw/nes/nes_cm.c |   18 ++++++++++--------
+ 1 files changed, 10 insertions(+), 8 deletions(-)
 
-Dave
-
+diff --git a/drivers/infiniband/hw/nes/nes_cm.c b/drivers/infiniband/hw/nes/nes_cm.c
+index 986d6f3..10e4bde 100644
+--- a/drivers/infiniband/hw/nes/nes_cm.c
++++ b/drivers/infiniband/hw/nes/nes_cm.c
+@@ -502,7 +502,9 @@ int schedule_nes_timer(struct nes_cm_node *cm_node, struct sk_buff *skb,
+ static void nes_retrans_expired(struct nes_cm_node *cm_node)
+ {
+ 	struct iw_cm_id *cm_id = cm_node->cm_id;
+-	switch (cm_node->state) {
++	enum nes_cm_node_state    state = cm_node->state;
++	cm_node->state = NES_CM_STATE_CLOSED;
++	switch (state) {
+ 	case NES_CM_STATE_SYN_RCVD:
+ 	case NES_CM_STATE_CLOSING:
+ 		rem_ref_cm_node(cm_node->cm_core, cm_node);
+@@ -511,7 +513,6 @@ static void nes_retrans_expired(struct nes_cm_node *cm_node)
+ 	case NES_CM_STATE_FIN_WAIT1:
+ 		if (cm_node->cm_id)
+ 			cm_id->rem_ref(cm_id);
+-		cm_node->state = NES_CM_STATE_CLOSED;
+ 		send_reset(cm_node, NULL);
+ 		break;
+ 	default:
+@@ -1439,9 +1440,6 @@ static void handle_rst_pkt(struct nes_cm_node *cm_node, struct sk_buff *skb,
+ 		break;
+ 	case NES_CM_STATE_MPAREQ_RCVD:
+ 		passive_state = atomic_add_return(1, &cm_node->passive_state);
+-		if (passive_state ==  NES_SEND_RESET_EVENT)
+-			create_event(cm_node, NES_CM_EVENT_RESET);
+-		cm_node->state = NES_CM_STATE_CLOSED;
+ 		dev_kfree_skb_any(skb);
+ 		break;
+ 	case NES_CM_STATE_ESTABLISHED:
+@@ -1456,6 +1454,7 @@ static void handle_rst_pkt(struct nes_cm_node *cm_node, struct sk_buff *skb,
+ 	case NES_CM_STATE_CLOSED:
+ 		drop_packet(skb);
+ 		break;
++	case NES_CM_STATE_FIN_WAIT2:
+ 	case NES_CM_STATE_FIN_WAIT1:
+ 	case NES_CM_STATE_LAST_ACK:
+ 		cm_node->cm_id->rem_ref(cm_node->cm_id);
+@@ -2781,6 +2780,12 @@ int nes_accept(struct iw_cm_id *cm_id, struct iw_cm_conn_param *conn_param)
+ 		return -EINVAL;
+ 	}
+ 
++	passive_state = atomic_add_return(1, &cm_node->passive_state);
++	if (passive_state == NES_SEND_RESET_EVENT) {
++		rem_ref_cm_node(cm_node->cm_core, cm_node);
++		return -ECONNRESET;
++	}
++
+ 	/* associate the node with the QP */
+ 	nesqp->cm_node = (void *)cm_node;
+ 	cm_node->nesqp = nesqp;
+@@ -2983,9 +2988,6 @@ int nes_accept(struct iw_cm_id *cm_id, struct iw_cm_conn_param *conn_param)
+ 		printk(KERN_ERR "%s[%u] OFA CM event_handler returned, "
+ 			"ret=%d\n", __func__, __LINE__, ret);
+ 
+-	passive_state = atomic_add_return(1, &cm_node->passive_state);
+-	if (passive_state == NES_SEND_RESET_EVENT)
+-		create_event(cm_node, NES_CM_EVENT_RESET);
+ 	return 0;
+ }
+ 
+-- 
+1.6.0
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
