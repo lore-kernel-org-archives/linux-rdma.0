@@ -1,75 +1,62 @@
 From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Subject: Re: [PATCH 1/3 v4] IB/srp: Preparation for transmit ring response allocation
-Date: Mon, 16 Aug 2010 20:21:43 +0200
-Message-ID: <AANLkTik8q2fkkK1c59ZvBD+6AQpq3p+q55XcvpL_tzp1@mail.gmail.com>
-References: <201008102033.29588.bvanassche@acm.org>
-	<1281723889.2437.52.camel@lap75545.ornl.gov>
-	<AANLkTikY4V6FULZX_LDMP6BFf6CE_L6KLm73LhtE-HKD@mail.gmail.com>
-	<1281805494.2670.10.camel@obelisk.thedillows.org>
+Subject: [PATCH 0/3 v5] IB/srp: Add SRP_CRED_REQ and SRP_AER_REQ support
+Date: Mon, 16 Aug 2010 20:53:29 +0200
+Message-ID: <201008162053.29384.bvanassche@acm.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1281805494.2670.10.camel-1q1vX8mYZiGLUyTwlgNVppKKF0rrzTr+@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: David Dillow <dave-i1Mk8JYDVaaSihdK6806/g@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, David Dillow <dave-i1Mk8JYDVaaSihdK6806/g@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Sat, Aug 14, 2010 at 7:04 PM, David Dillow <dave-i1Mk8JYDVaaSihdK6806/g@public.gmane.org> wro=
-te:
->
-> On Sat, 2010-08-14 at 09:35 +0200, Bart Van Assche wrote:
-> > On Fri, Aug 13, 2010 at 8:24 PM, David Dillow <dave-i1Mk8JYDVaaSihdK6806/g@public.gmane.org>=
- wrote:
-> > >
-> > > > +
-> > > > + =A0 =A0 rsv =3D (req_type =3D=3D SRP_REQ_NORMAL) ? SRP_TSK_MG=
-MT_RSV : 0;
-> > > >
-> > > > =A0 =A0 =A0 srp_send_completion(target->send_cq, target);
-> > > >
-> > > > - =A0 =A0 if (target->tx_head - target->tx_tail >=3D SRP_SQ_SIZ=
-E)
-> > > > + =A0 =A0 if (target->tx_head - target->tx_tail >=3D SRP_SQ_SIZ=
-E - rsv)
-> > > > =A0 =A0 =A0 =A0 =A0 =A0 =A0 return NULL;
-> > >
-> > > This isn't needed per my previous message. It is just a guard to =
-make
-> > > sure we don't use more buffers than are on the ring. The real lim=
-iter is
-> > > the number of credits. Perhaps swapping it with the req_limit che=
-ck
-> > > below and adding a WARN_ONCE() may be a good idea, since I don't =
-think
-> > > we should ever hit it.
-> >
-> > Replacing the above if-statement by a WARN_ON_ONCE() statement woul=
-d
-> > make sense if the value of tx_head - tx_tail did only depend on the
-> > implementation of ib_srp.
->
-> I didn't say replace the guard, I said add a message so we knew we hi=
-t
-> this case. The "isn't needed" was referring to the change to the line=
-=2E
-> WARN_ON_ONCE may not be the best thing to use, but perhaps a
-> rate-limited shost_printk would be good. We really should never hit t=
-he
-> limit on tx buffers, unless we are dealing with a non-conforming targ=
-et
-> as you point out.
+This series of three patches adds SRP_CRED_REQ ans SRP_AER_REQ support in
+ib_srp. Both are information units defined in the SRP (draft) standard.
 
-I'll leave out the check altogether - it has never been the primary
-goal of ib_srp to serve as a debugging aid for target implementers.
+Changes in v5 compared to v4:
+- Added support for processing the SRP_AER_REQ information unit.
+- Introduced a new symbolic name, SRP_NORMAL_REQ_SQ_SIZE, that represents the
+  maximum number of requests that may be queued by the SCSI mid-layer.
+- Changed transmit ring overflow check back to that of v3 (removed "- rsv"
+  again).
+- Reduced the size of the srp_target_port.req_ring array by one element such
+  that its size again matches the maximum number of requests that can be
+  queued by the SCSI mid-layer.
+- Moved BUILD_BUG_ON_NOT_POWER_OF_2() statements to the module initialization
+  function.
+- Updated patch descriptions.
 
-I'll post a new patch series that should address all comments that
-have been posted so far.
+Changes in v4 compared to v3:
+- Dropped the fourth patch since it has been merged.
+- Introduced the symbolic constant SRP_TSK_MGMT_RSV, which represents the
+  number of slots reserved in the tx ring for SRP task management requests.
+- One slot of the transmit ring buffer is now reserved for sending
+  SRP_TSK_MGMT requests.
+- The BUILD_BUG_ON_NOT_POWER_OF_2() macro is now used to verify whether
+  SRP_RQ_MASK and SRP_SQ_MASK really are bitmasks.
+- Rearranged function order such that no new forward declarations have to be
+  introduced in the second patch.
+- Eliminated the srp_target_port.tx_req and tx_rsp variables.
+- Removed the SRP_OP_RSP flag.
+- Added a source code comment that explains why can_queue must be less than
+  req_lim.
 
-Bart.
+Changes in v3 compared to v2:
+- Corrected completion queue size from SRP_REQ_SQ_SIZE (63) into
+  SRP_SQ_SIZE (64).
+- Merged the two functions __srp_get_tx_req_iu() and __srp_get_tx_rsp_iu()
+  into a single function __srp_get_tx_iu().
+- Removed __attribute__((packed)) from the structure definitions added in
+  include/scsi/srp.h because it was superfluous.
+- Modified descriptions of patches 1/4, 2/4 and 3/4.
+
+Changes in v2 compared to v1:
+- Split the big patch into multiple patches, which makes reviewing easier.
+- Instead of defining separate queues for transmitting requests and responses,
+  a single queue is now used.
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
