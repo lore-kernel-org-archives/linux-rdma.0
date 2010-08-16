@@ -1,41 +1,66 @@
-From: Bob Pearson <rpearson-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org>
-Subject: Re: [PATCH v2] rdma/ib_pack.h: add new bth opcodes
-Date: Mon, 16 Aug 2010 11:23:06 -0500
-Message-ID: <4C6965EA.2050208@systemfabricworks.com>
-References: <4C62F86C.6060504@systemfabricworks.com> <4C639635.4090704@voltaire.com>
+From: Julia Lawall <julia@diku.dk>
+Subject: [PATCH 2/16] drivers/infiniband/hw/cxgb4: Remove unnecessary error
+ code assignment
+Date: Mon, 16 Aug 2010 18:25:00 +0200 (CEST)
+Message-ID: <Pine.LNX.4.64.1008161824420.19313@ask.diku.dk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4C639635.4090704-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Steve Wise <swise@chelsio.com>, Roland Dreier <rolandd@cisco.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, linux-rdma@vger.kernel.org, linux-kern
 List-Id: linux-rdma@vger.kernel.org
 
-On 08/12/2010 01:35 AM, Or Gerlitz wrote:
-> Bob Pearson wrote:
->> I was wondering if I could use this to cause ConnectX RDMAoE senders 
->> to slow down in response to these packets. There is a challenge 
->> managing fast ROCE senders in networks that may not fully implement 
->> per priority pause.
-> Hi Bob,
->
-> QCN (IEEE 802.1 based Ethernet congestion control mechanism) can apply 
-> for IBoE traffic, in the same manner it would for FCoE, IP etc. Is 
-> there a specific reason you wanted to apply the IB mechanism and not 
-> use the Ethernet one? Yep, PFC is helpful.
->
-> Or.
->
-Hi Or,
+From: Julia Lawall <julia@diku.dk>
 
-As I mentioned I did not pursue this. I was curious to see if I could 
-force a ConnectX device to slow down from a remote application. But 
-since the MADs have been crippled for IBOE there is no way to configure it.
+This code initializes ret to -ENOMEM, but actually ret is not used in the
+code starting at err7, and -ENOMEM is always returned in this case, so the
+initialization of ret is unnecessary.
 
-Bob
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+The semantic match that finds this problem is as follows:
+(http://coccinelle.lip6.fr/)
+
+// <smpl>
+@r@
+local idexpression x;
+constant C;
+@@
+
+if (...) { ...
+  x = -C
+  ... when != x
+(
+  return <+...x...+>;
+|
+  return NULL;
+|
+  return;
+|
+* return ...;
+)
+}
+// </smpl>
+
+Signed-off-by: Julia Lawall <julia@diku.dk>
+
+---
+ drivers/infiniband/hw/cxgb4/qp.c |    6 ++----
+ 1 file changed, 2 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/infiniband/hw/cxgb4/qp.c b/drivers/infiniband/hw/cxgb4/qp.c
+index 93f6e5b..73e00ed 100644
+--- a/drivers/infiniband/hw/cxgb4/qp.c
++++ b/drivers/infiniband/hw/cxgb4/qp.c
+@@ -130,11 +130,9 @@ static int create_qp(struct c4iw_rdev *rdev, struct t4_wq *wq,
+ 	/* build fw_ri_res_wr */
+ 	wr_len = sizeof *res_wr + 2 * sizeof *res;
+ 
+-	skb = alloc_skb(wr_len, GFP_KERNEL);
+-	if (!skb) {
+-		ret = -ENOMEM;
++	skb = alloc_skb(wr_len, GFP_KERNEL | __GFP_NOFAIL);
++	if (!skb)
+ 		goto err7;
+-	}
+ 	set_wr_txq(skb, CPL_PRIORITY_CONTROL, 0);
+ 
+ 	res_wr = (struct fw_ri_res_wr *)__skb_put(skb, wr_len);
