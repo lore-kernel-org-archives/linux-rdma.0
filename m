@@ -1,10 +1,10 @@
 From: Vu Pham <vuhuong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH v1 01/10] mlx4_core: Change fw profile and qp context
- to enable FC
-Date: Mon, 16 Aug 2010 15:16:13 -0700
-Message-ID: <4C69B8AD.1070404@mellanox.com>
+Subject: [PATCH v1 02/10] mlx4_core: Add mr_alloc_reserved to able
+ create MPTs with pre-reserve range
+Date: Mon, 16 Aug 2010 15:16:18 -0700
+Message-ID: <4C69B8B2.40805@mellanox.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------030202010502080100010309"
+Content-Type: multipart/mixed; boundary="------------070404090907050200000104"
 Return-path: <ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
 List-Unsubscribe: <http://lists.openfabrics.org/cgi-bin/mailman/listinfo/ewg>,
 	<mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=unsubscribe>
@@ -20,90 +20,142 @@ Cc: Linux RDMA <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, OpenFabrics
 List-Id: linux-rdma@vger.kernel.org
 
 This is a multi-part message in MIME format.
---------------030202010502080100010309
+--------------070404090907050200000104
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 
 
 
---------------030202010502080100010309
+--------------070404090907050200000104
 Content-Type: text/x-patch;
- name="0001-mlx4_core-Change-fw-profile-and-qp-context-to-enable.patch"
+ name="0002-mlx4_core-Add-mr_alloc_reserved-to-able-create-MPTs-.patch"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline;
- filename*0="0001-mlx4_core-Change-fw-profile-and-qp-context-to-enable.pa";
+ filename*0="0002-mlx4_core-Add-mr_alloc_reserved-to-able-create-MPTs-.pa";
  filename*1="tch"
 
->From 5fd7e9795e085ff64b2396a5339f98e9b7021965 Mon Sep 17 00:00:00 2001
+>From 7c943349148dcbcb173814a9b6800ac2a2b12626 Mon Sep 17 00:00:00 2001
 From: Vu Pham <vu-OnC3O1emZK9LiOotz6YBiwC/G2K4zDHf@public.gmane.org>
-Date: Tue, 10 Aug 2010 13:55:43 -0700
-Subject: [PATCH 01/10] mlx4_core: Change fw profile and qp context to enable FC
+Date: Tue, 10 Aug 2010 14:03:53 -0700
+Subject: [PATCH 02/10] mlx4_core: Add mr_alloc_reserved to able create MPTs with pre-reserve range
 
-Increase num_qp, num_mpt resource in fw profile to enable FC
-Add fields in qp context and qp path to enable FC qps
+As we did with QPs, range of the MPTs are pre-reserved
+(the MPTs that are mapped for FEXCHs, 2*64K of them).
 
+We need to split the operation of allocating an MPT to two:
+    . The allocation of a bit from the bitmap
+    . The actual creation of the entry (and it's MTT).
+
+So, mr_alloc_reserved() is the second part, where you know which MPT
+number was allocated. mr_alloc() is the one that allocates a number
+from the bitmap.
+
+Normal users keep using the original mr_alloc().
+For FEXCH, when we know the pre-reserved MPT entry, we call
+mr_alloc_reserved() directly.
+
+Same with the mr_free() and corresponding mr_free_reserved().
+The first will just put back the bit, the later will actually
+destroy the entry, but will leave the bit set.
+
+Signed-off-by: Yevgeny Petrilin <yevgenyp-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
 Signed-off-by: Oren Duer <oren-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
 Signed-off-by: Vu Pham <vu-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/net/mlx4/main.c |    4 ++--
- include/linux/mlx4/qp.h |   13 +++++++++++--
- 2 files changed, 13 insertions(+), 4 deletions(-)
+ drivers/net/mlx4/mr.c       |   35 +++++++++++++++++++++++++----------
+ include/linux/mlx4/device.h |    4 ++++
+ 2 files changed, 29 insertions(+), 10 deletions(-)
 
-diff --git a/drivers/net/mlx4/main.c b/drivers/net/mlx4/main.c
-index 5102ab1..fe3be88 100644
---- a/drivers/net/mlx4/main.c
-+++ b/drivers/net/mlx4/main.c
-@@ -79,12 +79,12 @@ static char mlx4_version[] __devinitdata =
- 	DRV_VERSION " (" DRV_RELDATE ")\n";
+diff --git a/drivers/net/mlx4/mr.c b/drivers/net/mlx4/mr.c
+index 9c188bd..35c0af6 100644
+--- a/drivers/net/mlx4/mr.c
++++ b/drivers/net/mlx4/mr.c
+@@ -263,6 +263,21 @@ static int mlx4_HW2SW_MPT(struct mlx4_dev *dev, struct mlx4_cmd_mailbox *mailbox
+ 			    !mailbox, MLX4_CMD_HW2SW_MPT, MLX4_CMD_TIME_CLASS_B);
+ }
  
- static struct mlx4_profile default_profile = {
--	.num_qp		= 1 << 17,
-+	.num_qp		= 1 << 18,
- 	.num_srq	= 1 << 16,
- 	.rdmarc_per_qp	= 1 << 4,
- 	.num_cq		= 1 << 16,
- 	.num_mcg	= 1 << 13,
--	.num_mpt	= 1 << 17,
-+	.num_mpt	= 1 << 19,
- 	.num_mtt	= 1 << 20,
- };
++int mlx4_mr_alloc_reserved(struct mlx4_dev *dev, u32 mridx, u32 pd,
++			   u64 iova, u64 size, u32 access, int npages,
++			   int page_shift, struct mlx4_mr *mr)
++{
++	mr->iova       = iova;
++	mr->size       = size;
++	mr->pd	       = pd;
++	mr->access     = access;
++	mr->enabled    = 0;
++	mr->key	       = hw_index_to_key(mridx);
++
++	return mlx4_mtt_init(dev, npages, page_shift, &mr->mtt);
++}
++EXPORT_SYMBOL_GPL(mlx4_mr_alloc_reserved);
++
+ int mlx4_mr_alloc(struct mlx4_dev *dev, u32 pd, u64 iova, u64 size, u32 access,
+ 		  int npages, int page_shift, struct mlx4_mr *mr)
+ {
+@@ -274,14 +289,8 @@ int mlx4_mr_alloc(struct mlx4_dev *dev, u32 pd, u64 iova, u64 size, u32 access,
+ 	if (index == -1)
+ 		return -ENOMEM;
  
-diff --git a/include/linux/mlx4/qp.h b/include/linux/mlx4/qp.h
-index 7abe643..249dacf 100644
---- a/include/linux/mlx4/qp.h
-+++ b/include/linux/mlx4/qp.h
-@@ -109,7 +109,7 @@ struct mlx4_qp_path {
- 	__be32			tclass_flowlabel;
- 	u8			rgid[16];
- 	u8			sched_queue;
--	u8			snooper_flags;
-+	u8			vlan_index;
- 	u8			reserved3[2];
- 	u8			counter_index;
- 	u8			reserved4[7];
-@@ -151,7 +151,16 @@ struct mlx4_qp_context {
- 	u8			reserved4[2];
- 	u8			mtt_base_addr_h;
- 	__be32			mtt_base_addr_l;
--	u32			reserved5[10];
-+	u8			VE;
-+	u8			reserved5;
-+	__be16			VFT_id_prio;
-+	u8			reserved6;
-+	u8			exch_size;
-+	__be16			exch_base;
-+	u8			VFT_hop_cnt;
-+	u8			my_fc_id_idx;
-+	__be16			reserved7;
-+	u32			reserved8[7];
- };
+-	mr->iova       = iova;
+-	mr->size       = size;
+-	mr->pd	       = pd;
+-	mr->access     = access;
+-	mr->enabled    = 0;
+-	mr->key	       = hw_index_to_key(index);
+-
+-	err = mlx4_mtt_init(dev, npages, page_shift, &mr->mtt);
++	err = mlx4_mr_alloc_reserved(dev, index, pd, iova, size,
++				     access, npages, page_shift, mr);
+ 	if (err)
+ 		mlx4_bitmap_free(&priv->mr_table.mpt_bitmap, index);
  
- /* Which firmware version adds support for NEC (NoErrorCompletion) bit */
+@@ -289,9 +298,8 @@ int mlx4_mr_alloc(struct mlx4_dev *dev, u32 pd, u64 iova, u64 size, u32 access,
+ }
+ EXPORT_SYMBOL_GPL(mlx4_mr_alloc);
+ 
+-void mlx4_mr_free(struct mlx4_dev *dev, struct mlx4_mr *mr)
++void mlx4_mr_free_reserved(struct mlx4_dev *dev, struct mlx4_mr *mr)
+ {
+-	struct mlx4_priv *priv = mlx4_priv(dev);
+ 	int err;
+ 
+ 	if (mr->enabled) {
+@@ -303,6 +311,13 @@ void mlx4_mr_free(struct mlx4_dev *dev, struct mlx4_mr *mr)
+ 	}
+ 
+ 	mlx4_mtt_cleanup(dev, &mr->mtt);
++}
++EXPORT_SYMBOL_GPL(mlx4_mr_free_reserved);
++
++void mlx4_mr_free(struct mlx4_dev *dev, struct mlx4_mr *mr)
++{
++	struct mlx4_priv *priv = mlx4_priv(dev);
++	mlx4_mr_free_reserved(dev, mr);
+ 	mlx4_bitmap_free(&priv->mr_table.mpt_bitmap, key_to_hw_index(mr->key));
+ }
+ EXPORT_SYMBOL_GPL(mlx4_mr_free);
+diff --git a/include/linux/mlx4/device.h b/include/linux/mlx4/device.h
+index 7a7f9c1..66849cf 100644
+--- a/include/linux/mlx4/device.h
++++ b/include/linux/mlx4/device.h
+@@ -424,8 +424,12 @@ int mlx4_mtt_init(struct mlx4_dev *dev, int npages, int page_shift,
+ void mlx4_mtt_cleanup(struct mlx4_dev *dev, struct mlx4_mtt *mtt);
+ u64 mlx4_mtt_addr(struct mlx4_dev *dev, struct mlx4_mtt *mtt);
+ 
++int mlx4_mr_alloc_reserved(struct mlx4_dev *dev, u32 mridx, u32 pd,
++			   u64 iova, u64 size, u32 access, int npages,
++			   int page_shift, struct mlx4_mr *mr);
+ int mlx4_mr_alloc(struct mlx4_dev *dev, u32 pd, u64 iova, u64 size, u32 access,
+ 		  int npages, int page_shift, struct mlx4_mr *mr);
++void mlx4_mr_free_reserved(struct mlx4_dev *dev, struct mlx4_mr *mr);
+ void mlx4_mr_free(struct mlx4_dev *dev, struct mlx4_mr *mr);
+ int mlx4_mr_enable(struct mlx4_dev *dev, struct mlx4_mr *mr);
+ int mlx4_write_mtt(struct mlx4_dev *dev, struct mlx4_mtt *mtt,
 -- 
 1.6.3.3
 
 
---------------030202010502080100010309
+--------------070404090907050200000104
 Content-Type: text/plain; charset="us-ascii"
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7bit
@@ -113,4 +165,4 @@ _______________________________________________
 ewg mailing list
 ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
 http://lists.openfabrics.org/cgi-bin/mailman/listinfo/ewg
---------------030202010502080100010309--
+--------------070404090907050200000104--
