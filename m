@@ -1,56 +1,67 @@
-From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Subject: [PATCH 3/3 v5] IB/srp: Reduce number of BUSY conditions
-Date: Mon, 16 Aug 2010 20:55:47 +0200
-Message-ID: <201008162055.47174.bvanassche@acm.org>
+From: Vu Pham <vuhuong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH v1 0/10] Add fcoe, fcoib drivers for mlx4 device
+Date: Mon, 16 Aug 2010 15:16:08 -0700
+Message-ID: <4C69B8A8.1050204@mellanox.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, David Dillow <dave-i1Mk8JYDVaaSihdK6806/g@public.gmane.org>
+Return-path: <ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+List-Unsubscribe: <http://lists.openfabrics.org/cgi-bin/mailman/listinfo/ewg>,
+	<mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.openfabrics.org/pipermail/ewg>
+List-Post: <mailto:ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+List-Help: <mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=help>
+List-Subscribe: <http://lists.openfabrics.org/cgi-bin/mailman/listinfo/ewg>,
+	<mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=subscribe>
+Sender: ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
+Errors-To: ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
+To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Cc: Linux RDMA <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, OpenFabrics EWG <ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>, Oren Duer <oren-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-As proposed by the SRP (draft) standard, ib_srp reserves one ring element for
-SRP_TSK_MGMT requests. This patch makes sure that the SCSI mid-layer never
-tries to queue more than (SRP request limit) - 1 SCSI commands to ib_srp. This
-improves performance for targets whose request limit is less than or equal to
-SRP_NORMAL_REQ_SQ_SIZE (62) by reducing the number of BUSY responses reported
-by ib_srp to the SCSI mid-layer.
+Hi Roland,
 
-Signed-off-by: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Cc: Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Cc: David Dillow <dave-i1Mk8JYDVaaSihdK6806/g@public.gmane.org>
+Thanks for your feedbacks for previous patch set. I reworked, rearranged 
+order of the patches as suggested.
+Please ignore the previous patch set. Here is the new one.
 
----
- drivers/infiniband/ulp/srp/ib_srp.c |    9 +++++++--
- 1 files changed, 7 insertions(+), 2 deletions(-)
+The following series implements fcoe and fcoib offload driver for mlx4 
+device
 
-diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
-index da62b57..fba39f0 100644
---- a/drivers/infiniband/ulp/srp/ib_srp.c
-+++ b/drivers/infiniband/ulp/srp/ib_srp.c
-@@ -1376,8 +1376,13 @@ static int srp_cm_handler(struct ib_cm_id *cm_id, struct ib_cm_event *event)
- 			target->max_ti_iu_len = be32_to_cpu(rsp->max_ti_iu_len);
- 			target->req_lim       = be32_to_cpu(rsp->req_lim_delta);
- 
--			target->scsi_host->can_queue = min(target->req_lim,
--							   target->scsi_host->can_queue);
-+			/*
-+			 * Set can_queue such that the SCSI mid-layer
-+			 * never causes __srp_get_tx_iu() to fail.
-+			 */
-+			target->scsi_host->can_queue
-+				= min(target->req_lim - SRP_TASK_MGMT_SQ_SIZE,
-+				      target->scsi_host->can_queue);
- 		} else {
- 			shost_printk(KERN_WARNING, target->scsi_host,
- 				    PFX "Unhandled RSP opcode %#x\n", opcode);
--- 
-1.6.4.2
+mlx4_fc: implement fcoe/fcoib, hook to scsi mid-layer to offload scsi 
+operations, and use openfc's libfc to do ELS/BLS
+mlx4_fcoib: driver implement fcoib initialization protocol to discover 
+IB-FC gateways/bridges
+mlx4: add/enable mlx4_core, mlx4_ib, mlx4_en to support fcoe/fcoib
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+ drivers/infiniband/hw/mlx4/cq.c       |    4 +-
+ drivers/infiniband/hw/mlx4/main.c     |   10 +-
+ drivers/net/mlx4/cq.c                 |   27 +-
+ drivers/net/mlx4/en_cq.c              |    2 +-
+ drivers/net/mlx4/en_main.c            |    9 +
+ drivers/net/mlx4/fw.c                 |   13 +
+ drivers/net/mlx4/intf.c               |   19 +
+ drivers/net/mlx4/main.c               |    4 +-
+ drivers/net/mlx4/mlx4.h               |    1 +
+ drivers/net/mlx4/mr.c                 |  140 ++-
+ drivers/scsi/Kconfig                  |   22 +
+ drivers/scsi/Makefile                 |    2 +
+ drivers/scsi/mlx4_fc/Makefile         |    8 +
+ drivers/scsi/mlx4_fc/fcoib.h          |  343 ++++++
+ drivers/scsi/mlx4_fc/fcoib_api.h      |   61 +
+ drivers/scsi/mlx4_fc/fcoib_discover.c | 1925 
++++++++++++++++++++++++++++++++
+ drivers/scsi/mlx4_fc/fcoib_main.c     | 1211 ++++++++++++++++++++
+ drivers/scsi/mlx4_fc/mfc.c            | 2003 
++++++++++++++++++++++++++++++++++
+ drivers/scsi/mlx4_fc/mfc.h            |  666 +++++++++++
+ drivers/scsi/mlx4_fc/mfc_exch.c       | 1496 ++++++++++++++++++++++++
+ drivers/scsi/mlx4_fc/mfc_rfci.c       | 1001 ++++++++++++++++
+ drivers/scsi/mlx4_fc/mfc_sysfs.c      |  244 ++++
+ include/linux/mlx4/device.h           |   23 +-
+ include/linux/mlx4/driver.h           |    9 +
+ include/rdma/ib_verbs.h               |   10 +-
+ 25 files changed, 9222 insertions(+), 31 deletions(-)
+
+thanks
+-vu
