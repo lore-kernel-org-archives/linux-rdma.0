@@ -1,34 +1,96 @@
-From: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCHv9 09/12] ib_core: Add VLAN support to IBoE
-Date: Tue, 17 Aug 2010 21:29:51 +0300
-Message-ID: <AANLkTinK2XMGpJHCSvDAeQ9D55JJY96uuLjc7CvWg1Rj@mail.gmail.com>
-References: <20100806144153.GJ20588@mtldesk30>
-	<20100806164915.GL11306@obsidianresearch.com>
-	<20100816125128.GB22111@mtldesk30>
-	<adaeidyw6bd.fsf@roland-alpha.cisco.com>
-	<20100817143623.GA626@mtldesk30>
-	<adatymtur55.fsf@roland-alpha.cisco.com>
+From: Ralph Campbell <ralph.campbell-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+Subject: RE: CQ overrun with ib_send_bw
+Date: Tue, 17 Aug 2010 11:59:07 -0700
+Message-ID: <1282071547.2313.100.camel@chromite.mv.qlogic.com>
+References: <4C659288.4030402@oracle.com>
+	 <1281726396.2313.44.camel@chromite.mv.qlogic.com>
+	 <CF9C39F99A89134C9CF9C4CCB68B8DDF25A96887A2@orsmsx501.amr.corp.intel.com>
+	 <1281727297.2313.47.camel@chromite.mv.qlogic.com>
+	 <E113D394D7C5DB4F8FF691FA7EE9DB443B5668DE17@MTLMAIL.mtl.com>
+	 <1EEC75D0B27041449A1EEA2927D1B145380145A7DA@MTLMAIL.mtl.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: multipart/mixed; boundary="=-CrqiGgp84UrCB+fosT5r"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <adatymtur55.fsf-BjVyx320WGW9gfZ95n9DRSW4+XlvGpQz@public.gmane.org>
+In-Reply-To: <1EEC75D0B27041449A1EEA2927D1B145380145A7DA-WQlSmcKwN8Te+A/uUDamNg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, RDMA list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Amir Ancel <amira-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
+Cc: Tziporet Koren <tziporet-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Ido Shamay <idos-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, Sumeet Lahorani <Sumeet.Lahorani-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Raz Baussi <razb-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Aug 17, 2010 at 7:43 PM, Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org> wrote:
->
-> OK but as I said I don't see what that has to do with this patch.
-We thought it was appropriate to put this info here. Maybe we should
-move it to PATCH0?
+--=-CrqiGgp84UrCB+fosT5r
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 
->
-> With current API at least the consumer only specifies the SGID index.
-> How does the consumer get a GID with a given VLAN into the local GID table?
+The patch is attached.
 
-It's the HW driver that populates the GID table in response to net
-device events.
+On Tue, 2010-08-17 at 04:36 -0700, Amir Ancel wrote:
+> Hi Sean,
+> 
+> We've seen this issue as well.
+> 
+> Can you send the patch directly to us ?
+> 
+> Added Raz from my team which replaces Ido while he is OOO.
+> 
+> 
+> Thanks,
+> 
+> Amir Ancel
+> Performance Team Manager
+> Mellanox Technologies
+> 
+> -----Original Message-----
+> From: Tziporet Koren 
+> Sent: Tuesday, August 17, 2010 2:19 PM
+> To: Ralph Campbell; Hefty, Sean; Ido Shamay; Amir Ancel
+> Cc: Sumeet Lahorani; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> Subject: RE: CQ overrun with ib_send_bw
+> 
+> On 8/13/2010 10:21 PM, Ralph Campbell wrote:
+> > On Fri, 2010-08-13 at 12:14 -0700, Hefty, Sean wrote:
+> >>> I know there is a bug with "ib_send_bw -b" (bi-directional)
+> >>> since it doesn't create a CQ that is large enough for all the
+> >>> posted sends *and* receives.  I have tried several times to get the
+> >>> following patch applied but I never got a reply and nothing was
+> >>> done.
+> >>
+> >> Who's the maintainer of these tests?
+> >
+> > I believe it is:
+> >
+> > Ido Shamai <idos-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+> >
+> > git://git.openfabrics.org/~shamoya/perftest.git
+> >
+> >
+> 
+> Yes Ido is the maintainer, however he is on vacation till Sep.
+> I add Amir that may help for now
+> 
+> Tziporet
+> 
+
+
+--=-CrqiGgp84UrCB+fosT5r
+Content-Disposition: attachment; filename="send_bw.patch"
+Content-Type: text/x-patch; name="send_bw.patch"; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+
+diff --git a/send_bw.c b/send_bw.c
+index ddd2b73..e3f644a 100644
+--- a/send_bw.c
++++ b/send_bw.c
+@@ -746,6 +746,8 @@ static struct pingpong_context *pp_init_ctx(struct ibv_device *ib_dev,
+ 	if (user_parm->use_mcg && !user_parm->servername) {
+ 		cq_rx_depth *= user_parm->num_of_clients_mcg;
+ 	}
++	if (user_parm->duplex)
++		cq_rx_depth += ctx->tx_depth;
+ 	ctx->cq = ibv_create_cq(ctx->context,cq_rx_depth, NULL, ctx->channel, 0);
+ 	if (!ctx->cq) {
+ 		fprintf(stderr, "Couldn't create CQ\n");
+
+--=-CrqiGgp84UrCB+fosT5r--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
