@@ -1,116 +1,23 @@
-From: Randy Dunlap <randy.dunlap@ORACLE.COM>
-Subject: Re: [PATCH v1 10/10] mlx4_fc: Enable FC over Ethernet/Infiniband
- drivers
-Date: Wed, 18 Aug 2010 10:05:34 -0700
-Message-ID: <4C6C12DE.1020209@oracle.com>
-References: <4C69B8E1.80702@mellanox.com> <20100816165137.d006efd0.randy.dunlap@oracle.com> <4C6C1096.9090900@mellanox.com>
+From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [RFC PATCH] RDMA/UCMA: Allow tuning the max backlog.
+Date: Wed, 18 Aug 2010 11:04:16 -0700
+Message-ID: <ada4oervlun.fsf@roland-alpha.cisco.com>
+References: <20100813205634.3763.55419.stgit@build.ogc.int>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-scsi-owner@vger.kernel.org>
-In-Reply-To: <4C6C1096.9090900@mellanox.com>
-Sender: linux-scsi-owner@vger.kernel.org
-To: Vu Pham <vuhuong@mellanox.com>
-Cc: Roland Dreier <rdreier@cisco.com>, OpenFabrics EWG <ewg@openfabrics.org>, Linux RDMA <linux-rdma@vger.kernel.org>, Linux SCSI <linux-scsi@vger.kernel.org>, Oren Duer <oren@mellanox.co.il>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20100813205634.3763.55419.stgit-T4OLL4TyM9aNDNWfRnPdfg@public.gmane.org> (Steve Wise's
+	message of "Fri, 13 Aug 2010 15:56:34 -0500")
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Cc: sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 08/18/10 09:55, Vu Pham wrote:
-> 
->> 	depends on 
->> +	select LIBFC
->> +	select LIBFCOE
->> +	help
->> +	  Fibre Channel over Ethernet/Infiniband module
->> +
->> +	  This is support for the Mellanox ConnectX/ConnectX-2 HCAs
->> +	  The module will be called mlx4_fc
->>
->> End both lines above with periods (".").
->>
->> +
->> +	  The module FIP-alike to discover BridgeX gateways in the
->> +	  Infiniband fabric
->>
->> end sentence with ".".
->>
->> What does "FIP-alike" mean?  and fix grammar:
->>
->> 	  This module attempts to discover BridgeX gateways in the
->> 	  Infiniband fabric.
->> ?
-> 
->>
->> end sentence with ".".
-> 
-> Thanks for you comments.
-> 
-> From 54041f56fa1896388a52f503e43e21aa11cc9a2a Mon Sep 17 00:00:00 2001
-> From: Vu Pham <vu@vu-lt.mti.mtl.com>
-> Date: Tue, 17 Aug 2010 15:40:42 -0700
-> Subject: [PATCH 10/10] mlx4_fc: Enable FC over Ethernet/Infiniband drivers
-> 
-> Add entries in scsi's Kconfig and Makefile to enable mlx4_fc
-> (fcoe/fcoib offload driver) and mlx4_fcoib (FIP-alike discovery
-> driver)
-> 
-> Signed-off-by: Vu Pham <vu@mellanox.com>
-
-Looks good.  Thanks for the update.
-
-> ---
->  drivers/scsi/Kconfig  |   23 +++++++++++++++++++++++
->  drivers/scsi/Makefile |    2 ++
->  2 files changed, 25 insertions(+), 0 deletions(-)
-> 
-> diff --git a/drivers/scsi/Kconfig b/drivers/scsi/Kconfig
-> index 158284f..e3d2850 100644
-> --- a/drivers/scsi/Kconfig
-> +++ b/drivers/scsi/Kconfig
-> @@ -687,6 +687,29 @@ config FCOE_FNIC
->  	  <file:Documentation/scsi/scsi.txt>.
->  	  The module will be called fnic.
->  
-> +config MLX4_FC
-> +	tristate "Mellanox FC module"
-> +	select MLX4_EN
-> +	select LIBFC
-> +	select LIBFCOE
-> +	help
-> +	  Fibre Channel over Ethernet/Infiniband module
-> +
-> +	  This is support for the Mellanox ConnectX/ConnectX-2 HCAs.
-> +	  The module will be called mlx4_fc.
-> +
-> +config MLX4_FCOIB
-> +	tristate "Mellanox FCoIB discovery module"
-> +	depends on INFINIBAND
-> +	select MLX4_FC
-> +	help
-> +	  Fibre Channel over Infiniband discovery module
-> +
-> +	  The module attempts to discover BridgeX gateways in the
-> +	  Infiniband fabric by implementing FIP protocol (FCoE
-> +	  Initialization protocol) over Infiniband.
-> +	  The module will be called mlx4_fcoib.
-> +
->  config SCSI_DMX3191D
->  	tristate "DMX3191D SCSI support"
->  	depends on PCI && SCSI
-> diff --git a/drivers/scsi/Makefile b/drivers/scsi/Makefile
-> index 2a3fca2..0d0dab7 100644
-> --- a/drivers/scsi/Makefile
-> +++ b/drivers/scsi/Makefile
-> @@ -40,6 +40,8 @@ obj-$(CONFIG_LIBFC)		+= libfc/
->  obj-$(CONFIG_LIBFCOE)		+= fcoe/
->  obj-$(CONFIG_FCOE)		+= fcoe/
->  obj-$(CONFIG_FCOE_FNIC)		+= fnic/
-> +obj-$(CONFIG_MLX4_FC)		+= mlx4_fc/
-> +obj-$(CONFIG_MLX4_FCOIB)	+= mlx4_fc/
->  obj-$(CONFIG_ISCSI_TCP) 	+= libiscsi.o	libiscsi_tcp.o iscsi_tcp.o
->  obj-$(CONFIG_INFINIBAND_ISER) 	+= libiscsi.o
->  obj-$(CONFIG_SCSI_A4000T)	+= 53c700.o	a4000t.o
-
-
+This looks reasonable to me.  Sean?
 -- 
-~Randy
-*** Remember to use Documentation/SubmitChecklist when testing your code ***
+Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org> || For corporate legal information go to:
+http://www.cisco.com/web/about/doing_business/legal/cri/index.html
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
