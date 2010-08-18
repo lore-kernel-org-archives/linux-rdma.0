@@ -1,78 +1,88 @@
-From: Doron Shoham <dorons-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH] ibnetdiscover: add '-f' flag to show full information (ports'
- speed and width).
-Date: Wed, 18 Aug 2010 11:30:58 +0300
-Message-ID: <4C6B9A42.9020505@voltaire.com>
+From: Andrea Gozzelino <Andrea.Gozzelino-PK20h7lG/Rc1GQ1Ptb7lUw@public.gmane.org>
+Subject: Re: RDMA tutorial feedback
+Date: Wed, 18 Aug 2010 14:35:17 +0200 (CEST)
+Message-ID: <6150416.1282134917725.SLOX.WebMail.wwwrun@imap.lnl.infn.it>
+References: <AANLkTimDVeCu1ZTZTr1TvZF2vkSQ0keDVs4eheriywNN@mail.gmail.com> <CF9C39F99A89134C9CF9C4CCB68B8DDF25A9708393@orsmsx501.amr.corp.intel.com> <AANLkTin49UW3==170jBuhMJvJrcxFYGvUCF8-Xyqmz3J@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <AANLkTin49UW3==170jBuhMJvJrcxFYGvUCF8-Xyqmz3J-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tarick Bedeir <tarick-LDovhz+uhNHQT0dZR+AlfA@public.gmane.org>
+Cc: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-add '-f' flag to show full information (ports' speed and witdh).
-mainly to work with ibsim (using links real speed and width).
+On Aug 16, 2010 06:39 PM, Tarick Bedeir <tarick-LDovhz+uhNHQT0dZR+AlfA@public.gmane.org> wrote:
 
-Signed-off-by: Doron Shoham <dorons-smomgflXvOZWk0Htik3J/w@public.gmane.org>
----
- infiniband-diags/src/ibnetdiscover.c |   10 +++++++++-
- 1 files changed, 9 insertions(+), 1 deletions(-)
+> On Mon, Aug 16, 2010 at 1:00 AM, Hefty, Sean <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> wrote:
+> >> When I started working on an IB-aware app last year, I couldn't
+> >> find
+> >> much in the way of an RDMA/verbs/IB tutorial on the web. =C2=A0Thi=
+s
+> >> doesn't
+> >> seem to have changed, so I put together a few posts on my blog tha=
+t
+> >> I
+> >> hope will be of use to the next guy who's got to start from
+> >> scratch:
+> >>
+> >> http://thegeekinthecorner.wordpress.com/
+> >>
+> >> I'm very interested in the community's feedback.
+> >
+> > I think having something like this is great.
+> >
+> > Since you've started this work, additional APIs and functionality
+> > have been added to the librdmacm which are intended to simplify
+> > connection establishment. =C2=A0Notable changes include the additio=
+n of
+> > an rdma_getaddrinfo() call and support for synchronous operation.
+> > =C2=A0If you download the latest librdmacm package from the OFA sit=
+e, you
+> > can take a look at the new samples, rdma_server and rdma_client,
+> > which show how to make use of the new functionality.
+> >
+> > A few wrapper functions around libibverbs calls were also added, bu=
+t
+> > as those are inline calls, their use is limited.
+>=20
+> That's good to know -- I'll work on a post describing synchronous
+> operation and rdma_getaddrinfo().
+>=20
+> Thank you for the feedback!
+>=20
+> Tarick
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma"
+> in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>=20
 
-diff --git a/infiniband-diags/src/ibnetdiscover.c b/infiniband-diags/src/ibnetdiscover.c
-index f20058c..0a020a2 100644
---- a/infiniband-diags/src/ibnetdiscover.c
-+++ b/infiniband-diags/src/ibnetdiscover.c
-@@ -77,6 +77,7 @@ static char *diff_cache_file = NULL;
- static unsigned diffcheck_flags = DIFF_FLAG_DEFAULT;
- 
- static int report_max_hops = 0;
-+static int full_info = 0;
- 
- /**
-  * Define our own conversion functions to maintain compatibility with the old
-@@ -357,6 +358,8 @@ void out_switch_port(ibnd_port_t * port, int group, char *out_prefix)
- 		ext_port_str ? ext_port_str : "");
- 	if (port->remoteport->node->type != IB_NODE_SWITCH)
- 		fprintf(f, "(%" PRIx64 ") ", port->remoteport->guid);
-+	if (full_info)
-+			fprintf(f, " s=%d w=%d", ispeed, iwidth);
- 	fprintf(f, "\t\t# \"%s\" lid %d %s%s",
- 		rem_nodename,
- 		port->remoteport->node->type == IB_NODE_SWITCH ?
-@@ -396,7 +399,8 @@ void out_ca_port(ibnd_port_t * port, int group, char *out_prefix)
- 	rem_nodename = remap_node_name(node_name_map,
- 				       port->remoteport->node->guid,
- 				       port->remoteport->node->nodedesc);
--
-+	if (full_info)
-+			fprintf(f, " s=%d w=%d", ispeed, iwidth);
- 	fprintf(f, "\t\t# lid %d lmc %d \"%s\" lid %d %s%s\n",
- 		port->base_lid, port->lmc, rem_nodename,
- 		port->remoteport->node->type == IB_NODE_SWITCH ?
-@@ -926,6 +930,9 @@ static int process_opt(void *context, int ch, char *optarg)
- 	case 's':
- 		cfg->show_progress = 1;
- 		break;
-+	case 'f':
-+		full_info = 1;
-+		break;
- 	case 'l':
- 		list = LIST_CA_NODE | LIST_SWITCH_NODE | LIST_ROUTER_NODE;
- 		break;
-@@ -964,6 +971,7 @@ int main(int argc, char **argv)
- 	ibnd_fabric_t *diff_fabric = NULL;
- 
- 	const struct ibdiag_opt opts[] = {
-+		{"full", 'f', 0, NULL, "show full information (ports' speed and witdh)"},
- 		{"show", 's', 0, NULL, "show more information"},
- 		{"list", 'l', 0, NULL, "list of connected nodes"},
- 		{"grouping", 'g', 0, NULL, "show grouping"},
--- 
-1.5.4
+Hi Tarick,
+
+I'm interesting in your documentation.
+It will be precious in my RDMA test.
+
+Keep in touch.
+Thank you very much.
+Best regards,
+Andrea
+
+Andrea Gozzelino
+
+INFN - Laboratori Nazionali di Legnaro	(LNL)
+Viale dell'Universita' 2 -I-35020 - Legnaro (PD)- ITALIA
+Office: E-101
+Tel: +39 049 8068346
+=46ax: +39 049 641925
+Mail: andrea.gozzelino-PK20h7lG/Rc1GQ1Ptb7lUw@public.gmane.org
+Cell: +39 3488245552			=09
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
