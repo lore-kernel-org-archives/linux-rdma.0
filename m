@@ -1,28 +1,77 @@
-From: Or Gerlitz <ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Subject: Re: using same IP subnet on multiple interfaces
-Date: Wed, 18 Aug 2010 09:02:50 +0300
-Message-ID: <4C6B778A.4070000@voltaire.com>
-References: <CF9C39F99A89134C9CF9C4CCB68B8DDF25A9687B2B@orsmsx501.amr.corp.intel.com>	<4C679C39.8060709@Voltaire.com> <20100815165946.GA2861@obsidianresearch.com>	<4C69597C.2040008@Voltaire.com> <20100817031945.GA5251@obsidianresearch.com>
+From: Doron Shoham <dorons-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH] ibnetdiscover: add '-f' flag to show full information (ports'
+ speed and width).
+Date: Wed, 18 Aug 2010 11:30:58 +0300
+Message-ID: <4C6B9A42.9020505@voltaire.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20100817031945.GA5251-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Jason Gunthorpe wrote:
->> As for the original issue we were discussing here, the conclusion is that with upstream 2.6.35 bits for the rdma connection to go from hca1 port1 to hca1 port2 (or from hca1 port1 to hca2 port1), the rdma-cm needs a neighbour, similarly to a ping -I ib0 to ib1 address. A neighbour isn't created unless the responding NIC (ib1 in my example) has both rp_filter set to 0 and accept_local set to 1,
->> does this makes sense?
-> This description seemed reasonable to me. It is pretty confusing what binding means in RDMA CM, it is different then sockets, and is some combination of SO_BINDTODEVICE and bind to address.
-I was thinking that one of the things taken care by the patch set to 
-addr.c/cma.c you, David and Sean did last year was to make binding in 
-rdma-cm to be bind to address by-the-book, in what aspect it is 
-different now?
+add '-f' flag to show full information (ports' speed and witdh).
+mainly to work with ibsim (using links real speed and width).
 
-Or.
+Signed-off-by: Doron Shoham <dorons-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+---
+ infiniband-diags/src/ibnetdiscover.c |   10 +++++++++-
+ 1 files changed, 9 insertions(+), 1 deletions(-)
+
+diff --git a/infiniband-diags/src/ibnetdiscover.c b/infiniband-diags/src/ibnetdiscover.c
+index f20058c..0a020a2 100644
+--- a/infiniband-diags/src/ibnetdiscover.c
++++ b/infiniband-diags/src/ibnetdiscover.c
+@@ -77,6 +77,7 @@ static char *diff_cache_file = NULL;
+ static unsigned diffcheck_flags = DIFF_FLAG_DEFAULT;
+ 
+ static int report_max_hops = 0;
++static int full_info = 0;
+ 
+ /**
+  * Define our own conversion functions to maintain compatibility with the old
+@@ -357,6 +358,8 @@ void out_switch_port(ibnd_port_t * port, int group, char *out_prefix)
+ 		ext_port_str ? ext_port_str : "");
+ 	if (port->remoteport->node->type != IB_NODE_SWITCH)
+ 		fprintf(f, "(%" PRIx64 ") ", port->remoteport->guid);
++	if (full_info)
++			fprintf(f, " s=%d w=%d", ispeed, iwidth);
+ 	fprintf(f, "\t\t# \"%s\" lid %d %s%s",
+ 		rem_nodename,
+ 		port->remoteport->node->type == IB_NODE_SWITCH ?
+@@ -396,7 +399,8 @@ void out_ca_port(ibnd_port_t * port, int group, char *out_prefix)
+ 	rem_nodename = remap_node_name(node_name_map,
+ 				       port->remoteport->node->guid,
+ 				       port->remoteport->node->nodedesc);
+-
++	if (full_info)
++			fprintf(f, " s=%d w=%d", ispeed, iwidth);
+ 	fprintf(f, "\t\t# lid %d lmc %d \"%s\" lid %d %s%s\n",
+ 		port->base_lid, port->lmc, rem_nodename,
+ 		port->remoteport->node->type == IB_NODE_SWITCH ?
+@@ -926,6 +930,9 @@ static int process_opt(void *context, int ch, char *optarg)
+ 	case 's':
+ 		cfg->show_progress = 1;
+ 		break;
++	case 'f':
++		full_info = 1;
++		break;
+ 	case 'l':
+ 		list = LIST_CA_NODE | LIST_SWITCH_NODE | LIST_ROUTER_NODE;
+ 		break;
+@@ -964,6 +971,7 @@ int main(int argc, char **argv)
+ 	ibnd_fabric_t *diff_fabric = NULL;
+ 
+ 	const struct ibdiag_opt opts[] = {
++		{"full", 'f', 0, NULL, "show full information (ports' speed and witdh)"},
+ 		{"show", 's', 0, NULL, "show more information"},
+ 		{"list", 'l', 0, NULL, "list of connected nodes"},
+ 		{"grouping", 'g', 0, NULL, "show grouping"},
+-- 
+1.5.4
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
