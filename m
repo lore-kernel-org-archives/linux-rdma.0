@@ -1,38 +1,85 @@
-From: David Dillow <dave-i1Mk8JYDVaaSihdK6806/g@public.gmane.org>
-Subject: Re: [PATCH 2/3 v5] IB/srp: Implement SRP_CRED_REQ and SRP_AER_REQ
-Date: Wed, 18 Aug 2010 20:48:52 -0400
-Message-ID: <1282178932.25848.27.camel@obelisk.thedillows.org>
-References: <201008162055.02750.bvanassche@acm.org>
+From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+Subject: Re: opensm/osm_opensm.c: no report when SM is exiting
+Date: Wed, 18 Aug 2010 17:59:23 -0700
+Message-ID: <20100818175923.47fa3da8.weiny2@llnl.gov>
+References: <4C6BE246.4080102@dev.mellanox.co.il>
+	<20100818090618.c9c5bd9b.weiny2@llnl.gov>
+	<4C6C5794.9090701@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <201008162055.02750.bvanassche-HInyCGIudOg@public.gmane.org>
+In-Reply-To: <4C6C5794.9090701-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+To: "kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org" <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: Yevgeny Kliteynik <kliteyn-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>, Linux RDMA <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, 2010-08-16 at 20:55 +0200, Bart Van Assche wrote:
-> Implements SRP_CRED_REQ and SRP_AER_REQ, which are information units defined
-> in the SRP (draft) standard.  Adds declarations for the SRP_CRED_REQ,
-> SRP_CRED_RSP, SRP_AER_REQ and SRP_AER_RSP information units to
-> include/scsi/srp.h. Changes function definition order in ib_srp in order to
-> avoid having to add more forward declarations.
+On Wed, 18 Aug 2010 14:58:44 -0700
+Yevgeny Kliteynik <kliteyn-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
 
-I still don't like the style of this patch -- too much code duplication
-and the SRP_TX_IU_* constants are too ugly to live. I'd also prefer to
-put the code movement in a separate patch, so in this case I'd accept
-the forward declaration and we can do a separate patch later to move the
-code around in one swoop. I think there's quite a bit that can
-potentially be cleaned up there, and I don't expect you to do it as part
-of this series.
+> On 18-Aug-10 7:06 PM, Ira Weiny wrote:
+> > On Wed, 18 Aug 2010 06:38:14 -0700
+> > Yevgeny Kliteynik<kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>  wrote:
+> > 
+> >> Don't bother reporting events to plug-ins while SM is exiting.
+> > 
+> > Does this fix a bug?
+> 
+> Don't think so (at least not that I'm aware of it).
+> For me, the issue here is optimization.
 
-In that light, do you have any technical comment on the version I
-posted? It is my preference to go with that version.
+Does this delay exit?  Is that the optimization.
 
-Dave
+I wonder if plugins would want to know the SM is shutting down.  But there is
+a "delete" function... ?
 
+Ira
+
+> 
+> -- Yevgeny
+>  
+> > Ira
+> > 
+> >>
+> >> Signed-off-by: Yevgeny Kliteynik<kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+> >> ---
+> >>   opensm/opensm/osm_opensm.c |    2 +-
+> >>   1 files changed, 1 insertions(+), 1 deletions(-)
+> >>
+> >> diff --git a/opensm/opensm/osm_opensm.c b/opensm/opensm/osm_opensm.c
+> >> index d3dc02e..50e8763 100644
+> >> --- a/opensm/opensm/osm_opensm.c
+> >> +++ b/opensm/opensm/osm_opensm.c
+> >> @@ -475,7 +475,7 @@ void osm_opensm_report_event(osm_opensm_t *osm, osm_epi_event_id_t event_id,
+> >>   	cl_list_item_t *item;
+> >>
+> >>   	for (item = cl_qlist_head(&osm->plugin_list);
+> >> -	     item != cl_qlist_end(&osm->plugin_list);
+> >> +	     (!osm_exit_flag)&&  (item != cl_qlist_end(&osm->plugin_list));
+> >>   	     item = cl_qlist_next(item)) {
+> >>   		osm_epi_plugin_t *p = (osm_epi_plugin_t *)item;
+> >>   		if (p->impl->report)
+> >> -- 
+> >> 1.6.2.4
+> >>
+> >> --
+> >> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> >> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> >> More majordomo info at  http://**vger.kernel.org/majordomo-info.html
+> >>
+> > 
+> > 
+> 
+> 
+
+
+-- 
+Ira Weiny
+Math Programmer/Computer Scientist
+Lawrence Livermore National Lab
+925-423-8008
+weiny2-i2BcT+NCU+M@public.gmane.org
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
