@@ -1,38 +1,54 @@
-From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Subject: Re: [PATCH 2/3 v5] IB/srp: Implement SRP_CRED_REQ and SRP_AER_REQ
-Date: Thu, 19 Aug 2010 12:55:34 +0200
-Message-ID: <AANLkTim7r2Z+-Po-rp+kVA6OD9nRE-3wH7JnO5Xz+2BK@mail.gmail.com>
-References: <201008162055.02750.bvanassche@acm.org>
-	<1282178932.25848.27.camel@obelisk.thedillows.org>
-	<AANLkTimhOGgMr4SXzz4-pKXVyfCUjtrO+Avi=FGCacDW@mail.gmail.com>
-	<1282215126.25848.42.camel@obelisk.thedillows.org>
+From: Eric B Munson <emunson-CVBTeua0HjReoWH0uzbU5w@public.gmane.org>
+Subject: Userspace MMU Notification
+Date: Thu, 19 Aug 2010 17:32:06 +0100
+Message-ID: <20100819163206.GA3194@mgebm.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="VS++wcV0S1rZb1Fb"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1282215126.25848.42.camel-1q1vX8mYZiGLUyTwlgNVppKKF0rrzTr+@public.gmane.org>
+Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: David Dillow <dave-i1Mk8JYDVaaSihdK6806/g@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org, dykman-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Aug 19, 2010 at 12:52 PM, David Dillow <dave-i1Mk8JYDVaaSihdK6806/g@public.gmane.org> wrote:
->
-> On Thu, 2010-08-19 at 12:10 +0200, Bart Van Assche wrote:
-> > On Thu, Aug 19, 2010 at 2:48 AM, David Dillow <dave-i1Mk8JYDVaaSihdK6806/g@public.gmane.org> wrote:
-> > [ ... ]
-> > If I do not receive any further feedback,
-> > I will modify srp_handle_req() such that it accepts a third argument,
-> > a function pointer, and will change the call sites of that function
-> > such that either a pointer to the srp_handle_cred_req function or a
-> > pointer to the srp_handle_aer_req function is passed.
->
-> There's no need to do that; I don't think it will make it look better.
-> I've given you a clean, simple way to get there. What objections did you
-> have to the code I posted?
 
-I don't like its style and aesthetics.
+--VS++wcV0S1rZb1Fb
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Bart.
+During the .35 merge window I attempted to merge the ummunotify driver and
+was told by Linus that he didn't like the approach.  At that point several
+members of the RDMA community were hashing out a way to do the same thing
+that would get Linus' blessing.  I haven't seen anything about it since and
+I am curious if any decisions were made.
+
+Thanks,
+--=20
+Eric B Munson
+IBM Linux Technology Center
+ebmunson-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org
+
+
+--VS++wcV0S1rZb1Fb
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.10 (GNU/Linux)
+
+iQEcBAEBAgAGBQJMbVyGAAoJEH65iIruGRnNDmUIAJeShepa+Si39JLnrbaVHjQM
+EVaS8CYod6nuUFdxz//NUtG4QF/kb7q0KDPgfRwsD7pkgR8KHLasiE+pdtbxEzxR
+fmgK5jsH28U++npFaP0Zh3yLCejPkuOu5fAVgFYknMNEIDnnCNoEpMPUs9+pP6vm
+6N2XnhKQrcapQZemtFBmbaA61gmIO4DWwgiW3d/zkNTbEACQqxexy9RBW2osBZ2S
+n9Nzy0N5o3i9PA7XrjVTXqvDV3n3MDM43Uzn+8YLK/AyYbOSGMhuiAFmP9jGq3KW
+Mgg8KDRvefXXLoP5xhOVimTj2EN0xVJ5k6N8KfzRexZJqZtZI9tQbVYgMbPXo0I=
+=O3PS
+-----END PGP SIGNATURE-----
+
+--VS++wcV0S1rZb1Fb--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
