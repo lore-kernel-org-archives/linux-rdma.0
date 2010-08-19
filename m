@@ -1,86 +1,62 @@
-From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-Subject: Re: opensm/osm_opensm.c: no report when SM is exiting
-Date: Wed, 18 Aug 2010 17:59:23 -0700
-Message-ID: <20100818175923.47fa3da8.weiny2@llnl.gov>
-References: <4C6BE246.4080102@dev.mellanox.co.il>
-	<20100818090618.c9c5bd9b.weiny2@llnl.gov>
-	<4C6C5794.9090701@dev.mellanox.co.il>
+From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Subject: Re: [PATCH 1/3 v5] IB/srp: Preparation for transmit ring response allocation
+Date: Thu, 19 Aug 2010 08:04:38 +0200
+Message-ID: <AANLkTim=ESAvKNCocpCKGuqaGVnO4FMhBck9+NaoRBZB@mail.gmail.com>
+References: <201008162054.06416.bvanassche@acm.org>
+	<1282175086.25848.17.camel@obelisk.thedillows.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4C6C5794.9090701-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+In-Reply-To: <1282175086.25848.17.camel-1q1vX8mYZiGLUyTwlgNVppKKF0rrzTr+@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org" <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: Yevgeny Kliteynik <kliteyn-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>, Linux RDMA <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: David Dillow <dave-i1Mk8JYDVaaSihdK6806/g@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, 18 Aug 2010 14:58:44 -0700
-Yevgeny Kliteynik <kliteyn-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
+On Thu, Aug 19, 2010 at 1:44 AM, David Dillow <dave-i1Mk8JYDVaaSihdK6806/g@public.gmane.org> wro=
+te:
+>
+> On Mon, 2010-08-16 at 20:54 +0200, Bart Van Assche wrote:
+> > @@ -989,19 +989,21 @@ static void srp_send_completion(struct ib_cq =
+*cq, void *target_ptr)
+> > =A0static struct srp_iu *__srp_get_tx_iu(struct srp_target_port *ta=
+rget,
+> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 enum srp_request_type req_type)
+> > =A0{
+> > - =A0 =A0 s32 min =3D (req_type =3D=3D SRP_REQ_TASK_MGMT) ? 1 : 2;
+> > + =A0 =A0 s32 rsv;
+> > +
+> > + =A0 =A0 rsv =3D (req_type =3D=3D SRP_REQ_TASK_MGMT) ? 0 : SRP_TAS=
+K_MGMT_SQ_SIZE;
+> >
+> > =A0 =A0 =A0 srp_send_completion(target->send_cq, target);
+> >
+> > =A0 =A0 =A0 if (target->tx_head - target->tx_tail >=3D SRP_SQ_SIZE)
+> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 return NULL;
+> >
+> > - =A0 =A0 if (target->req_lim < min) {
+> > + =A0 =A0 if (target->req_lim <=3D rsv) {
+> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 ++target->zero_req_lim;
+> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 return NULL;
+> > =A0 =A0 =A0 }
+> >
+> > - =A0 =A0 return target->tx_ring[target->tx_head & SRP_SQ_SIZE];
+> > + =A0 =A0 return target->tx_ring[target->tx_head & SRP_SQ_MASK];
+> > =A0}
+>
+> Did you forget to remove the rest of the changes? The only change to
+> this function should be s/SRP_SQ_SIZE/SRP_SQ_MASK/
 
-> On 18-Aug-10 7:06 PM, Ira Weiny wrote:
-> > On Wed, 18 Aug 2010 06:38:14 -0700
-> > Yevgeny Kliteynik<kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>  wrote:
-> > 
-> >> Don't bother reporting events to plug-ins while SM is exiting.
-> > 
-> > Does this fix a bug?
-> 
-> Don't think so (at least not that I'm aware of it).
-> For me, the issue here is optimization.
+What are your objections against the above changes ? No functionality
+has been changed - all the above changes do is to introduce the
+symbolic constants SRP_TASK_MGMT_SQ_SIZE and SRP_SQ_MASK
+__srp_get_tx_iu().
 
-Does this delay exit?  Is that the optimization.
-
-I wonder if plugins would want to know the SM is shutting down.  But there is
-a "delete" function... ?
-
-Ira
-
-> 
-> -- Yevgeny
->  
-> > Ira
-> > 
-> >>
-> >> Signed-off-by: Yevgeny Kliteynik<kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-> >> ---
-> >>   opensm/opensm/osm_opensm.c |    2 +-
-> >>   1 files changed, 1 insertions(+), 1 deletions(-)
-> >>
-> >> diff --git a/opensm/opensm/osm_opensm.c b/opensm/opensm/osm_opensm.c
-> >> index d3dc02e..50e8763 100644
-> >> --- a/opensm/opensm/osm_opensm.c
-> >> +++ b/opensm/opensm/osm_opensm.c
-> >> @@ -475,7 +475,7 @@ void osm_opensm_report_event(osm_opensm_t *osm, osm_epi_event_id_t event_id,
-> >>   	cl_list_item_t *item;
-> >>
-> >>   	for (item = cl_qlist_head(&osm->plugin_list);
-> >> -	     item != cl_qlist_end(&osm->plugin_list);
-> >> +	     (!osm_exit_flag)&&  (item != cl_qlist_end(&osm->plugin_list));
-> >>   	     item = cl_qlist_next(item)) {
-> >>   		osm_epi_plugin_t *p = (osm_epi_plugin_t *)item;
-> >>   		if (p->impl->report)
-> >> -- 
-> >> 1.6.2.4
-> >>
-> >> --
-> >> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> >> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> >> More majordomo info at  http://**vger.kernel.org/majordomo-info.html
-> >>
-> > 
-> > 
-> 
-> 
-
-
--- 
-Ira Weiny
-Math Programmer/Computer Scientist
-Lawrence Livermore National Lab
-925-423-8008
-weiny2-i2BcT+NCU+M@public.gmane.org
+Bart.
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
