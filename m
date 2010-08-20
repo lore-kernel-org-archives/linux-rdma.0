@@ -1,47 +1,37 @@
-From: Zach Brown <zach.brown-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: ipoib neighbour free race?
-Date: Thu, 19 Aug 2010 12:10:45 -0700
-Message-ID: <20100819191045.GA5811@takashi.pdx.zabbo.net>
+From: Sonny Rao <sonnyrao-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH 1/2]: Powerpc: Fix EHCA driver on relocatable kernel
+Date: Thu, 19 Aug 2010 23:08:09 -0500
+Message-ID: <20100820040809.GS16505@us.ibm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linuxppc-dev-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, fenkes-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org, raisch-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org, hnguyen-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org, rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hi gang,
+Some modules (like eHCA) want to map all of kernel memory, for this to
+work with a relocated kernel, we need to export kernstart_addr so
+modules can use PHYSICAL_START and memstart_addr so they could use
+MEMORY_START.  Note that the 32bit code already exports these symbols.
 
-We're chasing a bug that we can hit when we pull IB cables with
-CONFIG_DEBUG_PAGE_ALLOC enabled.   It appears as though the to_ipoib_neigh() in
-ipoib_neigh_free() under ipoib_mcast_free() is referencing a freed neighbour
-struct.
+Signed-off-By: Sonny Rao <sonnyrao-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>
 
-The invariant here, as far as I can tell, is that cleanup_neigh is always
-called as neighbours leave the hash.  We should never reference a freed
-neighbour from the ipoib_neigh teardown path because ipoib_neigh_cleanup()
-should free the ipoib_neigh before the neighbour drops its hash ref and can be
-freed.
-
-But I wonder if we can get a race during shutdown where ipoib_neigh_cleanup()
-is called before the send path sees a neighbour and associates it with an
-ipoib_neigh.  In that case we'd never get the neigh_cleanup() call to free the
-ipoib_neigh before the neighbour.  Later teardown of the ipoib_neigh, say from
-ipoib_mcast_free(), could try to clear the ipoib_neigh pointer in the freed
-neighbour.
-
-neigh_forced_gc() and neigh_periodic_work() are careful to only remove
-neighbours from the table if their refcount is 1.  But neigh_flush_dev() can
-remove neighbours, and call neigh_cleanup(), while others are referencing it.
-
-My question, then, is whether or not neigh_flush_dev() race with the ipoib send
-paths?  If so, it seems that we could hit this race.
-
-It's been a long time (maybe a decade?!) since I worked with the networking
-paths, so maybe I'm missing serialization that prevents this.
-
-- z
+Index: common/arch/powerpc/mm/init_64.c
+===================================================================
+--- common.orig/arch/powerpc/mm/init_64.c	2010-08-16 02:38:33.000000000 -0500
++++ common/arch/powerpc/mm/init_64.c	2010-08-16 02:39:25.000000000 -0500
+@@ -79,7 +79,9 @@
+ #endif /* CONFIG_PPC_STD_MMU_64 */
+ 
+ phys_addr_t memstart_addr = ~0;
++EXPORT_SYMBOL(memstart_addr);
+ phys_addr_t kernstart_addr;
++EXPORT_SYMBOL(kernstart_addr);
+ 
+ void free_initmem(void)
+ {
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
