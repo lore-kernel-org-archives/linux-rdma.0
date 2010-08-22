@@ -1,7 +1,7 @@
 From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Subject: [PATCH 4/5 v6] IB/srp: Reduce number of BUSY conditions
-Date: Sun, 22 Aug 2010 18:56:48 +0200
-Message-ID: <201008221856.48057.bvanassche@acm.org>
+Subject: [PATCH 5/5 v6] IB/srp: Introduce list_first_entry()
+Date: Sun, 22 Aug 2010 18:56:55 +0200
+Message-ID: <201008221856.55593.bvanassche@acm.org>
 Mime-Version: 1.0
 Content-Type: Text/Plain;
   charset="us-ascii"
@@ -12,40 +12,30 @@ To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-As proposed by the SRP (draft) standard, ib_srp reserves one ring element for
-SRP_TSK_MGMT requests. This patch makes sure that the SCSI mid-layer never
-tries to queue more than (SRP request limit) - 1 SCSI commands to ib_srp. This
-improves performance for targets whose request limit is less than or equal to
-SRP_NORMAL_REQ_SQ_SIZE (62) by reducing the number of BUSY responses reported
-by ib_srp to the SCSI mid-layer.
+Introduces the list_first_entry() macro in ib_srp, which makes the source code
+slightly more descriptive. The list_first_entry() macro itself was introduced
+in kernel 2.6.22.
 
 Signed-off-by: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
 Cc: Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 
 ---
- drivers/infiniband/ulp/srp/ib_srp.c |    9 +++++++--
- 1 files changed, 7 insertions(+), 2 deletions(-)
+ drivers/infiniband/ulp/srp/ib_srp.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
 diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
-index d8f41d3..eb31052 100644
+index eb31052..2b76a0b 100644
 --- a/drivers/infiniband/ulp/srp/ib_srp.c
 +++ b/drivers/infiniband/ulp/srp/ib_srp.c
-@@ -1345,8 +1345,13 @@ static int srp_cm_handler(struct ib_cm_id *cm_id, struct ib_cm_event *event)
- 			target->max_ti_iu_len = be32_to_cpu(rsp->max_ti_iu_len);
- 			target->req_lim       = be32_to_cpu(rsp->req_lim_delta);
+@@ -1157,7 +1157,7 @@ static int srp_queuecommand(struct scsi_cmnd *scmnd,
+ 	ib_dma_sync_single_for_cpu(dev, iu->dma, srp_max_iu_len,
+ 				   DMA_TO_DEVICE);
  
--			target->scsi_host->can_queue = min(target->req_lim,
--							   target->scsi_host->can_queue);
-+			/*
-+			 * Set can_queue such that we don't needlessly
-+			 * bounce requests back to the SCSI mid-layer.
-+			 */
-+			target->scsi_host->can_queue
-+				= min(target->req_lim - SRP_TSK_MGMT_SQ_SIZE,
-+				      target->scsi_host->can_queue);
- 		} else {
- 			shost_printk(KERN_WARNING, target->scsi_host,
- 				    PFX "Unhandled RSP opcode %#x\n", opcode);
+-	req = list_entry(target->free_reqs.next, struct srp_request, list);
++	req = list_first_entry(&target->free_reqs, struct srp_request, list);
+ 
+ 	scmnd->scsi_done     = done;
+ 	scmnd->result        = 0;
 -- 
 1.6.4.2
 --
