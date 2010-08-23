@@ -1,56 +1,94 @@
-From: Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH] complib/cl_timer.c: fixing cl_timer calculation
-Date: Mon, 23 Aug 2010 17:38:00 +0300
-Message-ID: <4C7287C8.1040106@dev.mellanox.co.il>
+From: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
+Subject: IPoIB: Broken IGMP processing
+Date: Mon, 23 Aug 2010 12:16:40 -0500 (CDT)
+Message-ID: <alpine.DEB.2.00.1008231210010.9840@router.home>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Cc: Linux RDMA <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Tzachi Dar <tzachid-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Or Gerlitz <ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org>, Yossi Etigin <yosefe-smomgflXvOZWk0Htik3J/w@public.gmane.org>, Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-When calculating p_timer->timeout.tv_sec and p_timer->timeout.tv_nsec,
-the carry was ignored, resulting in wrong value in p_timer->timeout.tv_sec,
-and value > 10^9 in p_timer->timeout.tv_nsec (illegal value).
+We see that IGMP timers are not properly deferred when hosts send IGMP
+membership information. It looks as if the IPoIB layer does not properly
+mark the multicast/broadcast packets with PACKET_MULTICAST or
+PACKET_BROADCAST. As a results icmp_recv() ignores the IGMP membership
+information from others. That in turn results in the IGMP timers
+frequently expiring, thus the network becomes quite chatty.
 
-Signed-off-by:  Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+The following is an untested patch: I am not sure how exact to access the
+ipob Mac header. The IB header contains a special marker for IPoIB
+multicast. So it should be simple to identify the multicast packets in the
+receive path.
+
+
+Subject: [IB] Make igmp processing work with IPOIB
+
+IGMP processing is broken because the IPOIB does not set the
+skb->pkt_type the right way for Multicast traffic. All incoming
+packets are set to PACKET_HOST which means that the igmp_recv()
+function will ignore the IGMP broadcasts/multicasts.
+
+This in turn means that the IGMP timers are firing and are sending
+information about multicast subscriptions unnecessarily. In a large
+private network this can cause traffic spikes.
+
+Signed-off-by: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
 
 ---
- opensm/complib/cl_timer.c |    8 +++++---
- 1 files changed, 5 insertions(+), 3 deletions(-)
+ drivers/infiniband/ulp/ipoib/ipoib.h    |   13 +++++++++++++
+ drivers/infiniband/ulp/ipoib/ipoib_ib.c |    6 ++++--
+ 2 files changed, 17 insertions(+), 2 deletions(-)
 
-diff --git a/opensm/complib/cl_timer.c b/opensm/complib/cl_timer.c
-index 2acdb51..09a5584 100644
---- a/opensm/complib/cl_timer.c
-+++ b/opensm/complib/cl_timer.c
-@@ -299,7 +299,8 @@ cl_status_t cl_timer_start(IN cl_timer_t * const p_timer,
- {
- 	struct timeval curtime;
- 	cl_list_item_t *p_list_item;
--	uint32_t delta_time = time_ms;
-+	uint32_t delta_time_sec = time_ms / 1000;
-+	uint32_t delta_time_usec = (time_ms % 1000) * 1000;
+Index: linux-2.6/drivers/infiniband/ulp/ipoib/ipoib.h
+===================================================================
+--- linux-2.6.orig/drivers/infiniband/ulp/ipoib/ipoib.h	2010-08-20 19:44:13.000000000 -0500
++++ linux-2.6/drivers/infiniband/ulp/ipoib/ipoib.h	2010-08-20 19:58:21.000000000 -0500
+@@ -114,6 +114,9 @@ enum {
+ #define	IPOIB_OP_CM     (0)
+ #endif
 
- 	CL_ASSERT(p_timer);
- 	CL_ASSERT(p_timer->state == CL_INITIALIZED);
-@@ -324,9 +325,10 @@ cl_status_t cl_timer_start(IN cl_timer_t * const p_timer,
- 	/* if (delta_time < 1000.0) {delta_time = 1000;} */
++#define IPOIB_MGID_IPV4_SIGNATURE 0x401B
++#define IPOIB_MGID_IPV6_SIGNATURE 0x601B
++
+ /* structs */
 
- 	/* Calculate the timeout. */
--	p_timer->timeout.tv_sec = curtime.tv_sec + (delta_time / 1000);
-+	p_timer->timeout.tv_sec = curtime.tv_sec + delta_time_sec +
-+		((curtime.tv_usec + delta_time_usec) / 1000000);
- 	p_timer->timeout.tv_nsec =
--	    (curtime.tv_usec + ((delta_time % 1000) * 1000)) * 1000;
-+	    ((curtime.tv_usec + delta_time_usec) % 1000000) * 1000;
+ struct ipoib_header {
+@@ -125,6 +128,16 @@ struct ipoib_pseudoheader {
+ 	u8  hwaddr[INFINIBAND_ALEN];
+ };
 
- 	/* Add the timer to the queue. */
- 	if (cl_is_qlist_empty(&gp_timer_prov->queue)) {
--- 
-1.6.2.4
++int ipoib_is_ipv4_multicast(u8 *p)
++{
++	return *((u16 *)(p + 2)) == htonl(IPOIB_MGID_IPV4_SIGNATURE);
++}
++
++int ipoib_is_ipv6_multicast(u8 *p)
++{
++	return *((u16 *)(p + 2)) == htonl(IPOIB_MGID_IPV6_SIGNATURE);
++}
++
+ /* Used for all multicast joins (broadcast, IPv4 mcast and IPv6 mcast) */
+ struct ipoib_mcast {
+ 	struct ib_sa_mcmember_rec mcmember;
+Index: linux-2.6/drivers/infiniband/ulp/ipoib/ipoib_ib.c
+===================================================================
+--- linux-2.6.orig/drivers/infiniband/ulp/ipoib/ipoib_ib.c	2010-08-20 18:43:44.000000000 -0500
++++ linux-2.6/drivers/infiniband/ulp/ipoib/ipoib_ib.c	2010-08-20 19:58:34.000000000 -0500
+@@ -281,8 +281,10 @@ static void ipoib_ib_handle_rx_wc(struct
+ 	dev->stats.rx_bytes += skb->len;
 
+ 	skb->dev = dev;
+-	/* XXX get correct PACKET_ type here */
+-	skb->pkt_type = PACKET_HOST;
++	if (ipoib_is_ipv4_multicast(skb_mac_header(skb)))
++		skb->pkt_type = PACKET_MULTICAST;
++	else
++		skb->pkt_type = PACKET_HOST;
+
+ 	if (test_bit(IPOIB_FLAG_CSUM, &priv->flags) && likely(wc->csum_ok))
+ 		skb->ip_summed = CHECKSUM_UNNECESSARY;
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
