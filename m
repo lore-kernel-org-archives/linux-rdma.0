@@ -1,68 +1,192 @@
-From: "Yossi Etigin" <yosefe-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Subject: RE: IPoIB: Broken IGMP processing
-Date: Mon, 23 Aug 2010 22:34:38 +0300
-Message-ID: <7E95F01E94AB484F83061FCFA35B39F8013249@exil.voltaire.com>
-References: <alpine.DEB.2.00.1008231210010.9840@router.home><20100823174110.GK26549@obsidianresearch.com><alpine.DEB.2.00.1008231254300.10719@router.home><20100823182859.GL26549@obsidianresearch.com> <alpine.DEB.2.00.1008231427130.12815@router.home>
+From: Eli Dorfman <dorfman.eli-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH] opensm: Fix sl2vl configuration
+Date: Mon, 23 Aug 2010 22:37:04 +0300
+Message-ID: <AANLkTimbKes214zYF0so0tHgjvFwiwu83sP3MYnnbBd6@mail.gmail.com>
+References: <4C505A39.4020201@gmail.com>
+	<AANLkTinpju=SXu_PUmd_8gt8uPazNJnz6HhWU=RLgw+M@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-class: urn:content-classes:message
-In-Reply-To: <alpine.DEB.2.00.1008231427130.12815-sBS69tsa9Uj/9pzu0YdTqQ@public.gmane.org>
+In-Reply-To: <AANLkTinpju=SXu_PUmd_8gt8uPazNJnz6HhWU=RLgw+M-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Or Gerlitz <ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org>, Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+To: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hello Christoph,
+Hi Hal,
 
-I think you'll first want to check the wc_flags field in the work
-completion to see whether GRH is present (and it must be present in
-multicast packets, normally not present in unicast). Then, extract the
-destination gid from grh, and compare the first 6 bytes of it to the
-dev->broadcast address bytes 4...9 (once with dev->broadcast which is
-IPv4, second time with dev->broadcast with the IP version nibble changed
-to 6). The first 4 bytes of dev->broadcast are QPN.
-Of course, you'll be doing this before pulling any other headers from
-the skb because GRH comes first.
+On Mon, Aug 23, 2010 at 5:25 PM, Hal Rosenstock
+<hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
+> On Wed, Jul 28, 2010 at 12:26 PM, Eli Dorfman (Voltaire)
+> <dorfman.eli-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
+>>
+>> Subject: [PATCH] Fix sl2vl configuration
+>>
+>> For non-optimized sl2vl configuration in and out ports were reversed=
+=2E
+>
+> Are you sure these are reversed ? Any idea which commit introduced
+> this reversal of in and out ports ?
+I'm sure they are reversed. This patch was also tested by Jim Schutt.
+I didn't check which commit introduced this - why is it important?
 
-The QPN you get in the completion is the QP from which it was sent -
-src_qp. You don't get the QPN which was put in the UD header by the
-sender, which is 0xFFFFFF for multicast. In userspace (aka struct
-ibv_wc), you get the qp number from which the receive buffer was taken,
-and in kernel space (aka struct ib_wc, no 'v') you get the pointer to
-the QP.
+>
+>> For optimal sl2vl added override of default ALL settting with port's
+>> sl2vl when operational VL was other than the default port.
+>
+> What is the motivation to override when the operational VLs is
+> different ? Why is that better than what is done currently ?
+The idea was to apply the default policy - set sl2vl modulo operational=
+ VL.
+When applying ALL settings using port 1 we still want to override this
+setting for ports with different operational VL.
 
-You can do multicast on UC QP.
-You can't do multicast on RC QP.
+>
+> Is this really a policy issue ?
+>
+> IMO there are two separate issues in this patch and they should be in
+> separate patches (for better git bisection).
+Maybe, but I still think this patch fixes wrong setting for sl2vl
+using optimized and non optimized methods.
+I'm not sure this should be divided to 2 separate patches.
 
-BTW In your first patch looks like you are doing htonl when you should
-be doing htons (or cpu_to_be16 which is good with constants)
+>
+> Also, a couple of (possibly related) questions below.
+It seems that you are referring to patch v1 which was modified
+according to Jim's comments.
+Please check the v2 patch .
 
-> -----Original Message-----
-> From: Christoph Lameter [mailto:cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org]
-> Sent: Monday, August 23, 2010 22:28
-> To: Jason Gunthorpe
-> Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Or Gerlitz; Yossi Etigin; Roland
-Dreier
-> Subject: Re: IPoIB: Broken IGMP processing
-> 
-> On Mon, 23 Aug 2010, Jason Gunthorpe wrote:
-> 
-> > src_qp is just the send QPN, you need to look at qp_num (aka dest
-qp).
-> > I'm not entirely sure what it will be, I didn't find anything too
-clear
-> > in the spec. If it is 0xFFFFFF then the HCA is copying the dest QP
-> > directly into the WC and this can work, if it is something else then
-> > the HCA is setting it to the QPN of the RQ that recieved the packet,
-> > which is not useful for this.
-> 
-> AFAICT the spec has a QP for RC and one for UD packets. How do these
-> relate to multicast?
+Thanks,
+Eli
 
+>
+>> Signed-off-by: Eli Dorfman <elid-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+>> ---
+>> =C2=A0opensm/opensm/osm_qos.c | =C2=A0 25 ++++++++++++++++++++-----
+>> =C2=A01 files changed, 20 insertions(+), 5 deletions(-)
+>>
+>> diff --git a/opensm/opensm/osm_qos.c b/opensm/opensm/osm_qos.c
+>> index a571370..de0ae23 100644
+>> --- a/opensm/opensm/osm_qos.c
+>> +++ b/opensm/opensm/osm_qos.c
+>> @@ -182,7 +182,7 @@ static ib_api_status_t sl2vl_update_table(osm_sm=
+_t * sm, osm_physp_t * p,
+>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0tbl.raw_vl_by=
+_sl[i] =3D (vl1 << 4) | vl2;
+>> =C2=A0 =C2=A0 =C2=A0 =C2=A0}
+>>
+>> - =C2=A0 =C2=A0 =C2=A0 if (!force_update && (p_tbl =3D osm_physp_get=
+_slvl_tbl(p, in_port)) &&
+>> + =C2=A0 =C2=A0 =C2=A0 if (!force_update && in_port && (p_tbl =3D os=
+m_physp_get_slvl_tbl(p, in_port)) &&
+>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0!memcmp(p_tbl, &tbl, sizeof=
+(tbl)))
+>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0return IB_SUC=
+CESS;
+>
+> Why exclude port 0 here ? Is it related to the change noted below ?
+>
+>> @@ -209,6 +209,7 @@ static int qos_extports_setup(osm_sm_t * sm, osm=
+_node_t *node,
+>> =C2=A0 =C2=A0 =C2=A0 =C2=A0unsigned num_ports =3D osm_node_get_num_p=
+hysp(node);
+>> =C2=A0 =C2=A0 =C2=A0 =C2=A0int ret =3D 0;
+>> =C2=A0 =C2=A0 =C2=A0 =C2=A0unsigned i, j;
+>> + =C2=A0 =C2=A0 =C2=A0 uint8_t op_vl1;
+>>
+>> =C2=A0 =C2=A0 =C2=A0 =C2=A0for (i =3D 1; i < num_ports; i++) {
+>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0p =3D osm_nod=
+e_get_physp_ptr(node, i);
+>> @@ -225,17 +226,31 @@ static int qos_extports_setup(osm_sm_t * sm, o=
+sm_node_t *node,
+>> =C2=A0 =C2=A0 =C2=A0 =C2=A0if (ib_switch_info_get_opt_sl2vlmapping(&=
+node->sw->switch_info) &&
+>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0sm->p_subn->opt.use_optimiz=
+ed_slvl) {
+>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0p =3D osm_nod=
+e_get_physp_ptr(node, 1);
+>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 op_vl1 =3D ib_por=
+t_info_get_op_vls(&p->port_info);
+>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0force_update =
+=3D p->need_update || sm->p_subn->need_update;
+>> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 return sl2vl_upda=
+te_table(sm, p, 1, 0x30000, force_update,
+>> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
+=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ &qcfg->sl2vl);
+>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 if (sl2vl_update_=
+table(sm, p, 0, 0x30000, force_update,
+>
+> Why is the third parameter (in_port) changed from 1 to 0 here ? Maybe
+> that's related to the change above for the skipping of port 0 in
+> sl2vl_update_table.
+>
+> -- Hal
+>
+>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
+=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 &qcf=
+g->sl2vl))
+>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
+=A0 =C2=A0 ret =3D -1;
+>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 /* overwrite defa=
+ult ALL configuration if port's
+>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0op_v=
+l is different */
+>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 for (i =3D 2; i <=
+ num_ports; i++) {
+>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
+=A0 =C2=A0 p =3D osm_node_get_physp_ptr(node, i);
+>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
+=A0 =C2=A0 if (ib_port_info_get_op_vls(&p->port_info) !=3D op_vl1 &&
+>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
+=A0 =C2=A0 =C2=A0 =C2=A0 sl2vl_update_table(sm, p, 0, 0x20000 | i, forc=
+e_update,
+>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
+=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 =C2=A0 =C2=A0 &qcfg->sl2vl))
+>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
+=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 ret =3D -1;
+>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 }
+>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 return ret;
+>> =C2=A0 =C2=A0 =C2=A0 =C2=A0}
+>>
+>> - =C2=A0 =C2=A0 =C2=A0 for (i =3D 0; i < num_ports; i++) {
+>> + =C2=A0 =C2=A0 =C2=A0 /* non optimized sl2vl configuration */
+>> + =C2=A0 =C2=A0 =C2=A0 i =3D ib_switch_info_is_enhanced_port0(&node-=
+>sw->switch_info) ? 0 : 1;
+>> + =C2=A0 =C2=A0 =C2=A0 for (; i < num_ports; i++) {
+>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0p =3D osm_nod=
+e_get_physp_ptr(node, i);
+>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0force_update =
+=3D p->need_update || sm->p_subn->need_update;
+>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0j =3D ib_swit=
+ch_info_is_enhanced_port0(&node->sw->switch_info) ? 0 : 1;
+>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0for (; j < nu=
+m_ports; j++)
+>> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
+=A0 =C2=A0 if (sl2vl_update_table(sm, p, i, i << 8 | j,
+>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
+=A0 =C2=A0 if (sl2vl_update_table(sm, p, j, j << 8 | i,
+>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =
+=C2=A0 =C2=A0 =C2=A0 force_update, &qcfg->sl2vl))
+>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0ret =3D -1;
+>> =C2=A0 =C2=A0 =C2=A0 =C2=A0}
+>> --
+>> 1.5.5
+>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-rdma=
+" in
+>> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+>> More majordomo info at =C2=A0http://vger.kernel.org/majordomo-info.h=
+tml
+>>
+>
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
