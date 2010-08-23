@@ -1,46 +1,94 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: IPoIB: Broken IGMP processing
-Date: Mon, 23 Aug 2010 12:30:44 -0600
-Message-ID: <20100823183044.GM26549@obsidianresearch.com>
-References: <alpine.DEB.2.00.1008231210010.9840@router.home> <20100823174110.GK26549@obsidianresearch.com> <alpine.DEB.2.00.1008231317150.10719@router.home>
+From: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH] complib/cl_timer.c: fixing cl_timer calculation
+Date: Mon, 23 Aug 2010 21:55:29 +0300
+Message-ID: <20100823185529.GG5837@me>
+References: <4C7287C8.1040106@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.00.1008231317150.10719-sBS69tsa9Uj/9pzu0YdTqQ@public.gmane.org>
+In-Reply-To: <4C7287C8.1040106-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Or Gerlitz <ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org>, Yossi Etigin <yosefe-smomgflXvOZWk0Htik3J/w@public.gmane.org>, Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+To: Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: Linux RDMA <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Tzachi Dar <tzachid-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Aug 23, 2010 at 01:19:20PM -0500, Christoph Lameter wrote:
-> On Mon, 23 Aug 2010, Jason Gunthorpe wrote:
-> 
-> > Hmmm... What are you trying to access here? I'm guessing it is the
-> > DGID of the GRH?
-> >
-> >         ipoib_ud_skb_put_frags(priv, skb, wc->byte_len);
-> >         skb_pull(skb, IB_GRH_BYTES);  <-- These are the bytes you want
-> >         skb_reset_mac_header(skb);  <-- Sets skb_mac_header to skb->head+40
-> >         skb_pull(skb, IPOIB_ENCAP_LEN);
-> >
-> > So, I think you are accessing byte 42, which doesn't seem right? The
-> > DGID starts in byte 24 from skb->head.
-> >
-> > Also, you need to check for IBV_WC_GRH, the 40 bytes are garbage if it
-> > is not set.
-> 
-> Trying to get the MGID information:
-> 
-> From http://tools.ietf.org/html/draft-ietf-ipoib-link-multicast-00
+On 17:38 Mon 23 Aug     , Yevgeny Kliteynik wrote:
+> When calculating p_timer->timeout.tv_sec and p_timer->timeout.tv_nsec,
+> the carry was ignored, resulting in wrong value in p_timer->timeout.tv_sec,
+> and value > 10^9 in p_timer->timeout.tv_nsec (illegal value).
 
-The MGID is stuffed into the DGID field of the GRH by the sender, so
-you want to start at byte 24 of the wc data. The structure is 40 bytes
-of GRH, 4 bytes of IPOIB_ENCAP with the protocol number, and then the
-datagram. It looks to me like the MAC header pointer is set to the
-IPOIB_ENCAP header.
+Nice catch. And I also see a similar issue in cl_timer_trim().
 
-Jason
+See a comments about the patch below.
+
+> 
+> Signed-off-by:  Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+> 
+> ---
+>  opensm/complib/cl_timer.c |    8 +++++---
+>  1 files changed, 5 insertions(+), 3 deletions(-)
+> 
+> diff --git a/opensm/complib/cl_timer.c b/opensm/complib/cl_timer.c
+> index 2acdb51..09a5584 100644
+> --- a/opensm/complib/cl_timer.c
+> +++ b/opensm/complib/cl_timer.c
+> @@ -299,7 +299,8 @@ cl_status_t cl_timer_start(IN cl_timer_t * const p_timer,
+>  {
+>  	struct timeval curtime;
+>  	cl_list_item_t *p_list_item;
+> -	uint32_t delta_time = time_ms;
+> +	uint32_t delta_time_sec = time_ms / 1000;
+> +	uint32_t delta_time_usec = (time_ms % 1000) * 1000;
+
+In order to prevent compatibility and porting issues would it be better
+to use struct timeval's types here:
+
+	time_t delta_time_sec;
+	suseconds_t delta_time_usec_t delta_time_usec;
+
+, instead of fixed size integers?
+
+> 
+>  	CL_ASSERT(p_timer);
+>  	CL_ASSERT(p_timer->state == CL_INITIALIZED);
+> @@ -324,9 +325,10 @@ cl_status_t cl_timer_start(IN cl_timer_t * const p_timer,
+>  	/* if (delta_time < 1000.0) {delta_time = 1000;} */
+> 
+>  	/* Calculate the timeout. */
+> -	p_timer->timeout.tv_sec = curtime.tv_sec + (delta_time / 1000);
+> +	p_timer->timeout.tv_sec = curtime.tv_sec + delta_time_sec +
+> +		((curtime.tv_usec + delta_time_usec) / 1000000);
+>  	p_timer->timeout.tv_nsec =
+> -	    (curtime.tv_usec + ((delta_time % 1000) * 1000)) * 1000;
+> +	    ((curtime.tv_usec + delta_time_usec) % 1000000) * 1000;
+
+Or even something like this:
+
+	strcut timeval curtime, deltatime;
+
+	gettimeofday(&curtime, NULL);
+
+	addtime.tv_sec = time_ms / 1000;
+	addtime.tv_usec = (time_ms % 1000) * 1000;
+
+	timeradd(&curtime, &addtime, &timer->timeout);
+
+?
+
+Sasha
+
+> 
+>  	/* Add the timer to the queue. */
+>  	if (cl_is_qlist_empty(&gp_timer_prov->queue)) {
+> -- 
+> 1.6.2.4
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
