@@ -1,115 +1,157 @@
-From: Yevgeny Kliteynik <kliteyn-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH] complib/cl_timer.c: fixing cl_timer calculation
-Date: Tue, 24 Aug 2010 15:01:55 +0300
-Message-ID: <4C73B4B3.1030204@dev.mellanox.co.il>
-References: <4C7287C8.1040106@dev.mellanox.co.il> <20100823185529.GG5837@me> <4C73B333.3080007@dev.mellanox.co.il>
-Reply-To: kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org
+From: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH] ibnetdiscover: add '-f' flag to show full information
+ (ports' speed and width).
+Date: Tue, 24 Aug 2010 09:10:00 -0400
+Message-ID: <AANLkTi=V9Xb92KPgqKnFFWzp-izSsHi7c+-HXYBmggYN@mail.gmail.com>
+References: <4C6B9A42.9020505@voltaire.com>
+	<20100824040354.GH5837@me>
+	<4C73B34A.4080508@voltaire.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4C73B333.3080007-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+In-Reply-To: <4C73B34A.4080508-smomgflXvOZWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org
-Cc: Yevgeny Kliteynik <kliteyn-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>, Linux RDMA <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Tzachi Dar <tzachid-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
+To: Doron Shoham <dorons-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+Cc: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 24-Aug-10 2:55 PM, Yevgeny Kliteynik wrote:
-> On 23-Aug-10 9:55 PM, Sasha Khapyorsky wrote:
->> On 17:38 Mon 23 Aug     , Yevgeny Kliteynik wrote:
->>> When calculating p_timer->timeout.tv_sec and p_timer->timeout.tv_nsec,
->>> the carry was ignored, resulting in wrong value in p_timer->timeout.tv_sec,
->>> and value>   10^9 in p_timer->timeout.tv_nsec (illegal value).
+On Tue, Aug 24, 2010 at 7:55 AM, Doron Shoham <dorons-smomgflXvOZWk0Htik3J/w@public.gmane.org> wro=
+te:
+> On 08/24/2010 07:03 AM, Sasha Khapyorsky wrote:
+>> On 11:30 Wed 18 Aug =C2=A0 =C2=A0 , Doron Shoham wrote:
+>>> add '-f' flag to show full information (ports' speed and witdh).
+>>> mainly to work with ibsim (using links real speed and width).
 >>
->> Nice catch. And I also see a similar issue in cl_timer_trim().
-
-BTW, any idea what are the (obviously historical)
-reasons for these lines in the code?
-
-323:	/* do not do 0 wait ! */
-324:	/* if (delta_time < 1000.0) {delta_time = 1000;} */
-
--- Yevgeny
-
->> See a comments about the patch below.
+>> Seems almost fine. However see the comments below.
 >>
 >>>
->>> Signed-off-by:  Yevgeny Kliteynik<kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
->>>
+>>> Signed-off-by: Doron Shoham <dorons-smomgflXvOZWk0Htik3J/w@public.gmane.org>
 >>> ---
->>>    opensm/complib/cl_timer.c |    8 +++++---
->>>    1 files changed, 5 insertions(+), 3 deletions(-)
+>>> =C2=A0infiniband-diags/src/ibnetdiscover.c | =C2=A0 10 +++++++++-
+>>> =C2=A01 files changed, 9 insertions(+), 1 deletions(-)
 >>>
->>> diff --git a/opensm/complib/cl_timer.c b/opensm/complib/cl_timer.c
->>> index 2acdb51..09a5584 100644
->>> --- a/opensm/complib/cl_timer.c
->>> +++ b/opensm/complib/cl_timer.c
->>> @@ -299,7 +299,8 @@ cl_status_t cl_timer_start(IN cl_timer_t * const p_timer,
->>>    {
->>>    	struct timeval curtime;
->>>    	cl_list_item_t *p_list_item;
->>> -	uint32_t delta_time = time_ms;
->>> +	uint32_t delta_time_sec = time_ms / 1000;
->>> +	uint32_t delta_time_usec = (time_ms % 1000) * 1000;
->>
->> In order to prevent compatibility and porting issues would it be better
->> to use struct timeval's types here:
->>
->> 	time_t delta_time_sec;
->> 	suseconds_t delta_time_usec_t delta_time_usec;
->>
->> , instead of fixed size integers?
->>
+>>> diff --git a/infiniband-diags/src/ibnetdiscover.c b/infiniband-diag=
+s/src/ibnetdiscover.c
+>>> index f20058c..0a020a2 100644
+>>> --- a/infiniband-diags/src/ibnetdiscover.c
+>>> +++ b/infiniband-diags/src/ibnetdiscover.c
+>>> @@ -77,6 +77,7 @@ static char *diff_cache_file =3D NULL;
+>>> =C2=A0static unsigned diffcheck_flags =3D DIFF_FLAG_DEFAULT;
 >>>
->>>    	CL_ASSERT(p_timer);
->>>    	CL_ASSERT(p_timer->state == CL_INITIALIZED);
->>> @@ -324,9 +325,10 @@ cl_status_t cl_timer_start(IN cl_timer_t * const p_timer,
->>>    	/* if (delta_time<   1000.0) {delta_time = 1000;} */
+>>> =C2=A0static int report_max_hops =3D 0;
+>>> +static int full_info =3D 0;
 >>>
->>>    	/* Calculate the timeout. */
->>> -	p_timer->timeout.tv_sec = curtime.tv_sec + (delta_time / 1000);
->>> +	p_timer->timeout.tv_sec = curtime.tv_sec + delta_time_sec +
->>> +		((curtime.tv_usec + delta_time_usec) / 1000000);
->>>    	p_timer->timeout.tv_nsec =
->>> -	    (curtime.tv_usec + ((delta_time % 1000) * 1000)) * 1000;
->>> +	    ((curtime.tv_usec + delta_time_usec) % 1000000) * 1000;
+>>> =C2=A0/**
+>>> =C2=A0 * Define our own conversion functions to maintain compatibil=
+ity with the old
+>>> @@ -357,6 +358,8 @@ void out_switch_port(ibnd_port_t * port, int gr=
+oup, char *out_prefix)
+>>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0ext_port_str ? ext_=
+port_str : "");
+>>> =C2=A0 =C2=A0 =C2=A0if (port->remoteport->node->type !=3D IB_NODE_S=
+WITCH)
+>>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0fprintf(f, "(%" PRI=
+x64 ") ", port->remoteport->guid);
+>>> + =C2=A0 =C2=A0if (full_info)
+>>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
+=A0fprintf(f, " s=3D%d w=3D%d", ispeed, iwidth);
 >>
->> Or even something like this:
+>> I think that in order to not potentially break any ibnetdiscover out=
+put
+>> parsers it would be better to put such "f" output after a comment li=
+ne.
+>> Would it work with ibsim in a same way?
+>
+> ibsim should still work if the output is after the comment.
+> I still think that it can potentially break ibnetdiscover output pars=
+ers (that why I used '-f' flag).
+> Do you want it with '-f' flag and after the comment?
+> for example:
+> [1](2c903000020a9) =C2=A0 =C2=A0 =C2=A0"S-0008f10500650272"[19] =C2=A0=
+ =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0# =C2=A0s=3D2 w=3D2 li=
+d 6 lmc 0 "Voltaire sLB-4018 =C2=A0 =C2=A0Line 10 =C2=A0Chip 1 4700 #47=
+00-B778" lid 3 4xDDR
+>
+
+Personally, I'd prefer it at the end of the line after 4xDDR and use
+speed/width rather than s=3D/w=3D:
+
+[1](2c903000020a9)      "S-0008f10500650272"[19]                #  lid
+6 lmc 0 "Voltaire sLB-4018    Line 10  Chip 1 4700 #4700-B778" lid 3
+4xDDR speed 2 width 2
+
+I think that looks better and is more readable. Just my $0.02...
+
+-- Hal
+
 >>
->> 	strcut timeval curtime, deltatime;
+>>> =C2=A0 =C2=A0 =C2=A0fprintf(f, "\t\t# \"%s\" lid %d %s%s",
+>>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0rem_nodename,
+>>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0port->remoteport->n=
+ode->type =3D=3D IB_NODE_SWITCH ?
+>>> @@ -396,7 +399,8 @@ void out_ca_port(ibnd_port_t * port, int group,=
+ char *out_prefix)
+>>> =C2=A0 =C2=A0 =C2=A0rem_nodename =3D remap_node_name(node_name_map,
+>>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 port->remotepo=
+rt->node->guid,
+>>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 port->remotepo=
+rt->node->nodedesc);
+>>> -
+>>> + =C2=A0 =C2=A0if (full_info)
+>>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
+=A0fprintf(f, " s=3D%d w=3D%d", ispeed, iwidth);
 >>
->> 	gettimeofday(&curtime, NULL);
+>> Ditto.
 >>
->> 	addtime.tv_sec = time_ms / 1000;
->> 	addtime.tv_usec = (time_ms % 1000) * 1000;
->>
->> 	timeradd(&curtime,&addtime,&timer->timeout);
->>
->> ?
-> 
-> Sure, why not. It won't be that clean, because p_timer->timeout
-> and curtime/deltatime are different types, but I get the idea.
-> 
-> -- Yevgeny
-> 
 >> Sasha
 >>
+>>> =C2=A0 =C2=A0 =C2=A0fprintf(f, "\t\t# lid %d lmc %d \"%s\" lid %d %=
+s%s\n",
+>>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0port->base_lid, por=
+t->lmc, rem_nodename,
+>>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0port->remoteport->n=
+ode->type =3D=3D IB_NODE_SWITCH ?
+>>> @@ -926,6 +930,9 @@ static int process_opt(void *context, int ch, c=
+har *optarg)
+>>> =C2=A0 =C2=A0 =C2=A0case 's':
+>>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0cfg->show_progress =
+=3D 1;
+>>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0break;
+>>> + =C2=A0 =C2=A0case 'f':
+>>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0full_info =3D 1;
+>>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0break;
+>>> =C2=A0 =C2=A0 =C2=A0case 'l':
+>>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0list =3D LIST_CA_NO=
+DE | LIST_SWITCH_NODE | LIST_ROUTER_NODE;
+>>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0break;
+>>> @@ -964,6 +971,7 @@ int main(int argc, char **argv)
+>>> =C2=A0 =C2=A0 =C2=A0ibnd_fabric_t *diff_fabric =3D NULL;
 >>>
->>>    	/* Add the timer to the queue. */
->>>    	if (cl_is_qlist_empty(&gp_timer_prov->queue)) {
->>> -- 
->>> 1.6.2.4
->>>
+>>> =C2=A0 =C2=A0 =C2=A0const struct ibdiag_opt opts[] =3D {
+>>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0{"full", 'f', 0, NULL, "=
+show full information (ports' speed and witdh)"},
+>>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0{"show", 's', 0, NU=
+LL, "show more information"},
+>>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0{"list", 'l', 0, NU=
+LL, "list of connected nodes"},
+>>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0{"grouping", 'g', 0=
+, NULL, "show grouping"},
 >>> --
->>> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
->>> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>> 1.5.4
 >>>
->>
-> 
-> 
-
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma"=
+ in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at =C2=A0http://vger.kernel.org/majordomo-info.ht=
+ml
+>
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
