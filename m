@@ -1,93 +1,76 @@
-From: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH] ibnetdiscover: add '-f' flag to show full information
- (ports' speed and width).
-Date: Tue, 24 Aug 2010 07:03:54 +0300
-Message-ID: <20100824040354.GH5837@me>
-References: <4C6B9A42.9020505@voltaire.com>
+From: Benjamin Herrenschmidt <benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org>
+Subject: Re: [PATCH 2/2]: Powerpc: Fix EHCA driver on relocatable kernel
+Date: Tue, 24 Aug 2010 14:45:02 +1000
+Message-ID: <1282625102.22370.502.camel@pasglop>
+References: <20100820041019.GT16505@us.ibm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <4C6B9A42.9020505-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <20100820041019.GT16505-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Doron Shoham <dorons-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sonny Rao <sonnyrao-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>
+Cc: linux-ppc-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, fenkes-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org, raisch-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 11:30 Wed 18 Aug     , Doron Shoham wrote:
-> add '-f' flag to show full information (ports' speed and witdh).
-> mainly to work with ibsim (using links real speed and width).
-
-Seems almost fine. However see the comments below.
-
+On Thu, 2010-08-19 at 23:10 -0500, Sonny Rao wrote:
+> the eHCA driver registers a MR for all of kernel memory, but makes the
+> assumption that valid memory exists at KERNELBASE.  This assumption
+> may not be true in the case of a relocatable kernel, so use KERNELBASE
+> + PHYSICAL_START to get the true beginning of usable kernel memory.
 > 
-> Signed-off-by: Doron Shoham <dorons-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-> ---
->  infiniband-diags/src/ibnetdiscover.c |   10 +++++++++-
->  1 files changed, 9 insertions(+), 1 deletions(-)
+> This patch depends on the earlier patch which exports the necessary
+> symbol for PHYSICAL_START in a relocatable kernel.
+
+I'm going to send patch 1/2 to Linus today or tomorrow, so this patch
+can then be picked up by the infiniband maintainers.
+
+Cheers,
+Ben.
+ 
+> cc: Joachim Fenkes <fenkes-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>
+> cc: Christoph Raisch <raisch-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>
+> cc: Hoan-Ham Hguyen <hnguyen-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>
+> Signed-off-by: Sonny Rao <sonnyrao-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>
 > 
-> diff --git a/infiniband-diags/src/ibnetdiscover.c b/infiniband-diags/src/ibnetdiscover.c
-> index f20058c..0a020a2 100644
-> --- a/infiniband-diags/src/ibnetdiscover.c
-> +++ b/infiniband-diags/src/ibnetdiscover.c
-> @@ -77,6 +77,7 @@ static char *diff_cache_file = NULL;
->  static unsigned diffcheck_flags = DIFF_FLAG_DEFAULT;
->  
->  static int report_max_hops = 0;
-> +static int full_info = 0;
->  
->  /**
->   * Define our own conversion functions to maintain compatibility with the old
-> @@ -357,6 +358,8 @@ void out_switch_port(ibnd_port_t * port, int group, char *out_prefix)
->  		ext_port_str ? ext_port_str : "");
->  	if (port->remoteport->node->type != IB_NODE_SWITCH)
->  		fprintf(f, "(%" PRIx64 ") ", port->remoteport->guid);
-> +	if (full_info)
-> +			fprintf(f, " s=%d w=%d", ispeed, iwidth);
-
-I think that in order to not potentially break any ibnetdiscover output
-parsers it would be better to put such "f" output after a comment line.
-Would it work with ibsim in a same way?
-
->  	fprintf(f, "\t\t# \"%s\" lid %d %s%s",
->  		rem_nodename,
->  		port->remoteport->node->type == IB_NODE_SWITCH ?
-> @@ -396,7 +399,8 @@ void out_ca_port(ibnd_port_t * port, int group, char *out_prefix)
->  	rem_nodename = remap_node_name(node_name_map,
->  				       port->remoteport->node->guid,
->  				       port->remoteport->node->nodedesc);
-> -
-> +	if (full_info)
-> +			fprintf(f, " s=%d w=%d", ispeed, iwidth);
-
-Ditto.
-
-Sasha
-
->  	fprintf(f, "\t\t# lid %d lmc %d \"%s\" lid %d %s%s\n",
->  		port->base_lid, port->lmc, rem_nodename,
->  		port->remoteport->node->type == IB_NODE_SWITCH ?
-> @@ -926,6 +930,9 @@ static int process_opt(void *context, int ch, char *optarg)
->  	case 's':
->  		cfg->show_progress = 1;
->  		break;
-> +	case 'f':
-> +		full_info = 1;
-> +		break;
->  	case 'l':
->  		list = LIST_CA_NODE | LIST_SWITCH_NODE | LIST_ROUTER_NODE;
->  		break;
-> @@ -964,6 +971,7 @@ int main(int argc, char **argv)
->  	ibnd_fabric_t *diff_fabric = NULL;
->  
->  	const struct ibdiag_opt opts[] = {
-> +		{"full", 'f', 0, NULL, "show full information (ports' speed and witdh)"},
->  		{"show", 's', 0, NULL, "show more information"},
->  		{"list", 'l', 0, NULL, "list of connected nodes"},
->  		{"grouping", 'g', 0, NULL, "show grouping"},
-> -- 
-> 1.5.4
 > 
+> Index: linux-2.6/drivers/infiniband/hw/ehca/ehca_mrmw.c
+> ===================================================================
+> --- linux-2.6.orig/drivers/infiniband/hw/ehca/ehca_mrmw.c	2010-08-09 22:16:57.688652613 -0500
+> +++ linux-2.6/drivers/infiniband/hw/ehca/ehca_mrmw.c	2010-08-19 22:53:03.451507146 -0500
+> @@ -171,7 +171,7 @@
+>  		}
+> 
+>  		ret = ehca_reg_maxmr(shca, e_maxmr,
+> -				     (void *)ehca_map_vaddr((void *)KERNELBASE),
+> +				     (void *)ehca_map_vaddr((void *)(KERNELBASE + PHYSICAL_START)),
+>  				     mr_access_flags, e_pd,
+>  				     &e_maxmr->ib.ib_mr.lkey,
+>  				     &e_maxmr->ib.ib_mr.rkey);
+> @@ -1636,7 +1636,7 @@
+> 
+>  	/* register internal max-MR on HCA */
+>  	size_maxmr = ehca_mr_len;
+> -	iova_start = (u64 *)ehca_map_vaddr((void *)KERNELBASE);
+> +	iova_start = (u64 *)ehca_map_vaddr((void *)(KERNELBASE + PHYSICAL_START));
+>  	ib_pbuf.addr = 0;
+>  	ib_pbuf.size = size_maxmr;
+>  	num_kpages = NUM_CHUNKS(((u64)iova_start % PAGE_SIZE) + size_maxmr,
+> @@ -2209,7 +2209,7 @@
+>  {
+>  	/* a MR is treated as max-MR only if it fits following: */
+>  	if ((size == ehca_mr_len) &&
+> -	    (iova_start == (void *)ehca_map_vaddr((void *)KERNELBASE))) {
+> +	    (iova_start == (void *)ehca_map_vaddr((void *)(KERNELBASE + PHYSICAL_START)))) {
+>  		ehca_gen_dbg("this is a max-MR");
+>  		return 1;
+>  	} else
+> _______________________________________________
+> Linuxppc-dev mailing list
+> Linuxppc-dev-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org
+> https://lists.ozlabs.org/listinfo/linuxppc-dev
+
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
