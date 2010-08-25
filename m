@@ -1,55 +1,81 @@
-From: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: IPoIB CM connection establishment protocol question
-Date: Wed, 25 Aug 2010 14:45:32 +0300
-Message-ID: <20100825114532.GA19968@mtldesk30>
-References: <3F6F638B8D880340AB536D29CD4C1E1925AC41133A@orsmsx501.amr.corp.intel.com>
+From: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
+Subject: RE: IPoIB: Broken IGMP processing
+Date: Wed, 25 Aug 2010 09:43:45 -0500 (CDT)
+Message-ID: <alpine.DEB.2.00.1008250943230.15571@router.home>
+References: <alpine.DEB.2.00.1008231427130.12815@router.home><7E95F01E94AB484F83061FCFA35B39F8013249@exil.voltaire.com> <20100823194555.GN26549@obsidianresearch.com> <7E95F01E94AB484F83061FCFA35B39F801324A@exil.voltaire.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <3F6F638B8D880340AB536D29CD4C1E1925AC41133A-osO9UTpF0USkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
+In-Reply-To: <7E95F01E94AB484F83061FCFA35B39F801324A-QfUkFaTmzUSUvQqKE/ONIwC/G2K4zDHf@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Smith, Stan" <stan.smith-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Yossi Etigin <yosefe-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Or Gerlitz <ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org>, Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi stan,
+On Mon, 23 Aug 2010, Yossi Etigin wrote:
 
-Here's a short summary:
-An IPoIB interface encodes it capability of supporting CM mode in the
-hardware adress it publishes. Once the stack hands an SKB to IPoIB for
-transmission (unicast), IPoIB needs to resolve the hardware address to
-IB adress information (LID, SL etc.). Once resolution is complete, it
-will create a RC connection with the other host using IB CM. This
-process is symetrical - that is, for two communicating hosts there are
-two RC connections so that each connection works half duplex.
+> >
+> > Simplest then is to check if byte 24 of the packet is 0xff.
+> > (ie IN6_IS_ADDR_MULTICAST)
+> >
+> > No need to worry about if it is properly formed or anything, if it is
+> > a multicast DGID then it is a multicast packet at the link level.
+> >
+>
+> Sounds good to me
 
-Hope that helps.
+Therefore this patch?
 
-On Thu, Aug 05, 2010 at 10:25:27AM -0700, Smith, Stan wrote:
-> 
-> Could someone who is OFED IPoIB knowledgeable help me understand which IPoIB side starts the RC connection establishment (Tx REQ) to an ARP unknown remote host?
-> 
-> I tried reading the Linux IPoIB code and realized it's been too many years since writing Linux network drivers (2001) and found myself lost in the bits w.r.t. CM connection mgmt. and ARP handling.
-> 
-> >From limited observation, it looks like the ACTIVE side (ttcp -t) of an IPoIB network connection broadcasts an IB ARP-REQ which indicates CM capability in the IB ARP flags byte.
-> 
-> When the PASSIVE IPoIB (ttcp -r) receives the IB ARP-REQ, it sends back an IB ARP-REPLY which indicates it's CM capability among other items.
-> 
-> Now the confusing part: which IPoIB CM side starts the CM-RC connection establishment?
-> 
-> Does the PASSIVE IPoIB start the RC connection (Tx REQ) prior to sending the IB ARP-REPLY?
-> 
-> Or does the ACTIVE IPoIB side receive the IB ARP-REPLY and then start an ACTIVE RC connection (Tx REQ) now that it knows the remote side is CM capable?
-> 
-> thanks,
-> 
-> stan.
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Subject: [IB] Make igmp processing work with IPOIB
+
+IGMP processing is broken because the IPOIB does not set the
+skb->pkt_type the right way for Multicast traffic. All incoming
+packets are set to PACKET_HOST which means that the igmp_recv()
+function will ignore the IGMP broadcasts/multicasts.
+
+This in turn means that the IGMP timers are firing and are sending
+information about multicast subscriptions unnecessarily. In a large
+private network this can cause traffic spikes.
+
+Signed-off-by: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
+
+---
+ drivers/infiniband/ulp/ipoib/ipoib_ib.c |    7 +++++--
+ include/linux/in6.h                     |    3 +++
+ 2 files changed, 8 insertions(+), 2 deletions(-)
+
+Index: linux-2.6/drivers/infiniband/ulp/ipoib/ipoib_ib.c
+===================================================================
+--- linux-2.6.orig/drivers/infiniband/ulp/ipoib/ipoib_ib.c	2010-08-23 16:04:38.000000000 -0500
++++ linux-2.6/drivers/infiniband/ulp/ipoib/ipoib_ib.c	2010-08-25 09:43:01.000000000 -0500
+@@ -281,8 +281,11 @@ static void ipoib_ib_handle_rx_wc(struct
+ 	dev->stats.rx_bytes += skb->len;
+
+ 	skb->dev = dev;
+-	/* XXX get correct PACKET_ type here */
+-	skb->pkt_type = PACKET_HOST;
++	if (IN6_IS_ADDR_MULTICAST(skb->head + 24))
++
++		skb->pkt_type = PACKET_MULTICAST;
++	else
++		skb->pkt_type = PACKET_HOST;
+
+ 	if (test_bit(IPOIB_FLAG_CSUM, &priv->flags) && likely(wc->csum_ok))
+ 		skb->ip_summed = CHECKSUM_UNNECESSARY;
+Index: linux-2.6/include/linux/in6.h
+===================================================================
+--- linux-2.6.orig/include/linux/in6.h	2010-08-25 09:39:40.000000000 -0500
++++ linux-2.6/include/linux/in6.h	2010-08-25 09:40:22.000000000 -0500
+@@ -53,6 +53,9 @@ extern const struct in6_addr in6addr_lin
+ extern const struct in6_addr in6addr_linklocal_allrouters;
+ #define IN6ADDR_LINKLOCAL_ALLROUTERS_INIT \
+ 		{ { { 0xff,2,0,0,0,0,0,0,0,0,0,0,0,0,0,2 } } }
++
++#define IN6_IS_ADDR_MULTICAST(a) (((const __u8 *) (a))[0] == 0xff)
++
+ #endif
+
+ struct sockaddr_in6 {
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
