@@ -1,51 +1,41 @@
-From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Subject: Re: [PATCH 2/5 v6] IB/srp: IB/srp: Implement SRP_CRED_REQ and SRP_AER_REQ
-Date: Wed, 25 Aug 2010 18:50:51 +0200
-Message-ID: <AANLkTiknzQx_T-J1uhePtOu-X3_itq3sS5GUfNk7EGvE@mail.gmail.com>
-References: <201008221856.29895.bvanassche@acm.org>
-	<1282704503.24982.22.camel@obelisk.thedillows.org>
+From: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH] ibnetdiscover: add '-f' flag to show full information
+ (ports' speed and width).
+Date: Wed, 25 Aug 2010 20:06:56 +0300
+Message-ID: <20100825170656.GM5837@me>
+References: <4C6B9A42.9020505@voltaire.com>
+ <20100824040354.GH5837@me>
+ <4C73B34A.4080508@voltaire.com>
+ <AANLkTi=V9Xb92KPgqKnFFWzp-izSsHi7c+-HXYBmggYN@mail.gmail.com>
+ <4C73C8BC.6010702@voltaire.com>
+ <AANLkTime9OX4EPS_c+pKwnchuVfyLqeLcuX0rXDjOCgR@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1282704503.24982.22.camel-1q1vX8mYZiGLUyTwlgNVppKKF0rrzTr+@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <AANLkTime9OX4EPS_c+pKwnchuVfyLqeLcuX0rXDjOCgR-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: David Dillow <dave-i1Mk8JYDVaaSihdK6806/g@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+To: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Doron Shoham <dorons-smomgflXvOZWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Aug 25, 2010 at 4:48 AM, David Dillow <dave-i1Mk8JYDVaaSihdK6806/g@public.gmane.org> wro=
-te:
->
-> On Sun, 2010-08-22 at 18:56 +0200, Bart Van Assche wrote:
-> > [ ... ]
-> > =A0static struct srp_iu *__srp_get_tx_iu(struct srp_target_port *ta=
-rget,
-> > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 enum srp_request_type req_type)
-> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- enum srp_tx_iu_type iu_type)
-> > =A0{
-> > - =A0 =A0 s32 rsv =3D (req_type =3D=3D SRP_REQ_TASK_MGMT) ? 0 : SRP=
-_TSK_MGMT_SQ_SIZE;
-> > + =A0 =A0 s32 rsv =3D (iu_type =3D=3D SRP_IU_REQ_TSK_MGMT) ? 0 : SR=
-P_TSK_MGMT_SQ_SIZE;
->
-> You check for credits even if this is an SRP_IU_RSP, so we'll fail to
-> allocate an IU if we're low on credits. Not a common condition, but
-> possible within the spec.
+On 09:45 Tue 24 Aug     , Hal Rosenstock wrote:
+> 
+> > What about the flag? do we still need it if we pass the output after the comment?
+> 
+> I wouldn't think so. I also think we've made commentary changes to the
+> ibnetdiscover output format like this before. If we wanted to be
+> absolutely sure it wouldn't break anything, we'd keep the flag though.
+> It's up to Sasha.
 
-The code below was present in version five of the patch series and has
-been removed accidentally. I'll resend the patch series.
+The '-f' flag could make sense since those information actually
+duplicates previous 4xDDR, etc. and used by ibsim's parser only.
 
-+	if (tx_iu_type !=3D SRP_TX_IU_RSP && target->req_lim <=3D rsv) {
-+		++target->zero_req_lim;
-+		return NULL;
-+	}
+Also it would be nice to make ibsim's parser to understand both
+possibilities: s=2 and speed=2 (Or even to parse "*x*DR" strings :))
 
-Bart.
+Sasha
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
