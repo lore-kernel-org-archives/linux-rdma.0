@@ -1,133 +1,86 @@
-From: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: ibnetdiscover issue with multiported CA (or router) with multiple
- ports on same subnet
-Date: Wed, 25 Aug 2010 13:27:02 -0400
-Message-ID: <AANLkTi=54yw-YcpXNvWmsCFybZhTZX6Hp6=KW6Gz9KLH@mail.gmail.com>
+From: Hal Rosenstock <hnrose-Wuw85uim5zDR7s880joybQ@public.gmane.org>
+Subject: [PATCH] infiniband-diags/ibnetdiscover: Fix handling of CA ports
+	in recv_port_info
+Date: Wed, 25 Aug 2010 14:08:02 -0400
+Message-ID: <20100825180802.GA12192@comcast.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+To: sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Sasha,
 
-I'm seeing an issue with ibnetdiscover from a CA port where it appears
-to extend a path at a "remote" CA port (it's actually another port on
-the same CA) to query NodeInfo of the next hop beyond it. I get the
-following error message:
+When multiple ports on the same CA are connected to the same subnet and
+an ibnetdiscover is initiated from one of them, the discovery continues
+past the other CA port and an error occurs.
 
-src/query_smp.c:188; umad (DR path slid 0; dlid 0; 0,1,20,2 Attr
-0x11:0) bad status 110; Connection timed out
+The error is:
+src/query_smp.c:188; umad (DR path slid 0; dlid 0; 0,1,20,2 Attr0x11:0) bad status 110; Connection timed out
 
-where smpquery -D nodeinfo of 0,1,20 is a CA which can also be seen
-from the topology.
+Fix this by saving the initiating port number in the fabric structure
+and using that rather than local_port for the comparison in
+recv_port_info.
 
-It appears to stem from the following code snippet from
-libibnetdisc/src/ibnetdisc.c:recv_port_info
-
-        if (port_num && mad_get_field(port->info, 0, IB_PORT_PHYS_STATE_F)
-            == IB_PORT_PHYS_STATE_LINKUP
-            && ((node->type == IB_NODE_SWITCH && port_num != local_port) ||
-                (node == fabric->from_node && port_num == local_port))) {
-                ib_portid_t path = smp->path;
-                if (extend_dpath(engine, &path, port_num) > 0)
-                        query_node_info(engine, &path, node);
-        }
-
-that was introduced by:
-commit fcb8d5e7588e38508a8e354c37009d73c0a3889f
-Author: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Date:   Sat Apr 10 02:43:24 2010 +0300
-
-    libibnetdisc: no backward NodeInfo queries
-
-    Then switch is reached via port N we don't need to query back via this
-    port - source node is discovered already. Finally this saves some amount
-    of unnecessary MADs.
-
-    Signed-off-by: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-
-and subsequently modified by:
-commit 49d149c63a44d99259f516a15af53d8cf3f0e7c9
-Author: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Date:   Tue Apr 13 19:54:45 2010 +0300
-
-    libibnetdisc: don't try to cross discovery over CA
-
-    When discovery is running from CA node it shouldn't try to cross over
-    all ports, but only via local one (send over non-local ports will fail
-    since CA doesn't route MADs).
-
-    Signed-off-by: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-
-due to the (node == fabric->from_node && port_num == local_port)
-clause being TRUE.
-
-ibnetdiscover
-src/query_smp.c:188; umad (DR path slid 0; dlid 0; 0,1,20,2 Attr
-0x11:0) bad status 110; Connection timed out
-#
-# Topology file: generated on Wed Aug 25 18:52:16 2010
-#
-# Initiated from node 0002c9020020ee0c port 0002c9020020ee0d
-
-vendid=0x2c9
-devid=0xb924
-sysimgguid=0xb8cffff00438b
-switchguid=0xb8cffff00438b(b8cffff00438b)
-Switch  24 "S-000b8cffff00438b"         # "MT47396 Infiniscale-III
-Mellanox Technologies" base port 0 lid 4 lmc 0
-[5]     "H-0002c903000010e0"[1](2c903000010e1)          # "sw124
-HCA-1" lid 5 4xDDR
-[6]     "H-0002c9030000d1c8"[1](2c9030000d1c9)          # "sw123
-HCA-1" lid 0 4xDDR
-[7]     "H-0002c9020020ee0c"[1](2c9020020ee0d)          # "sw075
-HCA-1" lid 2 4xDDR
-[20]    "H-0002c9020020ee0c"[2](2c9020020ee0e)          # "sw075
-HCA-1" lid 3 4xDDR
-
-...
-
-vendid=0x2c9
-devid=0x6278
-sysimgguid=0x2c9020020ee0f
-caguid=0x2c9020020ee0c
-Ca      2 "H-0002c9020020ee0c"          # "sw075 HCA-1"
-[1](2c9020020ee0d)      "S-000b8cffff00438b"[7]         # lid 2 lmc 0
-"MT47396 Infiniscale-III Mellanox Technologies" lid 4 4xDDR
-[2](2c9020020ee0e)      "S-000b8cffff00438b"[20]                # lid
-3 lmc 0 "MT47396 Infiniscale-III Mellanox Technologies" lid 4 4xDDR
-
-
-smpquery -D nodeinfo 0,1,20
-# Node info: DR path slid 65535; dlid 65535; 0,1,20
-BaseVers:........................1
-ClassVers:.......................1
-NodeType:........................Channel Adapter
-NumPorts:........................2
-SystemGuid:......................0x0002c9020020ee0f
-Guid:............................0x0002c9020020ee0c
-PortGuid:........................0x0002c9020020ee0e
-PartCap:.........................64
-DevId:...........................0x6278
-Revision:........................0x000000a0
-LocalPort:.......................2
-VendorId:........................0x0002c9
-
-I don't think the local port part of the test above (node ==
-fabric->from_node && port_num == local_port)  is correct where:
-
-        local_port = (uint8_t) mad_get_field(port_info, 0,
-IB_PORT_LOCAL_PORT_F);
-
-Instead, shouldn't port_num be checked against the local port that
-initiated the ibnetdiscover (which in this case is port 1) ? If so, a
-"from_portnum" could be added/saved in the fabric structure and used
-for this check. Do you concur with this approach ?
-
--- Hal
+Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+diff --git a/infiniband-diags/libibnetdisc/include/infiniband/ibnetdisc.h b/infiniband-diags/libibnetdisc/include/infiniband/ibnetdisc.h
+index cfd3bbe..935e427 100644
+--- a/infiniband-diags/libibnetdisc/include/infiniband/ibnetdisc.h
++++ b/infiniband-diags/libibnetdisc/include/infiniband/ibnetdisc.h
+@@ -1,6 +1,7 @@
+ /*
+  * Copyright (c) 2009 Voltaire, Inc. All rights reserved.
+  * Copyright (c) 2008 Lawrence Livermore National Lab.  All rights reserved.
++ * Copyright (c) 2010 Mellanox Technologies LTD.  All rights reserved.
+  *
+  * This software is available to you under a choice of one of two
+  * licenses.  You may choose to be licensed under the terms of the GNU
+@@ -149,6 +150,8 @@ typedef struct ibnd_fabric {
+ 	 * or by default the node you ar running on
+ 	 */
+ 	ibnd_node_t *from_node;
++	int from_portnum;
++
+ 	/* NULL term list of all nodes in the fabric */
+ 	ibnd_node_t *nodes;
+ 	/* NULL terminated list of all chassis found in the fabric */
+diff --git a/infiniband-diags/libibnetdisc/src/ibnetdisc.c b/infiniband-diags/libibnetdisc/src/ibnetdisc.c
+index f525d71..79dd98e 100644
+--- a/infiniband-diags/libibnetdisc/src/ibnetdisc.c
++++ b/infiniband-diags/libibnetdisc/src/ibnetdisc.c
+@@ -2,6 +2,7 @@
+  * Copyright (c) 2004-2009 Voltaire Inc.  All rights reserved.
+  * Copyright (c) 2007 Xsigo Systems Inc.  All rights reserved.
+  * Copyright (c) 2008 Lawrence Livermore National Laboratory
++ * Copyright (c) 2010 Mellanox Technologies LTD.  All rights reserved.
+  *
+  * This software is available to you under a choice of one of two
+  * licenses.  You may choose to be licensed under the terms of the GNU
+@@ -199,7 +200,7 @@ static int recv_port_info(smp_engine_t * engine, ibnd_smp_t * smp,
+ 	if (port_num && mad_get_field(port->info, 0, IB_PORT_PHYS_STATE_F)
+ 	    == IB_PORT_PHYS_STATE_LINKUP
+ 	    && ((node->type == IB_NODE_SWITCH && port_num != local_port) ||
+-		(node == fabric->from_node && port_num == local_port))) {
++		(node == fabric->from_node && port_num == fabric->from_portnum))) {
+ 		ib_portid_t path = smp->path;
+ 		if (extend_dpath(engine, &path, port_num) > 0)
+ 			query_node_info(engine, &path, node);
+@@ -324,9 +325,10 @@ static int recv_node_info(smp_engine_t * engine, ibnd_smp_t * smp,
+ 		dump_endnode(&smp->path, node_is_new ? "new" : "known",
+ 			     node, port);
+ 
+-	if (rem_node == NULL)	/* this is the start node */
++	if (rem_node == NULL) {	/* this is the start node */
+ 		fabric->from_node = node;
+-	else {
++		fabric->from_portnum = port_num;
++	} else {
+ 		/* link ports... */
+ 		int rem_port_num = get_last_port(&smp->path);
+ 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
