@@ -1,7 +1,8 @@
 From: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCHv10 03/12] ib_core: IBoE UD packet packing support
-Date: Thu, 26 Aug 2010 17:17:56 +0300
-Message-ID: <20100826141756.GD8795@mtldesk30>
+Subject: [PATCHv10 04/12] mpt to API changelx4: Adapt to API changes in the
+ previous commit
+Date: Thu, 26 Aug 2010 17:18:05 +0300
+Message-ID: <20100826141805.GE8795@mtldesk30>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
@@ -11,251 +12,26 @@ To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 Cc: RDMA list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Add support functions to aid in packing IBoE packets.
+This is done to synchronize mlx4 with the API changes.
 
 Signed-off-by: Eli Cohen <eli-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
 ---
- drivers/infiniband/core/ud_header.c |  128 ++++++++++++++++++++++++++---------
- include/rdma/ib_pack.h              |   30 +++++++-
- 2 files changed, 124 insertions(+), 34 deletions(-)
+ drivers/infiniband/hw/mlx4/qp.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/infiniband/core/ud_header.c b/drivers/infiniband/core/ud_header.c
-index 650b501..58b5537 100644
---- a/drivers/infiniband/core/ud_header.c
-+++ b/drivers/infiniband/core/ud_header.c
-@@ -80,6 +80,29 @@ static const struct ib_field lrh_table[]  = {
- 	  .size_bits    = 16 }
- };
+diff --git a/drivers/infiniband/hw/mlx4/qp.c b/drivers/infiniband/hw/mlx4/qp.c
+index 6a60827..bb1277c 100644
+--- a/drivers/infiniband/hw/mlx4/qp.c
++++ b/drivers/infiniband/hw/mlx4/qp.c
+@@ -1231,7 +1231,7 @@ static int build_mlx_header(struct mlx4_ib_sqp *sqp, struct ib_send_wr *wr,
+ 	for (i = 0; i < wr->num_sge; ++i)
+ 		send_size += wr->sg_list[i].length;
  
-+static const struct ib_field eth_table[]  = {
-+	{ STRUCT_FIELD(eth, dmac_h),
-+	  .offset_words = 0,
-+	  .offset_bits  = 0,
-+	  .size_bits    = 32 },
-+	{ STRUCT_FIELD(eth, dmac_l),
-+	  .offset_words = 1,
-+	  .offset_bits  = 0,
-+	  .size_bits    = 16 },
-+	{ STRUCT_FIELD(eth, smac_h),
-+	  .offset_words = 1,
-+	  .offset_bits  = 16,
-+	  .size_bits    = 16 },
-+	{ STRUCT_FIELD(eth, smac_l),
-+	  .offset_words = 2,
-+	  .offset_bits  = 0,
-+	  .size_bits    = 32 },
-+	{ STRUCT_FIELD(eth, type),
-+	  .offset_words = 3,
-+	  .offset_bits  = 0,
-+	  .size_bits    = 16 }
-+};
-+
- static const struct ib_field grh_table[]  = {
- 	{ STRUCT_FIELD(grh, ip_version),
- 	  .offset_words = 0,
-@@ -180,17 +203,15 @@ static const struct ib_field deth_table[] = {
- /**
-  * ib_ud_header_init - Initialize UD header structure
-  * @payload_bytes:Length of packet payload
-+ * @lrh_present: specify if LRH is present
-+ * @eth_present: specify if Eth header is present
-  * @grh_present:GRH flag (if non-zero, GRH will be included)
-- * @immediate_present: specify if immediate data should be used
-+ * @immediate_present: specify if immediate data is present
-  * @header:Structure to initialize
-- *
-- * ib_ud_header_init() initializes the lrh.link_version, lrh.link_next_header,
-- * lrh.packet_length, grh.ip_version, grh.payload_length,
-- * grh.next_header, bth.opcode, bth.pad_count and
-- * bth.transport_header_version fields of a &struct ib_ud_header given
-- * the payload length and whether a GRH will be included.
-  */
- void ib_ud_header_init(int     		    payload_bytes,
-+		       int		    lrh_present,
-+		       int		    eth_present,
- 		       int    		    grh_present,
- 		       int		    immediate_present,
- 		       struct ib_ud_header *header)
-@@ -199,42 +220,79 @@ void ib_ud_header_init(int     		    payload_bytes,
+-	ib_ud_header_init(send_size, mlx4_ib_ah_grh_present(ah), 0, &sqp->ud_header);
++	ib_ud_header_init(send_size, 1, 0, mlx4_ib_ah_grh_present(ah), 0, &sqp->ud_header);
  
- 	memset(header, 0, sizeof *header);
- 
--	header->lrh.link_version     = 0;
--	header->lrh.link_next_header =
--		grh_present ? IB_LNH_IBA_GLOBAL : IB_LNH_IBA_LOCAL;
--	packet_length		     = (IB_LRH_BYTES     +
--					IB_BTH_BYTES     +
--					IB_DETH_BYTES    +
--					payload_bytes    +
--					4                + /* ICRC     */
--					3) / 4;            /* round up */
--
--	header->grh_present          = grh_present;
-+	if (lrh_present) {
-+		header->lrh.link_version     = 0;
-+		header->lrh.link_next_header =
-+			grh_present ? IB_LNH_IBA_GLOBAL : IB_LNH_IBA_LOCAL;
-+		packet_length = IB_LRH_BYTES;
-+	}
-+
-+	if (eth_present)
-+		packet_length += IB_ETH_BYTES;
-+	packet_length += IB_BTH_BYTES + IB_DETH_BYTES + payload_bytes +
-+		4       + /* ICRC     */
-+		3;        /* round up */
-+	packet_length /= 4;
- 	if (grh_present) {
--		packet_length		   += IB_GRH_BYTES / 4;
--		header->grh.ip_version      = 6;
--		header->grh.payload_length  =
--			cpu_to_be16((IB_BTH_BYTES     +
--				     IB_DETH_BYTES    +
--				     payload_bytes    +
--				     4                + /* ICRC     */
--				     3) & ~3);          /* round up */
-+		packet_length += IB_GRH_BYTES / 4;
-+		header->grh.ip_version = 6;
-+		header->grh.payload_length =
-+			cpu_to_be16((IB_BTH_BYTES  +
-+				     IB_DETH_BYTES +
-+				     payload_bytes +
-+				     4             + /* ICRC     */
-+				     3) & ~3);       /* round up */
- 		header->grh.next_header     = 0x1b;
- 	}
- 
--	header->lrh.packet_length = cpu_to_be16(packet_length);
-+	if (lrh_present)
-+		header->lrh.packet_length = cpu_to_be16(packet_length);
- 
--	header->immediate_present	     = immediate_present;
--	if (immediate_present)
-+	if (header->immediate_present)
- 		header->bth.opcode           = IB_OPCODE_UD_SEND_ONLY_WITH_IMMEDIATE;
- 	else
- 		header->bth.opcode           = IB_OPCODE_UD_SEND_ONLY;
- 	header->bth.pad_count                = (4 - payload_bytes) & 3;
- 	header->bth.transport_header_version = 0;
-+
-+	header->lrh_present = lrh_present;
-+	header->eth_present = eth_present;
-+	header->grh_present = grh_present;
-+	header->immediate_present = immediate_present;
- }
- EXPORT_SYMBOL(ib_ud_header_init);
- 
- /**
-+ * ib_lrh_header_pack - Pack LRH header struct into wire format
-+ * @lrh:unpacked LRH header struct
-+ * @buf:Buffer to pack into
-+ *
-+ * ib_lrh_header_pack() packs the LRH header structure @lrh into
-+ * wire format in the buffer @buf.
-+ */
-+int ib_lrh_header_pack(struct ib_unpacked_lrh *lrh, void *buf)
-+{
-+	ib_pack(lrh_table, ARRAY_SIZE(lrh_table), lrh, buf);
-+	return 0;
-+}
-+EXPORT_SYMBOL(ib_lrh_header_pack);
-+
-+/**
-+ * ib_lrh_header_unpack - Unpack LRH structure from wire format
-+ * @lrh:unpacked LRH header struct
-+ * @buf:Buffer to pack into
-+ *
-+ * ib_lrh_header_unpack() unpacks the LRH header structure from
-+ * wire format (in buf) into @lrh.
-+ */
-+int ib_lrh_header_unpack(void *buf, struct ib_unpacked_lrh *lrh)
-+{
-+	ib_unpack(lrh_table, ARRAY_SIZE(lrh_table), buf, lrh);
-+	return 0;
-+}
-+EXPORT_SYMBOL(ib_lrh_header_unpack);
-+
-+/**
-  * ib_ud_header_pack - Pack UD header struct into wire format
-  * @header:UD header struct
-  * @buf:Buffer to pack into
-@@ -247,9 +305,17 @@ int ib_ud_header_pack(struct ib_ud_header *header,
- {
- 	int len = 0;
- 
--	ib_pack(lrh_table, ARRAY_SIZE(lrh_table),
--		&header->lrh, buf);
--	len += IB_LRH_BYTES;
-+	if (header->lrh_present) {
-+		ib_pack(lrh_table, ARRAY_SIZE(lrh_table),
-+			&header->lrh, buf + len);
-+		len += IB_LRH_BYTES;
-+	}
-+	if (header->eth_present) {
-+		ib_pack(eth_table, ARRAY_SIZE(eth_table),
-+			&header->eth, buf + len);
-+		len += IB_ETH_BYTES;
-+	}
-+
- 
- 	if (header->grh_present) {
- 		ib_pack(grh_table, ARRAY_SIZE(grh_table),
-diff --git a/include/rdma/ib_pack.h b/include/rdma/ib_pack.h
-index cbb50f4..67a85f3 100644
---- a/include/rdma/ib_pack.h
-+++ b/include/rdma/ib_pack.h
-@@ -37,6 +37,7 @@
- 
- enum {
- 	IB_LRH_BYTES  = 8,
-+	IB_ETH_BYTES  = 14,
- 	IB_GRH_BYTES  = 40,
- 	IB_BTH_BYTES  = 12,
- 	IB_DETH_BYTES = 8
-@@ -210,8 +211,29 @@ struct ib_unpacked_deth {
- 	__be32       source_qpn;
- };
- 
-+struct ib_unpacked_eth {
-+	u8	dmac_h[4];
-+	u8	dmac_l[2];
-+	u8	smac_h[2];
-+	u8	smac_l[4];
-+	__be16	type;
-+};
-+
- struct ib_ud_header {
-+	int                     lrh_present;
- 	struct ib_unpacked_lrh  lrh;
-+	int                     eth_present;
-+	struct ib_unpacked_eth  eth;
-+	int                     grh_present;
-+	struct ib_unpacked_grh  grh;
-+	struct ib_unpacked_bth  bth;
-+	struct ib_unpacked_deth deth;
-+	int            		immediate_present;
-+	__be32         		immediate_data;
-+};
-+
-+struct eth_ud_header {
-+	struct ib_unpacked_eth  eth;
- 	int                     grh_present;
- 	struct ib_unpacked_grh  grh;
- 	struct ib_unpacked_bth  bth;
-@@ -230,9 +252,11 @@ void ib_unpack(const struct ib_field        *desc,
- 	       void                         *buf,
- 	       void                         *structure);
- 
--void ib_ud_header_init(int     		   payload_bytes,
--		       int    		   grh_present,
--		       int		   immediate_present,
-+void ib_ud_header_init(int     		    payload_bytes,
-+		       int		    lrh_present,
-+		       int		    eth_present,
-+		       int    		    grh_present,
-+		       int		    immediate_present,
- 		       struct ib_ud_header *header);
- 
- int ib_ud_header_pack(struct ib_ud_header *header,
+ 	sqp->ud_header.lrh.service_level   =
+ 		be32_to_cpu(ah->av.sl_tclass_flowlabel) >> 28;
 -- 
 1.7.2.2
 
