@@ -1,81 +1,65 @@
-From: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
-Subject: [IPoIB] Identify multicast packets and fix IGMP breakage V2
-Date: Thu, 26 Aug 2010 16:31:14 -0500 (CDT)
-Message-ID: <alpine.DEB.2.00.1008261629440.24174@router.home>
-References: <alpine.DEB.2.00.1008231210010.9840@router.home> <20100823174110.GK26549@obsidianresearch.com> <alpine.DEB.2.00.1008231317150.10719@router.home> <20100823183044.GM26549@obsidianresearch.com> <alpine.DEB.2.00.1008261453510.21466@router.home>
- <adapqx5rtez.fsf@cisco.com> <alpine.DEB.2.00.1008261613160.24174@router.home>
+From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [IPoIB] Identify Multicast packets and fix IGMP breakage
+Date: Thu, 26 Aug 2010 14:32:09 -0700
+Message-ID: <ada39u13vs6.fsf@cisco.com>
+References: <alpine.DEB.2.00.1008231210010.9840@router.home>
+	<20100823174110.GK26549@obsidianresearch.com>
+	<alpine.DEB.2.00.1008231317150.10719@router.home>
+	<20100823183044.GM26549@obsidianresearch.com>
+	<alpine.DEB.2.00.1008261453510.21466@router.home>
+	<adapqx5rtez.fsf@cisco.com>
+	<alpine.DEB.2.00.1008261613160.24174@router.home>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <alpine.DEB.2.00.1008261613160.24174-sBS69tsa9Uj/9pzu0YdTqQ@public.gmane.org>
+In-Reply-To: <alpine.DEB.2.00.1008261613160.24174-sBS69tsa9Uj/9pzu0YdTqQ@public.gmane.org> (Christoph
+	Lameter's message of "Thu, 26 Aug 2010 16:17:08 -0500 (CDT)")
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Or Gerlitz <ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Yossi Etigin <yosefe-smomgflXvOZWk0Htik3J/w@public.gmane.org>, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
+Cc: Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Or Gerlitz <ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Yossi Etigin <yosefe-smomgflXvOZWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Is this better?
+ > > also it's not clear to me why it's OK to do this test of the DGID if the
+ > > packet didn't have a GRH -- presumably we are just looking at random
+ > > uninitialized memory so we might incorrectly say some packets are
+ > > multicast if that byte happens to be 0xff.  (or does that not matter?
+ > > if so why can't we just always make everything PACKET_MULTICAST?)
 
+ > We will do an skb_pull to skip over the GRH next? The IP layer checks
+ > PACKET_HOST etc in various places so we may risk breakage in odd places
+ > like what already occurred here. It would be good to also have support
+ > for PACKET_BROADCAST but that would require a full MGID comparison.
 
-Subject: [IPoIB] Identify Multicast packets and fix IGMP breakage V2
+I'm not sure I follow what you're saying.  An IB UD packet may or may
+not include a GRH on the wire.  If it does, when it's received, the
+adapter writes the GRH and then the packet data into the receive
+buffer.  If there is no GRH on the wire, then the adapter skips 40 bytes
+(size of a GRH/ipv6 header) and then writes the packet data into the
+receive buffer.
 
-IGMP processing is broken because the IPOIB does not set the
-skb->pkt_type the right way for Multicast traffic. All incoming
-packets are set to PACKET_HOST which means that the igmp_recv()
-function will ignore the IGMP broadcasts/multicasts.
+So in all cases, the real packet data starts 40 bytes into the receive
+buffer and we have to do an skb_pull, but if there was no GRH on the
+wire, then the 40 bytes we skipped is just uninitialized memory.  The
+wc_flags bit IB_WC_GRH tells you if there was a GRH on the wire or not.
 
-This in turn means that the IGMP timers are firing and are sending
-information about multicast subscriptions unnecessarily. In a large
-private network this can cause traffic spikes.
+It sounds like we want to get this right without random false positives,
+so I think we need to test IB_WC_GRH.  (And doing a full compare against
+the broadcast MGID for multicast packets wouldn't be *too* bad -- it's
+not much worse than what ethernet does)
 
-Signed-off-by: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
+ > > It seems the check should be something like
+ > >
+ > > 	if ((wc->wc_flags & IB_WC_GRH) &&
+ > > 	    IN6_IS_ADDR_MULTICAST(((struct ipv6hdr *) skb->data)->daddr))
+ > 
+ > Hmmm... More IPV6 stuff slipping in.
 
----
- drivers/infiniband/ulp/ipoib/ipoib_ib.c |   10 +++++++---
- include/linux/in6.h                     |    3 +++
- 2 files changed, 10 insertions(+), 3 deletions(-)
+I guess it would be at least as correct to cast to struct ib_grh and
+check that the dgid is a multicast GID (we can add an inline function to
+check this and as a cleanup we could then get rid of the open-coded
+tests in ib_attach_mcast etc)
 
-Index: linux-2.6/drivers/infiniband/ulp/ipoib/ipoib_ib.c
-===================================================================
---- linux-2.6.orig/drivers/infiniband/ulp/ipoib/ipoib_ib.c	2010-08-26 15:11:34.000000000 -0500
-+++ linux-2.6/drivers/infiniband/ulp/ipoib/ipoib_ib.c	2010-08-26 16:29:19.000000000 -0500
-@@ -271,6 +271,13 @@ static void ipoib_ib_handle_rx_wc(struct
- 	ipoib_ud_dma_unmap_rx(priv, mapping);
- 	ipoib_ud_skb_put_frags(priv, skb, wc->byte_len);
-
-+	if ((wc->wc_flags & IB_WC_GRH) &&
-+		IN6_IS_ADDR_MULTICAST(&((struct ipv6hdr *)skb->data)->daddr))
-+
-+		skb->pkt_type = PACKET_MULTICAST;
-+	else
-+		skb->pkt_type = PACKET_HOST;
-+
- 	skb_pull(skb, IB_GRH_BYTES);
-
- 	skb->protocol = ((struct ipoib_header *) skb->data)->proto;
-@@ -281,9 +288,6 @@ static void ipoib_ib_handle_rx_wc(struct
- 	dev->stats.rx_bytes += skb->len;
-
- 	skb->dev = dev;
--	/* XXX get correct PACKET_ type here */
--	skb->pkt_type = PACKET_HOST;
--
- 	if (test_bit(IPOIB_FLAG_CSUM, &priv->flags) && likely(wc->csum_ok))
- 		skb->ip_summed = CHECKSUM_UNNECESSARY;
-
-Index: linux-2.6/include/linux/in6.h
-===================================================================
---- linux-2.6.orig/include/linux/in6.h	2010-08-26 15:11:34.000000000 -0500
-+++ linux-2.6/include/linux/in6.h	2010-08-26 16:27:08.000000000 -0500
-@@ -53,6 +53,9 @@ extern const struct in6_addr in6addr_lin
- extern const struct in6_addr in6addr_linklocal_allrouters;
- #define IN6ADDR_LINKLOCAL_ALLROUTERS_INIT \
- 		{ { { 0xff,2,0,0,0,0,0,0,0,0,0,0,0,0,0,2 } } }
-+
-+#define IN6_IS_ADDR_MULTICAST(a) ((a)->in6_u.u6_addr8[0] == 0xff)
-+
- #endif
-
- struct sockaddr_in6 {
+ - R.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
