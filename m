@@ -1,35 +1,32 @@
-From: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Subject: Re: [IPoIB] Identify multicast packets and fix IGMP breakage V3
-Date: Thu, 26 Aug 2010 17:07:16 -0700 (PDT)
-Message-ID: <20100826.170716.68143372.davem@davemloft.net>
-References: <alpine.DEB.2.00.1008261825490.26351@router.home>
-	<20100826234342.GA24333@obsidianresearch.com>
-	<alpine.DEB.2.00.1008261856090.29657@router.home>
+Date: Thu, 26 Aug 2010 18:17:52 -0600
+Message-ID: <20100827001752.GB24333@obsidianresearch.com>
+References: <20100826234342.GA24333@obsidianresearch.com> <7E95F01E94AB484F83061FCFA35B39F89BE276@exil.voltaire.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <alpine.DEB.2.00.1008261856090.29657-sBS69tsa9Uj/9pzu0YdTqQ@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <7E95F01E94AB484F83061FCFA35B39F89BE276-QfUkFaTmzUSUvQqKE/ONIwC/G2K4zDHf@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org
-Cc: jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org, rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org, yosefe-smomgflXvOZWk0Htik3J/w@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Yossi Etigin <yosefe-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+Cc: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Or Gerlitz <ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org>, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
-Date: Thu, 26 Aug 2010 18:57:09 -0500 (CDT)
+On Fri, Aug 27, 2010 at 03:02:54AM +0300, Yossi Etigin wrote:
 
-> On Thu, 26 Aug 2010, Jason Gunthorpe wrote:
-> 
->> I think doing the memcmp only in the multicast path should be
->> reasonable overhead wise.
-> 
-> Thats is not always possible. Here the multicast path is the
-> default path that is taken 99% of the time.
+> Shouldn't struct ib_grh be packed to make this really work?
 
-The highest cost is bringing in that packet header's cache line, which
-you've already done by reading the byte and checking for 0xff.
+No idea what the kernel convention for this is. It looks OK to me, in
+that no arch I am familiar with will insert padding.
 
-I doubt the memcmp() can possibly matter.
+> The code looks a little messy to me anyway... 
+> How about using a local var which is a ptr to packed struct ib_grh? The
+> compiler will probably eliminate it anyway.
+
+This bike shed is looking pretty well painted already :)
+
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
