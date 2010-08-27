@@ -1,78 +1,27 @@
 From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCHv10 02/12] ib_core: IBoE CMA device binding
-Date: Thu, 26 Aug 2010 23:14:26 -0700
-Message-ID: <adavd6w37lp.fsf@cisco.com>
-References: <20100826141723.GC8795@mtldesk30>
-	<CF9C39F99A89134C9CF9C4CCB68B8DDF25AB26491D@orsmsx501.amr.corp.intel.com>
-	<20100827054256.GA9755@mtldesk30>
+Subject: Re: [PATCHv10 05/12] mthca: Adapt to API changes in the core for UD packing
+Date: Thu, 26 Aug 2010 23:17:11 -0700
+Message-ID: <adar5hk37h4.fsf@cisco.com>
+References: <20100826141823.GF8795@mtldesk30>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20100827054256.GA9755@mtldesk30> (Eli Cohen's message of "Fri,
-	27 Aug 2010 08:42:56 +0300")
+In-Reply-To: <20100826141823.GF8795@mtldesk30> (Eli Cohen's message of "Thu,
+	26 Aug 2010 17:18:23 +0300")
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, RDMA list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: RDMA list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
- > 	if (dev_addr->dev_type != ARPHRD_INFINIBAND) {
- > 		iboe_addr_get_sgid(dev_addr, &gid);
- > 		list_for_each_entry(cma_dev, &dev_list, list) {
- > 			ret = ib_find_cached_gid(cma_dev->device, &gid,
- > 						 &id_priv->id.port_num, NULL);
- > 			if (!ret)
- > 				goto out;
- > 		}
- > 	}
- > 
- > 	memcpy(&gid, dev_addr->src_dev_addr +
- > 	       rdma_addr_gid_offset(dev_addr), sizeof gid);
- > 	list_for_each_entry(cma_dev, &dev_list, list) {
- > 		ret = ib_find_cached_gid(cma_dev->device, &gid,
- > 					 &id_priv->id.port_num, NULL);
- > 		if (!ret)
- > 			break;
- > 	}
- > 
- > out:
+In the future, please don't have patches that break compilation.  If you
+change an API, then change all users of that API in the same patch.
+It's really annoying for someone who is trying to bisect something
+(possibly something completely unrelated) to land at a point in history
+that doesn't even build.
 
-This duplication of the code in the loop ends up looking pretty bad, and
-indeed the change to the function doesn't make much sense to me:
-
- > @@ -330,15 +348,29 @@ static int cma_acquire_dev(struct rdma_id_private *id_priv)
- >  	union ib_gid gid;
- >  	int ret = -ENODEV;
- >  
- > -	rdma_addr_get_sgid(dev_addr, &gid);
- > +	if (dev_addr->dev_type != ARPHRD_INFINIBAND) {
- > +		iboe_addr_get_sgid(dev_addr, &gid);
- > +		list_for_each_entry(cma_dev, &dev_list, list) {
- > +			ret = ib_find_cached_gid(cma_dev->device, &gid,
- > +						 &id_priv->id.port_num, NULL);
- > +			if (!ret)
- > +				goto out;
- > +		}
- > +	}
- > +
- > +	memcpy(&gid, dev_addr->src_dev_addr +
- > +	       rdma_addr_gid_offset(dev_addr), sizeof gid);
-
-I thought the whole point of this change:
-
- >  static inline void rdma_addr_get_sgid(struct rdma_dev_addr *dev_addr, union ib_gid *gid)
- >  {
- > -	memcpy(gid, dev_addr->src_dev_addr + rdma_addr_gid_offset(dev_addr), sizeof *gid);
- > +	if (dev_addr->transport == RDMA_TRANSPORT_IB &&
- > +	    dev_addr->dev_type != ARPHRD_INFINIBAND)
- > +		iboe_addr_get_sgid(dev_addr, gid);
- > +	else
- > +		memcpy(gid, dev_addr->src_dev_addr +
- > +		       rdma_addr_gid_offset(dev_addr), sizeof *gid);
- >  }
-
-is that rdma_addr_get_sgid() now calls iboe_addr_get_sgid for IBoE
-devices, and does the original thing in the other case.  So I don't see
-why any change to cma_acquire_dev() is needed at all?
+So if there's another spin of this patchset, please fold all the "adapt
+to new API" patches into the main "change API" patches.  You don't have
+to resend just for that though, I can handle it if I apply these.
 
  - R.
 --
