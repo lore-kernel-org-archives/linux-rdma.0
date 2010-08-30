@@ -1,342 +1,417 @@
-From: Vladimir Sokolovsky <vlad-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [ANNOUNCE] OFED 1.5.2 rc5 is available
-Date: Mon, 30 Aug 2010 18:22:25 +0300
-Message-ID: <4C7BCCB1.8090105@dev.mellanox.co.il>
+From: Chris Worley <worleys-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [ofw] What is an IOC device ID and what is DriverStore
+Date: Mon, 30 Aug 2010 12:37:37 -0600
+Message-ID: <AANLkTi=-4NqF-B61teg4shWciMcea11yD3i8wsiUUQ_5@mail.gmail.com>
+References: <AANLkTikKcUwO59Pkmeu3kG_FBwpg=SXj3P0Ud3rsq4Mw@mail.gmail.com>
+	<946F457324732742B1457FAFC8CF1ECB012DD2B0842A@EXCHANGE2.sbcounty.gov>
+	<AANLkTin_3d64+U2aiQg6E8DMNY0FsjMUVfgjrtR2O2PR@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------000603080500030702060206"
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <AANLkTin_3d64+U2aiQg6E8DMNY0FsjMUVfgjrtR2O2PR-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: OpenFabrics EWG <ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Uri Habusha <urih-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
+Cc: OFED mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "ofw-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org" <ofw-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>, scst-devel <scst-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------000603080500030702060206
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+I am also seeing the following Windows events for all eight drives:
 
-Hi,
-OFED 1.5.2-rc5 is available
+Log Name:      System
+Source:        Microsoft-Windows-UserPnp
+Date:          8/30/2010 11:58:58 AM
+Event ID:      20001
+Task Category: (7005)
+Level:         Information
+Keywords:
+User:          SYSTEM
+Computer:      WIN-6EB0ETQ8M85
+Description:
+Driver Management concluded the process to install driver
+=46ileRepository\disk.inf_amd64_neutral_10ce25bbc5a9cc43\disk.inf for
+Device Instance ID SCSI\DISK&VEN_SCST_BIO&PROD_FIO-41001\000007 with
+the following status: 0x0.
+Event Xml:
+<Event xmlns=3D"http://schemas.microsoft.com/win/2004/08/events/event">
+  <System>
+    <Provider Name=3D"Microsoft-Windows-UserPnp"
+Guid=3D"{96F4A050-7E31-453C-88BE-9634F4E02139}" />
+    <EventID>20001</EventID>
+    <Version>0</Version>
+    <Level>4</Level>
+    <Task>7005</Task>
+    <Opcode>0</Opcode>
+    <Keywords>0x8000000000000000</Keywords>
+    <TimeCreated SystemTime=3D"2010-08-30T17:58:58.867600000Z" />
+    <EventRecordID>6846</EventRecordID>
+    <Correlation />
+    <Execution ProcessID=3D"3228" ThreadID=3D"3260" />
+    <Channel>System</Channel>
+    <Computer>WIN-6EB0ETQ8M85</Computer>
+    <Security UserID=3D"S-1-5-18" />
+  </System>
+  <UserData>
+    <InstallDeviceID
+xmlns:auto-ns2=3D"http://schemas.microsoft.com/win/2004/08/events"
+xmlns=3D"http://manifests.microsoft.com/win/2004/08/windows/userpnp">
+      <DriverName>FileRepository\disk.inf_amd64_neutral_10ce25bbc5a9cc4=
+3\disk.inf</DriverName>
+      <DriverVersion>6.1.7600.16385</DriverVersion>
+      <DriverProvider>Microsoft</DriverProvider>
+      <DeviceInstanceID>SCSI\DISK&amp;VEN_SCST_BIO&amp;PROD_FIO-41001\0=
+00007</DeviceInstanceID>
+      <SetupClass>{4D36E967-E325-11CE-BFC1-08002BE10318}</SetupClass>
+      <RebootOption>false</RebootOption>
+      <UpgradeDevice>false</UpgradeDevice>
+      <IsDriverOEM>false</IsDriverOEM>
+      <InstallStatus>0x0</InstallStatus>
+      <DriverDescription>Disk drive</DriverDescription>
+    </InstallDeviceID>
+  </UserData>
+</Event>
 
-Notes:
+Log Name:      System
+Source:        Disk
+Date:          8/30/2010 11:58:58 AM
+Event ID:      11
+Task Category: None
+Level:         Error
+Keywords:      Classic
+User:          N/A
+Computer:      WIN-6EB0ETQ8M85
+Description:
+The driver detected a controller error on \Device\Harddisk8\DR8.
+Event Xml:
+<Event xmlns=3D"http://schemas.microsoft.com/win/2004/08/events/event">
+  <System>
+    <Provider Name=3D"Disk" />
+    <EventID Qualifiers=3D"49156">11</EventID>
+    <Level>2</Level>
+    <Task>0</Task>
+    <Keywords>0x80000000000000</Keywords>
+    <TimeCreated SystemTime=3D"2010-08-30T17:58:58.789600000Z" />
+    <EventRecordID>6845</EventRecordID>
+    <Channel>System</Channel>
+    <Computer>WIN-6EB0ETQ8M85</Computer>
+    <Security />
+  </System>
+  <EventData>
+    <Data>\Device\Harddisk8\DR8</Data>
+    <Binary>0F00800001000000000000000B0004C0030100000000000000000000000=
+000000000000000000000822B000000000000FFFFFFFF060000005800000302000007FE=
+200A124A012000080000003C00000050B39D0280F8FFFFB84B962D80FAFFFF000000000=
+000000070C8992D80FAFFFF000000000000000000000000000000002500000000000000=
+0000000000000000000000000000000000000000000000000000000000000000</Binar=
+y>
+  </EventData>
+</Event>
 
-The tarball is available on:
-http://www.openfabrics.org/downloads/OFED/ofed-1.5.2/OFED-1.5.2-rc5.tgz
-
-To get BUILD_ID run ofed_info
-
-Please report any issues in bugzilla https://bugs.openfabrics.org/  for
-OFED 1.5.2
-
-Updated schedule:
-OFED-1.5.2-rc6 - September 6.
-OFED-1.5.2 GA - September 13.
-
-Vladimir & Tziporet
-
-========================================================================
-Supported Platforms and Operating Systems
----------------------------------------------
-        o   CPU architectures:
-              - x86_64
-              - x86
-              - ppc64
-              - ia64
-
-        o   Linux Operating Systems:
-              - RedHat EL4 up7        2.6.9-78.ELsmp
-              - RedHat EL4 up8        2.6.9-89.ELsmp
-              - RedHat EL5 up3        2.6.18-128.el5
-              - RedHat EL5 up4        2.6.18-164.el5
-              - RedHat EL5 up5        2.6.18-194.el5
-              - RedHat EL6 beta       2.6.32-19.el6.x86_64 *
-              - SLES10 SP2            2.6.16.60-0.21-smp
-              - SLES10 SP3            2.6.16.60-0.54-smp
-              - SLES11                2.6.27.19-5-default
-              - SLES11 SP1            2.6.32.12-0.7-default *
-              - OEL 4 up7             2.6.9-78.ELsmp
-              - OEL 4 up8             2.6.9-89.ELsmp
-              - CentOS5.3             2.6.18-128.el5
-              - CentOS5.4             2.6.18-164.el5
-              - Fedora Core12         2.6.31.5-127.fc12    *
-              - OpenSuSE 11.2         2.6.31.5-0.1-default *
-              - kernel.org            2.6.29, 2.6.30,
-                                      2.6.31, 2.6.32 and 2.6.33   *
-
-            * Minimal QA for these versions
-
-Main changes from 1.5.2-rc4:
-===========================
-1. Updated packages:
-	ibacm-1.0.3.tar.gz
-	libibverbs-1.1.4-0.12.g0966609.tar.gz
-	libmlx4-1.0-0.12.g5f39e7c.tar.gz
-	
-
-
---------------000603080500030702060206
-Content-Type: text/x-log;
- name="ofa_kernel-1.5.2-rc4_rc5.log"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
- filename="ofa_kernel-1.5.2-rc4_rc5.log"
-
-commit d3a225ba07fdd7bf4eccaab383818dde41231166
-Author: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Date:   Sat Aug 28 08:07:38 2010 -0500
-
-        RDMA/cxgb3: Remove BUG_ON() on CQ rearm failure
-    
-        Failure to rearm a CQ means the cxgb3 device is wedged, but we shouldn't
-        kill the whole system with a BUG_ON() if this happens.
-    
-        Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-        Signed-off-by: Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-
-commit f3495ab83c7906ada0fea19867c16c634014e160
-Author: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Date:   Sat Aug 28 08:02:42 2010 -0500
-
-    RDMA/cxgb3: Don't exceed the max HW CQ depth.
-    
-    From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-    
-    The max depth supported by T3 is 64K entries.
-    
-    This bug will cause stalls and possibly crashes in large MPI clusters.
-    
-    Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-
-commit f4f34f911f498ad3e7a6165f9c9f0f5aca3a16ec
-Author: Eldad Zinger <eldadz-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
-Date:   Thu Aug 26 10:52:21 2010 +0300
-
-    sdp: add support for no recv polling at all
-    
-    Signed-off-by: Eldad Zinger <eldadz-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
-
-commit 670aed5f63aba0c8a216e513605f4422b158f788
-Author: Eli Cohen <eli-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
-Date:   Wed Aug 25 17:22:56 2010 +0300
-
-    mlx4: consmetic change
-    
-    Signed-off-by: Eli Cohen <eli-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
-
-commit 206cd477d3499f98ac4104fd9f2c75487ca07b21
-Author: Eli Cohen <eli-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
-Date:   Tue Aug 24 17:36:14 2010 +0300
-
-    IBoE: Fix eth priority calculation
-    
-    And some constmetic chages.
-    
-    Signed-off-by: Eli Cohen <eli-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
-
-commit 86d4de526579dc2c800636f772181405c64dce94
-Author: Chien Tung <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Date:   Mon Aug 23 11:24:19 2010 -0500
-
-    RDMA/nes: report correct port state if interface is down
-    
-    With commit cd6860eb03 we no longer remove nes interface on
-    ifdown.  On nes_query_port add additional check to net queue
-    and report IB_PORT_DOWN if the queue is not running.
-    
-    This fixes OFED bug 2101:
-    https://bugs.openfabrics.org/show_bug.cgi?id=2101
-    
-    Signed-off-by: Chien Tung <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-
-commit 71cd4e8aa1d2018b26b3363fdc557654288c45b5
-Author: Eli Cohen <eli-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
-Date:   Sun Aug 22 15:42:13 2010 +0300
-
-    boe: adapt implementation to match kernel
-    
-    Signed-off-by: Eli Cohen <eli-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
-
-commit 9cd7bf34682046bd807cb7af7ad2c2225ef4c8c5
-Author: Eldad Zinger <eldadz-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
-Date:   Sun Aug 22 08:21:09 2010 +0300
-
-    sdp: BUG1923 - fix support for MSG_OOB
-    
-    Signed-off-by: Eldad Zinger <eldadz-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
-
-commit e2dc8504e3f16438570d7af429da0a7c3bbf7ee4
-Author: Eldad Zinger <eldadz-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
-Date:   Thu Aug 19 16:25:00 2010 +0300
-
-    sdp: remove unused variables
-    
-    Signed-off-by: Eldad Zinger <eldadz-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
-
-commit 4aaf2cbe1031b8f66ff8e61a060bf39ac7814750
-Merge: 442a50a 5010336
-Author: Vladimir Sokolovsky <vlad-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
-Date:   Sun Aug 22 14:13:23 2010 +0300
-
-    Merge branch 'ofed_kernel_1_5' of ssh://sofa.openfabrics.org/home/ctung/scm/ofed-1.5 into ofed_kernel_1_5
-
-commit 442a50a8ed35119a887d38f9ee1b58b8c1e5f283
-Author: Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Date:   Sat Aug 14 16:05:18 2010 -0500
-
-    RDMA/nes: change state to closing after FIN
-    
-    When driver receives an AE for FIN receive indication, it closes the connection
-    without changing the state of the connection in the hardware to closing. By
-    changing the state to closing, hardware will do normal close sequence.
-    
-    Signed-off-by: Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-
-commit 42d0e154248c2b19ff1120162b0072cabca6184e
-Author: Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Date:   Sat Aug 14 16:05:11 2010 -0500
-
-    RDMA/nes: double CLOSE event indication crash
-    
-    During a stress testing in a large cluster, multiple close event is detected
-    and BUG() is hit in core. The cause is that active node gave up while waitings
-    for MPA response from the peer and tried to close the connection by sending RST.
-    The passive node driver receives the RST but is waiting for MPA response from
-    user. When MPA accept is receives, the driver send offloads the connection and
-    sends CLOSE event. The driver get an AE indicating RESET receive and also send
-    CLOSE event causing BUG() to hit in the core. RESET handling and sending CLOSE
-    events are fixed.
-    
-    Signed-off-by: Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-
-commit 481b097570a37d55fe23cdc3122fd9e5584e2045
-Merge: 618919e 8f04055
-Author: Vladimir Sokolovsky <vlad-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
-Date:   Sun Aug 22 14:09:41 2010 +0300
-
-    Merge branch 'ofed_1_5' of ssh://sofa.openfabrics.org/~swise/scm/ofed_kernel into ofed_kernel_1_5
-
-commit 618919eb711b53fdda3aca2484328da2b8179449
-Author: Eli Cohen <eli-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
-Date:   Wed Aug 18 16:32:15 2010 +0300
-
-    mlx4: Extend log_mtts_per_seg range
-    
-    This is to allow to register more memory by consuming less MTT segments.
-    
-    Signed-off-by: Eli Cohen <eli-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
-
-commit 5010336fa51f5c5e7539145a53ceb26bd2864e4d
-Author: Chien Tung <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Date:   Mon Aug 16 10:32:11 2010 -0500
-
-    RDMA/nes: add forward port for 2.6.33
-    
-    Signed-off-by: Chien Tung <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-
-commit 5ea3ff71cf3fd64b6eadef86e1ff2e2c96f5ee3c
-Author: Eldad Zinger <eldadz-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
-Date:   Sun Aug 15 11:21:59 2010 +0300
-
-    sdp: fixed for error code in sendmsg-BZCopy
-    
-    Signed-off-by: Eldad Zinger <eldadz-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
-
-commit 3b4577ca1110c3c678511369b74857486c08571e
-Author: Eldad Zinger <eldadz-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
-Date:   Sun Aug 15 11:11:03 2010 +0300
-
-    sdp: fixed skbs-control-queue memory leak
-    
-    Signed-off-by: Eldad Zinger <eldadz-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
-
-commit 8e93f6e52370a755a17fe650f79468350ceae518
-Author: Eldad Zinger <eldadz-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
-Date:   Sun Aug 15 10:48:05 2010 +0300
-
-    sdp: fixed device removal issues
-    
-    Signed-off-by: Eldad Zinger <eldadz-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
-
-commit fd19905010b8cfbb4b81d7c58957425f6277423f
-Author: Eldad Zinger <eldadz-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
-Date:   Sun Aug 15 10:40:02 2010 +0300
-
-    sdp: added the ability to use sdpprf for any debug message
-    
-    Signed-off-by: Eldad Zinger <eldadz-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
-
-commit 7cff0a4be5aee9cd763cc4b6bd8369040969029e
-Author: Eldad Zinger <eldadz-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
-Date:   Sun Aug 15 10:17:42 2010 +0300
-
-    sdp: fixed a deadlock when tx_timer calls sdp_reset that tries to del the timer
-    
-    Signed-off-by: Eldad Zinger <eldadz-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
-
-commit e1b4031256846a7c93019225ae6a81fba6513664
-Author: Eldad Zinger <eldadz-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
-Date:   Sun Aug 15 10:05:40 2010 +0300
-
-    sdp: fixed SrcAvail memory leak
-    
-    Signed-off-by: Eldad Zinger <eldadz-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
-
-commit 4e35fa9fd0b408c5fa67811c1c093dcd8384c0e1
-Author: Eldad Zinger <eldadz-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
-Date:   Mon Aug 9 17:11:35 2010 +0300
-
-    sdp: removed unnecessary variable 'vm_wait'
-    
-    Signed-off-by: Eldad Zinger <eldadz-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
-
-commit 34b1141033c92a38c4df0e46c387409685a79e6e
-Author: Eldad Zinger <eldadz-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
-Date:   Mon Aug 9 17:05:44 2010 +0300
-
-    sdp: stability improvements for ZCopy
-    
-    - beter handling of ZCopy errors and SrcAvailCancel requests
-    - fixed SrcAvailCancel sequence number handling
-    
-    Signed-off-by: Eldad Zinger <eldadz-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
-
-commit 8f040557c07606541e61d46e4d8dc5bdbc783b3c
-Author: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Date:   Thu Aug 12 15:26:56 2010 -0500
-
-    RDMA/cxgb3: Add 2.6.33 backport.
-
---------------000603080500030702060206
-Content-Type: text/csv;
- name="bugs-2010-08-04.csv"
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment;
- filename="bugs-2010-08-04.csv"
-
-YnVnX2lkLCJidWdfc2V2ZXJpdHkiLCJwcmlvcml0eSIsIm9wX3N5cyIsImFzc2lnbmVkX3Rv
-IiwiYnVnX3N0YXR1cyIsInJlc29sdXRpb24iLCJzaG9ydF9zaG9ydF9kZXNjIgoyMDU2LCJt
-YWpvciIsIlAzIiwiQWxsIiwiYW1pcnZAbWVsbGFub3guY28uaWwiLCJSRVNPTFZFRCIsIkZJ
-WEVEIiwiU2RwIHNvY2tldHMgZG9lc24ndCBjbG9zZSBhZnRlciBhcHBsaWNhdGlvbnMgZW5k
-IgoyMDU4LCJtYWpvciIsIlAxIiwiUkhFTCA1IiwiYW1pcnZAbWVsbGFub3guY28uaWwiLCJS
-RVNPTFZFRCIsIkZJWEVEIiwiS2VybmVsIFBhbmljIHdoZW4gcnVubmluZyBiaWRpcmVjdGlv
-bmFsIG5ldHBlcmYiCjIwNzAsImNyaXRpY2FsIiwiUDMiLCJTTEVTIDExIiwidmxhZEBtZWxs
-YW5veC5jby5pbCIsIlJFU09MVkVEIiwiRklYRUQiLCJGYWlsZWQgdG8gY29tcGlsZSBPRkVE
-MS41LjItUkMyIG9uIHNsZXMxMSBzcDEgLSBvcGVuLWlzY3NpIGZhaWxlZCIKMjA3MywiYmxv
-Y2tlciIsIlAzIiwiUkhFTCA1IiwicGVya2luam9AY3NlLm9oaW8tc3RhdGUuZWR1IiwiUkVT
-T0xWRUQiLCJGSVhFRCIsIk9GRUQtMS41LjItMjAxMDA3MDUtMDYwMCA6IE12YXBpY2gyIHJw
-bSBmYWlscyB0byBpbnN0YWxsIHdpdGggb2ZlZC0xLjUuMiBwYWNrYWdlcy4iCjIwODEsIm1h
-am9yIiwiUDEiLCJTTEVTIDEwIiwibWl0a29AcWxvZ2ljLmNvbSIsIlJFU09MVkVEIiwiRklY
-RUQiLCJpbmZpbmlwYXRoLXBzbSBSUE0gaW5zdGFsbGF0aW9uIGZhaWxzIG9uIFNMRVMxMCBT
-UDIiCjIwODIsIm1ham9yIiwiUDEiLCJSSEVMIDUiLCJhbWlydkBtZWxsYW5veC5jby5pbCIs
-IlJFU09MVkVEIiwiRklYRUQiLCJTRFAgbW9kdWxlIHVubG9hZHMgd2l0aCBvcnBoYW4gY291
-bnQgbWVzc2FnZSIKMjA4NiwibWlub3IiLCJQMyIsIk90aGVyIiwic3dpc2VAb3BlbmdyaWRj
-b21wdXRpbmcuY29tIiwiUkVTT0xWRUQiLCJGSVhFRCIsIk9GRUQtMS41LjItMjAxMDA3MTUt
-NjAwIDogT0ZFRCBrZXJuZWwgZmFpbHMgdG8gY29tcGlsZSBmb3IgcmRtYV9rcnBpbmcgbW9k
-dWxlIG9uIFJIRUw2LjAtQkVUQSg2NCBiaXQgKSAmIFNMRVMxMS1TUDEtUkM0KDY0IGJpdCAp
-IHBsYXRmb3JtLiI=
---------------000603080500030702060206--
+Chris
+On Fri, Aug 27, 2010 at 6:10 PM, Chris Worley <worleys-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote=
+:
+> On Fri, Aug 27, 2010 at 6:01 PM, Sufficool, Stanley
+> <ssufficool-AmqEsPSg0VfuwJLVJmOTOA@public.gmane.org> wrote:
+>> What does your scst.conf look like? I assume you have LUNS in the de=
+fault group.
+>
+> A Linux initiator has no trouble seeing these:
+>
+> # cat /proc/scsi_tgt/vdisk/vdisk
+> Name =A0 =A0 =A0 =A0 =A0 =A0 =A0Size(MB) =A0 =A0Block size =A0Options=
+ =A0 =A0 =A0 =A0 File name
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 T10 d=
+evice id
+> fio-71957 =A0 =A0 =A0 =A0 76774 =A0 =A0 =A0 512 =A0 =A0 =A0 =A0 NV BI=
+O =A0 =A0 =A0 =A0 =A0/dev/sda
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0fio-71=
+957 8d58d2cc
+> fio-71962 =A0 =A0 =A0 =A0 76774 =A0 =A0 =A0 512 =A0 =A0 =A0 =A0 NV BI=
+O =A0 =A0 =A0 =A0 =A0/dev/sdb
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0fio-71=
+962 4ab477ef
+> fio-71965 =A0 =A0 =A0 =A0 76774 =A0 =A0 =A0 512 =A0 =A0 =A0 =A0 NV BI=
+O =A0 =A0 =A0 =A0 =A0/dev/sdc
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0fio-71=
+965 28ba5c58
+> fio-71964 =A0 =A0 =A0 =A0 76774 =A0 =A0 =A0 512 =A0 =A0 =A0 =A0 NV BI=
+O =A0 =A0 =A0 =A0 =A0/dev/sdd
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0fio-71=
+964 f2c69cf6
+> fio-41000 =A0 =A0 =A0 =A0 76774 =A0 =A0 =A0 512 =A0 =A0 =A0 =A0 NV BI=
+O =A0 =A0 =A0 =A0 =A0/dev/sde
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0fio-41=
+000 2492daab
+> fio-41002 =A0 =A0 =A0 =A0 76774 =A0 =A0 =A0 512 =A0 =A0 =A0 =A0 NV BI=
+O =A0 =A0 =A0 =A0 =A0/dev/sdf
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0fio-41=
+002 dd797f32
+> fio-40948 =A0 =A0 =A0 =A0 76774 =A0 =A0 =A0 512 =A0 =A0 =A0 =A0 NV BI=
+O =A0 =A0 =A0 =A0 =A0/dev/sdg
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0fio-40=
+948 a3ef7aa3
+> fio-41001 =A0 =A0 =A0 =A0 76774 =A0 =A0 =A0 512 =A0 =A0 =A0 =A0 NV BI=
+O =A0 =A0 =A0 =A0 =A0/dev/sdh
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0fio-41=
+001 543b6d8e
+> [root@fusion-io-live .bak]# cat /proc/scsi_tgt/groups/Default/devices
+> Device (host:ch:id:lun or name) =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 =A0 LUN =A0 =A0 =A0 =A0 =A0Options
+> fio-71957 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 0
+> fio-71962 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 1
+> fio-71965 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 2
+> fio-71964 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 3
+> fio-41000 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 4
+> fio-41002 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 5
+> fio-40948 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 6
+> fio-41001 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 7
+>
+> (Adding scst-devel, as it looks like Windows logs in then immediately
+> logs out or is forced out.)
+>
+> Thanks,
+>
+> Chris
+>
+>>
+>>>-----Original Message-----
+>>>From: ofw-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
+>>>[mailto:ofw-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org] On Behalf Of Chris Worley
+>>>Sent: Friday, August 27, 2010 4:46 PM
+>>>To: OFED mailing list
+>>>Cc: ofw-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
+>>>Subject: Re: [ofw] What is an IOC device ID and what is DriverStore
+>>>
+>>>
+>>>I'm resending this as plain text, as the
+>>>linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org mailing list did not like my
+>>>attempt to make the messages readable...
+>>>
+>>>On Fri, Aug 27, 2010 at 5:43 PM, Chris Worley
+>>><worleys-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
+>>>>
+>>>> On Fri, Aug 27, 2010 at 5:02 PM, Chris Worley <worleys-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+>>>> wrote:
+>>>> > On Fri, Aug 27, 2010 at 4:45 PM, Sufficool, Stanley
+>>>> > <ssufficool-AmqEsPSg0VfuwJLVJmOTOA@public.gmane.org> wrote:
+>>>> >>
+>>>> >>
+>>>> >>>-----Original Message-----
+>>>> >>>From: ofw-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
+>>>> >>>[mailto:ofw-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org] On Behalf Of Chris
+>>>> >>>Worley
+>>>> >>>Sent: Friday, August 27, 2010 1:52 PM
+>>>> >>>To: ofw-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org; OFED mailing list
+>>>> >>>Subject: [ofw] What is an IOC device ID and what is DriverStore
+>>>> >>>
+>>>> >>>
+>>>> >>>In scouring the many manuals with the Window's IB drivers
+>>>I found a
+>>>> >>>clue as to why I can't get SRP working in WinOF:
+>>>> >>>
+>>>> >>> =A0Windows PNP (Plug-n-Play) will match the IOC device ID with
+>>>> >>>DriverStore installed drives and then will load the IBiou.sys
+>>>> >>>driver
+>>>> >>>
+>>>> >>>How do I set the "IOC device ID" and what is DriverStore?
+>>>> >>
+>>>> >> Not sure what this is, but I have never had to set any values o=
+n
+>>>> >> the OFED-W initiator.
+>>>> >>
+>>>> >>>
+>>>> >>>I can make the Windows SRP miniport devices appear and
+>>>disappear by
+>>>> >>>removing/reloading ib_srpt on the target (at least with the 2.1=
+=2E1
+>>>> >>>driver from Mellanox; the latest at openfabrics.org panics the
+>>>> >>>WS2008R2 system when ib_srpt is rmmod'ed).
+>>>> >>>
+>>>> >>>Beyond that, Windows never sees the drives... Linux initiators
+>>>> >>>don't have an issue.
+>>>> >>
+>>>> >> What messages do you get on the target? It it even receiving th=
+e
+>>>> >> request?
+>>>> >
+>>>> > Yes:
+>>>> >
+>>>> > ib_srpt: ***ERROR***: received unrecognized IB CM event 10
+>>>> > ib_srpt: Received DREQ and sent DREP for session
+>>>> > 0x00247100000002c100247100000003d8.
+>>>> > ib_srpt: Received SRP_LOGIN_REQ with i_port_id
+>>>> > 0x247100000002c1:0x247100000003d8, t_port_id
+>>>> > 0x247100000002c1:0x247100000002c1 and it_iu_len 4148 on port 1
+>>>> > (guid=3D0xfe80000000000000:0x247100000002bf)
+>>>> > ib_srpt: disconnected session 0x00247100000002c100247100000003d8
+>>>> > because a new SRP_LOGIN_REQ has been received.
+>>>> > ib_srpt: Session : kernel thread ib_srpt_compl (PID 31542) start=
+ed
+>>>> > scst: Using security group "Default" for initiator
+>>>> > "0x00247100000002c100247100000003d8"
+>>>>
+>>>> There is more to it than that. =A0I'm going to do this as HTML
+>>>so I can
+>>>> fix the font:
+>>>>
+>>>> ib_srpt: Received SRP_LOGIN_REQ with i_port_id
+>>>> 0x247100000002c1:0x247100000003d8, t_port_id
+>>>0x247100000002c1:0x247100000002c1 and it_iu_len 4148 on port 2
+>>>(guid=3D0xfe80000000000000:0x247100000002c3)
+>>>> ib_srpt: Session : kernel thread ib_srpt_compl (PID 1109) started
+>>>> scst: Using security group "Default" for initiator
+>>>"0x00247100000002c100247100000003d8"
+>>>> scst: Processing thread fio-719570_0 (PID 1110) started
+>>>> scst: Processing thread fio-719570_1 (PID 1111) started
+>>>> scst: Processing thread fio-719620_0 (PID 1112) started
+>>>> scst: Processing thread fio-719620_1 (PID 1113) started
+>>>> scst: Processing thread fio-719650_0 (PID 1114) started
+>>>> scst: Processing thread fio-719650_1 (PID 1115) started
+>>>> scst: Processing thread fio-719640_0 (PID 1116) started
+>>>> scst: Processing thread fio-719640_1 (PID 1117) started
+>>>> scst: Processing thread fio-410000_0 (PID 1118) started
+>>>> scst: Processing thread fio-410000_1 (PID 1119) started
+>>>> scst: Processing thread fio-410020_0 (PID 1120) started
+>>>> scst: Processing thread fio-410020_1 (PID 1121) started
+>>>> scst: Processing thread fio-409480_0 (PID 1122) started
+>>>> scst: Processing thread fio-409480_1 (PID 1123) started
+>>>> scst: Processing thread fio-410010_0 (PID 1124) started
+>>>> scst: Processing thread fio-410010_1 (PID 1125) started
+>>>> ib_srpt: ***ERROR***: received unrecognized IB CM event 10
+>>>> ib_srpt: Received DREQ and sent DREP for session
+>>>0x00247100000002c100247100000003d8.
+>>>> ib_srpt: Received InfiniBand TimeWait exit for cm_id
+>>>ffff81030b7c6c00.
+>>>> ib_srpt: Session 0x00247100000002c100247100000003d8: kernel
+>>>thread ib_srpt_compl (PID 1109) stopped
+>>>> scst: Processing thread fio-719570_0 (PID 1110) finished
+>>>> scst: Processing thread fio-719570_1 (PID 1111) finished
+>>>> scst: Processing thread fio-719620_0 (PID 1112) finished
+>>>> scst: Processing thread fio-719620_1 (PID 1113) finished
+>>>> scst: Processing thread fio-719650_0 (PID 1114) finished
+>>>> scst: Processing thread fio-719650_1 (PID 1115) finished
+>>>> scst: Processing thread fio-719640_0 (PID 1116) finished
+>>>> scst: Processing thread fio-719640_1 (PID 1117) finished
+>>>> scst: Processing thread fio-410000_0 (PID 1118) finished
+>>>> scst: Processing thread fio-410000_1 (PID 1119) finished
+>>>> scst: Processing thread fio-410020_0 (PID 1120) finished
+>>>> scst: Processing thread fio-410020_1 (PID 1121) finished
+>>>> scst: Processing thread fio-409480_0 (PID 1122) finished
+>>>> scst: Processing thread fio-409480_1 (PID 1123) finished
+>>>> scst: Processing thread fio-410010_0 (PID 1124) finished
+>>>> scst: Processing thread fio-410010_1 (PID 1125) finished
+>>>> ib_srpt: Received SRP_LOGIN_REQ with i_port_id
+>>>0x247100000002c1:0x24710000000390, t_port_id
+>>>0x247100000002c1:0x247100000002c1 and it_iu_len 4148 on port 2
+>>>(guid=3D0xfe80000000000000:0x247100000002c0)
+>>>> ib_srpt: Session : kernel thread ib_srpt_compl (PID 1138) started
+>>>> scst: Using security group "Default" for initiator
+>>>"0x00247100000002c10024710000000390"
+>>>> scst: Processing thread fio-719570_0 (PID 1139) started
+>>>> scst: Processing thread fio-719570_1 (PID 1140) started
+>>>> scst: Processing thread fio-719620_0 (PID 1141) started
+>>>> scst: Processing thread fio-719620_1 (PID 1142) started
+>>>> scst: Processing thread fio-719650_0 (PID 1143) started
+>>>> scst: Processing thread fio-719650_1 (PID 1144) started
+>>>> scst: Processing thread fio-719640_0 (PID 1145) started
+>>>> scst: Processing thread fio-719640_1 (PID 1146) started
+>>>> scst: Processing thread fio-410000_0 (PID 1147) started
+>>>> scst: Processing thread fio-410000_1 (PID 1148) started
+>>>> scst: Processing thread fio-410020_0 (PID 1149) started
+>>>> scst: Processing thread fio-410020_1 (PID 1150) started
+>>>> scst: Processing thread fio-409480_0 (PID 1151) started
+>>>> scst: Processing thread fio-409480_1 (PID 1152) started
+>>>> scst: Processing thread fio-410010_0 (PID 1153) started
+>>>> scst: Processing thread fio-410010_1 (PID 1154) started
+>>>> ib_srpt: ***ERROR***: received unrecognized IB CM event 10
+>>>> ib_srpt: Received DREQ and sent DREP for session
+>>>0x00247100000002c10024710000000390.
+>>>> ib_srpt: Received InfiniBand TimeWait exit for cm_id
+>>>ffff810191ae5400.
+>>>> ib_srpt: Session 0x00247100000002c10024710000000390: kernel
+>>>thread ib_srpt_compl (PID 1138) stopped
+>>>> scst: Processing thread fio-719570_0 (PID 1139) finished
+>>>> scst: Processing thread fio-719570_1 (PID 1140) finished
+>>>> scst: Processing thread fio-719620_0 (PID 1141) finished
+>>>> scst: Processing thread fio-719620_1 (PID 1142) finished
+>>>> scst: Processing thread fio-719650_0 (PID 1143) finished
+>>>> scst: Processing thread fio-719650_1 (PID 1144) finished
+>>>> scst: Processing thread fio-719640_0 (PID 1145) finished
+>>>> scst: Processing thread fio-719640_1 (PID 1146) finished
+>>>> scst: Processing thread fio-410000_0 (PID 1147) finished
+>>>> scst: Processing thread fio-410000_1 (PID 1148) finished
+>>>> scst: Processing thread fio-410020_0 (PID 1149) finished
+>>>> scst: Processing thread fio-410020_1 (PID 1150) finished
+>>>> scst: Processing thread fio-409480_0 (PID 1151) finished
+>>>> scst: Processing thread fio-409480_1 (PID 1152) finished
+>>>> scst: Processing thread fio-410010_0 (PID 1153) finished
+>>>> scst: Processing thread fio-410010_1 (PID 1154) finished
+>>>>
+>>>> While I do have two HCA's in both the target and initiator, I have
+>>>> tried it with just one in the initiator.
+>>>>
+>>>> Hopefully that doesn't cause the email to bounce and makes it more
+>>>> readable.
+>>>>
+>>>> Thanks,
+>>>>
+>>>> Chris
+>>>> >
+>>>> >>
+>>>> >> Does windows disk management show a broken LUN?
+>>>> >
+>>>> > No. =A0Nothing (except local drives).
+>>>> >>
+>>>> >>>
+>>>> >>>Someone throw me a bone! =A0The SRP initiator seems to have bee=
+n
+>>>> >>>broken for many months on WinDoh's.
+>>>> >>
+>>>> >> I have had no problems with the SRP initiator as long as I star=
+t
+>>>> >> the target _after_ the windows systems boot.
+>>>> >
+>>>> > I've tried five different revs of the Windows driver, and
+>>>no drives
+>>>> > are seen.
+>>>> >
+>>>> > Thanks,
+>>>> >
+>>>> > Chris
+>>>> >>
+>>>> >>>
+>>>> >>>Thanks,
+>>>> >>>
+>>>> >>>Chris
+>>>> >>>_______________________________________________
+>>>> >>>ofw mailing list
+>>>> >>>ofw-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
+>>>> >>>http://lists.openfabrics.org/cgi-bin/mailman/listinfo/ofw
+>>>> >>>
+>>>> >>
+>>>> >
+>>>>
+>>>_______________________________________________
+>>>ofw mailing list
+>>>ofw-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
+>>>http://lists.openfabrics.org/cgi-bin/mailman/listinfo/ofw
+>>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-rdma=
+" in
+>> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+>> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
+>>
+>
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
