@@ -1,64 +1,74 @@
-From: Hal Rosenstock <hnrose-Wuw85uim5zDR7s880joybQ@public.gmane.org>
-Subject: [PATCHv2] opensm/osm_pkey_mgr.c: Eliminate unneeded parameter from
-	pkey_mgr_get_physp_max_blocks API
-Date: Tue, 31 Aug 2010 14:21:33 -0400
-Message-ID: <20100831182133.GB4718@comcast.net>
+From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+Subject: Re: OFED 1.5.2: libibumad.so version bump
+Date: Tue, 31 Aug 2010 12:49:15 -0700
+Message-ID: <20100831124915.ac4dc1bd.weiny2@llnl.gov>
+References: <4C7CCB01.909@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <4C7CCB01.909-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org" <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: Yevgeny Kliteynik <kliteyn-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, OpenFabricsEWG <ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>, Linux RDMA <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>, Tziporet Koren <tziporet-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, "Mark A. Grondona" <mgrondona-i2BcT+NCU+M@public.gmane.org>, "Moody, Adam T." <moody20-i2BcT+NCU+M@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On Tue, 31 Aug 2010 02:27:29 -0700
+Yevgeny Kliteynik <kliteyn-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
 
-Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
-Changes since v1:
-Fixed formatting errors detected by checkpatch
+> Hi all,
+> 
+> In order to support RoCEE, a while ago I've added
+> a new field to umad, thus introduced an ABI change.
+> 
+> There already was a discussion on the linux-rdma list,
+> but due to the proximity of the upcoming OFED 1.5.2
+> release these concerns were raised again.
+> 
+> So my question is, other that *general* concerns about
+> changing ABI, is anybody aware of the *actual* problem
+> that will be caused by this? Any customer/3rd party
+> solution that would be affected by this?
 
-diff --git a/opensm/opensm/osm_pkey_mgr.c b/opensm/opensm/osm_pkey_mgr.c
-index f2e0cc3..1e98c82 100644
---- a/opensm/opensm/osm_pkey_mgr.c
-+++ b/opensm/opensm/osm_pkey_mgr.c
-@@ -1,6 +1,6 @@
- /*
-  * Copyright (c) 2004-2009 Voltaire, Inc. All rights reserved.
-- * Copyright (c) 2002-2007 Mellanox Technologies LTD. All rights reserved.
-+ * Copyright (c) 2002-2010 Mellanox Technologies LTD. All rights reserved.
-  * Copyright (c) 1996-2003 Intel Corporation. All rights reserved.
-  * Copyright (c) 2009 Sun Microsystems, Inc. All rights reserved.
-  *
-@@ -59,8 +59,7 @@
-   rest of the ports (NodeInfo).
- */
- static uint16_t
--pkey_mgr_get_physp_max_blocks(IN const osm_subn_t * p_subn,
--			      IN const osm_physp_t * p_physp)
-+pkey_mgr_get_physp_max_blocks(IN const osm_physp_t * p_physp)
- {
- 	osm_node_t *p_node = osm_physp_get_node_ptr(p_physp);
- 	uint16_t num_pkeys = 0;
-@@ -272,8 +271,7 @@ static int pkey_mgr_update_port(osm_log_t * p_log, osm_sm_t * sm,
- 	p_node = osm_physp_get_node_ptr(p_physp);
- 	p_pkey_tbl = &p_physp->pkeys;
- 	num_of_blocks = osm_pkey_tbl_get_num_blocks(p_pkey_tbl);
--	max_num_of_blocks =
--	    pkey_mgr_get_physp_max_blocks(sm->p_subn, p_physp);
-+	max_num_of_blocks = pkey_mgr_get_physp_max_blocks(p_physp);
- 	if (p_pkey_tbl->max_blocks > max_num_of_blocks) {
- 		OSM_LOG(p_log, OSM_LOG_INFO,
- 			"Max number of blocks reduced from %u to %u "
-@@ -408,7 +406,7 @@ static int pkey_mgr_update_peer_port(osm_log_t * p_log, osm_sm_t * sm,
- 	p_pkey_tbl = osm_physp_get_pkey_tbl(p_physp);
- 	p_peer_pkey_tbl = &peer->pkeys;
- 	num_of_blocks = osm_pkey_tbl_get_num_blocks(p_pkey_tbl);
--	peer_max_blocks = pkey_mgr_get_physp_max_blocks(p_subn, peer);
-+	peer_max_blocks = pkey_mgr_get_physp_max_blocks(peer);
- 	if (peer_max_blocks < p_pkey_tbl->used_blocks) {
- 		OSM_LOG(p_log, OSM_LOG_ERROR, "ERR 0508: "
- 			"Not enough pkey entries (%u < %u) on switch 0x%016"
+Because our MVAPICH depends on umad, libibumad.so.1 to be exact.[*]  These ABI
+changes (to v2 and v3) would have forced our users to recompile their codes.
+We are maintaining the old ABI here until our next major release of CHAOS[#]
+to prevent this.
+
+I think the thing to remember is that many people are using Open Fabrics
+software, but are _not_ using "OFED".  What is tested with OFED is not the
+only thing which might be using these libraries.  Our version of MVAPICH is a
+good example.
+
+I am certainly not the expert in this area and I know that many people have
+tried to make this point in the past, but I will say it here again.  Each of
+these Open Fabrics packages _must_ be maintained to stand on their own.
+Roland did this a long time ago with ibverbs.
+
+I think now is a good time to start discussing breaking up the "management" git
+tree so that these libraries can live on their own.  I will write a separate
+email regarding this.
+
+Ira
+
+[*] We are looking into removing the dependency.
+[#] Shameless plug: http://code.google.com/p/chaos-release/wiki/CHAOS_Description
+
+> 
+> -- Yevgeny
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://*vger.kernel.org/majordomo-info.html
+> 
+
+
+-- 
+Ira Weiny
+Math Programmer/Computer Scientist
+Lawrence Livermore National Lab
+925-423-8008
+weiny2-i2BcT+NCU+M@public.gmane.org
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
