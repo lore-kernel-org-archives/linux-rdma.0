@@ -1,47 +1,44 @@
-From: Chris Mason <chris.mason-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH RFC] ipoib: good references make good neighbors
-Date: Tue, 31 Aug 2010 09:41:21 -0400
-Message-ID: <20100831134121.GG3267@think>
-References: <20100823195316.GL26773@think>
- <1283213461.16829.81.camel@chromite.mv.qlogic.com>
+From: "Eli Dorfman (Voltaire)" <dorfman.eli-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH] ibnetdiscover: add '-f' flag to show full information
+ (ports' speed and width).
+Date: Tue, 31 Aug 2010 17:18:46 +0300
+Message-ID: <4C7D0F46.1030305@gmail.com>
+References: <4C6B9A42.9020505@voltaire.com> <20100824040354.GH5837@me> <4C73B34A.4080508@voltaire.com> <AANLkTi=V9Xb92KPgqKnFFWzp-izSsHi7c+-HXYBmggYN@mail.gmail.com> <4C73C8BC.6010702@voltaire.com> <AANLkTime9OX4EPS_c+pKwnchuVfyLqeLcuX0rXDjOCgR@mail.gmail.com> <20100825170656.GM5837@me>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1283213461.16829.81.camel-/vjeY7uYZjrPXfVEPVhPGq6RkeBMCJyt@public.gmane.org>
+In-Reply-To: <20100825170656.GM5837@me>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ralph Campbell <ralph.campbell-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+To: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+Cc: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Doron Shoham <dorons-smomgflXvOZWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Aug 30, 2010 at 05:11:01PM -0700, Ralph Campbell wrote:
-
-[ add a reference to neighbours inside ipoib ]
-
-> The problem with this solution is that it creates
-> a reference counting "loop" so that the reference
-> count never goes to zero.
-> struct neighbour in the kernel points to struct ipoib_neigh
-> which points back to struct neighbor. If the "back pointer"
-> holds a reference, then something besides ipoib_neigh_free()
-> has to do the neigh_release(neighbour).
+Sasha Khapyorsky wrote:
+> On 09:45 Tue 24 Aug     , Hal Rosenstock wrote:
+>>> What about the flag? do we still need it if we pass the output after the comment?
+>> I wouldn't think so. I also think we've made commentary changes to the
+>> ibnetdiscover output format like this before. If we wanted to be
+>> absolutely sure it wouldn't break anything, we'd keep the flag though.
+>> It's up to Sasha.
 > 
-> I think the real fix is the patch I sent to linux-rdma:
-> https://patchwork.kernel.org/patch/120013/
+> The '-f' flag could make sense since those information actually
+> duplicates previous 4xDDR, etc. and used by ibsim's parser only.
+> 
+> Also it would be nice to make ibsim's parser to understand both
+> possibilities: s=2 and speed=2 (Or even to parse "*x*DR" strings :))
 
-patchwork is keeping this one secret for now:
+Is it valid to assume that "*x*DR" string is always the last token?
+If so, the patch should be changed
 
-OperationalError at /patch/120013/
+Eli
+> 
+> Sasha
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-(1040, 'Too many connections')
-
-But I'll check back later today.  We'd hit this corruption at least once
-a day under load, and we couldn't reboot a rack of machines without half
-of them exploding as others went down (without CONFIG_PAGE_DEBUG_ALLOC)
-
-So I'm a bit relieved that someone else has seen it too ;)
-
--chris
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
