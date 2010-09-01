@@ -1,42 +1,53 @@
 From: James A Simmons <uja-1Heg1YXhbW8@public.gmane.org>
-Subject: Patch for rpm and --without-depcheck
-Date: Wed, 01 Sep 2010 11:43:59 -0400
-Message-ID: <1283355839.14487.88.camel@bohr.ornl.gov>
+Subject: Makefile fix for infinipath-psm
+Date: Wed, 01 Sep 2010 11:23:41 -0400
+Message-ID: <1283354621.14487.80.camel@bohr.ornl.gov>
 Reply-To: simmonsja-1Heg1YXhbW8@public.gmane.org
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="=-JF6JpBRbya++Zgh0Q9ze"
+Content-Type: multipart/mixed; boundary="=-pugaclqFxPARQRf7QKod"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: OFED <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: infinipath-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 
---=-JF6JpBRbya++Zgh0Q9ze
+--=-pugaclqFxPARQRf7QKod
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 
-This patch passes --nodeps to rpmbuild when --without-depcheck is set.
-Sorry I don't know who the maintainer of install.pl is.
+This patch allows make to work. The arch command has gone away with new
+coreutils so it is recommended to use uname -m instead.
 
---=-JF6JpBRbya++Zgh0Q9ze
-Content-Disposition: attachment; filename=deps.diff
-Content-Type: text/x-patch; name=deps.diff; charset=UTF-8
+
+--=-pugaclqFxPARQRf7QKod
+Content-Disposition: attachment; filename=make.diff
+Content-Type: text/x-patch; name=make.diff; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 
---- install.pl.orig	2010-09-01 11:36:11.000000000 -0400
-+++ install.pl	2010-09-01 11:40:08.000000000 -0400
-@@ -1536,6 +1536,9 @@
+--- Makefile.orig	2010-09-01 10:57:58.000000000 -0400
++++ Makefile	2010-09-01 10:58:40.000000000 -0400
+@@ -69,14 +69,14 @@
+ include $(top_srcdir)/buildflags.mak
+ lib_build_dir := $(build_dir)
  
- if ($distro eq "debian") {
-     $check_linux_deps = 0;
-+}
-+
-+if (not $check_linux_deps) {
-     $rpmbuild_flags .= ' --nodeps';
-     $rpminstall_flags .= ' --nodeps';
- }
+-ifneq (x86_64,$(arch))
+-   ifneq (i386,$(arch))
+-      $(error Unsupported architecture $(arch))
++ifneq (x86_64,$(shell uname -m))
++   ifneq (i386,$(shell uname -m))
++      $(error Unsupported architecture $(shell uname -m))
+    endif
+ endif
+ 
+ ifndef LIBDIR
+-   ifeq (${arch},x86_64)
++   ifeq ($(shell uname -m),x86_64)
+       INSTALL_LIB_TARG=/usr/lib64
+    else
+       INSTALL_LIB_TARG=/usr/lib
 
---=-JF6JpBRbya++Zgh0Q9ze--
+--=-pugaclqFxPARQRf7QKod--
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
