@@ -1,50 +1,54 @@
-From: James A Simmons <uja-1Heg1YXhbW8@public.gmane.org>
-Subject: install libsdp openib setup
-Date: Wed, 01 Sep 2010 11:39:18 -0400
-Message-ID: <1283355558.14487.83.camel@bohr.ornl.gov>
-References: <1283354621.14487.80.camel@bohr.ornl.gov>
-Reply-To: simmonsja-1Heg1YXhbW8@public.gmane.org
+From: Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH] RDMA/nes: Modified FIN handling causes hang in A0 cards
+Date: Wed, 1 Sep 2010 10:43:11 -0500
+Message-ID: <20100901154311.GA7040@FLATIF-MOBL3>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="=-yhA5L3iN9OkbsRSL0LnP"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-reply-to: <1283354621.14487.80.camel-TbGF127JXZUcvh0c176lvQ@public.gmane.org>
+Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: OFED <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: amirv-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org
+To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+The changing state to CLOSING when FIN is received causes A0 cards to hang and
+the interface will not be active. Now in the FIN handling, a check is made
+if it is A0 card or not.
 
---=-yhA5L3iN9OkbsRSL0LnP
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Signed-off-by: Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+---
+ drivers/infiniband/hw/nes/nes_hw.c |    3 ++-
+ drivers/infiniband/hw/nes/nes_hw.h |    1 +
+ 2 files changed, 3 insertions(+), 1 deletions(-)
 
-This patch has the install.pl pass in the default --with-openib=$value
-for libsdp.
-
-
-
---=-yhA5L3iN9OkbsRSL0LnP
-Content-Disposition: attachment; filename=sdp-select.diff
-Content-Type: text/x-patch; name=sdp-select.diff; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-
---- install.pl.orig	2010-09-01 11:36:11.000000000 -0400
-+++ install.pl	2010-09-01 11:36:50.000000000 -0400
-@@ -3098,6 +3098,12 @@
-             $cmd .= " --define 'build_ibmgtsim 1'";
-             $cmd .= " --define '__arch_install_post %{nil}'";
-         }
-+        elsif ( $parent eq "libsdp") {
-+            $packages_info{'libsdp'}{'configure_options'} .= " --with-openib=$prefix/src/openib";
-+            $cmd .= " --define '_prefix $prefix'";
-+            $cmd .= " --define '_exec_prefix $prefix'";
-+            $cmd .= " --define '_sysconfdir $sysconfdir'";
-+        }
-         elsif ( $parent eq "mvapich") {
-             my $compiler = (split('_', $name))[1];
-             $cmd .= " --define '_name $name'";
-
---=-yhA5L3iN9OkbsRSL0LnP--
+diff --git a/drivers/infiniband/hw/nes/nes_hw.c b/drivers/infiniband/hw/nes/nes_hw.c
+index bfdad33..57fc45a 100644
+--- a/drivers/infiniband/hw/nes/nes_hw.c
++++ b/drivers/infiniband/hw/nes/nes_hw.c
+@@ -3468,7 +3468,8 @@ static void nes_process_iwarp_aeqe(struct nes_device *nesdev,
+ 				return; /* Ignore it, wait for close complete */
+ 			if (atomic_inc_return(&nesqp->close_timer_started) == 1) {
+ 				if ((tcp_state == NES_AEQE_TCP_STATE_CLOSE_WAIT) &&
+-					(nesqp->ibqp_state == IB_QPS_RTS)) {
++					(nesqp->ibqp_state == IB_QPS_RTS) &&
++					((nesadapter->eeprom_version >> 16) != NES_A0)) {
+ 					spin_lock_irqsave(&nesqp->lock, flags);
+ 					nesqp->hw_iwarp_state = iwarp_state;
+ 					nesqp->hw_tcp_state = tcp_state;
+diff --git a/drivers/infiniband/hw/nes/nes_hw.h b/drivers/infiniband/hw/nes/nes_hw.h
+index aa9183d..1204c34 100644
+--- a/drivers/infiniband/hw/nes/nes_hw.h
++++ b/drivers/infiniband/hw/nes/nes_hw.h
+@@ -45,6 +45,7 @@
+ #define NES_PHY_TYPE_KR	       9
+ 
+ #define NES_MULTICAST_PF_MAX 8
++#define NES_A0 3
+ 
+ enum pci_regs {
+ 	NES_INT_STAT = 0x0000,
+-- 
+1.6.0
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
