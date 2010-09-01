@@ -1,22 +1,33 @@
 From: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCHv2] opensm/osm_pkey_mgr.c: Eliminate unneeded parameter
- from pkey_mgr_get_physp_max_blocks API
-Date: Wed, 1 Sep 2010 15:54:27 +0300
-Message-ID: <20100901125427.GT5837@me>
-References: <20100831182133.GB4718@comcast.net>
+Subject: Re: [PATCH] ibnetdiscover: add '-f' flag to show full information
+ (ports' speed and width).
+Date: Wed, 1 Sep 2010 16:23:33 +0300
+Message-ID: <20100901132333.GB12172@me>
+References: <4C6B9A42.9020505@voltaire.com>
+ <20100824040354.GH5837@me>
+ <4C73B34A.4080508@voltaire.com>
+ <AANLkTi=V9Xb92KPgqKnFFWzp-izSsHi7c+-HXYBmggYN@mail.gmail.com>
+ <4C73C8BC.6010702@voltaire.com>
+ <AANLkTime9OX4EPS_c+pKwnchuVfyLqeLcuX0rXDjOCgR@mail.gmail.com>
+ <20100825170656.GM5837@me>
+ <4C761B1B.5030804@voltaire.com>
+ <AANLkTimpAQNGo+wzCY8VmnvGf7zfwqm3cak49eZRQs1V@mail.gmail.com>
+ <4C7668A8.9080806@voltaire.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20100831182133.GB4718-Wuw85uim5zDR7s880joybQ@public.gmane.org>
+In-Reply-To: <4C7668A8.9080806-smomgflXvOZWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Hal Rosenstock <hnrose-Wuw85uim5zDR7s880joybQ@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Doron Shoham <dorons-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+Cc: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 14:21 Tue 31 Aug     , Hal Rosenstock wrote:
+On 16:14 Thu 26 Aug     , Doron Shoham wrote:
+> add '-f' flag to show full information (ports' speed and witdh).
+> mainly to work with ibsim (using links real speed and width).
 > 
-> Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Signed-off-by: Doron Shoham <dorons-smomgflXvOZWk0Htik3J/w@public.gmane.org>
 
 Applied. Thanks.
 
