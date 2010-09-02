@@ -1,40 +1,72 @@
-From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCHv10 02/12] ib_core: IBoE CMA device binding
-Date: Thu, 02 Sep 2010 14:57:10 -0700
-Message-ID: <adalj7jn70p.fsf@cisco.com>
-References: <20100826141723.GC8795@mtldesk30>
-	<CF9C39F99A89134C9CF9C4CCB68B8DDF25AB26491D@orsmsx501.amr.corp.intel.com>
-	<20100827054256.GA9755@mtldesk30> <adavd6w37lp.fsf@cisco.com>
-	<20100829143914.GA14370@mtldesk30> <adaeidcnin1.fsf@cisco.com>
-	<20100902192745.GA22039@mtldesk30>
-	<CF9C39F99A89134C9CF9C4CCB68B8DDF25AB44BA6F@orsmsx501.amr.corp.intel.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: [PATCH] [IPOIB] Check for a MTU overflow on the GSO path
+Date: Thu, 2 Sep 2010 17:11:40 -0600
+Message-ID: <20100902231140.GW24971@obsidianresearch.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CF9C39F99A89134C9CF9C4CCB68B8DDF25AB44BA6F-osO9UTpF0USkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
-	(Sean Hefty's message of "Thu, 2 Sep 2010 13:30:11 -0700")
+Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, RDMA list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
- > In cma_acquire_dev, we try to match up a portion of the dev_addr with
- > a GID.  The current code does this by checking the dev_type to
- > determine if the GID would start at offset 0 or 4 in the dev_addr.
- > With IBoE, this check is no longer possible, so we select the offset
- > based on the rdma device that we're trying to compare against, rather
- > than using data stored with the net_device.
- > 
- > Maybe it's just so unlikely that we don't care, but can this lead to
- > a false match?  (and maybe the current code can have a false match..)
+The code to check that the send packet size is less than the MTU
+is only invoked in the non-GSO case. This lets packets which are too
+large pass through.
 
-I don't think there's any chance of a false positive.  We can tell if
-the GID offset is 0 or 4 based on the ARPHRD type of the address we're
-comparing, so that should always be correct.  The only difference with
-between IBoE and iWARP GIDs is that the IBoE GIDs are actually IPv6
-link-local addresses, so they need some munging to convert back to
-ethernet hardware addresses.  But in any case there shouldn't be a
-collision unless there are duplicate ethernet addresses.
+Compute the largest packet the GSO operation can produce and check
+that against the MTU.
+
+Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+---
+ drivers/infiniband/ulp/ipoib/ipoib_ib.c |   21 +++++++++++++--------
+ 1 files changed, 13 insertions(+), 8 deletions(-)
+
+diff --git a/drivers/infiniband/ulp/ipoib/ipoib_ib.c b/drivers/infiniband/ulp/ipoib/ipoib_ib.c
+index ec6b4fb..aa9f9cf 100644
+--- a/drivers/infiniband/ulp/ipoib/ipoib_ib.c
++++ b/drivers/infiniband/ulp/ipoib/ipoib_ib.c
+@@ -532,6 +532,7 @@ void ipoib_send(struct net_device *dev, struct sk_buff *skb,
+ 	struct ipoib_tx_buf *tx_req;
+ 	int hlen, rc;
+ 	void *phead;
++	unsigned int required_mtu;
+ 
+ 	if (skb_is_gso(skb)) {
+ 		hlen = skb_transport_offset(skb) + tcp_hdrlen(skb);
+@@ -543,17 +544,21 @@ void ipoib_send(struct net_device *dev, struct sk_buff *skb,
+ 			dev_kfree_skb_any(skb);
+ 			return;
+ 		}
++
++		required_mtu = skb_shinfo(skb)->gso_size + hlen;
+ 	} else {
+-		if (unlikely(skb->len > priv->mcast_mtu + IPOIB_ENCAP_LEN)) {
+-			ipoib_warn(priv, "packet len %d (> %d) too long to send, dropping\n",
+-				   skb->len, priv->mcast_mtu + IPOIB_ENCAP_LEN);
+-			++dev->stats.tx_dropped;
+-			++dev->stats.tx_errors;
+-			ipoib_cm_skb_too_long(dev, skb, priv->mcast_mtu);
+-			return;
+-		}
+ 		phead = NULL;
+ 		hlen  = 0;
++		required_mtu = skb->len;
++	}
++
++	if (unlikely(required_mtu > priv->mcast_mtu + IPOIB_ENCAP_LEN)) {
++		ipoib_warn(priv, "packet len %d (> %d) too long to send, dropping\n",
++			   required_mtu, priv->mcast_mtu + IPOIB_ENCAP_LEN);
++		++dev->stats.tx_dropped;
++		++dev->stats.tx_errors;
++		ipoib_cm_skb_too_long(dev, skb, priv->mcast_mtu);
++		return;
+ 	}
+ 
+ 	ipoib_dbg_data(priv, "sending packet, length=%d address=%p qpn=0x%06x\n",
+-- 
+1.5.4.2
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
