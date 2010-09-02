@@ -1,32 +1,43 @@
-From: Chris Mason <chris.mason-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH RFC] ipoib: good references make good neighbors
-Date: Thu, 2 Sep 2010 17:39:19 -0400
-Message-ID: <20100902213919.GU24228@think>
-References: <20100823195316.GL26773@think>
- <1283213461.16829.81.camel@chromite.mv.qlogic.com>
- <adatym7n8x4.fsf@cisco.com>
+From: "Tung, Chien Tin" <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [ANNOUNCE] libnes-1.1.0 release
+Date: Thu, 2 Sep 2010 14:51:00 -0700
+Message-ID: <2EFBCAEF10980645BBCFB605689E08E904A23E3591@azsmsx506.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <adatym7n8x4.fsf-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Cc: Ralph Campbell <ralph.campbell-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, OpenFabrics EWG <ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Sep 02, 2010 at 02:16:07PM -0700, Roland Dreier wrote:
->  > I think the real fix is the patch I sent to linux-rdma:
->  > https://patchwork.kernel.org/patch/120013/
-> 
-> Patchwork seems to be up now.  Chris, if you could try this patch out
-> and see if it fixes your issue that would be great, since you seem to be
-> able to reproduce the crashes pretty reliably.
+New version of libnes v1.1.0 is available at:
 
-Yeah, my test box is getting reimaged but I'll give it a shot when it
-comes back.
+http://www.openfabrics.org/downloads/nes/libnes-1.1.0.tar.gz
 
--chris
+sha1sum 5af05ede3fe11d30c49671ebc5263efbb1881cbe
+
+Changes since last release:
+
+- Add support for iWarp Multicast Acceleration (IMA).
+- Rearm  CQ event notification only after a poll.
+- Add option to control doorbell read in nes_upoll_cq.
+- Fix total payload calculation in nes_upost_recv.
+- Fix Firmware version in query device.
+
+
+libnes provides a device-specific userspace library for NetEffect
+Ethernet Server Cluster Adapter for use with the libibverbs library.
+
+
+Chien
+
+--
+Chien Tung | chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+
+
+
+
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
