@@ -1,91 +1,304 @@
-From: Eli Dorfman <dorfman.eli-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH] ibsim: parse width and speed from ibnetdiscover output
-Date: Thu, 2 Sep 2010 23:19:57 +0300
-Message-ID: <AANLkTikM68d2AW+7KyGT6cwkQzebbxWHFwg=06vaUoTj@mail.gmail.com>
-References: <4C7F5444.4030302@gmail.com>
-	<AANLkTi=3R5=obzp=hXmsh9HDswMMV770AB4cZvpTkhZc@mail.gmail.com>
+From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+Subject: Re: Errors from ibchecknet
+Date: Thu, 2 Sep 2010 13:16:14 -0700
+Message-ID: <20100902131614.440c3111.weiny2@llnl.gov>
+References: <AANLkTi=EuVGxLyjMFMw=YZm38CPvCTbcxt104R-B_o_i@mail.gmail.com>
+	<AANLkTikoYH+1tBzHX29uUnFGepFhfXdOkRHSX3OLW9g6@mail.gmail.com>
+	<AANLkTikQ3jeNwtbR6zqpSvt7=YWatRhWfr60Q5of_FJR@mail.gmail.com>
+	<20100902090330.093d8ba6.weiny2@llnl.gov>
+	<AANLkTin=p2Mt223QS1oXfy6vi1RBNiF4HaQQcScfg5FP@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <AANLkTi=3R5=obzp=hXmsh9HDswMMV770AB4cZvpTkhZc-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <AANLkTin=p2Mt223QS1oXfy6vi1RBNiF4HaQQcScfg5FP-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Chuck Hartley <hartlch14-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-T24gVGh1LCBTZXAgMiwgMjAxMCBhdCAxOjMzIFBNLCBIYWwgUm9zZW5zdG9jayA8aGFsLnJvc2Vu
-c3RvY2tAZ21haWwuY29tPiB3cm90ZToKPiBPbiBUaHUsIFNlcCAyLCAyMDEwIGF0IDM6MzcgQU0s
-IEVsaSBEb3JmbWFuIChWb2x0YWlyZSkKPiA8ZG9yZm1hbi5lbGlAZ21haWwuY29tPiB3cm90ZToK
-Pj4KPj4gU2VhcmNoIGZvciB0aGUgcGF0dGVybiAnWzAtOV0qeFtTRFFdRFInCj4+IFZhbGlkYXRl
-IHRoYXQgd2lkdGggdmFsdWUgaXMgdmFsaWQuCj4KPiBJZiB0aGlzIGlzIGRvbmUgKHRvIGlic2lt
-KSwgaXMgdGhlIHByZXZpb3VzIHBhdGNoIGZvciBpYm5ldGRpc2NvdmVyIC1mCj4gc3RpbGwgbmVl
-ZGVkID8KCkkgYXNzdW1lIHRoYXQgaXQgaXMgcmVkdW5kYW50IHVubGVzcyB1c2VyIG5hbWVzIGl0
-cyBkZXZpY2VzIHdpdGggc2FtZQpwYXR0ZXJuICJbMC05XSp4W1NEUV1EUiIuCkkgY2FuIGdpdmUg
-cHJpb3JpdHkgdG8gdGhlICdzPScgYW5kICd3PScgb3B0aW9ucyBhbmQgc2tpcCBwYXJzaW5nIG9m
-CnRoZSBhYm92ZSBwYXR0ZXJuLgoKRWxpCgo+Cj4gLS0gSGFsCj4KPj4gU2lnbmVkLW9mZi1ieTog
-RWxpIERvcmZtYW4gPGVsaWRAdm9sdGFpcmUuY29tPgo+PiAtLS0KPj4gwqBpYnNpbS9zaW1fbmV0
-LmMgfCDCoCA0OCArKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysr
-KysKPj4gwqAxIGZpbGVzIGNoYW5nZWQsIDQ4IGluc2VydGlvbnMoKyksIDAgZGVsZXRpb25zKC0p
-Cj4+Cj4+IGRpZmYgLS1naXQgYS9pYnNpbS9zaW1fbmV0LmMgYi9pYnNpbS9zaW1fbmV0LmMKPj4g
-aW5kZXggMTNjM2I4Yy4uMjc4YzA2NSAxMDA2NDQKPj4gLS0tIGEvaWJzaW0vc2ltX25ldC5jCj4+
-ICsrKyBiL2lic2ltL3NpbV9uZXQuYwo+PiBAQCAtNjExLDYgKzYxMSw3IEBAIHN0YXRpYyBpbnQg
-cGFyc2VfcG9ydChjaGFyICpsaW5lLCBOb2RlICogbm9kZSwgaW50IHR5cGUsIGludCBtYXhwb3J0
-cykKPj4gwqAgwqAgwqAgwqBpbnQgcG9ydG51bSwgaXNhbGlhcyA9IDA7Cj4+IMKgIMKgIMKgIMKg
-UG9ydCAqcG9ydDsKPj4gwqAgwqAgwqAgwqBjaGFyICpzOwo+PiArIMKgIMKgIMKgIGNoYXIgKnA7
-Cj4+Cj4+IMKgIMKgIMKgIMKgaWYgKGxpbmVbMF0gPT0gJ0AnKSB7Cj4+IMKgIMKgIMKgIMKgIMKg
-IMKgIMKgIMKgaXNhbGlhcyA9IDE7Cj4+IEBAIC02NzEsNiArNjcyLDcgQEAgc3RhdGljIGludCBw
-YXJzZV9wb3J0KGNoYXIgKmxpbmUsIE5vZGUgKiBub2RlLCBpbnQgdHlwZSwgaW50IG1heHBvcnRz
-KQo+PiDCoCDCoCDCoCDCoH0KPj4gwqAgwqAgwqAgcGFyc2Vfb3B0Ogo+PiDCoCDCoCDCoCDCoGxp
-bmUgPSBzOwo+PiArIMKgIMKgIMKgIHAgPSBzOwo+PiDCoCDCoCDCoCDCoHdoaWxlIChzICYmIChz
-ID0gc3RyY2hyKHMgKyAxLCAnPScpKSkgewo+PiDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoGNoYXIg
-Km9wdCA9IHM7Cj4+IMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgd2hpbGUgKG9wdCAmJiAhaXNhbHBo
-YSgqb3B0KSkKPj4gQEAgLTY4NSw2ICs2ODcsNTIgQEAgc3RhdGljIGludCBwYXJzZV9wb3J0KGNo
-YXIgKmxpbmUsIE5vZGUgKiBub2RlLCBpbnQgdHlwZSwgaW50IG1heHBvcnRzKQo+PiDCoCDCoCDC
-oCDCoCDCoCDCoCDCoCDCoElCV0FSTigiY2Fubm90IHBhcnNlIGxpZCwgbG1jIik7Cj4+IMKgIMKg
-IMKgIMKgIMKgIMKgIMKgIMKgcmV0dXJuIC0xOwo+PiDCoCDCoCDCoCDCoH0KPj4gKwo+PiArIMKg
-IMKgIMKgIC8qIHBhcnNlIHdpZHRoIHNwZWVkIGZyb20gJ1swLTldKnhbU0RRXURSJyBwYXR0ZXJu
-ICovCj4+ICsgwqAgwqAgwqAgLyogYWxzbyBjaGVja2luZyBmb3IgdmFsaWQgd2lkdGggdmFsdWUg
-Ki8KPj4gKyDCoCDCoCDCoCBjaGFyIHdzdHJbM107Cj4+ICsgwqAgwqAgwqAgY2hhciBzc3RyWzNd
-Owo+PiArIMKgIMKgIMKgIHMgPSBwOwo+PiArIMKgIMKgIMKgIHdoaWxlIChzICYmIChzID0gc3Ry
-Y2hyKHMgKyAxLCAneCcpKSkgewo+PiArIMKgIMKgIMKgIMKgIMKgIMKgIMKgIGludCB3aWR0aDsK
-Pj4gKyDCoCDCoCDCoCDCoCDCoCDCoCDCoCBwID0gcyAtIDE7Cj4+ICsgwqAgwqAgwqAgwqAgwqAg
-wqAgwqAgd2hpbGUgKHAgJiYgIWlzZGlnaXQoKnApKQo+PiArIMKgIMKgIMKgIMKgIMKgIMKgIMKg
-IMKgIMKgIMKgIMKgIHAtLTsKPj4gKyDCoCDCoCDCoCDCoCDCoCDCoCDCoCB3aWR0aCA9IGF0b2ko
-cCk7Cj4+ICsgwqAgwqAgwqAgwqAgwqAgwqAgwqAgc3dpdGNoICh3aWR0aCkgewo+PiArIMKgIMKg
-IMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIGNhc2UgMTogc3RyY3B5KHdzdHIsICIxIik7Cj4+
-ICsgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgYnJlYWs7Cj4+
-ICsgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgY2FzZSA0OiBzdHJjcHkod3N0ciwg
-IjIiKTsKPj4gKyDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCBi
-cmVhazsKPj4gKyDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCBjYXNlIDg6IHN0cmNw
-eSh3c3RyLCAiNCIpOwo+PiArIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKg
-IMKgIMKgIGJyZWFrOwo+PiArIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIGNhc2Ug
-MTI6IHN0cmNweSh3c3RyLCAiOCIpOwo+PiArIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKg
-IMKgIMKgIMKgIMKgIMKgIGJyZWFrOwo+PiArIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKg
-IMKgIGRlZmF1bHQ6IHdzdHJbMF0gPSBzc3RyWzBdID0gMDsKPj4gKyDCoCDCoCDCoCDCoCDCoCDC
-oCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCBjb250aW51ZTsKPj4gKyDCoCDCoCDCoCDCoCDC
-oCDCoCDCoCB9Cj4+ICsgwqAgwqAgwqAgwqAgwqAgwqAgwqAgcCA9IHAgKyAyOwo+PiArIMKgIMKg
-IMKgIMKgIMKgIMKgIMKgIGlmICghc3RybmNtcCgiU0RSIiwgcCwgMykpCj4+ICsgwqAgwqAgwqAg
-wqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgc3RyY3B5KHNzdHIsICIxIik7Cj4+ICsgwqAgwqAgwqAg
-wqAgwqAgwqAgwqAgZWxzZSBpZiAoIXN0cm5jbXAoIkREUiIsIHAsIDMpKQo+PiArIMKgIMKgIMKg
-IMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIHN0cmNweShzc3RyLCAiMiIpOwo+PiArIMKgIMKgIMKg
-IMKgIMKgIMKgIMKgIGVsc2UgaWYgKCFzdHJuY21wKCJRRFIiLCBwLCAzKSkKPj4gKyDCoCDCoCDC
-oCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCBzdHJjcHkoc3N0ciwgIjQiKTsKPj4gKyDCoCDCoCDC
-oCDCoCDCoCDCoCDCoCBlbHNlIHsKPj4gKyDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDC
-oCB3c3RyWzBdID0gc3N0clswXSA9IDA7Cj4+ICsgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAg
-wqAgwqAgY29udGludWU7Cj4+ICsgwqAgwqAgwqAgwqAgwqAgwqAgwqAgfQo+PiArIMKgIMKgIMKg
-IH0KPj4gKwo+PiArIMKgIMKgIMKgIGlmIChwYXJzZV9wb3J0X29wdChwb3J0LCAidyIsIHdzdHIp
-IDwgMCkgewo+PiArIMKgIMKgIMKgIMKgIMKgIMKgIMKgIElCV0FSTigiYmFkIHBvcnQgb3B0aW9u
-Iik7Cj4+ICsgwqAgwqAgwqAgwqAgwqAgwqAgwqAgcmV0dXJuIC0xOwo+PiArIMKgIMKgIMKgIH0K
-Pj4gKwo+PiArIMKgIMKgIMKgIGlmIChwYXJzZV9wb3J0X29wdChwb3J0LCAicyIsIHNzdHIpIDwg
-MCkgewo+PiArIMKgIMKgIMKgIMKgIMKgIMKgIMKgIElCV0FSTigiYmFkIHBvcnQgb3B0aW9uIik7
-Cj4+ICsgwqAgwqAgwqAgwqAgwqAgwqAgwqAgcmV0dXJuIC0xOwo+PiArIMKgIMKgIMKgIH0KPj4g
-wqAgwqAgwqAgwqByZXR1cm4gMTsKPj4gwqB9Cj4+Cj4+IC0tCj4+IDEuNy4yLjEKPj4KPj4gLS0K
-Pj4gVG8gdW5zdWJzY3JpYmUgZnJvbSB0aGlzIGxpc3Q6IHNlbmQgdGhlIGxpbmUgInVuc3Vic2Ny
-aWJlIGxpbnV4LXJkbWEiIGluCj4+IHRoZSBib2R5IG9mIGEgbWVzc2FnZSB0byBtYWpvcmRvbW9A
-dmdlci5rZXJuZWwub3JnCj4+IE1vcmUgbWFqb3Jkb21vIGluZm8gYXQgwqBodHRwOi8vdmdlci5r
-ZXJuZWwub3JnL21ham9yZG9tby1pbmZvLmh0bWwKPj4KPgo=
+On Thu, 2 Sep 2010 11:11:13 -0700
+Chuck Hartley <hartlch14-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
+
+> Sure, here is the output:
+> Note this is with the switch we swapped in, so the port numbers don't
+> match the ibchecknet output in the original message.
+>=20
+> # ibstat
+> CA 'mlx4_0'
+> 	CA type: MT26428
+> 	Number of ports: 2
+> 	Firmware version: 2.6.0
+> 	Hardware version: a0
+> 	Node GUID: 0x0002c90300032de0
+> 	System image GUID: 0x0002c90300032de3
+> 	Port 1:
+> 		State: Active
+> 		Physical state: LinkUp
+> 		Rate: 40
+> 		Base lid: 6
+> 		LMC: 0
+> 		SM lid: 6
+
+Well the SM lid is set here.  Is it set on the other nodes?
+
+I don't run ibchecknet usually but I am getting the same errors here on=
+ a
+working fabric...
+
+ibwarn: [13629] dump_perfcounters: PortXmitWait not indicated so ignore=
+ this counter
+#warn: Lid is not configured lid 37 port 2
+#warn: SM Lid is not configured
+Port check lid 37 port 2:  FAILED=20
+
+Looking at this output I don't think this is an error.
+
+13:17:14 > smpquery nodeinfo 37
+# Node info: Lid 37
+BaseVers:........................1
+ClassVers:.......................1
+NodeType:........................Switch
+NumPorts:........................24
+=2E..
+
+On switch external Ports the Lid and SMLid are not used.
+
+Hal, would you concur?
+
+Chuck,
+Is it just that IPoIB is not working for you?
+
+Ira
+
+
+> 		Capability mask: 0x0251086a
+> 		Port GUID: 0x0002c90300032de1
+> 	Port 2:
+> 		State: Down
+> 		Physical state: Polling
+> 		Rate: 10
+> 		Base lid: 0
+> 		LMC: 0
+> 		SM lid: 0
+> 		Capability mask: 0x02510868
+> 		Port GUID: 0x0002c90300032de2
+> CA 'mthca0'
+> 	CA type: MT25204
+> 	Number of ports: 1
+> 	Firmware version: 1.2.0
+> 	Hardware version: a0
+> 	Node GUID: 0x003048c64c0c0000
+> 	System image GUID: 0x003048c64c0c0003
+> 	Port 1:
+> 		State: Down
+> 		Physical state: Polling
+> 		Rate: 10
+> 		Base lid: 0
+> 		LMC: 0
+> 		SM lid: 0
+> 		Capability mask: 0x02510a68
+> 		Port GUID: 0x003048c64c0c0001
+>=20
+> # iblinkinfo
+> Switch 0x0002c9020041a7a0 Infiniscale-IV Mellanox Technologies:
+>            1    1[  ] =3D=3D( 4X 10.0 Gbps Active/  LinkUp)=3D=3D>   =
+    5
+> 1[  ] " HCA-1" ( )
+>            1    2[  ] =3D=3D( 4X 10.0 Gbps Active/  LinkUp)=3D=3D>   =
+    6
+> 1[  ] "linux70 HCA-1" ( )
+>            1    3[  ] =3D=3D( 4X 10.0 Gbps Active/  LinkUp)=3D=3D>   =
+    7
+> 1[  ] "linux71 HCA-1" ( )
+>            1    4[  ] =3D=3D( 4X 2.5 Gbps   Down/ Polling)=3D=3D>
+> [  ] "" ( )
+>            1    5[  ] =3D=3D( 4X 2.5 Gbps   Down/ Polling)=3D=3D>
+> [  ] "" ( )
+>            1    6[  ] =3D=3D( 4X 2.5 Gbps   Down/ Polling)=3D=3D>
+> [  ] "" ( )
+>            1    7[  ] =3D=3D( 4X 2.5 Gbps   Down/ Polling)=3D=3D>
+> [  ] "" ( )
+>            1    8[  ] =3D=3D( 4X 2.5 Gbps   Down/ Polling)=3D=3D>
+> [  ] "" ( )
+>            1    9[  ] =3D=3D( 4X 2.5 Gbps   Down/ Polling)=3D=3D>
+> [  ] "" ( )
+>            1   10[  ] =3D=3D( 4X 2.5 Gbps   Down/ Polling)=3D=3D>
+> [  ] "" ( )
+>            1   11[  ] =3D=3D( 4X 2.5 Gbps   Down/ Polling)=3D=3D>
+> [  ] "" ( )
+>            1   12[  ] =3D=3D( 4X 2.5 Gbps   Down/ Polling)=3D=3D>
+> [  ] "" ( )
+>            1   13[  ] =3D=3D( 4X 2.5 Gbps   Down/ Polling)=3D=3D>
+> [  ] "" ( )
+>            1   14[  ] =3D=3D( 4X 2.5 Gbps   Down/ Polling)=3D=3D>
+> [  ] "" ( )
+>            1   15[  ] =3D=3D( 4X 2.5 Gbps   Down/ Polling)=3D=3D>
+> [  ] "" ( )
+>            1   16[  ] =3D=3D( 4X 2.5 Gbps   Down/ Polling)=3D=3D>
+> [  ] "" ( )
+>            1   17[  ] =3D=3D( 4X 2.5 Gbps   Down/ Polling)=3D=3D>
+> [  ] "" ( )
+>            1   18[  ] =3D=3D( 4X 2.5 Gbps   Down/ Polling)=3D=3D>
+> [  ] "" ( )
+>            1   19[  ] =3D=3D( 4X 2.5 Gbps   Down/ Polling)=3D=3D>
+> [  ] "" ( )
+>            1   20[  ] =3D=3D( 4X 2.5 Gbps   Down/ Polling)=3D=3D>
+> [  ] "" ( )
+>            1   21[  ] =3D=3D( 4X 2.5 Gbps   Down/ Polling)=3D=3D>
+> [  ] "" ( )
+>            1   22[  ] =3D=3D( 4X 2.5 Gbps   Down/ Polling)=3D=3D>
+> [  ] "" ( )
+>            1   23[  ] =3D=3D( 4X 2.5 Gbps   Down/ Polling)=3D=3D>
+> [  ] "" ( )
+>            1   24[  ] =3D=3D( 4X 5.0 Gbps Active/  LinkUp)=3D=3D>    =
+   9
+> 1[  ] " HCA-1" ( )
+>            1   25[  ] =3D=3D( 4X 5.0 Gbps Active/  LinkUp)=3D=3D>    =
+   8
+> 1[  ] " HCA-1" ( )
+>            1   26[  ] =3D=3D( 4X 2.5 Gbps   Down/ Polling)=3D=3D>
+> [  ] "" ( )
+>            1   27[  ] =3D=3D( 4X 2.5 Gbps   Down/ Polling)=3D=3D>
+> [  ] "" ( )
+>            1   28[  ] =3D=3D( 4X 2.5 Gbps   Down/ Polling)=3D=3D>
+> [  ] "" ( )
+>            1   29[  ] =3D=3D( 4X 2.5 Gbps   Down/ Polling)=3D=3D>
+> [  ] "" ( )
+>            1   30[  ] =3D=3D( 4X 2.5 Gbps   Down/ Polling)=3D=3D>
+> [  ] "" ( )
+>            1   31[  ] =3D=3D( 4X 2.5 Gbps   Down/ Polling)=3D=3D>
+> [  ] "" ( )
+>            1   32[  ] =3D=3D( 4X 2.5 Gbps   Down/ Polling)=3D=3D>
+> [  ] "" ( )
+>            1   33[  ] =3D=3D( 4X 2.5 Gbps   Down/ Polling)=3D=3D>
+> [  ] "" ( )
+>            1   34[  ] =3D=3D( 4X 2.5 Gbps   Down/ Polling)=3D=3D>
+> [  ] "" ( )
+>            1   35[  ] =3D=3D( 4X 2.5 Gbps   Down/ Polling)=3D=3D>
+> [  ] "" ( )
+>            1   36[  ] =3D=3D( 4X 2.5 Gbps   Down/ Polling)=3D=3D>
+> [  ] "" ( )
+>=20
+> On Thu, Sep 2, 2010 at 12:03 PM, Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org> wrote:
+> > On Thu, 2 Sep 2010 06:56:50 -0700
+> > Chuck Hartley <hartlch14-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
+> >
+> >> We swapped in a different switch and see the same errors. The open=
+sm
+> >> logfile does not show any errors:
+> >
+> > Could you run "ibstat" on the node with OpenSM running?
+> >
+> > And "iblinkinfo" on the same node?
+> >
+> > Send that output.
+> >
+> > Ira
+> >
+> >>
+> >> -------------------------------------------------
+> >> OpenSM 3.3.5
+> >> Command Line Arguments:
+> >> =A0Daemon mode
+> >> =A0Log File: /var/log/opensm.log
+> >> -------------------------------------------------
+> >> OpenSM 3.3.5
+> >>
+> >> Sep 02 05:56:29 933684 [B53B8700] 0x80 -> OpenSM 3.3.5
+> >> Entering DISCOVERING state
+> >>
+> >> Sep 02 05:56:29 934931 [B53B8700] 0x02 -> osm_vendor_init: 1000
+> >> pending umads specified
+> >> Sep 02 05:56:29 935079 [B53B8700] 0x80 -> Entering DISCOVERING sta=
+te
+> >> Using default GUID 0x2c90300032de1
+> >> Entering MASTER state
+> >>
+> >> Sep 02 05:56:29 953763 [B53B8700] 0x02 -> osm_vendor_bind: Binding=
+ to
+> >> port 0x2c90300032de1
+> >> Sep 02 05:56:29 990146 [B53B8700] 0x02 -> osm_vendor_bind: Binding=
+ to
+> >> port 0x2c90300032de1
+> >> Sep 02 05:56:29 990240 [B53B8700] 0x02 -> osm_opensm_bind: Setting
+> >> IS_SM on port 0x0002c90300032de1
+> >> Sep 02 05:56:30 009040 [AF1DB710] 0x80 -> Entering MASTER state
+> >> SUBNET UP
+> >>
+> >> Sep 02 05:56:30 009885 [AF1DB710] 0x02 -> osm_ucast_mgr_process:
+> >> minhop tables configured on all switches
+> >> Sep 02 05:56:30 014593 [AF1DB710] 0x80 -> SUBNET UP
+> >>
+> >>
+> >> On Thu, Sep 2, 2010 at 8:56 AM, Hal Rosenstock <hal.rosenstock@gma=
+il.com> wrote:
+> >> > On Thu, Sep 2, 2010 at 8:34 AM, Chuck Hartley <hartlch14@gmail.c=
+om> wrote:
+> >> >> Hello,
+> >> >>
+> >> >> We installed 1.5.1 and are having problems getting the IB fabri=
+c
+> >> >> working. ibv_devinfo shows the HCAs ports are ok and ibdiagnet =
+reports
+> >> >> no errors. However, ibchecknet shows that the switch ports are =
+not
+> >> >> being configured. =A0We have never seen this before and are at =
+a loss as
+> >> >> to where the problem might be - would someone please point us i=
+n the
+> >> >> right direction to look? =A0Could it be a problem with the swit=
+ch
+> >> >> itself? Output from ibchecknet below.
+> >> >>
+> >> >>
+> >> >> # ibchecknet
+> >> >> Error check on lid 3 (Infiniscale-IV Mellanox Technologies) por=
+t all: =A0FAILED
+> >> >> ibwarn: [26732] dump_perfcounters: PortXmitWait not indicated s=
+o
+> >> >> ignore this counter
+> >> >> #warn: Lid is not configured lid 3 port 7
+> >> >> #warn: SM Lid is not configured
+> >> >
+> >> > Is there an SM running on your subnet ? If so, I think that the =
+lack
+> >> > of an SM could account for all of the issues mentioned here.
+> >> >
+> >> > -- Hal
+> >> >
+> >> --
+> >> To unsubscribe from this list: send the line "unsubscribe linux-rd=
+ma" in
+> >> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> >> More majordomo info at =A0http://**vger.kernel.org/majordomo-info.=
+html
+> >>
+> >
+> >
+> > --
+> > Ira Weiny
+> > Math Programmer/Computer Scientist
+> > Lawrence Livermore National Lab
+> > 925-423-8008
+> > weiny2-i2BcT+NCU+M@public.gmane.org
+> >
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma"=
+ in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://*vger.kernel.org/majordomo-info.html
+>=20
+
+
+--=20
+Ira Weiny
+Math Programmer/Computer Scientist
+Lawrence Livermore National Lab
+925-423-8008
+weiny2-i2BcT+NCU+M@public.gmane.org
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
