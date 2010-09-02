@@ -1,304 +1,41 @@
-From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-Subject: Re: Errors from ibchecknet
-Date: Thu, 2 Sep 2010 13:16:14 -0700
-Message-ID: <20100902131614.440c3111.weiny2@llnl.gov>
-References: <AANLkTi=EuVGxLyjMFMw=YZm38CPvCTbcxt104R-B_o_i@mail.gmail.com>
-	<AANLkTikoYH+1tBzHX29uUnFGepFhfXdOkRHSX3OLW9g6@mail.gmail.com>
-	<AANLkTikQ3jeNwtbR6zqpSvt7=YWatRhWfr60Q5of_FJR@mail.gmail.com>
-	<20100902090330.093d8ba6.weiny2@llnl.gov>
-	<AANLkTin=p2Mt223QS1oXfy6vi1RBNiF4HaQQcScfg5FP@mail.gmail.com>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCHv10 02/12] ib_core: IBoE CMA device binding
+Date: Thu, 2 Sep 2010 13:30:11 -0700
+Message-ID: <CF9C39F99A89134C9CF9C4CCB68B8DDF25AB44BA6F@orsmsx501.amr.corp.intel.com>
+References: <20100826141723.GC8795@mtldesk30>
+ <CF9C39F99A89134C9CF9C4CCB68B8DDF25AB26491D@orsmsx501.amr.corp.intel.com>
+ <20100827054256.GA9755@mtldesk30> <adavd6w37lp.fsf@cisco.com>
+ <20100829143914.GA14370@mtldesk30> <adaeidcnin1.fsf@cisco.com>
+ <20100902192745.GA22039@mtldesk30>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <AANLkTin=p2Mt223QS1oXfy6vi1RBNiF4HaQQcScfg5FP-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <20100902192745.GA22039@mtldesk30>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Chuck Hartley <hartlch14-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Cc: RDMA list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, 2 Sep 2010 11:11:13 -0700
-Chuck Hartley <hartlch14-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
-
-> Sure, here is the output:
-> Note this is with the switch we swapped in, so the port numbers don't
-> match the ibchecknet output in the original message.
->=20
-> # ibstat
-> CA 'mlx4_0'
-> 	CA type: MT26428
-> 	Number of ports: 2
-> 	Firmware version: 2.6.0
-> 	Hardware version: a0
-> 	Node GUID: 0x0002c90300032de0
-> 	System image GUID: 0x0002c90300032de3
-> 	Port 1:
-> 		State: Active
-> 		Physical state: LinkUp
-> 		Rate: 40
-> 		Base lid: 6
-> 		LMC: 0
-> 		SM lid: 6
-
-Well the SM lid is set here.  Is it set on the other nodes?
-
-I don't run ibchecknet usually but I am getting the same errors here on=
- a
-working fabric...
-
-ibwarn: [13629] dump_perfcounters: PortXmitWait not indicated so ignore=
- this counter
-#warn: Lid is not configured lid 37 port 2
-#warn: SM Lid is not configured
-Port check lid 37 port 2:  FAILED=20
-
-Looking at this output I don't think this is an error.
-
-13:17:14 > smpquery nodeinfo 37
-# Node info: Lid 37
-BaseVers:........................1
-ClassVers:.......................1
-NodeType:........................Switch
-NumPorts:........................24
-=2E..
-
-On switch external Ports the Lid and SMLid are not used.
-
-Hal, would you concur?
-
-Chuck,
-Is it just that IPoIB is not working for you?
-
-Ira
-
-
-> 		Capability mask: 0x0251086a
-> 		Port GUID: 0x0002c90300032de1
-> 	Port 2:
-> 		State: Down
-> 		Physical state: Polling
-> 		Rate: 10
-> 		Base lid: 0
-> 		LMC: 0
-> 		SM lid: 0
-> 		Capability mask: 0x02510868
-> 		Port GUID: 0x0002c90300032de2
-> CA 'mthca0'
-> 	CA type: MT25204
-> 	Number of ports: 1
-> 	Firmware version: 1.2.0
-> 	Hardware version: a0
-> 	Node GUID: 0x003048c64c0c0000
-> 	System image GUID: 0x003048c64c0c0003
-> 	Port 1:
-> 		State: Down
-> 		Physical state: Polling
-> 		Rate: 10
-> 		Base lid: 0
-> 		LMC: 0
-> 		SM lid: 0
-> 		Capability mask: 0x02510a68
-> 		Port GUID: 0x003048c64c0c0001
->=20
-> # iblinkinfo
-> Switch 0x0002c9020041a7a0 Infiniscale-IV Mellanox Technologies:
->            1    1[  ] =3D=3D( 4X 10.0 Gbps Active/  LinkUp)=3D=3D>   =
-    5
-> 1[  ] " HCA-1" ( )
->            1    2[  ] =3D=3D( 4X 10.0 Gbps Active/  LinkUp)=3D=3D>   =
-    6
-> 1[  ] "linux70 HCA-1" ( )
->            1    3[  ] =3D=3D( 4X 10.0 Gbps Active/  LinkUp)=3D=3D>   =
-    7
-> 1[  ] "linux71 HCA-1" ( )
->            1    4[  ] =3D=3D( 4X 2.5 Gbps   Down/ Polling)=3D=3D>
-> [  ] "" ( )
->            1    5[  ] =3D=3D( 4X 2.5 Gbps   Down/ Polling)=3D=3D>
-> [  ] "" ( )
->            1    6[  ] =3D=3D( 4X 2.5 Gbps   Down/ Polling)=3D=3D>
-> [  ] "" ( )
->            1    7[  ] =3D=3D( 4X 2.5 Gbps   Down/ Polling)=3D=3D>
-> [  ] "" ( )
->            1    8[  ] =3D=3D( 4X 2.5 Gbps   Down/ Polling)=3D=3D>
-> [  ] "" ( )
->            1    9[  ] =3D=3D( 4X 2.5 Gbps   Down/ Polling)=3D=3D>
-> [  ] "" ( )
->            1   10[  ] =3D=3D( 4X 2.5 Gbps   Down/ Polling)=3D=3D>
-> [  ] "" ( )
->            1   11[  ] =3D=3D( 4X 2.5 Gbps   Down/ Polling)=3D=3D>
-> [  ] "" ( )
->            1   12[  ] =3D=3D( 4X 2.5 Gbps   Down/ Polling)=3D=3D>
-> [  ] "" ( )
->            1   13[  ] =3D=3D( 4X 2.5 Gbps   Down/ Polling)=3D=3D>
-> [  ] "" ( )
->            1   14[  ] =3D=3D( 4X 2.5 Gbps   Down/ Polling)=3D=3D>
-> [  ] "" ( )
->            1   15[  ] =3D=3D( 4X 2.5 Gbps   Down/ Polling)=3D=3D>
-> [  ] "" ( )
->            1   16[  ] =3D=3D( 4X 2.5 Gbps   Down/ Polling)=3D=3D>
-> [  ] "" ( )
->            1   17[  ] =3D=3D( 4X 2.5 Gbps   Down/ Polling)=3D=3D>
-> [  ] "" ( )
->            1   18[  ] =3D=3D( 4X 2.5 Gbps   Down/ Polling)=3D=3D>
-> [  ] "" ( )
->            1   19[  ] =3D=3D( 4X 2.5 Gbps   Down/ Polling)=3D=3D>
-> [  ] "" ( )
->            1   20[  ] =3D=3D( 4X 2.5 Gbps   Down/ Polling)=3D=3D>
-> [  ] "" ( )
->            1   21[  ] =3D=3D( 4X 2.5 Gbps   Down/ Polling)=3D=3D>
-> [  ] "" ( )
->            1   22[  ] =3D=3D( 4X 2.5 Gbps   Down/ Polling)=3D=3D>
-> [  ] "" ( )
->            1   23[  ] =3D=3D( 4X 2.5 Gbps   Down/ Polling)=3D=3D>
-> [  ] "" ( )
->            1   24[  ] =3D=3D( 4X 5.0 Gbps Active/  LinkUp)=3D=3D>    =
-   9
-> 1[  ] " HCA-1" ( )
->            1   25[  ] =3D=3D( 4X 5.0 Gbps Active/  LinkUp)=3D=3D>    =
-   8
-> 1[  ] " HCA-1" ( )
->            1   26[  ] =3D=3D( 4X 2.5 Gbps   Down/ Polling)=3D=3D>
-> [  ] "" ( )
->            1   27[  ] =3D=3D( 4X 2.5 Gbps   Down/ Polling)=3D=3D>
-> [  ] "" ( )
->            1   28[  ] =3D=3D( 4X 2.5 Gbps   Down/ Polling)=3D=3D>
-> [  ] "" ( )
->            1   29[  ] =3D=3D( 4X 2.5 Gbps   Down/ Polling)=3D=3D>
-> [  ] "" ( )
->            1   30[  ] =3D=3D( 4X 2.5 Gbps   Down/ Polling)=3D=3D>
-> [  ] "" ( )
->            1   31[  ] =3D=3D( 4X 2.5 Gbps   Down/ Polling)=3D=3D>
-> [  ] "" ( )
->            1   32[  ] =3D=3D( 4X 2.5 Gbps   Down/ Polling)=3D=3D>
-> [  ] "" ( )
->            1   33[  ] =3D=3D( 4X 2.5 Gbps   Down/ Polling)=3D=3D>
-> [  ] "" ( )
->            1   34[  ] =3D=3D( 4X 2.5 Gbps   Down/ Polling)=3D=3D>
-> [  ] "" ( )
->            1   35[  ] =3D=3D( 4X 2.5 Gbps   Down/ Polling)=3D=3D>
-> [  ] "" ( )
->            1   36[  ] =3D=3D( 4X 2.5 Gbps   Down/ Polling)=3D=3D>
-> [  ] "" ( )
->=20
-> On Thu, Sep 2, 2010 at 12:03 PM, Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org> wrote:
-> > On Thu, 2 Sep 2010 06:56:50 -0700
-> > Chuck Hartley <hartlch14-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
+> > looks better but since we know everything about the device we're
+> > comparing to, can't we do something like:
 > >
-> >> We swapped in a different switch and see the same errors. The open=
-sm
-> >> logfile does not show any errors:
+> > 		if (addr and dev ARPHRD agree)
+> > 			if (dev is IBoE)
+> > 				ret = ib_find_gid(iboe_gid);
+> > 			else
+> > 				ret = ib_find_gid(gid);
 > >
-> > Could you run "ibstat" on the node with OpenSM running?
-> >
-> > And "iblinkinfo" on the same node?
-> >
-> > Send that output.
-> >
-> > Ira
-> >
-> >>
-> >> -------------------------------------------------
-> >> OpenSM 3.3.5
-> >> Command Line Arguments:
-> >> =A0Daemon mode
-> >> =A0Log File: /var/log/opensm.log
-> >> -------------------------------------------------
-> >> OpenSM 3.3.5
-> >>
-> >> Sep 02 05:56:29 933684 [B53B8700] 0x80 -> OpenSM 3.3.5
-> >> Entering DISCOVERING state
-> >>
-> >> Sep 02 05:56:29 934931 [B53B8700] 0x02 -> osm_vendor_init: 1000
-> >> pending umads specified
-> >> Sep 02 05:56:29 935079 [B53B8700] 0x80 -> Entering DISCOVERING sta=
-te
-> >> Using default GUID 0x2c90300032de1
-> >> Entering MASTER state
-> >>
-> >> Sep 02 05:56:29 953763 [B53B8700] 0x02 -> osm_vendor_bind: Binding=
- to
-> >> port 0x2c90300032de1
-> >> Sep 02 05:56:29 990146 [B53B8700] 0x02 -> osm_vendor_bind: Binding=
- to
-> >> port 0x2c90300032de1
-> >> Sep 02 05:56:29 990240 [B53B8700] 0x02 -> osm_opensm_bind: Setting
-> >> IS_SM on port 0x0002c90300032de1
-> >> Sep 02 05:56:30 009040 [AF1DB710] 0x80 -> Entering MASTER state
-> >> SUBNET UP
-> >>
-> >> Sep 02 05:56:30 009885 [AF1DB710] 0x02 -> osm_ucast_mgr_process:
-> >> minhop tables configured on all switches
-> >> Sep 02 05:56:30 014593 [AF1DB710] 0x80 -> SUBNET UP
-> >>
-> >>
-> >> On Thu, Sep 2, 2010 at 8:56 AM, Hal Rosenstock <hal.rosenstock@gma=
-il.com> wrote:
-> >> > On Thu, Sep 2, 2010 at 8:34 AM, Chuck Hartley <hartlch14@gmail.c=
-om> wrote:
-> >> >> Hello,
-> >> >>
-> >> >> We installed 1.5.1 and are having problems getting the IB fabri=
-c
-> >> >> working. ibv_devinfo shows the HCAs ports are ok and ibdiagnet =
-reports
-> >> >> no errors. However, ibchecknet shows that the switch ports are =
-not
-> >> >> being configured. =A0We have never seen this before and are at =
-a loss as
-> >> >> to where the problem might be - would someone please point us i=
-n the
-> >> >> right direction to look? =A0Could it be a problem with the swit=
-ch
-> >> >> itself? Output from ibchecknet below.
-> >> >>
-> >> >>
-> >> >> # ibchecknet
-> >> >> Error check on lid 3 (Infiniscale-IV Mellanox Technologies) por=
-t all: =A0FAILED
-> >> >> ibwarn: [26732] dump_perfcounters: PortXmitWait not indicated s=
-o
-> >> >> ignore this counter
-> >> >> #warn: Lid is not configured lid 3 port 7
-> >> >> #warn: SM Lid is not configured
-> >> >
-> >> > Is there an SM running on your subnet ? If so, I think that the =
-lack
-> >> > of an SM could account for all of the issues mentioned here.
-> >> >
-> >> > -- Hal
-> >> >
-> >> --
-> >> To unsubscribe from this list: send the line "unsubscribe linux-rd=
-ma" in
-> >> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> >> More majordomo info at =A0http://**vger.kernel.org/majordomo-info.=
-html
-> >>
-> >
-> >
-> > --
-> > Ira Weiny
-> > Math Programmer/Computer Scientist
-> > Lawrence Livermore National Lab
-> > 925-423-8008
-> > weiny2-i2BcT+NCU+M@public.gmane.org
-> >
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma"=
- in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://*vger.kernel.org/majordomo-info.html
->=20
+> > 		if (!ret)
+> > 			break;
+> 
+> This looks even better with no duplicate checks.
 
+In cma_acquire_dev, we try to match up a portion of the dev_addr with a GID.  The current code does this by checking the dev_type to determine if the GID would start at offset 0 or 4 in the dev_addr.  With IBoE, this check is no longer possible, so we select the offset based on the rdma device that we're trying to compare against, rather than using data stored with the net_device.
 
---=20
-Ira Weiny
-Math Programmer/Computer Scientist
-Lawrence Livermore National Lab
-925-423-8008
-weiny2-i2BcT+NCU+M@public.gmane.org
+Maybe it's just so unlikely that we don't care, but can this lead to a false match?  (and maybe the current code can have a false match..)
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
