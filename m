@@ -1,101 +1,83 @@
-From: "Eli Dorfman (Voltaire)" <dorfman.eli-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH] ibsim: parse width and speed from ibnetdiscover output
-Date: Thu, 02 Sep 2010 10:37:40 +0300
-Message-ID: <4C7F5444.4030302@gmail.com>
+From: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH] ibsim: parse width and speed from ibnetdiscover output
+Date: Thu, 2 Sep 2010 06:33:59 -0400
+Message-ID: <AANLkTi=3R5=obzp=hXmsh9HDswMMV770AB4cZvpTkhZc@mail.gmail.com>
+References: <4C7F5444.4030302@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <4C7F5444.4030302-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: "Eli Dorfman (Voltaire)" <dorfman.eli-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-
-Search for the pattern '[0-9]*x[SDQ]DR'
-Validate that width value is valid.
-
-Signed-off-by: Eli Dorfman <elid-smomgflXvOZWk0Htik3J/w@public.gmane.org>
----
- ibsim/sim_net.c |   48 ++++++++++++++++++++++++++++++++++++++++++++++++
- 1 files changed, 48 insertions(+), 0 deletions(-)
-
-diff --git a/ibsim/sim_net.c b/ibsim/sim_net.c
-index 13c3b8c..278c065 100644
---- a/ibsim/sim_net.c
-+++ b/ibsim/sim_net.c
-@@ -611,6 +611,7 @@ static int parse_port(char *line, Node * node, int type, int maxports)
- 	int portnum, isalias = 0;
- 	Port *port;
- 	char *s;
-+	char *p;
- 
- 	if (line[0] == '@') {
- 		isalias = 1;
-@@ -671,6 +672,7 @@ static int parse_port(char *line, Node * node, int type, int maxports)
- 	}
-       parse_opt:
- 	line = s;
-+	p = s;
- 	while (s && (s = strchr(s + 1, '='))) {
- 		char *opt = s;
- 		while (opt && !isalpha(*opt))
-@@ -685,6 +687,52 @@ static int parse_port(char *line, Node * node, int type, int maxports)
- 		IBWARN("cannot parse lid, lmc");
- 		return -1;
- 	}
-+
-+	/* parse width speed from '[0-9]*x[SDQ]DR' pattern */
-+	/* also checking for valid width value */
-+	char wstr[3];
-+	char sstr[3];
-+	s = p;
-+	while (s && (s = strchr(s + 1, 'x'))) {
-+		int width;
-+		p = s - 1;
-+		while (p && !isdigit(*p))
-+			p--;
-+		width = atoi(p);
-+		switch (width) {
-+			case 1: strcpy(wstr, "1");
-+				break;
-+			case 4: strcpy(wstr, "2");
-+				break;
-+			case 8: strcpy(wstr, "4");
-+				break;
-+			case 12: strcpy(wstr, "8");
-+				break;
-+			default: wstr[0] = sstr[0] = 0;
-+				continue;
-+		}
-+		p = p + 2;
-+		if (!strncmp("SDR", p, 3))
-+			strcpy(sstr, "1");
-+		else if (!strncmp("DDR", p, 3))
-+			strcpy(sstr, "2");
-+		else if (!strncmp("QDR", p, 3))
-+			strcpy(sstr, "4");
-+		else {
-+			wstr[0] = sstr[0] = 0;
-+			continue;
-+		}
-+	}
-+
-+	if (parse_port_opt(port, "w", wstr) < 0) {
-+		IBWARN("bad port option");
-+		return -1;
-+	}
-+
-+	if (parse_port_opt(port, "s", sstr) < 0) {
-+		IBWARN("bad port option");
-+		return -1;
-+	}
- 	return 1;
- }
- 
--- 
-1.7.2.1
-
+T24gVGh1LCBTZXAgMiwgMjAxMCBhdCAzOjM3IEFNLCBFbGkgRG9yZm1hbiAoVm9sdGFpcmUpCjxk
+b3JmbWFuLmVsaUBnbWFpbC5jb20+IHdyb3RlOgo+Cj4gU2VhcmNoIGZvciB0aGUgcGF0dGVybiAn
+WzAtOV0qeFtTRFFdRFInCj4gVmFsaWRhdGUgdGhhdCB3aWR0aCB2YWx1ZSBpcyB2YWxpZC4KCklm
+IHRoaXMgaXMgZG9uZSAodG8gaWJzaW0pLCBpcyB0aGUgcHJldmlvdXMgcGF0Y2ggZm9yIGlibmV0
+ZGlzY292ZXIgLWYKc3RpbGwgbmVlZGVkID8KCi0tIEhhbAoKPiBTaWduZWQtb2ZmLWJ5OiBFbGkg
+RG9yZm1hbiA8ZWxpZEB2b2x0YWlyZS5jb20+Cj4gLS0tCj4gwqBpYnNpbS9zaW1fbmV0LmMgfCDC
+oCA0OCArKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysKPiDC
+oDEgZmlsZXMgY2hhbmdlZCwgNDggaW5zZXJ0aW9ucygrKSwgMCBkZWxldGlvbnMoLSkKPgo+IGRp
+ZmYgLS1naXQgYS9pYnNpbS9zaW1fbmV0LmMgYi9pYnNpbS9zaW1fbmV0LmMKPiBpbmRleCAxM2Mz
+YjhjLi4yNzhjMDY1IDEwMDY0NAo+IC0tLSBhL2lic2ltL3NpbV9uZXQuYwo+ICsrKyBiL2lic2lt
+L3NpbV9uZXQuYwo+IEBAIC02MTEsNiArNjExLDcgQEAgc3RhdGljIGludCBwYXJzZV9wb3J0KGNo
+YXIgKmxpbmUsIE5vZGUgKiBub2RlLCBpbnQgdHlwZSwgaW50IG1heHBvcnRzKQo+IMKgIMKgIMKg
+IMKgaW50IHBvcnRudW0sIGlzYWxpYXMgPSAwOwo+IMKgIMKgIMKgIMKgUG9ydCAqcG9ydDsKPiDC
+oCDCoCDCoCDCoGNoYXIgKnM7Cj4gKyDCoCDCoCDCoCBjaGFyICpwOwo+Cj4gwqAgwqAgwqAgwqBp
+ZiAobGluZVswXSA9PSAnQCcpIHsKPiDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoGlzYWxpYXMgPSAx
+Owo+IEBAIC02NzEsNiArNjcyLDcgQEAgc3RhdGljIGludCBwYXJzZV9wb3J0KGNoYXIgKmxpbmUs
+IE5vZGUgKiBub2RlLCBpbnQgdHlwZSwgaW50IG1heHBvcnRzKQo+IMKgIMKgIMKgIMKgfQo+IMKg
+IMKgIMKgIHBhcnNlX29wdDoKPiDCoCDCoCDCoCDCoGxpbmUgPSBzOwo+ICsgwqAgwqAgwqAgcCA9
+IHM7Cj4gwqAgwqAgwqAgwqB3aGlsZSAocyAmJiAocyA9IHN0cmNocihzICsgMSwgJz0nKSkpIHsK
+PiDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoGNoYXIgKm9wdCA9IHM7Cj4gwqAgwqAgwqAgwqAgwqAg
+wqAgwqAgwqB3aGlsZSAob3B0ICYmICFpc2FscGhhKCpvcHQpKQo+IEBAIC02ODUsNiArNjg3LDUy
+IEBAIHN0YXRpYyBpbnQgcGFyc2VfcG9ydChjaGFyICpsaW5lLCBOb2RlICogbm9kZSwgaW50IHR5
+cGUsIGludCBtYXhwb3J0cykKPiDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoElCV0FSTigiY2Fubm90
+IHBhcnNlIGxpZCwgbG1jIik7Cj4gwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqByZXR1cm4gLTE7Cj4g
+wqAgwqAgwqAgwqB9Cj4gKwo+ICsgwqAgwqAgwqAgLyogcGFyc2Ugd2lkdGggc3BlZWQgZnJvbSAn
+WzAtOV0qeFtTRFFdRFInIHBhdHRlcm4gKi8KPiArIMKgIMKgIMKgIC8qIGFsc28gY2hlY2tpbmcg
+Zm9yIHZhbGlkIHdpZHRoIHZhbHVlICovCj4gKyDCoCDCoCDCoCBjaGFyIHdzdHJbM107Cj4gKyDC
+oCDCoCDCoCBjaGFyIHNzdHJbM107Cj4gKyDCoCDCoCDCoCBzID0gcDsKPiArIMKgIMKgIMKgIHdo
+aWxlIChzICYmIChzID0gc3RyY2hyKHMgKyAxLCAneCcpKSkgewo+ICsgwqAgwqAgwqAgwqAgwqAg
+wqAgwqAgaW50IHdpZHRoOwo+ICsgwqAgwqAgwqAgwqAgwqAgwqAgwqAgcCA9IHMgLSAxOwo+ICsg
+wqAgwqAgwqAgwqAgwqAgwqAgwqAgd2hpbGUgKHAgJiYgIWlzZGlnaXQoKnApKQo+ICsgwqAgwqAg
+wqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgcC0tOwo+ICsgwqAgwqAgwqAgwqAgwqAgwqAgwqAg
+d2lkdGggPSBhdG9pKHApOwo+ICsgwqAgwqAgwqAgwqAgwqAgwqAgwqAgc3dpdGNoICh3aWR0aCkg
+ewo+ICsgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgY2FzZSAxOiBzdHJjcHkod3N0
+ciwgIjEiKTsKPiArIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKg
+IGJyZWFrOwo+ICsgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgY2FzZSA0OiBzdHJj
+cHkod3N0ciwgIjIiKTsKPiArIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKg
+IMKgIMKgIGJyZWFrOwo+ICsgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgY2FzZSA4
+OiBzdHJjcHkod3N0ciwgIjQiKTsKPiArIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKg
+IMKgIMKgIMKgIMKgIGJyZWFrOwo+ICsgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAg
+Y2FzZSAxMjogc3RyY3B5KHdzdHIsICI4Iik7Cj4gKyDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDC
+oCDCoCDCoCDCoCDCoCDCoCDCoCBicmVhazsKPiArIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKg
+IMKgIMKgIGRlZmF1bHQ6IHdzdHJbMF0gPSBzc3RyWzBdID0gMDsKPiArIMKgIMKgIMKgIMKgIMKg
+IMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIGNvbnRpbnVlOwo+ICsgwqAgwqAgwqAgwqAg
+wqAgwqAgwqAgfQo+ICsgwqAgwqAgwqAgwqAgwqAgwqAgwqAgcCA9IHAgKyAyOwo+ICsgwqAgwqAg
+wqAgwqAgwqAgwqAgwqAgaWYgKCFzdHJuY21wKCJTRFIiLCBwLCAzKSkKPiArIMKgIMKgIMKgIMKg
+IMKgIMKgIMKgIMKgIMKgIMKgIMKgIHN0cmNweShzc3RyLCAiMSIpOwo+ICsgwqAgwqAgwqAgwqAg
+wqAgwqAgwqAgZWxzZSBpZiAoIXN0cm5jbXAoIkREUiIsIHAsIDMpKQo+ICsgwqAgwqAgwqAgwqAg
+wqAgwqAgwqAgwqAgwqAgwqAgwqAgc3RyY3B5KHNzdHIsICIyIik7Cj4gKyDCoCDCoCDCoCDCoCDC
+oCDCoCDCoCBlbHNlIGlmICghc3RybmNtcCgiUURSIiwgcCwgMykpCj4gKyDCoCDCoCDCoCDCoCDC
+oCDCoCDCoCDCoCDCoCDCoCDCoCBzdHJjcHkoc3N0ciwgIjQiKTsKPiArIMKgIMKgIMKgIMKgIMKg
+IMKgIMKgIGVsc2Ugewo+ICsgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgd3N0clsw
+XSA9IHNzdHJbMF0gPSAwOwo+ICsgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgY29u
+dGludWU7Cj4gKyDCoCDCoCDCoCDCoCDCoCDCoCDCoCB9Cj4gKyDCoCDCoCDCoCB9Cj4gKwo+ICsg
+wqAgwqAgwqAgaWYgKHBhcnNlX3BvcnRfb3B0KHBvcnQsICJ3Iiwgd3N0cikgPCAwKSB7Cj4gKyDC
+oCDCoCDCoCDCoCDCoCDCoCDCoCBJQldBUk4oImJhZCBwb3J0IG9wdGlvbiIpOwo+ICsgwqAgwqAg
+wqAgwqAgwqAgwqAgwqAgcmV0dXJuIC0xOwo+ICsgwqAgwqAgwqAgfQo+ICsKPiArIMKgIMKgIMKg
+IGlmIChwYXJzZV9wb3J0X29wdChwb3J0LCAicyIsIHNzdHIpIDwgMCkgewo+ICsgwqAgwqAgwqAg
+wqAgwqAgwqAgwqAgSUJXQVJOKCJiYWQgcG9ydCBvcHRpb24iKTsKPiArIMKgIMKgIMKgIMKgIMKg
+IMKgIMKgIHJldHVybiAtMTsKPiArIMKgIMKgIMKgIH0KPiDCoCDCoCDCoCDCoHJldHVybiAxOwo+
+IMKgfQo+Cj4gLS0KPiAxLjcuMi4xCj4KPiAtLQo+IFRvIHVuc3Vic2NyaWJlIGZyb20gdGhpcyBs
+aXN0OiBzZW5kIHRoZSBsaW5lICJ1bnN1YnNjcmliZSBsaW51eC1yZG1hIiBpbgo+IHRoZSBib2R5
+IG9mIGEgbWVzc2FnZSB0byBtYWpvcmRvbW9Admdlci5rZXJuZWwub3JnCj4gTW9yZSBtYWpvcmRv
+bW8gaW5mbyBhdCDCoGh0dHA6Ly92Z2VyLmtlcm5lbC5vcmcvbWFqb3Jkb21vLWluZm8uaHRtbAo+
+Cg==
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
