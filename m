@@ -1,83 +1,73 @@
-From: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH] ibsim: parse width and speed from ibnetdiscover output
-Date: Thu, 2 Sep 2010 06:33:59 -0400
-Message-ID: <AANLkTi=3R5=obzp=hXmsh9HDswMMV770AB4cZvpTkhZc@mail.gmail.com>
-References: <4C7F5444.4030302@gmail.com>
+From: Chuck Hartley <hartlch14-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Errors from ibchecknet
+Date: Thu, 2 Sep 2010 08:34:07 -0400
+Message-ID: <AANLkTi=EuVGxLyjMFMw=YZm38CPvCTbcxt104R-B_o_i@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4C7F5444.4030302-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Eli Dorfman (Voltaire)" <dorfman.eli-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-T24gVGh1LCBTZXAgMiwgMjAxMCBhdCAzOjM3IEFNLCBFbGkgRG9yZm1hbiAoVm9sdGFpcmUpCjxk
-b3JmbWFuLmVsaUBnbWFpbC5jb20+IHdyb3RlOgo+Cj4gU2VhcmNoIGZvciB0aGUgcGF0dGVybiAn
-WzAtOV0qeFtTRFFdRFInCj4gVmFsaWRhdGUgdGhhdCB3aWR0aCB2YWx1ZSBpcyB2YWxpZC4KCklm
-IHRoaXMgaXMgZG9uZSAodG8gaWJzaW0pLCBpcyB0aGUgcHJldmlvdXMgcGF0Y2ggZm9yIGlibmV0
-ZGlzY292ZXIgLWYKc3RpbGwgbmVlZGVkID8KCi0tIEhhbAoKPiBTaWduZWQtb2ZmLWJ5OiBFbGkg
-RG9yZm1hbiA8ZWxpZEB2b2x0YWlyZS5jb20+Cj4gLS0tCj4gwqBpYnNpbS9zaW1fbmV0LmMgfCDC
-oCA0OCArKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysKPiDC
-oDEgZmlsZXMgY2hhbmdlZCwgNDggaW5zZXJ0aW9ucygrKSwgMCBkZWxldGlvbnMoLSkKPgo+IGRp
-ZmYgLS1naXQgYS9pYnNpbS9zaW1fbmV0LmMgYi9pYnNpbS9zaW1fbmV0LmMKPiBpbmRleCAxM2Mz
-YjhjLi4yNzhjMDY1IDEwMDY0NAo+IC0tLSBhL2lic2ltL3NpbV9uZXQuYwo+ICsrKyBiL2lic2lt
-L3NpbV9uZXQuYwo+IEBAIC02MTEsNiArNjExLDcgQEAgc3RhdGljIGludCBwYXJzZV9wb3J0KGNo
-YXIgKmxpbmUsIE5vZGUgKiBub2RlLCBpbnQgdHlwZSwgaW50IG1heHBvcnRzKQo+IMKgIMKgIMKg
-IMKgaW50IHBvcnRudW0sIGlzYWxpYXMgPSAwOwo+IMKgIMKgIMKgIMKgUG9ydCAqcG9ydDsKPiDC
-oCDCoCDCoCDCoGNoYXIgKnM7Cj4gKyDCoCDCoCDCoCBjaGFyICpwOwo+Cj4gwqAgwqAgwqAgwqBp
-ZiAobGluZVswXSA9PSAnQCcpIHsKPiDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoGlzYWxpYXMgPSAx
-Owo+IEBAIC02NzEsNiArNjcyLDcgQEAgc3RhdGljIGludCBwYXJzZV9wb3J0KGNoYXIgKmxpbmUs
-IE5vZGUgKiBub2RlLCBpbnQgdHlwZSwgaW50IG1heHBvcnRzKQo+IMKgIMKgIMKgIMKgfQo+IMKg
-IMKgIMKgIHBhcnNlX29wdDoKPiDCoCDCoCDCoCDCoGxpbmUgPSBzOwo+ICsgwqAgwqAgwqAgcCA9
-IHM7Cj4gwqAgwqAgwqAgwqB3aGlsZSAocyAmJiAocyA9IHN0cmNocihzICsgMSwgJz0nKSkpIHsK
-PiDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoGNoYXIgKm9wdCA9IHM7Cj4gwqAgwqAgwqAgwqAgwqAg
-wqAgwqAgwqB3aGlsZSAob3B0ICYmICFpc2FscGhhKCpvcHQpKQo+IEBAIC02ODUsNiArNjg3LDUy
-IEBAIHN0YXRpYyBpbnQgcGFyc2VfcG9ydChjaGFyICpsaW5lLCBOb2RlICogbm9kZSwgaW50IHR5
-cGUsIGludCBtYXhwb3J0cykKPiDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoElCV0FSTigiY2Fubm90
-IHBhcnNlIGxpZCwgbG1jIik7Cj4gwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqByZXR1cm4gLTE7Cj4g
-wqAgwqAgwqAgwqB9Cj4gKwo+ICsgwqAgwqAgwqAgLyogcGFyc2Ugd2lkdGggc3BlZWQgZnJvbSAn
-WzAtOV0qeFtTRFFdRFInIHBhdHRlcm4gKi8KPiArIMKgIMKgIMKgIC8qIGFsc28gY2hlY2tpbmcg
-Zm9yIHZhbGlkIHdpZHRoIHZhbHVlICovCj4gKyDCoCDCoCDCoCBjaGFyIHdzdHJbM107Cj4gKyDC
-oCDCoCDCoCBjaGFyIHNzdHJbM107Cj4gKyDCoCDCoCDCoCBzID0gcDsKPiArIMKgIMKgIMKgIHdo
-aWxlIChzICYmIChzID0gc3RyY2hyKHMgKyAxLCAneCcpKSkgewo+ICsgwqAgwqAgwqAgwqAgwqAg
-wqAgwqAgaW50IHdpZHRoOwo+ICsgwqAgwqAgwqAgwqAgwqAgwqAgwqAgcCA9IHMgLSAxOwo+ICsg
-wqAgwqAgwqAgwqAgwqAgwqAgwqAgd2hpbGUgKHAgJiYgIWlzZGlnaXQoKnApKQo+ICsgwqAgwqAg
-wqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgcC0tOwo+ICsgwqAgwqAgwqAgwqAgwqAgwqAgwqAg
-d2lkdGggPSBhdG9pKHApOwo+ICsgwqAgwqAgwqAgwqAgwqAgwqAgwqAgc3dpdGNoICh3aWR0aCkg
-ewo+ICsgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgY2FzZSAxOiBzdHJjcHkod3N0
-ciwgIjEiKTsKPiArIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKg
-IGJyZWFrOwo+ICsgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgY2FzZSA0OiBzdHJj
-cHkod3N0ciwgIjIiKTsKPiArIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKg
-IMKgIMKgIGJyZWFrOwo+ICsgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgY2FzZSA4
-OiBzdHJjcHkod3N0ciwgIjQiKTsKPiArIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKg
-IMKgIMKgIMKgIMKgIGJyZWFrOwo+ICsgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAg
-Y2FzZSAxMjogc3RyY3B5KHdzdHIsICI4Iik7Cj4gKyDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDC
-oCDCoCDCoCDCoCDCoCDCoCDCoCBicmVhazsKPiArIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKg
-IMKgIMKgIGRlZmF1bHQ6IHdzdHJbMF0gPSBzc3RyWzBdID0gMDsKPiArIMKgIMKgIMKgIMKgIMKg
-IMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIGNvbnRpbnVlOwo+ICsgwqAgwqAgwqAgwqAg
-wqAgwqAgwqAgfQo+ICsgwqAgwqAgwqAgwqAgwqAgwqAgwqAgcCA9IHAgKyAyOwo+ICsgwqAgwqAg
-wqAgwqAgwqAgwqAgwqAgaWYgKCFzdHJuY21wKCJTRFIiLCBwLCAzKSkKPiArIMKgIMKgIMKgIMKg
-IMKgIMKgIMKgIMKgIMKgIMKgIMKgIHN0cmNweShzc3RyLCAiMSIpOwo+ICsgwqAgwqAgwqAgwqAg
-wqAgwqAgwqAgZWxzZSBpZiAoIXN0cm5jbXAoIkREUiIsIHAsIDMpKQo+ICsgwqAgwqAgwqAgwqAg
-wqAgwqAgwqAgwqAgwqAgwqAgwqAgc3RyY3B5KHNzdHIsICIyIik7Cj4gKyDCoCDCoCDCoCDCoCDC
-oCDCoCDCoCBlbHNlIGlmICghc3RybmNtcCgiUURSIiwgcCwgMykpCj4gKyDCoCDCoCDCoCDCoCDC
-oCDCoCDCoCDCoCDCoCDCoCDCoCBzdHJjcHkoc3N0ciwgIjQiKTsKPiArIMKgIMKgIMKgIMKgIMKg
-IMKgIMKgIGVsc2Ugewo+ICsgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgd3N0clsw
-XSA9IHNzdHJbMF0gPSAwOwo+ICsgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgY29u
-dGludWU7Cj4gKyDCoCDCoCDCoCDCoCDCoCDCoCDCoCB9Cj4gKyDCoCDCoCDCoCB9Cj4gKwo+ICsg
-wqAgwqAgwqAgaWYgKHBhcnNlX3BvcnRfb3B0KHBvcnQsICJ3Iiwgd3N0cikgPCAwKSB7Cj4gKyDC
-oCDCoCDCoCDCoCDCoCDCoCDCoCBJQldBUk4oImJhZCBwb3J0IG9wdGlvbiIpOwo+ICsgwqAgwqAg
-wqAgwqAgwqAgwqAgwqAgcmV0dXJuIC0xOwo+ICsgwqAgwqAgwqAgfQo+ICsKPiArIMKgIMKgIMKg
-IGlmIChwYXJzZV9wb3J0X29wdChwb3J0LCAicyIsIHNzdHIpIDwgMCkgewo+ICsgwqAgwqAgwqAg
-wqAgwqAgwqAgwqAgSUJXQVJOKCJiYWQgcG9ydCBvcHRpb24iKTsKPiArIMKgIMKgIMKgIMKgIMKg
-IMKgIMKgIHJldHVybiAtMTsKPiArIMKgIMKgIMKgIH0KPiDCoCDCoCDCoCDCoHJldHVybiAxOwo+
-IMKgfQo+Cj4gLS0KPiAxLjcuMi4xCj4KPiAtLQo+IFRvIHVuc3Vic2NyaWJlIGZyb20gdGhpcyBs
-aXN0OiBzZW5kIHRoZSBsaW5lICJ1bnN1YnNjcmliZSBsaW51eC1yZG1hIiBpbgo+IHRoZSBib2R5
-IG9mIGEgbWVzc2FnZSB0byBtYWpvcmRvbW9Admdlci5rZXJuZWwub3JnCj4gTW9yZSBtYWpvcmRv
-bW8gaW5mbyBhdCDCoGh0dHA6Ly92Z2VyLmtlcm5lbC5vcmcvbWFqb3Jkb21vLWluZm8uaHRtbAo+
-Cg==
+Hello,
+
+We installed 1.5.1 and are having problems getting the IB fabric
+working. ibv_devinfo shows the HCAs ports are ok and ibdiagnet reports
+no errors. However, ibchecknet shows that the switch ports are not
+being configured.  We have never seen this before and are at a loss as
+to where the problem might be - would someone please point us in the
+right direction to look?  Could it be a problem with the switch
+itself? Output from ibchecknet below.
+
+
+# ibchecknet
+Error check on lid 3 (Infiniscale-IV Mellanox Technologies) port all:  FAILED
+ibwarn: [26732] dump_perfcounters: PortXmitWait not indicated so
+ignore this counter
+#warn: Lid is not configured lid 3 port 7
+#warn: SM Lid is not configured
+Port check lid 3 port 7:  FAILED
+# Checked Switch: nodeguid 0x0002c90200405368 with failure
+ibwarn: [26751] dump_perfcounters: PortXmitWait not indicated so
+ignore this counter
+#warn: Lid is not configured lid 3 port 10
+#warn: SM Lid is not configured
+Port check lid 3 port 10:  FAILED
+ibwarn: [26770] dump_perfcounters: PortXmitWait not indicated so
+ignore this counter
+#warn: Lid is not configured lid 3 port 11
+#warn: SM Lid is not configured
+Port check lid 3 port 11:  FAILED
+ibwarn: [26789] dump_perfcounters: PortXmitWait not indicated so
+ignore this counter
+#warn: Lid is not configured lid 3 port 34
+#warn: SM Lid is not configured
+Port check lid 3 port 34:  FAILED
+ibwarn: [26808] dump_perfcounters: PortXmitWait not indicated so
+ignore this counter
+#warn: Lid is not configured lid 3 port 35
+#warn: SM Lid is not configured
+Port check lid 3 port 35:  FAILED
+
+# Checking Ca: nodeguid 0x0030487f30760000
+ibwarn: [26832] dump_perfcounters: PortXmitWait not indicated so
+ignore this counter
+
+# Checking Ca: nodeguid 0x0030487f32b20000
+ibwarn: [26856] dump_perfcounters: PortXmitWait not indicated so
+ignore this counter
+
+# Checking Ca: nodeguid 0x0002c9030003360c
+
+# Checking Ca: nodeguid 0x0002c90300084162
+ibwarn: [26904] dump_perfcounters: PortXmitWait not indicated so
+ignore this counter
+
+# Checking Ca: nodeguid 0x0002c90300032de0
+
+## Summary: 6 nodes checked, 0 bad nodes found
+##          10 ports checked, 5 bad ports found
+##          0 ports have errors beyond threshold
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
