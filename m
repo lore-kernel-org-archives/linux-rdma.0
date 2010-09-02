@@ -1,40 +1,49 @@
-From: Chuck Hartley <hartlch14-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: Errors from ibchecknet
-Date: Thu, 2 Sep 2010 14:16:41 -0400
-Message-ID: <AANLkTim_trDik7m5k0KwqAerhpeuU2gADNZSBSkuRxf-@mail.gmail.com>
-References: <AANLkTi=EuVGxLyjMFMw=YZm38CPvCTbcxt104R-B_o_i@mail.gmail.com>
-	<AANLkTikoYH+1tBzHX29uUnFGepFhfXdOkRHSX3OLW9g6@mail.gmail.com>
-	<AANLkTikQ3jeNwtbR6zqpSvt7=YWatRhWfr60Q5of_FJR@mail.gmail.com>
-	<20100902090330.093d8ba6.weiny2@llnl.gov>
+From: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCHv10 02/12] ib_core: IBoE CMA device binding
+Date: Thu, 2 Sep 2010 22:27:46 +0300
+Message-ID: <20100902192745.GA22039@mtldesk30>
+References: <20100826141723.GC8795@mtldesk30>
+ <CF9C39F99A89134C9CF9C4CCB68B8DDF25AB26491D@orsmsx501.amr.corp.intel.com>
+ <20100827054256.GA9755@mtldesk30>
+ <adavd6w37lp.fsf@cisco.com>
+ <20100829143914.GA14370@mtldesk30>
+ <adaeidcnin1.fsf@cisco.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20100902090330.093d8ba6.weiny2-i2BcT+NCU+M@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <adaeidcnin1.fsf-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-Cc: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Cc: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, RDMA list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-BTW, I am able to communicate between nodes via 'ibping'.  That is the
-only test program I found that will work without needing a host IP.
+On Thu, Sep 02, 2010 at 10:46:10AM -0700, Roland Dreier wrote:
+> 
+> looks better but since we know everything about the device we're
+> comparing to, can't we do something like:
+> 
+> 		if (addr and dev ARPHRD agree)
+> 			if (dev is IBoE)
+> 				ret = ib_find_gid(iboe_gid);
+> 			else
+> 				ret = ib_find_gid(gid);
+> 
+> 		if (!ret)
+> 			break;
 
+This looks even better with no duplicate checks.
 
+> 
+> (by the way, it seems we can use ib_find_gid() here since we are in a
+> sleepable context -- no need to rely on the cached_gid stuff, which I
+> would like to phase out someday)
+> 
 
-On Thu, Sep 2, 2010 at 12:03 PM, Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org> wrote:
-> On Thu, 2 Sep 2010 06:56:50 -0700
-> Chuck Hartley <hartlch14-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
->
->> We swapped in a different switch and see the same errors. The opensm
->> logfile does not show any errors:
->
-> Could you run "ibstat" on the node with OpenSM running?
->
-> And "iblinkinfo" on the same node?
->
-> Send that output.
->
-> Ira
->
+Sure, I can change that too.
+Please let me know if you'd like me to send a new series or just send
+this patch again.
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
