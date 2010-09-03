@@ -1,7 +1,8 @@
 From: "Jim Schutt" <jaschut-4OHPYypu0djtX7QSmKvirg@public.gmane.org>
-Subject: [PATCH v4 12/18] opensm: Enable torus-2QoS routing engine.
-Date: Fri,  3 Sep 2010 10:43:08 -0600
-Message-ID: <1283532194-27112-13-git-send-email-jaschut@sandia.gov>
+Subject: [PATCH v4 18/18] opensm: Cause status of unicast routing
+ attempt to propogate to callers of osm_ucast_mgr_process().
+Date: Fri,  3 Sep 2010 10:43:14 -0600
+Message-ID: <1283532194-27112-19-git-send-email-jaschut@sandia.gov>
 References: <1283532194-27112-1-git-send-email-jaschut@sandia.gov>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -13,77 +14,95 @@ To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org, Jim Schutt <jaschut-4OHPYypu0djtX7QSmKvirg@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+If unicast routing fails, there is no point to continuing with fabric bring-up.
+Just restart a new heavy sweep instead.
 
 Signed-off-by: Jim Schutt <jaschut-4OHPYypu0djtX7QSmKvirg@public.gmane.org>
 ---
- opensm/include/opensm/osm_opensm.h |    1 +
- opensm/opensm/main.c               |    2 +-
- opensm/opensm/osm_opensm.c         |    6 ++++++
- 3 files changed, 8 insertions(+), 1 deletions(-)
+ opensm/opensm/osm_state_mgr.c |   12 +++++++++---
+ opensm/opensm/osm_ucast_mgr.c |   14 +++++++++-----
+ 2 files changed, 18 insertions(+), 8 deletions(-)
 
-diff --git a/opensm/include/opensm/osm_opensm.h b/opensm/include/opensm/osm_opensm.h
-index fddcf53..8d63111 100644
---- a/opensm/include/opensm/osm_opensm.h
-+++ b/opensm/include/opensm/osm_opensm.h
-@@ -105,6 +105,7 @@ typedef enum _osm_routing_engine_type {
- 	OSM_ROUTING_ENGINE_TYPE_FTREE,
- 	OSM_ROUTING_ENGINE_TYPE_LASH,
- 	OSM_ROUTING_ENGINE_TYPE_DOR,
-+	OSM_ROUTING_ENGINE_TYPE_TORUS_2QOS,
- 	OSM_ROUTING_ENGINE_TYPE_UNKNOWN
- } osm_routing_engine_type_t;
- /***********/
-diff --git a/opensm/opensm/main.c b/opensm/opensm/main.c
-index 6e6c733..3a6d565 100644
---- a/opensm/opensm/main.c
-+++ b/opensm/opensm/main.c
-@@ -174,7 +174,7 @@ static void show_usage(void)
- 	       "          Min Hop algorithm.  Multiple routing engines can be specified\n"
- 	       "          separated by commas so that specific ordering of routing\n"
- 	       "          algorithms will be tried if earlier routing engines fail.\n"
--	       "          Supported engines: updn, file, ftree, lash, dor\n\n");
-+	       "          Supported engines: updn, file, ftree, lash, dor, torus-2QoS\n\n");
- 	printf("--do_mesh_analysis\n"
- 	       "          This option enables additional analysis for the lash\n"
- 	       "          routing engine to precondition switch port assignments\n"
-diff --git a/opensm/opensm/osm_opensm.c b/opensm/opensm/osm_opensm.c
-index 1c865b0..a69b7bb 100644
---- a/opensm/opensm/osm_opensm.c
-+++ b/opensm/opensm/osm_opensm.c
-@@ -70,6 +70,7 @@ extern int osm_ucast_file_setup(struct osm_routing_engine *, osm_opensm_t *);
- extern int osm_ucast_ftree_setup(struct osm_routing_engine *, osm_opensm_t *);
- extern int osm_ucast_lash_setup(struct osm_routing_engine *, osm_opensm_t *);
- extern int osm_ucast_dor_setup(struct osm_routing_engine *, osm_opensm_t *);
-+extern int osm_ucast_torus2QoS_setup(struct osm_routing_engine *, osm_opensm_t *);
+diff --git a/opensm/opensm/osm_state_mgr.c b/opensm/opensm/osm_state_mgr.c
+index bb60636..1befbfe 100644
+--- a/opensm/opensm/osm_state_mgr.c
++++ b/opensm/opensm/osm_state_mgr.c
+@@ -1142,7 +1142,11 @@ static void do_sweep(osm_sm_t * sm)
+ 		/* Re-program the switches fully */
+ 		sm->p_subn->ignore_existing_lfts = TRUE;
  
- const static struct routing_engine_module routing_modules[] = {
- 	{"minhop", osm_ucast_minhop_setup},
-@@ -78,6 +79,7 @@ const static struct routing_engine_module routing_modules[] = {
- 	{"ftree", osm_ucast_ftree_setup},
- 	{"lash", osm_ucast_lash_setup},
- 	{"dor", osm_ucast_dor_setup},
-+	{"torus-2QoS", osm_ucast_torus2QoS_setup},
- 	{NULL, NULL}
- };
+-		osm_ucast_mgr_process(&sm->ucast_mgr);
++		if (osm_ucast_mgr_process(&sm->ucast_mgr)) {
++			OSM_LOG_MSG_BOX(sm->p_log, OSM_LOG_VERBOSE,
++					"REROUTE FAILED");
++			return;
++		}
+ 		osm_qos_setup(sm->p_subn->p_osm);
  
-@@ -98,6 +100,8 @@ const char *osm_routing_engine_type_str(IN osm_routing_engine_type_t type)
- 		return "lash";
- 	case OSM_ROUTING_ENGINE_TYPE_DOR:
- 		return "dor";
-+	case OSM_ROUTING_ENGINE_TYPE_TORUS_2QOS:
-+		return "torus-2QoS";
- 	default:
- 		break;
+ 		/* Reset flag */
+@@ -1313,12 +1317,14 @@ repeat_discovery:
+ 			"LID ASSIGNMENT COMPLETE - STARTING SWITCH TABLE CONFIG");
+ 
+ 	/*
+-	 * Proceed with unicast forwarding table configuration.
++	 * Proceed with unicast forwarding table configuration; if it fails
++	 * return early to wait for a trap or the next sweep interval.
+ 	 */
+ 
+ 	if (!sm->ucast_mgr.cache_valid ||
+ 	    osm_ucast_cache_process(&sm->ucast_mgr))
+-		osm_ucast_mgr_process(&sm->ucast_mgr);
++		if (osm_ucast_mgr_process(&sm->ucast_mgr))
++			return;
+ 
+ 	osm_qos_setup(sm->p_subn->p_osm);
+ 
+diff --git a/opensm/opensm/osm_ucast_mgr.c b/opensm/opensm/osm_ucast_mgr.c
+index f5a715f..85495eb 100644
+--- a/opensm/opensm/osm_ucast_mgr.c
++++ b/opensm/opensm/osm_ucast_mgr.c
+@@ -1069,6 +1069,7 @@ int osm_ucast_mgr_process(IN osm_ucast_mgr_t * p_mgr)
+ 	osm_opensm_t *p_osm;
+ 	struct osm_routing_engine *p_routing_eng;
+ 	cl_qmap_t *p_sw_guid_tbl;
++	int failed = 0;
+ 
+ 	OSM_LOG_ENTER(p_mgr->p_log);
+ 
+@@ -1087,7 +1088,8 @@ int osm_ucast_mgr_process(IN osm_ucast_mgr_t * p_mgr)
+ 
+ 	p_osm->routing_engine_used = NULL;
+ 	while (p_routing_eng) {
+-		if (!ucast_mgr_route(p_routing_eng, p_osm))
++		failed = ucast_mgr_route(p_routing_eng, p_osm);
++		if (!failed)
+ 			break;
+ 		p_routing_eng = p_routing_eng->next;
  	}
-@@ -124,6 +128,8 @@ osm_routing_engine_type_t osm_routing_engine_type(IN const char *str)
- 		return OSM_ROUTING_ENGINE_TYPE_LASH;
- 	else if (!strcasecmp(str, "dor"))
- 		return OSM_ROUTING_ENGINE_TYPE_DOR;
-+	else if (!strcasecmp(str, "torus-2QoS"))
-+		return OSM_ROUTING_ENGINE_TYPE_TORUS_2QOS;
- 	else
- 		return OSM_ROUTING_ENGINE_TYPE_UNKNOWN;
+@@ -1098,9 +1100,11 @@ int osm_ucast_mgr_process(IN osm_ucast_mgr_t * p_mgr)
+ 		struct osm_routing_engine *r = p_osm->default_routing_engine;
+ 
+ 		r->build_lid_matrices(r->context);
+-		r->ucast_build_fwd_tables(r->context);
+-		p_osm->routing_engine_used = r;
+-		osm_ucast_mgr_set_fwd_tables(p_mgr);
++		failed = r->ucast_build_fwd_tables(r->context);
++		if (!failed) {
++			p_osm->routing_engine_used = r;
++			osm_ucast_mgr_set_fwd_tables(p_mgr);
++		}
+ 	}
+ 
+ 	if (p_osm->routing_engine_used) {
+@@ -1120,7 +1124,7 @@ int osm_ucast_mgr_process(IN osm_ucast_mgr_t * p_mgr)
+ Exit:
+ 	CL_PLOCK_RELEASE(p_mgr->p_lock);
+ 	OSM_LOG_EXIT(p_mgr->p_log);
+-	return 0;
++	return failed;
  }
+ 
+ static int ucast_build_lid_matrices(void *context)
 -- 
 1.6.2.2
 
