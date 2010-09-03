@@ -1,18 +1,32 @@
-From: Pradeep Satyanarayana <pradeeps-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
-Subject: Re: [PATCH v5] IB/ipoib: fix dangling pointer references to ipoib_neigh
- and ipoib_path
-Date: Thu, 02 Sep 2010 20:41:38 -0700
-Message-ID: <4C806E72.6030507@linux.vnet.ibm.com>
-References: <20100817203619.22174.62871.stgit@chromite.mv.qlogic.com> <20100817203624.22174.69480.stgit@chromite.mv.qlogic.com>
+From: Ralph Campbell <ralph.campbell-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+Subject: RE: [PATCH v5] IB/ipoib: fix dangling pointer references to
+ ipoib_neigh and ipoib_path
+Date: Fri, 3 Sep 2010 09:06:01 -0700
+Message-ID: <35AAF1E4A771E142979F27B51793A488873ABE0739@AVEXMB1.qlogic.org>
+References: <20100817203619.22174.62871.stgit@chromite.mv.qlogic.com>
+ <20100817203624.22174.69480.stgit@chromite.mv.qlogic.com>,<4C806E72.6030507@linux.vnet.ibm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20100817203624.22174.69480.stgit-/vjeY7uYZjrPXfVEPVhPGq6RkeBMCJyt@public.gmane.org>
+In-Reply-To: <4C806E72.6030507-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ralph Campbell <ralph.campbell-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-Cc: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Pradeep Satyanarayana <pradeeps-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
+Cc: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
+
+I haven't seen this stack trace before. Since it involves the RX
+QP connection and my patch changes the TX QP connection,
+I doubt my patch has any effect on this case. When I get some
+time, I will look to see if I can find similar races in the RX connection
+set up & tear down that might exist.
+________________________________________
+From: Pradeep Satyanarayana [pradeeps-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org]
+Sent: Thursday, September 02, 2010 8:41 PM
+To: Ralph Campbell
+Cc: Roland Dreier; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Subject: Re: [PATCH v5] IB/ipoib: fix dangling pointer references to ipoib_neigh and ipoib_path
 
 Ralph,
 
@@ -55,6 +69,7 @@ cpu 0x12: Vector: 300 (Data Access) at [c000000749fe3250]
 
 Thanks
 Pradeep
+
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
