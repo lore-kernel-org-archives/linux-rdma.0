@@ -1,8 +1,8 @@
 From: "Jim Schutt" <jaschut-4OHPYypu0djtX7QSmKvirg@public.gmane.org>
-Subject: [PATCH v4 18/18] opensm: Cause status of unicast routing
- attempt to propogate to callers of osm_ucast_mgr_process().
-Date: Fri,  3 Sep 2010 10:43:14 -0600
-Message-ID: <1283532194-27112-19-git-send-email-jaschut@sandia.gov>
+Subject: [PATCH v4 14/18] opensm: Do not require -Q option for
+ torus-2QoS routing engine.
+Date: Fri,  3 Sep 2010 10:43:10 -0600
+Message-ID: <1283532194-27112-15-git-send-email-jaschut@sandia.gov>
 References: <1283532194-27112-1-git-send-email-jaschut@sandia.gov>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -14,95 +14,90 @@ To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org, Jim Schutt <jaschut-4OHPYypu0djtX7QSmKvirg@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-If unicast routing fails, there is no point to continuing with fabric bring-up.
-Just restart a new heavy sweep instead.
+The torus-2QoS engine provides a deadlock-free routing for a 2D/3D torus,
+but requires that switch SL2VL maps be programmed.  Before this change,
+"opensm -Q" was required for that to happen.
+
+When a routing engine sets the struct osm_routing_engine:update_sl2vl
+pointer, it is signalling its intent to participate in SL2VL map programming.
+So, don't return early from osm_qos_setup() in that case; instead do everything
+except attempt to read QoS configuration information.
+
+For that to work properly, need to also always set up the default QoS config
+information, instead of just when QoS is requested via -Q.
+
+With that in place, the -Q option now means the same thing to torus-2QoS that
+it means to other routing engines: QoS configuration is requested.
 
 Signed-off-by: Jim Schutt <jaschut-4OHPYypu0djtX7QSmKvirg@public.gmane.org>
 ---
- opensm/opensm/osm_state_mgr.c |   12 +++++++++---
- opensm/opensm/osm_ucast_mgr.c |   14 +++++++++-----
- 2 files changed, 18 insertions(+), 8 deletions(-)
+ opensm/opensm/osm_qos.c    |    7 +++++--
+ opensm/opensm/osm_subnet.c |   18 +++++++++---------
+ 2 files changed, 14 insertions(+), 11 deletions(-)
 
-diff --git a/opensm/opensm/osm_state_mgr.c b/opensm/opensm/osm_state_mgr.c
-index bb60636..1befbfe 100644
---- a/opensm/opensm/osm_state_mgr.c
-+++ b/opensm/opensm/osm_state_mgr.c
-@@ -1142,7 +1142,11 @@ static void do_sweep(osm_sm_t * sm)
- 		/* Re-program the switches fully */
- 		sm->p_subn->ignore_existing_lfts = TRUE;
+diff --git a/opensm/opensm/osm_qos.c b/opensm/opensm/osm_qos.c
+index e0f4411..204c69c 100644
+--- a/opensm/opensm/osm_qos.c
++++ b/opensm/opensm/osm_qos.c
+@@ -308,7 +308,9 @@ int osm_qos_setup(osm_opensm_t * p_osm)
+ 	int ret = 0;
+ 	int vlarb_only;
  
--		osm_ucast_mgr_process(&sm->ucast_mgr);
-+		if (osm_ucast_mgr_process(&sm->ucast_mgr)) {
-+			OSM_LOG_MSG_BOX(sm->p_log, OSM_LOG_VERBOSE,
-+					"REROUTE FAILED");
-+			return;
-+		}
- 		osm_qos_setup(sm->p_subn->p_osm);
+-	if (!p_osm->subn.opt.qos)
++	if (!(p_osm->subn.opt.qos ||
++	      (p_osm->routing_engine_used &&
++	       p_osm->routing_engine_used->update_sl2vl)))
+ 		return 0;
  
- 		/* Reset flag */
-@@ -1313,12 +1317,14 @@ repeat_discovery:
- 			"LID ASSIGNMENT COMPLETE - STARTING SWITCH TABLE CONFIG");
+ 	OSM_LOG_ENTER(&p_osm->log);
+@@ -325,7 +327,8 @@ int osm_qos_setup(osm_opensm_t * p_osm)
+ 	cl_plock_excl_acquire(&p_osm->lock);
  
- 	/*
--	 * Proceed with unicast forwarding table configuration.
-+	 * Proceed with unicast forwarding table configuration; if it fails
-+	 * return early to wait for a trap or the next sweep interval.
- 	 */
+ 	/* read QoS policy config file */
+-	osm_qos_parse_policy_file(&p_osm->subn);
++	if (p_osm->subn.opt.qos)
++		osm_qos_parse_policy_file(&p_osm->subn);
  
- 	if (!sm->ucast_mgr.cache_valid ||
- 	    osm_ucast_cache_process(&sm->ucast_mgr))
--		osm_ucast_mgr_process(&sm->ucast_mgr);
-+		if (osm_ucast_mgr_process(&sm->ucast_mgr))
-+			return;
+ 	p_tbl = &p_osm->subn.port_guid_tbl;
+ 	p_next = cl_qmap_head(p_tbl);
+diff --git a/opensm/opensm/osm_subnet.c b/opensm/opensm/osm_subnet.c
+index bc34a0f..f714af7 100644
+--- a/opensm/opensm/osm_subnet.c
++++ b/opensm/opensm/osm_subnet.c
+@@ -1051,6 +1051,8 @@ static void subn_verify_qos_set(osm_qos_options_t *set, const char *prefix,
  
- 	osm_qos_setup(sm->p_subn->p_osm);
- 
-diff --git a/opensm/opensm/osm_ucast_mgr.c b/opensm/opensm/osm_ucast_mgr.c
-index f5a715f..85495eb 100644
---- a/opensm/opensm/osm_ucast_mgr.c
-+++ b/opensm/opensm/osm_ucast_mgr.c
-@@ -1069,6 +1069,7 @@ int osm_ucast_mgr_process(IN osm_ucast_mgr_t * p_mgr)
- 	osm_opensm_t *p_osm;
- 	struct osm_routing_engine *p_routing_eng;
- 	cl_qmap_t *p_sw_guid_tbl;
-+	int failed = 0;
- 
- 	OSM_LOG_ENTER(p_mgr->p_log);
- 
-@@ -1087,7 +1088,8 @@ int osm_ucast_mgr_process(IN osm_ucast_mgr_t * p_mgr)
- 
- 	p_osm->routing_engine_used = NULL;
- 	while (p_routing_eng) {
--		if (!ucast_mgr_route(p_routing_eng, p_osm))
-+		failed = ucast_mgr_route(p_routing_eng, p_osm);
-+		if (!failed)
- 			break;
- 		p_routing_eng = p_routing_eng->next;
- 	}
-@@ -1098,9 +1100,11 @@ int osm_ucast_mgr_process(IN osm_ucast_mgr_t * p_mgr)
- 		struct osm_routing_engine *r = p_osm->default_routing_engine;
- 
- 		r->build_lid_matrices(r->context);
--		r->ucast_build_fwd_tables(r->context);
--		p_osm->routing_engine_used = r;
--		osm_ucast_mgr_set_fwd_tables(p_mgr);
-+		failed = r->ucast_build_fwd_tables(r->context);
-+		if (!failed) {
-+			p_osm->routing_engine_used = r;
-+			osm_ucast_mgr_set_fwd_tables(p_mgr);
-+		}
+ int osm_subn_verify_config(IN osm_subn_opt_t * p_opts)
+ {
++	osm_qos_options_t dflt;
++
+ 	if (p_opts->lmc > 7) {
+ 		log_report(" Invalid Cached Option Value:lmc = %u:"
+ 			   "Using Default:%u\n", p_opts->lmc, OSM_DEFAULT_LMC);
+@@ -1101,17 +1103,15 @@ int osm_subn_verify_config(IN osm_subn_opt_t * p_opts)
+ 		p_opts->console = OSM_DEFAULT_CONSOLE;
  	}
  
- 	if (p_osm->routing_engine_used) {
-@@ -1120,7 +1124,7 @@ int osm_ucast_mgr_process(IN osm_ucast_mgr_t * p_mgr)
- Exit:
- 	CL_PLOCK_RELEASE(p_mgr->p_lock);
- 	OSM_LOG_EXIT(p_mgr->p_log);
--	return 0;
-+	return failed;
- }
+-	if (p_opts->qos) {
+-		osm_qos_options_t dflt;
+-
+-		/* the default options in qos_options must be correct.
+-		 * every other one need not be, b/c those will default
+-		 * back to whatever is in qos_options.
+-		 */
  
- static int ucast_build_lid_matrices(void *context)
+-		subn_set_default_qos_options(&dflt);
++	/* the default options in qos_options must be correct.
++	 * every other one need not be, b/c those will default
++	 * back to whatever is in qos_options.
++	 */
++	subn_set_default_qos_options(&dflt);
++	subn_verify_qos_set(&p_opts->qos_options, "qos", &dflt);
+ 
+-		subn_verify_qos_set(&p_opts->qos_options, "qos", &dflt);
++	if (p_opts->qos) {
+ 		subn_verify_qos_set(&p_opts->qos_ca_options, "qos_ca",
+ 				    &p_opts->qos_options);
+ 		subn_verify_qos_set(&p_opts->qos_sw0_options, "qos_sw0",
 -- 
 1.6.2.2
 
