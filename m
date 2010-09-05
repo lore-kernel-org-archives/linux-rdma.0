@@ -1,74 +1,76 @@
-From: Joe Perches <joe@perches.com>
-Subject: [PATCH 00/13] trivial: Remove unnecessary casts of private_data
-Date: Sat,  4 Sep 2010 18:52:41 -0700
-Message-ID: <cover.1283650107.git.joe@perches.com>
+From: "Eli Dorfman (Voltaire)" <dorfman.eli-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH] infiniband-diags: Do not exit when unexpected node found
+Date: Sun, 05 Sep 2010 11:28:57 +0300
+Message-ID: <4C8354C9.5070502@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Return-path: <devel-bounces@linuxdriverproject.org>
-List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/devel>,
-	<mailto:devel-request@linuxdriverproject.org?subject=unsubscribe>
-List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/devel>
-List-Post: <mailto:devel@linuxdriverproject.org>
-List-Help: <mailto:devel-request@linuxdriverproject.org?subject=help>
-List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/devel>,
-	<mailto:devel-request@linuxdriverproject.org?subject=subscribe>
-Sender: devel-bounces@linuxdriverproject.org
-Errors-To: devel-bounces@linuxdriverproject.org
-To: Jiri Kosina <trivial@kernel.org>
-Cc: alsa-devel@alsa-project.org, David Airlie <airlied@linux.ie>, Heiko Carstens <heiko.carstens@de.ibm.com>, dri-devel@lists.freedesktop.org, Jaroslav Kysela <perex@perex.cz>, "J. Bruce Fields" <bfields@fieldses.org>, Adaptec OEM Raid Solutions <aacraid@adaptec.com>, Wey-Yi Guy <wey-yi.w.guy@intel.com>, Sean Hefty <sean.hefty@intel.com>, devel@driverdev.osuosl.org, linux-s390@vger.kernel.org, "Pekka Savola (ipv6)" <pekkas@netcore.fi>, linux-scsi@vger.kernel.org, linux-rdma@vger.kernel.org, James Morris <jmorris@namei.org>, Intel Linux Wireless <ilw@linux.intel.com>, Neil Brown <neilb@suse.de>, Ingo Molnar <mingo@redhat.com>, Doug Gilbert <dgilbert@interlog.com>, Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>, Roland Dreier <rolandd@cisco.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Trond Myklebust <Trond.Myklebust@netapp.com>, ecryptfs-devel@lists.launchpad.net, John W.
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+Cc: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Resend removal of remaining casts of private_data
 
-Joe Perches (13):
-  drivers/gpu/drm: Remove unnecessary casts of private_data
-  drivers/infiniband: Remove unnecessary casts of private_data
-  drivers/net/wireless/iwlwifi: Remove unnecessary casts of private_data
-  drivers/s390: Remove unnecessary casts of private_data
-  drivers/scsi: Remove unnecessary casts of private_data
-  drivers/staging/lirc: Remove unnecessary casts of private_data
-  fs/ecryptfs: Remove unnecessary casts of private_data
-  fs/seq_file.c: Remove unnecessary casts of private_data
-  kernel/pm_qos_params.c: Remove unnecessary casts of private_data
-  kernel/trace: Remove unnecessary casts of private_data
-  net/ipv4: Remove unnecessary casts of private_data
-  net/sunrpc/rpc_pipe.c: Remove unnecessary casts of private_data
-  sound: Remove unnecessary casts of private_data
+Show error message but do not exit when unexpected node is found.
 
- drivers/gpu/drm/radeon/radeon_ttm.c            |    2 +-
- drivers/gpu/drm/vmwgfx/vmwgfx_fifo.c           |    2 +-
- drivers/gpu/drm/vmwgfx/vmwgfx_ttm_glue.c       |    2 +-
- drivers/infiniband/hw/qib/qib_file_ops.c       |    4 ++--
- drivers/net/wireless/iwlwifi/iwl-agn-debugfs.c |    2 +-
- drivers/net/wireless/iwlwifi/iwl-debugfs.c     |    4 ++--
- drivers/s390/char/vmcp.c                       |    6 +++---
- drivers/scsi/aacraid/linit.c                   |    2 +-
- drivers/scsi/sg.c                              |    2 +-
- drivers/staging/lirc/lirc_imon.c               |    4 ++--
- drivers/staging/lirc/lirc_zilog.c              |   10 +++++-----
- fs/ecryptfs/ecryptfs_kernel.h                  |    2 +-
- fs/seq_file.c                                  |    6 +++---
- kernel/pm_qos_params.c                         |    2 +-
- kernel/trace/ftrace.c                          |    4 ++--
- kernel/trace/trace.c                           |    2 +-
- net/ipv4/raw.c                                 |    2 +-
- net/sunrpc/rpc_pipe.c                          |    4 ++--
- sound/core/oss/mixer_oss.c                     |   22 +++++++++++-----------
- sound/core/pcm.c                               |    3 +--
- sound/drivers/virmidi.c                        |    2 +-
- sound/i2c/other/ak4xxx-adda.c                  |    2 +-
- sound/isa/ad1816a/ad1816a.c                    |    2 +-
- sound/isa/azt2320.c                            |    2 +-
- sound/isa/gus/gusmax.c                         |    4 ++--
- sound/isa/sb/sb8.c                             |    2 +-
- sound/oss/au1550_ac97.c                        |   18 +++++++++---------
- sound/pci/emu10k1/emumpu401.c                  |    2 +-
- sound/pci/ice1712/pontis.c                     |    6 +++---
- sound/pci/ice1712/prodigy192.c                 |    2 +-
- sound/pci/rme96.c                              |    8 ++++----
- sound/pci/rme9652/hdsp.c                       |    8 ++++----
- 32 files changed, 72 insertions(+), 73 deletions(-)
+Signed-off-by: Eli Dorfman <elid-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+---
+ infiniband-diags/libibnetdisc/src/chassis.c |    9 ++-------
+ 1 files changed, 2 insertions(+), 7 deletions(-)
 
+diff --git a/infiniband-diags/libibnetdisc/src/chassis.c b/infiniband-diags/libibnetdisc/src/chassis.c
+index 25d7473..7762d22 100644
+--- a/infiniband-diags/libibnetdisc/src/chassis.c
++++ b/infiniband-diags/libibnetdisc/src/chassis.c
+@@ -457,7 +457,6 @@ static int get_sfb_slot(ibnd_node_t * n, ibnd_port_t * lineport)
+ 	} else {
+ 		IBND_ERROR("Unexpected node found: guid 0x%016" PRIx64 "\n",
+ 			   n->guid);
+-		return -1;
+ 	}
+ 	return 0;
+ }
+@@ -498,7 +497,6 @@ static int get_router_slot(ibnd_node_t * n, ibnd_port_t * spineport)
+ 	} else {
+ 		IBND_ERROR("Unexpected node found: guid 0x%016" PRIx64 "\n",
+ 			   spineport->node->guid);
+-		return -1;
+ 	}
+ 	return 0;
+ }
+@@ -533,7 +531,6 @@ static int get_slb_slot(ibnd_node_t * n, ibnd_port_t * spineport)
+ 	} else {
+ 		IBND_ERROR("Unexpected node found: guid 0x%016" PRIx64 "\n",
+ 			   spineport->node->guid);
+-		return -1;
+ 	}
+ 	return 0;
+ }
+@@ -588,8 +585,7 @@ static int fill_voltaire_chassis_record(ibnd_node_t * node)
+ 			}
+ 			if (!node->ch_type)
+ 				/* we assume here that remoteport belongs to line */
+-				if (get_sfb_slot(node, port->remoteport))
+-					return -1;
++				get_sfb_slot(node, port->remoteport);
+ 
+ 			/* we could break here, but need to find if more routers connected */
+ 		}
+@@ -607,8 +603,7 @@ static int fill_voltaire_chassis_record(ibnd_node_t * node)
+ 				continue;
+ 
+ 			/* we assume here that remoteport belongs to spine */
+-			if (get_slb_slot(node, port->remoteport))
+-				return -1;
++			get_slb_slot(node, port->remoteport);
+ 			break;
+ 		}
+ 	}
 -- 
-1.7.2.19.g9a302
+1.5.5
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
