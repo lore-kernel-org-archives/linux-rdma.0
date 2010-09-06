@@ -1,133 +1,40 @@
-From: sebastien dugue <sebastien.dugue-6ktuUTfB/bM@public.gmane.org>
-Subject: Re: [ewg] DHCP over InfiniBand Update
-Date: Mon, 6 Sep 2010 15:26:12 +0200
-Message-ID: <20100906152612.4bf54c29@frecb007965>
-References: <AANLkTinc9dER+PkBO9Yv=oeGd8NcjFtvSRa7+tXkpb+B@mail.gmail.com>
-	<20100906150323.1e1b44c2@frecb007965>
-	<AANLkTik1HhLoue-b+BhsnFm+MU3=MUJFBz391EUxTfw=@mail.gmail.com>
+From: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: hang when exiting opensm or diagnet
+Date: Mon, 6 Sep 2010 18:38:13 +0300
+Message-ID: <201009061838.13362.jackm@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <AANLkTik1HhLoue-b+BhsnFm+MU3=MUJFBz391EUxTfw=@mail.gmail.com>
+Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: dhcp-users-/1rEenAg/5e+51mZqJFLXQ@public.gmane.org, OFED mailing list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ewg-G2znmakfqn7U1rindQTSdQ@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: tziporet-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org, erezc-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, 6 Sep 2010 09:15:50 -0400
-Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
+We have a situation where ibdiagnet does not succeed in exiting.  (OpenSM displays the same behavior).
+Performing a sysrq_trigger generates the following stack trace for ibdiagnet:
 
-> Hi S=C3=A9bastien,
->=20
-> On Mon, Sep 6, 2010 at 9:03 AM, sebastien dugue
-> <sebastien.dugue-6ktuUTfB/bM@public.gmane.org> wrote:
-> > =C2=A0Hi Hal,
-> >
-> > On Tue, 31 Aug 2010 16:09:19 -0400
-> > Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
-> >
-> >> Hi,
-> >>
-> >> There appear to be two basic approaches to supporting DHCP (over
-> >> InfiniBand) in Linux. There's LPF support (4.1.1 based) and older
-> >> (3.0.4 based) socket support.
-> >>
-> >> The 4.1.1 LPF patches are:
-> >> http://lists.openfabrics.org/pipermail/ewg/2010-May/015265.html
-> >> http://lists.openfabrics.org/pipermail/ewg/2010-May/015266.html
-> >> http://lists.openfabrics.org/pipermail/ewg/2010-May/015264.html
-> >> The last being Matthieu Hautreux's <matthieu.hautreux at cea.fr>
-> >> improved XID generation (same as
-> >> https://lists.isc.org/mailman/htdig/dhcp-hackers/2009-January/0017=
-73.html).
-> >>
-> >> AFAIT an LPF based approach will only work on older kernels (due t=
-o
-> >> elimination of CONFIG_FILTER support). Is this accurate ?
-> >
-> > =C2=A0Where have you seen that the LPF approach does not work on re=
-cent kernels?
-> > AFAICR, the CONFIG_FILTER disappeared a long time ago. Unless I'm m=
-issing
-> > something, you only need the CONFIG_PACKET option.
->=20
-> The question was based on the README and some code in lpf.c but it
-> sounds those comments relating to CONFIG_FILTER relate to 2.4 and not
-> to 2.6 based kernels then. All that is needed with a 2.6 kernel is
-> CONFIG_PACKET so the PF_PACKET socket can be created and used by lpf.
-> Right ?
+kernel: ibdiagnet     D ffff810001004420     0  7004   6854
+kernel:  ffff81066899fbc8 0000000000000046 ffff810367160000 ffff810367160310
+kernel:  ffff81066899fbb8 0000000000000009 ffff81066dfac860 ffffffff80301ae0
+kernel:  0000008a75579daa 0000000000008686 ffff81066dfaca48 0000000000000000
+kernel: Call Trace:
+kernel:  [<ffffffff80063167>] wait_for_completion+0x79/0xa2
+kernel:  [<ffffffff8008cabc>] default_wake_function+0x0/0xe
+kernel:  [<ffffffff8839034d>] :ib_mad:ib_cancel_rmpp_recvs+0xd0/0x113
+kernel:  [<ffffffff8838d52e>] :ib_mad:ib_unregister_mad_agent+0x30d/0x424
+kernel:  [<ffffffff8022296d>] sk_free+0xc3/0x105
+kernel:  [<ffffffff883d63fd>] :ib_umad:ib_umad_close+0x9d/0xd6
+kernel:  [<ffffffff800129df>] __fput+0xae/0x198
+kernel:  [<ffffffff80023a17>] filp_close+0x5c/0x64
+kernel:  [<ffffffff80038f1a>] put_files_struct+0x63/0xae
 
-  Absolutely right.
+Does anyone have any ideas as to what could be causing this?
 
->=20
-> Out of curiousity, why did you choose a PF_PACKET rather than a UDP
-> socket based approach ? The UDP socket approach seems simpler but
-> maybe has some other pitfalls.
-
-  For unknown reasons which I did not have time to investigate at the
-time, I could not make it work using a plain UDP socket which I agree
-should be straightforward. So I did it the LPF way.
-
-
-  S=C3=A9bastien.
- =20
-
->=20
-> Thanks again.
->=20
-> -- Hal
->=20
-> > =C2=A0S=C3=A9bastien.
-> >
-> >
-> >>
-> >> OFED has two patches for 3.0.4 for a socket approach in
-> >> http://www.openfabrics.org/git/?p=3D~tziporet/docs.git;a=3Dtree;f=3D=
-dhcp;h=3Daec68a2905559c8ed91f1157fa11d78cccb266cd;hb=3Dofed_1_5
-> >> dhcp-3.0.4.patch
-> >> 0001-Make-DHCP-server-print-HW-info.patch
-> >>
-> >> I've been upporting those to a 4.x based DHCP and have a fundament=
-al
-> >> question which occurs even with the 3.0.4 socket based version. On=
- the
-> >> client machine, the DHCPOFFER in response to the DHCPDISCOVER is
-> >> received (seen with tcpdump) but never seems to make it to the
-> >> dhclient application. I can't see any kernel stack error counters
-> >> incremented so I'm mystified as to what could be going wrong. I've
-> >> also tried this on a number of different kernels. Any idea on why =
-this
-> >> might be or how to figure out where that packet is going ? I do se=
-e
-> >> the dhcp client port with netstat -a --udp -n
-> >> udp =C2=A0 =C2=A0 =C2=A0 =C2=A00 =C2=A0 =C2=A0 =C2=A00 0.0.0.0:68 =
-=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A00.0.0.0:*
-> >> udp =C2=A0 =C2=A0 =C2=A0 =C2=A00 =C2=A0 =C2=A0 =C2=A00 0.0.0.0:68 =
-=C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A00.0.0.0:*
-> >> Any idea on what I'm missing ?
-> >>
-> >> Also, is any of this work making it's way into a released DHCP ?
-> >> What's the process for this ? Is there some branch in a source
-> >> repository where this work is available ?
-> >>
-> >> Thanks in advance for any pointers on all this.
-> >>
-> >> -- Hal
-> >> _______________________________________________
-> >> ewg mailing list
-> >> ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
-> >> http://lists.openfabrics.org/cgi-bin/mailman/listinfo/ewg
-> >>
-> >
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma"=
- in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->=20
+-Jack
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
