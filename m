@@ -1,102 +1,96 @@
-From: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH] opensm/osm_qos_policy.c: fix SL for TS-precreated
- mcast group
-Date: Mon, 6 Sep 2010 19:56:47 +0300
-Message-ID: <20100906165647.GF11502@me>
-References: <4C836A74.3070004@mellanox.co.il>
+From: Jeff Becker <Jeffrey.C.Becker-NSQ8wuThN14@public.gmane.org>
+Subject: Re: trouble sending mail to mailing list
+Date: Mon, 6 Sep 2010 12:15:30 -0700
+Message-ID: <4C853DD2.9090105@nasa.gov>
+References: <AANLkTinp1LPkm5V7U4hfN0m+n_L3O5i_81wy733J+4cK@mail.gmail.com> <E113D394D7C5DB4F8FF691FA7EE9DB443B74E3E362@MTLMAIL.mtl.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <4C836A74.3070004-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
+In-Reply-To: <E113D394D7C5DB4F8FF691FA7EE9DB443B74E3E362-WQlSmcKwN8Te+A/uUDamNg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org
-Cc: Linux RDMA <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Tziporet Koren <tziporet-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
+Cc: Jonathan Perkins <perkinjo-wPOY3OvGL++pAIv7I8X2sze48wsgrGvP@public.gmane.org>, Dhabaleswar Panda <panda-wPOY3OvGL++pAIv7I8X2sze48wsgrGvP@public.gmane.org>, Jeff Callison <jeffc-wiP6UGNpsDaB+jHODAdFcQ@public.gmane.org>, "peeyush-+SHkuY4UpUhWk0Htik3J/w@public.gmane.org" <peeyush-+SHkuY4UpUhWk0Htik3J/w@public.gmane.org>, Paul Owen <paulo-wiP6UGNpsDaB+jHODAdFcQ@public.gmane.org>, 'Bill Boas' <bboas-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org>, "'Ryan, Jim'" <jim.ryan-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 13:01 Sun 05 Sep     , Yevgeny Kliteynik wrote:
-> Assuming we still need to support TopSpin's non-compliant join
-> compmask for IPoIB v4 multicast group ff12:401b:<pkey>::1
+Hi Tziporet. On Friday, Owen Media (cc'd) cut over to a new server (not
+sofa.openfabrics.org - I still don't understand this), and contacted
+GoDaddy to move our domain.
 
-Wouldn't it be better to understand an use case of this group? It is
-probably obsolete and such addition is not needed.
+> ping openfabrics.org
+PING openfabrics.org (198.63.41.212) 56(84) bytes of data.
+64 bytes from open11.tempdomainname.com (198.63.41.212): icmp_seq=1
+ttl=47 time=99.1 ms
+64 bytes from open11.tempdomainname.com (198.63.41.212): icmp_seq=2
+ttl=47 time=95.6 ms
 
-Sasha
+So it doesn't seem to be at John Companies any more. I assume the builds
+etc., are still happening at John Companies, but I'm not sure.  I'm
+pretty sure the domain move is the root of the list problems,
 
-> 
-> The group is pre-defined and maintained as a well-known
-> multicast group, hence it's SL needs to be fixed too in
-> accordance with QoS policy configuration, same as for
-> ff12:401b:<pkey>::ffff:ffff MGID.
-> 
-> Signed-off-by: Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-> ---
->  opensm/opensm/osm_qos_policy.c |   35 +++++++++++++++++++++++++++++++++++
->  1 files changed, 35 insertions(+), 0 deletions(-)
-> 
-> diff --git a/opensm/opensm/osm_qos_policy.c b/opensm/opensm/osm_qos_policy.c
-> index ac49ab3..bdd27d0 100644
-> --- a/opensm/opensm/osm_qos_policy.c
-> +++ b/opensm/opensm/osm_qos_policy.c
-> @@ -764,6 +764,20 @@ static osm_qos_port_group_t *__qos_policy_get_port_group_by_name(
-> 
->  /***************************************************
->   ***************************************************/
-> +/*
-> + * HACK: Until TS resolves their noncompliant join compmask,
-> + * we have to fix SL for this pre-defined the MGID too
-> + */
-> +static const ib_gid_t osm_ts_ipoib_mgid = {
-> +	{
-> +	 0xff,			/*  multicast field */
-> +	 0x12,			/*  non-permanent bit, link local scope */
-> +	 0x40, 0x1b,		/*  IPv4 signature */
-> +	 0xff, 0xff,		/*  16 bits of P_Key (to be filled in) */
-> +	 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,	/*  48 bits of zeros */
-> +	 0x00, 0x00, 0x00, 0x01,	/*  32 bit IPv4 broadcast address */
-> +	 },
-> +};
-> 
->  static void __qos_policy_validate_pkey(
->  			osm_qos_policy_t * p_qos_policy,
-> @@ -773,6 +787,9 @@ static void __qos_policy_validate_pkey(
->  	uint8_t sl;
->  	uint32_t flow;
->  	uint8_t hop;
-> +	ib_gid_t mgid;
-> +	ib_net16_t pkey;
-> +	osm_mgrp_t * mgrp;
->  	char gid_str[INET6_ADDRSTRLEN];
-> 
->  	if (!p_qos_policy || !p_qos_match_rule || !p_prtn)
-> @@ -810,6 +827,24 @@ static void __qos_policy_validate_pkey(
->  		p_prtn->mgrp->mcmember_rec.sl_flow_hop =
->  			ib_member_set_sl_flow_hop(p_prtn->sl, flow, hop);
->  	}
-> +
-> +	/* workaround for TS */
-> +	/* FIXME: remove this upon TS fixes */
-> +	mgid = osm_ts_ipoib_mgid;
-> +	pkey = p_prtn->pkey | cl_hton16(0x8000);
-> +	memcpy(&mgid.raw[4], &pkey, sizeof(pkey));
-> +	mgrp = osm_get_mgrp_by_mgid(p_qos_policy->p_subn, &mgid);
-> +	if (mgrp) {
-> +		OSM_LOG(&p_qos_policy->p_subn->p_osm->log, OSM_LOG_DEBUG,
-> +			"TS workaround: Updating MCGroup (MGID %s) SL to "
-> +			"match partition SL (%u)\n",
-> +			inet_ntop(AF_INET6, mgid.raw, gid_str, sizeof gid_str),
-> +			p_prtn->sl);
-> +		ib_member_get_sl_flow_hop(mgrp->mcmember_rec.sl_flow_hop,
-> +				  &sl, &flow, &hop);
-> +		mgrp->mcmember_rec.sl_flow_hop =
-> +			ib_member_set_sl_flow_hop(p_prtn->sl, flow, hop);
-> +	}
->  }
-> 
->  /***************************************************
-> -- 
-> 1.6.2.4
-> 
+Anyway, Paul, Jeff etc., stuff seems to be broken right now. Please fix.
+Thanks.
+
+-jeff
+
+On 09/06/2010 02:47 AM, Tziporet Koren wrote:
+> Yes - all OFA web is not working fine
+> I will send mails to other people too
+>
+> Tziporet
+>
+> -----Original Message-----
+> From: Jonathan Perkins [mailto:perkinjo-wPOY3OvGL++pAIv7I8X2sze48wsgrGvP@public.gmane.org] 
+> Sent: Monday, September 06, 2010 7:53 AM
+> To: Jeff Becker; Tziporet Koren
+> Cc: Dhabaleswar Panda
+> Subject: trouble sending mail to mailing list
+>
+> Hi, I'm not sure if this is just happening to me or not but I'm unable
+> to send mail to the ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org or ewg-G2znmakfqn4E3QRLGMYmdQ@public.gmane.org
+> I'm getting messages back stating that the servers cannot be found.
+> Is this expected with the transitioning of the administration of the
+> new servers?  I also cannot log into www.openfabrics.org at this time
+> but I just used the ip address of the old server to circumvent this
+> issue.
+>
+> The original message was received at Mon, 6 Sep 2010 00:44:11 -0400 (EDT)
+> from mail-vw0-f50.google.com [209.85.212.50]
+>
+>   ----- The following addresses had permanent fatal errors -----
+> <ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+>    (reason: 550 Host unknown)
+>
+>   ----- Transcript of session follows -----
+> 550 5.1.2 <ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>... Host unknown (Name server:
+> lists.openfabrics.org: host not found)
+>
+> Final-Recipient: RFC822; ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
+> Action: failed
+> Status: 5.1.2
+> Remote-MTA: DNS; lists.openfabrics.org
+> Diagnostic-Code: SMTP; 550 Host unknown
+> Last-Attempt-Date: Mon, 6 Sep 2010 00:44:11 -0400 (EDT)
+>
+>
+> ---------- Forwarded message ----------
+> From: Jonathan Perkins <perkinjo-wPOY3OvGL++pAIv7I8X2sze48wsgrGvP@public.gmane.org>
+> To: Vladimir Sokolovsky <vlad-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
+> Date: Mon, 6 Sep 2010 00:44:10 -0400
+> Subject: mvapich2 srpm uploaded
+> Hi all:
+> I've uploaded a pre-release of mvapich2-1.5.1 to the (old) openfabrics
+> server at ~perkinjo/ofed_1_5/mvapich2-1.5.1-0.1.20100905svn4167.src.rpm.
+>  It's also indicated by the ~perkinjo/ofed_1_5/latest.txt file.  This
+> tarball contains bug fixes and several enhancements compared to the
+> mvapich2-1.5 release.  Our formal release will follow soon.
+>
+> FYI, I'm unable to log into the new openfabrics server
+> (www.openfabrics.org).  Is it expected to log into 69.55.239.13 using
+> its ip address?
+>
+>   
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
