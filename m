@@ -1,7 +1,7 @@
 From: Yevgeny Kliteynik <kliteyn-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
-Subject: [PATCH] opensm/osm_sa_vlarb_record.c: removed unused variable
-Date: Tue, 7 Sep 2010 17:59:34 +0300
-Message-ID: <4C865356.9050609@mellanox.co.il>
+Subject: [PATCH] opensm/osm_mesh.c: fixing a bug in compare_switches()
+Date: Tue, 7 Sep 2010 18:00:30 +0300
+Message-ID: <4C86538E.3080206@mellanox.co.il>
 Reply-To: kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"
@@ -11,33 +11,30 @@ Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>, Linux RDMA <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+I'm pretty sure that ";" at the end of "if" statement
+is not supposed to be there (not sure how it worked till
+now though).
+Also, making this condition a bit more readable.
 
 Signed-off-by: Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 ---
- opensm/opensm/osm_sa_vlarb_record.c |    3 ---
- 1 files changed, 0 insertions(+), 3 deletions(-)
+ opensm/opensm/osm_mesh.c |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletions(-)
 
-diff --git a/opensm/opensm/osm_sa_vlarb_record.c b/opensm/opensm/osm_sa_vlarb_record.c
-index 36cbac1..d32fdb1 100644
---- a/opensm/opensm/osm_sa_vlarb_record.c
-+++ b/opensm/opensm/osm_sa_vlarb_record.c
-@@ -212,7 +212,6 @@ void osm_vlarb_rec_rcv_process(IN void *ctx, IN void *data)
- 	const ib_sa_mad_t *sad_mad;
- 	const ib_vl_arb_table_record_t *p_rcvd_rec;
- 	const osm_port_t *p_port = NULL;
--	const ib_vl_arb_table_t *p_vl_arb;
- 	cl_qlist_t rec_list;
- 	osm_vl_arb_search_ctxt_t context;
- 	ib_api_status_t status = IB_SUCCESS;
-@@ -252,8 +251,6 @@ void osm_vlarb_rec_rcv_process(IN void *ctx, IN void *data)
- 		goto Exit;
+diff --git a/opensm/opensm/osm_mesh.c b/opensm/opensm/osm_mesh.c
+index 9d1082a..d156b7a 100644
+--- a/opensm/opensm/osm_mesh.c
++++ b/opensm/opensm/osm_mesh.c
+@@ -1385,7 +1385,8 @@ static int compare_switches(const void *p1, const void *p2)
+
+ 	for (i = 0; i < ctx->mesh->dimension; i++) {
+ 		j = ctx->mesh->dim_order[i];
+-		if ((ret = s1->node->coord[j] - s2->node->coord[j]));
++		ret = s1->node->coord[j] - s2->node->coord[j];
++		if (ret)
+ 			return ret;
  	}
 
--	p_vl_arb = (ib_vl_arb_table_t *) ib_sa_mad_get_payload_ptr(sad_mad);
--
- 	cl_qlist_init(&rec_list);
-
- 	context.p_rcvd_rec = p_rcvd_rec;
 -- 
 1.6.2.4
 
