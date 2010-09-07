@@ -1,63 +1,51 @@
-From: Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH] libvendor/osm_vendor_ibumad_sa.c: remove useless "if"
- statement
-Date: Tue, 07 Sep 2010 21:20:00 +0300
-Message-ID: <4C868250.6090501@dev.mellanox.co.il>
-References: <4C8656B0.5050104@mellanox.co.il> <AANLkTingExvAshGM6uOQhy3TNFwH7dSrF6fWXYzGxke4@mail.gmail.com>
-Reply-To: kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org
+From: Ralph Campbell <ralph.campbell-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH 02/13] drivers/infiniband: Remove unnecessary casts of
+ private_data
+Date: Tue, 7 Sep 2010 11:24:29 -0700
+Message-ID: <1283883869.32259.13.camel@chromite.mv.qlogic.com>
+References: <cover.1283650107.git.joe@perches.com>
+	 <a13edeb14cc926b71e21daff892acbe2d76313ab.1283650107.git.joe@perches.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <AANLkTingExvAshGM6uOQhy3TNFwH7dSrF6fWXYzGxke4-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <a13edeb14cc926b71e21daff892acbe2d76313ab.1283650107.git.joe-6d6DIl74uiNBDgjK7y7TUQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>, Linux RDMA <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Joe Perches <joe-6d6DIl74uiNBDgjK7y7TUQ@public.gmane.org>
+Cc: Jiri Kosina <trivial-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 07-Sep-10 8:47 PM, Hal Rosenstock wrote:
-> On Tue, Sep 7, 2010 at 11:13 AM, Yevgeny Kliteynik
-> <kliteyn-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>  wrote:
->> Content of p_query_req_copy is used in the function,
->> so no point checking if it's NULL before the free().
->>
->> Signed-off-by: Yevgeny Kliteynik<kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
->> ---
->>   opensm/libvendor/osm_vendor_ibumad_sa.c |    3 +--
-> 
-> Same change could be done for osm_vendor_mlx_sa.c too.
+Acked-by: Ralph Campbell <ralph.campbell-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
 
-Sure, thanks.
+On Sat, 2010-09-04 at 18:52 -0700, Joe Perches wrote:
+> Signed-off-by: Joe Perches <joe-6d6DIl74uiNBDgjK7y7TUQ@public.gmane.org>
+> ---
+>  drivers/infiniband/hw/qib/qib_file_ops.c |    4 ++--
+>  1 files changed, 2 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/infiniband/hw/qib/qib_file_ops.c b/drivers/infiniband/hw/qib/qib_file_ops.c
+> index 6b11645..cef5d67 100644
+> --- a/drivers/infiniband/hw/qib/qib_file_ops.c
+> +++ b/drivers/infiniband/hw/qib/qib_file_ops.c
+> @@ -1722,7 +1722,7 @@ static int qib_close(struct inode *in, struct file *fp)
+>  
+>  	mutex_lock(&qib_mutex);
+>  
+> -	fd = (struct qib_filedata *) fp->private_data;
+> +	fd = fp->private_data;
+>  	fp->private_data = NULL;
+>  	rcd = fd->rcd;
+>  	if (!rcd) {
+> @@ -1808,7 +1808,7 @@ static int qib_ctxt_info(struct file *fp, struct qib_ctxt_info __user *uinfo)
+>  	struct qib_ctxtdata *rcd = ctxt_fp(fp);
+>  	struct qib_filedata *fd;
+>  
+> -	fd = (struct qib_filedata *) fp->private_data;
+> +	fd = fp->private_data;
+>  
+>  	info.num_active = qib_count_active_units();
+>  	info.unit = rcd->dd->unit;
 
--- Yevgeny
- 
-> -- Hal
-> 
->>   1 files changed, 1 insertions(+), 2 deletions(-)
->>
->> diff --git a/opensm/libvendor/osm_vendor_ibumad_sa.c b/opensm/libvendor/osm_vendor_ibumad_sa.c
->> index 75bc303..1fdcc47 100644
->> --- a/opensm/libvendor/osm_vendor_ibumad_sa.c
->> +++ b/opensm/libvendor/osm_vendor_ibumad_sa.c
->> @@ -199,8 +199,7 @@ static void __osmv_sa_mad_err_cb(IN void *bind_context, IN osm_madw_t * p_madw)
->>         if ((p_query_req_copy->flags&  OSM_SA_FLAGS_SYNC) == OSM_SA_FLAGS_SYNC)
->>                 cl_event_signal(&p_bind->sync_event);
->>
->> -       if (p_query_req_copy)
->> -               free(p_query_req_copy);
->> +       free(p_query_req_copy);
->>         OSM_LOG_EXIT(p_bind->p_log);
->>   }
->>
->> --
->> 1.6.2.4
->>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
->> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>
-> 
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
