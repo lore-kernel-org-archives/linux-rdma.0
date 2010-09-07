@@ -1,38 +1,40 @@
-From: Yevgeny Kliteynik <kliteyn-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
-Subject: [PATCH] opensm/osm_db_files.c: remove bad free() call
-Date: Tue, 7 Sep 2010 17:52:00 +0300
-Message-ID: <4C865190.3070904@mellanox.co.il>
-Reply-To: kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org
+From: "Jim Schutt" <jaschut-4OHPYypu0djtX7QSmKvirg@public.gmane.org>
+Subject: Re: [PATCH v4 00/18] opensm: Add new torus routing engine:
+ torus-2QoS
+Date: Tue, 7 Sep 2010 08:52:39 -0600
+Message-ID: <1283871159.19507.20.camel@sale659.sandia.gov>
+References: <1283532194-27112-1-git-send-email-jaschut@sandia.gov>
+ <20100904121552.GA11502@me>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20100904121552.GA11502@me>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>, Linux RDMA <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-p_key is a parameter, and it is char[].
-It shouldn't be freed here.
+Hi Sasha,
 
-Signed-off-by: Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
----
- opensm/opensm/osm_db_files.c |    1 -
- 1 files changed, 0 insertions(+), 1 deletions(-)
+On Sat, 2010-09-04 at 06:15 -0600, Sasha Khapyorsky wrote:
+> Hi Jim,
+> 
+> On 10:42 Fri 03 Sep     , Jim Schutt wrote:
+> > This is v4 of a patchset to add to opensm a new routing engine designed
+> > to handle large fabrics connected with a 2D/3D torus topology.
+> 
+> I've pushed this as separate branch now. So we will be able to continue
+> merging there, after OFED will pick up the recent management release.
 
-diff --git a/opensm/opensm/osm_db_files.c b/opensm/opensm/osm_db_files.c
-index dd9f772..c475004 100644
---- a/opensm/opensm/osm_db_files.c
-+++ b/opensm/opensm/osm_db_files.c
-@@ -582,7 +582,6 @@ int osm_db_delete(IN osm_db_domain_t * p_domain, IN char *p_key)
- 				p_key, p_domain_imp->file_name, p_prev_val);
- 			res = 1;
- 		} else {
--			free(p_key);
- 			free(p_prev_val);
- 			res = 0;
- 		}
--- 
-1.6.2.4
+This is great, thanks.
+
+-- Jim
+
+> 
+> Sasha
+> 
+
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
