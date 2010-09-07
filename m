@@ -1,24 +1,28 @@
 From: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH] opensm/osm_mtree.c: removing useless 'if' statement
-Date: Tue, 7 Sep 2010 23:04:42 +0300
-Message-ID: <20100907200442.GP11502@me>
-References: <4C865202.9020105@mellanox.co.il>
+Subject: Re: git.openfabrics.org DNS names
+Date: Tue, 7 Sep 2010 23:06:23 +0300
+Message-ID: <20100907200623.GQ11502@me>
+References: <20100907164152.GG11502@me>
+ <4C866D7B.70403@nasa.gov>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <4C865202.9020105-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
+In-Reply-To: <4C866D7B.70403-NSQ8wuThN14@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org
-Cc: Linux RDMA <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Jeff Becker <Jeffrey.C.Becker-NSQ8wuThN14@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, EWG <ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>, Vladimir Sokolovsky <vlad-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, Jeff Callison <jeffc-wiP6UGNpsDaB+jHODAdFcQ@public.gmane.org>, Paul Owen <paulo-wiP6UGNpsDaB+jHODAdFcQ@public.gmane.org>, Cheri Winterberg <cheriw-wiP6UGNpsDaB+jHODAdFcQ@public.gmane.org>, "peeyush-+SHkuY4UpUhWk0Htik3J/w@public.gmane.org" <peeyush-+SHkuY4UpUhWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 17:53 Tue 07 Sep     , Yevgeny Kliteynik wrote:
-> p_mtn->max_children is an array - no point checking if it is NULL.
-> 
-> Signed-off-by: Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Hi Jeff,
 
-Applied. Thanks.
+On 09:51 Tue 07 Sep     , Jeff Becker wrote:
+> 
+> Sorry for the outage. It's being worked on...
+
+Now I have this for couple of hours:
+
+Could not resolve hostname git.openfabrics.org: Name or service not known
 
 Sasha
 --
