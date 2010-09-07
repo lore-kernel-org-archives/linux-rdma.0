@@ -1,7 +1,7 @@
 From: Yevgeny Kliteynik <kliteyn-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
-Subject: [PATCH] osmtest/osmtest.c: handle timeouts in PR stress test
-Date: Tue, 7 Sep 2010 18:01:42 +0300
-Message-ID: <4C8653D6.1000201@mellanox.co.il>
+Subject: [PATCH] opensm/osm_helper.c: fix potential overrun of the array
+Date: Tue, 7 Sep 2010 18:02:49 +0300
+Message-ID: <4C865419.9050005@mellanox.co.il>
 Reply-To: kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"
@@ -11,47 +11,28 @@ Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>, Linux RDMA <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-There was some "preparation" code for handling
-PathRecord timeouts in SA stress codes: variable
-num_timeouts exists, and it's value is checked.
-What was missing is actually increasing the
-num_timeouts value when timeout happens.
+Max index of the ib_sm_method_str[] static array
+is 0x20. Fixing OSM_SM_METHOD_STR_UNKNOWN_VAL to
+match this value.
 
 Signed-off-by: Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 ---
- opensm/osmtest/osmtest.c |   12 ++++++++++--
- 1 files changed, 10 insertions(+), 2 deletions(-)
+ opensm/opensm/osm_helper.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/opensm/osmtest/osmtest.c b/opensm/osmtest/osmtest.c
-index 7412ce7..b2ec3fa 100644
---- a/opensm/osmtest/osmtest.c
-+++ b/opensm/osmtest/osmtest.c
-@@ -2753,7 +2753,11 @@ static ib_api_status_t osmtest_stress_small_rmpp(IN osmtest_t * const p_osmt)
+diff --git a/opensm/opensm/osm_helper.c b/opensm/opensm/osm_helper.c
+index 196d5aa..0233e70 100644
+--- a/opensm/opensm/osm_helper.c
++++ b/opensm/opensm/osm_helper.c
+@@ -148,7 +148,7 @@ static const char *ib_sm_method_str[] = {
+ 	"UNKNOWN"		/* 20 */
+ };
 
- 		status = osmtest_stress_port_recs_small(p_osmt, &delta_recs,
- 							&delta_queries);
--		if (status != IB_SUCCESS)
-+		if (status == IB_TIMEOUT) {
-+			num_timeouts++;
-+			continue;
-+		}
-+		else if (status != IB_SUCCESS)
- 			goto Exit;
+-#define OSM_SM_METHOD_STR_UNKNOWN_VAL 0x21
++#define OSM_SM_METHOD_STR_UNKNOWN_VAL 0x20
 
- 		num_recs += delta_recs;
-@@ -2889,7 +2893,11 @@ static ib_api_status_t osmtest_stress_get_pr(IN osmtest_t * const p_osmt)
- 		status = osmtest_stress_path_recs_by_lid(p_osmt,
- 							 &delta_recs,
- 							 &delta_queries);
--		if (status != IB_SUCCESS)
-+		if (status == IB_TIMEOUT) {
-+			num_timeouts++;
-+			continue;
-+		}
-+		else if (status != IB_SUCCESS)
- 			goto Exit;
-
- 		num_recs += delta_recs;
+ static const char *ib_sm_attr_str[] = {
+ 	"RESERVED",		/* 0 */
 -- 
 1.6.2.4
 
