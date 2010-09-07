@@ -1,50 +1,66 @@
-From: Ralph Campbell <ralph.campbell-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH 02/13] drivers/infiniband: Remove unnecessary casts of
- private_data
-Date: Tue, 7 Sep 2010 11:24:29 -0700
-Message-ID: <1283883869.32259.13.camel@chromite.mv.qlogic.com>
-References: <cover.1283650107.git.joe@perches.com>
-	 <a13edeb14cc926b71e21daff892acbe2d76313ab.1283650107.git.joe@perches.com>
+From: Yevgeny Kliteynik <kliteyn-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
+Subject: [PATCH v2] opensm/osm_console.c: fix memory and file descriptor
+	leaks
+Date: Tue, 7 Sep 2010 22:30:09 +0300
+Message-ID: <4C8692C1.1030503@mellanox.co.il>
+Reply-To: kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <a13edeb14cc926b71e21daff892acbe2d76313ab.1283650107.git.joe-6d6DIl74uiNBDgjK7y7TUQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Joe Perches <joe-6d6DIl74uiNBDgjK7y7TUQ@public.gmane.org>
-Cc: Jiri Kosina <trivial-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>, Linux RDMA <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Acked-by: Ralph Campbell <ralph.campbell-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
 
-On Sat, 2010-09-04 at 18:52 -0700, Joe Perches wrote:
-> Signed-off-by: Joe Perches <joe-6d6DIl74uiNBDgjK7y7TUQ@public.gmane.org>
-> ---
->  drivers/infiniband/hw/qib/qib_file_ops.c |    4 ++--
->  1 files changed, 2 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/infiniband/hw/qib/qib_file_ops.c b/drivers/infiniband/hw/qib/qib_file_ops.c
-> index 6b11645..cef5d67 100644
-> --- a/drivers/infiniband/hw/qib/qib_file_ops.c
-> +++ b/drivers/infiniband/hw/qib/qib_file_ops.c
-> @@ -1722,7 +1722,7 @@ static int qib_close(struct inode *in, struct file *fp)
->  
->  	mutex_lock(&qib_mutex);
->  
-> -	fd = (struct qib_filedata *) fp->private_data;
-> +	fd = fp->private_data;
->  	fp->private_data = NULL;
->  	rcd = fd->rcd;
->  	if (!rcd) {
-> @@ -1808,7 +1808,7 @@ static int qib_ctxt_info(struct file *fp, struct qib_ctxt_info __user *uinfo)
->  	struct qib_ctxtdata *rcd = ctxt_fp(fp);
->  	struct qib_filedata *fd;
->  
-> -	fd = (struct qib_filedata *) fp->private_data;
-> +	fd = fp->private_data;
->  
->  	info.num_active = qib_count_active_units();
->  	info.unit = rcd->dd->unit;
+Signed-off-by: Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+---
+
+V2: removed unneeded 'return'
+
+ opensm/opensm/osm_console.c |   10 ++++++----
+ 1 files changed, 6 insertions(+), 4 deletions(-)
+
+diff --git a/opensm/opensm/osm_console.c b/opensm/opensm/osm_console.c
+index bc7bea3..5407e9a 100644
+--- a/opensm/opensm/osm_console.c
++++ b/opensm/opensm/osm_console.c
+@@ -1302,12 +1302,12 @@ static void dump_portguid_parse(char **p_last, osm_opensm_t * p_osm, FILE * out)
+ 	/* Check we have at least one expression to match */
+ 	if (p_head_regexp == NULL) {
+ 		fprintf(out, "No valid expression provided. Aborting\n");
+-		return;
++		goto Exit;
+ 	}
+
+ 	if (p_osm->sm.p_subn->need_update != 0) {
+ 		fprintf(out, "Subnet is not ready yet. Try again later\n");
+-		return;
++		goto Free_and_exit;
+ 	}
+
+ 	/* Subnet doesn't need to be updated so we can carry on */
+@@ -1333,14 +1333,16 @@ static void dump_portguid_parse(char **p_last, osm_opensm_t * p_osm, FILE * out)
+ 	}
+
+ 	CL_PLOCK_RELEASE(p_osm->sm.p_lock);
+-	if (output != out)
+-		fclose(output);
+
++Free_and_exit:
+ 	for (; p_head_regexp; p_head_regexp = p_regexp) {
+ 		p_regexp = p_head_regexp->next;
+ 		regfree(&p_head_regexp->exp);
+ 		free(p_head_regexp);
+ 	}
++Exit:
++	if (output != out)
++		fclose(output);
+ }
+
+ static void help_dump_portguid(FILE * out, int detail)
+-- 
+1.6.2.4
 
 
 --
