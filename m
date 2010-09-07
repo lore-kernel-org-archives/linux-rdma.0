@@ -1,7 +1,8 @@
 From: Yevgeny Kliteynik <kliteyn-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
-Subject: [PATCH] osmtest/osmt_slvl_vl_arb.c: handling fopen() failure
-Date: Tue, 7 Sep 2010 18:07:13 +0300
-Message-ID: <4C865521.4080600@mellanox.co.il>
+Subject: [PATCH] opensm/osm_ucast_ftree.c: fix small memory leak in error
+	path
+Date: Tue, 7 Sep 2010 18:11:01 +0300
+Message-ID: <4C865605.4050702@mellanox.co.il>
 Reply-To: kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"
@@ -14,35 +15,24 @@ List-Id: linux-rdma@vger.kernel.org
 
 Signed-off-by: Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 ---
- opensm/osmtest/osmt_slvl_vl_arb.c |    9 ++++++++-
- 1 files changed, 8 insertions(+), 1 deletions(-)
+ opensm/opensm/osm_ucast_ftree.c |    4 +++-
+ 1 files changed, 3 insertions(+), 1 deletions(-)
 
-diff --git a/opensm/osmtest/osmt_slvl_vl_arb.c b/opensm/osmtest/osmt_slvl_vl_arb.c
-index d3919fb..d4a08ff 100644
---- a/opensm/osmtest/osmt_slvl_vl_arb.c
-+++ b/opensm/osmtest/osmt_slvl_vl_arb.c
-@@ -489,6 +489,12 @@ osmt_run_slvl_and_vlarb_records_flow(IN osmtest_t * const p_osmt)
- 	OSM_LOG_ENTER(&p_osmt->log);
-
- 	fh = fopen("qos.txt", "w");
-+	if (!fh) {
-+		OSM_LOG(&p_osmt->log, OSM_LOG_ERROR, "ERR 0474: "
-+			"Failed to open file qos.txt for writing\n");
-+		status = IB_ERROR;
-+		goto Exit;
+diff --git a/opensm/opensm/osm_ucast_ftree.c b/opensm/opensm/osm_ucast_ftree.c
+index 88ea344..fb46d0f 100644
+--- a/opensm/opensm/osm_ucast_ftree.c
++++ b/opensm/opensm/osm_ucast_ftree.c
+@@ -791,8 +791,10 @@ static ftree_hca_t *hca_create(IN osm_node_t * p_osm_node)
+ 	p_hca->up_port_groups = (ftree_port_group_t **)
+ 	    malloc(osm_node_get_num_physp(p_hca->p_osm_node) *
+ 		   sizeof(ftree_port_group_t *));
+-	if (!p_hca->up_port_groups)
++	if (!p_hca->up_port_groups) {
++		free(p_hca);
+ 		return NULL;
 +	}
-
- 	/* go over all ports in the subnet */
- 	status = osmt_query_all_ports_vl_arb(p_osmt, fh);
-@@ -520,7 +526,8 @@ osmt_run_slvl_and_vlarb_records_flow(IN osmtest_t * const p_osmt)
- 	}
-
- Exit:
--	fclose(fh);
-+	if (fh)
-+		fclose(fh);
- 	OSM_LOG_EXIT(&p_osmt->log);
- 	return status;
+ 	p_hca->up_port_groups_num = 0;
+ 	return p_hca;
  }
 -- 
 1.6.2.4
