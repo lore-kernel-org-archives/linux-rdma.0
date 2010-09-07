@@ -1,49 +1,93 @@
-From: Yevgeny Kliteynik <kliteyn-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
-Subject: [PATCH] opensm/st.c: fix potential core dumps
-Date: Tue, 7 Sep 2010 18:18:41 +0300
-Message-ID: <4C8657D1.40900@mellanox.co.il>
-Reply-To: kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org
+From: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCHv10 02/12] ib_core: IBoE CMA device binding
+Date: Tue, 7 Sep 2010 18:18:35 +0300
+Message-ID: <20100907151834.GA12837@mtldesk30>
+References: <20100826141723.GC8795@mtldesk30>
+ <CF9C39F99A89134C9CF9C4CCB68B8DDF25AB26491D@orsmsx501.amr.corp.intel.com>
+ <20100827054256.GA9755@mtldesk30>
+ <adavd6w37lp.fsf@cisco.com>
+ <20100829143914.GA14370@mtldesk30>
+ <adaeidcnin1.fsf@cisco.com>
+ <20100902192745.GA22039@mtldesk30>
+ <aday6bjnbyu.fsf@cisco.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <aday6bjnbyu.fsf-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>, Linux RDMA <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Cc: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, RDMA list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-If we're out of polynomials, new_size() will return -1
-Deal with this in low-level calls.
+On Thu, Sep 02, 2010 at 01:10:17PM -0700, Roland Dreier wrote:
+> Please just resend this, thanks.
 
-Signed-off-by: Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
----
- opensm/opensm/st.c |    5 +++++
- 1 files changed, 5 insertions(+), 0 deletions(-)
+Here's the new code. I added a function that tries to find a match for
+a given port, istead of ib_find_cached_gid() which searches all the
+ports.
+I tested this on a machine with two cards with different
+configurations and it works fine.
 
-diff --git a/opensm/opensm/st.c b/opensm/opensm/st.c
-index ea76038..469ba9d 100644
---- a/opensm/opensm/st.c
-+++ b/opensm/opensm/st.c
-@@ -194,6 +194,8 @@ size_t size;
- #endif
+static int find_gid_port(struct ib_device *device, union ib_gid	*gid, u8 port_num)
+{
+	int i;
+	int err;
+	struct ib_port_attr props;
+	union ib_gid tmp;
 
- 	size = new_size(size);	/* round up to prime number */
-+	if (size < 0)
-+		return NULL;
+	err = ib_query_port(device, port_num, &props);
+	if (err)
+		return 1;
 
- 	tbl = alloc(st_table);
- 	tbl->type = type;
-@@ -351,6 +353,9 @@ register st_table *table;
- 	unsigned int hash_val;
+	for (i = 0; i < props.gid_tbl_len; ++i) {
+		err = ib_query_gid(device, port_num, i, &tmp);
+		if (err)
+			return 1;
+		if (!memcmp(&tmp, gid, sizeof tmp))
+			return 0;
+	}
 
- 	new_num_bins = new_size(old_num_bins + 1);
-+	if (new_num_bins < 0)
-+		return;
-+
- 	new_bins =
- 	    (st_table_entry **) Calloc(new_num_bins, sizeof(st_table_entry *));
+	return -EAGAIN;
+}
 
--- 
-1.6.2.4
+static int cma_acquire_dev(struct rdma_id_private *id_priv)
+{
+	struct rdma_dev_addr *dev_addr = &id_priv->id.route.addr.dev_addr;
+	struct cma_device *cma_dev;
+	union ib_gid gid, iboe_gid;
+	int ret = -ENODEV;
+	u8 port;
+	enum rdma_link_layer dev_ll = dev_addr->dev_type == ARPHRD_INFINIBAND ?
+		IB_LINK_LAYER_INFINIBAND : IB_LINK_LAYER_ETHERNET;
+
+	iboe_addr_get_sgid(dev_addr, &iboe_gid);
+	memcpy(&gid, dev_addr->src_dev_addr +
+	       rdma_addr_gid_offset(dev_addr), sizeof gid);
+	list_for_each_entry(cma_dev, &dev_list, list) {
+		for (port = 1; port <= cma_dev->device->phys_port_cnt; ++port) {
+			if (rdma_port_get_link_layer(cma_dev->device, port) == dev_ll) {
+				if (rdma_node_get_transport(cma_dev->device->node_type) == RDMA_TRANSPORT_IB &&
+				    rdma_port_get_link_layer(cma_dev->device, port) == IB_LINK_LAYER_ETHERNET)
+					ret = find_gid_port(cma_dev->device, &iboe_gid, port);
+				else
+					ret = find_gid_port(cma_dev->device, &gid, port);
+
+				if (!ret) {
+					id_priv->id.port_num = port;
+					goto out;
+				} else if (ret == 1)
+					break;
+			}
+		}
+	}
+
+out:
+	if (!ret)
+		cma_attach_to_dev(id_priv, cma_dev);
+
+	return ret;
+}
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
