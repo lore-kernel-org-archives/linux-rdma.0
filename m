@@ -1,94 +1,89 @@
-From: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCHv10 02/12] ib_core: IBoE CMA device binding
-Date: Tue, 7 Sep 2010 18:18:35 +0300
-Message-ID: <20100907151834.GA12837@mtldesk30>
-References: <20100826141723.GC8795@mtldesk30>
- <CF9C39F99A89134C9CF9C4CCB68B8DDF25AB26491D@orsmsx501.amr.corp.intel.com>
- <20100827054256.GA9755@mtldesk30>
- <adavd6w37lp.fsf@cisco.com>
- <20100829143914.GA14370@mtldesk30>
- <adaeidcnin1.fsf@cisco.com>
- <20100902192745.GA22039@mtldesk30>
- <aday6bjnbyu.fsf@cisco.com>
+From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+Subject: Re: [PATCH] opensm/osm_console.c: fix memory and file descriptor
+ leaks
+Date: Tue, 7 Sep 2010 08:20:47 -0700
+Message-ID: <20100907082047.3b6be681.weiny2@llnl.gov>
+References: <4C86567A.5060400@mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <aday6bjnbyu.fsf-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <4C86567A.5060400-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Cc: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, RDMA list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: "kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org" <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: Yevgeny Kliteynik <kliteyn-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>, Linux RDMA <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Sep 02, 2010 at 01:10:17PM -0700, Roland Dreier wrote:
-> Please just resend this, thanks.
+Hi Yevgeny,
 
-Here's the new code. I added a function that tries to find a match for
-a given port, istead of ib_find_cached_gid() which searches all the
-ports.
-I tested this on a machine with two cards with different
-configurations and it works fine.
+On Tue, 7 Sep 2010 08:12:58 -0700
+Yevgeny Kliteynik <kliteyn-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org> wrote:
 
-static int find_gid_port(struct ib_device *device, union ib_gid	*gid, u8 port_num)
-{
-	int i;
-	int err;
-	struct ib_port_attr props;
-	union ib_gid tmp;
+> 
+> Signed-off-by: Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+> ---
+>  opensm/opensm/osm_console.c |    9 ++++++---
+>  1 files changed, 6 insertions(+), 3 deletions(-)
+> 
+> diff --git a/opensm/opensm/osm_console.c b/opensm/opensm/osm_console.c
+> index bc7bea3..29a6c83 100644
+> --- a/opensm/opensm/osm_console.c
+> +++ b/opensm/opensm/osm_console.c
+> @@ -1302,12 +1302,13 @@ static void dump_portguid_parse(char **p_last, osm_opensm_t * p_osm, FILE * out)
+>  	/* Check we have at least one expression to match */
+>  	if (p_head_regexp == NULL) {
+>  		fprintf(out, "No valid expression provided. Aborting\n");
+> +		goto Exit;
+>  		return;
 
-	err = ib_query_port(device, port_num, &props);
-	if (err)
-		return 1;
+While you are at it, shouldn't you remove the return here as well?
 
-	for (i = 0; i < props.gid_tbl_len; ++i) {
-		err = ib_query_gid(device, port_num, i, &tmp);
-		if (err)
-			return 1;
-		if (!memcmp(&tmp, gid, sizeof tmp))
-			return 0;
-	}
+Ira
 
-	return -EAGAIN;
-}
+>  	}
+> 
+>  	if (p_osm->sm.p_subn->need_update != 0) {
+>  		fprintf(out, "Subnet is not ready yet. Try again later\n");
+> -		return;
+> +		goto Free_and_exit;
+>  	}
+> 
+>  	/* Subnet doesn't need to be updated so we can carry on */
+> @@ -1333,14 +1334,16 @@ static void dump_portguid_parse(char **p_last, osm_opensm_t * p_osm, FILE * out)
+>  	}
+> 
+>  	CL_PLOCK_RELEASE(p_osm->sm.p_lock);
+> -	if (output != out)
+> -		fclose(output);
+> 
+> +Free_and_exit:
+>  	for (; p_head_regexp; p_head_regexp = p_regexp) {
+>  		p_regexp = p_head_regexp->next;
+>  		regfree(&p_head_regexp->exp);
+>  		free(p_head_regexp);
+>  	}
+> +Exit:
+> +	if (output != out)
+> +		fclose(output);
+>  }
+> 
+>  static void help_dump_portguid(FILE * out, int detail)
+> -- 
+> 1.6.2.4
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://*vger.kernel.org/majordomo-info.html
+> 
 
-static int cma_acquire_dev(struct rdma_id_private *id_priv)
-{
-	struct rdma_dev_addr *dev_addr = &id_priv->id.route.addr.dev_addr;
-	struct cma_device *cma_dev;
-	union ib_gid gid, iboe_gid;
-	int ret = -ENODEV;
-	u8 port;
-	enum rdma_link_layer dev_ll = dev_addr->dev_type == ARPHRD_INFINIBAND ?
-		IB_LINK_LAYER_INFINIBAND : IB_LINK_LAYER_ETHERNET;
 
-	iboe_addr_get_sgid(dev_addr, &iboe_gid);
-	memcpy(&gid, dev_addr->src_dev_addr +
-	       rdma_addr_gid_offset(dev_addr), sizeof gid);
-	list_for_each_entry(cma_dev, &dev_list, list) {
-		for (port = 1; port <= cma_dev->device->phys_port_cnt; ++port) {
-			if (rdma_port_get_link_layer(cma_dev->device, port) == dev_ll) {
-				if (rdma_node_get_transport(cma_dev->device->node_type) == RDMA_TRANSPORT_IB &&
-				    rdma_port_get_link_layer(cma_dev->device, port) == IB_LINK_LAYER_ETHERNET)
-					ret = find_gid_port(cma_dev->device, &iboe_gid, port);
-				else
-					ret = find_gid_port(cma_dev->device, &gid, port);
-
-				if (!ret) {
-					id_priv->id.port_num = port;
-					goto out;
-				} else if (ret == 1)
-					break;
-			}
-		}
-	}
-
-out:
-	if (!ret)
-		cma_attach_to_dev(id_priv, cma_dev);
-
-	return ret;
-}
-
+-- 
+Ira Weiny
+Math Programmer/Computer Scientist
+Lawrence Livermore National Lab
+925-423-8008
+weiny2-i2BcT+NCU+M@public.gmane.org
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
