@@ -1,7 +1,7 @@
 From: Yevgeny Kliteynik <kliteyn-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
-Subject: [PATCH] opensm/osm_mtree.c: removing useless 'if' statement
-Date: Tue, 7 Sep 2010 17:53:54 +0300
-Message-ID: <4C865202.9020105@mellanox.co.il>
+Subject: [PATCH] opensm/osm_ucast_cache.c: fix potential seg fault
+Date: Tue, 7 Sep 2010 17:54:34 +0300
+Message-ID: <4C86522A.8090005@mellanox.co.il>
 Reply-To: kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"
@@ -11,33 +11,32 @@ Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>, Linux RDMA <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-p_mtn->max_children is an array - no point checking if it is NULL.
+Fix potential seg fault when NULL is returned
 
 Signed-off-by: Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 ---
- opensm/opensm/osm_mtree.c |    9 ++++-----
- 1 files changed, 4 insertions(+), 5 deletions(-)
+ opensm/opensm/osm_ucast_cache.c |    8 ++++++++
+ 1 files changed, 8 insertions(+), 0 deletions(-)
 
-diff --git a/opensm/opensm/osm_mtree.c b/opensm/opensm/osm_mtree.c
-index b5ce73b..693d0d5 100644
---- a/opensm/opensm/osm_mtree.c
-+++ b/opensm/opensm/osm_mtree.c
-@@ -73,11 +73,10 @@ void osm_mtree_destroy(IN osm_mtree_node_t * p_mtn)
- 	if (p_mtn == NULL)
- 		return;
+diff --git a/opensm/opensm/osm_ucast_cache.c b/opensm/opensm/osm_ucast_cache.c
+index c611c38..be15508 100644
+--- a/opensm/opensm/osm_ucast_cache.c
++++ b/opensm/opensm/osm_ucast_cache.c
+@@ -931,6 +931,14 @@ void osm_ucast_cache_add_node(osm_ucast_mgr_t * p_mgr, osm_node_t * p_node)
 
--	if (p_mtn->child_array != NULL)
--		for (i = 0; i < p_mtn->max_children; i++)
--			if ((p_mtn->child_array[i] != NULL) &&
--			    (p_mtn->child_array[i] != OSM_MTREE_LEAF))
--				osm_mtree_destroy(p_mtn->child_array[i]);
-+	for (i = 0; i < p_mtn->max_children; i++)
-+		if ((p_mtn->child_array[i] != NULL) &&
-+		    (p_mtn->child_array[i] != OSM_MTREE_LEAF))
-+			osm_mtree_destroy(p_mtn->child_array[i]);
+ 		p_cache_sw = cache_get_sw(p_mgr, lid_ho);
+ 		CL_ASSERT(p_cache_sw);
++		if (!p_cache_sw) {
++			/* something is wrong - forget about cache */
++			OSM_LOG(p_mgr->p_log, OSM_LOG_ERROR,
++				"ERR AD04: no cached switch with lid %u - "
++				"clearing cache\n", lid_ho);
++			osm_ucast_cache_invalidate(p_mgr);
++			goto Exit;
++		}
 
- 	free(p_mtn);
- }
+ 		if (!cache_sw_is_leaf(p_cache_sw)) {
+ 			OSM_LOG(p_mgr->p_log, OSM_LOG_DEBUG,
 -- 
 1.6.2.4
 
