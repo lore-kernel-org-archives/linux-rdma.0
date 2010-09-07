@@ -1,8 +1,8 @@
 From: Yevgeny Kliteynik <kliteyn-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
-Subject: [PATCH] opensm/osm_ucast_ftree.c: fix small memory leak in error
-	path
-Date: Tue, 7 Sep 2010 18:11:01 +0300
-Message-ID: <4C865605.4050702@mellanox.co.il>
+Subject: [PATCH] opensm/osm_ucast_ftree.c: fixing another memory leak at
+	error path
+Date: Tue, 7 Sep 2010 18:11:55 +0300
+Message-ID: <4C86563B.4070007@mellanox.co.il>
 Reply-To: kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"
@@ -15,25 +15,29 @@ List-Id: linux-rdma@vger.kernel.org
 
 Signed-off-by: Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 ---
- opensm/opensm/osm_ucast_ftree.c |    4 +++-
- 1 files changed, 3 insertions(+), 1 deletions(-)
+ opensm/opensm/osm_ucast_ftree.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/opensm/opensm/osm_ucast_ftree.c b/opensm/opensm/osm_ucast_ftree.c
-index 88ea344..fb46d0f 100644
+index fb46d0f..d161bc8 100644
 --- a/opensm/opensm/osm_ucast_ftree.c
 +++ b/opensm/opensm/osm_ucast_ftree.c
-@@ -791,8 +791,10 @@ static ftree_hca_t *hca_create(IN osm_node_t * p_osm_node)
- 	p_hca->up_port_groups = (ftree_port_group_t **)
- 	    malloc(osm_node_get_num_physp(p_hca->p_osm_node) *
- 		   sizeof(ftree_port_group_t *));
--	if (!p_hca->up_port_groups)
-+	if (!p_hca->up_port_groups) {
-+		free(p_hca);
- 		return NULL;
-+	}
- 	p_hca->up_port_groups_num = 0;
- 	return p_hca;
- }
+@@ -1670,13 +1670,13 @@ static int fabric_create_leaf_switch_array(IN ftree_fabric_t * p_ftree)
+ 	       &(all_switches_at_leaf_level[first_leaf_idx]),
+ 	       p_ftree->leaf_switches_num * sizeof(ftree_sw_t *));
+
+-	free(all_switches_at_leaf_level);
+-
+ 	OSM_LOG(&p_ftree->p_osm->log, OSM_LOG_DEBUG,
+ 		"Created array of %u leaf switches\n",
+ 		p_ftree->leaf_switches_num);
+
+ Exit:
++	if (all_switches_at_leaf_level)
++		free(all_switches_at_leaf_level);
+ 	OSM_LOG_EXIT(&p_ftree->p_osm->log);
+ 	return res;
+ }				/* fabric_create_leaf_switch_array() */
 -- 
 1.6.2.4
 
