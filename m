@@ -1,340 +1,191 @@
 From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH] librdmacm: expand hints support to rdma_getaddrinfo
-Date: Wed, 8 Sep 2010 11:13:06 -0700
-Message-ID: <CF9C39F99A89134C9CF9C4CCB68B8DDF25AB4EA12D@orsmsx501.amr.corp.intel.com>
+Subject: [PATCH] dapl: add support for ibacm
+Date: Wed, 8 Sep 2010 11:22:43 -0700
+Message-ID: <CF9C39F99A89134C9CF9C4CCB68B8DDF25AB4EA157@orsmsx501.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: RDMA list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: RDMA list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Davis, Arlin R" <arlin.r.davis-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-If a user passes in hints into rdma_getaddrinfo, they can
-specify resolved source and destination addresses.  In this
-case, there's no need for the user to specify the node or
-service parameters.  This differs from getaddrinfo, which
-indicates that either node or service must be provided, but
-is useful if rdma_getaddrinfo is being used to obtain
-routing data.
+Allow DAPL out of band connection models to use ibacm to obtain
+path record data.  This will enable support for a wider range of
+topologies, where the SL is required from the SA to prevent
+deadlock.
 
-Supporting this option allows the librdmacm to call
-rdma_getaddrinfo internally from rdma_resolve_route when IB ACM
-is enabled.  IB ACM can return only routing data (i.e. a path
-record) based on the source and destination IP addresses.
-
-In addition to specifying the source and destination addresses
-as part of the hints, a user could include partial routing data hints,
-such as a desired SLID and/or DLID, and rdma_getaddrinfo can resolve the
-full route.  This helps to support MPI applications that exchange endpoint
-data, such as LIDs, out of band, but require SL data from the
-SA to avoid potential deadlock conditions.
+DAPL will obtain path record data using rdma_getaddrinfo, provided
+that IB ACM support is enabled.  On failure, dapl will fall back to
+using its default SL value.  The IB ACM can be configured to cache
+path information or always query the SA to ensure that the SL that is
+obtained is current.
 
 Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- src/acm.c      |   60 ++++++++++++++++++++------------------
- src/addrinfo.c |   89 ++++++++++++++++++++++++++++++++++++--------------------
- src/cma.c      |   30 ++++++++-----------
- src/cma.h      |    6 ++--
- 4 files changed, 106 insertions(+), 79 deletions(-)
+ Makefile.am                    |    4 ++-
+ configure.in                   |   14 ++++++++++++
+ dapl/openib_common/qp.c        |   46 ++++++++++++++++++++++++++++++++++++++--
+ dapl/openib_ucm/dapl_ib_util.h |    1 +
+ dapl/openib_ucm/device.c       |    1 +
+ 5 files changed, 62 insertions(+), 4 deletions(-)
 
-diff --git a/src/acm.c b/src/acm.c
-index b2a952e..1867362 100644
---- a/src/acm.c
-+++ b/src/acm.c
-@@ -244,11 +244,22 @@ static void ucma_ib_save_resp(struct rdma_addrinfo *rai, struct acm_resolve_msg
- 	}
+diff --git a/Makefile.am b/Makefile.am
+index 0be6298..141a68b 100755
+--- a/Makefile.am
++++ b/Makefile.am
+@@ -324,7 +324,7 @@ dapl_udapl_libdaploscm_la_SOURCES = dapl/udapl/dapl_init.c \
+ 
+ dapl_udapl_libdaploscm_la_LDFLAGS = -version-info 2:0:0 $(daploscm_version_script) \
+                                    -Wl,-init,dapl_init -Wl,-fini,dapl_fini \
+-                                   -lpthread -libverbs
++                                   -lpthread -libverbs -lrdmacm
+                                    
+ #
+ # uDAPL OpenFabrics UD CM version for IB: libdaplucm.so
+@@ -438,7 +438,7 @@ dapl_udapl_libdaploucm_la_SOURCES = dapl/udapl/dapl_init.c \
+ 
+ dapl_udapl_libdaploucm_la_LDFLAGS = -version-info 2:0:0 $(daploscm_version_script) \
+                                    -Wl,-init,dapl_init -Wl,-fini,dapl_fini \
+-                                   -lpthread -libverbs
++                                   -lpthread -libverbs -lrdmacm
+ 
+ libdatincludedir = $(includedir)/dat2
+ 
+diff --git a/configure.in b/configure.in
+index b67314c..c8c1422 100644
+--- a/configure.in
++++ b/configure.in
+@@ -31,9 +31,23 @@ AC_CHECK_MEMBER(struct ibv_port_attr.link_layer,
+     AM_CONDITIONAL(DEFINE_ATTR_LINK_LAYER, test "yes" = "yes"), 
+     AM_CONDITIONAL(DEFINE_ATTR_LINK_LAYER, test "yes" = "no"), 
+     [#include <infiniband/verbs.h>])
++
++if test "$with_ib_acm" != "" && test "$with_ib_acm" != "no"; then
++AC_CHECK_MEMBER(struct ibv_path_record.service_id, [],
++    AC_MSG_ERROR([IB ACM support requires libibverbs 1.1.4 or greater.]),
++    [#include <infiniband/sa.h>])
++AC_CHECK_HEADER(infiniband/acm.h, [],
++    AC_MSG_ERROR([IB ACM requested but <infiniband/acm.h> not found.]))
++fi
++
+ else
+     AM_CONDITIONAL(DEFINE_ATTR_LINK_LAYER, test "yes" = "no")
+ fi
++dnl End check for libraries
++
++if test "$with_ib_acm" != "" && test "$with_ib_acm" != "no"; then
++    AC_DEFINE(DAPL_USE_IBACM, 1, [set to 1 to use IB ACM services])
++fi
+ 
+ AC_CACHE_CHECK(whether ld accepts --version-script, ac_cv_version_script,
+     if test -n "`$LD --help < /dev/null 2>/dev/null | grep version-script`"; then
+diff --git a/dapl/openib_common/qp.c b/dapl/openib_common/qp.c
+index 179eef0..5c5c10f 100644
+--- a/dapl/openib_common/qp.c
++++ b/dapl/openib_common/qp.c
+@@ -22,9 +22,15 @@
+  * notice, one of the license notices in the documentation
+  * and/or other materials provided with the distribution.
+  */
++#ifdef HAVE_CONFIG_H
++#include <config.h>
++#endif
++
+ #include "dapl.h"
+ #include "dapl_adapter_util.h"
+ #include "dapl_ep_util.h"
++#include <infiniband/sa.h>
++#include <rdma/rdma_cma.h>
+ 
+ /*
+  * dapl_ib_qp_alloc
+@@ -359,6 +365,42 @@ void dapls_ib_reinit_ep(IN DAPL_EP * ep_ptr)
  }
+ #endif				// _WIN32 || _WIN64
  
--void ucma_ib_resolve(struct rdma_addrinfo *rai)
-+static void ucma_copy_rai_addr(struct acm_ep_addr_data *data, struct sockaddr *addr)
++#if DAPL_USE_IBACM
++uint8_t dapls_get_sl(DAPL_HCA *hca_ptr, uint16_t dlid)
 +{
-+	if (addr->sa_family == AF_INET) {
-+		data->type = ACM_EP_INFO_ADDRESS_IP;
-+		memcpy(data->info.addr, &((struct sockaddr_in *) addr)->sin_addr, 4);
-+	} else {
-+		data->type = ACM_EP_INFO_ADDRESS_IP6;
-+		memcpy(data->info.addr, &((struct sockaddr_in6 *) addr)->sin6_addr, 16);
-+	}
-+}
-+
-+void ucma_ib_resolve(struct rdma_addrinfo *rai, struct rdma_addrinfo *hints)
- {
- 	struct acm_msg msg;
- 	struct acm_resolve_msg *resolve_msg = (struct acm_resolve_msg *) &msg;
--	struct acm_ep_addr_data *src_data, *dst_data;
-+	struct acm_ep_addr_data *data;
- 	int ret;
- 
- 	if (sock <= 0)
-@@ -257,37 +268,30 @@ void ucma_ib_resolve(struct rdma_addrinfo *rai)
- 	memset(&msg, 0, sizeof msg);
- 	msg.hdr.version = ACM_VERSION;
- 	msg.hdr.opcode = ACM_OP_RESOLVE;
-+	msg.hdr.length = ACM_MSG_HDR_LENGTH;
- 
-+	data = &resolve_msg->data[0];
- 	if (rai->ai_src_len) {
--		src_data = &resolve_msg->data[0];
--		src_data->flags = ACM_EP_FLAG_SOURCE;
--		if (rai->ai_family == AF_INET) {
--			src_data->type = ACM_EP_INFO_ADDRESS_IP;
--			memcpy(src_data->info.addr,
--			       &((struct sockaddr_in *) rai->ai_src_addr)->sin_addr, 4);
--		} else {
--			src_data->type = ACM_EP_INFO_ADDRESS_IP6;
--			memcpy(src_data->info.addr,
--			       &((struct sockaddr_in6 *) rai->ai_src_addr)->sin6_addr, 16);
--		}
--		dst_data = &resolve_msg->data[1];
--		msg.hdr.length = ACM_MSG_HDR_LENGTH + (2 * ACM_MSG_EP_LENGTH);
--	} else {
--		dst_data = &resolve_msg->data[0];
--		msg.hdr.length = ACM_MSG_HDR_LENGTH + ACM_MSG_EP_LENGTH;
-+		data->flags = ACM_EP_FLAG_SOURCE;
-+		ucma_copy_rai_addr(data, rai->ai_src_addr);
-+		data++;
-+		msg.hdr.length += ACM_MSG_EP_LENGTH;
- 	}
- 
--	dst_data->flags = ACM_EP_FLAG_DEST;
--	if (rai->ai_family == AF_INET) {
--		dst_data->type = ACM_EP_INFO_ADDRESS_IP;
--		memcpy(dst_data->info.addr,
--		       &((struct sockaddr_in *) rai->ai_dst_addr)->sin_addr, 4);
--	} else {
--		dst_data->type = ACM_EP_INFO_ADDRESS_IP6;
--		memcpy(dst_data->info.addr,
--		       &((struct sockaddr_in6 *) rai->ai_dst_addr)->sin6_addr, 16);
-+	if (rai->ai_dst_len) {
-+		data->flags = ACM_EP_FLAG_DEST;
-+		ucma_copy_rai_addr(data, rai->ai_dst_addr);
-+		data++;
-+		msg.hdr.length += ACM_MSG_EP_LENGTH;
- 	}
--	
-+
-+	if (hints && hints->ai_route_len) {
-+		data->type = ACM_EP_INFO_PATH;
-+		memcpy(&data->info.path, hints->ai_route, hints->ai_route_len);
-+		data++;
-+		msg.hdr.length += ACM_MSG_EP_LENGTH;
-+	}
-+
- 	pthread_mutex_lock(&acm_lock);
- 	ret = send(sock, (char *) &msg, msg.hdr.length, 0);
- 	if (ret != msg.hdr.length) {
-diff --git a/src/addrinfo.c b/src/addrinfo.c
-index 7c7056f..a1cb8a5 100755
---- a/src/addrinfo.c
-+++ b/src/addrinfo.c
-@@ -48,7 +48,7 @@
- static void ucma_convert_to_ai(struct addrinfo *ai, struct rdma_addrinfo *rai)
- {
- 	memset(ai, 0, sizeof *ai);
--	ai->ai_flags = rai->ai_flags;
-+	ai->ai_flags = (rai->ai_flags & RAI_PASSIVE) ? AI_PASSIVE : 0;
- 	ai->ai_family = rai->ai_family;
- 
- 	switch (rai->ai_qp_type) {
-@@ -86,8 +86,6 @@ static int ucma_convert_to_rai(struct rdma_addrinfo *rai, struct addrinfo *ai)
- 	struct sockaddr *addr;
- 	char *canonname;
- 
--	memset(rai, 0, sizeof *rai);
--	rai->ai_flags = ai->ai_flags;
- 	rai->ai_family = ai->ai_family;
- 
- 	switch (ai->ai_socktype) {
-@@ -130,21 +128,17 @@ static int ucma_convert_to_rai(struct rdma_addrinfo *rai, struct addrinfo *ai)
- 	return 0;
- }
- 
--int rdma_getaddrinfo(char *node, char *service,
--		     struct rdma_addrinfo *hints,
--		     struct rdma_addrinfo **res)
-+static int ucma_convert_gai(char *node, char *service,
-+			    struct rdma_addrinfo *hints,
-+			    struct rdma_addrinfo *rai)
- {
--	struct rdma_addrinfo *rai;
- 	struct addrinfo ai_hints;
- 	struct addrinfo *ai, *aih;
- 	int ret;
- 
--	ret = ucma_init();
--	if (ret)
--		return ret;
--
- 	if (hints) {
- 		ucma_convert_to_ai(&ai_hints, hints);
-+		rai->ai_flags = hints->ai_flags;
- 		aih = &ai_hints;
- 	} else {
- 		aih = NULL;
-@@ -154,38 +148,71 @@ int rdma_getaddrinfo(char *node, char *service,
- 	if (ret)
- 		return ret;
- 
--	rai = malloc(sizeof(*rai));
--	if (!rai) {
--		ret = ERR(ENOMEM);
--		goto err1;
--	}
--
- 	ret = ucma_convert_to_rai(rai, ai);
-+	freeaddrinfo(ai);
-+	return ret;
-+}
-+
-+static int ucma_copy_ai_addr(struct sockaddr **dst, socklen_t *dst_len,
-+			     struct sockaddr *src, socklen_t src_len)
-+{
-+	*dst = calloc(1, src_len);
-+	if (!(*dst))
-+		return ERR(ENOMEM);
-+
-+	memcpy(*dst, src, src_len);
-+	*dst_len = src_len;
-+	return 0;
-+}
-+
-+int rdma_getaddrinfo(char *node, char *service,
-+		     struct rdma_addrinfo *hints,
-+		     struct rdma_addrinfo **res)
-+{
-+	struct rdma_addrinfo *rai;
++	struct rdma_addrinfo hint, *res;
++	struct ibv_path_record path;
++	uint8_t sl = hca_ptr->ib_trans.sl;
 +	int ret;
 +
-+	if (!service && !node && !hints)
-+		return ERR(EINVAL);
++	memset(&path, 0, sizeof path);
++	path.reversible_numpath = IBV_PATH_RECORD_REVERSIBLE | 1;
++	path.slid = hca_ptr->ib_trans.lid;
++	path.dlid = dlid;
 +
-+	ret = ucma_init();
++	memset(&hint, 0, sizeof hint);
++	hint.ai_route = &path;
++	hint.ai_route_len = sizeof(path);
++
++	ret = rdma_getaddrinfo(NULL, NULL, &hint, &res);
 +	if (ret)
-+		return ret;
++		goto out;
++	
++	if (res->ai_route_len)
++		sl = ntohs(((struct ibv_path_record *) res->ai_route)->
++			   qosclass_sl) & 0xF;
 +
-+	rai = calloc(1, sizeof(*rai));
-+	if (!rai)
-+		return ERR(ENOMEM);
++	rdma_freeaddrinfo(res);
++out:	
++	return sl;
++}
++#else
++uint8_t dapls_get_sl(DAPL_HCA *hca_ptr, uint16_t dlid)
++{
++	return hca_ptr->ib_trans.sl;
++}
++#endif
 +
-+	if (node || service) {
-+		ret = ucma_convert_gai(node, service, hints, rai);
-+	} else {
-+		rai->ai_flags = hints->ai_flags;
-+		rai->ai_family = hints->ai_family;
-+		rai->ai_qp_type = hints->ai_qp_type;
-+		rai->ai_port_space = hints->ai_port_space;
-+		if (hints->ai_dst_len) {
-+			ret = ucma_copy_ai_addr(&rai->ai_dst_addr, &rai->ai_dst_len,
-+						hints->ai_dst_addr, hints->ai_dst_len);
-+		}
-+	}
- 	if (ret)
--		goto err2;
-+		goto err;
+ /* 
+  * Generic QP modify for init, reset, error, RTS, RTR
+  * For UD, create_ah on RTR, qkey on INIT
+@@ -422,7 +464,7 @@ dapls_modify_qp_state(IN ib_qp_handle_t		qp_handle,
+ 			qp_attr.ah_attr.grh.traffic_class =
+ 				ia_ptr->hca_ptr->ib_trans.tclass;
+ 		}
+-		qp_attr.ah_attr.sl = ia_ptr->hca_ptr->ib_trans.sl;
++		qp_attr.ah_attr.sl = dapls_get_sl(ia_ptr->hca_ptr, lid);
+ 		qp_attr.ah_attr.src_path_bits = 0;
+ 		qp_attr.ah_attr.port_num = ia_ptr->hca_ptr->port_num;
  
- 	if (!rai->ai_src_len && hints && hints->ai_src_len) {
--		rai->ai_src_addr = calloc(1, hints->ai_src_len);
--		if (!rai->ai_src_addr) {
--			ret = ERR(ENOMEM);
--			goto err2;
--		}
--		memcpy(rai->ai_src_addr, hints->ai_src_addr,
--		       hints->ai_src_len);
--		rai->ai_src_len = hints->ai_src_len;
-+		ret = ucma_copy_ai_addr(&rai->ai_src_addr, &rai->ai_src_len,
-+					hints->ai_src_addr, hints->ai_src_len);
-+		if (ret)
-+			goto err;
+@@ -582,7 +624,7 @@ dapls_create_ah(IN DAPL_HCA		*hca,
+ 		qp_attr.ah_attr.grh.hop_limit =	hca->ib_trans.hop_limit;
+ 		qp_attr.ah_attr.grh.traffic_class = hca->ib_trans.tclass;
+ 	}
+-	qp_attr.ah_attr.sl = hca->ib_trans.sl;
++	qp_attr.ah_attr.sl = dapls_get_sl(hca, lid);
+ 	qp_attr.ah_attr.src_path_bits = 0;
+ 	qp_attr.ah_attr.port_num = hca->port_num;
+ 
+diff --git a/dapl/openib_ucm/dapl_ib_util.h b/dapl/openib_ucm/dapl_ib_util.h
+index 25ce963..9fd573e 100644
+--- a/dapl/openib_ucm/dapl_ib_util.h
++++ b/dapl/openib_ucm/dapl_ib_util.h
+@@ -113,6 +113,7 @@ typedef struct _ib_hca_transport
+ 	struct ibv_comp_channel *rch;
+ 	struct ibv_ah		**ah;  
+ 	DAPL_OS_LOCK		plock;
++	uint16_t		lid;
+ 	uint8_t			*sid;  /* Sevice IDs, port space, bitarray? */
+ 	uint8_t			sl;
+ 	uint16_t		pkey;
+diff --git a/dapl/openib_ucm/device.c b/dapl/openib_ucm/device.c
+index 1959c76..88463e1 100644
+--- a/dapl/openib_ucm/device.c
++++ b/dapl/openib_ucm/device.c
+@@ -237,6 +237,7 @@ found:
+ 		goto err;
+ 	} else {
+ 		hca_ptr->ib_trans.addr.ib.lid = htons(port_attr.lid);
++		hca_ptr->ib_trans.lid = htons(port_attr.lid);
  	}
  
- 	if (!(rai->ai_flags & RAI_PASSIVE))
--		ucma_ib_resolve(rai);
-+		ucma_ib_resolve(rai, hints);
- 
--	freeaddrinfo(ai);
- 	*res = rai;
- 	return 0;
- 
--err2:
-+err:
- 	rdma_freeaddrinfo(rai);
--err1:
--	freeaddrinfo(ai);
- 	return ret;
- }
- 
-diff --git a/src/cma.c b/src/cma.c
-index a4fd574..f7568cf 100755
---- a/src/cma.c
-+++ b/src/cma.c
-@@ -867,28 +867,24 @@ int rdma_resolve_addr(struct rdma_cm_id *id, struct sockaddr *src_addr,
- 
- static int ucma_set_ib_route(struct rdma_cm_id *id)
- {
--	struct rdma_addrinfo rai;
--	struct sockaddr_in6 src, dst;
-+	struct rdma_addrinfo hint, *rai;
- 	int ret;
- 
--	memset(&rai, 0, sizeof rai);
--	rai.ai_flags = RAI_ROUTEONLY;
--	rai.ai_family = id->route.addr.src_addr.sa_family;
--	rai.ai_src_len = ucma_addrlen((struct sockaddr *) &id->route.addr.src_addr);
--	rai.ai_dst_len = ucma_addrlen((struct sockaddr *) &id->route.addr.dst_addr);
-+	memset(&hint, 0, sizeof hint);
-+	hint.ai_flags = RAI_ROUTEONLY;
-+	hint.ai_family = id->route.addr.src_addr.sa_family;
-+	hint.ai_src_len = ucma_addrlen((struct sockaddr *) &id->route.addr.src_addr);
-+	hint.ai_src_addr = &id->route.addr.src_addr;
-+	hint.ai_dst_len = ucma_addrlen((struct sockaddr *) &id->route.addr.dst_addr);
-+	hint.ai_dst_addr = &id->route.addr.dst_addr;
- 
--	memcpy(&src, &id->route.addr.src_addr, rai.ai_src_len);
--	memcpy(&dst, &id->route.addr.dst_addr, rai.ai_dst_len);
--	rai.ai_src_addr = (struct sockaddr *) &src;
--	rai.ai_dst_addr = (struct sockaddr *) &dst;
--
--	ucma_ib_resolve(&rai);
--	if (!rai.ai_route_len)
--		return ERR(ENODATA);
-+	ret = rdma_getaddrinfo(NULL, NULL, &hint, &rai);
-+	if (ret)
-+		return ret;
- 
- 	ret = rdma_set_option(id, RDMA_OPTION_IB, RDMA_OPTION_IB_PATH,
--			      rai.ai_route, rai.ai_route_len);
--	free(rai.ai_route);
-+			      rai->ai_route, rai->ai_route_len);
-+	rdma_freeaddrinfo(rai);
- 	return ret;
- }
- 
-diff --git a/src/cma.h b/src/cma.h
-index d88c6b1..c6639b0 100644
---- a/src/cma.h
-+++ b/src/cma.h
-@@ -77,16 +77,16 @@ static inline int ERR(int err)
- int ucma_init();
- extern int af_ib_support;
- 
--#define RAI_ROUTEONLY 0x01000000
-+#define RAI_ROUTEONLY		0x01000000
- 
- #ifdef USE_IB_ACM
- void ucma_ib_init();
- void ucma_ib_cleanup();
--void ucma_ib_resolve(struct rdma_addrinfo *rai);
-+void ucma_ib_resolve(struct rdma_addrinfo *rai, struct rdma_addrinfo *hints);
- #else
- #define ucma_ib_init()
- #define ucma_ib_cleanup()
--#define ucma_ib_resolve(x)
-+#define ucma_ib_resolve(x, y)
- #endif
- 
- /* Define path record definition if using older version of libibverbs */
+ 	/* get gid for this hca-port, network order */
 
 
 --
