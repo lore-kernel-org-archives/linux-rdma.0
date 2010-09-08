@@ -1,194 +1,129 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH] dapl: add support for ibacm
-Date: Wed, 8 Sep 2010 11:22:43 -0700
-Message-ID: <CF9C39F99A89134C9CF9C4CCB68B8DDF25AB4EA157@orsmsx501.amr.corp.intel.com>
+From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+Subject: Re: [PATCH] libibmad/fields.c: Change all PortCounter names to
+ match the Specification
+Date: Wed, 8 Sep 2010 12:12:06 -0700
+Message-ID: <20100908121206.81c19f94.weiny2@llnl.gov>
+References: <20100907193727.83c64672.weiny2@llnl.gov>
+	<AANLkTinc5MGM6YEkeLrWT_m81LFm-JCtef_M5sw7sBw=@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <AANLkTinc5MGM6YEkeLrWT_m81LFm-JCtef_M5sw7sBw=@mail.gmail.com>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: RDMA list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Davis, Arlin R" <arlin.r.davis-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Allow DAPL out of band connection models to use ibacm to obtain
-path record data.  This will enable support for a wider range of
-topologies, where the SL is required from the SA to prevent
-deadlock.
+On Wed, 8 Sep 2010 04:24:28 -0700
+Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
 
-DAPL will obtain path record data using rdma_getaddrinfo, provided
-that IB ACM support is enabled.  On failure, dapl will fall back to
-using its default SL value.  The IB ACM can be configured to cache
-path information or always query the SA to ensure that the SL that is
-obtained is current.
+> On Tue, Sep 7, 2010 at 10:37 PM, Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org> wrote:
+> >
+> > From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+> > Date: Tue, 3 Aug 2010 10:40:56 -0700
+> > Subject: [PATCH] libibmad/fields.c: Change all PortCounter names to=
+ match the Specification
+> >
+> > Signed-off-by: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+> > ---
+> > =A0libibmad/src/fields.c | =A0 32 ++++++++++++++++----------------
+> > =A01 files changed, 16 insertions(+), 16 deletions(-)
+>=20
+> A number of diag scripts need changing to go along with these field
+> name changes.
 
-Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
----
- Makefile.am                    |    4 ++-
- configure.in                   |   14 ++++++++++++
- dapl/openib_common/qp.c        |   46 ++++++++++++++++++++++++++++++++++++++--
- dapl/openib_ucm/dapl_ib_util.h |    1 +
- dapl/openib_ucm/device.c       |    1 +
- 5 files changed, 62 insertions(+), 4 deletions(-)
+Correct.
 
-diff --git a/Makefile.am b/Makefile.am
-index 0be6298..141a68b 100755
---- a/Makefile.am
-+++ b/Makefile.am
-@@ -324,7 +324,7 @@ dapl_udapl_libdaploscm_la_SOURCES = dapl/udapl/dapl_init.c \
- 
- dapl_udapl_libdaploscm_la_LDFLAGS = -version-info 2:0:0 $(daploscm_version_script) \
-                                    -Wl,-init,dapl_init -Wl,-fini,dapl_fini \
--                                   -lpthread -libverbs
-+                                   -lpthread -libverbs -lrdmacm
-                                    
- #
- # uDAPL OpenFabrics UD CM version for IB: libdaplucm.so
-@@ -438,7 +438,7 @@ dapl_udapl_libdaploucm_la_SOURCES = dapl/udapl/dapl_init.c \
- 
- dapl_udapl_libdaploucm_la_LDFLAGS = -version-info 2:0:0 $(daploscm_version_script) \
-                                    -Wl,-init,dapl_init -Wl,-fini,dapl_fini \
--                                   -lpthread -libverbs
-+                                   -lpthread -libverbs -lrdmacm
- 
- libdatincludedir = $(includedir)/dat2
- 
-diff --git a/configure.in b/configure.in
-index b67314c..c8c1422 100644
---- a/configure.in
-+++ b/configure.in
-@@ -31,9 +31,23 @@ AC_CHECK_MEMBER(struct ibv_port_attr.link_layer,
-     AM_CONDITIONAL(DEFINE_ATTR_LINK_LAYER, test "yes" = "yes"), 
-     AM_CONDITIONAL(DEFINE_ATTR_LINK_LAYER, test "yes" = "no"), 
-     [#include <infiniband/verbs.h>])
-+
-+if test "$with_ib_acm" != "" && test "$with_ib_acm" != "no"; then
-+AC_CHECK_MEMBER(struct ibv_path_record.service_id, [],
-+    AC_MSG_ERROR([IB ACM support requires libibverbs 1.1.4 or greater.]),
-+    [#include <infiniband/sa.h>])
-+AC_CHECK_HEADER(infiniband/acm.h, [],
-+    AC_MSG_ERROR([IB ACM requested but <infiniband/acm.h> not found.]))
-+fi
-+
- else
-     AM_CONDITIONAL(DEFINE_ATTR_LINK_LAYER, test "yes" = "no")
- fi
-+dnl End check for libraries
-+
-+if test "$with_ib_acm" != "" && test "$with_ib_acm" != "no"; then
-+    AC_DEFINE(DAPL_USE_IBACM, 1, [set to 1 to use IB ACM services])
-+fi
- 
- AC_CACHE_CHECK(whether ld accepts --version-script, ac_cv_version_script,
-     if test -n "`$LD --help < /dev/null 2>/dev/null | grep version-script`"; then
-diff --git a/dapl/openib_common/qp.c b/dapl/openib_common/qp.c
-index 179eef0..5c5c10f 100644
---- a/dapl/openib_common/qp.c
-+++ b/dapl/openib_common/qp.c
-@@ -22,9 +22,15 @@
-  * notice, one of the license notices in the documentation
-  * and/or other materials provided with the distribution.
-  */
-+#ifdef HAVE_CONFIG_H
-+#include <config.h>
-+#endif
-+
- #include "dapl.h"
- #include "dapl_adapter_util.h"
- #include "dapl_ep_util.h"
-+#include <infiniband/sa.h>
-+#include <rdma/rdma_cma.h>
- 
- /*
-  * dapl_ib_qp_alloc
-@@ -359,6 +365,42 @@ void dapls_ib_reinit_ep(IN DAPL_EP * ep_ptr)
- }
- #endif				// _WIN32 || _WIN64
- 
-+#if DAPL_USE_IBACM
-+uint8_t dapls_get_sl(DAPL_HCA *hca_ptr, uint16_t dlid)
-+{
-+	struct rdma_addrinfo hint, *res;
-+	struct ibv_path_record path;
-+	uint8_t sl = hca_ptr->ib_trans.sl;
-+	int ret;
-+
-+	memset(&path, 0, sizeof path);
-+	path.reversible_numpath = IBV_PATH_RECORD_REVERSIBLE | 1;
-+	path.slid = hca_ptr->ib_trans.lid;
-+	path.dlid = dlid;
-+
-+	memset(&hint, 0, sizeof hint);
-+	hint.ai_route = &path;
-+	hint.ai_route_len = sizeof(path);
-+
-+	ret = rdma_getaddrinfo(NULL, NULL, &hint, &res);
-+	if (ret)
-+		goto out;
-+	
-+	if (res->ai_route_len)
-+		sl = ntohs(((struct ibv_path_record *) res->ai_route)->
-+			   qosclass_sl) & 0xF;
-+
-+	rdma_freeaddrinfo(res);
-+out:	
-+	return sl;
-+}
-+#else
-+uint8_t dapls_get_sl(DAPL_HCA *hca_ptr, uint16_t dlid)
-+{
-+	return hca_ptr->ib_trans.sl;
-+}
-+#endif
-+
- /* 
-  * Generic QP modify for init, reset, error, RTS, RTR
-  * For UD, create_ah on RTR, qkey on INIT
-@@ -422,7 +464,7 @@ dapls_modify_qp_state(IN ib_qp_handle_t		qp_handle,
- 			qp_attr.ah_attr.grh.traffic_class =
- 				ia_ptr->hca_ptr->ib_trans.tclass;
- 		}
--		qp_attr.ah_attr.sl = ia_ptr->hca_ptr->ib_trans.sl;
-+		qp_attr.ah_attr.sl = dapls_get_sl(ia_ptr->hca_ptr, lid);
- 		qp_attr.ah_attr.src_path_bits = 0;
- 		qp_attr.ah_attr.port_num = ia_ptr->hca_ptr->port_num;
- 
-@@ -582,7 +624,7 @@ dapls_create_ah(IN DAPL_HCA		*hca,
- 		qp_attr.ah_attr.grh.hop_limit =	hca->ib_trans.hop_limit;
- 		qp_attr.ah_attr.grh.traffic_class = hca->ib_trans.tclass;
- 	}
--	qp_attr.ah_attr.sl = hca->ib_trans.sl;
-+	qp_attr.ah_attr.sl = dapls_get_sl(hca, lid);
- 	qp_attr.ah_attr.src_path_bits = 0;
- 	qp_attr.ah_attr.port_num = hca->port_num;
- 
-diff --git a/dapl/openib_ucm/dapl_ib_util.h b/dapl/openib_ucm/dapl_ib_util.h
-index 25ce963..9fd573e 100644
---- a/dapl/openib_ucm/dapl_ib_util.h
-+++ b/dapl/openib_ucm/dapl_ib_util.h
-@@ -113,6 +113,7 @@ typedef struct _ib_hca_transport
- 	struct ibv_comp_channel *rch;
- 	struct ibv_ah		**ah;  
- 	DAPL_OS_LOCK		plock;
-+	uint16_t		lid;
- 	uint8_t			*sid;  /* Sevice IDs, port space, bitarray? */
- 	uint8_t			sl;
- 	uint16_t		pkey;
-diff --git a/dapl/openib_ucm/device.c b/dapl/openib_ucm/device.c
-index 1959c76..88463e1 100644
---- a/dapl/openib_ucm/device.c
-+++ b/dapl/openib_ucm/device.c
-@@ -237,6 +237,7 @@ found:
- 		goto err;
- 	} else {
- 		hca_ptr->ib_trans.addr.ib.lid = htons(port_attr.lid);
-+		hca_ptr->ib_trans.lid = htons(port_attr.lid);
- 	}
- 
- 	/* get gid for this hca-port, network order */
+New patch to follow,
+Ira
+
+>=20
+> -- Hal
+>=20
+> > diff --git a/libibmad/src/fields.c b/libibmad/src/fields.c
+> > index a5a510a..d992065 100644
+> > --- a/libibmad/src/fields.c
+> > +++ b/libibmad/src/fields.c
+> > @@ -246,24 +246,24 @@ static const ib_field_t ib_mad_f[] =3D {
+> > =A0 =A0 =A0 =A0 */
+> > =A0 =A0 =A0 =A0{BITSOFFS(8, 8), "PortSelect", mad_dump_uint},
+> > =A0 =A0 =A0 =A0{BITSOFFS(16, 16), "CounterSelect", mad_dump_hex},
+> > - =A0 =A0 =A0 {BITSOFFS(32, 16), "SymbolErrors", mad_dump_uint},
+> > - =A0 =A0 =A0 {BITSOFFS(48, 8), "LinkRecovers", mad_dump_uint},
+> > - =A0 =A0 =A0 {BITSOFFS(56, 8), "LinkDowned", mad_dump_uint},
+> > - =A0 =A0 =A0 {BITSOFFS(64, 16), "RcvErrors", mad_dump_uint},
+> > - =A0 =A0 =A0 {BITSOFFS(80, 16), "RcvRemotePhysErrors", mad_dump_ui=
+nt},
+> > - =A0 =A0 =A0 {BITSOFFS(96, 16), "RcvSwRelayErrors", mad_dump_uint}=
+,
+> > - =A0 =A0 =A0 {BITSOFFS(112, 16), "XmtDiscards", mad_dump_uint},
+> > - =A0 =A0 =A0 {BITSOFFS(128, 8), "XmtConstraintErrors", mad_dump_ui=
+nt},
+> > - =A0 =A0 =A0 {BITSOFFS(136, 8), "RcvConstraintErrors", mad_dump_ui=
+nt},
+> > + =A0 =A0 =A0 {BITSOFFS(32, 16), "SymbolErrorCounter", mad_dump_uin=
+t},
+> > + =A0 =A0 =A0 {BITSOFFS(48, 8), "LinkErrorRecoveryCounter", mad_dum=
+p_uint},
+> > + =A0 =A0 =A0 {BITSOFFS(56, 8), "LinkDownedCounter", mad_dump_uint}=
+,
+> > + =A0 =A0 =A0 {BITSOFFS(64, 16), "PortRcvErrors", mad_dump_uint},
+> > + =A0 =A0 =A0 {BITSOFFS(80, 16), "PortRcvRemotePhysicalErrors", mad=
+_dump_uint},
+> > + =A0 =A0 =A0 {BITSOFFS(96, 16), "PortRcvSwitchRelayErrors", mad_du=
+mp_uint},
+> > + =A0 =A0 =A0 {BITSOFFS(112, 16), "PortXmitDiscards", mad_dump_uint=
+},
+> > + =A0 =A0 =A0 {BITSOFFS(128, 8), "PortXmitConstraintErrors", mad_du=
+mp_uint},
+> > + =A0 =A0 =A0 {BITSOFFS(136, 8), "PortRcvConstraintErrors", mad_dum=
+p_uint},
+> > =A0 =A0 =A0 =A0{BITSOFFS(144, 8), "CounterSelect2", mad_dump_hex},
+> > - =A0 =A0 =A0 {BITSOFFS(152, 4), "LinkIntegrityErrors", mad_dump_ui=
+nt},
+> > - =A0 =A0 =A0 {BITSOFFS(156, 4), "ExcBufOverrunErrors", mad_dump_ui=
+nt},
+> > + =A0 =A0 =A0 {BITSOFFS(152, 4), "LocalLinkIntegrityErrors", mad_du=
+mp_uint},
+> > + =A0 =A0 =A0 {BITSOFFS(156, 4), "ExcessiveBufferOverrunErrors", ma=
+d_dump_uint},
+> > =A0 =A0 =A0 =A0{BITSOFFS(176, 16), "VL15Dropped", mad_dump_uint},
+> > - =A0 =A0 =A0 {192, 32, "XmtData", mad_dump_uint},
+> > - =A0 =A0 =A0 {224, 32, "RcvData", mad_dump_uint},
+> > - =A0 =A0 =A0 {256, 32, "XmtPkts", mad_dump_uint},
+> > - =A0 =A0 =A0 {288, 32, "RcvPkts", mad_dump_uint},
+> > - =A0 =A0 =A0 {320, 32, "XmtWait", mad_dump_uint},
+> > + =A0 =A0 =A0 {192, 32, "PortXmitData", mad_dump_uint},
+> > + =A0 =A0 =A0 {224, 32, "PortRcvData", mad_dump_uint},
+> > + =A0 =A0 =A0 {256, 32, "PortXmitPkts", mad_dump_uint},
+> > + =A0 =A0 =A0 {288, 32, "PortRcvPkts", mad_dump_uint},
+> > + =A0 =A0 =A0 {320, 32, "PortXmitWait", mad_dump_uint},
+> > =A0 =A0 =A0 =A0{0, 0}, =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 /* IB_PC_LAS=
+T_F */
+> >
+> > =A0 =A0 =A0 =A0/*
+> > --
+> > 1.5.4.5
+> >
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-rdm=
+a" in
+> > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> > More majordomo info at =A0http://*vger.kernel.org/majordomo-info.ht=
+ml
+> >
+>=20
 
 
+--=20
+Ira Weiny
+Math Programmer/Computer Scientist
+Lawrence Livermore National Lab
+925-423-8008
+weiny2-i2BcT+NCU+M@public.gmane.org
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
