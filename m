@@ -1,43 +1,33 @@
-From: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
-Subject: Re: net-next pull request: RDS
-Date: Thu, 09 Sep 2010 14:58:36 -0700 (PDT)
-Message-ID: <20100909.145836.59673428.davem@davemloft.net>
-References: <4C892C9C.4060304@oracle.com>
+From: "Sam L. Carl" <mail-gBzS/BVVR8aCCrs3XMj5bNBPR1lH4CV8@public.gmane.org>
+Subject: Don't Be a Victim of Scams!
+Date: Fri, 10 Sep 2010 00:49:22 +0100
+Message-ID: <0111c55e$40431$3f4e0342912616@regina>
+Reply-To: "Sam L. Carl" <mail-gBzS/BVVR8aCCrs3XMj5bNBPR1lH4CV8@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4C892C9C.4060304-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: andy.grover-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org
-Cc: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rds-devel-N0ozoZBvEnrZJqsBc5GL+g@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Andy Grover <andy.grover-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Date: Thu, 09 Sep 2010 11:51:08 -0700
+Hey,
 
-> Hi Dave,
-> 
-> Sorry for the "release late, release seldom". We've made a lot of
-> changes since spring but it never really stabilized..
-> 
-> Summary:
->   * Add atomic operations (cswp and fadd) and masked versions
->   * New RDS_RDMA_SILENT flag will try to execute RDMA op without
->     causing an interrupt on the target machine
->   * Massive performance improvements on big boxes (Chris Mason)
->   * Many rmmod refcounting fixes (Zach Brown)
->   * Do much more from tasklets instead of the worker thread
->   * Add rds.h to kernel exported headers list
->   * Other cleanups
+Just a quick email to tell you about the amount of scams online especially with the "make money online" niche. 
 
-I'll pull, but yeah you guys have to sync with me a lot more
-often.
+How can you protect yourself? 
 
-It would be nice if you guys CC:'d netdev for every patch that ends
-up in your tree as well.
+Well, I have just released my brand new report on the top 10 make money online products available today. I and over 600 other people have tested and tested over 200 products and only 10 of them are really good.
 
-Thanks.
+We have gotten impressive results with these top ten, even generating a massive $20,000 - $25,000 a month income.
+
+You can download my report for free. Yes it's 100% free, no hidden charges, no sales page just a simple download.
+
+So visit http://www.StopGuruScams.com and download my report today.
+
+All the best,
+Sam L. Carl
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
