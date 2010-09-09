@@ -1,61 +1,43 @@
-From: "Stan C. Smith" <stan.smith-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH] replace (long*)(long) casting with transportable data type (uintptr_t)
-Date: Thu, 9 Sep 2010 14:12:21 -0700
-Message-ID: <7C00F472050C412BABCB4F2A59CFBD63@amr.corp.intel.com>
+From: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+Subject: Re: net-next pull request: RDS
+Date: Thu, 09 Sep 2010 14:58:36 -0700 (PDT)
+Message-ID: <20100909.145836.59673428.davem@davemloft.net>
+References: <4C892C9C.4060304@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <4C892C9C.4060304-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Cc: Linux RDMA <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: andy.grover-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org
+Cc: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rds-devel-N0ozoZBvEnrZJqsBc5GL+g@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+From: Andy Grover <andy.grover-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Date: Thu, 09 Sep 2010 11:51:08 -0700
 
-Hello,
-  In osm_vendor_ibumad_sa.c the casting of a pointer to a long causes data truncation problems in 64-bit Windows where sizeof(long)
-!= sizeof(void*).
-'uintptr_t' is correct in both operating environments.
+> Hi Dave,
+> 
+> Sorry for the "release late, release seldom". We've made a lot of
+> changes since spring but it never really stabilized..
+> 
+> Summary:
+>   * Add atomic operations (cswp and fadd) and masked versions
+>   * New RDS_RDMA_SILENT flag will try to execute RDMA op without
+>     causing an interrupt on the target machine
+>   * Massive performance improvements on big boxes (Chris Mason)
+>   * Many rmmod refcounting fixes (Zach Brown)
+>   * Do much more from tasklets instead of the worker thread
+>   * Add rds.h to kernel exported headers list
+>   * Other cleanups
 
-thank you,
+I'll pull, but yeah you guys have to sync with me a lot more
+often.
 
-stan.
+It would be nice if you guys CC:'d netdev for every patch that ends
+up in your tree as well.
 
-signed-off-by: stan smith <stan.smith-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-
-diff --git a/opensm/libvendor/osm_vendor_ibumad_sa.c b/opensm/libvendor/osm_vendor_ibumad_sa.c
-index 1fdcc47..9180972 100644
---- a/opensm/libvendor/osm_vendor_ibumad_sa.c
-+++ b/opensm/libvendor/osm_vendor_ibumad_sa.c
-@@ -85,7 +85,7 @@ __osmv_sa_mad_rcv_cb(IN osm_madw_t * p_madw,
- 
- 	/* obtain the sent context since we store it during send in the ni_ctx */
- 	p_query_req_copy =
--	    (osmv_query_req_t *) (long *)(long)(p_req_madw->context.ni_context.
-+	    (osmv_query_req_t *) (uintptr_t)(p_req_madw->context.ni_context.
- 						node_guid);
- 
- 	/* provide the context of the original request in the result */
-@@ -181,7 +181,7 @@ static void __osmv_sa_mad_err_cb(IN void *bind_context, IN osm_madw_t * p_madw)
- 
- 	/* Obtain the sent context etc */
- 	p_query_req_copy =
--	    (osmv_query_req_t *) (long *)(long)(p_madw->context.ni_context.
-+	    (osmv_query_req_t *) (uintptr_t)(p_madw->context.ni_context.
- 						node_guid);
- 
- 	/* provide the context of the original request in the result */
-@@ -433,7 +433,7 @@ __osmv_send_sa_req(IN osmv_sa_bind_info_t * p_bind,
- 	}
- 	*p_query_req_copy = *p_query_req;
- 	p_madw->context.ni_context.node_guid =
--	    (ib_net64_t) (long)p_query_req_copy;
-+	    (ib_net64_t) (uintptr_t)p_query_req_copy;
- 
- 	/* we can support async as well as sync calls */
- 	sync = ((p_query_req->flags & OSM_SA_FLAGS_SYNC) == OSM_SA_FLAGS_SYNC);
-
+Thanks.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
