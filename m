@@ -1,45 +1,60 @@
-From: Bob Pearson <rpearson-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org>
-Subject: Re: [PATCH] opensm/osm_mesh.c: fixing a bug in compare_switches()
-Date: Thu, 09 Sep 2010 14:11:45 -0500
-Message-ID: <4C893171.2020804@systemfabricworks.com>
-References: <4C86538E.3080206@mellanox.co.il> <20100909143036.GB11502@me>
+From: "Stan C. Smith" <stan.smith-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH] replace (long*)(long) casting with transportable data type (uintptr_t)
+Date: Thu, 9 Sep 2010 14:12:21 -0700
+Message-ID: <7C00F472050C412BABCB4F2A59CFBD63@amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain;
+	charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20100909143036.GB11502@me>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Cc: kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org, Linux RDMA <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: Linux RDMA <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Thanks Sasha,
 
-I'm not sure where that came from. This was a little optimization that 
-improved the results in some cases. But wouldn't break the rest of the code.
-Seems to have gotten broken somewhere along the way.
+Hello,
+  In osm_vendor_ibumad_sa.c the casting of a pointer to a long causes data truncation problems in 64-bit Windows where sizeof(long)
+!= sizeof(void*).
+'uintptr_t' is correct in both operating environments.
 
-Bob Pearson
+thank you,
 
-On 09/09/2010 09:30 AM, Sasha Khapyorsky wrote:
-> On 18:00 Tue 07 Sep     , Yevgeny Kliteynik wrote:
->    
->> I'm pretty sure that ";" at the end of "if" statement
->> is not supposed to be there (not sure how it worked till
->> now though).
->> Also, making this condition a bit more readable.
->>
->> Signed-off-by: Yevgeny Kliteynik<kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
->>      
-> Applied. Thanks.
->
-> Sasha
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
->    
+stan.
+
+signed-off-by: stan smith <stan.smith-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+
+diff --git a/opensm/libvendor/osm_vendor_ibumad_sa.c b/opensm/libvendor/osm_vendor_ibumad_sa.c
+index 1fdcc47..9180972 100644
+--- a/opensm/libvendor/osm_vendor_ibumad_sa.c
++++ b/opensm/libvendor/osm_vendor_ibumad_sa.c
+@@ -85,7 +85,7 @@ __osmv_sa_mad_rcv_cb(IN osm_madw_t * p_madw,
+ 
+ 	/* obtain the sent context since we store it during send in the ni_ctx */
+ 	p_query_req_copy =
+-	    (osmv_query_req_t *) (long *)(long)(p_req_madw->context.ni_context.
++	    (osmv_query_req_t *) (uintptr_t)(p_req_madw->context.ni_context.
+ 						node_guid);
+ 
+ 	/* provide the context of the original request in the result */
+@@ -181,7 +181,7 @@ static void __osmv_sa_mad_err_cb(IN void *bind_context, IN osm_madw_t * p_madw)
+ 
+ 	/* Obtain the sent context etc */
+ 	p_query_req_copy =
+-	    (osmv_query_req_t *) (long *)(long)(p_madw->context.ni_context.
++	    (osmv_query_req_t *) (uintptr_t)(p_madw->context.ni_context.
+ 						node_guid);
+ 
+ 	/* provide the context of the original request in the result */
+@@ -433,7 +433,7 @@ __osmv_send_sa_req(IN osmv_sa_bind_info_t * p_bind,
+ 	}
+ 	*p_query_req_copy = *p_query_req;
+ 	p_madw->context.ni_context.node_guid =
+-	    (ib_net64_t) (long)p_query_req_copy;
++	    (ib_net64_t) (uintptr_t)p_query_req_copy;
+ 
+ 	/* we can support async as well as sync calls */
+ 	sync = ((p_query_req->flags & OSM_SA_FLAGS_SYNC) == OSM_SA_FLAGS_SYNC);
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
