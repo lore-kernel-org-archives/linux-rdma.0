@@ -1,57 +1,30 @@
 From: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH] opensm/osm_ucast_cache.c: fix potential seg fault
-Date: Thu, 9 Sep 2010 17:18:04 +0300
-Message-ID: <20100909141804.GX11502@me>
-References: <4C86522A.8090005@mellanox.co.il>
+Subject: Re: [PATCH] osmtest/osmtest.c: handle timeouts in PR stress test
+Date: Thu, 9 Sep 2010 17:22:11 +0300
+Message-ID: <20100909142211.GY11502@me>
+References: <4C8653D6.1000201@mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <4C86522A.8090005-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
+In-Reply-To: <4C8653D6.1000201-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org
 Cc: Linux RDMA <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Yevgeny,
-
-On 17:54 Tue 07 Sep     , Yevgeny Kliteynik wrote:
-> Fix potential seg fault when NULL is returned
+On 18:01 Tue 07 Sep     , Yevgeny Kliteynik wrote:
+> There was some "preparation" code for handling
+> PathRecord timeouts in SA stress codes: variable
+> num_timeouts exists, and it's value is checked.
+> What was missing is actually increasing the
+> num_timeouts value when timeout happens.
 > 
 > Signed-off-by: Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-> ---
->  opensm/opensm/osm_ucast_cache.c |    8 ++++++++
->  1 files changed, 8 insertions(+), 0 deletions(-)
-> 
-> diff --git a/opensm/opensm/osm_ucast_cache.c b/opensm/opensm/osm_ucast_cache.c
-> index c611c38..be15508 100644
-> --- a/opensm/opensm/osm_ucast_cache.c
-> +++ b/opensm/opensm/osm_ucast_cache.c
-> @@ -931,6 +931,14 @@ void osm_ucast_cache_add_node(osm_ucast_mgr_t * p_mgr, osm_node_t * p_node)
-> 
->  		p_cache_sw = cache_get_sw(p_mgr, lid_ho);
->  		CL_ASSERT(p_cache_sw);
-> +		if (!p_cache_sw) {
-> +			/* something is wrong - forget about cache */
-> +			OSM_LOG(p_mgr->p_log, OSM_LOG_ERROR,
-> +				"ERR AD04: no cached switch with lid %u - "
-> +				"clearing cache\n", lid_ho);
-> +			osm_ucast_cache_invalidate(p_mgr);
-> +			goto Exit;
-> +		}
 
-Is this a valid case when NULL is returned here? When is this possible?
-And in any case we obviously don't need both CL_ASSERT() and run time
-check here.
+Applied. Thanks.
 
 Sasha
-
-> 
->  		if (!cache_sw_is_leaf(p_cache_sw)) {
->  			OSM_LOG(p_mgr->p_log, OSM_LOG_DEBUG,
-> -- 
-> 1.6.2.4
-> 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
