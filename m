@@ -1,45 +1,60 @@
-From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Subject: [GIT PULL] please pull infiniband.git
-Date: Wed, 08 Sep 2010 14:45:38 -0700
-Message-ID: <adak4mvj4e5.fsf@cisco.com>
+From: "Sam L. Carl" <mail-gBzS/BVVR8aCCrs3XMj5bNBPR1lH4CV8@public.gmane.org>
+Subject: Sorry! I made an error in my last email!
+Date: Thu, 9 Sep 2010 02:22:01 +0100
+Message-ID: <0118c55f$40430$3f4f0986324421@regina>
+Reply-To: "Sam L. Carl" <mail-gBzS/BVVR8aCCrs3XMj5bNBPR1lH4CV8@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Linus, please pull from
+Hey,
 
-    master.kernel.org:/pub/scm/linux/kernel/git/roland/infiniband.git for-linus
+Sorry I made an error with the links in my last email. Here is how it should of been:
 
-This tree is also available from kernel.org mirrors at:
+Over the past few months I have taken a lot of my time to research and ask as many people as possible what the top 5 money making methods are. 
 
-    git://git.kernel.org/pub/scm/linux/kernel/git/roland/infiniband.git for-linus
+After weeks and weeks of different answers and even trying over 50 popular products and systems I have come to my conclusion and made the top 5 money making products online list. 
 
-This will get a few small driver fixes.
+So here it goes: 
 
-Chien Tung (1):
-      RDMA/nes: Write correct register write to set TX pause param
+1) The Mobile Monopoly - http://tiny.cc/ndonh
 
-Faisal Latif (3):
-      RDMA/nes: Fix double CLOSE event indication crash
-      RDMA/nes: Change state to closing after FIN
-      RDMA/nes: Fix hang with modified FIN handling on A0 cards
+2) Auto Traffic Avalanche - http://tiny.cc/3wsuq
 
-Roland Dreier (1):
-      Merge branches 'cxgb3' and 'nes' into for-linus
+3) Auto Blog System - http://tiny.cc/ytf7r
 
-Steve Wise (1):
-      RDMA/cxgb3: Don't exceed the max HW CQ depth
+4) Zero Cost Commissions - http://tiny.cc/ermdw
 
- drivers/infiniband/hw/cxgb3/cxio_hal.h |    2 +-
- drivers/infiniband/hw/nes/nes_cm.c     |   18 ++++++++++--------
- drivers/infiniband/hw/nes/nes_hw.c     |   14 +++++++++++++-
- drivers/infiniband/hw/nes/nes_hw.h     |    1 +
- drivers/infiniband/hw/nes/nes_nic.c    |    4 ++--
- 5 files changed, 27 insertions(+), 12 deletions(-)
+5) CPA Instruments - http://tiny.cc/ruh9b
+
+
+So there you have it. The reason I did this is because I am sick of "gurus" ripping people off, most of them are scammers! Be careful when buying online, only buy from trusted sources. I have checked the 5 sources above and so have thousands of other people just like you and me, and they do work. 
+
+The problem with the internet is you don't know who to trust. The joke is you can check up reviews on some products and people would give it mixed reviews, some will be saying " amazing products, worked for me" others " a scam don't buy it" so sometimes you don't know who is telling the truth right? 
+
+Well I let you in to a little secret here, most "gurus" will write reviews about their competitors saying how rubbish they are. They do this to wipe of competition. Therefore I decided I will take action and maybe get a some kind of Internet peace award for this :p so I tested and tested numerous products and came up with this list. 
+
+So enjoy, it's worth checking these 5 products out, they do work especially the first two, the other three still work but are a bit over hyped. 
+
+
+1) The Mobile Monopoly - http://tiny.cc/ndonh
+
+2) Auto Traffic Avalanche - http://tiny.cc/3wsuq
+
+3) Auto Blog System - http://tiny.cc/ytf7r
+
+4) Zero Cost Commissions - http://tiny.cc/ermdw
+
+5) CPA Instruments - http://tiny.cc/ruh9b
+
+
+All the best,
+Sam L. Carl
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
