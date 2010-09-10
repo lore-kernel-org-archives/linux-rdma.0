@@ -1,43 +1,47 @@
 From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: [PATCH 2.6.37 00/11] cxgb4 fixes / enhancements.
-Date: Fri, 10 Sep 2010 11:14:42 -0500
-Message-ID: <20100910161442.6829.91594.stgit@build.ogc.int>
+Subject: [PATCH 2.6.37 02/11] RDMA/cxgb4: Zero out ISGL padding.
+Date: Fri, 10 Sep 2010 11:14:53 -0500
+Message-ID: <20100910161453.6829.14456.stgit@build.ogc.int>
+References: <20100910161442.6829.91594.stgit@build.ogc.int>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20100910161442.6829.91594.stgit-T4OLL4TyM9aNDNWfRnPdfg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Here are some bug fixes and enhancements for 2.6.37.
+The HW design requires zering any pad in SGLs.
 
-Steve Wise (11):
-      RDMA/cxgb4: Set the default TCP send window to 128KB.
-      RDMA/cxgb4: Use a mutex for QP and EP state transitions.
-      RDMA/cxgb4: Support on-chip SQs.
-      RDMA/cxgb4: Centralize the wait logic.
-      RDMA/cxgb4: debugfs files for dumping active stags.
-      RDMA/cxgb4: log HW lack-of-resource errors.
-      RDMA/cxgb4: Handle CPL_RDMA_TERMINATE messages.
-      RDMA/cxgb4: Ignore TERMINATE CQEs
-      RDMA/cxgb4: Ignore positive return values from cxgb4_*_send() functions.
-      RDMA/cxgb4: Zero out ISGL padding.
-      RDMA/cxgb4: Don't use null ep ptr.
+Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+---
 
+ drivers/infiniband/hw/cxgb4/qp.c |    4 ++++
+ 1 files changed, 4 insertions(+), 0 deletions(-)
 
- drivers/infiniband/hw/cxgb4/cm.c       |  172 +++++++++++-------------
- drivers/infiniband/hw/cxgb4/cq.c       |   24 +--
- drivers/infiniband/hw/cxgb4/device.c   |  171 +++++++++++++++++++-----
- drivers/infiniband/hw/cxgb4/ev.c       |    2 
- drivers/infiniband/hw/cxgb4/iw_cxgb4.h |   68 +++++++---
- drivers/infiniband/hw/cxgb4/mem.c      |    9 -
- drivers/infiniband/hw/cxgb4/provider.c |   28 +++-
- drivers/infiniband/hw/cxgb4/qp.c       |  227 +++++++++++++++++++-------------
- drivers/infiniband/hw/cxgb4/resource.c |   62 +++++++++
- drivers/infiniband/hw/cxgb4/t4.h       |   40 +++++-
- drivers/infiniband/hw/cxgb4/user.h     |    7 +
- 11 files changed, 528 insertions(+), 282 deletions(-)
+diff --git a/drivers/infiniband/hw/cxgb4/qp.c b/drivers/infiniband/hw/cxgb4/qp.c
+index 05aa20b..c92259f 100644
+--- a/drivers/infiniband/hw/cxgb4/qp.c
++++ b/drivers/infiniband/hw/cxgb4/qp.c
+@@ -263,6 +263,9 @@ static int build_immd(struct t4_sq *sq, struct fw_ri_immd *immdp,
+ 			rem -= len;
+ 		}
+ 	}
++	len = roundup(plen + sizeof *immdp, 16) - (plen + sizeof *immdp);
++	if (len)
++		memset(dstp, 0, len);
+ 	immdp->op = FW_RI_DATA_IMMD;
+ 	immdp->r1 = 0;
+ 	immdp->r2 = 0;
+@@ -292,6 +295,7 @@ static int build_isgl(__be64 *queue_start, __be64 *queue_end,
+ 		if (++flitp == queue_end)
+ 			flitp = queue_start;
+ 	}
++	*flitp = (__force __be64)0;
+ 	isglp->op = FW_RI_DATA_ISGL;
+ 	isglp->r1 = 0;
+ 	isglp->nsge = cpu_to_be16(num_sge);
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
