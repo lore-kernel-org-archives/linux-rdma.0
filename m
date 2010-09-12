@@ -1,34 +1,31 @@
-From: Joe Perches <joe@perches.com>
-Subject: [PATCH 07/11] drivers/infiniband: Remove pr_<level> uses of KERN_<level>
-Date: Sat, 11 Sep 2010 22:10:55 -0700
-Message-ID: <6dddde24a319352fbece72450b35eb5d2176f292.1284267142.git.joe@perches.com>
-References: <cover.1284267142.git.joe@perches.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <cover.1284267142.git.joe@perches.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Jiri Kosina <trivial@kernel.org>
-Cc: Tom Tucker <tom@opengridcomputing.com>, Steve Wise <swise@opengridcomputing.com>, Roland Dreier <rolandd@cisco.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+From: Or Gerlitz <ogerlitz-hKgKHo2Ms0FWk0Htik3J/w@public.gmane.org>
+Subject: Re: net-next pull request: RDS
+Date: Sun, 12 Sep 2010 10:49:38 +0200
+Message-ID: <4C8C9422.2070306@Voltaire.com>
+References: <4C892C9C.4060304@oracle.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <4C892C9C.4060304-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Andy Grover <andy.grover-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, RDS Devel <rds-devel-N0ozoZBvEnrZJqsBc5GL+g@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Signed-off-by: Joe Perches <joe@perches.com>
----
- drivers/infiniband/hw/amso1100/c2_intr.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+Hi Andy, 
 
-diff --git a/drivers/infiniband/hw/amso1100/c2_intr.c b/drivers/infiniband/hw/amso1100/c2_intr.c
-index 3b50954..0ebe4e8 100644
---- a/drivers/infiniband/hw/amso1100/c2_intr.c
-+++ b/drivers/infiniband/hw/amso1100/c2_intr.c
-@@ -62,8 +62,8 @@ void c2_rnic_interrupt(struct c2_dev *c2dev)
- static void handle_mq(struct c2_dev *c2dev, u32 mq_index)
- {
- 	if (c2dev->qptr_array[mq_index] == NULL) {
--		pr_debug(KERN_INFO "handle_mq: stray activity for mq_index=%d\n",
--			mq_index);
-+		pr_debug("handle_mq: stray activity for mq_index=%d\n",
-+			 mq_index);
- 		return;
- 	}
- 
--- 
-1.7.3.rc1
+Some clarifications/questions from whatever quick look one can have over 107 patches...
+
+Zach Brown's "RDS/IB: print IB event strings as well as their number" - commit
+1bde04a63d532c2540d6fdee0a661530a62b1686 in net-next-2.6 looks perfect to reside as a helper function in the core IB stack which can be in use by other rdma drivers (e.g ipoib, iser, srp, etc). 
+
+Chris Mason's "rds: recycle FMRs through lockless lists added net/rds/xlist.h" - 6fa70da6081bbcf948801fd5ee0be4d222298a43 adds net/rds/xlist.h - isn't this something that better be placed under include/linux/. etc?
+
+And last, your "RDS/IB: add _to_node() macros for numa and use {k,v}malloc_node()" patch looks interesting, 1st, it has some macros which could be placed in more general locations e.g pcidev_to_node and ibdev_to_node, your "significantly helps performance" comment is interesting, I'll send a separate note about that to the rdma mailing list.
+
+Or.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
