@@ -1,38 +1,32 @@
-From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: Re: [PATCH 2.6.37 09/11] RDMA/cxgb4: Support on-chip SQs.
-Date: Mon, 13 Sep 2010 11:25:23 -0500
-Message-ID: <4C8E5073.2020908@opengridcomputing.com>
-References: <20100910161442.6829.91594.stgit@build.ogc.int>	<20100910161530.6829.89294.stgit@build.ogc.int>	<4C8A8DC1.4040302@opengridcomputing.com> <adaiq29wrjm.fsf@cisco.com>
+From: Chris Mason <chris.mason@oracle.com>
+Subject: Re: [rds-devel] net-next pull request: RDS
+Date: Mon, 13 Sep 2010 13:14:28 -0400
+Message-ID: <20100913171428.GR21374@think>
+References: <4C892C9C.4060304@oracle.com>
+ <4C8C9422.2070306@Voltaire.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <adaiq29wrjm.fsf-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <4C8C9422.2070306@Voltaire.com>
+Sender: netdev-owner@vger.kernel.org
+To: Or Gerlitz <ogerlitz@voltaire.com>
+Cc: Andy Grover <andy.grover@oracle.com>, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, RDS Devel <rds-devel@oss.oracle.com>, Roland Dreier <rdreier@cisco.com>
 List-Id: linux-rdma@vger.kernel.org
 
-  I just emailed it out...
+On Sun, Sep 12, 2010 at 10:49:38AM +0200, Or Gerlitz wrote:
+> Hi Andy, 
+> 
+> Some clarifications/questions from whatever quick look one can have over 107 patches...
+> 
+> Zach Brown's "RDS/IB: print IB event strings as well as their number" - commit
+> 1bde04a63d532c2540d6fdee0a661530a62b1686 in net-next-2.6 looks perfect to reside as a helper function in the core IB stack which can be in use by other rdma drivers (e.g ipoib, iser, srp, etc). 
+> 
+> Chris Mason's "rds: recycle FMRs through lockless lists added net/rds/xlist.h" - 6fa70da6081bbcf948801fd5ee0be4d222298a43 adds net/rds/xlist.h - isn't this something that better be placed under include/linux/. etc?
 
-Steve.
+Yes, I plan on expanding xlist.h a little and trying to use it in a few
+other places.  But since RDS is currently the only consumer it made sense
+to me to keep it in rds until I had more code in line to take advantage
+of it.
 
-
-On 9/13/2010 11:13 AM, Roland Dreier wrote:
->   >  Oops, cought this during regression testing:  The above line should be
->   >  indexing by wq->rq.size, not wq->sq.size.  This error caused
->   >  intermittent post failures and I missed it on my first round of
->   >  testing.
->
-> Steve, can you send a fixed version of this patch?
->
-> Thanks.
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-chris
