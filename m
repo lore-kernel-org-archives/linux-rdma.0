@@ -1,32 +1,84 @@
-From: Chris Mason <chris.mason@oracle.com>
-Subject: Re: [rds-devel] net-next pull request: RDS
-Date: Mon, 13 Sep 2010 13:14:28 -0400
-Message-ID: <20100913171428.GR21374@think>
-References: <4C892C9C.4060304@oracle.com>
- <4C8C9422.2070306@Voltaire.com>
+From: Or Gerlitz <ogerlitz@voltaire.com>
+Subject: Re: [IPoIB] Identify multicast packets and fix IGMP breakage V3
+Date: Tue, 14 Sep 2010 09:27:23 +0200
+Message-ID: <4C8F23DB.2040105@voltaire.com>
+References: <adapqx5rtez.fsf@cisco.com>	<alpine.DEB.2.00.1008261613160.24174@router.home>	<alpine.DEB.2.00.1008261629440.24174@router.home>	<20100826.151553.242147157.davem@davemloft.net>	<20100826222146.GA23025@obsidianresearch.com>	<alpine.DEB.2.00.1008261825490.26351@router.home>	<20100826234342.GA24333@obsidianresearch.com> <alpine.DEB.2.00.1008270827280.11792@router.home>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <4C8C9422.2070306@Voltaire.com>
+In-Reply-To: <alpine.DEB.2.00.1008270827280.11792@router.home>
 Sender: netdev-owner@vger.kernel.org
-To: Or Gerlitz <ogerlitz@voltaire.com>
-Cc: Andy Grover <andy.grover@oracle.com>, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, RDS Devel <rds-devel@oss.oracle.com>, Roland Dreier <rdreier@cisco.com>
+To: Christoph Lameter <cl@linux.com>, Roland Dreier <rdreier@cisco.com>
+Cc: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, linux-rdma@vger.kernel.org, yosefe@voltaire.com, netdev@vger.kernel.org, David Miller <davem@davemloft.net>
 List-Id: linux-rdma@vger.kernel.org
 
-On Sun, Sep 12, 2010 at 10:49:38AM +0200, Or Gerlitz wrote:
-> Hi Andy, 
-> 
-> Some clarifications/questions from whatever quick look one can have over 107 patches...
-> 
-> Zach Brown's "RDS/IB: print IB event strings as well as their number" - commit
-> 1bde04a63d532c2540d6fdee0a661530a62b1686 in net-next-2.6 looks perfect to reside as a helper function in the core IB stack which can be in use by other rdma drivers (e.g ipoib, iser, srp, etc). 
-> 
-> Chris Mason's "rds: recycle FMRs through lockless lists added net/rds/xlist.h" - 6fa70da6081bbcf948801fd5ee0be4d222298a43 adds net/rds/xlist.h - isn't this something that better be placed under include/linux/. etc?
+Christoph Lameter wrote:
+> Here is the patch somewhat cleaned up with PACKET_BROADCAST.
+> Subject: [IPoIB] Identify multicast packets and fix IGMP breakage V3
+>   
 
-Yes, I plan on expanding xlist.h a little and trying to use it in a few
-other places.  But since RDS is currently the only consumer it made sense
-to me to keep it in rds until I had more code in line to take advantage
-of it.
+I don't see this patch in Roland's for-next branch nor Dave's 
+net-next-2.6 tree, is anything else needed to merge that?
 
--chris
+Or.
+
+> IGMP processing is broken because the IPOIB does not set the
+> skb->pkt_type the right way for Multicast traffic. All incoming
+> packets are set to PACKET_HOST which means that the igmp_recv()
+> function will ignore the IGMP broadcasts/multicasts.
+>
+> This in turn means that the IGMP timers are firing and are sending
+> information about multicast subscriptions unnecessarily. In a large
+> private network this can cause traffic spikes.
+>
+> Signed-off-by: Christoph Lameter <cl@linux.com>
+>
+> ---
+>
+> Index: linux-2.6/drivers/infiniband/ulp/ipoib/ipoib_ib.c
+> ===================================================================
+> --- linux-2.6.orig/drivers/infiniband/ulp/ipoib/ipoib_ib.c	2010-08-26 18:24:07.842079559 -0500
+> +++ linux-2.6/drivers/infiniband/ulp/ipoib/ipoib_ib.c	2010-08-27 08:26:37.929641162 -0500
+> @@ -223,6 +223,7 @@
+>  	unsigned int wr_id = wc->wr_id & ~IPOIB_OP_RECV;
+>  	struct sk_buff *skb;
+>  	u64 mapping[IPOIB_UD_RX_SG];
+> +	union ib_gid *dgid;
+>
+>  	ipoib_dbg_data(priv, "recv completion: id %d, status: %d\n",
+>  		       wr_id, wc->status);
+> @@ -271,6 +272,21 @@
+>  	ipoib_ud_dma_unmap_rx(priv, mapping);
+>  	ipoib_ud_skb_put_frags(priv, skb, wc->byte_len);
+>
+> +	/* First byte of dgid signals multicast when 0xff */
+> +	dgid = &((struct ib_grh *)skb->data)->dgid;
+> +
+> +	if (!(wc->wc_flags & IB_WC_GRH) || dgid->raw[0] != 0xff)
+> +
+> +		skb->pkt_type = PACKET_HOST;
+> +
+> +	else if (memcmp(dgid, dev->broadcast + 4, sizeof(union ib_gid)) == 0)
+> +
+> +		skb->pkt_type = PACKET_BROADCAST;
+> +
+> +	else
+> +
+> +		skb->pkt_type = PACKET_MULTICAST;
+> +
+>  	skb_pull(skb, IB_GRH_BYTES);
+>
+>  	skb->protocol = ((struct ipoib_header *) skb->data)->proto;
+> @@ -281,9 +297,6 @@
+>  	dev->stats.rx_bytes += skb->len;
+>
+>  	skb->dev = dev;
+> -	/* XXX get correct PACKET_ type here */
+> -	skb->pkt_type = PACKET_HOST;
+> -
+>  	if (test_bit(IPOIB_FLAG_CSUM, &priv->flags) && likely(wc->csum_ok))
+>  		skb->ip_summed = CHECKSUM_UNNECESSARY;
+>
+>   
+
