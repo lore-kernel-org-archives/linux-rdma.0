@@ -1,38 +1,31 @@
-From: Andrew Grover <andy.grover-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 Subject: Re: [rds-devel] net-next pull request: RDS
-Date: Tue, 14 Sep 2010 15:28:00 -0700
-Message-ID: <AANLkTin69m0kK6bqUiwYeHRQT0Ehso16xA6RBtBFFgW3@mail.gmail.com>
-References: <4C892C9C.4060304@oracle.com>
-	<4C8C9422.2070306@Voltaire.com>
+Date: Tue, 14 Sep 2010 16:10:37 -0700
+Message-ID: <ada62y7x6oi.fsf@cisco.com>
+References: <4C892C9C.4060304@oracle.com> <4C8C9422.2070306@Voltaire.com>
 	<20100914183514.GA3417@takashi.pdx.zabbo.net>
+	<AANLkTin69m0kK6bqUiwYeHRQT0Ehso16xA6RBtBFFgW3@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20100914183514.GA3417-Mg0Rv1oTIzK+NQz5YmTpAAHTzkgPINtM@public.gmane.org>
+In-Reply-To: <AANLkTin69m0kK6bqUiwYeHRQT0Ehso16xA6RBtBFFgW3-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+	(Andrew Grover's message of "Tue, 14 Sep 2010 15:28:00 -0700")
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Zach Brown <zach.brown-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: Or Gerlitz <ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org>, Andy Grover <andy.grover-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, RDS Devel <rds-devel-N0ozoZBvEnrZJqsBc5GL+g@public.gmane.org>, Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+To: Andrew Grover <andy.grover-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Zach Brown <zach.brown-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Or Gerlitz <ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org>, Andy Grover <andy.grover-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, RDS Devel <rds-devel-N0ozoZBvEnrZJqsBc5GL+g@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Sep 14, 2010 at 11:35 AM, Zach Brown <zach.brown-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> wrote:
->> Zach Brown's "RDS/IB: print IB event strings as well as their number" - commit
->> 1bde04a63d532c2540d6fdee0a661530a62b1686 in net-next-2.6 looks perfect to
->> reside as a helper function in the core IB stack which can be in use by other
->> rdma drivers (e.g ipoib, iser, srp, etc).
->
-> Yeah, if those other drivers were interested in the little helpers then it
-> would make sense to bring the functionality up into the core stack.
->
-> Note that there's another later commit in net-next that gives other event
-> strings the same treatment: 59f740a6aeb2cde2f79fe0df38262d4c1ef35cd8 .
+ > Since rds goes upstream via netdev not linux-rdma, it's a little
+ > tricky.. any core ib helpers we added would not be in net-next so rds
+ > wouldn't build. :) Once net-next gets pushed to mainline and Roland
+ > pulls from that, then we'll be in a good position to put these helpers
+ > where they should go, and change other ULPs to use them.
 
-Since rds goes upstream via netdev not linux-rdma, it's a little
-tricky.. any core ib helpers we added would not be in net-next so rds
-wouldn't build. :) Once net-next gets pushed to mainline and Roland
-pulls from that, then we'll be in a good position to put these helpers
-where they should go, and change other ULPs to use them.
+In cases where cross-tree dependencies exist, I'm happy to review core
+IB stack changes but then have them go upstream via davem after
+linux-rdma is happy with them.
 
--- Andy
+ - R.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
