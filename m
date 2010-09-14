@@ -1,31 +1,40 @@
-From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [rds-devel] net-next pull request: RDS
-Date: Tue, 14 Sep 2010 16:10:37 -0700
-Message-ID: <ada62y7x6oi.fsf@cisco.com>
-References: <4C892C9C.4060304@oracle.com> <4C8C9422.2070306@Voltaire.com>
-	<20100914183514.GA3417@takashi.pdx.zabbo.net>
-	<AANLkTin69m0kK6bqUiwYeHRQT0Ehso16xA6RBtBFFgW3@mail.gmail.com>
+From: Andy Grover <andy.grover-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: RDS/IB: add _to_node() macros for numa and use {k,v}malloc_node()
+Date: Tue, 14 Sep 2010 16:53:20 -0700
+Message-ID: <4C900AF0.2040908@oracle.com>
+References: <4C892C9C.4060304@oracle.com> <4C8C9422.2070306@Voltaire.com> <4C8C94B8.9030107@Voltaire.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <AANLkTin69m0kK6bqUiwYeHRQT0Ehso16xA6RBtBFFgW3-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-	(Andrew Grover's message of "Tue, 14 Sep 2010 15:28:00 -0700")
+In-Reply-To: <4C8C94B8.9030107-hKgKHo2Ms0FWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Andrew Grover <andy.grover-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Zach Brown <zach.brown-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, Or Gerlitz <ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org>, Andy Grover <andy.grover-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, RDS Devel <rds-devel-N0ozoZBvEnrZJqsBc5GL+g@public.gmane.org>
+To: Or Gerlitz <ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Chris Mason <chris.mason-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
- > Since rds goes upstream via netdev not linux-rdma, it's a little
- > tricky.. any core ib helpers we added would not be in net-next so rds
- > wouldn't build. :) Once net-next gets pushed to mainline and Roland
- > pulls from that, then we'll be in a good position to put these helpers
- > where they should go, and change other ULPs to use them.
+On 09/12/2010 01:52 AM, Or Gerlitz wrote:
+> Hi Andy, looking on this net-next-2.6 patch, I wonder if you can
+> elaborate on your "significantly helps performance" comment - what
+> improvement you see with this patch?
 
-In cases where cross-tree dependencies exist, I'm happy to review core
-IB stack changes but then have them go upstream via davem after
-linux-rdma is happy with them.
+ > What about the QP/CQ memory, are they better be placed in node-local
+ > to the HCA manner?
 
- - R.
+Hi Or, I'm afraid I don't have exact numbers for you.. those changes 
+were part of a series of tweaks and fixes for bottlenecks in rds code.
+
+On our numa box, the HCA is attached to a particular package of CPUs & 
+memory. Having the in-memory structures that the hca is accessing in 
+node-local RAM seemed to measurably help, although reducing contention 
+helped even more. Chris Mason says it seemed like init-time allocations 
+seemed to benefit while runtime allocations were not helped, or even hurt.
+
+Clearly this is not enough data to go on, beyond the conclusion that yes 
+it's something that should be looked at more closely. Big machines are 
+still rather scarce, which makes it harder.
+
+Regards -- Andy
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
