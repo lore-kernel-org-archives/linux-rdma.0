@@ -1,47 +1,46 @@
-From: "Latif, Faisal" <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [patch] infiniband: nes_cm: remove unneeded variable
-Date: Wed, 15 Sep 2010 11:16:55 -0700
-Message-ID: <2EFBCAEF10980645BBCFB605689E08E904A27942B6@azsmsx506.amr.corp.intel.com>
-References: <20100915160726.GA5854@bicker>
+From: Zach Brown <zach.brown-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: how to safely tear down a cm_id?
+Date: Wed, 15 Sep 2010 12:29:54 -0700
+Message-ID: <20100915192954.GA7566@takashi.us.oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20100915160726.GA5854@bicker>
-Content-Language: en-US
+Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Dan Carpenter <error27-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: "Tung, Chien Tin" <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Or Gerlitz <ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Andy Grover <andy.grover-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+Hi gang,
 
+We're chasing some bugs in RDS.  In trying to explore possible causes I found
+that I don't really understand the sequence of events needed to safely tear
+down a cm_id.
 
->-----Original Message-----
->From: Dan Carpenter [mailto:error27-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org]
->Sent: Wednesday, September 15, 2010 11:33 AM
->To: Latif, Faisal
->Cc: Tung, Chien Tin; Roland Dreier; Or Gerlitz; linux-
->rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->Subject: [patch] infiniband: nes_cm: remove unneeded variable
->
->Just a small cleanup.  The "passive_state" variable isn't used any more
->after: dae58728dc "RDMA/nes: Fix double CLOSE event indication crash"
->
->Signed-off-by: Dan Carpenter <error27-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
->
->diff --git a/drivers/infiniband/hw/nes/nes_cm.c
->b/drivers/infiniband/hw/nes/nes_cm.c
->index 61e0efd..5c8d34c 100644
->--- a/drivers/infiniband/hw/nes/nes_cm.c
->+++ b/drivers/infiniband/hw/nes/nes_cm.c
->@@ -1424,7 +1424,6 @@ static void handle_rst_pkt(struct nes_cm_node
->*cm_node, struct sk_buff *skb,
+I'm worried that we have cm event callbacks being processed in the ib_cm thread
+racing with our krds thread which is tearing down the cm_id.
 
-This is fine.
+If you get rid of unrelated rds-specific teardown and error checking, our cm_id
+teardown (rds_ib_conn_shutdown()) simplifies down to:
 
-Thanks
-Faisal
+		rdma_disconnect(cm_id);
+		rdma_destroy_qp(cm_id);
+                rdma_destroy_id(cm_id);
 
+We blow through all of those without waiting for anything specifically CM
+related.  We could wait for some send and receive work completions, sure, but
+we might not if the universe aligns just right and everything is idle when we
+tear things down.
+
+Is it safe to blow through those calls while the ib_cm thread might be
+processing a callback for the given cm_id?   Should we be serializing the two
+specifically?
+
+I think this code was initially written under the assumption that
+rmda_disconnect() would only return once all CM callbacks completed.  I'm
+worried that rdma_disconnect() doesn't work that way.
+
+- z
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
