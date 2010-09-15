@@ -1,28 +1,40 @@
-From: Zach Brown <zach.brown-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: how to safely tear down a cm_id?
-Date: Wed, 15 Sep 2010 14:41:16 -0700
-Message-ID: <20100915214116.GA9408@takashi.us.oracle.com>
-References: <20100915192954.GA7566@takashi.us.oracle.com>
- <CF9C39F99A89134C9CF9C4CCB68B8DDF25AB6B2AC4@orsmsx501.amr.corp.intel.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH] [IPOIB] Check for a MTU overflow on the GSO path
+Date: Wed, 15 Sep 2010 16:33:57 -0600
+Message-ID: <20100915223356.GA14549@obsidianresearch.com>
+References: <20100902231140.GW24971@obsidianresearch.com> <4C90BBBB.6040503@voltaire.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <CF9C39F99A89134C9CF9C4CCB68B8DDF25AB6B2AC4-osO9UTpF0USkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
+In-Reply-To: <4C90BBBB.6040503-smomgflXvOZWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Andy Grover <andy.grover-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+To: Or Gerlitz <ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> rdma_destroy_id will block until all CM callbacks complete.  rdma_disconnect
-> does not.  It merely issues or responds to a disconnect request.  If it issues
-> a disconnect request, then a disconnect callback will eventually follow,
-> possibly before rdma_disconnect returns.  
+On Wed, Sep 15, 2010 at 02:27:39PM +0200, Or Gerlitz wrote:
+> Jason Gunthorpe wrote:
+> >The code to check that the send packet size is less than the MTU is only 
+> >invoked in the non-GSO case. This lets packets which are too large pass 
+> >through. 
+> Jason,
+> 
+> Did you get here following code inspection or during debugging? if the 
+> latter, what does it take to reproduce that?
 
-Thanks, that's just the sort of detail I was looking for.  Now to audit some
-code.
+I noticed it when I was working on the code for the patch after, IPoIB
+was still causing MTU discards in my network and that was why. I
+didn't try it with CM mode, but I can't see that it would be any
+different.
 
-- z
+In my testing what I noticed was that the first few packets of a TCP
+session triggered the PMTU stuff, but immediately after were a few
+GSO packets that tried to go through with the larger MTU. They were
+resent fairly quickly with the correct MTU due to the PMTU fixup that
+happened.
+
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
