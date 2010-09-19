@@ -1,37 +1,55 @@
 From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: [PATCH 2.6.37 1/2] RDMA/cxgb4: Don't set completion flag for read
-	requests.
-Date: Fri, 17 Sep 2010 15:40:09 -0500
-Message-ID: <20100917204009.25530.63174.stgit@build.ogc.int>
-References: <20100917204004.25530.62611.stgit@build.ogc.int>
+Subject: [PATCH 2.6.36] RDMA/cxgb3: Turn off rx coalescing for iwarp
+	connections.
+Date: Sat, 18 Sep 2010 19:38:21 -0500
+Message-ID: <20100919003821.11904.91366.stgit@build.ogc.int>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20100917204004.25530.62611.stgit-T4OLL4TyM9aNDNWfRnPdfg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org, stable-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
+
+The HW by default has RX coalescing on.  For iwarp connections, this was
+causing a 100ms delay in connection establishement due to the ingress
+MPA Start message being stalled in HW.  So explicitly turn rx coalescing
+off when setting up iwarp connections.
+
+This was causing very bad performance for NP64 gather operations using
+OpenMPI due to the way it sets up connections on larger jobs.
 
 Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 ---
 
- drivers/infiniband/hw/cxgb4/qp.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ drivers/infiniband/hw/cxgb3/iwch_cm.c |    6 ++++--
+ 1 files changed, 4 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/infiniband/hw/cxgb4/qp.c b/drivers/infiniband/hw/cxgb4/qp.c
-index 44ad386..7097ec4 100644
---- a/drivers/infiniband/hw/cxgb4/qp.c
-+++ b/drivers/infiniband/hw/cxgb4/qp.c
-@@ -639,7 +639,7 @@ int c4iw_post_send(struct ib_qp *ibqp, struct ib_send_wr *wr,
- 			fw_opcode = FW_RI_RDMA_READ_WR;
- 			swsqe->opcode = FW_RI_READ_REQ;
- 			if (wr->opcode == IB_WR_RDMA_READ_WITH_INV)
--				fw_flags |= FW_RI_RDMA_READ_INVALIDATE;
-+				fw_flags = FW_RI_RDMA_READ_INVALIDATE;
- 			else
- 				fw_flags = 0;
- 			err = build_rdma_read(wqe, wr, &len16);
+diff --git a/drivers/infiniband/hw/cxgb3/iwch_cm.c b/drivers/infiniband/hw/cxgb3/iwch_cm.c
+index d88077a..13c8887 100644
+--- a/drivers/infiniband/hw/cxgb3/iwch_cm.c
++++ b/drivers/infiniband/hw/cxgb3/iwch_cm.c
+@@ -463,7 +463,8 @@ static int send_connect(struct iwch_ep *ep)
+ 	    V_MSS_IDX(mtu_idx) |
+ 	    V_L2T_IDX(ep->l2t->idx) | V_TX_CHANNEL(ep->l2t->smt_idx);
+ 	opt0l = V_TOS((ep->tos >> 2) & M_TOS) | V_RCV_BUFSIZ(rcv_win>>10);
+-	opt2 = V_FLAVORS_VALID(1) | V_CONG_CONTROL_FLAVOR(cong_flavor);
++	opt2 = F_RX_COALESCE_VALID | V_RX_COALESCE(0) | V_FLAVORS_VALID(1) |
++	       V_CONG_CONTROL_FLAVOR(cong_flavor);
+ 	skb->priority = CPL_PRIORITY_SETUP;
+ 	set_arp_failure_handler(skb, act_open_req_arp_failure);
+ 
+@@ -1280,7 +1281,8 @@ static void accept_cr(struct iwch_ep *ep, __be32 peer_ip, struct sk_buff *skb)
+ 	    V_MSS_IDX(mtu_idx) |
+ 	    V_L2T_IDX(ep->l2t->idx) | V_TX_CHANNEL(ep->l2t->smt_idx);
+ 	opt0l = V_TOS((ep->tos >> 2) & M_TOS) | V_RCV_BUFSIZ(rcv_win>>10);
+-	opt2 = V_FLAVORS_VALID(1) | V_CONG_CONTROL_FLAVOR(cong_flavor);
++	opt2 = F_RX_COALESCE_VALID | V_RX_COALESCE(0) | V_FLAVORS_VALID(1) |
++	       V_CONG_CONTROL_FLAVOR(cong_flavor);
+ 
+ 	rpl = cplhdr(skb);
+ 	rpl->wr.wr_hi = htonl(V_WR_OP(FW_WROPCODE_FORWARD));
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
