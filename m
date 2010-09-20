@@ -1,33 +1,29 @@
-From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+From: Tejun Heo <htejun@gmail.com>
 Subject: Re: idr_get_new_exact ?
-Date: Mon, 20 Sep 2010 13:35:42 -0700
-Message-ID: <adaiq20f90h.fsf@cisco.com>
-References: <AANLkTi=ZLupVyFR0e2v-TLpeNWdw1bVMZUAhgyxLJ7OV@mail.gmail.com>
+Date: Mon, 20 Sep 2010 23:26:47 +0200
+Message-ID: <4C97D197.9070703@gmail.com>
+References: <AANLkTi=ZLupVyFR0e2v-TLpeNWdw1bVMZUAhgyxLJ7OV@mail.gmail.com> <adaiq20f90h.fsf@cisco.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <AANLkTi=ZLupVyFR0e2v-TLpeNWdw1bVMZUAhgyxLJ7OV-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-	(Ohad Ben-Cohen's message of "Mon, 20 Sep 2010 16:11:31 +0200")
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ohad Ben-Cohen <ohad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>
-Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Jean Delvare (PC drivers, core)" <khali-PUYAD+kWke1g9hUCZPvPmw@public.gmane.org>, "Ben Dooks (embedded platforms)" <ben-linux-elnMNo+KYs3YtjvyW6yDsg@public.gmane.org>, Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Steve Wise <swise-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, Neil Brown <neilb-l3A5Bk7waGM@public.gmane.org>, Paul Mackerras <paulus-eUNUBHrolfbYtjvyW6yDsg@public.gmane.org>, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dm-devel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-raid-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-ppp-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-ppp-owner@vger.kernel.org>
+In-Reply-To: <adaiq20f90h.fsf@cisco.com>
+Sender: linux-ppp-owner@vger.kernel.org
+To: Roland Dreier <rdreier@cisco.com>
+Cc: Ohad Ben-Cohen <ohad@wizery.com>, linux-kernel@vger.kernel.org, "Jean Delvare (PC drivers, core)" <khali@linux-fr.org>, "Ben Dooks (embedded platforms)" <ben-linux@fluff.org>, Roland Dreier <rolandd@cisco.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Steve Wise <swise@chelsio.com>, Neil Brown <neilb@suse.de>, Paul Mackerras <paulus@samba.org>, linux-i2c@vger.kernel.org, linux-rdma@vger.kernel.org, dm-devel@redhat.com, linux-raid@vger.kernel.org, linux-ppp@vger.kernel.org, netdev@vger.kernel.org, akpm@linux-foundation.org
 List-Id: linux-rdma@vger.kernel.org
 
- > Occasionally, drivers care about the value that idr associates with
- > their pointers.
- > 
- > Today we have idr_get_new_above() which allocates a new idr entry
- > above or equal to a given starting id, but sometimes drivers need to
- > force an exact value.
- > 
- > To overcome this small API gap, drivers are wrapping idr_get_new_above
- > and then either BUG_ON() or just call idr_remove() and returns -EBUSY
- > when idr allocates them an id which is different than their requested
- > value.
+Hello,
 
-Looks fine to me as an improvement over the status quo, but I wonder how
-many of these places could use the radix_tree stuff instead?  If you're
-not using the ability of the idr code to assign an id for you, then it
-seems the radix_tree API is a better fit.
+On 09/20/2010 10:35 PM, Roland Dreier wrote:
+> Looks fine to me as an improvement over the status quo, but I wonder how
+> many of these places could use the radix_tree stuff instead?  If you're
+> not using the ability of the idr code to assign an id for you, then it
+> seems the radix_tree API is a better fit.
 
- - R.
+I agree.  Wouldn't those users better off simply using radix tree?
+
+Thanks.
+
+-- 
+tejun
