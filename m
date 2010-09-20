@@ -1,46 +1,41 @@
-From: "Hefty, Sean" <sean.hefty@intel.com>
-Subject: Re: [patch][tests][perftest] Make the server and client
-	agree	to	work via IPv4.
-Date: Mon, 20 Sep 2010 09:33:14 -0700
-Message-ID: <CF9C39F99A89134C9CF9C4CCB68B8DDF25AB78C9AF@orsmsx501.amr.corp.intel.com>
-References: <E113D394D7C5DB4F8FF691FA7EE9DB443BF12865B9@MTLMAIL.mtl.com>
-	<CF9C39F99A89134C9CF9C4CCB68B8DDF25AB78C89D@orsmsx501.amr.corp.intel.com>
-	<E113D394D7C5DB4F8FF691FA7EE9DB443BF130E03A@MTLMAIL.mtl.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: WRITE_WITH_IMMEDIATE target semantic
+Date: Mon, 20 Sep 2010 11:23:47 -0600
+Message-ID: <20100920172347.GA11157@obsidianresearch.com>
+References: <OF2575B7D8.9367EBA3-ONC12577A4.0057C50D-C12577A4.005AD45D@ch.ibm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <ofw-bounces@lists.openfabrics.org>
-In-Reply-To: <E113D394D7C5DB4F8FF691FA7EE9DB443BF130E03A@MTLMAIL.mtl.com>
-Content-Language: en-US
-List-Unsubscribe: <http://lists.openfabrics.org/cgi-bin/mailman/listinfo/ofw>,
-	<mailto:ofw-request@lists.openfabrics.org?subject=unsubscribe>
-List-Archive: <http://lists.openfabrics.org/pipermail/ofw>
-List-Post: <mailto:ofw@lists.openfabrics.org>
-List-Help: <mailto:ofw-request@lists.openfabrics.org?subject=help>
-List-Subscribe: <http://lists.openfabrics.org/cgi-bin/mailman/listinfo/ofw>,
-	<mailto:ofw-request@lists.openfabrics.org?subject=subscribe>
-Sender: ofw-bounces@lists.openfabrics.org
-Errors-To: ofw-bounces@lists.openfabrics.org
-To: Irena Gannon <irena@mellanox.co.il>, "ofw@lists.openfabrics.org" <ofw@lists.openfabrics.org>
-Cc: "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <OF2575B7D8.9367EBA3-ONC12577A4.0057C50D-C12577A4.005AD45D-Xeyd2O9EBijQT0dZR+AlfA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Bernard Metzler <BMT-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-> 1. I don't see that this file exists in svn.
-> [Irena] 	You can see the file in:
-> svn://openib.tc.cornell.edu/gen1/trunk/tests/perftest. It was added in
-> commit 2918.
+On Mon, Sep 20, 2010 at 06:32:05PM +0200, Bernard Metzler wrote:
 
-Ok - I see this after updating my local tree.
+> while currently only supported by the InfiniBand transport,
+> the libibverbs define a IBV_WR_RDMA_WRITE_WITH_IMM work request.
+> Could someone please explain what the action at the peer side would be
+> if a WRITE with immediate data comes in? One possible action would be
+> to:
 
-> 
-> 2. We want to support ipv6.
-> [Irena]  	The IPv4 is used to open a socket in the beginning of the test
-> just in order to exchange the connection info (lid, qp number) between the
-> sides.
-> 		This choice of IPv4 exists in the ib_XXXX_bw/ib_XXXX_lat tests
-> as well, for example in the function pp_client_connect in the file
-> 					tools\perftests\user\perf_utils.c
+I've used this feature and according to my notes this is broadly
+correct. A RWQE is consumed, the HCA doesn't use it for anything, and
+the WC has the imm_data set, and the wr_id corrisponds to the RWQE.
+The IBA notes the RWQE could be zero length.
 
-We should still support ipv6.  I don't see this sort of restriction placed on the Linux code.
+The app needs to check for:
+        if (wc.opcode & IBV_WC_RECV)
+To see if the completion consumed a RWQE.
+ 
+>     (3) set the WC's 'byte_len' to the received WRITE payload,
 
-I've seen this sort of problem before, but it's been so long ago that I don't remember if it was on Linux or Windows or what the resolution was.
+Hmm, I'm surprised by this, but, yep! pg 632 of the IBA.
+
+Jason
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
