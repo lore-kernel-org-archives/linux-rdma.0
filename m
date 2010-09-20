@@ -1,50 +1,46 @@
-From: Bernard Metzler <BMT-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>
-Subject: WRITE_WITH_IMMEDIATE target semantic
-Date: Mon, 20 Sep 2010 18:32:05 +0200
-Message-ID: <OF2575B7D8.9367EBA3-ONC12577A4.0057C50D-C12577A4.005AD45D@ch.ibm.com>
+From: "Hefty, Sean" <sean.hefty@intel.com>
+Subject: Re: [patch][tests][perftest] Make the server and client
+	agree	to	work via IPv4.
+Date: Mon, 20 Sep 2010 09:33:14 -0700
+Message-ID: <CF9C39F99A89134C9CF9C4CCB68B8DDF25AB78C9AF@orsmsx501.amr.corp.intel.com>
+References: <E113D394D7C5DB4F8FF691FA7EE9DB443BF12865B9@MTLMAIL.mtl.com>
+	<CF9C39F99A89134C9CF9C4CCB68B8DDF25AB78C89D@orsmsx501.amr.corp.intel.com>
+	<E113D394D7C5DB4F8FF691FA7EE9DB443BF130E03A@MTLMAIL.mtl.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <ofw-bounces@lists.openfabrics.org>
+In-Reply-To: <E113D394D7C5DB4F8FF691FA7EE9DB443BF130E03A@MTLMAIL.mtl.com>
+Content-Language: en-US
+List-Unsubscribe: <http://lists.openfabrics.org/cgi-bin/mailman/listinfo/ofw>,
+	<mailto:ofw-request@lists.openfabrics.org?subject=unsubscribe>
+List-Archive: <http://lists.openfabrics.org/pipermail/ofw>
+List-Post: <mailto:ofw@lists.openfabrics.org>
+List-Help: <mailto:ofw-request@lists.openfabrics.org?subject=help>
+List-Subscribe: <http://lists.openfabrics.org/cgi-bin/mailman/listinfo/ofw>,
+	<mailto:ofw-request@lists.openfabrics.org?subject=subscribe>
+Sender: ofw-bounces@lists.openfabrics.org
+Errors-To: ofw-bounces@lists.openfabrics.org
+To: Irena Gannon <irena@mellanox.co.il>, "ofw@lists.openfabrics.org" <ofw@lists.openfabrics.org>
+Cc: "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
+> 1. I don't see that this file exists in svn.
+> [Irena] 	You can see the file in:
+> svn://openib.tc.cornell.edu/gen1/trunk/tests/perftest. It was added in
+> commit 2918.
 
-Hello,
+Ok - I see this after updating my local tree.
 
-while currently only supported by the InfiniBand transport,
-the libibverbs define a IBV_WR_RDMA_WRITE_WITH_IMM work request.
-Could someone please explain what the action at the peer side would be
-if a WRITE with immediate data comes in? One possible action would be
-to:
+> 
+> 2. We want to support ipv6.
+> [Irena]  	The IPv4 is used to open a socket in the beginning of the test
+> just in order to exchange the connection info (lid, qp number) between the
+> sides.
+> 		This choice of IPv4 exists in the ib_XXXX_bw/ib_XXXX_lat tests
+> as well, for example in the function pp_client_connect in the file
+> 					tools\perftests\user\perf_utils.c
 
-(1) fetch the next receive queue / shared receive queue entry and
-    store the value of the immediate data (32 bits at the API)
-    along with that RQE.
+We should still support ipv6.  I don't see this sort of restriction placed on the Linux code.
 
-(2) place data according to the inbound WRITE hdr but ignore the
-    SGL of the RQE.
-
-(3) after completion processing the WRITE:
-    (1) create a work completion of type IBV_WC_RECV_RDMA_WITH_IMM,
-    (2) transfer the immediate data value into the 'imm_data' field,
-    (3) set the WC's 'byte_len' to the received WRITE payload,
-    (4) set IBV_WC_WITH_IMM at 'wc_flags', and
-    (5) append the WC to the associated CQ.
-
-With that, the receiver would have to carefully inspect the operation
-type of the work completion, since a receive queue entry may turn into
-a IBV_WC_RECV or IBV_WC_RECV_RDMA_WITH_IMM. In the second case, the data
-are placed according to the senders opinion, which may not be the
-result a non-aware receiver would expect.
-
-correct?
-
-
-Many thanks for clarification!
-Bernard.
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I've seen this sort of problem before, but it's been so long ago that I don't remember if it was on Linux or Windows or what the resolution was.
