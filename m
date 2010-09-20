@@ -1,29 +1,27 @@
-From: Tejun Heo <htejun@gmail.com>
-Subject: Re: idr_get_new_exact ?
-Date: Mon, 20 Sep 2010 23:26:47 +0200
-Message-ID: <4C97D197.9070703@gmail.com>
-References: <AANLkTi=ZLupVyFR0e2v-TLpeNWdw1bVMZUAhgyxLJ7OV@mail.gmail.com> <adaiq20f90h.fsf@cisco.com>
+From: Alasdair G Kergon <agk-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [dm-devel] idr_get_new_exact ?
+Date: Mon, 20 Sep 2010 22:38:25 +0100
+Message-ID: <20100920213825.GF30622__42421.3934260935$1285018845$gmane$org@agk-dp.fab.redhat.com>
+References: <AANLkTi=ZLupVyFR0e2v-TLpeNWdw1bVMZUAhgyxLJ7OV@mail.gmail.com> <adaiq20f90h.fsf@cisco.com> <4C97D197.9070703@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-ppp-owner@vger.kernel.org>
-In-Reply-To: <adaiq20f90h.fsf@cisco.com>
-Sender: linux-ppp-owner@vger.kernel.org
-To: Roland Dreier <rdreier@cisco.com>
-Cc: Ohad Ben-Cohen <ohad@wizery.com>, linux-kernel@vger.kernel.org, "Jean Delvare (PC drivers, core)" <khali@linux-fr.org>, "Ben Dooks (embedded platforms)" <ben-linux@fluff.org>, Roland Dreier <rolandd@cisco.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Steve Wise <swise@chelsio.com>, Neil Brown <neilb@suse.de>, Paul Mackerras <paulus@samba.org>, linux-i2c@vger.kernel.org, linux-rdma@vger.kernel.org, dm-devel@redhat.com, linux-raid@vger.kernel.org, linux-ppp@vger.kernel.org, netdev@vger.kernel.org, akpm@linux-foundation.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <4C97D197.9070703-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: device-mapper development <dm-devel-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Ohad Ben-Cohen <ohad-Ix1uc/W3ht7QT0dZR+AlfA@public.gmane.org>, akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, Steve Wise <swise-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, linux-
 List-Id: linux-rdma@vger.kernel.org
 
-Hello,
+On Mon, Sep 20, 2010 at 11:26:47PM +0200, Tejun Heo wrote:
+> I agree.  Wouldn't those users better off simply using radix tree?
+ 
+Can't speak for the other users, but dm uses it both ways - normally
+happy with any id (minor number), but sometimes user requires a specific
+one.
 
-On 09/20/2010 10:35 PM, Roland Dreier wrote:
-> Looks fine to me as an improvement over the status quo, but I wonder how
-> many of these places could use the radix_tree stuff instead?  If you're
-> not using the ability of the idr code to assign an id for you, then it
-> seems the radix_tree API is a better fit.
+Alasdair
 
-I agree.  Wouldn't those users better off simply using radix tree?
-
-Thanks.
-
--- 
-tejun
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
