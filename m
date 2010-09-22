@@ -1,38 +1,34 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: igmp: Staggered igmp report intervals for unsolicited igmp
-	reports
-Date: Wed, 22 Sep 2010 15:50:52 -0600
-Message-ID: <20100922215052.GK11157@obsidianresearch.com>
-References: <alpine.DEB.2.00.1009221354410.32661@router.home> <alpine.DEB.2.00.1009221400010.32661@router.home> <OFF06BBC88.0B6755D5-ON882577A6.0068F4F8-882577A6.006B31FB@us.ibm.com> <alpine.DEB.2.00.1009221448460.32661@router.home>
+Subject: Re: [PATCH 2/2] siw: Add support for CRC32C offload instruction
+	using libcrypto crc32c-intel
+Date: Wed, 22 Sep 2010 16:06:11 -0600
+Message-ID: <20100922220611.GL11157@obsidianresearch.com>
+References: <1285187425-10950-1-git-send-email-nab@linux-iscsi.org> <4C9A698B.90806@linux.intel.com> <1285187901.1849.85.camel@haakon2.linux-iscsi.org> <20100922205943.GI11157@obsidianresearch.com> <1285189241.1849.112.camel@haakon2.linux-iscsi.org> <20100922211808.GJ11157@obsidianresearch.com> <1285191511.1849.126.camel@haakon2.linux-iscsi.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.00.1009221448460.32661-sBS69tsa9Uj/9pzu0YdTqQ@public.gmane.org>
+In-Reply-To: <1285191511.1849.126.camel-Y1+j5t8j3WgjMeEPmliV8E/sVC8ogwMJ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
-Cc: David Stevens <dlstevens-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>, "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Bob Arendt <rda-x0S3BwdUo6DQT0dZR+AlfA@public.gmane.org>
+To: "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>
+Cc: linux-kernel <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, netdev <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Bernard Metzler <BMT-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Sep 22, 2010 at 02:58:15PM -0500, Christoph Lameter wrote:
-> > packets if it isn't ready quickly? A querier is what makes these
-> > reliable, but for the start-up in particular, I think it'd be better
-> > to not initiate the send on devices that have this problem until the
-> > device is actually ready to send-- why not put the delay in the device
-> > driver on initialization?
-> 
-> The device is ready. Its just the multicast group that has not been
-> established yet.
+On Wed, Sep 22, 2010 at 02:38:31PM -0700, Nicholas A. Bellinger wrote:
 
-In IB when the SA replies to a group join the group should be ready,
-prior to that the device can't send into the group because it has no
-MLID for the group.. If you have a MLID then the group is working.
+> So I think the main bit here is the ability to request
+> crc32c-intel.ko first, and then fall back to crc32c.ko when the
+> former is not available on CONFIG_X86.
 
-Is the issue you are dropping IGMP packets because the 224.0.0.2 join
-hasn't finished? Ideally you'd wait for the SA to reply before sending
-a IGMP, but a simpler solution might just be to use the broadcast MLID
-for packets addressed to a MGID that has not yet got a MLID. This
-would bebe similar to the ethernet behaviour of flooding.
+Well, it is what Andi said, everything is working fine but there is no
+mechanism to autoload the accelerated crypto module. If you did
+modprobe crc32c_intel prior to loading your driver it would
+automatically get crc32c-intel when it asks for crc32c since it is
+loaded and a higher priority.
+
+So, the drivers are correct to just request crc32c .. The work around
+to limited autoprobing is so trivial (modprob crc32_intel) I'm not
+sure including extra autoprobing code in the drivers is worthwhile?
 
 Jason
 --
