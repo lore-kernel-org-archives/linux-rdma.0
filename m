@@ -1,110 +1,81 @@
-From: "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>
-Subject: [PATCH 2/2] siw: Add support for CRC32C offload instruction using libcrypto crc32c-intel
-Date: Wed, 22 Sep 2010 13:30:25 -0700
-Message-ID: <1285187425-10950-1-git-send-email-nab@linux-iscsi.org>
+From: David Stevens <dlstevens-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>
+Subject: Re: igmp: Staggered igmp report intervals for unsolicited igmp reports
+Date: Wed, 22 Sep 2010 13:36:17 -0700
+Message-ID: <OFAB7DE0DE.BD125180-ON882577A6.006F6717-882577A6.00713062@us.ibm.com>
+References: <alpine.DEB.2.00.1009221354410.32661@router.home> <alpine.DEB.2.00.1009221400010.32661@router.home> <OFF06BBC88.0B6755D5-ON882577A6.0068F4F8-882577A6.006B31FB@us.ibm.com> <alpine.DEB.2.00.1009221448460.32661@router.home>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="US-ASCII"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <alpine.DEB.2.00.1009221448460.32661-sBS69tsa9Uj/9pzu0YdTqQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-kernel <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, netdev <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Bernard Metzler <BMT-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>
-Cc: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, Matthew Wilcox <willy-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Andi Keen <ak-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Nicholas Bellinger <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>
+To: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
+Cc: "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Bob Arendt <rda-x0S3BwdUo6DQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Nicholas Bellinger <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>
+Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org> wrote:
+> 
+> On Wed, 22 Sep 2010, David Stevens wrote:
+> 
+> >         I feel your pain, but the protocol allows this to be 0 and all
+> > of the unsolicited reports can be lost. I don't think adding a minimum
+> > latency solves a general problem. Perhaps the device should queue some
+> 
+> The protocol does not specificy the intervals during unsolicited igmp
+> sends. It only specifies the intervals as a result of a igmp query.
 
-This patch updates siw_create_qp() to check for the CONFIG_X86 + cpu_has_xmm4_2
-dependent use of the CRC32C instruction offload using libcrypto crc32c-intel.ko.
-This patch will by default use crc32c-intel when available, and fall back to the
-legacy slicing by 1x libcrypto crc32c.ko code when the instruction offload is not
-availabe.
+RFC 3376:
+"  To cover the possibility of the State-Change Report being missed by
+   one or more multicast routers, it is retransmitted [Robustness
+   Variable] - 1 more times, at intervals chosen at random from the
+   range (0, [Unsolicited Report Interval])."
+and
+"8.11. Unsolicited Report Interval
 
-Because of the ability to selectively use c_tx->crc_enabled and c_rx->crc_enabled,
-this patch has to use a handful of less than appealing goto's in order to handle the
-default case where the offload is enabled by default, the crc32c-intel module is
-not available and we need to fall back to slicing by 1x crc32c.ko, or we need to
-fail all together.
+   The Unsolicited Report Interval is the time between repetitions of a
+   host's initial report of membership in a group.  Default: 1 second."
 
-Note that this code has only been compile tested so far, but a similar patch
-to LIO-Target (w/o the selectively use of TX/RX checksums) to use crc32c-intel.ko
-instruction offload is available here:
-
-http://git.kernel.org/?p=linux/kernel/git/nab/lio-core-2.6.git;a=commitdiff;h=c92ef80235302a1f891f636691c928c3bb4e9ac1
-
-Signed-off-by: Nicholas A. Bellinger <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>
----
- softiwarp/siw_verbs.c |   37 ++++++++++++++++++++++++++++++++++++-
- 1 files changed, 36 insertions(+), 1 deletions(-)
-
-diff --git a/softiwarp/siw_verbs.c b/softiwarp/siw_verbs.c
-index 27e2e5e..00ac03c 100644
---- a/softiwarp/siw_verbs.c
-+++ b/softiwarp/siw_verbs.c
-@@ -348,7 +348,7 @@ struct ib_qp *siw_create_qp(struct ib_pd *ofa_pd, struct ib_qp_init_attr *attrs,
- 	struct siw_iwarp_rx		*c_rx;
- 	struct siw_uresp_create_qp	uresp;
+> The device is ready. Its just the multicast group that has not been
+> established yet.
+        Well, if you know that's going to happen with your device, then
+again, why not queue them on start up until you have indication that
+the group has been established, or delay in the driver.
+        You're changing IGMP for all device types to fix a problem in
+only one.
  
--	int rv = 0;
-+	int rv = 0, crc32c_offload = 1;
+> There also cannot be any storm since any unsolicited igmp report by any
+> system will stop the unsolicited igmp reports by any other system.
+
+        Not if they are simultaneous, which is exactly when it is a 
+problem. :-)
+> 
+> > > So unsolicited reports are send for an interval of at least a minute
+> > > (reports are aborted if igmp reports or other info is seen).
+> >
+> >         This is outside the protocol spec, and the intervals are 
+neither
+> > random nor scaled based on any network performance metric.
+> 
+> Where does it say that in the spec? Again this is an *unsolicited* igmp
+> report.
+
+        See quotes above.
  
- 	dprint(DBG_OBJ|DBG_CM, ": new QP on device %s\n",
- 		ofa_dev->name);
-@@ -460,6 +460,23 @@ struct ib_qp *siw_create_qp(struct ib_pd *ofa_pd, struct ib_qp_init_attr *attrs,
- 	c_tx->crc_enabled = c_rx->crc_enabled = CONFIG_RDMA_SIW_CRC_ENFORCED;
- 
- 	if (c_tx->crc_enabled) {
-+#ifdef CONFIG_X86
-+		/*
-+		 * Check for the Nehalem optimized crc32c-intel instructions
-+		 * This is only currently available while running on bare-metal,
-+		 * and is not yet available with QEMU-KVM guests.
-+		 */
-+		if (cpu_has_xmm4_2 && crc32c_offload) {
-+			c_tx->mpa_crc_hd.tfm = crypto_alloc_hash("crc32c-intel",
-+						0, CRYPTO_ALG_ASYNC);
-+			if (IS_ERR(c_tx->mpa_crc_hd.tfm)) {
-+				crc32c_offload = 0;
-+				goto check_legacy_tx;
-+			}
-+			goto check_rx;
-+		}
-+check_legacy_tx:
-+#endif /* CONFIG_X86 */
- 		c_tx->mpa_crc_hd.tfm =
- 			crypto_alloc_hash("crc32c", 0, CRYPTO_ALG_ASYNC);
- 		if (IS_ERR(c_tx->mpa_crc_hd.tfm)) {
-@@ -469,7 +486,24 @@ struct ib_qp *siw_create_qp(struct ib_pd *ofa_pd, struct ib_qp_init_attr *attrs,
- 			goto remove_qp;
- 		}
- 	}
-+check_rx:
- 	if (c_rx->crc_enabled) {
-+#ifdef CONFIG_X86
-+		/*
-+		 * Check for the Nehalem optimized crc32c-intel instructions
-+		 * This is only currently available while running on bare-metal,
-+		 * and is not yet available with QEMU-KVM guests.
-+		 */
-+		if (cpu_has_xmm4_2 && crc32c_offload) {
-+			c_rx->mpa_crc_hd.tfm = crypto_alloc_hash("crc32c-intel",
-+						0, CRYPTO_ALG_ASYNC);
-+			if (IS_ERR(c_rx->mpa_crc_hd.tfm))
-+				goto check_legacy_rx;
-+
-+			goto after_crc32c;
-+		}
-+check_legacy_rx:
-+#endif /* CONFIG_X86 */
- 		c_rx->mpa_crc_hd.tfm =
- 			crypto_alloc_hash("crc32c", 0, CRYPTO_ALG_ASYNC);
- 		if (IS_ERR(c_rx->mpa_crc_hd.tfm)) {
-@@ -478,6 +512,7 @@ struct ib_qp *siw_create_qp(struct ib_pd *ofa_pd, struct ib_qp_init_attr *attrs,
- 			goto remove_qp;
- 		}
- 	}
-+after_crc32c:
- 	atomic_set(&qp->tx_ctx.in_use, 0);
- 
- 	qp->ofa_qp.qp_num = QP_ID(qp);
--- 
-1.5.6.5
+> These are *unsolicited* igmp reports. There is *no* querier supplied 
+data
+> yet. The first querier supplied data (or any other unsolicited igmp
+> report) will immediately stop the unsolicited reports and then will
+> continue to respond in randomized intervals based on the data that the
+> querier has supplied.
+
+        There are initial values, which are currently constants, but it'd
+be (more) reasonable to turn those into per-interface tunables or
+per-interface initial values with IB interfaces using larger values.
+
+IGMP_Unsolicited_Report_Count (default 2)
+IGMP_Unsolicited_Report_Interval (default 10secs which is 10x larger,as
+        you want, than the RFC suggests).
+
+                                                                +-DLS
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
