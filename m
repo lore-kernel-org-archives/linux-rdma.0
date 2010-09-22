@@ -1,95 +1,41 @@
-From: "Nicholas A. Bellinger" <nab@linux-iscsi.org>
-Subject: Re: [PATCH 2/2] siw: Add support for CRC32C offload instruction
-	using libcrypto crc32c-intel
-Date: Wed, 22 Sep 2010 14:38:31 -0700
-Message-ID: <1285191511.1849.126.camel@haakon2.linux-iscsi.org>
-References: <1285187425-10950-1-git-send-email-nab@linux-iscsi.org>
-	 <4C9A698B.90806@linux.intel.com>
-	 <1285187901.1849.85.camel@haakon2.linux-iscsi.org>
-	 <20100922205943.GI11157@obsidianresearch.com>
-	 <1285189241.1849.112.camel@haakon2.linux-iscsi.org>
-	 <20100922211808.GJ11157@obsidianresearch.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: igmp: Staggered igmp report intervals for unsolicited igmp
+	reports
+Date: Wed, 22 Sep 2010 15:50:52 -0600
+Message-ID: <20100922215052.GK11157@obsidianresearch.com>
+References: <alpine.DEB.2.00.1009221354410.32661@router.home> <alpine.DEB.2.00.1009221400010.32661@router.home> <OFF06BBC88.0B6755D5-ON882577A6.0068F4F8-882577A6.006B31FB@us.ibm.com> <alpine.DEB.2.00.1009221448460.32661@router.home>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20100922211808.GJ11157@obsidianresearch.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
-Cc: linux-kernel <linux-kernel@vger.kernel.org>, netdev <netdev@vger.kernel.org>, linux-rdma <linux-rdma@vger.kernel.org>, Bernard Metzler <BMT@zurich.ibm.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <alpine.DEB.2.00.1009221448460.32661-sBS69tsa9Uj/9pzu0YdTqQ@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
+Cc: David Stevens <dlstevens-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>, "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Bob Arendt <rda-x0S3BwdUo6DQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, 2010-09-22 at 15:18 -0600, Jason Gunthorpe wrote:
-> [cc list chopped]
+On Wed, Sep 22, 2010 at 02:58:15PM -0500, Christoph Lameter wrote:
+> > packets if it isn't ready quickly? A querier is what makes these
+> > reliable, but for the start-up in particular, I think it'd be better
+> > to not initiate the send on devices that have this problem until the
+> > device is actually ready to send-- why not put the delay in the device
+> > driver on initialization?
 > 
-> On Wed, Sep 22, 2010 at 02:00:41PM -0700, Nicholas A. Bellinger wrote:
-> > On Wed, 2010-09-22 at 14:59 -0600, Jason Gunthorpe wrote:
-> > > On Wed, Sep 22, 2010 at 01:38:21PM -0700, Nicholas A. Bellinger wrote:
-> > > 
-> > > > Indeed, this would clean up the explict RX/TX CRC32C case quite a
-> > > > bit..  Unfortuately I am too busy with other items atm to cook up
-> > > > this patch, but I would be happy to test it if someone wants to take
-> > > > it.  ;)
-> > > 
-> > > Do you even need to do anything at all? crc32c is provided by
-> > > crc32c-intel at a higher priority already, so it should be used if it
-> > > is available..
-> > 
-> > I believe with the current libcrypto code that consumers are still
-> > required to explictly ask for crc32c-intel offload.
-> 
-> Really? It all looks OK to me.. What does your /proc/crypto say on a
-> system with crc32c-intel support?
+> The device is ready. Its just the multicast group that has not been
+> established yet.
 
-After a fresh boot /proc/crypto looks like:
+In IB when the SA replies to a group join the group should be ready,
+prior to that the device can't send into the group because it has no
+MLID for the group.. If you have a MLID then the group is working.
 
-name         : stdrng
-driver       : krng
-module       : kernel
-priority     : 200
-refcnt       : 1
-selftest     : passed
-type         : rng
-seedsize     : 0
+Is the issue you are dropping IGMP packets because the 224.0.0.2 join
+hasn't finished? Ideally you'd wait for the SA to reply before sending
+a IGMP, but a simpler solution might just be to use the broadcast MLID
+for packets addressed to a MGID that has not yet got a MLID. This
+would bebe similar to the ethernet behaviour of flooding.
 
-name         : crc32c
-driver       : crc32c-generic
-module       : kernel
-priority     : 100
-refcnt       : 2
-selftest     : passed
-type         : shash
-blocksize    : 1
-digestsize   : 4
-
-name         : sha1
-driver       : sha1-generic
-module       : kernel
-priority     : 0
-refcnt       : 1
-selftest     : passed
-type         : shash
-blocksize    : 64
-digestsize   : 20
-
-Once I start up the LIO-Target stack and some iSCSI Initiators login
-and request crc32c-intel using crypto_alloc_hash() using a method similar
-to what this patch for Softiwarp does, the following appears in at the top
-of /proc/crypto:
-
-name         : crc32c
-driver       : crc32c-intel
-module       : crc32c_intel
-priority     : 200
-refcnt       : 5
-selftest     : passed
-type         : shash
-blocksize    : 1
-digestsize   : 4
-
-So I think the main bit here is the ability to request crc32c-intel.ko first,
-and then fall back to crc32c.ko when the former is not available on CONFIG_X86.
-
-Best,
-
---nab
+Jason
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
