@@ -1,70 +1,174 @@
-From: Bernard Metzler <BMT-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>
-Subject: software iwarp stack update
-Date: Wed, 22 Sep 2010 10:19:56 +0200
-Message-ID: <OF64770AFC.B48EBEF2-ONC12577A6.002CC793-C12577A6.002DC569@ch.ibm.com>
+From: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
+Subject: igmp: Allow mininum interval specification for igmp timers.
+Date: Wed, 22 Sep 2010 13:59:30 -0500 (CDT)
+Message-ID: <alpine.DEB.2.00.1009221354410.32661@router.home>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Bob Arendt <rda-x0S3BwdUo6DQT0dZR+AlfA@public.gmane.org>, "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, David L Stevens <dlstevens-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+IGMP timers sometimes fire too rapidly due to randomization of the
+intervalsfrom 0 to max_delay in igmp_start_timer(). For some situations
+(like the initial IGMP reports that are not responses to an IGMP query) we
+do not want them in too rapid succession otherwise all the initial reports
+may be lost due to a race conditions with the reconfiguration of the
+routers and switches going on via the link layer (like on Infiniband). If
+those are lost then the router will only discover that a new mc group was
+joined when the igmp query was sent. General IGMP queries may be sent
+rarely on large fabrics resulting in excessively long wait times until
+data starts flowing. The application may abort before then concluding that
+the network hardware is not operational.
 
-Earlier this year, we announced the availability of an open source,
-full software implementation of the iWARP RDMA protocol stack - see
-my email "software iwarp stack" from March 14th at the linux-rdma list
-(http://www.mail-archive.com/linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org/msg02940.html)
-While since then working on performance and stability, we provided
-some source code updates. Current user and kernel code is available at
-gitorious.org/softiwarp. Please see the CHANGES file in the
-kernel/ directory for a summary of the most recent changes.
+The worst case scenario without the changes will send 3 igmp reports on join:
 
-For more convenient testing, the latest update now allows for a
-stand-alone build of the kernel module without full kernel source
-code access. We tested the code with kernel version 2.6.34. If
-you are interested in a full software RDMA stack on Ethernet,
-please try it out.
+First		3 jiffies ("immediate" (spec) ~3 ms)
+Second		3 jiffies (randomization leads to shortest interval) 3 ms
+Third		3 jiffies (randomization leads to shortest interval) 3 ms
 
-In the hope of providing useful information, I put
-netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org on copy. Subscribers of this list,
-please put me on private cc in case you reply or comment, since
-I am not subscribed to the list.
-We would be more than happy if you netdev folks would consider
-a hardware independent RDMA kernel service as something useful and
-potentially to be integrated into the mainline network stack.
+Which may result in a total of less than 10ms until the kernel gives up sending
+igmp requests.
 
-Why might it be useful?
-A software RDMA stack makes the semantic advantages of
-asynchronous and one-sided communication available while obsoleting
-the need to deploy dedicated RDMA hardware or any protocol offloading
-(while not matching the lowest delay numbers of real RDMA hardware).
-Implementing the IETF's iWARP protocol stack on top of TCP kernel
-sockets, softiwarp integrates with the open fabrics environment
-and thus exports the RDMA kernel and user verbs interface.
+Change the IGMP layer to allow the specification of minimum and maximum delay.
+Calculate the IGMP_Unsolicated_Report interval based on what the interval
+before this patch would be on a 100HZ kernel. 3 jiffies at 100 HZ would result
+in a mininum ~30 milliseconds spacing between the initial two IGMP reports.
+Round it up to 40ms.
 
-The efficiency of the Linux TCP/IP network stack together with intrinsic
-advantages of the RDMA communication model (async. posting of work
-and reaping of work completions, transfer of send buffer ownership
-to the kernel which enables zero copy transmit, peer data placement
-without application scheduling, one-sided remote read operations etc.)
-can result in improved application-to-application performance and
-less CPU load, while using the unchanged kernel TCP stack.
+This will result in 3 initial unsolicited reports
 
-A software RDMA stack might promote wider RDMA deployment,
-since when using the host TCP stack, it enables RDMA semantic
-independent of dedicated hardware. softiwarp peers with real
-RNICs (tested with Chelsio's T3 adapter).
+First	"immediately"	3 jiffies (~ 3ms)
+Second	randomized 40ms to 10seconds later
+Third	randomized 40ms	to 10seconds later
 
-softiwarp is still work in progress and we are very thankful for any
-suggestions/comments/bug reports. Please advise how we should proceed
-to bring the stack further to your attention. Would it be useful to
-provide patches against the current stable kernel version or the next
-release candidate?
+So a mininum of ~83ms will pass before the unsolicted reports are
+given up.
 
-Many thanks,
-Bernard.
+Signed-off-by: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
 
+---
+ net/ipv4/igmp.c |   45 +++++++++++++++++++++++++++++++--------------
+ 1 file changed, 31 insertions(+), 14 deletions(-)
+
+Index: linux-2.6/net/ipv4/igmp.c
+===================================================================
+--- linux-2.6.orig/net/ipv4/igmp.c	2010-09-22 11:15:19.000000000 -0500
++++ linux-2.6/net/ipv4/igmp.c	2010-09-22 12:50:32.000000000 -0500
+@@ -116,10 +116,17 @@
+ #define IGMP_V2_Router_Present_Timeout		(400*HZ)
+ #define IGMP_Unsolicited_Report_Interval	(10*HZ)
+ #define IGMP_Query_Response_Interval		(10*HZ)
+-#define IGMP_Unsolicited_Report_Count		2
+
++/* Parameters not specified in igmp rfc. */
++
++/* Mininum ticks to have a meaningful notion of delay */
++#define IGMP_Mininum_Delay			(2)
++
++/* Control of unsolilcited reports (after join) */
+
++#define IGMP_Unsolicited_Report_Count		2
+ #define IGMP_Initial_Report_Delay		(1)
++#define IGMP_Unsolicited_Report_Min_Delay	(HZ/25)
+
+ /* IGMP_Initial_Report_Delay is not from IGMP specs!
+  * IGMP specs require to report membership immediately after
+@@ -174,22 +181,30 @@ static __inline__ void igmp_stop_timer(s
+ 	spin_unlock_bh(&im->lock);
+ }
+
+-/* It must be called with locked im->lock */
+-static void igmp_start_timer(struct ip_mc_list *im, int max_delay)
++static inline unsigned long jiffies_rand_delay(int min_delay, int max_delay)
+ {
+-	int tv = net_random() % max_delay;
++	int d = min_delay;
++
++	if (min_delay < max_delay)
++		d += net_random() % (max_delay - min_delay);
+
++	return jiffies + d;
++}
++
++/* It must be called with locked im->lock */
++static void igmp_start_timer(struct ip_mc_list *im, int min_delay, int max_delay)
++{
+ 	im->tm_running = 1;
+-	if (!mod_timer(&im->timer, jiffies+tv+2))
++	if (!mod_timer(&im->timer, jiffies_rand_delay(min_delay, max_delay)))
+ 		atomic_inc(&im->refcnt);
+ }
+
+ static void igmp_gq_start_timer(struct in_device *in_dev)
+ {
+-	int tv = net_random() % in_dev->mr_maxdelay;
+-
+ 	in_dev->mr_gq_running = 1;
+-	if (!mod_timer(&in_dev->mr_gq_timer, jiffies+tv+2))
++	if (!mod_timer(&in_dev->mr_gq_timer,
++			jiffies_rand_delay(IGMP_Mininum_Delay,
++					in_dev->mr_maxdelay)))
+ 		in_dev_hold(in_dev);
+ }
+
+@@ -201,7 +216,7 @@ static void igmp_ifc_start_timer(struct
+ 		in_dev_hold(in_dev);
+ }
+
+-static void igmp_mod_timer(struct ip_mc_list *im, int max_delay)
++static void igmp_mod_timer(struct ip_mc_list *im, int min_delay, int max_delay)
+ {
+ 	spin_lock_bh(&im->lock);
+ 	im->unsolicit_count = 0;
+@@ -214,7 +229,7 @@ static void igmp_mod_timer(struct ip_mc_
+ 		}
+ 		atomic_dec(&im->refcnt);
+ 	}
+-	igmp_start_timer(im, max_delay);
++	igmp_start_timer(im, min_delay, max_delay);
+ 	spin_unlock_bh(&im->lock);
+ }
+
+@@ -733,7 +748,8 @@ static void igmp_timer_expire(unsigned l
+
+ 	if (im->unsolicit_count) {
+ 		im->unsolicit_count--;
+-		igmp_start_timer(im, IGMP_Unsolicited_Report_Interval);
++		igmp_start_timer(im, IGMP_Unsolicited_Report_Min_Delay,
++				IGMP_Unsolicited_Report_Interval);
+ 	}
+ 	im->reporter = 1;
+ 	spin_unlock(&im->lock);
+@@ -911,7 +927,7 @@ static void igmp_heard_query(struct in_d
+ 			igmp_marksources(im, ntohs(ih3->nsrcs), ih3->srcs);
+ 		spin_unlock_bh(&im->lock);
+ 		if (changed)
+-			igmp_mod_timer(im, max_delay);
++			igmp_mod_timer(im, IGMP_Mininum_Delay, max_delay);
+ 	}
+ 	read_unlock(&in_dev->mc_list_lock);
+ }
+@@ -1169,7 +1185,7 @@ static void igmp_group_added(struct ip_m
+ 		return;
+ 	if (IGMP_V1_SEEN(in_dev) || IGMP_V2_SEEN(in_dev)) {
+ 		spin_lock_bh(&im->lock);
+-		igmp_start_timer(im, IGMP_Initial_Report_Delay);
++		igmp_start_timer(im, IGMP_Mininum_Delay, IGMP_Initial_Report_Delay);
+ 		spin_unlock_bh(&im->lock);
+ 		return;
+ 	}
+@@ -1258,7 +1274,8 @@ void ip_mc_rejoin_group(struct ip_mc_lis
+ 		return;
+
+ 	if (IGMP_V1_SEEN(in_dev) || IGMP_V2_SEEN(in_dev)) {
+-		igmp_mod_timer(im, IGMP_Initial_Report_Delay);
++		igmp_mod_timer(im, IGMP_Mininum_Delay,
++					IGMP_Initial_Report_Delay);
+ 		return;
+ 	}
+ 	/* else, v3 */
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
