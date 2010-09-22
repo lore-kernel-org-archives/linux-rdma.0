@@ -1,40 +1,69 @@
-From: Sumeet Lahorani <Sumeet.Lahorani-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: gratuitous arps lost during IB switch failure
-Date: Tue, 21 Sep 2010 16:42:43 -0700
-Message-ID: <4C9942F3.5090206@oracle.com>
+From: Bernard Metzler <BMT-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>
+Subject: software iwarp stack update
+Date: Wed, 22 Sep 2010 10:19:56 +0200
+Message-ID: <OF64770AFC.B48EBEF2-ONC12577A6.002CC793-C12577A6.002DC569@ch.ibm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=US-ASCII
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 
-Hi All,
+Earlier this year, we announced the availability of an open source,
+full software implementation of the iWARP RDMA protocol stack - see
+my email "software iwarp stack" from March 14th at the linux-rdma list
+(http://www.mail-archive.com/linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org/msg02940.html)
+While since then working on performance and stability, we provided
+some source code updates. Current user and kernel code is available at
+gitorious.org/softiwarp. Please see the CHANGES file in the
+kernel/ directory for a summary of the most recent changes.
 
-We are using dual ported HCAs connected with each port connected to 2 
-different IB switches so that we can tolerate the failure of any one of 
-those switches and we are trying to cut down the amount of time it takes 
-for traffic (TCP & RDS) to resume when there is an IB switch failure and 
-the hosts failover from one port to the other.
+For more convenient testing, the latest update now allows for a
+stand-alone build of the kernel module without full kernel source
+code access. We tested the code with kernel version 2.6.34. If
+you are interested in a full software RDMA stack on Ethernet,
+please try it out.
 
-We have the bonding driver configured in active-backup mode and setup to 
-send out 100 gratuitous arps at intervals of 100ms whenever there is a 
-failover. In most cases, traffic resumes within a few seconds after a 
-failover because these gratuitous arps take care of updating all the 
-nodes with the new IP:GID mapping.
+In the hope of providing useful information, I put
+netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org on copy. Subscribers of this list,
+please put me on private cc in case you reply or comment, since
+I am not subscribed to the list.
+We would be more than happy if you netdev folks would consider
+a hardware independent RDMA kernel service as something useful and
+potentially to be integrated into the mainline network stack.
 
-The problem we are seeing is that sometimes, one or more of the nodes on 
-the fabric do not receive even 1 of these gratuitous arps and 
-re-establishing communication with these nodes takes a much longer time 
-(over 40 seconds) as it depends on various arp cache timeouts. Does 
-anyone know why all these gratuitous arps might be lost?
+Why might it be useful?
+A software RDMA stack makes the semantic advantages of
+asynchronous and one-sided communication available while obsoleting
+the need to deploy dedicated RDMA hardware or any protocol offloading
+(while not matching the lowest delay numbers of real RDMA hardware).
+Implementing the IETF's iWARP protocol stack on top of TCP kernel
+sockets, softiwarp integrates with the open fabrics environment
+and thus exports the RDMA kernel and user verbs interface.
 
-Besides the gratuitous arp settings, are there any other tunables to 
-look at to minimize the time it takes for IPoIB traffic to resume?
+The efficiency of the Linux TCP/IP network stack together with intrinsic
+advantages of the RDMA communication model (async. posting of work
+and reaping of work completions, transfer of send buffer ownership
+to the kernel which enables zero copy transmit, peer data placement
+without application scheduling, one-sided remote read operations etc.)
+can result in improved application-to-application performance and
+less CPU load, while using the unchanged kernel TCP stack.
 
-- Sumeet
+A software RDMA stack might promote wider RDMA deployment,
+since when using the host TCP stack, it enables RDMA semantic
+independent of dedicated hardware. softiwarp peers with real
+RNICs (tested with Chelsio's T3 adapter).
+
+softiwarp is still work in progress and we are very thankful for any
+suggestions/comments/bug reports. Please advise how we should proceed
+to bring the stack further to your attention. Would it be useful to
+provide patches against the current stable kernel version or the next
+release candidate?
+
+Many thanks,
+Bernard.
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
