@@ -1,65 +1,26 @@
-From: Bernard Metzler <BMT-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>
-Subject: Re: [PATCH 1/2] siw: Fix ib_register_device() for > v2.6.34 kernels
-Date: Thu, 23 Sep 2010 17:26:16 +0200
-Message-ID: <OF5AB6498C.AF25B239-ONC12577A7.0054B7CD-C12577A7.0054CDCD@ch.ibm.com>
-References: <1285187417-10928-1-git-send-email-nab@linux-iscsi.org>
+From: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH] opensm/osm_helper.c: use ARR_SIZE macro instead of
+ hardcoded values
+Date: Thu, 23 Sep 2010 17:29:40 +0200
+Message-ID: <20100923152940.GK11502@me>
+References: <4C8CA3E7.8060406@mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1285187417-10928-1-git-send-email-nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <4C8CA3E7.8060406-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Andi Keen <ak-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, linux-kernel <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Nicholas Bellinger <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>, netdev <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Matthew Wilcox <willy-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+To: kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org
+Cc: Linux RDMA <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Thanks, Nicholas. Just applied your patch.
+On 11:56 Sun 12 Sep     , Yevgeny Kliteynik wrote:
+> 
+> Signed-off-by: Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 
-Bernard.
+Applied. Thanks.
 
-linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org wrote on 09/22/2010 10:30:17 PM:
-
-> From: Nicholas Bellinger <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>
->
-> This patch adds a LINUX_VERSION_CODE > v2.6.34 check inside of
-> siw_main.c:siw_register_device()
-> around the use of ib_register_device().  In post v2.6.34 kernels
-> this function accepts a second
-> parameter used a sysfs port callback described here:
->
-> http://git.kernel.org/?p=linux/kernel/git/torvalds/linux-2.6.git;
-> a=commitdiff;h=9a6edb60ec10d86b1025a0cdad68fd89f1ddaf02
->
-> This patch currently sets this second parameter to NULL.
->
-> Signed-off-by: Nicholas A. Bellinger <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>
-> ---
->  softiwarp/siw_main.c |    5 ++++-
->  1 files changed, 4 insertions(+), 1 deletions(-)
->
-> diff --git a/softiwarp/siw_main.c b/softiwarp/siw_main.c
-> index cacedea..c97adee 100644
-> --- a/softiwarp/siw_main.c
-> +++ b/softiwarp/siw_main.c
-> @@ -233,8 +233,11 @@ int siw_register_device(struct siw_dev *dev)
->     ibdev->iwcm->add_ref = siw_qp_get_ref;
->     ibdev->iwcm->rem_ref = siw_qp_put_ref;
->     ibdev->iwcm->get_qp = siw_get_ofaqp;
-> -
-> +#if LINUX_VERSION_CODE > KERNEL_VERSION(2, 6, 34)
-> +   rv = ib_register_device(ibdev, NULL);
-> +#else
->     rv = ib_register_device(ibdev);
-> +#endif
->     if (rv) {
->        dprint(DBG_DM|DBG_ON, "(dev=%s): "
->           "ib_register_device failed: rv=%d\n", ibdev->name, rv);
-> --
-> 1.5.6.5
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
+Sasha
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
