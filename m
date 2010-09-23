@@ -1,52 +1,56 @@
-From: "Nicholas A. Bellinger" <nab@linux-iscsi.org>
-Subject: Re: [PATCH 2/2] siw: Add support for CRC32C offload instruction
-	using libcrypto crc32c-intel
-Date: Wed, 22 Sep 2010 15:36:29 -0700
-Message-ID: <1285194989.1849.130.camel@haakon2.linux-iscsi.org>
-References: <1285187425-10950-1-git-send-email-nab@linux-iscsi.org>
-	 <4C9A698B.90806@linux.intel.com>
-	 <1285187901.1849.85.camel@haakon2.linux-iscsi.org>
-	 <20100922205943.GI11157@obsidianresearch.com>
-	 <1285189241.1849.112.camel@haakon2.linux-iscsi.org>
-	 <20100922211808.GJ11157@obsidianresearch.com>
-	 <1285191511.1849.126.camel@haakon2.linux-iscsi.org>
-	 <20100922220611.GL11157@obsidianresearch.com>
+From: Jiri Kosina <jkosina-AlSwsSmVLrQ@public.gmane.org>
+Subject: Re: [PATCH 02/13] drivers/infiniband: Remove unnecessary casts of
+ private_data
+Date: Thu, 23 Sep 2010 13:38:46 +0200 (CEST)
+Message-ID: <alpine.LNX.2.00.1009231338300.26813@pobox.suse.cz>
+References: <cover.1283650107.git.joe@perches.com>  <a13edeb14cc926b71e21daff892acbe2d76313ab.1283650107.git.joe@perches.com> <1283883869.32259.13.camel@chromite.mv.qlogic.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20100922220611.GL11157@obsidianresearch.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
-Cc: linux-kernel <linux-kernel@vger.kernel.org>, netdev <netdev@vger.kernel.org>, linux-rdma <linux-rdma@vger.kernel.org>, Bernard Metzler <BMT@zurich.ibm.com>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1283883869.32259.13.camel-/vjeY7uYZjrPXfVEPVhPGq6RkeBMCJyt@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Ralph Campbell <ralph.campbell-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+Cc: Joe Perches <joe-6d6DIl74uiNBDgjK7y7TUQ@public.gmane.org>, Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, 2010-09-22 at 16:06 -0600, Jason Gunthorpe wrote:
-> On Wed, Sep 22, 2010 at 02:38:31PM -0700, Nicholas A. Bellinger wrote:
-> 
-> > So I think the main bit here is the ability to request
-> > crc32c-intel.ko first, and then fall back to crc32c.ko when the
-> > former is not available on CONFIG_X86.
-> 
-> Well, it is what Andi said, everything is working fine but there is no
-> mechanism to autoload the accelerated crypto module. If you did
-> modprobe crc32c_intel prior to loading your driver it would
-> automatically get crc32c-intel when it asks for crc32c since it is
-> loaded and a higher priority.
-> 
+On Tue, 7 Sep 2010, Ralph Campbell wrote:
 
-Ah, OK.  I see what you mean now here wrt to libcrypto priorities and
-crc32c + crc32c_intel modules.   My apologies for the in-experience with
-libcrypto here..
+> Acked-by: Ralph Campbell <ralph.campbell-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
 
-> So, the drivers are correct to just request crc32c .. The work around
-> to limited autoprobing is so trivial (modprob crc32_intel) I'm not
-> sure including extra autoprobing code in the drivers is worthwhile?
-> 
+Applied, thanks.
 
-Indeed, I am happy to drop this patch if Bernard would be nice enough to
-add a 'modprobe crc32_intel' into the SIW scripts.
+> > Signed-off-by: Joe Perches <joe-6d6DIl74uiNBDgjK7y7TUQ@public.gmane.org>
+> > ---
+> >  drivers/infiniband/hw/qib/qib_file_ops.c |    4 ++--
+> >  1 files changed, 2 insertions(+), 2 deletions(-)
+> > 
+> > diff --git a/drivers/infiniband/hw/qib/qib_file_ops.c b/drivers/infiniband/hw/qib/qib_file_ops.c
+> > index 6b11645..cef5d67 100644
+> > --- a/drivers/infiniband/hw/qib/qib_file_ops.c
+> > +++ b/drivers/infiniband/hw/qib/qib_file_ops.c
+> > @@ -1722,7 +1722,7 @@ static int qib_close(struct inode *in, struct file *fp)
+> >  
+> >  	mutex_lock(&qib_mutex);
+> >  
+> > -	fd = (struct qib_filedata *) fp->private_data;
+> > +	fd = fp->private_data;
+> >  	fp->private_data = NULL;
+> >  	rcd = fd->rcd;
+> >  	if (!rcd) {
+> > @@ -1808,7 +1808,7 @@ static int qib_ctxt_info(struct file *fp, struct qib_ctxt_info __user *uinfo)
+> >  	struct qib_ctxtdata *rcd = ctxt_fp(fp);
+> >  	struct qib_filedata *fd;
+> >  
+> > -	fd = (struct qib_filedata *) fp->private_data;
+> > +	fd = fp->private_data;
+> >  
+> >  	info.num_active = qib_count_active_units();
+> >  	info.unit = rcd->dd->unit;
 
-Thanks for your comments Jason!
-
---nab
+-- 
+Jiri Kosina
+SUSE Labs, Novell Inc.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
