@@ -1,48 +1,28 @@
-From: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
-Subject: Re: igmp: Staggered igmp report intervals for unsolicited igmp
- reports
-Date: Thu, 23 Sep 2010 12:56:17 -0500 (CDT)
-Message-ID: <alpine.DEB.2.00.1009231254240.2962@router.home>
-References: <alpine.DEB.2.00.1009221354410.32661@router.home> <alpine.DEB.2.00.1009221400010.32661@router.home> <OFF06BBC88.0B6755D5-ON882577A6.0068F4F8-882577A6.006B31FB@us.ibm.com> <alpine.DEB.2.00.1009221448460.32661@router.home> <20100922215052.GK11157@obsidianresearch.com>
- <alpine.DEB.2.00.1009231026510.32567@router.home> <20100923172603.GM11157@obsidianresearch.com> <alpine.DEB.2.00.1009231230100.2962@router.home> <20100923174614.GN11157@obsidianresearch.com>
+From: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+Subject: Re: igmp: Allow mininum interval specification for igmp timers.
+Date: Thu, 23 Sep 2010 21:38:23 -0700 (PDT)
+Message-ID: <20100923.213823.137834706.davem@davemloft.net>
+References: <alpine.DEB.2.00.1009221354410.32661@router.home>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20100923174614.GN11157-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <alpine.DEB.2.00.1009221354410.32661-sBS69tsa9Uj/9pzu0YdTqQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: David Stevens <dlstevens-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Bob Arendt <rda-x0S3BwdUo6DQT0dZR+AlfA@public.gmane.org>
+To: cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rda-x0S3BwdUo6DQT0dZR+AlfA@public.gmane.org, dlstevens-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, 23 Sep 2010, Jason Gunthorpe wrote:
+From: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
+Date: Wed, 22 Sep 2010 13:59:30 -0500 (CDT)
 
-> > IPoIB creates a infiniband multicast group via the IB calls for a IP
-> > multicast group. Then IGMP comes into play and the kernel sends the IP
-> > based igmp report. This igmp report must be received by an outside router
-> > (on an IP network) in order to for traffic to get forwarded into the IB
-> > fabric. You can end up with a IB multicast configuration that is all fine
-> > but with loss of the unsolicited packets due to fabric reconfiguration not
-> > being complete yet. The larger the fabric the worse the situation.
->
-> But my point is that IB has very limited multicast, if I create a IB
-> group and then send IGMP into that group *it will not reach a router*.
+> IGMP timers sometimes fire too rapidly due to randomization of the
+> intervalsfrom 0 to max_delay in igmp_start_timer().
+ ...
+> Signed-off-by: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
 
-The IPoIB routers automatically join all IP MC groups created.
 
-> The only way this kind of scheme could work is if an IGMPv2 IPoIB
-> router listens for IB MGID Create notices from the SA and
-> automatically joins all groups that are created, so it can get IGMPv2
-> membership reports. Which obviously adds more delay, lag, and risk.
-
-Right that is how it works now.
-
-> I'm *guessing* that the change in IGMPv3 to send reports to 224.0.0.22
-> (all IGMPv3 multicast address) is related to this sort of problem, and
-> it seems like on IB IGMPv2 is not a good fit and should not be used if
-> v3 is available..
-
-Existing routers do no support IGMPv3.
-
+This change seems reasonable to me, what do you think David?
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
