@@ -1,81 +1,124 @@
-From: matt mooney <mfm@muteddisk.com>
-Subject: [PATCH 08/24] infiniband: change to new flag variable
-Date: Fri, 24 Sep 2010 12:17:18 -0700
-Message-ID: <b484ccf548e1700e09ac7f731289503bf3e7b3bf.1285355033.git.mfm@muteddisk.com>
-References: <e0bdab5d2e8c52041c003de68ba774c3e706716c.1285355033.git.mfm@muteddisk.com>
- <9968d4260be8850200cc9c7dfe08addf611468b4.1285355033.git.mfm@muteddisk.com>
- <036514b5dd23c5af14303519d79d60d79adccbee.1285355033.git.mfm@muteddisk.com>
- <ffbd189ef2d414ea7c87ffe2b40fce87877dc014.1285355033.git.mfm@muteddisk.com>
- <b3e2061e1e6703f7b84c0484030e07de6000546a.1285355033.git.mfm@muteddisk.com>
- <70fe6b462b3ee22922698a12d62d650cf029033a.1285355033.git.mfm@muteddisk.com>
- <40a2d76d013ad025d08a411992af10f6bbef0a13.1285355033.git.mfm@muteddisk.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <40a2d76d013ad025d08a411992af10f6bbef0a13.1285355033.git.mfm@muteddisk.com>
-In-Reply-To: <e0bdab5d2e8c52041c003de68ba774c3e706716c.1285355033.git.mfm@muteddisk.com>
-References: <e0bdab5d2e8c52041c003de68ba774c3e706716c.1285355033.git.mfm@muteddisk.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: kernel-janitors@vger.kernel.org
-Cc: Tom Tucker <tom@opengridcomputing.com>, Steve Wise <swise@opengridcomputing.com>, Roland Dreier <rolandd@cisco.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Ralph Campbell <infinipath@qlogic.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
+From: "Bharath Ramesh" <bramesh-PjAqaU27lzQ@public.gmane.org>
+Subject: Maximum size for memory registration (ibv_reg_mr)
+Date: Fri, 24 Sep 2010 18:12:05 -0400
+Message-ID: <036401cb5c35$85829220$9087b660$@edu>
+Mime-Version: 1.0
+Content-Type: multipart/signed;
+	protocol="application/x-pkcs7-signature";
+	micalg=SHA1;
+	boundary="----=_NextPart_000_035F_01CB5C13.FE3D5F00"
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Language: en-us
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Replace EXTRA_CFLAGS with ccflags-y.
+This is a multi-part message in MIME format.
 
-Signed-off-by: matt mooney <mfm@muteddisk.com>
----
- drivers/infiniband/hw/amso1100/Kbuild |    4 +---
- drivers/infiniband/hw/cxgb3/Makefile  |    6 ++----
- drivers/infiniband/hw/cxgb4/Makefile  |    2 +-
- drivers/infiniband/hw/ipath/Makefile  |    2 +-
- 4 files changed, 5 insertions(+), 9 deletions(-)
+------=_NextPart_000_035F_01CB5C13.FE3D5F00
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 
-diff --git a/drivers/infiniband/hw/amso1100/Kbuild b/drivers/infiniband/hw/amso1100/Kbuild
-index 06964c4..950dfab 100644
---- a/drivers/infiniband/hw/amso1100/Kbuild
-+++ b/drivers/infiniband/hw/amso1100/Kbuild
-@@ -1,6 +1,4 @@
--ifdef CONFIG_INFINIBAND_AMSO1100_DEBUG
--EXTRA_CFLAGS += -DDEBUG
--endif
-+ccflags-$(CONFIG_INFINIBAND_AMSO1100_DEBUG) := -DDEBUG
- 
- obj-$(CONFIG_INFINIBAND_AMSO1100) += iw_c2.o
- 
-diff --git a/drivers/infiniband/hw/cxgb3/Makefile b/drivers/infiniband/hw/cxgb3/Makefile
-index 7e7b5a6..621619c 100644
---- a/drivers/infiniband/hw/cxgb3/Makefile
-+++ b/drivers/infiniband/hw/cxgb3/Makefile
-@@ -1,10 +1,8 @@
--EXTRA_CFLAGS += -Idrivers/net/cxgb3
-+ccflags-y := -Idrivers/net/cxgb3
- 
- obj-$(CONFIG_INFINIBAND_CXGB3) += iw_cxgb3.o
- 
- iw_cxgb3-y :=  iwch_cm.o iwch_ev.o iwch_cq.o iwch_qp.o iwch_mem.o \
- 	       iwch_provider.o iwch.o cxio_hal.o cxio_resource.o
- 
--ifdef CONFIG_INFINIBAND_CXGB3_DEBUG
--EXTRA_CFLAGS += -DDEBUG
--endif
-+ccflags-$(CONFIG_INFINIBAND_CXGB3_DEBUG) += -DDEBUG
-diff --git a/drivers/infiniband/hw/cxgb4/Makefile b/drivers/infiniband/hw/cxgb4/Makefile
-index e31a499..cd20b13 100644
---- a/drivers/infiniband/hw/cxgb4/Makefile
-+++ b/drivers/infiniband/hw/cxgb4/Makefile
-@@ -1,4 +1,4 @@
--EXTRA_CFLAGS += -Idrivers/net/cxgb4
-+ccflags-y := -Idrivers/net/cxgb4
- 
- obj-$(CONFIG_INFINIBAND_CXGB4) += iw_cxgb4.o
- 
-diff --git a/drivers/infiniband/hw/ipath/Makefile b/drivers/infiniband/hw/ipath/Makefile
-index fa3df82..4496f28 100644
---- a/drivers/infiniband/hw/ipath/Makefile
-+++ b/drivers/infiniband/hw/ipath/Makefile
-@@ -1,4 +1,4 @@
--EXTRA_CFLAGS += -DIPATH_IDSTR='"QLogic kernel.org driver"' \
-+ccflags-y := -DIPATH_IDSTR='"QLogic kernel.org driver"' \
- 	-DIPATH_KERN_TYPE=0
- 
- obj-$(CONFIG_INFINIBAND_IPATH) += ib_ipath.o
--- 
-1.7.2.1
+Is there any limit on the maximum size of memory that can be registered
+using ibv_reg_mr. I am using OFED-1.4.2 stack, and when I try to pass a size
+greater than 16GB ibv_reg_mr returns NULL. The total amount of physical
+memory on the node is 48GB, max locked memory(ulimit -l) is set to
+unlimited.
+
+Regards,
+
+Bharath
+
+------=_NextPart_000_035F_01CB5C13.FE3D5F00
+Content-Type: application/x-pkcs7-signature;
+	name="smime.p7s"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment;
+	filename="smime.p7s"
+
+MIAGCSqGSIb3DQEHAqCAMIACAQExCzAJBgUrDgMCGgUAMIAGCSqGSIb3DQEHAQAAoIIL1TCCAj0w
+ggGmAhEAzbp/VvDf5LxU/iKss3KqVTANBgkqhkiG9w0BAQIFADBfMQswCQYDVQQGEwJVUzEXMBUG
+A1UEChMOVmVyaVNpZ24sIEluYy4xNzA1BgNVBAsTLkNsYXNzIDEgUHVibGljIFByaW1hcnkgQ2Vy
+dGlmaWNhdGlvbiBBdXRob3JpdHkwHhcNOTYwMTI5MDAwMDAwWhcNMjgwODAxMjM1OTU5WjBfMQsw
+CQYDVQQGEwJVUzEXMBUGA1UEChMOVmVyaVNpZ24sIEluYy4xNzA1BgNVBAsTLkNsYXNzIDEgUHVi
+bGljIFByaW1hcnkgQ2VydGlmaWNhdGlvbiBBdXRob3JpdHkwgZ8wDQYJKoZIhvcNAQEBBQADgY0A
+MIGJAoGBAOUZv22jVmEtmUhx9mfeuY3rt56GgAqRDvo4Ja9GiILlc6igmyRdDR/MZW4MsNBWhBiH
+mgabEKFz37RYOWtuwfYV1aioP6oSBo0xrH+wNNePNGeICc0UEeJORVZpH3gCgNrcR5EpuzbJY1zF
+4Ncth3uhtzKwezC6Ki8xqu6jZ9rbAgMBAAEwDQYJKoZIhvcNAQECBQADgYEATD+4i8Zo3+5DMw5d
+6abLB4RNejP/khv0Nq3YlSI2aBFsfELM85wuxAc/FLAPT/+Qknb54rxK6Y/NoIAK98Up8YIiXbix
+3YEjo3slFUYweRb46gVLlH8dwhzI47f0EEA8E8NfH1PoSOSGtHuhNbB7Jbq4046rPzidADQAmPPR
+cZQwggRGMIIDr6ADAgECAhBm/Ufjwhnk6JrNmd31OsskMA0GCSqGSIb3DQEBBQUAMF8xCzAJBgNV
+BAYTAlVTMRcwFQYDVQQKEw5WZXJpU2lnbiwgSW5jLjE3MDUGA1UECxMuQ2xhc3MgMSBQdWJsaWMg
+UHJpbWFyeSBDZXJ0aWZpY2F0aW9uIEF1dGhvcml0eTAeFw0wNTEwMjgwMDAwMDBaFw0xNTEwMjcy
+MzU5NTlaMIHdMQswCQYDVQQGEwJVUzEXMBUGA1UEChMOVmVyaVNpZ24sIEluYy4xHzAdBgNVBAsT
+FlZlcmlTaWduIFRydXN0IE5ldHdvcmsxOzA5BgNVBAsTMlRlcm1zIG9mIHVzZSBhdCBodHRwczov
+L3d3dy52ZXJpc2lnbi5jb20vcnBhIChjKTA1MR4wHAYDVQQLExVQZXJzb25hIE5vdCBWYWxpZGF0
+ZWQxNzA1BgNVBAMTLlZlcmlTaWduIENsYXNzIDEgSW5kaXZpZHVhbCBTdWJzY3JpYmVyIENBIC0g
+RzIwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQDJ36zn6vj4AxTEAJLVwX42wjzvfHIV
+y8CrjD0clc5vHhAsPwDtlybmtsfmrUMdP6SHR0dMPlT4bPjH/LGevTBwvJexAwXqlfGtQMVEeksF
+ovJg/Nc6ZWLv/xB7ola7xU5wLdaiHzztsELoXo1XIaymmdkR6dIaB8B0R0IL/MU06v3muiTRHQgV
+N6LXc88BQS9jsjo/vqUabvTJSls9laYVuzUCGfnU77yPDnF2WbtLtj7W/FoW9NYOifJJ/mwM7RXp
+2Yh1nHnOYCfdua11zi9zlXpAOoV1SbC432i8q80TgoURUKPgPAuuwApTzdcwb4UyRhvkSRDCbOKv
+H3n/27S1AgMBAAGjgf8wgfwwEgYDVR0TAQH/BAgwBgEB/wIBADBEBgNVHSAEPTA7MDkGC2CGSAGG
++EUBBxcBMCowKAYIKwYBBQUHAgEWHGh0dHBzOi8vd3d3LnZlcmlzaWduLmNvbS9ycGEwCwYDVR0P
+BAQDAgEGMBEGCWCGSAGG+EIBAQQEAwIBBjAuBgNVHREEJzAlpCMwITEfMB0GA1UEAxMWUHJpdmF0
+ZUxhYmVsMy0yMDQ4LTE1NTAdBgNVHQ4EFgQUEX1eGX08BN9qbNaiiho/Mdg7lFIwMQYDVR0fBCow
+KDAmoCSgIoYgaHR0cDovL2NybC52ZXJpc2lnbi5jb20vcGNhMS5jcmwwDQYJKoZIhvcNAQEFBQAD
+gYEAPKPaAmM6xJOqq3LT3K1QOB4MnhZKiLfu69n/D42VoNa7+moLrmGE2GhHie9PrLIfSUGbSTN2
+k4uebrlDHGC9wtyKLYfBRcARcgQaayQqbG/n/AcTKdB3OiPn9cGFaBm/xgFUIBmuNYLMYjxhCcb0
+1euwD6afM4Wa03GOUI+Z3WIwggVGMIIELqADAgECAhBKwCnUyaxFrgeu+7XSC0LyMA0GCSqGSIb3
+DQEBBQUAMIHdMQswCQYDVQQGEwJVUzEXMBUGA1UEChMOVmVyaVNpZ24sIEluYy4xHzAdBgNVBAsT
+FlZlcmlTaWduIFRydXN0IE5ldHdvcmsxOzA5BgNVBAsTMlRlcm1zIG9mIHVzZSBhdCBodHRwczov
+L3d3dy52ZXJpc2lnbi5jb20vcnBhIChjKTA1MR4wHAYDVQQLExVQZXJzb25hIE5vdCBWYWxpZGF0
+ZWQxNzA1BgNVBAMTLlZlcmlTaWduIENsYXNzIDEgSW5kaXZpZHVhbCBTdWJzY3JpYmVyIENBIC0g
+RzIwHhcNMDkxMTE2MDAwMDAwWhcNMTAxMTE2MjM1OTU5WjCCAQ8xFzAVBgNVBAoTDlZlcmlTaWdu
+LCBJbmMuMR8wHQYDVQQLExZWZXJpU2lnbiBUcnVzdCBOZXR3b3JrMUYwRAYDVQQLEz13d3cudmVy
+aXNpZ24uY29tL3JlcG9zaXRvcnkvUlBBIEluY29ycC4gYnkgUmVmLixMSUFCLkxURChjKTk4MR4w
+HAYDVQQLExVQZXJzb25hIE5vdCBWYWxpZGF0ZWQxMzAxBgNVBAsTKkRpZ2l0YWwgSUQgQ2xhc3Mg
+MSAtIE5ldHNjYXBlIEZ1bGwgU2VydmljZTEXMBUGA1UEAxQOQmhhcmF0aCBSYW1lc2gxHTAbBgkq
+hkiG9w0BCQEWDmJyYW1lc2hAdnQuZWR1MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA
+4fYIyCvmZZxkwO5TwgJmhY2r7CoqKzBwpX0/ANFJSvBvRlEIkM+zlp66deBugJiX5+YbW4w7Gt5X
+inJIRrrpJG3qzE4MR6kb2NlFFoKHrp4zTbfnwEKxufFex0jVwrj8jGWs1Y6Y44ybpiOH+KmQjhDS
+kdOvJtFsS84xSw704hWcRCXf4ZUPa2zDlgVNwzC9eBPPE/VKEe7PEk1zi9PFca6RKbTKaIlRFI9Z
+80F3t4aLDb2ivD4CNKTlQQv5+vYkOaElXm/TvnAf46xcVnZWUOsEwFD/JKrljaSnZTB0Ei78Xxfc
+JiGNLZyLOuLx6ewxholpLAZM18c1syWA0BKJyQIDAQABo4HMMIHJMAkGA1UdEwQCMAAwRAYDVR0g
+BD0wOzA5BgtghkgBhvhFAQcXATAqMCgGCCsGAQUFBwIBFhxodHRwczovL3d3dy52ZXJpc2lnbi5j
+b20vcnBhMAsGA1UdDwQEAwIFoDAdBgNVHSUEFjAUBggrBgEFBQcDBAYIKwYBBQUHAwIwSgYDVR0f
+BEMwQTA/oD2gO4Y5aHR0cDovL0luZEMxRGlnaXRhbElELWNybC52ZXJpc2lnbi5jb20vSW5kQzFE
+aWdpdGFsSUQuY3JsMA0GCSqGSIb3DQEBBQUAA4IBAQA3ob9s8VBAWjUhgLYB9NhPoNlsew4RuG8q
+MuzEz3J+Ll3HeTL7pzXY5T5+yiAsGmZEqvxygJSyKHuiHHg3pwUXfH0eVhknvHt/tK+IINp9qNtp
+Xzc9uGNoN1p96glu/7uv0htWiv2HNj43Ef9PGHKzYfZ2bpmsTSdr4wecmsY2XvdxL/Mt7598fYPm
+VB09QlW4W69li5u29WlTbC5cXYmm/ww2/4/iQZlnHbITf9AccDDyRYNcjKNnGQOzlburQQhuMAyC
+eHpXU4bg7sHtmZER0s4d5TtLoHtD+OCgdp4Wq+7WJ202cxe9/bQ1aD3pOAwhTMTTWSoruAx/jBxA
+M2Z/MYIFRTCCBUECAQEwgfIwgd0xCzAJBgNVBAYTAlVTMRcwFQYDVQQKEw5WZXJpU2lnbiwgSW5j
+LjEfMB0GA1UECxMWVmVyaVNpZ24gVHJ1c3QgTmV0d29yazE7MDkGA1UECxMyVGVybXMgb2YgdXNl
+IGF0IGh0dHBzOi8vd3d3LnZlcmlzaWduLmNvbS9ycGEgKGMpMDUxHjAcBgNVBAsTFVBlcnNvbmEg
+Tm90IFZhbGlkYXRlZDE3MDUGA1UEAxMuVmVyaVNpZ24gQ2xhc3MgMSBJbmRpdmlkdWFsIFN1YnNj
+cmliZXIgQ0EgLSBHMgIQSsAp1MmsRa4Hrvu10gtC8jAJBgUrDgMCGgUAoIIDJzAYBgkqhkiG9w0B
+CQMxCwYJKoZIhvcNAQcBMBwGCSqGSIb3DQEJBTEPFw0xMDA5MjQyMjEyMDRaMCMGCSqGSIb3DQEJ
+BDEWBBS5Y1DAWZq+g5rZD2d8MmHOKwPhlTCBtwYJKoZIhvcNAQkPMYGpMIGmMAsGCWCGSAFlAwQB
+KjALBglghkgBZQMEARYwCgYIKoZIhvcNAwcwCwYJYIZIAWUDBAECMA4GCCqGSIb3DQMCAgIAgDAH
+BgUrDgMCBzANBggqhkiG9w0DAgIBQDANBggqhkiG9w0DAgIBKDAHBgUrDgMCGjALBglghkgBZQME
+AgMwCwYJYIZIAWUDBAICMAsGCWCGSAFlAwQCATAKBggqhkiG9w0CBTCCAQMGCSsGAQQBgjcQBDGB
+9TCB8jCB3TELMAkGA1UEBhMCVVMxFzAVBgNVBAoTDlZlcmlTaWduLCBJbmMuMR8wHQYDVQQLExZW
+ZXJpU2lnbiBUcnVzdCBOZXR3b3JrMTswOQYDVQQLEzJUZXJtcyBvZiB1c2UgYXQgaHR0cHM6Ly93
+d3cudmVyaXNpZ24uY29tL3JwYSAoYykwNTEeMBwGA1UECxMVUGVyc29uYSBOb3QgVmFsaWRhdGVk
+MTcwNQYDVQQDEy5WZXJpU2lnbiBDbGFzcyAxIEluZGl2aWR1YWwgU3Vic2NyaWJlciBDQSAtIEcy
+AhBKwCnUyaxFrgeu+7XSC0LyMIIBBQYLKoZIhvcNAQkQAgsxgfWggfIwgd0xCzAJBgNVBAYTAlVT
+MRcwFQYDVQQKEw5WZXJpU2lnbiwgSW5jLjEfMB0GA1UECxMWVmVyaVNpZ24gVHJ1c3QgTmV0d29y
+azE7MDkGA1UECxMyVGVybXMgb2YgdXNlIGF0IGh0dHBzOi8vd3d3LnZlcmlzaWduLmNvbS9ycGEg
+KGMpMDUxHjAcBgNVBAsTFVBlcnNvbmEgTm90IFZhbGlkYXRlZDE3MDUGA1UEAxMuVmVyaVNpZ24g
+Q2xhc3MgMSBJbmRpdmlkdWFsIFN1YnNjcmliZXIgQ0EgLSBHMgIQSsAp1MmsRa4Hrvu10gtC8jAN
+BgkqhkiG9w0BAQEFAASCAQBJulcJf97EcSt1GbMt6lKnUQaiBwgFYE/KrLwoyY+ZY3ZA+irw0QRu
+3UdSkz0UtVqmK5t8oLLcgShYy1XJmnJY083gL4xaDubhXPRX+wM9nY+5qT0fjE0kcu1DNIs2SW/Q
+zoKs28vQEQfSCAchDLVp+c+UPkrT7KkW+6s7Ob518L59I1ZSqnqyjOn9UwBmNj7vEmx749lPesYO
+gAgh3r2lPuyrEHUQ5niVvcDWojkybav5x0J+cX/8UBenmPCGK+4igrK7kovRR0yE8+iWFAu7/eWo
+0rbyZODHJxu4x7ydNB319Xt0lkxaAMGK+4QORNPPPKoGVtDqioes8FVDeL3rAAAAAAAA
+
+------=_NextPart_000_035F_01CB5C13.FE3D5F00--
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
