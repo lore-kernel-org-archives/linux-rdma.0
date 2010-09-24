@@ -1,27 +1,81 @@
-From: Parav Pandit <paravpandit-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
-Subject: how should consumer process IB_WC_WR_FLUSH_ERR?
-Date: Fri, 24 Sep 2010 11:15:13 -0700 (PDT)
-Message-ID: <82370.12072.qm@web30103.mail.mud.yahoo.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+From: matt mooney <mfm@muteddisk.com>
+Subject: [PATCH 08/24] infiniband: change to new flag variable
+Date: Fri, 24 Sep 2010 12:17:18 -0700
+Message-ID: <b484ccf548e1700e09ac7f731289503bf3e7b3bf.1285355033.git.mfm@muteddisk.com>
+References: <e0bdab5d2e8c52041c003de68ba774c3e706716c.1285355033.git.mfm@muteddisk.com>
+ <9968d4260be8850200cc9c7dfe08addf611468b4.1285355033.git.mfm@muteddisk.com>
+ <036514b5dd23c5af14303519d79d60d79adccbee.1285355033.git.mfm@muteddisk.com>
+ <ffbd189ef2d414ea7c87ffe2b40fce87877dc014.1285355033.git.mfm@muteddisk.com>
+ <b3e2061e1e6703f7b84c0484030e07de6000546a.1285355033.git.mfm@muteddisk.com>
+ <70fe6b462b3ee22922698a12d62d650cf029033a.1285355033.git.mfm@muteddisk.com>
+ <40a2d76d013ad025d08a411992af10f6bbef0a13.1285355033.git.mfm@muteddisk.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <40a2d76d013ad025d08a411992af10f6bbef0a13.1285355033.git.mfm@muteddisk.com>
+In-Reply-To: <e0bdab5d2e8c52041c003de68ba774c3e706716c.1285355033.git.mfm@muteddisk.com>
+References: <e0bdab5d2e8c52041c003de68ba774c3e706716c.1285355033.git.mfm@muteddisk.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: kernel-janitors@vger.kernel.org
+Cc: Tom Tucker <tom@opengridcomputing.com>, Steve Wise <swise@opengridcomputing.com>, Roland Dreier <rolandd@cisco.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Ralph Campbell <infinipath@qlogic.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hi,
+Replace EXTRA_CFLAGS with ccflags-y.
 
-When consumer application receive IB_WC_WR_FLUSH_ERR, for one of the WQE,
-In that case does mean that CQEs for the subsequent WQEs/RQEs should not be polled by the consumer? 
-Or stack/HCA will return the CQEs for all the pending WQEs/RQEs?
+Signed-off-by: matt mooney <mfm@muteddisk.com>
+---
+ drivers/infiniband/hw/amso1100/Kbuild |    4 +---
+ drivers/infiniband/hw/cxgb3/Makefile  |    6 ++----
+ drivers/infiniband/hw/cxgb4/Makefile  |    2 +-
+ drivers/infiniband/hw/ipath/Makefile  |    2 +-
+ 4 files changed, 5 insertions(+), 9 deletions(-)
 
-Regards,
-Parav Pandit
-
-
-
-      
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/drivers/infiniband/hw/amso1100/Kbuild b/drivers/infiniband/hw/amso1100/Kbuild
+index 06964c4..950dfab 100644
+--- a/drivers/infiniband/hw/amso1100/Kbuild
++++ b/drivers/infiniband/hw/amso1100/Kbuild
+@@ -1,6 +1,4 @@
+-ifdef CONFIG_INFINIBAND_AMSO1100_DEBUG
+-EXTRA_CFLAGS += -DDEBUG
+-endif
++ccflags-$(CONFIG_INFINIBAND_AMSO1100_DEBUG) := -DDEBUG
+ 
+ obj-$(CONFIG_INFINIBAND_AMSO1100) += iw_c2.o
+ 
+diff --git a/drivers/infiniband/hw/cxgb3/Makefile b/drivers/infiniband/hw/cxgb3/Makefile
+index 7e7b5a6..621619c 100644
+--- a/drivers/infiniband/hw/cxgb3/Makefile
++++ b/drivers/infiniband/hw/cxgb3/Makefile
+@@ -1,10 +1,8 @@
+-EXTRA_CFLAGS += -Idrivers/net/cxgb3
++ccflags-y := -Idrivers/net/cxgb3
+ 
+ obj-$(CONFIG_INFINIBAND_CXGB3) += iw_cxgb3.o
+ 
+ iw_cxgb3-y :=  iwch_cm.o iwch_ev.o iwch_cq.o iwch_qp.o iwch_mem.o \
+ 	       iwch_provider.o iwch.o cxio_hal.o cxio_resource.o
+ 
+-ifdef CONFIG_INFINIBAND_CXGB3_DEBUG
+-EXTRA_CFLAGS += -DDEBUG
+-endif
++ccflags-$(CONFIG_INFINIBAND_CXGB3_DEBUG) += -DDEBUG
+diff --git a/drivers/infiniband/hw/cxgb4/Makefile b/drivers/infiniband/hw/cxgb4/Makefile
+index e31a499..cd20b13 100644
+--- a/drivers/infiniband/hw/cxgb4/Makefile
++++ b/drivers/infiniband/hw/cxgb4/Makefile
+@@ -1,4 +1,4 @@
+-EXTRA_CFLAGS += -Idrivers/net/cxgb4
++ccflags-y := -Idrivers/net/cxgb4
+ 
+ obj-$(CONFIG_INFINIBAND_CXGB4) += iw_cxgb4.o
+ 
+diff --git a/drivers/infiniband/hw/ipath/Makefile b/drivers/infiniband/hw/ipath/Makefile
+index fa3df82..4496f28 100644
+--- a/drivers/infiniband/hw/ipath/Makefile
++++ b/drivers/infiniband/hw/ipath/Makefile
+@@ -1,4 +1,4 @@
+-EXTRA_CFLAGS += -DIPATH_IDSTR='"QLogic kernel.org driver"' \
++ccflags-y := -DIPATH_IDSTR='"QLogic kernel.org driver"' \
+ 	-DIPATH_KERN_TYPE=0
+ 
+ obj-$(CONFIG_INFINIBAND_IPATH) += ib_ipath.o
+-- 
+1.7.2.1
