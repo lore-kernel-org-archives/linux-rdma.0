@@ -1,66 +1,56 @@
-From: David Stevens <dlstevens-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>
-Subject: Re: igmp: Allow mininum interval specification for igmp timers.
-Date: Mon, 27 Sep 2010 12:55:29 -0700
-Message-ID: <OFC4EC0538.26831D99-ON882577AB.006B8055-882577AB.006D75FF@us.ibm.com>
-References: <alpine.DEB.2.00.1009221354410.32661@router.home>	<20100923.213823.137834706.davem@davemloft.net>
-	<OF4BA8F9C2.467056E9-ON882577AB.005F4832-882577AB.00612DD6@us.ibm.com> <20100927.105444.214208865.davem@davemloft.net>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: (unknown)
+Date: Mon, 27 Sep 2010 14:05:00 -0600
+Message-ID: <20100927200500.GB25879@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="US-ASCII"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20100927.105444.214208865.davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
-Cc: cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rda-x0S3BwdUo6DQT0dZR+AlfA@public.gmane.org
+To: David Stevens <dlstevens-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>
+Cc: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Bob Arendt <rda-x0S3BwdUo6DQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org> wrote on 09/27/2010 10:54:44 AM:
+Bcc: 
+Subject: Re: igmp: Staggered igmp report intervals for unsolicited igmp
+	reports
+Reply-To: 
+In-Reply-To: <OF871D4733.876C9DA0-ON882577AB.006AB200-882577AB.006B6101-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>
 
-> This patch on the other hand is attacking a different problem,
-> namely avoiding the worst cases caused by the randomization we
-> do for the timer.
-> 
-> With bad luck this thing times out way too fast because the total of
-> all of the randomized intervals can end up being very small, and I
-> think we should fix that independently of the other issues hit by the
-> IB folks.
+On Mon, Sep 27, 2010 at 12:32:45PM -0700, David Stevens wrote:
+ 
+> You can, of course, add a querier (or configure it, assuming an
+> attached switch supports it) and set the query interval and
+> robustness count as appropriate for that network.
 
-        I think I'm caught up on the discussion now. For IGMPv3, we
-would send all the reports always in < 2 secs, and the average would
-be < 1 sec, so I'm not sure any sort of tweaks we do to enforce a
-minimum randomized interval are compatible with IGMPv3 and still
-solve IB's problem.
-        As I said before, I think per protocol, back-to-back is both
-allowed and not a problem, even if both subsequent randomized reports
-come out to 0 time. But if we wanted to enforce a minimum interval
-of, say, X, then I think the better way to do that is to set the
-timer to X + rand(Interval-X) and not a table of fixed intervals
-as in the original patch. For v2, X=1 or 2 sec and Interval=10
-might work well, but for v3, the entire interval is 1 sec and I
-think I saw that the set-up time for the fabric may be on the
-order of 1 sec.
-        I also don't think that we want those kinds of delays on
-Ethernet. A program may join and send lots of traffic in 1 sec,
-and if the immediate join is lost, one of the quickly-following
-<1 sec duplicate reports will make it recover and work. Delaying
-the minimum would guarantee it wouldn't work until that minimum
-and drop all that traffic if the immediate report is lost, then.
-        Really, of course, I think the solution belongs in IB, but
-if we did anything in IGMP, I'd prefer it were a per-interface
-tunable that defaults as in the RFC. Since you can change the
-interval and # of reports through a querier now, exporting the
-default values of (10,2) for v2 and (1,2) for v3 to instead be
-per-interface tunables and then bumped as needed for IB would
-allow tweaking without running a querier. But a querier that's
-using default values would also override that and cause the
-problem all over again. Queuing in the driver until the MAC
-address is usable solves it generally.
+Presumably the IPoIB multicast router should already be the querier..
+How does this help handling joins to new groups?
 
-        Also, MLD and IPv6 will have all these same issues, and
-working multicasting is even more important there.
+> As would be having those networks queue packets for hardware
+> addresses they know require a delay before a transmit can
+> complete. But that approach can't adversely affect already-working
+> solutions for typical networks, or depart unnecessarily from
+> established standard protocols.
 
-                                                                +-DLS
+There is no way to know when a hardware address is 'ready' in a IGMPv2
+sense.. The problem with IGMPv2 and any network that doesn't flood
+multicast to all nodes is that there is no way to know when all IGMPv2
+listeners are listening on the group you just created.
 
+For IGMPv2 there is a special hack in the IPoIB routers that cause
+them to automatically join the IP multicast groups as they are created
+so they can get the per-group IGMP messages, and this process takes
+time and is completely opaque to the end nodes.
 
+IB could emulate something like ethernet flooding by sending packets
+to the permanent 'broadcast' (all-IP-endpoints) multicast group - but
+it has no way to know when that is necessary and when it is not.
+
+Sending IGMPv2 packets to the group address that is being managed
+(rather than an IGMP specific group like in v3) is a design choice
+that probably only works well on ethernet :(
+
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
