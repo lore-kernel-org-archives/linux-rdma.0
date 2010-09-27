@@ -1,83 +1,30 @@
-From: Christoph Lameter <cl@linux.com>
-Subject: Re: igmp: Allow mininum interval specification for igmp timers.
-Date: Mon, 27 Sep 2010 15:20:54 -0500 (CDT)
-Message-ID: <alpine.DEB.2.00.1009271503420.14117@router.home>
-References: <alpine.DEB.2.00.1009221354410.32661@router.home> <20100923.213823.137834706.davem@davemloft.net> <OF4BA8F9C2.467056E9-ON882577AB.005F4832-882577AB.00612DD6@us.ibm.com> <20100927.105444.214208865.davem@davemloft.net>
- <OFC4EC0538.26831D99-ON882577AB.006B8055-882577AB.006D75FF@us.ibm.com>
+From: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
+Subject: Re:
+Date: Mon, 27 Sep 2010 15:23:00 -0500 (CDT)
+Message-ID: <alpine.DEB.2.00.1009271521510.14117@router.home>
+References: <20100927200500.GB25879@obsidianresearch.com> <OF056C7E7C.A9A5EFC7-ON882577AB.006E6B89-882577AB.006F2C1E@us.ibm.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <OFC4EC0538.26831D99-ON882577AB.006B8055-882577AB.006D75FF@us.ibm.com>
-Sender: netdev-owner@vger.kernel.org
-To: David Stevens <dlstevens@us.ibm.com>
-Cc: David Miller <davem@davemloft.net>, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, netdev-owner@vger.kernel.org, rda@rincon.com
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <OF056C7E7C.A9A5EFC7-ON882577AB.006E6B89-882577AB.006F2C1E-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: David Stevens <dlstevens-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>
+Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Bob Arendt <rda-x0S3BwdUo6DQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 On Mon, 27 Sep 2010, David Stevens wrote:
 
-> > With bad luck this thing times out way too fast because the total of
-> > all of the randomized intervals can end up being very small, and I
-> > think we should fix that independently of the other issues hit by the
-> > IB folks.
->
->         I think I'm caught up on the discussion now. For IGMPv3, we
-> would send all the reports always in < 2 secs, and the average would
-> be < 1 sec, so I'm not sure any sort of tweaks we do to enforce a
-> minimum randomized interval are compatible with IGMPv3 and still
-> solve IB's problem.
+>         Because a querier can set the robustness value and
+> query interval to anything you want. In the original report,
+> he's not running a querier. The fact that it's a new group
+> doesn't matter -- these are per-interface.
 
-Ok thanks for the effort but so far I do not see you having caught up. I'd
-rather avoid responding to the misleading statements you made in other
-replies and just respond to where you missed the boat here.
+The per interface settings are used to force an IGMP version overriding
+any information by the queriers. You would not want to enable that because
+it disables support for other IGMP versions. Without the override
+different version of IGMP can be handled per MC group.
 
->         As I said before, I think per protocol, back-to-back is both
-> allowed and not a problem, even if both subsequent randomized reports
-> come out to 0 time. But if we wanted to enforce a minimum interval
-> of, say, X, then I think the better way to do that is to set the
-> timer to X + rand(Interval-X) and not a table of fixed intervals
-
-The second patch sets the intervals to X .. X + Rand (interval) and not to
-a table of fixed intervals as you state here. I have pointed this out
-before.
-
-> as in the original patch. For v2, X=1 or 2 sec and Interval=10
-> might work well, but for v3, the entire interval is 1 sec and I
-> think I saw that the set-up time for the fabric may be on the
-> order of 1 sec.
-
-Again there is no knowledge about V2 or V3 without a query and this is
-during the period when no querier is known yet. You stated elsewhere that
-I can assume V3 by default? So 1 sec?
-
->         I also don't think that we want those kinds of delays on
-> Ethernet. A program may join and send lots of traffic in 1 sec,
-> and if the immediate join is lost, one of the quickly-following
-> <1 sec duplicate reports will make it recover and work. Delaying
-> the minimum would guarantee it wouldn't work until that minimum
-> and drop all that traffic if the immediate report is lost, then.
-
-There can be any number of reasons that a short outage could prevent the
-packets from going through. A buffer overrun (that you mentioned
-elsewhere) usually causes lots of packets to be lost. Buffer overrun
-scenarios usually mean that all igmp queries are lost.
-
->         Really, of course, I think the solution belongs in IB, but
-> if we did anything in IGMP, I'd prefer it were a per-interface
-> tunable that defaults as in the RFC. Since you can change the
-> interval and # of reports through a querier now, exporting the
-> default values of (10,2) for v2 and (1,2) for v3 to instead be
-> per-interface tunables and then bumped as needed for IB would
-> allow tweaking without running a querier. But a querier that's
-> using default values would also override that and cause the
-> problem all over again. Queuing in the driver until the MAC
-> address is usable solves it generally.
-
-There is no solution on the IB layer since there is no notification when
-the fabric reconfiguration necessary for an multicast group is complete.
-
-The querier is of not use since (for the gazillionth of times) this is an
-unsolicited IGMP report. If there is a querier then the unsolicited igmp
-reports would not be used but the timeout indicated by the querier would
-be used.
-
-
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
