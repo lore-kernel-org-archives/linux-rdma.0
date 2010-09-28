@@ -1,30 +1,21 @@
-From: Christoph Lameter <cl@linux.com>
-Subject: Re:
-Date: Tue, 28 Sep 2010 10:49:25 -0500 (CDT)
-Message-ID: <alpine.DEB.2.00.1009281007130.6360@router.home>
-References: <20100927200500.GB25879@obsidianresearch.com> <OF056C7E7C.A9A5EFC7-ON882577AB.006E6B89-882577AB.006F2C1E@us.ibm.com> <alpine.DEB.2.00.1009271521510.14117@router.home> <OF980F8B87.D755A28E-ON882577AB.00779881-882577AB.0077F27A@us.ibm.com>
+From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH 2.6.37 2/2] RDMA/cxgb4: Fastreg NSMR fixes.
+Date: Tue, 28 Sep 2010 10:54:38 -0700
+Message-ID: <adahbh969ep.fsf@cisco.com>
+References: <20100917204004.25530.62611.stgit@build.ogc.int>
+	<20100917204014.25530.68372.stgit@build.ogc.int>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <OF980F8B87.D755A28E-ON882577AB.00779881-882577AB.0077F27A@us.ibm.com>
-Sender: netdev-owner@vger.kernel.org
-To: David Stevens <dlstevens@us.ibm.com>
-Cc: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>, linux-rdma@vger.kernel.org, netdev@vger.kernel.org, David Miller <davem@davemloft.net>, Bob Arendt <rda@rincon.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20100917204014.25530.68372.stgit-T4OLL4TyM9aNDNWfRnPdfg@public.gmane.org> (Steve Wise's
+	message of "Fri, 17 Sep 2010 15:40:15 -0500")
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, 27 Sep 2010, David Stevens wrote:
-
->         No. I'm not talking about the force_igmp_tunable here, I'm talking
-> about the per-interface robustness and interval settings which come from
-> the querier (whatever version you are using).
-
-The igmp subsystem currently does not keep state on the interface layer
-about robustness etc. An interval setting is only kept for IGMP v3 and
-used only for general query timeouts with igmp V3. The interval is
-different one from the one used for the host membership reports.
-
-Looking at the spec I get the impression that these variables seems to be
-mainly of interest to router to router communications?
-
-
-
+thanks, applied both of these plus the other series of 11.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
