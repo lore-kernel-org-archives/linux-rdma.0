@@ -1,73 +1,65 @@
-From: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: how new GIDs are notified to IB stack in OFED 1.5.1?
-Date: Tue, 28 Sep 2010 08:20:48 +0200
-Message-ID: <20100928062048.GE26734@mtldesk30>
-References: <709363.14225.qm@web30107.mail.mud.yahoo.com>
+From: Animesh K Trivedi1 <ATR-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>
+Subject: fixing blocking rdma_connect call on failure
+Date: Tue, 28 Sep 2010 16:44:02 +0200
+Message-ID: <OFD1E009D6.AB14F4A6-ONC12577AC.00485D02-C12577AC.0050EF83@ch.ibm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <709363.14225.qm-980OHh/sYqevuULXzWHTWIglqE1Y4D90QQ4Iyu8u01E@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Parav Pandit <paravpandit-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
+To: Bernard Metzler <BMT-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Sep 27, 2010 at 10:59:59AM -0700, Parav Pandit wrote:
-> Hi,
-> 
-> So as we know GIDs are based on IPv6 addresses, and GID table entries are updated on the fly when new IPv6 addresses are assigned to eth and vlan based eth interfaces.
 
-The OFED stack supporting IBoE has always supported updating the GID
-table caches through generating a LID_CHANGE event. That event is
-caught by the ib core (cahche.c) causing it to update its caches.
-Recently (OFED-1.5.2) I added a GID_CHANGE event to do just the same.
-You can see ibv_asyncwatch for a usage example.
+Hi,
 
-Here's the patch I used to add support at the core level:
+Below is a short patch to eliminate an uninterruptible indefinite wait in
+kernel while destroying the cm_id when iw_cm_connect(...) fails.
 
-diff --git a/drivers/infiniband/core/cache.c b/drivers/infiniband/core/cache.c
-index 6888356..660bff5 100644
---- a/drivers/infiniband/core/cache.c
-+++ b/drivers/infiniband/core/cache.c
-@@ -302,7 +302,8 @@ static void ib_cache_event(struct ib_event_handler *handler,
- 	    event->event == IB_EVENT_LID_CHANGE  ||
- 	    event->event == IB_EVENT_PKEY_CHANGE ||
- 	    event->event == IB_EVENT_SM_CHANGE   ||
--	    event->event == IB_EVENT_CLIENT_REREGISTER) {
-+	    event->event == IB_EVENT_CLIENT_REREGISTER ||
-+	    event->event == IB_EVENT_GID_CHANGE) {
- 		work = kmalloc(sizeof *work, GFP_ATOMIC);
- 		if (work) {
- 			INIT_WORK(&work->work, ib_cache_task);
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index 597878c..f5b054a 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -351,7 +351,8 @@ enum ib_event_type {
- 	IB_EVENT_SRQ_ERR,
- 	IB_EVENT_SRQ_LIMIT_REACHED,
- 	IB_EVENT_QP_LAST_WQE_REACHED,
--	IB_EVENT_CLIENT_REREGISTER
-+	IB_EVENT_CLIENT_REREGISTER,
-+	IB_EVENT_GID_CHANGE,
- };
- 
- enum ib_event_flags {
-> 
-> How does IB stack will get to know about new GIDs which are added into the table?
-> So that query_gid() can be called with right index?
-> 
-> Regards,
-> Parav Pandit
-> 
-> 
-> 
->       
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+It happens when creation of a protection domain fails but user, without
+checking the return value, continues with an attempt to connect to the
+server. In the call iw_cm_connect(...) it retrieves  a NULL qp from the
+device and fails, but does not clear the IWCM_F_CONNECT_WAIT bit. In
+destroy_cm_id(...) it  waits on clearance of IWCM_F_CONNECT_WAIT bit which
+never happens.
+
+Same goes with the accept call.
+
+I am not on the list, so please cc me for the comments and changes.
+
+Thanks,
+--
+Animesh
+
+
+
+Signed-off-by: Animesh Trivedi <atr-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>
+
+diff --git a/drivers/infiniband/core/iwcm.c
+b/drivers/infiniband/core/iwcm.c
+index bfead5b..2a1e9ae 100644
+--- a/drivers/infiniband/core/iwcm.c
++++ b/drivers/infiniband/core/iwcm.c
+@@ -506,6 +506,8 @@ int iw_cm_accept(struct iw_cm_id *cm_id,
+      qp = cm_id->device->iwcm->get_qp(cm_id->device, iw_param->qpn);
+      if (!qp) {
+            spin_unlock_irqrestore(&cm_id_priv->lock, flags);
++           clear_bit(IWCM_F_CONNECT_WAIT, &cm_id_priv->flags);
++           wake_up_all(&cm_id_priv->connect_wait);
+            return -EINVAL;
+      }
+      cm_id->device->iwcm->add_ref(qp);
+@@ -565,6 +567,8 @@ int iw_cm_connect(struct iw_cm_id *cm_id, struct
+iw_cm_conn_param *iw_param)
+      qp = cm_id->device->iwcm->get_qp(cm_id->device, iw_param->qpn);
+      if (!qp) {
+            spin_unlock_irqrestore(&cm_id_priv->lock, flags);
++           clear_bit(IWCM_F_CONNECT_WAIT, &cm_id_priv->flags);
++           wake_up_all(&cm_id_priv->connect_wait);
+            return -EINVAL;
+      }
+      cm_id->device->iwcm->add_ref(qp);
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
