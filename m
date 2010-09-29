@@ -1,56 +1,39 @@
-From: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH] libmlx4: Fix bug in mlx4_set_sq_sizes()
-Date: Wed, 29 Sep 2010 12:09:09 +0200
-Message-ID: <20100929100909.GB4960@mtldesk30>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: linux-next: manual merge of the bkl-llseek tree with the infiniband tree
+Date: Wed, 29 Sep 2010 13:59:47 +0200
+Message-ID: <201009291359.47476.arnd@arndb.de>
+References: <20100929132035.18e89614.sfr@canb.auug.org.au>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Cc: RDMA list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-next-owner@vger.kernel.org>
+In-Reply-To: <20100929132035.18e89614.sfr@canb.auug.org.au>
+Sender: linux-next-owner@vger.kernel.org
+To: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: linux-next@vger.kernel.org, linux-kernel@vger.kernel.org, Steve Wise <swise@opengridcomputing.com>, Roland Dreier <rdreier@cisco.com>, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-mlx4_set_sq_sizes() calcualtes wqe_size from sq.wqe_shift by perofrming a shift
-left. This However, this yields a results which is a power of 2 which is not
-true when we use up the max possible WQE size. Fix this by using a min() on the
-evaluated value and the max wqe size.
+On Wednesday 29 September 2010, Stephen Rothwell wrote:
+> Today's linux-next merge of the bkl-llseek tree got a conflict in
+> drivers/infiniband/hw/cxgb4/device.c between commit
+> 9e8d1fa3420f489da8a5da47c026511aa71fa50b ("RDMA/cxgb4: debugfs files for
+> dumping active stags") from the infiniband tree and commit
+> 9711569d06e7df5f02a943fc4138fb152526e719 ("llseek: automatically
+> add .llseek fop") from the bkl-llseek tree.
+> 
+> The former added a whole new file_operations (and changed some
+> context) ... I fixed it up (see below) and can carry the fix as necessary.
 
-Signed-off-by: Eli Cohen <eli-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
----
- src/mlx4.h |    2 ++
- src/qp.c   |    3 ++-
- 2 files changed, 4 insertions(+), 1 deletions(-)
+Looks fine, thanks!
 
-diff --git a/src/mlx4.h b/src/mlx4.h
-index 5223697..0d03e8e 100644
---- a/src/mlx4.h
-+++ b/src/mlx4.h
-@@ -367,4 +367,6 @@ int mlx4_alloc_av(struct mlx4_pd *pd, struct ibv_ah_attr *attr,
- 		   struct mlx4_ah *ah);
- void mlx4_free_av(struct mlx4_ah *ah);
- 
-+#define min(a, b) (a < b ? a : b)
-+
- #endif /* MLX4_H */
-diff --git a/src/qp.c b/src/qp.c
-index 6ceb3ef..b70c54a 100644
---- a/src/qp.c
-+++ b/src/qp.c
-@@ -622,7 +622,8 @@ void mlx4_set_sq_sizes(struct mlx4_qp *qp, struct ibv_qp_cap *cap,
- {
- 	int wqe_size;
- 
--	wqe_size = (1 << qp->sq.wqe_shift) - sizeof (struct mlx4_wqe_ctrl_seg);
-+	wqe_size = min((1 << qp->sq.wqe_shift), MLX4_MAX_WQE_SIZE) -
-+		sizeof (struct mlx4_wqe_ctrl_seg);
- 	switch (type) {
- 	case IBV_QPT_UD:
- 		wqe_size -= sizeof (struct mlx4_wqe_datagram_seg);
--- 
-1.7.3
+Steve, Roland:
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Would you mind adding an appropriate .llseek method to your file operations
+so I can drop the change from my tree?
+
+The default_llseek function is used because the read function can currently
+be seeked, but I do not know whether that is intentional. If you don't want
+to seek, just make open() call nonseekable_open() and set .llseek to no_llseek.
+
+	Arnd
