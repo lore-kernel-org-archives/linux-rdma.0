@@ -1,62 +1,43 @@
-From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: [PATCH] RDMA/cxgb4: use simple_read_from_buffer() for debugfs
-	handlers.
-Date: Wed, 29 Sep 2010 13:21:33 -0500
-Message-ID: <20100929182133.30260.84058.stgit@build.ogc.int>
+From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH] RDMA/cxgb4: Add default_llseek to debugfs files.
+Date: Wed, 29 Sep 2010 11:52:10 -0700
+Message-ID: <ada8w2k2xid.fsf@cisco.com>
+References: <20100929141112.26944.21931.stgit@build.ogc.int>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20100929141112.26944.21931.stgit-T4OLL4TyM9aNDNWfRnPdfg@public.gmane.org> (Steve Wise's
+	message of "Wed, 29 Sep 2010 09:11:12 -0500")
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org, stable-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-next-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Cc: stable-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-next-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
----
+ > --- a/drivers/infiniband/hw/cxgb4/device.c
+ > +++ b/drivers/infiniband/hw/cxgb4/device.c
+ > @@ -182,6 +182,7 @@ static const struct file_operations qp_debugfs_fops = {
+ >  	.open    = qp_open,
+ >  	.release = qp_release,
+ >  	.read    = debugfs_read,
+ > +	.llseek  = default_llseek,
+ >  };
+ >  
+ >  static int dump_stag(int id, void *p, void *data)
+ > @@ -255,6 +256,7 @@ static const struct file_operations stag_debugfs_fops = {
+ >  	.open    = stag_open,
+ >  	.release = stag_release,
+ >  	.read    = debugfs_read,
+ > +	.llseek  = default_llseek,
+ >  };
+ >  
+ >  static int setup_debugfs(struct c4iw_dev *devp)
+ > 
+ > 
 
- drivers/infiniband/hw/cxgb4/device.c |   26 +-------------------------
- 1 files changed, 1 insertions(+), 25 deletions(-)
+Steve, can you also do a quick test to make sure this works OK with
+generic_file_llseek instead of default_llseek?
 
-diff --git a/drivers/infiniband/hw/cxgb4/device.c b/drivers/infiniband/hw/cxgb4/device.c
-index b254357..22a290d 100644
---- a/drivers/infiniband/hw/cxgb4/device.c
-+++ b/drivers/infiniband/hw/cxgb4/device.c
-@@ -68,32 +68,8 @@ static ssize_t debugfs_read(struct file *file, char __user *buf, size_t count,
- 			    loff_t *ppos)
- {
- 	struct c4iw_debugfs_data *d = file->private_data;
--	loff_t pos = *ppos;
--	loff_t avail = d->pos;
- 
--	if (pos < 0)
--		return -EINVAL;
--	if (pos >= avail)
--		return 0;
--	if (count > avail - pos)
--		count = avail - pos;
--
--	while (count) {
--		size_t len = 0;
--
--		len = min((int)count, (int)d->pos - (int)pos);
--		if (copy_to_user(buf, d->buf + pos, len))
--			return -EFAULT;
--		if (len == 0)
--			return -EINVAL;
--
--		buf += len;
--		pos += len;
--		count -= len;
--	}
--	count = pos - *ppos;
--	*ppos = pos;
--	return count;
-+	return simple_read_from_buffer(buf, count, ppos, d->buf, d->pos);
- }
- 
- static int dump_qp(int id, void *p, void *data)
-
+Thanks.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
