@@ -1,21 +1,37 @@
-From: Or Gerlitz <ogerlitz-hKgKHo2Ms0FWk0Htik3J/w@public.gmane.org>
-Subject: re: mlx4: propagate node_description changes down to FW
-Date: Sun, 03 Oct 2010 17:31:11 +0200
-Message-ID: <4CA8A1BF.4050305@Voltaire.com>
+From: Jack Morgenstein <jackm-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
+Subject: RE: mlx4: propagate node_description changes down to FW
+Date: Sun, 3 Oct 2010 18:01:18 +0200
+Message-ID: <E113D394D7C5DB4F8FF691FA7EE9DB443C180BA9AD@MTLMAIL.mtl.com>
+References: <4CA8A1BF.4050305@Voltaire.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <4CA8A1BF.4050305-hKgKHo2Ms0FWk0Htik3J/w@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jack Morgenstein <jackm-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Or Gerlitz <ogerlitz-hKgKHo2Ms0FWk0Htik3J/w@public.gmane.org>, Yevgeny Kliteynik <kliteyn-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Yael Shenhav <yaeli-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, Tziporet Koren <tziporet-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Jack, 
+I have not yet submitted the patch to the list.  Without the patch, we have a race condition.
 
-I just came across this patch of yours which was placed in ofed 1.5.2, I didn't see any track of it 
+Yevgeny, any ideas on scalability? What happens if opensm receives the trap while it is performing a heavy sweep?
+
+-Jack
+
+-----Original Message-----
+From: Or Gerlitz [mailto:ogerlitz-hKgKHo2Ms0FWk0Htik3J/w@public.gmane.org]
+Sent: Sunday, October 03, 2010 5:31 PM
+To: Jack Morgenstein; linux-rdma
+Subject: re: mlx4: propagate node_description changes down to FW
+
+Hi Jack,
+
+I just came across this patch of yours which was placed in ofed 1.5.2, I didn't see any track of it
 here @ linux-rdma (any specific reason for that?) - some questions/issues to discuss -
 
-1st and most, (say) for 1k node cluster, is it correct that for each node doing start/restart of the openibd 
+1st and most, (say) for 1k node cluster, is it correct that for each node doing start/restart of the openibd
 service a trap will be sent to opensm and the latter will heavy sweep?! this doesn't sound very much scalable...
 have you tested it over large clusters? what was the impact?
 
@@ -47,90 +63,90 @@ Signed-off-by: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.g
 
 Index: ofed_kernel/drivers/infiniband/hw/mlx4/main.c
 ===================================================================
---- ofed_kernel.orig/drivers/infiniband/hw/mlx4/main.c	2010-09-27 17:20:54.069787000 +0200
-+++ ofed_kernel/drivers/infiniband/hw/mlx4/main.c	2010-09-27 17:21:15.074810000 +0200
+--- ofed_kernel.orig/drivers/infiniband/hw/mlx4/main.c  2010-09-27 17:20:54.069787000 +0200
++++ ofed_kernel/drivers/infiniband/hw/mlx4/main.c       2010-09-27 17:21:15.074810000 +0200
 @@ -421,14 +421,34 @@ out:
  static int mlx4_ib_modify_device(struct ib_device *ibdev, int mask,
- 				 struct ib_device_modify *props)
+                                 struct ib_device_modify *props)
  {
-+	struct mlx4_cmd_mailbox *mailbox;
-+	int err;
++       struct mlx4_cmd_mailbox *mailbox;
++       int err;
 +
- 	if (mask & ~IB_DEVICE_MODIFY_NODE_DESC)
- 		return -EOPNOTSUPP;
- 
--	if (mask & IB_DEVICE_MODIFY_NODE_DESC) {
--		spin_lock(&to_mdev(ibdev)->sm_lock);
--		memcpy(ibdev->node_desc, props->node_desc, 64);
--		spin_unlock(&to_mdev(ibdev)->sm_lock);
--	}
-+	if (!(mask & IB_DEVICE_MODIFY_NODE_DESC))
-+		return 0;
+        if (mask & ~IB_DEVICE_MODIFY_NODE_DESC)
+                return -EOPNOTSUPP;
+
+-       if (mask & IB_DEVICE_MODIFY_NODE_DESC) {
+-               spin_lock(&to_mdev(ibdev)->sm_lock);
+-               memcpy(ibdev->node_desc, props->node_desc, 64);
+-               spin_unlock(&to_mdev(ibdev)->sm_lock);
+-       }
++       if (!(mask & IB_DEVICE_MODIFY_NODE_DESC))
++               return 0;
 +
-+	spin_lock(&to_mdev(ibdev)->sm_lock);
-+	memcpy(ibdev->node_desc, props->node_desc, 64);
-+	spin_unlock(&to_mdev(ibdev)->sm_lock);
++       spin_lock(&to_mdev(ibdev)->sm_lock);
++       memcpy(ibdev->node_desc, props->node_desc, 64);
++       spin_unlock(&to_mdev(ibdev)->sm_lock);
 +
-+	/* if possible, pass node desc to FW, so it can generate
-+	 * a 144 trap. If cmd fails, just ignore.
-+	 */
-+	mailbox = mlx4_alloc_cmd_mailbox(to_mdev(ibdev)->dev);
-+	if (IS_ERR(mailbox))
-+		return 0;
++       /* if possible, pass node desc to FW, so it can generate
++        * a 144 trap. If cmd fails, just ignore.
++        */
++       mailbox = mlx4_alloc_cmd_mailbox(to_mdev(ibdev)->dev);
++       if (IS_ERR(mailbox))
++               return 0;
 +
-+	memset(mailbox->buf, 0, 256);
-+	memcpy(mailbox->buf, props->node_desc, 64);
-+	err = mlx4_cmd(to_mdev(ibdev)->dev, mailbox->dma, 1, 0,
-+		       MLX4_CMD_SET_NODE, MLX4_CMD_TIME_CLASS_A);
-+	if (err)
-+		mlx4_ib_dbg("SET_NODE command failed (%d)", err);
++       memset(mailbox->buf, 0, 256);
++       memcpy(mailbox->buf, props->node_desc, 64);
++       err = mlx4_cmd(to_mdev(ibdev)->dev, mailbox->dma, 1, 0,
++                      MLX4_CMD_SET_NODE, MLX4_CMD_TIME_CLASS_A);
++       if (err)
++               mlx4_ib_dbg("SET_NODE command failed (%d)", err);
 +
-+	mlx4_free_cmd_mailbox(to_mdev(ibdev)->dev, mailbox);
- 
- 	return 0;
++       mlx4_free_cmd_mailbox(to_mdev(ibdev)->dev, mailbox);
+
+        return 0;
  }
 Index: ofed_kernel/include/linux/mlx4/cmd.h
 ===================================================================
---- ofed_kernel.orig/include/linux/mlx4/cmd.h	2010-09-27 17:20:40.519054000 +0200
-+++ ofed_kernel/include/linux/mlx4/cmd.h	2010-09-27 17:21:15.081799000 +0200
+--- ofed_kernel.orig/include/linux/mlx4/cmd.h   2010-09-27 17:20:40.519054000 +0200
++++ ofed_kernel/include/linux/mlx4/cmd.h        2010-09-27 17:21:15.081799000 +0200
 @@ -58,6 +58,7 @@ enum {
- 	MLX4_CMD_SENSE_PORT	 = 0x4d,
- 	MLX4_CMD_HW_HEALTH_CHECK = 0x50,
- 	MLX4_CMD_SET_PORT	 = 0xc,
-+	MLX4_CMD_SET_NODE	 = 0x5a,
- 	MLX4_CMD_ACCESS_DDR	 = 0x2e,
- 	MLX4_CMD_MAP_ICM	 = 0xffa,
- 	MLX4_CMD_UNMAP_ICM	 = 0xff9,
+        MLX4_CMD_SENSE_PORT      = 0x4d,
+        MLX4_CMD_HW_HEALTH_CHECK = 0x50,
+        MLX4_CMD_SET_PORT        = 0xc,
++       MLX4_CMD_SET_NODE        = 0x5a,
+        MLX4_CMD_ACCESS_DDR      = 0x2e,
+        MLX4_CMD_MAP_ICM         = 0xffa,
+        MLX4_CMD_UNMAP_ICM       = 0xff9,
 Index: ofed_kernel/drivers/net/mlx4/cmd.c
 ===================================================================
---- ofed_kernel.orig/drivers/net/mlx4/cmd.c	2010-09-27 17:20:32.995814000 +0200
-+++ ofed_kernel/drivers/net/mlx4/cmd.c	2010-09-27 17:21:15.088792000 +0200
+--- ofed_kernel.orig/drivers/net/mlx4/cmd.c     2010-09-27 17:20:32.995814000 +0200
++++ ofed_kernel/drivers/net/mlx4/cmd.c  2010-09-27 17:21:15.088792000 +0200
 @@ -242,8 +242,11 @@ static int mlx4_cmd_poll(struct mlx4_dev
- 					  __raw_readl(hcr + HCR_OUT_PARAM_OFFSET + 4));
- 	stat = be32_to_cpu((__force __be32) __raw_readl(hcr + HCR_STATUS_OFFSET)) >> 24;
- 	err = mlx4_status_to_errno(stat);
--	if (err)
--		mlx4_err(dev, "command 0x%x failed: fw status = 0x%x\n", op, stat);
-+	if (err) {
-+		if (op != MLX4_CMD_SET_NODE || stat != CMD_STAT_BAD_OP)
-+			mlx4_err(dev, "command 0x%x failed: fw status = 0x%x\n",
-+				 op, stat);
-+	}
- 
+                                          __raw_readl(hcr + HCR_OUT_PARAM_OFFSET + 4));
+        stat = be32_to_cpu((__force __be32) __raw_readl(hcr + HCR_STATUS_OFFSET)) >> 24;
+        err = mlx4_status_to_errno(stat);
+-       if (err)
+-               mlx4_err(dev, "command 0x%x failed: fw status = 0x%x\n", op, stat);
++       if (err) {
++               if (op != MLX4_CMD_SET_NODE || stat != CMD_STAT_BAD_OP)
++                       mlx4_err(dev, "command 0x%x failed: fw status = 0x%x\n",
++                                op, stat);
++       }
+
  out:
- 	up(&priv->cmd.poll_sem);
+        up(&priv->cmd.poll_sem);
 @@ -296,8 +299,9 @@ static int mlx4_cmd_wait(struct mlx4_dev
- 
- 	err = context->result;
- 	if (err) {
--		mlx4_err(dev, "command 0x%x failed: fw status = 0x%x\n",
--			 op, context->fw_status);
-+		if (op != MLX4_CMD_SET_NODE || context->fw_status != CMD_STAT_BAD_OP)
-+			mlx4_err(dev, "command 0x%x failed: fw status = 0x%x\n",
-+				 op, context->fw_status);
- 		goto out;
- 	}
- 
+
+        err = context->result;
+        if (err) {
+-               mlx4_err(dev, "command 0x%x failed: fw status = 0x%x\n",
+-                        op, context->fw_status);
++               if (op != MLX4_CMD_SET_NODE || context->fw_status != CMD_STAT_BAD_OP)
++                       mlx4_err(dev, "command 0x%x failed: fw status = 0x%x\n",
++                                op, context->fw_status);
+                goto out;
+        }
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
