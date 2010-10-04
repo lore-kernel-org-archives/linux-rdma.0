@@ -1,115 +1,115 @@
-From: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH] ibnetdiscover: fix error when discovery started on node
- with more that one port
-Date: Mon, 4 Oct 2010 06:57:36 -0400
-Message-ID: <AANLkTinY3P9qqe5dx=pCnQVELQDtSdjswdRp=JFOxwx+@mail.gmail.com>
-References: <4CA9A875.4050604@gmail.com>
+From: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: [PATCH] mlx4: propagate node_description changes down to FW to generate trap 144
+Date: Mon, 4 Oct 2010 14:11:34 +0200
+Message-ID: <201010041411.34956.jackm@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4CA9A875.4050604-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Eli Dorfman (Voltaire)" <dorfman.eli-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org
+Cc: Or Gerlitz <ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, tziporet-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org, yaeli-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Eli,
+The Node Description cannot be changed via MADs (it is read-only).
+Until now, it was changed in the driver via sysfs, and the new Node
+Description was simply inserted by the driver into MAD responses
+(replacing the description returned by FW).
 
-Isn't this the same as what I submitted back on 8/25 and subsequently
-applied (http://www.spinics.net/lists/linux-rdma/msg05590.html) ?
+Until now, openibd used the sysfs interface to change the node description
+at driver startup. However, that generated a race condition, where OpenSM
+could get the FW node description rather than the sysfs description if OpenSM
+queried the device before openibd had a chance to enter the new description.
 
--- Hal
+The solution is a new FW command (SET_NODE) which allows passing the
+new node description to FW. When this command is invoked, FW issues
+a 144 trap to OpenSM.  Upon receiving this trap, OpenSM can query the
+node to obtain the new node description -- thus eliminating the effects
+of the race.
 
-On Mon, Oct 4, 2010 at 6:12 AM, Eli Dorfman (Voltaire)
-<dorfman.eli-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
->
-> When discovery is started on a node with more than one active port
-> it tries to send mads from second Hca port and fails.
-> ibnetdiscover should not try and extend_path from Hca except for star=
-ting point.
->
-> Signed-off-by: Eli Dorfman <elid-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-> ---
-> =C2=A0.../libibnetdisc/include/infiniband/ibnetdisc.h =C2=A0 =C2=A0| =
-=C2=A0 =C2=A01 +
-> =C2=A0infiniband-diags/libibnetdisc/src/ibnetdisc.c =C2=A0 =C2=A0 =C2=
-=A0| =C2=A0 =C2=A07 ++++---
-> =C2=A02 files changed, 5 insertions(+), 3 deletions(-)
->
-> diff --git a/infiniband-diags/libibnetdisc/include/infiniband/ibnetdi=
-sc.h b/infiniband-diags/libibnetdisc/include/infiniband/ibnetdisc.h
-> index cfd3bbe..fe953e6 100644
-> --- a/infiniband-diags/libibnetdisc/include/infiniband/ibnetdisc.h
-> +++ b/infiniband-diags/libibnetdisc/include/infiniband/ibnetdisc.h
-> @@ -149,6 +149,7 @@ typedef struct ibnd_fabric {
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0 * or by default the node you ar running o=
-n
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0 */
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0ibnd_node_t *from_node;
-> + =C2=A0 =C2=A0 =C2=A0 int from_port;
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0/* NULL term list of all nodes in the fabr=
-ic */
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0ibnd_node_t *nodes;
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0/* NULL terminated list of all chassis fou=
-nd in the fabric */
-> diff --git a/infiniband-diags/libibnetdisc/src/ibnetdisc.c b/infiniba=
-nd-diags/libibnetdisc/src/ibnetdisc.c
-> index f525d71..64e1c60 100644
-> --- a/infiniband-diags/libibnetdisc/src/ibnetdisc.c
-> +++ b/infiniband-diags/libibnetdisc/src/ibnetdisc.c
-> @@ -199,7 +199,7 @@ static int recv_port_info(smp_engine_t * engine, =
-ibnd_smp_t * smp,
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0if (port_num && mad_get_field(port->info, =
-0, IB_PORT_PHYS_STATE_F)
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=3D=3D IB_PORT_PHYS_STATE_LI=
-NKUP
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0&& ((node->type =3D=3D IB_NO=
-DE_SWITCH && port_num !=3D local_port) ||
-> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 (node =3D=3D fabri=
-c->from_node && port_num =3D=3D local_port))) {
-> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 (node =3D=3D fabri=
-c->from_node && port_num =3D=3D fabric->from_port))) {
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0ib_portid_t pa=
-th =3D smp->path;
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0if (extend_dpa=
-th(engine, &path, port_num) > 0)
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 =C2=A0query_node_info(engine, &path, node);
-> @@ -324,9 +324,10 @@ static int recv_node_info(smp_engine_t * engine,=
- ibnd_smp_t * smp,
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0dump_endnode(&=
-smp->path, node_is_new ? "new" : "known",
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 =C2=A0 =C2=A0 =C2=A0 node, port);
->
-> - =C2=A0 =C2=A0 =C2=A0 if (rem_node =3D=3D NULL) =C2=A0 /* this is th=
-e start node */
-> + =C2=A0 =C2=A0 =C2=A0 if (rem_node =3D=3D NULL) { /* this is the sta=
-rt node */
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0fabric->from_n=
-ode =3D node;
-> - =C2=A0 =C2=A0 =C2=A0 else {
-> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 fabric->from_port =
-=3D port_num;
-> + =C2=A0 =C2=A0 =C2=A0 } else {
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0/* link ports.=
-=2E. */
-> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0int rem_port_n=
-um =3D get_last_port(&smp->path);
->
-> --
-> 1.7.2.1
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma"=
- in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at =C2=A0http://vger.kernel.org/majordomo-info.ht=
-ml
->
+This patch simply adds invoking the SET_NODE command when a new node
+description is entered via sysfs (thus causing trap 144 to be issued
+by the FW).
+
+The patch works whether or not the new FW command is available.  If SET_NODE
+is not available, things operate as before (i.e., the node description
+is changed in the driver, but no trap is issued).
+
+Signed-off-by: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+
+---
+Roland,
+
+I left the snooping and overwriting the node description as is.
+That way, I do not need to test and remember if SET_NODE succeeded, and/or
+I do not need to know which FW version introduced SET_NODE.
+
+Since we need to keep the old method (snooping and overwriting) around anyway,
+I think it is easier and simpler to keep things as they are, and only use
+SET_NODE to generate trap 144.
+
+Please note that I do not generate any errors if SET_NODE fails for any reason,
+(including failure to allocate a mailbox) since the node description has been
+successfully entered into the driver and is available.
+
+Jack
+
+Index: infiniband/drivers/infiniband/hw/mlx4/main.c
+===================================================================
+--- infiniband.orig/drivers/infiniband/hw/mlx4/main.c	2010-10-04 10:54:50.000000000 +0200
++++ infiniband/drivers/infiniband/hw/mlx4/main.c	2010-10-04 12:25:46.000000000 +0200
+@@ -272,14 +272,31 @@ out:
+ static int mlx4_ib_modify_device(struct ib_device *ibdev, int mask,
+ 				 struct ib_device_modify *props)
+ {
++	struct mlx4_cmd_mailbox *mailbox;
++
+ 	if (mask & ~IB_DEVICE_MODIFY_NODE_DESC)
+ 		return -EOPNOTSUPP;
+ 
+-	if (mask & IB_DEVICE_MODIFY_NODE_DESC) {
+-		spin_lock(&to_mdev(ibdev)->sm_lock);
+-		memcpy(ibdev->node_desc, props->node_desc, 64);
+-		spin_unlock(&to_mdev(ibdev)->sm_lock);
+-	}
++	if (!(mask & IB_DEVICE_MODIFY_NODE_DESC))
++		return 0;
++
++	spin_lock(&to_mdev(ibdev)->sm_lock);
++	memcpy(ibdev->node_desc, props->node_desc, 64);
++	spin_unlock(&to_mdev(ibdev)->sm_lock);
++
++	/* if possible, pass node desc to FW, so it can generate
++	 * a 144 trap. If cmd fails, just ignore.
++	 */
++	mailbox = mlx4_alloc_cmd_mailbox(to_mdev(ibdev)->dev);
++	if (IS_ERR(mailbox))
++		return 0;
++
++	memset(mailbox->buf, 0, 256);
++	memcpy(mailbox->buf, props->node_desc, 64);
++	mlx4_cmd(to_mdev(ibdev)->dev, mailbox->dma, 1, 0,
++		 MLX4_CMD_SET_NODE, MLX4_CMD_TIME_CLASS_A);
++
++	mlx4_free_cmd_mailbox(to_mdev(ibdev)->dev, mailbox);
+ 
+ 	return 0;
+ }
+Index: infiniband/include/linux/mlx4/cmd.h
+===================================================================
+--- infiniband.orig/include/linux/mlx4/cmd.h	2010-01-28 09:43:01.000000000 +0200
++++ infiniband/include/linux/mlx4/cmd.h	2010-10-04 11:10:27.000000000 +0200
+@@ -57,6 +57,7 @@ enum {
+ 	MLX4_CMD_QUERY_PORT	 = 0x43,
+ 	MLX4_CMD_SENSE_PORT	 = 0x4d,
+ 	MLX4_CMD_SET_PORT	 = 0xc,
++	MLX4_CMD_SET_NODE	 = 0x5a,
+ 	MLX4_CMD_ACCESS_DDR	 = 0x2e,
+ 	MLX4_CMD_MAP_ICM	 = 0xffa,
+ 	MLX4_CMD_UNMAP_ICM	 = 0xff9,
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
