@@ -1,61 +1,67 @@
-From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: Re: [PATCH] SIW: User interface
-Date: Tue, 05 Oct 2010 09:17:34 -0500
-Message-ID: <4CAB337E.1040205@opengridcomputing.com>
-References: <1286261647-5139-1-git-send-email-bmt@zurich.ibm.com>
+From: Steve Wise <swise@opengridcomputing.com>
+Subject: Re: [PATCH] SIW: Object management
+Date: Tue, 05 Oct 2010 09:26:48 -0500
+Message-ID: <4CAB35A8.6080906@opengridcomputing.com>
+References: <1286261665-5175-1-git-send-email-bmt@zurich.ibm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1286261647-5139-1-git-send-email-bmt-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bernard Metzler <bmt-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>
-Cc: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1286261665-5175-1-git-send-email-bmt@zurich.ibm.com>
+Sender: netdev-owner@vger.kernel.org
+To: Bernard Metzler <bmt@zurich.ibm.com>
+Cc: netdev@vger.kernel.org, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
 On 10/05/2010 01:54 AM, Bernard Metzler wrote:
 
-
-<snip>
-
+<snip>+
+> +
+> +/***** routines for WQE handling ***/
 > +
 > +/*
-> + * siw_post_send()
+> + * siw_wqe_get()
 > + *
-> + * Post a list of S-WR's to a SQ.
+> + * Get new WQE. For READ RESPONSE, take it from the free list which
+> + * has a maximum size of maximum inbound READs. All other WQE are
+> + * malloc'ed which creates some overhead. Consider change to
 > + *
-> + * @ofa_qp:	OFA QP contained in siw QP
-> + * @wr:		Null terminated list of user WR's
-> + * @bad_wr:	Points to failing WR in case of synchronous failure.
+> + * 1. malloc WR only if it cannot be synchonously completed, or
+> + * 2. operate own cache of reuseable WQE's.
+> + *
+> + * Current code trusts on malloc efficiency.
 > + */
-> +int siw_post_send(struct ib_qp *ofa_qp, struct ib_send_wr *wr,
-> +		  struct ib_send_wr **bad_wr)
+> +inline struct siw_wqe *siw_wqe_get(struct siw_qp *qp, enum siw_wr_opcode op)
 > +{
-> +	struct siw_wqe	*wqe = NULL;
-> +	struct siw_qp	*qp = siw_qp_ofa2siw(ofa_qp);
+> +	struct siw_wqe *wqe;
 > +
-> +	unsigned long flags;
-> +	int rv = 0;
-> +
-> +	dprint(DBG_WR|DBG_TX, "(QP%d): state=%d\n",
-> +		QP_ID(qp), qp->attrs.state);
-> +
-> +	/*
-> +	 * Acquire QP state lock for reading. The idea is that a
-> +	 * user cannot move the QP out of RTS during TX/RX processing.
-> +	 */
-> +	down_read(&qp->state_lock);
-> +
+> +	if (op == SIW_WR_RDMA_READ_RESP) {
+> +		spin_lock(&qp->freelist_lock);
+> +		if (!(list_empty(&qp->wqe_freelist))) {
+> +			wqe = list_entry(qp->wqe_freelist.next,
+> +					 struct siw_wqe, list);
+> +			list_del(&wqe->list);
+> +			spin_unlock(&qp->freelist_lock);
+> +			wqe->processed = 0;
+> +			dprint(DBG_OBJ|DBG_WR,
+> +				"(QP%d): WQE from FreeList p: %p\n",
+> +				QP_ID(qp), wqe);
+> +		} else {
+> +			spin_unlock(&qp->freelist_lock);
+> +			wqe = NULL;
+> +			dprint(DBG_ON|DBG_OBJ|DBG_WR,
+> +				"(QP%d): FreeList empty!\n", QP_ID(qp));
+> +		}
+> +	} else {
+> +		wqe = kzalloc(sizeof(struct siw_wqe), GFP_KERNEL);
+> +		dprint(DBG_OBJ|DBG_WR, "(QP%d): New WQE p: %p\n",
+> +			QP_ID(qp), wqe);
+> +	}
 >    
 
-I don't think you can use a rw_semaphore here because it potentially can 
-block.  You cannot block/sleep in the post_send/post_recv (and some 
-other) RDMA provider functions.  See 
-Documentation/infiniband/core_locking.txt.
+I think you can't allocate at GFP_KERNEL here if this is called from the 
+post_ functions.  I think you might want to pre-allocate these when you 
+create the QP...
 
 
 Steve.
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
