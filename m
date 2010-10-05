@@ -1,57 +1,79 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH] librdmacm: only allocate qp in rdma_create_ep if qp_attr
- provided
-Date: Mon, 4 Oct 2010 17:12:23 -0700
-Message-ID: <CF9C39F99A89134C9CF9C4CCB68B8DDF25AED7933E@orsmsx501.amr.corp.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+From: Bernard Metzler <bmt-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>
+Subject: [PATCH] SIW: Kconfig and Makefile
+Date: Tue,  5 Oct 2010 08:53:00 +0200
+Message-ID: <1286261580-5065-1-git-send-email-bmt@zurich.ibm.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Bernard Metzler <bmt-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-The comments and documentation for rdma_create_ep indicate that
-it will only allocate a QP if initial QP attributes are provided.
-However, the code always attempts to create a QP off an
-active rdma_cm_id endpoint.
-
-By _not_ allocating the QP, a user can first determine
-what RDMA device an rdma_cm_id was associated with (returned from
-rdma_create_ep).  The user can then call rdma_create_qp to
-allocate a QP referencing an existing CQ, SRQ, or PD.
-
-Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
-This addresses an issue reported by Frank Zago while he was trying
-to add XRC support to the librdmacm.
+ drivers/infiniband/Kconfig         |    1 +
+ drivers/infiniband/Makefile        |    1 +
+ drivers/infiniband/hw/siw/Kconfig  |   14 ++++++++++++++
+ drivers/infiniband/hw/siw/Makefile |    5 +++++
+ 4 files changed, 21 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/infiniband/hw/siw/Kconfig
+ create mode 100644 drivers/infiniband/hw/siw/Makefile
 
- src/cma.c |   10 ++++++----
- 1 files changed, 6 insertions(+), 4 deletions(-)
-
-diff --git a/src/cma.c b/src/cma.c
-index f7568cf..253cf80 100755
---- a/src/cma.c
-+++ b/src/cma.c
-@@ -2146,10 +2146,12 @@ int rdma_create_ep(struct rdma_cm_id **id, struct rdma_addrinfo *res,
- 	if (ret)
- 		goto err;
+diff --git a/drivers/infiniband/Kconfig b/drivers/infiniband/Kconfig
+index 89d70de..524a31c 100644
+--- a/drivers/infiniband/Kconfig
++++ b/drivers/infiniband/Kconfig
+@@ -50,6 +50,7 @@ source "drivers/infiniband/hw/cxgb3/Kconfig"
+ source "drivers/infiniband/hw/cxgb4/Kconfig"
+ source "drivers/infiniband/hw/mlx4/Kconfig"
+ source "drivers/infiniband/hw/nes/Kconfig"
++source "drivers/infiniband/hw/siw/Kconfig"
  
--	qp_init_attr->qp_type = res->ai_qp_type;
--	ret = rdma_create_qp(cm_id, pd, qp_init_attr);
--	if (ret)
--		goto err;
-+	if (qp_init_attr) {
-+		qp_init_attr->qp_type = res->ai_qp_type;
-+		ret = rdma_create_qp(cm_id, pd, qp_init_attr);
-+		if (ret)
-+			goto err;
-+	}
+ source "drivers/infiniband/ulp/ipoib/Kconfig"
  
- 	if (res->ai_connect_len) {
- 		id_priv = container_of(cm_id, struct cma_id_private, id);
-
+diff --git a/drivers/infiniband/Makefile b/drivers/infiniband/Makefile
+index 9cc7a47..c01a0d6 100644
+--- a/drivers/infiniband/Makefile
++++ b/drivers/infiniband/Makefile
+@@ -8,6 +8,7 @@ obj-$(CONFIG_INFINIBAND_CXGB3)		+= hw/cxgb3/
+ obj-$(CONFIG_INFINIBAND_CXGB4)		+= hw/cxgb4/
+ obj-$(CONFIG_MLX4_INFINIBAND)		+= hw/mlx4/
+ obj-$(CONFIG_INFINIBAND_NES)		+= hw/nes/
++obj-$(CONFIG_INFINIBAND_SOFTIWARP)	+= hw/siw/
+ obj-$(CONFIG_INFINIBAND_IPOIB)		+= ulp/ipoib/
+ obj-$(CONFIG_INFINIBAND_SRP)		+= ulp/srp/
+ obj-$(CONFIG_INFINIBAND_ISER)		+= ulp/iser/
+diff --git a/drivers/infiniband/hw/siw/Kconfig b/drivers/infiniband/hw/siw/Kconfig
+new file mode 100644
+index 0000000..6beff23
+--- /dev/null
++++ b/drivers/infiniband/hw/siw/Kconfig
+@@ -0,0 +1,14 @@
++config INFINIBAND_SOFTIWARP
++	tristate "Software iWARP Stack (EXPERIMENTAL)"
++	depends on INET && EXPERIMENTAL
++	---help---
++	  Kernel Software Implementation of the iWARP protocol stack
++
++	  This driver implements the iWARP protocol stack in software
++	  and interfaces with in-kernel TCP/IP as well as the OFED
++	  verbs interfaces.
++
++	  Please send feedback to <bmt-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>.
++
++	  To compile this driver as a module, choose M here: the module
++	  will be called siw.
+diff --git a/drivers/infiniband/hw/siw/Makefile b/drivers/infiniband/hw/siw/Makefile
+new file mode 100644
+index 0000000..28344b7
+--- /dev/null
++++ b/drivers/infiniband/hw/siw/Makefile
+@@ -0,0 +1,5 @@
++obj-$(CONFIG_INFINIBAND_SOFTIWARP) += siw.o
++
++siw-y := siw_main.o siw_cm.o siw_verbs.o siw_obj.o \
++	siw_qp.o siw_qp_tx.o siw_qp_rx.o siw_cq.o siw_cm.o \
++	siw_debug.o siw_ae.o
+-- 
+1.5.4.3
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
