@@ -1,118 +1,30 @@
-From: Bernard Metzler <bmt-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>
-Subject: [PATCH] SIW: Documentation (initial)
-Date: Tue,  5 Oct 2010 08:55:47 +0200
-Message-ID: <1286261747-5288-1-git-send-email-bmt@zurich.ibm.com>
+From: Tziporet Koren <tziporet-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
+Subject: Re: FW: [PATCHv10 02/12] ib_core: IBoE CMA device binding
+Date: Tue, 5 Oct 2010 12:09:31 +0200
+Message-ID: <4CAAF95B.6000903@mellanox.co.il>
+References: <F57121538EA0C94F86018DDD40ADA1D10223D9F3@mtiexch01.mti.com>
+	<4C9F78D4.10903@mellanox.co.il>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="ISO-8859-1"; format="flowed"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <4C9F78D4.10903-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Bernard Metzler <bmt-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>
+To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Cc: Linux RDMA list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Linus Torvalds <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
----
- Documentation/networking/siw.txt |   91 ++++++++++++++++++++++++++++++++++++++
- 1 files changed, 91 insertions(+), 0 deletions(-)
- create mode 100644 Documentation/networking/siw.txt
+  On 9/26/2010 6:46 PM, Tziporet Koren wrote:
+> Roland,
+>
+> Following Eli's update below, we have not received any further comments on this matter. Please confirm that this is in line with what you had requested.
+>
+> Also, having not heard any other concerns with the rest of the iboe v10 patchset, we assume it is in good shape for upstream integration in the upcoming 2.6.37. If there is anything further that you would like us to modify please let us know and we will do it immediately.
+>
+Can we get an answer?
+Ignoring mails is not the way to behave in the Linux community
 
-diff --git a/Documentation/networking/siw.txt b/Documentation/networking/siw.txt
-new file mode 100644
-index 0000000..f051d8b
---- /dev/null
-+++ b/Documentation/networking/siw.txt
-@@ -0,0 +1,91 @@
-+SoftiWARP: Software iWARP kernel driver module.
-+
-+General
-+-------
-+SoftiWARP (siw) implements the iWARP protocol suite (MPA/DDP/RDMAP,
-+IETF-RFC 5044/5041/5040) completely in software as a Linux kernel module.
-+siw runs on top of TCP kernel sockets and exports the Linux kernel ibvers
-+RDMA interface. siw interfaces with the iwcm connection manager.
-+
-+
-+Transmit Path
-+-------------
-+If a send queue (SQ) work queue element gets posted, siw tries to send
-+it directly out of the application context. If the SQ was non-empty,
-+SQ processing is done asynchronously by a kernel worker thread. This
-+thread gets scheduled, if the TCP socket signals new write space to
-+be available. If during send operation the socket send space get
-+exhausted, SQ processing is abandoned until new socket write space
-+becomes available.
-+
-+
-+Receive Path
-+------------
-+All application data is placed into target buffers within softirq
-+socket callback. Application notification is asynchronous.
-+
-+
-+User Interface
-+--------------
-+All fast path operations such as posting of work requests and
-+reaping of work completions currently involve a system call into
-+the siw module. Kernel/user-mapped send and receive as well as 
-+completion queues are not part of the current code. In
-+particular, mapped completion queues may improve performance,
-+since reaping completion queue entries as well as re-arming
-+the completion queue could be done more efficiently.
-+
-+
-+Memory Management
-+-----------------
-+siw currently uses kernels ib_umem_get() function to pin memory for later
-+use in data transfer operations. Transmit and receive memory is checked
-+against correct access permissions only in the moment of access by the
-+network input path or before pushing it to the socket for transmission.
-+ib_umem_get() provides DMA mappings for the requested address space which
-+is not used by siw.
-+
-+
-+Module Parameters
-+-----------------
-+The following siw module parameters are recognized.
-+loopback_enabled:
-+	If set, siw attaches also to the looback device. Checked only
-+	during module insertion.
-+
-+mpa_crc_enabled:
-+	If set, the MPA CRC gets generated and checked both in tx and rx
-+	path. Without hardware support, setting this flag will severely
-+	hurt throughput. 
-+
-+zcopy_tx:
-+	If set, payload of non signalled work requests
-+	(such as non signalled WRITE or SEND as well as all READ
-+	responses) are transferred using the TCP sockets
-+	sendpage interface. This parameter can be switched on and
-+	off dynamically (echo 1 >> /sys/module/siw/parameters/zcopy_tx
-+	for enablement, 0 for disabling). System load may benefits from
-+	using 0copy data transmission. 0copy is not enabled if
-+	mpa_crc_enabled is set.
-+
-+
-+Compile Time Flags:
-+-DCHECK_DMA_CAPABILITIES
-+	Checks if the device siw wants to attach to provides
-+	DMA capabilities. While DMA capabilities are currently not
-+	needed (siw works on top of a kernel TCP socket), siw
-+	uses ib_umem_get() which performs a (not used) DMA address
-+	translation. Writing a siw private memory reservation and
-+	pinning routine would solve the issue.
-+
-+-DSIW_TX_FULLSEGS
-+	Experimental, not enabled by default. If set,
-+	siw tries not to overrun the socket (not sending until
-+	-EAGAIN retrun), but stops sending if the current segment
-+	would not fit into the socket's estimated tx buffer. With that,
-+	wire FPDUs may get truncated by the TCP stack far less often.
-+	Since this feature manipulates the sock's SOCK_NOSPACE
-+	bit, it violates strict layering and is therefore considered
-+	proprietary.
-+	Since TCP is a byte stream protocol, no guarantee can be given
-+	if FPDU's are not fragmented.
--- 
-1.5.4.3
-
+Tziporet
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
