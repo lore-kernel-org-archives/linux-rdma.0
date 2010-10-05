@@ -1,31 +1,54 @@
-From: Tziporet Koren <tziporet-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
-Subject: Re: FW: [PATCHv10 02/12] ib_core: IBoE CMA device binding
-Date: Tue, 5 Oct 2010 12:09:31 +0200
-Message-ID: <4CAAF95B.6000903@mellanox.co.il>
-References: <F57121538EA0C94F86018DDD40ADA1D10223D9F3@mtiexch01.mti.com>
-	<4C9F78D4.10903@mellanox.co.il>
+From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Subject: Re: [PATCH] SIW: Module initialization
+Date: Tue, 5 Oct 2010 12:57:21 +0200
+Message-ID: <AANLkTik5=i+A5_OpU0rVyfYi=ibgS9UWMu82vMCmM=PN@mail.gmail.com>
+References: <1286261640-5121-1-git-send-email-bmt@zurich.ibm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format="flowed"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4C9F78D4.10903-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
+In-Reply-To: <1286261640-5121-1-git-send-email-bmt-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Cc: Linux RDMA list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Linus Torvalds <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
+To: Bernard Metzler <bmt-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>
+Cc: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-  On 9/26/2010 6:46 PM, Tziporet Koren wrote:
-> Roland,
->
-> Following Eli's update below, we have not received any further comments on this matter. Please confirm that this is in line with what you had requested.
->
-> Also, having not heard any other concerns with the rest of the iboe v10 patchset, we assume it is in good shape for upstream integration in the upcoming 2.6.37. If there is anything further that you would like us to modify please let us know and we will do it immediately.
->
-Can we get an answer?
-Ignoring mails is not the way to behave in the Linux community
+On Tue, Oct 5, 2010 at 8:54 AM, Bernard Metzler <bmt-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org> wr=
+ote:
+> +static int loopback_enabled;
+> +module_param(loopback_enabled, int, 0644);
+> +MODULE_PARM_DESC(loopback_enabled, "enable_loopback");
 
-Tziporet
+A minor comment: since kernel 2.6.31 the type "bool" can be used for
+boolean kernel module parameters.
+
+> + * TODO: Dynamic device management (network device registration/remo=
+val).
+
+The current implementation is such that one siw device is created for
+each network device found at kernel module load time. That means that
+you force the user to load the siw kernel module after all other
+kernel modules that register a network device. I'm not sure that's a
+good idea.
+
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (!siw_device) {
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 siw_dev=
+ice =3D siw_p;
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 siw_p->=
+next =3D NULL;
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 } else {
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 siw_p->=
+next =3D siw_device->next;
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 siw_dev=
+ice->next =3D siw_p;
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 }
+
+Why a custom linked list implementation instead of using <linux/list.h>=
+ ?
+
+Bart.
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
