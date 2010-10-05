@@ -1,92 +1,111 @@
-From: Steve Wise <swise@opengridcomputing.com>
-Subject: Re: [PATCH] SIW: User interface
-Date: Tue, 05 Oct 2010 09:32:53 -0500
-Message-ID: <4CAB3715.60906@opengridcomputing.com>
-References: <1286261647-5139-1-git-send-email-bmt@zurich.ibm.com> <4CAB337E.1040205@opengridcomputing.com> <OF07B553EF.B746D69E-ONC12577B3.004EAD6A-C12577B3.004F92B0@ch.ibm.com>
+From: Bernard Metzler <BMT-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>
+Subject: Re: [PATCH] SIW: Object management
+Date: Tue, 5 Oct 2010 16:56:33 +0200
+Message-ID: <OF706D1D5F.5849676F-ONC12577B3.004FB763-C12577B3.00521572@ch.ibm.com>
+References: <1286261665-5175-1-git-send-email-bmt@zurich.ibm.com> <4CAB35A8.6080906@opengridcomputing.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <OF07B553EF.B746D69E-ONC12577B3.004EAD6A-C12577B3.004F92B0@ch.ibm.com>
-Sender: netdev-owner@vger.kernel.org
-To: Bernard Metzler <BMT@zurich.ibm.com>
-Cc: linux-rdma@vger.kernel.org, netdev@vger.kernel.org
+Content-Type: text/plain; charset="US-ASCII"
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <4CAB35A8.6080906-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 10/05/2010 09:29 AM, Bernard Metzler wrote:
-> Steve Wise<swise@opengridcomputing.com>  wrote on 10/05/2010 04:17:34 PM:
->
->    
->> Steve Wise<swise@opengridcomputing.com>
->> 10/05/2010 04:17 PM
->>
->> To
->>
->> Bernard Metzler<bmt@zurich.ibm.com>
->>
->> cc
->>
->> netdev@vger.kernel.org, linux-rdma@vger.kernel.org
->>
->> Subject
->>
->> Re: [PATCH] SIW: User interface
->>
->> On 10/05/2010 01:54 AM, Bernard Metzler wrote:
->>
->>
->> <snip>
->>
->>      
->>> +
->>> +/*
->>> + * siw_post_send()
->>> + *
->>> + * Post a list of S-WR's to a SQ.
->>> + *
->>> + * @ofa_qp:   OFA QP contained in siw QP
->>> + * @wr:      Null terminated list of user WR's
->>> + * @bad_wr:   Points to failing WR in case of synchronous failure.
->>> + */
->>> +int siw_post_send(struct ib_qp *ofa_qp, struct ib_send_wr *wr,
->>> +        struct ib_send_wr **bad_wr)
->>> +{
->>> +   struct siw_wqe   *wqe = NULL;
->>> +   struct siw_qp   *qp = siw_qp_ofa2siw(ofa_qp);
->>> +
->>> +   unsigned long flags;
->>> +   int rv = 0;
->>> +
->>> +   dprint(DBG_WR|DBG_TX, "(QP%d): state=%d\n",
->>> +      QP_ID(qp), qp->attrs.state);
->>> +
->>> +   /*
->>> +    * Acquire QP state lock for reading. The idea is that a
->>> +    * user cannot move the QP out of RTS during TX/RX processing.
->>> +    */
->>> +   down_read(&qp->state_lock);
->>> +
->>>
->>>        
->> I don't think you can use a rw_semaphore here because it potentially can
->>      
->    
->> block.  You cannot block/sleep in the post_send/post_recv (and some
->> other) RDMA provider functions.  See
->> Documentation/infiniband/core_locking.txt.
->>
->>
->>      
-> ah, ok.
-> with that, a down_read_trylock() would solve the issue...?
-> given the limited set of errno values - what would you suggest
-> as a meaningful return value? EBUSY, EINVAL, ...?
->
->    
+Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org> wrote on 10/05/2010 04:26:48 PM:
 
-I think it is expected that you should implement this without requiring 
-the blocking semaphore.  Returning an error will cause the application 
-to bail.
+> Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org> 
+> 10/05/2010 04:26 PM
+> 
+> To
+> 
+> Bernard Metzler <bmt-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>
+> 
+> cc
+> 
+> netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> 
+> Subject
+> 
+> Re: [PATCH] SIW: Object management
+> 
+> On 10/05/2010 01:54 AM, Bernard Metzler wrote:
+> 
+> <snip>+
+> > +
+> > +/***** routines for WQE handling ***/
+> > +
+> > +/*
+> > + * siw_wqe_get()
+> > + *
+> > + * Get new WQE. For READ RESPONSE, take it from the free list which
+> > + * has a maximum size of maximum inbound READs. All other WQE are
+> > + * malloc'ed which creates some overhead. Consider change to
+> > + *
+> > + * 1. malloc WR only if it cannot be synchonously completed, or
+> > + * 2. operate own cache of reuseable WQE's.
+> > + *
+> > + * Current code trusts on malloc efficiency.
+> > + */
+> > +inline struct siw_wqe *siw_wqe_get(struct siw_qp *qp, enum 
+> siw_wr_opcode op)
+> > +{
+> > +   struct siw_wqe *wqe;
+> > +
+> > +   if (op == SIW_WR_RDMA_READ_RESP) {
+> > +      spin_lock(&qp->freelist_lock);
+> > +      if (!(list_empty(&qp->wqe_freelist))) {
+> > +         wqe = list_entry(qp->wqe_freelist.next,
+> > +                struct siw_wqe, list);
+> > +         list_del(&wqe->list);
+> > +         spin_unlock(&qp->freelist_lock);
+> > +         wqe->processed = 0;
+> > +         dprint(DBG_OBJ|DBG_WR,
+> > +            "(QP%d): WQE from FreeList p: %p\n",
+> > +            QP_ID(qp), wqe);
+> > +      } else {
+> > +         spin_unlock(&qp->freelist_lock);
+> > +         wqe = NULL;
+> > +         dprint(DBG_ON|DBG_OBJ|DBG_WR,
+> > +            "(QP%d): FreeList empty!\n", QP_ID(qp));
+> > +      }
+> > +   } else {
+> > +      wqe = kzalloc(sizeof(struct siw_wqe), GFP_KERNEL);
+> > +      dprint(DBG_OBJ|DBG_WR, "(QP%d): New WQE p: %p\n",
+> > +         QP_ID(qp), wqe);
+> > +   }
+> > 
+> 
+> I think you can't allocate at GFP_KERNEL here if this is called from the 
 
+> post_ functions.  I think you might want to pre-allocate these when you 
+> create the QP...
+> 
+the idea was to keep the memory footprint small and flexible
+while using the linux/list.h routines to manipulate all queues
+(no ring buffers etc, just lists). at the same time we
+decided to take the provided uverbs_cmd-syscall path down to
+the driver even for the post_-functions (since we would have to ring a 
+doorbell on the send path anyway, which in software, is a syscall).
+in that path, even ib_uverbs_post_send() does one kmalloc() per wr
+(it would be helpful if the provider could keep and reuse that wr of
+known size, freeing it later at its own premises. that would avoid
+the second kmalloc here.)
 
-Steve.
+currently only work queue elements which are needed to satisfy
+inbound read requests are pre-allocated (amount corresponding
+to inbound read queue depth), since the read response is
+scheduled in network softirq context which must not sleep.
+
+that discussion may relate to the spinlock at the entrance to the
+post_ verbs. going down the uverbs_cmd path may sleep anyway...?
+
+thanks,
+bernard.
+> 
+> Steve.
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
