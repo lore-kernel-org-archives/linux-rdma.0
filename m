@@ -1,20 +1,59 @@
-From: "Hefty, Sean" <sean.hefty@intel.com>
-Subject: RE: Software iWARP (SIW) patches
-Date: Mon, 4 Oct 2010 09:30:58 -0700
-Message-ID: <CF9C39F99A89134C9CF9C4CCB68B8DDF25AECB55FB@orsmsx501.amr.corp.intel.com>
-References: <1285187710.1849.82.camel@haakon2.linux-iscsi.org>
- <OFB52DA6A6.F41C82CB-ONC12577B2.004605E9-C12577B2.004F74B9@ch.ibm.com>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH] librdmacm: only allocate qp in rdma_create_ep if qp_attr
+ provided
+Date: Mon, 4 Oct 2010 17:12:23 -0700
+Message-ID: <CF9C39F99A89134C9CF9C4CCB68B8DDF25AED7933E@orsmsx501.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <OFB52DA6A6.F41C82CB-ONC12577B2.004605E9-C12577B2.004F74B9@ch.ibm.com>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Language: en-US
-Sender: netdev-owner@vger.kernel.org
-To: Bernard Metzler <BMT@zurich.ibm.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "Nicholas A. Bellinger" <nab@linux-iscsi.org>, Steve Wise <swise@opengridcomputing.com>, Rola
-Cc: Andi Kleen <andi@firstfloor.org>, David Miller <davem@davemloft.net>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, "linux-rdma-owner@vger.kernel.org" <linux-rdma-owner@vger.kernel.org>, Matthew Wilcox <matthew@wil.cx>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> To avoid redundancy, the patches will be posted to the netdev list only.
+The comments and documentation for rdma_create_ep indicate that
+it will only allocate a QP if initial QP attributes are provided.
+However, the code always attempts to create a QP off an
+active rdma_cm_id endpoint.
 
-Please copy Linux-rdma on the patches.
+By _not_ allocating the QP, a user can first determine
+what RDMA device an rdma_cm_id was associated with (returned from
+rdma_create_ep).  The user can then call rdma_create_qp to
+allocate a QP referencing an existing CQ, SRQ, or PD.
+
+Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+---
+This addresses an issue reported by Frank Zago while he was trying
+to add XRC support to the librdmacm.
+
+ src/cma.c |   10 ++++++----
+ 1 files changed, 6 insertions(+), 4 deletions(-)
+
+diff --git a/src/cma.c b/src/cma.c
+index f7568cf..253cf80 100755
+--- a/src/cma.c
++++ b/src/cma.c
+@@ -2146,10 +2146,12 @@ int rdma_create_ep(struct rdma_cm_id **id, struct rdma_addrinfo *res,
+ 	if (ret)
+ 		goto err;
+ 
+-	qp_init_attr->qp_type = res->ai_qp_type;
+-	ret = rdma_create_qp(cm_id, pd, qp_init_attr);
+-	if (ret)
+-		goto err;
++	if (qp_init_attr) {
++		qp_init_attr->qp_type = res->ai_qp_type;
++		ret = rdma_create_qp(cm_id, pd, qp_init_attr);
++		if (ret)
++			goto err;
++	}
+ 
+ 	if (res->ai_connect_len) {
+ 		id_priv = container_of(cm_id, struct cma_id_private, id);
+
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
