@@ -1,20 +1,47 @@
-From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 02/13] drivers/infiniband: Remove unnecessary casts of private_data
-Date: Wed, 06 Oct 2010 14:44:17 -0700
-Message-ID: <adazkur6lou.fsf@cisco.com>
-References: <cover.1283650107.git.joe@perches.com>
-	<a13edeb14cc926b71e21daff892acbe2d76313ab.1283650107.git.joe@perches.com>
+From: Stephen Hemminger <shemminger-ZtmgI6mnKB3QT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH] SIW: Module initialization
+Date: Wed, 6 Oct 2010 15:26:33 -0700
+Message-ID: <20101006152633.1f498824@nehalam>
+References: <1286261640-5121-1-git-send-email-bmt@zurich.ibm.com>
+	<AANLkTik5=i+A5_OpU0rVyfYi=ibgS9UWMu82vMCmM=PN@mail.gmail.com>
+	<20101006070242.3ca5a6d9@s6510>
+	<AANLkTikL6u4Kzd1jibp77GMZfMebxusoDX39dPsNK3RW@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <a13edeb14cc926b71e21daff892acbe2d76313ab.1283650107.git.joe-6d6DIl74uiNBDgjK7y7TUQ@public.gmane.org>
-	(Joe Perches's message of "Sat, 4 Sep 2010 18:52:43 -0700")
+In-Reply-To: <AANLkTikL6u4Kzd1jibp77GMZfMebxusoDX39dPsNK3RW-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Joe Perches <joe-6d6DIl74uiNBDgjK7y7TUQ@public.gmane.org>
-Cc: Jiri Kosina <trivial-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Cc: Bernard Metzler <bmt-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-thanks, applied.
+On Wed, 6 Oct 2010 18:06:52 +0200
+Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org> wrote:
+
+> On Wed, Oct 6, 2010 at 12:02 AM, Stephen Hemminger
+> <shemminger-ZtmgI6mnKB3QT0dZR+AlfA@public.gmane.org> wrote:
+> > On Tue, 5 Oct 2010 12:57:21 +0200
+> > Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org> wrote:
+> >
+> >> > + * TODO: Dynamic device management (network device registration/removal).
+> >>
+> >> The current implementation is such that one siw device is created for
+> >> each network device found at kernel module load time. That means that
+> >> you force the user to load the siw kernel module after all other
+> >> kernel modules that register a network device. I'm not sure that's a
+> >> good idea.
+> >
+> > Then device should be controlled by a netlink (rtnl_link_ops) style
+> > interface see vlan_netlink.c. Using netlink is extensible and provides
+> > a cleaner interface than all these other parameterization methods.
+> 
+> That will be a lot more work to implement than what Jason proposed:
+> adding a sysfs variable per Ethernet driver, e.g.
+> /sys/class/net/eth0/enable_iwarp.
+
+But if we let code in with that API, then we have to maintain it.
+Netlink is the way to go.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
