@@ -1,42 +1,39 @@
-From: Bernard Metzler <BMT-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>
-Subject: Re: [PATCH] SIW: Module initialization
-Date: Wed, 6 Oct 2010 16:11:55 +0200
-Message-ID: <OFA817AEA2.469903E5-ONC12577B4.004DBC8C-C12577B4.004DFF18@ch.ibm.com>
-References: <20101006070242.3ca5a6d9@s6510>
+From: Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [ewg] [PATCH] ibdiagpath: Properly index VlArbTable during QoS
+ test
+Date: Wed, 06 Oct 2010 17:30:40 +0200
+Message-ID: <4CAC9620.9060609@dev.mellanox.co.il>
+References: <4C8F9617.8010400@novell.com>
+Reply-To: kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20101006070242.3ca5a6d9@s6510>
+In-Reply-To: <4C8F9617.8010400-Et1tbQHTxzrQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Stephen Hemminger <shemminger-ZtmgI6mnKB3QT0dZR+AlfA@public.gmane.org>
-Cc: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: John Jolly <jjolly-Et1tbQHTxzrQT0dZR+AlfA@public.gmane.org>
+Cc: ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org, Linux RDMA <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On 14-Sep-10 5:34 PM, John Jolly wrote:
+> -----BEGIN PGP SIGNED MESSAGE-----
+> Hash: SHA1
+> 
+> Description: ibdiagpath: Properly index VlArbTable during QoS test
+> Symptom:     Error 'invalid bareword "vl_entry"' during "QoS on
+>               Path Check"
+> Problem:     The 'dump' command within the smVlArbTableMad command
+>               appends '-vl_entry' to the beginning of the array.
+>               The ibdebug.tcl script does not properly handle this
+>               extra element at the beginning of the array.
+> Solution:    Offset the index value by one when referencing the
+>               array.
+> Problem-ID:  629166
+> - ---
 
+Thanks, applied.
 
-Stephen Hemminger <shemminger-ZtmgI6mnKB3QT0dZR+AlfA@public.gmane.org> wrote on 10/06/2010 12:02:42 AM:
-
-> On Tue, 5 Oct 2010 12:57:21 +0200
-> Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org> wrote:
->
-> > > + * TODO: Dynamic device management (network device
-> registration/removal).
-> >
-> > The current implementation is such that one siw device is created for
-> > each network device found at kernel module load time. That means that
-> > you force the user to load the siw kernel module after all other
-> > kernel modules that register a network device. I'm not sure that's a
-> > good idea.
->
-> Then device should be controlled by a netlink (rtnl_link_ops) style
-> interface see vlan_netlink.c. Using netlink is extensible and provides
-> a cleaner interface than all these other parameterization methods.
-
-makes sense to me. Bart?
-
-thanks,
-bernard.
-
+-- YK
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
