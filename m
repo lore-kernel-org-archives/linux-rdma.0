@@ -1,40 +1,48 @@
-From: Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [ewg] [PATCH] ibdiagpath: Properly index VlArbTable during QoS
- test
-Date: Wed, 06 Oct 2010 17:30:40 +0200
-Message-ID: <4CAC9620.9060609@dev.mellanox.co.il>
-References: <4C8F9617.8010400@novell.com>
-Reply-To: kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org
+From: Bart Van Assche <bvanassche@acm.org>
+Subject: Re: [PATCH] SIW: iWARP Protocol headers
+Date: Wed, 6 Oct 2010 18:02:39 +0200
+Message-ID: <AANLkTikGqsnXJpnifdKEZr6PoJafZ1N+5zNNaUVMeuQu@mail.gmail.com>
+References: <AANLkTimkJHntzqL5fs+6kTTq-3kzwmoDtWyVq=qGe6vj@mail.gmail.com> <OFC70D3F8A.C5D69C2F-ONC12577B4.0044CFB7-C12577B4.0046C012@ch.ibm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4C8F9617.8010400-Et1tbQHTxzrQT0dZR+AlfA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: John Jolly <jjolly-Et1tbQHTxzrQT0dZR+AlfA@public.gmane.org>
-Cc: ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org, Linux RDMA <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <OFC70D3F8A.C5D69C2F-ONC12577B4.0044CFB7-C12577B4.0046C012@ch.ibm.com>
+Sender: netdev-owner@vger.kernel.org
+To: Bernard Metzler <BMT@zurich.ibm.com>
+Cc: linux-rdma@vger.kernel.org, linux-rdma-owner@vger.kernel.org, netdev@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 14-Sep-10 5:34 PM, John Jolly wrote:
-> -----BEGIN PGP SIGNED MESSAGE-----
-> Hash: SHA1
-> 
-> Description: ibdiagpath: Properly index VlArbTable during QoS test
-> Symptom:     Error 'invalid bareword "vl_entry"' during "QoS on
->               Path Check"
-> Problem:     The 'dump' command within the smVlArbTableMad command
->               appends '-vl_entry' to the beginning of the array.
->               The ibdebug.tcl script does not properly handle this
->               extra element at the beginning of the array.
-> Solution:    Offset the index value by one when referencing the
->               array.
-> Problem-ID:  629166
-> - ---
+On Wed, Oct 6, 2010 at 2:52 PM, Bernard Metzler <BMT@zurich.ibm.com> wrote:
+>
+>
+> linux-rdma-owner@vger.kernel.org wrote on 10/05/2010 06:10:45 PM:
+>
+> > On Tue, Oct 5, 2010 at 8:53 AM, Bernard Metzler <bmt@zurich.ibm.com>
+> wrote:
+> > > +} __attribute__((__packed__));
+> >
+> > Apparently you make extensive use of the packed attribute. Please read
+> > this blog entry, in which it is explained why this is harmful:
+> >
+> > http://digitalvampire.org/blog/index.php/2006/07/31/why-you-
+> > shouldnt-use-__attribute__packed/
+> >
+> right, thanks, i was not aware of that
+> big overhead.
+> but...there are reasons why we may need it _packed_:
+> (1) to get the size of the packet hdr
+> (2) to read/write the hdr content
+>
+> (1) is not harmful. (2) could be limited to
+> just one read/write operation per rx/tx path
+> and all other access could be done on a
+> structure which contains the host representation
+> of the hdr content. both structures could coexist
+> in a union, part of the rx or tx context.
+> would that satisfy your complain?
 
-Thanks, applied.
+Please have a look at e.g. the header file <scsi/srp.h>. As you can
+see in that header file, __attribute__((__packed__)) is only specified
+when absolutely necessary.
 
--- YK
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Bart.
