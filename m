@@ -1,54 +1,41 @@
 From: Bernard Metzler <BMT-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>
-Subject: Re: [PATCH] SIW: iWARP Protocol headers
-Date: Wed, 6 Oct 2010 14:52:46 +0200
-Message-ID: <OFC70D3F8A.C5D69C2F-ONC12577B4.0044CFB7-C12577B4.0046C012@ch.ibm.com>
-References: <AANLkTimkJHntzqL5fs+6kTTq-3kzwmoDtWyVq=qGe6vj@mail.gmail.com>
+Subject: Re: [PATCH] SIW: Module initialization
+Date: Wed, 6 Oct 2010 16:11:55 +0200
+Message-ID: <OFA817AEA2.469903E5-ONC12577B4.004DBC8C-C12577B4.004DFF18@ch.ibm.com>
+References: <20101006070242.3ca5a6d9@s6510>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <AANLkTimkJHntzqL5fs+6kTTq-3kzwmoDtWyVq=qGe6vj-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <20101006070242.3ca5a6d9@s6510>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Stephen Hemminger <shemminger-ZtmgI6mnKB3QT0dZR+AlfA@public.gmane.org>
+Cc: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 
 
-linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org wrote on 10/05/2010 06:10:45 PM:
+Stephen Hemminger <shemminger-ZtmgI6mnKB3QT0dZR+AlfA@public.gmane.org> wrote on 10/06/2010 12:02:42 AM:
 
-> On Tue, Oct 5, 2010 at 8:53 AM, Bernard Metzler <bmt-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>
-wrote:
-> > +} __attribute__((__packed__));
+> On Tue, 5 Oct 2010 12:57:21 +0200
+> Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org> wrote:
 >
-> Apparently you make extensive use of the packed attribute. Please read
-> this blog entry, in which it is explained why this is harmful:
+> > > + * TODO: Dynamic device management (network device
+> registration/removal).
+> >
+> > The current implementation is such that one siw device is created for
+> > each network device found at kernel module load time. That means that
+> > you force the user to load the siw kernel module after all other
+> > kernel modules that register a network device. I'm not sure that's a
+> > good idea.
 >
-> http://digitalvampire.org/blog/index.php/2006/07/31/why-you-
-> shouldnt-use-__attribute__packed/
->
-right, thanks, i was not aware of that
-big overhead.
-but...there are reasons why we may need it _packed_:
-(1) to get the size of the packet hdr
-(2) to read/write the hdr content
+> Then device should be controlled by a netlink (rtnl_link_ops) style
+> interface see vlan_netlink.c. Using netlink is extensible and provides
+> a cleaner interface than all these other parameterization methods.
 
-(1) is not harmful. (2) could be limited to
-just one read/write operation per rx/tx path
-and all other access could be done on a
-structure which contains the host representation
-of the hdr content. both structures could coexist
-in a union, part of the rx or tx context.
-would that satisfy your complain?
+makes sense to me. Bart?
 
-many thanks,
+thanks,
 bernard.
-
-
-> Bart.
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
