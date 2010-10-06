@@ -1,37 +1,48 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH] Make multicast and path record queue flexible.
-Date: Wed, 6 Oct 2010 11:34:49 -0600
-Message-ID: <20101006173449.GJ24268@obsidianresearch.com>
-References: <4CAB4D49.9090107@voltaire.com> <alpine.DEB.2.00.1010051415100.7065@router.home> <1286380676.31487.1.camel@alst60.voltaire.com> <alpine.DEB.2.00.1010061114590.31538@router.home>
+From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Subject: Re: [PATCH] SIW: Queue pair
+Date: Wed, 6 Oct 2010 19:57:29 +0200
+Message-ID: <AANLkTimM3Lpmt3JLgbCtuCjqFjNb8AkvBpdzpN7Sx978@mail.gmail.com>
+References: <1286261719-5197-1-git-send-email-bmt@zurich.ibm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.00.1010061114590.31538-sBS69tsa9Uj/9pzu0YdTqQ@public.gmane.org>
+In-Reply-To: <1286261719-5197-1-git-send-email-bmt-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
-Cc: Alekseys Senin <alekseys-smomgflXvOZWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org" <ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>, Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Moni Shoua <monis-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+To: Bernard Metzler <bmt-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>
+Cc: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Oct 06, 2010 at 11:16:59AM -0500, Christoph Lameter wrote:
+On Tue, Oct 5, 2010 at 8:55 AM, Bernard Metzler <bmt-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org> wr=
+ote:
+>
+> [ ... ]
+> +int
+> +siw_qp_modify(struct siw_qp *qp, struct siw_qp_attrs *attrs,
+> + =A0 =A0 =A0 =A0 =A0 =A0 enum siw_qp_attr_mask mask)
+> +{
+> [ ... ]
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 case SIW_QP_STATE_ERROR:
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 siw_rq_flush(qp);
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 qp->attrs.state =3D SIW=
+_QP_STATE_ERROR;
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 drop_conn =3D 1;
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 break;
 
-> > Relating to broadcast, I don't think that this is a good solution it
-> > will bring unwarranted load, specially in the case if no MLID received.
-> > The way of adding delay before we start to send packages, seems to me
-> > better.
-> 
-> Broadcast is a temporary solution and it only occurs with in an IB
-> partition. It would be a problem if one host suddenly starts sending
-> at full line speed. Maybe have that configurable?
+At least for InfiniBand when the state of a queue pair is changed to
+Error, work requests must be completed in error. The above code just
+flushes pending work requests. That doesn't look correct to me.
 
-Right, and keep in mind that sending a packet with the broadcast MLID
-and group-specific MGID will still result in the HCA's filtering based
-on MGID. Personally, I'm not concerned about flooding - this is how
-things work in ethernet - any sane app will need some way to cope with
-that.
+A quote from the InfiniBand Architecture Specification, table 91, QP
+State Transition Properties:
 
-Jason
+Any state to Reset: QP attributes are reset to the same values after
+the QP was created. Outstanding Work Requests are removed from the
+queues without notifying the Consumer.
+
+Bart.
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
