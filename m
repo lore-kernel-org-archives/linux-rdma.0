@@ -1,48 +1,58 @@
-From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Subject: Re: [PATCH] SIW: Queue pair
-Date: Wed, 6 Oct 2010 19:57:29 +0200
-Message-ID: <AANLkTimM3Lpmt3JLgbCtuCjqFjNb8AkvBpdzpN7Sx978@mail.gmail.com>
-References: <1286261719-5197-1-git-send-email-bmt@zurich.ibm.com>
+From: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
+Subject: Re: [PATCH] SIW: iWARP Protocol headers
+Date: Wed, 6 Oct 2010 12:37:34 -0600
+Message-ID: <20101006183734.GK24268@obsidianresearch.com>
+References: <AANLkTimkJHntzqL5fs+6kTTq-3kzwmoDtWyVq=qGe6vj@mail.gmail.com> <OFC70D3F8A.C5D69C2F-ONC12577B4.0044CFB7-C12577B4.0046C012@ch.ibm.com> <20101006172518.GI24268@obsidianresearch.com> <1286389375.26136.24.camel@lap75545.ornl.gov>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1286261719-5197-1-git-send-email-bmt-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bernard Metzler <bmt-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>
-Cc: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1286389375.26136.24.camel@lap75545.ornl.gov>
+Sender: netdev-owner@vger.kernel.org
+To: David Dillow <dave@thedillows.org>
+Cc: Bernard Metzler <BMT@zurich.ibm.com>, Bart Van Assche <bvanassche@acm.org>, linux-rdma@vger.kernel.org, linux-rdma-owner@vger.kernel.org, netdev@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Oct 5, 2010 at 8:55 AM, Bernard Metzler <bmt-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org> wr=
-ote:
->
-> [ ... ]
-> +int
-> +siw_qp_modify(struct siw_qp *qp, struct siw_qp_attrs *attrs,
-> + =A0 =A0 =A0 =A0 =A0 =A0 enum siw_qp_attr_mask mask)
-> +{
-> [ ... ]
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 case SIW_QP_STATE_ERROR:
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 siw_rq_flush(qp);
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 qp->attrs.state =3D SIW=
-_QP_STATE_ERROR;
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 drop_conn =3D 1;
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 break;
+On Wed, Oct 06, 2010 at 02:22:55PM -0400, David Dillow wrote:
+> On Wed, 2010-10-06 at 11:25 -0600, Jason Gunthorpe wrote:
+> > On Wed, Oct 06, 2010 at 02:52:46PM +0200, Bernard Metzler wrote:
+> > It is actually a little more complicated than just this. I assume you
+> > are casting the structures over packet payloads? In this case you
+> > have to guarentee alignment (or used packed everywhere). Does iwarp
+> > have provisions for alignment? If so you can construct your bitfields
+> > using the alignment type, ie if iWarp guarantees 4 bytes then the
+> > biggest type you can use is u32 - then you can avoid using packed.
+> > 
+> > Mind you, I'm not sure how to guarentee alignment when you consider
+> > all the possible sources of unalignment in the stack: TCP, IP, L2 stack ?
+> 
+> You don't have to. The TCP stack, IIRC, requires the architecture to fix
+> up misaligned accesses, or at least it used to. It will try to keep
+> things aligned if possible -- see the comment above NET_IP_ALIGN in
+> include/linux/skbuff.h.
 
-At least for InfiniBand when the state of a queue pair is changed to
-Error, work requests must be completed in error. The above code just
-flushes pending work requests. That doesn't look correct to me.
+I was under the impression that this was just to align the IP
+header. There are quite a variety of options and additional stuff that
+can be inserted at each layer, VLAN for ethernet, IP option/extension
+headers, TCP option headers, etc, etc. I seem to remember that because
+of all this there are cases where processing unaligned payloads is
+unavoidable? Hence my question if iWarp has restrictions (particularly
+on TCP) that might guarentee alignment.
 
-A quote from the InfiniBand Architecture Specification, table 91, QP
-State Transition Properties:
+> The structures in Bernard's header have all fields naturally
+> aligned, so no need for the packed attribute and its baggage.
 
-Any state to Reset: QP attributes are reset to the same values after
-the QP was created. Outstanding Work Requests are removed from the
-queues without notifying the Consumer.
+No, they arent:
 
-Bart.
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> +struct iwarp_rdma_write {
+> +	struct iwarp_ctrl	ctrl;
+> +	__u32			sink_stag;
+> +	__u64			sink_to;
+> +} __attribute__((__packed__));
+
+For instance has sink_to unaligned if the maximum aligment of the
+payload is only guarenteed to be 4. The proper thing to do in this
+case is probably __attribute__((__packed__, __aligned__(4))) if that
+works the way I think.. :)
+
+Jason
