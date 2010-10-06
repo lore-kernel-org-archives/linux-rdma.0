@@ -1,48 +1,42 @@
-From: Bart Van Assche <bvanassche@acm.org>
-Subject: Re: [PATCH] SIW: iWARP Protocol headers
-Date: Wed, 6 Oct 2010 18:02:39 +0200
-Message-ID: <AANLkTikGqsnXJpnifdKEZr6PoJafZ1N+5zNNaUVMeuQu@mail.gmail.com>
-References: <AANLkTimkJHntzqL5fs+6kTTq-3kzwmoDtWyVq=qGe6vj@mail.gmail.com> <OFC70D3F8A.C5D69C2F-ONC12577B4.0044CFB7-C12577B4.0046C012@ch.ibm.com>
+From: Alekseys Senin <alekseys-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH] Make multicast and path record queue flexible.
+Date: Wed, 06 Oct 2010 17:57:56 +0200
+Message-ID: <1286380676.31487.1.camel@alst60.voltaire.com>
+References: <4CAB4D49.9090107@voltaire.com>
+	 <alpine.DEB.2.00.1010051415100.7065@router.home>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <OFC70D3F8A.C5D69C2F-ONC12577B4.0044CFB7-C12577B4.0046C012@ch.ibm.com>
-Sender: netdev-owner@vger.kernel.org
-To: Bernard Metzler <BMT@zurich.ibm.com>
-Cc: linux-rdma@vger.kernel.org, linux-rdma-owner@vger.kernel.org, netdev@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <alpine.DEB.2.00.1010051415100.7065-sBS69tsa9Uj/9pzu0YdTqQ@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org" <ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>, Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Moni Shoua <monis-smomgflXvOZWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Oct 6, 2010 at 2:52 PM, Bernard Metzler <BMT@zurich.ibm.com> wrote:
->
->
-> linux-rdma-owner@vger.kernel.org wrote on 10/05/2010 06:10:45 PM:
->
-> > On Tue, Oct 5, 2010 at 8:53 AM, Bernard Metzler <bmt@zurich.ibm.com>
-> wrote:
-> > > +} __attribute__((__packed__));
-> >
-> > Apparently you make extensive use of the packed attribute. Please read
-> > this blog entry, in which it is explained why this is harmful:
-> >
-> > http://digitalvampire.org/blog/index.php/2006/07/31/why-you-
-> > shouldnt-use-__attribute__packed/
-> >
-> right, thanks, i was not aware of that
-> big overhead.
-> but...there are reasons why we may need it _packed_:
-> (1) to get the size of the packet hdr
-> (2) to read/write the hdr content
->
-> (1) is not harmful. (2) could be limited to
-> just one read/write operation per rx/tx path
-> and all other access could be done on a
-> structure which contains the host representation
-> of the hdr content. both structures could coexist
-> in a union, part of the rx or tx context.
-> would that satisfy your complain?
+On Tue, 2010-10-05 at 14:18 -0500, Christoph Lameter wrote: 
+> On Tue, 5 Oct 2010, Aleksey Senin wrote:
+> 
+> > When using slow SM allow more packets to be buffered before answer
+> > comming back. This patch based on idea of Christoph Lameter.
+> 
+> I agree, I think we need to have those things configurable.
+> 
+> Reviewed-by: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
+> 
+> How do you handle the situation of the SM responding before the fabric has
+> been reconfigured? I do not see any delay on join. So they will be dropped
+> if the fabric was not reconfigured fast enough? Or does the SM somehow
+> delay the response?
 
-Please have a look at e.g. the header file <scsi/srp.h>. As you can
-see in that header file, __attribute__((__packed__)) is only specified
-when absolutely necessary.
-
-Bart.
+I think this issue, that should solve the problem of sending or delaying
+packets after obtaining MLID should be solved in another patch. Proposed
+code improve today situation, when you can't change it at all.
+Relating to broadcast, I don't think that this is a good solution it
+will bring unwarranted load, specially in the case if no MLID received.
+The way of adding delay before we start to send packages, seems to me
+better.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
