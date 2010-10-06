@@ -1,39 +1,31 @@
-From: David Dillow <dave-i1Mk8JYDVaaSihdK6806/g@public.gmane.org>
-Subject: Re: [PATCH] SIW: iWARP Protocol headers
-Date: Wed, 06 Oct 2010 14:22:55 -0400
-Message-ID: <1286389375.26136.24.camel@lap75545.ornl.gov>
-References: <AANLkTimkJHntzqL5fs+6kTTq-3kzwmoDtWyVq=qGe6vj@mail.gmail.com>
- <OFC70D3F8A.C5D69C2F-ONC12577B4.0044CFB7-C12577B4.0046C012@ch.ibm.com>
- <20101006172518.GI24268@obsidianresearch.com>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: NULL pointer dereference in rdma_ucm
+Date: Wed, 6 Oct 2010 12:04:29 -0700
+Message-ID: <CF9C39F99A89134C9CF9C4CCB68B8DDF25B532D218@orsmsx501.amr.corp.intel.com>
+References: <AANLkTikwDEJY_F1ziGNPhYMBJEBC5UqD2XOLM7wSByj1@mail.gmail.com>
+	<CF9C39F99A89134C9CF9C4CCB68B8DDF25A71DAA57@orsmsx501.amr.corp.intel.com>
+ <AANLkTimVvGGW6e=f-gL_Xz1vV4azHuST=6wy8Eba1G35@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-reply-to: <20101006172518.GI24268-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <AANLkTimVvGGW6e=f-gL_Xz1vV4azHuST=6wy8Eba1G35-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Bernard Metzler <BMT-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>, Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Josh England <jjengla-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Linux RDMA list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, 2010-10-06 at 11:25 -0600, Jason Gunthorpe wrote:
-> On Wed, Oct 06, 2010 at 02:52:46PM +0200, Bernard Metzler wrote:
-> It is actually a little more complicated than just this. I assume you
-> are casting the structures over packet payloads? In this case you
-> have to guarentee alignment (or used packed everywhere). Does iwarp
-> have provisions for alignment? If so you can construct your bitfields
-> using the alignment type, ie if iWarp guarantees 4 bytes then the
-> biggest type you can use is u32 - then you can avoid using packed.
-> 
-> Mind you, I'm not sure how to guarentee alignment when you consider
-> all the possible sources of unalignment in the stack: TCP, IP, L2 stack ?
+> I tried the suggestion of removing the call to ib_send_cm_mra().
+> Unfortunately, doing this wedges the stack 100% of the time.  Since
+> the original post, I've upgraded to CentOS-5.5 with OFED-1.5.1.  The
+> NULL pointer reference now occurs far less frequently but still with
+> some regularity.  I have full memory dumps from a crashed kernel, but
+> don't really know how to debug it.
 
-You don't have to. The TCP stack, IIRC, requires the architecture to fix
-up misaligned accesses, or at least it used to. It will try to keep
-things aligned if possible -- see the comment above NET_IP_ALIGN in
-include/linux/skbuff.h.
+upstream commit 50a025c69ee749d822c301f9bf63dee13c113680 should correct this issue.  I'm not sure when OFED will pick up this patch.
 
-The structures in Bernard's header have all fields naturally aligned, so
-no need for the packed attribute and its baggage.
+- Sean
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
