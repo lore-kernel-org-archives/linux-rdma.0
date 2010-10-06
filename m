@@ -1,51 +1,34 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH] SIW: iWARP Protocol headers
-Date: Wed, 6 Oct 2010 11:25:18 -0600
-Message-ID: <20101006172518.GI24268@obsidianresearch.com>
-References: <AANLkTimkJHntzqL5fs+6kTTq-3kzwmoDtWyVq=qGe6vj@mail.gmail.com> <OFC70D3F8A.C5D69C2F-ONC12577B4.0044CFB7-C12577B4.0046C012@ch.ibm.com>
+Subject: Re: [PATCH] Make multicast and path record queue flexible.
+Date: Wed, 6 Oct 2010 11:34:49 -0600
+Message-ID: <20101006173449.GJ24268@obsidianresearch.com>
+References: <4CAB4D49.9090107@voltaire.com> <alpine.DEB.2.00.1010051415100.7065@router.home> <1286380676.31487.1.camel@alst60.voltaire.com> <alpine.DEB.2.00.1010061114590.31538@router.home>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <OFC70D3F8A.C5D69C2F-ONC12577B4.0044CFB7-C12577B4.0046C012-Xeyd2O9EBijQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <alpine.DEB.2.00.1010061114590.31538-sBS69tsa9Uj/9pzu0YdTqQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bernard Metzler <BMT-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>
-Cc: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
+Cc: Alekseys Senin <alekseys-smomgflXvOZWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org" <ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>, Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Moni Shoua <monis-smomgflXvOZWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Oct 06, 2010 at 02:52:46PM +0200, Bernard Metzler wrote:
-> 
-> 
-> linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org wrote on 10/05/2010 06:10:45 PM:
-> 
-> > On Tue, Oct 5, 2010 at 8:53 AM, Bernard Metzler <bmt-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>
-> wrote:
-> > > +} __attribute__((__packed__));
-> >
-> > Apparently you make extensive use of the packed attribute. Please read
-> > this blog entry, in which it is explained why this is harmful:
-> >
-> > http://digitalvampire.org/blog/index.php/2006/07/31/why-you-
-> > shouldnt-use-__attribute__packed/
-> >
-> right, thanks, i was not aware of that
-> big overhead.
-> but...there are reasons why we may need it _packed_:
-> (1) to get the size of the packet hdr
-> (2) to read/write the hdr content
+On Wed, Oct 06, 2010 at 11:16:59AM -0500, Christoph Lameter wrote:
 
-It is actually a little more complicated than just this. I assume you
-are casting the structures over packet payloads? In this case you
-have to guarentee alignment (or used packed everywhere). Does iwarp
-have provisions for alignment? If so you can construct your bitfields
-using the alignment type, ie if iWarp guarantees 4 bytes then the
-biggest type you can use is u32 - then you can avoid using packed.
+> > Relating to broadcast, I don't think that this is a good solution it
+> > will bring unwarranted load, specially in the case if no MLID received.
+> > The way of adding delay before we start to send packages, seems to me
+> > better.
+> 
+> Broadcast is a temporary solution and it only occurs with in an IB
+> partition. It would be a problem if one host suddenly starts sending
+> at full line speed. Maybe have that configurable?
 
-Mind you, I'm not sure how to guarentee alignment when you consider
-all the possible sources of unalignment in the stack: TCP, IP, L2 stack ?
-
-Otherwise you need a strategy for dealing with unaligned data for
-portability. :(
+Right, and keep in mind that sending a packet with the broadcast MLID
+and group-specific MGID will still result in the HCA's filtering based
+on MGID. Personally, I'm not concerned about flooding - this is how
+things work in ethernet - any sane app will need some way to cope with
+that.
 
 Jason
 --
