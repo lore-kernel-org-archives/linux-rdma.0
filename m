@@ -1,15 +1,13 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: [PATCH management.git] Fix autotools to include the necessary M4
-	files
-Date: Thu, 7 Oct 2010 16:33:01 -0600
-Message-ID: <20101007223301.GA30829@obsidianresearch.com>
+Subject: [PATCH] Fix autotools to include the necessary M4 files
+Date: Thu, 7 Oct 2010 16:38:33 -0600
+Message-ID: <20101007223833.GB30829@obsidianresearch.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Cc: Linux RDMA list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Linux RDMA list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 Otherwise running autogen.sh with a new version of autotools and then
@@ -21,92 +19,66 @@ This is how GNU envisions this mess works at least..
 
 Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 ---
- infiniband-diags/Makefile.am  |    1 +
- infiniband-diags/configure.in |    1 +
- libibmad/Makefile.am          |    2 +-
- libibmad/configure.in         |    1 +
- libibumad/Makefile.am         |    2 +-
- libibumad/configure.in        |    1 +
- opensm/configure.in           |    1 +
- 7 files changed, 7 insertions(+), 2 deletions(-)
+ Makefile.am  |    1 +
+ configure.in |    1 +
+ 2 files changed, 2 insertions(+), 0 deletions(-)
 
-diff --git a/infiniband-diags/Makefile.am b/infiniband-diags/Makefile.am
-index af90b05..e4d3d90 100644
---- a/infiniband-diags/Makefile.am
-+++ b/infiniband-diags/Makefile.am
-@@ -1,3 +1,4 @@
+Roland - This changes the autogen.sh output from:
++ aclocal -I config
++ libtoolize --force --copy
+libtoolize: putting auxiliary files in AC_CONFIG_AUX_DIR, `config'.
+libtoolize: copying file `config/ltmain.sh'
+libtoolize: Consider adding `AC_CONFIG_MACRO_DIR([m4])' to configure.in and
+libtoolize: rerunning libtoolize, to keep the correct libtool macros in-tree.
+libtoolize: Consider adding `-I m4' to ACLOCAL_AMFLAGS in Makefile.am.
++ autoheader
++ automake --foreign --add-missing --copy
++ autoconf
+
+to:
+
++ aclocal -I config
++ libtoolize --force --copy
+libtoolize: putting auxiliary files in AC_CONFIG_AUX_DIR, `config'.
+libtoolize: copying file `config/ltmain.sh'
+libtoolize: putting macros in AC_CONFIG_MACRO_DIR, `config'.
+libtoolize: copying file `config/libtool.m4'
+libtoolize: copying file `config/ltoptions.m4'
+libtoolize: copying file `config/ltsugar.m4'
+libtoolize: copying file `config/ltversion.m4'
+libtoolize: copying file `config/lt~obsolete.m4'
++ autoheader
++ automake --foreign --add-missing --copy
++ autoconf
+
+And fixes various build problems in weird cases. All of the libraries
+you maintain need a similar patch. Do you want me to send seperate
+patches for all of them?
+
+diff --git a/Makefile.am b/Makefile.am
+index 5aa1289..e6a50ba 100644
+--- a/Makefile.am
++++ b/Makefile.am
+@@ -2,6 +2,7 @@ INCLUDES = -I$(srcdir)/include
+ 
+ lib_LTLIBRARIES = src/libibverbs.la
+ 
 +ACLOCAL_AMFLAGS = -I config
- SUBDIRS = libibnetdisc
+ AM_CFLAGS = -g -Wall
  
- INCLUDES = -I$(top_builddir)/include/ -I$(srcdir)/include -I$(includedir) \
-diff --git a/infiniband-diags/configure.in b/infiniband-diags/configure.in
-index b9326c0..3c16aec 100644
---- a/infiniband-diags/configure.in
-+++ b/infiniband-diags/configure.in
-@@ -3,6 +3,7 @@ dnl Process this file with autoconf to produce a configure script.
- AC_PREREQ(2.57)
- AC_INIT(infiniband-diags, 1.5.7, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)
- AC_CONFIG_AUX_DIR(config)
-+AC_CONFIG_MACRO_DIR(config)
- AM_CONFIG_HEADER(config.h)
- AM_INIT_AUTOMAKE
- 
-diff --git a/libibmad/Makefile.am b/libibmad/Makefile.am
-index 6881453..f732c6c 100644
---- a/libibmad/Makefile.am
-+++ b/libibmad/Makefile.am
-@@ -1,4 +1,4 @@
--
-+ACLOCAL_AMFLAGS = -I config
- SUBDIRS = .
- 
- INCLUDES = -I$(srcdir)/include -I$(includedir)
-diff --git a/libibmad/configure.in b/libibmad/configure.in
-index 23ec914..97e8cb3 100644
---- a/libibmad/configure.in
-+++ b/libibmad/configure.in
+ src_libibverbs_la_CFLAGS = $(AM_CFLAGS) -DIBV_CONFIG_DIR=\"$(sysconfdir)/libibverbs.d\"
+diff --git a/configure.in b/configure.in
+index 927c406..cc93e00 100644
+--- a/configure.in
++++ b/configure.in
 @@ -4,6 +4,7 @@ AC_PREREQ(2.57)
- AC_INIT(libibmad, 1.3.6, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)
- AC_CONFIG_SRCDIR([src/sa.c])
+ AC_INIT(libibverbs, 1.1.4, general-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org)
+ AC_CONFIG_SRCDIR([src/ibverbs.h])
  AC_CONFIG_AUX_DIR(config)
 +AC_CONFIG_MACRO_DIR(config)
- AM_CONFIG_HEADER(config.h)
- AM_INIT_AUTOMAKE
- 
-diff --git a/libibumad/Makefile.am b/libibumad/Makefile.am
-index 6e3f518..28bf69c 100644
---- a/libibumad/Makefile.am
-+++ b/libibumad/Makefile.am
-@@ -1,4 +1,4 @@
--
-+ACLOCAL_AMFLAGS = -I config
- SUBDIRS = .
- 
- INCLUDES = -I$(srcdir)/include/infiniband -I$(includedir)
-diff --git a/libibumad/configure.in b/libibumad/configure.in
-index 9fcd609..04ecb0e 100644
---- a/libibumad/configure.in
-+++ b/libibumad/configure.in
-@@ -4,6 +4,7 @@ AC_PREREQ(2.57)
- AC_INIT(libibumad, 1.3.6, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)
- AC_CONFIG_SRCDIR([src/umad.c])
- AC_CONFIG_AUX_DIR(config)
-+AC_CONFIG_MACRO_DIR(config)
- AM_CONFIG_HEADER(config.h)
- AM_INIT_AUTOMAKE
- 
-diff --git a/opensm/configure.in b/opensm/configure.in
-index 8695965..057724a 100644
---- a/opensm/configure.in
-+++ b/opensm/configure.in
-@@ -4,6 +4,7 @@ AC_PREREQ(2.57)
- AC_INIT(opensm, 3.3.7, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)
- AC_CONFIG_SRCDIR([opensm/osm_opensm.c])
- AC_CONFIG_AUX_DIR(config)
-+AC_CONFIG_MACRO_DIR(config)
- AC_CONFIG_HEADERS(include/config.h include/opensm/osm_config.h)
- AM_INIT_AUTOMAKE
- 
+ AC_CONFIG_HEADER(config.h)
+ AM_INIT_AUTOMAKE(libibverbs, 1.1.4)
+ m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
 -- 
 1.6.0.4
 
