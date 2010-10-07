@@ -1,65 +1,30 @@
-From: Bernard Metzler <BMT@zurich.ibm.com>
-Subject: Re: [PATCH] SIW: Queue pair
-Date: Thu, 7 Oct 2010 11:21:05 +0200
-Message-ID: <OFB2B4DC29.734DA538-ONC12577B5.00304CFF-C12577B5.00335EA8@ch.ibm.com>
-References: <AANLkTimM3Lpmt3JLgbCtuCjqFjNb8AkvBpdzpN7Sx978@mail.gmail.com>
+From: Or Gerlitz <ogerlitz-hKgKHo2Ms0FWk0Htik3J/w@public.gmane.org>
+Subject: Re: Maximum size for memory registration (ibv_reg_mr)
+Date: Thu, 07 Oct 2010 11:40:02 +0200
+Message-ID: <4CAD9572.5060507@Voltaire.com>
+References: <036401cb5c35$85829220$9087b660$@edu>	<adar5giahvd.fsf@cisco.com> <037101cb5c39$b98036f0$2c80a4d0$@edu> <adamxr6ahd3.fsf@cisco.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <AANLkTimM3Lpmt3JLgbCtuCjqFjNb8AkvBpdzpN7Sx978@mail.gmail.com>
-Sender: netdev-owner@vger.kernel.org
-To: Bart Van Assche <bvanassche@acm.org>
-Cc: linux-rdma@vger.kernel.org, linux-rdma-owner@vger.kernel.org, netdev@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <adamxr6ahd3.fsf-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jack Morgenstein <jackm-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
+Cc: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Bharath Ramesh <bramesh-PjAqaU27lzQ@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+Roland Dreier wrote:
+>> max_mr_size returned by calling ibv_devinfo is 0xffffffffffffffff. Does this mean the size is unlimited?
+> It means that the query function might be returning bad data.  What adapter is it?
 
+Yep, mlx4_ib_query_device does props->max_mr_size = ~0ull ... 
 
-linux-rdma-owner@vger.kernel.org wrote on 10/06/2010 07:57:29 PM:
+Jack, what would it take to fix that? I took a look and other settings are taken from 
+dev->dev->caps.xxx where caps is of type mlx4_caps which is in turn filled @ drivers/net/mlx4/main.c 
+:: mlx4_dev_cap I wasn't sure what field/computation would exactly account for later setting max_mr_size
 
-> On Tue, Oct 5, 2010 at 8:55 AM, Bernard Metzler <bmt@zurich.ibm.com>
-wrote:
-> >
-> > [ ... ]
-> > +int
-> > +siw_qp_modify(struct siw_qp *qp, struct siw_qp_attrs *attrs,
-> > + =A0 =A0 =A0 =A0 =A0 =A0 enum siw_qp_attr_mask mask)
-> > +{
-> > [ ... ]
-> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 case SIW_QP_STATE_ERROR:
-> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 siw_rq_flush(qp);
-> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 qp->attrs.state =3D S=
-IW_QP_STATE_ERROR;
-> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 drop_conn =3D 1;
-> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 break;
->
-> At least for InfiniBand when the state of a queue pair is changed to
-> Error, work requests must be completed in error. The above code just
-> flushes pending work requests. That doesn't look correct to me.
->
-> A quote from the InfiniBand Architecture Specification, table 91, QP
-> State Transition Properties:
->
-> Any state to Reset: QP attributes are reset to the same values after
-> the QP was created. Outstanding Work Requests are removed from the
-> queues without notifying the Consumer.
->
-right. i was trying to follow the verbs specification, which makes the
-same statement - see sec. 6.2.4 of the Hilland vers:
-
-The following is done on entry into the Error state:
-
-   *   The RI MUST flush any incomplete WRs on the SQ or RQ. All WQEs
-       on the SQ and RQ, except for the WQE that caused the error (if
-       any), MUST be returned with the Flushed Error Completion Status
-       through the Completion Queue associated with the WQ.
-
-following that, siw_rq_flush() flushes to the CQ. so, i think, we are
-in sync here (the code flushes only the RQ to the CQ here, since we com=
-e
-from IDLE or RTR, which must not have anything on the SQ).
-
-
-thanks,
-bernard.
-
+Or.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
