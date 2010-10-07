@@ -1,65 +1,65 @@
-From: Dan Carpenter <error27-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: [patch] infiniband: uverbs: limit the number of entries
-Date: Thu, 7 Oct 2010 09:16:10 +0200
-Message-ID: <20101007071610.GC11681@bicker>
+From: Bernard Metzler <BMT@zurich.ibm.com>
+Subject: Re: [PATCH] SIW: Queue pair
+Date: Thu, 7 Oct 2010 11:21:05 +0200
+Message-ID: <OFB2B4DC29.734DA538-ONC12577B5.00304CFF-C12577B5.00335EA8@ch.ibm.com>
+References: <AANLkTimM3Lpmt3JLgbCtuCjqFjNb8AkvBpdzpN7Sx978@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <AANLkTimM3Lpmt3JLgbCtuCjqFjNb8AkvBpdzpN7Sx978@mail.gmail.com>
+Sender: netdev-owner@vger.kernel.org
+To: Bart Van Assche <bvanassche@acm.org>
+Cc: linux-rdma@vger.kernel.org, linux-rdma-owner@vger.kernel.org, netdev@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-If we don't limit cmd.ne then the multiplications can overflow.  This
-will allocate a small amount of RAM successfully for the "resp" and
-"wc" buffers.  The heap will get corrupted when we call ib_poll_cq().
 
-Documentation/infiniband/user_verbs.txt suggests this function is meant
-for unprivileged access.
 
-I chose to limit the number of entries to 1000.  That limits the
-allocations to 52kb of RAM at the most.  I didn't want to choose a
-lower number and break userspace for someone.
+linux-rdma-owner@vger.kernel.org wrote on 10/06/2010 07:57:29 PM:
 
-Also we don't necessarily fill the "resp" buffer so I changed the
-kmalloc() to a kzalloc() to avoid an information leak.
+> On Tue, Oct 5, 2010 at 8:55 AM, Bernard Metzler <bmt@zurich.ibm.com>
+wrote:
+> >
+> > [ ... ]
+> > +int
+> > +siw_qp_modify(struct siw_qp *qp, struct siw_qp_attrs *attrs,
+> > + =A0 =A0 =A0 =A0 =A0 =A0 enum siw_qp_attr_mask mask)
+> > +{
+> > [ ... ]
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 case SIW_QP_STATE_ERROR:
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 siw_rq_flush(qp);
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 qp->attrs.state =3D S=
+IW_QP_STATE_ERROR;
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 drop_conn =3D 1;
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 break;
+>
+> At least for InfiniBand when the state of a queue pair is changed to
+> Error, work requests must be completed in error. The above code just
+> flushes pending work requests. That doesn't look correct to me.
+>
+> A quote from the InfiniBand Architecture Specification, table 91, QP
+> State Transition Properties:
+>
+> Any state to Reset: QP attributes are reset to the same values after
+> the QP was created. Outstanding Work Requests are removed from the
+> queues without notifying the Consumer.
+>
+right. i was trying to follow the verbs specification, which makes the
+same statement - see sec. 6.2.4 of the Hilland vers:
 
-CC: stable-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-Signed-off-by: Dan Carpenter <error27-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+The following is done on entry into the Error state:
 
-diff --git a/drivers/infiniband/core/uverbs.h b/drivers/infiniband/core/uverbs.h
---- a/drivers/infiniband/core/uverbs.h
-+++ b/drivers/infiniband/core/uverbs.h
-@@ -162,6 +162,7 @@ void ib_uverbs_srq_event_handler(struct ib_event *event, void *context_ptr);
- void ib_uverbs_event_handler(struct ib_event_handler *handler,
- 			     struct ib_event *event);
- 
-+#define UVERBS_MAX_NUM_ENTRIES 1000
- #define IB_UVERBS_DECLARE_CMD(name)					\
- 	ssize_t ib_uverbs_##name(struct ib_uverbs_file *file,		\
- 				 const char __user *buf, int in_len,	\
-diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
---- a/drivers/infiniband/core/uverbs_cmd.c
-+++ b/drivers/infiniband/core/uverbs_cmd.c
-@@ -906,12 +906,15 @@ ssize_t ib_uverbs_poll_cq(struct ib_uverbs_file *file,
- 	if (copy_from_user(&cmd, buf, sizeof cmd))
- 		return -EFAULT;
- 
-+	if (cmd.ne > UVERBS_MAX_NUM_ENTRIES)
-+		return -EINVAL;
-+
- 	wc = kmalloc(cmd.ne * sizeof *wc, GFP_KERNEL);
- 	if (!wc)
- 		return -ENOMEM;
- 
- 	rsize = sizeof *resp + cmd.ne * sizeof(struct ib_uverbs_wc);
--	resp = kmalloc(rsize, GFP_KERNEL);
-+	resp = kzalloc(rsize, GFP_KERNEL);
- 	if (!resp) {
- 		ret = -ENOMEM;
- 		goto out_wc;
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+   *   The RI MUST flush any incomplete WRs on the SQ or RQ. All WQEs
+       on the SQ and RQ, except for the WQE that caused the error (if
+       any), MUST be returned with the Flushed Error Completion Status
+       through the Completion Queue associated with the WQ.
+
+following that, siw_rq_flush() flushes to the CQ. so, i think, we are
+in sync here (the code flushes only the RQ to the CQ here, since we com=
+e
+from IDLE or RTR, which must not have anything on the SQ).
+
+
+thanks,
+bernard.
+
