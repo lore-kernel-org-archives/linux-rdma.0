@@ -1,43 +1,28 @@
-From: Jeff Becker <Jeffrey.C.Becker-NSQ8wuThN14@public.gmane.org>
-Subject: Re: git dead?
-Date: Thu, 7 Oct 2010 08:56:39 -0700
-Message-ID: <4CADEDB7.1030002@nasa.gov>
-References: <AANLkTinKZbW2tE5dw7nGuhcQTRq-iFSTkh6N7tfuNowW@mail.gmail.com> <2EFBCAEF10980645BBCFB605689E08E904A5A38EE7@azsmsx506.amr.corp.intel.com> <AANLkTim9DUs79j1G3QZ1yK=VNnN=xHLYUP3MkUiRcuPQ@mail.gmail.com> <4CACFBCF.3030802@nasa.gov> <AANLkTi=eexv+4TqbO4x_fUy_9yzL3A=+RX4-RGWV9B0_@mail.gmail.com> <4CAD05DE.2020605@nasa.gov> <AANLkTi=hpPRnDHvWN0aE8w_kRKAtk9QGWESe-BYM0TUt@mail.gmail.com> <4CAD083D.20303@nasa.gov> <20101007020556.GA19512@obsidianresearch.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [patch] infiniband: uverbs: limit the number of entries
+Date: Thu, 7 Oct 2010 10:16:49 -0600
+Message-ID: <20101007161649.GD21206@obsidianresearch.com>
+References: <20101007071610.GC11681@bicker>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20101007020556.GA19512-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20101007071610.GC11681@bicker>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Josh England <jjengla-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "Tung, Chien Tin" <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Linux RDMA list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Peeyush-+SHkuY4UpUhWk0Htik3J/w@public.gmane.org" <Peeyush-+SHkuY4UpUhWk0Htik3J/w@public.gmane.org>, Anupam Saha <anupam.saha-+SHkuY4UpUhWk0Htik3J/w@public.gmane.org>, Ashok Reddy <ashok.reddy-+SHkuY4UpUhWk0Htik3J/w@public.gmane.org>
+To: Dan Carpenter <error27-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
- On 10/06/10 19:05, Jason Gunthorpe wrote:
-> On Wed, Oct 06, 2010 at 04:37:33PM -0700, Jeff Becker wrote:
->>  On 10/06/10 16:32, Josh England wrote:
->>> Yeah I tried that.  It gives me:
->>> fatal: The remote end hung up unexpectedly
->> You're right.  Onsumaye folks - can you see what's wrong with the git
->> daemon? Thanks.
-> Seems fine here:
+On Thu, Oct 07, 2010 at 09:16:10AM +0200, Dan Carpenter wrote:
+> If we don't limit cmd.ne then the multiplications can overflow.  This
+> will allocate a small amount of RAM successfully for the "resp" and
+> "wc" buffers.  The heap will get corrupted when we call ib_poll_cq().
 
-Yes you're right - I had an extra /git in my URL. Sorry for the SPAM.
+I think you could cap the number of returned entries to
+UVERBS_MAX_NUM_ENTRIES rather than return EINVAL. That might be more
+compatible with user space..
 
--jeff
-
-> wakko{jgg}/tmp#git clone git://git.openfabrics.org/ofed_1_5/linux-2.6.git
-> Initialized empty Git repository in /tmp/linux-2.6/.git/
-> ^Cmote: Counting objects: 152715   
-> wakko{jgg}/tmp#host git.openfabrics.org
-> git.openfabrics.org is an alias for openfabrics.org.
-> openfabrics.org has address 69.55.231.68
-> openfabrics.org mail is handled by 10 lists.openfabrics.org.
-> wakko{jgg}/tmp#git version
-> git version 1.7.1
->
-> Jason
-
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
