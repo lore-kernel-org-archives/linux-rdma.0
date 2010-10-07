@@ -1,29 +1,55 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: Where is the latest GIT for opensm?
-Date: Thu, 7 Oct 2010 10:50:31 -0600
-Message-ID: <20101007165031.GL24268@obsidianresearch.com>
-References: <20101007023314.GA21206@obsidianresearch.com> <4CADEB86.10408@nasa.gov>
+From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Subject: SRP submaintainership
+Date: Thu, 07 Oct 2010 09:54:24 -0700
+Message-ID: <adatyky3pvj.fsf@cisco.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <4CADEB86.10408-NSQ8wuThN14@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jeff Becker <Jeffrey.C.Becker-NSQ8wuThN14@public.gmane.org>
-Cc: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>, Linux RDMA list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org" <ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>, Vladimir Sokolovsky <vlad-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Oct 07, 2010 at 08:47:18AM -0700, Jeff Becker wrote:
+Dave Dillow has been involved with both kernel development and SRP for
+a long time, and I trust Dave's technical judgement and good taste
+about the SRP code.  Dave has graciously agreed to serve as a
+submaintainer for the SRP initiator, which should mean that SRP
+patches will get more focus and also free me to spend more time on
+other maintenance/patch review.
 
-> It would be great if developers could move their git repo's to the new
-> server so OFA can stop using (and paying) for the old server. Vlad sent
-> out a note about this earlier.
+Thanks Dave!
 
-I hate to say it, but could you just rsync everything over, maybe into
-a archival dir or something? It would really suck to loose any of the
-repositories.
+ - Roland
 
-Jason
+===
+
+MAINTAINERS: Hand off SCSI RDMA Protocol (SRP) initiator to Dave Dillow
+
+Signed-off-by: Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+---
+ MAINTAINERS |   10 ++++++++++
+ 1 files changed, 10 insertions(+), 0 deletions(-)
+
+diff --git a/MAINTAINERS b/MAINTAINERS
+index f46d8e6..1c72a42 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -5041,6 +5041,16 @@ W:	http://www.kernel.dk
+ S:	Maintained
+ F:	drivers/scsi/sr*
+ 
++SCSI RDMA PROTOCOL (SRP) INITIATOR
++M:	David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>
++L:	linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
++S:	Supported
++W:	http://www.openfabrics.org
++Q:	http://patchwork.kernel.org/project/linux-rdma/list/
++T:	git git://git.kernel.org/pub/scm/linux/kernel/git/dad/srp-initiator.git
++F:	drivers/infiniband/ulp/srp/
++F:	include/scsi/srp.h
++
+ SCSI SG DRIVER
+ M:	Doug Gilbert <dgilbert-qazKcTl6WRFWk0Htik3J/w@public.gmane.org>
+ L:	linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
