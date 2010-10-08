@@ -1,30 +1,65 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: What happened to ~shefty/libibcm.git?
-Date: Thu, 7 Oct 2010 16:48:33 -0700
-Message-ID: <CF9C39F99A89134C9CF9C4CCB68B8DDF25B788D29E@orsmsx501.amr.corp.intel.com>
-References: <20101007022424.GB19512@obsidianresearch.com>
- <20101007034508.GC21206@obsidianresearch.com>
- <CF9C39F99A89134C9CF9C4CCB68B8DDF25B788C995@orsmsx501.amr.corp.intel.com>
- <20101007234043.GN24268@obsidianresearch.com>
+From: Nicolas Palix <Nicolas.Palix-MZpvjPyXg2s@public.gmane.org>
+Subject: Re: [patch] infiniband: uverbs: limit the number of entries
+Date: Fri, 8 Oct 2010 09:59:47 +0200
+Message-ID: <AANLkTin5zou2JHsdDyhGESuxyPonOs3kLo9Th0vg-kd8@mail.gmail.com>
+References: <20101007071610.GC11681@bicker>
+	<20101007161649.GD21206@obsidianresearch.com>
+	<20101007165947.GD11681@bicker>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20101007234043.GN24268-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <20101007165947.GD11681@bicker>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Jeff Becker <Jeffrey.C.Becker-NSQ8wuThN14@public.gmane.org>, Linux RDMA list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Dan Carpenter <error27-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, kernel-janitors <kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> Could you also
-> 
-> git tag v1.0.8 78e67b72a15380e93273951b63ea85f1129d5946
-> 
-> on librdmacm?
+Hi,
 
-done - also added a couple of other missing version tags 
+On Thu, Oct 7, 2010 at 6:59 PM, Dan Carpenter <error27-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote=
+:
+> On Thu, Oct 07, 2010 at 10:16:49AM -0600, Jason Gunthorpe wrote:
+>> On Thu, Oct 07, 2010 at 09:16:10AM +0200, Dan Carpenter wrote:
+>> > If we don't limit cmd.ne then the multiplications can overflow. =A0=
+This
+>> > will allocate a small amount of RAM successfully for the "resp" an=
+d
+>> > "wc" buffers. =A0The heap will get corrupted when we call ib_poll_=
+cq().
+>>
+>> I think you could cap the number of returned entries to
+>> UVERBS_MAX_NUM_ENTRIES rather than return EINVAL. That might be more
+>> compatible with user space..
+>>
+>
+> Good idea. =A0I don't actually have this hardware, so I can't test it=
+, but
+> that definitely sounds reasonable.
+>
+> If we did that then UVERBS_MAX_NUM_ENTRIES could be lower than 1000.
+> What is a reasonable number?
+
+You can also use kcalloc to allocate wc.
+
+>
+> regards,
+> dan carpenter
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe kernel-jani=
+tors" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
+>
+
+
+
+--=20
+Nicolas Palix
+Tel: +33 6 81 07 91 72
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
