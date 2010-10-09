@@ -1,48 +1,49 @@
-From: Bernard Metzler <BMT-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>
-Subject: Re: [PATCH] SIW: Object management
-Date: Sat, 9 Oct 2010 16:10:46 +0200
-Message-ID: <OF1E676C64.A340B840-ONC12577B7.0049A69D-C12577B7.004DE449@ch.ibm.com>
-References: <1286261665-5175-1-git-send-email-bmt@zurich.ibm.com> <4CAB35A8.6080906@opengridcomputing.com> <OF706D1D5F.5849676F-ONC12577B3.004FB763-C12577B3.00521572@ch.ibm.com> <4CAB3E0D.8050609@opengridcomputing.com> <OFFCB10B70.3E1CC39D-ONC12577B3.0053113C-C12577B3.0054C076@ch.ibm.com> <4CAB464D.5030702@opengridcomputing.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [patch] infiniband: uverbs: limit the number of entries
+Date: Sat, 9 Oct 2010 17:16:07 -0600
+Message-ID: <20101009231607.GA24649@obsidianresearch.com>
+References: <20101007071610.GC11681@bicker> <20101007161649.GD21206@obsidianresearch.com> <20101007165947.GD11681@bicker>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="US-ASCII"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4CAB464D.5030702-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20101007165947.GD11681@bicker>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+To: Dan Carpenter <error27-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-<snip>
-
+On Thu, Oct 07, 2010 at 06:59:47PM +0200, Dan Carpenter wrote:
+> On Thu, Oct 07, 2010 at 10:16:49AM -0600, Jason Gunthorpe wrote:
+> > On Thu, Oct 07, 2010 at 09:16:10AM +0200, Dan Carpenter wrote:
+> > > If we don't limit cmd.ne then the multiplications can overflow.  This
+> > > will allocate a small amount of RAM successfully for the "resp" and
+> > > "wc" buffers.  The heap will get corrupted when we call ib_poll_cq().
 > > 
-> >> the post_send/recv and other functions in your driver are called
-> >> directly (almost) by kernel users like NFSRDMA.  These users may be
-> >> calling in an interrupt context and thus you cannot block/sleep.
-> >>
-> >> 
-> > OK, very convincing. not a big change since siw_wqe_get/_put()
-> > already maintain a list of pre-allocated wqe's (currently for
-> > the read.responses).
-> > but, would it be ok if the code distinguishes between user
-> > land and in-kernel consumers? i would be very happy if we could
-> > keep the pre-allocations per user land connection to its very
-> > minimum...
-> >
+> > I think you could cap the number of returned entries to
+> > UVERBS_MAX_NUM_ENTRIES rather than return EINVAL. That might be more
+> > compatible with user space..
 > > 
 > 
-> I think that's ok, but its bending the core locking rules a little I 
-> guess.  But the intent is that kernel users can definitely 
-> send/recv/poll in interrupt context, so possibly blocking for user mode 
-> QPs in on-kernel-bypass operations is probably ok...
-> 
-i think its best if the code can be optimized this way. i will provide
-a patch following down that path soon after i am back from vacation
-(next week i am off).
-while respecting the specific kernel user requirements, i really want
-to keep memory allocations small for user land applications. 
+> Good idea.  I don't actually have this hardware, so I can't test it, but
+> that definitely sounds reasonable.
 
-thanks,
-bernard.
+I was just writing some code related to this, and I'm not so sure
+anymore. The problem is that the CQ has to be fully drained to properly
+synchronize with the edge triggered poll. I was just about to write
+a check that assumes it is drained based on returning not equal to
+what was requested rather than calling it again and possibly getting 0
+back.
+
+I'm wondering if other apps have done something like this? Things
+will 'work' but it introduces a subtle race condition with CQ draining
+and CQ poll events. 
+
+I guess the ideal thing would be to code this routine to handle
+an arbitary count without allocating arbitary memory - by copying
+to user space in limited batches.
+
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
