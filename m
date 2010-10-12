@@ -1,39 +1,31 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [RFC 0/2] IB/umad: Export mad snooping to userspace
-Date: Tue, 12 Oct 2010 14:35:28 -0600
-Message-ID: <20101012203528.GP24268@obsidianresearch.com>
-References: <CF9C39F99A89134C9CF9C4CCB68B8DDF25B7DAA11D@orsmsx501.amr.corp.intel.com>
+From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH] mlx4: Limit num of fast reg WRs
+Date: Tue, 12 Oct 2010 13:37:37 -0700
+Message-ID: <adad3rf171q.fsf@cisco.com>
+References: <20101007142416.GA11518@mtldesk30>
+	<AANLkTinKiBHOT2sSA+_s5CGhqC8nEoDTp2_pGmo6MrQp@mail.gmail.com>
+	<20101012081955.GB1617@mtldesk30>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <CF9C39F99A89134C9CF9C4CCB68B8DDF25B7DAA11D-osO9UTpF0USkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
+In-Reply-To: <20101012081955.GB1617@mtldesk30> (Eli Cohen's message of "Tue,
+	12 Oct 2010 10:19:55 +0200")
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Linux RDMA list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, RDMA list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Oct 12, 2010 at 12:10:37PM -0700, Hefty, Sean wrote:
-> The kernel mad interface allows a client to view all
-> sent and received MADs.  This has proven to be a useful
-> debugging technique when paired with the external kernel
-> module, madeye.  However, madeye was never intended to
-> be submitted upstream.
-> 
-> A couple of alternatives have been proposed for making
-> this functionality available in the upstream kernel,
-> using trace events or exporting the snooping interface
-> to user space.  This patch series takes the latter approach.
+ > After I posted this patch, I was told that there is yet another
+ > constraint on the page list: The buffer containing the list must not
+ > cross a page boundary. So I was thinking what is the best way to deal
+ > with this. One way is to always allocate a whole page and map it using
+ > dma_map_page(page, DMA_TO_DEVICE), something like this (not a complete
+ > patch, just the idea).
 
-TBH, I think this would be much better off integrating with the
-existing paths tcpdump/setc uses rather than yet again something new
-and unique. I think everone who has to actually use the IB stuff in
-real life would be estatic if wireshark just worked...
+Is there any chance of the dma_alloc_coherent() in the current code
+allocating memory that crosses a page boundary?
 
-Yes, I realize that is a bit awkward.. But maybe it is time we had a
-netdev for the raw IB device?
-
-Jason
+ - R.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
