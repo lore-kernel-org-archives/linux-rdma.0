@@ -1,55 +1,114 @@
-From: "Young, Eric R." <Eric.Young-itBhTGHPdi0@public.gmane.org>
-Subject: Trying to link with DAT 2.0 function
-Date: Tue, 12 Oct 2010 08:15:50 -0500
-Message-ID: <1F77938CC2143D47AE7204B1DB33104C02C9FE84@XMBIL151.northgrum.com>
-References: <1F77938CC2143D47AE7204B1DB33104C02C9FC57@XMBIL151.northgrum.com> <E3280858FA94444CA49D2BA02341C983011B575529@orsmsx506.amr.corp.intel.com> <1F77938CC2143D47AE7204B1DB33104C02C9FD0E@XMBIL151.northgrum.com> <E3280858FA94444CA49D2BA02341C983011B5755C8@orsmsx506.amr.corp.intel.com>
+From: Alekseys Senin <alekseys-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH] Make multicast and path record queue flexible.
+Date: Tue, 12 Oct 2010 18:29:53 +0200
+Message-ID: <1286900993.31931.4.camel@alst60.voltaire.com>
+References: <4CAB4D49.9090107@voltaire.com>
+	<20101005162833.GC5967@obsidianresearch.com>
+	<alpine.DEB.2.00.1010051410370.7065@router.home>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-class: urn:content-classes:message
-In-Reply-To: <E3280858FA94444CA49D2BA02341C983011B5755C8-osO9UTpF0URZtRGVdHMbwrfspsVTdybXVpNB7YpNyf8@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Davis, Arlin R" <arlin.r.davis-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: multipart/mixed; boundary="===============1595360084=="
+Return-path: <ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+In-Reply-To: <alpine.DEB.2.00.1010051410370.7065-sBS69tsa9Uj/9pzu0YdTqQ@public.gmane.org>
+List-Unsubscribe: <http://lists.openfabrics.org/cgi-bin/mailman/options/ewg>,
+	<mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.openfabrics.org/pipermail/ewg>
+List-Post: <mailto:ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+List-Help: <mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=help>
+List-Subscribe: <http://lists.openfabrics.org/cgi-bin/mailman/listinfo/ewg>,
+	<mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=subscribe>
+Sender: ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
+Errors-To: ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
+To: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
+Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org" <ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>, Moni Shoua <monis-smomgflXvOZWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-My motivation for using the dat_cno_fd_create() is that I am able
-register a file descriptor with a reactor (all events go through a
-reactor which has multiple I/O including I/O which is not at all tied to
-uDAPL). An application is able to work on other tasks while waiting for
-the reactor to call back on the file descriptor when an event is
-available. To achieve the same behavior with a dat_cno_wait(), I would
-have to spawn off another thread which blocks on dat_cno_wait(), then
-notify the reactor (to queue up a reactor event) when the dat_cno_wait()
-is unblocked, lock critical sections of code, etc.,. If the
-dat_cno_fd_create() function was available to me, it would seem to be a
-cleaner way to achieve this functionality.
 
------Original Message-----
-From: Davis, Arlin R [mailto:arlin.r.davis-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org] 
-Sent: Monday, October 11, 2010 5:34 PM
-To: Young, Eric R.; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Subject: EXTERNAL:RE: Trying to link with DAT 2.0 function
-
->Do you have a roadmap available? Is this planned to be implemented in
->the near future?
-
-There are no plans. I really don't know how this call even made
-it in the specification given that DAT is suppose to be O/S agnostic.
-
-In any case, can you use dat_cno_wait() on top of the EVD's 
-as a means to support/trigger multiple event streams? What is driving 
-your choice to use dat_cno_fd_create()? Maybe we can come up 
-with an alternative with the existing API.
-
-Arlin
+--===============1595360084==
+Content-Type: multipart/alternative; boundary="=-Wbm23kuh5QFHgUP2vSmY"
 
 
+--=-Wbm23kuh5QFHgUP2vSmY
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
+
+On Tue, 2010-10-05 at 14:12 -0500, Christoph Lameter wrote:
+
+> On Tue, 5 Oct 2010, Jason Gunthorpe wrote:
+>=20
+> > On Tue, Oct 05, 2010 at 06:07:37PM +0200, Aleksey Senin wrote:
+> > > When using slow SM allow more packets to be buffered before answer
+> > > comming back. This patch based on idea of Christoph Lameter.
+> > >
+> > > http://lists.openfabrics.org/pipermail/general/2009-June/059853.html
+> >
+> > IMHO, I think it is better to send multicasts to the broadcast MLID tha=
+n to
+> > queue them.. More like ethernet that way.
+>=20
+> I agree. We had similar ideas. However, the kernel does send igmp
+> reports to the MC address not to 244.0.0.2. We would have to redirect at
+> the IB layer until multicast via MLID becomes functional. We cannot tell
+> when that will be the case.
+>=20
+>=20
 
 
+But what if it will not be available from some reason? How long should
+we wait? Do we need implement another queue/counter/timeout?=20
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--=-Wbm23kuh5QFHgUP2vSmY
+Content-Type: text/html; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 TRANSITIONAL//EN">
+<HTML>
+<HEAD>
+  <META HTTP-EQUIV=3D"Content-Type" CONTENT=3D"text/html; CHARSET=3DUTF-8">
+  <META NAME=3D"GENERATOR" CONTENT=3D"GtkHTML/3.28.2">
+</HEAD>
+<BODY>
+On Tue, 2010-10-05 at 14:12 -0500, Christoph Lameter wrote:
+<BLOCKQUOTE TYPE=3DCITE>
+<PRE>
+On Tue, 5 Oct 2010, Jason Gunthorpe wrote:
+
+&gt; On Tue, Oct 05, 2010 at 06:07:37PM +0200, Aleksey Senin wrote:
+&gt; &gt; When using slow SM allow more packets to be buffered before answe=
+r
+&gt; &gt; comming back. This patch based on idea of Christoph Lameter.
+&gt; &gt;
+&gt; &gt; <A HREF=3D"http://lists.openfabrics.org/pipermail/general/2009-Ju=
+ne/059853.html">http://lists.openfabrics.org/pipermail/general/2009-June/05=
+9853.html</A>
+&gt;
+&gt; IMHO, I think it is better to send multicasts to the broadcast MLID th=
+an to
+&gt; queue them.. More like ethernet that way.
+
+I agree. We had similar ideas. However, the kernel does send igmp
+reports to the MC address not to 244.0.0.2. We would have to redirect at
+the IB layer until multicast via MLID becomes functional. We cannot tell
+when that will be the case.
+
+
+</PRE>
+</BLOCKQUOTE>
+<BR>
+But what if it will not be available from some reason? How long should we w=
+ait? Do we need implement another queue/counter/timeout?=20
+</BODY>
+</HTML>
+
+--=-Wbm23kuh5QFHgUP2vSmY--
+
+--===============1595360084==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+ewg mailing list
+ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
+http://lists.openfabrics.org/cgi-bin/mailman/listinfo/ewg
+--===============1595360084==--
