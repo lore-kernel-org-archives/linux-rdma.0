@@ -1,29 +1,29 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [RFC 0/2] IB/umad: Export mad snooping to userspace
-Date: Tue, 12 Oct 2010 15:10:52 -0600
-Message-ID: <20101012211052.GT24268@obsidianresearch.com>
-References: <CF9C39F99A89134C9CF9C4CCB68B8DDF25B7DAA11D@orsmsx501.amr.corp.intel.com> <20101012203528.GP24268@obsidianresearch.com> <CF9C39F99A89134C9CF9C4CCB68B8DDF25B7DAA2A6@orsmsx501.amr.corp.intel.com>
+From: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH] mlx4: Limit num of fast reg WRs
+Date: Tue, 12 Oct 2010 22:44:32 +0200
+Message-ID: <20101012204432.GE1617@mtldesk30>
+References: <20101007142416.GA11518@mtldesk30>
+ <AANLkTinKiBHOT2sSA+_s5CGhqC8nEoDTp2_pGmo6MrQp@mail.gmail.com>
+ <20101012081955.GB1617@mtldesk30>
+ <adad3rf171q.fsf@cisco.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <CF9C39F99A89134C9CF9C4CCB68B8DDF25B7DAA2A6-osO9UTpF0USkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
+In-Reply-To: <adad3rf171q.fsf-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Linux RDMA list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Cc: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, RDMA list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Oct 12, 2010 at 01:54:54PM -0700, Hefty, Sean wrote:
-> > TBH, I think this would be much better off integrating with the
-> > existing paths tcpdump/setc uses rather than yet again something new
+On Tue, Oct 12, 2010 at 01:37:37PM -0700, Roland Dreier wrote:
 > 
-> This ties in with the existing MAD interface, which isn't going away
-> anytime soon, if ever.
+> Is there any chance of the dma_alloc_coherent() in the current code
+> allocating memory that crosses a page boundary?
+> 
 
-I didn't say the MAD interface was going away, I said it was not the
-interface everything else in the kernel uses for packet capture.
-
-Jason
+You mean that the allocation is aligned at least to its size? I could
+not find any commitment to this anywhere.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
