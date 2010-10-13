@@ -1,55 +1,89 @@
-From: Stephen Rothwell <sfr-3FnU+UHB4dNDw9hX6IcOSA@public.gmane.org>
-Subject: linux-next: manual merge of the bkl-llseek tree with the infiniband
- tree
-Date: Wed, 13 Oct 2010 14:32:29 +1100
-Message-ID: <20101013143229.fc579ee4.sfr@canb.auug.org.au>
+From: Dan Carpenter <error27-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [patch v3] infiniband: uverbs: handle large number of entries
+Date: Wed, 13 Oct 2010 11:05:07 +0200
+Message-ID: <20101013090507.GA6060@bicker>
+References: <20101007071610.GC11681@bicker> <20101007161649.GD21206@obsidianresearch.com> <20101007165947.GD11681@bicker> <20101009231607.GA24649@obsidianresearch.com> <20101012113117.GB6742@bicker> <20101012210118.GR24268@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; protocol="application/pgp-signature";
- micalg="PGP-SHA1";
- boundary="Signature=_Wed__13_Oct_2010_14_32_29_+1100_EB_bHW5lctvxejg+"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20101012210118.GR24268-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
-Cc: linux-next-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
---Signature=_Wed__13_Oct_2010_14_32_29_+1100_EB_bHW5lctvxejg+
-Content-Type: text/plain; charset=US-ASCII
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On Tue, Oct 12, 2010 at 03:01:18PM -0600, Jason Gunthorpe wrote:
+> On Tue, Oct 12, 2010 at 01:31:17PM +0200, Dan Carpenter wrote:
+> > In the original code there was a potential integer overflow if you
+> > passed in a large cmd.ne.  The calls to kmalloc() would allocate smaller
+> > buffers than intended, leading to memory corruption.
+> 
+> Keep in mind these are probably performance sensitive APIs, I was
+> imagining batching a small number and they copy_to_user ? No idea what
+> the various performance trades offs are..
+> 
+> > Please, please, check this.  I've think I've done it right, but I don't
+> > have the hardware and can not test it.
+> 
+> Nor, do I.. I actually don't know what hardware uses this path? The
+> Mellanox cards use a user-space only version.
+>  
+> Maybe an iwarp card? I kinda recall some recent messages concerning
+> memory allocations in these paths for iwarp. I wonder if removing the
+> allocation is such a big win the larger number of copy_to_user calls
+> does not matter?
+> 
 
-Hi Arnd,
+Who knows?
 
-Today's linux-next merge of the bkl-llseek tree got a conflict in
-drivers/infiniband/hw/cxgb4/device.c between commit
-8bbac892fb75d20fa274ca026e24faf00afbf9dd ("RDMA/cxgb4: Add default_llseek
-to debugfs files") from the infiniband tree and commit
-9711569d06e7df5f02a943fc4138fb152526e719 ("llseek: automatically
-add .llseek fop") from the bkl-llseek tree.
+The reason I'm writing this is to fix a potential security issue, but I
+think that viewed from a holistic perspective this patch is also a
+performance improvement over the original code because it avoids the big
+kmalloc()s.  Doing the copy_to_user() in batches of PAGE_SIZE might be
+better but it's more complicated and I'm very lazy... :/  If someone
+steps up to do the benchmarks then I might take a look at it.
 
-Not really a conflict.  The infiniband tree patch is a superset of the
-part of the bkl-llseek commit that affects this file.
---=20
-Cheers,
-Stephen Rothwell                    sfr-3FnU+UHB4dNDw9hX6IcOSA@public.gmane.org
-http://www.canb.auug.org.au/~sfr/
+> > It's strange to me that we return "in_len" on success.
+> 
+> Agree..
+> 
+> > +static int copy_header_to_user(void __user *dest, u32 count)
+> > +{
+> > +	u32 header[2];  /* the second u32 is reserved */
+> > +
+> > +	memset(header, 0, sizeof(header));
+> 
+> Don't you need header[0] = count ?
+> 
 
---Signature=_Wed__13_Oct_2010_14_32_29_+1100_EB_bHW5lctvxejg+
-Content-Type: application/pgp-signature
+Yes.  Thank you for catching that.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.10 (GNU/Linux)
+> Maybe:
+>   u32 header[2] = {count};
+> 
+> And let the compiler 0 the other word optimally. Also, I'm not matters
+> here, since you are zeroing user memory that isn't currently used..
 
-iQEcBAEBAgAGBQJMtShNAAoJEDMEi1NhKgbs3owH/jJReSEeLFwAYGRwqa9WEr5d
-v49RgXTm5rCA9NtDQwApxTQ0N3BXYoPhdUalAQ0A4FNn24DCpOuJ0NIQhIIfS0Kn
-n5HO0bo7itLEh01rY6s6XHTrk/mzcbHiP5GRvBU/Z164KE/HuWWBDLOvR3i/VvmA
-CaDeyGd7S+eiP4pvUg0iqm9OgXNI/Umvvemp4BQ3Ee86MwPJY4gt9f9ReosRJhvG
-x0rpdyMtU+I45HV4Dl4+kx+yUBV/oOqboV6Y718uWOKSZtmY2tM5HGT0qXFjDXh8
-56/qUy2SwK8Bw1f8SAOIVoncdkrUWhohArjfcPSx00AeQS2j1Ix3RRgxNHICcmk=
-=3JCm
------END PGP SIGNATURE-----
+It does matter, because we don't want to leak information to the user.
 
---Signature=_Wed__13_Oct_2010_14_32_29_+1100_EB_bHW5lctvxejg+--
+> 
+> > +static int copy_wc_to_user(void __user *dest, struct ib_wc *wc)
+> > +{
+> > +	struct ib_uverbs_wc tmp;
+> > +
+> > +	memset(&tmp, 0, sizeof(tmp));
+> 
+> I'd really like to see that memset go away for performance. Again
+> maybe use named initializers and let the compiler zero the
+> uninitialized (does it zero padding, I wonder?). Or pre-zero this
+> memory outside the loop..
+> 
+
+Good idea.  Yes, it does do zero padding.
+
+regards,
+dan carpenter
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
