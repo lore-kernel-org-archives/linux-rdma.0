@@ -1,171 +1,100 @@
-From: Dan Carpenter <error27-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: [patch v4] infiniband: uverbs: handle large number of entries
-Date: Wed, 13 Oct 2010 11:13:12 +0200
-Message-ID: <20101013091312.GB6060@bicker>
-References: <20101007071610.GC11681@bicker> <20101007161649.GD21206@obsidianresearch.com> <20101007165947.GD11681@bicker> <20101009231607.GA24649@obsidianresearch.com> <20101012113117.GB6742@bicker> <20101012210118.GR24268@obsidianresearch.com>
+From: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: Work completions generated after a queue pair has made the
+ transition to an error state
+Date: Wed, 13 Oct 2010 14:37:04 +0200
+Message-ID: <AANLkTikTqs3NoUiOXcQn+ACxRnHNdbDmQvtafxtfK5H9@mail.gmail.com>
+References: <AANLkTimcxsymqmzoki=quCH+a2sq_fPb4YOmf3gqrzqh@mail.gmail.com>
+	<1286909435.27343.93.camel@chromite.mv.qlogic.com>
+	<AANLkTi=72Y+coH1Ke4U-Xk7Eaqpw5pipWRqXEQr7dOau@mail.gmail.com>
+	<20101012202221.GD1617@mtldesk30>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20101012210118.GR24268-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <20101012202221.GD1617@mtldesk30>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Cc: Ralph Campbell <ralph.campbell-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>, Or Gerlitz <ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org>, Linux-RDMA <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-In the original code there was a potential integer overflow if you
-passed in a large cmd.ne.  The calls to kmalloc() would allocate smaller
-buffers than intended, leading to memory corruption. There was also an 
-information leak if resp wasn't all used.
+libmlx4 does not report the opcode of the operation if it completed
+with error. We will fix this and post a patch for review.
 
-Documentation/infiniband/user_verbs.txt suggests this function is meant
-for unprivileged access.
-
-Special thanks to Jason Gunthorpe for his help and advice.
-
-CC: stable-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-Signed-off-by: Dan Carpenter <error27-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
----
-v4:  Fixed a bug where count wasn't sent to the user.
-     Removed the calls to memset() and used C99 initializers instead.
-
-diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
-index 6fcfbeb..5fc1e29 100644
---- a/drivers/infiniband/core/uverbs_cmd.c
-+++ b/drivers/infiniband/core/uverbs_cmd.c
-@@ -891,68 +891,88 @@ out:
- 	return ret ? ret : in_len;
- }
- 
-+static int copy_header_to_user(void __user *dest, u32 count)
-+{
-+	u32 header[2] = {count, 0};  /* the second u32 is reserved */
-+
-+	if (copy_to_user(dest, header, sizeof(header)))
-+		return -EFAULT;
-+	return 0;
-+}
-+
-+static int copy_wc_to_user(void __user *dest, struct ib_wc *wc)
-+{
-+	struct ib_uverbs_wc tmp = {
-+	.wr_id		= wc->wr_id,
-+	.status		= wc->status,
-+	.opcode		= wc->opcode,
-+	.vendor_err	= wc->vendor_err,
-+	.byte_len	= wc->byte_len,
-+	.ex = {
-+		.imm_data = (__u32 __force) wc->ex.imm_data,
-+	},
-+	.qp_num		= wc->qp->qp_num,
-+	.src_qp		= wc->src_qp,
-+	.wc_flags	= wc->wc_flags,
-+	.pkey_index	= wc->pkey_index,
-+	.slid		= wc->slid,
-+	.sl		= wc->sl,
-+	.dlid_path_bits = wc->dlid_path_bits,
-+	.port_num	= wc->port_num,
-+	};
-+
-+	if (copy_to_user(dest, &tmp, sizeof(tmp)))
-+		return -EFAULT;
-+	return 0;
-+}
-+
- ssize_t ib_uverbs_poll_cq(struct ib_uverbs_file *file,
- 			  const char __user *buf, int in_len,
- 			  int out_len)
- {
- 	struct ib_uverbs_poll_cq       cmd;
--	struct ib_uverbs_poll_cq_resp *resp;
-+	u8 __user                     *header_ptr;
-+	u8 __user                     *data_ptr;
- 	struct ib_cq                  *cq;
--	struct ib_wc                  *wc;
--	int                            ret = 0;
-+	struct ib_wc                   wc;
-+	u32                            count = 0;
-+	int                            ret;
- 	int                            i;
--	int                            rsize;
- 
- 	if (copy_from_user(&cmd, buf, sizeof cmd))
- 		return -EFAULT;
- 
--	wc = kmalloc(cmd.ne * sizeof *wc, GFP_KERNEL);
--	if (!wc)
--		return -ENOMEM;
--
--	rsize = sizeof *resp + cmd.ne * sizeof(struct ib_uverbs_wc);
--	resp = kmalloc(rsize, GFP_KERNEL);
--	if (!resp) {
--		ret = -ENOMEM;
--		goto out_wc;
--	}
--
- 	cq = idr_read_cq(cmd.cq_handle, file->ucontext, 0);
--	if (!cq) {
--		ret = -EINVAL;
--		goto out;
--	}
-+	if (!cq)
-+		return -EINVAL;
- 
--	resp->count = ib_poll_cq(cq, cmd.ne, wc);
-+	/* we copy a struct ib_uverbs_poll_cq_resp to user space */
-+	header_ptr = (void __user *)(unsigned long)cmd.response;
-+	data_ptr = header_ptr + sizeof(u32) * 2;
- 
--	put_cq_read(cq);
-+	for (i = 0; i < cmd.ne; i++) {
-+		ret = ib_poll_cq(cq, 1, &wc);
-+		if (ret < 0)
-+			goto out_put;
-+		if (!ret)
-+			break;
- 
--	for (i = 0; i < resp->count; i++) {
--		resp->wc[i].wr_id 	   = wc[i].wr_id;
--		resp->wc[i].status 	   = wc[i].status;
--		resp->wc[i].opcode 	   = wc[i].opcode;
--		resp->wc[i].vendor_err 	   = wc[i].vendor_err;
--		resp->wc[i].byte_len 	   = wc[i].byte_len;
--		resp->wc[i].ex.imm_data    = (__u32 __force) wc[i].ex.imm_data;
--		resp->wc[i].qp_num 	   = wc[i].qp->qp_num;
--		resp->wc[i].src_qp 	   = wc[i].src_qp;
--		resp->wc[i].wc_flags 	   = wc[i].wc_flags;
--		resp->wc[i].pkey_index 	   = wc[i].pkey_index;
--		resp->wc[i].slid 	   = wc[i].slid;
--		resp->wc[i].sl 		   = wc[i].sl;
--		resp->wc[i].dlid_path_bits = wc[i].dlid_path_bits;
--		resp->wc[i].port_num 	   = wc[i].port_num;
-+		ret = copy_wc_to_user(data_ptr, &wc);
-+		if (ret)
-+			goto out_put;
-+		data_ptr += sizeof(struct ib_uverbs_wc);
-+		count++;
- 	}
- 
--	if (copy_to_user((void __user *) (unsigned long) cmd.response, resp, rsize))
--		ret = -EFAULT;
-+	ret = copy_header_to_user(header_ptr, count);
-+	if (ret)
-+		goto out_put;
- 
--out:
--	kfree(resp);
-+	ret = in_len;
- 
--out_wc:
--	kfree(wc);
--	return ret ? ret : in_len;
-+out_put:
-+	put_cq_read(cq);
-+	return ret;
- }
- 
- ssize_t ib_uverbs_req_notify_cq(struct ib_uverbs_file *file,
+On Tue, Oct 12, 2010 at 10:22 PM, Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wr=
+ote:
+> On Tue, Oct 12, 2010 at 08:58:59PM +0200, Bart Van Assche wrote:
+>> On Tue, Oct 12, 2010 at 8:50 PM, Ralph Campbell
+>> <ralph.campbell-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org> wrote:
+>> > On Tue, 2010-10-12 at 11:38 -0700, Bart Van Assche wrote:
+>> >> Hello,
+>> >>
+>> >> Has anyone already tried to process the work completions generate=
+d by
+>> >> a HCA after the state of a queue pair has been changed to IB_QPS_=
+ERR ?
+>> >> With the hardware/firmware/driver combination I have tested I hav=
+e
+>> >> observed the following:
+>> >> * Multiple completions with the same wr_id and nonzero (error) st=
+atus
+>> >> were received by the application, while all work requests queued =
+with
+>> >> the flag IB_SEND_SIGNALED had a unique wr_id.
+> I assume your QP is configured for selective signalling, right? This
+> means that for succcessful processing of the work request there will
+> not be =A0any completion. But for unsuccessful WR, the hardware shoul=
+d
+> generate a completion. For these casese it is worth having a
+> meaningfull wrid.
+>> >> * Completions with non-zero (error) status and a wr_id / opcode
+>> >> combination were received that were never queued by the applicati=
+on.
+> In case of error the opcode of the completed operation is not provide=
+d.
+> I am not sure why.
+>
+>> >> Note: some work requests were queued with and some without the fl=
+ag
+>> >> IB_SEND_SIGNALED. I'm not sure however whether that has anything =
+to do
+>> >> with the observed behavior.
+> If you have WRs for which you did not set IB_SEND_SIGNALED, they are
+> not considered completed before a comletion entry is pushed to the CQ
+> that correspnds to that send queue. I am not sure if it means that al=
+l
+> the WR in the send queue should be completed with error.
+>> >>
+>> >> This behavior is easy to reproduce. If I interpret the InfiniBand
+>> >> Architecture Specification correctly, this behavior is non-compli=
+ant.
+>> >>
+>> >> Has anyone been looking into this before ?
+>> >
+>> > I haven't seen it. It isn't supposed to happen.
+>> >
+>> > What hardware and software are you using and how do you
+>> > reproduce it?
+>>
+>> Hello Ralph and Or,
+>>
+>> The way I reproduce that behavior is by modifying the state of a que=
+ue
+>> pair into IB_QPS_ERR while RDMA is ongoing. The application, which i=
+s
+>> multithreaded, performs RDMA by calling ib_post_recv() and
+>> ib_post_send() (opcodes IB_WR_SEND, IB_WR_RDMA_READ and
+>> IB_WR_RDMA_WRITE). This has been observed with the mlx4 driver, a
+>> ConnectX HCA and firmware version 2.7.0.
+>>
+>> Bart.
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-rdma=
+" in
+>> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+>> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
+>
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
