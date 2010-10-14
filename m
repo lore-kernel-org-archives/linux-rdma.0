@@ -1,48 +1,25 @@
 From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCHv10 03/12] ib_core: IBoE UD packet packing support
-Date: Thu, 14 Oct 2010 13:12:52 -0700
-Message-ID: <adazkugildn.fsf@cisco.com>
-References: <20100826141756.GD8795@mtldesk30>
+Subject: Re: [RFC 1/2] IB/mad: Simplify snooping interface
+Date: Thu, 14 Oct 2010 13:13:57 -0700
+Message-ID: <adatykoilbu.fsf@cisco.com>
+References: <CF9C39F99A89134C9CF9C4CCB68B8DDF25B7DAA11F@orsmsx501.amr.corp.intel.com>
+	<4C2744E8AD2982428C5BFE523DF8CDCB49D45E3FED@MNEXMB1.qlogic.org>
+	<CF9C39F99A89134C9CF9C4CCB68B8DDF25B7E5EA22@orsmsx501.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20100826141756.GD8795@mtldesk30> (Eli Cohen's message of "Thu,
-	26 Aug 2010 17:17:56 +0300")
+In-Reply-To: <CF9C39F99A89134C9CF9C4CCB68B8DDF25B7E5EA22-osO9UTpF0USkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
+	(Sean Hefty's message of "Thu, 14 Oct 2010 09:02:57 -0700")
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: RDMA list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Mike Heinz <michael.heinz-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>, Linux RDMA list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
- > +	if (lrh_present) {
- > +		header->lrh.link_version     = 0;
- > +		header->lrh.link_next_header =
- > +			grh_present ? IB_LNH_IBA_GLOBAL : IB_LNH_IBA_LOCAL;
- > +		packet_length = IB_LRH_BYTES;
- > +	}
- > +
- > +	if (eth_present)
- > +		packet_length += IB_ETH_BYTES;
+ > Without breaking the umad ABI, GID filtering would be difficult.  LID
+ > is possible, but I can't think of a good reason why the kernel should
+ > perform that level of filtering.  Ideas?
 
-How does this code in ib_ud_header_init() work if lrh_present == 0 and
-eth_present == 1?  It seems packet_length is never initialized in that
-case, or am I missing something?
-
-Anyway I changed the patch in my tree to do
-
-	packet_length = IB_ETH_BYTES
-
-if eth_present is set.
-
-I'm assuming lrh_present and eth_present are exclusive; in fact it might
-be a better interface to ib_ud_header_init() if we passed in a link
-layer type instead of requiring the caller to do it... that would save
-from everyone having to do
-
-+	ib_ud_header_init(send_size, !is_eth, is_eth, is_grh, 0, &sqp->ud_header);
-
-as ends up later in the patch series.
-
-This could be a future cleanup if we care.
+How many MADs in real life even have a source GID?
 
  - R.
 --
