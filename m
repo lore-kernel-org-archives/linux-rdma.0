@@ -1,42 +1,59 @@
-From: Mike Heinz <michael.heinz-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-Subject: RE: user SA notifications, redux
-Date: Thu, 14 Oct 2010 10:04:25 -0500
-Message-ID: <4C2744E8AD2982428C5BFE523DF8CDCB49D45E3FE3@MNEXMB1.qlogic.org>
-References: <4C2744E8AD2982428C5BFE523DF8CDCB49D45E3EE4@MNEXMB1.qlogic.org>
- <CF9C39F99A89134C9CF9C4CCB68B8DDF25B7DAA826@orsmsx501.amr.corp.intel.com>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [RFC 2/2] IB/umad: Export mad snooping capability to userspace
+Date: Thu, 14 Oct 2010 08:20:07 -0700
+Message-ID: <CF9C39F99A89134C9CF9C4CCB68B8DDF25B7E5E984@orsmsx501.amr.corp.intel.com>
+References: <CF9C39F99A89134C9CF9C4CCB68B8DDF25B7DAA129@orsmsx501.amr.corp.intel.com>
+ <AANLkTimGjm9ZzWsav91CHSqgftxTzZW3iZN1fAp+EWd5@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CF9C39F99A89134C9CF9C4CCB68B8DDF25B7DAA826-osO9UTpF0USkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
+In-Reply-To: <AANLkTimGjm9ZzWsav91CHSqgftxTzZW3iZN1fAp+EWd5-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "ewg-G2znmakfqn7U1rindQTSdQ@public.gmane.org" <ewg-G2znmakfqn7U1rindQTSdQ@public.gmane.org>
-Cc: "vlad-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org" <vlad-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+To: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Linux RDMA list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-By providing this mechanism, ib_usa provides a convenient and useful way for user applications to detect when nodes enter or leave the fabric. This is useful for fabric monitoring applications (like a system admin dashboard) or, conceivably, to allow a job scheduler to react to problems and to dynamically balance the computational load across the fabric.
-
-As a reminder - the original proposal also supported allowing user applications to join multicast groups, but there was talk about adding that to rdma_cm, instead.
-
------Original Message-----
-From: Hefty, Sean [mailto:sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org] 
-Sent: Wednesday, October 13, 2010 11:59 AM
-To: Mike Heinz; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; ewg-G2znmakfqn7U1rindQTSdQ@public.gmane.org
-Cc: vlad-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org; Roland Dreier
-Subject: RE: user SA notifications, redux
-
-> As I mentioned earlier, the reason ib_sa acts as a single access point for
-> SA/SM traps and notices is because traps and notices are sent to ports, not
-> to
-> queue pairs and not to processes. That means only one entity can be
-> subscribed
-> for notices and traps at any particular time, and must manage them,
-> "sharing
-> them out" among all processes that are interested in them.
-
-Can you provide a brief description of the intended usage model?
-
+PiA+IEV4cG9ydCB0aGUgbWFkIHNub29waW5nIGNhcGFiaWxpdHkgdG8gdXNlciBzcGFjZSBjbGll
+bnRzDQo+ID4gdGhyb3VnaCB0aGUgZXhpc3RpbmcgdW1hZCBpbnRlcmZhY2UuIMKgVGhpcyB3aWxs
+IGFsbG93DQo+ID4gdXNlcnMgdG8gY2FwdHVyZSBNQUQgZGF0YSBmb3IgZGVidWdnaW5nLCBwbHVz
+IGl0IGFsbG93cw0KPiA+IGZvciBzZXJ2aWNlcyB0byBhY3Qgb24gTUFEIHRyYWZmaWMgdGhhdCBv
+Y2N1cnMuDQo+IA0KPiBTaG91bGQgaXQgYWxzbyBiZSBub3RlZCB0aGF0IHNub29waW5nIG9mIFJN
+UFAnZCBNQURzIG9jY3VycyBhdCB0aGUNCj4gcmVhc3NlbWJsZWQgcGFja2V0IGxldmVsIHdpdGgg
+dGhlIGxhc3QgaGVhZGVyIGJlaW5nIGluZGljYXRlZCA/DQoNCkkgdGhvdWdodCB0aGF0IHRoZSBt
+YWQgbGF5ZXIgZW5kaW5nIHVwIHJlcG9ydGluZyBzbm9vcGVkIE1BRHMgYmVmb3JlIHJlYXNzZW1i
+bHkgYW5kIGFmdGVyIHNlZ21lbnRhdGlvbi4gIEl0J3MgYmVlbiBhIHdoaWxlIHNpbmNlIEkndmUg
+dXNlZCBtYWRleWUsIGJ1dCB0aGF0J3Mgd2hhdCBJIHJlbWVtYmVyLiAgSSBndWVzcyBJJ2xsIGZp
+bmQgb3V0IGR1cmluZyB0ZXN0aW5nIGFuZCBtYWtlIHdoYXRldmVyIGFkanVzdG1lbnRzIGFyZSBu
+ZWNlc3NhcnksIGJ1dCBJIGFncmVlIHRoYXQgdGhpcyBzaG91bGQgYmUgZG9jdW1lbnRlZC4NCg0K
+T24gYSBzaWRlIG5vdGUsIHdoaWxlIHdyaXRpbmcgdXAgdGhpcyBwYXRjaCwgaXQgbG9va3MgbGlr
+ZSBtYWRleWUgaGFuZGxlcyB0aGUgZGF0YSBwb3J0aW9uIG9mIHNlbnQgUk1QUCBNQURzIGluY29y
+cmVjdGx5LiAgSXQgZG9lc24ndCByZWZlcmVuY2UgdGhlIGRhdGEgcG9ydGlvbiAoYmV5b25kIHRo
+ZSBSTVBQL01BRCBoZWFkZXJzKSBjb3JyZWN0bHkuICBTZWUgdGhlIHNub29wX3NlbmRfaGFuZGxl
+ciBmb3IgaG93IEkgdGhpbmsgdGhpcyBuZWVkcyB0byBiZSBoYW5kbGVkLg0KDQo+ID4gZGlmZiAt
+LWdpdCBhL2luY2x1ZGUvcmRtYS9pYl91c2VyX21hZC5oIGIvaW5jbHVkZS9yZG1hL2liX3VzZXJf
+bWFkLmgNCj4gPiBpbmRleCBkNmZjZTFjLi4wYzQwODYxIDEwMDY0NA0KPiA+IC0tLSBhL2luY2x1
+ZGUvcmRtYS9pYl91c2VyX21hZC5oDQo+ID4gKysrIGIvaW5jbHVkZS9yZG1hL2liX3VzZXJfbWFk
+LmgNCj4gPiBAQCAtMTY1LDEwICsxNjUsMzYgQEAgc3RydWN0IGliX3VzZXJfbWFkIHsNCj4gPiDC
+oHR5cGVkZWYgdW5zaWduZWQgbG9uZyBfX2F0dHJpYnV0ZV9fKChhbGlnbmVkKDQpKSkgcGFja2Vk
+X3Vsb25nOw0KPiA+IMKgI2RlZmluZSBJQl9VU0VSX01BRF9MT05HU19QRVJfTUVUSE9EX01BU0sg
+KDEyOCAvICg4ICogc2l6ZW9mIChsb25nKSkpDQo+ID4NCj4gPiArZW51bSB7DQo+ID4gKyDCoCDC
+oCDCoCBJQl9VTUFEX1FQMCwNCj4gPiArIMKgIMKgIMKgIElCX1VNQURfUVAxLA0KPiA+ICsgwqAg
+wqAgwqAgSUJfVU1BRF9TTk9PUCA9IDB4ODAsDQo+ID4gKyDCoCDCoCDCoCBJQl9VTUFEX1NOT09Q
+X1FQMCA9IElCX1VNQURfU05PT1AgJiBJQl9VTUFEX1FQMCwNCj4gPiArIMKgIMKgIMKgIElCX1VN
+QURfU05PT1BfUVAxID0gSUJfVU1BRF9TTk9PUCAmIElCX1VNQURfUVAxDQo+ID4gK307DQo+IA0K
+PiB0eXBvcyBhYm92ZTogcy5iLiB8IHIudC4gJg0KDQp5ZXAgLSB0aGFua3MNCg0KPiA+ICsgKiBA
+cXBuIC0gUXVldWUgcGFpciBudW1iZXI7IG11c3QgYmUgMCBvciAxLiDCoElmIHRoZSB1cHBlciBi
+aXQgb2YgdGhlDQo+IHFwbg0KPiA+ICsgKiDCoCBpcyBzZXQgdG8gMSwgdGhlbiB0aGUgcmVnaXN0
+cmF0aW9uIHdpbGwgYmUgc2V0IHRvIHNub29wIHRyYWZmaWMNCj4gPiArICogwqAgb3ZlciB0aGF0
+IFFQLg0KPiANCj4gU2hvdWxkIHRoaXMgdGFrZSBoYWxmIHRoZSBxcG4gc3BhY2Ugb3IgYmUgdHdv
+IHNwZWNpZmljIHZhbHVlcyA/DQoNClR3byBzcGVjaWZpYyB2YWx1ZXMgaXMgcHJvYmFibHkgYmV0
+dGVyLiAgTm90ZSB0aGF0IHRoZSB1bWFkIGludGVyZmFjZSBzcGVjaWZpZXMgdGhlIHFwbiB1c2lu
+ZyA4LWJpdHMsIHNvIHdlJ3JlIGRlZmluaXRlbHkgbGltaXRlZCBvbiB0aGUgcXBucyB0aGF0IHdl
+IGNvdWxkIGV2ZXIgc3VwcG9ydC4gIEkga25vdyB0aGVyZSdzIGJlZW4gZGlzY3Vzc2lvbiBhYm91
+dCBwb3NzaWJseSBhZGRpbmcgbW9yZSByZXNlcnZlZCBRUHMsIHNvIEknbSBub3Qgc3VyZSB3aGF0
+IHRoZSBiZXN0IHR3byB2YWx1ZXMgdG8gcmVzZXJ2ZSB3b3VsZCBiZS4NCg0K
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
