@@ -1,38 +1,47 @@
-From: Mike Heinz <michael.heinz-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-Subject: RE: [RFC 1/2] IB/mad: Simplify snooping interface
-Date: Thu, 14 Oct 2010 11:06:05 -0500
-Message-ID: <4C2744E8AD2982428C5BFE523DF8CDCB49D45E3FFF@MNEXMB1.qlogic.org>
-References: <CF9C39F99A89134C9CF9C4CCB68B8DDF25B7DAA11F@orsmsx501.amr.corp.intel.com>
- <4C2744E8AD2982428C5BFE523DF8CDCB49D45E3FED@MNEXMB1.qlogic.org>
- <CF9C39F99A89134C9CF9C4CCB68B8DDF25B7E5EA22@orsmsx501.amr.corp.intel.com>
+From: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [RFC] IB/uverbs: Add support for passing memory region
+ invalidations to userspace
+Date: Thu, 14 Oct 2010 18:50:59 +0200
+Message-ID: <20101014165059.GB13969@mtldesk30>
+References: <adaiq181226.fsf@cisco.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CF9C39F99A89134C9CF9C4CCB68B8DDF25B7E5EA22-osO9UTpF0USkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <adaiq181226.fsf-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Linux RDMA list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Well, the critical thing is that on a large fabric, capturing all the MADs would be quite a firehose of data. Being able to filter on a single source or destination would make the amount of data more manageable.
+On Mon, Oct 11, 2010 at 09:13:05PM -0700, Roland Dreier wrote:
+> Hi everyone,
+> 
+> I think I've finally gotten my revision of ummunotify to live within
+> userspace verbs into a reasonable state.  I've done no testing beyond
+> compiling it and reading over the code -- in fact, I haven't even
+> implemented the corresponding support in libibverbs -- but I wanted to
+> get this out so that people can take a look.
+> 
+> Given that we are probably no more than a week away from the 2.6.37
+> merge window, I don't think this is appropriate for 2.6.37, but I
+> definitely plan to get this into 2.6.38 unless there is some big problem
+> I don't see right now.
+> 
+> As usual, all comments and criticisms welcome!
 
-I'm flexible though, if the act of dumping all the data to a user-space app doesn't adversely affect the system too much, we could always have the user-space tool do the filtering.
-
------Original Message-----
-From: Hefty, Sean [mailto:sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org] 
-Sent: Thursday, October 14, 2010 12:03 PM
-To: Mike Heinz; Linux RDMA list
-Subject: RE: [RFC 1/2] IB/mad: Simplify snooping interface
-
-> Would it be worthwhile to filter based on the source LID/GID of the MAD?
-
-Without breaking the umad ABI, GID filtering would be difficult.  LID is possible, but I can't think of a good reason why the kernel should perform that level of filtering.  Ideas?
-
-I have thought about using the umad_send interface to specify more complex filters that could be handled by ib_user_mad, rather than ib_mad.  I just didn't want to get too fancy in the kernel, especially for an initial submission.
-
-- Sean 
-
+I made a review and overall it looks good. One comment though. Could
+we add an option to ib_uverbs_dereg_mr_common() to deregister all
+regions for which notifications have been received? This could relieve
+anyone who does not wish to read the notifications from the
+notifications channel but instead have it done automatically.
+> 
+>  
+> +struct ib_uverbs_mmu_notify_event_desc {
+> +	__u64 cq_handle;
+I assume this is going to be mr_handle.
+> +};
+> +
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
