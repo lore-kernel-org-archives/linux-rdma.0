@@ -1,47 +1,50 @@
-From: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [RFC] IB/uverbs: Add support for passing memory region
- invalidations to userspace
-Date: Thu, 14 Oct 2010 18:50:59 +0200
-Message-ID: <20101014165059.GB13969@mtldesk30>
-References: <adaiq181226.fsf@cisco.com>
+From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCHv10 03/12] ib_core: IBoE UD packet packing support
+Date: Thu, 14 Oct 2010 13:12:52 -0700
+Message-ID: <adazkugildn.fsf@cisco.com>
+References: <20100826141756.GD8795@mtldesk30>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <adaiq181226.fsf-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <20100826141756.GD8795@mtldesk30> (Eli Cohen's message of "Thu,
+	26 Aug 2010 17:17:56 +0300")
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org
+To: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: RDMA list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Oct 11, 2010 at 09:13:05PM -0700, Roland Dreier wrote:
-> Hi everyone,
-> 
-> I think I've finally gotten my revision of ummunotify to live within
-> userspace verbs into a reasonable state.  I've done no testing beyond
-> compiling it and reading over the code -- in fact, I haven't even
-> implemented the corresponding support in libibverbs -- but I wanted to
-> get this out so that people can take a look.
-> 
-> Given that we are probably no more than a week away from the 2.6.37
-> merge window, I don't think this is appropriate for 2.6.37, but I
-> definitely plan to get this into 2.6.38 unless there is some big problem
-> I don't see right now.
-> 
-> As usual, all comments and criticisms welcome!
+ > +	if (lrh_present) {
+ > +		header->lrh.link_version     = 0;
+ > +		header->lrh.link_next_header =
+ > +			grh_present ? IB_LNH_IBA_GLOBAL : IB_LNH_IBA_LOCAL;
+ > +		packet_length = IB_LRH_BYTES;
+ > +	}
+ > +
+ > +	if (eth_present)
+ > +		packet_length += IB_ETH_BYTES;
 
-I made a review and overall it looks good. One comment though. Could
-we add an option to ib_uverbs_dereg_mr_common() to deregister all
-regions for which notifications have been received? This could relieve
-anyone who does not wish to read the notifications from the
-notifications channel but instead have it done automatically.
-> 
->  
-> +struct ib_uverbs_mmu_notify_event_desc {
-> +	__u64 cq_handle;
-I assume this is going to be mr_handle.
-> +};
-> +
+How does this code in ib_ud_header_init() work if lrh_present == 0 and
+eth_present == 1?  It seems packet_length is never initialized in that
+case, or am I missing something?
+
+Anyway I changed the patch in my tree to do
+
+	packet_length = IB_ETH_BYTES
+
+if eth_present is set.
+
+I'm assuming lrh_present and eth_present are exclusive; in fact it might
+be a better interface to ib_ud_header_init() if we passed in a link
+layer type instead of requiring the caller to do it... that would save
+from everyone having to do
+
++	ib_ud_header_init(send_size, !is_eth, is_eth, is_grh, 0, &sqp->ud_header);
+
+as ends up later in the patch series.
+
+This could be a future cleanup if we care.
+
+ - R.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
