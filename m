@@ -1,7 +1,7 @@
 From: David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>
-Subject: [PATCH 1/5] IB/srp: Preparation for transmit ring response allocation
-Date: Sat, 16 Oct 2010 23:25:21 -0400
-Message-ID: <1287285925-11710-2-git-send-email-dillowda@ornl.gov>
+Subject: [PATCH 2/5] IB/srp: implement SRP_CRED_REQ and SRP_AER_REQ
+Date: Sat, 16 Oct 2010 23:25:22 -0400
+Message-ID: <1287285925-11710-3-git-send-email-dillowda@ornl.gov>
 References: <1287285925-11710-1-git-send-email-dillowda@ornl.gov>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1287285925-11710-1-git-send-email-dillowda-1Heg1YXhbW8@public.gmane.org>
@@ -10,168 +10,269 @@ To: rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bart.vanassche-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+This patch adds support for SRP_CRED_REQ to avoid a lockup by targets
+that use that mechanism to return credits to the initiator. This
+prevents a lockup observed in the field where we would never add the
+credits from the SRP_CRED_REQ to our current count, and would therefore
+never send another command to the target.
 
-The transmit ring in ib_srp (srp_target.tx_ring) is currently only used
-for allocating requests sent by the initiator to the target. This patch
-prepares using that ring for allocation of both requests and responses.
-Also, this patch differentiates the uses of SRP_SQ_SIZE, increases the
-size of the IB send completion queue by one element and reserves one
-transmit ring slot for SRP_TSK_MGMT requests.
+Minimal support for SRP_AER_REQ is also added, as these messages can
+also be used to convey additional credits to the initiator.
 
-Signed-off-by: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Based upon extensive debugging and code by Bart Van Assche and a bug
+report by Chris Worley.
+
 Signed-off-by: David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>
 ---
- drivers/infiniband/ulp/srp/ib_srp.c |   27 +++++++++++++++------------
- drivers/infiniband/ulp/srp/ib_srp.h |   13 ++++++++++---
- 2 files changed, 25 insertions(+), 15 deletions(-)
+ drivers/infiniband/ulp/srp/ib_srp.c |  105 ++++++++++++++++++++++++++++++++--
+ drivers/infiniband/ulp/srp/ib_srp.h |    8 ++-
+ include/scsi/srp.h                  |   38 +++++++++++++
+ 3 files changed, 141 insertions(+), 10 deletions(-)
 
 diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
-index 7f8f16b..b8b09a4 100644
+index b8b09a4..a54eee9 100644
 --- a/drivers/infiniband/ulp/srp/ib_srp.c
 +++ b/drivers/infiniband/ulp/srp/ib_srp.c
-@@ -291,7 +291,7 @@ static void srp_free_target_ib(struct srp_target_port *target)
+@@ -83,6 +83,10 @@ static void srp_remove_one(struct ib_device *device);
+ static void srp_recv_completion(struct ib_cq *cq, void *target_ptr);
+ static void srp_send_completion(struct ib_cq *cq, void *target_ptr);
+ static int srp_cm_handler(struct ib_cm_id *cm_id, struct ib_cm_event *event);
++static struct srp_iu *__srp_get_tx_iu(struct srp_target_port *target,
++				      enum srp_iu_type iu_type);
++static int __srp_post_send(struct srp_target_port *target,
++			   struct srp_iu *iu, int len);
  
- 	for (i = 0; i < SRP_RQ_SIZE; ++i)
- 		srp_free_iu(target->srp_host, target->rx_ring[i]);
--	for (i = 0; i < SRP_SQ_SIZE + 1; ++i)
-+	for (i = 0; i < SRP_SQ_SIZE; ++i)
- 		srp_free_iu(target->srp_host, target->tx_ring[i]);
+ static struct scsi_transport_template *ib_srp_transport_template;
+ 
+@@ -896,6 +900,71 @@ static void srp_process_rsp(struct srp_target_port *target, struct srp_rsp *rsp)
+ 	spin_unlock_irqrestore(target->scsi_host->host_lock, flags);
  }
  
-@@ -822,7 +822,7 @@ static int srp_post_recv(struct srp_target_port *target)
- 
- 	spin_lock_irqsave(target->scsi_host->host_lock, flags);
- 
--	next	 = target->rx_head & (SRP_RQ_SIZE - 1);
-+	next	 = target->rx_head & SRP_RQ_MASK;
- 	wr.wr_id = next;
- 	iu	 = target->rx_ring[next];
- 
-@@ -989,19 +989,19 @@ static void srp_send_completion(struct ib_cq *cq, void *target_ptr)
- static struct srp_iu *__srp_get_tx_iu(struct srp_target_port *target,
- 					enum srp_request_type req_type)
++static int srp_response_common(struct srp_target_port *target, s32 req_delta,
++			       void *rsp, int len)
++{
++	struct ib_device *dev;
++	unsigned long flags;
++	struct srp_iu *iu;
++	int err = 1;
++
++	dev = target->srp_host->srp_dev->dev;
++
++	spin_lock_irqsave(target->scsi_host->host_lock, flags);
++	target->req_lim += req_delta;
++
++	iu = __srp_get_tx_iu(target, SRP_IU_RSP);
++	if (!iu) {
++		shost_printk(KERN_ERR, target->scsi_host, PFX
++			     "no IU available to send response\n");
++		goto out;
++	}
++
++	ib_dma_sync_single_for_cpu(dev, iu->dma, len, DMA_TO_DEVICE);
++	memcpy(iu->buf, rsp, len);
++	ib_dma_sync_single_for_device(dev, iu->dma, len, DMA_TO_DEVICE);
++
++	err = __srp_post_send(target, iu, len);
++	if (err)
++		shost_printk(KERN_ERR, target->scsi_host, PFX
++			     "unable to post response: %d\n", err);
++
++out:
++	spin_unlock_irqrestore(target->scsi_host->host_lock, flags);
++	return err;
++}
++
++static void srp_process_cred_req(struct srp_target_port *target,
++				 struct srp_cred_req *req)
++{
++	struct srp_cred_rsp rsp = {
++		.opcode = SRP_CRED_RSP,
++		.tag = req->tag,
++	};
++	s32 delta = be32_to_cpu(req->req_lim_delta);
++
++	if (srp_response_common(target, delta, &rsp, sizeof rsp))
++		shost_printk(KERN_ERR, target->scsi_host, PFX
++			     "problems processing SRP_CRED_REQ\n");
++}
++
++static void srp_process_aer_req(struct srp_target_port *target,
++				struct srp_aer_req *req)
++{
++	struct srp_aer_rsp rsp = {
++		.opcode = SRP_AER_RSP,
++		.tag = req->tag,
++	};
++	s32 delta = be32_to_cpu(req->req_lim_delta);
++
++	shost_printk(KERN_ERR, target->scsi_host, PFX
++		     "ignoring AER for LUN %llu\n", be64_to_cpu(req->lun));
++
++	if (srp_response_common(target, delta, &rsp, sizeof rsp))
++		shost_printk(KERN_ERR, target->scsi_host, PFX
++			     "problems processing SRP_AER_REQ\n");
++}
++
+ static void srp_handle_recv(struct srp_target_port *target, struct ib_wc *wc)
  {
--	s32 min = (req_type == SRP_REQ_TASK_MGMT) ? 1 : 2;
-+	s32 rsv = (req_type == SRP_REQ_TASK_MGMT) ? 0 : SRP_TSK_MGMT_SQ_SIZE;
+ 	struct ib_device *dev;
+@@ -923,6 +992,14 @@ static void srp_handle_recv(struct srp_target_port *target, struct ib_wc *wc)
+ 		srp_process_rsp(target, iu->buf);
+ 		break;
+ 
++	case SRP_CRED_REQ:
++		srp_process_cred_req(target, iu->buf);
++		break;
++
++	case SRP_AER_REQ:
++		srp_process_aer_req(target, iu->buf);
++		break;
++
+ 	case SRP_T_LOGOUT:
+ 		/* XXX Handle target logout */
+ 		shost_printk(KERN_WARNING, target->scsi_host,
+@@ -985,23 +1062,36 @@ static void srp_send_completion(struct ib_cq *cq, void *target_ptr)
+  * Must be called with target->scsi_host->host_lock held to protect
+  * req_lim and tx_head.  Lock cannot be dropped between call here and
+  * call to __srp_post_send().
++ *
++ * Note:
++ * An upper limit for the number of allocated information units for each
++ * request type is:
++ * - SRP_IU_CMD: SRP_CMD_SQ_SIZE, since the SCSI mid-layer never queues
++ *   more than Scsi_Host.can_queue requests.
++ * - SRP_IU_TSK_MGMT: SRP_TSK_MGMT_SQ_SIZE.
++ * - SRP_IU_RSP: 1, since a conforming SRP target never sends more than
++ *   one unanswered SRP request to an initiator.
+  */
+ static struct srp_iu *__srp_get_tx_iu(struct srp_target_port *target,
+-					enum srp_request_type req_type)
++				      enum srp_iu_type iu_type)
+ {
+-	s32 rsv = (req_type == SRP_REQ_TASK_MGMT) ? 0 : SRP_TSK_MGMT_SQ_SIZE;
++	s32 rsv = (iu_type == SRP_IU_TSK_MGMT) ? 0 : SRP_TSK_MGMT_SQ_SIZE;
++	struct srp_iu *iu;
  
  	srp_send_completion(target->send_cq, target);
  
  	if (target->tx_head - target->tx_tail >= SRP_SQ_SIZE)
  		return NULL;
  
--	if (target->req_lim < min) {
-+	if (target->req_lim <= rsv) {
+-	if (target->req_lim <= rsv) {
++	/* Initiator responses to target requests do not consume credits */
++	if (target->req_lim <= rsv && iu_type != SRP_IU_RSP) {
  		++target->zero_req_lim;
  		return NULL;
  	}
  
--	return target->tx_ring[target->tx_head & SRP_SQ_SIZE];
-+	return target->tx_ring[target->tx_head & SRP_SQ_MASK];
+-	return target->tx_ring[target->tx_head & SRP_SQ_MASK];
++	iu = target->tx_ring[target->tx_head & SRP_SQ_MASK];
++	iu->type = iu_type;
++	return iu;
  }
  
  /*
-@@ -1020,7 +1020,7 @@ static int __srp_post_send(struct srp_target_port *target,
- 	list.lkey   = target->srp_host->srp_dev->mr->lkey;
+@@ -1030,7 +1120,8 @@ static int __srp_post_send(struct srp_target_port *target,
  
- 	wr.next       = NULL;
--	wr.wr_id      = target->tx_head & SRP_SQ_SIZE;
-+	wr.wr_id      = target->tx_head & SRP_SQ_MASK;
- 	wr.sg_list    = &list;
- 	wr.num_sge    = 1;
- 	wr.opcode     = IB_WR_SEND;
-@@ -1121,7 +1121,7 @@ static int srp_alloc_iu_bufs(struct srp_target_port *target)
- 			goto err;
+ 	if (!ret) {
+ 		++target->tx_head;
+-		--target->req_lim;
++		if (iu->type != SRP_IU_RSP)
++			--target->req_lim;
  	}
  
--	for (i = 0; i < SRP_SQ_SIZE + 1; ++i) {
-+	for (i = 0; i < SRP_SQ_SIZE; ++i) {
- 		target->tx_ring[i] = srp_alloc_iu(target->srp_host,
- 						  srp_max_iu_len,
- 						  GFP_KERNEL, DMA_TO_DEVICE);
-@@ -1137,7 +1137,7 @@ err:
- 		target->rx_ring[i] = NULL;
+ 	return ret;
+@@ -1056,7 +1147,7 @@ static int srp_queuecommand(struct scsi_cmnd *scmnd,
+ 		return 0;
  	}
  
--	for (i = 0; i < SRP_SQ_SIZE + 1; ++i) {
-+	for (i = 0; i < SRP_SQ_SIZE; ++i) {
- 		srp_free_iu(target->srp_host, target->tx_ring[i]);
- 		target->tx_ring[i] = NULL;
- 	}
-@@ -1626,9 +1626,9 @@ static struct scsi_host_template srp_template = {
- 	.eh_abort_handler		= srp_abort,
- 	.eh_device_reset_handler	= srp_reset_device,
- 	.eh_host_reset_handler		= srp_reset_host,
--	.can_queue			= SRP_SQ_SIZE,
-+	.can_queue			= SRP_CMD_SQ_SIZE,
- 	.this_id			= -1,
--	.cmd_per_lun			= SRP_SQ_SIZE,
-+	.cmd_per_lun			= SRP_CMD_SQ_SIZE,
- 	.use_clustering			= ENABLE_CLUSTERING,
- 	.shost_attrs			= srp_host_attrs
- };
-@@ -1813,7 +1813,7 @@ static int srp_parse_options(const char *buf, struct srp_target_port *target)
- 				printk(KERN_WARNING PFX "bad max cmd_per_lun parameter '%s'\n", p);
- 				goto out;
- 			}
--			target->scsi_host->cmd_per_lun = min(token, SRP_SQ_SIZE);
-+			target->scsi_host->cmd_per_lun = min(token, SRP_CMD_SQ_SIZE);
- 			break;
+-	iu = __srp_get_tx_iu(target, SRP_REQ_NORMAL);
++	iu = __srp_get_tx_iu(target, SRP_IU_CMD);
+ 	if (!iu)
+ 		goto err;
  
- 		case SRP_OPT_IO_CLASS:
-@@ -1891,7 +1891,7 @@ static ssize_t srp_create_target(struct device *dev,
+@@ -1363,7 +1454,7 @@ static int srp_send_tsk_mgmt(struct srp_target_port *target,
  
- 	INIT_LIST_HEAD(&target->free_reqs);
- 	INIT_LIST_HEAD(&target->req_queue);
--	for (i = 0; i < SRP_SQ_SIZE; ++i) {
-+	for (i = 0; i < SRP_CMD_SQ_SIZE; ++i) {
- 		target->req_ring[i].index = i;
- 		list_add_tail(&target->req_ring[i].list, &target->free_reqs);
- 	}
-@@ -2159,6 +2159,9 @@ static int __init srp_init_module(void)
- {
- 	int ret;
+ 	init_completion(&req->done);
  
-+	BUILD_BUG_ON_NOT_POWER_OF_2(SRP_SQ_SIZE);
-+	BUILD_BUG_ON_NOT_POWER_OF_2(SRP_RQ_SIZE);
-+
- 	if (srp_sg_tablesize > 255) {
- 		printk(KERN_WARNING PFX "Clamping srp_sg_tablesize to 255\n");
- 		srp_sg_tablesize = 255;
+-	iu = __srp_get_tx_iu(target, SRP_REQ_TASK_MGMT);
++	iu = __srp_get_tx_iu(target, SRP_IU_TSK_MGMT);
+ 	if (!iu)
+ 		goto out;
+ 
 diff --git a/drivers/infiniband/ulp/srp/ib_srp.h b/drivers/infiniband/ulp/srp/ib_srp.h
-index 5a80eac..7a959d5 100644
+index 7a959d5..ed0dce9 100644
 --- a/drivers/infiniband/ulp/srp/ib_srp.h
 +++ b/drivers/infiniband/ulp/srp/ib_srp.h
-@@ -59,7 +59,14 @@ enum {
+@@ -82,9 +82,10 @@ enum srp_target_state {
+ 	SRP_TARGET_REMOVED
+ };
  
- 	SRP_RQ_SHIFT    	= 6,
- 	SRP_RQ_SIZE		= 1 << SRP_RQ_SHIFT,
--	SRP_SQ_SIZE		= SRP_RQ_SIZE - 1,
-+	SRP_RQ_MASK		= SRP_RQ_SIZE - 1,
+-enum srp_request_type {
+-	SRP_REQ_NORMAL,
+-	SRP_REQ_TASK_MGMT,
++enum srp_iu_type {
++	SRP_IU_CMD,
++	SRP_IU_TSK_MGMT,
++	SRP_IU_RSP,
+ };
+ 
+ struct srp_device {
+@@ -171,6 +172,7 @@ struct srp_iu {
+ 	void		       *buf;
+ 	size_t			size;
+ 	enum dma_data_direction	direction;
++	enum srp_iu_type	type;
+ };
+ 
+ #endif /* IB_SRP_H */
+diff --git a/include/scsi/srp.h b/include/scsi/srp.h
+index ad178fa..1ae84db 100644
+--- a/include/scsi/srp.h
++++ b/include/scsi/srp.h
+@@ -239,4 +239,42 @@ struct srp_rsp {
+ 	u8	data[0];
+ } __attribute__((packed));
+ 
++struct srp_cred_req {
++	u8	opcode;
++	u8	sol_not;
++	u8	reserved[2];
++	__be32	req_lim_delta;
++	u64	tag;
++};
 +
-+	SRP_SQ_SIZE		= SRP_RQ_SIZE,
-+	SRP_SQ_MASK		= SRP_SQ_SIZE - 1,
-+	SRP_RSP_SQ_SIZE		= 1,
-+	SRP_REQ_SQ_SIZE		= SRP_SQ_SIZE - SRP_RSP_SQ_SIZE,
-+	SRP_TSK_MGMT_SQ_SIZE	= 1,
-+	SRP_CMD_SQ_SIZE		= SRP_REQ_SQ_SIZE - SRP_TSK_MGMT_SQ_SIZE,
- 
- 	SRP_TAG_TSK_MGMT	= 1 << (SRP_RQ_SHIFT + 1),
- 
-@@ -144,11 +151,11 @@ struct srp_target_port {
- 
- 	unsigned		tx_head;
- 	unsigned		tx_tail;
--	struct srp_iu	       *tx_ring[SRP_SQ_SIZE + 1];
-+	struct srp_iu	       *tx_ring[SRP_SQ_SIZE];
- 
- 	struct list_head	free_reqs;
- 	struct list_head	req_queue;
--	struct srp_request	req_ring[SRP_SQ_SIZE];
-+	struct srp_request	req_ring[SRP_CMD_SQ_SIZE];
- 
- 	struct work_struct	work;
- 
++struct srp_cred_rsp {
++	u8	opcode;
++	u8	reserved[7];
++	u64	tag;
++};
++
++/*
++ * The SRP spec defines the fixed portion of the AER_REQ structure to be
++ * 36 bytes, so it needs to be packed to avoid having it padded to 40 bytes
++ * on 64-bit architectures.
++ */
++struct srp_aer_req {
++	u8	opcode;
++	u8	sol_not;
++	u8	reserved[2];
++	__be32	req_lim_delta;
++	u64	tag;
++	u32	reserved2;
++	__be64	lun;
++	__be32	sense_data_len;
++	u32	reserved3;
++	u8	sense_data[0];
++} __attribute__((packed));
++
++struct srp_aer_rsp {
++	u8	opcode;
++	u8	reserved[7];
++	u64	tag;
++};
++
+ #endif /* SCSI_SRP_H */
 -- 
 1.7.2.3
 
