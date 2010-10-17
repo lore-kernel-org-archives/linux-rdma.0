@@ -1,40 +1,38 @@
 From: David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>
-Subject: [PATCH 5/5] IB/srp: Introduce list_first_entry()
-Date: Sat, 16 Oct 2010 23:25:25 -0400
-Message-ID: <1287285925-11710-6-git-send-email-dillowda@ornl.gov>
-References: <1287285925-11710-1-git-send-email-dillowda@ornl.gov>
+Subject: [PATCH 0/5] IB/srp: Add SRP_CRED_REQ support
+Date: Sat, 16 Oct 2010 23:25:20 -0400
+Message-ID: <1287285925-11710-1-git-send-email-dillowda@ornl.gov>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1287285925-11710-1-git-send-email-dillowda-1Heg1YXhbW8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bart.vanassche-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Roland,
 
-Introduces the list_first_entry() macro in ib_srp, which makes the source code
-slightly more descriptive. The list_first_entry() macro itself was introduced
-in kernel 2.6.22.
+Please pull from
 
-Signed-off-by: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Signed-off-by: David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>
----
- drivers/infiniband/ulp/srp/ib_srp.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+	git://git.kernel.org/pub/scm/linux/kernel/git/dad/srp-initiator.git srp-credit-req
 
-diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
-index 4df8275..9b4bc5a 100644
---- a/drivers/infiniband/ulp/srp/ib_srp.c
-+++ b/drivers/infiniband/ulp/srp/ib_srp.c
-@@ -1151,7 +1151,7 @@ static int srp_queuecommand(struct scsi_cmnd *scmnd,
- 	ib_dma_sync_single_for_cpu(dev, iu->dma, srp_max_iu_len,
- 				   DMA_TO_DEVICE);
- 
--	req = list_entry(target->free_reqs.next, struct srp_request, list);
-+	req = list_first_entry(&target->free_reqs, struct srp_request, list);
- 
- 	scmnd->scsi_done     = done;
- 	scmnd->result        = 0;
+to add SRP_CRED_REQ support to the initiator. This is almost entirely
+the result of Bart Van Assche's hard work. I reworked part of the
+implementation, so that shows up in my name, as Bart has not taken
+me up on the offer to list him as author.
+
+Bart Van Assche (3):
+  IB/srp: Preparation for transmit ring response allocation
+  IB/srp: Reduce number of BUSY conditions
+  IB/srp: Introduce list_first_entry()
+
+David Dillow (2):
+  IB/srp: implement SRP_CRED_REQ and SRP_AER_REQ
+  IB/srp: eliminate two forward declarations
+
+ drivers/infiniband/ulp/srp/ib_srp.c |  231 ++++++++++++++++++++++++----------
+ drivers/infiniband/ulp/srp/ib_srp.h |   21 +++-
+ include/scsi/srp.h                  |   38 ++++++
+ 3 files changed, 216 insertions(+), 74 deletions(-)
+
 -- 
 1.7.2.3
 
