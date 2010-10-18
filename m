@@ -1,63 +1,76 @@
-From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Subject: Re: [PATCH 2/5] IB/srp: implement SRP_CRED_REQ and SRP_AER_REQ
-Date: Mon, 18 Oct 2010 12:11:54 +0200
-Message-ID: <AANLkTimvHRLr5YaCxeuLpQPMW7tY7cHsF9RrrSuMOmgS@mail.gmail.com>
-References: <1287285925-11710-1-git-send-email-dillowda@ornl.gov> <1287285925-11710-3-git-send-email-dillowda@ornl.gov>
+From: Jonathan Rosser <jonathan.rosser-gjMux1o1B1/QXOPxS62xeg@public.gmane.org>
+Subject: Extending =?utf-8?b?cmRtYV9zZXJ2ZXI=?= example
+Date: Mon, 18 Oct 2010 12:31:02 +0000 (UTC)
+Message-ID: <loom.20101018T140608-776@post.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1287285925-11710-3-git-send-email-dillowda-1Heg1YXhbW8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>
-Cc: rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Sun, Oct 17, 2010 at 5:25 AM, David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org> wrote=
-:
-> [ ... ]
-> +static int srp_response_common(struct srp_target_port *target, s32 r=
-eq_delta,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0void *rs=
-p, int len)
-> +{
-> + =A0 =A0 =A0 struct ib_device *dev;
-> + =A0 =A0 =A0 unsigned long flags;
-> + =A0 =A0 =A0 struct srp_iu *iu;
-> + =A0 =A0 =A0 int err =3D 1;
-> +
-> + =A0 =A0 =A0 dev =3D target->srp_host->srp_dev->dev;
-> +
-> + =A0 =A0 =A0 spin_lock_irqsave(target->scsi_host->host_lock, flags);
-> + =A0 =A0 =A0 target->req_lim +=3D req_delta;
-> +
-> + =A0 =A0 =A0 iu =3D __srp_get_tx_iu(target, SRP_IU_RSP);
-> + =A0 =A0 =A0 if (!iu) {
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 shost_printk(KERN_ERR, target->scsi_hos=
-t, PFX
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0"no IU avail=
-able to send response\n");
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 goto out;
-> + =A0 =A0 =A0 }
-> +
-> + =A0 =A0 =A0 ib_dma_sync_single_for_cpu(dev, iu->dma, len, DMA_TO_DE=
-VICE);
+Hi,
 
-Hi Dave,
+I took librdmacm/examples/rdma_server.c and converted it to be a persistent
+server to serve successive requests. However, this does not work and I have 
+the following problem:
 
-As far as I can see the above sync call applies to a buffer in the
-tx_ring[]. Data in that buffer is only modified by the CPU and never
-by the HCA. So why is the above sync call present ? Is that call
-necessary ?
+fprintfs from my code (lower case) and librdmacm (caps) for a first successful
+connection and a second one which causes a segfault
 
-> + =A0 =A0 =A0 memcpy(iu->buf, rsp, len);
-> + =A0 =A0 =A0 ib_dma_sync_single_for_device(dev, iu->dma, len, DMA_TO=
-_DEVICE);
-> [ ... ]
+rdma_getaddrinfo
+rdma_listen
+rdma_getrequest              <----- wait for first request
+RDMA CREATE QP
+UCMA CREATE_CQS
+CALLED UCMA CREATE CQS
+CREATING RECV_CQ             <----- CQ created here OK for client connection
+CREATING SEND_CQ             <----- this looks good
+IBV CREATE QP
+rdma_reg_msgs
+rdma_post_recv
+rdma_accept
+rdma_get_recv_comp
+rdma_post_send
+rdma_get_send_comp
+rdma_getrequest              <----- wait for second request
+RDMA CREATE QP
+UCMA CREATE_CQS
+CALLED UCMA CREATE CQS       <----- !!! no recv/send CQ created here
+IBV CREATE QP
+rdma_reg_msgs
+rdma_post_recv
+rdma_accept
+rdma_get_recv_comp           <----- dereference of id->recv_cq = NULL
+Segmentation fault
 
-Bart.
+So I'm wondering why the CQs do not get created second time round and it
+looks like
+
+1) rdma_get_request passes event_id and (listen_id)id_priv->qp_init_attr to
+   rdma_create_qp()
+
+2) rdma_create_qp passes qp_init_attr to ucma_create_cqs()
+
+3) ucma_create_cqs stores a pointer to the created CQs in attr->recv_cq /
+   send_cq, which is the attr of the listen_id
+
+4) serving the second client, ucma_create_cqs checks attr->recv_cq and does 
+   not create a pair of CQs
+
+Feels a little odd to me that the listen_id takes a pointer to the CQs created
+for the client_id in its qp_init_attr.
+
+Can anyone enlighten me? Am I trying to do something (persistent server) that
+rdma_get_request is not intended to do?
+
+Cheers,
+Jonathan Rosser
+Senior R&D Engineer
+BBC R&D
+
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
