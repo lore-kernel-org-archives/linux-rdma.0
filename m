@@ -1,87 +1,144 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: ib mad definitions
-Date: Tue, 19 Oct 2010 15:29:26 -0600
-Message-ID: <20101019212926.GH10362@obsidianresearch.com>
-References: <CF9C39F99A89134C9CF9C4CCB68B8DDF25B7FB38D9@orsmsx501.amr.corp.intel.com> <AANLkTimc7sgmyTvW_dgXarUvGzHcN3sRJ6TJQGxU5p7G@mail.gmail.com> <CF9C39F99A89134C9CF9C4CCB68B8DDF25B7FB3CDB@orsmsx501.amr.corp.intel.com> <AANLkTimbmQS0pcfF3CdSokPbAtbCZT7KFbWcSSNsYobk@mail.gmail.com> <20101019102244.21cd2b1e.weiny2@llnl.gov> <CF9C39F99A89134C9CF9C4CCB68B8DDF25B7FB404C@orsmsx501.amr.corp.intel.com>
+From: "Suresh Shelvapille" <suri-lFb5ksp6isWhEniVeURVKkEOCMrvLtNR@public.gmane.org>
+Subject: RE: Opensm crash with OFED 1.5
+Date: Tue, 19 Oct 2010 18:17:11 -0400
+Message-ID: <7E754FDB97BF4D9DAF66CC3CCA8E34B5@md.baymicrosystems.com>
+References: <CF9C39F99A89134C9CF9C4CCB68B8DDF25B7DAA11D@orsmsx501.amr.corp.intel.com> <20101012203528.GP24268@obsidianresearch.com> <CF9C39F99A89134C9CF9C4CCB68B8DDF25B7DAA2A6@orsmsx501.amr.corp.intel.com> <20101012211052.GT24268@obsidianresearch.com> <CF9C39F99A89134C9CF9C4CCB68B8DDF25B7DAA46E@orsmsx501.amr.corp.intel.com> <091262BDA0A846A0B62CB3BEDB366DBC@md.baymicrosystems.com> <EC5B6AE4937B444290B7D4D10BC489A5@md.baymicrosystems.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+	charset="US-ASCII"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <CF9C39F99A89134C9CF9C4CCB68B8DDF25B7FB404C-osO9UTpF0USkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
+In-Reply-To: <EC5B6AE4937B444290B7D4D10BC489A5-+IkoAhRkys/CbFgIbBqbbjGjJy/sRE9J@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+To: 'Linux RDMA list' <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, 'Tziporet Koren' <tziporet-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Oct 19, 2010 at 11:50:46AM -0700, Hefty, Sean wrote:
 
-> We start with a minimal set of definitions to umad and add/move
-> other definitions later as needed, creating new header files where
-> appropriate (umad_smi.h, umad_pm.h, etc.)
- 
-> If we can get some basic agreement on this, I'll start on the
-> patches immediately.  In an ideal world, the new header files would
-> work on any platform.
+Just want to let you all know that OpenSM seems to work fine with Centos5.5 on the same HW.
 
-Can we at least agree on the usage of these structures first? Are the
-constants going to be in host or network byte order?
+Thanks,
+Suri
 
-Are you going to make something like the kernel where there is a
-native structure and pack/unpack function set?
+> -----Original Message-----
+> From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Suresh
+> Shelvapille
+> Sent: Wednesday, October 13, 2010 3:07 PM
+> To: 'Linux RDMA list'; 'Tziporet Koren'
+> Subject: RE: Opensm crash with OFED 1.5
+> 
+> 
+> I tried 1.5.2 and that did not help, same kernel oops.....
+> 
+> > -----Original Message-----
+> > From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of
+> Suresh
+> > Shelvapille
+> > Sent: Tuesday, October 12, 2010 7:22 PM
+> > To: 'Linux RDMA list'
+> > Subject: Opensm crash with OFED 1.5
+> >
+> >
+> > Folks:
+> >
+> > I have a multi-processor machine, running FedoraCore 12. I have installed OFED 1.5. Everything
+> seems
+> > to come up ok, I
+> > can look at the ibstat and it shows that the Mellanox card stats etc...
+> >
+> > As soon as I start opensm, I get the following kernel oops and the machine locks up.
+> >
+> > Any ideas....
+> >
+> > Thanks,
+> > Suri
+> >
+> > --------------------------------------------------------------------------------------------------
+> >
+> > Oct 12 17:19:38 localhost OpenSM[2617]: OpenSM 3.3.5#012
+> >
+> > Oct 12 17:19:38 localhost OpenSM[2617]: Entering DISCOVERING state#012
+> >
+> > Oct 12 17:20:20 localhost kernel: ib0: ib_query_gid() failed
+> >
+> > Oct 12 17:20:30 localhost kernel: ib0: ib_query_port failed
+> >
+> > Oct 12 17:20:52 localhost kernel: BUG: soft lockup - CPU#15 stuck for 61s! [opensm:2637]
+> >
+> > Oct 12 17:20:52 localhost kernel: Modules linked in: fuse sunrpc ip6t_REJECT nf_conntrack_ipv6
+> > ip6table_filter
+> > ip6_tables cpufreq_ondemand acpi_cpufreq freq_table rdma_ucm ib_sdp rdma_cm iw_cm ib_addr ib_ipoib
+> > ib_cm ib_sa ipv6
+> > ib_uverbs ib_umad iw_nes libcrc32c iw_cxgb3 cxgb3 mlx4_en mlx4_ib ib_mthca ib_mad ib_core
+> > dm_multipath uinput mlx4_core
+> > igb i2c_i801 joydev dca i2c_core iTCO_wdt iTCO_vendor_support mpt2sas scsi_transport_sas [last
+> > unloaded: microcode]
+> >
+> > Oct 12 17:20:52 localhost kernel: CPU 15:
+> >
+> > Oct 12 17:20:52 localhost kernel: Modules linked in: fuse sunrpc ip6t_REJECT nf_conntrack_ipv6
+> > ip6table_filter
+> > ip6_tables cpufreq_ondemand acpi_cpufreq freq_table rdma_ucm ib_sdp rdma_cm iw_cm ib_addr ib_ipoib
+> > ib_cm ib_sa ipv6
+> > ib_uverbs ib_umad iw_nes libcrc32c iw_cxgb3 cxgb3 mlx4_en mlx4_ib ib_mthca ib_mad ib_core
+> > dm_multipath uinput mlx4_core
+> > igb i2c_i801 joydev dca i2c_core iTCO_wdt iTCO_vendor_support mpt2sas scsi_transport_sas [last
+> > unloaded: microcode]
+> >
+> > Oct 12 17:20:52 localhost kernel: Pid: 2637, comm: opensm Not tainted 2.6.31.5-127.fc12.x86_64 #1
+> > X8DTH-i/6/iF/6F
+> >
+> > Oct 12 17:20:52 localhost kernel: RIP: 0010:[<ffffffff81203558>]  [<ffffffff81203558>]
+> > __bitmap_empty+0x0/0x64
+> >
+> > Oct 12 17:20:52 localhost kernel: RSP: 0018:ffff880c174bbd90  EFLAGS: 00000246
+> >
+> > Oct 12 17:20:52 localhost kernel: RAX: 0000000000000000 RBX: ffff880c174bbdd8 RCX: 0000000000000001
+> >
+> > Oct 12 17:20:52 localhost kernel: RDX: ffffffff818ba920 RSI: 0000000000000100 RDI: ffffffff818ba918
+> >
+> > Oct 12 17:20:52 localhost kernel: RBP: ffffffff8101286e R08: 0000000000000000 R09: 0000000000000004
+> >
+> > Oct 12 17:20:52 localhost kernel: R10: 0000000000000004 R11: 0000000000000206 R12: ffff880c174bbdd8
+> >
+> > Oct 12 17:20:52 localhost kernel: R13: ffffffff8101286e R14: ffffffff810dc920 R15: ffff880c174bbcf8
+> >
+> > Oct 12 17:20:52 localhost kernel: FS:  00007ff2d02e7710(0000) GS:ffffc90001e00000(0000)
+> > knlGS:0000000000000000
+> >
+> > Oct 12 17:20:52 localhost kernel: CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+> >
+> > Oct 12 17:20:52 localhost kernel: CR2: 000000000041f0c0 CR3: 0000000c19074000 CR4: 00000000000006e0
+> >
+> > Oct 12 17:20:52 localhost kernel: DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+> >
+> > Oct 12 17:20:52 localhost kernel: DR3: 0000000000000000 DR6: 00000000ffff0ff0 DR7: 0000000000000400
+> >
+> > Oct 12 17:20:52 localhost kernel: Call Trace:
+> >
+> > Oct 12 17:20:52 localhost kernel: [<ffffffff810383f2>] ? native_flush_tlb_others+0xc3/0xf2
+> >
+> > Oct 12 17:20:52 localhost kernel: [<ffffffff8103859d>] ? flush_tlb_mm+0x6f/0x76
+> >
+> > Oct 12 17:20:52 localhost kernel: [<ffffffff810debbc>] ? mprotect_fixup+0x480/0x611
+> >
+> > Oct 12 17:20:52 localhost kernel: [<ffffffff810da81d>] ? free_pgtables+0xa9/0xcc
+> >
+> > Oct 12 17:20:52 localhost kernel: [<ffffffff810f185d>] ? virt_to_head_page+0xe/0x2f
+> >
+> > Oct 12 17:20:52 localhost kernel: [<ffffffff810deee9>] ? sys_mprotect+0x19c/0x227
+> >
+> > Oct 12 17:20:52 localhost kernel: [<ffffffff81011cf2>] ? system_call_fastpath+0x16/0x1b
+> >
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-Something macro-based like foo = GET_MEMBER(*pr,preference)
-
-Network byte order casting structures?
-
-Host byte order casting structures? (my favorite)
-
-bitfields?
-
-For years now I've had a set of data files that describe all the IB
-structures bitfield layouts. I think I can contribute the data files
-but not the generator script.
-
-Since they all have various merits, maybe the smartest thing is to just
-codegen all of the above permutations from single data source?
-
-ie
-// network endian bitfield casting structure
-struct MADHeader_NE x = {};
-x.status = htons(1);
-
-// host endian bitfield casting structure
-struct MADHeader_HE x = {};
-x.status = 1
-to_network(&x,sizeof(x)); // x[i] = htonl(x[i]) for i in len/4
-
-/* Non-bitfield macro access structure
-   (using the 1 byte = 1 bit helper structure technique) */
-struct MADHeader_M x = {}
-SET_MEMBER(x,status,1);  
-
-// Pack/unpack function structure
-struct MADHeader_UP x = {};
-x.status = htons(1);
-pack_MADHeader(&x,mad_buf,sizeof(mad_buf));
-
-I'd like to think we don't need the last one, but people seem to like
-that scheme ..
-
-I also like to codegen structure printing functions, that is
-surprisingly useful - and implements a good chunk of madeye.
- 
-What do you think?
-
-I've also very recently been thinking that I'd like python bindings
-for MADs for some projects. I was planning on building it out with the
-code gen scheme.
-
-Ira, I think the cleanest answer is that OSM keeps its type file, and
-umad gets a new one that is cleaner, more capable and probably
-incompatible. I'd hate to see us stick to the OSM scheme for umad just
-for code compatability.
-
-Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
