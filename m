@@ -1,40 +1,57 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: ib mad definitions
-Date: Tue, 19 Oct 2010 09:48:53 -0700
-Message-ID: <CF9C39F99A89134C9CF9C4CCB68B8DDF25B7FB3E34@orsmsx501.amr.corp.intel.com>
+From: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: ib mad definitions
+Date: Tue, 19 Oct 2010 13:00:01 -0400
+Message-ID: <AANLkTim5fGA2ph7dPnJADBHs_-7qCBpXKakiTHTH9g1W@mail.gmail.com>
 References: <CF9C39F99A89134C9CF9C4CCB68B8DDF25B7FB38D9@orsmsx501.amr.corp.intel.com>
 	<AANLkTimc7sgmyTvW_dgXarUvGzHcN3sRJ6TJQGxU5p7G@mail.gmail.com>
 	<CF9C39F99A89134C9CF9C4CCB68B8DDF25B7FB3CDB@orsmsx501.amr.corp.intel.com>
- <AANLkTimbmQS0pcfF3CdSokPbAtbCZT7KFbWcSSNsYobk@mail.gmail.com>
+	<AANLkTimbmQS0pcfF3CdSokPbAtbCZT7KFbWcSSNsYobk@mail.gmail.com>
+	<CF9C39F99A89134C9CF9C4CCB68B8DDF25B7FB3E34@orsmsx501.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <AANLkTimbmQS0pcfF3CdSokPbAtbCZT7KFbWcSSNsYobk-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <CF9C39F99A89134C9CF9C4CCB68B8DDF25B7FB3E34-osO9UTpF0USkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>, Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>, Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-PiBJIGFncmVlIGliX3R5cGVzLmggaXMgbW9yZSBnZW5lcmljIHRoYW4gb3BlbnNtLiBNb3Zpbmcg
-dG8gbGliaWJtYWQgYW5kDQo+IG1ha2luZyBvcGVuc20gZGVwZW5kIG9uIHRoaXMgaXMgcHJvYmFi
-bHkgYmV0dGVyIHRoYW4gYWxsIHRoZQ0KPiBkdXBsaWNhdGlvbi4gVGhlcmUgaGF2ZSBiZWVuIHZp
-ZXdwb2ludHMgdGhhdCBsaWJpYnVtYWQgYW5kIGxpYmlibWFkDQo+IHNob3VsZG4ndCBiZSBzZXBh
-cmF0ZSAoYXMgdGhleSBhcmUgc21hbGwpIGJ1dCB0aGV5IHdlcmUgbmV2ZXIgY29tYmluZWQNCj4g
-aW50byBhIHNpbmdsZSBsaWJyYXJ5Lg0KDQpNeSBtb3RpdmF0aW9uIHdpdGggdGhlc2UgY2hhbmdl
-cyBpcyBmb3IgaWJhY20gdG8gcmVjZWl2ZSBhbmQgdXNlIG5vdGlmaWNhdGlvbiBvZiBDTSB0aW1l
-b3V0cyB0byB1cGRhdGUgaXRzIHBhdGggcmVjb3JkIGNhY2hlLiAgaWJhY20gYWxyZWFkeSBkZWZp
-bmVzIHRoZSBiYXNpYyBtYWQgc3RydWN0dXJlLCBtdWx0aWNhc3QgcmVjb3JkLCBhbmQgcGF0aCBy
-ZWNvcmQuICBJdCB3b3VsZCBhbHNvIG5lZWQgdGhlIENNIG1hZCBmb3JtYXQuICBJJ2QgaGFwcGls
-eSByZW1vdmUgdGhlc2UgZGVmaW5pdGlvbnMgaWYgdGhleSB3ZXJlIGFscmVhZHkgYXZhaWxhYmxl
-Lg0KDQpQb3J0aW5nIG1hZGV5ZSB0byB1c2VyIHNwYWNlIGlzIGEgc2lkZSBiZW5lZml0IHRvIHRo
-ZSBwcm9wb3NlZCBrZXJuZWwgY2hhbmdlcy4NCg0KaWJhY20gb25seSBkZXBlbmRzIG9uIGxpYmli
-dW1hZC4gIFRoZSBtYWRleWUgcG9ydCBhbHNvIG9ubHkgZGVwZW5kcyBvbiBsaWJpYnVtYWQuICBI
-b25lc3RseSwgSSBmaW5kIHRoZSBsaWJpYm1hZCBBUElzIGNvbmZ1c2luZy4gIEknZCBtdWNoIHJh
-dGhlciBsaWJpYnVtYWQgcHJvdmlkZSBtYWQgZGVmaW5pdGlvbnMuDQoNClNhc2hhL0lyYSwgZG8g
-ZWl0aGVyIG9mIHlvdSBoYXZlIG9waW5pb25zIG9uIHRoaXM/DQo=
+On Tue, Oct 19, 2010 at 12:48 PM, Hefty, Sean <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wr=
+ote:
+>> I agree ib_types.h is more generic than opensm. Moving to libibmad a=
+nd
+>> making opensm depend on this is probably better than all the
+>> duplication. There have been viewpoints that libibumad and libibmad
+>> shouldn't be separate (as they are small) but they were never combin=
+ed
+>> into a single library.
+
+The other thing I just recalled was the OpenSM portability issue.
+ib_types.h is needed here and libibmad/libibumad is not in all those
+environments. As you''re all too well aware, this was even the case in
+Windows until very recently. There may still be others we care about
+where moving ib_types.h might be problematic.
+
+-- Hal
+
+> My motivation with these changes is for ibacm to receive and use noti=
+fication of CM timeouts to update its path record cache. =C2=A0ibacm al=
+ready defines the basic mad structure, multicast record, and path recor=
+d. =C2=A0It would also need the CM mad format. =C2=A0I'd happily remove=
+ these definitions if they were already available.
+>
+> Porting madeye to user space is a side benefit to the proposed kernel=
+ changes.
+>
+> ibacm only depends on libibumad. =C2=A0The madeye port also only depe=
+nds on libibumad. =C2=A0Honestly, I find the libibmad APIs confusing. =C2=
+=A0I'd much rather libibumad provide mad definitions.
+>
+> Sasha/Ira, do either of you have opinions on this?
+>
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
