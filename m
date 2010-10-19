@@ -1,38 +1,45 @@
-From: Mike Heinz <michael.heinz-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-Subject: RE: ib mad definitions
-Date: Tue, 19 Oct 2010 09:53:42 -0500
-Message-ID: <4C2744E8AD2982428C5BFE523DF8CDCB49D45E42EF@MNEXMB1.qlogic.org>
-References: <CF9C39F99A89134C9CF9C4CCB68B8DDF25B7FB38D9@orsmsx501.amr.corp.intel.com>
+From: "J. Bruce Fields" <bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org>
+Subject: Re: [PATCH 0/2] svcrdma: NFSRDMA Server fixes for 2.6.37
+Date: Tue, 19 Oct 2010 10:54:43 -0400
+Message-ID: <20101019145443.GA16742@fieldses.org>
+References: <20101012203332.22154.37230.stgit@build.ogc.int>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CF9C39F99A89134C9CF9C4CCB68B8DDF25B7FB38D9-osO9UTpF0USkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <20101012203332.22154.37230.stgit-T4OLL4TyM9aNDNWfRnPdfg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+To: Tom Tucker <tom-/Yg/VP3ZvrM@public.gmane.org>
+Cc: linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Works for me.
+On Tue, Oct 12, 2010 at 03:33:46PM -0500, Tom Tucker wrote:
+> Hi Bruce,
+> 
+> These fixes are ready for 2.6.37. They fix two bugs in the server-side
+> NFSRDMA transport.
 
------Original Message-----
-From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Hefty, Sean
-Sent: Monday, October 18, 2010 6:25 PM
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Sasha Khapyorsky
-Subject: ib mad definitions
+Both applied and pushed out, thanks.
 
-This has probably been discussed before, but is there a strong reason why ib_types.h can't be moved from opensm/include/iba to libibumad/include/infiniband?
+--b.
 
-This appears to be the only place where IB MAD definitions are available for user space applications, and having them available at the libibumad level makes sense to me.
-
-(I'm trying to port madeye to user space as a diag, and want all IB MAD definitions.)
-
-- Sean 
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
+> 
+> Thanks,
+> Tom
+> ---
+> 
+> Tom Tucker (2):
+>       svcrdma: Cleanup DMA unmapping in error paths.
+>       svcrdma: Change DMA mapping logic to avoid the page_address kernel API
+> 
+> 
+>  net/sunrpc/xprtrdma/svc_rdma_recvfrom.c  |   19 ++++---
+>  net/sunrpc/xprtrdma/svc_rdma_sendto.c    |   82 ++++++++++++++++++++++--------
+>  net/sunrpc/xprtrdma/svc_rdma_transport.c |   41 +++++++--------
+>  3 files changed, 92 insertions(+), 50 deletions(-)
+> 
+> -- 
+> Signed-off-by: Tom Tucker <tom-/Yg/VP3ZvrM@public.gmane.org>
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
