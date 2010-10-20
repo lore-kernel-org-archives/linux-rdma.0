@@ -1,73 +1,39 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: ib mad definitions
-Date: Tue, 19 Oct 2010 21:28:18 -0600
-Message-ID: <20101020032818.GC413@obsidianresearch.com>
-References: <CF9C39F99A89134C9CF9C4CCB68B8DDF25B7FB38D9@orsmsx501.amr.corp.intel.com> <AANLkTimc7sgmyTvW_dgXarUvGzHcN3sRJ6TJQGxU5p7G@mail.gmail.com> <CF9C39F99A89134C9CF9C4CCB68B8DDF25B7FB3CDB@orsmsx501.amr.corp.intel.com> <AANLkTimbmQS0pcfF3CdSokPbAtbCZT7KFbWcSSNsYobk@mail.gmail.com> <20101019102244.21cd2b1e.weiny2@llnl.gov> <CF9C39F99A89134C9CF9C4CCB68B8DDF25B7FB404C@orsmsx501.amr.corp.intel.com> <20101019212926.GH10362@obsidianresearch.com> <CF9C39F99A89134C9CF9C4CCB68B8DDF25B801F393@orsmsx501.amr.corp.intel.com> <20101019181256.d0a15afe.weiny2@llnl.gov>
+From: Tejun Heo <tj-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH v2.6.36-rc7] infiniband: update workqueue usage
+Date: Wed, 20 Oct 2010 10:37:03 +0200
+Message-ID: <4CBEAA2F.6000009@kernel.org>
+References: <4CBDB834.2050905@kernel.org> <1287508926.27343.299.camel@chromite.mv.qlogic.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20101019181256.d0a15afe.weiny2-i2BcT+NCU+M@public.gmane.org>
+In-Reply-To: <1287508926.27343.299.camel-/vjeY7uYZjrPXfVEPVhPGq6RkeBMCJyt@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-Cc: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+To: Ralph Campbell <ralph.campbell-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+Cc: Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, lkml <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Oct 19, 2010 at 06:12:56PM -0700, Ira Weiny wrote:
+Hello,
 
-> I am all for "cleaner, more capable..." but why incompatible?  If we want to
-> start fresh and then convert OpenSM later, fine.  But _don't_ forget to go
-> back and convert OpenSM, because if you leave ib_types.h out there someone is
-> going to use it and we are back to where we started...  :-(  Same for ibmad,
-> when these definitions become available in umad, mad can be simplified.
-
-ib_types.h should not be installed in /usr/include, stop doing that
-and that risk goes away.
-
-ibmad can't really be changed, it is system library with a defined
-API. Maybe ibmad.2 or something, I don't know. I tried to use some of
-the PR APIs in it, and I've found them not useful :(
-
-For instance we can't just abandon the mad_get_fields approach because
-we have real, usuable field access in umad, it has to stay.
-
-> Right now there are 3 headers I find path record in.
-
-> libibverbs: sa.h
-
-This isn't a MAD path record, this is the kernel version, which is
-unpacked. What we really needs is MAD 2 kernel and vice versa
-conversion in a library. I already have code that does this in
-several places :(
-
-> libibmad: mad.h
-
-You mean mad_get_fields IB_SA_PR_DGID_F, etc? It doesn't even have all
-the fields :(
-
-> opensm: ib_types.h
-
-Yep.
- 
-> Node type is defined in:
+On 10/19/2010 07:22 PM, Ralph Campbell wrote:
+> On Tue, 2010-10-19 at 08:24 -0700, Tejun Heo wrote:
 > 
-> libibverbs: verbs.h
-> opensm: ib_types.h
-> libibmad: mad.h
+>> * qib_cq_wq is a separate singlethread workqueue.  Does the queue
+>>   require strict single thread execution ordering?  IOW, does each
+>>   work have to be executed in the exact queued order and no two works
+>>   should execute in parallel?  Or was the singlethreadedness chosen
+>>   just to reduce the number of workers?
 > 
-> I could go on.
+> The work functions need to be called in-order and single threaded
+> or memory will be freed multiple times and other "bad things".
 
-Keep in mind that for the most part libibmad is someones attempt to
-make a set of accessors and structures for mads. It is incomplete. It
-is largely unusable. I certainly haven't been able to use its PR
-structure parsing functions for any real app. Was it just pulled out
-of opensm? I don't know, I'd just as soon see that part of it be
-discarded, and a complete set of structures added to umad.
+I see, so they'll need to be converted to alloc_ordered_workqueue()
+once -rc1 merge window opens up.  I'll follow up with the conversion.
 
-opensm has unique problems because they want to remain independent of the
-OFA stack, I don't think they have a choice but to duplicate.
+Thanks.
 
-Jason
+-- 
+tejun
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
