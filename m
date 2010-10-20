@@ -1,42 +1,46 @@
 From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 Subject: Re: [PATCH 2.6.37] RDMA/cxgb3: When a user QP is marked in error,
  also mark the CQs in error.
-Date: Wed, 20 Oct 2010 17:36:54 -0500
-Message-ID: <4CBF6F06.7030703@opengridcomputing.com>
-References: <20101020214432.4869.50981.stgit@build.ogc.int> <adapqv47co9.fsf@cisco.com>
+Date: Wed, 20 Oct 2010 17:37:51 -0500
+Message-ID: <4CBF6F3F.10507@opengridcomputing.com>
+References: <20101020214432.4869.50981.stgit@build.ogc.int> <CF9C39F99A89134C9CF9C4CCB68B8DDF25B801FC1F@orsmsx501.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <adapqv47co9.fsf-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <CF9C39F99A89134C9CF9C4CCB68B8DDF25B801FC1F-osO9UTpF0USkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org" <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 10/20/2010 04:54 PM, Roland Dreier wrote:
->   >  - bump the ABI since the create_cq uverbs response changes.
->
->   >  - detect older libraries and reduce the mmap size accordingly.
->
-> If you bump the ABI, will older libraries still run with the new driver?
-> Or will they just bail out with "unsupported ABI version"?
+On 10/20/2010 05:10 PM, Hefty, Sean wrote:
+>> @@ -217,15 +218,24 @@ static struct ib_cq *iwch_create_cq(struct ib_device
+>> *ibdev, int entries, int ve
+>>   		uresp.key = ucontext->key;
+>>   		ucontext->key += PAGE_SIZE;
+>>   		spin_unlock(&ucontext->mmap_lock);
+>> +		mm->key = uresp.key;
+>> +		mm->addr = virt_to_phys(chp->cq.queue);
+>> +		if (udata->outlen<  sizeof uresp) {
+>> +			if (!warned++)
+>> +				printk(KERN_WARNING MOD "Warning - "
+>> +				       "downlevel libcxgb3 (non-fatal).\n");
+>> +			mm->len = PAGE_ALIGN((1UL<<  uresp.size_log2) *
+>> +					     sizeof(struct t3_cqe));
+>> +		} else {
+>> +			mm->len = PAGE_ALIGN(((1UL<<  uresp.size_log2) + 1) *
+>> +					     sizeof(struct t3_cqe));
+>> +			uresp.memsize = mm->len;
+>> +		}
+>>   		if (ib_copy_to_udata(udata,&uresp, sizeof (uresp))) {
+>>      
+> Is this correct?  udata->outlen can be less than sizeof uresp here.
 >
 >    
 
-Well, the existing lib versions don't look at the ABI at all. :)  So 
-we're ok.   And I put logic in the driver to detect the old libs vs ABI 
-1 libs.
-
-> If you can work with both old and new userspace libraries, is there any
-> reason for an ABI break anyway?
->    
-
-The ABI version bump tells the new library that the kernel driver 
-supports this new functionality.  I don't know another way to do this 
-without the ABI bump.  The kernel driver detects the library ABI via the 
-size of the create_cq response that's passed in from the lib.  But in 
-the other direction, I think the only was is with the ABI number.
+The only way it can be less is if the library is using the ABI 0 version 
+of the response struct.  Or am I missing something?
 
 Steve.
 
