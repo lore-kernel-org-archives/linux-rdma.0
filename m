@@ -1,34 +1,36 @@
 From: Tejun Heo <tj-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Subject: Re: [PATCH v2.6.36-rc7] infiniband: update workqueue usage
-Date: Wed, 20 Oct 2010 10:37:03 +0200
-Message-ID: <4CBEAA2F.6000009@kernel.org>
-References: <4CBDB834.2050905@kernel.org> <1287508926.27343.299.camel@chromite.mv.qlogic.com>
+Date: Wed, 20 Oct 2010 10:38:06 +0200
+Message-ID: <4CBEAA6E.2060000@kernel.org>
+References: <4CBDB834.2050905@kernel.org> <AANLkTi=gYununGYK-QuonZASyk49Rj2-+zG+f22fBF=g@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1287508926.27343.299.camel-/vjeY7uYZjrPXfVEPVhPGq6RkeBMCJyt@public.gmane.org>
+In-Reply-To: <AANLkTi=gYununGYK-QuonZASyk49Rj2-+zG+f22fBF=g@mail.gmail.com>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ralph Campbell <ralph.campbell-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-Cc: Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, lkml <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Cc: Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, lkml <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 Hello,
 
-On 10/19/2010 07:22 PM, Ralph Campbell wrote:
-> On Tue, 2010-10-19 at 08:24 -0700, Tejun Heo wrote:
+On 10/19/2010 08:40 PM, Bart Van Assche wrote:
+> On Tue, Oct 19, 2010 at 5:24 PM, Tejun Heo <tj-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
+>> [ ... ]
+>> This is to prepare for deprecation of flush_scheduled_work().
+>> [ ... ]
+>> Index: work/include/rdma/ib_verbs.h
+>> [ ... ]
+>> +extern struct workqueue_struct *ib_wq;
+>> [ ... ]
 > 
->> * qib_cq_wq is a separate singlethread workqueue.  Does the queue
->>   require strict single thread execution ordering?  IOW, does each
->>   work have to be executed in the exact queued order and no two works
->>   should execute in parallel?  Or was the singlethreadedness chosen
->>   just to reduce the number of workers?
-> 
-> The work functions need to be called in-order and single threaded
-> or memory will be freed multiple times and other "bad things".
+> This patch adds a declaration of a global variable to a public header
+> file. That might be unavoidable, but it doesn't make me happy.
 
-I see, so they'll need to be converted to alloc_ordered_workqueue()
-once -rc1 merge window opens up.  I'll follow up with the conversion.
+Hmm... that's one very interesting reason to be unhappy.  Can you
+please elaborate why addition of a global variable doesn't make you
+happy?
 
 Thanks.
 
