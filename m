@@ -1,59 +1,44 @@
-From: "Robert D. Russell" <rdr-zcUZCMB5SQOVc3sceRu5cw@public.gmane.org>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Subject: Re: [PATCH 1/2] RPING: Make sure CQ event thread exits before
- destroying the CQ.
-Date: Wed, 20 Oct 2010 17:05:00 -0400 (EDT)
-Message-ID: <alpine.LNX.2.00.1010201704210.16382@postal.iol.unh.edu>
-References: <20101020192859.1431.68877.stgit@build.ogc.int> <AANLkTi=uAuXT1RMEQ+vsA4FkN2828mZ2q0KPKXxpb6H0@mail.gmail.com> <4CBF4D30.3050500@opengridcomputing.com> <AANLkTimTpM_h7P8tacZic2aP7i=dBiAquDN5S_D881ae@mail.gmail.com> <20101020203551.GO10362@obsidianresearch.com>
- <4CBF5786.2020203@opengridcomputing.com>
+	destroying the CQ.
+Date: Wed, 20 Oct 2010 15:16:17 -0600
+Message-ID: <20101020211617.GP10362@obsidianresearch.com>
+References: <20101020192859.1431.68877.stgit@build.ogc.int> <AANLkTi=uAuXT1RMEQ+vsA4FkN2828mZ2q0KPKXxpb6H0@mail.gmail.com> <4CBF4D30.3050500@opengridcomputing.com> <AANLkTimTpM_h7P8tacZic2aP7i=dBiAquDN5S_D881ae@mail.gmail.com> <20101020203551.GO10362@obsidianresearch.com> <4CBF5786.2020203@opengridcomputing.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
 In-Reply-To: <4CBF5786.2020203-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, 20 Oct 2010, Steve Wise wrote:
+On Wed, Oct 20, 2010 at 03:56:38PM -0500, Steve Wise wrote:
 
-> On 10/20/2010 03:35 PM, Jason Gunthorpe wrote:
->> On Wed, Oct 20, 2010 at 10:23:25PM +0200, Bart Van Assche wrote:
->>
->> 
->>> Please keep in mind that glibc uses locking internally for many file
->>> I/O functions, e.g. printf() and fprintf().
->>> 
->> POSIX strictly defines what functions are, aren't and could be
->> cancellation points, yes it is a surprising list. But, glibc won't
->> break internally if you cancel any of its function calls. It has
->> cleanup handlers and what not to protect itself.
->> 
->> rping doesn't hold locks, or allocate memory in the cq_thread, so it
->> seems OK to me. My main question would be what happens internally to
->> ibverbs, and does it call any possible cancellation point while holding
->> locks - is it missing cleanup handlers? Etc.
->> 
->> Jason
->> 
->
-> Hey Jason, do you have a pointer to the list of pthread cancellation points 
-> for Linux?
->
-> Steve.
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+> Hey Jason, do you have a pointer to the list of pthread cancellation  
+> points for Linux?
 
-Steve:
+Sure do
 
-On a linux system, just try
-man 7 pthreads
-and scroll down to the cancellation points lists.
+http://www.kernel.org/doc/man-pages/online/pages/man7/pthreads.7.html
 
-Bob
+POSIX:2008 is a more authoritative source, the above is cribbed from
+there. You can see the list of cancelation points is pretty wild :(
 
+IMHO, it would be a useful job for someone to sort this out for
+verbs and the drivers - document what ibv interfaces are not
+cancelation points and make all the ibv apis cancelation-safe.
+I bet there isn't much coding, just lots of auditing. Just now I
+looked through all the functions cq_thread called and decided
+everything but ibv_poll_cq was certainly not a cancelation point for
+mlx4/mtcha, while ibv_poll_cq was too complex to tell right away.
+
+In glibc if a function is not cancelable it will be marked with __THROW.
+I wonder if gcc (or sparse?) could check that functions
+marked __THROW don't call other functions not marked __THROW ?
+
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
