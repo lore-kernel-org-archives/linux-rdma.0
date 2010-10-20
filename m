@@ -1,52 +1,71 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Subject: Re: ib mad definitions
-Date: Tue, 19 Oct 2010 21:07:03 -0600
-Message-ID: <20101020030703.GB413@obsidianresearch.com>
-References: <CF9C39F99A89134C9CF9C4CCB68B8DDF25B7FB38D9@orsmsx501.amr.corp.intel.com> <AANLkTimc7sgmyTvW_dgXarUvGzHcN3sRJ6TJQGxU5p7G@mail.gmail.com> <CF9C39F99A89134C9CF9C4CCB68B8DDF25B7FB3CDB@orsmsx501.amr.corp.intel.com> <AANLkTimbmQS0pcfF3CdSokPbAtbCZT7KFbWcSSNsYobk@mail.gmail.com> <20101019102244.21cd2b1e.weiny2@llnl.gov> <CF9C39F99A89134C9CF9C4CCB68B8DDF25B7FB404C@orsmsx501.amr.corp.intel.com> <20101019212926.GH10362@obsidianresearch.com> <CF9C39F99A89134C9CF9C4CCB68B8DDF25B801F393@orsmsx501.amr.corp.intel.com> <20101020010958.GA413@obsidianresearch.com> <20101019183257.3f609c45.weiny2@llnl.gov>
+Date: Tue, 19 Oct 2010 21:28:18 -0600
+Message-ID: <20101020032818.GC413@obsidianresearch.com>
+References: <CF9C39F99A89134C9CF9C4CCB68B8DDF25B7FB38D9@orsmsx501.amr.corp.intel.com> <AANLkTimc7sgmyTvW_dgXarUvGzHcN3sRJ6TJQGxU5p7G@mail.gmail.com> <CF9C39F99A89134C9CF9C4CCB68B8DDF25B7FB3CDB@orsmsx501.amr.corp.intel.com> <AANLkTimbmQS0pcfF3CdSokPbAtbCZT7KFbWcSSNsYobk@mail.gmail.com> <20101019102244.21cd2b1e.weiny2@llnl.gov> <CF9C39F99A89134C9CF9C4CCB68B8DDF25B7FB404C@orsmsx501.amr.corp.intel.com> <20101019212926.GH10362@obsidianresearch.com> <CF9C39F99A89134C9CF9C4CCB68B8DDF25B801F393@orsmsx501.amr.corp.intel.com> <20101019181256.d0a15afe.weiny2@llnl.gov>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20101019183257.3f609c45.weiny2-i2BcT+NCU+M@public.gmane.org>
+In-Reply-To: <20101019181256.d0a15afe.weiny2-i2BcT+NCU+M@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
 Cc: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Oct 19, 2010 at 06:32:57PM -0700, Ira Weiny wrote:
-> On Tue, 19 Oct 2010 18:09:58 -0700
-> Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
-> 
-> > On Tue, Oct 19, 2010 at 06:00:51PM -0700, Hefty, Sean wrote:
-> > > > Can we at least agree on the usage of these structures first? Are the
-> > > > constants going to be in host or network byte order?
-> > > 
-> > > I was simply suggesting to 'move' some of the existing structures and defines.
-> > 
-> > But they are horrible and little used outside opensm right now, you
-> > really want to commit to that forever?
+On Tue, Oct 19, 2010 at 06:12:56PM -0700, Ira Weiny wrote:
+
+> I am all for "cleaner, more capable..." but why incompatible?  If we want to
+> start fresh and then convert OpenSM later, fine.  But _don't_ forget to go
+> back and convert OpenSM, because if you leave ib_types.h out there someone is
+> going to use it and we are back to where we started...  :-(  Same for ibmad,
+> when these definitions become available in umad, mad can be simplified.
+
+ib_types.h should not be installed in /usr/include, stop doing that
+and that risk goes away.
+
+ibmad can't really be changed, it is system library with a defined
+API. Maybe ibmad.2 or something, I don't know. I tried to use some of
+the PR APIs in it, and I've found them not useful :(
+
+For instance we can't just abandon the mad_get_fields approach because
+we have real, usuable field access in umad, it has to stay.
+
+> Right now there are 3 headers I find path record in.
+
+> libibverbs: sa.h
+
+This isn't a MAD path record, this is the kernel version, which is
+unpacked. What we really needs is MAD 2 kernel and vice versa
+conversion in a library. I already have code that does this in
+several places :(
+
+> libibmad: mad.h
+
+You mean mad_get_fields IB_SA_PR_DGID_F, etc? It doesn't even have all
+the fields :(
+
+> opensm: ib_types.h
+
+Yep.
  
-> Not everything is horrible.  And if it is we can fix it.  But I think
-> defining "yet another" header with the same functionality is worse.
-> Like it or
+> Node type is defined in:
+> 
+> libibverbs: verbs.h
+> opensm: ib_types.h
+> libibmad: mad.h
+> 
+> I could go on.
 
-libibumad is a system library. It needs to have a stable ABI, low
-churn and ideally be 'complete'.
+Keep in mind that for the most part libibmad is someones attempt to
+make a set of accessors and structures for mads. It is incomplete. It
+is largely unusable. I certainly haven't been able to use its PR
+structure parsing functions for any real app. Was it just pulled out
+of opensm? I don't know, I'd just as soon see that part of it be
+discarded, and a complete set of structures added to umad.
 
-My database of IB structs has 117 structures, all with wakky alignment
-and all manner of strangeness. IMHO, it is infeasible to keep with the
-ad hoc approach in ibtypes.h and generate a complete header set
-without a lot of churn. This is why it is horrible.
-
-There are things worse than 'yet another' header - for instance a
-system library being churned again and again for cleanups. Figure out
-what you want, do it once, do it right, be done.
-
-If we could all agree what these structs should look like I can
-provide my database and someone can write the codegen AND WE CAN BE
-DONE FOREVER. How is this not much better??
-
-Don't treat the API of a system library as some casual thing. :(
+opensm has unique problems because they want to remain independent of the
+OFA stack, I don't think they have a choice but to duplicate.
 
 Jason
 --
