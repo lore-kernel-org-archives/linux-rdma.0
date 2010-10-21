@@ -1,44 +1,41 @@
-From: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCHv10 08/12] mlx4: Add support for IBoE - address
- resolution
-Date: Thu, 21 Oct 2010 09:27:03 +0200
-Message-ID: <20101021072703.GA1912@mtldesk30>
-References: <20100826141851.GI8795@mtldesk30>
- <adazku85dcf.fsf@cisco.com>
+From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Subject: Re: [PATCH 1/2] RPING: Make sure CQ event thread exits before
+ destroying the CQ.
+Date: Thu, 21 Oct 2010 12:16:33 +0200
+Message-ID: <AANLkTi=eJdjgQ4MKPxddUA2eBOswf-5fo5wm=JzX=Hib@mail.gmail.com>
+References: <20101020192859.1431.68877.stgit@build.ogc.int>
+ <AANLkTi=uAuXT1RMEQ+vsA4FkN2828mZ2q0KPKXxpb6H0@mail.gmail.com>
+ <4CBF4D30.3050500@opengridcomputing.com> <AANLkTimTpM_h7P8tacZic2aP7i=dBiAquDN5S_D881ae@mail.gmail.com>
+ <20101020203551.GO10362@obsidianresearch.com> <4CBF5786.2020203@opengridcomputing.com>
+ <20101020211617.GP10362@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <adazku85dcf.fsf-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <20101020211617.GP10362-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Cc: RDMA list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Oct 20, 2010 at 10:22:56PM -0700, Roland Dreier wrote:
-> Just curious -- what's up with this change here?  Is this connected to
-> IBoE support, or is this an independent fix?
+On Wed, Oct 20, 2010 at 11:16 PM, Jason Gunthorpe
+<jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
+> On Wed, Oct 20, 2010 at 03:56:38PM -0500, Steve Wise wrote:
+>
+>> Hey Jason, do you have a pointer to the list of pthread cancellation
+>> points for Linux?
+>
+> Sure do
+>
+> http://www.kernel.org/doc/man-pages/online/pages/man7/pthreads.7.html
+>
+> POSIX:2008 is a more authoritative source, the above is cribbed from
+> there.
+> [ ... ]
 
-It is required for proper distribution of IBoE multicast packets while
-still not hurting the mlx4_en driver's operation.
+The IEEE Std 1003.1, 2004 Edition list of cancellation points is available here:
+http://www.opengroup.org/onlinepubs/000095399/functions/xsh_chap02_09.html
 
-> Also as far as I can tell this variable sgid is write-only (ie you do
-> the ib_get_cached_gid() but then never do anything with the value that
-> that returns).  Am I missing something subtle?
-> 
-
-It is not required in the context of this patch. It should have been
-part of patch 12/12 which adds VLAN support, in which case it is used
-to extract the required VLAN ID.
-Roland, would you like me to send patches 8-12 again with this fixed?
-
-> 
-> Finally this patch would have been easier to review without extraneous
-> whitespace noise like
-> 
-
-Sorry about that. I pass them through checkpatch but this must have
-been hiden within the "line over ..." messages.
+Bart.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
