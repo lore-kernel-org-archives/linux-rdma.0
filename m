@@ -1,101 +1,74 @@
-From: "Davis, Arlin R" <arlin.r.davis-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH] DAPL v2.0: scm, ucm: MPI spawn test on oversubcribed server
- taking excessive time to complete
-Date: Fri, 22 Oct 2010 13:59:07 -0700
-Message-ID: <E3280858FA94444CA49D2BA02341C983011BA20A98@orsmsx506.amr.corp.intel.com>
+From: Ralph Campbell <ralph.campbell-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+Subject: RE: BUG dump from QIB
+Date: Fri, 22 Oct 2010 14:01:05 -0700
+Message-ID: <35AAF1E4A771E142979F27B51793A488873ABE076C@AVEXMB1.qlogic.org>
+References: <20101022204041.GA30241@obsidianresearch.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20101022204041.GA30241-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "ofw-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org" <ofw-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, RDMA list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Simultaneous DREQ processing from user and CM thread caused some improper
-state change on UCM. State change can incorrectly change from FREE back
-to DISC in certain corner cases. Add checking on internal disconnect call
-to prevent double callback events and improper state change.
+The idea was to have QPs allocated to queues with specific CPUs
+processing the queue "local" to the process that created it.
+Since IRQs get distributed to all CPUs by default (at least with irqbalance)
+and the fact that the CPU that created the QP may not be the CPU doing
+the posts, it didn't help. I'll submit a patch to remove the "feature" :-).
+________________________________________
+From: Jason Gunthorpe [jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org]
+Sent: Friday, October 22, 2010 1:40 PM
+To: Ralph Campbell; RDMA list
+Subject: BUG dump from QIB
 
-For SCM, a remote DREQ will shutdown socket which will cause POLLERR
-on the disconnected FD. This will in turn cause the cm_thread to
-wakeup continuously unnecessarily. Fix thread thrashing by moving
-CM object to FREE state and removing object FD from pollfd array.
+Hi Ralph,
 
-Signed-off-by: Arlin Davis <arlin.r.davis-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
----
- dapl/openib_scm/cm.c |   10 +++++++---
- dapl/openib_ucm/cm.c |    9 +++++----
- 2 files changed, 12 insertions(+), 7 deletions(-)
+It doesn't look like smp_processor_id is callable the way QIB does, I
+get kernel BUGS:
 
-diff --git a/dapl/openib_scm/cm.c b/dapl/openib_scm/cm.c
-index 56d4c73..f82d0ff 100644
---- a/dapl/openib_scm/cm.c
-+++ b/dapl/openib_scm/cm.c
-@@ -463,10 +463,8 @@ DAT_RETURN dapli_socket_disconnect(dp_ib_cm_handle_t cm_ptr)
- 		return DAT_SUCCESS;
- 	}
- 	cm_ptr->state = DCM_DISCONNECTED;
--	dapl_os_unlock(&cm_ptr->lock);
--	
--	/* send disc date, close socket, schedule destroy */
- 	send(cm_ptr->socket, (char *)&disc_data, sizeof(disc_data), 0);
-+	dapl_os_unlock(&cm_ptr->lock);
- 
- 	/* disconnect events for RC's only */
- 	if (cm_ptr->ep->param.ep_attr.service_type == DAT_SERVICE_TYPE_RC) {
-@@ -1812,7 +1810,13 @@ void cr_thread(void *arg)
- 						dapl_os_unlock(&cr->lock);
- 						dapli_socket_disconnect(cr);
- 						break;
-+					case DCM_DISCONNECTED:
-+						cr->state = DCM_FREE;
-+						dapl_os_unlock(&cr->lock);
-+						break;
- 					default:
-+						if (ret == DAPL_FD_ERROR)
-+							cr->state = DCM_FREE;
- 						dapl_os_unlock(&cr->lock);
- 						break;
- 					}
-diff --git a/dapl/openib_ucm/cm.c b/dapl/openib_ucm/cm.c
-index 3a518c3..0fe5e2e 100644
---- a/dapl/openib_ucm/cm.c
-+++ b/dapl/openib_ucm/cm.c
-@@ -544,8 +544,9 @@ retry:
- 		msg = (ib_cm_msg_t*) (uintptr_t) wc[i].wr_id;
- 
- 		dapl_dbg_log(DAPL_DBG_TYPE_CM, 
--			     " ucm_recv: wc status=%d, ln=%d id=%p sqp=%x\n", 
--			     wc[i].status, wc[i].byte_len, 
-+			     " ucm_recv: stat=%d op=%s ln=%d id=%p sqp=%x\n",
-+			     wc[i].status, dapl_cm_op_str(ntohs(msg->op)),
-+			     wc[i].byte_len,
- 			     (void*)wc[i].wr_id, wc[i].src_qp);
- 
- 		/* validate CM message, version */
-@@ -609,7 +610,7 @@ static int ucm_send(ib_hca_transport_t *tp, ib_cm_msg_t *msg, DAT_PVOID p_data,
-         sge.addr = (uintptr_t)smsg;
- 
- 	dapl_dbg_log(DAPL_DBG_TYPE_CM, 
--		" ucm_send: op %s ln %d lid %x c_qpn %x rport %s\n", 
-+		" ucm_send: op %s ln %d lid %x c_qpn %x rport %x\n",
- 		dapl_cm_op_str(ntohs(smsg->op)), 
- 		sge.length, htons(smsg->daddr.ib.lid), 
- 		htonl(smsg->dqpn), htons(smsg->dport));
-@@ -818,7 +819,7 @@ static void ucm_disconnect_final(dp_ib_cm_handle_t cm)
- 		return;
- 
- 	dapl_os_lock(&cm->lock);
--	if (cm->state == DCM_DISCONNECTED) {
-+	if ((cm->state == DCM_DISCONNECTED) || (cm->state == DCM_FREE)) {
- 		dapl_os_unlock(&cm->lock);
- 		return;
- 	}
--- 
-1.7.3
+This is a stock upstream with CONFIG_PREEMPT/DEBUG_PREEMPT
+$ uname -a
+Linux ib6 2.6.35.7 #17 SMP PREEMPT Thu Oct 7 15:38:53 MDT 2010 x86_64 GNU/Linux
 
+[   36.769466] BUG: using smp_processor_id() in preemptible [00000000] code: insmod/5858
+[   36.769500] caller is qib_create_qp+0x56c/0x745 [ib_qib]
+[   36.769505] Pid: 5858, comm: insmod Not tainted 2.6.35.7 #17
+[   36.769508] Call Trace:
+[   36.769520]  [<ffffffff8116c776>] debug_smp_processor_id+0xc2/0xdc
+[   36.769538]  [<ffffffffa0201b18>] qib_create_qp+0x56c/0x745 [ib_qib]
+[   36.769545]  [<ffffffff8102fcb9>] ? sub_preempt_count+0x92/0xa5
+[   36.769550]  [<ffffffff8102eb47>] ? get_parent_ip+0x11/0x41
+[   36.769554]  [<ffffffff8102eb47>] ? get_parent_ip+0x11/0x41
+[   36.769573]  [<ffffffffa00758ab>] ib_create_qp+0x18/0x8e [ib_core]
+[   36.769582]  [<ffffffffa008c948>] create_mad_qp+0x7d/0xce [ib_mad]
+[   36.769589]  [<ffffffffa008c13b>] ? qp_event_handler+0x0/0x1e [ib_mad]
+[   36.769596]  [<ffffffffa008cec4>] ib_mad_init_device+0x2cf/0x6ad [ib_mad]
+[   36.769603]  [<ffffffff8131c1ef>] ? _raw_spin_unlock_irqrestore+0x2c/0x37
+[   36.769613]  [<ffffffffa0077bef>] ib_register_device+0x35d/0x401 [ib_core]
+[   36.769632]  [<ffffffffa020983b>] ? qib_create_port_files+0x0/0x265 [ib_qib]
+[   36.769654]  [<ffffffffa02236b5>] qib_register_ib_device+0x76a/0x8a8 [ib_qib]
+[   36.769673]  [<ffffffffa022af11>] qib_init_one+0xdd/0x4f7 [ib_qib]
+[   36.769680]  [<ffffffff81175a97>] local_pci_probe+0x12/0x16
+[   36.769685]  [<ffffffff81176755>] pci_device_probe+0x5f/0x89
+[   36.769690]  [<ffffffff811cef0a>] ? driver_sysfs_add+0x4c/0x72
+[   36.769695]  [<ffffffff811cf04f>] driver_probe_device+0xa3/0x151
+[   36.769699]  [<ffffffff811cf155>] __driver_attach+0x58/0x7b
+[   36.769704]  [<ffffffff811cf0fd>] ? __driver_attach+0x0/0x7b
+[   36.769708]  [<ffffffff811ce8c9>] bus_for_each_dev+0x4e/0x85
+[   36.769712]  [<ffffffff811ceebc>] driver_attach+0x1c/0x1e
+[   36.769716]  [<ffffffff811ce1e1>] bus_add_driver+0xb8/0x20d
+[   36.769721]  [<ffffffff811cf432>] driver_register+0xb3/0x121
+[   36.769736]  [<ffffffffa02420a2>] ? qlogic_ib_init+0x0/0x126 [ib_qib]
+[   36.769740]  [<ffffffff811769b2>] __pci_register_driver+0x51/0xbc
+[   36.769754]  [<ffffffffa02420a2>] ? qlogic_ib_init+0x0/0x126 [ib_qib]
+[   36.769769]  [<ffffffffa0242165>] qlogic_ib_init+0xc3/0x126 [ib_qib]
+[   36.769775]  [<ffffffff810001f0>] do_one_initcall+0x5a/0x14a
+[   36.769781]  [<ffffffff8106815d>] sys_init_module+0x9a/0x1d8
 
+Jason
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
