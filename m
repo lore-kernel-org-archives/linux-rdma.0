@@ -1,8 +1,8 @@
 From: "Davis, Arlin R" <arlin.r.davis-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH] DAPL v2.0:  add high resolution time stamps and thread id
- to sdtout debug logs
-Date: Fri, 22 Oct 2010 13:15:58 -0700
-Message-ID: <E3280858FA94444CA49D2BA02341C983011BA209E8@orsmsx506.amr.corp.intel.com>
+Subject: [PATCH] DAPL v2.0: common: modify debug in dat_evd_dequeue to
+ reduce noise, only output on non-empty
+Date: Fri, 22 Oct 2010 13:15:51 -0700
+Message-ID: <E3280858FA94444CA49D2BA02341C983011BA209E7@orsmsx506.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
@@ -15,45 +15,40 @@ List-Id: linux-rdma@vger.kernel.org
 
 Signed-off-by: Arlin Davis <arlin.r.davis-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- dapl/common/dapl_debug.c |   13 +++++++++++--
- 1 files changed, 11 insertions(+), 2 deletions(-)
+ dapl/common/dapl_evd_dequeue.c |   11 ++++++-----
+ 1 files changed, 6 insertions(+), 5 deletions(-)
 
-diff --git a/dapl/common/dapl_debug.c b/dapl/common/dapl_debug.c
-index 904d075..e1a940c 100644
---- a/dapl/common/dapl_debug.c
-+++ b/dapl/common/dapl_debug.c
-@@ -36,6 +36,8 @@ DAPL_DBG_DEST g_dapl_dbg_dest;	/* initialized in dapl_init.c */
+diff --git a/dapl/common/dapl_evd_dequeue.c b/dapl/common/dapl_evd_dequeue.c
+index 7632fe1..f31e497 100644
+--- a/dapl/common/dapl_evd_dequeue.c
++++ b/dapl/common/dapl_evd_dequeue.c
+@@ -69,9 +69,6 @@ DAT_RETURN DAT_API dapl_evd_dequeue(IN DAT_EVD_HANDLE evd_handle,
+ 	DAT_EVENT *local_event;
+ 	DAT_RETURN dat_status;
  
- static char *_ptr_host_ = NULL;
- static char _hostname_[128];
-+static DAPL_OS_TIMEVAL start_t, current_t, last_t; /* microsecond timeStamp STDOUT */
-+static int delta_t, total_t;
+-	dapl_dbg_log(DAPL_DBG_TYPE_API,
+-		     "dapl_evd_dequeue (%p, %p)\n", evd_handle, event);
+-
+ 	evd_ptr = (DAPL_EVD *) evd_handle;
+ 	dat_status = DAT_SUCCESS;
  
- void dapl_internal_dbg_log(DAPL_DBG_TYPE type, const char *fmt, ...)
- {
-@@ -44,13 +46,20 @@ void dapl_internal_dbg_log(DAPL_DBG_TYPE type, const char *fmt, ...)
- 	if (_ptr_host_ == NULL) {
- 		gethostname(_hostname_, sizeof(_hostname_));
- 		_ptr_host_ = _hostname_;
-+		dapl_os_get_time(&start_t);
-+		last_t = start_t;
+@@ -125,10 +122,14 @@ DAT_RETURN DAT_API dapl_evd_dequeue(IN DAT_EVD_HANDLE evd_handle,
+ 		DAPL_CNTR(evd_ptr, DCNT_EVD_DEQUEUE_NOT_FOUND);
  	}
-+	dapl_os_get_time(&current_t);
-+	delta_t = current_t - last_t;
-+	total_t = current_t - start_t;
-+	last_t  = current_t;
  
- 	if (type & g_dapl_dbg_type) {
- 		if (DAPL_DBG_DEST_STDOUT & g_dapl_dbg_dest) {
- 			va_start(args, fmt);
--			fprintf(stdout, "%s:%x: ", _ptr_host_,
--				dapl_os_getpid());
-+			fprintf(stdout, "%s:%x:%x: %d us(%d us%s): ",
-+				_ptr_host_, dapl_os_getpid(), dapl_os_gettid(),
-+				total_t, delta_t, delta_t > 500000 ? "!!!":"");
- 			dapl_os_vprintf(fmt, args);
- 			va_end(args);
- 		}
++#ifdef DAPL_DBG
++	if (dat_status == DAT_SUCCESS) 
++		dapl_dbg_log(DAPL_DBG_TYPE_EVD,
++			     "dapl_evd_dequeue() Event(%p) = 0x%x\n",
++			     event->evd_handle, event->event_number);
++#endif
+ 	dapl_os_unlock(&evd_ptr->header.lock);
+       bail:
+-	dapl_dbg_log(DAPL_DBG_TYPE_RTN,
+-		     "dapl_evd_dequeue () returns 0x%x\n", dat_status);
+ 
+ 	return dat_status;
+ }
 -- 
 1.7.3
 
