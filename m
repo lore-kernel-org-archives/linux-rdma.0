@@ -1,38 +1,39 @@
-From: Ralph Campbell <ralph.campbell-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH 1/2] IB/qib: fix uninitialized pointer if CONFIG_PCI_MSI not
-	set
-Date: Fri, 22 Oct 2010 15:29:46 -0700
-Message-ID: <20101022222937.28161.50341.stgit@chromite.mv.qlogic.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: [PATCH] [libipathverbs] Fix 32 bit libipathverbs
+Date: Fri, 22 Oct 2010 16:43:43 -0600
+Message-ID: <20101022224343.GA3573@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Ralph Campbell <ralph.campbell-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>, RDMA list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-If CONFIG_PCI_MSI is not set, and a QLE7140 is present, the
-pointer "dd" was uninitialized.
+Trying to use a 64 bit kernel with a 32 bit userspace results in
+local protection violations reported to the CQ. This is caused by
+a difference in padding for ipath_rwe, so make the padding 64 bit
+uses explicit.
 
-Signed-off-by: Ralph Campbell <ralph.campbell-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 ---
-
- drivers/infiniband/hw/qib/qib_init.c |    1 +
+ src/ipathverbs.h |    1 +
  1 files changed, 1 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/infiniband/hw/qib/qib_init.c b/drivers/infiniband/hw/qib/qib_init.c
-index f1d16d3..f3b5039 100644
---- a/drivers/infiniband/hw/qib/qib_init.c
-+++ b/drivers/infiniband/hw/qib/qib_init.c
-@@ -1243,6 +1243,7 @@ static int __devinit qib_init_one(struct pci_dev *pdev,
- 		qib_early_err(&pdev->dev, "QLogic PCIE device 0x%x cannot "
- 		      "work if CONFIG_PCI_MSI is not enabled\n",
- 		      ent->device);
-+		dd = ERR_PTR(-ENODEV);
- #endif
- 		break;
+diff --git a/src/ipathverbs.h b/src/ipathverbs.h
+index 5ebd79d..e824fd6 100644
+--- a/src/ipathverbs.h
++++ b/src/ipathverbs.h
+@@ -101,6 +101,7 @@ struct ipath_cq {
+ struct ipath_rwqe {
+ 	uint64_t		wr_id;
+ 	uint8_t			num_sge;
++	uint8_t                 padding[7];
+ 	struct ibv_sge		sg_list[0];
+ };
  
+-- 
+1.5.4.2
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
