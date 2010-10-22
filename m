@@ -1,52 +1,71 @@
-From: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCHv10 08/12] mlx4: Add support for IBoE - address
- resolution
-Date: Fri, 22 Oct 2010 14:24:55 +0200
-Message-ID: <20101022122455.GA8791@mtldesk30>
-References: <20100826141851.GI8795@mtldesk30>
- <adad3r38d0c.fsf@cisco.com>
- <ada8w1r8cxo.fsf@cisco.com>
- <20101021230307.GD6367@mtldesk30>
- <adazku6yiag.fsf@cisco.com>
+From: root <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: [PATCH] IB core: Add link layer information to sysfs
+Date: Fri, 22 Oct 2010 14:32:05 +0200
+Message-ID: <20101022123205.GA8923@mtldesk30>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <adazku6yiag.fsf-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 Cc: RDMA list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Oct 21, 2010 at 09:15:35PM -0700, Roland Dreier wrote:
-> We don't need ICRC in the header_buf, do we?  We're talking about
-> MLX4_IB_UD_HEADER_SIZE, which is used to hold the packet header we get
-> from ib_ud_header_pack().  The ICRC is accounted for in a different
-> segment of the WQE.
-> 
-> In any case, it shouldn't matter -- I don't see how it could be correct
-> to increase the buffer size by 4 bytes to account for the change from
-> LRH to Ethernet header; an LRH is 8 bytes and an Ethernet header
-> (without .1q etc) is 14 bytes.  So we should add 6 bytes, right?
-> 
-> The math I get is
-> 
-> IB:   LRH + GRH + BTH + DETH + IMM
->        8    40    12     8      4   = 72
-> 
-> Eth:  MAC + GRH + BTH + DETH + IMM
->       14    40    12     8      4   = 78
-> 
-> I don't see how your change
-> 
->  > -	MLX4_IB_UD_HEADER_SIZE		= 72,
->  > +	MLX4_IB_UD_HEADER_SIZE		= 76,
-> 
-> could possibly be correct, although as I said it probably works because
-> of padding and not hitting the worst case in practice anyway.
-> 
+Since an IB port may use either IB or Ethernet as its link layer, add
+the file /sys/class/infiniband/<device>/ports/<port_num>/link_layer to
+provide the configured link layer for the port.
 
-Sure, all clear.
+Signed-off-by: Eli Cohen <eli-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
+---
+Roland, this patch was intended to be sent with the whole series but
+somehow did not find its way out. I hope it you can intergrate it too.
+
+ drivers/infiniband/core/sysfs.c |   15 +++++++++++++++
+ 1 files changed, 15 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/infiniband/core/sysfs.c b/drivers/infiniband/core/sysfs.c
+index 3627300..934e27d 100644
+--- a/drivers/infiniband/core/sysfs.c
++++ b/drivers/infiniband/core/sysfs.c
+@@ -222,6 +222,19 @@ static ssize_t phys_state_show(struct ib_port *p, struct port_attribute *unused,
+ 	}
+ }
+ 
++static ssize_t link_layer_show(struct ib_port *p, struct port_attribute *unused,
++			       char *buf)
++{
++	switch (rdma_port_get_link_layer(p->ibdev, p->port_num)) {
++	case IB_LINK_LAYER_INFINIBAND:
++		return sprintf(buf, "%s\n", "IB");
++	case IB_LINK_LAYER_ETHERNET:
++		return sprintf(buf, "%s\n", "Ethernet");
++	default:
++		return sprintf(buf, "%s\n", "Unknown");
++	}
++}
++
+ static PORT_ATTR_RO(state);
+ static PORT_ATTR_RO(lid);
+ static PORT_ATTR_RO(lid_mask_count);
+@@ -230,6 +243,7 @@ static PORT_ATTR_RO(sm_sl);
+ static PORT_ATTR_RO(cap_mask);
+ static PORT_ATTR_RO(rate);
+ static PORT_ATTR_RO(phys_state);
++static PORT_ATTR_RO(link_layer);
+ 
+ static struct attribute *port_default_attrs[] = {
+ 	&port_attr_state.attr,
+@@ -240,6 +254,7 @@ static struct attribute *port_default_attrs[] = {
+ 	&port_attr_cap_mask.attr,
+ 	&port_attr_rate.attr,
+ 	&port_attr_phys_state.attr,
++	&port_attr_link_layer.attr,
+ 	NULL
+ };
+ 
+-- 
+1.6.0.2
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
