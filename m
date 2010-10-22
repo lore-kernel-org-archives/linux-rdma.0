@@ -1,28 +1,43 @@
-From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCHv10 08/12] mlx4: Add support for IBoE - address resolution
-Date: Thu, 21 Oct 2010 21:15:59 -0700
-Message-ID: <adavd4uyi9s.fsf@cisco.com>
-References: <20100826141851.GI8795@mtldesk30> <adazku85dcf.fsf@cisco.com>
-	<20101021072703.GA1912@mtldesk30> <adazku78gzz.fsf@cisco.com>
-	<20101021225133.GA6367@mtldesk30>
+From: Jonathan Rosser <jonathan.rosser-gjMux1o1B1/QXOPxS62xeg@public.gmane.org>
+Subject: [PATCH] librdmacm: fix compiler warning of void* arithmetic
+Date: Fri, 22 Oct 2010 11:00:22 +0100
+Message-ID: <i9rnbn$f9o$1@dough.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20101021225133.GA6367@mtldesk30> (Eli Cohen's message of "Fri,
-	22 Oct 2010 00:51:33 +0200")
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: RDMA list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
- > This was added in the past when I wanted to use the pointer to the net
- > device to resolve any IPv6 address. Since we only resolve link local
- > addresses, why don't we just remove the spinlocks and the check inside
- > it?
+Arithmetic on void* pointers generates a compiler warning, and projects
+that include rdma/rdma_verbs.h and compile with  -Werror -Wall will fail
+to build.
+---
+  include/rdma/rdma_verbs.h |    2 +-
+  1 files changed, 1 insertions(+), 1 deletions(-)
 
-OK, easy enough.
+diff --git a/include/rdma/rdma_verbs.h b/include/rdma/rdma_verbs.h
+index d75d906..853ef9b 100644
+--- a/include/rdma/rdma_verbs.h
++++ b/include/rdma/rdma_verbs.h
+@@ -160,7 +160,7 @@ rdma_post_recv(struct rdma_cm_id *id, void *context, 
+void *addr,
+  {
+  	struct ibv_sge sge;
 
- - R.
+-	assert((addr >= mr->addr) && ((addr + length) <= (mr->addr + 
+mr->length)));
++	assert((addr >= mr->addr) && (((uint8_t*)addr + length) <= 
+((uint8_t*)mr->addr + mr->length)));
+  	sge.addr = (uint64_t) (uintptr_t) addr;
+  	sge.length = (uint32_t) length;
+  	sge.lkey = mr->lkey;
+-- 
+1.7.0.4
+
+
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
