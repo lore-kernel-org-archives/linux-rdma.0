@@ -1,40 +1,46 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: [PATCH] [libipathverbs] Fix 32 bit libipathverbs
-Date: Fri, 22 Oct 2010 16:43:43 -0600
-Message-ID: <20101022224343.GA3573@obsidianresearch.com>
+Subject: Re: [PATCH 2/2] IB/qib: Allow driver to load if PCIe advanced
+	error reporting fails
+Date: Fri, 22 Oct 2010 16:57:10 -0600
+Message-ID: <20101022225710.GD15514@obsidianresearch.com>
+References: <20101022222937.28161.50341.stgit@chromite.mv.qlogic.com> <20101022222951.28161.23347.stgit@chromite.mv.qlogic.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
+In-Reply-To: <20101022222951.28161.23347.stgit-/vjeY7uYZjrPXfVEPVhPGq6RkeBMCJyt@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ralph Campbell <ralph.campbell-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>, RDMA list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Ralph Campbell <ralph.campbell-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+Cc: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Trying to use a 64 bit kernel with a 32 bit userspace results in
-local protection violations reported to the CQ. This is caused by
-a difference in padding for ipath_rwe, so make the padding 64 bit
-uses explicit.
+On Fri, Oct 22, 2010 at 03:29:54PM -0700, Ralph Campbell wrote:
+> Some PCIe root complex chip sets don't support advanced error reporting.
+> Allow the driver to load OK if pci_enable_pcie_error_reporting() fails.
 
-Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
----
- src/ipathverbs.h |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
+Thanks
 
-diff --git a/src/ipathverbs.h b/src/ipathverbs.h
-index 5ebd79d..e824fd6 100644
---- a/src/ipathverbs.h
-+++ b/src/ipathverbs.h
-@@ -101,6 +101,7 @@ struct ipath_cq {
- struct ipath_rwqe {
- 	uint64_t		wr_id;
- 	uint8_t			num_sge;
-+	uint8_t                 padding[7];
- 	struct ibv_sge		sg_list[0];
- };
+If you use this solution you'll want this hunk as well to avoid a leak:
+
+diff --git a/drivers/infiniband/hw/qib/qib_pcie.c b/drivers/infiniband/hw/qib/qib_pcie.c
+index 16ce9e7..2913af2 100644
+--- a/drivers/infiniband/hw/qib/qib_pcie.c
++++ b/drivers/infiniband/hw/qib/qib_pcie.c
+@@ -103,9 +103,11 @@ int qib_pcie_init(struct pci_dev *pdev, const struct pci_device_id *ent)
+                ret = pci_set_consistent_dma_mask(pdev, DMA_BIT_MASK(32));
+        } else
+                ret = pci_set_consistent_dma_mask(pdev, DMA_BIT_MASK(64));
+-       if (ret)
++       if (ret) {
+                qib_early_err(&pdev->dev,
+                              "Unable to set DMA consistent mask: %d\n", ret);
++               goto bail;
++       }
  
--- 
-1.5.4.2
+        pci_set_master(pdev);
+        ret = pci_enable_pcie_error_reporting(pdev);
 
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
