@@ -1,64 +1,52 @@
-From: Jonathan Rosser <jonathan.rosser-gjMux1o1B1/QXOPxS62xeg@public.gmane.org>
-Subject: [PATCH] librdmacm: fix make install
-Date: Fri, 22 Oct 2010 12:56:59 +0100
-Message-ID: <i9ru6c$dm5$1@dough.gmane.org>
+From: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCHv10 08/12] mlx4: Add support for IBoE - address
+ resolution
+Date: Fri, 22 Oct 2010 14:24:55 +0200
+Message-ID: <20101022122455.GA8791@mtldesk30>
+References: <20100826141851.GI8795@mtldesk30>
+ <adad3r38d0c.fsf@cisco.com>
+ <ada8w1r8cxo.fsf@cisco.com>
+ <20101021230307.GD6367@mtldesk30>
+ <adazku6yiag.fsf@cisco.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <adazku6yiag.fsf-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Cc: RDMA list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-make install fails if the include files in the install prefix
-include/rdma,infiniband already exist. install claims that the <src>
-and <destination> file are the same and exits with an error.
+On Thu, Oct 21, 2010 at 09:15:35PM -0700, Roland Dreier wrote:
+> We don't need ICRC in the header_buf, do we?  We're talking about
+> MLX4_IB_UD_HEADER_SIZE, which is used to hold the packet header we get
+> from ib_ud_header_pack().  The ICRC is accounted for in a different
+> segment of the WQE.
+> 
+> In any case, it shouldn't matter -- I don't see how it could be correct
+> to increase the buffer size by 4 bytes to account for the change from
+> LRH to Ethernet header; an LRH is 8 bytes and an Ethernet header
+> (without .1q etc) is 14 bytes.  So we should add 6 bytes, right?
+> 
+> The math I get is
+> 
+> IB:   LRH + GRH + BTH + DETH + IMM
+>        8    40    12     8      4   = 72
+> 
+> Eth:  MAC + GRH + BTH + DETH + IMM
+>       14    40    12     8      4   = 78
+> 
+> I don't see how your change
+> 
+>  > -	MLX4_IB_UD_HEADER_SIZE		= 72,
+>  > +	MLX4_IB_UD_HEADER_SIZE		= 76,
+> 
+> could possibly be correct, although as I said it probably works because
+> of padding and not hitting the worst case in practice anyway.
+> 
 
-This patch modifies Makefile.am so that the rdma and infiniband include
-files explicitly reference the source directory rather than the build
-directory.
-
-Also, EXTRA_DIST now only lists files that are not referenced anywhere
-else in Makefile.am
----
-  Makefile.am |   12 +++++-------
-  1 files changed, 5 insertions(+), 7 deletions(-)
-
-diff --git a/Makefile.am b/Makefile.am
-index 2668aa3..8790fe8 100644
---- a/Makefile.am
-+++ b/Makefile.am
-@@ -35,11 +35,11 @@ examples_rdma_server_LDADD = 
-$(top_builddir)/src/librdmacm.la
-  librdmacmincludedir = $(includedir)/rdma
-  infinibandincludedir = $(includedir)/infiniband
-
--librdmacminclude_HEADERS = include/rdma/rdma_cma_abi.h \
--			   include/rdma/rdma_cma.h \
--			   include/rdma/rdma_verbs.h
-+librdmacminclude_HEADERS = $(top_srcdir)/include/rdma/rdma_cma_abi.h \
-+			   $(top_srcdir)/include/rdma/rdma_cma.h \
-+			   $(top_srcdir)/include/rdma/rdma_verbs.h
-
--infinibandinclude_HEADERS = include/infiniband/ib.h
-+infinibandinclude_HEADERS = $(top_srcdir)/include/infiniband/ib.h
-
-  man_MANS = \
-  	man/rdma_accept.3 \
-@@ -97,9 +97,7 @@ man_MANS = \
-  	man/rdma_client.1 \
-  	man/rdma_cm.7
-
--EXTRA_DIST = include/rdma/rdma_cma_abi.h include/rdma/rdma_cma.h \
--	     include/infiniband/ib.h include/rdma/rdma_verbs.h \
--	     src/cma.h src/librdmacm.map librdmacm.spec.in $(man_MANS)
-+EXTRA_DIST = src/cma.h src/librdmacm.map librdmacm.spec.in $(man_MANS)
-
-  dist-hook: librdmacm.spec
-  	cp librdmacm.spec $(distdir)
--- 
-1.7.0.4
-
+Sure, all clear.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
