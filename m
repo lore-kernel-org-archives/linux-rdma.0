@@ -1,52 +1,50 @@
 From: Ralph Campbell <ralph.campbell-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-Subject: RE: [PATCH] [IB/QIB] Fix QIB early error reporting prints
-Date: Fri, 22 Oct 2010 14:35:01 -0700
-Message-ID: <35AAF1E4A771E142979F27B51793A488873ABE076E@AVEXMB1.qlogic.org>
-References: <20101022204124.GB30241@obsidianresearch.com>
+Subject: RE: [PATCH] [IB/QIB] Fix failure to load driver if PCI error
+	reporting doesn't enable
+Date: Fri, 22 Oct 2010 14:39:23 -0700
+Message-ID: <35AAF1E4A771E142979F27B51793A488873ABE076F@AVEXMB1.qlogic.org>
+References: <20101022204245.GC30241@obsidianresearch.com>
+ <35AAF1E4A771E142979F27B51793A488873ABE076D@AVEXMB1.qlogic.org>,<20101022213647.GD30241@obsidianresearch.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20101022204124.GB30241-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <20101022213647.GD30241-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, RDMA list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: RDMA list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Acked-by: Ralph Campbell <ralph.campbell-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+pci_enable_pcie_error_reporting() is optional.
 ________________________________________
-From: Jason Gunthorpe [jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org]
-Sent: Friday, October 22, 2010 1:41 PM
-To: Ralph Campbell; RDMA list
-Subject: [PATCH] [IB/QIB] Fix QIB early error reporting prints
+From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Jason Gunthorpe [jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org]
+Sent: Friday, October 22, 2010 2:36 PM
+To: Ralph Campbell
+Cc: RDMA list
+Subject: Re: [PATCH] [IB/QIB] Fix failure to load driver if PCI error   reporting doesn't enable
 
-Noticed this odd looking thing in dmesg:
+On Fri, Oct 22, 2010 at 02:28:54PM -0700, Ralph Campbell wrote:
 
-ib_qib 0000:02:00.0: <3>ib_qib: Unable to enable pcie error reporting: -5
+> I'm not sure this is the right change. I agree there are a lot of
+> clean up on error bugs. pci_set_consistent_dma_mask() isn't optional
+> because the chip doesn't support 32-bit PCIe addressing.
 
-Which is due to a bad use of dev_info.
+Do you think pci_enable_pcie_error_reporting is optional? My test
+machine doesn't have a chipset with AER so that will always fail (or
+something), the driver hasn't exploded yet ... :)
 
-Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
----
- drivers/infiniband/hw/qib/qib.h |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+> I'll look it over and try to come up with something better.
+>
+> I'll submit a patch for the CONFIG_PCI_MSI not set case.
 
-diff --git a/drivers/infiniband/hw/qib/qib.h b/drivers/infiniband/hw/qib/qib.h
-index 3593983..0268326 100644
---- a/drivers/infiniband/hw/qib/qib.h
-+++ b/drivers/infiniband/hw/qib/qib.h
-@@ -1402,7 +1402,7 @@ extern struct mutex qib_mutex;
-  */
- #define qib_early_err(dev, fmt, ...) \
-        do { \
--               dev_info(dev, KERN_ERR QIB_DRV_NAME ": " fmt, ##__VA_ARGS__); \
-+               dev_err(dev, fmt, ##__VA_ARGS__); \
-        } while (0)
+The resource leaks suck too, since you have to reboot to try again.
 
- #define qib_dev_err(dd, fmt, ...) \
+Jason
 --
-1.6.0.4
-
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
