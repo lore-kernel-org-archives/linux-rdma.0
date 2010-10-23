@@ -1,16 +1,16 @@
 From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH] IPoIB: set dev_id field of IPoIB net_device
-Date: Sat, 23 Oct 2010 13:37:23 -0700
-Message-ID: <adaocaksl18.fsf@cisco.com>
-References: <20100920070506.GA12453@mtldesk30>
+Subject: Re: [RFC PATCH] RDMA/UCMA: Allow tuning the max backlog.
+Date: Sat, 23 Oct 2010 13:41:46 -0700
+Message-ID: <adak4l8sktx.fsf@cisco.com>
+References: <20100813205634.3763.55419.stgit@build.ogc.int>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20100920070506.GA12453@mtldesk30> (Eli Cohen's message of "Mon,
-	20 Sep 2010 09:05:06 +0200")
+In-Reply-To: <20100813205634.3763.55419.stgit-T4OLL4TyM9aNDNWfRnPdfg@public.gmane.org> (Steve Wise's
+	message of "Fri, 13 Aug 2010 15:56:34 -0500")
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: RDMA list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Cc: sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 thanks, applied.
