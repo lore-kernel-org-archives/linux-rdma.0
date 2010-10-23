@@ -1,7 +1,7 @@
 From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [RFC 3/12] ib-mgmt: add SA MAD definitions to umad
-Date: Sat, 23 Oct 2010 00:02:11 -0700
-Message-ID: <CF9C39F99A89134C9CF9C4CCB68B8DDF25B809B7F2@orsmsx501.amr.corp.intel.com>
+Subject: [RFC 4/12] ib-mgmt: Add basic SM definitions to umad
+Date: Sat, 23 Oct 2010 00:03:18 -0700
+Message-ID: <CF9C39F99A89134C9CF9C4CCB68B8DDF25B809B7F3@orsmsx501.amr.corp.intel.com>
 References: <CF9C39F99A89134C9CF9C4CCB68B8DDF25B809B7EE@orsmsx501.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -14,29 +14,31 @@ To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-r
 Cc: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Add a new header file, umad_sa.h, to libibumad that contains
-basic SA MAD definitions.
+Add a new header file, umad_sm.h, to libibumad that contains
+basic SM MAD definitions.
 
-Only the SA attributes values, new methods, and base SA MAD
-format are given.  SA attribute structure definitions are
+Only the SM attributes values, new methods, and base SM MAD
+format are given.  SM attribute structure definitions are
 left for future development.
 
 Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- libibumad/include/infiniband/umad_sa.h |  101 ++++++++++++++++++++++++++++++++
- 1 files changed, 101 insertions(+), 0 deletions(-)
- create mode 100755 libibumad/include/infiniband/umad_sa.h
+ libibumad/include/infiniband/umad_sm.h |  102 ++++++++++++++++++++++++++++++++
+ 1 files changed, 102 insertions(+), 0 deletions(-)
+ create mode 100755 libibumad/include/infiniband/umad_sm.h
 
-diff --git a/libibumad/include/infiniband/umad_sa.h b/libibumad/include/infiniband/umad_sa.h
+diff --git a/libibumad/include/infiniband/umad_sm.h b/libibumad/include/infiniband/umad_sm.h
 new file mode 100755
-index 0000000..f3e161e
+index 0000000..62c75da
 --- /dev/null
-+++ b/libibumad/include/infiniband/umad_sa.h
-@@ -0,0 +1,101 @@
++++ b/libibumad/include/infiniband/umad_sm.h
+@@ -0,0 +1,102 @@
 +/*
-+ * Copyright (c) 2004 Topspin Communications.  All rights reserved.
-+ * Copyright (c) 2005 Voltaire, Inc.  All rights reserved.
-+ * Copyright (c) 2006, 2010 Intel Corporation.  All rights reserved.
++ * Copyright (c) 2004 Mellanox Technologies Ltd.  All rights reserved.
++ * Copyright (c) 2004 Infinicon Corporation.  All rights reserved.
++ * Copyright (c) 2004 Intel Corporation.  All rights reserved.
++ * Copyright (c) 2004 Topspin Corporation.  All rights reserved.
++ * Copyright (c) 2004 Voltaire Corporation.  All rights reserved.
 + *
 + * This software is available to you under a choice of one of two
 + * licenses.  You may choose to be licensed under the terms of the GNU
@@ -65,10 +67,10 @@ index 0000000..f3e161e
 + * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 + * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 + * SOFTWARE.
-+ *
 + */
-+#ifndef _UMAD_SA_H
-+#define _UMAD_SA_H
++
++#ifndef _UMAD_SM_H
++#define _UMAD_SM_H
 +
 +#include <infiniband/umad_types.h>
 +
@@ -82,58 +84,57 @@ index 0000000..f3e161e
 +
 +BEGIN_C_DECLS
 +
-+/* SA specific methods */
 +enum {
-+	UMAD_SA_CLASS_VERSION		= 2,	/* IB spec version 1.1/1.2 */
-+
-+	UMAD_SA_METHOD_GET_TABLE	= 0x12,
-+	UMAD_SA_METHOD_GET_TABLE_RESP	= 0x92,
-+	UMAD_SA_METHOD_DELETE		= 0x15,
-+	UMAD_SA_METHOD_DELETE_RESP	= 0x95,
-+	UMAD_SA_METHOD_GET_MULTI	= 0x14,
-+	UMAD_SA_METHOD_GET_MULTI_RESP	= 0x94,
-+	UMAD_SA_METHOD_GET_TRACE_TABLE	= 0x13
++	UMAD_SMP_DIRECTION		= 0x8000,
 +};
 +
-+/* SA attributes */
++/* Subnet management attributes */
 +enum {
-+	UMAD_SA_ATTR_NODE_REC		= 0x0011,
-+	UMAD_SA_ATTR_PORT_INFO_REC	= 0x0012,
-+	UMAD_SA_ATTR_SLVL_REC		= 0x0013,
-+	UMAD_SA_ATTR_SWITCH_INFO_REC	= 0x0014,
-+	UMAD_SA_ATTR_LINEAR_FT_REC	= 0x0015,
-+	UMAD_SA_ATTR_RANDOM_FT_REC	= 0x0016,
-+	UMAD_SA_ATTR_MCAST_FT_REC	= 0x0017,
-+	UMAD_SA_ATTR_SM_INFO_REC	= 0x0018,
-+	UMAD_SA_ATTR_INFORM_INFO_REC	= 0x00F3,
-+	UMAD_SA_ATTR_LINK_REC		= 0x0020,
-+	UMAD_SA_ATTR_GUID_INFO_REC	= 0x0030,
-+	UMAD_SA_ATTR_SERVICE_REC	= 0x0031,
-+	UMAD_SA_ATTR_PKEY_TABLE_REC	= 0x0033,
-+	UMAD_SA_ATTR_PATH_REC		= 0x0035,
-+	UMAD_SA_ATTR_VL_ARB_REC		= 0x0036,
-+	UMAD_SA_ATTR_MCMEMBER_REC	= 0x0038,
-+	UMAD_SA_ATTR_TRACE_REC		= 0x0039,
-+	UMAD_SA_ATTR_MULTI_PATH_REC	= 0x003A,
-+	UMAD_SA_ATTR_SERVICE_ASSOC_REC	= 0x003B
++	UMAD_SMP_ATTR_NODE_DESC		= 0x0010,
++	UMAD_SMP_ATTR_NODE_INFO		= 0x0011,
++	UMAD_SMP_ATTR_SWITCH_INFO	= 0x0012,
++	UMAD_SMP_ATTR_GUID_INFO		= 0x0014,
++	UMAD_SMP_ATTR_PORT_INFO		= 0x0015,
++	UMAD_SMP_ATTR_PKEY_TABLE	= 0x0016,
++	UMAD_SMP_ATTR_SLVL_TABLE	= 0x0017,
++	UMAD_SMP_ATTR_VL_ARB_TABLE	= 0x0018,
++	UMAD_SMP_ATTR_LINEAR_FT		= 0x0019,
++	UMAD_SMP_ATTR_RANDOM_FT		= 0x001A,
++	UMAD_SMP_ATTR_MCAST_FT		= 0x001B,
++	UMAD_SMP_ATTR_SM_INFO		= 0x0020,
++	UMAD_SMP_ATTR_VENDOR_DIAG	= 0x0030,
++	UMAD_SMP_ATTR_LED_INFO		= 0x0031,
++	UMAD_SMP_ATTR_VENDOR_MASK	= 0xFF00
 +};
 +
 +enum {
-+	UMAD_LEN_SA_DATA		= 200
++	UMAD_LEN_SMP_DATA		= 64,
++	UMAD_SMP_MAX_HOPS		= 64
 +};
 +
-+struct umad_sa_packet {
-+	struct umad_hdr		mad_hdr;
-+	struct umad_rmpp_hdr	rmpp_hdr;
-+	uint8_t			sm_key[8];
-+	uint16_t		attr_offset;
-+	uint16_t		reserved;
-+	uint64_t		comp_mask;
-+	uint8_t 		data[UMAD_LEN_SA_DATA];
++struct umad_smp {
++	uint8_t	 base_version;
++	uint8_t	 mgmt_class;
++	uint8_t	 class_version;
++	uint8_t	 method;
++	uint16_t status;
++	uint8_t  hop_ptr;
++	uint8_t  hop_cnt;
++	uint64_t tid;
++	uint16_t attr_id;
++	uint16_t resv;
++	uint32_t attr_mod;
++	uint64_t mkey;
++	uint16_t dr_slid;
++	uint16_t dr_dlid;
++	uint8_t  reserved[28];
++	uint8_t  data[UMAD_LEN_SMP_DATA];
++	uint8_t  initial_path[UMAD_SMP_MAX_HOPS];
++	uint8_t  return_path[UMAD_SMP_MAX_HOPS];
 +};
 +
 +END_C_DECLS
-+#endif				/* _UMAD_SA_H */
++#endif				/* _UMAD_SM_H */
 
 
 --
