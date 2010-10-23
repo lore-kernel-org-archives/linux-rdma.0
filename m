@@ -1,7 +1,7 @@
 From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [RFC 1/12] IB/mgmt: Add API to register for MAD snooping
-Date: Fri, 22 Oct 2010 23:51:59 -0700
-Message-ID: <CF9C39F99A89134C9CF9C4CCB68B8DDF25B809B7EF@orsmsx501.amr.corp.intel.com>
+Subject: [RFC 2/12] ib-mgmt: provide MAD definitions with libibumad
+Date: Sat, 23 Oct 2010 00:00:59 -0700
+Message-ID: <CF9C39F99A89134C9CF9C4CCB68B8DDF25B809B7F1@orsmsx501.amr.corp.intel.com>
 References: <CF9C39F99A89134C9CF9C4CCB68B8DDF25B809B7EE@orsmsx501.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -14,213 +14,224 @@ To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-r
 Cc: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Add a new call to libibumad that allows a user to register
-for snooping MADs.  Snooped MADs are returned to the user
-through the umad_recv routine.
+The only definitions for MAD data types are in ib_types.h, which
+is an opensm file.  The libibumad interface is essentially useless
+without these data types.  Add new header files to libibumad
+with basic MAD data types.
 
-A user can specify a filter for snooped MADs through the
-new API.  To support possible future extensions to the filter,
-the size of the structure is also provided.
+The definitions and structures are based on those defined in
+the linux kernel.  Only an initial framework is given, basically
+the values for various methods, attributes, etc. along with
+structure definitions for the common, rmpp, and vendor specific
+headers.  Other data structures are left for future development.
 
 Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- libibumad/Makefile.am               |    1 +
- libibumad/include/infiniband/umad.h |   10 ++++++
- libibumad/man/umad_register_snoop.3 |   52 ++++++++++++++++++++++++++++++++++
- libibumad/src/libibumad.map         |    1 +
- libibumad/src/umad.c                |   54 ++++++++++++++++++++++++++++++++++-
- 5 files changed, 117 insertions(+), 1 deletions(-)
- mode change 100644 => 100755 libibumad/include/infiniband/umad.h
- create mode 100755 libibumad/man/umad_register_snoop.3
- mode change 100644 => 100755 libibumad/src/umad.c
+Rather than try to move definitions around in the management.git tree, it
+seemed easier to give umad its own definitions, then update the callers.
+This gives us more freedom when defining additional structures.
 
-diff --git a/libibumad/Makefile.am b/libibumad/Makefile.am
-index 6e3f518..9c84f0c 100644
---- a/libibumad/Makefile.am
-+++ b/libibumad/Makefile.am
-@@ -14,6 +14,7 @@ man_MANS = man/umad_debug.3 man/umad_get_ca.3 \
- 	   man/umad_set_addr_net.3 man/umad_set_addr.3 man/umad_set_pkey.3 \
- 	   man/umad_get_pkey.3 \
- 	   man/umad_register.3 man/umad_register_oui.3 man/umad_unregister.3 \
-+	   man/umad_register_snoop.3 \
- 	   man/umad_send.3 man/umad_recv.3 man/umad_poll.3 \
- 	   man/umad_get_issm_path.3
- 
-diff --git a/libibumad/include/infiniband/umad.h b/libibumad/include/infiniband/umad.h
-old mode 100644
-new mode 100755
-index 7ad5e4a..153c5f1
---- a/libibumad/include/infiniband/umad.h
-+++ b/libibumad/include/infiniband/umad.h
-@@ -148,6 +148,14 @@ typedef struct umad_ca {
- 	umad_port_t *ports[UMAD_CA_MAX_PORTS];
- } umad_ca_t;
- 
-+typedef struct umad_filter {
-+	uint8_t  mgmt_class;
-+	uint8_t  mgmt_version;
-+	uint16_t attr_id;
-+	uint8_t  errors;
-+	uint8_t  oui[3];
-+} umad_filter_t;
-+
- int umad_init(void);
- int umad_done(void);
- 
-@@ -186,6 +194,8 @@ int umad_register(int portid, int mgmt_class, int mgmt_version,
- 		  uint8_t rmpp_version, long method_mask[16 / sizeof(long)]);
- int umad_register_oui(int portid, int mgmt_class, uint8_t rmpp_version,
- 		      uint8_t oui[3], long method_mask[16 / sizeof(long)]);
-+int umad_register_snoop(int portid, umad_filter_t *filter,
-+			size_t filter_length);
- int umad_unregister(int portid, int agentid);
- 
- int umad_debug(int level);
-diff --git a/libibumad/man/umad_register_snoop.3 b/libibumad/man/umad_register_snoop.3
+libibumad/include/infiniband/umad_types.h |  191 +++++++++++++++++++++++++++++
+ 1 files changed, 191 insertions(+), 0 deletions(-)
+create mode 100755 libibumad/include/infiniband/umad_types.h
+
+diff --git a/libibumad/include/infiniband/umad_types.h b/libibumad/include/infiniband/umad_types.h
 new file mode 100755
-index 0000000..00b361d
+index 0000000..6305215
 --- /dev/null
-+++ b/libibumad/man/umad_register_snoop.3
-@@ -0,0 +1,52 @@
-+.\" -*- nroff -*-
-+.\"
-+.TH UMAD_REGISTER_SNOOP 3  "October 15, 2010" "OpenIB" "OpenIB Programmer\'s Manual"
-+.SH "NAME"
-+umad_register_snoop \- register to capture sent and received MADs
-+.SH "SYNOPSIS"
-+.nf
-+.B #include <infiniband/umad.h>
-+.sp
-+.BI "int umad_register_snoop(int " "portid" ", umad_filter_t " "filter" ", size_t " "filter_length");
-+.fi
-+.SH "DESCRIPTION"
-+.B umad_register_snoop()
-+Registers to snoop MADs that meet the specified filter.
-+MAD snooping occurs after RMPP segmentation has occurred on sent MADs,
-+and before RMPP reassembly occurs on received MADs.  Snooped MADs
-+are returned to the user through the umad_recv interface.
-+.SH "FILTER"
-+Users specify a filter through the umad_filter_t routine.
-+Only MADs which pass all indicated filtering restrictions are reported
-+to the user.  The definition for the umad_filter_t fields are:
-+.IP mgmt_class
-+Only MADs for the specified management class are reported to the user.
-+If mgmt_class is set to 0, then MADs for all management classes
-+sent or received on the GSI interface (QP1) are reported.
-+.IP mgmt_version
-+Restricts reported MADs to the specified management class version.
-+A user may set mgmt_version to 0 to report MADs of all versions.
-+This field is ignored if mgmt_class is set to 0. 
-+.IP attr_id
-+Restricts MADs to those containing the specified attribute identifier.
-+A user may set attr_id to 0 to report MADs referencing any attribute ID.
-+This field is ignored if mgmt_class is set to 0. 
-+.IP errors
-+If non-zero, only reports sent MADs that complete in error or MADs
-+containing a non-zero status value.  Sent MADs which complete as successful
-+or canceled are not reported.
-+.IP oui
-+If non-zero, only reports MADs that contain the specified OUI.
-+This field is ignored if the mgmt_class is not in the vendor
-+class 2 range.
-+.SH "RETURN VALUE"
-+.B umad_register_snoop()
-+returns non-negative agent id number on success, and a negative value on error as follows:
-+ -EINVAL invalid port handle, filter, or filter_length
-+ -EPERM  registration failed
-+.SH "SEE ALSO"
-+.BR umad_register(3),
-+.BR umad_unregister(3)
-+.SH "AUTHOR"
-+.TP
-+Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-diff --git a/libibumad/src/libibumad.map b/libibumad/src/libibumad.map
-index 0154b7f..b4b0b4b 100644
---- a/libibumad/src/libibumad.map
-+++ b/libibumad/src/libibumad.map
-@@ -30,5 +30,6 @@ IBUMAD_1.0 {
- 		umad_debug;
- 		umad_addr_dump;
- 		umad_dump;
-+		umad_register_snoop;
- 	local: *;
- };
-diff --git a/libibumad/src/umad.c b/libibumad/src/umad.c
-old mode 100644
-new mode 100755
-index d16e750..6eb476d
---- a/libibumad/src/umad.c
-+++ b/libibumad/src/umad.c
-@@ -67,9 +67,24 @@
- #  define VALGRIND_MAKE_MEM_DEFINED(addr,len)
- #endif
- 
-+struct ib_user_mad_snoop_filter {
-+	uint16_t attr_id;
-+	uint8_t	 errors;
-+	uint8_t	 reserved[13];
++++ b/libibumad/include/infiniband/umad_types.h
+@@ -0,0 +1,191 @@
++/*
++ * Copyright (c) 2004 Mellanox Technologies Ltd.  All rights reserved.
++ * Copyright (c) 2004 Infinicon Corporation.  All rights reserved.
++ * Copyright (c) 2004, 2010 Intel Corporation.  All rights reserved.
++ * Copyright (c) 2004 Topspin Corporation.  All rights reserved.
++ * Copyright (c) 2004-2006 Voltaire Corporation.  All rights reserved.
++ *
++ * This software is available to you under a choice of one of two
++ * licenses.  You may choose to be licensed under the terms of the GNU
++ * General Public License (GPL) Version 2, available from the file
++ * COPYING in the main directory of this source tree, or the
++ * OpenIB.org BSD license below:
++ *
++ *     Redistribution and use in source and binary forms, with or
++ *     without modification, are permitted provided that the following
++ *     conditions are met:
++ *
++ *      - Redistributions of source code must retain the above
++ *        copyright notice, this list of conditions and the following
++ *        disclaimer.
++ *
++ *      - Redistributions in binary form must reproduce the above
++ *        copyright notice, this list of conditions and the following
++ *        disclaimer in the documentation and/or other materials
++ *        provided with the distribution.
++ *
++ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
++ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
++ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
++ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
++ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
++ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
++ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
++ * SOFTWARE.
++ *
++ */
++#ifndef _UMAD_TYPES_H
++#define _UMAD_TYPES_H
++
++#include <stdint.h>
++
++#ifdef __cplusplus
++#  define BEGIN_C_DECLS extern "C" {
++#  define END_C_DECLS   }
++#else				/* !__cplusplus */
++#  define BEGIN_C_DECLS
++#  define END_C_DECLS
++#endif				/* __cplusplus */
++
++BEGIN_C_DECLS
++
++/* Management base version */
++#define UMAD_BASE_VERSION		1
++
++/* Management classes */
++enum {
++	UMAD_CLASS_SUBN_LID_ROUTED	= 0x01,
++	UMAD_CLASS_SUBN_DIRECTED_ROUTE	= 0x81,
++	UMAD_CLASS_SUBN_ADM		= 0x03,
++	UMAD_CLASS_PERF_MGMT		= 0x04,
++	UMAD_CLASS_BM			= 0x05,
++	UMAD_CLASS_DEVICE_MGMT		= 0x06,
++	UMAD_CLASS_CM			= 0x07,
++	UMAD_CLASS_SNMP			= 0x08,
++	UMAD_CLASS_VENDOR_RANGE1_START	= 0x09,
++	UMAD_CLASS_VENDOR_RANGE1_END	= 0x0F,
++	UMAD_CLASS_DEVICE_ADM		= 0x10,
++	UMAD_CLASS_BOOT_MGMT		= 0x11,
++	UMAD_CLASS_BIS			= 0x12,
++	UMAD_CLASS_CONG_MGMT		= 0x21,
++	UMAD_CLASS_VENDOR_RANGE2_START	= 0x30,
++	UMAD_CLASS_VENDOR_RANGE2_END	= 0x4F
++};
++
++/* Management methods */
++enum {
++	UMAD_METHOD_GET			= 0x01,
++	UMAD_METHOD_SET			= 0x02,
++	UMAD_METHOD_GET_RESP		= 0x81,
++	UMAD_METHOD_SEND		= 0x03,
++	UMAD_METHOD_TRAP		= 0x05,
++	UMAD_METHOD_REPORT		= 0x06,
++	UMAD_METHOD_REPORT_RESP		= 0x86,
++	UMAD_METHOD_TRAP_REPRESS	= 0x07,
++	UMAD_METHOD_RESP		= 0x80
 +};
 +
 +enum {
-+	UMAD_SNOOP_QP  = 0x80,
-+	UMAD_SNOOP_QP0 = 0x80,
-+	UMAD_SNOOP_QP1 = 0x81
++	UMAD_STATUS_SUCCESS  = 0x0000,
++	UMAD_STATUS_BUSY     = 0x0001,
++	UMAD_STATUS_REDIRECT = 0x0002,
++
++	/* Invalid fields, bits 2-4 */
++	UMAD_STATUS_BAD_VERSION          = (1 << 2),
++	UMAD_STATUS_METHOD_NOT_SUPPORTED = (2 << 2),
++	UMAD_STATUS_ATTR_NOT_SUPPORTED   = (3 << 2),
++	UMAD_STATUS_INVALID_ATTR_VALUE   = (7 << 2),
++
++	UMAD_STATUS_CLASS_MASK = 0xFF00
 +};
 +
- typedef struct ib_user_mad_reg_req {
- 	uint32_t id;
--	uint32_t method_mask[4];
-+	union {
-+		uint32_t method_mask[4];
-+		struct ib_user_mad_snoop_filter filter;
-+	};
- 	uint8_t qpn;
- 	uint8_t mgmt_class;
- 	uint8_t mgmt_class_version;
-@@ -879,6 +894,43 @@ int umad_get_fd(int fd)
- 	return fd;
- }
- 
-+int umad_register_snoop(int fd, umad_filter_t *filter,
-+			size_t filter_length)
-+{
-+	struct ib_user_mad_reg_req req;
++/* Attributes common to multiple classes */
++enum {
++	UMAD_ATTR_CLASS_PORT_INFO	= 0x0001,
++	UMAD_ATTR_NOTICE		= 0x0002,
++	UMAD_ATTR_INFORM_INFO		= 0x0003
++};
 +
-+	if (filter_length != sizeof(struct umad_filter))
-+		return -EINVAL;
++/* RMPP information */
++#define UMAD_RMPP_VERSION		1
++enum {
++	UMAD_RMPP_TYPE_DATA		= 1,
++	UMAD_RMPP_TYPE_ACK		= 2,
++	UMAD_RMPP_TYPE_STOP		= 3,
++	UMAD_RMPP_TYPE_ABORT		= 4,
 +
-+	TRACE("fd %d mgmt_class %u mgmt_version %d oui 0x%x%x%x attr_id %d errors %d",
-+	      fd, filter->mgmt_class, filter->mgmt_version,
-+	      (int) filter->oui[0], (int) filter->oui[1], (int) filter->oui[2],
-+	      filter->attr_id, filter->errors);
++	UMAD_RMPP_FLAG_MASK		= 0x07,
++	UMAD_RMPP_FLAG_ACTIVE		= 1,
++	UMAD_RMPP_FLAG_FIRST		= (1 << 1),
++	UMAD_RMPP_FLAG_LAST		= (1 << 2),
 +
-+	memset(&req, 0, sizeof req);
-+	req.qpn = (filter->mgmt_class == 0x1 || filter->mgmt_class == 0x81) ?
-+		  UMAD_SNOOP_QP0 : UMAD_SNOOP_QP1;
-+	req.mgmt_class = filter->mgmt_class;
-+	req.mgmt_class_version = filter->mgmt_version;
-+	memcpy(req.oui, filter->oui, sizeof req.oui);
-+	req.filter.attr_id = filter->attr_id;
-+	req.filter.errors = filter->errors;
++	UMAD_RMPP_RESP_TIME_SHIFT	= 3,
++	UMAD_RMPP_NO_RESP_TIME		= 0x1F,
 +
-+	VALGRIND_MAKE_MEM_DEFINED(&req, sizeof req);
++	UMAD_RMPP_STATUS_SUCCESS	= 0,
++	UMAD_RMPP_STATUS_RESX		= 1,
++	UMAD_RMPP_STATUS_ABORT_MIN	= 118,
++	UMAD_RMPP_STATUS_T2L		= 118,
++	UMAD_RMPP_STATUS_BAD_LEN	= 119,
++	UMAD_RMPP_STATUS_BAD_SEG	= 120,
++	UMAD_RMPP_STATUS_BADT		= 121,
++	UMAD_RMPP_STATUS_W2S		= 122,
++	UMAD_RMPP_STATUS_S2B		= 123,
++	UMAD_RMPP_STATUS_BAD_STATUS	= 124,
++	UMAD_RMPP_STATUS_UNV		= 125,
++	UMAD_RMPP_STATUS_TMR		= 126,
++	UMAD_RMPP_STATUS_UNSPEC		= 127,
++	UMAD_RMPP_STATUS_ABORT_MAX	= 127
++};
 +
-+	if (!ioctl(fd, IB_USER_MAD_REGISTER_AGENT, (void *)&req)) {
-+		DEBUG("fd %d registered to use agent %d qp %d class 0x%x oui 0x%x%x%x",
-+		      fd, req.id, req.qpn & ~UMAD_SNOOP_QP, req.mgmt_class,
-+		      (int) filter->oui[0], (int) filter->oui[1], (int) filter->oui[2]);
-+		return req.id;	/* return agentid */
-+	}
++enum {
++	UMAD_LEN_DATA			= 232,
++	UMAD_LEN_RMPP_DATA		= 220,
++	UMAD_LEN_VENDOR_DATA		= 216,
++};
 +
-+	DEBUG("fd %d registering qp %d class 0x%x oui 0x%x%x%x failed: %m",
-+	      fd, req.qpn & ~UMAD_SNOOP_QP, req.mgmt_class,
-+	      (int) filter->oui[0], (int) filter->oui[1], (int) filter->oui[2]);
-+	return -EPERM;
-+}
++struct umad_hdr {
++	uint8_t	 base_version;
++	uint8_t	 mgmt_class;
++	uint8_t	 class_version;
++	uint8_t	 method;
++	uint16_t status;
++	uint16_t class_specific;
++	uint64_t tid;
++	uint16_t attr_id;
++	uint16_t resv;
++	uint32_t attr_mod;
++};
 +
- int umad_register_oui(int fd, int mgmt_class, uint8_t rmpp_version,
- 		      uint8_t oui[3], long method_mask[])
- {
++struct umad_rmpp_hdr {
++	uint8_t	 rmpp_version;
++	uint8_t	 rmpp_type;
++	uint8_t	 rmpp_rtime_flags;
++	uint8_t	 rmpp_status;
++	uint32_t seg_num;
++	uint32_t paylen_newwin;
++};
++
++struct umad_packet {
++	struct umad_hdr		mad_hdr;
++	uint8_t			data[UMAD_LEN_DATA];
++};
++
++struct umad_rmpp_packet {
++	struct umad_hdr		mad_hdr;
++	struct umad_rmpp_hdr	rmpp_hdr;
++	uint8_t			data[UMAD_LEN_RMPP_DATA];
++};
++
++struct umad_vendor_packet {
++	struct umad_hdr		mad_hdr;
++	struct umad_rmpp_hdr	rmpp_hdr;
++	uint8_t			reserved;
++	uint8_t			oui[3];
++	uint8_t			data[UMAD_LEN_VENDOR_DATA];
++};
++
++#define	UMAD_OPENIB_OUI		(0x001405)
++
++END_C_DECLS
++#endif				/* _UMAD_TYPES_H */
 
 
 --
