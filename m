@@ -1,8 +1,7 @@
 From: Ralph Campbell <ralph.campbell-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH] IB/qib: clean up properly if pci_set_consistent_dma_mask()
-	fails
-Date: Fri, 22 Oct 2010 17:09:30 -0700
-Message-ID: <20101023000925.30641.2559.stgit@chromite.mv.qlogic.com>
+Subject: [PATCH] IB/qib: fix RDMA write with immediate
+Date: Fri, 22 Oct 2010 17:10:22 -0700
+Message-ID: <20101023001021.30700.54337.stgit@chromite.mv.qlogic.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
@@ -12,33 +11,60 @@ To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+The immediate word for RDMA_WRITE_ONLY_WITH_IMMEDIATE was being
+extracted from the wrong location in the header.
+Thanks to Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> for
+finding this.
 
-Clean up properly if pci_set_consistent_dma_mask() fails.
-
-Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Signed-off-by: Ralph Campbell <ralph.campbell-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
 ---
 
- drivers/infiniband/hw/qib/qib_pcie.c |    4 +++-
- 1 files changed, 3 insertions(+), 1 deletions(-)
+ drivers/infiniband/hw/qib/qib_rc.c |    5 ++++-
+ drivers/infiniband/hw/qib/qib_uc.c |    6 ++++--
+ 2 files changed, 8 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/infiniband/hw/qib/qib_pcie.c b/drivers/infiniband/hw/qib/qib_pcie.c
-index 8a64426..48b6674 100644
---- a/drivers/infiniband/hw/qib/qib_pcie.c
-+++ b/drivers/infiniband/hw/qib/qib_pcie.c
-@@ -103,9 +103,11 @@ int qib_pcie_init(struct pci_dev *pdev, const struct pci_device_id *ent)
- 		ret = pci_set_consistent_dma_mask(pdev, DMA_BIT_MASK(32));
- 	} else
- 		ret = pci_set_consistent_dma_mask(pdev, DMA_BIT_MASK(64));
--	if (ret)
-+	if (ret) {
- 		qib_early_err(&pdev->dev,
- 			      "Unable to set DMA consistent mask: %d\n", ret);
-+		goto bail;
-+	}
+diff --git a/drivers/infiniband/hw/qib/qib_rc.c b/drivers/infiniband/hw/qib/qib_rc.c
+index a093111..955fb71 100644
+--- a/drivers/infiniband/hw/qib/qib_rc.c
++++ b/drivers/infiniband/hw/qib/qib_rc.c
+@@ -2068,7 +2068,10 @@ send_last:
+ 			goto nack_op_err;
+ 		if (!ret)
+ 			goto rnr_nak;
+-		goto send_last_imm;
++		wc.ex.imm_data = ohdr->u.rc.imm_data;
++		hdrsize += 4;
++		wc.wc_flags = IB_WC_WITH_IMM;
++		goto send_last;
  
- 	pci_set_master(pdev);
- 	ret = pci_enable_pcie_error_reporting(pdev);
+ 	case OP(RDMA_READ_REQUEST): {
+ 		struct qib_ack_entry *e;
+diff --git a/drivers/infiniband/hw/qib/qib_uc.c b/drivers/infiniband/hw/qib/qib_uc.c
+index b9c8b63..aecd512 100644
+--- a/drivers/infiniband/hw/qib/qib_uc.c
++++ b/drivers/infiniband/hw/qib/qib_uc.c
+@@ -457,8 +457,10 @@ rdma_first:
+ 		}
+ 		if (opcode == OP(RDMA_WRITE_ONLY))
+ 			goto rdma_last;
+-		else if (opcode == OP(RDMA_WRITE_ONLY_WITH_IMMEDIATE))
++		if (opcode == OP(RDMA_WRITE_ONLY_WITH_IMMEDIATE)) {
++			wc.ex.imm_data = ohdr->u.rc.imm_data;
+ 			goto rdma_last_imm;
++		}
+ 		/* FALLTHROUGH */
+ 	case OP(RDMA_WRITE_MIDDLE):
+ 		/* Check for invalid length PMTU or posted rwqe len. */
+@@ -471,8 +473,8 @@ rdma_first:
+ 		break;
+ 
+ 	case OP(RDMA_WRITE_LAST_WITH_IMMEDIATE):
+-rdma_last_imm:
+ 		wc.ex.imm_data = ohdr->u.imm_data;
++rdma_last_imm:
+ 		hdrsize += 4;
+ 		wc.wc_flags = IB_WC_WITH_IMM;
+ 
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
