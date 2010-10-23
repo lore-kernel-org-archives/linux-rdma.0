@@ -1,7 +1,7 @@
 From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [RFC 4/12] ib-mgmt: Add basic SM definitions to umad
-Date: Sat, 23 Oct 2010 00:03:18 -0700
-Message-ID: <CF9C39F99A89134C9CF9C4CCB68B8DDF25B809B7F3@orsmsx501.amr.corp.intel.com>
+Subject: [RFC 5/12]ib-mgmt: add CM definitions to umad
+Date: Sat, 23 Oct 2010 00:04:08 -0700
+Message-ID: <CF9C39F99A89134C9CF9C4CCB68B8DDF25B809B7F4@orsmsx501.amr.corp.intel.com>
 References: <CF9C39F99A89134C9CF9C4CCB68B8DDF25B809B7EE@orsmsx501.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -14,31 +14,24 @@ To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-r
 Cc: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Add a new header file, umad_sm.h, to libibumad that contains
-basic SM MAD definitions.
-
-Only the SM attributes values, new methods, and base SM MAD
-format are given.  SM attribute structure definitions are
-left for future development.
+To support the madeye diag and ibacm, add CM MAD definitions
+to umad.  Only minimal definitions are added for now.  Additional
+structure definitions will be added later.
 
 Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- libibumad/include/infiniband/umad_sm.h |  102 ++++++++++++++++++++++++++++++++
- 1 files changed, 102 insertions(+), 0 deletions(-)
- create mode 100755 libibumad/include/infiniband/umad_sm.h
+ libibumad/include/infiniband/umad_cm.h |   64 ++++++++++++++++++++++++++++++++
+ 1 files changed, 64 insertions(+), 0 deletions(-)
+ create mode 100755 libibumad/include/infiniband/umad_cm.h
 
-diff --git a/libibumad/include/infiniband/umad_sm.h b/libibumad/include/infiniband/umad_sm.h
+diff --git a/libibumad/include/infiniband/umad_cm.h b/libibumad/include/infiniband/umad_cm.h
 new file mode 100755
-index 0000000..62c75da
+index 0000000..d48ecee
 --- /dev/null
-+++ b/libibumad/include/infiniband/umad_sm.h
-@@ -0,0 +1,102 @@
++++ b/libibumad/include/infiniband/umad_cm.h
+@@ -0,0 +1,64 @@
 +/*
-+ * Copyright (c) 2004 Mellanox Technologies Ltd.  All rights reserved.
-+ * Copyright (c) 2004 Infinicon Corporation.  All rights reserved.
-+ * Copyright (c) 2004 Intel Corporation.  All rights reserved.
-+ * Copyright (c) 2004 Topspin Corporation.  All rights reserved.
-+ * Copyright (c) 2004 Voltaire Corporation.  All rights reserved.
++ * Copyright (c) 2010 Intel Corporation.  All rights reserved.
 + *
 + * This software is available to you under a choice of one of two
 + * licenses.  You may choose to be licensed under the terms of the GNU
@@ -69,8 +62,8 @@ index 0000000..62c75da
 + * SOFTWARE.
 + */
 +
-+#ifndef _UMAD_SM_H
-+#define _UMAD_SM_H
++#ifndef _UMAD_CM_H
++#define _UMAD_CM_H
 +
 +#include <infiniband/umad_types.h>
 +
@@ -84,57 +77,23 @@ index 0000000..62c75da
 +
 +BEGIN_C_DECLS
 +
++/* Communication management attributes */
 +enum {
-+	UMAD_SMP_DIRECTION		= 0x8000,
-+};
-+
-+/* Subnet management attributes */
-+enum {
-+	UMAD_SMP_ATTR_NODE_DESC		= 0x0010,
-+	UMAD_SMP_ATTR_NODE_INFO		= 0x0011,
-+	UMAD_SMP_ATTR_SWITCH_INFO	= 0x0012,
-+	UMAD_SMP_ATTR_GUID_INFO		= 0x0014,
-+	UMAD_SMP_ATTR_PORT_INFO		= 0x0015,
-+	UMAD_SMP_ATTR_PKEY_TABLE	= 0x0016,
-+	UMAD_SMP_ATTR_SLVL_TABLE	= 0x0017,
-+	UMAD_SMP_ATTR_VL_ARB_TABLE	= 0x0018,
-+	UMAD_SMP_ATTR_LINEAR_FT		= 0x0019,
-+	UMAD_SMP_ATTR_RANDOM_FT		= 0x001A,
-+	UMAD_SMP_ATTR_MCAST_FT		= 0x001B,
-+	UMAD_SMP_ATTR_SM_INFO		= 0x0020,
-+	UMAD_SMP_ATTR_VENDOR_DIAG	= 0x0030,
-+	UMAD_SMP_ATTR_LED_INFO		= 0x0031,
-+	UMAD_SMP_ATTR_VENDOR_MASK	= 0xFF00
-+};
-+
-+enum {
-+	UMAD_LEN_SMP_DATA		= 64,
-+	UMAD_SMP_MAX_HOPS		= 64
-+};
-+
-+struct umad_smp {
-+	uint8_t	 base_version;
-+	uint8_t	 mgmt_class;
-+	uint8_t	 class_version;
-+	uint8_t	 method;
-+	uint16_t status;
-+	uint8_t  hop_ptr;
-+	uint8_t  hop_cnt;
-+	uint64_t tid;
-+	uint16_t attr_id;
-+	uint16_t resv;
-+	uint32_t attr_mod;
-+	uint64_t mkey;
-+	uint16_t dr_slid;
-+	uint16_t dr_dlid;
-+	uint8_t  reserved[28];
-+	uint8_t  data[UMAD_LEN_SMP_DATA];
-+	uint8_t  initial_path[UMAD_SMP_MAX_HOPS];
-+	uint8_t  return_path[UMAD_SMP_MAX_HOPS];
++	UMAD_CM_ATTR_REQ		= 0x0010,
++	UMAD_CM_ATTR_MRA		= 0x0011,
++	UMAD_CM_ATTR_REJ		= 0x0012,
++	UMAD_CM_ATTR_REP		= 0x0013,
++	UMAD_CM_ATTR_RTU		= 0x0014,
++	UMAD_CM_ATTR_DREQ		= 0x0015,
++	UMAD_CM_ATTR_DREP		= 0x0016,
++	UMAD_CM_ATTR_SIDR_REQ		= 0x0017,
++	UMAD_CM_ATTR_SIDR_REP		= 0x0018,
++	UMAD_CM_ATTR_LAP		= 0x0019,
++	UMAD_CM_ATTR_APR		= 0x001A,
 +};
 +
 +END_C_DECLS
-+#endif				/* _UMAD_SM_H */
++#endif				/* _UMAD_CM_H */
 
 
 --
