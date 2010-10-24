@@ -1,44 +1,40 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [RFC 2/12] ib-mgmt: provide MAD definitions with libibumad
-Date: Sat, 23 Oct 2010 19:01:37 -0700
-Message-ID: <CF9C39F99A89134C9CF9C4CCB68B8DDF25B809B87B@orsmsx501.amr.corp.intel.com>
-References: <CF9C39F99A89134C9CF9C4CCB68B8DDF25B809B7EE@orsmsx501.amr.corp.intel.com>
- <CF9C39F99A89134C9CF9C4CCB68B8DDF25B809B7F1@orsmsx501.amr.corp.intel.com>
- <20101023190601.GA10883@obsidianresearch.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [RFC 4/12] ib-mgmt: Add basic SM definitions to umad
+Date: Sat, 23 Oct 2010 20:27:31 -0600
+Message-ID: <20101024022731.GA842@obsidianresearch.com>
+References: <CF9C39F99A89134C9CF9C4CCB68B8DDF25B809B7EE@orsmsx501.amr.corp.intel.com> <CF9C39F99A89134C9CF9C4CCB68B8DDF25B809B7F3@orsmsx501.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20101023190601.GA10883-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <CF9C39F99A89134C9CF9C4CCB68B8DDF25B809B7F3-osO9UTpF0USkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> > +/* Management base version */
-> > +#define UMAD_BASE_VERSION		1
-> 
-> Could you elaborate in the comment what you see this being used for?
+On Sat, Oct 23, 2010 at 12:03:18AM -0700, Hefty, Sean wrote:
 
-The comment should just go.  This is copy-paste from the kernel headers.
+> +struct umad_smp {
+> +	uint8_t	 base_version;
+> +	uint8_t	 mgmt_class;
+> +	uint8_t	 class_version;
+> +	uint8_t	 method;
+> +	uint16_t status;
+> +	uint8_t  hop_ptr;
+> +	uint8_t  hop_cnt;
+> +	uint64_t tid;
+> +	uint16_t attr_id;
+> +	uint16_t resv;
+> +	uint32_t attr_mod;
+> +	uint64_t mkey;
 
-> > +struct umad_hdr {
-> 
-> Could we agree on a naming scheme? I was thinking umad_hdr_NE or
-> somesuch to identify these all as network endian. It is actually
-> pretty confusing in someplaces what is what. Ie for instance the
-> ibv_sa_path_rec is unpacked but in network endian, while things
-> like ibv_ah_attrs are in host endian. I've made errors getting this
-> right before (partly because there are no docs..)
+These uint64_t's should also be the special 64 bit type I mentioned
+before. The problem here is that uint64_t increases the alignment
+requirement of the struct to 8, while its natural place, in say, an IB
+packet (LRH+BTH+DETH+SMP) only has an alignment of 4.
 
-maybe we should define net16/be16, etc. data types, similar to the kernel and ib_types?
-
-> > +#define	UMAD_OPENIB_OUI		(0x001405)
-> 
-> Enum?
-
-sure - unless someone can think of a reason why that wouldn't work
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
