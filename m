@@ -1,33 +1,47 @@
-From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Subject: Re: can't get IB link with the for-next branch / IBoE patches
-Date: Mon, 25 Oct 2010 06:36:43 -0700
-Message-ID: <adaaam2jswk.fsf@cisco.com>
-References: <20101024075835.GA11359@mtldesk30> <adahbgbppgx.fsf@cisco.com>
-	<20101024160018.GA32499@mtldesk30> <adaocajo90s.fsf@cisco.com>
-	<AANLkTimb++kFYFXCWajBGACpA1OpCXyyeyD-98Ed3uTu@mail.gmail.com>
-	<4CC54D4E.7050203@Voltaire.com> <4CC5604D.2080803@Voltaire.com>
+From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: Re: [PATCH v2] RDMA/cxgb3: When a user QP is marked in error, also
+ mark the CQs in error.
+Date: Mon, 25 Oct 2010 09:15:21 -0500
+Message-ID: <4CC590F9.7010608@opengridcomputing.com>
+References: <20101021123705.7604.20848.stgit@build.ogc.int> <adar5fhts2b.fsf@cisco.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4CC5604D.2080803-hKgKHo2Ms0FWk0Htik3J/w@public.gmane.org> (Or Gerlitz's message of "Mon, 25
-	Oct 2010 12:47:41 +0200")
+In-Reply-To: <adar5fhts2b.fsf-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <ogerlitz-hKgKHo2Ms0FWk0Htik3J/w@public.gmane.org>
-Cc: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, RDMA list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
- > okay, I verified that with 2.6.36 this node gets IB link and IPoIB is
- > working fine, so it must be something in or related to the for-next
- > branch, I assume around the IBoE patches that touch mlx4 which make
- > this failure to happen. With 2.6.36 I also see the "awk:
- > /etc/ofed/setup-mlx4.awk:6: (FILENAME=/etc/ofed/mlx4.conf FNR=21)
- > fatal: cannot open file `/sbin/setup-mlx4' for reading (No such file
- > or directory)" warning when loading mlx4_ib, but it doesn't
- > disruptive in the sense that the node works fine, IB wise.
 
-I suspect I broke either the UD header packing or the build_mlx_header
-function when I "cleaned up" the patches.  I see the same problem, I'll
-take a look today.
+On 10/23/2010 12:07 AM, Roland Dreier wrote:
+> I applied this, but can you check if there are any alignment/size issues
+> with 32-bit userspace on 64-bit kernel?  Specifically:
+>
+>   >   struct iwch_create_cq_resp {
+>   >   	__u64 key;
+>   >   	__u32 cqid;
+>   >   	__u32 size_log2;
+>   >  +	__u32 memsize;
+>   >   };
+>
+> this structure now has size 20 on i386 (32-bit) but size 24 on x86-64 I
+> think so a 64-bit kernel might falsely think that the 32-bit library was
+> old.
+>
+> The fix is to add a __u32 reserved field at the end of the struct so it
+> always gets padded to 24 bytes.  But I don't want to do that to this
+> patch until you change the userspace library too.
+>    
+
+Good catch Roland.  Is there an easy way to configure/build libibverbs 
+and librdmacm as 32bit?   My system only has the 64b versions.  So I'll 
+need to build 32b versions of these to test my fix with a 32b app / 64b 
+kernel.
+
+Steve.
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
