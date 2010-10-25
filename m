@@ -1,47 +1,27 @@
-From: Jonathan Rosser <jonathan.rosser-gjMux1o1B1/QXOPxS62xeg@public.gmane.org>
-Subject: Re: [PATCH] librdmacm: fix compiler warning of void* arithmetic
-Date: Mon, 25 Oct 2010 10:52:44 +0100
-Message-ID: <ia3k1c$930$2@dough.gmane.org>
-References: <i9rnbn$f9o$1@dough.gmane.org>
+From: Or Gerlitz <ogerlitz-hKgKHo2Ms0FWk0Htik3J/w@public.gmane.org>
+Subject: Re: can't get IB link with the for-next branch / IBoE patches (was
+ "mlx4: Fix unneeded return error...")
+Date: Mon, 25 Oct 2010 12:47:41 +0200
+Message-ID: <4CC5604D.2080803@Voltaire.com>
+References: <20101024075835.GA11359@mtldesk30> <adahbgbppgx.fsf@cisco.com>	<20101024160018.GA32499@mtldesk30> <adaocajo90s.fsf@cisco.com>	<AANLkTimb++kFYFXCWajBGACpA1OpCXyyeyD-98Ed3uTu@mail.gmail.com> <4CC54D4E.7050203@Voltaire.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <i9rnbn$f9o$1@dough.gmane.org>
+In-Reply-To: <4CC54D4E.7050203-hKgKHo2Ms0FWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Cc: RDMA list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Arithmetic on void* pointers generates a compiler warning, and projects
-that include rdma/rdma_verbs.h and compile with  -Werror -Wall will fail
-to build.
+> I pulled/built/booted with the for-next branch of Roland's tree, and I can't get IB link for the node, 
+> I don't think this is my problem, since I'm on L2 IB and not Eth, but should this work with pre 2.7 
+> firmware?! if not, maybe patch the mlx4 driver to print some error,
 
-Signed-off-by: Jonathan Rosser <jrosser-gjMux1o1B1/QXOPxS62xeg@public.gmane.org>
----
-  include/rdma/rdma_verbs.h |    2 +-
-  1 files changed, 1 insertions(+), 1 deletions(-)
-
-diff --git a/include/rdma/rdma_verbs.h b/include/rdma/rdma_verbs.h
-index d75d906..853ef9b 100644
---- a/include/rdma/rdma_verbs.h
-+++ b/include/rdma/rdma_verbs.h
-@@ -160,7 +160,7 @@ rdma_post_recv(struct rdma_cm_id *id, void *context, 
-void *addr,
-  {
-         struct ibv_sge sge;
-
--       assert((addr >= mr->addr) && ((addr + length) <= (mr->addr + 
-mr->length)));
-+       assert((addr >= mr->addr) && (((uint8_t*)addr + length) <= 
-((uint8_t*)mr->addr + mr->length)));
-         sge.addr = (uint64_t) (uintptr_t) addr;
-         sge.length = (uint32_t) length;
-         sge.lkey = mr->lkey;
--- 
-1.7.0.4
+okay, I verified that with 2.6.36 this node gets IB link and IPoIB is working fine, so it must be something in or related to the for-next branch, I assume around the IBoE patches that touch mlx4 which make this failure to happen. With 2.6.36 I also see the "awk: /etc/ofed/setup-mlx4.awk:6: (FILENAME=/etc/ofed/mlx4.conf FNR=21) fatal: cannot open file `/sbin/setup-mlx4' for reading (No such file or directory)" warning when loading mlx4_ib, but it doesn't disruptive in the sense that the node works fine, IB wise. 
 
 
-
+Or.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
