@@ -1,34 +1,55 @@
-From: Jonathan Rosser <jonathan.rosser-gjMux1o1B1/QXOPxS62xeg@public.gmane.org>
-Subject: Re: [PATCH] librdmacm: fix make install
-Date: Mon, 25 Oct 2010 13:26:52 +0100
-Message-ID: <ia3t2c$gv4$2@dough.gmane.org>
-References: <i9ru6c$dm5$1@dough.gmane.org> <CF9C39F99A89134C9CF9C4CCB68B8DDF25B809B18A@orsmsx501.amr.corp.intel.com> <ia3jv3$930$1@dough.gmane.org>
+From: Eli Cohen <eli@dev.mellanox.co.il>
+Subject: [PATCH] mlx4_en: Fix out of bounds array access
+Date: Mon, 25 Oct 2010 14:56:47 +0200
+Message-ID: <20101025125647.GA7710@mtldesk30>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <ia3jv3$930$1@dough.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+Sender: netdev-owner@vger.kernel.org
+To: davem@davemloft.net, yevgenyp@mellanox.co.il
+Cc: Roland Dreier <rdreier@cisco.com>, RDMA list <linux-rdma@vger.kernel.org>, netdev@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 10/25/10 10:51, Jonathan Rosser wrote:
->
-> Signed-off-by: Jonathan Rosser
-> <jrosser-gjMux1o1B1/QXOPxS62xeg@public.gmane.org>
-> ---
+When searching for a free entry in either mlx4_register_vlan() or
+mlx4_register_mac(), and there is no free entry, the loop terminates without
+updating the local variable free thus causing out of array bounds access. Fix
+this by adding a proper check outside the loop.
 
-Oh right. gmane obfuscates my address in the patch too. Ho-hum.
+Signed-off-by: Eli Cohen <eli@mellanox.co.il>
+---
+ drivers/net/mlx4/port.c |   11 +++++++++++
+ 1 files changed, 11 insertions(+), 0 deletions(-)
 
-Replace with jonathan.rosser @ rd. bbc. co. uk for a real address.
+diff --git a/drivers/net/mlx4/port.c b/drivers/net/mlx4/port.c
+index 56371ef..4513395 100644
+--- a/drivers/net/mlx4/port.c
++++ b/drivers/net/mlx4/port.c
+@@ -111,6 +111,12 @@ int mlx4_register_mac(struct mlx4_dev *dev, u8 port, u64 mac, int *index)
+ 			goto out;
+ 		}
+ 	}
++
++	if (free < 0) {
++		err = -ENOMEM;
++		goto out;
++	}
++
+ 	mlx4_dbg(dev, "Free MAC index is %d\n", free);
+ 
+ 	if (table->total == table->max) {
+@@ -224,6 +230,11 @@ int mlx4_register_vlan(struct mlx4_dev *dev, u8 port, u16 vlan, int *index)
+ 		}
+ 	}
+ 
++	if (free < 0) {
++		err = -ENOMEM;
++		goto out;
++	}
++
+ 	if (table->total == table->max) {
+ 		/* No free vlan entries */
+ 		err = -ENOSPC;
+-- 
+1.7.3.1
 
-Sorry about that.
-
-Regards,
-Jonathan.
-
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
