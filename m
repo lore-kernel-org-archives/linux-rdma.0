@@ -1,39 +1,75 @@
-From: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH] mlx4: Fix unneeded return error in eth_link_query_port
-Date: Mon, 25 Oct 2010 21:38:56 +0200
-Message-ID: <AANLkTi=BbqjjBpd4=B+8MNi=h-Ri1Do5EfjE3aX8gy_g@mail.gmail.com>
-References: <20101024075835.GA11359@mtldesk30>
-	<adahbgbppgx.fsf@cisco.com>
-	<20101024160018.GA32499@mtldesk30>
-	<adaocajo90s.fsf@cisco.com>
-	<AANLkTimb++kFYFXCWajBGACpA1OpCXyyeyD-98Ed3uTu@mail.gmail.com>
-	<4CC54D4E.7050203@Voltaire.com>
-	<20101025113452.GB1802@mtldesk30>
-	<AANLkTi=ZxB4b463OOS6YGxTJSKxjyCj8vy0rNtj0n+uA@mail.gmail.com>
-	<20101025143603.GD1802@mtldesk30>
-	<AANLkTimaEcFZMnYE+G3osTWzPkfxuBpRMtrrXF7xUPYv@mail.gmail.com>
-	<20101025171332.GA2332@mtldesk30>
-	<AANLkTik_4OzMLMWXud89m_rF47OQ3Wji9R_Bye+0DcTV@mail.gmail.com>
-	<AANLkTi=yZUoexwVUCfbeGypEWC_8=oZaMu9mBTF+VJgq@mail.gmail.com>
+From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: [PATCH v2] RPING: Make sure CQ event thread exits before destroying
+	the CQ.
+Date: Mon, 25 Oct 2010 14:43:09 -0500
+Message-ID: <20101025194309.11127.29600.stgit@build.ogc.int>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <AANLkTi=yZUoexwVUCfbeGypEWC_8=oZaMu9mBTF+VJgq-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: Or Gerlitz <ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org>, Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, RDMA list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Oct 25, 2010 at 9:15 PM, Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wrote:
-> First, I suggest that you sync your tree again.
+It is possible for the CQ event thread to poll the CQ after it has been
+destroyed which can result in a seg fault on T3 interfaces.  This patch
+waits for the thread to exit before destroying the CQ.
 
-I'll be able to do that tomorrow
+Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+---
 
-> Second, I assume your link layer is IB since
+ examples/rping.c |   10 +++++-----
+ 1 files changed, 5 insertions(+), 5 deletions(-)
 
-I wrote black-over-white that its IB, what wasn't clear here?
+diff --git a/examples/rping.c b/examples/rping.c
+index b58ea74..a8af4d6 100644
+--- a/examples/rping.c
++++ b/examples/rping.c
+@@ -280,12 +280,11 @@ static int rping_cq_event_handler(struct rping_cb *cb)
+ 		ret = 0;
+ 
+ 		if (wc.status) {
+-			if (wc.status != IBV_WC_WR_FLUSH_ERR) {
++			if (wc.status != IBV_WC_WR_FLUSH_ERR)
+ 				fprintf(stderr, 
+ 					"cq completion failed status %d\n",
+ 					wc.status);
+-				ret = -1;
+-			}
++			ret = -1;
+ 			goto error;
+ 		}
+ 
+@@ -802,10 +801,9 @@ static void *rping_persistent_server_thread(void *arg)
+ 
+ 	rping_test_server(cb);
+ 	rdma_disconnect(cb->child_cm_id);
++	pthread_join(cb->cqthread, NULL);
+ 	rping_free_buffers(cb);
+ 	rping_free_qp(cb);
+-	pthread_cancel(cb->cqthread);
+-	pthread_join(cb->cqthread, NULL);
+ 	rdma_destroy_id(cb->child_cm_id);
+ 	free_cb(cb);
+ 	return NULL;
+@@ -890,6 +888,7 @@ static int rping_run_server(struct rping_cb *cb)
+ 
+ 	rping_test_server(cb);
+ 	rdma_disconnect(cb->child_cm_id);
++	pthread_join(cb->cqthread, NULL);
+ 	rdma_destroy_id(cb->child_cm_id);
+ err2:
+ 	rping_free_buffers(cb);
+@@ -1057,6 +1056,7 @@ static int rping_run_client(struct rping_cb *cb)
+ 
+ 	rping_test_client(cb);
+ 	rdma_disconnect(cb->cm_id);
++	pthread_join(cb->cqthread, NULL);
+ err2:
+ 	rping_free_buffers(cb);
+ err1:
 
-Or.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
