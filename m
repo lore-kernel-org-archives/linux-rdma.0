@@ -1,67 +1,46 @@
 From: Jonathan Rosser <jonathan.rosser-gjMux1o1B1/QXOPxS62xeg@public.gmane.org>
-Subject: Re: [PATCH] librdmacm: fix make install
-Date: Mon, 25 Oct 2010 10:51:29 +0100
-Message-ID: <ia3jv3$930$1@dough.gmane.org>
-References: <i9ru6c$dm5$1@dough.gmane.org> <CF9C39F99A89134C9CF9C4CCB68B8DDF25B809B18A@orsmsx501.amr.corp.intel.com>
+Subject: Re: [PATCH] librdmacm: fix compiler warning of void* arithmetic
+Date: Mon, 25 Oct 2010 10:52:44 +0100
+Message-ID: <ia3k1c$930$2@dough.gmane.org>
+References: <i9rnbn$f9o$1@dough.gmane.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CF9C39F99A89134C9CF9C4CCB68B8DDF25B809B18A-osO9UTpF0USkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
+In-Reply-To: <i9rnbn$f9o$1@dough.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-make install fails if the include files in the install prefix
-include/rdma,infiniband already exist. install claims that the <src>
-and <destination> file are the same and exits with an error.
-
-This patch modifies Makefile.am so that the rdma and infiniband include
-files explicitly reference the source directory rather than the build
-directory.
-
-Also, EXTRA_DIST now only lists files that are not referenced anywhere
-else in Makefile.am
+Arithmetic on void* pointers generates a compiler warning, and projects
+that include rdma/rdma_verbs.h and compile with  -Werror -Wall will fail
+to build.
 
 Signed-off-by: Jonathan Rosser <jrosser-gjMux1o1B1/QXOPxS62xeg@public.gmane.org>
 ---
-  Makefile.am |   12 +++++-------
-  1 files changed, 5 insertions(+), 7 deletions(-)
+  include/rdma/rdma_verbs.h |    2 +-
+  1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/Makefile.am b/Makefile.am
-index 2668aa3..8790fe8 100644
---- a/Makefile.am
-+++ b/Makefile.am
-@@ -35,11 +35,11 @@ examples_rdma_server_LDADD = 
-$(top_builddir)/src/librdmacm.la
-  librdmacmincludedir = $(includedir)/rdma
-  infinibandincludedir = $(includedir)/infiniband
+diff --git a/include/rdma/rdma_verbs.h b/include/rdma/rdma_verbs.h
+index d75d906..853ef9b 100644
+--- a/include/rdma/rdma_verbs.h
++++ b/include/rdma/rdma_verbs.h
+@@ -160,7 +160,7 @@ rdma_post_recv(struct rdma_cm_id *id, void *context, 
+void *addr,
+  {
+         struct ibv_sge sge;
 
--librdmacminclude_HEADERS = include/rdma/rdma_cma_abi.h \
--                          include/rdma/rdma_cma.h \
--                          include/rdma/rdma_verbs.h
-+librdmacminclude_HEADERS = $(top_srcdir)/include/rdma/rdma_cma_abi.h \
-+                          $(top_srcdir)/include/rdma/rdma_cma.h \
-+                          $(top_srcdir)/include/rdma/rdma_verbs.h
-
--infinibandinclude_HEADERS = include/infiniband/ib.h
-+infinibandinclude_HEADERS = $(top_srcdir)/include/infiniband/ib.h
-
-  man_MANS = \
-         man/rdma_accept.3 \
-@@ -97,9 +97,7 @@ man_MANS = \
-         man/rdma_client.1 \
-         man/rdma_cm.7
-
--EXTRA_DIST = include/rdma/rdma_cma_abi.h include/rdma/rdma_cma.h \
--            include/infiniband/ib.h include/rdma/rdma_verbs.h \
--            src/cma.h src/librdmacm.map librdmacm.spec.in $(man_MANS)
-+EXTRA_DIST = src/cma.h src/librdmacm.map librdmacm.spec.in $(man_MANS)
-
-  dist-hook: librdmacm.spec
-         cp librdmacm.spec $(distdir)
+-       assert((addr >= mr->addr) && ((addr + length) <= (mr->addr + 
+mr->length)));
++       assert((addr >= mr->addr) && (((uint8_t*)addr + length) <= 
+((uint8_t*)mr->addr + mr->length)));
+         sge.addr = (uint64_t) (uintptr_t) addr;
+         sge.length = (uint32_t) length;
+         sge.lkey = mr->lkey;
 -- 
 1.7.0.4
+
+
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
