@@ -1,45 +1,29 @@
-From: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH management.git] Fix autotools to include the necessary
- M4 files
-Date: Mon, 25 Oct 2010 20:27:15 +0200
-Message-ID: <20101025182715.GF14919@me>
-References: <20101007223301.GA30829@obsidianresearch.com>
- <20101025180556.GD14919@me>
- <20101025181451.GE15514@obsidianresearch.com>
+From: Ralph Campbell <ralph.campbell-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH] [libipathverbs] Fix 32 bit libipathverbs
+Date: Mon, 25 Oct 2010 11:55:39 -0700
+Message-ID: <1288032939.27343.382.camel@chromite.mv.qlogic.com>
+References: <20101022224343.GA3573@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20101025181451.GE15514-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <20101022224343.GA3573-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Linux RDMA list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: RDMA list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 12:14 Mon 25 Oct     , Jason Gunthorpe wrote:
-> 
-> vs after patching:
-> 
-> jggl{jgg}/tmp/ofa/management/libibumad#./autogen.sh 
-> + aclocal -I config
-> + libtoolize --force --copy
-> libtoolize: putting auxiliary files in AC_CONFIG_AUX_DIR, `config'.
-> libtoolize: copying file `config/ltmain.sh'
-> libtoolize: putting macros in AC_CONFIG_MACRO_DIR, `config'.
-> libtoolize: copying file `config/libtool.m4'
-> libtoolize: copying file `config/ltoptions.m4'
-> libtoolize: copying file `config/ltsugar.m4'
-> libtoolize: copying file `config/ltversion.m4'
-> libtoolize: copying file `config/lt~obsolete.m4'
-> + autoheader
-> + automake --foreign --add-missing --copy
-> + autoconf
-> 
-> Much happier.
+Thanks, applied.
 
-Ok. I see now.
+On Fri, 2010-10-22 at 15:43 -0700, Jason Gunthorpe wrote:
+> Trying to use a 64 bit kernel with a 32 bit userspace results in
+> local protection violations reported to the CQ. This is caused by
+> a difference in padding for ipath_rwe, so make the padding 64 bit
+> uses explicit.
+> 
+> Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 
-Sasha
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
