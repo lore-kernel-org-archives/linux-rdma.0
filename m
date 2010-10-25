@@ -1,8 +1,8 @@
 From: Or Gerlitz <ogerlitz-hKgKHo2Ms0FWk0Htik3J/w@public.gmane.org>
 Subject: Re: can't get IB link with the for-next branch / IBoE patches (was
  "mlx4: Fix unneeded return error...")
-Date: Mon, 25 Oct 2010 12:47:41 +0200
-Message-ID: <4CC5604D.2080803@Voltaire.com>
+Date: Mon, 25 Oct 2010 12:47:47 +0200
+Message-ID: <4CC56053.7020001@Voltaire.com>
 References: <20101024075835.GA11359@mtldesk30> <adahbgbppgx.fsf@cisco.com>	<20101024160018.GA32499@mtldesk30> <adaocajo90s.fsf@cisco.com>	<AANLkTimb++kFYFXCWajBGACpA1OpCXyyeyD-98Ed3uTu@mail.gmail.com> <4CC54D4E.7050203@Voltaire.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
