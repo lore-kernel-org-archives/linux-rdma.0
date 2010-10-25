@@ -1,47 +1,30 @@
-From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: Re: [PATCH v2] RDMA/cxgb3: When a user QP is marked in error, also
- mark the CQs in error.
-Date: Mon, 25 Oct 2010 09:15:21 -0500
-Message-ID: <4CC590F9.7010608@opengridcomputing.com>
-References: <20101021123705.7604.20848.stgit@build.ogc.int> <adar5fhts2b.fsf@cisco.com>
+From: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH] mlx4: Fix unneeded return error in eth_link_query_port
+Date: Mon, 25 Oct 2010 16:15:47 +0200
+Message-ID: <AANLkTi=ZxB4b463OOS6YGxTJSKxjyCj8vy0rNtj0n+uA@mail.gmail.com>
+References: <20101024075835.GA11359@mtldesk30>
+	<adahbgbppgx.fsf@cisco.com>
+	<20101024160018.GA32499@mtldesk30>
+	<adaocajo90s.fsf@cisco.com>
+	<AANLkTimb++kFYFXCWajBGACpA1OpCXyyeyD-98Ed3uTu@mail.gmail.com>
+	<4CC54D4E.7050203@Voltaire.com>
+	<20101025113452.GB1802@mtldesk30>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <adar5fhts2b.fsf-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <20101025113452.GB1802@mtldesk30>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: Or Gerlitz <ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org>, Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, RDMA list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On Mon, Oct 25, 2010 at 1:34 PM, Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wrote:
+> IBoE will not work with firmware prior to 2.7.000. I don't think an
+> error message is required in this case.
 
-On 10/23/2010 12:07 AM, Roland Dreier wrote:
-> I applied this, but can you check if there are any alignment/size issues
-> with 32-bit userspace on 64-bit kernel?  Specifically:
->
->   >   struct iwch_create_cq_resp {
->   >   	__u64 key;
->   >   	__u32 cqid;
->   >   	__u32 size_log2;
->   >  +	__u32 memsize;
->   >   };
->
-> this structure now has size 20 on i386 (32-bit) but size 24 on x86-64 I
-> think so a 64-bit kernel might falsely think that the 32-bit library was
-> old.
->
-> The fix is to add a __u32 reserved field at the end of the struct so it
-> always gets padded to 24 bytes.  But I don't want to do that to this
-> patch until you change the userspace library too.
->    
-
-Good catch Roland.  Is there an easy way to configure/build libibverbs 
-and librdmacm as 32bit?   My system only has the 64b versions.  So I'll 
-need to build 32b versions of these to test my fix with a 32b app / 64b 
-kernel.
-
-Steve.
-
+But I'm on **IB** not IBoE, I don't think you mean that the Linux
+kernel IB stack is not functional over pre-2.7 firmware with the IBoE
+patches?! are you?
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
