@@ -1,28 +1,31 @@
-From: Or Gerlitz <ogerlitz-hKgKHo2Ms0FWk0Htik3J/w@public.gmane.org>
-Subject: Re: can't get IB link with the for-next branch / IBoE patches
-Date: Tue, 26 Oct 2010 11:33:05 +0200
-Message-ID: <4CC6A051.3010703@Voltaire.com>
-References: <20101024075835.GA11359@mtldesk30> <adahbgbppgx.fsf@cisco.com>	<20101024160018.GA32499@mtldesk30> <adaocajo90s.fsf@cisco.com>	<AANLkTimb++kFYFXCWajBGACpA1OpCXyyeyD-98Ed3uTu@mail.gmail.com>	<4CC54D4E.7050203@Voltaire.com> <4CC5604D.2080803@Voltaire.com>	<adaaam2jswk.fsf@cisco.com> <20101025161730.GA9335@mtldesk30>	<adalj5mgp96.fsf@cisco.com> <adahbgagopw.fsf@cisco.com>
+From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: Re: [PATCH 04/10] drivers/infiniband: Remove unnecessary KERN_<level>
+ uses
+Date: Tue, 26 Oct 2010 06:29:04 -0500
+Message-ID: <4CC6BB80.5020801@opengridcomputing.com>
+References: <cover.1288059486.git.joe@perches.com> <a62c334347cbfbaf5c5acb29c2ae7acda84344a0.1288059486.git.joe@perches.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <adahbgagopw.fsf-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <a62c334347cbfbaf5c5acb29c2ae7acda84344a0.1288059486.git.joe-6d6DIl74uiNBDgjK7y7TUQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Cc: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, RDMA list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Joe Perches <joe-6d6DIl74uiNBDgjK7y7TUQ@public.gmane.org>
+Cc: Jiri Kosina <trivial-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Tom Tucker <tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Roland Dreier wrote:
->> Yep, looks like that's where my cleanup broke things.  I rolled this in
->> and pushed it out; I'm testing it myself now.
- 
-> My IB port comes to active now, I think that fixed things.
 
-same here, I have IB port coming to active and basic IPoIB, opensm working okay
-on the node with the current for-next/IBoE bits
+On 10/25/2010 9:44 PM, Joe Perches wrote:
+> Signed-off-by: Joe Perches<joe-6d6DIl74uiNBDgjK7y7TUQ@public.gmane.org>
+> ---
+>   drivers/infiniband/hw/amso1100/c2_intr.c |    4 ++--
+>   drivers/infiniband/hw/cxgb3/iwch_cm.c    |    4 ++--
+>   drivers/infiniband/hw/cxgb4/cm.c         |    4 ++--
+>   3 files changed, 6 insertions(+), 6 deletions(-)
+>
 
-Or.
+Acked-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
