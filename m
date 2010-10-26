@@ -1,31 +1,28 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH 2/2] IB/qib: Allow driver to load if PCIe advanced error reporting fails
-Date: Mon, 25 Oct 2010 22:25:09 -0600
-Message-ID: <20101026042509.GA13451@obsidianresearch.com>
-References: <20101022222937.28161.50341.stgit@chromite.mv.qlogic.com> <20101022222951.28161.23347.stgit@chromite.mv.qlogic.com> <20101022225710.GD15514@obsidianresearch.com> <adabp6ksk83.fsf@cisco.com> <1288038933.27343.392.camel@chromite.mv.qlogic.com> <ada1v7dh9gc.fsf@cisco.com>
+From: Or Gerlitz <ogerlitz-hKgKHo2Ms0FWk0Htik3J/w@public.gmane.org>
+Subject: Re: can't get IB link with the for-next branch / IBoE patches
+Date: Tue, 26 Oct 2010 11:33:05 +0200
+Message-ID: <4CC6A051.3010703@Voltaire.com>
+References: <20101024075835.GA11359@mtldesk30> <adahbgbppgx.fsf@cisco.com>	<20101024160018.GA32499@mtldesk30> <adaocajo90s.fsf@cisco.com>	<AANLkTimb++kFYFXCWajBGACpA1OpCXyyeyD-98Ed3uTu@mail.gmail.com>	<4CC54D4E.7050203@Voltaire.com> <4CC5604D.2080803@Voltaire.com>	<adaaam2jswk.fsf@cisco.com> <20101025161730.GA9335@mtldesk30>	<adalj5mgp96.fsf@cisco.com> <adahbgagopw.fsf@cisco.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <ada1v7dh9gc.fsf-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <adahbgagopw.fsf-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, RDMA list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Oct 25, 2010 at 09:19:47PM -0700, Roland Dreier wrote:
-> OK, I got those 3 patches.
+Roland Dreier wrote:
+>> Yep, looks like that's where my cleanup broke things.  I rolled this in
+>> and pushed it out; I'm testing it myself now.
+ 
+> My IB port comes to active now, I think that fixed things.
 
-Thanks
+same here, I have IB port coming to active and basic IPoIB, opensm working okay
+on the node with the current for-next/IBoE bits
 
-While you are looking at patches, did you have any comment on:
-
-https://patchwork.kernel.org/patch/151491/
-https://patchwork.kernel.org/patch/151501/
-
-?
-
-Jason
+Or.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
