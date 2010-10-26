@@ -1,124 +1,38 @@
 From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Subject: [GIT PULL] please pull infiniband.git
-Date: Tue, 26 Oct 2010 13:52:14 -0700
-Message-ID: <ada4oc8fzi9.fsf@cisco.com>
+Subject: Re: [GIT PULL] please pull infiniband.git
+Date: Tue, 26 Oct 2010 16:17:56 -0700
+Message-ID: <adasjzsczmj.fsf@cisco.com>
+References: <ada4oc8fzi9.fsf@cisco.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <ada4oc8fzi9.fsf-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org> (Roland Dreier's message of "Tue, 26
+	Oct 2010 13:52:14 -0700")
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org
+Cc: akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Linus, please pull from
+Hi Linus,
+
+A) I forgot to push out my for-linus branch, so if you tried earlier, it
+wasn't there, but it is now:
 
     master.kernel.org:/pub/scm/linux/kernel/git/roland/infiniband.git for-linus
-
-This tree is also available from kernel.org mirrors at:
-
     git://git.kernel.org/pub/scm/linux/kernel/git/roland/infiniband.git for-linus
 
-The big new feature here is support for InfiniBand-over-Ethernet / IBoE
-(aka "RDMA over Converged Ethernet / RoCE").  We also have a new SRP
-initiator submaintainer (thanks Dave!), and various fixes all over.
+B) It was pointed out to me that I missed one patch hunk, so the
+diffstat now looks like the below.  One difference is that there now is
+a qib_uc.c line and the summary goes from
 
-Animesh K Trivedi (1):
-      RDMA/iwcm: Fix hang in uninterruptible wait on cm_id destroy
+ 74 files changed, 2668 insertions(+), 725 deletions(-)
 
-Bart Van Assche (3):
-      IB/srp: Preparation for transmit ring response allocation
-      IB/srp: Reduce number of BUSY conditions
-      IB/srp: Use list_first_entry()
+to
 
-Chien Tung (1):
-      RDMA/nes: Report correct port state if interface is down
+ 75 files changed, 2672 insertions(+), 727 deletions(-)
 
-Christoph Lameter (1):
-      IPoIB: Set pkt_type correctly for multicast packets (fix IGMP breakage)
-
-Dan Carpenter (1):
-      RDMA/nes: Remove unneeded variable
-
-David Dillow (3):
-      IB/srp: Implement SRP_CRED_REQ and SRP_AER_REQ
-      IB/srp: Eliminate two forward declarations
-      IB/srp: Sync buffer before posting send
-
-Eli Cohen (16):
-      IB/core: Add link layer property to ports
-      mlx4_core: Allow log_mtts_per_seg up to 7
-      IB/mlx4: Limit size of fast registration WRs
-      IPoIB: Skip IBoE ports
-      IB/mad: IBoE supports only QP1 (no QP0)
-      RDMA/cm: Add RDMA CM support for IBoE devices
-      IB/pack: IBoE UD packet packing support
-      IPoIB: Set dev_id field of net_device
-      IB/uverbs: Return link layer type to userspace for query port operation
-      mlx4_core: Allow protocol drivers to find corresponding interfaces
-      mlx4_core: Update data structures and constants for IBoE
-      mlx4_en: Change multicast promiscuous mode to support IBoE
-      IB/mlx4: Add support for IBoE
-      IB/core: Add VLAN support for IBoE
-      IB/mlx4: Add VLAN support for IBoE
-      IB/core: Add link layer type information to sysfs
-
-Jack Morgenstein (1):
-      IB/mlx4: Signal node desc changes to SM by using FW to generate trap 144
-
-Jason Gunthorpe (3):
-      IB/qib: Process RDMA WRITE ONLY with IMMEDIATE properly
-      IB/qib: Fix extra log level in qib_early_err()
-      IB/qib: clean up properly if pci_set_consistent_dma_mask() fails
-
-Joe Perches (4):
-      RDMA/amso1100: Remove KERN_<level> from pr_<level> use
-      IB/qib: Remove unnecessary casts of private_data
-      RDMA/cxgb3: Remove unnecessary KERN_<level> use
-      RDMA/cxgb4: Remove unnecessary KERN_<level> use
-
-Maciej Sosnowski (1):
-      RDMA/nes: Turn carrier off on ifdown
-
-Ralph Campbell (2):
-      IB/qib: Fix uninitialized pointer if CONFIG_PCI_MSI not set
-      IB/qib: Allow driver to load if PCIe AER fails
-
-Roland Dreier (5):
-      RDMA/cxgb4: Fix warnings about casts to/from pointers of different sizes
-      MAINTAINERS: Fix broken link to http://www.openib.org/
-      RDMA/nes: Fix cast-to-pointer warnings on 32-bit
-      MAINTAINERS: Hand off SCSI RDMA Protocol (SRP) initiator to Dave Dillow
-      Merge branches 'amso1100', 'cma', 'cxgb3', 'cxgb4', 'ehca', 'iboe', 'ipoib', 'misc', 'mlx4', 'nes', 'qib' and 'srp' into for-next
-
-Sonny Rao (1):
-      IB/ehca: Fix driver on relocatable kernel
-
-Steve Wise (19):
-      RDMA/cxgb4: Don't use null ep ptr
-      RDMA/cxgb4: Zero out ISGL padding
-      RDMA/cxgb4: Ignore positive return values from cxgb4_*_send() functions
-      RDMA/cxgb4: Ignore TERMINATE CQEs
-      RDMA/cxgb4: Handle CPL_RDMA_TERMINATE messages
-      RDMA/cxgb4: Log HW lack-of-resource errors
-      RDMA/cxgb4: debugfs files for dumping active stags
-      RDMA/cxgb4: Centralize the wait logic
-      RDMA/cxgb4: Support on-chip SQs
-      RDMA/cxgb4: Use a mutex for QP and EP state transitions
-      RDMA/cxgb4: Set the default TCP send window to 128KB
-      RDMA/cxgb4: Don't set completion flag for read requests
-      RDMA/cxgb4: Fastreg NSMR fixes
-      RDMA/cxgb4: Add default_llseek to debugfs files
-      RDMA/cxgb4: Use simple_read_from_buffer() for debugfs handlers
-      RDMA/cxgb4: Export T4 TCP MIB
-      RDMA/cxgb4: Use cxgb4 service for packet gl to skb
-      RDMA/cxgb3: When a user QP is marked in error, also mark the CQs in error
-      RDMA/ucma: Allow tuning the max listen backlog
-
-Thomas Gleixner (1):
-      IB/umad: Make user_mad semaphore a real one
-
-matt mooney (1):
-      IB: Replace EXTRA_CFLAGS with ccflags-y
+Thanks!
+  Roland
 
  MAINTAINERS                                 |   12 +-
  drivers/infiniband/core/agent.c             |   29 +-
@@ -172,6 +86,7 @@ matt mooney (1):
  drivers/infiniband/hw/qib/qib_init.c        |    1 +
  drivers/infiniband/hw/qib/qib_pcie.c        |    8 +-
  drivers/infiniband/hw/qib/qib_rc.c          |    5 +-
+ drivers/infiniband/hw/qib/qib_uc.c          |    6 +-
  drivers/infiniband/ulp/ipoib/ipoib_ib.c     |   14 +-
  drivers/infiniband/ulp/ipoib/ipoib_main.c   |    3 +
  drivers/infiniband/ulp/srp/ib_srp.c         |  236 ++++++++----
@@ -194,7 +109,7 @@ matt mooney (1):
  include/rdma/ib_user_verbs.h                |    3 +-
  include/rdma/ib_verbs.h                     |   11 +
  include/scsi/srp.h                          |   38 ++
- 74 files changed, 2668 insertions(+), 725 deletions(-)
+ 75 files changed, 2672 insertions(+), 727 deletions(-)
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
