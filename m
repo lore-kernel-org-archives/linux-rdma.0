@@ -1,31 +1,19 @@
-From: "Dr. Robert William" <pascale.vial-X2lX9bSaArc@public.gmane.org>
-Subject: Yours Faithfully
-Date: Wed, 27 Oct 2010 02:34:17 +0200 (CEST)
-Message-ID: <ea-mime-4cc77389-71b-20d7ee4b__21626.8957047307$1288140192$gmane$org@webmail.numericable.fr>
+From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH] cxgb3/cxgb4: remove dead code from infiniband drivers
+Date: Tue, 26 Oct 2010 20:31:23 -0700
+Message-ID: <ada39rscnw4.fsf@cisco.com>
+References: <20101015135120.60885db0@nehalam>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="UTF-8"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20101015135120.60885db0@nehalam> (Stephen Hemminger's message of
+	"Fri, 15 Oct 2010 13:51:20 -0700")
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: pascale.vial-X2lX9bSaArc@public.gmane.org
+To: Stephen Hemminger <shemminger-ZtmgI6mnKB3QT0dZR+AlfA@public.gmane.org>
+Cc: Steve Wise <swise-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, FUJITA Tomonori <fujita.tomonori-Zyj7fXuS5i5L9jVzuh4AOg@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Good News My Dear Friend,
- 
-I'm happy to inform you about my success in getting those funds transferred under the co-operation of a new partner from Paraguay. Presently i'm in Paraguay for investment projects with my own share of the total sum. meanwhile,i didn't forget your past efforts and attempts to assist me in transferring those funds despite that it failed us some how.
-Now contact my secretary in Benin Republic
-
-His name is Mr. Timothy Adams
-Phone Number: +229 97373889
-Email:  timothyadams90-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
- 
-Please do let me know immediately you receive it so that we can share the joy after all the sufferings at that time. in the moment, I'm very busy here because of the investment projects which me and the new partner are having at hand, finally, remember that I had forwarded instruction to the secretary on your behalf to receive that money, so feel free to get in touch with Mr. Timothy Adams on timothyadams90-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, he will send the amount to you without any delay.
- 
-Yours Faithfully
-Dr Robert William
-
-
+Steve (Wise), any feeling on this (https://patchwork.kernel.org/patch/257761/)?
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
