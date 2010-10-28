@@ -1,116 +1,45 @@
-From: "Albino A. Aveleda" <bino-xFQApgkTvcmHezZ8Xjuinw@public.gmane.org>
-Subject: Re: opensm: Add new torus routing engine: torus-2QoS
-Date: Thu, 28 Oct 2010 14:13:37 -0200 (BRST)
-Message-ID: <1583689955.4721.1288282417216.JavaMail.root@mailhost.nacad.ufrj.br>
-References: <1288282083.10847.125.camel@sale659.sandia.gov>
+From: "Davis, Arlin R" <arlin.r.davis-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH] DAPL v2.0: common: print out errors on free build and not
+ just debug builds
+Date: Thu, 28 Oct 2010 11:28:25 -0700
+Message-ID: <E3280858FA94444CA49D2BA02341C983011BBD7F0D@orsmsx506.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1288282083.10847.125.camel-mgfCWIlwujvg4c9jKm7R2O1ftBKYq+Ku@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jim Schutt <jaschut-4OHPYypu0djtX7QSmKvirg@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+To: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "ofw-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org" <ofw-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+Cc: "Smith, Stan" <stan.smith-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Thanks everybody.
 
+Signed-off-by: Arlin Davis <arlin.r.davis-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+---
+ dapl/openib_common/dapl_ib_common.h |    4 +---
+ 1 files changed, 1 insertions(+), 3 deletions(-)
 
------ "Jim Schutt" <jaschut-4OHPYypu0djtX7QSmKvirg@public.gmane.org> escreveu:
-
-> On Thu, 2010-10-28 at 09:48 -0600, Hal Rosenstock wrote:
-> > On Thu, Oct 28, 2010 at 11:05 AM, Jim Schutt <jaschut-4OHPYypu0djtX7QSmKvirg@public.gmane.org>
-> wrote:
-> > >
-> > > On Thu, 2010-10-28 at 07:42 -0600, Albino A. Aveleda wrote:
-> > >> Dear Jim,
-> > >>
-> > >> I have compiled and installed the opensm with torus-2qos.
-> > >> There is comment below in config file.
-> > >> ---
-> > >> # We need to tell the routing engine what directions we
-> > >> # want the torus coordinate directions to be, by specifing
-> > >> # the endpoints (switch GUID + port) of a link in each
-> > >> # direction. These links need to share a common switch,
-> > >> # which we call the torus seed.
-> > >> # Here we specify positive coordinate directions:
-> > >> xp_link 0x200000  0x200019   # S_0_0_0 -> S_1_0_0
-> > >> yp_link 0x200000  0x200005   # S_0_0_0 -> S_0_1_0
-> > >> zp_link 0x200000  0x200001   # S_0_0_0 -> S_0_0_1
-> > >> ---
-> > >>
-> > >> How do I get xp, yp and zp_link address?
-> > >
-> > > You can bring up your fabric once with some other routing
-> > > engine, say minhop, and run ibnetdiscover.
-> > >
-> > >
-> > > This will tell you the node GUIDs for all your switches.
-> > 
-> > A minor clarification to the above: you don't need to run OpenSM at
-> > all to run ibnetdiscover to get the switch GUIDs.
-> 
-> D'oh!!  Thanks, Hal.
-> 
-> -- Jim
-> 
-> > 
-> > -- Hal
-> > 
-> > > Then you need to pick a switch to be the seed.  If you
-> > > know that, e.g. your fabric is wired such that port 1,
-> > > say, connects to the switch in the direction you want to
-> > > be +x, look in your ibnetdiscover output to find the
-> > > node GUID for the switch connected to that port of your
-> > > seed switch.
-> > >
-> > > For maximum resiliency, pick the switch that your
-> > > opensm host connects to as the seed.
-> > >
-> > > -- Jim
-> > >
-> > >>
-> > >> Best regards,
-> > >> Albino
-> > >>
-> > >> ----- "Jim Schutt" <jaschut-4OHPYypu0djtX7QSmKvirg@public.gmane.org> escreveu:
-> > >>
-> > >> >
-> > >> > This posting
-> http://www.spinics.net/lists/linux-rdma/msg02967.html
-> > >> > has some example input for a 5x5x5 torus.
-> > >> >
-> > >> > You'll want to configure your torus (via opensm --torus_config
-> > >> > <file>)
-> > >> > so that the intra-NEM links are z-direction links.  This will
-> allow
-> > >> > you to swap a QNEM and keep the fabric routable during the
-> process.
-> > >> >
-> > >> > Please look over the torus-2QoS section in
-> > >> > opensm/doc/current-routing.txt
-> > >> > to see why this is so, and to help understand why the info
-> > >> > in torus-2QoS.conf is required.
-> > >> >
-> > >>
-> > >
-> > >
-> > > --
-> > > To unsubscribe from this list: send the line "unsubscribe
-> linux-rdma" in
-> > > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> > > More majordomo info at 
-> http://vger.kernel.org/majordomo-info.html
-> > >
-> >
-
+diff --git a/dapl/openib_common/dapl_ib_common.h b/dapl/openib_common/dapl_ib_common.h
+index 10b5d22..3cb1fe3 100644
+--- a/dapl/openib_common/dapl_ib_common.h
++++ b/dapl/openib_common/dapl_ib_common.h
+@@ -336,10 +336,8 @@ dapl_convert_errno( IN int err, IN const char *str )
+ {
+     if (!err)  return DAT_SUCCESS;
+     	
+-#if DAPL_DBG
+     if ((err != EAGAIN) && (err != ETIMEDOUT))
+-	dapl_dbg_log (DAPL_DBG_TYPE_ERR," %s %s\n", str, strerror(err));
+-#endif 
++	dapl_log (DAPL_DBG_TYPE_ERR," %s %s\n", str, strerror(err));
+ 
+     switch( err )
+     {
 -- 
+1.7.3
 
-__________________________________________________
-Albino A. Aveleda               bino-xFQApgkTvcmHezZ8Xjuinw@public.gmane.org
-System Engineer                   +55 21 2562-8080
-NACAD-COPPE/UFRJ
-Federal University of Rio de Janeiro (UFRJ) 
+
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
