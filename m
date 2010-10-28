@@ -1,185 +1,63 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH] Handling BUSY responses from the SM.
-Date: Thu, 28 Oct 2010 09:27:03 -0400
-Message-ID: <4CC97A27.9090809@dev.mellanox.co.il>
-References: <4C2744E8AD2982428C5BFE523DF8CDCB49D4675DED@MNEXMB1.qlogic.org> <4CC97718.5080002@dev.mellanox.co.il>
+From: "Albino A. Aveleda" <bino-xFQApgkTvcmHezZ8Xjuinw@public.gmane.org>
+Subject: Re: opensm: Add new torus routing engine: torus-2QoS
+Date: Thu, 28 Oct 2010 11:42:49 -0200 (BRST)
+Message-ID: <1979183626.4701.1288273369806.JavaMail.root@mailhost.nacad.ufrj.br>
+References: <1819612735.4699.1288273201285.JavaMail.root@mailhost.nacad.ufrj.br>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4CC97718.5080002-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+In-Reply-To: <1819612735.4699.1288273201285.JavaMail.root-PYEadblV/Clu9b0RgFGBsz+BjnF0zU1Y@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Mike Heinz <michael.heinz-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Jim Schutt <jaschut-4OHPYypu0djtX7QSmKvirg@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 10/28/2010 9:14 AM, Hal Rosenstock wrote:
+Dear Jim,
 
-A couple more things I missed in my previous post on this:
+I have compiled and installed the opensm with torus-2qos.
+There is comment below in config file.
+---
+# We need to tell the routing engine what directions we
+# want the torus coordinate directions to be, by specifing
+# the endpoints (switch GUID + port) of a link in each
+# direction. These links need to share a common switch,
+# which we call the torus seed.
+# Here we specify positive coordinate directions:
+xp_link 0x200000  0x200019   # S_0_0_0 -> S_1_0_0
+yp_link 0x200000  0x200005   # S_0_0_0 -> S_0_1_0
+zp_link 0x200000  0x200001   # S_0_0_0 -> S_0_0_1
+---
 
-> On 10/26/2010 2:33 PM, Mike Heinz wrote:
->> Resending. Didn't get any reply after sending the last time.
->>
->> -----Original Message-----
->> From: Mike Heinz
->> Sent: Monday, October 11, 2010 1:24 PM
->> To: 'linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org'; 'Hefty, Sean'
->> Cc: Todd Rimmer
->> Subject: [PATCH] Handling BUSY responses from the SM.
->>
->> This patch builds upon feedback received earlier this year to add a
->> "treat BUSY as timeout" feature to ib_mad. It does NOT implement the
->> ABI/API changes that would be needed in user space to take advantage
->> of the new feature, but it lays the groundwork for doing so. In
->> addition, it provides a new module parameter that allow the
->> administrator to coerce existing code into using the new capability.
->  >
->> The patch builds upon the randomization/backoff patch I sent earlier
->> today to add a random factor to timeouts to prevent synchronized
->> storms of MAD queries. I chose to build upon the existing timeout
->> handling because it seemed the best way to add the functionality without
+How do I get xp, yp and zp_link address?
 
-incomplete sentence: without what ?
+Best regards,
+Albino
 
->>
->> Initially, I had tried to completely separate BUSY retries from
->> timeout handling, but that seemed difficult due to the way the timeout
->> code is structured. As a result, true timeouts and busy handling still
->> use the same timeout values, but I was still able to address the idea
->> of randomizing the retry timeout if desired.
->>
->> By default, the behavior of ib_mad with respect to BUSY responses is
->> unchanged. If, however, a send work request is provided that has the
->> new "busy_wait" parameter set, ib_mad will ignore BUSY responses to
->> that WR, allowing it to timeout and retry as if no response had been
->> received.
->
-> Is setting this useful without the randomization also set for this (or
-> all) transaction (request/response) WRs ?
->
->> Finally, I've added a module parameter to coerce all mad work requests
->> to use this new feature:
->>
->> parm: treat_busy_as_timeout:When true, treat BUSY responses as if they
->> were timeouts. (int)
->>
->> As I mentioned in the past, this change solves a problem we see in the
->> real world all the time (the SM being pounded by "unintelligent"
->> queries) so I strongly hope this meets your concerns.
->>
->> ----
->>
->> diff --git a/drivers/infiniband/core/mad.c
->> b/drivers/infiniband/core/mad.c
->> index 3b03f1c..9e5e566 100644
->> --- a/drivers/infiniband/core/mad.c
->> +++ b/drivers/infiniband/core/mad.c
->> @@ -60,6 +60,10 @@ MODULE_PARM_DESC(send_queue_size, "Size of send
->> queue in number of work requests
->> module_param_named(recv_queue_size, mad_recvq_size, int, 0444);
->> MODULE_PARM_DESC(recv_queue_size, "Size of receive queue in number of
->> work requests");
->>
->> +int mad_wait_on_busy = 0;
->> +module_param_named(treat_busy_as_timeout, mad_wait_on_busy, int, 0444);
->> +MODULE_PARM_DESC(treat_busy_as_timeout, "When true, treat BUSY
->> responses as if they were timeouts.");
->> +
->> int mad_randomized_wait = 0;
->> module_param_named(randomized_wait, mad_randomized_wait, int, 0444);
->> MODULE_PARM_DESC(randomized_wait, "When true, use a randomized backoff
->> algorithm to control retries for timeouts.");
->> @@ -1120,6 +1124,7 @@ int ib_post_send_mad(struct ib_mad_send_buf
->> *send_buf,
->>
->> mad_send_wr->max_retries = send_buf->retries;
->> mad_send_wr->retries_left = send_buf->retries;
->> + mad_send_wr->wait_on_busy = send_buf->wait_on_busy || mad_wait_on_busy;
->>
->> send_buf->retries = 0;
->>
->> @@ -1819,6 +1824,8 @@ static void ib_mad_complete_recv(struct
->> ib_mad_agent_private *mad_agent_priv,
->>
->> /* Complete corresponding request */
->> if (ib_response_mad(mad_recv_wc->recv_buf.mad)) {
->> + u16 busy = __be16_to_cpu(mad_recv_wc->recv_buf.mad->mad_hdr.status)&
->> + IB_MGMT_MAD_STATUS_BUSY;
->
-> Should this just use be16_to_cpu be used here for consistency ?
->
-> Nit: the definition of IB_MGMT_MAD_STATUS_BUSY should be part of this
-> patch rather than the previous one.
->
->>
->> spin_lock_irqsave(&mad_agent_priv->lock, flags);
->> mad_send_wr = ib_find_send_mad(mad_agent_priv, mad_recv_wc);
->> @@ -1829,6 +1836,17 @@ static void ib_mad_complete_recv(struct
->> ib_mad_agent_private *mad_agent_priv,
->> return;
->> }
->>
->> + printk(KERN_DEBUG PFX "Completing recv %p: busy = %d, retries_left =
->> %d, wait_on_busy = %d\n",
->> + mad_send_wr, busy, mad_send_wr->retries_left,
->> mad_send_wr->wait_on_busy);
->> + if (busy&& mad_send_wr->retries_left&& mad_send_wr->wait_on_busy) {
+----- "Jim Schutt" <jaschut-4OHPYypu0djtX7QSmKvirg@public.gmane.org> escreveu:
 
-This appears to include trap represses (as determined by 
-ib_response_mad). Shouldn't busy be ignored for that case ? I don't 
-think that would be used (e.g. trap repress sent w/ busy) but it seems 
-safer to me. I think we previously discussed this way back in June.
+> 
+> This posting http://www.spinics.net/lists/linux-rdma/msg02967.html
+> has some example input for a 5x5x5 torus.
+> 
+> You'll want to configure your torus (via opensm --torus_config
+> <file>)
+> so that the intra-NEM links are z-direction links.  This will allow
+> you to swap a QNEM and keep the fabric routable during the process.
+> 
+> Please look over the torus-2QoS section in
+> opensm/doc/current-routing.txt
+> to see why this is so, and to help understand why the info
+> in torus-2QoS.conf is required.
+> 
 
--- Hal
+-- 
 
-> Nit: formatting: if (busy && mad_send_wr->retries_left &&
-> mad_send_wr->wait_on_busy) {
->
->> + /* Just let the query timeout and have it requeued later */
->> + spin_unlock_irqrestore(&mad_agent_priv->lock, flags);
->> + ib_free_recv_mad(mad_recv_wc);
->> + deref_mad_agent(mad_agent_priv);
->> + printk(KERN_INFO PFX "SA/SM responded MAD_STATUS_BUSY. Allowing
->> request to time out.\n");
->
-> Do we need this printk ? Won't this spam the kernel log ?
->
-> -- Hal
->
->> + return;
->> + }
->> +
->> ib_mark_mad_done(mad_send_wr);
->> spin_unlock_irqrestore(&mad_agent_priv->lock, flags);
->>
->> diff --git a/drivers/infiniband/core/mad_priv.h
->> b/drivers/infiniband/core/mad_priv.h
->> index 01fb7ed..1d0629e 100644
->> --- a/drivers/infiniband/core/mad_priv.h
->> +++ b/drivers/infiniband/core/mad_priv.h
->> @@ -135,6 +135,7 @@ struct ib_mad_send_wr_private {
->> unsigned long total_timeout;
->> int max_retries;
->> int retries_left;
->> + int wait_on_busy;
->> int randomized_wait;
->> int retry;
->> int refcount;
->> diff --git a/include/rdma/ib_mad.h b/include/rdma/ib_mad.h
->> index c3d6efb..3da55c3 100644
->> --- a/include/rdma/ib_mad.h
->> +++ b/include/rdma/ib_mad.h
->> @@ -255,6 +255,7 @@ struct ib_mad_send_buf {
->> int seg_count;
->> int seg_size;
->> int timeout_ms;
->> + int wait_on_busy;
->> int randomized_wait;
->> int retries;
->> };
->
->
-
+__________________________________________________
+Albino A. Aveleda               bino-xFQApgkTvcmHezZ8Xjuinw@public.gmane.org
+System Engineer                   +55 21 2562-8080
+NACAD-COPPE/UFRJ
+Federal University of Rio de Janeiro (UFRJ) 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
