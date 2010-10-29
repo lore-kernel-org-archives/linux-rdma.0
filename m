@@ -1,51 +1,50 @@
-From: "Davis, Arlin R" <arlin.r.davis-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH] DAPL v2.0: debug build: only timestamp if sending message
- to stdout to avoid performance hit
-Date: Thu, 28 Oct 2010 11:28:29 -0700
-Message-ID: <E3280858FA94444CA49D2BA02341C983011BBD7F0F@orsmsx506.amr.corp.intel.com>
+From: Eric Dumazet <eric.dumazet@gmail.com>
+Subject: [PATCH] RDMA/addr: remove dev_base_lock use from
+ rdma_translate_ip()
+Date: Fri, 29 Oct 2010 13:03:46 +0200
+Message-ID: <1288350226.2560.11.camel@edumazet-laptop>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Language: en-US
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "ofw-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org" <ofw-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
-Cc: "Smith, Stan" <stan.smith-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+To: David Miller <davem@davemloft.net>
+Cc: netdev <netdev@vger.kernel.org>, Roland Dreier <rolandd@cisco.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-Signed-off-by: Arlin Davis <arlin.r.davis-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+dev_base_lock is the legacy way to lock the device list, and is planned
+to disappear. (writers hold RTNL, readers hold RCU lock)
+
+Convert rdma_translate_ip() to RCU locking.
+
+Signed-off-by: Eric Dumazet <eric.dumazet@gmail.com>
 ---
- dapl/common/dapl_debug.c |    8 ++++----
- 1 files changed, 4 insertions(+), 4 deletions(-)
+ drivers/infiniband/core/addr.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/dapl/common/dapl_debug.c b/dapl/common/dapl_debug.c
-index e1a940c..7a0a199 100644
---- a/dapl/common/dapl_debug.c
-+++ b/dapl/common/dapl_debug.c
-@@ -49,13 +49,13 @@ void dapl_internal_dbg_log(DAPL_DBG_TYPE type, const char *fmt, ...)
- 		dapl_os_get_time(&start_t);
- 		last_t = start_t;
- 	}
--	dapl_os_get_time(&current_t);
--	delta_t = current_t - last_t;
--	total_t = current_t - start_t;
--	last_t  = current_t;
+diff --git a/drivers/infiniband/core/addr.c b/drivers/infiniband/core/addr.c
+index a5ea1bc..309b477 100644
+--- a/drivers/infiniband/core/addr.c
++++ b/drivers/infiniband/core/addr.c
+@@ -130,8 +130,8 @@ int rdma_translate_ip(struct sockaddr *addr, struct rdma_dev_addr *dev_addr)
  
- 	if (type & g_dapl_dbg_type) {
- 		if (DAPL_DBG_DEST_STDOUT & g_dapl_dbg_dest) {
-+			dapl_os_get_time(&current_t);
-+			delta_t = current_t - last_t;
-+			total_t = current_t - start_t;
-+			last_t  = current_t;
- 			va_start(args, fmt);
- 			fprintf(stdout, "%s:%x:%x: %d us(%d us%s): ",
- 				_ptr_host_, dapl_os_getpid(), dapl_os_gettid(),
--- 
-1.7.3
+ #if defined(CONFIG_IPV6) || defined(CONFIG_IPV6_MODULE)
+ 	case AF_INET6:
+-		read_lock(&dev_base_lock);
+-		for_each_netdev(&init_net, dev) {
++		rcu_read_lock();
++		for_each_netdev_rcu(&init_net, dev) {
+ 			if (ipv6_chk_addr(&init_net,
+ 					  &((struct sockaddr_in6 *) addr)->sin6_addr,
+ 					  dev, 1)) {
+@@ -139,7 +139,7 @@ int rdma_translate_ip(struct sockaddr *addr, struct rdma_dev_addr *dev_addr)
+ 				break;
+ 			}
+ 		}
+-		read_unlock(&dev_base_lock);
++		rcu_read_unlock();
+ 		break;
+ #endif
+ 	}
 
 
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
