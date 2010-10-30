@@ -1,50 +1,42 @@
-From: Eric Dumazet <eric.dumazet@gmail.com>
-Subject: [PATCH] RDMA/addr: remove dev_base_lock use from
- rdma_translate_ip()
-Date: Fri, 29 Oct 2010 13:03:46 +0200
-Message-ID: <1288350226.2560.11.camel@edumazet-laptop>
+From: Jesper Juhl <jj@chaosbits.net>
+Subject: [PATCH] infiniband: mutex header included twice in cxgb4 header
+Date: Sat, 30 Oct 2010 15:23:01 +0200 (CEST)
+Message-ID: <alpine.LNX.2.00.1010301519010.7979@swampdragon.chaosbits.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <netdev-owner@vger.kernel.org>
-Sender: netdev-owner@vger.kernel.org
-To: David Miller <davem@davemloft.net>
-Cc: netdev <netdev@vger.kernel.org>, Roland Dreier <rolandd@cisco.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, linux-rdma@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-rdma@vger.kernel.org
+Cc: Roland Dreier <rolandd@cisco.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-dev_base_lock is the legacy way to lock the device list, and is planned
-to disappear. (writers hold RTNL, readers hold RCU lock)
+Hi,
 
-Convert rdma_translate_ip() to RCU locking.
+drivers/infiniband/hw/cxgb4/iw_cxgb4.h includes 'linux/mutex.h' twice, 
+this removes the duplicate.
 
-Signed-off-by: Eric Dumazet <eric.dumazet@gmail.com>
+(please CC me on replies)
+
+
+Signed-off-by: Jesper Juhl <jj@chaosbits.net>
 ---
- drivers/infiniband/core/addr.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ iw_cxgb4.h |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff --git a/drivers/infiniband/core/addr.c b/drivers/infiniband/core/addr.c
-index a5ea1bc..309b477 100644
---- a/drivers/infiniband/core/addr.c
-+++ b/drivers/infiniband/core/addr.c
-@@ -130,8 +130,8 @@ int rdma_translate_ip(struct sockaddr *addr, struct rdma_dev_addr *dev_addr)
+diff --git a/drivers/infiniband/hw/cxgb4/iw_cxgb4.h b/drivers/infiniband/hw/cxgb4/iw_cxgb4.h
+index 16032cd..42bb575 100644
+--- a/drivers/infiniband/hw/cxgb4/iw_cxgb4.h
++++ b/drivers/infiniband/hw/cxgb4/iw_cxgb4.h
+@@ -46,7 +46,6 @@
+ #include <linux/timer.h>
+ #include <linux/io.h>
+ #include <linux/kfifo.h>
+-#include <linux/mutex.h>
  
- #if defined(CONFIG_IPV6) || defined(CONFIG_IPV6_MODULE)
- 	case AF_INET6:
--		read_lock(&dev_base_lock);
--		for_each_netdev(&init_net, dev) {
-+		rcu_read_lock();
-+		for_each_netdev_rcu(&init_net, dev) {
- 			if (ipv6_chk_addr(&init_net,
- 					  &((struct sockaddr_in6 *) addr)->sin6_addr,
- 					  dev, 1)) {
-@@ -139,7 +139,7 @@ int rdma_translate_ip(struct sockaddr *addr, struct rdma_dev_addr *dev_addr)
- 				break;
- 			}
- 		}
--		read_unlock(&dev_base_lock);
-+		rcu_read_unlock();
- 		break;
- #endif
- 	}
+ #include <asm/byteorder.h>
+ 
 
-
+-- 
+Jesper Juhl <jj@chaosbits.net>             http://www.chaosbits.net/
+Plain text mails only, please      http://www.expita.com/nomime.html
+Don't top-post  http://www.catb.org/~esr/jargon/html/T/top-post.html
