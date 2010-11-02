@@ -1,43 +1,47 @@
-From: Chien Tung <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH] MAINTAINERS: update NetEffect entry
-Date: Tue, 2 Nov 2010 11:29:54 -0500
-Message-ID: <20101102162954.GA7544@CTUNG-MOBL1>
+From: "Jim Schutt" <jaschut-4OHPYypu0djtX7QSmKvirg@public.gmane.org>
+Subject: [PATCH] opensm/osm_qos.c: Make offset of VL in VLarb block
+ element match IBA spec
+Date: Tue,  2 Nov 2010 15:08:15 -0600
+Message-ID: <1288732095-32199-1-git-send-email-jaschut@sandia.gov>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org, Jim Schutt <jaschut-4OHPYypu0djtX7QSmKvirg@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+According to IBA 1.2.1, Table 152, page 845, the VL in a VLArbitration Table
+Block Element has length 4 bits, starting at offset 4 in the 16 bit
+Block Element.
 
-Correct web link as www.neteffect.com is no longer valid.
-Remove Chien Tung as maintainer.  I am moving on to other
-responsibilities at Intel.  Thanks for all the fish.
+Currently, the data being sent to the switches has the VL starting at
+offset 0 in the 16 bit Block Element.
 
-Signed-off-by: Chien Tung <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Fix things up to match the spec.
+
+Signed-off-by: Jim Schutt <jaschut-4OHPYypu0djtX7QSmKvirg@public.gmane.org>
 ---
- MAINTAINERS |    3 +--
- 1 files changed, 1 insertions(+), 2 deletions(-)
+ opensm/opensm/osm_qos.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index debde01..e067aa9 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -4043,9 +4043,8 @@ F:	drivers/scsi/NCR_D700.*
- 
- NETEFFECT IWARP RNIC DRIVER (IW_NES)
- M:	Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
--M:	Chien Tung <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
- L:	linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
--W:	http://www.neteffect.com
-+W:	http://www.intel.com/Products/Server/Adapters/Server-Cluster/Server-Cluster-overview.htm
- S:	Supported
- F:	drivers/infiniband/hw/nes/
- 
+diff --git a/opensm/opensm/osm_qos.c b/opensm/opensm/osm_qos.c
+index c90073e..cc38151 100644
+--- a/opensm/opensm/osm_qos.c
++++ b/opensm/opensm/osm_qos.c
+@@ -365,7 +365,7 @@ static int parse_vlarb_entry(char *str, ib_vl_arb_element_t * e)
+ 	unsigned val;
+ 	char *p = str;
+ 	p += parse_one_unsigned(p, ':', &val);
+-	e->vl = val % 15;
++	e->vl = (val % 15) << 4;
+ 	p += parse_one_unsigned(p, ',', &val);
+ 	e->weight = (uint8_t) val;
+ 	return (int)(p - str);
 -- 
-1.6.4.2
+1.6.2.2
+
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
