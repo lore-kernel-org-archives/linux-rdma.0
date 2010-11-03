@@ -1,7 +1,7 @@
 From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 11/13] IB-mgmt: Move ntohll/htonll from mad.h to umad.h
+Subject: [PATCH 7/13] IB-mgmt: Update mad.h to use umad_types.h
 Date: Wed, 3 Nov 2010 16:11:57 -0700
-Message-ID: <CF9C39F99A89134C9CF9C4CCB68B8DDF25B837B37E@orsmsx501.amr.corp.intel.com>
+Message-ID: <CF9C39F99A89134C9CF9C4CCB68B8DDF25B837B37A@orsmsx501.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
@@ -11,125 +11,261 @@ Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Users of umad require ntohll/htonll to set/extract data from
-MADs.  Move the definition from libibmad to libibumad.
+Update mad.h to include umad_types.h and use the umad
+definitions.  The data type names in mad.h are kept for
+backwards compatibility, until all applications update
+to using the umad names.
 
 Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- libibmad/include/infiniband/mad.h     |   29 +----------------------------
- libibmad/include/infiniband/mad_osd.h |    2 --
- libibumad/include/infiniband/umad.h   |   21 +++++++++++++++++++--
- 3 files changed, 20 insertions(+), 32 deletions(-)
- mode change 100644 => 100755 libibmad/include/infiniband/mad_osd.h
+ libibmad/include/infiniband/mad.h |  173 +++++++++++++++++++------------------
+ 1 files changed, 89 insertions(+), 84 deletions(-)
 
 diff --git a/libibmad/include/infiniband/mad.h b/libibmad/include/infiniband/mad.h
-index f3733a2..80630f4 100755
+index 7571a61..4a29c98 100755
 --- a/libibmad/include/infiniband/mad.h
 +++ b/libibmad/include/infiniband/mad.h
-@@ -36,6 +36,7 @@
+@@ -36,6 +36,9 @@
  #define _MAD_H_
  
  #include <infiniband/mad_osd.h>
-+#include <infiniband/umad.h>
- #include <infiniband/umad_sa.h>
- #include <infiniband/umad_sm.h>
- #include <infiniband/umad_types.h>
-@@ -1041,34 +1042,6 @@ MAD_EXPORT void mad_dump_fields(char *buf, int bufsz, void *val, int valsz,
- 
- extern MAD_EXPORT int ibdebug;
- 
--#if __BYTE_ORDER == __LITTLE_ENDIAN
--#ifndef ntohll
--static inline uint64_t ntohll(uint64_t x)
--{
--	return bswap_64(x);
--}
--#endif
--#ifndef htonll
--static inline uint64_t htonll(uint64_t x)
--{
--	return bswap_64(x);
--}
--#endif
--#elif __BYTE_ORDER == __BIG_ENDIAN
--#ifndef ntohll
--static inline uint64_t ntohll(uint64_t x)
--{
--	return x;
--}
--#endif
--#ifndef htonll
--static inline uint64_t htonll(uint64_t x)
--{
--	return x;
--}
--#endif
--#endif				/* __BYTE_ORDER == __BIG_ENDIAN */
--
- /* Misc. macros: */
- /** align value \a l to \a size (ceil) */
- #define ALIGN(l, size) (((l) + ((size) - 1)) / (size) * (size))
-diff --git a/libibmad/include/infiniband/mad_osd.h b/libibmad/include/infiniband/mad_osd.h
-old mode 100644
-new mode 100755
-index ee73561..ce5397f
---- a/libibmad/include/infiniband/mad_osd.h
-+++ b/libibmad/include/infiniband/mad_osd.h
-@@ -39,9 +39,7 @@
- #include <stdio.h>
- #include <sys/types.h>
- #include <unistd.h>
--#include <byteswap.h>
- #include <inttypes.h>
--#include <arpa/inet.h>
- 
- #define MAD_EXPORT
- #define IBND_EXPORT
-diff --git a/libibumad/include/infiniband/umad.h b/libibumad/include/infiniband/umad.h
-index 650654e..a798cf8 100755
---- a/libibumad/include/infiniband/umad.h
-+++ b/libibumad/include/infiniband/umad.h
-@@ -35,6 +35,8 @@
- 
- #include <stdint.h>
- #include <stdlib.h>
-+#include <byteswap.h>
-+#include <arpa/inet.h>
++#include <infiniband/umad_sa.h>
++#include <infiniband/umad_sm.h>
++#include <infiniband/umad_types.h>
  
  #ifdef __cplusplus
  #  define BEGIN_C_DECLS extern "C" {
-@@ -203,8 +205,6 @@ int umad_debug(int level);
- void umad_addr_dump(ib_mad_addr_t * addr);
- void umad_dump(void *umad);
+@@ -56,7 +59,7 @@ BEGIN_C_DECLS
+ #define IB_VENDOR_RANGE1_DATA_SIZE	(IB_MAD_SIZE - IB_VENDOR_RANGE1_DATA_OFFS)
+ #define IB_VENDOR_RANGE2_DATA_OFFS	40
+ #define IB_VENDOR_RANGE2_DATA_SIZE	(IB_MAD_SIZE - IB_VENDOR_RANGE2_DATA_OFFS)
+-#define IB_SA_DATA_SIZE		200
++#define IB_SA_DATA_SIZE		UMAD_LEN_SA_DATA
+ #define IB_SA_DATA_OFFS		56
+ #define IB_PC_DATA_OFFS		64
+ #define IB_PC_DATA_SZ		(IB_MAD_SIZE - IB_PC_DATA_OFFS)
+@@ -68,98 +71,98 @@ BEGIN_C_DECLS
+ #define IB_BM_BKEY_AND_DATA_SZ	(IB_MAD_SIZE - IB_BM_BKEY_OFFS)
  
--#include <stdlib.h>
+ enum MAD_CLASSES {
+-	IB_SMI_CLASS = 0x1,
+-	IB_SMI_DIRECT_CLASS = 0x81,
+-	IB_SA_CLASS = 0x3,
+-	IB_PERFORMANCE_CLASS = 0x4,
+-	IB_BOARD_MGMT_CLASS = 0x5,
+-	IB_DEVICE_MGMT_CLASS = 0x6,
+-	IB_CM_CLASS = 0x7,
+-	IB_SNMP_CLASS = 0x8,
+-	IB_VENDOR_RANGE1_START_CLASS = 0x9,
+-	IB_VENDOR_RANGE1_END_CLASS = 0x0f,
+-	IB_CC_CLASS = 0x21,
+-	IB_VENDOR_RANGE2_START_CLASS = 0x30,
+-	IB_VENDOR_RANGE2_END_CLASS = 0x4f,
++	IB_SMI_CLASS = UMAD_CLASS_SUBN_LID_ROUTED,
++	IB_SMI_DIRECT_CLASS = UMAD_CLASS_SUBN_DIRECTED_ROUTE,
++	IB_SA_CLASS = UMAD_CLASS_SUBN_ADM,
++	IB_PERFORMANCE_CLASS = UMAD_CLASS_PERF_MGMT,
++	IB_BOARD_MGMT_CLASS = UMAD_CLASS_BM,
++	IB_DEVICE_MGMT_CLASS = UMAD_CLASS_DEVICE_MGMT,
++	IB_CM_CLASS = UMAD_CLASS_CM,
++	IB_SNMP_CLASS = UMAD_CLASS_SNMP,
++	IB_VENDOR_RANGE1_START_CLASS = UMAD_CLASS_VENDOR_RANGE1_START,
++	IB_VENDOR_RANGE1_END_CLASS = UMAD_CLASS_VENDOR_RANGE1_END,
++	IB_CC_CLASS = UMAD_CLASS_CONG_MGMT,
++	IB_VENDOR_RANGE2_START_CLASS = UMAD_CLASS_VENDOR_RANGE2_START,
++	IB_VENDOR_RANGE2_END_CLASS = UMAD_CLASS_VENDOR_RANGE2_END,
+ };
+ 
+ enum MAD_METHODS {
+-	IB_MAD_METHOD_GET = 0x1,
+-	IB_MAD_METHOD_SET = 0x2,
+-	IB_MAD_METHOD_GET_RESPONSE = 0x81,
 -
- static inline void *umad_alloc(int num, size_t size)
- {				/* alloc array of umad buffers */
- 	return calloc(num, size);
-@@ -215,5 +215,22 @@ static inline void umad_free(void *umad)
- 	free(umad);
+-	IB_MAD_METHOD_SEND = 0x3,
+-	IB_MAD_METHOD_TRAP = 0x5,
+-	IB_MAD_METHOD_TRAP_REPRESS = 0x7,
+-
+-	IB_MAD_METHOD_REPORT = 0x6,
+-	IB_MAD_METHOD_REPORT_RESPONSE = 0x86,
+-	IB_MAD_METHOD_GET_TABLE = 0x12,
+-	IB_MAD_METHOD_GET_TABLE_RESPONSE = 0x92,
+-	IB_MAD_METHOD_GET_TRACE_TABLE = 0x13,
+-	IB_MAD_METHOD_GET_TRACE_TABLE_RESPONSE = 0x93,
+-	IB_MAD_METHOD_GETMULTI = 0x14,
+-	IB_MAD_METHOD_GETMULTI_RESPONSE = 0x94,
+-	IB_MAD_METHOD_DELETE = 0x15,
+-	IB_MAD_METHOD_DELETE_RESPONSE = 0x95,
+-
+-	IB_MAD_RESPONSE = 0x80,
++	IB_MAD_METHOD_GET = UMAD_METHOD_GET,
++	IB_MAD_METHOD_SET = UMAD_METHOD_SET,
++	IB_MAD_METHOD_GET_RESPONSE = UMAD_METHOD_GET_RESP,
++
++	IB_MAD_METHOD_SEND = UMAD_METHOD_SEND,
++	IB_MAD_METHOD_TRAP = UMAD_METHOD_TRAP,
++	IB_MAD_METHOD_TRAP_REPRESS = UMAD_METHOD_TRAP_REPRESS,
++
++	IB_MAD_METHOD_REPORT = UMAD_METHOD_REPORT,
++	IB_MAD_METHOD_REPORT_RESPONSE = UMAD_METHOD_REPORT_RESP,
++	IB_MAD_METHOD_GET_TABLE = UMAD_SA_METHOD_GET_TABLE,
++	IB_MAD_METHOD_GET_TABLE_RESPONSE = UMAD_SA_METHOD_GET_TABLE_RESP,
++	IB_MAD_METHOD_GET_TRACE_TABLE = UMAD_SA_METHOD_GET_TRACE_TABLE,
++	IB_MAD_METHOD_GET_TRACE_TABLE_RESPONSE = 0x93, /* Not in spec */
++	IB_MAD_METHOD_GETMULTI = UMAD_SA_METHOD_GET_MULTI,
++	IB_MAD_METHOD_GETMULTI_RESPONSE = UMAD_SA_METHOD_GET_MULTI_RESP,
++	IB_MAD_METHOD_DELETE = UMAD_SA_METHOD_DELETE,
++	IB_MAD_METHOD_DELETE_RESPONSE = UMAD_SA_METHOD_DELETE_RESP,
++
++	IB_MAD_RESPONSE = UMAD_METHOD_RESP,
+ };
+ 
+ enum MAD_ATTR_ID {
+-	CLASS_PORT_INFO = 0x1,
+-	NOTICE = 0x2,
+-	INFORM_INFO = 0x3,
++	CLASS_PORT_INFO = UMAD_ATTR_CLASS_PORT_INFO,
++	NOTICE = UMAD_ATTR_NOTICE,
++	INFORM_INFO = UMAD_ATTR_INFORM_INFO,
+ };
+ 
+ enum MAD_STATUS {
+-	IB_MAD_STS_OK = (0 << 2),
+-	IB_MAD_STS_BUSY = (1 << 0),
+-	IB_MAD_STS_REDIRECT = (1 << 1),
+-	IB_MAD_STS_BAD_BASE_VER_OR_CLASS = (1 << 2),
+-	IB_MAD_STS_METHOD_NOT_SUPPORTED = (2 << 2),
+-	IB_MAD_STS_METHOD_ATTR_NOT_SUPPORTED = (3 << 2),
+-	IB_MAD_STS_INV_ATTR_VALUE = (7 << 2),
++	IB_MAD_STS_OK = UMAD_STATUS_SUCCESS,
++	IB_MAD_STS_BUSY = UMAD_STATUS_BUSY,
++	IB_MAD_STS_REDIRECT = UMAD_STATUS_REDIRECT,
++	IB_MAD_STS_BAD_BASE_VER_OR_CLASS = UMAD_STATUS_BAD_VERSION,
++	IB_MAD_STS_METHOD_NOT_SUPPORTED = UMAD_STATUS_METHOD_NOT_SUPPORTED,
++	IB_MAD_STS_METHOD_ATTR_NOT_SUPPORTED = UMAD_STATUS_ATTR_NOT_SUPPORTED,
++	IB_MAD_STS_INV_ATTR_VALUE = UMAD_STATUS_INVALID_ATTR_VALUE,
+ };
+ 
+ enum SMI_ATTR_ID {
+-	IB_ATTR_NODE_DESC = 0x10,
+-	IB_ATTR_NODE_INFO = 0x11,
+-	IB_ATTR_SWITCH_INFO = 0x12,
+-	IB_ATTR_GUID_INFO = 0x14,
+-	IB_ATTR_PORT_INFO = 0x15,
+-	IB_ATTR_PKEY_TBL = 0x16,
+-	IB_ATTR_SLVL_TABLE = 0x17,
+-	IB_ATTR_VL_ARBITRATION = 0x18,
+-	IB_ATTR_LINEARFORWTBL = 0x19,
+-	IB_ATTR_MULTICASTFORWTBL = 0x1b,
++	IB_ATTR_NODE_DESC = UMAD_SMP_ATTR_NODE_DESC,
++	IB_ATTR_NODE_INFO = UMAD_SMP_ATTR_NODE_INFO,
++	IB_ATTR_SWITCH_INFO = UMAD_SMP_ATTR_SWITCH_INFO,
++	IB_ATTR_GUID_INFO = UMAD_SMP_ATTR_GUID_INFO,
++	IB_ATTR_PORT_INFO = UMAD_SMP_ATTR_PORT_INFO,
++	IB_ATTR_PKEY_TBL = UMAD_SMP_ATTR_PKEY_TABLE,
++	IB_ATTR_SLVL_TABLE = UMAD_SMP_ATTR_SLVL_TABLE,
++	IB_ATTR_VL_ARBITRATION = UMAD_SMP_ATTR_VL_ARB_TABLE,
++	IB_ATTR_LINEARFORWTBL = UMAD_SMP_ATTR_LINEAR_FT,
++	IB_ATTR_MULTICASTFORWTBL = UMAD_SMP_ATTR_MCAST_FT,
+ 	IB_ATTR_LINKSPEEDWIDTHPAIRSTBL = 0x1c,
+ 	IB_ATTR_VENDORMADSTBL = 0x1d,
+-	IB_ATTR_SMINFO = 0x20,
++	IB_ATTR_SMINFO = UMAD_SMP_ATTR_SM_INFO,
+ 
+ 	IB_ATTR_LAST
+ };
+ 
+ enum SA_ATTR_ID {
+-	IB_SA_ATTR_NOTICE = 0x02,
+-	IB_SA_ATTR_INFORMINFO = 0x03,
+-	IB_SA_ATTR_NODERECORD = 0x11,
+-	IB_SA_ATTR_PORTINFORECORD = 0x12,
+-	IB_SA_ATTR_SL2VLTABLERECORD = 0x13,
+-	IB_SA_ATTR_SWITCHINFORECORD = 0x14,
+-	IB_SA_ATTR_LFTRECORD = 0x15,
+-	IB_SA_ATTR_RFTRECORD = 0x16,
+-	IB_SA_ATTR_MFTRECORD = 0x17,
+-	IB_SA_ATTR_SMINFORECORD = 0x18,
+-	IB_SA_ATTR_LINKRECORD = 0x20,
+-	IB_SA_ATTR_GUIDINFORECORD = 0x30,
+-	IB_SA_ATTR_SERVICERECORD = 0x31,
+-	IB_SA_ATTR_PKEYTABLERECORD = 0x33,
+-	IB_SA_ATTR_PATHRECORD = 0x35,
+-	IB_SA_ATTR_VLARBTABLERECORD = 0x36,
+-	IB_SA_ATTR_MCRECORD = 0x38,
+-	IB_SA_ATTR_MULTIPATH = 0x3a,
+-	IB_SA_ATTR_INFORMINFORECORD = 0xf3,
++	IB_SA_ATTR_NOTICE = UMAD_ATTR_NOTICE,
++	IB_SA_ATTR_INFORMINFO = UMAD_ATTR_INFORM_INFO,
++	IB_SA_ATTR_NODERECORD = UMAD_SA_ATTR_NODE_REC,
++	IB_SA_ATTR_PORTINFORECORD = UMAD_SA_ATTR_PORT_INFO_REC,
++	IB_SA_ATTR_SL2VLTABLERECORD = UMAD_SA_ATTR_SLVL_REC,
++	IB_SA_ATTR_SWITCHINFORECORD = UMAD_SA_ATTR_SWITCH_INFO_REC,
++	IB_SA_ATTR_LFTRECORD = UMAD_SA_ATTR_LINEAR_FT_REC,
++	IB_SA_ATTR_RFTRECORD = UMAD_SA_ATTR_RANDOM_FT_REC,
++	IB_SA_ATTR_MFTRECORD = UMAD_SA_ATTR_MCAST_FT_REC,
++	IB_SA_ATTR_SMINFORECORD = UMAD_SA_ATTR_SM_INFO_REC,
++	IB_SA_ATTR_LINKRECORD = UMAD_SA_ATTR_LINK_REC,
++	IB_SA_ATTR_GUIDINFORECORD = UMAD_SA_ATTR_GUID_INFO_REC,
++	IB_SA_ATTR_SERVICERECORD = UMAD_SA_ATTR_SERVICE_REC,
++	IB_SA_ATTR_PKEYTABLERECORD = UMAD_SA_ATTR_PKEY_TABLE_REC,
++	IB_SA_ATTR_PATHRECORD = UMAD_SA_ATTR_PATH_REC,
++	IB_SA_ATTR_VLARBTABLERECORD = UMAD_SA_ATTR_VL_ARB_REC,
++	IB_SA_ATTR_MCRECORD = UMAD_SA_ATTR_MCMEMBER_REC,
++	IB_SA_ATTR_MULTIPATH = UMAD_SA_ATTR_MULTI_PATH_REC,
++	IB_SA_ATTR_INFORMINFORECORD = UMAD_SA_ATTR_INFORM_INFO_REC,
+ 
+ 	IB_SA_ATTR_LAST
+ };
+@@ -200,7 +203,7 @@ enum BM_ATTR_ID {
+ 
+ #define IB_VENDOR_OPENIB_PING_CLASS	(IB_VENDOR_RANGE2_START_CLASS + 2)
+ #define IB_VENDOR_OPENIB_SYSSTAT_CLASS	(IB_VENDOR_RANGE2_START_CLASS + 3)
+-#define IB_OPENIB_OUI			(0x001405)
++#define IB_OPENIB_OUI			UMAD_OPENIB_OUI
+ 
+ typedef uint8_t ibmad_gid_t[16];
+ #ifdef USE_DEPRECATED_IB_GID_T
+@@ -714,16 +717,16 @@ enum MAD_FIELDS {
+  */
+ enum RMPP_TYPE_ENUM {
+ 	IB_RMPP_TYPE_NONE,
+-	IB_RMPP_TYPE_DATA,
+-	IB_RMPP_TYPE_ACK,
+-	IB_RMPP_TYPE_STOP,
+-	IB_RMPP_TYPE_ABORT,
++	IB_RMPP_TYPE_DATA = UMAD_RMPP_TYPE_DATA,
++	IB_RMPP_TYPE_ACK = UMAD_RMPP_TYPE_ACK,
++	IB_RMPP_TYPE_STOP = UMAD_RMPP_TYPE_STOP,
++	IB_RMPP_TYPE_ABORT = UMAD_RMPP_TYPE_ABORT,
+ };
+ 
+ enum RMPP_FLAGS_ENUM {
+-	IB_RMPP_FLAG_ACTIVE = 1 << 0,
+-	IB_RMPP_FLAG_FIRST = 1 << 1,
+-	IB_RMPP_FLAG_LAST = 1 << 2,
++	IB_RMPP_FLAG_ACTIVE = UMAD_RMPP_FLAG_ACTIVE,
++	IB_RMPP_FLAG_FIRST = UMAD_RMPP_FLAG_FIRST,
++	IB_RMPP_FLAG_LAST = UMAD_RMPP_FLAG_LAST,
+ };
+ 
+ typedef struct {
+@@ -928,12 +931,14 @@ MAD_EXPORT uint8_t *ib_vendor_call_via(void *data, ib_portid_t * portid,
+ 
+ static inline int mad_is_vendor_range1(int mgmt)
+ {
+-	return mgmt >= 0x9 && mgmt <= 0xf;
++	return mgmt >= UMAD_CLASS_VENDOR_RANGE1_START &&
++	       mgmt <= UMAD_CLASS_VENDOR_RANGE1_END;
  }
  
-+#ifndef ntohll
-+  #if __BYTE_ORDER == __LITTLE_ENDIAN
-+    static inline uint64_t ntohll(uint64_t x)
-+    {
-+        return bswap_64(x);
-+    }
-+  #elif __BYTE_ORDER == __BIG_ENDIAN
-+    static inline uint64_t ntohll(uint64_t x)
-+    {
-+        return x;
-+    }
-+  #endif
-+#endif
-+#ifndef htonll
-+  #define htonll ntohll
-+#endif
-+
- END_C_DECLS
- #endif				/* _UMAD_H */
+ static inline int mad_is_vendor_range2(int mgmt)
+ {
+-	return mgmt >= 0x30 && mgmt <= 0x4f;
++	return mgmt >= UMAD_CLASS_VENDOR_RANGE2_START &&
++	       mgmt <= UMAD_CLASS_VENDOR_RANGE2_END;
+ }
+ 
+ /* rpc.c */
 
 
 --
