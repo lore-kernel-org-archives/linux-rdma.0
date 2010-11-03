@@ -1,8 +1,7 @@
 From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 10/13] IB-mgmt: Remove duplicate definition of
- IB_MAD_STATUS_CLASS_MASK
+Subject: [PATCH 8/13] IB-mgmt: Fix trace table response
 Date: Wed, 3 Nov 2010 16:11:57 -0700
-Message-ID: <CF9C39F99A89134C9CF9C4CCB68B8DDF25B837B37D@orsmsx501.amr.corp.intel.com>
+Message-ID: <CF9C39F99A89134C9CF9C4CCB68B8DDF25B837B37B@orsmsx501.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
@@ -12,29 +11,30 @@ Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-osmtest includes a duplicate definition.  Remove it.
+A response to a get trace table request is a get table response.
+There is no 'get trace table response'.  See IB spec 1.2.1,
+section 15.4.9.
 
 Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- opensm/osmtest/osmtest.c |    2 --
- 1 files changed, 0 insertions(+), 2 deletions(-)
- mode change 100644 => 100755 opensm/osmtest/osmtest.c
+Submitting as a separate patch, so the change doesn't get lost in the noise.
 
-diff --git a/opensm/osmtest/osmtest.c b/opensm/osmtest/osmtest.c
-old mode 100644
-new mode 100755
-index b2ec3fa..47d2368
---- a/opensm/osmtest/osmtest.c
-+++ b/opensm/osmtest/osmtest.c
-@@ -221,8 +221,6 @@ const osmtest_token_t token_array[] = {
- 	{OSMTEST_TOKEN_UNKNOWN, 0, ""}	/* must be last entry */
- };
- 
--#define IB_MAD_STATUS_CLASS_MASK       (CL_HTON16(0xFF00))
--
- static const char ib_mad_status_str_busy[] = "IB_MAD_STATUS_BUSY";
- static const char ib_mad_status_str_redirect[] = "IB_MAD_STATUS_REDIRECT";
- static const char ib_mad_status_str_unsup_class_ver[] =
+ libibmad/include/infiniband/mad.h |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/libibmad/include/infiniband/mad.h b/libibmad/include/infiniband/mad.h
+index 4a29c98..f3733a2 100755
+--- a/libibmad/include/infiniband/mad.h
++++ b/libibmad/include/infiniband/mad.h
+@@ -100,7 +100,7 @@ enum MAD_METHODS {
+ 	IB_MAD_METHOD_GET_TABLE = UMAD_SA_METHOD_GET_TABLE,
+ 	IB_MAD_METHOD_GET_TABLE_RESPONSE = UMAD_SA_METHOD_GET_TABLE_RESP,
+ 	IB_MAD_METHOD_GET_TRACE_TABLE = UMAD_SA_METHOD_GET_TRACE_TABLE,
+-	IB_MAD_METHOD_GET_TRACE_TABLE_RESPONSE = 0x93, /* Not in spec */
++	IB_MAD_METHOD_GET_TRACE_TABLE_RESPONSE = UMAD_SA_METHOD_GET_TABLE_RESP,
+ 	IB_MAD_METHOD_GETMULTI = UMAD_SA_METHOD_GET_MULTI,
+ 	IB_MAD_METHOD_GETMULTI_RESPONSE = UMAD_SA_METHOD_GET_MULTI_RESP,
+ 	IB_MAD_METHOD_DELETE = UMAD_SA_METHOD_DELETE,
 
 
 --
