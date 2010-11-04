@@ -1,24 +1,27 @@
-From: Or Gerlitz <ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH V2 0/3] New RAW_PACKET QP type
-Date: Thu, 04 Nov 2010 16:25:01 +0200
-Message-ID: <4CD2C23D.5020008@voltaire.com>
-References: <4CD171F0.8020506@voltaire.com>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH 0/13] IB-mgmt: Port madeye to userspace
+Date: Thu, 4 Nov 2010 07:56:58 -0700
+Message-ID: <CF9C39F99A89134C9CF9C4CCB68B8DDF25B837B65F@orsmsx501.amr.corp.intel.com>
+References: <CF9C39F99A89134C9CF9C4CCB68B8DDF25B837B38B@orsmsx501.amr.corp.intel.com>
+ <4CD26E04.3060408@voltaire.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4CD171F0.8020506-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <4CD26E04.3060408-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Aleksey Senin <alekseys-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Moni Shoua <monis-hKgKHo2Ms0F+cjeuK/JdrQ@public.gmane.org>, Alex Rosenbaum <Alexr-smomgflXvOZWk0Htik3J/w@public.gmane.org>, Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+To: Or Gerlitz <ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Aleksey Senin wrote:
-> The following patches add a new QP type named RAW_PACKET.
-Is there anything different in this patch set compared to V1 of 
-https://patchwork.kernel.org/patch/110153 or its just a repost?
+> As far as I understand CM timeout is an event not a mad... when
+> referring to detecting/reacting on CM timeouts, did you mean detecting
+> mads like "CM retries " and reacting on them?
 
-Or.
+CM timeout 'events' would be detected and reported as sent MADs that complete in error.  For ibacm, the only CM MAD of interest is the REQ, since it contains SLID/DLID information that can be used to update a path record cache.
+
+- Sean
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
