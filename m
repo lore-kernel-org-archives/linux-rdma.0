@@ -1,43 +1,39 @@
-From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: Re: [PATCH V2 0/3] New RAW_PACKET QP type
-Date: Fri, 05 Nov 2010 11:09:56 -0500
-Message-ID: <4CD42C54.7010609@opengridcomputing.com>
-References: <4CD171F0.8020506@voltaire.com> <CF9C39F99A89134C9CF9C4CCB68B8DDF25B8308783@orsmsx501.amr.corp.intel.com> <4CD41D5D.9030103@opengridcomputing.com> <CF9C39F99A89134C9CF9C4CCB68B8DDF25B83D606E@orsmsx501.amr.corp.intel.com> <4CD420C3.1090803@opengridcomputing.com> <CF9C39F99A89134C9CF9C4CCB68B8DDF25B83D6128@orsmsx501.amr.corp.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Vasiliy Kulikov <segooon-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH] infiniband: core: fix information leak to userland
+Date: Sat,  6 Nov 2010 17:41:20 +0300
+Message-ID: <1289054481-18145-1-git-send-email-segooon@gmail.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CF9C39F99A89134C9CF9C4CCB68B8DDF25B83D6128-osO9UTpF0USkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Aleksey Senin <alekseys-smomgflXvOZWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Moni Shoua <monis-hKgKHo2Ms0F+cjeuK/JdrQ@public.gmane.org>, Alex Rosenbaum <Alexr-smomgflXvOZWk0Htik3J/w@public.gmane.org>, Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+To: kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Alex Chiang <achiang-VXdhtT5mjnY@public.gmane.org>, Andi Kleen <ak-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Greg Kroah-Hartman <gregkh-l3A5Bk7waGM@public.gmane.org>, Julia Lawall <julia-dAYI7NvHqcQ@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 11/05/2010 11:05 AM, Hefty, Sean wrote:
->> The linux PF_PACKET interface comes to mind.  It allows
->> sending/receiving raw ethernet frames:
->>
->> ----
->>          Packet  sockets  are  used to receive or send raw packets at the
->> device
->>          driver (OSI Layer 2) level. They allow the user to  implement
->> protocol
->>          modules in user space on top of the physical layer.
->>      
-> I don't have a strong preference on the name, but isn't PF_PACKET further qualified by the socket type to indicate if the user provides the L2 header or not?  Maybe we just need that additional qualifier.
->    
+Structure ib_uverbs_qp_attr is copied to userland with allmost all
+fields uninitialized (140 bytes on x86).  It leads to leaking of
+contents of kernel stack memory.
 
-Yea, you're correct.
+Signed-off-by: Vasiliy Kulikov <segooon-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+---
+ Compile tested.
 
-Maybe we need some attributes that get passed in at qp create or qp 
-modify ->RTS or something?
+ drivers/infiniband/core/ucm.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-I'm working on similar code for Chelsio that will use these QPs.  I do 
-need additional attributes to be passed in.  But I'm not nearly ready to 
-propose the details yet.
-
-Steve.
-
+diff --git a/drivers/infiniband/core/ucm.c b/drivers/infiniband/core/ucm.c
+index 08f948d..ccfa4f9 100644
+--- a/drivers/infiniband/core/ucm.c
++++ b/drivers/infiniband/core/ucm.c
+@@ -622,7 +622,7 @@ static ssize_t ib_ucm_init_qp_attr(struct ib_ucm_file *file,
+ 	if (IS_ERR(ctx))
+ 		return PTR_ERR(ctx);
+ 
+-	resp.qp_attr_mask = 0;
++	memset(&resp, 0, sizeof(resp));
+ 	memset(&qp_attr, 0, sizeof qp_attr);
+ 	qp_attr.qp_state = cmd.qp_state;
+ 	result = ib_cm_init_qp_attr(ctx->cm_id, &qp_attr, &resp.qp_attr_mask);
+-- 
+1.7.0.4
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
