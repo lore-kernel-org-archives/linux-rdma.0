@@ -1,28 +1,44 @@
-From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: Re: [PATCH V2 0/3] New RAW_PACKET QP type
-Date: Sun, 07 Nov 2010 15:04:20 -0600
-Message-ID: <4CD71454.5050608@opengridcomputing.com>
-References: <4CD171F0.8020506@voltaire.com>	<CF9C39F99A89134C9CF9C4CCB68B8DDF25B8308783@orsmsx501.amr.corp.intel.com>	<4CD41D5D.9030103@opengridcomputing.com>	<CF9C39F99A89134C9CF9C4CCB68B8DDF25B83D606E@orsmsx501.amr.corp.intel.com>	<4CD420C3.1090803@opengridcomputing.com>	<CF9C39F99A89134C9CF9C4CCB68B8DDF25B83D6128@orsmsx501.amr.corp.intel.com> <4CD42C54.7010609@opengridcomputing.com> <4CD64C1D.6010908@Voltaire.com>
+From: Jesper Juhl <jj-IYz4IdjRLj0sV2N9l4h3zg@public.gmane.org>
+Subject: [PATCH][trivial] infiniband: Only include linux/mutex.h once in
+ drivers/infiniband/hw/cxgb4/iw_cxgb4.h .
+Date: Sun, 7 Nov 2010 23:24:44 +0100 (CET)
+Message-ID: <alpine.LNX.2.00.1011072321150.26247@swampdragon.chaosbits.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4CD64C1D.6010908-hKgKHo2Ms0FWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <ogerlitz-hKgKHo2Ms0FWk0Htik3J/w@public.gmane.org>
-Cc: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Aleksey Senin <alekseys-smomgflXvOZWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Moni Shoua <monis-hKgKHo2Ms0F+cjeuK/JdrQ@public.gmane.org>, Alex Rosenbaum <Alexr-smomgflXvOZWk0Htik3J/w@public.gmane.org>, Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+To: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: trivial-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Steve Wise <swise-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 11/7/2010 1:50 AM, Or Gerlitz wrote:
-> Steve Wise wrote:
->> I'm working on similar code for Chelsio that will use these QPs.
-> Will the TX flow require going into kernel space or will be fully offloaded?
->
+Only include the header linux/mutex.h once inside 
+drivers/infiniband/hw/cxgb4/iw_cxgb4.h
 
-The RX/TX paths are kernel bypass unless the application wants to block 
-for IO.
+Signed-off-by: Jesper Juhl <jj-IYz4IdjRLj0sV2N9l4h3zg@public.gmane.org>
+---
+ iw_cxgb4.h |    1 -
+ 1 file changed, 1 deletion(-)
 
-Steve.
+diff --git a/drivers/infiniband/hw/cxgb4/iw_cxgb4.h b/drivers/infiniband/hw/cxgb4/iw_cxgb4.h
+index 16032cd..42bb575 100644
+--- a/drivers/infiniband/hw/cxgb4/iw_cxgb4.h
++++ b/drivers/infiniband/hw/cxgb4/iw_cxgb4.h
+@@ -46,7 +46,6 @@
+ #include <linux/timer.h>
+ #include <linux/io.h>
+ #include <linux/kfifo.h>
+-#include <linux/mutex.h>
+ 
+ #include <asm/byteorder.h>
+ 
+
+
+
+-- 
+Jesper Juhl <jj-IYz4IdjRLj0sV2N9l4h3zg@public.gmane.org>             http://www.chaosbits.net/
+Don't top-post  http://www.catb.org/~esr/jargon/html/T/top-post.html
+Plain text mails only, please.
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
