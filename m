@@ -1,39 +1,24 @@
-From: Vasiliy Kulikov <segooon-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH] infiniband: core: fix information leak to userland
-Date: Sat,  6 Nov 2010 17:41:20 +0300
-Message-ID: <1289054481-18145-1-git-send-email-segooon@gmail.com>
+From: Or Gerlitz <ogerlitz-hKgKHo2Ms0FWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH V2 0/3] New RAW_PACKET QP type
+Date: Sun, 07 Nov 2010 08:50:05 +0200
+Message-ID: <4CD64C1D.6010908@Voltaire.com>
+References: <4CD171F0.8020506@voltaire.com>	<CF9C39F99A89134C9CF9C4CCB68B8DDF25B8308783@orsmsx501.amr.corp.intel.com>	<4CD41D5D.9030103@opengridcomputing.com>	<CF9C39F99A89134C9CF9C4CCB68B8DDF25B83D606E@orsmsx501.amr.corp.intel.com>	<4CD420C3.1090803@opengridcomputing.com>	<CF9C39F99A89134C9CF9C4CCB68B8DDF25B83D6128@orsmsx501.amr.corp.intel.com> <4CD42C54.7010609@opengridcomputing.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <4CD42C54.7010609-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Alex Chiang <achiang-VXdhtT5mjnY@public.gmane.org>, Andi Kleen <ak-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Greg Kroah-Hartman <gregkh-l3A5Bk7waGM@public.gmane.org>, Julia Lawall <julia-dAYI7NvHqcQ@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Cc: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Aleksey Senin <alekseys-smomgflXvOZWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Moni Shoua <monis-hKgKHo2Ms0F+cjeuK/JdrQ@public.gmane.org>, Alex Rosenbaum <Alexr-smomgflXvOZWk0Htik3J/w@public.gmane.org>, Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Structure ib_uverbs_qp_attr is copied to userland with allmost all
-fields uninitialized (140 bytes on x86).  It leads to leaking of
-contents of kernel stack memory.
+Steve Wise wrote:
+> I'm working on similar code for Chelsio that will use these QPs. 
 
-Signed-off-by: Vasiliy Kulikov <segooon-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
----
- Compile tested.
+Will the TX flow require going into kernel space or will be fully offloaded?
 
- drivers/infiniband/core/ucm.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
-
-diff --git a/drivers/infiniband/core/ucm.c b/drivers/infiniband/core/ucm.c
-index 08f948d..ccfa4f9 100644
---- a/drivers/infiniband/core/ucm.c
-+++ b/drivers/infiniband/core/ucm.c
-@@ -622,7 +622,7 @@ static ssize_t ib_ucm_init_qp_attr(struct ib_ucm_file *file,
- 	if (IS_ERR(ctx))
- 		return PTR_ERR(ctx);
- 
--	resp.qp_attr_mask = 0;
-+	memset(&resp, 0, sizeof(resp));
- 	memset(&qp_attr, 0, sizeof qp_attr);
- 	qp_attr.qp_state = cmd.qp_state;
- 	result = ib_cm_init_qp_attr(ctx->cm_id, &qp_attr, &resp.qp_attr_mask);
--- 
-1.7.0.4
+Or.
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
