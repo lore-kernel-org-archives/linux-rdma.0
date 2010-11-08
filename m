@@ -1,43 +1,37 @@
-From: Jesper Juhl <jj-IYz4IdjRLj0sV2N9l4h3zg@public.gmane.org>
-Subject: [PATCH][trivial] infiniband: Only include linux/mutex.h once in
- drivers/infiniband/hw/cxgb4/iw_cxgb4.h .
-Date: Sun, 7 Nov 2010 23:24:44 +0100 (CET)
-Message-ID: <alpine.LNX.2.00.1011072321150.26247@swampdragon.chaosbits.net>
+From: Alekseys Senin <alekseys-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH V2 0/3] New RAW_PACKET QP type
+Date: Mon, 08 Nov 2010 08:38:56 +0200
+Message-ID: <1289198336.12829.28.camel@alst60.voltaire.com>
+References: <4CD171F0.8020506@voltaire.com>
+	 <CF9C39F99A89134C9CF9C4CCB68B8DDF25B8308783@orsmsx501.amr.corp.intel.com>
+	 <4CD41D5D.9030103@opengridcomputing.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <4CD41D5D.9030103-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: trivial-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Steve Wise <swise-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Cc: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Moni Shoua <monis-hKgKHo2Ms0F+cjeuK/JdrQ@public.gmane.org>, Alex Rosenbaum <Alexr-smomgflXvOZWk0Htik3J/w@public.gmane.org>, Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Only include the header linux/mutex.h once inside 
-drivers/infiniband/hw/cxgb4/iw_cxgb4.h
-
-Signed-off-by: Jesper Juhl <jj-IYz4IdjRLj0sV2N9l4h3zg@public.gmane.org>
----
- iw_cxgb4.h |    1 -
- 1 file changed, 1 deletion(-)
-
-diff --git a/drivers/infiniband/hw/cxgb4/iw_cxgb4.h b/drivers/infiniband/hw/cxgb4/iw_cxgb4.h
-index 16032cd..42bb575 100644
---- a/drivers/infiniband/hw/cxgb4/iw_cxgb4.h
-+++ b/drivers/infiniband/hw/cxgb4/iw_cxgb4.h
-@@ -46,7 +46,6 @@
- #include <linux/timer.h>
- #include <linux/io.h>
- #include <linux/kfifo.h>
--#include <linux/mutex.h>
- 
- #include <asm/byteorder.h>
- 
-
-
-
--- 
-Jesper Juhl <jj-IYz4IdjRLj0sV2N9l4h3zg@public.gmane.org>             http://www.chaosbits.net/
-Don't top-post  http://www.catb.org/~esr/jargon/html/T/top-post.html
-Plain text mails only, please.
+On Fri, 2010-11-05 at 10:06 -0500, Steve Wise wrote:
+> On 11/03/2010 09:58 AM, Hefty, Sean wrote:
+> >> The following patches add a new QP type named RAW_PACKET.
+> >>
+> >> This type of QP is used in Ethernet environment and intended for
+> >> creation of a whole packet, including L2 headers,
+> >>      
+> > RAW_FRAME seems like a better name to me.
+> >
+> >    
+> 
+> Not that it matters much, but doesn't "FRAME" and "PACKET" mean the same 
+> thing?
+> 
+> 
+As I understand, Ethernet frame contains preamble and delimiter in
+addition to the packet data and we construct only packet. 
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
