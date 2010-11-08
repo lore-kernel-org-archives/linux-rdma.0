@@ -1,14 +1,27 @@
-From: Or Gerlitz <ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Subject: re: Fix IPoIB to conform to ethtool definitions
-Date: Mon, 8 Nov 2010 09:37:38 +0200 (IST)
-Message-ID: <Pine.LNX.4.64.1011080936200.14213@zuben.voltaire.com>
+From: Eli Cohen <eli-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
+Subject: RE: Fix IPoIB to conform to ethtool definitions
+Date: Mon, 8 Nov 2010 09:41:05 +0200
+Message-ID: <E113D394D7C5DB4F8FF691FA7EE9DB443D1BB38721@MTLMAIL.mtl.com>
+References: <Pine.LNX.4.64.1011080936200.14213@zuben.voltaire.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <Pine.LNX.4.64.1011080936200.14213-aDiYczhfhVLdX2U7gxhm1tBPR1lH4CV8@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Eli Cohen <eli-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+To: Or Gerlitz <ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org>, Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
+
+Sure, I was going to. I will send later today.
+
+-----Original Message-----
+From: Or Gerlitz [mailto:ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org] 
+Sent: Monday, November 08, 2010 9:38 AM
+To: Eli Cohen; Roland Dreier
+Cc: linux-rdma
+Subject: re: Fix IPoIB to conform to ethtool definitions
 
 Hi Eli, can this patch of yours which you placed in ofed be pushed
 upstream? Or.
