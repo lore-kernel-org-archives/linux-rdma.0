@@ -1,37 +1,56 @@
-From: Alekseys Senin <alekseys-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH V2 0/3] New RAW_PACKET QP type
-Date: Mon, 08 Nov 2010 08:38:56 +0200
-Message-ID: <1289198336.12829.28.camel@alst60.voltaire.com>
-References: <4CD171F0.8020506@voltaire.com>
-	 <CF9C39F99A89134C9CF9C4CCB68B8DDF25B8308783@orsmsx501.amr.corp.intel.com>
-	 <4CD41D5D.9030103@opengridcomputing.com>
+From: Or Gerlitz <ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+Subject: re: Fix IPoIB to conform to ethtool definitions
+Date: Mon, 8 Nov 2010 09:37:38 +0200 (IST)
+Message-ID: <Pine.LNX.4.64.1011080936200.14213@zuben.voltaire.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8BIT
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4CD41D5D.9030103-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Cc: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Moni Shoua <monis-hKgKHo2Ms0F+cjeuK/JdrQ@public.gmane.org>, Alex Rosenbaum <Alexr-smomgflXvOZWk0Htik3J/w@public.gmane.org>, Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+To: Eli Cohen <eli-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, 2010-11-05 at 10:06 -0500, Steve Wise wrote:
-> On 11/03/2010 09:58 AM, Hefty, Sean wrote:
-> >> The following patches add a new QP type named RAW_PACKET.
-> >>
-> >> This type of QP is used in Ethernet environment and intended for
-> >> creation of a whole packet, including L2 headers,
-> >>      
-> > RAW_FRAME seems like a better name to me.
-> >
-> >    
-> 
-> Not that it matters much, but doesn't "FRAME" and "PACKET" mean the same 
-> thing?
-> 
-> 
-As I understand, Ethernet frame contains preamble and delimiter in
-addition to the packet data and we construct only packet. 
+Hi Eli, can this patch of yours which you placed in ofed be pushed
+upstream? Or.
+
+>From 4237a1fbc1bae6bb86665f81cd93cfac37b216d2 Mon Sep 17 00:00:00 2001
+From: Eli Cohen <eli-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
+Date: Wed, 3 Nov 2010 10:56:38 +0200
+Subject: [PATCH] IPoIB: Fix IPoIB to conform to ethtool definitions
+
+Ethtool documentation states that when once of the parameters,
+rx_coalesce_usecs or rx_max_coalesced_frames are set to zero while the other
+has a none zero value, the none zero parameter should still be operative. For
+example, if rx_max_coalesced_frames is set to zero while rx_coalesce_usecs is >
+0, the rate of events is limited to not exceed (1 / rx_coalesce_usecs). In the
+opposite case, an event is generated only after rx_max_coalesced_frames have
+arrived. The documentation also states that setting both to zero is invalid.
+
+Signed-off-by: Eli Cohen <eli-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
+---
+ drivers/infiniband/ulp/ipoib/ipoib_ethtool.c |    7 +++++++
+ 1 files changed, 7 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/infiniband/ulp/ipoib/ipoib_ethtool.c b/drivers/infiniband/ulp/ipoib/ipoib_ethtool.c
+index e9795f6..e602b7f 100644
+--- a/drivers/infiniband/ulp/ipoib/ipoib_ethtool.c
++++ b/drivers/infiniband/ulp/ipoib/ipoib_ethtool.c
+@@ -78,6 +78,13 @@ static int ipoib_set_coalesce(struct net_device *dev,
+ 	    coal->rx_max_coalesced_frames > 0xffff)
+ 		return -EINVAL;
+
++	if (coal->rx_max_coalesced_frames | coal->rx_coalesce_usecs) {
++		if (!coal->rx_max_coalesced_frames)
++			coal->rx_max_coalesced_frames = 0xffff;
++		else if (!coal->rx_coalesce_usecs)
++			coal->rx_coalesce_usecs = 0xffff;
++	}
++
+ 	ret = ib_modify_cq(priv->recv_cq, coal->rx_max_coalesced_frames,
+ 			   coal->rx_coalesce_usecs);
+ 	if (ret && ret != -ENOSYS) {
+-- 
+1.7.3.2
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
