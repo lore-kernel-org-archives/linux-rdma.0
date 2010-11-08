@@ -1,50 +1,33 @@
 From: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH] IPoIB: Fix IPoIB to conform to ethtool definitions
-Date: Mon, 8 Nov 2010 12:42:44 +0200
-Message-ID: <20101108104244.GA7521@mtldesk30>
+Subject: Re: kernel inline sending / UARs / etc
+Date: Mon, 8 Nov 2010 14:47:09 +0200
+Message-ID: <20101108124709.GG5921@mtldesk30>
+References: <Pine.LNX.4.64.1011080936200.14213@zuben.voltaire.com>
+ <E113D394D7C5DB4F8FF691FA7EE9DB443D1BB38721@MTLMAIL.mtl.com>
+ <4CD7ABF4.5090305@Voltaire.com>
+ <E113D394D7C5DB4F8FF691FA7EE9DB443D1BB387C7@MTLMAIL.mtl.com>
+ <4CD7B463.2030402@voltaire.com>
+ <4CD7B8B6.4060704@Voltaire.com>
+ <20101108084916.GD5921@mtldesk30>
+ <4CD7BA12.5090704@Voltaire.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
+In-Reply-To: <4CD7BA12.5090704-hKgKHo2Ms0FWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Cc: RDMA list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Or Gerlitz <ogerlitz-hKgKHo2Ms0FWk0Htik3J/w@public.gmane.org>
+Cc: Amir Vadai <amirv-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Ethtool documentation states that when one of the parameters, rx_coalesce_usecs
-or rx_max_coalesced_frames is set to zero while the other has a none zero
-value, the none zero parameter should still be operative. For example, if
-rx_max_coalesced_frames is set to zero while rx_coalesce_usecs is > 0, the rate
-of events is limited to not exceed (1 / rx_coalesce_usecs). In the opposite
-case, an event is generated only after rx_max_coalesced_frames have arrived.
-The documentation also states that setting both to zero is invalid.
+On Mon, Nov 08, 2010 at 10:51:30AM +0200, Or Gerlitz wrote:
+> Eli Cohen wrote:
+> > It indeed improves SDP's latency - I don't have exact numbers.
+> 
+> the SDP number is very interesting (Amir, do you have it?) but irrelevant for upstream, any IPoIB numbers?
+> 
 
-Signed-off-by: Eli Cohen <eli-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
----
- drivers/infiniband/ulp/ipoib/ipoib_ethtool.c |    7 +++++++
- 1 files changed, 7 insertions(+), 0 deletions(-)
-
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib_ethtool.c b/drivers/infiniband/ulp/ipoib/ipoib_ethtool.c
-index 1a1657c..c7efba3 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib_ethtool.c
-+++ b/drivers/infiniband/ulp/ipoib/ipoib_ethtool.c
-@@ -93,6 +93,13 @@ static int ipoib_set_coalesce(struct net_device *dev,
- 	    coal->rx_max_coalesced_frames > 0xffff)
- 		return -EINVAL;
- 
-+	if (coal->rx_max_coalesced_frames | coal->rx_coalesce_usecs) {
-+		if (!coal->rx_max_coalesced_frames)
-+			coal->rx_max_coalesced_frames = 0xffff;
-+		else if (!coal->rx_coalesce_usecs)
-+			coal->rx_coalesce_usecs = 0xffff;
-+	}
-+
- 	ret = ib_modify_cq(priv->recv_cq, coal->rx_max_coalesced_frames,
- 			   coal->rx_coalesce_usecs);
- 	if (ret && ret != -ENOSYS) {
--- 
-1.7.3.2
-
+For IPoIB it gives ~1 usec for improvement in latency.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
