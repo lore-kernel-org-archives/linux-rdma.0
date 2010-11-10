@@ -1,40 +1,32 @@
-From: Tziporet Koren <tziporet-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
-Subject: Re: ib0: failed send event
-Date: Wed, 10 Nov 2010 14:17:36 +0200
-Message-ID: <4CDA8D60.8030006@mellanox.co.il>
-References: <4CD31B61.5090605@hpc.ufl.edu>
+From: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: PATCH [0/3] mlx4: Add counters support for IBoE
+Date: Wed, 10 Nov 2010 14:23:23 +0200
+Message-ID: <20101110122323.GA12037@mtldesk30>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format="flowed"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4CD31B61.5090605-rKMKKiNZRMeVc3sceRu5cw@public.gmane.org>
+Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Craig Prescott <prescott-rKMKKiNZRMeVc3sceRu5cw@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Cc: RDMA list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-  On 11/4/2010 10:45 PM, Craig Prescott wrote:
-> Hi,
->
-> We have a new-ish node whose IPoIB access was interrupted last night;
-> last message in the syslog was:
->
-> ib0: failed send event (status=2, wrid=74 vend_err 67)
->
-> The node has a Mellanox ConnectX HCA (MHQH19-XTC).
->
-> I understand the status corresponds to IB_WC_LOC_QP_OP_ERR.  What does a
-> vendor error code of 67 mean?
->
-> Thanks,
-> Craig Prescott
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-Error is: Bus error reading WQE.
+The following three patches provide support for IBoE counters for mlx4
+devices. The counters can be read through sysfs files in the same
+manner it is done of IB link layer IB ports. The patches provide the
+following functionality:
 
-Tziporet
+1. Extend the device capability flags from 32 bit to 64 bit variable
+for easier manipulation of the flags.
+
+2. Provide a generic API at the mlx4 layer for allocating general
+purpose counters sets. ConnectX has a number of counter sets that you
+can allocate and assign to QPs so that traffic that goes through that
+QP is counted.
+
+3. For IBoE ports, make use of the generic counters to count traffic
+that goes through IPoE ports. We allocate one set per port and assign
+this set to all QPs of the port.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
