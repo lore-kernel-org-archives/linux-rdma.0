@@ -1,52 +1,35 @@
-From: Jonathan Rosser <jonathan.rosser-gjMux1o1B1/QXOPxS62xeg@public.gmane.org>
-Subject: Re: asynchronous operation with poll()
-Date: Wed, 10 Nov 2010 16:05:02 +0000
-Message-ID: <ibefrf$9qq$1@dough.gmane.org>
-References: <ibbr34$ima$1@dough.gmane.org> <20101109204452.GG909@obsidianresearch.com> <4538690.1289385043068.SLOX.WebMail.wwwrun@imap.lnl.infn.it>
+From: ib-x2spCj9RiN0z5UmgcLIfJQ@public.gmane.org
+Subject: Pro/Cons of send/receive/read/write operations?
+Date: Wed, 10 Nov 2010 10:14:16 -0700
+Message-ID: <20101110101416.p006bad7hyc88wog@celticblues.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Type: text/plain;
+	charset=ISO-8859-1;
+	DelSp="Yes";
+	format="flowed"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4538690.1289385043068.SLOX.WebMail.wwwrun-XDIR3SKYeFbgKi2NxijLtw@public.gmane.org>
+Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 11/10/10 10:30, Andrea Gozzelino wrote:
-> Hi Jonathan,
->
-> I wrote down a test (latency and transfer speed) with RDMA.
-> Server and client work with the same code and they change defined size
-> buffers for n times (loop). In the makefile.txt, you can find an help to
-> use the code.
->
-> I tested Intel NetEffect NE020 E10G81GP cards with this code and I found
-> minimum latency about 11 us,maximum transfer speed about 9,6 GBytes, CPU
-> usage up to 90% on client side.
-> The last value is not good for us.
+It seems there are several ways to transfer data via RDMA: Send/Send  
+w/immediate, Receive, RDMA Write/RDMA Write w/immediate, the Atomic  
+extensions, and then the various transport modes variations with some  
+of these operations.  As an RDMA/IB newbie, it is somewhat confusing  
+when determining the best operations for my application.  What are the  
+various pros/cons of each?
 
-Hi Andrea,
+For my application I will have multiple apps (probably around 4 for  
+now) sending data to a single app.  I have 3 sets of data, packets if  
+you like, that need to be sent, or written to, the target app.  Packet  
+1, is small, only 16 bytes. Packet 2, will be a minimum of 4 MB and  
+will likely be as large 16 MB, perhaps more.  Packet 3, will be a max,  
+probably, of 4 MB.
 
-Thanks for the code. With the advice from Jason I have changed my test 
-program to get reliable communication using 1Mbyte buffers. The CPU 
-usage is less than 2% on both client and server for 10Gb throughput. I 
-have Chelsio S310CR.
-
-I find using the poll() approach more natural as I have experience with 
-conventional sockets based programming before.
-
-The rdma_client/rdma_server example programs from librdmacm were the 
-easiest to start from and I have incrementally changed them from 
-synchronous to asynchronous operation, and moved the internals of the 
-high level functions in <rdma/rdma_verbs.h> into my own code piece by 
-piece. The learning curve is very steep :)
-
-I found this paper quite interesting 
-www.systems.ethz.ch/research/awards/minimizingthehidden.pdf
-
-Cheers,
-Jonathan.
-
+Thanks,
+CB
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
