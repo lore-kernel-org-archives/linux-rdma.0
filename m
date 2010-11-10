@@ -1,36 +1,33 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: asynchronous operation with poll()
-Date: Wed, 10 Nov 2010 11:04:29 -0700
-Message-ID: <20101110180429.GJ909@obsidianresearch.com>
-References: <ibbr34$ima$1@dough.gmane.org>
- <20101109204452.GG909@obsidianresearch.com>
- <ibeaq8$egv$1@dough.gmane.org>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: multicast sends not received by sending QP
+Date: Wed, 10 Nov 2010 11:05:12 -0800
+Message-ID: <CF9C39F99A89134C9CF9C4CCB68B8DDF25B84C5788@orsmsx501.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <ibeaq8$egv$1@dough.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jonathan Rosser <jonathan.rosser-gjMux1o1B1/QXOPxS62xeg@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Nov 10, 2010 at 02:39:03PM +0000, Jonathan Rosser wrote:
+On one of our test clusters, I'm seeing a situation where multicast traffic is not received on the QP which sends a message.  All nodes that I actually tested on the cluster have this problem (5 of 15).  The devinfo from one of these is below:
 
-> >Continually posting sends and recvs will get you into trouble, you
-> >will run out of recvs and get RNR's. These days the wisdom for
-> >implementing RDMA is that you should have explicit message flow
-> 
-> OK - I appreciate that a real world protocol ought to have flow
-> control rather than just send as fast as possible. I've been trying
-> to exercise the interfaces as far as possible and make sure my RDMA
-> implementation is solid before building something real on top of it.
+hca_id: mlx4_0
+        transport:                      InfiniBand (0)
+        fw_ver:                         2.7.000
+        node_guid:                      0002:c903:0002:5e0a
+        sys_image_guid:                 0002:c903:0002:5e0d
+        vendor_id:                      0x02c9
+        vendor_part_id:                 26428
+        hw_ver:                         0xA0
+        board_id:                       MT_04E0120005
 
-With iWarp if you send more than the receiver is able to receive you
-will break the connection with an error. Some kind of flow control
-scheme is mandatory..
+The cluster is running OFED 1.5.2, with updated versions of ibacm and librdmacm.  (I updated those trying to debug this issue.)  I do not see this problem on my test systems (running 2.6.36).
 
-Jason
+I do see the same failure on separate set of test systems running 1.5.2, but I don't know that the OFED version is the problem.
+
+- Sean
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
