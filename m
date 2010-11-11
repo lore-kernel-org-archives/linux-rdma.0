@@ -1,54 +1,34 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: Pro/Cons of send/receive/read/write operations?
-Date: Wed, 10 Nov 2010 17:35:00 -0700
-Message-ID: <20101111003500.GF23923@obsidianresearch.com>
-References: <20101110101416.p006bad7hyc88wog@celticblues.com>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH] infiniband: core: fix information leak to userland
+Date: Wed, 10 Nov 2010 16:39:20 -0800
+Message-ID: <CF9C39F99A89134C9CF9C4CCB68B8DDF25B84C5C8D@orsmsx501.amr.corp.intel.com>
+References: <1289054481-18145-1-git-send-email-segooon@gmail.com>
+ <ada39r8ohiz.fsf@cisco.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20101110101416.p006bad7hyc88wog-x2spCj9RiN0z5UmgcLIfJQ@public.gmane.org>
+In-Reply-To: <ada39r8ohiz.fsf-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: ib-x2spCj9RiN0z5UmgcLIfJQ@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Vasiliy Kulikov <segooon-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: "kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Alex Chiang <achiang-VXdhtT5mjnY@public.gmane.org>, Andi Kleen <ak-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Greg Kroah-Hartman <gregkh-l3A5Bk7waGM@public.gmane.org>, Julia Lawall <julia-dAYI7NvHqcQ@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Nov 10, 2010 at 10:14:16AM -0700, ib-x2spCj9RiN0z5UmgcLIfJQ@public.gmane.org wrote:
+> Sean, what is intended for qp_state handling here?  It seems
+> ib_copy_qp_attr_to_user() should either clear it or set it to something
+> sensible.
 
-> It seems there are several ways to transfer data via RDMA: Send/Send
-> w/immediate, Receive, RDMA Write/RDMA Write w/immediate, the Atomic
-> extensions, and then the various transport modes variations with
-> some of these operations.  As an RDMA/IB newbie, it is somewhat
-> confusing when determining the best operations for my application.
-> What are the various pros/cons of each?
+I'm not sure what the original intent was, but both libibcm and librdmacm provide the qp_state as input to the init_qp_attr calls.  It doesn't end up mattering if the kernel returns the value because the corresponding call in libibverbs (ibv_copy_qp_attr_from_kern) doesn't copy out the qp_state.  So, the value that was originally specified ends up being used.  The flow looks something like this:
 
-Well, there really are quite a few trade offs, typically the main
-issue for RDMA systems should be in managing the data buffers across
-the whole application. A big cost in RDMA is registering buffers so
-you want to design a scheme that minimizes how often that is done.
+qp_attr.qp_state = INIT;
+cmd.qp_state = qp_attr.qp_state;
+write(..cmd..);
+ibv_copy_qp_attr_from_kern(&qp_attr, cmd.resp)
 
-Some basic patterns you can consider:
- - SEND is used for small messaging and one of the small messages is
-   'I want to send you a large message, give me parameters for RDMA
-    WRITE'
- - Or above with 'here is where you can RDMA READ' from. Writes
-   are better than reads, as there are HW limits on parallel read
-   requests.
- - You use SEND for everything and allocate 16MB recv buffers
- - You construct a stream semantic (like TCP) using RDMA_WRITE. This
-   is useful if the data is consumed in some way and then discarded
-   right away.
+I agree that it makes sense for ib_copy_qp_attr_to_user() to set the qp_state.  Deciding what to do in libibverbs seems more troublesome.
 
-You can start by reflecting on where the data is coming from and where
-it is headed and use that to devise a buffer management strategy.
-
-The choice of SEND/READ/WRITE will be more evident once you understand
-how you want your data to flow. 
-
-You almost always want to use RC connections, and if you needed to use
-Atomic's you'd probably know already :)
-
-Jason
+- Sean
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
