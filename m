@@ -1,44 +1,54 @@
-From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH] infiniband: core: fix information leak to userland
-Date: Wed, 10 Nov 2010 16:01:08 -0800
-Message-ID: <ada39r8ohiz.fsf@cisco.com>
-References: <1289054481-18145-1-git-send-email-segooon@gmail.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: Pro/Cons of send/receive/read/write operations?
+Date: Wed, 10 Nov 2010 17:35:00 -0700
+Message-ID: <20101111003500.GF23923@obsidianresearch.com>
+References: <20101110101416.p006bad7hyc88wog@celticblues.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1289054481-18145-1-git-send-email-segooon-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> (Vasiliy
-	Kulikov's message of "Sat, 6 Nov 2010 17:41:20 +0300")
+Content-Disposition: inline
+In-Reply-To: <20101110101416.p006bad7hyc88wog-x2spCj9RiN0z5UmgcLIfJQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Vasiliy Kulikov <segooon-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Alex Chiang <achiang-VXdhtT5mjnY@public.gmane.org>, Andi Kleen <ak-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Greg Kroah-Hartman <gregkh-l3A5Bk7waGM@public.gmane.org>, Julia Lawall <julia-dAYI7NvHqcQ@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: ib-x2spCj9RiN0z5UmgcLIfJQ@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
- > Structure ib_uverbs_qp_attr is copied to userland with allmost all
- > fields uninitialized (140 bytes on x86).  It leads to leaking of
- > contents of kernel stack memory.
+On Wed, Nov 10, 2010 at 10:14:16AM -0700, ib-x2spCj9RiN0z5UmgcLIfJQ@public.gmane.org wrote:
 
-I don't think most of the fields are uninitialized... we have:
+> It seems there are several ways to transfer data via RDMA: Send/Send
+> w/immediate, Receive, RDMA Write/RDMA Write w/immediate, the Atomic
+> extensions, and then the various transport modes variations with
+> some of these operations.  As an RDMA/IB newbie, it is somewhat
+> confusing when determining the best operations for my application.
+> What are the various pros/cons of each?
 
- 	memset(&qp_attr, 0, sizeof qp_attr);
+Well, there really are quite a few trade offs, typically the main
+issue for RDMA systems should be in managing the data buffers across
+the whole application. A big cost in RDMA is registering buffers so
+you want to design a scheme that minimizes how often that is done.
 
-and then later on,
+Some basic patterns you can consider:
+ - SEND is used for small messaging and one of the small messages is
+   'I want to send you a large message, give me parameters for RDMA
+    WRITE'
+ - Or above with 'here is where you can RDMA READ' from. Writes
+   are better than reads, as there are HW limits on parallel read
+   requests.
+ - You use SEND for everything and allocate 16MB recv buffers
+ - You construct a stream semantic (like TCP) using RDMA_WRITE. This
+   is useful if the data is consumed in some way and then discarded
+   right away.
 
-	ib_copy_qp_attr_to_user(&resp, &qp_attr);
+You can start by reflecting on where the data is coming from and where
+it is headed and use that to devise a buffer management strategy.
 
-which actually does initialize almost all of the fields in resp.  The
-things that are missing are clearing out the reserved fields in the
-structures, and also resp.qp_state never gets set.
+The choice of SEND/READ/WRITE will be more evident once you understand
+how you want your data to flow. 
 
-I would suggest adding code to clear the reserved fields of structures
-to ib_copy_qp_attr_to_user() and ib_copy_ah_attr_to_user(), since this
-will fix what looks to be the same problem in ucma_init_qp_attr() (in
-drivers/infiniband/core/ucma.c).
+You almost always want to use RC connections, and if you needed to use
+Atomic's you'd probably know already :)
 
-Sean, what is intended for qp_state handling here?  It seems
-ib_copy_qp_attr_to_user() should either clear it or set it to something
-sensible.
-
- - R.
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
