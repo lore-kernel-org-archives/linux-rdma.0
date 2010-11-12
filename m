@@ -1,98 +1,63 @@
 From: "Jim Schutt" <jaschut-4OHPYypu0djtX7QSmKvirg@public.gmane.org>
-Subject: [PATCH 01/13] Revert
- "opensm: Do not require -Q option for torus-2QoS routing engine."
-Date: Fri, 12 Nov 2010 15:11:10 -0700
-Message-ID: <1289599882-15165-2-git-send-email-jaschut@sandia.gov>
-References: <1289599882-15165-1-git-send-email-jaschut@sandia.gov>
+Subject: [PATCH 00/13] opensm: Cleanups and more documentation for
+ torus-2QoS patchset
+Date: Fri, 12 Nov 2010 15:11:09 -0700
+Message-ID: <1289599882-15165-1-git-send-email-jaschut@sandia.gov>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1289599882-15165-1-git-send-email-jaschut-4OHPYypu0djtX7QSmKvirg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jim Schutt <jaschut-4OHPYypu0djtX7QSmKvirg@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This reverts commit b9691580e29c6a8cf1f45995988350c02826786d.
+Hi Sasha,
 
-Since all other routing engines require -Q to cause SL2VL maps to
-be programmed, torus-2QoS should do the same.
+These patches clean up and add documentation to the
+torus-2QoS routing module for OpenSM.  They apply on
+top of my previous bug-fix patchset from September
+(http://www.spinics.net/lists/linux-rdma/msg05809.html),
+which applies to your torus-2qos branch.
 
-Of course, torus-2QoS requires SL2VL maps to be programmed for correct
-routing, so a check for that will need to be added.
+Thanks -- Jim
 
-Signed-off-by: Jim Schutt <jaschut-4OHPYypu0djtX7QSmKvirg@public.gmane.org>
----
- opensm/opensm/osm_qos.c    |    7 ++-----
- opensm/opensm/osm_subnet.c |   18 +++++++++---------
- 2 files changed, 11 insertions(+), 14 deletions(-)
 
-diff --git a/opensm/opensm/osm_qos.c b/opensm/opensm/osm_qos.c
-index ab55918..ba198a0 100644
---- a/opensm/opensm/osm_qos.c
-+++ b/opensm/opensm/osm_qos.c
-@@ -314,9 +314,7 @@ int osm_qos_setup(osm_opensm_t * p_osm)
- 	int ret = 0;
- 	int vlarb_only;
- 
--	if (!(p_osm->subn.opt.qos ||
--	      (p_osm->routing_engine_used &&
--	       p_osm->routing_engine_used->update_sl2vl)))
-+	if (!p_osm->subn.opt.qos)
- 		return 0;
- 
- 	OSM_LOG_ENTER(&p_osm->log);
-@@ -333,8 +331,7 @@ int osm_qos_setup(osm_opensm_t * p_osm)
- 	cl_plock_excl_acquire(&p_osm->lock);
- 
- 	/* read QoS policy config file */
--	if (p_osm->subn.opt.qos)
--		osm_qos_parse_policy_file(&p_osm->subn);
-+	osm_qos_parse_policy_file(&p_osm->subn);
- 
- 	p_tbl = &p_osm->subn.port_guid_tbl;
- 	p_next = cl_qmap_head(p_tbl);
-diff --git a/opensm/opensm/osm_subnet.c b/opensm/opensm/osm_subnet.c
-index f714af7..bc34a0f 100644
---- a/opensm/opensm/osm_subnet.c
-+++ b/opensm/opensm/osm_subnet.c
-@@ -1051,8 +1051,6 @@ static void subn_verify_qos_set(osm_qos_options_t *set, const char *prefix,
- 
- int osm_subn_verify_config(IN osm_subn_opt_t * p_opts)
- {
--	osm_qos_options_t dflt;
--
- 	if (p_opts->lmc > 7) {
- 		log_report(" Invalid Cached Option Value:lmc = %u:"
- 			   "Using Default:%u\n", p_opts->lmc, OSM_DEFAULT_LMC);
-@@ -1103,15 +1101,17 @@ int osm_subn_verify_config(IN osm_subn_opt_t * p_opts)
- 		p_opts->console = OSM_DEFAULT_CONSOLE;
- 	}
- 
-+	if (p_opts->qos) {
-+		osm_qos_options_t dflt;
- 
--	/* the default options in qos_options must be correct.
--	 * every other one need not be, b/c those will default
--	 * back to whatever is in qos_options.
--	 */
--	subn_set_default_qos_options(&dflt);
--	subn_verify_qos_set(&p_opts->qos_options, "qos", &dflt);
-+		/* the default options in qos_options must be correct.
-+		 * every other one need not be, b/c those will default
-+		 * back to whatever is in qos_options.
-+		 */
- 
--	if (p_opts->qos) {
-+		subn_set_default_qos_options(&dflt);
-+
-+		subn_verify_qos_set(&p_opts->qos_options, "qos", &dflt);
- 		subn_verify_qos_set(&p_opts->qos_ca_options, "qos_ca",
- 				    &p_opts->qos_options);
- 		subn_verify_qos_set(&p_opts->qos_sw0_options, "qos_sw0",
--- 
-1.6.2.2
+Jim Schutt (13):
+  Revert "opensm: Do not require -Q option for torus-2QoS routing
+    engine."
+  opensm: torus-2QoS requires that QoS be enabled.
+  opensm/osm_ucast_mgr.c: ensure osm_ucast_mgr_process() returns
+    failure when no routing engine runs.
+  opensm: Fill in default QoS values at last possible moment.
+  opensm: Cause torus-2QoS to warn if QoS configuration will cause
+    issues.
+  opensm/osm_torus.c: Also parse DOS line endings in torus-2QoS.conf.
+  opensm/osm_torus.c: Use PRIx64 for GUID printing.
+  opensm/osm_torus.c: Ignore multiple configurations of torus size.
+  opensm/osm_subnet.c: Add torus-2QoS config file option to those
+    configurable via opensm config file.
+  opensm/main.c:  Add description of "no_fallback" to
+    "--routing_engine" option documentation.
+  opensm/man/opensm.8.in:  Add references to torus-2QoS.
+  opensm: Add torus-2QoS man pages.
+  opensm/doc/current-routing.txt: Sync torus-2QoS information with new
+    man pages.
+
+ opensm/Makefile.am              |    2 +-
+ opensm/configure.in             |    6 +-
+ opensm/doc/current-routing.txt  |  141 +++++++++++--
+ opensm/man/opensm.8.in          |   29 +++-
+ opensm/man/torus-2QoS.8.in      |  476 +++++++++++++++++++++++++++++++++++++++
+ opensm/man/torus-2QoS.conf.5.in |  184 +++++++++++++++
+ opensm/opensm/main.c            |    3 +
+ opensm/opensm/osm_qos.c         |   62 ++++--
+ opensm/opensm/osm_subnet.c      |   75 +++----
+ opensm/opensm/osm_torus.c       |  319 +++++++++++++++++---------
+ opensm/opensm/osm_ucast_mgr.c   |    1 +
+ 11 files changed, 1105 insertions(+), 193 deletions(-)
+ create mode 100644 opensm/man/torus-2QoS.8.in
+ create mode 100644 opensm/man/torus-2QoS.conf.5.in
 
 
 --
