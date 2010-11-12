@@ -1,42 +1,37 @@
-From: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH v2] mlx4: Fix IBoE link state
-Date: Thu, 11 Nov 2010 23:05:58 +0200
-Message-ID: <20101111210558.GA30436@mtldesk30>
+From: Andrea Gozzelino <Andrea.Gozzelino-PK20h7lG/Rc1GQ1Ptb7lUw@public.gmane.org>
+Subject: RDMA with multiple read/write
+Date: Fri, 12 Nov 2010 11:34:54 +0100 (CET)
+Message-ID: <5781964.1289558094205.SLOX.WebMail.wwwrun@imap.lnl.infn.it>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Cc: RDMA list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Make use of netif_running() and netif_carrier_ok() to report link state, in the
-same manner it is done to report Ethernet link state in sysfs.
+Hi,
 
-Signed-off-by: Eli Cohen <eli-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
----
-I find this version even more correct than the previous one. This
-exactly the same logic used to show the carrier in sysfs.
+I would like to perform test about RDMA server/client about multiple
+reads or/and writes.
+Can server/client store few memory regions? If yes, how?
+Client writes on different MRs with only one send WR. Is that possible?
 
- drivers/infiniband/hw/mlx4/main.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+The goal is: build an array of addresses (MRs) and write (or read) with
+a First Input Fist Output (FIFO) model using RDMA.
 
-diff --git a/drivers/infiniband/hw/mlx4/main.c b/drivers/infiniband/hw/mlx4/main.c
-index 018007c..f200b96 100644
---- a/drivers/infiniband/hw/mlx4/main.c
-+++ b/drivers/infiniband/hw/mlx4/main.c
-@@ -242,7 +242,7 @@ static int eth_link_query_port(struct ib_device *ibdev, u8 port,
- 	tmp = iboe_get_mtu(ndev->mtu);
- 	props->active_mtu = tmp ? min(props->max_mtu, tmp) : IB_MTU_256;
- 
--	props->state		= netif_running(ndev) &&  netif_oper_up(ndev) ?
-+	props->state		= (netif_running(ndev) && netif_carrier_ok(ndev)) ?
- 					IB_PORT_ACTIVE : IB_PORT_DOWN;
- 	props->phys_state	= state_to_phys_state(props->state);
- 
--- 
-1.6.0.2
+Any ideas?
+
+Thank you very much,
+Andrea Gozzelino
+
+INFN - Laboratori Nazionali di Legnaro	(LNL)
+Viale dell'Universita' 2 -I-35020 - Legnaro (PD)- ITALIA
+Office: E-101
+Tel: +39 049 8068346
+Fax: +39 049 641925
+Mail: andrea.gozzelino-PK20h7lG/Rc1GQ1Ptb7lUw@public.gmane.org
+Cell: +39 3488245552				
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
