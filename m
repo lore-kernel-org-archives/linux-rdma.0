@@ -1,8 +1,8 @@
 From: "Jim Schutt" <jaschut-4OHPYypu0djtX7QSmKvirg@public.gmane.org>
-Subject: [PATCH 05/13] opensm: Cause torus-2QoS to warn if QoS
- configuration will cause issues.
-Date: Fri, 12 Nov 2010 15:11:14 -0700
-Message-ID: <1289599882-15165-6-git-send-email-jaschut@sandia.gov>
+Subject: [PATCH 11/13] opensm/man/opensm.8.in: Add references to
+ torus-2QoS.
+Date: Fri, 12 Nov 2010 15:11:20 -0700
+Message-ID: <1289599882-15165-12-git-send-email-jaschut@sandia.gov>
 References: <1289599882-15165-1-git-send-email-jaschut@sandia.gov>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -14,131 +14,88 @@ To: sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jim Schutt <jaschut-4OHPYypu0djtX7QSmKvirg@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Torus-2QoS needs 8 VLs, and complete control over sl2vl maps, in order
-to provide 2 QoS levels with routing that is free of credit loops on torus
-fabrics.  Warn to this effect if an insufficient max_vls configuration
-or a non-default qos_sl2vl configuration is detected.
-
-Also, torus-2QoS needs to use VLs 0-3 to implement one QoS level, and
-VLs 4-7 to implement the other.  The VLarb weights for VLs 0-3 should
-all have the same value, and similarly for the weights for VLs 4-7.
-Otherwise, differences in data rates for different paths may cause
-hard-to-diagnose application issues.  Warn to this effect when
-detected.
 
 Signed-off-by: Jim Schutt <jaschut-4OHPYypu0djtX7QSmKvirg@public.gmane.org>
 ---
- opensm/opensm/osm_torus.c |   87 +++++++++++++++++++++++++++++++++++++++++++++
- 1 files changed, 87 insertions(+), 0 deletions(-)
+ opensm/man/opensm.8.in |   29 ++++++++++++++++++++++++++---
+ 1 files changed, 26 insertions(+), 3 deletions(-)
 
-diff --git a/opensm/opensm/osm_torus.c b/opensm/opensm/osm_torus.c
-index aeb4fe6..784955d 100644
---- a/opensm/opensm/osm_torus.c
-+++ b/opensm/opensm/osm_torus.c
-@@ -9038,6 +9038,84 @@ out:
- }
+diff --git a/opensm/man/opensm.8.in b/opensm/man/opensm.8.in
+index 47dff99..c021026 100644
+--- a/opensm/man/opensm.8.in
++++ b/opensm/man/opensm.8.in
+@@ -1,4 +1,4 @@
+-.TH OPENSM 8 "October 22, 2009" "OpenIB" "OpenIB Management"
++.TH OPENSM 8 "November 3, 2010" "OpenIB" "OpenIB Management"
  
- static
-+void check_vlarb_config(const char *vlarb_str, bool is_default,
-+			const char *str, const char *pri, osm_log_t *log)
-+{
-+	unsigned total_weight[IB_MAX_NUM_VLS] = {0,};
-+	unsigned i = 0, v, vl = 0;
-+	char *end;
-+	bool uniform;
+ .SH NAME
+ opensm \- InfiniBand subnet manager and administration (SM/SA)
+@@ -51,6 +51,7 @@ opensm \- InfiniBand subnet manager and administration (SM/SA)
+ [\-\-prefix_routes_file <path>]
+ [\-\-consolidate_ipv6_snm_req]
+ [\-\-log_prefix <prefix text>]
++[\-\-torus_config <path to file>]
+ [\-v(erbose)] [\-V] [\-D <flags>] [\-d(ebug) <number>]
+ [\-h(elp)] [\-?]
+ 
+@@ -148,8 +149,10 @@ LID assignments resolving multiple use of same LID.
+ This option chooses routing engine(s) to use instead of Min Hop
+ algorithm (default).  Multiple routing engines can be specified
+ separated by commas so that specific ordering of routing algorithms
+-will be tried if earlier routing engines fail.
+-Supported engines: minhop, updn, file, ftree, lash, dor
++will be tried if earlier routing engines fail.  If all configured
++routing engines fail, OpenSM will always attempt to route with Min Hop
++unless 'no_fallback' is included in the list of routing engines.
++Supported engines: minhop, updn, file, ftree, lash, dor, torus-2QoS.
+ .TP
+ \fB\-\-do_mesh_analysis\fR
+ This option enables additional analysis for the lash routing engine to
+@@ -364,6 +367,11 @@ when two or more instances of OpenSM run in a single node to manage multiple
+ fabrics. For example, in a dual-fabric (or dual-rail) IB cluster, the prefix
+ for the first fabric could be "mpi" and the other fabric could be "storage".
+ .TP
++\fB\-\-torus_config\fR <path to torus\-2QoS config file>
++This option defines the file name for the extra configuration
++information needed for the torus-2QoS routing engine.   The default
++name is \fB\%@OPENSM_CONFIG_DIR@/@TORUS2QOS_CONF_FILE@\fP
++.TP
+ \fB\-v\fR, \fB\-\-verbose\fR
+ This option increases the log verbosity level.
+ The -v option may be specified multiple times
+@@ -1004,6 +1012,14 @@ along the mesh dimension, or the -O option used as an override.
+ 
+ Use '-R dor' option to activate the DOR algorithm.
+ 
++Torus-2QoS Routing Algorithm
 +
-+	while (*vlarb_str && i++ < 2 * IB_NUM_VL_ARB_ELEMENTS_IN_BLOCK) {
-+		v = strtoul(vlarb_str, &end, 0);
-+		if (*end)
-+			end++;
-+		vlarb_str = end;
-+		if (i & 0x1)
-+			vl = v & 0xf;
-+		else
-+			total_weight[vl] += v & 0xff;
-+	}
-+	uniform = true;
-+	v = total_weight[0];
-+	for (i = 1; i < 8; i++) {
-+		if (i == 4)
-+			v = total_weight[i];
-+		if (total_weight[i] != v)
-+			uniform = false;
-+	}
-+	if (!uniform)
-+		OSM_LOG(log, OSM_LOG_INFO,
-+			"Warning: torus-2QoS requires same VLarb weights for "
-+			"VLs 0-3; also for VLs 4-7: not true for %s "
-+			"%s_vlarb_%s\n",
-+			(is_default ? "default" : "configured"), str, pri);
-+}
++Torus-2QoS is routing algorithm designed for large-scale 2D/3D torus fabrics;
++see torus-2QoS(8) for full documentation.
 +
-+static
-+void check_qos_config(osm_qos_options_t *opt, bool tgt_is_default,
-+		      const char *str, osm_log_t *log)
-+{
-+	const char *vlarb_str;
-+	bool is_default;
++Use '-R torus-2QoS -Q' or '-R torus-2QoS,no_fallback -Q'
++to activate the torus-2QoS algorithm.
 +
-+	if (opt->max_vls > 0 && opt->max_vls < 8)
-+		OSM_LOG(log, OSM_LOG_INFO,
-+			"Warning: full torus-2QoS functionality not available "
-+			"for configured %s_max_vls = %d\n", str, opt->max_vls);
+ 
+ Routing References
+ 
+@@ -1113,6 +1129,10 @@ default QOS policy config file
+ .B @OPENSM_CONFIG_DIR@/@PREFIX_ROUTES_FILE@
+ default prefix routes file.
+ 
++.TP
++.B @OPENSM_CONFIG_DIR@/@TORUS2QOS_CONF_FILE@
++default torus-2QoS config file.
 +
-+	if (opt->vlarb_high) {
-+		is_default = false;
-+		vlarb_str = opt->vlarb_high;
-+	} else{
-+		is_default = true;
-+		vlarb_str = OSM_DEFAULT_QOS_VLARB_HIGH;
-+	}
-+	/*
-+	 * Only check values that were actually configured, or the overall
-+	 * defaults that target-specific (CA, switch port, etc) defaults
-+	 * are set from.
-+	 */
-+	if (!is_default || tgt_is_default)
-+		check_vlarb_config(vlarb_str, is_default, str, "high", log);
+ .SH AUTHORS
+ .TP
+ Hal Rosenstock
+@@ -1135,3 +1155,6 @@ Ira Weiny
+ .TP
+ Dale Purdy
+ .RI < purdy-sJ/iWh9BUns@public.gmane.org >
 +
-+	if (opt->vlarb_low) {
-+		is_default = false;
-+		vlarb_str = opt->vlarb_low;
-+	} else {
-+		is_default = true;
-+		vlarb_str = OSM_DEFAULT_QOS_VLARB_LOW;
-+	}
-+	if (!is_default || tgt_is_default)
-+		check_vlarb_config(vlarb_str, is_default, str, "low", log);
-+
-+	if (opt->sl2vl)
-+		OSM_LOG(log, OSM_LOG_INFO,
-+			"Warning: torus-2QoS must override configured "
-+			"%s_sl2vl to generate deadlock-free routes\n", str);
-+}
-+
-+static
- int torus_build_lfts(void *context)
- {
- 	int status = -1;
-@@ -9111,9 +9189,18 @@ out:
- 		if (torus)
- 			teardown_torus(torus);
- 	} else {
-+		osm_subn_opt_t *opt = &torus->osm->subn.opt;
-+		osm_log_t *log = &torus->osm->log;
-+
- 		if (ctx->torus)
- 			teardown_torus(ctx->torus);
- 		ctx->torus = torus;
-+
-+		check_qos_config(&opt->qos_options, 1, "qos", log);
-+		check_qos_config(&opt->qos_ca_options, 0, "qos_ca", log);
-+		check_qos_config(&opt->qos_sw0_options, 0, "qos_sw0", log);
-+		check_qos_config(&opt->qos_swe_options, 0, "qos_swe", log);
-+		check_qos_config(&opt->qos_rtr_options, 0, "qos_rtr", log);
- 	}
- 	teardown_fabric(fabric);
- 	return status;
++.SH SEE ALSO
++torus-2QoS(8), torus-2QoS.conf(5).
 -- 
 1.6.2.2
 
