@@ -1,64 +1,58 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH] infiniband: core: fix information leak to userland
-Date: Fri, 12 Nov 2010 10:28:55 -0800
-Message-ID: <CF9C39F99A89134C9CF9C4CCB68B8DDF25B85224A6@orsmsx501.amr.corp.intel.com>
-References: <1289054481-18145-1-git-send-email-segooon@gmail.com>
- <ada39r8ohiz.fsf@cisco.com> <20101112180844.GA11533@albatros>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20101112180844.GA11533@albatros>
-Content-Language: en-US
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Vasiliy Kulikov <segooon-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Cc: "kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Alex Chiang <achiang-VXdhtT5mjnY@public.gmane.org>, Andi Kleen <ak-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Greg Kroah-Hartman <gregkh-l3A5Bk7waGM@public.gmane.org>, Julia Lawall <julia-dAYI7NvHqcQ@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+From: Joe Perches <joe-6d6DIl74uiNBDgjK7y7TUQ@public.gmane.org>
+Subject: [PATCH 00/14] Use printf extension %pR for struct resource
+Date: Fri, 12 Nov 2010 13:37:50 -0800
+Message-ID: <cover.1289597644.git.joe@perches.com>
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jiri Kosina <trivial-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-mips-6z/3iImG2C8G8FEW9MqTrA@public.gmane.org, linuxppc-dev-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, socketcan-core-0fE9KPoRgkgATYTw5x5z8w@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-parisc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, alsa-devel-K7yf7f+aM1XWsZ/bQMPhNw@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-> diff --git a/drivers/infiniband/core/ucm.c
-> b/drivers/infiniband/core/ucm.c
-> index 08f948d..f7256f3 100644
-> --- a/drivers/infiniband/core/ucm.c
-> +++ b/drivers/infiniband/core/ucm.c
-> @@ -629,6 +629,7 @@ static ssize_t ib_ucm_init_qp_attr(struct ib_ucm_file
-> *file,
->         if (result)
->                 goto out;
-> 
-> +       resp.qp_state = 0;
->         ib_copy_qp_attr_to_user(&resp, &qp_attr);
+Yet more trivia...
 
-I believe we want ib_copy_qp_attr_to_user() to assign	resp->qp_state = qp_attr->qp_state
+Joe Perches (14):
+  arch/frv: Use printf extension %pR for struct resource
+  arch/mips: Use printf extension %pR for struct resource
+  arch/powerpc: Use printf extension %pR for struct resource
+  drivers/dma/ppc4xx: Use printf extension %pR for struct resource
+  drivers/infiniband: Use printf extension %pR for struct resource
+  drivers/mfd: Use printf extension %pR for struct resource
+  drivers/mtd/maps: Use printf extension %pR for struct resource
+  drivers/mtd/nand: Use printf extension %pR for struct resource
+  drivers/net/can/sja1000: Use printf extension %pR for struct resource
+  drivers/parisc: Use printf extension %pR for struct resource
+  drivers/rapidio: Use printf extension %pR for struct resource
+  drivers/uwb: Use printf extension %pR for struct resource
+  drivers/video: Use printf extension %pR for struct resource
+  sound/ppc: Use printf extension %pR for struct resource
 
-> diff --git a/drivers/infiniband/core/ucma.c
-> b/drivers/infiniband/core/ucma.c
-> index ca12acf..07fd247 100644
-> --- a/drivers/infiniband/core/ucma.c
-> +++ b/drivers/infiniband/core/ucma.c
-> @@ -842,6 +842,7 @@ static ssize_t ucma_init_qp_attr(struct ucma_file
-> *file,
->         if (ret)
->                 goto out;
-> 
-> +       resp.qp_state = 0;
->         ib_copy_qp_attr_to_user(&resp, &qp_attr);
->         if (copy_to_user((void __user *)(unsigned long)cmd.response,
->                          &resp, sizeof(resp)))
-> diff --git a/drivers/infiniband/core/uverbs_marshall.c
-> b/drivers/infiniband/core/uverbs_marshall.c
-> index 5440da0..cceaf33 100644
-> --- a/drivers/infiniband/core/uverbs_marshall.c
-> +++ b/drivers/infiniband/core/uverbs_marshall.c
-> @@ -35,6 +35,7 @@
->  void ib_copy_ah_attr_to_user(struct ib_uverbs_ah_attr *dst, struct
-> ib_ah_attr *src)
->  {
-> +       memset(&dst->grh, 0, sizeof(dst->grh));
+ arch/frv/mb93090-mb00/pci-vdk.c               |    8 ++------
+ arch/mips/txx9/generic/pci.c                  |    7 ++-----
+ arch/powerpc/kernel/pci_64.c                  |    3 +--
+ arch/powerpc/sysdev/tsi108_dev.c              |    8 ++++----
+ drivers/dma/ppc4xx/adma.c                     |    5 ++---
+ drivers/infiniband/hw/ipath/ipath_driver.c    |    5 ++---
+ drivers/mfd/sm501.c                           |    7 ++-----
+ drivers/mtd/maps/amd76xrom.c                  |    7 ++-----
+ drivers/mtd/maps/ck804xrom.c                  |    7 ++-----
+ drivers/mtd/maps/esb2rom.c                    |    9 +++------
+ drivers/mtd/maps/ichxrom.c                    |    9 +++------
+ drivers/mtd/maps/physmap_of.c                 |    4 +---
+ drivers/mtd/maps/scx200_docflash.c            |    5 ++---
+ drivers/mtd/nand/pasemi_nand.c                |    2 +-
+ drivers/net/can/sja1000/sja1000_of_platform.c |    8 ++------
+ drivers/parisc/dino.c                         |   13 +++++--------
+ drivers/parisc/hppb.c                         |    6 ++----
+ drivers/rapidio/rio.c                         |    4 ++--
+ drivers/uwb/umc-dev.c                         |    7 ++-----
+ drivers/video/platinumfb.c                    |    8 ++------
+ sound/ppc/pmac.c                              |   12 ++++--------
+ 21 files changed, 48 insertions(+), 96 deletions(-)
 
-We only need to set dst->grh.reserved = 0.  The other fields are assigned. 
+-- 
+1.7.3.1.g432b3.dirty
 
-- Sean
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
