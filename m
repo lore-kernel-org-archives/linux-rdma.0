@@ -1,37 +1,21 @@
-From: Andrea Gozzelino <Andrea.Gozzelino-PK20h7lG/Rc1GQ1Ptb7lUw@public.gmane.org>
-Subject: RDMA with multiple read/write
-Date: Fri, 12 Nov 2010 11:34:54 +0100 (CET)
-Message-ID: <5781964.1289558094205.SLOX.WebMail.wwwrun@imap.lnl.infn.it>
+From: ib-x2spCj9RiN0z5UmgcLIfJQ@public.gmane.org
+Subject: Is multicast only available with UD Transport mode?
+Date: Fri, 12 Nov 2010 10:12:23 -0700
+Message-ID: <20101112101223.44mbsbnygwcw0008@peddycoart.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+	charset=ISO-8859-1;
+	DelSp="Yes";
+	format="flowed"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hi,
+Is multicast only available with UD Transport mode?
 
-I would like to perform test about RDMA server/client about multiple
-reads or/and writes.
-Can server/client store few memory regions? If yes, how?
-Client writes on different MRs with only one send WR. Is that possible?
-
-The goal is: build an array of addresses (MRs) and write (or read) with
-a First Input Fist Output (FIFO) model using RDMA.
-
-Any ideas?
-
-Thank you very much,
-Andrea Gozzelino
-
-INFN - Laboratori Nazionali di Legnaro	(LNL)
-Viale dell'Universita' 2 -I-35020 - Legnaro (PD)- ITALIA
-Office: E-101
-Tel: +39 049 8068346
-Fax: +39 049 641925
-Mail: andrea.gozzelino-PK20h7lG/Rc1GQ1Ptb7lUw@public.gmane.org
-Cell: +39 3488245552				
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
