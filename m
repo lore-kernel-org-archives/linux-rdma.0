@@ -1,69 +1,214 @@
-From: Vasiliy Kulikov <segoon-cxoSlKxDwOJWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH v2] infiniband: core: fix information leak to userspace
-Date: Sun, 14 Nov 2010 12:22:52 +0300
-Message-ID: <20101114092252.GA5323@albatros>
-References: <1289054481-18145-1-git-send-email-segooon@gmail.com>
- <ada39r8ohiz.fsf@cisco.com>
- <20101112180844.GA11533@albatros>
- <CF9C39F99A89134C9CF9C4CCB68B8DDF25B85224A6@orsmsx501.amr.corp.intel.com>
+From: Nir Muchtar <nirm-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH 0/3] IB Netlink Interface and RDMA CM exports
+Date: Sun, 14 Nov 2010 18:12:34 +0200
+Message-ID: <4CE00A72.30001@voltaire.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <CF9C39F99A89134C9CF9C4CCB68B8DDF25B85224A6-osO9UTpF0USkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, "kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Alex Chiang <achiang-VXdhtT5mjnY@public.gmane.org>, Andi Kleen <ak-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Greg Kroah-Hartman <gregkh-l3A5Bk7waGM@public.gmane.org>, Julia Lawall <julia-dAYI7NvHqcQ@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, monis-smomgflXvOZWk0Htik3J/w@public.gmane.org, ogerlitz-hKgKHo2Ms0FWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-ib_ucm_init_qp_attr() and ucma_init_qp_attr() pass struct ib_uverbs_qp_attr
-with reserved, qp_state, {ah_attr,alt_ah_attr}{reserved,->grh.reserved}
-fields uninitialized to copy_to_user().  It leads to leaking of contents of
-kernel stack memory to userspace.
+This patch set provides means for communicating internal data from IB modules
+to the userspace.It is composed of three components:
+1. Main ib_netlink module which is independent of IB modules.(ib_netlink.ko).
+2. "plug-in" modules per client IB module.(only ib_netlink_rdma_cm.ko for now).
+   Depends on (1) and (3). Their role is to keep (1) and (3) independent
+   as well as choosing callbacks to call, based on the requested op.
+   This doesn't actually happen in ib_netlink_rdma_cm.ko because at the moment,
+   only one callback is implemented.
+3. additional callbacks which are implemented inside existing IB modules.
+   (only rdma_cm for now).
+   No additional dependencies, and existing flows stay untouched.
 
-Signed-off-by: Vasiliy Kulikov <segoon-cxoSlKxDwOJWk0Htik3J/w@public.gmane.org>
----
- Compile tested.
+At the moment the implementation is basic and generic.
+ib_netlink uses the standard netlink module and defines a new netlink unit
+(NETLINK_INFINIBAND) in netlink.h.
+Upon receiving a request from userspace, it finds the target client using a
+registration mechanism, allocates a raw buffer (skbuff) for the client IB module
+to write its data on, and then, forwards the result back.
+The size of the buffer space to be allocated is returned by the IB module,
+which is also responsible to write no more than the given size.
+The exact format of the returned data is unknown to ib_netlink itself.
+It is shared between the kernel and userspace in the form of common headers.
+The current choice of format is for reasons of simplicity.
 
- drivers/infiniband/core/uverbs_marshall.c |    4 ++++
- 1 files changed, 4 insertions(+), 0 deletions(-)
+A quick and dirty userspace demo application output+source is attached for reference.
+Sample output:
+Type  Device   Port  PID    Net_dev    Src Address          Dst Address          Space  State           QPN      
+IB    mthca0   1     27404  ib0        192.168.168.3/7174   N/A                  TCP    LISTEN          0        
+IB    mthca0   2     27415  ib1        192.168.2.3/7174     N/A                  TCP    LISTEN          0        
+IB    mthca0   1     30     ib0        192.168.168.3/7174   192.168.168.2/57354  TCP    CONNECT         590854   
+IB    mthca0   2     15     ib1        192.168.2.3/7174     192.168.2.4/33290    TCP    CONNECT         590855   
 
-diff --git a/drivers/infiniband/core/uverbs_marshall.c b/drivers/infiniband/core/uverbs_marshall.c
-index 5440da0..1b1146f 100644
---- a/drivers/infiniband/core/uverbs_marshall.c
-+++ b/drivers/infiniband/core/uverbs_marshall.c
-@@ -40,18 +40,21 @@ void ib_copy_ah_attr_to_user(struct ib_uverbs_ah_attr *dst,
- 	dst->grh.sgid_index        = src->grh.sgid_index;
- 	dst->grh.hop_limit         = src->grh.hop_limit;
- 	dst->grh.traffic_class     = src->grh.traffic_class;
-+	memset(&dst->grh.reserved, 0, sizeof(dst->grh.reserved));
- 	dst->dlid 	    	   = src->dlid;
- 	dst->sl   	    	   = src->sl;
- 	dst->src_path_bits 	   = src->src_path_bits;
- 	dst->static_rate   	   = src->static_rate;
- 	dst->is_global             = src->ah_flags & IB_AH_GRH ? 1 : 0;
- 	dst->port_num 	    	   = src->port_num;
-+	dst->reserved 		   = 0;
- }
- EXPORT_SYMBOL(ib_copy_ah_attr_to_user);
- 
- void ib_copy_qp_attr_to_user(struct ib_uverbs_qp_attr *dst,
- 			     struct ib_qp_attr *src)
- {
-+	dst->qp_state	        = src->qp_state;
- 	dst->cur_qp_state	= src->cur_qp_state;
- 	dst->path_mtu		= src->path_mtu;
- 	dst->path_mig_state	= src->path_mig_state;
-@@ -83,6 +86,7 @@ void ib_copy_qp_attr_to_user(struct ib_uverbs_qp_attr *dst,
- 	dst->rnr_retry		= src->rnr_retry;
- 	dst->alt_port_num	= src->alt_port_num;
- 	dst->alt_timeout	= src->alt_timeout;
-+	memset(dst->reserved, 0, sizeof(dst->reserved));
- }
- EXPORT_SYMBOL(ib_copy_qp_attr_to_user);
- 
--- 
-1.7.0.4
+Source:
+#include <stdlib.h>
+#include <stdio.h>
+#include <sys/types.h>
+#include <unistd.h>
+#include <string.h>
+#include <errno.h>
+#include <arpa/inet.h>
+
+#include <sys/socket.h>
+#include <sys/types.h>
+#include <netinet/in.h>
+#include <linux/netlink.h>
+#include "rdma_cma.h"
+#include "ib_netlink.h"
+
+#include <sys/ioctl.h>
+#include <net/if.h>
+#include <net/if_arp.h>
+
+#define MAX_PAYLOAD 1024  
+
+struct sockaddr_nl src_addr, dest_addr;
+struct nlmsghdr *nlh = NULL;
+struct msghdr msg;
+struct iovec iov;
+int sock_fd;
+struct rdma_cm_stats *stats;
+struct rdma_cm_device_stats *cur_device_stats;
+struct rdma_cm_id_stats *cur_id_stats;
+void *buff_head;
+int i, j;
+
+char *get_ifname(int index)
+{
+	static struct ifreq req;
+	int sock = socket(AF_INET, SOCK_DGRAM, 0);
+	req.ifr_ifindex = index;
+	if (index == 0) {
+		return "N/A";
+	}
+	if (ioctl(sock, SIOCGIFNAME, &req) < 0) {
+		fprintf(stderr, "SIOCGIFNAME failed for index %d\n", index);
+		return "N/A";
+	}
+	return req.ifr_name;
+}
+
+static const char *format_cma_state(enum cma_state s)
+{
+	switch (s) {
+	case CMA_IDLE:           return "IDLE";
+	case CMA_ADDR_QUERY:     return "ADDR_QUERY";
+	case CMA_ADDR_RESOLVED:  return "ADDR_RESOLVED";
+	case CMA_ROUTE_QUERY:    return "ROUTE_QUERY";
+	case CMA_ROUTE_RESOLVED: return "ROUTE_RESOLVED";
+	case CMA_CONNECT:        return "CONNECT";
+	case CMA_DISCONNECT:     return "DISCONNECT";
+	case CMA_ADDR_BOUND:     return "ADDR_BOUND";
+	case CMA_LISTEN:         return "LISTEN";
+	case CMA_DEVICE_REMOVAL: return "DEVICE_REMOVAL";
+	case CMA_DESTROYING:     return "DESTROYING";
+	default: 	         return "N/A";
+	}
+}
+
+static const char *format_port_space(enum rdma_port_space ps)
+{
+	switch (ps) {
+	case RDMA_PS_SDP:       return "SDP";
+	case RDMA_PS_IPOIB:     return "IPOIB";
+	case RDMA_PS_TCP:       return "TCP";
+	case RDMA_PS_UDP:       return "UDP";
+	default: 	        return "N/A";
+	}
+}
+
+static const char *format_node_type(enum rdma_node_type nt)
+{
+	switch (nt) {
+	case ARPHRD_INFINIBAND:	return "IB";
+	case ARPHRD_ETHER: 	return "IW";
+	default:		return "N/A";
+	}
+}
+
+static int format_address(struct sockaddr *addr, char *buff)
+{
+	struct sockaddr_in *addr_in = (struct sockaddr_in *)addr;
+	if (addr_in->sin_addr.s_addr) {
+		sprintf(buff, "%s/%d", inet_ntoa(addr_in->sin_addr), ntohs(addr_in->sin_port));
+	} 
+	else
+		sprintf(buff, "N/A");
+	return 0;
+}
+
+int main()
+{
+	char tmp_buff[64];
+
+	sock_fd = socket(PF_NETLINK, SOCK_RAW, NETLINK_INFINIBAND);
+	if (sock_fd < 0) {
+		printf("Failed to create socket. Error: %s (%d)\n", strerror(errno), errno);
+		return -1;
+	}
+
+	memset(&src_addr, 0, sizeof(src_addr));
+	src_addr.nl_family = AF_NETLINK;
+	src_addr.nl_pid = getpid();  /* self pid */
+	src_addr.nl_groups = 0;  /* not in mcast groups */
+	bind(sock_fd, (struct sockaddr*)&src_addr, sizeof(src_addr));
+
+	memset(&dest_addr, 0, sizeof(dest_addr));
+	dest_addr.nl_family = AF_NETLINK;
+	dest_addr.nl_pid = 0;   /* For Linux Kernel */
+	dest_addr.nl_groups = 0; /* unicast */
+
+	nlh=(struct nlmsghdr *)malloc(NLMSG_SPACE(MAX_PAYLOAD));
+	/* Fill the netlink message header */
+	nlh->nlmsg_len = NLMSG_SPACE(MAX_PAYLOAD);
+	nlh->nlmsg_pid = getpid();  /* self pid */
+	nlh->nlmsg_flags = NLM_F_REQUEST;
+	nlh->nlmsg_type = IBNL_GET_TYPE(IBNL_RDMA_CM, IBNL_RDMA_CM_STATS);
+
+	iov.iov_base = (void *)nlh;
+	iov.iov_len = nlh->nlmsg_len;
+	msg.msg_name = (void *)&dest_addr;
+	msg.msg_namelen = sizeof(dest_addr);
+	msg.msg_iov = &iov;
+	msg.msg_iovlen = 1;
+
+	sendmsg(sock_fd, &msg, 0);
+
+	memset(nlh, 0, NLMSG_SPACE(MAX_PAYLOAD));
+	recvmsg(sock_fd, &msg, 0);
+	stats = NLMSG_DATA(nlh);
+	buff_head = stats + 1;
+	for (i = 0; i < stats->num_devices; i++) {
+		cur_device_stats = buff_head;
+		buff_head = cur_device_stats + 1;
+		printf("%-5s %-8s %-5s %-6s %-10s %-20s %-20s %-6s %-15s %-8s \n",
+			"Type", "Device", "Port", "PID", "Net_dev", "Src Address",
+			"Dst Address", "Space", "State", "QPN");
+		for (j = 0; j < cur_device_stats->num_ids; j++) {
+			cur_id_stats = buff_head;
+			buff_head = cur_id_stats + 1;
+			printf("%-5s %-8s %-5d %-6u %-10s ", 
+				format_node_type(cur_id_stats->nt), 
+				cur_device_stats->name, 
+				cur_id_stats->port_num,
+				cur_id_stats->pid,
+				get_ifname(cur_id_stats->bound_dev_if));
+			format_address(&cur_id_stats->local_addr, tmp_buff);
+			printf("%-20s ",tmp_buff);
+			format_address(&cur_id_stats->remote_addr, tmp_buff);
+			printf("%-20s ",tmp_buff);
+			printf("%-6s %-15s %-8d \n",
+				format_port_space(cur_id_stats->ps),
+				format_cma_state(cur_id_stats->cma_state),
+				cur_id_stats->qp_num);
+		}
+	}
+	close(sock_fd);
+	return 0;
+}
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
