@@ -1,7 +1,7 @@
 From: Nir Muchtar <nirm-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH 0/3] IB Netlink Interface and RDMA CM exports
-Date: Sun, 14 Nov 2010 18:12:34 +0200
-Message-ID: <4CE00A72.30001@voltaire.com>
+Subject: [PATCH 1/3] IB Netlink Infrastructure
+Date: Sun, 14 Nov 2010 18:12:49 +0200
+Message-ID: <4CE00A81.3010401@voltaire.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
@@ -11,204 +11,311 @@ To: rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, monis-smomgflXvOZWk0Htik3J/w@public.gmane.org, ogerlitz-hKgKHo2Ms0FWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-This patch set provides means for communicating internal data from IB modules
-to the userspace.It is composed of three components:
-1. Main ib_netlink module which is independent of IB modules.(ib_netlink.ko).
-2. "plug-in" modules per client IB module.(only ib_netlink_rdma_cm.ko for now).
-   Depends on (1) and (3). Their role is to keep (1) and (3) independent
-   as well as choosing callbacks to call, based on the requested op.
-   This doesn't actually happen in ib_netlink_rdma_cm.ko because at the moment,
-   only one callback is implemented.
-3. additional callbacks which are implemented inside existing IB modules.
-   (only rdma_cm for now).
-   No additional dependencies, and existing flows stay untouched.
+The basic IB netlink infrastructure and makefile addons.
+A new kernel module is implemented which doesn't depend on IB modules.
+It allows for registration of IB module for which data is to be exported.
 
-At the moment the implementation is basic and generic.
-ib_netlink uses the standard netlink module and defines a new netlink unit
-(NETLINK_INFINIBAND) in netlink.h.
-Upon receiving a request from userspace, it finds the target client using a
-registration mechanism, allocates a raw buffer (skbuff) for the client IB module
-to write its data on, and then, forwards the result back.
-The size of the buffer space to be allocated is returned by the IB module,
-which is also responsible to write no more than the given size.
-The exact format of the returned data is unknown to ib_netlink itself.
-It is shared between the kernel and userspace in the form of common headers.
-The current choice of format is for reasons of simplicity.
+Signed-off-by: Nir Muchtar <nirm-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+---
+ drivers/infiniband/Kconfig        |    8 ++
+ drivers/infiniband/core/Makefile  |    6 +
+ drivers/infiniband/core/netlink.c |  182 +++++++++++++++++++++++++++++++++++++
+ include/linux/netlink.h           |    1 +
+ include/net/ib_netlink.h          |   41 ++++++++
+ 5 files changed, 238 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/infiniband/core/netlink.c
+ create mode 100644 include/net/ib_netlink.h
 
-A quick and dirty userspace demo application output+source is attached for reference.
-Sample output:
-Type  Device   Port  PID    Net_dev    Src Address          Dst Address          Space  State           QPN      
-IB    mthca0   1     27404  ib0        192.168.168.3/7174   N/A                  TCP    LISTEN          0        
-IB    mthca0   2     27415  ib1        192.168.2.3/7174     N/A                  TCP    LISTEN          0        
-IB    mthca0   1     30     ib0        192.168.168.3/7174   192.168.168.2/57354  TCP    CONNECT         590854   
-IB    mthca0   2     15     ib1        192.168.2.3/7174     192.168.2.4/33290    TCP    CONNECT         590855   
+diff --git a/drivers/infiniband/Kconfig b/drivers/infiniband/Kconfig
+index 6e35ecc..8d8a40a 100644
+--- a/drivers/infiniband/Kconfig
++++ b/drivers/infiniband/Kconfig
+@@ -30,6 +30,14 @@ config INFINIBAND_USER_ACCESS
+ 	  libibverbs, libibcm and a hardware driver library from
+ 	  <http://www.openfabrics.org/git/>.
+ 
++config INFINIBAND_NETLINK
++	tristate "InfiniBand netlink interface"
++	---help---
++	  Infiniband netlink infrastrucure and modules. This allows
++	  for IB module data to be exported into userspace using
++	  netlink socket applications.
++	  <http://www.openib.org>.
++
+ config INFINIBAND_USER_MEM
+ 	bool
+ 	depends on INFINIBAND_USER_ACCESS != n
+diff --git a/drivers/infiniband/core/Makefile b/drivers/infiniband/core/Makefile
+index cb1ab3e..c088233 100644
+--- a/drivers/infiniband/core/Makefile
++++ b/drivers/infiniband/core/Makefile
+@@ -7,6 +7,8 @@ obj-$(CONFIG_INFINIBAND_USER_MAD) +=	ib_umad.o
+ obj-$(CONFIG_INFINIBAND_USER_ACCESS) +=	ib_uverbs.o ib_ucm.o \
+ 					$(user_access-y)
+ 
++obj-$(CONFIG_INFINIBAND_NETLINK) +=	ib_netlink.o ib_netlink_rdma_cm.o
++
+ ib_core-y :=			packer.o ud_header.o verbs.o sysfs.o \
+ 				device.o fmr_pool.o cache.o
+ ib_core-$(CONFIG_INFINIBAND_USER_MEM) += umem.o
+@@ -30,3 +32,7 @@ ib_umad-y :=			user_mad.o
+ ib_ucm-y :=			ucm.o
+ 
+ ib_uverbs-y :=			uverbs_main.o uverbs_cmd.o uverbs_marshall.o
++
++ib_netlink-y :=			netlink.o
++
++ib_netlink_rdma_cm-y :=			netlink_cma.o
+diff --git a/drivers/infiniband/core/netlink.c b/drivers/infiniband/core/netlink.c
+new file mode 100644
+index 0000000..41fab69
+--- /dev/null
++++ b/drivers/infiniband/core/netlink.c
+@@ -0,0 +1,182 @@
++/*
++ * Copyright (c) 2010 Voltaire Inc.  All rights reserved.
++ *
++ * This software is available to you under a choice of one of two
++ * licenses.  You may choose to be licensed under the terms of the GNU
++ * General Public License (GPL) Version 2, available from the file
++ * COPYING in the main directory of this source tree, or the
++ * OpenIB.org BSD license below:
++ *
++ *     Redistribution and use in source and binary forms, with or
++ *     without modification, are permitted provided that the following
++ *     conditions are met:
++ *
++ *      - Redistributions of source code must retain the above
++ *        copyright notice, this list of conditions and the following
++ *        disclaimer.
++ *
++ *      - Redistributions in binary form must reproduce the above
++ *        copyright notice, this list of conditions and the following
++ *        disclaimer in the documentation and/or other materials
++ *        provided with the distribution.
++ *
++ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
++ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
++ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
++ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
++ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
++ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
++ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
++ * SOFTWARE.
++ */
++
++#define pr_fmt(fmt) "%s:%s: " fmt, KBUILD_MODNAME, __func__
++
++#include <linux/module.h>
++#include <linux/netlink.h>
++
++#include <net/netlink.h>
++#include <net/net_namespace.h>
++#include <net/ib_netlink.h>
++
++MODULE_AUTHOR("Nir Muchtar");
++MODULE_DESCRIPTION("IB Netlink Adapter");
++MODULE_LICENSE("Dual BSD/GPL");
++
++struct ibnl_cb {
++	struct list_head	list;
++	int module;
++	int (*get_size)(int op, int *size);
++	int (*get_data)(int op, char *buf, int len);
++};
++
++static DEFINE_MUTEX(ibnl_mutex);
++static struct sock *nls;
++static LIST_HEAD(cb_list);
++
++int ibnl_add_cb(int module, int (*get_size)(int op, int *size),
++		int (*get_data)(int op, char *buf, int len))
++{
++	struct ibnl_cb *cur;
++	struct ibnl_cb *nl_cb = kmalloc(sizeof *nl_cb, GFP_KERNEL);
++
++	if (!nl_cb)
++		return -ENOMEM;
++	nl_cb->module = module;
++	nl_cb->get_size = get_size;
++	nl_cb->get_data = get_data;
++	mutex_lock(&ibnl_mutex);
++	list_for_each_entry(cur, &cb_list, list) {
++		if (cur->module == module) {
++			pr_warn("Callback for %d already exists\n", module);
++			mutex_unlock(&ibnl_mutex);
++			return -EINVAL;
++		}
++	}
++	list_add_tail(&nl_cb->list, &cb_list);
++	mutex_unlock(&ibnl_mutex);
++	return 0;
++}
++EXPORT_SYMBOL(ibnl_add_cb);
++
++int ibnl_remove_cb(int module)
++{
++	struct ibnl_cb *cur, *next;
++
++	mutex_lock(&ibnl_mutex);
++	list_for_each_entry_safe(cur, next, &cb_list, list) {
++		if (cur->module == module) {
++			list_del(&(cur->list));
++			kfree(cur);
++			mutex_unlock(&ibnl_mutex);
++			return 0;
++		}
++	}
++	pr_warn("Can't remove callback for module %d. Not found\n", module);
++	mutex_unlock(&ibnl_mutex);
++	return -EINVAL;
++}
++EXPORT_SYMBOL(ibnl_remove_cb);
++
++static int ibnl_send_unicast(int pid, int op, struct ibnl_cb *cb)
++{
++	void *data;
++	struct nlmsghdr *nl_hdr;
++	int size, ret;
++	struct sk_buff *nl_skb = NULL;
++
++	ret = cb->get_size(op, &size);
++	if (ret)
++		goto err;
++	nl_skb = alloc_skb(NLMSG_SPACE(size), GFP_KERNEL);
++	if (!nl_skb) {
++		pr_info("Couldn't allocate skb\n");
++		goto nlmsg_failure;
++	}
++	nl_hdr = NLMSG_PUT(nl_skb, 0, 0, 0, size);
++	data = NLMSG_DATA(nl_hdr);
++	ret = cb->get_data(op, data, size);
++	/* We send all available data even if the buffer was too small. */
++	if (ret && ret != -ENOMEM)
++		goto err;
++	netlink_unicast(nls, nl_skb, pid, MSG_DONTWAIT);
++	return 0;
++
++nlmsg_failure:
++	if (nl_skb)
++		kfree_skb(nl_skb);
++	return -ENOMEM;
++err:
++	if (nl_skb)
++		kfree_skb(nl_skb);
++	return ret;
++}
++
++static int ibnl_rcv_msg(struct sk_buff *skb, struct nlmsghdr *nlh)
++{
++	struct ibnl_cb *cb;
++	int type = nlh->nlmsg_type;
++	int pid = nlh->nlmsg_pid;
++	int module = IBNL_GET_MODULE(type);
++
++	list_for_each_entry(cb, &cb_list, list) {
++		if (cb->module == module)
++			return ibnl_send_unicast(pid, IBNL_GET_OP(type), cb);
++	}
++	pr_info("Callback for module %d not found\n", module);
++	return -EINVAL;
++}
++
++static void ibnl_rcv(struct sk_buff *skb)
++{
++	mutex_lock(&ibnl_mutex);
++	netlink_rcv_skb(skb, &ibnl_rcv_msg);
++	mutex_unlock(&ibnl_mutex);
++}
++
++static int __init ibnl_init(void)
++{
++	nls = netlink_kernel_create(&init_net, NETLINK_INFINIBAND, 0, ibnl_rcv,
++				    NULL, THIS_MODULE);
++	if (!nls) {
++		pr_warn("Failed to create netlink socket\n");
++		return -ENOMEM;
++	}
++	return 0;
++}
++
++static void __exit ibnl_cleanup(void)
++{
++	struct ibnl_cb *cur, *next;
++
++	mutex_lock(&ibnl_mutex);
++	list_for_each_entry_safe(cur, next, &cb_list, list) {
++		list_del(&(cur->list));
++		kfree(cur);
++	}
++	mutex_unlock(&ibnl_mutex);
++	netlink_kernel_release(nls);
++}
++
++module_init(ibnl_init);
++module_exit(ibnl_cleanup);
+diff --git a/include/linux/netlink.h b/include/linux/netlink.h
+index 1235669..c9693f9 100644
+--- a/include/linux/netlink.h
++++ b/include/linux/netlink.h
+@@ -24,6 +24,7 @@
+ /* leave room for NETLINK_DM (DM Events) */
+ #define NETLINK_SCSITRANSPORT	18	/* SCSI Transports */
+ #define NETLINK_ECRYPTFS	19
++#define NETLINK_INFINIBAND	20
+ 
+ #define MAX_LINKS 32		
+ 
+diff --git a/include/net/ib_netlink.h b/include/net/ib_netlink.h
+new file mode 100644
+index 0000000..3cf0e84
+--- /dev/null
++++ b/include/net/ib_netlink.h
+@@ -0,0 +1,41 @@
++#ifndef _IBNETLINK_H
++#define _IBNETLINK_H
++
++#include <rdma/rdma_cm.h>
++
++enum {
++	IBNL_RDMA_CM = 1
++};
++
++enum {
++	IBNL_RDMA_CM_STATS = 0
++};
++
++#define IBNL_GET_MODULE(type) ((type & (((1 << 6) - 1) << 10)) >> 10)
++#define IBNL_GET_OP(type) (type & ((1 << 10) - 1))
++#define IBNL_GET_TYPE(module, op) ((module << 10) + op)
++
++#ifdef __KERNEL__
++
++/**
++ * Add a callback for an IB module to the IB netlink module.
++ * @module: The added IB module
++ * @get_size: A callback for obtaining the necessary size for the returned data
++ * @get_data: A callback for obtaining the data
++ *
++ * Returns 0 on success or a negative error code.
++ */
++int ibnl_add_cb(int module, int (*get_size)(int op, int *size),
++		int (*get_data)(int op, char *buf, int len));
++
++/**
++ * Remove a callback for a registered IB module
++ * @module: The removed IB module
++ *
++ * Returns 0 on success or a negative error code.
++ */
++int ibnl_remove_cb(int module);
++
++#endif /* __KERNEL__ */
++
++#endif /* _IBNETLINK_H */
+-- 
+1.7.0.4
 
-Source:
-#include <stdlib.h>
-#include <stdio.h>
-#include <sys/types.h>
-#include <unistd.h>
-#include <string.h>
-#include <errno.h>
-#include <arpa/inet.h>
-
-#include <sys/socket.h>
-#include <sys/types.h>
-#include <netinet/in.h>
-#include <linux/netlink.h>
-#include "rdma_cma.h"
-#include "ib_netlink.h"
-
-#include <sys/ioctl.h>
-#include <net/if.h>
-#include <net/if_arp.h>
-
-#define MAX_PAYLOAD 1024  
-
-struct sockaddr_nl src_addr, dest_addr;
-struct nlmsghdr *nlh = NULL;
-struct msghdr msg;
-struct iovec iov;
-int sock_fd;
-struct rdma_cm_stats *stats;
-struct rdma_cm_device_stats *cur_device_stats;
-struct rdma_cm_id_stats *cur_id_stats;
-void *buff_head;
-int i, j;
-
-char *get_ifname(int index)
-{
-	static struct ifreq req;
-	int sock = socket(AF_INET, SOCK_DGRAM, 0);
-	req.ifr_ifindex = index;
-	if (index == 0) {
-		return "N/A";
-	}
-	if (ioctl(sock, SIOCGIFNAME, &req) < 0) {
-		fprintf(stderr, "SIOCGIFNAME failed for index %d\n", index);
-		return "N/A";
-	}
-	return req.ifr_name;
-}
-
-static const char *format_cma_state(enum cma_state s)
-{
-	switch (s) {
-	case CMA_IDLE:           return "IDLE";
-	case CMA_ADDR_QUERY:     return "ADDR_QUERY";
-	case CMA_ADDR_RESOLVED:  return "ADDR_RESOLVED";
-	case CMA_ROUTE_QUERY:    return "ROUTE_QUERY";
-	case CMA_ROUTE_RESOLVED: return "ROUTE_RESOLVED";
-	case CMA_CONNECT:        return "CONNECT";
-	case CMA_DISCONNECT:     return "DISCONNECT";
-	case CMA_ADDR_BOUND:     return "ADDR_BOUND";
-	case CMA_LISTEN:         return "LISTEN";
-	case CMA_DEVICE_REMOVAL: return "DEVICE_REMOVAL";
-	case CMA_DESTROYING:     return "DESTROYING";
-	default: 	         return "N/A";
-	}
-}
-
-static const char *format_port_space(enum rdma_port_space ps)
-{
-	switch (ps) {
-	case RDMA_PS_SDP:       return "SDP";
-	case RDMA_PS_IPOIB:     return "IPOIB";
-	case RDMA_PS_TCP:       return "TCP";
-	case RDMA_PS_UDP:       return "UDP";
-	default: 	        return "N/A";
-	}
-}
-
-static const char *format_node_type(enum rdma_node_type nt)
-{
-	switch (nt) {
-	case ARPHRD_INFINIBAND:	return "IB";
-	case ARPHRD_ETHER: 	return "IW";
-	default:		return "N/A";
-	}
-}
-
-static int format_address(struct sockaddr *addr, char *buff)
-{
-	struct sockaddr_in *addr_in = (struct sockaddr_in *)addr;
-	if (addr_in->sin_addr.s_addr) {
-		sprintf(buff, "%s/%d", inet_ntoa(addr_in->sin_addr), ntohs(addr_in->sin_port));
-	} 
-	else
-		sprintf(buff, "N/A");
-	return 0;
-}
-
-int main()
-{
-	char tmp_buff[64];
-
-	sock_fd = socket(PF_NETLINK, SOCK_RAW, NETLINK_INFINIBAND);
-	if (sock_fd < 0) {
-		printf("Failed to create socket. Error: %s (%d)\n", strerror(errno), errno);
-		return -1;
-	}
-
-	memset(&src_addr, 0, sizeof(src_addr));
-	src_addr.nl_family = AF_NETLINK;
-	src_addr.nl_pid = getpid();  /* self pid */
-	src_addr.nl_groups = 0;  /* not in mcast groups */
-	bind(sock_fd, (struct sockaddr*)&src_addr, sizeof(src_addr));
-
-	memset(&dest_addr, 0, sizeof(dest_addr));
-	dest_addr.nl_family = AF_NETLINK;
-	dest_addr.nl_pid = 0;   /* For Linux Kernel */
-	dest_addr.nl_groups = 0; /* unicast */
-
-	nlh=(struct nlmsghdr *)malloc(NLMSG_SPACE(MAX_PAYLOAD));
-	/* Fill the netlink message header */
-	nlh->nlmsg_len = NLMSG_SPACE(MAX_PAYLOAD);
-	nlh->nlmsg_pid = getpid();  /* self pid */
-	nlh->nlmsg_flags = NLM_F_REQUEST;
-	nlh->nlmsg_type = IBNL_GET_TYPE(IBNL_RDMA_CM, IBNL_RDMA_CM_STATS);
-
-	iov.iov_base = (void *)nlh;
-	iov.iov_len = nlh->nlmsg_len;
-	msg.msg_name = (void *)&dest_addr;
-	msg.msg_namelen = sizeof(dest_addr);
-	msg.msg_iov = &iov;
-	msg.msg_iovlen = 1;
-
-	sendmsg(sock_fd, &msg, 0);
-
-	memset(nlh, 0, NLMSG_SPACE(MAX_PAYLOAD));
-	recvmsg(sock_fd, &msg, 0);
-	stats = NLMSG_DATA(nlh);
-	buff_head = stats + 1;
-	for (i = 0; i < stats->num_devices; i++) {
-		cur_device_stats = buff_head;
-		buff_head = cur_device_stats + 1;
-		printf("%-5s %-8s %-5s %-6s %-10s %-20s %-20s %-6s %-15s %-8s \n",
-			"Type", "Device", "Port", "PID", "Net_dev", "Src Address",
-			"Dst Address", "Space", "State", "QPN");
-		for (j = 0; j < cur_device_stats->num_ids; j++) {
-			cur_id_stats = buff_head;
-			buff_head = cur_id_stats + 1;
-			printf("%-5s %-8s %-5d %-6u %-10s ", 
-				format_node_type(cur_id_stats->nt), 
-				cur_device_stats->name, 
-				cur_id_stats->port_num,
-				cur_id_stats->pid,
-				get_ifname(cur_id_stats->bound_dev_if));
-			format_address(&cur_id_stats->local_addr, tmp_buff);
-			printf("%-20s ",tmp_buff);
-			format_address(&cur_id_stats->remote_addr, tmp_buff);
-			printf("%-20s ",tmp_buff);
-			printf("%-6s %-15s %-8d \n",
-				format_port_space(cur_id_stats->ps),
-				format_cma_state(cur_id_stats->cma_state),
-				cur_id_stats->qp_num);
-		}
-	}
-	close(sock_fd);
-	return 0;
-}
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
