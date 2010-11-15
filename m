@@ -1,41 +1,47 @@
-From: Jiri Kosina <jkosina@suse.cz>
-Subject: Re: [PATCH][trivial] infiniband: Only include linux/mutex.h once in
- drivers/infiniband/hw/cxgb4/iw_cxgb4.h .
-Date: Mon, 15 Nov 2010 14:30:14 +0100 (CET)
-Message-ID: <alpine.LNX.2.00.1011151429480.7420@pobox.suse.cz>
-References: <alpine.LNX.2.00.1011072321150.26247@swampdragon.chaosbits.net>
+From: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: [PATCH v2] mlx4: Fix IBoE reported rate
+Date: Mon, 15 Nov 2010 16:04:39 +0200
+Message-ID: <20101115140439.GA20131@mtldesk30>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <alpine.LNX.2.00.1011072321150.26247@swampdragon.chaosbits.net>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Jesper Juhl <jj@chaosbits.net>
-Cc: linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org, Steve Wise <swise@chelsio.com>, Roland Dreier <rolandd@cisco.com>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Cc: RDMA list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Sun, 7 Nov 2010, Jesper Juhl wrote:
+The link rate is the multiplication of the link speed in the link width. For
+Etherent ports the rate is 10G so we use 1 for the witdh and 4 for speed so it
+yields the correct rate.
 
-> Only include the header linux/mutex.h once inside 
-> drivers/infiniband/hw/cxgb4/iw_cxgb4.h
-> 
-> Signed-off-by: Jesper Juhl <jj@chaosbits.net>
-> ---
->  iw_cxgb4.h |    1 -
->  1 file changed, 1 deletion(-)
-> 
-> diff --git a/drivers/infiniband/hw/cxgb4/iw_cxgb4.h b/drivers/infiniband/hw/cxgb4/iw_cxgb4.h
-> index 16032cd..42bb575 100644
-> --- a/drivers/infiniband/hw/cxgb4/iw_cxgb4.h
-> +++ b/drivers/infiniband/hw/cxgb4/iw_cxgb4.h
-> @@ -46,7 +46,6 @@
->  #include <linux/timer.h>
->  #include <linux/io.h>
->  #include <linux/kfifo.h>
-> -#include <linux/mutex.h>
+Signed-off-by: Eli Cohen <eli-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
+---
+Changes: Use 1X for width and 4 for speed.
+It should be noted that in the future (for other devices),
+active_width and active_speed may have other values to relflect the
+correct rate.
 
-The double include seems to be present in linux-next as of today. So I 
-have picked the patch up. Thanks,
+ drivers/infiniband/hw/mlx4/main.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
+diff --git a/drivers/infiniband/hw/mlx4/main.c b/drivers/infiniband/hw/mlx4/main.c
+index f200b96..02a9034 100644
+--- a/drivers/infiniband/hw/mlx4/main.c
++++ b/drivers/infiniband/hw/mlx4/main.c
+@@ -219,7 +219,7 @@ static int eth_link_query_port(struct ib_device *ibdev, u8 port,
+ 	struct net_device *ndev;
+ 	enum ib_mtu tmp;
+ 
+-	props->active_width	= IB_WIDTH_4X;
++	props->active_width	= IB_WIDTH_1X;
+ 	props->active_speed	= 4;
+ 	props->port_cap_flags	= IB_PORT_CM_SUP;
+ 	props->gid_tbl_len	= to_mdev(ibdev)->dev->caps.gid_table_len[port];
 -- 
-Jiri Kosina
-SUSE Labs, Novell Inc.
+1.6.0.2
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
