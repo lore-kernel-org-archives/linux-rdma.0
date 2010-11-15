@@ -1,39 +1,45 @@
-From: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH] mlx4: properly mask MGM entry members count
-Date: Mon, 15 Nov 2010 16:08:29 +0200
-Message-ID: <20101115140829.GA20355@mtldesk30>
+From: Romulo Goncalves <R.A.Goncalves-rh8NL+sEX9E@public.gmane.org>
+Subject: Support for Memory windows.
+Date: Mon, 15 Nov 2010 16:06:42 +0100
+Message-ID: <4CE14C82.9020907@cwi.nl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Cc: RDMA list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-The members_count field size is 24 bits so mask it properly when reading it.
+Hello,
 
-Signed-off-by: Eli Cohen <eli-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
----
- drivers/net/mlx4/mcg.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+For my PhD project I have been using RDMA over inifiniband.
+Until now I have used memory regions, but now I would like to also define memory windows.
 
-diff --git a/drivers/net/mlx4/mcg.c b/drivers/net/mlx4/mcg.c
-index c4f88b7..fff20fc 100644
---- a/drivers/net/mlx4/mcg.c
-+++ b/drivers/net/mlx4/mcg.c
-@@ -187,7 +187,7 @@ int mlx4_multicast_attach(struct mlx4_dev *dev, struct mlx4_qp *qp, u8 gid[16],
- 		memcpy(mgm->gid, gid, 16);
- 	}
- 
--	members_count = be32_to_cpu(mgm->members_count);
-+	members_count = be32_to_cpu(mgm->members_count) & 0xffffff;
- 	if (members_count == MLX4_QP_PER_MGM) {
- 		mlx4_err(dev, "MGM at index %x is full.\n", index);
- 		err = -ENOMEM;
--- 
-1.6.0.2
+The steps taken are the following ones:
+Register a memory region.
+Alloc a window
+bind the window to the registered memory region.
 
+The memory region registration worked as expected, however, the call of the function to alloc the memory window did not. 
+It seems there is not an implementation for the functions to alloc, bind, and dealloc a memory window.
+
+I looked into verbs.h and I found the reference to the functions in the context_ops:
+
+struct ibv_context_ops {
+....
+         struct ibv_mw * (*alloc_mw)(struct ibv_pd *pd, enum ibv_mw_type type);
+         int                     (*bind_mw)(struct ibv_qp *qp, struct ibv_mw *mw, struct ibv_mw_bind *mw_bind);
+         int                     (*dealloc_mw)(struct ibv_mw *mw);
+....
+}
+
+However, I do not see their declaration or implementation anywhere else.
+Could be the version of my openfabrics does not support memory windows?
+
+Thank you for your attention.
+
+Best Regards,
+Romulo Goncalves
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
