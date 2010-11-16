@@ -1,51 +1,30 @@
-From: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH v2] mlx4: properly mask MGM entry members count
-Date: Tue, 16 Nov 2010 20:15:20 +0200
-Message-ID: <20101116181520.GA29609@mtldesk30>
+From: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH 1/2] svcrdma: Change DMA mapping logic to avoid the
+ page_address kernel API
+Date: Tue, 16 Nov 2010 21:39:20 +0200
+Message-ID: <AANLkTik0LkdD-Gm0FAZ-KDS605ZGTewbfejC3GEOK=2x@mail.gmail.com>
+References: <20101012203332.22154.37230.stgit@build.ogc.int>
+	<20101012203351.22154.42528.stgit@build.ogc.int>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <20101012203351.22154.42528.stgit-T4OLL4TyM9aNDNWfRnPdfg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Cc: RDMA list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Tom Tucker <tom-/Yg/VP3ZvrM@public.gmane.org>
+Cc: bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-The members_count field size is 24 bits so mask it properly when reading it.
+ Tom Tucker <tom-/Yg/VP3ZvrM@public.gmane.org> wrote:
 
-Signed-off-by: Eli Cohen <eli-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
----
-Changes: Handle mlx4_multicast_detach too
+> This patch changes the bus mapping logic to avoid page_address() where necessary
 
+Hi Tom,
 
- drivers/net/mlx4/mcg.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+Does "when necessary" comes to say that invocations of page_address
+which remained in the code after this patch was applied are safe and
+no kmap call is needed?
 
-diff --git a/drivers/net/mlx4/mcg.c b/drivers/net/mlx4/mcg.c
-index c4f88b7..5a89631 100644
---- a/drivers/net/mlx4/mcg.c
-+++ b/drivers/net/mlx4/mcg.c
-@@ -187,7 +187,7 @@ int mlx4_multicast_attach(struct mlx4_dev *dev, struct mlx4_qp *qp, u8 gid[16],
- 		memcpy(mgm->gid, gid, 16);
- 	}
- 
--	members_count = be32_to_cpu(mgm->members_count);
-+	members_count = be32_to_cpu(mgm->members_count) & 0xffffff;
- 	if (members_count == MLX4_QP_PER_MGM) {
- 		mlx4_err(dev, "MGM at index %x is full.\n", index);
- 		err = -ENOMEM;
-@@ -270,7 +270,7 @@ int mlx4_multicast_detach(struct mlx4_dev *dev, struct mlx4_qp *qp, u8 gid[16])
- 		goto out;
- 	}
- 
--	members_count = be32_to_cpu(mgm->members_count);
-+	members_count = be32_to_cpu(mgm->members_count) & 0xffffff;
- 	for (loc = -1, i = 0; i < members_count; ++i)
- 		if ((be32_to_cpu(mgm->qp[i]) & MGM_QPN_MASK) == qp->qpn)
- 			loc = i;
--- 
-1.7.3.2
-
+Or.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
