@@ -1,30 +1,26 @@
-From: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 1/2] svcrdma: Change DMA mapping logic to avoid the
- page_address kernel API
-Date: Tue, 16 Nov 2010 21:39:20 +0200
-Message-ID: <AANLkTik0LkdD-Gm0FAZ-KDS605ZGTewbfejC3GEOK=2x@mail.gmail.com>
-References: <20101012203332.22154.37230.stgit@build.ogc.int>
-	<20101012203351.22154.42528.stgit@build.ogc.int>
+From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH] mlx4: properly mask MGM entry members count
+Date: Tue, 16 Nov 2010 14:43:46 -0800
+Message-ID: <ada1v6klwil.fsf@cisco.com>
+References: <20101115140829.GA20355@mtldesk30> <ada62vxl046.fsf@cisco.com>
+	<20101116180732.GB29132@mtldesk30>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20101012203351.22154.42528.stgit-T4OLL4TyM9aNDNWfRnPdfg@public.gmane.org>
+In-Reply-To: <20101116180732.GB29132@mtldesk30> (Eli Cohen's message of "Tue,
+	16 Nov 2010 20:07:32 +0200")
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tom Tucker <tom-/Yg/VP3ZvrM@public.gmane.org>
-Cc: bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: RDMA list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
- Tom Tucker <tom-/Yg/VP3ZvrM@public.gmane.org> wrote:
+ > We need this patch as the MS byte is used now to encode the protocol
+ > of the multicast address. I need to resend since the patch is missing
+ > handling in the dettach function.
 
-> This patch changes the bus mapping logic to avoid page_address() where necessary
+Where is the change in handling in the members_count field?  In the firmware?
 
-Hi Tom,
-
-Does "when necessary" comes to say that invocations of page_address
-which remained in the code after this patch was applied are safe and
-no kmap call is needed?
-
-Or.
+ - R.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
