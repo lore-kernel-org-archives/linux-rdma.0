@@ -1,48 +1,38 @@
-From: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH] mlx4: Fix vlan insertion order
-Date: Wed, 17 Nov 2010 15:39:43 +0200
-Message-ID: <20101117133943.GA10589@mtldesk30>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH 3/3] ibacm: check for special handling of loopback
+	requests
+Date: Wed, 17 Nov 2010 07:25:14 -0800
+Message-ID: <CF9C39F99A89134C9CF9C4CCB68B8DDF25B8616B1F@orsmsx501.amr.corp.intel.com>
+References: <CF9C39F99A89134C9CF9C4CCB68B8DDF25B86168B9@orsmsx501.amr.corp.intel.com>
+	<CF9C39F99A89134C9CF9C4CCB68B8DDF25B86168CE@orsmsx501.amr.corp.intel.com>
+	<1289953873.2365.179.camel@chromite.mv.qlogic.com>
+ <CF9C39F99A89134C9CF9C4CCB68B8DDF25B8616939@orsmsx501.amr.corp.intel.com>
+ <4CE39429.6030202@voltaire.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <4CE39429.6030202-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Cc: RDMA list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Or Gerlitz <ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+Cc: Ralph Campbell <ralph.campbell-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Alex Vainman <alexv-smomgflXvOZWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-We must update the control segment before marking it as valid.
+> To be precise, the bit avoids recieving multicast packets by the QP that
+> --sent-- it, not by other QPs subscribed to that group on the same
+> node/hca, the patch change-log even states that "Inter QP multicast
+> packets on the relevant HCA will still be delivered". You can test that
+> with two mckey processes running on a node which has the patch active.
 
-Signed-off-by: Eli Cohen <eli-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
----
- drivers/infiniband/hw/mlx4/qp.c |    6 +++---
- 1 files changed, 3 insertions(+), 3 deletions(-)
+yes - I confirmed that using mckey.
 
-diff --git a/drivers/infiniband/hw/mlx4/qp.c b/drivers/infiniband/hw/mlx4/qp.c
-index ec2c9bb..3d0c6d7 100644
---- a/drivers/infiniband/hw/mlx4/qp.c
-+++ b/drivers/infiniband/hw/mlx4/qp.c
-@@ -1953,14 +1953,14 @@ int mlx4_ib_post_send(struct ib_qp *ibqp, struct ib_send_wr *wr,
- 			goto out;
- 		}
- 
--		ctrl->owner_opcode = mlx4_ib_opcode[wr->opcode] |
--			(ind & qp->sq.wqe_cnt ? cpu_to_be32(1 << 31) : 0) | blh;
--
- 		if (be16_to_cpu(vlan) < 0x1000) {
- 			ctrl->ins_vlan = 1 << 6;
- 			ctrl->vlan_tag = vlan;
- 		}
- 
-+		ctrl->owner_opcode = mlx4_ib_opcode[wr->opcode] |
-+			(ind & qp->sq.wqe_cnt ? cpu_to_be32(1 << 31) : 0) | blh;
-+
- 		stamp = ind + qp->sq_spare_wqes;
- 		ind += DIV_ROUND_UP(size * 16, 1U << qp->sq.wqe_shift);
- 
--- 
-1.7.3.2
+> So with acm the functionality you need is for the same QP to receive the
+> packets it sent?
 
+yes - the code treats all destination addresses the same.  (This is useful for testing and to populate remote caches.)  My patch works around the issue, but long term, I agree with Ralph.  User space needs some other way to determine if this is needed.
+
+- Sean
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
