@@ -1,123 +1,100 @@
 From: Or Gerlitz <ogerlitz-hKgKHo2Ms0FWk0Htik3J/w@public.gmane.org>
-Subject: rdma_lat whos
-Date: Wed, 17 Nov 2010 12:54:13 +0200
-Message-ID: <4CE3B455.4080003@Voltaire.com>
+Subject: Re: rdma_lat whos
+Date: Wed, 17 Nov 2010 13:30:43 +0200
+Message-ID: <4CE3BCE3.7090107@Voltaire.com>
+References: <4CE3B455.4080003@Voltaire.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <4CE3B455.4080003-hKgKHo2Ms0FWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Jack Morgenstein <jackm-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, Ido Shamai <idos-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Vladimir Sokolovsky <vlad-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Moni Shoua <monis@v>
 Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Ido, 
+Or Gerlitz wrote:
+> Now, Jack, using this patch, 
+> I could get rdma_lat which doesn't use the rdma-cm, which means setting all the low-level QP params 
+> "by the hand" to produce the SAME result of 3.9us as with the rdma-cm, as you can see its one liner 
+> patch which uses higher MTU of 2048 vs the hard coded MTU of 256 used in the code. This is quite counter 
+> intuitive, for packets whose size is > 256, correct? is there any known issue that can 
+> explain that?! The SA is convinced that 2048 (0x84) is the best MTU for that path, both nodes 
+> have ConnectX DDR with firmware 2.7.0 
 
-We came into a situation where running rdma_lat with vs with out the -c flag, which means w. or w.o using the rdma-cm introduces a notable ~1us difference in latency for 1k messages, that is ~3us w.o using rdma-cm and 3.9us when using the rdma-cm.
+running with mtu=256 vs mtu=2048 on various msg size, you can see this phenomena in action
+2.70us for 1k msg with LOWER mtu vs 3.54us with mtu=2048
 
-I have reproduced that now with the latest code from your git tree and also with the RHEL provided package of perftest-1.2.3-1.el5, see the results below. Also, your tree is not available through the ofa git web service, Vlad, can you help set this out.
+> # ib_send_lat -a -m 256 celery
+> ------------------------------------------------------------------
+>                     Send Latency Test
+> Inline data is used up to 400 bytes message
+> Connection type : RC
+>    local address: LID 0x04 QPN 0x4c004b PSN 0xf91b6e
+>   remote address: LID 0x04 QPN 0x4c004a PSN 0xb9e19a
+> Mtu : 256
+> ------------------------------------------------------------------
+>  #bytes #iterations    t_min[usec]    t_max[usec]  t_typical[usec]
+>       2        1000           1.04          10.33             1.06
+>       4        1000           1.03           9.80             1.07
+>       8        1000           1.03           7.89             1.07
+>      16        1000           1.05           7.81             1.09
+>      32        1000           1.09           7.77             1.11
+>      64        1000           1.18           7.99             1.21
+>     128        1000           1.48           8.05             1.51
+>     256        1000           2.06           8.67             2.19
+>     512        1000           2.31          14.38             2.38
+>    1024        1000           2.62          14.54             2.70
+>    2048        1000           3.26          14.90             3.36
+>    4096        1000           4.54          28.84             4.64
+>    8192        1000           7.19          18.48             7.30
+>   16384        1000          12.61          24.15            12.75
+>   32768        1000          23.46          34.77            24.30
+>   65536        1000          45.19          56.48            45.75
+>  131072        1000          88.64         102.99            89.22
+>  262144        1000         175.78         186.59           175.97
+>  524288        1000         349.16         359.92           349.35
+> 1048576        1000         695.80         706.90           696.22
+> 2097152        1000        1389.41        1400.87          1389.95
+> 4194304        1000        2777.21        2799.41          2778.08
+> 8388608        1000        5691.77        5752.48          5737.45
+> ------------------------------------------------------------------
+> All resources were Released successfully
 
-Now, Jack, using this patch, 
-
-
-Index: perftest/rdma_lat.c
-===================================================================
---- perftest.orig/rdma_lat.c
-+++ perftest/rdma_lat.c
-@@ -666,7 +666,7 @@ static int pp_connect_ctx(struct pingpon
- {
- 	struct ibv_qp_attr attr = {
- 		.qp_state 		= IBV_QPS_RTR,
--		.path_mtu 		= IBV_MTU_256,
-+		.path_mtu 		= IBV_MTU_2048,
- 		.dest_qp_num 	= data->rem_dest->qpn,
- 		.rq_psn 		= data->rem_dest->psn,
- 		.max_dest_rd_atomic = 1,
-
-
-
-
-I could get rdma_lat which doesn't use the rdma-cm, which means setting all the low-level QP params 
-"by the hand" to produce the SAME result of 3.9us as with the rdma-cm, as you can see its one liner 
-patch which uses higher MTU of 2048 vs the hard coded MTU of 256 used in the code. This is quite counter 
-intuitive, for packets whose size is > 256, correct? is there any known issue that can 
-explain that?! The SA is convinced that 2048 (0x84) is the best MTU for that path, both nodes 
-have ConnectX DDR with firmware 2.7.0 
-
-Or.
-
-
-> # saquery -p --src-to-dst 1:14
-> Path record for 1 -> 14
-> PathRecord dump:
->                 service_id..............0x0000000000000000
->                 dgid....................fe80::8:f104:399:3c91
->                 sgid....................fe80::2:c903:2:6be3
->                 dlid....................0xE
->                 slid....................0x1
->                 hop_flow_raw............0x0
->                 tclass..................0x0
->                 num_path_revers.........0x80
->                 pkey....................0xFFFF
->                 qos_class...............0x0
->                 sl......................0x0
->                 mtu.....................0x84
->                 rate....................0x86
->                 pkt_life................0x92
->                 preference..............0x0
->                 resv2...................0x0
->                 resv3...................0x0
-
-
-before the patch
-
-active side, w.o rdma-cm
-> # rdma_lat 192.168.20.15 -s 1024 -n 10000
-> 26113:pp_client_connect: Couldn't connect to 192.168.20.15:18515
-> [root@nsg1 ~]# rdma_lat 192.168.20.15 -s 1024 -n 10000
->    local address: LID 0x0e QPN 0x1c004d PSN 0x3a3dca RKey 0x48002600 VAddr 0x00000008a71400
->   remote address: LID 0x04 QPN 0x20004c PSN 0x27973 RKey 0x50042700 VAddr 0x0000001b724400
-> Latency typical: 3.01932 usec
-> Latency best   : 2.97582 usec
-> Latency worst  : 11.3183 usec
-
-passive side w.o rdma-cm
-> # rdma_lat -s 1024 -n 10000
->    local address: LID 0x04 QPN 0x20004c PSN 0x27973 RKey 0x50042700 VAddr 0x0000001b724400
->   remote address: LID 0x0e QPN 0x1c004d PSN 0x3a3dca RKey 0x48002600 VAddr 0x00000008a71400
-> Latency typical: 3.02386 usec
-> Latency best   : 2.97436 usec
-> Latency worst  : 6.63569 usec
-
-active side, w.o rdma-cm
-> # rdma_lat 192.168.20.15 -s 1024 -n 10000 -c
-> 26133: Local address:  LID 0000, QPN 000000, PSN 0xa12538 RKey 0x50002600 VAddr 0x00000013d27400
-> 26133: Remote address: LID 0000, QPN 000000, PSN 0x5c01e8, RKey 0x58042700 VAddr 0x00000006dbb400
-> 
-> Latency typical: 3.89977 usec
-> Latency best   : 3.83227 usec
-> Latency worst  : 13.6462 usec
-
-passive side, w.o rdma-cm
-
-> # rdma_lat -s 1024 -n 10000 -c
-> 21826: Local address:  LID 0000, QPN 000000, PSN 0x5c01e8 RKey 0x58042700 VAddr 0x00000006dbb400
-> 21826: Remote address: LID 0000, QPN 000000, PSN 0xa12538, RKey 0x50002600 VAddr 0x00000013d27400
-> 
-> Latency typical: 3.89982 usec
-> Latency best   : 3.83082 usec
-> Latency worst  : 13.6974 usec
-
-after the patch, the result w.o -c and with MTU=2048 becomes 3.9us as well,
-
->  /home/ogerlitz/linux/tools/perftest/rdma_lat 192.168.20.15 -s 1024 -n 10000
->    local address: LID 0x0e QPN 0x3c004d PSN 0x14ff1e RKey 0x68002600 VAddr 0x00000016c5d400
->   remote address: LID 0x04 QPN 0x40004c PSN 0xba137e RKey 0x70042700 VAddr 0x0000001f259400
-> Latency typical: 3.88327 usec
-> Latency best   : 3.80378 usec
-> Latency worst  : 8.27951 usec
-
-
+> # ib_send_lat -a -m 2048 celery
+> ------------------------------------------------------------------
+>                     Send Latency Test
+> Inline data is used up to 400 bytes message
+> Connection type : RC
+>    local address: LID 0x04 QPN 0x54004b PSN 0x59384f
+>   remote address: LID 0x04 QPN 0x54004a PSN 0xcac60e
+> Mtu : 2048
+> ------------------------------------------------------------------
+>  #bytes #iterations    t_min[usec]    t_max[usec]  t_typical[usec]
+>       2        1000           1.02          10.66             1.06
+>       4        1000           1.03          54.53             1.06
+>       8        1000           1.04          36.84             1.06
+>      16        1000           1.05          34.58             1.08
+>      32        1000           1.08          40.70             1.11
+>      64        1000           1.18          66.86             1.21
+>     128        1000           1.48          38.76             1.51
+>     256        1000           2.07          39.15             2.18
+>     512        1000           2.58          45.90             2.67
+>    1024        1000           3.46          38.07             3.54
+>    2048        1000           5.22          40.55             5.31
+>    4096        1000           6.53          39.17             6.61
+>    8192        1000           9.16          38.85             9.29
+>   16384        1000          14.52          50.14            14.99
+>   32768        1000          25.54          51.20            25.64
+>   65536        1000          47.18          59.76            47.30
+>  131072        1000          90.87          96.92            90.99
+>  262144        1000         178.22         183.27           178.37
+>  524288        1000         352.93         358.01           353.13
+> 1048576        1000         702.37         707.69           702.66
+> 2097152        1000        1401.30        1411.63          1401.66
+> 4194304        1000        2799.16        2845.59          2801.92
+> 8388608        1000        5833.30        5911.70          5886.55
+> ------------------------------------------------------------------
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
