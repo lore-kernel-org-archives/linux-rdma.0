@@ -1,33 +1,29 @@
-From: Or Gerlitz <ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH 3/3] ibacm: check for special handling of loopback	requests
-Date: Wed, 17 Nov 2010 10:36:57 +0200
-Message-ID: <4CE39429.6030202@voltaire.com>
-References: <CF9C39F99A89134C9CF9C4CCB68B8DDF25B86168B9@orsmsx501.amr.corp.intel.com>	<CF9C39F99A89134C9CF9C4CCB68B8DDF25B86168CE@orsmsx501.amr.corp.intel.com>	<1289953873.2365.179.camel@chromite.mv.qlogic.com> <CF9C39F99A89134C9CF9C4CCB68B8DDF25B8616939@orsmsx501.amr.corp.intel.com>
+From: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH] mlx4: properly mask MGM entry members count
+Date: Wed, 17 Nov 2010 11:01:34 +0200
+Message-ID: <20101117090134.GA20369@mtldesk30>
+References: <20101115140829.GA20355@mtldesk30>
+ <ada62vxl046.fsf@cisco.com>
+ <20101116180732.GB29132@mtldesk30>
+ <ada1v6klwil.fsf@cisco.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CF9C39F99A89134C9CF9C4CCB68B8DDF25B8616939-osO9UTpF0USkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <ada1v6klwil.fsf-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Ralph Campbell <ralph.campbell-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Alex Vainman <alexv-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Cc: RDMA list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, alekseys-smomgflXvOZWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hefty, Sean wrote:
-> One could argue that this change is reasonable regardless of the OFED kernel patch.  It avoids sending multicast traffic when the destination is local.  The main drawback beyond the extra code is that a node can't send a multicast message to itself, with the intent that remote listeners will be able to cache the address data.
-Sean,
-
-To be precise, the bit avoids recieving multicast packets by the QP that 
---sent-- it, not by other QPs subscribed to that group on the same 
-node/hca, the patch change-log even states that "Inter QP multicast 
-packets on the relevant HCA will still be delivered". You can test that 
-with two mckey processes running on a node which has the patch active. 
-So with acm the functionality you need is for the same QP to receive the 
-packets it sent?
-
-Or.
-
-
+On Tue, Nov 16, 2010 at 02:43:46PM -0800, Roland Dreier wrote:
+> 
+> Where is the change in handling in the members_count field?  In the firmware?
+> 
+The firmware now distinguishes between differnet multicast addresses
+according to a protocol field located in the high MS byte which
+previously was reserved. The patches that Alekseys will will probably
+send later make use of this.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
