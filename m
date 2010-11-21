@@ -1,77 +1,107 @@
-From: "King, Perry E." <perry.king-itBhTGHPdi0@public.gmane.org>
-Subject: memory leak in libdat2.so.2.0.0
-Date: Thu, 18 Nov 2010 15:34:03 -0600
-Message-ID: <383353BE0FE2954EBF88EDAF1402144D035B6BD5@XMBIL153.northgrum.com>
+From: Hiroyuki Sato <hiroysato-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: [Q] I would like to test NFS/RDMA with multiple ports on same fabric
+Date: Sun, 21 Nov 2010 19:25:12 +0900
+Message-ID: <AANLkTikEpUz5gMr9AbxMBSvpF5S6_Pz8ou2WzE9-taW9@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-class: urn:content-classes:message
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: "Young, Eric R." <Eric.Young-itBhTGHPdi0@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi,
-I assume I am writing to the correct address.=A0 I would like to report=
- a memory leak in libdat2.so.2.0.0 that I noticed while using valgrind.
+Dear members.
 
-I isolated it to an application that does not actually make any calls o=
-n libdat2.=A0 All it does is link it in with g++ using -ldat2.
+I'm newbie about Infiniband.
 
-I am running on Fedora 12 and using export LD_DEBUG=3D"libs" I could se=
-e that when my program ran, the loader was calling init on the library =
-at startup and fini at the end.
+I would like to test NFS/RDMA on the following environment.
+I succeed to setup NFS/RDMA between NFS Server and NFS Client1
 
-Again, I am not making any calls on the library, merely linking it in (=
-as a test, I linked it into an application that did not previously use =
-it).
+Probelm:
 
-Even so, I see the following:
+  I want to add second NFS client (NFS client2)
+  but I can't setup IP over Infiniband between NFS server and NFS client2
+  (I don't have Infiniband switch so I want to use multiple ports on
+same fabric)
 
+  NFS Serer% ping nfs_client2
+  no response
 
-=3D=3D14551=3D=3D 14 bytes in 14 blocks are definitely lost in loss rec=
-ord 47 of 285
-=3D=3D14551=3D=3D=A0=A0=A0 at 0x4A0515D: malloc (vg_replace_malloc.c:19=
-5)
-=3D=3D14551=3D=3D=A0=A0=A0 by 0x6FE49B2: dat_sr_get_token (dat_osd.h:22=
-6)
-=3D=3D14551=3D=3D=A0=A0=A0 by 0x6FE5206: dat_sr_parse_entry (udat_sr_pa=
-rser.c:706)
-=3D=3D14551=3D=3D=A0=A0=A0 by 0x6FE5508: dat_sr_load (udat_sr_parser.c:=
-268)
-=3D=3D14551=3D=3D=A0=A0=A0 by 0x6FE7FB5: dat_sr_init (dat_sr.c:84)
-=3D=3D14551=3D=3D=A0=A0=A0 by 0x6FE74E9: dat_init (dat_init.c:117)
-=3D=3D14551=3D=3D=A0=A0=A0 by 0x6FE7FF5: ??? (in /usr/lib64/libdat2.so.=
-2.0.0)
-=3D=3D14551=3D=3D=A0=A0=A0 by 0x6FE3B1A: ??? (in /usr/lib64/libdat2.so.=
-2.0.0)
-=3D=3D14551=3D=3D=20
-=3D=3D14551=3D=3D 4,944 (4,592 direct, 352 indirect) bytes in 14 blocks=
- are definitely lost in loss record 270 of 285
-=3D=3D14551=3D=3D=A0=A0=A0 at 0x4A0515D: malloc (vg_replace_malloc.c:19=
-5)
-=3D=3D14551=3D=3D=A0=A0=A0 by 0x6FE7D4E: dat_sr_insert (dat_osd.h:226)
-=3D=3D14551=3D=3D=A0=A0=A0 by 0x6FE547E: dat_sr_parse_entry (udat_sr_pa=
-rser.c:343)
-=3D=3D14551=3D=3D=A0=A0=A0 by 0x6FE5508: dat_sr_load (udat_sr_parser.c:=
-268)
-=3D=3D14551=3D=3D=A0=A0=A0 by 0x6FE7FB5: dat_sr_init (dat_sr.c:84)
-=3D=3D14551=3D=3D=A0=A0=A0 by 0x6FE74E9: dat_init (dat_init.c:117)
-=3D=3D14551=3D=3D=A0=A0=A0 by 0x6FE7FF5: ??? (in /usr/lib64/libdat2.so.=
-2.0.0)
-=3D=3D14551=3D=3D=A0=A0=A0 by 0x6FE3B1A: ??? (in /usr/lib64/libdat2.so.=
-2.0.0)
+Question:
 
-I assume this is happening when libdat2.so is initialized, but no corre=
-sponding free is happening when the loader calls its fini function (or =
-destructor).=A0 So I thought I would report it.
+  (1) Is this environment work fine if I setup correctly??
+    ex) I have to change subnet address
+        I have to use Infiniband Switch
 
-Thank you,
+  (2) What is the problem??
 
-Perry King
+    Could you tell me how to check what is the problem.
+    or Please tell me good example if avairable .
+
+Thank you for your information.
+
+Sincrely
+
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+Hiroyuki Sato.
+
+
+
+opensmd
+NFS Server
+192.168.100.231(port1)
+192.168.200.231(port2)        NFS client1(192.168.100.232)
++----------+                  +----------+
+|          | 192.168.100.0/24 |          |
+|          port1------------port1        |
+|          port2--+         port2        |
+|          |      |           |          |
++----------+	    |           +----------+
+                  |		
+      	      	  |
+      	      	  |   	      NFS client2(192.168.100.233)
+                  |           +----------+
+                  |           |          |
+                  +----------port1       |
+            192.168.200.0/24 port2       |
+                              |          |
+                              +----------+
+
+Environment
+  OS: CentOS 5.5
+  Infiniband Card: MHEA28-XTC
+  Kernel: 2.6.36
+
+
+This is ibstat output on NFS Server
+# ibstat
+CA 'mthca0'
+	CA type: MT25208
+	Number of ports: 2
+	Firmware version: 5.3.0
+	Hardware version: a0
+	Node GUID: 0x0002c90200220eb8
+	System image GUID: 0x0005ad000100d050
+	Port 1:
+		State: Active
+		Physical state: LinkUp
+		Rate: 10
+		Base lid: 1
+		LMC: 0
+		SM lid: 1
+		Capability mask: 0x02590a6a
+		Port GUID: 0x0002c90200220eb9
+		Link layer: IB
+	Port 2:
+		State: Active
+		Physical state: LinkUp
+		Rate: 10
+		Base lid: 1
+		LMC: 0
+		SM lid: 3
+		Capability mask: 0x02590a68
+		Port GUID: 0x0002c90200220eba
+		Link layer: IB
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
