@@ -1,106 +1,85 @@
 From: Hiroyuki Sato <hiroysato-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: [Q] I would like to test NFS/RDMA with multiple ports on same fabric
-Date: Sun, 21 Nov 2010 19:25:12 +0900
-Message-ID: <AANLkTikEpUz5gMr9AbxMBSvpF5S6_Pz8ou2WzE9-taW9@mail.gmail.com>
+Subject: [Q] I tried to mount nfs_server:/mnt volume, but It mounted another volume.
+Date: Sun, 21 Nov 2010 21:23:31 +0900
+Message-ID: <AANLkTi=vpRm3MEiQZ39bw5XwfjL6CVbGEkAKWz-ynEp_@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Dear members.
+Hello lists
 
-I'm newbie about Infiniband.
+OS: CentOS 5.5
+kernel: 2.6.36 rebuild myself.
 
-I would like to test NFS/RDMA on the following environment.
-I succeed to setup NFS/RDMA between NFS Server and NFS Client1
 
-Probelm:
+  I'm trying to test NFS/RDMA.
+  I tried to mount nfs_server:/mnt volume on on nfs_client
+  but It mounted nfs_server:/nfstest volume
 
-  I want to add second NFS client (NFS client2)
-  but I can't setup IP over Infiniband between NFS server and NFS client2
-  (I don't have Infiniband switch so I want to use multiple ports on
-same fabric)
+  note: /nfstest is tmpfs
 
-  NFS Serer% ping nfs_client2
-  no response
+ this is mount output
+    tmpfs on /nfstest type tmpfs (rw,size=4g)
+    /dev/sdb1 on /mnt type ext3 (rw)
 
-Question:
+  Is this bug??
 
-  (1) Is this environment work fine if I setup correctly??
-    ex) I have to change subnet address
-        I have to use Infiniband Switch
+NFS server config
 
-  (2) What is the problem??
+  # ls -1 /mnt
+  This_is_mnt_volume
 
-    Could you tell me how to check what is the problem.
-    or Please tell me good example if avairable .
+  # ls -1 /nfstest
+  This_is_nfstest_volume
 
-Thank you for your information.
+  # cat /etc/exports
+  /nfstest   192.168.100.0/255.255.255.0(fsid=0,rw,async,insecure,no_root_squash)
+  /mnt       192.168.100.0/255.255.255.0(fsid=0,rw,async,insecure,no_root_squash)
 
-Sincrely
+
+  # modprobe svcrdma
+
+  # /sbin/service nfs start
+
+  # echo rdma 20049 > /proc/fs/nfsd/portlist
+
+
+Client Setting
+
+  /sbin/modprobe xprtrdma
+  /sbin/mount.rnfs 192.168.100.231:/mnt /mnt -i -o rdma,port=20049
+
+  # ls -1 /mnt
+  This_is_nfstest_volume
+
+NFS Server log
+  sysctl -w sunrpc.nfsd_debug=1023
+
+  Nov 21 20:47:37 dell1435 mountd[3575]: authenticated mount request
+from 192.168.100.232:766 for /mnt (/mnt)
+  Nov 21 20:47:37 dell1435 mountd[3575]: /nfstest and /mnt have same
+filehandle for 192.168.100.0/255.255.255.0, using first
+  Nov 21 20:48:55 dell1435 mountd[3575]: authenticated unmount request
+from 192.168.100.232:912 for /mnt (/mnt)
+  Nov 21 20:48:55 dell1435 mountd[3575]: authenticated unmount request
+from 192.168.100.232:913 for /mnt (/mnt)
+  Nov 21 20:49:00 dell1435 mountd[3575]: authenticated unmount request
+from 192.168.100.232:917 for /mnt (/mnt)
+  Nov 21 20:49:16 dell1435 mountd[3575]: authenticated mount request
+from 192.168.100.232:865 for /mnt (/mnt)
+  Nov 21 21:02:22 dell1435 mountd[3575]: authenticated unmount request
+from 192.168.100.232:955 for /mnt (/mnt)
+  Nov 21 21:02:26 dell1435 mountd[3575]: authenticated mount request
+from 192.168.100.232:884 for /mnt (/mnt)
+  Nov 21 21:02:26 dell1435 kernel: nfsd: exp_rootfh(/mnt
+[ffff88011f586740] 192.168.100.0/255.255.255.0:sdb1/2)
+
 
 --
-Hiroyuki Sato.
-
-
-
-opensmd
-NFS Server
-192.168.100.231(port1)
-192.168.200.231(port2)        NFS client1(192.168.100.232)
-+----------+                  +----------+
-|          | 192.168.100.0/24 |          |
-|          port1------------port1        |
-|          port2--+         port2        |
-|          |      |           |          |
-+----------+	    |           +----------+
-                  |		
-      	      	  |
-      	      	  |   	      NFS client2(192.168.100.233)
-                  |           +----------+
-                  |           |          |
-                  +----------port1       |
-            192.168.200.0/24 port2       |
-                              |          |
-                              +----------+
-
-Environment
-  OS: CentOS 5.5
-  Infiniband Card: MHEA28-XTC
-  Kernel: 2.6.36
-
-
-This is ibstat output on NFS Server
-# ibstat
-CA 'mthca0'
-	CA type: MT25208
-	Number of ports: 2
-	Firmware version: 5.3.0
-	Hardware version: a0
-	Node GUID: 0x0002c90200220eb8
-	System image GUID: 0x0005ad000100d050
-	Port 1:
-		State: Active
-		Physical state: LinkUp
-		Rate: 10
-		Base lid: 1
-		LMC: 0
-		SM lid: 1
-		Capability mask: 0x02590a6a
-		Port GUID: 0x0002c90200220eb9
-		Link layer: IB
-	Port 2:
-		State: Active
-		Physical state: LinkUp
-		Rate: 10
-		Base lid: 1
-		LMC: 0
-		SM lid: 3
-		Capability mask: 0x02590a68
-		Port GUID: 0x0002c90200220eba
-		Link layer: IB
+Hiroyuki Sato
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
