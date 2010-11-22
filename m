@@ -1,178 +1,525 @@
-From: Hiroyuki Sato <hiroysato-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [Q] I tried to mount nfs_server:/mnt volume, but It mounted
- another volume.
-Date: Mon, 22 Nov 2010 09:21:27 +0900
-Message-ID: <AANLkTinUNioqfwL_Yx6Ryynq-tZ3SJRsA-pW-scTmXj6@mail.gmail.com>
-References: <AANLkTi=vpRm3MEiQZ39bw5XwfjL6CVbGEkAKWz-ynEp_@mail.gmail.com>
-	<4CE9217E.6090002@panasas.com>
-	<20101121224154.GA11043@fieldses.org>
+From: Andrea Gozzelino <Andrea.Gozzelino-PK20h7lG/Rc1GQ1Ptb7lUw@public.gmane.org>
+Subject: - no subject -
+Date: Mon, 22 Nov 2010 17:39:06 +0100 (CET)
+Message-ID: <4771797.1290443946539.SLOX.WebMail.wwwrun@imap.lnl.infn.it>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: multipart/mixed;
+	boundary="----=_Part_10313_1367357.1290443946538"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20101121224154.GA11043-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "J. Bruce Fields" <bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org>
-Cc: Boaz Harrosh <bharrosh-C4P08NqkoRlBDgjK7y7TUQ@public.gmane.org>, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Thank you useful information. I'll study about NFSv4
+------=_Part_10313_1367357.1290443946538
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+
+Hi,
+
+I have some problem in using function rdma_post_sendv.
+I find errno=22, so the client does not run.
+
+I use the code attached.
+
+Could you please explain how it is build a scatter gather list and how
+an element could be added?
+
+Thanks a lot,
+Andrea
+
+
+Andrea Gozzelino
+
+INFN - Laboratori Nazionali di Legnaro	(LNL)
+Viale dell'Universita' 2 -I-35020 - Legnaro (PD)- ITALIA
+Office: E-101
+Tel: +39 049 8068346
+Fax: +39 049 641925
+Mail: andrea.gozzelino-PK20h7lG/Rc1GQ1Ptb7lUw@public.gmane.org
+Cell: +39 3488245552				
+
+------=_Part_10313_1367357.1290443946538
+Content-Type: text/x-c++src
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment; filename=proof_RDMA.cpp
+
+/*
+------------------------------------------------------------------
+Program: RDMA Latency test 
+Program detail: RDMA Latency test with buffer size <= 64 bytes
+Use: REDIGO project --> RDMA performance test with vector list
+Authors: Damiano Bortolato - Andrea Gozzelino
+Structure: INFN LNL @ Legnaro (Italy)
+Date: November - December 2010
+Compile:  g++ -o 2DEV_RDMA_Latency 2DEV_latency_RDMA.cpp 2DEV_socket_RDMA.cpp 2DEV_test_RDMA.cpp -lrdmacm
+Library: use librdmacm version 1.0.12 by Sean Hefty 
+Note: help from Chien Tin Tung (Intel) and Sean Hefty (Intel)
+------------------------------------------------------------------
+*/
+
+/*
+IBV _SEND_INLINE
+The flag IBV_SEND_INLINE describe to the low level driver how the data will be 
+read from the memory buffer (the driver will read the data and give it to the 
+HCA or the HCA will fetch the data from the memory using the gather list).
+The data on the wire for inline messages looks the same like data which 
+was fetched by the HCA.
+The receive side don't have any feature which can work 
+with memory buffer without any registration.
+
+Unless the send request is using inline data, the message buffers must have been registered
+before being posted, and the buffers must remain registered until the send completes.
+*/
+
+//Include
+#include <rdma/rdma_cma.h>
+#include <rdma/rdma_verbs.h>
+#include <infiniband/arch.h>
+#include <netdb.h>
+#include <errno.h>
+#include <string.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <inttypes.h>
+#include <unistd.h>
+#include <time.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <sys/socket.h>
+#include <sys/types.h>
+#include <sys/times.h>
+#include <iostream>
+#include <fstream>
+#include <assert.h>
+#include <sys/param.h>
+#include <iomanip> // format manipulation
+#include <vector>
+
+using namespace std;
+
+// header file
+#include "header_RDMA.h"
+
+
+//******************************************************
+//********************** RDMA SERVER *******************
+//******************************************************
+
+int asServer(TestMessage &TM){
+	
+	printf("\nRDMA server machine redigo-01 is starting. \n");
+	
+	// Information from TCP socket
+	int BUF_SIZE = TM.data.message.tbuffer_size;
+	printf("BUF_SIZE = %i \n", BUF_SIZE);
+	
+	int NTX=TM.data.message.loops;
+	printf("NTX = %i \n", NTX);
+
+	
+	// Variables
+	static char *port = "7471";
+	static char *server = "100.168.0.56";
+	struct rdma_cm_id *listen_id, *id;
+	struct ibv_mr *mr,*mr1;
+	char *send_msg=new char[BUF_SIZE];
+	char *recv_msg=new char[BUF_SIZE];
+	struct rdma_addrinfo hints, *res;
+	struct ibv_qp_init_attr attr;
+	struct ibv_wc wc;
+	int ret;// function return value
+	int i; // loop counter
+
+	struct ibv_sge SGLr;
+	struct ibv_sge SGLs;
+	int SGE;
+
+	// RDMA_getaddrinfo 
+	memset(&hints, 0, sizeof hints);
+	hints.ai_flags = RAI_PASSIVE;
+	hints.ai_port_space = RDMA_PS_TCP;
+	ret = rdma_getaddrinfo(NULL, port, &hints, &res);
+	if (ret) {
+		printf("rdma_getaddrinfo %d\n", errno);
+		return ret;
+		}
+	else printf("OK rdma_getaddrinfo function. \n");
+	
+	// RDMA_create_ep
+	memset(&attr, 0, sizeof attr);
+	attr.cap.max_send_wr = attr.cap.max_recv_wr = 128;
+	attr.cap.max_send_sge = attr.cap.max_recv_sge = 1;
+	attr.cap.max_inline_data = BUF_SIZE;
+	attr.sq_sig_all = 1;
+	ret = rdma_create_ep(&listen_id, res, NULL, &attr);
+	rdma_freeaddrinfo(res);
+	if (ret) {
+		printf("rdma_create_ep %d\n", errno);
+		return ret;
+		}
+	else printf("OK rdma_create_ep funtion. \n");
+
+	// RDMA_listen
+	ret = rdma_listen(listen_id, 0);
+	if (ret) {
+		printf("rdma_listen %d\n", errno);
+		return ret;
+		}
+	else printf("OK rdma_listen function. \n");
+
+	// RDMA_get_request
+	ret = rdma_get_request(listen_id, &id);
+	if (ret) {
+		printf("rdma_get_request %d\n", errno);
+		return ret;
+		}
+	else printf("OK rdma_get_request function \n");
+
+	// RDMA_reg_msgs
+	mr = rdma_reg_msgs(id, recv_msg, BUF_SIZE);
+	if (!mr) {
+		printf("rdma_reg_msgs rec%d\n", errno);
+		return ret;
+		}
+	else printf("OK rdma_reg_msgs function. Created rec mr %p \n", mr);
+
+	mr1 = rdma_reg_msgs(id, send_msg, BUF_SIZE);
+	if (!mr) {
+		printf("rdma_reg_msgs send %d\n", errno);
+		return ret;
+		}
+	else printf("OK rdma_reg_msgs function. Created send mr1 %p \n", mr1);
+
+//NEW
+	SGE = 3;
+	SGLr.addr = (uintptr_t) recv_msg; 	          // Start address of the local memory buffer
+	SGLr.length = BUF_SIZE*SGE;                       // Length of the buffer
+	SGLr.lkey  = mr->lkey;                            // Key of the local Memory Region
+
+	SGLs.addr = (uintptr_t) send_msg; 	          // Start address of the local memory buffer
+	SGLs.length = BUF_SIZE*SGE;                       // Length of the buffer
+	SGLs.lkey = mr1->lkey;                            // Key of the local Memory Region
+
+	// Pre post receive vectored: RDMA_post_recvv
+	ret = rdma_post_recvv(id, recv_msg, &SGLr, SGE);
+	if (ret) {
+		printf("rdma_post_recvv %d\n", errno);
+		return ret;
+		}
+	else printf("OK PRE POST rdma_post_recvv. Created post receive vector. \n");
+ 
+	// Pre post receive: RDMA_post_recv
+	ret = rdma_post_recv(id, NULL, recv_msg, BUF_SIZE, mr);
+	if (ret) {
+		printf("rdma_post_recv %d\n", errno);
+		return ret;
+		}
+	else printf("OK PRE POST rdma_post_recv. \n");
+
+	// RDMA_accept on server side
+	ret = rdma_accept(id, NULL);
+	if (ret) {
+		printf("rdma_connect %d\n", errno);
+		return ret;
+		}
+	else printf("OK rdma_connect: server accepts connection. \n");
+
+	//---------------------------------------------------------
+	//--------- SERVER RDMA: data movement --------------------
+	//---------------------------------------------------------
+	
+	for(i=0;i<SGE;i++){
+
+	// ********** Server is receiving ***************
+	ret = rdma_post_recvv(id, recv_msg, &SGLr, SGE);
+	if (ret) {
+		printf("rdma_post_recvv %d\n", errno);
+		return ret;
+	}
+	else printf("OK rdma_post_recvv. \n");
+
+	// RDMA_get_recv_comp
+	ret = rdma_get_recv_comp(id, &wc);
+	if (ret <= 0) {
+		printf("rdma_get_recv_comp %d\n", ret);
+		return ret;
+	}
+	else printf("OK rdma_get_recv_comp %d\n", ret);
+
+	//while (!ibv_poll_cq(id->recv_cq, 1, &wc));
+		
+		
+	// ************ Server is sending ****************
+	//ret = rdma_post_send(id, NULL, send_msg, BUF_SIZE, NULL, IBV_SEND_INLINE);	
+	ret = rdma_post_sendv(id, send_msg, &SGLs, SGE, IBV_SEND_INLINE);
+	if (ret) {
+		printf("rdma_post_sendv %d\n", errno);
+		return ret;
+	}
+	else printf("OK rdma_post_sendv. \n", ret);
+
+	// RDMA_get_send_comp
+	ret = rdma_get_send_comp(id, &wc);
+	if (ret <= 0) {
+		printf("rdma_get_send_comp %d\n", ret);
+		return ret;
+	}
+	else printf("OK rdma_get_send_comp %d\n", ret);
+
+	//while (!ibv_poll_cq(id->send_cq, 1, &wc));
+
+	}	
+	
+	printf("OK RDMA server closes. \n \n");
+	
+	rdma_disconnect(id);
+	rdma_dereg_mr(mr);
+	rdma_destroy_ep(id);
+	rdma_destroy_ep(listen_id);
+	
+}// end asServer
+
+//******************************************************
+//********************** CLIENT RDMA *******************
+//******************************************************
+
+int asClient(TestMessage &TM){
+	
+	printf("\nRDMA client machine redigo-02 is starting. \n");
+	
+	// Information from TCP socket
+	int BUF_SIZE=TM.data.message.tbuffer_size;
+	printf("BUF_SIZE = %i \n", BUF_SIZE);
+	
+	int NTX=TM.data.message.loops;
+	printf("NTX = %i \n", NTX);
+	
+	// Variables
+	static char *port = "7471";
+	static char *server = "10.10.10.1";
+	struct rdma_cm_id *listen_id, *id;
+	struct ibv_mr *mr,*mr1;
+	char *send_msg=new char[BUF_SIZE];
+	char *recv_msg=new char[BUF_SIZE];
+	struct rdma_addrinfo hints, *res;
+	struct ibv_qp_init_attr attr;
+	struct ibv_wc wc;
+	int ret; // function return value
+	int i; // counter
+
+	struct ibv_sge SGLr;
+	struct ibv_sge SGLs;
+	int SGE;
+
+	time_t start,end;// clock values
+        double dif;// delta time
+        static clock_t st_time;
+        static clock_t en_time;
+        static struct tms st_cpu;
+        static struct tms en_cpu;
+	
+	// RDMA_getaddrinfo 
+	memset(&hints, 0, sizeof hints);
+	hints.ai_port_space = RDMA_PS_TCP;
+	ret = rdma_getaddrinfo(server, port, &hints, &res);
+	if (ret) {
+		printf("rdma_getaddrinfo %d\n", errno);
+		return ret;
+		}
+	else printf("OK rdma_getaddrinfo function. \n");
+	
+	// RDMA_create_ep
+	memset(&attr, 0, sizeof attr);
+	attr.cap.max_send_wr = attr.cap.max_recv_wr = 128;
+	attr.cap.max_send_sge = attr.cap.max_recv_sge = 1;
+	attr.cap.max_inline_data = BUF_SIZE;
+	attr.qp_context = id;
+	attr.sq_sig_all = 1;
+	ret = rdma_create_ep(&id, res, NULL, &attr);
+	rdma_freeaddrinfo(res);
+	if (ret) {
+		printf("rdma_create_ep %d\n", errno);
+		return ret;
+		}
+	else printf("OK rdma_create_ep funtion. \n");
+
+	// RDMA_reg_msgs 
+	mr = rdma_reg_msgs(id, recv_msg, BUF_SIZE);
+	if (!mr) {
+		printf("rdma_reg_msgs %d\n", errno);
+		return ret;
+		}
+	else printf("OK rdma_reg_msgs function. Created mr %p \n", mr);
+
+	mr1 = rdma_reg_msgs(id, send_msg, BUF_SIZE);
+	if (!mr) {
+		printf("rdma_reg_msgs send%d\n", errno);
+		return ret;
+		}
+	else printf("OK rdma_reg_msgs function. Created send mr1 %p \n", mr1);
+
+//NEW 
+	SGE = 3;
+	SGLr.addr   = (uintptr_t) recv_msg; 	           // Start address of the local memory buffer
+	SGLr.length = BUF_SIZE*SGE;                            // Length of the buffer
+	SGLr.lkey   = mr->lkey;                            // Key of the local Memory Region
+
+	SGLs.addr  = (uintptr_t) send_msg; 	           // Start address of the local memory buffer
+	SGLs.length = BUF_SIZE*SGE;                            // Length of the buffer
+	SGLs.lkey   = mr1->lkey;                            // Key of the local Memory Region
+
+	
+ 
+	// Pre post receive vectored: RDMA_post_recvv
+	ret = rdma_post_recvv(id, recv_msg, &SGLr, SGE);
+	if (ret) {
+		printf("rdma_post_recvv %d\n", errno);
+		return ret;
+		}
+	else printf("OK PRE POST rdma_post_recvv. Created post receive vector. \n");
+
+	// Pre post receive: RDMA_post_recv
+	ret = rdma_post_recv(id, NULL, recv_msg, BUF_SIZE, mr);
+  	if (ret) {
+  		printf("rdma_post_recv %d\n", errno);
+  		return ret;
+  		}
+  	else printf("OK PRE POST rdma_post_recv. \n");
+
+	// RDMA_connect on client side
+  	ret = rdma_connect(id, NULL);
+  	if (ret) {
+  		printf("rdma_connect %d\n", errno);
+  		return ret;
+  		}
+  	else printf("OK rdma_connect: client is connected. \n");
+  	
+  	//----------------------------------------------------------
+	//--------- Clock starts -------------------------------------
+	//----------------------------------------------------------
+        time(&start);
+        st_time= times(&st_cpu);
+        
+        //----------------------------------------------------------
+        //--------- CLIENT RDMA: data movement --------------------
+        //----------------------------------------------------------
+        for(i=0;i<SGE;i++){
+  	//*************** Client is sending ***************************
+  	//ret = rdma_post_send(id, NULL, send_msg, BUF_SIZE, NULL, IBV_SEND_INLINE);	
+  	ret = rdma_post_sendv(id, send_msg, &SGLs, SGE, IBV_SEND_INLINE);
+	if (ret) {
+  		printf("rdma_post_sendv %d\n", errno);
+  		return ret;
+  	}
+  	else printf("OK rdma_post_sendv. \n");
+
+  	// RDMA_get_send_comp
+  	ret = rdma_get_send_comp(id, &wc);
+	if (ret <= 0) {
+		printf("rdma_get_send_comp %d\n", ret);
+		return ret;
+	}
+	else printf("OK rdma_get_send_comp %d\n", ret);
+
+	//while (!ibv_poll_cq(id->send_cq, 1, &wc));	
+		
+  	//********************** Client is receiving *******************
+	
+	ret = rdma_post_recvv(id, recv_msg, &SGLr, SGE);
+  	if (ret) {
+  		printf("rdma_post_recvv %d\n", errno);
+  		return ret;
+  	}
+  	else printf("OK rdma_post_recvv. \n");
+  	
+  	// RDMA_get_recv_comp
+  	ret = rdma_get_recv_comp(id, &wc);
+  	if (ret <= 0) {
+  		printf("rdma_get_recv_comp %d\n", ret);
+  		return ret;
+  	}
+	else printf("OK rdma_get_recv_comp %d \n", ret);
+
+	//while (!ibv_poll_cq(id->recv_cq, 1, &wc));
+  	}	
+ 	
+  	//----------------------------------------------------------
+	//--------- Clock stops -------------------------------------
+	//----------------------------------------------------------
+  	time(&end);
+  	en_time= times(&en_cpu);
+  	
+	printf("OK RDMA client closes. \n \n");
+  	
+  	rdma_disconnect(id);
+	rdma_dereg_mr(mr);
+	rdma_destroy_ep(id);
+
+	
+	//------------------------------------------------------------------
+	//------- Output txt file with data --------------------------------
+	//------------------------------------------------------------------
+	
+	ofstream OutFile("Test_Latency.txt");
+	// Open outfile test
+	if (! OutFile){
+		cout << "Error opening output txt file." << endl;
+		return -1;
+	}
+		
+	// Calculation and other variables
+	dif = difftime(end,start); //delta time
+	
+	long double NTXld = (long double) NTX;
+	long double BUF_SIZEld = (long double) BUF_SIZE;
+	long double dif_ld = (long double) dif;
+	long double speed = 2*(NTXld*BUF_SIZEld)/(dif_ld);
+	long double latency = dif_ld/(2*NTXld);
+	float cpu = 100* (en_cpu.tms_utime+en_cpu.tms_stime)/(en_time-st_time+10);// ERRORE DI CALCOLO
+
+	// Use setw(), setprecision(), scientific options if it is necessary
+	cout.setf(ios::left);       // set option 'left justify output'
+
+	// Outfile format
+	OutFile << "#transfer|buffer_size(bytes)|total_time(s)|speed(bytes/s)|latency(s)|CPU(%)| \n";
+	OutFile << setw(9) << NTX << "|";
+	OutFile << setw(18) << BUF_SIZE << "|";
+	OutFile << setw(13) << dif << "|";
+	OutFile << setw(14) << speed << "|";
+	OutFile << setw(10) << latency << "|";
+	OutFile << setw(6) << cpu << "|";
+	OutFile << endl;
+	
+}// end asClient
+
+
+
+
+
+
+
+
+
+
+//*******************************************************
+//************* (fake) Main program *********************
+//*******************************************************
+// It does not work!
+/*
+int main(int narg, char **argv) {
+  if (narg > 1)
+    return asServer();
+  else
+    return asClient();
+};
+*/
+
+
+
+------=_Part_10313_1367357.1290443946538--
 
 --
-Hiroyuki Sato
-
-2010/11/22 J. Bruce Fields <bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org>:
-> On Sun, Nov 21, 2010 at 03:41:18PM +0200, Boaz Harrosh wrote:
->> On 11/21/2010 02:23 PM, Hiroyuki Sato wrote:
->> > Hello lists
->> >
->> > OS: CentOS 5.5
->> > kernel: 2.6.36 rebuild myself.
->> >
->> >
->> > =A0 I'm trying to test NFS/RDMA.
->> > =A0 I tried to mount nfs_server:/mnt volume on on nfs_client
->> > =A0 but It mounted nfs_server:/nfstest volume
->> >
->> > =A0 note: /nfstest is tmpfs
->> >
->> > =A0this is mount output
->> > =A0 =A0 tmpfs on /nfstest type tmpfs (rw,size=3D4g)
->> > =A0 =A0 /dev/sdb1 on /mnt type ext3 (rw)
->> >
->> > =A0 Is this bug??
->> >
->> > NFS server config
->> >
->> > =A0 # ls -1 /mnt
->> > =A0 This_is_mnt_volume
->> >
->> > =A0 # ls -1 /nfstest
->> > =A0 This_is_nfstest_volume
->> >
->> > =A0 # cat /etc/exports
->> > =A0 /nfstest =A0 192.168.100.0/255.255.255.0(fsid=3D0,rw,async,ins=
-ecure,no_root_squash)
->> > =A0 /mnt =A0 =A0 =A0 192.168.100.0/255.255.255.0(fsid=3D0,rw,async=
-,insecure,no_root_squash)
->> >
->>
->> You must not have two exports with fsid=3D0. First one is picked.
->>
->> nfs4 will only export a single name space point, other exports are
->> subdirs of that root export. (use bind mounts to present a single
->> directory tree)
->>
->> <http://www.citi.umich.edu/projects/nfsv4/linux/using-nfsv4.html>
->
-> We should update and/or replace that documentation; with new nfs-util=
-s
-> and kernel, if you omit the "fsid=3D0", you'll end up with an nfsv4
-> namespace that's the same as v2/v3's always was.
->
-> --b.
->
->>
->> NFSv4 exports on linux
->> ~~~~~~~~~~~~~~~~~~~~~~
->>
->> NFSv4 no longer has a separate "mount" protocol. Instead of exportin=
-g a number of distinct exports, an NFSv4 client sees the NFSv4 server's=
- exports as existing inside a single filesystem, called the nfsv4 "pseu=
-dofilesystem".
->>
->> On the current linux implementation, the pseudofilesystem is a singl=
-e real filesystem, identified at export with the fsid=3D0 option.
->>
->> In the example above, we exported only a single filesystem, which th=
-e client mounted as "/". You can provide clients with multiple filesyst=
-ems to mount, producing NFSv3-like-behavior, by creative use of mount -=
--bind. For example, you could export /usr/local/bin to clients as /bin =
-and /usr/local/etc as /etc as follows:
->>
->> mkdir /export
->> mkdir /export/bin
->> mkdir /export/etc
->> mount --bind /usr/local/bin /export/bin
->> mount --bind /usr/local/etc /export/etc
->> exportfs -ofsid=3D0,insecure,no_subtree_check *:/export
->> exportfs -orw,nohide,insecure,no_subtree_check *:/export/bin
->> exportfs -orw,nohide,insecure,no_subtree_check *:/export/etc
->>
->> Note that the paths returned by the "showmount" program are meaningf=
-ul only to clients using nfs versions 2 and 3; in the above example, "s=
-howmount" will list the paths /export, /export/bin/, and /export/etc, b=
-ut nfsv4 clients should mount yourserver:/, yourserver:/bin, or yourser=
-ver:/etc.
->>
->> </http://www.citi.umich.edu/projects/nfsv4/linux/using-nfsv4.html>
->>
->> Boaz
->> >
->> > =A0 # modprobe svcrdma
->> >
->> > =A0 # /sbin/service nfs start
->> >
->> > =A0 # echo rdma 20049 > /proc/fs/nfsd/portlist
->> >
->> >
->> > Client Setting
->> >
->> > =A0 /sbin/modprobe xprtrdma
->> > =A0 /sbin/mount.rnfs 192.168.100.231:/mnt /mnt -i -o rdma,port=3D2=
-0049
->> >
->> > =A0 # ls -1 /mnt
->> > =A0 This_is_nfstest_volume
->> >
->> > NFS Server log
->> > =A0 sysctl -w sunrpc.nfsd_debug=3D1023
->> >
->> > =A0 Nov 21 20:47:37 dell1435 mountd[3575]: authenticated mount req=
-uest
->> > from 192.168.100.232:766 for /mnt (/mnt)
->> > =A0 Nov 21 20:47:37 dell1435 mountd[3575]: /nfstest and /mnt have =
-same
->> > filehandle for 192.168.100.0/255.255.255.0, using first
->> > =A0 Nov 21 20:48:55 dell1435 mountd[3575]: authenticated unmount r=
-equest
->> > from 192.168.100.232:912 for /mnt (/mnt)
->> > =A0 Nov 21 20:48:55 dell1435 mountd[3575]: authenticated unmount r=
-equest
->> > from 192.168.100.232:913 for /mnt (/mnt)
->> > =A0 Nov 21 20:49:00 dell1435 mountd[3575]: authenticated unmount r=
-equest
->> > from 192.168.100.232:917 for /mnt (/mnt)
->> > =A0 Nov 21 20:49:16 dell1435 mountd[3575]: authenticated mount req=
-uest
->> > from 192.168.100.232:865 for /mnt (/mnt)
->> > =A0 Nov 21 21:02:22 dell1435 mountd[3575]: authenticated unmount r=
-equest
->> > from 192.168.100.232:955 for /mnt (/mnt)
->> > =A0 Nov 21 21:02:26 dell1435 mountd[3575]: authenticated mount req=
-uest
->> > from 192.168.100.232:884 for /mnt (/mnt)
->> > =A0 Nov 21 21:02:26 dell1435 kernel: nfsd: exp_rootfh(/mnt
->> > [ffff88011f586740] 192.168.100.0/255.255.255.0:sdb1/2)
->> >
->> >
->> > --
->> > Hiroyuki Sato
->> > --
->> > To unsubscribe from this list: send the line "unsubscribe linux-nf=
-s" in
->> > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->> > More majordomo info at =A0http://vger.kernel.org/majordomo-info.ht=
-ml
->>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-nfs"=
- in
->> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
