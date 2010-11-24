@@ -1,35 +1,115 @@
-From: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
-Subject: Re: [PATCH] infiniband: remove dev_base_lock use
-Date: Wed, 24 Nov 2010 09:09:57 -0800 (PST)
-Message-ID: <20101124.090957.104052452.davem@davemloft.net>
-References: <1288350226.2560.11.camel@edumazet-laptop>
-	<1290606468.3464.38.camel@edumazet-laptop>
-	<adalj4ihcsa.fsf@cisco.com>
+From: Maciej Sosnowski <maciej.sosnowski-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH 1/4] RDMA/nes: enable bonds on iw_nes
+Date: Wed, 24 Nov 2010 18:29:30 +0100
+Message-ID: <20101124172930.14764.20947.stgit@linux.site>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <adalj4ihcsa.fsf-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org
-Cc: eric.dumazet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Date: Wed, 24 Nov 2010 09:06:13 -0800
+Enable configuring bonds on nes devices by adding
+missing support for master net_device to the driver
 
->  > David, it seems no infiniband guy commented this patch, could you take
->  > it in your tree ?
-> 
-> Sorry... in any case this looks fine.  If all prerequisites are upstream
-> then I'm happy to take through my tree, but if Dave wants to take it:
-> 
-> Acked-by: Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Maciej Sosnowski <maciej.sosnowski-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+---
 
-I'd rather take it because it opens up some further simplifications
-Eric wants to perform.
+ drivers/infiniband/hw/nes/nes.c    |   24 +++++++++++++++++++-----
+ drivers/infiniband/hw/nes/nes_cm.c |    8 +++++++-
+ 2 files changed, 26 insertions(+), 6 deletions(-)
 
-So I'll apply this to net-next-2.6, thanks for the review Roland.
+diff --git a/drivers/infiniband/hw/nes/nes.c b/drivers/infiniband/hw/nes/nes.c
+index 0c9f0aa..e17f52c 100644
+--- a/drivers/infiniband/hw/nes/nes.c
++++ b/drivers/infiniband/hw/nes/nes.c
+@@ -144,6 +144,7 @@ static int nes_inetaddr_event(struct not
+ 	struct nes_device *nesdev;
+ 	struct net_device *netdev;
+ 	struct nes_vnic *nesvnic;
++	unsigned int is_bonded;
+ 
+ 	nes_debug(NES_DBG_NETDEV, "nes_inetaddr_event: ip address %pI4, netmask %pI4.\n",
+ 		  &ifa->ifa_address, &ifa->ifa_mask);
+@@ -152,7 +153,8 @@ static int nes_inetaddr_event(struct not
+ 				nesdev, nesdev->netdev[0]->name);
+ 		netdev = nesdev->netdev[0];
+ 		nesvnic = netdev_priv(netdev);
+-		if (netdev == event_netdev) {
++		is_bonded = (netdev->master == event_netdev);
++		if ((netdev == event_netdev) || is_bonded) {
+ 			if (nesvnic->rdma_enabled == 0) {
+ 				nes_debug(NES_DBG_NETDEV, "Returning without processing event for %s since"
+ 						" RDMA is not enabled.\n",
+@@ -169,7 +171,10 @@ static int nes_inetaddr_event(struct not
+ 					nes_manage_arp_cache(netdev, netdev->dev_addr,
+ 							ntohl(nesvnic->local_ipaddr), NES_ARP_DELETE);
+ 					nesvnic->local_ipaddr = 0;
+-					return NOTIFY_OK;
++					if (is_bonded)
++						continue;
++					else
++						return NOTIFY_OK;
+ 					break;
+ 				case NETDEV_UP:
+ 					nes_debug(NES_DBG_NETDEV, "event:UP\n");
+@@ -178,15 +183,24 @@ static int nes_inetaddr_event(struct not
+ 						nes_debug(NES_DBG_NETDEV, "Interface already has local_ipaddr\n");
+ 						return NOTIFY_OK;
+ 					}
++					/* fall through */
++				case NETDEV_CHANGEADDR:
+ 					/* Add the address to the IP table */
+-					nesvnic->local_ipaddr = ifa->ifa_address;
++					if (netdev->master)
++						nesvnic->local_ipaddr =
++							((struct in_device *)netdev->master->ip_ptr)->ifa_list->ifa_address;
++					else
++						nesvnic->local_ipaddr = ifa->ifa_address;
+ 
+ 					nes_write_indexed(nesdev,
+ 							NES_IDX_DST_IP_ADDR+(0x10*PCI_FUNC(nesdev->pcidev->devfn)),
+-							ntohl(ifa->ifa_address));
++							ntohl(nesvnic->local_ipaddr));
+ 					nes_manage_arp_cache(netdev, netdev->dev_addr,
+ 							ntohl(nesvnic->local_ipaddr), NES_ARP_ADD);
+-					return NOTIFY_OK;
++					if (is_bonded)
++						continue;
++					else
++						return NOTIFY_OK;
+ 					break;
+ 				default:
+ 					break;
+diff --git a/drivers/infiniband/hw/nes/nes_cm.c b/drivers/infiniband/hw/nes/nes_cm.c
+index 25ad0f9..009ec81 100644
+--- a/drivers/infiniband/hw/nes/nes_cm.c
++++ b/drivers/infiniband/hw/nes/nes_cm.c
+@@ -1107,6 +1107,7 @@ static int nes_addr_resolve_neigh(struct
+ 	struct flowi fl;
+ 	struct neighbour *neigh;
+ 	int rc = arpindex;
++	struct net_device *netdev;
+ 	struct nes_adapter *nesadapter = nesvnic->nesdev->nesadapter;
+ 
+ 	memset(&fl, 0, sizeof fl);
+@@ -1117,7 +1118,12 @@ static int nes_addr_resolve_neigh(struct
+ 		return rc;
+ 	}
+ 
+-	neigh = neigh_lookup(&arp_tbl, &rt->rt_gateway, nesvnic->netdev);
++	if (nesvnic->netdev->master)
++		netdev = nesvnic->netdev->master;
++	else
++		netdev = nesvnic->netdev;
++
++	neigh = neigh_lookup(&arp_tbl, &rt->rt_gateway, netdev);
+ 	if (neigh) {
+ 		if (neigh->nud_state & NUD_VALID) {
+ 			nes_debug(NES_DBG_CM, "Neighbor MAC address for 0x%08X"
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
