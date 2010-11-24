@@ -1,30 +1,26 @@
-From: Or Gerlitz <ogerlitz-hKgKHo2Ms0FWk0Htik3J/w@public.gmane.org>
-Subject: Re: rdma_lat whos
-Date: Wed, 24 Nov 2010 17:00:51 +0200
-Message-ID: <4CED28A3.9070907@Voltaire.com>
-References: <4CE3B455.4080003@Voltaire.com> <4CE3BCE3.7090107@Voltaire.com> <4CE50190.3080707@dev.mellanox.co.il>
+From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH] infiniband: remove dev_base_lock use
+Date: Wed, 24 Nov 2010 09:06:13 -0800
+Message-ID: <adalj4ihcsa.fsf@cisco.com>
+References: <1288350226.2560.11.camel@edumazet-laptop>
+	<1290606468.3464.38.camel@edumazet-laptop>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4CE50190.3080707-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+In-Reply-To: <1290606468.3464.38.camel@edumazet-laptop> (Eric Dumazet's
+	message of "Wed, 24 Nov 2010 14:47:48 +0100")
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ido Shamai <idos-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Jack Morgenstein <jackm-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Moni Shoua <monis-smomgflXvOZWk0Htik3J/w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Alex Rosenbaum <Alexr-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+To: Eric Dumazet <eric.dumazet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, netdev <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Ido Shamai wrote:
-> I will check the issue now.
+ > David, it seems no infiniband guy commented this patch, could you take
+ > it in your tree ?
 
-Thinking a little further on this and talking with some colleagues, a question was made, 
-whether the issue can be related to IB credits/starvation and/or protocol/interoperability 
-with switches. 
+Sorry... in any case this looks fine.  If all prerequisites are upstream
+then I'm happy to take through my tree, but if Dave wants to take it:
 
-In an attempt to eliminate that, I repeated the test, this time in a loopback manner, e.g used ib_send_lat once with mtu=256 and once with mtu=2048 with both client/server running on the same node/hca - same result, the mtu=256 produces much better latency for large messages, e.g 1k and onward, for example for msg size=8k the latency is ~7us with mtu=256 and ~9us with mtu=2k
-
-I recalled that on the 2nd generation HCA (tavor), if mtu=2048 is used, the bandwidth is severely damaged (hence the ofed tavor quirk and friends) can this problem which I see on the 4th generation HCA, be somehow related?
-
-Or. 
+Acked-by: Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
