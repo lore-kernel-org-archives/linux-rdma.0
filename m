@@ -1,106 +1,48 @@
-From: Maciej Sosnowski <maciej.sosnowski-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 4/4] RDMA/nes: fix incorrect SFP link status detection on
-	driver init
-Date: Wed, 24 Nov 2010 18:29:54 +0100
-Message-ID: <20101124172953.14764.56132.stgit@linux.site>
-References: <20101124172930.14764.20947.stgit@linux.site>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: Problem Pinning Physical Memory
+Date: Wed, 24 Nov 2010 10:42:45 -0700
+Message-ID: <20101124174245.GA25325@obsidianresearch.com>
+References: <loom.20101122T192618-795@post.gmane.org> <20101124135507.GA23230@mtldesk30>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20101124172930.14764.20947.stgit-YbU/o29LwNHN0uC3ymp8PA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20101124135507.GA23230@mtldesk30>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+To: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: Brian <balexander-osxm6dDZNBBZx8iatJs59jGjJy/sRE9J@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-During iw_nes initialization link status for SFP phy is always detected
-as "up" regardless of real state (cable either connected or disconnected).
-Add SFP phy specific link status detection to iw_nes initialization procedure.
-Use link status recheck for netdev_open to detect delayed state updates.
+On Wed, Nov 24, 2010 at 03:55:07PM +0200, Eli Cohen wrote:
+> On Mon, Nov 22, 2010 at 06:28:47PM +0000, Brian wrote:
+> > ibv_reg_mr works fine as long as the shared region is in RAM. However, if I
+> > change the memory region to the physical memory on a PCI device the call to
+> > ibv_reg_mr fails. What should I be doing to register a physical memory region?
+> > 
+> > In searching through this forum I've seen some patches relating to
+> > reg_io_mr/dereg_io_mr. However, I don't see those changes in the 1.5.2 ofed
+> > sources. I had hoped to try applying the patches myself but the structure of the
+> > unchanged code in the patches appears to be different than the 1.5.2 ofed
+> > sources. Is there another, more recent, code base that I should be using?
+> > 
+> 
+> You can't regiter IO memory using ibv_reg_mr() - you can only do that
+> by registering that memory using physical memory registration which is
+> available only for kernel consumers. 
 
-Signed-off-by: Maciej Sosnowski <maciej.sosnowski-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
----
+> You can't allow userspace to register physical pages as this is a
+> security breach.
 
- drivers/infiniband/hw/nes/nes_nic.c |   43 ++++++++++++++++++++++++++++++++---
- 1 files changed, 39 insertions(+), 4 deletions(-)
+Eh? If it is mmap'd into my processes address space then letting it be
+used for RDMA makes no difference to the security of the system.
 
-diff --git a/drivers/infiniband/hw/nes/nes_nic.c b/drivers/infiniband/hw/nes/nes_nic.c
-index b2101bc..3c4191e 100644
---- a/drivers/infiniband/hw/nes/nes_nic.c
-+++ b/drivers/infiniband/hw/nes/nes_nic.c
-@@ -241,6 +241,15 @@ static int nes_netdev_open(struct net_de
- 		netif_carrier_on(netdev);
- 	}
- 
-+	spin_lock_irqsave(&nesdev->nesadapter->phy_lock, flags);
-+	if (nesdev->nesadapter->phy_type[nesdev->mac_index] == NES_PHY_TYPE_SFP_D) {
-+		if (nesdev->link_recheck)
-+			cancel_delayed_work(&nesdev->work);
-+		nesdev->link_recheck = 1;
-+		schedule_delayed_work(&nesdev->work, NES_LINK_RECHECK_DELAY);
-+	}
-+	spin_unlock_irqrestore(&nesdev->nesadapter->phy_lock, flags);
-+
- 	spin_lock_irqsave(&nesvnic->port_ibevent_lock, flags);
- 	if (nesvnic->of_device_registered) {
- 		nesdev->nesadapter->send_term_ok = 1;
-@@ -1782,8 +1791,11 @@ struct net_device *nes_netdev_init(struc
- 	      (((PCI_FUNC(nesdev->pcidev->devfn) == 1) && (nesdev->mac_index == 2)) ||
- 	       ((PCI_FUNC(nesdev->pcidev->devfn) == 2) && (nesdev->mac_index == 1)))))) {
- 		u32 u32temp;
--		u32 link_mask;
--		u32 link_val;
-+		u32 link_mask = 0;
-+		u32 link_val = 0;
-+		u16 temp_phy_data;
-+		u16 phy_data = 0;
-+		unsigned long flags;
- 
- 		u32temp = nes_read_indexed(nesdev, NES_IDX_PHY_PCS_CONTROL_STATUS0 +
- 				(0x200 * (nesdev->mac_index & 1)));
-@@ -1805,6 +1817,23 @@ struct net_device *nes_netdev_init(struc
- 				link_val = 0x02020000;
- 			}
- 			break;
-+		case NES_PHY_TYPE_SFP_D:
-+			spin_lock_irqsave(&nesdev->nesadapter->phy_lock, flags);
-+			nes_read_10G_phy_reg(nesdev,
-+					     nesdev->nesadapter->phy_index[nesdev->mac_index],
-+					     1, 0x9003);
-+			temp_phy_data = (u16)nes_read_indexed(nesdev, NES_IDX_MAC_MDIO_CONTROL);
-+			nes_read_10G_phy_reg(nesdev,
-+					     nesdev->nesadapter->phy_index[nesdev->mac_index],
-+					     3, 0x0021);
-+			nes_read_indexed(nesdev, NES_IDX_MAC_MDIO_CONTROL);
-+			nes_read_10G_phy_reg(nesdev,
-+					     nesdev->nesadapter->phy_index[nesdev->mac_index],
-+					     3, 0x0021);
-+			phy_data = (u16)nes_read_indexed(nesdev, NES_IDX_MAC_MDIO_CONTROL);
-+			spin_unlock_irqrestore(&nesdev->nesadapter->phy_lock, flags);
-+			phy_data = (!temp_phy_data && (phy_data == 0x8000)) ? 0x4 : 0x0;
-+			break;
- 		default:
- 			link_mask = 0x0f1f0000;
- 			link_val = 0x0f0f0000;
-@@ -1814,8 +1843,14 @@ struct net_device *nes_netdev_init(struc
- 		u32temp = nes_read_indexed(nesdev,
- 					   NES_IDX_PHY_PCS_CONTROL_STATUS0 +
- 					   (0x200 * (nesdev->mac_index & 1)));
--		if ((u32temp & link_mask) == link_val)
--			nesvnic->linkup = 1;
-+
-+		if (phy_type == NES_PHY_TYPE_SFP_D) {
-+			if (phy_data & 0x0004)
-+				nesvnic->linkup = 1;
-+		} else {
-+			if ((u32temp & link_mask) == link_val)
-+				nesvnic->linkup = 1;
-+		}
- 
- 		/* clear the MAC interrupt status, assumes direct logical to physical mapping */
- 		u32temp = nes_read_indexed(nesdev, NES_IDX_MAC_INT_STATUS + (0x200 * nesdev->mac_index));
+The last time this came up I said that the kernel side of ibv_reg_mr
+should do the right thing for all types of memory that are mmap'd into
+a process and I still think that is true. RDMA to device memory could
+be very useful and with things like GEM managing the allocation of
+device (video) memory to userspace, so it can be done safely.
 
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
