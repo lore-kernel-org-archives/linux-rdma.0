@@ -1,141 +1,35 @@
-From: Eric Dumazet <eric.dumazet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH] infiniband: remove dev_base_lock use
-Date: Wed, 24 Nov 2010 14:47:48 +0100
-Message-ID: <1290606468.3464.38.camel@edumazet-laptop>
-References: <1288350226.2560.11.camel@edumazet-laptop>
+From: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: Problem Pinning Physical Memory
+Date: Wed, 24 Nov 2010 15:55:07 +0200
+Message-ID: <20101124135507.GA23230@mtldesk30>
+References: <loom.20101122T192618-795@post.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1288350226.2560.11.camel@edumazet-laptop>
+Content-Disposition: inline
+In-Reply-To: <loom.20101122T192618-795-eS7Uydv5nfjZ+VzJOa5vwg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
-Cc: netdev <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Brian <balexander-osxm6dDZNBBZx8iatJs59jGjJy/sRE9J@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+On Mon, Nov 22, 2010 at 06:28:47PM +0000, Brian wrote:
+> ibv_reg_mr works fine as long as the shared region is in RAM. However, if I
+> change the memory region to the physical memory on a PCI device the call to
+> ibv_reg_mr fails. What should I be doing to register a physical memory region?
+> 
+> In searching through this forum I've seen some patches relating to
+> reg_io_mr/dereg_io_mr. However, I don't see those changes in the 1.5.2 ofed
+> sources. I had hoped to try applying the patches myself but the structure of the
+> unchanged code in the patches appears to be different than the 1.5.2 ofed
+> sources. Is there another, more recent, code base that I should be using?
+> 
 
-
-Le vendredi 29 octobre 2010 =C3=A0 13:03 +0200, Eric Dumazet a =C3=A9cr=
-it :
-> dev_base_lock is the legacy way to lock the device list, and is plann=
-ed
-> to disappear. (writers hold RTNL, readers hold RCU lock)
->=20
-> Convert rdma_translate_ip() to RCU locking.
->=20
-> Signed-off-by: Eric Dumazet <eric.dumazet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-> ---
->  drivers/infiniband/core/addr.c |    6 +++---
->  1 file changed, 3 insertions(+), 3 deletions(-)
->=20
-> diff --git a/drivers/infiniband/core/addr.c b/drivers/infiniband/core=
-/addr.c
-> index a5ea1bc..309b477 100644
-> --- a/drivers/infiniband/core/addr.c
-> +++ b/drivers/infiniband/core/addr.c
-> @@ -130,8 +130,8 @@ int rdma_translate_ip(struct sockaddr *addr, stru=
-ct rdma_dev_addr *dev_addr)
-> =20
->  #if defined(CONFIG_IPV6) || defined(CONFIG_IPV6_MODULE)
->  	case AF_INET6:
-> -		read_lock(&dev_base_lock);
-> -		for_each_netdev(&init_net, dev) {
-> +		rcu_read_lock();
-> +		for_each_netdev_rcu(&init_net, dev) {
->  			if (ipv6_chk_addr(&init_net,
->  					  &((struct sockaddr_in6 *) addr)->sin6_addr,
->  					  dev, 1)) {
-> @@ -139,7 +139,7 @@ int rdma_translate_ip(struct sockaddr *addr, stru=
-ct rdma_dev_addr *dev_addr)
->  				break;
->  			}
->  		}
-> -		read_unlock(&dev_base_lock);
-> +		rcu_read_unlock();
->  		break;
->  #endif
->  	}
->=20
-
-Here is a new version of patch.
-
-David, it seems no infiniband guy commented this patch, could you take
-it in your tree ?
-
-Thanks
-
-[PATCH] infiniband: remove dev_base_lock use
-
-dev_base_lock is the legacy way to lock the device list, and is planned
-to disappear. (writers hold RTNL, readers hold RCU lock)
-
-Convert rdma_translate_ip() and update_ipv6_gids() to RCU locking.
-
-Signed-off-by: Eric Dumazet <eric.dumazet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
----
- drivers/infiniband/core/addr.c    |    6 +++---
- drivers/infiniband/hw/mlx4/main.c |    6 +++---
- 2 files changed, 6 insertions(+), 6 deletions(-)
-
-diff --git a/drivers/infiniband/core/addr.c b/drivers/infiniband/core/a=
-ddr.c
-index c15fd2e..8aba0ba 100644
---- a/drivers/infiniband/core/addr.c
-+++ b/drivers/infiniband/core/addr.c
-@@ -130,8 +130,8 @@ int rdma_translate_ip(struct sockaddr *addr, struct=
- rdma_dev_addr *dev_addr)
-=20
- #if defined(CONFIG_IPV6) || defined(CONFIG_IPV6_MODULE)
- 	case AF_INET6:
--		read_lock(&dev_base_lock);
--		for_each_netdev(&init_net, dev) {
-+		rcu_read_lock();
-+		for_each_netdev_rcu(&init_net, dev) {
- 			if (ipv6_chk_addr(&init_net,
- 					  &((struct sockaddr_in6 *) addr)->sin6_addr,
- 					  dev, 1)) {
-@@ -139,7 +139,7 @@ int rdma_translate_ip(struct sockaddr *addr, struct=
- rdma_dev_addr *dev_addr)
- 				break;
- 			}
- 		}
--		read_unlock(&dev_base_lock);
-+		rcu_read_unlock();
- 		break;
- #endif
- 	}
-diff --git a/drivers/infiniband/hw/mlx4/main.c b/drivers/infiniband/hw/=
-mlx4/main.c
-index bf3e20c..4e55a28 100644
---- a/drivers/infiniband/hw/mlx4/main.c
-+++ b/drivers/infiniband/hw/mlx4/main.c
-@@ -848,8 +848,8 @@ static int update_ipv6_gids(struct mlx4_ib_dev *dev=
-, int port, int clear)
- 		goto out;
- 	}
-=20
--	read_lock(&dev_base_lock);
--	for_each_netdev(&init_net, tmp) {
-+	rcu_read_lock();
-+	for_each_netdev_rcu(&init_net, tmp) {
- 		if (ndev && (tmp =3D=3D ndev || rdma_vlan_dev_real_dev(tmp) =3D=3D n=
-dev)) {
- 			gid.global.subnet_prefix =3D cpu_to_be64(0xfe80000000000000LL);
- 			vid =3D rdma_vlan_dev_vlan_id(tmp);
-@@ -884,7 +884,7 @@ static int update_ipv6_gids(struct mlx4_ib_dev *dev=
-, int port, int clear)
- 			}
- 		}
- 	}
--	read_unlock(&dev_base_lock);
-+	rcu_read_unlock();
-=20
- 	for (i =3D 0; i < 128; ++i)
- 		if (!hits[i]) {
-
-
+You can't regiter IO memory using ibv_reg_mr() - you can only do that
+by registering that memory using physical memory registration which is
+available only for kernel consumers. You can't allow userspace to
+register physical pages as this is a security breach.
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
