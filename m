@@ -1,37 +1,27 @@
-From: "Justin P. Mattock" <justinmattock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+From: Jiri Kosina <jkosina@suse.cz>
 Subject: Re: [RFC 0/9] Change the copyright info.
-Date: Sat, 27 Nov 2010 06:28:31 -0800
-Message-ID: <4CF1158F.9070501@gmail.com>
+Date: Sat, 27 Nov 2010 17:04:47 +0100 (CET)
+Message-ID: <alpine.LNX.2.00.1011271704120.981@pobox.suse.cz>
 References: <1290838879-11038-1-git-send-email-justinmattock@gmail.com> <20101127135047.6645bbfb@pyx>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-ide-owner@vger.kernel.org>
 In-Reply-To: <20101127135047.6645bbfb@pyx>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Alan Cox <alan-qBU/x9rampVanCEyBjwyrvXRex20P6io@public.gmane.org>
-Cc: trivial-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-ide-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Sender: linux-ide-owner@vger.kernel.org
+To: Alan Cox <alan@lxorguk.ukuu.org.uk>
+Cc: "Justin P. Mattock" <justinmattock@gmail.com>, linux-rdma@vger.kernel.org, linux-ide@vger.kernel.org, linux-mtd@lists.infradead.org, linux-wireless@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 11/27/2010 05:50 AM, Alan Cox wrote:
->> Below you will find a set of patches, that update the copyright info from
->> Sun Microsystems to Oracle.
->
+On Sat, 27 Nov 2010, Alan Cox wrote:
+
+> > Below you will find a set of patches, that update the copyright info from
+> > Sun Microsystems to Oracle.
+> 
 > This should come from an official oracle address. It's not trivial stuff
 > at all - its rather important it's done right.
->
 
+Absolutely. I am not taking those of course.
 
-o.k. any oracle employees want to take this? also the email addresses 
-need fixing as well(grep -Re "sun.com" *) shows some people with sun 
-still there as well
-
-Justin P. Mattock
-
-
-
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+Jiri Kosina
+SUSE Labs, Novell Inc.
