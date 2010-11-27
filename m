@@ -1,41 +1,27 @@
-From: Artem Bityutskiy <dedekind1@gmail.com>
+From: Jiri Kosina <jkosina@suse.cz>
 Subject: Re: [RFC 0/9] Change the copyright info.
-Date: Sat, 27 Nov 2010 11:48:43 +0200
-Message-ID: <1290851323.2379.3.camel@koala>
+Date: Sat, 27 Nov 2010 11:53:43 +0100 (CET)
+Message-ID: <alpine.LNX.2.00.1011271152350.981@pobox.suse.cz>
 References: <1290838879-11038-1-git-send-email-justinmattock@gmail.com>
-	 <1290843702.2379.1.camel@koala>  <4CF0B781.2080209@gmail.com>
-Reply-To: dedekind1@gmail.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <4CF0B781.2080209@gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-ide-owner@vger.kernel.org>
+In-Reply-To: <1290838879-11038-1-git-send-email-justinmattock@gmail.com>
+Sender: linux-ide-owner@vger.kernel.org
 To: "Justin P. Mattock" <justinmattock@gmail.com>
-Cc: trivial@kernel.org, linux-rdma@vger.kernel.org, linux-ide@vger.kernel.org, linux-mtd@lists.infradead.org, linux-wireless@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: linux-rdma@vger.kernel.org, linux-ide@vger.kernel.org, linux-mtd@lists.infradead.org, linux-wireless@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, 2010-11-26 at 23:47 -0800, Justin P. Mattock wrote:
-> On 11/26/2010 11:41 PM, Artem Bityutskiy wrote:
-> > On Fri, 2010-11-26 at 22:21 -0800, Justin P. Mattock wrote:
-> >>
-> >
-> >> Below you will find a set of patches, that update the copyright in=
-fo from
-> >> Sun Microsystems to Oracle.
-> >
-> > Shouldn't @oracle.com e-mail used for such patches?
-> >
->=20
-> yeah was looking at all the @oracle addresses, but thought to just fo=
-cus=20
-> on this part, then later send out something for the addresses
+On Fri, 26 Nov 2010, Justin P. Mattock wrote:
 
-Err, I actually meant that you (the submitter) should use @oracle.com
-e-mail, because it looks a bit confusing why @gmail.com guy changes
-copyrights :-)
+> Below you will find a set of patches, that update the copyright info from
+> Sun Microsystems to Oracle.
+> 
+> Please let me know if I missed anything and/or should make changes..
 
---=20
-Best Regards,
-Artem Bityutskiy (=D0=91=D0=B8=D1=82=D1=8E=D1=86=D0=BA=D0=B8=D0=B9 =D0=90=
-=D1=80=D1=82=D1=91=D0=BC)
+Most importantly -- are you actually Oracle employee? Do you know what 
+exactly happened to the copyrights after the acquisition?
+
+-- 
+Jiri Kosina
+SUSE Labs, Novell Inc.
