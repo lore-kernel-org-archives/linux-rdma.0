@@ -1,50 +1,52 @@
-From: Aleksey Senin <aleksey-192fA4vuk7xBDLzU/O5InQ@public.gmane.org>
-Subject: Re: [PATCH] mlx4: properly mask MGM entry members count
-Date: Sun, 28 Nov 2010 15:50:14 +0200
-Message-ID: <AANLkTikWrQRcA62bkM=1zWQuyH6nABSvqnbAeaAjfgcP@mail.gmail.com>
-References: <20101115140829.GA20355@mtldesk30>
-	<ada62vxl046.fsf@cisco.com>
-	<20101116180732.GB29132@mtldesk30>
-	<ada1v6klwil.fsf@cisco.com>
-	<20101117090134.GA20369@mtldesk30>
-	<adasjyzkfyw.fsf@cisco.com>
-	<20101118065142.GB20369@mtldesk30>
-	<AANLkTinN43YgQW3ftbng-4f2NiNe9_oXPVCX5LPzh7uG@mail.gmail.com>
-	<4CEE200B.70106@Voltaire.com>
-	<1290675387.4050.51.camel@alst60.voltaire.com>
+From: Reid O <hpc_reid-PkbjNfxxIARBDgjK7y7TUQ@public.gmane.org>
+Subject: =?windows-1256?Q?Subnet_man?= =?windows-1256?Q?agement_on?=
+ =?windows-1256?Q?_non_pure_?= =?windows-1256?Q?fat-tree_n?=
+ =?windows-1256?Q?etwork=FE?=
+Date: Sun, 28 Nov 2010 16:18:05 -0600
+Message-ID: <SNT140-w638ED9C5E0455EBAEBC0FEF1230@phx.gbl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=windows-1256
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1290675387.4050.51.camel-uOVkuFIEnOODI2cvxHXf6UEOCMrvLtNR@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Cc: Alekseys Senin <alekseys-smomgflXvOZWk0Htik3J/w@public.gmane.org>, Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, RDMA list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, monis-smomgflXvOZWk0Htik3J/w@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hello, Roland.
 
-I afraid that you  overloaded with dozen of e-mails and missed this
-question, so I'd ask you again. Is there any reason why this
-members_count patch cannot be applied?
+Hello,
+=A0 We have an Infiniband cluster in a fat tree configuration with 8 co=
+re switches and
+12 leaf switches.=A0 The compute nodes are all in enclosures connected =
+to the 12
+leaf switches.=A0 However, we have a number of non-compute nodes (admin=
+,
+login and storage nodes) that we have connected directly to the core
+switches.=A0 Initially, we were getting credit-loop issues so we switch=
+ed
+from Min Hop to UPDN routing.=A0 However, now 90% of our IB traffic see=
+ms
+to be routed through a single core switch.=A0 I have tried adding a roo=
+t
+guid file with the -a option, but that results in us getting this error=
+:
 
-On Thu, Nov 25, 2010 at 10:56 AM, Alekseys Senin <alekseys-smomgflXvOZWk0Htik3J/w@public.gmane.org> wrote:
-> On Thu, 2010-11-25 at 10:36 +0200, Or Gerlitz wrote:
->> Aleksey Senin wrote:
->> > RAW_ETH patches cannot be applied without it, so we really need this masking.
->>
->> So Maybe it would be easier to review and merge if you add this patch to the raw qp patch set
->> you mentioned
->>
->> Or.
->
-> I don't think that RAW_ETH patches should contain fixes for Mellanox
-> driver implementation and make it working according to Mellanox PRM.
-> In any case, Eli sent patch that easy to review and merge.
-> In addition, even if I include this change to my series, there is a
-> chance that from the whole set, will be accepted only this one, and the
-> rest will be accepted later ;-)
->
+Nov
+28 16:47:19 319442 [45007960] 0x01 -> __osm_pr_rcv_get_path_parms:
+ERR 1F07: Dead end on path to LID 0x6F from switch for GUID
+0x00066a00d9000ac8
+Nov 28 16:47:22 319469 [43C05960] 0x01 ->
+__osm_pr_rcv_get_path_parms: ERR 1F07: Dead end on path to LID 0x6F
+from switch for GUID 0x00066a00d9000ac8
+
+Is there any way we can handle this hardware config via subnet manageme=
+nt?
+
+Thanks,
+
+Reid O. 		 	   		 =20
+ 		 	   		 =20
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
