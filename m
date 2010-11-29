@@ -1,30 +1,73 @@
-From: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH] ib/core: remove some dead code added by the IBoE
- patches
-Date: Mon, 29 Nov 2010 09:48:18 +0200
-Message-ID: <20101129074818.GA16673@mtldesk30>
-References: <Pine.LNX.4.64.1011290913560.29567@zuben.voltaire.com>
+From: Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: =?windows-1256?Q?Re=3A_Subnet_management_on_non_pure_?=
+ =?windows-1256?Q?fat-tree_network=FE?=
+Date: Mon, 29 Nov 2010 11:48:57 +0200
+Message-ID: <4CF37709.3010008@dev.mellanox.co.il>
+References: <SNT140-w638ED9C5E0455EBAEBC0FEF1230@phx.gbl>
+Reply-To: kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=windows-1256
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.64.1011290913560.29567-aDiYczhfhVLdX2U7gxhm1tBPR1lH4CV8@public.gmane.org>
+In-Reply-To: <SNT140-w638ED9C5E0455EBAEBC0FEF1230-MsuGFMq8XAE@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Cc: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Reid O <hpc_reid-PkbjNfxxIARBDgjK7y7TUQ@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Nov 29, 2010 at 09:20:50AM +0200, Or Gerlitz wrote:
+On 29-Nov-10 12:18 AM, Reid O wrote:
 > 
-> Eli, I see also the following which relates to commit 4c3eb3ca13966508bcb64f39
-> "Add VLAN support for IBoE", and wasn't sure if/how to fix that, can you have a look?
+> Hello,
+>    We have an Infiniband cluster in a fat tree configuration with 8 core switches and
+> 12 leaf switches.  The compute nodes are all in enclosures connected to the 12
+> leaf switches.  However, we have a number of non-compute nodes (admin,
+> login and storage nodes) that we have connected directly to the core
+> switches.  Initially, we were getting credit-loop issues so we switched
+> from Min Hop to UPDN routing.  However, now 90% of our IB traffic seems
+> to be routed through a single core switch.  I have tried adding a root
+> guid file with the -a option, but that results in us getting this error:
 > 
-> CC [M]  drivers/infiniband/hw/mlx4/qp.o
-> drivers/infiniband/hw/mlx4/qp.c: In function mlx4_ib_post_send:
-> drivers/infiniband/hw/mlx4/qp.c:1304: warning: vlan may be used uninitialized in this function
+> Nov
+> 28 16:47:19 319442 [45007960] 0x01 ->  __osm_pr_rcv_get_path_parms:
+> ERR 1F07: Dead end on path to LID 0x6F from switch for GUID
+> 0x00066a00d9000ac8
+> Nov 28 16:47:22 319469 [43C05960] 0x01 ->
+> __osm_pr_rcv_get_path_parms: ERR 1F07: Dead end on path to LID 0x6F
+> from switch for GUID 0x00066a00d9000ac8
 > 
-As far as I can see it's a false warning. vlan is initialized only if
-is_eth it true but it is also used only when is_eth is true.
+> Is there any way we can handle this hardware config via subnet management?
+
+I'm only guessing, but here's what I understand from your description:
+You have 8 spine switches, and 12 leaf switches.
+ANY of the spine switches is connected to ALL the leaf switches.
+You have compute nodes connected to ALL the leaf switches.
+You have some management/IO nodes connected to SEVERAL spine switches.
+
+Am I right so far?
+
+You get credit loops because of the traffic between management/IO nodes.
+Up/Down routing with root nodes list doesn't solve you problem - it
+prevents credit loops, but this is only because it doesn't connect
+those management/IO nodes (hence the error that you see in the OSM log).
+
+The real solution would be changing the topology.
+
+If it's not an option, you can select a SINGLE leaf switch as a root
+node, and run Up/Down routing with root guid list with this leaf switch
+as a root. This is bad for BW, but it will solve the problem.
+
+-- Yevgeny
+
+> Thanks,
+> 
+> Reid O. 		 	   		
+>   		 	   		
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
