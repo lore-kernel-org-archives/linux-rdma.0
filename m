@@ -1,45 +1,35 @@
-From: Tom Tucker <tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: Re: Problem Pinning Physical Memory
-Date: Mon, 29 Nov 2010 11:13:45 -0600
-Message-ID: <4CF3DF49.8000605@opengridcomputing.com>
-References: <loom.20101122T192618-795@post.gmane.org> <20101124135507.GA23230@mtldesk30> <20101124174245.GA25325@obsidianresearch.com> <4CF3DE7D.4060105@opengridcomputing.com>
+From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH] mlx4: properly mask MGM entry members count
+Date: Mon, 29 Nov 2010 09:34:45 -0800
+Message-ID: <adafwukf2yy.fsf@cisco.com>
+References: <20101115140829.GA20355@mtldesk30> <ada62vxl046.fsf@cisco.com>
+	<20101116180732.GB29132@mtldesk30> <ada1v6klwil.fsf@cisco.com>
+	<20101117090134.GA20369@mtldesk30> <adasjyzkfyw.fsf@cisco.com>
+	<20101118065142.GB20369@mtldesk30>
+	<AANLkTinN43YgQW3ftbng-4f2NiNe9_oXPVCX5LPzh7uG@mail.gmail.com>
+	<4CEE200B.70106@Voltaire.com>
+	<1290675387.4050.51.camel@alst60.voltaire.com>
+	<AANLkTikWrQRcA62bkM=1zWQuyH6nABSvqnbAeaAjfgcP@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4CF3DE7D.4060105-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+In-Reply-To: <AANLkTikWrQRcA62bkM=1zWQuyH6nABSvqnbAeaAjfgcP-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+	(Aleksey Senin's message of "Sun, 28 Nov 2010 15:50:14 +0200")
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Brian <balexander-osxm6dDZNBBZx8iatJs59jGjJy/sRE9J@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Aleksey Senin <aleksey-192fA4vuk7xBDLzU/O5InQ@public.gmane.org>
+Cc: Alekseys Senin <alekseys-smomgflXvOZWk0Htik3J/w@public.gmane.org>, Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, RDMA list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, monis-smomgflXvOZWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 11/29/10 11:10 AM, Steve Wise wrote:
->
->
-> On 11/24/2010 11:42 AM, Jason Gunthorpe wrote:
->>
->> The last time this came up I said that the kernel side of ibv_reg_mr
->> should do the right thing for all types of memory that are mmap'd into
->> a process and I still think that is true. RDMA to device memory could
->> be very useful and with things like GEM managing the allocation of
->> device (video) memory to userspace, so it can be done safely.
->>
->> Jason
->
-> Tom posted changes to support this a while back.  Tom, do you have an 
-> updated patch series for this support?
->
-Yes. I removed the new verb and followed Jason's recommendation of adding 
-this support to the core reg_mr support. I used the type bits in the vma 
-struct to determine the type of memory being registered and just did the 
-"right thing."
+ > I afraid that you  overloaded with dozen of e-mails and missed this
+ > question, so I'd ask you again. Is there any reason why this
+ > members_count patch cannot be applied?
 
-I'll repost in the the next day or two.
+No, it is fine.  I will merge it for 2.6.38.  However this long thread
+should (I hope) show how the changelog could be improved -- if the
+original patch had said why the patch was needed then we could have
+avoided all this long discussion.
 
-Tom
-
-> Steve.
-
+ - R.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
