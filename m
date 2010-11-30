@@ -1,38 +1,81 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH V2 1/5] IB Netlink Infrastructure
-Date: Tue, 30 Nov 2010 10:51:52 -0700
-Message-ID: <20101130175152.GH16788@obsidianresearch.com>
-References: <1291047399-430-1-git-send-email-nirm@voltaire.com>
- <1291047399-430-2-git-send-email-nirm@voltaire.com>
- <20101129182159.GB16788@obsidianresearch.com>
- <1291121801.3155.177.camel@nirm-desktop>
+From: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH] replace (long*)(long) casting with transportable data
+ type (uintptr_t)
+Date: Tue, 30 Nov 2010 19:55:55 +0200
+Message-ID: <20101130175555.GX11898@me>
+References: <7C00F472050C412BABCB4F2A59CFBD63@amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1291121801.3155.177.camel@nirm-desktop>
+In-Reply-To: <7C00F472050C412BABCB4F2A59CFBD63-Zpru7NauK7drdx17CPfAsdBPR1lH4CV8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Nir Muchtar <nirm-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Cc: rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, monis-smomgflXvOZWk0Htik3J/w@public.gmane.org, ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org
+To: "Stan C. Smith" <stan.smith-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Linux RDMA <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Nov 30, 2010 at 02:56:41PM +0200, Nir Muchtar wrote:
+On 14:12 Thu 09 Sep     , Stan C. Smith wrote:
+> 
+> Hello,
+>   In osm_vendor_ibumad_sa.c the casting of a pointer to a long causes data truncation problems in 64-bit Windows where sizeof(long)
+> != sizeof(void*).
+> 'uintptr_t' is correct in both operating environments.
 
-> Do you mean adding this to ib_core?  I'm not sure we want to
-> autoload ib_core whenever the userspace asks for "socket(PF_NETLINK,
-> SOCK_RAW, NETLINK_INFINIBAND)" What's wrong with receiving a
-> "protocol not supported" error?  If ib_core is not loaded then
-> there's no data anyway.  Am I missing other possible effects of
-> MODULE_ALIAS here?
+Wouldn't it be better to remove those additional castings at all?
+Like below?
 
-It seems to be kernel policy to annotate this sort of autoload
-meta-data.
+> 
+> thank you,
+> 
+> stan.
+> 
+> signed-off-by: stan smith <stan.smith-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> 
+> diff --git a/opensm/libvendor/osm_vendor_ibumad_sa.c b/opensm/libvendor/osm_vendor_ibumad_sa.c
+> index 1fdcc47..9180972 100644
+> --- a/opensm/libvendor/osm_vendor_ibumad_sa.c
+> +++ b/opensm/libvendor/osm_vendor_ibumad_sa.c
+> @@ -85,7 +85,7 @@ __osmv_sa_mad_rcv_cb(IN osm_madw_t * p_madw,
+>  
+>  	/* obtain the sent context since we store it during send in the ni_ctx */
+>  	p_query_req_copy =
+> -	    (osmv_query_req_t *) (long *)(long)(p_req_madw->context.ni_context.
+> +	    (osmv_query_req_t *) (uintptr_t)(p_req_madw->context.ni_context.
+>  						node_guid);
 
-If the module is demand loaded or not is a userspace choice.
+	p_query_req_copy = (osmv_query_req_t *) p_req_madw->context.ni_context.node_guid;
 
-Apps using this should handle both cases.
+>  
+>  	/* provide the context of the original request in the result */
+> @@ -181,7 +181,7 @@ static void __osmv_sa_mad_err_cb(IN void *bind_context, IN osm_madw_t * p_madw)
+>  
+>  	/* Obtain the sent context etc */
+>  	p_query_req_copy =
+> -	    (osmv_query_req_t *) (long *)(long)(p_madw->context.ni_context.
+> +	    (osmv_query_req_t *) (uintptr_t)(p_madw->context.ni_context.
+>  						node_guid);
 
-Jason
+ 	p_query_req_copy = (osmv_query_req_t *) p_madw->context.ni_context.node_guid;
+
+>  
+>  	/* provide the context of the original request in the result */
+> @@ -433,7 +433,7 @@ __osmv_send_sa_req(IN osmv_sa_bind_info_t * p_bind,
+>  	}
+>  	*p_query_req_copy = *p_query_req;
+>  	p_madw->context.ni_context.node_guid =
+> -	    (ib_net64_t) (long)p_query_req_copy;
+> +	    (ib_net64_t) (uintptr_t)p_query_req_copy;
+
+	p_madw->context.ni_context.node_guid = (ib_net64_t) p_query_req_copy;
+
+?
+
+Sasha
+
+>  
+>  	/* we can support async as well as sync calls */
+>  	sync = ((p_query_req->flags & OSM_SA_FLAGS_SYNC) == OSM_SA_FLAGS_SYNC);
+> 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
