@@ -1,52 +1,41 @@
-From: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH] infiniband-diags/saquery.c: In
- dump_one_mcmember_record, fix flow label endian
-Date: Tue, 30 Nov 2010 17:37:03 +0200
-Message-ID: <20101130153703.GG11898@me>
-References: <4CC823DC.4030605@dev.mellanox.co.il>
+From: Alan Cook <acook-osxm6dDZNBBZx8iatJs59jGjJy/sRE9J@public.gmane.org>
+Subject: Re: Problem Pinning Physical Memory
+Date: Tue, 30 Nov 2010 15:24:47 +0000 (UTC)
+Message-ID: <loom.20101130T160950-109@post.gmane.org>
+References: <loom.20101122T192618-795@post.gmane.org> <20101124135507.GA23230@mtldesk30> <20101124174245.GA25325@obsidianresearch.com> <4CF3DE7D.4060105@opengridcomputing.com> <4CF3DF49.8000605@opengridcomputing.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <4CC823DC.4030605-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 09:06 Wed 27 Oct     , Hal Rosenstock wrote:
-> Already in host endian
+> Tom Tucker <tom@...> writes:
 > 
-> Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-
-Applied by hands (the patch was malformed). Thanks.
-
-Sasha
-
-> ---
-> diff --git a/infiniband-diags/src/saquery.c b/infiniband-diags/src/saquery.c
-> index cb4fc18..18c5a1c 100644
-> --- a/infiniband-diags/src/saquery.c
-> +++ b/infiniband-diags/src/saquery.c
-> @@ -1,7 +1,7 @@
->   /*
->    * Copyright (c) 2006,2007 The Regents of the University of California.
->    * Copyright (c) 2004-2009 Voltaire, Inc. All rights reserved.
-> - * Copyright (c) 2002-2005 Mellanox Technologies LTD. All rights reserved.
-> + * Copyright (c) 2002-2010 Mellanox Technologies LTD. All rights reserved.
->    * Copyright (c) 1996-2003 Intel Corporation. All rights reserved.
->    * Copyright (c) 2009 HNR Consulting. All rights reserved.
->    *
-> @@ -461,7 +461,7 @@ static void dump_one_mcmember_record(void *data)
->   	       inet_ntop(AF_INET6, mr->port_gid.raw, gid, sizeof(gid)),
->   	       cl_ntoh32(mr->qkey), cl_ntoh16(mr->mlid), mr->mtu, mr->tclass,
->   	       cl_ntoh16(mr->pkey), mr->rate, mr->pkt_life, sl,
-> -	       cl_ntoh32(flow), hop, scope, join, mr->proxy_join);
-> +	       flow, hop, scope, join, mr->proxy_join);
->   }
+> Yes. I removed the new verb and followed Jason's recommendation of adding 
+> this support to the core reg_mr support. I used the type bits in the vma 
+> struct to determine the type of memory being registered and just did the 
+> "right thing."
 > 
->   static void dump_multicast_group_record(void *data)
+> I'll repost in the the next day or two.
 > 
+> Tom
+> 
+
+Tom,
+
+Couple of questions:
+
+I noticed that OFED 1.5.3 was released last week.  Are the changes you speak of
+part of that release? If not, is there an alternate branch/project that I should
+be looking at or into to for the mentioned changes?
+
+Also, I am inferring that the changes allowing the registering of physical
+memory will only happen if my application is running in kernel space.  Is this
+correct? or will I be able to register the physical memory from user space now
+as well?
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
