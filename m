@@ -1,41 +1,81 @@
-From: Alan Cook <acook-osxm6dDZNBBZx8iatJs59jGjJy/sRE9J@public.gmane.org>
-Subject: Re: Problem Pinning Physical Memory
-Date: Tue, 30 Nov 2010 15:24:47 +0000 (UTC)
-Message-ID: <loom.20101130T160950-109@post.gmane.org>
-References: <loom.20101122T192618-795@post.gmane.org> <20101124135507.GA23230@mtldesk30> <20101124174245.GA25325@obsidianresearch.com> <4CF3DE7D.4060105@opengridcomputing.com> <4CF3DF49.8000605@opengridcomputing.com>
+From: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH] infiniband-diags/iblinkinfo.c: Limit some queries to
+ switches
+Date: Tue, 30 Nov 2010 17:41:28 +0200
+Message-ID: <20101130154128.GH11898@me>
+References: <4CC81F4B.4090600@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <4CC81F4B.4090600-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-> Tom Tucker <tom@...> writes:
+On 08:47 Wed 27 Oct     , Hal Rosenstock wrote:
+> infiniband-diags/iblinkinfo.c: Limit certain queries to switches
 > 
-> Yes. I removed the new verb and followed Jason's recommendation of adding 
-> this support to the core reg_mr support. I used the type bits in the vma 
-> struct to determine the type of memory being registered and just did the 
-> "right thing."
+> iblinkinfo man page says:
+> DESCRIPTION
+>         iblinkinfo reports the link info for each port of each switch 
+> active in
+>         the IB fabric.
 > 
-> I'll repost in the the next day or two.
+> OPTIONS
+>         -S <guid>
+>                Output only the switch specified by <guid> (hex format)
 > 
-> Tom
+>         -D <direct_route>
+>                Output only the switch specified by the direct route path.
 > 
+> Queries by DR path or GUID should (also) be limited to switches.
+> 
+> Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Tom,
+Applied by hands (the patch is malformed). Thanks.
 
-Couple of questions:
+Sasha
 
-I noticed that OFED 1.5.3 was released last week.  Are the changes you speak of
-part of that release? If not, is there an alternate branch/project that I should
-be looking at or into to for the mentioned changes?
-
-Also, I am inferring that the changes allowing the registering of physical
-memory will only happen if my application is running in kernel space.  Is this
-correct? or will I be able to register the physical memory from user space now
-as well?
-
+> ---
+> diff --git a/infiniband-diags/src/iblinkinfo.c 
+> b/infiniband-diags/src/iblinkinfo.c
+> index d0c9b13..b129cb6 100644
+> --- a/infiniband-diags/src/iblinkinfo.c
+> +++ b/infiniband-diags/src/iblinkinfo.c
+> @@ -2,6 +2,7 @@
+>    * Copyright (c) 2004-2009 Voltaire Inc.  All rights reserved.
+>    * Copyright (c) 2007 Xsigo Systems Inc.  All rights reserved.
+>    * Copyright (c) 2008 Lawrence Livermore National Lab.  All rights 
+> reserved.
+> + * Copyright (c) 2010 Mellanox Technologies LTD.  All rights reserved.
+>    *
+>    * This software is available to you under a choice of one of two
+>    * licenses.  You may choose to be licensed under the terms of the GNU
+> @@ -387,7 +388,7 @@ int main(int argc, char **argv)
+> 
+>   	if (!all && guid_str) {
+>   		ibnd_node_t *sw = ibnd_find_node_guid(fabric, guid);
+> -		if (sw)
+> +		if (sw && sw->type == IB_NODE_TYPE_SWITCH)
+>   			print_switch(sw, NULL);
+>   		else
+>   			fprintf(stderr, "Failed to find switch: %s\n",
+> @@ -402,7 +403,7 @@ int main(int argc, char **argv)
+>   		mad_decode_field(ni, IB_NODE_GUID_F, &(guid));
+> 
+>   		sw = ibnd_find_node_guid(fabric, guid);
+> -		if (sw)
+> +		if (sw && sw->type == IB_NODE_TYPE_SWITCH)
+>   			print_switch(sw, NULL);
+>   		else
+>   			fprintf(stderr, "Failed to find switch: %s\n", dr_path);
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
