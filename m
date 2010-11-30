@@ -1,24 +1,27 @@
 From: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH] infiniband-diags/ibtracert: Eliminate direct route
- (-D) option
-Date: Tue, 30 Nov 2010 16:56:37 +0200
-Message-ID: <20101130145637.GD11898@me>
-References: <20100914151016.GA19615@comcast.net>
+Subject: Re: [PATCH 00/13] opensm: Cleanups and more documentation for
+ torus-2QoS patchset
+Date: Tue, 30 Nov 2010 17:23:47 +0200
+Message-ID: <20101130152347.GE11898@me>
+References: <1289599882-15165-1-git-send-email-jaschut@sandia.gov>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20100914151016.GA19615-Wuw85uim5zDR7s880joybQ@public.gmane.org>
+In-Reply-To: <1289599882-15165-1-git-send-email-jaschut-4OHPYypu0djtX7QSmKvirg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Hal Rosenstock <hnrose-Wuw85uim5zDR7s880joybQ@public.gmane.org>
+To: Jim Schutt <jaschut-4OHPYypu0djtX7QSmKvirg@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 11:10 Tue 14 Sep     , Hal Rosenstock wrote:
+On 15:11 Fri 12 Nov     , Jim Schutt wrote:
+> Hi Sasha,
 > 
-> Direct route does not make sense as an ibtracert option so eliminate it. 
-> 
-> Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> These patches clean up and add documentation to the
+> torus-2QoS routing module for OpenSM.  They apply on
+> top of my previous bug-fix patchset from September
+> (http://www.spinics.net/lists/linux-rdma/msg05809.html),
+> which applies to your torus-2qos branch.
 
 Applied. Thanks.
 
