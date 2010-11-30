@@ -1,20 +1,20 @@
 From: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH] opensm/osm_ucast_ftree.c: fixing another memory leak
- at error path
-Date: Tue, 30 Nov 2010 18:24:33 +0200
-Message-ID: <20101130162433.GO11898@me>
-References: <4C86563B.4070007@mellanox.co.il>
+Subject: Re: [PATCH] opensm/osm_ucast_lash.c: small bug in calculating
+ allocated size
+Date: Tue, 30 Nov 2010 18:27:27 +0200
+Message-ID: <20101130162727.GP11898@me>
+References: <4C8656FD.8090100@mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <4C86563B.4070007-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
+In-Reply-To: <4C8656FD.8090100-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org
 Cc: Linux RDMA <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 18:11 Tue 07 Sep     , Yevgeny Kliteynik wrote:
+On 18:15 Tue 07 Sep     , Yevgeny Kliteynik wrote:
 > 
 > Signed-off-by: Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 
