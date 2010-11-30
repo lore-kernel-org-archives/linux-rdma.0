@@ -1,50 +1,44 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH] libibverbs/doc: clarify selective signaling (Re: using
- IBV_SEND_SIGNALED)
-Date: Tue, 30 Nov 2010 11:57:44 -0700
-Message-ID: <20101130185744.GK16788@obsidianresearch.com>
-References: <alpine.LNX.2.00.1011291128190.31687@postal.iol.unh.edu>
- <4CF3DDF0.2070907@opengridcomputing.com>
- <alpine.LNX.2.00.1011291233540.5810@postal.iol.unh.edu>
- <4CF3E5FA.6010308@opengridcomputing.com>
- <4CF4E65D.4070205@Voltaire.com>
+Subject: Re: [PATCH V2 5/5] RDMA CM: Netlink Client
+Date: Tue, 30 Nov 2010 12:01:15 -0700
+Message-ID: <20101130190115.GL16788@obsidianresearch.com>
+References: <1291047399-430-1-git-send-email-nirm@voltaire.com>
+ <1291047399-430-6-git-send-email-nirm@voltaire.com>
+ <CF9C39F99A89134C9CF9C4CCB68B8DDF25B8924212@orsmsx501.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <4CF4E65D.4070205-hKgKHo2Ms0FWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <CF9C39F99A89134C9CF9C4CCB68B8DDF25B8924212-osO9UTpF0USkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <ogerlitz-hKgKHo2Ms0FWk0Htik3J/w@public.gmane.org>
-Cc: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, "Robert D. Russell" <rdr-zcUZCMB5SQOVc3sceRu5cw@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Nir Muchtar <nirm-smomgflXvOZWk0Htik3J/w@public.gmane.org>, "rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org" <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "monis-smomgflXvOZWk0Htik3J/w@public.gmane.org" <monis-smomgflXvOZWk0Htik3J/w@public.gmane.org>, "ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org" <ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Nov 30, 2010 at 01:56:13PM +0200, Or Gerlitz wrote:
-> Steve Wise wrote:
-> > On 11/29/2010 11:34 AM, Robert D. Russell wrote:
-> > See section 8.2.1 of the iWARP Verbs draft at:
-> > http://tools.ietf.org/html/draft-hilland-rddp-verbs-00#section-8.2.1.
-> > The last big paragraph in 8.2.1 spells it all out.
-> > There should be a similar requirement in the IBTA IB Verbs specification...
+On Tue, Nov 30, 2010 at 08:13:45AM -0800, Hefty, Sean wrote:
+> > +struct rdma_cm_id_stats {
+> > +	enum rdma_node_type nt;
+> > +	int port_num;
+> > +	int bound_dev_if;
+> > +	__be16	local_port;
+> > +	__be16	remote_port;
+> > +	__be32	local_addr[4];
+> > +	__be32	remote_addr[4];
 > 
-> Yes, I think the below patch to the man page can help people
-> understand how to work with the thing
+> Please use sockaddr_storage, so that we can expand the rdma_cm
+> beyond ipv4/6 address support.
 
-I think the subtly here is that remote completion of a local WR does
-not indiciate local completion. This is the only operational case I
-can think of that might break the rules.
+Actually for netlink the proper thing to do here is to place the
+sockaddr in a sub-attribute that can be variable-sized. Do not put
+variably sized data into a struct like this.
 
-For instance a protocol that had remote acks for all SENDs might be
-tempted to not ever use signaled WR's on the local side - since
-receiving the remote ACK SEND must indicate the local SEND WR is
-complete. This is the incorrect assumption.
+Further, sockaddr_storage is not actually ABI guaranteed to be
+constant in size, it is just the current largest sockaddr
+possible. This is why the sockaddr size in/out parameter associated
+with all sockaddrs is so important.
 
-So, I'd suggest this language:
-
-Applications which use selective signaling can only assume that
-unsignaled WRs are complete once a completion for a later signaled WR
-is received. In practice this means that a signaled WR must be
-used periodically, and that the send queue should never be filled with
-unsignaled WRs.
+Don't put sockaddrs in fixed-size structures for user/kernel
+interfaces.
 
 Jason
 --
