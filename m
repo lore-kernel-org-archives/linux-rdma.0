@@ -1,45 +1,62 @@
-From: "Smith, Stan" <stan.smith-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH] replace (long*)(long) casting with transportable data
- type (uintptr_t)
-Date: Tue, 30 Nov 2010 11:08:24 -0800
-Message-ID: <3F6F638B8D880340AB536D29CD4C1E1925B9B714E4@orsmsx501.amr.corp.intel.com>
-References: <7C00F472050C412BABCB4F2A59CFBD63@amr.corp.intel.com>
- <20101130175555.GX11898@me>
- <CF9C39F99A89134C9CF9C4CCB68B8DDF25B89244EC@orsmsx501.amr.corp.intel.com>
+From: Tom Tucker <tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: Re: Problem Pinning Physical Memory
+Date: Tue, 30 Nov 2010 14:26:26 -0600
+Message-ID: <4CF55DF2.1030507@opengridcomputing.com>
+References: <loom.20101122T192618-795@post.gmane.org> <20101124135507.GA23230@mtldesk30> <20101124174245.GA25325@obsidianresearch.com> <4CF3DE7D.4060105@opengridcomputing.com> <4CF3DF49.8000605@opengridcomputing.com> <loom.20101130T160950-109@post.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CF9C39F99A89134C9CF9C4CCB68B8DDF25B89244EC-osO9UTpF0USkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <loom.20101130T160950-109-eS7Uydv5nfjZ+VzJOa5vwg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Cc: Linux RDMA <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Alan Cook <acook-osxm6dDZNBBZx8iatJs59jGjJy/sRE9J@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hefty, Sean wrote:
->> Wouldn't it be better to remove those additional castings at all?
->> Like below?
+On 11/30/10 9:24 AM, Alan Cook wrote:
+>> Tom Tucker<tom@...>  writes:
 >>
-> ..
->>      p_query_req_copy = (osmv_query_req_t *)
->> p_req_madw->context.ni_context.node_guid;
+>> Yes. I removed the new verb and followed Jason's recommendation of adding
+>> this support to the core reg_mr support. I used the type bits in the vma
+>> struct to determine the type of memory being registered and just did the
+>> "right thing."
+>>
+>> I'll repost in the the next day or two.
+>>
+>> Tom
+>>
+> Tom,
 >
-> I think the Windows compiler will complain about data loss on a
-> 32-bit system.
+> Couple of questions:
+>
+> I noticed that OFED 1.5.3 was released last week.  Are the changes you speak of
+> part of that release?
+No.
+> If not, is there an alternate branch/project that I should
+> be looking at or into to for the mentioned changes?
+The patch will be against the top-of-tree Linux kernel.
+> Also, I am inferring that the changes allowing the registering of physical
+> memory will only happen if my application is running in kernel space.
 
-Only the case @ line 433 compiler wise, requires the (uintptr_t) to eliminate the x86 compiler warning: conversion from ptr to ib_net64_t is sign-extended which may result in unexpected runtime behaviors.
-Otherwise, x64 & x86 compilers digest the single cast approach.
-The real question becomes, are the runtime truncations observed by Mellanox still present with the single cast?
+Actually, no.
 
-> @@ -433,7 +433,7 @@ __osmv_send_sa_req(IN osmv_sa_bind_info_t * p_bind,
->       }
->       *p_query_req_copy = *p_query_req;
->       p_madw->context.ni_context.node_guid =
-> -         (ib_net64_t) (long)p_query_req_copy;
-> +         (ib_net64_t) (uintptr_t)p_query_req_copy;
+>   Is this
+> correct? or will I be able to register the physical memory from user space now
+> as well?
+What I implemented was support for mmap'd memory. In practical terms for 
+your application you would write a driver that supported the mmap file op. 
+The driver's mmap routine would ioremap the pci memory of interest and 
+stuff it in the provided vma. The user-mode app then ibv_reg_mr the 
+address and length returned by mmap.
 
-        p_madw->context.ni_context.node_guid = (ib_net64_t) p_query_req_copy;
+Make sense?
+Tom
+
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
