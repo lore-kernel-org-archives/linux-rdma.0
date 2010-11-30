@@ -1,36 +1,24 @@
 From: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH 0/2] opensm: Bug fixes for torus-2QoS patchset
-Date: Tue, 30 Nov 2010 16:53:09 +0200
-Message-ID: <20101130145309.GC11898@me>
-References: <1284742994-24503-1-git-send-email-jaschut@sandia.gov>
+Subject: Re: [PATCH] infiniband-diags/ibtracert: Eliminate direct route
+ (-D) option
+Date: Tue, 30 Nov 2010 16:56:37 +0200
+Message-ID: <20101130145637.GD11898@me>
+References: <20100914151016.GA19615@comcast.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1284742994-24503-1-git-send-email-jaschut-4OHPYypu0djtX7QSmKvirg@public.gmane.org>
+In-Reply-To: <20100914151016.GA19615-Wuw85uim5zDR7s880joybQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jim Schutt <jaschut-4OHPYypu0djtX7QSmKvirg@public.gmane.org>
+To: Hal Rosenstock <hnrose-Wuw85uim5zDR7s880joybQ@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 11:03 Fri 17 Sep     , Jim Schutt wrote:
-> Hi Sasha,
+On 11:10 Tue 14 Sep     , Hal Rosenstock wrote:
 > 
-> These patches fix bugs discovered during further testing of the
-> torus-2QoS routing module for OpenSM.  They apply to your
-> torus-2qos branch.
+> Direct route does not make sense as an ibtracert option so eliminate it. 
 > 
-> Thanks -- Jim
-> 
-> 
-> Jim Schutt (2):
->   opensm/osm_torus.c: Add check for invalid topology discovery due to
->     user misconfiguration.
->   opensm/osm_torus.c: Handle calloc() failure on routing engine context
->     creation.
-> 
->  opensm/opensm/osm_torus.c |   24 +++++++++++++++++++++++-
->  1 files changed, 23 insertions(+), 1 deletions(-)
+> Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
 Applied. Thanks.
 
