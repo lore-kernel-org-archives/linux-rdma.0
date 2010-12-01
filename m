@@ -1,47 +1,38 @@
-From: Mike Heinz <michael.heinz-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-Subject: RE: Has the patch for sa busy been accepted?
-Date: Wed, 1 Dec 2010 08:45:46 -0600
-Message-ID: <4C2744E8AD2982428C5BFE523DF8CDCB4A208DF122@MNEXMB1.qlogic.org>
-References: <4C2744E8AD2982428C5BFE523DF8CDCB4A208DF11A@MNEXMB1.qlogic.org>
- <4CF65F14.2030206@dev.mellanox.co.il>
+From: Alan Cook <acook-osxm6dDZNBBZx8iatJs59jGjJy/sRE9J@public.gmane.org>
+Subject: Re: Problem Pinning Physical Memory
+Date: Wed, 1 Dec 2010 15:30:45 +0000 (UTC)
+Message-ID: <loom.20101201T162410-279@post.gmane.org>
+References: <loom.20101122T192618-795@post.gmane.org> <20101124135507.GA23230@mtldesk30> <20101124174245.GA25325@obsidianresearch.com> <4CF3DE7D.4060105@opengridcomputing.com> <4CF3DF49.8000605@opengridcomputing.com> <loom.20101130T160950-109@post.gmane.org> <4CF55DF2.1030507@opengridcomputing.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4CF65F14.2030206-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Todd Rimmer <todd.rimmer-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-I think so, but I'll double check. Either way, I'll resubmit to ensure that Roland has the newest version.
+Tom Tucker <tom@...> writes:
 
------Original Message-----
-From: Hal Rosenstock [mailto:hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org] 
-Sent: Wednesday, December 01, 2010 9:44 AM
-To: Mike Heinz
-Cc: Roland Dreier; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Todd Rimmer
-Subject: Re: Has the patch for sa busy been accepted?
+> What I implemented was support for mmap'd memory. In practical terms for 
+> your application you would write a driver that supported the mmap file op. 
+> The driver's mmap routine would ioremap the pci memory of interest and 
+> stuff it in the provided vma. The user-mode app then ibv_reg_mr the 
+> address and length returned by mmap.
+> 
+> Make sense?
 
-Mike,
+I believe so.  Something along these lines has already been implemented for the
+device with which I am working, but was failing due to lacking your patch.
 
-On 12/1/2010 9:28 AM, Mike Heinz wrote:
-> Roland,
->
-> Back on November 2nd, Sean said
->
->> Given all this, then I think it would be okay to accept the patch to drop busy responses>  from the SA until this framework is in place, which wouldn't be until 2.6.38 or 39.
->>
->> - Sean
->
-> I just want to touch base on that - has the SA BUSY patch been accepted for inclusion?
+I am not able to find the patch that you submitted (bad search terms?).  I also
+am having a difficult time tracking down (with any certainty) the sources that
+your patch would be made against.
 
-I may have missed this but did my comments on this patch from back on 
-10/28 get addressed ?
+If you could provide lines to both I would greatly appreciate it.
 
--- Hal
+Thanks.
 
+-- Alan
 
 
 --
