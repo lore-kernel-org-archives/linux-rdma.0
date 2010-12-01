@@ -1,45 +1,57 @@
-From: Aleksey Senin <aleksey-192fA4vuk7xBDLzU/O5InQ@public.gmane.org>
-Subject: Re: [PATCH v2] mlx4: properly mask MGM entry members count
-Date: Wed, 1 Dec 2010 10:35:18 +0200
-Message-ID: <AANLkTi=CsLOR8e1Dbshw__jnO5zM=Dyv7AToUF=V8Pq+@mail.gmail.com>
-References: <20101116181520.GA29609@mtldesk30>
+From: Or Gerlitz <ogerlitz-hKgKHo2Ms0FWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH] libibverbs/doc: clarify selective signaling (Re: using
+ IBV_SEND_SIGNALED)
+Date: Wed, 01 Dec 2010 11:01:04 +0200
+Message-ID: <4CF60ED0.6000502@Voltaire.com>
+References: <alpine.LNX.2.00.1011291128190.31687@postal.iol.unh.edu>	<4CF3DDF0.2070907@opengridcomputing.com>	<alpine.LNX.2.00.1011291233540.5810@postal.iol.unh.edu>	<4CF3E5FA.6010308@opengridcomputing.com> <4CF4E65D.4070205@Voltaire.com> <20101130185744.GK16788@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20101116181520.GA29609@mtldesk30>
+In-Reply-To: <20101130185744.GK16788-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, RDMA list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, "Robert D. Russell" <rdr-zcUZCMB5SQOVc3sceRu5cw@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Nov 16, 2010 at 8:15 PM, Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wro=
-te:
-> The members_count field size is 24 bits so mask it properly when read=
-ing it.
->
-> Signed-off-by: Eli Cohen <eli-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
-> ---
+Jason Gunthorpe wrote:
+> Applications which use selective signaling can only assume that
+> unsignaled WRs are complete once a completion for a later signaled WR
+> is received. In practice this means that a signaled WR must be
+> used periodically, and that the send queue should never be filled with unsignaled WRs.
 
->
-> - =C2=A0 =C2=A0 =C2=A0 members_count =3D be32_to_cpu(mgm->members_cou=
-nt);
-> + =C2=A0 =C2=A0 =C2=A0 members_count =3D be32_to_cpu(mgm->members_cou=
-nt) & 0xffffff;
+clarify selective signaling usage
 
+Signed-off-by: Or Gerlitz <ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org>
 
+---
 
-Later,  in attach/detach you are loosing protocol when assigning
-mgm->members_count.
+Jason, how's this?
 
-line:
-mgm->members_count =3D cpu_to_be32(members_count)
+ man/ibv_post_send.3 |    9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-should be changes to:
-mgm->members_count =3D cpu_to_be32(members_count) | (mgm->members_count
-& 0xff000000);
+Index: libibverbs/man/ibv_post_send.3
+===================================================================
+--- libibverbs.orig/man/ibv_post_send.3
++++ libibverbs/man/ibv_post_send.3
+@@ -112,6 +112,15 @@ request is fully executed and a work com
+ from the corresponding completion queue (CQ). However, if the
+ IBV_SEND_INLINE flag was set, the buffer can be reused immediately
+ after the call returns.
++.PP
++Applications which use selective signaling can only assume that
++unsignaled WRs are complete once a completion for a later signaled WR
++is received. In practice this means that a signaled WR must be
++used periodically, and that the send queue should never be filled with
++unsignaled WRs. Such periodic signaling is also a requirement of most rdma
++devices. In the presence of completion with error, WCs are generated
++also for unsignaled WRs, so applications should make sure to provide a valid
++id (cookie) for all posted WRs.
+ .SH "SEE ALSO"
+ .BR ibv_create_qp (3),
+ .BR ibv_create_ah (3),
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
