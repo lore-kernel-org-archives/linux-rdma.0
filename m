@@ -1,83 +1,47 @@
 From: Nir Muchtar <nirm-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH V2 5/5] RDMA CM: Netlink Client
-Date: Wed, 1 Dec 2010 17:58:54 +0200
-Message-ID: <1291219134.3155.471.camel@nirm-desktop>
+Subject: Re: [PATCH V2 1/5] IB Netlink Infrastructure
+Date: Wed, 1 Dec 2010 18:05:43 +0200
+Message-ID: <1291219543.3155.478.camel@nirm-desktop>
 References: <1291047399-430-1-git-send-email-nirm@voltaire.com>
-	 <1291047399-430-6-git-send-email-nirm@voltaire.com>
-	 <20101129191136.GC16788@obsidianresearch.com>
-	 <1291126171.3155.250.camel@nirm-desktop>
-	 <20101130181944.GI16788@obsidianresearch.com>
+	 <1291047399-430-2-git-send-email-nirm@voltaire.com>
+	 <20101129182159.GB16788@obsidianresearch.com>
+	 <1291121801.3155.177.camel@nirm-desktop>
+	 <20101130175152.GH16788@obsidianresearch.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20101130181944.GI16788-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <20101130175152.GH16788-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Cc: rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, monis-smomgflXvOZWk0Htik3J/w@public.gmane.org, ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, 2010-11-30 at 11:19 -0700, Jason Gunthorpe wrote:
+On Tue, 2010-11-30 at 10:51 -0700, Jason Gunthorpe wrote:
 
-> > I don't know of an IB device index mapping like the one in netdevice.
-> > Am I missing one? Do you mean we should create one?
+> On Tue, Nov 30, 2010 at 02:56:41PM +0200, Nir Muchtar wrote:
 > 
-> Yes, definately. It is very easy to do and goes hand-in-hand with the
-> typical netlink protocol design.
-
-I agree, but this is a bit out of scope for the current patches and I
-think this kind of change should be given some thought. It needs to
-supply userspace with mapping functions and I don't think it will be
-that easy to complete. The patch in its current state uses names but it
-doesn't perpetuate their use because the rdma cm export is separate from
-the infrastructure. Once we have such an ability, it will be very easy
-to use here.
-
-> Well, I was outlining how I think the QP-centric information can be
-> returned. You are right that we also have non-QP info, like listening
-> objects, and I think that can be best returned with a seperate
-> query. Trying to conflate them seems like it would be
-> trouble. Certainly, as I've described IBNL_QP messages should only
-> refer to active QPs.
+> > Do you mean adding this to ib_core?  I'm not sure we want to
+> > autoload ib_core whenever the userspace asks for "socket(PF_NETLINK,
+> > SOCK_RAW, NETLINK_INFINIBAND)" What's wrong with receiving a
+> > "protocol not supported" error?  If ib_core is not loaded then
+> > there's no data anyway.  Am I missing other possible effects of
+> > MODULE_ALIAS here?
 > 
-> Remember you can have as many queries as you like, this is just the QP
-> object query.
+> It seems to be kernel policy to annotate this sort of autoload
+> meta-data.
 > 
-> I guess an alternative would be to have many tables: RDMA_CM, QP, and
-> IB_CM and then rely on userspace to 'join' them by ifindex+QPN - but
-> that seems like alot of work in userspace and I think pretty much
-> everyone is going to want to have the joined data.
-
-So we are in agreement that more then one export type is required here.
-I do agree that your suggestion will make sense once we try to export QP
-related data, so maybe we can agree that I will fully support such a
-scheme, so it will be easy to implement later. By that I mean that the
-infrastructure will allow adding arbitrary attributes to messages (in
-type and in size). What do you think?
-
-> No, this isn't quite right. The dumpcb is also called after userspace
-> calls recvmsg(), which continues the dump once the buffer is
-> freed. The idea is to return a bit of the table on every dump call
-> back.
+> If the module is demand loaded or not is a userspace choice.
 > 
-> The way it is used is:
->  1. Userspace does send()
->  2. Kernel calls netlink_dump_start()
->  3. netlink_dump_start calls callback which returns non-zero
->  4. send() returns in userspace
->  5. Userspace does recv()
->  6. Kernel copies the data from #3 into userspace
->  7. netlink_dump calls callback which returns non-zero
->  8. recv() returns in userspace
+> Apps using this should handle both cases.
+> 
+> Jason
 
-Yes that's correct, but inet_diag takes care of the last two steps by
-updating its cb index, and not dump_start. If we use it that way we can
-have problems with changes in data structure on subsequent recv calls,
-so if we want to keep it the same we would still need to employ locking.
-I don't see a way to keep the same data without locking and without a
-session mechanism of some sort.
-
-Nir
+MODULE_ALIAS_PF_PROTO is used by the netlink layer once netlink_create
+is called by userspace (with request_module), So it is used by dedicated
+netlink modules such as inet_diag and nf_netlink. netlink_scsitransport
+is a closer example to our design, where there is no use of
+MODULE_ALIAS.
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
