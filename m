@@ -1,7 +1,7 @@
 From: Tom Tucker <tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 Subject: Re: NFS-RDMA hangs: connection closed (-103)
-Date: Wed, 01 Dec 2010 17:25:43 -0600
-Message-ID: <4CF6D977.6000402@opengridcomputing.com>
+Date: Wed, 01 Dec 2010 17:59:00 -0600
+Message-ID: <4CF6E144.1080200@opengridcomputing.com>
 References: <4CF6D69B.4030501@shiftmail.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
@@ -13,9 +13,25 @@ To: Spelic <spelic-9AbUPqfR1/2XDw4h08c5KA@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Spelic,
+Spelic,
 
-Can you reproduce this with an nfsv3 mount?
+I have seen this problem before, but have not been able to reliably 
+reproduce it. When I saw the problem, there were no transport errors and 
+it appeared as if the I/O had actually completed, but that the waiter was 
+not being awoken. I was not able to reliably reproduce the problem and was 
+not able to determine if the problem was a latent bug in NFS in general or 
+a bug in the RDMA transport in particular.
+
+I will try your setup here, but I don't have a system like yours so I'll 
+have to settle for a smaller ramdisk, however, I have a few questions:
+
+- Does the FS matter? For example, can you use ext[2-4] on the ramdisk and 
+not still reproduce
+- As I mentioned earlier NFS v3 vs. NFS v4
+- RAMDISK size, i.e. 2G vs. 14G
+
+Thanks,
+Tom
 
 On 12/1/10 5:13 PM, Spelic wrote:
 > Hello all
