@@ -1,64 +1,19 @@
-From: ib-x2spCj9RiN0z5UmgcLIfJQ@public.gmane.org
-Subject: Re: building RDMA perftests with g++
-Date: Wed, 01 Dec 2010 09:24:19 -0700
-Message-ID: <20101201092419.5r5mqsv1cg8cso0w@celticblues.com>
-References: <20101117202015.rs5zkzhbkskwsw4s@celticblues.com>
-	<4CE5009F.90001@dev.mellanox.co.il>
+From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH V2] mlx4: Protocol distinction
+Date: Wed, 01 Dec 2010 09:51:38 -0800
+Message-ID: <adahbexnzyt.fsf@cisco.com>
+References: <4CF67444.4080001@senin.name>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII;
-	DelSp=Yes	format=flowed
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4CE5009F.90001-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <4CF67444.4080001-192fA4vuk7xBDLzU/O5InQ@public.gmane.org> (Aleksey Senin's message of "Wed, 1
+	Dec 2010 18:13:56 +0200")
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ido Shamai <idos-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Aleksey Senin <alex-192fA4vuk7xBDLzU/O5InQ@public.gmane.org>
+Cc: Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Yevgeny Petrilin <yevgenyp-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, Moni Shoua <monis-hKgKHo2Ms0F+cjeuK/JdrQ@public.gmane.org>, Alex Rosenbaum <Alexr-smomgflXvOZWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Ido,
-Have you had opportunity to check into this?
-Ed
-
-Quoting Ido Shamai <idos-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>:
-
-> Hey Ed ,
->
-> I'm Ido , perftest maintainer , I will check the issue now , and report
-> you back.
->
-> In general , every c program can be compiled with g++ ?
->
-> Ido
->
-> On 11/18/2010 5:20 AM, ib-x2spCj9RiN0z5UmgcLIfJQ@public.gmane.org wrote:
->> I have what is probably a silly question....
->>
->> If I compile the rdma_bw example from perftests with g++, it   
->> doesn't work... granted I have to make a few changes wrt structure   
->> initialization, but I would think it should behave as when built   
->> with gcc...  I am getting an error message in   
->> pp_client_init/pp_server_init that ai_family SOCK_STREAM is not   
->> support for the port.  If I use cma I get an unrecognized event on   
->> the client side... Am I missing something?  I am trying to develop   
->> some C++ classes with RDMA/verbs.
->> Thanks,
->> Ed
->>
->>
->> -- 
->> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
->> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
-
-
+So does this replace Eli's patch?
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
