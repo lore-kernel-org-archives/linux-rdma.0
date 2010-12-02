@@ -1,251 +1,413 @@
-From: Mike Heinz <michael.heinz-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH V3] SA Busy Handling
-Date: Thu, 2 Dec 2010 14:28:52 -0600
-Message-ID: <4C2744E8AD2982428C5BFE523DF8CDCB4A208DF31E@MNEXMB1.qlogic.org>
+From: Ralph Campbell <ralph.campbell-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [RFC PATCH 2/2] IB/uverbs: Add support for user registration
+ of mmap	memory
+Date: Thu, 2 Dec 2010 13:34:26 -0800
+Message-ID: <1291325666.24256.290.camel@chromite.mv.qlogic.com>
+References: <20101202190157.13657.58176.stgit@build.ogc.int>
+	 <20101202190229.13657.85728.stgit@build.ogc.int>
+	 <1291318531.24256.272.camel@chromite.mv.qlogic.com>
+	 <4CF80083.2040907@opengridcomputing.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="_002_4C2744E8AD2982428C5BFE523DF8CDCB4A208DF31EMNEXMB1qlogic_"
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <4CF80083.2040907-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Tom Tucker <tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Cc: Tom Tucker <tom-/Yg/VP3ZvrM@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "garlick-i2BcT+NCU+M@public.gmane.org" <garlick-i2BcT+NCU+M@public.gmane.org>, "acook-osxm6dDZNBBZx8iatJs59jGjJy/sRE9J@public.gmane.org" <acook-osxm6dDZNBBZx8iatJs59jGjJy/sRE9J@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
---_002_4C2744E8AD2982428C5BFE523DF8CDCB4A208DF31EMNEXMB1qlogic_
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: quoted-printable
+On Thu, 2010-12-02 at 12:24 -0800, Tom Tucker wrote:
+> Personally I think the biggest issue is that I don't think the pfn to dma 
+> address mapping logic is portable.
 
-Fixed the loss of the trap repress handling, which must have gotten lost so=
-mewhere between May and now...
+Perhaps. That is why the core Linux VM folks should be
+involved.
 
-Hal - your formatting nit, when I looked at the patch file, I see the corre=
-ct spacing around the '&&' in the if statement.
+> On 12/2/10 1:35 PM, Ralph Campbell wrote:
+> > I understand the need for something like this patch since
+> > the GPU folks would also like to mmap memory (although the
+> > memory is marked as vma->vm_flags&  VM_IO).
+> >
+> > It seems to me that duplicating the page walking code is
+> > the wrong approach and exporting a new interface from
+> > mm/memory.c is more appropriate.
+> >
+> Perhaps, but that's kernel proper (not a module) and has it's own issues. 
+> For example, it represents an exported kernel interface and therefore a 
+> kernel compatability commitment going forward. I suggest that a new kernel 
+> interface is a separate effort that this code code utilize going forward.
 
----
-This patch provides a new module parameter for ib_mad that tells ib_mad to =
-treat BUSY responses as timeouts.
+I agree. That was what I was implying.
 
-parm:           treat_busy_as_timeout:When true, treat BUSY responses as if=
- they were timeouts. (int)
+> > Also, the quick check to find_vma() is essentially duplicated
+> > if get_user_pages() is called
+> 
+> You need to know the type before you know how to handle it. Unless you 
+> want to tear up get_user_pages, i think this non-performance path double 
+> lookup is a non issue.
 
-When this parameter is true, ib_mad will unilaterally treat BUSY responses =
-as timeouts regardless of the desired behavior of the caller.
+You only need the type if the translation is handled as the
+patch proposes. get_user_pages() could handle getting
+the physical addresses differently as it checks each vma region.
 
-In addition, this patch also provides changes to ib_mad_send_buf to allow s=
-enders of MAD requests to request this behavior even if the parameter is no=
-t set. The patch does NOT provide changes to ib_umad to allow user apps to =
-select this functionality.
+> > and it doesn't handle the case
+> > when the region spans multiple vma regions with different flags.
+> 
+> Actually, it specifically does not allow that and I'm not sure that is 
+> something you would want to support.
 
-Signed-off-by: Michael Heinz <michael.heinz-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
----
+True. It doesn't support it because without reference counting,
+there would need to be a callback mechanism to let the caller know
+if/when the mapping changes or is invalidated.
 
- drivers/infiniband/core/mad.c      |   22 ++++++++++++++++++++++
- drivers/infiniband/core/mad_priv.h |    1 +
- include/rdma/ib_mad.h              |   10 ++++++++++
- 3 files changed, 33 insertions(+), 0 deletions(-)
+> > Maybe we can modify get_user_pages to have a new flag which
+> > allows VM_PFNMAP segments to be accessed as IB memory regions.
+> > The problem is that VM_PFNMAP means there is no corresponding
+> > struct page to handle reference counting. What happens if the
+> > device that exports the VM_PFNMAP memory is hot removed?
+> 
+> Bus Address Error.
 
-diff --git a/drivers/infiniband/core/mad.c b/drivers/infiniband/core/mad.c
-index 64e660c..2e103ed 100644
---- a/drivers/infiniband/core/mad.c
-+++ b/drivers/infiniband/core/mad.c
-@@ -54,6 +54,10 @@ MODULE_PARM_DESC(send_queue_size, "Size of send queue in=
- number of work requests
- module_param_named(recv_queue_size, mad_recvq_size, int, 0444);
- MODULE_PARM_DESC(recv_queue_size, "Size of receive queue in number of work=
- requests");
-=20
-+int mad_wait_on_busy =3D 0;
-+module_param_named(treat_busy_as_timeout, mad_wait_on_busy, int, 0444);
-+MODULE_PARM_DESC(treat_busy_as_timeout, "When true, treat BUSY responses a=
-s if they were timeouts.");
-+
- static struct kmem_cache *ib_mad_cache;
-=20
- static struct list_head ib_mad_port_list;
-@@ -1120,6 +1124,7 @@ int ib_post_send_mad(struct ib_mad_send_buf *send_buf=
-,
- 		mad_send_wr->timeout =3D msecs_to_jiffies(send_buf->timeout_ms);
- 		mad_send_wr->max_retries =3D send_buf->retries;
- 		mad_send_wr->retries_left =3D send_buf->retries;
-+		mad_send_wr->wait_on_busy =3D send_buf->wait_on_busy || mad_wait_on_busy=
-;
- 		send_buf->retries =3D 0;
- 		/* Reference for work request to QP + response */
- 		mad_send_wr->refcount =3D 1 + (mad_send_wr->timeout > 0);
-@@ -1828,6 +1833,9 @@ static void ib_mad_complete_recv(struct ib_mad_agent_=
-private *mad_agent_priv,
-=20
- 	/* Complete corresponding request */
- 	if (ib_response_mad(mad_recv_wc->recv_buf.mad)) {
-+		u16 busy =3D be16_to_cpu(mad_recv_wc->recv_buf.mad->mad_hdr.status) &
-+							   IB_MGMT_MAD_STATUS_BUSY;
-+
- 		spin_lock_irqsave(&mad_agent_priv->lock, flags);
- 		mad_send_wr =3D ib_find_send_mad(mad_agent_priv, mad_recv_wc);
- 		if (!mad_send_wr) {
-@@ -1836,6 +1844,20 @@ static void ib_mad_complete_recv(struct ib_mad_agent=
-_private *mad_agent_priv,
- 			deref_mad_agent(mad_agent_priv);
- 			return;
- 		}
-+
-+		printk(KERN_DEBUG PFX "Completing recv %p: busy =3D %d, retries_left =3D=
- %d, wait_on_busy =3D %d\n",
-+			   mad_send_wr, busy, mad_send_wr->retries_left, mad_send_wr->wait_on_b=
-usy);
-+
-+		if (busy && mad_send_wr->retries_left && mad_send_wr->wait_on_busy &&
-+		   (mad_recv_wc->recv_buf.mad->mad_hdr.method !=3D IB_MGMT_METHOD_TRAP_R=
-EPRESS)) {
-+			/* Just let the query timeout and have it requeued later */
-+			spin_unlock_irqrestore(&mad_agent_priv->lock, flags);
-+			ib_free_recv_mad(mad_recv_wc);
-+			deref_mad_agent(mad_agent_priv);
-+			printk(KERN_INFO PFX "SA/SM responded MAD_STATUS_BUSY. Allowing request=
- to time out.\n");
-+			return;
-+		}
-+
- 		ib_mark_mad_done(mad_send_wr);
- 		spin_unlock_irqrestore(&mad_agent_priv->lock, flags);
-=20
-diff --git a/drivers/infiniband/core/mad_priv.h b/drivers/infiniband/core/m=
-ad_priv.h
-index 8b4df0a..b6477cf 100644
---- a/drivers/infiniband/core/mad_priv.h
-+++ b/drivers/infiniband/core/mad_priv.h
-@@ -135,6 +135,7 @@ struct ib_mad_send_wr_private {
- 	unsigned long timeout;
- 	int max_retries;
- 	int retries_left;
-+	int wait_on_busy;
- 	int retry;
- 	int refcount;
- 	enum ib_wc_status status;
-diff --git a/include/rdma/ib_mad.h b/include/rdma/ib_mad.h
-index d3b9401..fadc2c3 100644
---- a/include/rdma/ib_mad.h
-+++ b/include/rdma/ib_mad.h
-@@ -77,6 +77,15 @@
-=20
- #define IB_MGMT_MAX_METHODS			128
-=20
-+/* MAD Status field bit masks */
-+#define IB_MGMT_MAD_STATUS_SUCCESS                      0x0000
-+#define IB_MGMT_MAD_STATUS_BUSY                         0x0001
-+#define IB_MGMT_MAD_STATUS_REDIRECT_REQD                0x0002
-+#define IB_MGMT_MAD_STATUS_BAD_VERERSION                0x0004
-+#define IB_MGMT_MAD_STATUS_UNSUPPORTED_METHOD           0x0008
-+#define IB_MGMT_MAD_STATUS_UNSUPPORTED_METHOD_ATTRIB    0x000c
-+#define IB_MGMT_MAD_STATUS_INVALID_ATTRIB_VALUE         0x001c
-+
- /* RMPP information */
- #define IB_MGMT_RMPP_VERSION			1
-=20
-@@ -246,6 +255,7 @@ struct ib_mad_send_buf {
- 	int			seg_count;
- 	int			seg_size;
- 	int			timeout_ms;
-+	int			wait_on_busy;
- 	int			retries;
- };
+> > Can the device reference count be incremented to prevent that?
+> >
+> 
+> I don't think that would go in this code, it would go in the driver that 
+> gave the user the address in the first place.
+
+Perhaps. Once the IB core has the physical address, the user may
+unmmap the range which would notify the exporting driver via unmmap but
+IB wouldn't know that had happened without some sort of callback
+notification. The IB hardware could happily go on DMA'ing to that
+physical address.
+
+> > On Thu, 2010-12-02 at 11:02 -0800, Tom Tucker wrote:
+> >> Added support to the ib_umem_get helper function for handling
+> >> mmaped memory.
+> >>
+> >> Signed-off-by: Tom Tucker<tom-/Yg/VP3ZvrM@public.gmane.org>
+> >> ---
+> >>
+> >>   drivers/infiniband/core/umem.c |  272 +++++++++++++++++++++++++++++++++++++---
+> >>   1 files changed, 253 insertions(+), 19 deletions(-)
+> >>
+> >> diff --git a/drivers/infiniband/core/umem.c b/drivers/infiniband/core/umem.c
+> >> index 415e186..357ca5e 100644
+> >> --- a/drivers/infiniband/core/umem.c
+> >> +++ b/drivers/infiniband/core/umem.c
+> >> @@ -52,30 +52,24 @@ static void __ib_umem_release(struct ib_device *dev, struct ib_umem *umem, int d
+> >>   	int i;
+> >>
+> >>   	list_for_each_entry_safe(chunk, tmp,&umem->chunk_list, list) {
+> >> -		ib_dma_unmap_sg(dev, chunk->page_list,
+> >> -				chunk->nents, DMA_BIDIRECTIONAL);
+> >> -		for (i = 0; i<  chunk->nents; ++i) {
+> >> -			struct page *page = sg_page(&chunk->page_list[i]);
+> >> -
+> >> -			if (umem->writable&&  dirty)
+> >> -				set_page_dirty_lock(page);
+> >> -			put_page(page);
+> >> -		}
+> >> +		if (umem->type == IB_UMEM_MEM_MAP) {
+> >> +			ib_dma_unmap_sg(dev, chunk->page_list,
+> >> +					chunk->nents, DMA_BIDIRECTIONAL);
+> >> +			for (i = 0; i<  chunk->nents; ++i) {
+> >> +				struct page *page = sg_page(&chunk->page_list[i]);
+> >>
+> >> +				if (umem->writable&&  dirty)
+> >> +					set_page_dirty_lock(page);
+> >> +				put_page(page);
+> >> +			}
+> >> +		}
+> >>   		kfree(chunk);
+> >>   	}
+> >>   }
+> >>
+> >> -/**
+> >> - * ib_umem_get - Pin and DMA map userspace memory.
+> >> - * @context: userspace context to pin memory for
+> >> - * @addr: userspace virtual address to start at
+> >> - * @size: length of region to pin
+> >> - * @access: IB_ACCESS_xxx flags for memory being pinned
+> >> - * @dmasync: flush in-flight DMA when the memory region is written
+> >> - */
+> >> -struct ib_umem *ib_umem_get(struct ib_ucontext *context, unsigned long addr,
+> >> -			    size_t size, int access, int dmasync)
+> >> +static struct ib_umem *__umem_get(struct ib_ucontext *context,
+> >> +				  unsigned long addr, size_t size,
+> >> +				  int access, int dmasync)
+> >>   {
+> >>   	struct ib_umem *umem;
+> >>   	struct page **page_list;
+> >> @@ -100,6 +94,7 @@ struct ib_umem *ib_umem_get(struct ib_ucontext *context, unsigned long addr,
+> >>   	if (!umem)
+> >>   		return ERR_PTR(-ENOMEM);
+> >>
+> >> +	umem->type	= IB_UMEM_MEM_MAP;
+> >>   	umem->context   = context;
+> >>   	umem->length    = size;
+> >>   	umem->offset    = addr&  ~PAGE_MASK;
+> >> @@ -215,6 +210,245 @@ out:
+> >>
+> >>   	return ret<  0 ? ERR_PTR(ret) : umem;
+> >>   }
+> >> +
+> >> +/*
+> >> + * Return the PFN for the specified address in the vma. This only
+> >> + * works for a vma that is VM_PFNMAP.
+> >> + */
+> >> +static unsigned long __follow_io_pfn(struct vm_area_struct *vma,
+> >> +				     unsigned long address, int write)
+> >> +{
+> >> +	pgd_t *pgd;
+> >> +	pud_t *pud;
+> >> +	pmd_t *pmd;
+> >> +	pte_t *ptep, pte;
+> >> +	spinlock_t *ptl;
+> >> +	unsigned long pfn;
+> >> +	struct mm_struct *mm = vma->vm_mm;
+> >> +
+> >> +	pgd = pgd_offset(mm, address);
+> >> +	if (pgd_none(*pgd) || unlikely(pgd_bad(*pgd)))
+> >> +		return 0;
+> >> +
+> >> +	pud = pud_offset(pgd, address);
+> >> +	if (pud_none(*pud))
+> >> +		return 0;
+> >> +	if (unlikely(pud_bad(*pud)))
+> >> +		return 0;
+> >> +
+> >> +	pmd = pmd_offset(pud, address);
+> >> +	if (pmd_none(*pmd))
+> >> +		return 0;
+> >> +	if (unlikely(pmd_bad(*pmd)))
+> >> +		return 0;
+> >> +
+> >> +	ptep = pte_offset_map_lock(mm, pmd, address,&ptl);
+> >> +	pte = *ptep;
+> >> +	if (!pte_present(pte))
+> >> +		goto bad;
+> >> +	if (write&&  !pte_write(pte))
+> >> +		goto bad;
+> >> +
+> >> +	pfn = pte_pfn(pte);
+> >> +	pte_unmap_unlock(ptep, ptl);
+> >> +	return pfn;
+> >> + bad:
+> >> +	pte_unmap_unlock(ptep, ptl);
+> >> +	return 0;
+> >> +}
+> >> +
+> >> +static int __get_io_pfn(struct task_struct *tsk, struct mm_struct *mm,
+> >> +			unsigned long start, int len, int write, int force,
+> >> +			unsigned long *pfn_list, struct vm_area_struct **vmas)
+> >> +{
+> >> +	unsigned long pfn;
+> >> +	int i;
+> >> +	if (len<= 0)
+> >> +		return 0;
+> >> +
+> >> +	i = 0;
+> >> +	do {
+> >> +		struct vm_area_struct *vma;
+> >> +
+> >> +		vma = find_vma(mm, start);
+> >> +		if (!(vma->vm_flags&  VM_PFNMAP))
+> >> +			return -EINVAL;
+> >> +
+> >> +		if (!(vma->vm_flags&  VM_IO))
+> >> +			return -EFAULT;
+> >> +
+> >> +		if (is_vm_hugetlb_page(vma))
+> >> +			return -EFAULT;
+> >> +
+> >> +		do {
+> >> +			cond_resched();
+> >> +			pfn = __follow_io_pfn(vma, start, write);
+> >> +			if (!pfn)
+> >> +				return -EFAULT;
+> >> +			if (pfn_list)
+> >> +				pfn_list[i] = pfn;
+> >> +			if (vmas)
+> >> +				vmas[i] = vma;
+> >> +			i++;
+> >> +			start += PAGE_SIZE;
+> >> +			len--;
+> >> +		} while (len&&  start<  vma->vm_end);
+> >> +	} while (len);
+> >> +	return i;
+> >> +}
+> >> +
+> >> +static struct ib_umem *__iomem_get(struct ib_ucontext *context,
+> >> +				   unsigned long addr, size_t size,
+> >> +				   int access, int dmasync)
+> >> +{
+> >> +	struct ib_umem *umem;
+> >> +	unsigned long *pfn_list;
+> >> +	struct ib_umem_chunk *chunk;
+> >> +	unsigned long locked;
+> >> +	unsigned long lock_limit;
+> >> +	unsigned long cur_base;
+> >> +	unsigned long npages;
+> >> +	int ret;
+> >> +	int off;
+> >> +	int i;
+> >> +	DEFINE_DMA_ATTRS(attrs);
+> >> +
+> >> +	if (dmasync)
+> >> +		dma_set_attr(DMA_ATTR_WRITE_BARRIER,&attrs);
+> >> +
+> >> +	if (!can_do_mlock())
+> >> +		return ERR_PTR(-EPERM);
+> >> +
+> >> +	umem = kmalloc(sizeof *umem, GFP_KERNEL);
+> >> +	if (!umem)
+> >> +		return ERR_PTR(-ENOMEM);
+> >> +
+> >> +	umem->type	= IB_UMEM_IO_MAP;
+> >> +	umem->context   = context;
+> >> +	umem->length    = size;
+> >> +	umem->offset    = addr&  ~PAGE_MASK;
+> >> +	umem->page_size = PAGE_SIZE;
+> >> +
+> >> +	/*
+> >> +	 * We ask for writable memory if any access flags other than
+> >> +	 * "remote read" are set.  "Local write" and "remote write"
+> >> +	 * obviously require write access.  "Remote atomic" can do
+> >> +	 * things like fetch and add, which will modify memory, and
+> >> +	 * "MW bind" can change permissions by binding a window.
+> >> +	 */
+> >> +	umem->writable  = !!(access&  ~IB_ACCESS_REMOTE_READ);
+> >> +
+> >> +	/* IO memory is not hugetlb memory */
+> >> +	umem->hugetlb   = 0;
+> >> +
+> >> +	INIT_LIST_HEAD(&umem->chunk_list);
+> >> +
+> >> +	pfn_list = (unsigned long *) __get_free_page(GFP_KERNEL);
+> >> +	if (!pfn_list) {
+> >> +		kfree(umem);
+> >> +		return ERR_PTR(-ENOMEM);
+> >> +	}
+> >> +
+> >> +	npages = PAGE_ALIGN(size + umem->offset)>>  PAGE_SHIFT;
+> >> +
+> >> +	down_write(&current->mm->mmap_sem);
+> >> +
+> >> +	locked     = npages + current->mm->locked_vm;
+> >> +	lock_limit = current->signal->rlim[RLIMIT_MEMLOCK].rlim_cur>>  PAGE_SHIFT;
+> >> +
+> >> +	if ((locked>  lock_limit)&&  !capable(CAP_IPC_LOCK)) {
+> >> +		ret = -ENOMEM;
+> >> +		goto out;
+> >> +	}
+> >> +
+> >> +	cur_base = addr&  PAGE_MASK;
+> >> +
+> >> +	ret = 0;
+> >> +	while (npages) {
+> >> +		ret = __get_io_pfn(current, current->mm, cur_base,
+> >> +				   min_t(unsigned long, npages,
+> >> +					 PAGE_SIZE / sizeof(unsigned long *)),
+> >> +				   umem->writable,
+> >> +				   !umem->writable, pfn_list, NULL);
+> >> +
+> >> +		if (ret<  0)
+> >> +			goto out;
+> >> +
+> >> +		cur_base += ret * PAGE_SIZE;
+> >> +		npages   -= ret;
+> >> +
+> >> +		off = 0;
+> >> +
+> >> +		while (ret) {
+> >> +			chunk = kmalloc(sizeof *chunk +
+> >> +					sizeof(struct scatterlist) *
+> >> +					min_t(int, ret, IB_UMEM_MAX_PAGE_CHUNK),
+> >> +					GFP_KERNEL);
+> >> +			if (!chunk) {
+> >> +				ret = -ENOMEM;
+> >> +				goto out;
+> >> +			}
+> >> +			chunk->nents = min_t(int, ret, IB_UMEM_MAX_PAGE_CHUNK);
+> >> +			sg_init_table(chunk->page_list, chunk->nents);
+> >> +			/* The pfn_list we built is a set of Page
+> >> +			 * Frame Numbers (PFN) whose physical address
+> >> +			 * is PFN<<  PAGE_SHIFT. The SG DMA mapping
+> >> +			 * services expect page addresses, not PFN,
+> >> +			 * therefore, we have to do the dma mapping
+> >> +			 * ourselves here. */
+> >> +			for (i = 0; i<  chunk->nents; ++i) {
+> >> +				sg_set_page(&chunk->page_list[i], 0,
+> >> +					    PAGE_SIZE, 0);
+> >> +				chunk->page_list[i].dma_address =
+> >> +					(pfn_list[i + off]<<  PAGE_SHIFT);
+> >> +				chunk->page_list[i].dma_length = PAGE_SIZE;
+> >> +			}
+> >> +			chunk->nmap = chunk->nents;
+> >> +			ret -= chunk->nents;
+> >> +			off += chunk->nents;
+> >> +			list_add_tail(&chunk->list,&umem->chunk_list);
+> >> +		}
+> >> +	}
+> >> +
+> >> +out:
+> >> +	if (ret<  0) {
+> >> +		__ib_umem_release(context->device, umem, 0);
+> >> +		kfree(umem);
+> >> +	} else
+> >> +		current->mm->locked_vm = locked;
+> >> +	up_write(&current->mm->mmap_sem);
+> >> +	free_page((unsigned long) pfn_list);
+> >> +	return ret<  0 ? ERR_PTR(ret) : umem;
+> >> +}
+> >> +
+> >> +/**
+> >> + * ib_umem_get - Pin and DMA map userspace memory.
+> >> + * @context: userspace context to pin memory for
+> >> + * @addr: userspace virtual address to start at
+> >> + * @size: length of region to pin
+> >> + * @access: IB_ACCESS_xxx flags for memory being pinned
+> >> + * @dmasync: flush in-flight DMA when the memory region is written
+> >> + */
+> >> +struct ib_umem *ib_umem_get(struct ib_ucontext *context, unsigned long addr,
+> >> +			    size_t size, int access, int dmasync)
+> >> +{
+> >> +	/* Do a quick lookup of the containing VMA to determine it's type. */
+> >> +	struct vm_area_struct *vma;
+> >> +	int do_pfn_map = 0;
+> >> +
+> >> +	down_write(&current->mm->mmap_sem);
+> >> +	vma = find_vma(current->mm, addr&  PAGE_MASK);
+> >> +	if (vma)
+> >> +		do_pfn_map = vma->vm_flags&  VM_PFNMAP;
+> >> +	up_write(&current->mm->mmap_sem);
+> >> +	if (!vma)
+> >> +		return ERR_PTR(-EINVAL);
+> >> +
+> >> +	if (do_pfn_map)
+> >> +		return __iomem_get(context, addr, size, access, dmasync);
+> >> +
+> >> +	return __umem_get(context, addr, size, access, dmasync);
+> >> +}
+> >>   EXPORT_SYMBOL(ib_umem_get);
+> >>
+> >>   static void ib_umem_account(struct work_struct *work)
+> >>
+> >> --
+> >> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> >> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> >> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> >>
+> >
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> 
 
 
---_002_4C2744E8AD2982428C5BFE523DF8CDCB4A208DF31EMNEXMB1qlogic_
-Content-Type: application/octet-stream; name="sa_busy_20101202.patch"
-Content-Description: sa_busy_20101202.patch
-Content-Disposition: attachment; filename="sa_busy_20101202.patch"; size=4797;
-	creation-date="Thu, 02 Dec 2010 14:21:59 GMT";
-	modification-date="Thu, 02 Dec 2010 14:28:03 GMT"
-Content-Transfer-Encoding: base64
-
-VGhpcyBwYXRjaCBwcm92aWRlcyBhIG5ldyBtb2R1bGUgcGFyYW1ldGVyIGZvciBpYl9tYWQgdGhh
-dCB0ZWxscyBpYl9tYWQgdG8gdHJlYXQgQlVTWSByZXNwb25zZXMgYXMgDQp0aW1lb3V0cy4NCg0K
-cGFybTogICAgICAgICAgIHRyZWF0X2J1c3lfYXNfdGltZW91dDpXaGVuIHRydWUsIHRyZWF0IEJV
-U1kgcmVzcG9uc2VzIGFzIGlmIHRoZXkgd2VyZSB0aW1lb3V0cy4gKGludCkNCg0KV2hlbiB0aGlz
-IHBhcmFtZXRlciBpcyB0cnVlLCBpYl9tYWQgd2lsbCB1bmlsYXRlcmFsbHkgdHJlYXQgQlVTWSBy
-ZXNwb25zZXMgYXMgdGltZW91dHMgcmVnYXJkbGVzcyANCm9mIHRoZSBkZXNpcmVkIGJlaGF2aW9y
-IG9mIHRoZSBjYWxsZXIuDQoNCkluIGFkZGl0aW9uLCB0aGlzIHBhdGNoIGFsc28gcHJvdmlkZXMg
-Y2hhbmdlcyB0byBpYl9tYWRfc2VuZF9idWYgdG8gYWxsb3cgc2VuZGVycyBvZiBNQUQgcmVxdWVz
-dHMNCnRvIHJlcXVlc3QgdGhpcyBiZWhhdmlvciBldmVuIGlmIHRoZSBwYXJhbWV0ZXIgaXMgbm90
-IHNldC4gVGhlIHBhdGNoIGRvZXMgTk9UIHByb3ZpZGUgY2hhbmdlcyB0byANCmliX3VtYWQgdG8g
-YWxsb3cgdXNlciBhcHBzIHRvIHNlbGVjdCB0aGlzIGZ1bmN0aW9uYWxpdHkuDQoNClNpZ25lZC1v
-ZmYtYnk6IE1pY2hhZWwgSGVpbnogPG1pY2hhZWwuaGVpbnpAcWxvZ2ljLmNvbT4NCi0tLQ0KDQog
-ZHJpdmVycy9pbmZpbmliYW5kL2NvcmUvbWFkLmMgICAgICB8ICAgMjIgKysrKysrKysrKysrKysr
-KysrKysrKw0KIGRyaXZlcnMvaW5maW5pYmFuZC9jb3JlL21hZF9wcml2LmggfCAgICAxICsNCiBp
-bmNsdWRlL3JkbWEvaWJfbWFkLmggICAgICAgICAgICAgIHwgICAxMCArKysrKysrKysrDQogMyBm
-aWxlcyBjaGFuZ2VkLCAzMyBpbnNlcnRpb25zKCspLCAwIGRlbGV0aW9ucygtKQ0KDQpkaWZmIC0t
-Z2l0IGEvZHJpdmVycy9pbmZpbmliYW5kL2NvcmUvbWFkLmMgYi9kcml2ZXJzL2luZmluaWJhbmQv
-Y29yZS9tYWQuYw0KaW5kZXggNjRlNjYwYy4uMmUxMDNlZCAxMDA2NDQNCi0tLSBhL2RyaXZlcnMv
-aW5maW5pYmFuZC9jb3JlL21hZC5jDQorKysgYi9kcml2ZXJzL2luZmluaWJhbmQvY29yZS9tYWQu
-Yw0KQEAgLTU0LDYgKzU0LDEwIEBAIE1PRFVMRV9QQVJNX0RFU0Moc2VuZF9xdWV1ZV9zaXplLCAi
-U2l6ZSBvZiBzZW5kIHF1ZXVlIGluIG51bWJlciBvZiB3b3JrIHJlcXVlc3RzDQogbW9kdWxlX3Bh
-cmFtX25hbWVkKHJlY3ZfcXVldWVfc2l6ZSwgbWFkX3JlY3ZxX3NpemUsIGludCwgMDQ0NCk7DQog
-TU9EVUxFX1BBUk1fREVTQyhyZWN2X3F1ZXVlX3NpemUsICJTaXplIG9mIHJlY2VpdmUgcXVldWUg
-aW4gbnVtYmVyIG9mIHdvcmsgcmVxdWVzdHMiKTsNCiANCitpbnQgbWFkX3dhaXRfb25fYnVzeSA9
-IDA7DQorbW9kdWxlX3BhcmFtX25hbWVkKHRyZWF0X2J1c3lfYXNfdGltZW91dCwgbWFkX3dhaXRf
-b25fYnVzeSwgaW50LCAwNDQ0KTsNCitNT0RVTEVfUEFSTV9ERVNDKHRyZWF0X2J1c3lfYXNfdGlt
-ZW91dCwgIldoZW4gdHJ1ZSwgdHJlYXQgQlVTWSByZXNwb25zZXMgYXMgaWYgdGhleSB3ZXJlIHRp
-bWVvdXRzLiIpOw0KKw0KIHN0YXRpYyBzdHJ1Y3Qga21lbV9jYWNoZSAqaWJfbWFkX2NhY2hlOw0K
-IA0KIHN0YXRpYyBzdHJ1Y3QgbGlzdF9oZWFkIGliX21hZF9wb3J0X2xpc3Q7DQpAQCAtMTEyMCw2
-ICsxMTI0LDcgQEAgaW50IGliX3Bvc3Rfc2VuZF9tYWQoc3RydWN0IGliX21hZF9zZW5kX2J1ZiAq
-c2VuZF9idWYsDQogCQltYWRfc2VuZF93ci0+dGltZW91dCA9IG1zZWNzX3RvX2ppZmZpZXMoc2Vu
-ZF9idWYtPnRpbWVvdXRfbXMpOw0KIAkJbWFkX3NlbmRfd3ItPm1heF9yZXRyaWVzID0gc2VuZF9i
-dWYtPnJldHJpZXM7DQogCQltYWRfc2VuZF93ci0+cmV0cmllc19sZWZ0ID0gc2VuZF9idWYtPnJl
-dHJpZXM7DQorCQltYWRfc2VuZF93ci0+d2FpdF9vbl9idXN5ID0gc2VuZF9idWYtPndhaXRfb25f
-YnVzeSB8fCBtYWRfd2FpdF9vbl9idXN5Ow0KIAkJc2VuZF9idWYtPnJldHJpZXMgPSAwOw0KIAkJ
-LyogUmVmZXJlbmNlIGZvciB3b3JrIHJlcXVlc3QgdG8gUVAgKyByZXNwb25zZSAqLw0KIAkJbWFk
-X3NlbmRfd3ItPnJlZmNvdW50ID0gMSArIChtYWRfc2VuZF93ci0+dGltZW91dCA+IDApOw0KQEAg
-LTE4MjgsNiArMTgzMyw5IEBAIHN0YXRpYyB2b2lkIGliX21hZF9jb21wbGV0ZV9yZWN2KHN0cnVj
-dCBpYl9tYWRfYWdlbnRfcHJpdmF0ZSAqbWFkX2FnZW50X3ByaXYsDQogDQogCS8qIENvbXBsZXRl
-IGNvcnJlc3BvbmRpbmcgcmVxdWVzdCAqLw0KIAlpZiAoaWJfcmVzcG9uc2VfbWFkKG1hZF9yZWN2
-X3djLT5yZWN2X2J1Zi5tYWQpKSB7DQorCQl1MTYgYnVzeSA9IGJlMTZfdG9fY3B1KG1hZF9yZWN2
-X3djLT5yZWN2X2J1Zi5tYWQtPm1hZF9oZHIuc3RhdHVzKSAmDQorCQkJCQkJCSAgIElCX01HTVRf
-TUFEX1NUQVRVU19CVVNZOw0KKw0KIAkJc3Bpbl9sb2NrX2lycXNhdmUoJm1hZF9hZ2VudF9wcml2
-LT5sb2NrLCBmbGFncyk7DQogCQltYWRfc2VuZF93ciA9IGliX2ZpbmRfc2VuZF9tYWQobWFkX2Fn
-ZW50X3ByaXYsIG1hZF9yZWN2X3djKTsNCiAJCWlmICghbWFkX3NlbmRfd3IpIHsNCkBAIC0xODM2
-LDYgKzE4NDQsMjAgQEAgc3RhdGljIHZvaWQgaWJfbWFkX2NvbXBsZXRlX3JlY3Yoc3RydWN0IGli
-X21hZF9hZ2VudF9wcml2YXRlICptYWRfYWdlbnRfcHJpdiwNCiAJCQlkZXJlZl9tYWRfYWdlbnQo
-bWFkX2FnZW50X3ByaXYpOw0KIAkJCXJldHVybjsNCiAJCX0NCisNCisJCXByaW50ayhLRVJOX0RF
-QlVHIFBGWCAiQ29tcGxldGluZyByZWN2ICVwOiBidXN5ID0gJWQsIHJldHJpZXNfbGVmdCA9ICVk
-LCB3YWl0X29uX2J1c3kgPSAlZFxuIiwNCisJCQkgICBtYWRfc2VuZF93ciwgYnVzeSwgbWFkX3Nl
-bmRfd3ItPnJldHJpZXNfbGVmdCwgbWFkX3NlbmRfd3ItPndhaXRfb25fYnVzeSk7DQorDQorCQlp
-ZiAoYnVzeSAmJiBtYWRfc2VuZF93ci0+cmV0cmllc19sZWZ0ICYmIG1hZF9zZW5kX3dyLT53YWl0
-X29uX2J1c3kgJiYNCisJCSAgIChtYWRfcmVjdl93Yy0+cmVjdl9idWYubWFkLT5tYWRfaGRyLm1l
-dGhvZCAhPSBJQl9NR01UX01FVEhPRF9UUkFQX1JFUFJFU1MpKSB7DQorCQkJLyogSnVzdCBsZXQg
-dGhlIHF1ZXJ5IHRpbWVvdXQgYW5kIGhhdmUgaXQgcmVxdWV1ZWQgbGF0ZXIgKi8NCisJCQlzcGlu
-X3VubG9ja19pcnFyZXN0b3JlKCZtYWRfYWdlbnRfcHJpdi0+bG9jaywgZmxhZ3MpOw0KKwkJCWli
-X2ZyZWVfcmVjdl9tYWQobWFkX3JlY3Zfd2MpOw0KKwkJCWRlcmVmX21hZF9hZ2VudChtYWRfYWdl
-bnRfcHJpdik7DQorCQkJcHJpbnRrKEtFUk5fSU5GTyBQRlggIlNBL1NNIHJlc3BvbmRlZCBNQURf
-U1RBVFVTX0JVU1kuIEFsbG93aW5nIHJlcXVlc3QgdG8gdGltZSBvdXQuXG4iKTsNCisJCQlyZXR1
-cm47DQorCQl9DQorDQogCQlpYl9tYXJrX21hZF9kb25lKG1hZF9zZW5kX3dyKTsNCiAJCXNwaW5f
-dW5sb2NrX2lycXJlc3RvcmUoJm1hZF9hZ2VudF9wcml2LT5sb2NrLCBmbGFncyk7DQogDQpkaWZm
-IC0tZ2l0IGEvZHJpdmVycy9pbmZpbmliYW5kL2NvcmUvbWFkX3ByaXYuaCBiL2RyaXZlcnMvaW5m
-aW5pYmFuZC9jb3JlL21hZF9wcml2LmgNCmluZGV4IDhiNGRmMGEuLmI2NDc3Y2YgMTAwNjQ0DQot
-LS0gYS9kcml2ZXJzL2luZmluaWJhbmQvY29yZS9tYWRfcHJpdi5oDQorKysgYi9kcml2ZXJzL2lu
-ZmluaWJhbmQvY29yZS9tYWRfcHJpdi5oDQpAQCAtMTM1LDYgKzEzNSw3IEBAIHN0cnVjdCBpYl9t
-YWRfc2VuZF93cl9wcml2YXRlIHsNCiAJdW5zaWduZWQgbG9uZyB0aW1lb3V0Ow0KIAlpbnQgbWF4
-X3JldHJpZXM7DQogCWludCByZXRyaWVzX2xlZnQ7DQorCWludCB3YWl0X29uX2J1c3k7DQogCWlu
-dCByZXRyeTsNCiAJaW50IHJlZmNvdW50Ow0KIAllbnVtIGliX3djX3N0YXR1cyBzdGF0dXM7DQpk
-aWZmIC0tZ2l0IGEvaW5jbHVkZS9yZG1hL2liX21hZC5oIGIvaW5jbHVkZS9yZG1hL2liX21hZC5o
-DQppbmRleCBkM2I5NDAxLi5mYWRjMmMzIDEwMDY0NA0KLS0tIGEvaW5jbHVkZS9yZG1hL2liX21h
-ZC5oDQorKysgYi9pbmNsdWRlL3JkbWEvaWJfbWFkLmgNCkBAIC03Nyw2ICs3NywxNSBAQA0KIA0K
-ICNkZWZpbmUgSUJfTUdNVF9NQVhfTUVUSE9EUwkJCTEyOA0KIA0KKy8qIE1BRCBTdGF0dXMgZmll
-bGQgYml0IG1hc2tzICovDQorI2RlZmluZSBJQl9NR01UX01BRF9TVEFUVVNfU1VDQ0VTUyAgICAg
-ICAgICAgICAgICAgICAgICAweDAwMDANCisjZGVmaW5lIElCX01HTVRfTUFEX1NUQVRVU19CVVNZ
-ICAgICAgICAgICAgICAgICAgICAgICAgIDB4MDAwMQ0KKyNkZWZpbmUgSUJfTUdNVF9NQURfU1RB
-VFVTX1JFRElSRUNUX1JFUUQgICAgICAgICAgICAgICAgMHgwMDAyDQorI2RlZmluZSBJQl9NR01U
-X01BRF9TVEFUVVNfQkFEX1ZFUkVSU0lPTiAgICAgICAgICAgICAgICAweDAwMDQNCisjZGVmaW5l
-IElCX01HTVRfTUFEX1NUQVRVU19VTlNVUFBPUlRFRF9NRVRIT0QgICAgICAgICAgIDB4MDAwOA0K
-KyNkZWZpbmUgSUJfTUdNVF9NQURfU1RBVFVTX1VOU1VQUE9SVEVEX01FVEhPRF9BVFRSSUIgICAg
-MHgwMDBjDQorI2RlZmluZSBJQl9NR01UX01BRF9TVEFUVVNfSU5WQUxJRF9BVFRSSUJfVkFMVUUg
-ICAgICAgICAweDAwMWMNCisNCiAvKiBSTVBQIGluZm9ybWF0aW9uICovDQogI2RlZmluZSBJQl9N
-R01UX1JNUFBfVkVSU0lPTgkJCTENCiANCkBAIC0yNDYsNiArMjU1LDcgQEAgc3RydWN0IGliX21h
-ZF9zZW5kX2J1ZiB7DQogCWludAkJCXNlZ19jb3VudDsNCiAJaW50CQkJc2VnX3NpemU7DQogCWlu
-dAkJCXRpbWVvdXRfbXM7DQorCWludAkJCXdhaXRfb25fYnVzeTsNCiAJaW50CQkJcmV0cmllczsN
-CiB9Ow0KIA0K
-
---_002_4C2744E8AD2982428C5BFE523DF8CDCB4A208DF31EMNEXMB1qlogic_--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
