@@ -1,23 +1,55 @@
-From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH v2] infiniband: core: fix information leak to userspace
-Date: Wed, 01 Dec 2010 16:33:34 -0800
-Message-ID: <adafwuhm2sh.fsf@cisco.com>
-References: <1289054481-18145-1-git-send-email-segooon@gmail.com>
-	<ada39r8ohiz.fsf@cisco.com> <20101112180844.GA11533@albatros>
-	<CF9C39F99A89134C9CF9C4CCB68B8DDF25B85224A6@orsmsx501.amr.corp.intel.com>
-	<20101114092252.GA5323@albatros>
+From: Aleksey Senin <aleksey-192fA4vuk7xBDLzU/O5InQ@public.gmane.org>
+Subject: Re: [PATCH V2] mlx4: Protocol distinction
+Date: Thu, 2 Dec 2010 08:53:03 +0200
+Message-ID: <AANLkTikBwo5sOo0-uDz28o_eqqMk4t=ME-TxeLZzO0+F@mail.gmail.com>
+References: <4CF67444.4080001@senin.name>
+	<AANLkTinwpuUis2Xj_U3PNSmZcM3LFr+A9V3JXanvH2Jr@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20101114092252.GA5323@albatros> (Vasiliy Kulikov's message of
-	"Sun, 14 Nov 2010 12:22:52 +0300")
+In-Reply-To: <AANLkTinwpuUis2Xj_U3PNSmZcM3LFr+A9V3JXanvH2Jr-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Vasiliy Kulikov <segoon-cxoSlKxDwOJWk0Htik3J/w@public.gmane.org>
-Cc: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "kernel-janitors@vger.kernel.org" <kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Alex Chiang <achiang-VXdhtT5mjnY@public.gmane.org>, Andi Kleen <ak-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Greg Kroah-Hartman <gregkh-l3A5Bk7waGM@public.gmane.org>, Julia Lawall <julia-dAYI7NvHqcQ@public.gmane.org>, "linux-rdma@vger.kernel.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel@vger.kernel.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Yevgeny Petrilin <yevgenyp-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, "Aleksey Senin\"" <alekseys-smomgflXvOZWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-thanks, applied
+I don't think that this specific change should check firmware version,
+because it not dealing with hardware directly and it should work with
+older firmware too. Its restriction, that now it will support 2^30
+members for QP instead of 2^32.
+
+
+On Wed, Dec 1, 2010 at 11:12 PM, Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrot=
+e:
+> Aleksey Senin <alex-192fA4vuk7xBDLzU/O5InQ@public.gmane.org> wrote:
+>> Newest firmware does a IB/ETH protocol distiction.
+>> There are two bits in members_count field of multicast group table
+>> that store this info and its meaning : 0 - Infiniband, 1 - Ethernet.=
+ While changing
+>> members count for particular multicast group it important not to res=
+et this information.
+>
+> Two quesions for this patch and et al friend patches to come somehow
+> soon: what happens if someone burns the new firmware on an IB system
+> which runs the mlx4 code before the patch? also, what happens if
+> someone runs the patched mlx4 on a system on which the firmware isn't
+> this newest, shouldn't a check for the firmware version to be >=3D X =
+be
+> added to the driver? As for the 1st case (old code, new firmware), I
+> recall there was a similar situation couple of months or maybe little
+> more ago, Jack, I think you were involved in the solution, correct?
+>
+> Or.
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma"=
+ in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at =C2=A0http://vger.kernel.org/majordomo-info.ht=
+ml
+>
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
