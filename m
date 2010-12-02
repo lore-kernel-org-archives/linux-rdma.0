@@ -1,222 +1,127 @@
-From: Aleksey Senin <alex-192fA4vuk7xBDLzU/O5InQ@public.gmane.org>
-Subject: [PATCH V3] mlx4: Protocol distinction
-Date: Thu, 2 Dec 2010 13:44:49 +0200
-Message-ID: <4CF786B1.5000901@senin.name>
+From: Spelic <spelic-9AbUPqfR1/2XDw4h08c5KA@public.gmane.org>
+Subject: Re: NFS-RDMA hangs: connection closed (-103)
+Date: Thu, 02 Dec 2010 13:16:14 +0100
+Message-ID: <4CF78E0E.2040308@shiftmail.org>
+References: <4CF6D69B.4030501@shiftmail.org>
+ <4CF6E144.1080200@opengridcomputing.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; format=flowed; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-reply-to: <4CF6E144.1080200-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Moni Shoua <monis-hKgKHo2Ms0F+cjeuK/JdrQ@public.gmane.org>, Alex Rosenbaum <Alexr-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+To: Tom Tucker <tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Changes in V3:
-Fixed missed protocol argument when calling find_mgm in mlx4_multicast_detach function.
+On 12/02/2010 12:59 AM, Tom Tucker wrote:
+> Spelic,
+>
+> I have seen this problem before, but have not been able to reliably 
+> reproduce it. When I saw the problem, there were no transport errors 
+> and it appeared as if the I/O had actually completed, but that the 
+> waiter was not being awoken. I was not able to reliably reproduce the 
+> problem and was not able to determine if the problem was a latent bug 
+> in NFS in general or a bug in the RDMA transport in particular.
+>
+> I will try your setup here, but I don't have a system like yours so 
+> I'll have to settle for a smaller ramdisk, however, I have a few 
+> questions:
+>
+> - Does the FS matter? For example, can you use ext[2-4] on the ramdisk 
+> and not still reproduce
+> - As I mentioned earlier NFS v3 vs. NFS v4
+> - RAMDISK size, i.e. 2G vs. 14G
+>
+> Thanks,
+> Tom
+
+Hello Tom, thanks for replying
+
+- The FS matters to some extent: as I wrote, with ext4 it's not possible 
+to reproduce the bug in this way, so immediately and reliably, however 
+ext4 also will hang eventually if you work on it for hours so I had to 
+switch to IPoIB for our real work; reread my previous post.
+
+- NFS3 not tried yet. Never tried to do RDMA on NFS3... do you have a 
+pointer on instructions?
 
 
-Newest firmware does a IB/ETH protocol distiction.
-There are two bits in members_count field of multicast group table
-that store this info and its meaning : 0 - Infiniband, 1 - Ethernet.
-While changing QP members count in particular multicast group, it
-important not to reset this information.
-When calling multicast attach first time, protocol type should be
-specified and currently it set to IB, but it will different in the
-feature.
-While looking for the QP, protocol type shoud be checked too.
+- RAMDISK size: I am testing it.
 
-Signed-off-by: Aleksey Senin <alekseys-smomgflXvOZWk0Htik3J/w@public.gmane.org>
----
- drivers/infiniband/hw/mlx4/main.c |    8 +++++---
- drivers/net/mlx4/mcg.c            |   23 +++++++++++++----------
- include/linux/mlx4/device.h       |   10 ++++++++--
- include/linux/mlx4/driver.h       |    6 +-----
- 4 files changed, 27 insertions(+), 20 deletions(-)
+Ok I confirm with 1.5GB ramdisk it's reproducible.
+boot option ramdisk_size=1572864
+(1.5*1024**2=1572864.0)
+confirm: blockdev --getsize64 /dev/ram0 == 1610612736
 
-diff --git a/drivers/infiniband/hw/mlx4/main.c b/drivers/infiniband/hw/mlx4/main.c
-index bf3e20c..bbe003f 100644
---- a/drivers/infiniband/hw/mlx4/main.c
-+++ b/drivers/infiniband/hw/mlx4/main.c
-@@ -624,7 +624,8 @@ static int mlx4_ib_mcg_attach(struct ib_qp *ibqp, union ib_gid *gid, u16 lid)
- 	struct mlx4_ib_qp *mqp = to_mqp(ibqp);
- 
- 	err = mlx4_multicast_attach(mdev->dev, &mqp->mqp, gid->raw, !!(mqp->flags &
--				    MLX4_IB_QP_BLOCK_MULTICAST_LOOPBACK));
-+				    MLX4_IB_QP_BLOCK_MULTICAST_LOOPBACK),
-+				    MLX4_PROTOCOL_IB);
- 	if (err)
- 		return err;
- 
-@@ -635,7 +636,8 @@ static int mlx4_ib_mcg_attach(struct ib_qp *ibqp, union ib_gid *gid, u16 lid)
- 	return 0;
- 
- err_add:
--	mlx4_multicast_detach(mdev->dev, &mqp->mqp, gid->raw);
-+	mlx4_multicast_detach(mdev->dev, &mqp->mqp, gid->raw,
-+			MLX4_PROTOCOL_IB);
- 	return err;
- }
- 
-@@ -665,7 +667,7 @@ static int mlx4_ib_mcg_detach(struct ib_qp *ibqp, union ib_gid *gid, u16 lid)
- 	struct mlx4_ib_gid_entry *ge;
- 
- 	err = mlx4_multicast_detach(mdev->dev,
--				    &mqp->mqp, gid->raw);
-+				    &mqp->mqp, gid->raw, MLX4_PROTOCOL_IB);
- 	if (err)
- 		return err;
- 
-diff --git a/drivers/net/mlx4/mcg.c b/drivers/net/mlx4/mcg.c
-index c4f88b7..ba12b09 100644
---- a/drivers/net/mlx4/mcg.c
-+++ b/drivers/net/mlx4/mcg.c
-@@ -95,7 +95,8 @@ static int mlx4_MGID_HASH(struct mlx4_dev *dev, struct mlx4_cmd_mailbox *mailbox
-  * entry in hash chain and *mgm holds end of hash chain.
-  */
- static int find_mgm(struct mlx4_dev *dev,
--		    u8 *gid, struct mlx4_cmd_mailbox *mgm_mailbox,
-+		    u8 *gid, enum mlx4_protocol prot,
-+		    struct mlx4_cmd_mailbox *mgm_mailbox,
- 		    u16 *hash, int *prev, int *index)
- {
- 	struct mlx4_cmd_mailbox *mailbox;
-@@ -134,7 +135,8 @@ static int find_mgm(struct mlx4_dev *dev,
- 			return err;
- 		}
- 
--		if (!memcmp(mgm->gid, gid, 16))
-+		if (!memcmp(mgm->gid, gid, 16) &&
-+				(prot == be32_to_cpu(mgm->members_count) >> 30))
- 			return err;
- 
- 		*prev = *index;
-@@ -146,7 +148,7 @@ static int find_mgm(struct mlx4_dev *dev,
- }
- 
- int mlx4_multicast_attach(struct mlx4_dev *dev, struct mlx4_qp *qp, u8 gid[16],
--			  int block_mcast_loopback)
-+			  int block_mcast_loopback, enum mlx4_protocol prot)
- {
- 	struct mlx4_priv *priv = mlx4_priv(dev);
- 	struct mlx4_cmd_mailbox *mailbox;
-@@ -165,7 +167,7 @@ int mlx4_multicast_attach(struct mlx4_dev *dev, struct mlx4_qp *qp, u8 gid[16],
- 
- 	mutex_lock(&priv->mcg_table.mutex);
- 
--	err = find_mgm(dev, gid, mailbox, &hash, &prev, &index);
-+	err = find_mgm(dev, gid, prot, mailbox, &hash, &prev, &index);
- 	if (err)
- 		goto out;
- 
-@@ -187,7 +189,7 @@ int mlx4_multicast_attach(struct mlx4_dev *dev, struct mlx4_qp *qp, u8 gid[16],
- 		memcpy(mgm->gid, gid, 16);
- 	}
- 
--	members_count = be32_to_cpu(mgm->members_count);
-+	members_count = be32_to_cpu(mgm->members_count) & 0xffffff;
- 	if (members_count == MLX4_QP_PER_MGM) {
- 		mlx4_err(dev, "MGM at index %x is full.\n", index);
- 		err = -ENOMEM;
-@@ -207,7 +209,7 @@ int mlx4_multicast_attach(struct mlx4_dev *dev, struct mlx4_qp *qp, u8 gid[16],
- 	else
- 		mgm->qp[members_count++] = cpu_to_be32(qp->qpn & MGM_QPN_MASK);
- 
--	mgm->members_count       = cpu_to_be32(members_count);
-+	mgm->members_count = cpu_to_be32(members_count | ((u32) prot << 30));
- 
- 	err = mlx4_WRITE_MCG(dev, index, mailbox);
- 	if (err)
-@@ -242,7 +244,8 @@ out:
- }
- EXPORT_SYMBOL_GPL(mlx4_multicast_attach);
- 
--int mlx4_multicast_detach(struct mlx4_dev *dev, struct mlx4_qp *qp, u8 gid[16])
-+int mlx4_multicast_detach(struct mlx4_dev *dev, struct mlx4_qp *qp, u8 gid[16],
-+		enum mlx4_protocol prot)
- {
- 	struct mlx4_priv *priv = mlx4_priv(dev);
- 	struct mlx4_cmd_mailbox *mailbox;
-@@ -260,7 +263,7 @@ int mlx4_multicast_detach(struct mlx4_dev *dev, struct mlx4_qp *qp, u8 gid[16])
- 
- 	mutex_lock(&priv->mcg_table.mutex);
- 
--	err = find_mgm(dev, gid, mailbox, &hash, &prev, &index);
-+	err = find_mgm(dev, gid, prot, mailbox, &hash, &prev, &index);
- 	if (err)
- 		goto out;
- 
-@@ -270,7 +273,7 @@ int mlx4_multicast_detach(struct mlx4_dev *dev, struct mlx4_qp *qp, u8 gid[16])
- 		goto out;
- 	}
- 
--	members_count = be32_to_cpu(mgm->members_count);
-+	members_count = be32_to_cpu(mgm->members_count) & 0xffffff;
- 	for (loc = -1, i = 0; i < members_count; ++i)
- 		if ((be32_to_cpu(mgm->qp[i]) & MGM_QPN_MASK) == qp->qpn)
- 			loc = i;
-@@ -282,7 +285,7 @@ int mlx4_multicast_detach(struct mlx4_dev *dev, struct mlx4_qp *qp, u8 gid[16])
- 	}
- 
- 
--	mgm->members_count = cpu_to_be32(--members_count);
-+	mgm->members_count = cpu_to_be32(--members_count | ((u32) prot << 30));
- 	mgm->qp[loc]       = mgm->qp[i - 1];
- 	mgm->qp[i - 1]     = 0;
- 
-diff --git a/include/linux/mlx4/device.h b/include/linux/mlx4/device.h
-index a7b15bc..a993268 100644
---- a/include/linux/mlx4/device.h
-+++ b/include/linux/mlx4/device.h
-@@ -144,6 +144,11 @@ enum {
- 	MLX4_STAT_RATE_OFFSET	= 5
- };
- 
-+enum mlx4_protocol {
-+	MLX4_PROTOCOL_IB,
-+	MLX4_PROTOCOL_EN,
-+};
-+
- enum {
- 	MLX4_MTT_FLAG_PRESENT		= 1
- };
-@@ -500,8 +505,9 @@ int mlx4_INIT_PORT(struct mlx4_dev *dev, int port);
- int mlx4_CLOSE_PORT(struct mlx4_dev *dev, int port);
- 
- int mlx4_multicast_attach(struct mlx4_dev *dev, struct mlx4_qp *qp, u8 gid[16],
--			  int block_mcast_loopback);
--int mlx4_multicast_detach(struct mlx4_dev *dev, struct mlx4_qp *qp, u8 gid[16]);
-+			  int block_mcast_loopback,  enum mlx4_protocol);
-+int mlx4_multicast_detach(struct mlx4_dev *dev, struct mlx4_qp *qp, u8 gid[16],
-+				enum mlx4_protocol);
- 
- int mlx4_register_mac(struct mlx4_dev *dev, u8 port, u64 mac, int *index);
- void mlx4_unregister_mac(struct mlx4_dev *dev, u8 port, int index);
-diff --git a/include/linux/mlx4/driver.h b/include/linux/mlx4/driver.h
-index f407cd4..e1eebf7 100644
---- a/include/linux/mlx4/driver.h
-+++ b/include/linux/mlx4/driver.h
-@@ -34,6 +34,7 @@
- #define MLX4_DRIVER_H
- 
- #include <linux/device.h>
-+#include <linux/mlx4/device.h>
- 
- struct mlx4_dev;
- 
-@@ -44,11 +45,6 @@ enum mlx4_dev_event {
- 	MLX4_DEV_EVENT_PORT_REINIT,
- };
- 
--enum mlx4_protocol {
--	MLX4_PROTOCOL_IB,
--	MLX4_PROTOCOL_EN,
--};
--
- struct mlx4_interface {
- 	void *			(*add)	 (struct mlx4_dev *dev);
- 	void			(*remove)(struct mlx4_dev *dev, void *context);
--- 
-1.6.4.2
+now at server side mkfs and mount with defaults:
+mkfs.xfs /dev/ram0
+mount /dev/ram0 /mnt/ram
+(this is a simplification over my previous email, and it's needed with a 
+smaller ramdisk or mkfs.xfs will refuse to work. The bug is still 
+reproducible like this)
+
+
+DOH! another bug:
+It's strange how at the end of the test
+     ls -lh /mnt/ram
+at server side will show a zerofile larger than 1.5GB at the end of the 
+procedure, sometimes it's 3GB, sometimes it's 2.3GB... but it's larger 
+than the ramdisk size.
+
+# ll -h /mnt/ram
+total 1.5G
+drwxr-xr-x 2 root root   21 2010-12-02 12:54 ./
+drwxr-xr-x 3 root root 4.0K 2010-11-29 23:51 ../
+-rw-r--r-- 1 root root 2.3G 2010-12-02 12:59 zerofile
+# df -h
+Filesystem            Size  Used Avail Use% Mounted on
+/dev/sda1             294G  4.1G  275G   2% /
+devtmpfs              7.9G  184K  7.9G   1% /dev
+none                  7.9G     0  7.9G   0% /dev/shm
+none                  7.9G  100K  7.9G   1% /var/run
+none                  7.9G     0  7.9G   0% /var/lock
+none                  7.9G     0  7.9G   0% /lib/init/rw
+/dev/ram0             1.5G  1.5G   20K 100% /mnt/ram
+
+# dd if=/mnt/ram/zerofile | wc -c
+4791480+0 records in
+4791480+0 records out
+2453237760
+2453237760 bytes (2.5 GB) copied, 8.41821 s, 291 MB/s
+
+It seems there is also an XFS bug here...
+
+This might help triggering the bug however please note than ext4 
+(nfs-rdma over it) also hanged on us and it was real work on HDD disks 
+and they were not full... after switching to IPoIB it didn't hang anymore.
+
+On IPoIB the size problem also shows up: final file is 2.3GB instead of 
+< 1.5GB, however nothing hangs:
+
+# echo begin; dd if=/dev/zero of=/mnt/nfsram/zerofile bs=1M ; echo 
+syncing now ; time sync ; echo finished
+begin
+dd: writing `/mnt/nfsram/zerofile': Input/output error
+2497+0 records in
+2496+0 records out
+2617245696 bytes (2.6 GB) copied, 10.4 s, 252 MB/s
+syncing now
+
+real    0m0.057s
+user    0m0.000s
+sys     0m0.000s
+finished
+
+I think I noticed the same problem with a 14GB ramdisk, the file ended 
+up to be about 15GB, but at that time I thought I made some computation 
+mistakes. Now with a smaller ramdisk it's more obvious.
+
+Earlier or later someone should notify the XFS developers of the "size" bug.
+However currently it's a good thing: the size bug might help us to fix 
+the RDMA bug.
+
+Thanks for your help
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
