@@ -1,412 +1,149 @@
-From: Ralph Campbell <ralph.campbell-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [RFC PATCH 2/2] IB/uverbs: Add support for user registration
- of mmap	memory
-Date: Thu, 2 Dec 2010 13:34:26 -0800
-Message-ID: <1291325666.24256.290.camel@chromite.mv.qlogic.com>
-References: <20101202190157.13657.58176.stgit@build.ogc.int>
-	 <20101202190229.13657.85728.stgit@build.ogc.int>
-	 <1291318531.24256.272.camel@chromite.mv.qlogic.com>
-	 <4CF80083.2040907@opengridcomputing.com>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH V3] SA Busy Handling
+Date: Fri, 03 Dec 2010 11:44:21 -0500
+Message-ID: <4CF91E65.7060905@dev.mellanox.co.il>
+References: <4C2744E8AD2982428C5BFE523DF8CDCB4A208DF31E@MNEXMB1.qlogic.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4CF80083.2040907-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+In-Reply-To: <4C2744E8AD2982428C5BFE523DF8CDCB4A208DF31E-amwN6d8PyQWXx9kJd3VG2h2eb7JE58TQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tom Tucker <tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Cc: Tom Tucker <tom-/Yg/VP3ZvrM@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "garlick-i2BcT+NCU+M@public.gmane.org" <garlick-i2BcT+NCU+M@public.gmane.org>, "acook-osxm6dDZNBBZx8iatJs59jGjJy/sRE9J@public.gmane.org" <acook-osxm6dDZNBBZx8iatJs59jGjJy/sRE9J@public.gmane.org>
+To: Mike Heinz <michael.heinz-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, 2010-12-02 at 12:24 -0800, Tom Tucker wrote:
-> Personally I think the biggest issue is that I don't think the pfn to dma 
-> address mapping logic is portable.
+Mike,
 
-Perhaps. That is why the core Linux VM folks should be
-involved.
+On 12/2/2010 3:28 PM, Mike Heinz wrote:
+> Fixed the loss of the trap repress handling, which must have gotten lost somewhere between May and now...
+>
+> Hal - your formatting nit, when I looked at the patch file, I see the correct spacing around the '&&' in the if statement.
 
-> On 12/2/10 1:35 PM, Ralph Campbell wrote:
-> > I understand the need for something like this patch since
-> > the GPU folks would also like to mmap memory (although the
-> > memory is marked as vma->vm_flags&  VM_IO).
-> >
-> > It seems to me that duplicating the page walking code is
-> > the wrong approach and exporting a new interface from
-> > mm/memory.c is more appropriate.
-> >
-> Perhaps, but that's kernel proper (not a module) and has it's own issues. 
-> For example, it represents an exported kernel interface and therefore a 
-> kernel compatability commitment going forward. I suggest that a new kernel 
-> interface is a separate effort that this code code utilize going forward.
+OK; I see that now; I was commenting on the text in the body of the 
+message and not the attachment. I'm not sure why the body text is 
+whitespace mangled.
 
-I agree. That was what I was implying.
+> ---
+> This patch provides a new module parameter for ib_mad that tells ib_mad to treat BUSY responses as timeouts.
+>
+> parm:           treat_busy_as_timeout:When true, treat BUSY responses as if they were timeouts. (int)
+>
+> When this parameter is true, ib_mad will unilaterally treat BUSY responses as timeouts regardless of the desired behavior of the caller.
+>
+> In addition, this patch also provides changes to ib_mad_send_buf to allow senders of MAD requests to request this behavior even if the parameter is not set. The patch does NOT provide changes to ib_umad to allow user apps to select this functionality.
+>
+> Signed-off-by: Michael Heinz<michael.heinz-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
 
-> > Also, the quick check to find_vma() is essentially duplicated
-> > if get_user_pages() is called
-> 
-> You need to know the type before you know how to handle it. Unless you 
-> want to tear up get_user_pages, i think this non-performance path double 
-> lookup is a non issue.
+> ---
+>
+>   drivers/infiniband/core/mad.c      |   22 ++++++++++++++++++++++
+>   drivers/infiniband/core/mad_priv.h |    1 +
+>   include/rdma/ib_mad.h              |   10 ++++++++++
+>   3 files changed, 33 insertions(+), 0 deletions(-)
+>
+> diff --git a/drivers/infiniband/core/mad.c b/drivers/infiniband/core/mad.c
+> index 64e660c..2e103ed 100644
+> --- a/drivers/infiniband/core/mad.c
+> +++ b/drivers/infiniband/core/mad.c
+> @@ -54,6 +54,10 @@ MODULE_PARM_DESC(send_queue_size, "Size of send queue in number of work requests
+>   module_param_named(recv_queue_size, mad_recvq_size, int, 0444);
+>   MODULE_PARM_DESC(recv_queue_size, "Size of receive queue in number of work requests");
+>
+> +int mad_wait_on_busy = 0;
+> +module_param_named(treat_busy_as_timeout, mad_wait_on_busy, int, 0444);
+> +MODULE_PARM_DESC(treat_busy_as_timeout, "When true, treat BUSY responses as if they were timeouts.");
+> +
+>   static struct kmem_cache *ib_mad_cache;
+>
+>   static struct list_head ib_mad_port_list;
+> @@ -1120,6 +1124,7 @@ int ib_post_send_mad(struct ib_mad_send_buf *send_buf,
+>   		mad_send_wr->timeout = msecs_to_jiffies(send_buf->timeout_ms);
+>   		mad_send_wr->max_retries = send_buf->retries;
+>   		mad_send_wr->retries_left = send_buf->retries;
+> +		mad_send_wr->wait_on_busy = send_buf->wait_on_busy || mad_wait_on_busy;
+>   		send_buf->retries = 0;
+>   		/* Reference for work request to QP + response */
+>   		mad_send_wr->refcount = 1 + (mad_send_wr->timeout>  0);
+> @@ -1828,6 +1833,9 @@ static void ib_mad_complete_recv(struct ib_mad_agent_private *mad_agent_priv,
+>
+>   	/* Complete corresponding request */
+>   	if (ib_response_mad(mad_recv_wc->recv_buf.mad)) {
+> +		u16 busy = be16_to_cpu(mad_recv_wc->recv_buf.mad->mad_hdr.status)&
+> +							   IB_MGMT_MAD_STATUS_BUSY;
+> +
+>   		spin_lock_irqsave(&mad_agent_priv->lock, flags);
+>   		mad_send_wr = ib_find_send_mad(mad_agent_priv, mad_recv_wc);
+>   		if (!mad_send_wr) {
+> @@ -1836,6 +1844,20 @@ static void ib_mad_complete_recv(struct ib_mad_agent_private *mad_agent_priv,
+>   			deref_mad_agent(mad_agent_priv);
+>   			return;
+>   		}
+> +
+> +		printk(KERN_DEBUG PFX "Completing recv %p: busy = %d, retries_left = %d, wait_on_busy = %d\n",
+> +			   mad_send_wr, busy, mad_send_wr->retries_left, mad_send_wr->wait_on_busy);
+> +
+> +		if (busy&&  mad_send_wr->retries_left&&  mad_send_wr->wait_on_busy&&
+> +		   (mad_recv_wc->recv_buf.mad->mad_hdr.method != IB_MGMT_METHOD_TRAP_REPRESS)) {
+> +			/* Just let the query timeout and have it requeued later */
+> +			spin_unlock_irqrestore(&mad_agent_priv->lock, flags);
+> +			ib_free_recv_mad(mad_recv_wc);
+> +			deref_mad_agent(mad_agent_priv);
+> +			printk(KERN_INFO PFX "SA/SM responded MAD_STATUS_BUSY. Allowing request to time out.\n");
 
-You only need the type if the translation is handled as the
-patch proposes. get_user_pages() could handle getting
-the physical addresses differently as it checks each vma region.
+Is this really needed ? Won't this spam the log ?
 
-> > and it doesn't handle the case
-> > when the region spans multiple vma regions with different flags.
-> 
-> Actually, it specifically does not allow that and I'm not sure that is 
-> something you would want to support.
+> +			return;
+> +		}
+> +
+>   		ib_mark_mad_done(mad_send_wr);
+>   		spin_unlock_irqrestore(&mad_agent_priv->lock, flags);
 
-True. It doesn't support it because without reference counting,
-there would need to be a callback mechanism to let the caller know
-if/when the mapping changes or is invalidated.
+> diff --git a/drivers/infiniband/core/mad_priv.h b/drivers/infiniband/core/mad_priv.h
+> index 8b4df0a..b6477cf 100644
+> --- a/drivers/infiniband/core/mad_priv.h
+> +++ b/drivers/infiniband/core/mad_priv.h
+> @@ -135,6 +135,7 @@ struct ib_mad_send_wr_private {
+>   	unsigned long timeout;
+>   	int max_retries;
+>   	int retries_left;
+> +	int wait_on_busy;
+>   	int retry;
+>   	int refcount;
+>   	enum ib_wc_status status;
+> diff --git a/include/rdma/ib_mad.h b/include/rdma/ib_mad.h
+> index d3b9401..fadc2c3 100644
+> --- a/include/rdma/ib_mad.h
+> +++ b/include/rdma/ib_mad.h
+> @@ -77,6 +77,15 @@
+>
+>   #define IB_MGMT_MAX_METHODS			128
+>
+> +/* MAD Status field bit masks */
+> +#define IB_MGMT_MAD_STATUS_SUCCESS                      0x0000
+> +#define IB_MGMT_MAD_STATUS_BUSY                         0x0001
+> +#define IB_MGMT_MAD_STATUS_REDIRECT_REQD                0x0002
+> +#define IB_MGMT_MAD_STATUS_BAD_VERERSION                0x0004
 
-> > Maybe we can modify get_user_pages to have a new flag which
-> > allows VM_PFNMAP segments to be accessed as IB memory regions.
-> > The problem is that VM_PFNMAP means there is no corresponding
-> > struct page to handle reference counting. What happens if the
-> > device that exports the VM_PFNMAP memory is hot removed?
-> 
-> Bus Address Error.
+typo... BAD_VERSION
 
-> > Can the device reference count be incremented to prevent that?
-> >
-> 
-> I don't think that would go in this code, it would go in the driver that 
-> gave the user the address in the first place.
+-- Hal
 
-Perhaps. Once the IB core has the physical address, the user may
-unmmap the range which would notify the exporting driver via unmmap but
-IB wouldn't know that had happened without some sort of callback
-notification. The IB hardware could happily go on DMA'ing to that
-physical address.
-
-> > On Thu, 2010-12-02 at 11:02 -0800, Tom Tucker wrote:
-> >> Added support to the ib_umem_get helper function for handling
-> >> mmaped memory.
-> >>
-> >> Signed-off-by: Tom Tucker<tom-/Yg/VP3ZvrM@public.gmane.org>
-> >> ---
-> >>
-> >>   drivers/infiniband/core/umem.c |  272 +++++++++++++++++++++++++++++++++++++---
-> >>   1 files changed, 253 insertions(+), 19 deletions(-)
-> >>
-> >> diff --git a/drivers/infiniband/core/umem.c b/drivers/infiniband/core/umem.c
-> >> index 415e186..357ca5e 100644
-> >> --- a/drivers/infiniband/core/umem.c
-> >> +++ b/drivers/infiniband/core/umem.c
-> >> @@ -52,30 +52,24 @@ static void __ib_umem_release(struct ib_device *dev, struct ib_umem *umem, int d
-> >>   	int i;
-> >>
-> >>   	list_for_each_entry_safe(chunk, tmp,&umem->chunk_list, list) {
-> >> -		ib_dma_unmap_sg(dev, chunk->page_list,
-> >> -				chunk->nents, DMA_BIDIRECTIONAL);
-> >> -		for (i = 0; i<  chunk->nents; ++i) {
-> >> -			struct page *page = sg_page(&chunk->page_list[i]);
-> >> -
-> >> -			if (umem->writable&&  dirty)
-> >> -				set_page_dirty_lock(page);
-> >> -			put_page(page);
-> >> -		}
-> >> +		if (umem->type == IB_UMEM_MEM_MAP) {
-> >> +			ib_dma_unmap_sg(dev, chunk->page_list,
-> >> +					chunk->nents, DMA_BIDIRECTIONAL);
-> >> +			for (i = 0; i<  chunk->nents; ++i) {
-> >> +				struct page *page = sg_page(&chunk->page_list[i]);
-> >>
-> >> +				if (umem->writable&&  dirty)
-> >> +					set_page_dirty_lock(page);
-> >> +				put_page(page);
-> >> +			}
-> >> +		}
-> >>   		kfree(chunk);
-> >>   	}
-> >>   }
-> >>
-> >> -/**
-> >> - * ib_umem_get - Pin and DMA map userspace memory.
-> >> - * @context: userspace context to pin memory for
-> >> - * @addr: userspace virtual address to start at
-> >> - * @size: length of region to pin
-> >> - * @access: IB_ACCESS_xxx flags for memory being pinned
-> >> - * @dmasync: flush in-flight DMA when the memory region is written
-> >> - */
-> >> -struct ib_umem *ib_umem_get(struct ib_ucontext *context, unsigned long addr,
-> >> -			    size_t size, int access, int dmasync)
-> >> +static struct ib_umem *__umem_get(struct ib_ucontext *context,
-> >> +				  unsigned long addr, size_t size,
-> >> +				  int access, int dmasync)
-> >>   {
-> >>   	struct ib_umem *umem;
-> >>   	struct page **page_list;
-> >> @@ -100,6 +94,7 @@ struct ib_umem *ib_umem_get(struct ib_ucontext *context, unsigned long addr,
-> >>   	if (!umem)
-> >>   		return ERR_PTR(-ENOMEM);
-> >>
-> >> +	umem->type	= IB_UMEM_MEM_MAP;
-> >>   	umem->context   = context;
-> >>   	umem->length    = size;
-> >>   	umem->offset    = addr&  ~PAGE_MASK;
-> >> @@ -215,6 +210,245 @@ out:
-> >>
-> >>   	return ret<  0 ? ERR_PTR(ret) : umem;
-> >>   }
-> >> +
-> >> +/*
-> >> + * Return the PFN for the specified address in the vma. This only
-> >> + * works for a vma that is VM_PFNMAP.
-> >> + */
-> >> +static unsigned long __follow_io_pfn(struct vm_area_struct *vma,
-> >> +				     unsigned long address, int write)
-> >> +{
-> >> +	pgd_t *pgd;
-> >> +	pud_t *pud;
-> >> +	pmd_t *pmd;
-> >> +	pte_t *ptep, pte;
-> >> +	spinlock_t *ptl;
-> >> +	unsigned long pfn;
-> >> +	struct mm_struct *mm = vma->vm_mm;
-> >> +
-> >> +	pgd = pgd_offset(mm, address);
-> >> +	if (pgd_none(*pgd) || unlikely(pgd_bad(*pgd)))
-> >> +		return 0;
-> >> +
-> >> +	pud = pud_offset(pgd, address);
-> >> +	if (pud_none(*pud))
-> >> +		return 0;
-> >> +	if (unlikely(pud_bad(*pud)))
-> >> +		return 0;
-> >> +
-> >> +	pmd = pmd_offset(pud, address);
-> >> +	if (pmd_none(*pmd))
-> >> +		return 0;
-> >> +	if (unlikely(pmd_bad(*pmd)))
-> >> +		return 0;
-> >> +
-> >> +	ptep = pte_offset_map_lock(mm, pmd, address,&ptl);
-> >> +	pte = *ptep;
-> >> +	if (!pte_present(pte))
-> >> +		goto bad;
-> >> +	if (write&&  !pte_write(pte))
-> >> +		goto bad;
-> >> +
-> >> +	pfn = pte_pfn(pte);
-> >> +	pte_unmap_unlock(ptep, ptl);
-> >> +	return pfn;
-> >> + bad:
-> >> +	pte_unmap_unlock(ptep, ptl);
-> >> +	return 0;
-> >> +}
-> >> +
-> >> +static int __get_io_pfn(struct task_struct *tsk, struct mm_struct *mm,
-> >> +			unsigned long start, int len, int write, int force,
-> >> +			unsigned long *pfn_list, struct vm_area_struct **vmas)
-> >> +{
-> >> +	unsigned long pfn;
-> >> +	int i;
-> >> +	if (len<= 0)
-> >> +		return 0;
-> >> +
-> >> +	i = 0;
-> >> +	do {
-> >> +		struct vm_area_struct *vma;
-> >> +
-> >> +		vma = find_vma(mm, start);
-> >> +		if (!(vma->vm_flags&  VM_PFNMAP))
-> >> +			return -EINVAL;
-> >> +
-> >> +		if (!(vma->vm_flags&  VM_IO))
-> >> +			return -EFAULT;
-> >> +
-> >> +		if (is_vm_hugetlb_page(vma))
-> >> +			return -EFAULT;
-> >> +
-> >> +		do {
-> >> +			cond_resched();
-> >> +			pfn = __follow_io_pfn(vma, start, write);
-> >> +			if (!pfn)
-> >> +				return -EFAULT;
-> >> +			if (pfn_list)
-> >> +				pfn_list[i] = pfn;
-> >> +			if (vmas)
-> >> +				vmas[i] = vma;
-> >> +			i++;
-> >> +			start += PAGE_SIZE;
-> >> +			len--;
-> >> +		} while (len&&  start<  vma->vm_end);
-> >> +	} while (len);
-> >> +	return i;
-> >> +}
-> >> +
-> >> +static struct ib_umem *__iomem_get(struct ib_ucontext *context,
-> >> +				   unsigned long addr, size_t size,
-> >> +				   int access, int dmasync)
-> >> +{
-> >> +	struct ib_umem *umem;
-> >> +	unsigned long *pfn_list;
-> >> +	struct ib_umem_chunk *chunk;
-> >> +	unsigned long locked;
-> >> +	unsigned long lock_limit;
-> >> +	unsigned long cur_base;
-> >> +	unsigned long npages;
-> >> +	int ret;
-> >> +	int off;
-> >> +	int i;
-> >> +	DEFINE_DMA_ATTRS(attrs);
-> >> +
-> >> +	if (dmasync)
-> >> +		dma_set_attr(DMA_ATTR_WRITE_BARRIER,&attrs);
-> >> +
-> >> +	if (!can_do_mlock())
-> >> +		return ERR_PTR(-EPERM);
-> >> +
-> >> +	umem = kmalloc(sizeof *umem, GFP_KERNEL);
-> >> +	if (!umem)
-> >> +		return ERR_PTR(-ENOMEM);
-> >> +
-> >> +	umem->type	= IB_UMEM_IO_MAP;
-> >> +	umem->context   = context;
-> >> +	umem->length    = size;
-> >> +	umem->offset    = addr&  ~PAGE_MASK;
-> >> +	umem->page_size = PAGE_SIZE;
-> >> +
-> >> +	/*
-> >> +	 * We ask for writable memory if any access flags other than
-> >> +	 * "remote read" are set.  "Local write" and "remote write"
-> >> +	 * obviously require write access.  "Remote atomic" can do
-> >> +	 * things like fetch and add, which will modify memory, and
-> >> +	 * "MW bind" can change permissions by binding a window.
-> >> +	 */
-> >> +	umem->writable  = !!(access&  ~IB_ACCESS_REMOTE_READ);
-> >> +
-> >> +	/* IO memory is not hugetlb memory */
-> >> +	umem->hugetlb   = 0;
-> >> +
-> >> +	INIT_LIST_HEAD(&umem->chunk_list);
-> >> +
-> >> +	pfn_list = (unsigned long *) __get_free_page(GFP_KERNEL);
-> >> +	if (!pfn_list) {
-> >> +		kfree(umem);
-> >> +		return ERR_PTR(-ENOMEM);
-> >> +	}
-> >> +
-> >> +	npages = PAGE_ALIGN(size + umem->offset)>>  PAGE_SHIFT;
-> >> +
-> >> +	down_write(&current->mm->mmap_sem);
-> >> +
-> >> +	locked     = npages + current->mm->locked_vm;
-> >> +	lock_limit = current->signal->rlim[RLIMIT_MEMLOCK].rlim_cur>>  PAGE_SHIFT;
-> >> +
-> >> +	if ((locked>  lock_limit)&&  !capable(CAP_IPC_LOCK)) {
-> >> +		ret = -ENOMEM;
-> >> +		goto out;
-> >> +	}
-> >> +
-> >> +	cur_base = addr&  PAGE_MASK;
-> >> +
-> >> +	ret = 0;
-> >> +	while (npages) {
-> >> +		ret = __get_io_pfn(current, current->mm, cur_base,
-> >> +				   min_t(unsigned long, npages,
-> >> +					 PAGE_SIZE / sizeof(unsigned long *)),
-> >> +				   umem->writable,
-> >> +				   !umem->writable, pfn_list, NULL);
-> >> +
-> >> +		if (ret<  0)
-> >> +			goto out;
-> >> +
-> >> +		cur_base += ret * PAGE_SIZE;
-> >> +		npages   -= ret;
-> >> +
-> >> +		off = 0;
-> >> +
-> >> +		while (ret) {
-> >> +			chunk = kmalloc(sizeof *chunk +
-> >> +					sizeof(struct scatterlist) *
-> >> +					min_t(int, ret, IB_UMEM_MAX_PAGE_CHUNK),
-> >> +					GFP_KERNEL);
-> >> +			if (!chunk) {
-> >> +				ret = -ENOMEM;
-> >> +				goto out;
-> >> +			}
-> >> +			chunk->nents = min_t(int, ret, IB_UMEM_MAX_PAGE_CHUNK);
-> >> +			sg_init_table(chunk->page_list, chunk->nents);
-> >> +			/* The pfn_list we built is a set of Page
-> >> +			 * Frame Numbers (PFN) whose physical address
-> >> +			 * is PFN<<  PAGE_SHIFT. The SG DMA mapping
-> >> +			 * services expect page addresses, not PFN,
-> >> +			 * therefore, we have to do the dma mapping
-> >> +			 * ourselves here. */
-> >> +			for (i = 0; i<  chunk->nents; ++i) {
-> >> +				sg_set_page(&chunk->page_list[i], 0,
-> >> +					    PAGE_SIZE, 0);
-> >> +				chunk->page_list[i].dma_address =
-> >> +					(pfn_list[i + off]<<  PAGE_SHIFT);
-> >> +				chunk->page_list[i].dma_length = PAGE_SIZE;
-> >> +			}
-> >> +			chunk->nmap = chunk->nents;
-> >> +			ret -= chunk->nents;
-> >> +			off += chunk->nents;
-> >> +			list_add_tail(&chunk->list,&umem->chunk_list);
-> >> +		}
-> >> +	}
-> >> +
-> >> +out:
-> >> +	if (ret<  0) {
-> >> +		__ib_umem_release(context->device, umem, 0);
-> >> +		kfree(umem);
-> >> +	} else
-> >> +		current->mm->locked_vm = locked;
-> >> +	up_write(&current->mm->mmap_sem);
-> >> +	free_page((unsigned long) pfn_list);
-> >> +	return ret<  0 ? ERR_PTR(ret) : umem;
-> >> +}
-> >> +
-> >> +/**
-> >> + * ib_umem_get - Pin and DMA map userspace memory.
-> >> + * @context: userspace context to pin memory for
-> >> + * @addr: userspace virtual address to start at
-> >> + * @size: length of region to pin
-> >> + * @access: IB_ACCESS_xxx flags for memory being pinned
-> >> + * @dmasync: flush in-flight DMA when the memory region is written
-> >> + */
-> >> +struct ib_umem *ib_umem_get(struct ib_ucontext *context, unsigned long addr,
-> >> +			    size_t size, int access, int dmasync)
-> >> +{
-> >> +	/* Do a quick lookup of the containing VMA to determine it's type. */
-> >> +	struct vm_area_struct *vma;
-> >> +	int do_pfn_map = 0;
-> >> +
-> >> +	down_write(&current->mm->mmap_sem);
-> >> +	vma = find_vma(current->mm, addr&  PAGE_MASK);
-> >> +	if (vma)
-> >> +		do_pfn_map = vma->vm_flags&  VM_PFNMAP;
-> >> +	up_write(&current->mm->mmap_sem);
-> >> +	if (!vma)
-> >> +		return ERR_PTR(-EINVAL);
-> >> +
-> >> +	if (do_pfn_map)
-> >> +		return __iomem_get(context, addr, size, access, dmasync);
-> >> +
-> >> +	return __umem_get(context, addr, size, access, dmasync);
-> >> +}
-> >>   EXPORT_SYMBOL(ib_umem_get);
-> >>
-> >>   static void ib_umem_account(struct work_struct *work)
-> >>
-> >> --
-> >> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> >> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> >> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> >>
-> >
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-> 
-
+> +#define IB_MGMT_MAD_STATUS_UNSUPPORTED_METHOD           0x0008
+> +#define IB_MGMT_MAD_STATUS_UNSUPPORTED_METHOD_ATTRIB    0x000c
+> +#define IB_MGMT_MAD_STATUS_INVALID_ATTRIB_VALUE         0x001c
+> +
+>   /* RMPP information */
+>   #define IB_MGMT_RMPP_VERSION			1
+>
+> @@ -246,6 +255,7 @@ struct ib_mad_send_buf {
+>   	int			seg_count;
+>   	int			seg_size;
+>   	int			timeout_ms;
+> +	int			wait_on_busy;
+>   	int			retries;
+>   };
+>
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
