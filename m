@@ -1,27 +1,34 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH V4] SA Busy Handling
-Date: Fri, 03 Dec 2010 14:43:02 -0500
-Message-ID: <4CF94846.1090705@dev.mellanox.co.il>
-References: <4C2744E8AD2982428C5BFE523DF8CDCB4A208DF3AF@MNEXMB1.qlogic.org> <4CF93D10.9070307@dev.mellanox.co.il> <4C2744E8AD2982428C5BFE523DF8CDCB4A208DF3E1@MNEXMB1.qlogic.org> <4CF93FD3.9070405@dev.mellanox.co.il> <4C2744E8AD2982428C5BFE523DF8CDCB4A208DF3E6@MNEXMB1.qlogic.org>
+From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH V3] SA Busy Handling
+Date: Fri, 03 Dec 2010 13:44:10 -0800
+Message-ID: <adamxomlefp.fsf@cisco.com>
+References: <4C2744E8AD2982428C5BFE523DF8CDCB4A208DF31E@MNEXMB1.qlogic.org>
+	<CF9C39F99A89134C9CF9C4CCB68B8DDF25B8A20BC4@orsmsx501.amr.corp.intel.com>
+	<4C2744E8AD2982428C5BFE523DF8CDCB4A208DF3B0@MNEXMB1.qlogic.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4C2744E8AD2982428C5BFE523DF8CDCB4A208DF3E6-amwN6d8PyQWXx9kJd3VG2h2eb7JE58TQ@public.gmane.org>
+In-Reply-To: <4C2744E8AD2982428C5BFE523DF8CDCB4A208DF3B0-amwN6d8PyQWXx9kJd3VG2h2eb7JE58TQ@public.gmane.org>
+	(Mike Heinz's message of "Fri, 3 Dec 2010 10:52:02 -0600")
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Mike Heinz <michael.heinz-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, "linux-rdma@vger.kernel.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 12/3/2010 2:09 PM, Mike Heinz wrote:
-> Well, the reason I added it was I thought it would be useful for diagnosing a troubled fabric to know that MADs were getting
-> BUSY responses (which would indicate that they were at least reaching the SM); but I agree that under very bad conditions
-> it could end up flooding the log.
+ > If we don't want to use this, then we should just go all the way back
+ > to the original patch I submitted in the spring. That version does
+ > not have the user space hook or the module parameter.
 
-Wouldn't that be the "normal" case in large clusters running all to all 
-MPI jobs when BUSY is being used by the SA ?
+I definitely feel we should not have the module parameter.  The new
+behavior is supposed to always be better, right?  So why would anyone
+ever want to mess with the module parameter?
 
--- Hal
+However I think I would like to have at least some idea of what the
+smarter way to handle "busy" responses will be.  If we're always just
+going to treat them like timeouts, then it seems the SA would be smarter
+to avoid sending them in the first place.
+
+ - R.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
