@@ -1,30 +1,91 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: IPoIB to Ethernet routing performance
-Date: Mon, 6 Dec 2010 14:27:59 -0700
-Message-ID: <20101206212759.GB16788@obsidianresearch.com>
-References: <20101206112454.76bb85f1@frecb012350.frec.bull.fr>
- <4CFD4BEE.5070205@shiftmail.org>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH v6] SA Busy code
+Date: Mon, 06 Dec 2010 18:14:05 -0500
+Message-ID: <4CFD6E3D.5040404@dev.mellanox.co.il>
+References: <4C2744E8AD2982428C5BFE523DF8CDCB4A208DF511@MNEXMB1.qlogic.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <4CFD4BEE.5070205-9AbUPqfR1/2XDw4h08c5KA@public.gmane.org>
+In-Reply-To: <4C2744E8AD2982428C5BFE523DF8CDCB4A208DF511-amwN6d8PyQWXx9kJd3VG2h2eb7JE58TQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jabe <jabe.chapman-9AbUPqfR1/2XDw4h08c5KA@public.gmane.org>
-Cc: sebastien dugue <sebastien.dugue-6ktuUTfB/bM@public.gmane.org>, OF EWG <ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Mike Heinz <michael.heinz-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Dec 06, 2010 at 09:47:42PM +0100, Jabe wrote:
+On 12/6/2010 2:00 PM, Mike Heinz wrote:
+> Removed redundant code.
+> ---
+> The purpose of this patch is to cause the ib_mad driver to discard bu=
+sy responses from the SA, effectively causing busy responses to become =
+time outs.
+>
+> This ensures that na=EFve IB applications cannot overwhelm the SA wit=
+h queries, which could happen when a cluster is being rebooted, or when=
+ a large HPC application is started.
+>
+> Signed-Off-By: Michael Heinz<michael.heinz-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
 
-> Technologies MT25204 [InfiniHost III Lx HCA]; and dual E5430 xeon
-> (not nehalem).
+Acked-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Newer Mellanox cards have most of the offloads you see for ethernet so
-they get better performance. Plus > Nehalem is just better at TCP in
-the first place..
+>
+> ----
+> diff --git a/drivers/infiniband/core/mad.c b/drivers/infiniband/core/=
+mad.c
+> index 64e660c..10fead0 100644
+> --- a/drivers/infiniband/core/mad.c
+> +++ b/drivers/infiniband/core/mad.c
+> @@ -1828,14 +1828,21 @@ static void ib_mad_complete_recv(struct ib_ma=
+d_agent_private *mad_agent_priv,
+>
+>   	/* Complete corresponding request */
+>   	if (ib_response_mad(mad_recv_wc->recv_buf.mad)) {
+> +		u16 busy =3D be16_to_cpu(mad_recv_wc->recv_buf.mad->mad_hdr.status=
+)&
+> +							   IB_MGMT_MAD_STATUS_BUSY;
+> +
+>   		spin_lock_irqsave(&mad_agent_priv->lock, flags);
+>   		mad_send_wr =3D ib_find_send_mad(mad_agent_priv, mad_recv_wc);
+> -		if (!mad_send_wr) {
+> +		if (!mad_send_wr ||
+> +			(busy&&  mad_send_wr->retries_left&&
+> +			 (mad_recv_wc->recv_buf.mad->mad_hdr.method !=3D
+> +			  IB_MGMT_METHOD_TRAP_REPRESS))) {
+>   			spin_unlock_irqrestore(&mad_agent_priv->lock, flags);
+>   			ib_free_recv_mad(mad_recv_wc);
+>   			deref_mad_agent(mad_agent_priv);
+>   			return;
+>   		}
+> +
+>   		ib_mark_mad_done(mad_send_wr);
+>   		spin_unlock_irqrestore(&mad_agent_priv->lock, flags);
+>
+> diff --git a/include/rdma/ib_mad.h b/include/rdma/ib_mad.h
+> index d3b9401..b901968 100644
+> --- a/include/rdma/ib_mad.h
+> +++ b/include/rdma/ib_mad.h
+> @@ -77,6 +77,15 @@
+>
+>   #define IB_MGMT_MAX_METHODS			128
+>
+> +/* MAD Status field bit masks */
+> +#define IB_MGMT_MAD_STATUS_SUCCESS                      0x0000
+> +#define IB_MGMT_MAD_STATUS_BUSY                         0x0001
+> +#define IB_MGMT_MAD_STATUS_REDIRECT_REQD                0x0002
+> +#define IB_MGMT_MAD_STATUS_BAD_VERSION                  0x0004
+> +#define IB_MGMT_MAD_STATUS_UNSUPPORTED_METHOD           0x0008
+> +#define IB_MGMT_MAD_STATUS_UNSUPPORTED_METHOD_ATTRIB    0x000c
+> +#define IB_MGMT_MAD_STATUS_INVALID_ATTRIB_VALUE         0x001c
+> +
+>   /* RMPP information */
+>   #define IB_MGMT_RMPP_VERSION			1
+>
+>
+>
 
-Jason
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
