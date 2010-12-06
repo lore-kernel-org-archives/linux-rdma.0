@@ -1,65 +1,42 @@
 From: Aleksey Senin <alekseys-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH v3 1/4] RAW_PACKET QP type definition
-Date: Mon, 6 Dec 2010 09:34:53 +0200
-Message-ID: <4CFC921D.3000907@voltaire.com>
-References: <4CFC918D.1090708@voltaire.com>
+Subject: [PATCH v3 2/4] RAW_PACKET QP capabilities check
+Date: Mon, 6 Dec 2010 09:36:11 +0200
+Message-ID: <4CFC926B.8060305@voltaire.com>
+References: <4CFC918D.1090708@voltaire.com> <4CFC921D.3000907@voltaire.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4CFC918D.1090708-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <4CFC921D.3000907-smomgflXvOZWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Moni Shoua <monis-hKgKHo2Ms0F+cjeuK/JdrQ@public.gmane.org>, Nir Muchtar <nirm-smomgflXvOZWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Reserve a place for future XRC patch in order to be sure that
-OFED kernel ABI will not broken when XRC and RAW patches will be
-accepted to upstream kernel.
+In order to prevent regular user from creating malicious packets, at the
+time of QP creation, kernel will check if the process has necessary
+permissions. This examination areis done in uverbs layer and is general
+for all low level drivers.
 
 Signed-off-by: Aleksey Senin <alekseys-smomgflXvOZWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/core/verbs.c |    5 +++--
- include/rdma/ib_verbs.h         |    3 ++-
- 2 files changed, 5 insertions(+), 3 deletions(-)
+ drivers/infiniband/core/uverbs_cmd.c |    3 +++
+ 1 files changed, 3 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
-index af7a8b0..611c13c 100644
---- a/drivers/infiniband/core/verbs.c
-+++ b/drivers/infiniband/core/verbs.c
-@@ -326,8 +326,8 @@ EXPORT_SYMBOL(ib_create_qp);
+diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
+index b342248..df149ed 100644
+--- a/drivers/infiniband/core/uverbs_cmd.c
++++ b/drivers/infiniband/core/uverbs_cmd.c
+@@ -1052,6 +1052,9 @@ ssize_t ib_uverbs_create_qp(struct ib_uverbs_file *file,
+ 	if (copy_from_user(&cmd, buf, sizeof cmd))
+ 		return -EFAULT;
  
- static const struct {
- 	int			valid;
--	enum ib_qp_attr_mask	req_param[IB_QPT_RAW_ETHERTYPE + 1];
--	enum ib_qp_attr_mask	opt_param[IB_QPT_RAW_ETHERTYPE + 1];
-+	enum ib_qp_attr_mask	req_param[IB_QPT_RAW_PACKET + 1];
-+	enum ib_qp_attr_mask	opt_param[IB_QPT_RAW_PACKET + 1];
- } qp_state_table[IB_QPS_ERR + 1][IB_QPS_ERR + 1] = {
- 	[IB_QPS_RESET] = {
- 		[IB_QPS_RESET] = { .valid = 1 },
-@@ -337,6 +337,7 @@ static const struct {
- 				[IB_QPT_UD]  = (IB_QP_PKEY_INDEX		|
- 						IB_QP_PORT			|
- 						IB_QP_QKEY),
-+				[IB_QPT_RAW_PACKET] = IB_QP_PORT,
- 				[IB_QPT_UC]  = (IB_QP_PKEY_INDEX		|
- 						IB_QP_PORT			|
- 						IB_QP_ACCESS_FLAGS),
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index e04c488..e14e3f8 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -561,7 +561,8 @@ enum ib_qp_type {
- 	IB_QPT_UC,
- 	IB_QPT_UD,
- 	IB_QPT_RAW_IPV6,
--	IB_QPT_RAW_ETHERTYPE
-+	IB_QPT_RAW_ETHERTYPE = 7,
-+	IB_QPT_RAW_PACKET = 8
- };
- 
- enum ib_qp_create_flags {
++	if (cmd.qp_type == IB_QPT_RAW_PACKET && !capable(CAP_NET_RAW))
++		return -EPERM;
++
+ 	INIT_UDATA(&udata, buf + sizeof cmd,
+ 		   (unsigned long) cmd.response + sizeof resp,
+ 		   in_len - sizeof cmd, out_len - sizeof resp);
 -- 
 1.6.4.2
 
