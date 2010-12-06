@@ -1,91 +1,63 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH v6] SA Busy code
-Date: Mon, 06 Dec 2010 18:14:05 -0500
-Message-ID: <4CFD6E3D.5040404@dev.mellanox.co.il>
-References: <4C2744E8AD2982428C5BFE523DF8CDCB4A208DF511@MNEXMB1.qlogic.org>
+From: "Stan C. Smith" <stan.smith-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH] replace (long*)(long) casting with transportable data type (uintptr_t)
+Date: Mon, 6 Dec 2010 15:55:11 -0800
+Message-ID: <3D555CA8351C471B84CD9D6432AFC6D0@amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4C2744E8AD2982428C5BFE523DF8CDCB4A208DF511-amwN6d8PyQWXx9kJd3VG2h2eb7JE58TQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Mike Heinz <michael.heinz-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: 'Sasha Khapyorsky' <sashakvolt-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Linux RDMA <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 12/6/2010 2:00 PM, Mike Heinz wrote:
-> Removed redundant code.
-> ---
-> The purpose of this patch is to cause the ib_mad driver to discard bu=
-sy responses from the SA, effectively causing busy responses to become =
-time outs.
->
-> This ensures that na=EFve IB applications cannot overwhelm the SA wit=
-h queries, which could happen when a cluster is being rebooted, or when=
- a large HPC application is started.
->
-> Signed-Off-By: Michael Heinz<michael.heinz-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
 
-Acked-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Hello,
+  Your suggestion of removing extra casts does operate correctly under windows x64/x86 variants.
+Windows compilers have improved.
 
->
-> ----
-> diff --git a/drivers/infiniband/core/mad.c b/drivers/infiniband/core/=
-mad.c
-> index 64e660c..10fead0 100644
-> --- a/drivers/infiniband/core/mad.c
-> +++ b/drivers/infiniband/core/mad.c
-> @@ -1828,14 +1828,21 @@ static void ib_mad_complete_recv(struct ib_ma=
-d_agent_private *mad_agent_priv,
->
->   	/* Complete corresponding request */
->   	if (ib_response_mad(mad_recv_wc->recv_buf.mad)) {
-> +		u16 busy =3D be16_to_cpu(mad_recv_wc->recv_buf.mad->mad_hdr.status=
-)&
-> +							   IB_MGMT_MAD_STATUS_BUSY;
-> +
->   		spin_lock_irqsave(&mad_agent_priv->lock, flags);
->   		mad_send_wr =3D ib_find_send_mad(mad_agent_priv, mad_recv_wc);
-> -		if (!mad_send_wr) {
-> +		if (!mad_send_wr ||
-> +			(busy&&  mad_send_wr->retries_left&&
-> +			 (mad_recv_wc->recv_buf.mad->mad_hdr.method !=3D
-> +			  IB_MGMT_METHOD_TRAP_REPRESS))) {
->   			spin_unlock_irqrestore(&mad_agent_priv->lock, flags);
->   			ib_free_recv_mad(mad_recv_wc);
->   			deref_mad_agent(mad_agent_priv);
->   			return;
->   		}
-> +
->   		ib_mark_mad_done(mad_send_wr);
->   		spin_unlock_irqrestore(&mad_agent_priv->lock, flags);
->
-> diff --git a/include/rdma/ib_mad.h b/include/rdma/ib_mad.h
-> index d3b9401..b901968 100644
-> --- a/include/rdma/ib_mad.h
-> +++ b/include/rdma/ib_mad.h
-> @@ -77,6 +77,15 @@
->
->   #define IB_MGMT_MAX_METHODS			128
->
-> +/* MAD Status field bit masks */
-> +#define IB_MGMT_MAD_STATUS_SUCCESS                      0x0000
-> +#define IB_MGMT_MAD_STATUS_BUSY                         0x0001
-> +#define IB_MGMT_MAD_STATUS_REDIRECT_REQD                0x0002
-> +#define IB_MGMT_MAD_STATUS_BAD_VERSION                  0x0004
-> +#define IB_MGMT_MAD_STATUS_UNSUPPORTED_METHOD           0x0008
-> +#define IB_MGMT_MAD_STATUS_UNSUPPORTED_METHOD_ATTRIB    0x000c
-> +#define IB_MGMT_MAD_STATUS_INVALID_ATTRIB_VALUE         0x001c
-> +
->   /* RMPP information */
->   #define IB_MGMT_RMPP_VERSION			1
->
->
->
+thanks,
+
+Stan.
+
+Signed-off-by: stan smith <stan.smith-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+
+diff --git a/opensm/libvendor/osm_vendor_ibumad_sa.c b/opensm/libvendor/osm_vendor_ibumad_sa.c
+index 1fdcc47..63728ad 100644
+--- a/opensm/libvendor/osm_vendor_ibumad_sa.c
++++ b/opensm/libvendor/osm_vendor_ibumad_sa.c
+@@ -85,8 +85,7 @@ __osmv_sa_mad_rcv_cb(IN osm_madw_t * p_madw,
+ 
+ 	/* obtain the sent context since we store it during send in the ni_ctx */
+ 	p_query_req_copy =
+-	    (osmv_query_req_t *) (long *)(long)(p_req_madw->context.ni_context.
+-						node_guid);
++	    (osmv_query_req_t *) p_req_madw->context.ni_context.node_guid;
+ 
+ 	/* provide the context of the original request in the result */
+ 	query_res.query_context = p_query_req_copy->query_context;
+@@ -181,8 +180,7 @@ static void __osmv_sa_mad_err_cb(IN void *bind_context, IN osm_madw_t * p_madw)
+ 
+ 	/* Obtain the sent context etc */
+ 	p_query_req_copy =
+-	    (osmv_query_req_t *) (long *)(long)(p_madw->context.ni_context.
+-						node_guid);
++	    (osmv_query_req_t *) p_madw->context.ni_context.node_guid;
+ 
+ 	/* provide the context of the original request in the result */
+ 	query_res.query_context = p_query_req_copy->query_context;
+@@ -433,7 +431,7 @@ __osmv_send_sa_req(IN osmv_sa_bind_info_t * p_bind,
+ 	}
+ 	*p_query_req_copy = *p_query_req;
+ 	p_madw->context.ni_context.node_guid =
+-	    (ib_net64_t) (long)p_query_req_copy;
++	    (ib_net64_t) (uintptr_t)p_query_req_copy;
+ 
+ 	/* we can support async as well as sync calls */
+ 	sync = ((p_query_req->flags & OSM_SA_FLAGS_SYNC) == OSM_SA_FLAGS_SYNC);
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
