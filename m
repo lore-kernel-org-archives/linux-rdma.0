@@ -1,84 +1,75 @@
-From: sebastien dugue <sebastien.dugue-6ktuUTfB/bM@public.gmane.org>
-Subject: IPoIB to Ethernet routing performance
-Date: Mon, 6 Dec 2010 11:24:54 +0100
-Message-ID: <20101206112454.76bb85f1@frecb012350.frec.bull.fr>
+From: "Richard Croucher" <richard-jNDFPZUTrfRJpuwtbJ71GdBPR1lH4CV8@public.gmane.org>
+Subject: Re: IPoIB to Ethernet routing performance
+Date: Mon, 6 Dec 2010 10:49:58 -0000
+Message-ID: <00d701cb9533$71c5f2e0$5551d8a0$@com>
+References: <20101206112454.76bb85f1@frecb012350.frec.bull.fr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: OF EWG <ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+In-Reply-To: <20101206112454.76bb85f1-xRPE6/W2vR9iM9LT7/dT9zWMkbuR3peG@public.gmane.org>
+Content-Language: en-gb
+List-Unsubscribe: <http://lists.openfabrics.org/cgi-bin/mailman/options/ewg>,
+	<mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.openfabrics.org/pipermail/ewg>
+List-Post: <mailto:ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+List-Help: <mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=help>
+List-Subscribe: <http://lists.openfabrics.org/cgi-bin/mailman/listinfo/ewg>,
+	<mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=subscribe>
+Sender: ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
+Errors-To: ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
+To: 'sebastien dugue' <sebastien.dugue-6ktuUTfB/bM@public.gmane.org>, 'OF EWG' <ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+Cc: 'linux-rdma' <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-
-  Hi,
-
-  I know this might be off topic, but somebody may have already run int=
-o the same
-problem before.
-
-  I'm trying to use a server as a router between an IB fabric and an Et=
-hernet network.
-
-  The router is fitted with one ConnectX2 QDR HCA and one dual port Myr=
-icom 10G
-Ethernet adapter.
-
-  I did some bandwidth measurements using iperf with the following setu=
-p:
-
-  +---------+               +---------+               +---------+
-  |         |               |         |   10G Eth     |         |
-  |         |    QDR IB     |         +---------------+         |
-  | client  +---------------+  Router |   10G Eth     |  Server |
-  |         |               |         +---------------+         |
-  |         |               |         |               |         |
-  +---------+               +---------+               +---------+
-
- =20
-  However, the routing performance is far from what I would have expect=
-ed.
-
-  Here are some numbers:
-
-  - 1 IPoIB stream between client and router: 20 Gbits/sec
-
-    Looks OK.
-
-  - 2 Ethernet streams between router and server: 19.5 Gbits/sec
-
-    Looks OK.
-
-  - routing 1 IPoIB stream to 1 Ethernet stream from client to server: =
-9.8 Gbits/sec
-
-    We manage to saturate the Ethernet link, looks good so far.
-
-  - routing 2 IPoIB streams to 2 Ethernet streams from client to server=
-: 9.3 Gbits/sec
-
-    Argh, even less that when routing a single stream. I would have exp=
-ected
-    a bit more than this.
-
-
-  Has anybody ever tried to do some routing between an IB fabric and an=
- Ethernet
-network and achieved some sensible bandwidth figures?
-
-  Are there some known limitations in what I try to achieve?
-
-
-  Thanks,
-
-  S=C3=A9bastien.
-
-
-
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+WW91IG1heSBiZSBhYmxlIHRvIGltcHJvdmUgYnkgZG9pbmcgc29tZSBPUyB0dW5pbmcuICBBbGwg
+dGhpcyBkYXRhIHNob3VsZCBzdGF5IGluIGtlcm5lbCBtb2RlIGJ1dCB0aGVyZSBhcmUgbG90cyBv
+ZiBib3R0bGVuZWNrcyBpbiB0aGUgVENQL0lQIHN0YWNrIHRoYXQgbGltaXQgc2NhbGFiaWxpdHku
+ICBUaGUgSVBvSUIgY29kZSBoYXMgbm90IGJlZW4gb3B0aW1pemVkIGZvciB0aGlzIHVzZSBjYXNl
+LgoKWW91IGRvbid0IG1lbnRpb24gd2hhdCBTZXJ2ZXIsIGtlcm5lbCBhbmQgT0ZFRCBkaXN0cm8g
+eW91IGFyZSBydW5uaW5nLgoKVGhlIGJlc3QgcGVyZm9ybWFuY2UgaXMgYWNoaWV2ZWQgdXNpbmcg
+SW5maW5pQmFuZC9FdGhlcm5ldCBoYXJkd2FyZSBnYXRld2F5cy4gIE1vc3Qgb2YgdGhlc2UgcHJv
+dmlkZSB2aXJ0dWFsIEV0aGVybmV0IE5JQ3MgdG8gSW5maW5pQmFuZCBob3N0cywgYnV0IHRoZSBW
+b2x0YWlyZSA0MDM2RSBkb2VzIHByb3ZpZGUgYSAgSVBvSUIgdG8gRXRoZXJuZXQgZ2F0ZXdheSBj
+YXBhYmlsaXR5LiAgVGhpcyBpcyBGUEdBIGJhc2VkIHNvIGRvZXMgcHJvdmlkZSBtdWNoIGhpZ2hl
+ciBwZXJmb3JtYW5jZSB0aGFuIHlvdSB3aWxsIGFjaGlldmUgdXNpbmcgYSBzdGFuZGFyZCBzZXJ2
+ZXIgc29sdXRpb24uIAoKLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0KRnJvbTogZXdnLWJvdW5j
+ZXNAbGlzdHMub3BlbmZhYnJpY3Mub3JnIFttYWlsdG86ZXdnLWJvdW5jZXNAbGlzdHMub3BlbmZh
+YnJpY3Mub3JnXSBPbiBCZWhhbGYgT2Ygc2ViYXN0aWVuIGR1Z3VlClNlbnQ6IDA2IERlY2VtYmVy
+IDIwMTAgMTA6MjUKVG86IE9GIEVXRwpDYzogbGludXgtcmRtYQpTdWJqZWN0OiBbZXdnXSBJUG9J
+QiB0byBFdGhlcm5ldCByb3V0aW5nIHBlcmZvcm1hbmNlCgoKICBIaSwKCiAgSSBrbm93IHRoaXMg
+bWlnaHQgYmUgb2ZmIHRvcGljLCBidXQgc29tZWJvZHkgbWF5IGhhdmUgYWxyZWFkeSBydW4gaW50
+byB0aGUgc2FtZQpwcm9ibGVtIGJlZm9yZS4KCiAgSSdtIHRyeWluZyB0byB1c2UgYSBzZXJ2ZXIg
+YXMgYSByb3V0ZXIgYmV0d2VlbiBhbiBJQiBmYWJyaWMgYW5kIGFuIEV0aGVybmV0IG5ldHdvcmsu
+CgogIFRoZSByb3V0ZXIgaXMgZml0dGVkIHdpdGggb25lIENvbm5lY3RYMiBRRFIgSENBIGFuZCBv
+bmUgZHVhbCBwb3J0IE15cmljb20gMTBHCkV0aGVybmV0IGFkYXB0ZXIuCgogIEkgZGlkIHNvbWUg
+YmFuZHdpZHRoIG1lYXN1cmVtZW50cyB1c2luZyBpcGVyZiB3aXRoIHRoZSBmb2xsb3dpbmcgc2V0
+dXA6CgogICstLS0tLS0tLS0rICAgICAgICAgICAgICAgKy0tLS0tLS0tLSsgICAgICAgICAgICAg
+ICArLS0tLS0tLS0tKwogIHwgICAgICAgICB8ICAgICAgICAgICAgICAgfCAgICAgICAgIHwgICAx
+MEcgRXRoICAgICB8ICAgICAgICAgfAogIHwgICAgICAgICB8ICAgIFFEUiBJQiAgICAgfCAgICAg
+ICAgICstLS0tLS0tLS0tLS0tLS0rICAgICAgICAgfAogIHwgY2xpZW50ICArLS0tLS0tLS0tLS0t
+LS0tKyAgUm91dGVyIHwgICAxMEcgRXRoICAgICB8ICBTZXJ2ZXIgfAogIHwgICAgICAgICB8ICAg
+ICAgICAgICAgICAgfCAgICAgICAgICstLS0tLS0tLS0tLS0tLS0rICAgICAgICAgfAogIHwgICAg
+ICAgICB8ICAgICAgICAgICAgICAgfCAgICAgICAgIHwgICAgICAgICAgICAgICB8ICAgICAgICAg
+fAogICstLS0tLS0tLS0rICAgICAgICAgICAgICAgKy0tLS0tLS0tLSsgICAgICAgICAgICAgICAr
+LS0tLS0tLS0tKwoKICAKICBIb3dldmVyLCB0aGUgcm91dGluZyBwZXJmb3JtYW5jZSBpcyBmYXIg
+ZnJvbSB3aGF0IEkgd291bGQgaGF2ZSBleHBlY3RlZC4KCiAgSGVyZSBhcmUgc29tZSBudW1iZXJz
+OgoKICAtIDEgSVBvSUIgc3RyZWFtIGJldHdlZW4gY2xpZW50IGFuZCByb3V0ZXI6IDIwIEdiaXRz
+L3NlYwoKICAgIExvb2tzIE9LLgoKICAtIDIgRXRoZXJuZXQgc3RyZWFtcyBiZXR3ZWVuIHJvdXRl
+ciBhbmQgc2VydmVyOiAxOS41IEdiaXRzL3NlYwoKICAgIExvb2tzIE9LLgoKICAtIHJvdXRpbmcg
+MSBJUG9JQiBzdHJlYW0gdG8gMSBFdGhlcm5ldCBzdHJlYW0gZnJvbSBjbGllbnQgdG8gc2VydmVy
+OiA5LjggR2JpdHMvc2VjCgogICAgV2UgbWFuYWdlIHRvIHNhdHVyYXRlIHRoZSBFdGhlcm5ldCBs
+aW5rLCBsb29rcyBnb29kIHNvIGZhci4KCiAgLSByb3V0aW5nIDIgSVBvSUIgc3RyZWFtcyB0byAy
+IEV0aGVybmV0IHN0cmVhbXMgZnJvbSBjbGllbnQgdG8gc2VydmVyOiA5LjMgR2JpdHMvc2VjCgog
+ICAgQXJnaCwgZXZlbiBsZXNzIHRoYXQgd2hlbiByb3V0aW5nIGEgc2luZ2xlIHN0cmVhbS4gSSB3
+b3VsZCBoYXZlIGV4cGVjdGVkCiAgICBhIGJpdCBtb3JlIHRoYW4gdGhpcy4KCgogIEhhcyBhbnli
+b2R5IGV2ZXIgdHJpZWQgdG8gZG8gc29tZSByb3V0aW5nIGJldHdlZW4gYW4gSUIgZmFicmljIGFu
+ZCBhbiBFdGhlcm5ldApuZXR3b3JrIGFuZCBhY2hpZXZlZCBzb21lIHNlbnNpYmxlIGJhbmR3aWR0
+aCBmaWd1cmVzPwoKICBBcmUgdGhlcmUgc29tZSBrbm93biBsaW1pdGF0aW9ucyBpbiB3aGF0IEkg
+dHJ5IHRvIGFjaGlldmU/CgoKICBUaGFua3MsCgogIFPDqWJhc3RpZW4uCgoKCgpfX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpld2cgbWFpbGluZyBsaXN0CmV3
+Z0BsaXN0cy5vcGVuZmFicmljcy5vcmcKaHR0cDovL2xpc3RzLm9wZW5mYWJyaWNzLm9yZy9jZ2kt
+YmluL21haWxtYW4vbGlzdGluZm8vZXdnCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fXwpld2cgbWFpbGluZyBsaXN0CmV3Z0BsaXN0cy5vcGVuZmFicmljcy5v
+cmcKaHR0cDovL2xpc3RzLm9wZW5mYWJyaWNzLm9yZy9jZ2ktYmluL21haWxtYW4vbGlzdGluZm8v
+ZXdn
