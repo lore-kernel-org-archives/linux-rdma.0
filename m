@@ -1,72 +1,66 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH V2 5/5] RDMA CM: Netlink Client
-Date: Tue, 7 Dec 2010 14:29:24 -0700
-Message-ID: <20101207212924.GG16788@obsidianresearch.com>
-References: <1291047399-430-1-git-send-email-nirm@voltaire.com>
- <1291047399-430-6-git-send-email-nirm@voltaire.com>
- <20101129191136.GC16788@obsidianresearch.com>
- <1291126171.3155.250.camel@nirm-desktop>
- <20101130181944.GI16788@obsidianresearch.com>
- <1291219134.3155.471.camel@nirm-desktop>
- <20101201183538.GQ16788@obsidianresearch.com>
- <1291736427.32170.36.camel@nirm-desktop>
- <20101207185453.GD16788@obsidianresearch.com>
- <7E95F01E94AB484F83061FCFA35B39F8794E3B@exil.voltaire.com>
+From: Fab Tillier <ftillier@microsoft.com>
+Subject: Re: [PATCH] libdat v2.0: memory leak in static registration
+ during parsing
+Date: Tue, 7 Dec 2010 21:35:54 +0000
+Message-ID: <91B583BE4B6FCD408F53D1B8F537E09212A09114@TK5EX14MBXW601.wingroup.windeploy.ntdev.microsoft.com>
+References: <E3280858FA94444CA49D2BA02341C983011E66B8E8@orsmsx506.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <7E95F01E94AB484F83061FCFA35B39F8794E3B-QfUkFaTmzUSUvQqKE/ONIwC/G2K4zDHf@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Nir Muchtar <nirm-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Cc: rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Moni Shoua <monis-smomgflXvOZWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <ofw-bounces@lists.openfabrics.org>
+In-Reply-To: <E3280858FA94444CA49D2BA02341C983011E66B8E8@orsmsx506.amr.corp.intel.com>
+Content-Language: en-US
+List-Unsubscribe: <http://lists.openfabrics.org/cgi-bin/mailman/options/ofw>,
+	<mailto:ofw-request@lists.openfabrics.org?subject=unsubscribe>
+List-Archive: <http://lists.openfabrics.org/pipermail/ofw>
+List-Post: <mailto:ofw@lists.openfabrics.org>
+List-Help: <mailto:ofw-request@lists.openfabrics.org?subject=help>
+List-Subscribe: <http://lists.openfabrics.org/cgi-bin/mailman/listinfo/ofw>,
+	<mailto:ofw-request@lists.openfabrics.org?subject=subscribe>
+Sender: ofw-bounces@lists.openfabrics.org
+Errors-To: ofw-bounces@lists.openfabrics.org
+To: "Davis, Arlin R" <arlin.r.davis@intel.com>, linux-rdma <linux-rdma@vger.kernel.org>, "ofw@lists.openfabrics.org" <ofw@lists.openfabrics.org>
+Cc: "King, Perry E." <perry.king@ngc.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Dec 07, 2010 at 10:53:23PM +0200, Nir Muchtar wrote:
+Davis, Arlin R wrote on Mon, 6 Dec 2010 at 16:22:50
+> 
+> the platform_params char string, allocated when parsing dat.conf, is
+> not freed.
+> 
+> Signed-off-by: Arlin Davis <arlin.r.davis@intel.com>
+> ---
+>  dat/udat/udat_sr_parser.c |    6 ++++++
+>  1 files changed, 6 insertions(+), 0 deletions(-)
+> 
+> diff --git a/dat/udat/udat_sr_parser.c b/dat/udat/udat_sr_parser.c
+> index 3b5caef..1d5f0d8 100644
+> --- a/dat/udat/udat_sr_parser.c
+> +++ b/dat/udat/udat_sr_parser.c
+> @@ -492,6 +492,12 @@ DAT_RETURN dat_sr_parse_entry(DAT_OS_FILE * file)
+>  					    1));
+>  	}
+> 
+> +	if (NULL != entry.platform_params) {
 
-> I'm just not convinced this can be easily completed/accepted and not
-> divert us from the primary goal, so I prefer picking this up later
-> after those
+Yoda logic here you have.
 
-This part of the kernel is mature, the 'primary goal' is to not add
-new half backed things that need to churn userspace APIs before they
-are complete :)
+-Fab
 
-> patches are accepted. If I discover there's no good way to obtain this 
-> through userspace then I won't.
-
-There isn't. Read my last message.
-
-> > > The thing is, there's no easy and clean way to retrieve the export when
-> > > using dump_start.
-> > 
-> > I don't follow this comment, can you elaborate?
-> > 
-> > This really needs to use the dump api, and I can't see any reason why
-> > it can't.
- 
-> As I said, there's just no way (I know of) to use dump_start, divide data
-> into several packets, and receive a consistent snapshot of the data, and
-> this is an issue. We can achieve all that by doing something a little 
-> different so why shouldn't we? 
-
-You have to give up on 100% consistency to use dump_start, which is OK
-for diags, and what other dumpers in the kernel do.
-
-What you've done in your v2 patch won't work if the table you are
-dumping is too large, once you pass sk_rmem_alloc for the netlink
-socket it will deadlock. The purpose of dump_start is to avoid that
-deadlock. (review my past messages on the subject)
-
-Your v1 patch wouldn't deadlock, but it would fail to dump with
-ENOMEM, and provides an avenue to build an unprivileged kernel OOM
-DOS.
-
-The places in the kernel that don't use dump_start have to stay under
-sk_rmem_alloc.
-
-Jason
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> +		dat_os_free(entry.platform_params,
+> +			    sizeof(char) *
+> +			    (dat_os_strlen(entry.platform_params) +  1));
+> +	}
+> +
+>  	return status;
+>  }
+> 
+> --
+> 1.7.3
+> 
+> 
+> 
+> _______________________________________________
+> ofw mailing list
+> ofw@lists.openfabrics.org
+> http://lists.openfabrics.org/cgi-bin/mailman/listinfo/ofw
