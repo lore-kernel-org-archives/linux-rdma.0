@@ -1,65 +1,80 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH V2 5/5] RDMA CM: Netlink Client
-Date: Tue, 7 Dec 2010 11:54:53 -0700
-Message-ID: <20101207185453.GD16788@obsidianresearch.com>
-References: <1291047399-430-1-git-send-email-nirm@voltaire.com>
- <1291047399-430-6-git-send-email-nirm@voltaire.com>
- <20101129191136.GC16788@obsidianresearch.com>
- <1291126171.3155.250.camel@nirm-desktop>
- <20101130181944.GI16788@obsidianresearch.com>
- <1291219134.3155.471.camel@nirm-desktop>
- <20101201183538.GQ16788@obsidianresearch.com>
- <1291736427.32170.36.camel@nirm-desktop>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH] replace (long*)(long) casting with transportable data
+ type (uintptr_t)
+Date: Tue, 07 Dec 2010 14:26:11 -0500
+Message-ID: <4CFE8A53.6030906@dev.mellanox.co.il>
+References: <3D555CA8351C471B84CD9D6432AFC6D0@amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1291736427.32170.36.camel@nirm-desktop>
+In-Reply-To: <3D555CA8351C471B84CD9D6432AFC6D0-Zpru7NauK7drdx17CPfAsdBPR1lH4CV8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Nir Muchtar <nirm-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Cc: rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, monis-smomgflXvOZWk0Htik3J/w@public.gmane.org, ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org
+To: "Stan C. Smith" <stan.smith-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, 'Sasha Khapyorsky' <sashakvolt-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Linux RDMA <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Dec 07, 2010 at 05:40:27PM +0200, Nir Muchtar wrote:
+On 12/6/2010 6:55 PM, Stan C. Smith wrote:
+>
+> Hello,
+>    Your suggestion of removing extra casts does operate correctly under windows x64/x86 variants.
+> Windows compilers have improved.
+>
+> thanks,
+>
+> Stan.
+>
+> Signed-off-by: stan smith<stan.smith-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+>
+> diff --git a/opensm/libvendor/osm_vendor_ibumad_sa.c b/opensm/libvendor/osm_vendor_ibumad_sa.c
+> index 1fdcc47..63728ad 100644
+> --- a/opensm/libvendor/osm_vendor_ibumad_sa.c
+> +++ b/opensm/libvendor/osm_vendor_ibumad_sa.c
+> @@ -85,8 +85,7 @@ __osmv_sa_mad_rcv_cb(IN osm_madw_t * p_madw,
+>
+>   	/* obtain the sent context since we store it during send in the ni_ctx */
+>   	p_query_req_copy =
+> -	    (osmv_query_req_t *) (long *)(long)(p_req_madw->context.ni_context.
+> -						node_guid);
+> +	    (osmv_query_req_t *) p_req_madw->context.ni_context.node_guid;
+>
+>   	/* provide the context of the original request in the result */
+>   	query_res.query_context = p_query_req_copy->query_context;
+> @@ -181,8 +180,7 @@ static void __osmv_sa_mad_err_cb(IN void *bind_context, IN osm_madw_t * p_madw)
+>
+>   	/* Obtain the sent context etc */
+>   	p_query_req_copy =
+> -	    (osmv_query_req_t *) (long *)(long)(p_madw->context.ni_context.
+> -						node_guid);
+> +	    (osmv_query_req_t *) p_madw->context.ni_context.node_guid;
 
-> I understand. still, I prefer staying focused on the primary goal and
-> complete the patches before looking into this, So the solution for now
-> is to just skip on device name and obtain them from userspace using the
-> net devices and /sys/class. I might return to this once the first
-> patches are accepted.
+On an x86 Linux machine, the above 2 instances changed now complain 
+about warning: cast to pointer from integer of different size
 
-This doesn't really work if the IB netdevice is part of a bond, and it
-won't work at all once Sean is done adding AF_GID.
+so should those be cast to (osmv_query_req_t *) (long) or 
+(osmv_query_req_t *) (uintptr_t) or something else ?
 
-Churning the userspace ABI is a really bad idea, if something is hard
-to do, then fine. But this isn't..
+-- Hal
+	
+>
+>   	/* provide the context of the original request in the result */
+>   	query_res.query_context = p_query_req_copy->query_context;
+> @@ -433,7 +431,7 @@ __osmv_send_sa_req(IN osmv_sa_bind_info_t * p_bind,
+>   	}
+>   	*p_query_req_copy = *p_query_req;
+>   	p_madw->context.ni_context.node_guid =
+> -	    (ib_net64_t) (long)p_query_req_copy;
+> +	    (ib_net64_t) (uintptr_t)p_query_req_copy;
+>
+>   	/* we can support async as well as sync calls */
+>   	sync = ((p_query_req->flags&  OSM_SA_FLAGS_SYNC) == OSM_SA_FLAGS_SYNC);
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
 
-> What I mean is that I will supply the maximum flexibility by supporting
-> arbitrary netlink messages and attributes. This will support your
-> suggested schema as well as any changes we'll agree upon. My current
-> plans are for RDMA CM exports and not QP table exports but this should
-> be next in line.
-
-Do you have an idea what this will look like?
-
-> > You shouldn't be attempting to dump the structure in one go while
-> > holding a lock, you need to try best-efforts to dump it by keeping
-> > some kind of current position value.
-> > 
-> > inet_diag seems to use a pretty simple scheme where it just records
-> > the hash bucket and count into the chain. Not sure what happens if
-> > things are erased - looks like you'll get duplicates/misses? You could
-> > do the same by keeping track of the offset into the linked list.
-> 
-> The thing is, there's no easy and clean way to retrieve the export when
-> using dump_start.
-
-I don't follow this comment, can you elaborate?
-
-This really needs to use the dump api, and I can't see any reason why
-it can't.
-
-Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
