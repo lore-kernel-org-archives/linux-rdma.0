@@ -1,66 +1,99 @@
-From: Fab Tillier <ftillier@microsoft.com>
-Subject: Re: [PATCH] libdat v2.0: memory leak in static registration
- during parsing
-Date: Tue, 7 Dec 2010 21:35:54 +0000
-Message-ID: <91B583BE4B6FCD408F53D1B8F537E09212A09114@TK5EX14MBXW601.wingroup.windeploy.ntdev.microsoft.com>
-References: <E3280858FA94444CA49D2BA02341C983011E66B8E8@orsmsx506.amr.corp.intel.com>
+From: "Smith, Stan" <stan.smith-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH] replace (long*)(long) casting with transportable data
+ type (uintptr_t)
+Date: Tue, 7 Dec 2010 15:18:31 -0800
+Message-ID: <3F6F638B8D880340AB536D29CD4C1E1925B9CBC236@orsmsx501.amr.corp.intel.com>
+References: <3D555CA8351C471B84CD9D6432AFC6D0@amr.corp.intel.com>
+ <4CFE8A53.6030906@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <ofw-bounces@lists.openfabrics.org>
-In-Reply-To: <E3280858FA94444CA49D2BA02341C983011E66B8E8@orsmsx506.amr.corp.intel.com>
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <4CFE8A53.6030906-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Content-Language: en-US
-List-Unsubscribe: <http://lists.openfabrics.org/cgi-bin/mailman/options/ofw>,
-	<mailto:ofw-request@lists.openfabrics.org?subject=unsubscribe>
-List-Archive: <http://lists.openfabrics.org/pipermail/ofw>
-List-Post: <mailto:ofw@lists.openfabrics.org>
-List-Help: <mailto:ofw-request@lists.openfabrics.org?subject=help>
-List-Subscribe: <http://lists.openfabrics.org/cgi-bin/mailman/listinfo/ofw>,
-	<mailto:ofw-request@lists.openfabrics.org?subject=subscribe>
-Sender: ofw-bounces@lists.openfabrics.org
-Errors-To: ofw-bounces@lists.openfabrics.org
-To: "Davis, Arlin R" <arlin.r.davis@intel.com>, linux-rdma <linux-rdma@vger.kernel.org>, "ofw@lists.openfabrics.org" <ofw@lists.openfabrics.org>
-Cc: "King, Perry E." <perry.king@ngc.com>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, 'Sasha Khapyorsky' <sashakvolt-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Linux RDMA <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Davis, Arlin R wrote on Mon, 6 Dec 2010 at 16:22:50
-> 
-> the platform_params char string, allocated when parsing dat.conf, is
-> not freed.
-> 
-> Signed-off-by: Arlin Davis <arlin.r.davis@intel.com>
-> ---
->  dat/udat/udat_sr_parser.c |    6 ++++++
->  1 files changed, 6 insertions(+), 0 deletions(-)
-> 
-> diff --git a/dat/udat/udat_sr_parser.c b/dat/udat/udat_sr_parser.c
-> index 3b5caef..1d5f0d8 100644
-> --- a/dat/udat/udat_sr_parser.c
-> +++ b/dat/udat/udat_sr_parser.c
-> @@ -492,6 +492,12 @@ DAT_RETURN dat_sr_parse_entry(DAT_OS_FILE * file)
->  					    1));
->  	}
-> 
-> +	if (NULL != entry.platform_params) {
+Hal Rosenstock wrote:
+> On 12/6/2010 6:55 PM, Stan C. Smith wrote:
+>>
+>> Hello,
+>>    Your suggestion of removing extra casts does operate correctly
+>> under windows x64/x86 variants. Windows compilers have improved.
+>>
+>> thanks,
+>>
+>> Stan.
+>>
+>> Signed-off-by: stan smith<stan.smith-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+>>
+>> diff --git a/opensm/libvendor/osm_vendor_ibumad_sa.c
+>> b/opensm/libvendor/osm_vendor_ibumad_sa.c index 1fdcc47..63728ad
+>> 100644 --- a/opensm/libvendor/osm_vendor_ibumad_sa.c +++
+>> b/opensm/libvendor/osm_vendor_ibumad_sa.c @@ -85,8 +85,7 @@
+>> __osmv_sa_mad_rcv_cb(IN osm_madw_t * p_madw,
+>>
+>>      /* obtain the sent context since we store it during send in the
+>> ni_ctx */    p_query_req_copy =
+>> -        (osmv_query_req_t *) (long
+>> *)(long)(p_req_madw->context.ni_context.
+>> -                                            node_guid);
+>> +        (osmv_query_req_t *) p_req_madw->context.ni_context.node_guid;
+>>
+>>      /* provide the context of the original request in the result */
+>>      query_res.query_context = p_query_req_copy->query_context;
+>> @@ -181,8 +180,7 @@ static void __osmv_sa_mad_err_cb(IN void
+>> *bind_context, IN osm_madw_t * p_madw)
+>>
+>>      /* Obtain the sent context etc */
+>>      p_query_req_copy =
+>> -        (osmv_query_req_t *) (long *)(long)(p_madw->context.ni_context.
+>> -                                            node_guid);
+>> +        (osmv_query_req_t *) p_madw->context.ni_context.node_guid;
+>
+> On an x86 Linux machine, the above 2 instances changed now complain
+> about warning: cast to pointer from integer of different size
+>
+> so should those be cast to (osmv_query_req_t *) (long) or
+> (osmv_query_req_t *) (uintptr_t) or something else ?
+>
+> -- Hal
 
-Yoda logic here you have.
 
--Fab
+We should return to my original patch submission.
+remove the (long*) (long) and replace with (uintptr_t)
 
-> +		dat_os_free(entry.platform_params,
-> +			    sizeof(char) *
-> +			    (dat_os_strlen(entry.platform_params) +  1));
-> +	}
-> +
->  	return status;
->  }
-> 
-> --
-> 1.7.3
-> 
-> 
-> 
-> _______________________________________________
-> ofw mailing list
-> ofw@lists.openfabrics.org
-> http://lists.openfabrics.org/cgi-bin/mailman/listinfo/ofw
+>> -        (osmv_query_req_t *) (long *)(long)(p_madw->context.ni_context.
+>> -                                            node_guid);
+>> +        (osmv_query_req_t *) (uintptr_t) p_madw->context.ni_context.node_guid;
+
+Sasha, can you take care of this?
+
+stan.
+
+>
+>>
+>>      /* provide the context of the original request in the result */
+>>      query_res.query_context = p_query_req_copy->query_context;
+>> @@ -433,7 +431,7 @@ __osmv_send_sa_req(IN osmv_sa_bind_info_t *
+>>      p_bind,         } *p_query_req_copy = *p_query_req;
+>>      p_madw->context.ni_context.node_guid =
+>> -        (ib_net64_t) (long)p_query_req_copy;
+>> +        (ib_net64_t) (uintptr_t)p_query_req_copy;
+>>
+>>      /* we can support async as well as sync calls */
+>>      sync = ((p_query_req->flags&  OSM_SA_FLAGS_SYNC) ==
+>> OSM_SA_FLAGS_SYNC);
+>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe
+>> linux-rdma" in
+>> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
