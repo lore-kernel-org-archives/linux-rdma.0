@@ -1,57 +1,197 @@
-From: Nir Muchtar <nirm-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH V2 5/5] RDMA CM: Netlink Client
-Date: Wed, 8 Dec 2010 16:55:22 +0200
-Message-ID: <1291820122.4715.96.camel@nirm-desktop>
-References: <1291047399-430-1-git-send-email-nirm@voltaire.com>
-	 <1291047399-430-6-git-send-email-nirm@voltaire.com>
-	 <20101129191136.GC16788@obsidianresearch.com>
-	 <1291126171.3155.250.camel@nirm-desktop>
-	 <20101130181944.GI16788@obsidianresearch.com>
-	 <1291219134.3155.471.camel@nirm-desktop>
-	 <20101201183538.GQ16788@obsidianresearch.com>
-	 <1291736427.32170.36.camel@nirm-desktop>
-	 <20101207185453.GD16788@obsidianresearch.com>
-	 <7E95F01E94AB484F83061FCFA35B39F8794E3B@exil.voltaire.com>
-	 <20101207212924.GG16788@obsidianresearch.com>
+From: Spelic <spelic-9AbUPqfR1/2XDw4h08c5KA@public.gmane.org>
+Subject: Re: NFS-RDMA hangs: connection closed (-103)
+Date: Wed, 08 Dec 2010 16:10:28 +0100
+Message-ID: <4CFF9FE4.5010705@shiftmail.org>
+References: <4CF6D69B.4030501@shiftmail.org>
+ <4CF6E144.1080200@opengridcomputing.com> <4CF78E0E.2040308@shiftmail.org>
+ <ada39qgm36k.fsf@cisco.com> <4CF7EEE0.9030408@shiftmail.org>
+ <4CFE5CF1.6020806@opengridcomputing.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; format=flowed; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20101207212924.GG16788-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-reply-to: <4CFE5CF1.6020806-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Moni Shoua <monis-smomgflXvOZWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+To: Tom Tucker <tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Cc: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Dave Chinner <dchinner-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, 2010-12-07 at 14:29 -0700, Jason Gunthorpe wrote:
+Tom, have you reproduced the "RDMA hangs - connection closes" bug or the 
+"sparse file at server side upon NFS hitting ENOSPC" ?
 
-> What you've done in your v2 patch won't work if the table you are
-> dumping is too large, once you pass sk_rmem_alloc for the netlink
-> socket it will deadlock. The purpose of dump_start is to avoid that
-> deadlock. (review my past messages on the subject)
-> 
-> Your v1 patch wouldn't deadlock, but it would fail to dump with
-> ENOMEM, and provides an avenue to build an unprivileged kernel OOM
-> DOS.
-> 
-> The places in the kernel that don't use dump_start have to stay under
-> sk_rmem_alloc.
-> 
-> Jason
+Because for the latter people have already given exhaustive explanation: 
+see this other thread at 
+http://fossplanet.com/f13/%5Blinux-lvm%5D-bugs-mkfs-xfs-device-mapper-xfs-dev-ram-81653/ 
 
-Sorry, I still need some clarifications...
-When you say deadlocks, do you mean when calling malloc with a lock or
-when overflowing a socket receive buffer?
-For the second case, when we use netlink_unicast, the skbuff is sent and
-freed. It is transferred to the userspace's socket using netlink_sendskb
-and accumulated in its recv buff.
 
-Are you referring to a deadlock there? I still fail to see the issue.
-Why would the kernel socket recv buff reach a limit? Could you please
-elaborate?
+While the former bug is still open and very interesting for us.
 
-Thanks,
-Nir
+Thanks for your help
+S.
+
+
+On 12/07/2010 05:12 PM, Tom Tucker wrote:
+> Status update...
+>
+> I have reproduced the bug a number of different ways. It seems to be 
+> most easily reproduced by simply writing more data than the filesystem 
+> has space for. I can do this reliably with any FS. I think the XFS bug 
+> may have tickled this bug somehow.
+>
+> Tom
+>
+> On 12/2/10 1:09 PM, Spelic wrote:
+>> Hello all
+>> please be aware that the "file oversize" bug is reproducible also 
+>> without infiniband, with just nfs over ethernet over xfs over ramdisk 
+>> (but it doesn't hang, so it's a different bug than the one I posted 
+>> here at the RDMA mailing list)
+>> I have posted another thread regarding the "file oversize" bug, which 
+>> you can read in the LVM, XFS, and LKML mailing lists, please have a look
+>> http://fossplanet.com/f13/%5Blinux-lvm%5D-bugs-mkfs-xfs-device-mapper-xfs-dev-ram-81653/ 
+>>
+>> Especially my second post, replying myself at +30 minutes, explains 
+>> that it's reproducible also with ethernet.
+>>
+>> Thank you
+>>
+>> On 12/02/2010 07:37 PM, Roland Dreier wrote:
+>>> Adding Dave Chinner to the cc list, since he's both an XFS guru as well
+>>> as being very familiar with NFS and RDMA...
+>>>
+>>> Dave, if you read below, it seems there is some strange behavior
+>>> exporting XFS with NFS/RDMA.
+>>>
+>>>   - R.
+>>>
+>>> >  On 12/02/2010 12:59 AM, Tom Tucker wrote:
+>>> > >  Spelic,
+>>> > >
+>>> > >  I have seen this problem before, but have not been able to 
+>>> reliably
+>>> > >  reproduce it. When I saw the problem, there were no transport 
+>>> errors
+>>> > >  and it appeared as if the I/O had actually completed, but that the
+>>> > >  waiter was not being awoken. I was not able to reliably reproduce
+>>> > >  the problem and was not able to determine if the problem was a
+>>> > >  latent bug in NFS in general or a bug in the RDMA transport in
+>>> > >  particular.
+>>> > >
+>>> > >  I will try your setup here, but I don't have a system like 
+>>> yours so
+>>> > >  I'll have to settle for a smaller ramdisk, however, I have a few
+>>> > >  questions:
+>>> > >
+>>> > >  - Does the FS matter? For example, can you use ext[2-4] on the
+>>> > >  ramdisk and not still reproduce
+>>> > >  - As I mentioned earlier NFS v3 vs. NFS v4
+>>> > >  - RAMDISK size, i.e. 2G vs. 14G
+>>> > >
+>>> > >  Thanks,
+>>> > >  Tom
+>>> >
+>>> >  Hello Tom, thanks for replying
+>>> >
+>>> >  - The FS matters to some extent: as I wrote, with ext4 it's not
+>>> >  possible to reproduce the bug in this way, so immediately and
+>>> >  reliably, however ext4 also will hang eventually if you work on 
+>>> it for
+>>> >  hours so I had to switch to IPoIB for our real work; reread my
+>>> >  previous post.
+>>> >
+>>> >  - NFS3 not tried yet. Never tried to do RDMA on NFS3... do you 
+>>> have a
+>>> >  pointer on instructions?
+>>> >
+>>> >
+>>> >  - RAMDISK size: I am testing it.
+>>> >
+>>> >  Ok I confirm with 1.5GB ramdisk it's reproducible.
+>>> >  boot option ramdisk_size=1572864
+>>> >  (1.5*1024**2=1572864.0)
+>>> >  confirm: blockdev --getsize64 /dev/ram0 == 1610612736
+>>> >
+>>> >  now at server side mkfs and mount with defaults:
+>>> >  mkfs.xfs /dev/ram0
+>>> >  mount /dev/ram0 /mnt/ram
+>>> >  (this is a simplification over my previous email, and it's needed 
+>>> with
+>>> >  a smaller ramdisk or mkfs.xfs will refuse to work. The bug is still
+>>> >  reproducible like this)
+>>> >
+>>> >
+>>> >  DOH! another bug:
+>>> >  It's strange how at the end of the test
+>>> >      ls -lh /mnt/ram
+>>> >  at server side will show a zerofile larger than 1.5GB at the end of
+>>> >  the procedure, sometimes it's 3GB, sometimes it's 2.3GB... but it's
+>>> >  larger than the ramdisk size.
+>>> >
+>>> >  # ll -h /mnt/ram
+>>> >  total 1.5G
+>>> >  drwxr-xr-x 2 root root   21 2010-12-02 12:54 ./
+>>> >  drwxr-xr-x 3 root root 4.0K 2010-11-29 23:51 ../
+>>> >  -rw-r--r-- 1 root root 2.3G 2010-12-02 12:59 zerofile
+>>> >  # df -h
+>>> >  Filesystem            Size  Used Avail Use% Mounted on
+>>> >  /dev/sda1             294G  4.1G  275G   2% /
+>>> >  devtmpfs              7.9G  184K  7.9G   1% /dev
+>>> >  none                  7.9G     0  7.9G   0% /dev/shm
+>>> >  none                  7.9G  100K  7.9G   1% /var/run
+>>> >  none                  7.9G     0  7.9G   0% /var/lock
+>>> >  none                  7.9G     0  7.9G   0% /lib/init/rw
+>>> >  /dev/ram0             1.5G  1.5G   20K 100% /mnt/ram
+>>> >
+>>> >  # dd if=/mnt/ram/zerofile | wc -c
+>>> >  4791480+0 records in
+>>> >  4791480+0 records out
+>>> >  2453237760
+>>> >  2453237760 bytes (2.5 GB) copied, 8.41821 s, 291 MB/s
+>>> >
+>>> >  It seems there is also an XFS bug here...
+>>> >
+>>> >  This might help triggering the bug however please note than ext4
+>>> >  (nfs-rdma over it) also hanged on us and it was real work on HDD 
+>>> disks
+>>> >  and they were not full... after switching to IPoIB it didn't hang
+>>> >  anymore.
+>>> >
+>>> >  On IPoIB the size problem also shows up: final file is 2.3GB instead
+>>> >  of<  1.5GB, however nothing hangs:
+>>> >
+>>> >  # echo begin; dd if=/dev/zero of=/mnt/nfsram/zerofile bs=1M ; echo
+>>> >  syncing now ; time sync ; echo finished
+>>> >  begin
+>>> >  dd: writing `/mnt/nfsram/zerofile': Input/output error
+>>> >  2497+0 records in
+>>> >  2496+0 records out
+>>> >  2617245696 bytes (2.6 GB) copied, 10.4 s, 252 MB/s
+>>> >  syncing now
+>>> >
+>>> >  real    0m0.057s
+>>> >  user    0m0.000s
+>>> >  sys     0m0.000s
+>>> >  finished
+>>> >
+>>> >  I think I noticed the same problem with a 14GB ramdisk, the file 
+>>> ended
+>>> >  up to be about 15GB, but at that time I thought I made some
+>>> >  computation mistakes. Now with a smaller ramdisk it's more obvious.
+>>> >
+>>> >  Earlier or later someone should notify the XFS developers of the 
+>>> "size" bug.
+>>> >  However currently it's a good thing: the size bug might help us 
+>>> to fix
+>>> >  the RDMA bug.
+>>> >
+>>> >  Thanks for your help
+>>>
+>
+> -- 
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
