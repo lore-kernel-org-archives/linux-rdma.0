@@ -1,69 +1,58 @@
-From: "Walukiewicz, Miroslaw" <Miroslaw.Walukiewicz-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: ibv_post_send/recv kernel path optimizations
-Date: Wed, 8 Dec 2010 12:14:51 +0000
-Message-ID: <BE2BFE91933D1B4089447C64486040806673CF38@irsmsx503.ger.corp.intel.com>
-References: <20101007161649.GD21206@obsidianresearch.com>
-	<20101007165947.GD11681@bicker>
-	<20101009231607.GA24649@obsidianresearch.com> <20101012113117.GB6742@bicker>
-	<20101012210118.GR24268@obsidianresearch.com> <20101013091312.GB6060@bicker>
-	<20101123071025.GI1522@bicker> <adahbf6gytv.fsf@cisco.com>
-	<20101124221845.GH2369@obsidianresearch.com> <adad3pugi90.fsf@cisco.com>
-	<20101125041337.GA11049@obsidianresearch.com>
-	<4CEE7A22.2040706@voltaire.com>
- <BE2BFE91933D1B4089447C644860408064B44854@irsmsx503.ger.corp.intel.com>
- <4CF60343.7050602@voltaire.com>
+From: Nir Muchtar <nirm-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH V2 5/5] RDMA CM: Netlink Client
+Date: Wed, 8 Dec 2010 16:55:22 +0200
+Message-ID: <1291820122.4715.96.camel@nirm-desktop>
+References: <1291047399-430-1-git-send-email-nirm@voltaire.com>
+	 <1291047399-430-6-git-send-email-nirm@voltaire.com>
+	 <20101129191136.GC16788@obsidianresearch.com>
+	 <1291126171.3155.250.camel@nirm-desktop>
+	 <20101130181944.GI16788@obsidianresearch.com>
+	 <1291219134.3155.471.camel@nirm-desktop>
+	 <20101201183538.GQ16788@obsidianresearch.com>
+	 <1291736427.32170.36.camel@nirm-desktop>
+	 <20101207185453.GD16788@obsidianresearch.com>
+	 <7E95F01E94AB484F83061FCFA35B39F8794E3B@exil.voltaire.com>
+	 <20101207212924.GG16788@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4CF60343.7050602-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <20101207212924.GG16788-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Cc: Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Moni Shoua <monis-smomgflXvOZWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Or, 
+On Tue, 2010-12-07 at 14:29 -0700, Jason Gunthorpe wrote:
 
->I don't see why the ib uverbs flow (BTW - the data path has nothing to do with the 
->rdma_cm, you're working with /dev/infiniband/uverbsX), can't be enhanced 
->e.g to support shared-page which is allocated && mmaped from uverbs to 
->user space and used in the same manner your implementation does.
+> What you've done in your v2 patch won't work if the table you are
+> dumping is too large, once you pass sk_rmem_alloc for the netlink
+> socket it will deadlock. The purpose of dump_start is to avoid that
+> deadlock. (review my past messages on the subject)
+> 
+> Your v1 patch wouldn't deadlock, but it would fail to dump with
+> ENOMEM, and provides an avenue to build an unprivileged kernel OOM
+> DOS.
+> 
+> The places in the kernel that don't use dump_start have to stay under
+> sk_rmem_alloc.
+> 
+> Jason
 
-The problem that I see is that the mmap is currently used for mapping of doorbell page in different drivers.
+Sorry, I still need some clarifications...
+When you say deadlocks, do you mean when calling malloc with a lock or
+when overflowing a socket receive buffer?
+For the second case, when we use netlink_unicast, the skbuff is sent and
+freed. It is transferred to the userspace's socket using netlink_sendskb
+and accumulated in its recv buff.
 
-We can use it for mapping a page for transmit/receive operation when we are able to differentiate that we need to map 
-Doorbell or our shared page. 
+Are you referring to a deadlock there? I still fail to see the issue.
+Why would the kernel socket recv buff reach a limit? Could you please
+elaborate?
 
-The second problem is that this rx/tx mmap should map the separate page per QP to avoid the unnecessary QP lookups so page identifier passed to mmap should be based on QP identifier. 
+Thanks,
+Nir
 
-I cannot find a specific code for /dev/infiniband/uverbsX. Is this device driver sharing the same functions like /dev/infiniband/rdmacm or it has own implementation. 
-
-Mirek
-
------Original Message-----
-From: Or Gerlitz [mailto:ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org] 
-Sent: Wednesday, December 01, 2010 9:12 AM
-To: Walukiewicz, Miroslaw; Jason Gunthorpe; Roland Dreier
-Cc: Roland Dreier; Hefty, Sean; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Subject: Re: ibv_post_send/recv kernel path optimizations
-
-On 11/26/2010 1:56 PM, Walukiewicz, Miroslaw wrote:
-> Form the trace it looks like the __up_read() - 11% wastes most of time. It is called from idr_read_qp when a  put_uobj_read is called. if (copy_from_user(&cmd, buf, sizeof cmd))  - 5% it is called twice from ib_uverbs_post_send() for IMA and once in ib_uverbs_write() per each frame... and __kmalloc/kfree - 5% is the third function that has a big meaning. It is called twice for each frame transmitted. It is about 20% of performance loss comparing to nes_ud_sksq path which we miss when we use a OFED path.
->
-> What I can modify is a kmalloc/kfree optimization - it is possible to make allocation only at start and use pre-allocated buffers. I don't see any way for optimalization of idr_read_qp usage or copy_user. In current approach we use a shared page and a separate nes_ud_sksq handle for each created QP so there is no need for any user space data copy or QP lookup.
-As was mentioned earlier on this thread, and repeated here, the 
-kmalloc/kfree can be removed, as or the 2nd copy_from_user, I don't see 
-why the ib uverbs flow (BTW - the data path has nothing to do with the 
-rdma_cm, you're working with /dev/infiniband/uverbsX), can't be enhanced 
-e.g to support shared-page which is allocated && mmaped from uverbs to 
-user space and used in the same manner your implementation does. The 1st 
-copy_from_user should add pretty nothing and if it does, it can be 
-replaced with different user/kernel IPC mechanism which costs less. So 
-we're basically remained with the idr_read_qp, I wonder what other 
-people think if/how this can be optimized?
-
-Or.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
