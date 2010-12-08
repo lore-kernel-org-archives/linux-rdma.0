@@ -1,110 +1,65 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: ibnetdiscover issue
-Date: Wed, 08 Dec 2010 13:28:10 -0500
-Message-ID: <4CFFCE3A.6010901@dev.mellanox.co.il>
-References: <4CFFC4F3.3040805@utah.edu>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: ibv_post_send/recv kernel path optimizations
+Date: Wed, 8 Dec 2010 11:30:32 -0700
+Message-ID: <20101208183032.GL16788@obsidianresearch.com>
+References: <20101013091312.GB6060@bicker>
+ <20101123071025.GI1522@bicker>
+ <adahbf6gytv.fsf@cisco.com>
+ <20101124221845.GH2369@obsidianresearch.com>
+ <adad3pugi90.fsf@cisco.com>
+ <20101125041337.GA11049@obsidianresearch.com>
+ <4CEE7A22.2040706@voltaire.com>
+ <BE2BFE91933D1B4089447C644860408064B44854@irsmsx503.ger.corp.intel.com>
+ <4CF60343.7050602@voltaire.com>
+ <BE2BFE91933D1B4089447C64486040806673CF38@irsmsx503.ger.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4CFFC4F3.3040805-wbocuHtxKic@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <BE2BFE91933D1B4089447C64486040806673CF38-IGOiFh9zz4wLt2AQoY/u9bfspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tom Ammon <tom.ammon-wbocuHtxKic@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, elid-smomgflXvOZWk0Htik3J/w@public.gmane.org, dorfman.eii-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
+To: "Walukiewicz, Miroslaw" <Miroslaw.Walukiewicz-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Or Gerlitz <ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org>, Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Tom,
+On Wed, Dec 08, 2010 at 12:14:51PM +0000, Walukiewicz, Miroslaw wrote:
+> Or, 
+> 
+> >I don't see why the ib uverbs flow (BTW - the data path has nothing to do with the 
+> >rdma_cm, you're working with /dev/infiniband/uverbsX), can't be enhanced 
+> >e.g to support shared-page which is allocated && mmaped from uverbs to 
+> >user space and used in the same manner your implementation does.
+> 
+> The problem that I see is that the mmap is currently used for
+> mapping of doorbell page in different drivers.
+> 
+> We can use it for mapping a page for transmit/receive operation when
+> we are able to differentiate that we need to map Doorbell or our
+> shared page.
 
-On 12/8/2010 12:48 PM, Tom Ammon wrote:
-> Hi,
->
-> I get the following when I try to run ibnetdiscover from a server
-> plugged in to a voltaire 4036 switch. We're using OFED 1.5.2:
->
-> [root@sm1 ~]# ibnetdiscover
-> src/chassis.c:535; Unexpected node found: guid 0x0008f1050075134c
-> ibnetdiscover: iberror: failed: discover failed
+There is the 64 bit file offset field to mmap which I think is
+driver-specific. You could use 0 for the doorbell page, QPN*PAGE_SIZE
++ QPN_OFFSET for the per-QP page, etc..
 
-Looks to me like there's a missing is_spine_4200() clause missing in 
-get_router_slot in libibnetdisc/src/chassis.c. Eli had added changes to 
-support the 4200 so he's the best one to comment.
+> The second problem is that this rx/tx mmap should map the separate
+> page per QP to avoid the unnecessary QP lookups so page identifier
+> passed to mmap should be based on QP identifier.
+> 
+> I cannot find a specific code for /dev/infiniband/uverbsX. Is this
+> device driver sharing the same functions like /dev/infiniband/rdmacm
+> or it has own implementation.
 
--- Hal
+It is in drivers/infiniband/core/uverbs*
 
->
-> However, ibdiagnet runs fine:
->
-> [root@sm1 ~]# ibdiagnet
-> Loading IBDIAGNET from: /usr/lib64/ibdiagnet1.5.4
-> -W- Topology file is not specified.
-> Reports regarding cluster links will use direct routes.
-> Loading IBDM from: /usr/lib64/ibdm1.5.4
-> -I- Using port 1 as the local port.
-> -I- Discovering ... 277 nodes (23 Switches & 254 CA-s) discovered.
->
->
-> -I---------------------------------------------------
-> -I- Bad Guids/LIDs Info
-> -I---------------------------------------------------
-> -I- No bad Guids were found
->
-> -I---------------------------------------------------
-> -I- Links With Logical State = INIT
-> -I---------------------------------------------------
-> -I- No bad Links (with logical state = INIT) were found
->
-> -I---------------------------------------------------
-> -I- General Device Info
-> -I---------------------------------------------------
->
-> -I---------------------------------------------------
-> -I- PM Counters Info
-> -I---------------------------------------------------
-> -W- lid=0x0007 guid=0x0008f105006515ba dev=23131 Port=33
-> Performance Monitor counter : Value
-> link_error_recovery_counter : 0xff (overflow)
-> -W- lid=0x0010 guid=0x0008f10500201d7c dev=23130 Port=14
-> Performance Monitor counter : Value
-> symbol_error_counter : 0xffff (overflow)
-> -W- lid=0x0001 guid=0x0008f10500108a76 dev=23130 Port=30
-> Performance Monitor counter : Value
-> symbol_error_counter : 0xffff (overflow)
->
-> -I---------------------------------------------------
-> -I- Fabric Partitions Report (see ibdiagnet.pkey for a full hosts list)
-> -I---------------------------------------------------
-> -I- PKey:0x7fff Hosts:254 full:254 limited:0
->
-> -I---------------------------------------------------
-> -I- IPoIB Subnets Check
-> -I---------------------------------------------------
-> -I- Subnet: IPv4 PKey:0x7fff QKey:0x00000b1b MTU:2048Byte rate:10Gbps
-> SL:0x00
->
-> -I---------------------------------------------------
-> -I- Bad Links Info
-> -I- No bad link were found
-> -I---------------------------------------------------
-> ----------------------------------------------------------------
-> -I- Stages Status Report:
-> STAGE Errors Warnings
-> Bad GUIDs/LIDs Check 0 0
-> Link State Active Check 0 0
-> General Devices Info Report 0 0
-> Performance Counters Report 0 3
-> Partitions Check 0 0
-> IPoIB Subnets Check 0 0
->
-> Please see /tmp/ibdiagnet.log for complete log
-> ----------------------------------------------------------------
->
-> -I- Done. Run time was 21 seconds.
->
-> Any ideas?
->
-> Tom
->
+For mmap the call is just routed to the driver's ib_dev mmap function,
+so you can do whatever you want in your driver and match the
+functionality in your userspace libibverbs driver library.
 
+I think you should be able to implement your driver-specific
+optimization within the uverbs framework - that would be best all
+round.
+
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
