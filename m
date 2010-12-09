@@ -1,26 +1,66 @@
-From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Subject: Re: libibverbs: ibv_fork_init() and huge pages
-Date: Wed, 08 Dec 2010 17:46:09 -0800
-Message-ID: <ada1v5rk9b2.fsf@cisco.com>
-References: <20100820110616.28288724@alex-laptop>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH] librdmacm: support non-default ACM port number
+Date: Wed, 8 Dec 2010 17:56:43 -0800
+Message-ID: <CF9C39F99A89134C9CF9C4CCB68B8DDF25B8C1F13F@orsmsx501.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20100820110616.28288724@alex-laptop> (Alexander Schmidt's
-	message of "Fri, 20 Aug 2010 11:06:16 +0200")
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Alexander Schmidt <alexs-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
-Cc: Linux RDMA <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Hoang-Nam Nguyen <HNGUYEN-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, Stefan Roscher <stefan.roscher-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>
+To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-So I'm finally looking at applying this (sorry for all the delay), but
-I do have one worry: is it possible for an application to register an MR
-that has both a huge page and a normal-size page mapping?  In that case
-do things still work, or do things blow up?
+By default, ACM uses port 6125.  The actual port number
+used is now published in /var/run/ibacm.port.  Attempt to
+obtain the correct port number from here, and if that fails
+revert to using the default port number of 6125.
 
-And is it worth worrying about this case even if it is theoretically possible?
+Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+---
+ src/acm.c |   12 ++++++++++++
+ 1 files changed, 12 insertions(+), 0 deletions(-)
+ mode change 100644 => 100755 src/acm.c
 
- - R.
+diff --git a/src/acm.c b/src/acm.c
+old mode 100644
+new mode 100755
+index 1867362..e2d02b4
+--- a/src/acm.c
++++ b/src/acm.c
+@@ -34,6 +34,7 @@
+ #  include <config.h>
+ #endif /* HAVE_CONFIG_H */
+ 
++#include <stdio.h>
+ #include <sys/types.h>
+ #include <sys/socket.h>
+ #include <netdb.h>
+@@ -63,11 +64,22 @@ struct ib_connect_hdr {
+ #define cma_dst_ip6 dst_addr[0]
+ };
+ 
++static void ucma_set_server_port(void)
++{
++	FILE *f;
++
++	if ((f = fopen("/var/run/ibacm.port", "r"))) {
++		fscanf(f, "%hu", (unsigned short *) &server_port);
++		fclose(f);
++	}
++}
++
+ void ucma_ib_init(void)
+ {
+ 	struct sockaddr_in addr;
+ 	int ret;
+ 
++	ucma_set_server_port();
+ 	sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+ 	if (sock < 0)
+ 		return;
+
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
