@@ -1,54 +1,34 @@
-From: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: rdma_cm resource over use
-Date: Fri, 10 Dec 2010 00:06:54 +0200
-Message-ID: <AANLkTimvcVnr3ECO8TaH-zy3bdEWQHWf_i5zg++Jk+cy@mail.gmail.com>
-References: <20101209175338.GA26902@mtldesk30>
-	<CF9C39F99A89134C9CF9C4CCB68B8DDF25B8C1F52B@orsmsx501.amr.corp.intel.com>
+From: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [ewg] IPoIB to Ethernet routing performance
+Date: Thu, 9 Dec 2010 17:46:03 -0600 (CST)
+Message-ID: <alpine.DEB.2.00.1012091745070.29367@router.home>
+References: <20101206112454.76bb85f1@frecb012350.frec.bull.fr> <00d701cb9533$71c5f2e0$5551d8a0$@com> <20101206124023.025c2f88@frecb012350.frec.bull.fr> <00f201cb953e$53f66a00$fbe33e00$@com> <20101206140505.20cfc9e2@frecb012350.frec.bull.fr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CF9C39F99A89134C9CF9C4CCB68B8DDF25B8C1F52B-osO9UTpF0USkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
+In-Reply-To: <20101206140505.20cfc9e2-xRPE6/W2vR9iM9LT7/dT9zWMkbuR3peG@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: RDMA list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: sebastien dugue <sebastien.dugue-6ktuUTfB/bM@public.gmane.org>
+Cc: Richard Croucher <richard-jNDFPZUTrfRJpuwtbJ71GdBPR1lH4CV8@public.gmane.org>, 'linux-rdma' <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, 'OF EWG' <ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-=46or ConnectX, mlx4 will consume a UAR page for each open of libibverb=
-s
-device file. On a 4K page architectures we usually have 1024 UAR
-pages. On a 64K page size the situation becomes worth. Suppose you
-have a system with more than one device. One of the devices is used by
-rdam_cm and the other is not. You can easily exhaust all the
-resources. We actually have this situation at a customer.
+On Mon, 6 Dec 2010, sebastien dugue wrote:
 
-On Thu, Dec 9, 2010 at 8:30 PM, Hefty, Sean <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrot=
-e:
->> the rdma_cm library opens all availabe devices and keeps them open
->> even after binding to a specific device/port. This eats resources fr=
-om
->> other devices that would otherwise be available to other application=
-s.
->> Is there a way to avoid this? If not, maybe we should close all othe=
-r
->> devices after binfing?
+> > The Mellanox BridgeX looks a better hardware solution with 12x 10Ge
+> > ports but when I tested this they could only provide vNIC
+> > functionality and would not commit to adding IPoIB gateway on their
+> > roadmap.
 >
-> The librdmacm documents that all RDMA devices remain open while the l=
-ibrdmacm is loaded (see rdma_get_devices). =A0Also, a listen doesn't ne=
-ed to be bound to any specific device, but the connection request will =
-be. =A0Personally, I really don't see this as a major use of resources.
->
-> - Sean
->
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma"=
- in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
->
+>   Right, we did some evaluation on it and this was really a show stopper.
+
+Did the same thing here came to the same conclusions.
+
+> > Qlogic also offer the 12400 Gateway.  This has 6x 10ge ports.
+> > However, like the Mellanox, I understand they only provide host vNIC
+> > support.
+
+Really? I was hoping that they would have something worth looking at.
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
