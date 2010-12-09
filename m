@@ -1,29 +1,25 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH V2 5/5] RDMA CM: Netlink Client
-Date: Thu, 9 Dec 2010 10:26:12 -0700
-Message-ID: <20101209172612.GA11353@obsidianresearch.com>
-References: <20101130181944.GI16788@obsidianresearch.com> <1291219134.3155.471.camel@nirm-desktop> <20101201183538.GQ16788@obsidianresearch.com> <1291736427.32170.36.camel@nirm-desktop> <20101207185453.GD16788@obsidianresearch.com> <7E95F01E94AB484F83061FCFA35B39F8794E3B@exil.voltaire.com> <20101207212924.GG16788@obsidianresearch.com> <1291820122.4715.96.camel@nirm-desktop> <20101208182356.GK16788@obsidianresearch.com> <1291884438.4715.152.camel@nirm-desktop>
+Subject: Re: rdma_lat whos
+Date: Thu, 9 Dec 2010 10:28:24 -0700
+Message-ID: <20101209172824.GB11353@obsidianresearch.com>
+References: <4CE3B455.4080003@Voltaire.com> <4CE3BCE3.7090107@Voltaire.com> <4CE50190.3080707@dev.mellanox.co.il> <4D00B066.80807@Voltaire.com> <4D00B1C4.3040804@Voltaire.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1291884438.4715.152.camel@nirm-desktop>
+In-Reply-To: <4D00B1C4.3040804-hKgKHo2Ms0FWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Nir Muchtar <nirm-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Cc: rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Moni Shoua <monis-smomgflXvOZWk0Htik3J/w@public.gmane.org>, Or Gerlitz <ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+To: Or Gerlitz <ogerlitz-hKgKHo2Ms0FWk0Htik3J/w@public.gmane.org>
+Cc: Ido Shamai <idos-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Dec 09, 2010 at 10:47:18AM +0200, Nir Muchtar wrote:
+On Thu, Dec 09, 2010 at 12:39:00PM +0200, Or Gerlitz wrote:
+> >>  local address: LID 0000 QPN 0x44004f PSN 0x6b567a
+> >>  GID: 254:128:00:00:00:00:00:00:02:02:201:255:254:07:237:03
+> 
+> Also, it would be much easier to track/debug if the GID octets will be printed in hexadecimal, can you?
 
-> But I'm using MSG_DONTWAIT when calling netlink_unicast, so attachskb
-> shouldn't block. I also tested that.
-
-But then you are guarenteed to have an incomplete dump once you have
-enough entries!
-
-The best trade off is what the other dump_start user's do, you might
-have an inconsistent dump sometimes, but at least it is complete and
-correct most of the time.
+GIDs should be printed with inet_ntop(AF_INET6)
 
 Jason
 --
