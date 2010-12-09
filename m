@@ -1,20 +1,26 @@
 From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH] Fix autotools to include the necessary M4 files
-Date: Wed, 08 Dec 2010 17:35:08 -0800
-Message-ID: <ada62v3k9tf.fsf@cisco.com>
-References: <20101007223833.GB30829@obsidianresearch.com>
+Subject: Re: libibverbs: ibv_fork_init() and huge pages
+Date: Wed, 08 Dec 2010 17:46:09 -0800
+Message-ID: <ada1v5rk9b2.fsf@cisco.com>
+References: <20100820110616.28288724@alex-laptop>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20101007223833.GB30829-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> (Jason Gunthorpe's
-	message of "Thu, 7 Oct 2010 16:38:33 -0600")
+In-Reply-To: <20100820110616.28288724@alex-laptop> (Alexander Schmidt's
+	message of "Fri, 20 Aug 2010 11:06:16 +0200")
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Linux RDMA list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Alexander Schmidt <alexs-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
+Cc: Linux RDMA <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Hoang-Nam Nguyen <HNGUYEN-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>, Stefan Roscher <stefan.roscher-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Thanks, applied to libibverbs at last.  Will try to get to it for other
-libraries but please remind me if it slips out of my mind...
+So I'm finally looking at applying this (sorry for all the delay), but
+I do have one worry: is it possible for an application to register an MR
+that has both a huge page and a normal-size page mapping?  In that case
+do things still work, or do things blow up?
+
+And is it worth worrying about this case even if it is theoretically possible?
+
+ - R.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
