@@ -1,40 +1,52 @@
-From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: [ANNOUNCE] libcxgb3-1.3.0 Release
-Date: Fri, 10 Dec 2010 13:11:07 -0600
-Message-ID: <4D027B4B.4070200@opengridcomputing.com>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [ANNOUNCE] librdmacm-1.0.14 release
+Date: Fri, 10 Dec 2010 12:41:00 -0800
+Message-ID: <CF9C39F99A89134C9CF9C4CCB68B8DDF25B8C8C2DC@orsmsx501.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: Vladimir Sokolovsky <vlad-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+To: RDMA list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Vladimir Sokolovsky <vlad-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-The libcxgb3 package is a userspace driver for Chelsio T3 iWARP RNICs.   It is a plug-in module for libibverbs that 
-allows programs to use Chelsio RDMA hardware directly from userspace.
+librdmacm is a library that allows a user to establish connections over any RDMA transport (currently Infinband and iWarp).
 
-A new release, libcxgb3-1.3.0, is available from
+The new stable release, 1.0.14, is available from:
 
-http://www.openfabrics.org/downloads/cxgb3/libcxgb3-1.3.0.tar.gz
+	http://www.openfabrics.org/downloads/rdmacm/librdmacm-1.0.14.tar.gz
 
-with md5sum
+with sha1sum
 
-40a8c9013de84c4a662cf451a4b5a534 libcxgb3-1.3.0.tar.gz
+	c6e4c426ad2086e8335e35254d4b6f444e6d5cd9  librdmacm-1.0.14.tar.gz
 
+The git shortlog since 1.0.13 is:
 
-This version makes use of the iw_cxgb3 changes added to ABI version 1 of that driver, which is releasing with 
-linux-2.6.37.  However, libcxgb3 does not _require_ ABI 1, so it can be pulled into any distros with the current iw_cxg3 
-driver ABI version 0.
+Jason Gunthorpe (1):
+      librdmacm: Fix autotools to include the necessary M4 files
 
+Jonathan Rosser (2):
+      librdmacm: fix make install
+      librdmacm: fix compiler warning of void * arithmetic
 
-Vlad, please plan to pull this in for OFED-1.6.
+Sean Hefty (8):
+      librdmacm: do not pass uninitialized ai_hints into getaddrinfo
+      librdmacm: expand support for hints to rdma_getaddrinfo
+      librdmacm: only allocate qp in rdma_create_ep if qp_attr provided
+      librdmacm: do not modify qp_init_attr in rdma_get_request
+      librdmacm/rping: Make sure CQ event thread exits before destroying the CQ
+      librdmacm: support non-default ACM port number
+      librdmacm: Support RAI_NUMERICHOST and no delay options
+      v1.0.14
 
+Steve Wise (1):
+      RPING: Remove printf for FLUSH completion.
+--
 
-Thanks,
+Vlad, please pull this into OFED 1.5.3.
 
-Steve.
-
+- Sean
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
