@@ -1,29 +1,34 @@
-From: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH] mlx4: Change a warning message to debug
-Date: Fri, 10 Dec 2010 14:27:59 +0200
-Message-ID: <20101210122759.GA28088@mtldesk30>
-References: <20101208080602.GA9649@mtldesk30>
- <adaipz4jddc.fsf@cisco.com>
+From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: [ANNOUNCE] libcxgb4-1.1.0 Release
+Date: Fri, 10 Dec 2010 13:05:13 -0600
+Message-ID: <4D0279E9.3050005@opengridcomputing.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <adaipz4jddc.fsf-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Cc: RDMA list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Dec 08, 2010 at 11:03:43AM -0800, Roland Dreier wrote:
->  > This workaround presented in 58d74bb is not something we should alert the user
->  > on.  Debug level message is enough.
-> 
-> Not sure I agree ... surely the point of this message is for the user to
-> see it and know to update firmware?  Otherwise why print anything at
-> all, since I'm sure you guys have already fixed the firmware and have a
-> regression test so this bug doesn't reappear?
-> 
-Right :-)
+The libcxgb4 package is a userspace driver for the new Chelsio T4 iWARP RNICs.   It is a plug-in module for libibverbs 
+that allows programs to use Chelsio RDMA T4 hardware directly from userspace.
+
+Release 1.1.0 is available at:
+
+http://www.openfabrics.org/downloads/cxgb4/libcxgb4-1.1.0.tar.gz
+
+with md5sum:
+
+8ab91446a9e3a991c03d3c4489a1311b libcxgb4-1.1.0.tar.gz
+
+The development git tree is at:
+
+git://www.openfabrics.org/~swise/libcxgb4
+
+Thanks,
+
+Steve.
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
