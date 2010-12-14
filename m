@@ -1,68 +1,99 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH V3 6/6] RDMA CM: Netlink Client
-Date: Tue, 14 Dec 2010 11:45:14 -0700
-Message-ID: <20101214184514.GE2506@obsidianresearch.com>
-References: <1292257370-24391-1-git-send-email-nirm@voltaire.com>
- <1292257370-24391-7-git-send-email-nirm@voltaire.com>
+From: Tom Ammon <tom.ammon-wbocuHtxKic@public.gmane.org>
+Subject: opensm configuration question
+Date: Tue, 14 Dec 2010 15:42:32 -0700
+Message-ID: <4D07F2D8.4080602@utah.edu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1292257370-24391-7-git-send-email-nirm-smomgflXvOZWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Nir Muchtar <nirm-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, monis-smomgflXvOZWk0Htik3J/w@public.gmane.org, ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org
+To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: Sam Liston <sam.liston-wbocuHtxKic@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Dec 13, 2010 at 06:22:50PM +0200, Nir Muchtar wrote:
-> +			if (ibnl_put_attr(skb, nlh,
-> +					  sizeof id->route.addr.src_addr,
-> +					  &id->route.addr.src_addr,
-> +					  IBNL_RDMA_CM_ATTR_SRC_ADDR)) {
-> +				goto out;
-> +			}
+Hi,
 
-The sizeof the attribute should be sizeof(sockaddr_in) or
-sizeof(sockaddr_in6), not sizeof(sockaddr_storage).
+I've got an opensm question.
 
-Other rdma_cm code uses this sort of construct:
+With opensm running, I run opensm --help, and it tells me what I am 
+expecting from the configuration I have given it. I configured it for 
+updn routing with /etc/opensm/rootguids.conf as the root guids file:
 
-        memcpy(&resp.src_addr, addr, addr->sa_family == AF_INET ?
-                                     sizeof(struct sockaddr_in) :
-                                     sizeof(struct sockaddr_in6));
 
-But I can't belive there isn't a kernel function for the length of 
-a sockaddr...
+-------------------------------------------------
+OpenSM 3.3.7
+  Reading Cached Option File: /etc/opensm/opensm.conf
+  Loading Cached Option:guid = 0x0002c9030009714d
+  Loading Cached Option:routing_engine = updn
+  Loading Cached Option:root_guid_file = /etc/opensm/rootguids.conf
+  Loading Cached Option:sm_priority = 15
+  Loading Cached Option:log_flags = 4
+  Loading Cached Option:console = local
+Command Line Arguments:
 
-> +struct rdma_cm_id_stats {
-> +	u8 nt;
-> +	u8 port_num;
-> +	u32 bound_dev_if;
-> +	u32 ps;
-> +	u8 cm_state;
-> +	u32 qp_num;
-> +	pid_t pid;
-> +};
 
-Careful of alignment issues and and type issues:
+However, when I do an ibtracert between two nodes on different leaf 
+switches, it appears to be using minhop routing (the root guids I 
+specified are not in the path):
 
-struct rdma_cm_id_stats {
-  u32 bound_dev_if;
-  u32 resereved_for_ib_bound_dev_ib;
-  u32 port_space;
-  u32 creator_pid;
-  u8 nt;  // Use a better name
-  u8 port_num;
-  u8 cm_state;
-  u8 reserved;
-};
+[root@sm2 ~]# ibtracert 24 69
+ From ca {0x0002c903000bb5d8} portnum 1 lid 24-24 "em001 HCA-1"
+[1] -> switch port {0x0008f10500201d8c}[1] lid 15-15 "Voltaire 4036 # 
+komas-is-a1-1"
+[36] -> switch port {0x0008f105006515ca}[19] lid 9-9 "Voltaire sLB-4018 
+    Line 8  Chip 1 4200 #komas-is-a6-1"
+[20] -> switch port {0x0008f10500201b32}[36] lid 18-18 "Voltaire 4036 # 
+komas-is-a2-1"
+[28] -> ca port {0x0002c903000bb5f9}[1] lid 69-69 "em056 HCA-1"
+To ca {0x0002c903000bb5f8} portnum 1 lid 69-69 "em056 HCA-1"
 
-Rather than pid I think it is better to include enough information to
-cross reference the RDMA_CM fd aginst /proc/../fd. Ie to get the pid(s)
-you trundle through proc looking for that signature. Isn't that what
-ss does?
+Looking in the opensm log file, I see this over and over:
 
-Jason
+OpenSM $ OpenSM $ OpenSM $ Dec : Command not found
+
+Supported commands and syntax:
+help [<command>]
+quit (not valid in local mode; use ctl-c)
+loglevel [<log-level>]
+priority [<sm-priority>]
+resweep [heavy|light]
+reroute
+sweep [on|off]
+status [loop]
+logflush -- flush the opensm.log file
+querylid lid -- print internal information about the lid specified
+portstatus [ca|switch|router]
+switchbalance [verbose] [guid]
+lidbalance [switchguid]
+dump_conf
+update_desc
+version -- print the OSM version
+dump_portguid [file filename] regexp1 [regexp2 [regexp3 ...]] -- Dump 
+port GUID matching a regexp
+OpenSM $
+
+
+Any ideas?
+
+Also, how can I use the console? I noticed a couple of config options 
+for it, but I don't understand how to actually attach to the console to 
+try things out.
+
+Thanks,
+
+Tom
+
+
+
+-- 
+Tom Ammon
+Network Engineer
+Office: 801.587.0976
+Mobile: 801.674.9273
+
+Center for High Performance Computing
+University of Utah
+http://www.chpc.utah.edu
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
