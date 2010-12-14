@@ -1,29 +1,27 @@
-From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH] mlx4: Change a warning message to debug
-Date: Mon, 13 Dec 2010 13:55:41 -0800
-Message-ID: <adazks9gwwy.fsf@cisco.com>
-References: <20101208080602.GA9649@mtldesk30> <adaipz4jddc.fsf@cisco.com>
-	<20101210122759.GA28088@mtldesk30>
+From: Yevgeny Petrilin <yevgenyp-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
+Subject: RE: [PATCH 17/19 V4] mlx4: Using mcg tables for Ethernet Unicast
+	steering.
+Date: Tue, 14 Dec 2010 09:28:57 +0200
+Message-ID: <E113D394D7C5DB4F8FF691FA7EE9DB443D1C2AE6A7@MTLMAIL.mtl.com>
+References: <4C11381B.90101@mellanox.co.il>
+	<AANLkTik16qV1McUJO1tFFEZqhujeR6zqrXW4K+ohFd=8@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20101210122759.GA28088@mtldesk30> (Eli Cohen's message of "Fri,
-	10 Dec 2010 14:27:59 +0200")
+In-Reply-To: <AANLkTik16qV1McUJO1tFFEZqhujeR6zqrXW4K+ohFd=8@mail.gmail.com>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: RDMA list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Aleksey Senin <aleksey-192fA4vuk7xBDLzU/O5InQ@public.gmane.org>
+Cc: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
- > > Not sure I agree ... surely the point of this message is for the user to
- > > see it and know to update firmware?  Otherwise why print anything at
- > > all, since I'm sure you guys have already fixed the firmware and have a
- > > regression test so this bug doesn't reappear?
-
- > Right :-)
-
-So what do you think -- remove the message entirely or leave it?
-
- - R.
+PiArIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIGlmIChlcnIpDQo+ICsgwqAgwqAg
+wqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgbWx4NF91Y19zdGVlcl9yZWxl
+YXNlKGRldiwgcG9ydCwgbWFjLCAqcXBuLCAxKTsNCj7CoA0KPiBEb24ndCB5b3UgbmVlZCB0byBm
+cmVlwqAgcHJldm91c2x5IGFsbG9jYXRlZCBlbnRyeSBoZXJlIGlmIGluc2VydCBmYWlsPyANClll
+cywgdGhpcyBmaXggd2lsbCBiZSBpbmNsdWRlZCBpbiBuZXh0IHJvdW5kIG9mIHBhdGNoZXMuDQoN
+Cg==
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
