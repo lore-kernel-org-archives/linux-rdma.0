@@ -1,65 +1,57 @@
-From: "Richard Croucher" <richard-jNDFPZUTrfRJpuwtbJ71GdBPR1lH4CV8@public.gmane.org>
-Subject: RE: [ewg] IPoIB to Ethernet routing performance
-Date: Tue, 14 Dec 2010 16:35:06 -0000
-Message-ID: <004e01cb9bac$dead9870$9c08c950$@com>
-References: <20101206112454.76bb85f1@frecb012350.frec.bull.fr>	<4CFD4BEE.5070205@shiftmail.org>	<20101206212759.GB16788@obsidianresearch.com> <4D06438C.9040307@shiftmail.org>
-Reply-To: <richard.croucher-jNDFPZUTrfRJpuwtbJ71GdBPR1lH4CV8@public.gmane.org>
+From: Vladimir Sokolovsky <vlad-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: [PATCH] mlx4/ib: Fix WARNING: at lib/swiotlb.c:562
+Date: Tue, 14 Dec 2010 18:41:24 +0200
+Message-ID: <4D079E34.5070003@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4D06438C.9040307-9AbUPqfR1/2XDw4h08c5KA@public.gmane.org>
-Content-Language: en-gb
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: 'Jabe' <jabe.chapman-9AbUPqfR1/2XDw4h08c5KA@public.gmane.org>, 'Jason Gunthorpe' <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: 'linux-rdma' <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, 'OF EWG' <ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Qlogic claim their QLE7340 is lowest latency for MPI applications but it is
-restricted to a single port.   I've not carried out IPoIB testing of this
-card.  There are plenty of published results for the Mellanox ConnectX cards
-which tend to account for the majority of HCA's deployed.
 
-My opinion is that the Mellanox  ConnectX has more capabilities on board and
-is probably the best all rounder, but the Qlogic TrueScale lets certain apps
-get closer to the metal and therefore lower latency.
+mlx4_ib_free_cq_buf() should not be called under spin_lock_irq
+as dma_free_coherent() needs irqs enabled
 
-You really have to carry out your own testing, since it depends on what you
-consider important. 
+Signed-off-by: Vladimir Sokolovsky <vlad-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
+---
+  drivers/infiniband/hw/mlx4/cq.c |    9 ++++++++-
+  1 files changed, 8 insertions(+), 1 deletions(-)
 
-Richard
+diff --git a/drivers/infiniband/hw/mlx4/cq.c b/drivers/infiniband/hw/mlx4/cq.c
+index 5a219a2..e8df155 100644
+--- a/drivers/infiniband/hw/mlx4/cq.c
++++ b/drivers/infiniband/hw/mlx4/cq.c
+@@ -397,10 +397,14 @@ int mlx4_ib_resize_cq(struct ib_cq *ibcq, int entries, struct ib_udata *udata)
+  		cq->resize_buf = NULL;
+  		cq->resize_umem = NULL;
+  	} else {
++		struct mlx4_ib_cq_buf tmp_buf;
++		int tmp_cqe = 0;
++
+  		spin_lock_irq(&cq->lock);
+  		if (cq->resize_buf) {
+  			mlx4_ib_cq_resize_copy_cqes(cq);
+-			mlx4_ib_free_cq_buf(dev, &cq->buf, cq->ibcq.cqe);
++			tmp_buf = cq->buf;
++			tmp_cqe = cq->ibcq.cqe;
+  			cq->buf      = cq->resize_buf->buf;
+  			cq->ibcq.cqe = cq->resize_buf->cqe;
 
------Original Message-----
-From: ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
-[mailto:ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org] On Behalf Of Jabe
-Sent: 13 December 2010 16:02
-To: Jason Gunthorpe
-Cc: linux-rdma; OF EWG
-Subject: Re: [ewg] IPoIB to Ethernet routing performance
+@@ -408,6 +412,9 @@ int mlx4_ib_resize_cq(struct ib_cq *ibcq, int entries, struct ib_udata *udata)
+  			cq->resize_buf = NULL;
+  		}
+  		spin_unlock_irq(&cq->lock);
++
++		if (tmp_cqe)
++			mlx4_ib_free_cq_buf(dev, &tmp_buf, tmp_cqe);
+  	}
 
-On 12/06/2010 10:27 PM, Jason Gunthorpe wrote:
-> On Mon, Dec 06, 2010 at 09:47:42PM +0100, Jabe wrote:
->    
->> Technologies MT25204 [InfiniHost III Lx HCA]; and dual E5430 xeon
->> (not nehalem).
->>      
-> Newer Mellanox cards have most of the offloads you see for ethernet so
-> they get better performance. Plus>  Nehalem is just better at TCP in
-> the first place..
->    
-
-Very interesting
-
-Do you know if new Qlogic IB cards like QLE7340 also have such offloads?
-
-In general which brand would you recommend for IB and for IPoIB?
-
-Thank you
-_______________________________________________
-ewg mailing list
-ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
-http://lists.openfabrics.org/cgi-bin/mailman/listinfo/ewg
+  	goto out;
+-- 
+1.7.0.4
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
