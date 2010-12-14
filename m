@@ -1,27 +1,27 @@
-From: Yevgeny Petrilin <yevgenyp-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
-Subject: RE: [PATCH 17/19 V4] mlx4: Using mcg tables for Ethernet Unicast
-	steering.
-Date: Tue, 14 Dec 2010 09:28:57 +0200
-Message-ID: <E113D394D7C5DB4F8FF691FA7EE9DB443D1C2AE6A7@MTLMAIL.mtl.com>
-References: <4C11381B.90101@mellanox.co.il>
-	<AANLkTik16qV1McUJO1tFFEZqhujeR6zqrXW4K+ohFd=8@mail.gmail.com>
+From: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH] mlx4: Change a warning message to debug
+Date: Tue, 14 Dec 2010 13:26:47 +0200
+Message-ID: <20101214112647.GA32572@mtldesk30>
+References: <20101208080602.GA9649@mtldesk30>
+ <adaipz4jddc.fsf@cisco.com>
+ <20101210122759.GA28088@mtldesk30>
+ <adazks9gwwy.fsf@cisco.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <AANLkTik16qV1McUJO1tFFEZqhujeR6zqrXW4K+ohFd=8@mail.gmail.com>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <adazks9gwwy.fsf-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Aleksey Senin <aleksey-192fA4vuk7xBDLzU/O5InQ@public.gmane.org>
-Cc: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Cc: RDMA list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-PiArIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIGlmIChlcnIpDQo+ICsgwqAgwqAg
-wqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgbWx4NF91Y19zdGVlcl9yZWxl
-YXNlKGRldiwgcG9ydCwgbWFjLCAqcXBuLCAxKTsNCj7CoA0KPiBEb24ndCB5b3UgbmVlZCB0byBm
-cmVlwqAgcHJldm91c2x5IGFsbG9jYXRlZCBlbnRyeSBoZXJlIGlmIGluc2VydCBmYWlsPyANClll
-cywgdGhpcyBmaXggd2lsbCBiZSBpbmNsdWRlZCBpbiBuZXh0IHJvdW5kIG9mIHBhdGNoZXMuDQoN
-Cg==
+On Mon, Dec 13, 2010 at 01:55:41PM -0800, Roland Dreier wrote:
+> 
+> So what do you think -- remove the message entirely or leave it?
+> 
+
+I prefer to remove the message.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
