@@ -1,43 +1,50 @@
-From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Subject: Add check for libpthread during configure
-Date: Wed, 15 Dec 2010 11:19:21 -0800
-Message-ID: <ada39pyhmiu.fsf@cisco.com>
+From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+Subject: [PATCH] infiniband-diags: Verify timeout value specified to
+ diagnostics
+Date: Wed, 15 Dec 2010 11:47:09 -0800
+Message-ID: <20101215114709.82671602.weiny2@llnl.gov>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Add a check for libpthread during librdmacm configure.  This will add
-libpthread to the list of libraries that librdmacm is linked to.
-Currently librdmacm gets libpthread implicitly through libibverbs, but
-this breaks when using a linker that does not implicitly link with such
-dependencies; eg the new gold linker is such a linker:
 
-<http://wiki.debian.org/qa.debian.org/FTBFS#A2009-11-02Packagesfailingbecausebinutils-gold.2BAC8-indirectlinking>
+Verify timeout value specified to diagnostics
 
-Addresses: http://bugs.debian.org/555380
-Addresses: https://bugs.launchpad.net/ubuntu/+source/librdmacm/+bug/687983
 
-Signed-off-by: Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Ira Weiny <weiny2-eSE4LqFkL++LYFxP40JT4w@public.gmane.org>
 ---
- configure.in |    2 ++
- 1 files changed, 2 insertions(+), 0 deletions(-)
+ infiniband-diags/src/ibdiag_common.c |   10 +++++++---
+ 1 files changed, 7 insertions(+), 3 deletions(-)
 
-diff --git a/configure.in b/configure.in
-index d4ae89f..ea10985 100644
---- a/configure.in
-+++ b/configure.in
-@@ -45,6 +45,8 @@ AC_C_CONST
- AC_CHECK_SIZEOF(long)
- 
- dnl Checks for libraries
-+AC_CHECK_LIB(pthread, pthread_mutex_init, [],
-+    AC_MSG_ERROR([pthread_mutex_init() not found.  librdmacm requires libpthread.]))
- if test "$disable_libcheck" != "yes"; then
- AC_CHECK_LIB(ibverbs, ibv_get_device_list, [],
-     AC_MSG_ERROR([ibv_get_device_list() not found.  librdmacm requires libibverbs.]))
+diff --git a/infiniband-diags/src/ibdiag_common.c b/infiniband-diags/src/ibdiag_common.c
+index 99861f1..8ccf2fc 100644
+--- a/infiniband-diags/src/ibdiag_common.c
++++ b/infiniband-diags/src/ibdiag_common.c
+@@ -175,9 +175,13 @@ static int process_opt(int ch, char *optarg)
+ 		ibd_dest_type = IB_DEST_GUID;
+ 		break;
+ 	case 't':
+-		val = strtoul(optarg, 0, 0);
+-		madrpc_set_timeout(val);
+-		ibd_timeout = val;
++		val = (int)strtol(optarg, NULL, 0);
++		if (val > 0) {
++			madrpc_set_timeout(val);
++			ibd_timeout = val;
++		} else
++			IBERROR("Invalid timeout \"%s\".  Timeout requires a "
++				"positive integer value.", optarg);
+ 		break;
+ 	case 's':
+ 		/* srcport is not required when resolving via IB_DEST_LID */
+-- 
+1.5.4.5
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
