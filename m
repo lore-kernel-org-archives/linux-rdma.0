@@ -1,157 +1,171 @@
-From: "Eli Dorfman (Voltaire)" <dorfman.eli-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: ibnetdiscover issue
-Date: Wed, 15 Dec 2010 14:58:58 +0200
-Message-ID: <4D08BB92.7010802@gmail.com>
-References: <4CFFC4F3.3040805@utah.edu> <4CFFCE3A.6010901@dev.mellanox.co.il> <4D001173.9030001@utah.edu>
+From: Tom Ammon <tom.ammon-wbocuHtxKic@public.gmane.org>
+Subject: Re: opensm configuration question
+Date: Wed, 15 Dec 2010 09:12:46 -0700
+Message-ID: <4D08E8FE.6090703@utah.edu>
+References: <4D07F2D8.4080602@utah.edu> <20101214161227.0db1eb1d.weiny2@llnl.gov>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4D001173.9030001-wbocuHtxKic@public.gmane.org>
+In-Reply-To: <20101214161227.0db1eb1d.weiny2-i2BcT+NCU+M@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tom Ammon <tom.ammon-wbocuHtxKic@public.gmane.org>
-Cc: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "elid-smomgflXvOZWk0Htik3J/w@public.gmane.org" <elid-smomgflXvOZWk0Htik3J/w@public.gmane.org>, "dorfman.eii-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <dorfman.eii-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+To: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Samuel Taylor Liston <sam.liston-wbocuHtxKic@public.gmane.org>, Brian Haymore <brian.haymore-wbocuHtxKic@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Tom Ammon wrote:
-> Eli,
-> 
-> Is there a quick workaround we could put in place? I want to map out our
-> fabric, and I especially need the spine GUIDs on the GD4200 because I'm
-> going to be doing up/down routing and want to specify the root GUIDs. I
-> can also submit a support case to Voltaire, if you think that would make
-> it go faster. I want to make sure we are using OFED as distributed from
-> OFA.
+Ira,
 
-Hi Tom,
+Thanks! I misunderstood up/down, thanks for clearing that up. That helps 
+a lot.
 
-You should take the following patches:
+I set the console to local, and then tried telnetting to localhost port 
+10000 but got a connection refused. Should I set it to socket instead?
 
-commit 5b034c90d72f9fbf382df414a1569e0a9f7ac679
-Author: Eli Dorfman (Voltaire) <dorfman.eli-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Date:   Sun Sep 5 11:30:37 2010 +0300
+Tom
 
-    inifiband-diags: Support Voltaire switch ISR4200
-
-    Support Voltaire switch (ISR4200) grouping.
-
-    Signed-off-by: Eli Dorfman <elid-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-    Signed-off-by: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-
-commit e6a10b921627099f42bc4aea7ae68abcf4c1c970
-Author: Eli Dorfman (Voltaire) <dorfman.eli-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Date:   Sun Sep 5 11:28:57 2010 +0300
-
-    infiniband-diags: Do not exit when unexpected node found
-
-    Show error message but do not exit when unexpected node is found.
-
-    Signed-off-by: Eli Dorfman <elid-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-    Signed-off-by: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-
-Eli
-
-> 
-> Tom
-> 
-> On 12/8/2010 11:28 AM, Hal Rosenstock wrote:
->> Hi Tom,
+On 12/14/2010 05:12 PM, Ira Weiny wrote:
+> On Tue, 14 Dec 2010 14:42:32 -0800
+> Tom Ammon<tom.ammon-wbocuHtxKic@public.gmane.org>  wrote:
+>
+>    
+>> Hi,
 >>
->> On 12/8/2010 12:48 PM, Tom Ammon wrote:
->>> Hi,
->>>
->>> I get the following when I try to run ibnetdiscover from a server
->>> plugged in to a voltaire 4036 switch. We're using OFED 1.5.2:
->>>
->>> [root@sm1 ~]# ibnetdiscover
->>> src/chassis.c:535; Unexpected node found: guid 0x0008f1050075134c
->>> ibnetdiscover: iberror: failed: discover failed
+>> I've got an opensm question.
 >>
->> Looks to me like there's a missing is_spine_4200() clause missing in
->> get_router_slot in libibnetdisc/src/chassis.c. Eli had added changes to
->> support the 4200 so he's the best one to comment.
+>> With opensm running, I run opensm --help, and it tells me what I am
+>> expecting from the configuration I have given it. I configured it for
+>> updn routing with /etc/opensm/rootguids.conf as the root guids file:
 >>
->> -- Hal
 >>
->>>
->>> However, ibdiagnet runs fine:
->>>
->>> [root@sm1 ~]# ibdiagnet
->>> Loading IBDIAGNET from: /usr/lib64/ibdiagnet1.5.4
->>> -W- Topology file is not specified.
->>> Reports regarding cluster links will use direct routes.
->>> Loading IBDM from: /usr/lib64/ibdm1.5.4
->>> -I- Using port 1 as the local port.
->>> -I- Discovering ... 277 nodes (23 Switches&  254 CA-s) discovered.
->>>
->>>
->>> -I---------------------------------------------------
->>> -I- Bad Guids/LIDs Info
->>> -I---------------------------------------------------
->>> -I- No bad Guids were found
->>>
->>> -I---------------------------------------------------
->>> -I- Links With Logical State = INIT
->>> -I---------------------------------------------------
->>> -I- No bad Links (with logical state = INIT) were found
->>>
->>> -I---------------------------------------------------
->>> -I- General Device Info
->>> -I---------------------------------------------------
->>>
->>> -I---------------------------------------------------
->>> -I- PM Counters Info
->>> -I---------------------------------------------------
->>> -W- lid=0x0007 guid=0x0008f105006515ba dev=23131 Port=33
->>> Performance Monitor counter : Value
->>> link_error_recovery_counter : 0xff (overflow)
->>> -W- lid=0x0010 guid=0x0008f10500201d7c dev=23130 Port=14
->>> Performance Monitor counter : Value
->>> symbol_error_counter : 0xffff (overflow)
->>> -W- lid=0x0001 guid=0x0008f10500108a76 dev=23130 Port=30
->>> Performance Monitor counter : Value
->>> symbol_error_counter : 0xffff (overflow)
->>>
->>> -I---------------------------------------------------
->>> -I- Fabric Partitions Report (see ibdiagnet.pkey for a full hosts list)
->>> -I---------------------------------------------------
->>> -I- PKey:0x7fff Hosts:254 full:254 limited:0
->>>
->>> -I---------------------------------------------------
->>> -I- IPoIB Subnets Check
->>> -I---------------------------------------------------
->>> -I- Subnet: IPv4 PKey:0x7fff QKey:0x00000b1b MTU:2048Byte rate:10Gbps
->>> SL:0x00
->>>
->>> -I---------------------------------------------------
->>> -I- Bad Links Info
->>> -I- No bad link were found
->>> -I---------------------------------------------------
->>> ----------------------------------------------------------------
->>> -I- Stages Status Report:
->>> STAGE Errors Warnings
->>> Bad GUIDs/LIDs Check 0 0
->>> Link State Active Check 0 0
->>> General Devices Info Report 0 0
->>> Performance Counters Report 0 3
->>> Partitions Check 0 0
->>> IPoIB Subnets Check 0 0
->>>
->>> Please see /tmp/ibdiagnet.log for complete log
->>> ----------------------------------------------------------------
->>>
->>> -I- Done. Run time was 21 seconds.
->>>
->>> Any ideas?
->>>
->>> Tom
->>>
+>> -------------------------------------------------
+>> OpenSM 3.3.7
+>>    Reading Cached Option File: /etc/opensm/opensm.conf
+>>    Loading Cached Option:guid = 0x0002c9030009714d
+>>    Loading Cached Option:routing_engine = updn
+>>    Loading Cached Option:root_guid_file = /etc/opensm/rootguids.conf
+>>    Loading Cached Option:sm_priority = 15
+>>    Loading Cached Option:log_flags = 4
+>>    Loading Cached Option:console = local
+>> Command Line Arguments:
+>>
+>>
+>> However, when I do an ibtracert between two nodes on different leaf
+>> switches, it appears to be using minhop routing (the root guids I
+>> specified are not in the path):
+>>      
+> Up/Down does not mean that everything will be routed through your spine
+> switches.  Up/Down only requires that your path can't go "up" after starting
+> "down".  From the trace below it appears that the path from em001 to em056
+> only required 3 hops through the line board.  A node farther away might
+> require routing through the spine board.
+>
+> Here's an example:
+>
+>       S
+>      / \
+>    L1   L2
+>   / \  / \
+> E1  E2  E3
+> |    |   |
+> N1  N2   N3
+>
+> Min Hop == Up/Down when routing from N1 to N2 (3 hops).
+>
+> But when routing N1 to N3 Min Hop can choose either E1,L1,S,L2,E3 OR
+> E1,L1,E2,L2,E3 (both 5 hops) but Up/Down can only chose the former through the
+> Spine.
+>
+>    
+>> [root@sm2 ~]# ibtracert 24 69
+>>   From ca {0x0002c903000bb5d8} portnum 1 lid 24-24 "em001 HCA-1"
+>> [1] ->  switch port {0x0008f10500201d8c}[1] lid 15-15 "Voltaire 4036 #
+>> komas-is-a1-1"
+>> [36] ->  switch port {0x0008f105006515ca}[19] lid 9-9 "Voltaire sLB-4018
+>>      Line 8  Chip 1 4200 #komas-is-a6-1"
+>> [20] ->  switch port {0x0008f10500201b32}[36] lid 18-18 "Voltaire 4036 #
+>> komas-is-a2-1"
+>> [28] ->  ca port {0x0002c903000bb5f9}[1] lid 69-69 "em056 HCA-1"
+>> To ca {0x0002c903000bb5f8} portnum 1 lid 69-69 "em056 HCA-1"
+>>
+>> Looking in the opensm log file, I see this over and over:
+>>
+>> OpenSM $ OpenSM $ OpenSM $ Dec : Command not found
+>>
+>> Supported commands and syntax:
+>> help [<command>]
+>> quit (not valid in local mode; use ctl-c)
+>> loglevel [<log-level>]
+>> priority [<sm-priority>]
+>> resweep [heavy|light]
+>> reroute
+>> sweep [on|off]
+>> status [loop]
+>> logflush -- flush the opensm.log file
+>> querylid lid -- print internal information about the lid specified
+>> portstatus [ca|switch|router]
+>> switchbalance [verbose] [guid]
+>> lidbalance [switchguid]
+>> dump_conf
+>> update_desc
+>> version -- print the OSM version
+>> dump_portguid [file filename] regexp1 [regexp2 [regexp3 ...]] -- Dump
+>> port GUID matching a regexp
+>> OpenSM $
+>>
+>>
+>> Any ideas?
+>>      
+> In the log file???  Not sure.
+>
+>    
+>> Also, how can I use the console? I noticed a couple of config options
+>> for it, but I don't understand how to actually attach to the console to
+>> try things out.
+>>      
+> What options do you have set for the console?
+>
+> 16:08:54>  opensm -h | grep console
+> --console, -q [off|local|socket|loopback]
+>            This option activates the OpenSM console (default off).
+> --console-port, -C<port>
+>            Specify an alternate telnet port for the console (default 10000).
+>
+> Ira
+>
+>    
+>> Thanks,
+>>
+>> Tom
+>>
+>>
 >>
 >> -- 
+>> Tom Ammon
+>> Network Engineer
+>> Office: 801.587.0976
+>> Mobile: 801.674.9273
+>>
+>> Center for High Performance Computing
+>> University of Utah
+>> http://www.chpc.utah.edu
+>> --
 >> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 >> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 >> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+>>      
+>
+>    
+
+-- 
+--------------------------------------------------------------------
+Tom Ammon
+Network Engineer
+Office: 801.587.0976
+Mobile: 801.674.9273
+
+Center for High Performance Computing
+University of Utah
+http://www.chpc.utah.edu
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
