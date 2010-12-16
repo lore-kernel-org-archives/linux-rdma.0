@@ -1,78 +1,71 @@
-From: "Jaszcza, Andrzej" <andrzej.jaszcza-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: Intel NetEffect NE020 E10G81GP use
-Date: Wed, 15 Dec 2010 21:45:48 +0000
-Message-ID: <70B82AB4096EC24DAE01A7202D27B68B010B6D4819@irsmsx503.ger.corp.intel.com>
-References: <4438953.1292407689320.SLOX.WebMail.wwwrun@imap.lnl.infn.it>
+From: David Dillow <dave-i1Mk8JYDVaaSihdK6806/g@public.gmane.org>
+Subject: Re: Possible bug on SRP device delete
+Date: Wed, 15 Dec 2010 21:55:16 -0500
+Message-ID: <1292468116.7532.15.camel@obelisk.thedillows.org>
+References: <4D064A81.6000607@shiftmail.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4438953.1292407689320.SLOX.WebMail.wwwrun-XDIR3SKYeFbgKi2NxijLtw@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <4D064A81.6000607-9AbUPqfR1/2XDw4h08c5KA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Andrea Gozzelino <Andrea.Gozzelino-PK20h7lG/Rc1GQ1Ptb7lUw@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: torn5 <torn5-9AbUPqfR1/2XDw4h08c5KA@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Andrea,
+On Mon, 2010-12-13 at 17:32 +0100, torn5 wrote:
+> I have been suggested to the RDMA mailing list as it might be an ib_srp bug:
+> 
+> >>         5) If I echo one line of ibsrpdm -c to
+> >>         /sys/class/infiniband_srp/srp-mthca0-1/add_target so to add a
+> >>         srp disk
+> >>         to my system, what happens is that another srp_host gets
+> >>         created. If I
+> >>         later remove the drive with "echo 1 >
+> >>         /sys/block/sdX/device/delete", the
+> >>         /sys/class/srp_hosts/srp_hostXY remains. Now after having
+> >>         remapped and
+> >>         deleted a few times the disk I am totally polluted of srp_host's.
+> >>         Another serious problem is that srp_daemon (from srptools)
+> >>         thinks the
+> >>         disk is still connected because it sees the previous
+> >>         srp_host, and won't
+> >>         reconnect it (won't recreate the sdX device).
+> >>         So what is the proper way to unmap a srp drive also deleting
+> >>         the srp_host?
 
-I think you meant RDMA over TCP/IP (iWarp) and not RDMA over Converged Ethernet (RoCE) as Intel NetEffect cards do not support the latter. You may safely try to run any MPI benchmarks using MVAPICH2, Open MPI or Intel MPI. There is more information on iWarp, Intel NetEffect cards and their possible uses on Intel website: http://www.intel.com/technology/comms/iwarp/index.htm.
+There currently no way to disconnect a SRP connection without removing
+the module. It's an issue, and I've been talking with some people about
+addressing it, though it hasn't been terribly high on the priority list.
 
-Regards,
-Andrzej
+As was mentioned, if you force a host reset, it will drop the
+connection. Unfortunately, it will also try to reconnect, so this may
+not be terribly useful.
 
------Original Message-----
-From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Andrea Gozzelino
-Sent: Wednesday, December 15, 2010 11:08 AM
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Subject: Intel NetEffect NE020 E10G81GP use
-Importance: High
+While it may be possible to use slave_alloc()/slave_destroy() from the
+scsi_host_template to keep a count of the number of active devices and
+tear down the connection, I'm not sure this is a good behavior to have,
+either. I think it may be a bit surprising, and it may also cause
+srp_daemon to keep re-adding a target that does not present devices to
+your host.
 
-Hi all,
 
-I have tested two cards Intel NetEffect NE020 E10G81GP with RDMA over
-Ethernet; results are OK in latency and bandwidth.
-Are there other protocols supported by cards,that offer the same
-performances?
-(TCP Offload, STORAGE, MPI). 
-Socket Direct Protocol (SDO) is not good for those performances. 
-Any suggestions about using cards with high performances?
-What are benefits using these cards in daily storage and data movement
-operations?
+> > Notes:
+> > - IMHO ib_srp should be modified such that it reports SCSI commands as 
+> > failed as soon as an IB error completion has been received instead of 
+> > waiting until these commands time out. That would make ib_srp recover 
+> > much more quickly from cable reconnects or SRP target restarts.
 
-Thank you.
-Best regards,
+This is another area that is being worked currently. I don't think it
+will be ready for 2.6.38, but hopefully for 2.6.39.
 
-Andrea Gozzelino
+> > - Please don't use sg_reset on ib_srp, or you will hit this: 
+> > https://bugzilla.kernel.org/show_bug.cgi?id=13893.
 
-INFN - Laboratori Nazionali di Legnaro	(LNL)
-Viale dell'Universita' 2 -I-35020 - Legnaro (PD)- ITALIA
-Office: E-101
-Tel: +39 049 8068346
-Fax: +39 049 641925
-Mail: andrea.gozzelino-PK20h7lG/Rc1GQ1Ptb7lUw@public.gmane.org
-Cell: +39 3488245552				
+I have a tested patch that fixes this, and will try to post it later
+tonight or tomorrow.
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
----------------------------------------------------------------------
-Intel Technology Poland sp. z o.o.
-z siedziba w Gdansku
-ul. Slowackiego 173
-80-298 Gdansk
-
-Sad Rejonowy Gdansk Polnoc w Gdansku, 
-VII Wydzial Gospodarczy Krajowego Rejestru Sadowego, 
-numer KRS 101882
-
-NIP 957-07-52-316
-Kapital zakladowy 200.000 zl
-
-This e-mail and any attachments may contain confidential material for
-the sole use of the intended recipient(s). Any review or distribution
-by others is strictly prohibited. If you are not the intended
-recipient, please contact the sender and delete all copies.
+Dave
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
