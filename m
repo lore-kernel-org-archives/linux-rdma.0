@@ -1,39 +1,21 @@
-From: "Tung, Chien Tin" <chien.tin.tung-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: Intel NetEffect NE020 E10G81GP use
-Date: Thu, 16 Dec 2010 09:46:10 -0700
-Message-ID: <2EFBCAEF10980645BBCFB605689E08E904B957A56C@azsmsx506.amr.corp.intel.com>
-References: <4438953.1292407689320.SLOX.WebMail.wwwrun@imap.lnl.infn.it>
- <70B82AB4096EC24DAE01A7202D27B68B010B6D4819@irsmsx503.ger.corp.intel.com>
- <5454582.1292515988824.SLOX.WebMail.wwwrun@imap.lnl.infn.it>
+From: =?GB2312?B?yPu2+9PjZHd5YW5l?= <dwyane.hust-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: ibv_get_cq_event blocking forever after successful ibv_post_send...
+Date: Fri, 17 Dec 2010 13:49:59 +0800
+Message-ID: <AANLkTik4jPegBM_YgGsE93JHgA5+pc7VDg5ERGM8LVcv@mail.gmail.com>
+References: <AANLkTik3nryZrNBYGXwf45zYjYJcQ9ciwpS=NEVNitjg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <5454582.1292515988824.SLOX.WebMail.wwwrun-XDIR3SKYeFbgKi2NxijLtw@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <AANLkTik3nryZrNBYGXwf45zYjYJcQ9ciwpS=NEVNitjg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Andrea Gozzelino <Andrea.Gozzelino-PK20h7lG/Rc1GQ1Ptb7lUw@public.gmane.org>, "Jaszcza, Andrzej" <andrzej.jaszcza-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "ewg-G2znmakfqn7U1rindQTSdQ@public.gmane.org" <ewg-G2znmakfqn7U1rindQTSdQ@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-> [root@redigo-01 examples]# ls
-> connectivity_c.c hello_c.c hello_f77.f Makefile README ring_cxx.cc
-> ring_f90.f90
-> hello hello_cxx.cc hello_f90.f90 Makefile.include ring_c.c ring_f77.f
-> [root@redigo-01 examples]# pwd
-> /root/openmpi-1.4.3/examples
-> 
-> COMMAND LINE:
-> A) [root@redigo-01 examples]# mpiexec -n 6
-> /root/openmpi-1.4.3/examples/cpi
-> problem with execution of /root/openmpi-1.4.3/examples/cpi on
-> redigo-01.lnl.infn.it: [Errno 2] No such file or directory
-
-You don't have cpi in /root/openmpi-1.4.3/examples directory.  Try running hello instead.
-
-Chien
-
-
+ mine is a single cs mode program.
+ client keep on send messages to server, afte a certain number of
+ times, the server just block in ibv_get_cq_event.
+ the client receive no reply and keep waiting.if manually stop client,
+ server get a completion with wc.status is IBV_WC_WR_FLUSH_ERR.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
