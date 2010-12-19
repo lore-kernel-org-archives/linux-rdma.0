@@ -1,7 +1,7 @@
 From: Aleksey Senin <alekseys-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH] libibvers: Add new enums
-Date: Sun, 19 Dec 2010 11:28:58 +0200
-Message-ID: <4D0DD05A.2090600@voltaire.com>
+Subject: [PATCH] libmlx4: Add RAW_ETH to post_send
+Date: Sun, 19 Dec 2010 11:30:37 +0200
+Message-ID: <4D0DD0BD.5080801@voltaire.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
@@ -10,75 +10,82 @@ Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Vladimir Sokolovsky <vlad-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Add new enums to verbs:
-IBV_SEND_IP_CSUM - checksum control
-IBV_WC_WITH_VLAN - VLAN control
+Add RAW_ETH QP to post_send function.
 
 Signed-off-by: Aleksey Senin <alekseys-smomgflXvOZWk0Htik3J/w@public.gmane.org>
 ---
- fixes/series                 |    1 +
- fixes/verbs_enum_flags.patch |   43 ++++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 44 insertions(+), 0 deletions(-)
- create mode 100644 fixes/verbs_enum_flags.patch
+ fixes/add_raw_eth_to_post_send.patch |   52 ++++++++++++++++++++++++++++++++++
+ fixes/series                         |    1 +
+ 2 files changed, 53 insertions(+), 0 deletions(-)
+ create mode 100644 fixes/add_raw_eth_to_post_send.patch
 
-diff --git a/fixes/series b/fixes/series
-index e3fa53a..e64de3d 100644
---- a/fixes/series
-+++ b/fixes/series
-@@ -12,3 +12,4 @@ configure_in-AC_PROG_LIBTOOL-for-automake.patch
- rpm_spec_changelog_fix.patch
- iboe_adapt_new_api.patch
- support_gid_change.patch
-+verbs_enum_flags.patch
-diff --git a/fixes/verbs_enum_flags.patch b/fixes/verbs_enum_flags.patch
+diff --git a/fixes/add_raw_eth_to_post_send.patch b/fixes/add_raw_eth_to_post_send.patch
 new file mode 100644
-index 0000000..dac26b2
+index 0000000..ce4e873
 --- /dev/null
-+++ b/fixes/verbs_enum_flags.patch
-@@ -0,0 +1,43 @@
-+From e9a0d91fdb1ece1d4605f2fbbcf79cc85f59deda Mon Sep 17 00:00:00 2001
++++ b/fixes/add_raw_eth_to_post_send.patch
+@@ -0,0 +1,52 @@
++From c31190ddc735cd2a28598846f5b57c9cf8434272 Mon Sep 17 00:00:00 2001
 +From: Aleksey Senin <alekseys-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-+Date: Sun, 19 Dec 2010 10:54:52 +0200
-+Subject: [PATCH] New enum flags
++Date: Sun, 19 Dec 2010 11:11:23 +0200
++Subject: [PATCH] Add RAW_ETH case to post_send
 +
-+IBV_SEND_IP_CSUM added to ibv_send_flags. Should be used to control
-+caclulation checksum at hardware layer.
-+
-+IBV_WC_WITH_VLAN added to ibv_wc_flags, Should be used to add VLAN
-+support to WC flags.
++Add controling checksum calculation when using RAW QP type.
 +
 +Signed-off-by: Aleksey Senin <alekseys-smomgflXvOZWk0Htik3J/w@public.gmane.org>
 +---
-+ include/infiniband/verbs.h |    6 ++++--
-+ 1 files changed, 4 insertions(+), 2 deletions(-)
++ src/qp.c  |    6 ++++++
++ src/wqe.h |    1 +
++ 2 files changed, 7 insertions(+), 0 deletions(-)
 +
-+diff --git a/include/infiniband/verbs.h b/include/infiniband/verbs.h
-+index 0f1cb2e..d6b807b 100644
-+--- a/include/infiniband/verbs.h
-++++ b/include/infiniband/verbs.h
-+@@ -257,7 +257,8 @@ enum ibv_wc_opcode {
++diff --git a/src/qp.c b/src/qp.c
++index d194ae3..580afff 100644
++--- a/src/qp.c
+++++ b/src/qp.c
++@@ -231,6 +231,8 @@ int mlx4_post_send(struct ibv_qp *ibqp, struct ibv_send_wr *wr,
++ 			 htonl(MLX4_WQE_CTRL_CQ_UPDATE) : 0) |
++ 			(wr->send_flags & IBV_SEND_SOLICITED ?
++ 			 htonl(MLX4_WQE_CTRL_SOLICIT) : 0)   |
+++			(wr->send_flags & IBV_SEND_IP_CSUM ?
+++			 htonl(MLX4_WQE_CTRL_IP_CSUM) : 0)   |
++ 			qp->sq_signal_bits;
 + 
-+ enum ibv_wc_flags {
-+ 	IBV_WC_GRH		= 1 << 0,
-+-	IBV_WC_WITH_IMM		= 1 << 1
-++	IBV_WC_WITH_IMM		= 1 << 1,
-++	IBV_WC_WITH_VLAN	= 1 << 3
++ 		if (wr->opcode == IBV_WR_SEND_WITH_IMM ||
++@@ -283,6 +285,10 @@ int mlx4_post_send(struct ibv_qp *ibqp, struct ibv_send_wr *wr,
++ 			size += sizeof (struct mlx4_wqe_datagram_seg) / 16;
++ 			break;
++ 
+++		case IBV_QPT_RAW_ETH:
+++			/* For raw eth, the MLX4_WQE_CTRL_SOLICIT flag is used
+++			 * to indicate that no icrc should be calculated */
+++			ctrl->xrcrb_flags |= htonl(MLX4_WQE_CTRL_SOLICIT);
++ 		default:
++ 			break;
++ 		}
++diff --git a/src/wqe.h b/src/wqe.h
++index 6f7f309..007b617 100644
++--- a/src/wqe.h
+++++ b/src/wqe.h
++@@ -41,6 +41,7 @@ enum {
++ 	MLX4_WQE_CTRL_FENCE	= 1 << 6,
++ 	MLX4_WQE_CTRL_CQ_UPDATE	= 3 << 2,
++ 	MLX4_WQE_CTRL_SOLICIT	= 1 << 1,
+++	MLX4_WQE_CTRL_IP_CSUM	= 3 << 4,
 + };
 + 
-+ struct ibv_wc {
-+@@ -493,7 +494,8 @@ enum ibv_send_flags {
-+ 	IBV_SEND_FENCE		= 1 << 0,
-+ 	IBV_SEND_SIGNALED	= 1 << 1,
-+ 	IBV_SEND_SOLICITED	= 1 << 2,
-+-	IBV_SEND_INLINE		= 1 << 3
-++	IBV_SEND_INLINE		= 1 << 3,
-++	IBV_SEND_IP_CSUM	= 1 << 4
-+ };
-+ 
-+ struct ibv_sge {
++ enum {
 +-- 
 +1.6.4.2
 +
+diff --git a/fixes/series b/fixes/series
+index 83516ec..2d04b25 100644
+--- a/fixes/series
++++ b/fixes/series
+@@ -8,3 +8,4 @@ rocee_add_support.patch
+ add_supported_devices.patch
+ post_rcv_end_of_sg.patch
+ fix_inline_size.patch
++add_raw_eth_to_post_send.patch
 -- 
 1.6.4.2
 
