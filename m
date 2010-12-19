@@ -1,50 +1,36 @@
 From: Nir Muchtar <nirm-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH V3 0/6] IB Netlink Interface and RDMA CM exports
-Date: Sun, 19 Dec 2010 16:30:27 +0200
-Message-ID: <1292769027.2369.2127.camel@nirm-desktop>
+Subject: Re: [PATCH V3 1/6] IB Netlink Infrastructure
+Date: Sun, 19 Dec 2010 16:34:07 +0200
+Message-ID: <1292769247.2369.2140.camel@nirm-desktop>
 References: <1292257370-24391-1-git-send-email-nirm@voltaire.com>
-	 <20101214182746.GB2506@obsidianresearch.com>
+	 <1292257370-24391-2-git-send-email-nirm@voltaire.com>
+	 <20101214183401.GC2506@obsidianresearch.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20101214182746.GB2506-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <20101214183401.GC2506-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, monis-smomgflXvOZWk0Htik3J/w@public.gmane.org, ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, 2010-12-14 at 11:27 -0700, Jason Gunthorpe wrote:
-
-> This should be:
+On Tue, 2010-12-14 at 11:34 -0700, Jason Gunthorpe wrote:
+> On Mon, Dec 13, 2010 at 06:22:45PM +0200, Nir Muchtar wrote:
 > 
-> static void format_address(const void *addr,size_t alen,
-> 			   char *buff, size_t len)
-> {
-> 	const sockaddr_storage *ss = addr;
-> 	if (ss->ss_family == AF_INET && alen == sizeof(sockaddr_in)) {
-> 	        const sockaddr_in *ss4 = addr;
->                 char S[64];
->                 snprintf(buff,len,"%s-%d",inet_ntop(ss->ss_family,ss4->sin_addr,S,sizeof(S)),ntohs(ss4->sin_port));
-> 		return;
->         }
-> 	if (ss->ss_family == AF_INET6 && alen == sizeof(sockaddr_in6)) {
-> 	        const sockaddr_in6 *ss6 = addr;
->                 char S[64];
->                 snprintf(buff,len,"%s-%d",inet_ntop(ss->ss_family,ss6->sin6_addr,S,sizeof(S)),ntohs(ss6->sin6_port));
-> 		return;
->         }
-> 	snprintf(buff,len,"??");
-> }
+> > +int ibnl_add_client(int index, int nops,
+> > +		    int (*cb_table[])(struct sk_buff *skb,
+> > +				      struct netlink_callback *nlcb))
 > 
-> Jason
+> If you are going this way, then I think it would be better to have
+> netlink_dump_start be optional - not many calls need it.
+> 
 
-Don't believe all this IPv6 hype ;)
-seriously though, The demo application is solely meant as an
-illustration for the means of communications with the current design.
-It's going to be rewritten in the future.
+Yes, we may need such functionality in the future, but I'm reluctant to
+add APIs that are not currently used, So I think we should wait until we
+actually need this addition. It will be very straightforward to add once
+we decide to. Don't you agree?
 
-Nir
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
