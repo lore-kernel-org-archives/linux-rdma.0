@@ -1,73 +1,125 @@
-From: Jay Fenlason <fenlason-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] infiniband-diags: Verify timeout value specified to
- diagnostics
-Date: Mon, 20 Dec 2010 16:57:36 -0500
-Message-ID: <20101220215735.GA4020@redhat.com>
+From: "Jack Wang" <jack_wang@usish.com>
+Subject: RE: [PATCH 4/7] [SCSI] scst: Add SRP target driver
+Date: Tue, 21 Dec 2010 09:50:18 +0800
+Message-ID: <544F03C80B314396A5517F4CD1A848B6@usish.com.cn>
+References: <201012201849.27639.bvanassche@acm.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-Cc: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-scsi-owner@vger.kernel.org>
+In-Reply-To: <201012201849.27639.bvanassche@acm.org>
+Sender: linux-scsi-owner@vger.kernel.org
+To: 'Bart Van Assche' <bvanassche@acm.org>, linux-scsi@vger.kernel.org, scst-devel@lists.sourceforge.net, linux-rdma@vger.kernel.org, James.Bottomley@suse.de
+Cc: 'Vu Pham' <vu@mellanox.com>, 'Roland Dreier' <rolandd@cisco.com>, 'David Dillow' <dave@thedillows.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Sorry if you get this more than once, I seem to have outgoing mail misconfiguration here.
-
-On Wed, Dec 15, 2010 at 11:47:09AM -0800, Ira Weiny wrote:
->
-> Verify timeout value specified to diagnostics
->
->
-> Signed-off-by: Ira Weiny <weiny2-eSE4LqFkL++LYFxP40JT4w@public.gmane.org>
+> 
+> This patch adds the kernel module ib_srpt, which is a SCSI RDMA Protocol
+(SRP)
+> target implementation. This driver uses the InfiniBand stack and the SCST
+core.
+> 
+> It is a high performance driver capable of handling 600K+ 4K random write
+> IOPS by a single target as well as 2.5+ GB/s sequential throughput over
+> a single QDR IB port.
+> 
+> This driver was originally developed by Vu Pham (Mellanox) and has been
+> optimized by Bart Van Assche.
+> 
+> Signed-off-by: Bart Van Assche <bvanassche@acm.org>
+> Signed-off-by: Vladislav Bolkhovitin <vst@vlnb.net>
+> Cc: Vu Pham <vu@mellanox.com>
+> Cc: Roland Dreier <rdreier@cisco.com>
+> Cc: David Dillow <dillowda@ornl.gov>
 > ---
->  infiniband-diags/src/ibdiag_common.c |   10 +++++++---
->  1 files changed, 7 insertions(+), 3 deletions(-)
->
-> diff --git a/infiniband-diags/src/ibdiag_common.c b/infiniband-diags/src/ibdia
-+g_common.c
-> index 99861f1..8ccf2fc 100644
-> --- a/infiniband-diags/src/ibdiag_common.c
-> +++ b/infiniband-diags/src/ibdiag_common.c
-> @@ -175,9 +175,13 @@ static int process_opt(int ch, char *optarg)
->               ibd_dest_type = IB_DEST_GUID;
->               break;
->       case 't':
-> -             val = strtoul(optarg, 0, 0);
-> -             madrpc_set_timeout(val);
-> -             ibd_timeout = val;
-> +             val = (int)strtol(optarg, NULL, 0);
-> +             if (val > 0) {
-> +                     madrpc_set_timeout(val);
-> +                     ibd_timeout = val;
-> +             } else
-> +                     IBERROR("Invalid timeout \"%s\".  Timeout requires a "
-> +                             "positive integer value.", optarg);
->               break;
->       case 's':
->               /* srcport is not required when resolving via IB_DEST_LID */
-> --
-> 1.5.4.5
+>  Documentation/scst/README.srpt |  112 ++
+>  drivers/scst/Kconfig           |    1 +
+>  drivers/scst/Makefile          |    2 +-
+>  drivers/scst/srpt/Kconfig      |   12 +
+>  drivers/scst/srpt/Makefile     |    1 +
+>  drivers/scst/srpt/ib_dm_mad.h  |  139 ++
+>  drivers/scst/srpt/ib_srpt.c    | 3613
+> ++++++++++++++++++++++++++++++++++++++++
+>  drivers/scst/srpt/ib_srpt.h    |  352 ++++
+>  8 files changed, 4231 insertions(+), 1 deletions(-)
+>  create mode 100644 Documentation/scst/README.srpt
+>  create mode 100644 drivers/scst/srpt/Kconfig
+>  create mode 100644 drivers/scst/srpt/Makefile
+>  create mode 100644 drivers/scst/srpt/ib_dm_mad.h
+>  create mode 100644 drivers/scst/srpt/ib_srpt.c
+>  create mode 100644 drivers/scst/srpt/ib_srpt.h
+> 
+> diff --git a/Documentation/scst/README.srpt
+> b/Documentation/scst/README.srpt
+> new file mode 100644
+> index 0000000..6f8b3ca
+> --- /dev/null
+> +++ b/Documentation/scst/README.srpt
+> @@ -0,0 +1,112 @@
+> +SCSI RDMA Protocol (SRP) Target driver for Linux
+> +=================================================
+> +
+> +The SRP Target driver is designed to work directly on top of the
+> +OpenFabrics OFED-1.x software stack (http://www.openfabrics.org) or
+> +the Infiniband drivers in the Linux kernel tree
+> +(http://www.kernel.org). The SRP target driver also interfaces with
+> +the generic SCSI target mid-level driver called SCST
+> +(http://scst.sourceforge.net).
+> +
+> +How-to run
+> +-----------
+> +
+> +A. On srp target machine
+> +1. Please refer to SCST's README for loading scst driver and its
+> +dev_handlers drivers (scst_disk, scst_vdisk block or file IO mode,
+> nullio, ...)
+> +
+> +Example 1: working with real back-end scsi disks
+> +a. modprobe scst
+> +b. modprobe scst_disk
+> +c. cat /proc/scsi_tgt/scsi_tgt
+> +
+> +ibstor00:~ # cat /proc/scsi_tgt/scsi_tgt
+> +Device (host:ch:id:lun or name)                             Device
+handler
+> +0:0:0:0                                                     dev_disk
+> +4:0:0:0                                                     dev_disk
+> +5:0:0:0                                                     dev_disk
+> +6:0:0:0                                                     dev_disk
+> +7:0:0:0                                                     dev_disk
+> +
+> +Now you want to exclude the first scsi disk and expose the last 4 scsi
+disks
+> as
+> +IB/SRP luns for I/O
+> +echo "add 4:0:0:0 0" >/proc/scsi_tgt/groups/Default/devices
+> +echo "add 5:0:0:0 1" >/proc/scsi_tgt/groups/Default/devices
+> +echo "add 6:0:0:0 2" >/proc/scsi_tgt/groups/Default/devices
+> +echo "add 7:0:0:0 3" >/proc/scsi_tgt/groups/Default/devices
+> +
+> +Example 2: working with VDISK FILEIO mode (using md0 device and file
+10G-file)
+> +a. modprobe scst
+> +b. modprobe scst_vdisk
+> +c. echo "open vdisk0 /dev/md0" > /proc/scsi_tgt/vdisk/vdisk
+> +d. echo "open vdisk1 /10G-file" > /proc/scsi_tgt/vdisk/vdisk
+> +e. echo "add vdisk0 0" >/proc/scsi_tgt/groups/Default/devices
+> +f. echo "add vdisk1 1" >/proc/scsi_tgt/groups/Default/devices
+> +
+> +Example 3: working with VDISK BLOCKIO mode (using md0 device, sda, and
+> cciss/c1d0)
+> +a. modprobe scst
+> +b. modprobe scst_vdisk
+> +c. echo "open vdisk0 /dev/md0 BLOCKIO" > /proc/scsi_tgt/vdisk/vdisk
+> +d. echo "open vdisk1 /dev/sda BLOCKIO" > /proc/scsi_tgt/vdisk/vdisk
+> +e. echo "open vdisk2 /dev/cciss/c1d0 BLOCKIO" >
+/proc/scsi_tgt/vdisk/vdisk
+> +f. echo "add vdisk0 0" >/proc/scsi_tgt/groups/Default/devices
+> +g. echo "add vdisk1 1" >/proc/scsi_tgt/groups/Default/devices
+> +h. echo "add vdisk2 2" >/proc/scsi_tgt/groups/Default/devices
+> +
 
-This only partially detects invalid timeouts.  For example, timeouts
-of "123skidoo" or 1234534587347895789457897897894578978912902393 will
-be accepted but will not work as expected.  To fully test the
-conversion, you need to do something more like:
+[Jack] This README looks should update to new sysfs interface too.
 
-  long val;
-  char *endp;
 
-  ...
-  errno = 0;
-  val = strtol ( optarg, &endp 0 );
-  if ( errno || ( endp && *endp != '\0' ) || val < 0 || val > INT_MAX ) {
-        /* invalid timeout detected */
-  ...
-
-All of the tests are required to detect invalid inputs.
-
-		-- JF
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
