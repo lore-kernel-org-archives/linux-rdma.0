@@ -1,60 +1,53 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+From: Or Gerlitz <ogerlitz-hKgKHo2Ms0FWk0Htik3J/w@public.gmane.org>
 Subject: Re: [PATCH V3 5/6] RDMA CM: Save Owning PID
-Date: Wed, 22 Dec 2010 15:10:56 -0700
-Message-ID: <20101222221056.GA11819@obsidianresearch.com>
-References: <1292257370-24391-1-git-send-email-nirm@voltaire.com>
- <1292257370-24391-6-git-send-email-nirm@voltaire.com>
- <20101214183458.GD2506@obsidianresearch.com>
- <1292769382.2369.2145.camel@nirm-desktop>
- <20101220215433.GB12090@obsidianresearch.com>
- <1292943950.2369.3198.camel@nirm-desktop>
- <20101221181043.GD12090@obsidianresearch.com>
- <7E95F01E94AB484F83061FCFA35B39F8794E3F@exil.voltaire.com>
- <20101221203627.GE12090@obsidianresearch.com>
- <1293033813.2369.4404.camel@nirm-desktop>
+Date: Thu, 23 Dec 2010 14:21:07 +0200
+Message-ID: <4D133EB3.7030409@Voltaire.com>
+References: <1292257370-24391-1-git-send-email-nirm@voltaire.com>	<1292257370-24391-6-git-send-email-nirm@voltaire.com>	<20101214183458.GD2506@obsidianresearch.com>	<1292769382.2369.2145.camel@nirm-desktop>	<20101220215433.GB12090@obsidianresearch.com>	<1292943950.2369.3198.camel@nirm-desktop> <20101221181043.GD12090@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1293033813.2369.4404.camel@nirm-desktop>
+In-Reply-To: <20101221181043.GD12090-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Nir Muchtar <nirm-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Cc: rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Moni Shoua <monis-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Nir Muchtar <nirm-smomgflXvOZWk0Htik3J/w@public.gmane.org>, Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Andy Grover <andy.grover-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Dec 22, 2010 at 06:03:33PM +0200, Nir Muchtar wrote:
+Jason Gunthorpe wrote:
+> Nir Muchtar wrote:
+> It is tied to the ucma_fops FD (ie /dev/rdma_cm, aka the event
+> channel), which when closed calls ucma_free_ctx which calls rdma_destroy_id. 
+> Processes that can access that FD can control the RDMA CM IDs associated with it.
+> The only case where this is not true is in the kernel, and in that
+> instance the PID is meaningless - you'd be much better off exporting
+> the name of the module that allocated the RDMA CM ID.
 
-> Right now this is also the only practical way to export this
-> information, because RDMA CM/UCM don't behave like sock does in terms of
-> inode information. 
+Jason,
 
-Are you referring to how proc/fd currently shows
-/dev/infiniband/rdma_cm for the link destination ?
+I'd like to strengthen the point Nir was trying to make with real-life examples
 
-I thought I saw something go by that added the struct file * address
-or similar to proc/fdinfo/ but I see it did not get in. Grump.
+1. the Linux iscsi initiator - has a daemon named iscsid which opens all the iscsi connections where a connection is over specific transport - e.g iscsi/tcp, iser, iscsi offloads etc. iscsid is talking with the kernel iscsi stack through netlink (...) and in that framework iser connections are started from the **kernel** i.e directly with the rdma-cm and not through librdmacm. With Nir's patches we'd like to be able to track these connections, e.g now I can see through the iscsi tools that I have four sessions (=connections), two of them with iscsi/tcp and two with iser, but I must use a dedicated tool/stack (the iscsi one) for that, wheres if I had a way generic way to track all the connections  made through the rdma-cm things will be much easier.
 
-> Also, in practice, many RDMA CM IDs are, in fact, created by the kernel
-> (when new connections are established), so I'm not sure if what you're
-> suggesting is even feasible with the current design of RDMA CM.
+> # netstat -ntp
+> Proto Recv-Q Send-Q Local Address               Foreign Address             State       PID/Program name
+> tcp        0      0 192.168.20.1:45858          192.168.20.222:3260         ESTABLISHED 26793/iscsid
+> tcp        0      0 192.168.20.1:45859          192.168.20.222:3260         ESTABLISHED 26793/iscsid
 
-All RDMA CM IDs are assigned an idr number in ctx_idr and matched to a
-ucma_file object before they become visible to userspace and thus
-owned by a process. RDMA CM IDs that have not gone through this step
-are floating about in the kernel and don't need to be matched to pids.
+no sign for the iser connections, has to use dedicated tool
 
-It is really straighfroward to do: run idr_for_each over ctx_idr, find the
-ucma_contex->cm_id that matches the rdma_cm_id you are dumping, fill a
-netlink attribute with the ctx id and something from
-ucma_context->file to cross refrence with (the currently missing)
-something in fdinfo. If you don't find an idr entry then don't emit
-anything - it isn't exported to userspace.
+> # iscsiadm -m session
+> iser: [76] 192.168.20.222:3260,1 iqn.iser.A
+> tcp: [77] 192.168.20.222:3260,1 iqn.tcp.D
+> iser: [79] 192.168.20.222:3260,1 iqn.iser.B
+> tcp: [80] 192.168.20.222:3260,1 iqn.tcp.C
 
-Anyhow, I'd be happy if you stuck with creator_pid and left this for
-future. But, you might want to consider dumping the ctx id from ucma -
-since that is very useful.
+2. sdp - the code runs in the kernel, same story, the connections are not tracked, a dedicated "sdpnetstat" tool has to be used. Connections (sockets) are tied to processes and will be best if reported through generic netlink interface
 
-Jason
+3. rds - again, kernel level rdma-cm, here connections are not tied to processes, but no reporting as of today and dedicated "rds-info" tool has to be used.
+
+I'm sure there are (nfs rdma) and will be more examples for kernel level usage of the rdma-cm for which the pid field is helpful, 
+
+Or.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
