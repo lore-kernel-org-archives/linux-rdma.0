@@ -1,56 +1,48 @@
-From: Jabe <jabe.chapman-9AbUPqfR1/2XDw4h08c5KA@public.gmane.org>
-Subject: Re: [ewg] IPoIB to Ethernet routing performance
-Date: Mon, 27 Dec 2010 12:51:13 +0100
-Message-ID: <4D187DB1.5020005@shiftmail.org>
-References: <20101206112454.76bb85f1@frecb012350.frec.bull.fr>
- <00d701cb9533$71c5f2e0$5551d8a0$@com>
- <20101206124023.025c2f88@frecb012350.frec.bull.fr>
- <00f201cb953e$53f66a00$fbe33e00$@com>
- <20101206140505.20cfc9e2@frecb012350.frec.bull.fr>
- <alpine.DEB.2.00.1012091745070.29367@router.home>
- <AANLkTi=2-FJtJCY0+79wyXRszwrhRwQStDTNjRCjr66F@mail.gmail.com>
- <018d01cba4eb$aa507320$fef15960$@com>
+From: Or Gerlitz <ogerlitz-hKgKHo2Ms0FWk0Htik3J/w@public.gmane.org>
+Subject: Re: ibv_post_send/recv kernel path optimizations
+Date: Mon, 27 Dec 2010 14:38:35 +0200
+Message-ID: <4D1888CB.2010101@Voltaire.com>
+References: <20101013091312.GB6060@bicker> <20101123071025.GI1522@bicker>	<adahbf6gytv.fsf@cisco.com> <20101124221845.GH2369@obsidianresearch.com>	<adad3pugi90.fsf@cisco.com> <20101125041337.GA11049@obsidianresearch.com>	<4CEE7A22.2040706@voltaire.com>	<BE2BFE91933D1B4089447C644860408064B44854@irsmsx503.ger.corp.intel.com>	<4CF60343.7050602@voltaire.com>	<BE2BFE91933D1B4089447C644860408066ABCF66@irsmsx503.ger.corp.intel.com> <20101214181735.GA2506@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; format=flowed; charset=ISO-8859-1
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-reply-to: <018d01cba4eb$aa507320$fef15960$@com>
+In-Reply-To: <20101214181735.GA2506-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: richard.croucher-jNDFPZUTrfRJpuwtbJ71GdBPR1lH4CV8@public.gmane.org
-Cc: Richard Croucher <richard-jNDFPZUTrfRJpuwtbJ71GdBPR1lH4CV8@public.gmane.org>, 'Ali Ayoub' <ali-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, 'Christoph Lameter' <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>, 'linux-rdma' <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, 'sebastien dugue' <sebastien.dugue-6ktuUTfB/bM@public.gmane.org>, 'OF EWG' <ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, "Walukiewicz, Miroslaw" <Miroslaw.Walukiewicz-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 12/26/2010 11:57 AM, Richard Croucher wrote:
-> The vNIC driver only works when you have Ethernet/InfiniBand hardware
-> gateways in your environment.   It is useful when you have external hosts to
-> communicate with which do not have direct InfiniBand connectivity.
-> IPoIB is still heavily used in these environments to provide TCP/IP
-> connectivity within the InfiniBand fabric.
-> The primary Use Case for vNICs is probably for virtualization servers, so
-> that individual Guests can be presented with a virtual Ethernet NIC and do
-> not lead to load any InfiniBand drivers.  Only the hypervisor needs to have
-> the InfiniBand software stack loaded.
-> I've also applied vNICs in the Financial Services arena, for connectivity to
-> external TCP/IP services but there the IPoIB gateway function is arguably
-> more useful.
->
-> The whole vNIC arena is complicated by different, incompatible
-> implementations from each of Qlogic and Mellanox.
->
-> Richard
->    
+Jason Gunthorpe wrote:
+> Walukiewicz, Miroslaw wrote:
 
+>> called for many QPs, there is a single entry point to
+>> ib_uverbs_post_send using write to /dev/infiniband/uverbsX. In that
+>> case there is a lookup to QP store (idr_read_qp) necessary to find a
+>> correct ibv_qp Structure, what is a big time consumer on the path.
 
-Richard, with your explanation I understand why vNIC / EoIB is used in 
-the case you cite, but I don't understand why it is NOT used in the 
-other cases (like Ali says).
+> I don't think this should be such a big problem. The simplest solution
+> would be to front the idr_read_qp with a small learning hashing table.
 
-I can *guess* it's probably because with a virtual ethernet fabric you 
-have to do all IP stack in software, probably without even having the 
-stateless offloads (so it would be a performance reason). Is that the 
-reason?
+yes, there must be a few ways (e.g as Jason suggested) to do this house-keeping
+much more efficient, in a manner that fits fast path - which maybe wasn't the mindset 
+when this code was written as its primary use was to invoke control plane commands.
 
-Thank you
+>> The NES IMA kernel path also has such QP lookup but the QP number
+>> format is designed to make such lookup very quickly.  The QP numbers in
+>> OFED are not defined so generic lookup functions like idr_read_qp() must be use.
+
+> Maybe look at moving the QPN to ibv_qp translation into the driver
+> then - or better yet, move allocation out of the driver, if Mellanox
+> could change their FW.. You are right that we could do this much
+> faster if the QPN was structured in some way
+
+I think there should be some validation on the uverbs level, as the caller is untrusted
+user space application, e.g in a similar way for each system call done on a file-descriptor
+
+Or.
+
+Or.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
