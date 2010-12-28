@@ -1,8 +1,7 @@
 From: Mike Marciniszyn <mike.marciniszyn-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH 07/24] IB/qib: UD send with immediate Rx completion has wrong
-	size
-Date: Tue, 28 Dec 2010 10:27:26 -0500
-Message-ID: <20101228152726.19960.47834.stgit@kop-dev-sles11-04.qlogic.org>
+Subject: [PATCH 09/24] IB/qib: Multi Florida HCA Hosts panic on reboot
+Date: Tue, 28 Dec 2010 10:27:37 -0500
+Message-ID: <20101228152737.19960.79055.stgit@kop-dev-sles11-04.qlogic.org>
 References: <20101228152648.19960.84006.stgit@kop-dev-sles11-04.qlogic.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -14,29 +13,34 @@ To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-The code to generate receive completion entries for UD send with
-immediate contains the wrong payload length. This is because when
-the code to compute the payload size was moved, the value of hdrsize
-didn't get moved too.  The fix is to update tlen directly.
+Add check when setting configured contexts that the value
+does not exceed the number of contexts allocated for the
+card. If the value exceeds the already allocated count,
+set it to what is already allocated.
 
 Signed-off-by: Mike Marciniszyn <mike.marciniszyn-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
 ---
- drivers/infiniband/hw/qib/qib_ud.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ drivers/infiniband/hw/qib/qib_init.c |    6 ++++--
+ 1 files changed, 4 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/infiniband/hw/qib/qib_ud.c b/drivers/infiniband/hw/qib/qib_ud.c
-index e1b3da2..a4b945d 100644
---- a/drivers/infiniband/hw/qib/qib_ud.c
-+++ b/drivers/infiniband/hw/qib/qib_ud.c
-@@ -519,7 +519,7 @@ void qib_ud_rcv(struct qib_ibport *ibp, struct qib_ib_header *hdr,
- 	    opcode == IB_OPCODE_UD_SEND_ONLY_WITH_IMMEDIATE) {
- 		wc.ex.imm_data = ohdr->u.ud.imm_data;
- 		wc.wc_flags = IB_WC_WITH_IMM;
--		hdrsize += sizeof(u32);
-+		tlen -= sizeof(u32);
- 	} else if (opcode == IB_OPCODE_UD_SEND_ONLY) {
- 		wc.ex.imm_data = 0;
- 		wc.wc_flags = 0;
+diff --git a/drivers/infiniband/hw/qib/qib_init.c b/drivers/infiniband/hw/qib/qib_init.c
+index f3b5039..7896afb 100644
+--- a/drivers/infiniband/hw/qib/qib_init.c
++++ b/drivers/infiniband/hw/qib/qib_init.c
+@@ -92,9 +92,11 @@ unsigned long *qib_cpulist;
+ /* set number of contexts we'll actually use */
+ void qib_set_ctxtcnt(struct qib_devdata *dd)
+ {
+-	if (!qib_cfgctxts)
++	if (!qib_cfgctxts) {
+ 		dd->cfgctxts = dd->first_user_ctxt + num_online_cpus();
+-	else if (qib_cfgctxts < dd->num_pports)
++		if (dd->cfgctxts > dd->ctxtcnt)
++			dd->cfgctxts = dd->ctxtcnt;
++	} else if (qib_cfgctxts < dd->num_pports)
+ 		dd->cfgctxts = dd->ctxtcnt;
+ 	else if (qib_cfgctxts <= dd->ctxtcnt)
+ 		dd->cfgctxts = qib_cfgctxts;
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
