@@ -1,7 +1,8 @@
 From: Mike Marciniszyn <mike.marciniszyn-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH 02/24] IB/qib: add receive header queue size module parameters
-Date: Tue, 28 Dec 2010 10:27:00 -0500
-Message-ID: <20101228152700.19960.62796.stgit@kop-dev-sles11-04.qlogic.org>
+Subject: [PATCH 04/24] IB/qib: add thresholds to VendorPortCounters PMA
+	operation
+Date: Tue, 28 Dec 2010 10:27:11 -0500
+Message-ID: <20101228152711.19960.52491.stgit@kop-dev-sles11-04.qlogic.org>
 References: <20101228152648.19960.84006.stgit@kop-dev-sles11-04.qlogic.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -13,68 +14,140 @@ To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-The receive header queue sizes need to modified to support
-performance tuning.  Three module parameters are added to
-support this.
+This adds thresholds to be specified in the VendorPortCounters PMA
+operation.
 
 Signed-off-by: Mike Marciniszyn <mike.marciniszyn-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
 ---
- drivers/infiniband/hw/qib/qib_iba7322.c |   28 ++++++++++++++++++++++++----
- 1 files changed, 24 insertions(+), 4 deletions(-)
+ drivers/infiniband/hw/qib/qib_mad.c |   87 +++++++++++++++++++++++------------
+ 1 files changed, 57 insertions(+), 30 deletions(-)
 
-diff --git a/drivers/infiniband/hw/qib/qib_iba7322.c b/drivers/infiniband/hw/qib/qib_iba7322.c
-index 9031cd8..b35676f 100644
---- a/drivers/infiniband/hw/qib/qib_iba7322.c
-+++ b/drivers/infiniband/hw/qib/qib_iba7322.c
-@@ -111,6 +111,21 @@ static ushort qib_singleport;
- module_param_named(singleport, qib_singleport, ushort, S_IRUGO);
- MODULE_PARM_DESC(singleport, "Use only IB port 1; more per-port buffer space");
- 
-+/*
-+ * Receive header queue sizes
-+ */
-+static unsigned qib_rcvhdrcnt;
-+module_param_named(rcvhdrcnt, qib_rcvhdrcnt, uint, S_IRUGO);
-+MODULE_PARM_DESC(rcvhdrcnt, "receive header count");
-+
-+static unsigned qib_rcvhdrsize;
-+module_param_named(rcvhdrsize, qib_rcvhdrsize, uint, S_IRUGO);
-+MODULE_PARM_DESC(rcvhdrsize, "receive header size in 32-bit words");
-+
-+static unsigned qib_rcvhdrentsize;
-+module_param_named(rcvhdrentsize, qib_rcvhdrentsize, uint, S_IRUGO);
-+MODULE_PARM_DESC(rcvhdrentsize, "receive header entry size in 32-bit words");
-+
- #define MAX_ATTEN_LEN 64 /* plenty for any real system */
- /* for read back, default index is ~5m copper cable */
- static char txselect_list[MAX_ATTEN_LEN] = "10";
-@@ -3530,8 +3545,11 @@ static void qib_7322_config_ctxts(struct qib_devdata *dd)
- 
- 	/* kr_rcvegrcnt changes based on the number of contexts enabled */
- 	dd->cspec->rcvegrcnt = qib_read_kreg32(dd, kr_rcvegrcnt);
--	dd->rcvhdrcnt = max(dd->cspec->rcvegrcnt,
--				dd->num_pports > 1 ? 1024U : 2048U);
-+	if (qib_rcvhdrcnt)
-+		dd->rcvhdrcnt = max(dd->cspec->rcvegrcnt, qib_rcvhdrcnt);
-+	else
-+		dd->rcvhdrcnt = max(dd->cspec->rcvegrcnt,
-+				    dd->num_pports > 1 ? 1024U : 2048U);
+diff --git a/drivers/infiniband/hw/qib/qib_mad.c b/drivers/infiniband/hw/qib/qib_mad.c
+index 94b0d1f..9794020 100644
+--- a/drivers/infiniband/hw/qib/qib_mad.c
++++ b/drivers/infiniband/hw/qib/qib_mad.c
+@@ -1135,10 +1135,10 @@ static int pma_get_classportinfo(struct ib_perf *pmp,
+ 	p->class_version = 1;
+ 	p->cap_mask = IB_PMA_CLASS_CAP_EXT_WIDTH;
+ 	/*
+-	 * Set the most significant bit of CM2 to indicate support for
++	 * Set the most significant two bits of CM2 to indicate support for
+ 	 * congestion statistics
+ 	 */
+-	p->reserved[0] = dd->psxmitwait_supported << 7;
++	p->reserved[0] = (dd->psxmitwait_supported * 3) << 6;
+ 	/*
+ 	 * Expected response time is 4.096 usec. * 2^18 == 1.073741824 sec.
+ 	 */
+@@ -1709,8 +1709,14 @@ static int pma_set_portcounters(struct ib_perf *pmp,
  }
  
- static int qib_7322_get_ib_cfg(struct qib_pportdata *ppd, int which)
-@@ -6097,8 +6115,10 @@ static int qib_init_7322_variables(struct qib_devdata *dd)
- 		ppd++;
+ static int pma_set_portcounters_cong(struct ib_perf *pmp,
+-				     struct ib_device *ibdev, u8 port)
++				     struct ib_device *ibdev, u8 port,
++				     struct ib_perf *pmp_in)
+ {
++	/* Congestion PMA packets start at offset 24 not 64 */
++	struct ib_pma_portcounters_cong *p_out =
++			(struct ib_pma_portcounters_cong *)pmp->reserved;
++	struct ib_pma_portcounters_cong *p_in =
++			(struct ib_pma_portcounters_cong *)pmp_in->reserved;
+ 	struct qib_ibport *ibp = to_iport(ibdev, port);
+ 	struct qib_pportdata *ppd = ppd_from_ibp(ibp);
+ 	struct qib_devdata *dd = dd_from_ppd(ppd);
+@@ -1724,36 +1730,56 @@ static int pma_set_portcounters_cong(struct ib_perf *pmp,
+ 	ret = pma_get_portcounters_cong(pmp, ibdev, port);
+ 
+ 	if (counter_select & IB_PMA_SEL_CONG_XMIT) {
+-		spin_lock_irqsave(&ppd->ibport_data.lock, flags);
+-		ppd->cong_stats.counter = 0;
+-		dd->f_set_cntr_sample(ppd, QIB_CONG_TIMER_PSINTERVAL,
+-				      0x0);
+-		spin_unlock_irqrestore(&ppd->ibport_data.lock, flags);
++		if (p_out->port_xmit_wait > p_in->port_xmit_wait) {
++			spin_lock_irqsave(&ppd->ibport_data.lock, flags);
++			ppd->cong_stats.counter = 0;
++			dd->f_set_cntr_sample(ppd, QIB_CONG_TIMER_PSINTERVAL,
++					      0x0);
++			spin_unlock_irqrestore(&ppd->ibport_data.lock, flags);
++		}
+ 	}
+ 	if (counter_select & IB_PMA_SEL_CONG_PORT_DATA) {
+-		ibp->z_port_xmit_data = cntrs.port_xmit_data;
+-		ibp->z_port_rcv_data = cntrs.port_rcv_data;
+-		ibp->z_port_xmit_packets = cntrs.port_xmit_packets;
+-		ibp->z_port_rcv_packets = cntrs.port_rcv_packets;
++		if (p_out->port_xmit_data > p_in->port_xmit_data)
++			ibp->z_port_xmit_data = cntrs.port_xmit_data;
++		if (p_out->port_rcv_data > p_in->port_rcv_data)
++			ibp->z_port_rcv_data = cntrs.port_rcv_data;
++		if (p_out->port_xmit_packets > p_in->port_xmit_packets)
++			ibp->z_port_xmit_packets = cntrs.port_xmit_packets;
++		if (p_out->port_rcv_packets > p_in->port_rcv_packets)
++			ibp->z_port_rcv_packets = cntrs.port_rcv_packets;
+ 	}
+ 	if (counter_select & IB_PMA_SEL_CONG_ALL) {
+-		ibp->z_symbol_error_counter =
+-			cntrs.symbol_error_counter;
+-		ibp->z_link_error_recovery_counter =
+-			cntrs.link_error_recovery_counter;
+-		ibp->z_link_downed_counter =
+-			cntrs.link_downed_counter;
+-		ibp->z_port_rcv_errors = cntrs.port_rcv_errors;
+-		ibp->z_port_rcv_remphys_errors =
+-			cntrs.port_rcv_remphys_errors;
+-		ibp->z_port_xmit_discards =
+-			cntrs.port_xmit_discards;
+-		ibp->z_local_link_integrity_errors =
+-			cntrs.local_link_integrity_errors;
+-		ibp->z_excessive_buffer_overrun_errors =
+-			cntrs.excessive_buffer_overrun_errors;
+-		ibp->n_vl15_dropped = 0;
+-		ibp->z_vl15_dropped = cntrs.vl15_dropped;
++		if (p_out->symbol_error_counter > p_in->symbol_error_counter)
++			ibp->z_symbol_error_counter =
++				cntrs.symbol_error_counter;
++		if (p_out->link_error_recovery_counter >
++		    p_in->link_error_recovery_counter)
++			ibp->z_link_error_recovery_counter =
++				cntrs.link_error_recovery_counter;
++		if (p_out->link_downed_counter > p_in->link_downed_counter)
++			ibp->z_link_downed_counter =
++				cntrs.link_downed_counter;
++		if (p_out->port_rcv_errors > p_in->port_rcv_errors)
++			ibp->z_port_rcv_errors = cntrs.port_rcv_errors;
++		if (p_out->port_rcv_remphys_errors >
++		    p_in->port_rcv_remphys_errors)
++			ibp->z_port_rcv_remphys_errors =
++				cntrs.port_rcv_remphys_errors;
++		if (p_out->port_xmit_discards > p_in->port_xmit_discards)
++			ibp->z_port_xmit_discards =
++				cntrs.port_xmit_discards;
++		if ((p_out->lli_ebor_errors & 0xf0) >
++		    (p_in->lli_ebor_errors & 0xf0))
++			ibp->z_local_link_integrity_errors =
++				cntrs.local_link_integrity_errors;
++		if ((p_out->lli_ebor_errors & 0x0f) >
++		    (p_in->lli_ebor_errors & 0x0f))
++			ibp->z_excessive_buffer_overrun_errors =
++				cntrs.excessive_buffer_overrun_errors;
++		if (p_out->vl15_dropped > p_in->vl15_dropped) {
++			ibp->n_vl15_dropped = 0;
++			ibp->z_vl15_dropped = cntrs.vl15_dropped;
++		}
  	}
  
--	dd->rcvhdrentsize = QIB_RCVHDR_ENTSIZE;
--	dd->rcvhdrsize = QIB_DFLT_RCVHDRSIZE;
-+	dd->rcvhdrentsize = qib_rcvhdrentsize ?
-+		qib_rcvhdrentsize : QIB_RCVHDR_ENTSIZE;
-+	dd->rcvhdrsize = qib_rcvhdrsize ?
-+		qib_rcvhdrsize : QIB_DFLT_RCVHDRSIZE;
- 	dd->rhf_offset = dd->rcvhdrentsize - sizeof(u64) / sizeof(u32);
- 
- 	/* we always allocate at least 2048 bytes for eager buffers */
+ 	return ret;
+@@ -2004,7 +2030,8 @@ static int process_perf(struct ib_device *ibdev, u8 port,
+ 			ret = pma_set_portcounters_ext(pmp, ibdev, port);
+ 			goto bail;
+ 		case IB_PMA_PORT_COUNTERS_CONG:
+-			ret = pma_set_portcounters_cong(pmp, ibdev, port);
++			ret = pma_set_portcounters_cong(pmp, ibdev, port,
++						(struct ib_perf *)in_mad);
+ 			goto bail;
+ 		default:
+ 			pmp->status |= IB_SMP_UNSUP_METH_ATTR;
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
