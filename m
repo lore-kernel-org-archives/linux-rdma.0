@@ -1,7 +1,7 @@
 From: Mike Marciniszyn <mike.marciniszyn-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH 13/24] IB/qib: Reset packet list after freeing
-Date: Tue, 28 Dec 2010 10:27:57 -0500
-Message-ID: <20101228152757.19960.37380.stgit@kop-dev-sles11-04.qlogic.org>
+Subject: [PATCH 03/24] IB/qib: add support for the new QME7362 card
+Date: Tue, 28 Dec 2010 10:27:06 -0500
+Message-ID: <20101228152705.19960.96570.stgit@kop-dev-sles11-04.qlogic.org>
 References: <20101228152648.19960.84006.stgit@kop-dev-sles11-04.qlogic.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -13,26 +13,29 @@ To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Reset the list pointers after freeing the SDMA packet
-list. This is done to any potential double-free cases.
+This patch adds support to recognize another board variation
+named QME7362.
 
 Signed-off-by: Mike Marciniszyn <mike.marciniszyn-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
 ---
- drivers/infiniband/hw/qib/qib_user_sdma.c |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
+ drivers/infiniband/hw/qib/qib_iba7322.c |    4 ++++
+ 1 files changed, 4 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/infiniband/hw/qib/qib_user_sdma.c b/drivers/infiniband/hw/qib/qib_user_sdma.c
-index 4c19e06..66208bc 100644
---- a/drivers/infiniband/hw/qib/qib_user_sdma.c
-+++ b/drivers/infiniband/hw/qib/qib_user_sdma.c
-@@ -382,6 +382,7 @@ static void qib_user_sdma_free_pkt_list(struct device *dev,
- 
- 		kmem_cache_free(pq->pkt_slab, pkt);
- 	}
-+	INIT_LIST_HEAD(list);
- }
- 
- /*
+diff --git a/drivers/infiniband/hw/qib/qib_iba7322.c b/drivers/infiniband/hw/qib/qib_iba7322.c
+index b35676f..40f4a23 100644
+--- a/drivers/infiniband/hw/qib/qib_iba7322.c
++++ b/drivers/infiniband/hw/qib/qib_iba7322.c
+@@ -3172,6 +3172,10 @@ static unsigned qib_7322_boardname(struct qib_devdata *dd)
+ 	case BOARD_QME7342:
+ 		n = "InfiniPath_QME7342";
+ 		break;
++	case 8:
++		n = "InfiniPath_QME7362";
++		dd->flags |= QIB_HAS_QSFP;
++		break;
+ 	case 15:
+ 		n = "InfiniPath_QLE7342_TEST";
+ 		dd->flags |= QIB_HAS_QSFP;
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
