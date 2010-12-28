@@ -1,7 +1,8 @@
 From: Mike Marciniszyn <mike.marciniszyn-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH 01/24] IB/qib: remove IB latency turnoff
-Date: Tue, 28 Dec 2010 10:26:55 -0500
-Message-ID: <20101228152655.19960.83166.stgit@kop-dev-sles11-04.qlogic.org>
+Subject: [PATCH 11/24] IB/qib: clear WAIT_SEND flags when setting QP to error
+	state
+Date: Tue, 28 Dec 2010 10:27:47 -0500
+Message-ID: <20101228152747.19960.66724.stgit@kop-dev-sles11-04.qlogic.org>
 References: <20101228152648.19960.84006.stgit@kop-dev-sles11-04.qlogic.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -13,26 +14,30 @@ To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-This is required for hardware testing.
+If these flags are set when the QP is transitioned to the error
+state, it will wait until the flags are cleared, which may never
+happen if the error transition is due to a link going down.
 
 Signed-off-by: Mike Marciniszyn <mike.marciniszyn-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
 ---
- drivers/infiniband/hw/qib/qib_iba7322.c |    2 --
- 1 files changed, 0 insertions(+), 2 deletions(-)
+ drivers/infiniband/hw/qib/qib_qp.c |    4 ++++
+ 1 files changed, 4 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/infiniband/hw/qib/qib_iba7322.c b/drivers/infiniband/hw/qib/qib_iba7322.c
-index 584d443..9031cd8 100644
---- a/drivers/infiniband/hw/qib/qib_iba7322.c
-+++ b/drivers/infiniband/hw/qib/qib_iba7322.c
-@@ -7271,8 +7271,6 @@ static int serdes_7322_init(struct qib_pportdata *ppd)
- 	ibsd_wr_allchans(ppd, 20, (4 << 13), BMASK(15, 13)); /* SDR */
- 
- 	data = qib_read_kreg_port(ppd, krp_serdesctrl);
--	/* Turn off IB latency mode */
--	data &= ~SYM_MASK(IBSerdesCtrl_0, IB_LAT_MODE);
- 	qib_write_kreg_port(ppd, krp_serdesctrl, data |
- 		SYM_MASK(IBSerdesCtrl_0, RXLOSEN));
- 
+diff --git a/drivers/infiniband/hw/qib/qib_qp.c b/drivers/infiniband/hw/qib/qib_qp.c
+index 6c39851..32dacd4 100644
+--- a/drivers/infiniband/hw/qib/qib_qp.c
++++ b/drivers/infiniband/hw/qib/qib_qp.c
+@@ -468,6 +468,10 @@ int qib_error_qp(struct qib_qp *qp, enum ib_wc_status err)
+ 		qp->s_flags &= ~(QIB_S_TIMER | QIB_S_WAIT_RNR);
+ 		del_timer(&qp->s_timer);
+ 	}
++
++	if (qp->s_flags & QIB_S_ANY_WAIT_SEND)
++		qp->s_flags &= ~QIB_S_ANY_WAIT_SEND;
++
+ 	spin_lock(&dev->pending_lock);
+ 	if (!list_empty(&qp->iowait) && !(qp->s_flags & QIB_S_BUSY)) {
+ 		qp->s_flags &= ~QIB_S_ANY_WAIT_IO;
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
