@@ -1,50 +1,33 @@
-From: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [ewg] IPoIB to Ethernet routing performance
-Date: Mon, 3 Jan 2011 16:33:59 -0600 (CST)
-Message-ID: <alpine.DEB.2.00.1101031631550.31064@router.home>
-References: <20101206112454.76bb85f1@frecb012350.frec.bull.fr> <00d701cb9533$71c5f2e0$5551d8a0$@com> <20101206124023.025c2f88@frecb012350.frec.bull.fr> <00f201cb953e$53f66a00$fbe33e00$@com> <20101206140505.20cfc9e2@frecb012350.frec.bull.fr>
- <alpine.DEB.2.00.1012091745070.29367@router.home> <AANLkTi=2-FJtJCY0+79wyXRszwrhRwQStDTNjRCjr66F@mail.gmail.com>
+From: Or Gerlitz <ogerlitz-hKgKHo2Ms0FWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCHv10 1/4] libibverbs: Add link layer field to ibv_port_attr
+Date: Tue, 4 Jan 2011 09:54:35 +0200
+Message-ID: <4D22D23B.9070504@Voltaire.com>
+References: <20100826141930.GN8795@mtldesk30>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="-1463811839-760346520-1294094040=:31064"
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <AANLkTi=2-FJtJCY0+79wyXRszwrhRwQStDTNjRCjr66F-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <20100826141930.GN8795@mtldesk30>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ali Ayoub <ali-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: sebastien dugue <sebastien.dugue-6ktuUTfB/bM@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Richard Croucher <richard-jNDFPZUTrfRJpuwtbJ71GdBPR1lH4CV8@public.gmane.org>, OF EWG <ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Cc: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, RDMA list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+Eli Cohen wrote:
+> This field can have one of the values - IBV_LINK_LAYER_UNSPECIFIED,
+> IBV_LINK_LAYER_INFINIBAND, IBV_LINK_LAYER_ETHERNET. It can be used by
+> applications to know the link layer used by the port, which can be either
+> Infiniband or Ethernet. The addition of the new field does not change the size
+> of struct ibv_port_attr due to alignment of the preceding field [...]
+> Solution suggested by:
+>                Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+>                Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 
----1463811839-760346520-1294094040=:31064
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Roland,
 
-On Sat, 25 Dec 2010, Ali Ayoub wrote:
+Are you planning to look into completing the IBoE support for user space any time soon? with v10 of the patch Eli posted four patches to libibverbs and two patch to libmlx4
 
-> On Thu, Dec 9, 2010 at 3:46 PM, Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org> wrote:
-> > On Mon, 6 Dec 2010, sebastien dugue wrote:
-> >
-> >> > The Mellanox BridgeX looks a better hardware solution with 12x 10Ge
-> >> > ports but when I tested this they could only provide vNIC
-> >> > functionality and would not commit to adding IPoIB gateway on their
-> >> > roadmap.
-> >>
-> >> =A0 Right, we did some evaluation on it and this was really a show sto=
-pper.
-> >
-> > Did the same thing here came to the same conclusions.
->
-> May I ask why do you need IPoIB when you have EoIB (vNic driver)?
-> Why it's a show stopper?
-
-EoIB is immature for some use cases like financial. No multicast support
-f.e. All multicast becomes broadcast. There is extensive support for
-multicast on IPoIB and the various gotchas and hiccups that where there
-initially have mostly been worked out.
-
-
----1463811839-760346520-1294094040=:31064--
+Or.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
