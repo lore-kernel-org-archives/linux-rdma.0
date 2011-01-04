@@ -1,30 +1,32 @@
 From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 24/24] IB/qib: Improve SERDES tunning on QMH boards
-Date: Tue, 04 Jan 2011 10:55:03 -0800
-Message-ID: <adalj30ijnc.fsf@cisco.com>
+Subject: Re: [PATCH 0/24] various fixes for QIB driver
+Date: Tue, 04 Jan 2011 10:59:04 -0800
+Message-ID: <adahbdoijgn.fsf@cisco.com>
 References: <20101228152648.19960.84006.stgit@kop-dev-sles11-04.qlogic.org>
-	<20101228152855.19960.96651.stgit@kop-dev-sles11-04.qlogic.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20101228152855.19960.96651.stgit-hIFRcJ1SNwcXGO8/Qfapyjg/wwJxntczYPYVAmT7z5s@public.gmane.org>
-	(Mike Marciniszyn's message of "Tue, 28 Dec 2010 10:28:55 -0500")
+In-Reply-To: <20101228152648.19960.84006.stgit-hIFRcJ1SNwcXGO8/Qfapyjg/wwJxntczYPYVAmT7z5s@public.gmane.org>
+	(Mike Marciniszyn's message of "Tue, 28 Dec 2010 10:26:50 -0500")
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Mike Marciniszyn <mike.marciniszyn-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
- > @@ -7596,8 +7616,6 @@ static int serdes_7322_init_new(struct qib_pportdata *ppd)
- >  	/* VGA output common mode */
- >  	ibsd_wr_allchans(ppd, 12, (3 << 2), BMASK(3, 2));
- >  
- > -	/* Add a delay to allow the SERDES to init */
- > -	msleep(3000);
- >  	return 0;
- >  }
+ > The following patches (ordered first to last) are for various bug fixes found
+ > during internal testing.
 
-Am I confused or is this chunk completely reverting patch 23?  Is there
-any reason you want that patch in the kernel history?
+OK, but in the future please send patches in smaller sets (say, no more
+than 10 at a time).  It's hard to review and apply big patch bombs.
+
+Also when I apply all this stuff, you will be listed as the author of
+all the patches.  If there's someone else you want to give credit too,
+you can put a line like
+
+From: X Y Z <x.y.z-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+
+as the first line of the body of your email.  (Since you are sending the
+emails, your signed-off-by should be the last line before the "---")
 
  - R.
 --
