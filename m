@@ -1,200 +1,87 @@
-From: David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>
-Subject: [PATCH v2 7/8] IB/srp: stop sharing the host lock with SCSI
-Date: Wed,  5 Jan 2011 15:35:15 -0500
-Message-ID: <1294259716-30706-8-git-send-email-dillowda@ornl.gov>
-References: <1294259716-30706-1-git-send-email-dillowda@ornl.gov>
+From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+Subject: [PATCH] fix rpmbuild with and w/o ibmgtsim build
+Date: Wed, 5 Jan 2011 16:57:03 -0800
+Message-ID: <20110105165703.06ac4526.weiny2@llnl.gov>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1294259716-30706-1-git-send-email-dillowda-1Heg1YXhbW8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bvanassche-HInyCGIudOg@public.gmane.org
+To: Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
 
-We don't need protection against the SCSI stack, so use our own lock to
-allow parallel progress on separate CPUs.
+[PATCH] fix rpmbuild with and w/o ibmgtsim build
 
-Signed-off-by: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-[ broken out and small cleanups by David Dillow ]
-Signed-off-by: David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>
+
+Signed-off-by: Ira Weiny <weiny2-eSE4LqFkL++LYFxP40JT4w@public.gmane.org>
 ---
- drivers/infiniband/ulp/srp/ib_srp.c |   46 +++++++++++++++++-----------------
- drivers/infiniband/ulp/srp/ib_srp.h |    2 +
- 2 files changed, 25 insertions(+), 23 deletions(-)
+ Makefile.am     |    2 +-
+ ibutils.spec.in |   14 ++++++++++----
+ 2 files changed, 11 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
-index 15c3ae3..2f62367 100644
---- a/drivers/infiniband/ulp/srp/ib_srp.c
-+++ b/drivers/infiniband/ulp/srp/ib_srp.c
-@@ -447,12 +447,12 @@ static bool srp_change_state(struct srp_target_port *target,
- {
- 	bool changed = false;
+diff --git a/Makefile.am b/Makefile.am
+index 87b071d..cb13dbd 100644
+--- a/Makefile.am
++++ b/Makefile.am
+@@ -45,7 +45,7 @@ MAINTAINERCLEANFILES = Makefile.in aclocal.m4 configure config-h.in
  
--	spin_lock_irq(target->scsi_host->host_lock);
-+	spin_lock_irq(&target->lock);
- 	if (target->state == old) {
- 		target->state = new;
- 		changed = true;
- 	}
--	spin_unlock_irq(target->scsi_host->host_lock);
-+	spin_unlock_irq(&target->lock);
- 	return changed;
- }
+ ACLOCAL			= aclocal -I $(ac_aux_dir)
  
-@@ -555,11 +555,11 @@ static void srp_remove_req(struct srp_target_port *target,
- 	unsigned long flags;
+-EXTRA_DIST = ibutils.spec.in
++EXTRA_DIST = ibutils.spec.in ibmgtsim
  
- 	srp_unmap_data(req->scmnd, target, req);
--	spin_lock_irqsave(target->scsi_host->host_lock, flags);
-+	spin_lock_irqsave(&target->lock, flags);
- 	target->req_lim += req_lim_delta;
- 	req->scmnd = NULL;
- 	list_add_tail(&req->list, &target->free_reqs);
--	spin_unlock_irqrestore(target->scsi_host->host_lock, flags);
-+	spin_unlock_irqrestore(&target->lock, flags);
- }
+ dist-hook: ibutils.spec
+ 	cp ibutils.spec $(distdir)
+diff --git a/ibutils.spec.in b/ibutils.spec.in
+index f044aff..a5d7b76 100644
+--- a/ibutils.spec.in
++++ b/ibutils.spec.in
+@@ -31,6 +31,7 @@
+ #--
  
- static void srp_reset_req(struct srp_target_port *target, struct srp_request *req)
-@@ -634,13 +634,13 @@ err:
- 	 * Schedule our work inside the lock to avoid a race with
- 	 * the flush_scheduled_work() in srp_remove_one().
- 	 */
--	spin_lock_irq(target->scsi_host->host_lock);
-+	spin_lock_irq(&target->lock);
- 	if (target->state == SRP_TARGET_CONNECTING) {
- 		target->state = SRP_TARGET_DEAD;
- 		INIT_WORK(&target->work, srp_remove_work);
- 		schedule_work(&target->work);
- 	}
--	spin_unlock_irq(target->scsi_host->host_lock);
-+	spin_unlock_irq(&target->lock);
+ %{?build_ibmgtsim: %define ibmgtsim --enable-ibmgtsim}
++%{?build_ibmgtsim: %define ibmgtsim_files 1}
  
- 	return ret;
- }
-@@ -829,17 +829,16 @@ static void srp_put_tx_iu(struct srp_target_port *target, struct srp_iu *iu,
- {
- 	unsigned long flags;
- 
--	spin_lock_irqsave(target->scsi_host->host_lock, flags);
-+	spin_lock_irqsave(&target->lock, flags);
- 	list_add(&iu->list, &target->free_tx);
- 	if (iu_type != SRP_IU_RSP)
- 		++target->req_lim;
--	spin_unlock_irqrestore(target->scsi_host->host_lock, flags);
-+	spin_unlock_irqrestore(&target->lock, flags);
- }
- 
- /*
-- * Must be called with target->scsi_host->host_lock held to protect
-- * req_lim and free_tx.  If IU is not sent, it must be returned using
-- * srp_put_tx_iu().
-+ * Must be called with target->lock held to protect req_lim and free_tx.
-+ * If IU is not sent, it must be returned using srp_put_tx_iu().
-  *
-  * Note:
-  * An upper limit for the number of allocated information units for each
-@@ -920,9 +919,9 @@ static void srp_process_rsp(struct srp_target_port *target, struct srp_rsp *rsp)
- 	unsigned long flags;
- 
- 	if (unlikely(rsp->tag & SRP_TAG_TSK_MGMT)) {
--		spin_lock_irqsave(target->scsi_host->host_lock, flags);
-+		spin_lock_irqsave(&target->lock, flags);
- 		target->req_lim += be32_to_cpu(rsp->req_lim_delta);
--		spin_unlock_irqrestore(target->scsi_host->host_lock, flags);
-+		spin_unlock_irqrestore(&target->lock, flags);
- 
- 		target->tsk_mgmt_status = -1;
- 		if (be32_to_cpu(rsp->resp_data_len) >= 4)
-@@ -963,10 +962,10 @@ static int srp_response_common(struct srp_target_port *target, s32 req_delta,
- 	struct srp_iu *iu;
- 	int err;
- 
--	spin_lock_irqsave(target->scsi_host->host_lock, flags);
-+	spin_lock_irqsave(&target->lock, flags);
- 	target->req_lim += req_delta;
- 	iu = __srp_get_tx_iu(target, SRP_IU_RSP);
--	spin_unlock_irqrestore(target->scsi_host->host_lock, flags);
-+	spin_unlock_irqrestore(&target->lock, flags);
- 
- 	if (!iu) {
- 		shost_printk(KERN_ERR, target->scsi_host, PFX
-@@ -1131,14 +1130,14 @@ static int srp_queuecommand(struct Scsi_Host *shost, struct scsi_cmnd *scmnd)
- 		return 0;
- 	}
- 
--	spin_lock_irqsave(shost->host_lock, flags);
-+	spin_lock_irqsave(&target->lock, flags);
- 	iu = __srp_get_tx_iu(target, SRP_IU_CMD);
- 	if (iu) {
- 		req = list_first_entry(&target->free_reqs, struct srp_request,
- 				      list);
- 		list_del(&req->list);
- 	}
--	spin_unlock_irqrestore(shost->host_lock, flags);
-+	spin_unlock_irqrestore(&target->lock, flags);
- 
- 	if (!iu)
- 		goto err;
-@@ -1184,9 +1183,9 @@ err_unmap:
- err_iu:
- 	srp_put_tx_iu(target, iu, SRP_IU_CMD);
- 
--	spin_lock_irqsave(shost->host_lock, flags);
-+	spin_lock_irqsave(&target->lock, flags);
- 	list_add(&req->list, &target->free_reqs);
--	spin_unlock_irqrestore(shost->host_lock, flags);
-+	spin_unlock_irqrestore(&target->lock, flags);
- 
- err:
- 	return SCSI_MLQUEUE_HOST_BUSY;
-@@ -1451,9 +1450,9 @@ static int srp_send_tsk_mgmt(struct srp_target_port *target,
- 
- 	init_completion(&target->tsk_mgmt_done);
- 
--	spin_lock_irq(target->scsi_host->host_lock);
-+	spin_lock_irq(&target->lock);
- 	iu = __srp_get_tx_iu(target, SRP_IU_TSK_MGMT);
--	spin_unlock_irq(target->scsi_host->host_lock);
-+	spin_unlock_irq(&target->lock);
- 
- 	if (!iu)
- 		return -1;
-@@ -1957,6 +1956,7 @@ static ssize_t srp_create_target(struct device *dev,
- 	target->scsi_host  = target_host;
- 	target->srp_host   = host;
- 
-+	spin_lock_init(&target->lock);
- 	INIT_LIST_HEAD(&target->free_tx);
- 	INIT_LIST_HEAD(&target->free_reqs);
- 	for (i = 0; i < SRP_CMD_SQ_SIZE; ++i) {
-@@ -2186,9 +2186,9 @@ static void srp_remove_one(struct ib_device *device)
- 		 */
- 		spin_lock(&host->target_lock);
- 		list_for_each_entry(target, &host->target_list, list) {
--			spin_lock_irq(target->scsi_host->host_lock);
-+			spin_lock_irq(&target->lock);
- 			target->state = SRP_TARGET_REMOVED;
--			spin_unlock_irq(target->scsi_host->host_lock);
-+			spin_unlock_irq(&target->lock);
- 		}
- 		spin_unlock(&host->target_lock);
- 
-diff --git a/drivers/infiniband/ulp/srp/ib_srp.h b/drivers/infiniband/ulp/srp/ib_srp.h
-index 81686ee..acb435d 100644
---- a/drivers/infiniband/ulp/srp/ib_srp.h
-+++ b/drivers/infiniband/ulp/srp/ib_srp.h
-@@ -144,6 +144,8 @@ struct srp_target_port {
- 
- 	struct srp_iu	       *rx_ring[SRP_RQ_SIZE];
- 
-+	spinlock_t		lock;
+ Summary: OpenIB Mellanox InfiniBand Diagnostic Tools
+ Name: ibutils
+@@ -128,17 +129,20 @@ rm -rf $RPM_BUILD_DIR/%{name}-%{version}
+ %{_mandir}/man1/ibdm-ibnl-file.1*
+ /etc/profile.d/ibutils.sh
+ /etc/profile.d/ibutils.csh
++%{_prefix}/bin/dump2slvl.pl
++%{_prefix}/bin/dump2psl.pl
++%{_libdir}/libibsysapi.so*
++%{_libdir}/libibsysapi.a
 +
- 	struct list_head	free_tx;
- 	struct srp_iu	       *tx_ring[SRP_SQ_SIZE];
++# These are only installed when ibmgtsim is built
++%if %{?ibmgtsim_files:1}
+ %{_prefix}/bin/mkSimNodeDir
+ %{_prefix}/bin/ibmssh
+ %{_prefix}/bin/ibmsquit
+ %{_prefix}/bin/RunSimTest
+ %{_prefix}/bin/IBMgtSim
+-%{_prefix}/bin/dump2slvl.pl
+-%{_prefix}/bin/dump2psl.pl
+ %{_libdir}/libibmscli.so*
+ %{_libdir}/libibmscli.a
+-%{_libdir}/libibsysapi.so*
+-%{_libdir}/libibsysapi.a
+ %{_prefix}/include/ibmgtsim
+ %{_prefix}/share/ibmgtsim
+ %{_mandir}/man1/ibmssh.1*
+@@ -146,6 +150,8 @@ rm -rf $RPM_BUILD_DIR/%{name}-%{version}
+ %{_mandir}/man1/mkSimNodeDir.1*
+ %{_mandir}/man1/RunSimTest.1*
+ %{_mandir}/man1/IBMgtSim.1*
++%endif
++
+ # END Files
  
+ %changelog
 -- 
-1.7.3.4
+1.5.4.5
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
