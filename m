@@ -1,47 +1,108 @@
 From: Roland Dreier <rdreier@cisco.com>
-Subject: Re: Re: [PATCH] infiniband/mthca : Fix userland mapping
-	of mthca infiniband cards in Xen dom0
-Date: Thu, 06 Jan 2011 10:51:57 -0800
-Message-ID: <adalj2xdfw2.fsf@cisco.com>
-References: <1293034260.30522.426.camel@trax> <adamxnfdty8.fsf@cisco.com>
-	<AANLkTi=zMiVJfTRDeYvbxT46b0iASKG9jPgXqG81bqAK@mail.gmail.com>
-	<20110106165549.GC18774@dumpdata.com>
+Subject: Re: [PATCH 4/7] [SCSI] scst: Add SRP target driver
+Date: Thu, 06 Jan 2011 11:00:10 -0800
+Message-ID: <adahbdldfid.fsf@cisco.com>
+References: <201012201849.27639.bvanassche@acm.org>
+	<adaaajfdrtr.fsf@cisco.com>
+	<AANLkTineDYxbjEdtfBJ6WjLfxs2VvqnQ9v887vExHga7@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <xen-devel-bounces@lists.xensource.com>
-In-Reply-To: <20110106165549.GC18774@dumpdata.com> (Konrad Rzeszutek Wilk's
-	message of "Thu, 6 Jan 2011 11:55:49 -0500")
-List-Unsubscribe: <http://lists.xensource.com/mailman/listinfo/xen-devel>,
-	<mailto:xen-devel-request@lists.xensource.com?subject=unsubscribe>
-List-Post: <mailto:xen-devel@lists.xensource.com>
-List-Help: <mailto:xen-devel-request@lists.xensource.com?subject=help>
-List-Subscribe: <http://lists.xensource.com/mailman/listinfo/xen-devel>,
-	<mailto:xen-devel-request@lists.xensource.com?subject=subscribe>
-Sender: xen-devel-bounces@lists.xensource.com
-Errors-To: xen-devel-bounces@lists.xensource.com
-To: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-Cc: jackm@mellanox.co.il, Jeremy Fitzhardinge <jeremy@goop.org>, xen-devel@lists.xensource.com, rdreir@cisco.com, linux-rdma@vger.kernel.org, Vivien Bernet-Rollande <vbr@soprive.net>, sean.hefty@intel.com
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-scsi-owner@vger.kernel.org>
+In-Reply-To: <AANLkTineDYxbjEdtfBJ6WjLfxs2VvqnQ9v887vExHga7@mail.gmail.com>
+	(Bart Van Assche's message of "Thu, 6 Jan 2011 18:41:41 +0100")
+Sender: linux-scsi-owner@vger.kernel.org
+To: Bart Van Assche <bvanassche@acm.org>
+Cc: linux-scsi@vger.kernel.org, scst-devel@lists.sourceforge.net, linux-rdma@vger.kernel.org, James.Bottomley@suse.de, Vu Pham <vu@mellanox.com>, Roland Dreier <rolandd@cisco.com>, David Dillow <dave@thedillows.org>
 List-Id: linux-rdma@vger.kernel.org
 
- > There is another way, which I hope can fix this issue (it fixes
- > the graphics drivers). Basically making the Xen MMU be aware of the E820
- > and consider any access to PFNs that are not in RAM to have VM_IO implicitly set.
- > 
- > The patches are at git://git.kernel.org/pub/scm/linux/kernel/git/konrad/xen.git
- > 
- > stable/p2m-identity.v4.3
- > 
- > And posted on LKML )https://lkml.org/lkml/2010/12/30/163)
- > 
- > They _should_ take care of your problem as long as the PFNs you
- > are mapping fall within the PCI BAR regions (which I would presume they
- > do since you are using ioremap).
+ > I'll have a look at converting these atomic operations into regular
+ > locking. The current implementation should be fine though.
 
-Yes, that should work fine for all the cases I know of in the RDMA
-drivers.  We are just mapping some PCI BAR space into userspace for
-direct access to hardware (just like graphics, I think).
+I believe that the current implementation is correct.  However it is
+much harder for someone naive like me to understand, since using cmpxch=
+g
+is much subtler than just using a lock to protect data.  If this isn't
+on the hottest of hot paths then I think cmpxchg is over-optimization -=
+-
+much better to have less fancy code.
 
-I definitely prefer a solution that doesn't require driver authors to
-add a Xen-specific fix that isn't required on any other architecture.
+ > > Also, there is processing_compl:
+ > >
+ > > =C2=A0> +static void srpt_completion(struct ib_cq *cq, void *ctx)
+ > > =C2=A0> +{
+ > > =C2=A0> + =C2=A0 =C2=A0struct srpt_rdma_ch *ch =3D ctx;
+ > > =C2=A0> +
+ > > =C2=A0> + =C2=A0 =C2=A0BUG_ON(!ch);
+ > > =C2=A0> + =C2=A0 =C2=A0atomic_inc(&ch->processing_compl);
+ > >
+ > > and
+ > >
+ > > =C2=A0> +static void srpt_unregister_channel(struct srpt_rdma_ch *=
+ch)
+ > > =C2=A0> ...
+ > > =C2=A0> + =C2=A0 =C2=A0while (atomic_read(&ch->processing_compl))
+ > > =C2=A0> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0;
+ > >
+ > > this seems racy to me -- I don't see any reason why we couldn't ha=
+ve:
+ > >
+ > > =C2=A0 =C2=A0 =C2=A0 =C2=A0srpt_completion()
+ > >
+ > > =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
+=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+srpt_unregister_channel()
+ > > =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
+=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0processing_compl =3D=3D 0,
+ > > =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
+=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0continue
+ > >
+ > > =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0atomic_inc(&ch->processing_compl=
+);
+ > >
+ > > =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
+=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0finish unregistering channel
+ > >
+ > > =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0use unregistered channel
+ >=20
+ > I'm not sure what the above pseudo-code should do ?
+
+I'm trying to illustrate the race by showing what two different context=
+s
+might be doing -- the left column is one context, the right column is
+the other context.
+
+In this specific case, if the while loop testing processing_compl
+actually ever does anything then I don't see how it could be safe -- if
+srpt_completion() could be executing during the while loop, then I don'=
+t
+see anything that prevents the while loop from finishing before
+srpt_completion does its atomic_inc().
+
+ > Regarding the current implementation: there is a hard requirement in
+ > SCST that no new commands are queued for a given session after
+ > scst_unregister_session() has been invoked. So
+ > scst_unregister_session() must only be invoked after the IB queue pa=
+ir
+ > has been reset *and* srpt_completion() has finished. It would be gre=
+at
+ > if that could be implemented without using one or another kind of
+ > counter. I'm not sure however whether it is possible to eliminate th=
+e
+ > "processing_compl" counter entirely.
+
+I don't pretend to understand the flow of code here.  But it seems the
+only safe way to implement this cleanup code is to stop posting work
+requests and then wait until all the requests you've posted are
+complete.  Trying to wait for the completion handler to stop executing
+does not seem possible to implement in a safe way.
 
  - R.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-scsi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
