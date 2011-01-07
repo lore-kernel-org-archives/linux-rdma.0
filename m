@@ -1,61 +1,37 @@
-From: Konrad Rzeszutek Wilk <konrad.wilk-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [Xen-devel] Re: [PATCH] infiniband/mthca : Fix userland
- mapping of mthca infiniband cards in Xen dom0
-Date: Fri, 7 Jan 2011 14:15:59 -0500
-Message-ID: <20110107191559.GA27871@dumpdata.com>
-References: <1293034260.30522.426.camel@trax>
- <adamxnfdty8.fsf@cisco.com>
- <AANLkTi=zMiVJfTRDeYvbxT46b0iASKG9jPgXqG81bqAK@mail.gmail.com>
- <20110106165549.GC18774@dumpdata.com>
- <adalj2xdfw2.fsf@cisco.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH V4 5/6] RDMA CM: Netlink Client
+Date: Fri, 7 Jan 2011 13:37:42 -0700
+Message-ID: <20110107203742.GH1211@obsidianresearch.com>
+References: <1294068834-17778-1-git-send-email-nirm@voltaire.com>
+ <1294068834-17778-6-git-send-email-nirm@voltaire.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <adalj2xdfw2.fsf-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <1294068834-17778-6-git-send-email-nirm-smomgflXvOZWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Cc: Vivien Bernet-Rollande <vbr-GKN1HSsW2S7R7s880joybQ@public.gmane.org>, jackm-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org, Jeremy Fitzhardinge <jeremy-TSDbQ3PG+2Y@public.gmane.org>, xen-devel-GuqFBffKawuULHF6PoxzQEEOCMrvLtNR@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rdreir-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+To: Nir Muchtar <nirm-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+Cc: rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Jan 06, 2011 at 10:51:57AM -0800, Roland Dreier wrote:
->  > There is another way, which I hope can fix this issue (it fixes
->  > the graphics drivers). Basically making the Xen MMU be aware of the E820
->  > and consider any access to PFNs that are not in RAM to have VM_IO implicitly set.
->  > 
->  > The patches are at git://git.kernel.org/pub/scm/linux/kernel/git/konrad/xen.git
->  > 
->  > stable/p2m-identity.v4.3
->  > 
->  > And posted on LKML )https://lkml.org/lkml/2010/12/30/163)
->  > 
->  > They _should_ take care of your problem as long as the PFNs you
->  > are mapping fall within the PCI BAR regions (which I would presume they
->  > do since you are using ioremap).
-> 
-> Yes, that should work fine for all the cases I know of in the RDMA
-> drivers.  We are just mapping some PCI BAR space into userspace for
-> direct access to hardware (just like graphics, I think).
+On Mon, Jan 03, 2011 at 05:33:53PM +0200, Nir Muchtar wrote:
+> Add callbacks and data types for statistics export.
+> One callback is implemented that exports all of the current devices/ids.
+> Add/remove the callback to IB Netlink on init/cleanup.
 
-Allright, then it will work. 
+I don't have any new comments from this. If Sean and Roland are OK
+with it then I think it should go in.
 
-I've respun another version that fundamentally does the same thing
-but accounts for  "what PFN is non-RAM" in a much cleaner way.
+Please do update the git commit message for this to describe the
+netlink message format so others can review it easily.
 
-It is @:
+I think my points from earlier do need to be addressed in future
+commits though:
+ - We need an ifindex for RDMA devices
+ - QP and IB CM information needs to be exported too
+ - Info to make lsof work
 
-git://git.kernel.org/pub/scm/linux/kernel/git/konrad/xen.git devel/p2m-identity.v4.5
-
-will post it soon on LKML.
-
-Jack, Vivien: i you do merge it in your tree for testing with Xen and it works properly can
-I attach your 'Tested-by' on the patch-set?
-
-> 
-> I definitely prefer a solution that doesn't require driver authors to
-> add a Xen-specific fix that isn't required on any other architecture.
-
-Heh. You and me are on the same wavelength here.
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
