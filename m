@@ -1,50 +1,61 @@
-From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: [PATCH] Don't re-init wait object in init/fini paths.
-Date: Fri, 07 Jan 2011 11:37:59 -0600
-Message-ID: <20110107173759.14812.25906.stgit@build.ogc.int>
+From: Konrad Rzeszutek Wilk <konrad.wilk-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [Xen-devel] Re: [PATCH] infiniband/mthca : Fix userland
+ mapping of mthca infiniband cards in Xen dom0
+Date: Fri, 7 Jan 2011 14:15:59 -0500
+Message-ID: <20110107191559.GA27871@dumpdata.com>
+References: <1293034260.30522.426.camel@trax>
+ <adamxnfdty8.fsf@cisco.com>
+ <AANLkTi=zMiVJfTRDeYvbxT46b0iASKG9jPgXqG81bqAK@mail.gmail.com>
+ <20110106165549.GC18774@dumpdata.com>
+ <adalj2xdfw2.fsf@cisco.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <adalj2xdfw2.fsf-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Cc: Vivien Bernet-Rollande <vbr-GKN1HSsW2S7R7s880joybQ@public.gmane.org>, jackm-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org, Jeremy Fitzhardinge <jeremy-TSDbQ3PG+2Y@public.gmane.org>, xen-devel-GuqFBffKawuULHF6PoxzQEEOCMrvLtNR@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, rdreir-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Re-initializing the wait object in rdma_init()/rdma_fini() causes a
-timing window which can lead to a deadlock during close.  Once this
-deadlock hits, all RDMA activity over the T4 device will be stuck.
+On Thu, Jan 06, 2011 at 10:51:57AM -0800, Roland Dreier wrote:
+>  > There is another way, which I hope can fix this issue (it fixes
+>  > the graphics drivers). Basically making the Xen MMU be aware of the E820
+>  > and consider any access to PFNs that are not in RAM to have VM_IO implicitly set.
+>  > 
+>  > The patches are at git://git.kernel.org/pub/scm/linux/kernel/git/konrad/xen.git
+>  > 
+>  > stable/p2m-identity.v4.3
+>  > 
+>  > And posted on LKML )https://lkml.org/lkml/2010/12/30/163)
+>  > 
+>  > They _should_ take care of your problem as long as the PFNs you
+>  > are mapping fall within the PCI BAR regions (which I would presume they
+>  > do since you are using ioremap).
+> 
+> Yes, that should work fine for all the cases I know of in the RDMA
+> drivers.  We are just mapping some PCI BAR space into userspace for
+> direct access to hardware (just like graphics, I think).
 
-There's no need to re-init the wait object, so remove it.
+Allright, then it will work. 
 
-Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Cc: <stable-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
----
+I've respun another version that fundamentally does the same thing
+but accounts for  "what PFN is non-RAM" in a much cleaner way.
 
- drivers/infiniband/hw/cxgb4/qp.c |    2 --
- 1 files changed, 0 insertions(+), 2 deletions(-)
+It is @:
 
-diff --git a/drivers/infiniband/hw/cxgb4/qp.c b/drivers/infiniband/hw/cxgb4/qp.c
-index 057cb25..3ccb765 100644
---- a/drivers/infiniband/hw/cxgb4/qp.c
-+++ b/drivers/infiniband/hw/cxgb4/qp.c
-@@ -1029,7 +1029,6 @@ static int rdma_fini(struct c4iw_dev *rhp, struct c4iw_qp *qhp,
- 	wqe->cookie = (unsigned long) &ep->com.wr_wait;
- 
- 	wqe->u.fini.type = FW_RI_TYPE_FINI;
--	c4iw_init_wr_wait(&ep->com.wr_wait);
- 	ret = c4iw_ofld_send(&rhp->rdev, skb);
- 	if (ret)
- 		goto out;
-@@ -1125,7 +1124,6 @@ static int rdma_init(struct c4iw_dev *rhp, struct c4iw_qp *qhp)
- 	if (qhp->attr.mpa_attr.initiator)
- 		build_rtr_msg(qhp->attr.mpa_attr.p2p_type, &wqe->u.init);
- 
--	c4iw_init_wr_wait(&qhp->ep->com.wr_wait);
- 	ret = c4iw_ofld_send(&rhp->rdev, skb);
- 	if (ret)
- 		goto out;
+git://git.kernel.org/pub/scm/linux/kernel/git/konrad/xen.git devel/p2m-identity.v4.5
 
+will post it soon on LKML.
+
+Jack, Vivien: i you do merge it in your tree for testing with Xen and it works properly can
+I attach your 'Tested-by' on the patch-set?
+
+> 
+> I definitely prefer a solution that doesn't require driver authors to
+> add a Xen-specific fix that isn't required on any other architecture.
+
+Heh. You and me are on the same wavelength here.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
