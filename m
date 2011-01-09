@@ -1,7 +1,7 @@
 From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Subject: [PATCH 4/7] ib_srpt: Introduce srpt_ch_qp_err()
-Date: Sun, 9 Jan 2011 17:27:00 +0100
-Message-ID: <201101091727.00530.bvanassche@acm.org>
+Subject: [PATCH 5/7] ib_srpt: Fix a bug in an error path
+Date: Sun, 9 Jan 2011 17:27:34 +0100
+Message-ID: <201101091727.34249.bvanassche@acm.org>
 References: <201101091723.41399.bvanassche@acm.org>
 Mime-Version: 1.0
 Content-Type: Text/Plain;
@@ -14,54 +14,28 @@ To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Move the code for setting the state of a queue pair into the error state
-to a separate function.
+Do not invoke scst_unregister_session() if session registration failed
+because invoking scst_unregister_session() with a NULL session pointer
+triggers a kernel oops.
 
 Signed-off-by: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
 ---
- drivers/scst/srpt/ib_srpt.c |   15 ++++++++++++---
- 1 files changed, 12 insertions(+), 3 deletions(-)
+ drivers/scst/srpt/ib_srpt.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
 diff --git a/drivers/scst/srpt/ib_srpt.c b/drivers/scst/srpt/ib_srpt.c
-index a308ce1..08f1de0 100644
+index 08f1de0..66f11f6 100644
 --- a/drivers/scst/srpt/ib_srpt.c
 +++ b/drivers/scst/srpt/ib_srpt.c
-@@ -1045,6 +1045,17 @@ out:
- }
+@@ -2365,7 +2365,7 @@ static int srpt_cm_req_recv(struct ib_cm_id *cm_id,
+ 		rej->reason = __constant_cpu_to_be32(
+ 				SRP_LOGIN_REJ_INSUFFICIENT_RESOURCES);
+ 		TRACE_DBG("%s", "Failed to create SCST session");
+-		goto release_channel;
++		goto destroy_ib;
+ 	}
  
- /**
-+ * srpt_ch_qp_err() - Set the channel queue pair state to 'error'.
-+ */
-+static int srpt_ch_qp_err(struct srpt_rdma_ch *ch)
-+{
-+	struct ib_qp_attr qp_attr;
-+
-+	qp_attr.qp_state = IB_QPS_ERR;
-+	return ib_modify_qp(ch->qp, &qp_attr, IB_QP_STATE);
-+}
-+
-+/**
-  * srpt_get_send_ioctx() - Obtain an I/O context for sending to the initiator.
-  */
- static struct srpt_send_ioctx *srpt_get_send_ioctx(struct srpt_rdma_ch *ch)
-@@ -1973,7 +1984,6 @@ static void srpt_unregister_channel(struct srpt_rdma_ch *ch)
- 	__releases(&ch->sport->sdev->spinlock)
- {
- 	struct srpt_device *sdev;
--	struct ib_qp_attr qp_attr;
- 	int ret;
- 
- 	sdev = ch->sport->sdev;
-@@ -1981,8 +1991,7 @@ static void srpt_unregister_channel(struct srpt_rdma_ch *ch)
- 	atomic_set(&ch->state, CH_DISCONNECTING);
- 	spin_unlock_irq(&sdev->spinlock);
- 
--	qp_attr.qp_state = IB_QPS_ERR;
--	ret = ib_modify_qp(ch->qp, &qp_attr, IB_QP_STATE);
-+	ret = srpt_ch_qp_err(ch);
- 	if (ret < 0)
- 		PRINT_ERROR("Setting queue pair in error state failed: %d",
- 			    ret);
+ 	TRACE_DBG("Establish connection sess=%p name=%s cm_id=%p",
 -- 
 1.7.1
 
