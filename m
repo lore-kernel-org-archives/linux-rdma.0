@@ -1,30 +1,30 @@
 From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Subject: Re: [PATCH v2 0/8] scaling and bug fixes for 2.6.38
-Date: Sun, 9 Jan 2011 17:01:17 +0100
-Message-ID: <AANLkTikKQRC=VrdqqNW6Swu6i1XPG5baoLvmvK_oZNVs@mail.gmail.com>
-References: <1294259716-30706-1-git-send-email-dillowda@ornl.gov>
+Subject: [PATCH 0/7] ib_srpt patches
+Date: Sun, 9 Jan 2011 17:23:41 +0100
+Message-ID: <201101091723.41399.bvanassche@acm.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1294259716-30706-1-git-send-email-dillowda-1Heg1YXhbW8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Jan 5, 2011 at 9:35 PM, David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org> wrote:
-> Updated patches to reflect the list's review, and better reflect Bart's
-> role in preparing them. Once he's had a chance to look over them again,
-> I'll push these to my repo and send a pull request.
-
-Hello Dave,
-
-Thanks for all the work you have done on this patch series. All tests
-I have run on these patches ran fine so far. The only general remark I
-have is that as far as I know Roland has done reviewing work on this
-patch series too but has not been credited yet for that work ?
-
-Bart.
+The following patches apply on top of the ib_srpt source code as posted on
+December 20, 2010:
+1. Add the attribute hw_address to sysfs such that udev rules can be developed
+   that allow to make the relationship between an SCST target name and a HCA
+   node GUID persistent.
+2. Convert I/O context state from an atomic variable to a spinlock-protected
+   regular variable.
+3. Make the RDMA channel state names more brief.
+4. Introduce the function srpt_ch_qp_err().
+5. Fix a bug in a session creation error path.
+6. Convert the channel state from an atomic variable to a spinlock-protected
+   regular variable.
+7. Fix races related to session unregistration.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
