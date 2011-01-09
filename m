@@ -1,7 +1,7 @@
 From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Subject: [PATCH 2/7] ib_srpt: Protect I/O context state by a spinlock
-Date: Sun, 9 Jan 2011 17:25:31 +0100
-Message-ID: <201101091725.32017.bvanassche@acm.org>
+Subject: [PATCH 3/7] ib_srpt: Make channel state names more brief
+Date: Sun, 9 Jan 2011 17:26:11 +0100
+Message-ID: <201101091726.11938.bvanassche@acm.org>
 References: <201101091723.41399.bvanassche@acm.org>
 Mime-Version: 1.0
 Content-Type: Text/Plain;
@@ -14,214 +14,214 @@ To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Convert the I/O context state from an atomic variable into a regular
-variable protected by a spinlock. Modify srpt_test_and_set_cmd_state()
-such that it returns a boolean instead of a state.
+Make the channel state names more brief. Change the return value of
+srpt_test_and_set_channel_state() from enum into bool.
 
 Signed-off-by: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
 ---
- drivers/scst/srpt/ib_srpt.c |   96 +++++++++++++++++++++++++++---------------
- drivers/scst/srpt/ib_srpt.h |    3 +-
- 2 files changed, 64 insertions(+), 35 deletions(-)
+ drivers/scst/srpt/ib_srpt.c |   53 ++++++++++++++++++++----------------------
+ drivers/scst/srpt/ib_srpt.h |    6 ++--
+ 2 files changed, 28 insertions(+), 31 deletions(-)
 
 diff --git a/drivers/scst/srpt/ib_srpt.c b/drivers/scst/srpt/ib_srpt.c
-index 4c9c700..5dc072e 100644
+index 5dc072e..a308ce1 100644
 --- a/drivers/scst/srpt/ib_srpt.c
 +++ b/drivers/scst/srpt/ib_srpt.c
-@@ -722,9 +722,15 @@ static void srpt_free_ioctx_ring(struct srpt_ioctx **ioctx_ring,
-  */
- static enum srpt_command_state srpt_get_cmd_state(struct srpt_send_ioctx *ioctx)
- {
-+	enum srpt_command_state state;
-+	unsigned long flags;
-+
- 	BUG_ON(!ioctx);
- 
--	return atomic_read(&ioctx->state);
-+	spin_lock_irqsave(&ioctx->spinlock, flags);
-+	state = ioctx->state;
-+	spin_unlock_irqrestore(&ioctx->spinlock, flags);
-+	return state;
- }
- 
- /**
-@@ -738,13 +744,15 @@ static enum srpt_command_state srpt_set_cmd_state(struct srpt_send_ioctx *ioctx,
- 						  enum srpt_command_state new)
- {
- 	enum srpt_command_state previous;
-+	unsigned long flags;
- 
- 	BUG_ON(!ioctx);
- 
--	do {
--		previous = atomic_read(&ioctx->state);
--	} while (previous != SRPT_STATE_DONE
--	       && atomic_cmpxchg(&ioctx->state, previous, new) != previous);
-+	spin_lock_irqsave(&ioctx->spinlock, flags);
-+	previous = ioctx->state;
-+	if (previous != SRPT_STATE_DONE)
-+		ioctx->state = new;
-+	spin_unlock_irqrestore(&ioctx->spinlock, flags);
- 
- 	return previous;
- }
-@@ -754,18 +762,25 @@ static enum srpt_command_state srpt_set_cmd_state(struct srpt_send_ioctx *ioctx,
-  * @old: State to compare against.
-  * @new: New state to be set if the current state matches 'old'.
+@@ -159,14 +159,14 @@ static struct ib_client srpt_client = {
+  * @new: state to change the channel state to if the current state matches the
+  *       argument 'old'.
   *
-- * Returns the previous command state.
-+ * Returns true if and only if the previous command state was equal to 'old'.
+- * Returns the previous channel state.
++ * Returns true if and only if the channel state has been set to the new state.
   */
--static enum srpt_command_state
--srpt_test_and_set_cmd_state(struct srpt_send_ioctx *ioctx,
--			    enum srpt_command_state old,
--			    enum srpt_command_state new)
-+static bool srpt_test_and_set_cmd_state(struct srpt_send_ioctx *ioctx,
-+					enum srpt_command_state old,
-+					enum srpt_command_state new)
+-static enum rdma_ch_state
++static bool
+ srpt_test_and_set_channel_state(struct srpt_rdma_ch *ch,
+ 				enum rdma_ch_state old,
+ 				enum rdma_ch_state new)
  {
-+	enum srpt_command_state previous;
-+	unsigned long flags;
-+
- 	WARN_ON(!ioctx);
- 	WARN_ON(old == SRPT_STATE_DONE);
- 	WARN_ON(new == SRPT_STATE_NEW);
- 
--	return atomic_cmpxchg(&ioctx->state, old, new);
-+	spin_lock_irqsave(&ioctx->spinlock, flags);
-+	previous = ioctx->state;
-+	if (previous == old)
-+		ioctx->state = new;
-+	spin_unlock_irqrestore(&ioctx->spinlock, flags);
-+	return previous == old;
+-	return atomic_cmpxchg(&ch->state, old, new);
++	return atomic_cmpxchg(&ch->state, old, new) == old;
  }
  
  /**
-@@ -1052,7 +1067,8 @@ static struct srpt_send_ioctx *srpt_get_send_ioctx(struct srpt_rdma_ch *ch)
- 		return ioctx;
+@@ -244,8 +244,8 @@ static void srpt_qp_event(struct ib_event *event, struct srpt_rdma_ch *ch)
+ 		ib_cm_notify(ch->cm_id, event->event);
+ 		break;
+ 	case IB_EVENT_QP_LAST_WQE_REACHED:
+-		if (srpt_test_and_set_channel_state(ch, RDMA_CHANNEL_LIVE,
+-			RDMA_CHANNEL_DISCONNECTING) == RDMA_CHANNEL_LIVE) {
++		if (srpt_test_and_set_channel_state(ch, CH_LIVE,
++						    CH_DISCONNECTING)) {
+ 			PRINT_INFO("disconnected session %s.", ch->sess_name);
+ 			ib_send_cm_dreq(ch->cm_id, NULL, 0);
+ 		}
+@@ -1659,12 +1659,12 @@ static void srpt_handle_new_iu(struct srpt_rdma_ch *ch,
  
- 	BUG_ON(ioctx->ch != ch);
--	atomic_set(&ioctx->state, SRPT_STATE_NEW);
-+	spin_lock_init(&ioctx->spinlock);
-+	ioctx->state = SRPT_STATE_NEW;
- 	ioctx->n_rbuf = 0;
- 	ioctx->rbufs = NULL;
- 	ioctx->n_rdma = 0;
-@@ -1108,6 +1124,7 @@ static void srpt_abort_scst_cmd(struct srpt_send_ioctx *ioctx,
- {
- 	struct scst_cmd *scmnd;
- 	enum srpt_command_state state;
-+	unsigned long flags;
- 
- 	BUG_ON(!ioctx);
- 
-@@ -1118,16 +1135,22 @@ static void srpt_abort_scst_cmd(struct srpt_send_ioctx *ioctx,
- 	 * ensures that srpt_xmit_response() will call this function a second
- 	 * time.
- 	 */
--	state = srpt_test_and_set_cmd_state(ioctx, SRPT_STATE_NEED_DATA,
--					    SRPT_STATE_DATA_IN);
--	if (state != SRPT_STATE_NEED_DATA) {
--		state = srpt_test_and_set_cmd_state(ioctx, SRPT_STATE_DATA_IN,
--						    SRPT_STATE_DONE);
--		if (state != SRPT_STATE_DATA_IN) {
--			state = srpt_test_and_set_cmd_state(ioctx,
--				    SRPT_STATE_CMD_RSP_SENT, SRPT_STATE_DONE);
--		}
-+
-+	spin_lock_irqsave(&ioctx->spinlock, flags);
-+	state = ioctx->state;
-+	switch (state) {
-+	case SRPT_STATE_NEED_DATA:
-+		ioctx->state = SRPT_STATE_DATA_IN;
-+		break;
-+	case SRPT_STATE_DATA_IN:
-+	case SRPT_STATE_CMD_RSP_SENT:
-+		ioctx->state = SRPT_STATE_DONE;
-+		break;
-+	default:
-+		break;
+ 	ch_state = atomic_read(&ch->state);
+ 	srp_cmd = recv_ioctx->ioctx.buf;
+-	if (unlikely(ch_state == RDMA_CHANNEL_CONNECTING)) {
++	if (unlikely(ch_state == CH_CONNECTING)) {
+ 		list_add_tail(&recv_ioctx->wait_list, &ch->cmd_wait_list);
+ 		goto out;
  	}
-+	spin_unlock_irqrestore(&ioctx->spinlock, flags);
-+
- 	if (state == SRPT_STATE_DONE)
+ 
+-	if (unlikely(ch_state == RDMA_CHANNEL_DISCONNECTING))
++	if (unlikely(ch_state == CH_DISCONNECTING))
+ 		goto post_recv;
+ 
+ 	if (srp_cmd->opcode == SRP_CMD || srp_cmd->opcode == SRP_TSK_MGMT) {
+@@ -1677,7 +1677,7 @@ static void srpt_handle_new_iu(struct srpt_rdma_ch *ch,
+ 		}
+ 	}
+ 
+-	WARN_ON(ch_state != RDMA_CHANNEL_LIVE);
++	WARN_ON(ch_state != CH_LIVE);
+ 
+ 	switch (srp_cmd->opcode) {
+ 	case SRP_CMD:
+@@ -1785,7 +1785,7 @@ static void srpt_process_send_completion(struct ib_cq *cq,
+ 
+ 	while (unlikely(opcode == IB_WC_SEND
+ 			&& !list_empty(&ch->cmd_wait_list)
+-			&& atomic_read(&ch->state) == RDMA_CHANNEL_LIVE
++			&& atomic_read(&ch->state) == CH_LIVE
+ 			&& (send_ioctx = srpt_get_send_ioctx(ch)) != NULL)) {
+ 		struct srpt_recv_ioctx *recv_ioctx;
+ 
+@@ -1978,7 +1978,7 @@ static void srpt_unregister_channel(struct srpt_rdma_ch *ch)
+ 
+ 	sdev = ch->sport->sdev;
+ 	list_del(&ch->list);
+-	atomic_set(&ch->state, RDMA_CHANNEL_DISCONNECTING);
++	atomic_set(&ch->state, CH_DISCONNECTING);
+ 	spin_unlock_irq(&sdev->spinlock);
+ 
+ 	qp_attr.qp_state = IB_QPS_ERR;
+@@ -2079,7 +2079,7 @@ static void srpt_release_channel(struct scst_session *scst_sess)
+ 
+ 	ch = scst_sess_get_tgt_priv(scst_sess);
+ 	BUG_ON(!ch);
+-	WARN_ON(atomic_read(&ch->state) != RDMA_CHANNEL_DISCONNECTING);
++	WARN_ON(atomic_read(&ch->state) != CH_DISCONNECTING);
+ 
+ 	TRACE_DBG("destroying cm_id %p", ch->cm_id);
+ 	BUG_ON(!ch->cm_id);
+@@ -2224,8 +2224,8 @@ static int srpt_cm_req_recv(struct ib_cm_id *cm_id,
+ 					  atomic_read(&ch->state));
+ 
+ 				prev_state = atomic_xchg(&ch->state,
+-						RDMA_CHANNEL_DISCONNECTING);
+-				if (prev_state == RDMA_CHANNEL_CONNECTING)
++						CH_DISCONNECTING);
++				if (prev_state == CH_CONNECTING)
+ 					srpt_unregister_channel(ch);
+ 
+ 				spin_unlock_irq(&sdev->spinlock);
+@@ -2233,14 +2233,13 @@ static int srpt_cm_req_recv(struct ib_cm_id *cm_id,
+ 				rsp->rsp_flags =
+ 					SRP_LOGIN_RSP_MULTICHAN_TERMINATED;
+ 
+-				if (prev_state == RDMA_CHANNEL_LIVE) {
++				if (prev_state == CH_LIVE) {
+ 					ib_send_cm_dreq(ch->cm_id, NULL, 0);
+ 					PRINT_INFO("disconnected"
+ 					  " session %s because a new"
+ 					  " SRP_LOGIN_REQ has been received.",
+ 					  ch->sess_name);
+-				} else if (prev_state ==
+-					 RDMA_CHANNEL_CONNECTING) {
++				} else if (prev_state == CH_CONNECTING) {
+ 					PRINT_ERROR("%s", "rejected"
+ 					  " SRP_LOGIN_REQ because another login"
+ 					  " request is being processed.");
+@@ -2289,7 +2288,7 @@ static int srpt_cm_req_recv(struct ib_cm_id *cm_id,
+ 	 */
+ 	ch->rq_size = min(SRPT_RQ_SIZE, scst_get_max_lun_commands(NULL, 0));
+ 	atomic_set(&ch->processing_compl, 0);
+-	atomic_set(&ch->state, RDMA_CHANNEL_CONNECTING);
++	atomic_set(&ch->state, CH_CONNECTING);
+ 	INIT_LIST_HEAD(&ch->cmd_wait_list);
+ 
+ 	spin_lock_init(&ch->spinlock);
+@@ -2400,7 +2399,7 @@ static int srpt_cm_req_recv(struct ib_cm_id *cm_id,
+ 	goto out;
+ 
+ release_channel:
+-	atomic_set(&ch->state, RDMA_CHANNEL_DISCONNECTING);
++	atomic_set(&ch->state, CH_DISCONNECTING);
+ 	scst_unregister_session(ch->scst_sess, 0, NULL);
+ 	ch->scst_sess = NULL;
+ 
+@@ -2454,8 +2453,7 @@ static void srpt_cm_rtu_recv(struct ib_cm_id *cm_id)
+ 	if (!ch)
  		goto out;
  
-@@ -1263,7 +1286,6 @@ static void srpt_handle_rdma_comp(struct srpt_rdma_ch *ch,
- 				  struct srpt_send_ioctx *ioctx,
- 				  enum scst_exec_context context)
- {
--	enum srpt_command_state state;
- 	struct scst_cmd *scmnd;
+-	if (srpt_test_and_set_channel_state(ch, RDMA_CHANNEL_CONNECTING,
+-			RDMA_CHANNEL_LIVE) == RDMA_CHANNEL_CONNECTING) {
++	if (srpt_test_and_set_channel_state(ch, CH_CONNECTING, CH_LIVE)) {
+ 		struct srpt_recv_ioctx *ioctx, *ioctx_tmp;
  
- 	EXTRACHECKS_WARN_ON(ioctx->n_rdma <= 0);
-@@ -1271,14 +1293,13 @@ static void srpt_handle_rdma_comp(struct srpt_rdma_ch *ch,
+ 		ret = srpt_ch_qp_rts(ch, ch->qp);
+@@ -2466,9 +2464,8 @@ static void srpt_cm_rtu_recv(struct ib_cm_id *cm_id)
+ 			srpt_handle_new_iu(ch, ioctx, NULL,
+ 					   SCST_CONTEXT_THREAD);
+ 		}
+-		if (ret && srpt_test_and_set_channel_state(ch,
+-			RDMA_CHANNEL_LIVE,
+-			RDMA_CHANNEL_DISCONNECTING) == RDMA_CHANNEL_LIVE) {
++		if (ret && srpt_test_and_set_channel_state(ch, CH_LIVE,
++			CH_DISCONNECTING)) {
+ 			TRACE_DBG("cm_id=%p sess_name=%s state=%d",
+ 				  cm_id, ch->sess_name,
+ 				  atomic_read(&ch->state));
+@@ -2509,13 +2506,13 @@ static void srpt_cm_dreq_recv(struct ib_cm_id *cm_id)
+ 	TRACE_DBG("cm_id= %p ch->state= %d", cm_id, atomic_read(&ch->state));
  
- 	scmnd = ioctx->scmnd;
- 	if (scmnd) {
--		state = srpt_test_and_set_cmd_state(ioctx, SRPT_STATE_NEED_DATA,
--						    SRPT_STATE_DATA_IN);
--		if (state == SRPT_STATE_NEED_DATA)
-+		if (srpt_test_and_set_cmd_state(ioctx, SRPT_STATE_NEED_DATA,
-+						SRPT_STATE_DATA_IN))
- 			scst_rx_data(ioctx->scmnd, SCST_RX_STATUS_SUCCESS,
- 				     context);
- 		else
- 			PRINT_ERROR("%s[%d]: wrong state = %d", __func__,
--				    __LINE__, state);
-+				    __LINE__, srpt_get_cmd_state(ioctx));
- 	} else
- 		PRINT_ERROR("%s[%d]: scmnd == NULL", __func__, __LINE__);
- }
-@@ -2986,6 +3007,7 @@ static int srpt_xmit_response(struct scst_cmd *scmnd)
- 	struct srpt_rdma_ch *ch;
- 	struct srpt_send_ioctx *ioctx;
- 	enum srpt_command_state state;
-+	unsigned long flags;
- 	int ret;
- 	scst_data_direction dir;
- 	int resp_len;
-@@ -2998,15 +3020,21 @@ static int srpt_xmit_response(struct scst_cmd *scmnd)
- 	ch = scst_sess_get_tgt_priv(scst_cmd_get_session(scmnd));
+ 	switch (atomic_read(&ch->state)) {
+-	case RDMA_CHANNEL_LIVE:
+-	case RDMA_CHANNEL_CONNECTING:
++	case CH_LIVE:
++	case CH_CONNECTING:
+ 		ib_send_cm_drep(ch->cm_id, NULL, 0);
+ 		PRINT_INFO("Received DREQ and sent DREP for session %s.",
+ 			   ch->sess_name);
+ 		break;
+-	case RDMA_CHANNEL_DISCONNECTING:
++	case CH_DISCONNECTING:
+ 	default:
+ 		break;
+ 	}
+@@ -2980,13 +2977,13 @@ static int srpt_rdy_to_xfer(struct scst_cmd *scmnd)
  	BUG_ON(!ch);
  
--	state = srpt_test_and_set_cmd_state(ioctx, SRPT_STATE_NEW,
--					    SRPT_STATE_CMD_RSP_SENT);
--	if (state != SRPT_STATE_NEW) {
--		state = srpt_test_and_set_cmd_state(ioctx, SRPT_STATE_DATA_IN,
--						    SRPT_STATE_CMD_RSP_SENT);
--		if (state != SRPT_STATE_DATA_IN)
--			PRINT_ERROR("Unexpected command state %d",
--				    srpt_get_cmd_state(ioctx));
-+	spin_lock_irqsave(&ioctx->spinlock, flags);
-+	state = ioctx->state;
-+	switch (state) {
-+	case SRPT_STATE_NEW:
-+		ioctx->state = SRPT_STATE_CMD_RSP_SENT;
-+	case SRPT_STATE_DATA_IN:
-+		ioctx->state = SRPT_STATE_CMD_RSP_SENT;
-+		break;
-+	default:
-+		PRINT_ERROR("Unexpected command state %d",
-+			    srpt_get_cmd_state(ioctx));
-+		break;
+ 	ch_state = atomic_read(&ch->state);
+-	if (ch_state == RDMA_CHANNEL_DISCONNECTING) {
++	if (ch_state == CH_DISCONNECTING) {
+ 		TRACE_DBG("cmd with tag %lld: channel disconnecting",
+ 			  scst_cmd_get_tag(scmnd));
+ 		srpt_set_cmd_state(ioctx, SRPT_STATE_DATA_IN);
+ 		ret = SCST_TGT_RES_FATAL_ERROR;
+ 		goto out;
+-	} else if (ch_state == RDMA_CHANNEL_CONNECTING) {
++	} else if (ch_state == CH_CONNECTING) {
+ 		ret = SCST_TGT_RES_QUEUE_FULL;
+ 		goto out;
  	}
-+	spin_unlock_irqrestore(&ioctx->spinlock, flags);
-+
- 
- 	if (unlikely(scst_cmd_aborted(scmnd))) {
- 		atomic_inc(&ch->req_lim_delta);
 diff --git a/drivers/scst/srpt/ib_srpt.h b/drivers/scst/srpt/ib_srpt.h
-index 3e893d9..b8f14d4 100644
+index b8f14d4..8f69345 100644
 --- a/drivers/scst/srpt/ib_srpt.h
 +++ b/drivers/scst/srpt/ib_srpt.h
-@@ -209,7 +209,8 @@ struct srpt_send_ioctx {
- 
- 	struct scst_cmd		*scmnd;
- 	scst_data_direction	dir;
--	atomic_t		state;
-+	spinlock_t		spinlock;
-+	enum srpt_command_state	state;
+@@ -227,9 +227,9 @@ struct srpt_mgmt_ioctx {
+  * enum rdma_ch_state - SRP channel state.
+  */
+ enum rdma_ch_state {
+-	RDMA_CHANNEL_CONNECTING,
+-	RDMA_CHANNEL_LIVE,
+-	RDMA_CHANNEL_DISCONNECTING
++	CH_CONNECTING,
++	CH_LIVE,
++	CH_DISCONNECTING
  };
  
  /**
