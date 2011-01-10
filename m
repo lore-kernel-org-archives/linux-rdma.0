@@ -1,62 +1,65 @@
-From: Vu Pham <vuhuong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [ewg] Mellanox target workaround in SRP
-Date: Mon, 10 Jan 2011 11:58:02 -0800
-Message-ID: <4D2B64CA.6040609@mellanox.com>
-References: <1294439717.6219.54.camel@lap75545.ornl.gov>	 <adaipy09h0i.fsf@cisco.com>	 <1294510396.7914.82.camel@obelisk.thedillows.org>	 <4D2B4E13.6070903@mellanox.com> <1294686163.3038.12.camel@obelisk.thedillows.org>
+From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Subject: Re: ibv_post_send/recv kernel path optimizations
+Date: Mon, 10 Jan 2011 12:38:25 -0800
+Message-ID: <adawrmc7av2.fsf@cisco.com>
+References: <20101013091312.GB6060@bicker> <20101123071025.GI1522@bicker>
+	<adahbf6gytv.fsf@cisco.com>
+	<20101124221845.GH2369@obsidianresearch.com>
+	<adad3pugi90.fsf@cisco.com>
+	<20101125041337.GA11049@obsidianresearch.com>
+	<4CEE7A22.2040706@voltaire.com>
+	<BE2BFE91933D1B4089447C644860408064B44854@irsmsx503.ger.corp.intel.com>
+	<4CF60343.7050602@voltaire.com>
+	<BE2BFE91933D1B4089447C644860408066ABCF66@irsmsx503.ger.corp.intel.com>
+	<20101214181735.GA2506@obsidianresearch.com>
+	<4D1888CB.2010101@Voltaire.com>
+	<BE2BFE91933D1B4089447C644860408066C547E0@irsmsx503.ger.corp.intel.com>
+	<ada4o9nfc6e.fsf@cisco.com>
+	<BE2BFE91933D1B4089447C644860408066DDDF31@irsmsx503.ger.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1294686163.3038.12.camel-1q1vX8mYZiGLUyTwlgNVppKKF0rrzTr+@public.gmane.org>
+In-Reply-To: <BE2BFE91933D1B4089447C644860408066DDDF31-IGOiFh9zz4wLt2AQoY/u9bfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+	(Miroslaw Walukiewicz's message of "Mon, 10 Jan 2011 14:15:46 +0000")
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>
-Cc: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org, Ishai Rabinovitz <ishai-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
+To: "Walukiewicz, Miroslaw" <Miroslaw.Walukiewicz-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Or Gerlitz <ogerlitz-hKgKHo2Ms0FWk0Htik3J/w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma@vger.kernel.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+ > You are right that the most of the speed-up is coming from avoid semaphores, but not only.
+ > 
+ > From the oprof traces, the semaphores made half of difference.
+ > 
+ > The next one was copy_from_user and kmalloc/kfree usage (in my proposal - shared page method is used instead)
 
+OK, but in any case the switch from idr to hash table seems to be
+insignificant.  I agree that using a shared page is a good idea, but
+removing locking needed for correctness is not a good optimization.
 
-David Dillow wrote:
-> On Mon, 2011-01-10 at 10:21 -0800, Vu Pham wrote:
->> David Dillow wrote:
->>> On Fri, 2011-01-07 at 20:05 -0800, Roland Dreier wrote:
->>>> looking at the patch, I would guess that the corruption occurred when
->>>> the target got an IO request that started at a non-page-aligned address
->>>> but that spanned more than one page.
-> [snip]
->>> Here's hoping someone from Mellanox can shed some light.
->>
->> I think that the patch is specific for srp initiator using Mellanox
->> FMR. It tried to avoid indirect desc with Mellanox FMR having
->> first-byte-offset != 0.
->> Since the low level implementation of mlx4/mthca_map_phys_fmr() did
->> not create + setup MPT for FMR with first_byte_offset != 0. The
->> corruption can happen with any target.
-> 
-> Thanks for taking a look Vu --
+ > In my opinion, the responsibility for cases like protection of QP
+ > against destroy during buffer post (and other similar cases) should
+ > be moved to vendor driver. The OFED code should move only the code
+ > path to driver.
 
-Thanks for taking ownership of srp :)
+Not sure what OFED code you're talking about.  We're discussing the
+kernel uverbs code, right?
 
- but I'm not sure that is the problem,
-> either. The SRP FMR mapping code is careful to mask the SG address with
-> the FMR page mask, so we should never ask the HCA to map a page with the
-> first_byte_offset != 0. Instead, we tell the target to request an IO
-> virtual address appropriately offset into the first page of the FMR.
-> 
-> Or perhaps I misunderstood you, and it's the non-zero first byte offset
-> in the RDMA command on the wire that is the issue, and not the FMR setup
-> in the initiator? And it only affects FMR-mapped memory, not the
-> kernel's MR?
-> 
+In any case I'd be interested in seeing how it looks if you move the
+protection into the individual drivers.  I'd be worried about having to
+duplicate the same code everywhere (which leads to bugs in individual
+drivers) -- I guess this could be resolved by having the code be a
+library that individual drivers call into.  But also I'm not sure if I
+see how you could make such a scheme work -- you need to make sure that
+the data structures used in the uverbs dispatch to drivers remain
+consistent.
 
-It's not the kernel's MR.
+In the end I don't think we should go too far optimizing the
+non-kernel-bypass case of verbs -- the main thing we're designing for is
+kernel bypass hardware, after all.  Perhaps you could make your case go
+faster by using a different file descriptor for each QP or something
+(you could pass the fd back as part of the driver-specific create QP path)?
 
-I suspect that the corruption happen with *only* Mellanox FMR + MPT setup without fbo and target doing RDMA with offset vaddr.
-
-I need to ask internal hw/fw guys and confirm if it's true.
-
--vu
-
-
+ - R.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
