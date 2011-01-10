@@ -1,65 +1,56 @@
-From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Subject: Re: ibv_post_send/recv kernel path optimizations
-Date: Mon, 10 Jan 2011 12:38:25 -0800
-Message-ID: <adawrmc7av2.fsf@cisco.com>
-References: <20101013091312.GB6060@bicker> <20101123071025.GI1522@bicker>
-	<adahbf6gytv.fsf@cisco.com>
-	<20101124221845.GH2369@obsidianresearch.com>
-	<adad3pugi90.fsf@cisco.com>
-	<20101125041337.GA11049@obsidianresearch.com>
-	<4CEE7A22.2040706@voltaire.com>
-	<BE2BFE91933D1B4089447C644860408064B44854@irsmsx503.ger.corp.intel.com>
-	<4CF60343.7050602@voltaire.com>
-	<BE2BFE91933D1B4089447C644860408066ABCF66@irsmsx503.ger.corp.intel.com>
-	<20101214181735.GA2506@obsidianresearch.com>
-	<4D1888CB.2010101@Voltaire.com>
-	<BE2BFE91933D1B4089447C644860408066C547E0@irsmsx503.ger.corp.intel.com>
-	<ada4o9nfc6e.fsf@cisco.com>
-	<BE2BFE91933D1B4089447C644860408066DDDF31@irsmsx503.ger.corp.intel.com>
+From: David Dillow <dave-i1Mk8JYDVaaSihdK6806/g@public.gmane.org>
+Subject: Re: [PATCH v2 3/8] IB/srp: allow lockless work posting
+Date: Mon, 10 Jan 2011 17:37:46 -0500
+Message-ID: <1294699066.3038.20.camel@obelisk.thedillows.org>
+References: <1294259716-30706-1-git-send-email-dillowda@ornl.gov>
+	 <1294259716-30706-4-git-send-email-dillowda@ornl.gov>
+	 <AANLkTinExFSLHAo97S0Q8tbfUb5Lc5h06kHXyyzj-2Cj@mail.gmail.com>
+	 <1294590920.3071.4.camel@obelisk.thedillows.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <BE2BFE91933D1B4089447C644860408066DDDF31-IGOiFh9zz4wLt2AQoY/u9bfspsVTdybXVpNB7YpNyf8@public.gmane.org>
-	(Miroslaw Walukiewicz's message of "Mon, 10 Jan 2011 14:15:46 +0000")
+In-Reply-To: <1294590920.3071.4.camel-1q1vX8mYZiGLUyTwlgNVppKKF0rrzTr+@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Walukiewicz, Miroslaw" <Miroslaw.Walukiewicz-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Or Gerlitz <ogerlitz-hKgKHo2Ms0FWk0Htik3J/w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma@vger.kernel.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
- > You are right that the most of the speed-up is coming from avoid semaphores, but not only.
- > 
- > From the oprof traces, the semaphores made half of difference.
- > 
- > The next one was copy_from_user and kmalloc/kfree usage (in my proposal - shared page method is used instead)
+On Sun, 2011-01-09 at 11:35 -0500, David Dillow wrote:
+> On Sun, 2011-01-09 at 16:59 +0100, Bart Van Assche wrote:
+> > On Wed, Jan 5, 2011 at 9:35 PM, David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org> wrote:
+> > > From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+> 
+> > > +       list_del_init(&target->free_tx);
+> > > +       for (i = 0; i < SRP_SQ_SIZE; ++i)
+> > > +               list_move(&target->tx_ring[i]->list, &target->free_tx);
+> > >
+> > >        target->qp_in_error = 0;
+> > >        ret = srp_connect_target(target);
+> 
+> > Sorry that I hadn't noticed this before: invoking list_del_init() on
+> > &target->free_tx seems strange to me since &target->free_tx is a list
+> > head and not a list element. While list_del_init() will probably work
+> > fine here, using INIT_LIST_HEAD() here seems more appropriate to me.
+> 
+> Yeah, it works, but INIT_LIST_HEAD() would be more appropriate. I'll fix
+> that when I put this in my repository.
 
-OK, but in any case the switch from idr to hash table seems to be
-insignificant.  I agree that using a shared page is a good idea, but
-removing locking needed for correctness is not a good optimization.
+Actually, using INIT_LIST_HEAD() here on a non-empty free_tx corrupts
+things when used with list_move(). That's not a problem in the next
+patch, where we transition to list_add(), so I made the change in patch
+4.
 
- > In my opinion, the responsibility for cases like protection of QP
- > against destroy during buffer post (and other similar cases) should
- > be moved to vendor driver. The OFED code should move only the code
- > path to driver.
+Thinking about it, we could just do an INIT_LIST_HEAD() here on both
+free_tx and req_queue, and move to list_add() here. However, I've
+already retested the change in patch 4 and pushed to git, so I'm going
+to leave this be.
+-- 
+Dave Dillow
+National Center for Computational Science
+Oak Ridge National Laboratory
+(865) 241-6602 office
 
-Not sure what OFED code you're talking about.  We're discussing the
-kernel uverbs code, right?
-
-In any case I'd be interested in seeing how it looks if you move the
-protection into the individual drivers.  I'd be worried about having to
-duplicate the same code everywhere (which leads to bugs in individual
-drivers) -- I guess this could be resolved by having the code be a
-library that individual drivers call into.  But also I'm not sure if I
-see how you could make such a scheme work -- you need to make sure that
-the data structures used in the uverbs dispatch to drivers remain
-consistent.
-
-In the end I don't think we should go too far optimizing the
-non-kernel-bypass case of verbs -- the main thing we're designing for is
-kernel bypass hardware, after all.  Perhaps you could make your case go
-faster by using a different file descriptor for each QP or something
-(you could pass the fd back as part of the driver-specific create QP path)?
-
- - R.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
