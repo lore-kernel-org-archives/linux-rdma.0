@@ -1,39 +1,52 @@
-From: Tziporet Koren <tziporet-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
-Subject: Re: SR-IOV support in MLX CX2
-Date: Wed, 12 Jan 2011 16:15:42 +0200
-Message-ID: <4D2DB78E.8020304@mellanox.co.il>
-References: <1b60a08628454ebff84d72a1f748b9f4@mail.gmail.com>
+From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Subject: srp warning
+Date: Wed, 12 Jan 2011 09:43:13 -0800
+Message-ID: <adalj2q587i.fsf@cisco.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1b60a08628454ebff84d72a1f748b9f4-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Wei Lin Guay <weilin-S8y2klWGCOFhl2p70BpVqQ@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-  On 1/10/2011 4:03 PM, Wei Lin Guay wrote:
-> Hi all,
->
-> Is Mellanox CX2 HCA supports SR-IOV? I'm currently using CentOS 5.5 with
-> Xen 4.0.1 but open for any recommendation on different linux dist. The
-> first blocking issue that I have is my CX2 doesn't have the SR-IOV
-> extended capability in the PCI config dump as mentioned in the
-> specification. What are the additional firmware/driver that is required in
-> order to have the SR-IOV support in CX2? If SR-IOV is currently not
-> supported, how can I enable PCI-bypass for CX2 in Xen?
->
->
->
-CX2 is capable of supporting SRIOV, however we have not yet released FW 
-and driver for this
-This is under work now and I hope we will start submitting patches to 
-the kernel soon ...
+Just noticed this in my latest build:
 
-Tziporet
+    drivers/infiniband/ulp/srp/ib_srp.c: In function =E2=80=98srp_queue=
+command=E2=80=99:
+    drivers/infiniband/ulp/srp/ib_srp.c:1116: warning: =E2=80=98req=E2=80=
+=99 may be used uninitialized in this function
 
+Looks like it came from 76c75b258f1f ("IB/srp: reduce local coverage fo=
+r
+command submission and EH") because the code now looks like:
+
+	iu =3D __srp_get_tx_iu(target, SRP_IU_CMD);
+	if (iu) {
+		req =3D list_first_entry(&target->free_reqs, struct srp_request,
+				      list);
+		list_del(&req->list);
+	}
+
+	// ...
+
+	if (!iu)
+		goto err;
+
+	// ...
+
+	scmnd->host_scribble =3D (void *) req;
+
+and my gcc at least is not smart enough to see that we can't reach the
+use of req without initializing req.
+
+Simplest fix is to mark req with uninitialized_var() but maybe there's =
+a
+nicer way to handle this.
+
+ - R.
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
