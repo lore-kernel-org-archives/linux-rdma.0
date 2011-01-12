@@ -1,32 +1,32 @@
-From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: Re: [PATCH] RDMA/ucma: Copy iWARP route information.
-Date: Wed, 12 Jan 2011 12:38:34 -0600
-Message-ID: <4D2DF52A.2010803@opengridcomputing.com>
-References: <20100510154656.22415.47740.stgit@build.ogc.int>	<4BF45F1A.4010707@opengridcomputing.com>	<adaeih7eegq.fsf@roland-alpha.cisco.com>	<4BF4618C.1090106@opengridcomputing.com>	<4D2CD02C.1000607@opengridcomputing.com> <ada1v4i55wv.fsf@cisco.com>
+From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH] Variable multicast and patch record queues length.
+Date: Wed, 12 Jan 2011 10:59:11 -0800
+Message-ID: <adawrma3q4g.fsf@cisco.com>
+References: <4D00BC60.8020505@voltaire.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <ada1v4i55wv.fsf-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <4D00BC60.8020505-smomgflXvOZWk0Htik3J/w@public.gmane.org> (Aleksey Senin's message of "Thu,
+	9 Dec 2010 13:24:16 +0200")
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Aleksey Senin <alekseys-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+Cc: Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Moni Shoua <monis-hKgKHo2Ms0F+cjeuK/JdrQ@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Yes, I will.
+ > Currently only 3 packets stored in the send queue before drop take
+ > place. Queue's length may be changed at runtime via files mcast_qlen
+ > and prec_qlen files under /sys/module/ib_ipoib/parameters/ directory.
 
-Thanks,
+Given that we already have module parameters that can be set at runtime,
+do we really need a sysctl too?
 
-Steve.
+ > +	if (!ipoib_table_header)
+ > +		ipoib_table_header = register_sysctl_table(ipoib_table);
 
-On 01/12/2011 12:32 PM, Roland Dreier wrote:
->   >  Did this patch ever make it upstream?  I don't see it.
->
-> Nope, guess it got dropped.  It doesn't apply after the IBoE changes --
-> can you regenerate it?
->
->   - R.
+Seems like unneeded duplication of interfaces (and I don't think an
+ipoib-specific sysctl seems like the right thing)
 
+ - R.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
