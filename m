@@ -1,28 +1,32 @@
-From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 Subject: Re: [PATCH] RDMA/ucma: Copy iWARP route information.
-Date: Wed, 12 Jan 2011 10:32:48 -0800
-Message-ID: <ada1v4i55wv.fsf@cisco.com>
-References: <20100510154656.22415.47740.stgit@build.ogc.int>
-	<4BF45F1A.4010707@opengridcomputing.com>
-	<adaeih7eegq.fsf@roland-alpha.cisco.com>
-	<4BF4618C.1090106@opengridcomputing.com>
-	<4D2CD02C.1000607@opengridcomputing.com>
+Date: Wed, 12 Jan 2011 12:38:34 -0600
+Message-ID: <4D2DF52A.2010803@opengridcomputing.com>
+References: <20100510154656.22415.47740.stgit@build.ogc.int>	<4BF45F1A.4010707@opengridcomputing.com>	<adaeih7eegq.fsf@roland-alpha.cisco.com>	<4BF4618C.1090106@opengridcomputing.com>	<4D2CD02C.1000607@opengridcomputing.com> <ada1v4i55wv.fsf@cisco.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4D2CD02C.1000607-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org> (Steve Wise's message of
-	"Tue, 11 Jan 2011 15:48:28 -0600")
+In-Reply-To: <ada1v4i55wv.fsf-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
- > Did this patch ever make it upstream?  I don't see it.
+Yes, I will.
 
-Nope, guess it got dropped.  It doesn't apply after the IBoE changes --
-can you regenerate it?
+Thanks,
 
- - R.
+Steve.
+
+On 01/12/2011 12:32 PM, Roland Dreier wrote:
+>   >  Did this patch ever make it upstream?  I don't see it.
+>
+> Nope, guess it got dropped.  It doesn't apply after the IBoE changes --
+> can you regenerate it?
+>
+>   - R.
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
