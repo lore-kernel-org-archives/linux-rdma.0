@@ -1,51 +1,38 @@
-From: "Michael S. Tsirkin" <mst-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: Mellanox target workaround in SRP
-Date: Wed, 12 Jan 2011 15:40:58 +0200
-Message-ID: <20110112134058.GA31084@redhat.com>
-References: <1294439717.6219.54.camel@lap75545.ornl.gov>
- <adaipxw8ue6.fsf@cisco.com>
+From: Tziporet Koren <tziporet-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
+Subject: Re: SR-IOV support in MLX CX2
+Date: Wed, 12 Jan 2011 16:15:42 +0200
+Message-ID: <4D2DB78E.8020304@mellanox.co.il>
+References: <1b60a08628454ebff84d72a1f748b9f4@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <adaipxw8ue6.fsf-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <1b60a08628454ebff84d72a1f748b9f4-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Cc: David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org, ishai-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org
+To: Wei Lin Guay <weilin-S8y2klWGCOFhl2p70BpVqQ@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Jan 10, 2011 at 10:51:13AM -0800, Roland Dreier wrote:
-> Maybe we can use MST's current email to ask him... Michael, do you have
-> any memory of the issue we worked around here?
-> 
->  > I have question regarding workaround introduced in commit 559ce8f1 of
->  > the mainline tree:
->  > 
->  >     IB/srp: Work around data corruption bug on Mellanox targets
->  >     
->  >     Data corruption has been seen with Mellanox SRP targets when FMRs
->  >     create a memory region with I/O virtual address != 0.  Add a
->  >     workaround that disables FMR merging for Mellanox targets (OUI 0002c9).
->  > 
->  > I don't see how this can make a difference to the target -- it sees an
->  > address and length, and there should be no visible difference to it when
->  > it gets an FMR versus a direct-mapped region of the same space, right?
->  > And how is it different than getting a direct or indirect descriptor
->  > with a similar offset?
->  > 
->  > I could see there being a bug on the initiator HCA not liking such FMR
->  > mappings, but then it should be keyed off of the vendor of our HCA and
->  > not the target.
->  > 
->  > I'm sure this was tested and shown to fix the problem; I'm just confused
->  > as to what the problem really was and if this is still relevant. Can
->  > someone please enlighten me?
+  On 1/10/2011 4:03 PM, Wei Lin Guay wrote:
+> Hi all,
+>
+> Is Mellanox CX2 HCA supports SR-IOV? I'm currently using CentOS 5.5 with
+> Xen 4.0.1 but open for any recommendation on different linux dist. The
+> first blocking issue that I have is my CX2 doesn't have the SR-IOV
+> extended capability in the PCI config dump as mentioned in the
+> specification. What are the additional firmware/driver that is required in
+> order to have the SR-IOV support in CX2? If SR-IOV is currently not
+> supported, how can I enable PCI-bypass for CX2 in Xen?
+>
+>
+>
+CX2 is capable of supporting SRIOV, however we have not yet released FW 
+and driver for this
+This is under work now and I hope we will start submitting patches to 
+the kernel soon ...
 
+Tziporet
 
-I don't recall unfortunately. Sorry.
-
--- 
-MST
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
