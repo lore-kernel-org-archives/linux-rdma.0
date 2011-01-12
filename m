@@ -1,32 +1,21 @@
 From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH] Variable multicast and patch record queues length.
-Date: Wed, 12 Jan 2011 10:59:11 -0800
-Message-ID: <adawrma3q4g.fsf@cisco.com>
-References: <4D00BC60.8020505@voltaire.com>
+Subject: Re: [PATCH 12/49] drivers/infiniband: Use vzalloc
+Date: Wed, 12 Jan 2011 11:12:08 -0800
+Message-ID: <adasjwy3piv.fsf@cisco.com>
+References: <alpine.DEB.2.00.1011031108260.11625@router.home>
+	<cover.1288925424.git.joe@perches.com>
+	<2a6dc4ae9321aef16372b34fc65ceda93190af0a.1288925424.git.joe@perches.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4D00BC60.8020505-smomgflXvOZWk0Htik3J/w@public.gmane.org> (Aleksey Senin's message of "Thu,
-	9 Dec 2010 13:24:16 +0200")
+In-Reply-To: <2a6dc4ae9321aef16372b34fc65ceda93190af0a.1288925424.git.joe-6d6DIl74uiNBDgjK7y7TUQ@public.gmane.org>
+	(Joe Perches's message of "Thu, 4 Nov 2010 20:07:36 -0700")
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Aleksey Senin <alekseys-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Cc: Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Moni Shoua <monis-hKgKHo2Ms0F+cjeuK/JdrQ@public.gmane.org>
+To: Joe Perches <joe-6d6DIl74uiNBDgjK7y7TUQ@public.gmane.org>
+Cc: Jiri Kosina <trivial-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Tom Tucker <tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Hoang-Nam Nguyen <hnguyen-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, Christoph Raisch <raisch-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, Ralph Campbell <infinipath-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
- > Currently only 3 packets stored in the send queue before drop take
- > place. Queue's length may be changed at runtime via files mcast_qlen
- > and prec_qlen files under /sys/module/ib_ipoib/parameters/ directory.
-
-Given that we already have module parameters that can be set at runtime,
-do we really need a sysctl too?
-
- > +	if (!ipoib_table_header)
- > +		ipoib_table_header = register_sysctl_table(ipoib_table);
-
-Seems like unneeded duplication of interfaces (and I don't think an
-ipoib-specific sysctl seems like the right thing)
-
- - R.
+thanks, applied
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
