@@ -1,21 +1,40 @@
-From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 12/49] drivers/infiniband: Use vzalloc
-Date: Wed, 12 Jan 2011 11:12:08 -0800
-Message-ID: <adasjwy3piv.fsf@cisco.com>
-References: <alpine.DEB.2.00.1011031108260.11625@router.home>
-	<cover.1288925424.git.joe@perches.com>
-	<2a6dc4ae9321aef16372b34fc65ceda93190af0a.1288925424.git.joe@perches.com>
+From: David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>
+Subject: Re: srp warning
+Date: Wed, 12 Jan 2011 14:42:21 -0500
+Message-ID: <1294861341.15826.38.camel@lap75545.ornl.gov>
+References: <adalj2q587i.fsf@cisco.com>
+ <1294854748.15826.26.camel@lap75545.ornl.gov> <ada8vyq57bq.fsf@cisco.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <2a6dc4ae9321aef16372b34fc65ceda93190af0a.1288925424.git.joe-6d6DIl74uiNBDgjK7y7TUQ@public.gmane.org>
-	(Joe Perches's message of "Thu, 4 Nov 2010 20:07:36 -0700")
+In-reply-to: <ada8vyq57bq.fsf-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Joe Perches <joe-6d6DIl74uiNBDgjK7y7TUQ@public.gmane.org>
-Cc: Jiri Kosina <trivial-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Tom Tucker <tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Hoang-Nam Nguyen <hnguyen-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, Christoph Raisch <raisch-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, Ralph Campbell <infinipath-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-thanks, applied
+On Wed, 2011-01-12 at 13:02 -0500, Roland Dreier wrote:
+> > Out of curiosity, what version are you using? I've been using 4.4.5 and
+>  > 4.5.1.
+> 
+> $ gcc --version
+> gcc (Ubuntu/Linaro 4.4.4-14ubuntu5) 4.4.5
+> 
+> (on x86-64).  Not sure what changed because I don't think I saw it
+> before either.
+
+Could you send the contents of drivers/infiniband/ulp/srp/.ib_srp.o.cmd
+from a build showing the warning? And probably the .config as well -- I
+suspect we're using different flags as even gcc 4.1.2 seems to be happy
+for me.
+-- 
+Dave Dillow
+National Center for Computational Science
+Oak Ridge National Laboratory
+(865) 241-6602 office
+
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
