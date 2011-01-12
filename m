@@ -1,27 +1,26 @@
 From: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Subject: Re: srp warning
-Date: Wed, 12 Jan 2011 10:02:17 -0800
-Message-ID: <ada8vyq57bq.fsf@cisco.com>
-References: <adalj2q587i.fsf@cisco.com>
-	<1294854748.15826.26.camel@lap75545.ornl.gov>
+Subject: Re: [PATCH] RDMA/ucma: Copy iWARP route information.
+Date: Wed, 12 Jan 2011 10:32:48 -0800
+Message-ID: <ada1v4i55wv.fsf@cisco.com>
+References: <20100510154656.22415.47740.stgit@build.ogc.int>
+	<4BF45F1A.4010707@opengridcomputing.com>
+	<adaeih7eegq.fsf@roland-alpha.cisco.com>
+	<4BF4618C.1090106@opengridcomputing.com>
+	<4D2CD02C.1000607@opengridcomputing.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1294854748.15826.26.camel-FqX9LgGZnHWDB2HL1qBt2PIbXMQ5te18@public.gmane.org> (David Dillow's
-	message of "Wed, 12 Jan 2011 12:52:28 -0500")
+In-Reply-To: <4D2CD02C.1000607-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org> (Steve Wise's message of
+	"Tue, 11 Jan 2011 15:48:28 -0600")
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>
-Cc: "linux-rdma@vger.kernel.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
- > Out of curiosity, what version are you using? I've been using 4.4.5 and
- > 4.5.1.
+ > Did this patch ever make it upstream?  I don't see it.
 
-$ gcc --version
-gcc (Ubuntu/Linaro 4.4.4-14ubuntu5) 4.4.5
-
-(on x86-64).  Not sure what changed because I don't think I saw it
-before either.
+Nope, guess it got dropped.  It doesn't apply after the IBoE changes --
+can you regenerate it?
 
  - R.
 --
