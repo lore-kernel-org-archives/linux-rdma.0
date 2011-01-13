@@ -1,78 +1,46 @@
-From: David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>
-Subject: Re: srp warning
-Date: Thu, 13 Jan 2011 10:21:11 -0500
-Message-ID: <1294932071.3667.5.camel@lap75545.ornl.gov>
-References: <adalj2q587i.fsf@cisco.com>
- <1294854748.15826.26.camel@lap75545.ornl.gov> <ada8vyq57bq.fsf@cisco.com>
- <1294861341.15826.38.camel@lap75545.ornl.gov> <adaoc7l52hy.fsf@cisco.com>
- <adak4i952bk.fsf@cisco.com> <1294866460.15826.41.camel@lap75545.ornl.gov>
- <AANLkTi=RP74hwT5nEr7XHyADPoE-7LKs8ECT_5QfS4pZ@mail.gmail.com>
+From: "J.L. Burr" <jlburr-vna1KIf7WgpBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: mlx4 fix for 36-bit bus addresses on 32-bit arch
+Date: Thu, 13 Jan 2011 12:06:19 -0500
+Message-ID: <4D2F310B.2010906@cadence.com>
+References: <ig5vl1$j0$1@dough.gmane.org> <adafwt06puj.fsf@cisco.com>	<4D2D5FAD.6030508@cadence.com> <adahbde57r7.fsf_-_@cisco.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-reply-to: <AANLkTi=RP74hwT5nEr7XHyADPoE-7LKs8ECT_5QfS4pZ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <adahbde57r7.fsf_-_-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Cc: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, 2011-01-13 at 06:19 -0500, Bart Van Assche wrote:
-> diff --git a/drivers/infiniband/ulp/srp/ib_srp.c
-> b/drivers/infiniband/ulp/srp/ib_srp.c
-> index 4b62105..3164c4d 100644
-> --- a/drivers/infiniband/ulp/srp/ib_srp.c
-> +++ b/drivers/infiniband/ulp/srp/ib_srp.c
-> @@ -1132,16 +1132,12 @@ static int srp_queuecommand(struct Scsi_Host
-> *shost, struct scsi_cmnd *scmnd)
-> 
->  	spin_lock_irqsave(&target->lock, flags);
->  	iu = __srp_get_tx_iu(target, SRP_IU_CMD);
-> -	if (iu) {
-> -		req = list_first_entry(&target->free_reqs, struct srp_request,
-> -				      list);
-> -		list_del(&req->list);
-> -	}
-> +	if (unlikely(!iu))
+> Thanks, I'll get the mthca patch upstream.  I think the following is
+> also required -- any review is appreciated.
 
-Please drop the unlikely -- it isn't at all unlikely on the hardware and
-loads I run.
+I hadn't realized the newer Mellanox driver had some of its code in drivers/net.  
+Yesterday, I had looked at its drivers/infiniband portion and saw that your 
+proposed change to hw/mlx4/main.c looked good.
 
-> +		goto err_unlock;
-> +	req = list_first_entry(&target->free_reqs, struct srp_request, list);
-> +	list_del(&req->list);
->  	spin_unlock_irqrestore(&target->lock, flags);
-> 
-> -	if (!iu)
-> -		goto err;
-> -
->  	dev = target->srp_host->srp_dev->dev;
->  	ib_dma_sync_single_for_cpu(dev, iu->dma, srp_max_iu_len,
->  				   DMA_TO_DEVICE);
-> @@ -1185,6 +1181,7 @@ err_iu:
-> 
->  	spin_lock_irqsave(&target->lock, flags);
->  	list_add(&req->list, &target->free_reqs);
-> +err_unlock:
+I agree with the changes you've made.    
 
-Please add a line before the label.
+However, I had a new concern about both the mthca and mlx4 changes so far:  
+Are we sure using the phys_addr_t type is the correct thing to do?
 
->  	spin_unlock_irqrestore(&target->lock, flags);
-> 
->  err:
+I know it is for the PowerPC platform.  When I checked my Linux tree for
+phys_addr_t it was only present for PowerPC and Intel architectures.  So,
+I was worried that it might not be appropriate for other architectures.
 
-If Roland would like to rebase his tree and substitute your patch for my
-quickie, then I'm fine with that and you can have my Acked-by with the
-above changes. If not, then make it relative to the uninit var change
-and I'll be happy to put it in my pull request once the workqueue stuff
-is sorted.
+But I now see that the newer trees do define phys_addr_t for all platforms
+(defined in linux/types.h).  And, resource_size_t is now defined using
+phys_addr_t.  That is the type returned from pci_resource_start(), which 
+is where we normally acquire the value to pass to ioremap().
 
--- 
-Dave Dillow
-National Center for Computational Science
-Oak Ridge National Laboratory
-(865) 241-6602 office
+This all happened at 2.6.28, so I'm a victim of running such an old level 
+(I'm still at 2.6.26).
 
+I think therefore that all is well with this change.
+
+By the way, the only reason I'm using mthca is because my hardware
+has a 4-lane slot.  If I had 8-lanes, I would be trying to use
+mlx4.
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
