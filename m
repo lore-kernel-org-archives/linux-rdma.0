@@ -1,240 +1,61 @@
-From: Moni Shoua <monis-hKgKHo2Ms0F+cjeuK/JdrQ@public.gmane.org>
-Subject: [PATCH V2] IB/ipoib: Leave stale send-only multicast groups
-Date: Mon, 17 Jan 2011 13:10:21 +0200
-Message-ID: <4D34239D.9030004@Voltaire.COM>
+From: Or Gerlitz <ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+Subject: Re: IB: increase DMA max_segment_size on Mellanox hardware
+Date: Mon, 17 Jan 2011 13:16:32 +0200
+Message-ID: <4D342510.80701@voltaire.com>
+References: <1295230184.2574.26.camel@obelisk.thedillows.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1295230184.2574.26.camel-1q1vX8mYZiGLUyTwlgNVppKKF0rrzTr+@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Yossi Etigin <yosefe-hKgKHo2Ms0F+cjeuK/JdrQ@public.gmane.org>
+To: David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Unlike with send/receive multicast groups, there is no indication for IPoIB
-that a send-only multicast group is useless. Therefore, even a single packet
-to a multicast destination leaves a multicast entry on the fabric until the
-host interface is down. This causes an MGID leakage in the SM.
+David Dillow wrote:
+> By default, each device is assumed to be able only handle 64 KB chunks during DMA.
+> By giving the segment size a larger value, the block layer
+> will coalesce more S/G entries together for SRP, allowing larger
+> requests with the same sg_tablesize setting.
 
-Here, a garbage-collection task will be scheduled once a minute and will leave
-stale multicast groups.
+Hi Dave,
 
-V1 of the patch below was sent to the list a long ago by Yossi Etigin and from some
-reason the discussion about it was stopped without a conclusion.
+I'd be happy if you can elaborate more or point me to some article which 
+explains how this setting effects the kernel sg coalescing code, specifically -
+when the block layer considers both the scsi sg_tablesize advertised by the SCSI
+LLD for a scsi host H and the max_set_size set for the dma device used by H, does
+it use a minimum function? 
 
-Link to V1:
- - http://www.mail-archive.com/general-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org/msg18928.html
+Looking on the code of block/blk-merge.c :: blk_rq_map_sg , which I was thinking to be 
+relevant here, I don't see any reference to sg_table_size / max_sectors, since its 
+block layer, non scsi specific code, so I guess that for scsi devices, there's 
+some over-ruling done before/after that code runs?
 
-Changes from V1:
- - Add a module parameter to control the amount of time that an idle send-only
-   group is allowed to stay joined.
+In iser we want to support up to 512KB IOs, so sg_tablesize is 128 (=512>>12)
+which on systems with 4K page size accounts to 512K totally (we also set max_sectors 
+to 1024, so on systems with 16K or whatever page size, we'll not get > 512K IOs).
 
-Signed-off-by: Yossi Etigin <yosefe-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Moni Shoua <monis-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+When running actual IO tests we do see the block layer sending down up to
+512K IOs, even with the current / default 64K max_seg_size, so I wasn't sure
+what your patch buys, taking into account my minima assumption, thoughts?
 
---
- drivers/infiniband/ulp/ipoib/ipoib.h           |    8 +++-
- drivers/infiniband/ulp/ipoib/ipoib_main.c      |    8 +++-
- drivers/infiniband/ulp/ipoib/ipoib_multicast.c |   50 +++++++++++++++++++++----
- 3 files changed, 56 insertions(+), 10 deletions(-)
+> This ups the value on Mellanox hardware to 2 GB, though there is no HW limit.
+> It could be 3 GB or even (4 GB - 1), since it's an unsigned int, but we
+> should rarely see a 2 GB request anyways.
 
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib.h b/drivers/infiniband/ulp/ipoib/ipoib.h
-index ab97f92..fb1714f 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib.h
-+++ b/drivers/infiniband/ulp/ipoib/ipoib.h
-@@ -92,6 +92,7 @@ enum {
- 	IPOIB_FLAG_ADMIN_CM	  = 9,
- 	IPOIB_FLAG_UMCAST	  = 10,
- 	IPOIB_FLAG_CSUM		  = 11,
-+	IPOIB_MCAST_RUN_GC	  = 12,
- 
- 	IPOIB_MAX_BACKOFF_SECONDS = 16,
- 
-@@ -132,6 +133,7 @@ struct ipoib_mcast {
- 	struct list_head  list;
- 
- 	unsigned long created;
-+	unsigned long used;
- 	unsigned long backoff;
- 
- 	unsigned long flags;
-@@ -283,7 +285,8 @@ struct ipoib_dev_priv {
- 	struct rb_root multicast_tree;
- 
- 	struct delayed_work pkey_poll_task;
--	struct delayed_work mcast_task;
-+	struct delayed_work mcast_join_task;
-+	struct delayed_work mcast_leave_task;
- 	struct work_struct carrier_on_task;
- 	struct work_struct flush_light;
- 	struct work_struct flush_normal;
-@@ -411,6 +414,8 @@ void ipoib_neigh_free(struct net_device *dev, struct ipoib_neigh *neigh);
- 
- extern struct workqueue_struct *ipoib_workqueue;
- 
-+extern int ipoib_mc_sendonly_timeout;
-+
- /* functions */
- 
- int ipoib_poll(struct napi_struct *napi, int budget);
-@@ -453,6 +458,7 @@ int ipoib_dev_init(struct net_device *dev, struct ib_device *ca, int port);
- void ipoib_dev_cleanup(struct net_device *dev);
- 
- void ipoib_mcast_join_task(struct work_struct *work);
-+void ipoib_mcast_leave_task(struct work_struct *work);
- void ipoib_mcast_carrier_on_task(struct work_struct *work);
- void ipoib_mcast_send(struct net_device *dev, void *mgid, struct sk_buff *skb);
- 
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-index 7a07a72..563370e 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
-+++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-@@ -67,6 +67,11 @@ module_param_named(debug_level, ipoib_debug_level, int, 0644);
- MODULE_PARM_DESC(debug_level, "Enable debug tracing if > 0");
- #endif
- 
-+int ipoib_mc_sendonly_timeout;
-+
-+module_param_named(mc_sendonly_timeout, ipoib_mc_sendonly_timeout, int, 0644);
-+MODULE_PARM_DESC(mc_sendonly_timeout, "Enable debug tracing if > 0");
-+
- struct ipoib_path_iter {
- 	struct net_device *dev;
- 	struct ipoib_path  path;
-@@ -1020,7 +1025,8 @@ static void ipoib_setup(struct net_device *dev)
- 	INIT_LIST_HEAD(&priv->multicast_list);
- 
- 	INIT_DELAYED_WORK(&priv->pkey_poll_task, ipoib_pkey_poll);
--	INIT_DELAYED_WORK(&priv->mcast_task,   ipoib_mcast_join_task);
-+	INIT_DELAYED_WORK(&priv->mcast_join_task,   ipoib_mcast_join_task);
-+	INIT_DELAYED_WORK(&priv->mcast_leave_task, ipoib_mcast_leave_task);
- 	INIT_WORK(&priv->carrier_on_task, ipoib_mcast_carrier_on_task);
- 	INIT_WORK(&priv->flush_light,   ipoib_ib_dev_flush_light);
- 	INIT_WORK(&priv->flush_normal,   ipoib_ib_dev_flush_normal);
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib_multicast.c b/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
-index 3871ac6..87928c1 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
-+++ b/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
-@@ -117,6 +117,7 @@ static struct ipoib_mcast *ipoib_mcast_alloc(struct net_device *dev,
- 
- 	mcast->dev = dev;
- 	mcast->created = jiffies;
-+	mcast->used = jiffies;
- 	mcast->backoff = 1;
- 
- 	INIT_LIST_HEAD(&mcast->list);
-@@ -403,7 +404,7 @@ static int ipoib_mcast_join_complete(int status,
- 		mutex_lock(&mcast_mutex);
- 		if (test_bit(IPOIB_MCAST_RUN, &priv->flags))
- 			queue_delayed_work(ipoib_workqueue,
--					   &priv->mcast_task, 0);
-+					   &priv->mcast_join_task, 0);
- 		mutex_unlock(&mcast_mutex);
- 
- 		/*
-@@ -436,7 +437,7 @@ static int ipoib_mcast_join_complete(int status,
- 	mutex_lock(&mcast_mutex);
- 	spin_lock_irq(&priv->lock);
- 	if (test_bit(IPOIB_MCAST_RUN, &priv->flags))
--		queue_delayed_work(ipoib_workqueue, &priv->mcast_task,
-+		queue_delayed_work(ipoib_workqueue, &priv->mcast_join_task,
- 				   mcast->backoff * HZ);
- 	spin_unlock_irq(&priv->lock);
- 	mutex_unlock(&mcast_mutex);
-@@ -505,7 +506,7 @@ static void ipoib_mcast_join(struct net_device *dev, struct ipoib_mcast *mcast,
- 		mutex_lock(&mcast_mutex);
- 		if (test_bit(IPOIB_MCAST_RUN, &priv->flags))
- 			queue_delayed_work(ipoib_workqueue,
--					   &priv->mcast_task,
-+					   &priv->mcast_join_task,
- 					   mcast->backoff * HZ);
- 		mutex_unlock(&mcast_mutex);
- 	}
-@@ -514,7 +515,7 @@ static void ipoib_mcast_join(struct net_device *dev, struct ipoib_mcast *mcast,
- void ipoib_mcast_join_task(struct work_struct *work)
- {
- 	struct ipoib_dev_priv *priv =
--		container_of(work, struct ipoib_dev_priv, mcast_task.work);
-+		container_of(work, struct ipoib_dev_priv, mcast_join_task.work);
- 	struct net_device *dev = priv->dev;
- 
- 	if (!test_bit(IPOIB_MCAST_RUN, &priv->flags))
-@@ -546,7 +547,7 @@ void ipoib_mcast_join_task(struct work_struct *work)
- 			mutex_lock(&mcast_mutex);
- 			if (test_bit(IPOIB_MCAST_RUN, &priv->flags))
- 				queue_delayed_work(ipoib_workqueue,
--						   &priv->mcast_task, HZ);
-+						   &priv->mcast_join_task, HZ);
- 			mutex_unlock(&mcast_mutex);
- 			return;
- 		}
-@@ -610,7 +611,9 @@ int ipoib_mcast_start_thread(struct net_device *dev)
- 
- 	mutex_lock(&mcast_mutex);
- 	if (!test_and_set_bit(IPOIB_MCAST_RUN, &priv->flags))
--		queue_delayed_work(ipoib_workqueue, &priv->mcast_task, 0);
-+		queue_delayed_work(ipoib_workqueue, &priv->mcast_join_task, 0);
-+	if (!test_and_set_bit(IPOIB_MCAST_RUN_GC, &priv->flags))
-+		queue_delayed_work(ipoib_workqueue, &priv->mcast_leave_task, 0);
- 	mutex_unlock(&mcast_mutex);
- 
- 	return 0;
-@@ -624,7 +627,9 @@ int ipoib_mcast_stop_thread(struct net_device *dev, int flush)
- 
- 	mutex_lock(&mcast_mutex);
- 	clear_bit(IPOIB_MCAST_RUN, &priv->flags);
--	cancel_delayed_work(&priv->mcast_task);
-+	clear_bit(IPOIB_MCAST_RUN_GC, &priv->flags);
-+	cancel_delayed_work(&priv->mcast_join_task);
-+	cancel_delayed_work(&priv->mcast_leave_task);
- 	mutex_unlock(&mcast_mutex);
- 
- 	if (flush)
-@@ -727,7 +732,7 @@ out:
- 				list_add_tail(&neigh->list, &mcast->neigh_list);
- 			}
- 		}
--
-+		mcast->used = jiffies;
- 		spin_unlock_irqrestore(&priv->lock, flags);
- 		ipoib_send(dev, skb, mcast->ah, IB_MULTICAST_QPN);
- 		return;
-@@ -888,6 +893,35 @@ void ipoib_mcast_restart_task(struct work_struct *work)
- 		ipoib_mcast_start_thread(dev);
- }
- 
-+void ipoib_mcast_leave_task(struct work_struct *work)
-+{
-+	struct ipoib_dev_priv *priv =
-+		container_of(work, struct ipoib_dev_priv, mcast_leave_task.work);
-+	struct net_device *dev = priv->dev;
-+	struct ipoib_mcast *mcast, *tmcast;
-+	LIST_HEAD(remove_list);
-+
-+	if (!test_bit(IPOIB_MCAST_RUN_GC, &priv->flags))
-+		return;
-+
-+	if (ipoib_mc_sendonly_timeout > 0) {
-+		list_for_each_entry_safe(mcast, tmcast, &priv->multicast_list, list) {
-+			if (test_bit(IPOIB_MCAST_FLAG_SENDONLY, &mcast->flags) &&
-+			    time_before(mcast->used, jiffies - ipoib_mc_sendonly_timeout * HZ)) {
-+				rb_erase(&mcast->rb_node, &priv->multicast_tree);
-+				list_move_tail(&mcast->list, &remove_list);
-+			}
-+		}
-+
-+		list_for_each_entry_safe(mcast, tmcast, &remove_list, list) {
-+			ipoib_mcast_leave(dev, mcast);
-+			ipoib_mcast_free(mcast);
-+		}
-+	}
-+
-+	queue_delayed_work(ipoib_workqueue, &priv->mcast_leave_task, 60 * HZ);
-+}
-+
- #ifdef CONFIG_INFINIBAND_IPOIB_DEBUG
- 
- struct ipoib_mcast_iter *ipoib_mcast_iter_init(struct net_device *dev)
+I think that typically systems will not issue IOs larger then 1/2/4 MBs for
+bunch of reasons, so unless I miss somebigthing here, 1/2/(4-1)GB is thousand
+times these quantities...
+
+> This patch also reduces the iterations in SRP's mapping code for some
+> upcoming patches I have.
+
+These patches aren't targeted for the 2.6.38 merge window, correct? in that
+case, I'd like to let us some time to discuss / better understand the low level
+drivers patch and not merge it for this window, agree?
+
+Or.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
