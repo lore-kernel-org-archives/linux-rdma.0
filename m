@@ -1,64 +1,49 @@
 From: David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>
-Subject: IB: increase DMA max_segment_size on Mellanox hardware
-Date: Sun, 16 Jan 2011 21:09:44 -0500
-Message-ID: <1295230184.2574.26.camel@obelisk.thedillows.org>
+Subject: Re: [ewg] Mellanox target workaround in SRP
+Date: Sun, 16 Jan 2011 23:50:21 -0500
+Message-ID: <1295239821.3051.1.camel@obelisk.thedillows.org>
+References: <1294439717.6219.54.camel@lap75545.ornl.gov>
+	 <adaipy09h0i.fsf@cisco.com>
+	 <1294510396.7914.82.camel@obelisk.thedillows.org>
+	 <4D2B4E13.6070903@mellanox.com>
+	 <1294686163.3038.12.camel@obelisk.thedillows.org>
+	 <4D2B64CA.6040609@mellanox.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <4D2B64CA.6040609-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+To: Vu Pham <vuhuong-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org, Ishai Rabinovitz <ishai-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-By default, each device is assumed to be able only handle 64 KB chunks
-during DMA. By giving the segment size a larger value, the block layer
-will coalesce more S/G entries together for SRP, allowing larger
-requests with the same sg_tablesize setting.
+On Mon, 2011-01-10 at 11:58 -0800, Vu Pham wrote:
+> David Dillow wrote:
+> > either. The SRP FMR mapping code is careful to mask the SG address with
+> > the FMR page mask, so we should never ask the HCA to map a page with the
+> > first_byte_offset != 0. Instead, we tell the target to request an IO
+> > virtual address appropriately offset into the first page of the FMR.
+> > 
+> > Or perhaps I misunderstood you, and it's the non-zero first byte offset
+> > in the RDMA command on the wire that is the issue, and not the FMR setup
+> > in the initiator? And it only affects FMR-mapped memory, not the
+> > kernel's MR?
+> 
+> It's not the kernel's MR.
+> 
+> I suspect that the corruption happen with *only* Mellanox FMR + MPT
+> setup without fbo and target doing RDMA with offset vaddr.
+> 
+> I need to ask internal hw/fw guys and confirm if it's true.
 
-This ups the value on Mellanox hardware to 2 GB, though there is no HW
-limit.
+Have you had any response from the HW/FW guys?
 
-Signed-off-by: David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>
---
-It could be 3 GB or even (4 GB - 1), since it's an unsigned int, but we
-should rarely see a 2 GB request anyways.
-
-I think it is probably safe to do something similar for the qib and
-ipath drivers, and perhaps the iWarp cards for iSER.
-
-This patch also reduces the iterations in SRP's mapping code for some
-upcoming patches I have.
-
-diff --git a/drivers/infiniband/hw/mthca/mthca_main.c b/drivers/infiniband/hw/mthca/mthca_main.c
-index 5eee666..deb79d4 100644
---- a/drivers/infiniband/hw/mthca/mthca_main.c
-+++ b/drivers/infiniband/hw/mthca/mthca_main.c
-@@ -1043,6 +1043,9 @@ static int __mthca_init_one(struct pci_dev *pdev, int hca_type)
- 		}
- 	}
- 
-+	/* not a HW limit, but no way to say infinity */
-+	dma_set_max_seg_size(&pdev->dev, 2 * 1024 * 1024 * 1024);
-+
- 	mdev = (struct mthca_dev *) ib_alloc_device(sizeof *mdev);
- 	if (!mdev) {
- 		dev_err(&pdev->dev, "Device struct alloc failed, "
-diff --git a/drivers/net/mlx4/main.c b/drivers/net/mlx4/main.c
-index 782f11d..699852e 100644
---- a/drivers/net/mlx4/main.c
-+++ b/drivers/net/mlx4/main.c
-@@ -1109,6 +1109,9 @@ static int __mlx4_init_one(struct pci_dev *pdev, const struct pci_device_id *id)
- 		}
- 	}
- 
-+	/* not a HW limit, but no way to say infinity */
-+	dma_set_max_seg_size(&pdev->dev, 2 * 1024 * 1024 * 1024);
-+
- 	priv = kzalloc(sizeof *priv, GFP_KERNEL);
- 	if (!priv) {
- 		dev_err(&pdev->dev, "Device struct alloc failed, "
-
+-- 
+Dave Dillow
+National Center for Computational Science
+Oak Ridge National Laboratory
+(865) 241-6602 office
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
