@@ -1,60 +1,35 @@
 From: Or Gerlitz <ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Subject: Re: IB: increase DMA max_segment_size on Mellanox hardware
-Date: Tue, 18 Jan 2011 09:16:46 +0200
-Message-ID: <4D353E5E.2020500@voltaire.com>
-References: <1295230184.2574.26.camel@obelisk.thedillows.org>	<4D342510.80701@voltaire.com> <1295318783.3051.81.camel@obelisk.thedillows.org>
+Subject: Re: [PATCH V4 5/6] RDMA CM: Netlink Client
+Date: Tue, 18 Jan 2011 09:26:24 +0200
+Message-ID: <4D3540A0.6060807@voltaire.com>
+References: <1294068834-17778-1-git-send-email-nirm@voltaire.com>	<1294068834-17778-6-git-send-email-nirm@voltaire.com>	<20110107203742.GH1211@obsidianresearch.com> <adamxnc9x33.fsf@cisco.com>	<4D3417E1.9090903@voltaire.com> <adaaaizyyx6.fsf@cisco.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1295318783.3051.81.camel-1q1vX8mYZiGLUyTwlgNVppKKF0rrzTr+@public.gmane.org>
+In-Reply-To: <adaaaizyyx6.fsf-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Nir Muchtar <nirm-smomgflXvOZWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-David Dillow wrote:
-> We're talking about different things -- max_segments(sg_tablesize)/max_sectors are 
-> the limits as we're adding pages to the bio via bio_add_page(). blk_rq_map_sg() uses
-> max_segment_size as a bound on the largest S/G entry into which it can
-> coalesce multiple entries from the BIO.
-> It is considered in the line
-> 	if (sg->length + nbytes > queue_max_segment_size(q))
-> 		goto new_segment;
+Roland Dreier wrote:
+> Jason did a great job of reviewing the netlink stuff as it evolved, but
+> I didn't pay much attention and I need to learn about details of netlink
+> and then really look at the code first.  When the final patches arrive
+> on Jan 3 and the merge window opens the next day, there's not much time
+> to get non-trivial changes merged.
 
-Dave, thanks for the detailed explanation, I understand it much better now, just
-to make sure, blk_rq_map_sg() is called through the flow of dma_map_sg, correct?
+Roland, fair-enough, so can we continue the review around this point in time? I don't 
+think delaying the --review-- to around the next merge window would be beneficial. 
 
-If this is the case, we're talking on decision making done by the block layer
-during dma-mapping which later affect the "IB IOMMU mapping" at the IB driver 
-(e.g srp, iser, etc).
-
->> In iser we want to support up to 512KB IOs, so sg_tablesize is 128 (=512>>12)
->> which on systems with 4K page size accounts to 512K totally (we also set max_sectors 
->> to 1024, so on systems with 16K or whatever page size, we'll not get > 512K IOs).
-
-> Yes, but without this change, you will get your 512 KB request in 8 S/G
-> entries minimum, when it could be in one if contiguous. For our systems
-> where we're trying to get 1 MB or larger IOs over SRP, we get 16 S/G
-> entries when we could get one, potentially forcing us into using FMRs
-> and doing additional work when we could just map the single entry directly.
-
-Since the block layer did its best to coalesce multiple entries from the BIO
-to SG(s), you would need to FMR whenever dma_map_sg returns value > 1 
-
-As you mention later on, I wonder what would be the benefit from not using FMRs 
-as we're talking on large IOs (> 64K, by the assumption that the block it coalesces 
-today BIOs that allow that, i.e their pages are contiguous), for which I would 
-expect latency, bandwidth and IOPS not to be effected by no-FMRing them. So we're
-remained with the CPU usage saving, do you have (say) "vmstat 1" snapshots before/after
-this patch with the ~same IO tool/load that can help quantify this saving?
-
-Also when working with direct I/O from user space and/or under file-system,
-did you really see many BIOs that can be merged? I was under the impression,
-that (specifically after some time the system is active) for the most case, 
-I get totally scattered SGs, whose pages can't be coalesced at all.
+Jason, as for the documentation, patch 4/5 has some documentation on the rdma-cm
+netlink client, if this isn't sufficient I suggest you let Nir know and he can add more.
 
 Or.
+
+
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
