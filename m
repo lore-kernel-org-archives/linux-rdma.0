@@ -1,38 +1,32 @@
-From: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH V2] IB/ipoib: Leave stale send-only multicast groups
-Date: Tue, 18 Jan 2011 14:09:28 -0600 (CST)
-Message-ID: <alpine.DEB.2.00.1101181406490.18059@router.home>
-References: <4D34239D.9030004@Voltaire.COM>
+From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: Re: [PATCH] RDMA/ucma: Copy iWARP route information.
+Date: Tue, 18 Jan 2011 15:56:11 -0600
+Message-ID: <4D360C7B.30207@opengridcomputing.com>
+References: <20100510154656.22415.47740.stgit@build.ogc.int>	<4BF45F1A.4010707@opengridcomputing.com>	<adaeih7eegq.fsf@roland-alpha.cisco.com>	<4BF4618C.1090106@opengridcomputing.com>	<4D2CD02C.1000607@opengridcomputing.com> <ada1v4i55wv.fsf@cisco.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4D34239D.9030004-hKgKHo2Ms0F+cjeuK/JdrQ@public.gmane.org>
+In-Reply-To: <ada1v4i55wv.fsf-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Moni Shoua <monis-hKgKHo2Ms0F+cjeuK/JdrQ@public.gmane.org>
-Cc: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Yossi Etigin <yosefe-hKgKHo2Ms0F+cjeuK/JdrQ@public.gmane.org>
+To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, 17 Jan 2011, Moni Shoua wrote:
+On 01/12/2011 12:32 PM, Roland Dreier wrote:
+>   >  Did this patch ever make it upstream?  I don't see it.
+>
+> Nope, guess it got dropped.  It doesn't apply after the IBoE changes --
+> can you regenerate it?
+>
 
-> Unlike with send/receive multicast groups, there is no indication for IPoIB
-> that a send-only multicast group is useless. Therefore, even a single packet
-> to a multicast destination leaves a multicast entry on the fabric until the
-> host interface is down. This causes an MGID leakage in the SM.
+Hey,
 
-There is such an indication. The igmp subsystem removes the multicast
-group from the grouplist for the interface when the process terminates.
+Did this:
 
-The ipoib layer will then release the MGID when the multicast groups are
-reprocessed in ipoib_mcast_restart_task(). The sendonly detect logic puts
-it onto the remove_list() and then mcast_mcast_leave() is called at the
-end to dispose of the MC group.
+http://www.mail-archive.com/linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org/msg03182.html
 
-That is at least what our tests show. MC sendonly groups vanish when a
-task terminates. Lets leave it that way.
-
-Did you leave the task that caused the sendonly join running until
-shutdown?
-
+ever make it upstream?
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
