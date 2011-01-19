@@ -1,75 +1,55 @@
-From: "Manoj Nambiar" <manoj_n09-kXrGd1YOZaxBDgjK7y7TUQ@public.gmane.org>
-Subject: Problems with ibv_post_send and completion queues
-Date: Wed, 19 Jan 2011 16:51:19 +0530
-Message-ID: <B7FE0EF644764FF8A57CDD6065A0E0C2@01HW325222>
-Reply-To: "Manoj Nambiar" <nambiar-EkmVulN54Sk@public.gmane.org>
+From: David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>
+Subject: Re: [RFC 0/8] Reliably generate large request from SRP
+Date: Wed, 19 Jan 2011 07:01:17 -0500
+Message-ID: <1295438477.5233.39.camel@obelisk.thedillows.org>
+References: <1295411242-26148-1-git-send-email-dillowda@ornl.gov>
+	 <aday66hxxwe.fsf@cisco.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed	reply-type=original
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <aday66hxxwe.fsf-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hi,
+On Tue, 2011-01-18 at 21:31 -0800, Roland Dreier wrote:
+> Hi Dave,
+> 
+>  > Now that at least one vendor is implementing full support for the SRP
+>  > indirect memory descriptor tables, we can safely expand the sg_tablesize,
+>  > and realize some performance gains, in many cases quite large. I don't
+>  > have vendor code that implements the full support needed for safety, but
+>  > the rareness of FMR mapping failures allows the mapping code to function,
+>  > at a risk, with existing targets.
+> 
+> Have you considered using memory registration through a send queue (from
+> the base memory management extensions)?  mlx4 at least has support for
+> this operation, which would let you pre-allocate everything and avoid
+> the possibility of failure (I think).
 
-I am writing some rdma based programs using the Intel NetEffect iWARP N=
-ICs.
+I'd rather keep it to one code path if possible, rather than mix FMRs
+and BMM. I also need this to work on mthca cards, though I haven't
+checked if they support it.
 
-I am running into the following problems with my code -
+Still, I'll check into it; avoiding the need for vendor support would be
+nice.
 
-1.
-I can only set maximum work requests to 510 using rdma_create_qp, other=
-wise=20
-it gives me an error =E2=80=93 =E2=80=9Clibnes: nes_ucreate_qp Bad sq a=
-ttr parameters=20
-max_send_wr=3D511 max_send_sge=3D1.
-Is there a way to increase this?=E2=80=9D
+> When do we get FMR mapping failures now?
 
-2.
-Is there a way to do RDMA writes without using a completion queue? I us=
-e an=20
-alternative channel to determine if my work requests were correctly exe=
-cuted=20
-or not. When I tried to do so I could send 510 (may be related to the=20
-previous question) work requests successfully. After that ibv_post_send=
-=20
-returns 22. Repeatedly retrying ibv_post_send doesn=E2=80=99t seem to c=
-lear the=20
-problem. It returns the same error code. Checked up the error code whic=
-h=20
-tells me invalid arguments.? Unable to make sense of this.  Is there a =
-way=20
-to clean up the work requests in the system?
-
-I am creating the queue pair with sq_sig_all =3D 0 in struct ibv_qp_ini=
-t_attr=20
-and am not setting setting IBV_SEND_SIGNALED in the send_flags member o=
-f=20
-struct ibv_send_wr. This means I do not get any completion events. When=
-=20
-calling rdma_create_qp I initialize the send_cq and recv_cq of the stru=
-ct=20
-ibv_qp_init_attr with the completion queue created using ibv_create_cq =
-(with=20
-cge parameter same as cap.max_send_wr in struct ibv_qp_init_attr. (I th=
-ink=20
-that creating a completion queue is a must for creating an rdma queue p=
-air -=20
-pls correct me if I am wrong.)
-
-Pls note =E2=80=93 I do not get this problem when I poll completion que=
-ues (when=20
-rdma queue pair is created with sq_sig_all =3D 0 && IBV_SEND_SIGNALED s=
-et in=20
-the flag of the work requests to ibv_post_send)
-
-Thanks,
-Manoj Nambiar=20
+I don't know that we ever do, but reading through the code in fmr_pool.c
+and the HW implementations, there is no telling what goes on in ehca
+since it is hidden in the hypervisor, or so it appeared to me last I
+looked. There seemed to be error cases elsewhere, but they should also
+be quite rare.
+-- 
+Dave Dillow
+National Center for Computational Science
+Oak Ridge National Laboratory
+(865) 241-6602 office
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
