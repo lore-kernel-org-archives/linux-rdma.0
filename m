@@ -1,54 +1,69 @@
-From: David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>
-Subject: Re: [RFC 0/8] Reliably generate large request from SRP
-Date: Wed, 19 Jan 2011 07:01:17 -0500
-Message-ID: <1295438477.5233.39.camel@obelisk.thedillows.org>
-References: <1295411242-26148-1-git-send-email-dillowda@ornl.gov>
-	 <aday66hxxwe.fsf@cisco.com>
+From: "Walukiewicz, Miroslaw" <Miroslaw.Walukiewicz-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: Problems with ibv_post_send and completion queues
+Date: Wed, 19 Jan 2011 13:21:24 +0000
+Message-ID: <BE2BFE91933D1B4089447C644860408066F493BE@irsmsx503.ger.corp.intel.com>
+References: <B7FE0EF644764FF8A57CDD6065A0E0C2@01HW325222>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <aday66hxxwe.fsf-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+In-Reply-To: <B7FE0EF644764FF8A57CDD6065A0E0C2@01HW325222>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Manoj Nambiar <nambiar-EkmVulN54Sk@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, 2011-01-18 at 21:31 -0800, Roland Dreier wrote:
-> Hi Dave,
-> 
->  > Now that at least one vendor is implementing full support for the SRP
->  > indirect memory descriptor tables, we can safely expand the sg_tablesize,
->  > and realize some performance gains, in many cases quite large. I don't
->  > have vendor code that implements the full support needed for safety, but
->  > the rareness of FMR mapping failures allows the mapping code to function,
->  > at a risk, with existing targets.
-> 
-> Have you considered using memory registration through a send queue (from
-> the base memory management extensions)?  mlx4 at least has support for
-> this operation, which would let you pre-allocate everything and avoid
-> the possibility of failure (I think).
-
-I'd rather keep it to one code path if possible, rather than mix FMRs
-and BMM. I also need this to work on mthca cards, though I haven't
-checked if they support it.
-
-Still, I'll check into it; avoiding the need for vendor support would be
-nice.
-
-> When do we get FMR mapping failures now?
-
-I don't know that we ever do, but reading through the code in fmr_pool.c
-and the HW implementations, there is no telling what goes on in ehca
-since it is hidden in the hypervisor, or so it appeared to me last I
-looked. There seemed to be error cases elsewhere, but they should also
-be quite rare.
--- 
-Dave Dillow
-National Center for Computational Science
-Oak Ridge National Laboratory
-(865) 241-6602 office
-
+SGVsbG8gTWFub2osDQoNClJlc3BvbmRpbmcgdG8geW91ciBxdWVzdGlvbnMuDQoxLiB0aGUgNTEw
+IGlzIEhXIG1heCBmb3IgUVAgbGVuZ3RoIGZvciBORTAyMCBjYXJkIHNvIGl0IGNhbm5vdCBiZSBp
+bmNyZWFzZWQuDQoNCjIuIFRoZSBORTAyMCBkcml2ZXIga2VlcHMgcG9zdGVkIGJ1ZmZlcnMgb24g
+dGhlIEZJRk8tbGlrZSBxdWV1ZSB3aGljaCBpcyA1MTAgZW50cmllcyBsb25nIGluIHlvdXIgYXBw
+bGljYXRpb24uDQpUaGVyZSBhcmUgbWFpbnRhaW5lZCB0YWlsIGFuZCBoZWFkIHBvaW50ZXJzIHRo
+YXQgZG9lcyBub3QgYWxsb3cgZm9yIFFQIG92ZXJmbG93LiBUaGUgaGVhZCBwb2ludGVyIGlzIHVw
+ZGF0ZWQgZHVyaW5nIHBvc3Rfc2VuZCBhbmQgdGFpbCBpcyB1cGRhdGVkIGR1cmluZyBwb2xsX2Nx
+IG9uIENRIGFzc2lnbmVkIHRvIHlvdXIgUVAuIFdoZW4geW91IG1ha2UgcG9zdF9zZW5kcyB3aXRo
+b3V0IGNoZWNraW5nIGNxIHRoZSB0YWlsIHBvaW50ZXIgaXMgbm90IHVwZGF0ZWQgc28gYWZ0ZXIg
+NTEwIHBvc3Rfc2VuZCBjYWxscyB0aGUgUVAgbG9va3MgYmVpbmcgZnVsbCBmb3IgZHJpdmVyIGFu
+ZCBpbiBlZmZlY3QgeW91IGNhbm5vdCBzZW5kIG1vcmUgZGF0YSB1c2luZyB0aGF0IFFQLg0KDQpS
+ZWdhcmRzLA0KDQpNaXJlaw0KDQotLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KRnJvbTogbGlu
+dXgtcmRtYS1vd25lckB2Z2VyLmtlcm5lbC5vcmcgW21haWx0bzpsaW51eC1yZG1hLW93bmVyQHZn
+ZXIua2VybmVsLm9yZ10gT24gQmVoYWxmIE9mIE1hbm9qIE5hbWJpYXINClNlbnQ6IFdlZG5lc2Rh
+eSwgSmFudWFyeSAxOSwgMjAxMSAxMjoyMSBQTQ0KVG86IGxpbnV4LXJkbWFAdmdlci5rZXJuZWwu
+b3JnDQpTdWJqZWN0OiBQcm9ibGVtcyB3aXRoIGlidl9wb3N0X3NlbmQgYW5kIGNvbXBsZXRpb24g
+cXVldWVzDQoNCkhpLA0KDQpJIGFtIHdyaXRpbmcgc29tZSByZG1hIGJhc2VkIHByb2dyYW1zIHVz
+aW5nIHRoZSBJbnRlbCBOZXRFZmZlY3QgaVdBUlAgTklDcy4NCg0KSSBhbSBydW5uaW5nIGludG8g
+dGhlIGZvbGxvd2luZyBwcm9ibGVtcyB3aXRoIG15IGNvZGUgLQ0KDQoxLg0KSSBjYW4gb25seSBz
+ZXQgbWF4aW11bSB3b3JrIHJlcXVlc3RzIHRvIDUxMCB1c2luZyByZG1hX2NyZWF0ZV9xcCwgb3Ro
+ZXJ3aXNlIA0KaXQgZ2l2ZXMgbWUgYW4gZXJyb3Ig4oCTIOKAnGxpYm5lczogbmVzX3VjcmVhdGVf
+cXAgQmFkIHNxIGF0dHIgcGFyYW1ldGVycyANCm1heF9zZW5kX3dyPTUxMSBtYXhfc2VuZF9zZ2U9
+MS4NCklzIHRoZXJlIGEgd2F5IHRvIGluY3JlYXNlIHRoaXM/4oCdDQoNCjIuDQpJcyB0aGVyZSBh
+IHdheSB0byBkbyBSRE1BIHdyaXRlcyB3aXRob3V0IHVzaW5nIGEgY29tcGxldGlvbiBxdWV1ZT8g
+SSB1c2UgYW4gDQphbHRlcm5hdGl2ZSBjaGFubmVsIHRvIGRldGVybWluZSBpZiBteSB3b3JrIHJl
+cXVlc3RzIHdlcmUgY29ycmVjdGx5IGV4ZWN1dGVkIA0Kb3Igbm90LiBXaGVuIEkgdHJpZWQgdG8g
+ZG8gc28gSSBjb3VsZCBzZW5kIDUxMCAobWF5IGJlIHJlbGF0ZWQgdG8gdGhlIA0KcHJldmlvdXMg
+cXVlc3Rpb24pIHdvcmsgcmVxdWVzdHMgc3VjY2Vzc2Z1bGx5LiBBZnRlciB0aGF0IGlidl9wb3N0
+X3NlbmQgDQpyZXR1cm5zIDIyLiBSZXBlYXRlZGx5IHJldHJ5aW5nIGlidl9wb3N0X3NlbmQgZG9l
+c27igJl0IHNlZW0gdG8gY2xlYXIgdGhlIA0KcHJvYmxlbS4gSXQgcmV0dXJucyB0aGUgc2FtZSBl
+cnJvciBjb2RlLiBDaGVja2VkIHVwIHRoZSBlcnJvciBjb2RlIHdoaWNoIA0KdGVsbHMgbWUgaW52
+YWxpZCBhcmd1bWVudHMuPyBVbmFibGUgdG8gbWFrZSBzZW5zZSBvZiB0aGlzLiAgSXMgdGhlcmUg
+YSB3YXkgDQp0byBjbGVhbiB1cCB0aGUgd29yayByZXF1ZXN0cyBpbiB0aGUgc3lzdGVtPw0KDQpJ
+IGFtIGNyZWF0aW5nIHRoZSBxdWV1ZSBwYWlyIHdpdGggc3Ffc2lnX2FsbCA9IDAgaW4gc3RydWN0
+IGlidl9xcF9pbml0X2F0dHIgDQphbmQgYW0gbm90IHNldHRpbmcgc2V0dGluZyBJQlZfU0VORF9T
+SUdOQUxFRCBpbiB0aGUgc2VuZF9mbGFncyBtZW1iZXIgb2YgDQpzdHJ1Y3QgaWJ2X3NlbmRfd3Iu
+IFRoaXMgbWVhbnMgSSBkbyBub3QgZ2V0IGFueSBjb21wbGV0aW9uIGV2ZW50cy4gV2hlbiANCmNh
+bGxpbmcgcmRtYV9jcmVhdGVfcXAgSSBpbml0aWFsaXplIHRoZSBzZW5kX2NxIGFuZCByZWN2X2Nx
+IG9mIHRoZSBzdHJ1Y3QgDQppYnZfcXBfaW5pdF9hdHRyIHdpdGggdGhlIGNvbXBsZXRpb24gcXVl
+dWUgY3JlYXRlZCB1c2luZyBpYnZfY3JlYXRlX2NxICh3aXRoIA0KY2dlIHBhcmFtZXRlciBzYW1l
+IGFzIGNhcC5tYXhfc2VuZF93ciBpbiBzdHJ1Y3QgaWJ2X3FwX2luaXRfYXR0ci4gKEkgdGhpbmsg
+DQp0aGF0IGNyZWF0aW5nIGEgY29tcGxldGlvbiBxdWV1ZSBpcyBhIG11c3QgZm9yIGNyZWF0aW5n
+IGFuIHJkbWEgcXVldWUgcGFpciAtIA0KcGxzIGNvcnJlY3QgbWUgaWYgSSBhbSB3cm9uZy4pDQoN
+ClBscyBub3RlIOKAkyBJIGRvIG5vdCBnZXQgdGhpcyBwcm9ibGVtIHdoZW4gSSBwb2xsIGNvbXBs
+ZXRpb24gcXVldWVzICh3aGVuIA0KcmRtYSBxdWV1ZSBwYWlyIGlzIGNyZWF0ZWQgd2l0aCBzcV9z
+aWdfYWxsID0gMCAmJiBJQlZfU0VORF9TSUdOQUxFRCBzZXQgaW4gDQp0aGUgZmxhZyBvZiB0aGUg
+d29yayByZXF1ZXN0cyB0byBpYnZfcG9zdF9zZW5kKQ0KDQpUaGFua3MsDQpNYW5vaiBOYW1iaWFy
+IA0KDQotLQ0KVG8gdW5zdWJzY3JpYmUgZnJvbSB0aGlzIGxpc3Q6IHNlbmQgdGhlIGxpbmUgInVu
+c3Vic2NyaWJlIGxpbnV4LXJkbWEiIGluDQp0aGUgYm9keSBvZiBhIG1lc3NhZ2UgdG8gbWFqb3Jk
+b21vQHZnZXIua2VybmVsLm9yZw0KTW9yZSBtYWpvcmRvbW8gaW5mbyBhdCAgaHR0cDovL3ZnZXIu
+a2VybmVsLm9yZy9tYWpvcmRvbW8taW5mby5odG1sDQo=
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
