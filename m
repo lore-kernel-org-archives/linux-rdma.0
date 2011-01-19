@@ -1,70 +1,128 @@
-From: "Walukiewicz, Miroslaw" <Miroslaw.Walukiewicz-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: Problems with ibv_post_send and completion queues
-Date: Wed, 19 Jan 2011 13:21:24 +0000
-Message-ID: <BE2BFE91933D1B4089447C644860408066F493BE@irsmsx503.ger.corp.intel.com>
-References: <B7FE0EF644764FF8A57CDD6065A0E0C2@01HW325222>
+From: "Manoj Nambiar" <manoj_n09-kXrGd1YOZaxBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: Problems with ibv_post_send and completion queues
+Date: Wed, 19 Jan 2011 19:33:07 +0530
+Message-ID: <E130CB711EF24E5D9789DF505C3BD452@01HW325222>
+References: <B7FE0EF644764FF8A57CDD6065A0E0C2@01HW325222> <BE2BFE91933D1B4089447C644860408066F493BE@irsmsx503.ger.corp.intel.com>
+Reply-To: "Manoj Nambiar" <nambiar-EkmVulN54Sk@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=UTF-8;
+	format=flowed	reply-type=original
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <B7FE0EF644764FF8A57CDD6065A0E0C2@01HW325222>
-Content-Language: en-US
+In-Reply-To: <BE2BFE91933D1B4089447C644860408066F493BE-IGOiFh9zz4wLt2AQoY/u9bfspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Manoj Nambiar <nambiar-EkmVulN54Sk@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: "Walukiewicz, Miroslaw" <Miroslaw.Walukiewicz-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-SGVsbG8gTWFub2osDQoNClJlc3BvbmRpbmcgdG8geW91ciBxdWVzdGlvbnMuDQoxLiB0aGUgNTEw
-IGlzIEhXIG1heCBmb3IgUVAgbGVuZ3RoIGZvciBORTAyMCBjYXJkIHNvIGl0IGNhbm5vdCBiZSBp
-bmNyZWFzZWQuDQoNCjIuIFRoZSBORTAyMCBkcml2ZXIga2VlcHMgcG9zdGVkIGJ1ZmZlcnMgb24g
-dGhlIEZJRk8tbGlrZSBxdWV1ZSB3aGljaCBpcyA1MTAgZW50cmllcyBsb25nIGluIHlvdXIgYXBw
-bGljYXRpb24uDQpUaGVyZSBhcmUgbWFpbnRhaW5lZCB0YWlsIGFuZCBoZWFkIHBvaW50ZXJzIHRo
-YXQgZG9lcyBub3QgYWxsb3cgZm9yIFFQIG92ZXJmbG93LiBUaGUgaGVhZCBwb2ludGVyIGlzIHVw
-ZGF0ZWQgZHVyaW5nIHBvc3Rfc2VuZCBhbmQgdGFpbCBpcyB1cGRhdGVkIGR1cmluZyBwb2xsX2Nx
-IG9uIENRIGFzc2lnbmVkIHRvIHlvdXIgUVAuIFdoZW4geW91IG1ha2UgcG9zdF9zZW5kcyB3aXRo
-b3V0IGNoZWNraW5nIGNxIHRoZSB0YWlsIHBvaW50ZXIgaXMgbm90IHVwZGF0ZWQgc28gYWZ0ZXIg
-NTEwIHBvc3Rfc2VuZCBjYWxscyB0aGUgUVAgbG9va3MgYmVpbmcgZnVsbCBmb3IgZHJpdmVyIGFu
-ZCBpbiBlZmZlY3QgeW91IGNhbm5vdCBzZW5kIG1vcmUgZGF0YSB1c2luZyB0aGF0IFFQLg0KDQpS
-ZWdhcmRzLA0KDQpNaXJlaw0KDQotLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KRnJvbTogbGlu
-dXgtcmRtYS1vd25lckB2Z2VyLmtlcm5lbC5vcmcgW21haWx0bzpsaW51eC1yZG1hLW93bmVyQHZn
-ZXIua2VybmVsLm9yZ10gT24gQmVoYWxmIE9mIE1hbm9qIE5hbWJpYXINClNlbnQ6IFdlZG5lc2Rh
-eSwgSmFudWFyeSAxOSwgMjAxMSAxMjoyMSBQTQ0KVG86IGxpbnV4LXJkbWFAdmdlci5rZXJuZWwu
-b3JnDQpTdWJqZWN0OiBQcm9ibGVtcyB3aXRoIGlidl9wb3N0X3NlbmQgYW5kIGNvbXBsZXRpb24g
-cXVldWVzDQoNCkhpLA0KDQpJIGFtIHdyaXRpbmcgc29tZSByZG1hIGJhc2VkIHByb2dyYW1zIHVz
-aW5nIHRoZSBJbnRlbCBOZXRFZmZlY3QgaVdBUlAgTklDcy4NCg0KSSBhbSBydW5uaW5nIGludG8g
-dGhlIGZvbGxvd2luZyBwcm9ibGVtcyB3aXRoIG15IGNvZGUgLQ0KDQoxLg0KSSBjYW4gb25seSBz
-ZXQgbWF4aW11bSB3b3JrIHJlcXVlc3RzIHRvIDUxMCB1c2luZyByZG1hX2NyZWF0ZV9xcCwgb3Ro
-ZXJ3aXNlIA0KaXQgZ2l2ZXMgbWUgYW4gZXJyb3Ig4oCTIOKAnGxpYm5lczogbmVzX3VjcmVhdGVf
-cXAgQmFkIHNxIGF0dHIgcGFyYW1ldGVycyANCm1heF9zZW5kX3dyPTUxMSBtYXhfc2VuZF9zZ2U9
-MS4NCklzIHRoZXJlIGEgd2F5IHRvIGluY3JlYXNlIHRoaXM/4oCdDQoNCjIuDQpJcyB0aGVyZSBh
-IHdheSB0byBkbyBSRE1BIHdyaXRlcyB3aXRob3V0IHVzaW5nIGEgY29tcGxldGlvbiBxdWV1ZT8g
-SSB1c2UgYW4gDQphbHRlcm5hdGl2ZSBjaGFubmVsIHRvIGRldGVybWluZSBpZiBteSB3b3JrIHJl
-cXVlc3RzIHdlcmUgY29ycmVjdGx5IGV4ZWN1dGVkIA0Kb3Igbm90LiBXaGVuIEkgdHJpZWQgdG8g
-ZG8gc28gSSBjb3VsZCBzZW5kIDUxMCAobWF5IGJlIHJlbGF0ZWQgdG8gdGhlIA0KcHJldmlvdXMg
-cXVlc3Rpb24pIHdvcmsgcmVxdWVzdHMgc3VjY2Vzc2Z1bGx5LiBBZnRlciB0aGF0IGlidl9wb3N0
-X3NlbmQgDQpyZXR1cm5zIDIyLiBSZXBlYXRlZGx5IHJldHJ5aW5nIGlidl9wb3N0X3NlbmQgZG9l
-c27igJl0IHNlZW0gdG8gY2xlYXIgdGhlIA0KcHJvYmxlbS4gSXQgcmV0dXJucyB0aGUgc2FtZSBl
-cnJvciBjb2RlLiBDaGVja2VkIHVwIHRoZSBlcnJvciBjb2RlIHdoaWNoIA0KdGVsbHMgbWUgaW52
-YWxpZCBhcmd1bWVudHMuPyBVbmFibGUgdG8gbWFrZSBzZW5zZSBvZiB0aGlzLiAgSXMgdGhlcmUg
-YSB3YXkgDQp0byBjbGVhbiB1cCB0aGUgd29yayByZXF1ZXN0cyBpbiB0aGUgc3lzdGVtPw0KDQpJ
-IGFtIGNyZWF0aW5nIHRoZSBxdWV1ZSBwYWlyIHdpdGggc3Ffc2lnX2FsbCA9IDAgaW4gc3RydWN0
-IGlidl9xcF9pbml0X2F0dHIgDQphbmQgYW0gbm90IHNldHRpbmcgc2V0dGluZyBJQlZfU0VORF9T
-SUdOQUxFRCBpbiB0aGUgc2VuZF9mbGFncyBtZW1iZXIgb2YgDQpzdHJ1Y3QgaWJ2X3NlbmRfd3Iu
-IFRoaXMgbWVhbnMgSSBkbyBub3QgZ2V0IGFueSBjb21wbGV0aW9uIGV2ZW50cy4gV2hlbiANCmNh
-bGxpbmcgcmRtYV9jcmVhdGVfcXAgSSBpbml0aWFsaXplIHRoZSBzZW5kX2NxIGFuZCByZWN2X2Nx
-IG9mIHRoZSBzdHJ1Y3QgDQppYnZfcXBfaW5pdF9hdHRyIHdpdGggdGhlIGNvbXBsZXRpb24gcXVl
-dWUgY3JlYXRlZCB1c2luZyBpYnZfY3JlYXRlX2NxICh3aXRoIA0KY2dlIHBhcmFtZXRlciBzYW1l
-IGFzIGNhcC5tYXhfc2VuZF93ciBpbiBzdHJ1Y3QgaWJ2X3FwX2luaXRfYXR0ci4gKEkgdGhpbmsg
-DQp0aGF0IGNyZWF0aW5nIGEgY29tcGxldGlvbiBxdWV1ZSBpcyBhIG11c3QgZm9yIGNyZWF0aW5n
-IGFuIHJkbWEgcXVldWUgcGFpciAtIA0KcGxzIGNvcnJlY3QgbWUgaWYgSSBhbSB3cm9uZy4pDQoN
-ClBscyBub3RlIOKAkyBJIGRvIG5vdCBnZXQgdGhpcyBwcm9ibGVtIHdoZW4gSSBwb2xsIGNvbXBs
-ZXRpb24gcXVldWVzICh3aGVuIA0KcmRtYSBxdWV1ZSBwYWlyIGlzIGNyZWF0ZWQgd2l0aCBzcV9z
-aWdfYWxsID0gMCAmJiBJQlZfU0VORF9TSUdOQUxFRCBzZXQgaW4gDQp0aGUgZmxhZyBvZiB0aGUg
-d29yayByZXF1ZXN0cyB0byBpYnZfcG9zdF9zZW5kKQ0KDQpUaGFua3MsDQpNYW5vaiBOYW1iaWFy
-IA0KDQotLQ0KVG8gdW5zdWJzY3JpYmUgZnJvbSB0aGlzIGxpc3Q6IHNlbmQgdGhlIGxpbmUgInVu
-c3Vic2NyaWJlIGxpbnV4LXJkbWEiIGluDQp0aGUgYm9keSBvZiBhIG1lc3NhZ2UgdG8gbWFqb3Jk
-b21vQHZnZXIua2VybmVsLm9yZw0KTW9yZSBtYWpvcmRvbW8gaW5mbyBhdCAgaHR0cDovL3ZnZXIu
-a2VybmVsLm9yZy9tYWpvcmRvbW8taW5mby5odG1sDQo=
+Thanks for the clarifications Mark. That settles it.
+
+Manoj Nambiar
+
+-----Original Message-----=20
+=46rom: Walukiewicz, Miroslaw
+Sent: Wednesday, January 19, 2011 6:51 PM
+To: Manoj Nambiar ; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Subject: RE: Problems with ibv_post_send and completion queues
+
+Hello Manoj,
+
+Responding to your questions.
+1. the 510 is HW max for QP length for NE020 card so it cannot be incre=
+ased.
+
+2. The NE020 driver keeps posted buffers on the FIFO-like queue which i=
+s 510=20
+entries long in your application.
+There are maintained tail and head pointers that does not allow for QP=20
+overflow. The head pointer is updated during post_send and tail is upda=
+ted=20
+during poll_cq on CQ assigned to your QP. When you make post_sends with=
+out=20
+checking cq the tail pointer is not updated so after 510 post_send call=
+s the=20
+QP looks being full for driver and in effect you cannot send more data =
+using=20
+that QP.
+
+Regards,
+
+Mirek
+
+-----Original Message-----
+=46rom: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org=20
+[mailto:linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Manoj Nambiar
+Sent: Wednesday, January 19, 2011 12:21 PM
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Subject: Problems with ibv_post_send and completion queues
+
+Hi,
+
+I am writing some rdma based programs using the Intel NetEffect iWARP N=
+ICs.
+
+I am running into the following problems with my code -
+
+1.
+I can only set maximum work requests to 510 using rdma_create_qp, other=
+wise
+it gives me an error =E2=80=93 =E2=80=9Clibnes: nes_ucreate_qp Bad sq a=
+ttr parameters
+max_send_wr=3D511 max_send_sge=3D1.
+Is there a way to increase this?=E2=80=9D
+
+2.
+Is there a way to do RDMA writes without using a completion queue? I us=
+e an
+alternative channel to determine if my work requests were correctly exe=
+cuted
+or not. When I tried to do so I could send 510 (may be related to the
+previous question) work requests successfully. After that ibv_post_send
+returns 22. Repeatedly retrying ibv_post_send doesn=E2=80=99t seem to c=
+lear the
+problem. It returns the same error code. Checked up the error code whic=
+h
+tells me invalid arguments.? Unable to make sense of this.  Is there a =
+way
+to clean up the work requests in the system?
+
+I am creating the queue pair with sq_sig_all =3D 0 in struct ibv_qp_ini=
+t_attr
+and am not setting setting IBV_SEND_SIGNALED in the send_flags member o=
+f
+struct ibv_send_wr. This means I do not get any completion events. When
+calling rdma_create_qp I initialize the send_cq and recv_cq of the stru=
+ct
+ibv_qp_init_attr with the completion queue created using ibv_create_cq =
+(with
+cge parameter same as cap.max_send_wr in struct ibv_qp_init_attr. (I th=
+ink
+that creating a completion queue is a must for creating an rdma queue p=
+air -
+pls correct me if I am wrong.)
+
+Pls note =E2=80=93 I do not get this problem when I poll completion que=
+ues (when
+rdma queue pair is created with sq_sig_all =3D 0 && IBV_SEND_SIGNALED s=
+et in
+the flag of the work requests to ibv_post_send)
+
+Thanks,
+Manoj Nambiar
+
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
+N=EF=BF=BD=EF=BF=BD=EF=BF=BDr=EF=BF=BDy=EF=BF=BD=EF=BF=BD=D8=B2X=EF=BF=BD=
+=EF=BF=BDv=D8=96)=EF=BF=BD{n=C7=89=EF=BF=BD=EF=BF=BD{=EF=BF=BD=D9=8A{y=EF=
+=BF=BD=CA=87=EF=BF=BD=EF=BF=BDj=07=EF=BF=BDf=EF=BF=BD=EF=BF=BD=EF=BF=BD=
+=EF=BF=BDz=EF=BF=BD=EF=BF=BDw=EF=BF=BD=EF=BF=BD=EF=BF=BD=EF=BF=BDj:v=EF=
+=BF=BD=EF=BF=BDwj=D8=B6=EF=BF=BD=EF=BF=BD=07=EF=BF=BD=EF=BF=BDzZ=EF=BF=BD=
+=EF=BF=BD=EF=BF=BD=EF=BF=BD=EF=BF=BDj=EF=BF=BD=EF=BF=BD=20
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
