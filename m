@@ -1,81 +1,196 @@
 From: David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>
-Subject: [RFC 0/8] Reliably generate large request from SRP
-Date: Tue, 18 Jan 2011 23:27:14 -0500
-Message-ID: <1295411242-26148-1-git-send-email-dillowda@ornl.gov>
+Subject: [RFC 2/8] IB/srp: move IB CM setup completion into its own function
+Date: Tue, 18 Jan 2011 23:27:16 -0500
+Message-ID: <1295411242-26148-3-git-send-email-dillowda@ornl.gov>
+References: <1295411242-26148-1-git-send-email-dillowda@ornl.gov>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-reply-to: <1295411242-26148-1-git-send-email-dillowda-1Heg1YXhbW8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-A persistent thorn in our side has been getting large (1 MB+) requests
-from SRP on a system that has been up for any period of time. As we're
-using RAID6 8+2 LUNs, we need to generate a full 1 MB IO to avoid a R/M/W
-cycle on some hardware, and other hardware just likes the larger requests,
-even without the penalty of an R/M/W cycle. The existing code wouldn't 
-reliably generate the requests because its sg_tablesize was limited to
-255, or less, due to the number of descriptors we could describe in the
-SRP_CMD message.
+This is to clean up prior to further changes.
+---
+ drivers/infiniband/ulp/srp/ib_srp.c |  144 ++++++++++++++++++-----------------
+ 1 files changed, 73 insertions(+), 71 deletions(-)
 
-Now that at least one vendor is implementing full support for the SRP
-indirect memory descriptor tables, we can safely expand the sg_tablesize,
-and realize some performance gains, in many cases quite large. I don't
-have vendor code that implements the full support needed for safety, but
-the rareness of FMR mapping failures allows the mapping code to function,
-at a risk, with existing targets.
-
-I've done some quick testing against an older generation of hardware RAID6
-for these numbers.  They are streaming writes using a queue depth of 64.
-The SATA numbers are against a LUN built with 8+2 1 TB SATA drives; the SAS
-numbers are against a LUN built with two volumes of 8+2 1 TB SAS drives in
-a RAID 0 config.  In all cases, the write cache is disabled, and
-dma_boundary on the SRP initiator is set such that no coalescing occurs on
-the SG list. The IOMMU has been disabled, and max_sectors_kb has been set
-to the IO size under test, which matches the IO request size from the
-application. For the baseline testing, the IO request is broken into
-multiple pieces before being sent due to the sg_tablesize being capped at
-255. For the patched numbers, the request was sent intact. These numbers
-are for SRP_FMR_SIZE == 256, but I expect the 512 numbers to be similar.
-
-
-Device	Size	Baseline	Patched
-SAS	1M	524 MB/s	1004 MB/s
-SAS	2M	520 MB/s	861 MB/s
-SAS	4M	529 MB/s	921 MB/s
-SAS	8M	600 MB/s	951 MB/s
-
-SATA	1M	385 MB/s	515 MB/s
-SATA	2M	394 MB/s	591 MB/s
-SATA	4M	377 MB/s	565 MB/s
-SATA	8M	419 MB/s	616 MB/s
-
-
-Similar gains are found at other queue depths, but I've not done a full
-parameter search.
-
-Testing the lock scaling capability with fio indicates an increase in
-command throughput except in the single threaded case. This is an
-unexpected improvement and needs further examination.
-
-I've only played with performance testing; I need to test data integrity
-as well.
-
-
-
-David Dillow (8):
-  IB/srp: always avoid non-zero offsets into an FMR
-  IB/srp: move IB CM setup completion into its own function
-  IB/srp: allow sg_tablesize to be set for each target
-  IB/srp: rework mapping engine to use multiple FMR entries
-  IB/srp: add safety valve for large SG tables without HW support
-  IB/srp: add support for indirect tables that don't fit in SRP_CMD
-  IB/srp: try to use larger FMR sizes to cover our mappings
-  IB/srp and direct IO: patches for testing large indirect tables
-
- drivers/infiniband/ulp/srp/ib_srp.c |  736 +++++++++++++++++++++++------------
- drivers/infiniband/ulp/srp/ib_srp.h |   38 ++-
- fs/direct-io.c                      |    1 +
- 3 files changed, 525 insertions(+), 250 deletions(-)
-
+diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
+index 197e26c..060e6a8 100644
+--- a/drivers/infiniband/ulp/srp/ib_srp.c
++++ b/drivers/infiniband/ulp/srp/ib_srp.c
+@@ -1213,6 +1213,78 @@ err:
+ 	return -ENOMEM;
+ }
+ 
++static void srp_cm_rep_handler(struct ib_cm_id *cm_id,
++			       struct srp_login_rsp *lrsp,
++			       struct srp_target_port *target)
++{
++	struct ib_qp_attr *qp_attr = NULL;
++	int attr_mask = 0;
++	int ret;
++	int i;
++
++	if (lrsp->opcode == SRP_LOGIN_RSP) {
++		target->max_ti_iu_len = be32_to_cpu(lrsp->max_ti_iu_len);
++		target->req_lim       = be32_to_cpu(lrsp->req_lim_delta);
++
++		/*
++		 * Reserve credits for task management so we don't
++		 * bounce requests back to the SCSI mid-layer.
++		 */
++		target->scsi_host->can_queue
++			= min(target->req_lim - SRP_TSK_MGMT_SQ_SIZE,
++			      target->scsi_host->can_queue);
++	} else {
++		shost_printk(KERN_WARNING, target->scsi_host,
++			     PFX "Unhandled RSP opcode %#x\n", lrsp->opcode);
++		ret = -ECONNRESET;
++		goto error;
++	}
++
++	if (!target->rx_ring[0]) {
++		ret = srp_alloc_iu_bufs(target);
++		if (ret)
++			goto error;
++	}
++
++	ret = -ENOMEM;
++	qp_attr = kmalloc(sizeof *qp_attr, GFP_KERNEL);
++	if (!qp_attr)
++		goto error;
++
++	qp_attr->qp_state = IB_QPS_RTR;
++	ret = ib_cm_init_qp_attr(cm_id, qp_attr, &attr_mask);
++	if (ret)
++		goto error_free;
++
++	ret = ib_modify_qp(target->qp, qp_attr, attr_mask);
++	if (ret)
++		goto error_free;
++
++	for (i = 0; i < SRP_RQ_SIZE; i++) {
++		struct srp_iu *iu = target->rx_ring[i];
++		ret = srp_post_recv(target, iu);
++		if (ret)
++			goto error_free;
++	}
++
++	qp_attr->qp_state = IB_QPS_RTS;
++	ret = ib_cm_init_qp_attr(cm_id, qp_attr, &attr_mask);
++	if (ret)
++		goto error_free;
++
++	ret = ib_modify_qp(target->qp, qp_attr, attr_mask);
++	if (ret)
++		goto error_free;
++
++	ret = ib_send_cm_rtu(cm_id, NULL, 0);
++
++error_free:
++	kfree(qp_attr);
++
++error:
++	target->status = ret;
++}
++
+ static void srp_cm_rej_handler(struct ib_cm_id *cm_id,
+ 			       struct ib_cm_event *event,
+ 			       struct srp_target_port *target)
+@@ -1296,11 +1368,7 @@ static void srp_cm_rej_handler(struct ib_cm_id *cm_id,
+ static int srp_cm_handler(struct ib_cm_id *cm_id, struct ib_cm_event *event)
+ {
+ 	struct srp_target_port *target = cm_id->context;
+-	struct ib_qp_attr *qp_attr = NULL;
+-	int attr_mask = 0;
+ 	int comp = 0;
+-	int opcode = 0;
+-	int i;
+ 
+ 	switch (event->event) {
+ 	case IB_CM_REQ_ERROR:
+@@ -1312,71 +1380,7 @@ static int srp_cm_handler(struct ib_cm_id *cm_id, struct ib_cm_event *event)
+ 
+ 	case IB_CM_REP_RECEIVED:
+ 		comp = 1;
+-		opcode = *(u8 *) event->private_data;
+-
+-		if (opcode == SRP_LOGIN_RSP) {
+-			struct srp_login_rsp *rsp = event->private_data;
+-
+-			target->max_ti_iu_len = be32_to_cpu(rsp->max_ti_iu_len);
+-			target->req_lim       = be32_to_cpu(rsp->req_lim_delta);
+-
+-			/*
+-			 * Reserve credits for task management so we don't
+-			 * bounce requests back to the SCSI mid-layer.
+-			 */
+-			target->scsi_host->can_queue
+-				= min(target->req_lim - SRP_TSK_MGMT_SQ_SIZE,
+-				      target->scsi_host->can_queue);
+-		} else {
+-			shost_printk(KERN_WARNING, target->scsi_host,
+-				    PFX "Unhandled RSP opcode %#x\n", opcode);
+-			target->status = -ECONNRESET;
+-			break;
+-		}
+-
+-		if (!target->rx_ring[0]) {
+-			target->status = srp_alloc_iu_bufs(target);
+-			if (target->status)
+-				break;
+-		}
+-
+-		qp_attr = kmalloc(sizeof *qp_attr, GFP_KERNEL);
+-		if (!qp_attr) {
+-			target->status = -ENOMEM;
+-			break;
+-		}
+-
+-		qp_attr->qp_state = IB_QPS_RTR;
+-		target->status = ib_cm_init_qp_attr(cm_id, qp_attr, &attr_mask);
+-		if (target->status)
+-			break;
+-
+-		target->status = ib_modify_qp(target->qp, qp_attr, attr_mask);
+-		if (target->status)
+-			break;
+-
+-		for (i = 0; i < SRP_RQ_SIZE; i++) {
+-			struct srp_iu *iu = target->rx_ring[i];
+-			target->status = srp_post_recv(target, iu);
+-			if (target->status)
+-				break;
+-		}
+-		if (target->status)
+-			break;
+-
+-		qp_attr->qp_state = IB_QPS_RTS;
+-		target->status = ib_cm_init_qp_attr(cm_id, qp_attr, &attr_mask);
+-		if (target->status)
+-			break;
+-
+-		target->status = ib_modify_qp(target->qp, qp_attr, attr_mask);
+-		if (target->status)
+-			break;
+-
+-		target->status = ib_send_cm_rtu(cm_id, NULL, 0);
+-		if (target->status)
+-			break;
+-
++		srp_cm_rep_handler(cm_id, event->private_data, target);
+ 		break;
+ 
+ 	case IB_CM_REJ_RECEIVED:
+@@ -1416,8 +1420,6 @@ static int srp_cm_handler(struct ib_cm_id *cm_id, struct ib_cm_event *event)
+ 	if (comp)
+ 		complete(&target->done);
+ 
+-	kfree(qp_attr);
+-
+ 	return 0;
+ }
+ 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
