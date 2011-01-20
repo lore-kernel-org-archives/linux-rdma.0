@@ -1,7 +1,7 @@
 From: Lloyd Brown <lloyd_brown-pC3/9zQCMHo@public.gmane.org>
-Subject: [PATCH 2/2] Update ibcheckerrors manpage for -T option
-Date: Thu, 20 Jan 2011 15:42:42 -0700
-Message-ID: <1295563362-24695-3-git-send-email-lloyd_brown@byu.edu>
+Subject: [PATCH 1/2] Update ibcheckerrors to accept thresholds file
+Date: Thu, 20 Jan 2011 15:42:41 -0700
+Message-ID: <1295563362-24695-2-git-send-email-lloyd_brown@byu.edu>
 References: <1295563362-24695-1-git-send-email-lloyd_brown@byu.edu>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1295563362-24695-1-git-send-email-lloyd_brown-8Bzd4dk9+oo@public.gmane.org>
@@ -10,37 +10,72 @@ To: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Lloyd Brown <lloyd_brown-pC3/9zQCMHo@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This patch documents the "-T" option in the ibcheckerrors
- manpage, which allows the user to specify a thresholds file,
- which is passed along to the ibcheckerrs tool.
+This patch adds the "-T" option, borrowed from ibcheckerrs
+ to allow the user to pass in a thresholds file, overriding the
+ defaults.  In reality, all it's doing is passing this along to
+ the ibcheckerrs call.
 
 Signed-off-by: Lloyd Brown <lloyd_brown-8Bzd4dk9+oo@public.gmane.org>
 ---
- infiniband-diags/man/ibcheckerrors.8 |    4 +++-
- 1 files changed, 3 insertions(+), 1 deletions(-)
+ infiniband-diags/scripts/ibcheckerrors.in |   17 ++++++++++++++---
+ 1 files changed, 14 insertions(+), 3 deletions(-)
 
-diff --git a/infiniband-diags/man/ibcheckerrors.8 b/infiniband-diags/man/ibcheckerrors.8
-index 7c2467f..6f82ab3 100644
---- a/infiniband-diags/man/ibcheckerrors.8
-+++ b/infiniband-diags/man/ibcheckerrors.8
-@@ -5,7 +5,7 @@ ibcheckerrors \- validate IB subnet and report errors
+diff --git a/infiniband-diags/scripts/ibcheckerrors.in b/infiniband-diags/scripts/ibcheckerrors.in
+index a45bd63..1e8b1a1 100644
+--- a/infiniband-diags/scripts/ibcheckerrors.in
++++ b/infiniband-diags/scripts/ibcheckerrors.in
+@@ -3,7 +3,7 @@
+ IBPATH=${IBPATH:-@IBSCRIPTPATH@}
  
- .SH SYNOPSIS
- .B ibcheckerrors
--[\-h] [\-b] [\-v] [\-N | \-nocolor] [<topology-file> | \-C ca_name
-+[\-h] [\-b] [\-v] [\-N | \-nocolor] [-T <threshold_file>] [<topology-file> | \-C ca_name
- \-P ca_port \-t(imeout) timeout_ms]
+ function usage() {
+-	echo Usage: `basename $0` "[-h] [-b] [-v] [-N | -nocolor]"\
++	echo Usage: `basename $0` "[-h] [-b] [-v] [-N | -nocolor] [-T <threshold_file>]"\
+ 	    "[<topology-file> | -C ca_name -P ca_port -t(imeout) timeout_ms]"
+ 	exit -1
+ }
+@@ -23,6 +23,8 @@ ntype=""
+ nodeguid=""
+ topofile=""
+ ca_info=""
++thresholdfile=""
++thresholdopt=""
  
- .SH DESCRIPTION
-@@ -23,6 +23,8 @@ errors (from port counters).
- .PP
- \-N | \-nocolor	use mono rather than color mode
- .PP
-+\-T <threshold_file> use the specified threshold file, overriding defaults.  You can generate a file containing default thresholds with \fIibcheckerrs -s\fP.
-+.PP
- \-C <ca_name>   use the specified ca_name.
- .PP
- \-P <ca_port>   use the specified ca_port.
+ while [ "$1" ]; do
+ 	case $1 in
+@@ -53,6 +55,15 @@ while [ "$1" ]; do
+ 		ca_info="$ca_info $1 $2"
+ 		shift
+ 		;;
++	-T)
++		if ! [ -r $2 ]; then
++			echo "Can't use threshold file '$2'"
++			usage
++		fi
++		thresholdopt="-T"
++		thresholdfile="$2"
++		shift
++		;;
+ 	-*)
+ 		usage
+ 		;;
+@@ -85,7 +96,7 @@ function check_node(lid, port)
+ 		print "\n# " ntype ": nodeguid 0x" nodeguid " failed"
+ 		return 1;
+ 	}
+-	if (system("'$IBPATH'/ibcheckerrs '"$ca_info"' '$gflags' '$verbose' '$brief' " lid " " port))
++	if (system("'$IBPATH'/ibcheckerrs '"$ca_info"' '$gflags' '$thresholdopt' '$thresholdfile' '$verbose' '$brief' " lid " " port))
+ 		return 2;
+ 	return 0;
+ }
+@@ -115,7 +126,7 @@ function check_node(lid, port)
+ 			if (check_node(lid, port) == 2)
+ 				pcnterr++;
+ 		} else if (err &&
+-			   system("'$IBPATH'/ibcheckerrs '"$ca_info"' '$gflags' '$verbose' '$brief' " lid " " port))
++			   system("'$IBPATH'/ibcheckerrs '"$ca_info"' '$gflags' '$thresholdopt' '$thresholdfile' '$verbose' '$brief' " lid " " port))
+ 			pcnterr++;
+ }
+ 
 -- 
 1.7.3
 
