@@ -1,47 +1,52 @@
-From: Andrea Gozzelino <Andrea.Gozzelino-PK20h7lG/Rc1GQ1Ptb7lUw@public.gmane.org>
-Subject: question about Priority Flow Control and RDMA
-Date: Thu, 20 Jan 2011 10:05:02 +0100 (CET)
-Message-ID: <2360175.1295514302115.SLOX.WebMail.wwwrun@imap.lnl.infn.it>
+From: Or Gerlitz <ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+Subject: Re: [RFC 0/8] Reliably generate large request from SRP
+Date: Thu, 20 Jan 2011 11:52:04 +0200
+Message-ID: <4D3805C4.6010203@voltaire.com>
+References: <1295411242-26148-1-git-send-email-dillowda@ornl.gov> <aday66hxxwe.fsf@cisco.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <aday66hxxwe.fsf-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hi all,
+Roland Dreier wrote:
+>> [...] support for the SRP indirect memory descriptor tables, we can safely expand
+>> the sg_tablesize, and realize some performance gains, in many cases quite large.
+>> [..] the rareness of FMR mapping failures allows the mapping code to function,
+>> at a risk, with existing targets.
 
-I use RDMA verbs (iWARP on IntelNetEffect adapters, RoCE on Mellanox
-cards, ...), but I would like to insert the Priority Flow Control (PFC)=
-=2E
-Mellanox cards support it, but I have not idea about switch. I study
-both the configuration back to back and the configuration with switch.
-The actual experimental setup has an Extreme Summit X650-24x switch,
-without optional parts. In next future, probably I will use Juniper
-JUNIP 4500 switch.
+> Have you considered using memory registration through a send queue (from
+> the base memory management extensions)?  mlx4 at least has support for
+> this operation, which would let you pre-allocate everything and avoid
+> the possibility of failure (I think). When do we get FMR mapping failures now?
 
-Could you please suggest me switch and adapters to obtain a corret use
-of PFC feature?
+Dave, with myself being a little behind on srp... would it be correct to 
+say that in the initiator side indirect mapping <--> using FMR? 
 
-Thank you.
-Best regards,
+> Device	Size	Baseline	Patched
+> SAS	1M	524 MB/s	1004 MB/s
 
-Andrea Gozzelino
+Starting with the features (perf improvements) that this patch series brings, 
+if we look on the 50% for SAS/1M IOs that you're presenting, can you tell 
+what made the difference, srp went from sg_tablesize of 255 to 256 so the 
+upper layers where able to provide 1M as one IO, where you fmr-ing here or 
+not? if not, is this as of the mlx4 patch for the dma_max_seg_size and your 
+special environment that allows you to get 1M as single SG entry? 
+anything else in that patch set?
 
-PhD student Universit=C3=A0 di Padova=20
-Dipartimento di Fisica Galileo Galilei
-Via Marzolo, 8 - I - 35131 - Padova
-INFN - Laboratori Nazionali di Legnaro	(LNL)
-Viale dell'Universita' 2 - I - 35020 - Legnaro (PD)- ITALIA
-Office a LNL: E-101
-Tel: +39 049 8068346
-=46ax: +39 049 641925
-Mail: andrea.gozzelino-PK20h7lG/Rc1GQ1Ptb7lUw@public.gmane.org
-				=09
+Now moving to the bugs (fmr mapping failures) this series addresses, can
+you report/shed any light on the failures? and/or how to produce them?
 
+Roland, I wasn't sure to follow if the usage of the FMRs ala the IB spec, 
+which are supported by mlx4 you were suggesting came to address the bugs
+or the features... 
+
+Or.
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
