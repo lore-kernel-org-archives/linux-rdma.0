@@ -1,43 +1,32 @@
 From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: [PATCH 2/2] RDMA/cxgb4: Set the correct device physical function for
-	iwarp connections.
-Date: Fri, 21 Jan 2011 11:00:34 -0600
-Message-ID: <20110121170034.23741.14120.stgit@build.ogc.int>
-References: <20110121170028.23741.61673.stgit@build.ogc.int>
+Subject: Re: [PATCH V1 1/4] Rename RAW_ETY to RAW_ETHERTYPE
+Date: Fri, 21 Jan 2011 11:12:31 -0600
+Message-ID: <4D39BE7F.70909@opengridcomputing.com>
+References: <4C308E07.7050903@senin.name> <4C3092ED.6000701@senin.name> <adaiq3q8e7h.fsf@roland-alpha.cisco.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20110121170028.23741.61673.stgit-T4OLL4TyM9aNDNWfRnPdfg@public.gmane.org>
+In-Reply-To: <adaiq3q8e7h.fsf-BjVyx320WGW9gfZ95n9DRSW4+XlvGpQz@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Cc: Aleksey Senin <alex-192fA4vuk7xBDLzU/O5InQ@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, Moni Shoua <monis-hKgKHo2Ms0F+cjeuK/JdrQ@public.gmane.org>, Or Gerlitz <ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org>, Yiftah Shahar <yiftahs-smomgflXvOZWk0Htik3J/w@public.gmane.org>, Alex Rosenbaum <Alexr-smomgflXvOZWk0Htik3J/w@public.gmane.org>, "Walukiewicz, Miroslaw" <Miroslaw.Walukiewicz-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-The PF passed to FW was 0 causing PCI failures in an SR-IOV environment.
+On 08/04/2010 12:44 PM, Roland Dreier wrote:
+> thanks, applied
 
-Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Cc: <stable-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
----
+Hey Roland,
 
- drivers/infiniband/hw/cxgb4/cm.c |    3 ++-
- 1 files changed, 2 insertions(+), 1 deletions(-)
+Do you plan to merge the other 3 patches in this series?
 
-diff --git a/drivers/infiniband/hw/cxgb4/cm.c b/drivers/infiniband/hw/cxgb4/cm.c
-index 0dc62b1..52e777a 100644
---- a/drivers/infiniband/hw/cxgb4/cm.c
-+++ b/drivers/infiniband/hw/cxgb4/cm.c
-@@ -380,7 +380,8 @@ static void send_flowc(struct c4iw_ep *ep, struct sk_buff *skb)
- 					  16)) | FW_WR_FLOWID(ep->hwtid));
- 
- 	flowc->mnemval[0].mnemonic = FW_FLOWC_MNEM_PFNVFN;
--	flowc->mnemval[0].val = cpu_to_be32(0);
-+	flowc->mnemval[0].val = cpu_to_be32(
-+		PCI_FUNC(ep->com.dev->rdev.lldi.pdev->devfn) << 8);
- 	flowc->mnemval[1].mnemonic = FW_FLOWC_MNEM_CH;
- 	flowc->mnemval[1].val = cpu_to_be32(ep->tx_chan);
- 	flowc->mnemval[2].mnemonic = FW_FLOWC_MNEM_PORT;
+https://patchwork.kernel.org/patch/110153/
+https://patchwork.kernel.org/patch/110154/
+https://patchwork.kernel.org/patch/110155/
 
+Thanks,
+
+Steve.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
