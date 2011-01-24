@@ -1,56 +1,74 @@
-From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Subject: Re: [RFC 0/8] Reliably generate large request from SRP
-Date: Mon, 24 Jan 2011 17:14:00 +0100
-Message-ID: <AANLkTikapxELx5B6knAm6CQaeLsKHWd9EMQeexmFdF1Q@mail.gmail.com>
-References: <1295411242-26148-1-git-send-email-dillowda@ornl.gov>
- <aday66hxxwe.fsf@cisco.com> <4D3805C4.6010203@voltaire.com>
- <1295528044.22825.64.camel@obelisk.thedillows.org> <4D3D9B74.8090607@voltaire.com>
+From: "Walukiewicz, Miroslaw" <Miroslaw.Walukiewicz-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: ibv_post_send/recv kernel path optimizations
+Date: Mon, 24 Jan 2011 17:03:59 +0000
+Message-ID: <BE2BFE91933D1B4089447C644860408066FEF9F0@irsmsx503.ger.corp.intel.com>
+References: <20101013091312.GB6060@bicker> <20101123071025.GI1522@bicker>
+	<adahbf6gytv.fsf@cisco.com>	<20101124221845.GH2369@obsidianresearch.com>
+	<adad3pugi90.fsf@cisco.com>	<20101125041337.GA11049@obsidianresearch.com>
+	<4CEE7A22.2040706@voltaire.com>
+	<BE2BFE91933D1B4089447C644860408064B44854@irsmsx503.ger.corp.intel.com>
+	<4CF60343.7050602@voltaire.com>
+	<BE2BFE91933D1B4089447C644860408066ABCF66@irsmsx503.ger.corp.intel.com>
+	<20101214181735.GA2506@obsidianresearch.com>	<4D1888CB.2010101@Voltaire.com>
+	<BE2BFE91933D1B4089447C644860408066C547E0@irsmsx503.ger.corp.intel.com>
+	<ada4o9nfc6e.fsf@cisco.com>
+	<BE2BFE91933D1B4089447C644860408066DDDF31@irsmsx503.ger.corp.intel.com>
+ <adawrmc7av2.fsf@cisco.com>
+ <BE2BFE91933D1B4089447C644860408066F95285@irsmsx503.ger.corp.intel.com>
+ <CF9C39F99A89134C9CF9C4CCB68B8DDF25C1D51C31@orsmsx501.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4D3D9B74.8090607-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <CF9C39F99A89134C9CF9C4CCB68B8DDF25C1D51C31-osO9UTpF0USkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Cc: David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>, roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Or Gerlitz <ogerlitz-hKgKHo2Ms0FWk0Htik3J/w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Jan 24, 2011 at 4:32 PM, Or Gerlitz <ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org> wro=
-te:
-> David Dillow wrote:
->>> if we look on the 50% for SAS/1M IOs that you're presenting, can yo=
-u tell
->>> what made the difference, srp went from sg_tablesize of 255 to 256 =
-so the
->>> upper layers where able to provide 1M as one IO
->
->> This win is from sg_tablesize going from 255 to 256 in this case; th=
-e HW
->> really likes that better than getting two requests -- one for 1020 K=
-B
->> and one for 4 KB.
->
-> Its always nice to find the simplest explanation to the greatest impr=
-ovement... going to the 2nd largest gains
->
->> SAS =A0 2M =A0 =A0 =A0520 MB/s =A0 =A0 =A0 =A0861 MB/s
->> SAS =A0 4M =A0 =A0 =A0529 MB/s =A0 =A0 =A0 =A0921 MB/s
->> SAS =A0 8M =A0 =A0 =A0600 MB/s =A0 =A0 =A0 =A0951 MB/s
->
-> I wonder what made the difference here? it can't be only the 255 --> =
-256 sg_tablesize change, for the 2M case
-> the change to use 512 pages FMRs could let you use one rkey/fmr for t=
-he whole IO but not for 4M/8M
+Sean,
 
-I think it would be interesting to have performance measurements with
-a RAM disk as target too because it is hard to tell for someone not
-familiar with the internals of the target used in this test which
-performance gain is due to the initiator changes and which is due to
-the target behavior.
+The assumption here is that user space library prepares the vendor specific data in user-space using a shared page allocated by vendor driver. Here information about posted buffers is passed not through ib_wr but using the shared page. It is a reason why pointers indicating ib_wr in post_send are not set, they are not passed to kernel at all to avoid copying them in kernel. 
 
-Bart.
+As there is no ib_wr structure in kernel there is no reference to bad_wr and a buffer that failed in this context so the only reasonable information about operation state passed using bad_wr could be return of binary information - operation successful (bad_wr = 0) or not (bad_wr != 0) 
+
+Instead of using a specific case for RAW_QP it is possible to pass some information about posting buffers method by
+enum ib_qp_create_flags {
+        IB_QP_CREATE_IPOIB_UD_LSO               = 1 << 0,
+        IB_QP_CREATE_BLOCK_MULTICAST_LOOPBACK   = 1 << 1
+};
+Extending it with IB_QP_CREATE_USE_SHARED_PAGE            = 1 << 2,
+
+In that case a new method could be used for any type of QP and will be backward compatible.
+
+Regards,
+
+Mirek
+-----Original Message-----
+From: Hefty, Sean 
+Sent: Friday, January 21, 2011 4:50 PM
+To: Walukiewicz, Miroslaw; Roland Dreier
+Cc: Or Gerlitz; Jason Gunthorpe; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Subject: RE: ibv_post_send/recv kernel path optimizations
+
+> +	qp = idr_read_qp(cmd.qp_handle, file->ucontext);
+> +	if (!qp)
+> +		goto out_raw_qp;
+> +
+> +	if (qp->qp_type == IB_QPT_RAW_ETH) {
+> +		resp.bad_wr = 0;
+> +		ret = qp->device->post_send(qp, NULL, NULL);
+
+This looks odd to me and can definitely confuse someone reading the code.  It adds assumptions to uverbs about the underlying driver implementation and ties that to the QP type.  I don't know if it makes more sense to key off something in the cmd or define some other property of the QP, but the NULL parameters into post_send are non-intuitive.
+ 
+> +		if (ret)
+> +			resp.bad_wr = cmd.wr_count;
+
+Is this always the case?
+
+- Sean
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
