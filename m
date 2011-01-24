@@ -1,62 +1,75 @@
-From: Arthur Kepner <akepner-sJ/iWh9BUns@public.gmane.org>
-Subject: [PATCH] opensm: accept looonnng partition.conf lines
-Date: Mon, 24 Jan 2011 11:36:15 -0800
-Message-ID: <20110124193615.GP10691@sgi.com>
+From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Subject: Re: [PATCH] infiniband: hw: amso1100: Fixed compile warning.
+Date: Mon, 24 Jan 2011 20:42:36 +0100
+Message-ID: <AANLkTimLbkqmkijkLk+kALOUK6TVB0AJA3Ca+X-wcjpQ@mail.gmail.com>
+References: <1295800203-9552-1-git-send-email-ralf.thielow@googlemail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <1295800203-9552-1-git-send-email-ralf.thielow-gM/Ye1E23mwN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org
+To: Ralf Thielow <ralf.thielow-gM/Ye1E23mwN+BqQ9rBEUg@public.gmane.org>
+Cc: tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+On Sun, Jan 23, 2011 at 5:30 PM, Ralf Thielow
+<ralf.thielow-gM/Ye1E23mwN+BqQ9rBEUg@public.gmane.org> wrote:
+>
+> Fixed compile warning by use "unsigned long" instead of "u64"
+> on assign NULL to "c2_vq_req->reply_msg".
+>
+> Signed-off-by: Ralf Thielow <ralf.thielow-gM/Ye1E23mwN+BqQ9rBEUg@public.gmane.org>
+> ---
+> =A0drivers/infiniband/hw/amso1100/c2_vq.c | =A0 =A06 +++---
+> =A01 files changed, 3 insertions(+), 3 deletions(-)
+>
+> diff --git a/drivers/infiniband/hw/amso1100/c2_vq.c b/drivers/infinib=
+and/hw/amso1100/c2_vq.c
+> index 9ce7819..807b730 100644
+> --- a/drivers/infiniband/hw/amso1100/c2_vq.c
+> +++ b/drivers/infiniband/hw/amso1100/c2_vq.c
+> @@ -107,7 +107,7 @@ struct c2_vq_req *vq_req_alloc(struct c2_dev *c2d=
+ev)
+> =A0 =A0 =A0 =A0r =3D kmalloc(sizeof(struct c2_vq_req), GFP_KERNEL);
+> =A0 =A0 =A0 =A0if (r) {
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0init_waitqueue_head(&r->wait_object);
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 r->reply_msg =3D (u64) NULL;
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 r->reply_msg =3D (unsigned long) NULL;
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0r->event =3D 0;
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0r->cm_id =3D NULL;
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0r->qp =3D NULL;
+> @@ -123,7 +123,7 @@ struct c2_vq_req *vq_req_alloc(struct c2_dev *c2d=
+ev)
+> =A0*/
+> =A0void vq_req_free(struct c2_dev *c2dev, struct c2_vq_req *r)
+> =A0{
+> - =A0 =A0 =A0 r->reply_msg =3D (u64) NULL;
+> + =A0 =A0 =A0 r->reply_msg =3D (unsigned long) NULL;
+> =A0 =A0 =A0 =A0if (atomic_dec_and_test(&r->refcnt)) {
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0kfree(r);
+> =A0 =A0 =A0 =A0}
+> @@ -151,7 +151,7 @@ void vq_req_get(struct c2_dev *c2dev, struct c2_v=
+q_req *r)
+> =A0void vq_req_put(struct c2_dev *c2dev, struct c2_vq_req *r)
+> =A0{
+> =A0 =A0 =A0 =A0if (atomic_dec_and_test(&r->refcnt)) {
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (r->reply_msg !=3D (u64) NULL)
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (r->reply_msg !=3D (unsigned long) N=
+ULL)
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0vq_repbuf_free(c2dev,
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 (void *) (unsigned long) r->reply_msg);
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0kfree(r);
 
-Sometimes we use partition.conf files with so many entries that 
-the 1K buffer currently used by osm_prtn_config_parse_file() is 
-too small. Use getline() to avoid that.
+Hello Ralf,
 
-Signed-off-by: <akepner-sJ/iWh9BUns@public.gmane.org>
----
- opensm/opensm/osm_prtn_config.c |    8 ++++++--
- 1 file changed, 6 insertions(+), 2 deletions(-)
+Have you considered using "0" instead of "(u64) NULL" or "(unsigned
+long) NULL" ?
 
----
-
-diff --git a/opensm/opensm/osm_prtn_config.c b/opensm/opensm/osm_prtn_config.c
-index 0d02597..34676ef 100644
---- a/opensm/opensm/osm_prtn_config.c
-+++ b/opensm/opensm/osm_prtn_config.c
-@@ -400,7 +400,9 @@ skip_header:
- int osm_prtn_config_parse_file(osm_log_t * p_log, osm_subn_t * p_subn,
- 			       const char *file_name)
- {
--	char line[1024];
-+	char *line = NULL;
-+	ssize_t llen;
-+	size_t n;
- 	struct part_conf *conf = NULL;
- 	FILE *file;
- 	int lineno;
-@@ -415,7 +417,7 @@ int osm_prtn_config_parse_file(osm_log_t * p_log, osm_subn_t * p_subn,
- 
- 	lineno = 0;
- 
--	while (fgets(line, sizeof(line) - 1, file) != NULL) {
-+	while ((llen = getline(&line, &n, file)) != -1) {
- 		char *q, *p = line;
- 
- 		lineno++;
-@@ -463,6 +465,8 @@ int osm_prtn_config_parse_file(osm_log_t * p_log, osm_subn_t * p_subn,
- 		} while (q);
- 	}
- 
-+	free(line);
-+
- 	fclose(file);
- 
- 	return 0;
+Bart.
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
