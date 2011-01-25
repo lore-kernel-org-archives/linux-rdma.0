@@ -1,93 +1,36 @@
-From: Maciej Sosnowski <maciej.sosnowski-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH] RDMA/nes: fix hazard of sending ibevent for unregistered
-	device
-Date: Tue, 25 Jan 2011 14:49:16 +0100
-Message-ID: <20110125134916.6532.63603.stgit@linux.site>
+From: Tziporet Koren <tziporet@mellanox.co.il>
+Subject: Re: [GIT PULL] please pull infiniband.git
+Date: Tue, 25 Jan 2011 18:23:01 +0200
+Message-ID: <4D3EF8E5.4080607@mellanox.co.il>
+References: <adaei8byz3n.fsf@cisco.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <adaei8byz3n.fsf@cisco.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Roland Dreier <rdreier@cisco.com>
+Cc: "torvalds@linux-foundation.org" <torvalds@linux-foundation.org>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
 List-Id: linux-rdma@vger.kernel.org
 
-nes_port_ibevent() should not be called when nes IB device
-is not registered with IB core.
-Add missing checks of of_device_registered flag.
+   On 1/17/2011 11:55 PM, Roland Dreier wrote:
+> Linus, please pull from
+>
+>      master.kernel.org:/pub/scm/linux/kernel/git/roland/infiniband.git for-linus
+>
+> This tree is also available from kernel.org mirrors at:
+>
+>      git://git.kernel.org/pub/scm/linux/kernel/git/roland/infiniband.git for-linus
+>
+> This will get the last batch of InfiniBand/RDMA patches for the merge
+> window.  The biggest thing here is Tejun's conversion of the RDMA
+> stack away from flush_scheduled_work(); the remaining stuff is mostly
+> driver fixes, with an SRP compile warning fix and a vzalloc()
+> conversion patch thrown in.
+Roland,
 
-Signed-off-by: Maciej Sosnowski <maciej.sosnowski-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
----
+What about the new mlx4 device IDs?
+We wish to have them in for CX3 so that the new kernel will support it
 
- drivers/infiniband/hw/nes/nes_hw.c |   32 ++++++++++++++++++++------------
- 1 files changed, 20 insertions(+), 12 deletions(-)
-
-diff --git a/drivers/infiniband/hw/nes/nes_hw.c b/drivers/infiniband/hw/nes/nes_hw.c
-index 8b606fd..08c1948 100644
---- a/drivers/infiniband/hw/nes/nes_hw.c
-+++ b/drivers/infiniband/hw/nes/nes_hw.c
-@@ -2610,9 +2610,11 @@ static void nes_process_mac_intr(struct 
- 					netif_carrier_on(nesvnic->netdev);
- 
- 					spin_lock(&nesvnic->port_ibevent_lock);
--					if (nesdev->iw_status == 0) {
--						nesdev->iw_status = 1;
--						nes_port_ibevent(nesvnic);
-+					if (nesvnic->of_device_registered) {
-+						if (nesdev->iw_status == 0) {
-+							nesdev->iw_status = 1;
-+							nes_port_ibevent(nesvnic);
-+						}
- 					}
- 					spin_unlock(&nesvnic->port_ibevent_lock);
- 				}
-@@ -2642,9 +2644,11 @@ static void nes_process_mac_intr(struct 
- 					netif_carrier_off(nesvnic->netdev);
- 
- 					spin_lock(&nesvnic->port_ibevent_lock);
--					if (nesdev->iw_status == 1) {
--						nesdev->iw_status = 0;
--						nes_port_ibevent(nesvnic);
-+					if (nesvnic->of_device_registered) {
-+						if (nesdev->iw_status == 1) {
-+							nesdev->iw_status = 0;
-+							nes_port_ibevent(nesvnic);
-+						}
- 					}
- 					spin_unlock(&nesvnic->port_ibevent_lock);
- 				}
-@@ -2703,9 +2707,11 @@ void nes_recheck_link_status(struct work
- 				netif_carrier_on(nesvnic->netdev);
- 
- 				spin_lock(&nesvnic->port_ibevent_lock);
--				if (nesdev->iw_status == 0) {
--					nesdev->iw_status = 1;
--					nes_port_ibevent(nesvnic);
-+				if (nesvnic->of_device_registered) {
-+					if (nesdev->iw_status == 0) {
-+						nesdev->iw_status = 1;
-+						nes_port_ibevent(nesvnic);
-+					}
- 				}
- 				spin_unlock(&nesvnic->port_ibevent_lock);
- 			}
-@@ -2723,9 +2729,11 @@ void nes_recheck_link_status(struct work
- 				netif_carrier_off(nesvnic->netdev);
- 
- 				spin_lock(&nesvnic->port_ibevent_lock);
--				if (nesdev->iw_status == 1) {
--					nesdev->iw_status = 0;
--					nes_port_ibevent(nesvnic);
-+				if (nesvnic->of_device_registered) {
-+					if (nesdev->iw_status == 1) {
-+						nesdev->iw_status = 0;
-+						nes_port_ibevent(nesvnic);
-+					}
- 				}
- 				spin_unlock(&nesvnic->port_ibevent_lock);
- 			}
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks,
+Tziporet
