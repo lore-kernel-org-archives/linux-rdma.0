@@ -1,54 +1,120 @@
-From: Carolyn Sher DeCusatis <decusatis-p32f3XyCuykqcZcGjlUOXw@public.gmane.org>
-Subject: RE: confirm d2397606efdb620e482dec08f6e35f26ddd9a5cd
-Date: Wed, 26 Jan 2011 10:03:33 -0500
-Message-ID: <037b01cbbd6a$33da03e0$9b8e0ba0$@net>
-References: <mailman.0.1296051458.20935.general@lists.openfabrics.org>
+From: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH V2] IB/ipoib: Leave stale send-only multicast groups
+Date: Wed, 26 Jan 2011 09:55:11 -0600 (CST)
+Message-ID: <alpine.DEB.2.00.1101260954420.23080@router.home>
+References: <4D34239D.9030004@Voltaire.COM> <alpine.DEB.2.00.1101181406490.18059@router.home> <AANLkTiku+dkiqsv1AKUr_wCVhxWFhay0HEuSZtt7uZWr@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7BIT
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-reply-to: <mailman.0.1296051458.20935.general-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
-Content-language: en-us
+In-Reply-To: <AANLkTiku+dkiqsv1AKUr_wCVhxWFhay0HEuSZtt7uZWr-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Moni Shoua <monis-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+Cc: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Yossi Etigin <yosefe-smomgflXvOZWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+And here is my answer that also was not cced.
 
 
------Original Message-----
-From: general-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
-[mailto:general-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org] On Behalf Of
-general-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
-Sent: Wednesday, January 26, 2011 9:18 AM
-To: decusatis-p32f3XyCuykqcZcGjlUOXw@public.gmane.org
-Subject: confirm d2397606efdb620e482dec08f6e35f26ddd9a5cd
+> Please take a look at this. It demonstrates what I claim.
 
-Mailing list subscription confirmation notice for mailing list general
+Trouble is that iperf is a performance measurement tool and I am not sure
+what is going on behind the scenes in regard to MC subscriptions etc. Also
+I do not see when you terminate what task.
 
-We have received a request from 69.121.123.223 for subscription of
-your email address, "decusatis-p32f3XyCuykqcZcGjlUOXw@public.gmane.org", to the
-general-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org mailing list.  To confirm that you want
-to be added to this mailing list, simply reply to this message,
-keeping the Subject: header intact.  Or visit this web page:
-
- 
-http://lists.openfabrics.org/cgi-bin/mailman/confirm/general/d2397606efdb620
-e482dec08f6e35f26ddd9a5cd
+I can demonstrate using mcast that the groups go away (see below). AFAICT
+behavior that you suggest would be troublesome for some of the apps we run
+here.
 
 
-Or include the following line -- and only the following line -- in a
-message to general-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org:
+> linux:~ # cat /proc/net/dev_mcast |grep ib0
+>
+> 29   ib0             1     0     00ffffffff12401bffff00000000000003070707 <---
+                      ^^^ there is a reference remaining that is why the
+group sticks around.
 
-    confirm d2397606efdb620e482dec08f6e35f26ddd9a5cd
+Here is the output of /sys/kernel/debug/ipoib/ib0.8030_mcg a few minutes
+after an mcast test completed:
 
-Note that simply sending a `reply' to this message should work from
-most mail readers, since that usually leaves the Subject: line in the
-right form (additional "Re:" text in the Subject: is okay).
+GID: ff12:401b:8030:0:0:0:0:1
+  created: 4370767176
+  queuelen:         0
+  complete:       yes
+  send_only:       no
 
-If you do not wish to be subscribed to this list, please simply
-disregard this message.  If you think you are being maliciously
-subscribed to the list, or have any other questions, send them to
-general-owner-ZwoEplunGu1OwGhvXhtEPamg0mHFk7eL@public.gmane.org
+GID: ff12:401b:8030:0:0:0:ffff:ffff
+  created: 4370767176
+  queuelen:         0
+  complete:       yes
+  send_only:       no
+
+
+Running mcast -b ib0.8030 on another host
+and running ./mcast -n 1 -b ib0.8030 on this host yields:
+
+Receiver: Listening to control channel 239.0.192.1
+Receiver: Subscribing to 0 MC addresses 239.0.192-254.2-254 offset 0
+origin 10.2.30.180
+Sender: Sending 10 msgs/ch/sec on 1 channels. Probe interval=0.001-1 sec.
+
+While the program is running we do:
+
+clameter@rd-gateway-deb64:/sys/kernel/debug/ipoib$ cat ib0.8030_mcg
+GID: ff12:401b:8030:0:0:0:0:1
+  created: 4370767176
+  queuelen:         0
+  complete:       yes
+  send_only:       no
+
+GID: ff12:401b:8030:0:0:0:f00:c001
+  created: 4371010379
+  queuelen:         0
+  complete:       yes
+  send_only:       no
+
+GID: ff12:401b:8030:0:0:0:f00:c002
+  created: 4371010589
+  queuelen:         0
+  complete:       yes
+  send_only:      yes
+
+GID: ff12:401b:8030:0:0:0:ffff:ffff
+  created: 4370767176
+  queuelen:         0
+  complete:       yes
+  send_only:       no
+
+
+Terminating mcast yields:
+
+clameter@rd-gateway-deb64:/sys/kernel/debug/ipoib$ cat ib0.8030_mcg
+GID: ff12:401b:8030:0:0:0:0:1
+  created: 4370767176
+  queuelen:         0
+  complete:       yes
+  send_only:       no
+
+GID: ff12:401b:8030:0:0:0:0:2
+  created: 4371020715
+  queuelen:         0
+  complete:       yes
+  send_only:      yes
+
+GID: ff12:401b:8030:0:0:0:f00:c002
+  created: 4371010589
+  queuelen:         0
+  complete:       yes
+  send_only:      yes
+
+GID: ff12:401b:8030:0:0:0:ffff:ffff
+  created: 4370767176
+  queuelen:         0
+  complete:       yes
+  send_only:       no
+
+Wait a few minutes and then c002 will also vanish and you will have the
+state above.
+
+
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
