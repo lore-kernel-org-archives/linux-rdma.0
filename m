@@ -1,31 +1,37 @@
 From: Sasha Khapyorsky <sashakvolt-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 00/13] opensm: Cleanups and more documentation for
- torus-2QoS patchset
-Date: Sun, 30 Jan 2011 19:12:43 +0200
-Message-ID: <20110130171242.GF25002@me>
-References: <1289599882-15165-1-git-send-email-jaschut@sandia.gov>
+Subject: Re: RFC: Splitting of the management git tree in Open Fabrics
+Date: Sun, 30 Jan 2011 19:41:20 +0200
+Message-ID: <20110130174120.GG25002@me>
+References: <20100831125159.98e6d201.weiny2@llnl.gov>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1289599882-15165-1-git-send-email-jaschut-4OHPYypu0djtX7QSmKvirg@public.gmane.org>
+In-Reply-To: <20100831125159.98e6d201.weiny2-i2BcT+NCU+M@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jim Schutt <jaschut-4OHPYypu0djtX7QSmKvirg@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Alex Netes <alexne-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>, ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org, Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>, Vladimir Sokolovsky <vlad-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Alex Netes <alexne-smomgflXvOZWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Jim,
+Hi,
 
-On 15:11 Fri 12 Nov     , Jim Schutt wrote:
+On 12:51 Tue 31 Aug     , Ira Weiny wrote:
 > 
-> These patches clean up and add documentation to the
-> torus-2QoS routing module for OpenSM.  They apply on
-> top of my previous bug-fix patchset from September
-> (http://www.spinics.net/lists/linux-rdma/msg05809.html),
-> which applies to your torus-2qos branch.
+> On openfabrics.org/git split management.git into the following trees.
+> 
+> openfabrics.org/git/infiniband-diags.git
+> openfabrics.org/git/libibumad.git
+> openfabrics.org/git/libibmad.git
+> openfabrics.org/git/opensm.git
+>  
+> Sasha can populate those from the current management tree.  We believe there
+> are git commands which will do this without losing any history from the git
+> trees.
 
-Following your and others feedback. I've merge torus-2qos branch
-upstream. Thanks.
+As was already discussed. I'm going to split management tree into
+separate libibumad, libibmad, opensm and infiniband-diags trees and
+will publish this soon (few days). The history will be preserved as per
+sub-tree.
 
 Sasha
 --
