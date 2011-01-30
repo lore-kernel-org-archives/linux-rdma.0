@@ -1,21 +1,33 @@
-From: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH] RDMA/ucma: Copy iWARP route information on queries.
-Date: Fri, 28 Jan 2011 16:35:45 -0800
-Message-ID: <AANLkTik34f8Cr+iPF0Oz3LAftvFaOg0UE3PF+YU4YYYp@mail.gmail.com>
-References: <20110121034045.17376.43085.stgit@build.ogc.int>
+From: Sasha Khapyorsky <sashakvolt-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH V2] Add node/port/qos information to some error messages
+Date: Sun, 30 Jan 2011 16:46:25 +0200
+Message-ID: <20110130144625.GK7366@me>
+References: <20110127192139.feb18627.weiny2@llnl.gov>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20110121034045.17376.43085.stgit-T4OLL4TyM9aNDNWfRnPdfg@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20110127192139.feb18627.weiny2-i2BcT+NCU+M@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Cc: rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Hal Rosenstock <hal-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> For iWARP rdma_cm ids, the "route" information is the L2 src and
-> next hop addresses.
+On 19:21 Thu 27 Jan     , Ira Weiny wrote:
+> 
+> From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+> Date: Tue, 25 Jan 2011 17:09:04 -0800
+> Subject: [PATCH] Add node/port/qos information to some error messages
+> 
+> V2: further cleanup of text
+>     include MultiPathRecord messages
+>     add qos information where appropriate
+> 
+> Signed-off-by: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
 
-Thanks, applied.
+Applied. Thanks.
+
+Sasha
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
