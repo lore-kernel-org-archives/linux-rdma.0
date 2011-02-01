@@ -1,83 +1,64 @@
-From: Mike Marciniszyn <mike.marciniszyn-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH] IPoIB: fix faulty list maintenance in path and neigh list
-Date: Tue, 01 Feb 2011 11:12:47 -0500
-Message-ID: <20110201161247.12671.10028.stgit@kop-dev-sles11-04.qlogic.org>
+From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+Subject: Re: [PATCH v2] IB/qib: add thresholds to VendorPortCounters PMA
+ operation
+Date: Tue, 1 Feb 2011 13:56:44 -0800
+Message-ID: <20110201135644.b6371e08.weiny2@llnl.gov>
+References: <20110201142348.9826.83896.stgit@kop-dev-sles11-04.qlogic.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20110201142348.9826.83896.stgit-hIFRcJ1SNwcXGO8/Qfapyjg/wwJxntczYPYVAmT7z5s@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, gary.leshner-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org, tom.elken-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org
+To: Mike Marciniszyn <mike.marciniszyn-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+Cc: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "ralph.campbell-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org" <ralph.campbell-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>, "tom.elken-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org" <tom.elken-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>, "hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org" <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, "todd.rimmer-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org" <todd.rimmer-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Gary Leshner <gary.leshner-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+On Tue, 1 Feb 2011 06:23:48 -0800
+Mike Marciniszyn <mike.marciniszyn-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org> wrote:
 
-Added list_del to ipoib_mcast_free() and path_free() to remove the neigh from
-the path's neigh_list link list before freeing the memory it consumes.
-This makes the code consistent with ipoib_cm_handle_tx_wc() and other locations where the list_del() preceeds the call to ipoib_neigh_free().
+> The patch has been reworked so that the fields used are no longer reserved.
+> 
+> The QLogic PMA has a vendor specific capability.  We are using the top
+> 2 bits of the CapabilityMask2 to indicate the behavior is available.
+> 
+> By not setting the bit 2 in the CapabilityMask, we are indicating that
+> other PMA clients should ignore CapabilityMask2.
 
-Similarly, at list_del() now preceeds path_free() to remove the path from
-ipoib_dev_priv's path_list.
+I'm confused, does this mean you never plan to support any capabilities which
+will be indicated in CapabilityMask2?
 
-Additionally, the fields neigh->ah and neigh->list were not being initialized
-upon allocation.  The patch insures that these two remaining fields are
-initialized correctly.
+There are only 2 bits left in CapabilityMask at this time, with a proposal
+already submitted to use one of them.
 
-Signed-off-by: Mike Marciniszyn <mike.marciniszyn-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
----
- drivers/infiniband/ulp/ipoib/ipoib_main.c      |    4 ++++
- drivers/infiniband/ulp/ipoib/ipoib_multicast.c |    1 +
- 2 files changed, 5 insertions(+), 0 deletions(-)
+I think it would be better to suggest to the IBTA to either A) reserve some
+bits for vendor specific use in CapabilityMask2 or better yet B) suggest this
+as a standard use of those bits.
 
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib_main.c b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-index 9ff7bc7..ddd52f6 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib_main.c
-+++ b/drivers/infiniband/ulp/ipoib/ipoib_main.c
-@@ -283,6 +283,7 @@ static void path_free(struct net_device *dev, struct ipoib_path *path)
- 		if (neigh->ah)
- 			ipoib_put_ah(neigh->ah);
- 
-+		list_del(&neigh->list);
- 		ipoib_neigh_free(dev, neigh);
- 	}
- 
-@@ -390,6 +391,7 @@ void ipoib_flush_paths(struct net_device *dev)
- 		spin_unlock_irqrestore(&priv->lock, flags);
- 		netif_tx_unlock_bh(dev);
- 		wait_for_completion(&path->done);
-+		list_del(&path->list);
- 		path_free(dev, path);
- 		netif_tx_lock_bh(dev);
- 		spin_lock_irqsave(&priv->lock, flags);
-@@ -882,12 +884,14 @@ struct ipoib_neigh *ipoib_neigh_alloc(struct neighbour *neighbour,
- 	if (!neigh)
- 		return NULL;
- 
-+	neigh->ah = NULL;
- 	neigh->neighbour = neighbour;
- 	neigh->dev = dev;
- 	memset(&neigh->dgid.raw, 0, sizeof (union ib_gid));
- 	*to_ipoib_neigh(neighbour) = neigh;
- 	skb_queue_head_init(&neigh->queue);
- 	ipoib_cm_set(neigh, NULL);
-+	INIT_LIST_HEAD(&neigh->list);
- 
- 	return neigh;
- }
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib_multicast.c b/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
-index 3871ac6..05f4c9a 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
-+++ b/drivers/infiniband/ulp/ipoib/ipoib_multicast.c
-@@ -86,6 +86,7 @@ static void ipoib_mcast_free(struct ipoib_mcast *mcast)
- 		 */
- 		if (neigh->ah)
- 			ipoib_put_ah(neigh->ah);
-+		list_del(&neigh->list);
- 		ipoib_neigh_free(dev, neigh);
- 	}
- 
+Another option, if you don't want this included as part of the standard is to
+use the Vendor specific class to communicate this information.
 
+Am I missing something?
+Ira
+
+> 
+> As such no other tools should be confused by our setting of the 2 bits
+> (because they should not look in CapabilityMask2 anyway).
+> 
+> We purposely do not set the PortXmitWait CapabilityMask bit, this
+> driver does not implement that capability.
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+
+-- 
+Ira Weiny
+Math Programmer/Computer Scientist
+Lawrence Livermore National Lab
+925-423-8008
+weiny2-i2BcT+NCU+M@public.gmane.org
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
