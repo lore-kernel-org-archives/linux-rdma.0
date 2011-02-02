@@ -1,36 +1,80 @@
-From: Moni Shoua <monis-hKgKHo2Ms0F+cjeuK/JdrQ@public.gmane.org>
-Subject: Re: [ewg] [PATCH] IB/core: Control number of retries for SA to leave
- an MCG
-Date: Wed, 02 Feb 2011 18:21:31 +0200
-Message-ID: <4D49848B.6090206@Voltaire.COM>
-References: <4D4973B2.9070300@Voltaire.COM> <4C2744E8AD2982428C5BFE523DF8CDCB4A20A5E98F@MNEXMB1.qlogic.org> <4D497B35.2010901@Voltaire.COM> <4C2744E8AD2982428C5BFE523DF8CDCB4A20A5E993@MNEXMB1.qlogic.org>
+From: Greg Kerr <kerr.g-movQPkccWJngpn9g0Uvcdg@public.gmane.org>
+Subject: Re: re librdmacm-devel dependency on librdmacm
+Date: Wed, 2 Feb 2011 11:54:37 -0500
+Message-ID: <201102021154.37997.kerr.g@husky.neu.edu>
+References: <4D4934FA.8070905@voltaire.com> <4D497BA7.9070701@voltaire.com> <CF9C39F99A89134C9CF9C4CCB68B8DDF25CC0C1C85@orsmsx501.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4C2744E8AD2982428C5BFE523DF8CDCB4A20A5E993-amwN6d8PyQWXx9kJd3VG2h2eb7JE58TQ@public.gmane.org>
+In-Reply-To: <CF9C39F99A89134C9CF9C4CCB68B8DDF25CC0C1C85-osO9UTpF0USkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Mike Heinz <michael.heinz-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-Cc: Vlad <vlad-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, "nirm-smomgflXvOZWk0Htik3J/w@public.gmane.org" <nirm-smomgflXvOZWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ewg <openfabrics-ewg-0P3JtQMG0aQdnm+yROfE0A@public.gmane.org>
+To: Or Gerlitz <ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Mike Heinz wrote:
-> It was discussed in the Linux-RDMA list for many months. You can find a list of the archived messages here:
-> 
-> http://www.mail-archive.com/search?q=SA+Busy&l=linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> 
-> The most recent version of the patch is here:
-> 
-> http://www.mail-archive.com/linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org/msg06644.html
-> 
-> Basically, the spec permits an SM to reply "busy" instead of simply tossing packets on the floor, but OFED does not handle this case right now.
-> 
-I took a look and I'm not sure that your patch solves the issue I was trying to handle.
-Nothing will prevent from number of retries to reach zero and no one will report the upper layer (e.g IPoIB)
-that leaving the multicast group had failed.
-The worst thing is that there is no indication to the user about this state (a host is joined without no one to ever try and make it leave)
-The patch I sent also puts a message in the kernel log so users can read and react.
+> This is Red Hat's package, not mine, so I think they would need to answer
+> this.  I guess I don't understand the problem, but why wouldn't the
+> developer package depend on the real library?  Does libibverbs have a
+> similar devel package? --
 
+Every devel package I have ever used has depended on the underlying library. 
+A-lot of times the developer packages might include the header files, etc.
+
+I don't work for Red Hat but I don't think there's any issue here.
+
+-- 
+Greg Kerr
+Northeastern University
+High Performance Computing Laboratory
+
+On Wednesday, February 02, 2011 10:55:10 am Hefty, Sean wrote:
+> > > What is librdmacm-devel?
+> > 
+> > as the name suggests... package for developers
+> > 
+> > Or.
+> > 
+> > > [root@celery ~]# rpm -qi librdmacm-devel
+> > > Name        : librdmacm-devel              Relocations: (not
+> > > relocatable) Version     : 1.0.8                             Vendor:
+> > > Red Hat, Inc. Release     : 5.el5                         Build Date:
+> > > Mon 22 Jun 2009
+> > 
+> > 05:36:27 PM IDT
+> > 
+> > > Install Date: Wed 02 Feb 2011 03:05:06 PM IST      Build Host:
+> > > hs20-bc1-
+> > 
+> > 2.build.redhat.com
+> > 
+> > > Group       : System Environment/Libraries   Source RPM:
+> > > librdmacm-1.0.8-
+> > 
+> > 5.el5.src.rpm
+> > 
+> > > Size        : 45934                            License: GPL/BSD
+> > > Signature   : DSA/SHA1, Thu 16 Jul 2009 08:14:31 AM IDT, Key ID
+> > 
+> > 5326810137017186
+> > 
+> > > Packager    : Red Hat, Inc. <http://bugzilla.redhat.com/bugzilla>
+> > > URL         : http://www.openfabrics.org/
+> > > Summary     : RDMA cm library header files
+> > > Description :
+> > > RDMA cm library header files.
+> 
+> This is Red Hat's package, not mine, so I think they would need to answer
+> this.  I guess I don't understand the problem, but why wouldn't the
+> developer package depend on the real library?  Does libibverbs have a
+> similar devel package? --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+-- 
+Greg Kerr
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
