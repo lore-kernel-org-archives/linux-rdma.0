@@ -1,37 +1,82 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [ewg] [PATCH] IB/core: Control number of retries for SA to
- leave an MCG
-Date: Wed, 2 Feb 2011 09:26:30 -0800
-Message-ID: <CF9C39F99A89134C9CF9C4CCB68B8DDF25CC0C1E13@orsmsx501.amr.corp.intel.com>
-References: <4D4973B2.9070300@Voltaire.COM>
- <4C2744E8AD2982428C5BFE523DF8CDCB4A20A5E98F@MNEXMB1.qlogic.org>
- <4D497B35.2010901@Voltaire.COM>
- <4C2744E8AD2982428C5BFE523DF8CDCB4A20A5E993@MNEXMB1.qlogic.org>
- <4D49848B.6090206@Voltaire.COM>
+From: frank zago <fzago-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org>
+Subject: [PATCH] perftest fixes
+Date: Wed, 02 Feb 2011 12:19:18 -0600
+Message-ID: <4D49A026.4070308@systemfabricworks.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: multipart/mixed;
+ boundary="------------000300090607020605070909"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4D49848B.6090206-hKgKHo2Ms0F+cjeuK/JdrQ@public.gmane.org>
-Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Moni Shoua <monis-hKgKHo2Ms0F+cjeuK/JdrQ@public.gmane.org>, Mike Heinz <michael.heinz-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-Cc: Vlad <vlad-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, "nirm-smomgflXvOZWk0Htik3J/w@public.gmane.org" <nirm-smomgflXvOZWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ewg <openfabrics-ewg-0P3JtQMG0aQdnm+yROfE0A@public.gmane.org>
+To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: Ido Shamai <idos-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> The worst thing is that there is no indication to the user about this state
+This is a multi-part message in MIME format.
+--------------000300090607020605070909
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 
-There can be multiple users of the same group.  Only the last one leaving causes the leave request to be sent.  Notifying that one user of the group doesn't help.  All they can do is ask for the leave request to be retried anyway, which has to be coordinated with potential new users.
+Hello,
 
-> (a host is joined without no one to ever try and make it leave)
-> The patch I sent also puts a message in the kernel log so users can read
-> and react.
+This fixes a bug in 3 tests where the result of ibv_open_device is not checked.  I added a couple missing endlines too.
 
-IMO, this is always a possibility and something that the SA must be able to handle.  If a node, switch, link, etc. go down, there's no guarantee that any leave request will be generated, let alone make it to the SA.
+Frank.
 
-Architecturally, I think the only currently available option is for the SA to ask a client to reregister.
+--------------000300090607020605070909
+Content-Type: text/x-diff;
+ name="perftest-fix.diff"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment;
+ filename="perftest-fix.diff"
 
-- Sean
+ZGlmZiAtLWdpdCBhL0NPUFlJTkcgYi9DT1BZSU5HCmRpZmYgLS1naXQgYS9NYWtlZmlsZSBi
+L01ha2VmaWxlCmRpZmYgLS1naXQgYS9SRUFETUUgYi9SRUFETUUKZGlmZiAtLWdpdCBhL2Ns
+b2NrX3Rlc3QuYyBiL2Nsb2NrX3Rlc3QuYwpkaWZmIC0tZ2l0IGEvZ2V0X2Nsb2NrLmMgYi9n
+ZXRfY2xvY2suYwpkaWZmIC0tZ2l0IGEvZ2V0X2Nsb2NrLmggYi9nZXRfY2xvY2suaApkaWZm
+IC0tZ2l0IGEvbXVsdGljYXN0X3Jlc291cmNlcy5jIGIvbXVsdGljYXN0X3Jlc291cmNlcy5j
+CmRpZmYgLS1naXQgYS9tdWx0aWNhc3RfcmVzb3VyY2VzLmggYi9tdWx0aWNhc3RfcmVzb3Vy
+Y2VzLmgKZGlmZiAtLWdpdCBhL3BlcmZ0ZXN0LnNwZWMgYi9wZXJmdGVzdC5zcGVjCmRpZmYg
+LS1naXQgYS9wZXJmdGVzdF9yZXNvdXJjZXMuYyBiL3BlcmZ0ZXN0X3Jlc291cmNlcy5jCmRp
+ZmYgLS1naXQgYS9wZXJmdGVzdF9yZXNvdXJjZXMuaCBiL3BlcmZ0ZXN0X3Jlc291cmNlcy5o
+CmRpZmYgLS1naXQgYS9yZG1hX2J3LmMgYi9yZG1hX2J3LmMKZGlmZiAtLWdpdCBhL3JkbWFf
+bGF0LmMgYi9yZG1hX2xhdC5jCmRpZmYgLS1naXQgYS9yZWFkX2J3LmMgYi9yZWFkX2J3LmMK
+ZGlmZiAtLWdpdCBhL3JlYWRfbGF0LmMgYi9yZWFkX2xhdC5jCmRpZmYgLS1naXQgYS9ydW5t
+ZSBiL3J1bm1lCmRpZmYgLS1naXQgYS9zZW5kX2J3LmMgYi9zZW5kX2J3LmMKaW5kZXggNjFl
+YmI1Mi4uN2Q1OWQ4YSAxMDA2NDQKLS0tIGEvc2VuZF9idy5jCisrKyBiL3NlbmRfYncuYwpA
+QCAtMTE3Myw5ICsxMTczLDEzIEBAIGludCBtYWluKGludCBhcmdjLCBjaGFyICphcmd2W10p
+CiANCiAJLy8gU2hvdWxkIGJlIGEgZnVuY3Rpb24gb3ZlciBoZXJlIHRoYXQgY29tcHV0ZXMg
+dGhlIGlubGluZS4NCiAJY29udGV4dCA9IGlidl9vcGVuX2RldmljZShpYl9kZXYpOw0KLQkN
+CisJaWYgKCFjb250ZXh0KSB7DQorCQlmcHJpbnRmKHN0ZGVyciwgIkZhaWxlZCB0byBvcGVu
+IGRldmljZSAlc1xuIiwNCisJCQkJaWJ2X2dldF9kZXZpY2VfbmFtZShpYl9kZXYpKTsNCisJ
+CXJldHVybiAxOw0KKwl9DQogCWlmIChpYnZfcXVlcnlfZGV2aWNlKGNvbnRleHQsICZkZXZp
+Y2VfYXR0cmlidXRlKSkgew0KLQkJZnByaW50ZihzdGRlcnIsICJGYWlsZWQgdG8gcXVlcnkg
+ZGV2aWNlIHByb3BzIik7DQorCQlmcHJpbnRmKHN0ZGVyciwgIkZhaWxlZCB0byBxdWVyeSBk
+ZXZpY2UgcHJvcHNcbiIpOw0KIAkJcmV0dXJuIDE7DQogCX0NCiAJaWYgKChkZXZpY2VfYXR0
+cmlidXRlLnZlbmRvcl9wYXJ0X2lkID09IDI1NDA4ICB8fA0KZGlmZiAtLWdpdCBhL3NlbmRf
+bGF0LmMgYi9zZW5kX2xhdC5jCmRpZmYgLS1naXQgYS93cml0ZV9idy5jIGIvd3JpdGVfYncu
+YwppbmRleCA1ODUxODM1Li4wZjZjYTE3IDEwMDY0NAotLS0gYS93cml0ZV9idy5jCisrKyBi
+L3dyaXRlX2J3LmMKQEAgLTc3Myw4ICs3NzMsMTMgQEAgaW50IG1haW4oaW50IGFyZ2MsIGNo
+YXIgKmFyZ3ZbXSkKIAkJcmV0dXJuIDc7CiAKIAljb250ZXh0ID0gaWJ2X29wZW5fZGV2aWNl
+KGliX2Rldik7CisJaWYgKCFjb250ZXh0KSB7CisJCWZwcmludGYoc3RkZXJyLCAiIEZhaWxl
+ZCB0byBvcGVuIGRldmljZSAlc1xuIiwKKwkJCQlpYnZfZ2V0X2RldmljZV9uYW1lKGliX2Rl
+dikpOworCQlyZXR1cm4gMTsKKwl9CiAJaWYgKGlidl9xdWVyeV9kZXZpY2UoY29udGV4dCwg
+JmRldmljZV9hdHRyaWJ1dGUpKSB7Ci0JCWZwcmludGYoc3RkZXJyLCAiIEZhaWxlZCB0byBx
+dWVyeSBkZXZpY2UgcHJvcHMiKTsKKwkJZnByaW50ZihzdGRlcnIsICIgRmFpbGVkIHRvIHF1
+ZXJ5IGRldmljZSBwcm9wc1xuIik7CiAJCXJldHVybiAxOwogCX0KIAlpZiAoKGRldmljZV9h
+dHRyaWJ1dGUudmVuZG9yX3BhcnRfaWQgPT0gMjU0MDggfHwKZGlmZiAtLWdpdCBhL3dyaXRl
+X2J3X3Bvc3RsaXN0LmMgYi93cml0ZV9id19wb3N0bGlzdC5jCmluZGV4IDAzNDljNDAuLjAz
+NTAwODIgMTAwNjQ0Ci0tLSBhL3dyaXRlX2J3X3Bvc3RsaXN0LmMKKysrIGIvd3JpdGVfYndf
+cG9zdGxpc3QuYwpAQCAtNzIxLDggKzcyMSwxMyBAQCBpbnQgbWFpbihpbnQgYXJnYywgY2hh
+ciAqYXJndltdKQogCX0KIAogCWNvbnRleHQgPSBpYnZfb3Blbl9kZXZpY2UoaWJfZGV2KTsK
+KwlpZiAoIWNvbnRleHQpIHsKKwkJZnByaW50ZihzdGRlcnIsICJGYWlsZWQgdG8gb3BlbiBk
+ZXZpY2UgJXNcbiIsCisJCQkJaWJ2X2dldF9kZXZpY2VfbmFtZShpYl9kZXYpKTsKKwkJcmV0
+dXJuIDE7CisJfQogCWlmIChpYnZfcXVlcnlfZGV2aWNlKGNvbnRleHQsICZkZXZpY2VfYXR0
+cmlidXRlKSkgewotCQlmcHJpbnRmKHN0ZGVyciwgIkZhaWxlZCB0byBxdWVyeSBkZXZpY2Ug
+cHJvcHMiKTsKKwkJZnByaW50ZihzdGRlcnIsICJGYWlsZWQgdG8gcXVlcnkgZGV2aWNlIHBy
+b3BzXG4iKTsKIAkJcmV0dXJuIDE7CiAJfQogCWlmICgoZGV2aWNlX2F0dHJpYnV0ZS52ZW5k
+b3JfcGFydF9pZCA9PSAyNTQwOCB8fApkaWZmIC0tZ2l0IGEvd3JpdGVfbGF0LmMgYi93cml0
+ZV9sYXQuYwo=
+--------------000300090607020605070909--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
