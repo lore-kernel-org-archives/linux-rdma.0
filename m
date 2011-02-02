@@ -1,28 +1,58 @@
-From: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+From: Steven Dake <sdake-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 Subject: Re: re librdmacm-devel dependency on librdmacm
-Date: Wed, 2 Feb 2011 21:30:39 +0200
-Message-ID: <AANLkTik2sXg=a2dgGSa77Zpn2edQmGZCFbRXo8HaL2Q0@mail.gmail.com>
+Date: Wed, 02 Feb 2011 15:40:14 -0700
+Message-ID: <4D49DD4E.4070904@redhat.com>
 References: <4D4934FA.8070905@voltaire.com>
-	<CF9C39F99A89134C9CF9C4CCB68B8DDF25CC0C1C2C@orsmsx501.amr.corp.intel.com>
-	<4D497BA7.9070701@voltaire.com>
-	<CF9C39F99A89134C9CF9C4CCB68B8DDF25CC0C1C85@orsmsx501.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CF9C39F99A89134C9CF9C4CCB68B8DDF25CC0C1C85-osO9UTpF0USkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
+In-Reply-To: <4D4934FA.8070905-smomgflXvOZWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Or Gerlitz <ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+Cc: sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hefty, Sean <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
-> I guess I don't understand the problem, but why wouldn't the developer package depend on
-> the real library?
+On 02/02/2011 03:42 AM, Or Gerlitz wrote:
+> Hi Sean,
+> 
+> I just realized the librdmacm-devel (version 1.0.8-5.el5 is installed on
+> the system I hit that) is dependent on librdmacm, and wasn't sure if its
+> a bug or a feature... the dependency is created through
+> /usr/lib64/librdmacm.so which is soft link to the obj file installed by
+> librdmacm.
+> 
 
-In a 2nd thought, this dependancy isn't so terrible, and maybe even
-the usual track for such packages, thx anyway.
+This is a normal policy for RPM based distributions.  I believe deb
+based distributions do something different, but don't recall the details.
 
-Or.
+Regards
+-steve
+
+> Or.
+> 
+>> [root@celery ~]# rpm -qR librdmacm-devel
+>> libibverbs-devel >= 1.1
+>> librdmacm = 1.0.8-5.el5
+>> librdmacm.so.1()(64bit)
+>> rpmlib(CompressedFileNames) <= 3.0.4-1
+>> rpmlib(PayloadFilesHavePrefix) <= 4.0-1
+>> [root@celery ~]# rpm -ql librdmacm-devel | grep -v man
+>> /usr/include/rdma
+>> /usr/include/rdma/rdma_cma.h
+>> /usr/include/rdma/rdma_cma_abi.h
+>> /usr/lib64/librdmacm.so
+>> [root@celery ~]# ls -l /usr/lib64/librdmacm*
+>> lrwxrwxrwx 1 root root    18 Feb  2 12:22 /usr/lib64/librdmacm.so ->
+>> librdmacm.so.1.0.0
+>> lrwxrwxrwx 1 root root    18 Feb  2 12:22 /usr/lib64/librdmacm.so.1 ->
+>> librdmacm.so.1.0.0
+>> -rwxr-xr-x 1 root root 21376 Jun 22  2009 /usr/lib64/librdmacm.so.1.0.0
+> -- 
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
