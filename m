@@ -1,31 +1,55 @@
 From: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: rdma_listen() backlog maximum
-Date: Thu, 3 Feb 2011 09:26:10 -0800
-Message-ID: <AANLkTi=Po2LAPQj9hqHarTW7aO7Er5YsswmUfr5X9bPs@mail.gmail.com>
-References: <AANLkTikqiahK1qNc6_wS6X445oUoVUJsE-nd3uC-sPWs@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Subject: [GIT PULL] please pull infiniband.git
+Date: Thu,  3 Feb 2011 10:05:48 -0800
+Message-ID: <1296756348-6351-1-git-send-email-roland@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <AANLkTikqiahK1qNc6_wS6X445oUoVUJsE-nd3uC-sPWs-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Mike Mundy <mmundy42-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Linus Torvalds <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
+Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Feb 3, 2011 at 8:40 AM, Mike Mundy <mmundy42-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
-> I'm prototyping a server that needs to accept a large number of
-> simultaneous incoming RDMA CM connections. I noticed that
-> drivers/infiniband/core/ucma.c limits the backlog to 128. Is there a
-> reason why the limit is 128? Or to put it another way, what breaks if
-> the limit is increased to a larger value (say 256)?
+Linus, please pull from
 
-In the current kernel the backlog defaults to 1024 and there is a sysctl to
-change it at runtime.
+    master.kernel.org:/pub/scm/linux/kernel/git/roland/infiniband.git for-linus
 
-So I think you are completely safe increasing your backlog on older
-kernels.  (The commit to backport is 97cb7e40c696)
+This tree is also available from kernel.org mirrors at:
 
- - R.
+    git://git.kernel.org/pub/scm/linux/kernel/git/roland/infiniband.git for-linus
+
+This will get a few small things:
+ - Low-level driver fixes to qib, cxgb4 and amso1100
+ - Add PCI IDs for new Mellanox devices to mlx4
+ - Add a dropped hunk of Tejun's workqueue conversion
+ - Fix route query for iWARP connections
+
+Mitko Haralanov (1):
+      IB/qib: Hold link for TX SERDES settings
+
+Ralf Thielow (1):
+      RDMA/amso1100: Fix compile warnings
+
+Roland Dreier (1):
+      Merge branches 'amso1100', 'cma', 'cxgb4', 'misc', 'mlx4' and 'qib' into for-next
+
+Steve Wise (3):
+      RDMA/cxgb4: Limit MAXBURST EQ context field to 256B
+      RDMA/cxgb4: Set the correct device physical function for iWARP connections
+      RDMA/ucma: Copy iWARP route information on queries
+
+Tejun Heo (1):
+      RDMA: Update missed conversion of flush_scheduled_work()
+
+Yevgeny Petrilin (1):
+      mlx4_core: Add ConnectX-3 device IDs
+
+ drivers/infiniband/core/sa_query.c      |    2 +-
+ drivers/infiniband/core/ucma.c          |   22 ++++++++++++++++++++--
+ drivers/infiniband/hw/amso1100/c2_vq.c  |    6 +++---
+ drivers/infiniband/hw/cxgb4/cm.c        |    2 +-
+ drivers/infiniband/hw/cxgb4/qp.c        |    4 ++--
+ drivers/infiniband/hw/qib/qib_iba7322.c |   30 +++++++++++-------------------
+ drivers/net/mlx4/main.c                 |   15 +++++++++++++++
+ 7 files changed, 53 insertions(+), 28 deletions(-)
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
