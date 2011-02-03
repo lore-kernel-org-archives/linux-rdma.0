@@ -1,55 +1,51 @@
-From: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [GIT PULL] please pull infiniband.git
-Date: Thu,  3 Feb 2011 10:05:48 -0800
-Message-ID: <1296756348-6351-1-git-send-email-roland@kernel.org>
+From: frank zago <fzago-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org>
+Subject: [PATCH] perftest/write_bw_postlist
+Date: Thu, 03 Feb 2011 15:37:01 -0600
+Message-ID: <4D4B1FFD.9070906@systemfabricworks.com>
+Mime-Version: 1.0
+Content-Type: multipart/mixed;
+ boundary="------------090309070808050708030008"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Linus Torvalds <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
-Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Linus, please pull from
+This is a multi-part message in MIME format.
+--------------090309070808050708030008
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 
-    master.kernel.org:/pub/scm/linux/kernel/git/roland/infiniband.git for-linus
+Hello,
 
-This tree is also available from kernel.org mirrors at:
+in write_bw_postlist.c, my_dest (and possibly rem_dest) must be initialized, else the remote node may not be able to parse the connection string and the test will fail to start.
+The others test are doing that initialization.
 
-    git://git.kernel.org/pub/scm/linux/kernel/git/roland/infiniband.git for-linus
+Signed-off-by: Frank Zago <fzago-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org>
 
-This will get a few small things:
- - Low-level driver fixes to qib, cxgb4 and amso1100
- - Add PCI IDs for new Mellanox devices to mlx4
- - Add a dropped hunk of Tejun's workqueue conversion
- - Fix route query for iWARP connections
+--------------090309070808050708030008
+Content-Type: text/x-diff;
+ name="write_bw_postlist-fix.diff"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename="write_bw_postlist-fix.diff"
 
-Mitko Haralanov (1):
-      IB/qib: Hold link for TX SERDES settings
+diff --git a/write_bw_postlist.c b/write_bw_postlist.c
+index 0349c40..e2e191f 100644
+--- a/write_bw_postlist.c
++++ b/write_bw_postlist.c
+@@ -738,8 +743,8 @@ int main(int argc, char *argv[])
+ 	if (!ctx)
+ 		return 1;
+ 
+-	my_dest  = malloc(sizeof(struct pingpong_dest)*user_param.num_of_qps);
+-	rem_dest = malloc(sizeof(struct pingpong_dest)*user_param.num_of_qps);
++	my_dest  = calloc(user_param.num_of_qps, sizeof(struct pingpong_dest));
++	rem_dest = calloc(user_param.num_of_qps, sizeof(struct pingpong_dest));
+     if (!my_dest || !rem_dest) {
+ 		perror("malloc my_dest or rem_dest");
+ 		return 1;
 
-Ralf Thielow (1):
-      RDMA/amso1100: Fix compile warnings
-
-Roland Dreier (1):
-      Merge branches 'amso1100', 'cma', 'cxgb4', 'misc', 'mlx4' and 'qib' into for-next
-
-Steve Wise (3):
-      RDMA/cxgb4: Limit MAXBURST EQ context field to 256B
-      RDMA/cxgb4: Set the correct device physical function for iWARP connections
-      RDMA/ucma: Copy iWARP route information on queries
-
-Tejun Heo (1):
-      RDMA: Update missed conversion of flush_scheduled_work()
-
-Yevgeny Petrilin (1):
-      mlx4_core: Add ConnectX-3 device IDs
-
- drivers/infiniband/core/sa_query.c      |    2 +-
- drivers/infiniband/core/ucma.c          |   22 ++++++++++++++++++++--
- drivers/infiniband/hw/amso1100/c2_vq.c  |    6 +++---
- drivers/infiniband/hw/cxgb4/cm.c        |    2 +-
- drivers/infiniband/hw/cxgb4/qp.c        |    4 ++--
- drivers/infiniband/hw/qib/qib_iba7322.c |   30 +++++++++++-------------------
- drivers/net/mlx4/main.c                 |   15 +++++++++++++++
- 7 files changed, 53 insertions(+), 28 deletions(-)
+--------------090309070808050708030008--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
