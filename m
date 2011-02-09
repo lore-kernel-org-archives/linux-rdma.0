@@ -1,187 +1,98 @@
-From: Tom Tucker <tom-/Yg/VP3ZvrM@public.gmane.org>
-Subject: [PATCH 2/2] RPCRDMA: Fix FRMR registration/invalidate handling.
-Date: Wed, 09 Feb 2011 13:45:34 -0600
-Message-ID: <20110209194533.22358.37966.stgit@build.ogc.int>
-References: <20110209194430.22358.46254.stgit@build.ogc.int>
+From: Sasha Khapyorsky <sashakvolt-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: OFA Management maintainership
+Date: Wed, 9 Feb 2011 21:09:23 +0200
+Message-ID: <AANLkTim5QRrx38xS-8QBKmCe6MQ6Oh2jquC+8Hn_=Drz@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20110209194430.22358.46254.stgit-T4OLL4TyM9aNDNWfRnPdfg@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Trond.Myklebust-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org
-Cc: spelic-9AbUPqfR1/2XDw4h08c5KA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: multipart/mixed; boundary="===============2127292226=="
+Return-path: <ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+List-Unsubscribe: <http://lists.openfabrics.org/cgi-bin/mailman/options/ewg>,
+	<mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.openfabrics.org/pipermail/ewg>
+List-Post: <mailto:ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+List-Help: <mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=help>
+List-Subscribe: <http://lists.openfabrics.org/cgi-bin/mailman/listinfo/ewg>,
+	<mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=subscribe>
+Sender: ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
+Errors-To: ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
+To: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: EWG <ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-When the rpc_memreg_strategy is 5, FRMR are used to map RPC data.
-This mode uses an FRMR to map the RPC data, then invalidates
-(i.e. unregisers) the data in xprt_rdma_free. These FRMR are used
-across connections on the same mount, i.e. if the connection goes
-away on an idle timeout and reconnects later, the FRMR are not
-destroyed and recreated.
+--===============2127292226==
+Content-Type: multipart/alternative; boundary=00248c0eefdaf331c5049bde33f5
 
-This creates a problem for transport errors because the WR that
-invalidate an FRMR may be flushed (i.e. fail) leaving the
-FRMR valid. When the FRMR is later used to map an RPC it will fail,
-tearing down the transport and starting over. Over time, more and
-more of the FRMR pool end up in the wrong state resulting in
-seemingly random disconnects.
+--00248c0eefdaf331c5049bde33f5
+Content-Type: text/plain; charset=ISO-8859-1
 
-This fix keeps track of the FRMR state explicitly by setting it's
-state based on the successful completion of a reg/inv WR. If the FRMR
-is ever used and found to be in the wrong state, an invalidate WR
-is prepended, re-syncing the FRMR state and avoiding the connection loss.
+Hi,
 
-Signed-off-by: Tom Tucker <tom-/Yg/VP3ZvrM@public.gmane.org>
----
+I'm finishing my work for Voltaire those days and wish to transfer
+my role as OFA management packages maintainer to
+Alex Netes <alexne-smomgflXvOZWk0Htik3J/w@public.gmane.org> which I know many years as a great
+experienced engineer and very good and positive person.
 
- net/sunrpc/xprtrdma/verbs.c     |   52 +++++++++++++++++++++++++++++++++------
- net/sunrpc/xprtrdma/xprt_rdma.h |    1 +
- 2 files changed, 45 insertions(+), 8 deletions(-)
+So starting from today his trees should be considered as master
+development trees:
 
-diff --git a/net/sunrpc/xprtrdma/verbs.c b/net/sunrpc/xprtrdma/verbs.c
-index 5f4c7b3..570f08d 100644
---- a/net/sunrpc/xprtrdma/verbs.c
-+++ b/net/sunrpc/xprtrdma/verbs.c
-@@ -144,6 +144,7 @@ rpcrdma_cq_async_error_upcall(struct ib_event *event, void *context)
- static inline
- void rpcrdma_event_process(struct ib_wc *wc)
- {
-+	struct rpcrdma_mw *frmr;
- 	struct rpcrdma_rep *rep =
- 			(struct rpcrdma_rep *)(unsigned long) wc->wr_id;
- 
-@@ -154,15 +155,23 @@ void rpcrdma_event_process(struct ib_wc *wc)
- 		return;
- 
- 	if (IB_WC_SUCCESS != wc->status) {
--		dprintk("RPC:       %s: %s WC status %X, connection lost\n",
--			__func__, (wc->opcode & IB_WC_RECV) ? "recv" : "send",
--			 wc->status);
-+		dprintk("RPC:       %s: WC opcode %d status %X, connection lost\n",
-+			__func__, wc->opcode, wc->status);
- 		rep->rr_len = ~0U;
--		rpcrdma_schedule_tasklet(rep);
-+		if (wc->opcode != IB_WC_FAST_REG_MR && wc->opcode != IB_WC_LOCAL_INV)
-+			rpcrdma_schedule_tasklet(rep);
- 		return;
- 	}
- 
- 	switch (wc->opcode) {
-+	case IB_WC_FAST_REG_MR:
-+		frmr = (struct rpcrdma_mw *)(unsigned long)wc->wr_id;
-+		frmr->r.frmr.state = FRMR_IS_VALID;
-+		break;
-+	case IB_WC_LOCAL_INV:
-+		frmr = (struct rpcrdma_mw *)(unsigned long)wc->wr_id;
-+		frmr->r.frmr.state = FRMR_IS_INVALID;
-+		break;
- 	case IB_WC_RECV:
- 		rep->rr_len = wc->byte_len;
- 		ib_dma_sync_single_for_cpu(
-@@ -1450,6 +1459,11 @@ rpcrdma_map_one(struct rpcrdma_ia *ia, struct rpcrdma_mr_seg *seg, int writing)
- 		seg->mr_dma = ib_dma_map_single(ia->ri_id->device,
- 				seg->mr_offset,
- 				seg->mr_dmalen, seg->mr_dir);
-+	if (ib_dma_mapping_error(ia->ri_id->device, seg->mr_dma)) {
-+		dprintk("RPC:       %s: mr_dma %llx mr_offset %p mr_dma_len %zu\n",
-+			__func__,
-+			seg->mr_dma, seg->mr_offset, seg->mr_dmalen);
-+	}
- }
- 
- static void
-@@ -1469,7 +1483,8 @@ rpcrdma_register_frmr_external(struct rpcrdma_mr_seg *seg,
- 			struct rpcrdma_xprt *r_xprt)
- {
- 	struct rpcrdma_mr_seg *seg1 = seg;
--	struct ib_send_wr frmr_wr, *bad_wr;
-+	struct ib_send_wr invalidate_wr, frmr_wr, *bad_wr, *post_wr;
-+
- 	u8 key;
- 	int len, pageoff;
- 	int i, rc;
-@@ -1484,6 +1499,7 @@ rpcrdma_register_frmr_external(struct rpcrdma_mr_seg *seg,
- 		rpcrdma_map_one(ia, seg, writing);
- 		seg1->mr_chunk.rl_mw->r.frmr.fr_pgl->page_list[i] = seg->mr_dma;
- 		len += seg->mr_len;
-+		BUG_ON(seg->mr_len > PAGE_SIZE);
- 		++seg;
- 		++i;
- 		/* Check for holes */
-@@ -1494,26 +1510,45 @@ rpcrdma_register_frmr_external(struct rpcrdma_mr_seg *seg,
- 	dprintk("RPC:       %s: Using frmr %p to map %d segments\n",
- 		__func__, seg1->mr_chunk.rl_mw, i);
- 
-+	if (unlikely(seg1->mr_chunk.rl_mw->r.frmr.state == FRMR_IS_VALID)) {
-+		dprintk("RPC:       %s: frmr %x left valid, posting invalidate.\n",
-+			__func__,
-+			seg1->mr_chunk.rl_mw->r.frmr.fr_mr->rkey);
-+		/* Invalidate before using. */
-+		memset(&invalidate_wr, 0, sizeof invalidate_wr);
-+		invalidate_wr.wr_id = (unsigned long)(void *)seg1->mr_chunk.rl_mw;
-+		invalidate_wr.next = &frmr_wr;
-+		invalidate_wr.opcode = IB_WR_LOCAL_INV;
-+		invalidate_wr.send_flags = IB_SEND_SIGNALED;
-+		invalidate_wr.ex.invalidate_rkey =
-+			seg1->mr_chunk.rl_mw->r.frmr.fr_mr->rkey;
-+		DECR_CQCOUNT(&r_xprt->rx_ep);
-+		post_wr = &invalidate_wr;
-+	} else
-+		post_wr = &frmr_wr;
-+
- 	/* Bump the key */
- 	key = (u8)(seg1->mr_chunk.rl_mw->r.frmr.fr_mr->rkey & 0x000000FF);
- 	ib_update_fast_reg_key(seg1->mr_chunk.rl_mw->r.frmr.fr_mr, ++key);
- 
- 	/* Prepare FRMR WR */
- 	memset(&frmr_wr, 0, sizeof frmr_wr);
-+	frmr_wr.wr_id = (unsigned long)(void *)seg1->mr_chunk.rl_mw;
- 	frmr_wr.opcode = IB_WR_FAST_REG_MR;
--	frmr_wr.send_flags = 0;			/* unsignaled */
-+	frmr_wr.send_flags = IB_SEND_SIGNALED;
- 	frmr_wr.wr.fast_reg.iova_start = seg1->mr_dma;
- 	frmr_wr.wr.fast_reg.page_list = seg1->mr_chunk.rl_mw->r.frmr.fr_pgl;
- 	frmr_wr.wr.fast_reg.page_list_len = i;
- 	frmr_wr.wr.fast_reg.page_shift = PAGE_SHIFT;
- 	frmr_wr.wr.fast_reg.length = i << PAGE_SHIFT;
-+	BUG_ON(frmr_wr.wr.fast_reg.length < len);
- 	frmr_wr.wr.fast_reg.access_flags = (writing ?
- 				IB_ACCESS_REMOTE_WRITE | IB_ACCESS_LOCAL_WRITE :
- 				IB_ACCESS_REMOTE_READ);
- 	frmr_wr.wr.fast_reg.rkey = seg1->mr_chunk.rl_mw->r.frmr.fr_mr->rkey;
- 	DECR_CQCOUNT(&r_xprt->rx_ep);
- 
--	rc = ib_post_send(ia->ri_id->qp, &frmr_wr, &bad_wr);
-+	rc = ib_post_send(ia->ri_id->qp, post_wr, &bad_wr);
- 
- 	if (rc) {
- 		dprintk("RPC:       %s: failed ib_post_send for register,"
-@@ -1542,8 +1577,9 @@ rpcrdma_deregister_frmr_external(struct rpcrdma_mr_seg *seg,
- 		rpcrdma_unmap_one(ia, seg++);
- 
- 	memset(&invalidate_wr, 0, sizeof invalidate_wr);
-+	invalidate_wr.wr_id = (unsigned long)(void *)seg1->mr_chunk.rl_mw;
- 	invalidate_wr.opcode = IB_WR_LOCAL_INV;
--	invalidate_wr.send_flags = 0;			/* unsignaled */
-+	invalidate_wr.send_flags = IB_SEND_SIGNALED;
- 	invalidate_wr.ex.invalidate_rkey = seg1->mr_chunk.rl_mw->r.frmr.fr_mr->rkey;
- 	DECR_CQCOUNT(&r_xprt->rx_ep);
- 
-diff --git a/net/sunrpc/xprtrdma/xprt_rdma.h b/net/sunrpc/xprtrdma/xprt_rdma.h
-index c7a7eba..cae761a 100644
---- a/net/sunrpc/xprtrdma/xprt_rdma.h
-+++ b/net/sunrpc/xprtrdma/xprt_rdma.h
-@@ -164,6 +164,7 @@ struct rpcrdma_mr_seg {		/* chunk descriptors */
- 				struct {
- 					struct ib_fast_reg_page_list *fr_pgl;
- 					struct ib_mr *fr_mr;
-+					enum { FRMR_IS_INVALID, FRMR_IS_VALID  } state;
- 				} frmr;
- 			} r;
- 			struct list_head mw_list;
+        git://git.openfabrics.org/~alexnetes/libibumad
+        git://git.openfabrics.org/~alexnetes/opensm
+        git://git.openfabrics.org/~alexnetes/libibmad
+        git://git.openfabrics.org/~alexnetes/infiniband-diags
+        git://git.openfabrics.org/~alexnetes/ibsim
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+It is also likely that in a near feature maintainerships of
+libibumad and infiniband-diags will be taken by
+Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>.
+
+I would like to wish to Alex and Ira a lot of success with their roles.
+
+Also I would like to thank a whole community for good working time.
+
+I still be reachable by my email address <sashakvolt-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, so feel
+free to contact me in case of any question.
+
+Sasha
+
+--00248c0eefdaf331c5049bde33f5
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
+
+<div dir=3D"ltr">Hi,<br><br>I&#39;m finishing my work for Voltaire those da=
+ys and wish to transfer<br>my role as OFA management packages maintainer to=
+<br>Alex Netes &lt;<a href=3D"mailto:alexne-smomgflXvOZWk0Htik3J/w@public.gmane.org">alexne@voltaire.c=
+om</a>&gt; which I know many years as a great<br>
+experienced engineer and very good and positive person.<br><br>So starting =
+from today his trees should be considered as master<br>development trees:<b=
+r><br>=A0=A0=A0=A0=A0=A0=A0 git://<a href=3D"http://git.openfabrics.org/~al=
+exnetes/libibumad">git.openfabrics.org/~alexnetes/libibumad</a><br>
+=A0=A0=A0=A0=A0=A0=A0 git://<a href=3D"http://git.openfabrics.org/~alexnete=
+s/opensm">git.openfabrics.org/~alexnetes/opensm</a><br>=A0=A0=A0=A0=A0=A0=
+=A0 git://<a href=3D"http://git.openfabrics.org/~alexnetes/libibmad">git.op=
+enfabrics.org/~alexnetes/libibmad</a><br>
+=A0=A0=A0=A0=A0=A0=A0 git://<a href=3D"http://git.openfabrics.org/~alexnete=
+s/infiniband-diags">git.openfabrics.org/~alexnetes/infiniband-diags</a><br>=
+=A0=A0=A0=A0=A0=A0=A0 git://<a href=3D"http://git.openfabrics.org/~alexnete=
+s/ibsim">git.openfabrics.org/~alexnetes/ibsim</a><br>
+<br>It is also likely that in a near feature maintainerships of<br>libibuma=
+d and infiniband-diags will be taken by<br>Ira Weiny &lt;<a href=3D"mailto:=
+weiny2-i2BcT+NCU+M@public.gmane.org">weiny2-i2BcT+NCU+M@public.gmane.org</a>&gt;.<br><br>I would like to wish to Al=
+ex and Ira a lot of success with their roles.<br>
+<br>Also I would like to thank a whole community for good working time.<br>=
+<br>I still be reachable by my email address &lt;<a href=3D"mailto:sashakvo=
+lt-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org">sashakvolt-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org</a>&gt;, so feel<br>free to contact me i=
+n case of any question.<br>
+<br>Sasha<br><br></div>
+
+--00248c0eefdaf331c5049bde33f5--
+
+--===============2127292226==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+ewg mailing list
+ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
+http://lists.openfabrics.org/cgi-bin/mailman/listinfo/ewg
+--===============2127292226==--
