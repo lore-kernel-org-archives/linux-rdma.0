@@ -1,54 +1,52 @@
-From: Mike Heinz <michael.heinz-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-Subject: FW: [PATCH] umad_send.3 (man page)
-Date: Fri, 11 Feb 2011 15:19:47 -0600
-Message-ID: <4C2744E8AD2982428C5BFE523DF8CDCB4A20B284CC@MNEXMB1.qlogic.org>
+From: Michael Heinz <mheinz-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH] ofed_kernel/net/rds/ib_send.c
+Date: Fri, 11 Feb 2011 16:42:55 -0500
+Message-ID: <20110211214255.27586.4904.stgit@kop-sds-dev-02.qlogic.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Alex Netes <alexne-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Alex,
+This corrects a CQ overflow and timing issue which can be observed in RDS
 
-Given the change over in libibumad, you may not have seen this, so I'm resending it.
-
------Original Message-----
-From: Mike Heinz
-Sent: Monday, February 07, 2011 11:10 AM
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; ewg
-Cc: 'Sasha Khapyorsky'
-Subject: [PATCH] umad_send.3 (man page)
-
-The man page for umad_send() does not match the source code.
-
-Signed-off-by: Michael Heinz Michael.heinz-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org
+Signed-off-by: Michael Heinz <michael.heinz-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
 ---
-diff --git a/libibumad/man/umad_send.3 b/libibumad/man/umad_send.3
-index 2d84f57..c4a617a 100644
---- a/libibumad/man/umad_send.3
-+++ b/libibumad/man/umad_send.3
-@@ -7,11 +7,13 @@ umad_send \- send umad
- .nf
- .B #include <infiniband/umad.h>
- .sp
--.BI "int umad_send(int " "portid" ", int " "agentid" ", void " "*umad" ", int " "timeout_ms" ", int " "retries");
-+.BI "int umad_send(int " "portid" ", int " "agentid" ", void " "*umad" ", int " "length" ", int " "timeout_ms" ", int " "retries");
- .fi
- .SH "DESCRIPTION"
- .B umad_send()
--sends the specified
-+sends
-+.I length\fR
-+bytes from the specified
- .I umad\fR
- buffer from the port specified by
- .I portid\fR,
+ net/rds/ib_send.c |   10 +++++++---
+ 1 files changed, 7 insertions(+), 3 deletions(-)
 
-This message and any attached documents contain information from QLogic Corporation or its wholly-owned subsidiaries that may be confidential. If you are not the intended recipient, you may not read, copy, distribute, or use this information. If you have received this transmission in error, please notify the sender immediately by reply e-mail and then delete this message.
+diff --git a/net/rds/ib_send.c b/net/rds/ib_send.c
+index 71f373c..61a317e 100644
+--- a/net/rds/ib_send.c
++++ b/net/rds/ib_send.c
+@@ -286,10 +286,8 @@ void rds_ib_send_cq_comp_handler(struct ib_cq *cq, void *context)
+ 
+ 	rdsdebug("cq %p conn %p\n", cq, conn);
+ 	rds_ib_stats_inc(s_ib_tx_cq_call);
+-	ret = ib_req_notify_cq(cq, IB_CQ_NEXT_COMP);
+-	if (ret)
+-		rdsdebug("ib_req_notify_cq send failed: %d\n", ret);
+ 
++again:
+ 	while (ib_poll_cq(cq, 1, &wc) > 0) {
+ 		rdsdebug("wc wr_id 0x%llx status %u (%s) byte_len %u imm_data %u\n",
+ 			 (unsigned long long)wc.wr_id, wc.status,
+@@ -347,6 +345,12 @@ void rds_ib_send_cq_comp_handler(struct ib_cq *cq, void *context)
+ 					  rds_ib_wc_status_str(wc.status));
+ 		}
+ 	}
++	ret = ib_req_notify_cq(cq, IB_CQ_NEXT_COMP |
++				   IB_CQ_REPORT_MISSED_EVENTS);
++	if (ret > 0)
++		goto again;
++	if (ret < 0)
++		rdsdebug("ib_req_notify_cq send failed: %d\n", ret);
+ }
+ 
+ /*
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
