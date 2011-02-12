@@ -1,31 +1,41 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH][RFC] infiniband: Fix allocation size in
- register_snoop_agent()
-Date: Fri, 11 Feb 2011 15:09:03 -0800
-Message-ID: <CF9C39F99A89134C9CF9C4CCB68B8DDF25CC45047A@orsmsx501.amr.corp.intel.com>
-References: <alpine.LNX.2.00.1102112237490.16994@swampdragon.chaosbits.net>
+From: "Davis, Arlin R" <arlin.r.davis-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH] DAPL v2.0:  cma: reduce output log level in disconnect from
+ WARN to CM_WARN
+Date: Sat, 12 Feb 2011 11:27:29 -0800
+Message-ID: <E3280858FA94444CA49D2BA02341C98301272F4059@orsmsx506.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <alpine.LNX.2.00.1102112237490.16994-h2p7t3/P30RzeRGmFJ5qR7ZzlVVXadcDXqFh9Ls21Oc@public.gmane.org>
 Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jesper Juhl <jj-IYz4IdjRLj0sV2N9l4h3zg@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, Julia Lawall <julia-dAYI7NvHqcQ@public.gmane.org>, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+To: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "ofw-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org" <ofw-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> Ok, someone needs to double check me on this before merging anything, but
-> don't we want to allocate sizeof(struct ib_mad_snoop_private) here, rather
-> than just the size of a pointer to the struct?
+Signed-off-by: Arlin Davis <arlin.r.davis-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 
-new_snoop_table is declared as:
+---
+ dapl/openib_cma/cm.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-struct ib_mad_snoop_private **new_snoop_table;
+diff --git a/dapl/openib_cma/cm.c b/dapl/openib_cma/cm.c
+index f010b8a..7980cf6 100644
+--- a/dapl/openib_cma/cm.c
++++ b/dapl/openib_cma/cm.c
+@@ -649,7 +649,7 @@ dapls_ib_disconnect(IN DAPL_EP * ep_ptr, IN DAT_CLOSE_FLAGS close_flags)
+ 			dapl_os_lock(&ep_ptr->header.lock);
+ 		}
+ 		if (ep_ptr->param.ep_state != DAT_EP_STATE_DISCONNECTED) {
+-			dapl_log(DAPL_DBG_TYPE_WARN,
++			dapl_log(DAPL_DBG_TYPE_CM_WARN,
+ 				 " WARNING: disconnect(ep %p, conn %p, id %d) timed out\n",
+ 				 ep_ptr, conn, (conn ? conn->cm_id : 0));
+ 			ep_ptr->param.ep_state = DAT_EP_STATE_DISCONNECTED;
+-- 
+1.7.3
 
-It should point to an array of pointers.
 
-- Sean
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
