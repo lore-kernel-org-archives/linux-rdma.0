@@ -1,31 +1,26 @@
 From: Alex Netes <alexne-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Subject: OFA management tree seperation
-Date: Sun, 13 Feb 2011 09:55:50 +0200
-Message-ID: <20110213075550.GB5697@calypso.voltaire.com>
+Subject: Re: [PATCH] opensm.spec.in: Add in man5 for torus-2QoS.conf
+Date: Sun, 13 Feb 2011 15:48:59 +0200
+Message-ID: <20110213134859.GA30801@calypso.voltaire.com>
+References: <1297367630-22898-1-git-send-email-jaschut@sandia.gov>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
+In-Reply-To: <1297367630-22898-1-git-send-email-jaschut-4OHPYypu0djtX7QSmKvirg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, EWG <ewg-G2znmakfqn7U1rindQTSdQ@public.gmane.org>
+To: Jim Schutt <jaschut-4OHPYypu0djtX7QSmKvirg@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On 12:53 Thu 10 Feb     , Jim Schutt wrote:
+> From: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> 
+> Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Signed-off-by: Jim Schutt <jaschut-4OHPYypu0djtX7QSmKvirg@public.gmane.org>
 
-We finished the management tree seperation.
->From now on, Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org> takes the responsibility for maitaining libibmad and
-infiniband-diags. His trees are:
+Applied. Thanks.
 
-    git://git.openfabrics.org/~iraweiny/libibmad
-    git://git.openfabrics.org/~iraweiny/infiniband-diags
-
-libibumad, opensm and ibsim trees stays under my responsibility:
-
-    git://git.openfabrics.org/~alexnetes/libibumad
-    git://git.openfabrics.org/~alexnetes/opensm
-    git://git.openfabrics.org/~alexnetes/ibsim
-
-
-Alex.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
