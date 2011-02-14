@@ -1,26 +1,43 @@
-From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Subject: Re: [PATCH] ib_srpt: An IB SRP target
-Date: Mon, 14 Feb 2011 21:14:36 +0100
-Message-ID: <AANLkTimCzDt0Sk55CNAxbaAeWwr6rPjVVD8uQM6EdmNL@mail.gmail.com>
-References: <201102142109.19150.bvanassche@acm.org>
+From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+Subject: [PATCH] Fix compile warning introduced by patch
+ "fixed getline pointer allocation free in osm_console_io"
+Date: Mon, 14 Feb 2011 15:32:29 -0800
+Message-ID: <20110214153229.1eba1f18.weiny2@llnl.gov>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <201102142109.19150.bvanassche-HInyCGIudOg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Vu Pham <vu-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, David Dillow <dave-i1Mk8JYDVaaSihdK6806/g@public.gmane.org>, "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>
+To: Alex Netes <alexne-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Feb 14, 2011 at 9:09 PM, Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org> wrote:
->
-> This patch adds the kernel module ib_srpt, which is a SCSI RDMA Protocol
-> (SRP) target implementation conforming to the SRP r16a specification.
 
-Note: this patch is also available in branch srpt of this git
-repository: https://github.com/bvanassche/srpt
+From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+Date: Mon, 14 Feb 2011 15:25:36 -0800
+Subject: [PATCH] Fix compile warning introduced by patch "fixed getline pointer allocation free in osm_console_io"
 
-Bart.
+
+Signed-off-by: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+---
+ opensm/osm_console_io.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
+
+diff --git a/opensm/osm_console_io.c b/opensm/osm_console_io.c
+index 1205a5f..0614c7f 100644
+--- a/opensm/osm_console_io.c
++++ b/opensm/osm_console_io.c
+@@ -56,6 +56,7 @@
+ #include <errno.h>
+ #include <signal.h>
+ #include <opensm/osm_console_io.h>
++#include <stdlib.h>
+ 
+ static int is_local(char *str)
+ {
+-- 
+1.5.4.5
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
