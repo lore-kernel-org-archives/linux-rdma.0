@@ -1,27 +1,44 @@
-From: Ido Shamai <idos-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH] perftest/write_bw_postlist
-Date: Tue, 15 Feb 2011 11:27:22 +0200
-Message-ID: <4D5A46FA.2010009@dev.mellanox.co.il>
-References: <4D4B1FFD.9070906@systemfabricworks.com>
+From: Tamir Ronen <tamirr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: RE: [PATCH] infiniband-diags: add support for ibnetdiscover
+ grouping for Mellanox switches
+Date: Tue, 15 Feb 2011 12:10:24 +0000
+Message-ID: <AA090FF3B57CA34BBC78B3CE7624333AB376@MTRCASDAG01.mtl.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4D4B1FFD.9070906-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: frank zago <fzago-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org>
+To: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
 Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Applied . Thanks again Frank
+Ira,
 
-On 2/3/2011 11:37 PM, frank zago wrote:
-> Hello,
->
-> in write_bw_postlist.c, my_dest (and possibly rem_dest) must be initialized, else the remote node may not be able to parse the connection string and the test will fail to start.
-> The others test are doing that initialization.
->
-> Signed-off-by: Frank Zago <fzago-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org>
+We know that there are switches  with different node descriptors format.  Those switches will be classified as chassis switches without Line/Spine classification (as before the patch).
+We are trying to find out if there is a different format specification for those switches.
+We will also try to arrange additional testing in Mellanox labs.
+
+The node descriptors is RO and should not be modified by the user.
+
+Regards
+ - Tamir
+
+-----Original Message-----
+From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Ira Weiny
+Sent: Tuesday, February 15, 2011 2:07 AM
+To: Tamir Ronen
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Subject: Re: [PATCH] infiniband-diags: add support for ibnetdiscover grouping for Mellanox switches
+
+Tamir,
+
+I have this in a for-next branch.  Can someone from Mellanox verify this will work on all their switches.  I did not think they always labeled their switches this way but perhaps they do.
+
+Can the user program node descriptors in those chassis?  I thought this was possible but I am unable to verify this today.
+
+Ira
+
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
