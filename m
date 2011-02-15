@@ -1,278 +1,91 @@
-From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-Subject: Re: [PATCH/infiniband-diags] The shell scripts use bashism, so use
- bash directly.
-Date: Mon, 14 Feb 2011 16:08:32 -0800
-Message-ID: <20110214160832.cb474185.weiny2@llnl.gov>
-References: <20110214183613.GA21158@obsidianresearch.com>
+From: "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>
+Subject: Re: [PATCH] ib_srpt: An IB SRP target
+Date: Mon, 14 Feb 2011 16:18:57 -0800
+Message-ID: <1297729137.29207.69.camel@haakon2.linux-iscsi.org>
+References: <201102142109.19150.bvanassche@acm.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20110214183613.GA21158-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <201102142109.19150.bvanassche-HInyCGIudOg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Vu Pham <vu-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, David Dillow <dave-i1Mk8JYDVaaSihdK6806/g@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Thanks applied,
-Ira
-
-On Mon, 14 Feb 2011 10:36:13 -0800
-Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
-
-> Otherwise it blows up on distributions that don't use bash as /bin/sh,
-> like Debian and Ubuntu. One could probably just remove the bashisms, but
-> that is much harder.
+On Mon, 2011-02-14 at 21:09 +0100, Bart Van Assche wrote:
+> This patch adds the kernel module ib_srpt, which is a SCSI RDMA Protocol
+> (SRP) target implementation conforming to the SRP r16a specification.
 > 
-> An example error is:
-> ibswitches: 5: Syntax error: "(" unexpected
+> This driver was originally developed by Vu Pham and has been optimized by
+> Bart Van Assche.
 > 
-> Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+> Signed-off-by: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+> Signed-off-by: Vu Pham <vu-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Cc: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+> Cc: David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>
+> Cc: Nicholas A. Bellinger <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>
 > ---
->  scripts/dump_lfts.sh        |    2 +-
->  scripts/dump_mfts.sh        |    2 +-
->  scripts/ibcheckerrors.in    |    2 +-
->  scripts/ibcheckerrs.in      |    2 +-
->  scripts/ibchecknet.in       |    2 +-
->  scripts/ibchecknode.in      |    2 +-
->  scripts/ibcheckport.in      |    2 +-
->  scripts/ibcheckportstate.in |    2 +-
->  scripts/ibcheckportwidth.in |    2 +-
->  scripts/ibcheckstate.in     |    2 +-
->  scripts/ibcheckwidth.in     |    2 +-
->  scripts/ibclearcounters.in  |    2 +-
->  scripts/ibclearerrors.in    |    2 +-
->  scripts/ibdatacounters.in   |    2 +-
->  scripts/ibdatacounts.in     |    2 +-
->  scripts/ibhosts.in          |    2 +-
->  scripts/ibnodes.in          |    2 +-
->  scripts/ibrouters.in        |    2 +-
->  scripts/ibstatus            |    2 +-
->  scripts/ibswitches.in       |    2 +-
->  scripts/set_nodedesc.sh     |    2 +-
->  21 files changed, 21 insertions(+), 21 deletions(-)
-> 
-> diff --git a/scripts/dump_lfts.sh b/scripts/dump_lfts.sh
-> index a07c211..0bf334d 100755
-> --- a/scripts/dump_lfts.sh
-> +++ b/scripts/dump_lfts.sh
-> @@ -1,4 +1,4 @@
-> -#!/bin/sh
-> +#!/bin/bash
->  #
->  # This simple script will collect outputs of ibroute for all switches
->  # on the subnet and drop it on stdout. It can be used for LFTs dump
-> diff --git a/scripts/dump_mfts.sh b/scripts/dump_mfts.sh
-> index cdadba2..d6c2359 100755
-> --- a/scripts/dump_mfts.sh
-> +++ b/scripts/dump_mfts.sh
-> @@ -1,4 +1,4 @@
-> -#!/bin/sh
-> +#!/bin/bash
->  #
->  # This simple script will collect outputs of ibroute for all switches
->  # on the subnet and drop it on stdout. It can be used for MFTs dump
-> diff --git a/scripts/ibcheckerrors.in b/scripts/ibcheckerrors.in
-> index a45bd63..fef503c 100644
-> --- a/scripts/ibcheckerrors.in
-> +++ b/scripts/ibcheckerrors.in
-> @@ -1,4 +1,4 @@
-> -#!/bin/sh
-> +#!/bin/bash
->  
->  IBPATH=${IBPATH:-@IBSCRIPTPATH@}
->  
-> diff --git a/scripts/ibcheckerrs.in b/scripts/ibcheckerrs.in
-> index 6052ff8..4db0929 100644
-> --- a/scripts/ibcheckerrs.in
-> +++ b/scripts/ibcheckerrs.in
-> @@ -1,4 +1,4 @@
-> -#!/bin/sh
-> +#!/bin/bash
->  
->  IBPATH=${IBPATH:-@IBSCRIPTPATH@}
->  
-> diff --git a/scripts/ibchecknet.in b/scripts/ibchecknet.in
-> index 6447835..a6d5b1a 100644
-> --- a/scripts/ibchecknet.in
-> +++ b/scripts/ibchecknet.in
-> @@ -1,4 +1,4 @@
-> -#!/bin/sh
-> +#!/bin/bash
->  
->  IBPATH=${IBPATH:-@IBSCRIPTPATH@}
->  
-> diff --git a/scripts/ibchecknode.in b/scripts/ibchecknode.in
-> index 5eea7b5..d105430 100644
-> --- a/scripts/ibchecknode.in
-> +++ b/scripts/ibchecknode.in
-> @@ -1,4 +1,4 @@
-> -#!/bin/sh
-> +#!/bin/bash
->  
->  IBPATH=${IBPATH:-@IBSCRIPTPATH@}
->  
-> diff --git a/scripts/ibcheckport.in b/scripts/ibcheckport.in
-> index fa5e81e..a786e9f 100644
-> --- a/scripts/ibcheckport.in
-> +++ b/scripts/ibcheckport.in
-> @@ -1,4 +1,4 @@
-> -#!/bin/sh
-> +#!/bin/bash
->  
->  IBPATH=${IBPATH:-@IBSCRIPTPATH@}
->  
-> diff --git a/scripts/ibcheckportstate.in b/scripts/ibcheckportstate.in
-> index dc4fb14..549d427 100644
-> --- a/scripts/ibcheckportstate.in
-> +++ b/scripts/ibcheckportstate.in
-> @@ -1,4 +1,4 @@
-> -#!/bin/sh
-> +#!/bin/bash
->  
->  IBPATH=${IBPATH:-@IBSCRIPTPATH@}
->  
-> diff --git a/scripts/ibcheckportwidth.in b/scripts/ibcheckportwidth.in
-> index 60a0892..3b387be 100644
-> --- a/scripts/ibcheckportwidth.in
-> +++ b/scripts/ibcheckportwidth.in
-> @@ -1,4 +1,4 @@
-> -#!/bin/sh
-> +#!/bin/bash
->  
->  IBPATH=${IBPATH:-@IBSCRIPTPATH@}
->  
-> diff --git a/scripts/ibcheckstate.in b/scripts/ibcheckstate.in
-> index 63551d5..78359d8 100644
-> --- a/scripts/ibcheckstate.in
-> +++ b/scripts/ibcheckstate.in
-> @@ -1,4 +1,4 @@
-> -#!/bin/sh
-> +#!/bin/bash
->  
->  IBPATH=${IBPATH:-@IBSCRIPTPATH@}
->  
-> diff --git a/scripts/ibcheckwidth.in b/scripts/ibcheckwidth.in
-> index cbb154c..49e8d1d 100644
-> --- a/scripts/ibcheckwidth.in
-> +++ b/scripts/ibcheckwidth.in
-> @@ -1,4 +1,4 @@
-> -#!/bin/sh
-> +#!/bin/bash
->  
->  IBPATH=${IBPATH:-@IBSCRIPTPATH@}
->  
-> diff --git a/scripts/ibclearcounters.in b/scripts/ibclearcounters.in
-> index 86a5528..429018a 100644
-> --- a/scripts/ibclearcounters.in
-> +++ b/scripts/ibclearcounters.in
-> @@ -1,4 +1,4 @@
-> -#!/bin/sh
-> +#!/bin/bash
->  
->  IBPATH=${IBPATH:-@IBSCRIPTPATH@}
->  
-> diff --git a/scripts/ibclearerrors.in b/scripts/ibclearerrors.in
-> index 3dfb96b..f7f1ccc 100644
-> --- a/scripts/ibclearerrors.in
-> +++ b/scripts/ibclearerrors.in
-> @@ -1,4 +1,4 @@
-> -#!/bin/sh
-> +#!/bin/bash
->  
->  IBPATH=${IBPATH:-@IBSCRIPTPATH@}
->  
-> diff --git a/scripts/ibdatacounters.in b/scripts/ibdatacounters.in
-> index 5967406..1abaaf2 100644
-> --- a/scripts/ibdatacounters.in
-> +++ b/scripts/ibdatacounters.in
-> @@ -1,4 +1,4 @@
-> -#!/bin/sh
-> +#!/bin/bash
->  
->  IBPATH=${IBPATH:-@IBSCRIPTPATH@}
->  
-> diff --git a/scripts/ibdatacounts.in b/scripts/ibdatacounts.in
-> index 3dbc56a..a9e94c0 100644
-> --- a/scripts/ibdatacounts.in
-> +++ b/scripts/ibdatacounts.in
-> @@ -1,4 +1,4 @@
-> -#!/bin/sh
-> +#!/bin/bash
->  
->  IBPATH=${IBPATH:-@IBSCRIPTPATH@}
->  
-> diff --git a/scripts/ibhosts.in b/scripts/ibhosts.in
-> index baba105..08b2f83 100644
-> --- a/scripts/ibhosts.in
-> +++ b/scripts/ibhosts.in
-> @@ -1,4 +1,4 @@
-> -#!/bin/sh
-> +#!/bin/bash
->  
->  IBPATH=${IBPATH:-@IBSCRIPTPATH@}
->  
-> diff --git a/scripts/ibnodes.in b/scripts/ibnodes.in
-> index 5871da8..0726efc 100644
-> --- a/scripts/ibnodes.in
-> +++ b/scripts/ibnodes.in
-> @@ -1,4 +1,4 @@
-> -#!/bin/sh
-> +#!/bin/bash
->  
->  IBPATH=${IBPATH:-@IBSCRIPTPATH@}
->  
-> diff --git a/scripts/ibrouters.in b/scripts/ibrouters.in
-> index 6404aca..97769db 100644
-> --- a/scripts/ibrouters.in
-> +++ b/scripts/ibrouters.in
-> @@ -1,4 +1,4 @@
-> -#!/bin/sh
-> +#!/bin/bash
->  
->  IBPATH=${IBPATH:-@IBSCRIPTPATH@}
->  
-> diff --git a/scripts/ibstatus b/scripts/ibstatus
-> index f7fbbc2..6f01be0 100755
-> --- a/scripts/ibstatus
-> +++ b/scripts/ibstatus
-> @@ -1,4 +1,4 @@
-> -#!/bin/sh
-> +#!/bin/bash
->  
->  # Usage ibstatus [devname[:port]]
->  
-> diff --git a/scripts/ibswitches.in b/scripts/ibswitches.in
-> index 163620a..fff4468 100644
-> --- a/scripts/ibswitches.in
-> +++ b/scripts/ibswitches.in
-> @@ -1,4 +1,4 @@
-> -#!/bin/sh
-> +#!/bin/bash
->  
->  IBPATH=${IBPATH:-@IBSCRIPTPATH@}
->  
-> diff --git a/scripts/set_nodedesc.sh b/scripts/set_nodedesc.sh
-> index 855ced7..4ec0c43 100755
-> --- a/scripts/set_nodedesc.sh
-> +++ b/scripts/set_nodedesc.sh
-> @@ -1,4 +1,4 @@
-> -#!/bin/sh
-> +#!/bin/bash
->  
->  if [ -f /etc/sysconfig/network ]; then
->  . /etc/sysconfig/network
-> -- 
-> 1.7.1
+>  drivers/infiniband/Kconfig              |    2 +
+>  drivers/infiniband/Makefile             |    1 +
+>  drivers/infiniband/ulp/srpt/Kconfig     |   12 +
+>  drivers/infiniband/ulp/srpt/Makefile    |    2 +
+>  drivers/infiniband/ulp/srpt/ib_dm_mad.h |  139 ++
+>  drivers/infiniband/ulp/srpt/ib_srpt.c   | 4012 +++++++++++++++++++++++++++++++
+>  drivers/infiniband/ulp/srpt/ib_srpt.h   |  406 ++++
+>  7 files changed, 4574 insertions(+), 0 deletions(-)
+>  create mode 100644 drivers/infiniband/ulp/srpt/Kconfig
+>  create mode 100644 drivers/infiniband/ulp/srpt/Makefile
+>  create mode 100644 drivers/infiniband/ulp/srpt/ib_dm_mad.h
+>  create mode 100644 drivers/infiniband/ulp/srpt/ib_srpt.c
+>  create mode 100644 drivers/infiniband/ulp/srpt/ib_srpt.h
 > 
 
+Hi Bart,
 
--- 
-Ira Weiny
-Math Programmer/Computer Scientist
-Lawrence Livermore National Lab
-925-423-8008
-weiny2-i2BcT+NCU+M@public.gmane.org
+Thank you for your contibution.  I will plan to spend time in the next
+days reviewing the TCM interaction pieces, but have gone ahead and
+pushed as-is into a working branch @ lio-core-2.6.git/tcm_ib_srpt
+(.38-rc4).  Please send along any further code updates, and I will make
+sure they hit this branch.
+
+Also just a FYI, in order to compile ib_srpt against the latest LIO
+upstream tree, the original srp_tmr_to_tcm() code was modified with the
+following patch to use the new TMR_* prefixed definitions from
+include/target/target_core_tmr.h.
+
+Thanks!
+
+--nab
+
+diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.c b/drivers/infiniband/ulp/srpt/ib_srpt.c
+index e63775b..cfcb1bc 100644
+--- a/drivers/infiniband/ulp/srpt/ib_srpt.c
++++ b/drivers/infiniband/ulp/srpt/ib_srpt.c
+@@ -1860,15 +1860,15 @@ static int srp_tmr_to_tcm(int fn)
+ {
+        switch (fn) {
+        case SRP_TSK_ABORT_TASK:
+-               return ABORT_TASK;
++               return TMR_ABORT_TASK;
+        case SRP_TSK_ABORT_TASK_SET:
+-               return ABORT_TASK_SET;
++               return TMR_ABORT_TASK_SET;
+        case SRP_TSK_CLEAR_TASK_SET:
+-               return CLEAR_TASK_SET;
++               return TMR_CLEAR_TASK_SET;
+        case SRP_TSK_LUN_RESET:
+-               return LUN_RESET;
++               return TMR_LUN_RESET;
+        case SRP_TSK_CLEAR_ACA:
+-               return CLEAR_ACA;
++               return TMR_CLEAR_ACA;
+        default:
+                return -1;
+        }
+
+
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
