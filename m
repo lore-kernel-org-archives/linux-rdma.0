@@ -1,46 +1,69 @@
-From: Tamir Ronen <tamirr-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: RE: [PATCH] infiniband-diags: add support for ibnetdiscover
- grouping for Mellanox switches
-Date: Tue, 15 Feb 2011 12:10:24 +0000
-Message-ID: <AA090FF3B57CA34BBC78B3CE7624333AB376@MTRCASDAG01.mtl.com>
+From: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+Subject: Re: [PATCH] IPoIB: fix faulty list maintenance in path and neigh list
+Date: Tue, 15 Feb 2011 10:24:27 -0800
+Message-ID: <AANLkTin1pudSXZCGY31p2GnY6noWi2DS3y2+Gprj0+ug@mail.gmail.com>
+References: <20110201161247.12671.10028.stgit@kop-dev-sles11-04.qlogic.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <20110201161247.12671.10028.stgit-hIFRcJ1SNwcXGO8/Qfapyjg/wwJxntczYPYVAmT7z5s@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Mike Marciniszyn <mike.marciniszyn-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+Cc: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, gary.leshner-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org, tom.elken-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Ira,
+I'm not sure I understand what this patch is trying to do.
 
-We know that there are switches  with different node descriptors format.  Those switches will be classified as chassis switches without Line/Spine classification (as before the patch).
-We are trying to find out if there is a different format specification for those switches.
-We will also try to arrange additional testing in Mellanox labs.
+> Added list_del to ipoib_mcast_free() and path_free() to remove the ne=
+igh from
+> the path's neigh_list link list before freeing the memory it consumes=
+=2E
+> This makes the code consistent with ipoib_cm_handle_tx_wc() and other=
+ locations where the list_del() preceeds the call to ipoib_neigh_free()=
+=2E
 
-The node descriptors is RO and should not be modified by the user.
+It looks like this is not needed -- in both cases, the code walks a
+list of neigh
+structs and frees them, and then frees the list itself a few lines
+later.  So what
+does it fix to delete the neigh structs from the list?
 
-Regards
- - Tamir
+> Similarly, at list_del() now preceeds path_free() to remove the path =
+from
+> ipoib_dev_priv's path_list.
 
------Original Message-----
-From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Ira Weiny
-Sent: Tuesday, February 15, 2011 2:07 AM
-To: Tamir Ronen
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Subject: Re: [PATCH] infiniband-diags: add support for ibnetdiscover grouping for Mellanox switches
+Similarly in ipoib_flush_paths() the code is walking a local remove_lis=
+t that
+is on the stack and will be thrown away when the function returns -- wh=
+y does
+it matter if we remove the paths from that list before freeing them?
 
-Tamir,
+> Additionally, the fields neigh->ah and neigh->list were not being ini=
+tialized
+> upon allocation. =A0The patch insures that these two remaining fields=
+ are
+> initialized correctly.
 
-I have this in a for-next branch.  Can someone from Mellanox verify this will work on all their switches.  I did not think they always labeled their switches this way but perhaps they do.
+Again, I don't see how this fixes anything; neigh->list does not need t=
+o be
+initialized, since it is only used to add the neigh struct to other
+lists (AFAICT).
+And also AFAICT, every place that allocates a neigh always initializes =
+neigh->ah
+on every code path.  It might be cleaner to set neigh->ah to NULL but I=
+ don't
+see how this could fix something.
 
-Can the user program node descriptors in those chassis?  I thought this was possible but I am unable to verify this today.
+Pradeep seems to believe that this patch fixes some crashes but I would=
+ like
+to understand the real cause before blindly applying this patch.
+Which part(s) are
+the real fix, and what is the race or other bug it fixes?
 
-Ira
-
-
+ - R.
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
