@@ -1,69 +1,56 @@
-From: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
-Subject: Re: [PATCH] IPoIB: fix faulty list maintenance in path and neigh list
-Date: Tue, 15 Feb 2011 10:24:27 -0800
-Message-ID: <AANLkTin1pudSXZCGY31p2GnY6noWi2DS3y2+Gprj0+ug@mail.gmail.com>
-References: <20110201161247.12671.10028.stgit@kop-dev-sles11-04.qlogic.org>
+From: Mike Marciniszyn <mike.marciniszyn-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH] IB/qib: Prevent double completions after a timeout or RNR
+	error
+Date: Wed, 16 Feb 2011 10:48:25 -0500
+Message-ID: <20110216154825.24564.28020.stgit@kop-dev-sles11-04.qlogic.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20110201161247.12671.10028.stgit-hIFRcJ1SNwcXGO8/Qfapyjg/wwJxntczYPYVAmT7z5s@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Mike Marciniszyn <mike.marciniszyn-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-Cc: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, gary.leshner-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org, tom.elken-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org
+To: Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tom.elken-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-I'm not sure I understand what this patch is trying to do.
+There is a double completion associated with error handling
+for RC QP's.
 
-> Added list_del to ipoib_mcast_free() and path_free() to remove the ne=
-igh from
-> the path's neigh_list link list before freeing the memory it consumes=
-=2E
-> This makes the code consistent with ipoib_cm_handle_tx_wc() and other=
- locations where the list_del() preceeds the call to ipoib_neigh_free()=
-=2E
+The sequence is:
+- The do_rc_ack() routine fields an RNR nack and there are 0 rnr_retries
+configured on the QP.
+- qib_error_qp() stops the pending timer
+- qib_rc_send_complete() is called from sdma_complete()
+- qib_rc_send_complete() starts the timer because the msb of the psn just
+completed says and ack is needed.
+- a bunch of flushes occur as ipoib posts wqe's to an error'ed qp
+- rc_timeout() calls qib_restart_rc()
+- qib_restart_rc() calls qib_send_complete() with a IB_WC_RETRY_EXC_ERR on a
+wqe that has already been completed in the past
 
-It looks like this is not needed -- in both cases, the code walks a
-list of neigh
-structs and frees them, and then frees the list itself a few lines
-later.  So what
-does it fix to delete the neigh structs from the list?
+The fix avoids starting the timer since another packet will never
+arrive.
 
-> Similarly, at list_del() now preceeds path_free() to remove the path =
-from
-> ipoib_dev_priv's path_list.
+Signed-off-by: Mike Marciniszyn <mike.marciniszyn-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+---
+ drivers/infiniband/hw/qib/qib_rc.c |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletions(-)
 
-Similarly in ipoib_flush_paths() the code is walking a local remove_lis=
-t that
-is on the stack and will be thrown away when the function returns -- wh=
-y does
-it matter if we remove the paths from that list before freeing them?
+diff --git a/drivers/infiniband/hw/qib/qib_rc.c b/drivers/infiniband/hw/qib/qib_rc.c
+index 25ddb5b..ea8b02c 100644
+--- a/drivers/infiniband/hw/qib/qib_rc.c
++++ b/drivers/infiniband/hw/qib/qib_rc.c
+@@ -1005,7 +1005,8 @@ void qib_rc_send_complete(struct qib_qp *qp, struct qib_ib_header *hdr)
+ 	 * there are still requests that haven't been acked.
+ 	 */
+ 	if ((psn & IB_BTH_REQ_ACK) && qp->s_acked != qp->s_tail &&
+-	    !(qp->s_flags & (QIB_S_TIMER | QIB_S_WAIT_RNR | QIB_S_WAIT_PSN)))
++	    !(qp->s_flags & (QIB_S_TIMER | QIB_S_WAIT_RNR | QIB_S_WAIT_PSN)) &&
++	    (ib_qib_state_ops[qp->state] & QIB_PROCESS_RECV_OK))
+ 		start_timer(qp);
+ 
+ 	while (qp->s_last != qp->s_acked) {
 
-> Additionally, the fields neigh->ah and neigh->list were not being ini=
-tialized
-> upon allocation. =A0The patch insures that these two remaining fields=
- are
-> initialized correctly.
-
-Again, I don't see how this fixes anything; neigh->list does not need t=
-o be
-initialized, since it is only used to add the neigh struct to other
-lists (AFAICT).
-And also AFAICT, every place that allocates a neigh always initializes =
-neigh->ah
-on every code path.  It might be cleaner to set neigh->ah to NULL but I=
- don't
-see how this could fix something.
-
-Pradeep seems to believe that this patch fixes some crashes but I would=
- like
-to understand the real cause before blindly applying this patch.
-Which part(s) are
-the real fix, and what is the race or other bug it fixes?
-
- - R.
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
