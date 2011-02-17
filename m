@@ -1,38 +1,43 @@
 From: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [GIT PULL] please pull infiniband.git
-Date: Thu, 17 Feb 2011 14:26:15 -0800
-Message-ID: <1297981575-17431-1-git-send-email-roland@kernel.org>
+Subject: Re: [PATCH 0/2] Improved node descriptions
+Date: Thu, 17 Feb 2011 15:20:31 -0800
+Message-ID: <AANLkTim5MrHMVjaNFtHeWBy82dag4XNxdBcjBEW+d1yb@mail.gmail.com>
+References: <20110217213017.25708.95042.stgit@homer>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20110217213017.25708.95042.stgit@homer>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Linus Torvalds <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
-Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Michael Heinz <michael.heinz-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Linus, please pull from
+On Thu, Feb 17, 2011 at 1:30 PM, Michael Heinz <michael.heinz-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org> wrote:
+> This patch addresses the problem by providing a function to build the node
+> description. If the provided source string for the description contains an
+> '@' character, the function will substitute the current utsname.
+>
+> This ensures that even after a fabric has been completely initialized, if
+> a node's hostname changes, that change will be reflected in the next sweep
+> of the SM, but also maintains compatibility with existing code since the
+> behavior is unchanged if the description string does not contain an '@'
+> character.
 
-    master.kernel.org:/pub/scm/linux/kernel/git/roland/infiniband.git for-linus
+This looks like a reasonable approach to me, although of course the SM
+has no way of knowing it should update a port's node description if a
+hostname changes.
 
-This tree is also available from kernel.org mirrors at:
+Aside from some minor quibbles
+ - next time please use different subjects for each patch in the thread
+ - the prototype of ib_build_node_desc() seems to force every call
+   site to have a cast; maybe the function should take a pointer to
+   struct ib_smp instead?
+ - the internals of ib_build_node_desc() look a bit ugly, is there any
+   way to make it a little cleaner?
+I do like this.  Does anyone have any feelings about applying this
+for 2.6.39?  Is this shipping in OFED?
 
-    git://git.kernel.org/pub/scm/linux/kernel/git/roland/infiniband.git for-linus
-
-This will get a few small things:
- - Don't send events for nonexistent nes devices
- - Fix a couple of double events in qib
-
-Maciej Sosnowski (1):
-      RDMA/nes: Don't generate async events for unregistered devices
-
-Mike Marciniszyn (2):
-      IB/qib: Fix double add_timer()
-      IB/qib: Prevent double completions after a timeout or RNR error
-
-Roland Dreier (1):
-      Merge branches 'nes' and 'qib' into for-next
-
- drivers/infiniband/hw/nes/nes_hw.c |   32 ++++++++++++++++++++------------
- drivers/infiniband/hw/qib/qib_rc.c |    5 ++++-
- 2 files changed, 24 insertions(+), 13 deletions(-)
+ - R.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
