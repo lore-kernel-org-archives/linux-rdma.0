@@ -1,84 +1,74 @@
-From: Pradeep Satyanarayana <pradeeps-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
-Subject: Re: [PATCH] IPoIB: fix faulty list maintenance in path and neigh
- list
-Date: Wed, 16 Feb 2011 16:51:02 -0800
-Message-ID: <4D5C70F6.3050604@linux.vnet.ibm.com>
-References: <20110201161247.12671.10028.stgit@kop-dev-sles11-04.qlogic.org> <AANLkTin1pudSXZCGY31p2GnY6noWi2DS3y2+Gprj0+ug@mail.gmail.com>
+From: David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>
+Subject: Re: IB: increase DMA max_segment_size on Mellanox hardware
+Date: Wed, 16 Feb 2011 20:06:50 -0500
+Message-ID: <1297904810.8833.44.camel@lap75545.ornl.gov>
+References: <1295230184.2574.26.camel@obelisk.thedillows.org>
+ <4D342510.80701@voltaire.com>
+ <1295318783.3051.81.camel@obelisk.thedillows.org>
+ <4D353E5E.2020500@voltaire.com>
+ <1295353524.3051.121.camel@obelisk.thedillows.org>
+ <4D380AF2.4010905@voltaire.com>
+ <1295525737.22825.24.camel@obelisk.thedillows.org>
+ <4D3D9845.4050803@voltaire.com> <1295897819.29946.17.camel@lap75545.ornl.gov>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <AANLkTin1pudSXZCGY31p2GnY6noWi2DS3y2+Gprj0+ug-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-reply-to: <1295897819.29946.17.camel-FqX9LgGZnHWDB2HL1qBt2PIbXMQ5te18@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
-Cc: Mike Marciniszyn <mike.marciniszyn-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, gary.leshner-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org, tom.elken-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org
+To: Or Gerlitz <ogerlitz-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 02/15/2011 10:24 AM, Roland Dreier wrote:
-> I'm not sure I understand what this patch is trying to do.
->
->> Added list_del to ipoib_mcast_free() and path_free() to remove the neigh from
->> the path's neigh_list link list before freeing the memory it consumes.
->> This makes the code consistent with ipoib_cm_handle_tx_wc() and other locations where the list_del() preceeds the call to ipoib_neigh_free().
->
-> It looks like this is not needed -- in both cases, the code walks a
-> list of neigh
-> structs and frees them, and then frees the list itself a few lines
-> later.  So what
-> does it fix to delete the neigh structs from the list?
+On Mon, 2011-01-24 at 14:36 -0500, David Dillow wrote:
+> On Mon, 2011-01-24 at 10:18 -0500, Or Gerlitz wrote:
+> > I see, thanks for clarifying this out load and clear, so maybe you'll
+> > first get the seven srp patches reviewed and merged, and only then see
+> > if/what benefit this patch brings, I'm a little bit worried of
+> > changing something below everyone's (srp, iser, rds, p9, nfs-rdma,
+> > lustre, etc) legs which doesn't have any notable benefit, I would be
+> > happy to hear others/opinions
+> 
+> Well, I believe it only affects the block merging -- I have to catch a
+> flight, so I cannot recheck right this moment -- that limits the effects
+> to SRP and iSER. The others don't use it at all.
 
-Consider the following two threads:
+Ok, finally got a chance to look into this a bit further. The block
+layer is the only direct user of it, though a few IOMMU drivers
+reference it as well for their *_map_sg coalescing code. pci-gart_64 on
+x86, and a smattering on on sparc, powerpc, and ia64.
 
-.ipoib_mcast_free+0x48/0x308 [ib_ipoib]
-.ipoib_mcast_restart_task+0x3d0/0x560 [ib_ipoib]
-.worker_thread+0x1b4/0x330
-.kthread+0xc4/0xd0
-.kernel_thread+0x54/0x70
+Since other IB protocols could potentially see larger segments with
+this, let's check those:
+
+iSER is fine, because you limit your maximum request size to 512 KB, so
+we'll never overrun the page vector in struct iser_page_vec (128 entries
+currently). It is independent of the DMA segment size, and handles
+multi-page segments already.
+
+IPoIB is fine, as it maps each page individually, and doesn't use
+ib_dma_map_sg().
+
+RDS appears to do the right thing and has no dependencies on DMA segment
+size, but I don't claim to have done a complete audit.
+
+NFSoRDMA and 9p are OK -- they do not use ib_dma_map_sg(), so they
+doesn't care about the coalescing.
+
+Lustre's ko2iblnd does not care about coalescing -- it properly walks
+the returned sg list.
 
 
+I don't see anything that would have a problem with larger DMA segment
+sizes; some of them would see small efficiency gains similar to SRP if
+more small segments could be coalesced into fewer larger ones.
+-- 
+Dave Dillow
+National Center for Computational Science
+Oak Ridge National Laboratory
+(865) 241-6602 office
 
-.ipoib_mcast_free+0x48/0x308 [ib_ipoib]
-.ipoib_mcast_dev_flush+0x188/0x1f8 [ib_ipoib]
-.ipoib_ib_dev_down+0x94/0x160 [ib_ipoib]
-.ipoib_stop+0x78/0x178 [ib_ipoib]
-.dev_close+0xdc/0x148
 
-The list_move_tail() in ipoib_mcast_restart_task() is conditional. So it
-feasible that mcast->list is not moved to the remove_list, but the 
-ipoib_neigh structure is freed. A subsequent call to ipoib_mcast_free() 
-from context of dev_close() tries to free the same ipoib_neigh() 
-structure which might cause the crash.
-
->
->> Similarly, at list_del() now preceeds path_free() to remove the path from
->> ipoib_dev_priv's path_list.
->
-> Similarly in ipoib_flush_paths() the code is walking a local remove_list that
-> is on the stack and will be thrown away when the function returns -- why does
-> it matter if we remove the paths from that list before freeing them?
->
->> Additionally, the fields neigh->ah and neigh->list were not being initialized
->> upon allocation.  The patch insures that these two remaining fields are
->> initialized correctly.
->
-> Again, I don't see how this fixes anything; neigh->list does not need to be
-> initialized, since it is only used to add the neigh struct to other
-> lists (AFAICT).
-> And also AFAICT, every place that allocates a neigh always initializes neigh->ah
-> on every code path.  It might be cleaner to set neigh->ah to NULL but I don't
-> see how this could fix something.
->
-> Pradeep seems to believe that this patch fixes some crashes but I would like
-> to understand the real cause before blindly applying this patch.
-> Which part(s) are
-> the real fix, and what is the race or other bug it fixes?
-
-I hope I have addressed the questions regarding the need for a 
-list_del() in ipoib_mcast_free(). I presume a similar logic applies to
-ipoib_flush_paths().
-
-Thanks
-Pradeep
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
