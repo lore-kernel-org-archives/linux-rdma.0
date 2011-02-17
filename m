@@ -1,41 +1,32 @@
 From: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH 0/2] Improved node descriptions
-Date: Thu, 17 Feb 2011 15:20:31 -0800
-Message-ID: <AANLkTim5MrHMVjaNFtHeWBy82dag4XNxdBcjBEW+d1yb@mail.gmail.com>
-References: <20110217213017.25708.95042.stgit@homer>
+Subject: Re: [PATCH] IPoIB: fix faulty list maintenance in path and neigh list
+Date: Thu, 17 Feb 2011 15:23:45 -0800
+Message-ID: <AANLkTinyUjhZE_-n8zPJyGLVobaoFVnQ=iC1QMusQH+y@mail.gmail.com>
+References: <20110201161247.12671.10028.stgit@kop-dev-sles11-04.qlogic.org>
+ <AANLkTin1pudSXZCGY31p2GnY6noWi2DS3y2+Gprj0+ug@mail.gmail.com>
+ <4D5C70F6.3050604@linux.vnet.ibm.com> <AANLkTim-BnQ9tM68eGsCoOVYDRonmEOO6JN+EFT2zdff@mail.gmail.com>
+ <4D5D7C95.5010408@linux.vnet.ibm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20110217213017.25708.95042.stgit@homer>
+In-Reply-To: <4D5D7C95.5010408-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Michael Heinz <michael.heinz-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Pradeep Satyanarayana <pradeeps-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
+Cc: Mike Marciniszyn <mike.marciniszyn-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, gary.leshner-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org, tom.elken-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Feb 17, 2011 at 1:30 PM, Michael Heinz <michael.heinz-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org> wrote:
-> This patch addresses the problem by providing a function to build the node
-> description. If the provided source string for the description contains an
-> '@' character, the function will substitute the current utsname.
->
-> This ensures that even after a fabric has been completely initialized, if
-> a node's hostname changes, that change will be reflected in the next sweep
-> of the SM, but also maintains compatibility with existing code since the
-> behavior is unchanged if the description string does not contain an '@'
-> character.
+> Yes, that is the crux of the issue. I had missed that ipoib_mcast_free() is
+> only called on remove_list.
 
-This looks like a reasonable approach to me, although of course the SM
-has no way of knowing it should update a port's node description if a
-hostname changes.
+So do we have any idea of what this patch is fixing?  Any thoughts from
+the qlogic people involved in this patch?
 
-Aside from some minor quibbles
- - next time please use different subjects for each patch in the thread
- - the prototype of ib_build_node_desc() seems to force every call
-   site to have a cast; maybe the function should take a pointer to
-   struct ib_smp instead?
- - the internals of ib_build_node_desc() look a bit ugly, is there any
-   way to make it a little cleaner?
-I do like this.  Does anyone have any feelings about applying this
-for 2.6.39?  Is this shipping in OFED?
+> While we are discussing IPoIB issues, how about the two other issues that
+> I illustrated previously. One was Ralph Campbell's patch for fixes to
+> ipoib_cm_start_rx_drain() and my questions wrt ipoib_neigh_cleanup()?
+
+I do need to take a good look at Ralph's patches to try and understand them
+and I hope apply them.  Not sure I still have any link to your questions though.
 
  - R.
 --
