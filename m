@@ -1,74 +1,55 @@
-From: Mike Heinz <michael.heinz-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-Subject: IBUTILS PATCH SHOULD BE REMOVED: ibutils patch
- f3cf1f7c15ca24598fdf68b9ba71788b386b2f14 introduces syntax errors into
- ibdiagpath
-Date: Thu, 17 Feb 2011 15:35:06 -0600
-Message-ID: <4C2744E8AD2982428C5BFE523DF8CDCB4A20B28910@MNEXMB1.qlogic.org>
+From: Michael Heinz <michael.heinz-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH 0/2] Improved node descriptions
+Date: Thu, 17 Feb 2011 16:30:57 -0500
+Message-ID: <20110217213017.25708.95042.stgit@homer>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org" <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, michael.heinz-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Yevgeny,
+The common practice in IB fabrics is to set the description of an HCA to be
+the hostname of the machine plus a description (i.e., "myhost hca-1",
+"myhost hca-2", etc..)
 
-I've got users complaining about ibdiagpath failing.  When I dug into it I found that patch f3cf1f7c15ca24598fdf68b9ba71788b386b2f14 is syntactically incorrect and needs to be rolled back.
+This has a limitation, however.  The first is that if the machine's
+hostname is set via DHCP, the HCA description may be set before the hostname
+is, leading to an incorrect description. This can also occur if the machine's
+hostname changes for some other reason after boot.
 
-The problem is that the patch contains lines like
+This can cause difficulties and confusion when trying to maintain a large
+fabric - if all your nodes are described as "localhost HCA-1" it can be very
+difficult to figure out which node is suffering from symbol errors.
 
-    set entry [lindex $values $i+1]
+This patch addresses the problem by providing a function to build the node
+description. If the provided source string for the description contains an
+'@' character, the function will substitute the current utsname.
 
-these lines aren't valid TCL - this particular line causes ibdiagpath to fail with:
+This ensures that even after a fabric has been completely initialized, if
+a node's hostname changes, that change will be reflected in the next sweep
+of the SM, but also maintains compatibility with existing code since the
+behavior is unchanged if the description string does not contain an '@'
+character.
 
-    -I---------------------------------------------------
-    -I- QoS on Path Check
-    -I---------------------------------------------------
-    bad index "0+1": must be integer or end?-integer?
+---
 
-Removing patch f3cf1f7c15ca24598fdf68b9ba71788b386b2f14 allows ibdiagpath to complete.
+Michael Heinz (2):
+      Improved node descriptions
+      Making it easier to diagnose fabric problems by improving the node descriptions.
 
-Original patch:
-------------------
 
-diff --git a/ibdiag/src/ibdebug.tcl b/ibdiag/src/ibdebug.tcl
-index 2f2c0af..b25bc8a 100644
---- a/ibdiag/src/ibdebug.tcl
-+++ b/ibdiag/src/ibdebug.tcl
-@@ -161,7 +161,7 @@ proc InitializeIBDIAG {} {
-     global G argv argv0 InfoArgv INFO_LST MASK
+ drivers/infiniband/core/mad.c           |   18 ++++++++++++++++++
+ drivers/infiniband/hw/ipath/ipath_mad.c |    2 +-
+ drivers/infiniband/hw/mlx4/mad.c        |    3 ++-
+ drivers/infiniband/hw/mthca/mthca_mad.c |    3 ++-
+ drivers/infiniband/hw/qib/qib_mad.c     |    2 +-
+ include/rdma/ib_mad.h                   |    8 ++++++++
+ 6 files changed, 32 insertions(+), 4 deletions(-)
 
-     ### InitializeIBDIAG - Set general vars
--    set G(var:version.num)          1.5.5
-+    set G(var:version.num)          1.5.6
-     set G(var:tool.name)            [file rootname [file tail $argv0]]
-     set G(var:start.clock.seconds)  [clock seconds]
-     set G(var:desc.local.dev)       "The Local Device"
-@@ -3903,7 +3903,7 @@ proc CheckPathQoS {paths} {
-        foreach {tbl numEntries values} $lowHighCtrl {
-            set overRangeVLs {}
-            for {set i 0} {$i < $numEntries} {incr i} {
--               set entry [lindex $values $i]
-+               set entry [lindex $values $i+1]
-                set vl [expr [lindex $entry 0]]
-                set weight [lindex $entry 1]
-                if {$vl >= $opVLs} {
-@@ -3936,8 +3936,8 @@ proc CheckPathQoS {paths} {
-        for {set i 0} {$i < 8} {incr i} {
-            set sl0 [expr 2*$i]
-            set sl1 [expr 2*$i + 1]
--           set vl0 [expr ([lindex $SL2VL $i] & 0xf0) >> 4]
--           set vl1 [expr [lindex $SL2VL $i] & 0xf]
-+           set vl0 [expr ([lindex $SL2VL $i+1] & 0xf0) >> 4]
-+           set vl1 [expr [lindex $SL2VL $i+1] & 0xf]
-            if {($vl0 >= $opVLs) || ($vl0 == 15)} {
-                set BLOCKED_SL($sl0) 1
-                lappend outOfRangeVLsSLs $sl0
-
-This message and any attached documents contain information from QLogic Corporation or its wholly-owned subsidiaries that may be confidential. If you are not the intended recipient, you may not read, copy, distribute, or use this information. If you have received this transmission in error, please notify the sender immediately by reply e-mail and then delete this message.
-
+-- 
+Signed-off-by: Michael Heinz <michael.heinz-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
