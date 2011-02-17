@@ -1,84 +1,84 @@
-From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Subject: Re: [PATCH] ib_srpt: An IB SRP target
-Date: Wed, 16 Feb 2011 21:49:45 +0100
-Message-ID: <AANLkTinQJCfGZxbCkS_rxp=viee2T935ObUCFdoBazSH@mail.gmail.com>
-References: <201102142109.19150.bvanassche@acm.org>
+From: Pradeep Satyanarayana <pradeeps-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
+Subject: Re: [PATCH] IPoIB: fix faulty list maintenance in path and neigh
+ list
+Date: Wed, 16 Feb 2011 16:51:02 -0800
+Message-ID: <4D5C70F6.3050604@linux.vnet.ibm.com>
+References: <20110201161247.12671.10028.stgit@kop-dev-sles11-04.qlogic.org> <AANLkTin1pudSXZCGY31p2GnY6noWi2DS3y2+Gprj0+ug@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <201102142109.19150.bvanassche-HInyCGIudOg@public.gmane.org>
+In-Reply-To: <AANLkTin1pudSXZCGY31p2GnY6noWi2DS3y2+Gprj0+ug-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Vu Pham <vu-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, David Dillow <dave-i1Mk8JYDVaaSihdK6806/g@public.gmane.org>, "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>
+To: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+Cc: Mike Marciniszyn <mike.marciniszyn-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, gary.leshner-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org, tom.elken-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Feb 14, 2011 at 9:09 PM, Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org> wrote:
+On 02/15/2011 10:24 AM, Roland Dreier wrote:
+> I'm not sure I understand what this patch is trying to do.
 >
-> This patch adds the kernel module ib_srpt, which is a SCSI RDMA Protocol
-> (SRP) target implementation conforming to the SRP r16a specification.
+>> Added list_del to ipoib_mcast_free() and path_free() to remove the neigh from
+>> the path's neigh_list link list before freeing the memory it consumes.
+>> This makes the code consistent with ipoib_cm_handle_tx_wc() and other locations where the list_del() preceeds the call to ipoib_neigh_free().
+>
+> It looks like this is not needed -- in both cases, the code walks a
+> list of neigh
+> structs and frees them, and then frees the list itself a few lines
+> later.  So what
+> does it fix to delete the neigh structs from the list?
 
-Since no documentation is available for the target core, the unavoidable
-happened: I had misinterpret the meaning of one target core function. I just
-found out that queue_data_in must operate synchronously. So this follow-up
-patch is necessary in order to make this IB SRP target implementation work
-correctly:
+Consider the following two threads:
 
-diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.c
-b/drivers/infiniband/ulp/srpt/ib_srpt.c
-index 7fe9d3b..b92c0e3 100644
---- a/drivers/infiniband/ulp/srpt/ib_srpt.c
-+++ b/drivers/infiniband/ulp/srpt/ib_srpt.c
-@@ -1320,6 +1320,7 @@ static struct srpt_send_ioctx
-*srpt_get_send_ioctx(struct srpt_rdma_ch *ch)
- 	ioctx->n_rdma_ius = 0;
- 	ioctx->rdma_ius = NULL;
- 	ioctx->mapped_sg_count = 0;
-+	init_completion(&ioctx->tx_done);
- 	/*
- 	 * transport_init_se_cmd() does not initialize all fields, so do it
- 	 * here.
-@@ -1429,6 +1430,7 @@ static int srpt_abort_cmd(struct srpt_send_ioctx *ioctx)
- 		 * not been received in time.
- 		 */
- 		srpt_unmap_sg_to_ib_sge(ioctx->ch, ioctx);
-+		complete(&ioctx->tx_done);
- 		atomic_set(&ioctx->cmd.t_task->transport_lun_stop, 1);
- 		kref_put(&ioctx->kref, srpt_put_send_ioctx_kref);
- 		break;
-@@ -1492,6 +1494,9 @@ static void srpt_handle_send_comp(struct srpt_rdma_ch *ch,
- 		    && state != SRPT_STATE_DONE))
- 		pr_debug("state = %d\n", state);
+.ipoib_mcast_free+0x48/0x308 [ib_ipoib]
+.ipoib_mcast_restart_task+0x3d0/0x560 [ib_ipoib]
+.worker_thread+0x1b4/0x330
+.kthread+0xc4/0xd0
+.kernel_thread+0x54/0x70
 
-+	if (state == SRPT_STATE_CMD_RSP_SENT)
-+		complete(&ioctx->tx_done);
-+
- 	if (state != SRPT_STATE_DONE)
- 		kref_put(&ioctx->kref, srpt_put_send_ioctx_kref);
- 	else
-@@ -3097,7 +3102,9 @@ static int srpt_queue_data_in(struct se_cmd *cmd)
 
- 	resp_len = srpt_build_cmd_rsp(ch, ioctx, ioctx->tag, cmd->scsi_status);
- 	ret = srpt_post_send(ch, ioctx, resp_len);
--	if (ret) {
-+	if (ret == 0)
-+		wait_for_completion(&ioctx->tx_done);
-+	else {
- 		printk(KERN_ERR "sending cmd response failed for tag %llu\n",
- 		       ioctx->tag);
- 		srpt_unmap_sg_to_ib_sge(ch, ioctx);
-diff --git a/drivers/infiniband/ulp/srpt/ib_srpt.h
-b/drivers/infiniband/ulp/srpt/ib_srpt.h
-index 321b097..54d2382 100644
---- a/drivers/infiniband/ulp/srpt/ib_srpt.h
-+++ b/drivers/infiniband/ulp/srpt/ib_srpt.h
-@@ -218,6 +218,7 @@ struct srpt_send_ioctx {
- 	spinlock_t		spinlock;
- 	enum srpt_command_state	state;
- 	struct se_cmd		cmd;
-+	struct completion	tx_done;
- 	u64			tag;
- 	int			sg_cnt;
- 	int			mapped_sg_count;
+
+.ipoib_mcast_free+0x48/0x308 [ib_ipoib]
+.ipoib_mcast_dev_flush+0x188/0x1f8 [ib_ipoib]
+.ipoib_ib_dev_down+0x94/0x160 [ib_ipoib]
+.ipoib_stop+0x78/0x178 [ib_ipoib]
+.dev_close+0xdc/0x148
+
+The list_move_tail() in ipoib_mcast_restart_task() is conditional. So it
+feasible that mcast->list is not moved to the remove_list, but the 
+ipoib_neigh structure is freed. A subsequent call to ipoib_mcast_free() 
+from context of dev_close() tries to free the same ipoib_neigh() 
+structure which might cause the crash.
+
+>
+>> Similarly, at list_del() now preceeds path_free() to remove the path from
+>> ipoib_dev_priv's path_list.
+>
+> Similarly in ipoib_flush_paths() the code is walking a local remove_list that
+> is on the stack and will be thrown away when the function returns -- why does
+> it matter if we remove the paths from that list before freeing them?
+>
+>> Additionally, the fields neigh->ah and neigh->list were not being initialized
+>> upon allocation.  The patch insures that these two remaining fields are
+>> initialized correctly.
+>
+> Again, I don't see how this fixes anything; neigh->list does not need to be
+> initialized, since it is only used to add the neigh struct to other
+> lists (AFAICT).
+> And also AFAICT, every place that allocates a neigh always initializes neigh->ah
+> on every code path.  It might be cleaner to set neigh->ah to NULL but I don't
+> see how this could fix something.
+>
+> Pradeep seems to believe that this patch fixes some crashes but I would like
+> to understand the real cause before blindly applying this patch.
+> Which part(s) are
+> the real fix, and what is the race or other bug it fixes?
+
+I hope I have addressed the questions regarding the need for a 
+list_del() in ipoib_mcast_free(). I presume a similar logic applies to
+ipoib_flush_paths().
+
+Thanks
+Pradeep
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
