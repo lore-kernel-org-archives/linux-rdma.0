@@ -1,70 +1,71 @@
-From: Mike Heinz <michael.heinz-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-Subject: RE: [PATCH 0/2] Improved node descriptions
-Date: Fri, 18 Feb 2011 10:22:04 -0600
-Message-ID: <4C2744E8AD2982428C5BFE523DF8CDCB4A20B289C7@MNEXMB1.qlogic.org>
-References: <20110217213017.25708.95042.stgit@homer>
-	<AANLkTim5MrHMVjaNFtHeWBy82dag4XNxdBcjBEW+d1yb@mail.gmail.com>
- <AANLkTikh-8uGccT0tumHAu6cPOBm+k8joCaQ4W-grkHd@mail.gmail.com>
+From: Wendy Cheng <s.wendy.cheng-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: How to build a kernel module with OFED kernel
+Date: Fri, 18 Feb 2011 10:59:09 -0800
+Message-ID: <AANLkTimYRJNarSSTArd0P04Fpc00ne7QVU2=ShCOp7kW@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <AANLkTikh-8uGccT0tumHAu6cPOBm+k8joCaQ4W-grkHd-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-SGFsLA0KDQpJJ20gaW4gdGhlIHByb2Nlc3Mgb2Ygc21va2UtdGVzdGluZyBjaGFuZ2VzIHRvIG1l
-ZXQgUm9sYW5kJ3MgInF1aWJibGVzIiAtIEknbSBnb2luZyB0byBjaGFuZ2UgdGhlIGNvZGUgdG8g
-cGFzcyB0aGUgc3RydWN0dXJlIGluc3RlYWQgb2YgYSBjaGFyKi4NCg0KQWxzbywgSSBqdXN0IHdh
-bnQgdG8gcG9pbnQgb3V0IHRoYXQgZXZlbiBpbiB0aGUgY2FzZSB3aGVyZSBubyBlbmhhbmNlZCB0
-cmFwIGlzIHVzZWQsIGFueSBjaGFuZ2Ugd2lsbCBzdGlsbCBiZSBzZWVuIGJ5IHRoZSBTTSB0aGUg
-bmV4dCB0aW1lIGl0IHN3ZWVwcy4gVGhlcmUgd2lsbCBzdGlsbCBiZSBsYWcgaW52b2x2ZWQsIGJ1
-dCBJIGRvbid0IHRoaW5rIGl0J3MgaW5zdXJtb3VudGFibGUuDQoNCi0tLS0tT3JpZ2luYWwgTWVz
-c2FnZS0tLS0tDQpGcm9tOiBIYWwgUm9zZW5zdG9jayBbbWFpbHRvOmhhbC5yb3NlbnN0b2NrQGdt
-YWlsLmNvbV0NClNlbnQ6IFRodXJzZGF5LCBGZWJydWFyeSAxNywgMjAxMSAxMToxOSBQTQ0KVG86
-IFJvbGFuZCBEcmVpZXINCkNjOiBNaWtlIEhlaW56OyBsaW51eC1yZG1hQHZnZXIua2VybmVsLm9y
-Zw0KU3ViamVjdDogUmU6IFtQQVRDSCAwLzJdIEltcHJvdmVkIG5vZGUgZGVzY3JpcHRpb25zDQoN
-Ck9uIFRodSwgRmViIDE3LCAyMDExIGF0IDY6MjAgUE0sIFJvbGFuZCBEcmVpZXIgPHJvbGFuZEBr
-ZXJuZWwub3JnPiB3cm90ZToNCj4gT24gVGh1LCBGZWIgMTcsIDIwMTEgYXQgMTozMCBQTSwgTWlj
-aGFlbCBIZWlueiA8bWljaGFlbC5oZWluekBxbG9naWMuY29tPiB3cm90ZToNCj4+IFRoaXMgcGF0
-Y2ggYWRkcmVzc2VzIHRoZSBwcm9ibGVtIGJ5IHByb3ZpZGluZyBhIGZ1bmN0aW9uIHRvIGJ1aWxk
-IHRoZSBub2RlDQo+PiBkZXNjcmlwdGlvbi4gSWYgdGhlIHByb3ZpZGVkIHNvdXJjZSBzdHJpbmcg
-Zm9yIHRoZSBkZXNjcmlwdGlvbiBjb250YWlucyBhbg0KPj4gJ0AnIGNoYXJhY3RlciwgdGhlIGZ1
-bmN0aW9uIHdpbGwgc3Vic3RpdHV0ZSB0aGUgY3VycmVudCB1dHNuYW1lLg0KPj4NCj4+IFRoaXMg
-ZW5zdXJlcyB0aGF0IGV2ZW4gYWZ0ZXIgYSBmYWJyaWMgaGFzIGJlZW4gY29tcGxldGVseSBpbml0
-aWFsaXplZCwgaWYNCj4+IGEgbm9kZSdzIGhvc3RuYW1lIGNoYW5nZXMsIHRoYXQgY2hhbmdlIHdp
-bGwgYmUgcmVmbGVjdGVkIGluIHRoZSBuZXh0IHN3ZWVwDQo+PiBvZiB0aGUgU00sIGJ1dCBhbHNv
-IG1haW50YWlucyBjb21wYXRpYmlsaXR5IHdpdGggZXhpc3RpbmcgY29kZSBzaW5jZSB0aGUNCj4+
-IGJlaGF2aW9yIGlzIHVuY2hhbmdlZCBpZiB0aGUgZGVzY3JpcHRpb24gc3RyaW5nIGRvZXMgbm90
-IGNvbnRhaW4gYW4gJ0AnDQo+PiBjaGFyYWN0ZXIuDQo+DQo+IFRoaXMgbG9va3MgbGlrZSBhIHJl
-YXNvbmFibGUgYXBwcm9hY2ggdG8gbWUsIGFsdGhvdWdoIG9mIGNvdXJzZSB0aGUgU00NCj4gaGFz
-IG5vIHdheSBvZiBrbm93aW5nIGl0IHNob3VsZCB1cGRhdGUgYSBwb3J0J3Mgbm9kZSBkZXNjcmlw
-dGlvbiBpZiBhDQo+IGhvc3RuYW1lIGNoYW5nZXMuDQoNCkl0IGRvZXM7IFRoZXJlJ3MgYW4gZW5o
-YW5jZWQgdHJhcCBmb3IgdGhpcyBub3cuDQoNCj4gQXNpZGUgZnJvbSBzb21lIG1pbm9yIHF1aWJi
-bGVzDQo+ICAtIG5leHQgdGltZSBwbGVhc2UgdXNlIGRpZmZlcmVudCBzdWJqZWN0cyBmb3IgZWFj
-aCBwYXRjaCBpbiB0aGUgdGhyZWFkDQo+ICAtIHRoZSBwcm90b3R5cGUgb2YgaWJfYnVpbGRfbm9k
-ZV9kZXNjKCkgc2VlbXMgdG8gZm9yY2UgZXZlcnkgY2FsbA0KPiAgIHNpdGUgdG8gaGF2ZSBhIGNh
-c3Q7IG1heWJlIHRoZSBmdW5jdGlvbiBzaG91bGQgdGFrZSBhIHBvaW50ZXIgdG8NCj4gICBzdHJ1
-Y3QgaWJfc21wIGluc3RlYWQ/DQo+ICAtIHRoZSBpbnRlcm5hbHMgb2YgaWJfYnVpbGRfbm9kZV9k
-ZXNjKCkgbG9vayBhIGJpdCB1Z2x5LCBpcyB0aGVyZSBhbnkNCj4gICB3YXkgdG8gbWFrZSBpdCBh
-IGxpdHRsZSBjbGVhbmVyPw0KPiBJIGRvIGxpa2UgdGhpcy4gIERvZXMgYW55b25lIGhhdmUgYW55
-IGZlZWxpbmdzIGFib3V0IGFwcGx5aW5nIHRoaXMNCj4gZm9yIDIuNi4zOT8gIElzIHRoaXMgc2hp
-cHBpbmcgaW4gT0ZFRD8NCg0KSSBuZWVkIGEgbGl0dGxlIHRpbWUgdG8gcmV2aWV3IHRoaXMuDQoN
-Ci0tIEhhbA0KDQo+ICAtIFIuDQo+IC0tDQo+IFRvIHVuc3Vic2NyaWJlIGZyb20gdGhpcyBsaXN0
-OiBzZW5kIHRoZSBsaW5lICJ1bnN1YnNjcmliZSBsaW51eC1yZG1hIiBpbg0KPiB0aGUgYm9keSBv
-ZiBhIG1lc3NhZ2UgdG8gbWFqb3Jkb21vQHZnZXIua2VybmVsLm9yZw0KPiBNb3JlIG1ham9yZG9t
-byBpbmZvIGF0ICBodHRwOi8vdmdlci5rZXJuZWwub3JnL21ham9yZG9tby1pbmZvLmh0bWwNCj4N
-Cg0KDQpUaGlzIG1lc3NhZ2UgYW5kIGFueSBhdHRhY2hlZCBkb2N1bWVudHMgY29udGFpbiBpbmZv
-cm1hdGlvbiBmcm9tIFFMb2dpYyBDb3Jwb3JhdGlvbiBvciBpdHMgd2hvbGx5LW93bmVkIHN1YnNp
-ZGlhcmllcyB0aGF0IG1heSBiZSBjb25maWRlbnRpYWwuIElmIHlvdSBhcmUgbm90IHRoZSBpbnRl
-bmRlZCByZWNpcGllbnQsIHlvdSBtYXkgbm90IHJlYWQsIGNvcHksIGRpc3RyaWJ1dGUsIG9yIHVz
-ZSB0aGlzIGluZm9ybWF0aW9uLiBJZiB5b3UgaGF2ZSByZWNlaXZlZCB0aGlzIHRyYW5zbWlzc2lv
-biBpbiBlcnJvciwgcGxlYXNlIG5vdGlmeSB0aGUgc2VuZGVyIGltbWVkaWF0ZWx5IGJ5IHJlcGx5
-IGUtbWFpbCBhbmQgdGhlbiBkZWxldGUgdGhpcyBtZXNzYWdlLg0K
+A newbie question ..... (please cc me as I'm not on linux-rdma list yet)
 
+The system was on RHEL 5.4. I used a source tar-ball to build RHEL 5.5
+(2.6.18-194.el5). The kernel build was placed at: /usr/src/linux.
+Rebooted to pick up the new kernel .. worked fine... Then
+
+1. On the new 2.6.18-192.el5 system, install OFED-1.5.2 ... succeed.
+2. Reboot to pick up new ofa kernel ..succeed (check with modinfo)
+3. Run user mode rdma application ... succeed
+4. The new ofa kernel modules are placed (by OFED scripts) at:
+    /lib/modules/2.6.18-194.el5/updates/ directory
+5. Build a kernel module (xx.ko) using the attached Makefile
+
+Now .. trying to load (or run after forced loading) xx.ko (on top of
+ofa kernel kmod(s)) ..   It fails .. as the build apparently picks up
+IB kmods from
+/lib/modules/2.6.18-194.el5/drivers/infiniband directory, instead of
+/lib/modules/2.6.18-194.el5/updates directory, together with wrong
+header files from
+/lib/modules/2.6.18-194.el5/source/include, where source is
+/usr/src/linux directory.
+
+Anyone can help me with a correct procedure ?
+
+I do understand the primary usage of OFED RDMA is for user mode
+applications .. but I need to have a kernel mode driver on top of OFED
+RDMA for some experiment works.
+
+Thanks,
+Wendy
+
+== Make File ==
+
+EXTRA_CFLAGS    := -I/usr/src/linux/drivers/xx/include
+EXTRA_CFLAGS    += -DXX_KMOD_DEF
+
+obj-m           := xx_kmod.o
+
+xx_kmod-y       := main/xx_main.o main/xx_init.o \
+                   libxxverbs/xx_device.o libxxverbs/xx_cm.o \
+                   libxxverbs/xx_ar.o libxxverbs/xx_mr.o \
+                   libxxverbs/xx_cq.o libxxverbs/xx_sq.o
+
+xx_kmod-y       += util/xx_perf.o
+xx_kmod-y       += brd/xx_brd.o
+
+kmod:
+        make -C /lib/modules/$(shell uname -r)/build M=$(PWD) modules
+
+install:
+        make -C /lib/modules/$(shell uname -r)/build M=$(PWD) modules_install
+
+run:
+        /sbin/depmod -a; echo 5 > /proc/sys/kernel/panic; modprobe
+--force-modversion xx_kmod
+
+=== End attachment ===
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
