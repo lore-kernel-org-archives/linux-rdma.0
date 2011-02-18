@@ -1,60 +1,60 @@
-From: Mike Marciniszyn <mike.marciniszyn-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH] IB/qib: Return correct MAD when setting link width to 255
-Date: Fri, 18 Feb 2011 06:54:21 -0500
-Message-ID: <20110218115421.20818.55497.stgit@kop-dev-sles11-04.qlogic.org>
+From: Mike Heinz <michael.heinz-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+Subject: RE: [PATCH 0/2] Improved node descriptions
+Date: Fri, 18 Feb 2011 08:09:53 -0600
+Message-ID: <4C2744E8AD2982428C5BFE523DF8CDCB4A207DDEAB@MNEXMB1.qlogic.org>
+References: <20110217213017.25708.95042.stgit@homer>,<AANLkTim5MrHMVjaNFtHeWBy82dag4XNxdBcjBEW+d1yb@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <AANLkTim5MrHMVjaNFtHeWBy82dag4XNxdBcjBEW+d1yb-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tom.elken-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org
+To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Mitko Haralanov <mitko-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+Roland,
 
-Fix a bug which cause the driver to return incorrect MADs
-as a response to Set(PortInfo) which sets the link width
-to 0xFF or link speed to 0xF.
+Thanks for the positive feedback - I'll make the changes ASAP. Sorry about the subject lines, I thought I was doing the "right thing" by making them match.
 
-Signed-off-by: Mitko Haralanov <mitko-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-Signed-off-by: Mike Marciniszyn <mike.marciniszyn-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
----
- drivers/infiniband/hw/qib/qib_mad.c |    7 ++++---
- 1 files changed, 4 insertions(+), 3 deletions(-)
+The change is not in OFED yet, but QLogic has been using it in our own release for a while and works extremely well on large fabrics.
+________________________________________
+From: roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org [roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org] On Behalf Of Roland Dreier [roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org]
+Sent: Thursday, February 17, 2011 6:20 PM
+To: Mike Heinz
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Subject: Re: [PATCH 0/2] Improved node descriptions
 
-diff --git a/drivers/infiniband/hw/qib/qib_mad.c b/drivers/infiniband/hw/qib/qib_mad.c
-index 43f8bbd..7c44726 100644
---- a/drivers/infiniband/hw/qib/qib_mad.c
-+++ b/drivers/infiniband/hw/qib/qib_mad.c
-@@ -705,7 +705,7 @@ static int subn_set_portinfo(struct ib_smp *smp, struct ib_device *ibdev,
- 	lwe = pip->link_width_enabled;
- 	if (lwe) {
- 		if (lwe == 0xFF)
--			lwe = ppd->link_width_supported;
-+			set_link_width_enabled(ppd, ppd->link_width_supported);
- 		else if (lwe >= 16 || (lwe & ~ppd->link_width_supported))
- 			smp->status |= IB_SMP_INVALID_FIELD;
- 		else if (lwe != ppd->link_width_enabled)
-@@ -720,7 +720,8 @@ static int subn_set_portinfo(struct ib_smp *smp, struct ib_device *ibdev,
- 		 * speeds.
- 		 */
- 		if (lse == 15)
--			lse = ppd->link_speed_supported;
-+			set_link_speed_enabled(ppd,
-+					       ppd->link_speed_supported);
- 		else if (lse >= 8 || (lse & ~ppd->link_speed_supported))
- 			smp->status |= IB_SMP_INVALID_FIELD;
- 		else if (lse != ppd->link_speed_enabled)
-@@ -849,7 +850,7 @@ static int subn_set_portinfo(struct ib_smp *smp, struct ib_device *ibdev,
- 	if (clientrereg)
- 		pip->clientrereg_resv_subnetto |= 0x80;
- 
--	goto done;
-+	goto get_only;
- 
- err:
- 	smp->status |= IB_SMP_INVALID_FIELD;
+On Thu, Feb 17, 2011 at 1:30 PM, Michael Heinz <michael.heinz-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org> wrote:
+> This patch addresses the problem by providing a function to build the node
+> description. If the provided source string for the description contains an
+> '@' character, the function will substitute the current utsname.
+>
+> This ensures that even after a fabric has been completely initialized, if
+> a node's hostname changes, that change will be reflected in the next sweep
+> of the SM, but also maintains compatibility with existing code since the
+> behavior is unchanged if the description string does not contain an '@'
+> character.
+
+This looks like a reasonable approach to me, although of course the SM
+has no way of knowing it should update a port's node description if a
+hostname changes.
+
+Aside from some minor quibbles
+ - next time please use different subjects for each patch in the thread
+ - the prototype of ib_build_node_desc() seems to force every call
+   site to have a cast; maybe the function should take a pointer to
+   struct ib_smp instead?
+ - the internals of ib_build_node_desc() look a bit ugly, is there any
+   way to make it a little cleaner?
+I do like this.  Does anyone have any feelings about applying this
+for 2.6.39?  Is this shipping in OFED?
+
+ - R.
+
+
+This message and any attached documents contain information from QLogic Corporation or its wholly-owned subsidiaries that may be confidential. If you are not the intended recipient, you may not read, copy, distribute, or use this information. If you have received this transmission in error, please notify the sender immediately by reply e-mail and then delete this message.
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
