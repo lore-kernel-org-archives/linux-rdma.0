@@ -1,31 +1,61 @@
-From: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH 0/2] Improved node descriptions
-Date: Thu, 17 Feb 2011 21:19:50 -0800
-Message-ID: <AANLkTingH5SC5OhLunF8z1URkzr=B7sd=RJV7ESo1-tr@mail.gmail.com>
-References: <20110217213017.25708.95042.stgit@homer> <AANLkTim5MrHMVjaNFtHeWBy82dag4XNxdBcjBEW+d1yb@mail.gmail.com>
- <AANLkTikh-8uGccT0tumHAu6cPOBm+k8joCaQ4W-grkHd@mail.gmail.com>
+From: Mike Marciniszyn <mike.marciniszyn-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH] IB/qib: Return correct MAD when setting link width to 255
+Date: Fri, 18 Feb 2011 06:54:21 -0500
+Message-ID: <20110218115421.20818.55497.stgit@kop-dev-sles11-04.qlogic.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <AANLkTikh-8uGccT0tumHAu6cPOBm+k8joCaQ4W-grkHd-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Michael Heinz <michael.heinz-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tom.elken-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Feb 17, 2011 at 8:19 PM, Hal Rosenstock
-<hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
->> This looks like a reasonable approach to me, although of course the SM
->> has no way of knowing it should update a port's node description if a
->> hostname changes.
+From: Mitko Haralanov <mitko-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
 
-> It does; There's an enhanced trap for this now.
+Fix a bug which cause the driver to return incorrect MADs
+as a response to Set(PortInfo) which sets the link width
+to 0xFF or link speed to 0xF.
 
-Right; sorry for being unclear but I meant that this patch does not
-have a mechanism for generating this trap if the hostname changes
-or if userspace changes the node description.
+Signed-off-by: Mitko Haralanov <mitko-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+Signed-off-by: Mike Marciniszyn <mike.marciniszyn-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+---
+ drivers/infiniband/hw/qib/qib_mad.c |    7 ++++---
+ 1 files changed, 4 insertions(+), 3 deletions(-)
 
- - R.
+diff --git a/drivers/infiniband/hw/qib/qib_mad.c b/drivers/infiniband/hw/qib/qib_mad.c
+index 43f8bbd..7c44726 100644
+--- a/drivers/infiniband/hw/qib/qib_mad.c
++++ b/drivers/infiniband/hw/qib/qib_mad.c
+@@ -705,7 +705,7 @@ static int subn_set_portinfo(struct ib_smp *smp, struct ib_device *ibdev,
+ 	lwe = pip->link_width_enabled;
+ 	if (lwe) {
+ 		if (lwe == 0xFF)
+-			lwe = ppd->link_width_supported;
++			set_link_width_enabled(ppd, ppd->link_width_supported);
+ 		else if (lwe >= 16 || (lwe & ~ppd->link_width_supported))
+ 			smp->status |= IB_SMP_INVALID_FIELD;
+ 		else if (lwe != ppd->link_width_enabled)
+@@ -720,7 +720,8 @@ static int subn_set_portinfo(struct ib_smp *smp, struct ib_device *ibdev,
+ 		 * speeds.
+ 		 */
+ 		if (lse == 15)
+-			lse = ppd->link_speed_supported;
++			set_link_speed_enabled(ppd,
++					       ppd->link_speed_supported);
+ 		else if (lse >= 8 || (lse & ~ppd->link_speed_supported))
+ 			smp->status |= IB_SMP_INVALID_FIELD;
+ 		else if (lse != ppd->link_speed_enabled)
+@@ -849,7 +850,7 @@ static int subn_set_portinfo(struct ib_smp *smp, struct ib_device *ibdev,
+ 	if (clientrereg)
+ 		pip->clientrereg_resv_subnetto |= 0x80;
+ 
+-	goto done;
++	goto get_only;
+ 
+ err:
+ 	smp->status |= IB_SMP_INVALID_FIELD;
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
