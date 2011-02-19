@@ -1,7 +1,7 @@
 From: David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>
 Subject: Re: [RFC 0/8] Reliably generate large request from SRP
-Date: Fri, 18 Feb 2011 19:06:04 -0500
-Message-ID: <1298073964.15679.16.camel@lap75545.ornl.gov>
+Date: Fri, 18 Feb 2011 19:07:17 -0500
+Message-ID: <1298074037.15679.17.camel@lap75545.ornl.gov>
 References: <1295411242-26148-1-git-send-email-dillowda@ornl.gov>
  <aday66hxxwe.fsf@cisco.com>
 Mime-Version: 1.0
@@ -10,9 +10,11 @@ Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-reply-to: <aday66hxxwe.fsf-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <rdreier-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
+
+[ sorry for the dupe, mis-edited Roland's address ]
 
 On Tue, 2011-01-18 at 21:31 -0800, Roland Dreier wrote:
 > Hi Dave,
@@ -51,6 +53,7 @@ Dave Dillow
 National Center for Computational Science
 Oak Ridge National Laboratory
 (865) 241-6602 office
+
 
 
 --
