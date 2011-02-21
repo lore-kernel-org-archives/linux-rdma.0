@@ -1,43 +1,95 @@
-From: Mike Heinz <michael.heinz-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-Subject: RE: [PATCH 0/2] Improved node descriptions
-Date: Mon, 21 Feb 2011 13:26:26 -0600
-Message-ID: <4C2744E8AD2982428C5BFE523DF8CDCB4A20B28B17@MNEXMB1.qlogic.org>
-References: <20110217213017.25708.95042.stgit@homer>
- <AANLkTim5MrHMVjaNFtHeWBy82dag4XNxdBcjBEW+d1yb@mail.gmail.com>
- <20110219192458.GB4506@obsidianresearch.com>
+From: "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>
+Subject: Re: [PATCH] ib_srpt: An IB SRP target
+Date: Mon, 21 Feb 2011 14:59:22 -0800
+Message-ID: <1298329162.26616.162.camel@haakon2.linux-iscsi.org>
+References: <201102142109.19150.bvanassche@acm.org>
+	 <AANLkTinQJCfGZxbCkS_rxp=viee2T935ObUCFdoBazSH@mail.gmail.com>
+	 <1298285331.26616.100.camel@haakon2.linux-iscsi.org>
+	 <AANLkTiksjO7vO7t4MNkr77AWSmbKUSLC_J9CN3y0qVGn@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20110219192458.GB4506-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <AANLkTiksjO7vO7t4MNkr77AWSmbKUSLC_J9CN3y0qVGn-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+Cc: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Vu Pham <vu-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, David Dillow <dave-i1Mk8JYDVaaSihdK6806/g@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-The biggest problem with that is that patching existing boot scripts is always going to vary from distro to distro and is always going to have problems when dealing with files that were already edited for site-specific reasons.
+On Mon, 2011-02-21 at 08:21 -0800, Roland Dreier wrote:
+> On Mon, Feb 21, 2011 at 2:48 AM, Nicholas A. Bellinger
+> <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org> wrote:
+> > +       atomic_t                cmd_done;
+> > +       atomic_t                cmd_stop_free;
+> 
+> What's the point of using atomic_t here?  AFAICT, you only use
+> atomic_set and atomic_read with them, which have no special
+> ordering powers (look at what those macros expand to).
+> 
 
-Ipoib is a good example of this, I frequently see failures trying to install the ipoib rpm because it failed to successfully patch the ifup- scripts. I'd rather not add another such dependency.
+Ugh, thanks for pointing this out.  For atomic_t inc/dec I always use
+smp_mb__after_atomic_[inc,dec](), but I forgot that atomic_set() is a
+simple/dumb assignment wrapper that also expects an explict barrier() to
+enforce CONFIG_SMP ordering..
 
-For example, there are is /etc/dhcp/dhclient-enter-hooks.d in SLES11 or on Redhat 6 - redhat 6 uses different files for different hooks and uses a single file (which does not exist by default) called /etc/dhcp/dhclient-enter-hook, but SLES11 uses a single script for all dhcp hooks called /etc/dhcpcd.sh.
+So adding the extra explict barrier here is currently required to
+address the potential race between TFO->check_stop_free() usage after
+TFO->queue_data_in(), and the explict ioctx and ioctl->cmd (struct
+se_cmd) release from IB completion queue context.  However, I am
+starting to wonder if using TFO->check_stop_free() here with HW target
+perhaps does not make the most sense..
 
-Trying to create a single RPM capable of hacking into a wide variety of different dhcp mechanisms could be a huge headache.  Using something that relies on the openibd script and a kernel-expansion of the hostname is much less prone to problems.
+The ->check_stop_free() target fabric callback was originally used for
+the TCM_Loop SCSI LLD module in order to immmediate complete and release
+a struct scsi_cmnd after TFO->queue_data_in() has been called.  In the
+case of using IB completion queues, I think checking for a zero of
+T_TASK(cmd)->t_transport_active before release the ioctx->cmd might may
+more sense..  To give more of an idea of how this currently works, the
+following in target_core_transport.c:transport_cmd_check_stop() is
+called from TCM backend struct se_device thread context after
+TFO->queue_data_in() has been called:
 
------Original Message-----
-From: Jason Gunthorpe [mailto:jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org]
-Sent: Saturday, February 19, 2011 2:25 PM
-To: Roland Dreier
-Cc: Mike Heinz; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Subject: Re: [PATCH 0/2] Improved node descriptions
+   spin_lock_irqsave(&T_TASK(cmd)->t_state_lock, flags);
+   .....
+        if (transport_off) {
+                atomic_set(&T_TASK(cmd)->t_transport_active, 0);
+                if (transport_off == 2) {
+                        transport_all_task_dev_remove_state(cmd);
+                        /*
+                         * Clear struct se_cmd->se_lun before the transport_off == 2
+                         * handoff to fabric module.
+                         */
+                        cmd->se_lun = NULL;
+                        /*
+                         * Some fabric modules like tcm_loop can release
+                         * their internally allocated I/O refrence now and
+                         * struct se_cmd now.
+                         */
+                        if (CMD_TFO(cmd)->check_stop_free != NULL) {
+                                spin_unlock_irqrestore(
+                                        &T_TASK(cmd)->t_state_lock, flags);
 
-If the main concern is DHCP what is the problem with using
-/etc/dhcp/dhclient-enter-hooks.d/ or alike?
+                                CMD_TFO(cmd)->check_stop_free(cmd);
+                                return 1;
+                        }
+                }
+                spin_unlock_irqrestore(&T_TASK(cmd)->t_state_lock, flags);
+		return 0;
+        }
+   .....
+   spin_unlock_irqrestore(&T_TASK(cmd)->t_state_lock, flags);
+   
+So given this logic, I think waiting for T_TASK(cmd)->t_transport_active
+to return to zero before releasing ioctx->cmd in the IB completion path
+might be a better way handle this..  However, to do this properly w/o
+holding T_TASK(cmd)->t_state_lock in the completion path is going to
+require a small re-org of the above from transport_cmd_check_stop() for
+the transport_off == 2 case that TFO->queue_data_in() is invoking..
 
-Jason
+Thoughts Roland..?
 
+--nab
 
-This message and any attached documents contain information from QLogic Corporation or its wholly-owned subsidiaries that may be confidential. If you are not the intended recipient, you may not read, copy, distribute, or use this information. If you have received this transmission in error, please notify the sender immediately by reply e-mail and then delete this message.
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
