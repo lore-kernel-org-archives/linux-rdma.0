@@ -1,258 +1,197 @@
-From: Vladimir Sokolovsky <vlad-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [ANNOUNCE] OFED 1.5.3 rc5 is available
-Date: Tue, 22 Feb 2011 17:35:12 +0200
-Message-ID: <4D63D7B0.1090903@dev.mellanox.co.il>
+From: "Meyer, Donald J" <donald.j.meyer-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: patches for OFED 1.5.3RC4
+Date: Tue, 22 Feb 2011 09:43:32 -0800
+Message-ID: <6203933669E90E4AB42B5BC4EDE38D350D0FB6B1B4@orsmsx510.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: multipart/mixed;
- boundary="------------030804030700040704020706"
+	boundary="_002_6203933669E90E4AB42B5BC4EDE38D350D0FB6B1B4orsmsx510amrc_"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: OpenFabrics EWG <ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------030804030700040704020706
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+--_002_6203933669E90E4AB42B5BC4EDE38D350D0FB6B1B4orsmsx510amrc_
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 
-Hi,
-OFED 1.5.3-rc5 is available
+We tried to compile OFED 1.5.3RC4 on a RH DEVELOPMENT kernel for RH6 (aka a=
+ pre-version of the next update to the RH6 kernel) and run into a series of=
+ issues
 
-Notes:
+We managed to compile it using the patches attached (to be applied directly=
+ against the tar tree in SRPMS/ofa_kernel-1.5.3-OFED.1.5.3.rc4.src.rpm)
 
-The tarball is available on:
-http://www.openfabrics.org/downloads/OFED/ofed-1.5.3/OFED-1.5.3-rc5.tgz
+mostly it's warning stuff, some routines defined by templates expect more/d=
+ifferent parameter types.
 
-To get BUILD_ID run ofed_info
+Nothing serious, but do you want this for the 1.5.3 release?
 
-Please report any issues in bugzilla https://bugs.openfabrics.org/  for
-OFED 1.5.3
 
-Vladimir & Tziporet
-
-========================================================================
-Supported Platforms and Operating Systems
----------------------------------------------
-     o   CPU architectures:
-           - x86_64
-           - x86
-           - ppc64
-           - ia64
-
-     o   Linux Operating Systems:
-           - RedHat EL5 up4        2.6.18-164.el5
-           - RedHat EL5 up5        2.6.18-194.el5
-           - RedHat EL5 up6        2.6.18-238.el5
-           - RedHat EL6            2.6.32-71.el6
-           - SLES10 SP3            2.6.16.60-0.54-smp
-           - SLES11                2.6.27.19-5-default
-           - SLES11 SP1            2.6.32.12-0.7-default
-           - Fedora Core12         2.6.31.5-127.fc12    *
-           - OpenSuSE 11.2         2.6.31.5-0.1-default *
-           - kernel.org            2.6.29 - 2.6.36    *
-
-         * Minimal QA for these versions
-
-Main changes from 1.5.3-rc4:
-===========================
-Updated packages:
-     infiniband-diags-1.5.8
-     libibmad-1.3.7
-     libibumad-1.3.7
-     libibverbs-1.1.4-0.18.g387c870
-     librdmacm-1.0.14.1
-     mstflint-1.4-0.9.gc683022
-
-Bug fixes (see attached).
-
---------------030804030700040704020706
-Content-Type: text/plain;
- name="ofed_kernel_changelog-1.5.3-rc5.txt"
-Content-Transfer-Encoding: 8bit
+--_002_6203933669E90E4AB42B5BC4EDE38D350D0FB6B1B4orsmsx510amrc_
+Content-Type: application/octet-stream;
+	name="patching_ofa_kernel-1.5.3_rc4_RH6_devkernel"
+Content-Description: patching_ofa_kernel-1.5.3_rc4_RH6_devkernel
 Content-Disposition: attachment;
- filename="ofed_kernel_changelog-1.5.3-rc5.txt"
+	filename="patching_ofa_kernel-1.5.3_rc4_RH6_devkernel"; size=8648;
+	creation-date="Fri, 18 Feb 2011 18:33:19 GMT";
+	modification-date="Fri, 18 Feb 2011 18:32:44 GMT"
+Content-Transfer-Encoding: base64
 
-commit 6b81e91a49f817faef3d27cf99a77741c0e8f46c
-Author: Vladimir Sokolovsky <vlad-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
-Date:   Tue Feb 22 11:27:23 2011 +0200
+ZGlmZiAtcnUgb2ZhX2tlcm5lbC0xLjUuMy9kcml2ZXJzL2luZmluaWJhbmQvaHcvbWx4NC9xcC5j
+IG9mYV9rZXJuZWwtMS41LjNfb3JpZy9kcml2ZXJzL2luZmluaWJhbmQvaHcvbWx4NC9xcC5jCi0t
+LSBvZmFfa2VybmVsLTEuNS4zL2RyaXZlcnMvaW5maW5pYmFuZC9ody9tbHg0L3FwLmMJMjAxMS0w
+Mi0xOCAxODowOToxNC4wMDAwMDAwMDAgLTA4MDAKKysrIG9mYV9rZXJuZWwtMS41LjNfb3JpZy9k
+cml2ZXJzL2luZmluaWJhbmQvaHcvbWx4NC9xcC5jCTIwMTEtMDItMTQgMDY6MzE6MjcuMDAwMDAw
+MDAwIC0wODAwCkBAIC00MDEsNyArNDAxLDcgQEAKIAkJKytxcC0+c3Eud3FlX3NoaWZ0OwogCX0K
+IAotCXFwLT5zcS5tYXhfZ3MgPSAobWluKGRldi0+ZGV2LT5jYXBzLm1heF9zcV9kZXNjX3N6LCh1
+MzIpCisJcXAtPnNxLm1heF9ncyA9IChtaW4oZGV2LT5kZXYtPmNhcHMubWF4X3NxX2Rlc2Nfc3os
+CiAJCQkgICAgIChxcC0+c3FfbWF4X3dxZXNfcGVyX3dyIDw8IHFwLT5zcS53cWVfc2hpZnQpKSAt
+CiAJCQkgc2VuZF93cWVfb3ZlcmhlYWQodHlwZSwgcXAtPmZsYWdzKSkgLwogCQlzaXplb2YgKHN0
+cnVjdCBtbHg0X3dxZV9kYXRhX3NlZyk7CkBAIC00MTgsOCArNDE4LDggQEAKIAogCWNhcC0+bWF4
+X3NlbmRfd3IgID0gcXAtPnNxLm1heF9wb3N0ID0KIAkJKHFwLT5zcS53cWVfY250IC0gcXAtPnNx
+X3NwYXJlX3dxZXMpIC8gcXAtPnNxX21heF93cWVzX3Blcl93cjsKLQljYXAtPm1heF9zZW5kX3Nn
+ZSA9IG1pbigodTMyKXFwLT5zcS5tYXhfZ3MsCi0JCQkJIG1pbihkZXYtPmRldi0+Y2Fwcy5tYXhf
+c3Ffc2csCisJY2FwLT5tYXhfc2VuZF9zZ2UgPSBtaW4ocXAtPnNxLm1heF9ncywKKwkJCQltaW4o
+ZGV2LT5kZXYtPmNhcHMubWF4X3NxX3NnLAogCQkJCSAgICBkZXYtPmRldi0+Y2Fwcy5tYXhfcnFf
+c2cpKTsKIAkvKiBXZSBkb24ndCBzdXBwb3J0IGlubGluZSBzZW5kcyBmb3Iga2VybmVsIFFQcyAo
+eWV0KSAqLwogCWNhcC0+bWF4X2lubGluZV9kYXRhID0gMDsKQEAgLTE1MjAsOCArMTUyMCw2IEBA
+CiAJX19iZTMyIHVuaW5pdGlhbGl6ZWRfdmFyKGxzb19oZHJfc3opOwogCWludCBpOwogCi0gICAg
+ICAgIGN0cmw9TlVMTDsKLQogCXNwaW5fbG9ja19pcnFzYXZlKCZxcC0+c3EubG9jaywgZmxhZ3Mp
+OwogCiAJaW5kID0gcXAtPnNxX25leHRfd3FlOwpkaWZmIC1ydSBvZmFfa2VybmVsLTEuNS4zL2Ry
+aXZlcnMvaW5maW5pYmFuZC9ody9uZXMvbmVzX3V0aWxzLmMgb2ZhX2tlcm5lbC0xLjUuM19vcmln
+L2RyaXZlcnMvaW5maW5pYmFuZC9ody9uZXMvbmVzX3V0aWxzLmMKLS0tIG9mYV9rZXJuZWwtMS41
+LjMvZHJpdmVycy9pbmZpbmliYW5kL2h3L25lcy9uZXNfdXRpbHMuYwkyMDExLTAyLTE4IDE4OjA5
+OjE0LjAwMDAwMDAwMCAtMDgwMAorKysgb2ZhX2tlcm5lbC0xLjUuM19vcmlnL2RyaXZlcnMvaW5m
+aW5pYmFuZC9ody9uZXMvbmVzX3V0aWxzLmMJMjAxMS0wMi0xNCAwNjozMToyNy4wMDAwMDAwMDAg
+LTA4MDAKQEAgLTQxMCw3ICs0MTAsNyBAQAogICovCiB2b2lkIG5lc19yZWFkXzFHX3BoeV9yZWco
+c3RydWN0IG5lc19kZXZpY2UgKm5lc2RldiwgdTggcGh5X3JlZywgdTggcGh5X2FkZHIsIHUxNiAq
+ZGF0YSkKIHsKLS8qCXN0cnVjdCBuZXNfYWRhcHRlciAqbmVzYWRhcHRlciA9IG5lc2Rldi0+bmVz
+YWRhcHRlcjsgKi8KKwlzdHJ1Y3QgbmVzX2FkYXB0ZXIgKm5lc2FkYXB0ZXIgPSBuZXNkZXYtPm5l
+c2FkYXB0ZXI7CiAJdTMyIHUzMnRlbXA7CiAJdTMyIGNvdW50ZXI7CiAJdW5zaWduZWQgbG9uZyBm
+bGFnczsKZGlmZiAtcnUgb2ZhX2tlcm5lbC0xLjUuMy9kcml2ZXJzL2luZmluaWJhbmQvdWxwL3Nk
+cC9zZHBfbWFpbi5jIG9mYV9rZXJuZWwtMS41LjNfb3JpZy9kcml2ZXJzL2luZmluaWJhbmQvdWxw
+L3NkcC9zZHBfbWFpbi5jCi0tLSBvZmFfa2VybmVsLTEuNS4zL2RyaXZlcnMvaW5maW5pYmFuZC91
+bHAvc2RwL3NkcF9tYWluLmMJMjAxMS0wMi0xOCAxODowOToxNC4wMDAwMDAwMDAgLTA4MDAKKysr
+IG9mYV9rZXJuZWwtMS41LjNfb3JpZy9kcml2ZXJzL2luZmluaWJhbmQvdWxwL3NkcC9zZHBfbWFp
+bi5jCTIwMTEtMDItMTQgMDY6MzE6MjcuMDAwMDAwMDAwIC0wODAwCkBAIC0yOTg5LDEzICsyOTg5
+LDEzIEBACiB9CiAKICNpZiBkZWZpbmVkKENPTkZJR19JUFY2KSB8fCBkZWZpbmVkKENPTkZJR19J
+UFY2X01PRFVMRSkKLXN0YXRpYyBpbnQgc2RwX2NyZWF0ZV92Nl9zb2NrZXQoc3RydWN0IG5ldCAq
+bmV0LCBzdHJ1Y3Qgc29ja2V0ICpzb2NrLCBpbnQgcHJvdG9jb2wsIGludCBEVU1NWSkKK3N0YXRp
+YyBpbnQgc2RwX2NyZWF0ZV92Nl9zb2NrZXQoc3RydWN0IG5ldCAqbmV0LCBzdHJ1Y3Qgc29ja2V0
+ICpzb2NrLCBpbnQgcHJvdG9jb2wpCiB7CiAJcmV0dXJuIHNkcF9jcmVhdGVfaXB2eF9zb2NrZXQo
+bmV0LCBzb2NrLCBwcm90b2NvbCwgJnNkcF9pcHY2X3Byb3RvX29wcyk7CiB9CiAjZW5kaWYKIAot
+c3RhdGljIGludCBzZHBfY3JlYXRlX3Y0X3NvY2tldChzdHJ1Y3QgbmV0ICpuZXQsIHN0cnVjdCBz
+b2NrZXQgKnNvY2ssIGludCBwcm90b2NvbCwgaW50IERVTU1ZKQorc3RhdGljIGludCBzZHBfY3Jl
+YXRlX3Y0X3NvY2tldChzdHJ1Y3QgbmV0ICpuZXQsIHN0cnVjdCBzb2NrZXQgKnNvY2ssIGludCBw
+cm90b2NvbCkKIHsKIAlyZXR1cm4gc2RwX2NyZWF0ZV9pcHZ4X3NvY2tldChuZXQsIHNvY2ssIHBy
+b3RvY29sLCAmc2RwX2lwdjRfcHJvdG9fb3BzKTsKIH0KZGlmZiAtcnUgb2ZhX2tlcm5lbC0xLjUu
+My9kcml2ZXJzL2luZmluaWJhbmQvdWxwL3NycHQvTWFrZWZpbGUgb2ZhX2tlcm5lbC0xLjUuM19v
+cmlnL2RyaXZlcnMvaW5maW5pYmFuZC91bHAvc3JwdC9NYWtlZmlsZQotLS0gb2ZhX2tlcm5lbC0x
+LjUuMy9kcml2ZXJzL2luZmluaWJhbmQvdWxwL3NycHQvTWFrZWZpbGUJMjAxMS0wMi0xOCAxODow
+OToxNC4wMDAwMDAwMDAgLTA4MDAKKysrIG9mYV9rZXJuZWwtMS41LjNfb3JpZy9kcml2ZXJzL2lu
+ZmluaWJhbmQvdWxwL3NycHQvTWFrZWZpbGUJMjAxMS0wMi0xNCAwNjozMToyNy4wMDAwMDAwMDAg
+LTA4MDAKQEAgLTEsNyArMSw3IEBACiBTQ1NUX0lOQ19ESVIgOj0gJChTVUJESVJTKS8uLi8uLi9z
+Y3N0L2luY2x1ZGUvCiAKIEVYVFJBX0NGTEFHUyArPSAgLUkkKFNDU1RfSU5DX0RJUikKLSNFWFRS
+QV9DRkxBR1MgKz0gIC1EUkhFTF9SRUxFQVNFX0NPREUKK0VYVFJBX0NGTEFHUyArPSAgLURSSEVM
+X1JFTEVBU0VfQ09ERQogI0VYVFJBX0NGTEFHUyArPSAtRENPTkZJR19TQ1NUX0RFQlVHIC1nCiAj
+RVhUUkFfQ0ZMQUdTICs9IC1XZXh0cmEgLVduby11bnVzZWQtcGFyYW1ldGVyCiAKZGlmZiAtcnUg
+b2ZhX2tlcm5lbC0xLjUuMy9kcml2ZXJzL2luZmluaWJhbmQvdWxwL3NycHQvaWJfc3JwdC5jIG9m
+YV9rZXJuZWwtMS41LjNfb3JpZy9kcml2ZXJzL2luZmluaWJhbmQvdWxwL3NycHQvaWJfc3JwdC5j
+Ci0tLSBvZmFfa2VybmVsLTEuNS4zL2RyaXZlcnMvaW5maW5pYmFuZC91bHAvc3JwdC9pYl9zcnB0
+LmMJMjAxMS0wMi0xOCAxODowOToxNC4wMDAwMDAwMDAgLTA4MDAKKysrIG9mYV9rZXJuZWwtMS41
+LjNfb3JpZy9kcml2ZXJzL2luZmluaWJhbmQvdWxwL3NycHQvaWJfc3JwdC5jCTIwMTEtMDItMTQg
+MDY6MzE6MjcuMDAwMDAwMDAwIC0wODAwCkBAIC03NSw3ICs3NSw3IEBACiAgKiBHbG9iYWwgVmFy
+aWFibGVzCiAgKi8KIAotc3RhdGljIHVuc2lnbmVkIGxvbmcgaW50ICBzcnB0X3NlcnZpY2VfZ3Vp
+ZDsKK3N0YXRpYyB1NjQgc3JwdF9zZXJ2aWNlX2d1aWQ7CiAvKiBMaXN0IG9mIHNycHRfZGV2aWNl
+IHN0cnVjdHVyZXMuICovCiBzdGF0aWMgYXRvbWljX3Qgc3JwdF9kZXZpY2VfY291bnQ7CiBzdGF0
+aWMgREVDTEFSRV9XQUlUX1FVRVVFX0hFQUQoaW9jdHhfbGlzdF93YWl0USk7CkBAIC0xMTQsNyAr
+MTE0LDcgQEAKIAkJICJVc2UgdGFyZ2V0IHBvcnQgSUQgaW4gdGhlIFNDU1Qgc2Vzc2lvbiBuYW1l
+IHN1Y2ggdGhhdCIKIAkJICIgcmVkdW5kYW50IHBhdGhzIGJldHdlZW4gbXVsdGlwb3J0IHN5c3Rl
+bXMgY2FuIGJlIG1hc2tlZC4iKTsKIAotbW9kdWxlX3BhcmFtKHNycHRfc2VydmljZV9ndWlkLCB1
+bG9uZywgMDQ0NCk7Cittb2R1bGVfcGFyYW0oc3JwdF9zZXJ2aWNlX2d1aWQsIGxvbmcsIDA0NDQp
+OwogTU9EVUxFX1BBUk1fREVTQyhzcnB0X3NlcnZpY2VfZ3VpZCwKIAkJICJVc2luZyB0aGlzIHZh
+bHVlIGZvciBpb2NfZ3VpZCwgaWRfZXh0LCBhbmQgY21fbGlzdGVuX2lkIgogCQkgIiBpbnN0ZWFk
+IG9mIHVzaW5nIHRoZSBub2RlX2d1aWQgb2YgdGhlIGZpcnN0IEhDQS4iKTsKZGlmZiAtcnUgb2Zh
+X2tlcm5lbC0xLjUuMy9kcml2ZXJzL25ldC9tbHg0L3BkLmMgb2ZhX2tlcm5lbC0xLjUuM19vcmln
+L2RyaXZlcnMvbmV0L21seDQvcGQuYwotLS0gb2ZhX2tlcm5lbC0xLjUuMy9kcml2ZXJzL25ldC9t
+bHg0L3BkLmMJMjAxMS0wMi0xOCAxODowOToxNC4wMDAwMDAwMDAgLTA4MDAKKysrIG9mYV9rZXJu
+ZWwtMS41LjNfb3JpZy9kcml2ZXJzL25ldC9tbHg0L3BkLmMJMjAxMS0wMi0xNCAwNjozMToyNy4w
+MDAwMDAwMDAgLTA4MDAKQEAgLTEwMCw3ICsxMDAsNyBAQAogCiAJcmV0dXJuIG1seDRfYml0bWFw
+X2luaXQoJm1seDRfcHJpdihkZXYpLT51YXJfdGFibGUuYml0bWFwLAogCQkJCWRldi0+Y2Fwcy5u
+dW1fdWFycywgZGV2LT5jYXBzLm51bV91YXJzIC0gMSwKLQkJCQltYXgoKHUzMikxMjgsIGRldi0+
+Y2Fwcy5yZXNlcnZlZF91YXJzKSwgMCk7CisJCQkJbWF4KDEyOCwgZGV2LT5jYXBzLnJlc2VydmVk
+X3VhcnMpLCAwKTsKIH0KIAogdm9pZCBtbHg0X2NsZWFudXBfdWFyX3RhYmxlKHN0cnVjdCBtbHg0
+X2RldiAqZGV2KQpkaWZmIC1ydSBvZmFfa2VybmVsLTEuNS4zL2RyaXZlcnMvc2NzaS9saWJpc2Nz
+aS5jIG9mYV9rZXJuZWwtMS41LjNfb3JpZy9kcml2ZXJzL3Njc2kvbGliaXNjc2kuYwotLS0gb2Zh
+X2tlcm5lbC0xLjUuMy9kcml2ZXJzL3Njc2kvbGliaXNjc2kuYwkyMDExLTAyLTE4IDE4OjA5OjE0
+LjAwMDAwMDAwMCAtMDgwMAorKysgb2ZhX2tlcm5lbC0xLjUuM19vcmlnL2RyaXZlcnMvc2NzaS9s
+aWJpc2NzaS5jCTIwMTEtMDItMTQgMDY6MzE6MjcuMDAwMDAwMDAwIC0wODAwCkBAIC0xNDU2LDcg
+KzE0NTYsNyBAQAogfQogRVhQT1JUX1NZTUJPTF9HUEwoaXNjc2lfcXVldWVjb21tYW5kKTsKIAot
+aW50IGlzY3NpX2NoYW5nZV9xdWV1ZV9kZXB0aChzdHJ1Y3Qgc2NzaV9kZXZpY2UgKnNkZXYsIGlu
+dCBkZXB0aCwgaW50IERVTU1ZKQoraW50IGlzY3NpX2NoYW5nZV9xdWV1ZV9kZXB0aChzdHJ1Y3Qg
+c2NzaV9kZXZpY2UgKnNkZXYsIGludCBkZXB0aCkKIHsKIAlzY3NpX2FkanVzdF9xdWV1ZV9kZXB0
+aChzZGV2LCBzY3NpX2dldF90YWdfdHlwZShzZGV2KSwgZGVwdGgpOwogCXJldHVybiBzZGV2LT5x
+dWV1ZV9kZXB0aDsKZGlmZiAtcnUgb2ZhX2tlcm5lbC0xLjUuMy9pbmNsdWRlL3Njc2kvbGliaXNj
+c2kuaCBvZmFfa2VybmVsLTEuNS4zX29yaWcvaW5jbHVkZS9zY3NpL2xpYmlzY3NpLmgKLS0tIG9m
+YV9rZXJuZWwtMS41LjMvaW5jbHVkZS9zY3NpL2xpYmlzY3NpLmgJMjAxMS0wMi0xOCAxODowOTox
+NC4wMDAwMDAwMDAgLTA4MDAKKysrIG9mYV9rZXJuZWwtMS41LjNfb3JpZy9pbmNsdWRlL3Njc2kv
+bGliaXNjc2kuaAkyMDExLTAyLTE0IDA2OjMxOjI3LjAwMDAwMDAwMCAtMDgwMApAQCAtMzI3LDcg
+KzMyNyw3IEBACiAvKgogICogc2NzaSBob3N0IHRlbXBsYXRlCiAgKi8KLWV4dGVybiBpbnQgaXNj
+c2lfY2hhbmdlX3F1ZXVlX2RlcHRoKHN0cnVjdCBzY3NpX2RldmljZSAqc2RldiwgaW50IGRlcHRo
+LCBpbnQgRFVNTVkpOworZXh0ZXJuIGludCBpc2NzaV9jaGFuZ2VfcXVldWVfZGVwdGgoc3RydWN0
+IHNjc2lfZGV2aWNlICpzZGV2LCBpbnQgZGVwdGgpOwogZXh0ZXJuIGludCBpc2NzaV9laF9hYm9y
+dChzdHJ1Y3Qgc2NzaV9jbW5kICpzYyk7CiBleHRlcm4gaW50IGlzY3NpX2VoX3RhcmdldF9yZXNl
+dChzdHJ1Y3Qgc2NzaV9jbW5kICpzYyk7CiBleHRlcm4gaW50IGlzY3NpX2VoX2RldmljZV9yZXNl
+dChzdHJ1Y3Qgc2NzaV9jbW5kICpzYyk7CmRpZmYgLXJ1IG9mYV9rZXJuZWwtMS41LjMva2VybmVs
+X3BhdGNoZXMvZml4ZXMvbWx4NF8wMDkwX2ZpeF9zcV93cnMucGF0Y2ggb2ZhX2tlcm5lbC0xLjUu
+M19vcmlnL2tlcm5lbF9wYXRjaGVzL2ZpeGVzL21seDRfMDA5MF9maXhfc3Ffd3JzLnBhdGNoCi0t
+LSBvZmFfa2VybmVsLTEuNS4zL2tlcm5lbF9wYXRjaGVzL2ZpeGVzL21seDRfMDA5MF9maXhfc3Ff
+d3JzLnBhdGNoCTIwMTEtMDItMTggMTg6MTk6MTcuMDAwMDAwMDAwIC0wODAwCisrKyBvZmFfa2Vy
+bmVsLTEuNS4zX29yaWcva2VybmVsX3BhdGNoZXMvZml4ZXMvbWx4NF8wMDkwX2ZpeF9zcV93cnMu
+cGF0Y2gJMjAxMS0wMi0xNCAwNjozMTozMC4wMDAwMDAwMDAgLTA4MDAKQEAgLTc0LDggKzc0LDgg
+QEAKICsJCWNhcC0+bWF4X3JlY3Zfc2dlID0gcXAtPnJxLm1heF9nczsKICsJfSBlbHNlIHsKICsJ
+CWNhcC0+bWF4X3JlY3Zfd3IgID0gcXAtPnJxLm1heF9wb3N0ID0KLSsJCQltaW4oZGV2LT5kZXYt
+PmNhcHMubWF4X3dxZXMgLSBNTFg0X0lCX1NRX01BWF9TUEFSRSwgKHUzMikgcXAtPnJxLndxZV9j
+bnQpOwotKwkJY2FwLT5tYXhfcmVjdl9zZ2UgPSBtaW4oICh1MzIpIHFwLT5ycS5tYXhfZ3MsCisr
+CQkJbWluKGRldi0+ZGV2LT5jYXBzLm1heF93cWVzIC0gTUxYNF9JQl9TUV9NQVhfU1BBUkUsIHFw
+LT5ycS53cWVfY250KTsKKysJCWNhcC0+bWF4X3JlY3Zfc2dlID0gbWluKHFwLT5ycS5tYXhfZ3Ms
+CiArCQkJCQltaW4oZGV2LT5kZXYtPmNhcHMubWF4X3NxX3NnLAogKwkJCQkgICAgCWRldi0+ZGV2
+LT5jYXBzLm1heF9ycV9zZykpOwogKwl9CmRpZmYgLXJ1IG9mYV9rZXJuZWwtMS41LjMva2VybmVs
+X3BhdGNoZXMvZml4ZXMvbmVzXzAwNTJfaW1hX2ZsdXNoX3FwX2ZpeC5wYXRjaCBvZmFfa2VybmVs
+LTEuNS4zX29yaWcva2VybmVsX3BhdGNoZXMvZml4ZXMvbmVzXzAwNTJfaW1hX2ZsdXNoX3FwX2Zp
+eC5wYXRjaAotLS0gb2ZhX2tlcm5lbC0xLjUuMy9rZXJuZWxfcGF0Y2hlcy9maXhlcy9uZXNfMDA1
+Ml9pbWFfZmx1c2hfcXBfZml4LnBhdGNoCTIwMTEtMDItMTggMTg6MjI6MTQuMDAwMDAwMDAwIC0w
+ODAwCisrKyBvZmFfa2VybmVsLTEuNS4zX29yaWcva2VybmVsX3BhdGNoZXMvZml4ZXMvbmVzXzAw
+NTJfaW1hX2ZsdXNoX3FwX2ZpeC5wYXRjaAkyMDExLTAyLTE0IDA2OjMxOjMwLjAwMDAwMDAwMCAt
+MDgwMApAQCAtNzksNyArNzksNyBAQAogLQkJcmV0dXJuIDA7CiAtCiArCWlmIChpYnFwLT5xcF90
+eXBlID09IElCX1FQVF9SQVdfRVRIKSB7Ci0rCQlyZXQgPSBuZXNfdWRfbW9kaWZ5X3FwKGlicXAs
+IGF0dHIsIGF0dHJfbWFzaywgdWRhdGEpOworKwkJcmV0ID0gbmVzX3VkX21vZGlmeV9xcChpYnFw
+LCBhdHRyLCBhdHRyX21hc2ssICZ1ZGF0YSk7CiArCQlyZXR1cm4gcmV0OwogKwl9CiAgCXNwaW5f
+bG9ja19pcnFzYXZlKCZuZXNxcC0+bG9jaywgcXBsb2NrZmxhZ3MpOwpkaWZmIC1ydSBvZmFfa2Vy
+bmVsLTEuNS4zL25ldC9yZHMvYWZfcmRzLmMgb2ZhX2tlcm5lbC0xLjUuM19vcmlnL25ldC9yZHMv
+YWZfcmRzLmMKLS0tIG9mYV9rZXJuZWwtMS41LjMvbmV0L3Jkcy9hZl9yZHMuYwkyMDExLTAyLTE4
+IDE4OjA5OjE0LjAwMDAwMDAwMCAtMDgwMAorKysgb2ZhX2tlcm5lbC0xLjUuM19vcmlnL25ldC9y
+ZHMvYWZfcmRzLmMJMjAxMS0wMi0xNCAwNjozMTozMC4wMDAwMDAwMDAgLTA4MDAKQEAgLTI1NCw3
+ICsyNTQsNyBAQAogfQogCiBzdGF0aWMgaW50IHJkc19zZXRzb2Nrb3B0KHN0cnVjdCBzb2NrZXQg
+KnNvY2ssIGludCBsZXZlbCwgaW50IG9wdG5hbWUsCi0JCQkgIGNoYXIgX191c2VyICpvcHR2YWws
+IHVuc2lnbmVkIGludCBvcHRsZW4pCisJCQkgIGNoYXIgX191c2VyICpvcHR2YWwsIGludCBvcHRs
+ZW4pCiB7CiAJc3RydWN0IHJkc19zb2NrICpycyA9IHJkc19za190b19ycyhzb2NrLT5zayk7CiAJ
+aW50IHJldDsKQEAgLTQxNiw3ICs0MTYsNyBAQAogCXJldHVybiAwOwogfQogCi1zdGF0aWMgaW50
+IHJkc19jcmVhdGUoc3RydWN0IG5ldCAqbmV0LCBzdHJ1Y3Qgc29ja2V0ICpzb2NrLCBpbnQgcHJv
+dG9jb2wsIGludCBEVU1NWSkKK3N0YXRpYyBpbnQgcmRzX2NyZWF0ZShzdHJ1Y3QgbmV0ICpuZXQs
+IHN0cnVjdCBzb2NrZXQgKnNvY2ssIGludCBwcm90b2NvbCkKIHsKIAlzdHJ1Y3Qgc29jayAqc2s7
+CiAKZGlmZiAtcnUgb2ZhX2tlcm5lbC0xLjUuMy9uZXQvcmRzL2l3X2NtLmMgb2ZhX2tlcm5lbC0x
+LjUuM19vcmlnL25ldC9yZHMvaXdfY20uYwotLS0gb2ZhX2tlcm5lbC0xLjUuMy9uZXQvcmRzL2l3
+X2NtLmMJMjAxMS0wMi0xOCAxODowOToxNC4wMDAwMDAwMDAgLTA4MDAKKysrIG9mYV9rZXJuZWwt
+MS41LjNfb3JpZy9uZXQvcmRzL2l3X2NtLmMJMjAxMS0wMi0xNCAwNjozMTozMC4wMDAwMDAwMDAg
+LTA4MDAKQEAgLTE1Nyw3ICsxNTcsNyBAQAogCWNhc2UgSUJfRVZFTlRfUVBfRkFUQUw6CiAJZGVm
+YXVsdDoKIAkJcmRzZGVidWcoIkZhdGFsIFFQIEV2ZW50ICV1ICIKLQkJCSItIGNvbm5lY3Rpb24g
+JXBJNC0+JXBJNCwgcmVjb25uZWN0aW5nXG4iLAorCQkJIi0gY29ubmVjdGlvbiAkcEk0LT4lcEk0
+LCByZWNvbm5lY3RpbmdcbiIsCiAJCQlldmVudC0+ZXZlbnQsICZjb25uLT5jX2xhZGRyLAogCQkJ
+JmNvbm4tPmNfZmFkZHIpOwogCQlyZHNfY29ubl9kcm9wKGNvbm4pOwo=
 
-    makefile: fix compilation on Fedora 14
-    
-    Signed-off-by: Vladimir Sokolovsky <vlad-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
-
-commit 262a121211795100916c625e54918ee3cb280ad0
-Author: Vladimir Sokolovsky <vlad-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
-Date:   Mon Feb 21 14:34:45 2011 +0200
-
-    ipoib/mcast: Fix IPoIB multicast backport
-    
-    BUG: http://bugs.openfabrics.org/bugzilla/show_bug.cgi?id=2000
-    
-    Signed-off-by: Moni Shoua <monis-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-    Signed-off-by: Vladimir Sokolovsky <vlad-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
-
-commit 021593529a906d860c76bbd315ff872912dbbece
-Author: Nir Muchtar <nirm-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Date:   Sun Feb 20 17:04:36 2011 +0200
-
-    mlx4_en: Fix unicast attach + promisuous mode
-    
-    BUG: http://bugs.openfabrics.org/bugzilla/show_bug.cgi?id=2237
-    
-    Signed-off-by: Saeed Mahameed <saeedm-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
-    Signed-off-by: Nir Muchtar <nirm-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-
-commit 92ea1319b62efdd5c0ec77a211bd57e3788fab50
-Author: miroslaw.walukiewicz-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org <miroslaw.walukiewicz-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Date:   Fri Feb 18 17:20:27 2011 +0100
-
-    RDMA/nes: Corrected AEQE operation
-    
-    Fixed incompatibility  problems between nes and various MPIs
-    
-    Signed-off-by: Mirek Walukiewicz <miroslaw.walukiewicz-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-    Signed-off-by: Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-
-commit 03032d57818d4d6daa80eb7a34c629befa799bba
-Merge: cb7d2c2 4fe0731
-Author: Vladimir Sokolovsky <vlad-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
-Date:   Sun Feb 20 12:26:35 2011 +0200
-
-    Merge branch 'ofed_kernel_1_5' of git://git.openfabrics.org/~mmarciniszyn/linux-2.6.to_ofed into ofed_kernel_1_5
-
-commit 4fe073148673e630a9aba9608ee9bd6d7f745345
-Author: Mike Marciniszyn <mike.marciniszyn-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-Date:   Fri Feb 18 07:07:28 2011 -0500
-
-    QLogic: Add support for the BL465c blade type in truescale.cmds
-    
-    Insure link comes up between BL465c and switch.
-    
-    Signed-off-by: Mitko Haralanov <mitko-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-    Signed-off-by: Mike Marciniszyn <mike.marciniszyn-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-
-commit 49a1610b503ea82f10e090378c1aeb624a3d222d
-Author: Mike Marciniszyn <mike.marciniszyn-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-Date:   Fri Feb 18 06:59:02 2011 -0500
-
-    IB/qib: Return correct MAD when setting link width to 255
-    
-    Fix a bug which cause the driver to return incorrect MADs
-    as a response to Set(PortInfo) which sets the link width
-    to 0xFF or link speed to 0xF.
-    
-    Signed-off-by: Mitko Haralanov <mitko-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-    Signed-off-by: Mike Marciniszyn <mike.marciniszyn-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-
-commit d7ab4d979720b8bd49c8e81f223d20f4466de6b0
-Merge: 99efe8a 0012f25
-Author: Vladimir Sokolovsky <vlad-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
-Date:   Wed Feb 16 17:57:11 2011 +0200
-
-    Merge branch 'ofed_kernel_1_5' of git://git.openfabrics.org/~mmarciniszyn/linux-2.6.to_ofed into ofed_kernel_1_5
-
-commit 0012f25501856cf0f47397fbb57e26bf46b11b99
-Author: Mike Marciniszyn <mike.marciniszyn-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-Date:   Wed Feb 16 09:47:41 2011 -0500
-
-    IB/qib: Prevent double completions after a timeout or RNR error
-    
-    From: Mike Marciniszyn <mike.marciniszyn-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-    
-    There is a double completion associated with error handling
-    for RC QP's.
-    
-    The sequence is:
-    - The do_rc_ack() routine fields an RNR nack and there are 0 rnr_retries
-    configured on the QP.
-    - qib_error_qp() stops the pending timer
-    - qib_rc_send_complete() is called from sdma_complete()
-    - qib_rc_send_complete() starts the timer because the msb of the psn just
-    completed says and ack is needed.
-    - a bunch of flushes occur as ipoib posts wqe's to an error'ed qp
-    - rc_timeout() calls qib_restart_rc()
-    - qib_restart_rc() calls qib_send_complete() with a IB_WC_RETRY_EXC_ERR on a
-    wqe that has already been completed in the past
-    
-    The fix avoids starting the timer since another packet will never
-    arrive.
-    
-    Signed-off-by: Mike Marciniszyn <mike.marciniszyn-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-
-commit 99efe8a1ad888400b38ab931f1cf35859f8bd6f3
-Author: Sébastien Dugué <sebastien.dugue-6ktuUTfB/bM@public.gmane.org>
-Date:   Wed Feb 16 15:50:45 2011 +0200
-
-    mlx4_ib XRC RCV: Fix mlx4_ib_reg_xrc_rcv_qp() locking
-    
-    In mlx4_ib_reg_xrc_rcv_qp(), we need to take the xrc_reg_list_lock spinlock
-    when walking the xrc_reg_list.
-    
-    Also, I guess spin_lock_irqsave() could be replaced by spin_lock_irq() in
-    that function as we know for sure we're in process context.
-    
-    Signed-off-by: Sébastien Dugué <sebastien.dugue-6ktuUTfB/bM@public.gmane.org>
-
-commit 78ee7b0da9341964673464b8d2728f668bb16380
-Author: Vladimir Sokolovsky <vlad-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
-Date:   Tue Feb 15 16:47:06 2011 +0200
-
-    Fix backports for 2.6.18-chaos
-    
-    Signed-off-by: Vladimir Sokolovsky <vlad-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
-
-commit a0350813dfef194826680c7b50b1334d785f14cd
-Author: Moni Shoua <monis-hKgKHo2Ms0F+cjeuK/JdrQ@public.gmane.org>
-Date:   Tue Feb 15 12:14:03 2011 +0200
-
-    IB/ipoib: send creation parameters with send-only join requests
-    
-    When IPoiB joins to a MC group as send only it doesn't send creation parameters
-    to the SM and if the group does not exis it won't be created. This is typical
-    when a gateway sperates ETH receivers from IPoIB senders.
-    This patch fixes bug #1153 in bugzilla.
-    
-    Signed-off-by: Yossi Etigin <yosefe-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-    Reviewd-by:    Moni Shoua   <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-    
-    --
-
-commit 9b1f7069d37152cc1c1243bfeaa7bb9f0e64949e
-Author: Amir Vadai <amirv-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
-Date:   Sun Feb 13 12:08:24 2011 +0200
-
-    sdp: make retry count a module parameter
-    
-    Setting a lower value means faster path migration in APM
-    
-    Signed-off-by: Amir Vadai <amirv-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
-
-commit c83e7a9ed73aa7dbb9ae47d4cadc0b178aff4d88
-Author: Amir Vadai <amirv-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
-Date:   Wed Feb 9 13:06:23 2011 +0200
-
-    sdp: BUG2217 - fix sdpstats negative values
-    
-    Signed-off-by: Amir Vadai <amirv-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
-
---------------030804030700040704020706
-Content-Type: text/csv;
- name="bugs-2011-02-22.csv"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
- filename="bugs-2011-02-22.csv"
-
-"bug_id,""bug_severity"",""priority"",""op_sys"",""assigned_to"",""bug_status"",""resolution"",""short_desc""";;;;;;;;;;;;;
-"2000,""critical"",""P3"",""Other"",""eli-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org"",""RESOLVED"",""FIXED"",""Multicast";;"over";"IPoIB";0;"doesn't";"leave";"MC";"group";"when";"MC";"server";"ends""";
-"2208,""major"",""P5"",""RedHat";"Fedora";"Core";"5"",""amirv-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org"",""RESOLVED"",""FIXED"",""SDP";0;"libsdp.conf";"parameters";"parsing";"Err:510";"symbol";"lookup";"error""";;
-"2225,""major"",""P5"",""RedHat";"Fedora";"Core";"5"",""amirv-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org"",""RESOLVED"",""FIXED"",""HA";"with";"bonding";"error";"->";"SDP";":";"Unexpected";"CMA";"event:";"14"""
-"2228,""major"",""P5"",""RedHat";"Fedora";"Core";"5"",""amirv-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org"",""RESOLVED"",""FIXED"",""Kernel";"oops+panic";"vs.";"machine";"crash";"while";"performing";"port";"Up/Down";"(BXOFED-1.5.2-1.3.9100)""";
-"2230,""major"",""P2"",""RHEL";"5"",""swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org"",""CLOSED"",""FIXED"",""Rping";"stalls";"after";"finishing";"its";"transactions.""";;;;;;;
-"2237,""critical"",""P5"",""All"",""yevgenyp-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org"",""RESOLVED"",""FIXED"",""Driver";"Hangs";"in";"unicast";"attach";0;"promisuous";"mode""";;;;;;
-"2238,""normal"",""P5"",""Other"",""vlad-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org"",""RESOLVED"",""FIXED"",""Cannot";"install";"kernel-ib";"on";"Fedora";"Core";"13""";;;;;;;
-
---------------030804030700040704020706--
+--_002_6203933669E90E4AB42B5BC4EDE38D350D0FB6B1B4orsmsx510amrc_--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
