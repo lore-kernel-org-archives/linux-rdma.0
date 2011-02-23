@@ -1,148 +1,196 @@
-From: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH/opensm] Decode the SAPKeyTableRecord block number
- properly, and don't segv
-Date: Wed, 23 Feb 2011 14:01:39 -0500
-Message-ID: <AANLkTinm5Uh-9h+WMh6O8dLsPr8wpdt0BJmOu3+Dt8vj@mail.gmail.com>
-References: <20110211221206.GA8532@obsidianresearch.com>
-	<20110223172019.GA8537@calypso.voltaire.com>
+From: Tanin <fanqielee-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: Installation problems of OFED-1.5.2
+Date: Wed, 23 Feb 2011 14:02:11 -0500
+Message-ID: <AANLkTinLQ0zo1jbENOAoaDTVi6dmpPn3zTSfY12q-gxf@mail.gmail.com>
+References: <AANLkTi=s7YtdX2+bb4pLY035OXQSqyf21JuxatDCL=N_@mail.gmail.com>
+	<4D64CFEA.1030805@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20110223172019.GA8537-iQai9MGU/dyyaiaB+Ve85laTQe2KTcn/@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Alex Netes <alexne-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: multipart/mixed; boundary="===============1766152831=="
+Return-path: <ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+In-Reply-To: <4D64CFEA.1030805-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+List-Unsubscribe: <http://lists.openfabrics.org/cgi-bin/mailman/options/ewg>,
+	<mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.openfabrics.org/pipermail/ewg>
+List-Post: <mailto:ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+List-Help: <mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=help>
+List-Subscribe: <http://lists.openfabrics.org/cgi-bin/mailman/listinfo/ewg>,
+	<mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=subscribe>
+Sender: ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
+Errors-To: ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
+To: Vladimir Sokolovsky <vlad-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, OpenFabrics EWG <ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Feb 23, 2011 at 12:20 PM, Alex Netes <alexne-smomgflXvOZWk0Htik3J/w@public.gmane.org> wrot=
-e:
-> Hi Jason,
->
-> On 15:12 Fri 11 Feb =C2=A0 =C2=A0 , Jason Gunthorpe wrote:
->> * Properly byteswap block_num before using it
->> * Properly check bounds of the block number before de-referencing it=
-=2E
->>
->> This fixes a remotely triggered null pointer dereference.
->> ---
->> =C2=A0opensm/include/iba/ib_types.h =C2=A0 =C2=A0 =C2=A0| =C2=A0 =C2=
-=A02 +-
->> =C2=A0opensm/opensm/osm_sa_pkey_record.c | =C2=A0 16 ++++++++++++---=
--
->> =C2=A02 files changed, 13 insertions(+), 5 deletions(-)
->>
->> diff --git a/opensm/include/iba/ib_types.h b/opensm/include/iba/ib_t=
-ypes.h
->> index e1bc102..24f5662 100644
->> --- a/opensm/include/iba/ib_types.h
->> +++ b/opensm/include/iba/ib_types.h
->> @@ -6724,7 +6724,7 @@ typedef struct _ib_pkey_table {
->> =C2=A0#include <complib/cl_packon.h>
->> =C2=A0typedef struct _ib_pkey_table_record {
->> =C2=A0 =C2=A0 =C2=A0 ib_net16_t lid; =C2=A0 =C2=A0 =C2=A0 =C2=A0 // =
-for CA: lid of port, for switch lid of port 0
->> - =C2=A0 =C2=A0 uint16_t block_num;
->> + =C2=A0 =C2=A0 ib_net16_t block_num;
->> =C2=A0 =C2=A0 =C2=A0 uint8_t port_num; =C2=A0 =C2=A0 =C2=A0 // for s=
-witch: port number, for CA: reserved
->> =C2=A0 =C2=A0 =C2=A0 uint8_t reserved1;
->> =C2=A0 =C2=A0 =C2=A0 uint16_t reserved2;
->
-> I guess reserved2 could also be changed to ib_net16_t, right?
->
->> diff --git a/opensm/opensm/osm_sa_pkey_record.c b/opensm/opensm/osm_=
-sa_pkey_record.c
->> index e4930d0..cf50430 100644
->> --- a/opensm/opensm/osm_sa_pkey_record.c
->> +++ b/opensm/opensm/osm_sa_pkey_record.c
->> @@ -71,6 +71,7 @@ static void sa_pkey_create(IN osm_sa_t * sa, IN os=
-m_physp_t * p_physp,
->> =C2=A0 =C2=A0 =C2=A0 osm_pkey_item_t *p_rec_item;
->> =C2=A0 =C2=A0 =C2=A0 uint16_t lid;
->> =C2=A0 =C2=A0 =C2=A0 ib_api_status_t status =3D IB_SUCCESS;
->> + =C2=A0 =C2=A0 ib_pkey_table_t *tbl;
->>
->> =C2=A0 =C2=A0 =C2=A0 OSM_LOG_ENTER(sa->p_log);
->>
->> @@ -98,8 +99,15 @@ static void sa_pkey_create(IN osm_sa_t * sa, IN o=
-sm_physp_t * p_physp,
->> =C2=A0 =C2=A0 =C2=A0 p_rec_item->rec.lid =3D lid;
->> =C2=A0 =C2=A0 =C2=A0 p_rec_item->rec.block_num =3D block;
->> =C2=A0 =C2=A0 =C2=A0 p_rec_item->rec.port_num =3D osm_physp_get_port=
-_num(p_physp);
->> - =C2=A0 =C2=A0 p_rec_item->rec.pkey_tbl =3D
->> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 *(osm_pkey_tbl_block_get(osm_physp_get=
-_pkey_tbl(p_physp), block));
->> + =C2=A0 =C2=A0 /* FIXME: There are ninf.PartitionCap or swinf.Parti=
-tionEnforcementCap
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0pkey entries so everything in that rang=
-e is a valid block number
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0even if opensm is not using it. Return =
-0. However things outside
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0that range should return no entries.. N=
-ot sure how to figure that
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0here? The range of pkey_tbl can be less=
- than the cap, so
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0this falsely triggers. */
->> + =C2=A0 =C2=A0 tbl =3D osm_pkey_tbl_block_get(osm_physp_get_pkey_tb=
-l(p_physp), block);
->> + =C2=A0 =C2=A0 if (tbl)
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 p_rec_item->rec.pkey_tbl=
- =3D *tbl;
->>
->> =C2=A0 =C2=A0 =C2=A0 cl_qlist_insert_tail(p_ctxt->p_list, &p_rec_ite=
-m->list_item);
->
-> What is the expected behaviour when IB PKey table block is empty?
-> rec.pkey_tbl might be uninitialized here.
-> Shouldn't SubnAdmGetResp contain ERR_NO_RECORDS in such case?
+--===============1766152831==
+Content-Type: multipart/alternative; boundary=90e6ba53acf401908d049cf7bc9f
 
-It depends on the method used in the SA query. GetTable never returns
-ERR_NO_RECORDS whereas a Get can.
+--90e6ba53acf401908d049cf7bc9f
+Content-Type: text/plain; charset=ISO-8859-1
 
--- Hal
+Oh, yes. Thanks so much! After uninstall all libibverbs packages, the
+OFED-1.5.3-rc5 successfully passed all building process:
 
->>
->> @@ -269,14 +277,14 @@ void osm_pkey_rec_rcv_process(IN void *ctx, IN=
- void *data)
->> =C2=A0 =C2=A0 =C2=A0 context.p_list =3D &rec_list;
->> =C2=A0 =C2=A0 =C2=A0 context.comp_mask =3D p_rcvd_mad->comp_mask;
->> =C2=A0 =C2=A0 =C2=A0 context.sa =3D sa;
->> - =C2=A0 =C2=A0 context.block_num =3D p_rcvd_rec->block_num;
->> + =C2=A0 =C2=A0 context.block_num =3D cl_ntoh16(p_rcvd_rec->block_nu=
-m);
->> =C2=A0 =C2=A0 =C2=A0 context.p_req_physp =3D p_req_physp;
->>
->> =C2=A0 =C2=A0 =C2=A0 OSM_LOG(sa->p_log, OSM_LOG_DEBUG,
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 "Got Query Lid:%u(%=
-02X), Block:0x%02X(%02X), Port:0x%02X(%02X)\n",
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 cl_ntoh16(p_rcvd_re=
-c->lid),
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 (comp_mask & IB_PKE=
-Y_COMPMASK_LID) !=3D 0, p_rcvd_rec->port_num,
->> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 (comp_mask & IB_PKEY_COM=
-PMASK_PORT) !=3D 0, p_rcvd_rec->block_num,
->> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 (comp_mask & IB_PKEY_COM=
-PMASK_PORT) !=3D 0, context.block_num,
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 (comp_mask & IB_PKE=
-Y_COMPMASK_BLOCK) !=3D 0);
->>
->> =C2=A0 =C2=A0 =C2=A0 cl_plock_acquire(sa->p_lock);
->> --
->> 1.7.1
->>
+
+Install iscsi-initiator-utils RPM:
+Running rpm -iv
+/atlas/data18a/litan/OFED-1.5.3-rc5/RPMS/sl-release-5.5-1/x86_64/iscsi-initiator-utils-2.0-869.2.x86_64.rpm
+
+The default IPoIB interface configuration is based on DHCP.
+Note that a special patch for DHCP is required for supporting IPoIB.
+The patch is available under docs/dhcp
+If you do not have DHCP, you must change this configuration in the following
+steps.
+IPoIB interfaces configured successfully
+Press any key to continue ...
+Installation finished successfully.
+Press any key to continue...
+
+It seems that the IPoIB is not configured due to DHCP issues.
+
+And the OFED tools did not work also:
+
+[litan@tera05 OFED-1.5.3-rc5]$ sudo ibv_devinfo
+Failed to get IB devices list: Function not implemented
+[litan@tera05 OFED-1.5.3-rc5]$ sudo ibstat
+sudo: ibstat: command not found
+
+
+
+
+
+
+On Wed, Feb 23, 2011 at 4:14 AM, Vladimir Sokolovsky <
+vlad-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wrote:
+
+> On 02/23/2011 05:12 AM, Tanin wrote:
 >
-> Alex
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma"=
- in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at =C2=A0http://vger.kernel.org/majordomo-info.ht=
-ml
+>>  Dear all,
+>>
+>> I have recompiled the kernel to 2.6.18, and try to install  OFED-1.5.2
+>> instead.
+>>
+>> Now the kernel version is
+>>
+>> [litan@tera04 OFED-1.5.2]$ uname -a
+>> Linux tera04.ultralight.org 2.6.18-prep #1 SMP Tue Feb 22 18:51:00 EST
+>> 2011
+>> x86_64 x86_64 x86_64 GNU/Linux
+>>
+>>
+>> I have the full log file in the attachment. Dose it related to that I try
+>> many times to install different version of OFED? Thanks a million!
+>>
+>>
+> OFED's backport system is rely on kernel version.
+> So, changing kernel version changes the set of patches and headers to be
+> used for the compilation.
+> You should keep the kernel version as close as possible to the original
+> version.
+> E.g.:
+> If you compile 2.6.18 from kernel.org then you can name it 2.6.18-prep
+> But, if you recompile 2.6.18-164.el5, then you should name it
+>  2.6.18-164.<any extension>.el5
 >
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Regards,
+> Vladimir
+>
+
+
+
+-- 
+Best regards,
+
+-----------------------------------------------------------------------------------------------
+Li, Tan
+PhD Candidate & Research Assistant,
+Electrical Engineering,
+Stony Brook University, NY
+
+Personal Web Site: https://sites.google.com/site/homepagelitan/Home
+
+Email: fanqielee-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
+
+--90e6ba53acf401908d049cf7bc9f
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
+
+<div>Oh, yes. Thanks so much!=A0After uninstall all libibverbs packages, th=
+e OFED-1.5.3-rc5 successfully passed all building process:</div>
+<div>=A0</div>
+<div>=A0</div>
+<div>Install iscsi-initiator-utils RPM:<br>Running rpm -iv=A0 /atlas/data18=
+a/litan/OFED-1.5.3-rc5/RPMS/sl-release-5.5-1/x86_64/iscsi-initiator-utils-2=
+.0-869.2.x86_64.rpm</div>
+<div>=A0</div>
+<div><font color=3D"#3333ff">The default IPoIB interface configuration is b=
+ased on DHCP.<br>Note that a special patch for DHCP is required for support=
+ing IPoIB.<br>The patch is available under docs/dhcp<br>If you do not have =
+DHCP, you must change this configuration in the following steps.<br>
+</font><font color=3D"#66ff99">IPoIB interfaces configured successfully<br>=
+</font>Press any key to continue ...</div>
+<div>Installation finished successfully.<br><font color=3D"#66cccc">Press a=
+ny key to continue...<br></font></div>
+<div><br>It seems=A0that the IPoIB is not configured due to DHCP issues.</d=
+iv>
+<div>=A0</div>
+<div>And the OFED tools did not work also:</div>
+<div>=A0</div>
+<div>[litan@tera05 OFED-1.5.3-rc5]$ sudo ibv_devinfo<br>Failed to get IB de=
+vices list: Function not implemented<br></div>
+<div>[litan@tera05 OFED-1.5.3-rc5]$ sudo ibstat<br>sudo: ibstat: command no=
+t found<br></div>
+<div>=A0</div>
+<div>=A0</div>
+<div>=A0</div>
+<div>=A0</div>
+<div><br>=A0</div>
+<div class=3D"gmail_quote">On Wed, Feb 23, 2011 at 4:14 AM, Vladimir Sokolo=
+vsky <span dir=3D"ltr">&lt;<a href=3D"mailto:vlad-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org">vlad@=
+dev.mellanox.co.il</a>&gt;</span> wrote:<br>
+<blockquote style=3D"BORDER-LEFT: #ccc 1px solid; MARGIN: 0px 0px 0px 0.8ex=
+; PADDING-LEFT: 1ex" class=3D"gmail_quote">
+<div class=3D"im">On 02/23/2011 05:12 AM, Tanin wrote:<br></div>
+<blockquote style=3D"BORDER-LEFT: #ccc 1px solid; MARGIN: 0px 0px 0px 0.8ex=
+; PADDING-LEFT: 1ex" class=3D"gmail_quote">
+<div class=3D"im">=A0Dear all,<br><br>I have recompiled the kernel to 2.6.1=
+8, and try to install =A0OFED-1.5.2<br>instead.<br><br>Now the kernel versi=
+on is<br><br>[litan@tera04 OFED-1.5.2]$ uname -a<br>Linux <a href=3D"http:/=
+/tera04.ultralight.org/" target=3D"_blank">tera04.ultralight.org</a> 2.6.18=
+-prep #1 SMP Tue Feb 22 18:51:00 EST 2011<br>
+x86_64 x86_64 x86_64 GNU/Linux<br><br><br></div>
+<div class=3D"im">I have the full log file in the attachment. Dose it relat=
+ed to that I try<br>many times to install different version of OFED? Thanks=
+ a million!<br><br></div></blockquote><br>OFED&#39;s backport system is rel=
+y on kernel version.<br>
+So, changing kernel version changes the set of patches and headers to be us=
+ed for the compilation.<br>You should keep the kernel version as close as p=
+ossible to the original version.<br>E.g.:<br>If you compile 2.6.18 from <a =
+href=3D"http://kernel.org/" target=3D"_blank">kernel.org</a> then you can n=
+ame it 2.6.18-prep<br>
+But, if you recompile 2.6.18-164.el5, then you should name it =A02.6.18-164=
+.&lt;any extension&gt;.el5<br><br>Regards,<br><font color=3D"#888888">Vladi=
+mir<br></font></blockquote></div><br><br clear=3D"all"><br>-- <br>
+<div>Best regards,</div>
+<div>=A0</div>
+<div>----------------------------------------------------------------------=
+-------------------------<br>Li, Tan<br>PhD=A0Candidate &amp; Research Assi=
+stant, <br>Electrical Engineering, <br>Stony Brook University, NY<br><br>
+Personal Web Site: <a href=3D"https://sites.google.com/site/homepagelitan/H=
+ome" target=3D"_blank">https://sites.google.com/site/homepagelitan/Home</a>=
+<br><br>Email: <a href=3D"mailto:fanqielee-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" target=3D"_blank">fan=
+qielee-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org</a></div>
+<br>
+
+--90e6ba53acf401908d049cf7bc9f--
+
+--===============1766152831==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+ewg mailing list
+ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
+http://lists.openfabrics.org/cgi-bin/mailman/listinfo/ewg
+--===============1766152831==--
