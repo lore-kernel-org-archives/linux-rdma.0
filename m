@@ -1,62 +1,142 @@
-From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Subject: Re: IB equivalent of virtual IP address ?
-Date: Wed, 23 Feb 2011 12:13:53 +0100
-Message-ID: <AANLkTimwRGWNG76xkHxHATnbOZsNTSC=1s_8pOng_B9f@mail.gmail.com>
-References: <AANLkTinTwygiSzBC3-AJjt070RTz_B=qYqcm9AayPwPn@mail.gmail.com> <20110222174729.GA10273@obsidianresearch.com>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH 1/2] rdma/cm: Fix crash in request handlers
+Date: Wed, 23 Feb 2011 08:11:32 -0800
+Message-ID: <CF9C39F99A89134C9CF9C4CCB68B8DDF25CC6C536C@orsmsx501.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20110222174729.GA10273-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Linux-RDMA <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Feb 22, 2011 at 6:47 PM, Jason Gunthorpe
-<jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
-> On Sun, Feb 20, 2011 at 02:33:01PM +0100, Bart Van Assche wrote:
->> A convenient way to provide high availability when using fail-over
->> between two IPv4 iSCSI servers is to configure the HA software such
->> that a secondary IPv4 address is only assigned to the active server.
->> I'd like to build a HA SRP setup using a similar approach. This leads
->> me to the following question: does there exist an equivalent of
->> virtual IP addresses for IB ? As far as I can see in the IBTA specs a
->> subnet manager can assign a secondary GID to an IB HCA port
->> dynamically.
->>
->> Does any of the existing IB switches support this ? If so, how does
->> communication between HA software and IB switch happen ?
->>
->> Does OpenSM support assigning secondary GIDs to a HCA port ?
->
-> Unfortunately this is an area where the IB spec has quite a lot of
-> richness but AFAIK it doesn't get used too much..
->
-> I don't think IP like GID migration is appropriate for IB, GUIDs
-> should be fabric unique. I'd suggest you should look at supporting
-> multiple GIDs registered for a single service ID and use those GIDs as
-> the set of fail over end ports. Supporting setting up APM as well
-> would be great. ;)
->
-> In IB if a port falls off the subnet the SM will not return paths for
-> it, so you can tell quickly that a service record is dead without
-> incuring a timeout. Essentially the SM takes the roll of the HA
-> software you see in IP land.
+Doug Ledford and RedHat reported a crash when running the rdma_cm on a real
+time OS.  The crash has the following call trace:
 
-Hi Jason,
+    cm_process_work
+       cma_req_handler
+          cma_disable_callback
+          rdma_create_id
+             kzalloc
+             init_completion
+          cma_get_net_info
+          cma_save_net_info
+          cma_any_addr
+             cma_zero_addr
+          rdma_translate_ip
+             rdma_copy_addr
+          cma_acquire_dev
+             rdma_addr_get_sgid
+             ib_find_cached_gid
+             cma_attach_to_dev
+          ucma_event_handler
+             kzalloc
+             ib_copy_ah_attr_to_user
+          cma_comp
+ 
+[ preempted ]
+ 
+    cma_write
+        copy_from_user
+        ucma_destroy_id
+           copy_from_user
+           _ucma_find_context
+           ucma_put_ctx
+           ucma_free_ctx
+              rdma_destroy_id
+                 cma_exch
+                 cma_cancel_operation
+                 rdma_node_get_transport
 
-The reason I started looking for an alternative for setting up
-multipath between one SRP initiator and redundant SRP targets is
-because such a configuration is a little awkward to set up.
+        rt_mutex_slowunlock
+        bad_area_nosemaphore
+        oops_enter
 
-I am aware that GUIDs must be fabric unique. In case a subnet manager
-would assign a secondary GID to a HCA port, I see it as the
-responsibility of the operator who configures that secondary GID in
-the subnet manager that it is fabric unique and as the responsibility
-of the subnet manager to make sure that that GID is assigned to at
-most one HCA port at any time.
+They were able to reproduce the crash multiple times with the following
+details:
 
-Bart.
+    Crash seems to always happen on the:
+            mutex_unlock(&conn_id->handler_mutex);
+    as conn_id looks to have been freed during this code path.
+
+An examination of the code shows that a race exists in the request handlers.
+When a new connection request is received, the rdma_cm allocates a new
+connection identifier.  This identifier has a single reference count on it.
+If a user calls rdma_destroy_id() from another thread after receiving a
+callback, rdma_destroy_id will proceed to destroy the id and free
+the associated memory.  However, the request handlers may still be in
+the process of running.  When control returns to the request handlers,
+they can attempt to access the newly created identifiers.
+
+Fix this by holding a reference on the newly created rdma_cm_id until
+the request handler is through accessing it.
+
+Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+---
+This is obviously serious enough to cause a crash, but the bug has also been there
+for a while before anyone detected it.  I have no real opinion on whether this
+targets 2.6.38 (if that's even possible at this point) or 2.6.39.
+
+ drivers/infiniband/core/cma.c |   15 +++++++++++++++
+ 1 files changed, 15 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
+index 6884da2..e450c5a 100644
+--- a/drivers/infiniband/core/cma.c
++++ b/drivers/infiniband/core/cma.c
+@@ -1210,6 +1210,11 @@ static int cma_req_handler(struct ib_cm_id *cm_id, struct ib_cm_event *ib_event)
+ 	cm_id->context = conn_id;
+ 	cm_id->cm_handler = cma_ib_handler;
+ 
++	/*
++	 * Protect against the user destroying conn_id from another thread
++	 * until we're done accessing it.
++	 */
++	atomic_inc(&conn_id->refcount);
+ 	ret = conn_id->id.event_handler(&conn_id->id, &event);
+ 	if (!ret) {
+ 		/*
+@@ -1222,8 +1227,10 @@ static int cma_req_handler(struct ib_cm_id *cm_id, struct ib_cm_event *ib_event)
+ 			ib_send_cm_mra(cm_id, CMA_CM_MRA_SETTING, NULL, 0);
+ 		mutex_unlock(&lock);
+ 		mutex_unlock(&conn_id->handler_mutex);
++		cma_deref_id(conn_id);
+ 		goto out;
+ 	}
++	cma_deref_id(conn_id);
+ 
+ 	/* Destroy the CM ID by returning a non-zero value. */
+ 	conn_id->cm_id.ib = NULL;
+@@ -1425,17 +1432,25 @@ static int iw_conn_req_handler(struct iw_cm_id *cm_id,
+ 	event.param.conn.private_data_len = iw_event->private_data_len;
+ 	event.param.conn.initiator_depth = attr.max_qp_init_rd_atom;
+ 	event.param.conn.responder_resources = attr.max_qp_rd_atom;
++
++	/*
++	 * Protect against the user destroying conn_id from another thread
++	 * until we're done accessing it.
++	 */
++	atomic_inc(&conn_id->refcount);
+ 	ret = conn_id->id.event_handler(&conn_id->id, &event);
+ 	if (ret) {
+ 		/* User wants to destroy the CM ID */
+ 		conn_id->cm_id.iw = NULL;
+ 		cma_exch(conn_id, CMA_DESTROYING);
+ 		mutex_unlock(&conn_id->handler_mutex);
++		cma_deref_id(conn_id);
+ 		rdma_destroy_id(&conn_id->id);
+ 		goto out;
+ 	}
+ 
+ 	mutex_unlock(&conn_id->handler_mutex);
++	cma_deref_id(conn_id);
+ 
+ out:
+ 	if (dev)
+
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
