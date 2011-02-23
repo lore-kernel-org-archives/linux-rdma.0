@@ -1,160 +1,70 @@
-From: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH/opensm] Decode the SAPKeyTableRecord block number
- properly, and don't segv
-Date: Wed, 23 Feb 2011 15:21:54 -0500
-Message-ID: <AANLkTimpKoWj=a-sQRVY_sMwyY=veSSXqqJ5XYi0GTGf@mail.gmail.com>
-References: <20110211221206.GA8532@obsidianresearch.com>
-	<20110223172019.GA8537@calypso.voltaire.com>
-	<AANLkTinm5Uh-9h+WMh6O8dLsPr8wpdt0BJmOu3+Dt8vj@mail.gmail.com>
+From: Mike Heinz <michael.heinz-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+Subject: RE: [PATCH 0/2] Improved node descriptions
+Date: Wed, 23 Feb 2011 15:02:31 -0600
+Message-ID: <4C2744E8AD2982428C5BFE523DF8CDCB4A20B28D7C@MNEXMB1.qlogic.org>
+References: <20110217213017.25708.95042.stgit@homer>
+ <AANLkTim5MrHMVjaNFtHeWBy82dag4XNxdBcjBEW+d1yb@mail.gmail.com>
+ <20110219192458.GB4506@obsidianresearch.com>
+ <4C2744E8AD2982428C5BFE523DF8CDCB4A20B28B17@MNEXMB1.qlogic.org>
+ <AANLkTi=1rmRckZz1iAXLpakf5bMuBp4koGOyO-FUDz_M@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <AANLkTinm5Uh-9h+WMh6O8dLsPr8wpdt0BJmOu3+Dt8vj-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <AANLkTi=1rmRckZz1iAXLpakf5bMuBp4koGOyO-FUDz_M-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Alex Netes <alexne-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Feb 23, 2011 at 2:01 PM, Hal Rosenstock
-<hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
-> On Wed, Feb 23, 2011 at 12:20 PM, Alex Netes <alexne-smomgflXvOZWk0Htik3J/w@public.gmane.org> wr=
-ote:
->> Hi Jason,
->>
->> On 15:12 Fri 11 Feb =C2=A0 =C2=A0 , Jason Gunthorpe wrote:
->>> * Properly byteswap block_num before using it
->>> * Properly check bounds of the block number before de-referencing i=
-t.
->>>
->>> This fixes a remotely triggered null pointer dereference.
->>> ---
->>> =C2=A0opensm/include/iba/ib_types.h =C2=A0 =C2=A0 =C2=A0| =C2=A0 =C2=
-=A02 +-
->>> =C2=A0opensm/opensm/osm_sa_pkey_record.c | =C2=A0 16 ++++++++++++--=
+I had actually submitted a patch back in June of last year that did set the default policy to be the hostname & device but looking back through my records I can't find the reason it was never explicitly rejected - it got limited feedback and just wasn't ever added to Linux-rdma. (I'm not sure how to learn the final disposition of proposed patches.) Maybe it was a coding style or formatting issue?
+
+Right now the HCAs default to a description of the HCA model. I can certainly create a patch that sets the default descriptions to "%h: %d (device description)" if that's what you want.  We certainly need something that's widely applicable, not distribution specific and lets large clusters manage their nodes effectively.
+
+-----Original Message-----
+From: roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org [mailto:roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org] On Behalf Of Roland Dreier
+Sent: Tuesday, February 22, 2011 6:14 PM
+To: Mike Heinz
+Cc: Jason Gunthorpe; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Subject: Re: [PATCH 0/2] Improved node descriptions
+
+On Mon, Feb 21, 2011 at 11:26 AM, Mike Heinz <michael.heinz-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org> wrote:
+> The biggest problem with that is that patching existing boot scripts
+> is always going to vary from distro to distro and is always going to
+> have problems when dealing with files that were already edited for
+> site-specific reasons.
+
+This is the wrong way to look at it.  Really it would make sense in
+the long term to add required support to native distros -- piling hack
+on hack in OFED is clearly a long-term disaster.  So I don't think
+saying "it's hard to make a single RPM" is a very good argument.
+
+With that said I think we should look at where it makes sense to
+implement this sort of thing.  Just because we can do something with
+scripts in userspace doesn't necessarily mean we have to do it there
+-- if it's much simpler or more robust in the kernel, then we can
+implement it there.
+
+In this case I do think it makes sense to add this support to the
+kernel, since the kernel handling is so simple.  In fact based on
+Jack's question it might make sense to go further and have more
+flexible expansion... what if we do something like adding primitive
+format expansion, ie
+
+    %h --> expands to current hostname
+    %d --> expands to ib_device->name
+
+Then one could have a trivial script that just does 'for every IB
+device, prepend "%h/%d: " to the node description.'  And I guess we
+could even talk about making that the default kernel policy.
+
+Not sure what Jason or others thinks about this opinion...
+
+
+This message and any attached documents contain information from QLogic Corporation or its wholly-owned subsidiaries that may be confidential. If you are not the intended recipient, you may not read, copy, distribute, or use this information. If you have received this transmission in error, please notify the sender immediately by reply e-mail and then delete this message.
+
 --
->>> =C2=A02 files changed, 13 insertions(+), 5 deletions(-)
->>>
->>> diff --git a/opensm/include/iba/ib_types.h b/opensm/include/iba/ib_=
-types.h
->>> index e1bc102..24f5662 100644
->>> --- a/opensm/include/iba/ib_types.h
->>> +++ b/opensm/include/iba/ib_types.h
->>> @@ -6724,7 +6724,7 @@ typedef struct _ib_pkey_table {
->>> =C2=A0#include <complib/cl_packon.h>
->>> =C2=A0typedef struct _ib_pkey_table_record {
->>> =C2=A0 =C2=A0 =C2=A0 ib_net16_t lid; =C2=A0 =C2=A0 =C2=A0 =C2=A0 //=
- for CA: lid of port, for switch lid of port 0
->>> - =C2=A0 =C2=A0 uint16_t block_num;
->>> + =C2=A0 =C2=A0 ib_net16_t block_num;
->>> =C2=A0 =C2=A0 =C2=A0 uint8_t port_num; =C2=A0 =C2=A0 =C2=A0 // for =
-switch: port number, for CA: reserved
->>> =C2=A0 =C2=A0 =C2=A0 uint8_t reserved1;
->>> =C2=A0 =C2=A0 =C2=A0 uint16_t reserved2;
->>
->> I guess reserved2 could also be changed to ib_net16_t, right?
->>
->>> diff --git a/opensm/opensm/osm_sa_pkey_record.c b/opensm/opensm/osm=
-_sa_pkey_record.c
->>> index e4930d0..cf50430 100644
->>> --- a/opensm/opensm/osm_sa_pkey_record.c
->>> +++ b/opensm/opensm/osm_sa_pkey_record.c
->>> @@ -71,6 +71,7 @@ static void sa_pkey_create(IN osm_sa_t * sa, IN o=
-sm_physp_t * p_physp,
->>> =C2=A0 =C2=A0 =C2=A0 osm_pkey_item_t *p_rec_item;
->>> =C2=A0 =C2=A0 =C2=A0 uint16_t lid;
->>> =C2=A0 =C2=A0 =C2=A0 ib_api_status_t status =3D IB_SUCCESS;
->>> + =C2=A0 =C2=A0 ib_pkey_table_t *tbl;
->>>
->>> =C2=A0 =C2=A0 =C2=A0 OSM_LOG_ENTER(sa->p_log);
->>>
->>> @@ -98,8 +99,15 @@ static void sa_pkey_create(IN osm_sa_t * sa, IN =
-osm_physp_t * p_physp,
->>> =C2=A0 =C2=A0 =C2=A0 p_rec_item->rec.lid =3D lid;
->>> =C2=A0 =C2=A0 =C2=A0 p_rec_item->rec.block_num =3D block;
->>> =C2=A0 =C2=A0 =C2=A0 p_rec_item->rec.port_num =3D osm_physp_get_por=
-t_num(p_physp);
->>> - =C2=A0 =C2=A0 p_rec_item->rec.pkey_tbl =3D
->>> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 *(osm_pkey_tbl_block_get(osm_physp_ge=
-t_pkey_tbl(p_physp), block));
->>> + =C2=A0 =C2=A0 /* FIXME: There are ninf.PartitionCap or swinf.Part=
-itionEnforcementCap
->>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0pkey entries so everything in that ran=
-ge is a valid block number
->>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0even if opensm is not using it. Return=
- 0. However things outside
->>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0that range should return no entries.. =
-Not sure how to figure that
->>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0here? The range of pkey_tbl can be les=
-s than the cap, so
->>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0this falsely triggers. */
->>> + =C2=A0 =C2=A0 tbl =3D osm_pkey_tbl_block_get(osm_physp_get_pkey_t=
-bl(p_physp), block);
->>> + =C2=A0 =C2=A0 if (tbl)
->>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 p_rec_item->rec.pkey_tb=
-l =3D *tbl;
->>>
->>> =C2=A0 =C2=A0 =C2=A0 cl_qlist_insert_tail(p_ctxt->p_list, &p_rec_it=
-em->list_item);
->>
->> What is the expected behaviour when IB PKey table block is empty?
->> rec.pkey_tbl might be uninitialized here.
->> Shouldn't SubnAdmGetResp contain ERR_NO_RECORDS in such case?
->
-> It depends on the method used in the SA query. GetTable never returns
-> ERR_NO_RECORDS whereas a Get can.
-
-I'm referring to a block that is fully above the PartitionCap in the
-above. For a block included by the PartitionCap, there's should always
-be a "valid" block to be returned even if the entries indicate invalid
-pkey.
-
--- Hal
-
->
-> -- Hal
->
->>>
->>> @@ -269,14 +277,14 @@ void osm_pkey_rec_rcv_process(IN void *ctx, I=
-N void *data)
->>> =C2=A0 =C2=A0 =C2=A0 context.p_list =3D &rec_list;
->>> =C2=A0 =C2=A0 =C2=A0 context.comp_mask =3D p_rcvd_mad->comp_mask;
->>> =C2=A0 =C2=A0 =C2=A0 context.sa =3D sa;
->>> - =C2=A0 =C2=A0 context.block_num =3D p_rcvd_rec->block_num;
->>> + =C2=A0 =C2=A0 context.block_num =3D cl_ntoh16(p_rcvd_rec->block_n=
-um);
->>> =C2=A0 =C2=A0 =C2=A0 context.p_req_physp =3D p_req_physp;
->>>
->>> =C2=A0 =C2=A0 =C2=A0 OSM_LOG(sa->p_log, OSM_LOG_DEBUG,
->>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 "Got Query Lid:%u(=
-%02X), Block:0x%02X(%02X), Port:0x%02X(%02X)\n",
->>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 cl_ntoh16(p_rcvd_r=
-ec->lid),
->>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 (comp_mask & IB_PK=
-EY_COMPMASK_LID) !=3D 0, p_rcvd_rec->port_num,
->>> - =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 (comp_mask & IB_PKEY_CO=
-MPMASK_PORT) !=3D 0, p_rcvd_rec->block_num,
->>> + =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 (comp_mask & IB_PKEY_CO=
-MPMASK_PORT) !=3D 0, context.block_num,
->>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 (comp_mask & IB_PK=
-EY_COMPMASK_BLOCK) !=3D 0);
->>>
->>> =C2=A0 =C2=A0 =C2=A0 cl_plock_acquire(sa->p_lock);
->>> --
->>> 1.7.1
->>>
->>
->> Alex
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-rdma=
-" in
->> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->> More majordomo info at =C2=A0http://vger.kernel.org/majordomo-info.h=
-tml
->>
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
