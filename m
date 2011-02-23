@@ -1,90 +1,293 @@
-From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-Subject: Re: [PATCH 0/2] Improved node descriptions
-Date: Wed, 23 Feb 2011 13:56:52 -0800
-Message-ID: <20110223135652.21a77482.weiny2@llnl.gov>
-References: <20110217213017.25708.95042.stgit@homer>
-	<AANLkTim5MrHMVjaNFtHeWBy82dag4XNxdBcjBEW+d1yb@mail.gmail.com>
-	<20110219192458.GB4506@obsidianresearch.com>
-	<4C2744E8AD2982428C5BFE523DF8CDCB4A20B28B17@MNEXMB1.qlogic.org>
-	<AANLkTi=1rmRckZz1iAXLpakf5bMuBp4koGOyO-FUDz_M@mail.gmail.com>
-	<20110222234304.GA21731@obsidianresearch.com>
-	<AANLkTink3ec2O8-ExPuJpJd5j_Y0UtiL=QtM0rrmZR88@mail.gmail.com>
-	<20110223054151.GA2363@obsidianresearch.com>
+From: Tanin <fanqielee-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: Installation problems of OFED-1.5.2
+Date: Wed, 23 Feb 2011 17:38:04 -0500
+Message-ID: <AANLkTimuf9DN1W8zvrTD2jhgqbx+V0EifBUOo8OxVKEZ@mail.gmail.com>
+References: <AANLkTi=s7YtdX2+bb4pLY035OXQSqyf21JuxatDCL=N_@mail.gmail.com>
+	<4D64CFEA.1030805@dev.mellanox.co.il>
+	<AANLkTinLQ0zo1jbENOAoaDTVi6dmpPn3zTSfY12q-gxf@mail.gmail.com>
+	<AANLkTimXs07EaMp0Q4WgJ0gX3sPp9tsqURGdKc=sxEyo@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20110223054151.GA2363-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Mike Heinz <michael.heinz-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: multipart/mixed; boundary="===============0468991359=="
+Return-path: <ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+In-Reply-To: <AANLkTimXs07EaMp0Q4WgJ0gX3sPp9tsqURGdKc=sxEyo-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+List-Unsubscribe: <http://lists.openfabrics.org/cgi-bin/mailman/options/ewg>,
+	<mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.openfabrics.org/pipermail/ewg>
+List-Post: <mailto:ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+List-Help: <mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=help>
+List-Subscribe: <http://lists.openfabrics.org/cgi-bin/mailman/listinfo/ewg>,
+	<mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=subscribe>
+Sender: ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
+Errors-To: ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
+To: Vladimir Sokolovsky <vlad-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, OpenFabrics EWG <ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, 22 Feb 2011 21:41:52 -0800
-Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
+--===============0468991359==
+Content-Type: multipart/alternative; boundary=001485eba1e807ce3e049cfac07a
 
-> On Tue, Feb 22, 2011 at 04:03:29PM -0800, Roland Dreier wrote:
-> > On Tue, Feb 22, 2011 at 3:43 PM, Jason Gunthorpe
-> > <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
-> > > Doing it in userspace makes generating the node description changed
-> > > trap simpler?
-> > 
-> > Hmm... how many places can do sethostname()?  Seems easier to
-> > catch in the kernel than hook every place in userspace.  (Although
-> > there's no kernel hook right now)  I do agree it would be good to
-> > have some idea of how we could generate the "node desc changed"
-> > trap at appropriate times.
-> 
-> Wasn't thinking about 100% perfection, just if DHCP is the concern it
-> shouldn't be hard to hook that one place.
+--001485eba1e807ce3e049cfac07a
+Content-Type: text/plain; charset=ISO-8859-1
 
-I like the idea of having a way to tie node description to the hostname.  It just makes sense.  The question in my mind is will upstream accept a hook in sethostname?  Generally it seems like a good idea, perhaps other subsystems would want to know about it.  But it does seem like it might not get accepted.
+OK, every thing works fine after reboot. Thanks so much for all of your
+help. Have a nice day!
 
-> 
-> > > I just wonder if this is a big pain to do right, what about charsets, IDN,
-> > > and ugly details like that?
-> > 
-> > Does anyone expect to care about non-ASCII node descs?
-> > What can we sensibly do except take what we're given?
-> 
-> node desc is UTF-8, hostname is IDNA, a conversion is required, see RFC
-> 3490.
+On Wed, Feb 23, 2011 at 2:24 PM, Tanin <fanqielee-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
 
-For what it is worth none of the diags or OpenSM support UTF-8.  I'll add it to the list of things to do.  ;-)
-
-I don't know much about IDNA but it seems that ASCII is a subset of IDNA as well as UTF-8.  Perhaps a check for ASCII in the hostname would suffice to at least make this work for ASCII hostnames only.  (That should cover a significant portion of the hosts out there, if not all of them.)
-
-> 
-> Does anyone care? Who knows, but very pedantically it is wrong to just copy
-> the host name byte by byte. I only mention it to point out that it is 
-> trivial to do what Mike did, somewhat harder to do % escaping like you
-> suggest and solve the multiple HCA problem, harder still to trap
-> sethostname() and generate a trap, and extra special hard to correctly
-> handle character sets on top of all that. :)
-> 
-> So, is it still trivial to do it in the kernel?
-
-Looking at the latest code it seems that setting the node descriptor for mlx4 and qib will result in a trap 144 being set.  A hook in sethostname which results in the regeneration of the node description and the generation of the trap seems pretty easy.  So, from a technical side I think the answer is "yes" it is pretty easy.
-
-That said getting that hook into sethostname might be harder to get upstream than just writing the code.  I can't comment on that because I don't have any idea how hard that would be.  :-(
-
-Ira
-
-> 
-> Jason
+> I think I also need iw_nes driver for my RNIC card, right?
+>
+> [litan@tera05 init.d]$ /sbin/lspci
+> Ethernet controller: NetEffect NE020 10Gb Accelerated Ethernet Adapter
+> (iWARP RNIC) (rev 05)
+>
+>
+>   On Wed, Feb 23, 2011 at 2:02 PM, Tanin <fanqielee-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
+>
+>> Oh, yes. Thanks so much! After uninstall all libibverbs packages, the
+>> OFED-1.5.3-rc5 successfully passed all building process:
+>>
+>>
+>> Install iscsi-initiator-utils RPM:
+>> Running rpm -iv
+>> /atlas/data18a/litan/OFED-1.5.3-rc5/RPMS/sl-release-5.5-1/x86_64/iscsi-initiator-utils-2.0-869.2.x86_64.rpm
+>>
+>> The default IPoIB interface configuration is based on DHCP.
+>> Note that a special patch for DHCP is required for supporting IPoIB.
+>> The patch is available under docs/dhcp
+>> If you do not have DHCP, you must change this configuration in the
+>> following steps.
+>> IPoIB interfaces configured successfully
+>> Press any key to continue ...
+>> Installation finished successfully.
+>> Press any key to continue...
+>>
+>> It seems that the IPoIB is not configured due to DHCP issues.
+>>
+>> And the OFED tools did not work also:
+>>
+>> [litan@tera05 OFED-1.5.3-rc5]$ sudo ibv_devinfo
+>> Failed to get IB devices list: Function not implemented
+>> [litan@tera05 OFED-1.5.3-rc5]$ sudo ibstat
+>> sudo: ibstat: command not found
+>>
+>>
+>>
+>>
+>>
+>>
+>> On Wed, Feb 23, 2011 at 4:14 AM, Vladimir Sokolovsky <
+>> vlad-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wrote:
+>>
+>>> On 02/23/2011 05:12 AM, Tanin wrote:
+>>>
+>>>>  Dear all,
+>>>>
+>>>> I have recompiled the kernel to 2.6.18, and try to install  OFED-1.5.2
+>>>> instead.
+>>>>
+>>>> Now the kernel version is
+>>>>
+>>>> [litan@tera04 OFED-1.5.2]$ uname -a
+>>>> Linux tera04.ultralight.org 2.6.18-prep #1 SMP Tue Feb 22 18:51:00 EST
+>>>> 2011
+>>>> x86_64 x86_64 x86_64 GNU/Linux
+>>>>
+>>>>
+>>>> I have the full log file in the attachment. Dose it related to that I
+>>>> try
+>>>> many times to install different version of OFED? Thanks a million!
+>>>>
+>>>>
+>>> OFED's backport system is rely on kernel version.
+>>> So, changing kernel version changes the set of patches and headers to be
+>>> used for the compilation.
+>>> You should keep the kernel version as close as possible to the original
+>>> version.
+>>> E.g.:
+>>> If you compile 2.6.18 from kernel.org then you can name it 2.6.18-prep
+>>> But, if you recompile 2.6.18-164.el5, then you should name it
+>>>  2.6.18-164.<any extension>.el5
+>>>
+>>> Regards,
+>>> Vladimir
+>>>
+>>
+>>
+>>
+>>  --
+>> Best regards,
+>>
+>>
+>> -----------------------------------------------------------------------------------------------
+>> Li, Tan
+>> PhD Candidate & Research Assistant,
+>> Electrical Engineering,
+>> Stony Brook University, NY
+>>
+>> Personal Web Site: https://sites.google.com/site/homepagelitan/Home
+>>
+>> Email: fanqielee-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
+>>
+>>
+>
+>
 > --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Best regards,
+>
+>
+> -----------------------------------------------------------------------------------------------
+> Li, Tan
+> PhD Candidate & Research Assistant,
+> Electrical Engineering,
+> Stony Brook University, NY
+>
+> Personal Web Site: https://sites.google.com/site/homepagelitan/Home
+>
+> Email: fanqielee-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
+>
+>
 
 
 -- 
-Ira Weiny
-Math Programmer/Computer Scientist
-Lawrence Livermore National Lab
-925-423-8008
-weiny2-i2BcT+NCU+M@public.gmane.org
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Best regards,
+
+-----------------------------------------------------------------------------------------------
+Li, Tan
+PhD Candidate & Research Assistant,
+Electrical Engineering,
+Stony Brook University, NY
+
+Personal Web Site: https://sites.google.com/site/homepagelitan/Home
+
+Email: fanqielee-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
+
+--001485eba1e807ce3e049cfac07a
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
+
+OK, every thing works fine after reboot. Thanks so much for all of your hel=
+p. Have a nice day!<br><br>
+<div class=3D"gmail_quote">On Wed, Feb 23, 2011 at 2:24 PM, Tanin <span dir=
+=3D"ltr">&lt;<a href=3D"mailto:fanqielee-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org">fanqielee-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org</a>=
+&gt;</span> wrote:<br>
+<blockquote style=3D"BORDER-LEFT: #ccc 1px solid; MARGIN: 0px 0px 0px 0.8ex=
+; PADDING-LEFT: 1ex" class=3D"gmail_quote">
+<div>I think I also need iw_nes driver for my RNIC card, right?</div>
+<div>=A0</div>
+<div>[litan@tera05 init.d]$ /sbin/lspci</div>
+<div>Ethernet controller: NetEffect NE020 10Gb Accelerated Ethernet Adapter=
+ (iWARP RNIC) (rev 05)<br><br><br></div>
+<div>
+<div></div>
+<div class=3D"h5">
+<div class=3D"gmail_quote">On Wed, Feb 23, 2011 at 2:02 PM, Tanin <span dir=
+=3D"ltr">&lt;<a href=3D"mailto:fanqielee-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" target=3D"_blank">fanqi=
+elee-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org</a>&gt;</span> wrote:<br>
+<blockquote style=3D"BORDER-LEFT: #ccc 1px solid; MARGIN: 0px 0px 0px 0.8ex=
+; PADDING-LEFT: 1ex" class=3D"gmail_quote">
+<div>Oh, yes. Thanks so much!=A0After uninstall all libibverbs packages, th=
+e OFED-1.5.3-rc5 successfully passed all building process:</div>
+<div>=A0</div>
+<div>=A0</div>
+<div>Install iscsi-initiator-utils RPM:<br>Running rpm -iv=A0 /atlas/data18=
+a/litan/OFED-1.5.3-rc5/RPMS/sl-release-5.5-1/x86_64/iscsi-initiator-utils-2=
+.0-869.2.x86_64.rpm</div>
+<div>=A0</div>
+<div><font color=3D"#3333ff">The default IPoIB interface configuration is b=
+ased on DHCP.<br>Note that a special patch for DHCP is required for support=
+ing IPoIB.<br>The patch is available under docs/dhcp<br>If you do not have =
+DHCP, you must change this configuration in the following steps.<br>
+</font><font color=3D"#66ff99">IPoIB interfaces configured successfully<br>=
+</font>Press any key to continue ...</div>
+<div>Installation finished successfully.<br><font color=3D"#66cccc">Press a=
+ny key to continue...<br></font></div>
+<div><br>It seems=A0that the IPoIB is not configured due to DHCP issues.</d=
+iv>
+<div>=A0</div>
+<div>And the OFED tools did not work also:</div>
+<div>=A0</div>
+<div>[litan@tera05 OFED-1.5.3-rc5]$ sudo ibv_devinfo<br>Failed to get IB de=
+vices list: Function not implemented<br></div>
+<div>[litan@tera05 OFED-1.5.3-rc5]$ sudo ibstat<br>sudo: ibstat: command no=
+t found<br></div>
+<div>
+<div></div>
+<div>
+<div>=A0</div>
+<div>=A0</div>
+<div>=A0</div>
+<div>=A0</div>
+<div><br>=A0</div>
+<div class=3D"gmail_quote">On Wed, Feb 23, 2011 at 4:14 AM, Vladimir Sokolo=
+vsky <span dir=3D"ltr">&lt;<a href=3D"mailto:vlad-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org" targe=
+t=3D"_blank">vlad-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org</a>&gt;</span> wrote:<br>
+<blockquote style=3D"BORDER-LEFT: #ccc 1px solid; MARGIN: 0px 0px 0px 0.8ex=
+; PADDING-LEFT: 1ex" class=3D"gmail_quote">
+<div>On 02/23/2011 05:12 AM, Tanin wrote:<br></div>
+<blockquote style=3D"BORDER-LEFT: #ccc 1px solid; MARGIN: 0px 0px 0px 0.8ex=
+; PADDING-LEFT: 1ex" class=3D"gmail_quote">
+<div>=A0Dear all,<br><br>I have recompiled the kernel to 2.6.18, and try to=
+ install =A0OFED-1.5.2<br>instead.<br><br>Now the kernel version is<br><br>=
+[litan@tera04 OFED-1.5.2]$ uname -a<br>Linux <a href=3D"http://tera04.ultra=
+light.org/" target=3D"_blank">tera04.ultralight.org</a> 2.6.18-prep #1 SMP =
+Tue Feb 22 18:51:00 EST 2011<br>
+x86_64 x86_64 x86_64 GNU/Linux<br><br><br></div>
+<div>I have the full log file in the attachment. Dose it related to that I =
+try<br>many times to install different version of OFED? Thanks a million!<b=
+r><br></div></blockquote><br>OFED&#39;s backport system is rely on kernel v=
+ersion.<br>
+So, changing kernel version changes the set of patches and headers to be us=
+ed for the compilation.<br>You should keep the kernel version as close as p=
+ossible to the original version.<br>E.g.:<br>If you compile 2.6.18 from <a =
+href=3D"http://kernel.org/" target=3D"_blank">kernel.org</a> then you can n=
+ame it 2.6.18-prep<br>
+But, if you recompile 2.6.18-164.el5, then you should name it =A02.6.18-164=
+.&lt;any extension&gt;.el5<br><br>Regards,<br><font color=3D"#888888">Vladi=
+mir<br></font></blockquote></div><br><br clear=3D"all"><br></div></div>
+<div>
+<div></div>
+<div>-- <br>
+<div>Best regards,</div>
+<div>=A0</div>
+<div>----------------------------------------------------------------------=
+-------------------------<br>Li, Tan<br>PhD=A0Candidate &amp; Research Assi=
+stant, <br>Electrical Engineering, <br>Stony Brook University, NY<br><br>
+Personal Web Site: <a href=3D"https://sites.google.com/site/homepagelitan/H=
+ome" target=3D"_blank">https://sites.google.com/site/homepagelitan/Home</a>=
+<br><br>Email: <a href=3D"mailto:fanqielee-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" target=3D"_blank">fan=
+qielee-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org</a></div>
+<br></div></div></blockquote></div><br><br clear=3D"all"><br>-- <br>
+<div>Best regards,</div>
+<div>=A0</div>
+<div>----------------------------------------------------------------------=
+-------------------------<br>Li, Tan<br>PhD=A0Candidate &amp; Research Assi=
+stant, <br>Electrical Engineering, <br>Stony Brook University, NY<br><br>
+Personal Web Site: <a href=3D"https://sites.google.com/site/homepagelitan/H=
+ome" target=3D"_blank">https://sites.google.com/site/homepagelitan/Home</a>=
+<br><br>Email: <a href=3D"mailto:fanqielee-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" target=3D"_blank">fan=
+qielee-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org</a></div>
+<br></div></div></blockquote></div><br><br clear=3D"all"><br>-- <br>
+<div>Best regards,</div>
+<div>=A0</div>
+<div>----------------------------------------------------------------------=
+-------------------------<br>Li, Tan<br>PhD=A0Candidate &amp; Research Assi=
+stant, <br>Electrical Engineering, <br>Stony Brook University, NY<br><br>
+Personal Web Site: <a href=3D"https://sites.google.com/site/homepagelitan/H=
+ome" target=3D"_blank">https://sites.google.com/site/homepagelitan/Home</a>=
+<br><br>Email: <a href=3D"mailto:fanqielee-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" target=3D"_blank">fan=
+qielee-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org</a></div>
+<br>
+
+--001485eba1e807ce3e049cfac07a--
+
+--===============0468991359==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+ewg mailing list
+ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
+http://lists.openfabrics.org/cgi-bin/mailman/listinfo/ewg
+--===============0468991359==--
