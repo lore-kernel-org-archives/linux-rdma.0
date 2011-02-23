@@ -1,7 +1,8 @@
 From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 1/2] rdma/cm: Fix crash in request handlers
-Date: Wed, 23 Feb 2011 08:11:32 -0800
-Message-ID: <CF9C39F99A89134C9CF9C4CCB68B8DDF25CC6C536C@orsmsx501.amr.corp.intel.com>
+Subject: [PATCH 2/2] ib/cm: Bump reference count on cm_id before invoking
+ callback
+Date: Wed, 23 Feb 2011 08:17:40 -0800
+Message-ID: <CF9C39F99A89134C9CF9C4CCB68B8DDF25CC6C5393@orsmsx501.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
@@ -12,129 +13,38 @@ To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY
 Cc: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Doug Ledford and RedHat reported a crash when running the rdma_cm on a real
-time OS.  The crash has the following call trace:
+When processing a SIDR REQ, the ib_cm allocates a new cm_id.  The refcount
+of the cm_id is initialized to 1.  However, cm_process_work will
+decrement the refcount after invoking all callbacks.  The result is that
+the cm_id will end up with refcount set to 0 by the end of the sidr req
+handler.
 
-    cm_process_work
-       cma_req_handler
-          cma_disable_callback
-          rdma_create_id
-             kzalloc
-             init_completion
-          cma_get_net_info
-          cma_save_net_info
-          cma_any_addr
-             cma_zero_addr
-          rdma_translate_ip
-             rdma_copy_addr
-          cma_acquire_dev
-             rdma_addr_get_sgid
-             ib_find_cached_gid
-             cma_attach_to_dev
-          ucma_event_handler
-             kzalloc
-             ib_copy_ah_attr_to_user
-          cma_comp
- 
-[ preempted ]
- 
-    cma_write
-        copy_from_user
-        ucma_destroy_id
-           copy_from_user
-           _ucma_find_context
-           ucma_put_ctx
-           ucma_free_ctx
-              rdma_destroy_id
-                 cma_exch
-                 cma_cancel_operation
-                 rdma_node_get_transport
+If a user tries to destroy the cm_id, the destruction will proceed, under
+the incorrect assumption that no other threads are referencing the cm_id.
+This can lead to a crash when the cm callback thread tries to access
+the cm_id.
 
-        rt_mutex_slowunlock
-        bad_area_nosemaphore
-        oops_enter
-
-They were able to reproduce the crash multiple times with the following
-details:
-
-    Crash seems to always happen on the:
-            mutex_unlock(&conn_id->handler_mutex);
-    as conn_id looks to have been freed during this code path.
-
-An examination of the code shows that a race exists in the request handlers.
-When a new connection request is received, the rdma_cm allocates a new
-connection identifier.  This identifier has a single reference count on it.
-If a user calls rdma_destroy_id() from another thread after receiving a
-callback, rdma_destroy_id will proceed to destroy the id and free
-the associated memory.  However, the request handlers may still be in
-the process of running.  When control returns to the request handlers,
-they can attempt to access the newly created identifiers.
-
-Fix this by holding a reference on the newly created rdma_cm_id until
-the request handler is through accessing it.
+This problem was noticed as part of a larger investigation with kernel
+crashes in the rdma_cm when running on a real time OS.
 
 Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
-This is obviously serious enough to cause a crash, but the bug has also been there
-for a while before anyone detected it.  I have no real opinion on whether this
-targets 2.6.38 (if that's even possible at this point) or 2.6.39.
 
- drivers/infiniband/core/cma.c |   15 +++++++++++++++
- 1 files changed, 15 insertions(+), 0 deletions(-)
+ drivers/infiniband/core/cm.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
-index 6884da2..e450c5a 100644
---- a/drivers/infiniband/core/cma.c
-+++ b/drivers/infiniband/core/cma.c
-@@ -1210,6 +1210,11 @@ static int cma_req_handler(struct ib_cm_id *cm_id, struct ib_cm_event *ib_event)
- 	cm_id->context = conn_id;
- 	cm_id->cm_handler = cma_ib_handler;
- 
-+	/*
-+	 * Protect against the user destroying conn_id from another thread
-+	 * until we're done accessing it.
-+	 */
-+	atomic_inc(&conn_id->refcount);
- 	ret = conn_id->id.event_handler(&conn_id->id, &event);
- 	if (!ret) {
- 		/*
-@@ -1222,8 +1227,10 @@ static int cma_req_handler(struct ib_cm_id *cm_id, struct ib_cm_event *ib_event)
- 			ib_send_cm_mra(cm_id, CMA_CM_MRA_SETTING, NULL, 0);
- 		mutex_unlock(&lock);
- 		mutex_unlock(&conn_id->handler_mutex);
-+		cma_deref_id(conn_id);
- 		goto out;
+diff --git a/drivers/infiniband/core/cm.c b/drivers/infiniband/core/cm.c
+index 64e0903..1d9616b 100644
+--- a/drivers/infiniband/core/cm.c
++++ b/drivers/infiniband/core/cm.c
+@@ -2989,6 +2989,7 @@ static int cm_sidr_req_handler(struct cm_work *work)
+ 		goto out; /* No match. */
  	}
-+	cma_deref_id(conn_id);
+ 	atomic_inc(&cur_cm_id_priv->refcount);
++	atomic_inc(&cm_id_priv->refcount);
+ 	spin_unlock_irq(&cm.lock);
  
- 	/* Destroy the CM ID by returning a non-zero value. */
- 	conn_id->cm_id.ib = NULL;
-@@ -1425,17 +1432,25 @@ static int iw_conn_req_handler(struct iw_cm_id *cm_id,
- 	event.param.conn.private_data_len = iw_event->private_data_len;
- 	event.param.conn.initiator_depth = attr.max_qp_init_rd_atom;
- 	event.param.conn.responder_resources = attr.max_qp_rd_atom;
-+
-+	/*
-+	 * Protect against the user destroying conn_id from another thread
-+	 * until we're done accessing it.
-+	 */
-+	atomic_inc(&conn_id->refcount);
- 	ret = conn_id->id.event_handler(&conn_id->id, &event);
- 	if (ret) {
- 		/* User wants to destroy the CM ID */
- 		conn_id->cm_id.iw = NULL;
- 		cma_exch(conn_id, CMA_DESTROYING);
- 		mutex_unlock(&conn_id->handler_mutex);
-+		cma_deref_id(conn_id);
- 		rdma_destroy_id(&conn_id->id);
- 		goto out;
- 	}
- 
- 	mutex_unlock(&conn_id->handler_mutex);
-+	cma_deref_id(conn_id);
- 
- out:
- 	if (dev)
+ 	cm_id_priv->id.cm_handler = cur_cm_id_priv->id.cm_handler;
 
 
 --
