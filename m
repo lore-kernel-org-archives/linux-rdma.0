@@ -1,174 +1,104 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH] rdma/cm: Replace global lock in rdma_destroy_id with id
- specific one
-Date: Wed, 23 Feb 2011 09:05:39 -0800
-Message-ID: <CF9C39F99A89134C9CF9C4CCB68B8DDF25CC6C54BC@orsmsx501.amr.corp.intel.com>
+From: Alex Netes <alexne-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH/opensm] Decode the SAPKeyTableRecord block number
+ properly, and don't segv
+Date: Wed, 23 Feb 2011 19:20:19 +0200
+Message-ID: <20110223172019.GA8537@calypso.voltaire.com>
+References: <20110211221206.GA8532@obsidianresearch.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <20110211221206.GA8532-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-rdma_destroy_id currently uses the global rdma cm 'lock' to test if
-an rdma_cm_id has been bound to a device.  This prevents an active
-address resolution callback handler from assigning a device to the
-rdma_cm_id after rdma_destroy_id checks for one.
+Hi Jason,
 
-Instead, we can replace the use of the global lock around the check
-to the rdma_cm_id device pointer by setting the id state to destroying,
-then flushing all active callbacks.  The latter is accomplished by
-acquiring and releasing the handler_mutex.  Any active handler will
-complete first, and any newly scheduled handlers will find the
-rdma_cm_id in an invalid state.
+On 15:12 Fri 11 Feb     , Jason Gunthorpe wrote:
+> * Properly byteswap block_num before using it
+> * Properly check bounds of the block number before de-referencing it.
+> 
+> This fixes a remotely triggered null pointer dereference.
+> ---
+>  opensm/include/iba/ib_types.h      |    2 +-
+>  opensm/opensm/osm_sa_pkey_record.c |   16 ++++++++++++----
+>  2 files changed, 13 insertions(+), 5 deletions(-)
+> 
+> diff --git a/opensm/include/iba/ib_types.h b/opensm/include/iba/ib_types.h
+> index e1bc102..24f5662 100644
+> --- a/opensm/include/iba/ib_types.h
+> +++ b/opensm/include/iba/ib_types.h
+> @@ -6724,7 +6724,7 @@ typedef struct _ib_pkey_table {
+>  #include <complib/cl_packon.h>
+>  typedef struct _ib_pkey_table_record {
+>  	ib_net16_t lid;		// for CA: lid of port, for switch lid of port 0
+> -	uint16_t block_num;
+> +	ib_net16_t block_num;
+>  	uint8_t port_num;	// for switch: port number, for CA: reserved
+>  	uint8_t reserved1;
+>  	uint16_t reserved2;
 
-In addition to optimizing the current locking scheme, the use of
-the rdma_cm_id mutex is a more intuitive synchronization mechanism
-than that of the global lock.  These changes are based on feedback
-from Doug Ledford while he was trying to debug a crash in the rdma
-cm destroy path.
+I guess reserved2 could also be changed to ib_net16_t, right?
 
-Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
----
-This is targeted at 2.6.39
+> diff --git a/opensm/opensm/osm_sa_pkey_record.c b/opensm/opensm/osm_sa_pkey_record.c
+> index e4930d0..cf50430 100644
+> --- a/opensm/opensm/osm_sa_pkey_record.c
+> +++ b/opensm/opensm/osm_sa_pkey_record.c
+> @@ -71,6 +71,7 @@ static void sa_pkey_create(IN osm_sa_t * sa, IN osm_physp_t * p_physp,
+>  	osm_pkey_item_t *p_rec_item;
+>  	uint16_t lid;
+>  	ib_api_status_t status = IB_SUCCESS;
+> +	ib_pkey_table_t *tbl;
+>  
+>  	OSM_LOG_ENTER(sa->p_log);
+>  
+> @@ -98,8 +99,15 @@ static void sa_pkey_create(IN osm_sa_t * sa, IN osm_physp_t * p_physp,
+>  	p_rec_item->rec.lid = lid;
+>  	p_rec_item->rec.block_num = block;
+>  	p_rec_item->rec.port_num = osm_physp_get_port_num(p_physp);
+> -	p_rec_item->rec.pkey_tbl =
+> -	    *(osm_pkey_tbl_block_get(osm_physp_get_pkey_tbl(p_physp), block));
+> +	/* FIXME: There are ninf.PartitionCap or swinf.PartitionEnforcementCap
+> +	   pkey entries so everything in that range is a valid block number
+> +	   even if opensm is not using it. Return 0. However things outside
+> +	   that range should return no entries.. Not sure how to figure that
+> +	   here? The range of pkey_tbl can be less than the cap, so
+> +	   this falsely triggers. */
+> +	tbl = osm_pkey_tbl_block_get(osm_physp_get_pkey_tbl(p_physp), block);
+> +	if (tbl)
+> +		p_rec_item->rec.pkey_tbl = *tbl;
+>  
+>  	cl_qlist_insert_tail(p_ctxt->p_list, &p_rec_item->list_item);
 
- drivers/infiniband/core/cma.c |   43 +++++++++++++++--------------------------
- 1 files changed, 16 insertions(+), 27 deletions(-)
+What is the expected behaviour when IB PKey table block is empty?
+rec.pkey_tbl might be uninitialized here. 
+Shouldn't SubnAdmGetResp contain ERR_NO_RECORDS in such case?
 
-diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
-index e450c5a..5ed9d25 100644
---- a/drivers/infiniband/core/cma.c
-+++ b/drivers/infiniband/core/cma.c
-@@ -308,11 +308,13 @@ static inline void release_mc(struct kref *kref)
- 	kfree(mc);
- }
- 
--static void cma_detach_from_dev(struct rdma_id_private *id_priv)
-+static void cma_release_dev(struct rdma_id_private *id_priv)
- {
-+	mutex_lock(&lock);
- 	list_del(&id_priv->list);
- 	cma_deref_dev(id_priv->cma_dev);
- 	id_priv->cma_dev = NULL;
-+	mutex_unlock(&lock);
- }
- 
- static int cma_set_qkey(struct rdma_id_private *id_priv)
-@@ -373,6 +375,7 @@ static int cma_acquire_dev(struct rdma_id_private *id_priv)
- 	enum rdma_link_layer dev_ll = dev_addr->dev_type == ARPHRD_INFINIBAND ?
- 		IB_LINK_LAYER_INFINIBAND : IB_LINK_LAYER_ETHERNET;
- 
-+	mutex_lock(&lock);
- 	iboe_addr_get_sgid(dev_addr, &iboe_gid);
- 	memcpy(&gid, dev_addr->src_dev_addr +
- 	       rdma_addr_gid_offset(dev_addr), sizeof gid);
-@@ -398,6 +401,7 @@ out:
- 	if (!ret)
- 		cma_attach_to_dev(id_priv, cma_dev);
- 
-+	mutex_unlock(&lock);
- 	return ret;
- }
- 
-@@ -904,9 +908,14 @@ void rdma_destroy_id(struct rdma_cm_id *id)
- 	state = cma_exch(id_priv, CMA_DESTROYING);
- 	cma_cancel_operation(id_priv, state);
- 
--	mutex_lock(&lock);
-+	/*
-+	 * Wait for any active callback to finish.  New callbacks will find
-+	 * the id_priv state set to destroying and abort.
-+	 */
-+	mutex_lock(&id_priv->handler_mutex);
-+	mutex_unlock(&id_priv->handler_mutex);
-+
- 	if (id_priv->cma_dev) {
--		mutex_unlock(&lock);
- 		switch (rdma_node_get_transport(id_priv->id.device->node_type)) {
- 		case RDMA_TRANSPORT_IB:
- 			if (id_priv->cm_id.ib && !IS_ERR(id_priv->cm_id.ib))
-@@ -920,10 +929,8 @@ void rdma_destroy_id(struct rdma_cm_id *id)
- 			break;
- 		}
- 		cma_leave_mc_groups(id_priv);
--		mutex_lock(&lock);
--		cma_detach_from_dev(id_priv);
-+		cma_release_dev(id_priv);
- 	}
--	mutex_unlock(&lock);
- 
- 	cma_release_port(id_priv);
- 	cma_deref_id(id_priv);
-@@ -1200,9 +1207,7 @@ static int cma_req_handler(struct ib_cm_id *cm_id, struct ib_cm_event *ib_event)
- 	}
- 
- 	mutex_lock_nested(&conn_id->handler_mutex, SINGLE_DEPTH_NESTING);
--	mutex_lock(&lock);
- 	ret = cma_acquire_dev(conn_id);
--	mutex_unlock(&lock);
- 	if (ret)
- 		goto release_conn_id;
- 
-@@ -1401,9 +1406,7 @@ static int iw_conn_req_handler(struct iw_cm_id *cm_id,
- 		goto out;
- 	}
- 
--	mutex_lock(&lock);
- 	ret = cma_acquire_dev(conn_id);
--	mutex_unlock(&lock);
- 	if (ret) {
- 		mutex_unlock(&conn_id->handler_mutex);
- 		rdma_destroy_id(new_cm_id);
-@@ -1966,20 +1969,11 @@ static void addr_handler(int status, struct sockaddr *src_addr,
- 
- 	memset(&event, 0, sizeof event);
- 	mutex_lock(&id_priv->handler_mutex);
--
--	/*
--	 * Grab mutex to block rdma_destroy_id() from removing the device while
--	 * we're trying to acquire it.
--	 */
--	mutex_lock(&lock);
--	if (!cma_comp_exch(id_priv, CMA_ADDR_QUERY, CMA_ADDR_RESOLVED)) {
--		mutex_unlock(&lock);
-+	if (!cma_comp_exch(id_priv, CMA_ADDR_QUERY, CMA_ADDR_RESOLVED))
- 		goto out;
--	}
- 
- 	if (!status && !id_priv->cma_dev)
- 		status = cma_acquire_dev(id_priv);
--	mutex_unlock(&lock);
- 
- 	if (status) {
- 		if (!cma_comp_exch(id_priv, CMA_ADDR_RESOLVED, CMA_ADDR_BOUND))
-@@ -2280,9 +2274,7 @@ int rdma_bind_addr(struct rdma_cm_id *id, struct sockaddr *addr)
- 		if (ret)
- 			goto err1;
- 
--		mutex_lock(&lock);
- 		ret = cma_acquire_dev(id_priv);
--		mutex_unlock(&lock);
- 		if (ret)
- 			goto err1;
- 	}
-@@ -2294,11 +2286,8 @@ int rdma_bind_addr(struct rdma_cm_id *id, struct sockaddr *addr)
- 
- 	return 0;
- err2:
--	if (id_priv->cma_dev) {
--		mutex_lock(&lock);
--		cma_detach_from_dev(id_priv);
--		mutex_unlock(&lock);
--	}
-+	if (id_priv->cma_dev)
-+		cma_release_dev(id_priv);
- err1:
- 	cma_comp_exch(id_priv, CMA_ADDR_BOUND, CMA_IDLE);
- 	return ret;
+>  
+> @@ -269,14 +277,14 @@ void osm_pkey_rec_rcv_process(IN void *ctx, IN void *data)
+>  	context.p_list = &rec_list;
+>  	context.comp_mask = p_rcvd_mad->comp_mask;
+>  	context.sa = sa;
+> -	context.block_num = p_rcvd_rec->block_num;
+> +	context.block_num = cl_ntoh16(p_rcvd_rec->block_num);
+>  	context.p_req_physp = p_req_physp;
+>  
+>  	OSM_LOG(sa->p_log, OSM_LOG_DEBUG,
+>  		"Got Query Lid:%u(%02X), Block:0x%02X(%02X), Port:0x%02X(%02X)\n",
+>  		cl_ntoh16(p_rcvd_rec->lid),
+>  		(comp_mask & IB_PKEY_COMPMASK_LID) != 0, p_rcvd_rec->port_num,
+> -		(comp_mask & IB_PKEY_COMPMASK_PORT) != 0, p_rcvd_rec->block_num,
+> +		(comp_mask & IB_PKEY_COMPMASK_PORT) != 0, context.block_num,
+>  		(comp_mask & IB_PKEY_COMPMASK_BLOCK) != 0);
+>  
+>  	cl_plock_acquire(sa->p_lock);
+> -- 
+> 1.7.1
+> 
 
-
+Alex
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
