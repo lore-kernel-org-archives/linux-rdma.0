@@ -1,69 +1,89 @@
-From: Mike Heinz <michael.heinz-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-Subject: RE: [PATCH 0/2] Improved node descriptions
-Date: Wed, 23 Feb 2011 15:02:31 -0600
-Message-ID: <4C2744E8AD2982428C5BFE523DF8CDCB4A20B28D7C@MNEXMB1.qlogic.org>
+From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+Subject: Re: [PATCH 0/2] Improved node descriptions
+Date: Wed, 23 Feb 2011 13:56:52 -0800
+Message-ID: <20110223135652.21a77482.weiny2@llnl.gov>
 References: <20110217213017.25708.95042.stgit@homer>
- <AANLkTim5MrHMVjaNFtHeWBy82dag4XNxdBcjBEW+d1yb@mail.gmail.com>
- <20110219192458.GB4506@obsidianresearch.com>
- <4C2744E8AD2982428C5BFE523DF8CDCB4A20B28B17@MNEXMB1.qlogic.org>
- <AANLkTi=1rmRckZz1iAXLpakf5bMuBp4koGOyO-FUDz_M@mail.gmail.com>
+	<AANLkTim5MrHMVjaNFtHeWBy82dag4XNxdBcjBEW+d1yb@mail.gmail.com>
+	<20110219192458.GB4506@obsidianresearch.com>
+	<4C2744E8AD2982428C5BFE523DF8CDCB4A20B28B17@MNEXMB1.qlogic.org>
+	<AANLkTi=1rmRckZz1iAXLpakf5bMuBp4koGOyO-FUDz_M@mail.gmail.com>
+	<20110222234304.GA21731@obsidianresearch.com>
+	<AANLkTink3ec2O8-ExPuJpJd5j_Y0UtiL=QtM0rrmZR88@mail.gmail.com>
+	<20110223054151.GA2363@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <AANLkTi=1rmRckZz1iAXLpakf5bMuBp4koGOyO-FUDz_M-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <20110223054151.GA2363-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Mike Heinz <michael.heinz-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-I had actually submitted a patch back in June of last year that did set the default policy to be the hostname & device but looking back through my records I can't find the reason it was never explicitly rejected - it got limited feedback and just wasn't ever added to Linux-rdma. (I'm not sure how to learn the final disposition of proposed patches.) Maybe it was a coding style or formatting issue?
+On Tue, 22 Feb 2011 21:41:52 -0800
+Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
 
-Right now the HCAs default to a description of the HCA model. I can certainly create a patch that sets the default descriptions to "%h: %d (device description)" if that's what you want.  We certainly need something that's widely applicable, not distribution specific and lets large clusters manage their nodes effectively.
+> On Tue, Feb 22, 2011 at 04:03:29PM -0800, Roland Dreier wrote:
+> > On Tue, Feb 22, 2011 at 3:43 PM, Jason Gunthorpe
+> > <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
+> > > Doing it in userspace makes generating the node description changed
+> > > trap simpler?
+> > 
+> > Hmm... how many places can do sethostname()?  Seems easier to
+> > catch in the kernel than hook every place in userspace.  (Although
+> > there's no kernel hook right now)  I do agree it would be good to
+> > have some idea of how we could generate the "node desc changed"
+> > trap at appropriate times.
+> 
+> Wasn't thinking about 100% perfection, just if DHCP is the concern it
+> shouldn't be hard to hook that one place.
 
------Original Message-----
-From: roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org [mailto:roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org] On Behalf Of Roland Dreier
-Sent: Tuesday, February 22, 2011 6:14 PM
-To: Mike Heinz
-Cc: Jason Gunthorpe; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Subject: Re: [PATCH 0/2] Improved node descriptions
+I like the idea of having a way to tie node description to the hostname.  It just makes sense.  The question in my mind is will upstream accept a hook in sethostname?  Generally it seems like a good idea, perhaps other subsystems would want to know about it.  But it does seem like it might not get accepted.
 
-On Mon, Feb 21, 2011 at 11:26 AM, Mike Heinz <michael.heinz-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org> wrote:
-> The biggest problem with that is that patching existing boot scripts
-> is always going to vary from distro to distro and is always going to
-> have problems when dealing with files that were already edited for
-> site-specific reasons.
+> 
+> > > I just wonder if this is a big pain to do right, what about charsets, IDN,
+> > > and ugly details like that?
+> > 
+> > Does anyone expect to care about non-ASCII node descs?
+> > What can we sensibly do except take what we're given?
+> 
+> node desc is UTF-8, hostname is IDNA, a conversion is required, see RFC
+> 3490.
 
-This is the wrong way to look at it.  Really it would make sense in
-the long term to add required support to native distros -- piling hack
-on hack in OFED is clearly a long-term disaster.  So I don't think
-saying "it's hard to make a single RPM" is a very good argument.
+For what it is worth none of the diags or OpenSM support UTF-8.  I'll add it to the list of things to do.  ;-)
 
-With that said I think we should look at where it makes sense to
-implement this sort of thing.  Just because we can do something with
-scripts in userspace doesn't necessarily mean we have to do it there
--- if it's much simpler or more robust in the kernel, then we can
-implement it there.
+I don't know much about IDNA but it seems that ASCII is a subset of IDNA as well as UTF-8.  Perhaps a check for ASCII in the hostname would suffice to at least make this work for ASCII hostnames only.  (That should cover a significant portion of the hosts out there, if not all of them.)
 
-In this case I do think it makes sense to add this support to the
-kernel, since the kernel handling is so simple.  In fact based on
-Jack's question it might make sense to go further and have more
-flexible expansion... what if we do something like adding primitive
-format expansion, ie
+> 
+> Does anyone care? Who knows, but very pedantically it is wrong to just copy
+> the host name byte by byte. I only mention it to point out that it is 
+> trivial to do what Mike did, somewhat harder to do % escaping like you
+> suggest and solve the multiple HCA problem, harder still to trap
+> sethostname() and generate a trap, and extra special hard to correctly
+> handle character sets on top of all that. :)
+> 
+> So, is it still trivial to do it in the kernel?
 
-    %h --> expands to current hostname
-    %d --> expands to ib_device->name
+Looking at the latest code it seems that setting the node descriptor for mlx4 and qib will result in a trap 144 being set.  A hook in sethostname which results in the regeneration of the node description and the generation of the trap seems pretty easy.  So, from a technical side I think the answer is "yes" it is pretty easy.
 
-Then one could have a trivial script that just does 'for every IB
-device, prepend "%h/%d: " to the node description.'  And I guess we
-could even talk about making that the default kernel policy.
+That said getting that hook into sethostname might be harder to get upstream than just writing the code.  I can't comment on that because I don't have any idea how hard that would be.  :-(
 
-Not sure what Jason or others thinks about this opinion...
+Ira
+
+> 
+> Jason
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
 
-This message and any attached documents contain information from QLogic Corporation or its wholly-owned subsidiaries that may be confidential. If you are not the intended recipient, you may not read, copy, distribute, or use this information. If you have received this transmission in error, please notify the sender immediately by reply e-mail and then delete this message.
-
+-- 
+Ira Weiny
+Math Programmer/Computer Scientist
+Lawrence Livermore National Lab
+925-423-8008
+weiny2-i2BcT+NCU+M@public.gmane.org
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
