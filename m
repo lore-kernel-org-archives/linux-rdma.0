@@ -1,293 +1,76 @@
-From: Tanin <fanqielee-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: Installation problems of OFED-1.5.2
-Date: Wed, 23 Feb 2011 17:38:04 -0500
-Message-ID: <AANLkTimuf9DN1W8zvrTD2jhgqbx+V0EifBUOo8OxVKEZ@mail.gmail.com>
-References: <AANLkTi=s7YtdX2+bb4pLY035OXQSqyf21JuxatDCL=N_@mail.gmail.com>
-	<4D64CFEA.1030805@dev.mellanox.co.il>
-	<AANLkTinLQ0zo1jbENOAoaDTVi6dmpPn3zTSfY12q-gxf@mail.gmail.com>
-	<AANLkTimXs07EaMp0Q4WgJ0gX3sPp9tsqURGdKc=sxEyo@mail.gmail.com>
+From: Michael Heinz <michael.heinz-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH v2 0/2] Improved Node Descriptions
+Date: Wed, 23 Feb 2011 21:24:38 -0500
+Message-ID: <20110224022124.26808.62012.stgit@homer>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============0468991359=="
-Return-path: <ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
-In-Reply-To: <AANLkTimXs07EaMp0Q4WgJ0gX3sPp9tsqURGdKc=sxEyo-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-List-Unsubscribe: <http://lists.openfabrics.org/cgi-bin/mailman/options/ewg>,
-	<mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.openfabrics.org/pipermail/ewg>
-List-Post: <mailto:ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
-List-Help: <mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=help>
-List-Subscribe: <http://lists.openfabrics.org/cgi-bin/mailman/listinfo/ewg>,
-	<mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=subscribe>
-Sender: ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
-Errors-To: ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
-To: Vladimir Sokolovsky <vlad-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, OpenFabrics EWG <ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, michael.heinz-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org
+Cc: todd.rimmer-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
---===============0468991359==
-Content-Type: multipart/alternative; boundary=001485eba1e807ce3e049cfac07a
+The common practice in IB fabrics is to set the description of an HCA to be 
+the hostname of the machine plus a description (i.e., "myhost hca-1", "myhost 
+hca-2", etc..)
 
---001485eba1e807ce3e049cfac07a
-Content-Type: text/plain; charset=ISO-8859-1
+This has a limitation, however.  The first is that if the machine's hostname 
+is set via DHCP, the HCA description may be set before the hostname is, leading 
+to an incorrect description. This can also occur if the machine's hostname 
+changes for some other reason after boot.
 
-OK, every thing works fine after reboot. Thanks so much for all of your
-help. Have a nice day!
+This can cause difficulties and confusion when trying to maintain a large 
+fabric - if all your nodes are described as "localhost HCA-1" it can be very 
+difficult to figure out which node is suffering from symbol errors.
 
-On Wed, Feb 23, 2011 at 2:24 PM, Tanin <fanqielee-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
+This patch addresses the problem by providing a function to build the node 
+description. If the provided source string for the description contains a '%h' 
+it will be replaced at read time with the hostname of the node. If the provided 
+source string contains a '%d' it will be replaced at read time with the name of 
+the HCA.  For example, the first Mellanox HCA on a node called "homer" would 
+have the default description:
 
-> I think I also need iw_nes driver for my RNIC card, right?
->
-> [litan@tera05 init.d]$ /sbin/lspci
-> Ethernet controller: NetEffect NE020 10Gb Accelerated Ethernet Adapter
-> (iWARP RNIC) (rev 05)
->
->
->   On Wed, Feb 23, 2011 at 2:02 PM, Tanin <fanqielee-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
->
->> Oh, yes. Thanks so much! After uninstall all libibverbs packages, the
->> OFED-1.5.3-rc5 successfully passed all building process:
->>
->>
->> Install iscsi-initiator-utils RPM:
->> Running rpm -iv
->> /atlas/data18a/litan/OFED-1.5.3-rc5/RPMS/sl-release-5.5-1/x86_64/iscsi-initiator-utils-2.0-869.2.x86_64.rpm
->>
->> The default IPoIB interface configuration is based on DHCP.
->> Note that a special patch for DHCP is required for supporting IPoIB.
->> The patch is available under docs/dhcp
->> If you do not have DHCP, you must change this configuration in the
->> following steps.
->> IPoIB interfaces configured successfully
->> Press any key to continue ...
->> Installation finished successfully.
->> Press any key to continue...
->>
->> It seems that the IPoIB is not configured due to DHCP issues.
->>
->> And the OFED tools did not work also:
->>
->> [litan@tera05 OFED-1.5.3-rc5]$ sudo ibv_devinfo
->> Failed to get IB devices list: Function not implemented
->> [litan@tera05 OFED-1.5.3-rc5]$ sudo ibstat
->> sudo: ibstat: command not found
->>
->>
->>
->>
->>
->>
->> On Wed, Feb 23, 2011 at 4:14 AM, Vladimir Sokolovsky <
->> vlad-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wrote:
->>
->>> On 02/23/2011 05:12 AM, Tanin wrote:
->>>
->>>>  Dear all,
->>>>
->>>> I have recompiled the kernel to 2.6.18, and try to install  OFED-1.5.2
->>>> instead.
->>>>
->>>> Now the kernel version is
->>>>
->>>> [litan@tera04 OFED-1.5.2]$ uname -a
->>>> Linux tera04.ultralight.org 2.6.18-prep #1 SMP Tue Feb 22 18:51:00 EST
->>>> 2011
->>>> x86_64 x86_64 x86_64 GNU/Linux
->>>>
->>>>
->>>> I have the full log file in the attachment. Dose it related to that I
->>>> try
->>>> many times to install different version of OFED? Thanks a million!
->>>>
->>>>
->>> OFED's backport system is rely on kernel version.
->>> So, changing kernel version changes the set of patches and headers to be
->>> used for the compilation.
->>> You should keep the kernel version as close as possible to the original
->>> version.
->>> E.g.:
->>> If you compile 2.6.18 from kernel.org then you can name it 2.6.18-prep
->>> But, if you recompile 2.6.18-164.el5, then you should name it
->>>  2.6.18-164.<any extension>.el5
->>>
->>> Regards,
->>> Vladimir
->>>
->>
->>
->>
->>  --
->> Best regards,
->>
->>
->> -----------------------------------------------------------------------------------------------
->> Li, Tan
->> PhD Candidate & Research Assistant,
->> Electrical Engineering,
->> Stony Brook University, NY
->>
->> Personal Web Site: https://sites.google.com/site/homepagelitan/Home
->>
->> Email: fanqielee-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
->>
->>
->
->
-> --
-> Best regards,
->
->
-> -----------------------------------------------------------------------------------------------
-> Li, Tan
-> PhD Candidate & Research Assistant,
-> Electrical Engineering,
-> Stony Brook University, NY
->
-> Personal Web Site: https://sites.google.com/site/homepagelitan/Home
->
-> Email: fanqielee-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
->
->
+homer: mthca0 MT25208 InfiniHostEx Mellanox Technologies
 
+While the default description for the second QLogic HCA on node-a13 would be: 
+
+node-a2: qib0 QLogic kernel.org driver
+
+This ensures that even after a fabric has been completely initialized, if a 
+node's hostname changes, that change will be reflected in the next sweep of the 
+SM, but also maintains compatibility with existing code since the behavior is 
+unchanged if the description string does not contain a '%' character.
+
+Changes from Version 1:
+
+Replaced the original substitution of the hostname for '@' with an 
+implementation of the '%h' and '%d' fields, and changed the default node 
+description for Mellanox and QLogic HCA types to default to 
+"%h: %d <description>" where '<description>' is the old default message.
+
+---
+
+Michael Heinz (2):
+      Function for improved node descriptions
+      Add support for ib_build_node_desc() to the HCAs.
+
+
+ drivers/infiniband/core/mad.c                |   33 ++++++++++++++++++++++++++
+ drivers/infiniband/hw/ipath/ipath_mad.c      |    2 +-
+ drivers/infiniband/hw/ipath/ipath_verbs.c    |    4 ++-
+ drivers/infiniband/hw/mlx4/mad.c             |    2 +-
+ drivers/infiniband/hw/mlx4/main.c            |    3 ++
+ drivers/infiniband/hw/mthca/mthca_mad.c      |    2 +-
+ drivers/infiniband/hw/mthca/mthca_provider.c |    3 ++
+ drivers/infiniband/hw/qib/qib_mad.c          |    2 +-
+ drivers/infiniband/hw/qib/qib_verbs.c        |    2 +-
+ include/rdma/ib_mad.h                        |    9 +++++++
+ 10 files changed, 53 insertions(+), 9 deletions(-)
 
 -- 
-Best regards,
-
------------------------------------------------------------------------------------------------
-Li, Tan
-PhD Candidate & Research Assistant,
-Electrical Engineering,
-Stony Brook University, NY
-
-Personal Web Site: https://sites.google.com/site/homepagelitan/Home
-
-Email: fanqielee-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
-
---001485eba1e807ce3e049cfac07a
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-
-OK, every thing works fine after reboot. Thanks so much for all of your hel=
-p. Have a nice day!<br><br>
-<div class=3D"gmail_quote">On Wed, Feb 23, 2011 at 2:24 PM, Tanin <span dir=
-=3D"ltr">&lt;<a href=3D"mailto:fanqielee-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org">fanqielee-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org</a>=
-&gt;</span> wrote:<br>
-<blockquote style=3D"BORDER-LEFT: #ccc 1px solid; MARGIN: 0px 0px 0px 0.8ex=
-; PADDING-LEFT: 1ex" class=3D"gmail_quote">
-<div>I think I also need iw_nes driver for my RNIC card, right?</div>
-<div>=A0</div>
-<div>[litan@tera05 init.d]$ /sbin/lspci</div>
-<div>Ethernet controller: NetEffect NE020 10Gb Accelerated Ethernet Adapter=
- (iWARP RNIC) (rev 05)<br><br><br></div>
-<div>
-<div></div>
-<div class=3D"h5">
-<div class=3D"gmail_quote">On Wed, Feb 23, 2011 at 2:02 PM, Tanin <span dir=
-=3D"ltr">&lt;<a href=3D"mailto:fanqielee-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" target=3D"_blank">fanqi=
-elee-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org</a>&gt;</span> wrote:<br>
-<blockquote style=3D"BORDER-LEFT: #ccc 1px solid; MARGIN: 0px 0px 0px 0.8ex=
-; PADDING-LEFT: 1ex" class=3D"gmail_quote">
-<div>Oh, yes. Thanks so much!=A0After uninstall all libibverbs packages, th=
-e OFED-1.5.3-rc5 successfully passed all building process:</div>
-<div>=A0</div>
-<div>=A0</div>
-<div>Install iscsi-initiator-utils RPM:<br>Running rpm -iv=A0 /atlas/data18=
-a/litan/OFED-1.5.3-rc5/RPMS/sl-release-5.5-1/x86_64/iscsi-initiator-utils-2=
-.0-869.2.x86_64.rpm</div>
-<div>=A0</div>
-<div><font color=3D"#3333ff">The default IPoIB interface configuration is b=
-ased on DHCP.<br>Note that a special patch for DHCP is required for support=
-ing IPoIB.<br>The patch is available under docs/dhcp<br>If you do not have =
-DHCP, you must change this configuration in the following steps.<br>
-</font><font color=3D"#66ff99">IPoIB interfaces configured successfully<br>=
-</font>Press any key to continue ...</div>
-<div>Installation finished successfully.<br><font color=3D"#66cccc">Press a=
-ny key to continue...<br></font></div>
-<div><br>It seems=A0that the IPoIB is not configured due to DHCP issues.</d=
-iv>
-<div>=A0</div>
-<div>And the OFED tools did not work also:</div>
-<div>=A0</div>
-<div>[litan@tera05 OFED-1.5.3-rc5]$ sudo ibv_devinfo<br>Failed to get IB de=
-vices list: Function not implemented<br></div>
-<div>[litan@tera05 OFED-1.5.3-rc5]$ sudo ibstat<br>sudo: ibstat: command no=
-t found<br></div>
-<div>
-<div></div>
-<div>
-<div>=A0</div>
-<div>=A0</div>
-<div>=A0</div>
-<div>=A0</div>
-<div><br>=A0</div>
-<div class=3D"gmail_quote">On Wed, Feb 23, 2011 at 4:14 AM, Vladimir Sokolo=
-vsky <span dir=3D"ltr">&lt;<a href=3D"mailto:vlad-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org" targe=
-t=3D"_blank">vlad-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org</a>&gt;</span> wrote:<br>
-<blockquote style=3D"BORDER-LEFT: #ccc 1px solid; MARGIN: 0px 0px 0px 0.8ex=
-; PADDING-LEFT: 1ex" class=3D"gmail_quote">
-<div>On 02/23/2011 05:12 AM, Tanin wrote:<br></div>
-<blockquote style=3D"BORDER-LEFT: #ccc 1px solid; MARGIN: 0px 0px 0px 0.8ex=
-; PADDING-LEFT: 1ex" class=3D"gmail_quote">
-<div>=A0Dear all,<br><br>I have recompiled the kernel to 2.6.18, and try to=
- install =A0OFED-1.5.2<br>instead.<br><br>Now the kernel version is<br><br>=
-[litan@tera04 OFED-1.5.2]$ uname -a<br>Linux <a href=3D"http://tera04.ultra=
-light.org/" target=3D"_blank">tera04.ultralight.org</a> 2.6.18-prep #1 SMP =
-Tue Feb 22 18:51:00 EST 2011<br>
-x86_64 x86_64 x86_64 GNU/Linux<br><br><br></div>
-<div>I have the full log file in the attachment. Dose it related to that I =
-try<br>many times to install different version of OFED? Thanks a million!<b=
-r><br></div></blockquote><br>OFED&#39;s backport system is rely on kernel v=
-ersion.<br>
-So, changing kernel version changes the set of patches and headers to be us=
-ed for the compilation.<br>You should keep the kernel version as close as p=
-ossible to the original version.<br>E.g.:<br>If you compile 2.6.18 from <a =
-href=3D"http://kernel.org/" target=3D"_blank">kernel.org</a> then you can n=
-ame it 2.6.18-prep<br>
-But, if you recompile 2.6.18-164.el5, then you should name it =A02.6.18-164=
-.&lt;any extension&gt;.el5<br><br>Regards,<br><font color=3D"#888888">Vladi=
-mir<br></font></blockquote></div><br><br clear=3D"all"><br></div></div>
-<div>
-<div></div>
-<div>-- <br>
-<div>Best regards,</div>
-<div>=A0</div>
-<div>----------------------------------------------------------------------=
--------------------------<br>Li, Tan<br>PhD=A0Candidate &amp; Research Assi=
-stant, <br>Electrical Engineering, <br>Stony Brook University, NY<br><br>
-Personal Web Site: <a href=3D"https://sites.google.com/site/homepagelitan/H=
-ome" target=3D"_blank">https://sites.google.com/site/homepagelitan/Home</a>=
-<br><br>Email: <a href=3D"mailto:fanqielee-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" target=3D"_blank">fan=
-qielee-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org</a></div>
-<br></div></div></blockquote></div><br><br clear=3D"all"><br>-- <br>
-<div>Best regards,</div>
-<div>=A0</div>
-<div>----------------------------------------------------------------------=
--------------------------<br>Li, Tan<br>PhD=A0Candidate &amp; Research Assi=
-stant, <br>Electrical Engineering, <br>Stony Brook University, NY<br><br>
-Personal Web Site: <a href=3D"https://sites.google.com/site/homepagelitan/H=
-ome" target=3D"_blank">https://sites.google.com/site/homepagelitan/Home</a>=
-<br><br>Email: <a href=3D"mailto:fanqielee-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" target=3D"_blank">fan=
-qielee-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org</a></div>
-<br></div></div></blockquote></div><br><br clear=3D"all"><br>-- <br>
-<div>Best regards,</div>
-<div>=A0</div>
-<div>----------------------------------------------------------------------=
--------------------------<br>Li, Tan<br>PhD=A0Candidate &amp; Research Assi=
-stant, <br>Electrical Engineering, <br>Stony Brook University, NY<br><br>
-Personal Web Site: <a href=3D"https://sites.google.com/site/homepagelitan/H=
-ome" target=3D"_blank">https://sites.google.com/site/homepagelitan/Home</a>=
-<br><br>Email: <a href=3D"mailto:fanqielee-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" target=3D"_blank">fan=
-qielee-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org</a></div>
-<br>
-
---001485eba1e807ce3e049cfac07a--
-
---===============0468991359==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-ewg mailing list
-ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
-http://lists.openfabrics.org/cgi-bin/mailman/listinfo/ewg
---===============0468991359==--
+Signed-off-by: Michael Heinz <michael.heinz-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
