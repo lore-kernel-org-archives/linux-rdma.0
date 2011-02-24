@@ -1,78 +1,115 @@
 From: Mike Heinz <michael.heinz-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-Subject: RE: [PATCH 0/2] Improved node descriptions
-Date: Wed, 23 Feb 2011 20:31:00 -0600
-Message-ID: <4C2744E8AD2982428C5BFE523DF8CDCB4A20B28DA7@MNEXMB1.qlogic.org>
-References: <20110217213017.25708.95042.stgit@homer>
- <AANLkTim5MrHMVjaNFtHeWBy82dag4XNxdBcjBEW+d1yb@mail.gmail.com>
- <20110219192458.GB4506@obsidianresearch.com>
- <4C2744E8AD2982428C5BFE523DF8CDCB4A20B28B17@MNEXMB1.qlogic.org>
- <AANLkTi=1rmRckZz1iAXLpakf5bMuBp4koGOyO-FUDz_M@mail.gmail.com>
- <20110222234304.GA21731@obsidianresearch.com>
- <AANLkTink3ec2O8-ExPuJpJd5j_Y0UtiL=QtM0rrmZR88@mail.gmail.com>
- <20110223054151.GA2363@obsidianresearch.com>
+Subject: RE: [PATCH v2 1/2] Function for improved node descriptions
+Date: Wed, 23 Feb 2011 20:33:53 -0600
+Message-ID: <4C2744E8AD2982428C5BFE523DF8CDCB4A20B28DA8@MNEXMB1.qlogic.org>
+References: <20110224022124.26808.62012.stgit@homer>
+ <20110224022443.26808.39858.stgit@homer>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20110223054151.GA2363-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <20110224022443.26808.39858.stgit@homer>
 Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Jason,
-
-While I do think supporting the trap would be a great idea going forward, I don't see any reason why it couldn't be combined with this patch when we figure out how to detect the hostname change.
-
-For example, it would be great for me as a developer to be able to flag a group of machines as being dedicated to me, by setting their node descriptions to "%h: %d Mike's MPI Testbed" or similar.
-
-I could echo that into the node description at boot time and, if the host name changes afterwards, still have a trap triggered (somehow) to inform the SM of the change.
-
------Original Message-----
-From: Jason Gunthorpe [mailto:jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org]
-Sent: Wednesday, February 23, 2011 12:42 AM
-To: Roland Dreier
-Cc: Mike Heinz; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Subject: Re: [PATCH 0/2] Improved node descriptions
-
-On Tue, Feb 22, 2011 at 04:03:29PM -0800, Roland Dreier wrote:
-> On Tue, Feb 22, 2011 at 3:43 PM, Jason Gunthorpe
-> <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
-> > Doing it in userspace makes generating the node description changed
-> > trap simpler?
->
-> Hmm... how many places can do sethostname()?  Seems easier to
-> catch in the kernel than hook every place in userspace.  (Although
-> there's no kernel hook right now)  I do agree it would be good to
-> have some idea of how we could generate the "node desc changed"
-> trap at appropriate times.
-
-Wasn't thinking about 100% perfection, just if DHCP is the concern it
-shouldn't be hard to hook that one place.
-
-> > I just wonder if this is a big pain to do right, what about charsets, IDN,
-> > and ugly details like that?
->
-> Does anyone expect to care about non-ASCII node descs?
-> What can we sensibly do except take what we're given?
-
-node desc is UTF-8, hostname is IDNA, a conversion is required, see RFC
-3490.
-
-Does anyone care? Who knows, but very pedantically it is wrong to just copy
-the host name byte by byte. I only mention it to point out that it is
-trivial to do what Mike did, somewhat harder to do % escaping like you
-suggest and solve the multiple HCA problem, harder still to trap
-sethostname() and generate a trap, and extra special hard to correctly
-handle character sets on top of all that. :)
-
-So, is it still trivial to do it in the kernel?
-
-Jason
-
-
-This message and any attached documents contain information from QLogic Corporation or its wholly-owned subsidiaries that may be confidential. If you are not the intended recipient, you may not read, copy, distribute, or use this information. If you have received this transmission in error, please notify the sender immediately by reply e-mail and then delete this message.
+VWdoLg0KDQpJIHJlYWxpemVkIGFmdGVyIEkgc2VudCB0aGlzIHRoYXQgSSBmb3Jnb3QgdG8gZ28g
+YmFjayBhbmQgYWRkIHRoZSBkZWZhdWx0IGNhc2UgdG8gdGhlIHBhcnNpbmcgZnVuY3Rpb24uIFdl
+bGwsIGxldCdzIHRhbGsgYWJvdXQgdGhpcyB2ZXJzaW9uIGFuZCBmaWd1cmUgb3V0IGlmIGFueXRo
+aW5nIGVsc2UgbmVlZHMgdG8gY2hhbmdlLg0KDQotLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0K
+RnJvbTogTWljaGFlbCBIZWlueiBbbWFpbHRvOm1pY2hhZWwuaGVpbnpAcWxvZ2ljLmNvbV0NClNl
+bnQ6IFdlZG5lc2RheSwgRmVicnVhcnkgMjMsIDIwMTEgOToyNSBQTQ0KVG86IHJvbGFuZEBrZXJu
+ZWwub3JnOyBsaW51eC1yZG1hQHZnZXIua2VybmVsLm9yZzsgTWlrZSBIZWlueg0KQ2M6IFRvZGQg
+UmltbWVyDQpTdWJqZWN0OiBbUEFUQ0ggdjIgMS8yXSBGdW5jdGlvbiBmb3IgaW1wcm92ZWQgbm9k
+ZSBkZXNjcmlwdGlvbnMNCg0KVGhlIGNvbW1vbiBwcmFjdGljZSBpbiBJQiBmYWJyaWNzIGlzIHRv
+IHNldCB0aGUgZGVzY3JpcHRpb24gb2YgYW4gSENBIHRvIGJlIHRoZSBob3N0bmFtZSBvZiB0aGUg
+bWFjaGluZSBwbHVzIGEgZGVzY3JpcHRpb24gKGkuZS4sICJteWhvc3QgaGNhLTEiLCAibXlob3N0
+IGhjYS0yIiwgZXRjLi4pDQoNClRoaXMgaGFzIGEgbGltaXRhdGlvbiwgaG93ZXZlci4gIFRoZSBm
+aXJzdCBpcyB0aGF0IGlmIHRoZSBtYWNoaW5lJ3MgaG9zdG5hbWUgaXMgc2V0IHZpYSBESENQLCB0
+aGUgSENBIGRlc2NyaXB0aW9uIG1heSBiZSBzZXQgYmVmb3JlIHRoZSBob3N0bmFtZSBpcywgbGVh
+ZGluZyB0byBhbiBpbmNvcnJlY3QgZGVzY3JpcHRpb24uIFRoaXMgY2FuIGFsc28gb2NjdXIgaWYg
+dGhlIG1hY2hpbmUncyBob3N0bmFtZSBjaGFuZ2VzIGZvciBzb21lIG90aGVyIHJlYXNvbiBhZnRl
+ciBib290Lg0KDQpUaGlzIGNhbiBjYXVzZSBkaWZmaWN1bHRpZXMgYW5kIGNvbmZ1c2lvbiB3aGVu
+IHRyeWluZyB0byBtYWludGFpbiBhIGxhcmdlIGZhYnJpYyAtIGlmIGFsbCB5b3VyIG5vZGVzIGFy
+ZSBkZXNjcmliZWQgYXMgImxvY2FsaG9zdCBIQ0EtMSIgaXQgY2FuIGJlIHZlcnkgZGlmZmljdWx0
+IHRvIGZpZ3VyZSBvdXQgd2hpY2ggbm9kZSBpcyBzdWZmZXJpbmcgZnJvbSBzeW1ib2wgZXJyb3Jz
+Lg0KDQpUaGlzIHBhdGNoIGFkZHJlc3NlcyB0aGUgcHJvYmxlbSBieSBwcm92aWRpbmcgYSBmdW5j
+dGlvbiB0byBidWlsZCB0aGUgbm9kZSBkZXNjcmlwdGlvbi4gSWYgdGhlIHByb3ZpZGVkIHNvdXJj
+ZSBzdHJpbmcgZm9yIHRoZSBkZXNjcmlwdGlvbiBjb250YWlucyBhICclaCcgaXQgd2lsbCBiZSBy
+ZXBsYWNlZCBhdCByZWFkIHRpbWUgd2l0aCB0aGUgaG9zdG5hbWUgb2YgdGhlIG5vZGUuIElmIHRo
+ZSBwcm92aWRlZCBzb3VyY2Ugc3RyaW5nIGNvbnRhaW5zIGEgJyVkJyBpdCB3aWxsIGJlIHJlcGxh
+Y2VkIGF0IHJlYWQgdGltZSB3aXRoIHRoZSBuYW1lIG9mIHRoZSBIQ0EuICBGb3IgZXhhbXBsZSwg
+aWYgdGhlIG5vZGUgZGVzY3JpcHRpb24gb2YgdGhlIHNlY29uZCBIQ0Egb24gbm9kZS1hMTMgaXMg
+c2V0IHRvJyVoOiAlZCcsIGF0IHJlYWQgdGltZSB0aGlzIHdpbGwgYmUgZXhwYW5kZWQgdG8gcmVh
+ZCAibm9kZS1hMjogcWliMSIuDQoNClRoaXMgZW5zdXJlcyB0aGF0IGV2ZW4gYWZ0ZXIgYSBmYWJy
+aWMgaGFzIGJlZW4gY29tcGxldGVseSBpbml0aWFsaXplZCwgaWYgYSBub2RlJ3MgaG9zdG5hbWUg
+Y2hhbmdlcywgdGhhdCBjaGFuZ2Ugd2lsbCBiZSByZWZsZWN0ZWQgaW4gdGhlIG5leHQgc3dlZXAg
+b2YgdGhlIFNNLCBidXQgYWxzbyBtYWludGFpbnMgY29tcGF0aWJpbGl0eSB3aXRoIGV4aXN0aW5n
+IGNvZGUgc2luY2UgdGhlIGJlaGF2aW9yIGlzIHVuY2hhbmdlZCBpZiB0aGUgZGVzY3JpcHRpb24g
+c3RyaW5nIGRvZXMgbm90IGNvbnRhaW4gYSAnJScgY2hhcmFjdGVyLg0KDQpDaGFuZ2VzIGZyb20g
+VmVyc2lvbiAxOg0KDQpSZXBsYWNlZCB0aGUgb3JpZ2luYWwgc3Vic3RpdHV0aW9uIG9mIHRoZSBo
+b3N0bmFtZSBmb3IgJ0AnIHdpdGggYW4gaW1wbGVtZW50YXRpb24gb2YgdGhlICclaCcgYW5kICcl
+ZCcgZmllbGRzLCBhbmQgY2hhbmdlZCB0aGUgZGVmYXVsdCBub2RlIGRlc2NyaXB0aW9uIGZvciBx
+aWIgYW5kIGlwYXRoIEhDQSB0eXBlcyB0byBkZWZhdWx0IHRvICIlaDogJWQgPGRlc2NyaXB0aW9u
+PiIuDQoNClNpZ25lZC1vZmYtYnk6IE1pY2hhZWwgSGVpbnogPG1pY2hhZWwuaGVpbnpAcWxvZ2lj
+LmNvbT4NCg0KLS0tDQogZHJpdmVycy9pbmZpbmliYW5kL2NvcmUvbWFkLmMgfCAgIDMzICsrKysr
+KysrKysrKysrKysrKysrKysrKysrKysrKysrKw0KIGluY2x1ZGUvcmRtYS9pYl9tYWQuaCAgICAg
+ICAgIHwgICAgOSArKysrKysrKysNCiAyIGZpbGVzIGNoYW5nZWQsIDQyIGluc2VydGlvbnMoKyks
+IDAgZGVsZXRpb25zKC0pDQoNCmRpZmYgLS1naXQgYS9kcml2ZXJzL2luZmluaWJhbmQvY29yZS9t
+YWQuYyBiL2RyaXZlcnMvaW5maW5pYmFuZC9jb3JlL21hZC5jDQppbmRleCA4MjJjZmRjLi5kNTQ2
+OGUxIDEwMDY0NA0KLS0tIGEvZHJpdmVycy9pbmZpbmliYW5kL2NvcmUvbWFkLmMNCisrKyBiL2Ry
+aXZlcnMvaW5maW5pYmFuZC9jb3JlL21hZC5jDQpAQCAtNDEsNiArNDEsNyBAQA0KICNpbmNsdWRl
+ICJtYWRfcm1wcC5oIg0KICNpbmNsdWRlICJzbWkuaCINCiAjaW5jbHVkZSAiYWdlbnQuaCINCisj
+aW5jbHVkZSAibGludXgvdXRzbmFtZS5oIg0KDQogTU9EVUxFX0xJQ0VOU0UoIkR1YWwgQlNEL0dQ
+TCIpOw0KIE1PRFVMRV9ERVNDUklQVElPTigia2VybmVsIElCIE1BRCBBUEkiKTsNCkBAIC05MzIs
+NiArOTMzLDM4IEBAIGludCBpYl9nZXRfbWFkX2RhdGFfb2Zmc2V0KHU4IG1nbXRfY2xhc3MpDQog
+fQ0KIEVYUE9SVF9TWU1CT0woaWJfZ2V0X21hZF9kYXRhX29mZnNldCk7DQoNCit2b2lkIGliX2J1
+aWxkX25vZGVfZGVzYyhzdHJ1Y3QgaWJfc21wICpzbXAsIHN0cnVjdCBpYl9kZXZpY2UgKmRldikN
+Cit7DQorICAgICAgIGNoYXIgKmRlc3QgPSBzbXAtPmRhdGE7DQorICAgICAgIGNoYXIgKmVuZCA9
+IGRlc3QgKyBJQl9TTVBfREFUQV9TSVpFOw0KKyAgICAgICBjaGFyICpzcmMgPSBkZXYtPm5vZGVf
+ZGVzYzsNCisgICAgICAgY2hhciAqZmllbGQ7DQorDQorICAgICAgIHdoaWxlICgqc3JjICYmIChk
+ZXN0IDwgZW5kKSkgew0KKyAgICAgICAgICAgICAgIGlmICgqc3JjICE9ICclJykgew0KKyAgICAg
+ICAgICAgICAgICAgICAgICAgKmRlc3QrKyA9ICpzcmMrKzsNCisgICAgICAgICAgICAgICB9IGVs
+c2Ugew0KKyAgICAgICAgICAgICAgICAgICAgICAgc3JjKys7DQorICAgICAgICAgICAgICAgICAg
+ICAgICBzd2l0Y2ggKCpzcmMpIHsNCisgICAgICAgICAgICAgICAgICAgICAgIGNhc2UgJ2gnOg0K
+KyAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBmaWVsZCA9IGluaXRfdXRzbmFtZSgpLT5u
+b2RlbmFtZTsNCisgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgc3JjKys7DQorICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgIGZvciAoOyAqZmllbGQgJiYgKCpmaWVsZCAhPSAnLicp
+ICYmDQorICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgKGRlc3QgPCBlbmQp
+OykNCisgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAqZGVzdCsrID0gKmZp
+ZWxkKys7DQorICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIGJyZWFrOw0KKyAgICAgICAg
+ICAgICAgICAgICAgICAgY2FzZSAnZCc6DQorICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+IGZpZWxkID0gZGV2LT5uYW1lOw0KKyAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBzcmMr
+KzsNCisgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgZm9yICg7ICpmaWVsZCAmJiAoZGVz
+dCA8IGVuZCk7KQ0KKyAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICpkZXN0
+KysgPSAqZmllbGQrKzsNCisgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgYnJlYWs7DQor
+ICAgICAgICAgICAgICAgICAgICAgICB9DQorICAgICAgICAgICAgICAgfQ0KKyAgICAgICB9DQor
+fQ0KK0VYUE9SVF9TWU1CT0woaWJfYnVpbGRfbm9kZV9kZXNjKTsNCisNCiBpbnQgaWJfaXNfbWFk
+X2NsYXNzX3JtcHAodTggbWdtdF9jbGFzcykNCiB7DQogICAgICAgIGlmICgobWdtdF9jbGFzcyA9
+PSBJQl9NR01UX0NMQVNTX1NVQk5fQURNKSB8fA0KZGlmZiAtLWdpdCBhL2luY2x1ZGUvcmRtYS9p
+Yl9tYWQuaCBiL2luY2x1ZGUvcmRtYS9pYl9tYWQuaA0KaW5kZXggZDNiOTQwMS4uNDE3YTM3MSAx
+MDA2NDQNCi0tLSBhL2luY2x1ZGUvcmRtYS9pYl9tYWQuaA0KKysrIGIvaW5jbHVkZS9yZG1hL2li
+X21hZC5oDQpAQCAtNDAsNiArNDAsNyBAQA0KICNpbmNsdWRlIDxsaW51eC9saXN0Lmg+DQoNCiAj
+aW5jbHVkZSA8cmRtYS9pYl92ZXJicy5oPg0KKyNpbmNsdWRlIDxyZG1hL2liX3NtaS5oPg0KDQog
+LyogTWFuYWdlbWVudCBiYXNlIHZlcnNpb24gKi8NCiAjZGVmaW5lIElCX01HTVRfQkFTRV9WRVJT
+SU9OICAgICAgICAgICAgICAgICAgIDENCkBAIC02MzcsNiArNjM4LDE0IEBAIGludCBpYl9pc19t
+YWRfY2xhc3Nfcm1wcCh1OCBtZ210X2NsYXNzKTsNCiBpbnQgaWJfZ2V0X21hZF9kYXRhX29mZnNl
+dCh1OCBtZ210X2NsYXNzKTsNCg0KIC8qKg0KKyAqIGliX2J1aWxkX25vZGVfZGVzYyAtIGNvcGll
+cyB0aGUgbm9kZSBkZXNjcmlwdGlvbiBhbmQgcmVwbGFjZXMNCisgKiBhbnkgQCBtYXJrZXJzIHdp
+dGggdGhlIHByZXNlbnQgc3lzdGVtIG5vZGUgbmFtZS4NCisgKiBAZGVzdDogZGVzdGluYXRpb24N
+CisgKiBAc3JjOiBzb3VyY2UNCisgKi8NCit2b2lkIGliX2J1aWxkX25vZGVfZGVzYyhzdHJ1Y3Qg
+aWJfc21wICpzbXAsIHN0cnVjdCBpYl9kZXZpY2UgKmRldik7DQorDQorLyoqDQogICogaWJfZ2V0
+X3JtcHBfc2VnbWVudCAtIHJldHVybnMgdGhlIGRhdGEgYnVmZmVyIGZvciBhIGdpdmVuIFJNUFAg
+c2VnbWVudC4NCiAgKiBAc2VuZF9idWY6IFByZXZpb3VzbHkgYWxsb2NhdGVkIHNlbmQgZGF0YSBi
+dWZmZXIuDQogICogQHNlZ19udW06IG51bWJlciBvZiBzZWdtZW50IHRvIHJldHVybg0KDQoNClRo
+aXMgbWVzc2FnZSBhbmQgYW55IGF0dGFjaGVkIGRvY3VtZW50cyBjb250YWluIGluZm9ybWF0aW9u
+IGZyb20gUUxvZ2ljIENvcnBvcmF0aW9uIG9yIGl0cyB3aG9sbHktb3duZWQgc3Vic2lkaWFyaWVz
+IHRoYXQgbWF5IGJlIGNvbmZpZGVudGlhbC4gSWYgeW91IGFyZSBub3QgdGhlIGludGVuZGVkIHJl
+Y2lwaWVudCwgeW91IG1heSBub3QgcmVhZCwgY29weSwgZGlzdHJpYnV0ZSwgb3IgdXNlIHRoaXMg
+aW5mb3JtYXRpb24uIElmIHlvdSBoYXZlIHJlY2VpdmVkIHRoaXMgdHJhbnNtaXNzaW9uIGluIGVy
+cm9yLCBwbGVhc2Ugbm90aWZ5IHRoZSBzZW5kZXIgaW1tZWRpYXRlbHkgYnkgcmVwbHkgZS1tYWls
+IGFuZCB0aGVuIGRlbGV0ZSB0aGlzIG1lc3NhZ2UuDQo=
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
