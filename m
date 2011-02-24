@@ -1,7 +1,7 @@
 From: Michael Heinz <michael.heinz-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v2 1/2] Function for improved node descriptions
-Date: Wed, 23 Feb 2011 21:24:43 -0500
-Message-ID: <20110224022443.26808.39858.stgit@homer>
+Subject: [PATCH v2 2/2] Add support for ib_build_node_desc() to the HCAs.
+Date: Wed, 23 Feb 2011 21:24:49 -0500
+Message-ID: <20110224022449.26808.67272.stgit@homer>
 References: <20110224022124.26808.62012.stgit@homer>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -13,105 +13,133 @@ To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM
 Cc: todd.rimmer-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-The common practice in IB fabrics is to set the description of an HCA to be the hostname of the machine plus a description (i.e., "myhost hca-1", "myhost hca-2", etc..)
-
-This has a limitation, however.  The first is that if the machine's hostname is set via DHCP, the HCA description may be set before the hostname is, leading to an incorrect description. This can also occur if the machine's hostname changes for some other reason after boot.
-
-This can cause difficulties and confusion when trying to maintain a large fabric - if all your nodes are described as "localhost HCA-1" it can be very difficult to figure out which node is suffering from symbol errors.
-
-This patch addresses the problem by providing a function to build the node description. If the provided source string for the description contains a '%h' it will be replaced at read time with the hostname of the node. If the provided source string contains a '%d' it will be replaced at read time with the name of the HCA.  For example, if the node description of the second HCA on node-a13 is set to'%h: %d', at read time this will be expanded to read "node-a2: qib1".
-
-This ensures that even after a fabric has been completely initialized, if a node's hostname changes, that change will be reflected in the next sweep of the SM, but also maintains compatibility with existing code since the behavior is unchanged if the description string does not contain a '%' character.
+Adds support for ib_build_node_desc() to the QLogic and Mellanox HCAs.
 
 Changes from Version 1:
 
-Replaced the original substitution of the hostname for '@' with an implementation of the '%h' and '%d' fields, and changed the default node description for qib and ipath HCA types to default to "%h: %d <description>".
+Changed the default node description for Mellanox and QLogic HCAs to read "%h: %d <description>" where '<description>' is the old default value.
 
 Signed-off-by: Michael Heinz <michael.heinz-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
 
 ---
- drivers/infiniband/core/mad.c |   33 +++++++++++++++++++++++++++++++++
- include/rdma/ib_mad.h         |    9 +++++++++
- 2 files changed, 42 insertions(+), 0 deletions(-)
+ drivers/infiniband/hw/ipath/ipath_mad.c      |    2 +-
+ drivers/infiniband/hw/ipath/ipath_verbs.c    |    4 ++--
+ drivers/infiniband/hw/mlx4/mad.c             |    2 +-
+ drivers/infiniband/hw/mlx4/main.c            |    3 ++-
+ drivers/infiniband/hw/mthca/mthca_mad.c      |    2 +-
+ drivers/infiniband/hw/mthca/mthca_provider.c |    3 ++-
+ drivers/infiniband/hw/qib/qib_mad.c          |    2 +-
+ drivers/infiniband/hw/qib/qib_verbs.c        |    2 +-
+ 8 files changed, 11 insertions(+), 9 deletions(-)
 
-diff --git a/drivers/infiniband/core/mad.c b/drivers/infiniband/core/mad.c
-index 822cfdc..d5468e1 100644
---- a/drivers/infiniband/core/mad.c
-+++ b/drivers/infiniband/core/mad.c
-@@ -41,6 +41,7 @@
- #include "mad_rmpp.h"
- #include "smi.h"
- #include "agent.h"
-+#include "linux/utsname.h"
+diff --git a/drivers/infiniband/hw/ipath/ipath_mad.c b/drivers/infiniband/hw/ipath/ipath_mad.c
+index ceb98ee..387eba7 100644
+--- a/drivers/infiniband/hw/ipath/ipath_mad.c
++++ b/drivers/infiniband/hw/ipath/ipath_mad.c
+@@ -60,7 +60,7 @@ static int recv_subn_get_nodedescription(struct ib_smp *smp,
+ 	if (smp->attr_mod)
+ 		smp->status |= IB_SMP_INVALID_FIELD;
  
- MODULE_LICENSE("Dual BSD/GPL");
- MODULE_DESCRIPTION("kernel IB MAD API");
-@@ -932,6 +933,38 @@ int ib_get_mad_data_offset(u8 mgmt_class)
+-	memcpy(smp->data, ibdev->node_desc, sizeof(smp->data));
++	ib_build_node_desc(smp, ibdev);
+ 
+ 	return reply(smp);
  }
- EXPORT_SYMBOL(ib_get_mad_data_offset);
+diff --git a/drivers/infiniband/hw/ipath/ipath_verbs.c b/drivers/infiniband/hw/ipath/ipath_verbs.c
+index dd7f26d..e8a429e 100644
+--- a/drivers/infiniband/hw/ipath/ipath_verbs.c
++++ b/drivers/infiniband/hw/ipath/ipath_verbs.c
+@@ -2179,8 +2179,8 @@ int ipath_register_ib_device(struct ipath_devdata *dd)
+ 	dev->mmap = ipath_mmap;
+ 	dev->dma_ops = &ipath_dma_mapping_ops;
  
-+void ib_build_node_desc(struct ib_smp *smp, struct ib_device *dev)
-+{
-+	char *dest = smp->data;
-+	char *end = dest + IB_SMP_DATA_SIZE;
-+	char *src = dev->node_desc;
-+	char *field;
-+
-+	while (*src && (dest < end)) {
-+		if (*src != '%') {
-+			*dest++ = *src++;
-+		} else {
-+			src++;
-+			switch (*src) {
-+			case 'h':
-+				field = init_utsname()->nodename;
-+				src++;
-+				for (; *field && (*field != '.') &&
-+					(dest < end);)
-+					*dest++ = *field++;
-+				break;
-+			case 'd':
-+				field = dev->name;
-+				src++;
-+				for (; *field && (dest < end);)
-+					*dest++ = *field++;
-+				break;
-+			}
-+		}
-+	}
-+}
-+EXPORT_SYMBOL(ib_build_node_desc);
-+
- int ib_is_mad_class_rmpp(u8 mgmt_class)
- {
- 	if ((mgmt_class == IB_MGMT_CLASS_SUBN_ADM) ||
-diff --git a/include/rdma/ib_mad.h b/include/rdma/ib_mad.h
-index d3b9401..417a371 100644
---- a/include/rdma/ib_mad.h
-+++ b/include/rdma/ib_mad.h
-@@ -40,6 +40,7 @@
- #include <linux/list.h>
+-	snprintf(dev->node_desc, sizeof(dev->node_desc),
+-		 IPATH_IDSTR " %s", init_utsname()->nodename);
++	strncpy(dev->node_desc, sizeof(dev->node_desc),
++		    "%h: %d " IPATH_IDSTR);
  
- #include <rdma/ib_verbs.h>
-+#include <rdma/ib_smi.h>
+ 	ret = ib_register_device(dev, NULL);
+ 	if (ret)
+diff --git a/drivers/infiniband/hw/mlx4/mad.c b/drivers/infiniband/hw/mlx4/mad.c
+index 57ffa50..8c7205f 100644
+--- a/drivers/infiniband/hw/mlx4/mad.c
++++ b/drivers/infiniband/hw/mlx4/mad.c
+@@ -196,7 +196,7 @@ static void node_desc_override(struct ib_device *dev,
+ 	    mad->mad_hdr.method == IB_MGMT_METHOD_GET_RESP &&
+ 	    mad->mad_hdr.attr_id == IB_SMP_ATTR_NODE_DESC) {
+ 		spin_lock(&to_mdev(dev)->sm_lock);
+-		memcpy(((struct ib_smp *) mad)->data, dev->node_desc, 64);
++		ib_build_node_desc((struct ib_smp *) mad, dev);
+ 		spin_unlock(&to_mdev(dev)->sm_lock);
+ 	}
+ }
+diff --git a/drivers/infiniband/hw/mlx4/main.c b/drivers/infiniband/hw/mlx4/main.c
+index c7a6213..ef74cb9 100644
+--- a/drivers/infiniband/hw/mlx4/main.c
++++ b/drivers/infiniband/hw/mlx4/main.c
+@@ -713,7 +713,8 @@ static int init_node_data(struct mlx4_ib_dev *dev)
+ 	if (err)
+ 		goto out;
  
- /* Management base version */
- #define IB_MGMT_BASE_VERSION			1
-@@ -637,6 +638,14 @@ int ib_is_mad_class_rmpp(u8 mgmt_class);
- int ib_get_mad_data_offset(u8 mgmt_class);
+-	memcpy(dev->ib_dev.node_desc, out_mad->data, 64);
++	snprintf(dev->ib_dev.node_desc, 64, "%%h: %%d %s", out_mad->data);
++	dev->ib_dev.node_desc[63] = 0;
  
- /**
-+ * ib_build_node_desc - copies the node description and replaces
-+ * any @ markers with the present system node name.
-+ * @dest: destination
-+ * @src: source
-+ */
-+void ib_build_node_desc(struct ib_smp *smp, struct ib_device *dev);
-+
-+/**
-  * ib_get_rmpp_segment - returns the data buffer for a given RMPP segment.
-  * @send_buf: Previously allocated send data buffer.
-  * @seg_num: number of segment to return
+ 	in_mad->attr_id = IB_SMP_ATTR_NODE_INFO;
+ 
+diff --git a/drivers/infiniband/hw/mthca/mthca_mad.c b/drivers/infiniband/hw/mthca/mthca_mad.c
+index 03a5953..57e11d5 100644
+--- a/drivers/infiniband/hw/mthca/mthca_mad.c
++++ b/drivers/infiniband/hw/mthca/mthca_mad.c
+@@ -153,7 +153,7 @@ static void node_desc_override(struct ib_device *dev,
+ 	    mad->mad_hdr.method == IB_MGMT_METHOD_GET_RESP &&
+ 	    mad->mad_hdr.attr_id == IB_SMP_ATTR_NODE_DESC) {
+ 		mutex_lock(&to_mdev(dev)->cap_mask_mutex);
+-		memcpy(((struct ib_smp *) mad)->data, dev->node_desc, 64);
++		ib_build_node_desc((struct ib_smp *) mad, dev);
+ 		mutex_unlock(&to_mdev(dev)->cap_mask_mutex);
+ 	}
+ }
+diff --git a/drivers/infiniband/hw/mthca/mthca_provider.c b/drivers/infiniband/hw/mthca/mthca_provider.c
+index 1e0b4b6..0f858f7 100644
+--- a/drivers/infiniband/hw/mthca/mthca_provider.c
++++ b/drivers/infiniband/hw/mthca/mthca_provider.c
+@@ -1273,7 +1273,8 @@ static int mthca_init_node_data(struct mthca_dev *dev)
+ 		goto out;
+ 	}
+ 
+-	memcpy(dev->ib_dev.node_desc, out_mad->data, 64);
++	snprintf(dev->ib_dev.node_desc, 64, "%%h: %%d %s", out_mad->data);
++	dev->ib_dev.node_desc[63] = 0;
+ 
+ 	in_mad->attr_id = IB_SMP_ATTR_NODE_INFO;
+ 
+diff --git a/drivers/infiniband/hw/qib/qib_mad.c b/drivers/infiniband/hw/qib/qib_mad.c
+index 5ad224e..5139e3c 100644
+--- a/drivers/infiniband/hw/qib/qib_mad.c
++++ b/drivers/infiniband/hw/qib/qib_mad.c
+@@ -260,7 +260,7 @@ static int subn_get_nodedescription(struct ib_smp *smp,
+ 	if (smp->attr_mod)
+ 		smp->status |= IB_SMP_INVALID_FIELD;
+ 
+-	memcpy(smp->data, ibdev->node_desc, sizeof(smp->data));
++	ib_build_node_desc(smp, ibdev);
+ 
+ 	return reply(smp);
+ }
+diff --git a/drivers/infiniband/hw/qib/qib_verbs.c b/drivers/infiniband/hw/qib/qib_verbs.c
+index 9fab404..f611859 100644
+--- a/drivers/infiniband/hw/qib/qib_verbs.c
++++ b/drivers/infiniband/hw/qib/qib_verbs.c
+@@ -2158,7 +2158,7 @@ int qib_register_ib_device(struct qib_devdata *dd)
+ 	ibdev->dma_ops = &qib_dma_mapping_ops;
+ 
+ 	snprintf(ibdev->node_desc, sizeof(ibdev->node_desc),
+-		 QIB_IDSTR " %s", init_utsname()->nodename);
++		 "%h: %d " QIB_IDSTR);
+ 
+ 	ret = ib_register_device(ibdev, qib_create_port_files);
+ 	if (ret)
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
