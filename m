@@ -1,155 +1,161 @@
-From: Michael Heinz <michael.heinz-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH V3 2/2] Add support for ib_build_node_desc() to the HCAs.
-Date: Thu, 24 Feb 2011 14:06:03 -0500
-Message-ID: <20110224190603.6970.38649.stgit@homer>
-References: <20110224190503.6970.47809.stgit@homer>
+From: "Bharath Ramesh" <bramesh-PjAqaU27lzQ@public.gmane.org>
+Subject: IB atomic operations
+Date: Fri, 25 Feb 2011 02:30:32 -0500
+Message-ID: <00b701cbd4bd$e271fe20$a755fa60$@edu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed;
+	boundary="----=_NextPart_000_00B2_01CBD493.F964E090";
+	protocol="application/x-pkcs7-signature";
+	micalg=SHA1
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20110224190503.6970.47809.stgit@homer>
+Content-Language: en-us
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, michael.heinz-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Changes from Version 2:
+This is a multi-part message in MIME format.
 
-Changed the default description to more closely match the current OFED
-behavior. The new default is '%h HCA-%d'. For example:
+------=_NextPart_000_00B2_01CBD493.F964E090
+Content-Type: text/plain;
+	charset="US-ASCII"
+Content-Transfer-Encoding: 7bit
 
-homer HCA-mthca0
-node-a2 HCA-qib1
-lisa HCA-mlx4_0
+Hi,
+	I am trying to use IB atomic operations, specifically fetch and add.
+I tried a small example but I am unable to get it to work. The WC status is
+IBV_WC_REM_INV_REQ_ERR. My sample code is as follows:
 
-Changes from Version 1:
+sge.addr = (uintptr_t) &data;
+sge.length = sizeof (uint64_t);
+sge.lkey = ib_mr->lkey;
+wr.opcode = IBV_WR_ATOMIC_FETCH_AND_ADD;
+wr.send_flags = IBV_SEND_SIGNALED;
+wr.next = NULL;
+wr.num_sge = 1;
+wr.sg_list = &sge;
+wr.wr.atomic.remote_addr = vaddr;
+wr.wr.atomic.compare_add = 1;
+//wr.wr.atomic.swap = 0;
+wr.wr.atomic.rkey = rkey;
+wr.wr_id = 1;
+ret = ibv_post_send (ib_qp, &wr, &wr_bad);
+do {
+	c = ibv_poll_cq (ib_cq, 1, &wc);
+} while (c == 0);
 
-Changed the default node description for Mellanox and QLogic HCAs to read
-"%h: %d <description>" where '<description>' is the old default value.
+if (c < 0) {
+	printf ("ERROR: ibv_poll_cq failed.\n");
+      return -1;
+}
 
-Description:
+if (wc.status != IBV_WC_SUCCESS) {
+	// print wc info.
+	// print qp status.
+}
 
-Adds support for ib_build_node_desc() to the QLogic and Mellanox HCA
-drivers.
+Any help on this appreciated.
 
-Signed-off-by: Michael Heinz <michael.heinz-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+Regards,
 
----
- drivers/infiniband/hw/ipath/ipath_mad.c      |    2 +-
- drivers/infiniband/hw/ipath/ipath_verbs.c    |    3 +--
- drivers/infiniband/hw/mlx4/mad.c             |    2 +-
- drivers/infiniband/hw/mlx4/main.c            |    2 +-
- drivers/infiniband/hw/mthca/mthca_mad.c      |    2 +-
- drivers/infiniband/hw/mthca/mthca_provider.c |    2 +-
- drivers/infiniband/hw/qib/qib_mad.c          |    2 +-
- drivers/infiniband/hw/qib/qib_verbs.c        |    3 +--
- 8 files changed, 8 insertions(+), 10 deletions(-)
+Bharath
 
-diff --git a/drivers/infiniband/hw/ipath/ipath_mad.c b/drivers/infiniband/hw/ipath/ipath_mad.c
-index ceb98ee..387eba7 100644
---- a/drivers/infiniband/hw/ipath/ipath_mad.c
-+++ b/drivers/infiniband/hw/ipath/ipath_mad.c
-@@ -60,7 +60,7 @@ static int recv_subn_get_nodedescription(struct ib_smp *smp,
- 	if (smp->attr_mod)
- 		smp->status |= IB_SMP_INVALID_FIELD;
- 
--	memcpy(smp->data, ibdev->node_desc, sizeof(smp->data));
-+	ib_build_node_desc(smp, ibdev);
- 
- 	return reply(smp);
- }
-diff --git a/drivers/infiniband/hw/ipath/ipath_verbs.c b/drivers/infiniband/hw/ipath/ipath_verbs.c
-index dd7f26d..11e66dc 100644
---- a/drivers/infiniband/hw/ipath/ipath_verbs.c
-+++ b/drivers/infiniband/hw/ipath/ipath_verbs.c
-@@ -2179,8 +2179,7 @@ int ipath_register_ib_device(struct ipath_devdata *dd)
- 	dev->mmap = ipath_mmap;
- 	dev->dma_ops = &ipath_dma_mapping_ops;
- 
--	snprintf(dev->node_desc, sizeof(dev->node_desc),
--		 IPATH_IDSTR " %s", init_utsname()->nodename);
-+	strncpy(dev->node_desc, "%h HCA-%d", IB_DEVICE_DESC_MAX);
- 
- 	ret = ib_register_device(dev, NULL);
- 	if (ret)
-diff --git a/drivers/infiniband/hw/mlx4/mad.c b/drivers/infiniband/hw/mlx4/mad.c
-index 57ffa50..8c7205f 100644
---- a/drivers/infiniband/hw/mlx4/mad.c
-+++ b/drivers/infiniband/hw/mlx4/mad.c
-@@ -196,7 +196,7 @@ static void node_desc_override(struct ib_device *dev,
- 	    mad->mad_hdr.method == IB_MGMT_METHOD_GET_RESP &&
- 	    mad->mad_hdr.attr_id == IB_SMP_ATTR_NODE_DESC) {
- 		spin_lock(&to_mdev(dev)->sm_lock);
--		memcpy(((struct ib_smp *) mad)->data, dev->node_desc, 64);
-+		ib_build_node_desc((struct ib_smp *) mad, dev);
- 		spin_unlock(&to_mdev(dev)->sm_lock);
- 	}
- }
-diff --git a/drivers/infiniband/hw/mlx4/main.c b/drivers/infiniband/hw/mlx4/main.c
-index c7a6213..6e8109b 100644
---- a/drivers/infiniband/hw/mlx4/main.c
-+++ b/drivers/infiniband/hw/mlx4/main.c
-@@ -713,7 +713,7 @@ static int init_node_data(struct mlx4_ib_dev *dev)
- 	if (err)
- 		goto out;
- 
--	memcpy(dev->ib_dev.node_desc, out_mad->data, 64);
-+	strncpy(dev->ib_dev.node_desc, "%h HCA-%d", IB_DEVICE_DESC_MAX);
- 
- 	in_mad->attr_id = IB_SMP_ATTR_NODE_INFO;
- 
-diff --git a/drivers/infiniband/hw/mthca/mthca_mad.c b/drivers/infiniband/hw/mthca/mthca_mad.c
-index 03a5953..57e11d5 100644
---- a/drivers/infiniband/hw/mthca/mthca_mad.c
-+++ b/drivers/infiniband/hw/mthca/mthca_mad.c
-@@ -153,7 +153,7 @@ static void node_desc_override(struct ib_device *dev,
- 	    mad->mad_hdr.method == IB_MGMT_METHOD_GET_RESP &&
- 	    mad->mad_hdr.attr_id == IB_SMP_ATTR_NODE_DESC) {
- 		mutex_lock(&to_mdev(dev)->cap_mask_mutex);
--		memcpy(((struct ib_smp *) mad)->data, dev->node_desc, 64);
-+		ib_build_node_desc((struct ib_smp *) mad, dev);
- 		mutex_unlock(&to_mdev(dev)->cap_mask_mutex);
- 	}
- }
-diff --git a/drivers/infiniband/hw/mthca/mthca_provider.c b/drivers/infiniband/hw/mthca/mthca_provider.c
-index 1e0b4b6..745bba3 100644
---- a/drivers/infiniband/hw/mthca/mthca_provider.c
-+++ b/drivers/infiniband/hw/mthca/mthca_provider.c
-@@ -1273,7 +1273,7 @@ static int mthca_init_node_data(struct mthca_dev *dev)
- 		goto out;
- 	}
- 
--	memcpy(dev->ib_dev.node_desc, out_mad->data, 64);
-+	strncpy(dev->ib_dev.node_desc, "%h HCA-%d", IB_DEVICE_DESC_MAX);
- 
- 	in_mad->attr_id = IB_SMP_ATTR_NODE_INFO;
- 
-diff --git a/drivers/infiniband/hw/qib/qib_mad.c b/drivers/infiniband/hw/qib/qib_mad.c
-index 5ad224e..5139e3c 100644
---- a/drivers/infiniband/hw/qib/qib_mad.c
-+++ b/drivers/infiniband/hw/qib/qib_mad.c
-@@ -260,7 +260,7 @@ static int subn_get_nodedescription(struct ib_smp *smp,
- 	if (smp->attr_mod)
- 		smp->status |= IB_SMP_INVALID_FIELD;
- 
--	memcpy(smp->data, ibdev->node_desc, sizeof(smp->data));
-+	ib_build_node_desc(smp, ibdev);
- 
- 	return reply(smp);
- }
-diff --git a/drivers/infiniband/hw/qib/qib_verbs.c b/drivers/infiniband/hw/qib/qib_verbs.c
-index 9fab404..333505d 100644
---- a/drivers/infiniband/hw/qib/qib_verbs.c
-+++ b/drivers/infiniband/hw/qib/qib_verbs.c
-@@ -2157,8 +2157,7 @@ int qib_register_ib_device(struct qib_devdata *dd)
- 	ibdev->mmap = qib_mmap;
- 	ibdev->dma_ops = &qib_dma_mapping_ops;
- 
--	snprintf(ibdev->node_desc, sizeof(ibdev->node_desc),
--		 QIB_IDSTR " %s", init_utsname()->nodename);
-+	strncpy(ibdev->node_desc, "%h HCA-%d", IB_DEVICE_DESC_MAX);
- 
- 	ret = ib_register_device(ibdev, qib_create_port_files);
- 	if (ret)
+------=_NextPart_000_00B2_01CBD493.F964E090
+Content-Type: application/x-pkcs7-signature;
+	name="smime.p7s"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment;
+	filename="smime.p7s"
+
+MIAGCSqGSIb3DQEHAqCAMIACAQExCzAJBgUrDgMCGgUAMIAGCSqGSIb3DQEHAQAAoIIOhTCCBDIw
+ggMaoAMCAQICAQEwDQYJKoZIhvcNAQEFBQAwezELMAkGA1UEBhMCR0IxGzAZBgNVBAgMEkdyZWF0
+ZXIgTWFuY2hlc3RlcjEQMA4GA1UEBwwHU2FsZm9yZDEaMBgGA1UECgwRQ29tb2RvIENBIExpbWl0
+ZWQxITAfBgNVBAMMGEFBQSBDZXJ0aWZpY2F0ZSBTZXJ2aWNlczAeFw0wNDAxMDEwMDAwMDBaFw0y
+ODEyMzEyMzU5NTlaMHsxCzAJBgNVBAYTAkdCMRswGQYDVQQIDBJHcmVhdGVyIE1hbmNoZXN0ZXIx
+EDAOBgNVBAcMB1NhbGZvcmQxGjAYBgNVBAoMEUNvbW9kbyBDQSBMaW1pdGVkMSEwHwYDVQQDDBhB
+QUEgQ2VydGlmaWNhdGUgU2VydmljZXMwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQC+
+QJ30buHqdoccTUVEjr5GyIMGncEq/hgfjuQC+vOrXVCKFjELmgbQxXAizUktVGPMtm5oRgtT6stM
+JMC8ck7q8RWu9FSaEgrDerIzYOLaiVXzIljz3tzP74OGooyUT59o8piQRoQnx3a/48w1LIteB2Rl
+gsBIsKiR+WGfdiBQqJHHZrXreGIDVvCKGhPqMaMeoJn9OPb2JzJYbwf1a7j7FCuvt6rM1mNfc4za
+BZmoOKjLF3g2UazpnvR4Oo3PD9lC4pgMqy+fDgHe75+ZSfEt36x0TRuYtUfF5SnR+ZAYx2KcvoPH
+Jns+iiXHwN2d5jVoECCdj9je0sOEnA1e6C/JAgMBAAGjgcAwgb0wHQYDVR0OBBYEFKARCiM+lvEH
+7OKvKe+CpX/QMKS0MA4GA1UdDwEB/wQEAwIBBjAPBgNVHRMBAf8EBTADAQH/MHsGA1UdHwR0MHIw
+OKA2oDSGMmh0dHA6Ly9jcmwuY29tb2RvY2EuY29tL0FBQUNlcnRpZmljYXRlU2VydmljZXMuY3Js
+MDagNKAyhjBodHRwOi8vY3JsLmNvbW9kby5uZXQvQUFBQ2VydGlmaWNhdGVTZXJ2aWNlcy5jcmww
+DQYJKoZIhvcNAQEFBQADggEBAAhW/ALwm+j/pPrWe8ZEgM5PxMX2AFjMpra8FEloBHbo5u5d7AIP
+YNaNUBhPJk4B4+awpe6/vHRUQb/9/BK4x09a9IlgBX9gtwVK8/bxwr/EuXSGti19a8zS80bdL8bg
+asPDNAMsfZbdWsIOpwqZwQWLqwwv81w6z2w3VQmH3lNAbFjv/LarZW4E9hvcPOBaFcae2fFZSDAh
+ZQNs7Okhc+ybA6HgN62gFRiP+roCzqcsqRATLNTlCCarIpdg+JBedNSimlO98qlo4KJuwtdssaMP
+nr/raOdW8q7y4ys4OgmBtWuF174t7T8at7Jj4vViLILUagBBUPE5g5+V6TaWmG4wggTdMIIDxaAD
+AgECAhBxkvvmGV+sTRKFdHE0ohinMA0GCSqGSIb3DQEBBQUAMHsxCzAJBgNVBAYTAkdCMRswGQYD
+VQQIDBJHcmVhdGVyIE1hbmNoZXN0ZXIxEDAOBgNVBAcMB1NhbGZvcmQxGjAYBgNVBAoMEUNvbW9k
+byBDQSBMaW1pdGVkMSEwHwYDVQQDDBhBQUEgQ2VydGlmaWNhdGUgU2VydmljZXMwHhcNMDQwMTAx
+MDAwMDAwWhcNMjgxMjMxMjM1OTU5WjCBrjELMAkGA1UEBhMCVVMxCzAJBgNVBAgTAlVUMRcwFQYD
+VQQHEw5TYWx0IExha2UgQ2l0eTEeMBwGA1UEChMVVGhlIFVTRVJUUlVTVCBOZXR3b3JrMSEwHwYD
+VQQLExhodHRwOi8vd3d3LnVzZXJ0cnVzdC5jb20xNjA0BgNVBAMTLVVUTi1VU0VSRmlyc3QtQ2xp
+ZW50IEF1dGhlbnRpY2F0aW9uIGFuZCBFbWFpbDCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoC
+ggEBALI5haTyfatBO2JGN67NwWB1vDll+UoaR6K5zEjMapjVTTUZuaRC5c5J4oovHnzSMQfHTrSD
+ZJ0uKdWiZMSFvYVRNXmkTmiQexx6pJKoF/KYFfKTzMmkMpW7DE8wvZigC4vlbhuiRvp4vKJvq1le
+pS/Pytptqi/rrKGzaqq3Lmc1i3nhHmmI4uZGzaCl6r4LznY6eg6b6vzaJ1s9cx8i5khhxkzzabGo
+Lhu21DEgLLyCio6kDqXXiUP8FlqvHXHXEVnauocNr/rz4cLwpMVnjNbWVDreCqS6A3ezZcj9HtN0
+YqoYymiTHqGFfvVHZcv4TVcodNI0/zC27vZiMBSMLOsCAwEAAaOCAScwggEjMB8GA1UdIwQYMBaA
+FKARCiM+lvEH7OKvKe+CpX/QMKS0MB0GA1UdDgQWBBSJgmd9xJ0mcABLtFBIfN49rgRufTAOBgNV
+HQ8BAf8EBAMCAQYwDwYDVR0TAQH/BAUwAwEB/zAdBgNVHSUEFjAUBggrBgEFBQcDAgYIKwYBBQUH
+AwQwEQYDVR0gBAowCDAGBgRVHSAAMHsGA1UdHwR0MHIwOKA2oDSGMmh0dHA6Ly9jcmwuY29tb2Rv
+Y2EuY29tL0FBQUNlcnRpZmljYXRlU2VydmljZXMuY3JsMDagNKAyhjBodHRwOi8vY3JsLmNvbW9k
+by5uZXQvQUFBQ2VydGlmaWNhdGVTZXJ2aWNlcy5jcmwwEQYJYIZIAYb4QgEBBAQDAgEGMA0GCSqG
+SIb3DQEBBQUAA4IBAQCdlcs8uH6lCcQevwvCx3aOOTyUxhCqTwzJ4KuEXYlU4GU7820cfDcsJVRf
+liH8N4SRnRXcFE+Bz1Qda2xFYMct+ZdRTPlmyjyggoymyPDi6dRK+ew/VsnddozDggFPbADzHhph
+dARHA6nGQFeRvGUixSdnT1fbZFrZjR+6hi/0Bq6cae3p9M8pF9jgSp8aIC+XTFG7RgfEijdOIOMJ
+MWjHnsSLneh+EbwyaBCWEZhE2CpRYE2I63Q630MGMsg5Vow6EVLTQaRDA/Tt7zMn2zngFE4mydj1
+OeKJuJNdtykmQeqzm66D/Hd1yujKtf7iZUpjPkTE0MNeh3OpmByvfxV/MIIFajCCBFKgAwIBAgIQ
+YcOeSMr+SboU7E8CNVWuhDANBgkqhkiG9w0BAQUFADCBrjELMAkGA1UEBhMCVVMxCzAJBgNVBAgT
+AlVUMRcwFQYDVQQHEw5TYWx0IExha2UgQ2l0eTEeMBwGA1UEChMVVGhlIFVTRVJUUlVTVCBOZXR3
+b3JrMSEwHwYDVQQLExhodHRwOi8vd3d3LnVzZXJ0cnVzdC5jb20xNjA0BgNVBAMTLVVUTi1VU0VS
+Rmlyc3QtQ2xpZW50IEF1dGhlbnRpY2F0aW9uIGFuZCBFbWFpbDAeFw0xMDExMTcwMDAwMDBaFw0x
+MTExMTcyMzU5NTlaMB8xHTAbBgkqhkiG9w0BCQEWDmJyYW1lc2hAdnQuZWR1MIIBIjANBgkqhkiG
+9w0BAQEFAAOCAQ8AMIIBCgKCAQEAsK1UEXu6lbG6ggSIHF8f65XaOGcpxNiqSHp7EJk7v3FcJ9aY
+2/jFUQcQPc2FwZMKvRdOGOEsnX71hxOTo+K3lPNa8D5Aijv4qck+bt/p7xZOPPvJrTTnA0Y+gJev
+WeblYh8GV8OCassour7rHxXxlteeBq5mIQ4ha0zaozLlAIhXGBTPtNX2yu40cQ3my/kWqAxB6tjk
+XFb3oR/UaROC/zivQeDj3pVvdSeUA1vDag9K0gr0svKEy1qvj9D0j7Yj9czjm7ZdZXbkYwplQBaw
+4Wjx2o6g93MuNroozvly+0HNi1x3GJdGuOrI4pZMXTitDk4CNwQALp2iq3NwFIYUCQIDAQABo4IC
+EDCCAgwwHwYDVR0jBBgwFoAUiYJnfcSdJnAAS7RQSHzePa4Ebn0wHQYDVR0OBBYEFHtZ/WL8KZ/o
+2o7Q6DSPYyhCVQxbMA4GA1UdDwEB/wQEAwIFoDAMBgNVHRMBAf8EAjAAMCAGA1UdJQQZMBcGCCsG
+AQUFBwMEBgsrBgEEAbIxAQMFAjARBglghkgBhvhCAQEEBAMCBSAwRgYDVR0gBD8wPTA7BgwrBgEE
+AbIxAQIBAQEwKzApBggrBgEFBQcCARYdaHR0cHM6Ly9zZWN1cmUuY29tb2RvLm5ldC9DUFMwgaUG
+A1UdHwSBnTCBmjBMoEqgSIZGaHR0cDovL2NybC5jb21vZG9jYS5jb20vVVROLVVTRVJGaXJzdC1D
+bGllbnRBdXRoZW50aWNhdGlvbmFuZEVtYWlsLmNybDBKoEigRoZEaHR0cDovL2NybC5jb21vZG8u
+bmV0L1VUTi1VU0VSRmlyc3QtQ2xpZW50QXV0aGVudGljYXRpb25hbmRFbWFpbC5jcmwwbAYIKwYB
+BQUHAQEEYDBeMDYGCCsGAQUFBzAChipodHRwOi8vY3J0LmNvbW9kb2NhLmNvbS9VVE5BQUFDbGll
+bnRDQS5jcnQwJAYIKwYBBQUHMAGGGGh0dHA6Ly9vY3NwLmNvbW9kb2NhLmNvbTAZBgNVHREEEjAQ
+gQ5icmFtZXNoQHZ0LmVkdTANBgkqhkiG9w0BAQUFAAOCAQEAQTpK/RfJMVCzOKIhI+VqhXFeAbFx
+zVyrzqomWrBHB1/EWXxnKZBCt1hYgutlGarCnHxomphRD9FCmrbvQS7M803iLlfWLb8PGnu9z15Q
+jKp+7tbNS7PgJwehr7nfl6IZv9o9M0nCY/CGXdfJUYpEmNgM0ZpIrD6tnhGa+CDOO+rxcMznf/Mi
+V+UpL+qIPrRupYY8fnDrLg+HP0ZvXtFyehvGYN1mbqloUx4iDELa999M166iFjxoJsKNodhRvy4/
+iCGrkMgfSUI0RBA2whQ0jAQtPcQ1mXZ7QSNxXUN8tHQU5DWodhIPu41MooGPoyjxj51XuiR7r0j/
+Pwf+hUasrjGCBLYwggSyAgEBMIHDMIGuMQswCQYDVQQGEwJVUzELMAkGA1UECBMCVVQxFzAVBgNV
+BAcTDlNhbHQgTGFrZSBDaXR5MR4wHAYDVQQKExVUaGUgVVNFUlRSVVNUIE5ldHdvcmsxITAfBgNV
+BAsTGGh0dHA6Ly93d3cudXNlcnRydXN0LmNvbTE2MDQGA1UEAxMtVVROLVVTRVJGaXJzdC1DbGll
+bnQgQXV0aGVudGljYXRpb24gYW5kIEVtYWlsAhBhw55Iyv5JuhTsTwI1Va6EMAkGBSsOAwIaBQCg
+ggLHMBgGCSqGSIb3DQEJAzELBgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTExMDIyNTA3MzAz
+MVowIwYJKoZIhvcNAQkEMRYEFKWNX/NVEC8Fw277NtEVZTHPdVM5MIG3BgkqhkiG9w0BCQ8xgakw
+gaYwCwYJYIZIAWUDBAEqMAsGCWCGSAFlAwQBFjAKBggqhkiG9w0DBzALBglghkgBZQMEAQIwDgYI
+KoZIhvcNAwICAgCAMAcGBSsOAwIHMA0GCCqGSIb3DQMCAgFAMA0GCCqGSIb3DQMCAgEoMAcGBSsO
+AwIaMAsGCWCGSAFlAwQCAzALBglghkgBZQMEAgIwCwYJYIZIAWUDBAIBMAoGCCqGSIb3DQIFMIHU
+BgkrBgEEAYI3EAQxgcYwgcMwga4xCzAJBgNVBAYTAlVTMQswCQYDVQQIEwJVVDEXMBUGA1UEBxMO
+U2FsdCBMYWtlIENpdHkxHjAcBgNVBAoTFVRoZSBVU0VSVFJVU1QgTmV0d29yazEhMB8GA1UECxMY
+aHR0cDovL3d3dy51c2VydHJ1c3QuY29tMTYwNAYDVQQDEy1VVE4tVVNFUkZpcnN0LUNsaWVudCBB
+dXRoZW50aWNhdGlvbiBhbmQgRW1haWwCEGHDnkjK/km6FOxPAjVVroQwgdYGCyqGSIb3DQEJEAIL
+MYHGoIHDMIGuMQswCQYDVQQGEwJVUzELMAkGA1UECBMCVVQxFzAVBgNVBAcTDlNhbHQgTGFrZSBD
+aXR5MR4wHAYDVQQKExVUaGUgVVNFUlRSVVNUIE5ldHdvcmsxITAfBgNVBAsTGGh0dHA6Ly93d3cu
+dXNlcnRydXN0LmNvbTE2MDQGA1UEAxMtVVROLVVTRVJGaXJzdC1DbGllbnQgQXV0aGVudGljYXRp
+b24gYW5kIEVtYWlsAhBhw55Iyv5JuhTsTwI1Va6EMA0GCSqGSIb3DQEBAQUABIIBAADDfLs+255+
+7dG8DKi5WknJQGoPEPCfwpunnzW/SEQiXanBzGuTuorsGaktNiEsJMYD+Xp8vJKSPh7Ue9nYPQdH
+ENv8P/iuEmM/UmY4yVKt/97B0bl04z1RIYLaGollxWe5vG8+UILQpNC9j6YBwPyhpzQ9A8SdqRHb
+lsc9R2v/jr+YIAXWhtkfz5n4hXrpE3AfUDT8Xxetjl7k0BhuFgggegy6Kq94OaCKYP/jZxxfs3l8
+npScDqy1ZToj4TWqOtvaqMyNn9+SmDXA6c+anu32oLv2JzNPxxqzqGcwSY1n7VSlcWpiQ7aTt3Ec
+Lewbrw5kjROLOuYGqdyX02cbRpIAAAAAAAA=
+
+------=_NextPart_000_00B2_01CBD493.F964E090--
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
