@@ -1,163 +1,150 @@
-From: "Bharath Ramesh" <bramesh-PjAqaU27lzQ@public.gmane.org>
-Subject: IB atomic operations
-Date: Fri, 25 Feb 2011 02:30:32 -0500
-Message-ID: <00b701cbd4bd$e271fe20$a755fa60$@edu>
+From: Alex Netes <alexne-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH/opensm] Decode the SAPKeyTableRecord block number
+ properly, and don't segv
+Date: Fri, 25 Feb 2011 13:25:15 +0200
+Message-ID: <20110225112514.GC8537@calypso.voltaire.com>
+References: <20110211221206.GA8532@obsidianresearch.com>
+ <20110223172019.GA8537@calypso.voltaire.com>
+ <AANLkTinm5Uh-9h+WMh6O8dLsPr8wpdt0BJmOu3+Dt8vj@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed;
-	boundary="----=_NextPart_000_00B2_01CBD493.F964E090";
-	protocol="application/x-pkcs7-signature";
-	micalg=SHA1
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Language: en-us
+Content-Disposition: inline
+In-Reply-To: <AANLkTinm5Uh-9h+WMh6O8dLsPr8wpdt0BJmOu3+Dt8vj-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This is a multi-part message in MIME format.
+On 14:01 Wed 23 Feb     , Hal Rosenstock wrote:
+> On Wed, Feb 23, 2011 at 12:20 PM, Alex Netes <alexne-smomgflXvOZWk0Htik3J/w@public.gmane.org> wr=
+ote:
+> > Hi Jason,
+> >
+> > On 15:12 Fri 11 Feb =A0 =A0 , Jason Gunthorpe wrote:
+> >> * Properly byteswap block_num before using it
+> >> * Properly check bounds of the block number before de-referencing =
+it.
+> >>
+> >> This fixes a remotely triggered null pointer dereference.
+> >> ---
+> >> =A0opensm/include/iba/ib_types.h =A0 =A0 =A0| =A0 =A02 +-
+> >> =A0opensm/opensm/osm_sa_pkey_record.c | =A0 16 ++++++++++++----
+> >> =A02 files changed, 13 insertions(+), 5 deletions(-)
+> >>
+> >> diff --git a/opensm/include/iba/ib_types.h b/opensm/include/iba/ib=
+_types.h
+> >> index e1bc102..24f5662 100644
+> >> --- a/opensm/include/iba/ib_types.h
+> >> +++ b/opensm/include/iba/ib_types.h
+> >> @@ -6724,7 +6724,7 @@ typedef struct _ib_pkey_table {
+> >> =A0#include <complib/cl_packon.h>
+> >> =A0typedef struct _ib_pkey_table_record {
+> >> =A0 =A0 =A0 ib_net16_t lid; =A0 =A0 =A0 =A0 // for CA: lid of port=
+, for switch lid of port 0
+> >> - =A0 =A0 uint16_t block_num;
+> >> + =A0 =A0 ib_net16_t block_num;
+> >> =A0 =A0 =A0 uint8_t port_num; =A0 =A0 =A0 // for switch: port numb=
+er, for CA: reserved
+> >> =A0 =A0 =A0 uint8_t reserved1;
+> >> =A0 =A0 =A0 uint16_t reserved2;
+> >
+> > I guess reserved2 could also be changed to ib_net16_t, right?
+> >
+> >> diff --git a/opensm/opensm/osm_sa_pkey_record.c b/opensm/opensm/os=
+m_sa_pkey_record.c
+> >> index e4930d0..cf50430 100644
+> >> --- a/opensm/opensm/osm_sa_pkey_record.c
+> >> +++ b/opensm/opensm/osm_sa_pkey_record.c
+> >> @@ -71,6 +71,7 @@ static void sa_pkey_create(IN osm_sa_t * sa, IN =
+osm_physp_t * p_physp,
+> >> =A0 =A0 =A0 osm_pkey_item_t *p_rec_item;
+> >> =A0 =A0 =A0 uint16_t lid;
+> >> =A0 =A0 =A0 ib_api_status_t status =3D IB_SUCCESS;
+> >> + =A0 =A0 ib_pkey_table_t *tbl;
+> >>
+> >> =A0 =A0 =A0 OSM_LOG_ENTER(sa->p_log);
+> >>
+> >> @@ -98,8 +99,15 @@ static void sa_pkey_create(IN osm_sa_t * sa, IN=
+ osm_physp_t * p_physp,
+> >> =A0 =A0 =A0 p_rec_item->rec.lid =3D lid;
+> >> =A0 =A0 =A0 p_rec_item->rec.block_num =3D block;
+> >> =A0 =A0 =A0 p_rec_item->rec.port_num =3D osm_physp_get_port_num(p_=
+physp);
+> >> - =A0 =A0 p_rec_item->rec.pkey_tbl =3D
+> >> - =A0 =A0 =A0 =A0 *(osm_pkey_tbl_block_get(osm_physp_get_pkey_tbl(=
+p_physp), block));
+> >> + =A0 =A0 /* FIXME: There are ninf.PartitionCap or swinf.Partition=
+EnforcementCap
+> >> + =A0 =A0 =A0 =A0pkey entries so everything in that range is a val=
+id block number
+> >> + =A0 =A0 =A0 =A0even if opensm is not using it. Return 0. However=
+ things outside
+> >> + =A0 =A0 =A0 =A0that range should return no entries.. Not sure ho=
+w to figure that
+> >> + =A0 =A0 =A0 =A0here? The range of pkey_tbl can be less than the =
+cap, so
+> >> + =A0 =A0 =A0 =A0this falsely triggers. */
+> >> + =A0 =A0 tbl =3D osm_pkey_tbl_block_get(osm_physp_get_pkey_tbl(p_=
+physp), block);
+> >> + =A0 =A0 if (tbl)
+> >> + =A0 =A0 =A0 =A0 =A0 =A0 p_rec_item->rec.pkey_tbl =3D *tbl;
+> >>
+> >> =A0 =A0 =A0 cl_qlist_insert_tail(p_ctxt->p_list, &p_rec_item->list=
+_item);
+> >
+> > What is the expected behaviour when IB PKey table block is empty?
+> > rec.pkey_tbl might be uninitialized here.
+> > Shouldn't SubnAdmGetResp contain ERR_NO_RECORDS in such case?
+>=20
+> It depends on the method used in the SA query. GetTable never returns
+> ERR_NO_RECORDS whereas a Get can.
+>=20
 
-------=_NextPart_000_00B2_01CBD493.F964E090
-Content-Type: text/plain;
-	charset="US-ASCII"
-Content-Transfer-Encoding: 7bit
+In case when IB PKey table block is empty, p_rec_item->rec.pkey_tbl wou=
+ld be uninitialized.
 
-Hi,
-	I am trying to use IB atomic operations, specifically fetch and add.
-I tried a small example but I am unable to get it to work. The WC status is
-IBV_WC_REM_INV_REQ_ERR. My sample code is as follows:
-
-sge.addr = (uintptr_t) &data;
-sge.length = sizeof (uint64_t);
-sge.lkey = ib_mr->lkey;
-wr.opcode = IBV_WR_ATOMIC_FETCH_AND_ADD;
-wr.send_flags = IBV_SEND_SIGNALED;
-wr.next = NULL;
-wr.num_sge = 1;
-wr.sg_list = &sge;
-wr.wr.atomic.remote_addr = vaddr;
-wr.wr.atomic.compare_add = 1;
-//wr.wr.atomic.swap = 0;
-wr.wr.atomic.rkey = rkey;
-wr.wr_id = 1;
-ret = ibv_post_send (ib_qp, &wr, &wr_bad);
-do {
-	c = ibv_poll_cq (ib_cq, 1, &wc);
-} while (c == 0);
-
-if (c < 0) {
-	printf ("ERROR: ibv_poll_cq failed.\n");
-      return -1;
-}
-
-if (wc.status != IBV_WC_SUCCESS) {
-	// print wc info.
-	// print qp status.
-}
-
-Any help on this appreciated.
-
-Regards,
-
-Bharath
-
-------=_NextPart_000_00B2_01CBD493.F964E090
-Content-Type: application/x-pkcs7-signature;
-	name="smime.p7s"
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment;
-	filename="smime.p7s"
-
-MIAGCSqGSIb3DQEHAqCAMIACAQExCzAJBgUrDgMCGgUAMIAGCSqGSIb3DQEHAQAAoIIOhTCCBDIw
-ggMaoAMCAQICAQEwDQYJKoZIhvcNAQEFBQAwezELMAkGA1UEBhMCR0IxGzAZBgNVBAgMEkdyZWF0
-ZXIgTWFuY2hlc3RlcjEQMA4GA1UEBwwHU2FsZm9yZDEaMBgGA1UECgwRQ29tb2RvIENBIExpbWl0
-ZWQxITAfBgNVBAMMGEFBQSBDZXJ0aWZpY2F0ZSBTZXJ2aWNlczAeFw0wNDAxMDEwMDAwMDBaFw0y
-ODEyMzEyMzU5NTlaMHsxCzAJBgNVBAYTAkdCMRswGQYDVQQIDBJHcmVhdGVyIE1hbmNoZXN0ZXIx
-EDAOBgNVBAcMB1NhbGZvcmQxGjAYBgNVBAoMEUNvbW9kbyBDQSBMaW1pdGVkMSEwHwYDVQQDDBhB
-QUEgQ2VydGlmaWNhdGUgU2VydmljZXMwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQC+
-QJ30buHqdoccTUVEjr5GyIMGncEq/hgfjuQC+vOrXVCKFjELmgbQxXAizUktVGPMtm5oRgtT6stM
-JMC8ck7q8RWu9FSaEgrDerIzYOLaiVXzIljz3tzP74OGooyUT59o8piQRoQnx3a/48w1LIteB2Rl
-gsBIsKiR+WGfdiBQqJHHZrXreGIDVvCKGhPqMaMeoJn9OPb2JzJYbwf1a7j7FCuvt6rM1mNfc4za
-BZmoOKjLF3g2UazpnvR4Oo3PD9lC4pgMqy+fDgHe75+ZSfEt36x0TRuYtUfF5SnR+ZAYx2KcvoPH
-Jns+iiXHwN2d5jVoECCdj9je0sOEnA1e6C/JAgMBAAGjgcAwgb0wHQYDVR0OBBYEFKARCiM+lvEH
-7OKvKe+CpX/QMKS0MA4GA1UdDwEB/wQEAwIBBjAPBgNVHRMBAf8EBTADAQH/MHsGA1UdHwR0MHIw
-OKA2oDSGMmh0dHA6Ly9jcmwuY29tb2RvY2EuY29tL0FBQUNlcnRpZmljYXRlU2VydmljZXMuY3Js
-MDagNKAyhjBodHRwOi8vY3JsLmNvbW9kby5uZXQvQUFBQ2VydGlmaWNhdGVTZXJ2aWNlcy5jcmww
-DQYJKoZIhvcNAQEFBQADggEBAAhW/ALwm+j/pPrWe8ZEgM5PxMX2AFjMpra8FEloBHbo5u5d7AIP
-YNaNUBhPJk4B4+awpe6/vHRUQb/9/BK4x09a9IlgBX9gtwVK8/bxwr/EuXSGti19a8zS80bdL8bg
-asPDNAMsfZbdWsIOpwqZwQWLqwwv81w6z2w3VQmH3lNAbFjv/LarZW4E9hvcPOBaFcae2fFZSDAh
-ZQNs7Okhc+ybA6HgN62gFRiP+roCzqcsqRATLNTlCCarIpdg+JBedNSimlO98qlo4KJuwtdssaMP
-nr/raOdW8q7y4ys4OgmBtWuF174t7T8at7Jj4vViLILUagBBUPE5g5+V6TaWmG4wggTdMIIDxaAD
-AgECAhBxkvvmGV+sTRKFdHE0ohinMA0GCSqGSIb3DQEBBQUAMHsxCzAJBgNVBAYTAkdCMRswGQYD
-VQQIDBJHcmVhdGVyIE1hbmNoZXN0ZXIxEDAOBgNVBAcMB1NhbGZvcmQxGjAYBgNVBAoMEUNvbW9k
-byBDQSBMaW1pdGVkMSEwHwYDVQQDDBhBQUEgQ2VydGlmaWNhdGUgU2VydmljZXMwHhcNMDQwMTAx
-MDAwMDAwWhcNMjgxMjMxMjM1OTU5WjCBrjELMAkGA1UEBhMCVVMxCzAJBgNVBAgTAlVUMRcwFQYD
-VQQHEw5TYWx0IExha2UgQ2l0eTEeMBwGA1UEChMVVGhlIFVTRVJUUlVTVCBOZXR3b3JrMSEwHwYD
-VQQLExhodHRwOi8vd3d3LnVzZXJ0cnVzdC5jb20xNjA0BgNVBAMTLVVUTi1VU0VSRmlyc3QtQ2xp
-ZW50IEF1dGhlbnRpY2F0aW9uIGFuZCBFbWFpbDCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoC
-ggEBALI5haTyfatBO2JGN67NwWB1vDll+UoaR6K5zEjMapjVTTUZuaRC5c5J4oovHnzSMQfHTrSD
-ZJ0uKdWiZMSFvYVRNXmkTmiQexx6pJKoF/KYFfKTzMmkMpW7DE8wvZigC4vlbhuiRvp4vKJvq1le
-pS/Pytptqi/rrKGzaqq3Lmc1i3nhHmmI4uZGzaCl6r4LznY6eg6b6vzaJ1s9cx8i5khhxkzzabGo
-Lhu21DEgLLyCio6kDqXXiUP8FlqvHXHXEVnauocNr/rz4cLwpMVnjNbWVDreCqS6A3ezZcj9HtN0
-YqoYymiTHqGFfvVHZcv4TVcodNI0/zC27vZiMBSMLOsCAwEAAaOCAScwggEjMB8GA1UdIwQYMBaA
-FKARCiM+lvEH7OKvKe+CpX/QMKS0MB0GA1UdDgQWBBSJgmd9xJ0mcABLtFBIfN49rgRufTAOBgNV
-HQ8BAf8EBAMCAQYwDwYDVR0TAQH/BAUwAwEB/zAdBgNVHSUEFjAUBggrBgEFBQcDAgYIKwYBBQUH
-AwQwEQYDVR0gBAowCDAGBgRVHSAAMHsGA1UdHwR0MHIwOKA2oDSGMmh0dHA6Ly9jcmwuY29tb2Rv
-Y2EuY29tL0FBQUNlcnRpZmljYXRlU2VydmljZXMuY3JsMDagNKAyhjBodHRwOi8vY3JsLmNvbW9k
-by5uZXQvQUFBQ2VydGlmaWNhdGVTZXJ2aWNlcy5jcmwwEQYJYIZIAYb4QgEBBAQDAgEGMA0GCSqG
-SIb3DQEBBQUAA4IBAQCdlcs8uH6lCcQevwvCx3aOOTyUxhCqTwzJ4KuEXYlU4GU7820cfDcsJVRf
-liH8N4SRnRXcFE+Bz1Qda2xFYMct+ZdRTPlmyjyggoymyPDi6dRK+ew/VsnddozDggFPbADzHhph
-dARHA6nGQFeRvGUixSdnT1fbZFrZjR+6hi/0Bq6cae3p9M8pF9jgSp8aIC+XTFG7RgfEijdOIOMJ
-MWjHnsSLneh+EbwyaBCWEZhE2CpRYE2I63Q630MGMsg5Vow6EVLTQaRDA/Tt7zMn2zngFE4mydj1
-OeKJuJNdtykmQeqzm66D/Hd1yujKtf7iZUpjPkTE0MNeh3OpmByvfxV/MIIFajCCBFKgAwIBAgIQ
-YcOeSMr+SboU7E8CNVWuhDANBgkqhkiG9w0BAQUFADCBrjELMAkGA1UEBhMCVVMxCzAJBgNVBAgT
-AlVUMRcwFQYDVQQHEw5TYWx0IExha2UgQ2l0eTEeMBwGA1UEChMVVGhlIFVTRVJUUlVTVCBOZXR3
-b3JrMSEwHwYDVQQLExhodHRwOi8vd3d3LnVzZXJ0cnVzdC5jb20xNjA0BgNVBAMTLVVUTi1VU0VS
-Rmlyc3QtQ2xpZW50IEF1dGhlbnRpY2F0aW9uIGFuZCBFbWFpbDAeFw0xMDExMTcwMDAwMDBaFw0x
-MTExMTcyMzU5NTlaMB8xHTAbBgkqhkiG9w0BCQEWDmJyYW1lc2hAdnQuZWR1MIIBIjANBgkqhkiG
-9w0BAQEFAAOCAQ8AMIIBCgKCAQEAsK1UEXu6lbG6ggSIHF8f65XaOGcpxNiqSHp7EJk7v3FcJ9aY
-2/jFUQcQPc2FwZMKvRdOGOEsnX71hxOTo+K3lPNa8D5Aijv4qck+bt/p7xZOPPvJrTTnA0Y+gJev
-WeblYh8GV8OCassour7rHxXxlteeBq5mIQ4ha0zaozLlAIhXGBTPtNX2yu40cQ3my/kWqAxB6tjk
-XFb3oR/UaROC/zivQeDj3pVvdSeUA1vDag9K0gr0svKEy1qvj9D0j7Yj9czjm7ZdZXbkYwplQBaw
-4Wjx2o6g93MuNroozvly+0HNi1x3GJdGuOrI4pZMXTitDk4CNwQALp2iq3NwFIYUCQIDAQABo4IC
-EDCCAgwwHwYDVR0jBBgwFoAUiYJnfcSdJnAAS7RQSHzePa4Ebn0wHQYDVR0OBBYEFHtZ/WL8KZ/o
-2o7Q6DSPYyhCVQxbMA4GA1UdDwEB/wQEAwIFoDAMBgNVHRMBAf8EAjAAMCAGA1UdJQQZMBcGCCsG
-AQUFBwMEBgsrBgEEAbIxAQMFAjARBglghkgBhvhCAQEEBAMCBSAwRgYDVR0gBD8wPTA7BgwrBgEE
-AbIxAQIBAQEwKzApBggrBgEFBQcCARYdaHR0cHM6Ly9zZWN1cmUuY29tb2RvLm5ldC9DUFMwgaUG
-A1UdHwSBnTCBmjBMoEqgSIZGaHR0cDovL2NybC5jb21vZG9jYS5jb20vVVROLVVTRVJGaXJzdC1D
-bGllbnRBdXRoZW50aWNhdGlvbmFuZEVtYWlsLmNybDBKoEigRoZEaHR0cDovL2NybC5jb21vZG8u
-bmV0L1VUTi1VU0VSRmlyc3QtQ2xpZW50QXV0aGVudGljYXRpb25hbmRFbWFpbC5jcmwwbAYIKwYB
-BQUHAQEEYDBeMDYGCCsGAQUFBzAChipodHRwOi8vY3J0LmNvbW9kb2NhLmNvbS9VVE5BQUFDbGll
-bnRDQS5jcnQwJAYIKwYBBQUHMAGGGGh0dHA6Ly9vY3NwLmNvbW9kb2NhLmNvbTAZBgNVHREEEjAQ
-gQ5icmFtZXNoQHZ0LmVkdTANBgkqhkiG9w0BAQUFAAOCAQEAQTpK/RfJMVCzOKIhI+VqhXFeAbFx
-zVyrzqomWrBHB1/EWXxnKZBCt1hYgutlGarCnHxomphRD9FCmrbvQS7M803iLlfWLb8PGnu9z15Q
-jKp+7tbNS7PgJwehr7nfl6IZv9o9M0nCY/CGXdfJUYpEmNgM0ZpIrD6tnhGa+CDOO+rxcMznf/Mi
-V+UpL+qIPrRupYY8fnDrLg+HP0ZvXtFyehvGYN1mbqloUx4iDELa999M166iFjxoJsKNodhRvy4/
-iCGrkMgfSUI0RBA2whQ0jAQtPcQ1mXZ7QSNxXUN8tHQU5DWodhIPu41MooGPoyjxj51XuiR7r0j/
-Pwf+hUasrjGCBLYwggSyAgEBMIHDMIGuMQswCQYDVQQGEwJVUzELMAkGA1UECBMCVVQxFzAVBgNV
-BAcTDlNhbHQgTGFrZSBDaXR5MR4wHAYDVQQKExVUaGUgVVNFUlRSVVNUIE5ldHdvcmsxITAfBgNV
-BAsTGGh0dHA6Ly93d3cudXNlcnRydXN0LmNvbTE2MDQGA1UEAxMtVVROLVVTRVJGaXJzdC1DbGll
-bnQgQXV0aGVudGljYXRpb24gYW5kIEVtYWlsAhBhw55Iyv5JuhTsTwI1Va6EMAkGBSsOAwIaBQCg
-ggLHMBgGCSqGSIb3DQEJAzELBgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTExMDIyNTA3MzAz
-MVowIwYJKoZIhvcNAQkEMRYEFKWNX/NVEC8Fw277NtEVZTHPdVM5MIG3BgkqhkiG9w0BCQ8xgakw
-gaYwCwYJYIZIAWUDBAEqMAsGCWCGSAFlAwQBFjAKBggqhkiG9w0DBzALBglghkgBZQMEAQIwDgYI
-KoZIhvcNAwICAgCAMAcGBSsOAwIHMA0GCCqGSIb3DQMCAgFAMA0GCCqGSIb3DQMCAgEoMAcGBSsO
-AwIaMAsGCWCGSAFlAwQCAzALBglghkgBZQMEAgIwCwYJYIZIAWUDBAIBMAoGCCqGSIb3DQIFMIHU
-BgkrBgEEAYI3EAQxgcYwgcMwga4xCzAJBgNVBAYTAlVTMQswCQYDVQQIEwJVVDEXMBUGA1UEBxMO
-U2FsdCBMYWtlIENpdHkxHjAcBgNVBAoTFVRoZSBVU0VSVFJVU1QgTmV0d29yazEhMB8GA1UECxMY
-aHR0cDovL3d3dy51c2VydHJ1c3QuY29tMTYwNAYDVQQDEy1VVE4tVVNFUkZpcnN0LUNsaWVudCBB
-dXRoZW50aWNhdGlvbiBhbmQgRW1haWwCEGHDnkjK/km6FOxPAjVVroQwgdYGCyqGSIb3DQEJEAIL
-MYHGoIHDMIGuMQswCQYDVQQGEwJVUzELMAkGA1UECBMCVVQxFzAVBgNVBAcTDlNhbHQgTGFrZSBD
-aXR5MR4wHAYDVQQKExVUaGUgVVNFUlRSVVNUIE5ldHdvcmsxITAfBgNVBAsTGGh0dHA6Ly93d3cu
-dXNlcnRydXN0LmNvbTE2MDQGA1UEAxMtVVROLVVTRVJGaXJzdC1DbGllbnQgQXV0aGVudGljYXRp
-b24gYW5kIEVtYWlsAhBhw55Iyv5JuhTsTwI1Va6EMA0GCSqGSIb3DQEBAQUABIIBAADDfLs+255+
-7dG8DKi5WknJQGoPEPCfwpunnzW/SEQiXanBzGuTuorsGaktNiEsJMYD+Xp8vJKSPh7Ue9nYPQdH
-ENv8P/iuEmM/UmY4yVKt/97B0bl04z1RIYLaGollxWe5vG8+UILQpNC9j6YBwPyhpzQ9A8SdqRHb
-lsc9R2v/jr+YIAXWhtkfz5n4hXrpE3AfUDT8Xxetjl7k0BhuFgggegy6Kq94OaCKYP/jZxxfs3l8
-npScDqy1ZToj4TWqOtvaqMyNn9+SmDXA6c+anu32oLv2JzNPxxqzqGcwSY1n7VSlcWpiQ7aTt3Ec
-Lewbrw5kjROLOuYGqdyX02cbRpIAAAAAAAA=
-
-------=_NextPart_000_00B2_01CBD493.F964E090--
-
+> -- Hal
+>=20
+> >>
+> >> @@ -269,14 +277,14 @@ void osm_pkey_rec_rcv_process(IN void *ctx, =
+IN void *data)
+> >> =A0 =A0 =A0 context.p_list =3D &rec_list;
+> >> =A0 =A0 =A0 context.comp_mask =3D p_rcvd_mad->comp_mask;
+> >> =A0 =A0 =A0 context.sa =3D sa;
+> >> - =A0 =A0 context.block_num =3D p_rcvd_rec->block_num;
+> >> + =A0 =A0 context.block_num =3D cl_ntoh16(p_rcvd_rec->block_num);
+> >> =A0 =A0 =A0 context.p_req_physp =3D p_req_physp;
+> >>
+> >> =A0 =A0 =A0 OSM_LOG(sa->p_log, OSM_LOG_DEBUG,
+> >> =A0 =A0 =A0 =A0 =A0 =A0 =A0 "Got Query Lid:%u(%02X), Block:0x%02X(=
+%02X), Port:0x%02X(%02X)\n",
+> >> =A0 =A0 =A0 =A0 =A0 =A0 =A0 cl_ntoh16(p_rcvd_rec->lid),
+> >> =A0 =A0 =A0 =A0 =A0 =A0 =A0 (comp_mask & IB_PKEY_COMPMASK_LID) !=3D=
+ 0, p_rcvd_rec->port_num,
+> >> - =A0 =A0 =A0 =A0 =A0 =A0 (comp_mask & IB_PKEY_COMPMASK_PORT) !=3D=
+ 0, p_rcvd_rec->block_num,
+> >> + =A0 =A0 =A0 =A0 =A0 =A0 (comp_mask & IB_PKEY_COMPMASK_PORT) !=3D=
+ 0, context.block_num,
+> >> =A0 =A0 =A0 =A0 =A0 =A0 =A0 (comp_mask & IB_PKEY_COMPMASK_BLOCK) !=
+=3D 0);
+> >>
+> >> =A0 =A0 =A0 cl_plock_acquire(sa->p_lock);
+> >> --
+> >> 1.7.1
+> >>
+> >
+> > Alex
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-rdm=
+a" in
+> > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> > More majordomo info at =A0http://vger.kernel.org/majordomo-info.htm=
+l
+> >
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
