@@ -1,145 +1,91 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: [PATCH/opensm] Fix SANodeRecord.nodeInfo.localPortNum
-Date: Tue, 1 Mar 2011 17:29:41 -0700
-Message-ID: <20110302002941.GA22729@obsidianresearch.com>
+From: Moni Shoua <monis-hKgKHo2Ms0F+cjeuK/JdrQ@public.gmane.org>
+Subject: [PATCH] IB/rdma_cm: cancel pending lap message when destroying an
+ ID
+Date: Wed, 2 Mar 2011 17:45:10 +0200
+Message-ID: <4D6E6606.5010900@Voltaire.COM>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Alex Netes <alexne-smomgflXvOZWk0Htik3J/w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-This value must match the portGUID, so it needs to vary on a per port
-basis like portGUID and not simply reflect the value opensm acquired
-during the sweep.
 
-Prior to this patch opensm returns the same value for localPortNum for
-all ports on a HCA, now it returns the correct localPortNum for the
-portGUID.
+When destroying a cm_id from a context of a work queue and if the lap_state of
+this cm_id is IB_CM_LAP_SENT, we need to release the reference of this id that
+was taken upon the send of the lap message.  Otherwise, if the expected apr
+message gets lost, it is only after a long time that the reference will be
+released, while during that the work handler thread is not available to process
+other things.
+Also, a sigle variable 'msg' was used to hold the last snet mad. However, this
+variable serves 2 state machines (CM and LAP) which can cause to memory leaks or
+to unexpected behavior. This patch adds another variable to hold the lap mad.
 
-Also fixes query matching in the same way
+Signed-off-by: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+--
+ drivers/infiniband/core/cm.c |   25 ++++++++++++++++++++++---
+ 1 file changed, 22 insertions(+), 3 deletions(-)
 
-Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
----
- opensm/opensm/osm_sa_node_record.c |   22 +++++++++++++++-------
- 1 files changed, 15 insertions(+), 7 deletions(-)
-
-Eg corrected output:
-$ ibtool saquery nr nodeInfo.localPortNum=1
-NodeRecord dump:
-                LID.....................8
-                Reserved_16.............0
-                Base version............1
-                Class version...........1
-                node_type...............1
-                num_ports...............2
-                sys_guid................0002:c903:0000:14a7
-                node_guid...............0002:c903:0000:14a4
-                port_guid...............0002:c903:0000:14a5
-                partition_cap...........128
-                device_id...............0x634a
-                Revision................0x000000a0
-                port_num................1
-                vendor_id...............0x0002c9
-                NodeDescription.........MT25408 ConnectX Mellanox Technologies
-
-$ ibtool saquery nr nodeInfo.localPortNum=2
-NodeRecord dump:
-                LID.....................10
-                Reserved_16.............0
-                Base version............1
-                Class version...........1
-                node_type...............1
-                num_ports...............2
-                sys_guid................0002:c903:0000:14a7
-                node_guid...............0002:c903:0000:14a4
-                port_guid...............0002:c903:0000:14a6
-                partition_cap...........128
-                device_id...............0x634a
-                Revision................0x000000a0
-                port_num................2
-                vendor_id...............0x0002c9
-                NodeDescription.........MT25408 ConnectX Mellanox Technologies
-
-diff --git a/opensm/opensm/osm_sa_node_record.c b/opensm/opensm/osm_sa_node_record.c
-index 87f00fd..ff08219 100644
---- a/opensm/opensm/osm_sa_node_record.c
-+++ b/opensm/opensm/osm_sa_node_record.c
-@@ -70,7 +70,8 @@ typedef struct osm_nr_search_ctxt {
- static ib_api_status_t nr_rcv_new_nr(osm_sa_t * sa,
- 				     IN const osm_node_t * p_node,
- 				     IN cl_qlist_t * p_list,
--				     IN ib_net64_t port_guid, IN ib_net16_t lid)
-+				     IN ib_net64_t port_guid, IN ib_net16_t lid,
-+	                             IN unsigned int port_num)
- {
- 	osm_nr_item_t *p_rec_item;
- 	ib_api_status_t status = IB_SUCCESS;
-@@ -97,6 +98,9 @@ static ib_api_status_t nr_rcv_new_nr(osm_sa_t * sa,
+diff --git a/drivers/infiniband/core/cm.c b/drivers/infiniband/core/cm.c
+index 64e0903..3c00646 100644
+--- a/drivers/infiniband/core/cm.c
++++ b/drivers/infiniband/core/cm.c
+@@ -210,6 +210,7 @@ struct cm_id_private {
+ 	atomic_t refcount;
  
- 	p_rec_item->rec.node_info = p_node->node_info;
- 	p_rec_item->rec.node_info.port_guid = port_guid;
-+	p_rec_item->rec.node_info.port_num_vendor_id =
-+		(p_rec_item->rec.node_info.port_num_vendor_id & IB_NODE_INFO_VEND_ID_MASK) |
-+		((port_num << IB_NODE_INFO_PORT_NUM_SHIFT) & IB_NODE_INFO_PORT_NUM_MASK);
- 	memcpy(&(p_rec_item->rec.node_desc), &(p_node->node_desc),
- 	       IB_NODE_DESCRIPTION_SIZE);
- 	cl_qlist_insert_tail(p_list, &p_rec_item->list_item);
-@@ -110,6 +114,7 @@ static void nr_rcv_create_nr(IN osm_sa_t * sa, IN osm_node_t * p_node,
- 			     IN cl_qlist_t * p_list,
- 			     IN ib_net64_t const match_port_guid,
- 			     IN ib_net16_t const match_lid,
-+			     IN unsigned int const match_port_num,
- 			     IN const osm_physp_t * p_req_physp,
- 			     IN const ib_net64_t comp_mask)
- {
-@@ -173,7 +178,11 @@ static void nr_rcv_create_nr(IN osm_sa_t * sa, IN osm_node_t * p_node,
- 				continue;
- 		}
- 
--		nr_rcv_new_nr(sa, p_node, p_list, port_guid, base_lid);
-+		if ((comp_mask & IB_NR_COMPMASK_PORTNUM) &&
-+		    (port_num != match_port_num))
-+			continue;
+ 	struct ib_mad_send_buf *msg;
++	struct ib_mad_send_buf *lap_msg;
+ 	struct cm_timewait_info *timewait_info;
+ 	/* todo: use alternate port on send failure */
+ 	struct cm_av av;
+@@ -839,6 +840,24 @@ static void cm_destroy_id(struct ib_cm_id *cm_id, int err)
+ 	cm_id_priv = container_of(cm_id, struct cm_id_private, id);
+ retest:
+ 	spin_lock_irq(&cm_id_priv->lock);
 +
-+		nr_rcv_new_nr(sa, p_node, p_list, port_guid, base_lid, port_num);
++	/* handle lap states first */
++	switch (cm_id->lap_state) {
++	case IB_CM_LAP_UNINIT:
++	case IB_CM_LAP_IDLE:
++		break;
++	case IB_CM_LAP_SENT:
++		cm_id_priv->id.lap_state = IB_CM_LAP_IDLE;
++		ib_cancel_mad(cm_id_priv->av.port->mad_agent, cm_id_priv->lap_msg);
++		cm_id_priv->lap_msg = NULL;
++		break;
++	case IB_CM_LAP_RCVD:
++	case IB_CM_MRA_LAP_SENT:
++	case IB_CM_MRA_LAP_RCVD:
++	default:
++		break;
++	}
++
+ 	switch (cm_id->state) {
+ 	case IB_CM_LISTEN:
+ 		cm_id->state = IB_CM_IDLE;
+@@ -2615,7 +2634,7 @@ int ib_send_cm_lap(struct ib_cm_id *cm_id,
  	}
  
- 	OSM_LOG_EXIT(sa->p_log);
-@@ -189,6 +198,7 @@ static void nr_rcv_by_comp_mask(IN cl_map_item_t * p_map_item, IN void *context)
- 	ib_net64_t comp_mask = p_ctxt->comp_mask;
- 	ib_net64_t match_port_guid = 0;
- 	ib_net16_t match_lid = 0;
-+	unsigned int match_port_num = 0;
+ 	cm_id->lap_state = IB_CM_LAP_SENT;
+-	cm_id_priv->msg = msg;
++	cm_id_priv->lap_msg = msg;
  
- 	OSM_LOG_ENTER(p_ctxt->sa->p_log);
+ out:	spin_unlock_irqrestore(&cm_id_priv->lock, flags);
+ 	return ret;
+@@ -2811,8 +2830,8 @@ static int cm_apr_handler(struct cm_work *work)
+ 		goto out;
+ 	}
+ 	cm_id_priv->id.lap_state = IB_CM_LAP_IDLE;
+-	ib_cancel_mad(cm_id_priv->av.port->mad_agent, cm_id_priv->msg);
+-	cm_id_priv->msg = NULL;
++	ib_cancel_mad(cm_id_priv->av.port->mad_agent, cm_id_priv->lap_msg);
++	cm_id_priv->lap_msg = NULL;
  
-@@ -249,10 +259,8 @@ static void nr_rcv_by_comp_mask(IN cl_map_item_t * p_map_item, IN void *context)
- 	    p_rcvd_rec->node_info.revision)
- 		goto Exit;
- 
--	if ((comp_mask & IB_NR_COMPMASK_PORTNUM)  &&
--	    ib_node_info_get_local_port_num(&p_node->node_info) !=
--	    ib_node_info_get_local_port_num(&p_rcvd_rec->node_info))
--		goto Exit;
-+	if (comp_mask & IB_NR_COMPMASK_PORTNUM)
-+		match_port_num = ib_node_info_get_local_port_num(&p_rcvd_rec->node_info);
- 
- 	if ((comp_mask & IB_NR_COMPMASK_VENDID) &&
- 	    ib_node_info_get_vendor_id(&p_node->node_info) !=
-@@ -265,7 +273,7 @@ static void nr_rcv_by_comp_mask(IN cl_map_item_t * p_map_item, IN void *context)
- 		goto Exit;
- 
- 	nr_rcv_create_nr(sa, p_node, p_ctxt->p_list, match_port_guid,
--			 match_lid, p_req_physp, comp_mask);
-+			 match_lid, match_port_num, p_req_physp, comp_mask);
- 
- Exit:
- 	OSM_LOG_EXIT(p_ctxt->sa->p_log);
--- 
-1.7.1
-
+ 	ret = atomic_inc_and_test(&cm_id_priv->work_count);
+ 	if (!ret)
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
