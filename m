@@ -1,51 +1,41 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH] ib/cm: Cancel pending lap message when destroying an ID
-Date: Wed, 2 Mar 2011 08:47:43 -0800
-Message-ID: <CF9C39F99A89134C9CF9C4CCB68B8DDF25CC86C58E@orsmsx501.amr.corp.intel.com>
-References: <AANLkTikD-2VkuLDZBQiBcrY2xovt53DS02Oqx=u8qdJG@mail.gmail.com>
+From: Mike Marciniszyn <mike.marciniszyn-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH] IB/qib: Fix M_Key field in SubnGet and SubnGetResp MADs
+Date: Wed, 02 Mar 2011 18:01:14 -0500
+Message-ID: <20110302230113.6050.82446.stgit@kop-dev-sles11-04.qlogic.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <AANLkTikD-2VkuLDZBQiBcrY2xovt53DS02Oqx=u8qdJG-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Moni Shoua <monis-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tom.elken-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-When destroying a cm_id from a context of a work queue and if the lap_state of
-this cm_id is IB_CM_LAP_SENT, we need to release the reference of this id that
-was taken when sending the lap message.  Otherwise, if the expected apr
-message gets lost, it is only after a long time that the reference will be
-released, while during that the work handler thread is not available to process
-other things.
+From: Mitko Haralanov <mitko-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
 
-This problem was reported by Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> and
-Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Set the M_Key field in SubnGet and SugnGetResp MADs based
+on correctly interpreting the protection level specified
+in the M_KeyProtBits field.
 
-Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Mitko Haralanov <mitko-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+Signed-off-by: Mike Marciniszyn <mike.marciniszyn-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
 ---
-Good catch, although, I think we can simplify the fix to the patch below
-(completely untested).  Please let me know if this solves the issue for you.
+ drivers/infiniband/hw/qib/qib_mad.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
- drivers/infiniband/core/cm.c |    2 ++
- 1 files changed, 2 insertions(+), 0 deletions(-)
-
-diff --git a/drivers/infiniband/core/cm.c b/drivers/infiniband/core/cm.c
-index 1d9616b..79da42d 100644
---- a/drivers/infiniband/core/cm.c
-+++ b/drivers/infiniband/core/cm.c
-@@ -888,6 +888,8 @@ retest:
- 			       NULL, 0, NULL, 0);
- 		break;
- 	case IB_CM_ESTABLISHED:
-+		if (cm_id->lap_state == IB_CM_LAP_SENT)
-+			ib_cancel_mad(cm_id_priv->av.port->mad_agent, cm_id_priv->msg);
- 		spin_unlock_irq(&cm_id_priv->lock);
- 		ib_send_cm_dreq(cm_id, NULL, 0);
- 		goto retest;
-
+diff --git a/drivers/infiniband/hw/qib/qib_mad.c b/drivers/infiniband/hw/qib/qib_mad.c
+index 7c44726..5494082 100644
+--- a/drivers/infiniband/hw/qib/qib_mad.c
++++ b/drivers/infiniband/hw/qib/qib_mad.c
+@@ -465,7 +465,7 @@ static int subn_get_portinfo(struct ib_smp *smp, struct ib_device *ibdev,
+ 
+ 	/* Only return the mkey if the protection field allows it. */
+ 	if (smp->method == IB_MGMT_METHOD_SET || ibp->mkey == smp->mkey ||
+-	    ibp->mkeyprot == 0)
++	    ibp->mkeyprot != 0)
+ 		pip->mkey = ibp->mkey;
+ 	pip->gid_prefix = ibp->gid_prefix;
+ 	lid = ppd->lid;
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
