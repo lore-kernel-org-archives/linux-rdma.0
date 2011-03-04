@@ -1,103 +1,89 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH] ib/cm: Cancel pending LAP message when exiting
- IB_CM_ESTABLISH state
-Date: Thu, 3 Mar 2011 15:31:06 -0800
-Message-ID: <CF9C39F99A89134C9CF9C4CCB68B8DDF25CC8C57C9@orsmsx501.amr.corp.intel.com>
-References: <AANLkTikD-2VkuLDZBQiBcrY2xovt53DS02Oqx=u8qdJG@mail.gmail.com>
+From: Tanin <fanqielee-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: iWARP tuning
+Date: Thu, 3 Mar 2011 20:21:27 -0500
+Message-ID: <AANLkTimhJv2Mdj3disORwbyudRZWF=DLvG8PCtg577a+@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <AANLkTikD-2VkuLDZBQiBcrY2xovt53DS02Oqx=u8qdJG-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Content-Language: en-US
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Moni Shoua <monis-smomgflXvOZWk0Htik3J/w@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Type: multipart/mixed; boundary="===============1672267166=="
+Return-path: <ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+List-Unsubscribe: <http://lists.openfabrics.org/cgi-bin/mailman/options/ewg>,
+	<mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.openfabrics.org/pipermail/ewg>
+List-Post: <mailto:ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+List-Help: <mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=help>
+List-Subscribe: <http://lists.openfabrics.org/cgi-bin/mailman/listinfo/ewg>,
+	<mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=subscribe>
+Sender: ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
+Errors-To: ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
+To: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-This problem was reported by Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> and
-Amir Vadai <amirv-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>:
+--===============1672267166==
+Content-Type: multipart/alternative; boundary=0016369f9ac9190dfc049d9df76e
 
-	When destroying a cm_id from a context of a work queue
-	and if the lap_state of this cm_id is IB_CM_LAP_SENT,
-	we need to release the reference of this id that
-	was taken upon the send of the LAP message.
-	Otherwise, if the expected APR message gets lost,
-	it is only after a long time that the reference will be
-	released, while during that the work handler thread is
-	not available to process other things.
+--0016369f9ac9190dfc049d9df76e
+Content-Type: text/plain; charset=ISO-8859-1
 
-It turns out that we need to cancel any pending LAP messages
-whenever we transition out of the IB_CM_ESTABLISH state.  This
-occurs when disconnecting - either sending or receiving a DREQ.
-It can also happen in a corner case where we receive a REJ message
-after sending an RTU, followed by a LAP.  Add checks and cancel
-any outstanding LAP messages in these three cases.
+Dear all,
 
-Canceling the LAP when sending a DREQ fixes the destroy problem
-reported by Moni.  When a cm_id is destroyed in the IB_CM_ESTABLISHED
-state, it sends a DREQ to the remote side to notify the peer that
-the connection is going away.
+            We had conducted some tests on long distance data transfer using
+iWARP. But the performance is bad. Does anyone has some idea on how to tune
+the iWARP for better performance? Does iWARP support paralell data
+transfer? Does the buffer size of the card tunable?
 
-Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
----
-Moni, I don't have a good way to test that this really fixes your problem,
-but it looks like it should.
-I considered merging the cm state and lap states together, but I wasn't
-convinced that that made things any simpler.
-
- drivers/infiniband/core/cm.c |   19 ++++++++++++++++++-
- 1 files changed, 18 insertions(+), 1 deletions(-)
-
-diff --git a/drivers/infiniband/core/cm.c b/drivers/infiniband/core/cm.c
-index 1d9616b..f804e28 100644
---- a/drivers/infiniband/core/cm.c
-+++ b/drivers/infiniband/core/cm.c
-@@ -1988,6 +1988,10 @@ int ib_send_cm_dreq(struct ib_cm_id *cm_id,
- 		goto out;
- 	}
- 
-+	if (cm_id->lap_state == IB_CM_LAP_SENT ||
-+	    cm_id->lap_state == IB_CM_MRA_LAP_RCVD)
-+		ib_cancel_mad(cm_id_priv->av.port->mad_agent, cm_id_priv->msg);
-+
- 	ret = cm_alloc_msg(cm_id_priv, &msg);
- 	if (ret) {
- 		cm_enter_timewait(cm_id_priv);
-@@ -2129,6 +2133,10 @@ static int cm_dreq_handler(struct cm_work *work)
- 		ib_cancel_mad(cm_id_priv->av.port->mad_agent, cm_id_priv->msg);
- 		break;
- 	case IB_CM_ESTABLISHED:
-+		if (cm_id_priv->id.lap_state == IB_CM_LAP_SENT ||
-+		    cm_id_priv->id.lap_state == IB_CM_MRA_LAP_RCVD)
-+			ib_cancel_mad(cm_id_priv->av.port->mad_agent, cm_id_priv->msg);
-+		break;
- 	case IB_CM_MRA_REP_RCVD:
- 		break;
- 	case IB_CM_TIMEWAIT:
-@@ -2349,9 +2357,18 @@ static int cm_rej_handler(struct cm_work *work)
- 		/* fall through */
- 	case IB_CM_REP_RCVD:
- 	case IB_CM_MRA_REP_SENT:
--	case IB_CM_ESTABLISHED:
- 		cm_enter_timewait(cm_id_priv);
- 		break;
-+	case IB_CM_ESTABLISHED:
-+		if (cm_id_priv->id.lap_state == IB_CM_LAP_UNINIT ||
-+		    cm_id_priv->id.lap_state == IB_CM_LAP_SENT) {
-+			if (cm_id_priv->id.lap_state == IB_CM_LAP_SENT)
-+				ib_cancel_mad(cm_id_priv->av.port->mad_agent,
-+					      cm_id_priv->msg);
-+			cm_enter_timewait(cm_id_priv);
-+			break;
-+		}
-+		/* fall through */
- 	default:
- 		spin_unlock_irq(&cm_id_priv->lock);
- 		ret = -EINVAL;
+Thanks!
 
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+-- 
+Best regards,
+
+-----------------------------------------------------------------------------------------------
+Li, Tan
+PhD Candidate & Research Assistant,
+Electrical Engineering,
+Stony Brook University, NY
+
+Personal Web Site: https://sites.google.com/site/homepagelitan/Home
+
+Email: fanqielee-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
+
+--0016369f9ac9190dfc049d9df76e
+Content-Type: text/html; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
+
+<div>Dear all,</div>
+<div>=A0</div>
+<div>=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 We had conducted some tests on long =
+distance data transfer using iWARP. But the performance is bad. Does anyone=
+ has some idea on=A0how to=A0tune the iWARP=A0for better=A0performance?=A0D=
+oes iWARP support paralell data transfer?=A0Does=A0the buffer size of the c=
+ard tunable?</div>
+
+<div>=A0</div>
+<div>Thanks!</div>
+<div>=A0</div>
+<div><br clear=3D"all"><br>-- <br></div>
+<div>Best regards,</div>
+<div>=A0</div>
+<div>----------------------------------------------------------------------=
+-------------------------<br>Li, Tan<br>PhD=A0Candidate &amp; Research Assi=
+stant, <br>Electrical Engineering, <br>Stony Brook University, NY<br><br>
+Personal Web Site: <a href=3D"https://sites.google.com/site/homepagelitan/H=
+ome" target=3D"_blank">https://sites.google.com/site/homepagelitan/Home</a>=
+<br><br>Email: <a href=3D"mailto:fanqielee-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" target=3D"_blank">fan=
+qielee-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org</a></div>
+<br>
+
+--0016369f9ac9190dfc049d9df76e--
+
+--===============1672267166==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+_______________________________________________
+ewg mailing list
+ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
+http://lists.openfabrics.org/cgi-bin/mailman/listinfo/ewg
+--===============1672267166==--
