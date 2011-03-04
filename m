@@ -1,40 +1,44 @@
-From: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH] opensm: fixed memory leak in multicast spanning tree
-Date: Fri, 4 Mar 2011 14:18:54 +0200
-Message-ID: <20110304121854.GD5577@calypso.voltaire.com>
+From: Mike Marciniszyn <mike.marciniszyn-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH v2] IB/qib: Fix M_Key field in SubnGet and SubnGetResp MADs
+Date: Fri, 04 Mar 2011 13:53:17 -0500
+Message-ID: <20110304185317.3967.81450.stgit@kop-dev-sles11-04.qlogic.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tom.elken-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-calculation
-Reply-To: 
+From: Mitko Haralanov <mitko-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
 
-When number of ports participating in a group is less than 2, port_list isn't
-freed.
+Set the M_Key field in SubnGet and SugnGetResp MADs based
+on correctly interpreting the protection level specified
+in the M_KeyProtBits field.
 
-Signed-off-by: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Mitko Haralanov <mitko-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+Signed-off-by: Mike Marciniszyn <mike.marciniszyn-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
 ---
- opensm/osm_mcast_mgr.c |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
+ drivers/infiniband/hw/qib/qib_mad.c |    5 +++--
+ 1 files changed, 3 insertions(+), 2 deletions(-)
 
-diff --git a/opensm/osm_mcast_mgr.c b/opensm/osm_mcast_mgr.c
-index df3af26..95b514c 100644
---- a/opensm/osm_mcast_mgr.c
-+++ b/opensm/osm_mcast_mgr.c
-@@ -751,6 +751,7 @@ static ib_api_status_t mcast_mgr_build_spanning_tree(osm_sm_t * sm,
- 		OSM_LOG(sm->p_log, OSM_LOG_VERBOSE,
- 			"MLID 0x%X has %u members - nothing to do\n",
- 			mbox->mlid, num_ports);
-+		drop_port_list(&port_list);
- 		goto Exit;
- 	}
+diff --git a/drivers/infiniband/hw/qib/qib_mad.c b/drivers/infiniband/hw/qib/qib_mad.c
+index 7c44726..13a0c12 100644
+--- a/drivers/infiniband/hw/qib/qib_mad.c
++++ b/drivers/infiniband/hw/qib/qib_mad.c
+@@ -464,8 +464,9 @@ static int subn_get_portinfo(struct ib_smp *smp, struct ib_device *ibdev,
+ 	memset(smp->data, 0, sizeof(smp->data));
  
--- 
-1.7.3.4
+ 	/* Only return the mkey if the protection field allows it. */
+-	if (smp->method == IB_MGMT_METHOD_SET || ibp->mkey == smp->mkey ||
+-	    ibp->mkeyprot == 0)
++	if (!(smp->method == IB_MGMT_METHOD_GET &&
++	      ibp->mkey != smp->mkey &&
++	      ibp->mkeyprot == 1))
+ 		pip->mkey = ibp->mkey;
+ 	pip->gid_prefix = ibp->gid_prefix;
+ 	lid = ppd->lid;
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
