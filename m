@@ -1,107 +1,163 @@
-From: Mike Heinz <michael.heinz-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-Subject: RE: [PATCH/libmlx4] Return ERRNO codes from ibv_post_send/recv
- instead of -1
-Date: Wed, 9 Mar 2011 08:02:48 -0600
-Message-ID: <4C2744E8AD2982428C5BFE523DF8CDCB4A20BB3C79@MNEXMB1.qlogic.org>
-References: <20110309012810.GM22729@obsidianresearch.com>
+From: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH/opensm] Fix SANodeRecord.nodeInfo.localPortNum
+Date: Wed, 9 Mar 2011 17:47:44 +0200
+Message-ID: <20110309154744.GV5577@calypso.voltaire.com>
+References: <20110302002941.GA22729@obsidianresearch.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20110309012810.GM22729-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <20110302002941.GA22729-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Alex Netes <alexne-smomgflXvOZWk0Htik3J/w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Returning an errno is always better than just returning -1. (Assuming it's an appropriate error number...)
+Hi Jason,
 
------Original Message-----
-From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Jason Gunthorpe
-Sent: Tuesday, March 08, 2011 8:28 PM
-To: Roland Dreier; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Subject: [PATCH/libmlx4] Return ERRNO codes from ibv_post_send/recv instead of -1
+On 17:29 Tue 01 Mar     , Jason Gunthorpe wrote:
+> This value must match the portGUID, so it needs to vary on a per port
+> basis like portGUID and not simply reflect the value opensm acquired
+> during the sweep.
+> 
+> Prior to this patch opensm returns the same value for localPortNum for
+> all ports on a HCA, now it returns the correct localPortNum for the
+> portGUID.
+> 
+> Also fixes query matching in the same way
+> 
 
-The man pages for these functions document a positive return of errno not -1.
+Spec defines the SA NodeRecord.LocalPortNum field as the number of the link
+port which received this SMP (14.2.5.3). This definition doesn't make any
+sense when it comes to SA.
+I understand your motivation for the patch and the fact that current
+LocalPortNum query matching in the SM doesn't sound right. So maybe IBA spec
+fine tuning is needed, before applying the patch, so this field won't be open
+to free interpretations. 
 
-Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
----
- src/qp.c |   13 +++++++------
- 1 files changed, 7 insertions(+), 6 deletions(-)
+> Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+> ---
+>  opensm/opensm/osm_sa_node_record.c |   22 +++++++++++++++-------
+>  1 files changed, 15 insertions(+), 7 deletions(-)
+> 
+> Eg corrected output:
+> $ ibtool saquery nr nodeInfo.localPortNum=1
+> NodeRecord dump:
+>                 LID.....................8
+>                 Reserved_16.............0
+>                 Base version............1
+>                 Class version...........1
+>                 node_type...............1
+>                 num_ports...............2
+>                 sys_guid................0002:c903:0000:14a7
+>                 node_guid...............0002:c903:0000:14a4
+>                 port_guid...............0002:c903:0000:14a5
+>                 partition_cap...........128
+>                 device_id...............0x634a
+>                 Revision................0x000000a0
+>                 port_num................1
+>                 vendor_id...............0x0002c9
+>                 NodeDescription.........MT25408 ConnectX Mellanox Technologies
+> 
+> $ ibtool saquery nr nodeInfo.localPortNum=2
+> NodeRecord dump:
+>                 LID.....................10
+>                 Reserved_16.............0
+>                 Base version............1
+>                 Class version...........1
+>                 node_type...............1
+>                 num_ports...............2
+>                 sys_guid................0002:c903:0000:14a7
+>                 node_guid...............0002:c903:0000:14a4
+>                 port_guid...............0002:c903:0000:14a6
+>                 partition_cap...........128
+>                 device_id...............0x634a
+>                 Revision................0x000000a0
+>                 port_num................2
+>                 vendor_id...............0x0002c9
+>                 NodeDescription.........MT25408 ConnectX Mellanox Technologies
+> 
+> diff --git a/opensm/opensm/osm_sa_node_record.c b/opensm/opensm/osm_sa_node_record.c
+> index 87f00fd..ff08219 100644
+> --- a/opensm/opensm/osm_sa_node_record.c
+> +++ b/opensm/opensm/osm_sa_node_record.c
+> @@ -70,7 +70,8 @@ typedef struct osm_nr_search_ctxt {
+>  static ib_api_status_t nr_rcv_new_nr(osm_sa_t * sa,
+>  				     IN const osm_node_t * p_node,
+>  				     IN cl_qlist_t * p_list,
+> -				     IN ib_net64_t port_guid, IN ib_net16_t lid)
+> +				     IN ib_net64_t port_guid, IN ib_net16_t lid,
+> +	                             IN unsigned int port_num)
 
-Noticed this.. What do you think?
+port_num can be just uint8_t, right?
 
-I did not check the other drivers.
-
-diff --git a/src/qp.c b/src/qp.c
-index d194ae3..ec138cd 100644
---- a/src/qp.c
-+++ b/src/qp.c
-@@ -40,6 +40,7 @@
- #include <netinet/in.h>
- #include <pthread.h>
- #include <string.h>
-+#include <errno.h>
-
- #include "mlx4.h"
- #include "doorbell.h"
-@@ -206,19 +207,19 @@ int mlx4_post_send(struct ibv_qp *ibqp, struct ibv_send_wr *wr,
-
-        for (nreq = 0; wr; ++nreq, wr = wr->next) {
-                if (wq_overflow(&qp->sq, nreq, to_mcq(qp->ibv_qp.send_cq))) {
--                       ret = -1;
-+                       ret = ENOMEM;
-                        *bad_wr = wr;
-                        goto out;
-                }
-
-                if (wr->num_sge > qp->sq.max_gs) {
--                       ret = -1;
-+                       ret = ENOMEM;
-                        *bad_wr = wr;
-                        goto out;
-                }
-
-                if (wr->opcode >= sizeof mlx4_ib_opcode / sizeof mlx4_ib_opcode[0]) {
--                       ret = -1;
-+                       ret = EINVAL;
-                        *bad_wr = wr;
-                        goto out;
-                }
-@@ -309,7 +310,7 @@ int mlx4_post_send(struct ibv_qp *ibqp, struct ibv_send_wr *wr,
-
-                                if (inl > qp->max_inline_data) {
-                                        inl = 0;
--                                       ret = -1;
-+                                       ret = ENOMEM;
-                                        *bad_wr = wr;
-                                        goto out;
-                                }
-@@ -450,13 +451,13 @@ int mlx4_post_recv(struct ibv_qp *ibqp, struct ibv_recv_wr *wr,
-
-        for (nreq = 0; wr; ++nreq, wr = wr->next) {
-                if (wq_overflow(&qp->rq, nreq, to_mcq(qp->ibv_qp.recv_cq))) {
--                       ret = -1;
-+                       ret = ENOMEM;
-                        *bad_wr = wr;
-                        goto out;
-                }
-
-                if (wr->num_sge > qp->rq.max_gs) {
--                       ret = -1;
-+                       ret = ENOMEM;
-                        *bad_wr = wr;
-                        goto out;
-                }
---
-1.7.1
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
-
-This message and any attached documents contain information from QLogic Corporation or its wholly-owned subsidiaries that may be confidential. If you are not the intended recipient, you may not read, copy, distribute, or use this information. If you have received this transmission in error, please notify the sender immediately by reply e-mail and then delete this message.
-
+>  {
+>  	osm_nr_item_t *p_rec_item;
+>  	ib_api_status_t status = IB_SUCCESS;
+> @@ -97,6 +98,9 @@ static ib_api_status_t nr_rcv_new_nr(osm_sa_t * sa,
+>  
+>  	p_rec_item->rec.node_info = p_node->node_info;
+>  	p_rec_item->rec.node_info.port_guid = port_guid;
+> +	p_rec_item->rec.node_info.port_num_vendor_id =
+> +		(p_rec_item->rec.node_info.port_num_vendor_id & IB_NODE_INFO_VEND_ID_MASK) |
+> +		((port_num << IB_NODE_INFO_PORT_NUM_SHIFT) & IB_NODE_INFO_PORT_NUM_MASK);
+>  	memcpy(&(p_rec_item->rec.node_desc), &(p_node->node_desc),
+>  	       IB_NODE_DESCRIPTION_SIZE);
+>  	cl_qlist_insert_tail(p_list, &p_rec_item->list_item);
+> @@ -110,6 +114,7 @@ static void nr_rcv_create_nr(IN osm_sa_t * sa, IN osm_node_t * p_node,
+>  			     IN cl_qlist_t * p_list,
+>  			     IN ib_net64_t const match_port_guid,
+>  			     IN ib_net16_t const match_lid,
+> +			     IN unsigned int const match_port_num,
+>  			     IN const osm_physp_t * p_req_physp,
+>  			     IN const ib_net64_t comp_mask)
+>  {
+> @@ -173,7 +178,11 @@ static void nr_rcv_create_nr(IN osm_sa_t * sa, IN osm_node_t * p_node,
+>  				continue;
+>  		}
+>  
+> -		nr_rcv_new_nr(sa, p_node, p_list, port_guid, base_lid);
+> +		if ((comp_mask & IB_NR_COMPMASK_PORTNUM) &&
+> +		    (port_num != match_port_num))
+> +			continue;
+> +
+> +		nr_rcv_new_nr(sa, p_node, p_list, port_guid, base_lid, port_num);
+>  	}
+>  
+>  	OSM_LOG_EXIT(sa->p_log);
+> @@ -189,6 +198,7 @@ static void nr_rcv_by_comp_mask(IN cl_map_item_t * p_map_item, IN void *context)
+>  	ib_net64_t comp_mask = p_ctxt->comp_mask;
+>  	ib_net64_t match_port_guid = 0;
+>  	ib_net16_t match_lid = 0;
+> +	unsigned int match_port_num = 0;
+>  
+>  	OSM_LOG_ENTER(p_ctxt->sa->p_log);
+>  
+> @@ -249,10 +259,8 @@ static void nr_rcv_by_comp_mask(IN cl_map_item_t * p_map_item, IN void *context)
+>  	    p_rcvd_rec->node_info.revision)
+>  		goto Exit;
+>  
+> -	if ((comp_mask & IB_NR_COMPMASK_PORTNUM)  &&
+> -	    ib_node_info_get_local_port_num(&p_node->node_info) !=
+> -	    ib_node_info_get_local_port_num(&p_rcvd_rec->node_info))
+> -		goto Exit;
+> +	if (comp_mask & IB_NR_COMPMASK_PORTNUM)
+> +		match_port_num = ib_node_info_get_local_port_num(&p_rcvd_rec->node_info);
+>  
+>  	if ((comp_mask & IB_NR_COMPMASK_VENDID) &&
+>  	    ib_node_info_get_vendor_id(&p_node->node_info) !=
+> @@ -265,7 +273,7 @@ static void nr_rcv_by_comp_mask(IN cl_map_item_t * p_map_item, IN void *context)
+>  		goto Exit;
+>  
+>  	nr_rcv_create_nr(sa, p_node, p_ctxt->p_list, match_port_guid,
+> -			 match_lid, p_req_physp, comp_mask);
+> +			 match_lid, match_port_num, p_req_physp, comp_mask);
+>  
+>  Exit:
+>  	OSM_LOG_EXIT(p_ctxt->sa->p_log);
+> -- 
+> 1.7.1
+> 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
