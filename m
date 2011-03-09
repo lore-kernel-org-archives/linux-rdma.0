@@ -1,38 +1,49 @@
 From: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Subject: Re: [PATCH/opensm] Fix SANodeRecord.nodeInfo.localPortNum
-Date: Wed, 9 Mar 2011 13:38:27 -0500
-Message-ID: <AANLkTikjrO_Uga2v4H6fWBXOuUNw=scka3rjRyRuOyHV@mail.gmail.com>
+Date: Wed, 9 Mar 2011 13:47:48 -0500
+Message-ID: <AANLkTim_4=d-PnyoMVdJ1z4Emu+QafwQPqp+wLJi=AMB@mail.gmail.com>
 References: <20110302002941.GA22729@obsidianresearch.com>
 	<20110309154744.GV5577@calypso.voltaire.com>
 	<20110309171126.GB15419@obsidianresearch.com>
 	<AANLkTimu0RxDbbjiRsni4gdmanvp_eaWA=xFoH9P8qZP@mail.gmail.com>
 	<20110309183441.GB25229@obsidianresearch.com>
+	<AANLkTikjrO_Uga2v4H6fWBXOuUNw=scka3rjRyRuOyHV@mail.gmail.com>
+	<20110309184022.GC25229@obsidianresearch.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20110309183441.GB25229-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <20110309184022.GC25229-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Cc: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Mar 9, 2011 at 1:34 PM, Jason Gunthorpe
+On Wed, Mar 9, 2011 at 1:40 PM, Jason Gunthorpe
 <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
-> On Wed, Mar 09, 2011 at 01:26:26PM -0500, Hal Rosenstock wrote:
->
->> > I don't think there is really any free interpretation here. For
->> > everything but a switch localPortNum must always reflect the port that
->> > portGUID is associated with.
+> On Wed, Mar 09, 2011 at 01:38:27PM -0500, Hal Rosenstock wrote:
+>> On Wed, Mar 9, 2011 at 1:34 PM, Jason Gunthorpe
+>> <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
+>> > On Wed, Mar 09, 2011 at 01:26:26PM -0500, Hal Rosenstock wrote:
+>> >
+>> >> > I don't think there is really any free interpretation here. For
+>> >> > everything but a switch localPortNum must always reflect the port that
+>> >> > portGUID is associated with.
+>> >>
+>> >> Unfortunately, this is not always true due to the funky cross (CA and
+>> >> router) port PortInfo queries (but I don't think that query style is
+>> >> used by OpenSM for CA or router ports but allowed in IBA)...
+>> >
+>> > What part of the spec are you referring to here?
 >>
->> Unfortunately, this is not always true due to the funky cross (CA and
->> router) port PortInfo queries (but I don't think that query style is
->> used by OpenSM for CA or router ports but allowed in IBA)...
+>> IBA 1.2.1 v1 p.830 line 9 the otherwise sentence.
 >
-> What part of the spec are you referring to here?
+> That is talking about PortInfo. NodeInfo does not support that
+> attribute modifier language, my patch affects SANodeRecord.
 
-IBA 1.2.1 v1 p.830 line 9 the otherwise sentence.
+My bad :-( I was thinking of PortInfoRecord, not NodeRecord, for some reason...
 
-> Thanks,
+-- Hal
+
 > Jason
 >
 --
