@@ -1,8 +1,7 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: [PATCH/libmlx4] Return ERRNO codes from ibv_post_send/recv instead
- of -1
-Date: Tue, 8 Mar 2011 18:28:10 -0700
-Message-ID: <20110309012810.GM22729@obsidianresearch.com>
+Subject: [PATCH/libmlx] Set the ibv_wc.opcode even if the wc is an error wc
+Date: Tue, 8 Mar 2011 21:26:13 -0700
+Message-ID: <20110309042613.GA21606@obsidianresearch.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
@@ -11,80 +10,88 @@ Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-The man pages for these functions document a positive return of errno
-not -1.
+If a SQ and a RQ are sharing a CQ then the opcode must be set to
+determine if the error WC applies to the SQ or RQ, this is important
+for buffer tracking, etc.
+
+Testing shows that the is_send value is correct at this point so if
+the chip does not provide an accurate opcode the default statements
+will produce IBV_WC_RECV for RQ WC's and IBV_WC_SEND for SQ WC's.
+
+Tested with a UD QP causing 'local length error' on both the RQ
+and SQ.
+
+Tested with a RC QP causing 'local length error' on the SQ and RQ,
+as well as 'remote invalid request error' and
+'Work Request Flushed Error'
 
 Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 ---
- src/qp.c |   13 +++++++------
- 1 files changed, 7 insertions(+), 6 deletions(-)
+ src/cq.c |   16 +++++++++-------
+ 1 files changed, 9 insertions(+), 7 deletions(-)
 
-Noticed this.. What do you think?
+Roland: I don't have a PRM to check if this is correct for the chip,
+but it is definately in line with what the IBA expects to happen
+here. Some basic testing shows it works as expected..
 
-I did not check the other drivers.
+For the RQ case the value of (cqe->owner_sr_opcode &
+MLX4_CQE_OPCODE_MASK) is MLX4_CQE_OPCODE_ERROR, the SQ case
+doesn't hit the default statement in my tests.
 
-diff --git a/src/qp.c b/src/qp.c
-index d194ae3..ec138cd 100644
---- a/src/qp.c
-+++ b/src/qp.c
-@@ -40,6 +40,7 @@
- #include <netinet/in.h>
- #include <pthread.h>
- #include <string.h>
-+#include <errno.h>
+I noticed this while trying to figure out what to do with a 
+'local length error' received on a UD RQ which is not specified
+to be possible. Since it does not put the RQ into an error state
+it just need to be ignored and the buffer recycled, except you can't
+tell that it is a RQ local length error or a SQ local length error
+without the opcode being set properly...
+
+Same general patch applies to the kernel, and I didn't check other
+drivers.
+
+diff --git a/src/cq.c b/src/cq.c
+index 8226b6b..c920844 100644
+--- a/src/cq.c
++++ b/src/cq.c
+@@ -253,13 +253,6 @@ static int mlx4_poll_one(struct mlx4_cq *cq,
+ 		++wq->tail;
+ 	}
  
- #include "mlx4.h"
- #include "doorbell.h"
-@@ -206,19 +207,19 @@ int mlx4_post_send(struct ibv_qp *ibqp, struct ibv_send_wr *wr,
- 
- 	for (nreq = 0; wr; ++nreq, wr = wr->next) {
- 		if (wq_overflow(&qp->sq, nreq, to_mcq(qp->ibv_qp.send_cq))) {
--			ret = -1;
-+			ret = ENOMEM;
- 			*bad_wr = wr;
- 			goto out;
+-	if (is_error) {
+-		mlx4_handle_error_cqe((struct mlx4_err_cqe *) cqe, wc);
+-		return CQ_OK;
+-	}
+-
+-	wc->status = IBV_WC_SUCCESS;
+-
+ 	if (is_send) {
+ 		wc->wc_flags = 0;
+ 		switch (cqe->owner_sr_opcode & MLX4_CQE_OPCODE_MASK) {
+@@ -311,6 +304,10 @@ static int mlx4_poll_one(struct mlx4_cq *cq,
+ 			wc->wc_flags = IBV_WC_WITH_IMM;
+ 			wc->imm_data = cqe->immed_rss_invalid;
+ 			break;
++		default:
++			/* assume it's a recv completion */
++			wc->opcode    = IBV_WC_RECV;
++			break;
  		}
  
- 		if (wr->num_sge > qp->sq.max_gs) {
--			ret = -1;
-+			ret = ENOMEM;
- 			*bad_wr = wr;
- 			goto out;
- 		}
+ 		wc->slid	   = ntohs(cqe->rlid);
+@@ -322,6 +319,11 @@ static int mlx4_poll_one(struct mlx4_cq *cq,
+ 		wc->pkey_index     = ntohl(cqe->immed_rss_invalid) & 0x7f;
+ 	}
  
- 		if (wr->opcode >= sizeof mlx4_ib_opcode / sizeof mlx4_ib_opcode[0]) {
--			ret = -1;
-+			ret = EINVAL;
- 			*bad_wr = wr;
- 			goto out;
- 		}
-@@ -309,7 +310,7 @@ int mlx4_post_send(struct ibv_qp *ibqp, struct ibv_send_wr *wr,
++	if (is_error)
++		mlx4_handle_error_cqe((struct mlx4_err_cqe *) cqe, wc);
++	else
++		wc->status = IBV_WC_SUCCESS;
++
+ 	return CQ_OK;
+ }
  
- 				if (inl > qp->max_inline_data) {
- 					inl = 0;
--					ret = -1;
-+					ret = ENOMEM;
- 					*bad_wr = wr;
- 					goto out;
- 				}
-@@ -450,13 +451,13 @@ int mlx4_post_recv(struct ibv_qp *ibqp, struct ibv_recv_wr *wr,
- 
- 	for (nreq = 0; wr; ++nreq, wr = wr->next) {
- 		if (wq_overflow(&qp->rq, nreq, to_mcq(qp->ibv_qp.recv_cq))) {
--			ret = -1;
-+			ret = ENOMEM;
- 			*bad_wr = wr;
- 			goto out;
- 		}
- 
- 		if (wr->num_sge > qp->rq.max_gs) {
--			ret = -1;
-+			ret = ENOMEM;
- 			*bad_wr = wr;
- 			goto out;
- 		}
 -- 
 1.7.1
+
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
