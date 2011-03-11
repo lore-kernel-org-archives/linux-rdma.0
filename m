@@ -1,47 +1,40 @@
-From: Alan Cook <acook-osxm6dDZNBBZx8iatJs59jGjJy/sRE9J@public.gmane.org>
+From: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
 Subject: Re: Converting from RC to UC
-Date: Fri, 11 Mar 2011 20:10:18 +0000 (UTC)
-Message-ID: <loom.20110311T210251-557@post.gmane.org>
-References: <loom.20110311T192125-878@post.gmane.org> <20110311185831.GX22729@obsidianresearch.com>
+Date: Fri, 11 Mar 2011 13:42:50 -0800
+Message-ID: <AANLkTimM0PDiWuHFJfn3s-JVEKWHVVfL4+2Kcc4+G5C7@mail.gmail.com>
+References: <loom.20110311T192125-878@post.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <loom.20110311T192125-878-eS7Uydv5nfjZ+VzJOa5vwg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Alan Cook <acook-osxm6dDZNBBZx8iatJs59jGjJy/sRE9J@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Jason Gunthorpe <jgunthorpe@...> writes:
-> I think what you are hitting is some code is calling ibv_modify_qp
-> with an invalid qp_attr_mask for one of the state transitions. UC and
-> RC have different requirements. Assuming you are not calling
-> ibv_modify_qp in your app it is probably a kernel bug?
-> 
+On Fri, Mar 11, 2011 at 10:29 AM, Alan Cook
+<acook-osxm6dDZNBBZx8iatJs59jGjJy/sRE9J@public.gmane.org> wrote:
+> I currently have a working RDMA InfiniBand based client-server applic=
+ation using
+> Reliable Connection (RC) service. =A0I would like to change the appli=
+cation to use
+> Unreliable Connection (UC) service. =A0I am not performing RDMA reads=
+, so I should
+> be able to use UC.
+>
+> I was under the impression that the only change that would be require=
+d would be
+> changing the queue pair type from IBV_QPT_RC to IBV_QPT_UC.
 
-No calls are made to ibv_modify_qp.  The application is failing on the connect,
-so there has not been any application specific operations performed over
-InfiniBand yet (other than the connection setup).  The application itself is
-quite basic: eight application specific messages to be passed over InfiniBand,
-along with RDMA write messages.  It can be thought of as a glorified scp 
-operation.
+How are you setting up the connection?
 
-I am using the vanilla 2.6.27.57 kernel.  If the problem is a kernel bug, I
-would expect the kernel to not support UC at all, given the simplicity of the
-application.
+My understanding is that the RDMA CM (ie librdmacm) does not handle UC,
+so if you are using that, it shouldn't work.  Sean could confirm this.
 
-The only change made to the application for switching from RC to UC was to
-change the queue type, which does not appear to work.  It seems that there are
-other setup operations performed for the RC server which are not compatible with
-a UC server, but no calls return errors until rdma_accept().  What other
-settings/setup would be causing the issue that would not return an error?
-
-I have found no examples for setting up a basic IB application using UC.  All
-examples are with RC.  Does anyone know of any examples for UC that they could
-point me towards?
-
-
-
+ - R.
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
