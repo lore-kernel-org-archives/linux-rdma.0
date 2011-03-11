@@ -1,7 +1,8 @@
 From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: [PATCH 5/7] RDMA/cxgb4: remove db_drop_task.
-Date: Fri, 11 Mar 2011 16:30:32 -0600
-Message-ID: <20110311223032.16418.78659.stgit@build.ogc.int>
+Subject: [PATCH 6/7] RDMA/cxgb4: Do CIDX_INC updates every 1/16 cq depth cqe
+	reaps.
+Date: Fri, 11 Mar 2011 16:30:42 -0600
+Message-ID: <20110311223042.16418.85498.stgit@build.ogc.int>
 References: <20110311222826.16418.43582.stgit@build.ogc.int>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -13,40 +14,35 @@ To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Unloading iw_cxgb4 can crash due to the unload code trying to use
-db_drop_task, which is uninitialized.  So remove this dead code.
+This avoids the CIDX_INC overflow issue with T4A2 when running
+kernel RDMA applications.
 
 Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 ---
 
- drivers/infiniband/hw/cxgb4/device.c   |    1 -
- drivers/infiniband/hw/cxgb4/iw_cxgb4.h |    1 -
- 2 files changed, 0 insertions(+), 2 deletions(-)
+ drivers/infiniband/hw/cxgb4/t4.h |    8 +++++++-
+ 1 files changed, 7 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/infiniband/hw/cxgb4/device.c b/drivers/infiniband/hw/cxgb4/device.c
-index f5638f2..3e46b80 100644
---- a/drivers/infiniband/hw/cxgb4/device.c
-+++ b/drivers/infiniband/hw/cxgb4/device.c
-@@ -373,7 +373,6 @@ static void c4iw_rdev_close(struct c4iw_rdev *rdev)
- static void c4iw_remove(struct c4iw_dev *dev)
+diff --git a/drivers/infiniband/hw/cxgb4/t4.h b/drivers/infiniband/hw/cxgb4/t4.h
+index 7000442..9b84275 100644
+--- a/drivers/infiniband/hw/cxgb4/t4.h
++++ b/drivers/infiniband/hw/cxgb4/t4.h
+@@ -507,8 +507,14 @@ static inline void t4_swcq_consume(struct t4_cq *cq)
+ static inline void t4_hwcq_consume(struct t4_cq *cq)
  {
- 	PDBG("%s c4iw_dev %p\n", __func__,  dev);
--	cancel_delayed_work_sync(&dev->db_drop_task);
- 	list_del(&dev->entry);
- 	if (dev->registered)
- 		c4iw_unregister_device(dev);
-diff --git a/drivers/infiniband/hw/cxgb4/iw_cxgb4.h b/drivers/infiniband/hw/cxgb4/iw_cxgb4.h
-index 2fe19ec..9f6166f 100644
---- a/drivers/infiniband/hw/cxgb4/iw_cxgb4.h
-+++ b/drivers/infiniband/hw/cxgb4/iw_cxgb4.h
-@@ -176,7 +176,6 @@ struct c4iw_dev {
- 	struct idr mmidr;
- 	spinlock_t lock;
- 	struct list_head entry;
--	struct delayed_work db_drop_task;
- 	struct dentry *debugfs_root;
- 	u8 registered;
- };
+ 	cq->bits_type_ts = cq->queue[cq->cidx].bits_type_ts;
+-	if (++cq->cidx_inc == cq->size)
++	if (++cq->cidx_inc == (cq->size >> 4)) {
++		u32 val;
++		
++		val = SEINTARM(0) | CIDXINC(cq->cidx_inc) | TIMERREG(7) |
++		      INGRESSQID(cq->cqid);
++		writel(val, cq->gts);
+ 		cq->cidx_inc = 0;
++	}
+ 	if (++cq->cidx == cq->size) {
+ 		cq->cidx = 0;
+ 		cq->gen ^= 1;
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
