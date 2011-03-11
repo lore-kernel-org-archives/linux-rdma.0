@@ -1,7 +1,7 @@
 From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: [PATCH 1/7] RDMA/cxgb4: debugfs dump_qp() updates.
-Date: Fri, 11 Mar 2011 16:29:50 -0600
-Message-ID: <20110311222950.16418.37365.stgit@build.ogc.int>
+Subject: [PATCH 2/7] RDMA/cxgb4: Turn on delayed ACK.
+Date: Fri, 11 Mar 2011 16:30:01 -0600
+Message-ID: <20110311223000.16418.91359.stgit@build.ogc.int>
 References: <20110311222826.16418.43582.stgit@build.ogc.int>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -13,46 +13,30 @@ To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-- Show whether the SQ is in onchip memory or not.
-- Dump both SQ and RQ QIDs.
+Set the default to on.
 
 Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 ---
 
- drivers/infiniband/hw/cxgb4/device.c |   13 +++++++++----
- 1 files changed, 9 insertions(+), 4 deletions(-)
+ drivers/infiniband/hw/cxgb4/cm.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/infiniband/hw/cxgb4/device.c b/drivers/infiniband/hw/cxgb4/device.c
-index 54fbc11..f5638f2 100644
---- a/drivers/infiniband/hw/cxgb4/device.c
-+++ b/drivers/infiniband/hw/cxgb4/device.c
-@@ -87,17 +87,22 @@ static int dump_qp(int id, void *p, void *data)
- 		return 1;
+diff --git a/drivers/infiniband/hw/cxgb4/cm.c b/drivers/infiniband/hw/cxgb4/cm.c
+index 8b00e6c..65d3fe6 100644
+--- a/drivers/infiniband/hw/cxgb4/cm.c
++++ b/drivers/infiniband/hw/cxgb4/cm.c
+@@ -61,9 +61,9 @@ static char *states[] = {
+ 	NULL,
+ };
  
- 	if (qp->ep)
--		cc = snprintf(qpd->buf + qpd->pos, space, "qp id %u state %u "
-+		cc = snprintf(qpd->buf + qpd->pos, space, 
-+			     "qp sq id %u rq id %u state %u onchip %u "
- 			     "ep tid %u state %u %pI4:%u->%pI4:%u\n",
--			     qp->wq.sq.qid, (int)qp->attr.state,
-+			     qp->wq.sq.qid, qp->wq.rq.qid, (int)qp->attr.state,
-+			     qp->wq.sq.flags & T4_SQ_ONCHIP,
- 			     qp->ep->hwtid, (int)qp->ep->com.state,
- 			     &qp->ep->com.local_addr.sin_addr.s_addr,
- 			     ntohs(qp->ep->com.local_addr.sin_port),
- 			     &qp->ep->com.remote_addr.sin_addr.s_addr,
- 			     ntohs(qp->ep->com.remote_addr.sin_port));
- 	else
--		cc = snprintf(qpd->buf + qpd->pos, space, "qp id %u state %u\n",
--			      qp->wq.sq.qid, (int)qp->attr.state);
-+		cc = snprintf(qpd->buf + qpd->pos, space,
-+			     "qp sq id %u rq id %u state %u onchip %u\n",
-+			      qp->wq.sq.qid, qp->wq.rq.qid,
-+			      (int)qp->attr.state,
-+			      qp->wq.sq.flags & T4_SQ_ONCHIP);
- 	if (cc < space)
- 		qpd->pos += cc;
- 	return 0;
+-static int dack_mode;
++static int dack_mode = 1;
+ module_param(dack_mode, int, 0644);
+-MODULE_PARM_DESC(dack_mode, "Delayed ack mode (default=0)");
++MODULE_PARM_DESC(dack_mode, "Delayed ack mode (default=1)");
+ 
+ int c4iw_max_read_depth = 8;
+ module_param(c4iw_max_read_depth, int, 0644);
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
