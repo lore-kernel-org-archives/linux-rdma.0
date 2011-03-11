@@ -1,46 +1,42 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: Converting from RC to UC
-Date: Fri, 11 Mar 2011 15:07:45 -0700
-Message-ID: <20110311220745.GZ22729@obsidianresearch.com>
-References: <loom.20110311T192125-878@post.gmane.org>
- <AANLkTimM0PDiWuHFJfn3s-JVEKWHVVfL4+2Kcc4+G5C7@mail.gmail.com>
- <loom.20110311T224601-402@post.gmane.org>
+From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: [PATCH 0/7] RDMA/cxgb4: Fixes and Enhancements
+Date: Fri, 11 Mar 2011 16:29:40 -0600
+Message-ID: <20110311222826.16418.43582.stgit@build.ogc.int>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <loom.20110311T224601-402-eS7Uydv5nfjZ+VzJOa5vwg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Alan Cook <acook-osxm6dDZNBBZx8iatJs59jGjJy/sRE9J@public.gmane.org>
+To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Mar 11, 2011 at 09:55:00PM +0000, Alan Cook wrote:
-> Roland Dreier <roland@...> writes:
-> > 
-> > How are you setting up the connection?
-> > 
-> > My understanding is that the RDMA CM (ie librdmacm) does not handle UC,
-> > so if you are using that, it shouldn't work.  Sean could confirm this.
-> > 
-> >  - R.
-> 
-> I am using RDMA CM.  I have not seen any documentation that states it does not
-> support UC, although I have not seen any documentation that says it does either.
->  I have seen documentation regarding RDMA CM that talks about a connection not
-> actually being established between queue pairs when using unreliable datagram
-> (UD), but nothing regarding support for UC.
-> 
-> If it is the case that RDMA CM is not supported, could someone point me at a
-> resource that describes setting up an IB RDMA connection not using RDMA CM?
+Hey Roland,
 
-If you can tolerate it you might be better off just fixing the kernel,
-the change is probably only one or two additional if statements to
-support RC vs UC. Unfortunately I looked around for a mins for you but
-I did not see an obvious error. Though perhaps the RTS transition in
-the IB CM is at fault?
+Here are some bug fixes and enhancements for the next merge.
 
-Jason
+---
+
+Steve Wise (7):
+      RDMA/cxgb4: Dispatch FATAL event on EEH errors.
+      RDMA/cxgb4: Do CIDX_INC updates every 1/16 cq depth cqe reaps.
+      RDMA/cxgb4: remove db_drop_task.
+      RDMA/cxgb4: Use ULP_MODE_TCPDDP.
+      RDMA/cxgb4: Enable on-chip SQ support by default.
+      RDMA/cxgb4: Turn on delayed ACK.
+      RDMA/cxgb4: debugfs dump_qp() updates.
+
+
+ drivers/infiniband/hw/cxgb4/cm.c       |    6 ++++--
+ drivers/infiniband/hw/cxgb4/device.c   |   24 ++++++++++++++++++------
+ drivers/infiniband/hw/cxgb4/iw_cxgb4.h |    1 -
+ drivers/infiniband/hw/cxgb4/qp.c       |    4 ++--
+ drivers/infiniband/hw/cxgb4/t4.h       |    8 +++++++-
+ drivers/net/cxgb4/t4_msg.h             |    1 +
+ 6 files changed, 32 insertions(+), 12 deletions(-)
+
+-- 
+Steve.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
