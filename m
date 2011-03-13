@@ -1,34 +1,30 @@
-From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: Converting from RC to UC
-Date: Sun, 13 Mar 2011 11:56:56 +0200
-Message-ID: <4D7C94E8.6070906@mellanox.com>
-References: <loom.20110311T192125-878@post.gmane.org>	<AANLkTimM0PDiWuHFJfn3s-JVEKWHVVfL4+2Kcc4+G5C7@mail.gmail.com> <loom.20110311T224601-402@post.gmane.org>
+From: Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: OSM doesn't send notice on traps 129, 130 and 131
+Date: Sun, 13 Mar 2011 15:20:22 +0200
+Message-ID: <4D7CC496.1040805@dev.mellanox.co.il>
+Reply-To: kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <loom.20110311T224601-402-eS7Uydv5nfjZ+VzJOa5vwg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Alan Cook <acook-osxm6dDZNBBZx8iatJs59jGjJy/sRE9J@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, elido-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+Cc: Linux RDMA <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-  Alan Cook wrote:
-> Roland Dreier<roland@...>  writes:
->> How are you setting up the connection? My understanding is that the RDMA CM (ie librdmacm) does not handle UC, so if you are using that, it shouldn't work.  Sean could confirm this.
->
-> I am using RDMA CM.  I have not seen any documentation that states it does not support UC, although I have not seen any documentation that says it does either.   I have seen documentation regarding RDMA CM that talks about a connection not  actually being established between queue pairs when using unreliable datagram (UD), but nothing regarding support for UC.
+It appears that SM is not sending notice on receiving traps 129, 130 and 131. 
 
-Alan, you haven't specified if you app is user space or kernel space 
-based,  I assume the former, I believe that it either just works or can 
-be just made to work... e.g maybe a minor error on your side, or maybe 
-something small to change/complete on the rdma-cm side...
+>From osm_trap_rcv.c: 
 
-I'm copying the maintainer of the kernel rdma-cm and librdmacm, Sean - 
-should there any problem for librdmacm consumers to use UC at their apps?
+547  /* If we reached here due to trap 129/130/131 - do not need to do 
+548     the notice report. Just goto exit. We know this is the case 
+549     if physp_change_trap is TRUE. */ 
+550     if (physp_change_trap == TRUE) 
+551            goto Exit; 
 
-Or.
+Does anybody knows why? Spec doesn't say that SM shouldn't send notice on these traps. Is this a bug?
 
+-- YK
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
