@@ -1,16 +1,29 @@
-From: Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: OSM doesn't send notice on traps 129, 130 and 131
-Date: Sun, 13 Mar 2011 15:20:22 +0200
-Message-ID: <4D7CC496.1040805@dev.mellanox.co.il>
-Reply-To: kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org
+From: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: RE: OSM doesn't send notice on traps 129, 130 and 131
+Date: Sun, 13 Mar 2011 15:15:22 +0000
+Message-ID: <6E7F64DEFBCFFA46B37B4914CEB21D4F03124E@mtldag02.mtl.com>
+References: <4D7CC496.1040805@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <4D7CC496.1040805-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, elido-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
-Cc: Linux RDMA <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Yevgeny Kliteynik <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+To: "kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org" <kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Eli Dorfman <elido-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Linux RDMA <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
+
+This is a long standing IBA spec non conformance. I guess nobody to date has wanted to subscribe to those reports on hardware events (local link integrity threshold, excessive Buffer Overrun threshold, and flow control watchdog expired).
+
+-- Hal
+
+-----Original Message-----
+From: Yevgeny Kliteynik [mailto:kliteyn-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org] 
+Sent: Sunday, March 13, 2011 9:20 AM
+To: Alex Netes; Eli Dorfman; Hal Rosenstock
+Cc: Linux RDMA; Yevgeny Kliteynik
+Subject: OSM doesn't send notice on traps 129, 130 and 131
 
 It appears that SM is not sending notice on receiving traps 129, 130 and 131. 
 
