@@ -1,30 +1,28 @@
 From: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH/opensm] Fix SANodeRecord.nodeInfo.localPortNum
-Date: Sun, 13 Mar 2011 17:59:04 +0200
-Message-ID: <20110313155904.GC14371@calypso.voltaire.com>
-References: <20110302002941.GA22729@obsidianresearch.com>
+Subject: Re: [PATCH] opensm: configure multicast only once during sweep
+Date: Sun, 13 Mar 2011 19:23:56 +0200
+Message-ID: <20110313172356.GE14371@calypso.voltaire.com>
+References: <4D25F029.1080005@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20110302002941.GA22729-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <4D25F029.1080005-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Alex Netes <alexne-smomgflXvOZWk0Htik3J/w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Eli Dorfman <elido-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Sasha Khapyorsky <IMCEAEX-_O=VOLTAIRE+20ADVANCED+20DATA+20SECURITY_OU=VOLTAIRE_CN=RECIPIENTS_CN=SASHAK-smomgflXvOZWk0Htik3J/w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Vladimir Koushnir <vladimirk-smomgflXvOZWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 17:29 Tue 01 Mar     , Jason Gunthorpe wrote:
-> This value must match the portGUID, so it needs to vary on a per port
-> basis like portGUID and not simply reflect the value opensm acquired
-> during the sweep.
+On 18:39 Thu 06 Jan     , Eli Dorfman (Voltaire) wrote:
+> [PATCH] configure multicast only once during sweep
 > 
-> Prior to this patch opensm returns the same value for localPortNum for
-> all ports on a HCA, now it returns the correct localPortNum for the
-> portGUID.
+> opensm performed multicast configuration twice during sweep by calling
+> two different function that are very similar.
+> remove osm_mcast_mgr_process() which had a bug and didn't clear mlid bit
+> after configuration and rename osm_mcast_mgr_process_mgroups()
+> to osm_mcast_mgr_process()
 > 
-> Also fixes query matching in the same way
-> 
-> Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+> Signed-off-by: Eli Dorfman <elid-smomgflXvOZWk0Htik3J/w@public.gmane.org>
 
 Applied. Thanks.
 --
