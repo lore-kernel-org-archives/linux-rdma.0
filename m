@@ -1,33 +1,29 @@
-From: Alan Cook <acook-osxm6dDZNBBZx8iatJs59jGjJy/sRE9J@public.gmane.org>
-Subject: Re: Converting from RC to UC
-Date: Mon, 14 Mar 2011 01:08:40 +0000 (UTC)
-Message-ID: <loom.20110314T020520-335@post.gmane.org>
-References: <loom.20110311T192125-878@post.gmane.org>	<AANLkTimM0PDiWuHFJfn3s-JVEKWHVVfL4+2Kcc4+G5C7@mail.gmail.com> <loom.20110311T224601-402@post.gmane.org> <4D7C94E8.6070906@mellanox.com>
+From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: initiator depth and responder resources in a connect request.
+Date: Mon, 14 Mar 2011 09:36:20 -0500
+Message-ID: <4D7E27E4.7060606@opengridcomputing.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Or Gerlitz <ogerlitz@...> writes:
+Hey Sean,
 
-> 
-> Alan, you haven't specified if you app is user space or kernel space 
-> based,  I assume the former, I believe that it either just works or can 
-> be just made to work... e.g maybe a minor error on your side, or maybe 
-> something small to change/complete on the rdma-cm side...
-> 
-> I'm copying the maintainer of the kernel rdma-cm and librdmacm, Sean - 
-> should there any problem for librdmacm consumers to use UC at their apps?
-> 
-> Or.
-> 
+Dumb question:  What exactly do the rdma_conn_param fields initiator_depth and responder_resources mean in an incoming 
+connection request?  Does it mean the peer's values for these two resources, or is responder_resources set to match the 
+peer's initiator_depth and initiator_depth set to match the peer's responder_resources?  IE Are they swapped so the app 
+can turn around and use them in the rdma_accept()?
 
-My application is running in user space, but could run in kernel space if need
-be.  I would assume that the error is on my side, but I am unable to find any
-documentation on setting up a UC service as opposed to an RC service.
+(hope that question makes sense)
+
+
+Steve.
+
+
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
