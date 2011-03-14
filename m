@@ -1,30 +1,34 @@
-From: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH] opensm: configure multicast only once during sweep
-Date: Sun, 13 Mar 2011 19:23:56 +0200
-Message-ID: <20110313172356.GE14371@calypso.voltaire.com>
-References: <4D25F029.1080005@gmail.com>
+From: Alan Cook <acook-osxm6dDZNBBZx8iatJs59jGjJy/sRE9J@public.gmane.org>
+Subject: Re: Converting from RC to UC
+Date: Mon, 14 Mar 2011 01:08:40 +0000 (UTC)
+Message-ID: <loom.20110314T020520-335@post.gmane.org>
+References: <loom.20110311T192125-878@post.gmane.org>	<AANLkTimM0PDiWuHFJfn3s-JVEKWHVVfL4+2Kcc4+G5C7@mail.gmail.com> <loom.20110311T224601-402@post.gmane.org> <4D7C94E8.6070906@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <4D25F029.1080005-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Eli Dorfman <elido-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Sasha Khapyorsky <IMCEAEX-_O=VOLTAIRE+20ADVANCED+20DATA+20SECURITY_OU=VOLTAIRE_CN=RECIPIENTS_CN=SASHAK-smomgflXvOZWk0Htik3J/w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Vladimir Koushnir <vladimirk-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 18:39 Thu 06 Jan     , Eli Dorfman (Voltaire) wrote:
-> [PATCH] configure multicast only once during sweep
-> 
-> opensm performed multicast configuration twice during sweep by calling
-> two different function that are very similar.
-> remove osm_mcast_mgr_process() which had a bug and didn't clear mlid bit
-> after configuration and rename osm_mcast_mgr_process_mgroups()
-> to osm_mcast_mgr_process()
-> 
-> Signed-off-by: Eli Dorfman <elid-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+Or Gerlitz <ogerlitz@...> writes:
 
-Applied. Thanks.
+> 
+> Alan, you haven't specified if you app is user space or kernel space 
+> based,  I assume the former, I believe that it either just works or can 
+> be just made to work... e.g maybe a minor error on your side, or maybe 
+> something small to change/complete on the rdma-cm side...
+> 
+> I'm copying the maintainer of the kernel rdma-cm and librdmacm, Sean - 
+> should there any problem for librdmacm consumers to use UC at their apps?
+> 
+> Or.
+> 
+
+My application is running in user space, but could run in kernel space if need
+be.  I would assume that the error is on my side, but I am unable to find any
+documentation on setting up a UC service as opposed to an RC service.
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
