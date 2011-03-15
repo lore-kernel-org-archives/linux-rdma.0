@@ -1,68 +1,65 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: python-rdma v0.1 Release Announcement
-Date: Tue, 15 Mar 2011 12:02:03 -0600
-Message-ID: <20110315180203.GD12991@obsidianresearch.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: [GIT PULL] please pull infiniband.git
+Date: Tue, 15 Mar 2011 11:01:58 -0700
+Message-ID: <1300212118-12602-1-git-send-email-roland@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, EWG <ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+To: Linus Torvalds <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
+Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-I am pleased to announce the initial release of `python-rdma` a
-package to provide a Python API for the Linux RDMA stack. This initial
-release is mainly focused on IB specific management APIs, but the
-package also covers ibverbs.
+Linus, please pull from
 
-A new API was developed for this library that is designed to take
-advantage of Python features and provides a very uniform, integrated
-design across all the different aspects of IB and RDMA programming. It
-has a particular focus on ease of use and correct operation of the IB
-and RDMA protocol stacks.
+    master.kernel.org:/pub/scm/linux/kernel/git/roland/infiniband.git for-linus
 
-Included is a re-implementation of a substantial portion of the
-`infinband-diags` package. This re-implementation is functionally very
-similar to `infiniband-diags` but also gains a number of new features:
+This tree is also available from kernel.org mirrors at:
 
-- Uniform end port addressing. All commands support GID, port GUID,
-  LID and DR path, even commands that are GMP based (like perfquery).
-- Support for collecting information entirely from the SA via the
-  `--sa` option.
-- Consistently fetches path records for GMP communication (eg in
-  perfquery) to support topologies with special requirements.
-- Extensive MAD parallelization provides very good performance.
-- All commands support a discovery cache file, which stores
-  information in an efficient binary format.
-- Much better debugging, including packet tracing down to full field decode.
-- Minor new features to many tools, review section 8 of the manual for
-  details.
+    git://git.kernel.org/pub/scm/linux/kernel/git/roland/infiniband.git for-linus
 
-The library itself is intended mainly for applications where quick
-development is more important that the highest performance, such as:
+This will get the first batch of 2.6.39 changes:
+ - Fixes and improvements for the iw_cxgb4 low-level driver
+ - Fixes to the ib_qib low-level driver
+ - Fixes for crashes in the RDMA CM (also tagged for stable)
 
-- IB manamagent software development
-- RDMA test development
-- Training and problem exploration
+Mitko Haralanov (3):
+      IB/qib: Return correct MAD when setting link width to 255
+      IB/qib: Set default LE2 value for active cables to 0
+      IB/qib: Fix M_Key field in SubnGet and SubnGetResp MADs
 
-Although already quite complete there are a few obvious areas that I
-hope to have finished in the future:
+Nicolas Kaiser (1):
+      IB/ipath: Don't reset disabled devices
 
-- Integration of IB and RDMA CMs
-- Support for RMPP when using verbs to issue GMPs - this will enable
-  all diags to function in `--sa` mode without access to /dev/umad.
-- Completion of missing `infinband-diags` commands
+Roland Dreier (1):
+      Merge branches 'cma', 'cxgb4', 'ipath' and 'qib' into for-next
 
-It is my hope this work will be of use to the wider InfiniBand community.
+Sean Hefty (4):
+      RDMA/cma: Fix crash in request handlers
+      IB/cm: Bump reference count on cm_id before invoking callback
+      IB/cm: Cancel pending LAP message when exiting IB_CM_ESTABLISH state
+      RDMA/cma: Replace global lock in rdma_destroy_id() with id-specific one
 
-Extensive prebuilt documentation for the module can be reviewed online
-<http://www.obsidianresearch.com/python-rdma/doc/index.html>, and the
-source code is available on GitHub <http://github.com/jgunthorpe/python-rdma>.
+Steve Wise (7):
+      RDMA/cxgb4: Turn on delayed ACK
+      RDMA/cxgb4: Remove db_drop_task
+      RDMA/cxgb4: Do CIDX_INC updates every 1/16 CQ depth CQE reaps
+      RDMA/cxgb4: Enable on-chip SQ support by default
+      RDMA/cxgb4: Use ULP_MODE_TCPDDP
+      RDMA/cxgb4: Dispatch FATAL event on EEH errors
+      RDMA/cxgb4: Debugfs dump_qp() updates
 
-I'm planning to give a short presentation on this library at the
-forthcoming Monterey workshop, see you all there!
-
-Jason
+ drivers/infiniband/core/cm.c              |   20 +++++++++-
+ drivers/infiniband/core/cma.c             |   58 +++++++++++++++-------------
+ drivers/infiniband/hw/cxgb4/cm.c          |    6 ++-
+ drivers/infiniband/hw/cxgb4/device.c      |   24 +++++++++---
+ drivers/infiniband/hw/cxgb4/iw_cxgb4.h    |    1 -
+ drivers/infiniband/hw/cxgb4/qp.c          |    4 +-
+ drivers/infiniband/hw/cxgb4/t4.h          |    8 +++-
+ drivers/infiniband/hw/ipath/ipath_sysfs.c |    1 +
+ drivers/infiniband/hw/qib/qib_iba7322.c   |   13 +++++-
+ drivers/infiniband/hw/qib/qib_mad.c       |   12 +++--
+ drivers/infiniband/hw/qib/qib_qsfp.h      |    2 +
+ drivers/net/cxgb4/t4_msg.h                |    1 +
+ 12 files changed, 102 insertions(+), 48 deletions(-)
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
