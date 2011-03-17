@@ -1,40 +1,24 @@
-From: "Hefty, Sean" <sean.hefty@intel.com>
-Subject: [PATCH] rdma/addr: Initialize ret to fix build warning
-Date: Thu, 17 Mar 2011 16:35:39 -0700
-Message-ID: <CF9C39F99A89134C9CF9C4CCB68B8DDF25CCC10249@orsmsx501.amr.corp.intel.com>
-References: <20110318100418.6556c92c.sfr@canb.auug.org.au>
+From: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH] rdma/addr: Initialize ret to fix build warning
+Date: Thu, 17 Mar 2011 16:56:27 -0700
+Message-ID: <AANLkTikB=ZQQG18sDbD2kfFMWdVuUqnzYWOf7KtuBKVc@mail.gmail.com>
+References: <20110318100418.6556c92c.sfr@canb.auug.org.au> <CF9C39F99A89134C9CF9C4CCB68B8DDF25CCC10249@orsmsx501.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-next-owner@vger.kernel.org>
-In-Reply-To: <20110318100418.6556c92c.sfr@canb.auug.org.au>
-Content-Language: en-US
-Sender: linux-next-owner@vger.kernel.org
-To: Stephen Rothwell <sfr@canb.auug.org.au>, Roland Dreier <roland@kernel.org>
-Cc: "linux-next@vger.kernel.org" <linux-next@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "David S. Miller" <davem@davemloft.net>, Hal Rosenstock <hal.rosenstock@gmail.com>, Eric Dumazet <eric.dumazet@gmail.com>, Tejun Heo <tj@kernel.org>, Changli Gao <xiaosuo@gmail.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CF9C39F99A89134C9CF9C4CCB68B8DDF25CCC10249-osO9UTpF0USkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Stephen Rothwell <sfr-3FnU+UHB4dNDw9hX6IcOSA@public.gmane.org>, "linux-next-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-next-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Eric Dumazet <eric.dumazet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Tejun Heo <tj-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Changli Gao <xiaosuo-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Commit b23dd4fe42b455af5c6e20966b7d6959fa8352ea (ipv4: Make output
-route lookup return rtable directly) resulted in leaving
-ret uninitialized, where it may later be returned.
+On Thu, Mar 17, 2011 at 4:35 PM, Hefty, Sean <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
+> Commit b23dd4fe42b455af5c6e20966b7d6959fa8352ea (ipv4: Make output
+> route lookup return rtable directly) resulted in leaving
+> ret uninitialized, where it may later be returned.
 
-Signed-off-by: Sean Hefty <sean.hefty@intel.com>
----
-I didn't actually test this, but it looks correct.
-
- drivers/infiniband/core/addr.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
-
-diff --git a/drivers/infiniband/core/addr.c b/drivers/infiniband/core/addr.c
-index e0ef5fd..4ffc224 100644
---- a/drivers/infiniband/core/addr.c
-+++ b/drivers/infiniband/core/addr.c
-@@ -204,7 +204,7 @@ static int addr4_resolve(struct sockaddr_in *src_in,
- 
- 	/* If the device does ARP internally, return 'done' */
- 	if (rt->dst.dev->flags & IFF_NOARP) {
--		rdma_copy_addr(addr, rt->dst.dev, NULL);
-+		ret = rdma_copy_addr(addr, rt->dst.dev, NULL);
- 		goto put;
- 	}
- 
+Looks good to me, I'll merge this.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
