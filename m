@@ -1,38 +1,53 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: Infiniband poll_cq : nothing on queue
-Date: Thu, 17 Mar 2011 16:30:12 -0600
-Message-ID: <20110317223012.GF31317@obsidianresearch.com>
-References: <201103171809.19293.kerr.g@husky.neu.edu>
+From: Stephen Rothwell <sfr@canb.auug.org.au>
+Subject: linux-next: build warning in Linus' tree
+Date: Fri, 18 Mar 2011 10:04:18 +1100
+Message-ID: <20110318100418.6556c92c.sfr@canb.auug.org.au>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <201103171809.19293.kerr.g-movQPkccWJngpn9g0Uvcdg@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Greg Kerr <kerr.g-movQPkccWJngpn9g0Uvcdg@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: multipart/signed; protocol="application/pgp-signature";
+ micalg="PGP-SHA1";
+ boundary="Signature=_Fri__18_Mar_2011_10_04_18_+1100_Q7uStZrPoxj+6nhz"
+Return-path: <linux-next-owner@vger.kernel.org>
+Sender: linux-next-owner@vger.kernel.org
+To: Roland Dreier <roland@kernel.org>
+Cc: linux-next@vger.kernel.org, linux-kernel@vger.kernel.org, "David S. Miller" <davem@davemloft.net>, Hal Rosenstock <hal.rosenstock@gmail.com>, Eric Dumazet <eric.dumazet@gmail.com>, Tejun Heo <tj@kernel.org>, Changli Gao <xiaosuo@gmail.com>, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Mar 17, 2011 at 06:09:18PM -0400, Greg Kerr wrote:
+--Signature=_Fri__18_Mar_2011_10_04_18_+1100_Q7uStZrPoxj+6nhz
+Content-Type: text/plain; charset=US-ASCII
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-> To provide more background information I ran ibdump on my program (on both
-> nodes) and then analyzed the output in Wireshark. Basically node1 shows
-> nothing but RC Acknowledge packets and Node 2 shows nothing but RC Send
-> First packets. Does that reveal anything about where the problem likely
-> lies?
+Hi all,
 
-That means node 2 is not getting/dropping the ACK packets from node
-1.
+After merging the Linus' tree, today's linux-next build (powerpc
+ppc64_defconfig) produced this warning:
 
-Best choices, wrong PSN, wrong DLID, wrong QPN on on node 1, or the
-QP is not in RTS on node 2.
- 
-Remember all three of the values are supposed to be swapped, node
-1/node 2 rq_psn/sq_psn, DLID/SLID, qpn/dest_qp_num, and you have to
-modify_qp three times all the way to RTS on both sides.
+drivers/infiniband/core/addr.c: In function 'addr4_resolve':
+drivers/infiniband/core/addr.c:188: warning: 'ret' may be used uninitialize=
+d in this function
 
-Jason
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I didn't notice this one before, sorry.
+
+I don't know what introduced it, but the third if statement in the
+function will make us use "ret" uninitialised.
+--=20
+Cheers,
+Stephen Rothwell                    sfr@canb.auug.org.au
+http://www.canb.auug.org.au/~sfr/
+
+--Signature=_Fri__18_Mar_2011_10_04_18_+1100_Q7uStZrPoxj+6nhz
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQEcBAEBAgAGBQJNgpNyAAoJEDMEi1NhKgbsvJ8H/RG5X3ZUgtexwYrofgyqw4YU
+kRROlLz9Dy/CH0v9rV+S/xLvnxSGume1XjOEVVT/LI4bA5NbeSDwpZ55ZlJ/DyCi
+cYnGC+4GrLvUDqJ9zA5ekP93MBbevzq9icaZDa9ndZiA5o+QAh53rwShieZd25Rw
+6vc1gbYJ2boYLuSEzWF5VPpWaevvblpYMd7EuFbqBTvoGARu1yogUraKQsmLGGp8
++EQ0lHOZutWe8sDTVwuoZkGQ/MHQYq1JpGl95pNgEo6X0ekulXtuH0LHmqPff38D
+aTI6SpkpSxJqxKUFicHGO8gdBkF6AShekxJP15cE77wUEutNFSixDfi4upFOTEs=
+=X7KB
+-----END PGP SIGNATURE-----
+
+--Signature=_Fri__18_Mar_2011_10_04_18_+1100_Q7uStZrPoxj+6nhz--
