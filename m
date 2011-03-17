@@ -1,77 +1,48 @@
-From: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH] IPoIB: Modify QP to error only if not in reset
-Date: Thu, 17 Mar 2011 14:13:42 +0200
-Message-ID: <20110317121341.GA7985@mtldesk30>
+From: Greg Kerr <kerr.g-movQPkccWJngpn9g0Uvcdg@public.gmane.org>
+Subject: Infiniband poll_cq : nothing on queue
+Date: Thu, 17 Mar 2011 18:09:18 -0400
+Message-ID: <201103171809.19293.kerr.g@husky.neu.edu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-Cc: RDMA list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ronniz-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-An ipoib interface may be moved UP but its QP may still not be modified to a
-state higher than IB_QPS_RESET since it did not find the pkey assigned to it in
-the port. When we later call ipoib_ib_dev_stop() the modification to IB_QPS_ERR
-will fail and warning message printed. The problem can be reproduced easily in
-the following stpes:
-- Create a child interface using a pkey that does not exist in the port's table
-- Confiugre an IP address for the child interface
-- delete the child interface
+Hi,
 
-This patch queries the QP before attempting to modify it.
+Sorry if this meant to be a kernel dev only mailing list, but I'm working on 
+an Infiniband program, and am having a problem that seems to have no obvious 
+answer. I was hoping someone here could nudge me in the right direction (since 
+right now I'm search around blindly).
 
-Found by: Ronni Zimmermann  <ronniz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Eli Cohen <eli-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
----
- drivers/infiniband/ulp/ipoib/ipoib_ib.c |   20 +++++++++++++++++---
- 1 files changed, 17 insertions(+), 3 deletions(-)
+When I run ibv_post_send and ibv_post_recv on both nodes, no error is 
+returned, but ibv_poll_cq never finds any completions on the queue. I was 
+wondering what could be the cause of this, since I've spent a few days looking 
+now.
 
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib_ib.c b/drivers/infiniband/ulp/ipoib/ipoib_ib.c
-index 806d029..ceff2bc 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib_ib.c
-+++ b/drivers/infiniband/ulp/ipoib/ipoib_ib.c
-@@ -806,6 +806,8 @@ int ipoib_ib_dev_stop(struct net_device *dev, int flush)
- 	unsigned long begin;
- 	struct ipoib_tx_buf *tx_req;
- 	int i;
-+	struct ib_qp_init_attr qp_init_attr;
-+	int err;
- 
- 	if (test_and_clear_bit(IPOIB_FLAG_INITIALIZED, &priv->flags))
- 		napi_disable(&priv->napi);
-@@ -813,12 +815,24 @@ int ipoib_ib_dev_stop(struct net_device *dev, int flush)
- 	ipoib_cm_dev_stop(dev);
- 
- 	/*
-+	 * if we fail to query the QP we continue as if it was in
-+	 * a state different than RESET so we carry any cleanup possible
-+	 */
-+	err = ib_query_qp(priv->qp, &qp_attr, IB_QP_CUR_STATE, &qp_init_attr);
-+	if (err) {
-+		ipoib_warn(priv, "Failed to query QP state, err %d\n", err);
-+		qp_attr.cur_qp_state = IB_QPS_INIT;
-+	}
-+
-+	/*
- 	 * Move our QP to the error state and then reinitialize in
- 	 * when all work requests have completed or have been flushed.
- 	 */
--	qp_attr.qp_state = IB_QPS_ERR;
--	if (ib_modify_qp(priv->qp, &qp_attr, IB_QP_STATE))
--		ipoib_warn(priv, "Failed to modify QP to ERROR state\n");
-+	if (qp_attr.cur_qp_state != IB_QPS_RESET) {
-+		qp_attr.qp_state = IB_QPS_ERR;
-+		if (ib_modify_qp(priv->qp, &qp_attr, IB_QP_STATE))
-+			ipoib_warn(priv, "Failed to modify QP to ERROR state\n");
-+	}
- 
- 	/* Wait for all sends and receives to complete */
- 	begin = jiffies;
--- 
-1.6.0.2
+The dest_qp_num seems fine on both nodes, as do the rq_psn and sq_psn.
+I'm not sure where else there could be a problem.
 
+To provide more background information I ran ibdump on my program (on both
+nodes) and then analyzed the output in Wireshark. Basically node1 shows
+nothing but RC Acknowledge packets and Node 2 shows nothing but RC Send
+First packets. Does that reveal anything about where the problem likely
+lies?
+
+Of course if I look at the output of, say, ibv_rc_pingpong in Wireshark both
+nodes show RC Send First, RC Send Middle, and RC Send Last packets, among
+others.
+
+I know this is too vague to really pinpoint my problem but I am hoping
+someone can nudge me in the right direction of where I might try looking
+(since nothing I've looked at so far has identified any clear problems).
+
+Thanks,
+
+Greg Kerr
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
