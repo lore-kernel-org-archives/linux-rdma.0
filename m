@@ -1,270 +1,41 @@
-From: "Jim Schutt" <jaschut-4OHPYypu0djtX7QSmKvirg@public.gmane.org>
-Subject: Re: [PATCH] OpenSM torus routing order list
-Date: Mon, 21 Mar 2011 16:33:44 -0600
-Message-ID: <1300746824.7744.71.camel@sale659.sandia.gov>
-References: <20110321095823.GA22502@calypso.voltaire.com>
+From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: IB: increase DMA max_segment_size on Mellanox hardware
+Date: Tue, 22 Mar 2011 10:01:12 +0200
+Message-ID: <4D885748.6060600@mellanox.com>
+References: <1295230184.2574.26.camel@obelisk.thedillows.org>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20110321095823.GA22502-iQai9MGU/dyyaiaB+Ve85laTQe2KTcn/@public.gmane.org>
+In-Reply-To: <1295230184.2574.26.camel-1q1vX8mYZiGLUyTwlgNVppKKF0rrzTr+@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, David McMillen <davem-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org>
+To: David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+David Dillow wrote:
+> This ups the value on Mellanox hardware to 2 GB, though there is no H=
+W
+> limit.
 
-Hi,
+You've expressed intention to reduce that value to 1GB as of HW=20
+limitations, it would also let you get rid from the warnings on the=20
+current version
 
-On Mon, 2011-03-21 at 03:58 -0600, Alex Netes wrote:
-> Enables to define list of switch ports so the SM will
-> go over this list when creating a routing.
-> It helps balancing links load on some communication patterns
-> where multipile links connect between the switches.
-> 
-> Signed-off-by: David McMillen <davem-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org>
-> Signed-off-by: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> ---
->  man/torus-2QoS.conf.5.in |   19 ++++++++++++-
->  opensm/osm_torus.c       |   65 +++++++++++++++++++++++++++++++++++++++++++--
->  2 files changed, 79 insertions(+), 5 deletions(-)
-> 
-> diff --git a/man/torus-2QoS.conf.5.in b/man/torus-2QoS.conf.5.in
-> index 147a7b1..dd1aafb 100644
-> --- a/man/torus-2QoS.conf.5.in
-> +++ b/man/torus-2QoS.conf.5.in
-> @@ -62,7 +62,7 @@ see \fBUNICAST ROUTING\fR in torus-2QoS(8).
->  \fIsw0_GUID sw1_GUID
->  \fR
->  .RS
-> -These keywords are used to seed the torus/mesh topolgy.
-> +These keywords are used to seed the torus/mesh topology.
->  For example, "xp_link 0x2000 0x2001" specifies that a link from
->  the switch with node GUID 0x2000 to the switch with node GUID 0x2001
->  would point in the positive x direction,
-> @@ -78,7 +78,7 @@ for torus dimensions of radix four (see \fBTOPOLOGY DISCOVERY\fR in
->  torus-2QoS(8)).  For such cases both the positive and negative coordinate
->  directions must be specified.
->  .P
-> -Based on the topology specifed via the \fBtorus\fR/\fBmesh\fR keyword,
-> +Based on the topology specified via the \fBtorus\fR/\fBmesh\fR keyword,
->  torus-2QoS will detect and log when it has insufficient seed configuration.
->  .RE
->  .
-> @@ -140,6 +140,17 @@ parameter needs to be increased.
->  If this keyword appears multiple times, the last instance prevails.
->  .RE
->  .
-> +.P
-> +\fBport_order
-> +\fIp1 p2 p3 ...
-> +\fR
-> +.RS
-> +This keyword specifies the order on which the ports would be chosen for routing.
-> +This keyword is optional and if given overrides the default order.
-> +It's possible to define any subset of ports that would be chosen before the
-> +others.
-> +.RE
-> +.
-
-This documentation needs to tell me a little more about 
-how to choose port_order values.  
-
-Something like this:
-
-This keyword specifies the order in which CA ports on a 
-destination switch are visited when computing routes.
-When the fabric contains switches connected with multiple
-parallel links, routes are distributed in a round-robin
-fashion across such links, and so changing the order 
-that CA ports are visited changes the distribution
-of routes across such links.  This may be advantageous 
-for some specific traffic patterns.
-
-The default is to visit CA ports in increasing port
-order on destination switches.
-
-Duplicate values in the list will be ignored.
-
-
->  .SH EXAMPLE
->  .
->  \f(RC
-> @@ -171,6 +182,10 @@ z_dateline -1  # back to its original position.
->  # on a host attached to a switch from the second seed.
->  # Both instances should use this torus-2QoS.conf to ensure
->  # path SL values do not change in the event of SM failover.
-> +
-> +# port_order defines the order on which the ports would be
-> +# chosen for routing.
-> +port_order 7 10 8 11 9 12 25 28 26 29 27 30
->  .fi
->  \fR
->  .
-> diff --git a/opensm/osm_torus.c b/opensm/osm_torus.c
-> index add3cf9..7723a45 100644
-> --- a/opensm/osm_torus.c
-> +++ b/opensm/osm_torus.c
-> @@ -287,6 +287,8 @@ struct torus {
->  	unsigned seed_cnt, seed_idx;
->  	unsigned x_sz, y_sz, z_sz;
->  
-> +	unsigned port_order[IB_NODE_NUM_PORTS_MAX+1];
-> +
->  	unsigned sw_pool_sz;
->  	unsigned link_pool_sz;
->  	unsigned seed_sz;
-> @@ -844,6 +846,47 @@ out:
->  }
->  
->  static
-> +bool parse_port(unsigned *pnum, const char *parse_sep)
-> +{
-> +	char *val, *nextchar;
-> +
-> +	val = strtok(NULL, parse_sep);
-> +	if (!val)
-> +		return false;
-> +	*pnum = strtoul(val, &nextchar, 0);
-> +	if (*pnum > IB_NODE_NUM_PORTS_MAX)
-> +		*pnum = 0;
-
-Hmmm, user configuration was just silently discarded.
-Please warn to give the user a chance to correct it.
-
-> +	return true;
-> +}
-> +
-> +static
-> +bool parse_port_order(struct torus *t, const char *parse_sep)
-> +{
-> +	unsigned i, j, k, n;
-> +
-> +	for (i = 0; i < (sizeof(t->port_order) / sizeof(unsigned)); i++) {
-
-Please add this (from linux kernel):
-#define ARRAY_SIZE(x) (sizeof(x) / sizeof((x)[0]))
-
-and use it instead for all such loops.
-
-> +		if (!parse_port(&(t->port_order[i]), parse_sep))
-> +			break;
-> +		for (j = 0; j < i; j++) {
-> +			if (t->port_order[j] == t->port_order[i]) {
-> +				i--;	/* Ignore duplicate port number */
-
-Again, please warn that user configuration was discarded.
-
-> +				break;
-> +			}
-> +		}
-> +	}
-> +
-> +	n = i;
-> +	for (j = 0; j < (sizeof(t->port_order) / sizeof(unsigned)); j++) {
-> +		for (k = 0; k < i; k++)
-> +			if (t->port_order[k] == j)
-> +				break;
-> +		if (k >= i) t->port_order[n++] = j;
-
-Style nit: make that last line into two lines.
-
-> +	}
-> +
-> +	return true;
-> +}
-> +
-> +static
->  bool parse_pg_max_ports(struct torus *t, const char *parse_sep)
->  {
->  	char *val, *nextchar;
-> @@ -1018,6 +1061,8 @@ next_line:
->  	} else if (strcmp("mesh", keyword) == 0) {
->  		t->flags |= X_MESH | Y_MESH | Z_MESH;
->  		kw_success = parse_torus(t, parse_sep);
-> +	} else if (strcmp("port_order", keyword) == 0) {
-> +		kw_success = parse_port_order(t, parse_sep);
->  	} else if (strcmp("next_seed", keyword) == 0) {
->  		kw_success = grow_seed_array(t, 1);
->  		t->seed_cnt++;
-> @@ -8424,6 +8469,7 @@ bool torus_lft(struct torus *t, struct t_switch *sw)
->  	struct port_grp *pgrp;
->  	struct t_switch *dsw;
->  	osm_switch_t *osm_sw;
-> +	unsigned order[IB_NODE_NUM_PORTS_MAX+1];
->  
->  	if (!(sw->osm_switch && sw->osm_switch->priv == sw)) {
->  		OSM_LOG(&t->osm->log, OSM_LOG_ERROR,
-> @@ -8439,13 +8485,22 @@ bool torus_lft(struct torus *t, struct t_switch *sw)
->  		dsw = t->sw_pool[s];
->  		pgrp = &dsw->ptgrp[2 * TORUS_MAX_DIM];
->  
-> -		for (p = 0; p < pgrp->port_cnt; p++) {
-> +		memset(order, IB_INVALID_PORT_NUM, sizeof(order));
-> +		for (p = 0; p < pgrp->port_cnt; p++)
-> +			order[pgrp->port[p]->port] = p;
-> +
-> +		for (p = 0; p < IB_NODE_NUM_PORTS_MAX; p++) {
-
-For consistency, p < ARRAY_SIZE(order)?
-
-> +
-> +			unsigned px = order[t->port_order[p]];
->  
-> -			if (!get_lid(pgrp, p, &dlid_base, &dlid_lmc, &ca))
-> +			if (px >= pgrp->port_cnt)
-> +				continue;
-
-I think the above test would be more clear as
-
-+			if (px == IB_INVALID_PORT_NUM)
-+				continue;
-
-That is the only value px can have that is not in
-the range 0 <= px < pgrp->port_cnt; and for me makes it
-more clear you are discarding values of p that weren't
-set based on the ordering of ports in this port group.
-
-> +
-> +			if (!get_lid(pgrp, px, &dlid_base, &dlid_lmc, &ca))
->  				return false;
->  
->  			if (sw->n_id == dsw->n_id)
-> -				dp = pgrp->port[p]->port;
-> +				dp = pgrp->port[px]->port;
->  			else
->  				dp = lft_port(t, sw, dsw, true, ca);
->  			/*
-> @@ -9128,6 +9183,7 @@ int torus_build_lfts(void *context)
->  	struct torus_context *ctx = context;
->  	struct fabric *fabric;
->  	struct torus *torus;
-> +	unsigned i;
->  
->  	if (!ctx->osm->subn.opt.qos) {
->  		OSM_LOG(&ctx->osm->log, OSM_LOG_ERROR,
-> @@ -9149,6 +9205,9 @@ int torus_build_lfts(void *context)
->  	torus->osm = ctx->osm;
->  	fabric->osm = ctx->osm;
->  
-> +	for (i = 0; i < (sizeof(torus->port_order) / sizeof(unsigned)); i++)
-> +		torus->port_order[i] = i;
-> +
-
-I think you should move the above bit to parse_config(), 
-since it is default configuration, and since parse_port_order()
-relies for proper operation on the fact that this initialization 
-be done this way.
-
->  	if (!parse_config(ctx->osm->subn.opt.torus_conf_file,
->  			  fabric, torus))
->  		goto out;
-
--- Jim
-
-
+>  CC [M]  drivers/infiniband/hw/mthca/mthca_main.o
+> drivers/infiniband/hw/mthca/mthca_main.c: In function =E2=80=98__mthc=
+a_init_one=E2=80=99:
+> drivers/infiniband/hw/mthca/mthca_main.c:1047: warning: integer overf=
+low in expression
+>   LD [M]  drivers/infiniband/hw/mthca/ib_mthca.o
+>   CC [M]  drivers/net/mlx4/main.o
+> drivers/net/mlx4/main.c: In function =E2=80=98__mlx4_init_one=E2=80=99=
+:
+> drivers/net/mlx4/main.c:1113: warning: integer overflow in expression
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
