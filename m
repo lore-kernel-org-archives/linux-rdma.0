@@ -1,160 +1,129 @@
-From: miroslaw.walukiewicz-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
-Subject: [PATCH] RDMA/core: Optimized path for kernel post_send/post_recv
-Date: Thu, 24 Mar 2011 13:43:36 +0100
-Message-ID: <20110324123937.19461.56781.stgit@gkslx010.igk.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+From: Jared Carr <jared.carr-Y2zl/4KMd60@public.gmane.org>
+Subject: [PATCH] OpenSM - Reverse Sort Routing Order
+Date: Wed, 23 Mar 2011 16:23:13 -0700
+Message-ID: <20110324170633.5B8DF451AAE@cu0login3.emsl.pnl.gov>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Sasha Khapyorsky <sashak-smomgflXvOZWk0Htik3J/w@public.gmane.org>, Ken Schmidt <kenneth.schmidt-Y2zl/4KMd60@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-The patch introduces a new path of posting buffers from user-space to kernel
-post_send/post_recv using shared page.
+Adds the reverse_sort_routing_order configuration parameter.
+This parameter provides a better balance in some fabrics which have a
+non-constant oversubscription ratio and uplinks and CA nodes connected
+to the same switch nodes.
 
-The shared page is allocated and defined by vendor driver.
-The vendor driver during create QP decides when the new path will be used
-setting a field use_shpage_for_rxtx field in connection context.
+In the default routing order the higher oversubscription ratio CA nodes
+will be routed first causing the path count on the uplink switches to
+favor the less connected Spine switch when the lower oversubscription
+ratio CA nodes are routed (until path count balance is restored). The
+end result is that certain single cables are utilized for a very high
+percentage of traffic to a few nodes.
 
-When the connection context indicates that the shared page  should be used
-the uverbs_post_send()/uverbs_post_recv() calls directly the vendor driver
-private post_send()/post_recv() functions improving the kernel path.
-
-Signed-off-by: Mirek Walukiewicz <miroslaw.walukiewicz-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+This patch duplicates functionality that can be obtained using the
+guid_routing_order_file option. And potentially is only of use to a very
+few clusters, Chinook being one of them.
 ---
+ include/opensm/osm_base.h   |   11 +++++++++++
+ include/opensm/osm_subnet.h |    1 +
+ opensm/osm_subnet.c         |    7 +++++++
+ opensm/osm_ucast_mgr.c      |    9 ++++++++-
+ 4 files changed, 27 insertions(+), 1 deletions(-)
 
- drivers/infiniband/core/uverbs_cmd.c |   55 +++++++++++++++++++++++++++-------
- include/rdma/ib_verbs.h              |    1 +
- 2 files changed, 45 insertions(+), 11 deletions(-)
-
-
-diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
-index c426992..ba6655c 100644
---- a/drivers/infiniband/core/uverbs_cmd.c
-+++ b/drivers/infiniband/core/uverbs_cmd.c
-@@ -299,6 +299,7 @@ ssize_t ib_uverbs_get_context(struct ib_uverbs_file *file,
- 	INIT_LIST_HEAD(&ucontext->srq_list);
- 	INIT_LIST_HEAD(&ucontext->ah_list);
- 	ucontext->closing = 0;
-+	ucontext->use_shpage_for_rxtx = 0;
- 
- 	resp.num_comp_vectors = file->device->num_comp_vectors;
- 
-@@ -1448,15 +1449,31 @@ ssize_t ib_uverbs_post_send(struct ib_uverbs_file *file,
- 
- 	if (cmd.wqe_size < sizeof (struct ib_uverbs_send_wr))
- 		return -EINVAL;
-+	qp = idr_read_qp(cmd.qp_handle, file->ucontext);
-+	if (!qp)
-+		goto out_raw_qp;
-+
-+	if (file->ucontext->use_shpage_for_rxtx) {
-+		/* pass NULL pointers as the information about */
-+		/* buffers is passed using endor defined shared page */
-+		resp.bad_wr = 0;
-+		ret = qp->device->post_send(qp, NULL, NULL);
-+		if (ret)
-+			resp.bad_wr = cmd.wr_count;
-+
-+		if (copy_to_user((void __user *) (unsigned long)
-+				cmd.response,
-+				&resp,
-+				sizeof resp))
-+			ret = -EFAULT;
-+		put_qp_read(qp);
-+		goto out_raw_qp;
-+	}
- 
- 	user_wr = kmalloc(cmd.wqe_size, GFP_KERNEL);
- 	if (!user_wr)
- 		return -ENOMEM;
- 
--	qp = idr_read_qp(cmd.qp_handle, file->ucontext);
--	if (!qp)
--		goto out;
--
- 	is_ud = qp->qp_type == IB_QPT_UD;
- 	sg_ind = 0;
- 	last = NULL;
-@@ -1576,9 +1593,8 @@ out_put:
- 		wr = next;
- 	}
- 
--out:
- 	kfree(user_wr);
--
-+out_raw_qp:
- 	return ret ? ret : in_len;
- }
- 
-@@ -1680,16 +1696,33 @@ ssize_t ib_uverbs_post_recv(struct ib_uverbs_file *file,
- 	if (copy_from_user(&cmd, buf, sizeof cmd))
- 		return -EFAULT;
- 
-+	qp = idr_read_qp(cmd.qp_handle, file->ucontext);
-+	if (!qp)
-+		goto out_raw_qp;
-+
-+	if (file->ucontext->use_shpage_for_rxtx) {
-+		resp.bad_wr = 0;
-+		/* pass NULL pointers as the information about */
-+		/* buffers is passed using endor defined shared page */
-+		ret = qp->device->post_recv(qp, NULL, NULL);
-+		if (ret)
-+			resp.bad_wr = cmd.wr_count;
-+
-+		if (copy_to_user((void __user *) (unsigned long)
-+				cmd.response,
-+				&resp,
-+				sizeof resp))
-+			ret = -EFAULT;
-+		put_qp_read(qp);
-+		goto out_raw_qp;
-+	}
-+
- 	wr = ib_uverbs_unmarshall_recv(buf + sizeof cmd,
- 				       in_len - sizeof cmd, cmd.wr_count,
- 				       cmd.sge_count, cmd.wqe_size);
- 	if (IS_ERR(wr))
- 		return PTR_ERR(wr);
- 
--	qp = idr_read_qp(cmd.qp_handle, file->ucontext);
--	if (!qp)
--		goto out;
--
- 	resp.bad_wr = 0;
- 	ret = qp->device->post_recv(qp, wr, &bad_wr);
- 
-@@ -1706,13 +1739,13 @@ ssize_t ib_uverbs_post_recv(struct ib_uverbs_file *file,
- 			 &resp, sizeof resp))
- 		ret = -EFAULT;
- 
--out:
- 	while (wr) {
- 		next = wr->next;
- 		kfree(wr);
- 		wr = next;
- 	}
- 
-+out_raw_qp:
- 	return ret ? ret : in_len;
- }
- 
-diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index 55cd0a0..ab31c03 100644
---- a/include/rdma/ib_verbs.h
-+++ b/include/rdma/ib_verbs.h
-@@ -831,6 +831,7 @@ struct ib_ucontext {
- 	struct list_head	srq_list;
- 	struct list_head	ah_list;
- 	int			closing;
-+	int                     use_shpage_for_rxtx;
+diff --git a/include/opensm/osm_base.h b/include/opensm/osm_base.h
+index fa4c78d..9f3a091 100644
+--- a/include/opensm/osm_base.h
++++ b/include/opensm/osm_base.h
+@@ -158,6 +158,17 @@ BEGIN_C_DECLS
+ */
+ #define OSM_DEFAULT_SL 0
+ /********/
++/****s* OpenSM: Base/OSM_DEFAULT_REVERSE_SORT_ROUTING_ORDER
++* NAME
++*	OSM_DEFAULT_REVERSE_SORT_ROUTING_ORDER
++*
++* DESCRIPTION
++*	Default Reverse Sort value used by OpenSM.
++*
++* SYNOPSIS
++*/
++#define OSM_DEFAULT_REVERSE_SORT_ROUTING_ORDER FALSE
++/********/
+ /****s* OpenSM: Base/OSM_DEFAULT_SM_PRIORITY
+ * NAME
+ *	OSM_DEFAULT_SM_PRIORITY
+diff --git a/include/opensm/osm_subnet.h b/include/opensm/osm_subnet.h
+index 42ae416..4c74e34 100644
+--- a/include/opensm/osm_subnet.h
++++ b/include/opensm/osm_subnet.h
+@@ -236,6 +236,7 @@ typedef struct osm_subn_opt {
+ 	struct osm_subn_opt *file_opts; /* used for update */
+ 	uint8_t lash_start_vl;			/* starting vl to use in lash */
+ 	uint8_t sm_sl;			/* which SL to use for SM/SA communication */
++	boolean_t reverse_sort_routing_order;
+ } osm_subn_opt_t;
+ /*
+ * FIELDS
+diff --git a/opensm/osm_subnet.c b/opensm/osm_subnet.c
+index 228418f..970a7f8 100644
+--- a/opensm/osm_subnet.c
++++ b/opensm/osm_subnet.c
+@@ -402,6 +402,7 @@ static const opt_rec_t opt_tbl[] = {
+ 	{ "lash_start_vl", OPT_OFFSET(lash_start_vl), opts_parse_uint8, NULL, 1 },
+ 	{ "sm_sl", OPT_OFFSET(sm_sl), opts_parse_uint8, NULL, 1 },
+ 	{ "log_prefix", OPT_OFFSET(log_prefix), opts_parse_charp, NULL, 1 },
++	{ "reverse_sort_routing_order", OPT_OFFSET(reverse_sort_routing_order), opts_parse_boolean, NULL, 1 },
+ 	{0}
  };
  
- struct ib_uobject {
-
+@@ -755,6 +756,7 @@ void osm_subn_set_default_opt(IN osm_subn_opt_t * p_opt)
+ 	p_opt->lash_start_vl = 0;
+ 	p_opt->sm_sl = OSM_DEFAULT_SL;
+ 	p_opt->log_prefix = NULL;
++	p_opt->reverse_sort_routing_order = OSM_DEFAULT_REVERSE_SORT_ROUTING_ORDER;
+ 	subn_init_qos_options(&p_opt->qos_options, NULL);
+ 	subn_init_qos_options(&p_opt->qos_ca_options, NULL);
+ 	subn_init_qos_options(&p_opt->qos_sw0_options, NULL);
+@@ -1371,6 +1373,11 @@ int osm_subn_output_conf(FILE *out, IN osm_subn_opt_t * p_opts)
+ 		p_opts->dimn_ports_file ? p_opts->dimn_ports_file : null_str);
+ 
+ 	fprintf(out,
++		"# Reverse the normal order in which routes are assigned. \n"
++		"reverse_sort_routing_order %s\n\n",
++		p_opts->reverse_sort_routing_order ? "TRUE" : "FALSE");
++
++	fprintf(out,
+ 		"# Routing engine\n"
+ 		"# Multiple routing engines can be specified separated by\n"
+ 		"# commas so that specific ordering of routing algorithms will\n"
+diff --git a/opensm/osm_ucast_mgr.c b/opensm/osm_ucast_mgr.c
+index 4019589..b1dc4e4 100644
+--- a/opensm/osm_ucast_mgr.c
++++ b/opensm/osm_ucast_mgr.c
+@@ -824,6 +824,10 @@ static int compar_sw_load(const void *s1, const void *s2)
+ 	return get_sw_endport_links(s2) - get_sw_endport_links(s1);
+ }
+ 
++static int compar_sw_load_r(const void *s1, const void *s2) {
++	return compar_sw_load(s2, s1);
++}
++
+ static void sort_ports_by_switch_load(osm_ucast_mgr_t * m)
+ {
+ 	int i, num = cl_qmap_count(&m->p_subn->sw_guid_tbl);
+@@ -840,7 +844,10 @@ static void sort_ports_by_switch_load(osm_ucast_mgr_t * m)
+ 	for (i = 0; i < num; i++)
+ 		sw_count_endport_links(s[i]);
+ 
+-	qsort(s, num, sizeof(*s), compar_sw_load);
++	if (m->p_subn->opt.reverse_sort_routing_order == TRUE) {
++		qsort(s, num, sizeof(*s), compar_sw_load_r);
++	} else
++		qsort(s, num, sizeof(*s), compar_sw_load);
+ 
+ 	for (i = 0; i < num; i++)
+ 		add_sw_endports_to_order_list(s[i], m);
+-- 
+1.7.4
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
