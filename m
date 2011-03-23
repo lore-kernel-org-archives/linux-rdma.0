@@ -1,53 +1,52 @@
-From: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [GIT PULL] please pull infiniband.git
-Date: Wed, 23 Mar 2011 10:47:57 -0700
-Message-ID: <1300902477-6608-1-git-send-email-roland@kernel.org>
+From: "Jim Schutt" <jaschut-4OHPYypu0djtX7QSmKvirg@public.gmane.org>
+Subject: Re: [opensm] routing segfault + LMC > 0 routing bug?
+Date: Wed, 23 Mar 2011 11:51:47 -0600
+Message-ID: <4D8A3333.4040508@sandia.gov>
+References: <1300843412.3128.135.camel@auk59.llnl.gov>
+ <4D8A1965.40805@sandia.gov> <1300902112.3128.147.camel@auk59.llnl.gov>
+Mime-Version: 1.0
+Content-Type: text/plain;
+ charset=utf-8;
+ format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1300902112.3128.147.camel-akkeaxHeDKRliZ7u+bvwcg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Linus Torvalds <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Albert Chu <chu11-i2BcT+NCU+M@public.gmane.org>
+Cc: "alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Linus, please pull from
+Albert Chu wrote:
+> Hey Jim,
+> 
+> On Wed, 2011-03-23 at 09:01 -0700, Jim Schutt wrote:
+>> Hi Al,
+>>
 
-    master.kernel.org:/pub/scm/linux/kernel/git/roland/infiniband.git for-linus
+>> Torus-2QoS's use of port->priv is unique because it persists
+>> between routing sweeps.  So if another routing engine runs
+>> after torus-2QoS and uses port->priv without having ensured
+>> that it set it itself, there will be trouble.  9ddcf3419ea
+>> was fixing such an issue.
+>>
+>> I can find only two calls of osm_switch_recommend_path(),
+>> and both seem to be to do the right thing, so I think
+>> your patch is OK.
+> 
+> Sounds good.  When reading over your comments about the 2Qos patches
+> that affected this area, I wasn't quite sure how you were dealing with
+> the p_port->priv, so I was unsure how my patch would affect things.
+> 
 
-This tree is also available from kernel.org mirrors at:
+There's some comments at the top of osm_torus.c,
+in the definitions of struct endpoint and struct t_switch,
+that describe the rules for how torus-2QoS code can
+safely use ->priv.
 
-    git://git.kernel.org/pub/scm/linux/kernel/git/roland/infiniband.git for-linus
+They may shed some extra light...
 
-This will get the second batch of 2.6.39 changes:
- - Dave Dillow's SRP initiator changes
- - Fix to uninitialized return value introduced by net tree merge
- - A couple of other minor cleanups
+-- Jim
 
-David Dillow (7):
-      IB/srp: always avoid non-zero offsets into an FMR
-      IB/srp: move IB CM setup completion into its own function
-      IB/srp: allow sg_tablesize to be set for each target
-      IB/srp: rework mapping engine to use multiple FMR entries
-      IB/srp: add support for indirect tables that don't fit in SRP_CMD
-      IB/srp: try to use larger FMR sizes to cover our mappings
-      IB: Increase DMA max_segment_size on Mellanox hardware
-
-Michael Heinz (1):
-      IB/mad: Improve an error message so error code is included
-
-Roland Dreier (3):
-      RDMA/nes: Don't print success message at level KERN_ERR
-      Merge branch 'external-indirect' of git://git.kernel.org/.../dad/srp-initiator into srp
-      Merge branches 'misc', 'nes' and 'srp' into for-next
-
-Sean Hefty (1):
-      RDMA/addr: Fix return of uninitialized ret value
-
- drivers/infiniband/core/addr.c           |    2 +-
- drivers/infiniband/core/agent.c          |    3 +-
- drivers/infiniband/hw/mthca/mthca_main.c |    3 +
- drivers/infiniband/hw/nes/nes.c          |    2 +-
- drivers/infiniband/ulp/srp/ib_srp.c      |  725 ++++++++++++++++++++----------
- drivers/infiniband/ulp/srp/ib_srp.h      |   38 ++-
- 6 files changed, 521 insertions(+), 252 deletions(-)
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
