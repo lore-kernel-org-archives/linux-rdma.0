@@ -1,128 +1,69 @@
-From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-Subject: [PATCH 4/4] opensm/console: add "print all" to print_counters
- console command
-Date: Thu, 24 Mar 2011 18:20:56 -0700
-Message-ID: <20110324182056.b47260e5.weiny2@llnl.gov>
+From: "Sosnowski, Maciej" <maciej.sosnowski-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: nes: uninitialized variable
+Date: Fri, 25 Mar 2011 09:20:30 +0000
+Message-ID: <129600E5E5FB004392DDC3FB599660D70121F242F6@irsmsx504.ger.corp.intel.com>
+References: <20110324170035.552ab769@nehalam>
+ <AANLkTi=PdMd+OZXDejON1Y=DJSEHxoAaq0GCPCnurz27@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <AANLkTi=PdMd+OZXDejON1Y=DJSEHxoAaq0GCPCnurz27-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, Stephen Hemminger <shemminger-ZtmgI6mnKB3QT0dZR+AlfA@public.gmane.org>
+Cc: Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Jiri Pirko <jpirko-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+Roland Dreier wrote:
+> On Thu, Mar 24, 2011 at 5:00 PM, Stephen Hemminger
+> <shemminger-ZtmgI6mnKB3QT0dZR+AlfA@public.gmane.org> wrote:
+> > This commit:
+> > commit 2a4c97ead4b375a64063523210939b87ad225b85
+> 
+> Actually I think it was 1765a575334f ("net: make dev->master general")
+> which went in through the net tree and which had:
+> 
+> -       if (nesvnic->netdev->master)
+> +       if (netif_is_bond_slave(netdev))
+> 
+> presumably that should be netif_is_bond_slave(nesvnic->netdev).
 
-From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-Date: Mon, 14 Mar 2011 13:18:28 -0700
-Subject: [PATCH] opensm/console: add "print all" to print_counters console command
+Yes. That is the point.
 
-Signed-off-by: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
----
- include/opensm/osm_perfmgr_db.h |    1 +
- opensm/osm_console.c            |   12 ++++--------
- opensm/osm_perfmgr.c            |   13 ++++++++-----
- opensm/osm_perfmgr_db.c         |   19 +++++++++++++++++++
- 4 files changed, 32 insertions(+), 13 deletions(-)
+> I'll queue this up:
+> 
+>     RDMA/nes: Fix test of uninitialized netdev
+> 
+>     Commit 1765a575334f ("net: make dev->master general") introduced a
+>     test of an uninitialized netdev.  Fix the code so the intended
+> netdev
+>     is tested.
+> 
+>     Signed-off-by: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+> ---
+>  drivers/infiniband/hw/nes/nes_cm.c |    2 +-
+>  1 files changed, 1 insertions(+), 1 deletions(-)
+> 
+> diff --git a/drivers/infiniband/hw/nes/nes_cm.c
+> b/drivers/infiniband/hw/nes/nes_cm.c
+> index ef32915..cfa3a2b 100644
+> --- a/drivers/infiniband/hw/nes/nes_cm.c
+> +++ b/drivers/infiniband/hw/nes/nes_cm.c
+> @@ -1116,7 +1116,7 @@ static int nes_addr_resolve_neigh(struct
+> nes_vnic *nesvnic, u32 dst_ip, int arpi
+>                 return rc;
+>         }
+> 
+> -       if (netif_is_bond_slave(netdev))
+> +       if (netif_is_bond_slave(nesvnic->netdev))
+>                 netdev = nesvnic->netdev->master;
+>         else
+>                 netdev = nesvnic->netdev;
 
-diff --git a/include/opensm/osm_perfmgr_db.h b/include/opensm/osm_perfmgr_db.h
-index 8f4706d..57e0fb3 100644
---- a/include/opensm/osm_perfmgr_db.h
-+++ b/include/opensm/osm_perfmgr_db.h
-@@ -183,6 +183,7 @@ perfmgr_db_err_t perfmgr_db_clear_prev_dc(perfmgr_db_t * db, uint64_t guid,
- void perfmgr_db_clear_counters(perfmgr_db_t * db);
- perfmgr_db_err_t perfmgr_db_dump(perfmgr_db_t * db, char *file,
- 				 perfmgr_db_dump_t dump_type);
-+void perfmgr_db_print_all(perfmgr_db_t * db, FILE *fp);
- void perfmgr_db_print_by_name(perfmgr_db_t * db, char *nodename, FILE *fp);
- void perfmgr_db_print_by_guid(perfmgr_db_t * db, uint64_t guid, FILE *fp);
- 
-diff --git a/opensm/osm_console.c b/opensm/osm_console.c
-index 0ee528e..114c569 100644
---- a/opensm/osm_console.c
-+++ b/opensm/osm_console.c
-@@ -244,7 +244,8 @@ static void help_perfmgr(FILE * out, int detail)
- 		fprintf(out,
- 			"   [dump_counters [mach]] -- dump the counters (optionally in [mach]ine readable format)\n");
- 		fprintf(out,
--			"   [print_counters <nodename|nodeguid>] -- print the counters for the specified node\n");
-+			"   [print_counters [<nodename|nodeguid>]] -- print the internal counters\n"
-+			"                                             Optionaly limit output by name or guid\n");
- 		fprintf(out,
- 			"   [dump_redir [<nodename|nodeguid>]] -- dump the redirection table\n");
- 		fprintf(out,
-@@ -1358,13 +1359,8 @@ static void perfmgr_parse(char **p_last, osm_opensm_t * p_osm, FILE * out)
- 			}
- 		} else if (strcmp(p_cmd, "print_counters") == 0) {
- 			p_cmd = name_token(p_last);
--			if (p_cmd) {
--				osm_perfmgr_print_counters(&p_osm->perfmgr,
--							   p_cmd, out);
--			} else {
--				fprintf(out,
--					"print_counters requires a node name or node GUID to be specified\n");
--			}
-+			osm_perfmgr_print_counters(&p_osm->perfmgr, p_cmd,
-+						   out);
- 		} else if (strcmp(p_cmd, "dump_redir") == 0) {
- 			p_cmd = name_token(p_last);
- 			dump_redir(p_osm, p_cmd, out);
-diff --git a/opensm/osm_perfmgr.c b/opensm/osm_perfmgr.c
-index 6952d72..e6070c3 100644
---- a/opensm/osm_perfmgr.c
-+++ b/opensm/osm_perfmgr.c
-@@ -1740,10 +1740,13 @@ void osm_perfmgr_dump_counters(osm_perfmgr_t * pm, perfmgr_db_dump_t dump_type)
-  *******************************************************************/
- void osm_perfmgr_print_counters(osm_perfmgr_t * pm, char *nodename, FILE * fp)
- {
--	uint64_t guid = strtoull(nodename, NULL, 0);
--	if (guid == 0 && errno)
--		perfmgr_db_print_by_name(pm->db, nodename, fp);
--	else
--		perfmgr_db_print_by_guid(pm->db, guid, fp);
-+	if (nodename) {
-+		uint64_t guid = strtoull(nodename, NULL, 0);
-+		if (guid == 0 && errno)
-+			perfmgr_db_print_by_name(pm->db, nodename, fp);
-+		else
-+			perfmgr_db_print_by_guid(pm->db, guid, fp);
-+	} else
-+		perfmgr_db_print_all(pm->db, fp);
- }
- #endif				/* ENABLE_OSM_PERF_MGR */
-diff --git a/opensm/osm_perfmgr_db.c b/opensm/osm_perfmgr_db.c
-index 7a96d41..10bd41e 100644
---- a/opensm/osm_perfmgr_db.c
-+++ b/opensm/osm_perfmgr_db.c
-@@ -694,6 +694,25 @@ static void db_dump(cl_map_item_t * const p_map_item, void *context)
- }
- 
- /**********************************************************************
-+ * print all node data to fp
-+ **********************************************************************/
-+void
-+perfmgr_db_print_all(perfmgr_db_t * db, FILE *fp)
-+{
-+	cl_map_item_t *item;
-+	db_node_t *node;
-+
-+	cl_plock_acquire(&db->lock);
-+	item = cl_qmap_head(&db->pc_data);
-+	while (item != cl_qmap_end(&db->pc_data)) {
-+		node = (db_node_t *)item;
-+		dump_node_hr(node, fp);
-+		item = cl_qmap_next(item);
-+	}
-+	cl_plock_release(&db->lock);
-+}
-+
-+/**********************************************************************
-  * print node data to fp
-  **********************************************************************/
- void
--- 
-1.5.4.5
+Thanks for tracking this down and fixing!
 
+Maciej
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
