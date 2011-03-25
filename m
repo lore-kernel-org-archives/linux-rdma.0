@@ -1,36 +1,29 @@
-From: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
-Subject: RDMA CM: private_data_len
-Date: Fri, 25 Mar 2011 19:27:41 +0100
-Message-ID: <1301077661.2192.31.camel@deela.quest-ce.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+From: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: [GIT PULL] please pull infiniband.git
+Date: Fri, 25 Mar 2011 12:07:09 -0700
+Message-ID: <1301080029-19082-1-git-send-email-roland@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Linus Torvalds <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
+Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hi,
+Linus, please pull from
 
-On a client, rdma_connect() returns -1 and set errno EINVAL if 
-struct rdma_conn_param->private_data_len is set to something higher than
-56 bytes.
+    master.kernel.org:/pub/scm/linux/kernel/git/roland/infiniband.git for-linus
 
-But on a server, using rdma_accept() with struct
-rdma_conn_param->private_data_len is set to 64 (for example) didn't
-return any error. 
+This tree is also available from kernel.org mirrors at:
 
-What is the maximum data size that can be exchanged between peers at
-connection time, and where to find its definition (at compile time or at
-runtime) ?
+    git://git.kernel.org/pub/scm/linux/kernel/git/roland/infiniband.git for-linus
 
-Regards.
+This will get one fix for a bug introduced into the nes driver through
+the net tree:
 
--- 
-Yann Droneaud
-OPTEYA
+Roland Dreier (1):
+      RDMA/nes: Fix test of uninitialized netdev
 
-
+ drivers/infiniband/hw/nes/nes_cm.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
