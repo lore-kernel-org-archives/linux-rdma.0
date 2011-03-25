@@ -1,58 +1,59 @@
-From: Stephen Hemminger <shemminger-ZtmgI6mnKB3QT0dZR+AlfA@public.gmane.org>
-Subject: nes: uninitialized variable
-Date: Thu, 24 Mar 2011 17:00:35 -0700
-Message-ID: <20110324170035.552ab769@nehalam>
+From: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+Subject: Re: nes: uninitialized variable
+Date: Thu, 24 Mar 2011 17:15:26 -0700
+Message-ID: <AANLkTi=PdMd+OZXDejON1Y=DJSEHxoAaq0GCPCnurz27@mail.gmail.com>
+References: <20110324170035.552ab769@nehalam>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20110324170035.552ab769@nehalam>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Maciej Sosnowski <maciej.sosnowski-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Stephen Hemminger <shemminger-ZtmgI6mnKB3QT0dZR+AlfA@public.gmane.org>
+Cc: Maciej Sosnowski <maciej.sosnowski-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Jiri Pirko <jpirko-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This commit:
-commit 2a4c97ead4b375a64063523210939b87ad225b85
-Author: Maciej Sosnowski <maciej.sosnowski-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Date:   Wed Nov 24 17:29:30 2010 +0000
+On Thu, Mar 24, 2011 at 5:00 PM, Stephen Hemminger
+<shemminger-ZtmgI6mnKB3QT0dZR+AlfA@public.gmane.org> wrote:
+> This commit:
+> commit 2a4c97ead4b375a64063523210939b87ad225b85
 
-    RDMA/nes: Fix bonding on iw_nes
-   =20
-    Enable configuring bonds on nes devices by adding missing support f=
-or
-    master net_device to the driver.
-   =20
-    Signed-off-by: Maciej Sosnowski <maciej.sosnowski-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-    Signed-off-by: Roland Dreier <rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>
+Actually I think it was 1765a575334f ("net: make dev->master general")
+which went in through the net tree and which had:
 
-introduced:
-drivers/infiniband/hw/nes/nes_cm.c: In function =E2=80=98nes_addr_resol=
-ve_neigh=E2=80=99:
-include/linux/netdevice.h:2586: warning: =E2=80=98netdev=E2=80=99 may b=
-e used uninitialized in this function
-drivers/infiniband/hw/nes/nes_cm.c:1109: note: =E2=80=98netdev=E2=80=99=
- was declared here
+-       if (nesvnic->netdev->master)
++       if (netif_is_bond_slave(netdev))
 
-here:
-static int nes_addr_resolve_neigh(struct nes_vnic *nesvnic, u32 dst_ip,=
- int arpindex)
-{
-	struct net_device *netdev;
-	struct nes_adapter *nesadapter =3D nesvnic->nesdev->nesadapter;
+presumably that should be netif_is_bond_slave(nesvnic->netdev).
 
-	rt =3D ip_route_output(&init_net, htonl(dst_ip), 0, 0, 0);
-	if (IS_ERR(rt)) {
-		printk(KERN_ERR "%s: ip_route_output_key failed for 0x%08X\n",
-				__func__, dst_ip);
-		return rc;
-	}
+I'll queue this up:
 
-	if (netif_is_bond_slave(netdev))
-                                ^^^^^^
+    RDMA/nes: Fix test of uninitialized netdev
 
-netdev is not set!
+    Commit 1765a575334f ("net: make dev->master general") introduced a
+    test of an uninitialized netdev.  Fix the code so the intended netdev
+    is tested.
+
+    Signed-off-by: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+---
+ drivers/infiniband/hw/nes/nes_cm.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/infiniband/hw/nes/nes_cm.c
+b/drivers/infiniband/hw/nes/nes_cm.c
+index ef32915..cfa3a2b 100644
+--- a/drivers/infiniband/hw/nes/nes_cm.c
++++ b/drivers/infiniband/hw/nes/nes_cm.c
+@@ -1116,7 +1116,7 @@ static int nes_addr_resolve_neigh(struct
+nes_vnic *nesvnic, u32 dst_ip, int arpi
+                return rc;
+        }
+
+-       if (netif_is_bond_slave(netdev))
++       if (netif_is_bond_slave(nesvnic->netdev))
+                netdev = nesvnic->netdev->master;
+        else
+                netdev = nesvnic->netdev;
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
