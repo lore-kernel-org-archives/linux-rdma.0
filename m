@@ -1,29 +1,81 @@
-From: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [GIT PULL] please pull infiniband.git
-Date: Fri, 25 Mar 2011 12:07:09 -0700
-Message-ID: <1301080029-19082-1-git-send-email-roland@kernel.org>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: [PATCH 1/3] libibmad: Add remaining SM GUIDInfo attribute fields
+Date: Fri, 25 Mar 2011 21:23:09 +0200
+Message-ID: <4D8CEB9D.4020501@dev.mellanox.co.il>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Linus Torvalds <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
-Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Linus, please pull from
 
-    master.kernel.org:/pub/scm/linux/kernel/git/roland/infiniband.git for-linus
+Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+  libibmad/include/infiniband/mad.h |    9 ++++++++-
+  libibmad/src/fields.c             |    9 ++++++++-
+  2 files changed, 16 insertions(+), 2 deletions(-)
 
-This tree is also available from kernel.org mirrors at:
+diff --git a/libibmad/include/infiniband/mad.h 
+b/libibmad/include/infiniband/mad.h
+index 7571a61..02f0dc8 100644
+--- a/libibmad/include/infiniband/mad.h
++++ b/libibmad/include/infiniband/mad.h
+@@ -1,7 +1,7 @@
+  /*
+   * Copyright (c) 2004-2009 Voltaire Inc.  All rights reserved.
+   * Copyright (c) 2009 HNR Consulting.  All rights reserved.
+- * Copyright (c) 2009 Mellanox Technologies LTD.  All rights reserved.
++ * Copyright (c) 2009-2010 Mellanox Technologies LTD.  All rights reserved.
+   *
+   * This software is available to you under a choice of one of two
+   * licenses.  You may choose to be licensed under the terms of the GNU
+@@ -580,6 +580,13 @@ enum MAD_FIELDS {
+       * GUIDInfo fields
+       */
+      IB_GUID_GUID0_F,
++    IB_GUID_GUID1_F,
++    IB_GUID_GUID2_F,
++    IB_GUID_GUID3_F,
++    IB_GUID_GUID4_F,
++    IB_GUID_GUID5_F,
++    IB_GUID_GUID6_F,
++    IB_GUID_GUID7_F,
 
-    git://git.kernel.org/pub/scm/linux/kernel/git/roland/infiniband.git for-linus
+      /*
+       * ClassPortInfo fields
+diff --git a/libibmad/src/fields.c b/libibmad/src/fields.c
+index a5a510a..c9897e7 100644
+--- a/libibmad/src/fields.c
++++ b/libibmad/src/fields.c
+@@ -1,7 +1,7 @@
+  /*
+   * Copyright (c) 2004-2009 Voltaire Inc.  All rights reserved.
+   * Copyright (c) 2009 HNR Consulting.  All rights reserved.
+- * Copyright (c) 2009 Mellanox Technologies LTD.  All rights reserved.
++ * Copyright (c) 2009-2010 Mellanox Technologies LTD.  All rights reserved.
+   *
+   * This software is available to you under a choice of one of two
+   * licenses.  You may choose to be licensed under the terms of the GNU
+@@ -380,6 +380,13 @@ static const ib_field_t ib_mad_f[] = {
+       * GUIDInfo fields
+       */
+      {0, 64, "GUID0", mad_dump_hex},
++    {64, 64, "GUID1", mad_dump_hex},
++    {128, 64, "GUID2", mad_dump_hex},
++    {192, 64, "GUID3", mad_dump_hex},
++    {256, 64, "GUID4", mad_dump_hex},
++    {320, 64, "GUID5", mad_dump_hex},
++    {384, 64, "GUID6", mad_dump_hex},
++    {448, 64, "GUID7", mad_dump_hex},
 
-This will get one fix for a bug introduced into the nes driver through
-the net tree:
+      /*
+       * ClassPortInfo fields
+-- 
+1.5.3
 
-Roland Dreier (1):
-      RDMA/nes: Fix test of uninitialized netdev
-
- drivers/infiniband/hw/nes/nes_cm.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
