@@ -1,30 +1,49 @@
-From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-Subject: Re: [PATCH 2/3] libibmad: Add support for SA GUIDInfoRecord fields
-Date: Mon, 28 Mar 2011 13:41:31 -0700
-Message-ID: <20110328134131.00ed0720.weiny2@llnl.gov>
-References: <4D8CEBAA.2020609@dev.mellanox.co.il>
+From: Alan Cook <acook-osxm6dDZNBBZx8iatJs59jGjJy/sRE9J@public.gmane.org>
+Subject: Re: Unable to Connect Using Active Speed 2.5 Gbps and Active Width of 1
+Date: Mon, 28 Mar 2011 20:41:35 +0000 (UTC)
+Message-ID: <loom.20110328T220853-101@post.gmane.org>
+References: <loom.20110328T194956-774@post.gmane.org> <4D90D9A2.7000107@dev.mellanox.co.il> <loom.20110328T210350-244@post.gmane.org> <4D90DF38.1060407@dev.mellanox.co.il> <loom.20110328T212117-950@post.gmane.org> <20110328194150.GA6205@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4D8CEBAA.2020609-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, 25 Mar 2011 12:23:22 -0700
-Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wrote:
+Jason Gunthorpe <jgunthorpe@...> writes:
 
 > 
-> Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> ---
->   libibmad/include/infiniband/mad.h |   15 +++++++++++++++
->   libibmad/src/fields.c             |   12 ++++++++++++
->   2 files changed, 27 insertions(+), 0 deletions(-)
+> Are you using IPoIB to test your ping? You might be having multicast
+> group membership join problems due to a rate mismatch? Try one of the
+> low level verbs only diags.
+> 
 
-Thanks, applied,
-Ira
+I found the following issue when running ibdiagnet (which I had yet to run).
+
+-I---------------------------------------------------
+-I- IPoIB Subnets Check
+-I---------------------------------------------------
+-I- Subnet: IPv4 PKey:0x7fff QKey:0x00000b1b MTU:2048Byte rate:10Gbps SL:0x00
+-W- Port raid1/P1 lid=0x0002 guid=0x0002c903000aa6d7 dev=26428 can not join due
+    to rate:2.5Gbps < group:10Gbps
+-W- Port raid2/P1 lid=0x0001 guid=0x0002c903000aa6cf dev=26428 can not join due
+    to rate:2.5Gbps < group:10Gbps
+-W- Suboptimal rate for group. Lowest member rate:120Gbps > group-rate:10Gbps
+
+I also changed the speed to 5 Gbps (which I thought had worked earlier) and I am
+unable to transfer using a width 1X.  I receive the same warnings as above.
+
+After doing some searching, I created a partitions.conf (which did not exist at
+configured location in opensm.conf).  I added the following line:
+
+Test,ipoib,rate=1,defmember=full:0x0002c903000aa6d7,0x0002c903000aa6cf;
+
+After restarting opensm.conf, I find that the above warnings in ibdiagnet no
+longer appear, but I am still unable to communicate between PCs.
+
+Did I miss something or do something incorrectly?
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
