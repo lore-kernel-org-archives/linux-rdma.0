@@ -1,49 +1,51 @@
-From: Alan Cook <acook-osxm6dDZNBBZx8iatJs59jGjJy/sRE9J@public.gmane.org>
-Subject: Re: Unable to Connect Using Active Speed 2.5 Gbps and Active Width of 1
-Date: Mon, 28 Mar 2011 20:41:35 +0000 (UTC)
-Message-ID: <loom.20110328T220853-101@post.gmane.org>
-References: <loom.20110328T194956-774@post.gmane.org> <4D90D9A2.7000107@dev.mellanox.co.il> <loom.20110328T210350-244@post.gmane.org> <4D90DF38.1060407@dev.mellanox.co.il> <loom.20110328T212117-950@post.gmane.org> <20110328194150.GA6205@obsidianresearch.com>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH] librdmacm/doc: document the limitations on the user
+ provided private data length
+Date: Mon, 28 Mar 2011 15:16:50 -0700
+Message-ID: <CF9C39F99A89134C9CF9C4CCB68B8DDF25DC7B7191@orsmsx501.amr.corp.intel.com>
+References: <alpine.LRH.2.00.1103281048280.17717@ogerlitz.voltaire.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <alpine.LRH.2.00.1103281048280.17717-VYr5/9ddeaGSIdy2EShu12Xnswh1EIUO@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Jason Gunthorpe <jgunthorpe@...> writes:
+Thanks - I modified the patch to further specify the difference between RC and UD:
 
-> 
-> Are you using IPoIB to test your ping? You might be having multicast
-> group membership join problems due to a rate mismatch? Try one of the
-> low level verbs only diags.
-> 
+> diff --git a/man/rdma_accept.3 b/man/rdma_accept.3
+> index ac04e2c..0a9415a 100644
+> --- a/man/rdma_accept.3
+> +++ b/man/rdma_accept.3
+> @@ -84,5 +84,7 @@ by the active side of the connection.  The HCA ACK delay is a property of
+>  the locally used HCA.
+>  .P
+>  The RNR retry count is a 3-bit value.
+> +.P
+> +The length of the private data provided by the user is limited to 160 bytes
 
-I found the following issue when running ibdiagnet (which I had yet to run).
++ for RDMA_PS_TCP, or 136 bytes for RDMA_PS_UDP.
 
--I---------------------------------------------------
--I- IPoIB Subnets Check
--I---------------------------------------------------
--I- Subnet: IPv4 PKey:0x7fff QKey:0x00000b1b MTU:2048Byte rate:10Gbps SL:0x00
--W- Port raid1/P1 lid=0x0002 guid=0x0002c903000aa6d7 dev=26428 can not join due
-    to rate:2.5Gbps < group:10Gbps
--W- Port raid2/P1 lid=0x0001 guid=0x0002c903000aa6cf dev=26428 can not join due
-    to rate:2.5Gbps < group:10Gbps
--W- Suboptimal rate for group. Lowest member rate:120Gbps > group-rate:10Gbps
+>  .SH "SEE ALSO"
+>  rdma_listen(3), rdma_reject(3), rdma_get_cm_event(3)
+> diff --git a/man/rdma_connect.3 b/man/rdma_connect.3
+> index b0cc51e..8035d47 100644
+> --- a/man/rdma_connect.3
+> +++ b/man/rdma_connect.3
+> @@ -79,6 +79,8 @@ Administrator and is part of the resolved route (path record) information.
+>  The HCA ACK delay is a property of the locally used HCA.
+>  .P
+>  Retry count and RNR retry count values are 3-bit values.
+> +.P
+> +The length of the private data provided by the user is limited to 56 bytes
 
-I also changed the speed to 5 Gbps (which I thought had worked earlier) and I am
-unable to transfer using a width 1X.  I receive the same warnings as above.
++ for RDMA_PS_TCP, or 180 bytes for RDMA_PS_UDP.
 
-After doing some searching, I created a partitions.conf (which did not exist at
-configured location in opensm.conf).  I added the following line:
-
-Test,ipoib,rate=1,defmember=full:0x0002c903000aa6d7,0x0002c903000aa6cf;
-
-After restarting opensm.conf, I find that the above warnings in ibdiagnet no
-longer appear, but I am still unable to communicate between PCs.
-
-Did I miss something or do something incorrectly?
-
+- Sean
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
