@@ -1,30 +1,37 @@
-From: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH] opensm: Proper mfttop initialization when
- starting/restarting
-Date: Sun, 27 Mar 2011 18:26:47 +0200
-Message-ID: <20110327162647.GF23892@calypso.voltaire.com>
-References: <4D8D1161.7020900@dev.mellanox.co.il>
+From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: RDMA CM: private_data_len
+Date: Mon, 28 Mar 2011 10:48:18 +0200
+Message-ID: <4D904B52.5000004@mellanox.com>
+References: <1301077661.2192.31.camel@deela.quest-ce.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <4D8D1161.7020900-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+In-Reply-To: <1301077661.2192.31.camel-H/AUWmsJYVeqvyCYKW+Xr6xOck334EZe@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 00:04 Sat 26 Mar     , Hal Rosenstock wrote:
-> Rather than setting mfttop to 0xbfff first time, initialize (indicated
-> by first_time_master_sweep) based on whether or not SA DB is being loaded.
-> If it's being loaded, get mfttop from there (based on max MLID in the
-> SA DB). Otherwise, it's set to 0 which makes multicast behave as it did
-> prior to there being an mfttop (meaning any MC routes are "honored".
+Yann Droneaud wrote:
+> On a client, rdma_connect() returns -1 and set errno EINVAL if 
+> struct rdma_conn_param->private_data_len is set to something higher than
+> 56 bytes.
 > 
-> Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> ---
+> But on a server, using rdma_accept() with struct
+> rdma_conn_param->private_data_len is set to 64 (for example) didn't
+> return any error. 
+> 
+> What is the maximum data size that can be exchanged between peers at
+> connection time, and where to find its definition (at compile time or at
+> runtime) ?
 
-Applied. Thanks.
+yep, this isn't clear from the librdmacm man pages see the patch
+that follows. BTW - Sean, looking on the code of the library and the
+kernel's ucma.c / cma.c - I failed to find where this is enforced,
+a pointer will be cool.
+
+Or.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
