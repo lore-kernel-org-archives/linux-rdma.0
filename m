@@ -1,54 +1,51 @@
-From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH] librdmacm/doc: document the limitations on the user provided
- private data length
-Date: Mon, 28 Mar 2011 10:49:33 +0200
-Message-ID: <alpine.LRH.2.00.1103281048280.17717@ogerlitz.voltaire.com>
+From: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
+Subject: Re: RDMA CM: private_data_len
+Date: Mon, 28 Mar 2011 11:46:14 +0200
+Message-ID: <1301305574.804.1.camel@dworkin.quest-ce.net>
+References: <1301077661.2192.31.camel@deela.quest-ce.net>
+	 <4D904B52.5000004@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="US-ASCII"
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <4D904B52.5000004-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
+To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Document the limitations on the user provided private data length
-over Infiniband networks. These limitations are calculated by
-subtracting the rdma-cm header size (see IBA Annex A11 "RDMA CM IP
-Service") from IB's private data len for the REQ (rdma_connect) and
-REP (rdma_accept) messages
+Le lundi 28 mars 2011 =C3=A0 10:48 +0200, Or Gerlitz a =C3=A9crit :
+> Yann Droneaud wrote:
+> > On a client, rdma_connect() returns -1 and set errno EINVAL if=20
+> > struct rdma_conn_param->private_data_len is set to something higher=
+ than
+> > 56 bytes.
+> >=20
+> > But on a server, using rdma_accept() with struct
+> > rdma_conn_param->private_data_len is set to 64 (for example) didn't
+> > return any error.=20
+> >=20
+> > What is the maximum data size that can be exchanged between peers a=
+t
+> > connection time, and where to find its definition (at compile time =
+or at
+> > runtime) ?
+>=20
+> yep, this isn't clear from the librdmacm man pages see the patch
+> that follows.=20
 
-Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Oh yes, it's clear now.
+Thanks for the patch and the link to IB specs.
 
- man/rdma_accept.3  |    2 ++
- man/rdma_connect.3 |    2 ++
- 2 files changed, 4 insertions(+), 0 deletions(-)
+Regards.
 
-diff --git a/man/rdma_accept.3 b/man/rdma_accept.3
-index ac04e2c..0a9415a 100644
---- a/man/rdma_accept.3
-+++ b/man/rdma_accept.3
-@@ -84,5 +84,7 @@ by the active side of the connection.  The HCA ACK delay is a property of
- the locally used HCA.
- .P
- The RNR retry count is a 3-bit value.
-+.P
-+The length of the private data provided by the user is limited to 160 bytes.
- .SH "SEE ALSO"
- rdma_listen(3), rdma_reject(3), rdma_get_cm_event(3)
-diff --git a/man/rdma_connect.3 b/man/rdma_connect.3
-index b0cc51e..8035d47 100644
---- a/man/rdma_connect.3
-+++ b/man/rdma_connect.3
-@@ -79,6 +79,8 @@ Administrator and is part of the resolved route (path record) information.
- The HCA ACK delay is a property of the locally used HCA.
- .P
- Retry count and RNR retry count values are 3-bit values.
-+.P
-+The length of the private data provided by the user is limited to 56 bytes.
- .SH "IWARP SPECIFIC"
- Connections established over iWarp RDMA devices currently require that the
- active side of the connection send the first message.
+--=20
+Yann Droneaud
+OPTEYA
+
+
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
