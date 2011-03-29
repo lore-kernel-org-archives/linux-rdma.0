@@ -1,38 +1,52 @@
-From: Eli Dorfman <elido-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH] opensm: Allow comma in plugin names parsing
-Date: Tue, 29 Mar 2011 10:46:49 +0200
-Message-ID: <4D919C79.9030406@dev.mellanox.co.il>
+From: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
+Subject: rdma_get_cm_event() vs ibv_async_event()
+Date: Tue, 29 Mar 2011 11:37:41 +0200
+Message-ID: <1301391461.2192.41.camel@deela.quest-ce.net>
+References: <1301052615.2192.15.camel@deela.quest-ce.net>
+	 <1301059658.2192.23.camel@deela.quest-ce.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1301059658.2192.23.camel-H/AUWmsJYVeqvyCYKW+Xr6xOck334EZe@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Subject: [PATCH] Allow comma in plugin names parsing
+[This question was already asked on ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org]
 
-Signed-off-by: Eli Dorfman <elido-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- opensm/osm_opensm.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+Hi,
 
-diff --git a/opensm/osm_opensm.c b/opensm/osm_opensm.c
-index cb40f71..11b7158 100644
---- a/opensm/osm_opensm.c
-+++ b/opensm/osm_opensm.c
-@@ -324,7 +324,7 @@ static void load_plugins(osm_opensm_t *osm, const char *plugin_names)
- 	char *p_names, *name, *p;
- 
- 	p_names = strdup(plugin_names);
--	name = strtok_r(p_names, " \t\n", &p);
-+	name = strtok_r(p_names, ", \t\n", &p);
- 	while (name && *name) {
- 		epi = osm_epi_construct(osm, name);
- 		if (!epi)
+I'm using RDMA CM to manage connections above Infiniband.
+
+On the server side, RDMA CM event are monitored using an event channel 
+created by rdma_create_event_channel(), polled using file descriptor
+rdma_event_channel->fd  and later processed by rdma_get_cm_event() on
+event.
+
+After a connection is established, IB async events are polled using the
+file descriptor found in the associated connection id returned by RDMA
+CM layer: ibv_context->async_fd and proceed using ibv_get_async_event().
+
+But the only event I caught and handle is IBV_EVENT_COMM_EST because it
+happen sometimes under high load. In this case, rdma_notify() is used to
+send the event back to RDMA CM layer. But sometimes, rdma_notify()
+returns -1 and errno is set to EISCONN : Transport endpoint is already
+connected. (It happens mostly when I'm running my test program under
+strace).
+
+I'm suspecting there's some kind of race between RDMA event channel and
+IB async event processing.
+
+So here's my question: should I monitor async events using
+ibv_get_async_event() or is it fully managed by the RDMA CM layer ?
+
+Regards.
+
 -- 
-1.7.4.1
+Yann Droneaud
+OPTEYA
+
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
