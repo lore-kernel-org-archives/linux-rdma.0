@@ -1,45 +1,41 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: rdma_get_cm_event() vs ibv_async_event()
-Date: Tue, 29 Mar 2011 07:51:51 -0700
-Message-ID: <CF9C39F99A89134C9CF9C4CCB68B8DDF25DC7B75F0@orsmsx501.amr.corp.intel.com>
-References: <1301052615.2192.15.camel@deela.quest-ce.net>
-	 <1301059658.2192.23.camel@deela.quest-ce.net>
-	 <1301391461.2192.41.camel@deela.quest-ce.net>
-	 <4D91B107.2040007@mellanox.com>
- <1301394815.2193.2.camel@deela.quest-ce.net> <4D91B85C.1080106@mellanox.com>
+From: Greg Kerr <kerr.g-movQPkccWJngpn9g0Uvcdg@public.gmane.org>
+Subject: IBV Test Program
+Date: Tue, 29 Mar 2011 12:48:42 -0400
+Message-ID: <201103291248.42710.kerr.g@husky.neu.edu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4D91B85C.1080106-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-PiA+IFNvIGlnbm9yaW5nIElCVl9FVkVOVF9DT01NX0VTVCBhc3luYyBldmVudCBzZWVtcyB0aGUg
-YmVzdCBvcHRpb24gd2hlbg0KPiA+IHVzaW5nIFJETUEgQ00gdG8gZXN0YWJsaXNoIGNvbm5lY3Rp
-b24gPw0KPiANCj4gbm8hIGl0cyBhIG11c3QgZm9yIHRoZSByYXJlIGNhc2Ugb2YgcmVwZWF0ZWQg
-Q00gcGFja2V0IGxvc3MgLSBTZWFuLA0KPiBkbyB5b3UgYWdyZWUgdG8gdGhhdCBhc3NlcnRpb24/
-IHNob3VsZCB0aGUgbWFuIHBhZ2UgYmUgbW9yZSBjbGVhciBhYm91dA0KPiB0aGF0Pw0KDQpIYW5k
-bGluZyB0aGF0IGV2ZW50IGlzIG5lZWRlZCBJTU8gaW4gYW4gZXh0cmVtZWx5IHJhcmUgY2FzZSB3
-aGVyZToNCg0KVGhlIHJlbW90ZSBzaWRlIHNlbmRzIGEgQ00gcmVxdWVzdCBtZXNzYWdlLg0KVGhl
-IENNIHJlcXVlc3QgbWVzc2FnZSBpcyByZWNlaXZlZCBhbmQgYSByZXBseSBpcyBnZW5lcmF0ZWQu
-DQpUaGUgQ00gcmVwbHkgbWVzc2FnZSBpcyByZWNlaXZlZCBieSB0aGUgcmVtb3RlIHNpZGUuDQpU
-aGUgbGFzdCBDTSBtZXNzYWdlIChyZWFkeSB0byB1c2UpIGZyb20gdGhlIHJlbW90ZSBzaWRlIGlz
-IGxvc3Qgb3IgZGVsYXllZCAxNSB0aW1lcywNCmJ1dCBzb21laG93IGEgbWVzc2FnZSBvbiB0aGUg
-Y29ubmVjdGVkIFFQIGFycml2ZXMuDQpUaGUgYXBwIHNlZXMgYSBDT01NX0VTVCBldmVudCBhbmQg
-Y2FsbHMgcmRtYV9ub3RpZnkNClRoZSBwcm9jZXNzaW5nIG9mIHJkbWFfbm90aWZ5IG9jY3VycyBi
-ZWZvcmUgdGhlIENNIGNhbiB0aW1lb3V0IHdhaXRpbmcgZm9yIHRoZSBSVFUuDQoNCihOb3RlIHRo
-YXQgaW4gdGhlb3J5LCB0aGUgcGF0aCB0aGF0IGEgQ00gbWVzc2FnZSB0YWtlcyB0aHJvdWdoIHRo
-ZSBmYWJyaWMgbWF5IGRpZmZlciBmcm9tIHRoYXQgdGFrZW4gYnkgYSBtZXNzYWdlIHBvc3RlZCBv
-biB0aGUgUVAuICBJbiBwcmFjdGljZSwgdGhpcyBpcyBub3QgdGhlIGNhc2UgZ2l2ZW4gdGhlIGN1
-cnJlbnQgaW1wbGVtZW50YXRpb24uKQ0KDQpTby4uLiBoYW5kbGluZyB0aGUgQ09NTV9FU1QgZXZl
-bnQgZG9lcyBoYW5kbGUgdGhlIHJhcmUgY29uZGl0aW9uIGxpc3RlZCBhYm92ZS4gIFRoZXJlJ3Mg
-bm8gaGFybSBpbiBoYW5kbGluZyB0aGUgZXZlbnQsIGJ1dCBkZWNpZGluZyBob3cgZXNzZW50aWFs
-IGl0IGlzIHRvIGhhbmRsZSBpcyBsZWZ0IGFzIGFuIGV4ZXJjaXNlIHRvIHRoZSByZWFkZXIuIDop
-DQoNCi0gU2Vhbg0K
+Hi, 
+
+I've tried asking this question in a few different places with no luck, so I'm 
+hoping you folks can help me. I'm an undergraduate research assistant learning 
+how to use verbs and I had a question.
+
+I want to modify rc_pingpong.c to loop and basically send data between the two 
+nodes multiple times, instead of just once. The first time through, it 
+successfuly completes the transmission. On the next iteration the call to 
+ibv_post_recv fails.
+
+The source code is here: 
+http://pastebin.com/1mEu9x4f (server)
+http://pastebin.com/k1NKdCSn (client)
+
+Please forgive the debug code scattered in there.
+
+I'm pretty sure it must be a simple problem, I just don't know what the 
+problem is.  I can't imagine the queue overflowing after a second 
+ibv_post_recv.
+
+The relevant changes are around line 769.
+
+-- 
+Greg Kerr
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
