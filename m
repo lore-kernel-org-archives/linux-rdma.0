@@ -1,7 +1,7 @@
 From: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH 4/5] read_config: ignore directory entry with backup suffix (~)
-Date: Thu, 31 Mar 2011 11:29:24 +0200
-Message-ID: <c8cfa1fb5a5924f06a3f9633bc70daee47b60d53.1301562707.git.ydroneaud@opteya.com>
+Subject: [PATCH 5/5] read_config_file: ignore driver line without driver name
+Date: Thu, 31 Mar 2011 11:29:25 +0200
+Message-ID: <d6d3d428fcea4a4f78287204c00bd40bc7d7a7c5.1301562707.git.ydroneaud@opteya.com>
 References: <cover.1301562707.git.ydroneaud@opteya.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <cover.1301562707.git.ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
@@ -12,27 +12,29 @@ To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Try to protect libibverbs from hand modified configuration files.
+If there's no driver name, strsep() will set config to NULL and later
+process of driver name will segfault.
+
+Spotted with zzuf.
 
 Signed-off-by: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
 ---
- src/init.c |    3 +++
- 1 files changed, 3 insertions(+), 0 deletions(-)
+ src/init.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
 diff --git a/src/init.c b/src/init.c
-index 46ff24c..dd6fb00 100644
+index dd6fb00..4d3d081 100644
 --- a/src/init.c
 +++ b/src/init.c
-@@ -311,6 +311,9 @@ static void read_config(void)
- 		if (dent->d_name[0] == '.')
- 			continue;
+@@ -259,7 +259,7 @@ static void read_config_file(const char *path)
  
-+		if (dent->d_name[0] == '\0' || dent->d_name[strlen(dent->d_name) - 1] == '~')
-+			continue;
-+
- 		if (asprintf(&path, "%s/%s", IBV_CONFIG_DIR, dent->d_name) < 0) {
- 			fprintf(stderr, PFX "Warning: couldn't read config file %s/%s.\n",
- 				IBV_CONFIG_DIR, dent->d_name);
+ 		field = strsep(&config, "\n\t ");
+ 
+-		if (strcmp(field, "driver") == 0) {
++		if (strcmp(field, "driver") == 0 && config != NULL) {
+ 			struct ibv_driver_name *driver_name;
+ 
+ 			config += strspn(config, "\t ");
 -- 
 1.7.4.2
 
