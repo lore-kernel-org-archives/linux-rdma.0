@@ -1,7 +1,7 @@
 From: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH 3/5] read_config: don't try to open file beginning with '.'
-Date: Thu, 31 Mar 2011 11:29:23 +0200
-Message-ID: <aa79e6cff5121994d60fb10315ce54e5a2dc63af.1301562707.git.ydroneaud@opteya.com>
+Subject: [PATCH 2/5] ibverbs_init: reset the list head after releasing items
+Date: Thu, 31 Mar 2011 11:29:22 +0200
+Message-ID: <d50403cd01c144591dad2ec51c12a81bfa0d6deb.1301562707.git.ydroneaud@opteya.com>
 References: <cover.1301562707.git.ydroneaud@opteya.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <cover.1301562707.git.ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
@@ -12,30 +12,31 @@ To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Files beginning with a dot are mostly current and parent directories or,
-by convention, hidden files.
+In some cases, ibverbs_init() could be called multiple times.
+After the first time, find_sysfs_devs() will add sysfs dev entry
+to the invalid sysfs_dev_list head.
+If you're really unlucky, the last sysfs_dev->next will point to sysfs_dev,
+and ibverbs_init() will be stuck in an infinite loop.
 
-Those path are skipped in find_sysfs_dev().
+Spotted using zzuf.
 
 Signed-off-by: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
 ---
- src/init.c |    3 +++
- 1 files changed, 3 insertions(+), 0 deletions(-)
+ src/init.c |    2 ++
+ 1 files changed, 2 insertions(+), 0 deletions(-)
 
 diff --git a/src/init.c b/src/init.c
-index bdc1634..46ff24c 100644
+index 9e235e8..bdc1634 100644
 --- a/src/init.c
 +++ b/src/init.c
-@@ -308,6 +308,9 @@ static void read_config(void)
- 	while ((dent = readdir(conf_dir))) {
- 		struct stat buf;
+@@ -539,5 +539,7 @@ out:
+ 		free(sysfs_dev);
+ 	}
  
-+		if (dent->d_name[0] == '.')
-+			continue;
++	sysfs_dev_list = NULL;
 +
- 		if (asprintf(&path, "%s/%s", IBV_CONFIG_DIR, dent->d_name) < 0) {
- 			fprintf(stderr, PFX "Warning: couldn't read config file %s/%s.\n",
- 				IBV_CONFIG_DIR, dent->d_name);
+ 	return num_devices;
+ }
 -- 
 1.7.4.2
 
