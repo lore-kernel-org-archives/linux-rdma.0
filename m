@@ -1,7 +1,7 @@
 From: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH 1/5] load_drivers: reset the list head after releasing items
-Date: Thu, 31 Mar 2011 11:29:21 +0200
-Message-ID: <aa8c4f59ed5624568a8530b270a8e7fe9f3c2dc6.1301562707.git.ydroneaud@opteya.com>
+Subject: [PATCH 3/5] read_config: don't try to open file beginning with '.'
+Date: Thu, 31 Mar 2011 11:29:23 +0200
+Message-ID: <aa79e6cff5121994d60fb10315ce54e5a2dc63af.1301562707.git.ydroneaud@opteya.com>
 References: <cover.1301562707.git.ydroneaud@opteya.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <cover.1301562707.git.ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
@@ -12,30 +12,30 @@ To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-In some failure cases, load_drivers() could be called multiple times.
-Each time, it will try to free item from driver_name_list, but it doesn't
-reset the list head.
+Files beginning with a dot are mostly current and parent directories or,
+by convention, hidden files.
 
-Spotted using zzuf.
+Those path are skipped in find_sysfs_dev().
 
 Signed-off-by: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
 ---
- src/init.c |    2 ++
- 1 files changed, 2 insertions(+), 0 deletions(-)
+ src/init.c |    3 +++
+ 1 files changed, 3 insertions(+), 0 deletions(-)
 
 diff --git a/src/init.c b/src/init.c
-index 4f0130e..9e235e8 100644
+index bdc1634..46ff24c 100644
 --- a/src/init.c
 +++ b/src/init.c
-@@ -232,6 +232,8 @@ static void load_drivers(void)
- 		free(name->name);
- 		free(name);
- 	}
-+
-+	driver_name_list = NULL;
- }
+@@ -308,6 +308,9 @@ static void read_config(void)
+ 	while ((dent = readdir(conf_dir))) {
+ 		struct stat buf;
  
- static void read_config_file(const char *path)
++		if (dent->d_name[0] == '.')
++			continue;
++
+ 		if (asprintf(&path, "%s/%s", IBV_CONFIG_DIR, dent->d_name) < 0) {
+ 			fprintf(stderr, PFX "Warning: couldn't read config file %s/%s.\n",
+ 				IBV_CONFIG_DIR, dent->d_name);
 -- 
 1.7.4.2
 
