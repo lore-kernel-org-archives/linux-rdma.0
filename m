@@ -1,179 +1,78 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH 2/2] libibmad: Added smp_query/set _status_via functions
-Date: Fri, 01 Apr 2011 15:25:41 -0400
-Message-ID: <4D9626B5.7070203@dev.mellanox.co.il>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH 1/3] ibacm: Reduce overhead on multicast groups not used
+Date: Fri, 1 Apr 2011 16:55:20 -0700
+Message-ID: <CF9C39F99A89134C9CF9C4CCB68B8DDF25DC95015A@orsmsx501.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+ACM may join several multicast groups when using the multicast
+group protocol.  No data is ever sent on those groups.  They exist
+simply to see if a port *could* send data across those groups, for
+example, to validate the mtu or rate between two endpoints.  Since
+we don't send data on them, there's no need to create an address
+handle for them or attach the ACM UD QP to it.
 
-The smp_query/set functions do not return the MAD status.
-The new extended API allows getting the SMP MAD status, and
-to differentiate between timeout on MAD response and response
-with bad status.
-
-Signed-off-by: Oren Kladnitsky <orenk-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
-diff --git a/include/infiniband/mad.h b/include/infiniband/mad.h
-index a0b368a..5d18ec3 100644
---- a/include/infiniband/mad.h
-+++ b/include/infiniband/mad.h
-@@ -1,7 +1,7 @@
- /*
-  * Copyright (c) 2004-2009 Voltaire Inc.  All rights reserved.
-  * Copyright (c) 2009 HNR Consulting.  All rights reserved.
-- * Copyright (c) 2009-2010 Mellanox Technologies LTD.  All rights reserved.
-+ * Copyright (c) 2009-2011 Mellanox Technologies LTD.  All rights reserved.
-  *
-  * This software is available to you under a choice of one of two
-  * licenses.  You may choose to be licensed under the terms of the GNU
-@@ -981,6 +981,14 @@ MAD_EXPORT uint8_t *smp_query_via(void *buf,
-ib_portid_t * id, unsigned attrid,
- MAD_EXPORT uint8_t *smp_set_via(void *buf, ib_portid_t * id, unsigned
-attrid,
- 				unsigned mod, unsigned timeout,
- 				const struct ibmad_port *srcport);
-+MAD_EXPORT uint8_t *smp_query_status_via(void *rcvbuf, ib_portid_t *
-portid,
-+					 unsigned attrid, unsigned mod,
-+					 unsigned timeout, int *rstatus,
-+					 const struct ibmad_port *srcport);
-+MAD_EXPORT uint8_t *smp_set_status_via(void *data, ib_portid_t * portid,
-+				       unsigned attrid, unsigned mod,
-+				       unsigned timeout, int *rstatus,
-+				       const struct ibmad_port *srcport);
+ src/acm.c |   30 ++++++++++++++++++++----------
+ 1 files changed, 20 insertions(+), 10 deletions(-)
 
- /* sa.c */
- uint8_t *sa_call(void *rcvbuf, ib_portid_t * portid, ib_sa_call_t * sa,
-diff --git a/src/libibmad.map b/src/libibmad.map
-index 5778e3e..1e6a028 100644
---- a/src/libibmad.map
-+++ b/src/libibmad.map
-@@ -101,7 +101,9 @@ IBMAD_1.3 {
- 		ib_vendor_call;
- 		ib_vendor_call_via;
- 		smp_query_via;
-+		smp_query_status_via;
- 		smp_set_via;
-+		smp_set_status_via;
- 		ib_path_query_via;
- 		ib_resolve_smlid_via;
- 		ib_resolve_guid_via;
-diff --git a/src/rpc.c b/src/rpc.c
-index c5246fe..a702046 100644
---- a/src/rpc.c
-+++ b/src/rpc.c
-@@ -1,6 +1,7 @@
- /*
-  * Copyright (c) 2004-2009 Voltaire Inc.  All rights reserved.
-  * Copyright (c) 2009 HNR Consulting.  All rights reserved.
-+ * Copyright (c) 2011 Mellanox Technologies LTD.  All rights reserved.
-  *
-  * This software is available to you under a choice of one of two
-  * licenses.  You may choose to be licensed under the terms of the GNU
-@@ -243,6 +244,8 @@ void *mad_rpc(const struct ibmad_port *port,
-ib_rpc_t * rpc,
- 			redirect = 0;
+diff --git a/src/acm.c b/src/acm.c
+index 15f2631..3df996b 100644
+--- a/src/acm.c
++++ b/src/acm.c
+@@ -724,22 +724,32 @@ static void acm_process_join_resp(struct acm_ep *ep, struct ib_user_mad *umad)
+ 	mc_rec = (struct ib_mc_member_rec *) mad->data;
+ 	lock_acquire(&ep->lock);
+ 	index = acm_mc_index(ep, &mc_rec->mgid);
+-	if (index >= 0) {
+-		dest = &ep->mc_dest[index];
+-		dest->remote_qpn = IB_MC_QPN;
+-		dest->mgid = mc_rec->mgid;
+-		acm_record_mc_av(ep->port, mc_rec, dest);
++	if (index < 0) {
++		acm_log(0, "ERROR - MGID in join response not found\n");
++		goto out;
++	}
++
++	dest = &ep->mc_dest[index];
++	dest->remote_qpn = IB_MC_QPN;
++	dest->mgid = mc_rec->mgid;
++	acm_record_mc_av(ep->port, mc_rec, dest);
++
++	if (index == 0) {
+ 		dest->ah = ibv_create_ah(ep->port->dev->pd, &dest->av);
++		if (!dest->ah) {
++			acm_log(0, "ERROR - unable to create ah\n");
++			goto out;
++		}
+ 		ret = ibv_attach_mcast(ep->qp, &mc_rec->mgid, mc_rec->mlid);
+ 		if (ret) {
+ 			acm_log(0, "ERROR - unable to attach QP to multicast group\n");
+-		} else {
+-			dest->state = ACM_READY;
+-			acm_log(1, "join successful\n");
++			goto out;
+ 		}
+-	} else {
+-		acm_log(0, "ERROR - MGID in join response not found\n");
  	}
-
-+	rpc->rstatus = status;
 +
- 	if (status != 0) {
- 		ERRS("MAD completed with error status 0x%x; dport (%s)",
- 		     status, portid2str(dport));
-diff --git a/src/smp.c b/src/smp.c
-index 3ff58ce..a337663 100644
---- a/src/smp.c
-+++ b/src/smp.c
-@@ -1,5 +1,6 @@
- /*
-  * Copyright (c) 2004-2009 Voltaire Inc.  All rights reserved.
-+ * Copyright (c) 2011 Mellanox Technologies LTD.  All rights reserved.
-  *
-  * This software is available to you under a choice of one of two
-  * licenses.  You may choose to be licensed under the terms of the GNU
-@@ -45,11 +46,12 @@
- #undef DEBUG
- #define DEBUG 	if (ibdebug)	IBWARN
-
--uint8_t *smp_set_via(void *data, ib_portid_t * portid, unsigned attrid,
--		     unsigned mod, unsigned timeout,
--		     const struct ibmad_port *srcport)
-+uint8_t *smp_set_status_via(void *data, ib_portid_t * portid, unsigned
-attrid,
-+			    unsigned mod, unsigned timeout, int *rstatus,
-+			    const struct ibmad_port *srcport)
- {
- 	ib_rpc_t rpc = { 0 };
-+	uint8_t *res;
-
- 	DEBUG("attr 0x%x mod 0x%x route %s", attrid, mod, portid2str(portid));
- 	if ((portid->lid <= 0) ||
-@@ -69,7 +71,18 @@ uint8_t *smp_set_via(void *data, ib_portid_t *
-portid, unsigned attrid,
- 	portid->sl = 0;
- 	portid->qp = 0;
-
--	return mad_rpc(srcport, &rpc, portid, data, data);
-+	res = mad_rpc(srcport, &rpc, portid, data, data);
-+	if (rstatus)
-+		*rstatus = rpc.rstatus;
-+	return res;
-+}
-+
-+uint8_t *smp_set_via(void *data, ib_portid_t * portid, unsigned attrid,
-+		     unsigned mod, unsigned timeout,
-+		     const struct ibmad_port *srcport)
-+{
-+	return smp_set_status_via(data, portid, attrid, mod, timeout, NULL,
-+				  srcport);
++	dest->state = ACM_READY;
++	acm_log(1, "join successful\n");
++out:
+ 	lock_release(&ep->lock);
  }
+ 
 
- uint8_t *smp_set(void *data, ib_portid_t * portid, unsigned attrid,
-@@ -78,11 +91,12 @@ uint8_t *smp_set(void *data, ib_portid_t * portid,
-unsigned attrid,
- 	return smp_set_via(data, portid, attrid, mod, timeout, ibmp);
- }
 
--uint8_t *smp_query_via(void *rcvbuf, ib_portid_t * portid, unsigned attrid,
--		       unsigned mod, unsigned timeout,
--		       const struct ibmad_port * srcport)
-+uint8_t *smp_query_status_via(void *rcvbuf, ib_portid_t * portid,
-+			      unsigned attrid, unsigned mod, unsigned timeout,
-+			      int *rstatus, const struct ibmad_port * srcport)
- {
- 	ib_rpc_t rpc = { 0 };
-+	uint8_t *res;
-
- 	DEBUG("attr 0x%x mod 0x%x route %s", attrid, mod, portid2str(portid));
- 	rpc.method = IB_MAD_METHOD_GET;
-@@ -102,7 +116,18 @@ uint8_t *smp_query_via(void *rcvbuf, ib_portid_t *
-portid, unsigned attrid,
- 	portid->sl = 0;
- 	portid->qp = 0;
-
--	return mad_rpc(srcport, &rpc, portid, rcvbuf, rcvbuf);
-+	res = mad_rpc(srcport, &rpc, portid, rcvbuf, rcvbuf);
-+	if (rstatus)
-+		*rstatus = rpc.rstatus;
-+	return res;
-+}
-+
-+uint8_t *smp_query_via(void *rcvbuf, ib_portid_t * portid, unsigned attrid,
-+		       unsigned mod, unsigned timeout,
-+		       const struct ibmad_port * srcport)
-+{
-+	return smp_query_status_via(rcvbuf, portid, attrid, mod, timeout, NULL,
-+				    srcport);
- }
-
- uint8_t *smp_query(void *rcvbuf, ib_portid_t * portid, unsigned attrid,
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
