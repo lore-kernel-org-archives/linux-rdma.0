@@ -1,7 +1,7 @@
 From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH] infiniband-diags.spec.in: Remove duplication of ibdiscover.pl
-Date: Fri, 01 Apr 2011 14:38:50 -0400
-Message-ID: <4D961BBA.7010306@dev.mellanox.co.il>
+Subject: [PATCH 1/2] libibmad/smp.c: Fix to smp_query_via for attribute data
+Date: Fri, 01 Apr 2011 15:25:34 -0400
+Message-ID: <4D9626AE.8070502@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
@@ -12,20 +12,27 @@ Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY
 List-Id: linux-rdma@vger.kernel.org
 
 
+smp_query_via() does not allow setting the sent mad data.
+Change the data to be both in and out arguments.
+
+Signed-off-by: Oren Kladnitsky <orenk-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
-diff --git a/infiniband-diags.spec.in b/infiniband-diags.spec.in
-index c50ce09..692ebd7 100644
---- a/infiniband-diags.spec.in
-+++ b/infiniband-diags.spec.in
-@@ -37,7 +37,6 @@ rm -rf $RPM_BUILD_ROOT
+diff --git a/src/smp.c b/src/smp.c
+index 3ff58ce..2809ffe 100644
+--- a/src/smp.c
++++ b/src/smp.c
+@@ -102,7 +102,7 @@ uint8_t *smp_query_via(void *rcvbuf, ib_portid_t *
+portid, unsigned attrid,
+ 	portid->sl = 0;
+ 	portid->qp = 0;
 
- %files
- %defattr(-,root,root)
--%{_sbindir}/ibdiscover.pl
- %{_sbindir}/ib*
- %{_sbindir}/perfquery
- %{_sbindir}/saquery
+-	return mad_rpc(srcport, &rpc, portid, 0, rcvbuf);
++	return mad_rpc(srcport, &rpc, portid, rcvbuf, rcvbuf);
+ }
+
+ uint8_t *smp_query(void *rcvbuf, ib_portid_t * portid, unsigned attrid,
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
