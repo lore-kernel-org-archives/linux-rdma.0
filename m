@@ -1,8 +1,8 @@
 From: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Subject: Re: [PATCH 0/4] opensm: [RFC] Add PortCountersExtended support to
  the PerfMgr
-Date: Fri, 1 Apr 2011 13:40:44 +0300
-Message-ID: <20110401104044.GD20839@calypso.voltaire.com>
+Date: Fri, 1 Apr 2011 13:41:57 +0300
+Message-ID: <20110401104157.GE20839@calypso.voltaire.com>
 References: <20110324182044.5464b40c.weiny2@llnl.gov>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -22,9 +22,10 @@ On 18:20 Thu 24 Mar     , Ira Weiny wrote:
 > testing.
 > 
 
-Can you please provide more info regarding the tests you've run.
+Can you provide more info regarding the tested you've done?
 
 Thanks, Alex.
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
