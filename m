@@ -1,8 +1,7 @@
 From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH 3/11] opensm/include/opensm/osm_mcm_port.h: Cosmetic formatting
- changes
-Date: Fri, 01 Apr 2011 14:37:36 -0400
-Message-ID: <4D961B70.6000204@dev.mellanox.co.il>
+Subject: [PATCH 4/11] opensm/osm_pkey.c: Minor change to comment
+Date: Fri, 01 Apr 2011 14:37:44 -0400
+Message-ID: <4D961B78.3040308@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
@@ -13,31 +12,22 @@ Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY
 List-Id: linux-rdma@vger.kernel.org
 
 
-Signed-off-by: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
-diff --git a/include/opensm/osm_mcm_port.h b/include/opensm/osm_mcm_port.h
-index ad25b4f..ca126cd 100644
---- a/include/opensm/osm_mcm_port.h
-+++ b/include/opensm/osm_mcm_port.h
-@@ -62,14 +62,14 @@ struct osm_mgrp;
+diff --git a/opensm/osm_pkey.c b/opensm/osm_pkey.c
+index 4c5a852..da36219 100644
+--- a/opensm/osm_pkey.c
++++ b/opensm/osm_pkey.c
+@@ -137,7 +137,7 @@ ib_api_status_t osm_pkey_tbl_set(IN osm_pkey_tbl_t *
+p_pkey_tbl,
+ 	   tables there is no other way but to refresh the entire keys map.
 
- /****s* OpenSM: MCM Port Object/osm_mcm_port_t
- * NAME
--*   osm_mcm_port_t
-+*	osm_mcm_port_t
- *
- * DESCRIPTION
--*   This object represents a particular	port as a member of a
-+*	This object represents a particular port as a member of a
- *	multicast group.
- *
--*   This object should be treated as opaque and should
--*   be manipulated only through the provided functions.
-+*	This object should be treated as opaque and should
-+*	be manipulated only through the provided functions.
- *
- * SYNOPSIS
- */
+ 	   Moreover, if the same key exists but with full membership it should
+-	   have precedence on the key with limited membership !
++	   have precedence over the key with limited membership !
+ 	 */
+ 	cl_map_remove_all(&p_pkey_tbl->keys);
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
