@@ -1,26 +1,32 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH] librdmacm/doc: document the limitations on the user
- provided private data length
-Date: Fri, 1 Apr 2011 07:09:46 -0700
-Message-ID: <CF9C39F99A89134C9CF9C4CCB68B8DDF25DC8B5603@orsmsx501.amr.corp.intel.com>
-References: <alpine.LRH.2.00.1103281048280.17717@ogerlitz.voltaire.com>
- <1301655637.5661.21.camel@deela.quest-ce.net>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: [PATCH 1/ 11] opensm/osm_pkey_mgr.c: Fix commentary typo
+Date: Fri, 01 Apr 2011 14:37:18 -0400
+Message-ID: <4D961B5E.1080502@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1301655637.5661.21.camel-H/AUWmsJYVeqvyCYKW+Xr6xOck334EZe@public.gmane.org>
-Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-PiBGb3IgZ2VuZXJhbCBSRVAgbWVzc2FnZXMsIG9uZSBoYXZlIHRvIGxvb2sgdG8gdGFibGUgMTAz
-IDogIlJFUCBNZXNzYWdlDQo+IENvbnRlbnRzIiBpbiBzZWN0aW9uIDEyLjYuOCBSRVAgLSBSZXBs
-eSB0byBSZXF1ZXN0IEZvciBDb21tdW5pY2F0aW9uLg0KPiANCj4gQW0gSSBjb3JyZWN0ID8NCg0K
-SSBiZWxpZXZlIHNvLiAgVGhlIHJkbWFfYWNjZXB0IHNpemUgc2hvdWxkIGJlIDE5NiBmb3IgUkRN
-QV9QU19UQ1AuDQogDQoNCg==
+
+Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+diff --git a/opensm/osm_pkey_mgr.c b/opensm/osm_pkey_mgr.c
+index 612130c..a81fa78 100644
+--- a/opensm/osm_pkey_mgr.c
++++ b/opensm/osm_pkey_mgr.c
+@@ -36,7 +36,7 @@
+
+ /*
+  * Abstract:
+- * Implementation of the P_Key Manager (Partititon Manager).
++ * Implementation of the P_Key Manager (Partition Manager).
+  * This is part of the OpenSM.
+  */
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
