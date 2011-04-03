@@ -1,157 +1,133 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 3/3] ibacm: Allocate address handles dynamically when needed
-Date: Fri, 1 Apr 2011 16:58:13 -0700
-Message-ID: <CF9C39F99A89134C9CF9C4CCB68B8DDF25DC950162@orsmsx501.amr.corp.intel.com>
-References: <CF9C39F99A89134C9CF9C4CCB68B8DDF25DC95015A@orsmsx501.amr.corp.intel.com>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: [PATCH] infiniband-diags: Add dump2psl and dump2slvl perl scripts
+Date: Sun, 03 Apr 2011 07:47:59 -0400
+Message-ID: <4D985E6F.8050503@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CF9C39F99A89134C9CF9C4CCB68B8DDF25DC95015A-osO9UTpF0USkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
-Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Jim Schutt <jaschut-4OHPYypu0djtX7QSmKvirg@public.gmane.org>, Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-ibacm allocates an address handle for every remote destination
-that it tracks.  However, under normal operation, the handle
-is used infrequently - typically only once by the target
-service to send a response and not at all on the initiator
-service.  Avoid the overhead of having 1 address handle per
-destination by allocating them dynamically only when they are needed.
 
-The exceptions to this are the address handles allocated to
-communicate with the SA and the primary multicast group.
+to aid in torus-2QoS credit checking
 
-Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Jim Schutt <jaschut-4OHPYypu0djtX7QSmKvirg@public.gmane.org>
+Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- src/acm.c |   55 +++++++++++++++++++++++++------------------------------
- 1 files changed, 25 insertions(+), 30 deletions(-)
+ configure.in         |    2 +
+ scripts/dump2psl.pl  |   51
+++++++++++++++++++++++++++++++++++++++++++++++++++
+ scripts/dump2slvl.pl |   24 +++++++++++++++++++++++
+ 3 files changed, 77 insertions(+), 0 deletions(-)
+ create mode 100755 scripts/dump2psl.pl
+ create mode 100755 scripts/dump2slvl.pl
 
-diff --git a/src/acm.c b/src/acm.c
-index fe42498..53a8e7b 100644
---- a/src/acm.c
-+++ b/src/acm.c
-@@ -164,6 +164,7 @@ struct acm_send_msg
- 	DLIST_ENTRY          entry;
- 	struct acm_ep        *ep;
- 	struct acm_dest      *dest;
-+	struct ibv_ah        *ah;
- 	void                 *context;
- 	void                 (*resp_handler)(struct acm_send_msg *req,
- 	                                     struct ibv_wc *wc, struct acm_mad *resp);
-@@ -449,20 +450,30 @@ acm_alloc_send(struct acm_ep *ep, struct acm_dest *dest, size_t size)
- 	msg->mr = ibv_reg_mr(ep->port->dev->pd, msg->data, size, 0);
- 	if (!msg->mr) {
- 		acm_log(0, "ERROR - failed to register send buffer\n");
--		goto err;
-+		goto err1;
+diff --git a/configure.in b/configure.in
+index 003369d..eb01f9b 100644
+--- a/configure.in
++++ b/configure.in
+@@ -169,6 +169,8 @@ AC_CONFIG_FILES([\
+ 	scripts/ibrouters \
+ 	scripts/iblinkinfo.pl \
+ 	scripts/ibqueryerrors.pl \
++	scripts/dump2psl.pl \
++	scripts/dump2slvl.pl \
+    libibnetdisc/Makefile
+ ])
+ AC_OUTPUT
+diff --git a/scripts/dump2psl.pl b/scripts/dump2psl.pl
+new file mode 100755
+index 0000000..29896c7
+--- /dev/null
++++ b/scripts/dump2psl.pl
+@@ -0,0 +1,51 @@
++#! /usr/bin/perl -w
++
++# usage:  cat file.lst opensm-path-records.dump | dump2psl.pl
++
++my $h = "([a-fA-F0-9]+)";
++my $H = "([xXa-fA-F0-9]+)";
++my $D = "([0-9]+)";
++
++my $n;
++my $p;
++my %port2node;
++
++my $ca_port = 0x0;
++
++while (<>) {
++
++    # parse .lst file, look for node GUID <-> port GUID relationship,
+hash it
++
++    if (/[^C]*\{\s*CA Ports[^N]*NodeGUID:$h\s*PortGUID:$h/) {
++
++
++	$n = "0x" . $1;
++	$p = "0x" . $2;
++
++	if (defined $port2node{$p}) {
++	    if ($port2node{$p} ne $n) {
++		printf STDERR "Cowardly refusing to reassign port GUID $p\n";
++		printf STDERR "from node GUID $port2node{$p} ";
++		printf STDERR "to node GUID $n\n";
++		next;
++	    }
++	    next;
 +	}
++	$port2node{$p} = $n;
++	# printf STDERR "Assigned port GUID $p to node GUID $n\n";
++    }
 +
-+	if (!dest->ah) {
-+		msg->ah = ibv_create_ah(ep->port->dev->pd, &dest->av);
-+		if (!msg->ah) {
-+			acm_log(0, "ERROR - unable to create ah\n");
-+			goto err2;
-+		}
-+		msg->wr.wr.ud.ah = msg->ah;
-+	} else {
-+		msg->wr.wr.ud.ah = dest->ah;
- 	}
- 
-+	acm_log(2, "get dest %s\n", dest->name);
-+	(void) atomic_inc(&dest->refcnt);
-+	msg->dest = dest;
++    # parse opensm-path-records.dump, reformat for ibdmchk .psl format
 +
- 	msg->wr.next = NULL;
- 	msg->wr.sg_list = &msg->sge;
- 	msg->wr.num_sge = 1;
- 	msg->wr.opcode = IBV_WR_SEND;
- 	msg->wr.send_flags = IBV_SEND_SIGNALED;
- 	msg->wr.wr_id = (uintptr_t) msg;
--
--	acm_log(2, "get dest %s\n", dest->name);
--	(void) atomic_inc(&dest->refcnt);
--	msg->dest = dest;
--	msg->wr.wr.ud.ah = dest->ah;
- 	msg->wr.wr.ud.remote_qpn = dest->remote_qpn;
- 	msg->wr.wr.ud.remote_qkey = ACM_QKEY;
- 
-@@ -471,7 +482,10 @@ acm_alloc_send(struct acm_ep *ep, struct acm_dest *dest, size_t size)
- 	msg->sge.addr = (uintptr_t) msg->data;
- 	acm_log(2, "%p\n", msg);
- 	return msg;
--err:
++    if (/^Channel\s+Adapter\s+$H/) {
++	$ca_port = $1;
++    }
 +
-+err2:
-+	ibv_dereg_mr(msg->mr);
-+err1:
- 	free(msg);
- 	return NULL;
- }
-@@ -490,6 +504,8 @@ acm_init_send_req(struct acm_send_msg *msg, void *context,
- static void acm_free_send(struct acm_send_msg *msg)
- {
- 	acm_log(2, "%p\n", msg);
-+	if (msg->ah)
-+		ibv_destroy_ah(msg->ah);
- 	ibv_dereg_mr(msg->mr);
- 	acm_put_dest(msg->dest);
- 	free(msg);
-@@ -774,7 +790,6 @@ static uint8_t
- acm_record_acm_route(struct acm_ep *ep, struct acm_dest *dest)
- {
- 	int i;
--	uint8_t status;
- 
- 	acm_log(2, "\n");
- 	for (i = 0; i < MAX_EP_MC; i++) {
-@@ -789,18 +804,8 @@ acm_record_acm_route(struct acm_ep *ep, struct acm_dest *dest)
- 	dest->path = ep->mc_dest[i].path;
- 	dest->path.dgid = dest->av.grh.dgid;
- 	dest->path.dlid = htons(dest->av.dlid);
--
--	dest->ah = ibv_create_ah(ep->port->dev->pd, &dest->av);
--	if (!dest->ah) {
--		acm_log(0, "ERROR - failed to create ah\n");
--		dest->state = ACM_INIT;
--		status = ACM_STATUS_ENOMEM;
--	} else {
--		dest->state = ACM_READY;
--		status = ACM_STATUS_SUCCESS;
--	}
--	
--	return status;
-+	dest->state = ACM_READY;
-+	return ACM_STATUS_SUCCESS;
- }
- 
- static void acm_init_path_query(struct ib_sa_mad *mad)
-@@ -1096,15 +1101,6 @@ acm_dest_sa_resp(struct acm_send_msg *msg, struct ibv_wc *wc, struct acm_mad *ma
- 	if (!status) {
- 		memcpy(&dest->path, sa_mad->data, sizeof(dest->path));
- 		acm_init_path_av(msg->ep->port, dest);
--		if (dest->remote_qpn) {
--			dest->ah = ibv_create_ah(msg->ep->port->dev->pd, &dest->av);
--			if (!dest->ah) {
--				acm_log(0, "ERROR - failed to create ah\n");
--				status = ACM_STATUS_ENOMEM;
--			}
--		}
--	}
--	if (!status) {
- 		dest->state = ACM_READY;
- 	} else {
- 		dest->state = ACM_INIT;
-@@ -1164,7 +1160,6 @@ acm_process_addr_req(struct acm_ep *ep, struct ibv_wc *wc, struct acm_mad *mad)
- 			break;
- 
- 		acm_log(2, "src service has new qp, resetting\n");
--		ibv_destroy_ah(dest->ah); // TODO: ah could be in use
- 		/* fall through */
- 	case ACM_INIT:
- 	case ACM_QUERY_ADDR:
-
++    if (/^\s*$H\s+:\s+$D\s+:\s+$D\s+:\s+$D\s+/) {
++
++	if (!defined($port2node{$ca_port})) {
++	    next;
++	}
++	printf "%s %d %d\n", $port2node{$ca_port}, oct($1), $2;
++    }
++}
+diff --git a/scripts/dump2slvl.pl b/scripts/dump2slvl.pl
+new file mode 100755
+index 0000000..d85bb60
+--- /dev/null
++++ b/scripts/dump2slvl.pl
+@@ -0,0 +1,24 @@
++#! /usr/bin/perl -w
++
++my $switch = 0x0;
++
++my $H = "([xXa-fA-F0-9]+)";
++my $D = "([0-9]+)";
++my $DD = "\\s+([0-9]+)\\s+([0-9]+)";
++
++while (<>) {
++
++    if (/^Switch\s+$H/) {
++	$switch = $1;
++    }
++
++    if (/^\s*$D\s+$D\s+:$DD$DD$DD$DD$DD$DD$DD$DD/) {
++
++	printf "%s %d %d", $switch, $1, $2;
++	printf " 0x%x%x 0x%x%x", $3, $4, $5, $6;
++	printf " 0x%x%x 0x%x%x", $7, $8, $9, $10;
++	printf " 0x%x%x 0x%x%x", $11, $12, $13, $14;
++	printf " 0x%x%x 0x%x%x", $15, $16, $17, $18;
++	printf "\n";
++    }
++}
+-- 
+1.5.3
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
