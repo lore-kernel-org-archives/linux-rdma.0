@@ -1,8 +1,8 @@
 From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH] opensm/osm_pkey_mgr.c: Change log message to reflect used
- rather than max blocks
-Date: Mon, 04 Apr 2011 15:11:44 -0400
-Message-ID: <4D9A17F0.8020703@dev.mellanox.co.il>
+Subject: [PATCH] osmtest/osmt_multicast.c: In some multicast flows, insufficient
+ comps should be a warning
+Date: Mon, 04 Apr 2011 15:25:02 -0400
+Message-ID: <4D9A1B0E.9010904@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
@@ -13,40 +13,133 @@ Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY
 List-Id: linux-rdma@vger.kernel.org
 
 
-Eliminate no longer needed variable
+rather than error (it's preferred but not required)
 
 Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
-diff --git a/opensm/osm_pkey_mgr.c b/opensm/osm_pkey_mgr.c
-index ce50f27..92f8f2b 100644
---- a/opensm/osm_pkey_mgr.c
-+++ b/opensm/osm_pkey_mgr.c
-@@ -386,7 +386,6 @@ static int pkey_mgr_update_peer_port(osm_log_t *
-p_log, osm_sm_t * sm,
- 	const osm_pkey_tbl_t *p_pkey_tbl;
- 	osm_pkey_tbl_t *p_peer_pkey_tbl;
- 	uint16_t block_index;
--	uint16_t num_of_blocks;
- 	uint16_t peer_max_blocks;
- 	ib_api_status_t status = IB_SUCCESS;
- 	ib_pkey_table_t empty_block;
-@@ -404,13 +403,12 @@ static int pkey_mgr_update_peer_port(osm_log_t *
-p_log, osm_sm_t * sm,
+diff --git a/osmtest/osmt_multicast.c b/osmtest/osmt_multicast.c
+index b4e2a54..52577bc 100644
+--- a/osmtest/osmt_multicast.c
++++ b/osmtest/osmt_multicast.c
+@@ -1,6 +1,6 @@
+ /*
+  * Copyright (c) 2006-2009 Voltaire, Inc. All rights reserved.
+- * Copyright (c) 2002-2005,2008 Mellanox Technologies LTD. All rights
+reserved.
++ * Copyright (c) 2002-2011 Mellanox Technologies LTD. All rights reserved.
+  * Copyright (c) 1996-2003 Intel Corporation. All rights reserved.
+  * Copyright (c) 2010 HNR Consulting. All rights reserved.
+  *
+@@ -738,13 +738,15 @@ ib_api_status_t osmt_run_mcast_flow(IN osmtest_t *
+const p_osmt)
+ 					 sa_mad);
+ 	OSM_LOG(&p_osmt->log, OSM_LOG_ERROR, EXPECTING_ERRORS_END "\n");
 
- 	p_pkey_tbl = osm_physp_get_pkey_tbl(p_physp);
- 	p_peer_pkey_tbl = &peer->pkeys;
--	num_of_blocks = osm_pkey_tbl_get_num_blocks(p_pkey_tbl);
- 	peer_max_blocks = pkey_mgr_get_physp_max_blocks(peer);
- 	if (peer_max_blocks < p_pkey_tbl->used_blocks) {
- 		OSM_LOG(p_log, OSM_LOG_ERROR, "ERR 0508: "
--			"Not enough pkey entries (%u < %u) on switch 0x%016"
-+			"Not enough pkey blocks (%u < %u used) on switch 0x%016"
- 			PRIx64 " port %u (%s). Clearing Enforcement bit\n",
--			peer_max_blocks, num_of_blocks,
-+			peer_max_blocks, p_pkey_tbl->used_blocks,
- 			cl_ntoh64(osm_node_get_node_guid(p_node)),
- 			osm_physp_get_port_num(peer),
- 			p_node->print_desc);
+-	if (status != IB_REMOTE_ERROR ||
+-	    ((ib_net16_t) (sa_mad->status & IB_SMP_STATUS_MASK)) !=
+-	    IB_SA_MAD_STATUS_INSUF_COMPS) {
+-		OSM_LOG(&p_osmt->log, OSM_LOG_ERROR, "ERR 02EE: "
+-			"Expected REMOTE ERROR IB_SA_MAD_STATUS_INSUF_COMPS got:%s/%s\n",
+-			ib_get_err_str(status),
++	if (((ib_net16_t) (sa_mad->status & IB_SMP_STATUS_MASK)) !=
++	     IB_SA_MAD_STATUS_INSUF_COMPS)
++		OSM_LOG(&p_osmt->log, OSM_LOG_INFO,
++			"Expected IB_SA_MAD_STATUS_INSUF_COMPS got:%s\n",
+ 			ib_get_mad_status_str((ib_mad_t *) sa_mad));
++	if (status != IB_REMOTE_ERROR) {
++		OSM_LOG(&p_osmt->log, OSM_LOG_ERROR, "ERR 02EE: "
++			"Expected REMOTE ERROR got:%s\n",
++			ib_get_err_str(status));
+ 		status = IB_ERROR;
+ 		goto Exit;
+ 	}
+@@ -769,13 +771,15 @@ ib_api_status_t osmt_run_mcast_flow(IN osmtest_t *
+const p_osmt)
+ 					 sa_mad);
+ 	OSM_LOG(&p_osmt->log, OSM_LOG_ERROR, EXPECTING_ERRORS_END "\n");
+
+-	if (status != IB_REMOTE_ERROR ||
+-	    ((ib_net16_t) (sa_mad->status & IB_SMP_STATUS_MASK)) !=
+-	    IB_SA_MAD_STATUS_INSUF_COMPS) {
+-		OSM_LOG(&p_osmt->log, OSM_LOG_ERROR, "ERR 02ED: "
+-			"Expected REMOTE ERROR IB_SA_MAD_STATUS_INSUF_COMPS got:%s/%s\n",
+-			ib_get_err_str(status),
++	if (((ib_net16_t) (sa_mad->status & IB_SMP_STATUS_MASK)) !=
++	     IB_SA_MAD_STATUS_INSUF_COMPS)
++		OSM_LOG(&p_osmt->log, OSM_LOG_INFO,
++			"Expected IB_SA_MAD_STATUS_INSUF_COMPS got:%s\n",
+ 			ib_get_mad_status_str((ib_mad_t *) sa_mad));
++	if (status != IB_REMOTE_ERROR) {
++		OSM_LOG(&p_osmt->log, OSM_LOG_ERROR, "ERR 02ED: "
++			"Expected REMOTE ERROR got:%s\n",
++			ib_get_err_str(status));
+ 		status = IB_ERROR;
+ 		goto Exit;
+ 	}
+@@ -1073,6 +1077,7 @@ ib_api_status_t osmt_run_mcast_flow(IN osmtest_t *
+const p_osmt)
+ 	/* no MGID */
+ 	memset(&mc_req_rec.mgid, 0, sizeof(ib_gid_t));
+ 	/* Request Join */
++	mc_req_rec.pkey = IB_DEFAULT_PKEY;
+ 	ib_member_set_join_state(&mc_req_rec, IB_MC_REC_STATE_FULL_MEMBER);
+
+ 	comp_mask =
+@@ -1087,13 +1092,15 @@ ib_api_status_t osmt_run_mcast_flow(IN osmtest_t
+* const p_osmt)
+ 					 sa_mad);
+ 	OSM_LOG(&p_osmt->log, OSM_LOG_ERROR, EXPECTING_ERRORS_END "\n");
+
+-	if (status != IB_REMOTE_ERROR ||
+-	    ((ib_net16_t) (sa_mad->status & IB_SMP_STATUS_MASK)) !=
+-	    IB_SA_MAD_STATUS_INSUF_COMPS) {
+-		OSM_LOG(&p_osmt->log, OSM_LOG_ERROR, "ERR 02A8: "
+-			"Expected REMOTE ERROR IB_SA_MAD_STATUS_INSUF_COMPS got:%s/%s\n",
+-			ib_get_err_str(status),
++	if (((ib_net16_t) (sa_mad->status & IB_SMP_STATUS_MASK)) !=
++	     IB_SA_MAD_STATUS_INSUF_COMPS)
++		OSM_LOG(&p_osmt->log, OSM_LOG_INFO,
++			"Expected IB_SA_MAD_STATUS_INSUF_COMPS got:%s\n",
+ 			ib_get_mad_status_str((ib_mad_t *) sa_mad));
++	if (status != IB_REMOTE_ERROR) {
++		OSM_LOG(&p_osmt->log, OSM_LOG_ERROR, "ERR 02A8: "
++			"Expected REMOTE ERROR got:%s\n",
++			ib_get_err_str(status));
+ 		status = IB_ERROR;
+ 		goto Exit;
+ 	}
+@@ -1165,6 +1172,7 @@ ib_api_status_t osmt_run_mcast_flow(IN osmtest_t *
+const p_osmt)
+ 	/* no MGID */
+ 	memset(&mc_req_rec.mgid, 0, sizeof(ib_gid_t));
+ 	/* Request Join */
++	mc_req_rec.pkey = IB_DEFAULT_PKEY;
+ 	ib_member_set_join_state(&mc_req_rec, IB_MC_REC_STATE_FULL_MEMBER);
+
+ 	comp_mask =
+@@ -1180,13 +1188,15 @@ ib_api_status_t osmt_run_mcast_flow(IN osmtest_t
+* const p_osmt)
+ 					 sa_mad);
+ 	OSM_LOG(&p_osmt->log, OSM_LOG_ERROR, EXPECTING_ERRORS_END "\n");
+
+-	if (status != IB_REMOTE_ERROR ||
+-	    ((ib_net16_t) (sa_mad->status & IB_SMP_STATUS_MASK)) !=
+-	    IB_SA_MAD_STATUS_INSUF_COMPS) {
+-		OSM_LOG(&p_osmt->log, OSM_LOG_ERROR, "ERR 02A6: "
+-			"Expected REMOTE ERROR IB_SA_MAD_STATUS_INSUF_COMPS got:%s/%s\n",
+-			ib_get_err_str(status),
++	if (((ib_net16_t) (sa_mad->status & IB_SMP_STATUS_MASK)) !=
++	     IB_SA_MAD_STATUS_INSUF_COMPS)
++		OSM_LOG(&p_osmt->log, OSM_LOG_INFO,
++			"Expected IB_SA_MAD_STATUS_INSUF_COMPS got:%s\n",
+ 			ib_get_mad_status_str((ib_mad_t *) sa_mad));
++	if (status != IB_REMOTE_ERROR) {
++		OSM_LOG(&p_osmt->log, OSM_LOG_ERROR, "ERR 02A6: "
++			"Expected REMOTE ERROR got:%s\n",
++			ib_get_err_str(status));
+ 		status = IB_ERROR;
+ 		goto Exit;
+ 	}
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
