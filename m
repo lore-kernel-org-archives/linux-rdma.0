@@ -1,132 +1,133 @@
 From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCHv2] infiniband-diags: Add dump2psl and dump2slvl perl scripts
-Date: Tue, 05 Apr 2011 15:23:49 -0400
-Message-ID: <4D9B6C45.3080709@dev.mellanox.co.il>
+Subject: [PATCH] infiniband-diags: Add man pages for dump2psl and dump2slvl
+Date: Tue, 05 Apr 2011 15:30:51 -0400
+Message-ID: <4D9B6DEB.7060702@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Jim Schutt <jaschut-4OHPYypu0djtX7QSmKvirg@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
-to aid in torus-2QoS credit checking
-
-Signed-off-by: Jim Schutt <jaschut-4OHPYypu0djtX7QSmKvirg@public.gmane.org>
 Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
-Changes since v1:
-Proper formatting
+ Makefile.am     |    3 ++-
+ man/dump2psl.8  |   49 +++++++++++++++++++++++++++++++++++++++++++++++++
+ man/dump2slvl.8 |   32 ++++++++++++++++++++++++++++++++
+ 3 files changed, 83 insertions(+), 1 deletions(-)
+ create mode 100644 man/dump2psl.8
+ create mode 100644 man/dump2slvl.8
 
- configure.in         |    2 +
- scripts/dump2psl.pl  |   51 ++++++++++++++++++++++++++++++++++++++++++++++++++
- scripts/dump2slvl.pl |   24 +++++++++++++++++++++++
- 3 files changed, 77 insertions(+), 0 deletions(-)
- create mode 100755 scripts/dump2psl.pl
- create mode 100755 scripts/dump2slvl.pl
-
-diff --git a/configure.in b/configure.in
-index 003369d..eb01f9b 100644
---- a/configure.in
-+++ b/configure.in
-@@ -169,6 +169,8 @@ AC_CONFIG_FILES([\
- 	scripts/ibrouters \
- 	scripts/iblinkinfo.pl \
- 	scripts/ibqueryerrors.pl \
-+	scripts/dump2psl.pl \
-+	scripts/dump2slvl.pl \
-    libibnetdisc/Makefile
- ])
- AC_OUTPUT
-diff --git a/scripts/dump2psl.pl b/scripts/dump2psl.pl
-new file mode 100755
-index 0000000..29896c7
+diff --git a/Makefile.am b/Makefile.am
+index 43d05f6..1792e37 100644
+--- a/Makefile.am
++++ b/Makefile.am
+@@ -80,7 +80,8 @@ man_MANS = man/ibaddr.8 man/ibcheckerrors.8 man/ibcheckerrs.8 \
+ 	man/ibprintswitch.8 man/ibprintca.8 man/ibfindnodesusing.8 \
+ 	man/ibdatacounts.8 man/ibdatacounters.8 \
+ 	man/ibrouters.8 man/ibprintrt.8 man/ibidsverify.8 \
+-	man/check_lft_balance.8 man/ibcacheedit.8
++	man/check_lft_balance.8 man/ibcacheedit.8 \
++	man/dump2psl.8 man/dump2slvl.8
+ 
+ BUILT_SOURCES = ibdiag_version
+ ibdiag_version:
+diff --git a/man/dump2psl.8 b/man/dump2psl.8
+new file mode 100644
+index 0000000..ced4a42
 --- /dev/null
-+++ b/scripts/dump2psl.pl
-@@ -0,0 +1,51 @@
-+#! /usr/bin/perl -w
++++ b/man/dump2psl.8
+@@ -0,0 +1,49 @@
++.TH DUMP2PSL.PL 8 "April 3, 2011" "OpenIB" "OpenIB Diagnostics"
 +
-+# usage:  cat file.lst opensm-path-records.dump | dump2psl.pl
++.SH NAME
++dump2psl.pl \- dump psl file based on some opensm output files used for credit loop checking
 +
-+my $h = "([a-fA-F0-9]+)";
-+my $H = "([xXa-fA-F0-9]+)";
-+my $D = "([0-9]+)";
++.SH SYNOPSIS
++.B dump2psl.pl
 +
-+my $n;
-+my $p;
-+my %port2node;
++.SH DESCRIPTION
++.PP
++dump2psl.pl dumps a psl file based on some opensm output files. A psl file
++contains paths (including SLs) and is needed for subsequent credit loop
++checking (via ibdmchk). This conversion is needed when ibutils is not
++installed and credit loop checking is done on a different machine or later.
++Credit loop checking is especially valuable for the QoS based routing
++algorithms (e.g. torus-2QoS, lash, etc.).
 +
-+my $ca_port = 0x0;
++ibdiagnet -vlr dumps the psl (and slvl) files needed for ibdmchk -M -a -s
++(which is the credit loop check).
 +
-+while (<>) {
++Dumping of path records is accomplished by the PathRecord dumping plugin to the
++OpenSM. When the environment variable DUMP_FULL_PATH_RECORDS is set to 1,
++the full set of SA path records is dumped to opensm-path-records.dump in
++the dump_files_dir directory (default is /var/log).
 +
-+    # parse .lst file, look for node GUID <-> port GUID relationship, hash it
++When the routing protocol is torus-2QoS, the following two files are dumped
++by the PathRecord dumping plugin: opensm-peer-paths.dump and
++opensm-sw2sw-path-records.dump. The peer paths dump file contains the CAs
++and their neighbor switch and includes the link MTU and RATE. The switch to
++switch file contains for each source switch a table of destination switches
++and the SL, RATE, and MTU to be used for MPI traffic.
 +
-+    if (/[^C]*\{\s*CA Ports[^N]*NodeGUID:$h\s*PortGUID:$h/) {
++Note that since the PathRecord dump uses port GUIDs and the ibdmchk psl
++file uses node GUIDs, the fabric .lst file is also required as input
++(see USAGE).
 +
 +
-+	$n = "0x" . $1;
-+	$p = "0x" . $2;
++.SH USAGE
 +
-+	if (defined $port2node{$p}) {
-+	    if ($port2node{$p} ne $n) {
-+		printf STDERR "Cowardly refusing to reassign port GUID $p\n";
-+		printf STDERR "from node GUID $port2node{$p} ";
-+		printf STDERR "to node GUID $n\n";
-+		next;
-+	    }
-+	    next;
-+	}
-+	$port2node{$p} = $n;
-+	# printf STDERR "Assigned port GUID $p to node GUID $n\n";
-+    }
++.PP
++cat opensm-{subnet.lst,path-records.dump} | dump2psl.pl > opensm.psl
 +
-+    # parse opensm-path-records.dump, reformat for ibdmchk .psl format
++.SH SEE ALSO
++.BR dump2slvl(8), ibdmchk(8), ibdiagnet(8)
 +
-+    if (/^Channel\s+Adapter\s+$H/) {
-+	$ca_port = $1;
-+    }
-+
-+    if (/^\s*$H\s+:\s+$D\s+:\s+$D\s+:\s+$D\s+/) {
-+
-+	if (!defined($port2node{$ca_port})) {
-+	    next;
-+	}
-+	printf "%s %d %d\n", $port2node{$ca_port}, oct($1), $2;
-+    }
-+}
-diff --git a/scripts/dump2slvl.pl b/scripts/dump2slvl.pl
-new file mode 100755
-index 0000000..d85bb60
++.SH AUTHOR
++.TP
++Hal Rosenstock
++.RI < hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org >
+diff --git a/man/dump2slvl.8 b/man/dump2slvl.8
+new file mode 100644
+index 0000000..0f70d63
 --- /dev/null
-+++ b/scripts/dump2slvl.pl
-@@ -0,0 +1,24 @@
-+#! /usr/bin/perl -w
++++ b/man/dump2slvl.8
+@@ -0,0 +1,32 @@
++.TH DUMP2SLVL.PL 8 "April 3, 2011" "OpenIB" "OpenIB Diagnostics"
 +
-+my $switch = 0x0;
++.SH NAME
++dump2slvl.pl \- dump slvl file based on opensm output file used for credit loop checking
 +
-+my $H = "([xXa-fA-F0-9]+)";
-+my $D = "([0-9]+)";
-+my $DD = "\\s+([0-9]+)\\s+([0-9]+)";
++.SH SYNOPSIS
++.B dump2slvl.pl
 +
-+while (<>) {
++.SH DESCRIPTION
++.PP
++dump2slvl.pl dumps a slvl file based on an opensm output file. A slvl file
++contains the SL to VL mappings and is needed for subsequent credit loop
++checking (via ibdmchk). This conversion is needed when ibutils is not
++installed and credit loop checking is done on a different machine or later.
++Credit loop checking is especially valuable for the QoS based routing
++algorithms (e.g. torus-2QoS, lash, etc.).
 +
-+    if (/^Switch\s+$H/) {
-+	$switch = $1;
-+    }
++ibdiagnet -vlr dumps the slvl (and psl) files needed for ibdmchk -M -a -s
++(which is the credit loop check).
 +
-+    if (/^\s*$D\s+$D\s+:$DD$DD$DD$DD$DD$DD$DD$DD/) {
++.SH USAGE
 +
-+	printf "%s %d %d", $switch, $1, $2;
-+	printf " 0x%x%x 0x%x%x", $3, $4, $5, $6;
-+	printf " 0x%x%x 0x%x%x", $7, $8, $9, $10;
-+	printf " 0x%x%x 0x%x%x", $11, $12, $13, $14;
-+	printf " 0x%x%x 0x%x%x", $15, $16, $17, $18;
-+	printf "\n";
-+    }
-+}
++.PP
++cat opensm-sl2vl.dump | dump2slvl.pl > opensm.slvl
++
++.SH SEE ALSO
++.BR dump2psl(8), ibdmchk(8), ibdiagnet(8)
++
++.SH AUTHOR
++.TP
++Hal Rosenstock
++.RI < hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org >
 -- 
 1.5.3
 
