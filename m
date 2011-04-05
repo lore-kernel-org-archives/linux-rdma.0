@@ -1,7 +1,7 @@
 From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCHv2 2/2] libibmad: Added smp_query/set _status_via functions
-Date: Tue, 05 Apr 2011 15:23:44 -0400
-Message-ID: <4D9B6C40.5010801@dev.mellanox.co.il>
+Subject: [PATCHv2] infiniband-diags: Add dump2psl and dump2slvl perl scripts
+Date: Tue, 05 Apr 2011 15:23:49 -0400
+Message-ID: <4D9B6C45.3080709@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
@@ -12,163 +12,125 @@ Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY
 List-Id: linux-rdma@vger.kernel.org
 
 
-The smp_query/set functions do not return the MAD status.
-The new extended API allows getting the SMP MAD status, and
-to differentiate between timeout on MAD response and response
-with bad status.
+to aid in torus-2QoS credit checking
 
-Signed-off-by: Oren Kladnitsky <orenk-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Signed-off-by: Jim Schutt <jaschut-4OHPYypu0djtX7QSmKvirg@public.gmane.org>
 Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
-Change since v1:
+Changes since v1:
 Proper formatting
 
-diff --git a/include/infiniband/mad.h b/include/infiniband/mad.h
-index a0b368a..5d18ec3 100644
---- a/include/infiniband/mad.h
-+++ b/include/infiniband/mad.h
-@@ -1,7 +1,7 @@
- /*
-  * Copyright (c) 2004-2009 Voltaire Inc.  All rights reserved.
-  * Copyright (c) 2009 HNR Consulting.  All rights reserved.
-- * Copyright (c) 2009-2010 Mellanox Technologies LTD.  All rights reserved.
-+ * Copyright (c) 2009-2011 Mellanox Technologies LTD.  All rights reserved.
-  *
-  * This software is available to you under a choice of one of two
-  * licenses.  You may choose to be licensed under the terms of the GNU
-@@ -981,6 +981,14 @@ MAD_EXPORT uint8_t *smp_query_via(void *buf, ib_portid_t * id, unsigned attrid,
- MAD_EXPORT uint8_t *smp_set_via(void *buf, ib_portid_t * id, unsigned attrid,
- 				unsigned mod, unsigned timeout,
- 				const struct ibmad_port *srcport);
-+MAD_EXPORT uint8_t *smp_query_status_via(void *rcvbuf, ib_portid_t * portid,
-+					 unsigned attrid, unsigned mod,
-+					 unsigned timeout, int *rstatus,
-+					 const struct ibmad_port *srcport);
-+MAD_EXPORT uint8_t *smp_set_status_via(void *data, ib_portid_t * portid,
-+				       unsigned attrid, unsigned mod,
-+				       unsigned timeout, int *rstatus,
-+				       const struct ibmad_port *srcport);
- 
- /* sa.c */
- uint8_t *sa_call(void *rcvbuf, ib_portid_t * portid, ib_sa_call_t * sa,
-diff --git a/src/libibmad.map b/src/libibmad.map
-index 5778e3e..1e6a028 100644
---- a/src/libibmad.map
-+++ b/src/libibmad.map
-@@ -101,7 +101,9 @@ IBMAD_1.3 {
- 		ib_vendor_call;
- 		ib_vendor_call_via;
- 		smp_query_via;
-+		smp_query_status_via;
- 		smp_set_via;
-+		smp_set_status_via;
- 		ib_path_query_via;
- 		ib_resolve_smlid_via;
- 		ib_resolve_guid_via;
-diff --git a/src/rpc.c b/src/rpc.c
-index c5246fe..a702046 100644
---- a/src/rpc.c
-+++ b/src/rpc.c
-@@ -1,6 +1,7 @@
- /*
-  * Copyright (c) 2004-2009 Voltaire Inc.  All rights reserved.
-  * Copyright (c) 2009 HNR Consulting.  All rights reserved.
-+ * Copyright (c) 2011 Mellanox Technologies LTD.  All rights reserved.
-  *
-  * This software is available to you under a choice of one of two
-  * licenses.  You may choose to be licensed under the terms of the GNU
-@@ -243,6 +244,8 @@ void *mad_rpc(const struct ibmad_port *port, ib_rpc_t * rpc,
- 			redirect = 0;
- 	}
- 
-+	rpc->rstatus = status;
+ configure.in         |    2 +
+ scripts/dump2psl.pl  |   51 ++++++++++++++++++++++++++++++++++++++++++++++++++
+ scripts/dump2slvl.pl |   24 +++++++++++++++++++++++
+ 3 files changed, 77 insertions(+), 0 deletions(-)
+ create mode 100755 scripts/dump2psl.pl
+ create mode 100755 scripts/dump2slvl.pl
+
+diff --git a/configure.in b/configure.in
+index 003369d..eb01f9b 100644
+--- a/configure.in
++++ b/configure.in
+@@ -169,6 +169,8 @@ AC_CONFIG_FILES([\
+ 	scripts/ibrouters \
+ 	scripts/iblinkinfo.pl \
+ 	scripts/ibqueryerrors.pl \
++	scripts/dump2psl.pl \
++	scripts/dump2slvl.pl \
+    libibnetdisc/Makefile
+ ])
+ AC_OUTPUT
+diff --git a/scripts/dump2psl.pl b/scripts/dump2psl.pl
+new file mode 100755
+index 0000000..29896c7
+--- /dev/null
++++ b/scripts/dump2psl.pl
+@@ -0,0 +1,51 @@
++#! /usr/bin/perl -w
 +
- 	if (status != 0) {
- 		ERRS("MAD completed with error status 0x%x; dport (%s)",
- 		     status, portid2str(dport));
-diff --git a/src/smp.c b/src/smp.c
-index 3ff58ce..a337663 100644
---- a/src/smp.c
-+++ b/src/smp.c
-@@ -1,5 +1,6 @@
- /*
-  * Copyright (c) 2004-2009 Voltaire Inc.  All rights reserved.
-+ * Copyright (c) 2011 Mellanox Technologies LTD.  All rights reserved.
-  *
-  * This software is available to you under a choice of one of two
-  * licenses.  You may choose to be licensed under the terms of the GNU
-@@ -45,11 +46,12 @@
- #undef DEBUG
- #define DEBUG 	if (ibdebug)	IBWARN
- 
--uint8_t *smp_set_via(void *data, ib_portid_t * portid, unsigned attrid,
--		     unsigned mod, unsigned timeout,
--		     const struct ibmad_port *srcport)
-+uint8_t *smp_set_status_via(void *data, ib_portid_t * portid, unsigned attrid,
-+			    unsigned mod, unsigned timeout, int *rstatus,
-+			    const struct ibmad_port *srcport)
- {
- 	ib_rpc_t rpc = { 0 };
-+	uint8_t *res;
- 
- 	DEBUG("attr 0x%x mod 0x%x route %s", attrid, mod, portid2str(portid));
- 	if ((portid->lid <= 0) ||
-@@ -69,7 +71,18 @@ uint8_t *smp_set_via(void *data, ib_portid_t * portid, unsigned attrid,
- 	portid->sl = 0;
- 	portid->qp = 0;
- 
--	return mad_rpc(srcport, &rpc, portid, data, data);
-+	res = mad_rpc(srcport, &rpc, portid, data, data);
-+	if (rstatus)
-+		*rstatus = rpc.rstatus;
-+	return res;
++# usage:  cat file.lst opensm-path-records.dump | dump2psl.pl
++
++my $h = "([a-fA-F0-9]+)";
++my $H = "([xXa-fA-F0-9]+)";
++my $D = "([0-9]+)";
++
++my $n;
++my $p;
++my %port2node;
++
++my $ca_port = 0x0;
++
++while (<>) {
++
++    # parse .lst file, look for node GUID <-> port GUID relationship, hash it
++
++    if (/[^C]*\{\s*CA Ports[^N]*NodeGUID:$h\s*PortGUID:$h/) {
++
++
++	$n = "0x" . $1;
++	$p = "0x" . $2;
++
++	if (defined $port2node{$p}) {
++	    if ($port2node{$p} ne $n) {
++		printf STDERR "Cowardly refusing to reassign port GUID $p\n";
++		printf STDERR "from node GUID $port2node{$p} ";
++		printf STDERR "to node GUID $n\n";
++		next;
++	    }
++	    next;
++	}
++	$port2node{$p} = $n;
++	# printf STDERR "Assigned port GUID $p to node GUID $n\n";
++    }
++
++    # parse opensm-path-records.dump, reformat for ibdmchk .psl format
++
++    if (/^Channel\s+Adapter\s+$H/) {
++	$ca_port = $1;
++    }
++
++    if (/^\s*$H\s+:\s+$D\s+:\s+$D\s+:\s+$D\s+/) {
++
++	if (!defined($port2node{$ca_port})) {
++	    next;
++	}
++	printf "%s %d %d\n", $port2node{$ca_port}, oct($1), $2;
++    }
 +}
+diff --git a/scripts/dump2slvl.pl b/scripts/dump2slvl.pl
+new file mode 100755
+index 0000000..d85bb60
+--- /dev/null
++++ b/scripts/dump2slvl.pl
+@@ -0,0 +1,24 @@
++#! /usr/bin/perl -w
 +
-+uint8_t *smp_set_via(void *data, ib_portid_t * portid, unsigned attrid,
-+		     unsigned mod, unsigned timeout,
-+		     const struct ibmad_port *srcport)
-+{
-+	return smp_set_status_via(data, portid, attrid, mod, timeout, NULL,
-+				  srcport);
- }
- 
- uint8_t *smp_set(void *data, ib_portid_t * portid, unsigned attrid,
-@@ -78,11 +91,12 @@ uint8_t *smp_set(void *data, ib_portid_t * portid, unsigned attrid,
- 	return smp_set_via(data, portid, attrid, mod, timeout, ibmp);
- }
- 
--uint8_t *smp_query_via(void *rcvbuf, ib_portid_t * portid, unsigned attrid,
--		       unsigned mod, unsigned timeout,
--		       const struct ibmad_port * srcport)
-+uint8_t *smp_query_status_via(void *rcvbuf, ib_portid_t * portid,
-+			      unsigned attrid, unsigned mod, unsigned timeout,
-+			      int *rstatus, const struct ibmad_port * srcport)
- {
- 	ib_rpc_t rpc = { 0 };
-+	uint8_t *res;
- 
- 	DEBUG("attr 0x%x mod 0x%x route %s", attrid, mod, portid2str(portid));
- 	rpc.method = IB_MAD_METHOD_GET;
-@@ -102,7 +116,18 @@ uint8_t *smp_query_via(void *rcvbuf, ib_portid_t * portid, unsigned attrid,
- 	portid->sl = 0;
- 	portid->qp = 0;
- 
--	return mad_rpc(srcport, &rpc, portid, rcvbuf, rcvbuf);
-+	res = mad_rpc(srcport, &rpc, portid, rcvbuf, rcvbuf);
-+	if (rstatus)
-+		*rstatus = rpc.rstatus;
-+	return res;
++my $switch = 0x0;
++
++my $H = "([xXa-fA-F0-9]+)";
++my $D = "([0-9]+)";
++my $DD = "\\s+([0-9]+)\\s+([0-9]+)";
++
++while (<>) {
++
++    if (/^Switch\s+$H/) {
++	$switch = $1;
++    }
++
++    if (/^\s*$D\s+$D\s+:$DD$DD$DD$DD$DD$DD$DD$DD/) {
++
++	printf "%s %d %d", $switch, $1, $2;
++	printf " 0x%x%x 0x%x%x", $3, $4, $5, $6;
++	printf " 0x%x%x 0x%x%x", $7, $8, $9, $10;
++	printf " 0x%x%x 0x%x%x", $11, $12, $13, $14;
++	printf " 0x%x%x 0x%x%x", $15, $16, $17, $18;
++	printf "\n";
++    }
 +}
-+
-+uint8_t *smp_query_via(void *rcvbuf, ib_portid_t * portid, unsigned attrid,
-+		       unsigned mod, unsigned timeout,
-+		       const struct ibmad_port * srcport)
-+{
-+	return smp_query_status_via(rcvbuf, portid, attrid, mod, timeout, NULL,
-+				    srcport);
- }
- 
- uint8_t *smp_query(void *rcvbuf, ib_portid_t * portid, unsigned attrid,
+-- 
+1.5.3
+
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
