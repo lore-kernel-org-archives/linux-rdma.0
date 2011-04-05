@@ -1,24 +1,27 @@
-From: Nir Muchtar <nirmu-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Infiniband Netlink Patches
-Date: Tue, 5 Apr 2011 17:53:36 +0300
-Message-ID: <1302015216-7778-1-git-send-email-nirmu@mellanox.com>
-References: <1302014975-7582-1-git-send-email-nirmu@mellanox.com>
+From: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH] osmtest/osmt_multicast.c: In some multicast flows,
+ insufficient comps should be a warning
+Date: Tue, 5 Apr 2011 18:56:52 +0300
+Message-ID: <20110405155651.GB26396@calypso.voltaire.com>
+References: <4D9A1B0E.9010904@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="us-ascii"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1302014975-7582-1-git-send-email-nirmu-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <4D9A1B0E.9010904-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, nirmu-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Roland (your real email this time...),
+On 15:25 Mon 04 Apr     , Hal Rosenstock wrote:
+> 
+> rather than error (it's preferred but not required)
+> 
+> Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> ---
 
-Did you get a chance to go over the last series of the IB Netlink patches I sent?
-Is there anything missing? Anything I can do make reviewing this easier?
-
-Thanks,
-Nir
+Applied, thanks.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
