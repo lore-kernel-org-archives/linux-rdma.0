@@ -1,58 +1,37 @@
-From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: Re: Does SDP on Chelsio RNIC in ofed 1.5.2 work?
-Date: Wed, 06 Apr 2011 12:36:56 -0500
-Message-ID: <4D9CA4B8.80002@opengridcomputing.com>
-References: <550378.63701.qm@web30107.mail.mud.yahoo.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH] infiniband-diags: Add man pages for dump2psl and
+ dump2slvl
+Date: Wed, 6 Apr 2011 12:12:20 -0600
+Message-ID: <20110406181220.GA5924@obsidianresearch.com>
+References: <4D9B6DEB.7060702@dev.mellanox.co.il>
+ <20110406004057.GB4573@obsidianresearch.com>
+ <4D9C4784.6010103@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <550378.63701.qm-980OHh/sYqevuULXzWHTWIglqE1Y4D90QQ4Iyu8u01E@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <4D9C4784.6010103-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Parav Pandit <paravpandit-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Jim Schutt <jaschut-4OHPYypu0djtX7QSmKvirg@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-SDP is not supported over iWARP currently.
+On Wed, Apr 06, 2011 at 06:59:16AM -0400, Hal Rosenstock wrote:
+> On 4/5/2011 8:40 PM, Jason Gunthorpe wrote:
+> > Since these are only used by ibdmchk it seems more appropriate to
+> > bundle it in the ibutils package than in infiniband-diags?
+> 
+> No; the idea is that the files can be prepared for ibdmchk on a machine
+> which does not include ibutils and moved to another machine there for
+> checking. That's why these are being made part of infiniband-diags and
+> not ibutils.
 
+Your perl scripts don't run any infiniband-diags programs, they are
+just text processing filters, so you can copy the input text files
+to the machine with ibdmchk just as easily  as copying the output
+text files.
 
-On 04/05/2011 08:14 AM, Parav Pandit wrote:
-> Hi,
->
-> I am having Chelsio T310 adapters connected via 10G switch in servers using OFED 1.5.2.
->
-> I am trying to measure SDP performance over iWarp on Chelsio adapters.
-> but I find below error message from the /var/log/messages.
->
-> Apr  5 23:28:11 linux kernel: [ 2066.238932] eth8: link up, 10Gbps, full-duplex
-> Apr  5 23:28:11 linux kernel: [ 2066.240016] ADDRCONF(NETDEV_CHANGE): eth8: link
-> becomes ready
-> Apr  5 23:28:15 linux kernel: [ 2070.629530] iw_cxgb3: Chelsio T3 RDMA Driver -
-> version 1.1
-> Apr  5 23:28:15 linux kernel: [ 2070.642134] fmr_pool: Device cxgb3_0 does not
-> support FMRs
-> Apr  5 23:28:15 linux kernel: [ 2070.642137] Error creating fmr pool
-> Apr  5 23:28:15 linux kernel: [ 2070.642142] iw_cxgb3: Initialized device
-> 0000:05:00.0
-> Apr  5 23:28:18 linux kernel: [ 2073.551607] sdp_post_recv:236 sdp_sock( 3142:2
-> 41209:0): ib_post_recv failed. status -22
->
-> I find some discussion on previous ofed list in 2008 about broken support for same.
-> http://www.mail-archive.com/general-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org/msg10720.html
->
-> Below link seem to calculate the SDP performance over Chelsio iWARP.
-> http://hpc.ufl.edu/benchmarks/iwarp_sdp/
->
-> Can anyone please tell me what am I missing? I have done SDP configuration from the above link.
->
-> Regards,
-> Parav Pandit
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
