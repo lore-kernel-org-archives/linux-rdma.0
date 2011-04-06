@@ -1,122 +1,93 @@
-From: Andrea Gozzelino <Andrea.Gozzelino-PK20h7lG/Rc1GQ1Ptb7lUw@public.gmane.org>
-Subject: Re: Does SDP on Chelsio RNIC in ofed 1.5.2 work?
-Date: Wed, 6 Apr 2011 10:53:29 +0200 (CEST)
-Message-ID: <4199273.1302080009059.SLOX.WebMail.wwwrun@imap.lnl.infn.it>
+From: "Jaszcza, Andrzej" <andrzej.jaszcza-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: Does SDP on Chelsio RNIC in ofed 1.5.2 work?
+Date: Wed, 6 Apr 2011 10:13:08 +0100
+Message-ID: <70B82AB4096EC24DAE01A7202D27B68B012678C04B@irsmsx503.ger.corp.intel.com>
 References: <163069.2884.qm@web30104.mail.mud.yahoo.com>
+ <4199273.1302080009059.SLOX.WebMail.wwwrun@imap.lnl.infn.it>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <163069.2884.qm-SXRxc0gE9ROvuULXzWHTWIglqE1Y4D90QQ4Iyu8u01E@public.gmane.org>
+In-Reply-To: <4199273.1302080009059.SLOX.WebMail.wwwrun-XDIR3SKYeFbgKi2NxijLtw@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Parav Pandit <paravpandit-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Andrea Gozzelino <Andrea.Gozzelino-PK20h7lG/Rc1GQ1Ptb7lUw@public.gmane.org>, Parav Pandit <paravpandit-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Parav,
-
-I study SDP on NE020 cards from IntelNetEffect in 2010 without success.
-Please refer to bug 2027 and 2028 on bugzilla.
-You can search on the web discussions with my name in 2010 related to
-SDP.
-
-I hope that can help you!
-Regards,
-Andrea
-
-Andrea Gozzelino
-
-PhD Universit=C3=A0 di Padova=20
-Dipartimento di Fisica Galileo Galilei
-Via Marzolo, 8 - I - 35131 - Padova (PD) - Italia
-Ufficio @ Padova: 138
-Tel: +39 049 8277103
-
-INFN - Laboratori Nazionali di Legnaro	(LNL)
-Viale dell'Universita' 2 - I - 35020 - Legnaro (PD)- Italia
-Ufficio @ LNL: E-101
-Tel: +39 049 8068346
-=46ax: +39 049 641925
-	=09
-
-On Apr 06, 2011 10:06 AM, Parav Pandit <paravpandit-/E1597aS9LQAvxtiuMwx3w@public.gmane.org> wrote:
-
-> Hi,
->=20
-> Can anyone please help in running SDP on iWarp adapters?
->=20
-> Sbould I use Neteffect adapter to run SDP or change some configuratio=
-n
-> on Chelsio?
->=20
-> Regards,
-> Parav Pandit
->=20
->=20
-> --- On Tue, 4/5/11, Parav Pandit <paravpandit-/E1597aS9LQAvxtiuMwx3w@public.gmane.org> wrote:
->=20
-> > From: Parav Pandit <paravpandit-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
-> > Subject: Does SDP on Chelsio RNIC in ofed 1.5.2 work?
-> > To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> > Date: Tuesday, April 5, 2011, 6:44 PM
-> > Hi,
-> >=20
-> > I am having Chelsio T310 adapters connected via 10G switch
-> > in servers using OFED 1.5.2.
-> >=20
-> > I am trying to measure SDP performance over iWarp on
-> > Chelsio adapters.
-> > but I find below error message from the /var/log/messages.
-> >=20
-> > Apr=C2=A0 5 23:28:11 linux kernel: [ 2066.238932] eth8:
-> > link up, 10Gbps, full-duplex
-> > Apr=C2=A0 5 23:28:11 linux kernel: [ 2066.240016]
-> > ADDRCONF(NETDEV_CHANGE): eth8: link
-> > becomes ready
-> > Apr=C2=A0 5 23:28:15 linux kernel: [ 2070.629530] iw_cxgb3:
-> > Chelsio T3 RDMA Driver -
-> > version 1.1
-> > Apr=C2=A0 5 23:28:15 linux kernel: [ 2070.642134] fmr_pool:
-> > Device cxgb3_0 does not
-> > support FMRs
-> > Apr=C2=A0 5 23:28:15 linux kernel: [ 2070.642137] Error
-> > creating fmr pool
-> > Apr=C2=A0 5 23:28:15 linux kernel: [ 2070.642142] iw_cxgb3:
-> > Initialized device
-> > 0000:05:00.0
-> > Apr=C2=A0 5 23:28:18 linux kernel: [ 2073.551607]
-> > sdp_post_recv:236 sdp_sock( 3142:2
-> > 41209:0): ib_post_recv failed. status -22
-> >=20
-> > I find some discussion on previous ofed list in 2008 about
-> > broken support for same.
-> >
-> > http://www.mail-archive.com/general-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org/msg10720.=
-html
-> >=20
-> > Below link seem to calculate the SDP performance over
-> > Chelsio iWARP.
-> > http://hpc.ufl.edu/benchmarks/iwarp_sdp/
-> >=20
-> > Can anyone please tell me what am I missing? I have done
-> > SDP configuration from the above link.
-> >=20
-> > Regards,
-> > Parav Pandit
-> >=20
-> >=20
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma"
-> in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->=20
-
-
-					=09
+SGksDQoNClNEUCBpcyBub3Qgb2ZmaWNpYWxseSBzdXBwb3J0ZWQgb24gSW50ZWwgTmV0RWZmZWN0
+IGFkYXB0ZXJzIGF0IHRoaXMgbW9tZW50Lg0KDQpUaGFua3MsDQpBbmRyemVqDQoNCi0tLS0tT3Jp
+Z2luYWwgTWVzc2FnZS0tLS0tDQpGcm9tOiBsaW51eC1yZG1hLW93bmVyQHZnZXIua2VybmVsLm9y
+ZyBbbWFpbHRvOmxpbnV4LXJkbWEtb3duZXJAdmdlci5rZXJuZWwub3JnXSBPbiBCZWhhbGYgT2Yg
+QW5kcmVhIEdvenplbGlubw0KU2VudDogV2VkbmVzZGF5LCBBcHJpbCAwNiwgMjAxMSAxMDo1MyBB
+TQ0KVG86IFBhcmF2IFBhbmRpdA0KQ2M6IGxpbnV4LXJkbWFAdmdlci5rZXJuZWwub3JnDQpTdWJq
+ZWN0OiBSZTogRG9lcyBTRFAgb24gQ2hlbHNpbyBSTklDIGluIG9mZWQgMS41LjIgd29yaz8NCg0K
+SGkgUGFyYXYsDQoNCkkgc3R1ZHkgU0RQIG9uIE5FMDIwIGNhcmRzIGZyb20gSW50ZWxOZXRFZmZl
+Y3QgaW4gMjAxMCB3aXRob3V0IHN1Y2Nlc3MuDQpQbGVhc2UgcmVmZXIgdG8gYnVnIDIwMjcgYW5k
+IDIwMjggb24gYnVnemlsbGEuDQpZb3UgY2FuIHNlYXJjaCBvbiB0aGUgd2ViIGRpc2N1c3Npb25z
+IHdpdGggbXkgbmFtZSBpbiAyMDEwIHJlbGF0ZWQgdG8gU0RQLg0KDQpJIGhvcGUgdGhhdCBjYW4g
+aGVscCB5b3UhDQpSZWdhcmRzLA0KQW5kcmVhDQoNCkFuZHJlYSBHb3p6ZWxpbm8NCg0KUGhEIFVu
+aXZlcnNpdMOgIGRpIFBhZG92YQ0KRGlwYXJ0aW1lbnRvIGRpIEZpc2ljYSBHYWxpbGVvIEdhbGls
+ZWkNClZpYSBNYXJ6b2xvLCA4IC0gSSAtIDM1MTMxIC0gUGFkb3ZhIChQRCkgLSBJdGFsaWEgVWZm
+aWNpbyBAIFBhZG92YTogMTM4DQpUZWw6ICszOSAwNDkgODI3NzEwMw0KDQpJTkZOIC0gTGFib3Jh
+dG9yaSBOYXppb25hbGkgZGkgTGVnbmFybwkoTE5MKQ0KVmlhbGUgZGVsbCdVbml2ZXJzaXRhJyAy
+IC0gSSAtIDM1MDIwIC0gTGVnbmFybyAoUEQpLSBJdGFsaWEgVWZmaWNpbyBAIExOTDogRS0xMDEN
+ClRlbDogKzM5IDA0OSA4MDY4MzQ2DQpGYXg6ICszOSAwNDkgNjQxOTI1DQoJCQ0KDQpPbiBBcHIg
+MDYsIDIwMTEgMTA6MDYgQU0sIFBhcmF2IFBhbmRpdCA8cGFyYXZwYW5kaXRAeWFob28uY29tPiB3
+cm90ZToNCg0KPiBIaSwNCj4gDQo+IENhbiBhbnlvbmUgcGxlYXNlIGhlbHAgaW4gcnVubmluZyBT
+RFAgb24gaVdhcnAgYWRhcHRlcnM/DQo+IA0KPiBTYm91bGQgSSB1c2UgTmV0ZWZmZWN0IGFkYXB0
+ZXIgdG8gcnVuIFNEUCBvciBjaGFuZ2Ugc29tZSBjb25maWd1cmF0aW9uIA0KPiBvbiBDaGVsc2lv
+Pw0KPiANCj4gUmVnYXJkcywNCj4gUGFyYXYgUGFuZGl0DQo+IA0KPiANCj4gLS0tIE9uIFR1ZSwg
+NC81LzExLCBQYXJhdiBQYW5kaXQgPHBhcmF2cGFuZGl0QHlhaG9vLmNvbT4gd3JvdGU6DQo+IA0K
+PiA+IEZyb206IFBhcmF2IFBhbmRpdCA8cGFyYXZwYW5kaXRAeWFob28uY29tPg0KPiA+IFN1Ympl
+Y3Q6IERvZXMgU0RQIG9uIENoZWxzaW8gUk5JQyBpbiBvZmVkIDEuNS4yIHdvcms/DQo+ID4gVG86
+IGxpbnV4LXJkbWFAdmdlci5rZXJuZWwub3JnDQo+ID4gRGF0ZTogVHVlc2RheSwgQXByaWwgNSwg
+MjAxMSwgNjo0NCBQTSBIaSwNCj4gPiANCj4gPiBJIGFtIGhhdmluZyBDaGVsc2lvIFQzMTAgYWRh
+cHRlcnMgY29ubmVjdGVkIHZpYSAxMEcgc3dpdGNoIGluIA0KPiA+IHNlcnZlcnMgdXNpbmcgT0ZF
+RCAxLjUuMi4NCj4gPiANCj4gPiBJIGFtIHRyeWluZyB0byBtZWFzdXJlIFNEUCBwZXJmb3JtYW5j
+ZSBvdmVyIGlXYXJwIG9uIENoZWxzaW8gDQo+ID4gYWRhcHRlcnMuDQo+ID4gYnV0IEkgZmluZCBi
+ZWxvdyBlcnJvciBtZXNzYWdlIGZyb20gdGhlIC92YXIvbG9nL21lc3NhZ2VzLg0KPiA+IA0KPiA+
+IEFwcsKgIDUgMjM6Mjg6MTEgbGludXgga2VybmVsOiBbIDIwNjYuMjM4OTMyXSBldGg4Og0KPiA+
+IGxpbmsgdXAsIDEwR2JwcywgZnVsbC1kdXBsZXgNCj4gPiBBcHLCoCA1IDIzOjI4OjExIGxpbnV4
+IGtlcm5lbDogWyAyMDY2LjI0MDAxNl0NCj4gPiBBRERSQ09ORihORVRERVZfQ0hBTkdFKTogZXRo
+ODogbGluaw0KPiA+IGJlY29tZXMgcmVhZHkNCj4gPiBBcHLCoCA1IDIzOjI4OjE1IGxpbnV4IGtl
+cm5lbDogWyAyMDcwLjYyOTUzMF0gaXdfY3hnYjM6DQo+ID4gQ2hlbHNpbyBUMyBSRE1BIERyaXZl
+ciAtDQo+ID4gdmVyc2lvbiAxLjENCj4gPiBBcHLCoCA1IDIzOjI4OjE1IGxpbnV4IGtlcm5lbDog
+WyAyMDcwLjY0MjEzNF0gZm1yX3Bvb2w6DQo+ID4gRGV2aWNlIGN4Z2IzXzAgZG9lcyBub3QNCj4g
+PiBzdXBwb3J0IEZNUnMNCj4gPiBBcHLCoCA1IDIzOjI4OjE1IGxpbnV4IGtlcm5lbDogWyAyMDcw
+LjY0MjEzN10gRXJyb3IgY3JlYXRpbmcgZm1yIHBvb2wgDQo+ID4gQXBywqAgNSAyMzoyODoxNSBs
+aW51eCBrZXJuZWw6IFsgMjA3MC42NDIxNDJdIGl3X2N4Z2IzOg0KPiA+IEluaXRpYWxpemVkIGRl
+dmljZQ0KPiA+IDAwMDA6MDU6MDAuMA0KPiA+IEFwcsKgIDUgMjM6Mjg6MTggbGludXgga2VybmVs
+OiBbIDIwNzMuNTUxNjA3XQ0KPiA+IHNkcF9wb3N0X3JlY3Y6MjM2IHNkcF9zb2NrKCAzMTQyOjIN
+Cj4gPiA0MTIwOTowKTogaWJfcG9zdF9yZWN2IGZhaWxlZC4gc3RhdHVzIC0yMg0KPiA+IA0KPiA+
+IEkgZmluZCBzb21lIGRpc2N1c3Npb24gb24gcHJldmlvdXMgb2ZlZCBsaXN0IGluIDIwMDggYWJv
+dXQgYnJva2VuIA0KPiA+IHN1cHBvcnQgZm9yIHNhbWUuDQo+ID4NCj4gPiBodHRwOi8vd3d3Lm1h
+aWwtYXJjaGl2ZS5jb20vZ2VuZXJhbEBsaXN0cy5vcGVuZmFicmljcy5vcmcvbXNnMTA3MjAuaA0K
+PiA+IHRtbA0KPiA+IA0KPiA+IEJlbG93IGxpbmsgc2VlbSB0byBjYWxjdWxhdGUgdGhlIFNEUCBw
+ZXJmb3JtYW5jZSBvdmVyIENoZWxzaW8gaVdBUlAuDQo+ID4gaHR0cDovL2hwYy51ZmwuZWR1L2Jl
+bmNobWFya3MvaXdhcnBfc2RwLw0KPiA+IA0KPiA+IENhbiBhbnlvbmUgcGxlYXNlIHRlbGwgbWUg
+d2hhdCBhbSBJIG1pc3Npbmc/IEkgaGF2ZSBkb25lIFNEUCANCj4gPiBjb25maWd1cmF0aW9uIGZy
+b20gdGhlIGFib3ZlIGxpbmsuDQo+ID4gDQo+ID4gUmVnYXJkcywNCj4gPiBQYXJhdiBQYW5kaXQN
+Cj4gPiANCj4gPiANCj4gLS0NCj4gVG8gdW5zdWJzY3JpYmUgZnJvbSB0aGlzIGxpc3Q6IHNlbmQg
+dGhlIGxpbmUgInVuc3Vic2NyaWJlIGxpbnV4LXJkbWEiDQo+IGluDQo+IHRoZSBib2R5IG9mIGEg
+bWVzc2FnZSB0byBtYWpvcmRvbW9Admdlci5rZXJuZWwub3JnIE1vcmUgbWFqb3Jkb21vIGluZm8g
+DQo+IGF0ICBodHRwOi8vdmdlci5rZXJuZWwub3JnL21ham9yZG9tby1pbmZvLmh0bWwNCj4gDQoN
+Cg0KCQkJCQkJDQoNCi0tDQpUbyB1bnN1YnNjcmliZSBmcm9tIHRoaXMgbGlzdDogc2VuZCB0aGUg
+bGluZSAidW5zdWJzY3JpYmUgbGludXgtcmRtYSIgaW4gdGhlIGJvZHkgb2YgYSBtZXNzYWdlIHRv
+IG1ham9yZG9tb0B2Z2VyLmtlcm5lbC5vcmcgTW9yZSBtYWpvcmRvbW8gaW5mbyBhdCAgaHR0cDov
+L3ZnZXIua2VybmVsLm9yZy9tYWpvcmRvbW8taW5mby5odG1sDQotLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0KSW50ZWwg
+VGVjaG5vbG9neSBQb2xhbmQgc3AuIHogby5vLgp6IHNpZWR6aWJhIHcgR2RhbnNrdQp1bC4gU2xv
+d2Fja2llZ28gMTczCjgwLTI5OCBHZGFuc2sKClNhZCBSZWpvbm93eSBHZGFuc2sgUG9sbm9jIHcg
+R2RhbnNrdSwgClZJSSBXeWR6aWFsIEdvc3BvZGFyY3p5IEtyYWpvd2VnbyBSZWplc3RydSBTYWRv
+d2VnbywgCm51bWVyIEtSUyAxMDE4ODIKCk5JUCA5NTctMDctNTItMzE2CkthcGl0YWwgemFrbGFk
+b3d5IDIwMC4wMDAgemwKClRoaXMgZS1tYWlsIGFuZCBhbnkgYXR0YWNobWVudHMgbWF5IGNvbnRh
+aW4gY29uZmlkZW50aWFsIG1hdGVyaWFsIGZvcgp0aGUgc29sZSB1c2Ugb2YgdGhlIGludGVuZGVk
+IHJlY2lwaWVudChzKS4gQW55IHJldmlldyBvciBkaXN0cmlidXRpb24KYnkgb3RoZXJzIGlzIHN0
+cmljdGx5IHByb2hpYml0ZWQuIElmIHlvdSBhcmUgbm90IHRoZSBpbnRlbmRlZApyZWNpcGllbnQs
+IHBsZWFzZSBjb250YWN0IHRoZSBzZW5kZXIgYW5kIGRlbGV0ZSBhbGwgY29waWVzLgo=
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
