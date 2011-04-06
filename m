@@ -1,37 +1,114 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH] infiniband-diags: Add man pages for dump2psl and
- dump2slvl
-Date: Wed, 6 Apr 2011 12:12:20 -0600
-Message-ID: <20110406181220.GA5924@obsidianresearch.com>
-References: <4D9B6DEB.7060702@dev.mellanox.co.il>
- <20110406004057.GB4573@obsidianresearch.com>
- <4D9C4784.6010103@dev.mellanox.co.il>
+From: Albert Chu <chu11-i2BcT+NCU+M@public.gmane.org>
+Subject: Re: [opensm] RFC: new routing options (repost)
+Date: Wed, 06 Apr 2011 11:14:27 -0700
+Message-ID: <1302113667.4906.336.camel@auk59.llnl.gov>
+References: <1297388014.18394.302.camel@auk59.llnl.gov>
+	 <1300915898.3128.168.camel@auk59.llnl.gov>
+	 <20110406140929.GA21920@calypso.voltaire.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <4D9C4784.6010103-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+In-Reply-To: <20110406140929.GA21920-iQai9MGU/dyyaiaB+Ve85laTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Jim Schutt <jaschut-4OHPYypu0djtX7QSmKvirg@public.gmane.org>
+To: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Jared Carr <jared.carr-Y2zl/4KMd60@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Apr 06, 2011 at 06:59:16AM -0400, Hal Rosenstock wrote:
-> On 4/5/2011 8:40 PM, Jason Gunthorpe wrote:
-> > Since these are only used by ibdmchk it seems more appropriate to
-> > bundle it in the ibutils package than in infiniband-diags?
+Hey Alex,
+
+On Wed, 2011-04-06 at 07:09 -0700, Alex Netes wrote:
+> Hi Al, Jared,
 > 
-> No; the idea is that the files can be prepared for ibdmchk on a machine
-> which does not include ibutils and moved to another machine there for
-> checking. That's why these are being made part of infiniband-diags and
-> not ibutils.
+> On 14:31 Wed 23 Mar     , Albert Chu wrote:
+> > > 
+> > > 1) Port Shifting
+> > > 
+> > > This is similar to what was done with some of the LMC > 0 code.
+> > > Congestion would occur due to "alignment" of routes w/ common traffic
+> > > patterns.  However, we found that it was also necessary for LMC=0 and
+> > > only for used-ports.  For example, lets say there are 4 ports (called A,
+> > > B, C, D) and we are routing lids 1-9 through them.  Suppose only routing
+> > > through A, B, and C will reach lids 1-9.
+> > > 
+> > > The LFT would normally be:
+> > > 
+> > > A: 1 4 7
+> > > B: 2 5 8
+> > > C: 3 6 9
+> > > D:
+> > > 
+> > > The Port Shifting option would make this:
+> > > 
+> > > A: 1 6 8
+> > > B: 2 4 9
+> > > C: 3 5 7
+> > > D:
+> > > 
+> > > This option by itself improved the mpiGraph average send/recv bandwidth
+> > > from 420 MB/s and 508 MB/s to to 991 MB/s and 1172 MB/s.
+> > > 
+> 
+> After thinking about this a little more and reviewing Jared Carr's - Scatter ports
+> patch, I think we should combine these efforts into one framework as Al
+> suggested. Moreover, isn't "port_shifting" too much fabric oriented? Do
+> general OpenSM users will find this useful for them?
+> Moreover, how can user identify that port_shifting may improve performance for
+> him.
 
-Your perl scripts don't run any infiniband-diags programs, they are
-just text processing filters, so you can copy the input text files
-to the machine with ibdmchk just as easily  as copying the output
-text files.
+I will admit, I'm unsure of how much non-HPC users would benefit from
+this option, be hurt by it, or if they would even care.  I can't speak
+for all users, but here at LLNL and at most of the lab HPC sites, people
+play with the options and experiment to find the best routing algorithm
++ settings that support their environment.  I would imagine the
+port_shifting option would just be another option for people to
+experiment with.
 
-Jason
+I think adding Jared's Scatter Ports would be easy to merge into my line
+of patches.  Let me see if I can integrate his patch into my line
+easily.
+
+> Is providing shift factor (more than the suggested 1) will help to make it
+> suitable foo a general case?
+
+That seems like a good idea, we certainly could support an arbitrary
+shift, allowing users to experiment if there is a better one for their
+particular environment.
+
+> > > 2) Remote Guid Sorting
+> > > 
+> > > Most core/spine switches we've seen thus far have had line boards
+> > > connected to spine boards in a consistent pattern.  However, we recently
+> > > got some Qlogic switches that connect from line/leaf boards to spine
+> > > boards in a (to the casual observer) random pattern.  I'm sure there was
+> > > a good electrical/board reason for this design, but it does hurt routing
+> > > b/c updn doesn't account for this.  Here's an output from iblinkinfo as
+> > > an example.
+> > > 
+> 
+> Why this problem can't be addressed by guid_routing_order_file option?
+
+The problem we encountered in our fabric is predominantly a
+switch-to-switch routing issue with a spine switch.  The
+guid_routing_order_file wouldn't be able to solve this, since its input
+is just end ports.
+
+Or another way to say it, this option directly affects the routing
+decisions made.  The guid_routing_order_file does not, it only affects
+the order in which routes are chosen (which can have consequences, but
+the routing algorithm itself is unchanged).
+
+Al
+
+> 
+> --Alex
+-- 
+Albert Chu
+chu11-i2BcT+NCU+M@public.gmane.org
+Computer Scientist
+High Performance Systems Division
+Lawrence Livermore National Laboratory
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
