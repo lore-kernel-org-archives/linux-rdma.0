@@ -1,32 +1,79 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH] infiniband-diags: Add man pages for dump2psl and
- dump2slvl
-Date: Tue, 5 Apr 2011 18:40:57 -0600
-Message-ID: <20110406004057.GB4573@obsidianresearch.com>
-References: <4D9B6DEB.7060702@dev.mellanox.co.il>
+From: Parav Pandit <paravpandit-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
+Subject: Re: Does SDP on Chelsio RNIC in ofed 1.5.2 work?
+Date: Wed, 6 Apr 2011 01:06:06 -0700 (PDT)
+Message-ID: <163069.2884.qm@web30104.mail.mud.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <4D9B6DEB.7060702-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Jim Schutt <jaschut-4OHPYypu0djtX7QSmKvirg@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Since these are only used by ibdmchk it seems more appropriate to
-bundle it in the ibutils package than in infiniband-diags?
+Hi,
 
-On Tue, Apr 05, 2011 at 03:30:51PM -0400, Hal Rosenstock wrote:
-> 
-> Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
->  Makefile.am     |    3 ++-
->  man/dump2psl.8  |   49 +++++++++++++++++++++++++++++++++++++++++++++++++
->  man/dump2slvl.8 |   32 ++++++++++++++++++++++++++++++++
->  3 files changed, 83 insertions(+), 1 deletions(-)
->  create mode 100644 man/dump2psl.8
->  create mode 100644 man/dump2slvl.8
+Can anyone please help in running SDP on iWarp adapters?
+
+Sbould I use Neteffect adapter to run SDP or change some configuration =
+on Chelsio?
+
+Regards,
+Parav Pandit
+
+
+--- On Tue, 4/5/11, Parav Pandit <paravpandit-/E1597aS9LQAvxtiuMwx3w@public.gmane.org> wrote:
+
+> From: Parav Pandit <paravpandit-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
+> Subject: Does SDP on Chelsio RNIC in ofed 1.5.2 work?
+> To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> Date: Tuesday, April 5, 2011, 6:44 PM
+> Hi,
+>=20
+> I am having Chelsio T310 adapters connected via 10G switch
+> in servers using OFED 1.5.2.
+>=20
+> I am trying to measure SDP performance over iWarp on
+> Chelsio adapters.
+> but I find below error message from the /var/log/messages.
+>=20
+> Apr=A0 5 23:28:11 linux kernel: [ 2066.238932] eth8:
+> link up, 10Gbps, full-duplex
+> Apr=A0 5 23:28:11 linux kernel: [ 2066.240016]
+> ADDRCONF(NETDEV_CHANGE): eth8: link
+> becomes ready
+> Apr=A0 5 23:28:15 linux kernel: [ 2070.629530] iw_cxgb3:
+> Chelsio T3 RDMA Driver -
+> version 1.1
+> Apr=A0 5 23:28:15 linux kernel: [ 2070.642134] fmr_pool:
+> Device cxgb3_0 does not
+> support FMRs
+> Apr=A0 5 23:28:15 linux kernel: [ 2070.642137] Error
+> creating fmr pool
+> Apr=A0 5 23:28:15 linux kernel: [ 2070.642142] iw_cxgb3:
+> Initialized device
+> 0000:05:00.0
+> Apr=A0 5 23:28:18 linux kernel: [ 2073.551607]
+> sdp_post_recv:236 sdp_sock( 3142:2
+> 41209:0): ib_post_recv failed. status -22
+>=20
+> I find some discussion on previous ofed list in 2008 about
+> broken support for same.
+> http://www.mail-archive.com/general-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org/msg10720.ht=
+ml
+>=20
+> Below link seem to calculate the SDP performance over
+> Chelsio iWARP.
+> http://hpc.ufl.edu/benchmarks/iwarp_sdp/
+>=20
+> Can anyone please tell me what am I missing? I have done
+> SDP configuration from the above link.
+>=20
+> Regards,
+> Parav Pandit
+>=20
+>=20
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
