@@ -1,125 +1,52 @@
 From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-Subject: [PATCH 3/3] infiniband-diags: saquery, clean up error code/return
- types
-Date: Fri, 8 Apr 2011 13:46:22 -0700
-Message-ID: <20110408134622.dd038862.weiny2@llnl.gov>
+Subject: Re: [PATCH] infiniband-diags.spec.in: Remove duplication of
+ ibdiscover.pl
+Date: Fri, 8 Apr 2011 13:50:55 -0700
+Message-ID: <20110408135055.4643909c.weiny2@llnl.gov>
+References: <4D961BBA.7010306@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <4D961BBA.7010306-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+Applied Thanks,
+Ira
 
-Subject: [PATCH 3/3] infiniband-diags: saquery, clean up error code/return types
+On Fri, 1 Apr 2011 11:38:50 -0700
+Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wrote:
 
-Signed-off-by: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
----
- src/saquery.c |   34 ++++++++++++++++++----------------
- 1 files changed, 18 insertions(+), 16 deletions(-)
+> 
+> Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> ---
+> diff --git a/infiniband-diags.spec.in b/infiniband-diags.spec.in
+> index c50ce09..692ebd7 100644
+> --- a/infiniband-diags.spec.in
+> +++ b/infiniband-diags.spec.in
+> @@ -37,7 +37,6 @@ rm -rf $RPM_BUILD_ROOT
+> 
+>  %files
+>  %defattr(-,root,root)
+> -%{_sbindir}/ibdiscover.pl
+>  %{_sbindir}/ib*
+>  %{_sbindir}/perfquery
+>  %{_sbindir}/saquery
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-diff --git a/src/saquery.c b/src/saquery.c
-index 9314e4f..e3304a6 100644
---- a/src/saquery.c
-+++ b/src/saquery.c
-@@ -65,7 +65,7 @@ struct bind_handle {
- };
- 
- struct query_res {
--	int status;
-+	uint32_t status;
- 	unsigned result_cnt;
- 	void *p_result_madw;
- };
-@@ -218,7 +218,7 @@ recv_mad:
- 	offset = mad_get_field(mad, 0, IB_SA_ATTROFFS_F);
- 	result.status = mad_get_field(mad, 0, IB_MAD_STATUS_F);
- 	result.p_result_madw = mad;
--	if (result.status)
-+	if (result.status != IB_SA_MAD_STATUS_SUCCESS)
- 		result.result_cnt = 0;
- 	else if (method != IB_MAD_METHOD_GET_TABLE)
- 		result.result_cnt = 1;
-@@ -858,9 +858,9 @@ static int get_any_records(bind_handle_t h,
- 		return ret;
- 	}
- 
--	if (result.status != IB_SUCCESS) {
-+	if (result.status != IB_SA_MAD_STATUS_SUCCESS) {
- 		report_err(result.status);
--		return result.status;
-+		return EIO;
- 	}
- 
- 	return ret;
-@@ -1105,11 +1105,13 @@ static int get_print_class_port_info(bind_handle_t h)
- 			ib_get_err_str(ret));
- 		return ret;
- 	}
--	if (result.status != IB_SUCCESS) {
-+	if (result.status != IB_SA_MAD_STATUS_SUCCESS) {
- 		report_err(result.status);
--		return (result.status);
-+		ret = EIO;
-+		goto Exit;
- 	}
- 	dump_results(&result, dump_class_port_info);
-+Exit:
- 	return_mad();
- 	return ret;
- }
-@@ -1148,29 +1150,29 @@ static int query_path_records(const struct query_cmd *q, bind_handle_t h,
- 					&pr, 0, dump_path_record);
- }
- 
--static ib_api_status_t print_issm_records(bind_handle_t h)
-+static int print_issm_records(bind_handle_t h)
- {
--	ib_api_status_t status;
-+	int ret = 0;
- 
- 	/* First, get IsSM records */
--	status = get_issm_records(h, IB_PORT_CAP_IS_SM);
--	if (status != IB_SUCCESS)
--		return (status);
-+	ret = get_issm_records(h, IB_PORT_CAP_IS_SM);
-+	if (ret != 0)
-+		return (ret);
- 
- 	printf("IsSM ports\n");
- 	dump_results(&result, dump_portinfo_record);
- 	return_mad();
- 
- 	/* Now, get IsSMdisabled records */
--	status = get_issm_records(h, IB_PORT_CAP_SM_DISAB);
--	if (status != IB_SUCCESS)
--		return (status);
-+	ret = get_issm_records(h, IB_PORT_CAP_SM_DISAB);
-+	if (ret != 0)
-+		return (ret);
- 
- 	printf("\nIsSMdisabled ports\n");
- 	dump_results(&result, dump_portinfo_record);
- 	return_mad();
- 
--	return (status);
-+	return (ret);
- }
- 
- static int print_multicast_member_records(bind_handle_t h)
-@@ -1719,7 +1721,7 @@ int main(int argc, char **argv)
- 	bind_handle_t h;
- 	struct query_params params;
- 	const struct query_cmd *q;
--	ib_api_status_t status;
-+	int status;
- 	int n;
- 
- 	const struct ibdiag_opt opts[] = {
+
 -- 
-1.7.1
-
+Ira Weiny
+Math Programmer/Computer Scientist
+Lawrence Livermore National Lab
+925-423-8008
+weiny2-i2BcT+NCU+M@public.gmane.org
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
