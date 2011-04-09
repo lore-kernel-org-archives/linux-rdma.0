@@ -1,8 +1,7 @@
 From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH 2/4] libibmad/gs.c: In pma_query_via/performance_reset_via,
- set errno
-Date: Sat, 09 Apr 2011 11:21:47 -0400
-Message-ID: <4DA0798B.5040904@dev.mellanox.co.il>
+Subject: [PATCH 3/4] libibmad/vendor.c: In ib_vendor_call_via, set errno
+Date: Sat, 09 Apr 2011 11:21:52 -0400
+Message-ID: <4DA07990.1090402@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
@@ -17,10 +16,10 @@ according to rpc error field
 
 Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
-diff --git a/src/gs.c b/src/gs.c
-index 3cb2b25..78b8615 100644
---- a/src/gs.c
-+++ b/src/gs.c
+diff --git a/src/vendor.c b/src/vendor.c
+index 11efd76..e12d8ce 100644
+--- a/src/vendor.c
++++ b/src/vendor.c
 @@ -1,5 +1,6 @@
  /*
   * Copyright (c) 2004-2009 Voltaire Inc.  All rights reserved.
@@ -34,43 +33,29 @@ index 3cb2b25..78b8615 100644
  #include <string.h>
 +#include <errno.h>
  
- #include <infiniband/umad.h>
  #include <infiniband/mad.h>
-@@ -51,6 +53,7 @@ uint8_t *pma_query_via(void *rcvbuf, ib_portid_t * dest, int port,
+ #include "mad_internal.h"
+@@ -63,6 +65,7 @@ uint8_t *ib_vendor_call_via(void *data, ib_portid_t * portid,
  {
  	ib_rpc_t rpc = { 0 };
- 	int lid = dest->lid;
+ 	int range1 = 0, resp_expected;
 +	void *p_ret;
  
- 	DEBUG("lid %u port %d", lid, port);
+ 	DEBUG("route %s data %p", portid2str(portid), data);
+ 	if (portid->lid <= 0)
+@@ -97,8 +100,11 @@ uint8_t *ib_vendor_call_via(void *data, ib_portid_t * portid,
+ 	if (!portid->qkey)
+ 		portid->qkey = IB_DEFAULT_QP1_QKEY;
  
-@@ -75,7 +78,9 @@ uint8_t *pma_query_via(void *rcvbuf, ib_portid_t * dest, int port,
- 	if (!dest->qkey)
- 		dest->qkey = IB_DEFAULT_QP1_QKEY;
+-	if (resp_expected)
+-		return mad_rpc_rmpp(srcport, &rpc, portid, 0, data);	/* FIXME: no RMPP for now */
++	if (resp_expected) {
++		p_ret = mad_rpc_rmpp(srcport, &rpc, portid, 0, data);	/* FIXME: no RMPP for now */
++		errno = rpc.error;
++		return p_ret;
++	}
  
--	return mad_rpc(srcport, &rpc, dest, rcvbuf, rcvbuf);
-+	p_ret = mad_rpc(srcport, &rpc, dest, rcvbuf, rcvbuf);
-+	errno = rpc.error;
-+	return p_ret;
- }
- 
- uint8_t *performance_reset_via(void *rcvbuf, ib_portid_t * dest,
-@@ -84,6 +89,7 @@ uint8_t *performance_reset_via(void *rcvbuf, ib_portid_t * dest,
- {
- 	ib_rpc_t rpc = { 0 };
- 	int lid = dest->lid;
-+	void *p_ret;
- 
- 	DEBUG("lid %u port %d mask 0x%x", lid, port, mask);
- 
-@@ -115,5 +121,7 @@ uint8_t *performance_reset_via(void *rcvbuf, ib_portid_t * dest,
- 	if (!dest->qkey)
- 		dest->qkey = IB_DEFAULT_QP1_QKEY;
- 
--	return mad_rpc(srcport, &rpc, dest, rcvbuf, rcvbuf);
-+	p_ret = mad_rpc(srcport, &rpc, dest, rcvbuf, rcvbuf);
-+	errno = rpc.error;
-+	return p_ret;
+ 	return mad_send_via(&rpc, portid, 0, data, srcport) < 0 ? 0 : data;	/* FIXME: no RMPP for now */
  }
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
