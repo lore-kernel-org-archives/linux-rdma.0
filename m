@@ -1,40 +1,35 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH 1/4] libibmad: Distinguish timed out from other errors
-Date: Sun, 10 Apr 2011 10:44:59 -0600
-Message-ID: <20110410164459.GC4372@obsidianresearch.com>
-References: <4DA07983.8060308@dev.mellanox.co.il>
- <20110409171239.GA4372@obsidianresearch.com>
- <4DA1875F.2050601@dev.mellanox.co.il>
- <20110410140956.GB4372@obsidianresearch.com>
- <4DA1D405.4040305@dev.mellanox.co.il>
+From: roel <roel.kluin-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH] RDMA/cxgb4: missing parentheses
+Date: Sun, 10 Apr 2011 21:47:48 +0200
+Message-ID: <4DA20964.6050806@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <4DA1D405.4040305-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Steve Wise <swise-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Sun, Apr 10, 2011 at 12:00:05PM -0400, Hal Rosenstock wrote:
-> > If you are going to change the ABI like this then you have to bump the
-> > SONAME.
-> 
-> Typically it's been the libibmad maintainer who's bumped the versions
-> when appropriate as a release is readied.
+Parens are missing: '|' has a higher presedence than '?'.
 
-The version should be bumped in the same commit that makes the
-incompatible change so that people testing the library don't get
-messed up by it.
- 
-> > Setting a flag would work.
-> 
-> Not sure what you're referring to. Setting a flag where ?
+Signed-off-by: Roel Kluin <roel.kluin-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+---
+ drivers/infiniband/hw/cxgb4/qp.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-Your idea to place a `new ABI` flag in mgmClass.
-
-Jason
+diff --git a/drivers/infiniband/hw/cxgb4/qp.c b/drivers/infiniband/hw/cxgb4/qp.c
+index 70a5a3c..80cab20 100644
+--- a/drivers/infiniband/hw/cxgb4/qp.c
++++ b/drivers/infiniband/hw/cxgb4/qp.c
+@@ -214,7 +214,7 @@ static int create_qp(struct c4iw_rdev *rdev, struct t4_wq *wq,
+ 		V_FW_RI_RES_WR_HOSTFCMODE(0) |	/* no host cidx updates */
+ 		V_FW_RI_RES_WR_CPRIO(0) |	/* don't keep in chip cache */
+ 		V_FW_RI_RES_WR_PCIECHN(0) |	/* set by uP at ri_init time */
+-		t4_sq_onchip(&wq->sq) ? F_FW_RI_RES_WR_ONCHIP : 0 |
++		(t4_sq_onchip(&wq->sq) ? F_FW_RI_RES_WR_ONCHIP : 0) |
+ 		V_FW_RI_RES_WR_IQID(scq->cqid));
+ 	res->u.sqrq.dcaen_to_eqsize = cpu_to_be32(
+ 		V_FW_RI_RES_WR_DCAEN(0) |
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
