@@ -1,27 +1,46 @@
-From: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH] osmtest/osmt_multicast.c: Fixed another insufficient
- component case
-Date: Sun, 10 Apr 2011 16:37:51 +0300
-Message-ID: <20110410133751.GA1529@calypso.voltaire.com>
-References: <4D9E0A5D.8050602@dev.mellanox.co.il>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH 1/4] libibmad: Distinguish timed out from other errors
+Date: Sun, 10 Apr 2011 08:09:56 -0600
+Message-ID: <20110410140956.GB4372@obsidianresearch.com>
+References: <4DA07983.8060308@dev.mellanox.co.il>
+ <20110409171239.GA4372@obsidianresearch.com>
+ <4DA1875F.2050601@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <4D9E0A5D.8050602-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+In-Reply-To: <4DA1875F.2050601-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 15:02 Thu 07 Apr     , Hal Rosenstock wrote:
+On Sun, Apr 10, 2011 at 06:33:03AM -0400, Hal Rosenstock wrote:
+> On 4/9/2011 1:12 PM, Jason Gunthorpe wrote:
+> > On Sat, Apr 09, 2011 at 11:21:39AM -0400, Hal Rosenstock wrote:
+> >>
+> >> Add error field like errno to ib_rpc_t structure
+> >> In mad_rpc code, make sure error is cleared and
+> >> in _do_madrpc, set ETIMEDOUT.
+> >>
+> >> error field could also be used to distinguish other errors if needed.
+> > 
+> > This looks like it breaks the ABI since callers using functions that
+> > accept ib_rpc_t are expected to allocate the ib_rpc_t struct
+> > themselves.
 > 
-> Checking Create given MGID=0 skip Qkey and Pkey (o15.0.1.4) - Error 02A7
-> 
-> Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> ---
+> Yes, this changes the ABI. I didn't see a good way not to do this. Do
+> you have any ideas ? The only possible approach I saw was to steal the
+> high order bit from mgtclass (class is really only a byte) to indicate
+> which version of ib_rpc_t is being passed as to whether this field is
+> present.
 
-Applied, thanks
+If you are going to change the ABI like this then you have to bump the
+SONAME.
+
+Setting a flag would work.
+
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
