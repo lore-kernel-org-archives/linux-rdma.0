@@ -1,86 +1,43 @@
-From: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH 2/2] opensm/osm_pkey_mgr.c: In pkey_mgr_update_peer_port,
- better last block handling
-Date: Sun, 10 Apr 2011 10:51:16 +0300
-Message-ID: <20110410075116.GH21920@calypso.voltaire.com>
-References: <4D9B59D1.9010209@dev.mellanox.co.il>
- <20110407164642.GD21920@calypso.voltaire.com>
- <4D9E02F1.3090609@dev.mellanox.co.il>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH 1/4] libibmad: Distinguish timed out from other errors
+Date: Sun, 10 Apr 2011 06:33:03 -0400
+Message-ID: <4DA1875F.2050601@dev.mellanox.co.il>
+References: <4DA07983.8060308@dev.mellanox.co.il> <20110409171239.GA4372@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <4D9E02F1.3090609-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+In-Reply-To: <20110409171239.GA4372-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 14:31 Thu 07 Apr     , Hal Rosenstock wrote:
-> Hi Alex,
->=20
-> On 4/7/2011 12:46 PM, Alex Netes wrote:
-> > Hi Hal,
-> >=20
-> > On 14:05 Tue 05 Apr     , Hal Rosenstock wrote:
-> >>
-> >> PKey table capacities are not required to be multiples of the PKey=
- table block
-> >> size (32 entries of 16 pkeys).
->=20
->                         ^^^^^^^
->                         16 bit pkeys
->=20
-> >>
-> >> Current code could enable partition enforcement on the peer switch=
- port
-> >> even if the last partition table block were truncated. In this cas=
-e, it's
-> >> better to disable partition enforcement on those ports.
-> >>
-> >=20
-> > What is the motivation for this patch?
->=20
-> The policy question is what to do when that occurs.
->=20
-> > In case where there are more pkeys than sw->switch_info.enforce_cap=
- I guess
-> > enforcement won't be applied on pkeys > sw->switch_info.enforce_cap=
-=2E
->=20
-> The SM shouldn't set any such entries in the PKey table per 14.2.5.7
-> P_KEYTABLE p. 842 line 37:
->=20
-> The AttributeModifier is divided in two halves:
-> =E2=80=A2 The least significant 16 bits are a pointer to a block of 3=
-2 P_Key
-> entries to which this Attribute applies.  Valid values are 0 - 2047, =
-and
-> are further limited by the size of the P_Key table for that node
-> (specified by the PartitionCap for CAs, routers, and switch managemen=
-t
-> ports or PartitionEnforcementCap for external ports on switches).
->=20
-> so a conforming SMA should reject such a set.
->=20
-> > This is a user configuration issue.=20
->=20
-> Yes.
->=20
-> > Why issue a warning message to a log isn't enough?
->=20
-> That's the minimum that should be done. The question then becomes
-> whether it's better to enforce for some subset of the partitions or
-> disable enforrcement. I was trying to avoid another config option for=
- this.
->=20
+On 4/9/2011 1:12 PM, Jason Gunthorpe wrote:
+> On Sat, Apr 09, 2011 at 11:21:39AM -0400, Hal Rosenstock wrote:
+>>
+>> Add error field like errno to ib_rpc_t structure
+>> In mad_rpc code, make sure error is cleared and
+>> in _do_madrpc, set ETIMEDOUT.
+>>
+>> error field could also be used to distinguish other errors if needed.
+> 
+> This looks like it breaks the ABI since callers using functions that
+> accept ib_rpc_t are expected to allocate the ib_rpc_t struct
+> themselves.
 
-Makes sense.
+Yes, this changes the ABI. I didn't see a good way not to do this. Do
+you have any ideas ? The only possible approach I saw was to steal the
+high order bit from mgtclass (class is really only a byte) to indicate
+which version of ib_rpc_t is being passed as to whether this field is
+present.
 
-Applied, thanks.
+-- Hal
+
+> Jason
+> 
+
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
