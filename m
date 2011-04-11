@@ -1,46 +1,41 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH 1/4] libibmad: Distinguish timed out from other errors
-Date: Mon, 11 Apr 2011 07:25:05 -0400
-Message-ID: <4DA2E511.2030204@dev.mellanox.co.il>
-References: <4DA07983.8060308@dev.mellanox.co.il> <20110409171239.GA4372@obsidianresearch.com> <4DA1875F.2050601@dev.mellanox.co.il> <20110410140956.GB4372@obsidianresearch.com> <4DA1D405.4040305@dev.mellanox.co.il> <20110410164459.GC4372@obsidianresearch.com>
+From: Mike Marciniszyn <mike.marciniszyn-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH] IB/qib: Prevent driver hang with unprogrammed boards
+Date: Mon, 11 Apr 2011 09:45:17 -0400
+Message-ID: <20110411134517.3720.3633.stgit@kop-dev-sles11-04.qlogic.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20110410164459.GC4372-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Oren Kladnitsky <orenk-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+To: roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 4/10/2011 12:44 PM, Jason Gunthorpe wrote:
-> On Sun, Apr 10, 2011 at 12:00:05PM -0400, Hal Rosenstock wrote:
->>> If you are going to change the ABI like this then you have to bump the
->>> SONAME.
->>
->> Typically it's been the libibmad maintainer who's bumped the versions
->> when appropriate as a release is readied.
-> 
-> The version should be bumped in the same commit that makes the
-> incompatible change so that people testing the library don't get
-> messed up by it.
+From: Mitko Haralanov <mitko-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
 
-That's how it used to be done but with the previous maintainer version
-bumps were left until release time.
+The time limit test now correctly checks the against
+current jiffies to avoid the hang.
 
-I'll add this to an updated/reworked patch but I hope we'll avoid an
-extra last minute/release version bump.
+Signed-off-by: Mitko Haralanov <mitko-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+Signed-off-by: Mike Marciniszyn <mike.marciniszyn-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+---
+ drivers/infiniband/hw/qib/qib_iba7322.c |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletions(-)
 
--- Hal
-
->>> Setting a flag would work.
->>
->> Not sure what you're referring to. Setting a flag where ?
-> 
-> Your idea to place a `new ABI` flag in mgmClass.
-
-> Jason
-> 
+diff --git a/drivers/infiniband/hw/qib/qib_iba7322.c b/drivers/infiniband/hw/qib/qib_iba7322.c
+index 4df08b8..30bbea2 100644
+--- a/drivers/infiniband/hw/qib/qib_iba7322.c
++++ b/drivers/infiniband/hw/qib/qib_iba7322.c
+@@ -7545,7 +7545,8 @@ static int serdes_7322_init_new(struct qib_pportdata *ppd)
+ 	ibsd_wr_allchans(ppd, 4, (1 << 10), BMASK(10, 10));
+ 	tstart = get_jiffies_64();
+ 	while (chan_done &&
+-	       !time_after64(tstart, tstart + msecs_to_jiffies(500))) {
++	       !time_after64(get_jiffies_64(),
++			tstart + msecs_to_jiffies(500))) {
+ 		msleep(20);
+ 		for (chan = 0; chan < SERDES_CHANS; ++chan) {
+ 			rxcaldone = ahb_mod(ppd->dd, IBSD(ppd->hw_pidx),
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
