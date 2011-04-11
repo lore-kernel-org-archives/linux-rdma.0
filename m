@@ -1,56 +1,32 @@
-From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-Subject: Re: [PATCH 4/4] infiniband-diags: Make sure buffers are set to zero
- before calling xxx_query_via
-Date: Mon, 11 Apr 2011 13:26:23 -0700
-Message-ID: <20110411132623.f07fc017.weiny2@llnl.gov>
-References: <4DA0799A.7080108@dev.mellanox.co.il>
-	<BANLkTikT2LXPZBuZ1EzdKBvK_wP7O8dnuQ@mail.gmail.com>
+From: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+Subject: Re: [PATCH] IB/qib: Prevent driver hang with unprogrammed boards
+Date: Mon, 11 Apr 2011 13:24:50 -0700
+Message-ID: <BANLkTikuO=uKCxkvuSfx1UBQuDxLtWCacg@mail.gmail.com>
+References: <20110411134517.3720.3633.stgit@kop-dev-sles11-04.qlogic.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <BANLkTikT2LXPZBuZ1EzdKBvK_wP7O8dnuQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <20110411134517.3720.3633.stgit-hIFRcJ1SNwcXGO8/Qfapyjg/wwJxntczYPYVAmT7z5s@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Aviad Yehezkel <aviadye-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+To: Mike Marciniszyn <mike.marciniszyn-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, 11 Apr 2011 08:05:18 -0700
-Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
+On Mon, Apr 11, 2011 at 6:45 AM, Mike Marciniszyn
+<mike.marciniszyn-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org> wrote:
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0!time_after64(tstart, tstart + msecs_to_=
+jiffies(500))) {
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0!time_after64(get_jiffies_64(),
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 tstart + msecs_to_jiffi=
+es(500))) {
 
-> On Sat, Apr 9, 2011 at 11:22 AM, Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wrote:
-> >
-> > where xxx is smp and pma. This is a cosmetic change based on
-> > IBA 1.2.1 vol 1 p.725 line 9:
-> >
-> > When constructing a response MAD that contains all or part of
-> > the corresponding request MAD, it is acceptable to include the
-> > contents of reserved fields in the request MAD in the response
-> > MAD without regard to their content. That is, such fields need not
-> > be set to zero in the response MAD.
-> 
-> This patch stands on it's own and should've been just [PATCH] and not
-> [PATCH 4/4]. It was my mistake when I generated/sent these patches.
+By the way, is there any need to use 64-bit jiffies stuff here?
 
-No problem.
-
-Thanks applied,
-Ira
-
-> 
-> -- Hal
-> 
-> > Signed-off-by: Aviad Yehezkel <aviadye-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
-> > Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-
-
--- 
-Ira Weiny
-Math Programmer/Computer Scientist
-Lawrence Livermore National Lab
-925-423-8008
-weiny2-i2BcT+NCU+M@public.gmane.org
+Couldn't this be more cleanly written with just time_is_before_jiffies(=
+)?
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
