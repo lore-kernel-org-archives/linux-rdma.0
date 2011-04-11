@@ -1,45 +1,48 @@
-From: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: RE: HA mode bonding for IB over SDP
-Date: Mon, 11 Apr 2011 08:22:24 +0000
-Message-ID: <14E57612D748984B982C350F6A78109E4DE2FA@MTRCASDAG01.mtl.com>
-References: <loom.20110401T070836-761@post.gmane.org>
-	<BANLkTikSRxjYP+GThu7u5jLwGq+v_7JFAA@mail.gmail.com>
- <BANLkTimjnBA=rJLP0d+zQ_EuY_FKpC1nEg@mail.gmail.com>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH 1/4] libibmad: Distinguish timed out from other errors
+Date: Mon, 11 Apr 2011 07:25:05 -0400
+Message-ID: <4DA2E511.2030204@dev.mellanox.co.il>
+References: <4DA07983.8060308@dev.mellanox.co.il> <20110409171239.GA4372@obsidianresearch.com> <4DA1875F.2050601@dev.mellanox.co.il> <20110410140956.GB4372@obsidianresearch.com> <4DA1D405.4040305@dev.mellanox.co.il> <20110410164459.GC4372@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <BANLkTimjnBA=rJLP0d+zQ_EuY_FKpC1nEg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <20110410164459.GC4372-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: bhavinkumar thumar <bhawinkumar.thumar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Nir Monovich <nirm-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Oren Kladnitsky <orenk-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On 4/10/2011 12:44 PM, Jason Gunthorpe wrote:
+> On Sun, Apr 10, 2011 at 12:00:05PM -0400, Hal Rosenstock wrote:
+>>> If you are going to change the ABI like this then you have to bump the
+>>> SONAME.
+>>
+>> Typically it's been the libibmad maintainer who's bumped the versions
+>> when appropriate as a release is readied.
+> 
+> The version should be bumped in the same commit that makes the
+> incompatible change so that people testing the library don't get
+> messed up by it.
 
-Thanks a lot for providing me such useful details.
+That's how it used to be done but with the previous maintainer version
+bumps were left until release time.
 
-Besides the APM functionality one thing I don't understand is that why =
-is the IB-bonding not working with SDP, as SDP also uses IPoIB for addr=
-essing. Can you please describe about the problem which doesn't allow t=
-he fail-over to take place with IB-bonding driver? This would be more h=
-elpful in tackling the problem.
+I'll add this to an updated/reworked patch but I hope we'll avoid an
+extra last minute/release version bump.
 
-Again, I appreciate for your valuable information.
+-- Hal
 
-Thanking You,
-Bhavin=A0=20
+>>> Setting a flag would work.
+>>
+>> Not sure what you're referring to. Setting a flag where ?
+> 
+> Your idea to place a `new ABI` flag in mgmClass.
 
-Hi Bhavin =20
-Bonding enslaves netdev devices (i.e. IPoIB interfaces) but SDP doesn't=
- send/recv traffic on these interfaces.
-SDP uses to IB interfaces to send/recv traffic to the network and socke=
-t interface to send/recv data from/to application.
-However, IPoIb interfaces are used for address resolution so you can't =
-give them up completely.
+> Jason
+> 
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
