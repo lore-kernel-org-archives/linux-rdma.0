@@ -1,36 +1,34 @@
-From: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 4/4] infiniband-diags: Make sure buffers are set to zero
- before calling xxx_query_via
-Date: Mon, 11 Apr 2011 11:05:18 -0400
-Message-ID: <BANLkTikT2LXPZBuZ1EzdKBvK_wP7O8dnuQ@mail.gmail.com>
-References: <4DA0799A.7080108@dev.mellanox.co.il>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH 1/4] libibmad: Distinguish timed out from other errors
+Date: Mon, 11 Apr 2011 09:58:53 -0600
+Message-ID: <20110411155853.GA30452@obsidianresearch.com>
+References: <4DA07983.8060308@dev.mellanox.co.il>
+ <20110409171239.GA4372@obsidianresearch.com>
+ <4DA1875F.2050601@dev.mellanox.co.il>
+ <20110410140956.GB4372@obsidianresearch.com>
+ <4DA1D405.4040305@dev.mellanox.co.il>
+ <20110410164459.GC4372@obsidianresearch.com>
+ <4DA2E511.2030204@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4DA0799A.7080108-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <4DA2E511.2030204-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Aviad Yehezkel <aviadye-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Oren Kladnitsky <orenk-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Sat, Apr 9, 2011 at 11:22 AM, Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wrote:
->
-> where xxx is smp and pma. This is a cosmetic change based on
-> IBA 1.2.1 vol 1 p.725 line 9:
->
-> When constructing a response MAD that contains all or part of
-> the corresponding request MAD, it is acceptable to include the
-> contents of reserved fields in the request MAD in the response
-> MAD without regard to their content. That is, such fields need not
-> be set to zero in the response MAD.
+On Mon, Apr 11, 2011 at 07:25:05AM -0400, Hal Rosenstock wrote:
 
-This patch stands on it's own and should've been just [PATCH] and not
-[PATCH 4/4]. It was my mistake when I generated/sent these patches.
+> I'll add this to an updated/reworked patch but I hope we'll avoid an
+> extra last minute/release version bump.
 
--- Hal
+IMHO you only bump it once during devel, even if two ABI bumping
+changes are done. The point is to not mix it up with the already
+installed library.
 
-> Signed-off-by: Aviad Yehezkel <aviadye-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
-> Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
