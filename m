@@ -1,29 +1,69 @@
-From: "Carr, Jared F" <jared.carr-MIjBx5DB8Ok@public.gmane.org>
-Subject: Re: [opensm] RFC: new routing options (repost)
-Date: Mon, 11 Apr 2011 14:24:30 -0700
-Message-ID: <C9C8BA1C.C0B5%jared.carr@pnnl.gov>
-References: <1302137816.4906.403.camel@auk59.llnl.gov>
+From: Muchtar Nir <nirmu-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: Infiniband Netlink Patches
+Date: Tue, 12 Apr 2011 15:38:39 +0300
+Message-ID: <BANLkTi=dVThgB_BD-o2J18ScS7=H5m_3HQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1302137816.4906.403.camel-akkeaxHeDKRliZ7u+bvwcg@public.gmane.org>
-Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Albert Chu <chu11-i2BcT+NCU+M@public.gmane.org>, Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org, roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 4/6/11 5:56 PM, "Albert Chu" <chu11-i2BcT+NCU+M@public.gmane.org> wrote:
+Sorry for resending. Having Some mailer problems...
 
->Jared, LMK what you think and if it'll work for you.
+On Mon, 2011-04-11 at 13:36 -0600, Jason Gunthorpe wrote:
+> > Hi Roland (your real email this time...),
+>
+> > Did you get a chance to go over the last series of the IB Netlink
+> > patches I sent?  Is there anything missing? Anything I can do make
+> > reviewing this easier?
+>
+> I think we were both hoping to hear something from the Linux netlink
+> experts on the userspace schema in these patches. That is whay a
+> concise and complete text description was needed..
+>
+> Jason
 
-This looks like a reasonable integration of the two patches.
+I thought my explanation was clear enough.
+Here it is again with some (hopefully...) improvements.
+I'd appreciate if you could let me know of any obscurity, so I can
+improve on it and we can make progress on this.
 
-Al, Thanks for the cleanup and integration work.
+The schema for RDMA CM is a series of netlink messages. Each one
+contains an rdma_cm_stat struct. Additionally, two netlink attributes
+are created for the addresses for each message (if applicable).
+Their types:
+IBNL_RDMA_CM_ATTR_SRC_ADDR (The source address for this ID)
+IBNL_RDMA_CM_ATTR_DST_ADDR (The destination address for this ID)
+sockaddr_* structs are encapsulated within these attributes.
 
-Jared
+In other words, every transaction contains a series of messages like so:
 
+-------message 1-------
+struct rdma_cm_id_stats {
+        __u32 qp_num;
+        __u32 bound_dev_if;
+        __u32 port_space;
+        __s32 pid;
+        __u8 cm_state;
+        __u8 node_type;
+        __u8 port_num;
+        __u8 reserved;
+}
+IBNL_RDMA_CM_ATTR_SRC_ADDR attribute - contains the source address
+IBNL_RDMA_CM_ATTR_DST_ADDR attribute - contains the destination address
+-------end 1-------
+-------message 2-------
+struct rdma_cm_id_stats
+IBNL_RDMA_CM_ATTR_SRC_ADDR attribute
+IBNL_RDMA_CM_ATTR_DST_ADDR attribute
+-------end 2-------
+
+And so on...
+
+Thanks,
+Nir
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
