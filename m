@@ -1,45 +1,74 @@
-From: Mike Marciniszyn <mike.marciniszyn-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-Subject: RE: [PATCH] IB/qib: Prevent driver hang with unprogrammed boards
-Date: Tue, 12 Apr 2011 09:58:22 -0700
-Message-ID: <35AAF1E4A771E142979F27B51793A4888838902DCE@AVEXMB1.qlogic.org>
-References: <20110411134517.3720.3633.stgit@kop-dev-sles11-04.qlogic.org>
- <BANLkTikuO=uKCxkvuSfx1UBQuDxLtWCacg@mail.gmail.com>
+From: Albert Chu <chu11-i2BcT+NCU+M@public.gmane.org>
+Subject: [ibsim] increase max nodes and switches to support similation of
+	larger fabrics
+Date: Tue, 12 Apr 2011 10:25:45 -0700
+Message-ID: <1302629145.21002.12.camel@auk59.llnl.gov>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: multipart/mixed; boundary="=-tKBeLaYc8r4GWqf49u5v"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <BANLkTikuO=uKCxkvuSfx1UBQuDxLtWCacg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+To: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-I would like to keep the patch as is for now, since the Serdes code is using the 64 bit jiffies consistently throughout.  The fix solves a real issue (modprobe hang) with boards that haven't been QA'ed properly.
 
-Is there a reason to avoid the 64 bit jiffies stuff that should cause us to look at a more global effort beyond the scope of this patch?
+--=-tKBeLaYc8r4GWqf49u5v
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 
-Mike
+The maximum number of nodes and switches allowed by ibsim was too small
+for some of our larger fabrics, so I increased the size.
 
------Original Message-----
-From: Roland Dreier [mailto:roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org]
-Sent: Monday, April 11, 2011 4:25 PM
-To: Mike Marciniszyn
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Subject: Re: [PATCH] IB/qib: Prevent driver hang with unprogrammed boards
+Longer term, there shouldn't be a fixed size for these and the arrays
+should grow in size as needed, however I'll leave that for another day.
 
-On Mon, Apr 11, 2011 at 6:45 AM, Mike Marciniszyn
-<mike.marciniszyn-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org> wrote:
-> -              !time_after64(tstart, tstart + msecs_to_jiffies(500))) {
-> +              !time_after64(get_jiffies_64(),
-> +                       tstart + msecs_to_jiffies(500))) {
+Al
 
-By the way, is there any need to use 64-bit jiffies stuff here?
+-- 
+Albert Chu
+chu11-i2BcT+NCU+M@public.gmane.org
+Computer Scientist
+High Performance Systems Division
+Lawrence Livermore National Laboratory
 
-Couldn't this be more cleanly written with just time_is_before_jiffies()?
+--=-tKBeLaYc8r4GWqf49u5v
+Content-Disposition: attachment; filename*0=0001-increase-max-nodes-and-switches-to-support-similatio.pat; filename*1=ch
+Content-Type: message/rfc822; name=0001-increase-max-nodes-and-switches-to-support-similatio.patch
+
+From: Albert L. Chu <chu11-i2BcT+NCU+M@public.gmane.org>
+Date: Mon, 11 Apr 2011 14:56:27 -0700
+Subject: [PATCH] increase max nodes and switches to support similation of
+	larger fabrics
+Message-Id: <1302629081.21002.10.camel-akkeaxHeDKRliZ7u+bvwcg@public.gmane.org>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 
 
-This message and any attached documents contain information from QLogic Corporation or its wholly-owned subsidiaries that may be confidential. If you are not the intended recipient, you may not read, copy, distribute, or use this information. If you have received this transmission in error, please notify the sender immediately by reply e-mail and then delete this message.
+Signed-off-by: Albert L. Chu <chu11-i2BcT+NCU+M@public.gmane.org>
+---
+ ibsim/sim.h |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/ibsim/sim.h b/ibsim/sim.h
+index 5a8a92f..a4d68bf 100644
+--- a/ibsim/sim.h
++++ b/ibsim/sim.h
+@@ -37,8 +37,8 @@
+ 
+ #include <infiniband/mad.h>
+ 
+-#define MAXNETNODES	2048
+-#define MAXNETSWITCHS	256
++#define MAXNETNODES	8192
++#define MAXNETSWITCHS	1024
+ #define MAXNETPORTS	(MAXNETSWITCHS*36+MAXNETNODES*2)
+ #define MAXNETALIASES	MAXNETPORTS
+ 
+-- 
+1.7.1
+
+
+--=-tKBeLaYc8r4GWqf49u5v--
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
