@@ -1,152 +1,66 @@
-From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-Subject: Re: [PATCH 1/3] infiniband-diags: saquery, exit with ENODEV when
- queries fail to find results
-Date: Wed, 13 Apr 2011 09:41:11 -0700
-Message-ID: <20110413094111.b81a8e3d.weiny2@llnl.gov>
-References: <20110408134508.dfd7e8b9.weiny2@llnl.gov>
-	<4DA04B46.4090400@dev.mellanox.co.il>
+From: Bob Ciotti <Bob.Ciotti-NSQ8wuThN14@public.gmane.org>
+Subject: changing subnet ID
+Date: Wed, 13 Apr 2011 15:18:31 -0700
+Message-ID: <20110413221831.GA20946@nas.nasa.gov>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4DA04B46.4090400-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Sat, 9 Apr 2011 05:04:22 -0700
-Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wrote:
 
-> On 4/8/2011 4:45 PM, Ira Weiny wrote:
-> > 
-> > Subject: [PATCH 1/3] infiniband-diags: saquery, exit with ENODEV when queries fail to find results
-> 
-> 0 records is a perfectly valid response to a GetTable and that's
-> different from a real error. Why not just indicate the number of records
-> returned in dump_results ?
+Question with regard to changing the subnet prefix in OpenSM.
 
-Traditionally a non-zero return means there was an error.  I was looking for a good example of an error being returned when there was nothing found.  Grep is the only example I could find which returns "1" when it does not find a match.
+We want to uniquely identify individual subnets via changing the
+subnet prefix in OpenSM:
 
-I think you are correct though that not finding any results is not an error.
+ /etc/ofa/opensm-ib0.conf:subnet_prefix 0xfe80000000000000
 
-I will reject the patch and clean up the next one (2/3).  I think 3/3 should have been separate anyway.
+to something like 
 
-Ira
+ /etc/ofa/opensm-ib0.conf:subnet_prefix 0xfe80000000000100
 
-> 
-> -- Hal
-> 
-> > 
-> > Signed-off-by: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-> > ---
-> >  src/saquery.c |   29 +++++++++++++++++++++++------
-> >  1 files changed, 23 insertions(+), 6 deletions(-)
-> > 
-> > diff --git a/src/saquery.c b/src/saquery.c
-> > index 03869e3..d7c8e6f 100644
-> > --- a/src/saquery.c
-> > +++ b/src/saquery.c
-> > @@ -876,6 +876,9 @@ static int get_and_dump_any_records(bind_handle_t h, uint16_t attr_id,
-> >  	if (ret)
-> >  		return ret;
-> >  
-> > +	if (result.result_cnt == 0)
-> > +		return ENODEV;
-> > +
-> >  	dump_results(&result, dump_func);
-> >  
-> >  	return 0;
-> > @@ -896,7 +899,14 @@ static int get_and_dump_all_records(bind_handle_t h, uint16_t attr_id,
-> >  	if (ret)
-> >  		return ret;
-> >  
-> > +	if (result.result_cnt == 0) {
-> > +		ret = ENODEV;
-> > +		goto Exit;
-> > +	}
-> > +
-> >  	dump_results(&result, dump_func);
-> > +
-> > +Exit:
-> >  	return_mad();
-> >  	return ret;
-> >  }
-> > @@ -915,7 +925,7 @@ static int get_lid_from_name(bind_handle_t h, const char *name, uint16_t * lid)
-> >  	if (ret)
-> >  		return ret;
-> >  
-> > -	ret = IB_NOT_FOUND;
-> > +	ret = ENODEV;
-> >  	for (i = 0; i < result.result_cnt; i++) {
-> >  		node_record = get_query_rec(result.p_result_madw, i);
-> >  		p_ni = &(node_record->node_info);
-> > @@ -924,7 +934,7 @@ static int get_lid_from_name(bind_handle_t h, const char *name, uint16_t * lid)
-> >  			       sizeof(node_record->node_desc.description)) ==
-> >  		    0) {
-> >  			*lid = cl_ntoh16(node_record->lid);
-> > -			ret = IB_SUCCESS;
-> > +			ret = 0;
-> >  			break;
-> >  		}
-> >  	}
-> > @@ -939,7 +949,7 @@ static uint16_t get_lid(bind_handle_t h, const char *name)
-> >  	if (!name)
-> >  		return 0;
-> >  	if (isalpha(name[0])) {
-> > -		if (get_lid_from_name(h, name, &rc_lid) != IB_SUCCESS) {
-> > +		if (get_lid_from_name(h, name, &rc_lid) != 0) {
-> >  			fprintf(stderr, "Failed to find lid for \"%s\"\n", name);
-> >  			exit(EINVAL);
-> >  		}
-> > @@ -1040,6 +1050,8 @@ static int print_node_records(bind_handle_t h)
-> >  	if (ret)
-> >  		return ret;
-> >  
-> > +	ret = ENODEV;
-> > +
-> >  	if (node_print_desc == ALL_DESC) {
-> >  		printf("   LID \"name\"\n");
-> >  		printf("================\n");
-> > @@ -1049,14 +1061,18 @@ static int print_node_records(bind_handle_t h)
-> >  		node_record = get_query_rec(result.p_result_madw, i);
-> >  		if (node_print_desc == ALL_DESC) {
-> >  			print_node_desc(node_record);
-> > +			ret = 0;
-> >  		} else if (node_print_desc == NAME_OF_LID) {
-> > -			if (requested_lid == cl_ntoh16(node_record->lid))
-> > +			if (requested_lid == cl_ntoh16(node_record->lid)) {
-> >  				print_node_record(node_record);
-> > +				ret = 0;
-> > +			}
-> >  		} else if (node_print_desc == NAME_OF_GUID) {
-> >  			ib_node_info_t *p_ni = &(node_record->node_info);
-> > -
-> > -			if (requested_guid == cl_ntoh64(p_ni->port_guid))
-> > +			if (requested_guid == cl_ntoh64(p_ni->port_guid)) {
-> >  				print_node_record(node_record);
-> > +				ret = 0;
-> > +			}
-> >  		} else {
-> >  			if (!requested_name ||
-> >  			    (strncmp(requested_name,
-> > @@ -1068,6 +1084,7 @@ static int print_node_records(bind_handle_t h)
-> >  					return_mad();
-> >  					exit(0);
-> >  				}
-> > +				ret = 0;
-> >  			}
-> >  		}
-> >  	}
-> 
+Then an application can make some sense of what ib subnets it has access to, particularly on multi-homed 
+or multi interfaced hosts that can be on any combination of ib subnets.
+
+The RFC on ipv6 addressing (http://tools.ietf.org/html/rfc4291#section-2.5.6) says those bits should 
+be 0. I'm unclear if FE80/10 or FE80:0:0:0/64 is link local.
+
+Does anyone know if this will break things or a better way to do this, and keep the host address part
+private (not unique) between subnets? I suppose it could break routing ::))
 
 
--- 
-Ira Weiny
-Math Programmer/Computer Scientist
-Lawrence Livermore National Lab
-925-423-8008
-weiny2-i2BcT+NCU+M@public.gmane.org
+host A - multi if on
+ib0 - 0xfe80000000000000
+ib1 - 0xfe80000000000001
+
+host B - multi if on
+ib0 - 0xfe80000000000001
+ib1 - 0xfe80000000000000
+
+host C - multi if on
+ib0 - 0xfe80000000000100
+ib1 - 0xfe80000000000001
+
+host D - multi if on
+ib0 - 0xfe80000000000100
+ib1 - 0xfe80000000000001
+
+host E - multi homed and multi if on
+ib0 - 0xfe80000000000000
+ib1 - 0xfe80000000000001
+ib2 - 0xfe80000000000100
+ib3 - 0xfe80000000000100
+
+An application that spans all 5 hosts wants to know which hosts it can *expect* to connect to over what 
+interfaces, without actually making the connection.
+
+
+
+909
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
