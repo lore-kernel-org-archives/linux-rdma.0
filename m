@@ -1,55 +1,36 @@
-From: Albert Chu <chu11-i2BcT+NCU+M@public.gmane.org>
-Subject: Re: [ibsim] increase max nodes and switches to support similation
-	of	larger fabrics
-Date: Tue, 12 Apr 2011 11:07:29 -0700
-Message-ID: <1302631649.21002.17.camel@auk59.llnl.gov>
-References: <1302629145.21002.12.camel@auk59.llnl.gov>
-	 <4DA49254.2050506@dev.mellanox.co.il>
+From: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH] opensm: fixed segfault when enable qos on fabric with no
+ switches
+Date: Wed, 13 Apr 2011 10:52:00 +0300
+Message-ID: <20110413075200.GC1529@calypso.voltaire.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4DA49254.2050506-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, 2011-04-12 at 10:56 -0700, Hal Rosenstock wrote:
-> Hi Al,
-> 
-> On 4/12/2011 1:25 PM, Albert Chu wrote:
-> > The maximum number of nodes and switches allowed by ibsim was too small
-> > for some of our larger fabrics, so I increased the size.
-> > 
-> > Longer term, there shouldn't be a fixed size for these and the arrays
-> > should grow in size as needed, however I'll leave that for another day.
-> 
-> These are really just defaults. There are command line options to take
-> larger values. Maybe an ibsim man page would be nice...
+Signed-off-by: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ opensm/osm_qos.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-Ahh, I completely missed that.  I only looked at the options in the
-ibsim prompt.  A manpage would be nice, but no worries, I'll live w/ the
-options on the command line now that I know about it.
-
-Thanks,
-
-Al
-
-> -- Hal
-> 
-> > Al
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/opensm/osm_qos.c b/opensm/osm_qos.c
+index afea7bb..f353275 100644
+--- a/opensm/osm_qos.c
++++ b/opensm/osm_qos.c
+@@ -292,7 +292,7 @@ static int qos_endport_setup(osm_sm_t * sm, osm_physp_t * p,
+ 	if (!(p->port_info.capability_mask & IB_PORT_CAP_HAS_SL_MAP))
+ 		return 0;
+ 
+-	if (re->update_sl2vl) {
++	if (re && re->update_sl2vl) {
+ 		routing_sl2vl = *port_sl2vl;
+ 		re->update_sl2vl(re->context, p, 0, 0, &routing_sl2vl);
+ 		port_sl2vl = &routing_sl2vl;
 -- 
-Albert Chu
-chu11-i2BcT+NCU+M@public.gmane.org
-Computer Scientist
-High Performance Systems Division
-Lawrence Livermore National Laboratory
+1.7.4.4
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
