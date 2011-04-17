@@ -1,47 +1,47 @@
 From: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [opensm] routing segfault + LMC > 0 routing bug?
-Date: Sun, 17 Apr 2011 17:34:02 +0300
-Message-ID: <20110417143402.GA12476@calypso.voltaire.com>
-References: <1300843412.3128.135.camel@auk59.llnl.gov>
+Subject: Re: [PATCH] opensm: perfmgr, only set orig_lid when we have a valid
+ port. Otherwise leave it as 0
+Date: Sun, 17 Apr 2011 18:06:14 +0300
+Message-ID: <20110417150614.GA31503@calypso.voltaire.com>
+References: <20110415151736.809c550b.weiny2@llnl.gov>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1300843412.3128.135.camel-akkeaxHeDKRliZ7u+bvwcg@public.gmane.org>
+In-Reply-To: <20110415151736.809c550b.weiny2-i2BcT+NCU+M@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Albert Chu <chu11-i2BcT+NCU+M@public.gmane.org>
-Cc: jaschut-4OHPYypu0djtX7QSmKvirg@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 18:23 Tue 22 Mar     , Albert Chu wrote:
-> Hey Jim, Alex,
-> 
-> Just hit a segfault on the main tree.  It appears patch 
-> 
-> commit 9ddcf3419eade13bdc0a54f93930c49fe67efd63
-> Author: Jim Schutt <jaschut-4OHPYypu0djtX7QSmKvirg@public.gmane.org>
-> Date:   Fri Sep 3 10:43:12 2010 -0600
-> 
-> opensm: Avoid havoc in minhop caused by torus-2QoS persistent use of
-> osm_port_t:priv.
-> 
-> segfaults opensm on one of our systems w/ updn routing and lmc > 0
-> (would likely segfault dor, minhop, and maybe others too).  Our system
-> has older switches that do not support enhanced port zero, thus do not
-> support LMC > 0.  (I imagine setting lmc_esp0 to FALSE, results in the
-> same behavior.)  Subsequently even if you set LMC > 0 in your opensm
-> config file, there can be ports with LMC = 0 and LMC != 0 (e.g. from
-> HCAs). Subsequently in alloc_ports_priv(), some ports will have priv set
-> to NULL and some will not.  Because of assumptions in osm_switch.c about
-> priv != NULL when lmc > 0, we hit a segfault.  The issue didn't exist
-> before b/c we allocated p_port->priv non-NULL no matter what.
-> 
-> The attached patch fixes the problem w/ updn.  I haven't looked through
-> all of the 2Qos code thoroughly to figure out the consequences of this
-> change, so I'm just considering this a starting point for discussion.
-> 
+Hi Ira,
 
-Applied, thanks.
+On 15:17 Fri 15 Apr     , Ira Weiny wrote:
+> 
+> Subject: [PATCH] opensm: perfmgr, only set orig_lid when we have a valid port.  Otherwise leave it as 0
+> 
+> 
+> Signed-off-by: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+> ---
+>  opensm/osm_perfmgr.c |    4 +++-
+>  1 files changed, 3 insertions(+), 1 deletions(-)
+> 
+> diff --git a/opensm/osm_perfmgr.c b/opensm/osm_perfmgr.c
+> index 6a1fa63..3e1575a 100644
+> --- a/opensm/osm_perfmgr.c
+> +++ b/opensm/osm_perfmgr.c
+> @@ -454,7 +454,9 @@ static void collect_guids(cl_map_item_t * p_map_item, void *context)
+>  				  ib_switch_info_is_enhanced_port0(&node->sw->
+>  								   switch_info));
+>  		for (port = mon_node->esp0 ? 0 : 1; port < num_ports; port++) {
+> -			mon_node->port[port].orig_lid = get_base_lid(node, port);
+> +			mon_node->port[port].orig_lid = 0;
+> +			if (osm_physp_is_valid(&node->physp_table[port]))
+> +				mon_node->port[port].orig_lid = get_base_lid(node, port);
+>  			mon_node->port[port].valid = TRUE;
+
+Shouldn't this port marked with mon_node->port[port].valid = FALSE ?
+
 
 -- Alex
 --
