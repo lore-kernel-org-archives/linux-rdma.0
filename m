@@ -1,40 +1,29 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH 2/2] opensm/osm_perfmgr.c: Don't rely on PortInfo:PortState
- for base SP0
-Date: Mon, 18 Apr 2011 09:29:57 -0400
-Message-ID: <4DAC3CD5.8000700@dev.mellanox.co.il>
+From: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: Issues with patchwork?
+Date: Mon, 18 Apr 2011 09:25:57 -0700
+Message-ID: <BANLkTi=E1darzJngXzyTo65e0-0bF3jsvw@mail.gmail.com>
+References: <8BF80387-D929-4768-8573-7DAD7F376B73@llnl.gov>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <8BF80387-D929-4768-8573-7DAD7F376B73-i2BcT+NCU+M@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: "Weiny, Ira K." <weiny2-i2BcT+NCU+M@public.gmane.org>, warthog9-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On Sun, Apr 17, 2011 at 3:47 AM, Weiny, Ira K. <weiny2-i2BcT+NCU+M@public.gmane.org> wrote:
+> I just checked patchwork and it looks like those patches which were s=
+ubmitted since ~2/25/2011 are no longer there? =A0This includes 3 patch=
+es which were in my todo list yesterday.
+>
+> Does anyone know what the issue is?
 
-For base SP0, PortState in SM PortInfo attribute is not used and base SP0
-is always "active".
-
-Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
-
-diff --git a/opensm/osm_perfmgr.c b/opensm/osm_perfmgr.c
-index 6a1fa63..86efde6 100644
---- a/opensm/osm_perfmgr.c
-+++ b/opensm/osm_perfmgr.c
-@@ -684,6 +684,10 @@ static unsigned is_sm_port_down(osm_sm_t * sm)
- 	}
- 	CL_PLOCK_RELEASE(sm->p_lock);
- 
-+	if (p_port->p_node->sw &&
-+	    !ib_switch_info_is_enhanced_port0(&p_port->p_node->sw->switch_info))
-+		return 0;	/* base SP0 */
-+
- 	return osm_physp_get_port_state(p_port->p_physp) == IB_LINK_DOWN;
- }
- 
+Does look like we lost some data.  J.H. -- did the patchwork database
+get messed up possibly?
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
