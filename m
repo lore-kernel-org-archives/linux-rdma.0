@@ -1,170 +1,62 @@
-From: =?UTF-8?q?Micha=C5=82=20Miros=C5=82aw?= <mirq-linux@rere.qmqm.pl>
-Subject: [PATCH] net: infiniband/hw/nes: convert to hw_features
-Date: Tue, 19 Apr 2011 12:43:20 +0200 (CEST)
-Message-ID: <20110419104320.51E5F13A64@rere.qmqm.pl>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: [PATCH] opensm/osm_subnet.c: In osm_subn_destroy, delete service
+ records
+Date: Tue, 19 Apr 2011 10:26:41 -0400
+Message-ID: <4DAD9BA1.5020705@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <netdev-owner@vger.kernel.org>
-Sender: netdev-owner@vger.kernel.org
-To: netdev@vger.kernel.org
-Cc: Faisal Latif <faisal.latif@intel.com>, Roland Dreier <roland@kernel.org>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, linux-rdma@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Signed-off-by: Micha=C5=82 Miros=C5=82aw <mirq-linux@rere.qmqm.pl>
+
+Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/hw/nes/nes_hw.c  |    5 +--
- drivers/infiniband/hw/nes/nes_hw.h  |    1 -
- drivers/infiniband/hw/nes/nes_nic.c |   55 +++------------------------=
--------
- 3 files changed, 7 insertions(+), 54 deletions(-)
+ opensm/osm_subnet.c |   10 ++++++++++
+ 1 files changed, 10 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/infiniband/hw/nes/nes_hw.c b/drivers/infiniband/hw=
-/nes/nes_hw.c
-index 10d0a5e..96fa9a4 100644
---- a/drivers/infiniband/hw/nes/nes_hw.c
-+++ b/drivers/infiniband/hw/nes/nes_hw.c
-@@ -2885,9 +2885,8 @@ void nes_nic_ce_handler(struct nes_device *nesdev=
-, struct nes_hw_nic_cq *cq)
- 					if ((cqe_errv &
- 							(NES_NIC_ERRV_BITS_IPV4_CSUM_ERR | NES_NIC_ERRV_BITS_TCPUDP_CSU=
-M_ERR |
- 							NES_NIC_ERRV_BITS_IPH_ERR | NES_NIC_ERRV_BITS_WQE_OVERRUN)) =3D=
-=3D 0) {
--						if (nesvnic->rx_checksum_disabled =3D=3D 0) {
-+						if (nesvnic->netdev->features & NETIF_F_RXCSUM)
- 							rx_skb->ip_summed =3D CHECKSUM_UNNECESSARY;
--						}
- 					} else
- 						nes_debug(NES_DBG_CQ, "%s: unsuccessfully checksummed TCP or UDP=
- packet."
- 								" errv =3D 0x%X, pkt_type =3D 0x%X.\n",
-@@ -2897,7 +2896,7 @@ void nes_nic_ce_handler(struct nes_device *nesdev=
-, struct nes_hw_nic_cq *cq)
- 					if ((cqe_errv &
- 							(NES_NIC_ERRV_BITS_IPV4_CSUM_ERR | NES_NIC_ERRV_BITS_IPH_ERR |
- 							NES_NIC_ERRV_BITS_WQE_OVERRUN)) =3D=3D 0) {
--						if (nesvnic->rx_checksum_disabled =3D=3D 0) {
-+						if (nesvnic->netdev->features & NETIF_F_RXCSUM) {
- 							rx_skb->ip_summed =3D CHECKSUM_UNNECESSARY;
- 							/* nes_debug(NES_DBG_CQ, "%s: Reporting successfully checksumme=
-d IPv4 packet.\n",
- 								  nesvnic->netdev->name); */
-diff --git a/drivers/infiniband/hw/nes/nes_hw.h b/drivers/infiniband/hw=
-/nes/nes_hw.h
-index d2abe07..9159411 100644
---- a/drivers/infiniband/hw/nes/nes_hw.h
-+++ b/drivers/infiniband/hw/nes/nes_hw.h
-@@ -1245,7 +1245,6 @@ struct nes_vnic {
- 	u8  next_qp_nic_index;
- 	u8  of_device_registered;
- 	u8  rdma_enabled;
--	u8  rx_checksum_disabled;
- 	u32 lro_max_aggr;
- 	struct net_lro_mgr lro_mgr;
- 	struct net_lro_desc lro_desc[NES_MAX_LRO_DESCRIPTORS];
-diff --git a/drivers/infiniband/hw/nes/nes_nic.c b/drivers/infiniband/h=
-w/nes/nes_nic.c
-index e96b8fb..d2e67c4 100644
---- a/drivers/infiniband/hw/nes/nes_nic.c
-+++ b/drivers/infiniband/hw/nes/nes_nic.c
-@@ -1093,34 +1093,6 @@ static const char nes_ethtool_stringset[][ETH_GS=
-TRING_LEN] =3D {
- };
- #define NES_ETHTOOL_STAT_COUNT  ARRAY_SIZE(nes_ethtool_stringset)
-=20
--/**
-- * nes_netdev_get_rx_csum
-- */
--static u32 nes_netdev_get_rx_csum (struct net_device *netdev)
--{
--	struct nes_vnic *nesvnic =3D netdev_priv(netdev);
--
--	if (nesvnic->rx_checksum_disabled)
--		return 0;
--	else
--		return 1;
--}
--
--
--/**
-- * nes_netdev_set_rc_csum
-- */
--static int nes_netdev_set_rx_csum(struct net_device *netdev, u32 enabl=
-e)
--{
--	struct nes_vnic *nesvnic =3D netdev_priv(netdev);
--
--	if (enable)
--		nesvnic->rx_checksum_disabled =3D 0;
--	else
--		nesvnic->rx_checksum_disabled =3D 1;
--	return 0;
--}
--
-=20
- /**
-  * nes_netdev_get_sset_count
-@@ -1598,19 +1570,10 @@ static int nes_netdev_set_settings(struct net_d=
-evice *netdev, struct ethtool_cmd
- }
-=20
-=20
--static int nes_netdev_set_flags(struct net_device *netdev, u32 flags)
--{
--	return ethtool_op_set_flags(netdev, flags, ETH_FLAG_LRO);
--}
--
--
- static const struct ethtool_ops nes_ethtool_ops =3D {
- 	.get_link =3D ethtool_op_get_link,
- 	.get_settings =3D nes_netdev_get_settings,
- 	.set_settings =3D nes_netdev_set_settings,
--	.get_tx_csum =3D ethtool_op_get_tx_csum,
--	.get_rx_csum =3D nes_netdev_get_rx_csum,
--	.get_sg =3D ethtool_op_get_sg,
- 	.get_strings =3D nes_netdev_get_strings,
- 	.get_sset_count =3D nes_netdev_get_sset_count,
- 	.get_ethtool_stats =3D nes_netdev_get_ethtool_stats,
-@@ -1619,13 +1582,6 @@ static const struct ethtool_ops nes_ethtool_ops =
-=3D {
- 	.set_coalesce =3D nes_netdev_set_coalesce,
- 	.get_pauseparam =3D nes_netdev_get_pauseparam,
- 	.set_pauseparam =3D nes_netdev_set_pauseparam,
--	.set_tx_csum =3D ethtool_op_set_tx_csum,
--	.set_rx_csum =3D nes_netdev_set_rx_csum,
--	.set_sg =3D ethtool_op_set_sg,
--	.get_tso =3D ethtool_op_get_tso,
--	.set_tso =3D ethtool_op_set_tso,
--	.get_flags =3D ethtool_op_get_flags,
--	.set_flags =3D nes_netdev_set_flags,
- };
-=20
-=20
-@@ -1727,12 +1683,11 @@ struct net_device *nes_netdev_init(struct nes_d=
-evice *nesdev,
- 	netdev->dev_addr[5] =3D (u8)u64temp;
- 	memcpy(netdev->perm_addr, netdev->dev_addr, 6);
-=20
--	if ((nesvnic->logical_port < 2) || (nesdev->nesadapter->hw_rev !=3D N=
-E020_REV)) {
--		netdev->features |=3D NETIF_F_TSO | NETIF_F_SG | NETIF_F_IP_CSUM;
--		netdev->features |=3D NETIF_F_GSO | NETIF_F_TSO | NETIF_F_SG | NETIF=
-_F_IP_CSUM;
--	} else {
--		netdev->features |=3D NETIF_F_SG | NETIF_F_IP_CSUM;
--	}
-+	netdev->hw_features =3D NETIF_F_RXCSUM | NETIF_F_SG | NETIF_F_IP_CSUM=
-;
-+	if ((nesvnic->logical_port < 2) || (nesdev->nesadapter->hw_rev !=3D N=
-E020_REV))
-+		netdev->hw_features |=3D NETIF_F_TSO;
-+	netdev->features |=3D netdev->hw_features;
-+	netdev->hw_features |=3D NETIF_F_LRO;
-=20
- 	nes_debug(NES_DBG_INIT, "nesvnic =3D %p, reported features =3D 0x%lX,=
- QPid =3D %d,"
- 			" nic_index =3D %d, logical_port =3D %d, mac_index =3D %d.\n",
---=20
-1.7.2.5
+diff --git a/opensm/osm_subnet.c b/opensm/osm_subnet.c
+index 61a59e4..84ac6ed 100644
+--- a/opensm/osm_subnet.c
++++ b/opensm/osm_subnet.c
+@@ -70,6 +70,7 @@
+ #include <opensm/osm_perfmgr.h>
+ #include <opensm/osm_event_plugin.h>
+ #include <opensm/osm_qos_policy.h>
++#include <opensm/osm_service.h>
+ 
+ static const char null_str[] = "(null)";
+ 
+@@ -435,6 +436,7 @@ void osm_subn_destroy(IN osm_subn_t * p_subn)
+ 	osm_remote_sm_t *p_rsm, *p_next_rsm;
+ 	osm_prtn_t *p_prtn, *p_next_prtn;
+ 	osm_infr_t *p_infr, *p_next_infr;
++	osm_svcr_t *p_svcr, *p_next_svcr;
+ 
+ 	/* it might be a good idea to de-allocate all known objects */
+ 	p_next_node = (osm_node_t *) cl_qmap_head(&p_subn->node_guid_tbl);
+@@ -491,6 +493,14 @@ void osm_subn_destroy(IN osm_subn_t * p_subn)
+ 		osm_infr_delete(p_infr);
+ 	}
+ 
++	p_next_svcr = (osm_svcr_t *) cl_qlist_head(&p_subn->sa_sr_list);
++	while (p_next_svcr !=
++	       (osm_svcr_t *) cl_qlist_end(&p_subn->sa_sr_list)) {
++		p_svcr = p_next_svcr;
++		p_next_svcr = (osm_svcr_t *) cl_qlist_next(&p_svcr->list_item);
++		osm_svcr_delete(p_svcr);
++	}
++
+ 	cl_ptr_vector_destroy(&p_subn->port_lid_tbl);
+ 
+ 	osm_qos_policy_destroy(p_subn->p_qos_policy);
+-- 
+1.5.3
 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
