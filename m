@@ -1,76 +1,75 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH 1/2] opensm/osm_state_mgr.c: Don't rely on PortInfo:PortState
- for base SP0
-Date: Wed, 20 Apr 2011 10:43:15 -0400
-Message-ID: <4DAEF103.1000706@dev.mellanox.co.il>
-References: <4DAC3CCC.4090101@dev.mellanox.co.il> <20110420141713.GD28761@calypso.voltaire.com>
+From: Albert Chu <chu11-i2BcT+NCU+M@public.gmane.org>
+Subject: [opensm] [PATCH] do not use the dimn_ports_file if not using dor
+	routing
+Date: Wed, 20 Apr 2011 11:02:13 -0700
+Message-ID: <1303322533.21002.121.camel@auk59.llnl.gov>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary="=-kwkVUQL/4MLRGmRzzo0s"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20110420141713.GD28761-iQai9MGU/dyyaiaB+Ve85laTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Alex,
 
-On 4/20/2011 10:17 AM, Alex Netes wrote:
-> Hi Hal,
-> 
-> On 09:29 Mon 18 Apr     , Hal Rosenstock wrote:
->>
->> For base SP0, PortState in SM PortInfo attribute is not used and base SP0
->> is always "active". 
-> 
-> How SM can be attached to base SP0?
+--=-kwkVUQL/4MLRGmRzzo0s
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 
-What precludes this ? AFAIK SM can run on any switch port 0 whether
-enhanced or base.
+Do not use the dimn_ports_file if not using dor routing. If the
+dimn_ports_file is specified, it currently will be utilized regardless
+of the routing algorithm actually being used.
 
-> Moreover, if during discovery we found that SM is attached to base SP0, don't
-> we want to act like the port is down?
+Al
 
-For base SP0, PortState and PortPhysicalState are "not used" in the SM
-PortInfo attribute. That means they're "vendor" specific and they should
-not be relied upon to be valid.
+-- 
+Albert Chu
+chu11-i2BcT+NCU+M@public.gmane.org
+Computer Scientist
+High Performance Systems Division
+Lawrence Livermore National Laboratory
 
-The point of this patch is that base SP0 is always up regardless of what
-PortInfo for that port says.
+--=-kwkVUQL/4MLRGmRzzo0s
+Content-Disposition: attachment; filename*0=0001-do-not-use-the-dimn_ports_file-if-not-using-dor-rout.pat; filename*1=ch
+Content-Type: message/rfc822; name=0001-do-not-use-the-dimn_ports_file-if-not-using-dor-rout.patch
 
-If SM wasn't allowed to run on base SP0, it would be a different patch:
-to prohibit such a port from being used at all as the SM port so the
-failure would be earlier in the code flow when the SM tries to bind to
-such a port.
+From: Albert L. Chu <chu11-i2BcT+NCU+M@public.gmane.org>
+Date: Wed, 20 Apr 2011 10:56:33 -0700
+Subject: [PATCH] do not use the dimn_ports_file if not using dor routing.
+	If the dimn_ports_file is specified, it currently will be utilized
+	regardless of the routing algorithm actually being used.
+Message-Id: <1303322470.21002.120.camel-akkeaxHeDKRliZ7u+bvwcg@public.gmane.org>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 
--- Hal
 
->>
->> Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
->> ---
->> diff --git a/opensm/osm_state_mgr.c b/opensm/osm_state_mgr.c
->> index 2e1ef94..dd308f2 100644
->> --- a/opensm/osm_state_mgr.c
->> +++ b/opensm/osm_state_mgr.c
->> @@ -352,7 +352,11 @@ static boolean_t state_mgr_is_sm_port_down(IN osm_sm_t * sm)
->>  
->>  	CL_ASSERT(p_physp);
->>  
->> -	state = osm_physp_get_port_state(p_physp);
->> +	if (p_port->p_node->sw &&
->> +	    !ib_switch_info_is_enhanced_port0(&p_port->p_node->sw->switch_info))
->> +		state = IB_LINK_ACTIVE;	/* base SP0 */
->> +	else
->> +		state = osm_physp_get_port_state(p_physp);
->>  	CL_PLOCK_RELEASE(sm->p_lock);
->>  
->>  Exit:
->> --
+Signed-off-by: Albert L. Chu <chu11-i2BcT+NCU+M@public.gmane.org>
+---
+ opensm/osm_switch.c |    6 +++++-
+ 1 files changed, 5 insertions(+), 1 deletions(-)
 
-> 
-> -- Alex
+diff --git a/opensm/osm_switch.c b/opensm/osm_switch.c
+index 9785a9d..47325b6 100644
+--- a/opensm/osm_switch.c
++++ b/opensm/osm_switch.c
+@@ -344,7 +344,11 @@ uint8_t osm_switch_recommend_path(IN const osm_switch_t * p_sw,
+ 
+ 	/* port number starts with one and num_ports is 1 + num phys ports */
+ 	for (i = start_from; i < start_from + num_ports; i++) {
+-		port_num = osm_switch_get_dimn_port(p_sw, i % num_ports);
++		if (dor)
++			port_num = osm_switch_get_dimn_port(p_sw, i % num_ports);
++		else
++			port_num = i % num_ports;
++
+ 		if (!port_num ||
+ 		    osm_switch_get_hop_count(p_sw, base_lid, port_num) !=
+ 		    least_hops)
+-- 
+1.7.1
 
+
+--=-kwkVUQL/4MLRGmRzzo0s--
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
