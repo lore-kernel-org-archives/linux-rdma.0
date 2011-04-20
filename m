@@ -1,26 +1,62 @@
-From: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
-Subject: Re: [PATCH] net: infiniband/hw/nes: convert to hw_features
-Date: Wed, 20 Apr 2011 01:31:49 -0700 (PDT)
-Message-ID: <20110420.013149.115944372.davem@davemloft.net>
-References: <20110419104320.51E5F13A64@rere.qmqm.pl>
+From: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH 1/2] opensm/osm_port: Add infrastructure for alias GUID
+ support
+Date: Wed, 20 Apr 2011 15:08:54 +0300
+Message-ID: <20110420120854.GA28761@calypso.voltaire.com>
+References: <4DA31781.7070606@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=euc-kr
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="us-ascii"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20110419104320.51E5F13A64-CoA6ZxLDdyEEUmgCuDUIdw@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <4DA31781.7070606-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: mirq-linux-CoA6ZxLDdyEEUmgCuDUIdw@public.gmane.org
-Cc: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-=46rom: Micha=A9=A9 Miros=A9=A9aw <mirq-linux-CoA6ZxLDdyEEUmgCuDUIdw@public.gmane.org>
-Date: Tue, 19 Apr 2011 12:43:20 +0200 (CEST)
+Hi Hal,
 
-> Signed-off-by: Micha=A9=A9 Miros=A9=A9aw <mirq-linux-CoA6ZxLDdyEEUmgCuDUIdw@public.gmane.org>
+On 11:00 Mon 11 Apr     , Hal Rosenstock wrote:
+> 
+> alias GUIDs are those indicated in SM GUIDInfo attribute
+> (other than index 0) and are created/removed via SA Set/Delete
+> of GUIDInfoRecord per IBTA MgtWG errata RefIDs 4704-4706.
+> 
+> Up to now, this attribute was unneeded by the SM as only base port
+> GUIDs were supported (and are available from the SM NodeInfo attribute).
+> 
+> In order to support alias GUIDs, a new alias GUID table is to be added
+> indexed by alias GUID, each containing a pointer to the base port. The
+> routines for creating and removing alias GUID table entries are added
+> by this patch. Also, a pointer to the alias port GUIDs provided by the
+> SM GUIDInfo attribute is added to the osm_physp_t structure.
+> 
+> Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> ---
+> diff --git a/include/opensm/osm_port.h b/include/opensm/osm_port.h
+> index ee9feec..3433e31 100644
+> --- a/include/opensm/osm_port.h
+> +++ b/include/opensm/osm_port.h
+> @@ -1,6 +1,6 @@
+>  /*
+>   * Copyright (c) 2004-2009 Voltaire, Inc. All rights reserved.
+> - * Copyright (c) 2002-2007 Mellanox Technologies LTD. All rights reserved.
+> + * Copyright (c) 2002-2010 Mellanox Technologies LTD. All rights reserved.
+>   * Copyright (c) 1996-2003 Intel Corporation. All rights reserved.
+>   *
+>   * This software is available to you under a choice of one of two
+> @@ -105,6 +105,7 @@ struct osm_mgrp;
+>  typedef struct osm_physp {
+>  	ib_port_info_t port_info;
+>  	ib_net64_t port_guid;
+> +	ib_net64_t (*p_guids)[];
 
-Applied.
+Can we use only one array for port guids? I guess port_guid would be always
+the first element of p_guids[].
+
+
+-- Alex
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
