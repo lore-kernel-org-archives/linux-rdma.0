@@ -1,76 +1,46 @@
-From: Albert Chu <chu11-i2BcT+NCU+M@public.gmane.org>
-Subject: [opensm] [PATCH] do not use the dimn_ports_file if not using dor
-	routing
-Date: Wed, 20 Apr 2011 11:02:13 -0700
-Message-ID: <1303322533.21002.121.camel@auk59.llnl.gov>
+From: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH 1/2] opensm/osm_state_mgr.c: Don't rely on
+ PortInfo:PortState for base SP0
+Date: Thu, 21 Apr 2011 15:22:43 +0300
+Message-ID: <20110421122243.GA2137@calypso.voltaire.com>
+References: <4DAC3CCC.4090101@dev.mellanox.co.il>
+ <20110420141713.GD28761@calypso.voltaire.com>
+ <4DAEF103.1000706@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="=-kwkVUQL/4MLRGmRzzo0s"
+Content-Type: text/plain; charset="us-ascii"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <4DAEF103.1000706-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On 10:43 Wed 20 Apr     , Hal Rosenstock wrote:
+> Hi Alex,
+> 
+> On 4/20/2011 10:17 AM, Alex Netes wrote:
+> > Hi Hal,
+> > 
+> > On 09:29 Mon 18 Apr     , Hal Rosenstock wrote:
+> >>
+> >> For base SP0, PortState in SM PortInfo attribute is not used and base SP0
+> >> is always "active". 
+> > 
+> > How SM can be attached to base SP0?
+> 
+> What precludes this ? AFAIK SM can run on any switch port 0 whether
+> enhanced or base.
+> 
 
---=-kwkVUQL/4MLRGmRzzo0s
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+I'm probably missing something. Base Switch Port 0 - A Switch Port 0 which is
+not an Endport (IBTA p71). 
+If you look further, Endport defined as a Port which can be a destination of 
+LID-routed communication within the same Subnet as the sender.
 
-Do not use the dimn_ports_file if not using dor routing. If the
-dimn_ports_file is specified, it currently will be utilized regardless
-of the routing algorithm actually being used.
+How can SM be attached to a port which isn't an Endport?
 
-Al
-
--- 
-Albert Chu
-chu11-i2BcT+NCU+M@public.gmane.org
-Computer Scientist
-High Performance Systems Division
-Lawrence Livermore National Laboratory
-
---=-kwkVUQL/4MLRGmRzzo0s
-Content-Disposition: attachment; filename*0=0001-do-not-use-the-dimn_ports_file-if-not-using-dor-rout.pat; filename*1=ch
-Content-Type: message/rfc822; name=0001-do-not-use-the-dimn_ports_file-if-not-using-dor-rout.patch
-
-From: Albert L. Chu <chu11-i2BcT+NCU+M@public.gmane.org>
-Date: Wed, 20 Apr 2011 10:56:33 -0700
-Subject: [PATCH] do not use the dimn_ports_file if not using dor routing.
-	If the dimn_ports_file is specified, it currently will be utilized
-	regardless of the routing algorithm actually being used.
-Message-Id: <1303322470.21002.120.camel-akkeaxHeDKRliZ7u+bvwcg@public.gmane.org>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
-
-
-Signed-off-by: Albert L. Chu <chu11-i2BcT+NCU+M@public.gmane.org>
----
- opensm/osm_switch.c |    6 +++++-
- 1 files changed, 5 insertions(+), 1 deletions(-)
-
-diff --git a/opensm/osm_switch.c b/opensm/osm_switch.c
-index 9785a9d..47325b6 100644
---- a/opensm/osm_switch.c
-+++ b/opensm/osm_switch.c
-@@ -344,7 +344,11 @@ uint8_t osm_switch_recommend_path(IN const osm_switch_t * p_sw,
- 
- 	/* port number starts with one and num_ports is 1 + num phys ports */
- 	for (i = start_from; i < start_from + num_ports; i++) {
--		port_num = osm_switch_get_dimn_port(p_sw, i % num_ports);
-+		if (dor)
-+			port_num = osm_switch_get_dimn_port(p_sw, i % num_ports);
-+		else
-+			port_num = i % num_ports;
-+
- 		if (!port_num ||
- 		    osm_switch_get_hop_count(p_sw, base_lid, port_num) !=
- 		    least_hops)
--- 
-1.7.1
-
-
---=-kwkVUQL/4MLRGmRzzo0s--
-
+-- Alex
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
