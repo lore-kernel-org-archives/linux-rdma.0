@@ -1,36 +1,64 @@
-From: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
-Subject: Re: rdma_create_qp() and max_send_wr
-Date: Thu, 21 Apr 2011 11:35:57 -0700
-Message-ID: <BANLkTikUOv3mtgb3x_vbbk845_36fu1QhA@mail.gmail.com>
-References: <1303404264.2243.19.camel@deela.quest-ce.net>
+From: Marius Hillenbrand <marius-YNthFWz8GsSVVg0uGvK5oA@public.gmane.org>
+Subject: virtual lanes and impact on ib_write_bw
+Date: Fri, 22 Apr 2011 00:25:05 +0200
+Message-ID: <4DB0AEC1.9080003@sirius.inka.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1303404264.2243.19.camel-H/AUWmsJYVeqvyCYKW+Xr6xOck334EZe@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Apr 21, 2011 at 9:44 AM, Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org> wrote:
-> I have a problem with rdma_create_qp() when I set
-> qp_init_attr.cap.max_send_wr to something higher than 16351:
-> it returns -1 and errno is set to ENOMEM "Cannot allocate memory".
->
-> strace doesn't show anything related to memory, but the last write()
-> syscall returns EINVAL "Invalid Argument".
->
-> I'm using a Mellanox ConnectX MT26428 (v2.6.100 / a0) HCA, under Debian
-> 6.0 (kernel 2.6.32-5, librdmacm 1.0.10-1, libibverbs 1.1.3-2, libmlx4
-> 1.0-1).
->
-> According to ibv_query_device() informations,
-> ibv_device_attr.max_qp_wr is 16384 (and ibv_device_attr.max_qp_wr is
-> 16383). So one might think that 16383 outstanding WR should be OK.
+Hi,
 
-Getting exactly the right value for max_qp_wr is kind of tricky because
-of complicated allocation rules.  I guess this is just a mlx4 bug in
-reporting not quite the right value from ibv_query_device().
+I am currently running experiments with different virtual lane settings,
+but my results so far do not match my understanding of IB virtual lane
+arbitration (from the IB specs and the opensm QoS docs). Especially the
+high- and low-prio arbitration tables "do not behave". So, I hope one of
+you might find the flaw in my approach:
+
+My opensm configuration (reduced to qos entries):
+qos TRUE # and --qos at startup
+qos_high_limit 255
+
+# 8 VLs supported, straight mapping
+qos_sl2vl      0,1,2,3,4,5,6,7,0,1,2,3,4,5,6,7
+[qos_ca_sl2vl and qos_swe_sl2vl lines with same content]
+
+# VL0 in high priority table, VL1 in low priority table
+qos_vlarb_high 0:255
+qos_vlarb_low  1:255
+
+I expect that traffic in VL0 (from SL0, or SL8) is preferred over
+traffic in VL1 (from SL1, or SL9). Actually, traffic in VL1 should
+starve, when there are packets available in VL0, right?!
+But, when I run two instances of ib_write_bw from the perftest
+collection between two nodes at the same time (modified to use a pthread
+barrier to start simultaneously), both receive half the available
+bandwidth. Further, varying the weights in the arbitration tables seems
+to have no effect.
+
+Service Levels 2 and above are filtered, so I conclude that opensm does
+indeed set the arbitration tables.
+
+My current assumption is, that a scheduling policy internal to the HCA
+(maybe round robin on QPs) masks the virtual lane arbitration in this
+setup (HCA->switch->HCA, so the switch does not influence packet order
+anymore). Does this make sense, or is there something else fundamentally
+wrong in my configuration above?
+
+Thanks in advance for any hints,
+Marius Hillenbrand
+
+PS, background info:
+opensm versions: 3.3.7_MLNX and 3.3.9_83b6752 tested with same results.
+HW: 2 Intel Nehalem 4-core nodes with Mellanox ConnectX-2 HCAs on a
+Mellanox InfiniScale switch.
+SW: OFED 1.5.3, CentOS 5.5, kernel 2.6.18...,
+Benchmark: ib_write_bw from the perftest collection, modified to run
+several threads at the same time with different parameters (especially
+different service levels).
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
