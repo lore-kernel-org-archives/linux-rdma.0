@@ -1,52 +1,36 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH] opensm: Create all directories in database path on Windows
-Date: Thu, 21 Apr 2011 11:21:41 -0700
-Message-ID: <CF9C39F99A89134C9CF9C4CCB68B8DDF25DCD83A1B@orsmsx501.amr.corp.intel.com>
-References: <CF9C39F99A89134C9CF9C4CCB68B8DDF25DCD82F9D@orsmsx501.amr.corp.intel.com>
-	<3F6F638B8D880340AB536D29CD4C1E1925F1EFC4F0@orsmsx501.amr.corp.intel.com>
-	<CF9C39F99A89134C9CF9C4CCB68B8DDF25DCD8326A@orsmsx501.amr.corp.intel.com>
-	<BANLkTincBjF3CuHq+q2-Xr5Fby9y-Xox4g@mail.gmail.com>
-	<3F6F638B8D880340AB536D29CD4C1E1925F1EFC9BC@orsmsx501.amr.corp.intel.com>
- <BANLkTi=pqaQSir3iCNLiety-jvF2xGJBcw@mail.gmail.com>
+From: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+Subject: Re: rdma_create_qp() and max_send_wr
+Date: Thu, 21 Apr 2011 11:35:57 -0700
+Message-ID: <BANLkTikUOv3mtgb3x_vbbk845_36fu1QhA@mail.gmail.com>
+References: <1303404264.2243.19.camel@deela.quest-ce.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <BANLkTi=pqaQSir3iCNLiety-jvF2xGJBcw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <1303404264.2243.19.camel-H/AUWmsJYVeqvyCYKW+Xr6xOck334EZe@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "Smith, Stan" <stan.smith-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: "ofw-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org" <ofw-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-UmVwbGFjZSBDcmVhdGVEaXJlY3Rvcnkgd2l0aCBTSENyZWF0ZURpcmVjdG9yeUV4LCBzbyB0aGF0
-DQppbnRlcm1lZGlhdGUgZGlyZWN0b3JpZXMgaW4gdGhlIGRhdGFiYXNlIHBhdGggYXJlIGNyZWF0
-ZWQuDQoNClRoaXMgZml4ZXMgYW4gaXNzdWUgd2hlcmUgb3BlbnNtIGZhaWxzIHRvIHN0YXJ0IHVu
-bGVzcyB0aGUNCnBhdGggaGFzIGJlZW4gY3JlYXRlZCBiZWZvcmVoYW5kLg0KDQpTaWduZWQtb2Zm
-LWJ5OiBTZWFuIEhlZnR5IDxzZWFuLmhlZnR5QGludGVsLmNvbT4NCi0tLQ0KVGhpcyB3aWxsIHN5
-bmMgdGhlIG9wZW5zbS5naXQgdHJlZSB3aXRoIHRoZSB3aW5kb3dzIHN2biByZXBvc2l0b3J5DQpm
-b3IgdGhpcyBwYXRjaC4gIFRoaXMgaXMgc2ltcGx5IHRvIG1ha2UgZnV0dXJlIHVwZGF0ZXMgZWFz
-aWVyLg0KSSBkbyBub3Qgc2VlIHRoYXQgdGhlIG90aGVyIGZpbGVzIHRoYXQgY2hhbmdlZCBhcmUg
-cGFydCBvZiBnaXQuDQpJZiBubyBvbmUgb2JqZWN0cywgSSdsbCBjb21taXQgdG8gc3ZuIG9uY2Ug
-cHVsbGVkIGludG8gZ2l0Lg0KDQogb3BlbnNtL29zbV9kYl9maWxlcy5jIHwgICAxNSArKysrKysr
-KysrKysrLS0NCiAxIGZpbGVzIGNoYW5nZWQsIDEzIGluc2VydGlvbnMoKyksIDIgZGVsZXRpb25z
-KC0pDQoNCmRpZmYgLS1naXQgYS9vcGVuc20vb3NtX2RiX2ZpbGVzLmMgYi9vcGVuc20vb3NtX2Ri
-X2ZpbGVzLmMNCmluZGV4IDE4YWM4MzAuLjZlOWE2NzYNCi0tLSBhL29wZW5zbS9vc21fZGJfZmls
-ZXMuYw0KKysrIGIvb3BlbnNtL29zbV9kYl9maWxlcy5jDQpAQCAtMTY5LDggKzE2OSwxOSBAQCBp
-bnQgb3NtX2RiX2luaXQoSU4gb3NtX2RiX3QgKiBwX2RiLCBJTiBvc21fbG9nX3QgKiBwX2xvZykN
-CiAJLyogQ3JlYXRlIHRoZSBkaXJlY3RvcnkgaWYgaXQgZG9lc24ndCBleGlzdCAqLw0KIAkvKiBU
-aGVyZSBpcyBhIGRpZmZlcmVuY2UgaW4gY3JlYXRpbmcgZGlyZWN0b3J5IGJldHdlZW4gd2luZG93
-cyBhbmQgbGludXggKi8NCiAjaWZkZWYgX19XSU5fXw0KLQkvKiBDaGVjayBpZiB0aGUgZGlyZWN0
-b3J5IGV4aXN0cy4gSWYgbm90IC0gY3JlYXRlIGl0LiAqLw0KLQlDcmVhdGVEaXJlY3RvcnkocF9k
-Yl9pbXAtPmRiX2Rpcl9uYW1lLCBOVUxMKTsNCisJew0KKwkJaW50IHJldDsNCisNCisJCXJldCA9
-IFNIQ3JlYXRlRGlyZWN0b3J5RXgoTlVMTCwgcF9kYl9pbXAtPmRiX2Rpcl9uYW1lLCBOVUxMKTsN
-CisJCWlmIChyZXQgIT0gRVJST1JfU1VDQ0VTUyAmJiByZXQgIT0gRVJST1JfQUxSRUFEWV9FWElT
-VFMgJiYNCisJCQlyZXQgIT0gRVJST1JfRklMRV9FWElTVFMpIHsNCisJCQlPU01fTE9HKHBfbG9n
-LCBPU01fTE9HX0VSUk9SLCAiRVJSIDB4JXg6ICINCisJCQkJIkZhaWxlZCB0byBjcmVhdGUgdGhl
-IGRiIGRpcmVjdG9yeTolc1xuIiwNCisJCQkJcmV0LCBwX2RiX2ltcC0+ZGJfZGlyX25hbWUpOw0K
-KwkJCU9TTV9MT0dfRVhJVChwX2xvZyk7DQorCQkJcmV0dXJuIDE7DQorCQl9DQorCX0NCiAjZWxz
-ZQkJCQkvKiBfX1dJTl9fICovDQogCS8qIG1ha2Ugc3VyZSB0aGUgZGlyZWN0b3J5IGV4aXN0cyAq
-Lw0KIAlpZiAobHN0YXQocF9kYl9pbXAtPmRiX2Rpcl9uYW1lLCAmZHN0YXQpKSB7DQoNCg0K
+On Thu, Apr 21, 2011 at 9:44 AM, Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org> wrote:
+> I have a problem with rdma_create_qp() when I set
+> qp_init_attr.cap.max_send_wr to something higher than 16351:
+> it returns -1 and errno is set to ENOMEM "Cannot allocate memory".
+>
+> strace doesn't show anything related to memory, but the last write()
+> syscall returns EINVAL "Invalid Argument".
+>
+> I'm using a Mellanox ConnectX MT26428 (v2.6.100 / a0) HCA, under Debian
+> 6.0 (kernel 2.6.32-5, librdmacm 1.0.10-1, libibverbs 1.1.3-2, libmlx4
+> 1.0-1).
+>
+> According to ibv_query_device() informations,
+> ibv_device_attr.max_qp_wr is 16384 (and ibv_device_attr.max_qp_wr is
+> 16383). So one might think that 16383 outstanding WR should be OK.
+
+Getting exactly the right value for max_qp_wr is kind of tricky because
+of complicated allocation rules.  I guess this is just a mlx4 bug in
+reporting not quite the right value from ibv_query_device().
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
