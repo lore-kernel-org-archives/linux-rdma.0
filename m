@@ -1,74 +1,172 @@
-From: "Paul Monday (Parallel Scientific)" <paul.monday-HFKXkVZtcVHQT0dZR+AlfA@public.gmane.org>
-Subject: opensm: file routing engine
-Date: Fri, 22 Apr 2011 08:41:27 -0600
-Message-ID: <4DB19397.7090005@parsci.com>
+From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: [PATCH 1/2] RDMA/cxgb4: Reset wait condition atomically.
+Date: Fri, 22 Apr 2011 12:56:07 -0500
+Message-ID: <20110422175607.8004.14295.stgit@build.ogc.int>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-I've been toying with the file routing engine implementation for some 
-work I'm doing, but I'm finding very little documentation on it.  I only 
-have one switch to experiment with at the moment as well so some of the 
-information in the lid / lfts files that are generated are not obvious 
-for how they expand to a multiple switch environment.  Perhaps there is 
-a document around since I'm a RTFM type of person?
+The driver was never really waiting for RDMA_WR/FINI completions because
+the condition variable used to determine if the completion happened was
+never reset, and this condition variable is reused for both connection
+setup and teardown.  This causes various driver crashes under heavy
+loads due to releasing resources too early.
 
-At any rate, here's what I've gathered with 4. being the big question.
+The fix is to use atomic bits to correctly reset the condition immediately
+after the completion is detected.
 
-1. The easiest way to get started with the file routing engine is to 
-generate the lid / lfts using a different routing engine.  I went ahead 
-and did the following:  opensm -D 0x40 -R ftree
-2. Once run, copy the /var/log/opensm-lfts.dump and 
-/var/log/opensm-lid-matrix.dump files elsewhere for use
-3. I've tried to generalize the file contents below
-4. Modify the opensm-lid-matrix.dump file to "implement" or "tweak" the 
-routing algorithm over the physical network?
-5. Run opensm -R file -M new-lid-matrix.dump -U new-lfts.dump
+Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+---
 
-I have one other strange question ... is it possible to carve a single 
-physical switch into two logical switches (put a cable between ports 
-16/17 and modify the routing tables ... this seems like it wouldn't work 
-as the Unicast LID / Switch: guid rows in the respective files below 
-serve as keys so the single switch would be identified twice).
+ drivers/infiniband/hw/cxgb4/cm.c       |   30 +++++++-----------------------
+ drivers/infiniband/hw/cxgb4/iw_cxgb4.h |   26 +++++++++++++++++++-------
+ 2 files changed, 26 insertions(+), 30 deletions(-)
 
-The file formats seem to be:
-
-opensm-lfts.dump (later becomes -U [file])
-- Contains all discovered ports (powered on), their function (Switch vs. 
-Channel Adapter), their LID and some extra information.  This is 
-essentially the physical network (if all machines are powered on) ... 
-the format is:
-Unicast lids [0-x] of switch Lid LID# guid <GUID> ('switch description'):
-<LID 0xZZZZ> <SwitchPort ZZZ> # <Channel Adapter | Switch> portguid 
-<GUID>: 'Descirption'
-
-I assume this file grows with all of the Channel Adapters and switches.  
-Given a switch-switch connection a row would look like
-0x0019 005 # Switch portguid 0x000000000000003 'MF3:switch-my:MTS3600/U1'
-
-You could essentially use this file to map the entire physical network, 
-you would end up with a graph ... but no information for how to traverse 
-it efficiently, does that sound right?
-
-opensm-lid-matrix.dump
-- Looks like it contains the hop information ... but it's a bit more 
-cryptic since I have only one switch :(  It should contain a list of all 
-switches, the LID for the switch and then hop information.  The hop 
-information is what I'm a bit puzzled about here, as well as what port 
-guid information is tacked on.  The format of the file is:
-Switch: guid 0x000000000000x
-<LID 0xZZZZ> 00 ff ff <hops for all ports> # portguid 0x0000000
-
-I know ... it's a detailed question but I figured I would write enough 
-so someone else wouldn't have to reverse engineer using the file routing 
-engine if this is basically right.
-
-Paul Monday
-Parallel Scientific, LLC
+diff --git a/drivers/infiniband/hw/cxgb4/cm.c b/drivers/infiniband/hw/cxgb4/cm.c
+index d235810..d7ee70f 100644
+--- a/drivers/infiniband/hw/cxgb4/cm.c
++++ b/drivers/infiniband/hw/cxgb4/cm.c
+@@ -1198,9 +1198,7 @@ static int pass_open_rpl(struct c4iw_dev *dev, struct sk_buff *skb)
+ 	}
+ 	PDBG("%s ep %p status %d error %d\n", __func__, ep,
+ 	     rpl->status, status2errno(rpl->status));
+-	ep->com.wr_wait.ret = status2errno(rpl->status);
+-	ep->com.wr_wait.done = 1;
+-	wake_up(&ep->com.wr_wait.wait);
++	c4iw_wake_up(&ep->com.wr_wait, status2errno(rpl->status));
+ 
+ 	return 0;
+ }
+@@ -1234,9 +1232,7 @@ static int close_listsrv_rpl(struct c4iw_dev *dev, struct sk_buff *skb)
+ 	struct c4iw_listen_ep *ep = lookup_stid(t, stid);
+ 
+ 	PDBG("%s ep %p\n", __func__, ep);
+-	ep->com.wr_wait.ret = status2errno(rpl->status);
+-	ep->com.wr_wait.done = 1;
+-	wake_up(&ep->com.wr_wait.wait);
++	c4iw_wake_up(&ep->com.wr_wait, status2errno(rpl->status));
+ 	return 0;
+ }
+ 
+@@ -1492,17 +1488,13 @@ static int peer_close(struct c4iw_dev *dev, struct sk_buff *skb)
+ 		 * in rdma connection migration (see c4iw_accept_cr()).
+ 		 */
+ 		__state_set(&ep->com, CLOSING);
+-		ep->com.wr_wait.done = 1;
+-		ep->com.wr_wait.ret = -ECONNRESET;
+ 		PDBG("waking up ep %p tid %u\n", ep, ep->hwtid);
+-		wake_up(&ep->com.wr_wait.wait);
++		c4iw_wake_up(&ep->com.wr_wait, -ECONNRESET);
+ 		break;
+ 	case MPA_REP_SENT:
+ 		__state_set(&ep->com, CLOSING);
+-		ep->com.wr_wait.done = 1;
+-		ep->com.wr_wait.ret = -ECONNRESET;
+ 		PDBG("waking up ep %p tid %u\n", ep, ep->hwtid);
+-		wake_up(&ep->com.wr_wait.wait);
++		c4iw_wake_up(&ep->com.wr_wait, -ECONNRESET);
+ 		break;
+ 	case FPDU_MODE:
+ 		start_ep_timer(ep);
+@@ -1579,9 +1571,7 @@ static int peer_abort(struct c4iw_dev *dev, struct sk_buff *skb)
+ 	/*
+ 	 * Wake up any threads in rdma_init() or rdma_fini().
+ 	 */
+-	ep->com.wr_wait.done = 1;
+-	ep->com.wr_wait.ret = -ECONNRESET;
+-	wake_up(&ep->com.wr_wait.wait);
++	c4iw_wake_up(&ep->com.wr_wait, -ECONNRESET);
+ 
+ 	mutex_lock(&ep->com.mutex);
+ 	switch (ep->com.state) {
+@@ -2294,14 +2284,8 @@ static int fw6_msg(struct c4iw_dev *dev, struct sk_buff *skb)
+ 		ret = (int)((be64_to_cpu(rpl->data[0]) >> 8) & 0xff);
+ 		wr_waitp = (struct c4iw_wr_wait *)(__force unsigned long) rpl->data[1];
+ 		PDBG("%s wr_waitp %p ret %u\n", __func__, wr_waitp, ret);
+-		if (wr_waitp) {
+-			if (ret)
+-				wr_waitp->ret = -ret;
+-			else
+-				wr_waitp->ret = 0;
+-			wr_waitp->done = 1;
+-			wake_up(&wr_waitp->wait);
+-		}
++		if (wr_waitp)
++			c4iw_wake_up(wr_waitp, ret ? -ret : 0);
+ 		kfree_skb(skb);
+ 		break;
+ 	case 2:
+diff --git a/drivers/infiniband/hw/cxgb4/iw_cxgb4.h b/drivers/infiniband/hw/cxgb4/iw_cxgb4.h
+index 8e16eb2..3dcfe82 100644
+--- a/drivers/infiniband/hw/cxgb4/iw_cxgb4.h
++++ b/drivers/infiniband/hw/cxgb4/iw_cxgb4.h
+@@ -131,42 +131,54 @@ static inline int c4iw_num_stags(struct c4iw_rdev *rdev)
+ 
+ #define C4IW_WR_TO (10*HZ)
+ 
++enum {
++	REPLY_READY = 0,
++};
++
+ struct c4iw_wr_wait {
+ 	wait_queue_head_t wait;
+-	int done;
++	unsigned long status;
+ 	int ret;
+ };
+ 
+ static inline void c4iw_init_wr_wait(struct c4iw_wr_wait *wr_waitp)
+ {
+ 	wr_waitp->ret = 0;
+-	wr_waitp->done = 0;
++	wr_waitp->status = 0;
+ 	init_waitqueue_head(&wr_waitp->wait);
+ }
+ 
++static inline void c4iw_wake_up(struct c4iw_wr_wait *wr_waitp, int ret)
++{
++	wr_waitp->ret = ret;
++	set_bit(REPLY_READY, &wr_waitp->status);
++	wake_up(&wr_waitp->wait);
++}
++
+ static inline int c4iw_wait_for_reply(struct c4iw_rdev *rdev,
+ 				 struct c4iw_wr_wait *wr_waitp,
+ 				 u32 hwtid, u32 qpid,
+ 				 const char *func)
+ {
+ 	unsigned to = C4IW_WR_TO;
+-	do {
++	int ret;
+ 
+-		wait_event_timeout(wr_waitp->wait, wr_waitp->done, to);
+-		if (!wr_waitp->done) {
++	do {
++		ret = wait_event_timeout(wr_waitp->wait,
++			test_and_clear_bit(REPLY_READY, &wr_waitp->status), to);
++		if (!ret) {
+ 			printk(KERN_ERR MOD "%s - Device %s not responding - "
+ 			       "tid %u qpid %u\n", func,
+ 			       pci_name(rdev->lldi.pdev), hwtid, qpid);
+ 			to = to << 2;
+ 		}
+-	} while (!wr_waitp->done);
++	} while (!ret);
+ 	if (wr_waitp->ret)
+ 		PDBG("%s: FW reply %d tid %u qpid %u\n",
+ 		     pci_name(rdev->lldi.pdev), wr_waitp->ret, hwtid, qpid);
+ 	return wr_waitp->ret;
+ }
+ 
+-
+ struct c4iw_dev {
+ 	struct ib_device ibdev;
+ 	struct c4iw_rdev rdev;
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
