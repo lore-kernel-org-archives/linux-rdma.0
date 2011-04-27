@@ -1,56 +1,42 @@
-From: Albert Chu <chu11-i2BcT+NCU+M@public.gmane.org>
-Subject: Re: [opensm] [PATCH] do not use the dimn_ports_file if not using
-	dor routing
-Date: Wed, 27 Apr 2011 10:07:55 -0700
-Message-ID: <1303924075.21002.273.camel@auk59.llnl.gov>
-References: <1303322533.21002.121.camel@auk59.llnl.gov>
-	 <20110427105005.GA2410@calypso.voltaire.com>
+From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+Subject: [PATCH] infiniband-diags: fix "dist" target and subsequent rpm
+ building
+Date: Wed, 27 Apr 2011 10:25:53 -0700
+Message-ID: <20110427102553.99abdec4.weiny2@llnl.gov>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20110427105005.GA2410-iQai9MGU/dyyaiaB+Ve85laTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hey Alex,
 
-On Wed, 2011-04-27 at 03:50 -0700, Alex Netes wrote:
-> Hi Al,
-> 
-> On 11:02 Wed 20 Apr     , Albert Chu wrote:
-> > Do not use the dimn_ports_file if not using dor routing. If the
-> > dimn_ports_file is specified, it currently will be utilized regardless
-> > of the routing algorithm actually being used.
-> > 
-> > Al
-> > 
-> > -- 
-> 
-> I guess that dimn_ports_file option was designed to be used with DOR, however
-> it got me thinking whether this option could be useful for other cases too.
-> For instance, can you use dimn_ports_file to manually sort ports instead of
-> using Support-remote-guid-sorting patch you recently suggested?
+From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+Date: Wed, 27 Apr 2011 10:08:03 -0700
+Subject: [PATCH] infiniband-diags: fix "dist" target and subsequent rpm building
 
-I think the dimn_ports_file could feasibly do what the
-remote_guid_sorting parth does.  It's more complicated to setup than
-something like the --guid_routing_order_file or --dimn_ports_file files,
-since a fair amount of calculating would have to be done in addition to
-"finding" the switch guids.  But it's definitely doable.
+Signed-off-by: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+---
+ libibnetdisc/Makefile.am |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletions(-)
 
-Perhaps we'd rename the option to something more generic too, like
-'port_search_ordering_file'???
-
-Al
-
+diff --git a/libibnetdisc/Makefile.am b/libibnetdisc/Makefile.am
+index f30d3cc..fbf0e60 100644
+--- a/libibnetdisc/Makefile.am
++++ b/libibnetdisc/Makefile.am
+@@ -36,7 +36,8 @@ test_testleaks_SOURCES = test/testleaks.c
+ test_testleaks_CFLAGS = -Wall $(DBGFLAGS)
+ test_testleaks_LDFLAGS = -libnetdisc
+ 
+-libibnetdiscinclude_HEADERS = $(srcdir)/include/infiniband/ibnetdisc.h
++libibnetdiscinclude_HEADERS = $(srcdir)/include/infiniband/ibnetdisc.h \
++				$(srcdir)/include/infiniband/ibnetdisc_osd.h
+ 
+ man_MANS = man/ibnd_debug.3 \
+ 	man/ibnd_destroy_fabric.3 \
 -- 
-Albert Chu
-chu11-i2BcT+NCU+M@public.gmane.org
-Computer Scientist
-High Performance Systems Division
-Lawrence Livermore National Laboratory
+1.7.1
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
