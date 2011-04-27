@@ -1,76 +1,67 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCHv2 3/3] libibmad/vendor.c: In ib_vendor_call_via, set errno
-Date: Wed, 27 Apr 2011 07:14:41 -0400
-Message-ID: <4DB7FAA1.9080606@dev.mellanox.co.il>
+From: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH 2/2] opensm/osm_pkey_mgr.c: Handle
+ osm_pkey_tbl_new_block_get returning NULL
+Date: Wed, 27 Apr 2011 17:57:36 +0300
+Message-ID: <20110427145736.GA1903@calypso.voltaire.com>
+References: <4DA358FF.3060200@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <4DA358FF.3060200-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+Hi Hal,
 
-according to rpc error field
+On 15:39 Mon 11 Apr     , Hal Rosenstock wrote:
+> 
+> Fixes seg fault when ib_pkey_is_invalid called in last_used_pkey_index
+> 
+> Introduced by commit aebd9f9d9cdd1c60c2b3784c0c03cfe8f4014019 
+> for better last block handling
+> 
+> Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> ---
+> diff --git a/opensm/osm_pkey_mgr.c b/opensm/osm_pkey_mgr.c
+> index 06d9b1e..a2021e9 100644
+> --- a/opensm/osm_pkey_mgr.c
+> +++ b/opensm/osm_pkey_mgr.c
+> @@ -375,14 +375,19 @@ static int pkey_mgr_update_port(osm_log_t * p_log, osm_sm_t * sm,
+>  	return ret;
+>  }
+>  
+> -static uint16_t last_used_pkey_index(const osm_port_t * const p_port,
+> -				     const osm_pkey_tbl_t * p_pkey_tbl)
+> +static int last_used_pkey_index(const osm_port_t * const p_port,
+> +				const osm_pkey_tbl_t * p_pkey_tbl,
+> +				uint16_t * p_last_index)
+>  {
+>  	ib_pkey_table_t *last_block;
+>  	uint16_t index, last_index = 0;
+>  
+> +	CL_ASSERT(p_last_index);
+> +
+>  	last_block = osm_pkey_tbl_new_block_get(p_pkey_tbl,
+>  						p_pkey_tbl->used_blocks - 1);
+> +	if (!last_block)
+> +		return 1;
+>  
+>  	if (p_pkey_tbl->used_blocks == p_pkey_tbl->max_blocks)
+>  		last_index = cl_ntoh16(p_port->p_node->node_info.partition_cap) % IB_NUM_PKEY_ELEMENTS_IN_BLOCK;
+> @@ -395,7 +400,8 @@ static uint16_t last_used_pkey_index(const osm_port_t * const p_port,
+>  			break;
+>  	} while (index != 0);
+>  
+> -	return index;
+> +	*p_last_index = index;
 
-Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
-diff --git a/src/vendor.c b/src/vendor.c
-index 11efd76..22d6843 100644
---- a/src/vendor.c
-+++ b/src/vendor.c
-@@ -1,5 +1,6 @@
- /*
-  * Copyright (c) 2004-2009 Voltaire Inc.  All rights reserved.
-+ * Copyright (c) 2011 Mellanox Technologies LTD.  All rights reserved.
-  *
-  * This software is available to you under a choice of one of two
-  * licenses.  You may choose to be licensed under the terms of the GNU
-@@ -38,6 +39,7 @@
- #include <stdio.h>
- #include <stdlib.h>
- #include <string.h>
-+#include <errno.h>
- 
- #include <infiniband/mad.h>
- #include "mad_internal.h"
-@@ -61,8 +63,10 @@ uint8_t *ib_vendor_call_via(void *data, ib_portid_t * portid,
- 			    ib_vendor_call_t * call,
- 			    struct ibmad_port * srcport)
- {
--	ib_rpc_t rpc = { 0 };
-+	ib_rpc_v1_t rpc = { 0 };
-+	ib_rpc_t *rpcold = (ib_rpc_t *)(void *)&rpc;
- 	int range1 = 0, resp_expected;
-+	void *p_ret;
- 
- 	DEBUG("route %s data %p", portid2str(portid), data);
- 	if (portid->lid <= 0)
-@@ -74,7 +78,7 @@ uint8_t *ib_vendor_call_via(void *data, ib_portid_t * portid,
- 
- 	resp_expected = response_expected(call->method);
- 
--	rpc.mgtclass = call->mgmt_class;
-+	rpc.mgtclass = call->mgmt_class | IB_MAD_RPC_VERSION1;
- 
- 	rpc.method = call->method;
- 	rpc.attr.id = call->attrid;
-@@ -97,8 +101,11 @@ uint8_t *ib_vendor_call_via(void *data, ib_portid_t * portid,
- 	if (!portid->qkey)
- 		portid->qkey = IB_DEFAULT_QP1_QKEY;
- 
--	if (resp_expected)
--		return mad_rpc_rmpp(srcport, &rpc, portid, 0, data);	/* FIXME: no RMPP for now */
-+	if (resp_expected) {
-+		p_ret = mad_rpc_rmpp(srcport, rpcold, portid, 0, data);	/* FIXME: no RMPP for now */
-+		errno = rpc.error;
-+		return p_ret;
-+	}
- 
--	return mad_send_via(&rpc, portid, 0, data, srcport) < 0 ? 0 : data;	/* FIXME: no RMPP for now */
-+	return mad_send_via(rpcold, portid, 0, data, srcport) < 0 ? 0 : data;	/* FIXME: no RMPP for now */
- }
+I think it should be: *p_last_index = index + 1;
+You want to return the number of pkeys in the block and not the index in the
+array.
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
