@@ -1,20 +1,20 @@
 From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-Subject: Re: [PATCHv2 2/3] libibmad/gs.c: In
- pma_query_via/performance_reset_via, set errno
-Date: Thu, 28 Apr 2011 14:19:05 -0700
-Message-ID: <20110428141905.f0dfc34d.weiny2@llnl.gov>
-References: <4DB7FA9C.8000503@dev.mellanox.co.il>
+Subject: Re: [PATCHv2 3/3] libibmad/vendor.c: In ib_vendor_call_via, set
+ errno
+Date: Thu, 28 Apr 2011 14:19:14 -0700
+Message-ID: <20110428141914.6a0aac98.weiny2@llnl.gov>
+References: <4DB7FAA1.9080606@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4DB7FA9C.8000503-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+In-Reply-To: <4DB7FAA1.9080606-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, 27 Apr 2011 04:14:36 -0700
+On Wed, 27 Apr 2011 04:14:41 -0700
 Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wrote:
 
 > 
@@ -26,10 +26,10 @@ Thanks applied,
 Ira
 
 > ---
-> diff --git a/src/gs.c b/src/gs.c
-> index 3cb2b25..5541b6b 100644
-> --- a/src/gs.c
-> +++ b/src/gs.c
+> diff --git a/src/vendor.c b/src/vendor.c
+> index 11efd76..22d6843 100644
+> --- a/src/vendor.c
+> +++ b/src/vendor.c
 > @@ -1,5 +1,6 @@
 >  /*
 >   * Copyright (c) 2004-2009 Voltaire Inc.  All rights reserved.
@@ -43,70 +43,48 @@ Ira
 >  #include <string.h>
 > +#include <errno.h>
 >  
->  #include <infiniband/umad.h>
 >  #include <infiniband/mad.h>
-> @@ -49,8 +51,10 @@ uint8_t *pma_query_via(void *rcvbuf, ib_portid_t * dest, int port,
->  		       unsigned timeout, unsigned id,
->  		       const struct ibmad_port * srcport)
+>  #include "mad_internal.h"
+> @@ -61,8 +63,10 @@ uint8_t *ib_vendor_call_via(void *data, ib_portid_t * portid,
+>  			    ib_vendor_call_t * call,
+>  			    struct ibmad_port * srcport)
 >  {
 > -	ib_rpc_t rpc = { 0 };
 > +	ib_rpc_v1_t rpc = { 0 };
 > +	ib_rpc_t *rpcold = (ib_rpc_t *)(void *)&rpc;
->  	int lid = dest->lid;
+>  	int range1 = 0, resp_expected;
 > +	void *p_ret;
 >  
->  	DEBUG("lid %u port %d", lid, port);
+>  	DEBUG("route %s data %p", portid2str(portid), data);
+>  	if (portid->lid <= 0)
+> @@ -74,7 +78,7 @@ uint8_t *ib_vendor_call_via(void *data, ib_portid_t * portid,
 >  
-> @@ -59,7 +63,7 @@ uint8_t *pma_query_via(void *rcvbuf, ib_portid_t * dest, int port,
->  		return NULL;
->  	}
+>  	resp_expected = response_expected(call->method);
 >  
-> -	rpc.mgtclass = IB_PERFORMANCE_CLASS;
-> +	rpc.mgtclass = IB_PERFORMANCE_CLASS | IB_MAD_RPC_VERSION1;
->  	rpc.method = IB_MAD_METHOD_GET;
->  	rpc.attr.id = id;
+> -	rpc.mgtclass = call->mgmt_class;
+> +	rpc.mgtclass = call->mgmt_class | IB_MAD_RPC_VERSION1;
 >  
-> @@ -75,15 +79,20 @@ uint8_t *pma_query_via(void *rcvbuf, ib_portid_t * dest, int port,
->  	if (!dest->qkey)
->  		dest->qkey = IB_DEFAULT_QP1_QKEY;
+>  	rpc.method = call->method;
+>  	rpc.attr.id = call->attrid;
+> @@ -97,8 +101,11 @@ uint8_t *ib_vendor_call_via(void *data, ib_portid_t * portid,
+>  	if (!portid->qkey)
+>  		portid->qkey = IB_DEFAULT_QP1_QKEY;
 >  
-> -	return mad_rpc(srcport, &rpc, dest, rcvbuf, rcvbuf);
-> +	p_ret = mad_rpc(srcport, rpcold, dest, rcvbuf, rcvbuf);
-> +	errno = rpc.error;
-> +	return p_ret;
+> -	if (resp_expected)
+> -		return mad_rpc_rmpp(srcport, &rpc, portid, 0, data);	/* FIXME: no RMPP for now */
+> +	if (resp_expected) {
+> +		p_ret = mad_rpc_rmpp(srcport, rpcold, portid, 0, data);	/* FIXME: no RMPP for now */
+> +		errno = rpc.error;
+> +		return p_ret;
+> +	}
+>  
+> -	return mad_send_via(&rpc, portid, 0, data, srcport) < 0 ? 0 : data;	/* FIXME: no RMPP for now */
+> +	return mad_send_via(rpcold, portid, 0, data, srcport) < 0 ? 0 : data;	/* FIXME: no RMPP for now */
 >  }
->  
->  uint8_t *performance_reset_via(void *rcvbuf, ib_portid_t * dest,
->  			       int port, unsigned mask, unsigned timeout,
->  			       unsigned id, const struct ibmad_port * srcport)
->  {
-> -	ib_rpc_t rpc = { 0 };
-> +	ib_rpc_v1_t rpc = { 0 };
-> +	ib_rpc_t *rpcold = (ib_rpc_t *)(void *)&rpc;
-> +
->  	int lid = dest->lid;
-> +	void *p_ret;
->  
->  	DEBUG("lid %u port %d mask 0x%x", lid, port, mask);
->  
-> @@ -95,7 +104,7 @@ uint8_t *performance_reset_via(void *rcvbuf, ib_portid_t * dest,
->  	if (!mask)
->  		mask = ~0;
->  
-> -	rpc.mgtclass = IB_PERFORMANCE_CLASS;
-> +	rpc.mgtclass = IB_PERFORMANCE_CLASS | IB_MAD_RPC_VERSION1;
->  	rpc.method = IB_MAD_METHOD_SET;
->  	rpc.attr.id = id;
->  
-> @@ -115,5 +124,7 @@ uint8_t *performance_reset_via(void *rcvbuf, ib_portid_t * dest,
->  	if (!dest->qkey)
->  		dest->qkey = IB_DEFAULT_QP1_QKEY;
->  
-> -	return mad_rpc(srcport, &rpc, dest, rcvbuf, rcvbuf);
-> +	p_ret = mad_rpc(srcport, rpcold, dest, rcvbuf, rcvbuf);
-> +	errno = rpc.error;
-> +	return p_ret;
->  }
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
 
 -- 
