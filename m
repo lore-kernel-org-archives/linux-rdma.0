@@ -1,241 +1,237 @@
-From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-Subject: [PATCH 05/5 V2] infiniband-diags: ibqueryerrors; add --counters
- option
-Date: Thu, 28 Apr 2011 14:58:35 -0700
-Message-ID: <20110428145835.5bf622f4.weiny2@llnl.gov>
-References: <20110427184700.f2a561c6.weiny2@llnl.gov>
-	<4DB97DBF.20709@dev.mellanox.co.il>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH 1/7] libibumad: provide MAD definitions with libibumad
+Date: Thu, 28 Apr 2011 15:57:48 -0700
+Message-ID: <CF9C39F99A89134C9CF9C4CCB68B8DDF261A1F410B@orsmsx501.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4DB97DBF.20709-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+The only definitions for MAD data types are in ib_types.h, which
+is an opensm file.  The libibumad interface is essentially useless
+without these data types.  Add new header files to libibumad
+with basic MAD data types.
 
-From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-Date: Wed, 27 Apr 2011 01:07:59 -0700
-Subject: [PATCH 05/5 V2] infiniband-diags: ibqueryerrors; add --counters option
+The definitions and structures are based on those defined in
+the linux kernel.  Only an initial framework is given, basically
+the values for various methods, attributes, etc. along with
+structure definitions for the common, rmpp, and vendor specific
+headers.  Other data structures are left for future development.
 
-Display the data counters (optionally extended data counters) for all ports in the fabric.
-
-Chages in V2:
-Only print Unicast/Multicast fields when IsExtendedWidthSupported is indicated.
-
-Signed-off-by: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- src/ibqueryerrors.c |  142 ++++++++++++++++++++++++++++++++++++++++----------
- 1 files changed, 113 insertions(+), 29 deletions(-)
+These patches were posted October 2010, but were never acted on.  Reposting
+with updates based on the ib-mgmt git tree having been divided into
+separate git trees.
 
-diff --git a/src/ibqueryerrors.c b/src/ibqueryerrors.c
-index 4445afc..0147d9c 100644
---- a/src/ibqueryerrors.c
-+++ b/src/ibqueryerrors.c
-@@ -62,6 +62,7 @@ static nn_map_t *node_name_map = NULL;
- static char *load_cache_file = NULL;
- 
- int data_counters = 0;
-+int data_counters_only = 0;
- int port_config = 0;
- uint64_t node_guid = 0;
- char *node_guid_str = NULL;
-@@ -455,8 +456,68 @@ static int query_cap_mask(ib_portid_t * portid, char *node_name, int portnum,
- 	return 0;
- }
- 
--static int print_port(ib_portid_t * portid, uint16_t cap_mask, char *node_name,
--		      ibnd_node_t * node, int portnum, int *header_printed)
-+static int print_data_cnts(ib_portid_t * portid, uint16_t cap_mask,
-+			   char *node_name, ibnd_node_t * node, int portnum,
-+			   int *header_printed)
-+{
-+	uint8_t pc[1024];
-+	int i;
-+	int start_field = IB_PC_XMT_BYTES_F;
-+	int end_field = IB_PC_RCV_PKTS_F;
+ include/infiniband/umad_types.h |  192 +++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 192 insertions(+), 0 deletions(-)
+ create mode 100755 include/infiniband/umad_types.h
+
+diff --git a/include/infiniband/umad_types.h b/include/infiniband/umad_types.h
+new file mode 100755
+index 0000000..54b7e72
+--- /dev/null
++++ b/include/infiniband/umad_types.h
+@@ -0,0 +1,192 @@
++/*
++ * Copyright (c) 2004 Mellanox Technologies Ltd.  All rights reserved.
++ * Copyright (c) 2004 Infinicon Corporation.  All rights reserved.
++ * Copyright (c) 2004, 2010 Intel Corporation.  All rights reserved.
++ * Copyright (c) 2004 Topspin Corporation.  All rights reserved.
++ * Copyright (c) 2004-2006 Voltaire Corporation.  All rights reserved.
++ *
++ * This software is available to you under a choice of one of two
++ * licenses.  You may choose to be licensed under the terms of the GNU
++ * General Public License (GPL) Version 2, available from the file
++ * COPYING in the main directory of this source tree, or the
++ * OpenIB.org BSD license below:
++ *
++ *     Redistribution and use in source and binary forms, with or
++ *     without modification, are permitted provided that the following
++ *     conditions are met:
++ *
++ *      - Redistributions of source code must retain the above
++ *        copyright notice, this list of conditions and the following
++ *        disclaimer.
++ *
++ *      - Redistributions in binary form must reproduce the above
++ *        copyright notice, this list of conditions and the following
++ *        disclaimer in the documentation and/or other materials
++ *        provided with the distribution.
++ *
++ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
++ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
++ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
++ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
++ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
++ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
++ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
++ * SOFTWARE.
++ *
++ */
++#ifndef _UMAD_TYPES_H
++#define _UMAD_TYPES_H
 +
-+	memset(pc, 0, 1024);
++#include <stdint.h>
 +
-+	if (cap_mask & (IB_PM_EXT_WIDTH_SUPPORTED | IB_PM_EXT_WIDTH_NOIETF_SUP)) {
-+		if (!pma_query_via(pc, portid, portnum, ibd_timeout,
-+				   IB_GSI_PORT_COUNTERS_EXT, ibmad_port)) {
-+			IBWARN("IB_GSI_PORT_COUNTERS_EXT query failed on %s, %s port %d",
-+			       node_name, portid2str(portid), portnum);
-+			return (1);
-+		}
-+		start_field = IB_PC_EXT_XMT_BYTES_F;
-+		if (cap_mask & IB_PM_EXT_WIDTH_SUPPORTED)
-+			end_field = IB_PC_EXT_RCV_MPKTS_F;
-+		else
-+			end_field = IB_PC_EXT_RCV_PKTS_F;
-+	} else {
-+		if (!pma_query_via(pc, portid, portnum, ibd_timeout,
-+				   IB_GSI_PORT_COUNTERS, ibmad_port)) {
-+			IBWARN("IB_GSI_PORT_COUNTERS query failed on %s, %s port %d",
-+			       node_name, portid2str(portid), portnum);
-+			return (1);
-+		}
-+		start_field = IB_PC_XMT_BYTES_F;
-+		end_field = IB_PC_RCV_PKTS_F;
-+	}
++#ifdef __cplusplus
++#  define BEGIN_C_DECLS extern "C" {
++#  define END_C_DECLS   }
++#else				/* !__cplusplus */
++#  define BEGIN_C_DECLS
++#  define END_C_DECLS
++#endif				/* __cplusplus */
 +
-+	if (!*header_printed) {
-+		printf("Data Counters for 0x%" PRIx64 " \"%s\"\n", node->guid,
-+		       node_name);
-+		*header_printed = 1;
-+	}
++BEGIN_C_DECLS
 +
-+	if (portnum == 0xFF)
-+		printf("   GUID 0x%" PRIx64 " port ALL:", node->guid);
-+	else
-+		printf("   GUID 0x%" PRIx64 " port %d:",
-+		       node->guid, portnum);
++#define UMAD_BASE_VERSION		1
 +
-+	for (i = start_field; i <= end_field; i++) {
-+		uint64_t val64 = 0;
-+		mad_decode_field(pc, i, (void *)&val64);
-+		printf(" [%s == %" PRIu64 "]", mad_field_name(i), val64);
-+	}
-+	printf("\n");
++/* Management classes */
++enum {
++	UMAD_CLASS_SUBN_LID_ROUTED	= 0x01,
++	UMAD_CLASS_SUBN_DIRECTED_ROUTE	= 0x81,
++	UMAD_CLASS_SUBN_ADM		= 0x03,
++	UMAD_CLASS_PERF_MGMT		= 0x04,
++	UMAD_CLASS_BM			= 0x05,
++	UMAD_CLASS_DEVICE_MGMT		= 0x06,
++	UMAD_CLASS_CM			= 0x07,
++	UMAD_CLASS_SNMP			= 0x08,
++	UMAD_CLASS_VENDOR_RANGE1_START	= 0x09,
++	UMAD_CLASS_VENDOR_RANGE1_END	= 0x0F,
++	UMAD_CLASS_DEVICE_ADM		= 0x10,
++	UMAD_CLASS_BOOT_MGMT		= 0x11,
++	UMAD_CLASS_BIS			= 0x12,
++	UMAD_CLASS_CONG_MGMT		= 0x21,
++	UMAD_CLASS_VENDOR_RANGE2_START	= 0x30,
++	UMAD_CLASS_VENDOR_RANGE2_END	= 0x4F
++};
 +
-+	if (portnum != 0xFF && port_config)
-+		print_port_config(node_name, node, portnum);
++/* Management methods */
++enum {
++	UMAD_METHOD_GET			= 0x01,
++	UMAD_METHOD_SET			= 0x02,
++	UMAD_METHOD_GET_RESP		= 0x81,
++	UMAD_METHOD_SEND		= 0x03,
++	UMAD_METHOD_TRAP		= 0x05,
++	UMAD_METHOD_REPORT		= 0x06,
++	UMAD_METHOD_REPORT_RESP		= 0x86,
++	UMAD_METHOD_TRAP_REPRESS	= 0x07,
++	UMAD_METHOD_RESP		= 0x80
++};
 +
-+	return (0);
-+}
++enum {
++	UMAD_STATUS_SUCCESS  = 0x0000,
++	UMAD_STATUS_BUSY     = 0x0001,
++	UMAD_STATUS_REDIRECT = 0x0002,
 +
-+static int print_errors(ib_portid_t * portid, uint16_t cap_mask,
-+			char *node_name, ibnd_node_t * node, int portnum,
-+			int *header_printed)
- {
- 	uint8_t pc[1024];
- 	uint8_t pce[1024];
-@@ -538,9 +599,6 @@ static void clear_port(ib_portid_t * portid, uint16_t cap_mask,
- 	 */
- 	uint32_t mask = 0;
- 
--	if (!clear_errors && !clear_counts)
--		return;
--
- 	if (clear_errors) {
- 		mask |= 0xFFF;
- 		if (cap_mask & IB_PM_PC_XMIT_WAIT_SUP)
-@@ -549,11 +607,13 @@ static void clear_port(ib_portid_t * portid, uint16_t cap_mask,
- 	if (clear_counts)
- 		mask |= 0xF000;
- 
--	if (!performance_reset_via(pc, portid, port, mask, ibd_timeout,
--				   IB_GSI_PORT_COUNTERS, ibmad_port))
--		IBERROR("Failed to reset errors %s port %d", node_name, port);
-+	if (mask)
-+		if (!performance_reset_via(pc, portid, port, mask, ibd_timeout,
-+					   IB_GSI_PORT_COUNTERS, ibmad_port))
-+			IBERROR("Failed to reset errors %s port %d", node_name,
-+				port);
- 
--	if (details && clear_errors) {
-+	if (clear_errors && details) {
- 		memset(pc, 0, 1024);
- 		performance_reset_via(pc, portid, port, 0xf, ibd_timeout,
- 				      IB_GSI_PORT_XMIT_DISCARD_DETAILS,
-@@ -624,29 +684,49 @@ void print_node(ibnd_node_t * node, void *user_data)
- 			}
- 		}
- 	}
++	/* Invalid fields, bits 2-4 */
++	UMAD_STATUS_BAD_VERSION          = (1 << 2),
++	UMAD_STATUS_METHOD_NOT_SUPPORTED = (2 << 2),
++	UMAD_STATUS_ATTR_NOT_SUPPORTED   = (3 << 2),
++	UMAD_STATUS_INVALID_ATTR_VALUE   = (7 << 2),
 +
- 	if ((query_cap_mask(&portid, node_name, p, &cap_mask) == 0) &&
--	    (cap_mask & IB_PM_ALL_PORT_SELECT)) {
-+	    (cap_mask & IB_PM_ALL_PORT_SELECT))
- 		all_port_sup = 1;
--		if (!print_port(&portid, cap_mask, node_name, node,
--				0xFF, &header_printed)) {
--			summary.ports_checked += node->numports;
--			goto clear;
--		}
--	}
- 
--	for (p = startport; p <= node->numports; p++) {
--		if (node->ports[p]) {
--			if (node->type == IB_NODE_SWITCH)
--				ib_portid_set(&portid, node->smalid, 0, 0);
--			else
--				ib_portid_set(&portid, node->ports[p]->base_lid,
--					      0, 0);
-+	if (data_counters_only) {
-+		for (p = startport; p <= node->numports; p++) {
-+			if (node->ports[p]) {
-+				if (node->type == IB_NODE_SWITCH)
-+					ib_portid_set(&portid, node->smalid, 0, 0);
-+				else
-+					ib_portid_set(&portid, node->ports[p]->base_lid,
-+						      0, 0);
++	UMAD_STATUS_CLASS_MASK = 0xFF00
++};
 +
-+				print_data_cnts(&portid, cap_mask, node_name, node, p,
-+						&header_printed);
-+				summary.ports_checked++;
-+				if (!all_port_sup)
-+					clear_port(&portid, cap_mask, node_name, p);
-+			}
-+		}
-+	} else {
-+		if (all_port_sup)
-+			if (!print_errors(&portid, cap_mask, node_name, node,
-+					  0xFF, &header_printed)) {
-+				summary.ports_checked += node->numports;
-+				goto clear;
-+			}
- 
--			print_port(&portid, cap_mask, node_name, node, p,
--				   &header_printed);
--			summary.ports_checked++;
--			if (!all_port_sup)
--				clear_port(&portid, cap_mask, node_name, p);
-+		for (p = startport; p <= node->numports; p++) {
-+			if (node->ports[p]) {
-+				if (node->type == IB_NODE_SWITCH)
-+					ib_portid_set(&portid, node->smalid, 0, 0);
-+				else
-+					ib_portid_set(&portid, node->ports[p]->base_lid,
-+						      0, 0);
++/* Attributes common to multiple classes */
++enum {
++	UMAD_ATTR_CLASS_PORT_INFO	= 0x0001,
++	UMAD_ATTR_NOTICE		= 0x0002,
++	UMAD_ATTR_INFORM_INFO		= 0x0003
++};
 +
-+				print_errors(&portid, cap_mask, node_name, node, p,
-+					     &header_printed);
-+				summary.ports_checked++;
-+				if (!all_port_sup)
-+					clear_port(&portid, cap_mask, node_name, p);
-+			}
- 		}
- 	}
- 
-@@ -720,6 +800,9 @@ static int process_opt(void *context, int ch, char *optarg)
- 	case 8:
- 		threshold_file = strdup(optarg);
- 		break;
-+	case 9:
-+		data_counters_only = 1;
-+		break;
- 	case 'G':
- 	case 'S':
- 		node_guid_str = optarg;
-@@ -778,11 +861,12 @@ int main(int argc, char **argv)
- 		 "specify an alternate thresold file, default: " DEF_THRES_FILE},
- 		{"GNDN", 'R', 0, NULL,
- 		 "(This option is obsolete and does nothing)"},
--		{"data", 2, 0, NULL, "include the data counters in the output"},
-+		{"data", 2, 0, NULL, "include data counters for ports with errors"},
- 		{"switch", 3, 0, NULL, "print data for switches only"},
- 		{"ca", 4, 0, NULL, "print data for CA's only"},
- 		{"router", 5, 0, NULL, "print data for routers only"},
- 		{"details", 6, 0, NULL, "include transmit discard details"},
-+		{"counters", 9, 0, NULL, "print data counters only"},
- 		{"clear-errors", 'k', 0, NULL,
- 		 "Clear error counters after read"},
- 		{"clear-counts", 'K', 0, NULL,
--- 
-1.7.1
++/* RMPP information */
++#define UMAD_RMPP_VERSION		1
++enum {
++	UMAD_RMPP_TYPE_DATA		= 1,
++	UMAD_RMPP_TYPE_ACK		= 2,
++	UMAD_RMPP_TYPE_STOP		= 3,
++	UMAD_RMPP_TYPE_ABORT		= 4,
++
++	UMAD_RMPP_FLAG_MASK		= 0x07,
++	UMAD_RMPP_FLAG_ACTIVE		= 1,
++	UMAD_RMPP_FLAG_FIRST		= (1 << 1),
++	UMAD_RMPP_FLAG_LAST		= (1 << 2),
++
++	UMAD_RMPP_RESP_TIME_SHIFT	= 3,
++	UMAD_RMPP_NO_RESP_TIME		= 0x1F,
++
++	UMAD_RMPP_STATUS_SUCCESS	= 0,
++	UMAD_RMPP_STATUS_RESX		= 1,
++	UMAD_RMPP_STATUS_ABORT_MIN	= 118,
++	UMAD_RMPP_STATUS_T2L		= 118,
++	UMAD_RMPP_STATUS_BAD_LEN	= 119,
++	UMAD_RMPP_STATUS_BAD_SEG	= 120,
++	UMAD_RMPP_STATUS_BADT		= 121,
++	UMAD_RMPP_STATUS_W2S		= 122,
++	UMAD_RMPP_STATUS_S2B		= 123,
++	UMAD_RMPP_STATUS_BAD_STATUS	= 124,
++	UMAD_RMPP_STATUS_UNV		= 125,
++	UMAD_RMPP_STATUS_TMR		= 126,
++	UMAD_RMPP_STATUS_UNSPEC		= 127,
++	UMAD_RMPP_STATUS_ABORT_MAX	= 127
++};
++
++enum {
++	UMAD_LEN_DATA			= 232,
++	UMAD_LEN_RMPP_DATA		= 220,
++	UMAD_LEN_VENDOR_DATA		= 216,
++};
++
++struct umad_hdr {
++	uint8_t	 base_version;
++	uint8_t	 mgmt_class;
++	uint8_t	 class_version;
++	uint8_t	 method;
++	uint16_t status;
++	uint16_t class_specific;
++	uint64_t tid;
++	uint16_t attr_id;
++	uint16_t resv;
++	uint32_t attr_mod;
++};
++
++struct umad_rmpp_hdr {
++	uint8_t	 rmpp_version;
++	uint8_t	 rmpp_type;
++	uint8_t	 rmpp_rtime_flags;
++	uint8_t	 rmpp_status;
++	uint32_t seg_num;
++	uint32_t paylen_newwin;
++};
++
++struct umad_packet {
++	struct umad_hdr		mad_hdr;
++	uint8_t			data[UMAD_LEN_DATA];
++};
++
++struct umad_rmpp_packet {
++	struct umad_hdr		mad_hdr;
++	struct umad_rmpp_hdr	rmpp_hdr;
++	uint8_t			data[UMAD_LEN_RMPP_DATA];
++};
++
++struct umad_vendor_packet {
++	struct umad_hdr		mad_hdr;
++	struct umad_rmpp_hdr	rmpp_hdr;
++	uint8_t			reserved;
++	uint8_t			oui[3];
++	uint8_t			data[UMAD_LEN_VENDOR_DATA];
++};
++
++enum {
++	UMAD_OPENIB_OUI		= 0x001405
++};
++
++END_C_DECLS
++#endif				/* _UMAD_TYPES_H */
+
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
