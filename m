@@ -1,57 +1,67 @@
 From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-Subject: Re: [PATCH] infiniband-diags/libibnetdisc/ibnetdisc.c: Handle
- calloc failure
-Date: Wed, 27 Apr 2011 14:55:30 -0700
-Message-ID: <20110427145530.123e0dc1.weiny2@llnl.gov>
-References: <4DB85DCA.40800@dev.mellanox.co.il>
+Subject: [PATCH 0/5] infiniband-diags: ibqueryerrors extend functionality to
+ cover bash scripts
+Date: Wed, 27 Apr 2011 18:46:39 -0700
+Message-ID: <20110427184639.e358871c.weiny2@llnl.gov>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4DB85DCA.40800-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, 27 Apr 2011 11:17:46 -0700
-Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wrote:
+The following 5 patches extend the functionality of ibqueryerrors to cover
+some of the functionality of the ib* bash scripts.
 
-> 
-> in recv_node_info
-> 
-> Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+ibqueryerrors has been our workhorse for fabric monitoring here at LLNL.
+While I am working on better performance management in OpenSM this provides a
+scalable "direct" option for querying the fabric.
 
-Good catch,
-Thanks, applied,
+The main thrust for replicating the shell scripts is the fact that ibqueryerrors
+is an order of magnitude faster than the corresponding shell scripts.
+
+
+For example, on a "small" 141 node cluster.
+
+Gathering the error counters takes 22 seconds vs < 1 second with
+ibqueryerrors [*]
+
+hype137@root:time ./ibcheckerrors > /dev/null
+
+real    0m22.797s
+user    0m3.284s
+sys     0m9.783s
+hype137@root:time ./ibqueryerrors > /dev/null
+
+real    0m0.348s
+user    0m0.051s
+sys     0m0.113s
+
+
+
+Gathering all the counter data takes 28 seconds vs < 2 with ibqueryerrors [*]
+
+hype137@root:time ./ibdatacounters > /dev/null
+
+real    0m28.469s
+user    0m4.128s
+sys     0m11.560s
+hype137@root:time ./ibqueryerrors --counters > /dev/null
+
+real    0m1.262s
+user    0m0.410s
+sys     0m0.643s
+
+
+In addition, PortCountersExtended are now supported.
+
 Ira
 
-> ---
-> diff --git a/libibnetdisc/src/ibnetdisc.c b/libibnetdisc/src/ibnetdisc.c
-> index 0d3f60a..e4487c1 100644
-> --- a/libibnetdisc/src/ibnetdisc.c
-> +++ b/libibnetdisc/src/ibnetdisc.c
-> @@ -316,6 +316,8 @@ static int recv_node_info(smp_engine_t * engine, ibnd_smp_t * smp,
->  	if (!port) {
->  		/* If we have not see this port before create a shell for it */
->  		port = node->ports[port_num] = calloc(1, sizeof(*port));
-> +		if (!port)
-> +			return -1;
->  		port->node = node;
->  		port->portnum = port_num;
->  	}
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+[*] Times shown are representative of single runs but are on the same order of
+my testing over many runs.  Other factors such as the number of outstanding
+SMP's, system load, or possible fabric issues, may change performance.
 
-
--- 
-Ira Weiny
-Math Programmer/Computer Scientist
-Lawrence Livermore National Lab
-925-423-8008
-weiny2-i2BcT+NCU+M@public.gmane.org
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
