@@ -1,48 +1,92 @@
-From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-Subject: Re: infiniband-diags/perfquery.c: Use ib_types.h defines for
- CapabilityMask
-Date: Thu, 28 Apr 2011 10:14:56 -0700
-Message-ID: <20110428101456.8f9ac048.weiny2@llnl.gov>
-References: <4DB97DF4.3020004@dev.mellanox.co.il>
-	<CF9C39F99A89134C9CF9C4CCB68B8DDF261A1F3A02@orsmsx501.amr.corp.intel.com>
-	<4DB995CE.8070203@dev.mellanox.co.il>
-	<CF9C39F99A89134C9CF9C4CCB68B8DDF261A1F3AB8@orsmsx501.amr.corp.intel.com>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH v2] opensm: Create all directories in database path on
+ Windows
+Date: Thu, 28 Apr 2011 10:31:01 -0700
+Message-ID: <CF9C39F99A89134C9CF9C4CCB68B8DDF261A1F3BD2@orsmsx501.amr.corp.intel.com>
+References: <CF9C39F99A89134C9CF9C4CCB68B8DDF25DCD82F9D@orsmsx501.amr.corp.intel.com>
+ <3F6F638B8D880340AB536D29CD4C1E1925F1EFC4F0@orsmsx501.amr.corp.intel.com>
+ <CF9C39F99A89134C9CF9C4CCB68B8DDF25DCD8326A@orsmsx501.amr.corp.intel.com>
+ <BANLkTincBjF3CuHq+q2-Xr5Fby9y-Xox4g@mail.gmail.com>
+ <3F6F638B8D880340AB536D29CD4C1E1925F1EFC9BC@orsmsx501.amr.corp.intel.com>
+ <BANLkTi=pqaQSir3iCNLiety-jvF2xGJBcw@mail.gmail.com>
+ <CF9C39F99A89134C9CF9C4CCB68B8DDF25DCD83A1B@orsmsx501.amr.corp.intel.com>
+ <20110426134141.GA9750@calypso.voltaire.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CF9C39F99A89134C9CF9C4CCB68B8DDF261A1F3AB8-osO9UTpF0USkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
+In-Reply-To: <20110426134141.GA9750-iQai9MGU/dyyaiaB+Ve85laTQe2KTcn/@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "Smith, Stan" <stan.smith-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "ofw-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org" <ofw-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, 28 Apr 2011 09:36:49 -0700
-"Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
+Replace CreateDirectory with SHCreateDirectoryEx, so that
+intermediate directories in the database path are created.
 
-> > Also, there are other infiniband-diags (and library) including
-> > ib_types.h (e.g. saquery and libibnetdisc).
-> 
-> I have a set of patches that I created as part of trying to support AF_IB and ACM that move a lot of the MAD definitions into libibumad include files.  I don't remember if I ever submitted these, since I was waiting on the acceptance of the kernel patches.  It would take me a while to pull them back out and update them, but I can submit those.  They would help eliminate some of the duplicate definitions that exist between the different libraries (such as libibverbs, librdmacm, and ibacm), and should remove ib-diags from depending on opensm.
-> 
-> I know we've discussed this sort of change before, but would these be acceptable to everyone?
+This fixes an issue where opensm fails to start unless the
+path has been created beforehand.
 
-Oh yes, I was just codeing along and added the define where the others were.  I would very much like the diags to not depend on opensm.  Please do resubmit your patches.
+Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+---
+change from v1: used common error handling
 
-For now I am going to accept this patch which will mark perfquery as something which needs to transition.
+ opensm/osm_db_files.c |   28 ++++++++++++++++++----------
+ 1 files changed, 18 insertions(+), 10 deletions(-)
+ mode change 100644 => 100755 opensm/osm_db_files.c
 
-Ira
+diff --git a/opensm/osm_db_files.c b/opensm/osm_db_files.c
+index 18ac830..3182da4
+--- a/opensm/osm_db_files.c
++++ b/opensm/osm_db_files.c
+@@ -169,19 +169,19 @@ int osm_db_init(IN osm_db_t * p_db, IN osm_log_t * p_log)
+ 	/* Create the directory if it doesn't exist */
+ 	/* There is a difference in creating directory between windows and linux */
+ #ifdef __WIN__
+-	/* Check if the directory exists. If not - create it. */
+-	CreateDirectory(p_db_imp->db_dir_name, NULL);
++	{
++		int ret;
++
++		ret = SHCreateDirectoryEx(NULL, p_db_imp->db_dir_name, NULL);
++		if (ret != ERROR_SUCCESS && ret != ERROR_ALREADY_EXISTS &&
++			ret != ERROR_FILE_EXISTS)
++			goto err;
++	}
+ #else				/* __WIN__ */
+ 	/* make sure the directory exists */
+ 	if (lstat(p_db_imp->db_dir_name, &dstat)) {
+-		if (mkdir(p_db_imp->db_dir_name, 0755)) {
+-			OSM_LOG(p_log, OSM_LOG_ERROR, "ERR 6101: "
+-				"Failed to create the db directory:%s\n",
+-				p_db_imp->db_dir_name);
+-			free(p_db_imp);
+-			OSM_LOG_EXIT(p_log);
+-			return 1;
+-		}
++		if (mkdir(p_db_imp->db_dir_name, 0755))
++			goto err;
+ 	}
+ #endif
+ 
+@@ -193,6 +193,14 @@ int osm_db_init(IN osm_db_t * p_db, IN osm_log_t * p_log)
+ 	OSM_LOG_EXIT(p_log);
+ 
+ 	return 0;
++
++err:
++	OSM_LOG(p_log, OSM_LOG_ERROR, "ERR 6101: "
++		"Failed to create the db directory:%s\n",
++		p_db_imp->db_dir_name);
++	free(p_db_imp);
++	OSM_LOG_EXIT(p_log);
++	return 1;
+ }
+ 
+ osm_db_domain_t *osm_db_domain_init(IN osm_db_t * p_db, IN char *domain_name)
 
-> 
-> - Sean
 
-
--- 
-Ira Weiny
-Math Programmer/Computer Scientist
-Lawrence Livermore National Lab
-925-423-8008
-weiny2-i2BcT+NCU+M@public.gmane.org
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
