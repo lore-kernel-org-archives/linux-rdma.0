@@ -1,8 +1,8 @@
 From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-Subject: [PATCH 03/5] infiniband-diags: ibqueryerrors; use #defines for
- CapabilityMask
-Date: Wed, 27 Apr 2011 18:46:52 -0700
-Message-ID: <20110427184652.cf4c2148.weiny2@llnl.gov>
+Subject: [PATCH 04/5] infiniband-diags: ibqueryerrors --data; show/clear
+ PortCountersExtended when supported
+Date: Wed, 27 Apr 2011 18:46:56 -0700
+Message-ID: <20110427184656.797179ed.weiny2@llnl.gov>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
@@ -13,79 +13,153 @@ List-Id: linux-rdma@vger.kernel.org
 
 
 From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-Date: Tue, 26 Apr 2011 22:18:27 -0700
-Subject: [PATCH 03/5] infiniband-diags: ibqueryerrors; use #defines for CapabilityMask
+Date: Tue, 26 Apr 2011 22:59:15 -0700
+Subject: [PATCH 04/5] infiniband-diags: ibqueryerrors --data; show/clear PortCountersExtended when supported
 
 Signed-off-by: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
 ---
- include/ibdiag_common.h |    6 ++++++
- src/ibqueryerrors.c     |    8 ++++----
- 2 files changed, 10 insertions(+), 4 deletions(-)
+ src/ibqueryerrors.c |   88 ++++++++++++++++++++++++++++++++++++++++++++++----
+ 1 files changed, 81 insertions(+), 7 deletions(-)
 
-diff --git a/include/ibdiag_common.h b/include/ibdiag_common.h
-index 9b2add7..b113cfe 100644
---- a/include/ibdiag_common.h
-+++ b/include/ibdiag_common.h
-@@ -35,6 +35,7 @@
- #ifndef _IBDIAG_COMMON_H_
- #define _IBDIAG_COMMON_H_
- 
-+#include <infiniband/iba/ib_types.h>
- #include <infiniband/mad.h>
- 
- extern int ibverbose;
-@@ -57,6 +58,11 @@ extern int ibd_timeout;
- } while (0)
- #define IBERROR(fmt, ...) iberror(__FUNCTION__, fmt, ## __VA_ARGS__)
- 
-+/* not all versions of ib_types.h will have this define */
-+#ifndef IB_PM_PC_XMIT_WAIT_SUP
-+#define IB_PM_PC_XMIT_WAIT_SUP (CL_HTON16(((uint16_t)1)<<12))
-+#endif
-+
- struct ibdiag_opt {
- 	const char *name;
- 	char letter;
 diff --git a/src/ibqueryerrors.c b/src/ibqueryerrors.c
-index e0a328b..71fb5f6 100644
+index 71fb5f6..a7556cf 100644
 --- a/src/ibqueryerrors.c
 +++ b/src/ibqueryerrors.c
-@@ -437,7 +437,7 @@ static int query_cap_mask(ib_portid_t * portid, char *node_name, int portnum,
- 	/* ClassPortInfo should be supported as part of libibmad */
- 	memcpy(&rc_cap_mask, pc + 2, sizeof(rc_cap_mask));	/* CapabilityMask */
+@@ -340,7 +340,7 @@ static int query_and_dump(char *buf, size_t size, ib_portid_t * portid,
  
--	*cap_mask = ntohs(rc_cap_mask);
-+	*cap_mask = rc_cap_mask;
- 	return 0;
- }
+ static int print_results(ib_portid_t * portid, char *node_name,
+ 			 ibnd_node_t * node, uint8_t * pc, int portnum,
+-			 int *header_printed)
++			 int *header_printed, uint8_t *pce)
+ {
+ 	char buf[1024];
+ 	char *str = buf;
+@@ -389,15 +389,26 @@ static int print_results(ib_portid_t * portid, char *node_name,
  
-@@ -454,7 +454,7 @@ static int print_port(ib_portid_t * portid, uint16_t cap_mask, char *node_name,
+ 	/* if we found errors. */
+ 	if (n != 0) {
+-		if (data_counters)
+-			for (i = IB_PC_XMT_BYTES_F; i <= IB_PC_RCV_PKTS_F; i++) {
++		if (data_counters) {
++			uint8_t *pkt = pc;
++			int start_field = IB_PC_XMT_BYTES_F;
++			int end_field = IB_PC_RCV_PKTS_F;
++
++			if (pce) {
++				pkt = pce;
++				start_field = IB_PC_EXT_XMT_BYTES_F;
++				end_field = IB_PC_EXT_RCV_MPKTS_F;
++			}
++
++			for (i = start_field; i <= end_field; i++) {
+ 				uint64_t val64 = 0;
+-				mad_decode_field(pc, i, (void *)&val64);
++				mad_decode_field(pkt, i, (void *)&val64);
+ 				if (val64)
+ 					n += snprintf(str + n, 1024 - n,
+-						      " [%s == %" PRIu64 "]",
+-						      mad_field_name(i), val64);
++						" [%s == %" PRIu64 "]",
++						mad_field_name(i), val64);
+ 			}
++		}
+ 
+ 		if (!*header_printed) {
+ 			printf("Errors for 0x%" PRIx64 " \"%s\"\n", node->guid,
+@@ -445,8 +456,11 @@ static int print_port(ib_portid_t * portid, uint16_t cap_mask, char *node_name,
+ 		      ibnd_node_t * node, int portnum, int *header_printed)
+ {
+ 	uint8_t pc[1024];
++	uint8_t pce[1024];
++	uint8_t *pc_ext = NULL;
+ 
+ 	memset(pc, 0, 1024);
++	memset(pce, 0, 1024);
+ 
+ 	if (!pma_query_via(pc, portid, portnum, ibd_timeout,
+ 			   IB_GSI_PORT_COUNTERS, ibmad_port)) {
+@@ -454,13 +468,62 @@ static int print_port(ib_portid_t * portid, uint16_t cap_mask, char *node_name,
  		       node_name, portid2str(portid), portnum);
  		return (0);
  	}
--	if (!(cap_mask & 0x1000)) {
-+	if (!(cap_mask & IB_PM_PC_XMIT_WAIT_SUP)) {
++
++	if (cap_mask & (IB_PM_EXT_WIDTH_SUPPORTED | IB_PM_EXT_WIDTH_NOIETF_SUP)) {
++		if (!pma_query_via(pce, portid, portnum, ibd_timeout,
++		    IB_GSI_PORT_COUNTERS_EXT, ibmad_port)) {
++			IBWARN("IB_GSI_PORT_COUNTERS_EXT query failed on %s, %s port %d",
++			       node_name, portid2str(portid), portnum);
++			return (0);
++		}
++		pc_ext = pce;
++	}
++
+ 	if (!(cap_mask & IB_PM_PC_XMIT_WAIT_SUP)) {
  		/* if PortCounters:PortXmitWait not supported clear this counter */
  		uint32_t foo = 0;
  		mad_encode_field(pc, IB_PC_XMT_WAIT_F, &foo);
-@@ -477,7 +477,7 @@ static void clear_port(ib_portid_t * portid, uint16_t cap_mask,
+ 	}
+ 	return (print_results(portid, node_name, node, pc, portnum,
+-			      header_printed));
++			      header_printed, pc_ext));
++}
++
++uint8_t *reset_pc_ext(void *rcvbuf, ib_portid_t * dest,
++		      int port, unsigned mask, unsigned timeout,
++		      const struct ibmad_port * srcport)
++{
++	ib_rpc_t rpc = { 0 };
++	int lid = dest->lid;
++
++	DEBUG("lid %u port %d mask 0x%x", lid, port, mask);
++
++	if (lid == -1) {
++		IBWARN("only lid routed is supported");
++		return NULL;
++	}
++
++	if (!mask)
++		mask = ~0;
++
++	rpc.mgtclass = IB_PERFORMANCE_CLASS;
++	rpc.method = IB_MAD_METHOD_SET;
++	rpc.attr.id = IB_GSI_PORT_COUNTERS_EXT;
++
++	memset(rcvbuf, 0, IB_MAD_SIZE);
++
++	/* Same for attribute IDs */
++	mad_set_field(rcvbuf, 0, IB_PC_EXT_PORT_SELECT_F, port);
++	mad_set_field(rcvbuf, 0, IB_PC_EXT_COUNTER_SELECT_F, mask);
++	rpc.attr.mod = 0;
++	rpc.timeout = timeout;
++	rpc.datasz = IB_PC_DATA_SZ;
++	rpc.dataoffs = IB_PC_DATA_OFFS;
++	if (!dest->qp)
++		dest->qp = 1;
++	if (!dest->qkey)
++		dest->qkey = IB_DEFAULT_QP1_QKEY;
++
++	return mad_rpc(srcport, &rpc, dest, rcvbuf, rcvbuf);
+ }
  
- 	if (clear_errors) {
- 		mask |= 0xFFF;
--		if (cap_mask & 0x1000)
-+		if (cap_mask & IB_PM_PC_XMIT_WAIT_SUP)
- 			mask |= 0x10000;
+ static void clear_port(ib_portid_t * portid, uint16_t cap_mask,
+@@ -497,6 +560,17 @@ static void clear_port(ib_portid_t * portid, uint16_t cap_mask,
+ 				      IB_GSI_PORT_RCV_ERROR_DETAILS,
+ 				      ibmad_port);
  	}
- 	if (clear_counts)
-@@ -544,7 +544,7 @@ void print_node(ibnd_node_t * node, void *user_data)
- 		}
- 	}
- 	if ((query_cap_mask(&portid, node_name, p, &cap_mask) == 0) &&
--	    (cap_mask & 0x100)) {
-+	    (cap_mask & IB_PM_ALL_PORT_SELECT)) {
- 		all_port_sup = 1;
- 		if (!print_port(&portid, cap_mask, node_name, node,
- 				0xFF, &header_printed)) {
++
++	if (clear_counts &&
++	    (cap_mask &
++	     (IB_PM_EXT_WIDTH_SUPPORTED | IB_PM_EXT_WIDTH_NOIETF_SUP))) {
++		mask = 0xFF;
++		if (!reset_pc_ext(pc, portid, port, mask, ibd_timeout,
++		    ibmad_port))
++			IBERROR("Failed to reset extended data counters %s, "
++				"%s port %d", node_name, portid2str(portid),
++				port);
++	}
+ }
+ 
+ void print_node(ibnd_node_t * node, void *user_data)
 -- 
 1.7.1
 
