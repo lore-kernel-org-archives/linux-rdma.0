@@ -1,88 +1,112 @@
 From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-Subject: Re: infiniband-diags/perfquery.c: Use ib_types.h defines for
- CapabilityMask
-Date: Thu, 28 Apr 2011 14:13:05 -0700
-Message-ID: <20110428141305.eec85988.weiny2@llnl.gov>
-References: <4DB97DF4.3020004@dev.mellanox.co.il>
+Subject: Re: [PATCHv2 2/3] libibmad/gs.c: In
+ pma_query_via/performance_reset_via, set errno
+Date: Thu, 28 Apr 2011 14:19:05 -0700
+Message-ID: <20110428141905.f0dfc34d.weiny2@llnl.gov>
+References: <4DB7FA9C.8000503@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4DB97DF4.3020004-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+In-Reply-To: <4DB7FA9C.8000503-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, 28 Apr 2011 07:47:16 -0700
+On Wed, 27 Apr 2011 04:14:36 -0700
 Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wrote:
 
-> rather than hard coded values now that these have been added to ib_types.h
+> 
+> according to rpc error field
 > 
 > Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Thanks, applied,
+Thanks applied,
 Ira
 
 > ---
-> diff --git a/src/perfquery.c b/src/perfquery.c
-> index ef63da2..d24c3c7 100644
-> --- a/src/perfquery.c
-> +++ b/src/perfquery.c
-> @@ -46,6 +46,7 @@
+> diff --git a/src/gs.c b/src/gs.c
+> index 3cb2b25..5541b6b 100644
+> --- a/src/gs.c
+> +++ b/src/gs.c
+> @@ -1,5 +1,6 @@
+>  /*
+>   * Copyright (c) 2004-2009 Voltaire Inc.  All rights reserved.
+> + * Copyright (c) 2011 Mellanox Technologies LTD.  All rights reserved.
+>   *
+>   * This software is available to you under a choice of one of two
+>   * licenses.  You may choose to be licensed under the terms of the GNU
+> @@ -38,6 +39,7 @@
+>  #include <stdio.h>
+>  #include <stdlib.h>
+>  #include <string.h>
+> +#include <errno.h>
 >  
 >  #include <infiniband/umad.h>
 >  #include <infiniband/mad.h>
-> +#include <infiniband/iba/ib_types.h>
+> @@ -49,8 +51,10 @@ uint8_t *pma_query_via(void *rcvbuf, ib_portid_t * dest, int port,
+>  		       unsigned timeout, unsigned id,
+>  		       const struct ibmad_port * srcport)
+>  {
+> -	ib_rpc_t rpc = { 0 };
+> +	ib_rpc_v1_t rpc = { 0 };
+> +	ib_rpc_t *rpcold = (ib_rpc_t *)(void *)&rpc;
+>  	int lid = dest->lid;
+> +	void *p_ret;
 >  
->  #include "ibdiag_common.h"
+>  	DEBUG("lid %u port %d", lid, port);
 >  
-> @@ -293,7 +294,7 @@ static void dump_perfcounters(int extended, int timeout, uint16_t cap_mask,
->  		if (!pma_query_via(pc, portid, port, timeout,
->  				   IB_GSI_PORT_COUNTERS, srcport))
->  			IBERROR("perfquery");
-> -		if (!(cap_mask & 0x1000)) {
-> +		if (!(cap_mask & IB_PM_PC_XMIT_WAIT_SUP)) {
->  			/* if PortCounters:PortXmitWait not supported clear this counter */
->  			VERBOSE("PortXmitWait not indicated"
->  				" so ignore this counter");
-> @@ -306,10 +307,10 @@ static void dump_perfcounters(int extended, int timeout, uint16_t cap_mask,
->  		else
->  			mad_dump_fields(buf, sizeof buf, pc, sizeof pc,
->  							IB_PC_FIRST_F,
-> -							(cap_mask & 0x1000)?IB_PC_LAST_F:(IB_PC_RCV_PKTS_F+1));
-> +							(cap_mask & IB_PM_PC_XMIT_WAIT_SUP)?IB_PC_LAST_F:(IB_PC_RCV_PKTS_F+1));
+> @@ -59,7 +63,7 @@ uint8_t *pma_query_via(void *rcvbuf, ib_portid_t * dest, int port,
+>  		return NULL;
+>  	}
 >  
->  	} else {
-> -		if (!(cap_mask & 0x200))	/* 1.2 errata: bit 9 is extended counter support */
-> +		if (!(cap_mask & IB_PM_EXT_WIDTH_SUPPORTED))	/* 1.2 errata: bit 9 is extended counter support */
->  			IBWARN
->  			    ("PerfMgt ClassPortInfo 0x%x extended counters not indicated\n",
->  			     cap_mask);
-> @@ -535,8 +536,7 @@ int main(int argc, char **argv)
->  		IBERROR("classportinfo query");
->  	/* ClassPortInfo should be supported as part of libibmad */
->  	memcpy(&cap_mask, pc + 2, sizeof(cap_mask));	/* CapabilityMask */
-> -	cap_mask = ntohs(cap_mask);
-> -	if (!(cap_mask & 0x100)) {	/* bit 8 is AllPortSelect */
-> +	if (!(cap_mask & IB_PM_ALL_PORT_SELECT)) {	/* bit 8 is AllPortSelect */
->  		if (!all_ports && port == ALL_PORTS)
->  			IBERROR("AllPortSelect not supported");
->  		if (all_ports)
-> @@ -613,7 +613,7 @@ int main(int argc, char **argv)
->  		goto done;
+> -	rpc.mgtclass = IB_PERFORMANCE_CLASS;
+> +	rpc.mgtclass = IB_PERFORMANCE_CLASS | IB_MAD_RPC_VERSION1;
+>  	rpc.method = IB_MAD_METHOD_GET;
+>  	rpc.attr.id = id;
 >  
->  do_reset:
-> -	if (argc <= 2 && !extended && (cap_mask & 0x1000))
-> +	if (argc <= 2 && !extended && (cap_mask & IB_PM_PC_XMIT_WAIT_SUP))
->  		mask |= (1 << 16);	/* reset portxmitwait */
+> @@ -75,15 +79,20 @@ uint8_t *pma_query_via(void *rcvbuf, ib_portid_t * dest, int port,
+>  	if (!dest->qkey)
+>  		dest->qkey = IB_DEFAULT_QP1_QKEY;
 >  
->  	if (all_ports_loop || (loop_ports && (all_ports || port == ALL_PORTS))) {
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> -	return mad_rpc(srcport, &rpc, dest, rcvbuf, rcvbuf);
+> +	p_ret = mad_rpc(srcport, rpcold, dest, rcvbuf, rcvbuf);
+> +	errno = rpc.error;
+> +	return p_ret;
+>  }
+>  
+>  uint8_t *performance_reset_via(void *rcvbuf, ib_portid_t * dest,
+>  			       int port, unsigned mask, unsigned timeout,
+>  			       unsigned id, const struct ibmad_port * srcport)
+>  {
+> -	ib_rpc_t rpc = { 0 };
+> +	ib_rpc_v1_t rpc = { 0 };
+> +	ib_rpc_t *rpcold = (ib_rpc_t *)(void *)&rpc;
+> +
+>  	int lid = dest->lid;
+> +	void *p_ret;
+>  
+>  	DEBUG("lid %u port %d mask 0x%x", lid, port, mask);
+>  
+> @@ -95,7 +104,7 @@ uint8_t *performance_reset_via(void *rcvbuf, ib_portid_t * dest,
+>  	if (!mask)
+>  		mask = ~0;
+>  
+> -	rpc.mgtclass = IB_PERFORMANCE_CLASS;
+> +	rpc.mgtclass = IB_PERFORMANCE_CLASS | IB_MAD_RPC_VERSION1;
+>  	rpc.method = IB_MAD_METHOD_SET;
+>  	rpc.attr.id = id;
+>  
+> @@ -115,5 +124,7 @@ uint8_t *performance_reset_via(void *rcvbuf, ib_portid_t * dest,
+>  	if (!dest->qkey)
+>  		dest->qkey = IB_DEFAULT_QP1_QKEY;
+>  
+> -	return mad_rpc(srcport, &rpc, dest, rcvbuf, rcvbuf);
+> +	p_ret = mad_rpc(srcport, rpcold, dest, rcvbuf, rcvbuf);
+> +	errno = rpc.error;
+> +	return p_ret;
+>  }
 
 
 -- 
