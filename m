@@ -1,7 +1,8 @@
 From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH 10/13] opensm/osm_sa.c: Change log level of message
-Date: Fri, 29 Apr 2011 09:27:54 -0400
-Message-ID: <4DBABCDA.8030408@dev.mellanox.co.il>
+Subject: [PATCH 11/13] opensm/osm_sa_guidinfo_record.c: Better status for
+ SA response
+Date: Fri, 29 Apr 2011 09:27:59 -0400
+Message-ID: <4DBABCDF.30508@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
@@ -11,31 +12,32 @@ To: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
->From 62b4e09b5461ea7a02c07c220dffd2516cb708e0 Mon Sep 17 00:00:00 2001
+>From 8ac0f4d7e91c3112030f696cd4d35f666263dedf Mon Sep 17 00:00:00 2001
 From: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Date: Fri, 29 Apr 2011 03:19:55 +0300
-Subject: [PATCH] opensm/osm_sa.c: Change log level of message
+Date: Fri, 29 Apr 2011 13:44:49 +0300
+Subject: [PATCH] opensm/osm_sa_guidinfo_record.c: Better status for SA response
 
-for "Dump guidinfo" message
+In osm_gir_rcv_process, when set or delete with insufficient components,
+indicate that rather than invalid status
 
-Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Hal Rosenstock <Hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- opensm/osm_sa.c |    2 +-
+ opensm/osm_sa_guidinfo_record.c |    2 +-
  1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/opensm/osm_sa.c b/opensm/osm_sa.c
-index 6b033fd..54b94a6 100644
---- a/opensm/osm_sa.c
-+++ b/opensm/osm_sa.c
-@@ -721,7 +721,7 @@ static void sa_dump_all_sa(osm_opensm_t * p_osm, FILE * file)
- 
- 	dump_context.p_osm = p_osm;
- 	dump_context.file = file;
--	OSM_LOG(&p_osm->log, OSM_LOG_ERROR /* DEBUG */, "Dump guidinfo\n");
-+	OSM_LOG(&p_osm->log, OSM_LOG_DEBUG, "Dump guidinfo\n");
- 	cl_plock_acquire(&p_osm->lock);
- 	cl_qmap_apply_func(&p_osm->subn.port_guid_tbl,
- 			   sa_dump_one_port_guidinfo, &dump_context);
+diff --git a/opensm/osm_sa_guidinfo_record.c b/opensm/osm_sa_guidinfo_record.c
+index daf28ac..2211469 100644
+--- a/opensm/osm_sa_guidinfo_record.c
++++ b/opensm/osm_sa_guidinfo_record.c
+@@ -742,7 +742,7 @@ void osm_gir_rcv_process(IN void *ctx, IN void *data)
+ 				cl_ntoh64(p_rcvd_mad->comp_mask),
+ 				CL_NTOH64(MOD_GIR_COMP_MASK));
+ 			osm_sa_send_error(sa, p_madw,
+-					  IB_SA_MAD_STATUS_REQ_INVALID);
++					  IB_SA_MAD_STATUS_INSUF_COMPS);
+ 			goto Exit;
+ 		}
+ 		p_rcvd_rec = (ib_guidinfo_record_t *) ib_sa_mad_get_payload_ptr(p_rcvd_mad);
 -- 
 1.5.3
 
