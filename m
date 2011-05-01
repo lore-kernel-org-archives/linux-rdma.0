@@ -1,58 +1,55 @@
-From: Michael Di Domenico <mdidomenico4-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: PSM and OpenMPI
-Date: Fri, 29 Apr 2011 12:39:28 -0400
-Message-ID: <BANLkTi=m98+HZ4F8sqHo+-RTVoQWGwKz4w@mail.gmail.com>
+From: Eli Dorfman <elido-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH] infiniband-diags/vendstat: Fixed general info query
+Date: Sun, 01 May 2011 09:28:57 +0300
+Message-ID: <4DBCFDA9.4040903@dev.mellanox.co.il>
+References: <4DB92ED0.4050907@dev.mellanox.co.il> <4DB97EDA.6030104@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <4DB97EDA.6030104-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-In the meantime, while i'm waiting for some contacts at Qlogic to get
-back to me, does anyone on the list have any idea what we might be
-running up against here?
+On 04/28/2011 05:51 PM, Hal Rosenstock wrote:
+> On 4/28/2011 5:09 AM, Eli Dorfman wrote:
+>> Fixed general info query
+>>
+>> There was no output when query succeeded
+> 
+> Do you mean failed ?
 
-OpenMPI 1.5.3 w/ PSMkey patch
-Slurm 2.2.4
-Ofed 1.5.2
-Rhel 5.6 (stock kernel)
+No I meant succeeded.
+Since the IBERROR was missing the print of GeneralInfo is skipped.
+If it fails then the "if (general_info)" code is reached but it will print garbage.
 
-You can see this mailing list thread for details:
-http://www.open-mpi.org/community/lists/users/2011/04/16394.php
+Eli
 
-but here's the meat...
+> 
+> -- Hal
+> 
+>>
+>> Signed-off-by: Eli Dorfman <elido-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+>> ---
+>>  src/vendstat.c |    1 +
+>>  1 files changed, 1 insertions(+), 0 deletions(-)
+>>
+>> diff --git a/src/vendstat.c b/src/vendstat.c
+>> index 92a90c8..8dbd1ee 100644
+>> --- a/src/vendstat.c
+>> +++ b/src/vendstat.c
+>> @@ -375,6 +375,7 @@ int main(int argc, char **argv)
+>>  	gi = (is3_general_info_t *) & buf;
+>>  	if (do_vendor(&portid, srcport, IB_MLX_VENDOR_CLASS, IB_MAD_METHOD_GET,
+>>  		      IB_MLX_IS3_GENERAL_INFO, 0, gi))
+>> +		IBERROR("generalinfo query");
+>>  
+>>  	if (general_info) {
+>>  		/* dump IS3 or IS4 general info here */
+> 
 
-mpirun -n 2 -host node1 <prog>
-
-and my <prog> runs just fine, However if i do
-
-srun --resv-ports -n 2 -w node1 <prog>
-
-I get
-
-[node1:16780] PSM EP connect error (unknown connect error):
-[node1:16780]  node1
-[node1:16780] PSM EP connect error (Endpoint could not be reached):
-[node1:16780]  node1
-
-PML add procs failed
---> Returned "Error" (-1) instead of "Success" (0)
-
-I did notice a difference in the precondition env variable between the two runs
-
-mpirun -n 2 -host node1 <prog>
-
-sets precondition_transports=fbc383997ee1b668-00d40f1401d2e827 (which
-changes with each run (aka random))
-
-srun --resv-ports -n 2 -w node1 <prog>
-
-sets precondition_transports=0000184500000000-0000000100000000 (which
-doesn't seem to change run to run)
-
-Can anyone decode the PSM EP and PML errors?  Is there any rhyme to
-the psm key being random of some type over just a few values
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
