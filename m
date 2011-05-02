@@ -1,48 +1,72 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH 1/7] libibumad: provide MAD definitions with libibumad
-Date: Mon, 2 May 2011 10:52:36 -0700
-Message-ID: <CF9C39F99A89134C9CF9C4CCB68B8DDF261A28B013@orsmsx501.amr.corp.intel.com>
-References: <CF9C39F99A89134C9CF9C4CCB68B8DDF261A1F410B@orsmsx501.amr.corp.intel.com>
- <20110502132013.GE2088@calypso.voltaire.com>
+From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+Subject: Re: [PATCH] infiniband-diags/vendstat: Fixed general info query
+Date: Mon, 2 May 2011 11:16:33 -0700
+Message-ID: <20110502111633.838df84e.weiny2@llnl.gov>
+References: <4DB92ED0.4050907@dev.mellanox.co.il>
+	<4DB97EDA.6030104@dev.mellanox.co.il>
+	<4DBCFDA9.4040903@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20110502132013.GE2088-iQai9MGU/dyyaiaB+Ve85laTQe2KTcn/@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <4DBCFDA9.4040903-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Eli Dorfman <elido-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> I want to make sure I didn't miss any libibumad patchaes. There should be 8
-> patches:
+On Sat, 30 Apr 2011 23:28:57 -0700
+Eli Dorfman <elido-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wrote:
 
-There are 7
+> On 04/28/2011 05:51 PM, Hal Rosenstock wrote:
+> > On 4/28/2011 5:09 AM, Eli Dorfman wrote:
+> >> Fixed general info query
+> >>
+> >> There was no output when query succeeded
+> > 
+> > Do you mean failed ?
+> 
+> No I meant succeeded.
+> Since the IBERROR was missing the print of GeneralInfo is skipped.
+> If it fails then the "if (general_info)" code is reached but it will print garbage.
 
-> [PATCH 1/7] libibumad: provide MAD definitions with libibumad
-> http://www.spinics.net/lists/linux-rdma/msg07997.html
-> [PATCH 2/7] libibumad: add SA MAD definitions to umad
-> http://www.spinics.net/lists/linux-rdma/msg07998.html
-> [PATCH 3/7] libibumad: Add basic SM definitions to umad
-> http://www.spinics.net/lists/linux-rdma/msg07999.html
-> [PATCH 4/7] libibumad: Add CM definitions to umad
-> http://www.spinics.net/lists/linux-rdma/msg08000.html
-> RE: [PATCH 1/7] libibumad: Add new umad header files to release
-> http://www.spinics.net/lists/linux-rdma/msg08001.html
+Thanks applied,
+Ira
 
-This should have been 5/7.  It is the same as:
+> 
+> Eli
+> 
+> > 
+> > -- Hal
+> > 
+> >>
+> >> Signed-off-by: Eli Dorfman <elido-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> >> ---
+> >>  src/vendstat.c |    1 +
+> >>  1 files changed, 1 insertions(+), 0 deletions(-)
+> >>
+> >> diff --git a/src/vendstat.c b/src/vendstat.c
+> >> index 92a90c8..8dbd1ee 100644
+> >> --- a/src/vendstat.c
+> >> +++ b/src/vendstat.c
+> >> @@ -375,6 +375,7 @@ int main(int argc, char **argv)
+> >>  	gi = (is3_general_info_t *) & buf;
+> >>  	if (do_vendor(&portid, srcport, IB_MLX_VENDOR_CLASS, IB_MAD_METHOD_GET,
+> >>  		      IB_MLX_IS3_GENERAL_INFO, 0, gi))
+> >> +		IBERROR("generalinfo query");
+> >>  
+> >>  	if (general_info) {
+> >>  		/* dump IS3 or IS4 general info here */
+> > 
+> 
 
-> [PATCH 6/7] libibumad: Define ntohll/htonll
-> http://www.spinics.net/lists/linux-rdma/msg08002.html
-> [PATCH 7/7] libibumad: Define data type to indicate values are in big-endian
-> http://www.spinics.net/lists/linux-rdma/msg08003.html
-> RE: [PATCH 5/7] libibumad: Add new umad header files to release
-> http://www.spinics.net/lists/linux-rdma/msg08004.html
 
-this one, with the correct numbering.
-
-- Sean
+-- 
+Ira Weiny
+Math Programmer/Computer Scientist
+Lawrence Livermore National Lab
+925-423-8008
+weiny2-i2BcT+NCU+M@public.gmane.org
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
