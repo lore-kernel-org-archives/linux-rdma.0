@@ -1,95 +1,115 @@
-From: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH] opensm/osm_pkey_mgr: clean partition enforcement on
- inter-switch links
-Date: Tue, 3 May 2011 18:48:47 +0300
-Message-ID: <20110503154847.GA2303@calypso.voltaire.com>
-References: <4DBFB67F.2090400@dev.mellanox.co.il>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+From: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: [PATCH/libnes] Fix build against upstream libibverbs
+Date: Thu,  5 May 2011 13:35:56 -0700
+Message-ID: <1304627756-13446-1-git-send-email-roland@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <4DBFB67F.2090400-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Eli Dorfman <elido-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Eli,
+Upstream libibverbs has not merged support for IBV_QPT_RAW_ETH yet.
+Add a test for the identifier to the configure script, and add #ifdefs
+to compile raw Ethernet QP support only if libibverbs supports it.
 
-On 11:02 Tue 03 May     , Eli Dorfman wrote:
-> clean partition enforcement on inter-switch links
-> 
-> after connectivity change from switch-host to switch-switch the
-> partition enforcement bits were not cleared on the port.
-> since the pkey table is not set on inter-switch links,
-> packets with pkey other than default are dropped.
-> 
-> Signed-off-by: Eli Dorfman <elido-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> ---
->  opensm/osm_pkey_mgr.c |   24 ++++++++++++++++++++++++
->  1 files changed, 24 insertions(+), 0 deletions(-)
-> 
-> diff --git a/opensm/osm_pkey_mgr.c b/opensm/osm_pkey_mgr.c
-> index f6bc9d1..b135cf9 100644
-> --- a/opensm/osm_pkey_mgr.c
-> +++ b/opensm/osm_pkey_mgr.c
-> @@ -507,6 +507,10 @@ int osm_pkey_mgr_process(IN osm_opensm_t * p_osm)
->  	cl_map_item_t *p_next;
->  	osm_prtn_t *p_prtn;
->  	osm_port_t *p_port;
-> +	osm_switch_t *p_sw;
-> +	osm_physp_t *p_physp;
-> +	osm_node_t *p_remote_node;
-> +	uint8_t i;
->  	int ret = 0;
->  
->  	CL_ASSERT(p_osm);
-> @@ -550,6 +554,26 @@ int osm_pkey_mgr_process(IN osm_opensm_t * p_osm)
->  			ret = -1;
->  	}
->  
-> +	/* clear partition enforcement on inter-switch links */
-> +	p_tbl = &p_osm->subn.sw_guid_tbl;
-> +	p_next = cl_qmap_head(p_tbl);
-> +	while (p_next != cl_qmap_end(p_tbl)) {
-> +		p_sw = (osm_switch_t * *) p_next;
-> +		p_next = cl_qmap_next(p_next);
-> +		for (i = 1; i < p_sw->num_ports; i++) {
-> +			p_physp = osm_node_get_physp_ptr(p_sw->p_node, i);
-> +			if (p_physp && p_physp->p_remote_physp)
-> +				p_remote_node = p_physp->p_remote_physp->p_node;
-> +			else
-> +				continue;
-> +			if (osm_node_get_type(p_remote_node) != IB_NODE_TYPE_SWITCH)
-> +				continue;
-> +
-> +			/* clear partition enforcement */
+Signed-off-by: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+---
+ configure.in     |    2 ++
+ src/nes_uverbs.c |   16 +++++++++++++++-
+ 2 files changed, 17 insertions(+), 1 deletion(-)
 
-Don't you want limit the pkey_mgr_enforce_partition() only on ports that have
-these bits enable in portinfo?
-Something like:
-
-			if(! p_physp->p_remote_physp->port_info.vl_enforce && 0xc )
-				continue;
-
-> +			if (pkey_mgr_enforce_partition(&p_osm->log, &p_osm->sm, p_physp, FALSE))
-> +				ret = -1;
-> +		}
-> +	}
->  _err:
->  	CL_PLOCK_RELEASE(&p_osm->lock);
->  	OSM_LOG_EXIT(&p_osm->log);
-> -- 
-> 1.7.4.1
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
--- 
-
--- Alex
+Index: libnes-1.1.1/configure.in
+===================================================================
+--- libnes-1.1.1.orig/configure.in	2011-05-05 12:10:43.810368012 -0700
++++ libnes-1.1.1/configure.in	2011-05-05 12:11:13.990515182 -0700
+@@ -38,6 +38,8 @@
+ AC_C_CONST
+ AC_CHECK_SIZEOF(long)
+ 
++AC_CHECK_DECLS([IBV_QPT_RAW_ETH])
++
+ dnl Checks for library functions
+ AC_CHECK_FUNCS(ibv_read_sysfs_file ibv_register_driver)
+ 
+Index: libnes-1.1.1/src/nes_uverbs.c
+===================================================================
+--- libnes-1.1.1.orig/src/nes_uverbs.c	2011-05-05 12:11:20.280547877 -0700
++++ libnes-1.1.1/src/nes_uverbs.c	2011-05-05 12:12:59.411140500 -0700
+@@ -1125,12 +1125,16 @@
+ 	int i = 0;
+ 
+ 	/* fprintf(stderr, PFX "%s\n", __FUNCTION__); */
++
++#if HAVE_DECL_IBV_QPT_RAW_ETH
+ 	if (attr->qp_type == IBV_QPT_RAW_ETH) {
+ 		attr->cap.max_send_sge = NES_UD_MAX_SG_LIST_SZ;
+ 		attr->cap.max_recv_sge = NES_UD_MAX_SG_LIST_SZ;
+ 		nes_debug(NES_DBG_UD, "%s(%d) patching max_sge for UD\n",
+ 				__func__, __LINE__);
+ 	}
++#endif
++
+ 	/* Sanity check QP size before proceeding */
+ 	sqdepth = nes_qp_get_qdepth(attr->cap.max_send_wr, attr->cap.max_send_sge);
+ 	if (!sqdepth) {
+@@ -1186,6 +1190,7 @@
+ 	nesuqp->nes_drv_opt = resp.nes_drv_opt;
+ 	nesuqp->ibv_qp.qp_num = resp.qp_id;
+ 
++#if HAVE_DECL_IBV_QPT_RAW_ETH
+ 	if (attr->qp_type == IBV_QPT_RAW_ETH) {
+ 		nesuqp->nes_ud_sksq_fd = open("/dev/infiniband/nes_ud_sksq",
+ 						O_RDWR);
+@@ -1233,6 +1238,8 @@
+ 		memset(&nesuqp->send_wr_id[0], 0, sizeof(uint64_t) * 512);
+ 		memset(&nesuqp->recv_wr_id[0], 0, sizeof(uint64_t) * 512);
+ 	}
++#endif
++
+ 	return &nesuqp->ibv_qp;
+ }
+ 
+@@ -1324,6 +1331,8 @@
+ 	}
+ 
+ 	pthread_spin_destroy(&nesuqp->lock);
++
++#if HAVE_DECL_IBV_QPT_RAW_ETH
+ 	if (qp->qp_type == IBV_QPT_RAW_ETH) {
+ 		if (nesuqp->pend_rx_wr) {
+ 			for (i = 0; i < NES_UD_RX_BATCH_SZ; i++)
+@@ -1340,6 +1349,8 @@
+ 		nesuqp->sksq_shared_ctxt = 0;
+ 		close(nesuqp->nes_ud_sksq_fd);
+ 	}
++#endif
++
+ 	/* Clean any pending completions from the cq(s) */
+ 	if (nesuqp->send_cq)
+ 		nes_clean_cq(nesuqp, nesuqp->send_cq);
+@@ -1447,8 +1458,10 @@
+ 	uint32_t total_payload_length = 0;
+ 	int sge_index;
+ 
++#if HAVE_DECL_IBV_QPT_RAW_ETH
+ 	if (ib_qp->qp_type == IBV_QPT_RAW_ETH)
+ 		return nes_ima_upost_send(ib_qp, ib_wr, bad_wr);
++#endif
+ 
+ 	pthread_spin_lock(&nesuqp->lock);
+ 
+@@ -1715,9 +1728,10 @@
+ 	uint32_t total_payload_length;
+ 	int sge_index;
+ 
+-
++#if HAVE_DECL_IBV_QPT_RAW_ETH
+ 	if (ib_qp->qp_type == IBV_QPT_RAW_ETH)
+ 		return nes_ima_upost_recv(ib_qp, ib_wr, bad_wr);
++#endif
+ 
+ 	if (unlikely(ib_wr->num_sge > 4)) {
+ 		*bad_wr = ib_wr;
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
