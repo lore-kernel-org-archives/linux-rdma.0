@@ -1,7 +1,7 @@
 From: Sergei Shtylyov <sshtylyov-hkdhdckH98+B+jHODAdFcQ@public.gmane.org>
-Subject: [PATCH 1/2] ipath: use pci_dev->revision, again
-Date: Sat, 7 May 2011 21:39:37 +0400
-Message-ID: <201105072139.37992.sshtylyov@ru.mvista.com>
+Subject: [PATCH 2/2] qib: use pci_dev->revision
+Date: Sat, 7 May 2011 21:41:56 +0400
+Message-ID: <201105072141.56328.sshtylyov@ru.mvista.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="iso-8859-1"
@@ -9,51 +9,38 @@ Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: infinipath-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Commit 44c10138fd4bbc4b6d6bff0873c24902f2a9da65 (PCI: Change all drivers to use
-pci_device->revision) already converted this driver to using the 'revision'
-field of 'struct pci_dev' but commit bb9171448deb1f7ece27674e2e431e4f267fd453
-(IB/ipath: Misc changes to prepare for IB7220 introduction) later reverted that
-change for some strange reason. Now restore the change...
+The driver reads PCI revision ID from the PCI configuration register while it's
+already stored by PCI subsystem in the 'revision' field of 'struct pci_dev'...
 
 Signed-off-by: Sergei Shtylyov <sshtylyov-hkdhdckH98+B+jHODAdFcQ@public.gmane.org>
 
 ---
 The patch is against the recent Linus' tree.
 
- drivers/infiniband/hw/ipath/ipath_driver.c |    9 +--------
- 1 file changed, 1 insertion(+), 8 deletions(-)
+ drivers/infiniband/hw/qib/qib_pcie.c |    5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
 
-Index: linux-2.6/drivers/infiniband/hw/ipath/ipath_driver.c
+Index: linux-2.6/drivers/infiniband/hw/qib/qib_pcie.c
 ===================================================================
---- linux-2.6.orig/drivers/infiniband/hw/ipath/ipath_driver.c
-+++ linux-2.6/drivers/infiniband/hw/ipath/ipath_driver.c
-@@ -398,7 +398,6 @@ static int __devinit ipath_init_one(stru
- 	struct ipath_devdata *dd;
- 	unsigned long long addr;
- 	u32 bar0 = 0, bar1 = 0;
--	u8 rev;
- 
- 	dd = ipath_alloc_devdata(pdev);
- 	if (IS_ERR(dd)) {
-@@ -540,13 +539,7 @@ static int __devinit ipath_init_one(stru
- 		goto bail_regions;
- 	}
- 
--	ret = pci_read_config_byte(pdev, PCI_REVISION_ID, &rev);
--	if (ret) {
--		ipath_dev_err(dd, "Failed to read PCI revision ID unit "
--			      "%u: err %d\n", dd->ipath_unit, -ret);
--		goto bail_regions;	/* shouldn't ever happen */
--	}
--	dd->ipath_pcirev = rev;
-+	dd->ipath_pcirev = pdev->revision;
- 
- #if defined(__powerpc__)
- 	/* There isn't a generic way to specify writethrough mappings */
+--- linux-2.6.orig/drivers/infiniband/hw/qib/qib_pcie.c
++++ linux-2.6/drivers/infiniband/hw/qib/qib_pcie.c
+@@ -526,11 +526,8 @@ static int qib_tune_pcie_coalesce(struct
+ 	 */
+ 	devid = parent->device;
+ 	if (devid >= 0x25e2 && devid <= 0x25fa) {
+-		u8 rev;
+-
+ 		/* 5000 P/V/X/Z */
+-		pci_read_config_byte(parent, PCI_REVISION_ID, &rev);
+-		if (rev <= 0xb2)
++		if (parent->revision <= 0xb2)
+ 			bits = 1U << 10;
+ 		else
+ 			bits = 7U << 10;
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
