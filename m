@@ -1,46 +1,123 @@
-From: Sergei Shtylyov <sshtylyov-hkdhdckH98+B+jHODAdFcQ@public.gmane.org>
-Subject: [PATCH 2/2] qib: use pci_dev->revision
-Date: Sat, 7 May 2011 21:41:56 +0400
-Message-ID: <201105072141.56328.sshtylyov@ru.mvista.com>
+From: bhavinkumar thumar <bhawinkumar.thumar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Building and Installing SDP on existing OFED 1.5.2 install
+Date: Mon, 9 May 2011 13:52:04 +0530
+Message-ID: <BANLkTimvikSV-B5503wNBBumB2D274m=vQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-The driver reads PCI revision ID from the PCI configuration register while it's
-already stored by PCI subsystem in the 'revision' field of 'struct pci_dev'...
+Hi,
 
-Signed-off-by: Sergei Shtylyov <sshtylyov-hkdhdckH98+B+jHODAdFcQ@public.gmane.org>
+I have downloaded the OFED 1.5.2 tar file and then installed RPM
+source files to /usr/src/redhat/SOURCES. Now I changed some portion of
+sdp_main.c and then I performed following steps.
 
----
-The patch is against the recent Linus' tree.
+#cd /usr/src/redhat/SOURCES/ofa_kernel-1.5.2/
 
- drivers/infiniband/hw/qib/qib_pcie.c |    5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
+#./configure --with-core-mod --with-ipoib-mod --with-mthca-mod
+--with-mlx4_core-mod --with-mlx4_inf-mod --with-sdp-mod
+--with-sdp_debug-mod
+- Succeed
 
-Index: linux-2.6/drivers/infiniband/hw/qib/qib_pcie.c
-===================================================================
---- linux-2.6.orig/drivers/infiniband/hw/qib/qib_pcie.c
-+++ linux-2.6/drivers/infiniband/hw/qib/qib_pcie.c
-@@ -526,11 +526,8 @@ static int qib_tune_pcie_coalesce(struct
- 	 */
- 	devid = parent->device;
- 	if (devid >= 0x25e2 && devid <= 0x25fa) {
--		u8 rev;
--
- 		/* 5000 P/V/X/Z */
--		pci_read_config_byte(parent, PCI_REVISION_ID, &rev);
--		if (rev <= 0xb2)
-+		if (parent->revision <= 0xb2)
- 			bits = 1U << 10;
- 		else
- 			bits = 7U << 10;
+#make
+- Succeed
+
+#make install
+- Succeed
+
+make[1]: Entering directory `/usr/src/kernels/2.6.18-194.el5-x86_64'
+  INSTALL /usr/src/redhat/SOURCES/ofa_kernel-1.5.2/drivers/infiniband/core/ib_cm.ko
+  INSTALL /usr/src/redhat/SOURCES/ofa_kernel-1.5.2/drivers/infiniband/core/ib_core.ko
+  INSTALL /usr/src/redhat/SOURCES/ofa_kernel-1.5.2/drivers/infiniband/core/ib_mad.ko
+  INSTALL /usr/src/redhat/SOURCES/ofa_kernel-1.5.2/drivers/infiniband/core/ib_sa.ko
+  INSTALL /usr/src/redhat/SOURCES/ofa_kernel-1.5.2/drivers/infiniband/core/iw_cm.ko
+  INSTALL /usr/src/redhat/SOURCES/ofa_kernel-1.5.2/drivers/infiniband/hw/mlx4/mlx4_ib.ko
+  INSTALL /usr/src/redhat/SOURCES/ofa_kernel-1.5.2/drivers/infiniband/hw/mthca/ib_mthca.ko
+  INSTALL /usr/src/redhat/SOURCES/ofa_kernel-1.5.2/drivers/infiniband/ulp/ipoib/ib_ipoib.ko
+  INSTALL /usr/src/redhat/SOURCES/ofa_kernel-1.5.2/drivers/infiniband/ulp/ipoib/ipoib_helper.ko
+  INSTALL /usr/src/redhat/SOURCES/ofa_kernel-1.5.2/drivers/infiniband/ulp/sdp/ib_sdp.ko
+  INSTALL /usr/src/redhat/SOURCES/ofa_kernel-1.5.2/drivers/net/mlx4/mlx4_core.ko
+  DEPMOD  2.6.18-194.el5
+
+#modprobe ib_sdp
+- FATAL: Error inserting ib_sdp
+(/lib/modules/2.6.18-194.el5/updates/kernel/drivers/infiniband/ulp/sdp/ib_sdp.ko):
+Unknown symbol in module, or unknown parameter (see dmesg)
+
+#dmesg
+mtrr: no more MTRRs available
+mtrr: no more MTRRs available
+mtrr: no more MTRRs available
+mtrr: no more MTRRs available
+mtrr: no more MTRRs available
+mtrr: no more MTRRs available
+mtrr: no more MTRRs available
+mtrr: no more MTRRs available
+rdma_cm: disagrees about version of symbol ib_send_cm_sidr_req
+rdma_cm: Unknown symbol ib_send_cm_sidr_req
+rdma_cm: disagrees about version of symbol iw_create_cm_id
+rdma_cm: Unknown symbol iw_create_cm_id
+rdma_cm: disagrees about version of symbol ib_unregister_client
+rdma_cm: Unknown symbol ib_unregister_client
+rdma_cm: disagrees about version of symbol ib_send_cm_sidr_rep
+rdma_cm: Unknown symbol ib_send_cm_sidr_rep
+rdma_cm: disagrees about version of symbol ib_cm_listen
+rdma_cm: Unknown symbol ib_cm_listen
+rdma_cm: disagrees about version of symbol ib_destroy_cm_id
+rdma_cm: Unknown symbol ib_destroy_cm_id
+rdma_cm: disagrees about version of symbol ib_find_cached_pkey
+rdma_cm: Unknown symbol ib_find_cached_pkey
+rdma_cm: disagrees about version of symbol iw_cm_connect
+rdma_cm: Unknown symbol iw_cm_connect
+rdma_cm: disagrees about version of symbol ib_cm_notify
+rdma_cm: Unknown symbol ib_cm_notify
+rdma_cm: disagrees about version of symbol ib_detach_mcast
+rdma_cm: Unknown symbol ib_detach_mcast
+rdma_cm: disagrees about version of symbol ib_sa_get_mcmember_rec
+rdma_cm: Unknown symbol ib_sa_get_mcmember_rec
+rdma_cm: disagrees about version of symbol ib_sa_cancel_query
+rdma_cm: Unknown symbol ib_sa_cancel_query
+rdma_cm: disagrees about version of symbol ib_register_client
+rdma_cm: Unknown symbol ib_register_client
+rdma_cm: disagrees about version of symbol ib_sa_path_rec_get
+rdma_cm: Unknown symbol ib_sa_path_rec_get
+rdma_cm: disagrees about version of symbol ib_create_cm_id
+rdma_cm: Unknown symbol ib_create_cm_id
+
+................................................
+
+rdma_cm: disagrees about version of symbol ib_init_ah_from_path
+rdma_cm: Unknown symbol ib_init_ah_from_path
+rdma_cm: disagrees about version of symbol ib_destroy_qp
+rdma_cm: Unknown symbol ib_destroy_qp
+rdma_cm: disagrees about version of symbol iw_cm_init_qp_attr
+rdma_cm: Unknown symbol iw_cm_init_qp_attr
+rdma_cm: disagrees about version of symbol ib_send_cm_rtu
+rdma_cm: Unknown symbol ib_send_cm_rtu
+rdma_cm: disagrees about version of symbol ib_send_cm_dreq
+rdma_cm: Unknown symbol ib_send_cm_dreq
+rdma_cm: disagrees about version of symbol ib_send_cm_req
+rdma_cm: Unknown symbol ib_send_cm_req
+rdma_cm: disagrees about version of symbol ib_sa_join_multicast
+rdma_cm: Unknown symbol ib_sa_join_multicast
+rdma_cm: disagrees about version of symbol ib_attach_mcast
+rdma_cm: Unknown symbol ib_attach_mcast
+rdma_cm: disagrees about version of symbol ib_find_cached_gid
+rdma_cm: Unknown symbol ib_find_cached_gid
+rdma_cm: disagrees about version of symbol iw_cm_listen
+rdma_cm: Unknown symbol iw_cm_listen
+rdma_cm: disagrees about version of symbol ib_send_cm_rej
+rdma_cm: Unknown symbol ib_send_cm_rej
+
+
+can anyone tell me what's wrong? Please help me.
+
+
+Thanking You,
+Bhavin
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
