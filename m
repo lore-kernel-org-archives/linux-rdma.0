@@ -1,40 +1,34 @@
-From: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
-Subject: Re: [PATCH V4 1/6] IB Netlink Infrastructure
-Date: Mon, 9 May 2011 12:35:26 -0700
-Message-ID: <BANLkTi=J6ZTFCz12XkL4-ZeUsuAKODRjOw@mail.gmail.com>
-References: <1294068834-17778-1-git-send-email-nirm@voltaire.com> <1294068834-17778-2-git-send-email-nirm@voltaire.com>
+From: Mike Marciniszyn <mike.marciniszyn-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+Subject: RE: [PATCH 1/2] ipath: use pci_dev->revision, again
+Date: Mon, 9 May 2011 12:38:05 -0700
+Message-ID: <35AAF1E4A771E142979F27B51793A4888838BCBDB7@AVEXMB1.qlogic.org>
+References: <201105072139.37992.sshtylyov@ru.mvista.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1294068834-17778-2-git-send-email-nirm-smomgflXvOZWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <201105072139.37992.sshtylyov-hkdhdckH98+B+jHODAdFcQ@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: nirmu-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
-Cc: rolandd-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sergei Shtylyov <sshtylyov-hkdhdckH98+B+jHODAdFcQ@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-kernel <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> +int ibnl_add_client(int index, int nops,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 const struct ibnl_client_cbs cb=
-_table[])
-> +{
-> + =A0 =A0 =A0 struct ibnl_client *cur;
-> + =A0 =A0 =A0 struct ibnl_client *nl_client =3D kmalloc(sizeof *nl_cl=
-ient, GFP_ATOMIC);
-> +
-> + =A0 =A0 =A0 if (!nl_client)
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 return -ENOMEM;
-> + =A0 =A0 =A0 nl_client->index =3D index;
-> + =A0 =A0 =A0 nl_client->nops =3D nops;
-> + =A0 =A0 =A0 nl_client->cb_table =3D cb_table;
-> + =A0 =A0 =A0 mutex_lock(&ibnl_mutex);
+> Commit 44c10138fd4bbc4b6d6bff0873c24902f2a9da65 (PCI: Change all drivers to use
+> pci_device->revision) already converted this driver to using the 'revision'
+> field of 'struct pci_dev' but commit bb9171448deb1f7ece27674e2e431e4f267fd453
+> (IB/ipath: Misc changes to prepare for IB7220 introduction) later reverted that
+> change for some strange reason. Now restore the change...
 
-quick question: why is GFP_ATOMIC used here?  It seems that since the
-function later does mutex_lock(), there can't be any problem with sleep=
-ing.
+Thanks for the patch.
 
- - R.
+ipath: use pci_dev->revision, again
+
+Acked-by: Mike Marciniszyn <mike.marciniszyn-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+
+This message and any attached documents contain information from QLogic Corporation or its wholly-owned subsidiaries that may be confidential. If you are not the intended recipient, you may not read, copy, distribute, or use this information. If you have received this transmission in error, please notify the sender immediately by reply e-mail and then delete this message.
+
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
