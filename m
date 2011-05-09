@@ -1,72 +1,51 @@
-From: Mike Marciniszyn <mike.marciniszyn-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-Subject: RE: [PATCH 2/2] qib: use pci_dev->revision
-Date: Mon, 9 May 2011 12:39:56 -0700
-Message-ID: <35AAF1E4A771E142979F27B51793A4888838BCBDB9@AVEXMB1.qlogic.org>
-References: <201105072141.56328.sshtylyov@ru.mvista.com>
+From: frank zago <fzago-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org>
+Subject: [PATCH] rdma cm typo + bug report
+Date: Mon, 09 May 2011 16:50:31 -0500
+Message-ID: <4DC861A7.5010005@systemfabricworks.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: multipart/mixed;
+ boundary="------------070801010604070004090207"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <201105072141.56328.sshtylyov-hkdhdckH98+B+jHODAdFcQ@public.gmane.org>
-Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sergei Shtylyov <sshtylyov-hkdhdckH98+B+jHODAdFcQ@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-kernel <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> The driver reads PCI revision ID from the PCI configuration register while it's
-> already stored by PCI subsystem in the 'revision' field of 'struct pci_dev'...
+This is a multi-part message in MIME format.
+--------------070801010604070004090207
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 
-Thanks for the patch.
+Hi Sean,
 
-qib: use pci_dev->revision
+Here's a patch for a typo.
 
-Acked-by: Mike Marciniszyn <mike.marciniszyn-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+I also think there's a bug with ucma_create_cqs()/ucma_destroy_cqs() because ucma_destroy_cqs unconditionally destroys the CQs, even if they were given by the application. librdmacm should only destroy the CQs it created.
 
+Regards,
+  Frank.
 
------Original Message-----
-From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Sergei Shtylyov
-Sent: Saturday, May 07, 2011 1:42 PM
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org; sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org; hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org; linux-kernel
-Subject: [PATCH 2/2] qib: use pci_dev->revision
+--------------070801010604070004090207
+Content-Type: text/x-diff;
+ name="rdmacm-typo.diff"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename="rdmacm-typo.diff"
 
-The driver reads PCI revision ID from the PCI configuration register while it's
-already stored by PCI subsystem in the 'revision' field of 'struct pci_dev'...
+diff --git a/examples/rdma_server.c b/examples/rdma_server.c
+index 2831d0c..5b9e16d 100644
+--- a/examples/rdma_server.c
++++ b/examples/rdma_server.c
+@@ -97,7 +97,7 @@ static int run(void)
+ 
+ 	ret = rdma_accept(id, NULL);
+ 	if (ret) {
+-		printf("rdma_connect %d\n", errno);
++		printf("rdma_accept %d\n", errno);
+ 		return ret;
+ 	}
+ 
 
-Signed-off-by: Sergei Shtylyov <sshtylyov-hkdhdckH98+B+jHODAdFcQ@public.gmane.org>
-
----
-The patch is against the recent Linus' tree.
-
- drivers/infiniband/hw/qib/qib_pcie.c |    5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
-
-Index: linux-2.6/drivers/infiniband/hw/qib/qib_pcie.c
-===================================================================
---- linux-2.6.orig/drivers/infiniband/hw/qib/qib_pcie.c
-+++ linux-2.6/drivers/infiniband/hw/qib/qib_pcie.c
-@@ -526,11 +526,8 @@ static int qib_tune_pcie_coalesce(struct
-         */
-        devid = parent->device;
-        if (devid >= 0x25e2 && devid <= 0x25fa) {
--               u8 rev;
--
-                /* 5000 P/V/X/Z */
--               pci_read_config_byte(parent, PCI_REVISION_ID, &rev);
--               if (rev <= 0xb2)
-+               if (parent->revision <= 0xb2)
-                        bits = 1U << 10;
-                else
-                        bits = 7U << 10;
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
-
-This message and any attached documents contain information from QLogic Corporation or its wholly-owned subsidiaries that may be confidential. If you are not the intended recipient, you may not read, copy, distribute, or use this information. If you have received this transmission in error, please notify the sender immediately by reply e-mail and then delete this message.
-
+--------------070801010604070004090207--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
