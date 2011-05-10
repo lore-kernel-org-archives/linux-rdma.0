@@ -1,64 +1,53 @@
-From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-Subject: Re: [PATCH] librdmacm: define REUSEADDR option
-Date: Tue, 10 May 2011 14:30:35 -0700
-Message-ID: <20110510143035.ab736d58.weiny2@llnl.gov>
-References: <CF9C39F99A89134C9CF9C4CCB68B8DDF25DCC49B2D@orsmsx501.amr.corp.intel.com>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [RFC] RDMA CM + XRC, take two
+Date: Tue, 10 May 2011 23:17:45 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A82373BBE2@ORSMSX101.amr.corp.intel.com>
+References: <4DC86BB2.1020002@systemfabricworks.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CF9C39F99A89134C9CF9C4CCB68B8DDF25DCC49B2D-osO9UTpF0USkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
+In-Reply-To: <4DC86BB2.1020002-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Christopher J. Morrone" <morrone2-i2BcT+NCU+M@public.gmane.org>
+To: frank zago <fzago-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, 15 Apr 2011 23:48:27 -0700
-"Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
+> This is an improved version of my previous patch to add XRC support to
+> RDMA CM.
 
-> Support equivalent of SO_REUSEADDR socket option.  When specified
-> the rdma_cm_id will be bound to a reuseable address.  This will
-> allow other users to bind to that same address.  This is needed
-> to support lustre on clusters larger than 1024 nodes.
+I would still like to see support merged upstream and into mainline libibverbs before applying this to my tree.
+ 
+> This version now support the newer rdma CM interface. It needs some
+> polishing but it works.
+
+It's hard to comment on the patch as an attachment.  In several places, if/else statements were added, but indentation was not added to the opposite part of the statement.  There was also a rather large amount of code added to rdma_create_qp() that needs to be split into a separate function.  (I dislike functions longer than a screen.)
+ 
+> It modifies the rdma_client/server examples to use xrc instead of rc.
 > 
-> Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> The big hack is that the SRQ number needs to be transmitted to the remote
+> side. This patch hijacks the private data, so it's not acceptable. Ideally the SRQ
+> number should be transmitted either in the REQ or REP packet (depending
+> on which side the sender or the receiver) alongside the QP number. But that
+> would need a change in the specs. Any suggestions ?
 
-Acked-by: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+What are the QPNs carried in the REQ and REP?
 
-> ---
->  include/rdma/rdma_cma.h |    5 +++--
->  1 files changed, 3 insertions(+), 2 deletions(-)
-> 
-> diff --git a/include/rdma/rdma_cma.h b/include/rdma/rdma_cma.h
-> index b48cd2e..3648c97 100755
-> --- a/include/rdma/rdma_cma.h
-> +++ b/include/rdma/rdma_cma.h
-> @@ -639,8 +639,9 @@ enum {
->  
->  /* Option details */
->  enum {
-> -	RDMA_OPTION_ID_TOS	= 0,	/* uint8_t: RFC 2474 */
-> -	RDMA_OPTION_IB_PATH	= 1	/* struct ibv_path_data[] */
-> +	RDMA_OPTION_ID_TOS	 = 0,	/* uint8_t: RFC 2474 */
-> +	RDMA_OPTION_ID_REUSEADDR = 1,   /* int: ~SO_REUSEADDR */
-> +	RDMA_OPTION_IB_PATH	 = 1	/* struct ibv_path_data[] */
->  };
->  
->  /**
-> 
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Also a good chunk of the patch is to deal with the XRC verbs API. I wonder
+> whether XRC could/should be more integrated into the existing verbs:
 
+That would be my preference.   I'm not familiar with the OFED XRC interfaces, so I'm only going off of the annex.
 
--- 
-Ira Weiny
-Math Programmer/Computer Scientist
-Lawrence Livermore National Lab
-925-423-8008
-weiny2-i2BcT+NCU+M@public.gmane.org
+> - sender should not need a domain,
+
+Hiding the xrc domain with the pd might help prevent breaking the user space ABI.
+
+> - there should be 2 types of xrc QPs (send and receive) instead of one,
+
+I've thought of this as well, and think it may also help prevent breaking the ABI.
+
+- Sean
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
