@@ -1,41 +1,24 @@
-From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: Re: [PATCH/RFC] RDMA/iwcm: Get rid of enum iw_cm_event_status
-Date: Tue, 10 May 2011 09:50:01 -0500
-Message-ID: <4DC95099.7030706@opengridcomputing.com>
-References: <1305005199-4943-1-git-send-email-roland@kernel.org>
+From: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+Subject: Re: [PATCH V4 3/6] IB Core: Run Netlink
+Date: Tue, 10 May 2011 12:28:21 -0700
+Message-ID: <BANLkTim_zvRjOuTvNdC2fGWMfYptYrVTTA@mail.gmail.com>
+References: <1294068834-17778-1-git-send-email-nirm@voltaire.com> <1294068834-17778-4-git-send-email-nirm@voltaire.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1305005199-4943-1-git-send-email-roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+In-Reply-To: <1294068834-17778-4-git-send-email-nirm-smomgflXvOZWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: nirmu-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 05/10/2011 12:26 AM, Roland Dreier wrote:
-> From: Roland Dreier<roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
->
-> The IW_CM_EVENT_STATUS_xxx values were used in only a couple of places;
-> cma.c uses -Exxx values instead, and so do the amso1100, cxgb3 and cxgb4
-> drivers -- only nes was using the enum values (with the mild consequence
-> that all nes connection failures were treated as generic errors rather
-> than reported as timeouts or rejections).
->
-> We can fix this confusion by getting rid of enum iw_cm_event_status and
-> using a plain int for struct iw_cm_event.status, and converting nes to
-> use -Exxx as the other iWARP drivers do.
->
-> This also gets rid of the warning
->
->      drivers/infiniband/core/cma.c: In function 'cma_iw_handler':
->      drivers/infiniband/core/cma.c:1333:3: warning: case value '4294967185' not in enumerated type 'enum iw_cm_event_status'
->      drivers/infiniband/core/cma.c:1336:3: warning: case value '4294967186' not in enumerated type 'enum iw_cm_event_status'
->      drivers/infiniband/core/cma.c:1332:3: warning: case value '4294967192' not in enumerated type 'enum iw_cm_event_status'
->
-> Signed-off-by: Roland Dreier<roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+> +#include <net/ib_netlink.h>
 
-Reviewed-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Was the latest version of this actually tested?  Patch 1 put this header in
+<rdma/ib_netlink.h> as far as I can see, so I don't see how this could
+even build.
+
+ - R.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
