@@ -1,173 +1,510 @@
-From: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH/RFC] RDMA/iwcm: Get rid of enum iw_cm_event_status
-Date: Mon,  9 May 2011 22:26:39 -0700
-Message-ID: <1305005199-4943-1-git-send-email-roland@kernel.org>
+From: bhavinkumar thumar <bhawinkumar.thumar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: Building and Installing SDP on existing OFED 1.5.2 install
+Date: Tue, 10 May 2011 15:27:19 +0530
+Message-ID: <BANLkTikPnWHUzu0QvicW3wQwej+Qy3rrsw@mail.gmail.com>
+References: <BANLkTimvikSV-B5503wNBBumB2D274m=vQ@mail.gmail.com>
+	<BANLkTimdZUhQwnCa75ph7_czbunYCUuF2g@mail.gmail.com>
+	<BANLkTinBMiinjMiFj20xYzprFWnaft5zgA@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <BANLkTinBMiinjMiFj20xYzprFWnaft5zgA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Wendy Cheng <s.wendy.cheng-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+Hey,
 
-The IW_CM_EVENT_STATUS_xxx values were used in only a couple of places;
-cma.c uses -Exxx values instead, and so do the amso1100, cxgb3 and cxgb4
-drivers -- only nes was using the enum values (with the mild consequence
-that all nes connection failures were treated as generic errors rather
-than reported as timeouts or rejections).
+Now it's working! I just cleaned up everything and started with fresh
+installation. Thanks a lot for pointing me /etc/infiniband/info file.
 
-We can fix this confusion by getting rid of enum iw_cm_event_status and
-using a plain int for struct iw_cm_event.status, and converting nes to
-use -Exxx as the other iWARP drivers do.
+Thanks,
+Bhavin
 
-This also gets rid of the warning
-
-    drivers/infiniband/core/cma.c: In function 'cma_iw_handler':
-    drivers/infiniband/core/cma.c:1333:3: warning: case value '4294967185' not in enumerated type 'enum iw_cm_event_status'
-    drivers/infiniband/core/cma.c:1336:3: warning: case value '4294967186' not in enumerated type 'enum iw_cm_event_status'
-    drivers/infiniband/core/cma.c:1332:3: warning: case value '4294967192' not in enumerated type 'enum iw_cm_event_status'
-
-Signed-off-by: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
----
-This looks pretty safe and reasonable to me -- would love to hear
-any differing opinions though.
-
- drivers/infiniband/core/iwcm.c        |    2 +-
- drivers/infiniband/hw/nes/nes_cm.c    |   16 ++++++++--------
- drivers/infiniband/hw/nes/nes_verbs.c |    2 +-
- include/rdma/iw_cm.h                  |   11 +----------
- 4 files changed, 11 insertions(+), 20 deletions(-)
-
-diff --git a/drivers/infiniband/core/iwcm.c b/drivers/infiniband/core/iwcm.c
-index 2a1e9ae..a9c0423 100644
---- a/drivers/infiniband/core/iwcm.c
-+++ b/drivers/infiniband/core/iwcm.c
-@@ -725,7 +725,7 @@ static int cm_conn_rep_handler(struct iwcm_id_private *cm_id_priv,
- 	 */
- 	clear_bit(IWCM_F_CONNECT_WAIT, &cm_id_priv->flags);
- 	BUG_ON(cm_id_priv->state != IW_CM_STATE_CONN_SENT);
--	if (iw_event->status == IW_CM_EVENT_STATUS_ACCEPTED) {
-+	if (iw_event->status == 0) {
- 		cm_id_priv->id.local_addr = iw_event->local_addr;
- 		cm_id_priv->id.remote_addr = iw_event->remote_addr;
- 		cm_id_priv->state = IW_CM_STATE_ESTABLISHED;
-diff --git a/drivers/infiniband/hw/nes/nes_cm.c b/drivers/infiniband/hw/nes/nes_cm.c
-index 33c7eed..e74cdf9 100644
---- a/drivers/infiniband/hw/nes/nes_cm.c
-+++ b/drivers/infiniband/hw/nes/nes_cm.c
-@@ -2563,7 +2563,7 @@ static int nes_cm_disconn_true(struct nes_qp *nesqp)
- 	u16 last_ae;
- 	u8 original_hw_tcp_state;
- 	u8 original_ibqp_state;
--	enum iw_cm_event_status disconn_status = IW_CM_EVENT_STATUS_OK;
-+	int disconn_status = 0;
- 	int issue_disconn = 0;
- 	int issue_close = 0;
- 	int issue_flush = 0;
-@@ -2605,7 +2605,7 @@ static int nes_cm_disconn_true(struct nes_qp *nesqp)
- 			(last_ae == NES_AEQE_AEID_LLP_CONNECTION_RESET))) {
- 		issue_disconn = 1;
- 		if (last_ae == NES_AEQE_AEID_LLP_CONNECTION_RESET)
--			disconn_status = IW_CM_EVENT_STATUS_RESET;
-+			disconn_status = -ECONNRESET;
- 	}
- 
- 	if (((original_hw_tcp_state == NES_AEQE_TCP_STATE_CLOSED) ||
-@@ -2666,7 +2666,7 @@ static int nes_cm_disconn_true(struct nes_qp *nesqp)
- 			cm_id->provider_data = nesqp;
- 			/* Send up the close complete event */
- 			cm_event.event = IW_CM_EVENT_CLOSE;
--			cm_event.status = IW_CM_EVENT_STATUS_OK;
-+			cm_event.status = 0;
- 			cm_event.provider_data = cm_id->provider_data;
- 			cm_event.local_addr = cm_id->local_addr;
- 			cm_event.remote_addr = cm_id->remote_addr;
-@@ -2966,7 +2966,7 @@ int nes_accept(struct iw_cm_id *cm_id, struct iw_cm_conn_param *conn_param)
- 	nes_add_ref(&nesqp->ibqp);
- 
- 	cm_event.event = IW_CM_EVENT_ESTABLISHED;
--	cm_event.status = IW_CM_EVENT_STATUS_ACCEPTED;
-+	cm_event.status = 0;
- 	cm_event.provider_data = (void *)nesqp;
- 	cm_event.local_addr = cm_id->local_addr;
- 	cm_event.remote_addr = cm_id->remote_addr;
-@@ -3377,7 +3377,7 @@ static void cm_event_connected(struct nes_cm_event *event)
- 
- 	/* notify OF layer we successfully created the requested connection */
- 	cm_event.event = IW_CM_EVENT_CONNECT_REPLY;
--	cm_event.status = IW_CM_EVENT_STATUS_ACCEPTED;
-+	cm_event.status = 0;
- 	cm_event.provider_data = cm_id->provider_data;
- 	cm_event.local_addr.sin_family = AF_INET;
- 	cm_event.local_addr.sin_port = cm_id->local_addr.sin_port;
-@@ -3484,7 +3484,7 @@ static void cm_event_reset(struct nes_cm_event *event)
- 	nesqp->cm_id = NULL;
- 	/* cm_id->provider_data = NULL; */
- 	cm_event.event = IW_CM_EVENT_DISCONNECT;
--	cm_event.status = IW_CM_EVENT_STATUS_RESET;
-+	cm_event.status = -ECONNRESET;
- 	cm_event.provider_data = cm_id->provider_data;
- 	cm_event.local_addr = cm_id->local_addr;
- 	cm_event.remote_addr = cm_id->remote_addr;
-@@ -3495,7 +3495,7 @@ static void cm_event_reset(struct nes_cm_event *event)
- 	ret = cm_id->event_handler(cm_id, &cm_event);
- 	atomic_inc(&cm_closes);
- 	cm_event.event = IW_CM_EVENT_CLOSE;
--	cm_event.status = IW_CM_EVENT_STATUS_OK;
-+	cm_event.status = 0;
- 	cm_event.provider_data = cm_id->provider_data;
- 	cm_event.local_addr = cm_id->local_addr;
- 	cm_event.remote_addr = cm_id->remote_addr;
-@@ -3534,7 +3534,7 @@ static void cm_event_mpa_req(struct nes_cm_event *event)
- 			cm_node, cm_id, jiffies);
- 
- 	cm_event.event = IW_CM_EVENT_CONNECT_REQUEST;
--	cm_event.status = IW_CM_EVENT_STATUS_OK;
-+	cm_event.status = 0;
- 	cm_event.provider_data = (void *)cm_node;
- 
- 	cm_event.local_addr.sin_family = AF_INET;
-diff --git a/drivers/infiniband/hw/nes/nes_verbs.c b/drivers/infiniband/hw/nes/nes_verbs.c
-index 26d8018..95ca93c 100644
---- a/drivers/infiniband/hw/nes/nes_verbs.c
-+++ b/drivers/infiniband/hw/nes/nes_verbs.c
-@@ -1484,7 +1484,7 @@ static int nes_destroy_qp(struct ib_qp *ibqp)
- 			(nesqp->ibqp_state == IB_QPS_RTR)) && (nesqp->cm_id)) {
- 		cm_id = nesqp->cm_id;
- 		cm_event.event = IW_CM_EVENT_CONNECT_REPLY;
--		cm_event.status = IW_CM_EVENT_STATUS_TIMEOUT;
-+		cm_event.status = -ETIMEDOUT;
- 		cm_event.local_addr = cm_id->local_addr;
- 		cm_event.remote_addr = cm_id->remote_addr;
- 		cm_event.private_data = NULL;
-diff --git a/include/rdma/iw_cm.h b/include/rdma/iw_cm.h
-index cbb822e..2d0191c 100644
---- a/include/rdma/iw_cm.h
-+++ b/include/rdma/iw_cm.h
-@@ -46,18 +46,9 @@ enum iw_cm_event_type {
- 	IW_CM_EVENT_CLOSE		 /* close complete */
- };
- 
--enum iw_cm_event_status {
--	IW_CM_EVENT_STATUS_OK = 0,	 /* request successful */
--	IW_CM_EVENT_STATUS_ACCEPTED = 0, /* connect request accepted */
--	IW_CM_EVENT_STATUS_REJECTED,	 /* connect request rejected */
--	IW_CM_EVENT_STATUS_TIMEOUT,	 /* the operation timed out */
--	IW_CM_EVENT_STATUS_RESET,	 /* reset from remote peer */
--	IW_CM_EVENT_STATUS_EINVAL,	 /* asynchronous failure for bad parm */
--};
--
- struct iw_cm_event {
- 	enum iw_cm_event_type event;
--	enum iw_cm_event_status status;
-+	int			 status;
- 	struct sockaddr_in local_addr;
- 	struct sockaddr_in remote_addr;
- 	void *private_data;
--- 
-1.7.4.1
-
+On Tue, May 10, 2011 at 10:55 AM, bhavinkumar thumar
+<bhawinkumar.thumar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
+> Thanks a lot for replying.
+>
+> I followed your suggestion and issued configure command as follows:
+>
+> #./configure --with-core-mod --with-user_mad-mod
+> --with-user_access-mod --with-addr_trans-mod --with-mthca-mod
+> --with-mlx4-mod --with-mlx4_en-mod --with-mlx4_ib-mod
+> --with-mlx4_vnic-mod --with-mlx4_fc-mod --with-qib-mod
+> --with-cxgb3-mod --with-nes-mod --with-ipoib-mod --with-sdp-mod
+> --with-srp-mod --with-rds-mod
+>
+> /etc/infiniband/info:-
+> #!/bin/bash
+>
+> echo prefix=3D/usr
+> echo Kernel=3D2.6.18-194.el5
+> echo
+> echo "Configure options: --with-core-mod --with-user_mad-mod
+> --with-user_access-mod --with-addr_trans-mod --with-mthca-mod
+> --with-mlx4-mod --with-mlx4_en-mod --with-mlx4_ib-mod
+> --with-mlx4_vnic-mod --with-mlx4_fc-mod --with-qib-mod
+> --with-cxgb3-mod --with-nes-mod --with-ipoib-mod --with-sdp-mod
+> --with-srp-mod --with-rds-mod"
+> echo
+>
+>
+> #make
+> =A0- Succeed (make[1]: Leaving directory `/usr/src/kernels/2.6.18-194=
+=2Eel5-x86_64')
+>
+> #make install
+>
+> Installing kernel modules
+> make -C /lib/modules/2.6.18-194.el5/build
+> SUBDIRS=3D"/usr/src/redhat/SOURCES/ofa_kernel-1.5.2" \
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0INSTALL_MOD_PATH=3D/usr/src/redhat/SOU=
+RCES/ofa_kernel-1.5.2 \
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 modules_install;
+> make[1]: Entering directory `/usr/src/kernels/2.6.18-194.el5-x86_64'
+> =A0INSTALL /usr/src/redhat/SOURCES/ofa_kernel-1.5.2/drivers/infiniban=
+d/core/ib_addr.ko
+> =A0INSTALL /usr/src/redhat/SOURCES/ofa_kernel-1.5.2/drivers/infiniban=
+d/core/ib_cm.ko
+> =A0INSTALL /usr/src/redhat/SOURCES/ofa_kernel-1.5.2/drivers/infiniban=
+d/core/ib_core.ko
+> =A0INSTALL /usr/src/redhat/SOURCES/ofa_kernel-1.5.2/drivers/infiniban=
+d/core/ib_mad.ko
+> =A0INSTALL /usr/src/redhat/SOURCES/ofa_kernel-1.5.2/drivers/infiniban=
+d/core/ib_sa.ko
+> =A0INSTALL /usr/src/redhat/SOURCES/ofa_kernel-1.5.2/drivers/infiniban=
+d/core/ib_ucm.ko
+> =A0INSTALL /usr/src/redhat/SOURCES/ofa_kernel-1.5.2/drivers/infiniban=
+d/core/ib_umad.ko
+> =A0INSTALL /usr/src/redhat/SOURCES/ofa_kernel-1.5.2/drivers/infiniban=
+d/core/ib_uverbs.ko
+> =A0INSTALL /usr/src/redhat/SOURCES/ofa_kernel-1.5.2/drivers/infiniban=
+d/core/iw_cm.ko
+> =A0INSTALL /usr/src/redhat/SOURCES/ofa_kernel-1.5.2/drivers/infiniban=
+d/core/rdma_cm.ko
+> =A0INSTALL /usr/src/redhat/SOURCES/ofa_kernel-1.5.2/drivers/infiniban=
+d/core/rdma_ucm.ko
+> =A0INSTALL /usr/src/redhat/SOURCES/ofa_kernel-1.5.2/drivers/infiniban=
+d/hw/cxgb3/iw_cxgb3.ko
+> =A0INSTALL /usr/src/redhat/SOURCES/ofa_kernel-1.5.2/drivers/infiniban=
+d/hw/cxgb3/rdma_krping.ko
+> =A0INSTALL /usr/src/redhat/SOURCES/ofa_kernel-1.5.2/drivers/infiniban=
+d/hw/mlx4/mlx4_ib.ko
+> =A0INSTALL /usr/src/redhat/SOURCES/ofa_kernel-1.5.2/drivers/infiniban=
+d/hw/mthca/ib_mthca.ko
+> =A0INSTALL /usr/src/redhat/SOURCES/ofa_kernel-1.5.2/drivers/infiniban=
+d/hw/nes/iw_nes.ko
+> =A0INSTALL /usr/src/redhat/SOURCES/ofa_kernel-1.5.2/drivers/infiniban=
+d/hw/qib/ib_qib.ko
+> =A0INSTALL /usr/src/redhat/SOURCES/ofa_kernel-1.5.2/drivers/infiniban=
+d/ulp/ipoib/ib_ipoib.ko
+> =A0INSTALL /usr/src/redhat/SOURCES/ofa_kernel-1.5.2/drivers/infiniban=
+d/ulp/ipoib/ipoib_helper.ko
+> =A0INSTALL /usr/src/redhat/SOURCES/ofa_kernel-1.5.2/drivers/infiniban=
+d/ulp/sdp/ib_sdp.ko
+> =A0INSTALL /usr/src/redhat/SOURCES/ofa_kernel-1.5.2/drivers/infiniban=
+d/ulp/srp/ib_srp.ko
+> =A0INSTALL /usr/src/redhat/SOURCES/ofa_kernel-1.5.2/drivers/net/cxgb3=
+/cxgb3.ko
+> =A0INSTALL /usr/src/redhat/SOURCES/ofa_kernel-1.5.2/drivers/net/mlx4/=
+mlx4_core.ko
+> =A0INSTALL /usr/src/redhat/SOURCES/ofa_kernel-1.5.2/drivers/net/mlx4/=
+mlx4_en.ko
+> =A0INSTALL /usr/src/redhat/SOURCES/ofa_kernel-1.5.2/net/rds/rds.ko
+> =A0INSTALL /usr/src/redhat/SOURCES/ofa_kernel-1.5.2/net/rds/rds_rdma.=
+ko
+> =A0INSTALL /usr/src/redhat/SOURCES/ofa_kernel-1.5.2/net/rds/rds_tcp.k=
+o
+> =A0DEPMOD =A02.6.18-194.el5
+> make[1]: Leaving directory `/usr/src/kernels/2.6.18-194.el5-x86_64'
+> # Copy new cxgb3 kernel module to
+> //lib/modules/2.6.18-194.el5/updates/kernel/drivers/net/cxgb3
+> if [ -d /usr/src/redhat/SOURCES/ofa_kernel-1.5.2/lib/modules/2.6.18-1=
+94.el5/drivers/net/cxgb3
+> ]; then \
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0mkdir -p //lib/modules/2.6.18-194.el5/=
+updates/kernel/drivers/net/cxgb3; \
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0mv /usr/src/redhat/SOURCES/ofa_kernel-=
+1.5.2/lib/modules/2.6.18-194.el5/drivers/net/cxgb3/cxgb3.ko
+> //lib/modules/2.6.18-194.el5/updates/kernel/drivers/net/cxgb3; \
+> =A0 =A0 =A0 =A0fi; \
+> =A0 =A0 =A0 =A0if [ -d /usr/src/redhat/SOURCES/ofa_kernel-1.5.2/lib/m=
+odules/2.6.18-194.el5/extra/drivers/net/cxgb3
+> ]; then \
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0mkdir -p //lib/modules/2.6.18-194.el5/=
+updates/kernel/drivers/net/cxgb3; \
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0mv /usr/src/redhat/SOURCES/ofa_kernel-=
+1.5.2/lib/modules/2.6.18-194.el5/extra/drivers/net/cxgb3/cxgb3.ko
+> //lib/modules/2.6.18-194.el5/updates/kernel/drivers/net/cxgb3/ ; \
+> =A0 =A0 =A0 =A0elif [ -d /usr/src/redhat/SOURCES/ofa_kernel-1.5.2/lib=
+/modules/2.6.18-194.el5/extra
+> ]; then \
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0mkdir -p //lib/modules/2.6.18-194.el5/=
+updates/kernel/drivers/net/cxgb3; \
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0mv /usr/src/redhat/SOURCES/ofa_kernel-=
+1.5.2/lib/modules/2.6.18-194.el5/extra/cxgb3.ko
+> //lib/modules/2.6.18-194.el5/updates/kernel/drivers/net/cxgb3/ ; \
+> =A0 =A0 =A0 =A0fi;
+> if [ ! -n "" ]; then /sbin/depmod -r -ae 2.6.18-194.el5;fi;
+> WARNING: Can't read module
+> /lib/modules/2.6.18-194.el5/weak-updates/kmod-kvm/kvm.ko: No such fil=
+e
+> or directory
+> WARNING: Can't read module
+> /lib/modules/2.6.18-194.el5/weak-updates/kmod-kvm/kvm-amd.ko: No such
+> file or directory
+> WARNING: Can't read module
+> /lib/modules/2.6.18-194.el5/weak-updates/kmod-kvm/ksm.ko: No such fil=
+e
+> or directory
+> WARNING: Can't read module
+> /lib/modules/2.6.18-194.el5/weak-updates/kmod-kvm/kvm-intel.ko: No
+> such file or directory
+> # Copy new rds kernel module to
+> //lib/modules/2.6.18-194.el5/updates/kernel/drivers/net/rds
+> if [ -d /usr/src/redhat/SOURCES/ofa_kernel-1.5.2/lib/modules/2.6.18-1=
+94.el5/kernel/net/rds
+> ]; then \
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0mkdir -p //lib/modules/2.6.18-194.el5/=
+updates/kernel/net/rds; \
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0mv /usr/src/redhat/SOURCES/ofa_kernel-=
+1.5.2/lib/modules/2.6.18-194.el5/kernel/net/rds/rds*.ko
+> //lib/modules/2.6.18-194.el5/updates/kernel/net/rds; \
+> =A0 =A0 =A0 =A0fi; \
+> =A0 =A0 =A0 =A0if [ -d /usr/src/redhat/SOURCES/ofa_kernel-1.5.2/lib/m=
+odules/2.6.18-194.el5/extra/net/rds
+> ]; then \
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0mkdir -p //lib/modules/2.6.18-194.el5/=
+updates/kernel/net/rds; \
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0mv /usr/src/redhat/SOURCES/ofa_kernel-=
+1.5.2/lib/modules/2.6.18-194.el5/extra/net/rds/rds*.ko
+> //lib/modules/2.6.18-194.el5/updates/kernel/net/rds/ ; \
+> =A0 =A0 =A0 =A0elif [ -d /usr/src/redhat/SOURCES/ofa_kernel-1.5.2/lib=
+/modules/2.6.18-194.el5/extra
+> ]; then \
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0mkdir -p //lib/modules/2.6.18-194.el5/=
+updates/kernel/net/rds; \
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0mv /usr/src/redhat/SOURCES/ofa_kernel-=
+1.5.2/lib/modules/2.6.18-194.el5/extra/rds*.ko
+> //lib/modules/2.6.18-194.el5/updates/kernel/net/rds/ ; \
+> =A0 =A0 =A0 =A0fi;
+> if [ ! -n "" ]; then /sbin/depmod -r -ae 2.6.18-194.el5;fi;
+> WARNING: Can't read module
+> /lib/modules/2.6.18-194.el5/weak-updates/kmod-kvm/kvm.ko: No such fil=
+e
+> or directory
+> WARNING: Can't read module
+> /lib/modules/2.6.18-194.el5/weak-updates/kmod-kvm/kvm-amd.ko: No such
+> file or directory
+> WARNING: Can't read module
+> /lib/modules/2.6.18-194.el5/weak-updates/kmod-kvm/ksm.ko: No such fil=
+e
+> or directory
+> WARNING: Can't read module
+> /lib/modules/2.6.18-194.el5/weak-updates/kmod-kvm/kvm-intel.ko: No
+> such file or directory
+> # Copy new mlx4 kernel module to
+> //lib/modules/2.6.18-194.el5/updates/kernel/drivers/net/mlx4
+> if [ -d /usr/src/redhat/SOURCES/ofa_kernel-1.5.2/lib/modules/2.6.18-1=
+94.el5/drivers/net/mlx4
+> ]; then \
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0mkdir -p //lib/modules/2.6.18-194.el5/=
+updates/kernel/drivers/net/mlx4; \
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0mv /usr/src/redhat/SOURCES/ofa_kernel-=
+1.5.2/lib/modules/2.6.18-194.el5/drivers/net/mlx4/mlx4*.ko
+> //lib/modules/2.6.18-194.el5/updates/kernel/drivers/net/mlx4; \
+> =A0 =A0 =A0 =A0fi; \
+> =A0 =A0 =A0 =A0if [ -d /usr/src/redhat/SOURCES/ofa_kernel-1.5.2/lib/m=
+odules/2.6.18-194.el5/extra/drivers/net/mlx4
+> ]; then \
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0mkdir -p //lib/modules/2.6.18-194.el5/=
+updates/kernel/drivers/net/mlx4; \
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0mv /usr/src/redhat/SOURCES/ofa_kernel-=
+1.5.2/lib/modules/2.6.18-194.el5/extra/drivers/net/mlx4/mlx4*.ko
+> //lib/modules/2.6.18-194.el5/updates/kernel/drivers/net/mlx4/ ; \
+> =A0 =A0 =A0 =A0elif [ -d /usr/src/redhat/SOURCES/ofa_kernel-1.5.2/lib=
+/modules/2.6.18-194.el5/extra
+> ]; then \
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0mkdir -p //lib/modules/2.6.18-194.el5/=
+updates/kernel/drivers/net/mlx4; \
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0mv /usr/src/redhat/SOURCES/ofa_kernel-=
+1.5.2/lib/modules/2.6.18-194.el5/extra/mlx4*.ko
+> //lib/modules/2.6.18-194.el5/updates/kernel/drivers/net/mlx4/ ; \
+> =A0 =A0 =A0 =A0fi;
+> if [ ! -n "" ]; then /sbin/depmod -r -ae 2.6.18-194.el5;fi;
+> WARNING: Can't read module
+> /lib/modules/2.6.18-194.el5/weak-updates/kmod-kvm/kvm.ko: No such fil=
+e
+> or directory
+> WARNING: Can't read module
+> /lib/modules/2.6.18-194.el5/weak-updates/kmod-kvm/kvm-amd.ko: No such
+> file or directory
+> WARNING: Can't read module
+> /lib/modules/2.6.18-194.el5/weak-updates/kmod-kvm/ksm.ko: No such fil=
+e
+> or directory
+> WARNING: Can't read module
+> /lib/modules/2.6.18-194.el5/weak-updates/kmod-kvm/kvm-intel.ko: No
+> such file or directory
+> # Copy new infiniband kernel modules to
+> //lib/modules/2.6.18-194.el5/updates/kernel/drivers/infiniband
+> if [ -d /usr/src/redhat/SOURCES/ofa_kernel-1.5.2/lib/modules/2.6.18-1=
+94.el5/infiniband
+> ]; then \
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0/bin/rm -rf //lib/modules/2.6.18-194.e=
+l5/updates/kernel/drivers/infiniband; \
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0mkdir -p //lib/modules/2.6.18-194.el5/=
+updates/kernel/drivers; \
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0mv /usr/src/redhat/SOURCES/ofa_kernel-=
+1.5.2/lib/modules/2.6.18-194.el5/infiniband
+> //lib/modules/2.6.18-194.el5/updates/kernel/drivers/; \
+> =A0 =A0 =A0 =A0fi;
+> if [ -d /usr/src/redhat/SOURCES/ofa_kernel-1.5.2/lib/modules/2.6.18-1=
+94.el5/extra/drivers/infiniband
+> ]; then \
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0/bin/rm -rf //lib/modules/2.6.18-194.e=
+l5/updates/kernel/drivers/infiniband; \
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0mkdir -p //lib/modules/2.6.18-194.el5/=
+updates/kernel/drivers; \
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0mv /usr/src/redhat/SOURCES/ofa_kernel-=
+1.5.2/lib/modules/2.6.18-194.el5/extra/drivers/infiniband
+> //lib/modules/2.6.18-194.el5/updates/kernel/drivers/; \
+> =A0 =A0 =A0 =A0elif [ -d /usr/src/redhat/SOURCES/ofa_kernel-1.5.2/lib=
+/modules/2.6.18-194.el5/extra
+> ]; then \
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0/bin/rm -rf //lib/modules/2.6.18-194.e=
+l5/updates/kernel/drivers/infiniband; \
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0mkdir -p //lib/modules/2.6.18-194.el5/=
+updates/kernel/drivers; \
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0mv /usr/src/redhat/SOURCES/ofa_kernel-=
+1.5.2/lib/modules/2.6.18-194.el5/extra
+> //lib/modules/2.6.18-194.el5/updates/kernel/drivers/infiniband; \
+> =A0 =A0 =A0 =A0fi;
+> if [ ! -n "" ]; then /sbin/depmod -r -ae 2.6.18-194.el5;fi;
+> WARNING: Can't read module
+> /lib/modules/2.6.18-194.el5/weak-updates/kmod-kvm/kvm.ko: No such fil=
+e
+> or directory
+> WARNING: Can't read module
+> /lib/modules/2.6.18-194.el5/weak-updates/kmod-kvm/kvm-amd.ko: No such
+> file or directory
+> WARNING: Can't read module
+> /lib/modules/2.6.18-194.el5/weak-updates/kmod-kvm/ksm.ko: No such fil=
+e
+> or directory
+> WARNING: Can't read module
+> /lib/modules/2.6.18-194.el5/weak-updates/kmod-kvm/kvm-intel.ko: No
+> such file or directory
+>
+>
+> #modprobe ib_sdp
+> FATAL: Error inserting ib_sdp
+> (/lib/modules/2.6.18-194.el5/updates/kernel/drivers/infiniband/ulp/sd=
+p/ib_sdp.ko):
+> Unknown symbol in module, or unknown parameter (see dmesg)
+>
+>
+> #dmesg
+> .........................................
+>
+> mtrr: no more MTRRs available
+> mtrr: no more MTRRs available
+> mtrr: no more MTRRs available
+> mtrr: no more MTRRs available
+> mtrr: no more MTRRs available
+> mtrr: no more MTRRs available
+> mtrr: no more MTRRs available
+> mtrr: no more MTRRs available
+> ib_sdp: Unknown symbol ib_umem_release
+> ib_sdp: Unknown symbol rdma_resolve_addr
+> ib_sdp: Unknown symbol rdma_reject
+> ib_sdp: Unknown symbol rdma_disconnect
+> ib_sdp: Unknown symbol rdma_resolve_route
+> ib_sdp: Unknown symbol rdma_bind_addr
+> ib_sdp: Unknown symbol rdma_create_qp
+> ib_sdp: Unknown symbol rdma_create_id
+> ib_sdp: Unknown symbol ib_umem_get
+> ib_sdp: Unknown symbol rdma_notify
+> ib_sdp: Unknown symbol rdma_listen
+> ib_sdp: Unknown symbol rdma_connect
+> ib_sdp: Unknown symbol rdma_destroy_id
+> ib_sdp: Unknown symbol rdma_accept
+> ib_sdp: Unknown symbol ib_umem_release
+> ib_sdp: Unknown symbol rdma_resolve_addr
+> ib_sdp: Unknown symbol rdma_reject
+> ib_sdp: Unknown symbol rdma_disconnect
+> ib_sdp: Unknown symbol rdma_resolve_route
+> ib_sdp: Unknown symbol rdma_bind_addr
+> ib_sdp: Unknown symbol rdma_create_qp
+> ib_sdp: Unknown symbol rdma_create_id
+> ib_sdp: Unknown symbol ib_umem_get
+> ib_sdp: Unknown symbol rdma_notify
+> ib_sdp: Unknown symbol rdma_listen
+> ib_sdp: Unknown symbol rdma_connect
+> ib_sdp: Unknown symbol rdma_destroy_id
+> ib_sdp: Unknown symbol rdma_accept
+> ib_sdp: Unknown symbol ib_umem_release
+> ib_sdp: Unknown symbol ib_umem_get
+> ib_sdp: Unknown symbol ib_umem_release
+> ib_sdp: Unknown symbol ib_umem_get
+>
+>
+>
+> Please provide me further inputs.
+>
+>
+> Thanks,
+> Bhavin
+>
+> On Tue, May 10, 2011 at 10:30 AM, Wendy Cheng <s.wendy.cheng-Re5JQEeQqe8@public.gmane.org=
+m> wrote:
+>> Not sure whether anyone replied ... Look like at least one of the
+>> kernel modules is missing (from the new install) - implying the
+>> "configure" command issued did not have a complete list of the
+>> required module names. Did you check . =A0/etc/infiniband/info ? You=
+r
+>> "configure" should match with what is displayed by the info file. .
+>>
+>> .. Wendy
+>>
+>>
+>> On Mon, May 9, 2011 at 1:22 AM, bhavinkumar thumar
+>> <bhawinkumar.thumar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
+>>> Hi,
+>>>
+>>> I have downloaded the OFED 1.5.2 tar file and then installed RPM
+>>> source files to /usr/src/redhat/SOURCES. Now I changed some portion=
+ of
+>>> sdp_main.c and then I performed following steps.
+>>>
+>>> #cd /usr/src/redhat/SOURCES/ofa_kernel-1.5.2/
+>>>
+>>> #./configure --with-core-mod --with-ipoib-mod --with-mthca-mod
+>>> --with-mlx4_core-mod --with-mlx4_inf-mod --with-sdp-mod
+>>> --with-sdp_debug-mod
+>>> - Succeed
+>>>
+>>> #make
+>>> - Succeed
+>>>
+>>> #make install
+>>> - Succeed
+>>>
+>>> make[1]: Entering directory `/usr/src/kernels/2.6.18-194.el5-x86_64=
+'
+>>> =A0INSTALL /usr/src/redhat/SOURCES/ofa_kernel-1.5.2/drivers/infinib=
+and/core/ib_cm.ko
+>>> =A0INSTALL /usr/src/redhat/SOURCES/ofa_kernel-1.5.2/drivers/infinib=
+and/core/ib_core.ko
+>>> =A0INSTALL /usr/src/redhat/SOURCES/ofa_kernel-1.5.2/drivers/infinib=
+and/core/ib_mad.ko
+>>> =A0INSTALL /usr/src/redhat/SOURCES/ofa_kernel-1.5.2/drivers/infinib=
+and/core/ib_sa.ko
+>>> =A0INSTALL /usr/src/redhat/SOURCES/ofa_kernel-1.5.2/drivers/infinib=
+and/core/iw_cm.ko
+>>> =A0INSTALL /usr/src/redhat/SOURCES/ofa_kernel-1.5.2/drivers/infinib=
+and/hw/mlx4/mlx4_ib.ko
+>>> =A0INSTALL /usr/src/redhat/SOURCES/ofa_kernel-1.5.2/drivers/infinib=
+and/hw/mthca/ib_mthca.ko
+>>> =A0INSTALL /usr/src/redhat/SOURCES/ofa_kernel-1.5.2/drivers/infinib=
+and/ulp/ipoib/ib_ipoib.ko
+>>> =A0INSTALL /usr/src/redhat/SOURCES/ofa_kernel-1.5.2/drivers/infinib=
+and/ulp/ipoib/ipoib_helper.ko
+>>> =A0INSTALL /usr/src/redhat/SOURCES/ofa_kernel-1.5.2/drivers/infinib=
+and/ulp/sdp/ib_sdp.ko
+>>> =A0INSTALL /usr/src/redhat/SOURCES/ofa_kernel-1.5.2/drivers/net/mlx=
+4/mlx4_core.ko
+>>> =A0DEPMOD =A02.6.18-194.el5
+>>>
+>>> #modprobe ib_sdp
+>>> - FATAL: Error inserting ib_sdp
+>>> (/lib/modules/2.6.18-194.el5/updates/kernel/drivers/infiniband/ulp/=
+sdp/ib_sdp.ko):
+>>> Unknown symbol in module, or unknown parameter (see dmesg)
+>>>
+>>> #dmesg
+>>> mtrr: no more MTRRs available
+>>> mtrr: no more MTRRs available
+>>> mtrr: no more MTRRs available
+>>> mtrr: no more MTRRs available
+>>> mtrr: no more MTRRs available
+>>> mtrr: no more MTRRs available
+>>> mtrr: no more MTRRs available
+>>> mtrr: no more MTRRs available
+>>> rdma_cm: disagrees about version of symbol ib_send_cm_sidr_req
+>>> rdma_cm: Unknown symbol ib_send_cm_sidr_req
+>>> rdma_cm: disagrees about version of symbol iw_create_cm_id
+>>> rdma_cm: Unknown symbol iw_create_cm_id
+>>> rdma_cm: disagrees about version of symbol ib_unregister_client
+>>> rdma_cm: Unknown symbol ib_unregister_client
+>>> rdma_cm: disagrees about version of symbol ib_send_cm_sidr_rep
+>>> rdma_cm: Unknown symbol ib_send_cm_sidr_rep
+>>> rdma_cm: disagrees about version of symbol ib_cm_listen
+>>> rdma_cm: Unknown symbol ib_cm_listen
+>>> rdma_cm: disagrees about version of symbol ib_destroy_cm_id
+>>> rdma_cm: Unknown symbol ib_destroy_cm_id
+>>> rdma_cm: disagrees about version of symbol ib_find_cached_pkey
+>>> rdma_cm: Unknown symbol ib_find_cached_pkey
+>>> rdma_cm: disagrees about version of symbol iw_cm_connect
+>>> rdma_cm: Unknown symbol iw_cm_connect
+>>> rdma_cm: disagrees about version of symbol ib_cm_notify
+>>> rdma_cm: Unknown symbol ib_cm_notify
+>>> rdma_cm: disagrees about version of symbol ib_detach_mcast
+>>> rdma_cm: Unknown symbol ib_detach_mcast
+>>> rdma_cm: disagrees about version of symbol ib_sa_get_mcmember_rec
+>>> rdma_cm: Unknown symbol ib_sa_get_mcmember_rec
+>>> rdma_cm: disagrees about version of symbol ib_sa_cancel_query
+>>> rdma_cm: Unknown symbol ib_sa_cancel_query
+>>> rdma_cm: disagrees about version of symbol ib_register_client
+>>> rdma_cm: Unknown symbol ib_register_client
+>>> rdma_cm: disagrees about version of symbol ib_sa_path_rec_get
+>>> rdma_cm: Unknown symbol ib_sa_path_rec_get
+>>> rdma_cm: disagrees about version of symbol ib_create_cm_id
+>>> rdma_cm: Unknown symbol ib_create_cm_id
+>>>
+>>> ................................................
+>>>
+>>> rdma_cm: disagrees about version of symbol ib_init_ah_from_path
+>>> rdma_cm: Unknown symbol ib_init_ah_from_path
+>>> rdma_cm: disagrees about version of symbol ib_destroy_qp
+>>> rdma_cm: Unknown symbol ib_destroy_qp
+>>> rdma_cm: disagrees about version of symbol iw_cm_init_qp_attr
+>>> rdma_cm: Unknown symbol iw_cm_init_qp_attr
+>>> rdma_cm: disagrees about version of symbol ib_send_cm_rtu
+>>> rdma_cm: Unknown symbol ib_send_cm_rtu
+>>> rdma_cm: disagrees about version of symbol ib_send_cm_dreq
+>>> rdma_cm: Unknown symbol ib_send_cm_dreq
+>>> rdma_cm: disagrees about version of symbol ib_send_cm_req
+>>> rdma_cm: Unknown symbol ib_send_cm_req
+>>> rdma_cm: disagrees about version of symbol ib_sa_join_multicast
+>>> rdma_cm: Unknown symbol ib_sa_join_multicast
+>>> rdma_cm: disagrees about version of symbol ib_attach_mcast
+>>> rdma_cm: Unknown symbol ib_attach_mcast
+>>> rdma_cm: disagrees about version of symbol ib_find_cached_gid
+>>> rdma_cm: Unknown symbol ib_find_cached_gid
+>>> rdma_cm: disagrees about version of symbol iw_cm_listen
+>>> rdma_cm: Unknown symbol iw_cm_listen
+>>> rdma_cm: disagrees about version of symbol ib_send_cm_rej
+>>> rdma_cm: Unknown symbol ib_send_cm_rej
+>>>
+>>>
+>>> can anyone tell me what's wrong? Please help me.
+>>>
+>>>
+>>> Thanking You,
+>>> Bhavin
+>>> --
+>>> To unsubscribe from this list: send the line "unsubscribe linux-rdm=
+a" in
+>>> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+>>> More majordomo info at =A0http://vger.kernel.org/majordomo-info.htm=
+l
+>>>
+>>
+>
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
