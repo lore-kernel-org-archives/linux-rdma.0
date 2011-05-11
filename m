@@ -1,24 +1,33 @@
-From: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH/RFC] RDMA/iwcm: Get rid of enum iw_cm_event_status
-Date: Wed, 11 May 2011 10:56:19 -0700
-Message-ID: <BANLkTi=7C3+H2BwYpsnooeLHck-DyVfYtQ@mail.gmail.com>
-References: <1305005199-4943-1-git-send-email-roland@kernel.org> <4DCA2756.3060900@mellanox.com>
+From: frank zago <fzago-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org>
+Subject: Re: [RFC] RDMA CM + XRC, take two
+Date: Wed, 11 May 2011 13:36:54 -0500
+Message-ID: <4DCAD746.7050606@systemfabricworks.com>
+References: <4DC86BB2.1020002@systemfabricworks.com> <1828884A29C6694DAF28B7E6B8A82373BBE2@ORSMSX101.amr.corp.intel.com> <4DCAA047.2040904@systemfabricworks.com> <1828884A29C6694DAF28B7E6B8A82373BC59@ORSMSX101.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4DCA2756.3060900-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <1828884A29C6694DAF28B7E6B8A82373BC59-P5GAC/sN6hmkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> Roland, so how did you manage to see that warning, is it your plane gcc
-> (what version?) or through using some static checker? for example, I don't
-> see it with the latest sparse.
+On 05/11/2011 10:03 AM, Hefty, Sean wrote:
+>>> What are the QPNs carried in the REQ and REP?
+>>
+>> Those for the XRC QPs. Same as a for regular RC connection.
+> 
+> I guess I need to go back and study the specs more to understand why the QPN is in the REQ.
 
-Just the normal gcc 4.5 from Ubuntu 11.04:
+I looked at the kernel headers; struct cm_req_msg and cm_rep_msg, and they both contain the QP numbers.
 
-    gcc (Ubuntu/Linaro 4.5.2-8ubuntu4) 4.5.2
+> 
+> The REQ/REP also carry EECN fields which might be usable here, and maybe that was the intent.
+
+The XRC spec does not make room for the srq number. Which implies it's left to the application to transmit it.
+
+Frank.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
