@@ -1,7 +1,7 @@
 From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Subject: Re: [PATCH/RFC] RDMA/iwcm: Get rid of enum iw_cm_event_status
-Date: Wed, 11 May 2011 19:57:14 +0300
-Message-ID: <4DCABFEA.10501@mellanox.com>
+Date: Wed, 11 May 2011 09:06:14 +0300
+Message-ID: <4DCA2756.3060900@mellanox.com>
 References: <1305005199-4943-1-git-send-email-roland@kernel.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
@@ -21,11 +21,10 @@ Roland Dreier wrote:
 >     drivers/infiniband/core/cma.c:1332:3: warning: case value '4294967192' not in enumerated type 'enum iw_cm_event_status'
 
 Roland, so how did you manage to see that warning, is it your plane gcc 
-(what version?)
-or through using some static checker? for example, I don't see it with 
-the latest sparse.
+(what version?) or through using some static checker? for example, I 
+don't see it with the latest sparse.
 
-Or
+Or.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
