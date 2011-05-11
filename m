@@ -1,30 +1,31 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [RFC] RDMA CM + XRC, take two
-Date: Wed, 11 May 2011 15:03:59 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A82373BC59@ORSMSX101.amr.corp.intel.com>
-References: <4DC86BB2.1020002@systemfabricworks.com>
- <1828884A29C6694DAF28B7E6B8A82373BBE2@ORSMSX101.amr.corp.intel.com>
- <4DCAA047.2040904@systemfabricworks.com>
+From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH/RFC] RDMA/iwcm: Get rid of enum iw_cm_event_status
+Date: Wed, 11 May 2011 19:57:14 +0300
+Message-ID: <4DCABFEA.10501@mellanox.com>
+References: <1305005199-4943-1-git-send-email-roland@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4DCAA047.2040904-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <1305005199-4943-1-git-send-email-roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: frank zago <fzago-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>, Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-> > What are the QPNs carried in the REQ and REP?
-> 
-> Those for the XRC QPs. Same as a for regular RC connection.
+Roland Dreier wrote:
+> This also gets rid of the warning
+>     drivers/infiniband/core/cma.c: In function 'cma_iw_handler':
+>     drivers/infiniband/core/cma.c:1333:3: warning: case value '4294967185' not in enumerated type 'enum iw_cm_event_status'
+>     drivers/infiniband/core/cma.c:1336:3: warning: case value '4294967186' not in enumerated type 'enum iw_cm_event_status'
+>     drivers/infiniband/core/cma.c:1332:3: warning: case value '4294967192' not in enumerated type 'enum iw_cm_event_status'
 
-I guess I need to go back and study the specs more to understand why the QPN is in the REQ.
+Roland, so how did you manage to see that warning, is it your plane gcc 
+(what version?)
+or through using some static checker? for example, I don't see it with 
+the latest sparse.
 
-The REQ/REP also carry EECN fields which might be usable here, and maybe that was the intent. 
-
-- Sean
+Or
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
