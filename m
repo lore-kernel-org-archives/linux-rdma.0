@@ -1,26 +1,38 @@
-From: bhavinkumar thumar <bhawinkumar.thumar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: How to write an SDP Zcopy enabled application
-Date: Mon, 16 May 2011 12:04:00 +0530
-Message-ID: <BANLkTi=mKqah1CC7mBQgTz_eD9GFdBt6hw@mail.gmail.com>
+From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [RFC 2/3] RDMA/cma: Add support for netlink statistics export
+Date: Mon, 16 May 2011 11:05:06 +0300
+Message-ID: <4DD0DAB2.1080600@mellanox.com>
+References: <1305303525-11113-1-git-send-email-roland@kernel.org>	<1305303525-11113-3-git-send-email-roland@kernel.org> <1828884A29C6694DAF28B7E6B8A82373F428@ORSMSX101.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="us-ascii"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1828884A29C6694DAF28B7E6B8A82373F428-P5GAC/sN6hmkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi,
+Hefty, Sean wrote:
+>> +struct rdma_cm_id_stats {
+>> +	__u32	qp_num;
+>> +	__u32	bound_dev_if;
+>> +	__u32	port_space;
+>> +	__s32	pid;
+>> +	__u8	cm_state;
+>> +	__u8	node_type;
+>> +	__u8	port_num;
+>> +	__u8	reserved;
+>> +};
+> 
+> We may also want to add qp_type
 
-How can I write a socket application (client & server) which will use
-the Zcopy path instead of Bcopy? I know that there is a parameter
-called sdp_zcopy_threshold through which we can control the data
-transfer modes. So if I write a socket application which has a call to
-send with buffer size larger than sdp_zcopy_threshold, would it be
-zero copied to receiver?
+Sean,
 
+Isn't the port space enough here? specifically, what qp type buys us 
+over port space?
 
-Thanks,
-Bhavin
+Or.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
