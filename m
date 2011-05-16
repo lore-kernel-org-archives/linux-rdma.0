@@ -1,28 +1,23 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [RFC 2/3] RDMA/cma: Add support for netlink statistics export
-Date: Mon, 16 May 2011 15:08:13 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A82373F654@ORSMSX101.amr.corp.intel.com>
-References: <1305303525-11113-1-git-send-email-roland@kernel.org>
-	<1305303525-11113-3-git-send-email-roland@kernel.org>
- <1828884A29C6694DAF28B7E6B8A82373F428@ORSMSX101.amr.corp.intel.com>
- <4DD0DAB2.1080600@mellanox.com>
+From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: Re: [PATCH] RDMA/cxgb4: don't declare wr_wait objects on the stack.
+Date: Mon, 16 May 2011 10:18:14 -0500
+Message-ID: <4DD14036.9050704@opengridcomputing.com>
+References: <20110513183727.32157.8873.stgit@build.ogc.int>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4DD0DAB2.1080600-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <20110513183727.32157.8873.stgit-T4OLL4TyM9aNDNWfRnPdfg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-> Isn't the port space enough here? specifically, what qp type buys us
-> over port space?
+Roland, I need to recall this patch.  It appears to have some problem.
 
-That assumes a 1:1 relationship between the port space and QP type, or more specifically, that the IB SID range is divided based on QP type.  This is outside of the architecture.  If we look at UC or XRC, it's not clear what port space those map to, but I believe it's desirable for the rdma_cm to support those.  Note that the AF_IB patch set ended up requiring that the user specify the qp type for these reasons.
 
-- Sean
+Steve.
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
