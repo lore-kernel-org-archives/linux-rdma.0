@@ -1,14 +1,29 @@
-From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: mlx4 port trigger entry (was: root owned writable files)
-Date: Mon, 16 May 2011 16:55:35 +0300
-Message-ID: <alpine.LRH.2.00.1105161651130.907@ogerlitz.voltaire.com>
+From: Jack Morgenstein <jackm-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
+Subject: RE: mlx4 port trigger entry (was: root owned writable files)
+Date: Mon, 16 May 2011 14:48:57 +0000
+Message-ID: <86FC963EFF71CB46A06F144F8602FEF207064642@mtldag01.mtl.com>
+References: <alpine.LRH.2.00.1105161651130.907@ogerlitz.voltaire.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="US-ASCII"
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <alpine.LRH.2.00.1105161651130.907-VYr5/9ddeaGSIdy2EShu12Xnswh1EIUO@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jack Morgenstein <jackm-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Yevgeny Petrilin <yevgenyp-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
+To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Yevgeny Petrilin <yevgenyp-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
+
+You should speak/e-mail with Yevgeny Petrilin about this.
+
+-Jack
+
+-----Original Message-----
+From: Or Gerlitz
+Sent: Monday, May 16, 2011 4:56 PM
+To: Jack Morgenstein
+Cc: linux-rdma; Yevgeny Petrilin
+Subject: Re: mlx4 port trigger entry (was: root owned writable files)
 
 Jack Morgenstein wrote:
 
@@ -24,9 +39,9 @@ mlx4_1190_sense_port_trigger.patch which is used by ofed (below)
 I tend to think that as a result, the upstream kernel lacks the ability
 for setting port1 to IB and port2 to Eth, with ofed this is done by
 
-	echo all > /sys/bus/pci/drivers/mlx4_core/0000:07:00.0/port_trigger
-	echo ib  > /sys/bus/pci/drivers/mlx4_core/0000:07:00.0/mlx4_port1
-	echo eth > /sys/bus/pci/drivers/mlx4_core/0000:07:00.0/mlx4_port2
+        echo all > /sys/bus/pci/drivers/mlx4_core/0000:07:00.0/port_trigger
+        echo ib  > /sys/bus/pci/drivers/mlx4_core/0000:07:00.0/mlx4_port1
+        echo eth > /sys/bus/pci/drivers/mlx4_core/0000:07:00.0/mlx4_port2
 
 without the port_trigger entry I can do the latter two commands
 but can't get to running ethernet on port2
@@ -49,101 +64,101 @@ Signed-off-by: Yevgeny Petrilin <yevgenyp-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.or
 
 Index: ofed_kernel-fixes/drivers/net/mlx4/main.c
 ===================================================================
---- ofed_kernel-fixes.orig/drivers/net/mlx4/main.c	2009-12-09 16:54:29.000000000 +0200
-+++ ofed_kernel-fixes/drivers/net/mlx4/main.c	2009-12-09 17:06:03.000000000 +0200
+--- ofed_kernel-fixes.orig/drivers/net/mlx4/main.c      2009-12-09 16:54:29.000000000 +0200
++++ ofed_kernel-fixes/drivers/net/mlx4/main.c   2009-12-09 17:06:03.000000000 +0200
 @@ -423,6 +423,13 @@ static ssize_t set_port_type(struct devi
- 			types[i] = mdev->caps.port_type[i+1];
- 	}
+                        types[i] = mdev->caps.port_type[i+1];
+        }
 
-+	if (priv->trig) {
-+		if (++priv->changed_ports < mdev->caps.num_ports)
-+			goto out;
-+		else
-+			priv->trig = priv->changed_ports = 0;
-+	}
++       if (priv->trig) {
++               if (++priv->changed_ports < mdev->caps.num_ports)
++                       goto out;
++               else
++                       priv->trig = priv->changed_ports = 0;
++       }
 +
- 	if (!(mdev->caps.flags & MLX4_DEV_CAP_FLAG_DPDP)) {
- 		for (i = 1; i <= mdev->caps.num_ports; i++) {
- 			if (mdev->caps.possible_type[i] == MLX4_PORT_TYPE_AUTO) {
+        if (!(mdev->caps.flags & MLX4_DEV_CAP_FLAG_DPDP)) {
+                for (i = 1; i <= mdev->caps.num_ports; i++) {
+                        if (mdev->caps.possible_type[i] == MLX4_PORT_TYPE_AUTO) {
 @@ -458,6 +465,23 @@ out:
- 	return err ? err : count;
+        return err ? err : count;
  }
 
 +static ssize_t trigger_port(struct device *dev, struct device_attribute *attr,
-+			    const char *buf, size_t count)
++                           const char *buf, size_t count)
 +{
-+	struct pci_dev *pdev = to_pci_dev(dev);
-+	struct mlx4_dev *mdev = pci_get_drvdata(pdev);
-+	struct mlx4_priv *priv = container_of(mdev, struct mlx4_priv, dev);
++       struct pci_dev *pdev = to_pci_dev(dev);
++       struct mlx4_dev *mdev = pci_get_drvdata(pdev);
++       struct mlx4_priv *priv = container_of(mdev, struct mlx4_priv, dev);
 +
-+	if (!priv)
-+		return -ENODEV;
++       if (!priv)
++               return -ENODEV;
 +
-+	mutex_lock(&priv->port_mutex);
-+	priv->trig = 1;
-+	mutex_unlock(&priv->port_mutex);
-+	return count;
++       mutex_lock(&priv->port_mutex);
++       priv->trig = 1;
++       mutex_unlock(&priv->port_mutex);
++       return count;
 +}
 +DEVICE_ATTR(port_trigger, S_IWUGO, NULL, trigger_port);
 +
  static int mlx4_load_fw(struct mlx4_dev *dev)
  {
- 	struct mlx4_priv *priv = mlx4_priv(dev);
+        struct mlx4_priv *priv = mlx4_priv(dev);
 @@ -1110,6 +1134,13 @@ static void mlx4_cleanup_port_info(struc
- 	device_remove_file(&info->dev->pdev->dev, &info->port_attr);
+        device_remove_file(&info->dev->pdev->dev, &info->port_attr);
  }
 
 +static int mlx4_init_trigger(struct mlx4_priv *priv)
 +{
-+	memcpy(&priv->trigger_attr, &dev_attr_port_trigger,
-+	       sizeof(struct device_attribute));
++       memcpy(&priv->trigger_attr, &dev_attr_port_trigger,
++              sizeof(struct device_attribute));
 +        return device_create_file(&priv->dev.pdev->dev, &priv->trigger_attr);
 +}
 +
  static int __mlx4_init_one(struct pci_dev *pdev, const struct pci_device_id *id)
  {
- 	struct mlx4_priv *priv;
+        struct mlx4_priv *priv;
 @@ -1241,6 +1272,10 @@ static int __mlx4_init_one(struct pci_de
- 	if (err)
- 		goto err_port;
+        if (err)
+                goto err_port;
 
-+	err = mlx4_init_trigger(priv);
-+	if (err)
-+		goto err_register;
++       err = mlx4_init_trigger(priv);
++       if (err)
++               goto err_register;
 +
- 	mlx4_sense_init(dev);
- 	mlx4_start_sense(dev);
+        mlx4_sense_init(dev);
+        mlx4_start_sense(dev);
 
 @@ -1248,6 +1283,8 @@ static int __mlx4_init_one(struct pci_de
 
- 	return 0;
+        return 0;
 
 +err_register:
-+	mlx4_unregister_device(dev);
++       mlx4_unregister_device(dev);
  err_port:
- 	for (port = 1; port <= dev->caps.num_ports; port++)
- 		mlx4_cleanup_port_info(&priv->port[port]);
+        for (port = 1; port <= dev->caps.num_ports; port++)
+                mlx4_cleanup_port_info(&priv->port[port]);
 @@ -1312,6 +1349,7 @@ static void mlx4_remove_one(struct pci_d
- 	if (dev) {
- 		mlx4_stop_sense(dev);
- 		mlx4_unregister_device(dev);
-+		device_remove_file(&dev->pdev->dev, &priv->trigger_attr);
+        if (dev) {
+                mlx4_stop_sense(dev);
+                mlx4_unregister_device(dev);
++               device_remove_file(&dev->pdev->dev, &priv->trigger_attr);
 
- 		for (p = 1; p <= dev->caps.num_ports; p++) {
- 			mlx4_cleanup_port_info(&priv->port[p]);
+                for (p = 1; p <= dev->caps.num_ports; p++) {
+                        mlx4_cleanup_port_info(&priv->port[p]);
 Index: ofed_kernel-fixes/drivers/net/mlx4/mlx4.h
 ===================================================================
---- ofed_kernel-fixes.orig/drivers/net/mlx4/mlx4.h	2009-12-09 16:54:28.000000000 +0200
-+++ ofed_kernel-fixes/drivers/net/mlx4/mlx4.h	2009-12-09 17:05:23.000000000 +0200
+--- ofed_kernel-fixes.orig/drivers/net/mlx4/mlx4.h      2009-12-09 16:54:28.000000000 +0200
++++ ofed_kernel-fixes/drivers/net/mlx4/mlx4.h   2009-12-09 17:05:23.000000000 +0200
 @@ -317,6 +317,9 @@ struct mlx4_priv {
- 	struct mlx4_uar		driver_uar;
- 	void __iomem	       *kar;
- 	struct mlx4_port_info	port[MLX4_MAX_PORTS + 1];
-+	struct device_attribute trigger_attr;
-+	int                     trig;
-+	int                     changed_ports;
- 	struct mlx4_sense       sense;
- 	struct mutex		port_mutex;
+        struct mlx4_uar         driver_uar;
+        void __iomem           *kar;
+        struct mlx4_port_info   port[MLX4_MAX_PORTS + 1];
++       struct device_attribute trigger_attr;
++       int                     trig;
++       int                     changed_ports;
+        struct mlx4_sense       sense;
+        struct mutex            port_mutex;
  };
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
