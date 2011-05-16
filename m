@@ -1,37 +1,90 @@
-From: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [RFC 2/3] RDMA/cma: Add support for netlink statistics export
-Date: Mon, 16 May 2011 22:13:05 +0300
-Message-ID: <BANLkTimD9PvyrKYMEPDii-pQGd4Y70vrNQ@mail.gmail.com>
-References: <1305303525-11113-1-git-send-email-roland@kernel.org>
-	<1305303525-11113-3-git-send-email-roland@kernel.org>
-	<1828884A29C6694DAF28B7E6B8A82373F428@ORSMSX101.amr.corp.intel.com>
-	<4DD0DAB2.1080600@mellanox.com>
-	<1828884A29C6694DAF28B7E6B8A82373F654@ORSMSX101.amr.corp.intel.com>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [RFC] XRC upstream merge reboot
+Date: Mon, 16 May 2011 21:13:48 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A82373F7AB@ORSMSX101.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1828884A29C6694DAF28B7E6B8A82373F654-P5GAC/sN6hmkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hefty, Sean <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
+I've been working on a set of XRC patches aimed at upstream inclusion to the kernel, libibverbs, and librdmacm.  I'm using existing patches as the major starting point.  A goal is to maintain the user space ABI.  Before proceeding further, I wanted to get broader feedback.  Starting at the top and working down, these are the basic ideas:
 
-> That assumes a 1:1 relationship between the port space and QP type, o=
-r more
-> specifically, that the IB SID range is divided based on QP type. =A0T=
-his is outside of the
-> architecture. =A0If we look at UC or XRC, it's not clear what port sp=
-ace those map to, but I
-> believe it's desirable for the rdma_cm to support those.
 
-makes sense, so we can add the qp type here.
+librdmacm
+---------
+The API is basically unchanged.  XRC usage is indicated through the QP type.  The challenge is determining if XRC maps to a specific rdma_port_space.
 
-Or.
+
+libibverbs
+----------
+We define a new device capability flag IBV_DEVICE_EXT_OPS, indicating that the library supports extended operations.  If set, the provider library returns an extended structure from ibv_open_device():
+
+	struct ibv_context_ext {
+		struct ibv_context context;
+		int                version;
+		struct ibv_ext_ops ext_ops;
+	};
+
+The ext_ops will allow for additional operations not provided by ibv_context_ops, for example:
+
+	struct ibv_ext_ops {
+		int	(share_pd)(struct ibv_pd *pd, int fd, int oflags);
+	};
+
+In order for libibverbs to check for ext_ops support, it steals a byte from the device name:
+
+	/*
+	 * Support for extended operations is recorded at the end of
+	 * the name character array.
+	 */
+	#define ext_ops_cap            name[IBV_SYSFS_NAME_MAX - 1]
+
+(If strlen(name) indicates that this byte terminates the string, extended operation support is disabled for this device.)
+
+Hopefully, this provides the framework needed for libibverbs to support both old and new provider libraries.
+
+>From an architecture viewpoint, XRC adds 4 new XRC specific objects: domains, INI QPs, TGT QPs, and SRQs.  For the purposes of the libibverbs API only, I'm suggesting the following mappings:
+
+XRC domains - Hidden under a PD, dynamically allocated when needed.  An extended ops call allows the xrcd to be shared between processes.  This minimizes changes to existing structures and APIs which only take a struct ibv_pd.
+
+INI QPs - Exposed through a new IBV_QPT_XRC_SQ qp type.  This is a send-only QP with minimal differences from an RC QP from a user's perspective.
+
+TGT QPs - Not exposed to user space.  XRC TGT QP creation and setup is handled by the kernel.
+
+XRC SRQs - Exposed through a new IBV_QPT_XRC_RQ qp type.  This is an SRQ that is tracked using a struct ibv_qp.  This minimizes API changes to both libibverbs and librdmacm.
+
+If ext_ops are supported and in active use, extended structures may be expected with some calls, such as ibv_post_send() requiring a struct ibv_xrc_send_wr for XRC QPs.
+
+	struct ibv_xrc_send_wr {
+		struct ibv_send_wr wr;
+		uint32_t remote_qpn;
+	};
+
+
+uverbs
+------
+(Ideas for kernel changes are sketchier, but the existing patches cover most of the functionality except for IB CM interactions.)
+
+Need new uverbs commands to support alloc/dealloc xrcd and create xrc srq.  Create QP must handle XRC INI QPs.  XRC TGT QPs are not exposed; ***all XRC INI->TGT QP setup is done in band***.
+
+Somewhere, an xrc sub-module listens on a SID and accepts incoming XRC connection requests.  This requires associating the xrcd and SID, the details of which I'm not clear on.  The xrcd is most readily known to uverbs, but a SID is usually formed by the rdma_cm.  Even how the latter is done is unclear.
+
+The usage model I envision is for a user to call listen on an XRC SRQ (IBV_QPT_XRC_RQ), which listens for a SIDR REQ to resolve the SRQN and a REQ to setup the INI->TGT QPs.  The issue is sync'ing the lifetime of any formed connections with the xrcd.
+
+
+verbs
+-----
+The patch for this is basically available.  3 new calls are added: ib_create_xrc_srq, ib_alloc_xrcd, and ib_dealloc_xrcd.  The IB_QPT_XRC is split into 2 types: IB_QPT_INI_XRC and IB_QPT_TGT_XRC.  An INI QP has a pd, but no xrcd, while the TGT QP is the reverse.
+
+
+Existing patches to the mlx4 driver and library would be modified to handle these changes.  If anyone has any thoughts on these changes, I'd appreciate them before I have them implemented.  :)
+
+- Sean
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
