@@ -1,50 +1,31 @@
-From: Joe Landman <landman-nyOC7EYE20mM0MU9lROt9DlRY1/6cnIP@public.gmane.org>
-Subject: Re: rdma_bw fails
-Date: Tue, 17 May 2011 13:17:45 -0400
-Message-ID: <4DD2ADB9.2050300@scalableinformatics.com>
-References: <BANLkTik_42DBsd5SdyDcMvpTaw9+dXTr_w@mail.gmail.com>	<1828884A29C6694DAF28B7E6B8A82373F8C7@ORSMSX101.amr.corp.intel.com> <20110517111606.3ohp6l6z34gckcoo@celticblues.com>
-Reply-To: landman-nyOC7EYE20mM0MU9lROt9DlRY1/6cnIP@public.gmane.org
+From: frank zago <fzago-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org>
+Subject: Re: where is the perftest tree ?
+Date: Tue, 17 May 2011 12:33:24 -0500
+Message-ID: <4DD2B164.7040303@systemfabricworks.com>
+References: <4DC8038F.4010607@systemfabricworks.com> <4DD2A842.4070507@systemfabricworks.com> <1828884A29C6694DAF28B7E6B8A82373F8E8@ORSMSX101.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20110517111606.3ohp6l6z34gckcoo-x2spCj9RiN0z5UmgcLIfJQ@public.gmane.org>
+In-Reply-To: <1828884A29C6694DAF28B7E6B8A82373F8E8-P5GAC/sN6hmkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: ib-x2spCj9RiN0z5UmgcLIfJQ@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 05/17/2011 01:16 PM, ib-x2spCj9RiN0z5UmgcLIfJQ@public.gmane.org wrote:
-> So... what is the correct way to configure ib? I *think* I have it
-> configured correctly, but want to verify... Where is this information
-> online?
->
-> I currently have my eth0 addr set, for example, to 100.100.100.1 and ib0
-> set to 100.100.100.2. I assume that is ok, but I think my bcast and
-> masks are same.
+On 05/17/2011 12:13 PM, Hefty, Sean wrote:
+>>> Where is the perftest tree hosted ? The only place I know of
+>> (http://git.openfabrics.org/git?p=~shamoya/perftest.git) hasn't been
+>> updated in months, and the code differs a lot from what is in OFED 1.5.3.
+>>> Any idea ?
+>>>
+>>
+>> No one ?
+>> The maintainer is MIA too (no reply after 3 weeks).
+> 
+> No idea, but the link above has been updated within the past 2 weeks now.  Based on the git log dates, there have been several updates this year.  Maybe the updates just hadn't been pushed recently?
 
-They shouldn't be on the same subnet in most cases.  Keep IB on its own 
-subnet.  What are your subnet masks?
-
-What we usually do when we have a set of mixed nets is something like this:
-
-eth:  10.100.0.0/16
-IB:   10.200.0.0/16
-
-this allows us to keep the traffic easily and obviously separate, and 
-not set up strange routing bits.
-
-
--- 
-Joseph Landman, Ph.D
-Founder and CEO
-Scalable Informatics Inc.
-email: landman-nyOC7EYE20mM0MU9lROt9DlRY1/6cnIP@public.gmane.org
-web  : http://scalableinformatics.com
-        http://scalableinformatics.com/sicluster
-phone: +1 734 786 8423 x121
-fax  : +1 866 888 3112
-cell : +1 734 612 4615
+OK, so the push is very recent then. I checked last week and the last one was still from december.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
