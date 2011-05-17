@@ -1,40 +1,29 @@
 From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: rdma_bw fails
-Date: Tue, 17 May 2011 16:56:52 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A82373F8C7@ORSMSX101.amr.corp.intel.com>
-References: <BANLkTik_42DBsd5SdyDcMvpTaw9+dXTr_w@mail.gmail.com>
+Subject: RE: where is the perftest tree ?
+Date: Tue, 17 May 2011 17:13:05 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A82373F8E8@ORSMSX101.amr.corp.intel.com>
+References: <4DC8038F.4010607@systemfabricworks.com>
+ <4DD2A842.4070507@systemfabricworks.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <BANLkTik_42DBsd5SdyDcMvpTaw9+dXTr_w-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <4DD2A842.4070507-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org>
 Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Greg I Kerr <kerr.g-movQPkccWJngpn9g0Uvcdg@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: frank zago <fzago-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> If I run rdma_bw on two nodes with the -c option (use rdma_cm) it
-> fails with the error: "4390:pp_client_connect: unexpected CM event 1."
-> event 1 is RDMA_CM_EVENT_ADDR_ERROR. I was under the impression that
-> it should work if ib0 is configured.
+> > Where is the perftest tree hosted ? The only place I know of
+> (http://git.openfabrics.org/git?p=~shamoya/perftest.git) hasn't been
+> updated in months, and the code differs a lot from what is in OFED 1.5.3.
+> > Any idea ?
+> >
+> 
+> No one ?
+> The maintainer is MIA too (no reply after 3 weeks).
 
-It looks like your eth0 and ib0 are configured as the same IP subnet.  The routing tables are likely resulting in the rdma_cm trying to use the wrong device. 
- 
-> [kerrg@compute-0-3 rdma]$ /sbin/ifconfig
-> eth0      Link encap:Ethernet  HWaddr 00:30:48:BE:D9:84
->           inet addr:10.1.255.251  Bcast:10.1.255.255  Mask:255.255.0.0
-
-10.1.x.x subnet
-
-> ib0       Link encap:InfiniBand  HWaddr
-> 80:00:00:48:FE:80:00:00:00:00:00:00:00:00:00:00:00:00:00:00
->           inet addr:10.1.1.30  Bcast:10.255.255.255  Mask:255.0.0.0
-
-10.x.x.x subnet
-
-You can try changing IB to a 10.2.x.x subnet with mask 255.255.0.0.
-
-- Sean
+No idea, but the link above has been updated within the past 2 weeks now.  Based on the git log dates, there have been several updates this year.  Maybe the updates just hadn't been pushed recently?
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
