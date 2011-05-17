@@ -1,89 +1,97 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [RFC] XRC upstream merge reboot
-Date: Mon, 16 May 2011 21:13:48 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A82373F7AB@ORSMSX101.amr.corp.intel.com>
+From: Greg I Kerr <kerr.g-movQPkccWJngpn9g0Uvcdg@public.gmane.org>
+Subject: rdma_bw fails
+Date: Tue, 17 May 2011 12:47:16 -0400
+Message-ID: <BANLkTik_42DBsd5SdyDcMvpTaw9+dXTr_w@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-I've been working on a set of XRC patches aimed at upstream inclusion to the kernel, libibverbs, and librdmacm.  I'm using existing patches as the major starting point.  A goal is to maintain the user space ABI.  Before proceeding further, I wanted to get broader feedback.  Starting at the top and working down, these are the basic ideas:
+After finally fully comprehending libibverbs, I am now trying to
+expand my understand to librdma_cm but it would seem I am having some
+problems getting connected.
 
+If I run rdma_bw on two nodes with the -c option (use rdma_cm) it
+fails with the error: "4390:pp_client_connect: unexpected CM event 1."
+event 1 is RDMA_CM_EVENT_ADDR_ERROR. I was under the impression that
+it should work if ib0 is configured.
 
-librdmacm
----------
-The API is basically unchanged.  XRC usage is indicated through the QP type.  The challenge is determining if XRC maps to a specific rdma_port_space.
+Thanks in advance for any help,
 
+Greg Kerr
 
-libibverbs
-----------
-We define a new device capability flag IBV_DEVICE_EXT_OPS, indicating that the library supports extended operations.  If set, the provider library returns an extended structure from ibv_open_device():
+[kerrg@compute-0-3 rdma]$ rdma_bw -c
+4292: | port=18515 | ib_port=1 | size=65536 | tx_depth=100 | sl=0 |
+iters=1000 | duplex=0 | cma=1 |
 
-	struct ibv_context_ext {
-		struct ibv_context context;
-		int                version;
-		struct ibv_ext_ops ext_ops;
-	};
+[kerrg@compute-0-2 rdma]$ rdma_bw -c 10.1.1.30
+4390: | port=18515 | ib_port=1 | size=65536 | tx_depth=100 | sl=0 |
+iters=1000 | duplex=0 | cma=1 |
+4390:pp_client_connect: unexpected CM event 1
 
-The ext_ops will allow for additional operations not provided by ibv_context_ops, for example:
+Here is the output of /sbin/ifconfig:
 
-	struct ibv_ext_ops {
-		int	(share_pd)(struct ibv_pd *pd, int fd, int oflags);
-	};
+[kerrg@compute-0-3 rdma]$ /sbin/ifconfig
+eth0      Link encap:Ethernet  HWaddr 00:30:48:BE:D9:84
+          inet addr:10.1.255.251  Bcast:10.1.255.255  Mask:255.255.0.0
+          inet6 addr: fe80::230:48ff:febe:d984/64 Scope:Link
+          UP BROADCAST RUNNING MULTICAST  MTU:1500  Metric:1
+          RX packets:55999 errors:0 dropped:0 overruns:0 frame:0
+          TX packets:12608 errors:0 dropped:0 overruns:0 carrier:0
+          collisions:0 txqueuelen:1000
+          RX bytes:6023763 (5.7 MiB)  TX bytes:2459277 (2.3 MiB)
+          Memory:febe0000-fec00000
 
-In order for libibverbs to check for ext_ops support, it steals a byte from the device name:
+ib0       Link encap:InfiniBand  HWaddr
+80:00:00:48:FE:80:00:00:00:00:00:00:00:00:00:00:00:00:00:00
+          inet addr:10.1.1.30  Bcast:10.255.255.255  Mask:255.0.0.0
+          inet6 addr: fe80::230:48be:d984:1/64 Scope:Link
+          UP BROADCAST RUNNING MULTICAST  MTU:65520  Metric:1
+          RX packets:8 errors:0 dropped:0 overruns:0 frame:0
+          TX packets:42 errors:0 dropped:5 overruns:0 carrier:0
+          collisions:0 txqueuelen:256
+          RX bytes:560 (560.0 b)  TX bytes:3696 (3.6 KiB)
 
-	/*
-	 * Support for extended operations is recorded at the end of
-	 * the name character array.
-	 */
-	#define ext_ops_cap            name[IBV_SYSFS_NAME_MAX - 1]
+lo        Link encap:Local Loopback
+          inet addr:127.0.0.1  Mask:255.0.0.0
+          inet6 addr: ::1/128 Scope:Host
+          UP LOOPBACK RUNNING  MTU:16436  Metric:1
+          RX packets:1253 errors:0 dropped:0 overruns:0 frame:0
+          TX packets:1253 errors:0 dropped:0 overruns:0 carrier:0
+          collisions:0 txqueuelen:0
+          RX bytes:2093229 (1.9 MiB)  TX bytes:2093229 (1.9 MiB)
 
-(If strlen(name) indicates that this byte terminates the string, extended operation support is disabled for this device.)
+[kerrg@compute-0-2 rdma]$ /sbin/ifconfig
+eth0      Link encap:Ethernet  HWaddr 00:30:48:BE:DA:D4
+          inet addr:10.1.255.252  Bcast:10.1.255.255  Mask:255.255.0.0
+          inet6 addr: fe80::230:48ff:febe:dad4/64 Scope:Link
+          UP BROADCAST RUNNING MULTICAST  MTU:1500  Metric:1
+          RX packets:66833 errors:0 dropped:0 overruns:0 frame:0
+          TX packets:17905 errors:0 dropped:0 overruns:0 carrier:0
+          collisions:0 txqueuelen:1000
+          RX bytes:6323062 (6.0 MiB)  TX bytes:2166485 (2.0 MiB)
+          Memory:febe0000-fec00000
 
-Hopefully, this provides the framework needed for libibverbs to support both old and new provider libraries.
+ib0       Link encap:InfiniBand  HWaddr
+80:00:00:48:FE:80:00:00:00:00:00:00:00:00:00:00:00:00:00:00
+          inet addr:10.1.1.31  Bcast:10.255.255.255  Mask:255.0.0.0
+          inet6 addr: fe80::230:48be:dad4:1/64 Scope:Link
+          UP BROADCAST RUNNING MULTICAST  MTU:65520  Metric:1
+          RX packets:52 errors:0 dropped:0 overruns:0 frame:0
+          TX packets:4 errors:0 dropped:5 overruns:0 carrier:0
+          collisions:0 txqueuelen:256
+          RX bytes:4088 (3.9 KiB)  TX bytes:352 (352.0 b)
 
->From an architecture viewpoint, XRC adds 4 new XRC specific objects: domains, INI QPs, TGT QPs, and SRQs.  For the purposes of the libibverbs API only, I'm suggesting the following mappings:
-
-XRC domains - Hidden under a PD, dynamically allocated when needed.  An extended ops call allows the xrcd to be shared between processes.  This minimizes changes to existing structures and APIs which only take a struct ibv_pd.
-
-INI QPs - Exposed through a new IBV_QPT_XRC_SQ qp type.  This is a send-only QP with minimal differences from an RC QP from a user's perspective.
-
-TGT QPs - Not exposed to user space.  XRC TGT QP creation and setup is handled by the kernel.
-
-XRC SRQs - Exposed through a new IBV_QPT_XRC_RQ qp type.  This is an SRQ that is tracked using a struct ibv_qp.  This minimizes API changes to both libibverbs and librdmacm.
-
-If ext_ops are supported and in active use, extended structures may be expected with some calls, such as ibv_post_send() requiring a struct ibv_xrc_send_wr for XRC QPs.
-
-	struct ibv_xrc_send_wr {
-		struct ibv_send_wr wr;
-		uint32_t remote_qpn;
-	};
-
-
-uverbs
-------
-(Ideas for kernel changes are sketchier, but the existing patches cover most of the functionality except for IB CM interactions.)
-
-Need new uverbs commands to support alloc/dealloc xrcd and create xrc srq.  Create QP must handle XRC INI QPs.  XRC TGT QPs are not exposed; ***all XRC INI->TGT QP setup is done in band***.
-
-Somewhere, an xrc sub-module listens on a SID and accepts incoming XRC connection requests.  This requires associating the xrcd and SID, the details of which I'm not clear on.  The xrcd is most readily known to uverbs, but a SID is usually formed by the rdma_cm.  Even how the latter is done is unclear.
-
-The usage model I envision is for a user to call listen on an XRC SRQ (IBV_QPT_XRC_RQ), which listens for a SIDR REQ to resolve the SRQN and a REQ to setup the INI->TGT QPs.  The issue is sync'ing the lifetime of any formed connections with the xrcd.
-
-
-verbs
------
-The patch for this is basically available.  3 new calls are added: ib_create_xrc_srq, ib_alloc_xrcd, and ib_dealloc_xrcd.  The IB_QPT_XRC is split into 2 types: IB_QPT_INI_XRC and IB_QPT_TGT_XRC.  An INI QP has a pd, but no xrcd, while the TGT QP is the reverse.
-
-
-Existing patches to the mlx4 driver and library would be modified to handle these changes.  If anyone has any thoughts on these changes, I'd appreciate them before I have them implemented.  :)
-
-- Sean
+lo        Link encap:Local Loopback
+          inet addr:127.0.0.1  Mask:255.0.0.0
+          inet6 addr: ::1/128 Scope:Host
+          UP LOOPBACK RUNNING  MTU:16436  Metric:1
+          RX packets:1230 errors:0 dropped:0 overruns:0 frame:0
+          TX packets:1230 errors:0 dropped:0 overruns:0 carrier:0
+          collisions:0 txqueuelen:0
+          RX bytes:2055348 (1.9 MiB)  TX bytes:2055348 (1.9 MiB)
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
