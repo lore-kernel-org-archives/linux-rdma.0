@@ -1,109 +1,150 @@
-From: Ido Shamai <idos-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: building RDMA perftests with g++
-Date: Wed, 18 May 2011 10:01:01 +0300
-Message-ID: <4DD36EAD.9090000@dev.mellanox.co.il>
-References: <20101117202015.rs5zkzhbkskwsw4s@celticblues.com>	<4CE5009F.90001@dev.mellanox.co.il>	<20101201092419.5r5mqsv1cg8cso0w@celticblues.com>	<20110517135503.1jnew49yc8co08k8@celticblues.com>	<4DD2D4A7.5090101@systemfabricworks.com> <20110517140952.qf0bmi5yg48c4gsg@celticblues.com>
+From: Christoph Hellwig <hch@infradead.org>
+Subject: Re: [RFC] ib_srpt: initial .40-rc1 drivers/infiniband/ulp/srpt merge
+Date: Wed, 18 May 2011 03:47:16 -0400
+Message-ID: <20110518074716.GA8927@infradead.org>
+References: <1305682604-21383-1-git-send-email-nab@linux-iscsi.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20110517140952.qf0bmi5yg48c4gsg-x2spCj9RiN0z5UmgcLIfJQ@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: ib-x2spCj9RiN0z5UmgcLIfJQ@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1305682604-21383-1-git-send-email-nab@linux-iscsi.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Nicholas A. Bellinger" <nab@linux-iscsi.org>
+Cc: linux-kernel <linux-kernel@vger.kernel.org>, linux-scsi <linux-scsi@vger.kernel.org>, linux-rmda <linux-rdma@vger.kernel.org>, Roland Dreier <roland@purestorage.com>, Bart Van Assche <bvanassche@acm.org>, Vu Pham <vu@mellanox.com>, David Dillow <dillowda@ornl.gov>, James Bottomley <James.Bottomley@HansenPartnership.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On 5/17/2011 11:09 PM, ib-x2spCj9RiN0z5UmgcLIfJQ@public.gmane.org wrote:
-> That is correct.  I did make those necessary corrections.
->
-> E
+> +ccflags-y			:= -Idrivers/target
 
-I've seen the problem back then (when you originally posted it) and had no good answer.
+Why do you need the ccflags?  Everything needed should be under
+include/target, and if not that needs to be fixed.
 
-If you can me the changes you already made on the code, I would be happy to help.
+> +#include <linux/kthread.h>
+> +#include <linux/string.h>
+> +#include <linux/delay.h>
+> +#include <linux/atomic.h>
+> +#include <scsi/libsas.h> /* TASK_ATTR_* */
 
-Ido
+We really need to stop spreading that include.  Care to submit a patch
+for .40 to move the TASK_ATTR_* defines to scsi/scsi.h?
 
->
-> Quoting frank zago <fzago-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org>:
->
->> On 05/17/2011 02:55 PM, ib-x2spCj9RiN0z5UmgcLIfJQ@public.gmane.org wrote:
->>> Has this issue been confirmed or debunked?
->>
->> AFAIK, this style of initialization is not supported by C++.
->>
->>         struct addrinfo hints = {
->>                 .ai_family   = AF_UNSPEC,
->>                 .ai_socktype = SOCK_STREAM
->>         };
->>
->> If you want to use a c++ compiler, you'll have to change the code.  Something like
->>   struct addrinfo hints = { 0 };
->>   hints.ai_family   = AF_UNSPEC;
->>   hints.ai_socktype = SOCK_STREAM;
->>
->> Frank.
->>
->>
->>>
->>> Ed
->>>
->>>
->>> Quoting ib-x2spCj9RiN0z5UmgcLIfJQ@public.gmane.org:
->>>
->>>> Ido,
->>>> Have you had opportunity to check into this?
->>>> Ed
->>>>
->>>> Quoting Ido Shamai <idos-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>:
->>>>
->>>>> Hey Ed ,
->>>>>
->>>>> I'm Ido , perftest maintainer , I will check the issue now , and report
->>>>> you back.
->>>>>
->>>>> In general , every c program can be compiled with g++ ?
->>>>>
->>>>> Ido
->>>>>
->>>>> On 11/18/2010 5:20 AM, ib-x2spCj9RiN0z5UmgcLIfJQ@public.gmane.org wrote:
->>>>>> I have what is probably a silly question....
->>>>>>
->>>>>> If I compile the rdma_bw example from perftests with g++, it    doesn't work... granted I have to make a few changes wrt  structure   initialization, but I would think it should behave  as when built   with gcc...  I am getting an error message in    pp_client_init/pp_server_init that ai_family SOCK_STREAM is not    support for the port.  If I use cma I get an unrecognized event  on   the client side... Am I missing something?  I am trying to   develop  some C++ classes with RDMA/verbs.
->>>>>> Thanks,
->>>>>> Ed
->>>>>>
->>>>>>
->>>>>> -- 
->>>>>> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
->>>>>> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->>>>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>>>>>
->>>>>
->>>>> -- 
->>>>> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
->>>>> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->>>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>>
->>>
->>>
->>> -- 
->>> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
->>> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>>
->>
->>
->
->
->
-> -- 
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+> +/**
+> + * srpt_sdev_name() - Return the name associated with the HCA.
+> + *
+> + * Examples are ib0, ib1, ...
+> + */
+> +static inline const char *srpt_sdev_name(struct srpt_device *sdev)
+> +{
+> +	return sdev->device->name;
+> +}
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Does this really need a helper?
+
+> +
+> +static enum rdma_ch_state srpt_get_ch_state(struct srpt_rdma_ch *ch)
+> +{
+> +	unsigned long flags;
+> +	enum rdma_ch_state state;
+> +
+> +	spin_lock_irqsave(&ch->spinlock, flags);
+> +	state = ch->state;
+> +	spin_unlock_irqrestore(&ch->spinlock, flags);
+> +	return state;
+> +}
+
+Given that the channel is a 32-bit value taking a lock over reading
+it doesn't help anything.  If you need any kind of exclusion it needs
+to be held over the actual use of it, else it can be dropped.
+
+> +static enum rdma_ch_state
+> +srpt_set_ch_state(struct srpt_rdma_ch *ch, enum rdma_ch_state new_state)
+> +{
+> +	unsigned long flags;
+> +	enum rdma_ch_state prev;
+> +
+> +	spin_lock_irqsave(&ch->spinlock, flags);
+> +	prev = ch->state;
+> +	ch->state = new_state;
+> +	spin_unlock_irqrestore(&ch->spinlock, flags);
+> +	return prev;
+> +}
+
+The oly caller of this does a spin_lock_irq so I assume it's from
+process context.  So this one could do the same.  It would be good idea
+to check what kind of action is done from irq context at all and
+document what data structures / critical sections can be access from
+there.
+
+> +/**
+> + * srpt_srq_event() - SRQ event callback function.
+> + */
+> +static void srpt_srq_event(struct ib_event *event, void *ctx)
+> +{
+> +	printk(KERN_INFO "SRQ event %d\n", event->event);
+> +}
+
+Is this overly useful?
+
+> +static enum srpt_command_state srpt_get_cmd_state(struct srpt_send_ioctx *ioctx)
+> +{
+> +	enum srpt_command_state state;
+> +	unsigned long flags;
+> +
+> +	BUG_ON(!ioctx);
+> +
+> +	spin_lock_irqsave(&ioctx->spinlock, flags);
+> +	state = ioctx->state;
+> +	spin_unlock_irqrestore(&ioctx->spinlock, flags);
+> +	return state;
+
+Same comment about reading a variable as above.
+
+> +/*
+> + * srpt_unpack_lun() - Convert from network LUN to linear LUN.
+> + *
+> + * Convert an 2-byte, 4-byte, 6-byte or 8-byte LUN structure in network byte
+> + * order (big endian) to a linear LUN. Supports three LUN addressing methods:
+> + * peripheral, flat and logical unit. See also SAM-2, section 4.9.4 (page 40).
+> + */
+> +static uint64_t srpt_unpack_lun(const uint8_t *lun, int len)
+
+Nick, didn't you plan to take the LUN addressing to the core?  After
+all it's not a transport specific format.
+
+> +static int srpt_compl_thread(void *arg)
+> +{
+> +	struct srpt_rdma_ch *ch;
+> +
+> +	/* Hibernation / freezing of the SRPT kernel thread is not supported. */
+> +	current->flags |= PF_NOFREEZE;
+> +
+> +	ch = arg;
+> +	BUG_ON(!ch);
+> +	printk(KERN_INFO "Session %s: kernel thread %s (PID %d) started\n",
+> +	       ch->sess_name, ch->thread->comm, current->pid);
+
+Can we please kill all these verbose printks?  I know the target core
+does them, but that needs to be fixed to.  If you really care for
+debugging you can trivially trace it using the function tracer.
+
+> +	while (!kthread_should_stop()) {
+> +		wait_event_interruptible(ch->wait_queue,
+> +			(srpt_process_completion(ch->cq, ch),
+> +			 kthread_should_stop()));
+> +	}
+
+Instead of doing a wait_event_interruptible in a kthread you can just
+do a schedule() in interruptible context and use wake_up_process to wake
+it up.
+
+> +#include <linux/version.h>
+
+Shouldn't be needed.
+
+> +static inline u64 encode_wr_id(u8 opcode, u32 idx)
+> +{ return ((u64)opcode << 32) | idx; }
+> +static inline u8 opcode_from_wr_id(u64 wr_id)
+> +{ return wr_id >> 32; }
+> +static inline u32 idx_from_wr_id(u64 wr_id)
+> +{ return (u32)wr_id; }
+
+Please fix the indentation.
