@@ -1,150 +1,105 @@
-From: Christoph Hellwig <hch@infradead.org>
-Subject: Re: [RFC] ib_srpt: initial .40-rc1 drivers/infiniband/ulp/srpt merge
-Date: Wed, 18 May 2011 03:47:16 -0400
-Message-ID: <20110518074716.GA8927@infradead.org>
-References: <1305682604-21383-1-git-send-email-nab@linux-iscsi.org>
+From: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [RFC] XRC upstream merge reboot
+Date: Wed, 18 May 2011 17:54:33 +0300
+Message-ID: <201105181754.33759.jackm@dev.mellanox.co.il>
+References: <1828884A29C6694DAF28B7E6B8A82373F7AB@ORSMSX101.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1828884A29C6694DAF28B7E6B8A82373F7AB-P5GAC/sN6hmkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1305682604-21383-1-git-send-email-nab@linux-iscsi.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Nicholas A. Bellinger" <nab@linux-iscsi.org>
-Cc: linux-kernel <linux-kernel@vger.kernel.org>, linux-scsi <linux-scsi@vger.kernel.org>, linux-rmda <linux-rdma@vger.kernel.org>, Roland Dreier <roland@purestorage.com>, Bart Van Assche <bvanassche@acm.org>, Vu Pham <vu@mellanox.com>, David Dillow <dillowda@ornl.gov>, James Bottomley <James.Bottomley@HansenPartnership.com>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, tziporet-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-> +ccflags-y			:= -Idrivers/target
+Sean,
+Great that you are taking this on!  I will review this next week.
 
-Why do you need the ccflags?  Everything needed should be under
-include/target, and if not that needs to be fixed.
+-Jack
 
-> +#include <linux/kthread.h>
-> +#include <linux/string.h>
-> +#include <linux/delay.h>
-> +#include <linux/atomic.h>
-> +#include <scsi/libsas.h> /* TASK_ATTR_* */
-
-We really need to stop spreading that include.  Care to submit a patch
-for .40 to move the TASK_ATTR_* defines to scsi/scsi.h?
-
-> +/**
-> + * srpt_sdev_name() - Return the name associated with the HCA.
-> + *
-> + * Examples are ib0, ib1, ...
-> + */
-> +static inline const char *srpt_sdev_name(struct srpt_device *sdev)
-> +{
-> +	return sdev->device->name;
-> +}
-
-Does this really need a helper?
-
-> +
-> +static enum rdma_ch_state srpt_get_ch_state(struct srpt_rdma_ch *ch)
-> +{
-> +	unsigned long flags;
-> +	enum rdma_ch_state state;
-> +
-> +	spin_lock_irqsave(&ch->spinlock, flags);
-> +	state = ch->state;
-> +	spin_unlock_irqrestore(&ch->spinlock, flags);
-> +	return state;
-> +}
-
-Given that the channel is a 32-bit value taking a lock over reading
-it doesn't help anything.  If you need any kind of exclusion it needs
-to be held over the actual use of it, else it can be dropped.
-
-> +static enum rdma_ch_state
-> +srpt_set_ch_state(struct srpt_rdma_ch *ch, enum rdma_ch_state new_state)
-> +{
-> +	unsigned long flags;
-> +	enum rdma_ch_state prev;
-> +
-> +	spin_lock_irqsave(&ch->spinlock, flags);
-> +	prev = ch->state;
-> +	ch->state = new_state;
-> +	spin_unlock_irqrestore(&ch->spinlock, flags);
-> +	return prev;
-> +}
-
-The oly caller of this does a spin_lock_irq so I assume it's from
-process context.  So this one could do the same.  It would be good idea
-to check what kind of action is done from irq context at all and
-document what data structures / critical sections can be access from
-there.
-
-> +/**
-> + * srpt_srq_event() - SRQ event callback function.
-> + */
-> +static void srpt_srq_event(struct ib_event *event, void *ctx)
-> +{
-> +	printk(KERN_INFO "SRQ event %d\n", event->event);
-> +}
-
-Is this overly useful?
-
-> +static enum srpt_command_state srpt_get_cmd_state(struct srpt_send_ioctx *ioctx)
-> +{
-> +	enum srpt_command_state state;
-> +	unsigned long flags;
-> +
-> +	BUG_ON(!ioctx);
-> +
-> +	spin_lock_irqsave(&ioctx->spinlock, flags);
-> +	state = ioctx->state;
-> +	spin_unlock_irqrestore(&ioctx->spinlock, flags);
-> +	return state;
-
-Same comment about reading a variable as above.
-
-> +/*
-> + * srpt_unpack_lun() - Convert from network LUN to linear LUN.
-> + *
-> + * Convert an 2-byte, 4-byte, 6-byte or 8-byte LUN structure in network byte
-> + * order (big endian) to a linear LUN. Supports three LUN addressing methods:
-> + * peripheral, flat and logical unit. See also SAM-2, section 4.9.4 (page 40).
-> + */
-> +static uint64_t srpt_unpack_lun(const uint8_t *lun, int len)
-
-Nick, didn't you plan to take the LUN addressing to the core?  After
-all it's not a transport specific format.
-
-> +static int srpt_compl_thread(void *arg)
-> +{
-> +	struct srpt_rdma_ch *ch;
-> +
-> +	/* Hibernation / freezing of the SRPT kernel thread is not supported. */
-> +	current->flags |= PF_NOFREEZE;
-> +
-> +	ch = arg;
-> +	BUG_ON(!ch);
-> +	printk(KERN_INFO "Session %s: kernel thread %s (PID %d) started\n",
-> +	       ch->sess_name, ch->thread->comm, current->pid);
-
-Can we please kill all these verbose printks?  I know the target core
-does them, but that needs to be fixed to.  If you really care for
-debugging you can trivially trace it using the function tracer.
-
-> +	while (!kthread_should_stop()) {
-> +		wait_event_interruptible(ch->wait_queue,
-> +			(srpt_process_completion(ch->cq, ch),
-> +			 kthread_should_stop()));
-> +	}
-
-Instead of doing a wait_event_interruptible in a kthread you can just
-do a schedule() in interruptible context and use wake_up_process to wake
-it up.
-
-> +#include <linux/version.h>
-
-Shouldn't be needed.
-
-> +static inline u64 encode_wr_id(u8 opcode, u32 idx)
-> +{ return ((u64)opcode << 32) | idx; }
-> +static inline u8 opcode_from_wr_id(u64 wr_id)
-> +{ return wr_id >> 32; }
-> +static inline u32 idx_from_wr_id(u64 wr_id)
-> +{ return (u32)wr_id; }
-
-Please fix the indentation.
+On Tuesday 17 May 2011 00:13, Hefty, Sean wrote:
+> I've been working on a set of XRC patches aimed at upstream inclusion to the kernel, libibverbs, and librdmacm.  I'm using existing patches as the major starting point.  A goal is to maintain the user space ABI.  Before proceeding further, I wanted to get broader feedback.  Starting at the top and working down, these are the basic ideas:
+> 
+> 
+> librdmacm
+> ---------
+> The API is basically unchanged.  XRC usage is indicated through the QP type.  The challenge is determining if XRC maps to a specific rdma_port_space.
+> 
+> 
+> libibverbs
+> ----------
+> We define a new device capability flag IBV_DEVICE_EXT_OPS, indicating that the library supports extended operations.  If set, the provider library returns an extended structure from ibv_open_device():
+> 
+> 	struct ibv_context_ext {
+> 		struct ibv_context context;
+> 		int                version;
+> 		struct ibv_ext_ops ext_ops;
+> 	};
+> 
+> The ext_ops will allow for additional operations not provided by ibv_context_ops, for example:
+> 
+> 	struct ibv_ext_ops {
+> 		int	(share_pd)(struct ibv_pd *pd, int fd, int oflags);
+> 	};
+> 
+> In order for libibverbs to check for ext_ops support, it steals a byte from the device name:
+> 
+> 	/*
+> 	 * Support for extended operations is recorded at the end of
+> 	 * the name character array.
+> 	 */
+> 	#define ext_ops_cap            name[IBV_SYSFS_NAME_MAX - 1]
+> 
+> (If strlen(name) indicates that this byte terminates the string, extended operation support is disabled for this device.)
+> 
+> Hopefully, this provides the framework needed for libibverbs to support both old and new provider libraries.
+> 
+> From an architecture viewpoint, XRC adds 4 new XRC specific objects: domains, INI QPs, TGT QPs, and SRQs.  For the purposes of the libibverbs API only, I'm suggesting the following mappings:
+> 
+> XRC domains - Hidden under a PD, dynamically allocated when needed.  An extended ops call allows the xrcd to be shared between processes.  This minimizes changes to existing structures and APIs which only take a struct ibv_pd.
+> 
+> INI QPs - Exposed through a new IBV_QPT_XRC_SQ qp type.  This is a send-only QP with minimal differences from an RC QP from a user's perspective.
+> 
+> TGT QPs - Not exposed to user space.  XRC TGT QP creation and setup is handled by the kernel.
+> 
+> XRC SRQs - Exposed through a new IBV_QPT_XRC_RQ qp type.  This is an SRQ that is tracked using a struct ibv_qp.  This minimizes API changes to both libibverbs and librdmacm.
+> 
+> If ext_ops are supported and in active use, extended structures may be expected with some calls, such as ibv_post_send() requiring a struct ibv_xrc_send_wr for XRC QPs.
+> 
+> 	struct ibv_xrc_send_wr {
+> 		struct ibv_send_wr wr;
+> 		uint32_t remote_qpn;
+> 	};
+> 
+> 
+> uverbs
+> ------
+> (Ideas for kernel changes are sketchier, but the existing patches cover most of the functionality except for IB CM interactions.)
+> 
+> Need new uverbs commands to support alloc/dealloc xrcd and create xrc srq.  Create QP must handle XRC INI QPs.  XRC TGT QPs are not exposed; ***all XRC INI->TGT QP setup is done in band***.
+> 
+> Somewhere, an xrc sub-module listens on a SID and accepts incoming XRC connection requests.  This requires associating the xrcd and SID, the details of which I'm not clear on.  The xrcd is most readily known to uverbs, but a SID is usually formed by the rdma_cm.  Even how the latter is done is unclear.
+> 
+> The usage model I envision is for a user to call listen on an XRC SRQ (IBV_QPT_XRC_RQ), which listens for a SIDR REQ to resolve the SRQN and a REQ to setup the INI->TGT QPs.  The issue is sync'ing the lifetime of any formed connections with the xrcd.
+> 
+> 
+> verbs
+> -----
+> The patch for this is basically available.  3 new calls are added: ib_create_xrc_srq, ib_alloc_xrcd, and ib_dealloc_xrcd.  The IB_QPT_XRC is split into 2 types: IB_QPT_INI_XRC and IB_QPT_TGT_XRC.  An INI QP has a pd, but no xrcd, while the TGT QP is the reverse.
+> 
+> 
+> Existing patches to the mlx4 driver and library would be modified to handle these changes.  If anyone has any thoughts on these changes, I'd appreciate them before I have them implemented.  :)
+> 
+> - Sean
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
