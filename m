@@ -1,41 +1,36 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [RFC] XRC upstream merge reboot
-Date: Wed, 18 May 2011 17:30:30 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A82373FBC7@ORSMSX101.amr.corp.intel.com>
-References: <1828884A29C6694DAF28B7E6B8A82373F7AB@ORSMSX101.amr.corp.intel.com>
- <BANLkTimWMU9ohSQGYEEnFR0HbBaypFR51A@mail.gmail.com>
- <20110518170226.GA2595@obsidianresearch.com>
+From: Bart Van Assche <bvanassche@acm.org>
+Subject: Re: [RFC] ib_srpt: initial .40-rc1 drivers/infiniband/ulp/srpt merge
+Date: Wed, 18 May 2011 20:02:51 +0200
+Message-ID: <BANLkTimQXU0u5gtRzXsnsB=sCF-bvpY+Ag@mail.gmail.com>
+References: <1305682604-21383-1-git-send-email-nab@linux-iscsi.org>
+ <BANLkTi=e+v7PLcSc8GNov-TOXFF7rurXew@mail.gmail.com> <20110518170556.GB2595@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20110518170226.GA2595-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Content-Language: en-US
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
-Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20110518170556.GB2595@obsidianresearch.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
+Cc: "Nicholas A. Bellinger" <nab@linux-iscsi.org>, linux-kernel <linux-kernel@vger.kernel.org>, linux-scsi <linux-scsi@vger.kernel.org>, linux-rmda <linux-rdma@vger.kernel.org>, Roland Dreier <roland@purestorage.com>, Vu Pham <vu@mellanox.com>, David Dillow <dillowda@ornl.gov>, James Bottomley <James.Bottomley@hansenpartnership.com>
 List-Id: linux-rdma@vger.kernel.org
 
-> As long as the version number in the ibv_context is increasing and not
-> branching then I think it is OK. 0 = what we have now. 1 = + XRC, 2 =
-> +XRC+ummunotify, etc. Drivers 0 out the function pointers they do not
-> support.
+On Wed, May 18, 2011 at 7:05 PM, Jason Gunthorpe
+<jgunthorpe@obsidianresearch.com> wrote:
+> On Wed, May 18, 2011 at 06:59:36PM +0200, Bart Van Assche wrote:
+>
+>> As far as I know InfiniBand HCAs have either one or two ports. If
+>> there are two ports present, at most one is active at any time.
+>
+> This is not true, many installations run dual rail IB with a desire
+> for both ports to be active and handling traffic at once. Not sure how
+> this translates to SRPT, but a good goal would be for a SRPT target to
+> be available on both HCA ports and support APM between them, at the
+> discretion of the client.
 
-I was thinking more along this line, but I can see how using a named extension could be useful for OFED or vendor specific extensions that aren't part of the upstream libibverbs.  (Whether _that_ is useful is another matter, but it seems to be the world that we're in anyway.)
+Thanks for the feedback. I'm still wondering though about the
+usefulness of disabling / enabling SRPT per HCA port. For the use
+cases I know about SRP communication over all target ports will be
+enabled as soon as target configuration has finished and more
+fine-grained access configuration will occur by allowing/disallowing
+certain initiators to log in.
 
-I'm not familiar with OpenGL, so I'll take a look at it.  (The concept sounds similar to Window's COM interfaces.)
-
-Beyond the interfaces, are there any thoughts on how to handle structure changes, such as:
-
-	struct ibv_xrc_send_wr {
-		struct ibv_send_wr wr;
-		uint32_t remote_qpn;
-	};
-
-?  Do we want to use the existing ibv_post_send() call, or add a new ibv_post_xrc_send() routine specifically for this purpose (and simplify the above definition)?
-
-- Sean
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Bart.
