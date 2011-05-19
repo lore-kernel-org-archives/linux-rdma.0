@@ -1,39 +1,39 @@
-From: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: rdma_create_qp() and max_send_wr
-Date: Thu, 19 May 2011 18:46:50 +0300
-Message-ID: <20110519154650.GD2659@mtldesk30>
-References: <20110421115323.48b52fb35c6f209c51bccbb9807b6df0.f623dc4952.wbe@email17.secureserver.net>
- <1303467645.2243.47.camel@deela.quest-ce.net>
- <20110519060704.GA2659@mtldesk30>
- <1305796637.2359.6.camel@deela.quest-ce.net>
- <20110519093402.GB2659@mtldesk30>
- <1305802216.2359.11.camel@deela.quest-ce.net>
- <1828884A29C6694DAF28B7E6B8A82373FE8B@ORSMSX101.amr.corp.intel.com>
- <1305816321.2359.15.camel@deela.quest-ce.net>
- <1305817426.2359.23.camel@deela.quest-ce.net>
+From: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
+Subject: Re: [RFC] ib_srpt: initial .40-rc1 drivers/infiniband/ulp/srpt
+ merge
+Date: Thu, 19 May 2011 10:57:28 -0600
+Message-ID: <20110519165728.GB12525@obsidianresearch.com>
+References: <1305682604-21383-1-git-send-email-nab@linux-iscsi.org>
+ <BANLkTi=e+v7PLcSc8GNov-TOXFF7rurXew@mail.gmail.com>
+ <20110518170556.GB2595@obsidianresearch.com>
+ <BANLkTimQXU0u5gtRzXsnsB=sCF-bvpY+Ag@mail.gmail.com>
+ <BANLkTi==bZ0h3o5FNrg8PSJFp6F-zh5hTA@mail.gmail.com>
+ <1305778694.2856.533.camel@haakon2.linux-iscsi.org>
+ <BANLkTi=Xb-ypQNa3=MmwiLeE4Q9FWHnZXg@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1305817426.2359.23.camel-H/AUWmsJYVeqvyCYKW+Xr6xOck334EZe@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yann Droneaud <yann-WYdEh2jsUj5Wj0EZb7rXcA@public.gmane.org>
-Cc: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "cait-DpaxOq6QOWMAvxtiuMwx3w@public.gmane.org" <cait-DpaxOq6QOWMAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <BANLkTi=Xb-ypQNa3=MmwiLeE4Q9FWHnZXg@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Bart Van Assche <bvanassche@acm.org>
+Cc: "Nicholas A. Bellinger" <nab@linux-iscsi.org>, Roland Dreier <roland@purestorage.com>, linux-kernel <linux-kernel@vger.kernel.org>, linux-scsi <linux-scsi@vger.kernel.org>, linux-rmda <linux-rdma@vger.kernel.org>, Vu Pham <vu@mellanox.com>, David Dillow <dillowda@ornl.gov>, James Bottomley <James.Bottomley@hansenpartnership.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, May 19, 2011 at 05:03:45PM +0200, Yann Droneaud wrote:
-> 
-> To sum up:
-> 
-> - ibv_qp_init_attr.max_recv_wr can be set to ibv_device_attr.max_qp_wr,
-> 16384 in my case,
->  
-> - ibv_qp_init_attr.max_send_wr *cannot* be set to
-> ibv_device_attr.max_qp_wr, but it can be set to 16351.
-> 
-Thanks for investigating this. We'll check and send a fix. Meanwhile
-you can workaround this in your code.
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+On Thu, May 19, 2011 at 12:40:02PM +0200, Bart Van Assche wrote:
+
+> I'm still wondering whether it was a good idea to switch from ib<n>
+> style names to port GIDs. Not only will that make it hard for users to
+> match the ib<n> names already assigned to InfiniBand HCAs with target
+> port names but this also deviates from the naming scheme used for any
+> other Linux device. Ethernet devices e.g. appear as eth<n> in /dev
+> instead of a MAC address like 00:1a:64:10:18:6f.
+
+The ib# names returned by ip addr are already disjoint from the
+namespace that is being used by SRP targets. The only choices are port
+GUID or something like mlx4_0/1, the later is somewhat less
+commonly used..
+
+Is there some approach here for selecting the pkey as well?
+
+Jason
