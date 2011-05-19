@@ -1,225 +1,101 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [RFC] XRC upstream merge reboot
-Date: Thu, 19 May 2011 05:29:36 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A82373FDDE@ORSMSX101.amr.corp.intel.com>
-References: <1828884A29C6694DAF28B7E6B8A82373F7AB@ORSMSX101.amr.corp.intel.com>
- <BANLkTimWMU9ohSQGYEEnFR0HbBaypFR51A@mail.gmail.com>
- <20110518170226.GA2595@obsidianresearch.com>
- <1828884A29C6694DAF28B7E6B8A82373FBC7@ORSMSX101.amr.corp.intel.com>
- <BANLkTi=cLjErM3pKzihyFtGWZ0kSu9BiPA@mail.gmail.com>
+From: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: rdma_create_qp() and max_send_wr
+Date: Thu, 19 May 2011 09:07:04 +0300
+Message-ID: <20110519060704.GA2659@mtldesk30>
+References: <20110421115323.48b52fb35c6f209c51bccbb9807b6df0.f623dc4952.wbe@email17.secureserver.net>
+ <1303467645.2243.47.camel@deela.quest-ce.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <BANLkTi=cLjErM3pKzihyFtGWZ0kSu9BiPA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <1303467645.2243.47.camel-H/AUWmsJYVeqvyCYKW+Xr6xOck334EZe@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
-Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
+Cc: cait-DpaxOq6QOWMAvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-What about something along the lines of the following?  This is 2 incomplete patches squashed together, lacking any serious documentation.  I believe this will support existing apps and driver libraries, as either binary or re-compiling unmodified source code.
+Hi Yan,
+it appears that you're using quite an old firmware. Could you upgrade
+the firmware to the latest version and check again the failure to
+create a QP with the max depth. FW and burning tools can be downloaded
+from www.mellanox.com.
 
-A driver library calls ibv_register_driver_ext() if it implements the extended operations.  (Roland, you mentioned changing the ibv_register_driver init_func parameter, but I didn't follow your thought.)  Extended ops are defined at both the ibv_device and ibv_context levels.  An app may also query a device to see if it supports a specific extension.
+Another possible reason for the failures you were seeing is the 4 MB
+limit on locking memory from usersapce. Could you repeat the
+experiment as root?
 
-There is an assumption that extension names reflect the availability of the extension.  For example, there may be "ibv_foo", "ofed_foo", or "mlx_foo" APIs.  The "ibv" extensions would be those defined by the libibverbs package.
+P.S: I checked on my setup and was able to create a QP with the max
+size.
 
-
----
- include/infiniband/verbs.h |   32 ++++++++++++++++++++++++++++++++
- src/device.c               |   18 ++++++++++++++++++
- src/init.c                 |   12 +++++++++++-
- src/libibverbs.map         |    5 +++++
- src/verbs.c                |    9 +++++++++
- 5 files changed, 75 insertions(+), 1 deletions(-)
-
-diff --git a/include/infiniband/verbs.h b/include/infiniband/verbs.h
-index 0f1cb2e..fad875f 100644
---- a/include/infiniband/verbs.h
-+++ b/include/infiniband/verbs.h
-@@ -617,12 +617,19 @@ struct ibv_device {
- 	enum ibv_transport_type	transport_type;
- 	/* Name of underlying kernel IB device, eg "mthca0" */
- 	char			name[IBV_SYSFS_NAME_MAX];
-+	/*
-+	 * Support for extended operations is recorded at the end of
-+	 * the name character array.
-+	 */
-+#define ext_ops_supported	name[IBV_SYSFS_NAME_MAX - 1]
- 	/* Name of uverbs device, eg "uverbs0" */
- 	char			dev_name[IBV_SYSFS_NAME_MAX];
- 	/* Path to infiniband_verbs class device in sysfs */
- 	char			dev_path[IBV_SYSFS_PATH_MAX];
- 	/* Path to infiniband class device in sysfs */
- 	char			ibdev_path[IBV_SYSFS_PATH_MAX];
-+	int			(*have_ext_ops)(char *ext_name);
-+	void *			(*get_ext_device_ops)(char *ext_name);
- };
- 
- struct ibv_context_ops {
-@@ -683,6 +690,14 @@ struct ibv_context_ops {
- 	void			(*async_event)(struct ibv_async_event *event);
- };
- 
-+#define IBV_XRC_OPS "ibv_xrc"
-+
-+struct ibv_xrc_ops {
-+	struct ibv_xrcd		(*open_xrcd)();
-+	int			(*close_xrcd)();
-+	struct ibv_src		(*create_srq)();
-+};
-+
- struct ibv_context {
- 	struct ibv_device      *device;
- 	struct ibv_context_ops	ops;
-@@ -691,6 +706,7 @@ struct ibv_context {
- 	int			num_comp_vectors;
- 	pthread_mutex_t		mutex;
- 	void		       *abi_compat;
-+	void *			(*get_ext_ops)(char *ext_name);
- };
- 
- /**
-@@ -724,6 +740,17 @@ const char *ibv_get_device_name(struct ibv_device *device);
- uint64_t ibv_get_device_guid(struct ibv_device *device);
- 
- /**
-+ * ibv_have_ext_ops - Return true if device supports the requested
-+ * extended operations.
-+ */
-+int ibv_have_ext_ops(struct ibv_device *device, const char *name);
-+
-+/**
-+ * ibv_get_device_ext_ops - Return extended operations.
-+ */
-+void *ibv_get_device_ext_ops(struct ibv_device *device, const char *name);
-+
-+/**
-  * ibv_open_device - Initialize device for use
-  */
- struct ibv_context *ibv_open_device(struct ibv_device *device);
-@@ -734,6 +761,11 @@ struct ibv_context *ibv_open_device(struct ibv_device *device);
- int ibv_close_device(struct ibv_context *context);
- 
- /**
-+ * ibv_get_ext_ops - Return extended operations.
-+ */
-+void *ibv_get_ext_ops(struct ibv_context *context, const char *name);
-+
-+/**
-  * ibv_get_async_event - Get next async event
-  * @event: Pointer to use to return async event
-  *
-diff --git a/src/device.c b/src/device.c
-index 185f4a6..da0eca4 100644
---- a/src/device.c
-+++ b/src/device.c
-@@ -181,6 +181,24 @@ int __ibv_close_device(struct ibv_context *context)
- }
- default_symver(__ibv_close_device, ibv_close_device);
- 
-+int __ibv_have_ext_ops(struct ibv_device *device, const char *name)
-+{
-+	if (!device->ext_ops_supported)
-+		return ENOSYS;
-+
-+	return device->have_ext_ops(device, name);
-+}
-+default_symver(__ibv_have_ext_ops, ibv_have_ext_ops);
-+
-+void *__ibv_get_device_ext_ops(struct ibv_device *device, const char *name)
-+{
-+	if (!device->ext_ops_supported)
-+		return NULL;
-+
-+	return device->get_device_ext_ops(device, name);
-+}
-+default_symver(__ibv_get_device_ext_ops, ibv_get_device_ext_ops);
-+
- int __ibv_get_async_event(struct ibv_context *context,
- 			  struct ibv_async_event *event)
- {
-diff --git a/src/init.c b/src/init.c
-index 4f0130e..0fdc89c 100644
---- a/src/init.c
-+++ b/src/init.c
-@@ -71,6 +71,7 @@ struct ibv_driver {
- 	const char	       *name;
- 	ibv_driver_init_func	init_func;
- 	struct ibv_driver      *next;
-+	int			ext_ops_supported;
- };
- 
- static struct ibv_sysfs_dev *sysfs_dev_list;
-@@ -153,7 +154,8 @@ static int find_sysfs_devs(void)
- 	return ret;
- }
- 
--void ibv_register_driver(const char *name, ibv_driver_init_func init_func)
-+void ibv_register_driver_ext(const char *name, ibv_driver_init_func init_func,
-+			     int ext_ops_supported)
- {
- 	struct ibv_driver *driver;
- 
-@@ -174,6 +176,11 @@ void ibv_register_driver(const char *name, ibv_driver_init_func init_func)
- 	tail_driver = driver;
- }
- 
-+void ibv_register_driver(const char *name, ibv_driver_init_func init_func)
-+{
-+	ibv_register_driver_ext(name, init_func, 0);
-+}
-+
- static void load_driver(const char *name)
- {
- 	char *so_name;
-@@ -368,6 +375,9 @@ static struct ibv_device *try_driver(struct ibv_driver *driver,
- 	strcpy(dev->name,       sysfs_dev->ibdev_name);
- 	strcpy(dev->ibdev_path, sysfs_dev->ibdev_path);
- 
-+	if (strlen(dev->name) < sizeof(dev->name))
-+		dev->ext_ops_supported = driver->ext_ops_supported;
-+
- 	return dev;
- }
- 
-diff --git a/src/libibverbs.map b/src/libibverbs.map
-index 1827da0..422e07f 100644
---- a/src/libibverbs.map
-+++ b/src/libibverbs.map
-@@ -96,4 +96,9 @@ IBVERBS_1.1 {
- 		ibv_port_state_str;
- 		ibv_event_type_str;
- 		ibv_wc_status_str;
-+
-+		ibv_register_driver_ext;
-+		ibv_have_ext_ops;
-+		ibv_get_device_ext_ops;
-+		ibv_get_ext_ops;
- } IBVERBS_1.0;
-diff --git a/src/verbs.c b/src/verbs.c
-index ba3c0a4..0be9ac2 100644
---- a/src/verbs.c
-+++ b/src/verbs.c
-@@ -76,6 +76,15 @@ enum ibv_rate mult_to_ibv_rate(int mult)
- 	}
- }
- 
-+void *__ibv_get_ext_ops(struct ibv_context *context, const char *name)
-+{
-+	if (!context->device->ext_ops_supported)
-+		return NULL;
-+
-+	return context->get_ext_ops(context, name);
-+}
-+default_symver(__ibv_get_ext_ops, ibv_get_ext_ops);
-+
- int __ibv_query_device(struct ibv_context *context,
- 		       struct ibv_device_attr *device_attr)
- {
-
-
+On Fri, Apr 22, 2011 at 12:20:45PM +0200, Yann Droneaud wrote:
+> Hi,
+>=20
+> Le jeudi 21 avril 2011 =E0 11:53 -0700, cait-DpaxOq6QOWMAvxtiuMwx3w@public.gmane.org a =E9crit :
+> > An ENOMEM return does not mean that the subsystem *just* failed to
+> > allocate system memory.
+>=20
+> > The memory that could not be allocated could be device memory.
+> >        =20
+>=20
+> I'm also having some difficulties with system memory allocation.
+>=20
+> In my test, a user is allowed to lock 4MBytes of memory, but not all
+> this memory is available to ibv_reg_mr() since ibv_create_cq() and
+> ibv_create_qp()/rdma_create_qp() lock memory respectively for CQ and =
+QP.
+> The question is how much memory is needed for the CQ and QP queues ?
+>=20
+> In my case, the maximum message of size is 4MBytes - 20KBytes, for a =
+CQ
+> and QP (half duplex) queues length of 1.
+>=20
+> Using message size of 128 bytes and less hit the QP WR limit of 16351
+> length.
+>=20
+> When using messages of size 256 bytes, I'm only able to register 2609=
+152
+> bytes, then CQ and QP (half duplex) queues are 10192 entries length. =
+So
+> they seems to requires about 1585152 bytes. Taking in account a fixed
+> amount of reserved memory of 20KBytes, this give about 154 bytes per =
+(CQ
+> + QP (half duplex)) entry.
+>=20
+> When doing the same math with size 512 and 1024, the size of (CQ + QP
+> (half duplex)) is going down.
+>=20
+> msg  512 memory 3395584 length 6632
+> msg 1024 memory 3788800 length 3700
+> msg 2048 memory 3985408 length 1946
+>=20
+> Note that the memory used for the message is allocated as an aligned =
+big
+> chunk and registered as whole, and then sliced to be posted in WR.=20
+>=20
+> But the memory required for the CQ and QP elements (and other) is als=
+o
+> subject to alignment to a page size.
+>=20
+> At least, I known that CQ / QP "overhead" is not going to hurt users,=
+ if
+> they are allocated "modern" memory limits, let's say 1GBytes ;)
+>=20
+> Regards.
+>=20
+> --=20
+> Yann Droneaud
+> OPTEYA
+>=20
+>=20
+>=20
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma"=
+ in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
