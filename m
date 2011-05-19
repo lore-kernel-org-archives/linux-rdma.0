@@ -1,42 +1,62 @@
-From: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [RFC 2/3] RDMA/cma: Add support for netlink statistics export
-Date: Thu, 19 May 2011 11:10:20 -0700
-Message-ID: <BANLkTin1uVyrzdn_030bGmC=QHtfkvOTNA@mail.gmail.com>
-References: <1305303525-11113-1-git-send-email-roland@kernel.org>
- <1305303525-11113-3-git-send-email-roland@kernel.org> <1828884A29C6694DAF28B7E6B8A82373F428@ORSMSX101.amr.corp.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1828884A29C6694DAF28B7E6B8A82373F428-P5GAC/sN6hmkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+From: Roland Dreier <roland@kernel.org>
+Subject: [GIT PULL] please pull infiniband.git
+Date: Thu, 19 May 2011 11:17:43 -0700
+Message-ID: <1305829063-12945-1-git-send-email-roland@kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, May 13, 2011 at 10:21 AM, Hefty, Sean <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wr=
-ote:
->> +struct rdma_cm_id_stats {
->> + =A0 =A0 __u32 =A0 qp_num;
->> + =A0 =A0 __u32 =A0 bound_dev_if;
->> + =A0 =A0 __u32 =A0 port_space;
->> + =A0 =A0 __s32 =A0 pid;
->> + =A0 =A0 __u8 =A0 =A0cm_state;
->> + =A0 =A0 __u8 =A0 =A0node_type;
->> + =A0 =A0 __u8 =A0 =A0port_num;
->> + =A0 =A0 __u8 =A0 =A0reserved;
->> +};
->
-> We may also want to add qp_type
+Linus, please pull from
 
-Is there an easy way to get the qp_type from a struct rdma_cm_id?
+    master.kernel.org:/pub/scm/linux/kernel/git/roland/infiniband.git for-linus
 
-ie what code needs to go into cma_get_id_stats() to handle this?
+This tree is also available from kernel.org mirrors at:
 
-Thanks,
-  Roland
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+    git://git.kernel.org/pub/scm/linux/kernel/git/roland/infiniband.git for-linus
+
+This will get the first batch of 2.6.40 changes: mostly fixes to the
+cxgb4 and qib low-level drivers, plus a couple of RDMA CM fixes.
+
+Hefty, Sean (2):
+      RDMA/cma: Fix handling of IPv6 addressing in cma_use_port
+      RDMA/cma: Add an ID_REUSEADDR option
+
+Mitko Haralanov (1):
+      IB/qib: Prevent driver hang with unprogrammed boards
+
+Roel Kluin (1):
+      RDMA/cxgb4: Fix missing parentheses
+
+Roland Dreier (2):
+      RDMA/iwcm: Get rid of enum iw_cm_event_status
+      Merge branches 'cma', 'cxgb4' and 'qib' into for-next
+
+Sergei Shtylyov (2):
+      IB/ipath: Use pci_dev->revision, again
+      IB/qib: Use pci_dev->revision
+
+Steve Wise (4):
+      RDMA/cxgb4: Don't change QP state outside EP lock
+      RDMA/cxgb4: Initialization errors can cause crash
+      RDMA/cxgb4: Reset wait condition atomically
+      RDMA/cxgb4: EEH errors can hang the driver
+
+ drivers/infiniband/core/cma.c              |  207 +++++++++++++++++++---------
+ drivers/infiniband/core/iwcm.c             |    2 +-
+ drivers/infiniband/core/ucma.c             |    7 +
+ drivers/infiniband/hw/cxgb4/cm.c           |   46 ++-----
+ drivers/infiniband/hw/cxgb4/device.c       |  115 +++++++++-------
+ drivers/infiniband/hw/cxgb4/iw_cxgb4.h     |   36 ++++--
+ drivers/infiniband/hw/cxgb4/provider.c     |    2 -
+ drivers/infiniband/hw/cxgb4/qp.c           |    3 +-
+ drivers/infiniband/hw/ipath/ipath_driver.c |    9 +-
+ drivers/infiniband/hw/nes/nes_cm.c         |   16 +-
+ drivers/infiniband/hw/nes/nes_verbs.c      |    2 +-
+ drivers/infiniband/hw/qib/qib_iba7322.c    |    3 +-
+ drivers/infiniband/hw/qib/qib_pcie.c       |    5 +-
+ include/rdma/iw_cm.h                       |   11 +--
+ include/rdma/rdma_cm.h                     |   10 ++
+ include/rdma/rdma_user_cm.h                |    5 +-
+ 16 files changed, 278 insertions(+), 201 deletions(-)
