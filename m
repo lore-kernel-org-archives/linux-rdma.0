@@ -1,62 +1,46 @@
-From: Roland Dreier <roland@kernel.org>
-Subject: [GIT PULL] please pull infiniband.git
-Date: Thu, 19 May 2011 11:17:43 -0700
-Message-ID: <1305829063-12945-1-git-send-email-roland@kernel.org>
+From: Bart Van Assche <bvanassche@acm.org>
+Subject: Re: [RFC] ib_srpt: initial .40-rc1 drivers/infiniband/ulp/srpt merge
+Date: Thu, 19 May 2011 20:34:08 +0200
+Message-ID: <BANLkTikOsqazAE-mHFrM+=4GTs+249Ae5Q@mail.gmail.com>
+References: <1305682604-21383-1-git-send-email-nab@linux-iscsi.org>
+ <BANLkTi=e+v7PLcSc8GNov-TOXFF7rurXew@mail.gmail.com> <20110518170556.GB2595@obsidianresearch.com>
+ <BANLkTikOCeNcDvoCM=BOSxQaSECFhJ05Gg@mail.gmail.com> <20110519174420.GD12525@obsidianresearch.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20110519174420.GD12525@obsidianresearch.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: linux-kernel@vger.kernel.org, linux-rdma@vger.kernel.org
+To: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
+Cc: "Nicholas A. Bellinger" <nab@linux-iscsi.org>, linux-kernel <linux-kernel@vger.kernel.org>, linux-scsi <linux-scsi@vger.kernel.org>, linux-rmda <linux-rdma@vger.kernel.org>, Roland Dreier <roland@purestorage.com>, Vu Pham <vu@mellanox.com>, David Dillow <dillowda@ornl.gov>, James Bottomley <James.Bottomley@hansenpartnership.com>
 List-Id: linux-rdma@vger.kernel.org
 
-Linus, please pull from
+On Thu, May 19, 2011 at 7:44 PM, Jason Gunthorpe
+<jgunthorpe@obsidianresearch.com> wrote:
+> On Thu, May 19, 2011 at 07:29:21PM +0200, Bart Van Assche wrote:
+> > Regarding APM: the Linux kernel already has multipath support and
+> > duplicate functionality is in general not welcomed. So you will have
+> > to come up with a very good reason before APM support in ib_srp or
+> > ib_srpt would be considered for acceptance.
+>
+> APM is a feature of IB's tranport layerthat provides disruption free
+> lossless failover to a backup network path completely transparently to
+> the application (eg SRP in this case).
+>
+> This plays a similar role in the IB stack to the realtime spanning
+> tree protocol that ethernet uses, or the multipath IP routing that is
+> already in the net stack. I don't see it duplicating SCSI multipath at
+> all. On very large IB networks (eg > 1000 switches) the rate of link
+> failures is high enough that taking an application level recovery on
+> hundreds of nodes due to a link failure is troublesome.
+>
+> If ib_srpt is implemented properly it may already support APM because
+> APM is supported by the IB CM that it relies on to setup connections,
+> and any SRP client could already request APM functionality during
+> connection setup.
 
-    master.kernel.org:/pub/scm/linux/kernel/git/roland/infiniband.git for-linus
+My reply applies to your original statement where you were referring
+to APM with different destination ports. What you write above is about
+APM with identical destination ports and hence does not apply to my
+reply.
 
-This tree is also available from kernel.org mirrors at:
-
-    git://git.kernel.org/pub/scm/linux/kernel/git/roland/infiniband.git for-linus
-
-This will get the first batch of 2.6.40 changes: mostly fixes to the
-cxgb4 and qib low-level drivers, plus a couple of RDMA CM fixes.
-
-Hefty, Sean (2):
-      RDMA/cma: Fix handling of IPv6 addressing in cma_use_port
-      RDMA/cma: Add an ID_REUSEADDR option
-
-Mitko Haralanov (1):
-      IB/qib: Prevent driver hang with unprogrammed boards
-
-Roel Kluin (1):
-      RDMA/cxgb4: Fix missing parentheses
-
-Roland Dreier (2):
-      RDMA/iwcm: Get rid of enum iw_cm_event_status
-      Merge branches 'cma', 'cxgb4' and 'qib' into for-next
-
-Sergei Shtylyov (2):
-      IB/ipath: Use pci_dev->revision, again
-      IB/qib: Use pci_dev->revision
-
-Steve Wise (4):
-      RDMA/cxgb4: Don't change QP state outside EP lock
-      RDMA/cxgb4: Initialization errors can cause crash
-      RDMA/cxgb4: Reset wait condition atomically
-      RDMA/cxgb4: EEH errors can hang the driver
-
- drivers/infiniband/core/cma.c              |  207 +++++++++++++++++++---------
- drivers/infiniband/core/iwcm.c             |    2 +-
- drivers/infiniband/core/ucma.c             |    7 +
- drivers/infiniband/hw/cxgb4/cm.c           |   46 ++-----
- drivers/infiniband/hw/cxgb4/device.c       |  115 +++++++++-------
- drivers/infiniband/hw/cxgb4/iw_cxgb4.h     |   36 ++++--
- drivers/infiniband/hw/cxgb4/provider.c     |    2 -
- drivers/infiniband/hw/cxgb4/qp.c           |    3 +-
- drivers/infiniband/hw/ipath/ipath_driver.c |    9 +-
- drivers/infiniband/hw/nes/nes_cm.c         |   16 +-
- drivers/infiniband/hw/nes/nes_verbs.c      |    2 +-
- drivers/infiniband/hw/qib/qib_iba7322.c    |    3 +-
- drivers/infiniband/hw/qib/qib_pcie.c       |    5 +-
- include/rdma/iw_cm.h                       |   11 +--
- include/rdma/rdma_cm.h                     |   10 ++
- include/rdma/rdma_user_cm.h                |    5 +-
- 16 files changed, 278 insertions(+), 201 deletions(-)
+Bart.
