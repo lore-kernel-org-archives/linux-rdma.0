@@ -1,150 +1,31 @@
-From: Jim Cromie <jim.cromie@gmail.com>
-Subject: [PATCH 05/23] use register_chrdev_ids in drivers/infiniband/
-Date: Thu, 19 May 2011 15:33:08 -0600
-Message-ID: <1305840792-25877-6-git-send-email-jim.cromie@gmail.com>
-References: <1305840792-25877-1-git-send-email-jim.cromie@gmail.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1305840792-25877-1-git-send-email-jim.cromie@gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: gregkh@suse.de, Jim Cromie <jim.cromie@gmail.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, Roland Dreier <roland@kernel.org>, Sean Hefty <sean.hefty@intel.com>, linux-rdma@vger.kernel.org
+From: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH] RDMA/core: Optimized path for kernel post_send/post_recv
+Date: Thu, 19 May 2011 15:48:50 -0700
+Message-ID: <BANLkTimdXLS5R4pN-_752_1O4EtOm2NOyQ@mail.gmail.com>
+References: <20110324123937.19461.56781.stgit@gkslx010.igk.intel.com> <4DD582E9.6020509@opengridcomputing.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <4DD582E9.6020509-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Cc: miroslaw.walukiewicz-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Since new api passes dev_t*, hoist inline MKDEV out to local var
-assignment, and replace other inline MKDEVs with new var.
+On Thu, May 19, 2011 at 1:51 PM, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org> wrote:
+> Do you plan to merge this?
 
-This patch brought to you by coccinelle/spatch,
-with some manual rework afterwards.
+No... never got a reply after my previous reply:
 
-cc: Hal Rosenstock <hal.rosenstock@gmail.com>
-cc: Roland Dreier <roland@kernel.org>
-cc: Sean Hefty <sean.hefty@intel.com>
-cc: linux-rdma@vger.kernel.org
+Overall, looks pretty sane and non-intrusive.  I would like to see
+patches for at least one driver using it before we merge this.
 
-@ rcr_md @
-identifier f;
-expression major, minor;
-expression ct, name;
-@@
+> +       if (file->ucontext->use_shpage_for_rxtx) {
 
-	f(...) {
-// ++ gives multiple inserts, needed for tty_io.c, fix up manually
-// fresh identifier apparently also helps here
-++	dev_t devt;
-++	devt = MKDEV(major,minor);
-
-<+...
--	register_chrdev_region
-+	register_chrdev_ids
-	(
--	MKDEV(major,minor),
-+	&devt,
-	ct, name)
-...+>
-
-}
-
-@ all_md depends on rcr_md @	// where above changes made, also do
-identifier f;
-expression major, minor;
-@@
-
-	f(...) {
-	dev_t devt;
-	devt = MKDEV(major,minor);
-
-<+...
--	MKDEV(major,minor)
-+	devt
-...+>
-	}
-
-Signed-off-by: Jim Cromie <jim.cromie@gmail.com>
----
- drivers/infiniband/core/ucm.c                |    2 +-
- drivers/infiniband/core/user_mad.c           |    7 ++++---
- drivers/infiniband/core/uverbs_main.c        |    3 ++-
- drivers/infiniband/hw/ipath/ipath_file_ops.c |    2 +-
- drivers/infiniband/hw/qib/qib_file_ops.c     |    2 +-
- 5 files changed, 9 insertions(+), 7 deletions(-)
-
-diff --git a/drivers/infiniband/core/ucm.c b/drivers/infiniband/core/ucm.c
-index 08f948d..472a7b2 100644
---- a/drivers/infiniband/core/ucm.c
-+++ b/drivers/infiniband/core/ucm.c
-@@ -1244,7 +1244,7 @@ static int find_overflow_devnum(void)
- 	int ret;
- 
- 	if (!overflow_maj) {
--		ret = alloc_chrdev_region(&overflow_maj, 0, IB_UCM_MAX_DEVICES,
-+		ret = register_chrdev_ids(&overflow_maj, IB_UCM_MAX_DEVICES,
- 					  "infiniband_cm");
- 		if (ret) {
- 			printk(KERN_ERR "ucm: couldn't register dynamic device number\n");
-diff --git a/drivers/infiniband/core/user_mad.c b/drivers/infiniband/core/user_mad.c
-index cd1996d..7352683 100644
---- a/drivers/infiniband/core/user_mad.c
-+++ b/drivers/infiniband/core/user_mad.c
-@@ -980,7 +980,8 @@ static int find_overflow_devnum(void)
- 	int ret;
- 
- 	if (!overflow_maj) {
--		ret = alloc_chrdev_region(&overflow_maj, 0, IB_UMAD_MAX_PORTS * 2,
-+		ret = register_chrdev_ids(&overflow_maj,
-+					  IB_UMAD_MAX_PORTS * 2,
- 					  "infiniband_mad");
- 		if (ret) {
- 			printk(KERN_ERR "user_mad: couldn't register dynamic device number\n");
-@@ -1180,8 +1181,8 @@ static int __init ib_umad_init(void)
- {
- 	int ret;
- 
--	ret = register_chrdev_region(base_dev, IB_UMAD_MAX_PORTS * 2,
--				     "infiniband_mad");
-+	ret = register_chrdev_ids(&base_dev, IB_UMAD_MAX_PORTS * 2,
-+				  "infiniband_mad");
- 	if (ret) {
- 		printk(KERN_ERR "user_mad: couldn't register device number\n");
- 		goto out;
-diff --git a/drivers/infiniband/core/uverbs_main.c b/drivers/infiniband/core/uverbs_main.c
-index ec83e9f..2f92115 100644
---- a/drivers/infiniband/core/uverbs_main.c
-+++ b/drivers/infiniband/core/uverbs_main.c
-@@ -711,7 +711,8 @@ static int find_overflow_devnum(void)
- 	int ret;
- 
- 	if (!overflow_maj) {
--		ret = alloc_chrdev_region(&overflow_maj, 0, IB_UVERBS_MAX_DEVICES,
-+		ret = register_chrdev_ids(&overflow_maj,
-+					  IB_UVERBS_MAX_DEVICES,
- 					  "infiniband_verbs");
- 		if (ret) {
- 			printk(KERN_ERR "user_verbs: couldn't register dynamic device number\n");
-diff --git a/drivers/infiniband/hw/ipath/ipath_file_ops.c b/drivers/infiniband/hw/ipath/ipath_file_ops.c
-index ee79a2d..04abb61 100644
---- a/drivers/infiniband/hw/ipath/ipath_file_ops.c
-+++ b/drivers/infiniband/hw/ipath/ipath_file_ops.c
-@@ -2519,7 +2519,7 @@ static int user_init(void)
- {
- 	int ret;
- 
--	ret = register_chrdev_region(dev, IPATH_NMINORS, IPATH_DRV_NAME);
-+	ret = register_chrdev_ids(&dev, IPATH_NMINORS, IPATH_DRV_NAME);
- 	if (ret < 0) {
- 		printk(KERN_ERR IPATH_DRV_NAME ": Could not register "
- 		       "chrdev region (err %d)\n", -ret);
-diff --git a/drivers/infiniband/hw/qib/qib_file_ops.c b/drivers/infiniband/hw/qib/qib_file_ops.c
-index 406fca5..a5ecea2 100644
---- a/drivers/infiniband/hw/qib/qib_file_ops.c
-+++ b/drivers/infiniband/hw/qib/qib_file_ops.c
-@@ -2238,7 +2238,7 @@ int __init qib_dev_init(void)
- {
- 	int ret;
- 
--	ret = alloc_chrdev_region(&qib_dev, 0, QIB_NMINORS, QIB_DRV_NAME);
-+	ret = register_chrdev_ids(&qib_dev, QIB_NMINORS, QIB_DRV_NAME);
- 	if (ret < 0) {
- 		printk(KERN_ERR QIB_DRV_NAME ": Could not allocate "
- 		       "chrdev region (err %d)\n", -ret);
--- 
-1.7.4.4
+Why do we attach this flag to the entire ucontext rather than
+an individual QP?  It seems more awkward to require two
+contexts if a process wants to use both bypass and non-bypass QPs.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
