@@ -1,46 +1,38 @@
-From: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [RFC 2/3] RDMA/cma: Add support for netlink statistics export
-Date: Thu, 19 May 2011 11:53:58 -0700
-Message-ID: <BANLkTimjhAVfpJQX-PshVBgcshzfh-taRw@mail.gmail.com>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [RFC 2/3] RDMA/cma: Add support for netlink statistics export
+Date: Thu, 19 May 2011 19:03:26 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A82373010008@ORSMSX101.amr.corp.intel.com>
 References: <1305303525-11113-1-git-send-email-roland@kernel.org>
- <1305303525-11113-3-git-send-email-roland@kernel.org> <1828884A29C6694DAF28B7E6B8A82373F428@ORSMSX101.amr.corp.intel.com>
- <BANLkTin1uVyrzdn_030bGmC=QHtfkvOTNA@mail.gmail.com> <1828884A29C6694DAF28B7E6B8A82373FF9E@ORSMSX101.amr.corp.intel.com>
+ <1305303525-11113-3-git-send-email-roland@kernel.org>
+ <1828884A29C6694DAF28B7E6B8A82373F428@ORSMSX101.amr.corp.intel.com>
+ <BANLkTin1uVyrzdn_030bGmC=QHtfkvOTNA@mail.gmail.com>
+ <1828884A29C6694DAF28B7E6B8A82373FF9E@ORSMSX101.amr.corp.intel.com>
  <BANLkTimahta6QYrjTE5+DmN6RZXY_c72=Q@mail.gmail.com>
+ <BANLkTimjhAVfpJQX-PshVBgcshzfh-taRw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <BANLkTimahta6QYrjTE5+DmN6RZXY_c72=Q@mail.gmail.com>
+In-Reply-To: <BANLkTimjhAVfpJQX-PshVBgcshzfh-taRw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Cc: "netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, May 19, 2011 at 11:49 AM, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wro=
-te:
-> On Thu, May 19, 2011 at 11:35 AM, Hefty, Sean <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> =
-wrote:
->> One of the patches in the af_ib patch set adds the qp_type to struct=
- rdma_cm_id. =A0I'm guessing that patch will also be needed for xrc.
->
-> Would it make sense to pull that patch at least in?
->
-> Sorry I haven't had time to really think about AF_IB in general but
-> maybe I can at least merge the netlink stuff this cycle?
+> And actually looking at https://patchwork.kernel.org/patch/90204/
+> it looks reasonable to merge now... or I could just use
+> cma_is_ud_ps() in the netlink stuff.
+> 
+> I'm inclined to just take your patch now if that makes sense to you
+> (it looks pretty independent of everything else)
+> 
+> Is that the latest version in patchwork?
 
-And actually looking at https://patchwork.kernel.org/patch/90204/
-it looks reasonable to merge now... or I could just use
-cma_is_ud_ps() in the netlink stuff.
+The only difference that I see between that patch and what's in my tree are the line numbers.  The patch looks safe enough to me to go in separately from anything else.  Thanks
 
-I'm inclined to just take your patch now if that makes sense to you
-(it looks pretty independent of everything else)
-
-Is that the latest version in patchwork?
-
-Thanks,
- - R.
+- Sean
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
