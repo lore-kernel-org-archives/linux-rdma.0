@@ -1,60 +1,46 @@
-From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Subject: Re: [RFC] ib_srpt: initial .40-rc1 drivers/infiniband/ulp/srpt merge
-Date: Thu, 19 May 2011 12:40:02 +0200
-Message-ID: <BANLkTi=Xb-ypQNa3=MmwiLeE4Q9FWHnZXg@mail.gmail.com>
-References: <1305682604-21383-1-git-send-email-nab@linux-iscsi.org>
- <BANLkTi=e+v7PLcSc8GNov-TOXFF7rurXew@mail.gmail.com> <20110518170556.GB2595@obsidianresearch.com>
- <BANLkTimQXU0u5gtRzXsnsB=sCF-bvpY+Ag@mail.gmail.com> <BANLkTi==bZ0h3o5FNrg8PSJFp6F-zh5hTA@mail.gmail.com>
- <1305778694.2856.533.camel@haakon2.linux-iscsi.org>
+From: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
+Subject: Re: rdma_create_qp() and max_send_wr
+Date: Thu, 19 May 2011 12:50:13 +0200
+Message-ID: <1305802216.2359.11.camel@deela.quest-ce.net>
+References: <20110421115323.48b52fb35c6f209c51bccbb9807b6df0.f623dc4952.wbe@email17.secureserver.net>
+	 <1303467645.2243.47.camel@deela.quest-ce.net>
+	 <20110519060704.GA2659@mtldesk30>
+	 <1305796637.2359.6.camel@deela.quest-ce.net>
+	 <20110519093402.GB2659@mtldesk30>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1305778694.2856.533.camel-Y1+j5t8j3WgjMeEPmliV8E/sVC8ogwMJ@public.gmane.org>
+In-Reply-To: <20110519093402.GB2659@mtldesk30>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>
-Cc: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, linux-kernel <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-scsi <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-rmda <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Vu Pham <vu-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>, James Bottomley <James.Bottomley-JuX6DAaQMKPCXq6kfMZ53/egYHeGw8Jk@public.gmane.org>
+To: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: cait-DpaxOq6QOWMAvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, May 19, 2011 at 6:18 AM, Nicholas A. Bellinger
-<nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org> wrote:
-> The srpt_port->port_wwn patch in question does
-> current ensure that sport->enabled has been set via an configfs
-> attribute at:
->
-> =A0 /sys/kernel/config/target/srpt/$IB_PORT_GUID/tpgt_1/enable
->
-> and will reject all SRP login attempts to an individual struct srpt_p=
-ort
-> until the attribute has been explictly triggered.
->
-> This allows ib_srpt to follow what is expected by rtsadmin-v2 +
-> lio-utils, and used to generate /etc/target/srpt_start.sh used to sav=
-e
-> persistent fabric configuration. =A0Currently other fabrics like
-> iscsi-target and tcm_qla2xxx expect to be able to reject fabric login
-> requests before the full set of WWPN endpoints, LUNs, NodeACLs +
-> MappedLUNs have been recreated during an typical init.d/target start
-> operation.
->
-> I think it makes sense to do the same for the SRPT control plane on a=
-n
-> individual HCA port GUID basis as long as there are no underlying fab=
-ric
-> issues, and that Roland is happy. =A0In terms of supporting more than=
- one
-> type of /sys/kernel/config/target/srpt/$WWPN/$TPGT/ layout, I would
-> really like to avoid this for mainline code unless there is a really
-> good reason..
+Le jeudi 19 mai 2011 =C3=A0 12:34 +0300, Eli Cohen a =C3=A9crit :
+> On Thu, May 19, 2011 at 11:17:16AM +0200, Yann Droneaud wrote:
+> >=20
+> > Have you some test code for me to test ?
+> >=20
+>=20
+> I used ibv_rc_pingpong which is part of libiberbs. the '-r' option
+> allows you to define the queue depth. Please try it and let me know.
 
-I'm still wondering whether it was a good idea to switch from ib<n>
-style names to port GIDs. Not only will that make it hard for users to
-match the ib<n> names already assigned to InfiniBand HCAs with target
-port names but this also deviates from the naming scheme used for any
-other Linux device. Ethernet devices e.g. appear as eth<n> in /dev
-instead of a MAC address like 00:1a:64:10:18:6f.
+ibv_rc_pingpong works well with the max value eg 16384.
+but ib_rdma_bw doesn't:
 
-Bart.
+ib_rdma_bw -t 16384 doesn't work, but ib_rdma_bw -t 16351 does.
+
+Creating QP through ibv_create_qp() seems to allow use=20
+of the maximum QP WR, but rmda_create_qp() limits to 16351.
+
+Regards.
+
+--=20
+Yann Droneaud
+OPTEYA
+
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
 n
