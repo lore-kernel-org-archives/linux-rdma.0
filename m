@@ -1,241 +1,57 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCHv2 1/2] opensm/osm_pkey_mgr.c: Pack switch peer port PKey tables
-Date: Fri, 20 May 2011 14:09:04 -0400
-Message-ID: <4DD6AE40.1030106@dev.mellanox.co.il>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+From: "Weiny, Ira K." <weiny2-i2BcT+NCU+M@public.gmane.org>
+Subject: [PATCH] Return EPROTONOSUPPORT when an RDMA device lacks QP0
+Date: Fri, 20 May 2011 11:19:45 -0700
+Message-ID: <E280C3CC-BD50-4383-BE33-FCC31C72D3F0@llnl.gov>
+Mime-Version: 1.0 (Apple Message framework v1081)
+Content-Type: multipart/mixed; boundary=Apple-Mail-8--956612955
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
-In pkey_mgr_update_peer_port, rather than mirror the end port
-PKey table, pack the peer switch's port PKey table to
-eliminate any holes.
+--Apple-Mail-8--956612955
+Content-Transfer-Encoding: quoted-printable
+Content-Type: text/plain;
+	charset=us-ascii
 
-This is only done for switch external ports and not end ports
-because it's disruptive to change end port pkey indices
-whereas that's not the case for switch external ports and it has benefit there.
+We had a script which was looping through the devices returned from =
+ibstat and attempted to register a SMI agent on an ethernet device.  =
+This caused a kernel panic.  We have fixed our script.  This patch =
+prevents the panic.
 
-Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
-Changes since v1:
-Add more text to description above on why it's for end ports only
-In pkey_mgr_update_peer_port, when enforce is FALSE, return ret rather than return -1
-In pkey_mgr_update_peer_port, when ret is 0, modify debug log message
 
-diff --git a/opensm/osm_pkey_mgr.c b/opensm/osm_pkey_mgr.c
-index 31e14aa..dbab048 100644
---- a/opensm/osm_pkey_mgr.c
-+++ b/opensm/osm_pkey_mgr.c
-@@ -398,6 +398,35 @@ static uint16_t last_used_pkey_index(const osm_port_t * const p_port,
- 	return index;
- }
- 
-+static int update_peer_block(osm_log_t * p_log, osm_sm_t * sm,
-+			     osm_physp_t * peer,
-+			     osm_pkey_tbl_t * p_peer_pkey_tbl,
-+			     ib_pkey_table_t * new_peer_block,
-+			     uint16_t peer_block_idx, osm_node_t * p_node)
-+{
-+	int ret = 0;
-+	ib_pkey_table_t *peer_block;
-+
-+	peer_block = osm_pkey_tbl_block_get(p_peer_pkey_tbl, peer_block_idx);
-+	if (!peer_block ||
-+	    memcmp(peer_block, new_peer_block, sizeof(*peer_block))) {
-+		if (pkey_mgr_update_pkey_entry(sm, peer, new_peer_block,
-+					       peer_block_idx) != IB_SUCCESS) {
-+			OSM_LOG(p_log, OSM_LOG_ERROR, "ERR 0509: "
-+				"pkey_mgr_update_pkey_entry() failed to update "
-+				"pkey table block %d for node 0x%016"
-+				PRIx64 " port %u (%s)\n",
-+				peer_block_idx,
-+				cl_ntoh64(osm_node_get_node_guid(p_node)),
-+				osm_physp_get_port_num(peer),
-+				p_node->print_desc);
-+			ret = -1;
-+		}
-+	}
-+
-+	return ret;
-+}
-+
- static int pkey_mgr_update_peer_port(osm_log_t * p_log, osm_sm_t * sm,
- 				     const osm_subn_t * p_subn,
- 				     const osm_port_t * const p_port,
-@@ -405,15 +434,16 @@ static int pkey_mgr_update_peer_port(osm_log_t * p_log, osm_sm_t * sm,
- {
- 	osm_physp_t *p_physp, *peer;
- 	osm_node_t *p_node;
--	ib_pkey_table_t *block, *peer_block;
-+	ib_pkey_table_t *block;
- 	const osm_pkey_tbl_t *p_pkey_tbl;
- 	osm_pkey_tbl_t *p_peer_pkey_tbl;
--	uint16_t block_index;
-+	uint16_t block_index, peer_block_idx;
- 	uint16_t peer_max_blocks;
- 	uint16_t last_index;
--	ib_api_status_t status = IB_SUCCESS;
--	ib_pkey_table_t empty_block;
--	int ret = 0;
-+	ib_pkey_table_t new_peer_block;
-+	uint16_t pkey_idx, peer_pkey_idx;
-+	ib_net16_t pkey;
-+	int ret = 0, loop_exit = 0;
- 
- 	p_physp = p_port->p_physp;
- 	if (!p_physp)
-@@ -425,79 +455,92 @@ static int pkey_mgr_update_peer_port(osm_log_t * p_log, osm_sm_t * sm,
- 	if (!p_node->sw || !p_node->sw->switch_info.enforce_cap)
- 		return 0;
- 
--	p_pkey_tbl = osm_physp_get_pkey_tbl(p_physp);
--	peer_max_blocks = pkey_mgr_get_physp_max_blocks(peer);
--	if (peer_max_blocks < p_pkey_tbl->used_blocks) {
--		OSM_LOG(p_log, OSM_LOG_ERROR, "ERR 0508: "
--			"Not enough pkey blocks (%u < %u used) on switch 0x%016"
--			PRIx64 " port %u (%s). Clearing Enforcement bit\n",
--			peer_max_blocks, p_pkey_tbl->used_blocks,
--			cl_ntoh64(osm_node_get_node_guid(p_node)),
--			osm_physp_get_port_num(peer),
--			p_node->print_desc);
--		enforce = FALSE;
--		ret = -1;
--	} else if (peer_max_blocks == p_pkey_tbl->used_blocks) {
--		/* Is last used pkey index beyond switch peer port capacity ? */
--		last_index = (peer_max_blocks - 1) * IB_NUM_PKEY_ELEMENTS_IN_BLOCK +
--			     last_used_pkey_index(p_port, p_pkey_tbl);
--		if (cl_ntoh16(p_node->sw->switch_info.enforce_cap) <= last_index) {
--			OSM_LOG(p_log, OSM_LOG_ERROR, "ERR 0507: "
--				"Not enough pkey entries (%u <= %u) on switch 0x%016"
--				PRIx64 " port %u (%s). Clearing Enforcement bit\n",
--				cl_ntoh16(p_node->sw->switch_info.enforce_cap),
--				last_index,
--				cl_ntoh64(osm_node_get_node_guid(p_node)),
--				osm_physp_get_port_num(peer),
--				p_node->print_desc);
--			enforce = FALSE;
--			ret = -1;
--		}
--	}
--
--	if (pkey_mgr_enforce_partition(p_log, sm, peer, enforce))
--		ret = -1;
--
--	if (enforce == FALSE)
-+	if (enforce == FALSE) {
-+		pkey_mgr_enforce_partition(p_log, sm, peer, FALSE);
- 		return ret;
-+	}
- 
--	memset(&empty_block, 0, sizeof(ib_pkey_table_t));
--
-+	p_pkey_tbl = osm_physp_get_pkey_tbl(p_physp);
-+	peer_max_blocks = pkey_mgr_get_physp_max_blocks(peer);
- 	p_peer_pkey_tbl = &peer->pkeys;
--	p_peer_pkey_tbl->used_blocks = p_pkey_tbl->used_blocks;
-+	peer_block_idx = 0;
-+	peer_pkey_idx = 0;
- 	for (block_index = 0; block_index < p_pkey_tbl->used_blocks;
- 	     block_index++) {
-+		if (loop_exit)
-+			break;
- 		block = osm_pkey_tbl_new_block_get(p_pkey_tbl, block_index);
- 		if (!block)
--			block = &empty_block;
--
--		peer_block =
--		    osm_pkey_tbl_block_get(p_peer_pkey_tbl, block_index);
--		if (!peer_block
--		    || memcmp(peer_block, block, sizeof(*peer_block))) {
--			status = pkey_mgr_update_pkey_entry(sm, peer, block,
--							    block_index);
--			if (status != IB_SUCCESS) {
--				OSM_LOG(p_log, OSM_LOG_ERROR, "ERR 0509: "
--					"pkey_mgr_update_pkey_entry() failed to update "
--					"pkey table block %d for node 0x%016"
--					PRIx64 " port %u (%s)\n", block_index,
--					cl_ntoh64(osm_node_get_node_guid
--						  (p_node)),
-+			continue;
-+		for (pkey_idx = 0; pkey_idx < IB_NUM_PKEY_ELEMENTS_IN_BLOCK;
-+		     pkey_idx++) {
-+			pkey = block->pkey_entry[pkey_idx];
-+			if (ib_pkey_is_invalid(pkey))
-+				continue;
-+			new_peer_block.pkey_entry[peer_pkey_idx] = pkey;
-+			if (peer_block_idx >= peer_max_blocks) {
-+				loop_exit = 1;
-+				break;
-+			}
-+			if (++peer_pkey_idx == IB_NUM_PKEY_ELEMENTS_IN_BLOCK) {
-+				if (update_peer_block(p_log, sm, peer,
-+						      p_peer_pkey_tbl,
-+						      &new_peer_block,
-+						      peer_block_idx, p_node))
-+					ret = -1;
-+				peer_pkey_idx = 0;
-+				peer_block_idx++;
-+			}
-+		}
-+	}
-+
-+	if (peer_block_idx < peer_max_blocks) {
-+		if (peer_pkey_idx) {
-+			/* Handle partial last block */
-+			for (; peer_pkey_idx < IB_NUM_PKEY_ELEMENTS_IN_BLOCK;
-+			     peer_pkey_idx++)
-+				new_peer_block.pkey_entry[peer_pkey_idx] = 0;
-+			if (update_peer_block(p_log, sm, peer, p_peer_pkey_tbl,
-+					      &new_peer_block, peer_block_idx,
-+					      p_node))
-+				ret = -1;
-+		} else
-+			peer_block_idx--;
-+
-+		p_peer_pkey_tbl->used_blocks = peer_block_idx + 1;
-+		if (p_peer_pkey_tbl->used_blocks == peer_max_blocks) {
-+			/* Is last used pkey index beyond switch peer port capacity ? */
-+			last_index = peer_block_idx * IB_NUM_PKEY_ELEMENTS_IN_BLOCK +
-+				     last_used_pkey_index(p_port,
-+							  p_peer_pkey_tbl);
-+			if (cl_ntoh16(p_node->sw->switch_info.enforce_cap) <= last_index) {
-+				OSM_LOG(p_log, OSM_LOG_ERROR, "ERR 0507: "
-+					"Not enough pkey entries (%u <= %u) on switch 0x%016"
-+					PRIx64 " port %u (%s). Clearing Enforcement bit\n",
-+					cl_ntoh16(p_node->sw->switch_info.enforce_cap),
-+					last_index,
-+					cl_ntoh64(osm_node_get_node_guid(p_node)),
- 					osm_physp_get_port_num(peer),
- 					p_node->print_desc);
-+				enforce = FALSE;
- 				ret = -1;
- 			}
- 		}
-+	} else {
-+		p_peer_pkey_tbl->used_blocks = peer_max_blocks;
-+		enforce = FALSE;
- 	}
- 
- 	if (!ret)
- 		OSM_LOG(p_log, OSM_LOG_DEBUG,
--			"Pkey table was updated for node 0x%016" PRIx64
--			" port %u (%s)\n",
-+			"Pkey table was successfully updated for node 0x%016"
-+			PRIx64 " port %u (%s)\n",
- 			cl_ntoh64(osm_node_get_node_guid(p_node)),
- 			osm_physp_get_port_num(peer), p_node->print_desc);
- 
-+	if (pkey_mgr_enforce_partition(p_log, sm, peer, enforce))
-+		ret = -1;
-+
- 	return ret;
- }
- 
+
+--Apple-Mail-8--956612955
+Content-Disposition: attachment;
+	filename=0001-Return-EPROTONOSUPPORT-when-an-RDMA-device-lacks-QP0.patch
+Content-Type: application/octet-stream;
+	name="0001-Return-EPROTONOSUPPORT-when-an-RDMA-device-lacks-QP0.patch"
+Content-Transfer-Encoding: quoted-printable
+
+=46rom=2082e627f392fc928f55354d0dfc5e7868ac01ead1=20Mon=20Sep=2017=20=
+00:00:00=202001=0AFrom:=20Ira=20Weiny=20<weiny2-i2BcT+NCU+M@public.gmane.org>=0ADate:=20Thu,=20=
+19=20May=202011=2018:19:28=20-0700=0ASubject:=20[PATCH]=20Return=20=
+EPROTONOSUPPORT=20when=20an=20RDMA=20device=20lacks=20QP0=0A=0AThis=20=
+prevents=20a=20NULL=20pointer=20dereference=20later=20which=20panics=20=
+the=20kernel.=0A=0ASigned-off-by:=20Ira=20Weiny=20<weiny2-i2BcT+NCU+M@public.gmane.org>=0A=
+---=0A=20drivers/infiniband/core/mad.c=20|=20=20=20=207=20+++++++=0A=201=20=
+files=20changed,=207=20insertions(+),=200=20deletions(-)=0A=0Adiff=20=
+--git=20a/drivers/infiniband/core/mad.c=20=
+b/drivers/infiniband/core/mad.c=0Aindex=20b2dba21..e30652a=20100644=0A=
+---=20a/drivers/infiniband/core/mad.c=0A+++=20=
+b/drivers/infiniband/core/mad.c=0A@@=20-208,6=20+208,13=20@@=20struct=20=
+ib_mad_agent=20*ib_register_mad_agent(struct=20ib_device=20*device,=0A=20=
+=09u8=20mgmt_class,=20vclass;=0A=20=0A=20=09/*=20Validate=20parameters=20=
+*/=0A+=09if=20(qp_type=20=3D=3D=20IB_QPT_SMI=20&&=0A+=09=20=20=20=20=
+rdma_port_get_link_layer(device,=20port_num)!=3D=0A+=09=20=20=20=20=
+IB_LINK_LAYER_INFINIBAND)=20{=0A+=09=09ret=20=3D=20=
+ERR_PTR(-EPROTONOSUPPORT);=0A+=09=09goto=20error1;=0A+=09}=0A+=0A=20=09=
+qpn=20=3D=20get_spl_qp_index(qp_type);=0A=20=09if=20(qpn=20=3D=3D=20-1)=0A=
+=20=09=09goto=20error1;=0A--=20=0A1.7.1=0A=0A=
+
+--Apple-Mail-8--956612955--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
