@@ -1,30 +1,38 @@
-From: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH] RDMA/core: Optimized path for kernel post_send/post_recv
-Date: Thu, 19 May 2011 15:48:50 -0700
-Message-ID: <BANLkTimdXLS5R4pN-_752_1O4EtOm2NOyQ@mail.gmail.com>
-References: <20110324123937.19461.56781.stgit@gkslx010.igk.intel.com> <4DD582E9.6020509@opengridcomputing.com>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: [PATCH] opensm/osm_pkey_mgr.c: Fix cast
+Date: Fri, 20 May 2011 10:35:46 -0400
+Message-ID: <4DD67C42.30105@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4DD582E9.6020509-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Cc: miroslaw.walukiewicz-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, May 19, 2011 at 1:51 PM, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org> wrote:
-> Do you plan to merge this?
 
-No... never got a reply after my previous reply:
+introduced by commit 2c5148408d562d86e1dd5d90939a58533ddebbe6
 
-Overall, looks pretty sane and non-intrusive.  I would like to see
-patches for at least one driver using it before we merge this.
+to eliminate compiler warning:
+osm_pkey_mgr.c: In function 'osm_pkey_mgr_process':
+osm_pkey_mgr.c:561: warning: assignment from incompatible pointer type
 
-> +       if (file->ucontext->use_shpage_for_rxtx) {
-
-Why do we attach this flag to the entire ucontext rather than
-an individual QP?  It seems more awkward to require two
-contexts if a process wants to use both bypass and non-bypass QPs.
+Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+diff --git a/opensm/osm_pkey_mgr.c b/opensm/osm_pkey_mgr.c
+index 31e14aa..5d4a2fe 100644
+--- a/opensm/osm_pkey_mgr.c
++++ b/opensm/osm_pkey_mgr.c
+@@ -558,7 +558,7 @@ int osm_pkey_mgr_process(IN osm_opensm_t * p_osm)
+ 	p_tbl = &p_osm->subn.sw_guid_tbl;
+ 	p_next = cl_qmap_head(p_tbl);
+ 	while (p_next != cl_qmap_end(p_tbl)) {
+-		p_sw = (osm_switch_t * *) p_next;
++		p_sw = (osm_switch_t *) p_next;
+ 		p_next = cl_qmap_next(p_next);
+ 		for (i = 1; i < p_sw->num_ports; i++) {
+ 			p_physp = osm_node_get_physp_ptr(p_sw->p_node, i);
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
