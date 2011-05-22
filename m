@@ -1,39 +1,28 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH 14/13] opensm/osm_sa_guidinfo_record.c: Fix locking
-Date: Sat, 21 May 2011 10:56:26 -0400
-Message-ID: <4DD7D29A.3030206@dev.mellanox.co.il>
+From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: rdma_create_qp() and max_send_wr
+Date: Sun, 22 May 2011 09:46:21 +0300
+Message-ID: <4DD8B13D.4070802@mellanox.com>
+References: <1303404264.2243.19.camel@deela.quest-ce.net> <BANLkTikUOv3mtgb3x_vbbk845_36fu1QhA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <BANLkTikUOv3mtgb3x_vbbk845_36fu1QhA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+Cc: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+Roland Dreier wrote:
+> Getting exactly the right value for max_qp_wr is kind of tricky because
+> of complicated allocation rules.  I guess this is just a mlx4 bug in
+> reporting not quite the right value from ibv_query_device().
 
-Fix locking around set_guidinfo/del_guidinfo
+Maybe the correct way to go for mlx4 is to go min/max that is, report 
+the --minimal-- of max(recv, send) value that would work for an app 
+setting of either of their send or the recv WR numbers.
 
-Found and fixed by: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
-diff --git a/opensm/osm_sa_guidinfo_record.c b/opensm/osm_sa_guidinfo_record.c
-index c792943..a1bb166 100644
---- a/opensm/osm_sa_guidinfo_record.c
-+++ b/opensm/osm_sa_guidinfo_record.c
-@@ -737,10 +737,12 @@ void osm_gir_rcv_process(IN void *ctx, IN void *data)
- 		if (!osm_physp_share_pkey(sa->p_log, p_req_physp,
- 					  p_port->p_physp))
- 			goto Exit;
-+		CL_PLOCK_EXCL_ACQUIRE(sa->p_lock);
- 		if (p_rcvd_mad->method == IB_MAD_METHOD_SET)
- 			set_guidinfo(sa, p_madw, p_port, p_rcvd_rec->block_num);
- 		else
- 			del_guidinfo(sa, p_madw, p_port, p_rcvd_rec->block_num);
-+		CL_PLOCK_RELEASE(sa->p_lock);
- 		break;
- 	default:
- 		OSM_LOG(sa->p_log, OSM_LOG_ERROR, "ERR 5105: "
+Or.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
