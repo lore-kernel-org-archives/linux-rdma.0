@@ -1,48 +1,40 @@
-From: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [PATCH/RFC] RDMA/ucma: Add .nodename/.mode to tell userspace where to create device node
-Date: Mon, 23 May 2011 10:53:50 -0700
-Message-ID: <1306173230-17464-1-git-send-email-roland@kernel.org>
+From: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+Subject: Re: linux-next: Tree for May 23 (infiniband + netlink)
+Date: Mon, 23 May 2011 11:05:59 -0700
+Message-ID: <BANLkTindDsbE-Fdr5-Db4Kw6ww+ntk2S2Q@mail.gmail.com>
+References: <20110523154518.5e27cfb0.sfr@canb.auug.org.au> <20110523094205.4a5651d2.randy.dunlap@oracle.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20110523094205.4a5651d2.randy.dunlap-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: Randy Dunlap <randy.dunlap-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Cc: Stephen Rothwell <sfr-3FnU+UHB4dNDw9hX6IcOSA@public.gmane.org>, netdev <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-next-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Any objection to merging this?  Based on
-https://bugzilla.redhat.com/show_bug.cgi?id=603264#c1 I think this is
-the right thing to do these days.
+On Mon, May 23, 2011 at 9:42 AM, Randy Dunlap <randy.dunlap-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> wrote:
+> On Mon, 23 May 2011 15:45:18 +1000 Stephen Rothwell wrote:
+>
+>> Hi all,
+>>
+>> Changes since 20110520:
+>
+> when CONFIG_NET is not enabled:
+>
+> ERROR: "skb_trim" [drivers/infiniband/core/ib_core.ko] undefined!
+> ERROR: "netlink_kernel_create" [drivers/infiniband/core/ib_core.ko] undefined!
+> ERROR: "netlink_kernel_release" [drivers/infiniband/core/ib_core.ko] undefined!
+> ERROR: "netlink_rcv_skb" [drivers/infiniband/core/ib_core.ko] undefined!
+> ERROR: "nla_put" [drivers/infiniband/core/ib_core.ko] undefined!
+> ERROR: "init_net" [drivers/infiniband/core/ib_core.ko] undefined!
+> ERROR: "netlink_dump_start" [drivers/infiniband/core/ib_core.ko] undefined!
+> ERROR: "skb_put" [drivers/infiniband/core/ib_core.ko] undefined!
 
--- 8< ---- snip ----
+Guess we have to depend on CONFIG_NET now.
+I'll fix it up.
 
-We want udev to create a device node under /dev/infiniband with
-permission 0666 for rdma_cm, so add that info to our struct miscdevice.
-
-Signed-off-by: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
----
- drivers/infiniband/core/ucma.c |    8 +++++---
- 1 files changed, 5 insertions(+), 3 deletions(-)
-
-diff --git a/drivers/infiniband/core/ucma.c b/drivers/infiniband/core/ucma.c
-index b3fa798..3170899 100644
---- a/drivers/infiniband/core/ucma.c
-+++ b/drivers/infiniband/core/ucma.c
-@@ -1338,9 +1338,11 @@ static const struct file_operations ucma_fops = {
- };
- 
- static struct miscdevice ucma_misc = {
--	.minor	= MISC_DYNAMIC_MINOR,
--	.name	= "rdma_cm",
--	.fops	= &ucma_fops,
-+	.minor		= MISC_DYNAMIC_MINOR,
-+	.name		= "rdma_cm",
-+	.nodename	= "infiniband/rdma_cm",
-+	.mode		= 0666,
-+	.fops		= &ucma_fops,
- };
- 
- static ssize_t show_abi_version(struct device *dev,
--- 
-1.7.4.1
-
+Thanks,
+  Roland
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
