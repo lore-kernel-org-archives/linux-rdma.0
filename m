@@ -1,8 +1,7 @@
 From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH 2/4] opensm/osm_pkey_mgr.c: Detect pkey table overflow in
- pkey_mgr_update_port
-Date: Tue, 24 May 2011 13:25:21 -0400
-Message-ID: <4DDBEA01.8010701@dev.mellanox.co.il>
+Subject: [PATCH 3/4] opensm/osm_pkey.h: Commentary change
+Date: Tue, 24 May 2011 13:25:29 -0400
+Message-ID: <4DDBEA09.9040902@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
@@ -16,41 +15,23 @@ List-Id: linux-rdma@vger.kernel.org
 
 Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- opensm/osm_pkey_mgr.c |   21 ++++++++++-----------
- 1 files changed, 10 insertions(+), 11 deletions(-)
+ include/opensm/osm_pkey.h |    3 +--
+ 1 files changed, 1 insertions(+), 2 deletions(-)
 
-diff --git a/opensm/osm_pkey_mgr.c b/opensm/osm_pkey_mgr.c
-index 4c92c05..70471b0 100644
---- a/opensm/osm_pkey_mgr.c
-+++ b/opensm/osm_pkey_mgr.c
-@@ -343,17 +343,16 @@ static int pkey_mgr_update_port(osm_log_t * p_log, osm_sm_t * sm,
- 				if (pkey_index >= IB_NUM_PKEY_ELEMENTS_IN_BLOCK) {
- 					block_index++;
- 					pkey_index -= IB_NUM_PKEY_ELEMENTS_IN_BLOCK;
--					if (block_index * IB_NUM_PKEY_ELEMENTS_IN_BLOCK + pkey_index >= pkey_mgr_get_physp_max_pkeys(p_physp)) {
--						OSM_LOG(p_log, OSM_LOG_ERROR,
--							"ERR 0512: "
--							"Failed to set PKey 0x%04x since Pkey table is full "
--							"for node 0x%016" PRIx64 " port %u (%s)\n",
--
--							cl_ntoh16(p_pending->pkey),
--							cl_ntoh64(osm_node_get_node_guid(p_node)),
--							osm_physp_get_port_num(p_physp),
--							p_physp->p_node->print_desc);
--					}
-+				}
-+				if (block_index * IB_NUM_PKEY_ELEMENTS_IN_BLOCK + pkey_index >= pkey_mgr_get_physp_max_pkeys(p_physp)) {
-+					OSM_LOG(p_log, OSM_LOG_ERROR,
-+						"ERR 0512: "
-+						"Failed to set PKey 0x%04x because Pkey table is full "
-+						"for node 0x%016" PRIx64 " port %u (%s)\n",
-+						cl_ntoh16(p_pending->pkey),
-+						cl_ntoh64(osm_node_get_node_guid(p_node)),
-+						osm_physp_get_port_num(p_physp),
-+						p_physp->p_node->print_desc);
- 				} else
- 					found = TRUE;
- 			}
+diff --git a/include/opensm/osm_pkey.h b/include/opensm/osm_pkey.h
+index 33de7e7..066bbb3 100644
+--- a/include/opensm/osm_pkey.h
++++ b/include/opensm/osm_pkey.h
+@@ -299,8 +299,7 @@ static inline ib_pkey_table_t *osm_pkey_tbl_new_block_get(const osm_pkey_tbl_t *
+ *  osm_pkey_tbl_set_accum_pkeys
+ *
+ * DESCRIPTION
+-*   Stores the given pkey in the "accum_pkeys" array and update
+-*   update the "map"
++*   Stores the given pkey and pkey index in the "accum_pkeys" array
+ *
+ * SYNOPSIS
+ */
 -- 
 1.5.3
 
