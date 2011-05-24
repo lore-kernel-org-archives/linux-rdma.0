@@ -1,8 +1,8 @@
 From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-Subject: [PATCH 1/2] infiniband-diags: perfquery; print cap_mask for
- information
-Date: Tue, 24 May 2011 14:42:02 -0700
-Message-ID: <20110524144202.839a2682.weiny2@llnl.gov>
+Subject: [PATCH 2/2] infiniband-diags: perfquery; Support
+ PortCountersExtendedNoIETF
+Date: Tue, 24 May 2011 14:42:06 -0700
+Message-ID: <20110524144206.edb3b5d4.weiny2@llnl.gov>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
@@ -13,103 +13,113 @@ List-Id: linux-rdma@vger.kernel.org
 
 
 From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-Date: Thu, 12 May 2011 17:31:15 -0700
-Subject: [PATCH 1/2] infiniband-diags: perfquery; print cap_mask for information
-
-Also fix cap_mask endianess in error print
+Date: Fri, 13 May 2011 22:28:55 -0700
+Subject: [PATCH 2/2] infiniband-diags: perfquery; Support PortCountersExtendedNoIETF
 
 Signed-off-by: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
 ---
- src/perfquery.c |   32 +++++++++++++++++++-------------
- 1 files changed, 19 insertions(+), 13 deletions(-)
+ src/perfquery.c |   52 ++++++++++++++++++++++++++++++++--------------------
+ 1 files changed, 32 insertions(+), 20 deletions(-)
 
 diff --git a/src/perfquery.c b/src/perfquery.c
-index d24c3c7..165c419 100644
+index 165c419..d34958f 100644
 --- a/src/perfquery.c
 +++ b/src/perfquery.c
-@@ -188,7 +188,8 @@ static void aggregate_perfcounters(void)
- 	aggregate_32bit(&perf_count.xmtwait, val);
+@@ -227,7 +227,7 @@ static void output_aggregate_perfcounters(ib_portid_t * portid,
+ 	       portid2str(portid), ALL_PORTS, ntohs(cap_mask), buf);
  }
  
--static void output_aggregate_perfcounters(ib_portid_t * portid)
-+static void output_aggregate_perfcounters(ib_portid_t * portid,
-+					  uint16_t cap_mask)
+-static void aggregate_perfcounters_ext(void)
++static void aggregate_perfcounters_ext(uint16_t cap_mask)
  {
+ 	uint32_t val;
+ 	uint64_t val64;
+@@ -244,14 +244,17 @@ static void aggregate_perfcounters_ext(void)
+ 	aggregate_64bit(&perf_count_ext.portxmitpkts, val64);
+ 	mad_decode_field(pc, IB_PC_EXT_RCV_PKTS_F, &val64);
+ 	aggregate_64bit(&perf_count_ext.portrcvpkts, val64);
+-	mad_decode_field(pc, IB_PC_EXT_XMT_UPKTS_F, &val64);
+-	aggregate_64bit(&perf_count_ext.portunicastxmitpkts, val64);
+-	mad_decode_field(pc, IB_PC_EXT_RCV_UPKTS_F, &val64);
+-	aggregate_64bit(&perf_count_ext.portunicastrcvpkts, val64);
+-	mad_decode_field(pc, IB_PC_EXT_XMT_MPKTS_F, &val64);
+-	aggregate_64bit(&perf_count_ext.portmulticastxmitpkits, val64);
+-	mad_decode_field(pc, IB_PC_EXT_RCV_MPKTS_F, &val64);
+-	aggregate_64bit(&perf_count_ext.portmulticastrcvpkts, val64);
++
++	if (cap_mask & IB_PM_EXT_WIDTH_NOIETF_SUP) {
++		mad_decode_field(pc, IB_PC_EXT_XMT_UPKTS_F, &val64);
++		aggregate_64bit(&perf_count_ext.portunicastxmitpkts, val64);
++		mad_decode_field(pc, IB_PC_EXT_RCV_UPKTS_F, &val64);
++		aggregate_64bit(&perf_count_ext.portunicastrcvpkts, val64);
++		mad_decode_field(pc, IB_PC_EXT_XMT_MPKTS_F, &val64);
++		aggregate_64bit(&perf_count_ext.portmulticastxmitpkits, val64);
++		mad_decode_field(pc, IB_PC_EXT_RCV_MPKTS_F, &val64);
++		aggregate_64bit(&perf_count_ext.portmulticastrcvpkts, val64);
++	}
+ }
+ 
+ static void output_aggregate_perfcounters_ext(ib_portid_t * portid,
+@@ -260,6 +263,8 @@ static void output_aggregate_perfcounters_ext(ib_portid_t * portid,
  	char buf[1024];
  	uint32_t val = ALL_PORTS;
-@@ -222,8 +223,8 @@ static void output_aggregate_perfcounters(ib_portid_t * portid)
  
- 	mad_dump_perfcounters(buf, sizeof buf, pc, sizeof pc);
- 
--	printf("# Port counters: %s port %d\n%s", portid2str(portid), ALL_PORTS,
--	       buf);
-+	printf("# Port counters: %s port %d (CapMask: 0x%02X)\n%s",
-+	       portid2str(portid), ALL_PORTS, ntohs(cap_mask), buf);
- }
- 
- static void aggregate_perfcounters_ext(void)
-@@ -253,7 +254,8 @@ static void aggregate_perfcounters_ext(void)
- 	aggregate_64bit(&perf_count_ext.portmulticastrcvpkts, val64);
- }
- 
--static void output_aggregate_perfcounters_ext(ib_portid_t * portid)
-+static void output_aggregate_perfcounters_ext(ib_portid_t * portid,
-+					      uint16_t cap_mask)
- {
- 	char buf[1024];
- 	uint32_t val = ALL_PORTS;
-@@ -280,8 +282,8 @@ static void output_aggregate_perfcounters_ext(ib_portid_t * portid)
++	memset(buf, 0, 1024);
++
+ 	/* set port_select to 255 to emulate AllPortSelect */
+ 	mad_encode_field(pc, IB_PC_EXT_PORT_SELECT_F, &val);
+ 	mad_encode_field(pc, IB_PC_EXT_COUNTER_SELECT_F,
+@@ -271,14 +276,17 @@ static void output_aggregate_perfcounters_ext(ib_portid_t * portid,
+ 	mad_encode_field(pc, IB_PC_EXT_XMT_PKTS_F,
+ 			 &perf_count_ext.portxmitpkts);
+ 	mad_encode_field(pc, IB_PC_EXT_RCV_PKTS_F, &perf_count_ext.portrcvpkts);
+-	mad_encode_field(pc, IB_PC_EXT_XMT_UPKTS_F,
+-			 &perf_count_ext.portunicastxmitpkts);
+-	mad_encode_field(pc, IB_PC_EXT_RCV_UPKTS_F,
+-			 &perf_count_ext.portunicastrcvpkts);
+-	mad_encode_field(pc, IB_PC_EXT_XMT_MPKTS_F,
+-			 &perf_count_ext.portmulticastxmitpkits);
+-	mad_encode_field(pc, IB_PC_EXT_RCV_MPKTS_F,
+-			 &perf_count_ext.portmulticastrcvpkts);
++
++	if (cap_mask & IB_PM_EXT_WIDTH_NOIETF_SUP) {
++		mad_encode_field(pc, IB_PC_EXT_XMT_UPKTS_F,
++				 &perf_count_ext.portunicastxmitpkts);
++		mad_encode_field(pc, IB_PC_EXT_RCV_UPKTS_F,
++				 &perf_count_ext.portunicastrcvpkts);
++		mad_encode_field(pc, IB_PC_EXT_XMT_MPKTS_F,
++				 &perf_count_ext.portmulticastxmitpkits);
++		mad_encode_field(pc, IB_PC_EXT_RCV_MPKTS_F,
++				 &perf_count_ext.portmulticastrcvpkts);
++	}
  
  	mad_dump_perfcounters_ext(buf, sizeof buf, pc, sizeof pc);
  
--	printf("# Port extended counters: %s port %d\n%s", portid2str(portid),
--	       ALL_PORTS, buf);
-+	printf("# Port extended counters: %s port %d (CapMask: 0x%02X)\n%s",
-+	       portid2str(portid), ALL_PORTS, ntohs(cap_mask), buf);
- }
+@@ -312,9 +320,13 @@ static void dump_perfcounters(int extended, int timeout, uint16_t cap_mask,
+ 							(cap_mask & IB_PM_PC_XMIT_WAIT_SUP)?IB_PC_LAST_F:(IB_PC_RCV_PKTS_F+1));
  
- static void dump_perfcounters(int extended, int timeout, uint16_t cap_mask,
-@@ -313,7 +315,7 @@ static void dump_perfcounters(int extended, int timeout, uint16_t cap_mask,
- 		if (!(cap_mask & IB_PM_EXT_WIDTH_SUPPORTED))	/* 1.2 errata: bit 9 is extended counter support */
+ 	} else {
+-		if (!(cap_mask & IB_PM_EXT_WIDTH_SUPPORTED))	/* 1.2 errata: bit 9 is extended counter support */
++		/* 1.2 errata: bit 9 is extended counter support
++		 * bit 10 is extended counter NoIETF
++		 */
++		if (!(cap_mask & IB_PM_EXT_WIDTH_SUPPORTED) &&
++		    !(cap_mask & IB_PM_EXT_WIDTH_NOIETF_SUP))
  			IBWARN
- 			    ("PerfMgt ClassPortInfo 0x%x extended counters not indicated\n",
--			     cap_mask);
-+			     ntohs(cap_mask));
+-			    ("PerfMgt ClassPortInfo 0x%x extended counters not indicated\n",
++			    ("PerfMgt ClassPortInfo 0x%x; No extended counter support indicated\n",
+ 			     ntohs(cap_mask));
  
  		memset(pc, 0, sizeof(pc));
- 		if (!pma_query_via(pc, portid, port, timeout,
-@@ -328,11 +330,13 @@ static void dump_perfcounters(int extended, int timeout, uint16_t cap_mask,
- 
- 	if (!aggregate) {
- 		if (extended)
--			printf("# Port extended counters: %s port %d\n%s",
--			       portid2str(portid), port, buf);
-+			printf("# Port extended counters: %s port %d "
-+			       "(CapMask: 0x%02X)\n%s",
-+			       portid2str(portid), port, ntohs(cap_mask), buf);
+@@ -322,7 +334,7 @@ static void dump_perfcounters(int extended, int timeout, uint16_t cap_mask,
+ 				   IB_GSI_PORT_COUNTERS_EXT, srcport))
+ 			IBERROR("perfextquery");
+ 		if (aggregate)
+-			aggregate_perfcounters_ext();
++			aggregate_perfcounters_ext(cap_mask);
  		else
--			printf("# Port counters: %s port %d\n%s",
--			       portid2str(portid), port, buf);
-+			printf("# Port counters: %s port %d "
-+			       "(CapMask: 0x%02X)\n%s",
-+			       portid2str(portid), port, ntohs(cap_mask), buf);
- 	}
- }
- 
-@@ -601,9 +605,11 @@ int main(int argc, char **argv)
- 						       && !loop_ports));
- 		if (all_ports_loop && !loop_ports) {
- 			if (extended != 1)
--				output_aggregate_perfcounters(&portid);
-+				output_aggregate_perfcounters(&portid,
-+							      cap_mask);
- 			else
--				output_aggregate_perfcounters_ext(&portid);
-+				output_aggregate_perfcounters_ext(&portid,
-+								  cap_mask);
- 		}
- 	} else
- 		dump_perfcounters(extended, ibd_timeout, cap_mask, &portid,
+ 			mad_dump_perfcounters_ext(buf, sizeof buf, pc,
+ 						  sizeof pc);
 -- 
 1.7.1
 
