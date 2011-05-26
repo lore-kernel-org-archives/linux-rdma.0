@@ -1,90 +1,64 @@
-From: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [GIT PULL] please pull infiniband.git
-Date: Thu, 26 May 2011 09:46:41 -0700
-Message-ID: <1306428401-18830-1-git-send-email-roland@kernel.org>
+From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+Subject: Re: [PATCH] infiniband-diags/configure.in: Support override for
+ IBPATH
+Date: Thu, 26 May 2011 10:26:01 -0700
+Message-ID: <20110526102601.dd720262.weiny2@llnl.gov>
+References: <4DDCF64E.6050702@dev.mellanox.co.il>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <4DDCF64E.6050702-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Linus Torvalds <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: Doron Tsur <doront-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Linus, please pull from
+On Wed, 25 May 2011 05:30:06 -0700
+Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wrote:
 
-    master.kernel.org:/pub/scm/linux/kernel/git/roland/infiniband.git for-linus
+> 
+> Basing IBPATH on sbindir is not always what is desired.
+> Allow for override of IBPATH, when this is not the case.
+> 
+> Signed-off-by: Doron Tsur <doront-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
+> Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-This tree is also available from kernel.org mirrors at:
+Thanks applied,
+Ira
 
-    git://git.kernel.org/pub/scm/linux/kernel/git/roland/infiniband.git for-linus
+> ---
+> diff --git a/configure.in b/configure.in
+> index 350a11e..c6e8663 100644
+> --- a/configure.in
+> +++ b/configure.in
+> @@ -144,11 +144,17 @@ AC_CACHE_CHECK(whether ld accepts --version-script, ac_cv_version_script,
+>  
+>  AM_CONDITIONAL(HAVE_LD_VERSION_SCRIPT, test "$ac_cv_version_script" = "yes")
+>  
+> +dnl Define override for IBPATH
+> +AC_ARG_WITH(ibpath_override,
+> +[  --with-ibpath_override=<path> define ib binaries path],
+> +AC_MSG_NOTICE(Using IBPATH : $with_ibpath_override),
+> +with_ibpath_override=)
+> +
+>  dnl Make appropriate substitution for IB script path
+>  dnl Must expand nested unquoting
+>  IBSCRIPTPATH_TMP1="`eval echo ${sbindir}`"
+>  IBSCRIPTPATH_TMP2="`echo $IBSCRIPTPATH_TMP1 | sed 's/^NONE/$ac_default_prefix/'`"
+> -IBSCRIPTPATH="`eval echo $IBSCRIPTPATH_TMP2`"
+> +IBSCRIPTPATH="${with_ibpath_override:-`eval echo $IBSCRIPTPATH_TMP2`}"
+>  AC_SUBST(IBSCRIPTPATH)
+>  
+>  dnl Begin libibnetdisc stuff
 
-This will get the second, main batch of 2.6.40 changes:
- - Add netlink-based way to dump active RDMA connections
- - Update char devices to use /dev/infiniband/... paths
- - Chelsio driver fixes
- - Fix for crash on access to QP0 with IBoE devices
- - Couple of warning fixes
 
-Ira Weiny (1):
-      IB/mad: Return EPROTONOSUPPORT when an RDMA device lacks the QP required
-
-Liu Yuan (1):
-      RDMA/nes: Add a check for strict_strtoul()
-
-Nir Muchtar (4):
-      RDMA: Add error handling to ib_core_init()
-      RDMA/cma: Export enum cma_state in <rdma/rdma_cm.h>
-      RDMA/cma: Add support for netlink statistics export
-      RDMA/cma: Save PID of ID's owner
-
-Roland Dreier (7):
-      RDMA: Add netlink infrastructure
-      RDMA/ucma: Add .nodename/.mode to tell userspace where to create device node
-      IB/uverbs: Add devnode method to set path/mode
-      IB: Add devnode methods to cm_class and umad_class
-      IB/srp: Fix integer -> pointer cast warnings
-      RDMA: Update exported headers list
-      Merge branches 'cma', 'cxgb3', 'cxgb4', 'misc', 'nes', 'netlink', 'srp' and 'uverbs' into for-next
-
-Sean Hefty (1):
-      RDMA/cma: Pass QP type into rdma_create_id()
-
-Steve Wise (2):
-      RDMA/cxgb4: Use completion objects for event blocking
-      RDMA/cxgb3: Don't post zero-byte read if endpoint is going away
-
- drivers/infiniband/Kconfig                  |    1 +
- drivers/infiniband/core/Makefile            |    2 +-
- drivers/infiniband/core/cm.c                |    8 +
- drivers/infiniband/core/cma.c               |  308 +++++++++++++++++----------
- drivers/infiniband/core/device.c            |   25 ++-
- drivers/infiniband/core/mad.c               |    7 +
- drivers/infiniband/core/netlink.c           |  190 +++++++++++++++++
- drivers/infiniband/core/ucma.c              |   35 +++-
- drivers/infiniband/core/user_mad.c          |    7 +
- drivers/infiniband/core/uverbs_main.c       |    8 +
- drivers/infiniband/hw/cxgb3/iwch_cm.c       |   26 ++-
- drivers/infiniband/hw/cxgb3/iwch_provider.h |    2 +-
- drivers/infiniband/hw/cxgb3/iwch_qp.c       |    6 +-
- drivers/infiniband/hw/cxgb4/iw_cxgb4.h      |   18 +--
- drivers/infiniband/hw/nes/nes.c             |    4 +-
- drivers/infiniband/hw/qib/Kconfig           |    2 +-
- drivers/infiniband/ulp/iser/iser_verbs.c    |    2 +-
- drivers/infiniband/ulp/srp/ib_srp.c         |    4 +-
- include/linux/netlink.h                     |    1 +
- include/rdma/Kbuild                         |    5 +
- include/rdma/ib_user_cm.h                   |    1 +
- include/rdma/rdma_cm.h                      |   19 ++-
- include/rdma/rdma_netlink.h                 |   92 ++++++++
- net/9p/trans_rdma.c                         |    3 +-
- net/rds/ib.c                                |    2 +-
- net/rds/ib_cm.c                             |    2 +-
- net/rds/iw.c                                |    2 +-
- net/rds/iw_cm.c                             |    2 +-
- net/rds/rdma_transport.c                    |    3 +-
- net/sunrpc/xprtrdma/svc_rdma_transport.c    |    3 +-
- net/sunrpc/xprtrdma/verbs.c                 |    2 +-
- 31 files changed, 633 insertions(+), 159 deletions(-)
- create mode 100644 drivers/infiniband/core/netlink.c
- create mode 100644 include/rdma/rdma_netlink.h
+-- 
+Ira Weiny
+Math Programmer/Computer Scientist
+Lawrence Livermore National Lab
+925-423-8008
+weiny2-i2BcT+NCU+M@public.gmane.org
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
