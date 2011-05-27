@@ -1,78 +1,47 @@
-From: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] Fixing segfault in libibverbs
-Date: Fri, 27 May 2011 19:06:12 +0200
-Message-ID: <1306515973.1835.11.camel@deela.quest-ce.net>
-References: <OFC348E58C.B4C03447-ONC125789D.0035F094-C125789D.0036C4F7@ch.ibm.com>
-	 <1306493434.1835.4.camel@deela.quest-ce.net>
-	 <BANLkTik4e-kygpRTnxfpTdRMSTbyYNO1_Q@mail.gmail.com>
+From: =?utf-8?q?=22Western_Union_Money_Transfer=C2=A9=22_=3Cinfo=40western=2Eco?=@une-pmta03.une.net.co,
+	=?utf-8?q?m=3E?=@une-pmta03.une.net.co
+Subject: Pick Up Your Payment Now!!
+Date: Fri, 27 May 2011 10:26:13 -0700
+Message-ID: <20110527172648.71DAE8FDBD@une-pmta03.une.net.co>
+Reply-To: westerunionoffice3339-/E1597aS9LTXPF5Rlphj1Q@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <BANLkTik4e-kygpRTnxfpTdRMSTbyYNO1_Q-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Content-Description: Mail message body
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Animesh K Trivedi1 <ATR-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Bernard Metzler <BMT-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>
+To: Recipients <info-Jkm/SPrVjP1BDgjK7y7TUQ@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi,=20
+How are you doing today?
 
-Le vendredi 27 mai 2011 =C3=A0 09:22 -0700, Roland Dreier a =C3=A9crit =
-:
-> >> This patch fixes SEGFAULT in libibverbs in case when there are no =
-user
-> >> space drivers found. I've cloned the libibverbs from
-> >> git://git.openfabrics.org/ofed_1_1_5/libibverbs.git (I hope this i=
-s
-> >> correct)
->=20
-> Thanks for the patches.  I think I would prefer to fix this more like=
- the
-> following (sorry for the attachment, using the gmail web interface AT=
-M).
-> This actually simplifies things I think, and sticks to the original i=
-dea
-> that we should only be calling ibverbs_init once.
->=20
-> I only compile tested this, can one of you guys confirm this also fix=
-es
-> the problem?
->=20
+I write to inform you that we have already sent you USD5000.00 dollars through Western union as we have been given the mandate to transfer your full benefited sum of $1,800,000.00USD via our office here (Western Union)  by the United nations in conjunction with the Nigeria Government as a compensation.
 
-It fixes the problem of segfault on empty driver list.
+I called to give you the information through phone as internet hackers were many but i cannot reach you yesterday even this morning.So,I decided to email you the MTCN and sender name so that can pick up this USD5000.00 to enable us send another USD5000.00 by tomorrow as you knows we will be sending you only USD5000.00 per day.
 
-But __ibv_get_device_list() returns a non NULL pointer when there's no
-device.
+Kindly pick up this information and hurry up to the nearest western union money office that is close to you and pick up this first payment that has been sent to you now and as soon as you are done with the pick up kindly get back to us in order for us to send you another payment by tomorrow,as you know that we shall be sending  you $5000usd par day.
 
-> -       if (!num_devices)
-> -               num_devices =3D ibverbs_init(&device_list);
-> +       pthread_once(&device_list_once, count_devices);
-=20
-It miss
+Manager :Mrs.Anita Daniel
+Email: westerunionoffice3339-/E1597aS9LTXPF5Rlphj1Q@public.gmane.org
 
-        if (!num_devices)
-               return NULL;
+Email me once you picked up this USD5000.00 today.
+Here is the western union information to pick up the USD5000.00,
 
->        if (num_devices < 0) {
->                errno =3D -num_devices;
->-               goto out;
->+               return NULL;
->        }
+Payment Information.
+MTCN :_______________853-435-9544
+Sender's Name:_________Rose Micheal
+Text Question:__________What
+Answer:_______________Blue
+Amount Sent___________$5000.00USD
+Country:_______________Nigeria
 
-Tested-by: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
+With due respect please get back to us urgently after the pick of the money and 
+if you have any problem you can as well contact us immediately.
 
-BTW, my others patches are still interesting.
-
-Regards.
-
---=20
-Yann Droneaud
-OPTEYA
-
-
-
+Thanks
+Mrs. Anita Daniel.
+western union Office.
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
