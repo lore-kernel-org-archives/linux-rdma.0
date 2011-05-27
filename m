@@ -1,47 +1,53 @@
-From: =?utf-8?q?=22Western_Union_Money_Transfer=C2=A9=22_=3Cinfo=40western=2Eco?=@une-pmta03.une.net.co,
-	=?utf-8?q?m=3E?=@une-pmta03.une.net.co
-Subject: Pick Up Your Payment Now!!
-Date: Fri, 27 May 2011 10:26:13 -0700
-Message-ID: <20110527172648.71DAE8FDBD@une-pmta03.une.net.co>
-Reply-To: westerunionoffice3339-/E1597aS9LTXPF5Rlphj1Q@public.gmane.org
+From: Yann Droneaud <yann-WYdEh2jsUj5Wj0EZb7rXcA@public.gmane.org>
+Subject: Re: [PATCH] Fixing segfault in libibverbs
+Date: Fri, 27 May 2011 19:31:30 +0200
+Message-ID: <1306517491.1835.14.camel@deela.quest-ce.net>
+References: <OFC348E58C.B4C03447-ONC125789D.0035F094-C125789D.0036C4F7@ch.ibm.com>
+	 <1306493434.1835.4.camel@deela.quest-ce.net>
+	 <BANLkTik4e-kygpRTnxfpTdRMSTbyYNO1_Q@mail.gmail.com>
+	 <1306515973.1835.11.camel@deela.quest-ce.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Description: Mail message body
+In-Reply-To: <1306515973.1835.11.camel-H/AUWmsJYVeqvyCYKW+Xr6xOck334EZe@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Recipients <info-Jkm/SPrVjP1BDgjK7y7TUQ@public.gmane.org>
+To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Animesh K Trivedi1 <ATR-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Bernard Metzler <BMT-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-How are you doing today?
+Hi,
 
-I write to inform you that we have already sent you USD5000.00 dollars through Western union as we have been given the mandate to transfer your full benefited sum of $1,800,000.00USD via our office here (Western Union)  by the United nations in conjunction with the Nigeria Government as a compensation.
+Le vendredi 27 mai 2011 =C3=A0 19:06 +0200, Yann Droneaud a =C3=A9crit =
+:
 
-I called to give you the information through phone as internet hackers were many but i cannot reach you yesterday even this morning.So,I decided to email you the MTCN and sender name so that can pick up this USD5000.00 to enable us send another USD5000.00 by tomorrow as you knows we will be sending you only USD5000.00 per day.
+> But __ibv_get_device_list() returns a non NULL pointer when there's n=
+o
+> device.
+>=20
 
-Kindly pick up this information and hurry up to the nearest western union money office that is close to you and pick up this first payment that has been sent to you now and as soon as you are done with the pick up kindly get back to us in order for us to send you another payment by tomorrow,as you know that we shall be sending  you $5000usd par day.
+=46orget about my comment, I haven't checked the manpage for the functi=
+on:
 
-Manager :Mrs.Anita Daniel
-Email: westerunionoffice3339-/E1597aS9LTXPF5Rlphj1Q@public.gmane.org
+ibv_get_device_list(3) :
 
-Email me once you picked up this USD5000.00 today.
-Here is the western union information to pick up the USD5000.00,
+RETURN VALUE
 
-Payment Information.
-MTCN :_______________853-435-9544
-Sender's Name:_________Rose Micheal
-Text Question:__________What
-Answer:_______________Blue
-Amount Sent___________$5000.00USD
-Country:_______________Nigeria
+ibv_get_device_list()  returns  the array of available RDMA devices, or
+sets errno and returns NULL if the request fails.  If  no  devices  are
+found then num_devices is set to 0, and non-NULL is returned.
 
-With due respect please get back to us urgently after the pick of the money and 
-if you have any problem you can as well contact us immediately.
+I'm sending a patch against rdmacm to address the problem.
 
-Thanks
-Mrs. Anita Daniel.
-western union Office.
+Regards.
+
+--=20
+Yann Droneaud
+OPTEYA
+
+
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
