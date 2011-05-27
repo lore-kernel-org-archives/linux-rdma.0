@@ -1,48 +1,58 @@
-From: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] Fixing segfault in libibverbs
-Date: Fri, 27 May 2011 12:50:33 +0200
-Message-ID: <1306493434.1835.4.camel@deela.quest-ce.net>
-References: <OFC348E58C.B4C03447-ONC125789D.0035F094-C125789D.0036C4F7@ch.ibm.com>
+From: Mike Marciniszyn <mike.marciniszyn-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH] IB/qib: Fix potential deadlock with link down interrupt
+Date: Fri, 27 May 2011 09:41:55 -0400
+Message-ID: <20110527134155.6579.93811.stgit@kop-dev-sles11-04.qlogic.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <OFC348E58C.B4C03447-ONC125789D.0035F094-C125789D.0036C4F7-Xeyd2O9EBijQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Animesh K Trivedi1 <ATR-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>
-Cc: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Bernard Metzler <BMT-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>
+To: roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hi,
+From: Ram Vepa <ram.vepa-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
 
-Le vendredi 27 mai 2011 =C3=A0 11:58 +0200, Animesh K Trivedi1 a =C3=A9=
-crit :
-> Hi,
->=20
-> This patch fixes SEGFAULT in libibverbs in case when there are no use=
-r
-> space drivers found. I've cloned the libibverbs from
-> git://git.openfabrics.org/ofed_1_1_5/libibverbs.git (I hope this is
-> correct)
->=20
+There is a possibility of a deadlock due to the way locks are acquired and
+released in qib_set_uevent_bits(). The function qib_set_uevent_bits() is called
+in process context calling spin_lock() and spin_unlock() while this same lock
+is acquired/released in interrupt context which can lead to a deadlock when
+running on the same cpu.
 
-I sent some patches a few month ago to address the same problems (and
-others).
+The fix is to replace spin_lock() and spin_unlock() with spin_lock_irqsave()
+and spin_unlock_irqrestore() respectively in qib_set_uevent_bits().
 
-See thread "Hardenize libibverbs initialisation"
-Message-Id: <cover.1301562707.git.ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
+Signed-off-by: Mike Marciniszyn <mike.marciniszyn-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+---
+ drivers/infiniband/hw/qib/qib_file_ops.c |    5 +++--
+ 1 files changed, 3 insertions(+), 2 deletions(-)
 
-Link: http://thread.gmane.org/gmane.linux.drivers.rdma/7790
-
-Regards
-
---=20
-Yann Droneaud
-OPTEYA
-
+diff --git a/drivers/infiniband/hw/qib/qib_file_ops.c b/drivers/infiniband/hw/qib/qib_file_ops.c
+index 75bfad1..21be114 100644
+--- a/drivers/infiniband/hw/qib/qib_file_ops.c
++++ b/drivers/infiniband/hw/qib/qib_file_ops.c
+@@ -1904,8 +1904,9 @@ int qib_set_uevent_bits(struct qib_pportdata *ppd, const int evtbit)
+ 	struct qib_ctxtdata *rcd;
+ 	unsigned ctxt;
+ 	int ret = 0;
++	unsigned long flags;
+ 
+-	spin_lock(&ppd->dd->uctxt_lock);
++	spin_lock_irqsave(&ppd->dd->uctxt_lock, flags);
+ 	for (ctxt = ppd->dd->first_user_ctxt; ctxt < ppd->dd->cfgctxts;
+ 	     ctxt++) {
+ 		rcd = ppd->dd->rcd[ctxt];
+@@ -1924,7 +1925,7 @@ int qib_set_uevent_bits(struct qib_pportdata *ppd, const int evtbit)
+ 		ret = 1;
+ 		break;
+ 	}
+-	spin_unlock(&ppd->dd->uctxt_lock);
++	spin_unlock_irqrestore(&ppd->dd->uctxt_lock, flags);
+ 
+ 	return ret;
+ }
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
