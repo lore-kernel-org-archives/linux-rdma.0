@@ -1,54 +1,44 @@
-From: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH:rdmacm] ucma_init: fail if ibv_get_device_list() returns empty list
-Date: Fri, 27 May 2011 19:42:38 +0200
-Message-ID: <1306518158-7770-1-git-send-email-ydroneaud@opteya.com>
-References: <OFC348E58C.B4C03447-ONC125789D.0035F094-C125789D.0036C4F7@ch.ibm.com> <1306493434.1835.4.camel@deela.quest-ce.net> <BANLkTik4e-kygpRTnxfpTdRMSTbyYNO1_Q@mail.gmail.com> <1306515973.1835.11.camel@deela.quest-ce.net> <1306517515.1835.15.camel@deela.quest-ce.net>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: [PATCH] infiniband-diags/saquery.c: Fix SA_ERR_UNKNOWN define
+Date: Fri, 27 May 2011 13:52:05 -0400
+Message-ID: <4DDFE4C5.6070004@dev.mellanox.co.il>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1306517515.1835.15.camel-H/AUWmsJYVeqvyCYKW+Xr6xOck334EZe@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Animesh K Trivedi1 <ATR-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Bernard Metzler <BMT-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>
+To: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-As stated in ibv_get_device_list() man page:
 
-  ibv_get_device_list() returns the array of available RDMA devices, or
-  sets errno and returns NULL if the request fails. If no devices are
-  found then num_devices is set to 0, and non-NULL is returned.
-
-Signed-off-by: Yann Droneaud <ydroneaud-RlY5vtjFyJ3QT0dZR+AlfA@public.gmane.org>
+Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- src/cma.c |    7 +++++++
- 1 files changed, 7 insertions(+), 0 deletions(-)
-
-diff --git a/src/cma.c b/src/cma.c
-index 846b5ce..c8d9b9f 100755
---- a/src/cma.c
-+++ b/src/cma.c
-@@ -246,6 +246,7 @@ int ucma_init(void)
- 	if (ret)
- 		goto err1;
+diff --git a/src/saquery.c b/src/saquery.c
+index 515df52..7933fec 100644
+--- a/src/saquery.c
++++ b/src/saquery.c
+@@ -123,9 +123,9 @@ int requested_lid_flag = 0;
+ uint64_t requested_guid = 0;
+ int requested_guid_flag = 0;
  
-+	dev_cnt = 0;
- 	dev_list = ibv_get_device_list(&dev_cnt);
- 	if (!dev_list) {
- 		printf("CMA: unable to get RDMA device list\n");
-@@ -253,6 +254,12 @@ int ucma_init(void)
- 		goto err1;
- 	}
+-#define SA_ERR_UNKNOWN IB_SA_MAD_STATUS_PRIO_SUGGESTED
++#define ARR_SIZE(a) (sizeof(a)/sizeof((a)[0]))
  
-+	if (!dev_cnt) {
-+		printf("CMA: unable to get RDMA device list\n");
-+		ret = ERR(ENODEV);
-+		goto err2;
-+	}
+-const char *ib_sa_error_str[] = {
++static const char *ib_sa_error_str[] = {
+ 	"SA_NO_ERROR",
+ 	"SA_ERR_NO_RESOURCES",
+ 	"SA_ERR_REQ_INVALID",
+@@ -138,6 +138,8 @@ const char *ib_sa_error_str[] = {
+ 	"SA_ERR_UNKNOWN"
+ };
+ 
++#define SA_ERR_UNKNOWN (ARR_SIZE(ib_sa_error_str) - 1)
 +
- 	cma_dev_array = malloc(sizeof *cma_dev * dev_cnt);
- 	if (!cma_dev_array) {
- 		ret = ERR(ENOMEM);
--- 
-1.7.5.2
-
+ static inline const char *ib_sa_err_str(IN uint8_t status)
+ {
+ 	if (status > SA_ERR_UNKNOWN)
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
