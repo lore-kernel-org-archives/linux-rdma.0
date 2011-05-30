@@ -1,52 +1,46 @@
-From: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: opensm: fixed port order configuration in torus routing engine
-Date: Mon, 30 May 2011 16:23:45 +0300
-Message-ID: <20110530132345.GB20342@calypso.voltaire.com>
+From: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH] mlx4: allow for 4K mtu configuration of IB ports
+Date: Tue, 31 May 2011 01:07:22 +0300
+Message-ID: <BANLkTinK+YHUyF4ThHQAwFeZ4FNswpY-tw@mail.gmail.com>
+References: <alpine.LRH.2.00.1105251507140.16147@ogerlitz.voltaire.com>
+	<BANLkTi=bKdVXm+f+HVeg2tBzT4RBJDCN_w@mail.gmail.com>
+	<BANLkTinDCbPXi8zS46wcVW_Yn0fxzbSikw@mail.gmail.com>
+	<BANLkTikrJ_3f+LwN_R=-AcwCde-KdHJhOQ@mail.gmail.com>
+	<055701cc1b29$c8fcc6c0$5af65440$@systemfabricworks.com>
+	<BANLkTikLeWHYLKrX8O=syt-Q+b6LP2PCtw@mail.gmail.com>
+	<4DDDF0B1.6090305@mellanox.com>
+	<17495_1306419903_p4QEMqSb018281_4DDE6291.1090809@sandia.gov>
+	<4DDE63F9.8060502@sandia.gov>
+	<BANLkTimGioibPTUYV046ObOPhHntHxx72w@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <BANLkTimGioibPTUYV046ObOPhHntHxx72w-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Jim Schutt <jaschut-4OHPYypu0djtX7QSmKvirg@public.gmane.org>
+Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Bob Pearson <rpearson-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Vladimir Sokolovsky <vlad-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Commit 1c2a298b295eba7e24205519abc24e47106d15df broke port order
-configuration for torus routing engine. order was incorrectly initiated,
-causing setting LFTs to fail.
+Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
+Jim Schutt <jaschut-4OHPYypu0djtX7QSmKvirg@public.gmane.org> wrote:
+>> no good reason to insist that the VL usage is the same for both
+>> interswitch links, and switch-CA links. Do I need to change this?
 
-Signed-off-by: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- opensm/osm_torus.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+> I don't think changing this is a high priority, since it's a pretty small
+> slice of the world, and QoS on the edge links probably is important
+> to an even smaller slice, but IMHO it would be better to give QoS to
+> HCAs that only support 4 VLs by using a different SL2VL table for links to CAs.
 
-diff --git a/opensm/osm_torus.c b/opensm/osm_torus.c
-index cd3d490..75724d2 100644
---- a/opensm/osm_torus.c
-+++ b/opensm/osm_torus.c
-@@ -8484,7 +8484,7 @@ bool torus_lft(struct torus *t, struct t_switch *sw)
- 	struct port_grp *pgrp;
- 	struct t_switch *dsw;
- 	osm_switch_t *osm_sw;
--	unsigned order[IB_NODE_NUM_PORTS_MAX+1];
-+	unsigned char order[IB_NODE_NUM_PORTS_MAX+1];
- 
- 	if (!(sw->osm_switch && sw->osm_switch->priv == sw)) {
- 		OSM_LOG(&t->osm->log, OSM_LOG_ERROR,
-@@ -8506,7 +8506,7 @@ bool torus_lft(struct torus *t, struct t_switch *sw)
- 
- 		for (p = 0; p < ARRAY_SIZE(order); p++) {
- 
--			unsigned px = order[t->port_order[p]];
-+			unsigned char px = order[t->port_order[p]];
- 
- 			if (px == IB_INVALID_PORT_NUM)
- 				continue;
--- 
-1.7.5.2
+Jim,
 
--- 
+AFAIK, the way opensm applies an SL-to-VL mapping specification (e.g
+dictated by the admin or maybe your routing engine) on a specific link
+is by modulation on the number of active VLs for that link - e.g say
+the ID mapping was required and there are two VLs for that link, so
+we'll have SL-to-VL of 0->0 1->1 2->0 3->1 and so on. So in that
+respect, I wasn't sure what's the change here for you.
 
--- Alex
+Or.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
