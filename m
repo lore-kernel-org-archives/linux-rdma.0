@@ -1,65 +1,35 @@
 From: Mike Marciniszyn <mike.marciniszyn-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH] IB/qib: add sysfs interface to read free contexts
-Date: Tue, 31 May 2011 16:20:43 -0400
-Message-ID: <20110531202043.13877.90388.stgit@kop-dev-sles11-04.qlogic.org>
+Subject: RE: [PATCH] infiniband, ipath: convert old cpumask api into new one
+Date: Tue, 31 May 2011 14:10:04 -0700
+Message-ID: <35AAF1E4A771E142979F27B51793A4888838CD0EDE@AVEXMB1.qlogic.org>
+References: <4DD46CAA.9030609@jp.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <4DD46CAA.9030609-+CUm20s59erQFUHtdCDX3A@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: KOSAKI Motohiro <kosaki.motohiro-+CUm20s59erQFUHtdCDX3A@public.gmane.org>, "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <hal.rosenstock@gm>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Ram Vepa <ram.vepa-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+> Subject: [PATCH] infiniband, ipath: convert old cpumask api into new
+> one
+>
+> Adapt new api. we plan to remove old one later. Almost change are
+> trivial. but there is one real fix. following code is unsafe.
+>
+>       int ncpus = num_online_cpus()
+>       for (i = 0; i < ncpus; i++) {
+>               ..
+>       }
+>
 
-Indicate the number of free user contexts via the sysfs file
-/sys/class/infiniband/qib0/nfreectxts as required for PSM.
+Thanks for the patch!
 
-Signed-off-by: Mike Marciniszyn <mike.marciniszyn-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
----
- drivers/infiniband/hw/qib/qib_sysfs.c |   14 ++++++++++++++
- 1 files changed, 14 insertions(+), 0 deletions(-)
+Acked-by: Mike Marciniszyn <mike.marciniszyn-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
 
-diff --git a/drivers/infiniband/hw/qib/qib_sysfs.c b/drivers/infiniband/hw/qib/qib_sysfs.c
-index d50a33f..14d129d 100644
---- a/drivers/infiniband/hw/qib/qib_sysfs.c
-+++ b/drivers/infiniband/hw/qib/qib_sysfs.c
-@@ -507,6 +507,18 @@ static ssize_t show_nctxts(struct device *device,
- 		dd->first_user_ctxt);
- }
- 
-+static ssize_t show_nfreectxts(struct device *device,
-+			   struct device_attribute *attr, char *buf)
-+{
-+	struct qib_ibdev *dev =
-+		container_of(device, struct qib_ibdev, ibdev.dev);
-+	struct qib_devdata *dd = dd_from_dev(dev);
-+
-+	/* Return the number of free user ports (contexts) available. */
-+	return scnprintf(buf, PAGE_SIZE, "%u\n", dd->cfgctxts -
-+		dd->first_user_ctxt - (u32)qib_stats.sps_ctxts);
-+}
-+
- static ssize_t show_serial(struct device *device,
- 			   struct device_attribute *attr, char *buf)
- {
-@@ -604,6 +616,7 @@ static DEVICE_ATTR(hca_type, S_IRUGO, show_hca, NULL);
- static DEVICE_ATTR(board_id, S_IRUGO, show_hca, NULL);
- static DEVICE_ATTR(version, S_IRUGO, show_version, NULL);
- static DEVICE_ATTR(nctxts, S_IRUGO, show_nctxts, NULL);
-+static DEVICE_ATTR(nfreectxts, S_IRUGO, show_nfreectxts, NULL);
- static DEVICE_ATTR(serial, S_IRUGO, show_serial, NULL);
- static DEVICE_ATTR(boardversion, S_IRUGO, show_boardversion, NULL);
- static DEVICE_ATTR(logged_errors, S_IRUGO, show_logged_errs, NULL);
-@@ -617,6 +630,7 @@ static struct device_attribute *qib_attributes[] = {
- 	&dev_attr_board_id,
- 	&dev_attr_version,
- 	&dev_attr_nctxts,
-+	&dev_attr_nfreectxts,
- 	&dev_attr_serial,
- 	&dev_attr_boardversion,
- 	&dev_attr_logged_errors,
+This message and any attached documents contain information from QLogic Corporation or its wholly-owned subsidiaries that may be confidential. If you are not the intended recipient, you may not read, copy, distribute, or use this information. If you have received this transmission in error, please notify the sender immediately by reply e-mail and then delete this message.
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
