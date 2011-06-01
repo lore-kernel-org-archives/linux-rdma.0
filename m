@@ -1,45 +1,62 @@
-From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: [PATCH] RDMA/cxgb4: Don't exceed hw IQ depth limit for user CQs.
-Date: Wed, 01 Jun 2011 12:49:14 -0500
-Message-ID: <20110601174913.18744.61491.stgit@build.ogc.int>
+From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+Subject: Re: [PATCH] libibmad/[register rpc].c: Fix some bounds checks
+Date: Wed, 1 Jun 2011 14:54:29 -0700
+Message-ID: <20110601145429.3a6172ee.weiny2@llnl.gov>
+References: <4DE64295.6040908@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <4DE64295.6040908-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Memory allocated for user CQs gets rounded up to the next page boundary.
-And after rounding, we recalculate the resulting IQ depth and we need
-to make sure we don't exceed the HW limits.
+On Wed, 1 Jun 2011 06:45:57 -0700
+Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wrote:
 
-This bug can result a much smaller CQ allocated than was expected if
-the HW size field is exceeded, resulting in CQ overflow failures.
+> 
+> Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
----
+Thanks, applied,
+Ira
 
- drivers/infiniband/hw/cxgb4/cq.c |    4 ++++
- 1 files changed, 4 insertions(+), 0 deletions(-)
+> ---
+> diff --git a/src/register.c b/src/register.c
+> index 0ff8006..1fdb64a 100644
+> --- a/src/register.c
+> +++ b/src/register.c
+> @@ -77,7 +77,7 @@ static int mgmt_class_vers(int mgmt_class)
+>  
+>  int mad_class_agent(int mgmt)
+>  {
+> -	if (mgmt < 1 || mgmt > MAX_CLASS)
+> +	if (mgmt < 1 || mgmt >= MAX_CLASS)
+>  		return -1;
+>  	return ibmp->class_agents[mgmt];
+>  }
+> diff --git a/src/rpc.c b/src/rpc.c
+> index 88e43e7..d20c321 100644
+> --- a/src/rpc.c
+> +++ b/src/rpc.c
+> @@ -120,7 +120,7 @@ int mad_rpc_portid(struct ibmad_port *srcport)
+>  
+>  int mad_rpc_class_agent(struct ibmad_port *port, int class)
+>  {
+> -	if (class < 1 || class > MAX_CLASS)
+> +	if (class < 1 || class >= MAX_CLASS)
+>  		return -1;
+>  	return port->class_agents[class];
+>  }
 
-diff --git a/drivers/infiniband/hw/cxgb4/cq.c b/drivers/infiniband/hw/cxgb4/cq.c
-index 8d8f8ad..1720dc7 100644
---- a/drivers/infiniband/hw/cxgb4/cq.c
-+++ b/drivers/infiniband/hw/cxgb4/cq.c
-@@ -801,6 +801,10 @@ struct ib_cq *c4iw_create_cq(struct ib_device *ibdev, int entries,
- 	if (ucontext) {
- 		memsize = roundup(memsize, PAGE_SIZE);
- 		hwentries = memsize / sizeof *chp->cq.queue;
-+		while (hwentries > T4_MAX_IQ_SIZE) {
-+			memsize -= PAGE_SIZE;
-+			hwentries = memsize / sizeof *chp->cq.queue;
-+		}
- 	}
- 	chp->cq.size = hwentries;
- 	chp->cq.memsize = memsize;
 
+-- 
+Ira Weiny
+Math Programmer/Computer Scientist
+Lawrence Livermore National Lab
+925-423-8008
+weiny2-i2BcT+NCU+M@public.gmane.org
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
