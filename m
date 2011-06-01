@@ -1,62 +1,39 @@
-From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-Subject: Re: [PATCH] libibmad/[register rpc].c: Fix some bounds checks
-Date: Wed, 1 Jun 2011 14:54:29 -0700
-Message-ID: <20110601145429.3a6172ee.weiny2@llnl.gov>
-References: <4DE64295.6040908@dev.mellanox.co.il>
+From: "Jim Schutt" <jaschut-4OHPYypu0djtX7QSmKvirg@public.gmane.org>
+Subject: Re: [PATCH 1v2] opensm: fixed port order configuration in torus
+ routing engine
+Date: Wed, 1 Jun 2011 16:30:18 -0600
+Message-ID: <4DE6BD7A.9030102@sandia.gov>
+References: <20110530132345.GB20342@calypso.voltaire.com>
+ <4DE50C21.7020305@sandia.gov>
+ <20110601154046.GA1098@calypso.voltaire.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain;
+ charset=utf-8;
+ format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4DE64295.6040908-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+In-Reply-To: <20110601154046.GA1098-iQai9MGU/dyyaiaB+Ve85laTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, 1 Jun 2011 06:45:57 -0700
-Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wrote:
-
+Alex Netes wrote:
+> Commit 1c2a298b295eba7e24205519abc24e47106d15df broke port order
+> configuration for torus routing engine. order was incorrectly initiated,
+> causing setting LFTs to fail.
 > 
-> Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Signed-off-by: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Thanks, applied,
-Ira
+Acked-by: Jim Schutt <jaschut-4OHPYypu0djtX7QSmKvirg@public.gmane.org>
 
-> ---
-> diff --git a/src/register.c b/src/register.c
-> index 0ff8006..1fdb64a 100644
-> --- a/src/register.c
-> +++ b/src/register.c
-> @@ -77,7 +77,7 @@ static int mgmt_class_vers(int mgmt_class)
->  
->  int mad_class_agent(int mgmt)
->  {
-> -	if (mgmt < 1 || mgmt > MAX_CLASS)
-> +	if (mgmt < 1 || mgmt >= MAX_CLASS)
->  		return -1;
->  	return ibmp->class_agents[mgmt];
->  }
-> diff --git a/src/rpc.c b/src/rpc.c
-> index 88e43e7..d20c321 100644
-> --- a/src/rpc.c
-> +++ b/src/rpc.c
-> @@ -120,7 +120,7 @@ int mad_rpc_portid(struct ibmad_port *srcport)
->  
->  int mad_rpc_class_agent(struct ibmad_port *port, int class)
->  {
-> -	if (class < 1 || class > MAX_CLASS)
-> +	if (class < 1 || class >= MAX_CLASS)
->  		return -1;
->  	return port->class_agents[class];
->  }
+Also, while reviewing this I noticed a couple things in the
+port-order patch that I should have noticed earlier, but
+didn't.  I have a couple of minor fixup patches that go on
+top of this one, to send along in a minute.
 
+-- Jim
 
--- 
-Ira Weiny
-Math Programmer/Computer Scientist
-Lawrence Livermore National Lab
-925-423-8008
-weiny2-i2BcT+NCU+M@public.gmane.org
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
