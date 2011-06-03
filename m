@@ -1,8 +1,7 @@
 From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH] opensm/osm_switch.c: In switch_find_guid_common, handle NULL
- parameter
-Date: Thu, 02 Jun 2011 20:40:21 -0400
-Message-ID: <4DE82D75.8030506@dev.mellanox.co.il>
+Subject: [PATCH] opensm/osm_ucast_ftree.c: Handle [sw hca]_create failures
+Date: Thu, 02 Jun 2011 20:40:27 -0400
+Message-ID: <4DE82D7B.1090408@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
@@ -13,40 +12,52 @@ Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY
 List-Id: linux-rdma@vger.kernel.org
 
 
-Since port->priv can be NULL, struct osm_remote_guids_count * supplied
-can be NULL so handle this.
-
 Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
-diff --git a/opensm/osm_switch.c b/opensm/osm_switch.c
-index 9785a9d..fbb8292 100644
---- a/opensm/osm_switch.c
-+++ b/opensm/osm_switch.c
-@@ -1,6 +1,6 @@
- /*
+diff --git a/opensm/osm_ucast_ftree.c b/opensm/osm_ucast_ftree.c
+index 51e252a..477f883 100644
+--- a/opensm/osm_ucast_ftree.c
++++ b/opensm/osm_ucast_ftree.c
+@@ -2,7 +2,7 @@
+  * Copyright (c) 2009 Simula Research Laboratory. All rights reserved.
+  * Copyright (c) 2009 Sun Microsystems, Inc. All rights reserved.
   * Copyright (c) 2004-2009 Voltaire, Inc. All rights reserved.
 - * Copyright (c) 2002-2009 Mellanox Technologies LTD. All rights reserved.
 + * Copyright (c) 2002-2011 Mellanox Technologies LTD. All rights reserved.
   * Copyright (c) 1996-2003 Intel Corporation. All rights reserved.
-  * Copyright (c) 2009 HNR Consulting. All rights reserved.
   *
-@@ -177,6 +177,9 @@ switch_find_guid_common(IN const osm_switch_t * p_sw,
+  * This software is available to you under a choice of one of two
+@@ -1050,10 +1050,14 @@ static uint8_t fabric_get_rank(ftree_fabric_t * p_ftree)
  
- 	CL_ASSERT(p_sw);
+ static void fabric_add_hca(ftree_fabric_t * p_ftree, osm_node_t * p_osm_node)
+ {
+-	ftree_hca_t *p_hca = hca_create(p_osm_node);
++	ftree_hca_t *p_hca;
  
-+	if (!r)
-+		goto out;
+ 	CL_ASSERT(osm_node_get_type(p_osm_node) == IB_NODE_TYPE_CA);
+ 
++	p_hca = hca_create(p_osm_node);
++	if (!p_hca)
++		return;
 +
- 	p_physp = osm_node_get_physp_ptr(p_sw->p_node, port_num);
- 	p_rem_physp = osm_physp_get_remote(p_physp);
- 	p_rem_node = osm_physp_get_node_ptr(p_rem_physp);
-@@ -193,6 +196,7 @@ switch_find_guid_common(IN const osm_switch_t * p_sw,
- 		}
- 	}
- 
-+out:
- 	return p_remote_guid;
+ 	cl_qmap_insert(&p_ftree->hca_tbl, p_osm_node->node_info.node_guid,
+ 		       &p_hca->map_item);
  }
+@@ -1062,10 +1066,14 @@ static void fabric_add_hca(ftree_fabric_t * p_ftree, osm_node_t * p_osm_node)
+ 
+ static void fabric_add_sw(ftree_fabric_t * p_ftree, osm_switch_t * p_osm_sw)
+ {
+-	ftree_sw_t *p_sw = sw_create(p_ftree, p_osm_sw);
++	ftree_sw_t *p_sw;
+ 
+ 	CL_ASSERT(osm_node_get_type(p_osm_sw->p_node) == IB_NODE_TYPE_SWITCH);
+ 
++	p_sw = sw_create(p_ftree, p_osm_sw);
++	if (!p_sw)
++		return;
++
+ 	cl_qmap_insert(&p_ftree->sw_tbl, p_osm_sw->p_node->node_info.node_guid,
+ 		       &p_sw->map_item);
  
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
