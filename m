@@ -1,8 +1,7 @@
 From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [RFC] [PATCH 1/2] libibverbs: Allow 3rd party extensions to verb
- routines
-Date: Sat, 4 Jun 2011 00:34:46 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A82373012B5B@ORSMSX101.amr.corp.intel.com>
+Subject: [RFC] [PATCH 2/2] libibverbs: Using extensions to define XRC support
+Date: Sat, 4 Jun 2011 00:39:41 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A82373012B6C@ORSMSX101.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
@@ -12,330 +11,511 @@ Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-In order to support OFED or vendor specific calls, define a
-generic extension mechanism.  This allows OFED, an RDMA vendor,
-or another registered 3rd party (for example, the librdmacm)
-to define RDMA extensions.
+Define a common libibverbs extension to support XRC.
 
-Users which make use extensions are aware that they are not
-only using an extended call, but are given information regarding
-how widely the extension by be supported.  Support for extended
-functions, data structures, and enums are defined.
+XRC introduces several new concepts and structures:
 
-Extensions are referenced by name.  There is an assumption that
-extension names are prefixed relative to the supporting party.
-Until an extension has been incorporated into libibverbs, it
-should be defined in an appropriate external header file.
+XRC domains: xrcd's are a type of protection domain used to
+associate shared receive queues with xrc queue pairs.  Since
+xrcd are meant to be shared among multiple processes, we
+introduce new APIs to open/close xrcd's.
 
-For example, OFA could provide a header file with their definition
-for XRC extensions.  A partial view of such a header file might
-look something similar to:
+XRC shared receive queues: xrc srq's are similar to normal
+srq's, except that they are bound to an xrcd, rather
+than to a protection domain.  Based on the current spec
+and implementation, they are only usable with xrc qps.  To
+support xrc srq's, we extend the existing srq_init_attr
+structure to include an srq type and other needed information.
+The extended fields are ignored unless extensions are being
+used to support existing applications.
 
-#ifndef OFA_XRC_H
-#define OFA_XRC_H
-#include <infiniband/verbs.h>
+XRC queue pairs: xrc defines two new types of QPs.  The
+initiator, or send-side, xrc qp behaves similar to a send-
+only RC qp.  xrc send qp's are managed through the existing
+QP functions.  The send_wr structure is extended in a back-
+wards compatible way to support posting sends on a send xrc
+qp, which require specifying the remote xrc srq.
 
-#define OFA_XRC_OPS "ofa-xrc"
+The target, or receive-side, xrc qp behaves differently
+than other implemented qp's.  A recv xrc qp can be created,
+modified, and destroyed like other qp's through the existing
+calls.  The qp_init_attr structure is extended for xrc qp's,
+with extension support dependent upon the qp_type being
+defined correctly.
 
-/* Extend IBV_QP_TYPE for XRC */
-#define OFA_QPT_XRC ((enum ibv_qp_type) \
-	(IBV_EXTENSION_OFA << IBV_EXTENSION_BASE_SHIFT) + 6)
+Because xrc recv qp's are bound to an xrcd, rather than a pd,
+it is intended to be used among multiple processes.  Any process
+with access to an xrcd may allocate and connect an xrc recv qp.
+The actual xrc recv qp is allocated and managed by the kernel.
+If the owning process explicit destroys the xrc recv qp, it is
+destroyed.  However, if the xrc recv qp is left open when the
+user process exits or closes its device, then the lifetime of
+the xrc recv qp is bound with the lifetime of the xrcd.
 
-struct ofa_xrcd {
-	struct ibv_context *context;
-};
-
-struct ofa_xrc_ops {
-	struct ofa_xrcd * (*open_xrcd)(struct ibv_context *context,
-					inf fd, int oflags);
-	int		* (*close_xrcd)(struct ofa_xrcd *xrcd);
-	/* other functions left as exercise to the reader */
-};
-
-#endif /* OFA_XRC_H */
-
-Driver libraries that support extensions are given a new
-registration call, ibv_register_device_ext().  Use of this call
-indicates to libibverbs that the library allocates extended
-versions of struct ibv_device and struct ibv_context.
-
-The following new APIs are added to libibverbs to applications
-to use to determine if an extension is supported and to obtain the
-extended function calls.
-
-ibv_have_ext_ops - returns true if an extension is supported
-ibv_get_device_ext_ops - return extended operations for a device
-ibv_get_ext_ops - return extended operations for an open context
-
-To maintain backwards compatibility with existing applications,
-internally, the library uses the last byte of the device name
-to record if the device was registered with extension support.
+The user to kernel ABI is extended to account for opening/
+closing the xrcd and the creation of the extended srq type.
 
 Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
-Compile tested only at this point.  I'm still working on writing
-an XRC sample program.
-
- include/infiniband/driver.h |    1 +
- include/infiniband/verbs.h  |   40 +++++++++++++++++++++++++++++++++++++++-
- src/device.c                |   18 ++++++++++++++++++
- src/ibverbs.h               |   18 ++++++++++++++++++
- src/init.c                  |   17 ++++++++++++++++-
- src/libibverbs.map          |    5 +++++
- src/verbs.c                 |    9 +++++++++
- 7 files changed, 106 insertions(+), 2 deletions(-)
+ include/infiniband/driver.h   |    9 +++
+ include/infiniband/kern-abi.h |   53 +++++++++++++++++++
+ include/infiniband/verbs.h    |   57 ++++++++++++++++++++-
+ src/cmd.c                     |  112 ++++++++++++++++++++++++++++++++++++++---
+ src/libibverbs.map            |    4 +
+ src/verbs.c                   |   32 +++++++++---
+ 6 files changed, 249 insertions(+), 18 deletions(-)
 
 diff --git a/include/infiniband/driver.h b/include/infiniband/driver.h
-index 9a81416..e48abfd 100644
+index e48abfd..9aea854 100644
 --- a/include/infiniband/driver.h
 +++ b/include/infiniband/driver.h
-@@ -57,6 +57,7 @@ typedef struct ibv_device *(*ibv_driver_init_func)(const char *uverbs_sys_path,
- 						   int abi_version);
+@@ -76,6 +76,11 @@ int ibv_cmd_alloc_pd(struct ibv_context *context, struct ibv_pd *pd,
+ 		     struct ibv_alloc_pd *cmd, size_t cmd_size,
+ 		     struct ibv_alloc_pd_resp *resp, size_t resp_size);
+ int ibv_cmd_dealloc_pd(struct ibv_pd *pd);
++int ibv_cmd_open_xrcd(struct ibv_context *context, struct ibv_xrcd *xrcd,
++		      int fd, int oflags,
++		      struct ibv_open_xrcd *cmd, size_t cmd_size,
++		      struct ibv_open_xrcd_resp *resp, size_t resp_size);
++int ibv_cmd_close_xrcd(struct ibv_xrcd *xrcd);
+ #define IBV_CMD_REG_MR_HAS_RESP_PARAMS
+ int ibv_cmd_reg_mr(struct ibv_pd *pd, void *addr, size_t length,
+ 		   uint64_t hca_va, int access,
+@@ -100,6 +105,10 @@ int ibv_cmd_create_srq(struct ibv_pd *pd,
+ 		       struct ibv_srq *srq, struct ibv_srq_init_attr *attr,
+ 		       struct ibv_create_srq *cmd, size_t cmd_size,
+ 		       struct ibv_create_srq_resp *resp, size_t resp_size);
++int ibv_cmd_create_xsrq(struct ibv_pd *pd,
++			struct ibv_srq *srq, struct ibv_srq_init_attr *attr,
++			struct ibv_create_xsrq *cmd, size_t cmd_size,
++			struct ibv_create_srq_resp *resp, size_t resp_size);
+ int ibv_cmd_modify_srq(struct ibv_srq *srq,
+ 		       struct ibv_srq_attr *srq_attr,
+ 		       int srq_attr_mask,
+diff --git a/include/infiniband/kern-abi.h b/include/infiniband/kern-abi.h
+index 0db083a..36cd133 100644
+--- a/include/infiniband/kern-abi.h
++++ b/include/infiniband/kern-abi.h
+@@ -85,7 +85,10 @@ enum {
+ 	IB_USER_VERBS_CMD_MODIFY_SRQ,
+ 	IB_USER_VERBS_CMD_QUERY_SRQ,
+ 	IB_USER_VERBS_CMD_DESTROY_SRQ,
+-	IB_USER_VERBS_CMD_POST_SRQ_RECV
++	IB_USER_VERBS_CMD_POST_SRQ_RECV,
++	IB_USER_VERBS_CMD_OPEN_XRCD,
++	IB_USER_VERBS_CMD_CLOSE_XRCD,
++	IB_USER_VERBS_CMD_CREATE_XSRQ
+ };
  
- void ibv_register_driver(const char *name, ibv_driver_init_func init_func);
-+void ibv_register_driver_ext(const char *name, ibv_driver_init_func init_func);
- int ibv_cmd_get_context(struct ibv_context *context, struct ibv_get_context *cmd,
- 			size_t cmd_size, struct ibv_get_context_resp *resp,
- 			size_t resp_size);
+ /*
+@@ -245,6 +248,27 @@ struct ibv_dealloc_pd {
+ 	__u32 pd_handle;
+ };
+ 
++struct ibv_open_xrcd {
++	__u32 command;
++	__u16 in_words;
++	__u16 out_words;
++	__u64 response;
++	__u32 fd;
++	__u32 oflags;
++	__u64 driver_data[0];
++};
++
++struct ibv_open_xrcd_resp {
++	__u32 xrcd_handle;
++};
++
++struct ibv_close_xrcd {
++	__u32 command;
++	__u16 in_words;
++	__u16 out_words;
++	__u32 xrcd_handle;
++};
++
+ struct ibv_reg_mr {
+ 	__u32 command;
+ 	__u16 in_words;
+@@ -592,6 +616,11 @@ struct ibv_kern_send_wr {
+ 			__u32 remote_qkey;
+ 			__u32 reserved;
+ 		} ud;
++		struct {
++			__u64 reserved[3];
++			__u32 reserved2;
++			__u32 remote_srqn;
++		} xrc;
+ 	} wr;
+ };
+ 
+@@ -706,11 +735,28 @@ struct ibv_create_srq {
+ 	__u64 driver_data[0];
+ };
+ 
++struct ibv_create_xsrq {
++	__u32 command;
++	__u16 in_words;
++	__u16 out_words;
++	__u64 response;
++	__u64 user_handle;
++	__u32 srq_type;
++	__u32 pd_handle;
++	__u32 max_wr;
++	__u32 max_sge;
++	__u32 srq_limit;
++	__u32 reserved;
++	__u32 xrcd_handle;
++	__u32 cq_handle;
++	__u64 driver_data[0];
++};
++
+ struct ibv_create_srq_resp {
+ 	__u32 srq_handle;
+ 	__u32 max_wr;
+ 	__u32 max_sge;
+-	__u32 reserved;
++	__u32 srqn;
+ };
+ 
+ struct ibv_modify_srq {
+@@ -803,6 +849,9 @@ enum {
+ 	 * trick opcodes in IBV_INIT_CMD() doesn't break.
+ 	 */
+ 	IB_USER_VERBS_CMD_CREATE_COMP_CHANNEL_V2 = -1,
++	IB_USER_VERBS_CMD_OPEN_XRCD_V2 = -1,
++	IB_USER_VERBS_CMD_CLOSE_XRCD_V2 = -1,
++	IB_USER_VERBS_CMD_CREATE_XSRQ_V2 = -1,
+ };
+ 
+ struct ibv_destroy_cq_v1 {
 diff --git a/include/infiniband/verbs.h b/include/infiniband/verbs.h
-index 0f1cb2e..b82cd3a 100644
+index b82cd3a..7c6c750 100644
 --- a/include/infiniband/verbs.h
 +++ b/include/infiniband/verbs.h
-@@ -55,6 +55,15 @@
- 
- BEGIN_C_DECLS
- 
-+enum ibv_extension_type {
-+	IBV_EXTENSION_COMMON,
-+	IBV_EXTENSION_VENDOR,
-+	IBV_EXTENSION_OFA,
-+	IBV_EXTENSION_RDMA_CM
-+};
-+#define IBV_EXTENSION_BASE_SHIFT 24
-+#define IBV_EXTENSION_MASK 0xFF000000
-+
- union ibv_gid {
- 	uint8_t			raw[16];
- 	struct {
-@@ -92,7 +101,8 @@ enum ibv_device_cap_flags {
- 	IBV_DEVICE_SYS_IMAGE_GUID	= 1 << 11,
- 	IBV_DEVICE_RC_RNR_NAK_GEN	= 1 << 12,
- 	IBV_DEVICE_SRQ_RESIZE		= 1 << 13,
--	IBV_DEVICE_N_NOTIFY_CQ		= 1 << 14
-+	IBV_DEVICE_N_NOTIFY_CQ		= 1 << 14,
-+	IBV_DEVICE_EXTENSIONS		= 1 << (IBV_EXTENSION_BASE_SHIFT - 1)
- };
- 
- enum ibv_atomic_cap {
-@@ -623,6 +633,13 @@ struct ibv_device {
- 	char			dev_path[IBV_SYSFS_PATH_MAX];
- 	/* Path to infiniband class device in sysfs */
- 	char			ibdev_path[IBV_SYSFS_PATH_MAX];
-+
-+	/* Following fields only available if device supports extensions */
-+	void		       *private;
-+	int			(*have_ext_ops)(struct ibv_device *device,
-+						const char *ext_name);
-+	void *			(*get_device_ext_ops)(struct ibv_device *device,
-+						      const char *ext_name);
- };
- 
- struct ibv_context_ops {
-@@ -691,6 +708,11 @@ struct ibv_context {
- 	int			num_comp_vectors;
- 	pthread_mutex_t		mutex;
- 	void		       *abi_compat;
-+
-+	/* Following fields only available if device supports extensions */
-+	void		       *private;
-+	void *			(*get_ext_ops)(struct ibv_context *context,
-+					       const char *ext_name);
- };
- 
- /**
-@@ -724,6 +746,17 @@ const char *ibv_get_device_name(struct ibv_device *device);
- uint64_t ibv_get_device_guid(struct ibv_device *device);
- 
- /**
-+ * ibv_have_ext_ops - Return true if device supports the requested
-+ * extended operations.
-+ */
-+int ibv_have_ext_ops(struct ibv_device *device, const char *name);
-+
-+/**
-+ * ibv_get_device_ext_ops - Return extended operations.
-+ */
-+void *ibv_get_device_ext_ops(struct ibv_device *device, const char *name);
-+
-+/**
-  * ibv_open_device - Initialize device for use
-  */
- struct ibv_context *ibv_open_device(struct ibv_device *device);
-@@ -734,6 +767,11 @@ struct ibv_context *ibv_open_device(struct ibv_device *device);
- int ibv_close_device(struct ibv_context *context);
- 
- /**
-+ * ibv_get_ext_ops - Return extended operations.
-+ */
-+void *ibv_get_ext_ops(struct ibv_context *context, const char *name);
-+
-+/**
-  * ibv_get_async_event - Get next async event
-  * @event: Pointer to use to return async event
+@@ -1,6 +1,6 @@
+ /*
+  * Copyright (c) 2004, 2005 Topspin Communications.  All rights reserved.
+- * Copyright (c) 2004 Intel Corporation.  All rights reserved.
++ * Copyright (c) 2004, 2011 Intel Corporation.  All rights reserved.
+  * Copyright (c) 2005, 2006, 2007 Cisco Systems, Inc.  All rights reserved.
+  * Copyright (c) 2005 PathScale, Inc.  All rights reserved.
   *
-diff --git a/src/device.c b/src/device.c
-index 185f4a6..78d9d35 100644
---- a/src/device.c
-+++ b/src/device.c
-@@ -181,6 +181,24 @@ int __ibv_close_device(struct ibv_context *context)
- }
- default_symver(__ibv_close_device, ibv_close_device);
- 
-+int __ibv_have_ext_ops(struct ibv_device *device, const char *name)
-+{
-+	if (!ibv_get_ext_support(device))
-+		return ENOSYS;
-+
-+	return device->have_ext_ops(device, name);
-+}
-+default_symver(__ibv_have_ext_ops, ibv_have_ext_ops);
-+
-+void *__ibv_get_device_ext_ops(struct ibv_device *device, const char *name)
-+{
-+	if (!ibv_get_ext_support(device) || !device->get_device_ext_ops)
-+		return NULL;
-+
-+	return device->get_device_ext_ops(device, name);
-+}
-+default_symver(__ibv_get_device_ext_ops, ibv_get_device_ext_ops);
-+
- int __ibv_get_async_event(struct ibv_context *context,
- 			  struct ibv_async_event *event)
- {
-diff --git a/src/ibverbs.h b/src/ibverbs.h
-index 6a6e3c8..33bdee2 100644
---- a/src/ibverbs.h
-+++ b/src/ibverbs.h
-@@ -35,6 +35,7 @@
- #define IB_VERBS_H
- 
- #include <pthread.h>
-+#include <string.h>
- 
- #include <infiniband/driver.h>
- 
-@@ -102,4 +103,21 @@ HIDDEN int ibverbs_init(struct ibv_device ***list);
- 		(cmd)->response  = (uintptr_t) (out);			\
- 	} while (0)
- 
-+/*
-+ * Support for extended operations is recorded at the end of
-+ * the name character array.  This way we don't need to query
-+ * for the device capabilities with every call.
-+ */
-+static inline int ibv_get_ext_support(struct ibv_device *device)
-+{
-+	return device->name[IBV_SYSFS_NAME_MAX - 1];
-+}
-+
-+static inline void ibv_set_ext_support(struct ibv_device *device,
-+				       int ext_supported)
-+{
-+	if (strlen(device->name) < IBV_SYSFS_NAME_MAX - 1)
-+		device->name[IBV_SYSFS_NAME_MAX - 1] = (char) ext_supported;
-+}
-+
- #endif /* IB_VERBS_H */
-diff --git a/src/init.c b/src/init.c
-index 4f0130e..419ab31 100644
---- a/src/init.c
-+++ b/src/init.c
-@@ -71,6 +71,7 @@ struct ibv_driver {
- 	const char	       *name;
- 	ibv_driver_init_func	init_func;
- 	struct ibv_driver      *next;
-+	int			ext_support;
+@@ -299,6 +299,11 @@ struct ibv_pd {
+ 	uint32_t		handle;
  };
  
- static struct ibv_sysfs_dev *sysfs_dev_list;
-@@ -153,7 +154,8 @@ static int find_sysfs_devs(void)
- 	return ret;
++struct ibv_xrcd {
++	struct ibv_context     *context;
++	uint32_t		handle;
++};
++
+ enum ibv_rereg_mr_flags {
+ 	IBV_REREG_MR_CHANGE_TRANSLATION	= (1 << 0),
+ 	IBV_REREG_MR_CHANGE_PD		= (1 << 1),
+@@ -400,7 +405,9 @@ struct ibv_srq_init_attr {
+ enum ibv_qp_type {
+ 	IBV_QPT_RC = 2,
+ 	IBV_QPT_UC,
+-	IBV_QPT_UD
++	IBV_QPT_UD,
++	IBV_QPT_XRC_SEND,
++	IBV_QPT_XRC_RECV
+ };
+ 
+ struct ibv_qp_cap {
+@@ -419,6 +426,13 @@ struct ibv_qp_init_attr {
+ 	struct ibv_qp_cap	cap;
+ 	enum ibv_qp_type	qp_type;
+ 	int			sq_sig_all;
++
++	/* Following fields only available if device supports extensions */
++	union {
++		struct {
++			struct ibv_xrcd *xrcd;
++		} xrc_recv;
++	} ext;
+ };
+ 
+ enum ibv_qp_attr_mask {
+@@ -536,6 +550,11 @@ struct ibv_send_wr {
+ 			uint32_t	remote_qpn;
+ 			uint32_t	remote_qkey;
+ 		} ud;
++		struct {
++			uint64_t	reserved[3];
++			uint32_t	reserved2;
++			uint32_t	remote_srqn;
++		} xrc;
+ 	} wr;
+ };
+ 
+@@ -555,6 +574,11 @@ struct ibv_mw_bind {
+ 	int			mw_access_flags;
+ };
+ 
++enum ibv_srq_type {
++	IBV_SRQT_BASIC,
++	IBV_SRQT_XRC
++};
++
+ struct ibv_srq {
+ 	struct ibv_context     *context;
+ 	void		       *srq_context;
+@@ -564,6 +588,16 @@ struct ibv_srq {
+ 	pthread_mutex_t		mutex;
+ 	pthread_cond_t		cond;
+ 	uint32_t		events_completed;
++
++	/* Following fields only available if device supports extensions */
++	enum ibv_srq_type	srq_type;
++	union {
++		struct {
++			uint32_t	 srq_num;
++			struct ibv_xrcd *xrcd;
++			struct ibv_cq   *cq;
++		} xrc;
++	} ext;
+ };
+ 
+ struct ibv_qp {
+@@ -581,6 +615,13 @@ struct ibv_qp {
+ 	pthread_mutex_t		mutex;
+ 	pthread_cond_t		cond;
+ 	uint32_t		events_completed;
++
++	/* Following fields only available if device supports extensions */
++	union {
++		struct {
++			struct ibv_xrcd *xrcd;
++		} xrc_recv;
++	} ext;
+ };
+ 
+ struct ibv_comp_channel {
+@@ -700,6 +741,18 @@ struct ibv_context_ops {
+ 	void			(*async_event)(struct ibv_async_event *event);
+ };
+ 
++#define IBV_XRC_OPS "ibv_xrc"
++
++struct ibv_xrc_ops {
++	struct ibv_xrcd *	(*open_xrcd)(struct ibv_context *context,
++					     int fd, int oflags);
++	int			(*close_xrcd)(struct ibv_xrcd *xrcd);
++	struct ibv_src *	(*create_srq)(struct ibv_pd *pd,
++					      struct ibv_xrcd *xrcd,
++					      struct ibv_cq *cq,
++					      struct ibv_srq_init_attr *attr);
++};
++
+ struct ibv_context {
+ 	struct ibv_device      *device;
+ 	struct ibv_context_ops	ops;
+diff --git a/src/cmd.c b/src/cmd.c
+index cbd5288..8fc0dce 100644
+--- a/src/cmd.c
++++ b/src/cmd.c
+@@ -230,6 +230,39 @@ int ibv_cmd_dealloc_pd(struct ibv_pd *pd)
+ 	return 0;
  }
  
--void ibv_register_driver(const char *name, ibv_driver_init_func init_func)
-+static void __ibv_register_driver(const char *name, ibv_driver_init_func init_func,
-+				  int ext_support)
- {
- 	struct ibv_driver *driver;
- 
-@@ -166,6 +168,7 @@ void ibv_register_driver(const char *name, ibv_driver_init_func init_func)
- 	driver->name      = name;
- 	driver->init_func = init_func;
- 	driver->next      = NULL;
-+	driver->ext_support = ext_support;
- 
- 	if (tail_driver)
- 		tail_driver->next = driver;
-@@ -174,6 +177,16 @@ void ibv_register_driver(const char *name, ibv_driver_init_func init_func)
- 	tail_driver = driver;
- }
- 
-+void ibv_register_driver(const char *name, ibv_driver_init_func init_func)
++int ibv_cmd_open_xrcd(struct ibv_context *context, struct ibv_xrcd *xrcd,
++		      int fd, int oflags,
++		      struct ibv_open_xrcd *cmd, size_t cmd_size,
++		      struct ibv_open_xrcd_resp *resp, size_t resp_size)
 +{
-+	__ibv_register_driver(name, init_func, 0);
++	IBV_INIT_CMD_RESP(cmd, cmd_size, OPEN_XRCD, resp, resp_size);
++
++	cmd->fd = fd;
++	cmd->oflags = oflags;
++	if (write(context->cmd_fd, cmd, cmd_size) != cmd_size)
++		return errno;
++
++	VALGRIND_MAKE_MEM_DEFINED(resp, resp_size);
++
++	xrcd->handle  = resp->xrcd_handle;
++	xrcd->context = context;
++
++	return 0;
 +}
 +
-+void ibv_register_driver_ext(const char *name, ibv_driver_init_func init_func)
++int ibv_cmd_close_xrcd(struct ibv_xrcd *xrcd)
 +{
-+	__ibv_register_driver(name, init_func, 1);
++	struct ibv_close_xrcd cmd;
++
++	IBV_INIT_CMD(&cmd, sizeof cmd, CLOSE_XRCD);
++	cmd.xrcd_handle = xrcd->handle;
++
++	if (write(xrcd->context->cmd_fd, &cmd, sizeof cmd) != sizeof cmd)
++		return errno;
++
++	return 0;
 +}
 +
- static void load_driver(const char *name)
- {
- 	char *so_name;
-@@ -368,6 +381,8 @@ static struct ibv_device *try_driver(struct ibv_driver *driver,
- 	strcpy(dev->name,       sysfs_dev->ibdev_name);
- 	strcpy(dev->ibdev_path, sysfs_dev->ibdev_path);
+ int ibv_cmd_reg_mr(struct ibv_pd *pd, void *addr, size_t length,
+ 		   uint64_t hca_va, int access,
+ 		   struct ibv_mr *mr, struct ibv_reg_mr *cmd,
+@@ -480,6 +513,58 @@ int ibv_cmd_create_srq(struct ibv_pd *pd,
+ 			resp_size - sizeof *resp);
+ 	}
  
-+	ibv_set_ext_support(dev, driver->ext_support);
++	if (ibv_get_ext_support(pd->context->device))
++		srq->srq_type = IBV_SRQT_BASIC;
 +
- 	return dev;
++	return 0;
++}
++
++int ibv_cmd_create_xsrq(struct ibv_pd *pd,
++			struct ibv_srq *srq, struct ibv_srq_init_attr *attr,
++			struct ibv_create_xsrq *cmd, size_t cmd_size,
++			struct ibv_create_srq_resp *resp, size_t resp_size)
++{
++	IBV_INIT_CMD_RESP(cmd, cmd_size, CREATE_XSRQ, resp, resp_size);
++	cmd->user_handle = (uintptr_t) srq;
++	cmd->pd_handle 	 = pd->handle;
++	cmd->max_wr      = attr->attr.max_wr;
++	cmd->max_sge     = attr->attr.max_sge;
++	cmd->srq_limit   = attr->attr.srq_limit;
++
++	cmd->srq_type = srq->srq_type;
++	switch (srq->srq_type) {
++	case IBV_SRQT_XRC:
++		cmd->xrcd_handle = srq->ext.xrc.xrcd->handle;
++		cmd->cq_handle   = srq->ext.xrc.cq->handle;
++		break;
++	default:
++		break;
++	}
++
++	if (write(pd->context->cmd_fd, cmd, cmd_size) != cmd_size)
++		return errno;
++
++	VALGRIND_MAKE_MEM_DEFINED(resp, resp_size);
++
++	srq->handle  = resp->srq_handle;
++	srq->context = pd->context;
++	srq->pd = pd;
++	srq->srq_context = attr->srq_context;
++	srq->events_completed = 0;
++	pthread_mutex_init(&srq->mutex, NULL);
++	pthread_cond_init(&srq->cond, NULL);
++
++	attr->attr.max_wr = resp->max_wr;
++	attr->attr.max_sge = resp->max_sge;
++
++	switch (srq->srq_type) {
++	case IBV_SRQT_XRC:
++		srq->ext.xrc.srq_num = resp->srqn;
++		break;
++	default:
++		break;
++	}
++
+ 	return 0;
  }
  
+@@ -597,13 +682,26 @@ int ibv_cmd_create_qp(struct ibv_pd *pd,
+ 		      struct ibv_create_qp *cmd, size_t cmd_size,
+ 		      struct ibv_create_qp_resp *resp, size_t resp_size)
+ {
++	struct ibv_context *context;
++
+ 	IBV_INIT_CMD_RESP(cmd, cmd_size, CREATE_QP, resp, resp_size);
+ 
+ 	cmd->user_handle     = (uintptr_t) qp;
+-	cmd->pd_handle 	     = pd->handle;
+-	cmd->send_cq_handle  = attr->send_cq->handle;
+-	cmd->recv_cq_handle  = attr->recv_cq->handle;
+-	cmd->srq_handle      = attr->srq ? attr->srq->handle : 0;
++
++	if (attr->qp_type == IBV_QPT_XRC_RECV) {
++		context             = attr->ext.xrc_recv.xrcd->context;
++		cmd->pd_handle      = attr->ext.xrc_recv.xrcd->handle;
++	} else {
++		context             = pd->context;
++		cmd->pd_handle      = pd->handle;
++		cmd->send_cq_handle = attr->send_cq->handle;
++
++		if (attr->qp_type != IBV_QPT_XRC_SEND) {
++			cmd->recv_cq_handle = attr->recv_cq->handle;
++			cmd->srq_handle     = attr->srq ? attr->srq->handle : 0;
++		}
++	}
++	
+ 	cmd->max_send_wr     = attr->cap.max_send_wr;
+ 	cmd->max_recv_wr     = attr->cap.max_recv_wr;
+ 	cmd->max_send_sge    = attr->cap.max_send_sge;
+@@ -619,9 +717,9 @@ int ibv_cmd_create_qp(struct ibv_pd *pd,
+ 
+ 	VALGRIND_MAKE_MEM_DEFINED(resp, resp_size);
+ 
+-	qp->handle 		  = resp->qp_handle;
+-	qp->qp_num 		  = resp->qpn;
+-	qp->context		  = pd->context;
++	qp->handle  	    = resp->qp_handle;
++	qp->qp_num  	    = resp->qpn;
++	qp->context	    = context;
+ 
+ 	if (abi_ver > 3) {
+ 		attr->cap.max_recv_sge    = resp->max_recv_sge;
 diff --git a/src/libibverbs.map b/src/libibverbs.map
-index 1827da0..422e07f 100644
+index 422e07f..c31cca3 100644
 --- a/src/libibverbs.map
 +++ b/src/libibverbs.map
-@@ -96,4 +96,9 @@ IBVERBS_1.1 {
- 		ibv_port_state_str;
- 		ibv_event_type_str;
- 		ibv_wc_status_str;
+@@ -101,4 +101,8 @@ IBVERBS_1.1 {
+ 		ibv_have_ext_ops;
+ 		ibv_get_device_ext_ops;
+ 		ibv_get_ext_ops;
 +
-+		ibv_register_driver_ext;
-+		ibv_have_ext_ops;
-+		ibv_get_device_ext_ops;
-+		ibv_get_ext_ops;
++		ibv_cmd_open_xrcd;
++		ibv_cmd_close_xrcd;
++		ibv_cmd_create_xsrq;
  } IBVERBS_1.0;
 diff --git a/src/verbs.c b/src/verbs.c
-index ba3c0a4..a34a784 100644
+index a34a784..f6576df 100644
 --- a/src/verbs.c
 +++ b/src/verbs.c
-@@ -76,6 +76,15 @@ enum ibv_rate mult_to_ibv_rate(int mult)
- 	}
- }
- 
-+void *__ibv_get_ext_ops(struct ibv_context *context, const char *name)
-+{
-+	if (!ibv_get_ext_support(context->device) || !context->get_ext_ops)
-+		return NULL;
-+
-+	return context->get_ext_ops(context, name);
-+}
-+default_symver(__ibv_get_ext_ops, ibv_get_ext_ops);
-+
- int __ibv_query_device(struct ibv_context *context,
- 		       struct ibv_device_attr *device_attr)
+@@ -407,15 +407,33 @@ default_symver(__ibv_destroy_srq, ibv_destroy_srq);
+ struct ibv_qp *__ibv_create_qp(struct ibv_pd *pd,
+ 			       struct ibv_qp_init_attr *qp_init_attr)
  {
+-	struct ibv_qp *qp = pd->context->ops.create_qp(pd, qp_init_attr);
++	struct ibv_context *context;
++	struct ibv_qp *qp;
+ 
++	context = pd ? pd->context : qp_init_attr->ext.xrc_recv.xrcd->context;
++	qp = context->ops.create_qp(pd, qp_init_attr);
+ 	if (qp) {
+-		qp->context    	     = pd->context;
+-		qp->qp_context 	     = qp_init_attr->qp_context;
+-		qp->pd         	     = pd;
+-		qp->send_cq    	     = qp_init_attr->send_cq;
+-		qp->recv_cq    	     = qp_init_attr->recv_cq;
+-		qp->srq        	     = qp_init_attr->srq;
++		qp->context    = context;
++		qp->qp_context = qp_init_attr->qp_context;
++
++		if (qp_init_attr->qp_type == IBV_QPT_XRC_RECV) {
++			qp->pd = NULL;
++			qp->send_cq = qp->recv_cq = NULL;
++			qp->srq = NULL;
++			qp->ext.xrc_recv.xrcd = qp_init_attr->ext.xrc_recv.xrcd;
++		} else {
++			if (qp_init_attr->qp_type == IBV_QPT_XRC_SEND) {
++				qp->recv_cq = NULL;
++				qp->srq = NULL;
++			} else {
++				qp->recv_cq = qp_init_attr->recv_cq;
++				qp->srq     = qp_init_attr->srq;
++			}
++		
++			qp->pd      = pd;
++			qp->send_cq = qp_init_attr->send_cq;
++		}
++
+ 		qp->qp_type          = qp_init_attr->qp_type;
+ 		qp->state	     = IBV_QPS_RESET;
+ 		qp->events_completed = 0;
 
 
 --
