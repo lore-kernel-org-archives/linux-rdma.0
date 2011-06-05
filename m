@@ -1,38 +1,32 @@
 From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: librdma_cm and PSNs
-Date: Sun, 5 Jun 2011 13:22:30 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A82373012DA1@ORSMSX101.amr.corp.intel.com>
-References: <201106041737.16482.kerr.g@husky.neu.edu>
+Subject: RE: [RFC] [PATCH 1/2] libibverbs: Allow 3rd party extensions to
+ verb routines
+Date: Sun, 5 Jun 2011 13:47:17 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A82373012DF3@ORSMSX101.amr.corp.intel.com>
+References: <1828884A29C6694DAF28B7E6B8A82373012B5B@ORSMSX101.amr.corp.intel.com>
+ <6E0AE576-9B92-46E4-A5F6-68ECD64C5B67@llnl.gov>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <201106041737.16482.kerr.g-movQPkccWJngpn9g0Uvcdg@public.gmane.org>
+In-Reply-To: <6E0AE576-9B92-46E4-A5F6-68ECD64C5B67-i2BcT+NCU+M@public.gmane.org>
 Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Greg Kerr <kerr.g-movQPkccWJngpn9g0Uvcdg@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: "Weiny, Ira K." <weiny2-i2BcT+NCU+M@public.gmane.org>
+Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> While doing this I have noticed that in a simple RDMA application, librdma
-> does not seem to configure the PSNs between the two nodes to match each other;
-> not through calls to ibv_modify_qp anyhow. The arguments given to
-> ibv_modify_qp by librdma_cm seem to be (for example):
-> 
-> Node 1:
-> RQ_PSN is 464684127
-> SQ_PSN is 2204625
-> 
-> Node 2:
-> RQ_PSN is 1327604689
-> SQ_PSN is 11699295
+> I'm not quite sure I understand the use for "enum ibv_extension_type".  Where/how is this used?
 
-Are you capturing the ibv_modify_qp calls for the correct transitions?  You can check the qp_attr_mask to see when the PSN values are being set.  RQ_PSN is set on the RTR transition call.  SQ_PSN is set on the RTS transition.
+The intent is that this allows users to extend existing enums without conflicts.  For example,
 
-> If I use ibv_query_qp() to query the PSNs they will prove to match (SQ -> RQ
-> on the opposite nodes), as they should. If not through ibv_modify_qp, how is
-> librdma_cm configuring the PSNs?
+> > /* Extend IBV_QP_TYPE for XRC */
+> > #define OFA_QPT_XRC ((enum ibv_qp_type) \
+> > 	(IBV_EXTENSION_OFA << IBV_EXTENSION_BASE_SHIFT) + 6)
 
-The PSNs are set by the kernel using random numbers.  For IB, the underlying CM exchanges the PSNs as part of the connection process.  The librdmacm calls into the kernel (rdma_init_qp_attr() or something like that) to get the attributes that it passes into ibv_modify_qp.
+This defines a new QP type for XRC.  This new QP type is only usable as part of an OFA specific extension.  When XRC QP types are added directly to libibverbs, it receives a new number because there's no guarantee that the upstream version of XRC support will match what OFA published.  (Obviously it's too late to handle XRC QPs in this way.)
+
+The trade-off is that the upper X number of bits (8 in the patch) of most enums end up being reserved for extension use.  The benefit is that existing functions, like ibv_create_qp, can support extensions, versus duplicating functions and structures.
 
 - Sean
 --
