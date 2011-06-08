@@ -1,8 +1,7 @@
 From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH] infiniband-diags/libibnetdisc/ibnetdisc_cache.c: Fix a couple
- of memory leaks
-Date: Wed, 08 Jun 2011 08:47:34 -0400
-Message-ID: <4DEF6F66.9070507@dev.mellanox.co.il>
+Subject: [PATCH] infiniband-diags/ibportstate.c: Fix sizeof
+Date: Wed, 08 Jun 2011 08:57:55 -0400
+Message-ID: <4DEF71D3.30705@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
@@ -13,28 +12,24 @@ Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY
 List-Id: linux-rdma@vger.kernel.org
 
 
+It shouldn't be sizeof the pointer but this doesn't affect execution
+since this parameter is not used by mad_dump_portstates
+
 Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
-diff --git a/libibnetdisc/src/ibnetdisc_cache.c b/libibnetdisc/src/ibnetdisc_cache.c
-index 199bf33..2690373 100644
---- a/libibnetdisc/src/ibnetdisc_cache.c
-+++ b/libibnetdisc/src/ibnetdisc_cache.c
-@@ -326,6 +326,7 @@ static int _load_node(int fd, ibnd_fabric_cache_t * fabric_cache)
- 	node = (ibnd_node_t *) malloc(sizeof(ibnd_node_t));
- 	if (!node) {
- 		IBND_DEBUG("OOM: node\n");
-+		free(node_cache);
- 		return -1;
- 	}
- 	memset(node, '\0', sizeof(ibnd_node_t));
-@@ -426,6 +427,7 @@ static int _load_port(int fd, ibnd_fabric_cache_t * fabric_cache)
- 	port = (ibnd_port_t *) malloc(sizeof(ibnd_port_t));
- 	if (!port) {
- 		IBND_DEBUG("OOM: port\n");
-+		free(port_cache);
- 		return -1;
- 	}
- 	memset(port, '\0', sizeof(ibnd_port_t));
+diff --git a/src/ibportstate.c b/src/ibportstate.c
+index d2ee58b..1f0f42e 100644
+--- a/src/ibportstate.c
++++ b/src/ibportstate.c
+@@ -126,7 +126,7 @@ static void show_port_info(ib_portid_t * dest, uint8_t * data, int portnum)
+ 	char buf[2048];
+ 	char val[64];
+ 
+-	mad_dump_portstates(buf, sizeof buf, data, sizeof data);
++	mad_dump_portstates(buf, sizeof buf, data, sizeof *data);
+ 	mad_decode_field(data, IB_PORT_LID_F, val);
+ 	mad_dump_field(IB_PORT_LID_F, buf + strlen(buf),
+ 		       sizeof buf - strlen(buf), val);
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
