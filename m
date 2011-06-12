@@ -1,52 +1,31 @@
-From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-Subject: Re: [PATCH] infiniband-diags/ibportstate.c: Fix sizeof
-Date: Fri, 10 Jun 2011 11:43:33 -0700
-Message-ID: <20110610114333.cdc60945.weiny2@llnl.gov>
-References: <4DEF71D3.30705@dev.mellanox.co.il>
+From: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: mlx4 xrc qp restrictions
+Date: Sun, 12 Jun 2011 15:57:17 +0300
+Message-ID: <201106121557.17870.jackm@dev.mellanox.co.il>
+References: <1828884A29C6694DAF28B7E6B8A82373019B31@ORSMSX101.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4DEF71D3.30705-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+In-Reply-To: <1828884A29C6694DAF28B7E6B8A82373019B31-P5GAC/sN6hmkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
+Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, tziporet-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, 8 Jun 2011 05:57:55 -0700
-Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wrote:
-
+On Thursday 09 June 2011 22:28, Hefty, Sean wrote:
+> Can someone from Mellanox tell me if the mlx4 HW requires that XRC QPs have CQs associated with them?
 > 
-> It shouldn't be sizeof the pointer but this doesn't affect execution
-> since this parameter is not used by mad_dump_portstates
-> 
-> Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Thanks,
+> Sean
 
-Thanks applied,
-Ira
+Yes, XRC QPs need CQs.  For QP send workqueue, always.  For QP receive workqueue, need a CQ to report errors.
 
-> ---
-> diff --git a/src/ibportstate.c b/src/ibportstate.c
-> index d2ee58b..1f0f42e 100644
-> --- a/src/ibportstate.c
-> +++ b/src/ibportstate.c
-> @@ -126,7 +126,7 @@ static void show_port_info(ib_portid_t * dest, uint8_t * data, int portnum)
->  	char buf[2048];
->  	char val[64];
->  
-> -	mad_dump_portstates(buf, sizeof buf, data, sizeof data);
-> +	mad_dump_portstates(buf, sizeof buf, data, sizeof *data);
->  	mad_decode_field(data, IB_PORT_LID_F, val);
->  	mad_dump_field(IB_PORT_LID_F, buf + strlen(buf),
->  		       sizeof buf - strlen(buf), val);
+-Jack
 
 
--- 
-Ira Weiny
-Math Programmer/Computer Scientist
-Lawrence Livermore National Lab
-925-423-8008
-weiny2-i2BcT+NCU+M@public.gmane.org
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
