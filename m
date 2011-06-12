@@ -1,31 +1,21 @@
-From: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: mlx4 xrc qp restrictions
-Date: Sun, 12 Jun 2011 15:57:17 +0300
-Message-ID: <201106121557.17870.jackm@dev.mellanox.co.il>
-References: <1828884A29C6694DAF28B7E6B8A82373019B31@ORSMSX101.amr.corp.intel.com>
+From: Beth Buchholz <BBuchholz-y3aiOOx5G7I@public.gmane.org>
+Subject: Dear Brethren.
+Date: Sun, 12 Jun 2011 11:28:40 -0500
+Message-ID: <71444A59F3B07E498859E051B3E5E0D4D49AFB35DE@gro-mail1.watc.local>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1828884A29C6694DAF28B7E6B8A82373019B31-P5GAC/sN6hmkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
-Content-Disposition: inline
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, tziporet-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thursday 09 June 2011 22:28, Hefty, Sean wrote:
-> Can someone from Mellanox tell me if the mlx4 HW requires that XRC QPs have CQs associated with them?
-> 
-> Thanks,
-> Sean
-
-Yes, XRC QPs need CQs.  For QP send workqueue, always.  For QP receive workqueue, need a CQ to report errors.
-
--Jack
-
-
+Although I am not comfortable discussing the content of my mail on the internet owing to lots of
+unsolicited/Spam mails on the net these days.Anyway my message is that I have made up my mind to
+WILL my late Husband's funds to you so that you can use it for charity  duties and good work to
+humanity in your country. The amount is 4million Dollars. Please get back to me on my personal and
+secured email  address for further information.My secured email is:buchholzbeth-DaQTI0RpDDMAvxtiuMwx3w@public.gmane.org
+Mrs. Beth Buchholz
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
