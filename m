@@ -1,8 +1,8 @@
 From: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Subject: Re: [PATCH 1/5] opensm/perfmgr: set redirect orig_lid and valid flag
  only when we have a valid port
-Date: Mon, 13 Jun 2011 19:37:17 +0300
-Message-ID: <20110613163717.GA15936@calypso.voltaire.com>
+Date: Mon, 13 Jun 2011 19:50:02 +0300
+Message-ID: <20110613165002.GB15936@calypso.voltaire.com>
 References: <20110613085735.6cf63fe5.weiny2@llnl.gov>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -27,8 +27,7 @@ On 08:57 Mon 13 Jun     , Ira Weiny wrote:
 > Is this acceptable?  I know this was part of a series but this patch really stands on it's own to fix a bug.
 > 
 
-Sorry. You are right. I was relating this patch to the other series of
-patches. I will apply it shortly.
+Applied, thanks.
 
 -- Alex
 --
