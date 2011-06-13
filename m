@@ -1,21 +1,42 @@
-From: Beth Buchholz <BBuchholz-y3aiOOx5G7I@public.gmane.org>
-Subject: Dear Brethren.
-Date: Sun, 12 Jun 2011 11:28:40 -0500
-Message-ID: <71444A59F3B07E498859E051B3E5E0D4D49AFB35DE@gro-mail1.watc.local>
+From: bugzilla-daemon-590EEB7GvNiWaY/ihj7yzEB+6BGkLq7r@public.gmane.org
+Subject: [Bug 37402] New: kernel BUG at drivers/pci/intel-iommu.c:1656 while
+ registering memory for InfiniBand
+Date: Mon, 13 Jun 2011 08:37:41 GMT
+Message-ID: <bug-37402-11804@https.bugzilla.kernel.org/>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset="UTF-8"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Although I am not comfortable discussing the content of my mail on the internet owing to lots of
-unsolicited/Spam mails on the net these days.Anyway my message is that I have made up my mind to
-WILL my late Husband's funds to you so that you can use it for charity  duties and good work to
-humanity in your country. The amount is 4million Dollars. Please get back to me on my personal and
-secured email  address for further information.My secured email is:buchholzbeth-DaQTI0RpDDMAvxtiuMwx3w@public.gmane.org
-Mrs. Beth Buchholz
+https://bugzilla.kernel.org/show_bug.cgi?id=37402
+
+           Summary: kernel BUG at drivers/pci/intel-iommu.c:1656 while
+                    registering memory for InfiniBand
+           Product: Drivers
+           Version: 2.5
+    Kernel Version: 2.6.38.6-26.rc1.fc15.x86_64
+          Platform: All
+        OS/Version: Linux
+              Tree: Fedora
+            Status: NEW
+          Severity: normal
+          Priority: P1
+         Component: Infiniband/RDMA
+        AssignedTo: drivers_infiniband-rdma-ztI5WcYan/vQLgFONoPN62D2FQJk+8+b@public.gmane.org
+        ReportedBy: fullung-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
+        Regression: No
+
+
+Created an attachment (id=61782)
+ --> (https://bugzilla.kernel.org/attachment.cgi?id=61782)
+Crash dump
+
+-- 
+Configure bugmail: https://bugzilla.kernel.org/userprefs.cgi?tab=email
+------- You are receiving this mail because: -------
+You are watching the assignee of the bug.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
