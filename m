@@ -1,42 +1,35 @@
-From: bugzilla-daemon-590EEB7GvNiWaY/ihj7yzEB+6BGkLq7r@public.gmane.org
-Subject: [Bug 37402] New: kernel BUG at drivers/pci/intel-iommu.c:1656 while
- registering memory for InfiniBand
-Date: Mon, 13 Jun 2011 08:37:41 GMT
-Message-ID: <bug-37402-11804@https.bugzilla.kernel.org/>
+From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+Subject: [PATCH 1/5] opensm/perfmgr: set redirect orig_lid and valid flag
+ only when we have a valid port
+Date: Mon, 13 Jun 2011 08:57:35 -0700
+Message-ID: <20110613085735.6cf63fe5.weiny2@llnl.gov>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-https://bugzilla.kernel.org/show_bug.cgi?id=37402
 
-           Summary: kernel BUG at drivers/pci/intel-iommu.c:1656 while
-                    registering memory for InfiniBand
-           Product: Drivers
-           Version: 2.5
-    Kernel Version: 2.6.38.6-26.rc1.fc15.x86_64
-          Platform: All
-        OS/Version: Linux
-              Tree: Fedora
-            Status: NEW
-          Severity: normal
-          Priority: P1
-         Component: Infiniband/RDMA
-        AssignedTo: drivers_infiniband-rdma-ztI5WcYan/vQLgFONoPN62D2FQJk+8+b@public.gmane.org
-        ReportedBy: fullung-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
-        Regression: No
+Where did we leave this patch?
 
+https://patchwork.kernel.org/patch/714251/
 
-Created an attachment (id=61782)
- --> (https://bugzilla.kernel.org/attachment.cgi?id=61782)
-Crash dump
+patchwork says it is under review.  The above link is the updated patch you asked me to provide.
+
+Is this acceptable?  I know this was part of a series but this patch really stands on it's own to fix a bug.
+
+Thanks,
+Ira
 
 -- 
-Configure bugmail: https://bugzilla.kernel.org/userprefs.cgi?tab=email
-------- You are receiving this mail because: -------
-You are watching the assignee of the bug.
+Ira Weiny
+Math Programmer/Computer Scientist
+Lawrence Livermore National Lab
+925-423-8008
+weiny2-i2BcT+NCU+M@public.gmane.org
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
