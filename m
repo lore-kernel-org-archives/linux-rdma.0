@@ -1,40 +1,122 @@
-From: Dotan Barak <dotan-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH] libibverbs: Fix the date format in the 'changelog' section of the spec file
-Date: Wed, 15 Jun 2011 09:12:08 +0300
-Message-ID: <201106150912.08574.dotanb@sw.voltaire.com>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH 3/17] rdma/core: Add XRC SRQ type
+Date: Wed, 15 Jun 2011 06:28:03 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A82373021004@ORSMSX101.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Fix the date format in the 'changelog' section of the spec file.
+XRC defines an SRQ that is specifically used by XRC connections.
+Expand the SRQ code to support XRC SRQs.  An XRC SRQ is currently
+restricted to only XRC use according to the IB XRC Annex.
 
-Signed-off-by: Dotan Barak <dotan-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Portions of this patch were derived from work by
+Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 
+Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
+ drivers/infiniband/core/verbs.c |   21 ++++++++++++++++++++-
+ include/rdma/ib_verbs.h         |   18 +++++++++++++++++-
+ 2 files changed, 37 insertions(+), 2 deletions(-)
 
- libibverbs.spec.in |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
+index cbe85dd..25c1c1e 100644
+--- a/drivers/infiniband/core/verbs.c
++++ b/drivers/infiniband/core/verbs.c
+@@ -251,6 +251,12 @@ struct ib_srq *ib_create_srq(struct ib_pd *pd,
+ 		srq->event_handler = srq_init_attr->event_handler;
+ 		srq->srq_context   = srq_init_attr->srq_context;
+ 		srq->srq_type      = srq_init_attr->srq_type;
++		if (srq->srq_type == IB_SRQT_XRC) {
++			srq->ext.xrc.xrcd = srq_init_attr->ext.xrc.xrcd;
++			srq->ext.xrc.cq   = srq_init_attr->ext.xrc.cq;
++			atomic_inc(&srq->ext.xrc.xrcd->usecnt);
++			atomic_inc(&srq->ext.xrc.cq->usecnt);
++		}
+ 		atomic_inc(&pd->usecnt);
+ 		atomic_set(&srq->usecnt, 0);
+ 	}
+@@ -280,16 +286,29 @@ EXPORT_SYMBOL(ib_query_srq);
+ int ib_destroy_srq(struct ib_srq *srq)
+ {
+ 	struct ib_pd *pd;
++	enum ib_srq_type srq_type;
++	struct ib_xrcd *uninitialized_var(xrcd);
++	struct ib_cq *uninitialized_var(cq);
+ 	int ret;
+ 
+ 	if (atomic_read(&srq->usecnt))
+ 		return -EBUSY;
+ 
+ 	pd = srq->pd;
++	srq_type = srq->srq_type;
++	if (srq_type == IB_SRQT_XRC) {
++		xrcd = srq->ext.xrc.xrcd;
++		cq = srq->ext.xrc.cq;
++	}
+ 
+ 	ret = srq->device->destroy_srq(srq);
+-	if (!ret)
++	if (!ret) {
+ 		atomic_dec(&pd->usecnt);
++		if (srq_type == IB_SRQT_XRC) {
++			atomic_dec(&xrcd->usecnt);
++			atomic_dec(&cq->usecnt);
++		}
++	}
+ 
+ 	return ret;
+ }
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index 1374a66..2a85461 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -523,7 +523,8 @@ enum ib_cq_notify_flags {
+ };
+ 
+ enum ib_srq_type {
+-	IB_SRQT_BASIC
++	IB_SRQT_BASIC,
++	IB_SRQT_XRC
+ };
+ 
+ enum ib_srq_attr_mask {
+@@ -542,6 +543,13 @@ struct ib_srq_init_attr {
+ 	void		       *srq_context;
+ 	struct ib_srq_attr	attr;
+ 	enum ib_srq_type	srq_type;
++
++	union {
++		struct {
++			struct ib_xrcd *xrcd;
++			struct ib_cq   *cq;
++		} xrc;
++	} ext;
+ };
+ 
+ struct ib_qp_cap {
+@@ -894,6 +902,14 @@ struct ib_srq {
+ 	void		       *srq_context;
+ 	enum ib_srq_type	srq_type;
+ 	atomic_t		usecnt;
++
++	union {
++		struct {
++			struct ib_xrcd *xrcd;
++			struct ib_cq   *cq;
++			u32		srq_num;
++		} xrc;
++	} ext;
+ };
+ 
+ struct ib_qp {
 
-diff --git a/libibverbs.spec.in b/libibverbs.spec.in
-index e0a7ae6..0ff27ce 100644
---- a/libibverbs.spec.in
-+++ b/libibverbs.spec.in
-@@ -85,7 +85,7 @@ rm -rf $RPM_BUILD_ROOT
- %{_mandir}/man1/*
- 
- %changelog
--* Thu Jun 3 Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org> - 1.1.4-1
-+* Thu Jun 3 2010 Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org> - 1.1.4-1
- - New upstream release
- 
- * Thu Oct 29 2009 Roland Dreier <rdreier-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org> - 1.1.3-1
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
