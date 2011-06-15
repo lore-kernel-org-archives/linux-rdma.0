@@ -1,7 +1,7 @@
 From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 16/17] rdma/mlx4: Add support for XRC SRQs
-Date: Wed, 15 Jun 2011 06:28:05 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A8237302105D@ORSMSX101.amr.corp.intel.com>
+Subject: [PATCH 5/17] rdma/verbs: Cleanup XRC TGT QPs when destroying XRCD
+Date: Wed, 15 Jun 2011 06:28:03 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A82373021012@ORSMSX101.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
@@ -11,130 +11,173 @@ Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Allow the user to create XRC SRQs.  This patch is based on a
-patch from Jack Morgenstrein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+XRC TGT QPs are intended to be shared among multiple users and
+processes.  Allow the destruction of an XRC TGT QP to be done
+explicitly through ib_destroy_qp() or when the XRCD is
+destroyed.
+
+To support destroying an XRC TGT QP, we need to track TGT QPs
+with the XRCD.  When the XRCD is destroyed, all tracked XRC
+TGT QPs are also cleaned up.
+
+To avoid stale reference issues, if a user is holding a
+reference on a TGT QP, we increment a reference count on
+the XRCD.  The user releases the reference by calling
+ib_release_qp.  This releases any access to the QP from
+a user above verbs, but allows the QP to continue to
+exist until destroyed by the xrcd.
 
 Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/hw/mlx4/main.c |    3 ++-
- drivers/infiniband/hw/mlx4/srq.c  |    9 ++++++++-
- drivers/net/mlx4/srq.c            |   20 +++++++++++---------
- include/linux/mlx4/device.h       |    4 ++--
- 4 files changed, 23 insertions(+), 13 deletions(-)
+ drivers/infiniband/core/verbs.c |   48 ++++++++++++++++++++++++++++++++++++++-
+ include/rdma/ib_verbs.h         |   17 +++++++++++++-
+ 2 files changed, 63 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx4/main.c b/drivers/infiniband/hw/mlx4/main.c
-index 1b911aa..d08cc2d 100644
---- a/drivers/infiniband/hw/mlx4/main.c
-+++ b/drivers/infiniband/hw/mlx4/main.c
-@@ -1095,7 +1095,8 @@ static void *mlx4_ib_add(struct mlx4_dev *dev)
- 		(1ull << IB_USER_VERBS_CMD_CREATE_SRQ)		|
- 		(1ull << IB_USER_VERBS_CMD_MODIFY_SRQ)		|
- 		(1ull << IB_USER_VERBS_CMD_QUERY_SRQ)		|
--		(1ull << IB_USER_VERBS_CMD_DESTROY_SRQ);
-+		(1ull << IB_USER_VERBS_CMD_DESTROY_SRQ)		|
-+		(1ull << IB_USER_VERBS_CMD_CREATE_XSRQ);	
+diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
+index 52d36c8..5702e02 100644
+--- a/drivers/infiniband/core/verbs.c
++++ b/drivers/infiniband/core/verbs.c
+@@ -316,6 +316,20 @@ EXPORT_SYMBOL(ib_destroy_srq);
  
- 	ibdev->ib_dev.query_device	= mlx4_ib_query_device;
- 	ibdev->ib_dev.query_port	= mlx4_ib_query_port;
-diff --git a/drivers/infiniband/hw/mlx4/srq.c b/drivers/infiniband/hw/mlx4/srq.c
-index 818b7ec..361838f 100644
---- a/drivers/infiniband/hw/mlx4/srq.c
-+++ b/drivers/infiniband/hw/mlx4/srq.c
-@@ -76,6 +76,8 @@ struct ib_srq *mlx4_ib_create_srq(struct ib_pd *pd,
- 	struct mlx4_ib_srq *srq;
- 	struct mlx4_wqe_srq_next_seg *next;
- 	struct mlx4_wqe_data_seg *scatter;
-+	u32 cqn;
-+	u32 xrcdn;
- 	int desc_size;
- 	int buf_size;
- 	int err;
-@@ -174,12 +176,17 @@ struct ib_srq *mlx4_ib_create_srq(struct ib_pd *pd,
- 		}
+ /* Queue pairs */
+ 
++static void __ib_insert_xrcd_qp(struct ib_xrcd *xrcd, struct ib_qp *qp)
++{
++	mutex_lock(&xrcd->tgt_qp_mutex);
++	list_add(&qp->xrcd_list, &xrcd->tgt_qp_list);
++	mutex_unlock(&xrcd->tgt_qp_mutex);
++}
++
++static void __ib_remove_xrcd_qp(struct ib_xrcd *xrcd, struct ib_qp *qp)
++{
++	mutex_lock(&xrcd->tgt_qp_mutex);
++	list_del(&qp->xrcd_list);
++	mutex_unlock(&xrcd->tgt_qp_mutex);
++}
++
+ struct ib_qp *ib_create_qp(struct ib_pd *pd,
+ 			   struct ib_qp_init_attr *qp_init_attr)
+ {
+@@ -334,6 +348,7 @@ struct ib_qp *ib_create_qp(struct ib_pd *pd,
+ 			qp->srq = NULL;
+ 			qp->xrcd = qp_init_attr->xrcd;
+ 			atomic_inc(&qp_init_attr->xrcd->usecnt);
++			__ib_insert_xrcd_qp(qp_init_attr->xrcd, qp);
+ 		} else {
+ 			if (qp_init_attr->qp_type == IB_QPT_XRC_INI) {
+ 				qp->recv_cq = NULL;
+@@ -728,7 +743,8 @@ int ib_destroy_qp(struct ib_qp *qp)
+ 	scq  = qp->send_cq;
+ 	rcq  = qp->recv_cq;
+ 	srq  = qp->srq;
+-	xrcd = qp->xrcd;
++	if ((xrcd = qp->xrcd))
++		__ib_remove_xrcd_qp(xrcd, qp);
+ 
+ 	ret = qp->device->destroy_qp(qp);
+ 	if (!ret) {
+@@ -742,12 +758,30 @@ int ib_destroy_qp(struct ib_qp *qp)
+ 			atomic_dec(&srq->usecnt);
+ 		if (xrcd)
+ 			atomic_dec(&xrcd->usecnt);
++	} else if (xrcd) {
++		__ib_insert_xrcd_qp(xrcd, qp);
  	}
  
--	err = mlx4_srq_alloc(dev->dev, to_mpd(pd)->pdn, &srq->mtt,
-+	cqn = (init_attr->srq_type == IB_SRQT_XRC) ?
-+		to_mcq(init_attr->ext.xrc.cq)->mcq.cqn : 0;
-+	xrcdn = (init_attr->srq_type == IB_SRQT_XRC) ?
-+		to_mxrcd(init_attr->ext.xrc.xrcd)->xrcdn : 0;
-+	err = mlx4_srq_alloc(dev->dev, to_mpd(pd)->pdn, cqn, xrcdn, &srq->mtt,
- 			     srq->db.dma, &srq->msrq);
- 	if (err)
- 		goto err_wrid;
+ 	return ret;
+ }
+ EXPORT_SYMBOL(ib_destroy_qp);
  
- 	srq->msrq.event = mlx4_ib_srq_event;
-+	srq->ibsrq.ext.xrc.srq_num = srq->msrq.srqn;
++int ib_release_qp(struct ib_qp *qp)
++{
++	unsigned long flags;
++
++	if (qp->qp_type != IB_QPT_XRC_TGT)
++		return -EINVAL;
++
++	spin_lock_irqsave(&qp->device->event_handler_lock, flags);
++	qp->event_handler = NULL;
++	spin_unlock_irqrestore(&qp->device->event_handler_lock, flags);
++
++	atomic_dec(&qp->xrcd->usecnt);
++	return 0;
++}
++EXPORT_SYMBOL(ib_release_qp);
++
+ /* Completion queues */
  
- 	if (pd->uobject)
- 		if (ib_copy_to_udata(udata, &srq->msrq.srqn, sizeof (__u32))) {
-diff --git a/drivers/net/mlx4/srq.c b/drivers/net/mlx4/srq.c
-index 3b07b80..a20b141 100644
---- a/drivers/net/mlx4/srq.c
-+++ b/drivers/net/mlx4/srq.c
-@@ -40,20 +40,20 @@
- struct mlx4_srq_context {
- 	__be32			state_logsize_srqn;
- 	u8			logstride;
--	u8			reserved1[3];
--	u8			pg_offset;
--	u8			reserved2[3];
--	u32			reserved3;
-+	u8			reserved1;
-+	__be16			xrcd;
-+	__be32			pg_offset_cqn;
-+	u32			reserved2;
- 	u8			log_page_size;
--	u8			reserved4[2];
-+	u8			reserved3[2];
- 	u8			mtt_base_addr_h;
- 	__be32			mtt_base_addr_l;
- 	__be32			pd;
- 	__be16			limit_watermark;
- 	__be16			wqe_cnt;
--	u16			reserved5;
-+	u16			reserved4;
- 	__be16			wqe_counter;
--	u32			reserved6;
-+	u32			reserved5;
- 	__be64			db_rec_addr;
+ struct ib_cq *ib_create_cq(struct ib_device *device,
+@@ -1061,6 +1095,8 @@ struct ib_xrcd *ib_alloc_xrcd(struct ib_device *device)
+ 	if (!IS_ERR(xrcd)) {
+ 		xrcd->device = device;
+ 		atomic_set(&xrcd->usecnt, 0);
++		mutex_init(&xrcd->tgt_qp_mutex);
++		INIT_LIST_HEAD(&xrcd->tgt_qp_list);
+ 	}
+ 
+ 	return xrcd;
+@@ -1069,9 +1105,19 @@ EXPORT_SYMBOL(ib_alloc_xrcd);
+ 
+ int ib_dealloc_xrcd(struct ib_xrcd *xrcd)
+ {
++	struct ib_qp *qp;
++	int ret;
++
+ 	if (atomic_read(&xrcd->usecnt))
+ 		return -EBUSY;
+ 
++	while (!list_empty(&xrcd->tgt_qp_list)) {
++		qp = list_entry(xrcd->tgt_qp_list.next, struct ib_qp, xrcd_list);
++		ret = ib_destroy_qp(qp);
++		if (ret)
++			return ret;
++	}
++
+ 	return xrcd->device->dealloc_xrcd(xrcd);
+ }
+ EXPORT_SYMBOL(ib_dealloc_xrcd);
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index 30c67cc..d916a84 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -877,7 +877,10 @@ struct ib_pd {
+ 
+ struct ib_xrcd {
+ 	struct ib_device       *device;
+-	atomic_t          	usecnt; /* count all resources */
++	atomic_t          	usecnt; /* count all exposed resources */
++
++	struct mutex		tgt_qp_mutex;
++	struct list_head	tgt_qp_list;
  };
  
-@@ -109,8 +109,8 @@ static int mlx4_QUERY_SRQ(struct mlx4_dev *dev, struct mlx4_cmd_mailbox *mailbox
- 			    MLX4_CMD_TIME_CLASS_A);
- }
+ struct ib_ah {
+@@ -923,6 +926,7 @@ struct ib_qp {
+ 	struct ib_cq	       *recv_cq;
+ 	struct ib_srq	       *srq;
+ 	struct ib_xrcd	       *xrcd; /* XRC TGT QPs only */
++	struct list_head	xrcd_list;
+ 	struct ib_uobject      *uobject;
+ 	void                  (*event_handler)(struct ib_event *, void *);
+ 	void		       *qp_context;
+@@ -1479,6 +1483,17 @@ int ib_query_qp(struct ib_qp *qp,
+ int ib_destroy_qp(struct ib_qp *qp);
  
--int mlx4_srq_alloc(struct mlx4_dev *dev, u32 pdn, struct mlx4_mtt *mtt,
--		   u64 db_rec, struct mlx4_srq *srq)
-+int mlx4_srq_alloc(struct mlx4_dev *dev, u32 pdn, u32 cqn, u16 xrcd,
-+		   struct mlx4_mtt *mtt, u64 db_rec, struct mlx4_srq *srq)
- {
- 	struct mlx4_srq_table *srq_table = &mlx4_priv(dev)->srq_table;
- 	struct mlx4_cmd_mailbox *mailbox;
-@@ -148,6 +148,8 @@ int mlx4_srq_alloc(struct mlx4_dev *dev, u32 pdn, struct mlx4_mtt *mtt,
- 	srq_context->state_logsize_srqn = cpu_to_be32((ilog2(srq->max) << 24) |
- 						      srq->srqn);
- 	srq_context->logstride          = srq->wqe_shift - 4;
-+	srq_context->xrcd		= cpu_to_be16(xrcd);
-+	srq_context->pg_offset_cqn	= cpu_to_be32(cqn & 0xffffff);
- 	srq_context->log_page_size      = mtt->page_shift - MLX4_ICM_PAGE_SHIFT;
- 
- 	mtt_addr = mlx4_mtt_addr(dev, mtt);
-diff --git a/include/linux/mlx4/device.h b/include/linux/mlx4/device.h
-index 33a3516..46c249b 100644
---- a/include/linux/mlx4/device.h
-+++ b/include/linux/mlx4/device.h
-@@ -530,8 +530,8 @@ void mlx4_qp_release_range(struct mlx4_dev *dev, int base_qpn, int cnt);
- int mlx4_qp_alloc(struct mlx4_dev *dev, int qpn, struct mlx4_qp *qp);
- void mlx4_qp_free(struct mlx4_dev *dev, struct mlx4_qp *qp);
- 
--int mlx4_srq_alloc(struct mlx4_dev *dev, u32 pdn, struct mlx4_mtt *mtt,
--		   u64 db_rec, struct mlx4_srq *srq);
-+int mlx4_srq_alloc(struct mlx4_dev *dev, u32 pdn, u32 cqn, u16 xrcdn,
-+		   struct mlx4_mtt *mtt, u64 db_rec, struct mlx4_srq *srq);
- void mlx4_srq_free(struct mlx4_dev *dev, struct mlx4_srq *srq);
- int mlx4_srq_arm(struct mlx4_dev *dev, struct mlx4_srq *srq, int limit_watermark);
- int mlx4_srq_query(struct mlx4_dev *dev, struct mlx4_srq *srq, int *limit_watermark);
+ /**
++ * ib_release_qp - Release an external reference to a QP.
++ * @qp: The QP handle to release
++ *
++ * The specified QP handle is released by the caller.  If the QP is
++ * referenced internally, it is not destroyed until all internal
++ * references are released.  After releasing the qp, the caller
++ * can no longer access it and all events on the QP are discarded.
++ */
++int ib_release_qp(struct ib_qp *qp);
++
++/**
+  * ib_post_send - Posts a list of work requests to the send queue of
+  *   the specified QP.
+  * @qp: The QP to post the work request on.
 
 
 --
