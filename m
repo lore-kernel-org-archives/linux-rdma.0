@@ -1,7 +1,7 @@
 From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH 8/9] ib/mlx4: use flow counters on IBoE ports
-Date: Wed, 15 Jun 2011 17:49:57 +0300
-Message-ID: <alpine.LRH.2.00.1106151749160.15844@ogerlitz.voltaire.com>
+Subject: [PATCH 9/9] ib/mlx4: support PMA counters for IBoE
+Date: Wed, 15 Jun 2011 17:51:27 +0300
+Message-ID: <alpine.LRH.2.00.1106151751060.15844@ogerlitz.voltaire.com>
 References: <alpine.LRH.2.00.1106151733410.15844@ogerlitz.voltaire.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="US-ASCII"
@@ -12,121 +12,108 @@ To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Allocate flow counter per Ethernet/IBoE port, and attach this
-counter to all the QPs created on that port.  Based on patch
-by Eli Cohen <eli-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
+Use the per port counter attached to all QPs created on that port
+to implement port level packets/bytes performance counters ala IB.
+Derived from patch by Eli Cohen <eli-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
 
 Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
 ---
- drivers/infiniband/hw/mlx4/main.c    |   20 ++++++++++++++++++--
- drivers/infiniband/hw/mlx4/mlx4_ib.h |    1 +
- drivers/infiniband/hw/mlx4/qp.c      |   10 +++++++++-
- include/linux/mlx4/qp.h              |    3 ++-
- 4 files changed, 30 insertions(+), 4 deletions(-)
+ drivers/infiniband/hw/mlx4/mad.c |   68 ++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 67 insertions(+), 1 deletion(-)
 
-Index: b/drivers/infiniband/hw/mlx4/main.c
+Index: b/drivers/infiniband/hw/mlx4/mad.c
 ===================================================================
---- a/drivers/infiniband/hw/mlx4/main.c
-+++ b/drivers/infiniband/hw/mlx4/main.c
-@@ -1098,11 +1098,22 @@ static void *mlx4_ib_add(struct mlx4_dev
- 	if (init_node_data(ibdev))
- 		goto err_map;
+--- a/drivers/infiniband/hw/mlx4/mad.c
++++ b/drivers/infiniband/hw/mlx4/mad.c
+@@ -35,6 +35,7 @@
 
-+	for (i = 0; i < ibdev->num_ports; ++i) {
-+		if (mlx4_ib_port_link_layer(&ibdev->ib_dev, i + 1) ==
-+						IB_LINK_LAYER_ETHERNET) {
-+			err = mlx4_counter_alloc(ibdev->dev,
-+							&ibdev->counters[i]);
-+			if (err)
-+				ibdev->counters[i] = -1;
-+		} else
-+				ibdev->counters[i] = -1;
+ #include <linux/mlx4/cmd.h>
+ #include <linux/gfp.h>
++#include <rdma/ib_pma.h>
+
+ #include "mlx4_ib.h"
+
+@@ -232,7 +233,7 @@ static void forward_trap(struct mlx4_ib_
+ 	}
+ }
+
+-int mlx4_ib_process_mad(struct ib_device *ibdev, int mad_flags,	u8 port_num,
++static int ib_process_mad(struct ib_device *ibdev, int mad_flags, u8 port_num,
+ 			struct ib_wc *in_wc, struct ib_grh *in_grh,
+ 			struct ib_mad *in_mad, struct ib_mad *out_mad)
+ {
+@@ -302,6 +303,71 @@ int mlx4_ib_process_mad(struct ib_device
+ 	return IB_MAD_RESULT_SUCCESS | IB_MAD_RESULT_REPLY;
+ }
+
++static void edit_counter(struct mlx4_counter *cnt,
++					struct ib_pma_portcounters *pma_cnt)
++{
++	pma_cnt->port_xmit_data = cpu_to_be32((be64_to_cpu(cnt->tx_bytes)>>2));
++	pma_cnt->port_rcv_data  = cpu_to_be32((be64_to_cpu(cnt->rx_bytes)>>2));
++	pma_cnt->port_xmit_packets = cpu_to_be32(be64_to_cpu(cnt->tx_frames));
++	pma_cnt->port_rcv_packets  = cpu_to_be32(be64_to_cpu(cnt->rx_frames));
++}
++
++static int iboe_process_mad(struct ib_device *ibdev, int mad_flags, u8 port_num,
++			struct ib_wc *in_wc, struct ib_grh *in_grh,
++			struct ib_mad *in_mad, struct ib_mad *out_mad)
++{
++	struct mlx4_cmd_mailbox *mailbox;
++	struct mlx4_ib_dev *dev = to_mdev(ibdev);
++	int err;
++	u32 inmod = dev->counters[port_num - 1] & 0xffff;
++	u8 mode;
++
++	if (in_mad->mad_hdr.mgmt_class != IB_MGMT_CLASS_PERF_MGMT)
++		return -EINVAL;
++
++	mailbox = mlx4_alloc_cmd_mailbox(dev->dev);
++	if (IS_ERR(mailbox))
++		return IB_MAD_RESULT_FAILURE;
++
++	err = mlx4_cmd_box(dev->dev, 0, mailbox->dma, inmod, 0,
++			   MLX4_CMD_QUERY_IF_STAT, MLX4_CMD_TIME_CLASS_C);
++	if (err)
++		err = IB_MAD_RESULT_FAILURE;
++	else {
++		memset(out_mad->data, 0, sizeof out_mad->data);
++		mode = ((struct mlx4_counter *)mailbox->buf)->counter_mode;
++		switch (mode & 0xf) {
++		case 0:
++			edit_counter(mailbox->buf,
++						(void *)(out_mad->data + 40));
++			err = IB_MAD_RESULT_SUCCESS | IB_MAD_RESULT_REPLY;
++			break;
++		default:
++			err = IB_MAD_RESULT_FAILURE;
++		}
 +	}
 +
- 	spin_lock_init(&ibdev->sm_lock);
- 	mutex_init(&ibdev->cap_mask_mutex);
-
- 	if (ib_register_device(&ibdev->ib_dev, NULL))
--		goto err_map;
-+		goto err_counter;
-
- 	if (mlx4_ib_mad_init(ibdev))
- 		goto err_reg;
-@@ -1132,6 +1143,10 @@ err_notif:
- err_reg:
- 	ib_unregister_device(&ibdev->ib_dev);
-
-+err_counter:
-+	for (; i; --i)
-+		mlx4_counter_free(ibdev->dev, ibdev->counters[i - 1]);
++	mlx4_free_cmd_mailbox(dev->dev, mailbox);
 +
- err_map:
- 	iounmap(ibdev->uar_map);
-
-@@ -1160,7 +1175,8 @@ static void mlx4_ib_remove(struct mlx4_d
- 		ibdev->iboe.nb.notifier_call = NULL;
- 	}
- 	iounmap(ibdev->uar_map);
--
-+	for (p = 0; p < ibdev->num_ports; ++p)
-+		mlx4_counter_free(ibdev->dev, ibdev->counters[p]);
- 	mlx4_foreach_port(p, dev, MLX4_PORT_TYPE_IB)
- 		mlx4_CLOSE_PORT(dev, p);
-
-Index: b/drivers/infiniband/hw/mlx4/mlx4_ib.h
-===================================================================
---- a/drivers/infiniband/hw/mlx4/mlx4_ib.h
-+++ b/drivers/infiniband/hw/mlx4/mlx4_ib.h
-@@ -193,6 +193,7 @@ struct mlx4_ib_dev {
- 	struct mutex		cap_mask_mutex;
- 	bool			ib_active;
- 	struct mlx4_ib_iboe	iboe;
-+	int			counters[MLX4_MAX_PORTS];
- };
-
- static inline struct mlx4_ib_dev *to_mdev(struct ib_device *ibdev)
-Index: b/drivers/infiniband/hw/mlx4/qp.c
-===================================================================
---- a/drivers/infiniband/hw/mlx4/qp.c
-+++ b/drivers/infiniband/hw/mlx4/qp.c
-@@ -893,7 +893,6 @@ static int mlx4_set_path(struct mlx4_ib_
- 			--path->static_rate;
- 	} else
- 		path->static_rate = 0;
--	path->counter_index = 0xff;
-
- 	if (ah->ah_flags & IB_AH_GRH) {
- 		if (ah->grh.sgid_index >= dev->dev->caps.gid_table_len[port]) {
-@@ -1034,6 +1033,15 @@ static int __mlx4_ib_modify_qp(struct ib
- 		}
- 	}
-
-+	if (cur_state == IB_QPS_INIT && new_state == IB_QPS_RTR) {
-+		if (dev->counters[qp->port - 1] != -1) {
-+			context->pri_path.counter_index =
-+						dev->counters[qp->port - 1];
-+			optpar |= MLX4_QP_OPTPAR_COUNTER_INDEX;
-+		} else
-+			context->pri_path.counter_index = 0xff;
++	return err;
++}
++
++int mlx4_ib_process_mad(struct ib_device *ibdev, int mad_flags,	u8 port_num,
++			struct ib_wc *in_wc, struct ib_grh *in_grh,
++			struct ib_mad *in_mad, struct ib_mad *out_mad)
++{
++	switch (rdma_port_get_link_layer(ibdev, port_num)) {
++	case IB_LINK_LAYER_INFINIBAND:
++		return ib_process_mad(ibdev, mad_flags, port_num, in_wc,
++				      in_grh, in_mad, out_mad);
++	case IB_LINK_LAYER_ETHERNET:
++		return iboe_process_mad(ibdev, mad_flags, port_num, in_wc,
++					  in_grh, in_mad, out_mad);
++	default:
++		return -EINVAL;
 +	}
++}
 +
- 	if (attr_mask & IB_QP_PKEY_INDEX) {
- 		context->pri_path.pkey_index = attr->pkey_index;
- 		optpar |= MLX4_QP_OPTPAR_PKEY_INDEX;
-Index: b/include/linux/mlx4/qp.h
-===================================================================
---- a/include/linux/mlx4/qp.h
-+++ b/include/linux/mlx4/qp.h
-@@ -54,7 +54,8 @@ enum mlx4_qp_optpar {
- 	MLX4_QP_OPTPAR_RETRY_COUNT		= 1 << 12,
- 	MLX4_QP_OPTPAR_RNR_RETRY		= 1 << 13,
- 	MLX4_QP_OPTPAR_ACK_TIMEOUT		= 1 << 14,
--	MLX4_QP_OPTPAR_SCHED_QUEUE		= 1 << 16
-+	MLX4_QP_OPTPAR_SCHED_QUEUE		= 1 << 16,
-+	MLX4_QP_OPTPAR_COUNTER_INDEX		= 1 << 20
- };
-
- enum mlx4_qp_state {
+ static void send_handler(struct ib_mad_agent *agent,
+ 			 struct ib_mad_send_wc *mad_send_wc)
+ {
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
