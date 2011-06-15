@@ -1,45 +1,24 @@
-From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Subject: Re: software iwarp stack update
-Date: Wed, 15 Jun 2011 20:57:38 +0200
-Message-ID: <BANLkTimEGgKEMZd3qppOofN-Vj-u-PH-xA@mail.gmail.com>
-References: <BANLkTikUWpf4iAQT-9DwL_qSCEcY7CPN6w@mail.gmail.com> <OFC721DC15.CBE893E3-ONC12578B0.0053737C-C12578B0.00565784@ch.ibm.com>
+From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: Re: [PATCH 0/8] librdmacm: Support XRC QPs
+Date: Wed, 15 Jun 2011 15:28:31 -0500
+Message-ID: <4DF915EF.9070506@opengridcomputing.com>
+References: <1828884A29C6694DAF28B7E6B8A8237302129C@ORSMSX101.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <OFC721DC15.CBE893E3-ONC12578B0.0053737C-C12578B0.00565784-Xeyd2O9EBijQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <1828884A29C6694DAF28B7E6B8A8237302129C-P5GAC/sN6hmkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bernard Metzler <BMT-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Jun 15, 2011 at 5:43 PM, Bernard Metzler <BMT-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org> wrote:
-> after rebasing to davem/net-next-2.6.git, I formatted a patch adding
-> to the initial 'siw' driver posting from last October. Given the rather
-> substantial amount of changes and time elapsed, I am not sure if people
-> would better like a complete re-posting of all files.
-> If I don't hear objection before tomorrow I would post it as an
-> increment - as summarized below.
+Hey Sean,
 
-Documentation in general and for sysfs attributes in particular seems
-to be missing ?
+Is XRC an IBTA standard?  Is the specification available on-line somewhere?
 
-Also, the following statement in siw_main.c:
+Steve.
 
-ibdev->modify_port = NULL;
-
-causes the following behavior if ib_modify_port() is invoked on a
-softiwarp port:
-
-BUG: unable to handle kernel NULL pointer dereference at           (null)
-IP: [<          (null)>]           (null)
-Call Trace:
- [<ffffffffa0313c15>] ? ib_modify_port+0x55/0x60 [ib_core]
-[ ... ]
-
-Shouldn't the siw driver return an error code instead of setting
-ibdev->modify_port to NULL ?
-
-Bart.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
