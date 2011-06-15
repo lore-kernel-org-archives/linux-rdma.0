@@ -1,33 +1,30 @@
-From: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
-Subject: Re: compile ofed 1.5.3 against lustre kernel
-Date: Wed, 15 Jun 2011 16:12:02 -0500 (CDT)
-Message-ID: <alpine.DEB.2.00.1106151610040.4224@router.home>
-References: <BANLkTin1Pg3e0S=2Hb3=0W=M_qo_TiqRrw@mail.gmail.com> <4DF7C80D.1060408@opengridcomputing.com>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH 0/8] librdmacm: Support XRC QPs
+Date: Wed, 15 Jun 2011 21:54:24 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A82373021445@ORSMSX101.amr.corp.intel.com>
+References: <1828884A29C6694DAF28B7E6B8A8237302129C@ORSMSX101.amr.corp.intel.com>
+ <4DF915EF.9070506@opengridcomputing.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4DF7C80D.1060408-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+In-Reply-To: <4DF915EF.9070506-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Cc: Michael Di Domenico <mdidomenico4-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, 14 Jun 2011, Steve Wise wrote:
+> Is XRC an IBTA standard?  Is the specification available on-line
+> somewhere?
 
-> The ofa kernel configure/build scripts are not detecting that your kernel
-> source is RHEL5.x.  If you just use the ofa_kernel tree to build/install the
-> OFED modules, then you can specify explicitly which backport patches to use
-> when you configure it.  Or if you correctly name your kernel tree and set the
-> version to be something like 2.6.18-238.el5.lustre18 it should correctly
-> detect it.
+Yes - XRC is provided as an Annex to the 1.2.1 spec.
 
-I surely wish this constant nightmare would go away. Could we please have
-OFED trees against each kernel version in use somewhere so that we can
-just do a git pull to get these into the respective trees?
+I don't know if this is the released spec, but you can try this link:
 
-This OFED divining the kernel version and then the application of upgrade
-/ downgrade patches makes a lot of things very hard.
+http://members.infinibandta.org/kwspub/spec/XRC_Annex.pdf
 
+- Sean
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
