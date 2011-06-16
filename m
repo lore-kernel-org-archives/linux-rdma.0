@@ -1,63 +1,79 @@
-From: Manuel Zerpies <manuel.f.zerpies-BvGhN7WtUVpvnyFi9AzMs1NpE/a5I+DW@public.gmane.org>
-Subject: [PATCH 05/11] RDMA/hw/cxgb4: use printk_ratelimited() instead of
- printk_ratelimit()
-Date: Thu, 16 Jun 2011 14:10:40 +0200
-Message-ID: <3bf562d8c92207221d39b2c96af4731308324d61.1308142053.git.manuel.f.zerpies@ww.stud.uni-erlangen.de>
-References: <cover.1308142053.git.manuel.f.zerpies@ww.stud.uni-erlangen.de>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Bernard Metzler <bmt-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>
+Subject: [PATCH 01/14] SIWv2: Kconfig and Makefile
+Date: Thu, 16 Jun 2011 14:41:46 +0200
+Message-ID: <1308228106-22565-1-git-send-email-bmt@zurich.ibm.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <cover.1308142053.git.manuel.f.zerpies-BvGhN7WtUVpvnyFi9AzMs1NpE/a5I+DW@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Steve Wise <swise-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kern
-Cc: christian.dietrich-jNDFPZUTrfT6U6xlzOR6HsSSVFg4/55HhC4ANOJQIlc@public.gmane.org
+To: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Bernard Metzler <bmt-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Since printk_ratelimit() shouldn't be used anymore (see comment in
-include/linux/printk.h), replace it with printk_ratelimited().
-
-Signed-off-by: Manuel Zerpies <manuel.f.zerpies-BvGhN7WtUVpvnyFi9AzMs1NpE/a5I+DW@public.gmane.org>
 ---
- drivers/infiniband/hw/cxgb4/resource.c |    9 +++++----
- 1 files changed, 5 insertions(+), 4 deletions(-)
+ drivers/infiniband/Kconfig         |    1 +
+ drivers/infiniband/Makefile        |    1 +
+ drivers/infiniband/hw/siw/Kconfig  |   14 ++++++++++++++
+ drivers/infiniband/hw/siw/Makefile |    5 +++++
+ 4 files changed, 21 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/infiniband/hw/siw/Kconfig
+ create mode 100644 drivers/infiniband/hw/siw/Makefile
 
-diff --git a/drivers/infiniband/hw/cxgb4/resource.c b/drivers/infiniband/hw/cxgb4/resource.c
-index 4fb50d5..407ff39 100644
---- a/drivers/infiniband/hw/cxgb4/resource.c
-+++ b/drivers/infiniband/hw/cxgb4/resource.c
-@@ -37,6 +37,7 @@
- #include <linux/spinlock.h>
- #include <linux/errno.h>
- #include <linux/genalloc.h>
-+#include <linux/ratelimit.h>
- #include "iw_cxgb4.h"
+diff --git a/drivers/infiniband/Kconfig b/drivers/infiniband/Kconfig
+index 0f9a84c..52097f6 100644
+--- a/drivers/infiniband/Kconfig
++++ b/drivers/infiniband/Kconfig
+@@ -51,6 +51,7 @@ source "drivers/infiniband/hw/cxgb3/Kconfig"
+ source "drivers/infiniband/hw/cxgb4/Kconfig"
+ source "drivers/infiniband/hw/mlx4/Kconfig"
+ source "drivers/infiniband/hw/nes/Kconfig"
++source "drivers/infiniband/hw/siw/Kconfig"
  
- #define RANDOM_SIZE 16
-@@ -311,8 +312,8 @@ u32 c4iw_pblpool_alloc(struct c4iw_rdev *rdev, int size)
- {
- 	unsigned long addr = gen_pool_alloc(rdev->pbl_pool, size);
- 	PDBG("%s addr 0x%x size %d\n", __func__, (u32)addr, size);
--	if (!addr && printk_ratelimit())
--		printk(KERN_WARNING MOD "%s: Out of PBL memory\n",
-+	if (!addr)
-+		printk_ratelimited(KERN_WARNING MOD "%s: Out of PBL memory\n",
- 		       pci_name(rdev->lldi.pdev));
- 	return (u32)addr;
- }
-@@ -373,8 +374,8 @@ u32 c4iw_rqtpool_alloc(struct c4iw_rdev *rdev, int size)
- {
- 	unsigned long addr = gen_pool_alloc(rdev->rqt_pool, size << 6);
- 	PDBG("%s addr 0x%x size %d\n", __func__, (u32)addr, size << 6);
--	if (!addr && printk_ratelimit())
--		printk(KERN_WARNING MOD "%s: Out of RQT memory\n",
-+	if (!addr)
-+		printk_ratelimited(KERN_WARNING MOD "%s: Out of RQT memory\n",
- 		       pci_name(rdev->lldi.pdev));
- 	return (u32)addr;
- }
+ source "drivers/infiniband/ulp/ipoib/Kconfig"
+ 
+diff --git a/drivers/infiniband/Makefile b/drivers/infiniband/Makefile
+index 9cc7a47..c01a0d6 100644
+--- a/drivers/infiniband/Makefile
++++ b/drivers/infiniband/Makefile
+@@ -8,6 +8,7 @@ obj-$(CONFIG_INFINIBAND_CXGB3)		+= hw/cxgb3/
+ obj-$(CONFIG_INFINIBAND_CXGB4)		+= hw/cxgb4/
+ obj-$(CONFIG_MLX4_INFINIBAND)		+= hw/mlx4/
+ obj-$(CONFIG_INFINIBAND_NES)		+= hw/nes/
++obj-$(CONFIG_INFINIBAND_SOFTIWARP)	+= hw/siw/
+ obj-$(CONFIG_INFINIBAND_IPOIB)		+= ulp/ipoib/
+ obj-$(CONFIG_INFINIBAND_SRP)		+= ulp/srp/
+ obj-$(CONFIG_INFINIBAND_ISER)		+= ulp/iser/
+diff --git a/drivers/infiniband/hw/siw/Kconfig b/drivers/infiniband/hw/siw/Kconfig
+new file mode 100644
+index 0000000..6beff23
+--- /dev/null
++++ b/drivers/infiniband/hw/siw/Kconfig
+@@ -0,0 +1,14 @@
++config INFINIBAND_SOFTIWARP
++	tristate "Software iWARP Stack (EXPERIMENTAL)"
++	depends on INET && EXPERIMENTAL
++	---help---
++	  Kernel Software Implementation of the iWARP protocol stack
++
++	  This driver implements the iWARP protocol stack in software
++	  and interfaces with in-kernel TCP/IP as well as the OFED
++	  verbs interfaces.
++
++	  Please send feedback to <bmt-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>.
++
++	  To compile this driver as a module, choose M here: the module
++	  will be called siw.
+diff --git a/drivers/infiniband/hw/siw/Makefile b/drivers/infiniband/hw/siw/Makefile
+new file mode 100644
+index 0000000..234150a
+--- /dev/null
++++ b/drivers/infiniband/hw/siw/Makefile
+@@ -0,0 +1,5 @@
++obj-$(CONFIG_INFINIBAND_SOFTIWARP) += siw.o
++
++siw-y := siw_main.o siw_cm.o siw_verbs.o siw_obj.o \
++	siw_qp.o siw_qp_tx.o siw_qp_rx.o siw_cq.o siw_cm.o \
++	siw_debug.o siw_ae.o siw_mem.o
 -- 
-1.7.4.1
+1.5.4.3
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
