@@ -1,48 +1,63 @@
-From: Bernard Metzler <BMT-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>
-Subject: Re: software iwarp stack update
-Date: Thu, 16 Jun 2011 13:51:01 +0200
-Message-ID: <OFB7458EEB.BFB8A4EE-ONC12578B1.004026D1-C12578B1.0041190E@ch.ibm.com>
-References: <BANLkTimEGgKEMZd3qppOofN-Vj-u-PH-xA@mail.gmail.com>
+From: Manuel Zerpies <manuel.f.zerpies-BvGhN7WtUVpvnyFi9AzMs1NpE/a5I+DW@public.gmane.org>
+Subject: [PATCH 05/11] RDMA/hw/cxgb4: use printk_ratelimited() instead of
+ printk_ratelimit()
+Date: Thu, 16 Jun 2011 14:10:40 +0200
+Message-ID: <3bf562d8c92207221d39b2c96af4731308324d61.1308142053.git.manuel.f.zerpies@ww.stud.uni-erlangen.de>
+References: <cover.1308142053.git.manuel.f.zerpies@ww.stud.uni-erlangen.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <BANLkTimEGgKEMZd3qppOofN-Vj-u-PH-xA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <cover.1308142053.git.manuel.f.zerpies-BvGhN7WtUVpvnyFi9AzMs1NpE/a5I+DW@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Steve Wise <swise-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kern
+Cc: christian.dietrich-jNDFPZUTrfT6U6xlzOR6HsSSVFg4/55HhC4ANOJQIlc@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+Since printk_ratelimit() shouldn't be used anymore (see comment in
+include/linux/printk.h), replace it with printk_ratelimited().
 
+Signed-off-by: Manuel Zerpies <manuel.f.zerpies-BvGhN7WtUVpvnyFi9AzMs1NpE/a5I+DW@public.gmane.org>
+---
+ drivers/infiniband/hw/cxgb4/resource.c |    9 +++++----
+ 1 files changed, 5 insertions(+), 4 deletions(-)
 
-linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org wrote on 06/15/2011 08:57:38 PM:
-
-> On Wed, Jun 15, 2011 at 5:43 PM, Bernard Metzler <BMT-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>
-wrote:
-> > after rebasing to davem/net-next-2.6.git, I formatted a patch adding
-> > to the initial 'siw' driver posting from last October. Given the rather
-> > substantial amount of changes and time elapsed, I am not sure if people
-> > would better like a complete re-posting of all files.
-> > If I don't hear objection before tomorrow I would post it as an
-> > increment - as summarized below.
->
-> Documentation in general and for sysfs attributes in particular seems
-> to be missing ?
->
-> Also, the following statement in siw_main.c:
->
-> ibdev->modify_port = NULL;
-
-oh, thanks...!
-
-I was expecting there is an ib_device->uverbs_cmd_mask
-flag which siw does not set... Unfortunately, it is not
-completely clear to me when a command mask bit is available
-and when the OFA core strictly expects a function pointer.
-Maybe there is some redundancy/inconsistency?
-
-
-Thanks,
-Bernard.
+diff --git a/drivers/infiniband/hw/cxgb4/resource.c b/drivers/infiniband/hw/cxgb4/resource.c
+index 4fb50d5..407ff39 100644
+--- a/drivers/infiniband/hw/cxgb4/resource.c
++++ b/drivers/infiniband/hw/cxgb4/resource.c
+@@ -37,6 +37,7 @@
+ #include <linux/spinlock.h>
+ #include <linux/errno.h>
+ #include <linux/genalloc.h>
++#include <linux/ratelimit.h>
+ #include "iw_cxgb4.h"
+ 
+ #define RANDOM_SIZE 16
+@@ -311,8 +312,8 @@ u32 c4iw_pblpool_alloc(struct c4iw_rdev *rdev, int size)
+ {
+ 	unsigned long addr = gen_pool_alloc(rdev->pbl_pool, size);
+ 	PDBG("%s addr 0x%x size %d\n", __func__, (u32)addr, size);
+-	if (!addr && printk_ratelimit())
+-		printk(KERN_WARNING MOD "%s: Out of PBL memory\n",
++	if (!addr)
++		printk_ratelimited(KERN_WARNING MOD "%s: Out of PBL memory\n",
+ 		       pci_name(rdev->lldi.pdev));
+ 	return (u32)addr;
+ }
+@@ -373,8 +374,8 @@ u32 c4iw_rqtpool_alloc(struct c4iw_rdev *rdev, int size)
+ {
+ 	unsigned long addr = gen_pool_alloc(rdev->rqt_pool, size << 6);
+ 	PDBG("%s addr 0x%x size %d\n", __func__, (u32)addr, size << 6);
+-	if (!addr && printk_ratelimit())
+-		printk(KERN_WARNING MOD "%s: Out of RQT memory\n",
++	if (!addr)
++		printk_ratelimited(KERN_WARNING MOD "%s: Out of RQT memory\n",
+ 		       pci_name(rdev->lldi.pdev));
+ 	return (u32)addr;
+ }
+-- 
+1.7.4.1
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
