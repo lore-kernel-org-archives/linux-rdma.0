@@ -1,32 +1,45 @@
-From: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 7/9] ib/pma: add include file for IBA performance counters definitions
-Date: Thu, 16 Jun 2011 20:57:02 +0300
-Message-ID: <BANLkTinKER=iOz747ajaOMHF3mMGuC2xsw@mail.gmail.com>
-References: <alpine.LRH.2.00.1106151733410.15844@ogerlitz.voltaire.com>
-	<alpine.LRH.2.00.1106151747390.15844@ogerlitz.voltaire.com>
-	<1828884A29C6694DAF28B7E6B8A8237302148F@ORSMSX101.amr.corp.intel.com>
-	<4DF9B319.6070100@mellanox.com>
-	<1828884A29C6694DAF28B7E6B8A8237302184A@ORSMSX101.amr.corp.intel.com>
+From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+Subject: [PATCH] infiniband-diags: test for libosmcomp with a function that
+ is used in the code
+Date: Thu, 16 Jun 2011 11:10:09 -0700
+Message-ID: <20110616111009.fb16cc5e.weiny2@llnl.gov>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1828884A29C6694DAF28B7E6B8A8237302184A-P5GAC/sN6hmkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hefty, Sean <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
-> at this point, you're patches look good to me and are an improvement =
-over what's there
-> now. =A0So, I'd file this comment as a future nice to have.
 
-cool, thanks,
+From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+Date: Sun, 29 May 2011 18:01:31 -0700
+Subject: [PATCH] infiniband-diags: test for libosmcomp with a function that is used in the code
 
-Or.
+Signed-off-by: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+---
+ configure.in |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/configure.in b/configure.in
+index c6e8663..f41f049 100644
+--- a/configure.in
++++ b/configure.in
+@@ -46,8 +46,8 @@ AC_CHECK_MEMBER([struct umad_port.link_layer],
+ if test "$ac_have_umad_port_link_layer" = "yes"; then
+    AC_DEFINE([HAVE_UMAD_PORT_LINK_LAYER], 1, [Define to 1 if struct umad_port has link_layer member])
+ fi
+-AC_CHECK_LIB(osmcomp, cl_thread_init, [],
+-	AC_MSG_ERROR([cl_thread_init() not found. diags require libosmcomp.]))
++AC_CHECK_LIB(osmcomp, cl_qmap_insert, [],
++	AC_MSG_ERROR([cl_qmap_insert() not found. diags require libosmcomp.]))
+ fi
+ 
+ dnl Checks for header files.
+-- 
+1.7.1
+
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
