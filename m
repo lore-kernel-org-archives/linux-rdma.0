@@ -1,30 +1,35 @@
-From: Bart Van Assche <bvanassche@acm.org>
+From: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
 Subject: Re: software iwarp stack update
-Date: Thu, 16 Jun 2011 18:54:32 +0200
-Message-ID: <BANLkTinwQ2AdV3EOxNcGDZdEsxfa5fhJ0w@mail.gmail.com>
+Date: Thu, 16 Jun 2011 10:20:04 -0700
+Message-ID: <BANLkTi=2woNzF=GL3cT3NB_hye5JHfodMA@mail.gmail.com>
 References: <BANLkTimEGgKEMZd3qppOofN-Vj-u-PH-xA@mail.gmail.com> <OFB7458EEB.BFB8A4EE-ONC12578B1.004026D1-C12578B1.0041190E@ch.ibm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <OFB7458EEB.BFB8A4EE-ONC12578B1.004026D1-C12578B1.0041190E@ch.ibm.com>
-Sender: netdev-owner@vger.kernel.org
-To: Bernard Metzler <BMT@zurich.ibm.com>
-Cc: linux-rdma@vger.kernel.org, linux-rdma-owner@vger.kernel.org, netdev@vger.kernel.org
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <OFB7458EEB.BFB8A4EE-ONC12578B1.004026D1-C12578B1.0041190E-Xeyd2O9EBijQT0dZR+AlfA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Bernard Metzler <BMT-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>
+Cc: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Jun 16, 2011 at 1:51 PM, Bernard Metzler <BMT@zurich.ibm.com> wrote:
-> > Also, the following statement in siw_main.c:
-> >
-> > ibdev->modify_port = NULL;
->
 > I was expecting there is an ib_device->uverbs_cmd_mask
 > flag which siw does not set... Unfortunately, it is not
 > completely clear to me when a command mask bit is available
 > and when the OFA core strictly expects a function pointer.
 > Maybe there is some redundancy/inconsistency?
 
-If other iWARP drivers (amso, cxgb3) have a modify_port method, why
-doesn't the siw driver have such a method ? I see this as a blocking
-issue.
+The uverbs_cmd_mask controls which commands userspace
+can send down.  A kernel consumer does not go through the
+code that checks this mask.
 
-Bart.
+It does seem we are missing an IB_MANDATORY_FUNC
+entry for modify_port in ib_device_check_mandatory; or on
+the flip side we are missing a check of modify_port and a
+-ENOSYS return... I guess modify_port does not really make
+sense for iWARP so probably the second option is better.
+
+ - R.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
