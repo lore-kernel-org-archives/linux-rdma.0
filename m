@@ -1,101 +1,107 @@
-From: Michael Di Domenico <mdidomenico4-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: compile ofed 1.5.3 against lustre kernel
-Date: Wed, 15 Jun 2011 21:16:52 -0400
-Message-ID: <BANLkTimaev0HUN+o9HytavWQK+o7QA=8TA@mail.gmail.com>
-References: <BANLkTin1Pg3e0S=2Hb3=0W=M_qo_TiqRrw@mail.gmail.com>
-	<4DF7C80D.1060408@opengridcomputing.com>
-	<alpine.DEB.2.00.1106151610040.4224@router.home>
-	<382A478CAD40FA4FB46605CF81FE39F4F92EC95C@orsmsx507.amr.corp.intel.com>
-	<BANLkTimz3h0C1Z9SUSXx3=LWqpt=T4v10g@mail.gmail.com>
-	<382A478CAD40FA4FB46605CF81FE39F4F92EC987@orsmsx507.amr.corp.intel.com>
+From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH 7/9] ib/pma: add include file for IBA performance	counters
+ definitions
+Date: Thu, 16 Jun 2011 10:39:05 +0300
+Message-ID: <4DF9B319.6070100@mellanox.com>
+References: <alpine.LRH.2.00.1106151733410.15844@ogerlitz.voltaire.com>	<alpine.LRH.2.00.1106151747390.15844@ogerlitz.voltaire.com> <1828884A29C6694DAF28B7E6B8A8237302148F@ORSMSX101.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="us-ascii"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <382A478CAD40FA4FB46605CF81FE39F4F92EC987-osO9UTpF0URzLByeVOV5+bfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+In-Reply-To: <1828884A29C6694DAF28B7E6B8A8237302148F-P5GAC/sN6hmkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Jun 15, 2011 at 7:50 PM, Woodruff, Robert J
-<robert.j.woodruff-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
-> Michael wrote,
->>For those of us that are not hardcore kernel developers can you
->>explain what this change would actually do? =A0I'm not sure i underst=
-and
->>how having a source tree with the patches already applied is any
->>different then taking the base kernel and applying a patch tree. =A0B=
-ut
->>then again i probably don't understand what your talking about at all
->>(me =3D=3D admin not developer).
->
-> Well what I would like to understand is what would you like to see ?
->
-> A tar ball or complete patch with the OFED drivers for each kernel th=
-at OFED supports
-> that can be applied to the kernel tree so that the kernel can be buil=
-t using
-> the normal kernel build process ?
->
-> Or
->
-> A complete kernel tree with all of the OFED drivers already included =
-that could be
-> downloaded via tar balls or git ?
->
-> Other ?
->
+Hefty, Sean wrote:
+> Other than that one nit, the other patches in this series look good to me.  See below for comments on this one.
 
-I'm not sure I'm really qualified to answer such a question (nor
-whether i can write what i want to say legibly), but I'll take a stab
-at it.
+>> +struct ib_perf {
+>> +	u8 base_version;
+>> +	u8 mgmt_class;
+>> +	u8 class_version;
+>> +	u8 method;
+>> +	__be16 status;
+>> +	__be16 unused;
+>> +	__be64 tid;
+>> +	__be16 attr_id;
+>> +	__be16 resv;
+>> +	__be32 attr_mod;
+>> +	u8 reserved[40];
+>> +	u8 data[192];
+>> +} __attribute__ ((packed));
 
-=46irst off you should note i can only speak to redhat and rpmbuild
-processes, we don't use sles or any other distro where i work (so my
-answer is definitely biased).
+> This should use struct ib_mad_hdr, possibly adding appropriate values to ib_mad.h for the 40 and 192.  
+> See the enum in ib_mad.h with IB_MGMT_* values.  I would also rename this to struct ib_pm_mad to better 
+> match the existing mad definitions.
 
-=46or me personally, the only time I rebuild the kernel is when I have
-to build a lustre server, which is not all that often.
+okay, replaced all the fields except for the last two with struct 
+ib_mad_hdr and renamed the structure to ib_pma_mad (long live sed)
 
-The steps i take (in brevity) are:
+>> +struct ib_pma_classportinfo {
+> This needs to be replaced with struct ib_class_port_info in ib_mad.h.
 
-unpack kernel source from redhat
-edit spec file to include lustre patches
-rebuild kernel rpms using rpmbuild (redhat process)
-install new kernel
-reboot into new kernel
-use ofed install.pl -s /<lustre kernel tree>
-install ofed rpms
-reboot
-make lustre source using --with-linux=3D<lustre kernel tree>
---with-o2ib=3D/usr/src/ofa_kernel
+good catch, done
 
-Even though I'm not really answering your question, I'm not sure the
-change really makes any difference to me.  I can't really foresee a
-need where i would want a full kernel tree versus patches.  I'm sure
-scenario's exist where it would be beneficial to have one method over
-the other, but for me i can't think of one.  I would hazard a guess
-that the majority of people are in the same boat as me with kernel
-rebuilds
+>> +struct ib_pma_portsamplescontrol {
+>> +	u8 counter_width;       /* only lower 3 bits */
+>> +	__be32 counter_mask0_9; /* 2, 10 * 3, bits */
+>> +	__be16 counter_mask10_14;       /* 1, 5 * 3, bits */
 
-nope, even sitting here racking my brain some more, i can't see a need
-for a full kernel tree for me.  even if i was rebuilding the kernel
-and kernel-ib sections i'd still want to use the redhat rpmbuild
-process, which will patch vanilla 2.6.18 to 2.6.18-238, and then i'd
-add whatever patches i needed to the end of rhel's patch tree just
-like i did with lustre and let the spec file do all the work
+> Comments for the bit fields aren't very clear, maybe say something more like '10 3-bit fields'.  
+> For things like counter_width, my preference is something like /* resv: 7:3, counter width: 2:0 */ 
+> to clarify which bits are used and indicate that the others are currently reserved.
 
-i guess if i was an IB developer though, having a git tree of 2.6.18
-with all the RHEL and IB patches applied to it would probably be handy
-though.  i can only guess that having full git trees might make
-porting patches to other kernel versions easier (not a dev don't
-really know).  how do ports get created today? does each developer
-have to basically create a kernel dev tree and test their patch
-against it and see what breaks?
+done, changed the comments as you suggested
 
-dunno if i helped or wasted everyone's time, but that's my two cents...
+>> +	__be16 counter_select[15];
+>> +} __attribute__ ((packed));
+
+> There are fields missing at the end: reserved 32-bits, SamplesOnlyOptionMask 64-bit, reserved 896-bits.  
+> This should make the structure naturally aligned, which could remove the packed attribute.
+
+done, added reserved fields and removed packing.
+
+>> +struct ib_pma_portsamplesresult {
+> this is naturally aligned
+
+OKAY, removed packing here
+
+> 
+>> +struct ib_pma_portsamplesresult_ext {
+> this is naturally aligned
+
+OKAY, removed packing also here
+
+>> +struct ib_pma_portcounters {
+>> +	u8 lli_ebor_errors;     /* 4, 4, bits */
+
+> lli_ebor?  what about link_overrun_errors instead, or at least something a little more descriptive?
+> Enhancing the comment can also help: /* LocalLink: 7:4, BufferOverrun: 3:0 */
+
+done, changed field name to link_overrun_errors and added the comment 
+you suggested.
+
+>> +	__be32 port_xmit_data;
+>> +	__be32 port_rcv_data;
+>> +	__be32 port_xmit_packets;
+>> +	__be32 port_rcv_packets;
+>> +} __attribute__ ((packed));
+
+> missing PortXmitWait 32-bits at end
+
+added, thanks
+
+
+> Rather than having IB_PMA_SEL_* and IB_PMA_SELX_*, we could follow what's done in ib_sa.h:
+> IB_PM_<structure>_<field>
+
+I would need some guidance here...  maybe you can elaborate a little 
+further with the V1 posting which will follow soon
+
+Or.
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
