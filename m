@@ -1,25 +1,27 @@
 From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH 2/2] libibverbs: Add support for XRC QPs
-Date: Thu, 16 Jun 2011 18:09:26 +0300
-Message-ID: <4DFA1CA6.4030304@mellanox.com>
-References: <1828884A29C6694DAF28B7E6B8A8237302124E@ORSMSX101.amr.corp.intel.com> <4DFA1BB8.9000305@mellanox.com>
+Subject: Re: [PATCH 1/2] libibverbs: Allow 3rd party extensions to verb routines
+Date: Thu, 16 Jun 2011 18:14:37 +0300
+Message-ID: <4DFA1DDD.5020508@mellanox.com>
+References: <1828884A29C6694DAF28B7E6B8A8237302123C@ORSMSX101.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4DFA1BB8.9000305-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <1828884A29C6694DAF28B7E6B8A8237302123C-P5GAC/sN6hmkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Or Gerlitz wrote:
-> The upstream kernel (below) uses already the values 5 and 6 for
-> the IB RAW qp types
+Hefty, Sean wrote:
+> In order to support OFED or vendor specific calls, define a
+> generic extension mechanism.  This allows OFED, an RDMA vendor,
+> or another registered 3rd party (for example, the librdmacm)
+> to define RDMA extensions.
 
-sorry if I wasn't clear, these two QP types aren't exposed to user
-space so we don't have to worry about them, only on the packet and xrc 
-qp types.
+I'm trying to understand the way the user/kernel way of adding verbs
+is implemented... I wasn't sure, if/which specific kernel patch out
+of this series is matching this one?
 
 Or.
 --
