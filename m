@@ -1,52 +1,31 @@
-From: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 2/2] libibverbs: Add support for XRC QPs
-Date: Thu, 16 Jun 2011 21:06:09 +0300
-Message-ID: <BANLkTi=r5kG4rUH1+dsgOg1LcdrzZRA_Ew@mail.gmail.com>
-References: <1828884A29C6694DAF28B7E6B8A8237302124E@ORSMSX101.amr.corp.intel.com>
-	<4DFA1BB8.9000305@mellanox.com>
-	<1828884A29C6694DAF28B7E6B8A82373021813@ORSMSX101.amr.corp.intel.com>
+From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Subject: Re: software iwarp stack update
+Date: Thu, 16 Jun 2011 20:06:44 +0200
+Message-ID: <BANLkTikE-oc2qWZec+2BfWuUy-oNdf-opg@mail.gmail.com>
+References: <BANLkTimEGgKEMZd3qppOofN-Vj-u-PH-xA@mail.gmail.com>
+ <OFB7458EEB.BFB8A4EE-ONC12578B1.004026D1-C12578B1.0041190E@ch.ibm.com> <BANLkTi=2woNzF=GL3cT3NB_hye5JHfodMA@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1828884A29C6694DAF28B7E6B8A82373021813-P5GAC/sN6hmkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
+In-Reply-To: <BANLkTi=2woNzF=GL3cT3NB_hye5JHfodMA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+Cc: Bernard Metzler <BMT-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hefty, Sean <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
+On Thu, Jun 16, 2011 at 7:20 PM, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org> wrote:
+> It does seem we are missing an IB_MANDATORY_FUNC
+> entry for modify_port in ib_device_check_mandatory; or on
+> the flip side we are missing a check of modify_port and a
+> -ENOSYS return... I guess modify_port does not really make
+> sense for iWARP so probably the second option is better.
 
-> I don't know if user space can allocate raw qps, but to be safe, I'll=
- add XRC INI and TGT
-> QP types after IB_QPT_RAW_ETHERTYPE (values 7 and 8) and adjust ibver=
-bs to
-> make the mapping simple. =A0What I was trying to suggest in my other =
-email is for OFA to
-> do something like this going forward:
-> enum ib_qp_type {
-> =A0 =A0 =A0 =A0upstream values... ,
-> =A0 =A0 =A0 =A0IB_QPT_OFA_SPECIFIC =3D 2 << 24,
-> =A0 =A0 =A0 =A0IB_QPT_OFA_XRC,
-> =A0 =A0 =A0 =A0IB_QPT_OFA_RAW_PACKET
-> So, we don't end up with conflicting types, and OFA can treat OFA_XRC=
- differently if
-> the accepted XRC patches end up being different. =A0(Of course, it's =
-too late to fix OFA
-> XRC this way, but maybe it's possible for OFA to support existing app=
-s with only a
-> recompile?)
+It's not just ib_modify_port() - there are several other functions in
+the amso and cxgb* drivers that do nothing more than returning either
+-ENOSYS or ERR_PTR(-ENOSYS).
 
-I can't speak on behalf of XRC consumers, but as for the ethernet
-packet qp, we don't
-want to have two qp types, upstream one and ofa one. If it doesn't
-work for upstream to reserve the value of 8 for the packet qp
-(hopefully to be reviewed and merged soon...) we'll require everyone
-to recompile.
-
-Or.
+Bart.
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
