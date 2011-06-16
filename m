@@ -1,25 +1,31 @@
 From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH 2/17] rdma/core: Add SRQ type
-Date: Thu, 16 Jun 2011 15:00:38 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A823730217A6@ORSMSX101.amr.corp.intel.com>
-References: <1828884A29C6694DAF28B7E6B8A82373020FFA@ORSMSX101.amr.corp.intel.com>
- <4DFA1923.8080201@mellanox.com>
+Subject: RE: [PATCH 2/2] libibverbs: Add support for XRC QPs
+Date: Thu, 16 Jun 2011 15:02:33 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A823730217B5@ORSMSX101.amr.corp.intel.com>
+References: <1828884A29C6694DAF28B7E6B8A8237302124E@ORSMSX101.amr.corp.intel.com>
+ <201106161304.19939.dotanb@sw.voltaire.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4DFA1923.8080201-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <201106161304.19939.dotanb-g2bIKuvJtcQanlnWow0HJg@public.gmane.org>
 Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Dotan Barak <dotan-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> I don't see mlx4 in the hw drivers list, probably you handle it later
-> on, to have things clearer and bisect-able, I guess you might want to
-> touch mlx4 already at this point of the series?
+> Should the following struct be used instead of the suggested struct above?
+> 
+> 	struct {
+> 		struct ibv_xrcd *xrcd;
+> 		struct ibv_cq   *cq;
+> 		uint32_t	 srq_num;
+> 	} xrc;
+> 
+> (attributes were rearranged according to their size).
 
-Yes - I can add the same check to mlx4 and remove it when xrc srq support is added in a later patch.
+I can swap things around.
 
 - Sean
 --
