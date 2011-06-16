@@ -1,7 +1,7 @@
 From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCHv2 2/17] rdma/core: Add SRQ type
-Date: Thu, 16 Jun 2011 22:30:46 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A8237302197E@ORSMSX101.amr.corp.intel.com>
+Subject: [PATCHv2 4/17] rdma/core: Add XRX QPs
+Date: Thu, 16 Jun 2011 22:33:40 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A8237302198E@ORSMSX101.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
@@ -11,168 +11,329 @@ Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Currently, there is only a single type of SRQ, but with XRC support
-we will add a second.  Prepare for this by defining an SRQ type and
-setting all current users to IB_SRQT_BASIC.
+XRC communication is between an initiator (INI) QP and a target
+(TGT) QP.  Target QPs are associated with SRQs through an XRCD.
+An XRC TGT QP behaves like a receive-only RD QP.  XRC INI QPs
+behave similar to an RC QP, except that work requests posted to
+an XRC INI QP must specify the remote SRQ that is the target
+of the work request.
+
+We define two new QP types for XRC, to distinguish between
+INI and TGT QPs, and update the core layer to support XRC QPs.
+
+This patch is derived from work by Jack Morgenstein
+<jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 
 Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
 change from v1:
-Added check to mlx4 driver to fail non-basic srq types.
-Support for xrc srq's comes in a later patch.
+Re-numbered xrc ini and tgt qp types to skip ofa qp type values.
+Added IB_QPT_MAX, which is used to define the size of the qp state
+change table.
 
- drivers/infiniband/core/uverbs_cmd.c         |    1 +
- drivers/infiniband/core/verbs.c              |    1 +
- drivers/infiniband/hw/ehca/ehca_qp.c         |    3 +++
- drivers/infiniband/hw/ipath/ipath_srq.c      |    5 +++++
- drivers/infiniband/hw/mlx4/srq.c             |    3 +++
- drivers/infiniband/hw/mthca/mthca_provider.c |    3 +++
- drivers/infiniband/hw/qib/qib_srq.c          |    5 +++++
- drivers/infiniband/ulp/ipoib/ipoib_cm.c      |    1 +
- include/rdma/ib_verbs.h                      |    6 ++++++
- 9 files changed, 28 insertions(+), 0 deletions(-)
+ drivers/infiniband/core/verbs.c |  149 ++++++++++++++++++++++++++++++++++-----
+ include/rdma/ib_verbs.h         |    9 ++
+ 2 files changed, 137 insertions(+), 21 deletions(-)
 
-diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
-index c426992..48d21d0 100644
---- a/drivers/infiniband/core/uverbs_cmd.c
-+++ b/drivers/infiniband/core/uverbs_cmd.c
-@@ -2013,6 +2013,7 @@ ssize_t ib_uverbs_create_srq(struct ib_uverbs_file *file,
- 
- 	attr.event_handler  = ib_uverbs_srq_event_handler;
- 	attr.srq_context    = file;
-+	attr.srq_type       = IB_SRQT_BASIC;
- 	attr.attr.max_wr    = cmd.max_wr;
- 	attr.attr.max_sge   = cmd.max_sge;
- 	attr.attr.srq_limit = cmd.srq_limit;
 diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
-index 5e03ab7..cbe85dd 100644
+index 25c1c1e..8ff16e3 100644
 --- a/drivers/infiniband/core/verbs.c
 +++ b/drivers/infiniband/core/verbs.c
-@@ -250,6 +250,7 @@ struct ib_srq *ib_create_srq(struct ib_pd *pd,
- 		srq->uobject       = NULL;
- 		srq->event_handler = srq_init_attr->event_handler;
- 		srq->srq_context   = srq_init_attr->srq_context;
-+		srq->srq_type      = srq_init_attr->srq_type;
- 		atomic_inc(&pd->usecnt);
- 		atomic_set(&srq->usecnt, 0);
- 	}
-diff --git a/drivers/infiniband/hw/ehca/ehca_qp.c b/drivers/infiniband/hw/ehca/ehca_qp.c
-index 32fb342..964f855 100644
---- a/drivers/infiniband/hw/ehca/ehca_qp.c
-+++ b/drivers/infiniband/hw/ehca/ehca_qp.c
-@@ -977,6 +977,9 @@ struct ib_srq *ehca_create_srq(struct ib_pd *pd,
- 	struct hcp_modify_qp_control_block *mqpcb;
- 	u64 hret, update_mask;
- 
-+	if (srq_init_attr->srq_type != IB_SRQT_BASIC)
-+		return ERR_PTR(-ENOSYS);
-+
- 	/* For common attributes, internal_create_qp() takes its info
- 	 * out of qp_init_attr, so copy all common attrs there.
- 	 */
-diff --git a/drivers/infiniband/hw/ipath/ipath_srq.c b/drivers/infiniband/hw/ipath/ipath_srq.c
-index 386e2c7..2627198 100644
---- a/drivers/infiniband/hw/ipath/ipath_srq.c
-+++ b/drivers/infiniband/hw/ipath/ipath_srq.c
-@@ -107,6 +107,11 @@ struct ib_srq *ipath_create_srq(struct ib_pd *ibpd,
- 	u32 sz;
- 	struct ib_srq *ret;
- 
-+	if (srq_init_attr->srq_type != IB_SRQT_BASIC) {
-+		ret = ERR_PTR(-ENOSYS);
-+		goto done;
-+	}
-+
- 	if (srq_init_attr->attr.max_wr == 0) {
- 		ret = ERR_PTR(-EINVAL);
- 		goto done;
-diff --git a/drivers/infiniband/hw/mlx4/srq.c b/drivers/infiniband/hw/mlx4/srq.c
-index 818b7ec..4f7f760 100644
---- a/drivers/infiniband/hw/mlx4/srq.c
-+++ b/drivers/infiniband/hw/mlx4/srq.c
-@@ -81,6 +81,9 @@ struct ib_srq *mlx4_ib_create_srq(struct ib_pd *pd,
- 	int err;
- 	int i;
- 
-+	if (init_attr->srq_type != IB_SRQT_BASIC)
-+		return ERR_PTR(-ENOSYS);
-+
- 	/* Sanity check SRQ size before proceeding */
- 	if (init_attr->attr.max_wr  >= dev->dev->caps.max_srq_wqes ||
- 	    init_attr->attr.max_sge >  dev->dev->caps.max_srq_sge)
-diff --git a/drivers/infiniband/hw/mthca/mthca_provider.c b/drivers/infiniband/hw/mthca/mthca_provider.c
-index 1e0b4b6..784fd5d 100644
---- a/drivers/infiniband/hw/mthca/mthca_provider.c
-+++ b/drivers/infiniband/hw/mthca/mthca_provider.c
-@@ -474,6 +474,9 @@ static struct ib_srq *mthca_create_srq(struct ib_pd *pd,
- 	struct mthca_srq *srq;
- 	int err;
- 
-+	if (init_attr->srq_type != IB_SRQT_BASIC)
-+		return ERR_PTR(-ENOSYS);
-+
- 	srq = kmalloc(sizeof *srq, GFP_KERNEL);
- 	if (!srq)
- 		return ERR_PTR(-ENOMEM);
-diff --git a/drivers/infiniband/hw/qib/qib_srq.c b/drivers/infiniband/hw/qib/qib_srq.c
-index c3ec8ef..d623593 100644
---- a/drivers/infiniband/hw/qib/qib_srq.c
-+++ b/drivers/infiniband/hw/qib/qib_srq.c
-@@ -107,6 +107,11 @@ struct ib_srq *qib_create_srq(struct ib_pd *ibpd,
- 	u32 sz;
- 	struct ib_srq *ret;
- 
-+	if (srq_init_attr->srq_type != IB_SRQT_BASIC) {
-+		ret = ERR_PTR(-ENOSYS);
-+		goto done;
-+	}
-+
- 	if (srq_init_attr->attr.max_sge == 0 ||
- 	    srq_init_attr->attr.max_sge > ib_qib_max_srq_sges ||
- 	    srq_init_attr->attr.max_wr == 0 ||
-diff --git a/drivers/infiniband/ulp/ipoib/ipoib_cm.c b/drivers/infiniband/ulp/ipoib/ipoib_cm.c
-index 93d5580..4aac863 100644
---- a/drivers/infiniband/ulp/ipoib/ipoib_cm.c
-+++ b/drivers/infiniband/ulp/ipoib/ipoib_cm.c
-@@ -1503,6 +1503,7 @@ static void ipoib_cm_create_srq(struct net_device *dev, int max_sge)
+@@ -320,24 +320,43 @@ struct ib_qp *ib_create_qp(struct ib_pd *pd,
+ 			   struct ib_qp_init_attr *qp_init_attr)
  {
- 	struct ipoib_dev_priv *priv = netdev_priv(dev);
- 	struct ib_srq_init_attr srq_init_attr = {
-+		.srq_type = IB_SRQT_BASIC,
- 		.attr = {
- 			.max_wr  = ipoib_recvq_size,
- 			.max_sge = max_sge
+ 	struct ib_qp *qp;
++	struct ib_device *device;
+ 
+-	qp = pd->device->create_qp(pd, qp_init_attr, NULL);
++	device = pd ? pd->device : qp_init_attr->xrcd->device;
++	qp = device->create_qp(pd, qp_init_attr, NULL);
+ 
+ 	if (!IS_ERR(qp)) {
+-		qp->device     	  = pd->device;
+-		qp->pd         	  = pd;
+-		qp->send_cq    	  = qp_init_attr->send_cq;
+-		qp->recv_cq    	  = qp_init_attr->recv_cq;
+-		qp->srq	       	  = qp_init_attr->srq;
++		qp->device = device;
++
++		if (qp_init_attr->qp_type == IB_QPT_XRC_TGT) {
++			qp->pd = NULL;
++			qp->send_cq = qp->recv_cq = NULL;
++			qp->srq = NULL;
++			qp->xrcd = qp_init_attr->xrcd;
++			atomic_inc(&qp_init_attr->xrcd->usecnt);
++		} else {
++			if (qp_init_attr->qp_type == IB_QPT_XRC_INI) {
++				qp->recv_cq = NULL;
++				qp->srq = NULL;
++			} else {
++				qp->recv_cq = qp_init_attr->recv_cq;
++				atomic_inc(&qp_init_attr->recv_cq->usecnt);
++				if ((qp->srq = qp_init_attr->srq))
++					atomic_inc(&qp_init_attr->srq->usecnt);
++			}
++
++			qp->pd	    = pd;
++			qp->send_cq = qp_init_attr->send_cq;
++			qp->xrcd    = NULL;
++
++			atomic_inc(&pd->usecnt);
++			atomic_inc(&qp_init_attr->send_cq->usecnt);
++		}
++
+ 		qp->uobject       = NULL;
+ 		qp->event_handler = qp_init_attr->event_handler;
+ 		qp->qp_context    = qp_init_attr->qp_context;
+ 		qp->qp_type	  = qp_init_attr->qp_type;
+-		atomic_inc(&pd->usecnt);
+-		atomic_inc(&qp_init_attr->send_cq->usecnt);
+-		atomic_inc(&qp_init_attr->recv_cq->usecnt);
+-		if (qp_init_attr->srq)
+-			atomic_inc(&qp_init_attr->srq->usecnt);
+ 	}
+ 
+ 	return qp;
+@@ -346,8 +365,8 @@ EXPORT_SYMBOL(ib_create_qp);
+ 
+ static const struct {
+ 	int			valid;
+-	enum ib_qp_attr_mask	req_param[IB_QPT_RAW_ETHERTYPE + 1];
+-	enum ib_qp_attr_mask	opt_param[IB_QPT_RAW_ETHERTYPE + 1];
++	enum ib_qp_attr_mask	req_param[IB_QPT_MAX];
++	enum ib_qp_attr_mask	opt_param[IB_QPT_MAX];
+ } qp_state_table[IB_QPS_ERR + 1][IB_QPS_ERR + 1] = {
+ 	[IB_QPS_RESET] = {
+ 		[IB_QPS_RESET] = { .valid = 1 },
+@@ -363,6 +382,12 @@ static const struct {
+ 				[IB_QPT_RC]  = (IB_QP_PKEY_INDEX		|
+ 						IB_QP_PORT			|
+ 						IB_QP_ACCESS_FLAGS),
++				[IB_QPT_XRC_INI] = (IB_QP_PKEY_INDEX		|
++						IB_QP_PORT			|
++						IB_QP_ACCESS_FLAGS),
++				[IB_QPT_XRC_TGT] = (IB_QP_PKEY_INDEX		|
++						IB_QP_PORT			|
++						IB_QP_ACCESS_FLAGS),
+ 				[IB_QPT_SMI] = (IB_QP_PKEY_INDEX		|
+ 						IB_QP_QKEY),
+ 				[IB_QPT_GSI] = (IB_QP_PKEY_INDEX		|
+@@ -385,6 +410,12 @@ static const struct {
+ 				[IB_QPT_RC]  = (IB_QP_PKEY_INDEX		|
+ 						IB_QP_PORT			|
+ 						IB_QP_ACCESS_FLAGS),
++				[IB_QPT_XRC_INI] = (IB_QP_PKEY_INDEX		|
++						IB_QP_PORT			|
++						IB_QP_ACCESS_FLAGS),
++				[IB_QPT_XRC_TGT] = (IB_QP_PKEY_INDEX		|
++						IB_QP_PORT			|
++						IB_QP_ACCESS_FLAGS),
+ 				[IB_QPT_SMI] = (IB_QP_PKEY_INDEX		|
+ 						IB_QP_QKEY),
+ 				[IB_QPT_GSI] = (IB_QP_PKEY_INDEX		|
+@@ -404,6 +435,16 @@ static const struct {
+ 						IB_QP_RQ_PSN			|
+ 						IB_QP_MAX_DEST_RD_ATOMIC	|
+ 						IB_QP_MIN_RNR_TIMER),
++				[IB_QPT_XRC_INI] = (IB_QP_AV			|
++						IB_QP_PATH_MTU			|
++						IB_QP_DEST_QPN			|
++						IB_QP_RQ_PSN),
++				[IB_QPT_XRC_TGT] = (IB_QP_AV			|
++						IB_QP_PATH_MTU			|
++						IB_QP_DEST_QPN			|
++						IB_QP_RQ_PSN			|
++						IB_QP_MAX_DEST_RD_ATOMIC	|
++						IB_QP_MIN_RNR_TIMER),
+ 			},
+ 			.opt_param = {
+ 				 [IB_QPT_UD]  = (IB_QP_PKEY_INDEX		|
+@@ -414,6 +455,12 @@ static const struct {
+ 				 [IB_QPT_RC]  = (IB_QP_ALT_PATH			|
+ 						 IB_QP_ACCESS_FLAGS		|
+ 						 IB_QP_PKEY_INDEX),
++				 [IB_QPT_XRC_INI] = (IB_QP_ALT_PATH		|
++						 IB_QP_ACCESS_FLAGS		|
++						 IB_QP_PKEY_INDEX),
++				 [IB_QPT_XRC_TGT] = (IB_QP_ALT_PATH		|
++						 IB_QP_ACCESS_FLAGS		|
++						 IB_QP_PKEY_INDEX),
+ 				 [IB_QPT_SMI] = (IB_QP_PKEY_INDEX		|
+ 						 IB_QP_QKEY),
+ 				 [IB_QPT_GSI] = (IB_QP_PKEY_INDEX		|
+@@ -434,6 +481,13 @@ static const struct {
+ 						IB_QP_RNR_RETRY			|
+ 						IB_QP_SQ_PSN			|
+ 						IB_QP_MAX_QP_RD_ATOMIC),
++				[IB_QPT_XRC_INI] = (IB_QP_TIMEOUT		|
++						IB_QP_RETRY_CNT			|
++						IB_QP_RNR_RETRY			|
++						IB_QP_SQ_PSN			|
++						IB_QP_MAX_QP_RD_ATOMIC),
++				[IB_QPT_XRC_TGT] = (IB_QP_TIMEOUT		|
++						IB_QP_SQ_PSN),
+ 				[IB_QPT_SMI] = IB_QP_SQ_PSN,
+ 				[IB_QPT_GSI] = IB_QP_SQ_PSN,
+ 			},
+@@ -449,6 +503,15 @@ static const struct {
+ 						 IB_QP_ACCESS_FLAGS		|
+ 						 IB_QP_MIN_RNR_TIMER		|
+ 						 IB_QP_PATH_MIG_STATE),
++				 [IB_QPT_XRC_INI] = (IB_QP_CUR_STATE		|
++						 IB_QP_ALT_PATH			|
++						 IB_QP_ACCESS_FLAGS		|
++						 IB_QP_PATH_MIG_STATE),
++				 [IB_QPT_XRC_TGT] = (IB_QP_CUR_STATE		|
++						 IB_QP_ALT_PATH			|
++						 IB_QP_ACCESS_FLAGS		|
++						 IB_QP_MIN_RNR_TIMER		|
++						 IB_QP_PATH_MIG_STATE),
+ 				 [IB_QPT_SMI] = (IB_QP_CUR_STATE		|
+ 						 IB_QP_QKEY),
+ 				 [IB_QPT_GSI] = (IB_QP_CUR_STATE		|
+@@ -473,6 +536,15 @@ static const struct {
+ 						IB_QP_ALT_PATH			|
+ 						IB_QP_PATH_MIG_STATE		|
+ 						IB_QP_MIN_RNR_TIMER),
++				[IB_QPT_XRC_INI] = (IB_QP_CUR_STATE		|
++						IB_QP_ACCESS_FLAGS		|
++						IB_QP_ALT_PATH			|
++						IB_QP_PATH_MIG_STATE),
++				[IB_QPT_XRC_TGT] = (IB_QP_CUR_STATE		|
++						IB_QP_ACCESS_FLAGS		|
++						IB_QP_ALT_PATH			|
++						IB_QP_PATH_MIG_STATE		|
++						IB_QP_MIN_RNR_TIMER),
+ 				[IB_QPT_SMI] = (IB_QP_CUR_STATE			|
+ 						IB_QP_QKEY),
+ 				[IB_QPT_GSI] = (IB_QP_CUR_STATE			|
+@@ -485,6 +557,8 @@ static const struct {
+ 				[IB_QPT_UD]  = IB_QP_EN_SQD_ASYNC_NOTIFY,
+ 				[IB_QPT_UC]  = IB_QP_EN_SQD_ASYNC_NOTIFY,
+ 				[IB_QPT_RC]  = IB_QP_EN_SQD_ASYNC_NOTIFY,
++				[IB_QPT_XRC_INI] = IB_QP_EN_SQD_ASYNC_NOTIFY,
++				[IB_QPT_XRC_TGT] = IB_QP_EN_SQD_ASYNC_NOTIFY, /* ??? */
+ 				[IB_QPT_SMI] = IB_QP_EN_SQD_ASYNC_NOTIFY,
+ 				[IB_QPT_GSI] = IB_QP_EN_SQD_ASYNC_NOTIFY
+ 			}
+@@ -507,6 +581,15 @@ static const struct {
+ 						IB_QP_ACCESS_FLAGS		|
+ 						IB_QP_MIN_RNR_TIMER		|
+ 						IB_QP_PATH_MIG_STATE),
++				[IB_QPT_XRC_INI] = (IB_QP_CUR_STATE		|
++						IB_QP_ALT_PATH			|
++						IB_QP_ACCESS_FLAGS		|
++						IB_QP_PATH_MIG_STATE),
++				[IB_QPT_XRC_TGT] = (IB_QP_CUR_STATE		|
++						IB_QP_ALT_PATH			|
++						IB_QP_ACCESS_FLAGS		|
++						IB_QP_MIN_RNR_TIMER		|
++						IB_QP_PATH_MIG_STATE),
+ 				[IB_QPT_SMI] = (IB_QP_CUR_STATE			|
+ 						IB_QP_QKEY),
+ 				[IB_QPT_GSI] = (IB_QP_CUR_STATE			|
+@@ -535,6 +618,25 @@ static const struct {
+ 						IB_QP_PKEY_INDEX		|
+ 						IB_QP_MIN_RNR_TIMER		|
+ 						IB_QP_PATH_MIG_STATE),
++				[IB_QPT_XRC_INI] = (IB_QP_PORT			|
++						IB_QP_AV			|
++						IB_QP_TIMEOUT			|
++						IB_QP_RETRY_CNT			|
++						IB_QP_RNR_RETRY			|
++						IB_QP_MAX_QP_RD_ATOMIC		|
++						IB_QP_ALT_PATH			|
++						IB_QP_ACCESS_FLAGS		|
++						IB_QP_PKEY_INDEX		|
++						IB_QP_PATH_MIG_STATE),
++				[IB_QPT_XRC_TGT] = (IB_QP_PORT			|
++						IB_QP_AV			|
++						IB_QP_TIMEOUT			|
++						IB_QP_MAX_DEST_RD_ATOMIC	|
++						IB_QP_ALT_PATH			|
++						IB_QP_ACCESS_FLAGS		|
++						IB_QP_PKEY_INDEX		|
++						IB_QP_MIN_RNR_TIMER		|
++						IB_QP_PATH_MIG_STATE),
+ 				[IB_QPT_SMI] = (IB_QP_PKEY_INDEX		|
+ 						IB_QP_QKEY),
+ 				[IB_QPT_GSI] = (IB_QP_PKEY_INDEX		|
+@@ -619,20 +721,27 @@ int ib_destroy_qp(struct ib_qp *qp)
+ 	struct ib_pd *pd;
+ 	struct ib_cq *scq, *rcq;
+ 	struct ib_srq *srq;
++	struct ib_xrcd *xrcd;
+ 	int ret;
+ 
+-	pd  = qp->pd;
+-	scq = qp->send_cq;
+-	rcq = qp->recv_cq;
+-	srq = qp->srq;
++	pd   = qp->pd;
++	scq  = qp->send_cq;
++	rcq  = qp->recv_cq;
++	srq  = qp->srq;
++	xrcd = qp->xrcd;
+ 
+ 	ret = qp->device->destroy_qp(qp);
+ 	if (!ret) {
+-		atomic_dec(&pd->usecnt);
+-		atomic_dec(&scq->usecnt);
+-		atomic_dec(&rcq->usecnt);
++		if (pd)
++			atomic_dec(&pd->usecnt);
++		if (scq)
++			atomic_dec(&scq->usecnt);
++		if (rcq)
++			atomic_dec(&rcq->usecnt);
+ 		if (srq)
+ 			atomic_dec(&srq->usecnt);
++		if (xrcd)
++			atomic_dec(&xrcd->usecnt);
+ 	}
+ 
+ 	return ret;
 diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index 760662f..1374a66 100644
+index 2a85461..16a04ff 100644
 --- a/include/rdma/ib_verbs.h
 +++ b/include/rdma/ib_verbs.h
-@@ -522,6 +522,10 @@ enum ib_cq_notify_flags {
- 	IB_CQ_REPORT_MISSED_EVENTS	= 1 << 2,
+@@ -578,7 +578,11 @@ enum ib_qp_type {
+ 	IB_QPT_UC,
+ 	IB_QPT_UD,
+ 	IB_QPT_RAW_IPV6,
+-	IB_QPT_RAW_ETHERTYPE
++	IB_QPT_RAW_ETHERTYPE,
++	/* Save 8 for RAW_PACKET */
++	IB_QPT_XRC_INI = 9,
++	IB_QPT_XRC_TGT,
++	IB_QPT_MAX
  };
  
-+enum ib_srq_type {
-+	IB_SRQT_BASIC
-+};
-+
- enum ib_srq_attr_mask {
- 	IB_SRQ_MAX_WR	= 1 << 0,
- 	IB_SRQ_LIMIT	= 1 << 1,
-@@ -537,6 +541,7 @@ struct ib_srq_init_attr {
- 	void		      (*event_handler)(struct ib_event *, void *);
- 	void		       *srq_context;
- 	struct ib_srq_attr	attr;
-+	enum ib_srq_type	srq_type;
+ enum ib_qp_create_flags {
+@@ -592,6 +596,7 @@ struct ib_qp_init_attr {
+ 	struct ib_cq	       *send_cq;
+ 	struct ib_cq	       *recv_cq;
+ 	struct ib_srq	       *srq;
++	struct ib_xrcd	       *xrcd;     /* XRC TGT QPs only */
+ 	struct ib_qp_cap	cap;
+ 	enum ib_sig_type	sq_sig_type;
+ 	enum ib_qp_type		qp_type;
+@@ -783,6 +788,7 @@ struct ib_send_wr {
+ 			u32				rkey;
+ 		} fast_reg;
+ 	} wr;
++	u32			xrc_remote_srq_num;	/* XRC TGT QPs only */
  };
  
- struct ib_qp_cap {
-@@ -887,6 +892,7 @@ struct ib_srq {
+ struct ib_recv_wr {
+@@ -918,6 +924,7 @@ struct ib_qp {
+ 	struct ib_cq	       *send_cq;
+ 	struct ib_cq	       *recv_cq;
+ 	struct ib_srq	       *srq;
++	struct ib_xrcd	       *xrcd; /* XRC TGT QPs only */
  	struct ib_uobject      *uobject;
- 	void		      (*event_handler)(struct ib_event *, void *);
- 	void		       *srq_context;
-+	enum ib_srq_type	srq_type;
- 	atomic_t		usecnt;
- };
- 
+ 	void                  (*event_handler)(struct ib_event *, void *);
+ 	void		       *qp_context;
 
 
 --
