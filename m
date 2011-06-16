@@ -1,8 +1,7 @@
 From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-Subject: [PATCH] infiniband-diags: test for libosmcomp with a function that
- is used in the code
-Date: Thu, 16 Jun 2011 11:10:09 -0700
-Message-ID: <20110616111009.fb16cc5e.weiny2@llnl.gov>
+Subject: [PATCH] infiniband-diags: add package requires to spec file.
+Date: Thu, 16 Jun 2011 11:10:22 -0700
+Message-ID: <20110616111022.a0ce5557.weiny2@llnl.gov>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
@@ -13,29 +12,26 @@ List-Id: linux-rdma@vger.kernel.org
 
 
 From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-Date: Sun, 29 May 2011 18:01:31 -0700
-Subject: [PATCH] infiniband-diags: test for libosmcomp with a function that is used in the code
+Date: Wed, 1 Jun 2011 21:49:57 -0700
+Subject: [PATCH] infiniband-diags: add package requires to spec file.
 
 Signed-off-by: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
 ---
- configure.in |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ infiniband-diags.spec.in |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
 
-diff --git a/configure.in b/configure.in
-index c6e8663..f41f049 100644
---- a/configure.in
-+++ b/configure.in
-@@ -46,8 +46,8 @@ AC_CHECK_MEMBER([struct umad_port.link_layer],
- if test "$ac_have_umad_port_link_layer" = "yes"; then
-    AC_DEFINE([HAVE_UMAD_PORT_LINK_LAYER], 1, [Define to 1 if struct umad_port has link_layer member])
- fi
--AC_CHECK_LIB(osmcomp, cl_thread_init, [],
--	AC_MSG_ERROR([cl_thread_init() not found. diags require libosmcomp.]))
-+AC_CHECK_LIB(osmcomp, cl_qmap_insert, [],
-+	AC_MSG_ERROR([cl_qmap_insert() not found. diags require libosmcomp.]))
- fi
+diff --git a/infiniband-diags.spec.in b/infiniband-diags.spec.in
+index 692ebd7..b557db7 100644
+--- a/infiniband-diags.spec.in
++++ b/infiniband-diags.spec.in
+@@ -12,6 +12,7 @@ BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
+ Source: http://www.openfabrics.org/downloads/management/@TARBALL@
+ Url: http://openfabrics.org/
+ BuildRequires: libibmad-devel, opensm-devel, libibumad-devel
++Requires: libibmad, opensm-libs, libibumad
+ Provides: perl(IBswcountlimits)
+ Obsoletes: openib-diags
  
- dnl Checks for header files.
 -- 
 1.7.1
 
