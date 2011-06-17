@@ -1,61 +1,40 @@
-From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-Subject: Re: [PATCH] infiniband-diags: saquery; reuse
- dump_one_mcmember_record function
-Date: Thu, 16 Jun 2011 15:48:33 -0700
-Message-ID: <20110616154833.8005a2c9.weiny2@llnl.gov>
-References: <20110616111024.fde795bc.weiny2@llnl.gov>
-	<4DFA6D60.9070609@dev.mellanox.co.il>
-	<20110616144636.4d2483fb.weiny2@llnl.gov>
-	<20110616215946.GA7112@obsidianresearch.com>
+From: Andi Kleen <andi-Vw/NltI1exuRpAAqCnN02g@public.gmane.org>
+Subject: Re: [PATCH 05/14] SIWv2: User interface: siw_verbs.h, siw_verbs.c, siw_user.h, siw_ae.c
+Date: Thu, 16 Jun 2011 17:14:46 -0700
+Message-ID: <m2y611fh55.fsf@firstfloor.org>
+References: <1308228127-22634-1-git-send-email-bmt@zurich.ibm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20110616215946.GA7112-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <1308228127-22634-1-git-send-email-bmt-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org> (Bernard
+	Metzler's message of "Thu, 16 Jun 2011 14:42:07 +0200")
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Bernard Metzler <public-bmt-OA+xvbQnYDHMbYB6QlFGEg-wOFGN7rlS/M9smdsby/KFg@public.gmane.org>
+Cc: public-netdev-u79uwXL29TY76Z2rM5mHXA-wOFGN7rlS/M9smdsby/KFg@public.gmane.org, public-linux-rdma-u79uwXL29TY76Z2rM5mHXA-wOFGN7rlS/M9smdsby/KFg@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, 16 Jun 2011 14:59:46 -0700
-Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
 
-> On Thu, Jun 16, 2011 at 02:46:36PM -0700, Ira Weiny wrote:
-> 
-> > "need"; I guess not.  But I thought it was odd that the information was different for the 2 query methods.  There is nothing in the documentation or help output which indicates the output would be different.
-> > 
-> > That said I do see what you mean regarding the amount of data
-> > returned.  I figured most users were probably grepping this output
-> > anyway, as on a large fabric both methods return a sizable amount of
-> > data.
-> 
-> One is supposed to return de-duplicated information about the groups
-> that exist, the other was supposed to show group member information.
 
-[caveat]
-I am not trying to beat a dead horse...
-[/caveat]
+Bernard Metzler <bmt-OA+xvbQnYDHMbYB6QlFGEg-XMD5yJDbdMReXY1tMh2IBg@public.gmane.org> writes:
+> +
+> +/*
+> + * siw_async_ev()
+> + *
+> + * Report Asynchonous event to user.
+> + */
+> +void siw_async_ev(struct siw_qp *qp, struct siw_cq *cq,
+> +		  enum ib_event_type etype)
+> +{
+> +	static struct ib_event	event;
 
-I guess it depends on what you define as "member info" and what that implies to the user. ("de-duplicated" or not.)
+Static? That looks scary, especially without a lock.
 
-       -m     get  multicast  member info.  If a group is specified, limit the output to the group specified
-              and print one line containing only the GUID and node  description  for  each  entry.  Example:
-              saquery -m 0xc000
 
-To me this implied "de-duplication" only occurred with the mlid specified.  But..  I'm happy.
-
-Ira
-
-> 
-> Jason
-
+-Andi
 
 -- 
-Ira Weiny
-Math Programmer/Computer Scientist
-Lawrence Livermore National Lab
-925-423-8008
-weiny2-i2BcT+NCU+M@public.gmane.org
+ak-VuQAYsv1563Yd54FQh9/CA@public.gmane.org -- Speaking for myself only
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
