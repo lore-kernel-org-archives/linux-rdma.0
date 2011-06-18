@@ -1,13 +1,13 @@
 From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Subject: Re: [PATCH 10/14] SIWv2: Transmit path: siw_qp_tx.c
-Date: Sat, 18 Jun 2011 19:47:29 +0200
-Message-ID: <BANLkTimSqwBK_pEGsydCAEvO=S6WVVzDPQ@mail.gmail.com>
-References: <1308228153-22720-1-git-send-email-bmt@zurich.ibm.com>
+Subject: Re: [PATCH 14/14] SIWv2: Documentation: siw.txt
+Date: Sat, 18 Jun 2011 19:56:24 +0200
+Message-ID: <BANLkTimggAAHtOrrUdh_1WLRztUgk-wJbQ@mail.gmail.com>
+References: <1308228174-22788-1-git-send-email-bmt@zurich.ibm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1308228153-22720-1-git-send-email-bmt-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>
+In-Reply-To: <1308228174-22788-1-git-send-email-bmt-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Bernard Metzler <bmt-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>
 Cc: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
@@ -16,68 +16,47 @@ List-Id: linux-rdma@vger.kernel.org
 On Thu, Jun 16, 2011 at 2:42 PM, Bernard Metzler <bmt-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org> w=
 rote:
 > ---
-> =A0drivers/infiniband/hw/siw/siw_qp_tx.c | 1332 +++++++++++++++++++++=
-++++++++++++
-> =A01 files changed, 1332 insertions(+), 0 deletions(-)
-> =A0create mode 100644 drivers/infiniband/hw/siw/siw_qp_tx.c
+> =A0Documentation/networking/siw.txt | =A0156 ++++++++++++++++++++++++=
+++++++++++++++
+> =A01 files changed, 156 insertions(+), 0 deletions(-)
+> =A0create mode 100644 Documentation/networking/siw.txt
 >
-> diff --git a/drivers/infiniband/hw/siw/siw_qp_tx.c b/drivers/infiniba=
-nd/hw/siw/siw_qp_tx.c
-[ ... ]
-> +/*
-> + * Write out iov referencing hdr, data and trailer of current FPDU.
-> + * Update transmit state dependent on write return status
-> + */
-> +static int siw_tx_hdt(struct siw_iwarp_tx *c_tx, struct socket *s)
-> +{
-> + =A0 =A0 =A0 struct siw_wqe =A0 =A0 =A0 =A0 =A0*wqe =3D c_tx->wqe;
-> + =A0 =A0 =A0 struct siw_sge =A0 =A0 =A0 =A0 =A0*sge =3D &wqe->wr.sgl=
-=2Esge[c_tx->sge_idx],
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 *first_=
-sge =3D sge;
-> + =A0 =A0 =A0 struct siw_mr =A0 =A0 =A0 =A0 =A0 *mr =3D NULL;
-> + =A0 =A0 =A0 struct ib_umem_chunk =A0 =A0*chunk =3D c_tx->umem_chunk=
-;
+> diff --git a/Documentation/networking/siw.txt b/Documentation/network=
+ing/siw.txt
+> new file mode 100644
+> index 0000000..805e21b
+> --- /dev/null
+> +++ b/Documentation/networking/siw.txt
+> @@ -0,0 +1,156 @@
+> +SoftiWARP: Software iWARP kernel driver module.
 > +
-> + =A0 =A0 =A0 struct kvec =A0 =A0 =A0 =A0 =A0 =A0 iov[MAX_ARRAY];
-> + =A0 =A0 =A0 struct page =A0 =A0 =A0 =A0 =A0 =A0 *page_array[MAX_ARR=
-AY];
-> + =A0 =A0 =A0 struct msghdr =A0 =A0 =A0 =A0 =A0 msg =3D {.msg_flags =3D=
- MSG_DONTWAIT};
+> +General
+> +-------
+> +SoftiWARP (siw) implements the iWARP protocol suite (MPA/DDP/RDMAP,
+> +IETF-RFC 5044/5041/5040) completely in software as a Linux kernel mo=
+dule.
+> +siw runs on top of TCP kernel sockets and exports the Linux kernel i=
+bverbs
+> +RDMA interface. siw interfaces with the iwcm connection manager.
 > +
-> + =A0 =A0 =A0 int =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 seg =3D 0, =
-do_crc =3D c_tx->do_crc, is_kva =3D 0, rv;
-> + =A0 =A0 =A0 unsigned int =A0 =A0 =A0 =A0 =A0 =A0data_len =3D c_tx->=
-bytes_unsent,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 hdr_len=
- =3D 0,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 trl_len=
- =3D 0,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 sge_off=
- =3D c_tx->sge_off,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 sge_idx=
- =3D c_tx->sge_idx,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 pg_idx =
-=3D c_tx->pg_idx;
+> +
+> +Transmit Path
+> +-------------
+> +If a send queue (SQ) work queue element gets posted, siw tries to se=
+nd
+> +it directly out of the application context. If the SQ was non-empty,
+> +SQ processing is done asynchronously by a kernel worker thread. This
+> +thread gets scheduled if the TCP socket signals new write space to
+> +be available. If during send operation the socket send space becomes
+> +exhausted, SQ processing is abandoned until new socket write space
+> +becomes available.
 
-Have you run the siw source code through sparse ? Sparse reports the
-following for the above:
-
-drivers/infiniband/hw/siw/siw_qp_tx.c:694:1: warning: the frame size
-of 1120 bytes is larger than 1024 bytes
-
-I assume that you know that one should be careful with stack
-allocations in the kernel ?
-
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (tx_type =3D=3D RDMAP_RDMA_READ_REQ)=
- {
-
-This is what the compiler says about the above statement:
-
-drivers/infiniband/hw/siw/siw_qp_tx.c:1145:15: warning: comparison
-between enum siw_wr_opcode and enum rdma_opcode
-
-So how can that statement be correct ?
+It seems like some information is missing in the above:
+- That the siw kernel module creates an iWARP device for each Ethernet
+interface found but not for other network interfaces that support the
+family of IP protocols.
+- Whether or not such an iWARP device is created for Ethernet
+interfaces instantiated after the siw kernel module has been loaded.
 
 Bart.
 --
