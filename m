@@ -1,26 +1,52 @@
-From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: Is there is any code example to test the XRC?
-Date: Sun, 19 Jun 2011 11:06:53 +0300
-Message-ID: <4DFDAE1D.1000908@mellanox.com>
-References: <201106151054.12651.dotanb@sw.voltaire.com>	<1828884A29C6694DAF28B7E6B8A82373021147@ORSMSX101.amr.corp.intel.com> <1828884A29C6694DAF28B7E6B8A8237302135F@ORSMSX101.amr.corp.intel.com>
+From: Bart Van Assche <bvanassche@acm.org>
+Subject: [PATCH 1/2] IB/srp: Fix SCSI scanning
+Date: Sun, 19 Jun 2011 13:48:24 +0200
+Message-ID: <201106191348.24122.bvanassche@acm.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; format=flowed
+Content-Type: Text/Plain;
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1828884A29C6694DAF28B7E6B8A8237302135F-P5GAC/sN6hmkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Dotan Barak <dotan-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <linux-scsi-owner@vger.kernel.org>
+Sender: linux-scsi-owner@vger.kernel.org
+To: linux-scsi@vger.kernel.org, linux-rdma@vger.kernel.org
+Cc: Roland Dreier <roland@purestorage.com>, David Dillow <dillowda@ornl.gov>
 List-Id: linux-rdma@vger.kernel.org
 
-Hefty, Sean wrote:
-> If there's an existing XRC test program available, I can port it for additional testing.
+Avoid that SCSI scanning triggers creation of targets with non-zero
+channel or non-zero id.
 
-Dotan, could you check if we have such program to provide Sean with, it 
-will help in the review/testing
+Signed-off-by: Bart Van Assche <bvanassche@acm.org>
+Cc: Roland Dreier <roland@purestorage.com>
+Cc: David Dillow <dillowda@ornl.gov>
+Cc: <stable@kernel.org>
+---
+ drivers/infiniband/ulp/srp/ib_srp.c |    6 ++++++
+ 1 files changed, 6 insertions(+), 0 deletions(-)
 
-Or.
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/drivers/infiniband/ulp/srp/ib_srp.c b/drivers/infiniband/ulp/srp/ib_srp.c
+index ee165fd..de4fd32 100644
+--- a/drivers/infiniband/ulp/srp/ib_srp.c
++++ b/drivers/infiniband/ulp/srp/ib_srp.c
+@@ -110,6 +110,11 @@ static const char *srp_target_info(struct Scsi_Host *host)
+ 	return host_to_target(host)->target_name;
+ }
+ 
++static int srp_target_alloc(struct scsi_target *starget)
++{
++	return starget->channel == 0 && starget->id == 0 ? 0 : -ENODEV;
++}
++
+ static int srp_target_is_topspin(struct srp_target_port *target)
+ {
+ 	static const u8 topspin_oui[3] = { 0x00, 0x05, 0xad };
+@@ -1836,6 +1841,7 @@ static struct scsi_host_template srp_template = {
+ 	.name				= "InfiniBand SRP initiator",
+ 	.proc_name			= DRV_NAME,
+ 	.info				= srp_target_info,
++	.target_alloc			= srp_target_alloc,
+ 	.queuecommand			= srp_queuecommand,
+ 	.eh_abort_handler		= srp_abort,
+ 	.eh_device_reset_handler	= srp_reset_device,
+-- 
+1.7.3.4
+
