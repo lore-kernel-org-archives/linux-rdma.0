@@ -1,75 +1,43 @@
-From: Bernard Metzler <BMT-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>
-Subject: Re: software iwarp stack update
-Date: Sun, 19 Jun 2011 18:30:52 +0200
-Message-ID: <OF941A7771.FAC68AA9-ONC12578B4.0058424C-C12578B4.005AB7AE@ch.ibm.com>
-References: <BANLkTimEGgKEMZd3qppOofN-Vj-u-PH-xA@mail.gmail.com>	<OFB7458EEB.BFB8A4EE-ONC12578B1.004026D1-C12578B1.0041190E@ch.ibm.com>
-	<BANLkTi=2woNzF=GL3cT3NB_hye5JHfodMA@mail.gmail.com> <BANLkTi=L057TZug2=nrFZTYdNoHLMvmBRA@mail.gmail.com> <4DFD852E.3050208@mellanox.com>
+From: Wei Lin Guay <weilin-S8y2klWGCOFhl2p70BpVqQ@public.gmane.org>
+Subject: RE: Question on statistics per port VL - performance management
+Date: Sun, 19 Jun 2011 19:51:29 +0200
+Message-ID: <876fb18a9d5b877013acd7a22ce49fe7@mail.gmail.com>
+References: <c2cf411ce0324c1074597e49ffc6daa6@mail.gmail.com> <4DFD8417.90309@mellanox.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="US-ASCII"
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4DFD852E.3050208-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <4DFD8417.90309-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Or,
-I understand your point.
+Thanks, Or!
 
-Main reason for having netdev on cc is that I think adding
-softiwarp to the kernel is adding a service to the kernel
-network stack. If accepted, iWARP as a protocol would become a 
-Linux kernel service, and it would directly make use of 
-kernel TCP/IP services. That is different form all other
-rdma verbs providers, which offload the data path to private
-territory.
+-----Original Message-----
+From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+[mailto:linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Or Gerlitz
+Sent: Sunday, June 19, 2011 7:08 AM
+To: Wei Lin Guay
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Subject: Re: Question on statistics per port VL - performance management
 
-At the current point, maybe its reasonable to restrict
-detailed discussion to linux-rdma, if only issues related to the
-linux-rdma stack are discussed? I would be happy to keep netdev
-in the loop for patches and of course for any discussion touching
-softiwarp's interaction with network kernel services.
+Wei Lin Guay wrote:
+> Is there a quick way to obtain the performance counter for each VL on
+each
+> port? I saw there are optional performance management attributes (such
+as
+> PortVLOpPackets, PortVLOpData) from IB spec. Do Mellanox CX2 PMA and
+> Infiniscale-IV switch support those performance management MAD?
 
-Many thanks,
-Bernard.
+For IS4 you can query per SL receive/transmit counters, see the man
+pages of vendstat for the initialization and perfquery for the usage
 
-Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote on 06/19/2011 07:12:14 AM:
-
-> Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> 
-> 06/19/2011 07:12 AM
-> 
-> To
-> 
-> Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>, Bernard Metzler 
-<BMT-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>
-> 
-> cc
-> 
-> Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-> 
-> Subject
-> 
-> Re: software iwarp stack update
-> 
-> Bart Van Assche wrote:
-> > Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org> wrote:
-> >> It does seem we are missing an IB_MANDATORY_FUNC
-> >> entry for modify_port in ib_device_check_mandatory; or on
-> >> the flip side we are missing a check of modify_port and a
-> >> -ENOSYS return... I guess modify_port does not really make
-> >> sense for iWARP so probably the second option is better.
-> > 
-> > There seems to be disagreement about whether to return 0, -ENOSYS or
-> > -EOPNOTSUPP for not supported functionality. Does the patch below 
-> make sense ?
-> > Note: I don't have all the hardware necessary to test the patch below.
-> 
-> Bernard, the netdev guys have enough on their plate... what's the reason 
-
-> we want this thread the be cross posted to both linux-rdma and netdev?
-> 
-> Or.
-
+Or.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
