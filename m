@@ -1,58 +1,47 @@
-From: Bart Van Assche <bvanassche@acm.org>
-Subject: Re: [PATCH 1/2] IB/srp: Fix SCSI scanning
-Date: Mon, 20 Jun 2011 19:53:16 +0200
-Message-ID: <BANLkTinVL6AVLipCwdeAbhZ1JY064KZOYA@mail.gmail.com>
-References: <201106191348.24122.bvanassche@acm.org> <1308504469.14467.5.camel@obelisk.thedillows.org>
- <BANLkTi=5nBDB-SGd0U0UZDgR4gKBDqaj0w@mail.gmail.com> <20110620113736.GA406@infradead.org>
+From: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: IBoE updates - GID change event / network flow counters (was:
+ [PATCH 7/9] ib/pma: add include file for IBA perf counters)
+Date: Mon, 20 Jun 2011 11:18:45 -0700
+Message-ID: <BANLkTi=VR6v=xSwzLRHDL1x2=05wF-H5KQ@mail.gmail.com>
+References: <alpine.LRH.2.00.1106151733410.15844@ogerlitz.voltaire.com>
+ <alpine.LRH.2.00.1106151747390.15844@ogerlitz.voltaire.com>
+ <1828884A29C6694DAF28B7E6B8A8237302148F@ORSMSX101.amr.corp.intel.com>
+ <4DF9B319.6070100@mellanox.com> <1828884A29C6694DAF28B7E6B8A8237302184A@ORSMSX101.amr.corp.intel.com>
+ <4DFF797E.5090904@mellanox.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-scsi-owner@vger.kernel.org>
-In-Reply-To: <20110620113736.GA406@infradead.org>
-Sender: linux-scsi-owner@vger.kernel.org
-To: Christoph Hellwig <hch@infradead.org>
-Cc: David Dillow <dillowda@ornl.gov>, linux-scsi@vger.kernel.org, linux-rdma@vger.kernel.org, Roland Dreier <roland@purestorage.com>, Brian King <brking@linux.vnet.ibm.com>
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <4DFF797E.5090904-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Mike Marciniszyn <mike.marciniszyn-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Jun 20, 2011 at 1:37 PM, Christoph Hellwig <hch@infradead.org> =
-wrote:
-> We really shouldn't require workaround for this in every SCSI driver.
+On Mon, Jun 20, 2011 at 9:46 AM, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wro=
+te:
+> Hefty, Sean wrote:
+>>
+>> at this point, you're patches look good to me and are an improvement=
+ over
+>> what's there now. =A0So, I'd file this comment as a future nice to h=
+ave.
 >
-> scsi_scan_host_selected already makes sure never to scan above
-> shost->max_channel. =A0Could it be that you don't have that one set
-> properly in the srp driver? =A0It not we'll need to debug why it happ=
-ens
-> instead of adding hacks like this.
+> Roland,
+>
+> My patch series went through Sean's review (and passed... patch 7/9 n=
+eeded
+> fixes and I posted V1 for it) any more feedback you need to accept th=
+em or
+> you just want to go over them yourself?
 
-As far as I can see the default value for max_channel is zero. The patc=
-h
-below also avoids creation of duplicate SCSI targets on my setup.
+Looks fine for 3.1, I expect to merge it in the next week or two (possi=
+bly will
+see some minor nits as I merge them).
 
-Signed-off-by: Bart Van Assche <bvanassche@acm.org>
-
----
- drivers/infiniband/ulp/srp/ib_srp.c |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
-
-diff --git a/drivers/infiniband/ulp/srp/ib_srp.c
-b/drivers/infiniband/ulp/srp/ib_srp.c
-index ee165fd..4ab1271 100644
---- a/drivers/infiniband/ulp/srp/ib_srp.c
-+++ b/drivers/infiniband/ulp/srp/ib_srp.c
-@@ -2127,6 +2127,7 @@ static ssize_t srp_create_target(struct device *d=
-ev,
- 		return -ENOMEM;
-
- 	target_host->transportt  =3D ib_srp_transport_template;
-+	target_host->max_id      =3D 1;
- 	target_host->max_lun     =3D SRP_MAX_LUN;
- 	target_host->max_cmd_len =3D sizeof ((struct srp_cmd *) (void *) 0L)-=
->cdb;
-
---=20
-1.7.3.4
+ - R.
 --
-To unsubscribe from this list: send the line "unsubscribe linux-scsi" i=
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
 n
-the body of a message to majordomo@vger.kernel.org
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
