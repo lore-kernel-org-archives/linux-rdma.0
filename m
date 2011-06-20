@@ -1,30 +1,24 @@
-From: David Dillow <dillowda@ornl.gov>
+From: Christoph Hellwig <hch@infradead.org>
 Subject: Re: [PATCH 1/2] IB/srp: Fix SCSI scanning
-Date: Sun, 19 Jun 2011 13:27:49 -0400
-Message-ID: <1308504469.14467.5.camel@obelisk.thedillows.org>
+Date: Mon, 20 Jun 2011 07:37:36 -0400
+Message-ID: <20110620113736.GA406@infradead.org>
 References: <201106191348.24122.bvanassche@acm.org>
+ <1308504469.14467.5.camel@obelisk.thedillows.org>
+ <BANLkTi=5nBDB-SGd0U0UZDgR4gKBDqaj0w@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-scsi-owner@vger.kernel.org>
-In-Reply-To: <201106191348.24122.bvanassche@acm.org>
+Content-Disposition: inline
+In-Reply-To: <BANLkTi=5nBDB-SGd0U0UZDgR4gKBDqaj0w@mail.gmail.com>
 Sender: linux-scsi-owner@vger.kernel.org
 To: Bart Van Assche <bvanassche@acm.org>
-Cc: linux-scsi@vger.kernel.org, linux-rdma@vger.kernel.org, Roland Dreier <roland@purestorage.com>
+Cc: David Dillow <dillowda@ornl.gov>, linux-scsi@vger.kernel.org, linux-rdma@vger.kernel.org, Roland Dreier <roland@purestorage.com>, Brian King <brking@linux.vnet.ibm.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Sun, 2011-06-19 at 13:48 +0200, Bart Van Assche wrote:
-> Avoid that SCSI scanning triggers creation of targets with non-zero
-> channel or non-zero id.
+We really shouldn't require workaround for this in every SCSI driver.
 
-Good catch, Bart. How did you find this?
-
-I would like to have a little more meat in the description. What real
-problem are we avoiding -- what happens when we get non-zero id/channel?
-
-Based on a quick look at the code -- I don't have ready access to a test
-system today -- I'm guessing that we create duplicate devices as a
-result of a manual scan?
-
-Signed-off-by: David Dillow <dillowda@ornl.gov>
+scsi_scan_host_selected already makes sure never to scan above
+shost->max_channel.  Could it be that you don't have that one set
+properly in the srp driver?  It not we'll need to debug why it happens
+instead of adding hacks like this.
 
