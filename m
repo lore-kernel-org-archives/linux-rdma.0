@@ -1,79 +1,45 @@
-From: Bernard Metzler <BMT-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>
-Subject: Re: [PATCH 14/14] SIWv2: Documentation: siw.txt
-Date: Mon, 20 Jun 2011 17:49:49 +0200
-Message-ID: <OFF76DD4EB.A145AB51-ONC12578B5.00568A28-C12578B5.0056F5A9@ch.ibm.com>
-References: <BANLkTimggAAHtOrrUdh_1WLRztUgk-wJbQ@mail.gmail.com>
+From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Subject: Re: [PATCH 10/14] SIWv2: Transmit path: siw_qp_tx.c
+Date: Mon, 20 Jun 2011 18:32:13 +0200
+Message-ID: <BANLkTi=K2MfHyFmoSSwbduWvAQwwDVXGHQ@mail.gmail.com>
+References: <BANLkTimSqwBK_pEGsydCAEvO=S6WVVzDPQ@mail.gmail.com> <OF564FAAA3.FC8A4AB9-ONC12578B5.003C1E38-C12578B5.0044F0C1@ch.ibm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <BANLkTimggAAHtOrrUdh_1WLRztUgk-wJbQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <OF564FAAA3.FC8A4AB9-ONC12578B5.003C1E38-C12578B5.0044F0C1-Xeyd2O9EBijQT0dZR+AlfA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Cc: bart.vanassche-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Bernard Metzler <BMT-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-
-
-bart.vanassche-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org wrote on 06/18/2011 07:56:24 PM:
-
-> On Thu, Jun 16, 2011 at 2:42 PM, Bernard Metzler <bmt-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>
-wrote:
-> > ---
-> > =A0Documentation/networking/siw.txt | =A0156
-> ++++++++++++++++++++++++++++++++++++++
-> > =A01 files changed, 156 insertions(+), 0 deletions(-)
-> > =A0create mode 100644 Documentation/networking/siw.txt
+On Mon, Jun 20, 2011 at 2:33 PM, Bernard Metzler <BMT-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org> w=
+rote:
+> bart.vanassche-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org wrote on 06/18/2011 07:47:29 PM:
+> > On Thu, Jun 16, 2011 at 2:42 PM, Bernard Metzler <bmt-OA+xvbQnYDG0NRUx5Wjc1Q@public.gmane.org=
+m>
+> wrote:
+> > > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 if (tx_type =3D=3D RDMAP_RDMA_READ_=
+REQ) {
 > >
-> > diff --git a/Documentation/networking/siw.txt
-> b/Documentation/networking/siw.txt
-> > new file mode 100644
-> > index 0000000..805e21b
-> > --- /dev/null
-> > +++ b/Documentation/networking/siw.txt
-> > @@ -0,0 +1,156 @@
-> > +SoftiWARP: Software iWARP kernel driver module.
-> > +
-> > +General
-> > +-------
-> > +SoftiWARP (siw) implements the iWARP protocol suite (MPA/DDP/RDMAP=
-,
-> > +IETF-RFC 5044/5041/5040) completely in software as a Linux kernel
-module.
-> > +siw runs on top of TCP kernel sockets and exports the Linux kernel
-ibverbs
-> > +RDMA interface. siw interfaces with the iwcm connection manager.
-> > +
-> > +
-> > +Transmit Path
-> > +-------------
-> > +If a send queue (SQ) work queue element gets posted, siw tries to =
-send
-> > +it directly out of the application context. If the SQ was non-empt=
-y,
-> > +SQ processing is done asynchronously by a kernel worker thread. Th=
-is
-> > +thread gets scheduled if the TCP socket signals new write space to
-> > +be available. If during send operation the socket send space becom=
-es
-> > +exhausted, SQ processing is abandoned until new socket write space
-> > +becomes available.
->
-> It seems like some information is missing in the above:
-> - That the siw kernel module creates an iWARP device for each Etherne=
-t
-> interface found but not for other network interfaces that support the
-> family of IP protocols.
-thats correct. thanks.
+> > This is what the compiler says about the above statement:
+> >
+> > drivers/infiniband/hw/siw/siw_qp_tx.c:1145:15: warning: comparison
+> > between enum siw_wr_opcode and enum rdma_opcode
+> >
+> > So how can that statement be correct ?
+> >
+> it will not - must be changed to 'SIW_WR_RDMA_READ_REQ'...many thanks=
+!
+> I obviously used sparse in a wrong way:
+> building within kernel tree with 'make C=3D1 CF=3D"-Wsparse-all' does=
+ not give
+> me the indicated warning (neither does setting CF=3D"-Wenum-mismatch"=
+).
 
-> - Whether or not such an iWARP device is created for Ethernet
-> interfaces instantiated after the siw kernel module has been loaded.
-Right. And ... I should probably go for a more dynamic device managemen=
-t,
-which allows to attach to interfaces instantiated later.
+That warning was not reported by sparse but by gcc 4.5.
 
-Bernard.
-
+Bart.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
 n
