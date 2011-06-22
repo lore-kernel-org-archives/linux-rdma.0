@@ -1,54 +1,41 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [RFC] XRC upstream merge reboot
-Date: Wed, 22 Jun 2011 16:14:52 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A82373029A95@ORSMSX101.amr.corp.intel.com>
-References: <1828884A29C6694DAF28B7E6B8A82373F7AB@ORSMSX101.amr.corp.intel.com>
- <201105181754.33759.jackm@dev.mellanox.co.il>
- <201106221017.06212.jackm@dev.mellanox.co.il>
+From: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [RFC] XRC upstream merge reboot
+Date: Wed, 22 Jun 2011 20:03:50 +0300
+Message-ID: <201106222003.50214.jackm@dev.mellanox.co.il>
+References: <1828884A29C6694DAF28B7E6B8A82373F7AB@ORSMSX101.amr.corp.intel.com> <201106221017.06212.jackm@dev.mellanox.co.il> <1828884A29C6694DAF28B7E6B8A82373029A95@ORSMSX101.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <201106221017.06212.jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <1828884A29C6694DAF28B7E6B8A82373029A95-P5GAC/sN6hmkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
+Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "tziporet-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org" <tziporet-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, "dotanb-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org" <dotanb-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> I noticed (from the code in your git, xrc branch) that the XRC target QPs
-> stick around until the XRC domain is de-allocated.
-> There was a long thread about this in December, 2007, where the MPI
-> community
-> found this approach unacceptable (leading to accumulation of "dead" XRC
-> TGT qp's).
-> They needed to leave the XRC domain active, and just allocate/delete TGT
-> QPs as needed,
-> without resource usage buildup.
+On Wednesday 22 June 2011 19:14, Hefty, Sean wrote:
+> This is partly true, and I haven't come up with a better way to handle this.  
+> Note that the patches allow the original creator of the TGT QP to destroy it by simply calling ibv_destroy_qp().
+> This doesn't handle the process dying, but maybe that's not a real concern.  
+Correct, that was not the MPI community's main concern.
+ 
+> 
+> After looking at the implementation more, what I didn't like about the reg/unreg
+> calls is that it is independent of receiving data on an SRQ.  That is, a user can
+> receive data on an SRQ through a TGT QP before they have registered and after unregistering.
+That is correct, but the registering/unregistering is for expressing "interest" in the TGT QP, only (i.e., for
+reference counting only, as you indicated), and not at all for enabling the SRQ to receive traffic.
+When the reference count on the TGT QP goes to zero, it is automatically destroyed.
+(The TGT QP creator itself takes a reference, which is decremented when either the
+process exits, or it calls the deref procedure.)
 
-This is partly true, and I haven't come up with a better way to handle this.  Note that the patches allow the original creator of the TGT QP to destroy it by simply calling ibv_destroy_qp().  This doesn't handle the process dying, but maybe that's not a real concern.
+In my thread post
+    http://lists.openfabrics.org/pipermail/general/2008-January/045302.html  ,
+I describe the intended workflow for this interface.
 
-If the QP is tied into the CM protocol, it may also be possible to automatically destroy it when receiving a DREQ, provided that the creating process no longer owns it.  This would need to be a new patch.
-
-Thanks for the pointers to the threads.  I'll re-read those.
-
-> This discussion lead to the addition of the XRC reg/unreg verbs for
-> processes to
-> "register" with XRC TGT QPs, and reference counting for destroying
-> these QPs.
-
-After looking at the implementation more, what I didn't like about the reg/unreg calls is that it is independent of receiving data on an SRQ.  That is, a user can receive data on an SRQ through a TGT QP before they have registered and after unregistering.  From the perspective of a user space API, this is counter-intuitive.  The reg/unreg calls are basically for reference counting some kernel component.
-
-I also liked the idea of having a single process own control of the TGT QP, for the purposes of modifying it or destroying it, separately from other processes that may be sharing the same xrcd.
-
-> In addition, this approach also required propagating the XRC TGT QP events
-> to all processes registered with that QP, so that they could unregister
-> in the event of an error -- reducing the QP reference count and allowing
-> it to be destroyed.
-
-Ok - I was having a hard time figuring out what exactly all of the processes were supposed to do with the TGT QP events.  It seemed like only one of them could actually respond to any error.
-
-- Sean
+-Jack
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
