@@ -1,60 +1,71 @@
-From: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [RFC] XRC upstream merge reboot
-Date: Thu, 23 Jun 2011 09:35:07 +0300
-Message-ID: <201106230935.07425.jackm@dev.mellanox.co.il>
-References: <1828884A29C6694DAF28B7E6B8A82373F7AB@ORSMSX101.amr.corp.intel.com> <201106222221.05993.jackm@dev.mellanox.co.il> <1828884A29C6694DAF28B7E6B8A82373029BDE@ORSMSX101.amr.corp.intel.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [RFC] [OFED] libibverbs: Translate OFED verbs to ibverbs
+Date: Thu, 23 Jun 2011 00:45:02 -0600
+Message-ID: <20110623064502.GA8258@obsidianresearch.com>
+References: <1828884A29C6694DAF28B7E6B8A82373029C29@ORSMSX101.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1828884A29C6694DAF28B7E6B8A82373029BDE-P5GAC/sN6hmkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Content-Disposition: inline
+In-Reply-To: <1828884A29C6694DAF28B7E6B8A82373029C29-P5GAC/sN6hmkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "tziporet-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org" <tziporet-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, "dotanb-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org" <dotanb-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
+Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wednesday 22 June 2011 22:57, Hefty, Sean wrote:
-> > > We can report the creation of a tgt qp on an xrcd as an async eve=
-nt.
-> > To whom?
->=20
-> to all users of the xrcd. =A0IMO, if we require undefined, out of ban=
-d communication to use
-> XRC, then we have an incomplete solution. =A0It's just too bad that w=
-e can't report additional
-> data (like the tgt qpn) with an async event... =20
->=20
-I do not think this will help much.  Just knowing that a TGT QP exists =
-is not really relevant.  The sender (who is on a remote host)
-needs to know about the TGT QP, to use it to send to the XRC SRQs. We c=
-annot propagate an event over to the sender side!  The local users
-of the TGT QP don't really care -- it is the responsibility of the Appl=
-ication to get the INI-TGT linkage up, and the XRC SRQs created before
-sending from INI to SRQ.  At that point, the SRQ either receives packet=
-s or it does not.
+On Thu, Jun 23, 2011 at 12:45:23AM +0000, Hefty, Sean wrote:
 
-I do agree, though, that the need to use out-of-band communication (rat=
-her than the CM) to establish the INI-TGT RC connection is not clean.
+> The idea is that a single version of libibverbs would support
+> both ibverbs and ofverbs via macro magic, with full compatibility with
+> ibverbs.  An app would need to be compiled with CFLAGS=-DOFED_VERBS to
+> pick up the ofverbs.
+ 
+> This doesn't quite work seamlessly.  I downloaded mvapich2 and built it
+> with the following options:
+> 
+> 
+> This failed with
+> .../reg_cache/avl.h:42: error: conflicting types for VISIT
+> /usr/include/search.h:126: note: previous declaration of VISIT was here
+ 
+> This can probably be worked around by moving the use of search.h into
+> an ofed-verbs.c file and exporting ofv_open_xrcd().  (I tried to minimize
+> the impact to the upstream libibverbs, hoping it would help make this
+> more acceptable for merging.)
 
-If you are thinking of using this for tracking, there is no way that I =
-can see except reference counting to know when all users of the TGT hav=
-e
-finished with it.  Indicating usage by "tapping" the TGT QP whenever an=
- SRQ receives a packet via the TGT is not a good idea (this is data
-path!), not to mention that quiescence is not a good indicator of wheth=
-er an app is done using the target (the amount of time that things
-are quiet depends on the app).
+Once you create a new linkable symbol you may as well un-inline the
+bulk of this emulation..
 
-We discussed using a "heartbeat" in the thread link I sent you, and ult=
-imately discarded that idea.
+I don't think this has any place in upstream though, the number of
+users of XRC seems too tiny to carry this forever.
 
-If you have other ideas which you think might work, please send them al=
-ong.
+> fails with
+> ch3_progress.c: In function ?cm_send_pending_1sc_msg?:
+> ch3_progress.c:877: error: ?struct ibv_send_wr? has no member
+> named ?xrc_remote_srq_num?
 
--Jack
+You could go like:
+
+verbs.h:
+
+#define ibv_send_wr _real_ibv_send_wr
+// rest of verbs.h
+
+#undef ibv_send_wr
+
+#include "ofed-verbs.h"
+
+ofed-verbs.h:
+
+struct ibv_send_wr
+{
+ // ofa version
+}
+
+Then you don't need the #define to get to the correct version.
+
+Jason
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
