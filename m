@@ -1,39 +1,22 @@
-From: Mail Quota alert -Error Code <support2-O5WfVfzUwx8@public.gmane.org>
-Subject: Your mailbox is almost full
-Date: Thu, 23 Jun 2011 21:14:43 -0500
-Message-ID: <20110623211443.0hdu9a2f8k8wwgw4@nls.k12.mn.us>
-Reply-To: support2-Rrbileazn+l54TAoqtyWWQ@public.gmane.org
+From: Devesh Sharma <devesh28-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Promiscuous mode support in IPoIB
+Date: Fri, 24 Jun 2011 11:19:20 +0530
+Message-ID: <BANLkTin3HRcvQHDw+qEu3+rjvfKOfFtekg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+Hello list,
 
-Your mailbox is almost full. 20GB
-23GB Current size   Maximum size
+does IPoIB supports promiscuous mode? Is it possible to implement this
+mode using IB-Verbs?
 
-Your Webmail Quota Has Exceeded The Set Quota/Limit Which Is 20GB.
-You Are Currently Running On 23GB Due To Hidden Files And Folder On Your
-Mailbox.
-
-Please Click the Link Below To Validate Your Mailbox And Increase Your Quota.
-
-http://buzurl.com/ah43
-
-Failure To Click This Link And Validate Your Quota May Result In Loss Of
-Important Information In Your Mailbox/Or Cause Limited Access To It.
-
-Thanks
-Mail Quota alert -Error Code #1997142DDE
-
-
-
-
-
+-- 
+Please don't print this E- mail unless you really need to - this will
+preserve trees on planet earth.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
