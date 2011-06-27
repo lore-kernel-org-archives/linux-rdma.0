@@ -1,41 +1,54 @@
-From: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH] opensm: don't set switch hops to lid 0
-Date: Mon, 27 Jun 2011 20:08:03 +0300
-Message-ID: <20110627170803.GB17645@calypso.voltaire.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+From: Jon Mason <jdmason-zqedIHPRSYI@public.gmane.org>
+Subject: [PATCH 04/19] mthca: remove unnecessary read of PCI_CAP_ID_EXP
+Date: Mon, 27 Jun 2011 12:39:54 -0500
+Message-ID: <1309196394-15793-1-git-send-email-jdmason@kudzu.us>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Some faulty switches, may retuen port_info.base_lid=0.
-This patch fixes a crash in a multicast engine, caused by lid matrix
-with hops values for lid 0.
+The PCIE capability offset is saved during PCI bus walking.  It will
+remove an unnecessary search in the PCI configuration space if this
+value is referenced instead of reacquiring it.  Also, pci_is_pcie is a
+better way of determining if the device is PCIE or not (as it uses the
+same saved PCIE capability offset).
 
-Signed-off-by: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Jon Mason <jdmason-zqedIHPRSYI@public.gmane.org>
 ---
- opensm/osm_switch.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ drivers/infiniband/hw/mthca/mthca_main.c  |    2 +-
+ drivers/infiniband/hw/mthca/mthca_reset.c |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/opensm/osm_switch.c b/opensm/osm_switch.c
-index fbb8292..a625b2c 100644
---- a/opensm/osm_switch.c
-+++ b/opensm/osm_switch.c
-@@ -54,7 +54,7 @@
- cl_status_t osm_switch_set_hops(IN osm_switch_t * p_sw, IN uint16_t lid_ho,
- 				IN uint8_t port_num, IN uint8_t num_hops)
- {
--	if (lid_ho > p_sw->max_lid_ho)
-+	if (!lid_ho || lid_ho > p_sw->max_lid_ho)
- 		return -1;
- 	if (!p_sw->hops[lid_ho]) {
- 		p_sw->hops[lid_ho] = malloc(p_sw->num_ports);
+diff --git a/drivers/infiniband/hw/mthca/mthca_main.c b/drivers/infiniband/hw/mthca/mthca_main.c
+index f24b79b..9f05601 100644
+--- a/drivers/infiniband/hw/mthca/mthca_main.c
++++ b/drivers/infiniband/hw/mthca/mthca_main.c
+@@ -149,7 +149,7 @@ static int mthca_tune_pci(struct mthca_dev *mdev)
+ 	} else if (!(mdev->mthca_flags & MTHCA_FLAG_PCIE))
+ 		mthca_info(mdev, "No PCI-X capability, not setting RBC.\n");
+ 
+-	if (pci_find_capability(mdev->pdev, PCI_CAP_ID_EXP)) {
++	if (pci_is_pcie(mdev->pdev)) {
+ 		if (pcie_set_readrq(mdev->pdev, 4096)) {
+ 			mthca_err(mdev, "Couldn't write PCI Express read request, "
+ 				"aborting.\n");
+diff --git a/drivers/infiniband/hw/mthca/mthca_reset.c b/drivers/infiniband/hw/mthca/mthca_reset.c
+index 2a13a16..4fa3534 100644
+--- a/drivers/infiniband/hw/mthca/mthca_reset.c
++++ b/drivers/infiniband/hw/mthca/mthca_reset.c
+@@ -113,7 +113,7 @@ int mthca_reset(struct mthca_dev *mdev)
+ 	}
+ 
+ 	hca_pcix_cap = pci_find_capability(mdev->pdev, PCI_CAP_ID_PCIX);
+-	hca_pcie_cap = pci_find_capability(mdev->pdev, PCI_CAP_ID_EXP);
++	hca_pcie_cap = pci_pcie_cap(mdev->pdev);
+ 
+ 	if (bridge) {
+ 		bridge_header = kmalloc(256, GFP_KERNEL);
 -- 
 1.7.5.4
 
--- Alex
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
