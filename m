@@ -1,27 +1,27 @@
-From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+From: Albert Chu <chu11-i2BcT+NCU+M@public.gmane.org>
 Subject: Re: [opensm] [PATCH] do not use the dimn_ports_file if not using
- dor routing
-Date: Tue, 28 Jun 2011 10:52:55 -0700
-Message-ID: <20110628105255.cab217d8.weiny2@llnl.gov>
+	dor routing
+Date: Tue, 28 Jun 2011 10:51:48 -0700
+Message-ID: <1309283508.19100.83.camel@auk59.llnl.gov>
 References: <1303322533.21002.121.camel@auk59.llnl.gov>
-	<20110427105005.GA2410@calypso.voltaire.com>
-	<1303924075.21002.273.camel@auk59.llnl.gov>
-	<20110628084935.GD17645@calypso.voltaire.com>
-	<1309280836.19100.69.camel@auk59.llnl.gov>
-	<20110628173327.GE17645@calypso.voltaire.com>
+	 <20110427105005.GA2410@calypso.voltaire.com>
+	 <1303924075.21002.273.camel@auk59.llnl.gov>
+	 <20110628084935.GD17645@calypso.voltaire.com>
+	 <1309280836.19100.69.camel@auk59.llnl.gov>
+	 <20110628173327.GE17645@calypso.voltaire.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <20110628173327.GE17645-iQai9MGU/dyyaiaB+Ve85laTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: "Chu, Al" <chu11-i2BcT+NCU+M@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, 28 Jun 2011 10:33:27 -0700
-Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
+Hi Alex,
 
+On Tue, 2011-06-28 at 10:33 -0700, Alex Netes wrote:
 > Hi Al,
 > 
 > On 10:07 Tue 28 Jun     , Albert Chu wrote:
@@ -38,25 +38,21 @@ Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
 > My intenstion was to leave --dimn_ports_file option alive for a while and
 > reomove it after "adaptation" period. It still not optimal solution though.
 
-I think Al is saying that this chunk:
+I think an "adaption" period would be best, but it looks like you're
+removing the option in the patch, not having a legacy option??
 
-> > --- a/opensm/osm_subnet.c
-> > +++ b/opensm/osm_subnet.c
-> > @@ -328,7 +328,7 @@ static const opt_rec_t opt_tbl[] = {
-> >         { "force_heavy_sweep", OPT_OFFSET(force_heavy_sweep), opts_parse_boolean, NULL, 1 },
-> >         { "port_prof_ignore_file", OPT_OFFSET(port_prof_ignore_file), opts_parse_charp, NULL, 0 },
-> >         { "hop_weights_file", OPT_OFFSET(hop_weights_file), opts_parse_charp, NULL, 0 },
-> > -       { "dimn_ports_file", OPT_OFFSET(dimn_ports_file), opts_parse_charp, NULL, 0 },
-> > +       { "port_search_ordering_file", OPT_OFFSET(port_search_ordering_file), opts_parse_charp, NULL, 0 },
-> >         { "port_profile_switch_nodes", OPT_OFFSET(port_profile_switch_nodes), opts_parse_boolean, NULL, 1 },
-> >         { "sweep_on_trap", OPT_OFFSET(sweep_on_trap), opts_parse_boolean, NULL, 1 },
-> >         { "routing_engine", OPT_OFFSET(routing_engine_names), opts_parse_charp, NULL, 0 },
+-               {"dimn_ports_file", 1, NULL, 'O'},
++               {"port_search_ordering_file", 1, NULL, 'O'},
 
-Removes "dimn_ports_file" support from the opensm.conf file.
 
-Ira
+-       { "dimn_ports_file", OPT_OFFSET(dimn_ports_file), opts_parse_charp, NULL, 0 },
++       { "port_search_ordering_file", OPT_OFFSET(port_search_ordering_file), opts_parse_charp, NULL, 0 },
 
-> 
+Or perhaps I'm just missing something?
+
+Al
+
+
 > Maybe more nice approach would be to leave --dimn_ports_file option as is, but
 > to add more info in the man page and in the usage message.
 > 
@@ -445,18 +441,13 @@ Ira
 > --
 > 
 > -- Alex
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
-
 -- 
-Ira Weiny
-Math Programmer/Computer Scientist
-Lawrence Livermore National Lab
-925-423-8008
-weiny2-i2BcT+NCU+M@public.gmane.org
+Albert Chu
+chu11-i2BcT+NCU+M@public.gmane.org
+Computer Scientist
+High Performance Systems Division
+Lawrence Livermore National Laboratory
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
