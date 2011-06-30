@@ -1,147 +1,108 @@
 From: Bernard Metzler <BMT-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>
-Subject: Re: kernel space rdma client, reg_mr issue
-Date: Thu, 30 Jun 2011 18:17:19 +0200
-Message-ID: <OFCAA652C2.0E458DCE-ONC12578BF.0058AEDA-C12578BF.00597A78@ch.ibm.com>
-References: <BANLkTi=+mFMHzoS9A=M1mW5pSjy8qdoV7Q@mail.gmail.com>
+Subject: Re: [PATCH 04/14] SIWv2: Module initialization: siw_main.c
+Date: Thu, 30 Jun 2011 18:23:04 +0200
+Message-ID: <OFECAC7AF5.E3ED2EF9-ONC12578BF.004E5934-C12578BF.005A012E@ch.ibm.com>
+References: <BANLkTi=E=FQonndVeROSQJkpWRH4sCwEfA@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <BANLkTi=+mFMHzoS9A=M1mW5pSjy8qdoV7Q-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <BANLkTi=E=FQonndVeROSQJkpWRH4sCwEfA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Benoit Hudzia <benoit.hudzia-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: jean-noel.gonzalez.de.linares-y6kNeMnOB+c@public.gmane.org, john stewart <john.stewart.kz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Benoit,
-since a user process should never crash the kernel there
-is something wrong in softiwarp. Can you please send me the
-stack trace from the crash in privae email to work that out.
-I'll come back to the list with a fix.
+Good point. I moved the three attributes to debugfs which
+looks much more appropriate.
 
-Thanks,
-Bernard.
+I also re-structured module initialization/device registration:
+The siw module now registers with the netdevice subsystem
+(register_netdevice_notifier()) to catch NETDEV_xx events,
+which now also handles device state changes and later
+device addition.
 
-linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org wrote on 06/30/2011 04:19:01 PM:
+Before posting it as a proposed patch I wanted to discuss the
+following. Currently, only NETDEV_REGISTER, NETDEV_UNREGISTER,
+NETDEV_UP, NETDEV_DOWN are handled as following:
+NETDEV_REGISTER:	Instantiate a siw device (ib_alloc_device()).
+NETDEV_UP:		Register to ib_core (ib_register_device()),
+			if the device has an interface address.
+NETDEV_DOWN:	Unregister from ib_core (ib_unregister_device()).
+NETDEV_UNREGISTER:Deallocate device (ib_dealloc_device())
 
-> Hi,
->
-> We are working to create a RDMA client within the kernel which will
-> connect to a working RDMA userspace server.
-> We are using the userspace code  for testing purpose , in the final
-> version all the communication will be done within the kernel space.
->
-> We rely on softiwarp so far for dev purpose.
->
-> We have achieved a connection but are now having trouble prior to the
-> communication stage.
->
-> We are trying to register a user space created buffer using the
-> device->reg_user_mr . However the kernel crash and the crash dump
-> shows a page fault after siw_reg_user_mr.
->
->
-> What we would like to know:
->
-> If this is the correct approach to register memory for RDMA
-> communication ? If yes what are we doing wrong ?
-> Is there a possibility to use kernel allocated memory rather than
-> using userspace created and then passing the address back to the
-> kernel through IOCTL ? ( if yes if there is any code example floating
-> around?)
-> basically the question boils down to how to allcoate and registr
-> buffer for RDMA communication from inside a kernel module?
->
->
-> =A0This is the code.
->
->
-#######################################################################=
-###############
+Toggling the device UP and DOWN would end up un-/registering
+with the ib_core. Maybe thats not appropriate and the device
+should remain visible to ib_core? The CM appears to exclude
+DOWN devices from connection management. With that, a siw device
+would remain visible to ib_core until it gets UNREGISTERed.
 
->
->
-> struct rdma_cm_id *id =3D rdma_create_id(my_rdma_cm_event_handler
-> event_handler, NULL, RDMA_PS_TCP, IB_QPT_RC);
-> struct ib_pd *pd =3D ib_alloc_pd(id->device);
-> struct ib_cq *cq =3D ib_create_cq(id->device, NULL, NULL, NULL, 2, 0)=
-;
->
-> // Userspace buffer addresses passed via IOCTl
-> unsigned long user_buffer_send;
-> unsigned long user_buffer_recv;
->
->
-> int my_rdma_cm_event_handler event_handler(struct rdma_cm_id *id,
-> struct rdma_cm_event *event)
-> {
->
->    switch (event)
->    {
->       case RDMA_CM_EVENT_ADDR_RESOLVED:
->
->          rdma_resolve_route(id, 2000);
->
->          break;
->
->       case RDMA_CM_EVENT_ROUTE_RESOLVED:
->       {
->
->          struct ib_qp_init_attr attr;
->
->          memset(&attr, 0, sizeof attr);
->
->          attr.send_cq =3D cq;
->          attr.recv_cq =3D cq;
->          attr.sq_sig_type =3D IB_SIGNAL_ALL_WR;
->          attr.cap.max_send_wr =3D 2;
->          attr.cap.max_recv_wr =3D 2;
->          attr.cap.max_send_sge =3D 1;
->          attr.cap.max_recv_sge =3D 1;
->          attr.qp_type =3D IB_QPT_RC;
->          attr.port_num =3D id->port_num;
->          attr.event_handler =3D my_qp_event_handler;
->
->          rdma_create_qp(id, pd, &attr)
->
->          rdma_connect(id, &conn_param);
->
->          break;
->       }
->       case RDMA_CM_EVENT_ESTABLISHED:
->       {
->
->          struct ib_mr *send_mr =3D id->device->reg_user_mr(pd, (u64)
-> user_buffer_send, sizeof *user_buffer_send, NULL,
->                            IB_ACCESS_LOCAL_WRITE | IB_ACCESS_REMOTE_R=
-EAD
-|
-> IB_ACCESS_REMOTE_WRITE, NULL);
->
->          struct ib_mr *recv_mr =3D id->device->reg_user_mr(pd, (u64)
-> user_buffer_recv, sizeof *user_buffer_recv, NULL,
->                            IB_ACCESS_LOCAL_WRITE | IB_ACCESS_REMOTE_R=
-EAD
-|
-> IB_ACCESS_REMOTE_WRITE, NULL);
->
->          break;
->       }
->
->    }
->
->    ...
-> }
->
->
-#######################################################################=
-###############
 
+Should the code handle other events such as NETDEV_CHANGEADDR?
+
+
+Many thanks,
+bernard.
+
+linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org wrote on 06/18/2011 07:39:11 PM:
+
+> On Thu, Jun 16, 2011 at 2:42 PM, Bernard Metzler <bmt-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>
+wrote:
+> > ---
+> > =A0drivers/infiniband/hw/siw/siw_main.c | =A0603
+> ++++++++++++++++++++++++++++++++++
+> > =A01 files changed, 603 insertions(+), 0 deletions(-)
+> > =A0create mode 100644 drivers/infiniband/hw/siw/siw_main.c
+> >
+> > diff --git a/drivers/infiniband/hw/siw/siw_main.c
+> b/drivers/infiniband/hw/siw/siw_main.c
+> > [ ... ]
+> > +static ssize_t show_stats(struct device *dev,
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 struct device_att=
+ribute *attr, char *buf)
+> > +{
+> > + =A0 =A0 =A0 struct siw_dev *siw_dev =3D container_of(dev, struct =
+siw_dev,
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 =A0 =A0 =A0ofa_dev.dev);
+> > +
+> > + =A0 =A0 =A0 return sprintf(buf, "Allocated SIW Objects:\n"
+> > +#if DPRINT_MASK > 0
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 "Global =A0 =A0 :\t%s=
+: %d\n"
+> > +#endif
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 "Device %s:\t"
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 "%s: %d, %s: %d, %s: =
+%d, %s: %d, %s: %d, %s: %d
+\n",
+> > +#if DPRINT_MASK > 0
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 "WQEs", atomic_read(&=
+siw_num_wqe),
+> > +#endif
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 siw_dev->ofa_dev.name=
+,
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 "PDs", atomic_read(&s=
+iw_dev->num_pd),
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 "QPs", atomic_read(&s=
+iw_dev->num_qp),
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 "CQs", atomic_read(&s=
+iw_dev->num_cq),
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 "SRQs", atomic_read(&=
+siw_dev->num_srq),
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 "MRs", atomic_read(&s=
+iw_dev->num_mem),
+> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 "CEPs", atomic_read(&=
+siw_dev->num_cep));
+> > +}
 >
-> --
-> " The production of too many useful things results in too many useles=
-s
-people"
+> The rules for sysfs, documented in Documentation/ABI/README, are:
+> - One value per file.
+> - All new sysfs attributes must be documented in Documentation/ABI.
+>
+> An alternative to following the above rules is moving attributes from
+> sysfs to debugfs.
+>
+> Bart.
 > --
 > To unsubscribe from this list: send the line "unsubscribe linux-rdma"=
  in
