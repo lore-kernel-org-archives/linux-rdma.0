@@ -1,28 +1,28 @@
 From: rpearson-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org
-Subject: [patch 08/44] rxe_mmap.h
-Date: Fri, 01 Jul 2011 08:18:29 -0500
-Message-ID: <20110701132201.083584104@systemfabricworks.com>
+Subject: [patch 22/44] rxe_cq.h
+Date: Fri, 01 Jul 2011 08:18:43 -0500
+Message-ID: <20110701132201.759679115@systemfabricworks.com>
 References: <20110701131821.928693424@systemfabricworks.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline; filename=patch8
+Content-Disposition: inline; filename=patch22
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: Bob Pearson <rpearson-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-declarations for mmap routines.
+Declarations for completion queue details.
 
 Signed-off-by: Bob Pearson <rpearson-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org>
 
 ---
- drivers/infiniband/hw/rxe/rxe_mmap.h |   63 +++++++++++++++++++++++++++++++++++
- 1 file changed, 63 insertions(+)
+ drivers/infiniband/hw/rxe/rxe_cq.h |   52 +++++++++++++++++++++++++++++++++++++
+ 1 file changed, 52 insertions(+)
 
-Index: infiniband/drivers/infiniband/hw/rxe/rxe_mmap.h
+Index: infiniband/drivers/infiniband/hw/rxe/rxe_cq.h
 ===================================================================
 --- /dev/null
-+++ infiniband/drivers/infiniband/hw/rxe/rxe_mmap.h
-@@ -0,0 +1,63 @@
++++ infiniband/drivers/infiniband/hw/rxe/rxe_cq.h
+@@ -0,0 +1,52 @@
 +/*
 + * Copyright (c) 2009-2011 Mellanox Technologies Ltd. All rights reserved.
 + * Copyright (c) 2009-2011 System Fabric Works, Inc. All rights reserved.
@@ -56,36 +56,25 @@ Index: infiniband/drivers/infiniband/hw/rxe/rxe_mmap.h
 + * SOFTWARE.
 + */
 +
-+#ifndef RXE_MMAP_H
-+#define RXE_MMAP_H
++/* cq implementation details */
 +
-+/* This info has to be copied to user space so that it can call mmap
-+ * and get the right stuff mapped */
-+struct mminfo {
-+	__u64			offset;
-+	__u32			size;
-+	__u32			pad;
-+};
++#ifndef RXE_CQ_H
++#define RXE_CQ_H
 +
-+struct rxe_mmap_info {
-+	struct list_head	pending_mmaps;
-+	struct ib_ucontext	*context;
-+	struct kref		ref;
-+	void			*obj;
++int rxe_cq_chk_attr(struct rxe_dev *rxe, struct rxe_cq *cq,
++		    int cqe, int comp_vector, struct ib_udata *udata);
 +
-+	struct mminfo info;
-+};
++int rxe_cq_from_init(struct rxe_dev *rxe, struct rxe_cq *cq, int cqe,
++		     int comp_vector, struct ib_ucontext *context,
++		     struct ib_udata *udata);
 +
-+void rxe_mmap_release(struct kref *ref);
++int rxe_cq_resize_queue(struct rxe_cq *cq, int new_cqe, struct ib_udata *udata);
 +
-+struct rxe_mmap_info *rxe_create_mmap_info(struct rxe_dev *dev,
-+					   u32 size,
-+					   struct ib_ucontext *context,
-+					   void *obj);
++int rxe_cq_post(struct rxe_cq *cq, struct rxe_cqe *cqe, int solicited);
 +
-+int rxe_mmap(struct ib_ucontext *context, struct vm_area_struct *vma);
++void rxe_cq_cleanup(void *arg);
 +
-+#endif /* RXE_MMAP_H */
++#endif /* RXE_CQ_H */
 
 -- 
 
