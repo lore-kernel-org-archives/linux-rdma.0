@@ -1,28 +1,29 @@
 From: rpearson-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org
-Subject: [patch 38/44] rxe.c
-Date: Fri, 01 Jul 2011 08:18:59 -0500
-Message-ID: <20110701132202.534913188@systemfabricworks.com>
+Subject: [patch 40/44] rxe_net.c
+Date: Fri, 01 Jul 2011 08:19:01 -0500
+Message-ID: <20110701132202.631366602@systemfabricworks.com>
 References: <20110701131821.928693424@systemfabricworks.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline; filename=patch38
+Content-Disposition: inline; filename=patch40
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: Bob Pearson <rpearson-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-module main for ib_rxe
+implements kernel module that implements an interface between
+ib_rxe and the netdev stack.
 
 Signed-off-by: Bob Pearson <rpearson-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org>
 
 ---
- drivers/infiniband/hw/rxe/rxe.c |  549 ++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 549 insertions(+)
+ drivers/infiniband/hw/rxe/rxe_net.c |  598 ++++++++++++++++++++++++++++++++++++
+ 1 file changed, 598 insertions(+)
 
-Index: infiniband/drivers/infiniband/hw/rxe/rxe.c
+Index: infiniband/drivers/infiniband/hw/rxe/rxe_net.c
 ===================================================================
 --- /dev/null
-+++ infiniband/drivers/infiniband/hw/rxe/rxe.c
-@@ -0,0 +1,549 @@
++++ infiniband/drivers/infiniband/hw/rxe/rxe_net.c
+@@ -0,0 +1,598 @@
 +/*
 + * Copyright (c) 2009-2011 Mellanox Technologies Ltd. All rights reserved.
 + * Copyright (c) 2009-2011 System Fabric Works, Inc. All rights reserved.
@@ -56,522 +57,571 @@ Index: infiniband/drivers/infiniband/hw/rxe/rxe.c
 + * SOFTWARE.
 + */
 +
++#include <linux/skbuff.h>
++#include <linux/netdevice.h>
++#include <linux/if.h>
++#include <linux/if_vlan.h>
++#include <net/sch_generic.h>
++#include <linux/netfilter.h>
++#include <rdma/ib_addr.h>
++
 +#include "rxe.h"
-+#include "rxe_loc.h"
++#include "rxe_net.h"
 +
 +MODULE_AUTHOR("Bob Pearson, Frank Zago, John Groves");
-+MODULE_DESCRIPTION("Soft RDMA transport");
++MODULE_DESCRIPTION("RDMA transport over Converged Enhanced Ethernet");
 +MODULE_LICENSE("Dual BSD/GPL");
 +
-+static int rxe_max_ucontext = RXE_MAX_UCONTEXT;
-+module_param_named(max_ucontext, rxe_max_ucontext, int, 0644);
-+MODULE_PARM_DESC(max_ucontext, "max user contexts per device");
++static int rxe_eth_proto_id = ETH_P_RXE;
++module_param_named(eth_proto_id, rxe_eth_proto_id, int, 0644);
++MODULE_PARM_DESC(eth_proto_id, "Ethernet protocol ID (default/correct=0x8915)");
 +
-+static int rxe_max_qp = RXE_MAX_QP;
-+module_param_named(max_qp, rxe_max_qp, int, 0444);
-+MODULE_PARM_DESC(max_qp, "max QPs per device");
++static int rxe_xmit_shortcut;
++module_param_named(xmit_shortcut, rxe_xmit_shortcut, int, 0644);
++MODULE_PARM_DESC(xmit_shortcut,
++		 "Shortcut transmit (EXPERIMENTAL)");
 +
-+static int rxe_max_qp_wr = RXE_MAX_QP_WR;
-+module_param_named(max_qp_wr, rxe_max_qp_wr, int, 0644);
-+MODULE_PARM_DESC(max_qp_wr, "max send or recv WR's per QP");
++static int rxe_loopback_mad_grh_fix = 1;
++module_param_named(loopback_mad_grh_fix, rxe_loopback_mad_grh_fix, int, 0644);
++MODULE_PARM_DESC(loopback_mad_grh_fix, "Allow MADs to self without GRH");
 +
-+static int rxe_max_inline_data = RXE_MAX_INLINE_DATA;
-+module_param_named(max_inline_data, rxe_max_inline_data, int, 0644);
-+MODULE_PARM_DESC(max_inline_data, "max inline data per WR");
++/*
++ * note: this table is a replacement for a protocol specific pointer
++ * in struct net_device which exists for other ethertypes
++ * this allows us to not have to patch that data structure
++ * eventually we want to get our own when we're famous
++ */
++struct rxe_net_info net_info[RXE_MAX_IF_INDEX];
++spinlock_t net_info_lock;
 +
-+static int rxe_max_cq = RXE_MAX_CQ;
-+module_param_named(max_cq, rxe_max_cq, int, 0644);
-+MODULE_PARM_DESC(max_cq, "max CQs per device");
++static int rxe_net_rcv(struct sk_buff *skb,
++		       struct net_device *ndev,
++		       struct packet_type *ptype,
++		       struct net_device *orig_dev);
 +
-+static int rxe_max_mr = RXE_MAX_MR;
-+module_param_named(max_mr, rxe_max_mr, int, 0644);
-+MODULE_PARM_DESC(max_mr, "max MRs per device");
-+
-+static int rxe_max_fmr = RXE_MAX_FMR;
-+module_param_named(max_fmr, rxe_max_fmr, int, 0644);
-+MODULE_PARM_DESC(max_fmr, "max MRs per device");
-+
-+static int rxe_max_mw = RXE_MAX_MW;
-+module_param_named(max_mw, rxe_max_mw, int, 0644);
-+MODULE_PARM_DESC(max_mw, "max MWs per device");
-+
-+static int rxe_max_log_cqe = RXE_MAX_LOG_CQE;
-+module_param_named(max_log_cqe, rxe_max_log_cqe, int, 0644);
-+MODULE_PARM_DESC(max_log_cqe, "Log2 of max CQ entries per CQ");
-+
-+int rxe_fast_comp = 2;
-+module_param_named(fast_comp, rxe_fast_comp, int, 0644);
-+MODULE_PARM_DESC(fast_comp, "fast path call to completer "
-+		 "(0=no, 1=no int context, 2=any context)");
-+
-+int rxe_fast_resp = 2;
-+module_param_named(fast_resp, rxe_fast_resp, int, 0644);
-+MODULE_PARM_DESC(fast_resp, "enable fast path call to responder "
-+		 "(0=no, 1=no int context, 2=any context)");
-+
-+int rxe_fast_req = 2;
-+module_param_named(fast_req, rxe_fast_req, int, 0644);
-+MODULE_PARM_DESC(fast_req, "enable fast path call to requester "
-+		 "(0=no, 1=no int context, 2=any context)");
-+
-+int rxe_fast_arb = 2;
-+module_param_named(fast_arb, rxe_fast_arb, int, 0644);
-+MODULE_PARM_DESC(fast_arb, "enable fast path call to arbiter "
-+		 "(0=no, 1=no int context, 2=any context)");
-+
-+int rxe_crc_disable;
-+EXPORT_SYMBOL(rxe_crc_disable);
-+module_param_named(crc_disable, rxe_crc_disable, int, 0644);
-+MODULE_PARM_DESC(rxe_crc_disable,
-+		 "Disable crc32 computation on outbound packets");
-+
-+int rxe_nsec_per_packet = 200;
-+module_param_named(nsec_per_packet, rxe_nsec_per_packet, int, 0644);
-+MODULE_PARM_DESC(nsec_per_packet,
-+		 "minimum output packet delay nsec");
-+
-+int rxe_nsec_per_kbyte = 700;
-+module_param_named(nsec_per_kbyte, rxe_nsec_per_kbyte, int, 0644);
-+MODULE_PARM_DESC(nsec_per_kbyte,
-+		 "minimum output packet delay per kbyte nsec");
-+
-+int rxe_max_skb_per_qp = 800;
-+module_param_named(max_skb_per_qp, rxe_max_skb_per_qp, int, 0644);
-+MODULE_PARM_DESC(max_skb_per_qp,
-+		 "maximum skb's posted for output");
-+
-+int rxe_max_req_comp_gap = 128;
-+module_param_named(max_req_comp_gap, rxe_max_req_comp_gap, int, 0644);
-+MODULE_PARM_DESC(max_req_comp_gap,
-+		 "max difference between req.psn and comp.psn");
-+
-+int rxe_max_pkt_per_ack = 64;
-+module_param_named(max_pkt_per_ack, rxe_max_pkt_per_ack, int, 0644);
-+MODULE_PARM_DESC(max_pkt_per_ack,
-+		 "max packets before an ack will be generated");
-+
-+int rxe_default_mtu = 1024;
-+module_param_named(default_mtu, rxe_default_mtu, int, 0644);
-+MODULE_PARM_DESC(default_mtu,
-+		 "default rxe port mtu");
-+
-+/* free resources for all ports on a device */
-+static void rxe_cleanup_ports(struct rxe_dev *rxe)
++static __be64 rxe_mac_to_eui64(struct net_device *ndev)
 +{
-+	unsigned int port_num;
-+	struct rxe_port *port;
++	unsigned char *mac_addr = ndev->dev_addr;
++	__be64 eui64;
++	unsigned char *dst = (unsigned char *)&eui64;
 +
-+	for (port_num = 1; port_num <= rxe->num_ports; port_num++) {
-+		port = &rxe->port[port_num - 1];
++	dst[0] = mac_addr[0] ^ 2;
++	dst[1] = mac_addr[1];
++	dst[2] = mac_addr[2];
++	dst[3] = 0xff;
++	dst[4] = 0xfe;
++	dst[5] = mac_addr[3];
++	dst[6] = mac_addr[4];
++	dst[7] = mac_addr[5];
 +
-+		kfree(port->guid_tbl);
-+		port->guid_tbl = NULL;
-+
-+		kfree(port->pkey_tbl);
-+		port->pkey_tbl = NULL;
-+	}
-+
-+	kfree(rxe->port);
-+	rxe->port = NULL;
++	return eui64;
 +}
 +
-+/* free resources for a rxe device
-+   all objects created for this device
-+   must have been destroyed */
-+static void rxe_cleanup(struct rxe_dev *rxe)
++/* callback when rxe gets released */
++static void release(struct rxe_dev *rxe)
 +{
-+	rxe_cleanup_task(&rxe->arbiter.task);
-+
-+	rxe_pool_cleanup(&rxe->uc_pool);
-+	rxe_pool_cleanup(&rxe->pd_pool);
-+	rxe_pool_cleanup(&rxe->ah_pool);
-+	rxe_pool_cleanup(&rxe->srq_pool);
-+	rxe_pool_cleanup(&rxe->qp_pool);
-+	rxe_pool_cleanup(&rxe->cq_pool);
-+	rxe_pool_cleanup(&rxe->mr_pool);
-+	rxe_pool_cleanup(&rxe->fmr_pool);
-+	rxe_pool_cleanup(&rxe->mw_pool);
-+	rxe_pool_cleanup(&rxe->mc_grp_pool);
-+	rxe_pool_cleanup(&rxe->mc_elem_pool);
-+
-+	rxe_cleanup_ports(rxe);
-+}
-+
-+/* called when all references have been dropped */
-+void rxe_release(struct kref *kref)
-+{
-+	struct rxe_dev *rxe = container_of(kref, struct rxe_dev, ref_cnt);
-+
-+	rxe_cleanup(rxe);
-+	ib_dealloc_device(&rxe->ib_dev);
 +	module_put(THIS_MODULE);
-+	rxe->ifc_ops->release(rxe);
 +}
 +
-+/* initialize rxe device parameters */
-+static int rxe_init_device_param(struct rxe_dev *rxe)
++static __be64 node_guid(struct rxe_dev *rxe)
 +{
-+	rxe->num_ports				= RXE_NUM_PORT;
-+	rxe->max_inline_data			= rxe_max_inline_data;
-+
-+	rxe->attr.fw_ver			= RXE_FW_VER;
-+	rxe->attr.max_mr_size			= RXE_MAX_MR_SIZE;
-+	rxe->attr.page_size_cap			= RXE_PAGE_SIZE_CAP;
-+	rxe->attr.vendor_id			= RXE_VENDOR_ID;
-+	rxe->attr.vendor_part_id		= RXE_VENDOR_PART_ID;
-+	rxe->attr.hw_ver			= RXE_HW_VER;
-+	rxe->attr.max_qp			= rxe_max_qp;
-+	rxe->attr.max_qp_wr			= rxe_max_qp_wr;
-+	rxe->attr.device_cap_flags		= RXE_DEVICE_CAP_FLAGS;
-+	rxe->attr.max_sge			= RXE_MAX_SGE;
-+	rxe->attr.max_sge_rd			= RXE_MAX_SGE_RD;
-+	rxe->attr.max_cq			= rxe_max_cq;
-+	if ((rxe_max_log_cqe < 0) || (rxe_max_log_cqe > 20))
-+		rxe_max_log_cqe = RXE_MAX_LOG_CQE;
-+	rxe->attr.max_cqe			= (1 << rxe_max_log_cqe) - 1;
-+	rxe->attr.max_mr			= rxe_max_mr;
-+	rxe->attr.max_pd			= RXE_MAX_PD;
-+	rxe->attr.max_qp_rd_atom		= RXE_MAX_QP_RD_ATOM;
-+	rxe->attr.max_ee_rd_atom		= RXE_MAX_EE_RD_ATOM;
-+	rxe->attr.max_res_rd_atom		= RXE_MAX_RES_RD_ATOM;
-+	rxe->attr.max_qp_init_rd_atom		= RXE_MAX_QP_INIT_RD_ATOM;
-+	rxe->attr.max_ee_init_rd_atom		= RXE_MAX_EE_INIT_RD_ATOM;
-+	rxe->attr.atomic_cap			= RXE_ATOMIC_CAP;
-+	rxe->attr.max_ee			= RXE_MAX_EE;
-+	rxe->attr.max_rdd			= RXE_MAX_RDD;
-+	rxe->attr.max_mw			= rxe_max_mw;
-+	rxe->attr.max_raw_ipv6_qp		= RXE_MAX_RAW_IPV6_QP;
-+	rxe->attr.max_raw_ethy_qp		= RXE_MAX_RAW_ETHY_QP;
-+	rxe->attr.max_mcast_grp			= RXE_MAX_MCAST_GRP;
-+	rxe->attr.max_mcast_qp_attach		= RXE_MAX_MCAST_QP_ATTACH;
-+	rxe->attr.max_total_mcast_qp_attach	= RXE_MAX_TOT_MCAST_QP_ATTACH;
-+	rxe->attr.max_ah			= RXE_MAX_AH;
-+	rxe->attr.max_fmr			= rxe_max_fmr;
-+	rxe->attr.max_map_per_fmr		= RXE_MAX_MAP_PER_FMR;
-+	rxe->attr.max_srq			= RXE_MAX_SRQ;
-+	rxe->attr.max_srq_wr			= RXE_MAX_SRQ_WR;
-+	rxe->attr.max_srq_sge			= RXE_MAX_SRQ_SGE;
-+	rxe->attr.max_fast_reg_page_list_len	= RXE_MAX_FMR_PAGE_LIST_LEN;
-+	rxe->attr.max_pkeys			= RXE_MAX_PKEYS;
-+	rxe->attr.local_ca_ack_delay		= RXE_LOCAL_CA_ACK_DELAY;
-+
-+	rxe->max_ucontext			= rxe_max_ucontext;
-+	rxe->pref_mtu = rxe_mtu_int_to_enum(rxe_default_mtu);
-+
-+	return 0;
++	return rxe_mac_to_eui64(rxe->ndev);
 +}
 +
-+/* initialize port attributes */
-+static int rxe_init_port_param(struct rxe_dev *rxe, unsigned int port_num)
++static __be64 port_guid(struct rxe_dev *rxe, unsigned int port_num)
 +{
-+	struct rxe_port *port = &rxe->port[port_num - 1];
-+
-+	port->attr.state		= RXE_PORT_STATE;
-+	port->attr.max_mtu		= RXE_PORT_MAX_MTU;
-+	port->attr.active_mtu		= RXE_PORT_ACTIVE_MTU;
-+	port->attr.gid_tbl_len		= RXE_PORT_GID_TBL_LEN;
-+	port->attr.port_cap_flags	= RXE_PORT_PORT_CAP_FLAGS;
-+	port->attr.max_msg_sz		= RXE_PORT_MAX_MSG_SZ;
-+	port->attr.bad_pkey_cntr	= RXE_PORT_BAD_PKEY_CNTR;
-+	port->attr.qkey_viol_cntr	= RXE_PORT_QKEY_VIOL_CNTR;
-+	port->attr.pkey_tbl_len		= RXE_PORT_PKEY_TBL_LEN;
-+	port->attr.lid			= RXE_PORT_LID;
-+	port->attr.sm_lid		= RXE_PORT_SM_LID;
-+	port->attr.lmc			= RXE_PORT_LMC;
-+	port->attr.max_vl_num		= RXE_PORT_MAX_VL_NUM;
-+	port->attr.sm_sl		= RXE_PORT_SM_SL;
-+	port->attr.subnet_timeout	= RXE_PORT_SUBNET_TIMEOUT;
-+	port->attr.init_type_reply	= RXE_PORT_INIT_TYPE_REPLY;
-+	port->attr.active_width		= RXE_PORT_ACTIVE_WIDTH;
-+	port->attr.active_speed		= RXE_PORT_ACTIVE_SPEED;
-+	port->attr.phys_state		= RXE_PORT_PHYS_STATE;
-+	port->mtu_cap			=
-+				rxe_mtu_enum_to_int(RXE_PORT_ACTIVE_MTU);
-+	port->subnet_prefix		= cpu_to_be64(RXE_PORT_SUBNET_PREFIX);
-+
-+	return 0;
++	return rxe_mac_to_eui64(rxe->ndev);
 +}
 +
-+/* initialize port state, note IB convention
-+   that HCA ports are always numbered from 1 */
-+static int rxe_init_ports(struct rxe_dev *rxe)
++static struct device *dma_device(struct rxe_dev *rxe)
++{
++	struct net_device *ndev;
++
++	ndev = rxe->ndev;
++
++	if (ndev->priv_flags & IFF_802_1Q_VLAN)
++		ndev = vlan_dev_real_dev(ndev);
++
++	return ndev->dev.parent;
++}
++
++static int mcast_add(struct rxe_dev *rxe, union ib_gid *mgid)
 +{
 +	int err;
-+	unsigned int port_num;
-+	struct rxe_port *port;
++	unsigned char ll_addr[ETH_ALEN];
 +
-+	rxe->port = kcalloc(rxe->num_ports, sizeof(struct rxe_port),
-+			    GFP_KERNEL);
-+	if (!rxe->port)
-+		return -ENOMEM;
++	ipv6_eth_mc_map((struct in6_addr *)mgid->raw, ll_addr);
++	err = dev_mc_add(rxe->ndev, ll_addr);
 +
-+	for (port_num = 1; port_num <= rxe->num_ports; port_num++) {
-+		port = &rxe->port[port_num - 1];
++	return err;
++}
 +
-+		rxe_init_port_param(rxe, port_num);
++static int mcast_delete(struct rxe_dev *rxe, union ib_gid *mgid)
++{
++	int err;
++	unsigned char ll_addr[ETH_ALEN];
 +
-+		if (!port->attr.pkey_tbl_len) {
-+			err = -EINVAL;
-+			goto err1;
++	ipv6_eth_mc_map((struct in6_addr *)mgid->raw, ll_addr);
++	err = dev_mc_del(rxe->ndev, ll_addr);
++
++	return err;
++}
++
++static inline int queue_deactivated(struct sk_buff *skb)
++{
++	const struct net_device_ops *ops = skb->dev->netdev_ops;
++	u16 queue_index = 0;
++	struct netdev_queue *txq;
++
++	if (ops->ndo_select_queue)
++		queue_index = ops->ndo_select_queue(skb->dev, skb);
++	else if (skb->dev->real_num_tx_queues > 1)
++		queue_index = skb_tx_hash(skb->dev, skb);
++
++	txq = netdev_get_tx_queue(skb->dev, queue_index);
++	return txq->qdisc->state & 2;
++}
++
++static int send_finish(struct sk_buff *skb)
++{
++	if (!rxe_xmit_shortcut)
++		return dev_queue_xmit(skb);
++	else
++		return skb->dev->netdev_ops->ndo_start_xmit(skb, skb->dev);
++}
++
++static int send(struct rxe_dev *rxe, struct sk_buff *skb)
++{
++	if (queue_deactivated(skb))
++		return RXE_QUEUE_STOPPED;
++
++	if (netif_queue_stopped(skb->dev))
++		return RXE_QUEUE_STOPPED;
++
++	return NF_HOOK(NFPROTO_RXE, NF_RXE_OUT, skb, rxe->ndev, NULL,
++		send_finish);
++}
++
++static int loopback_finish(struct sk_buff *skb)
++{
++	struct rxe_pkt_info *pkt = SKB_TO_PKT(skb);
++	struct packet_type *ptype = NULL;
++	struct net_device *orig_dev = pkt->rxe->ndev;
++
++	return rxe_net_rcv(skb, pkt->rxe->ndev, ptype, orig_dev);
++}
++
++static int loopback(struct rxe_dev *rxe, struct sk_buff *skb)
++{
++	return NF_HOOK(NFPROTO_RXE, NF_RXE_OUT, skb, rxe->ndev, NULL,
++		loopback_finish);
++}
++
++static inline int addr_same(struct rxe_dev *rxe, struct rxe_av *av)
++{
++	int port_num = 1;
++	return rxe->port[port_num - 1].guid_tbl[0]
++			== av->attr.grh.dgid.global.interface_id;
++}
++
++static struct sk_buff *init_packet(struct rxe_dev *rxe, struct rxe_av *av,
++				   int paylen)
++{
++	struct sk_buff *skb;
++	struct rxe_pkt_info *pkt;
++
++
++	skb = alloc_skb(paylen + RXE_GRH_BYTES + LL_RESERVED_SPACE(rxe->ndev),
++			GFP_ATOMIC);
++	if (!skb)
++		return NULL;
++
++	skb_reserve(skb, LL_RESERVED_SPACE(rxe->ndev));
++	skb_reset_network_header(skb);
++
++	skb->dev	= rxe->ndev;
++	skb->protocol	= htons(rxe_eth_proto_id);
++
++	pkt		= SKB_TO_PKT(skb);
++	pkt->rxe	= rxe;
++	pkt->port_num	= 1;
++	pkt->hdr	= skb_put(skb, RXE_GRH_BYTES + paylen);
++	pkt->mask	= RXE_GRH_MASK;
++
++	dev_hard_header(skb, rxe->ndev, rxe_eth_proto_id,
++			av->ll_addr, rxe->ndev->dev_addr, skb->len);
++
++	if (addr_same(rxe, av))
++		pkt->mask |= RXE_LOOPBACK_MASK;
++
++	return skb;
++}
++
++static int init_av(struct rxe_dev *rxe, struct ib_ah_attr *attr,
++		   struct rxe_av *av)
++{
++	struct in6_addr *in6 = (struct in6_addr *)attr->grh.dgid.raw;
++
++	/* grh required for rxe_net */
++	if ((attr->ah_flags & IB_AH_GRH) == 0) {
++		if (rxe_loopback_mad_grh_fix) {
++			/* temporary fix so that we can handle mad's to self
++			   without grh's included add grh pointing to self */
++			attr->ah_flags |= IB_AH_GRH;
++			attr->grh.dgid.global.subnet_prefix
++				= rxe->port[0].subnet_prefix;
++			attr->grh.dgid.global.interface_id
++				= rxe->port[0].guid_tbl[0];
++			av->attr = *attr;
++		} else {
++			pr_info("rxe_net: attempting to init av without grh\n");
++			return -EINVAL;
 +		}
-+
-+		port->pkey_tbl = kcalloc(port->attr.pkey_tbl_len,
-+					 sizeof(*port->pkey_tbl), GFP_KERNEL);
-+		if (!port->pkey_tbl) {
-+			err = -ENOMEM;
-+			goto err1;
-+		}
-+
-+		port->pkey_tbl[0] = 0xffff;
-+
-+		if (!port->attr.gid_tbl_len) {
-+			kfree(port->pkey_tbl);
-+			err = -EINVAL;
-+			goto err1;
-+		}
-+
-+		port->guid_tbl = kcalloc(port->attr.gid_tbl_len,
-+					 sizeof(*port->guid_tbl), GFP_KERNEL);
-+		if (!port->guid_tbl) {
-+			kfree(port->pkey_tbl);
-+			err = -ENOMEM;
-+			goto err1;
-+		}
-+
-+		port->guid_tbl[0] = rxe->ifc_ops->port_guid(rxe, port_num);
-+
-+		spin_lock_init(&port->port_lock);
 +	}
 +
-+	return 0;
++	if (rdma_link_local_addr(in6))
++		rdma_get_ll_mac(in6, av->ll_addr);
++	else if (rdma_is_multicast_addr(in6))
++		rdma_get_mcast_mac(in6, av->ll_addr);
++	else {
++		int i;
++		char addr[64];
 +
-+err1:
-+	while (--port_num >= 1) {
-+		port = &rxe->port[port_num - 1];
-+		kfree(port->pkey_tbl);
-+		kfree(port->guid_tbl);
-+	}
++		for (i = 0; i < 16; i++)
++			sprintf(addr+2*i, "%02x", attr->grh.dgid.raw[i]);
 +
-+	kfree(rxe->port);
-+	return err;
-+}
-+
-+/* init pools of managed objects */
-+static int rxe_init_pools(struct rxe_dev *rxe)
-+{
-+	int err;
-+
-+	err = rxe_pool_init(rxe, &rxe->uc_pool, RXE_TYPE_UC,
-+			     rxe->max_ucontext);
-+	if (err)
-+		goto err1;
-+
-+	err = rxe_pool_init(rxe, &rxe->pd_pool, RXE_TYPE_PD,
-+			     rxe->attr.max_pd);
-+	if (err)
-+		goto err2;
-+
-+	err = rxe_pool_init(rxe, &rxe->ah_pool, RXE_TYPE_AH,
-+			     rxe->attr.max_ah);
-+	if (err)
-+		goto err3;
-+
-+	err = rxe_pool_init(rxe, &rxe->srq_pool, RXE_TYPE_SRQ,
-+			     rxe->attr.max_srq);
-+	if (err)
-+		goto err4;
-+
-+	err = rxe_pool_init(rxe, &rxe->qp_pool, RXE_TYPE_QP,
-+			     rxe->attr.max_qp);
-+	if (err)
-+		goto err5;
-+
-+	err = rxe_pool_init(rxe, &rxe->cq_pool, RXE_TYPE_CQ,
-+			     rxe->attr.max_cq);
-+	if (err)
-+		goto err6;
-+
-+	err = rxe_pool_init(rxe, &rxe->mr_pool, RXE_TYPE_MR,
-+			     rxe->attr.max_mr);
-+	if (err)
-+		goto err7;
-+
-+	err = rxe_pool_init(rxe, &rxe->fmr_pool, RXE_TYPE_FMR,
-+			     rxe->attr.max_fmr);
-+	if (err)
-+		goto err8;
-+
-+	err = rxe_pool_init(rxe, &rxe->mw_pool, RXE_TYPE_MW,
-+			     rxe->attr.max_mw);
-+	if (err)
-+		goto err9;
-+
-+	err = rxe_pool_init(rxe, &rxe->mc_grp_pool, RXE_TYPE_MC_GRP,
-+			     rxe->attr.max_mcast_grp);
-+	if (err)
-+		goto err10;
-+
-+	err = rxe_pool_init(rxe, &rxe->mc_elem_pool, RXE_TYPE_MC_ELEM,
-+			     rxe->attr.max_total_mcast_qp_attach);
-+	if (err)
-+		goto err11;
-+
-+	return 0;
-+
-+err11:
-+	rxe_pool_cleanup(&rxe->mc_grp_pool);
-+err10:
-+	rxe_pool_cleanup(&rxe->mw_pool);
-+err9:
-+	rxe_pool_cleanup(&rxe->fmr_pool);
-+err8:
-+	rxe_pool_cleanup(&rxe->mr_pool);
-+err7:
-+	rxe_pool_cleanup(&rxe->cq_pool);
-+err6:
-+	rxe_pool_cleanup(&rxe->qp_pool);
-+err5:
-+	rxe_pool_cleanup(&rxe->srq_pool);
-+err4:
-+	rxe_pool_cleanup(&rxe->ah_pool);
-+err3:
-+	rxe_pool_cleanup(&rxe->pd_pool);
-+err2:
-+	rxe_pool_cleanup(&rxe->uc_pool);
-+err1:
-+	return err;
-+}
-+
-+/* initialize rxe device state */
-+static int rxe_init(struct rxe_dev *rxe)
-+{
-+	int err;
-+
-+	/* init default device parameters */
-+	rxe_init_device_param(rxe);
-+
-+	err = rxe_init_ports(rxe);
-+	if (err)
-+		goto err1;
-+
-+	err = rxe_init_pools(rxe);
-+	if (err)
-+		goto err2;
-+
-+	/* init packet counters */
-+	atomic_set(&rxe->req_skb_in, 0);
-+	atomic_set(&rxe->resp_skb_in, 0);
-+	atomic_set(&rxe->req_skb_out, 0);
-+	atomic_set(&rxe->resp_skb_out, 0);
-+
-+	/* init pending mmap list */
-+	spin_lock_init(&rxe->mmap_offset_lock);
-+	spin_lock_init(&rxe->pending_lock);
-+	INIT_LIST_HEAD(&rxe->pending_mmaps);
-+
-+	/* init arbiter */
-+	spin_lock_init(&rxe->arbiter.list_lock);
-+	INIT_LIST_HEAD(&rxe->arbiter.qp_list);
-+	rxe_init_task(rxe, &rxe->arbiter.task, &rxe_fast_arb,
-+		      rxe, rxe_arbiter, "arb");
-+
-+	return 0;
-+
-+err2:
-+	rxe_cleanup_ports(rxe);
-+err1:
-+	return err;
-+}
-+
-+int rxe_set_mtu(struct rxe_dev *rxe, unsigned int ndev_mtu,
-+		unsigned int port_num)
-+{
-+	struct rxe_port *port = &rxe->port[port_num - 1];
-+	enum rxe_mtu mtu;
-+
-+	mtu = eth_mtu_int_to_enum(ndev_mtu);
-+	if (!mtu)
++		pr_info("rxe_net: non local subnet address not supported %s\n",
++			addr);
 +		return -EINVAL;
-+
-+	/* Set the port mtu to min(feasible, preferred) */
-+	mtu = min_t(enum rxe_mtu, mtu, rxe->pref_mtu);
-+
-+	port->attr.active_mtu = (enum ib_mtu __force)mtu;
-+	port->mtu_cap = rxe_mtu_enum_to_int(mtu);
++	}
 +
 +	return 0;
 +}
-+EXPORT_SYMBOL(rxe_set_mtu);
 +
-+/* called by ifc layer to create new rxe device
-+   caller should allocate memory for rxe by calling
-+   ib_alloc_device */
-+int rxe_add(struct rxe_dev *rxe, unsigned int mtu)
++/*
++ * this is required by rxe_cfg to match rxe devices in
++ * /sys/class/infiniband up with their underlying ethernet devices
++ */
++static char *parent_name(struct rxe_dev *rxe, unsigned int port_num)
++{
++	return rxe->ndev->name;
++}
++
++static enum rdma_link_layer link_layer(struct rxe_dev *rxe,
++				       unsigned int port_num)
++{
++	return IB_LINK_LAYER_ETHERNET;
++}
++
++static struct rxe_ifc_ops ifc_ops = {
++	.release	= release,
++	.node_guid	= node_guid,
++	.port_guid	= port_guid,
++	.dma_device	= dma_device,
++	.mcast_add	= mcast_add,
++	.mcast_delete	= mcast_delete,
++	.send		= send,
++	.loopback	= loopback,
++	.init_packet	= init_packet,
++	.init_av	= init_av,
++	.parent_name	= parent_name,
++	.link_layer	= link_layer,
++};
++
++/* Caller must hold net_info_lock */
++void rxe_net_add(struct net_device *ndev)
 +{
 +	int err;
-+	unsigned port_num = 1;
++	struct rxe_dev *rxe;
++	unsigned port_num;
 +
 +	__module_get(THIS_MODULE);
 +
-+	kref_init(&rxe->ref_cnt);
-+
-+	err = rxe_init(rxe);
-+	if (err)
++	rxe = (struct rxe_dev *)ib_alloc_device(sizeof(*rxe));
++	if (!rxe) {
++		err = -ENOMEM;
 +		goto err1;
++	}
 +
-+	err = rxe_set_mtu(rxe, mtu, port_num);
++	/* for now we always assign port = 1 */
++	port_num = 1;
++
++	rxe->ifc_ops = &ifc_ops;
++
++	rxe->ndev = ndev;
++
++	err = rxe_add(rxe, ndev->mtu);
 +	if (err)
 +		goto err2;
 +
-+	err = rxe_register_device(rxe);
-+	if (err)
-+		goto err2;
++	pr_info("rxe_net: added %s to %s\n",
++		 rxe->ib_dev.name, ndev->name);
 +
-+	return 0;
++	net_info[ndev->ifindex].rxe = rxe;
++	net_info[ndev->ifindex].port = port_num;
++	net_info[ndev->ifindex].ndev = ndev;
++	return;
 +
 +err2:
-+	rxe_cleanup(rxe);
++	ib_dealloc_device(&rxe->ib_dev);
 +err1:
-+	kref_put(&rxe->ref_cnt, rxe_release);
 +	module_put(THIS_MODULE);
-+	return err;
-+}
-+EXPORT_SYMBOL(rxe_add);
 +
-+/* called by the ifc layer to remove a device */
-+void rxe_remove(struct rxe_dev *rxe)
++	return;
++}
++
++/* Caller must hold net_info_lock */
++void rxe_net_remove(int net_index)
 +{
-+	rxe_unregister_device(rxe);
++	struct rxe_dev *rxe = net_info[net_index].rxe;
++	struct net_device *ndev = net_info[net_index].ndev;
 +
-+	kref_put(&rxe->ref_cnt, rxe_release);
++	net_info[net_index].rxe = NULL;
++	spin_unlock_bh(&net_info_lock);
++
++	pr_info("rxe_net: remove %s from %s\n",
++		 rxe->ib_dev.name, ndev->name);
++
++	rxe_remove(rxe);
++
++	spin_lock_bh(&net_info_lock);
++	return;
 +}
-+EXPORT_SYMBOL(rxe_remove);
 +
-+static int __init rxe_module_init(void)
++/* Caller must hold net_info_lock */
++void rxe_net_up(struct net_device *ndev)
++{
++	struct rxe_dev *rxe;
++	struct rxe_port *port;
++	u8 port_num;
++
++	if (ndev->ifindex >= RXE_MAX_IF_INDEX)
++		goto out;
++
++	net_info[ndev->ifindex].status = IB_PORT_ACTIVE;
++
++	rxe = net_to_rxe(ndev);
++	if (!rxe)
++		goto out;
++
++	port_num = net_to_port(ndev);
++	port = &rxe->port[port_num-1];
++	port->attr.state = IB_PORT_ACTIVE;
++	port->attr.phys_state = IB_PHYS_STATE_LINK_UP;
++
++	pr_info("rxe_net: set %s active for %s\n",
++		rxe->ib_dev.name, ndev->name);
++out:
++	return;
++}
++
++/* Caller must hold net_info_lock */
++void rxe_net_down(struct net_device *ndev)
++{
++	struct rxe_dev *rxe;
++	struct rxe_port *port;
++	u8 port_num;
++
++	if (ndev->ifindex >= RXE_MAX_IF_INDEX)
++		goto out;
++
++	net_info[ndev->ifindex].status = IB_PORT_DOWN;
++
++	rxe = net_to_rxe(ndev);
++	if (!rxe)
++		goto out;
++
++	port_num = net_to_port(ndev);
++	port = &rxe->port[port_num-1];
++	port->attr.state = IB_PORT_DOWN;
++	port->attr.phys_state = 3;
++
++	pr_info("rxe_net: set %s down for %s\n",
++		rxe->ib_dev.name, ndev->name);
++out:
++	return;
++}
++
++static int can_support_rxe(struct net_device *ndev)
++{
++	int rc = 0;
++
++	if (ndev->ifindex >= RXE_MAX_IF_INDEX) {
++		pr_debug("%s index %d: too large for rxe ndev table\n",
++			 ndev->name, ndev->ifindex);
++		goto out;
++	}
++
++	/* Let's says we support all ethX devices */
++	if (strncmp(ndev->name, "eth", 3) == 0)
++		rc = 1;
++
++out:
++	return rc;
++}
++
++static int rxe_notify(struct notifier_block *not_blk,
++		      unsigned long event,
++		      void *arg)
++{
++	struct net_device *ndev = arg;
++	struct rxe_dev *rxe;
++
++	if (!can_support_rxe(ndev))
++		goto out;
++
++	spin_lock_bh(&net_info_lock);
++	switch (event) {
++	case NETDEV_REGISTER:
++		/* Keep a record of this NIC. */
++		net_info[ndev->ifindex].status = IB_PORT_DOWN;
++		net_info[ndev->ifindex].rxe = NULL;
++		net_info[ndev->ifindex].port = 1;
++		net_info[ndev->ifindex].ndev = ndev;
++		break;
++
++	case NETDEV_UNREGISTER:
++		if (net_info[ndev->ifindex].rxe) {
++			rxe = net_info[ndev->ifindex].rxe;
++			net_info[ndev->ifindex].rxe = NULL;
++			spin_unlock_bh(&net_info_lock);
++			rxe_remove(rxe);
++			spin_lock_bh(&net_info_lock);
++		}
++		net_info[ndev->ifindex].status = 0;
++		net_info[ndev->ifindex].port = 0;
++		net_info[ndev->ifindex].ndev = NULL;
++		break;
++
++	case NETDEV_UP:
++		rxe_net_up(ndev);
++		break;
++
++	case NETDEV_DOWN:
++		rxe_net_down(ndev);
++		break;
++
++	case NETDEV_CHANGEMTU:
++		rxe = net_to_rxe(ndev);
++		if (rxe) {
++			pr_info("rxe_net: %s changed mtu to %d\n",
++				ndev->name, ndev->mtu);
++			rxe_set_mtu(rxe, ndev->mtu, net_to_port(ndev));
++		}
++		break;
++
++	case NETDEV_REBOOT:
++	case NETDEV_CHANGE:
++	case NETDEV_GOING_DOWN:
++	case NETDEV_CHANGEADDR:
++	case NETDEV_CHANGENAME:
++	case NETDEV_FEAT_CHANGE:
++	default:
++		pr_info("rxe_net: ignoring netdev event = %ld for %s\n",
++			event, ndev->name);
++		break;
++	}
++	spin_unlock_bh(&net_info_lock);
++
++out:
++	return NOTIFY_OK;
++}
++
++static int rxe_net_rcv(struct sk_buff *skb,
++		       struct net_device *ndev,
++		       struct packet_type *ptype,
++		       struct net_device *orig_dev)
++{
++	struct rxe_dev *rxe = net_to_rxe(ndev);
++	struct rxe_pkt_info *pkt = SKB_TO_PKT(skb);
++	int rc = 0;
++
++	if (!rxe)
++		goto drop;
++
++	/* TODO: We can receive packets in fragments. For now we
++	 * linearize and it's costly because we may copy a lot of
++	 * data. We should handle that case better. */
++	if (skb_linearize(skb))
++		goto drop;
++
++#if 0
++	/* Error injector */
++	{
++		static int x = 8;
++		static int counter;
++		counter++;
++
++		if (counter == x) {
++			x = 13-x; /* 8 or 5 */
++			counter = 0;
++			pr_debug("dropping one packet\n");
++			goto drop;
++		}
++	}
++#endif
++
++	skb = skb_share_check(skb, GFP_ATOMIC);
++	if (!skb) {
++		/* still return null */
++		goto out;
++	}
++
++	/* set required fields in pkt */
++	pkt->rxe = rxe;
++	pkt->port_num = net_to_port(ndev);
++	pkt->hdr = skb_network_header(skb);
++	pkt->mask = RXE_GRH_MASK;
++
++	rc = NF_HOOK(NFPROTO_RXE, NF_RXE_IN, skb, ndev, NULL, rxe_rcv);
++out:
++	return rc;
++
++drop:
++	kfree_skb(skb);
++	return 0;
++}
++
++static struct packet_type rxe_packet_type = {
++	.func = rxe_net_rcv,
++};
++
++static struct notifier_block rxe_net_notifier = {
++	.notifier_call = rxe_notify,
++};
++
++static int __init rxe_net_init(void)
 +{
 +	int err;
 +
-+	/* initialize slab caches for managed objects */
-+	err = rxe_cache_init();
-+	if (err) {
-+		pr_err("rxe: unable to init object pools\n");
-+		return err;
-+	}
++	spin_lock_init(&net_info_lock);
 +
-+	pr_info("rxe: loaded\n");
++	if (rxe_eth_proto_id != ETH_P_RXE)
++		pr_info("rxe_net: protoid set to 0x%x\n",
++			rxe_eth_proto_id);
 +
-+	return 0;
++	rxe_packet_type.type = cpu_to_be16(rxe_eth_proto_id);
++	dev_add_pack(&rxe_packet_type);
++
++	err = register_netdevice_notifier(&rxe_net_notifier);
++
++	pr_info("rxe_net: loaded\n");
++
++	return err;
 +}
 +
-+static void __exit rxe_module_exit(void)
++static void __exit rxe_net_exit(void)
 +{
-+	rxe_cache_exit();
++	unregister_netdevice_notifier(&rxe_net_notifier);
++	dev_remove_pack(&rxe_packet_type);
 +
-+	pr_info("rxe: unloaded\n");
++	pr_info("rxe_net: unloaded\n");
++
++	return;
 +}
 +
-+module_init(rxe_module_init);
-+module_exit(rxe_module_exit);
++module_init(rxe_net_init);
++module_exit(rxe_net_exit);
 
 -- 
 
