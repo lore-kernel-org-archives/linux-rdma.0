@@ -1,31 +1,32 @@
 From: rpearson-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org
-Subject: [patch 07/44] rxe_loc.h
-Date: Fri, 01 Jul 2011 08:18:28 -0500
-Message-ID: <20110701132201.035215638@systemfabricworks.com>
+Subject: [patch 09/44] rxe_mmap.c
+Date: Fri, 01 Jul 2011 08:18:30 -0500
+Message-ID: <20110701132201.131623515@systemfabricworks.com>
 References: <20110701131821.928693424@systemfabricworks.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline; filename=patch7
+Content-Disposition: inline; filename=patch9
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: Bob Pearson <rpearson-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-misc local interfaces between files in ib_rxe.
+mmap routines.
 
 Signed-off-by: Bob Pearson <rpearson-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org>
 
 ---
- drivers/infiniband/hw/rxe/rxe_loc.h |   78 ++++++++++++++++++++++++++++++++++++
- 1 file changed, 78 insertions(+)
+ drivers/infiniband/hw/rxe/rxe_mmap.c |  171 +++++++++++++++++++++++++++++++++++
+ 1 file changed, 171 insertions(+)
 
-Index: infiniband/drivers/infiniband/hw/rxe/rxe_loc.h
+Index: infiniband/drivers/infiniband/hw/rxe/rxe_mmap.c
 ===================================================================
 --- /dev/null
-+++ infiniband/drivers/infiniband/hw/rxe/rxe_loc.h
-@@ -0,0 +1,78 @@
++++ infiniband/drivers/infiniband/hw/rxe/rxe_mmap.c
+@@ -0,0 +1,171 @@
 +/*
 + * Copyright (c) 2009-2011 Mellanox Technologies Ltd. All rights reserved.
 + * Copyright (c) 2009-2011 System Fabric Works, Inc. All rights reserved.
++ * Copyright (c) 2006, 2007 QLogic Corporation. All rights reserved.
 + *
 + * This software is available to you under a choice of one of two
 + * licenses.  You may choose to be licensed under the terms of the GNU
@@ -56,51 +57,143 @@ Index: infiniband/drivers/infiniband/hw/rxe/rxe_loc.h
 + * SOFTWARE.
 + */
 +
-+#ifndef RXE_LOC_H
-+#define RXE_LOC_H
++#include <linux/module.h>
++#include <linux/vmalloc.h>
++#include <linux/mm.h>
++#include <linux/errno.h>
++#include <asm/pgtable.h>
 +
-+/* local declarations shared between rxe files */
++#include "rxe.h"
++#include "rxe_queue.h"
++#include "rxe_mmap.h"
 +
-+extern struct ib_dma_mapping_ops rxe_dma_mapping_ops;
-+
-+void rxe_release(struct kref *kref);
-+
-+void arbiter_skb_queue(struct rxe_dev *rxe,
-+		       struct rxe_qp *qp, struct sk_buff *skb);
-+
-+int rxe_arbiter(void *arg);
-+int rxe_completer(void *arg);
-+int rxe_requester(void *arg);
-+int rxe_responder(void *arg);
-+
-+__be32 rxe_sb8_ib_headers(struct rxe_pkt_info *pkt);
-+__be32 rxe_sb8(struct rxe_pkt_info *pkt);
-+__be32 sb8_le_copy(void *dest, const void *data,
-+		   const size_t length, __be32 last_crc);
-+
-+static inline __be32 sb8_copy(void *dest, const void *src,
-+			      const size_t length, __be32 crc)
++void rxe_mmap_release(struct kref *ref)
 +{
-+#ifdef __LITTLE_ENDIAN
-+	return sb8_le_copy(dest, src, length, crc);
-+#else
-+	/* TODO this is wrong */
-+	return sb8_le_copy(dest, src, length, crc);
-+#endif
++	struct rxe_mmap_info *ip = container_of(ref,
++					struct rxe_mmap_info, ref);
++	struct rxe_dev *rxe = to_rdev(ip->context->device);
++
++	spin_lock_bh(&rxe->pending_lock);
++
++	if (!list_empty(&ip->pending_mmaps))
++		list_del(&ip->pending_mmaps);
++
++	spin_unlock_bh(&rxe->pending_lock);
++
++	vfree(ip->obj);		/* buf */
++	kfree(ip);
 +}
 +
-+void rxe_resp_queue_pkt(struct rxe_dev *rxe,
-+			struct rxe_qp *qp, struct sk_buff *skb);
-+
-+void rxe_comp_queue_pkt(struct rxe_dev *rxe,
-+			struct rxe_qp *qp, struct sk_buff *skb);
-+
-+static inline unsigned wr_opcode_mask(int opcode, struct rxe_qp *qp)
++/*
++ * open and close keep track of how many times the CQ is mapped,
++ * to avoid releasing it.
++ */
++static void rxe_vma_open(struct vm_area_struct *vma)
 +{
-+	return rxe_wr_opcode_info[opcode].mask[qp->ibqp.qp_type];
++	struct rxe_mmap_info *ip = vma->vm_private_data;
++
++	kref_get(&ip->ref);
 +}
 +
-+#endif /* RXE_LOC_H */
++static void rxe_vma_close(struct vm_area_struct *vma)
++{
++	struct rxe_mmap_info *ip = vma->vm_private_data;
++
++	kref_put(&ip->ref, rxe_mmap_release);
++
++}
++
++static struct vm_operations_struct rxe_vm_ops = {
++	.open = rxe_vma_open,
++	.close = rxe_vma_close,
++};
++
++/**
++ * rxe_mmap - create a new mmap region
++ * @context: the IB user context of the process making the mmap() call
++ * @vma: the VMA to be initialized
++ * Return zero if the mmap is OK. Otherwise, return an errno.
++ */
++int rxe_mmap(struct ib_ucontext *context, struct vm_area_struct *vma)
++{
++	struct rxe_dev *rxe = to_rdev(context->device);
++	unsigned long offset = vma->vm_pgoff << PAGE_SHIFT;
++	unsigned long size = vma->vm_end - vma->vm_start;
++	struct rxe_mmap_info *ip, *pp;
++	int ret;
++
++	/*
++	 * Search the device's list of objects waiting for a mmap call.
++	 * Normally, this list is very short since a call to create a
++	 * CQ, QP, or SRQ is soon followed by a call to mmap().
++	 */
++	spin_lock_bh(&rxe->pending_lock);
++	list_for_each_entry_safe(ip, pp, &rxe->pending_mmaps, pending_mmaps) {
++		if (context != ip->context || (__u64)offset != ip->info.offset)
++			continue;
++
++		/* Don't allow a mmap larger than the object. */
++		if (size > ip->info.size)
++			break;
++
++		goto found_it;
++	}
++	pr_warning("unable to find pending mmap info\n");
++	spin_unlock_bh(&rxe->pending_lock);
++	ret = -EINVAL;
++	goto done;
++
++found_it:
++	list_del_init(&ip->pending_mmaps);
++	spin_unlock_bh(&rxe->pending_lock);
++
++	ret = remap_vmalloc_range(vma, ip->obj, 0);
++	if (ret) {
++		pr_info("rxe: err %d from remap_vmalloc_range\n", ret);
++		goto done;
++	}
++
++	vma->vm_ops = &rxe_vm_ops;
++	vma->vm_private_data = ip;
++	rxe_vma_open(vma);
++done:
++	return ret;
++}
++
++/*
++ * Allocate information for rxe_mmap
++ */
++struct rxe_mmap_info *rxe_create_mmap_info(struct rxe_dev *rxe,
++					   u32 size,
++					   struct ib_ucontext *context,
++					   void *obj)
++{
++	struct rxe_mmap_info *ip;
++
++	ip = kmalloc(sizeof *ip, GFP_KERNEL);
++	if (!ip)
++		return NULL;
++
++	size = PAGE_ALIGN(size);
++
++	spin_lock_bh(&rxe->mmap_offset_lock);
++
++	if (rxe->mmap_offset == 0)
++		rxe->mmap_offset = PAGE_SIZE;
++
++	ip->info.offset = rxe->mmap_offset;
++	rxe->mmap_offset += size;
++
++	spin_unlock_bh(&rxe->mmap_offset_lock);
++
++	INIT_LIST_HEAD(&ip->pending_mmaps);
++	ip->info.size = size;
++	ip->context = context;
++	ip->obj = obj;
++	kref_init(&ip->ref);
++
++	return ip;
++}
 
 -- 
 
