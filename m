@@ -1,28 +1,28 @@
 From: rpearson-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org
-Subject: [patch 06/44] rxe.h
-Date: Fri, 01 Jul 2011 08:18:27 -0500
-Message-ID: <20110701132200.986805966@systemfabricworks.com>
+Subject: [patch 16/44] rxe_task.h
+Date: Fri, 01 Jul 2011 08:18:37 -0500
+Message-ID: <20110701132201.471397768@systemfabricworks.com>
 References: <20110701131821.928693424@systemfabricworks.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline; filename=patch6
+Content-Disposition: inline; filename=patch16
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: Bob Pearson <rpearson-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-ib_rxe external interface to lower level modules
+Declarations for tasklet handling.
 
 Signed-off-by: Bob Pearson <rpearson-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org>
 
 ---
- drivers/infiniband/hw/rxe/rxe.h |   63 ++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 63 insertions(+)
+ drivers/infiniband/hw/rxe/rxe_task.h |  107 +++++++++++++++++++++++++++++++++++
+ 1 file changed, 107 insertions(+)
 
-Index: infiniband/drivers/infiniband/hw/rxe/rxe.h
+Index: infiniband/drivers/infiniband/hw/rxe/rxe_task.h
 ===================================================================
 --- /dev/null
-+++ infiniband/drivers/infiniband/hw/rxe/rxe.h
-@@ -0,0 +1,63 @@
++++ infiniband/drivers/infiniband/hw/rxe/rxe_task.h
+@@ -0,0 +1,107 @@
 +/*
 + * Copyright (c) 2009-2011 Mellanox Technologies Ltd. All rights reserved.
 + * Copyright (c) 2009-2011 System Fabric Works, Inc. All rights reserved.
@@ -33,9 +33,9 @@ Index: infiniband/drivers/infiniband/hw/rxe/rxe.h
 + * COPYING in the main directory of this source tree, or the
 + * OpenIB.org BSD license below:
 + *
-+ *     Redistribution and use in source and binary forms, with or
-+ *     without modification, are permitted provided that the following
-+ *     conditions are met:
++ *	   Redistribution and use in source and binary forms, with or
++ *	   without modification, are permitted provided that the following
++ *	   conditions are met:
 + *
 + *	- Redistributions of source code must retain the above
 + *	  copyright notice, this list of conditions and the following
@@ -56,36 +56,80 @@ Index: infiniband/drivers/infiniband/hw/rxe/rxe.h
 + * SOFTWARE.
 + */
 +
-+#ifndef RXE_H
-+#define RXE_H
++#ifndef RXE_TASK_H
++#define RXE_TASK_H
 +
-+#include <linux/skbuff.h>
++enum {
++	TASK_STATE_START	= 0,
++	TASK_STATE_BUSY		= 1,
++	TASK_STATE_ARMED	= 2,
++};
 +
-+#include <rdma/ib_verbs.h>
-+#include <rdma/ib_user_verbs.h>
-+#include <rdma/ib_pack.h>
-+#include <rdma/ib_smi.h>
-+#include <rdma/ib_umem.h>
++/*
++ * data structure to describe a 'task' which is a short
++ * function that returns 0 as long as it needs to be
++ * called again.
++ */
++struct rxe_task {
++	void			*obj;
++	unsigned int		*fast;
++	struct tasklet_struct	tasklet;
++	int			state;
++	spinlock_t		state_lock;
++	void			*arg;
++	int			(*func)(void *arg);
++	int			ret;
++	char			name[16];
++};
 +
-+#include "rxe_opcode.h"
-+#include "rxe_hdr.h"
-+#include "rxe_param.h"
-+#include "rxe_verbs.h"
++/*
++ * init rxe_task structure
++ *	fast => address of control flag, likely a module parameter
++ *	arg  => parameter to pass to fcn
++ *	fcn  => function to call until it returns != 0
++ */
++int rxe_init_task(void *obj, struct rxe_task *task, unsigned int *fast,
++		  void *arg, int (*func)(void *), char *name);
 +
-+#define RXE_UVERBS_ABI_VERSION		(1)
++/*
++ * cleanup task
++ */
++void rxe_cleanup_task(struct rxe_task *task);
 +
-+#define IB_PHYS_STATE_LINK_UP		(5)
++/*
++ * raw call to func in loop without any checking
++ * can call when tasklets are disabled
++ */
++int __rxe_do_task(struct rxe_task *task);
 +
-+int rxe_set_mtu(struct rxe_dev *rxe, unsigned int dev_mtu,
-+		unsigned int port_num);
++/*
++ * common function called by any of the main tasklets
++ * if someone is calling the function on its own
++ * thread (fast path) then they must increment busy
++ * If there is any chance that there is additional
++ * work to do someone must reschedule the task before
++ * leaving
++ */
++void rxe_do_task(unsigned long data);
 +
-+int rxe_add(struct rxe_dev *rxe, unsigned int mtu);
++/*
++ * run a task, use fast path if no one else
++ * is currently running it and fast path is ok
++ * else schedule it to run as a tasklet
++ */
++void rxe_run_task(struct rxe_task *task, int sched);
 +
-+void rxe_remove(struct rxe_dev *rxe);
++/*
++ * keep a task from scheduling
++ */
++void rxe_disable_task(struct rxe_task *task);
 +
-+int rxe_rcv(struct sk_buff *skb);
++/*
++ * allow task to run
++ */
++void rxe_enable_task(struct rxe_task *task);
 +
-+#endif /* RXE_H */
++#endif /* RXE_TASK_H */
 
 -- 
 
