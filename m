@@ -1,31 +1,32 @@
 From: rpearson-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org
-Subject: [patch 39/44] rxe_net.h
-Date: Fri, 01 Jul 2011 08:19:00 -0500
-Message-ID: <20110701132202.583319480@systemfabricworks.com>
+Subject: [patch 35/44] rxe_dma.c
+Date: Fri, 01 Jul 2011 08:18:56 -0500
+Message-ID: <20110701132202.390441142@systemfabricworks.com>
 References: <20110701131821.928693424@systemfabricworks.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline; filename=patch39
+Content-Disposition: inline; filename=patch35
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: Bob Pearson <rpearson-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Common declarations for ib_rxe_net module.
+Dummy dma processing for rxe device.
 
 Signed-off-by: Bob Pearson <rpearson-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org>
 
 ---
- drivers/infiniband/hw/rxe/rxe_net.h |   87 ++++++++++++++++++++++++++++++++++++
- 1 file changed, 87 insertions(+)
+ drivers/infiniband/hw/rxe/rxe_dma.c |  178 ++++++++++++++++++++++++++++++++++++
+ 1 file changed, 178 insertions(+)
 
-Index: infiniband/drivers/infiniband/hw/rxe/rxe_net.h
+Index: infiniband/drivers/infiniband/hw/rxe/rxe_dma.c
 ===================================================================
 --- /dev/null
-+++ infiniband/drivers/infiniband/hw/rxe/rxe_net.h
-@@ -0,0 +1,87 @@
++++ infiniband/drivers/infiniband/hw/rxe/rxe_dma.c
+@@ -0,0 +1,178 @@
 +/*
 + * Copyright (c) 2009-2011 Mellanox Technologies Ltd. All rights reserved.
 + * Copyright (c) 2009-2011 System Fabric Works, Inc. All rights reserved.
++ * Copyright (c) 2006 QLogic, Corporation. All rights reserved.
 + *
 + * This software is available to you under a choice of one of two
 + * licenses.  You may choose to be licensed under the terms of the GNU
@@ -56,60 +57,150 @@ Index: infiniband/drivers/infiniband/hw/rxe/rxe_net.h
 + * SOFTWARE.
 + */
 +
-+#ifndef RXE_NET_H
-+#define RXE_NET_H
++#include "rxe.h"
++#include "rxe_loc.h"
 +
-+#include <net/sock.h>
-+#include <net/if_inet6.h>
++static int rxe_mapping_error(struct ib_device *dev, u64 dma_addr)
++{
++	return dma_addr == 0;
++}
 +
-+/*
-+ * this should be defined in .../include/linux/if_ether.h
-+ */
-+#define ETH_P_RXE			(0x8915)
++static u64 rxe_dma_map_single(struct ib_device *dev,
++			      void *cpu_addr, size_t size,
++			      enum dma_data_direction direction)
++{
++	BUG_ON(!valid_dma_direction(direction));
++	return (u64) (uintptr_t) cpu_addr;
++}
 +
-+/*
-+ * this should be defined in .../include/linux/netfilter.h
-+ * to a specific value
-+ */
-+#define NFPROTO_RXE			(0)
++static void rxe_dma_unmap_single(struct ib_device *dev,
++				 u64 addr, size_t size,
++				 enum dma_data_direction direction)
++{
++	BUG_ON(!valid_dma_direction(direction));
++}
 +
-+/*
-+ * these should be defined in .../include/linux/netfilter_rxe.h
-+ */
-+#define NF_RXE_IN			(0)
-+#define NF_RXE_OUT			(1)
++static u64 rxe_dma_map_page(struct ib_device *dev,
++			    struct page *page,
++			    unsigned long offset,
++			    size_t size, enum dma_data_direction direction)
++{
++	u64 addr = 0;
 +
-+/* Should probably move to something other than an array...these can be big */
-+#define RXE_MAX_IF_INDEX	(384)
++	BUG_ON(!valid_dma_direction(direction));
 +
-+struct rxe_net_info {
-+	struct rxe_dev		*rxe;
-+	u8			port;
-+	struct net_device	*ndev;
-+	int			status;
++	if (offset + size > PAGE_SIZE)
++		goto out;
++
++	addr = (uintptr_t) page_address(page);
++	if (addr)
++		addr += offset;
++
++out:
++	return addr;
++}
++
++static void rxe_dma_unmap_page(struct ib_device *dev,
++			       u64 addr, size_t size,
++			       enum dma_data_direction direction)
++{
++	BUG_ON(!valid_dma_direction(direction));
++}
++
++static int rxe_map_sg(struct ib_device *dev, struct scatterlist *sgl,
++		      int nents, enum dma_data_direction direction)
++{
++	struct scatterlist *sg;
++	u64 addr;
++	int i;
++	int ret = nents;
++
++	BUG_ON(!valid_dma_direction(direction));
++
++	for_each_sg(sgl, sg, nents, i) {
++		addr = (uintptr_t) page_address(sg_page(sg));
++		/* TODO: handle highmem pages */
++		if (!addr) {
++			ret = 0;
++			break;
++		}
++	}
++
++	return ret;
++}
++
++static void rxe_unmap_sg(struct ib_device *dev,
++			 struct scatterlist *sg, int nents,
++			 enum dma_data_direction direction)
++{
++	BUG_ON(!valid_dma_direction(direction));
++}
++
++static u64 rxe_sg_dma_address(struct ib_device *dev, struct scatterlist *sg)
++{
++	u64 addr = (uintptr_t) page_address(sg_page(sg));
++
++	if (addr)
++		addr += sg->offset;
++
++	return addr;
++}
++
++static unsigned int rxe_sg_dma_len(struct ib_device *dev,
++				   struct scatterlist *sg)
++{
++	return sg->length;
++}
++
++static void rxe_sync_single_for_cpu(struct ib_device *dev,
++				    u64 addr,
++				    size_t size, enum dma_data_direction dir)
++{
++}
++
++static void rxe_sync_single_for_device(struct ib_device *dev,
++				       u64 addr,
++				       size_t size, enum dma_data_direction dir)
++{
++}
++
++static void *rxe_dma_alloc_coherent(struct ib_device *dev, size_t size,
++				    u64 *dma_handle, gfp_t flag)
++{
++	struct page *p;
++	void *addr = NULL;
++
++	p = alloc_pages(flag, get_order(size));
++	if (p)
++		addr = page_address(p);
++
++	if (dma_handle)
++		*dma_handle = (uintptr_t) addr;
++
++	return addr;
++}
++
++static void rxe_dma_free_coherent(struct ib_device *dev, size_t size,
++				  void *cpu_addr, u64 dma_handle)
++{
++	free_pages((unsigned long)cpu_addr, get_order(size));
++}
++
++struct ib_dma_mapping_ops rxe_dma_mapping_ops = {
++	rxe_mapping_error,
++	rxe_dma_map_single,
++	rxe_dma_unmap_single,
++	rxe_dma_map_page,
++	rxe_dma_unmap_page,
++	rxe_map_sg,
++	rxe_unmap_sg,
++	rxe_sg_dma_address,
++	rxe_sg_dma_len,
++	rxe_sync_single_for_cpu,
++	rxe_sync_single_for_device,
++	rxe_dma_alloc_coherent,
++	rxe_dma_free_coherent
 +};
-+
-+extern struct rxe_net_info net_info[RXE_MAX_IF_INDEX];
-+extern spinlock_t net_info_lock;
-+
-+/* caller must hold net_dev_lock */
-+static inline struct rxe_dev *net_to_rxe(struct net_device *ndev)
-+{
-+	return (ndev->ifindex >= RXE_MAX_IF_INDEX) ?
-+		NULL : net_info[ndev->ifindex].rxe;
-+}
-+
-+static inline u8 net_to_port(struct net_device *ndev)
-+{
-+	return net_info[ndev->ifindex].port;
-+}
-+
-+void rxe_net_add(struct net_device *ndev);
-+void rxe_net_remove(int net_index);
-+void rxe_net_up(struct net_device *ndev);
-+void rxe_net_down(struct net_device *ndev);
-+
-+#endif /* RXE_NET_H */
 
 -- 
 
