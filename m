@@ -1,28 +1,28 @@
 From: rpearson-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org
-Subject: [patch 24/44] rxe_qp.h
-Date: Fri, 01 Jul 2011 08:18:45 -0500
-Message-ID: <20110701132201.855606080@systemfabricworks.com>
+Subject: [patch 20/44] rxe_srq.h
+Date: Fri, 01 Jul 2011 08:18:41 -0500
+Message-ID: <20110701132201.663484972@systemfabricworks.com>
 References: <20110701131821.928693424@systemfabricworks.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline; filename=patch24
+Content-Disposition: inline; filename=patch20
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: Bob Pearson <rpearson-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Decarations for queue pair details.
+Declarations for shared receive queue details.
 
 Signed-off-by: Bob Pearson <rpearson-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org>
 
 ---
- drivers/infiniband/hw/rxe/rxe_qp.h |   99 +++++++++++++++++++++++++++++++++++++
- 1 file changed, 99 insertions(+)
+ drivers/infiniband/hw/rxe/rxe_srq.h |   54 ++++++++++++++++++++++++++++++++++++
+ 1 file changed, 54 insertions(+)
 
-Index: infiniband/drivers/infiniband/hw/rxe/rxe_qp.h
+Index: infiniband/drivers/infiniband/hw/rxe/rxe_srq.h
 ===================================================================
 --- /dev/null
-+++ infiniband/drivers/infiniband/hw/rxe/rxe_qp.h
-@@ -0,0 +1,99 @@
++++ infiniband/drivers/infiniband/hw/rxe/rxe_srq.h
+@@ -0,0 +1,54 @@
 +/*
 + * Copyright (c) 2009-2011 Mellanox Technologies Ltd. All rights reserved.
 + * Copyright (c) 2009-2011 System Fabric Works, Inc. All rights reserved.
@@ -56,72 +56,27 @@ Index: infiniband/drivers/infiniband/hw/rxe/rxe_qp.h
 + * SOFTWARE.
 + */
 +
-+#ifndef RXE_QP_H
-+#define RXE_QP_H
++/* srq implementation details */
 +
-+int rxe_qp_chk_init(struct rxe_dev *rxe, struct ib_qp_init_attr *init);
++#ifndef RXE_SRQ_H
++#define RXE_SRQ_H
 +
-+int rxe_qp_from_init(struct rxe_dev *rxe, struct rxe_qp *qp, struct rxe_pd *pd,
-+		     struct ib_qp_init_attr *init, struct ib_udata *udata,
-+		     struct ib_pd *ibpd);
++#define IB_SRQ_INIT_MASK (~IB_SRQ_LIMIT)
 +
-+int rxe_qp_to_init(struct rxe_qp *qp, struct ib_qp_init_attr *init);
++int rxe_srq_chk_attr(struct rxe_dev *rxe, struct rxe_srq *srq,
++		     struct ib_srq_attr *attr, enum ib_srq_attr_mask mask);
 +
-+int rxe_qp_chk_attr(struct rxe_dev *rxe, struct rxe_qp *qp,
-+		    struct ib_qp_attr *attr, int mask);
++int rxe_srq_from_init(struct rxe_dev *rxe, struct rxe_srq *srq,
++		      struct ib_srq_init_attr *init,
++		      struct ib_ucontext *context, struct ib_udata *udata);
 +
-+int rxe_qp_from_attr(struct rxe_qp *qp, struct ib_qp_attr *attr,
-+					 int mask, struct ib_udata *udata);
++int rxe_srq_from_attr(struct rxe_dev *rxe, struct rxe_srq *srq,
++		      struct ib_srq_attr *attr, enum ib_srq_attr_mask mask,
++		      struct ib_udata *udata);
 +
-+int rxe_qp_to_attr(struct rxe_qp *qp, struct ib_qp_attr *attr, int mask);
++void rxe_srq_cleanup(void *arg);
 +
-+void rxe_qp_error(struct rxe_qp *qp);
-+
-+void rxe_qp_destroy(struct rxe_qp *qp);
-+
-+void rxe_qp_cleanup(void *arg);
-+
-+static inline int qp_num(struct rxe_qp *qp)
-+{
-+	return qp->ibqp.qp_num;
-+}
-+
-+static inline enum ib_qp_type qp_type(struct rxe_qp *qp)
-+{
-+	return qp->ibqp.qp_type;
-+}
-+
-+static inline enum ib_qp_state qp_state(struct rxe_qp *qp)
-+{
-+	return qp->attr.qp_state;
-+}
-+
-+static inline int qp_mtu(struct rxe_qp *qp)
-+{
-+	if (qp->ibqp.qp_type == IB_QPT_RC || qp->ibqp.qp_type == IB_QPT_UC)
-+		return qp->attr.path_mtu;
-+	else
-+		return RXE_PORT_MAX_MTU;
-+}
-+
-+#define RCV_WQE_SIZE(max_sge) (sizeof(struct rxe_recv_wqe) + \
-+			       (max_sge)*sizeof(struct ib_sge))
-+
-+void free_rd_atomic_resource(struct rxe_qp *qp, struct resp_res *res);
-+
-+static inline void rxe_advance_resp_resource(struct rxe_qp *qp)
-+{
-+	qp->resp.res_head++;
-+	if (unlikely(qp->resp.res_head == qp->attr.max_rd_atomic))
-+		qp->resp.res_head = 0;
-+}
-+
-+void retransmit_timer(unsigned long data);
-+void rnr_nak_timer(unsigned long data);
-+
-+void dump_qp(struct rxe_qp *qp);
-+
-+#endif /* RXE_QP_H */
++#endif /* RXE_SRQ_H */
 
 -- 
 
