@@ -1,28 +1,28 @@
 From: rpearson-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org
-Subject: [patch 34/44] rxe_arbiter.c
-Date: Fri, 01 Jul 2011 08:18:55 -0500
-Message-ID: <20110701132202.342196794@systemfabricworks.com>
+Subject: [patch 36/44] gen_sb8tables.c
+Date: Fri, 01 Jul 2011 08:18:57 -0500
+Message-ID: <20110701132202.438736882@systemfabricworks.com>
 References: <20110701131821.928693424@systemfabricworks.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline; filename=patch34
+Content-Disposition: inline; filename=patch36
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: Bob Pearson <rpearson-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-packet output arbitration.
+Program to create slice by 8 tables for the CRC32 calculation.
 
 Signed-off-by: Bob Pearson <rpearson-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org>
 
 ---
- drivers/infiniband/hw/rxe/rxe_arbiter.c |  192 ++++++++++++++++++++++++++++++++
- 1 file changed, 192 insertions(+)
+ drivers/infiniband/hw/rxe/gen_sb8tables.c |  242 ++++++++++++++++++++++++++++++
+ 1 file changed, 242 insertions(+)
 
-Index: infiniband/drivers/infiniband/hw/rxe/rxe_arbiter.c
+Index: infiniband/drivers/infiniband/hw/rxe/gen_sb8tables.c
 ===================================================================
 --- /dev/null
-+++ infiniband/drivers/infiniband/hw/rxe/rxe_arbiter.c
-@@ -0,0 +1,192 @@
++++ infiniband/drivers/infiniband/hw/rxe/gen_sb8tables.c
+@@ -0,0 +1,242 @@
 +/*
 + * Copyright (c) 2009-2011 Mellanox Technologies Ltd. All rights reserved.
 + * Copyright (c) 2009-2011 System Fabric Works, Inc. All rights reserved.
@@ -56,164 +56,214 @@ Index: infiniband/drivers/infiniband/hw/rxe/rxe_arbiter.c
 + * SOFTWARE.
 + */
 +
-+#include <linux/skbuff.h>
++#include <stdio.h>
++#include <stdint.h>
++#include <unistd.h>
++#include <stdlib.h>
++#include <byteswap.h>
 +
-+#include "rxe.h"
-+#include "rxe_loc.h"
-+#include "rxe_qp.h"
++#define _GNU_SOURCE
++#include <getopt.h>
 +
-+static inline void account_skb(struct rxe_dev *rxe, struct rxe_qp *qp,
-+			       int is_request)
++static int flip;
++static int swap;
++static int swip;
++static int flop;
++
++static uint32_t poly = 0xedb88320;	/* crc32 */
++
++static uint32_t t[256];
++
++static int reverse[] = { 7, 6, 5, 4, 3, 2, 1, 0};
++
++static uint8_t flip8(uint8_t x)
 +{
-+	if (is_request & RXE_REQ_MASK) {
-+		atomic_dec(&rxe->req_skb_out);
-+		atomic_dec(&qp->req_skb_out);
-+		if (qp->need_req_skb) {
-+			if (atomic_read(&qp->req_skb_out) < rxe_max_skb_per_qp)
-+				rxe_run_task(&qp->req.task, 1);
++	uint8_t y = 0;
++	int i;
++
++	for (i = 0; i < 8; i++) {
++		if (x & (1 << i))
++			y |= 1 << reverse[i];
++	}
++
++	return y;
++}
++
++static uint32_t flip32(uint32_t x)
++{
++	uint32_t y;
++	uint8_t *p = (uint8_t *)&x;
++	uint8_t *q = (uint8_t *)&y;
++	int i;
++
++	for (i = 0; i < 4; i++)
++		q[i] = flip8(p[i]);
++
++	return y;
++}
++
++static void compute(int n)
++{
++	uint64_t rem;
++	uint64_t p, m;
++	int i;
++	int j;
++	int k;
++	uint32_t ply = poly;
++
++	if (flop)
++		ply = flip32(ply);
++	if (swip)
++		ply = bswap_32(ply);
++
++	for (i = 0; i < 256; i++) {
++		if (flip)
++			rem = flip8(i);
++		else
++			rem = i;
++		rem <<= 32;
++
++		for (k = 0; k <= n; k++) {
++			for (j = 7; j >= 0; j--) {
++				m = 1ULL << (32 + j);
++
++				if (rem & m) {
++					p = ((1ULL << 32) + ply) << j;
++					rem ^= p;
++				}
++			}
++
++			rem <<= 8;
 +		}
-+	} else {
-+		atomic_dec(&rxe->resp_skb_out);
-+		atomic_dec(&qp->resp_skb_out);
++
++		rem >>= 8;
++
++		if (flip) {
++			if (swap)
++				t[i] = bswap_32(flip32(rem));
++			else
++				t[i] = flip32(rem);
++		} else {
++			if (swap)
++				t[i] = bswap_32(rem);
++			else
++				t[i] = rem;
++		}
 +	}
 +}
 +
-+static int xmit_one_packet(struct rxe_dev *rxe, struct rxe_qp *qp,
-+			   struct sk_buff *skb)
++static void print_table(char *name)
 +{
-+	int err;
-+	struct timespec time;
-+	long new_delay;
-+	struct rxe_pkt_info *pkt = SKB_TO_PKT(skb);
-+	int is_request = pkt->mask & RXE_REQ_MASK;
++	int i;
 +
-+	/* drop pkt if qp is in wrong state to send */
-+	if (!qp->valid)
-+		goto drop;
-+
-+	if (is_request) {
-+	  if (qp->req.state != QP_STATE_READY)
-+	    goto drop;
-+	} else {
-+	  if (qp->resp.state != QP_STATE_READY)
-+	    goto drop;
++	printf("\nstatic u32 %s[] = {\n", name);
++	for (i = 0; i < 256; i++) {
++		printf("0x%08x,", t[i]);
++		if ((i % 4) == 3)
++			printf("\n");
++		else
++			printf(" ");
 +	}
-+
-+	/* busy wait for static rate control
-+	   we could refine this by yielding the tasklet
-+	   for larger delays and waiting out the small ones */
-+	if (rxe->arbiter.delay)
-+		do {
-+			getnstimeofday(&time);
-+		} while (timespec_compare(&time, &rxe->arbiter.time) < 0);
-+
-+	new_delay = (skb->len*rxe_nsec_per_kbyte) >> 10;
-+	if (new_delay < rxe_nsec_per_packet)
-+		new_delay = rxe_nsec_per_packet;
-+
-+	if (pkt->mask & RXE_LOOPBACK_MASK)
-+		err = rxe->ifc_ops->loopback(rxe, skb);
-+	else
-+		err = rxe->ifc_ops->send(rxe, skb);
-+
-+	/* we can recover from RXE_QUEUE_STOPPED errors
-+	   by retrying the packet. In other cases
-+	   the packet is consumed so move on */
-+	if (err == RXE_QUEUE_STOPPED)
-+		return err;
-+	else if (err)
-+		rxe->xmit_errors++;
-+
-+	rxe->arbiter.delay = new_delay > 0;
-+	if (rxe->arbiter.delay) {
-+		getnstimeofday(&time);
-+		time.tv_nsec += new_delay;
-+		while (time.tv_nsec > NSEC_PER_SEC) {
-+			time.tv_sec += 1;
-+			time.tv_nsec -= NSEC_PER_SEC;
-+		}
-+		rxe->arbiter.time = time;
-+	}
-+
-+	goto done;
-+
-+drop:
-+	kfree_skb(skb);
-+	err = 0;
-+done:
-+	account_skb(rxe, qp, is_request);
-+	return err;
++	printf("};\n");
 +}
 +
-+/*
-+ * choose one packet for sending
-+ */
-+int rxe_arbiter(void *arg)
++static void usage(void)
 +{
-+	int err;
-+	unsigned long flags;
-+	struct rxe_dev *rxe = (struct rxe_dev *)arg;
-+	struct sk_buff *skb;
-+	struct list_head *qpl;
-+	struct rxe_qp *qp;
++	printf("usage:\n");
++}
 +
-+	/* get the next qp's send queue */
-+	spin_lock_irqsave(&rxe->arbiter.list_lock, flags);
-+	if (list_empty(&rxe->arbiter.qp_list)) {
-+		spin_unlock_irqrestore(&rxe->arbiter.list_lock, flags);
-+		return 1;
-+	}
++static int arg_process(int argc, char *argv[])
++{
++	int c;
++	char *opt_string = "sfFShp:";
++	struct option opt_long[] = {
++		{"help", 0, 0, 'h'},
++		{"poly", 1, 0, 'p'},
++		{"flip", 0, 0, 'f'},
++		{"swap", 0, 0, 's'},
++		{"swip", 0, 0, 'S'},
++		{"flop", 0, 0, 'F'},
++	};
 +
-+	qpl = rxe->arbiter.qp_list.next;
-+	list_del_init(qpl);
-+	qp = list_entry(qpl, struct rxe_qp, arbiter_list);
-+	spin_unlock_irqrestore(&rxe->arbiter.list_lock, flags);
++	while (1) {
++		c = getopt_long(argc, argv, opt_string, opt_long, NULL);
 +
-+	/* get next packet from queue and try to send it
-+	   note skb could have already been removed */
-+	skb = skb_dequeue(&qp->send_pkts);
-+	if (skb) {
-+		err = xmit_one_packet(rxe, qp, skb);
-+		if (err) {
-+			if (err == RXE_QUEUE_STOPPED)
-+				skb_queue_head(&qp->send_pkts, skb);
-+			rxe_run_task(&rxe->arbiter.task, 1);
-+			spin_unlock_irqrestore(&rxe->arbiter.list_lock, flags);
++		if (c == -1)
++			break;
++
++		switch (c) {
++		case 'h':
++			usage();
++			return 1;
++
++		case 'p':
++			poly = strtoul(optarg, NULL, 0);
++			break;
++
++		case 'f':
++			flip = 1;
++			break;
++
++		case 'F':
++			flop = 1;
++			break;
++
++		case 's':
++			swap = 1;
++			break;
++
++		case 'S':
++			swip = 1;
++			break;
++
++		default:
 +			return 1;
 +		}
 +	}
 +
-+	/* if more work in queue put qp back on the list */
-+	spin_lock_irqsave(&rxe->arbiter.list_lock, flags);
++	if (optind < argc)
++		return 1;
 +
-+	if (list_empty(qpl) && !skb_queue_empty(&qp->send_pkts))
-+		list_add_tail(qpl, &rxe->arbiter.qp_list);
-+
-+	spin_unlock_irqrestore(&rxe->arbiter.list_lock, flags);
 +	return 0;
 +}
 +
-+/*
-+ * queue a packet for sending from a qp
-+ */
-+void arbiter_skb_queue(struct rxe_dev *rxe, struct rxe_qp *qp,
-+		       struct sk_buff *skb)
++int main(int argc, char *argv[])
 +{
-+	int must_sched;
-+	unsigned long flags;
++	if (arg_process(argc, argv)) {
++		usage();
++		return 0;
++	}
 +
-+	/* add packet to send queue */
-+	skb_queue_tail(&qp->send_pkts, skb);
++	printf("/*\n");
++	printf(" * Slice by 8 tables for CRC polynomial = 0x%08x\n", poly);
++	printf(" * This file is automatically generated\n");
++	printf(" */\n");
 +
-+	/* if not already there add qp to arbiter list */
-+	spin_lock_irqsave(&rxe->arbiter.list_lock, flags);
-+	if (list_empty(&qp->arbiter_list))
-+		list_add_tail(&qp->arbiter_list, &rxe->arbiter.qp_list);
-+	spin_unlock_irqrestore(&rxe->arbiter.list_lock, flags);
++	compute(0);
++	print_table("t32");
 +
-+	/* run the arbiter, use tasklet unless only one packet */
-+	must_sched = skb_queue_len(&qp->resp_pkts) > 1;
-+	rxe_run_task(&rxe->arbiter.task, must_sched);
++	compute(1);
++	print_table("t40");
++
++	compute(2);
++	print_table("t48");
++
++	compute(3);
++	print_table("t56");
++
++	compute(4);
++	print_table("t64");
++
++	compute(5);
++	print_table("t72");
++
++	compute(6);
++	print_table("t80");
++
++	compute(7);
++	print_table("t88");
++
++	return 0;
 +}
 
 -- 
