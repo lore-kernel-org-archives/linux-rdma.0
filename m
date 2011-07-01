@@ -1,80 +1,31 @@
 From: rpearson-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org
-Subject: [patch 44/44] Kconfig
-Date: Fri, 01 Jul 2011 08:19:05 -0500
-Message-ID: <20110701132202.824114065@systemfabricworks.com>
-References: <20110701131821.928693424@systemfabricworks.com>
+Subject: [patch 00/44] RDMA over Ethernet
+Date: Fri, 01 Jul 2011 08:18:21 -0500
+Message-ID: <20110701131821.928693424@systemfabricworks.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline; filename=patch44
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Bob Pearson <rpearson-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Kconfig file
+This patch set implements a software emulation of RoCE or InfiniBand transport.
+It consists of two kernel modules. The first, ib_rxe, implements the RDMA
+transport and registers with the RDMA core as a kernel verbs provider. The
+second, ib_rxe_net or ib_sample, implement the packet IO layer. ib_rxe_net
+attaches to the Linux netdev stack as a network protocol and can send and
+receive packets over any Ethernet device. It uses the RoCE protocol to handle
+RDMA transport. ib_sample is a pure loopback device that uses the InfiniBand
+transport i.e. it includes the LRH header while RoCE only includes the GRH
+header.
 
-Signed-off-by: Bob Pearson <rpearson-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org>
+The modules are configured by entries in /sys. There is a configuration script
+(rxe_cfg) that simplifies the use of this interface. Rxe_cfg is part of the
+rxe user space code, librxe.
 
----
- drivers/infiniband/Kconfig        |    1 +
- drivers/infiniband/Makefile       |    1 +
- drivers/infiniband/hw/rxe/Kconfig |   26 ++++++++++++++++++++++++++
- 3 files changed, 28 insertions(+)
-Index: infiniband/drivers/infiniband/hw/rxe/Kconfig
-===================================================================
---- /dev/null
-+++ infiniband/drivers/infiniband/hw/rxe/Kconfig
-@@ -0,0 +1,26 @@
-+config INFINIBAND_RXE
-+	tristate "Software RDMA driver"
-+	depends on 64BIT && NET
-+	---help---
-+	This is a driver for a software implementation of IBTA
-+	RDMA transport.
-+
-+	There are three kernel modules:
-+
-+	ib_rxe		- device independant transport driver.
-+	ib_rxe_net	- connects transport to the netdev stack
-+			  and runs on Ethernet devices. Follows the
-+			  RoCE protocol i.e. GRH and no LRH.
-+	ib_rxe_sample	- sample module that connects the transport
-+			  to itself as a loopback and follows the
-+			  InfiniBand protocol i.e. uses LRH. This
-+			  could be used as a start for other experimantal
-+			  software implementations of InfiniBand.
-+
-+	Normal use is to load ib_rxe and ib_rxe_net after loading ib_core.
-+	There is a script rxe_cfg that automates the configuration of rxe.
-+
-+	This driver supports kernel and user space ULPs. For user space
-+	verbs applications you must install librxe with libibverbs.
-+
-+	If you don't know what to use this for, you don't need it.
-Index: infiniband/drivers/infiniband/Kconfig
-===================================================================
---- infiniband.orig/drivers/infiniband/Kconfig
-+++ infiniband/drivers/infiniband/Kconfig
-@@ -51,6 +51,7 @@ source "drivers/infiniband/hw/cxgb3/Kcon
- source "drivers/infiniband/hw/cxgb4/Kconfig"
- source "drivers/infiniband/hw/mlx4/Kconfig"
- source "drivers/infiniband/hw/nes/Kconfig"
-+source "drivers/infiniband/hw/rxe/Kconfig"
- 
- source "drivers/infiniband/ulp/ipoib/Kconfig"
- 
-Index: infiniband/drivers/infiniband/Makefile
-===================================================================
---- infiniband.orig/drivers/infiniband/Makefile
-+++ infiniband/drivers/infiniband/Makefile
-@@ -8,6 +8,7 @@ obj-$(CONFIG_INFINIBAND_CXGB3)		+= hw/cx
- obj-$(CONFIG_INFINIBAND_CXGB4)		+= hw/cxgb4/
- obj-$(CONFIG_MLX4_INFINIBAND)		+= hw/mlx4/
- obj-$(CONFIG_INFINIBAND_NES)		+= hw/nes/
-+obj-$(CONFIG_INFINIBAND_RXE)		+= hw/rxe/
- obj-$(CONFIG_INFINIBAND_IPOIB)		+= ulp/ipoib/
- obj-$(CONFIG_INFINIBAND_SRP)		+= ulp/srp/
- obj-$(CONFIG_INFINIBAND_ISER)		+= ulp/iser/
+The use of rxe verbs in user space requires the inclusion of librxe as a device
+specific plug-in to libibverbs. Librxe is packaged separately.
 
+Copies of the user space library and tools for 'upstream' and a tar file of
+these patches are available at support.systemfabricworks.com/downloads/rxe.
 -- 
 
 --
