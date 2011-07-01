@@ -1,28 +1,28 @@
 From: rpearson-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org
-Subject: [patch 11/44] rxe_queue.c
-Date: Fri, 01 Jul 2011 08:18:32 -0500
-Message-ID: <20110701132201.228047659@systemfabricworks.com>
+Subject: [patch 24/44] rxe_qp.h
+Date: Fri, 01 Jul 2011 08:18:45 -0500
+Message-ID: <20110701132201.855606080@systemfabricworks.com>
 References: <20110701131821.928693424@systemfabricworks.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline; filename=patch11
+Content-Disposition: inline; filename=patch24
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: Bob Pearson <rpearson-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-common work and completion queue implementation.
+Decarations for queue pair details.
 
 Signed-off-by: Bob Pearson <rpearson-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org>
 
 ---
- drivers/infiniband/hw/rxe/rxe_queue.c |  209 ++++++++++++++++++++++++++++++++++
- 1 file changed, 209 insertions(+)
+ drivers/infiniband/hw/rxe/rxe_qp.h |   99 +++++++++++++++++++++++++++++++++++++
+ 1 file changed, 99 insertions(+)
 
-Index: infiniband/drivers/infiniband/hw/rxe/rxe_queue.c
+Index: infiniband/drivers/infiniband/hw/rxe/rxe_qp.h
 ===================================================================
 --- /dev/null
-+++ infiniband/drivers/infiniband/hw/rxe/rxe_queue.c
-@@ -0,0 +1,209 @@
++++ infiniband/drivers/infiniband/hw/rxe/rxe_qp.h
+@@ -0,0 +1,99 @@
 +/*
 + * Copyright (c) 2009-2011 Mellanox Technologies Ltd. All rights reserved.
 + * Copyright (c) 2009-2011 System Fabric Works, Inc. All rights reserved.
@@ -41,7 +41,7 @@ Index: infiniband/drivers/infiniband/hw/rxe/rxe_queue.c
 + *	  copyright notice, this list of conditions and the following
 + *	  disclaimer.
 + *
-+ *	- Redistributions in binary form must retailuce the above
++ *	- Redistributions in binary form must reproduce the above
 + *	  copyright notice, this list of conditions and the following
 + *	  disclaimer in the documentation and/or other materials
 + *	  provided with the distribution.
@@ -56,182 +56,72 @@ Index: infiniband/drivers/infiniband/hw/rxe/rxe_queue.c
 + * SOFTWARE.
 + */
 +
-+#include <linux/vmalloc.h>
-+#include "rxe.h"
-+#include "rxe_queue.h"
-+#include "rxe_mmap.h"
++#ifndef RXE_QP_H
++#define RXE_QP_H
 +
-+int do_mmap_info(struct rxe_dev *rxe,
-+		 struct ib_udata *udata,
-+		 int offset,
-+		 struct ib_ucontext *context,
-+		 struct rxe_queue_buf *buf,
-+		 size_t buf_size,
-+		 struct rxe_mmap_info **ip_p)
++int rxe_qp_chk_init(struct rxe_dev *rxe, struct ib_qp_init_attr *init);
++
++int rxe_qp_from_init(struct rxe_dev *rxe, struct rxe_qp *qp, struct rxe_pd *pd,
++		     struct ib_qp_init_attr *init, struct ib_udata *udata,
++		     struct ib_pd *ibpd);
++
++int rxe_qp_to_init(struct rxe_qp *qp, struct ib_qp_init_attr *init);
++
++int rxe_qp_chk_attr(struct rxe_dev *rxe, struct rxe_qp *qp,
++		    struct ib_qp_attr *attr, int mask);
++
++int rxe_qp_from_attr(struct rxe_qp *qp, struct ib_qp_attr *attr,
++					 int mask, struct ib_udata *udata);
++
++int rxe_qp_to_attr(struct rxe_qp *qp, struct ib_qp_attr *attr, int mask);
++
++void rxe_qp_error(struct rxe_qp *qp);
++
++void rxe_qp_destroy(struct rxe_qp *qp);
++
++void rxe_qp_cleanup(void *arg);
++
++static inline int qp_num(struct rxe_qp *qp)
 +{
-+	int err;
-+	struct rxe_mmap_info *ip = NULL;
-+
-+	if (udata) {
-+		if ((udata->outlen - offset) < sizeof(struct mminfo))
-+			goto err1;
-+
-+		ip = rxe_create_mmap_info(rxe, buf_size, context, buf);
-+		if (!ip)
-+			goto err1;
-+
-+		err = copy_to_user(udata->outbuf + offset, &ip->info,
-+				       sizeof(ip->info));
-+		if (err)
-+			goto err2;
-+
-+		spin_lock_bh(&rxe->pending_lock);
-+		list_add(&ip->pending_mmaps, &rxe->pending_mmaps);
-+		spin_unlock_bh(&rxe->pending_lock);
-+	}
-+
-+	*ip_p = ip;
-+
-+	return 0;
-+
-+err2:
-+	kfree(ip);
-+err1:
-+	return -EINVAL;
++	return qp->ibqp.qp_num;
 +}
 +
-+struct rxe_queue *rxe_queue_init(struct rxe_dev *rxe,
-+				 unsigned int *num_elem,
-+				 unsigned int elem_size)
++static inline enum ib_qp_type qp_type(struct rxe_qp *qp)
 +{
-+	struct rxe_queue *q;
-+	size_t buf_size;
-+	unsigned int num_slots;
-+
-+	/* num_elem == 0 is allowed, but uninteresting */
-+	if (*num_elem < 0)
-+		goto err1;
-+
-+	q = kmalloc(sizeof(*q), GFP_KERNEL);
-+	if (!q)
-+		goto err1;
-+
-+	q->rxe = rxe;
-+
-+	q->elem_size = elem_size;
-+	elem_size = roundup_pow_of_two(elem_size);
-+	q->log2_elem_size = order_base_2(elem_size);
-+
-+	num_slots = *num_elem + 1;
-+	num_slots = roundup_pow_of_two(num_slots);
-+	q->index_mask = num_slots - 1;
-+
-+	buf_size = sizeof(struct rxe_queue_buf) + num_slots*elem_size;
-+
-+	q->buf = vmalloc_user(buf_size);
-+	if (!q->buf)
-+		goto err2;
-+
-+	q->buf->log2_elem_size = q->log2_elem_size;
-+	q->buf->index_mask = q->index_mask;
-+
-+	q->buf->producer_index = 0;
-+	q->buf->consumer_index = 0;
-+
-+	q->buf_size = buf_size;
-+
-+	*num_elem = num_slots - 1;
-+	return q;
-+
-+err2:
-+	kfree(q);
-+err1:
-+	return NULL;
++	return qp->ibqp.qp_type;
 +}
 +
-+/* copies elements from original q to new q and then
-+   swaps the contents of the two q headers. This is
-+   so that if anyone is holding a pointer to q it will
-+   still work */
-+static int resize_finish(struct rxe_queue *q, struct rxe_queue *new_q,
-+			 unsigned int num_elem)
++static inline enum ib_qp_state qp_state(struct rxe_qp *qp)
 +{
-+	struct rxe_queue temp;
-+
-+	if (!queue_empty(q) && (num_elem < queue_count(q)))
-+		return -EINVAL;
-+
-+	while (!queue_empty(q)) {
-+		memcpy(producer_addr(new_q), consumer_addr(q),
-+		       new_q->elem_size);
-+		advance_producer(new_q);
-+		advance_consumer(q);
-+	}
-+
-+	temp = *q;
-+	*q = *new_q;
-+	*new_q = temp;
-+
-+
-+	return 0;
++	return qp->attr.qp_state;
 +}
 +
-+int rxe_queue_resize(struct rxe_queue *q,
-+		     unsigned int *num_elem_p,
-+		     unsigned int elem_size,
-+		     struct ib_ucontext *context,
-+		     struct ib_udata *udata,
-+		     spinlock_t *producer_lock,
-+		     spinlock_t *consumer_lock)
++static inline int qp_mtu(struct rxe_qp *qp)
 +{
-+	struct rxe_queue *new_q;
-+	unsigned int num_elem = *num_elem_p;
-+	int err;
-+	unsigned long flags = 0;
-+
-+	new_q = rxe_queue_init(q->rxe, &num_elem, elem_size);
-+	if (!new_q)
-+		return -ENOMEM;
-+
-+	err = do_mmap_info(new_q->rxe, udata, 0, context, new_q->buf,
-+			   new_q->buf_size, &new_q->ip);
-+	if (err) {
-+		vfree(new_q->buf);
-+		kfree(new_q);
-+		goto err1;
-+	}
-+
-+	spin_lock_bh(consumer_lock);
-+
-+	if (producer_lock) {
-+		spin_lock_irqsave(producer_lock, flags);
-+		err = resize_finish(q, new_q, num_elem);
-+		spin_unlock_irqrestore(producer_lock, flags);
-+	} else
-+		err = resize_finish(q, new_q, num_elem);
-+
-+	spin_unlock_bh(consumer_lock);
-+
-+	rxe_queue_cleanup(new_q);	/* new/old dep on err */
-+	if (err)
-+		goto err1;
-+
-+	*num_elem_p = num_elem;
-+	return 0;
-+
-+err1:
-+	return err;
-+}
-+
-+void rxe_queue_cleanup(struct rxe_queue *q)
-+{
-+	if (q->ip)
-+		kref_put(&q->ip->ref, rxe_mmap_release);
++	if (qp->ibqp.qp_type == IB_QPT_RC || qp->ibqp.qp_type == IB_QPT_UC)
++		return qp->attr.path_mtu;
 +	else
-+		vfree(q->buf);
-+
-+	kfree(q);
++		return RXE_PORT_MAX_MTU;
 +}
++
++#define RCV_WQE_SIZE(max_sge) (sizeof(struct rxe_recv_wqe) + \
++			       (max_sge)*sizeof(struct ib_sge))
++
++void free_rd_atomic_resource(struct rxe_qp *qp, struct resp_res *res);
++
++static inline void rxe_advance_resp_resource(struct rxe_qp *qp)
++{
++	qp->resp.res_head++;
++	if (unlikely(qp->resp.res_head == qp->attr.max_rd_atomic))
++		qp->resp.res_head = 0;
++}
++
++void retransmit_timer(unsigned long data);
++void rnr_nak_timer(unsigned long data);
++
++void dump_qp(struct rxe_qp *qp);
++
++#endif /* RXE_QP_H */
 
 -- 
 
