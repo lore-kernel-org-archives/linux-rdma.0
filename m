@@ -1,28 +1,29 @@
 From: rpearson-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org
-Subject: [patch 31/44] rxe_comp.c
-Date: Fri, 01 Jul 2011 08:18:52 -0500
-Message-ID: <20110701132202.194531018@systemfabricworks.com>
+Subject: [patch 30/44] rxe_recv.c
+Date: Fri, 01 Jul 2011 08:18:51 -0500
+Message-ID: <20110701132202.146158148@systemfabricworks.com>
 References: <20110701131821.928693424@systemfabricworks.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline; filename=patch31
+Content-Disposition: inline; filename=patch30
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: Bob Pearson <rpearson-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-completion processing.
+handles receiving new packets which are
+sent to either request or response processing.
 
 Signed-off-by: Bob Pearson <rpearson-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org>
 
 ---
- drivers/infiniband/hw/rxe/rxe_comp.c |  734 +++++++++++++++++++++++++++++++++++
- 1 file changed, 734 insertions(+)
+ drivers/infiniband/hw/rxe/rxe_recv.c |  426 +++++++++++++++++++++++++++++++++++
+ 1 file changed, 426 insertions(+)
 
-Index: infiniband/drivers/infiniband/hw/rxe/rxe_comp.c
+Index: infiniband/drivers/infiniband/hw/rxe/rxe_recv.c
 ===================================================================
 --- /dev/null
-+++ infiniband/drivers/infiniband/hw/rxe/rxe_comp.c
-@@ -0,0 +1,734 @@
++++ infiniband/drivers/infiniband/hw/rxe/rxe_recv.c
+@@ -0,0 +1,426 @@
 +/*
 + * Copyright (c) 2009-2011 Mellanox Technologies Ltd. All rights reserved.
 + * Copyright (c) 2009-2011 System Fabric Works, Inc. All rights reserved.
@@ -60,703 +61,395 @@ Index: infiniband/drivers/infiniband/hw/rxe/rxe_comp.c
 +
 +#include "rxe.h"
 +#include "rxe_loc.h"
-+#include "rxe_queue.h"
-+#include "rxe_cq.h"
 +#include "rxe_qp.h"
-+#include "rxe_mr.h"
-+#include "rxe_task.h"
 +
-+enum comp_state {
-+	COMPST_GET_ACK,
-+	COMPST_GET_WQE,
-+	COMPST_COMP_WQE,
-+	COMPST_COMP_ACK,
-+	COMPST_CHECK_PSN,
-+	COMPST_CHECK_ACK,
-+	COMPST_READ,
-+	COMPST_ATOMIC,
-+	COMPST_WRITE_SEND,
-+	COMPST_UPDATE_COMP,
-+	COMPST_ERROR_RETRY,
-+	COMPST_RNR_RETRY,
-+	COMPST_ERROR,
-+	COMPST_EXIT,
-+	COMPST_DONE,
-+};
-+
-+static char *comp_state_name[] =  {
-+	[COMPST_GET_ACK]		= "GET ACK",
-+	[COMPST_GET_WQE]		= "GET WQE",
-+	[COMPST_COMP_WQE]		= "COMP WQE",
-+	[COMPST_COMP_ACK]		= "COMP ACK",
-+	[COMPST_CHECK_PSN]		= "CHECK PSN",
-+	[COMPST_CHECK_ACK]		= "CHECK ACK",
-+	[COMPST_READ]			= "READ",
-+	[COMPST_ATOMIC]			= "ATOMIC",
-+	[COMPST_WRITE_SEND]		= "WRITE/SEND",
-+	[COMPST_UPDATE_COMP]		= "UPDATE COMP",
-+	[COMPST_ERROR_RETRY]		= "ERROR RETRY",
-+	[COMPST_RNR_RETRY]		= "RNR RETRY",
-+	[COMPST_ERROR]			= "ERROR",
-+	[COMPST_EXIT]			= "EXIT",
-+	[COMPST_DONE]			= "DONE",
-+};
-+
-+static unsigned long rnrnak_usec[32] = {
-+	[IB_RNR_TIMER_655_36] = 655360,
-+	[IB_RNR_TIMER_000_01] = 10,
-+	[IB_RNR_TIMER_000_02] = 20,
-+	[IB_RNR_TIMER_000_03] = 30,
-+	[IB_RNR_TIMER_000_04] = 40,
-+	[IB_RNR_TIMER_000_06] = 60,
-+	[IB_RNR_TIMER_000_08] = 80,
-+	[IB_RNR_TIMER_000_12] = 120,
-+	[IB_RNR_TIMER_000_16] = 160,
-+	[IB_RNR_TIMER_000_24] = 240,
-+	[IB_RNR_TIMER_000_32] = 320,
-+	[IB_RNR_TIMER_000_48] = 480,
-+	[IB_RNR_TIMER_000_64] = 640,
-+	[IB_RNR_TIMER_000_96] = 960,
-+	[IB_RNR_TIMER_001_28] = 1280,
-+	[IB_RNR_TIMER_001_92] = 1920,
-+	[IB_RNR_TIMER_002_56] = 2560,
-+	[IB_RNR_TIMER_003_84] = 3840,
-+	[IB_RNR_TIMER_005_12] = 5120,
-+	[IB_RNR_TIMER_007_68] = 7680,
-+	[IB_RNR_TIMER_010_24] = 10240,
-+	[IB_RNR_TIMER_015_36] = 15360,
-+	[IB_RNR_TIMER_020_48] = 20480,
-+	[IB_RNR_TIMER_030_72] = 30720,
-+	[IB_RNR_TIMER_040_96] = 40960,
-+	[IB_RNR_TIMER_061_44] = 61410,
-+	[IB_RNR_TIMER_081_92] = 81920,
-+	[IB_RNR_TIMER_122_88] = 122880,
-+	[IB_RNR_TIMER_163_84] = 163840,
-+	[IB_RNR_TIMER_245_76] = 245760,
-+	[IB_RNR_TIMER_327_68] = 327680,
-+	[IB_RNR_TIMER_491_52] = 491520,
-+};
-+
-+static inline unsigned long rnrnak_jiffies(u8 timeout)
++static int check_type_state(struct rxe_dev *rxe, struct rxe_pkt_info *pkt,
++			    struct rxe_qp *qp)
 +{
-+	return max_t(unsigned long,
-+		usecs_to_jiffies(rnrnak_usec[timeout]), 1);
-+}
++	if (unlikely(!qp->valid))
++		goto err1;
 +
-+static enum ib_wc_opcode wr_to_wc_opcode(enum ib_wr_opcode opcode)
-+{
-+	switch (opcode) {
-+	case IB_WR_RDMA_WRITE:			return IB_WC_RDMA_WRITE;
-+	case IB_WR_RDMA_WRITE_WITH_IMM:		return IB_WC_RDMA_WRITE;
-+	case IB_WR_SEND:			return IB_WC_SEND;
-+	case IB_WR_SEND_WITH_IMM:		return IB_WC_SEND;
-+	case IB_WR_RDMA_READ:			return IB_WC_RDMA_READ;
-+	case IB_WR_ATOMIC_CMP_AND_SWP:		return IB_WC_COMP_SWAP;
-+	case IB_WR_ATOMIC_FETCH_AND_ADD:	return IB_WC_FETCH_ADD;
-+	case IB_WR_LSO:				return IB_WC_LSO;
-+	case IB_WR_SEND_WITH_INV:		return IB_WC_SEND;
-+	case IB_WR_RDMA_READ_WITH_INV:		return IB_WC_RDMA_READ;
-+	case IB_WR_LOCAL_INV:			return IB_WC_LOCAL_INV;
-+	case IB_WR_FAST_REG_MR:			return IB_WC_FAST_REG_MR;
-+
-+	default:
-+		return 0xff;
-+	}
-+}
-+
-+void retransmit_timer(unsigned long data)
-+{
-+	struct rxe_qp *qp = (struct rxe_qp *)data;
-+
-+	if (qp->valid) {
-+		qp->comp.timeout = 1;
-+		rxe_run_task(&qp->comp.task, 1);
-+	}
-+}
-+
-+void rxe_comp_queue_pkt(struct rxe_dev *rxe, struct rxe_qp *qp,
-+			struct sk_buff *skb)
-+{
-+	int must_sched;
-+
-+	atomic_inc(&rxe->resp_skb_in);
-+	skb_queue_tail(&qp->resp_pkts, skb);
-+
-+	must_sched = skb_queue_len(&qp->resp_pkts) > 1;
-+	rxe_run_task(&qp->comp.task, must_sched);
-+}
-+
-+static inline enum comp_state get_wqe(struct rxe_qp *qp,
-+				      struct rxe_pkt_info *pkt,
-+				      struct rxe_send_wqe **wqe_p)
-+{
-+	struct rxe_send_wqe *wqe;
-+
-+	/* we come here whether or not we found a response packet
-+	   to see if there are any posted WQEs */
-+	wqe = queue_head(qp->sq.queue);
-+	*wqe_p = wqe;
-+
-+	/* no WQE or requester has not started it yet */
-+	if (!wqe || wqe->state == wqe_state_posted)
-+		return pkt ? COMPST_DONE : COMPST_EXIT;
-+
-+	/* WQE does not require an ack */
-+	if (wqe->state == wqe_state_done)
-+		return COMPST_COMP_WQE;
-+
-+	/* WQE caused an error */
-+	if (wqe->state == wqe_state_error)
-+		return COMPST_ERROR;
-+
-+	/* we have a WQE, if we also have an ack check its PSN */
-+	return pkt ? COMPST_CHECK_PSN : COMPST_EXIT;
-+}
-+
-+static inline void reset_retry_counters(struct rxe_qp *qp)
-+{
-+	qp->comp.retry_cnt = qp->attr.retry_cnt;
-+	qp->comp.rnr_retry = qp->attr.rnr_retry;
-+}
-+
-+static inline enum comp_state check_psn(struct rxe_qp *qp,
-+					struct rxe_pkt_info *pkt,
-+					struct rxe_send_wqe *wqe)
-+{
-+	s32 diff;
-+
-+	/* check to see if response is past the oldest WQE
-+	   if it is, complete send/write or error read/atomic */
-+	diff = psn_compare(pkt->psn, wqe->last_psn);
-+	if (diff > 0) {
-+		if (wqe->state == wqe_state_pending) {
-+			if (wqe->mask & WR_ATOMIC_OR_READ_MASK)
-+				return COMPST_ERROR_RETRY;
-+			else {
-+				reset_retry_counters(qp);
-+				return COMPST_COMP_WQE;
-+			}
-+		} else
-+			return COMPST_DONE;
-+	}
-+
-+	/* compare response packet to expected response */
-+	diff = psn_compare(pkt->psn, qp->comp.psn);
-+	if (diff < 0) {
-+		/* response is most likely a retried packet
-+		   if it matches an uncompleted WQE go complete it
-+		   else ignore it */
-+		if (pkt->psn == wqe->last_psn)
-+			return COMPST_COMP_ACK;
-+		else
-+			return COMPST_DONE;
-+	} else if ((diff > 0) && (wqe->mask & WR_ATOMIC_OR_READ_MASK))
-+		return COMPST_ERROR_RETRY;
-+	else
-+		return COMPST_CHECK_ACK;
-+}
-+
-+static inline enum comp_state check_ack(struct rxe_qp *qp,
-+					struct rxe_pkt_info *pkt,
-+					struct rxe_send_wqe *wqe)
-+{
-+	unsigned int mask = pkt->mask;
-+	u8 syn;
-+
-+	/* Check the sequence only */
-+	switch (qp->comp.opcode) {
-+	case -1:
-+		/* Will catch all *_ONLY cases. */
-+		if (!(mask & RXE_START_MASK))
-+			/* TODO check spec. retry/discard ? */
-+			return COMPST_ERROR;
-+
++	switch (qp_type(qp)) {
++	case IB_QPT_RC:
++		if (unlikely((pkt->opcode >> 5) != 0)) {
++			pr_warn("bad qp type\n");
++			goto err1;
++		}
 +		break;
-+
-+	case IB_OPCODE_RC_RDMA_READ_RESPONSE_FIRST:
-+	case IB_OPCODE_RC_RDMA_READ_RESPONSE_MIDDLE:
-+		if (pkt->opcode != IB_OPCODE_RC_RDMA_READ_RESPONSE_MIDDLE &&
-+			pkt->opcode != IB_OPCODE_RC_RDMA_READ_RESPONSE_LAST) {
-+			/* TODO check spec. retry/discard ? */
-+			return COMPST_ERROR;
++	case IB_QPT_UC:
++		if (unlikely((pkt->opcode >> 5) != 1)) {
++			pr_warn("bad qp type\n");
++			goto err1;
++		}
++		break;
++	case IB_QPT_UD:
++	case IB_QPT_SMI:
++	case IB_QPT_GSI:
++		if (unlikely((pkt->opcode >> 5) != 3)) {
++			pr_warn("bad qp type\n");
++			goto err1;
 +		}
 +		break;
 +	default:
-+		WARN_ON(1);
++		pr_warn("unsupported qp type\n");
++		goto err1;
 +	}
 +
-+	/* Check operation validity. */
-+	switch (pkt->opcode) {
-+	case IB_OPCODE_RC_RDMA_READ_RESPONSE_FIRST:
-+	case IB_OPCODE_RC_RDMA_READ_RESPONSE_LAST:
-+	case IB_OPCODE_RC_RDMA_READ_RESPONSE_ONLY:
-+		syn = aeth_syn(pkt);
++	if (pkt->mask & RXE_REQ_MASK) {
++		if (unlikely(qp->resp.state != QP_STATE_READY))
++			goto err1;
++	} else if (unlikely(qp->req.state < QP_STATE_READY ||
++			qp->req.state > QP_STATE_DRAINED))
++			goto err1;
 +
-+		if ((syn & AETH_TYPE_MASK) != AETH_ACK)
-+			return COMPST_ERROR;
++	return 0;
 +
-+		/* Fall through (IB_OPCODE_RC_RDMA_READ_RESPONSE_MIDDLE
-+		 * doesn't have an AETH) */
-+	case IB_OPCODE_RC_RDMA_READ_RESPONSE_MIDDLE:
-+		if (wqe->ibwr.opcode != IB_WR_RDMA_READ &&
-+			wqe->ibwr.opcode != IB_WR_RDMA_READ_WITH_INV) {
-+			/* TODO check spec. retry/discard ? */
-+			return COMPST_ERROR;
-+		}
-+		reset_retry_counters(qp);
-+		return COMPST_READ;
-+		break;
-+
-+	case IB_OPCODE_RC_ATOMIC_ACKNOWLEDGE:
-+		syn = aeth_syn(pkt);
-+
-+		if ((syn & AETH_TYPE_MASK) != AETH_ACK)
-+			return COMPST_ERROR;
-+
-+		if (wqe->ibwr.opcode != IB_WR_ATOMIC_CMP_AND_SWP &&
-+			wqe->ibwr.opcode != IB_WR_ATOMIC_FETCH_AND_ADD)
-+			/* TODO check spec. retry/discard ? */
-+			return COMPST_ERROR;
-+		reset_retry_counters(qp);
-+		return COMPST_ATOMIC;
-+		break;
-+
-+	case IB_OPCODE_RC_ACKNOWLEDGE:
-+		syn = aeth_syn(pkt);
-+		switch (syn & AETH_TYPE_MASK) {
-+		case AETH_ACK:
-+			reset_retry_counters(qp);
-+			return COMPST_WRITE_SEND;
-+
-+		case AETH_RNR_NAK:
-+			return COMPST_RNR_RETRY;
-+
-+		case AETH_NAK:
-+			switch (syn) {
-+			case AETH_NAK_PSN_SEQ_ERROR:
-+				/* a nak implicitly acks all
-+				   packets with psns before */
-+				if (psn_compare(pkt->psn, qp->comp.psn) > 0) {
-+					qp->comp.psn = pkt->psn;
-+					if (qp->req.wait_psn) {
-+						qp->req.wait_psn = 0;
-+						rxe_run_task(&qp->req.task, 1);
-+					}
-+				}
-+				return COMPST_ERROR_RETRY;
-+
-+			case AETH_NAK_INVALID_REQ:
-+				wqe->status = IB_WC_REM_INV_REQ_ERR;
-+				return COMPST_ERROR;
-+
-+			case AETH_NAK_REM_ACC_ERR:
-+				wqe->status = IB_WC_REM_ACCESS_ERR;
-+				return COMPST_ERROR;
-+
-+			case AETH_NAK_REM_OP_ERR:
-+				wqe->status = IB_WC_REM_OP_ERR;
-+				return COMPST_ERROR;
-+
-+			default:
-+				pr_warn("unexpected nak %x\n", syn);
-+				wqe->status = IB_WC_REM_OP_ERR;
-+				return COMPST_ERROR;
-+			}
-+			return COMPST_ERROR;
-+
-+		default:
-+			return COMPST_ERROR;
-+
-+		}
-+		break;
-+
-+	default:
-+		WARN_ON(1);
-+	}
-+
-+	WARN_ON(1);
-+	return COMPST_ERROR;
++err1:
++	return -EINVAL;
 +}
 +
-+static inline enum comp_state do_read(struct rxe_qp *qp,
-+				      struct rxe_pkt_info *pkt,
-+				      struct rxe_send_wqe *wqe)
++static int check_keys(struct rxe_dev *rxe, struct rxe_pkt_info *pkt,
++		      u32 qpn, struct rxe_qp *qp)
 +{
-+	struct rxe_dev *rxe = to_rdev(qp->ibqp.device);
-+	int ret;
++	int i;
++	int found_pkey = 0;
++	struct rxe_port *port = &rxe->port[pkt->port_num - 1];
++	u16 pkey = bth_pkey(pkt);
 +
-+	ret = copy_data(rxe, qp->pd, IB_ACCESS_LOCAL_WRITE,
-+			&wqe->dma, payload_addr(pkt),
-+			payload_size(pkt), direction_in, NULL);
-+	if (ret)
-+		return COMPST_ERROR;
++	pkt->pkey_index = 0;
 +
-+	if (wqe->dma.resid == 0 && (pkt->mask & RXE_END_MASK))
-+		return COMPST_COMP_ACK;
-+	else
-+		return COMPST_UPDATE_COMP;
-+}
-+
-+static inline enum comp_state do_atomic(struct rxe_qp *qp,
-+					struct rxe_pkt_info *pkt,
-+					struct rxe_send_wqe *wqe)
-+{
-+	struct rxe_dev *rxe = to_rdev(qp->ibqp.device);
-+	int ret;
-+
-+	u64 atomic_orig = atmack_orig(pkt);
-+
-+	ret = copy_data(rxe, qp->pd, IB_ACCESS_LOCAL_WRITE,
-+			&wqe->dma, &atomic_orig,
-+			sizeof(u64), direction_in, NULL);
-+	if (ret)
-+		return COMPST_ERROR;
-+	else
-+		return COMPST_COMP_ACK;
-+}
-+
-+static void make_send_cqe(struct rxe_qp *qp, struct rxe_send_wqe *wqe,
-+			  struct rxe_cqe *cqe)
-+{
-+	memset(cqe, 0, sizeof(*cqe));
-+
-+	if (!qp->is_user) {
-+		struct ib_wc		*wc	= &cqe->ibwc;
-+
-+		wc->wr_id		= wqe->ibwr.wr_id;
-+		wc->status		= wqe->status;
-+		wc->opcode		= wr_to_wc_opcode(wqe->ibwr.opcode);
-+		wc->byte_len		= wqe->dma.length;
-+		wc->qp			= &qp->ibqp;
-+	} else {
-+		struct ib_uverbs_wc	*uwc	= &cqe->uibwc;
-+
-+		uwc->wr_id		= wqe->ibwr.wr_id;
-+		uwc->status		= wqe->status;
-+		uwc->opcode		= wr_to_wc_opcode(wqe->ibwr.opcode);
-+		uwc->byte_len		= wqe->dma.length;
-+		uwc->qp_num		= qp->ibqp.qp_num;
-+	}
-+}
-+
-+static void do_complete(struct rxe_qp *qp, struct rxe_send_wqe *wqe)
-+{
-+	struct rxe_cqe cqe;
-+
-+	if ((qp->sq_sig_type == IB_SIGNAL_ALL_WR) ||
-+	    (wqe->ibwr.send_flags & IB_SEND_SIGNALED)) {
-+		make_send_cqe(qp, wqe, &cqe);
-+		rxe_cq_post(qp->scq, &cqe, 0);
-+	}
-+
-+	advance_consumer(qp->sq.queue);
-+
-+	/*
-+	 * we completed something so let req run again
-+	 * if it is trying to fence
-+	 */
-+	if (qp->req.wait_fence) {
-+		qp->req.wait_fence = 0;
-+		rxe_run_task(&qp->req.task, 1);
-+	}
-+}
-+
-+static inline enum comp_state complete_ack(struct rxe_qp *qp,
-+					   struct rxe_pkt_info *pkt,
-+					   struct rxe_send_wqe *wqe)
-+{
-+	unsigned long flags;
-+
-+	if (wqe->has_rd_atomic) {
-+		wqe->has_rd_atomic = 0;
-+		atomic_inc(&qp->req.rd_atomic);
-+		if (qp->req.need_rd_atomic) {
-+			qp->comp.timeout_retry = 0;
-+			qp->req.need_rd_atomic = 0;
-+			rxe_run_task(&qp->req.task, 1);
-+		}
-+	}
-+
-+	if (unlikely(qp->req.state == QP_STATE_DRAIN)) {
-+		/* state_lock used by requester & completer */
-+		spin_lock_irqsave(&qp->state_lock, flags);
-+		if ((qp->req.state == QP_STATE_DRAIN) &&
-+		    (qp->comp.psn == qp->req.psn)) {
-+			qp->req.state = QP_STATE_DRAINED;
-+			spin_unlock_irqrestore(&qp->state_lock, flags);
-+
-+			if (qp->ibqp.event_handler) {
-+				struct ib_event ev;
-+
-+				ev.device = qp->ibqp.device;
-+				ev.element.qp = &qp->ibqp;
-+				ev.event = IB_EVENT_SQ_DRAINED;
-+				qp->ibqp.event_handler(&ev,
-+					qp->ibqp.qp_context);
-+			}
-+		} else
-+			spin_unlock_irqrestore(&qp->state_lock, flags);
-+	}
-+
-+	do_complete(qp, wqe);
-+
-+	if (psn_compare(pkt->psn, qp->comp.psn) >= 0)
-+		return COMPST_UPDATE_COMP;
-+	else
-+		return COMPST_DONE;
-+}
-+
-+static inline enum comp_state complete_wqe(struct rxe_qp *qp,
-+					   struct rxe_pkt_info *pkt,
-+					   struct rxe_send_wqe *wqe)
-+{
-+	qp->comp.opcode = -1;
-+
-+	if (pkt) {
-+		if (psn_compare(pkt->psn, qp->comp.psn) >= 0)
-+			qp->comp.psn = (pkt->psn + 1) & BTH_PSN_MASK;
-+
-+		if (qp->req.wait_psn) {
-+			qp->req.wait_psn = 0;
-+			rxe_run_task(&qp->req.task, 1);
-+		}
-+	}
-+
-+	do_complete(qp, wqe);
-+
-+	return COMPST_GET_WQE;
-+}
-+
-+int rxe_completer(void *arg)
-+{
-+	struct rxe_qp *qp = (struct rxe_qp *)arg;
-+	struct rxe_dev *rxe = to_rdev(qp->ibqp.device);
-+	struct rxe_send_wqe *wqe = wqe;
-+	struct sk_buff *skb = NULL;
-+	struct rxe_pkt_info *pkt = NULL;
-+	enum comp_state state;
-+
-+	if (!qp->valid) {
-+		while ((skb = skb_dequeue(&qp->resp_pkts))) {
-+			rxe_drop_ref(qp);
-+			kfree_skb(skb);
-+			atomic_dec(&rxe->resp_skb_in);
-+		}
-+		skb = NULL;
-+		pkt = NULL;
-+
-+		while (queue_head(qp->sq.queue))
-+			advance_consumer(qp->sq.queue);
-+
-+		goto exit;
-+	}
-+
-+	if (qp->req.state == QP_STATE_ERROR) {
-+		while ((skb = skb_dequeue(&qp->resp_pkts))) {
-+			rxe_drop_ref(qp);
-+			kfree_skb(skb);
-+			atomic_dec(&rxe->resp_skb_in);
-+		}
-+		skb = NULL;
-+		pkt = NULL;
-+
-+		while ((wqe = queue_head(qp->sq.queue))) {
-+			wqe->status = IB_WC_WR_FLUSH_ERR;
-+			do_complete(qp, wqe);
-+		}
-+
-+		goto exit;
-+	}
-+
-+	if (qp->req.state == QP_STATE_RESET) {
-+		while ((skb = skb_dequeue(&qp->resp_pkts))) {
-+			rxe_drop_ref(qp);
-+			kfree_skb(skb);
-+			atomic_dec(&rxe->resp_skb_in);
-+		}
-+		skb = NULL;
-+		pkt = NULL;
-+
-+		while (queue_head(qp->sq.queue))
-+			advance_consumer(qp->sq.queue);
-+
-+		goto exit;
-+	}
-+
-+	if (qp->comp.timeout) {
-+		qp->comp.timeout_retry = 1;
-+		qp->comp.timeout = 0;
-+	} else
-+		qp->comp.timeout_retry = 0;
-+
-+	if (qp->req.need_retry)
-+		goto exit;
-+
-+	state = COMPST_GET_ACK;
-+
-+	while (1) {
-+		pr_debug("state = %s\n", comp_state_name[state]);
-+		switch (state) {
-+		case COMPST_GET_ACK:
-+			skb = skb_dequeue(&qp->resp_pkts);
-+			if (skb) {
-+				pkt = SKB_TO_PKT(skb);
-+				qp->comp.timeout_retry = 0;
-+			}
-+			state = COMPST_GET_WQE;
-+			break;
-+
-+		case COMPST_GET_WQE:
-+			state = get_wqe(qp, pkt, &wqe);
-+			break;
-+
-+		case COMPST_CHECK_PSN:
-+			state = check_psn(qp, pkt, wqe);
-+			break;
-+
-+		case COMPST_CHECK_ACK:
-+			state = check_ack(qp, pkt, wqe);
-+			break;
-+
-+		case COMPST_READ:
-+			state = do_read(qp, pkt, wqe);
-+			break;
-+
-+		case COMPST_ATOMIC:
-+			state = do_atomic(qp, pkt, wqe);
-+			break;
-+
-+		case COMPST_WRITE_SEND:
-+			if (wqe->state == wqe_state_pending &&
-+			    wqe->last_psn == pkt->psn)
-+				state = COMPST_COMP_ACK;
-+			else
-+				state = COMPST_UPDATE_COMP;
-+			break;
-+
-+		case COMPST_COMP_ACK:
-+			state = complete_ack(qp, pkt, wqe);
-+			break;
-+
-+		case COMPST_COMP_WQE:
-+			state = complete_wqe(qp, pkt, wqe);
-+			break;
-+
-+		case COMPST_UPDATE_COMP:
-+			if (pkt->mask & RXE_END_MASK)
-+				qp->comp.opcode = -1;
-+			else
-+				qp->comp.opcode = pkt->opcode;
-+
-+			if (psn_compare(pkt->psn, qp->comp.psn) >= 0)
-+				qp->comp.psn = (pkt->psn + 1) & BTH_PSN_MASK;
-+
-+			if (qp->req.wait_psn) {
-+				qp->req.wait_psn = 0;
-+				rxe_run_task(&qp->req.task, 1);
-+			}
-+
-+			state = COMPST_DONE;
-+			break;
-+
-+		case COMPST_DONE:
-+			if (pkt) {
-+				rxe_drop_ref(pkt->qp);
-+				kfree_skb(skb);
-+				atomic_dec(&rxe->resp_skb_in);
-+			}
-+			goto done;
-+
-+		case COMPST_EXIT:
-+			if (qp->comp.timeout_retry && wqe) {
-+				state = COMPST_ERROR_RETRY;
++	if (qpn == 1) {
++		for (i = 0; i < port->attr.pkey_tbl_len; i++) {
++			if (pkey_match(pkey, port->pkey_tbl[i])) {
++				pkt->pkey_index = i;
++				found_pkey = 1;
 +				break;
 +			}
++		}
 +
-+			/* re reset the timeout counter if
-+			   (1) QP is type RC
-+			   (2) the QP is alive
-+			   (3) there is a packet sent by the requester that
-+			       might be acked (we still might get spurious
-+			       timeouts but try to keep them as few as possible)
-+			   (4) the timeout parameter is set */
-+			if ((qp_type(qp) == IB_QPT_RC)
-+			    && (qp->req.state == QP_STATE_READY)
-+			    && (psn_compare(qp->req.psn, qp->comp.psn) > 0)
-+			    && qp->qp_timeout_jiffies)
-+				mod_timer(&qp->retrans_timer,
-+					  jiffies + qp->qp_timeout_jiffies);
-+			goto exit;
++		if (!found_pkey) {
++			pr_warn("bad pkey = 0x%x\n", pkey);
++			spin_lock_bh(&port->port_lock);
++			port->attr.bad_pkey_cntr
++				= (port->attr.bad_pkey_cntr >= 0xffff) ?
++				   0xffff :
++				   port->attr.bad_pkey_cntr + 1;
++			spin_unlock_bh(&port->port_lock);
++			goto err1;
++		}
++	} else if (qpn != 0) {
++		if (unlikely(!pkey_match(pkey,
++		    port->pkey_tbl[qp->attr.pkey_index]))) {
++			pr_warn("bad pkey = 0x%0x\n", pkey);
++			spin_lock_bh(&port->port_lock);
++			port->attr.bad_pkey_cntr
++				= (port->attr.bad_pkey_cntr >= 0xffff) ?
++				   0xffff :
++				   port->attr.bad_pkey_cntr + 1;
++			spin_unlock_bh(&port->port_lock);
++			goto err1;
++		}
++		pkt->pkey_index = qp->attr.pkey_index;
++	}
 +
-+		case COMPST_ERROR_RETRY:
-+			/* we come here if the retry timer fired
-+			   and we did not receive a response packet
-+			   try to retry the send queue if that makes
-+			   sense and the limits have not been exceeded
-+			   remember that some timeouts are spurious
-+			   since we do not reset the timer but kick it
-+			   down the road or let it expire */
-+
-+			/* there is nothing to retry in this case */
-+			if (!wqe || (wqe->state == wqe_state_posted))
-+				goto exit;
-+
-+			if (qp->comp.retry_cnt > 0) {
-+				if (qp->comp.retry_cnt != 7)
-+					qp->comp.retry_cnt--;
-+
-+				/* no point in retrying if we have already
-+				   seen the last ack that the requester
-+				   could have caused */
-+				if (psn_compare(qp->req.psn,
-+						qp->comp.psn) > 0) {
-+					/* tell the requester to retry the send
-+					   send queue next time around */
-+					qp->req.need_retry = 1;
-+					rxe_run_task(&qp->req.task, 1);
-+				}
-+				goto exit;
-+			} else {
-+				wqe->status = IB_WC_RETRY_EXC_ERR;
-+				state = COMPST_ERROR;
-+			}
-+			break;
-+
-+		case COMPST_RNR_RETRY:
-+			if (qp->comp.rnr_retry > 0) {
-+				if (qp->comp.rnr_retry != 7)
-+					qp->comp.rnr_retry--;
-+
-+				qp->req.need_retry = 1;
-+				pr_debug("set rnr nak timer\n");
-+				mod_timer(&qp->rnr_nak_timer,
-+					  jiffies + rnrnak_jiffies(aeth_syn(pkt)
-+						& ~AETH_TYPE_MASK));
-+				goto exit;
-+			} else {
-+				wqe->status = IB_WC_RNR_RETRY_EXC_ERR;
-+				state = COMPST_ERROR;
-+			}
-+			break;
-+
-+		case COMPST_ERROR:
-+			do_complete(qp, wqe);
-+			rxe_qp_error(qp);
-+			goto exit;
++	if (qp_type(qp) == IB_QPT_UD && qpn != 0 && pkt->mask) {
++		u32 qkey = (qpn == 1) ? GSI_QKEY : qp->attr.qkey;
++		if (unlikely(deth_qkey(pkt) != qkey)) {
++			pr_warn("bad qkey, got 0x%x expected 0x%x\n",
++				deth_qkey(pkt), qkey);
++			spin_lock_bh(&port->port_lock);
++			port->attr.qkey_viol_cntr
++				= (port->attr.qkey_viol_cntr >= 0xffff) ?
++				   0xffff :
++				   port->attr.qkey_viol_cntr + 1;
++			spin_unlock_bh(&port->port_lock);
++			goto err1;
 +		}
 +	}
 +
-+exit:
-+	/* we come here if we are done with processing and want the
-+	   task to exit from the loop calling us */
-+	return -EAGAIN;
++	return 0;
 +
++err1:
++	return -EINVAL;
++}
++
++static int check_addr(struct rxe_dev *rxe, struct rxe_pkt_info *pkt,
++		      struct rxe_qp *qp)
++{
++	struct rxe_port *port = &rxe->port[pkt->port_num - 1];
++	union ib_gid *sgid;
++	union ib_gid *dgid;
++
++	if (qp_type(qp) != IB_QPT_RC && qp_type(qp) != IB_QPT_UC)
++		goto done;
++
++	if (unlikely(pkt->port_num != qp->attr.port_num)) {
++		pr_warn("port %d != qp port %d\n",
++			 pkt->port_num, qp->attr.port_num);
++		goto err1;
++	}
++
++	if ((pkt->mask & RXE_GRH_MASK) == 0) {
++		if (unlikely(qp->pri_av.attr.ah_flags & IB_AH_GRH)) {
++			pr_warn("no grh for global qp\n");
++			goto err1;
++		} else
++			goto done;
++	}
++
++	sgid = grh_sgid(pkt);
++	dgid = grh_dgid(pkt);
++
++	if (unlikely((qp->pri_av.attr.ah_flags & IB_AH_GRH) == 0)) {
++		pr_warn("grh for local qp\n");
++		goto err1;
++	}
++
++	if (unlikely(dgid->global.subnet_prefix == 0 &&
++	    be64_to_cpu(dgid->global.interface_id) <= 1)) {
++		pr_warn("bad dgid, subnet_prefix = 0\n");
++		goto err1;
++	}
++
++	if (unlikely(sgid->raw[0] == 0xff)) {
++		pr_warn("bad sgid, multicast gid\n");
++		goto err1;
++	}
++
++	if (unlikely(sgid->global.subnet_prefix == 0 &&
++	    be64_to_cpu(sgid->global.interface_id) <= 1)) {
++		pr_warn("bad sgid, subnet prefix = 0 or 1\n");
++		goto err1;
++	}
++
++	if (unlikely(dgid->global.interface_id !=
++	    port->guid_tbl[qp->pri_av.attr.grh.sgid_index])) {
++		pr_warn("bad dgid, doesn't match qp\n");
++		goto err1;
++	}
++
++	if (unlikely(sgid->global.interface_id !=
++	    qp->pri_av.attr.grh.dgid.global.interface_id)) {
++		pr_warn("bad sgid, doesn't match qp\n");
++		goto err1;
++	}
 +done:
-+	/* we come here if we have processed a packet
-+	   we want the task to call us again to see
-+	   if there is anything else to do */
++	return 0;
++
++err1:
++	return -EINVAL;
++}
++
++static int hdr_check(struct rxe_pkt_info *pkt)
++{
++	struct rxe_dev *rxe = pkt->rxe;
++	struct rxe_port *port = &rxe->port[pkt->port_num - 1];
++	struct rxe_qp *qp = NULL;
++	union ib_gid *dgid = NULL;
++	u32 qpn = bth_qpn(pkt);
++	int index;
++	int err;
++
++	if (unlikely(bth_tver(pkt) != BTH_TVER)) {
++		pr_warn("bad tver\n");
++		goto err1;
++	}
++
++	if (qpn != IB_MULTICAST_QPN) {
++		index = (qpn == 0) ? port->qp_smi_index :
++			((qpn == 1) ? port->qp_gsi_index : qpn);
++		qp = rxe_pool_get_index(&rxe->qp_pool, index);
++		if (unlikely(!qp)) {
++			pr_warn("no qp matches qpn 0x%x\n", qpn);
++			goto err1;
++		}
++
++		err = check_type_state(rxe, pkt, qp);
++		if (unlikely(err))
++			goto err2;
++	}
++
++	if (pkt->mask & RXE_GRH_MASK) {
++		dgid = grh_dgid(pkt);
++
++		if (unlikely(grh_next_hdr(pkt) != GRH_RXE_NEXT_HDR)) {
++			pr_warn("bad next hdr\n");
++			goto err2;
++		}
++
++		if (unlikely(grh_ipver(pkt) != GRH_IPV6)) {
++			pr_warn("bad ipver\n");
++			goto err2;
++		}
++	}
++
++	if (qpn != IB_MULTICAST_QPN) {
++		err = check_addr(rxe, pkt, qp);
++		if (unlikely(err))
++			goto err2;
++
++		err = check_keys(rxe, pkt, qpn, qp);
++		if (unlikely(err))
++			goto err2;
++	} else {
++		if (unlikely((pkt->mask & RXE_GRH_MASK) == 0)) {
++			pr_warn("no grh for mcast qpn\n");
++			goto err1;
++		}
++		if (unlikely(dgid->raw[0] != 0xff)) {
++			pr_warn("bad dgid for mcast qpn\n");
++			goto err1;
++		}
++	}
++
++	pkt->qp = qp;
++	return 0;
++
++err2:
++	if (qp)
++		rxe_drop_ref(qp);
++err1:
++	return -EINVAL;
++}
++
++static inline void rxe_rcv_pkt(struct rxe_dev *rxe,
++			       struct rxe_pkt_info *pkt,
++			       struct sk_buff *skb)
++{
++	if (pkt->mask & RXE_REQ_MASK)
++		rxe_resp_queue_pkt(rxe, pkt->qp, skb);
++	else
++		rxe_comp_queue_pkt(rxe, pkt->qp, skb);
++}
++
++static void rxe_rcv_mcast_pkt(struct rxe_dev *rxe, struct sk_buff *skb)
++{
++	struct rxe_pkt_info *pkt = SKB_TO_PKT(skb);
++	struct rxe_mc_grp *mcg;
++	struct list_head *l;
++	struct sk_buff *skb_copy;
++	struct rxe_mc_elem *mce;
++	struct rxe_qp *qp;
++	int err;
++
++	/* lookup mcast group corresponding to mgid, takes a ref */
++	mcg = rxe_pool_get_key(&rxe->mc_grp_pool, grh_dgid(pkt));
++	if (!mcg)
++		goto err1;	/* mcast group not registered */
++
++	spin_lock_bh(&mcg->mcg_lock);
++
++	list_for_each(l, &mcg->qp_list) {
++		mce = container_of(l, struct rxe_mc_elem, qp_list);
++		qp = mce->qp;
++		pkt = SKB_TO_PKT(skb);
++
++		/* validate qp for incoming packet */
++		err = check_type_state(rxe, pkt, qp);
++		if (err)
++			continue;
++
++		err = check_keys(rxe, pkt, bth_qpn(pkt), qp);
++		if (err)
++			continue;
++
++		/* if *not* the last qp in the list
++		   make a copy of the skb to post to the next qp */
++		skb_copy = (l->next != &mcg->qp_list) ?
++				skb_clone(skb, GFP_KERNEL) : NULL;
++
++		pkt->qp = qp;
++		rxe_add_ref(qp);
++		rxe_rcv_pkt(rxe, pkt, skb);
++
++		skb = skb_copy;
++		if (!skb)
++			break;
++	}
++
++	spin_unlock_bh(&mcg->mcg_lock);
++
++	rxe_drop_ref(mcg);	/* drop ref from rxe_pool_get_key. */
++
++err1:
++	if (skb)
++		kfree_skb(skb);
++}
++
++/* rxe_rcv is called from the interface driver
++ * on entry
++ *	pkt->rxe	= rdma device
++ *	pkt->port_num	= rdma device port
++ * For rxe_net:
++ *	pkt->mask	= RXE_GRH_MASK
++ *	pkt->hdr	= &grh	with no lrh
++ * For IB transport (e.g. rxe_sample)
++ *	pkt->mask	= RXE_LRH_MASK
++ *	pkt->hdr	= &lrh with optional grh
++ */
++int rxe_rcv(struct sk_buff *skb)
++{
++	int err;
++	struct rxe_pkt_info *pkt = SKB_TO_PKT(skb);
++	struct rxe_dev *rxe = pkt->rxe;
++
++	pkt->offset = 0;
++
++	if (pkt->mask & RXE_LRH_MASK) {
++		unsigned int length = __lrh_length(pkt->hdr);
++		unsigned int lnh = __lrh_lnh(pkt->hdr);
++
++		if (skb->len < RXE_LRH_BYTES)
++			goto drop;
++
++		if (lnh < LRH_LNH_IBA_LOC)
++			goto drop;
++
++		pkt->paylen = 4*length - RXE_LRH_BYTES;
++		pkt->offset += RXE_LRH_BYTES;
++
++		if (lnh == LRH_LNH_IBA_GBL)
++			pkt->mask |= RXE_GRH_MASK;
++	}
++
++	if (pkt->mask & RXE_GRH_MASK) {
++		if (skb->len < pkt->offset + RXE_GRH_BYTES)
++			goto drop;
++
++		pkt->paylen = __grh_paylen(pkt->hdr);
++		pkt->offset += RXE_GRH_BYTES;
++	}
++
++	if (unlikely(skb->len < pkt->offset + RXE_BTH_BYTES))
++		goto drop;
++
++	pkt->opcode = bth_opcode(pkt);
++	pkt->psn = bth_psn(pkt);
++	pkt->qp = NULL;
++	pkt->mask |= rxe_opcode[pkt->opcode].mask;
++
++	if (unlikely(skb->len < header_size(pkt)))
++		goto drop;
++
++	err = hdr_check(pkt);
++	if (unlikely(err))
++		goto drop;
++
++	if (unlikely(bth_qpn(pkt) == IB_MULTICAST_QPN))
++		rxe_rcv_mcast_pkt(rxe, skb);
++	else
++		rxe_rcv_pkt(rxe, pkt, skb);
++
++	return 0;
++
++drop:
++	if (pkt->qp)
++		rxe_drop_ref(pkt->qp);
++
++	kfree_skb(skb);
 +	return 0;
 +}
++EXPORT_SYMBOL(rxe_rcv);
 
 -- 
 
