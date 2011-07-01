@@ -1,28 +1,29 @@
 From: rpearson-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org
-Subject: [patch 05/44] rxe_param.h
-Date: Fri, 01 Jul 2011 08:18:26 -0500
-Message-ID: <20110701132200.938834517@systemfabricworks.com>
+Subject: [patch 03/44] rxe_opcode.h
+Date: Fri, 01 Jul 2011 08:18:24 -0500
+Message-ID: <20110701132200.841326163@systemfabricworks.com>
 References: <20110701131821.928693424@systemfabricworks.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline; filename=patch5
+Content-Disposition: inline; filename=patch3
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: Bob Pearson <rpearson-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-default rxe device and port parameters
+Add declarations for data structures used to hold per opcode
+and per work request opcode tables.
 
 Signed-off-by: Bob Pearson <rpearson-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org>
 
 ---
- drivers/infiniband/hw/rxe/rxe_param.h |  212 ++++++++++++++++++++++++++++++++++
- 1 file changed, 212 insertions(+)
+ drivers/infiniband/hw/rxe/rxe_opcode.h |  130 +++++++++++++++++++++++++++++++++
+ 1 file changed, 130 insertions(+)
 
-Index: infiniband/drivers/infiniband/hw/rxe/rxe_param.h
+Index: infiniband/drivers/infiniband/hw/rxe/rxe_opcode.h
 ===================================================================
 --- /dev/null
-+++ infiniband/drivers/infiniband/hw/rxe/rxe_param.h
-@@ -0,0 +1,212 @@
++++ infiniband/drivers/infiniband/hw/rxe/rxe_opcode.h
+@@ -0,0 +1,130 @@
 +/*
 + * Copyright (c) 2009-2011 Mellanox Technologies Ltd. All rights reserved.
 + * Copyright (c) 2009-2011 System Fabric Works, Inc. All rights reserved.
@@ -56,185 +57,103 @@ Index: infiniband/drivers/infiniband/hw/rxe/rxe_param.h
 + * SOFTWARE.
 + */
 +
-+#ifndef RXE_PARAM_H
-+#define RXE_PARAM_H
-+
-+enum rxe_mtu {
-+	RXE_MTU_INVALID = 0,
-+	RXE_MTU_256	= 1,
-+	RXE_MTU_512	= 2,
-+	RXE_MTU_1024	= 3,
-+	RXE_MTU_2048	= 4,
-+	RXE_MTU_4096	= 5,
-+	RXE_MTU_8192	= 6,
-+};
-+
-+static inline int rxe_mtu_enum_to_int(enum rxe_mtu mtu)
-+{
-+	switch (mtu) {
-+	case RXE_MTU_256:	return	256;
-+	case RXE_MTU_512:	return	512;
-+	case RXE_MTU_1024:	return	1024;
-+	case RXE_MTU_2048:	return	2048;
-+	case RXE_MTU_4096:	return	4096;
-+	case RXE_MTU_8192:	return	8192;
-+	default:		return	-1;
-+	}
-+}
-+
-+static inline enum rxe_mtu rxe_mtu_int_to_enum(int mtu)
-+{
-+	if (mtu < 256)
-+		return 0;
-+	else if (mtu < 512)
-+		return RXE_MTU_256;
-+	else if (mtu < 1024)
-+		return RXE_MTU_512;
-+	else if (mtu < 2048)
-+		return RXE_MTU_1024;
-+	else if (mtu < 4096)
-+		return RXE_MTU_2048;
-+	else if (mtu < 8192)
-+		return RXE_MTU_4096;
-+	else
-+		return RXE_MTU_8192;
-+}
-+
-+/* Find the IB mtu for a given network MTU. */
-+static inline enum rxe_mtu eth_mtu_int_to_enum(int mtu)
-+{
-+	mtu -= RXE_MAX_HDR_LENGTH;
-+
-+	return rxe_mtu_int_to_enum(mtu);
-+}
++#ifndef RXE_OPCODE_H
++#define RXE_OPCODE_H
 +
 +/*
-+ * default/initial rxe device parameter settings
++ * contains header bit mask definitions and header lengths
++ * declaration of the rxe_opcode_info struct and
++ * rxe_wr_opcode_info struct
 + */
-+enum rxe_device_param {
-+	RXE_FW_VER			= 0,
-+	RXE_MAX_MR_SIZE			= -1ull,
-+	RXE_PAGE_SIZE_CAP		= 0xfffff000,
-+	RXE_VENDOR_ID			= 0,
-+	RXE_VENDOR_PART_ID		= 0,
-+	RXE_HW_VER			= 0,
-+	RXE_MAX_QP			= 0x10000,
-+	RXE_MAX_QP_WR			= 0x4000,
-+	RXE_MAX_INLINE_DATA		= 400,
-+	RXE_DEVICE_CAP_FLAGS		= IB_DEVICE_BAD_PKEY_CNTR
-+					| IB_DEVICE_BAD_QKEY_CNTR
-+					| IB_DEVICE_AUTO_PATH_MIG
-+					| IB_DEVICE_CHANGE_PHY_PORT
-+					| IB_DEVICE_UD_AV_PORT_ENFORCE
-+					| IB_DEVICE_PORT_ACTIVE_EVENT
-+					| IB_DEVICE_SYS_IMAGE_GUID
-+					| IB_DEVICE_RC_RNR_NAK_GEN
-+					| IB_DEVICE_SRQ_RESIZE,
-+	RXE_MAX_SGE			= 27,
-+	RXE_MAX_SGE_RD			= 0,
-+	RXE_MAX_CQ			= 16384,
-+	RXE_MAX_LOG_CQE			= 13,
-+	RXE_MAX_MR			= 2*1024,
-+	RXE_MAX_PD			= 0x7ffc,
-+	RXE_MAX_QP_RD_ATOM		= 128,
-+	RXE_MAX_EE_RD_ATOM		= 0,
-+	RXE_MAX_RES_RD_ATOM		= 0x3f000,
-+	RXE_MAX_QP_INIT_RD_ATOM		= 128,
-+	RXE_MAX_EE_INIT_RD_ATOM		= 0,
-+	RXE_ATOMIC_CAP			= 1,
-+	RXE_MAX_EE			= 0,
-+	RXE_MAX_RDD			= 0,
-+	RXE_MAX_MW			= 0,
-+	RXE_MAX_RAW_IPV6_QP		= 0,
-+	RXE_MAX_RAW_ETHY_QP		= 0,
-+	RXE_MAX_MCAST_GRP		= 8192,
-+	RXE_MAX_MCAST_QP_ATTACH		= 56,
-+	RXE_MAX_TOT_MCAST_QP_ATTACH	= 0x70000,
-+	RXE_MAX_AH			= 100,
-+	RXE_MAX_FMR			= 2*1024,
-+	RXE_MAX_MAP_PER_FMR		= 100,
-+	RXE_MAX_SRQ			= 960,
-+	RXE_MAX_SRQ_WR			= 0x4000,
-+	RXE_MIN_SRQ_WR			= 1,
-+	RXE_MAX_SRQ_SGE			= 27,
-+	RXE_MIN_SRQ_SGE			= 1,
-+	RXE_MAX_FMR_PAGE_LIST_LEN	= 0,
-+	RXE_MAX_PKEYS			= 64,
-+	RXE_LOCAL_CA_ACK_DELAY		= 15,
 +
-+	RXE_MAX_UCONTEXT		= 128,
++enum rxe_wr_mask {
++	WR_INLINE_MASK			= (1 << 0),
++	WR_ATOMIC_MASK			= (1 << 1),
++	WR_SEND_MASK			= (1 << 2),
++	WR_READ_MASK			= (1 << 3),
++	WR_WRITE_MASK			= (1 << 4),
++	WR_LOCAL_MASK			= (1 << 5),
 +
-+	RXE_NUM_PORT			= 1,
-+	RXE_NUM_COMP_VECTORS		= 1,
-+
-+	RXE_MIN_QP_INDEX		= 16,
-+	RXE_MAX_QP_INDEX		= 0x00020000,
-+
-+	RXE_MIN_SRQ_INDEX		= 0x00020001,
-+	RXE_MAX_SRQ_INDEX		= 0x00040000,
-+
-+	RXE_MIN_MR_INDEX		= 0x00000001,
-+	RXE_MAX_MR_INDEX		= 0x00020000,
-+	RXE_MIN_FMR_INDEX		= 0x00020001,
-+	RXE_MAX_FMR_INDEX		= 0x00040000,
-+	RXE_MIN_MW_INDEX		= 0x00040001,
-+	RXE_MAX_MW_INDEX		= 0x00060000,
++	WR_READ_OR_WRITE_MASK		= WR_READ_MASK | WR_WRITE_MASK,
++	WR_READ_WRITE_OR_SEND_MASK	= WR_READ_OR_WRITE_MASK | WR_SEND_MASK,
++	WR_WRITE_OR_SEND_MASK		= WR_WRITE_MASK | WR_SEND_MASK,
++	WR_ATOMIC_OR_READ_MASK		= WR_ATOMIC_MASK | WR_READ_MASK,
 +};
 +
-+/*
-+ * default/initial rxe port parameters
-+ */
-+enum rxe_port_param {
-+	RXE_PORT_STATE			= IB_PORT_DOWN,
-+	RXE_PORT_MAX_MTU		= RXE_MTU_4096,
-+	RXE_PORT_ACTIVE_MTU		= RXE_MTU_256,
-+	RXE_PORT_GID_TBL_LEN		= 32,
-+	RXE_PORT_PORT_CAP_FLAGS		= 0,
-+	RXE_PORT_MAX_MSG_SZ		= 0x800000,
-+	RXE_PORT_BAD_PKEY_CNTR		= 0,
-+	RXE_PORT_QKEY_VIOL_CNTR		= 0,
-+	RXE_PORT_LID			= 0,
-+	RXE_PORT_SM_LID			= 0,
-+	RXE_PORT_SM_SL			= 0,
-+	RXE_PORT_LMC			= 0,
-+	RXE_PORT_MAX_VL_NUM		= 1,
-+	RXE_PORT_SUBNET_TIMEOUT		= 0,
-+	RXE_PORT_INIT_TYPE_REPLY	= 0,
-+	RXE_PORT_ACTIVE_WIDTH		= IB_WIDTH_1X,
-+	RXE_PORT_ACTIVE_SPEED		= 1,
-+	RXE_PORT_PKEY_TBL_LEN		= 64,
-+	RXE_PORT_PHYS_STATE		= 2,
-+	RXE_PORT_SUBNET_PREFIX		= 0xfe80000000000000ULL,
-+	RXE_PORT_CC_TBL_LEN		= 128,
-+	RXE_PORT_CC_TIMER		= 1024,
-+	RXE_PORT_CC_INCREASE		= 1,
-+	RXE_PORT_CC_THRESHOLD		= 64,
-+	RXE_PORT_CC_CCTI_MIN		= 0,
++#define WR_MAX_QPT		(8)
++
++struct rxe_wr_opcode_info {
++	char			*name;
++	enum rxe_wr_mask	mask[WR_MAX_QPT];
 +};
 +
-+/*
-+ * default/initial port info parameters
-+ */
-+enum rxe_port_info_param {
-+	RXE_PORT_INFO_VL_CAP		= 4,	/* 1-8 */
-+	RXE_PORT_INFO_MTU_CAP		= 5,	/* 4096 */
-+	RXE_PORT_INFO_OPER_VL		= 1,	/* 1 */
++extern struct rxe_wr_opcode_info rxe_wr_opcode_info[];
++
++enum rxe_hdr_type {
++	RXE_LRH,
++	RXE_GRH,
++	RXE_BTH,
++	RXE_RETH,
++	RXE_AETH,
++	RXE_ATMETH,
++	RXE_ATMACK,
++	RXE_IETH,
++	RXE_RDETH,
++	RXE_DETH,
++	RXE_IMMDT,
++	RXE_PAYLOAD,
++	NUM_HDR_TYPES
 +};
 +
-+extern int rxe_debug_flags;
-+extern int rxe_crc_disable;
-+extern int rxe_nsec_per_packet;
-+extern int rxe_nsec_per_kbyte;
-+extern int rxe_max_skb_per_qp;
-+extern int rxe_max_req_comp_gap;
-+extern int rxe_max_pkt_per_ack;
-+extern int rxe_default_mtu;
-+extern int rxe_fast_comp;
-+extern int rxe_fast_resp;
-+extern int rxe_fast_req;
-+extern int rxe_fast_arb;
++enum rxe_hdr_mask {
++	RXE_LRH_MASK		= (1 << RXE_LRH),
++	RXE_GRH_MASK		= (1 << RXE_GRH),
++	RXE_BTH_MASK		= (1 << RXE_BTH),
++	RXE_IMMDT_MASK		= (1 << RXE_IMMDT),
++	RXE_RETH_MASK		= (1 << RXE_RETH),
++	RXE_AETH_MASK		= (1 << RXE_AETH),
++	RXE_ATMETH_MASK		= (1 << RXE_ATMETH),
++	RXE_ATMACK_MASK		= (1 << RXE_ATMACK),
++	RXE_IETH_MASK		= (1 << RXE_IETH),
++	RXE_RDETH_MASK		= (1 << RXE_RDETH),
++	RXE_DETH_MASK		= (1 << RXE_DETH),
++	RXE_PAYLOAD_MASK	= (1 << RXE_PAYLOAD),
 +
-+#endif /* RXE_PARAM_H */
++	RXE_REQ_MASK		= (1 << (NUM_HDR_TYPES+0)),
++	RXE_ACK_MASK		= (1 << (NUM_HDR_TYPES+1)),
++	RXE_SEND_MASK		= (1 << (NUM_HDR_TYPES+2)),
++	RXE_WRITE_MASK		= (1 << (NUM_HDR_TYPES+3)),
++	RXE_READ_MASK		= (1 << (NUM_HDR_TYPES+4)),
++	RXE_ATOMIC_MASK		= (1 << (NUM_HDR_TYPES+5)),
++
++	RXE_RWR_MASK		= (1 << (NUM_HDR_TYPES+6)),
++	RXE_COMP_MASK		= (1 << (NUM_HDR_TYPES+7)),
++
++	RXE_START_MASK		= (1 << (NUM_HDR_TYPES+8)),
++	RXE_MIDDLE_MASK		= (1 << (NUM_HDR_TYPES+9)),
++	RXE_END_MASK		= (1 << (NUM_HDR_TYPES+10)),
++
++	RXE_CNP_MASK		= (1 << (NUM_HDR_TYPES+11)),
++
++	RXE_LOOPBACK_MASK	= (1 << (NUM_HDR_TYPES+12)),
++
++	RXE_READ_OR_ATOMIC	= (RXE_READ_MASK | RXE_ATOMIC_MASK),
++	RXE_WRITE_OR_SEND	= (RXE_WRITE_MASK | RXE_SEND_MASK),
++};
++
++#define OPCODE_NONE		(-1)
++#define RXE_NUM_OPCODE		256
++
++struct rxe_opcode_info {
++	char			*name;
++	enum rxe_hdr_mask	mask;
++	int			length;
++	int			offset[NUM_HDR_TYPES];
++};
++
++extern struct rxe_opcode_info rxe_opcode[RXE_NUM_OPCODE];
++
++#endif /* RXE_OPCODE_H */
 
 -- 
 
