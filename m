@@ -1,28 +1,28 @@
 From: rpearson-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org
-Subject: [patch 23/44] rxe_cq.c
-Date: Fri, 01 Jul 2011 08:18:44 -0500
-Message-ID: <20110701132201.807735406@systemfabricworks.com>
+Subject: [patch 32/44] rxe_req.c
+Date: Fri, 01 Jul 2011 08:18:53 -0500
+Message-ID: <20110701132202.243731100@systemfabricworks.com>
 References: <20110701131821.928693424@systemfabricworks.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline; filename=patch23
+Content-Disposition: inline; filename=patch32
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: Bob Pearson <rpearson-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Completion queue implementation details.
+QP request logic.
 
 Signed-off-by: Bob Pearson <rpearson-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org>
 
 ---
- drivers/infiniband/hw/rxe/rxe_cq.c |  178 +++++++++++++++++++++++++++++++++++++
- 1 file changed, 178 insertions(+)
+ drivers/infiniband/hw/rxe/rxe_req.c |  712 ++++++++++++++++++++++++++++++++++++
+ 1 file changed, 712 insertions(+)
 
-Index: infiniband/drivers/infiniband/hw/rxe/rxe_cq.c
+Index: infiniband/drivers/infiniband/hw/rxe/rxe_req.c
 ===================================================================
 --- /dev/null
-+++ infiniband/drivers/infiniband/hw/rxe/rxe_cq.c
-@@ -0,0 +1,178 @@
++++ infiniband/drivers/infiniband/hw/rxe/rxe_req.c
+@@ -0,0 +1,712 @@
 +/*
 + * Copyright (c) 2009-2011 Mellanox Technologies Ltd. All rights reserved.
 + * Copyright (c) 2009-2011 System Fabric Works, Inc. All rights reserved.
@@ -33,9 +33,9 @@ Index: infiniband/drivers/infiniband/hw/rxe/rxe_cq.c
 + * COPYING in the main directory of this source tree, or the
 + * OpenIB.org BSD license below:
 + *
-+ *	   Redistribution and use in source and binary forms, with or
-+ *	   without modification, are permitted provided that the following
-+ *	   conditions are met:
++ *     Redistribution and use in source and binary forms, with or
++ *     without modification, are permitted provided that the following
++ *     conditions are met:
 + *
 + *	- Redistributions of source code must retain the above
 + *	  copyright notice, this list of conditions and the following
@@ -56,150 +56,684 @@ Index: infiniband/drivers/infiniband/hw/rxe/rxe_cq.c
 + * SOFTWARE.
 + */
 +
-+/* cq implementation details */
++#include <linux/skbuff.h>
 +
 +#include "rxe.h"
++#include "rxe_loc.h"
 +#include "rxe_queue.h"
-+#include "rxe_cq.h"
-+#include "rxe_mmap.h"
++#include "rxe_qp.h"
++#include "rxe_mr.h"
 +
-+int rxe_cq_chk_attr(struct rxe_dev *rxe, struct rxe_cq *cq,
-+		    int cqe, int comp_vector, struct ib_udata *udata)
++static int next_opcode(struct rxe_qp *qp, struct rxe_send_wqe *wqe,
++		       unsigned opcode);
++
++static inline void retry_first_write_send(struct rxe_qp *qp,
++					  struct rxe_send_wqe *wqe,
++					  unsigned mask, int npsn)
 +{
-+	int count;
++	int i;
 +
-+	if (cqe <= 0) {
-+		pr_warn("cqe(%d) <= 0\n", cqe);
-+		goto err1;
++	for (i = 0; i < npsn; i++) {
++		int to_send = (wqe->dma.resid > qp->mtu) ?
++				qp->mtu : wqe->dma.resid;
++
++		qp->req.opcode = next_opcode(qp, wqe,
++					     wqe->ibwr.opcode);
++
++		if (wqe->ibwr.send_flags & IB_SEND_INLINE) {
++			wqe->dma.resid -= to_send;
++			wqe->dma.sge_offset += to_send;
++		} else
++			advance_dma_data(&wqe->dma, to_send);
++
++		if (mask & WR_WRITE_MASK)
++			wqe->iova += qp->mtu;
 +	}
++}
 +
-+	if (cqe > rxe->attr.max_cqe) {
-+		pr_warn("cqe(%d) > max_cqe(%d)\n",
-+			 cqe, rxe->attr.max_cqe);
-+		goto err1;
-+	}
++static void req_retry(struct rxe_qp *qp)
++{
++	struct rxe_send_wqe *wqe;
++	unsigned int wqe_index;
++	unsigned int mask;
++	int npsn;
++	int first = 1;
 +
-+	if (cq) {
-+		count = queue_count(cq->queue);
-+		if (cqe < count) {
-+			pr_warn("cqe(%d) < current # elements in queue (%d)",
-+				cqe, count);
-+			goto err1;
++	wqe = queue_head(qp->sq.queue);
++	npsn = (qp->comp.psn - wqe->first_psn) & BTH_PSN_MASK;
++
++	qp->req.wqe_index	= consumer_index(qp->sq.queue);
++	qp->req.psn		= qp->comp.psn;
++	qp->req.opcode		= -1;
++
++	for (wqe_index = consumer_index(qp->sq.queue);
++		wqe_index != producer_index(qp->sq.queue);
++		wqe_index = next_index(qp->sq.queue, wqe_index)) {
++
++		wqe = addr_from_index(qp->sq.queue, wqe_index);
++		mask = wr_opcode_mask(wqe->ibwr.opcode, qp);
++
++		if (wqe->state == wqe_state_posted)
++			break;
++
++		if (wqe->state == wqe_state_done)
++			continue;
++
++		wqe->iova = (mask & WR_ATOMIC_MASK) ?
++			wqe->ibwr.wr.atomic.remote_addr :
++			wqe->ibwr.wr.rdma.remote_addr;
++
++		if (!first || (mask & WR_READ_MASK) == 0) {
++			wqe->dma.resid = wqe->dma.length;
++			wqe->dma.cur_sge = 0;
++			wqe->dma.sge_offset = 0;
 +		}
++
++		if (first) {
++			first = 0;
++
++			if (mask & WR_WRITE_OR_SEND_MASK)
++				retry_first_write_send(qp, wqe, mask, npsn);
++
++			if (mask & WR_READ_MASK)
++				wqe->iova += npsn*qp->mtu;
++		}
++
++		wqe->state = wqe_state_posted;
++	}
++}
++
++void rnr_nak_timer(unsigned long data)
++{
++	struct rxe_qp *qp = (struct rxe_qp *)data;
++	pr_debug("rnr nak timer fired\n");
++	rxe_run_task(&qp->req.task, 1);
++}
++
++static struct rxe_send_wqe *req_next_wqe(struct rxe_qp *qp)
++{
++	struct rxe_send_wqe *wqe = queue_head(qp->sq.queue);
++	unsigned long flags;
++
++	if (unlikely(qp->req.state == QP_STATE_DRAIN)) {
++		/* check to see if we are drained;
++		 * state_lock used by requester and completer */
++		spin_lock_irqsave(&qp->state_lock, flags);
++		do {
++			if (qp->req.state != QP_STATE_DRAIN) {
++				/* comp just finished */
++				spin_unlock_irqrestore(&qp->state_lock,
++						       flags);
++				break;
++			}
++
++			if (wqe && ((qp->req.wqe_index !=
++				consumer_index(qp->sq.queue)) ||
++				(wqe->state != wqe_state_posted))) {
++				/* comp not done yet */
++				spin_unlock_irqrestore(&qp->state_lock,
++							   flags);
++				break;
++			}
++
++			qp->req.state = QP_STATE_DRAINED;
++			spin_unlock_irqrestore(&qp->state_lock, flags);
++
++			if (qp->ibqp.event_handler) {
++				struct ib_event ev;
++
++				ev.device = qp->ibqp.device;
++				ev.element.qp = &qp->ibqp;
++				ev.event = IB_EVENT_SQ_DRAINED;
++				qp->ibqp.event_handler(&ev,
++					qp->ibqp.qp_context);
++			}
++		} while (0);
 +	}
 +
-+	return 0;
++	if (qp->req.wqe_index == producer_index(qp->sq.queue))
++		return NULL;
 +
-+err1:
++	wqe = addr_from_index(qp->sq.queue, qp->req.wqe_index);
++
++	if (qp->req.state == QP_STATE_DRAIN ||
++	    qp->req.state == QP_STATE_DRAINED)
++		if (wqe->state != wqe_state_processing)
++			return NULL;
++
++	if ((wqe->ibwr.send_flags & IB_SEND_FENCE) &&
++	    (qp->req.wqe_index != consumer_index(qp->sq.queue))) {
++		qp->req.wait_fence = 1;
++		return NULL;
++	}
++
++	wqe->mask = wr_opcode_mask(wqe->ibwr.opcode, qp);
++	return wqe;
++}
++
++static int next_opcode_rc(struct rxe_qp *qp, unsigned opcode, int fits)
++{
++	switch (opcode) {
++	case IB_WR_RDMA_WRITE:
++		if (qp->req.opcode == IB_OPCODE_RC_RDMA_WRITE_FIRST ||
++		    qp->req.opcode == IB_OPCODE_RC_RDMA_WRITE_MIDDLE)
++			return fits ?
++				IB_OPCODE_RC_RDMA_WRITE_LAST :
++				IB_OPCODE_RC_RDMA_WRITE_MIDDLE;
++		else
++			return fits ?
++				IB_OPCODE_RC_RDMA_WRITE_ONLY :
++				IB_OPCODE_RC_RDMA_WRITE_FIRST;
++
++	case IB_WR_RDMA_WRITE_WITH_IMM:
++		if (qp->req.opcode == IB_OPCODE_RC_RDMA_WRITE_FIRST ||
++		    qp->req.opcode == IB_OPCODE_RC_RDMA_WRITE_MIDDLE)
++			return fits ?
++				IB_OPCODE_RC_RDMA_WRITE_LAST_WITH_IMMEDIATE :
++				IB_OPCODE_RC_RDMA_WRITE_MIDDLE;
++		else
++			return fits ?
++				IB_OPCODE_RC_RDMA_WRITE_ONLY_WITH_IMMEDIATE :
++				IB_OPCODE_RC_RDMA_WRITE_FIRST;
++
++	case IB_WR_SEND:
++		if (qp->req.opcode == IB_OPCODE_RC_SEND_FIRST ||
++		    qp->req.opcode == IB_OPCODE_RC_SEND_MIDDLE)
++			return fits ?
++				IB_OPCODE_RC_SEND_LAST :
++				IB_OPCODE_RC_SEND_MIDDLE;
++		else
++			return fits ?
++				IB_OPCODE_RC_SEND_ONLY :
++				IB_OPCODE_RC_SEND_FIRST;
++
++	case IB_WR_SEND_WITH_IMM:
++		if (qp->req.opcode == IB_OPCODE_RC_SEND_FIRST ||
++		    qp->req.opcode == IB_OPCODE_RC_SEND_MIDDLE)
++			return fits ?
++				IB_OPCODE_RC_SEND_LAST_WITH_IMMEDIATE :
++				IB_OPCODE_RC_SEND_MIDDLE;
++		else
++			return fits ?
++				IB_OPCODE_RC_SEND_ONLY_WITH_IMMEDIATE :
++				IB_OPCODE_RC_SEND_FIRST;
++
++	case IB_WR_RDMA_READ:
++		return IB_OPCODE_RC_RDMA_READ_REQUEST;
++
++	case IB_WR_ATOMIC_CMP_AND_SWP:
++		return IB_OPCODE_RC_COMPARE_SWAP;
++
++	case IB_WR_ATOMIC_FETCH_AND_ADD:
++		return IB_OPCODE_RC_FETCH_ADD;
++
++	case IB_WR_SEND_WITH_INV:
++		if (qp->req.opcode == IB_OPCODE_RC_SEND_FIRST ||
++		    qp->req.opcode == IB_OPCODE_RC_SEND_MIDDLE)
++			return fits ? IB_OPCODE_RC_SEND_LAST_INV :
++				IB_OPCODE_RC_SEND_MIDDLE;
++		else
++			return fits ? IB_OPCODE_RC_SEND_ONLY_INV :
++				IB_OPCODE_RC_SEND_FIRST;
++	}
++
 +	return -EINVAL;
 +}
 +
-+static void rxe_send_complete(unsigned long data)
++static int next_opcode_uc(struct rxe_qp *qp, unsigned opcode, int fits)
 +{
-+	struct rxe_cq *cq = (struct rxe_cq *)data;
++	switch (opcode) {
++	case IB_WR_RDMA_WRITE:
++		if (qp->req.opcode == IB_OPCODE_UC_RDMA_WRITE_FIRST ||
++		    qp->req.opcode == IB_OPCODE_UC_RDMA_WRITE_MIDDLE)
++			return fits ?
++				IB_OPCODE_UC_RDMA_WRITE_LAST :
++				IB_OPCODE_UC_RDMA_WRITE_MIDDLE;
++		else
++			return fits ?
++				IB_OPCODE_UC_RDMA_WRITE_ONLY :
++				IB_OPCODE_UC_RDMA_WRITE_FIRST;
 +
-+	while (1) {
-+		u8 notify = cq->notify;
++	case IB_WR_RDMA_WRITE_WITH_IMM:
++		if (qp->req.opcode == IB_OPCODE_UC_RDMA_WRITE_FIRST ||
++		    qp->req.opcode == IB_OPCODE_UC_RDMA_WRITE_MIDDLE)
++			return fits ?
++				IB_OPCODE_UC_RDMA_WRITE_LAST_WITH_IMMEDIATE :
++				IB_OPCODE_UC_RDMA_WRITE_MIDDLE;
++		else
++			return fits ?
++				IB_OPCODE_UC_RDMA_WRITE_ONLY_WITH_IMMEDIATE :
++				IB_OPCODE_UC_RDMA_WRITE_FIRST;
 +
-+		cq->ibcq.comp_handler(&cq->ibcq, cq->ibcq.cq_context);
++	case IB_WR_SEND:
++		if (qp->req.opcode == IB_OPCODE_UC_SEND_FIRST ||
++		    qp->req.opcode == IB_OPCODE_UC_SEND_MIDDLE)
++			return fits ?
++				IB_OPCODE_UC_SEND_LAST :
++				IB_OPCODE_UC_SEND_MIDDLE;
++		else
++			return fits ?
++				IB_OPCODE_UC_SEND_ONLY :
++				IB_OPCODE_UC_SEND_FIRST;
 +
-+		/* See if anything was added to the CQ during the
-+		 * comp_handler call.  If so, go around again because we
-+		 * won't be rescheduled.
-+		 * XXX: is there a race on enqueue right after this test
-+		 * but before we're out? */
-+		if (notify == cq->notify)
-+			return;
++	case IB_WR_SEND_WITH_IMM:
++		if (qp->req.opcode == IB_OPCODE_UC_SEND_FIRST ||
++		    qp->req.opcode == IB_OPCODE_UC_SEND_MIDDLE)
++			return fits ?
++				IB_OPCODE_UC_SEND_LAST_WITH_IMMEDIATE :
++				IB_OPCODE_UC_SEND_MIDDLE;
++		else
++			return fits ?
++				IB_OPCODE_UC_SEND_ONLY_WITH_IMMEDIATE :
++				IB_OPCODE_UC_SEND_FIRST;
 +	}
++
++	return -EINVAL;
 +}
 +
-+int rxe_cq_from_init(struct rxe_dev *rxe, struct rxe_cq *cq, int cqe,
-+		     int comp_vector, struct ib_ucontext *context,
-+		     struct ib_udata *udata)
++static int next_opcode(struct rxe_qp *qp, struct rxe_send_wqe *wqe,
++		       unsigned opcode)
 +{
-+	int err;
++	int fits = (wqe->dma.resid <= qp->mtu);
 +
-+	cq->queue = rxe_queue_init(rxe, (unsigned int *)&cqe,
-+				   sizeof(struct rxe_cqe));
-+	if (!cq->queue) {
-+		pr_warn("unable to create cq\n");
-+		return -ENOMEM;
-+	}
++	switch (qp_type(qp)) {
++	case IB_QPT_RC:
++		return next_opcode_rc(qp, opcode, fits);
 +
-+	err = do_mmap_info(rxe, udata, 0, context, cq->queue->buf,
-+			   cq->queue->buf_size, &cq->queue->ip);
-+	if (err) {
-+		vfree(cq->queue->buf);
-+		kfree(cq->queue);
-+	}
++	case IB_QPT_UC:
++		return next_opcode_uc(qp, opcode, fits);
 +
-+	if (udata)
-+		cq->is_user = 1;
++	case IB_QPT_SMI:
++	case IB_QPT_UD:
++	case IB_QPT_GSI:
++		switch (opcode) {
++		case IB_WR_SEND:
++			return IB_OPCODE_UD_SEND_ONLY;
 +
-+	tasklet_init(&cq->comp_task, rxe_send_complete, (unsigned long)cq);
-+
-+	spin_lock_init(&cq->cq_lock);
-+	cq->ibcq.cqe = cqe;
-+	return 0;
-+}
-+
-+int rxe_cq_resize_queue(struct rxe_cq *cq, int cqe, struct ib_udata *udata)
-+{
-+	int err;
-+
-+	err = rxe_queue_resize(cq->queue, (unsigned int *)&cqe,
-+			       sizeof(struct rxe_cqe),
-+			       cq->queue->ip ? cq->queue->ip->context : NULL,
-+			       udata, NULL, &cq->cq_lock);
-+	if (!err)
-+		cq->ibcq.cqe = cqe;
-+
-+	return err;
-+}
-+
-+int rxe_cq_post(struct rxe_cq *cq, struct rxe_cqe *cqe, int solicited)
-+{
-+	struct ib_event ev;
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&cq->cq_lock, flags);
-+
-+	if (unlikely(queue_full(cq->queue))) {
-+		spin_unlock_irqrestore(&cq->cq_lock, flags);
-+		if (cq->ibcq.event_handler) {
-+			ev.device = cq->ibcq.device;
-+			ev.element.cq = &cq->ibcq;
-+			ev.event = IB_EVENT_CQ_ERR;
-+			cq->ibcq.event_handler(&ev, cq->ibcq.cq_context);
++		case IB_WR_SEND_WITH_IMM:
++			return IB_OPCODE_UD_SEND_ONLY_WITH_IMMEDIATE;
 +		}
++		break;
 +
-+		return -EBUSY;
++	default:
++		break;
 +	}
 +
-+	memcpy(producer_addr(cq->queue), cqe, sizeof(*cqe));
++	return -EINVAL;
++}
 +
-+	/* make sure all changes to the CQ are written before
-+	   we update the producer pointer */
-+	wmb();
++static inline int check_init_depth(struct rxe_qp *qp, struct rxe_send_wqe *wqe)
++{
++	int depth;
 +
-+	advance_producer(cq->queue);
-+	spin_unlock_irqrestore(&cq->cq_lock, flags);
++	if (wqe->has_rd_atomic)
++		return 0;
 +
-+	if ((cq->notify == IB_CQ_NEXT_COMP) ||
-+	    (cq->notify == IB_CQ_SOLICITED && solicited)) {
-+		cq->notify++;
-+		tasklet_schedule(&cq->comp_task);
++	qp->req.need_rd_atomic = 1;
++	depth = atomic_dec_return(&qp->req.rd_atomic);
++
++	if (depth >= 0) {
++		qp->req.need_rd_atomic = 0;
++		wqe->has_rd_atomic = 1;
++		return 0;
++	} else {
++		atomic_inc(&qp->req.rd_atomic);
++		return -EAGAIN;
 +	}
++}
++
++static inline int get_mtu(struct rxe_qp *qp, struct rxe_send_wqe *wqe)
++{
++	struct rxe_dev *rxe = to_rdev(qp->ibqp.device);
++
++	if ((qp_type(qp) == IB_QPT_RC) || (qp_type(qp) == IB_QPT_UC)) {
++		return qp->mtu;
++	} else {
++		struct rxe_av *av = &wqe->av;
++		struct rxe_port *port = &rxe->port[av->attr.port_num - 1];
++		return port->mtu_cap;
++	}
++}
++
++static struct rxe_pkt_info *init_req_packet(struct rxe_qp *qp,
++					    struct rxe_send_wqe *wqe,
++					    int opcode, int payload)
++{
++	struct rxe_dev		*rxe = to_rdev(qp->ibqp.device);
++	struct rxe_port		*port = &rxe->port[qp->attr.port_num - 1];
++	struct rxe_pkt_info	*pkt;
++	struct sk_buff		*skb;
++	struct ib_send_wr	*ibwr = &wqe->ibwr;
++	struct rxe_av		*av;
++	int			pad = (-payload) & 0x3;
++	int			paylen;
++	int			solicited;
++	u16			pkey;
++	u32			qp_num;
++	int			ack_req;
++	unsigned int		lnh;
++	unsigned int		length;
++
++	/* length from start of bth to end of icrc */
++	paylen = rxe_opcode[opcode].length + payload + pad + RXE_ICRC_SIZE;
++
++	/* TODO support APM someday */
++	if (qp_type(qp) == IB_QPT_RC || qp_type(qp) == IB_QPT_UC)
++		av = &qp->pri_av;
++	else
++		av = &wqe->av;
++
++	/* init skb
++	 * ifc layer must set lrh/grh flags */
++	skb = rxe->ifc_ops->init_packet(rxe, av, paylen);
++	if (!skb)
++		return NULL;
++
++	atomic_inc(&qp->req_skb_out);
++	atomic_inc(&rxe->req_skb_out);
++
++	/* pkt->hdr, rxe, port_num, paylen and
++	   mask are initialized in ifc layer */
++	pkt		= SKB_TO_PKT(skb);
++	pkt->opcode	= opcode;
++	pkt->qp		= qp;
++	pkt->psn	= qp->req.psn;
++	pkt->mask	|= rxe_opcode[opcode].mask;
++	pkt->paylen	= paylen;
++	pkt->offset	= 0;
++
++	/* init lrh */
++	if (pkt->mask & RXE_LRH_MASK) {
++		pkt->offset += RXE_LRH_BYTES;
++		lnh = (pkt->mask & RXE_GRH_MASK) ? LRH_LNH_IBA_GBL
++						 : LRH_LNH_IBA_LOC;
++		length = paylen + RXE_LRH_BYTES;
++		if (pkt->mask & RXE_GRH_MASK)
++			length += RXE_GRH_BYTES;
++
++		/* TODO currently we do not implement SL->VL
++		   table so just force VL=SL */
++		lrh_init(pkt, av->attr.sl, av->attr.sl,
++			 lnh, length/4,
++			 av->attr.dlid,
++			 port->attr.lid);
++	}
++
++	/* init grh */
++	if (pkt->mask & RXE_GRH_MASK) {
++		pkt->offset += RXE_GRH_BYTES;
++
++		/* TODO set class flow hopcount */
++		grh_init(pkt, 0, 0, paylen, 0);
++
++		grh_set_sgid(pkt, port->subnet_prefix,
++			     port->guid_tbl[av->attr.grh.sgid_index]);
++		grh_set_dgid(pkt, av->attr.grh.dgid.global.subnet_prefix,
++			     av->attr.grh.dgid.global.interface_id);
++	}
++
++	/* init bth */
++	solicited = (ibwr->send_flags & IB_SEND_SOLICITED) &&
++			(pkt->mask & RXE_END_MASK) &&
++			((pkt->mask & (RXE_SEND_MASK)) ||
++			(pkt->mask & (RXE_WRITE_MASK | RXE_IMMDT_MASK)) ==
++			(RXE_WRITE_MASK | RXE_IMMDT_MASK));
++
++	pkey = (qp_type(qp) == IB_QPT_GSI) ?
++		 port->pkey_tbl[ibwr->wr.ud.pkey_index] :
++		 port->pkey_tbl[qp->attr.pkey_index];
++
++	qp_num = (pkt->mask & RXE_DETH_MASK) ? ibwr->wr.ud.remote_qpn :
++					 qp->attr.dest_qp_num;
++
++	ack_req = ((pkt->mask & RXE_END_MASK) ||
++		(qp->req.noack_pkts++ > rxe_max_pkt_per_ack));
++	if (ack_req)
++		qp->req.noack_pkts = 0;
++
++	bth_init(pkt, pkt->opcode, solicited, 0, pad, pkey, qp_num,
++		 ack_req, pkt->psn);
++
++	/* init optional headers */
++	if (pkt->mask & RXE_RETH_MASK) {
++		reth_set_rkey(pkt, ibwr->wr.rdma.rkey);
++		reth_set_va(pkt, wqe->iova);
++		reth_set_len(pkt, wqe->dma.length);
++	}
++
++	if (pkt->mask & RXE_IMMDT_MASK)
++		immdt_set_imm(pkt, ibwr->ex.imm_data);
++
++	if (pkt->mask & RXE_IETH_MASK)
++		ieth_set_rkey(pkt, ibwr->ex.invalidate_rkey);
++
++	if (pkt->mask & RXE_ATMETH_MASK) {
++		atmeth_set_va(pkt, wqe->iova);
++		if (opcode == IB_OPCODE_RC_COMPARE_SWAP ||
++		    opcode == IB_OPCODE_RD_COMPARE_SWAP) {
++			atmeth_set_swap_add(pkt, ibwr->wr.atomic.swap);
++			atmeth_set_comp(pkt, ibwr->wr.atomic.compare_add);
++		} else {
++			atmeth_set_swap_add(pkt, ibwr->wr.atomic.compare_add);
++		}
++		atmeth_set_rkey(pkt, ibwr->wr.atomic.rkey);
++	}
++
++	if (pkt->mask & RXE_DETH_MASK) {
++		if (qp->ibqp.qp_num == 1)
++			deth_set_qkey(pkt, GSI_QKEY);
++		else
++			deth_set_qkey(pkt, ibwr->wr.ud.remote_qkey);
++		deth_set_sqp(pkt, qp->ibqp.qp_num);
++	}
++
++	return pkt;
++}
++
++static int fill_packet(struct rxe_qp *qp, struct rxe_send_wqe *wqe,
++		       struct rxe_pkt_info *pkt, int payload)
++{
++	struct rxe_dev *rxe = to_rdev(qp->ibqp.device);
++	static const uint8_t zerobuf[4] = {0,};
++	int pad;
++	u32 crc = 0;
++	u8 *p;
++
++	if (!rxe_crc_disable)
++		crc = rxe_sb8_ib_headers(pkt);
++
++	if (pkt->mask & RXE_WRITE_OR_SEND) {
++		if (wqe->ibwr.send_flags & IB_SEND_INLINE) {
++			p = &wqe->dma.inline_data[wqe->dma.sge_offset];
++			if (!rxe_crc_disable)
++				crc = sb8_copy(payload_addr(pkt),
++					       p, payload, crc);
++			else
++				memcpy(payload_addr(pkt), p, payload);
++
++			wqe->dma.resid -= payload;
++			wqe->dma.sge_offset += payload;
++		} else {
++			if (copy_data(rxe, qp->pd, 0, &wqe->dma,
++				      payload_addr(pkt), payload,
++				      direction_out, !rxe_crc_disable ?
++				      &crc : NULL)) {
++				return -1;
++			}
++		}
++	}
++
++	p = payload_addr(pkt) + payload;
++	pad = (-payload) & 0x3;
++	if (pad) {
++		if (!rxe_crc_disable)
++			crc = sb8_copy(p, zerobuf, pad, crc);
++		else
++			memcpy(p, zerobuf, pad);
++		p += pad;
++	}
++
++	*(__be32 *)p = ~crc;
 +
 +	return 0;
 +}
 +
-+void rxe_cq_cleanup(void *arg)
++static void update_state(struct rxe_qp *qp, struct rxe_send_wqe *wqe,
++			 struct rxe_pkt_info *pkt, int payload)
 +{
-+	struct rxe_cq *cq = arg;
++	/* number of packets left to send including current one */
++	int num_pkt = (wqe->dma.resid + payload + qp->mtu - 1) / qp->mtu;
 +
-+	if (cq->queue)
-+		rxe_queue_cleanup(cq->queue);
++	/* handle zero length packet case */
++	if (num_pkt == 0)
++		num_pkt = 1;
++
++	if (pkt->mask & RXE_START_MASK) {
++		wqe->first_psn = qp->req.psn;
++		wqe->last_psn = (qp->req.psn + num_pkt - 1) & BTH_PSN_MASK;
++	}
++
++	if (pkt->mask & RXE_READ_MASK)
++		qp->req.psn = (wqe->first_psn + num_pkt) & BTH_PSN_MASK;
++	else
++		qp->req.psn = (qp->req.psn + 1) & BTH_PSN_MASK;
++
++	qp->req.opcode = pkt->opcode;
++
++	if (pkt->mask & RXE_END_MASK) {
++		if (qp_type(qp) == IB_QPT_RC)
++			wqe->state = wqe_state_pending;
++		else
++			wqe->state = wqe_state_done;
++
++		qp->req.wqe_index = next_index(qp->sq.queue,
++						qp->req.wqe_index);
++	} else
++		wqe->state = wqe_state_processing;
++
++	if (qp->qp_timeout_jiffies && !timer_pending(&qp->retrans_timer))
++		mod_timer(&qp->retrans_timer,
++			  jiffies + qp->qp_timeout_jiffies);
++}
++
++int rxe_requester(void *arg)
++{
++	struct rxe_qp *qp = (struct rxe_qp *)arg;
++	struct rxe_pkt_info *pkt;
++	struct rxe_send_wqe *wqe;
++	unsigned mask;
++	int payload;
++	int mtu;
++	int opcode;
++
++	if (!qp->valid || qp->req.state == QP_STATE_ERROR)
++		goto exit;
++
++	if (qp->req.state == QP_STATE_RESET) {
++		qp->req.wqe_index = consumer_index(qp->sq.queue);
++		qp->req.opcode = -1;
++		qp->req.need_rd_atomic = 0;
++		qp->req.wait_psn = 0;
++		qp->req.need_retry = 0;
++		goto exit;
++	}
++
++	if (qp->req.need_retry) {
++		req_retry(qp);
++		qp->req.need_retry = 0;
++	}
++
++	wqe = req_next_wqe(qp);
++	if (!wqe)
++		goto exit;
++
++	/* heuristic sliding window algorithm to keep
++	   sender from overrunning receiver queues */
++	if (qp_type(qp) == IB_QPT_RC)  {
++		if (psn_compare(qp->req.psn, qp->comp.psn +
++				rxe_max_req_comp_gap) > 0) {
++			qp->req.wait_psn = 1;
++			goto exit;
++		}
++	}
++
++	/* heuristic algorithm to prevent sender from
++	   overrunning the output queue. to not overrun
++	   the receiver's input queue (UC/UD) requires
++	   rate control or application level flow control */
++	if (atomic_read(&qp->req_skb_out) > rxe_max_skb_per_qp) {
++		qp->need_req_skb = 1;
++		goto exit;
++	}
++
++	opcode = next_opcode(qp, wqe, wqe->ibwr.opcode);
++	if (opcode < 0) {
++		wqe->status = IB_WC_LOC_QP_OP_ERR;
++		/* TODO most be more to do here ?? */
++		goto exit;
++	}
++
++	mask = rxe_opcode[opcode].mask;
++	if (unlikely(mask & RXE_READ_OR_ATOMIC)) {
++		if (check_init_depth(qp, wqe))
++			goto exit;
++	}
++
++	mtu = get_mtu(qp, wqe);
++	payload = (mask & RXE_WRITE_OR_SEND) ? wqe->dma.resid : 0;
++	if (payload > mtu) {
++		if (qp_type(qp) == IB_QPT_UD) {
++			/* believe it or not this is
++			   what the spec says to do */
++			/* TODO handle > 1 ports */
++
++			/*
++			 * fake a successful UD send
++			 */
++			wqe->first_psn = qp->req.psn;
++			wqe->last_psn = qp->req.psn;
++			qp->req.psn = (qp->req.psn + 1) & BTH_PSN_MASK;
++			qp->req.opcode = IB_OPCODE_UD_SEND_ONLY;
++			qp->req.wqe_index = next_index(qp->sq.queue,
++						       qp->req.wqe_index);
++			wqe->state = wqe_state_done;
++			wqe->status = IB_WC_SUCCESS;
++			goto complete;
++		}
++		payload = mtu;
++	}
++
++	pkt = init_req_packet(qp, wqe, opcode, payload);
++	if (!pkt) {
++		qp->need_req_skb = 1;
++		goto exit;
++	}
++
++	if (fill_packet(qp, wqe, pkt, payload)) {
++		wqe->status = IB_WC_LOC_PROT_ERR;
++		wqe->state = wqe_state_error;
++		goto complete;
++	}
++
++	update_state(qp, wqe, pkt, payload);
++
++	arbiter_skb_queue(to_rdev(qp->ibqp.device), qp, PKT_TO_SKB(pkt));
++
++	if (mask & RXE_END_MASK)
++		goto complete;
++	else
++		goto done;
++
++complete:
++	if (qp_type(qp) != IB_QPT_RC) {
++		while (rxe_completer(qp) == 0)
++			;
++	}
++done:
++	return 0;
++
++exit:
++	return -EAGAIN;
 +}
 
 -- 
