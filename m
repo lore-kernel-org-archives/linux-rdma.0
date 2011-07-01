@@ -1,29 +1,31 @@
 From: rpearson-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org
-Subject: [patch 30/44] rxe_recv.c
-Date: Fri, 01 Jul 2011 08:18:51 -0500
-Message-ID: <20110701132202.146158148@systemfabricworks.com>
+Subject: [patch 37/44] rxe_sb8.c
+Date: Fri, 01 Jul 2011 08:18:58 -0500
+Message-ID: <20110701132202.486466900@systemfabricworks.com>
 References: <20110701131821.928693424@systemfabricworks.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline; filename=patch30
+Content-Disposition: inline; filename=patch37
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: Bob Pearson <rpearson-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-handles receiving new packets which are
-sent to either request or response processing.
+Slice by 8 implementation of CRC32.
+The code code is similar to the kernel provided crc32
+calculation except runs about 3X faster which allows us to
+get to ~1GB/sec.
 
 Signed-off-by: Bob Pearson <rpearson-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org>
 
 ---
- drivers/infiniband/hw/rxe/rxe_recv.c |  426 +++++++++++++++++++++++++++++++++++
- 1 file changed, 426 insertions(+)
+ drivers/infiniband/hw/rxe/rxe_sb8.c |  242 ++++++++++++++++++++++++++++++++++++
+ 1 file changed, 242 insertions(+)
 
-Index: infiniband/drivers/infiniband/hw/rxe/rxe_recv.c
+Index: infiniband/drivers/infiniband/hw/rxe/rxe_sb8.c
 ===================================================================
 --- /dev/null
-+++ infiniband/drivers/infiniband/hw/rxe/rxe_recv.c
-@@ -0,0 +1,426 @@
++++ infiniband/drivers/infiniband/hw/rxe/rxe_sb8.c
+@@ -0,0 +1,242 @@
 +/*
 + * Copyright (c) 2009-2011 Mellanox Technologies Ltd. All rights reserved.
 + * Copyright (c) 2009-2011 System Fabric Works, Inc. All rights reserved.
@@ -57,399 +59,215 @@ Index: infiniband/drivers/infiniband/hw/rxe/rxe_recv.c
 + * SOFTWARE.
 + */
 +
-+#include <linux/skbuff.h>
-+
 +#include "rxe.h"
++
 +#include "rxe_loc.h"
-+#include "rxe_qp.h"
++#include "sb8_tables.h"
 +
-+static int check_type_state(struct rxe_dev *rxe, struct rxe_pkt_info *pkt,
-+			    struct rxe_qp *qp)
++/* TODO we need big endian versions of sb8 */
++
++/* slice by 8 algorithm for crc32 */
++static __be32 sb8_le(__be32 last_crc, const void *data, const size_t length)
 +{
-+	if (unlikely(!qp->valid))
-+		goto err1;
++	const u8	*p8;
++	int		init_bytes;
++	size_t		qwords;
++	int		end_bytes;
++	u32		*p32;
++	size_t		i;
++	__be32		crc;
++	u32		q;
++	u8		i1, i2, i3, i4;
 +
-+	switch (qp_type(qp)) {
-+	case IB_QPT_RC:
-+		if (unlikely((pkt->opcode >> 5) != 0)) {
-+			pr_warn("bad qp type\n");
-+			goto err1;
-+		}
-+		break;
-+	case IB_QPT_UC:
-+		if (unlikely((pkt->opcode >> 5) != 1)) {
-+			pr_warn("bad qp type\n");
-+			goto err1;
-+		}
-+		break;
-+	case IB_QPT_UD:
-+	case IB_QPT_SMI:
-+	case IB_QPT_GSI:
-+		if (unlikely((pkt->opcode >> 5) != 3)) {
-+			pr_warn("bad qp type\n");
-+			goto err1;
-+		}
-+		break;
-+	default:
-+		pr_warn("unsupported qp type\n");
-+		goto err1;
++	crc = last_crc;
++
++	if (length == 0 || rxe_crc_disable)
++		return crc;
++
++	p8		= data;
++	init_bytes	= (-(long)p8) & 7;
++	if (init_bytes > length)
++		init_bytes = length;
++	qwords		= (length - init_bytes) >> 3;
++	end_bytes	= (length - init_bytes) & 7;
++	p32		= (u32 *)(p8 + init_bytes);
++
++	for (i = 0; i < init_bytes; i++) {
++		i1 = crc ^ *p8++;
++		crc = t32[i1] ^ (crc >> 8);
 +	}
 +
-+	if (pkt->mask & RXE_REQ_MASK) {
-+		if (unlikely(qp->resp.state != QP_STATE_READY))
-+			goto err1;
-+	} else if (unlikely(qp->req.state < QP_STATE_READY ||
-+			qp->req.state > QP_STATE_DRAINED))
-+			goto err1;
++	for (i = 0; i < qwords; i++) {
 +
-+	return 0;
++		q = *p32++ ^ crc;
 +
-+err1:
-+	return -EINVAL;
++		i1 = q;
++		i2 = q >> 8;
++		i3 = q >> 16;
++		i4 = q >> 24;
++
++		crc = t88[i1] ^ t80[i2] ^ t72[i3] ^ t64[i4];
++
++		q = *p32++;
++
++		i1 = q;
++		i2 = q >> 8;
++		i3 = q >> 16;
++		i4 = q >> 24;
++
++		crc ^= t56[i1] ^ t48[i2] ^ t40[i3] ^ t32[i4];
++	}
++
++	p8 = (u8 *)p32;
++
++	for (i = 0; i < end_bytes; i++) {
++		i1 = crc ^ *p8++;
++		crc = t32[i1] ^ (crc >> 8);
++	}
++
++	return crc;
 +}
 +
-+static int check_keys(struct rxe_dev *rxe, struct rxe_pkt_info *pkt,
-+		      u32 qpn, struct rxe_qp *qp)
++/* slice by 8 with a copy */
++__be32 sb8_le_copy(void *dest, const void *data,
++		   const size_t length, __be32 last_crc)
 +{
-+	int i;
-+	int found_pkey = 0;
-+	struct rxe_port *port = &rxe->port[pkt->port_num - 1];
-+	u16 pkey = bth_pkey(pkt);
++	const u8	*p8;
++	u8		*d8;
++	int		init_bytes;
++	size_t		qwords;
++	int		end_bytes;
++	u64		*p64;
++	u64		*d64;
++	size_t		i;
++	__be32		crc;
++	u32		q;
++	u64		t;
++	u8		i1, i2, i3, i4;
 +
-+	pkt->pkey_index = 0;
++	crc = last_crc;
 +
-+	if (qpn == 1) {
-+		for (i = 0; i < port->attr.pkey_tbl_len; i++) {
-+			if (pkey_match(pkey, port->pkey_tbl[i])) {
-+				pkt->pkey_index = i;
-+				found_pkey = 1;
-+				break;
-+			}
-+		}
-+
-+		if (!found_pkey) {
-+			pr_warn("bad pkey = 0x%x\n", pkey);
-+			spin_lock_bh(&port->port_lock);
-+			port->attr.bad_pkey_cntr
-+				= (port->attr.bad_pkey_cntr >= 0xffff) ?
-+				   0xffff :
-+				   port->attr.bad_pkey_cntr + 1;
-+			spin_unlock_bh(&port->port_lock);
-+			goto err1;
-+		}
-+	} else if (qpn != 0) {
-+		if (unlikely(!pkey_match(pkey,
-+		    port->pkey_tbl[qp->attr.pkey_index]))) {
-+			pr_warn("bad pkey = 0x%0x\n", pkey);
-+			spin_lock_bh(&port->port_lock);
-+			port->attr.bad_pkey_cntr
-+				= (port->attr.bad_pkey_cntr >= 0xffff) ?
-+				   0xffff :
-+				   port->attr.bad_pkey_cntr + 1;
-+			spin_unlock_bh(&port->port_lock);
-+			goto err1;
-+		}
-+		pkt->pkey_index = qp->attr.pkey_index;
++	if (rxe_crc_disable) {
++		memcpy(dest, data, length);
++		return crc;
 +	}
 +
-+	if (qp_type(qp) == IB_QPT_UD && qpn != 0 && pkt->mask) {
-+		u32 qkey = (qpn == 1) ? GSI_QKEY : qp->attr.qkey;
-+		if (unlikely(deth_qkey(pkt) != qkey)) {
-+			pr_warn("bad qkey, got 0x%x expected 0x%x\n",
-+				deth_qkey(pkt), qkey);
-+			spin_lock_bh(&port->port_lock);
-+			port->attr.qkey_viol_cntr
-+				= (port->attr.qkey_viol_cntr >= 0xffff) ?
-+				   0xffff :
-+				   port->attr.qkey_viol_cntr + 1;
-+			spin_unlock_bh(&port->port_lock);
-+			goto err1;
-+		}
++	p8		= data;
++	d8		= dest;
++	init_bytes	= (-(long)p8) & 7;
++	if (init_bytes > length)
++		init_bytes = length;
++	qwords		= (length - init_bytes) >> 3;
++	end_bytes	= (length - init_bytes) & 7;
++	p64		= (u64 *)(p8 + init_bytes);
++	d64		= (u64 *)(d8 + init_bytes);
++
++	for (i = 0; i < init_bytes; i++) {
++		t = *p8++;
++		*d8++ = t;
++		i1 = crc ^ t;
++		crc = t32[i1] ^ (crc >> 8);
 +	}
 +
-+	return 0;
++	for (i = 0; i < qwords; i++) {
++		t = *p64++;
++		*d64++ = t;
++		q = (u32)t ^ crc;
 +
-+err1:
-+	return -EINVAL;
++		i1 = q;
++		i2 = q >> 8;
++		i3 = q >> 16;
++		i4 = q >> 24;
++
++		crc = t88[i1] ^ t80[i2] ^ t72[i3] ^ t64[i4];
++
++		t >>= 32;
++		q = (u32)t;
++
++		i1 = q;
++		i2 = q >> 8;
++		i3 = q >> 16;
++		i4 = q >> 24;
++
++		crc ^= t56[i1] ^ t48[i2] ^ t40[i3] ^ t32[i4];
++	}
++
++	p8 = (u8 *)p64;
++	d8 = (u8 *)d64;
++
++	for (i = 0; i < end_bytes; i++) {
++		t = *p8++;
++		*d8++ = t;
++		i1 = crc ^ t;
++		crc = t32[i1] ^ (crc >> 8);
++	}
++
++	return crc;
 +}
 +
-+static int check_addr(struct rxe_dev *rxe, struct rxe_pkt_info *pkt,
-+		      struct rxe_qp *qp)
++/* Compute a partial ICRC for all the IB transport headers. */
++__be32 rxe_sb8_ib_headers(struct rxe_pkt_info *pkt)
 +{
-+	struct rxe_port *port = &rxe->port[pkt->port_num - 1];
-+	union ib_gid *sgid;
-+	union ib_gid *dgid;
++	u32 crc;
++	unsigned int length;
++	unsigned int grh_offset;
++	unsigned int bth_offset;
++	u8 tmp[RXE_LRH_BYTES + RXE_GRH_BYTES + RXE_BTH_BYTES];
 +
-+	if (qp_type(qp) != IB_QPT_RC && qp_type(qp) != IB_QPT_UC)
-+		goto done;
++	/* This seed is the result of computing a CRC with a seed of
++	 * 0xfffffff and 8 bytes of 0xff representing a masked LRH. */
++	crc = 0xdebb20e3;
 +
-+	if (unlikely(pkt->port_num != qp->attr.port_num)) {
-+		pr_warn("port %d != qp port %d\n",
-+			 pkt->port_num, qp->attr.port_num);
-+		goto err1;
-+	}
-+
-+	if ((pkt->mask & RXE_GRH_MASK) == 0) {
-+		if (unlikely(qp->pri_av.attr.ah_flags & IB_AH_GRH)) {
-+			pr_warn("no grh for global qp\n");
-+			goto err1;
-+		} else
-+			goto done;
-+	}
-+
-+	sgid = grh_sgid(pkt);
-+	dgid = grh_dgid(pkt);
-+
-+	if (unlikely((qp->pri_av.attr.ah_flags & IB_AH_GRH) == 0)) {
-+		pr_warn("grh for local qp\n");
-+		goto err1;
-+	}
-+
-+	if (unlikely(dgid->global.subnet_prefix == 0 &&
-+	    be64_to_cpu(dgid->global.interface_id) <= 1)) {
-+		pr_warn("bad dgid, subnet_prefix = 0\n");
-+		goto err1;
-+	}
-+
-+	if (unlikely(sgid->raw[0] == 0xff)) {
-+		pr_warn("bad sgid, multicast gid\n");
-+		goto err1;
-+	}
-+
-+	if (unlikely(sgid->global.subnet_prefix == 0 &&
-+	    be64_to_cpu(sgid->global.interface_id) <= 1)) {
-+		pr_warn("bad sgid, subnet prefix = 0 or 1\n");
-+		goto err1;
-+	}
-+
-+	if (unlikely(dgid->global.interface_id !=
-+	    port->guid_tbl[qp->pri_av.attr.grh.sgid_index])) {
-+		pr_warn("bad dgid, doesn't match qp\n");
-+		goto err1;
-+	}
-+
-+	if (unlikely(sgid->global.interface_id !=
-+	    qp->pri_av.attr.grh.dgid.global.interface_id)) {
-+		pr_warn("bad sgid, doesn't match qp\n");
-+		goto err1;
-+	}
-+done:
-+	return 0;
-+
-+err1:
-+	return -EINVAL;
-+}
-+
-+static int hdr_check(struct rxe_pkt_info *pkt)
-+{
-+	struct rxe_dev *rxe = pkt->rxe;
-+	struct rxe_port *port = &rxe->port[pkt->port_num - 1];
-+	struct rxe_qp *qp = NULL;
-+	union ib_gid *dgid = NULL;
-+	u32 qpn = bth_qpn(pkt);
-+	int index;
-+	int err;
-+
-+	if (unlikely(bth_tver(pkt) != BTH_TVER)) {
-+		pr_warn("bad tver\n");
-+		goto err1;
-+	}
-+
-+	if (qpn != IB_MULTICAST_QPN) {
-+		index = (qpn == 0) ? port->qp_smi_index :
-+			((qpn == 1) ? port->qp_gsi_index : qpn);
-+		qp = rxe_pool_get_index(&rxe->qp_pool, index);
-+		if (unlikely(!qp)) {
-+			pr_warn("no qp matches qpn 0x%x\n", qpn);
-+			goto err1;
-+		}
-+
-+		err = check_type_state(rxe, pkt, qp);
-+		if (unlikely(err))
-+			goto err2;
-+	}
-+
-+	if (pkt->mask & RXE_GRH_MASK) {
-+		dgid = grh_dgid(pkt);
-+
-+		if (unlikely(grh_next_hdr(pkt) != GRH_RXE_NEXT_HDR)) {
-+			pr_warn("bad next hdr\n");
-+			goto err2;
-+		}
-+
-+		if (unlikely(grh_ipver(pkt) != GRH_IPV6)) {
-+			pr_warn("bad ipver\n");
-+			goto err2;
-+		}
-+	}
-+
-+	if (qpn != IB_MULTICAST_QPN) {
-+		err = check_addr(rxe, pkt, qp);
-+		if (unlikely(err))
-+			goto err2;
-+
-+		err = check_keys(rxe, pkt, qpn, qp);
-+		if (unlikely(err))
-+			goto err2;
-+	} else {
-+		if (unlikely((pkt->mask & RXE_GRH_MASK) == 0)) {
-+			pr_warn("no grh for mcast qpn\n");
-+			goto err1;
-+		}
-+		if (unlikely(dgid->raw[0] != 0xff)) {
-+			pr_warn("bad dgid for mcast qpn\n");
-+			goto err1;
-+		}
-+	}
-+
-+	pkt->qp = qp;
-+	return 0;
-+
-+err2:
-+	if (qp)
-+		rxe_drop_ref(qp);
-+err1:
-+	return -EINVAL;
-+}
-+
-+static inline void rxe_rcv_pkt(struct rxe_dev *rxe,
-+			       struct rxe_pkt_info *pkt,
-+			       struct sk_buff *skb)
-+{
-+	if (pkt->mask & RXE_REQ_MASK)
-+		rxe_resp_queue_pkt(rxe, pkt->qp, skb);
-+	else
-+		rxe_comp_queue_pkt(rxe, pkt->qp, skb);
-+}
-+
-+static void rxe_rcv_mcast_pkt(struct rxe_dev *rxe, struct sk_buff *skb)
-+{
-+	struct rxe_pkt_info *pkt = SKB_TO_PKT(skb);
-+	struct rxe_mc_grp *mcg;
-+	struct list_head *l;
-+	struct sk_buff *skb_copy;
-+	struct rxe_mc_elem *mce;
-+	struct rxe_qp *qp;
-+	int err;
-+
-+	/* lookup mcast group corresponding to mgid, takes a ref */
-+	mcg = rxe_pool_get_key(&rxe->mc_grp_pool, grh_dgid(pkt));
-+	if (!mcg)
-+		goto err1;	/* mcast group not registered */
-+
-+	spin_lock_bh(&mcg->mcg_lock);
-+
-+	list_for_each(l, &mcg->qp_list) {
-+		mce = container_of(l, struct rxe_mc_elem, qp_list);
-+		qp = mce->qp;
-+		pkt = SKB_TO_PKT(skb);
-+
-+		/* validate qp for incoming packet */
-+		err = check_type_state(rxe, pkt, qp);
-+		if (err)
-+			continue;
-+
-+		err = check_keys(rxe, pkt, bth_qpn(pkt), qp);
-+		if (err)
-+			continue;
-+
-+		/* if *not* the last qp in the list
-+		   make a copy of the skb to post to the next qp */
-+		skb_copy = (l->next != &mcg->qp_list) ?
-+				skb_clone(skb, GFP_KERNEL) : NULL;
-+
-+		pkt->qp = qp;
-+		rxe_add_ref(qp);
-+		rxe_rcv_pkt(rxe, pkt, skb);
-+
-+		skb = skb_copy;
-+		if (!skb)
-+			break;
-+	}
-+
-+	spin_unlock_bh(&mcg->mcg_lock);
-+
-+	rxe_drop_ref(mcg);	/* drop ref from rxe_pool_get_key. */
-+
-+err1:
-+	if (skb)
-+		kfree_skb(skb);
-+}
-+
-+/* rxe_rcv is called from the interface driver
-+ * on entry
-+ *	pkt->rxe	= rdma device
-+ *	pkt->port_num	= rdma device port
-+ * For rxe_net:
-+ *	pkt->mask	= RXE_GRH_MASK
-+ *	pkt->hdr	= &grh	with no lrh
-+ * For IB transport (e.g. rxe_sample)
-+ *	pkt->mask	= RXE_LRH_MASK
-+ *	pkt->hdr	= &lrh with optional grh
-+ */
-+int rxe_rcv(struct sk_buff *skb)
-+{
-+	int err;
-+	struct rxe_pkt_info *pkt = SKB_TO_PKT(skb);
-+	struct rxe_dev *rxe = pkt->rxe;
-+
-+	pkt->offset = 0;
++	length = RXE_BTH_BYTES;
++	grh_offset = 0;
++	bth_offset = 0;
 +
 +	if (pkt->mask & RXE_LRH_MASK) {
-+		unsigned int length = __lrh_length(pkt->hdr);
-+		unsigned int lnh = __lrh_lnh(pkt->hdr);
-+
-+		if (skb->len < RXE_LRH_BYTES)
-+			goto drop;
-+
-+		if (lnh < LRH_LNH_IBA_LOC)
-+			goto drop;
-+
-+		pkt->paylen = 4*length - RXE_LRH_BYTES;
-+		pkt->offset += RXE_LRH_BYTES;
-+
-+		if (lnh == LRH_LNH_IBA_GBL)
-+			pkt->mask |= RXE_GRH_MASK;
++		length += RXE_LRH_BYTES;
++		grh_offset += RXE_LRH_BYTES;
++		bth_offset += RXE_LRH_BYTES;
 +	}
++	if (pkt->mask & RXE_GRH_MASK) {
++		length += RXE_GRH_BYTES;
++		bth_offset += RXE_GRH_BYTES;
++	}
++
++	memcpy(tmp, pkt->hdr, length);
 +
 +	if (pkt->mask & RXE_GRH_MASK) {
-+		if (skb->len < pkt->offset + RXE_GRH_BYTES)
-+			goto drop;
-+
-+		pkt->paylen = __grh_paylen(pkt->hdr);
-+		pkt->offset += RXE_GRH_BYTES;
++		tmp[grh_offset + 0] |= 0x0f;	/* GRH: tclass */
++		tmp[grh_offset + 1] = 0xff;
++		tmp[grh_offset + 2] = 0xff;
++		tmp[grh_offset + 3] = 0xff;
++		tmp[grh_offset + 7] = 0xff;
 +	}
 +
-+	if (unlikely(skb->len < pkt->offset + RXE_BTH_BYTES))
-+		goto drop;
++	tmp[bth_offset + 4] = 0xff;		/* BTH: resv8a */
 +
-+	pkt->opcode = bth_opcode(pkt);
-+	pkt->psn = bth_psn(pkt);
-+	pkt->qp = NULL;
-+	pkt->mask |= rxe_opcode[pkt->opcode].mask;
++	crc = sb8_le(crc, tmp + grh_offset, length - grh_offset);
 +
-+	if (unlikely(skb->len < header_size(pkt)))
-+		goto drop;
++	/* And finish to compute the CRC on the remainder of the headers. */
++	crc = sb8_le(crc, pkt->hdr + length,
++		       rxe_opcode[pkt->opcode].length - RXE_BTH_BYTES);
 +
-+	err = hdr_check(pkt);
-+	if (unlikely(err))
-+		goto drop;
-+
-+	if (unlikely(bth_qpn(pkt) == IB_MULTICAST_QPN))
-+		rxe_rcv_mcast_pkt(rxe, skb);
-+	else
-+		rxe_rcv_pkt(rxe, pkt, skb);
-+
-+	return 0;
-+
-+drop:
-+	if (pkt->qp)
-+		rxe_drop_ref(pkt->qp);
-+
-+	kfree_skb(skb);
-+	return 0;
++	return crc;
 +}
-+EXPORT_SYMBOL(rxe_rcv);
++
++/* Compute the ICRC for a packet (incoming or outgoing). */
++__be32 rxe_sb8(struct rxe_pkt_info *pkt)
++{
++	u32 crc;
++	int size;
++
++	crc = rxe_sb8_ib_headers(pkt);
++
++	/* And finish to compute the CRC on the remainder. */
++	size = pkt->paylen - rxe_opcode[pkt->opcode].length - RXE_ICRC_SIZE;
++	crc = sb8_le(crc, payload_addr(pkt), size);
++	crc = ~crc;
++
++	return crc;
++}
 
 -- 
 
