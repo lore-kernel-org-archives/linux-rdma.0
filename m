@@ -1,28 +1,28 @@
 From: rpearson-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org
-Subject: [patch 17/44] rxe_task.c
-Date: Fri, 01 Jul 2011 08:18:38 -0500
-Message-ID: <20110701132201.519760059@systemfabricworks.com>
+Subject: [patch 21/44] rxe_srq.c
+Date: Fri, 01 Jul 2011 08:18:42 -0500
+Message-ID: <20110701132201.711575625@systemfabricworks.com>
 References: <20110701131821.928693424@systemfabricworks.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline; filename=patch17
+Content-Disposition: inline; filename=patch21
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: Bob Pearson <rpearson-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Tasklet handling details.
+Shared receive queue implementation details.
 
 Signed-off-by: Bob Pearson <rpearson-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org>
 
 ---
- drivers/infiniband/hw/rxe/rxe_task.c |  169 +++++++++++++++++++++++++++++++++++
- 1 file changed, 169 insertions(+)
+ drivers/infiniband/hw/rxe/rxe_srq.c |  215 ++++++++++++++++++++++++++++++++++++
+ 1 file changed, 215 insertions(+)
 
-Index: infiniband/drivers/infiniband/hw/rxe/rxe_task.c
+Index: infiniband/drivers/infiniband/hw/rxe/rxe_srq.c
 ===================================================================
 --- /dev/null
-+++ infiniband/drivers/infiniband/hw/rxe/rxe_task.c
-@@ -0,0 +1,169 @@
++++ infiniband/drivers/infiniband/hw/rxe/rxe_srq.c
+@@ -0,0 +1,215 @@
 +/*
 + * Copyright (c) 2009-2011 Mellanox Technologies Ltd. All rights reserved.
 + * Copyright (c) 2009-2011 System Fabric Works, Inc. All rights reserved.
@@ -33,9 +33,9 @@ Index: infiniband/drivers/infiniband/hw/rxe/rxe_task.c
 + * COPYING in the main directory of this source tree, or the
 + * OpenIB.org BSD license below:
 + *
-+ *	   Redistribution and use in source and binary forms, with or
-+ *	   without modification, are permitted provided that the following
-+ *	   conditions are met:
++ *     Redistribution and use in source and binary forms, with or
++ *     without modification, are permitted provided that the following
++ *     conditions are met:
 + *
 + *	- Redistributions of source code must retain the above
 + *	  copyright notice, this list of conditions and the following
@@ -56,141 +56,187 @@ Index: infiniband/drivers/infiniband/hw/rxe/rxe_task.c
 + * SOFTWARE.
 + */
 +
-+#include <linux/kernel.h>
-+#include <linux/interrupt.h>
-+#include <linux/hardirq.h>
++/* srq implementation details */
 +
-+#include "rxe_task.h"
++#include "rxe.h"
++#include "rxe_queue.h"
++#include "rxe_mmap.h"
++#include "rxe_srq.h"
++#include "rxe_qp.h"
 +
-+int __rxe_do_task(struct rxe_task *task)
-+
++int rxe_srq_chk_attr(struct rxe_dev *rxe, struct rxe_srq *srq,
++		     struct ib_srq_attr *attr, enum ib_srq_attr_mask mask)
 +{
-+	int ret;
-+
-+	while ((ret = task->func(task->arg)) == 0)
-+		;
-+
-+	task->ret = ret;
-+
-+	return ret;
-+}
-+
-+/*
-+ * this locking is due to a potential race where
-+ * a second caller finds the task already running
-+ * but looks just after the last call to func
-+ */
-+void rxe_do_task(unsigned long data)
-+{
-+	int cont;
-+	int ret;
-+	unsigned long flags;
-+	struct rxe_task *task = (struct rxe_task *)data;
-+
-+	spin_lock_irqsave(&task->state_lock, flags);
-+	switch (task->state) {
-+	case TASK_STATE_START:
-+		task->state = TASK_STATE_BUSY;
-+		spin_unlock_irqrestore(&task->state_lock, flags);
-+		break;
-+
-+	case TASK_STATE_BUSY:
-+		task->state = TASK_STATE_ARMED;
-+		/* fall through to */
-+	case TASK_STATE_ARMED:
-+		spin_unlock_irqrestore(&task->state_lock, flags);
-+		return;
-+
-+	default:
-+		spin_unlock_irqrestore(&task->state_lock, flags);
-+		pr_warn("bad state = %d in rxe_do_task\n", task->state);
-+		return;
++	if (srq && srq->error) {
++		pr_warn("srq in error state\n");
++		goto err1;
 +	}
 +
-+	do {
-+		cont = 0;
-+		ret = task->func(task->arg);
-+
-+		spin_lock_irqsave(&task->state_lock, flags);
-+		switch (task->state) {
-+		case TASK_STATE_BUSY:
-+			if (ret)
-+				task->state = TASK_STATE_START;
-+			else
-+				cont = 1;
-+			break;
-+
-+		/* soneone tried to run the task since the
-+		   last time we called func, so we will call
-+		   one more time regardless of the return value */
-+		case TASK_STATE_ARMED:
-+			task->state = TASK_STATE_BUSY;
-+			cont = 1;
-+			break;
-+
-+		default:
-+			pr_warn("bad state = %d in rxe_do_task\n",
-+				task->state);
++	if (mask & IB_SRQ_MAX_WR) {
++		if (attr->max_wr > rxe->attr.max_srq_wr) {
++			pr_warn("max_wr(%d) > max_srq_wr(%d)\n",
++				 attr->max_wr, rxe->attr.max_srq_wr);
++			goto err1;
 +		}
-+		spin_unlock_irqrestore(&task->state_lock, flags);
-+	} while (cont);
 +
-+	task->ret = ret;
-+}
++		if (attr->max_wr <= 0) {
++			pr_warn("max_wr(%d) <= 0\n", attr->max_wr);
++			goto err1;
++		}
 +
-+int rxe_init_task(void *obj, struct rxe_task *task, unsigned int *fast,
-+		  void *arg, int (*func)(void *), char *name)
-+{
-+	task->obj	= obj;
-+	task->fast	= fast;
-+	task->arg	= arg;
-+	task->func	= func;
-+	snprintf(task->name, sizeof(task->name), "%s", name);
++		if (srq && !(rxe->attr.device_cap_flags &
++			IB_DEVICE_SRQ_RESIZE)) {
++			pr_warn("srq resize not supported\n");
++			goto err1;
++		}
 +
-+	tasklet_init(&task->tasklet, rxe_do_task, (unsigned long)task);
++		if (srq && srq->limit && (attr->max_wr < srq->limit)) {
++			pr_warn("max_wr (%d) < srq->limit (%d)\n",
++				  attr->max_wr, srq->limit);
++			goto err1;
++		}
 +
-+	task->state = TASK_STATE_START;
-+	spin_lock_init(&task->state_lock);
++		if (attr->max_wr < RXE_MIN_SRQ_WR)
++			attr->max_wr = RXE_MIN_SRQ_WR;
++	}
++
++	if (mask & IB_SRQ_LIMIT) {
++		if (attr->srq_limit > rxe->attr.max_srq_wr) {
++			pr_warn("srq_limit(%d) > max_srq_wr(%d)\n",
++				 attr->srq_limit, rxe->attr.max_srq_wr);
++			goto err1;
++		}
++
++		if (attr->srq_limit > srq->rq.queue->buf->index_mask) {
++			pr_warn("srq_limit (%d) > cur limit(%d)\n",
++				 attr->srq_limit,
++				 srq->rq.queue->buf->index_mask);
++			goto err1;
++		}
++	}
++
++	if (mask == IB_SRQ_INIT_MASK) {
++		if (attr->max_sge > rxe->attr.max_srq_sge) {
++			pr_warn("max_sge(%d) > max_srq_sge(%d)\n",
++				 attr->max_sge, rxe->attr.max_srq_sge);
++			goto err1;
++		}
++
++		if (attr->max_sge < RXE_MIN_SRQ_SGE)
++			attr->max_sge = RXE_MIN_SRQ_SGE;
++	}
 +
 +	return 0;
++
++err1:
++	return -EINVAL;
 +}
 +
-+void rxe_cleanup_task(struct rxe_task *task)
++int rxe_srq_from_init(struct rxe_dev *rxe, struct rxe_srq *srq,
++		      struct ib_srq_init_attr *init,
++		      struct ib_ucontext *context, struct ib_udata *udata)
 +{
-+	tasklet_kill(&task->tasklet);
-+}
++	int err;
++	int srq_wqe_size;
++	struct rxe_queue *q;
 +
-+/*
-+ * depending on value of fast allow bypassing
-+ * tasklet call or not
-+ *	 0 => never
-+ *	 1 => only if not in interrupt level
-+ *	>1 => always
-+ */
-+static inline int rxe_fast_path_ok(unsigned int fast)
-+{
-+	if (fast == 0 || (fast == 1 && (in_irq() || irqs_disabled())))
++	srq->event_handler	= init->event_handler;
++	srq->context		= init->srq_context;
++	srq->limit		= init->attr.srq_limit;
++	srq->srq_num		= srq->pelem.index;
++	srq->rq.max_wr		= init->attr.max_wr;
++	srq->rq.max_sge		= init->attr.max_sge;
++
++	srq_wqe_size		= sizeof(struct rxe_recv_wqe) +
++				  srq->rq.max_sge*sizeof(struct ib_sge);
++
++	spin_lock_init(&srq->rq.producer_lock);
++	spin_lock_init(&srq->rq.consumer_lock);
++
++	q = rxe_queue_init(rxe, (unsigned int *)&srq->rq.max_wr,
++			   srq_wqe_size);
++	if (!q) {
++		pr_warn("unable to allocate queue for srq\n");
++		err = -ENOMEM;
++		goto err1;
++	}
++
++	err = do_mmap_info(rxe, udata, 0, context, q->buf,
++			   q->buf_size, &q->ip);
++	if (err)
++		goto err2;
++
++	srq->rq.queue = q;
++
++	if (udata && udata->outlen >= sizeof(struct mminfo) + sizeof(u32))
++		return copy_to_user(udata->outbuf + sizeof(struct mminfo),
++			&srq->srq_num, sizeof(u32));
++	else
 +		return 0;
-+	else
-+		return 1;
++
++err2:
++	vfree(q->buf);
++	kfree(q);
++err1:
++	return err;
 +}
 +
-+void rxe_run_task(struct rxe_task *task, int sched)
++int rxe_srq_from_attr(struct rxe_dev *rxe, struct rxe_srq *srq,
++		      struct ib_srq_attr *attr, enum ib_srq_attr_mask mask,
++		      struct ib_udata *udata)
 +{
-+	if (sched || !rxe_fast_path_ok(*task->fast))
-+		tasklet_schedule(&task->tasklet);
-+	else
-+		rxe_do_task((unsigned long)task);
++	int err;
++	struct rxe_queue *q = srq->rq.queue;
++	struct mminfo mi = { .offset = 1, .size = 0};
++
++	if (mask & IB_SRQ_MAX_WR) {
++		/* Check that we can write the mminfo struct to user space */
++		if (udata && udata->inlen >= sizeof(__u64)) {
++			__u64 mi_addr;
++
++			/* Get address of user space mminfo struct */
++			err = ib_copy_from_udata(&mi_addr, udata,
++						sizeof(mi_addr));
++			if (err)
++				goto err1;
++
++			udata->outbuf = (void __user *)(unsigned long)mi_addr;
++			udata->outlen = sizeof(mi);
++
++			err = ib_copy_to_udata(udata, &mi, sizeof(mi));
++			if (err)
++				goto err1;
++		}
++
++		err = rxe_queue_resize(q, (unsigned int *)&attr->max_wr,
++				       RCV_WQE_SIZE(srq->rq.max_sge),
++				       srq->rq.queue->ip ?
++						srq->rq.queue->ip->context :
++						NULL,
++				       udata, &srq->rq.producer_lock,
++				       &srq->rq.consumer_lock);
++		if (err)
++			goto err2;
++	}
++
++	if (mask & IB_SRQ_LIMIT)
++		srq->limit = attr->srq_limit;
++
++	return 0;
++
++err2:
++	rxe_queue_cleanup(q);
++	srq->rq.queue = NULL;
++err1:
++	return err;
 +}
 +
-+void rxe_disable_task(struct rxe_task *task)
++void rxe_srq_cleanup(void *arg)
 +{
-+	tasklet_disable(&task->tasklet);
-+}
++	struct rxe_srq *srq = (struct rxe_srq *)arg;
 +
-+void rxe_enable_task(struct rxe_task *task)
-+{
-+	tasklet_enable(&task->tasklet);
++	if (srq->rq.queue)
++		rxe_queue_cleanup(srq->rq.queue);
 +}
 
 -- 
