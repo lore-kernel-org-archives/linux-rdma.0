@@ -1,28 +1,28 @@
 From: rpearson-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org
-Subject: [patch 36/44] gen_sb8tables.c
-Date: Fri, 01 Jul 2011 08:18:57 -0500
-Message-ID: <20110701132202.438736882@systemfabricworks.com>
+Subject: [patch 39/44] rxe_net.h
+Date: Fri, 01 Jul 2011 08:19:00 -0500
+Message-ID: <20110701132202.583319480@systemfabricworks.com>
 References: <20110701131821.928693424@systemfabricworks.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline; filename=patch36
+Content-Disposition: inline; filename=patch39
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: Bob Pearson <rpearson-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Program to create slice by 8 tables for the CRC32 calculation.
+Common declarations for ib_rxe_net module.
 
 Signed-off-by: Bob Pearson <rpearson-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org>
 
 ---
- drivers/infiniband/hw/rxe/gen_sb8tables.c |  242 ++++++++++++++++++++++++++++++
- 1 file changed, 242 insertions(+)
+ drivers/infiniband/hw/rxe/rxe_net.h |   87 ++++++++++++++++++++++++++++++++++++
+ 1 file changed, 87 insertions(+)
 
-Index: infiniband/drivers/infiniband/hw/rxe/gen_sb8tables.c
+Index: infiniband/drivers/infiniband/hw/rxe/rxe_net.h
 ===================================================================
 --- /dev/null
-+++ infiniband/drivers/infiniband/hw/rxe/gen_sb8tables.c
-@@ -0,0 +1,242 @@
++++ infiniband/drivers/infiniband/hw/rxe/rxe_net.h
+@@ -0,0 +1,87 @@
 +/*
 + * Copyright (c) 2009-2011 Mellanox Technologies Ltd. All rights reserved.
 + * Copyright (c) 2009-2011 System Fabric Works, Inc. All rights reserved.
@@ -56,215 +56,60 @@ Index: infiniband/drivers/infiniband/hw/rxe/gen_sb8tables.c
 + * SOFTWARE.
 + */
 +
-+#include <stdio.h>
-+#include <stdint.h>
-+#include <unistd.h>
-+#include <stdlib.h>
-+#include <byteswap.h>
++#ifndef RXE_NET_H
++#define RXE_NET_H
 +
-+#define _GNU_SOURCE
-+#include <getopt.h>
++#include <net/sock.h>
++#include <net/if_inet6.h>
 +
-+static int flip;
-+static int swap;
-+static int swip;
-+static int flop;
++/*
++ * this should be defined in .../include/linux/if_ether.h
++ */
++#define ETH_P_RXE			(0x8915)
 +
-+static uint32_t poly = 0xedb88320;	/* crc32 */
++/*
++ * this should be defined in .../include/linux/netfilter.h
++ * to a specific value
++ */
++#define NFPROTO_RXE			(0)
 +
-+static uint32_t t[256];
++/*
++ * these should be defined in .../include/linux/netfilter_rxe.h
++ */
++#define NF_RXE_IN			(0)
++#define NF_RXE_OUT			(1)
 +
-+static int reverse[] = { 7, 6, 5, 4, 3, 2, 1, 0};
++/* Should probably move to something other than an array...these can be big */
++#define RXE_MAX_IF_INDEX	(384)
 +
-+static uint8_t flip8(uint8_t x)
++struct rxe_net_info {
++	struct rxe_dev		*rxe;
++	u8			port;
++	struct net_device	*ndev;
++	int			status;
++};
++
++extern struct rxe_net_info net_info[RXE_MAX_IF_INDEX];
++extern spinlock_t net_info_lock;
++
++/* caller must hold net_dev_lock */
++static inline struct rxe_dev *net_to_rxe(struct net_device *ndev)
 +{
-+	uint8_t y = 0;
-+	int i;
-+
-+	for (i = 0; i < 8; i++) {
-+		if (x & (1 << i))
-+			y |= 1 << reverse[i];
-+	}
-+
-+	return y;
++	return (ndev->ifindex >= RXE_MAX_IF_INDEX) ?
++		NULL : net_info[ndev->ifindex].rxe;
 +}
 +
-+static uint32_t flip32(uint32_t x)
++static inline u8 net_to_port(struct net_device *ndev)
 +{
-+	uint32_t y;
-+	uint8_t *p = (uint8_t *)&x;
-+	uint8_t *q = (uint8_t *)&y;
-+	int i;
-+
-+	for (i = 0; i < 4; i++)
-+		q[i] = flip8(p[i]);
-+
-+	return y;
++	return net_info[ndev->ifindex].port;
 +}
 +
-+static void compute(int n)
-+{
-+	uint64_t rem;
-+	uint64_t p, m;
-+	int i;
-+	int j;
-+	int k;
-+	uint32_t ply = poly;
++void rxe_net_add(struct net_device *ndev);
++void rxe_net_remove(int net_index);
++void rxe_net_up(struct net_device *ndev);
++void rxe_net_down(struct net_device *ndev);
 +
-+	if (flop)
-+		ply = flip32(ply);
-+	if (swip)
-+		ply = bswap_32(ply);
-+
-+	for (i = 0; i < 256; i++) {
-+		if (flip)
-+			rem = flip8(i);
-+		else
-+			rem = i;
-+		rem <<= 32;
-+
-+		for (k = 0; k <= n; k++) {
-+			for (j = 7; j >= 0; j--) {
-+				m = 1ULL << (32 + j);
-+
-+				if (rem & m) {
-+					p = ((1ULL << 32) + ply) << j;
-+					rem ^= p;
-+				}
-+			}
-+
-+			rem <<= 8;
-+		}
-+
-+		rem >>= 8;
-+
-+		if (flip) {
-+			if (swap)
-+				t[i] = bswap_32(flip32(rem));
-+			else
-+				t[i] = flip32(rem);
-+		} else {
-+			if (swap)
-+				t[i] = bswap_32(rem);
-+			else
-+				t[i] = rem;
-+		}
-+	}
-+}
-+
-+static void print_table(char *name)
-+{
-+	int i;
-+
-+	printf("\nstatic u32 %s[] = {\n", name);
-+	for (i = 0; i < 256; i++) {
-+		printf("0x%08x,", t[i]);
-+		if ((i % 4) == 3)
-+			printf("\n");
-+		else
-+			printf(" ");
-+	}
-+	printf("};\n");
-+}
-+
-+static void usage(void)
-+{
-+	printf("usage:\n");
-+}
-+
-+static int arg_process(int argc, char *argv[])
-+{
-+	int c;
-+	char *opt_string = "sfFShp:";
-+	struct option opt_long[] = {
-+		{"help", 0, 0, 'h'},
-+		{"poly", 1, 0, 'p'},
-+		{"flip", 0, 0, 'f'},
-+		{"swap", 0, 0, 's'},
-+		{"swip", 0, 0, 'S'},
-+		{"flop", 0, 0, 'F'},
-+	};
-+
-+	while (1) {
-+		c = getopt_long(argc, argv, opt_string, opt_long, NULL);
-+
-+		if (c == -1)
-+			break;
-+
-+		switch (c) {
-+		case 'h':
-+			usage();
-+			return 1;
-+
-+		case 'p':
-+			poly = strtoul(optarg, NULL, 0);
-+			break;
-+
-+		case 'f':
-+			flip = 1;
-+			break;
-+
-+		case 'F':
-+			flop = 1;
-+			break;
-+
-+		case 's':
-+			swap = 1;
-+			break;
-+
-+		case 'S':
-+			swip = 1;
-+			break;
-+
-+		default:
-+			return 1;
-+		}
-+	}
-+
-+	if (optind < argc)
-+		return 1;
-+
-+	return 0;
-+}
-+
-+int main(int argc, char *argv[])
-+{
-+	if (arg_process(argc, argv)) {
-+		usage();
-+		return 0;
-+	}
-+
-+	printf("/*\n");
-+	printf(" * Slice by 8 tables for CRC polynomial = 0x%08x\n", poly);
-+	printf(" * This file is automatically generated\n");
-+	printf(" */\n");
-+
-+	compute(0);
-+	print_table("t32");
-+
-+	compute(1);
-+	print_table("t40");
-+
-+	compute(2);
-+	print_table("t48");
-+
-+	compute(3);
-+	print_table("t56");
-+
-+	compute(4);
-+	print_table("t64");
-+
-+	compute(5);
-+	print_table("t72");
-+
-+	compute(6);
-+	print_table("t80");
-+
-+	compute(7);
-+	print_table("t88");
-+
-+	return 0;
-+}
++#endif /* RXE_NET_H */
 
 -- 
 
