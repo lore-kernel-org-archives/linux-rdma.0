@@ -1,28 +1,28 @@
 From: rpearson-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org
-Subject: [patch 19/44] rxe_av.c
-Date: Fri, 01 Jul 2011 08:18:40 -0500
-Message-ID: <20110701132201.615702126@systemfabricworks.com>
+Subject: [patch 17/44] rxe_task.c
+Date: Fri, 01 Jul 2011 08:18:38 -0500
+Message-ID: <20110701132201.519760059@systemfabricworks.com>
 References: <20110701131821.928693424@systemfabricworks.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline; filename=patch19
+Content-Disposition: inline; filename=patch17
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: Bob Pearson <rpearson-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Address vector implementation details.
+Tasklet handling details.
 
 Signed-off-by: Bob Pearson <rpearson-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org>
 
 ---
- drivers/infiniband/hw/rxe/rxe_av.c |   75 +++++++++++++++++++++++++++++++++++++
- 1 file changed, 75 insertions(+)
+ drivers/infiniband/hw/rxe/rxe_task.c |  169 +++++++++++++++++++++++++++++++++++
+ 1 file changed, 169 insertions(+)
 
-Index: infiniband/drivers/infiniband/hw/rxe/rxe_av.c
+Index: infiniband/drivers/infiniband/hw/rxe/rxe_task.c
 ===================================================================
 --- /dev/null
-+++ infiniband/drivers/infiniband/hw/rxe/rxe_av.c
-@@ -0,0 +1,75 @@
++++ infiniband/drivers/infiniband/hw/rxe/rxe_task.c
+@@ -0,0 +1,169 @@
 +/*
 + * Copyright (c) 2009-2011 Mellanox Technologies Ltd. All rights reserved.
 + * Copyright (c) 2009-2011 System Fabric Works, Inc. All rights reserved.
@@ -37,14 +37,14 @@ Index: infiniband/drivers/infiniband/hw/rxe/rxe_av.c
 + *	   without modification, are permitted provided that the following
 + *	   conditions are met:
 + *
-+ *		- Redistributions of source code must retain the above
-+ *		  copyright notice, this list of conditions and the following
-+ *		  disclaimer.
++ *	- Redistributions of source code must retain the above
++ *	  copyright notice, this list of conditions and the following
++ *	  disclaimer.
 + *
-+ *		- Redistributions in binary form must reproduce the above
-+ *		  copyright notice, this list of conditions and the following
-+ *		  disclaimer in the documentation and/or other materials
-+ *		  provided with the distribution.
++ *	- Redistributions in binary form must reproduce the above
++ *	  copyright notice, this list of conditions and the following
++ *	  disclaimer in the documentation and/or other materials
++ *	  provided with the distribution.
 + *
 + * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
 + * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
@@ -56,47 +56,141 @@ Index: infiniband/drivers/infiniband/hw/rxe/rxe_av.c
 + * SOFTWARE.
 + */
 +
-+/* address handle implementation shared by ah and qp verbs */
++#include <linux/kernel.h>
++#include <linux/interrupt.h>
++#include <linux/hardirq.h>
 +
-+#include "rxe.h"
-+#include "rxe_av.h"
++#include "rxe_task.h"
 +
-+int rxe_av_chk_attr(struct rxe_dev *rxe, struct ib_ah_attr *attr)
++int __rxe_do_task(struct rxe_task *task)
++
 +{
-+	struct rxe_port *port;
++	int ret;
 +
-+	if (attr->port_num < 1 || attr->port_num > rxe->num_ports) {
-+		pr_info("rxe: invalid port_num = %d\n", attr->port_num);
-+		return -EINVAL;
++	while ((ret = task->func(task->arg)) == 0)
++		;
++
++	task->ret = ret;
++
++	return ret;
++}
++
++/*
++ * this locking is due to a potential race where
++ * a second caller finds the task already running
++ * but looks just after the last call to func
++ */
++void rxe_do_task(unsigned long data)
++{
++	int cont;
++	int ret;
++	unsigned long flags;
++	struct rxe_task *task = (struct rxe_task *)data;
++
++	spin_lock_irqsave(&task->state_lock, flags);
++	switch (task->state) {
++	case TASK_STATE_START:
++		task->state = TASK_STATE_BUSY;
++		spin_unlock_irqrestore(&task->state_lock, flags);
++		break;
++
++	case TASK_STATE_BUSY:
++		task->state = TASK_STATE_ARMED;
++		/* fall through to */
++	case TASK_STATE_ARMED:
++		spin_unlock_irqrestore(&task->state_lock, flags);
++		return;
++
++	default:
++		spin_unlock_irqrestore(&task->state_lock, flags);
++		pr_warn("bad state = %d in rxe_do_task\n", task->state);
++		return;
 +	}
 +
-+	port = &rxe->port[attr->port_num - 1];
++	do {
++		cont = 0;
++		ret = task->func(task->arg);
 +
-+	if (attr->ah_flags & IB_AH_GRH) {
-+		if (attr->grh.sgid_index > port->attr.gid_tbl_len) {
-+			pr_info("rxe: invalid sgid index = %d\n",
-+				 attr->grh.sgid_index);
-+			return -EINVAL;
++		spin_lock_irqsave(&task->state_lock, flags);
++		switch (task->state) {
++		case TASK_STATE_BUSY:
++			if (ret)
++				task->state = TASK_STATE_START;
++			else
++				cont = 1;
++			break;
++
++		/* soneone tried to run the task since the
++		   last time we called func, so we will call
++		   one more time regardless of the return value */
++		case TASK_STATE_ARMED:
++			task->state = TASK_STATE_BUSY;
++			cont = 1;
++			break;
++
++		default:
++			pr_warn("bad state = %d in rxe_do_task\n",
++				task->state);
 +		}
-+	}
++		spin_unlock_irqrestore(&task->state_lock, flags);
++	} while (cont);
++
++	task->ret = ret;
++}
++
++int rxe_init_task(void *obj, struct rxe_task *task, unsigned int *fast,
++		  void *arg, int (*func)(void *), char *name)
++{
++	task->obj	= obj;
++	task->fast	= fast;
++	task->arg	= arg;
++	task->func	= func;
++	snprintf(task->name, sizeof(task->name), "%s", name);
++
++	tasklet_init(&task->tasklet, rxe_do_task, (unsigned long)task);
++
++	task->state = TASK_STATE_START;
++	spin_lock_init(&task->state_lock);
 +
 +	return 0;
 +}
 +
-+int rxe_av_from_attr(struct rxe_dev *rxe, u8 port_num,
-+		     struct rxe_av *av, struct ib_ah_attr *attr)
++void rxe_cleanup_task(struct rxe_task *task)
 +{
-+	memset(av, 0, sizeof(*av));
-+	av->attr = *attr;
-+	av->attr.port_num = port_num;
-+	return rxe->ifc_ops->init_av(rxe, attr, av);
++	tasklet_kill(&task->tasklet);
 +}
 +
-+int rxe_av_to_attr(struct rxe_dev *rxe, struct rxe_av *av,
-+		   struct ib_ah_attr *attr)
++/*
++ * depending on value of fast allow bypassing
++ * tasklet call or not
++ *	 0 => never
++ *	 1 => only if not in interrupt level
++ *	>1 => always
++ */
++static inline int rxe_fast_path_ok(unsigned int fast)
 +{
-+	*attr = av->attr;
-+	return 0;
++	if (fast == 0 || (fast == 1 && (in_irq() || irqs_disabled())))
++		return 0;
++	else
++		return 1;
++}
++
++void rxe_run_task(struct rxe_task *task, int sched)
++{
++	if (sched || !rxe_fast_path_ok(*task->fast))
++		tasklet_schedule(&task->tasklet);
++	else
++		rxe_do_task((unsigned long)task);
++}
++
++void rxe_disable_task(struct rxe_task *task)
++{
++	tasklet_disable(&task->tasklet);
++}
++
++void rxe_enable_task(struct rxe_task *task)
++{
++	tasklet_enable(&task->tasklet);
 +}
 
 -- 
