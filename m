@@ -1,25 +1,33 @@
-From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Subject: Re: [patch 00/44] RDMA over Ethernet
-Date: Sat, 2 Jul 2011 11:42:55 +0200
-Message-ID: <CAO+b5-oRw44JjVwDM7Bii-sNUricwMTOWqfPQ570ZTSc=wcRcw@mail.gmail.com>
+From: David Dillow <dave-i1Mk8JYDVaaSihdK6806/g@public.gmane.org>
+Subject: RE: [patch 37/44] rxe_sb8.c
+Date: Sat, 02 Jul 2011 12:55:29 -0400
+Message-ID: <1309625729.20982.2.camel@obelisk.thedillows.org>
 References: <20110701131821.928693424@systemfabricworks.com>
+	 <20110701132202.486466900@systemfabricworks.com>
+	 <CAL1RGDWLRw26RUr=WjUgzrn=6aGBukghoyOm5ordJv72mSsTBA@mail.gmail.com>
+	 <000601cc3843$e3854cb0$aa8fe610$@systemfabricworks.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20110701131821.928693424-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org>
+In-Reply-To: <000601cc3843$e3854cb0$aa8fe610$@systemfabricworks.com>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: rpearson-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Bob Pearson <rpearson-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org>
+Cc: 'Roland Dreier' <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Jul 1, 2011 at 3:18 PM, <rpearson-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org> wrote:
-> Copies of the user space library and tools for 'upstream' and a tar file of
-> these patches are available at support.systemfabricworks.com/downloads/rxe.
+On Fri, 2011-07-01 at 18:09 -0500, Bob Pearson wrote:
+> Hi Roland,
+> 
+> Perhaps. We have some ICRC specific APIs as well as plain Jane CRC
+> calculation that includes a copy at the same time.
+> If I knew who maintained crc32.c I would be happy to talk to them and see
+> what they think.
 
-I have found a user space library at the mentioned location, but no
-tar file with patches ?
+No one is really the maintainer there. 'git log' says Joakim Tjernlund
+has touched it quite a bit, but your best bet is to post patches to
+LKML, and perhaps Andrew Morton.
 
-Bart.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
