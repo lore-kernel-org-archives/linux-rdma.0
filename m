@@ -1,7 +1,8 @@
 From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-Subject: [PATCH 1/4] infiniband-diags: saquery; remove "result" global
-Date: Tue, 5 Jul 2011 12:08:12 -0700
-Message-ID: <20110705120812.797c07e0.weiny2@llnl.gov>
+Subject: [PATCH 2/4] infiniband-diags: move core saquery functionality to
+ ibdiag_common
+Date: Tue, 5 Jul 2011 12:08:13 -0700
+Message-ID: <20110705120813.39fc4ab5.weiny2@llnl.gov>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
@@ -11,360 +12,514 @@ To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY
 List-Id: linux-rdma@vger.kernel.org
 
 
-make struct sa_query_result a paramenter of sa_query.
+While this is sub-optimal it is the easiest way to get saquery support to the
+other diags.
 
 Signed-off-by: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
 ---
- src/saquery.c |  124 +++++++++++++++++++++++++++++++-------------------------
- 1 files changed, 69 insertions(+), 55 deletions(-)
+ include/ibdiag_common.h |   45 +++++++++++
+ src/ibdiag_common.c     |  172 ++++++++++++++++++++++++++++++++++++++++
+ src/saquery.c           |  198 ++---------------------------------------------
+ 3 files changed, 224 insertions(+), 191 deletions(-)
 
-diff --git a/src/saquery.c b/src/saquery.c
-index 7933fec..73acea5 100644
---- a/src/saquery.c
-+++ b/src/saquery.c
-@@ -64,7 +64,7 @@ struct bind_handle {
- 	ib_portid_t dport;
- };
+diff --git a/include/ibdiag_common.h b/include/ibdiag_common.h
+index b113cfe..69cddfb 100644
+--- a/include/ibdiag_common.h
++++ b/include/ibdiag_common.h
+@@ -81,4 +81,49 @@ extern int ibdiag_process_opts(int argc, char *const argv[], void *context,
+ extern void ibdiag_show_usage();
+ extern void iberror(const char *fn, char *msg, ...);
  
--struct query_res {
++/* define an SA query structure to be common
++ * This is by no means optimal but it moves the saquery functionality out of
++ * the saquery tool and provides it to other utilities.
++ */
++struct bind_handle {
++	int fd, agent;
++	ib_portid_t dport;
++	struct ibmad_port *srcport;
++};
++typedef struct bind_handle * bind_handle_t;
++bind_handle_t sa_get_bind_handle(void);
++void sa_free_bind_handle(bind_handle_t h);
++
 +struct sa_query_result {
- 	uint32_t status;
- 	unsigned result_cnt;
- 	void *p_result_madw;
-@@ -105,7 +105,6 @@ static uint64_t smkey = 1;
-  */
- #define MAX_PORTS (8)
- #define DEFAULT_SA_TIMEOUT_MS (1000)
--static struct query_res result;
++	uint32_t status;
++	unsigned result_cnt;
++	void *p_result_madw;
++};
++int sa_query(struct bind_handle *h, uint8_t method,
++	     uint16_t attr, uint32_t mod, uint64_t comp_mask, uint64_t sm_key,
++	     void *data, struct sa_query_result *result);
++void sa_free_result_mad(struct sa_query_result *result);
++void *sa_get_query_rec(void *mad, unsigned i);
++void sa_report_err(int status);
++
++#define cl_hton8(x) (x)
++#define CHECK_AND_SET_VAL(val, size, comp_with, target, name, mask) \
++	if ((int##size##_t) val != (int##size##_t) comp_with) { \
++		target = cl_hton##size((uint##size##_t) val); \
++		comp_mask |= IB_##name##_COMPMASK_##mask; \
++	}
++
++#define CHECK_AND_SET_GID(val, target, name, mask) \
++	if (valid_gid(&(val))) { \
++		memcpy(&(target), &(val), sizeof(val)); \
++		comp_mask |= IB_##name##_COMPMASK_##mask; \
++	}
++
++#define CHECK_AND_SET_VAL_AND_SEL(val, target, name, mask, sel) \
++	if (val) { \
++		target = val; \
++		comp_mask |= IB_##name##_COMPMASK_##mask##sel; \
++		comp_mask |= IB_##name##_COMPMASK_##mask; \
++	}
++
+ #endif				/* _IBDIAG_COMMON_H_ */
+diff --git a/src/ibdiag_common.c b/src/ibdiag_common.c
+index 82f72af..6d03a43 100644
+--- a/src/ibdiag_common.c
++++ b/src/ibdiag_common.c
+@@ -337,3 +337,175 @@ void iberror(const char *fn, char *msg, ...)
  
- enum {
- 	ALL,
-@@ -166,7 +165,7 @@ static inline void report_err(int status)
- 
- static int sa_query(struct bind_handle *h, uint8_t method,
- 		    uint16_t attr, uint32_t mod, uint64_t comp_mask,
--		    uint64_t sm_key, void *data)
+ 	exit(-1);
+ }
++
++/* define an SA query structure to be common
++ * This is by no means optimal but it moves the saquery functionality out of
++ * the saquery tool and provides it to other utilities.
++ */
++bind_handle_t sa_get_bind_handle(void)
++{
++	struct ibmad_port * srcport;
++	bind_handle_t handle;
++	int mgmt_classes[2] = { IB_SMI_CLASS, IB_SMI_DIRECT_CLASS };
++
++	srcport = mad_rpc_open_port(ibd_ca, ibd_ca_port, mgmt_classes, 2);
++	if (!srcport) {
++		IBWARN("Failed to open '%s' port '%d'", ibd_ca, ibd_ca_port);
++		return (NULL);
++	}
++
++	handle = calloc(1, sizeof(*handle));
++	if (!handle)
++		IBPANIC("calloc failed");
++
++	ib_resolve_smlid_via(&handle->dport, ibd_timeout, srcport);
++	if (!handle->dport.lid) {
++		IBWARN("No SM found.");
++		free(handle);
++		return (NULL);
++	}
++
++	handle->dport.qp = 1;
++	if (!handle->dport.qkey)
++		handle->dport.qkey = IB_DEFAULT_QP1_QKEY;
++
++	handle->srcport = srcport;
++	handle->fd = mad_rpc_portid(srcport);
++	handle->agent = umad_register(handle->fd, IB_SA_CLASS, 2, 1, NULL);
++
++	return handle;
++}
++
++void sa_free_bind_handle(bind_handle_t h)
++{
++	umad_unregister(h->fd, h->agent);
++	mad_rpc_close_port(h->srcport);
++	free(h);
++}
++
++int sa_query(bind_handle_t h, uint8_t method,
++		    uint16_t attr, uint32_t mod, uint64_t comp_mask,
 +		    uint64_t sm_key, void *data, struct sa_query_result *result)
- {
- 	ib_rpc_t rpc;
- 	void *umad, *mad;
-@@ -218,21 +217,21 @@ recv_mad:
- 
- 	method = (uint8_t) mad_get_field(mad, 0, IB_MAD_METHOD_F);
- 	offset = mad_get_field(mad, 0, IB_SA_ATTROFFS_F);
--	result.status = mad_get_field(mad, 0, IB_MAD_STATUS_F);
--	result.p_result_madw = mad;
--	if (result.status != IB_SA_MAD_STATUS_SUCCESS)
--		result.result_cnt = 0;
++{
++	ib_rpc_t rpc;
++	void *umad, *mad;
++	int ret, offset, len = 256;
++
++	memset(&rpc, 0, sizeof(rpc));
++	rpc.mgtclass = IB_SA_CLASS;
++	rpc.method = method;
++	rpc.attr.id = attr;
++	rpc.attr.mod = mod;
++	rpc.mask = comp_mask;
++	rpc.datasz = IB_SA_DATA_SIZE;
++	rpc.dataoffs = IB_SA_DATA_OFFS;
++
++	umad = calloc(1, len + umad_size());
++	if (!umad)
++		IBPANIC("cannot alloc mem for umad: %s\n", strerror(errno));
++
++	mad_build_pkt(umad, &rpc, &h->dport, NULL, data);
++
++	mad_set_field64(umad_get_mad(umad), 0, IB_SA_MKEY_F, sm_key);
++
++	if (ibdebug > 1)
++		xdump(stdout, "SA Request:\n", umad_get_mad(umad), len);
++
++	ret = umad_send(h->fd, h->agent, umad, len, ibd_timeout, 0);
++	if (ret < 0) {
++		IBWARN("umad_send failed: attr %u: %s\n",
++			attr, strerror(errno));
++		free(umad);
++		return (IB_ERROR);
++	}
++
++recv_mad:
++	ret = umad_recv(h->fd, umad, &len, ibd_timeout);
++	if (ret < 0) {
++		if (errno == ENOSPC) {
++			umad = realloc(umad, umad_size() + len);
++			goto recv_mad;
++		}
++		IBWARN("umad_recv failed: attr 0x%x: %s\n", attr,
++			strerror(errno));
++		free(umad);
++		return (IB_ERROR);
++	}
++
++	if ((ret = umad_status(umad)))
++		return ret;
++
++	mad = umad_get_mad(umad);
++
++	if (ibdebug > 1)
++		xdump(stdout, "SA Response:\n", mad, len);
++
++	method = (uint8_t) mad_get_field(mad, 0, IB_MAD_METHOD_F);
++	offset = mad_get_field(mad, 0, IB_SA_ATTROFFS_F);
 +	result->status = mad_get_field(mad, 0, IB_MAD_STATUS_F);
 +	result->p_result_madw = mad;
 +	if (result->status != IB_SA_MAD_STATUS_SUCCESS)
 +		result->result_cnt = 0;
- 	else if (method != IB_MAD_METHOD_GET_TABLE)
--		result.result_cnt = 1;
++	else if (method != IB_MAD_METHOD_GET_TABLE)
 +		result->result_cnt = 1;
- 	else if (!offset)
--		result.result_cnt = 0;
++	else if (!offset)
 +		result->result_cnt = 0;
- 	else
--		result.result_cnt = (len - IB_SA_DATA_OFFS) / (offset << 3);
++	else
 +		result->result_cnt = (len - IB_SA_DATA_OFFS) / (offset << 3);
- 
- 	return 0;
- }
- 
--static void *get_query_rec(void *mad, unsigned i)
-+static void *sa_get_query_rec(void *mad, unsigned i)
- {
- 	int offset = mad_get_field(mad, 0, IB_SA_ATTROFFS_F);
- 	return (uint8_t *) mad + IB_SA_DATA_OFFS + i * (offset << 3);
-@@ -483,11 +482,11 @@ static void dump_multicast_group_record(void *data)
- 	       p_mcmr->mtu, cl_ntoh16(p_mcmr->pkey), p_mcmr->rate, sl);
- }
- 
--static void dump_multicast_member_record(void *data)
-+static void dump_multicast_member_record(ib_member_rec_t *p_mcmr,
-+					 struct sa_query_result *nr_result)
- {
- 	char gid_str[INET6_ADDRSTRLEN];
- 	char gid_str2[INET6_ADDRSTRLEN];
--	ib_member_rec_t *p_mcmr = data;
- 	uint16_t mlid = cl_ntoh16(p_mcmr->mlid);
- 	unsigned i = 0;
- 	char *node_name = "<unknown>";
-@@ -496,8 +495,8 @@ static void dump_multicast_member_record(void *data)
- 	 * this port gid interface id.
- 	 * This gives us a node name to print, if available.
- 	 */
--	for (i = 0; i < result.result_cnt; i++) {
--		ib_node_record_t *nr = get_query_rec(result.p_result_madw, i);
-+	for (i = 0; i < nr_result->result_cnt; i++) {
-+		ib_node_record_t *nr = sa_get_query_rec(nr_result->p_result_madw, i);
- 		if (nr->node_info.port_guid ==
- 		    p_mcmr->port_gid.unicast.interface_id) {
- 			node_name =
-@@ -829,20 +828,20 @@ static void dump_one_mft_record(void *data)
- 	printf("\n");
- }
- 
--static void dump_results(struct query_res *r, void (*dump_func) (void *))
-+static void dump_results(struct sa_query_result *r, void (*dump_func) (void *))
- {
- 	unsigned i;
- 	for (i = 0; i < r->result_cnt; i++) {
--		void *data = get_query_rec(r->p_result_madw, i);
-+		void *data = sa_get_query_rec(r->p_result_madw, i);
- 		dump_func(data);
- 	}
- }
- 
--static void return_mad(void)
-+static void sa_free_result_mad(struct sa_query_result *result)
- {
--	if (result.p_result_madw) {
--		free((uint8_t *) result.p_result_madw - umad_size());
--		result.p_result_madw = NULL;
++
++	return 0;
++}
++
++void sa_free_result_mad(struct sa_query_result *result)
++{
 +	if (result->p_result_madw) {
 +		free((uint8_t *) result->p_result_madw - umad_size());
 +		result->p_result_madw = NULL;
++	}
++}
++
++void *sa_get_query_rec(void *mad, unsigned i)
++{
++	int offset = mad_get_field(mad, 0, IB_SA_ATTROFFS_F);
++	return (uint8_t *) mad + IB_SA_DATA_OFFS + i * (offset << 3);
++}
++
++static const char *ib_sa_error_str[] = {
++	"SA_NO_ERROR",
++	"SA_ERR_NO_RESOURCES",
++	"SA_ERR_REQ_INVALID",
++	"SA_ERR_NO_RECORDS",
++	"SA_ERR_TOO_MANY_RECORDS",
++	"SA_ERR_REQ_INVALID_GID",
++	"SA_ERR_REQ_INSUFFICIENT_COMPONENTS",
++	"SA_ERR_REQ_DENIED",
++	"SA_ERR_STATUS_PRIO_SUGGESTED",
++	"SA_ERR_UNKNOWN"
++};
++
++#define ARR_SIZE(a) (sizeof(a)/sizeof((a)[0]))
++#define SA_ERR_UNKNOWN (ARR_SIZE(ib_sa_error_str) - 1)
++
++static inline const char *ib_sa_err_str(IN uint8_t status)
++{
++	if (status > SA_ERR_UNKNOWN)
++		status = SA_ERR_UNKNOWN;
++	return (ib_sa_error_str[status]);
++}
++
++void sa_report_err(int status)
++{
++	int st = status & 0xff;
++	char sm_err_str[64] = { 0 };
++	char sa_err_str[64] = { 0 };
++
++	if (st)
++		sprintf(sm_err_str, " SM(%s)", ib_get_err_str(st));
++
++	st = status >> 8;
++	if (st)
++		sprintf(sa_err_str, " SA(%s)", ib_sa_err_str((uint8_t) st));
++
++	fprintf(stderr, "ERROR: Query result returned 0x%04x, %s%s\n",
++		status, sm_err_str, sa_err_str);
++}
+diff --git a/src/saquery.c b/src/saquery.c
+index 73acea5..95f7e6e 100644
+--- a/src/saquery.c
++++ b/src/saquery.c
+@@ -59,19 +59,6 @@
+ 
+ #include "ibdiag_common.h"
+ 
+-struct bind_handle {
+-	int fd, agent;
+-	ib_portid_t dport;
+-};
+-
+-struct sa_query_result {
+-	uint32_t status;
+-	unsigned result_cnt;
+-	void *p_result_madw;
+-};
+-
+-typedef struct bind_handle *bind_handle_t;
+-
+ struct query_params {
+ 	ib_gid_t sgid, dgid, gid, mgid;
+ 	uint16_t slid, dlid, mlid;
+@@ -122,121 +109,6 @@ int requested_lid_flag = 0;
+ uint64_t requested_guid = 0;
+ int requested_guid_flag = 0;
+ 
+-#define ARR_SIZE(a) (sizeof(a)/sizeof((a)[0]))
+-
+-static const char *ib_sa_error_str[] = {
+-	"SA_NO_ERROR",
+-	"SA_ERR_NO_RESOURCES",
+-	"SA_ERR_REQ_INVALID",
+-	"SA_ERR_NO_RECORDS",
+-	"SA_ERR_TOO_MANY_RECORDS",
+-	"SA_ERR_REQ_INVALID_GID",
+-	"SA_ERR_REQ_INSUFFICIENT_COMPONENTS",
+-	"SA_ERR_REQ_DENIED",
+-	"SA_ERR_STATUS_PRIO_SUGGESTED",
+-	"SA_ERR_UNKNOWN"
+-};
+-
+-#define SA_ERR_UNKNOWN (ARR_SIZE(ib_sa_error_str) - 1)
+-
+-static inline const char *ib_sa_err_str(IN uint8_t status)
+-{
+-	if (status > SA_ERR_UNKNOWN)
+-		status = SA_ERR_UNKNOWN;
+-	return (ib_sa_error_str[status]);
+-}
+-
+-static inline void report_err(int status)
+-{
+-	int st = status & 0xff;
+-	char sm_err_str[64] = { 0 };
+-	char sa_err_str[64] = { 0 };
+-
+-	if (st)
+-		sprintf(sm_err_str, " SM(%s)", ib_get_err_str(st));
+-
+-	st = status >> 8;
+-	if (st)
+-		sprintf(sa_err_str, " SA(%s)", ib_sa_err_str((uint8_t) st));
+-
+-	fprintf(stderr, "ERROR: Query result returned 0x%04x, %s%s\n",
+-		status, sm_err_str, sa_err_str);
+-}
+-
+-static int sa_query(struct bind_handle *h, uint8_t method,
+-		    uint16_t attr, uint32_t mod, uint64_t comp_mask,
+-		    uint64_t sm_key, void *data, struct sa_query_result *result)
+-{
+-	ib_rpc_t rpc;
+-	void *umad, *mad;
+-	int ret, offset, len = 256;
+-
+-	memset(&rpc, 0, sizeof(rpc));
+-	rpc.mgtclass = IB_SA_CLASS;
+-	rpc.method = method;
+-	rpc.attr.id = attr;
+-	rpc.attr.mod = mod;
+-	rpc.mask = comp_mask;
+-	rpc.datasz = IB_SA_DATA_SIZE;
+-	rpc.dataoffs = IB_SA_DATA_OFFS;
+-
+-	umad = calloc(1, len + umad_size());
+-	if (!umad)
+-		IBPANIC("cannot alloc mem for umad: %s\n", strerror(errno));
+-
+-	mad_build_pkt(umad, &rpc, &h->dport, NULL, data);
+-
+-	mad_set_field64(umad_get_mad(umad), 0, IB_SA_MKEY_F, sm_key);
+-
+-	if (ibdebug > 1)
+-		xdump(stdout, "SA Request:\n", umad_get_mad(umad), len);
+-
+-	ret = umad_send(h->fd, h->agent, umad, len, ibd_timeout, 0);
+-	if (ret < 0)
+-		IBPANIC("umad_send failed: attr %u: %s\n",
+-			attr, strerror(errno));
+-
+-recv_mad:
+-	ret = umad_recv(h->fd, umad, &len, ibd_timeout);
+-	if (ret < 0) {
+-		if (errno == ENOSPC) {
+-			umad = realloc(umad, umad_size() + len);
+-			goto recv_mad;
+-		}
+-		IBPANIC("umad_recv failed: attr 0x%x: %s\n", attr,
+-			strerror(errno));
+-	}
+-
+-	if ((ret = umad_status(umad)))
+-		return ret;
+-
+-	mad = umad_get_mad(umad);
+-
+-	if (ibdebug > 1)
+-		xdump(stdout, "SA Response:\n", mad, len);
+-
+-	method = (uint8_t) mad_get_field(mad, 0, IB_MAD_METHOD_F);
+-	offset = mad_get_field(mad, 0, IB_SA_ATTROFFS_F);
+-	result->status = mad_get_field(mad, 0, IB_MAD_STATUS_F);
+-	result->p_result_madw = mad;
+-	if (result->status != IB_SA_MAD_STATUS_SUCCESS)
+-		result->result_cnt = 0;
+-	else if (method != IB_MAD_METHOD_GET_TABLE)
+-		result->result_cnt = 1;
+-	else if (!offset)
+-		result->result_cnt = 0;
+-	else
+-		result->result_cnt = (len - IB_SA_DATA_OFFS) / (offset << 3);
+-
+-	return 0;
+-}
+-
+-static void *sa_get_query_rec(void *mad, unsigned i)
+-{
+-	int offset = mad_get_field(mad, 0, IB_SA_ATTROFFS_F);
+-	return (uint8_t *) mad + IB_SA_DATA_OFFS + i * (offset << 3);
+-}
+-
+ static unsigned valid_gid(ib_gid_t * gid)
+ {
+ 	ib_gid_t zero_gid;
+@@ -837,14 +709,6 @@ static void dump_results(struct sa_query_result *r, void (*dump_func) (void *))
  	}
  }
  
-@@ -851,17 +850,18 @@ static void return_mad(void)
+-static void sa_free_result_mad(struct sa_query_result *result)
+-{
+-	if (result->p_result_madw) {
+-		free((uint8_t *) result->p_result_madw - umad_size());
+-		result->p_result_madw = NULL;
+-	}
+-}
+-
+ /**
+  * Get any record(s)
   */
- static int get_any_records(bind_handle_t h,
- 			   uint16_t attr_id, uint32_t attr_mod,
--			   ib_net64_t comp_mask, void *attr, uint64_t sm_key)
-+			   ib_net64_t comp_mask, void *attr, uint64_t sm_key,
-+			   struct sa_query_result *result)
- {
- 	int ret = sa_query(h, IB_MAD_METHOD_GET_TABLE, attr_id, attr_mod,
--			   cl_ntoh64(comp_mask), sm_key, attr);
-+			   cl_ntoh64(comp_mask), sm_key, attr, result);
- 	if (ret) {
- 		fprintf(stderr, "Query SA failed: %s\n", ib_get_err_str(ret));
- 		return ret;
+@@ -861,7 +725,7 @@ static int get_any_records(bind_handle_t h,
  	}
  
--	if (result.status != IB_SA_MAD_STATUS_SUCCESS) {
--		report_err(result.status);
-+	if (result->status != IB_SA_MAD_STATUS_SUCCESS) {
-+		report_err(result->status);
+ 	if (result->status != IB_SA_MAD_STATUS_SUCCESS) {
+-		report_err(result->status);
++		sa_report_err(result->status);
  		return EIO;
  	}
  
-@@ -873,33 +873,37 @@ static int get_and_dump_any_records(bind_handle_t h, uint16_t attr_id,
- 				    void *attr, uint64_t sm_key,
- 				    void (*dump_func) (void *))
- {
-+	struct sa_query_result result;
- 	int ret = get_any_records(h, attr_id, attr_mod, comp_mask, attr,
--				  sm_key);
-+				  sm_key, &result);
- 	if (ret)
- 		return ret;
- 
- 	dump_results(&result, dump_func);
--	return_mad();
-+	sa_free_result_mad(&result);
+@@ -1004,26 +868,6 @@ static int parse_lid_and_ports(bind_handle_t h,
  	return 0;
  }
  
- /**
-  * Get all the records available for requested query type.
-  */
--static int get_all_records(bind_handle_t h, uint16_t attr_id, int trusted)
-+static int get_all_records(bind_handle_t h, uint16_t attr_id, int trusted,
-+			   struct sa_query_result *result)
- {
--	return get_any_records(h, attr_id, 0, 0, NULL, trusted ? smkey : 0);
-+	return get_any_records(h, attr_id, 0, 0, NULL, trusted ? smkey : 0,
-+			       result);
- }
- 
- static int get_and_dump_all_records(bind_handle_t h, uint16_t attr_id,
- 				    int trusted, void (*dump_func) (void *))
- {
--	int ret = get_all_records(h, attr_id, 0);
-+	struct sa_query_result result;
-+	int ret = get_all_records(h, attr_id, 0, &result);
- 	if (ret)
- 		return ret;
- 
- 	dump_results(&result, dump_func);
--	return_mad();
-+	sa_free_result_mad(&result);
- 	return ret;
- }
- 
-@@ -912,14 +916,15 @@ static int get_lid_from_name(bind_handle_t h, const char *name, uint16_t * lid)
- 	ib_node_info_t *p_ni = NULL;
- 	unsigned i;
- 	int ret;
-+	struct sa_query_result result;
- 
--	ret = get_all_records(h, IB_SA_ATTR_NODERECORD, 0);
-+	ret = get_all_records(h, IB_SA_ATTR_NODERECORD, 0, &result);
- 	if (ret)
- 		return ret;
- 
- 	ret = IB_NOT_FOUND;
- 	for (i = 0; i < result.result_cnt; i++) {
--		node_record = get_query_rec(result.p_result_madw, i);
-+		node_record = sa_get_query_rec(result.p_result_madw, i);
- 		p_ni = &(node_record->node_info);
- 		if (name
- 		    && strncmp(name, (char *)node_record->node_desc.description,
-@@ -930,7 +935,7 @@ static int get_lid_from_name(bind_handle_t h, const char *name, uint16_t * lid)
- 			break;
- 		}
- 	}
--	return_mad();
-+	sa_free_result_mad(&result);
- 	return ret;
- }
- 
-@@ -1022,7 +1027,8 @@ static int parse_lid_and_ports(bind_handle_t h,
+-#define cl_hton8(x) (x)
+-#define CHECK_AND_SET_VAL(val, size, comp_with, target, name, mask) \
+-	if ((int##size##_t) val != (int##size##_t) comp_with) { \
+-		target = cl_hton##size((uint##size##_t) val); \
+-		comp_mask |= IB_##name##_COMPMASK_##mask; \
+-	}
+-
+-#define CHECK_AND_SET_GID(val, target, name, mask) \
+-	if (valid_gid(&(val))) { \
+-		memcpy(&(target), &(val), sizeof(val)); \
+-		comp_mask |= IB_##name##_COMPMASK_##mask; \
+-	}
+-
+-#define CHECK_AND_SET_VAL_AND_SEL(val, target, name, mask, sel) \
+-	if (val) { \
+-		target = val; \
+-		comp_mask |= IB_##name##_COMPMASK_##mask##sel; \
+-		comp_mask |= IB_##name##_COMPMASK_##mask; \
+-	}
+-
  /*
   * Get the portinfo records available with IsSM or IsSMdisabled CapabilityMask bit on.
   */
--static int get_issm_records(bind_handle_t h, ib_net32_t capability_mask)
-+static int get_issm_records(bind_handle_t h, ib_net32_t capability_mask,
-+			    struct sa_query_result *result)
- {
- 	ib_portinfo_record_t attr;
- 
-@@ -1030,15 +1036,16 @@ static int get_issm_records(bind_handle_t h, ib_net32_t capability_mask)
- 	attr.port_info.capability_mask = capability_mask;
- 
- 	return get_any_records(h, IB_SA_ATTR_PORTINFORECORD, 1 << 31,
--			       IB_PIR_COMPMASK_CAPMASK, &attr, 0);
-+			       IB_PIR_COMPMASK_CAPMASK, &attr, 0, result);
- }
- 
- static int print_node_records(bind_handle_t h)
- {
- 	unsigned i;
- 	int ret;
-+	struct sa_query_result result;
- 
--	ret = get_all_records(h, IB_SA_ATTR_NODERECORD, 0);
-+	ret = get_all_records(h, IB_SA_ATTR_NODERECORD, 0, &result);
- 	if (ret)
+@@ -1095,7 +939,7 @@ static int get_print_class_port_info(bind_handle_t h)
  		return ret;
- 
-@@ -1048,7 +1055,7 @@ static int print_node_records(bind_handle_t h)
  	}
- 	for (i = 0; i < result.result_cnt; i++) {
- 		ib_node_record_t *node_record;
--		node_record = get_query_rec(result.p_result_madw, i);
-+		node_record = sa_get_query_rec(result.p_result_madw, i);
- 		if (node_print_desc == ALL_DESC) {
- 			print_node_desc(node_record);
- 		} else if (node_print_desc == NAME_OF_LID) {
-@@ -1067,20 +1074,21 @@ static int print_node_records(bind_handle_t h)
- 					    node_desc.description)) == 0)) {
- 				print_node_record(node_record);
- 				if (node_print_desc == UNIQUE_LID_ONLY) {
--					return_mad();
-+					sa_free_result_mad(&result);
- 					exit(0);
- 				}
- 			}
- 		}
+ 	if (result.status != IB_SA_MAD_STATUS_SUCCESS) {
+-		report_err(result.status);
++		sa_report_err(result.status);
+ 		ret = EIO;
+ 		goto Exit;
  	}
--	return_mad();
-+	sa_free_result_mad(&result);
- 	return ret;
+@@ -1434,37 +1278,6 @@ static int query_mft_records(const struct query_cmd *q, bind_handle_t h,
+ 					&mftr, 0, dump_one_mft_record);
  }
  
- static int get_print_class_port_info(bind_handle_t h)
- {
-+	struct sa_query_result result;
- 	int ret = sa_query(h, IB_MAD_METHOD_GET, CLASS_PORT_INFO, 0, 0,
--			   0, NULL);
-+			   0, NULL, &result);
- 	if (ret) {
- 		fprintf(stderr, "ERROR: Query SA failed: %s\n",
- 			ib_get_err_str(ret));
-@@ -1093,7 +1101,7 @@ static int get_print_class_port_info(bind_handle_t h)
- 	}
- 	dump_results(&result, dump_class_port_info);
- Exit:
--	return_mad();
-+	sa_free_result_mad(&result);
- 	return ret;
- }
- 
-@@ -1133,50 +1141,56 @@ static int query_path_records(const struct query_cmd *q, bind_handle_t h,
- 
- static int print_issm_records(bind_handle_t h)
- {
-+	struct sa_query_result result;
- 	int ret = 0;
- 
- 	/* First, get IsSM records */
--	ret = get_issm_records(h, IB_PORT_CAP_IS_SM);
-+	ret = get_issm_records(h, IB_PORT_CAP_IS_SM, &result);
- 	if (ret != 0)
- 		return (ret);
- 
- 	printf("IsSM ports\n");
- 	dump_results(&result, dump_portinfo_record);
--	return_mad();
-+	sa_free_result_mad(&result);
- 
- 	/* Now, get IsSMdisabled records */
--	ret = get_issm_records(h, IB_PORT_CAP_SM_DISAB);
-+	ret = get_issm_records(h, IB_PORT_CAP_SM_DISAB, &result);
- 	if (ret != 0)
- 		return (ret);
- 
- 	printf("\nIsSMdisabled ports\n");
- 	dump_results(&result, dump_portinfo_record);
--	return_mad();
-+	sa_free_result_mad(&result);
- 
- 	return (ret);
- }
- 
- static int print_multicast_member_records(bind_handle_t h)
- {
--	struct query_res mc_group_result;
-+	struct sa_query_result mc_group_result;
-+	struct sa_query_result nr_result;
- 	int ret;
-+	unsigned i;
- 
--	ret = get_all_records(h, IB_SA_ATTR_MCRECORD, 1);
-+	ret = get_all_records(h, IB_SA_ATTR_MCRECORD, 1, &mc_group_result);
- 	if (ret)
- 		return ret;
- 
--	mc_group_result = result;
+-static bind_handle_t get_bind_handle(void)
+-{
+-	static struct ibmad_port *srcport;
+-	static struct bind_handle handle;
+-	int mgmt_classes[2] = { IB_SMI_CLASS, IB_SMI_DIRECT_CLASS };
 -
--	ret = get_all_records(h, IB_SA_ATTR_NODERECORD, 0);
-+	ret = get_all_records(h, IB_SA_ATTR_NODERECORD, 0, &nr_result);
- 	if (ret)
- 		goto return_mc;
+-	srcport = mad_rpc_open_port(ibd_ca, ibd_ca_port, mgmt_classes, 2);
+-	if (!srcport)
+-		IBERROR("Failed to open '%s' port '%d'", ibd_ca, ibd_ca_port);
+-
+-	ib_resolve_smlid_via(&handle.dport, ibd_timeout, srcport);
+-	if (!handle.dport.lid)
+-		IBPANIC("No SM found.");
+-
+-	handle.dport.qp = 1;
+-	if (!handle.dport.qkey)
+-		handle.dport.qkey = IB_DEFAULT_QP1_QKEY;
+-
+-	handle.fd = mad_rpc_portid(srcport);
+-	handle.agent = umad_register(handle.fd, IB_SA_CLASS, 2, 1, NULL);
+-
+-	return &handle;
+-}
+-
+-static void clean_up(struct bind_handle *h)
+-{
+-	umad_unregister(h->fd, h->agent);
+-	umad_close_port(h->fd);
+-	umad_done();
+-}
+-
+ static const struct query_cmd query_cmds[] = {
+ 	{"ClassPortInfo", "CPI", CLASS_PORT_INFO,
+ 	 NULL, query_class_port_info},
+@@ -1861,7 +1674,10 @@ int main(int argc, char **argv)
+ 		ibdiag_show_usage();
+ 	}
  
--	dump_results(&mc_group_result, dump_multicast_member_record);
--	return_mad();
-+	for (i = 0; i < mc_group_result.result_cnt; i++) {
-+		ib_member_rec_t *rec = (ib_member_rec_t *)
-+				sa_get_query_rec(mc_group_result.p_result_madw,
-+					      i);
-+		dump_multicast_member_record(rec, &nr_result);
-+	}
+-	h = get_bind_handle();
++	h = sa_get_bind_handle();
++	if (!h)
++		IBPANIC("Failed to bind to the SA");
 +
-+	sa_free_result_mad(&nr_result);
+ 	node_name_map = open_node_name_map(node_name_map_file);
  
- return_mc:
--	if (mc_group_result.p_result_madw)
--		free((uint8_t *) mc_group_result.p_result_madw - umad_size());
-+	sa_free_result_mad(&mc_group_result);
+ 	if (src_lid && *src_lid)
+@@ -1898,7 +1714,7 @@ int main(int argc, char **argv)
  
- 	return ret;
+ 	if (src_lid)
+ 		free(src_lid);
+-	clean_up(h);
++	sa_free_bind_handle(h);
+ 	close_node_name_map(node_name_map);
+ 	return (status);
  }
 -- 
 1.7.1
