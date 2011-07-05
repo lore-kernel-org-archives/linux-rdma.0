@@ -1,59 +1,56 @@
-From: Bernard Metzler <BMT-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>
-Subject: Re: How to recycle recv WR
-Date: Tue, 5 Jul 2011 23:21:27 +0200
-Message-ID: <OFC8B37F5E.50924AE5-ONC12578C4.0071E54F-C12578C4.00755216@ch.ibm.com>
-References: <1309884886.29374.YahooMailNeo@web15805.mail.cnb.yahoo.com>
+From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+Subject: install.pl "chown" issue (Was: Re: rhel6 ofed v1.5.3)
+Date: Tue, 5 Jul 2011 15:36:18 -0700
+Message-ID: <20110705153618.c7cba778.weiny2@llnl.gov>
+References: <BANLkTi=fJr7BypNCs-7S4-THNTUGtmiicg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="US-ASCII"
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1309884886.29374.YahooMailNeo-bJgPt2WvBWXFTsyTBrxSqPhMsxRAUFZ5QQ4Iyu8u01E@public.gmane.org>
+In-Reply-To: <BANLkTi=fJr7BypNCs-7S4-THNTUGtmiicg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: ren yufei <renyufei83-/E1597aS9LRv1O+Z8WTAqQ@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tan Li <tanli-q41pLDslbA3auI2f2gSDlQ@public.gmane.org>
+To: Michael Di Domenico <mdidomenico4-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-moving the QP into the IBV_QPS_ERR state by using ibv_modify_qp()
-will flush all its WQEs (SQ and RQ) to the associated CQ(s)
-where they can be reaped. Those WRs will have the
-IBV_WC_WR_FLUSH_ERR status.
+On Fri, 1 Jul 2011 10:08:47 -0700
+Michael Di Domenico <mdidomenico4-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
 
-bernard.
+> According to my installation of Ofed 1.5.3 on RHEL6, the
+> infiniband-diags package rpm is trying to chown /usr/local in order to
+> deposit a library in lib64.
 
-linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org wrote on 07/05/2011 06:54:46 PM:
+infiniband-diags does not do a chown.
 
-> ren yufei <renyufei83-/E1597aS9LRv1O+Z8WTAqQ@public.gmane.org> 
-> Sent by: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 > 
-> 07/05/2011 07:00 PM
-> 
-> Please respond to
-> ren yufei <renyufei83-/E1597aS9LRv1O+Z8WTAqQ@public.gmane.org>
-> 
-> To
-> 
-> "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-> 
-> cc
-> 
-> Tan Li <tanli-q41pLDslbA3auI2f2gSDlQ@public.gmane.org>
-> 
-> Subject
-> 
-> How to recycle recv WR
-> 
-> Hi,
-> 
-> Suppose a WR has been posted to the receive queue by ibv_post_recv. 
-> How could the app recycle this work request or say remove this WR 
-> from receive queue? (Except the app got cq event - IBV_WC_RECV).
-> My app pre-post a list of receive buffer into the receive queue, and
-> those tasks should be removed from the rq and ibv_dereg_mr before 
-> the app exit. That would be more gentle than exit() directly.
-> 
-> 
-> Thanks.
-> 
-> Yufei
+> In my environment /usr/local is off-limits to root and all package
+> installs.  Is this a bug?  Is there a workaround to allow the
+> install.pl to complete?
+
+I just tried this on a vanilla Fedora 15 system and was able to build the source rpms just fine.
+
+Try building and installing in this order.
+
+libibumad-1.3.7-1.src.rpm
+libibmad-1.3.7-1.src.rpm
+opensm-3.3.9-1.src.rpm
+infiniband-diags-1.5.8-1.src.rpm
+
+
+Ira
+
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+
+-- 
+Ira Weiny
+Math Programmer/Computer Scientist
+Lawrence Livermore National Lab
+925-423-8008
+weiny2-i2BcT+NCU+M@public.gmane.org
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
