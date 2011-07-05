@@ -1,7 +1,7 @@
 From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH] opensm/man/opensm.8.in: Fix some typos
-Date: Tue, 05 Jul 2011 07:33:01 -0400
-Message-ID: <4E12F66D.80102@dev.mellanox.co.il>
+Subject: [PATCH] opensm/current-routing.txt: Add DnUp description
+Date: Tue, 05 Jul 2011 07:33:20 -0400
+Message-ID: <4E12F680.5040404@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
@@ -14,34 +14,33 @@ List-Id: linux-rdma@vger.kernel.org
 
 Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
-diff --git a/man/opensm.8.in b/man/opensm.8.in
-index 484cbad..9a1a9fe 100644
---- a/man/opensm.8.in
-+++ b/man/opensm.8.in
-@@ -669,7 +669,7 @@ compiling opensm with -DROUTER_EXP which has been obsoleted.
+diff --git a/doc/current-routing.txt b/doc/current-routing.txt
+index 5048c55..ac00d13 100644
+--- a/doc/current-routing.txt
++++ b/doc/current-routing.txt
+@@ -1,7 +1,7 @@
+ Current OpenSM Routing
+-10/9/09
++7/4/11
  
- .SH ROUTING
- .PP
--OpenSM now offers six routing engines:
-+OpenSM now offers seven routing engines:
+-OpenSM offers six routing engines:
++OpenSM offers seven routing engines:
  
  1.  Min Hop Algorithm - based on the minimum hops to each node where the
  path length is optimized.
-@@ -680,29 +680,29 @@ if the subnet is not a pure Fat Tree, and deadlock may occur due to a
+@@ -11,24 +11,28 @@ node, but it is constrained to ranking rules. This algorithm should be chosen
+ if the subnet is not a pure Fat Tree, and deadlock may occur due to a
  loop in the subnet.
  
- 3. DNUP Unicast routing algorithm - similar to UPDN but allows routing in
--fabrics which have some Ca nodes attached closer to the roots than some switch
+-3.  Fat-tree Unicast routing algorithm - this algorithm optimizes routing
++3. DNUP Unicast routing algorithm - similar to UPDN but allows routing in
 +fabrics which have some CA nodes attached closer to the roots than some switch
- nodes.
- 
--3.  Fat Tree Unicast routing algorithm - this algorithm optimizes routing
-+4.  Fat Tree Unicast routing algorithm - this algorithm optimizes routing
- for congestion-free "shift" communication pattern.
- It should be chosen if a subnet is a symmetrical or almost symmetrical
- fat-tree of various types, not just K-ary-N-Trees: non-constant K, not
- fully staffed, any Constant Bisectional Bandwidth (CBB) ratio.
- Similar to UPDN, Fat Tree routing is constrained to ranking rules.
++nodes.
++
++4.  Fat-tree Unicast routing algorithm - this algorithm optimizes routing
+ of fat-trees for congestion-free "shift" communication pattern.
+ It should be chosen if a subnet is a symmetrical fat-tree.
+ Similar to UPDN routing, Fat-tree routing is credit-loop-free.
  
 -4. LASH unicast routing algorithm - uses Infiniband virtual layers
 +5. LASH unicast routing algorithm - uses Infiniband virtual layers
@@ -62,16 +61,26 @@ index 484cbad..9a1a9fe 100644
  specialized for 2D/3D torus topologies.  Torus-2QoS provides deadlock-free
  routing while supporting two quality of service (QoS) levels.  In addition
  it is able to route around multiple failed fabric links or a single failed
-@@ -860,8 +860,8 @@ UPDN due to nodes being connected closer to the roots than some of
- the switches.  An example would be a fabric which contains nodes and
- uplinks connected to the same switch. The operation of DNUP is the
- same as UPDN with the exception of the ranking process.  In DNUP all
--switch nodes are ranked based solely on their distance from Ca Nodes,
--all switch nodes directly connected to at least one Ca are assigned a
+@@ -192,6 +196,20 @@ To learn more about deadlock-free routing, see the article
+ by William J Dally and Charles L Seitz (1985).
+ 
+ 
++Purpose of DNUP Algorithm
++
++The DNUP algorithm is designed to serve a similar purpose to UPDN. However
++it is intended to work in network topologies which are unsuited to
++UPDN due to nodes being connected closer to the roots than some of
++the switches.  An example would be a fabric which contains nodes and
++uplinks connected to the same switch. The operation of DNUP is the
++same as UPDN with the exception of the ranking process.  In DNUP all
 +switch nodes are ranked based solely on their distance from CA Nodes,
 +all switch nodes directly connected to at least one CA are assigned a
- value of 1 all other switch nodes are assigned a value of one more than
- the minimum rank of all neighbor switch nodes.
++value of 1 all other switch nodes are assigned a value of one more than
++the minimum rank of all neighbor switch nodes.
++
++
+ Fat-tree Routing Algorithm
+ --------------------------
  
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
