@@ -1,33 +1,59 @@
-From: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH V1 7/9] ib/pma: add include file for IBA performance
- counters definitions
-Date: Tue, 5 Jul 2011 12:34:15 -0700
-Message-ID: <CAL1RGDX7U=PMjWadeS3Gp+xST56xJiK=qydwu1PMcvkfb7DcnA@mail.gmail.com>
-References: <alpine.LRH.2.00.1106151733410.15844@ogerlitz.voltaire.com>
- <alpine.LRH.2.00.1106151747390.15844@ogerlitz.voltaire.com>
- <alpine.LRH.2.00.1106161119120.12552@ogerlitz.voltaire.com>
- <4DFA10CC.5080002@mellanox.com> <35AAF1E4A771E142979F27B51793A4888838E71F03@AVEXMB1.qlogic.org>
- <BANLkTikpMWYaXB8Ne+FaLGHi2L5TUCNDkQ@mail.gmail.com> <35AAF1E4A771E142979F27B51793A4888838FEE740@AVEXMB1.qlogic.org>
- <4E133575.8040105@mellanox.com>
+From: Bernard Metzler <BMT-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>
+Subject: Re: How to recycle recv WR
+Date: Tue, 5 Jul 2011 23:21:27 +0200
+Message-ID: <OFC8B37F5E.50924AE5-ONC12578C4.0071E54F-C12578C4.00755216@ch.ibm.com>
+References: <1309884886.29374.YahooMailNeo@web15805.mail.cnb.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="US-ASCII"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4E133575.8040105-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+In-Reply-To: <1309884886.29374.YahooMailNeo-bJgPt2WvBWXFTsyTBrxSqPhMsxRAUFZ5QQ4Iyu8u01E@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Mike Marciniszyn <mike.marciniszyn-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: ren yufei <renyufei83-/E1597aS9LRv1O+Z8WTAqQ@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Tan Li <tanli-q41pLDslbA3auI2f2gSDlQ@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
->> I just realized your submissions were in my "junk" folder.
->> I would prefer that the other patch get accepted first.
->
-> So I can generate my patch on top of yours, and re-submit,
-> no problem, just lets see what Roland prefers, please send me pointer to
-> these patches.
+moving the QP into the IBV_QPS_ERR state by using ibv_modify_qp()
+will flush all its WQEs (SQ and RQ) to the associated CQ(s)
+where they can be reaped. Those WRs will have the
+IBV_WC_WR_FLUSH_ERR status.
 
-What's the other patch in question here?
+bernard.
 
- - R.
+linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org wrote on 07/05/2011 06:54:46 PM:
+
+> ren yufei <renyufei83-/E1597aS9LRv1O+Z8WTAqQ@public.gmane.org> 
+> Sent by: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> 
+> 07/05/2011 07:00 PM
+> 
+> Please respond to
+> ren yufei <renyufei83-/E1597aS9LRv1O+Z8WTAqQ@public.gmane.org>
+> 
+> To
+> 
+> "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+> 
+> cc
+> 
+> Tan Li <tanli-q41pLDslbA3auI2f2gSDlQ@public.gmane.org>
+> 
+> Subject
+> 
+> How to recycle recv WR
+> 
+> Hi,
+> 
+> Suppose a WR has been posted to the receive queue by ibv_post_recv. 
+> How could the app recycle this work request or say remove this WR 
+> from receive queue? (Except the app got cq event - IBV_WC_RECV).
+> My app pre-post a list of receive buffer into the receive queue, and
+> those tasks should be removed from the rq and ibv_dereg_mr before 
+> the app exit. That would be more gentle than exit() directly.
+> 
+> 
+> Thanks.
+> 
+> Yufei
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
