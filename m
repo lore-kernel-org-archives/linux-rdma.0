@@ -1,50 +1,94 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH V1 7/9] ib/pma: add include file for IBA performance counters
- definitions
-Date: Wed, 06 Jul 2011 14:53:29 -0400
-Message-ID: <4E14AF29.7000104@dev.mellanox.co.il>
-References: <35AAF1E4A771E142979F27B51793A4888838FEE740@AVEXMB1.qlogic.org> <4E133575.8040105@mellanox.com> <CAL1RGDX7U=PMjWadeS3Gp+xST56xJiK=qydwu1PMcvkfb7DcnA@mail.gmail.com> <CAJZOPZK3tT9gXP46ek-tO3xyvj7=eKyGJXBoim9uOMbJc4BtfQ@mail.gmail.com> <35AAF1E4A771E142979F27B51793A4888838FEE894@AVEXMB1.qlogic.org> <CAL1RGDWHYMQHbZWwkysqZ7TLrB_ZDJWSTC4YCqk1wpme_3+BrQ@mail.gmail.com> <4E14940A.9080700@dev.mellanox.co.il> <CAL1RGDVpuwsgfVRxNw098W_wRECGn0uinQR+8txE96n5KtDXgw@mail.gmail.com> <20110706181507.GC1162@obsidianresearch.com> <4E14A87B.2070405@dev.mellanox.co.il> <20110706184511.GD1162@obsidianresearch.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+From: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: [ANNOUNCE] libmthca 1.0.5 and libmlx4 1.0.2 are released
+Date: Wed,  6 Jul 2011 12:42:33 -0700
+Message-ID: <1309981353-14301-1-git-send-email-roland@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20110706184511.GD1162-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Mike Marciniszyn <mike.marciniszyn-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>, Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 7/6/2011 2:45 PM, Jason Gunthorpe wrote:
-> On Wed, Jul 06, 2011 at 02:24:59PM -0400, Hal Rosenstock wrote:
-> 
->>> Vendor specific stuff must be placed into a vendor specific class and
->>> not put into the classes controlled by IBA.
->>
->> Either that or modify that compliance to allow for (optional) vendor
->> specific attributes in the PerfMgt class as is already done for the SM
->> class.
-> 
-> Just adding vendor usable attributes doesn't really address the
-> problem of discoverability. With the SM class it is at least
-> imaginable there is some kind of out of band discovery before the
-> attributes are used, can't see that for PM. 
+libmthca and libmlx4 are userspace drivers for Mellanox InfiniBand
+HCAs.  They are plug-in modules for libibverbs that allows programs to
+use Mellanox hardware directly from userspace.
 
-There are other ways to deal with this issue IMO. Moving it to a vendor
-class doesn't make the issue necessarily go away either.
+New stable releases are available from
 
-> Plus, there is no defined SMP vendor specific MAD, only GMP, 
+    http://www.openfabrics.org/downloads/mthca/libmthca-1.0.6.tar.gz
+    http://www.openfabrics.org/downloads/mlx4/libmlx4-1.0.2.tar.gz
 
-True.
+with sha1sum
 
-> so it makes a little more sense..
+    156d90ea343a18fd638c0097ea8d2e97af3f6e25  libmthca-1.0.6.tar.gz
+    8c5e9deb47b6a3f0163fa5e85ea7560451c4a09b  libmlx4-1.0.2.tar.gz
 
-I think it could be done either way.
+I also pushed the latest trees and tags out to kernel.org:
 
--- Hal
+    git://git.kernel.org/pub/scm/libs/infiniband/libmthca.git
+    git://git.kernel.org/pub/scm/libs/infiniband/libmlx4.git
 
-> Jason
-> 
+(the name of the tags are libmthca-1.0.6 and libmlx4-1.0.2)
 
+These releases contain a variety of accumulated small fixes since the
+previous long-ago releases.
+
+The git shortlog since libmthca 1.0.5 is:
+
+Jack Morgenstein (1):
+      Fix race between create QP and destroy QP
+
+Jason Gunthorpe (2):
+      Remove empty stubs for detach/attach_mcast
+      Update function prototypes to match libibverbs enum type change
+
+Roland Dreier (16):
+      Use real Homepage: tag instead of pseudo-header inside description
+      Debian changelog should use "unstable" not "hardy"
+      Move -dbg Debian package to section debug
+      Update build system to use shave
+      Update Debian policy version to 3.8.2
+      Package description shouldn't start with an article
+      Set DM-Upload-Allowed now that Roland is a Debian Maintainer
+      Convert to new 3.0 (quilt) source format.
+      Change Debian build system from cdbs to debhelper 7
+      Move plugin .so to /usr/lib/libibverbs
+      Revert "Update build system to use shave"
+      Enable quiet build rules with automake 1.11+
+      Small configure.in modernizations
+      Acknowledge NMU (don't ship .la file)
+      Note that we fix Debian bug about maintainer address in Debian changelog
+      Roll libmthca 1.0.6 release
+
+Sebastien Dugue (1):
+      Use mmap(MAP_ANONYMOUS) to allocate queue buffers
+
+
+The git shortlog since libmlx4 1.0.1 is:
+
+Jack Morgenstein (1):
+      Initialize SRQ scatter entries when creating an SRQ
+
+Jason Gunthorpe (3):
+      Remove empty stubs for detach/attach_mcast
+      Update function prototypes to match libibverbs enum type change
+      Return ERRNO codes from ibv_post_send/recv instead of -1
+
+Roland Dreier (11):
+      Package description shouldn't start with an article
+      Set DM-Upload-Allowed now that Roland is a Debian Maintainer
+      Convert to new 3.0 (quilt) source format.
+      Note that we fix Debian bug about maintainer address in Debian changelog
+      Don't ship .la files in Debian libmlx4-dev
+      Change Debian build system from cdbs to debhelper 7
+      Small configure.in modernizations
+      Revert "Update build system to use shave"
+      Enable quiet build rules with automake 1.11+
+      Move plugin .so to /usr/lib/libibverbs
+      Roll libmlx4 1.0.2 release
+
+Sebastien Dugue (3):
+      Use mmap(MAP_ANONYMOUS) to allocate queue buffers
+      mmap() needs some includes
+      Fix version in taball filename in RPM spec file
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
