@@ -1,164 +1,92 @@
-From: Jon Mason <jdmason-zqedIHPRSYI@public.gmane.org>
-Subject: Re: Warning: mthca/qib : removal of PCI_CAP_ID_EXP
-Date: Tue, 5 Jul 2011 22:16:04 -0500
-Message-ID: <CAPoiz9xuXwTOnpwBZs=5Zun-azZWJ5Pite6G0twVd=vvrupYPA@mail.gmail.com>
-References: <1309196346-15749-1-git-send-email-jdmason@kudzu.us>
-	<4E0CDF8B.3020505@emulex.com>
-	<6dbdff99-df75-4456-ac0e-b35ac475f079@exht1.ad.emulex.com>
-	<35AAF1E4A771E142979F27B51793A4888838F2367E@AVEXMB1.qlogic.org>
-	<BANLkTimT5SaRupWoC+60sgdgsvW2a_T3_g@mail.gmail.com>
+From: sebastien dugue <sebastien.dugue-6ktuUTfB/bM@public.gmane.org>
+Subject: Re: [PATCH] umad.c: memset() ib_user_mad_reg_req structure to
+ 0before invoking ioctl()
+Date: Wed, 6 Jul 2011 09:08:37 +0200
+Message-ID: <20110706090837.617de660@b012350-ux>
+References: <20110704115314.7c15c6ac@b012350-ux>
+	<CAO+b5-pKPdJC20s7dL18b97fd778GoT4TJ_J13NwbkEFz6bz4w@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <BANLkTimT5SaRupWoC+60sgdgsvW2a_T3_g-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <CAO+b5-pKPdJC20s7dL18b97fd778GoT4TJ_J13NwbkEFz6bz4w-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Mike Marciniszyn <mike.marciniszyn-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-Cc: James Smart <james.smart-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Richard Lary <rlary-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>, "eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org" <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, "jlburr-vna1KIf7WgpBDgjK7y7TUQ@public.gmane.org" <jlburr-vna1KIf7WgpBDgjK7y7TUQ@public.gmane.org>
+To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Vincent <jean-vincent.ficet-6ktuUTfB/bM@public.gmane.org>, hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Per Richard Lary's testing, this is not an issue with the latest kernel=
-=2E
-http://www.spinics.net/lists/linux-pci/msg11350.html
+On Tue, 5 Jul 2011 20:17:18 +0200
+Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org> wrote:
 
-Thanks,
-Jon
+> On Mon, Jul 4, 2011 at 11:53 AM, sebastien dugue
+> <sebastien.dugue-6ktuUTfB/bM@public.gmane.org> wrote:
+> >
+> > This fixes the following warning issued by valgrind:
+> >
+> > =3D=3D5287=3D=3D Syscall param ioctl(generic) points to uninitialis=
+ed byte(s)
+> > =3D=3D5287=3D=3D =C2=A0 =C2=A0at 0x3C466D95D7: ioctl (in /lib64/lib=
+c-2.12.so)
+> > =3D=3D5287=3D=3D =C2=A0 =C2=A0by 0x526C292: umad_register (umad.c:9=
+47)
+> > =3D=3D5287=3D=3D =C2=A0 =C2=A0by 0x568D206: smp_engine_init (query_=
+smp.c:228)
+> > =3D=3D5287=3D=3D =C2=A0 =C2=A0by 0x5689F8F: ibnd_discover_fabric (i=
+bnetdisc.c:537)
+> > =3D=3D5287=3D=3D =C2=A0 =C2=A0by 0x411700: devmgr_discover_fabric (=
+devmgr_discover.c:66)
+> >
+> > Signed-off-by: Jean-Vincent Ficet <jean-vincent.ficet-6ktuUTfB/bM@public.gmane.org>
+> >
+> > ---
+> >
+> > diff --git a/src/umad.c b/src/umad.c
+> > index 45a9423..cac46a4 100644
+> > --- a/src/umad.c
+> > +++ b/src/umad.c
+> > @@ -892,6 +892,7 @@ int umad_register_oui(int fd, int mgmt_class, u=
+int8_t rmpp_version,
+> > =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0return -EINV=
+AL;
+> > =C2=A0 =C2=A0 =C2=A0 =C2=A0}
+> >
+> > + =C2=A0 =C2=A0 =C2=A0 memset(&req, 0, sizeof(req));
+> > =C2=A0 =C2=A0 =C2=A0 =C2=A0req.qpn =3D 1;
+> > =C2=A0 =C2=A0 =C2=A0 =C2=A0req.mgmt_class =3D mgmt_class;
+> > =C2=A0 =C2=A0 =C2=A0 =C2=A0req.mgmt_class_version =3D 1;
+> > @@ -928,6 +929,7 @@ int umad_register(int fd, int mgmt_class, int m=
+gmt_version,
+> > =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0("fd %d mgmt_class %u mgmt=
+_version %u rmpp_version %d method_mask %p",
+> > =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 fd, mgmt_class, mgmt_vers=
+ion, rmpp_version, method_mask);
+> >
+> > + =C2=A0 =C2=A0 =C2=A0 memset(&req, 0, sizeof(req));
+> > =C2=A0 =C2=A0 =C2=A0 =C2=A0req.qpn =3D qp =3D (mgmt_class =3D=3D 0x=
+1 || mgmt_class =3D=3D 0x81) ? 0 : 1;
+> > =C2=A0 =C2=A0 =C2=A0 =C2=A0req.mgmt_class =3D mgmt_class;
+> > =C2=A0 =C2=A0 =C2=A0 =C2=A0req.mgmt_class_version =3D mgmt_version;
+>=20
+> A possible alternative approach is to develop a patch for Valgrind
+> that makes Valgrind ignore padding fields and/or output fields in the
+> pre-ioctl check. See also PRE(sys_ioctl) in source file
+> coregrind/m_syswrap/syswrap-linux.c or the documentation file
+> README_MISSING_SYSCALL_OR_IOCTL.
 
-On Fri, Jul 1, 2011 at 10:07 AM, Jon Mason <jdmason-zqedIHPRSYI@public.gmane.org> wrote:
-> pci_is_pcie checks for a PCI-E capability offset that was determined
-> by calling pci_find_capability during the PCI bus walking. =A0Based o=
-n
-> the description below this should be functionally equivalent. =A0If
-> this is not safe, then the PCI bus walking code is most likely busted
-> on EEH enabled PPC systems (and that is a BIG problem). =A0I'll e-mai=
-l
-> the PPC mailing list to verify the issue.
->
-> Thanks,
-> Jon
->
-> On Fri, Jul 1, 2011 at 10:01 AM, Mike Marciniszyn
-> <mike.marciniszyn-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org> wrote:
->> The patch was ok here, but we only support x86_64.
->>
->> Mike
->>
->>> -----Original Message-----
->>> From: James Smart [mailto:james.smart-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org]
->>> Sent: Friday, July 01, 2011 10:49 AM
->>> To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->>> Cc: James Smart; Jon Mason; Richard Lary; Mike Marciniszyn;
->>> eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org; jlburr-vna1KIf7WgpBDgjK7y7TUQ@public.gmane.org
->>> Subject: Warning: mthca/qib : removal of PCI_CAP_ID_EXP
->>>
->>> All,
->>>
->>> I wanted to communicate a potential warning to those drivers that h=
-ad a
->>> patch
->>> submitted to replace config space searches of PCI_CAP_ID_EXP with
->>> shorthand
->>> options such as is_pcie and pci_is_pcie().
->>>
->>> Testing with the lpfc driver and AER/EEH identified cases where the
->>> short-hand
->>> search options would fail on PPC platforms. =A0The only successful =
-option
->>> in all
->>> cases was the explicit search via PCI_CAP_ID_EXP. =A0 Therefore, I
->>> recommend
->>> that this change not be accepted until the platform level issue can=
- be
->>> identified and corrected.
->>>
->>> -- james s
->>>
->>>
->>>
->>> On 6/30/2011 4:41 PM, James Smart wrote:
->>> > Jon,
->>> >
->>> > I must NACK this patch to the lpfc driver and recommend that all
->>> other patches
->>> > which replace pci_find_capability(pdef, PCI_CAP_ID_EXP) with
->>> > "pci_is_pcie(pdev)" are NACK'd as well.
->>> >
->>> > The reason is due to an issue on PPC platforms whereby use of "pd=
-ev-
->>> >is_pcie"
->>> > and pci_is_pcie() will erroneously fail under some conditions, bu=
-t
->>> explicit
->>> > search for the capability struct via pci_find_capability() is alw=
-ays
->>> > successful. =A0 I expect this to be due a shadowing of pci config=
- space
->>> in the
->>> > hal/platform that isn't sufficiently built up. =A0We detected thi=
-s
->>> issue while
->>> > testing AER/EEH, and are functional only if the pci_find_capabili=
-ty()
->>> option
->>> > is used.
->>> >
->>> > -- james s
->>> >
->>> >
->>> >
->>> > On 6/27/2011 1:39 PM, Jon Mason wrote:
->>> >> The PCIE capability offset is saved during PCI bus walking. =A0I=
-t will
->>> >> remove an unnecessary search in the PCI configuration space if t=
-his
->>> >> value is referenced instead of reacquiring it. =A0Also, pci_is_p=
-cie is
->>> a
->>> >> better way of determining if the device is PCIE or not (as it us=
-es
->>> the
->>> >> same saved PCIE capability offset).
->>> >>
->>> >> Signed-off-by: Jon Mason<jdmason-zqedIHPRSYI@public.gmane.org>
->>> >> ---
->>> >> =A0 =A0drivers/scsi/lpfc/lpfc_init.c | =A0 =A02 +-
->>> >> =A0 =A01 files changed, 1 insertions(+), 1 deletions(-)
->>> >>
->>> >> diff --git a/drivers/scsi/lpfc/lpfc_init.c
->>> b/drivers/scsi/lpfc/lpfc_init.c
->>> >> index 148b98d..9000ad0 100644
->>> >> --- a/drivers/scsi/lpfc/lpfc_init.c
->>> >> +++ b/drivers/scsi/lpfc/lpfc_init.c
->>> >> @@ -3970,7 +3970,7 @@ lpfc_enable_pci_dev(struct lpfc_hba *phba)
->>> >> =A0 =A0 =A0 =A0 =A0 =A0pci_save_state(pdev);
->>> >>
->>> >> =A0 =A0 =A0 =A0 =A0 =A0/* PCIe EEH recovery on powerpc platforms=
- needs fundamental
->>> reset */
->>> >> - =A0if (pci_find_capability(pdev, PCI_CAP_ID_EXP))
->>> >> + =A0if (pci_is_pcie(pdev))
->>> >> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0pdev->needs_freset =3D 1;
->>> >>
->>> >> =A0 =A0 =A0 =A0 =A0 =A0return 0;
->>> > --
->>> > To unsubscribe from this list: send the line "unsubscribe linux-s=
-csi"
->>> in
->>> > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->>> > More majordomo info at =A0http://vger.kernel.org/majordomo-info.h=
-tml
->>> >
->>
->>
->> This message and any attached documents contain information from QLo=
-gic Corporation or its wholly-owned subsidiaries that may be confidenti=
-al. If you are not the intended recipient, you may not read, copy, dist=
-ribute, or use this information. If you have received this transmission=
- in error, please notify the sender immediately by reply e-mail and the=
-n delete this message.
->>
->>
->
+  Could be, but this is largely out of scope for me and I can live
+with the warning knowing it's a false positive.
+
+  Thanks,
+
+  S=C3=A9bastien.
+
+>=20
+> Bart.
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma"=
+ in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
 n
