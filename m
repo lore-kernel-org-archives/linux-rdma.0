@@ -1,92 +1,36 @@
-From: James Smart <james.smart-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
-Subject: Re: Warning: mthca/qib  : removal of PCI_CAP_ID_EXP
-Date: Wed, 6 Jul 2011 10:38:51 -0400
-Message-ID: <4E14737B.804@emulex.com>
-References: <1309196346-15749-1-git-send-email-jdmason@kudzu.us> <4E0CDF8B.3020505@emulex.com> <4E0DDE68.5040904@emulex.com>
+From: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH V1 7/9] ib/pma: add include file for IBA performance
+ counters definitions
+Date: Wed, 6 Jul 2011 08:51:39 -0700
+Message-ID: <CAL1RGDWHYMQHbZWwkysqZ7TLrB_ZDJWSTC4YCqk1wpme_3+BrQ@mail.gmail.com>
+References: <alpine.LRH.2.00.1106151733410.15844@ogerlitz.voltaire.com>
+ <alpine.LRH.2.00.1106151747390.15844@ogerlitz.voltaire.com>
+ <alpine.LRH.2.00.1106161119120.12552@ogerlitz.voltaire.com>
+ <4DFA10CC.5080002@mellanox.com> <35AAF1E4A771E142979F27B51793A4888838E71F03@AVEXMB1.qlogic.org>
+ <BANLkTikpMWYaXB8Ne+FaLGHi2L5TUCNDkQ@mail.gmail.com> <35AAF1E4A771E142979F27B51793A4888838FEE740@AVEXMB1.qlogic.org>
+ <4E133575.8040105@mellanox.com> <CAL1RGDX7U=PMjWadeS3Gp+xST56xJiK=qydwu1PMcvkfb7DcnA@mail.gmail.com>
+ <CAJZOPZK3tT9gXP46ek-tO3xyvj7=eKyGJXBoim9uOMbJc4BtfQ@mail.gmail.com> <35AAF1E4A771E142979F27B51793A4888838FEE894@AVEXMB1.qlogic.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4E0DDE68.5040904-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>
+In-Reply-To: <35AAF1E4A771E142979F27B51793A4888838FEE894-HolNjIBXvBOXx9kJd3VG2h2eb7JE58TQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: Jon Mason <jdmason-zqedIHPRSYI@public.gmane.org>, Richard Lary <rlary-r/Jw6+rmf7HQT0dZR+AlfA@public.gmane.org>, "mike.marciniszyn-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org" <mike.marciniszyn-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>, "eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org" <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, "jlburr-vna1KIf7WgpBDgjK7y7TUQ@public.gmane.org" <jlburr-vna1KIf7WgpBDgjK7y7TUQ@public.gmane.org>
+To: Mike Marciniszyn <mike.marciniszyn-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+Cc: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-FYI:   after discussion of this error on linux-pci and linuxppc-dev, the error 
-was corrected in a patch checked into 2.6.33-rc6/3.0-rc6 
-(http://marc.info/?l=linux-pci&m=130992047232053&w=2)
+> The patch that is not yet approved is https://patchwork.kernel.org/patch/523041/
+>
+> The objections to date for the patch center on the use of reserved bits to key the existence of some vendor specific queries.
 
--- james s
+Hmm, I'm not a huge fan of that patch since as you say it uses bits
+that the IB spec says are reserved.  I'd be more inclined to take Or's
+patches which have gotten positive feedback from Sean, if we have to
+choose.  Hal (and/or anyone else who has more insight into the IBTA
+intentions for management architecture), what do you think of the
+patch linked above?
 
-
-On 7/1/2011 10:49 AM, James Smart wrote:
-> All,
->
-> I wanted to communicate a potential warning to those drivers that had a patch
-> submitted to replace config space searches of PCI_CAP_ID_EXP with shorthand
-> options such as is_pcie and pci_is_pcie().
->
-> Testing with the lpfc driver and AER/EEH identified cases where the short-hand
-> search options would fail on PPC platforms.  The only successful option in all
-> cases was the explicit search via PCI_CAP_ID_EXP.   Therefore, I recommend
-> that this change not be accepted until the platform level issue can be
-> identified and corrected.
->
-> -- james s
->
->
->
-> On 6/30/2011 4:41 PM, James Smart wrote:
->> Jon,
->>
->> I must NACK this patch to the lpfc driver and recommend that all other patches
->> which replace pci_find_capability(pdef, PCI_CAP_ID_EXP) with
->> "pci_is_pcie(pdev)" are NACK'd as well.
->>
->> The reason is due to an issue on PPC platforms whereby use of "pdev->is_pcie"
->> and pci_is_pcie() will erroneously fail under some conditions, but explicit
->> search for the capability struct via pci_find_capability() is always
->> successful.   I expect this to be due a shadowing of pci config space in the
->> hal/platform that isn't sufficiently built up.  We detected this issue while
->> testing AER/EEH, and are functional only if the pci_find_capability() option
->> is used.
->>
->> -- james s
->>
->>
->>
->> On 6/27/2011 1:39 PM, Jon Mason wrote:
->>> The PCIE capability offset is saved during PCI bus walking.  It will
->>> remove an unnecessary search in the PCI configuration space if this
->>> value is referenced instead of reacquiring it.  Also, pci_is_pcie is a
->>> better way of determining if the device is PCIE or not (as it uses the
->>> same saved PCIE capability offset).
->>>
->>> Signed-off-by: Jon Mason<jdmason-zqedIHPRSYI@public.gmane.org>
->>> ---
->>>     drivers/scsi/lpfc/lpfc_init.c |    2 +-
->>>     1 files changed, 1 insertions(+), 1 deletions(-)
->>>
->>> diff --git a/drivers/scsi/lpfc/lpfc_init.c b/drivers/scsi/lpfc/lpfc_init.c
->>> index 148b98d..9000ad0 100644
->>> --- a/drivers/scsi/lpfc/lpfc_init.c
->>> +++ b/drivers/scsi/lpfc/lpfc_init.c
->>> @@ -3970,7 +3970,7 @@ lpfc_enable_pci_dev(struct lpfc_hba *phba)
->>>     	pci_save_state(pdev);
->>>
->>>     	/* PCIe EEH recovery on powerpc platforms needs fundamental reset */
->>> -	if (pci_find_capability(pdev, PCI_CAP_ID_EXP))
->>> +	if (pci_is_pcie(pdev))
->>>     		pdev->needs_freset = 1;
->>>
->>>     	return 0;
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-scsi" in
->> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>
->
+ - R.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
