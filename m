@@ -1,56 +1,33 @@
-From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-Subject: install.pl "chown" issue (Was: Re: rhel6 ofed v1.5.3)
-Date: Tue, 5 Jul 2011 15:36:18 -0700
-Message-ID: <20110705153618.c7cba778.weiny2@llnl.gov>
-References: <BANLkTi=fJr7BypNCs-7S4-THNTUGtmiicg@mail.gmail.com>
+From: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH V1 7/9] ib/pma: add include file for IBA performance
+ counters definitions
+Date: Wed, 6 Jul 2011 06:11:48 +0300
+Message-ID: <CAJZOPZK3tT9gXP46ek-tO3xyvj7=eKyGJXBoim9uOMbJc4BtfQ@mail.gmail.com>
+References: <alpine.LRH.2.00.1106151733410.15844@ogerlitz.voltaire.com>
+	<alpine.LRH.2.00.1106151747390.15844@ogerlitz.voltaire.com>
+	<alpine.LRH.2.00.1106161119120.12552@ogerlitz.voltaire.com>
+	<4DFA10CC.5080002@mellanox.com>
+	<35AAF1E4A771E142979F27B51793A4888838E71F03@AVEXMB1.qlogic.org>
+	<BANLkTikpMWYaXB8Ne+FaLGHi2L5TUCNDkQ@mail.gmail.com>
+	<35AAF1E4A771E142979F27B51793A4888838FEE740@AVEXMB1.qlogic.org>
+	<4E133575.8040105@mellanox.com>
+	<CAL1RGDX7U=PMjWadeS3Gp+xST56xJiK=qydwu1PMcvkfb7DcnA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <BANLkTi=fJr7BypNCs-7S4-THNTUGtmiicg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <CAL1RGDX7U=PMjWadeS3Gp+xST56xJiK=qydwu1PMcvkfb7DcnA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Michael Di Domenico <mdidomenico4-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Mike Marciniszyn <mike.marciniszyn-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, 1 Jul 2011 10:08:47 -0700
-Michael Di Domenico <mdidomenico4-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
+Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
 
-> According to my installation of Ofed 1.5.3 on RHEL6, the
-> infiniband-diags package rpm is trying to chown /usr/local in order to
-> deposit a library in lib64.
+> What's the other patch in question here?
 
-infiniband-diags does not do a chown.
+I don't know, waiting to hear from Mike, Mike?
 
-> 
-> In my environment /usr/local is off-limits to root and all package
-> installs.  Is this a bug?  Is there a workaround to allow the
-> install.pl to complete?
-
-I just tried this on a vanilla Fedora 15 system and was able to build the source rpms just fine.
-
-Try building and installing in this order.
-
-libibumad-1.3.7-1.src.rpm
-libibmad-1.3.7-1.src.rpm
-opensm-3.3.9-1.src.rpm
-infiniband-diags-1.5.8-1.src.rpm
-
-
-Ira
-
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
-
--- 
-Ira Weiny
-Math Programmer/Computer Scientist
-Lawrence Livermore National Lab
-925-423-8008
-weiny2-i2BcT+NCU+M@public.gmane.org
+Or.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
