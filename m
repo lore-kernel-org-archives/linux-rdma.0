@@ -1,7 +1,7 @@
 From: Goldwyn Rodrigues <rgoldwyn-l3A5Bk7waGM@public.gmane.org>
-Subject: [PATCH 11/12] Clear status reporting from mthca_memfree
-Date: Thu, 7 Jul 2011 12:23:15 -0500
-Message-ID: <20110707172314.GL10241@baloo.cartoons>
+Subject: [PATCH 12/12] Clear status from mthca_srq
+Date: Thu, 7 Jul 2011 12:23:29 -0500
+Message-ID: <20110707172329.GM10241@baloo.cartoons>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
@@ -12,188 +12,120 @@ Cc: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 ---
- drivers/infiniband/hw/mthca/mthca_memfree.c |   45 +++++++++------------------
- 1 files changed, 15 insertions(+), 30 deletions(-)
+ drivers/infiniband/hw/mthca/mthca_srq.c |   33 ++++++------------------------
+ 1 files changed, 7 insertions(+), 26 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mthca/mthca_memfree.c b/drivers/infiniband/hw/mthca/mthca_memfree.c
-index 8c2a837..9d9ca45 100644
---- a/drivers/infiniband/hw/mthca/mthca_memfree.c
-+++ b/drivers/infiniband/hw/mthca/mthca_memfree.c
-@@ -223,7 +223,6 @@ int mthca_table_get(struct mthca_dev *dev, struct mthca_icm_table *table, int ob
+diff --git a/drivers/infiniband/hw/mthca/mthca_srq.c b/drivers/infiniband/hw/mthca/mthca_srq.c
+index 4fabe62..d22f970 100644
+--- a/drivers/infiniband/hw/mthca/mthca_srq.c
++++ b/drivers/infiniband/hw/mthca/mthca_srq.c
+@@ -200,7 +200,6 @@ int mthca_alloc_srq(struct mthca_dev *dev, struct mthca_pd *pd,
+ 		    struct ib_srq_attr *attr, struct mthca_srq *srq)
  {
- 	int i = (obj & (table->num_obj - 1)) * table->obj_size / MTHCA_TABLE_CHUNK_SIZE;
- 	int ret = 0;
+ 	struct mthca_mailbox *mailbox;
+-	u8 status;
+ 	int ds;
+ 	int err;
+ 
+@@ -266,18 +265,12 @@ int mthca_alloc_srq(struct mthca_dev *dev, struct mthca_pd *pd,
+ 	else
+ 		mthca_tavor_init_srq_context(dev, pd, srq, mailbox->buf);
+ 
+-	err = mthca_SW2HW_SRQ(dev, mailbox, srq->srqn, &status);
++	err = mthca_SW2HW_SRQ(dev, mailbox, srq->srqn);
+ 
+ 	if (err) {
+ 		mthca_warn(dev, "SW2HW_SRQ failed (%d)\n", err);
+ 		goto err_out_free_buf;
+ 	}
+-	if (status) {
+-		mthca_warn(dev, "SW2HW_SRQ returned status 0x%02x\n",
+-			   status);
+-		err = -EINVAL;
+-		goto err_out_free_buf;
+-	}
+ 
+ 	spin_lock_irq(&dev->srq_table.lock);
+ 	if (mthca_array_set(&dev->srq_table.srq,
+@@ -299,11 +292,9 @@ int mthca_alloc_srq(struct mthca_dev *dev, struct mthca_pd *pd,
+ 	return 0;
+ 
+ err_out_free_srq:
+-	err = mthca_HW2SW_SRQ(dev, mailbox, srq->srqn, &status);
++	err = mthca_HW2SW_SRQ(dev, mailbox, srq->srqn);
+ 	if (err)
+ 		mthca_warn(dev, "HW2SW_SRQ failed (%d)\n", err);
+-	else if (status)
+-		mthca_warn(dev, "HW2SW_SRQ returned status 0x%02x\n", status);
+ 
+ err_out_free_buf:
+ 	if (!pd->ibpd.uobject)
+@@ -340,7 +331,6 @@ void mthca_free_srq(struct mthca_dev *dev, struct mthca_srq *srq)
+ {
+ 	struct mthca_mailbox *mailbox;
+ 	int err;
 -	u8 status;
  
- 	mutex_lock(&table->mutex);
+ 	mailbox = mthca_alloc_mailbox(dev, GFP_KERNEL);
+ 	if (IS_ERR(mailbox)) {
+@@ -348,11 +338,9 @@ void mthca_free_srq(struct mthca_dev *dev, struct mthca_srq *srq)
+ 		return;
+ 	}
  
-@@ -240,11 +239,10 @@ int mthca_table_get(struct mthca_dev *dev, struct mthca_icm_table *table, int ob
+-	err = mthca_HW2SW_SRQ(dev, mailbox, srq->srqn, &status);
++	err = mthca_HW2SW_SRQ(dev, mailbox, srq->srqn);
+ 	if (err)
+ 		mthca_warn(dev, "HW2SW_SRQ failed (%d)\n", err);
+-	else if (status)
+-		mthca_warn(dev, "HW2SW_SRQ returned status 0x%02x\n", status);
+ 
+ 	spin_lock_irq(&dev->srq_table.lock);
+ 	mthca_array_clear(&dev->srq_table.srq,
+@@ -378,8 +366,7 @@ int mthca_modify_srq(struct ib_srq *ibsrq, struct ib_srq_attr *attr,
+ {
+ 	struct mthca_dev *dev = to_mdev(ibsrq->device);
+ 	struct mthca_srq *srq = to_msrq(ibsrq);
+-	int ret;
+-	u8 status;
++	int ret = 0;
+ 
+ 	/* We don't support resizing SRQs (yet?) */
+ 	if (attr_mask & IB_SRQ_MAX_WR)
+@@ -391,16 +378,11 @@ int mthca_modify_srq(struct ib_srq *ibsrq, struct ib_srq_attr *attr,
+ 			return -EINVAL;
+ 
+ 		mutex_lock(&srq->mutex);
+-		ret = mthca_ARM_SRQ(dev, srq->srqn, attr->srq_limit, &status);
++		ret = mthca_ARM_SRQ(dev, srq->srqn, attr->srq_limit);
+ 		mutex_unlock(&srq->mutex);
+-
+-		if (ret)
+-			return ret;
+-		if (status)
+-			return -EINVAL;
+ 	}
+ 
+-	return 0;
++	return ret;
+ }
+ 
+ int mthca_query_srq(struct ib_srq *ibsrq, struct ib_srq_attr *srq_attr)
+@@ -410,14 +392,13 @@ int mthca_query_srq(struct ib_srq *ibsrq, struct ib_srq_attr *srq_attr)
+ 	struct mthca_mailbox *mailbox;
+ 	struct mthca_arbel_srq_context *arbel_ctx;
+ 	struct mthca_tavor_srq_context *tavor_ctx;
+-	u8 status;
+ 	int err;
+ 
+ 	mailbox = mthca_alloc_mailbox(dev, GFP_KERNEL);
+ 	if (IS_ERR(mailbox))
+ 		return PTR_ERR(mailbox);
+ 
+-	err = mthca_QUERY_SRQ(dev, srq->srqn, mailbox, &status);
++	err = mthca_QUERY_SRQ(dev, srq->srqn, mailbox);
+ 	if (err)
  		goto out;
- 	}
  
--	if (mthca_MAP_ICM(dev, table->icm[i], table->virt + i * MTHCA_TABLE_CHUNK_SIZE,
--			  &status) || status) {
-+	if (mthca_MAP_ICM(dev, table->icm[i], 
-+				table->virt + i * MTHCA_TABLE_CHUNK_SIZE)) {
- 		mthca_free_icm(dev, table->icm[i], table->coherent);
- 		table->icm[i] = NULL;
--		ret = -ENOMEM;
- 		goto out;
- 	}
- 
-@@ -258,7 +256,6 @@ out:
- void mthca_table_put(struct mthca_dev *dev, struct mthca_icm_table *table, int obj)
- {
- 	int i;
--	u8 status;
- 
- 	if (!mthca_is_memfree(dev))
- 		return;
-@@ -269,8 +266,7 @@ void mthca_table_put(struct mthca_dev *dev, struct mthca_icm_table *table, int o
- 
- 	if (--table->icm[i]->refcount == 0) {
- 		mthca_UNMAP_ICM(dev, table->virt + i * MTHCA_TABLE_CHUNK_SIZE,
--				MTHCA_TABLE_CHUNK_SIZE / MTHCA_ICM_PAGE_SIZE,
--				&status);
-+				MTHCA_TABLE_CHUNK_SIZE / MTHCA_ICM_PAGE_SIZE);
- 		mthca_free_icm(dev, table->icm[i], table->coherent);
- 		table->icm[i] = NULL;
- 	}
-@@ -366,7 +362,6 @@ struct mthca_icm_table *mthca_alloc_icm_table(struct mthca_dev *dev,
- 	int num_icm;
- 	unsigned chunk_size;
- 	int i;
--	u8 status;
- 
- 	obj_per_chunk = MTHCA_TABLE_CHUNK_SIZE / obj_size;
- 	num_icm = DIV_ROUND_UP(nobj, obj_per_chunk);
-@@ -396,8 +391,8 @@ struct mthca_icm_table *mthca_alloc_icm_table(struct mthca_dev *dev,
- 						__GFP_NOWARN, use_coherent);
- 		if (!table->icm[i])
- 			goto err;
--		if (mthca_MAP_ICM(dev, table->icm[i], virt + i * MTHCA_TABLE_CHUNK_SIZE,
--				  &status) || status) {
-+		if (mthca_MAP_ICM(dev, table->icm[i],
-+					virt + i * MTHCA_TABLE_CHUNK_SIZE)) {
- 			mthca_free_icm(dev, table->icm[i], table->coherent);
- 			table->icm[i] = NULL;
- 			goto err;
-@@ -416,8 +411,7 @@ err:
- 	for (i = 0; i < num_icm; ++i)
- 		if (table->icm[i]) {
- 			mthca_UNMAP_ICM(dev, virt + i * MTHCA_TABLE_CHUNK_SIZE,
--					MTHCA_TABLE_CHUNK_SIZE / MTHCA_ICM_PAGE_SIZE,
--					&status);
-+				MTHCA_TABLE_CHUNK_SIZE / MTHCA_ICM_PAGE_SIZE);
- 			mthca_free_icm(dev, table->icm[i], table->coherent);
- 		}
- 
-@@ -429,13 +423,12 @@ err:
- void mthca_free_icm_table(struct mthca_dev *dev, struct mthca_icm_table *table)
- {
- 	int i;
--	u8 status;
- 
- 	for (i = 0; i < table->num_icm; ++i)
- 		if (table->icm[i]) {
--			mthca_UNMAP_ICM(dev, table->virt + i * MTHCA_TABLE_CHUNK_SIZE,
--					MTHCA_TABLE_CHUNK_SIZE / MTHCA_ICM_PAGE_SIZE,
--					&status);
-+			mthca_UNMAP_ICM(dev,
-+				table->virt + i * MTHCA_TABLE_CHUNK_SIZE,
-+				MTHCA_TABLE_CHUNK_SIZE / MTHCA_ICM_PAGE_SIZE);
- 			mthca_free_icm(dev, table->icm[i], table->coherent);
- 		}
- 
-@@ -454,7 +447,6 @@ int mthca_map_user_db(struct mthca_dev *dev, struct mthca_uar *uar,
- {
- 	struct page *pages[1];
- 	int ret = 0;
--	u8 status;
- 	int i;
- 
- 	if (!mthca_is_memfree(dev))
-@@ -494,9 +486,7 @@ int mthca_map_user_db(struct mthca_dev *dev, struct mthca_uar *uar,
- 	}
- 
- 	ret = mthca_MAP_ICM_page(dev, sg_dma_address(&db_tab->page[i].mem),
--				 mthca_uarc_virt(dev, uar, i), &status);
--	if (!ret && status)
--		ret = -EINVAL;
-+				 mthca_uarc_virt(dev, uar, i));
- 	if (ret) {
- 		pci_unmap_sg(dev->pdev, &db_tab->page[i].mem, 1, PCI_DMA_TODEVICE);
- 		put_page(sg_page(&db_tab->page[i].mem));
-@@ -557,14 +547,13 @@ void mthca_cleanup_user_db_tab(struct mthca_dev *dev, struct mthca_uar *uar,
- 			       struct mthca_user_db_table *db_tab)
- {
- 	int i;
--	u8 status;
- 
- 	if (!mthca_is_memfree(dev))
- 		return;
- 
- 	for (i = 0; i < dev->uar_table.uarc_size / MTHCA_ICM_PAGE_SIZE; ++i) {
- 		if (db_tab->page[i].uvirt) {
--			mthca_UNMAP_ICM(dev, mthca_uarc_virt(dev, uar, i), 1, &status);
-+			mthca_UNMAP_ICM(dev, mthca_uarc_virt(dev, uar, i), 1);
- 			pci_unmap_sg(dev->pdev, &db_tab->page[i].mem, 1, PCI_DMA_TODEVICE);
- 			put_page(sg_page(&db_tab->page[i].mem));
- 		}
-@@ -581,7 +570,6 @@ int mthca_alloc_db(struct mthca_dev *dev, enum mthca_db_type type,
- 	int i, j;
- 	struct mthca_db_page *page;
- 	int ret = 0;
--	u8 status;
- 
- 	mutex_lock(&dev->db_tab->mutex);
- 
-@@ -644,9 +632,7 @@ alloc:
- 	memset(page->db_rec, 0, MTHCA_ICM_PAGE_SIZE);
- 
- 	ret = mthca_MAP_ICM_page(dev, page->mapping,
--				 mthca_uarc_virt(dev, &dev->driver_uar, i), &status);
--	if (!ret && status)
--		ret = -EINVAL;
-+				 mthca_uarc_virt(dev, &dev->driver_uar, i));
- 	if (ret) {
- 		dma_free_coherent(&dev->pdev->dev, MTHCA_ICM_PAGE_SIZE,
- 				  page->db_rec, page->mapping);
-@@ -678,7 +664,6 @@ void mthca_free_db(struct mthca_dev *dev, int type, int db_index)
- {
- 	int i, j;
- 	struct mthca_db_page *page;
--	u8 status;
- 
- 	i = db_index / MTHCA_DB_REC_PER_PAGE;
- 	j = db_index % MTHCA_DB_REC_PER_PAGE;
-@@ -694,7 +679,7 @@ void mthca_free_db(struct mthca_dev *dev, int type, int db_index)
- 
- 	if (bitmap_empty(page->used, MTHCA_DB_REC_PER_PAGE) &&
- 	    i >= dev->db_tab->max_group1 - 1) {
--		mthca_UNMAP_ICM(dev, mthca_uarc_virt(dev, &dev->driver_uar, i), 1, &status);
-+		mthca_UNMAP_ICM(dev, mthca_uarc_virt(dev, &dev->driver_uar, i), 1);
- 
- 		dma_free_coherent(&dev->pdev->dev, MTHCA_ICM_PAGE_SIZE,
- 				  page->db_rec, page->mapping);
-@@ -745,7 +730,6 @@ int mthca_init_db_tab(struct mthca_dev *dev)
- void mthca_cleanup_db_tab(struct mthca_dev *dev)
- {
- 	int i;
--	u8 status;
- 
- 	if (!mthca_is_memfree(dev))
- 		return;
-@@ -763,7 +747,8 @@ void mthca_cleanup_db_tab(struct mthca_dev *dev)
- 		if (!bitmap_empty(dev->db_tab->page[i].used, MTHCA_DB_REC_PER_PAGE))
- 			mthca_warn(dev, "Kernel UARC page %d not empty\n", i);
- 
--		mthca_UNMAP_ICM(dev, mthca_uarc_virt(dev, &dev->driver_uar, i), 1, &status);
-+		mthca_UNMAP_ICM(dev,
-+			mthca_uarc_virt(dev, &dev->driver_uar, i), 1);
- 
- 		dma_free_coherent(&dev->pdev->dev, MTHCA_ICM_PAGE_SIZE,
- 				  dev->db_tab->page[i].db_rec,
 -- 
 1.7.5.3
 
