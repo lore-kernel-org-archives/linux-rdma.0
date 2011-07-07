@@ -1,31 +1,34 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH] IB/CMA: fail qkey setting for RDMA_PS_IPOIB and
- IB_LINK_LAYER_ETHERNET
-Date: Thu, 7 Jul 2011 16:55:00 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A8237302D0F3@ORSMSX101.amr.corp.intel.com>
-References: <1310045857-26040-1-git-send-email-monis@mellanox.co.il>
+From: Goldwyn Rodrigues <rgoldwyn-l3A5Bk7waGM@public.gmane.org>
+Subject: [PATCH 00/12] Fold status in error code
+Date: Thu, 7 Jul 2011 12:20:18 -0500
+Message-ID: <20110707172018.GA10241@baloo.cartoons>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1310045857-26040-1-git-send-email-monis-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
-Content-Language: en-US
+Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Moni Shoua <monis-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "eli-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org" <eli-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
-Cc: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "orend-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <orend-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> In general, when link layer is ETHERNET it is wrong to use IPoIB port space
-> since
-> no IPoIB interface is available. Specifically, setting qkey when port space is
-> RDMA_PS_IPOIB, requires SA query which is impossible when link layer is
-> IB_LINK_LAYER_ETHERNET.
+The firmware command handling in mthca looks like
+	err = mthca_FOO(..., &status);
+	if (err) ...
+	if (status) ...
 
-Can you describe the problem that the current code causes?  Does it lead to a kernel crash?
+Most of the time where status matters, a non-OK status message translates to
+-EINVAL err.
 
-Maybe the issue is that port space ipoib should never be associated with a non-IB device, with a check added to cma_acquire_dev().
+This patchset folds the status in error code, so that we don't need to repeat
+error handling code, and yet the type of error is communicated to the calling
+functions.
 
-- Sean
+This is in parallel to mlx4 code by Roland. The patches were broken per-file
+basis, and all 12 patches are required before you can compile the module.
+
+
+-- 
+Goldwyn
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
