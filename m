@@ -1,7 +1,7 @@
 From: Goldwyn Rodrigues <rgoldwyn-l3A5Bk7waGM@public.gmane.org>
-Subject: [PATCH 10/12] Clear status reporting from mthca_provider
-Date: Thu, 7 Jul 2011 12:22:54 -0500
-Message-ID: <20110707172254.GK10241@baloo.cartoons>
+Subject: [PATCH 11/12] Clear status reporting from mthca_memfree
+Date: Thu, 7 Jul 2011 12:23:15 -0500
+Message-ID: <20110707172314.GL10241@baloo.cartoons>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
@@ -12,231 +12,188 @@ Cc: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 ---
- drivers/infiniband/hw/mthca/mthca_provider.c |   77 ++++----------------------
- 1 files changed, 11 insertions(+), 66 deletions(-)
+ drivers/infiniband/hw/mthca/mthca_memfree.c |   45 +++++++++------------------
+ 1 files changed, 15 insertions(+), 30 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mthca/mthca_provider.c b/drivers/infiniband/hw/mthca/mthca_provider.c
-index 1e0b4b6..365fe0e 100644
---- a/drivers/infiniband/hw/mthca/mthca_provider.c
-+++ b/drivers/infiniband/hw/mthca/mthca_provider.c
-@@ -63,8 +63,6 @@ static int mthca_query_device(struct ib_device *ibdev,
- 	int err = -ENOMEM;
- 	struct mthca_dev *mdev = to_mdev(ibdev);
- 
--	u8 status;
--
- 	in_mad  = kzalloc(sizeof *in_mad, GFP_KERNEL);
- 	out_mad = kmalloc(sizeof *out_mad, GFP_KERNEL);
- 	if (!in_mad || !out_mad)
-@@ -78,14 +76,9 @@ static int mthca_query_device(struct ib_device *ibdev,
- 	in_mad->attr_id = IB_SMP_ATTR_NODE_INFO;
- 
- 	err = mthca_MAD_IFC(mdev, 1, 1,
--			    1, NULL, NULL, in_mad, out_mad,
--			    &status);
-+			    1, NULL, NULL, in_mad, out_mad);
- 	if (err)
- 		goto out;
--	if (status) {
--		err = -EINVAL;
--		goto out;
--	}
- 
- 	props->device_cap_flags    = mdev->device_cap_flags;
- 	props->vendor_id           = be32_to_cpup((__be32 *) (out_mad->data + 36)) &
-@@ -141,7 +134,6 @@ static int mthca_query_port(struct ib_device *ibdev,
- 	struct ib_smp *in_mad  = NULL;
- 	struct ib_smp *out_mad = NULL;
- 	int err = -ENOMEM;
+diff --git a/drivers/infiniband/hw/mthca/mthca_memfree.c b/drivers/infiniband/hw/mthca/mthca_memfree.c
+index 8c2a837..9d9ca45 100644
+--- a/drivers/infiniband/hw/mthca/mthca_memfree.c
++++ b/drivers/infiniband/hw/mthca/mthca_memfree.c
+@@ -223,7 +223,6 @@ int mthca_table_get(struct mthca_dev *dev, struct mthca_icm_table *table, int ob
+ {
+ 	int i = (obj & (table->num_obj - 1)) * table->obj_size / MTHCA_TABLE_CHUNK_SIZE;
+ 	int ret = 0;
 -	u8 status;
  
- 	in_mad  = kzalloc(sizeof *in_mad, GFP_KERNEL);
- 	out_mad = kmalloc(sizeof *out_mad, GFP_KERNEL);
-@@ -155,14 +147,9 @@ static int mthca_query_port(struct ib_device *ibdev,
- 	in_mad->attr_mod = cpu_to_be32(port);
+ 	mutex_lock(&table->mutex);
  
- 	err = mthca_MAD_IFC(to_mdev(ibdev), 1, 1,
--			    port, NULL, NULL, in_mad, out_mad,
--			    &status);
-+			    port, NULL, NULL, in_mad, out_mad);
- 	if (err)
+@@ -240,11 +239,10 @@ int mthca_table_get(struct mthca_dev *dev, struct mthca_icm_table *table, int ob
  		goto out;
--	if (status) {
--		err = -EINVAL;
--		goto out;
--	}
- 
- 	props->lid               = be16_to_cpup((__be16 *) (out_mad->data + 16));
- 	props->lmc               = out_mad->data[34] & 0x7;
-@@ -214,7 +201,6 @@ static int mthca_modify_port(struct ib_device *ibdev,
- 	struct mthca_set_ib_param set_ib;
- 	struct ib_port_attr attr;
- 	int err;
--	u8 status;
- 
- 	if (mutex_lock_interruptible(&to_mdev(ibdev)->cap_mask_mutex))
- 		return -ERESTARTSYS;
-@@ -229,14 +215,9 @@ static int mthca_modify_port(struct ib_device *ibdev,
- 	set_ib.cap_mask = (attr.port_cap_flags | props->set_port_cap_mask) &
- 		~props->clr_port_cap_mask;
- 
--	err = mthca_SET_IB(to_mdev(ibdev), &set_ib, port, &status);
-+	err = mthca_SET_IB(to_mdev(ibdev), &set_ib, port);
- 	if (err)
- 		goto out;
--	if (status) {
--		err = -EINVAL;
--		goto out;
--	}
--
- out:
- 	mutex_unlock(&to_mdev(ibdev)->cap_mask_mutex);
- 	return err;
-@@ -248,7 +229,6 @@ static int mthca_query_pkey(struct ib_device *ibdev,
- 	struct ib_smp *in_mad  = NULL;
- 	struct ib_smp *out_mad = NULL;
- 	int err = -ENOMEM;
--	u8 status;
- 
- 	in_mad  = kzalloc(sizeof *in_mad, GFP_KERNEL);
- 	out_mad = kmalloc(sizeof *out_mad, GFP_KERNEL);
-@@ -260,14 +240,9 @@ static int mthca_query_pkey(struct ib_device *ibdev,
- 	in_mad->attr_mod = cpu_to_be32(index / 32);
- 
- 	err = mthca_MAD_IFC(to_mdev(ibdev), 1, 1,
--			    port, NULL, NULL, in_mad, out_mad,
--			    &status);
-+			    port, NULL, NULL, in_mad, out_mad);
- 	if (err)
- 		goto out;
--	if (status) {
--		err = -EINVAL;
--		goto out;
--	}
- 
- 	*pkey = be16_to_cpu(((__be16 *) out_mad->data)[index % 32]);
- 
-@@ -283,7 +258,6 @@ static int mthca_query_gid(struct ib_device *ibdev, u8 port,
- 	struct ib_smp *in_mad  = NULL;
- 	struct ib_smp *out_mad = NULL;
- 	int err = -ENOMEM;
--	u8 status;
- 
- 	in_mad  = kzalloc(sizeof *in_mad, GFP_KERNEL);
- 	out_mad = kmalloc(sizeof *out_mad, GFP_KERNEL);
-@@ -295,14 +269,9 @@ static int mthca_query_gid(struct ib_device *ibdev, u8 port,
- 	in_mad->attr_mod = cpu_to_be32(port);
- 
- 	err = mthca_MAD_IFC(to_mdev(ibdev), 1, 1,
--			    port, NULL, NULL, in_mad, out_mad,
--			    &status);
-+			    port, NULL, NULL, in_mad, out_mad);
- 	if (err)
- 		goto out;
--	if (status) {
--		err = -EINVAL;
--		goto out;
--	}
- 
- 	memcpy(gid->raw, out_mad->data + 8, 8);
- 
-@@ -311,14 +280,9 @@ static int mthca_query_gid(struct ib_device *ibdev, u8 port,
- 	in_mad->attr_mod = cpu_to_be32(index / 8);
- 
- 	err = mthca_MAD_IFC(to_mdev(ibdev), 1, 1,
--			    port, NULL, NULL, in_mad, out_mad,
--			    &status);
-+			    port, NULL, NULL, in_mad, out_mad);
- 	if (err)
- 		goto out;
--	if (status) {
--		err = -EINVAL;
--		goto out;
--	}
- 
- 	memcpy(gid->raw + 8, out_mad->data + (index % 8) * 8, 8);
- 
-@@ -800,7 +764,6 @@ static int mthca_resize_cq(struct ib_cq *ibcq, int entries, struct ib_udata *uda
- 	struct mthca_cq *cq = to_mcq(ibcq);
- 	struct mthca_resize_cq ucmd;
- 	u32 lkey;
--	u8 status;
- 	int ret;
- 
- 	if (entries < 1 || entries > dev->limits.max_cqes)
-@@ -827,9 +790,7 @@ static int mthca_resize_cq(struct ib_cq *ibcq, int entries, struct ib_udata *uda
- 		lkey = ucmd.lkey;
  	}
  
--	ret = mthca_RESIZE_CQ(dev, cq->cqn, lkey, ilog2(entries), &status);
--	if (status)
--		ret = -EINVAL;
-+	ret = mthca_RESIZE_CQ(dev, cq->cqn, lkey, ilog2(entries));
+-	if (mthca_MAP_ICM(dev, table->icm[i], table->virt + i * MTHCA_TABLE_CHUNK_SIZE,
+-			  &status) || status) {
++	if (mthca_MAP_ICM(dev, table->icm[i], 
++				table->virt + i * MTHCA_TABLE_CHUNK_SIZE)) {
+ 		mthca_free_icm(dev, table->icm[i], table->coherent);
+ 		table->icm[i] = NULL;
+-		ret = -ENOMEM;
+ 		goto out;
+ 	}
  
- 	if (ret) {
- 		if (cq->resize_buf) {
-@@ -1161,7 +1122,6 @@ static int mthca_unmap_fmr(struct list_head *fmr_list)
+@@ -258,7 +256,6 @@ out:
+ void mthca_table_put(struct mthca_dev *dev, struct mthca_icm_table *table, int obj)
  {
- 	struct ib_fmr *fmr;
- 	int err;
--	u8 status;
- 	struct mthca_dev *mdev = NULL;
- 
- 	list_for_each_entry(fmr, fmr_list, list) {
-@@ -1182,12 +1142,8 @@ static int mthca_unmap_fmr(struct list_head *fmr_list)
- 		list_for_each_entry(fmr, fmr_list, list)
- 			mthca_tavor_fmr_unmap(mdev, to_mfmr(fmr));
- 
--	err = mthca_SYNC_TPT(mdev, &status);
--	if (err)
--		return err;
--	if (status)
--		return -EINVAL;
--	return 0;
-+	err = mthca_SYNC_TPT(mdev);
-+	return err;
- }
- 
- static ssize_t show_rev(struct device *device, struct device_attribute *attr,
-@@ -1253,7 +1209,6 @@ static int mthca_init_node_data(struct mthca_dev *dev)
- 	struct ib_smp *in_mad  = NULL;
- 	struct ib_smp *out_mad = NULL;
- 	int err = -ENOMEM;
+ 	int i;
 -	u8 status;
  
- 	in_mad  = kzalloc(sizeof *in_mad, GFP_KERNEL);
- 	out_mad = kmalloc(sizeof *out_mad, GFP_KERNEL);
-@@ -1264,28 +1219,18 @@ static int mthca_init_node_data(struct mthca_dev *dev)
- 	in_mad->attr_id = IB_SMP_ATTR_NODE_DESC;
+ 	if (!mthca_is_memfree(dev))
+ 		return;
+@@ -269,8 +266,7 @@ void mthca_table_put(struct mthca_dev *dev, struct mthca_icm_table *table, int o
  
- 	err = mthca_MAD_IFC(dev, 1, 1,
--			    1, NULL, NULL, in_mad, out_mad,
--			    &status);
-+			    1, NULL, NULL, in_mad, out_mad);
- 	if (err)
- 		goto out;
--	if (status) {
--		err = -EINVAL;
--		goto out;
--	}
+ 	if (--table->icm[i]->refcount == 0) {
+ 		mthca_UNMAP_ICM(dev, table->virt + i * MTHCA_TABLE_CHUNK_SIZE,
+-				MTHCA_TABLE_CHUNK_SIZE / MTHCA_ICM_PAGE_SIZE,
+-				&status);
++				MTHCA_TABLE_CHUNK_SIZE / MTHCA_ICM_PAGE_SIZE);
+ 		mthca_free_icm(dev, table->icm[i], table->coherent);
+ 		table->icm[i] = NULL;
+ 	}
+@@ -366,7 +362,6 @@ struct mthca_icm_table *mthca_alloc_icm_table(struct mthca_dev *dev,
+ 	int num_icm;
+ 	unsigned chunk_size;
+ 	int i;
+-	u8 status;
  
- 	memcpy(dev->ib_dev.node_desc, out_mad->data, 64);
+ 	obj_per_chunk = MTHCA_TABLE_CHUNK_SIZE / obj_size;
+ 	num_icm = DIV_ROUND_UP(nobj, obj_per_chunk);
+@@ -396,8 +391,8 @@ struct mthca_icm_table *mthca_alloc_icm_table(struct mthca_dev *dev,
+ 						__GFP_NOWARN, use_coherent);
+ 		if (!table->icm[i])
+ 			goto err;
+-		if (mthca_MAP_ICM(dev, table->icm[i], virt + i * MTHCA_TABLE_CHUNK_SIZE,
+-				  &status) || status) {
++		if (mthca_MAP_ICM(dev, table->icm[i],
++					virt + i * MTHCA_TABLE_CHUNK_SIZE)) {
+ 			mthca_free_icm(dev, table->icm[i], table->coherent);
+ 			table->icm[i] = NULL;
+ 			goto err;
+@@ -416,8 +411,7 @@ err:
+ 	for (i = 0; i < num_icm; ++i)
+ 		if (table->icm[i]) {
+ 			mthca_UNMAP_ICM(dev, virt + i * MTHCA_TABLE_CHUNK_SIZE,
+-					MTHCA_TABLE_CHUNK_SIZE / MTHCA_ICM_PAGE_SIZE,
+-					&status);
++				MTHCA_TABLE_CHUNK_SIZE / MTHCA_ICM_PAGE_SIZE);
+ 			mthca_free_icm(dev, table->icm[i], table->coherent);
+ 		}
  
- 	in_mad->attr_id = IB_SMP_ATTR_NODE_INFO;
+@@ -429,13 +423,12 @@ err:
+ void mthca_free_icm_table(struct mthca_dev *dev, struct mthca_icm_table *table)
+ {
+ 	int i;
+-	u8 status;
  
- 	err = mthca_MAD_IFC(dev, 1, 1,
--			    1, NULL, NULL, in_mad, out_mad,
--			    &status);
-+			    1, NULL, NULL, in_mad, out_mad);
- 	if (err)
- 		goto out;
--	if (status) {
--		err = -EINVAL;
--		goto out;
--	}
+ 	for (i = 0; i < table->num_icm; ++i)
+ 		if (table->icm[i]) {
+-			mthca_UNMAP_ICM(dev, table->virt + i * MTHCA_TABLE_CHUNK_SIZE,
+-					MTHCA_TABLE_CHUNK_SIZE / MTHCA_ICM_PAGE_SIZE,
+-					&status);
++			mthca_UNMAP_ICM(dev,
++				table->virt + i * MTHCA_TABLE_CHUNK_SIZE,
++				MTHCA_TABLE_CHUNK_SIZE / MTHCA_ICM_PAGE_SIZE);
+ 			mthca_free_icm(dev, table->icm[i], table->coherent);
+ 		}
  
- 	if (mthca_is_memfree(dev))
- 		dev->rev_id = be32_to_cpup((__be32 *) (out_mad->data + 32));
+@@ -454,7 +447,6 @@ int mthca_map_user_db(struct mthca_dev *dev, struct mthca_uar *uar,
+ {
+ 	struct page *pages[1];
+ 	int ret = 0;
+-	u8 status;
+ 	int i;
+ 
+ 	if (!mthca_is_memfree(dev))
+@@ -494,9 +486,7 @@ int mthca_map_user_db(struct mthca_dev *dev, struct mthca_uar *uar,
+ 	}
+ 
+ 	ret = mthca_MAP_ICM_page(dev, sg_dma_address(&db_tab->page[i].mem),
+-				 mthca_uarc_virt(dev, uar, i), &status);
+-	if (!ret && status)
+-		ret = -EINVAL;
++				 mthca_uarc_virt(dev, uar, i));
+ 	if (ret) {
+ 		pci_unmap_sg(dev->pdev, &db_tab->page[i].mem, 1, PCI_DMA_TODEVICE);
+ 		put_page(sg_page(&db_tab->page[i].mem));
+@@ -557,14 +547,13 @@ void mthca_cleanup_user_db_tab(struct mthca_dev *dev, struct mthca_uar *uar,
+ 			       struct mthca_user_db_table *db_tab)
+ {
+ 	int i;
+-	u8 status;
+ 
+ 	if (!mthca_is_memfree(dev))
+ 		return;
+ 
+ 	for (i = 0; i < dev->uar_table.uarc_size / MTHCA_ICM_PAGE_SIZE; ++i) {
+ 		if (db_tab->page[i].uvirt) {
+-			mthca_UNMAP_ICM(dev, mthca_uarc_virt(dev, uar, i), 1, &status);
++			mthca_UNMAP_ICM(dev, mthca_uarc_virt(dev, uar, i), 1);
+ 			pci_unmap_sg(dev->pdev, &db_tab->page[i].mem, 1, PCI_DMA_TODEVICE);
+ 			put_page(sg_page(&db_tab->page[i].mem));
+ 		}
+@@ -581,7 +570,6 @@ int mthca_alloc_db(struct mthca_dev *dev, enum mthca_db_type type,
+ 	int i, j;
+ 	struct mthca_db_page *page;
+ 	int ret = 0;
+-	u8 status;
+ 
+ 	mutex_lock(&dev->db_tab->mutex);
+ 
+@@ -644,9 +632,7 @@ alloc:
+ 	memset(page->db_rec, 0, MTHCA_ICM_PAGE_SIZE);
+ 
+ 	ret = mthca_MAP_ICM_page(dev, page->mapping,
+-				 mthca_uarc_virt(dev, &dev->driver_uar, i), &status);
+-	if (!ret && status)
+-		ret = -EINVAL;
++				 mthca_uarc_virt(dev, &dev->driver_uar, i));
+ 	if (ret) {
+ 		dma_free_coherent(&dev->pdev->dev, MTHCA_ICM_PAGE_SIZE,
+ 				  page->db_rec, page->mapping);
+@@ -678,7 +664,6 @@ void mthca_free_db(struct mthca_dev *dev, int type, int db_index)
+ {
+ 	int i, j;
+ 	struct mthca_db_page *page;
+-	u8 status;
+ 
+ 	i = db_index / MTHCA_DB_REC_PER_PAGE;
+ 	j = db_index % MTHCA_DB_REC_PER_PAGE;
+@@ -694,7 +679,7 @@ void mthca_free_db(struct mthca_dev *dev, int type, int db_index)
+ 
+ 	if (bitmap_empty(page->used, MTHCA_DB_REC_PER_PAGE) &&
+ 	    i >= dev->db_tab->max_group1 - 1) {
+-		mthca_UNMAP_ICM(dev, mthca_uarc_virt(dev, &dev->driver_uar, i), 1, &status);
++		mthca_UNMAP_ICM(dev, mthca_uarc_virt(dev, &dev->driver_uar, i), 1);
+ 
+ 		dma_free_coherent(&dev->pdev->dev, MTHCA_ICM_PAGE_SIZE,
+ 				  page->db_rec, page->mapping);
+@@ -745,7 +730,6 @@ int mthca_init_db_tab(struct mthca_dev *dev)
+ void mthca_cleanup_db_tab(struct mthca_dev *dev)
+ {
+ 	int i;
+-	u8 status;
+ 
+ 	if (!mthca_is_memfree(dev))
+ 		return;
+@@ -763,7 +747,8 @@ void mthca_cleanup_db_tab(struct mthca_dev *dev)
+ 		if (!bitmap_empty(dev->db_tab->page[i].used, MTHCA_DB_REC_PER_PAGE))
+ 			mthca_warn(dev, "Kernel UARC page %d not empty\n", i);
+ 
+-		mthca_UNMAP_ICM(dev, mthca_uarc_virt(dev, &dev->driver_uar, i), 1, &status);
++		mthca_UNMAP_ICM(dev,
++			mthca_uarc_virt(dev, &dev->driver_uar, i), 1);
+ 
+ 		dma_free_coherent(&dev->pdev->dev, MTHCA_ICM_PAGE_SIZE,
+ 				  dev->db_tab->page[i].db_rec,
 -- 
 1.7.5.3
 
