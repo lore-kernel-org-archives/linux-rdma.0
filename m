@@ -1,7 +1,7 @@
 From: Goldwyn Rodrigues <rgoldwyn-l3A5Bk7waGM@public.gmane.org>
-Subject: [PATCH 05/12] Clean status reporting from mthca_cq
-Date: Thu, 7 Jul 2011 12:21:39 -0500
-Message-ID: <20110707172138.GF10241@baloo.cartoons>
+Subject: [PATCH 06/12] Clear status reporting from mthca_mr
+Date: Thu, 7 Jul 2011 12:21:49 -0500
+Message-ID: <20110707172149.GG10241@baloo.cartoons>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
@@ -12,63 +12,113 @@ Cc: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 ---
- drivers/infiniband/hw/mthca/mthca_cq.c |   15 ++-------------
- 1 files changed, 2 insertions(+), 13 deletions(-)
+ drivers/infiniband/hw/mthca/mthca_mr.c |   35 +++----------------------------
+ 1 files changed, 4 insertions(+), 31 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mthca/mthca_cq.c b/drivers/infiniband/hw/mthca/mthca_cq.c
-index 18ee3fa..53157b8 100644
---- a/drivers/infiniband/hw/mthca/mthca_cq.c
-+++ b/drivers/infiniband/hw/mthca/mthca_cq.c
-@@ -779,7 +779,6 @@ int mthca_init_cq(struct mthca_dev *dev, int nent,
+diff --git a/drivers/infiniband/hw/mthca/mthca_mr.c b/drivers/infiniband/hw/mthca/mthca_mr.c
+index 44045c8..ab876f9 100644
+--- a/drivers/infiniband/hw/mthca/mthca_mr.c
++++ b/drivers/infiniband/hw/mthca/mthca_mr.c
+@@ -257,7 +257,6 @@ static int __mthca_write_mtt(struct mthca_dev *dev, struct mthca_mtt *mtt,
  	struct mthca_mailbox *mailbox;
- 	struct mthca_cq_context *cq_context;
- 	int err = -ENOMEM;
+ 	__be64 *mtt_entry;
+ 	int err = 0;
 -	u8 status;
+ 	int i;
  
- 	cq->ibcq.cqe  = nent - 1;
- 	cq->is_kernel = !ctx;
-@@ -847,19 +846,12 @@ int mthca_init_cq(struct mthca_dev *dev, int nent,
- 		cq_context->state_db = cpu_to_be32(cq->arm_db_index);
- 	}
+ 	mailbox = mthca_alloc_mailbox(dev, GFP_KERNEL);
+@@ -281,17 +280,11 @@ static int __mthca_write_mtt(struct mthca_dev *dev, struct mthca_mtt *mtt,
+ 		if (i & 1)
+ 			mtt_entry[i + 2] = 0;
  
--	err = mthca_SW2HW_CQ(dev, mailbox, cq->cqn, &status);
-+	err = mthca_SW2HW_CQ(dev, mailbox, cq->cqn);
- 	if (err) {
- 		mthca_warn(dev, "SW2HW_CQ failed (%d)\n", err);
- 		goto err_out_free_mr;
- 	}
+-		err = mthca_WRITE_MTT(dev, mailbox, (i + 1) & ~1, &status);
++		err = mthca_WRITE_MTT(dev, mailbox, (i + 1) & ~1);
+ 		if (err) {
+ 			mthca_warn(dev, "WRITE_MTT failed (%d)\n", err);
+ 			goto out;
+ 		}
+-		if (status) {
+-			mthca_warn(dev, "WRITE_MTT returned status 0x%02x\n",
+-				   status);
+-			err = -EINVAL;
+-			goto out;
+-		}
  
--	if (status) {
--		mthca_warn(dev, "SW2HW_CQ returned status 0x%02x\n",
--			   status);
--		err = -EINVAL;
--		goto err_out_free_mr;
--	}
--
- 	spin_lock_irq(&dev->cq_table.lock);
- 	if (mthca_array_set(&dev->cq_table.cq,
- 			    cq->cqn & (dev->limits.num_cqs - 1),
-@@ -915,7 +907,6 @@ void mthca_free_cq(struct mthca_dev *dev,
- {
- 	struct mthca_mailbox *mailbox;
+ 		list_len    -= i;
+ 		start_index += i;
+@@ -441,7 +434,6 @@ int mthca_mr_alloc(struct mthca_dev *dev, u32 pd, int buffer_size_shift,
+ 	u32 key;
+ 	int i;
  	int err;
 -	u8 status;
  
- 	mailbox = mthca_alloc_mailbox(dev, GFP_KERNEL);
- 	if (IS_ERR(mailbox)) {
-@@ -923,11 +914,9 @@ void mthca_free_cq(struct mthca_dev *dev,
- 		return;
+ 	WARN_ON(buffer_size_shift >= 32);
+ 
+@@ -497,16 +489,10 @@ int mthca_mr_alloc(struct mthca_dev *dev, u32 pd, int buffer_size_shift,
  	}
  
--	err = mthca_HW2SW_CQ(dev, mailbox, cq->cqn, &status);
-+	err = mthca_HW2SW_CQ(dev, mailbox, cq->cqn);
- 	if (err)
- 		mthca_warn(dev, "HW2SW_CQ failed (%d)\n", err);
--	else if (status)
--		mthca_warn(dev, "HW2SW_CQ returned status 0x%02x\n", status);
+ 	err = mthca_SW2HW_MPT(dev, mailbox,
+-			      key & (dev->limits.num_mpts - 1),
+-			      &status);
++			      key & (dev->limits.num_mpts - 1));
+ 	if (err) {
+ 		mthca_warn(dev, "SW2HW_MPT failed (%d)\n", err);
+ 		goto err_out_mailbox;
+-	} else if (status) {
+-		mthca_warn(dev, "SW2HW_MPT returned status 0x%02x\n",
+-			   status);
+-		err = -EINVAL;
+-		goto err_out_mailbox;
+ 	}
  
- 	if (0) {
- 		__be32 *ctx = mailbox->buf;
+ 	mthca_free_mailbox(dev, mailbox);
+@@ -567,17 +553,12 @@ static void mthca_free_region(struct mthca_dev *dev, u32 lkey)
+ void mthca_free_mr(struct mthca_dev *dev, struct mthca_mr *mr)
+ {
+ 	int err;
+-	u8 status;
+ 
+ 	err = mthca_HW2SW_MPT(dev, NULL,
+ 			      key_to_hw_index(dev, mr->ibmr.lkey) &
+-			      (dev->limits.num_mpts - 1),
+-			      &status);
++			      (dev->limits.num_mpts - 1));
+ 	if (err)
+ 		mthca_warn(dev, "HW2SW_MPT failed (%d)\n", err);
+-	else if (status)
+-		mthca_warn(dev, "HW2SW_MPT returned status 0x%02x\n",
+-			   status);
+ 
+ 	mthca_free_region(dev, mr->ibmr.lkey);
+ 	mthca_free_mtt(dev, mr->mtt);
+@@ -590,7 +571,6 @@ int mthca_fmr_alloc(struct mthca_dev *dev, u32 pd,
+ 	struct mthca_mailbox *mailbox;
+ 	u64 mtt_seg;
+ 	u32 key, idx;
+-	u8 status;
+ 	int list_len = mr->attr.max_pages;
+ 	int err = -ENOMEM;
+ 	int i;
+@@ -672,18 +652,11 @@ int mthca_fmr_alloc(struct mthca_dev *dev, u32 pd,
+ 	}
+ 
+ 	err = mthca_SW2HW_MPT(dev, mailbox,
+-			      key & (dev->limits.num_mpts - 1),
+-			      &status);
++			      key & (dev->limits.num_mpts - 1));
+ 	if (err) {
+ 		mthca_warn(dev, "SW2HW_MPT failed (%d)\n", err);
+ 		goto err_out_mailbox_free;
+ 	}
+-	if (status) {
+-		mthca_warn(dev, "SW2HW_MPT returned status 0x%02x\n",
+-			   status);
+-		err = -EINVAL;
+-		goto err_out_mailbox_free;
+-	}
+ 
+ 	mthca_free_mailbox(dev, mailbox);
+ 	return 0;
 -- 
 1.7.5.3
 
