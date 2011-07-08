@@ -1,7 +1,7 @@
 From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
 Subject: Re: [PATCH 3/3] libibmad: Add PortExtendedSpeedsCounters support
-Date: Fri, 8 Jul 2011 13:34:32 -0700
-Message-ID: <20110708133432.ad231281.weiny2@llnl.gov>
+Date: Fri, 8 Jul 2011 13:35:40 -0700
+Message-ID: <20110708133540.e9ac0e85.weiny2@llnl.gov>
 References: <4E15E3CD.7060900@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
@@ -13,15 +13,13 @@ To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Cc: Liran Liss <liranl-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+Hey Hal,
+
 On Thu, 7 Jul 2011 09:50:21 -0700
 Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wrote:
 
 > 
 > Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-
-Thanks applied,
-Ira
-
 > ---
 >  include/infiniband/mad.h |   48 +++++++++++++++++++++++++++++++++++++++++++++-
 >  src/dump.c               |    5 ++++
@@ -88,6 +86,13 @@ Ira
 > +	IB_FEC_UNCORRECTABLE_BLOCK_CTR_LANE9_F,
 > +	IB_FEC_UNCORRECTABLE_BLOCK_CTR_LANE10_F,
 > +	IB_FEC_UNCORRECTABLE_BLOCK_CTR_LANE11_F,
+
+I hate to have such long names but I think for consistency these should be:
+
+IB_PESC_FEC_*
+
+Ira
+
 > +	IB_PESC_LAST_F,
 > +
 >  	IB_FIELD_LAST_		/* must be last */
