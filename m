@@ -1,77 +1,56 @@
-From: Bernard Metzler <BMT-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>
-Subject: Re: [PATCH 04/14] SIWv2: Module initialization: siw_main.c
-Date: Fri, 8 Jul 2011 17:33:52 +0200
-Message-ID: <OF192062FA.BDA19879-ONC12578C7.00553CAE-C12578C7.00557FF2@ch.ibm.com>
-References: <4E15BCD5.7050801@opengridcomputing.com>
+From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+Subject: Re: [PATCH] opensm: enable perfmgr build by default
+Date: Fri, 8 Jul 2011 09:06:58 -0700
+Message-ID: <20110708090658.f15b95b0.weiny2@llnl.gov>
+References: <20110706151116.79c187ea.weiny2@llnl.gov>
+	<20110708104927.GC7420@calypso.voltaire.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4E15BCD5.7050801-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+In-Reply-To: <20110708104927.GC7420-iQai9MGU/dyyaiaB+Ve85laTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Cc: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Steve,
+On Fri, 8 Jul 2011 03:49:27 -0700
+Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
 
-Thanks for the reply. Sounds good, I completely agree
-with your suggestions.
+> Hi Ira,
+> 
+> On 15:11 Wed 06 Jul     , Ira Weiny wrote:
+> > This should at least be compiled in by default.
+> > 
+> > 
+> > Signed-off-by: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+> > ---
+> 
+> Sounds like a good idea.
+> If we change the defaults, why should we keep this option for configure
+> script? Is it really needed?
 
-Many thanks,
-Bernard.
+For our needs, no.  However, when we first put the PerfMgr in OpenSM there was some concern for developers who may be using OpenSM in an embedded environment.  Since the option exists (less work for me!) I did not see a good reason to take it out so that those developers could still compile it out if they wanted.  If this is no longer a requirement then, yes, I can remove the configure option.
 
-Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org> wrote on 07/07/2011 04:04:05 PM:
+Does anyone else want to chime in here?
 
-> On 06/30/2011 11:23 AM, Bernard Metzler wrote:
-> > Good point. I moved the three attributes to debugfs which
-> > looks much more appropriate.
-> >
-> > I also re-structured module initialization/device registration:
-> > The siw module now registers with the netdevice subsystem
-> > (register_netdevice_notifier()) to catch NETDEV_xx events,
-> > which now also handles device state changes and later
-> > device addition.
-> >
-> > Before posting it as a proposed patch I wanted to discuss the
-> > following. Currently, only NETDEV_REGISTER, NETDEV_UNREGISTER,
-> > NETDEV_UP, NETDEV_DOWN are handled as following:
-> > NETDEV_REGISTER:   Instantiate a siw device (ib_alloc_device()).
-> > NETDEV_UP:      Register to ib_core (ib_register_device()),
-> >          if the device has an interface address.
-> > NETDEV_DOWN:   Unregister from ib_core (ib_unregister_device()).
-> > NETDEV_UNREGISTER:Deallocate device (ib_dealloc_device())
-> >
-> > Toggling the device UP and DOWN would end up un-/registering
-> > with the ib_core. Maybe thats not appropriate and the device
-> > should remain visible to ib_core? The CM appears to exclude
-> > DOWN devices from connection management. With that, a siw device
-> > would remain visible to ib_core until it gets UNREGISTERed.
-> >
->
-> I would keep it registered if the netdev device is registered.
-> Wouldn't a SIW connection survive an ifdown/ifup on the
-> interface handling that connection? I would think so.  So I think
-> NETDEV_REGISTER triggers rdma core alloc and
-> registration, UP/DOWN trigger IB_EVENT_PORT_ACTIVE/IB_EVENT_PORT_ERR
-> port events, and UNREGISTER triggers core
-> unreg/dealloc.
->
-> My 2 centimes.
->
->
-> > Should the code handle other events such as NETDEV_CHANGEADDR?
-> >
-> >
->
-> This fires when a MAC address changes, yes?  Perhaps this should
-> trigger a IB_EVENT_LID_CHANGE or something?  That would
-> force the ib gid cache code to re-query your device for the updated
-> MAC address  (see ib_cache_event() and friends). The
-> chelsio drivers don't have this, but they probably need it.
->
->
-> Steve.
+> What about performance manager profiling? Shout it also compiled by default?
 
+I think this may affect performance.  Although I don't think by much.  Since it is more of a development/debugging tool rather than something I think the user would want I thought it should still be a compile option.  If we do compile it on by default I would put an option in opensm.conf.
+
+Let me know and I can alter the patch as you wish,
+Ira
+
+> 
+> -- Alex
+
+
+-- 
+Ira Weiny
+Math Programmer/Computer Scientist
+Lawrence Livermore National Lab
+925-423-8008
+weiny2-i2BcT+NCU+M@public.gmane.org
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
