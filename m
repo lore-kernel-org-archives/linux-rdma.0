@@ -1,33 +1,36 @@
 From: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH] opensm: make loopback console compile on by default.
-Date: Sun, 10 Jul 2011 12:14:10 +0300
-Message-ID: <20110710091410.GB8520@localhost.localdomain>
-References: <20110706155435.ada5fbb6.weiny2@llnl.gov>
+Subject: Re: [PATCH] opensm: Add support for partition enforcement types
+Date: Sun, 10 Jul 2011 14:26:26 +0300
+Message-ID: <20110710112626.GC8520@localhost.localdomain>
+References: <4E135D51.3080208@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20110706155435.ada5fbb6.weiny2-i2BcT+NCU+M@public.gmane.org>
+In-Reply-To: <4E135D51.3080208-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Ira,
+Hi Hal,
 
-On 15:54 Wed 06 Jul     , Ira Weiny wrote:
+On 14:52 Tue 05 Jul     , Hal Rosenstock wrote:
 > 
-> The console is very useful for debugging and should be available in opensm.conf
-> as an option.
+> Partition enforcement types are in, out, and both.
+> Prior to this support, both was being used so that is the default.
 > 
-> Generic socket is still an option which is off for security reasons.
-> 
-> Signed-off-by: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+> Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 > ---
 
-I was digging a little in a history and one concern that was issued while socket
-support was introduced is that it requires libwrap devel package, so any one
-who lacks this package, opensm compilation will fail.
+Now we end up with two parameters for same functionality:
+no_part_enforce - you define whether the enforcement is disabled or enabled.
+part_enforcement_type - you define enforcement type: in/out/both.
+
+When no_part_enforce is disabled, part_enforcement_type has no meaning.
+
+Don't you find it simpler if we had only one option for partition enforcement
+with 4 options: disabled/in/out/both(default)?
 
 -- Alex
 --
