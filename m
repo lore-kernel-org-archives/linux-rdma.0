@@ -1,45 +1,31 @@
-From: Moni Shoua <monis-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
-Subject: [PATCH v2] IB/CMA: Invalidate connections in port space IPoIB over Ethernet link layer
-Date: Mon, 11 Jul 2011 20:29:29 +0300
-Message-ID: <1310405369-24822-1-git-send-email-monis@mellanox.co.il>
+From: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH 0/3] opensm: fixing unused-but-set warnings in compilation
+Date: Mon, 11 Jul 2011 20:45:18 +0300
+Message-ID: <20110711174518.GB2084@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="us-ascii"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, eli-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org
-Cc: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org, Moni Shoua <monis-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-From: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Latest GCC 4.6 include -Wunused-* flags as part of the -Wall flag, causing
+many warnings during OpenSM compilation.
 
-This patch fixes a kernel crash in cma_set_qkey().
-When link layer is ETHERNET it is wrong to use IPoIB port space since no IPoIB
-interface is available. Specifically, setting qkey when port space is
-RDMA_PS_IPOIB, requires mgid calculation and SA query which is illegal over Ethernet.
+This patch series tries to clean these warnings.
+Where possible, unused variables were just deleted.
+In other cases where some variables are used only when specific compilation
+flags are used (DEBUG, VENDOR_RMPP_SUPPORT, etc') this variables marked as
+__attribute__((unused)) meaning that the variable is meant to be possibly
+unused.
 
-Signed-off-by: Moni Shoua <monis-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
----
- drivers/infiniband/core/cma.c |    4 ++++
- 1 files changed, 4 insertions(+), 0 deletions(-)
+More info:
+http://gcc.gnu.org/onlinedocs/gcc/Warning-Options.html
+http://gcc.gnu.org/onlinedocs/gcc-4.6.1/gcc/Variable-Attributes.html#Variable-Attributes
 
-diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
-index b6a33b3..2d60130 100644
---- a/drivers/infiniband/core/cma.c
-+++ b/drivers/infiniband/core/cma.c
-@@ -359,6 +359,10 @@ static int cma_acquire_dev(struct rdma_id_private *id_priv)
- 	enum rdma_link_layer dev_ll = dev_addr->dev_type == ARPHRD_INFINIBAND ?
- 		IB_LINK_LAYER_INFINIBAND : IB_LINK_LAYER_ETHERNET;
- 
-+	if (dev_ll == IB_LINK_LAYER_ETHERNET &&
-+		id_priv->id.ps == RDMA_PS_IPOIB)
-+		return -EINVAL;
-+
- 	mutex_lock(&lock);
- 	iboe_addr_get_sgid(dev_addr, &iboe_gid);
- 	memcpy(&gid, dev_addr->src_dev_addr +
--- 
-1.7.4.1
 
+-- Alex
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
