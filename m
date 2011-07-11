@@ -1,57 +1,74 @@
-From: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH] opensm: make loopback console compile on by default.
-Date: Mon, 11 Jul 2011 20:54:42 +0300
-Message-ID: <20110711175442.GF2084@localhost.localdomain>
-References: <20110706155435.ada5fbb6.weiny2@llnl.gov>
- <20110710091410.GB8520@localhost.localdomain>
- <5033C751-5B39-4F08-AB35-C595F17F6B6B@llnl.gov>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH 3/4] infiniband-diags: properly resolve node guids
+Date: Mon, 11 Jul 2011 15:02:12 -0400
+Message-ID: <4E1B48B4.30102@dev.mellanox.co.il>
+References: <20110705120815.3cc7d59b.weiny2@llnl.gov>	<4E1779CE.9030502@dev.mellanox.co.il>	<20110708215046.GB10216@obsidianresearch.com>	<4E177DA5.9030600@dev.mellanox.co.il> <20110708152953.0063fb7b.weiny2@llnl.gov>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <5033C751-5B39-4F08-AB35-C595F17F6B6B-i2BcT+NCU+M@public.gmane.org>
+In-Reply-To: <20110708152953.0063fb7b.weiny2-i2BcT+NCU+M@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Weiny, Ira K." <weiny2-i2BcT+NCU+M@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Ira,
+Ira,
 
-On 10:23 Mon 11 Jul     , Weiny, Ira K. wrote:
+On 7/8/2011 6:29 PM, Ira Weiny wrote:
+> On Fri, 8 Jul 2011 14:59:01 -0700
+> Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wrote:
 > 
-> On Jul 10, 2011, at 2:14 AM, Alex Netes wrote:
+>> On 7/8/2011 5:50 PM, Jason Gunthorpe wrote:
+>>> On Fri, Jul 08, 2011 at 05:42:38PM -0400, Hal Rosenstock wrote:
+>>>
+>>>> Should the request just be a GET rather than GET_TABLE and avoid this
+>>>> check ? I don't think multiple nodes can register with same Node GUID,
+>>>> can they ? Also, I think it makes eliminates this check and the missing
+>>>> 0 check.
+>>>
+>>> Multiport HCAs should (and do..) show up with multiple node
+>>> records. There is one node record per end port, not per node. This is
+>>> why using node GUID as an end port identifier is a bad choice.
 > 
-> > Hi Ira,
-> > 
-> > On 15:54 Wed 06 Jul     , Ira Weiny wrote:
-> >> 
-> >> The console is very useful for debugging and should be available in opensm.conf
-> >> as an option.
-> >> 
-> >> Generic socket is still an option which is off for security reasons.
-> >> 
-> >> Signed-off-by: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-> >> ---
-> > 
-> > I was digging a little in a history and one concern that was issued while socket
-> > support was introduced is that it requires libwrap devel package, so any one
-> > who lacks this package, opensm compilation will fail.
+> It is _not_ a bad choice if you are looking for a "node".
+
+One could also equally well query for the node records to which a port
+GUID belongs if this is better to keep the guid meaning consistent.
+
+Looking at the current man pages though, ibqueryerrors does say node
+GUID and iblinkinfo says switch GUID which is the node GUID.
+
+-- Hal
+
 > 
-> My intention was to disable console_looback if libwrap was not available.  But as I look at the configure.in I think there may be a bug in that logic.
+>>
+>> Before this patch, it did used to use the port GUID for this.
 > 
-> I don't have a system without libwrap readily available so give me some time to fix this.
+> The point of this patch is to do the right thing when the user is requesting a node they want information about.  The next step is to accept NodeDescription and use that from the NodeRecord as a key.
+> 
+>>
+>>> However, you could use GET and look at the return code to disambiguate
+>>> no records/one record/many records.
+>>
+>> Yes, that was getting at (and that there was no check for no records
+>> returned with the get table code).
+> 
+> Ok, that is a bug.  We should check for no records.
+> 
+> As for multiple records, I left that for a future patch which would query all of those ports.
+> 
+> Ira
+> 
+>>
+>> -- Hal
+>>
+>>> Jason
+>>>
+>>
+> 
 > 
 
-I think though, that lack libwrap support is the only reason that socket
-support wasn't included by default in the compilation.
-
-Because the security threat by using sockets can be easily managed by opensm
-configuration.
-
-So what do you say regarding enabling all socket support during compilation,
-unless libwrap is unavailable?
-
--- Alex
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
