@@ -1,54 +1,105 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH v3] IB/CMA: Invalidate connections in port space IPoIB
- over Ethernet link layer
-Date: Tue, 12 Jul 2011 16:33:42 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A8237302DA0C@ORSMSX101.amr.corp.intel.com>
-References: <1310469795-26709-1-git-send-email-monis@mellanox.co.il>
+From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+Subject: Re: install.pl "chown" issue (Was: Re: rhel6 ofed v1.5.3)
+Date: Tue, 12 Jul 2011 10:14:33 -0700
+Message-ID: <20110712101433.a0da6a3f.weiny2@llnl.gov>
+References: <BANLkTi=fJr7BypNCs-7S4-THNTUGtmiicg@mail.gmail.com>
+	<20110705153618.c7cba778.weiny2@llnl.gov>
+	<CABOsP2MbNq6Yqc6+DKes==gim1dk3oipCL6H5zN6EiMGJhOCOg@mail.gmail.com>
+	<CABOsP2NfGia2dNjxfdeG4SSRymbPSD+f1QzWPW_zKRw9PPU_rw@mail.gmail.com>
+	<CABOsP2PX-OSVBOMQ_fFv_bLApxZaUfr8_pA49FgDGTGHUZWBDQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1310469795-26709-1-git-send-email-monis-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <CABOsP2PX-OSVBOMQ_fFv_bLApxZaUfr8_pA49FgDGTGHUZWBDQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Moni Shoua <monis-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "eli-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org" <eli-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Michael Di Domenico <mdidomenico4-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> This patch fixes a kernel crash in cma_set_qkey().
-> When link layer is ETHERNET it is wrong to use IPoIB port space since no IPoIB
-> interface is available. Specifically, setting qkey when port space is
-> RDMA_PS_IPOIB, requires mgid calculation and SA query which is illegal over
-> Ethernet.
-> 
-> Signed-off-by: Moni Shoua <monis-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
 
-Acked-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+On Mon, 11 Jul 2011 07:42:38 -0700
+Michael Di Domenico <mdidomenico4-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
 
-> ---
->  drivers/infiniband/core/cma.c |    4 ++++
->  1 files changed, 4 insertions(+), 0 deletions(-)
-> 
-> diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
-> index b6a33b3..4530eb8 100644
-> --- a/drivers/infiniband/core/cma.c
-> +++ b/drivers/infiniband/core/cma.c
-> @@ -359,6 +359,10 @@ static int cma_acquire_dev(struct rdma_id_private
-> *id_priv)
->  	enum rdma_link_layer dev_ll = dev_addr->dev_type == ARPHRD_INFINIBAND ?
->  		IB_LINK_LAYER_INFINIBAND : IB_LINK_LAYER_ETHERNET;
-> 
-> +	if (dev_ll != IB_LINK_LAYER_INFINIBAND &&
-> +		id_priv->id.ps == RDMA_PS_IPOIB)
-> +		return -EINVAL;
-> +
->  	mutex_lock(&lock);
->  	iboe_addr_get_sgid(dev_addr, &iboe_gid);
->  	memcpy(&gid, dev_addr->src_dev_addr +
-> --
-> 1.7.4.1
+> On Mon, Jul 11, 2011 at 9:43 AM, Michael Di Domenico
+> <mdidomenico4-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
+> > On Mon, Jul 11, 2011 at 9:28 AM, Michael Di Domenico
+> > <mdidomenico4-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
+> >> On Tue, Jul 5, 2011 at 6:36 PM, Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org> wrote:
+> >>> On Fri, 1 Jul 2011 10:08:47 -0700
+> >>> Michael Di Domenico <mdidomenico4-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
+> >>>
+> >>>> According to my installation of Ofed 1.5.3 on RHEL6, the
+> >>>> infiniband-diags package rpm is trying to chown /usr/local in or=
+der to
+> >>>> deposit a library in lib64.
+> >>>
+> >>> infiniband-diags does not do a chown.
+> >>
+> >> Sorry for the late reply, your reply got lost in my email bins...
+> >>
+> >> I should correct my statement, when RPM does the cpio extraction o=
+f
+> >> the data that's what's reporting the error
+> >>
+> >>>> In my environment /usr/local is off-limits to root and all packa=
+ge
+> >>>> installs. =A0Is this a bug? =A0Is there a workaround to allow th=
+e
+> >>>> install.pl to complete?
+> >>>
+> >>> I just tried this on a vanilla Fedora 15 system and was able to b=
+uild the source rpms just fine.
+> >>>
+> >>> Try building and installing in this order.
+> >>>
+> >>> libibumad-1.3.7-1.src.rpm
+> >>> libibmad-1.3.7-1.src.rpm
+> >>> opensm-3.3.9-1.src.rpm
+> >>> infiniband-diags-1.5.8-1.src.rpm
+> >>
+> >> these all build correctly using the install.pl file upto the
+> >> infiniband-diags file then i get
+> >>
+> >> error: unpacking archive file on file /usr/local: cpio: Operation =
+not supported
+> >>
+> >
+> > the file that seems to get included in the rpm is
+> >
+> > /usr/local/lib64/perl5/IBswcountlimits.pm
+> >
+> > i can't seem to locate where that's coming from though
+>=20
+> Looks like the spec file pulls the "installsitearch" from the perl
+> config.  on redhat 5 there doesn't seem to be an installsitearch
+> variable defined in the perl -V output, but on redhat 6 there is a
+> -Dinstallsitearch=3D/usr/local/lib64
+>=20
+> this is a redhat 6'ism, i did a fresh install of rhel6.0 to test
+> whether it was something i messed up in the perl or not, but it wasn'=
+t
+> me.
+>=20
+> i can likely work around the issue in the short term by recompiling
+> the spec file by hand
 
+You're right...  :-(  Sorry about that.
+
+I spoke to some people here and our RedHat consultant.  I think this mo=
+dule should be installed in vendorlib.  Would you agree?
+
+Ira
+
+
+--=20
+Ira Weiny
+Math Programmer/Computer Scientist
+Lawrence Livermore National Lab
+925-423-8008
+weiny2-i2BcT+NCU+M@public.gmane.org
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
