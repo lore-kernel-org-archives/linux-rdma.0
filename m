@@ -1,30 +1,41 @@
-From: Lee Lan <leelanhk12-kyWSv0CpHSgN+BqQ9rBEUg@public.gmane.org>
-Subject: =?UTF-8?B?QnVzaW5lc3MgcHJvcG9zYWwgZnJvbSBob25nIGtvbmc=?=
-Date: Tue, 12 Jul 2011 07:50:27 -0700
-Message-ID: <E1QgeI7-0006ym-My@host.proxyservershost.net>
-Reply-To: leelanhk12-kyWSv0CpHSgN+BqQ9rBEUg@public.gmane.org
-Content-Type: text/plain;charset=utf-8
+From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+Subject: [PATCH] infiniband-diags: configure.in; check for more recent
+ function in libibmad
+Date: Tue, 12 Jul 2011 14:42:29 -0700
+Message-ID: <20110712144229.13a3da7d.weiny2@llnl.gov>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hello
 
-How are you ? Am from Hong Kong, am a Chinese , I have a Mutual business
-proposal am proposing to you, that I will want you to handle from your
-country, I will like to seek your consent first.
+Signed-off-by: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+---
+ configure.in |    5 +++--
+ 1 files changed, 3 insertions(+), 2 deletions(-)
 
-I have a serious business project proposal for you to manage and handle
-for me in your country. This project involves a huge specific amount I
-can't mention here for security reasons. It involve a transaction from my
-bank in Hong Kong. Am a chinese man, and we are bound by laws here.
+diff --git a/configure.in b/configure.in
+index f41f049..dfb6ba2 100644
+--- a/configure.in
++++ b/configure.in
+@@ -35,8 +35,9 @@ then
+ dnl Checks for libraries
+ AC_CHECK_LIB(ibumad, umad_init, [],
+ 	AC_MSG_ERROR([umad_init() not found. diags require libibumad.]))
+-AC_CHECK_LIB(ibmad, mad_dump_int, [],
+-	AC_MSG_ERROR([mad_dump_int() not found. diags require libibmad.]))
++AC_CHECK_LIB(ibmad, mad_dump_perfcounters_rcv_err, [],
++	AC_MSG_ERROR([mad_dump_perfcounters_rcv_err() not found.
++	diags require libibmad with mad_dump_perfcounters_rcv_err support.]))
+ AC_CHECK_LIB(ibmad, pma_query_via, [],
+ 	AC_MSG_ERROR([pma_query_via() not found. diags require more recent libibmad.]))
+ AC_CHECK_MEMBER([struct umad_port.link_layer],
+-- 
+1.7.1
 
-If you feel you can have this handled, please let me know, so that I send
-you an attached comprehensive details of this transaction. you should send
-me response to my email: leelanhk12-kyWSv0CpHSgN+BqQ9rBEUg@public.gmane.org
-Sincerely,
-Lan Lee Cheng
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
