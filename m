@@ -1,36 +1,43 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH v2] IB/CMA: Invalidate connections in port space IPoIB
- over Ethernet link layer
-Date: Tue, 12 Jul 2011 00:47:32 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A8237302D874@ORSMSX101.amr.corp.intel.com>
-References: <1310405369-24822-1-git-send-email-monis@mellanox.co.il>
+From: Moni Shoua <monis-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
+Subject: [PATCH v3] IB/CMA: Invalidate connections in port space IPoIB over Ethernet link layer
+Date: Tue, 12 Jul 2011 14:23:15 +0300
+Message-ID: <1310469795-26709-1-git-send-email-monis@mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1310405369-24822-1-git-send-email-monis-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
-Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Moni Shoua <monis-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "eli-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org" <eli-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
-Cc: Moni Shoua <monis-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, eli-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org
+Cc: Moni Shoua <monis-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, oren-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-> diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
-> index b6a33b3..2d60130 100644
-> --- a/drivers/infiniband/core/cma.c
-> +++ b/drivers/infiniband/core/cma.c
-> @@ -359,6 +359,10 @@ static int cma_acquire_dev(struct rdma_id_private
-> *id_priv)
->  	enum rdma_link_layer dev_ll = dev_addr->dev_type == ARPHRD_INFINIBAND ?
->  		IB_LINK_LAYER_INFINIBAND : IB_LINK_LAYER_ETHERNET;
-> 
-> +	if (dev_ll == IB_LINK_LAYER_ETHERNET &&
-> +		id_priv->id.ps == RDMA_PS_IPOIB)
-> +		return -EINVAL;
+This patch fixes a kernel crash in cma_set_qkey().
+When link layer is ETHERNET it is wrong to use IPoIB port space since no IPoIB
+interface is available. Specifically, setting qkey when port space is
+RDMA_PS_IPOIB, requires mgid calculation and SA query which is illegal over Ethernet.
 
-thanks - one nit - can you change the first part to dev_ll != IB_LINK_LAYER_INFINIBAND?  Just in case we ever add a new link type, we don't need to change the check.
+Signed-off-by: Moni Shoua <monis-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
+---
+ drivers/infiniband/core/cma.c |    4 ++++
+ 1 files changed, 4 insertions(+), 0 deletions(-)
 
-- Sean
+diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
+index b6a33b3..4530eb8 100644
+--- a/drivers/infiniband/core/cma.c
++++ b/drivers/infiniband/core/cma.c
+@@ -359,6 +359,10 @@ static int cma_acquire_dev(struct rdma_id_private *id_priv)
+ 	enum rdma_link_layer dev_ll = dev_addr->dev_type == ARPHRD_INFINIBAND ?
+ 		IB_LINK_LAYER_INFINIBAND : IB_LINK_LAYER_ETHERNET;
+ 
++	if (dev_ll != IB_LINK_LAYER_INFINIBAND &&
++		id_priv->id.ps == RDMA_PS_IPOIB)
++		return -EINVAL;
++
+ 	mutex_lock(&lock);
+ 	iboe_addr_get_sgid(dev_addr, &iboe_gid);
+ 	memcpy(&gid, dev_addr->src_dev_addr +
+-- 
+1.7.4.1
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
