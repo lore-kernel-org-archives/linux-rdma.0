@@ -1,84 +1,37 @@
-From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Subject: Re: [PATCH] opensm: Add support for PID file
-Date: Tue, 12 Jul 2011 16:27:40 -0700
-Message-ID: <20110712162740.29e2d7d1.weiny2@llnl.gov>
+Date: Tue, 12 Jul 2011 17:52:22 -0600
+Message-ID: <20110712235222.GG10216@obsidianresearch.com>
 References: <20110710120442.GA11284@localhost.localdomain>
+ <20110712162740.29e2d7d1.weiny2@llnl.gov>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20110710120442.GA11284-bi+AKbBUZKY6gyzm1THtWbp2dZbC/Bob@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20110712162740.29e2d7d1.weiny2-i2BcT+NCU+M@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Aleksey Senin <alekseys-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+Cc: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Aleksey Senin <alekseys-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-I agree this is an issue.  However, usually the PID is generated from the
-startup script so that only the PID which is started by it is stopped.
+On Tue, Jul 12, 2011 at 04:27:40PM -0700, Ira Weiny wrote:
 
-Specifically, think of the use case of starting multiple SM's on different
-ports.  For example a local user may do this to manage 2 subnets from one
-node.  Your patch will, by default, overwrite the PID file with each instance.
-(yes --pid-file can be specified but this is not very standard.)
+> -    @sbindir@/opensm --daemon $OPTIONS > /dev/null
+> +    daemon --pidfile=$PIDFILE @sbindir@/opensm --daemon $OPTIONS > /dev/null
 
-I think a better (and more standard) approach is to do the following (untested):
+You need to drop the --daemon from opensm if you run it under daemon..
 
-diff --git a/scripts/opensm.init.in b/scripts/opensm.init.in
-index 0c84bd3..1e053c4 100644
---- a/scripts/opensm.init.in
-+++ b/scripts/opensm.init.in
-@@ -42,6 +42,8 @@
+The usual way to do this is to have the daemon drop a pidfile to the
+location set by its --pidfile argument after it forks, but before the
+command returns.
 
- prefix=@prefix@
- exec_prefix=@exec_prefix@
-+piddir=@localstatedir@
-+PIDFILE=${piddir}/opensm.pid
+If --pidfile is not given it should not drop a pidfile anyplace.
 
- # Source function library.
- if [[ -s /etc/init.d/functions ]]; then
-@@ -62,7 +64,7 @@ fi
+Generally the daemon should make sure it can run without exiting
+before forking, which is why this approach is prefered to using the
+daemon command.
 
- start () {
-     echo -n "Starting opensm: "
--    @sbindir@/opensm --daemon $OPTIONS > /dev/null
-+    daemon --pidfile=$PIDFILE @sbindir@/opensm --daemon $OPTIONS > /dev/null
-     if [[ $RETVAL -eq 0 ]]; then
-         touch /var/lock/subsys/opensm
-         success
-@@ -74,7 +76,7 @@ start () {
-
- stop () {
-     echo -n "Shutting down opensm: "
--    killproc opensm
-+    killproc -p $PIDFILE opensm
-     if [[ $RETVAL -eq 0 ]]; then
-         rm -f /var/lock/subsys/opensm
-         success
-@@ -85,7 +87,8 @@ stop () {
- }
-
- Xstatus () {
--       pid="`pidof opensm`"
-+       pid=`cat $PIDFILE`
-+       ps -p $pid
-        ret=$?
-        if [ $ret -eq 0 ] ; then
-                echo "OpenSM is running... pid=$pid"
-@@ -117,11 +120,11 @@ case "$1" in
-        [ -e /var/lock/subsys/opensm ] && restart
-        ;;
-     resweep)
--       killall -HUP opensm
-+       kill -s 1 `cat $PIDFILE`
-         RETVAL=$?
-        ;;
-     rotatelog)
--       killall -USR1 opensm
-+       kill -s 10 `cat $PIDFILE`
-         RETVAL=$?
-        ;;
-     *)
-
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
