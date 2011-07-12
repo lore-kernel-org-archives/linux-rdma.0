@@ -1,8 +1,7 @@
 From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-Subject: [PATCH] infiniband-diags: configure.in; check for more recent
- function in libibmad
-Date: Tue, 12 Jul 2011 14:42:29 -0700
-Message-ID: <20110712144229.13a3da7d.weiny2@llnl.gov>
+Subject: [PATCH] infiniband-diags: Add sysconfdir to spec for config files
+Date: Tue, 12 Jul 2011 14:42:31 -0700
+Message-ID: <20110712144231.2dbcbb91.weiny2@llnl.gov>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
@@ -12,27 +11,27 @@ To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY
 List-Id: linux-rdma@vger.kernel.org
 
 
+
+commit cbe10407a14e57c8febe6e039ae617737f0b6e0f added a configuration file
+directory in sysconfdir.  I missed this in the spec file.
+
 Signed-off-by: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
 ---
- configure.in |    5 +++--
- 1 files changed, 3 insertions(+), 2 deletions(-)
+ infiniband-diags.spec.in |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
 
-diff --git a/configure.in b/configure.in
-index f41f049..dfb6ba2 100644
---- a/configure.in
-+++ b/configure.in
-@@ -35,8 +35,9 @@ then
- dnl Checks for libraries
- AC_CHECK_LIB(ibumad, umad_init, [],
- 	AC_MSG_ERROR([umad_init() not found. diags require libibumad.]))
--AC_CHECK_LIB(ibmad, mad_dump_int, [],
--	AC_MSG_ERROR([mad_dump_int() not found. diags require libibmad.]))
-+AC_CHECK_LIB(ibmad, mad_dump_perfcounters_rcv_err, [],
-+	AC_MSG_ERROR([mad_dump_perfcounters_rcv_err() not found.
-+	diags require libibmad with mad_dump_perfcounters_rcv_err support.]))
- AC_CHECK_LIB(ibmad, pma_query_via, [],
- 	AC_MSG_ERROR([pma_query_via() not found. diags require more recent libibmad.]))
- AC_CHECK_MEMBER([struct umad_port.link_layer],
+diff --git a/infiniband-diags.spec.in b/infiniband-diags.spec.in
+index b557db7..bcdd250 100644
+--- a/infiniband-diags.spec.in
++++ b/infiniband-diags.spec.in
+@@ -54,6 +54,7 @@ rm -rf $RPM_BUILD_ROOT
+ %{_perldir}/*
+ %{_mandir}/man8/*
+ %{_mandir}/man3/*
++%{_sysconfdir}/*
+ %doc README COPYING ChangeLog
+ 
+ %changelog
 -- 
 1.7.1
 
