@@ -1,83 +1,108 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: Questions regarding CMA
-Date: Thu, 14 Jul 2011 17:46:30 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A8237302E14C@ORSMSX101.amr.corp.intel.com>
-References: <201107141058.29879.jackm@dev.mellanox.co.il>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: [PATCH] libibmad: Support for Mellanox vendor specific ExtendedPortInfo
+ SM class MAD
+Date: Thu, 14 Jul 2011 14:23:21 -0400
+Message-ID: <4E1F3419.3010508@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <201107141058.29879.jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "dotanb-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org" <dotanb-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
+To: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+Cc: Liran Liss <liranl-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> 1. In procedure cma_ib_listen (and elsewhere), if the call to ib_create_cm_id
-> fails,
->    id_priv->cm_id.ib is left with the (non-zero) error value instead of NULL.
->    However, if there is a failure later in the procedure, you set id_priv-
-> >cm_id.ib to NULL.
-> 
->    Is there a reason for this difference in behavior?
->    (code snippet from current code is below)
-> 	int cma_ib_listen(struct rdma_id_
-> 
->        		id_priv->cm_id.ib = ib_create_cm_id(id_priv->id.device,
-> cma_req_handler,
->                                             	    id_priv);
-> 	       	if (IS_ERR(id_priv->cm_id.ib))
->                		return PTR_ERR(id_priv->cm_id.ib);
 
-This looks like a bug.
+for FDR10 operation
+
+Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+diff --git a/include/infiniband/mad.h b/include/infiniband/mad.h
+index f00bf7a..8175704 100644
+--- a/include/infiniband/mad.h
++++ b/include/infiniband/mad.h
+@@ -141,7 +141,9 @@ enum SMI_ATTR_ID {
+ 	IB_ATTR_VENDORMADSTBL = 0x1d,
+ 	IB_ATTR_SMINFO = 0x20,
  
-> 
-> 		....
-> 	        if (ret) {
->                 	ib_destroy_cm_id(id_priv->cm_id.ib);
->                 	id_priv->cm_id.ib = NULL;
->         	}
-> 
-> 
-> 2. procedure cma_has_cm_dev looks as follows:
-> 
-> 	static int cma_has_cm_dev(struct rdma_id_private *id_priv)
-> 	{
-> 		return (id_priv->id.device && id_priv->cm_id.ib);
-> 	}
-> 
->    Shouldn't the line be:
-> 		return (id_priv->id.device && id_priv->cm_id.ib &&
-> 			!IS_ERR(id_priv->cm_id.ib));
-
-Given the current code, adding IS_ERR makes sense, but see below.  Thinking about this, we shouldn't need to check id_priv->id.device.  If we have id_priv->cm_id.ib, then the device pointer must be valid.
-
-(fyi: cma_has_cm_dev() was added by commit 6c719f5c6c823901fac2d46b83db5a69ba7e9152.  It replaced a state check with the above device check to handle device removal.)
-
-> 3. There are several places where the value of id_priv->cm_id.ib
->    is checked to be not NULL.
-> 
->    Wouldn't it be better to call cma_has_cm_dev in these places
->    (when cma_has_cm_dev has been fixed, as I suggested in 2 above).
-
-Although it's a minor performance gain, I'm leaning towards keeping id_priv->cm_id.ib = NULL on failure, either by resetting it or using a local variable.  cma_has_cm_dev() can then be replaced by checking id_priv->cm_id.ib for non-NULL, and checks for IS_ERR(id_priv->cm_id.ib) are removed.
-
-> Please consider the patch below as a starting point (I did not touch the iwarp
-> code).
-> Please let me know (ASAP) what you think.
-> (I still leave a window here where id_priv->cm_id.ib is ERR. Is this a
-> problem?
->  Would it be better to use a local variable instead of id_priv->cm_id.ib, and
->  only assign to id_priv->cm_id.ib when all the error checks have passed?
->  This would leave a window where a successful cm_id creation is not
-> immediately assigned
->  to the CMA object -- would this be a problem?).
-
-Without adding more synchronization, we need to ensure that id_priv->cm_id.ib is set before a user can receive any callbacks.  This restricts our use of a local variable to the create_cm_id calls only.  See cma_connect_iw() for an example of using this approach.
-
-Thanks,
-- Sean
+-	IB_ATTR_LAST
++	IB_ATTR_LAST,
++
++	IB_ATTR_MLNX_EXT_PORT_INFO = 0xff90,
+ };
+ 
+ enum SA_ATTR_ID {
+@@ -805,6 +807,15 @@ enum MAD_FIELDS {
+ 	IB_PESC_FEC_UNCORR_BLOCK_CTR_LANE11_F,
+ 	IB_PESC_LAST_F,
+ 
++	/*
++	 * Mellanox ExtendedPortInfo
++	 */
++	IB_MLNX_EXT_PORT_STATE_CHG_ENABLE_F,
++	IB_MLNX_EXT_PORT_LINK_SPEED_SUPPORTED_F,
++	IB_MLNX_EXT_PORT_LINK_SPEED_ENABLED_F,
++	IB_MLNX_EXT_PORT_LINK_SPEED_ACTIVE_F,
++	IB_MLNX_EXT_PORT_LAST_F,
++
+ 	IB_FIELD_LAST_		/* must be last */
+ };
+ 
+@@ -1137,7 +1148,8 @@ MAD_EXPORT ib_mad_dump_fn
+     mad_dump_switchinfo, mad_dump_perfcounters, mad_dump_perfcounters_ext,
+     mad_dump_perfcounters_xmt_sl, mad_dump_perfcounters_rcv_sl,
+     mad_dump_perfcounters_xmt_disc, mad_dump_perfcounters_rcv_err,
+-    mad_dump_portsamples_control, mad_dump_port_ext_speeds_counters;
++    mad_dump_portsamples_control, mad_dump_port_ext_speeds_counters,
++    mad_dump_mlnx_ext_port_info;
+ 
+ MAD_EXPORT void mad_dump_fields(char *buf, int bufsz, void *val, int valsz,
+ 				int start, int end);
+diff --git a/src/dump.c b/src/dump.c
+index 4b4279d..76987ff 100644
+--- a/src/dump.c
++++ b/src/dump.c
+@@ -836,6 +836,12 @@ void mad_dump_port_ext_speeds_counters(char *buf, int bufsz, void *val, int vals
+ 	_dump_fields(buf, bufsz, val, IB_PESC_PORT_SELECT_F, IB_PESC_LAST_F);
+ }
+ 
++void mad_dump_mlnx_ext_port_info(char *buf, int bufsz, void *val, int valsz)
++{
++	_dump_fields(buf, bufsz, val, IB_MLNX_EXT_PORT_STATE_CHG_ENABLE_F,
++		     IB_MLNX_EXT_PORT_LAST_F);
++}
++
+ void xdump(FILE * file, char *msg, void *p, int size)
+ {
+ #define HEX(x)  ((x) < 10 ? '0' + (x) : 'a' + ((x) -10))
+diff --git a/src/fields.c b/src/fields.c
+index 8039882..665797b 100644
+--- a/src/fields.c
++++ b/src/fields.c
+@@ -578,6 +578,12 @@ static const ib_field_t ib_mad_f[] = {
+ 	{992, 32, "FECUncorrectableBlockCtrLane11", mad_dump_uint},
+ 	{0, 0},			/* IB_PESC_LAST_F */
+ 
++	{BITSOFFS(24, 8), "StateChangeEnable", mad_dump_hex},
++	{BITSOFFS(56, 8), "LinkSpeedSupported", mad_dump_hex},
++	{BITSOFFS(88, 8), "LinkSpeedEnabled", mad_dump_hex},
++	{BITSOFFS(120, 8), "LinkSpeedActive", mad_dump_hex},
++	{0, 0},			/* IB_MLNX_EXT_PORT_LAST_F */
++
+ 	{0, 0}			/* IB_FIELD_LAST_ */
+ 
+ };
+diff --git a/src/libibmad.map b/src/libibmad.map
+index 457ec86..ebeaf48 100644
+--- a/src/libibmad.map
++++ b/src/libibmad.map
+@@ -116,5 +116,6 @@ IBMAD_1.3 {
+ 		mad_field_name;
+ 		bm_call_via;
+ 		mad_dump_port_ext_speeds_counters;
++		mad_dump_mlnx_ext_port_info;
+ 	local: *;
+ };
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
