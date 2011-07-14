@@ -1,45 +1,154 @@
-From: "Bob Pearson" <rpearson-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org>
-Subject: RE: [patch 37/44] rxe_sb8.c
-Date: Thu, 14 Jul 2011 00:03:16 -0500
-Message-ID: <008501cc41e3$57b7b2a0$072717e0$@systemfabricworks.com>
-References: <20110701131821.928693424@systemfabricworks.com>	 <20110701132202.486466900@systemfabricworks.com>	 <CAL1RGDWLRw26RUr=WjUgzrn=6aGBukghoyOm5ordJv72mSsTBA@mail.gmail.com>	 <000601cc3843$e3854cb0$aa8fe610$@systemfabricworks.com> <1309625729.20982.2.camel@obelisk.thedillows.org>
+From: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Questions regarding CMA
+Date: Thu, 14 Jul 2011 10:58:29 +0300
+Message-ID: <201107141058.29879.jackm@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain;
-	charset="utf-8"
-Content-Transfer-Encoding: 8BIT
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1309625729.20982.2.camel-1q1vX8mYZiGLUyTwlgNVppKKF0rrzTr+@public.gmane.org>
-Content-Language: en-us
+Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: 'David Dillow' <dave-i1Mk8JYDVaaSihdK6806/g@public.gmane.org>, 'Roland Dreier' <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, dotanb-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-David, Roland,
+I am currently reviewing/cleaning up our CMA LAP patches for submission.
 
-After some travel I got back to looking at the CRC32 calculation. I have three test systems: x86_64, x86_32 and Sparc/64. If I am going to replace lib/crc32.c I need to implement both the LE and BE (bit *not* byte order) APIs. Ethernet and InfiniBand use the LE bit order, a minority of device drivers (e.g. ATM and Firewire) use the BE bit order. It turns out that the algorithm in lib/crc32.c has improved since the last time I looked and is now a, sort of, slice by 4 equivalent to the slice by 8 algorithm. On the x86_64 system with current gcc -O3 I measure 2.8 cycles per byte with lib/crc32.c and 1.5 cycles/byte using  rxe_sb8.c. I should have replacements for the standard routine in a day or two. Once it's working and tested I'll try to touch base with Andrew.
+I have several questions regarding the file cma.c, which I would like you to clarify for me.
 
-Bob
+1. In procedure cma_ib_listen (and elsewhere), if the call to ib_create_cm_id fails,
+   id_priv->cm_id.ib is left with the (non-zero) error value instead of NULL.
+   However, if there is a failure later in the procedure, you set id_priv->cm_id.ib to NULL.
 
------Original Message-----
-From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of David Dillow
-Sent: Saturday, July 02, 2011 11:55 AM
-To: Bob Pearson
-Cc: 'Roland Dreier'; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Subject: RE: [patch 37/44] rxe_sb8.c
+   Is there a reason for this difference in behavior? 
+   (code snippet from current code is below)
+	int cma_ib_listen(struct rdma_id_
 
-On Fri, 2011-07-01 at 18:09 -0500, Bob Pearson wrote:
-> Hi Roland,
-> 
-> Perhaps. We have some ICRC specific APIs as well as plain Jane CRC 
-> calculation that includes a copy at the same time.
-> If I knew who maintained crc32.c I would be happy to talk to them and 
-> see what they think.
+       		id_priv->cm_id.ib = ib_create_cm_id(id_priv->id.device, cma_req_handler,
+                                            	    id_priv);
+	       	if (IS_ERR(id_priv->cm_id.ib))
+               		return PTR_ERR(id_priv->cm_id.ib);
 
-No one is really the maintainer there. 'git log' says Joakim Tjernlund has touched it quite a bit, but your best bet is to post patches to LKML, and perhaps Andrew Morton.
+		....
+	        if (ret) {
+                	ib_destroy_cm_id(id_priv->cm_id.ib);
+                	id_priv->cm_id.ib = NULL;
+        	}
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org More majordomo info at  http://vger.kernel.org/majordomo-info.html
+   
+2. procedure cma_has_cm_dev looks as follows:
 
+	static int cma_has_cm_dev(struct rdma_id_private *id_priv)
+	{
+		return (id_priv->id.device && id_priv->cm_id.ib);
+	}
+
+   Shouldn't the line be:
+		return (id_priv->id.device && id_priv->cm_id.ib &&
+			!IS_ERR(id_priv->cm_id.ib));
+
+3. There are several places where the value of id_priv->cm_id.ib
+   is checked to be not NULL.
+
+   Wouldn't it be better to call cma_has_cm_dev in these places
+   (when cma_has_cm_dev has been fixed, as I suggested in 2 above).
+		
+Please consider the patch below as a starting point (I did not touch the iwarp code).
+Please let me know (ASAP) what you think.
+(I still leave a window here where id_priv->cm_id.ib is ERR. Is this a problem?
+ Would it be better to use a local variable instead of id_priv->cm_id.ib, and
+ only assign to id_priv->cm_id.ib when all the error checks have passed?
+ This would leave a window where a successful cm_id creation is not immediately assigned
+ to the CMA object -- would this be a problem?).
+
+Thanks!
+
+-Jack
+====================================================================
+--- cma.c	2011-07-13 09:54:09.000000000 +0300
++++ cma_fixed.c	2011-07-14 10:51:23.000000000 +0300
+@@ -424,7 +424,8 @@ static int cma_disable_callback(struct r
+ 
+ static int cma_has_cm_dev(struct rdma_id_private *id_priv)
+ {
+-	return (id_priv->id.device && id_priv->cm_id.ib);
++	return (id_priv->id.device && id_priv->cm_id.ib &&
++		!IS_ERR(id_priv->cm_id.ib));
+ }
+ 
+ struct rdma_cm_id *rdma_create_id(rdma_cm_event_handler event_handler,
+@@ -658,7 +659,7 @@ int rdma_init_qp_attr(struct rdma_cm_id 
+ 	id_priv = container_of(id, struct rdma_id_private, id);
+ 	switch (rdma_node_get_transport(id_priv->id.device->node_type)) {
+ 	case RDMA_TRANSPORT_IB:
+-		if (!id_priv->cm_id.ib || cma_is_ud_ps(id_priv->id.ps))
++		if (!cma_has_cm_dev(id_priv) || cma_is_ud_ps(id_priv->id.ps))
+ 			ret = cma_ib_init_qp_attr(id_priv, qp_attr, qp_attr_mask);
+ 		else
+ 			ret = ib_cm_init_qp_attr(id_priv->cm_id.ib, qp_attr,
+@@ -918,7 +919,7 @@ void rdma_destroy_id(struct rdma_cm_id *
+ 	if (id_priv->cma_dev) {
+ 		switch (rdma_node_get_transport(id_priv->id.device->node_type)) {
+ 		case RDMA_TRANSPORT_IB:
+-			if (id_priv->cm_id.ib && !IS_ERR(id_priv->cm_id.ib))
++			if (cma_has_cm_dev(id_priv))
+ 				ib_destroy_cm_id(id_priv->cm_id.ib);
+ 			break;
+ 		case RDMA_TRANSPORT_IWARP:
+@@ -1471,8 +1472,10 @@ static int cma_ib_listen(struct rdma_id_
+ 
+ 	id_priv->cm_id.ib = ib_create_cm_id(id_priv->id.device, cma_req_handler,
+ 					    id_priv);
+-	if (IS_ERR(id_priv->cm_id.ib))
+-		return PTR_ERR(id_priv->cm_id.ib);
++	if (IS_ERR(id_priv->cm_id.ib)) {
++		ret = PTR_ERR(id_priv->cm_id.ib);
++		goto out;
++	}
+ 
+ 	addr = (struct sockaddr *) &id_priv->id.route.addr.src_addr;
+ 	svc_id = cma_get_service_id(id_priv->id.ps, addr);
+@@ -1482,9 +1485,10 @@ static int cma_ib_listen(struct rdma_id_
+ 		cma_set_compare_data(id_priv->id.ps, addr, &compare_data);
+ 		ret = ib_cm_listen(id_priv->cm_id.ib, svc_id, 0, &compare_data);
+ 	}
+-
++out:
+ 	if (ret) {
+-		ib_destroy_cm_id(id_priv->cm_id.ib);
++		if (!IS_ERR(id_priv->cm_id.ib))
++			ib_destroy_cm_id(id_priv->cm_id.ib);
+ 		id_priv->cm_id.ib = NULL;
+ 	}
+ 
+@@ -2454,11 +2458,12 @@ static int cma_resolve_ib_udp(struct rdm
+ 	req.max_cm_retries = CMA_MAX_CM_RETRIES;
+ 
+ 	ret = ib_send_cm_sidr_req(id_priv->cm_id.ib, &req);
++out:
+ 	if (ret) {
+-		ib_destroy_cm_id(id_priv->cm_id.ib);
++		if (!IS_ERR(id_priv->cm_id.ib))
++			ib_destroy_cm_id(id_priv->cm_id.ib);
+ 		id_priv->cm_id.ib = NULL;
+ 	}
+-out:
+ 	kfree(req.private_data);
+ 	return ret;
+ }
+@@ -2516,8 +2521,9 @@ static int cma_connect_ib(struct rdma_id
+ 
+ 	ret = ib_send_cm_req(id_priv->cm_id.ib, &req);
+ out:
+-	if (ret && !IS_ERR(id_priv->cm_id.ib)) {
+-		ib_destroy_cm_id(id_priv->cm_id.ib);
++	if (ret) {
++	      	if (!IS_ERR(id_priv->cm_id.ib))
++			ib_destroy_cm_id(id_priv->cm_id.ib);
+ 		id_priv->cm_id.ib = NULL;
+ 	}
+ 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
