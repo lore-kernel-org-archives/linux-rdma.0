@@ -1,26 +1,44 @@
-From: Tziporet Koren <tziporet-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
-Subject: RE: [ANNOUNCE] libmthca 1.0.5 and libmlx4 1.0.2 are released
-Date: Thu, 14 Jul 2011 16:10:05 +0000
-Message-ID: <CD250C48050CFB4D95E78C95F2FDDD6E071C09B6@mtldag02.mtl.com>
-References: <1309981353-14301-1-git-send-email-roland@kernel.org>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH] opensm: Add support for PID file
+Date: Thu, 14 Jul 2011 10:10:56 -0600
+Message-ID: <20110714161056.GB4502@obsidianresearch.com>
+References: <20110710120442.GA11284@localhost.localdomain>
+ <20110712162740.29e2d7d1.weiny2@llnl.gov>
+ <20110712235222.GG10216@obsidianresearch.com>
+ <20110712165817.16076a3d.weiny2@llnl.gov>
+ <20110713041441.GA26663@obsidianresearch.com>
+ <20110713082640.GA2024@localhost.localdomain>
+ <CAL1RGDVXJd7Sq0-CcYR6heN_HCsrmc1CtrkKfxLWxYe3WN=ghA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1309981353-14301-1-git-send-email-roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <CAL1RGDVXJd7Sq0-CcYR6heN_HCsrmc1CtrkKfxLWxYe3WN=ghA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+Cc: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Aleksey Senin <alekseys-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On Wed, Jul 13, 2011 at 05:40:57PM -0700, Roland Dreier wrote:
+> On Wed, Jul 13, 2011 at 1:26 AM, Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
+> > +dnl Where to place opensm.pid
+> > +piddir=/var/run
+> 
+> FWIW the future seems to be /run instead of /var/run, eg
+> http://lists.fedoraproject.org/pipermail/devel/2011-March/150031.html
+> 
+> Not sure what the best way to handle this in a way that doesn't cause
+> hassles for packagers is.
 
-Roland
+Donno, I find it still unclear if /run is just for early boot stuff
+that might start prior to /var being mounted or a general replacement
+for all /run directories - I think it is the just for early boot
+stuff, and /var/run will bind mount/symlink to it (maybe forever?)?
 
-What about the new CX3 device ID patch?
-Also - when will the RoCE user space patches be included in the library?
+In any event, it is the packager's responsibility to understand details
+like this for their distribution..
 
-Thanks
-Tziporet
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
