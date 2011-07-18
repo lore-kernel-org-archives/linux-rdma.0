@@ -1,40 +1,25 @@
-From: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [ANNOUNCE] libmthca 1.0.5 and libmlx4 1.0.2 are released
-Date: Mon, 18 Jul 2011 12:37:20 -0700
-Message-ID: <CAL1RGDV5aZ_JCMdZ9VBSK3ZQm1T9V9kDLUvss-o4P5E_G4pBYg@mail.gmail.com>
-References: <1309981353-14301-1-git-send-email-roland@kernel.org>
- <CD250C48050CFB4D95E78C95F2FDDD6E071C09B6@mtldag02.mtl.com>
- <CAG4TOxN7iWn7JN7Yg_FMO1qdKFhhPXaujC-Chc=DfCyFMpxO5A@mail.gmail.com> <CD250C48050CFB4D95E78C95F2FDDD6E071C9C38@mtldag02.mtl.com>
+From: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+Subject: Re: software iwarp stack update
+Date: Mon, 18 Jul 2011 16:45:47 -0700
+Message-ID: <CAL1RGDW0gyQZAqR4XfCJTLrcmCD+h836vG=N1J_Emzhi8YEYHw@mail.gmail.com>
+References: <BANLkTimEGgKEMZd3qppOofN-Vj-u-PH-xA@mail.gmail.com>
+ <OFB7458EEB.BFB8A4EE-ONC12578B1.004026D1-C12578B1.0041190E@ch.ibm.com>
+ <BANLkTi=2woNzF=GL3cT3NB_hye5JHfodMA@mail.gmail.com> <BANLkTi=L057TZug2=nrFZTYdNoHLMvmBRA@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CD250C48050CFB4D95E78C95F2FDDD6E071C9C38-orl5n1AObOGuSA5JZHE7gA@public.gmane.org>
+In-Reply-To: <BANLkTi=L057TZug2=nrFZTYdNoHLMvmBRA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tziporet Koren <tziporet-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Vladimir Sokolovsky <vlad-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Cc: Bernard Metzler <BMT-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
->>> What about the new CX3 device ID patch?
->
->> Did I ever get a final version of the libmthca and kernel patches?
->
-> CX3 is using libmlx4 and not libmthca.
-> Vlad sent a patch on 1/19/11:
-> http://www.spinics.net/lists/linux-rdma/msg07237.html
+> There seems to be disagreement about whether to return 0, -ENOSYS or
+> -EOPNOTSUPP for not supported functionality. Does the patch below make sense ?
+> Note: I don't have all the hardware necessary to test the patch below.
 
-Sorry, I meant libmlx4 of course.
-
-So that patch includes
-
-+	HCA(MELLANOX, 0x6778),	/* MT26488 [ConnectX VPI PCIe 2.0 5GT/s - IB
-DDR / 10GigE Virt+] */
-
-which the kernel seems to be missing.  Should it be there?
-
-That's why I ask about final patches that bring kernel and libmlx4
-into sync, someone needs to check both device lists.
-
- - R.
+This makes sense to me, so I went ahead and applied it for 3.1 (minus
+the siw part, of course).
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
