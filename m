@@ -1,37 +1,38 @@
-From: Tziporet Koren <tziporet-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
-Subject: RE: [ANNOUNCE] libmthca 1.0.5 and libmlx4 1.0.2 are released
-Date: Mon, 18 Jul 2011 08:42:25 +0000
-Message-ID: <CD250C48050CFB4D95E78C95F2FDDD6E071C9C38@mtldag02.mtl.com>
-References: <1309981353-14301-1-git-send-email-roland@kernel.org>
- <CD250C48050CFB4D95E78C95F2FDDD6E071C09B6@mtldag02.mtl.com>
- <CAG4TOxN7iWn7JN7Yg_FMO1qdKFhhPXaujC-Chc=DfCyFMpxO5A@mail.gmail.com>
+From: Devesh Sharma <devesh28-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: Promiscuous mode support in IPoIB
+Date: Mon, 18 Jul 2011 15:36:58 +0530
+Message-ID: <CALsNU1P90OigwvMrk3qCAPTmqoMFUC3SFVKwcnY5PRNArgPOhA@mail.gmail.com>
+References: <BANLkTin3HRcvQHDw+qEu3+rjvfKOfFtekg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAG4TOxN7iWn7JN7Yg_FMO1qdKFhhPXaujC-Chc=DfCyFMpxO5A-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <BANLkTin3HRcvQHDw+qEu3+rjvfKOfFtekg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Vladimir Sokolovsky <vlad-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+Hello List,
 
->> What about the new CX3 device ID patch?
+Kindly someone help me on this. I need to know about promiscuous mode
+support in IPoIB and have a confusion if it is possible at all on
+IPoIB stack. If yes then How?
 
-> Did I ever get a final version of the libmthca and kernel patches?
+On Fri, Jun 24, 2011 at 11:19 AM, Devesh Sharma <devesh28-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
+> Hello list,
+>
+> does IPoIB supports promiscuous mode? Is it possible to implement this
+> mode using IB-Verbs?
+>
+> --
+> Please don't print this E- mail unless you really need to - this will
+> preserve trees on planet earth.
+>
 
-CX3 is using libmlx4 and not libmthca.
-Vlad sent a patch on 1/19/11:
-http://www.spinics.net/lists/linux-rdma/msg07237.html
 
 
-Is contain adding several device IDs including CX3
-
-Do you wish separate patch on each device?
-
-Regards,
-Tziporet
+-- 
+Please don't print this E- mail unless you really need to - this will
+preserve trees on planet earth.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
