@@ -1,7 +1,8 @@
 From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH 6/7] libmlx4: add IBoE UD/VLANs support
-Date: Tue, 19 Jul 2011 12:34:15 +0300
-Message-ID: <alpine.LRH.2.00.1107191233190.5580@ogerlitz.voltaire.com>
+Subject: [PATCH 7/7] libmlx4: align the list of ConnectX devices supported
+ with the kernel
+Date: Tue, 19 Jul 2011 12:36:13 +0300
+Message-ID: <alpine.LRH.2.00.1107191234410.5580@ogerlitz.voltaire.com>
 References: <alpine.LRH.2.00.1107191223460.5580@ogerlitz.voltaire.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="US-ASCII"
@@ -12,80 +13,63 @@ To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Add VLANs support for the UD address handle creation flow,
-where the vlan id is taken from the destination GID and the
-and vlan priority from the IB SL specified by the application.
+align the list of ConnectX devices supported by the library to be
+the same as the mlx4 driver from the upstream kernel
 
 Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- src/mlx4.h  |    1 +
- src/qp.c    |    1 +
- src/verbs.c |    9 +++++++--
- src/wqe.h   |    2 +-
- 4 files changed, 10 insertions(+), 3 deletions(-)
 
-diff --git a/src/mlx4.h b/src/mlx4.h
-index b277b06..0ad838d 100644
---- a/src/mlx4.h
-+++ b/src/mlx4.h
-@@ -241,6 +241,7 @@ struct mlx4_av {
- struct mlx4_ah {
- 	struct ibv_ah			ibv_ah;
- 	struct mlx4_av			av;
-+	uint16_t			vlan;
- 	uint8_t				mac[6];
+Roland, these two simple awk/cut commands can be used to
+actually validate the claim made by the change log...
+
+$ grep MELLANOX libmlx4.git/src/mlx4.c | grep HCA | awk '{ print $2 }' | cut -d ")" -f 1 > lib
+$ grep MELLANOX linux-2.6.git/drivers/net/mlx4/main.c | awk '{ print $3 }' | cut -d ")" -f 1 > ker
+$ diff lib ker
+
+The patch previously posted @ http://www.spinics.net/lists/linux-rdma/msg07237.html
+contains also the VPI/DDR device which isn't present in the kernel (device id 0x6778).
+Once the table cleanup brought by this patch takes place, we can add further
+patches to both the library and the kernel e.g with that DDR device, etc.
+
+ src/mlx4.c |   23 +++++++++++++++++++++++
+ 1 files changed, 23 insertions(+), 0 deletions(-)
+
+diff --git a/src/mlx4.c b/src/mlx4.c
+index 1295c53..ab18b4a 100644
+--- a/src/mlx4.c
++++ b/src/mlx4.c
+@@ -66,8 +66,31 @@ struct {
+ 	HCA(MELLANOX, 0x6354),	/* MT25408 "Hermon" QDR */
+ 	HCA(MELLANOX, 0x6732),	/* MT25408 "Hermon" DDR PCIe gen2 */
+ 	HCA(MELLANOX, 0x673c),	/* MT25408 "Hermon" QDR PCIe gen2 */
++	HCA(MELLANOX, 0x6368),	/* MT25408 "Hermon" EN 10GigE */
++	HCA(MELLANOX, 0x6750),	/* MT25408 "Hermon" EN 10GigE PCIe gen2 */
++	HCA(MELLANOX, 0x6372),	/* MT25458 ConnectX EN 10GBASE-T 10GigE */
++	HCA(MELLANOX, 0x675a),	/* MT25458 ConnectX EN 10GBASE-T+Gen2 10GigE */
++	HCA(MELLANOX, 0x6764),	/* MT26468 ConnectX EN 10GigE PCIe gen2*/
++	HCA(MELLANOX, 0x6746),	/* MT26438 ConnectX EN 40GigE PCIe gen2 5GT/s */
++	HCA(MELLANOX, 0x676e),	/* MT26478 ConnectX2 40GigE PCIe gen2 */
++	HCA(MELLANOX, 0x1002),	/* MT25400 Family [ConnectX-2 Virtual Function] */
++	HCA(MELLANOX, 0x1003),	/* MT27500 Family [ConnectX-3] */
++	HCA(MELLANOX, 0x1004),	/* MT27500 Family [ConnectX-3 Virtual Function] */
++	HCA(MELLANOX, 0x1005),	/* MT27510 Family */
++	HCA(MELLANOX, 0x1006),	/* MT27511 Family */
++	HCA(MELLANOX, 0x1007),	/* MT27520 Family */
++	HCA(MELLANOX, 0x1008),	/* MT27521 Family */
++	HCA(MELLANOX, 0x1009),	/* MT27530 Family */
++	HCA(MELLANOX, 0x100a),	/* MT27531 Family */
++	HCA(MELLANOX, 0x100b),	/* MT27540 Family */
++	HCA(MELLANOX, 0x100c),	/* MT27541 Family */
++	HCA(MELLANOX, 0x100d),	/* MT27550 Family */
++	HCA(MELLANOX, 0x100e),	/* MT27551 Family */
++	HCA(MELLANOX, 0x100f),	/* MT27560 Family */
++	HCA(MELLANOX, 0x1010),	/* MT27561 Family */
  };
 
-diff --git a/src/qp.c b/src/qp.c
-index 4d79e38..40a6689 100644
---- a/src/qp.c
-+++ b/src/qp.c
-@@ -144,6 +144,7 @@ static void set_datagram_seg(struct mlx4_wqe_datagram_seg *dseg,
- 	memcpy(dseg->av, &to_mah(wr->wr.ud.ah)->av, sizeof (struct mlx4_av));
- 	dseg->dqpn = htonl(wr->wr.ud.remote_qpn);
- 	dseg->qkey = htonl(wr->wr.ud.remote_qkey);
-+	dseg->vlan = htons(to_mah(wr->wr.ud.ah)->vlan);
- 	memcpy(dseg->mac, to_mah(wr->wr.ud.ah)->mac, 6);
- }
-
-diff --git a/src/verbs.c b/src/verbs.c
-index 6620ac2..8aa9860 100644
---- a/src/verbs.c
-+++ b/src/verbs.c
-@@ -634,13 +634,18 @@ static uint16_t get_vlan_id(union ibv_gid *gid)
-
- static int mlx4_resolve_grh_to_l2(struct mlx4_ah *ah, struct ibv_ah_attr *attr)
- {
--	if (get_vlan_id(&attr->grh.dgid) != 0xffff)
--		return 1;
-+	uint16_t vid;
-
- 	if (link_local_gid(&attr->grh.dgid)) {
- 		memcpy(ah->mac, &attr->grh.dgid.raw[8], 3);
- 		memcpy(ah->mac + 3, &attr->grh.dgid.raw[13], 3);
- 		ah->mac[0] ^= 2;
 +
-+		vid = get_vlan_id(&attr->grh.dgid);
-+		if (vid != 0xffff) {
-+			ah->av.port_pd |= htonl(1 << 29);
-+			ah->vlan = vid | ((attr->sl & 7) << 13);
-+		}
- 		return 0;
- 	} else
- 		return 1;
-diff --git a/src/wqe.h b/src/wqe.h
-index 043f0da..bbd22ba 100644
---- a/src/wqe.h
-+++ b/src/wqe.h
-@@ -78,7 +78,7 @@ struct mlx4_wqe_datagram_seg {
- 	uint32_t		av[8];
- 	uint32_t		dqpn;
- 	uint32_t		qkey;
--	uint16_t		reserved;
-+	uint16_t		vlan;
- 	uint8_t			mac[6];
- };
-
+ static struct ibv_context_ops mlx4_ctx_ops = {
+ 	.query_device  = mlx4_query_device,
+ 	.query_port    = mlx4_query_port,
 -- 
 1.5.5
 
