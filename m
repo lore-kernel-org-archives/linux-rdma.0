@@ -1,46 +1,111 @@
 From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH 0/7] IBoE user space support
-Date: Tue, 19 Jul 2011 12:25:48 +0300
-Message-ID: <alpine.LRH.2.00.1107191223460.5580@ogerlitz.voltaire.com>
+Subject: [PATCH 1/7] libibverbs: Add link layer field port attribute
+Date: Tue, 19 Jul 2011 12:27:17 +0300
+Message-ID: <alpine.LRH.2.00.1107191226210.5580@ogerlitz.voltaire.com>
+References: <alpine.LRH.2.00.1107191223460.5580@ogerlitz.voltaire.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="US-ASCII"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <alpine.LRH.2.00.1107191223460.5580-VYr5/9ddeaGSIdy2EShu12Xnswh1EIUO@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, Tziporet Koren <tziporet-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Roland, the enclosed patch series enhances the user space IB
-stack to support IBoE. This work is based on earlier patches
-done by Eli Cohen <eli-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org> and posted during
-August/2010 see some pointers below.
+The new field has one of three values - IBV_LINK_LAYER_UNSPECIFIED,
+IBV_LINK_LAYER_INFINIBAND, IBV_LINK_LAYER_ETHERNET. It can be used
+by applications to know the link layer used by the port, which
+can be either Infiniband or Ethernet.
 
-One notable change from the previous post, is keeping the UD related
-resolution between GID to Ethernet L2 address objects (e.g mac, vlan)
-within libmlx4. Another patch with notable change is the last, which
-aligns libmlx4 with the kernel w.r.t supported devices.
+The addition of the new field does not change the size of struct
+ibv_port_attr due to alignment of the preceding fields. As such
+binary compatibility between the library to applications is kept,
+since old apps running over new library do not read this field,
+and new apps running over old library will determine the link
+layer as unspecified and hence take their IB code path.
 
-[PATCH 1/7] libibverbs: Add link layer field port attribute
-[PATCH 2/7] libibverbs: change kernel API to accept link layer
-[PATCH 3/7] libibverbs: add GID change event
-[PATCH 4/7] libibverbs: update examples for IBoE
+The solution was suggested by: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+and Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 
-[PATCH 5/7] libmlx4: add IBoE support
-[PATCH 6/7] libmlx4: add IBoE UD/VLANs support
+Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
+Signed-off-by: Eli Cohen <eli-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
+---
+ include/infiniband/verbs.h |   21 +++++++++++++++++++++
+ man/ibv_query_port.3       |    4 ++++
+ 2 files changed, 25 insertions(+), 0 deletions(-)
 
-[PATCH 7/7] libmlx4: align the list of ConnectX devices supported with the kernel
+diff --git a/include/infiniband/verbs.h b/include/infiniband/verbs.h
+index 0f1cb2e..17df3ff 100644
+--- a/include/infiniband/verbs.h
++++ b/include/infiniband/verbs.h
+@@ -161,6 +161,12 @@ enum ibv_port_state {
+ 	IBV_PORT_ACTIVE_DEFER	= 5
+ };
 
-Or.
++enum {
++	IBV_LINK_LAYER_UNSPECIFIED,
++	IBV_LINK_LAYER_INFINIBAND,
++	IBV_LINK_LAYER_ETHERNET,
++};
++
+ struct ibv_port_attr {
+ 	enum ibv_port_state	state;
+ 	enum ibv_mtu		max_mtu;
+@@ -181,6 +187,8 @@ struct ibv_port_attr {
+ 	uint8_t			active_width;
+ 	uint8_t			active_speed;
+ 	uint8_t			phys_state;
++	uint8_t			link_layer;
++	uint8_t			pad;
+ };
 
-libibverbs V10 from August 2010
-http://marc.info/?l=linux-rdma&m=128283236815520
-http://marc.info/?l=linux-rdma&m=128283237715545
-http://marc.info/?l=linux-rdma&m=128283238115562
-http://marc.info/?l=linux-rdma&m=128283239215578
+ enum ibv_event_type {
+@@ -693,6 +701,16 @@ struct ibv_context {
+ 	void		       *abi_compat;
+ };
 
-libmlx4 V10 from August 2010
-http://marc.info/?l=linux-rdma&m=128283239515584
-http://marc.info/?l=linux-rdma&m=128283240415602
++static inline int ___ibv_query_port(struct ibv_context *context,
++				    uint8_t port_num,
++				    struct ibv_port_attr *port_attr)
++{
++	port_attr->link_layer = IBV_LINK_LAYER_UNSPECIFIED;
++	port_attr->pad = 0;
++
++	return context->ops.query_port(context, port_num, port_attr);
++}
++
+ /**
+  * ibv_get_device_list - Get list of IB devices currently available
+  * @num_devices: optional.  if non-NULL, set to the number of devices
+@@ -1097,4 +1115,7 @@ END_C_DECLS
+
+ #  undef __attribute_const
+
++#define ibv_query_port(context, port_num, port_attr) \
++	___ibv_query_port(context, port_num, port_attr)
++
+ #endif /* INFINIBAND_VERBS_H */
+diff --git a/man/ibv_query_port.3 b/man/ibv_query_port.3
+index 882470d..9bedd90 100644
+--- a/man/ibv_query_port.3
++++ b/man/ibv_query_port.3
+@@ -44,9 +44,13 @@ uint8_t                 init_type_reply;/* Type of initialization performed by S
+ uint8_t                 active_width;   /* Currently active link width */
+ uint8_t                 active_speed;   /* Currently active link speed */
+ uint8_t                 phys_state;     /* Physical port state */
++uint8_t                 link_layer;     /* link layer protocol of the port */
+ .in -8
+ };
+ .sp
++possible values for the link layer field are IBV_LINK_LAYER_INFINIBAND,
++IBV_LINK_LAYER_ETHERNET, or IBV_LINK_LAYER_UNSPECIFIED.
++.sp
+ .fi
+ .SH "RETURN VALUE"
+ .B ibv_query_port()
+-- 
+1.5.5
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
