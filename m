@@ -1,7 +1,7 @@
 From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH 5/7] libmlx4: add IBoE support
-Date: Tue, 19 Jul 2011 12:32:52 +0300
-Message-ID: <alpine.LRH.2.00.1107191231540.5580@ogerlitz.voltaire.com>
+Subject: [PATCH 6/7] libmlx4: add IBoE UD/VLANs support
+Date: Tue, 19 Jul 2011 12:34:15 +0300
+Message-ID: <alpine.LRH.2.00.1107191233190.5580@ogerlitz.voltaire.com>
 References: <alpine.LRH.2.00.1107191223460.5580@ogerlitz.voltaire.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="US-ASCII"
@@ -12,134 +12,80 @@ To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Modify libmlx4 to support IBoE, where the only user space piece
-to handle is the creation of UD address handles - the L2 Ethernet
-attributes have to be resolved from the DGID.
-Derived from work by Eli Cohen <eli-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
+Add VLANs support for the UD address handle creation flow,
+where the vlan id is taken from the destination GID and the
+and vlan priority from the IB SL specified by the application.
 
 Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
  src/mlx4.h  |    1 +
  src/qp.c    |    1 +
- src/verbs.c |   49 +++++++++++++++++++++++++++++++++++++++++++++++--
- src/wqe.h   |    3 ++-
- 4 files changed, 51 insertions(+), 3 deletions(-)
+ src/verbs.c |    9 +++++++--
+ src/wqe.h   |    2 +-
+ 4 files changed, 10 insertions(+), 3 deletions(-)
 
 diff --git a/src/mlx4.h b/src/mlx4.h
-index 4445998..b277b06 100644
+index b277b06..0ad838d 100644
 --- a/src/mlx4.h
 +++ b/src/mlx4.h
 @@ -241,6 +241,7 @@ struct mlx4_av {
  struct mlx4_ah {
  	struct ibv_ah			ibv_ah;
  	struct mlx4_av			av;
-+	uint8_t				mac[6];
++	uint16_t			vlan;
+ 	uint8_t				mac[6];
  };
 
- static inline unsigned long align(unsigned long val, unsigned long align)
 diff --git a/src/qp.c b/src/qp.c
-index ec138cd..4d79e38 100644
+index 4d79e38..40a6689 100644
 --- a/src/qp.c
 +++ b/src/qp.c
 @@ -144,6 +144,7 @@ static void set_datagram_seg(struct mlx4_wqe_datagram_seg *dseg,
  	memcpy(dseg->av, &to_mah(wr->wr.ud.ah)->av, sizeof (struct mlx4_av));
  	dseg->dqpn = htonl(wr->wr.ud.remote_qpn);
  	dseg->qkey = htonl(wr->wr.ud.remote_qkey);
-+	memcpy(dseg->mac, to_mah(wr->wr.ud.ah)->mac, 6);
++	dseg->vlan = htons(to_mah(wr->wr.ud.ah)->vlan);
+ 	memcpy(dseg->mac, to_mah(wr->wr.ud.ah)->mac, 6);
  }
 
- static void __set_data_seg(struct mlx4_wqe_data_seg *dseg, struct ibv_sge *sg)
 diff --git a/src/verbs.c b/src/verbs.c
-index 1ac1362..6620ac2 100644
+index 6620ac2..8aa9860 100644
 --- a/src/verbs.c
 +++ b/src/verbs.c
-@@ -614,9 +614,45 @@ int mlx4_destroy_qp(struct ibv_qp *ibqp)
- 	return 0;
- }
+@@ -634,13 +634,18 @@ static uint16_t get_vlan_id(union ibv_gid *gid)
 
-+static int link_local_gid(const union ibv_gid *gid)
-+{
-+	uint32_t hi = *(uint32_t *)(gid->raw);
-+	uint32_t lo = *(uint32_t *)(gid->raw + 4);
-+	if (hi == htonl(0xfe800000) && lo == 0)
-+		return 1;
-+
-+	return 0;
-+}
-+
-+static uint16_t get_vlan_id(union ibv_gid *gid)
-+{
-+	uint16_t vid;
-+	vid = gid->raw[11] << 8 | gid->raw[12];
-+	return vid < 0x1000 ? vid : 0xffff;
-+}
-+
-+
-+static int mlx4_resolve_grh_to_l2(struct mlx4_ah *ah, struct ibv_ah_attr *attr)
-+{
-+	if (get_vlan_id(&attr->grh.dgid) != 0xffff)
-+		return 1;
-+
-+	if (link_local_gid(&attr->grh.dgid)) {
-+		memcpy(ah->mac, &attr->grh.dgid.raw[8], 3);
-+		memcpy(ah->mac + 3, &attr->grh.dgid.raw[13], 3);
-+		ah->mac[0] ^= 2;
-+		return 0;
-+	} else
-+		return 1;
-+}
-+
- struct ibv_ah *mlx4_create_ah(struct ibv_pd *pd, struct ibv_ah_attr *attr)
+ static int mlx4_resolve_grh_to_l2(struct mlx4_ah *ah, struct ibv_ah_attr *attr)
  {
- 	struct mlx4_ah *ah;
-+	struct ibv_port_attr port_attr;
+-	if (get_vlan_id(&attr->grh.dgid) != 0xffff)
+-		return 1;
++	uint16_t vid;
+
+ 	if (link_local_gid(&attr->grh.dgid)) {
+ 		memcpy(ah->mac, &attr->grh.dgid.raw[8], 3);
+ 		memcpy(ah->mac + 3, &attr->grh.dgid.raw[13], 3);
+ 		ah->mac[0] ^= 2;
 +
-+	if (ibv_query_port(pd->context, attr->port_num, &port_attr))
-+		return NULL;
-
- 	ah = malloc(sizeof *ah);
- 	if (!ah)
-@@ -625,8 +661,11 @@ struct ibv_ah *mlx4_create_ah(struct ibv_pd *pd, struct ibv_ah_attr *attr)
- 	memset(&ah->av, 0, sizeof ah->av);
-
- 	ah->av.port_pd   = htonl(to_mpd(pd)->pdn | (attr->port_num << 24));
--	ah->av.g_slid    = attr->src_path_bits;
--	ah->av.dlid      = htons(attr->dlid);
-+
-+	if (port_attr.link_layer != IBV_LINK_LAYER_ETHERNET) {
-+		ah->av.g_slid = attr->src_path_bits;
-+		ah->av.dlid   = htons(attr->dlid);
-+	}
- 	if (attr->static_rate) {
- 		ah->av.stat_rate = attr->static_rate + MLX4_STAT_RATE_OFFSET;
- 		/* XXX check rate cap? */
-@@ -642,6 +681,12 @@ struct ibv_ah *mlx4_create_ah(struct ibv_pd *pd, struct ibv_ah_attr *attr)
- 		memcpy(ah->av.dgid, attr->grh.dgid.raw, 16);
- 	}
-
-+	if (port_attr.link_layer == IBV_LINK_LAYER_ETHERNET)
-+		if (mlx4_resolve_grh_to_l2(ah, attr)) {
-+			free(ah);
-+			return NULL;
++		vid = get_vlan_id(&attr->grh.dgid);
++		if (vid != 0xffff) {
++			ah->av.port_pd |= htonl(1 << 29);
++			ah->vlan = vid | ((attr->sl & 7) << 13);
 +		}
-+
- 	return &ah->ibv_ah;
- }
-
+ 		return 0;
+ 	} else
+ 		return 1;
 diff --git a/src/wqe.h b/src/wqe.h
-index 6f7f309..043f0da 100644
+index 043f0da..bbd22ba 100644
 --- a/src/wqe.h
 +++ b/src/wqe.h
-@@ -78,7 +78,8 @@ struct mlx4_wqe_datagram_seg {
+@@ -78,7 +78,7 @@ struct mlx4_wqe_datagram_seg {
  	uint32_t		av[8];
  	uint32_t		dqpn;
  	uint32_t		qkey;
--	uint32_t		reserved[2];
-+	uint16_t		reserved;
-+	uint8_t			mac[6];
+-	uint16_t		reserved;
++	uint16_t		vlan;
+ 	uint8_t			mac[6];
  };
 
- struct mlx4_wqe_data_seg {
 -- 
 1.5.5
 
