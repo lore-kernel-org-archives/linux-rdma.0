@@ -1,30 +1,41 @@
-From: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Subject: Re: [PATCH 1/7] libibverbs: Add link layer field port attribute
-Date: Tue, 19 Jul 2011 23:22:51 +0300
-Message-ID: <CAJZOPZ+2S=agGurUC6393e7mqQy4Ob1jaseeoWxeZe2Yu-kCLg@mail.gmail.com>
+Date: Tue, 19 Jul 2011 14:31:40 -0600
+Message-ID: <20110719203140.GG18090@obsidianresearch.com>
 References: <alpine.LRH.2.00.1107191223460.5580@ogerlitz.voltaire.com>
-	<alpine.LRH.2.00.1107191226210.5580@ogerlitz.voltaire.com>
-	<20110719170454.GD18090@obsidianresearch.com>
-	<CAJZOPZ+=3jr18x8Uxt73jAfT0bdPhntOez9dyZfmiHOF5REOSw@mail.gmail.com>
-	<20110719195020.GE18090@obsidianresearch.com>
+ <alpine.LRH.2.00.1107191226210.5580@ogerlitz.voltaire.com>
+ <20110719170454.GD18090@obsidianresearch.com>
+ <CAJZOPZ+=3jr18x8Uxt73jAfT0bdPhntOez9dyZfmiHOF5REOSw@mail.gmail.com>
+ <20110719195020.GE18090@obsidianresearch.com>
+ <CAJZOPZ+2S=agGurUC6393e7mqQy4Ob1jaseeoWxeZe2Yu-kCLg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20110719195020.GE18090-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <CAJZOPZ+2S=agGurUC6393e7mqQy4Ob1jaseeoWxeZe2Yu-kCLg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+To: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
-> Or Gerlitz wrote:
+On Tue, Jul 19, 2011 at 11:22:51PM +0300, Or Gerlitz wrote:
+> Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
+> > Or Gerlitz wrote:
+> 
+> >>> What zeros the field in the current library?
+> 
+> +       port_attr->link_layer = IBV_LINK_LAYER_UNSPECIFIED;
+> +       port_attr->pad = 0;
 
->>> What zeros the field in the current library?
+Where are you getting that hunk from?
 
-+       port_attr->link_layer = IBV_LINK_LAYER_UNSPECIFIED;
-+       port_attr->pad = 0;
+libibverbs $ git grep link_layer libibverbs-1.1.5 --
+libibverbs $
 
-Or
+More clearly: what initializes the memory you've redefined to be
+link_layer in libibverbs 1.1.5 ? I see nothing.
+
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
