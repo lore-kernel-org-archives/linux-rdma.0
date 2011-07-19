@@ -1,44 +1,31 @@
-From: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 4/7] libibverbs: Update examples for IBoE
-Date: Tue, 19 Jul 2011 22:44:02 +0300
-Message-ID: <CAJZOPZKa3o6VJA9-F6R6prRC4sORct6Lg1mGz4k1qmbPt-NJ1g@mail.gmail.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH 1/7] libibverbs: Add link layer field port attribute
+Date: Tue, 19 Jul 2011 13:50:20 -0600
+Message-ID: <20110719195020.GE18090@obsidianresearch.com>
 References: <alpine.LRH.2.00.1107191223460.5580@ogerlitz.voltaire.com>
-	<alpine.LRH.2.00.1107191230350.5580@ogerlitz.voltaire.com>
-	<20110719165236.GB18090@obsidianresearch.com>
+ <alpine.LRH.2.00.1107191226210.5580@ogerlitz.voltaire.com>
+ <20110719170454.GD18090@obsidianresearch.com>
+ <CAJZOPZ+=3jr18x8Uxt73jAfT0bdPhntOez9dyZfmiHOF5REOSw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20110719165236.GB18090-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <CAJZOPZ+=3jr18x8Uxt73jAfT0bdPhntOez9dyZfmiHOF5REOSw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+To: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
->> Since IBoE requires usage of GRH, update ibv_*_pinpong examples to accept
->> GIDs. GIDs are given as an index to the local port's table and are exchanged
->> between the client and the server through the socket connection.
+On Tue, Jul 19, 2011 at 10:36:26PM +0300, Or Gerlitz wrote:
+> > What zeros the field in the current library?
+> 
+> the kernel uverbs code either zeros it (old kernels) or sets it (new kernels)
 
-> Since these examples are meant as programming examples, using the GID
-> index as an command line parameter is not an example of good UI
-> design. Other tools (ie diags, ibtool, etc) accept the GID in
-> canonical IPv6 format and match that to the GID table.
+ibv_cmd_query_port does a field by field copy of the port_attr, so
+what the kernel does is not relevant to this case, and to me it looks
+like the new value you added will be left uninitialized on old ibverbs.
 
-To my taste these examples should be used as programming examples for
-their verbs
-data path part, as for connection establishment, I would prefer app
-writers use the rdma-cm and I don't think the control plane of these
-examples (the IB L2/L3/L4 info exchange) should be used in real life
-apps. In the same manner that under IB the user doesn't specify the
-LID from the command line but rather the device and port, I don't
-think they need to specify the GID but rather the device and port. The
-index isn't always zero, since this is what let people test VLANs
-(under IBoE for each VLAN a new entry is added to the GID table as the
-GID includes both mac and vlan).
-
-Or.
-
-Or.
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
