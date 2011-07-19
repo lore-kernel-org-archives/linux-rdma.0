@@ -1,30 +1,34 @@
-From: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
-Subject: Re: [PATCH] ib_srp: Avoid that LUN scanning creates duplicate devices
-Date: Tue, 19 Jul 2011 09:16:34 -0700
-Message-ID: <CAL1RGDW9WXswoGQYiSzZpuoQ07u2AMe3Xqni0Cc=O9d1sJ1OPQ@mail.gmail.com>
-References: <201106251010.30994.bvanassche@acm.org> <1309018469.6908.3.camel@obelisk.thedillows.org>
- <CAO+b5-rfaf2DQtuGQePivWppzX5YC+Zbj_6Et1U6HrMJF6CLXA@mail.gmail.com> <1311091437.18631.1.camel@lap75545.ornl.gov>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH 5/7] libmlx4: add IBoE support
+Date: Tue, 19 Jul 2011 10:49:06 -0600
+Message-ID: <20110719164906.GA18090@obsidianresearch.com>
+References: <alpine.LRH.2.00.1107191223460.5580@ogerlitz.voltaire.com>
+ <alpine.LRH.2.00.1107191231540.5580@ogerlitz.voltaire.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1311091437.18631.1.camel-FqX9LgGZnHWDB2HL1qBt2PIbXMQ5te18@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <alpine.LRH.2.00.1107191231540.5580-VYr5/9ddeaGSIdy2EShu12Xnswh1EIUO@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>
-Cc: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Christoph Hellwig <hch-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Jul 19, 2011 at 9:03 AM, David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org> wrote:
-> I Ack'd thinking Roland would pick it up directly since has done that in
-> the past for singe patches, but I'm fine with pulling it into my tree
-> and pushing that way.
->
-> Roland?
+On Tue, Jul 19, 2011 at 12:32:52PM +0300, Or Gerlitz wrote:
+> Modify libmlx4 to support IBoE, where the only user space piece
+> to handle is the creation of UD address handles - the L2 Ethernet
+> attributes have to be resolved from the DGID.
 
-I've had it in my for-next branch for a while now... since it wasn't a
-regression (AFAICT, we've been that way approximately forever), I
-was waiting for 3.1 to ask Linus to take it.
+It seems a shame to add a kernel syscall to every ah creation just to
+learn the link type.
 
- - R.
+Other than rejecting some GIDs it doesn't seem like there is any
+operational need to learn the link type..
+
+Also, did anyone document the GID format for IBoE? IIRC we invented
+this for Linux since IBA refused to standardize anything.
+
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
