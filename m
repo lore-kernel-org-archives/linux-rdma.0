@@ -1,35 +1,109 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [RFC] XRC upstream merge reboot
-Date: Wed, 20 Jul 2011 18:51:52 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A82373136F63B9@ORSMSX101.amr.corp.intel.com>
-References: <1828884A29C6694DAF28B7E6B8A82373F7AB@ORSMSX101.amr.corp.intel.com>
- <201106222221.05993.jackm@dev.mellanox.co.il>
- <1828884A29C6694DAF28B7E6B8A82373029BDE@ORSMSX101.amr.corp.intel.com>
- <201106230935.07425.jackm@dev.mellanox.co.il>
+From: frank zago <fzago-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org>
+Subject: ibv_query_qp returns incorrect sq_sig_all
+Date: Wed, 20 Jul 2011 14:09:00 -0500
+Message-ID: <4E2727CC.4020308@systemfabricworks.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <201106230935.07425.jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Cc: "tziporet-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org" <tziporet-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, "dotanb-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org" <dotanb-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, "Jeff Squyres (jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org)" <jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, "Shamis, Pavel (shamisp-1Heg1YXhbW8@public.gmane.org)" <shamisp-1Heg1YXhbW8@public.gmane.org>, "Shumilin, Victor" <victor.shumilin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Truschin, Vladimir" <vladimir.truschin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Devendar Bureddy <bureddy-wPOY3OvGL++pAIv7I8X2sze48wsgrGvP@public.gmane.org>, "mvapich-core-wPOY3OvGL++pAIv7I8X2sze48wsgrGvP@public.gmane.org" <mvapich-core-wPOY3OvGL++pAIv7I8X2sze48wsgrGvP@public.gmane.org>
+To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-I've tried to come up with a clean way to determine the lifetime of an xrc tgt qp, and I think the best approach is still:
+Hi,
 
-1. Allow the creating process to destroy it at any time, and
+It seems that sq_sig_all is not properly set when creating the QP or
+when querying it. The following programs creates a bunch of QP with
+sq_sig_all set to 0 and then queries them. Often sq_sig_all is returned
+to be 1.
+I tested some other returned values and they seem correct.
 
-2a. If not explicitly destroyed, the tgt qp is bound to the lifetime of the xrc domain
-or
-2b. The creating process specifies during the creation of the tgt qp whether the qp should be destroyed on exit.
+I didn't see anything wrong in the libraries nor in the drivers.
+Tested with an mthca on OFED 1.5.1 and mlx4 on OFED 1.3.1.
 
-The MPIs associate an xrc domain with a job, so this should work.  Everything else significantly complicates the usage model and implementation, both for verbs and the CM.  An application can maintain a reference count out of band with a persistent server and use explicit destruction if they want to share the xrcd across jobs.
+Any idea ?
 
-Option 2a is the current implementation, but 2b should be a minor change.  I'd like to reach a consensus on the right approach here, since there doesn't appear to be issues elsewhere.
+Frank.
 
-- Sean
+
+
+For instance:
+[fzago]$ ./testqp
+failed at loop 167 (sq_sig_all=1)
+
+Regards,
+  Frank.
+
+/*
+ * Invalid sq_sig_all test
+ *
+ * Compile with   gcc -Wall -O2  -libverbs  testqp.c   -o testqp
+ */
+
+#include <stdio.h>
+#include <assert.h>
+#include <string.h>
+#include <stdlib.h>
+
+#include <infiniband/verbs.h>
+
+#define NUM 10000
+
+int main(void)
+{
+	struct ibv_context *context;
+    struct ibv_pd      *pd;
+    struct ibv_device **dev_list;
+    struct ibv_device *ib_dev;
+	struct ibv_qp_init_attr qp_init_attr;
+	struct ibv_qp *qp[NUM];
+	struct ibv_cq *cq;
+	struct ibv_qp_attr attr;
+	int rc;
+	int i;
+
+    dev_list = ibv_get_device_list(NULL);
+
+	ib_dev = dev_list[0];
+	assert(ib_dev);
+
+    context = ibv_open_device(ib_dev);
+    assert(context);
+
+	pd = ibv_alloc_pd(context);
+	assert(pd);
+
+	cq = ibv_create_cq(context, 10, NULL, NULL, 0);
+	assert(cq);
+
+	for (i=0; i<NUM; i++) {
+		memset(&qp_init_attr, 0, sizeof(qp_init_attr));
+
+		qp_init_attr.send_cq = cq;
+		qp_init_attr.recv_cq = cq;
+		qp_init_attr.cap.max_send_wr  = 10;
+		qp_init_attr.cap.max_recv_wr  = 10;
+		qp_init_attr.cap.max_send_sge = 1;
+		qp_init_attr.cap.max_recv_sge = 1;
+		qp_init_attr.qp_type = IBV_QPT_RC;
+
+		assert(qp_init_attr.sq_sig_all == 0);
+
+		qp[i] = ibv_create_qp(pd, &qp_init_attr);
+		assert(qp[i]);
+
+		rc = ibv_query_qp(qp[i], &attr, 0xffffffff, &qp_init_attr);
+		assert(rc == 0);
+
+		if (qp_init_attr.sq_sig_all != 0) {
+			printf("failed at loop %d (sq_sig_all=%d)\n", i,
+qp_init_attr.sq_sig_all);
+			abort();
+		}
+	}
+
+	return 0;
+}
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
