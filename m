@@ -1,7 +1,8 @@
 From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-Subject: [PATCH 1/3] infiniband-diags: libibnetdisc add port interface
-Date: Wed, 20 Jul 2011 16:16:54 -0700
-Message-ID: <20110720161654.406e442b.weiny2@llnl.gov>
+Subject: [PATCH 2/3] infiniband-diags: libibnetdisc Allow a DR Path partial
+ fabric query starting at a CA
+Date: Wed, 20 Jul 2011 16:16:55 -0700
+Message-ID: <20110720161655.1ed38052.weiny2@llnl.gov>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
@@ -12,190 +13,220 @@ Cc: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.or
 List-Id: linux-rdma@vger.kernel.org
 
 
-Add ability to find port's based on PortGUID and DRPath
+The old algorithm would attempt to extend a DR path through the CA and fail.
+The new algorithm retracts the path properly.
+
+This does not work when combined routing is used with the CA as a starting
+point.  :-(
 
 Signed-off-by: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
 ---
- libibnetdisc/include/infiniband/ibnetdisc.h |   11 +++
- libibnetdisc/libibnetdisc.ver               |    2 +-
- libibnetdisc/src/ibnetdisc.c                |  112 ++++++++++++++++++++-------
- libibnetdisc/src/libibnetdisc.map           |    3 +
- 4 files changed, 98 insertions(+), 30 deletions(-)
+ libibnetdisc/src/ibnetdisc.c |   83 ++++++++++++++++++++++++++++++++----------
+ libibnetdisc/src/internal.h  |    1 +
+ 2 files changed, 64 insertions(+), 20 deletions(-)
 
-diff --git a/libibnetdisc/include/infiniband/ibnetdisc.h b/libibnetdisc/include/infiniband/ibnetdisc.h
-index 7b42026..300094e 100644
---- a/libibnetdisc/include/infiniband/ibnetdisc.h
-+++ b/libibnetdisc/include/infiniband/ibnetdisc.h
-@@ -213,6 +213,17 @@ IBND_EXPORT void ibnd_iter_nodes_type(ibnd_fabric_t * fabric,
- 				     int node_type, void *user_data);
- 
- /** =========================================================================
-+ * Port operations
-+ */
-+IBND_EXPORT ibnd_port_t *ibnd_find_port_guid(ibnd_fabric_t * fabric,
-+					uint64_t guid);
-+IBND_EXPORT ibnd_port_t *ibnd_find_port_dr(ibnd_fabric_t * fabric,
-+					char *dr_str);
-+typedef void (*ibnd_iter_port_func_t) (ibnd_port_t * port, void *user_data);
-+IBND_EXPORT void ibnd_iter_ports(ibnd_fabric_t * fabric,
-+				ibnd_iter_port_func_t func, void *user_data);
-+
-+/** =========================================================================
-  * Chassis queries
-  */
- IBND_EXPORT uint64_t ibnd_get_chassis_guid(ibnd_fabric_t * fabric,
-diff --git a/libibnetdisc/libibnetdisc.ver b/libibnetdisc/libibnetdisc.ver
-index 27f922f..8ff2d35 100644
---- a/libibnetdisc/libibnetdisc.ver
-+++ b/libibnetdisc/libibnetdisc.ver
-@@ -6,4 +6,4 @@
- # API_REV - advance on any added API
- # RUNNING_REV - advance any change to the vendor files
- # AGE - number of backward versions the API still supports
--LIBVERSION=5:1:0
-+LIBVERSION=6:0:1
 diff --git a/libibnetdisc/src/ibnetdisc.c b/libibnetdisc/src/ibnetdisc.c
-index 4a4f33b..b7fa75a 100644
+index b7fa75a..07f2a3f 100644
 --- a/libibnetdisc/src/ibnetdisc.c
 +++ b/libibnetdisc/src/ibnetdisc.c
-@@ -387,37 +387,13 @@ ibnd_node_t *ibnd_find_node_guid(ibnd_fabric_t * fabric, uint64_t guid)
- 	return NULL;
+@@ -56,8 +56,13 @@
+ #include "chassis.h"
+ 
+ /* forward declare */
++struct ni_cbdata
++{
++	ibnd_node_t *node;
++	int port_num;
++};
+ static int query_node_info(smp_engine_t * engine, ib_portid_t * portid,
+-			   ibnd_node_t * node);
++			   struct ni_cbdata * cbdata);
+ 
+ static int recv_switch_info(smp_engine_t * engine, ibnd_smp_t * smp,
+ 			    uint8_t * mad, void *cb_data)
+@@ -87,6 +92,26 @@ static int add_port_to_dpath(ib_dr_path_t * path, int nextport)
+ 	return path->cnt;
  }
  
-+/* forward declare */
-+ibnd_port_t *ibnd_find_port_dr(ibnd_fabric_t * fabric, char *dr_str);
++static int retract_dpath(smp_engine_t * engine, ib_portid_t * portid)
++{
++	ibnd_scan_t *scan = engine->user_data;
++	ibnd_fabric_t *fabric = scan->fabric;
 +
- ibnd_node_t *ibnd_find_node_dr(ibnd_fabric_t * fabric, char *dr_str)
++	if (scan->cfg->max_hops &&
++	    fabric->maxhops_discovered > scan->cfg->max_hops)
++		return 0;
++
++	/* this may seem wrong but the only time we would retract the path is
++	 * if the user specified a CA for the DR path and we are retracting
++	 * from that to find the node it is connected to.  This counts as a
++	 * positive hop discovered
++	 */
++	fabric->maxhops_discovered++;
++	portid->drpath.p[portid->drpath.cnt] = 0;
++	portid->drpath.cnt--;
++	return 1;
++}
++
+ static int extend_dpath(smp_engine_t * engine, ib_portid_t * portid,
+ 			int nextport)
  {
--	int i = 0;
--	ibnd_node_t *rc;
--	ib_dr_path_t path;
--
--	if (!fabric) {
--		IBND_DEBUG("fabric parameter NULL\n");
--		return NULL;
--	}
--
--	rc = fabric->from_node;
--
--	if (str2drpath(&path, dr_str, 0, 0) == -1)
--		return NULL;
--
--	for (i = 0; i <= path.cnt; i++) {
--		ibnd_port_t *remote_port = NULL;
--		if (path.p[i] == 0)
--			continue;
--		if (!rc->ports)
--			return NULL;
--
--		remote_port = rc->ports[path.p[i]]->remoteport;
--		if (!remote_port)
--			return NULL;
--
--		rc = remote_port->node;
--	}
--
--	return rc;
-+	ibnd_port_t *rc = ibnd_find_port_dr(fabric, dr_str);
-+	return rc->node;
+@@ -115,8 +140,9 @@ static int extend_dpath(smp_engine_t * engine, ib_portid_t * portid,
+ 		return -1;
+ 	}
+ 
+-	if ((unsigned) portid->drpath.cnt > fabric->maxhops_discovered)
+-		fabric->maxhops_discovered = portid->drpath.cnt;
++	if (((unsigned) portid->drpath.cnt - scan->initial_hops) >
++	    fabric->maxhops_discovered)
++		fabric->maxhops_discovered++;
+ 
+ 	return 1;
+ }
+@@ -202,9 +228,26 @@ static int recv_port_info(smp_engine_t * engine, ibnd_smp_t * smp,
+ 	    == IB_PORT_PHYS_STATE_LINKUP
+ 	    && ((node->type == IB_NODE_SWITCH && port_num != local_port) ||
+ 		(node == fabric->from_node && port_num == fabric->from_portnum))) {
++
++		int rc = 0;
+ 		ib_portid_t path = smp->path;
+-		if (extend_dpath(engine, &path, port_num) > 0)
+-			query_node_info(engine, &path, node);
++
++		if (node->type != IB_NODE_SWITCH &&
++		    node == fabric->from_node &&
++		    path.drpath.cnt > 1)
++			rc = retract_dpath(engine, &path);
++		else {
++			/* we can't proceed through an HCA with DR */
++			if (path.lid == 0 || node->type == IB_NODE_SWITCH)
++				rc = extend_dpath(engine, &path, port_num);
++		}
++
++		if (rc > 0) {
++			struct ni_cbdata * cbdata = malloc(sizeof(*cbdata));
++			cbdata->node = node;
++			cbdata->port_num = port_num;
++			query_node_info(engine, &path, cbdata);
++		}
+ 	}
+ 
+ 	return 0;
+@@ -255,11 +298,6 @@ static ibnd_node_t *create_node(smp_engine_t * engine, ib_portid_t * path,
+ 	return rc;
  }
  
- void add_to_nodeguid_hash(ibnd_node_t * node, ibnd_node_t * hash[])
-@@ -632,3 +608,81 @@ void ibnd_iter_nodes_type(ibnd_fabric_t * fabric, ibnd_iter_node_func_t func,
- 	for (cur = list; cur; cur = cur->type_next)
- 		func(cur, user_data);
+-static int get_last_port(ib_portid_t * path)
+-{
+-	return path->drpath.p[path->drpath.cnt];
+-}
+-
+ static void link_ports(ibnd_node_t * node, ibnd_port_t * port,
+ 		       ibnd_node_t * remotenode, ibnd_port_t * remoteport)
+ {
+@@ -294,7 +332,9 @@ static int recv_node_info(smp_engine_t * engine, ibnd_smp_t * smp,
+ 	ibnd_fabric_t *fabric = scan->fabric;
+ 	int i = 0;
+ 	uint8_t *node_info = mad + IB_SMP_DATA_OFFS;
+-	ibnd_node_t *rem_node = cb_data;
++	struct ni_cbdata *ni_cbdata = (struct ni_cbdata *)cb_data;
++	ibnd_node_t *rem_node = NULL;
++	int rem_port_num = 0;
+ 	ibnd_node_t *node;
+ 	int node_is_new = 0;
+ 	uint64_t node_guid = mad_get_field64(node_info, 0, IB_NODE_GUID_F);
+@@ -302,6 +342,12 @@ static int recv_node_info(smp_engine_t * engine, ibnd_smp_t * smp,
+ 	int port_num = mad_get_field(node_info, 0, IB_NODE_LOCAL_PORT_F);
+ 	ibnd_port_t *port = NULL;
+ 
++	if (ni_cbdata) {
++		rem_node = ni_cbdata->node;
++		rem_port_num = ni_cbdata->port_num;
++		free(ni_cbdata);
++	}
++
+ 	node = ibnd_find_node_guid(fabric, node_guid);
+ 	if (!node) {
+ 		node = create_node(engine, &smp->path, node_info);
+@@ -333,8 +379,6 @@ static int recv_node_info(smp_engine_t * engine, ibnd_smp_t * smp,
+ 		fabric->from_portnum = port_num;
+ 	} else {
+ 		/* link ports... */
+-		int rem_port_num = get_last_port(&smp->path);
+-
+ 		if (!rem_node->ports[rem_port_num]) {
+ 			IBND_ERROR("Internal Error; "
+ 				   "Node(%p) 0x%" PRIx64
+@@ -363,11 +407,11 @@ static int recv_node_info(smp_engine_t * engine, ibnd_smp_t * smp,
  }
-+
-+ibnd_port_t *ibnd_find_port_guid(ibnd_fabric_t * fabric, uint64_t guid)
-+{
-+	int hash = HASHGUID(guid) % HTSZ;
-+	ibnd_port_t *port;
-+
-+	if (!fabric) {
-+		IBND_DEBUG("fabric parameter NULL\n");
-+		return NULL;
-+	}
-+
-+	for (port = fabric->portstbl[hash]; port; port = port->htnext)
-+		if (port->guid == guid)
-+			return port;
-+
-+	return NULL;
-+}
-+
-+ibnd_port_t *ibnd_find_port_dr(ibnd_fabric_t * fabric, char *dr_str)
-+{
-+	int i = 0;
-+	ibnd_node_t *cur_node;
-+	ibnd_port_t *rc;
-+	ib_dr_path_t path;
-+
-+	if (!fabric) {
-+		IBND_DEBUG("fabric parameter NULL\n");
-+		return NULL;
-+	}
-+
-+	if (!dr_str) {
-+		IBND_DEBUG("dr_str parameter NULL\n");
-+		return NULL;
-+	}
-+
-+	cur_node = fabric->from_node;
-+
-+	if (str2drpath(&path, dr_str, 0, 0) == -1)
-+		return NULL;
-+
-+	for (i = 0; i <= path.cnt; i++) {
-+		ibnd_port_t *remote_port = NULL;
-+		if (path.p[i] == 0)
-+			continue;
-+		if (!cur_node->ports)
-+			return NULL;
-+
-+		remote_port = cur_node->ports[path.p[i]]->remoteport;
-+		if (!remote_port)
-+			return NULL;
-+
-+		rc = remote_port;
-+		cur_node = remote_port->node;
-+	}
-+
-+	return rc;
-+}
-+
-+void ibnd_iter_ports(ibnd_fabric_t * fabric, ibnd_iter_port_func_t func,
-+			void *user_data)
-+{
-+	int i = 0;
-+	ibnd_port_t *cur = NULL;
-+
-+	if (!fabric) {
-+		IBND_DEBUG("fabric parameter NULL\n");
-+		return;
-+	}
-+
-+	if (!func) {
-+		IBND_DEBUG("func parameter NULL\n");
-+		return;
-+	}
-+
-+	for (i = 0; i<HTSZ; i++)
-+		for (cur = fabric->portstbl[i]; cur; cur = cur->htnext)
-+			func(cur, user_data);
-+}
-diff --git a/libibnetdisc/src/libibnetdisc.map b/libibnetdisc/src/libibnetdisc.map
-index 8a56fbb..1c42e7b 100644
---- a/libibnetdisc/src/libibnetdisc.map
-+++ b/libibnetdisc/src/libibnetdisc.map
-@@ -14,5 +14,8 @@ IBNETDISC_1.0 {
- 		ibnd_get_chassis_slot_str;
- 		ibnd_iter_nodes;
- 		ibnd_iter_nodes_type;
-+		ibnd_find_port_guid;
-+		ibnd_find_port_dr;
-+		ibnd_iter_ports;
- 	local: *;
- };
+ 
+ static int query_node_info(smp_engine_t * engine, ib_portid_t * portid,
+-			   ibnd_node_t * node)
++			   struct ni_cbdata * cbdata)
+ {
+ 	IBND_DEBUG("Query Node Info; %s\n", portid2str(portid));
+ 	return issue_smp(engine, portid, IB_ATTR_NODE_INFO, 0,
+-			 recv_node_info, node);
++			 recv_node_info, (void *)cbdata);
+ }
+ 
+ ibnd_node_t *ibnd_find_node_guid(ibnd_fabric_t * fabric, uint64_t guid)
+@@ -430,8 +474,7 @@ void add_to_type_list(ibnd_node_t * node, ibnd_fabric_t * fabric)
+ 	}
+ }
+ 
+-static int set_config(struct ibnd_config *config, struct ibnd_config *cfg,
+-		      int initial_hops)
++static int set_config(struct ibnd_config *config, struct ibnd_config *cfg)
+ {
+ 	if (!config)
+ 		return (-EINVAL);
+@@ -445,8 +488,6 @@ static int set_config(struct ibnd_config *config, struct ibnd_config *cfg,
+ 		config->timeout_ms = DEFAULT_TIMEOUT;
+ 	if (!config->retries)
+ 		config->retries = DEFAULT_RETRIES;
+-	if (config->max_hops)
+-		config->max_hops += initial_hops;
+ 
+ 	return (0);
+ }
+@@ -467,7 +508,7 @@ ibnd_fabric_t *ibnd_discover_fabric(char * ca_name, int ca_port,
+ 	if (!from)
+ 		from = &my_portid;
+ 
+-	if (set_config(&config, cfg, from->drpath.cnt)) {
++	if (set_config(&config, cfg)) {
+ 		IBND_ERROR("Invalid ibnd_config\n");
+ 		return NULL;
+ 	}
+@@ -483,6 +524,7 @@ ibnd_fabric_t *ibnd_discover_fabric(char * ca_name, int ca_port,
+ 	memset(&scan.selfportid, 0, sizeof(scan.selfportid));
+ 	scan.fabric = fabric;
+ 	scan.cfg = &config;
++	scan.initial_hops = from->drpath.cnt;
+ 
+ 	if (smp_engine_init(&engine, ca_name, ca_port, &scan, &config)) {
+ 		free(fabric);
+@@ -505,6 +547,7 @@ ibnd_fabric_t *ibnd_discover_fabric(char * ca_name, int ca_port,
+ 			goto error;
+ 
+ 	fabric->total_mads_used = engine.total_smps;
++	fabric->maxhops_discovered += scan.initial_hops;
+ 
+ 	if (group_nodes(fabric))
+ 		goto error;
+diff --git a/libibnetdisc/src/internal.h b/libibnetdisc/src/internal.h
+index 3c599ec..80918c4 100644
+--- a/libibnetdisc/src/internal.h
++++ b/libibnetdisc/src/internal.h
+@@ -62,6 +62,7 @@ typedef struct ibnd_scan {
+ 	ibnd_fabric_t *fabric;
+ 	struct ibnd_config *cfg;
+ 	struct ibmad_port *ibmad_port;
++	unsigned initial_hops;
+ } ibnd_scan_t;
+ 
+ typedef struct ibnd_smp ibnd_smp_t;
 -- 
 1.7.1
 
