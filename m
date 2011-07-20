@@ -1,109 +1,119 @@
-From: frank zago <fzago-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org>
-Subject: ibv_query_qp returns incorrect sq_sig_all
-Date: Wed, 20 Jul 2011 14:09:00 -0500
-Message-ID: <4E2727CC.4020308@systemfabricworks.com>
+From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: [PATCH V1 1/7] libibverbs: Add link layer field port attribute
+Date: Wed, 20 Jul 2011 22:37:24 +0300
+Message-ID: <alpine.LRH.2.00.1107202235510.12424@ogerlitz.voltaire.com>
+References: <alpine.LRH.2.00.1107191223460.5580@ogerlitz.voltaire.com> <alpine.LRH.2.00.1107191226210.5580@ogerlitz.voltaire.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="US-ASCII"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <alpine.LRH.2.00.1107191226210.5580-VYr5/9ddeaGSIdy2EShu12Xnswh1EIUO@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi,
+The new field has one of three values - IBV_LINK_LAYER_UNSPECIFIED,
+IBV_LINK_LAYER_INFINIBAND, IBV_LINK_LAYER_ETHERNET. It can be used
+by applications to know the link layer used by the port, which
+can be either Infiniband or Ethernet.
 
-It seems that sq_sig_all is not properly set when creating the QP or
-when querying it. The following programs creates a bunch of QP with
-sq_sig_all set to 0 and then queries them. Often sq_sig_all is returned
-to be 1.
-I tested some other returned values and they seem correct.
+The addition of the new field does not change the size of struct
+ibv_port_attr due to alignment of the preceding fields. As such
+binary compatibility between the library to applications is kept,
+since old apps running over new library do not read this field,
+and new apps running over old library will determine the link
+layer as unspecified and hence take their IB code path.
 
-I didn't see anything wrong in the libraries nor in the drivers.
-Tested with an mthca on OFED 1.5.1 and mlx4 on OFED 1.3.1.
+The solution was suggested by: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+and Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 
-Any idea ?
+Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
+Signed-off-by: Eli Cohen <eli-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
+---
+changes from V0:
 
-Frank.
+- applied feedback from Jason, made the ___ibv_query_port trick
+  clearer to header file readers
+
+ include/infiniband/verbs.h |   23 +++++++++++++++++++++++
+ man/ibv_query_port.3       |    4 ++++
+ 2 files changed, 27 insertions(+), 0 deletions(-)
+
+diff --git a/include/infiniband/verbs.h b/include/infiniband/verbs.h
+index 0f1cb2e..d1a3e47 100644
+--- a/include/infiniband/verbs.h
++++ b/include/infiniband/verbs.h
+@@ -161,6 +161,12 @@ enum ibv_port_state {
+ 	IBV_PORT_ACTIVE_DEFER	= 5
+ };
+
++enum {
++	IBV_LINK_LAYER_UNSPECIFIED,
++	IBV_LINK_LAYER_INFINIBAND,
++	IBV_LINK_LAYER_ETHERNET,
++};
++
+ struct ibv_port_attr {
+ 	enum ibv_port_state	state;
+ 	enum ibv_mtu		max_mtu;
+@@ -181,6 +187,8 @@ struct ibv_port_attr {
+ 	uint8_t			active_width;
+ 	uint8_t			active_speed;
+ 	uint8_t			phys_state;
++	uint8_t			link_layer;
++	uint8_t			pad;
+ };
+
+ enum ibv_event_type {
+@@ -767,6 +775,20 @@ int ibv_query_device(struct ibv_context *context,
+ int ibv_query_port(struct ibv_context *context, uint8_t port_num,
+ 		   struct ibv_port_attr *port_attr);
+
++static inline int ___ibv_query_port(struct ibv_context *context,
++				    uint8_t port_num,
++				    struct ibv_port_attr *port_attr)
++{
++	/* For compatability linking with old libibverbs */
++	port_attr->link_layer = IBV_LINK_LAYER_UNSPECIFIED;
++	port_attr->pad = 0;
++
++	return ibv_query_port(context, port_num, port_attr);
++}
++
++#define ibv_query_port(context, port_num, port_attr) \
++	___ibv_query_port(context, port_num, port_attr)
++
+ /**
+  * ibv_query_gid - Get a GID table entry
+  */
+@@ -1097,4 +1119,5 @@ END_C_DECLS
+
+ #  undef __attribute_const
+
++
+ #endif /* INFINIBAND_VERBS_H */
+diff --git a/man/ibv_query_port.3 b/man/ibv_query_port.3
+index 882470d..9bedd90 100644
+--- a/man/ibv_query_port.3
++++ b/man/ibv_query_port.3
+@@ -44,9 +44,13 @@ uint8_t                 init_type_reply;/* Type of initialization performed by S
+ uint8_t                 active_width;   /* Currently active link width */
+ uint8_t                 active_speed;   /* Currently active link speed */
+ uint8_t                 phys_state;     /* Physical port state */
++uint8_t                 link_layer;     /* link layer protocol of the port */
+ .in -8
+ };
+ .sp
++possible values for the link layer field are IBV_LINK_LAYER_INFINIBAND,
++IBV_LINK_LAYER_ETHERNET, or IBV_LINK_LAYER_UNSPECIFIED.
++.sp
+ .fi
+ .SH "RETURN VALUE"
+ .B ibv_query_port()
+-- 
+1.5.5
 
 
-
-For instance:
-[fzago]$ ./testqp
-failed at loop 167 (sq_sig_all=1)
-
-Regards,
-  Frank.
-
-/*
- * Invalid sq_sig_all test
- *
- * Compile with   gcc -Wall -O2  -libverbs  testqp.c   -o testqp
- */
-
-#include <stdio.h>
-#include <assert.h>
-#include <string.h>
-#include <stdlib.h>
-
-#include <infiniband/verbs.h>
-
-#define NUM 10000
-
-int main(void)
-{
-	struct ibv_context *context;
-    struct ibv_pd      *pd;
-    struct ibv_device **dev_list;
-    struct ibv_device *ib_dev;
-	struct ibv_qp_init_attr qp_init_attr;
-	struct ibv_qp *qp[NUM];
-	struct ibv_cq *cq;
-	struct ibv_qp_attr attr;
-	int rc;
-	int i;
-
-    dev_list = ibv_get_device_list(NULL);
-
-	ib_dev = dev_list[0];
-	assert(ib_dev);
-
-    context = ibv_open_device(ib_dev);
-    assert(context);
-
-	pd = ibv_alloc_pd(context);
-	assert(pd);
-
-	cq = ibv_create_cq(context, 10, NULL, NULL, 0);
-	assert(cq);
-
-	for (i=0; i<NUM; i++) {
-		memset(&qp_init_attr, 0, sizeof(qp_init_attr));
-
-		qp_init_attr.send_cq = cq;
-		qp_init_attr.recv_cq = cq;
-		qp_init_attr.cap.max_send_wr  = 10;
-		qp_init_attr.cap.max_recv_wr  = 10;
-		qp_init_attr.cap.max_send_sge = 1;
-		qp_init_attr.cap.max_recv_sge = 1;
-		qp_init_attr.qp_type = IBV_QPT_RC;
-
-		assert(qp_init_attr.sq_sig_all == 0);
-
-		qp[i] = ibv_create_qp(pd, &qp_init_attr);
-		assert(qp[i]);
-
-		rc = ibv_query_qp(qp[i], &attr, 0xffffffff, &qp_init_attr);
-		assert(rc == 0);
-
-		if (qp_init_attr.sq_sig_all != 0) {
-			printf("failed at loop %d (sq_sig_all=%d)\n", i,
-qp_init_attr.sq_sig_all);
-			abort();
-		}
-	}
-
-	return 0;
-}
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
