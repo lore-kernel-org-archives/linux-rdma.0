@@ -1,66 +1,57 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH 1/7] libibverbs: Add link layer field port attribute
-Date: Wed, 20 Jul 2011 12:33:27 -0600
-Message-ID: <20110720183327.GJ18090@obsidianresearch.com>
-References: <20110719170454.GD18090@obsidianresearch.com>
- <CAJZOPZ+=3jr18x8Uxt73jAfT0bdPhntOez9dyZfmiHOF5REOSw@mail.gmail.com>
- <20110719195020.GE18090@obsidianresearch.com>
- <CAJZOPZ+2S=agGurUC6393e7mqQy4Ob1jaseeoWxeZe2Yu-kCLg@mail.gmail.com>
- <20110719203140.GG18090@obsidianresearch.com>
- <1828884A29C6694DAF28B7E6B8A82373136EFE8F@ORSMSX102.amr.corp.intel.com>
- <20110719213902.GH18090@obsidianresearch.com>
- <CAJZOPZ+HjKiSr=Q6ti9zPfx0YnGXK796xK+Y8fDtLLuM3SnKbA@mail.gmail.com>
- <20110720181052.GI18090@obsidianresearch.com>
- <CAJZOPZL9T2XK25BxtOBJj4vW3uSZz4yDWR4wfBxvUaeOgrWU3A@mail.gmail.com>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH] Support optional performance counters, including	congestion
+ control performance counters.
+Date: Wed, 20 Jul 2011 14:35:21 -0400
+Message-ID: <4E271FE9.7080508@dev.mellanox.co.il>
+References: <1311113629.6898.139.camel@auk59.llnl.gov>	 <4E26DBEF.1030205@dev.mellanox.co.il> <1311183503.6898.153.camel@auk59.llnl.gov>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <CAJZOPZL9T2XK25BxtOBJj4vW3uSZz4yDWR4wfBxvUaeOgrWU3A-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <1311183503.6898.153.camel-akkeaxHeDKRliZ7u+bvwcg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Albert Chu <chu11-i2BcT+NCU+M@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Jul 20, 2011 at 09:20:41PM +0300, Or Gerlitz wrote:
-> Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
+Hi again Al,
 
-> > Looks like! Sorry for the confusion
+On 7/20/2011 1:38 PM, Albert Chu wrote:
+> Hey Hal,
 > 
-> Jason, thanks for your detailed review && feedback, just to recap,
-> the patches are okay except the missing entry for the new GID change
-> event in ibv_event_type_str which I will add, correct?
+> Thanks for the nit-catches.  As for
+> 
+>> +     {32, 2, "PortVLXmitFlowCtlUpdateErrors0", mad_dump_uint},
+>>> +     {34, 2, "PortVLXmitFlowCtlUpdateErrors1", mad_dump_uint},
+>>> +     {36, 2, "PortVLXmitFlowCtlUpdateErrors2", mad_dump_uint},
+>>> +     {38, 2, "PortVLXmitFlowCtlUpdateErrors3", mad_dump_uint},
+>>> +     {40, 2, "PortVLXmitFlowCtlUpdateErrors4", mad_dump_uint},
+>>> +     {42, 2, "PortVLXmitFlowCtlUpdateErrors5", mad_dump_uint},
+>>> +     {44, 2, "PortVLXmitFlowCtlUpdateErrors6", mad_dump_uint},
+>>> +     {46, 2, "PortVLXmitFlowCtlUpdateErrors7", mad_dump_uint},
+>>> +     {48, 2, "PortVLXmitFlowCtlUpdateErrors8", mad_dump_uint},
+>>> +     {50, 2, "PortVLXmitFlowCtlUpdateErrors9", mad_dump_uint},
+>>> +     {52, 2, "PortVLXmitFlowCtlUpdateErrors10", mad_dump_uint},
+>>> +     {54, 2, "PortVLXmitFlowCtlUpdateErrors11", mad_dump_uint},
+>>> +     {56, 2, "PortVLXmitFlowCtlUpdateErrors12", mad_dump_uint},
+>>> +     {58, 2, "PortVLXmitFlowCtlUpdateErrors13", mad_dump_uint},
+>>> +     {60, 2, "PortVLXmitFlowCtlUpdateErrors14", mad_dump_uint},
+>>> +     {62, 2, "PortVLXmitFlowCtlUpdateErrors15", mad_dump_uint},
+>>
+>> Don't these need to be BITSOFFS(nn, 2)  ?
+> 
+> Perhaps there's a subtlety I'm missing.  If these require BITSOFFS, then
+> wouldn't the 16 bit fields require them too?  There are many places
+> amongst the performance counters that BITSOFFS isn't used w/ 16 bit
+> fields.
 
-Yes, that was the only important thing I saw.
+Yes; it looks like any field less than 32 bits should use BITSOFFS so I
+think that there are some existing things to fix in fields.c (the 16 bit
+fields that are not using the macro).
 
-I assume Roland was happy with the #define trick for compatibility
-last time it came up?
+-- Hal
 
-Looking at the diff, maybe re-shuffle the order of the #define trick
-so it is easier to follow, and call ibv_query_port rather than short
-cut through the context for better future compatibility.
-
-diff --git a/include/infiniband/verbs.h b/include/infiniband/verbs.h
-index 0f1cb2e..40e8802 100644
-@@ -766,6 +774,18 @@ int ibv_query_device(struct ibv_context *context,
-  */
- int ibv_query_port(struct ibv_context *context, uint8_t port_num,
- 		   struct ibv_port_attr *port_attr);
-+static inline int ___ibv_query_port(struct ibv_context *context,
-+				    uint8_t port_num,
-+				    struct ibv_port_attr *port_attr)
-+{
-+	/* For compatability linking with old libibverbs */
-+	port_attr->link_layer = IBV_LINK_LAYER_UNSPECIFIED;
-+	port_attr->pad = 0;
-+
-+	return ibv_query_port(context,port_num,port_attr);
-+}
-+#define ibv_query_port(context, port_num, port_attr) \
-+	___ibv_query_port(context, port_num, port_attr)
- 
- /**
-  * ibv_query_gid - Get a GID table entry
+> Al
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
