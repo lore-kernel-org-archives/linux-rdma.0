@@ -1,319 +1,84 @@
-From: Mike Marciniszyn <mike.marciniszyn-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH] IB/qib: defer hca error events to tasklet
-Date: Thu, 21 Jul 2011 09:21:16 -0400
-Message-ID: <20110721132116.25683.74826.stgit@kop-dev-sles11-04.qlogic.org>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [RFC] XRC upstream merge reboot
+Date: Thu, 21 Jul 2011 17:53:51 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A82373136F6691@ORSMSX101.amr.corp.intel.com>
+References: <1828884A29C6694DAF28B7E6B8A82373F7AB@ORSMSX101.amr.corp.intel.com>
+ <201106230935.07425.jackm@dev.mellanox.co.il>
+ <1828884A29C6694DAF28B7E6B8A82373136F63B9@ORSMSX101.amr.corp.intel.com>
+ <201107211038.23000.jackm@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <201107211038.23000.jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "tziporet-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org" <tziporet-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, "dotanb-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org" <dotanb-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, "Jeff Squyres (jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org)" <jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, "Shamis, Pavel (shamisp-1Heg1YXhbW8@public.gmane.org)" <shamisp-1Heg1YXhbW8@public.gmane.org>, "Shumilin, Victor" <victor.shumilin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Truschin, Vladimir" <vladimir.truschin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Devendar Bureddy <bureddy-wPOY3OvGL++pAIv7I8X2sze48wsgrGvP@public.gmane.org>, "mvapich-core-wPOY3OvGL++pAIv7I8X2sze48wsgrGvP@public.gmane.org" <mvapich-core-wPOY3OvGL++pAIv7I8X2sze48wsgrGvP@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-With ib_qib options as follows:
+> > I've tried to come up with a clean way to determine the lifetime of an xrc
+> tgt qp,\
+> > and I think the best approach is still:
+> >
+> > 1. Allow the creating process to destroy it at any time, and
+> >
+> > 2a. If not explicitly destroyed, the tgt qp is bound to the lifetime of the
+> xrc domain
+> > or
+> > 2b. The creating process specifies during the creation of the tgt qp
+> > whether the qp should be destroyed on exit.
+> >
+> > The MPIs associate an xrc domain with a job, so this should work.
+> > Everything else significantly complicates the usage model and
+> implementation,
+> > both for verbs and the CM.  An application can maintain a reference count
+> > out of band with a persistent server and use explicit destruction
+> > if they want to share the xrcd across jobs.
+> I assume that you intend the persistent server to replace the reg_xrc_rcv_qp/
+> unreg_xrc_rcv_qp verbs.  Correct?
 
-options ib_qib krcvqs=1 pcie_caps=0x51 rcvhdrcnt=4096 singleport=1 ibmtu=4
+I'm suggesting that anyone who wants to share an xrcd across jobs can use out of band communication to maintain their own reference count, rather than pushing that feature into the mainline.  This requires a code change for apps that have coded to OFED and use this feature.
 
-A run of ib_write_bw -a yields the following:
+> I have no opinion either way (with regard to tgt qp registration and reference
+> counting).
+> The OFED xrc implementation was driven by the requirements of the MPI
+> community.
 
-------------------------------------------------------------------
- #bytes     #iterations    BW peak[MB/sec]    BW average[MB/sec]
- 1048576   5000           2910.64            229.80
-------------------------------------------------------------------
+>From the emails threads I followed, it was a request from HP MPI.  The other MPIs have used the same interface since it was what was defined, but do not appear to be sharing the xrcd across jobs.  HP has since canceled their MPI product.
 
-The top cpu use in a profile is:
+> Regarding option 2b: do you mean that in this case the tgt qp is NOT bound to
+> the
+> XRC domain lifetime? who destroys the tgt qp in this case when the creator
+> indicates
+> that the tgt qp should not be destroyed on exit?
 
-CPU: Intel Architectural Perfmon, speed 2400.15 MHz (estimated)
-Counted CPU_CLK_UNHALTED events (Clock cycles when not halted) with a unit mask
-of 0x00 (No unit mask) count 1002300
-Counted LLC_MISSES events (Last level cache demand requests from this core that
-missed the LLC) with a unit mask of 0x41 (No unit mask) count 10000
-samples  %        samples  %        app name                 symbol name
-15237    29.2642  964      17.1195  ib_qib.ko                qib_7322intr
-12320    23.6618  1040     18.4692  ib_qib.ko                handle_7322_errors
-4106      7.8860  0              0  vmlinux                  vsnprintf
-
-
-Analysis of the stats, profile, the code, and the annotated profile indicate:
-- All of the overflow interrupts (one per packet overflow) are serviced
-  on CPU0 with no mitigation on the frequency.
-- All of the receive interrupts are being serviced by CPU0.  (That is the way
-  truescale.cmds statically allocates the kctx IRQs to CPU.)
-- The code is spending all of its time servicing QIB_I_C_ERROR RcvEgrFullErr
-  interrupts on CPU0, starving the packet receive processing
-- The decode_err routine is very inefficient, using a printf variant to format
-  a "%s" and continues to loop when the errs mask has been cleared
-- Both qib_7322intr and handle_7322_errors read pci registers, which is very
-  inefficient.
-
-The fix does the following:
-- Adds a tasklet to service the QIB_I_C_ERROR
-- replaces the very inefficient scnprintf() with a memcpy().  A field is added
-  to qib_hwerror_msgs to save the sizeof("string") at compile time so that a
-  strlen is not needed during err_decode().
-- The most frequent errors (Overflows) are serviced first to exit the loop as
-  early as possible
-- The loop now exits as soon as the errs mask is clear rather than fruitlessly
-  looping through the msp array
-
-With this fix the performance changes to:
-
-------------------------------------------------------------------
- #bytes     #iterations    BW peak[MB/sec]    BW average[MB/sec]
- 1048576   5000           2990.64            2941.35
-------------------------------------------------------------------
-
-During testing of the error handling overflow patch, it was determined
-that some CPU's were slower when servicing both overflow
-and receive interrupts on CPU0 with different MSI interrupt vectors.
-
-This patch adds an option (krcvq01_no_msi) to not use a dedicated MSI
-interrupt for kctx's < 2 and to service them on the default
-interrupt.  For some CPUs, the cost of the interrupt enter/exit is
-more costly than then the additional PCI read in the default handler.
-
-Signed-off-by: Mike Marciniszyn <mike.marciniszyn-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
----
- drivers/infiniband/hw/qib/qib.h         |    3 +
- drivers/infiniband/hw/qib/qib_iba7322.c |   71 ++++++++++++++++++++++---------
- 2 files changed, 53 insertions(+), 21 deletions(-)
-
-diff --git a/drivers/infiniband/hw/qib/qib.h b/drivers/infiniband/hw/qib/qib.h
-index 769a1d9..c9624ea 100644
---- a/drivers/infiniband/hw/qib/qib.h
-+++ b/drivers/infiniband/hw/qib/qib.h
-@@ -1012,6 +1012,8 @@ struct qib_devdata {
- 	u8 psxmitwait_supported;
- 	/* cycle length of PS* counters in HW (in picoseconds) */
- 	u16 psxmitwait_check_rate;
-+	/* high volume overflow errors defered to tasklet */
-+	struct tasklet_struct error_tasklet;
- };
+With option 2b, the tgt qp lifetime is either tied to the life of the creating process or the xrcd.  The creating process specifies which on creation.  Basically, the choice allows the creating process to destroy the tgt qp when it exits, rather than waiting until the xrcd is closed.  Note that ibverbs only considers the life of the tgt qp, but we also need to the consider the life of a corresponding connection maintained by the IB CM.
  
- /* hol_state values */
-@@ -1433,6 +1435,7 @@ extern struct mutex qib_mutex;
- struct qib_hwerror_msgs {
- 	u64 mask;
- 	const char *msg;
-+	size_t sz;
- };
- 
- #define QLOGIC_IB_HWE_MSG(a, b) { .mask = a, .msg = b }
-diff --git a/drivers/infiniband/hw/qib/qib_iba7322.c b/drivers/infiniband/hw/qib/qib_iba7322.c
-index 821226c..5ea9ece 100644
---- a/drivers/infiniband/hw/qib/qib_iba7322.c
-+++ b/drivers/infiniband/hw/qib/qib_iba7322.c
-@@ -114,6 +114,10 @@ static ushort qib_singleport;
- module_param_named(singleport, qib_singleport, ushort, S_IRUGO);
- MODULE_PARM_DESC(singleport, "Use only IB port 1; more per-port buffer space");
- 
-+static ushort qib_krcvq01_no_msi;
-+module_param_named(krcvq01_no_msi, qib_krcvq01_no_msi, ushort, S_IRUGO);
-+MODULE_PARM_DESC(krcvq01_no_msi, "No MSI for kctx < 2");
-+
- /*
-  * Receive header queue sizes
-  */
-@@ -1106,9 +1110,9 @@ static inline u32 read_7322_creg32_port(const struct qib_pportdata *ppd,
- #define AUTONEG_TRIES 3 /* sequential retries to negotiate DDR */
- 
- #define HWE_AUTO(fldname) { .mask = SYM_MASK(HwErrMask, fldname##Mask), \
--	.msg = #fldname }
-+	.msg = #fldname , .sz = sizeof(#fldname) }
- #define HWE_AUTO_P(fldname, port) { .mask = SYM_MASK(HwErrMask, \
--	fldname##Mask##_##port), .msg = #fldname }
-+	fldname##Mask##_##port), .msg = #fldname , .sz = sizeof(#fldname) }
- static const struct qib_hwerror_msgs qib_7322_hwerror_msgs[] = {
- 	HWE_AUTO_P(IBSerdesPClkNotDetect, 1),
- 	HWE_AUTO_P(IBSerdesPClkNotDetect, 0),
-@@ -1126,14 +1130,16 @@ static const struct qib_hwerror_msgs qib_7322_hwerror_msgs[] = {
- 	HWE_AUTO_P(IBCBusFromSPCParityErr, 0),
- 	HWE_AUTO(statusValidNoEop),
- 	HWE_AUTO(LATriggered),
--	{ .mask = 0 }
-+	{ .mask = 0, .sz = 0 }
- };
- 
- #define E_AUTO(fldname) { .mask = SYM_MASK(ErrMask, fldname##Mask), \
--	.msg = #fldname }
-+	.msg = #fldname, .sz = sizeof(#fldname) }
- #define E_P_AUTO(fldname) { .mask = SYM_MASK(ErrMask_0, fldname##Mask), \
--	.msg = #fldname }
-+	.msg = #fldname, .sz = sizeof(#fldname) }
- static const struct qib_hwerror_msgs qib_7322error_msgs[] = {
-+	E_AUTO(RcvEgrFullErr),
-+	E_AUTO(RcvHdrFullErr),
- 	E_AUTO(ResetNegated),
- 	E_AUTO(HardwareErr),
- 	E_AUTO(InvalidAddrErr),
-@@ -1146,9 +1152,7 @@ static const struct qib_hwerror_msgs qib_7322error_msgs[] = {
- 	E_AUTO(SendSpecialTriggerErr),
- 	E_AUTO(SDmaWrongPortErr),
- 	E_AUTO(SDmaBufMaskDuplicateErr),
--	E_AUTO(RcvHdrFullErr),
--	E_AUTO(RcvEgrFullErr),
--	{ .mask = 0 }
-+	{ .mask = 0, .sz = 0 }
- };
- 
- static const struct  qib_hwerror_msgs qib_7322p_error_msgs[] = {
-@@ -1158,7 +1162,8 @@ static const struct  qib_hwerror_msgs qib_7322p_error_msgs[] = {
- 	/*
- 	 * SDmaHaltErr is not really an error, make it clearer;
- 	 */
--	{.mask = SYM_MASK(ErrMask_0, SDmaHaltErrMask), .msg = "SDmaHalted"},
-+	{.mask = SYM_MASK(ErrMask_0, SDmaHaltErrMask), .msg = "SDmaHalted",
-+		.sz = 11},
- 	E_P_AUTO(SDmaDescAddrMisalignErr),
- 	E_P_AUTO(SDmaUnexpDataErr),
- 	E_P_AUTO(SDmaMissingDwErr),
-@@ -1194,7 +1199,7 @@ static const struct  qib_hwerror_msgs qib_7322p_error_msgs[] = {
- 	E_P_AUTO(RcvICRCErr),
- 	E_P_AUTO(RcvVCRCErr),
- 	E_P_AUTO(RcvFormatErr),
--	{ .mask = 0 }
-+	{ .mask = 0, .sz = 0 }
- };
- 
- /*
-@@ -1202,17 +1207,17 @@ static const struct  qib_hwerror_msgs qib_7322p_error_msgs[] = {
-  * context
-  */
- #define INTR_AUTO(fldname) { .mask = SYM_MASK(IntMask, fldname##Mask), \
--	.msg = #fldname }
-+	.msg = #fldname, .sz = sizeof(#fldname) }
- /* Below generates "auto-message" for interrupts specific to a port */
- #define INTR_AUTO_P(fldname) { .mask = MASK_ACROSS(\
- 	SYM_LSB(IntMask, fldname##Mask##_0), \
- 	SYM_LSB(IntMask, fldname##Mask##_1)), \
--	.msg = #fldname "_P" }
-+	.msg = #fldname "_P", .sz = sizeof(#fldname "_P") }
- /* For some reason, the SerDesTrimDone bits are reversed */
- #define INTR_AUTO_PI(fldname) { .mask = MASK_ACROSS(\
- 	SYM_LSB(IntMask, fldname##Mask##_1), \
- 	SYM_LSB(IntMask, fldname##Mask##_0)), \
--	.msg = #fldname "_P" }
-+	.msg = #fldname "_P", .sz = sizeof(#fldname "_P") }
- /*
-  * Below generates "auto-message" for interrupts specific to a context,
-  * with ctxt-number appended
-@@ -1220,7 +1225,7 @@ static const struct  qib_hwerror_msgs qib_7322p_error_msgs[] = {
- #define INTR_AUTO_C(fldname) { .mask = MASK_ACROSS(\
- 	SYM_LSB(IntMask, fldname##0IntMask), \
- 	SYM_LSB(IntMask, fldname##17IntMask)), \
--	.msg = #fldname "_C"}
-+	.msg = #fldname "_C", .sz = sizeof(#fldname "_C") }
- 
- static const struct  qib_hwerror_msgs qib_7322_intr_msgs[] = {
- 	INTR_AUTO_P(SDmaInt),
-@@ -1234,11 +1239,12 @@ static const struct  qib_hwerror_msgs qib_7322_intr_msgs[] = {
- 	INTR_AUTO_P(SendDoneInt),
- 	INTR_AUTO(SendBufAvailInt),
- 	INTR_AUTO_C(RcvAvail),
--	{ .mask = 0 }
-+	{ .mask = 0, .sz = 0 }
- };
- 
- #define TXSYMPTOM_AUTO_P(fldname) \
--	{ .mask = SYM_MASK(SendHdrErrSymptom_0, fldname), .msg = #fldname }
-+	{ .mask = SYM_MASK(SendHdrErrSymptom_0, fldname), \
-+	.msg = #fldname, .sz = sizeof(#fldname) }
- static const struct  qib_hwerror_msgs hdrchk_msgs[] = {
- 	TXSYMPTOM_AUTO_P(NonKeyPacket),
- 	TXSYMPTOM_AUTO_P(GRHFail),
-@@ -1247,7 +1253,7 @@ static const struct  qib_hwerror_msgs hdrchk_msgs[] = {
- 	TXSYMPTOM_AUTO_P(SLIDFail),
- 	TXSYMPTOM_AUTO_P(RawIPV6),
- 	TXSYMPTOM_AUTO_P(PacketTooSmall),
--	{ .mask = 0 }
-+	{ .mask = 0, .sz = 0 }
- };
- 
- #define IBA7322_HDRHEAD_PKTINT_SHIFT 32 /* interrupt cnt in upper 32 bits */
-@@ -1292,7 +1298,7 @@ static void err_decode(char *msg, size_t len, u64 errs,
- 	u64 these, lmask;
- 	int took, multi, n = 0;
- 
--	while (msp && msp->mask) {
-+	while (errs && msp && msp->mask) {
- 		multi = (msp->mask & (msp->mask - 1));
- 		while (errs & msp->mask) {
- 			these = (errs & msp->mask);
-@@ -1303,9 +1309,14 @@ static void err_decode(char *msg, size_t len, u64 errs,
- 					*msg++ = ',';
- 					len--;
- 				}
--				took = scnprintf(msg, len, "%s", msp->msg);
-+				BUG_ON(!msp->sz);
-+				/* msp->sz counts the nul */
-+				took = min_t(size_t, msp->sz - (size_t)1, len);
-+				memcpy(msg,  msp->msg, took);
- 				len -= took;
- 				msg += took;
-+				if (len)
-+					*msg = '\0';
- 			}
- 			errs &= ~lmask;
- 			if (len && multi) {
-@@ -1643,6 +1654,14 @@ done:
- 	return;
- }
- 
-+static void qib_error_tasklet(unsigned long data)
-+{
-+	struct qib_devdata *dd = (struct qib_devdata *)data;
-+
-+	handle_7322_errors(dd);
-+	qib_write_kreg(dd, kr_errmask, dd->cspec->errormask);
-+}
-+
- static void reenable_chase(unsigned long opaque)
- {
- 	struct qib_pportdata *ppd = (struct qib_pportdata *)opaque;
-@@ -2724,8 +2743,10 @@ static noinline void unlikely_7322_intr(struct qib_devdata *dd, u64 istat)
- 		unknown_7322_ibits(dd, istat);
- 	if (istat & QIB_I_GPIO)
- 		unknown_7322_gpio_intr(dd);
--	if (istat & QIB_I_C_ERROR)
--		handle_7322_errors(dd);
-+	if (istat & QIB_I_C_ERROR) {
-+		qib_write_kreg(dd, kr_errmask, 0ULL);
-+		tasklet_schedule(&dd->error_tasklet);
-+	}
- 	if (istat & INT_MASK_P(Err, 0) && dd->rcd[0])
- 		handle_7322_p_errors(dd->rcd[0]->ppd);
- 	if (istat & INT_MASK_P(Err, 1) && dd->rcd[1])
-@@ -3124,6 +3145,8 @@ try_intx:
- 			arg = dd->rcd[ctxt];
- 			if (!arg)
- 				continue;
-+			if (qib_krcvq01_no_msi && ctxt < 2)
-+				continue;
- 			lsb = QIB_I_RCVAVAIL_LSB + ctxt;
- 			handler = qib_7322pintr;
- 			name = QIB_DRV_NAME " (kctx)";
-@@ -3158,6 +3181,8 @@ try_intx:
- 	for (i = 0; i < ARRAY_SIZE(redirect); i++)
- 		qib_write_kreg(dd, kr_intredirect + i, redirect[i]);
- 	dd->cspec->main_int_mask = mask;
-+	tasklet_init(&dd->error_tasklet, qib_error_tasklet,
-+		(unsigned long)dd);
- bail:;
- }
- 
-@@ -6787,6 +6812,10 @@ struct qib_devdata *qib_init_iba7322_funcs(struct pci_dev *pdev,
- 		    (i >= ARRAY_SIZE(irq_table) &&
- 		     dd->rcd[i - ARRAY_SIZE(irq_table)]))
- 			actual_cnt++;
-+	/* reduce by ctxt's < 2 */
-+	if (qib_krcvq01_no_msi)
-+		actual_cnt -= dd->num_pports;
-+
- 	tabsize = actual_cnt;
- 	dd->cspec->msix_entries = kmalloc(tabsize *
- 			sizeof(struct msix_entry), GFP_KERNEL);
+> I am concerned with backwards compatibility, here.  It seems that XRC users
+> will need to
+> change their source-code, not just recompile.  I am assuming that OFED will
+> take the
+> mainstream kernel implementation at some point.  Since this is **userspace**
+> code, there could be a problem
+> if OFED users upgrade their OFED installation to one which supports the new
+> interface.
+> This could be especially difficult if, for example, the customer is using 3rd-
+> party packages
+> which utilize the current OFED xrc interface.  We could start seeing customers
+> not take
+> new OFED releases solely because of the XRC incompatibility (or worse,
+> customers upgrading
+> and then finding out that their 3rd-party XRC apps no longer work).
 
+Eventually, the xrc users should change their source code to move away from the ofed compatability APIs.  An app needs to recompile regardless.  Existing apps will run into issues if they share the xrcd across jobs.  In that case, they will leak tgt qps.  There are also issues if an app calls the OFED ibv_modify_xrc_rcv_qp() or ibv_query_xrc_rcv_qp() APIs from a process other than the one which created the qp.  These are the main risks that I see.
+
+> Having a new OFED support BOTH interfaces is a nightmare I don't even want to
+> think about!
+
+We're already in a situation where there are multiple libibverbs interfaces.  The OFED compatibility patch to libibverbs was added specifically so that OFED could support both sets of APIs, while being binary compatible with the upstream ibverbs.  The proposed kernel patches do not support the functionality required for the OFED APIs, but it's not clear whether apps are really dependent on that functionality.  (I don't want to make MPI have to change their code right away either.)
+
+- Sean
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
