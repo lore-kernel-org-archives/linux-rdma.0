@@ -1,68 +1,71 @@
-From: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [RFC] XRC upstream merge reboot
-Date: Thu, 21 Jul 2011 10:38:22 +0300
-Message-ID: <201107211038.23000.jackm@dev.mellanox.co.il>
-References: <1828884A29C6694DAF28B7E6B8A82373F7AB@ORSMSX101.amr.corp.intel.com> <201106230935.07425.jackm@dev.mellanox.co.il> <1828884A29C6694DAF28B7E6B8A82373136F63B9@ORSMSX101.amr.corp.intel.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH 2/3] infiniband-diags: libibnetdisc Allow a DR Path
+ partial fabric query starting at a CA
+Date: Wed, 20 Jul 2011 21:17:13 -0600
+Message-ID: <20110721031713.GA19500@obsidianresearch.com>
+References: <20110720161655.1ed38052.weiny2@llnl.gov>
+ <20110720233451.GL18090@obsidianresearch.com>
+ <20110720165336.894b1298.weiny2@llnl.gov>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1828884A29C6694DAF28B7E6B8A82373136F63B9-P5GAC/sN6hmkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Content-Disposition: inline
+In-Reply-To: <20110720165336.894b1298.weiny2-i2BcT+NCU+M@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "tziporet-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org" <tziporet-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, "dotanb-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org" <dotanb-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, "Jeff Squyres (jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org)" <jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, "Shamis, Pavel (shamisp-1Heg1YXhbW8@public.gmane.org)" <shamisp-1Heg1YXhbW8@public.gmane.org>, "Shumilin, Victor" <victor.shumilin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Truschin, Vladimir" <vladimir.truschin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Devendar Bureddy <bureddy-wPOY3OvGL++pAIv7I8X2sze48wsgrGvP@public.gmane.org>, "mvapich-core-wPOY3OvGL++pAIv7I8X2sze48wsgrGvP@public.gmane.org" <mvapich-core-wPOY3OvGL++pAIv7I8X2sze48wsgrGvP@public.gmane.org>
+To: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wednesday 20 July 2011 21:51, Hefty, Sean wrote:
-> I've tried to come up with a clean way to determine the lifetime of an xrc tgt qp,\
-> and I think the best approach is still: 
+On Wed, Jul 20, 2011 at 04:53:36PM -0700, Ira Weiny wrote:
+
+> > The ibtool version of this switches the starting LID with the
+> > connected switch in this case..
 > 
-> 1. Allow the creating process to destroy it at any time, and
+> Given a LID (resolved from a PR query of a GUID) for a CA port, how
+> do you know the connected switch?  Via sa query?
+
+Yes, there is also a general question when and if various tools should
+use SMPs vs use the SA...
+
+> > Note, doing tricks like this with the DR path screws up the
+> > localPortNum value, so if you ever read Port/NodeInfo using a path
+> > that has been manipulated like this it needs a fixup step.
 > 
-> 2a. If not explicitly destroyed, the tgt qp is bound to the lifetime of the xrc domain
-> or
-> 2b. The creating process specifies during the creation of the tgt qp
-> whether the qp should be destroyed on exit. 
+> Not sure I follow you.  To be clear this patch alters the path like this:
 > 
-> The MPIs associate an xrc domain with a job, so this should work.
-> Everything else significantly complicates the usage model and implementation,
-> both for verbs and the CM.  An application can maintain a reference count
-> out of band with a persistent server and use explicit destruction
-> if they want to share the xrcd across jobs.
-I assume that you intend the persistent server to replace the reg_xrc_rcv_qp/
-unreg_xrc_rcv_qp verbs.  Correct?
+> Given DR path 0,1,3,4, where 0,1,3,4 ends at a CA
 > 
-> Option 2a is the current implementation, but 2b should be a minor change.
-> I'd like to reach a consensus on the right approach here, since there doesn't
-> appear to be issues elsewhere.  
+> "retract" the path to 0,1,3 and query that node as well as 0,1,3,4.
+> Resolve the port linkage and return that "fabric" to the user.
+
+If you issue a NodeRecord SMP to DR path 0,1,3,4 you will get
+localPortNum of 1. If you then algorithmically want to construct a
+DR path of 0,1,3,4,1 to reach the device connected to the CA port your
+algorithm will adjust it to 0,1,3, but a NodeRecord SMP will not
+return a localPortNum of 3, which would be expected from the
+construction of the original path.
+
+It depends on how your other algorithms are using this feature, but,
+eg for a tracing application that wants to print each hop along the
+path, messing up the localPortNum during the adjustment is bad news.
+
+> Given a combined route DLID+path the CA is resolved and returned.
+> There is, as you say below, no way to resolve (via SMP queries) the
+> connected node without scanning the entire fabric and resolving the
+> connection.
+
+You trace through the LFT from the local end port to the target CA
+DLID and that gives you a path to the switch.
+ 
+> > Also, there is a bug, you can't DLID route to the local HCA and then
+> > use that as a source of a DR path, even though intuitively that should
+> > work.
 > 
-> - Sean
+> A bug in the code?
 
-I have no opinion either way (with regard to tgt qp registration and reference counting).
-The OFED xrc implementation was driven by the requirements of the MPI community.
+In Linux or the HCA I think.
 
-If MPI can use a different XRC domain per job (and deallocate the domain
-at the job's end), this would solve the tgt qp lifetime problem (-- by
-destroying all the tgt qp's when the xrc domain is deallocated).
-
-Regarding option 2b: do you mean that in this case the tgt qp is NOT bound to the
-XRC domain lifetime? who destroys the tgt qp in this case when the creator indicates
-that the tgt qp should not be destroyed on exit?
-
-I am concerned with backwards compatibility, here.  It seems that XRC users will need to
-change their source-code, not just recompile.  I am assuming that OFED will take the
-mainstream kernel implementation at some point.  Since this is **userspace** code, there could be a problem
-if OFED users upgrade their OFED installation to one which supports the new interface.
-This could be especially difficult if, for example, the customer is using 3rd-party packages
-which utilize the current OFED xrc interface.  We could start seeing customers not take
-new OFED releases solely because of the XRC incompatibility (or worse, customers upgrading
-and then finding out that their 3rd-party XRC apps no longer work).
-
-Having a new OFED support BOTH interfaces is a nightmare I don't even want to think about!
-
--Jack
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
