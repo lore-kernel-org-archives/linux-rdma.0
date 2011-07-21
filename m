@@ -1,56 +1,48 @@
-From: Mike Marciniszyn <mike.marciniszyn-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-Subject: RE: [PATCH] IB/qib: defer hca error events to tasklet
-Date: Thu, 21 Jul 2011 09:30:56 -0700
-Message-ID: <35AAF1E4A771E142979F27B51793A4888839105AEA@AVEXMB1.qlogic.org>
-References: <20110721132116.25683.74826.stgit@kop-dev-sles11-04.qlogic.org>
- <CAL1RGDXSHs5hDC3JC5ozTa4gLzumMzRKQWNij_=aDk-3=hsUvg@mail.gmail.com>
+From: Devesh Sharma <devesh28-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: Promiscuous mode support in IPoIB
+Date: Thu, 21 Jul 2011 12:21:36 +0530
+Message-ID: <CALsNU1MoZeJ-EvpcuKAizPxNatSy=oJv5GsLcUGp5N1pCypcHg@mail.gmail.com>
+References: <BANLkTin3HRcvQHDw+qEu3+rjvfKOfFtekg@mail.gmail.com>
+	<CALsNU1P90OigwvMrk3qCAPTmqoMFUC3SFVKwcnY5PRNArgPOhA@mail.gmail.com>
+	<382A478CAD40FA4FB46605CF81FE39F4FD19C9FD@orsmsx507.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAL1RGDXSHs5hDC3JC5ozTa4gLzumMzRKQWNij_=aDk-3=hsUvg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <382A478CAD40FA4FB46605CF81FE39F4FD19C9FD-osO9UTpF0URzLByeVOV5+bfspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: "Woodruff, Robert J" <robert.j.woodruff-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Eli Cohen <eli-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-There is no choice but a module parameter since the msix initialization is done at driver load, and is only needed after testing reveals that the change is necessary.
+Thanks Woodruff for your response. Eli please can you through some
+light on this. Thanks you your help and time.
 
-I agree that there are a lot of module parameters.   Some that don't allocate resources at load time could be "sys".
-
-I can re-issue the patch with module_param and change the identifier.
-
-The module parameters used throughout the code usually prepend a qib_ or and ib_qib_, and I was following precedent in the code.
-
-The only "no prepend" I see is the sdma_descq_cnt, which could change as well to use module_param.
-
-Mike
-
-> -----Original Message-----
-> From: roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org [mailto:roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org] On Behalf
-> Of Roland Dreier
-> Sent: Thursday, July 21, 2011 11:47 AM
-> To: Mike Marciniszyn
-> Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> Subject: Re: [PATCH] IB/qib: defer hca error events to tasklet
+On Mon, Jul 18, 2011 at 11:55 PM, Woodruff, Robert J
+<robert.j.woodruff-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
+> Devesh Sharma wrote,
 >
-> > +static ushort qib_krcvq01_no_msi;
-> > +module_param_named(krcvq01_no_msi, qib_krcvq01_no_msi, ushort,
-> S_IRUGO);
-> > +MODULE_PARM_DESC(krcvq01_no_msi, "No MSI for kctx < 2");
+>>Hello List,
 >
-> First, the obvious question: is there really no better way to handle
-> this
-> than to have yet another cryptically named module parameter for users
-> to try both ways?
+>>Kindly someone help me on this. I need to know about promiscuous mode
+>>support in IPoIB and have a confusion if it is possible at all on
+>>IPoIB stack. If yes then How?
 >
-> Second, why can't this just be module_param() (why is _named needed?)?
+> I am not sure that it is supported, but Eli would know for sure.
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma"=
+ in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
+>
 
 
-This message and any attached documents contain information from QLogic Corporation or its wholly-owned subsidiaries that may be confidential. If you are not the intended recipient, you may not read, copy, distribute, or use this information. If you have received this transmission in error, please notify the sender immediately by reply e-mail and then delete this message.
 
+--=20
+Please don't print this E- mail unless you really need to - this will
+preserve trees on planet earth.
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
