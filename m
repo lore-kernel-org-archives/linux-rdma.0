@@ -1,94 +1,50 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCHv2 2/2] infiniband-diags/smpquery: Add Mellanox extended portinfo
- query
-Date: Fri, 22 Jul 2011 10:05:51 -0400
-Message-ID: <4E2983BF.80906@dev.mellanox.co.il>
+From: Brian Ginsbach <ginsbach-WVYJKLFxKCc@public.gmane.org>
+Subject: [PATCH] srp_daemon: pr_err date format bug
+Date: Fri, 22 Jul 2011 09:48:18 -0500
+Message-ID: <20110722144818.GA7450@bukharin.us.cray.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Return-path: <ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+Content-Disposition: inline
+List-Unsubscribe: <http://lists.openfabrics.org/cgi-bin/mailman/options/ewg>,
+	<mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.openfabrics.org/pipermail/ewg>
+List-Post: <mailto:ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+List-Help: <mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=help>
+List-Subscribe: <http://lists.openfabrics.org/cgi-bin/mailman/listinfo/ewg>,
+	<mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=subscribe>
+Sender: ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
+Errors-To: ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
+To: ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 
-Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
-Changes since v1:
-Added man page change
+The pr_err macro used by srp_daemon to log errors prints the incorrect
+date (month).  The month is one less than the actual month since a
+tm_mon is the number of months since January (0 - 11) and not the
+actual month number (1 - 12).   Easily fixed by adding 1 to the
+tm_mon value.
 
-diff --git a/man/smpquery.8 b/man/smpquery.8
-index 3b69e8a..2ba2ef2 100644
---- a/man/smpquery.8
-+++ b/man/smpquery.8
-@@ -1,4 +1,4 @@
--.TH SMPQUERY 8 "March 14, 2007" "OpenIB" "OpenIB Diagnostics"
-+.TH SMPQUERY 8 "March 9, 2011" "OpenIB" "OpenIB Diagnostics"
- 
- .SH NAME
- smpquery \- query InfiniBand subnet management attributes
-@@ -29,6 +29,7 @@ Current supported operations and their parameters:
-         sl2vl <addr> [<portnum>]
-         vlarb <addr> [<portnum>]
-         guids <addr>
-+        extportinfo <addr> [<portnum>]  # default port is zero
- 
- .TP
- \fB\-\-node\-name\-map\fR <node-name-map>
-@@ -113,4 +114,4 @@ smpquery -c nodeinfo 6 0,12  # nodeinfo by combined route
- .SH AUTHOR
- .TP
- Hal Rosenstock
--.RI < halr-smomgflXvOZWk0Htik3J/w@public.gmane.org >
-+.RI < hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org >
-diff --git a/src/smpquery.c b/src/smpquery.c
-index 65bb65c..04cd925 100644
---- a/src/smpquery.c
-+++ b/src/smpquery.c
-@@ -63,7 +63,7 @@ typedef struct match_rec {
- } match_rec_t;
- 
- static op_fn_t node_desc, node_info, port_info, switch_info, pkey_table,
--    sl2vl_table, vlarb_table, guid_info;
-+    sl2vl_table, vlarb_table, guid_info, ext_port_info;
- 
- static const match_rec_t match_tbl[] = {
- 	{"NodeInfo", "NI", node_info},
-@@ -74,6 +74,7 @@ static const match_rec_t match_tbl[] = {
- 	{"SL2VLTable", "SL2VL", sl2vl_table, 1},
- 	{"VLArbitration", "VLArb", vlarb_table, 1},
- 	{"GUIDInfo", "GI", guid_info},
-+	{"ExtPortInfo", "EPI", ext_port_info, 1},
- 	{0}
- };
- 
-@@ -147,6 +148,24 @@ static char *port_info(ib_portid_t * dest, char **argv, int argc)
- 	return 0;
- }
- 
-+static char *ext_port_info(ib_portid_t * dest, char **argv, int argc)
-+{
-+	char buf[2300];
-+	char data[IB_SMP_DATA_SIZE];
-+	int portnum = 0;
-+
-+	if (argc > 0)
-+		portnum = strtol(argv[0], 0, 0);
-+
-+	if (!smp_query_via(data, dest, IB_ATTR_MLNX_EXT_PORT_INFO, portnum, 0, srcport))
-+		return "ext port info query failed";
-+
-+	mad_dump_mlnx_ext_port_info(buf, sizeof buf, data, sizeof data);
-+
-+	printf("# Ext Port info: %s port %d\n%s", portid2str(dest), portnum, buf);
-+	return 0;
-+}
-+
- static char *switch_info(ib_portid_t * dest, char **argv, int argc)
- {
- 	char buf[2048];
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Also opened OpenFabrics Bug 2281
+(http://bugs.openfabrics.org/bugzilla/show_bug?id=2281) for this
+issue.
+
+[Aside:  It would be nice if the srptools tree was public.  The
+ README also contains reference to outdated openib mailing lists!]
+
+Signed-off-by: Brian Ginsbach <ginsbach-WVYJKLFxKCc@public.gmane.org>
+
+---
+
+--- srp_daemon.h.orig	2009-08-30 08:56:11.000000000 -0500
++++ srp_daemon.h	2011-07-07 12:54:02.000000000 -0500
+@@ -406,7 +406,7 @@
+ 		struct tm *t = localtime(&tt);				\
+ 		sprintf(str, arg);					\
+ 		fprintf(stderr, "%02d/%02d/%02d %02d:%02d:%02d : %s", 	\
+-			t->tm_mday, t->tm_mon, t->tm_year%100, 		\
++			t->tm_mday, t->tm_mon+1, t->tm_year%100, 	\
+ 			t->tm_hour, t->tm_min, t->tm_sec, str);		\
+ 	} while (0)
