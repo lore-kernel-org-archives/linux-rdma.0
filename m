@@ -1,53 +1,48 @@
-From: frank zago <fzago-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org>
-Subject: Re: [PATCH 05/14] SIWv3: User Interface: siw_ae.c, siw_verbs.c, siw_user.h,
- siw_verbs.h
-Date: Fri, 22 Jul 2011 13:56:29 -0500
-Message-ID: <4E29C7DD.4050409@systemfabricworks.com>
-References: <1311360458-15187-1-git-send-email-bmt@zurich.ibm.com>
+From: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH] IB/qib: defer hca error events to tasklet
+Date: Fri, 22 Jul 2011 12:01:18 -0700
+Message-ID: <CAL1RGDUCky+S5Uj-htnB6oiPseWjk2=M7SDto17gEtESfTGK8g@mail.gmail.com>
+References: <20110721132116.25683.74826.stgit@kop-dev-sles11-04.qlogic.org>
+ <CAL1RGDXSHs5hDC3JC5ozTa4gLzumMzRKQWNij_=aDk-3=hsUvg@mail.gmail.com> <35AAF1E4A771E142979F27B51793A4888839105AEA@AVEXMB1.qlogic.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1311360458-15187-1-git-send-email-bmt-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>
+In-Reply-To: <35AAF1E4A771E142979F27B51793A4888839105AEA-HolNjIBXvBOXx9kJd3VG2h2eb7JE58TQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bernard Metzler <bmt-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Mike Marciniszyn <mike.marciniszyn-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 07/22/2011 01:47 PM, Bernard Metzler wrote:
-> +int siw_post_receive(struct ib_qp *ofa_qp, struct ib_recv_wr *wr,
-> +		     struct ib_recv_wr **bad_wr)
-> +{
-> +	struct siw_wqe	*wqe = NULL;
-> +	struct siw_qp	*qp = siw_qp_ofa2siw(ofa_qp);
-> +	unsigned long	flags;
-> +	int rv = 0;
-> +
-> +	dprint(DBG_WR|DBG_TX, "(QP%d): state=%d\n", QP_ID(qp),
-> +		qp->attrs.state);
-> +
-> +	if (qp->srq)
-> +		return -EOPNOTSUPP; /* what else from errno.h? */
+On Thu, Jul 21, 2011 at 9:30 AM, Mike Marciniszyn
+<mike.marciniszyn-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org> wrote:
+> There is no choice but a module parameter since the msix initializati=
+on is done at driver load, and is only needed after testing reveals tha=
+t the change is necessary.
+>
+> I agree that there are a lot of module parameters. =A0 Some that don'=
+t allocate resources at load time could be "sys".
+>
+> I can re-issue the patch with module_param and change the identifier.
+>
+> The module parameters used throughout the code usually prepend a qib_=
+ or and ib_qib_, and I was following precedent in the code.
+>
+> The only "no prepend" I see is the sdma_descq_cnt, which could change=
+ as well to use module_param.
 
-bad_wr is not set.
+I looked over the code and I think it makes sense to match the
+existing practice with module_param.
+Longer term cleaning that up might be worthwhile, but even better
+would be to get
+rid of the need for so many knobs for users to adjust.
 
-> +	/*
-> +	 * Try to acquire QP state lock. Must be non-blocking
-> +	 * to accommodate kernel clients needs.
-> +	 */
-> +	if (!down_read_trylock(&qp->state_lock)) {
-> +		*bad_wr = wr;
-> +		return -ENOTCONN;
-> +	}
-> +
-> +	if (qp->attrs.state > SIW_QP_STATE_RTS) {
-> +		up_read(&qp->state_lock);
-> +		dprint(DBG_ON, " (QP%d): state=%d\n", QP_ID(qp),
-> +			qp->attrs.state);
-> +		return -EINVAL;
+In any case I went ahead and applied this, since I don't think it's
+worth quibbling over.
 
-ditto.
+ - R.
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
