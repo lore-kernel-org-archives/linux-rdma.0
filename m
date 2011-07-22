@@ -1,58 +1,109 @@
 From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-Subject: Re: [PATCH 2/3] infiniband-diags: libibnetdisc Allow a DR Path
- partial fabric query starting at a CA
-Date: Fri, 22 Jul 2011 15:26:20 -0700
-Message-ID: <20110722152620.52f5c37b.weiny2@llnl.gov>
-References: <20110720161655.1ed38052.weiny2@llnl.gov>
-	<20110720233451.GL18090@obsidianresearch.com>
-	<4E297949.2000607@dev.mellanox.co.il>
-	<20110722172945.GP18090@obsidianresearch.com>
-	<20110722150049.ba8e592f.weiny2@llnl.gov>
-	<20110722221349.GT18090@obsidianresearch.com>
+Subject: Re: [PATCHv2 2/2] infiniband-diags/smpquery: Add Mellanox extended
+ portinfo query
+Date: Fri, 22 Jul 2011 15:31:51 -0700
+Message-ID: <20110722153151.ea416898.weiny2@llnl.gov>
+References: <4E2983BF.80906@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20110722221349.GT18090-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <4E2983BF.80906-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, 22 Jul 2011 15:13:49 -0700
-Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
+On Fri, 22 Jul 2011 07:05:51 -0700
+Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wrote:
 
-> On Fri, Jul 22, 2011 at 03:00:49PM -0700, Ira Weiny wrote:
 > 
-> > I agree it would be nice if one could issue a combined path and "scan through"
-> > any xCA on the fabric.  However, I don't think it is allowed, nor correct to
-> > do so.
+> Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> ---
+> Changes since v1:
+> Added man page change
 > 
-> Well, it is explicitly not allowed:
-> 
-> 2) If Hop Count is non zero and Hop Pointer is in the range 1  Hop        
->    Pointer < Hop Count, this SMI is an intermediate hop in the directed   
->    route portion of the path. If the node is not a switch, the SMI shall  
->    discard the SMP, otherwise the SMI shall alter the contents of the
->    directed route SMP as follows:
+> diff --git a/man/smpquery.8 b/man/smpquery.8
+> index 3b69e8a..2ba2ef2 100644
+> --- a/man/smpquery.8
+> +++ b/man/smpquery.8
+> @@ -1,4 +1,4 @@
+> -.TH SMPQUERY 8 "March 14, 2007" "OpenIB" "OpenIB Diagnostics"
+> +.TH SMPQUERY 8 "March 9, 2011" "OpenIB" "OpenIB Diagnostics"
+>  
+>  .SH NAME
+>  smpquery \- query InfiniBand subnet management attributes
+> @@ -29,6 +29,7 @@ Current supported operations and their parameters:
+>          sl2vl <addr> [<portnum>]
+>          vlarb <addr> [<portnum>]
+>          guids <addr>
+> +        extportinfo <addr> [<portnum>]  # default port is zero
 
-I guess I was confused because in the example I gave the Hop Count would be zero so the above did not apply.  That is why I went off looking for other explanations.
+I think this should include something which indicates this is a Mellanox vendor specific query.
 
-Regardless I think we are all in agreement.  :-D
+Perhaps just mlnxextportinfo and something in the comment.
 
+>  
+>  .TP
+>  \fB\-\-node\-name\-map\fR <node-name-map>
+> @@ -113,4 +114,4 @@ smpquery -c nodeinfo 6 0,12  # nodeinfo by combined route
+>  .SH AUTHOR
+>  .TP
+>  Hal Rosenstock
+> -.RI < halr-smomgflXvOZWk0Htik3J/w@public.gmane.org >
+> +.RI < hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org >
+> diff --git a/src/smpquery.c b/src/smpquery.c
+> index 65bb65c..04cd925 100644
+> --- a/src/smpquery.c
+> +++ b/src/smpquery.c
+> @@ -63,7 +63,7 @@ typedef struct match_rec {
+>  } match_rec_t;
+>  
+>  static op_fn_t node_desc, node_info, port_info, switch_info, pkey_table,
+> -    sl2vl_table, vlarb_table, guid_info;
+> +    sl2vl_table, vlarb_table, guid_info, ext_port_info;
+>  
+>  static const match_rec_t match_tbl[] = {
+>  	{"NodeInfo", "NI", node_info},
+> @@ -74,6 +74,7 @@ static const match_rec_t match_tbl[] = {
+>  	{"SL2VLTable", "SL2VL", sl2vl_table, 1},
+>  	{"VLArbitration", "VLArb", vlarb_table, 1},
+>  	{"GUIDInfo", "GI", guid_info},
+> +	{"ExtPortInfo", "EPI", ext_port_info, 1},
+>  	{0}
+>  };
+>  
+> @@ -147,6 +148,24 @@ static char *port_info(ib_portid_t * dest, char **argv, int argc)
+>  	return 0;
+>  }
+>  
+> +static char *ext_port_info(ib_portid_t * dest, char **argv, int argc)
+
+Also it might be more clear to future coders if this also included "mlnx" as a prefix.
+
+Thanks,
 Ira
 
-> 
-> > Even if this is considered vague there would be a problem a xCA was allowed.
-> 
-> That sort of behavior is explicitly disallowed in other cases, like
-> reading port info.
-> 
-> Jason
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> +{
+> +	char buf[2300];
+> +	char data[IB_SMP_DATA_SIZE];
+> +	int portnum = 0;
+> +
+> +	if (argc > 0)
+> +		portnum = strtol(argv[0], 0, 0);
+> +
+> +	if (!smp_query_via(data, dest, IB_ATTR_MLNX_EXT_PORT_INFO, portnum, 0, srcport))
+> +		return "ext port info query failed";
+> +
+> +	mad_dump_mlnx_ext_port_info(buf, sizeof buf, data, sizeof data);
+> +
+> +	printf("# Ext Port info: %s port %d\n%s", portid2str(dest), portnum, buf);
+> +	return 0;
+> +}
+> +
+>  static char *switch_info(ib_portid_t * dest, char **argv, int argc)
+>  {
+>  	char buf[2048];
 
 
 -- 
