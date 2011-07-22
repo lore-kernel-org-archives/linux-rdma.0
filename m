@@ -1,74 +1,84 @@
-From: =?ISO-8859-2?Q?Micha=B3_Miros=B3aw?= <mirqus-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 10/13] net: add paged frag destructor to skb_fill_page_desc()
-Date: Fri, 22 Jul 2011 23:44:05 +0200
-Message-ID: <CAHXqBF+TJrBvEo+fd4tfXxDucEx5QaCgfBWPQ2B5UPjYQUAUgg@mail.gmail.com>
-References: <1311340095.12772.57.camel@zakaz.uk.xensource.com>
- <1311340653-19336-10-git-send-email-ian.campbell@citrix.com>
- <CAHXqBFLQFKqK=ORpDQx6s2ud8mWkx=YC_AT60GVS+4XK0H61pw@mail.gmail.com> <1311368872.4027.76.camel@dagon.hellion.org.uk>
+From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+Subject: Re: [PATCH 2/3] infiniband-diags: libibnetdisc Allow a DR Path
+ partial fabric query starting at a CA
+Date: Fri, 22 Jul 2011 15:00:49 -0700
+Message-ID: <20110722150049.ba8e592f.weiny2@llnl.gov>
+References: <20110720161655.1ed38052.weiny2@llnl.gov>
+	<20110720233451.GL18090@obsidianresearch.com>
+	<4E297949.2000607@dev.mellanox.co.il>
+	<20110722172945.GP18090@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-2
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1311368872.4027.76.camel-ztPmHsLffjjnO4AKDKe2m+kiAK3p4hvP@public.gmane.org>
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ian Campbell <Ian.Campbell-mvvWK6WmYclDPfheJLI6IQ@public.gmane.org>
-Cc: "netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, "James E.J. Bottomley" <JBottomley-bzQdu9zFT3WakBO8gow8eQ@public.gmane.org>, Alexey Kuznetsov <kuznet-v/Mj1YrvjDBInbfyfbPRSQ@public.gmane.org>, "Pekka Savola (ipv6)" <pekkas-UjJjq++bwZ7HOG6cAo2yLw@public.gmane.org>, James Morris <jmorris-gx6/JNMH7DfYtjvyW6yDsg@public.gmane.org>, Hideaki YOSHIFUJI <yoshfuji-VfPWfsRibaP+Ru+s062T9g@public.gmane.org>, Patrick McHardy <kaber-dcUjhNyLwpNeoWH0uzbU5w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-s390-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-s390-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devel-s9riP+hp16TNLxjTenLetw@public.gmane.org" <devel-s9riP+hp16TNLxjTenLetw@public.gmane.org>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20110722172945.GP18090-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-W dniu 22 lipca 2011 23:07 u=BFytkownik Ian Campbell
-<Ian.Campbell-mvvWK6WmYclDPfheJLI6IQ@public.gmane.org> napisa=B3:
-> On Fri, 2011-07-22 at 20:58 +0100, Micha=B3 Miros=B3aw wrote:
->> 2011/7/22 Ian Campbell <ian.campbell-Sxgqhf6Nn4DQT0dZR+AlfA@public.gmane.org>:
->> > diff --git a/include/linux/skbuff.h b/include/linux/skbuff.h
->> > index 9818fe2..faee8d3 100644
->> > --- a/include/linux/skbuff.h
->> > +++ b/include/linux/skbuff.h
->> > @@ -1134,12 +1134,14 @@ static inline int skb_pagelen(const struct=
- sk_buff *skb)
->> > =A0* Does not take any additional reference on the fragment.
->> > =A0*/
->> > =A0static inline void __skb_fill_page_desc(struct sk_buff *skb, in=
-t i,
->> > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
-=A0 =A0 =A0 struct page *page, int off, int size)
->> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
-=A0 =A0 =A0 struct page *page,
->> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
-=A0 =A0 =A0 struct skb_frag_destructor *destroy,
->> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
-=A0 =A0 =A0 int off, int size)
->> > =A0{
->> > =A0 =A0 =A0 =A0skb_frag_t *frag =3D &skb_shinfo(skb)->frags[i];
->> >
->> > =A0 =A0 =A0 =A0frag->page.p =A0 =A0 =A0 =A0 =A0 =A0 =A0=3D page;
->> > - =A0 =A0 =A0 frag->page.destructor =A0 =A0 =3D NULL;
->> > + =A0 =A0 =A0 frag->page.destructor =A0 =A0 =3D destroy;
->> > =A0 =A0 =A0 =A0frag->page_offset =A0 =A0 =A0 =A0 =3D off;
->> > =A0 =A0 =A0 =A0frag->size =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=3D size;
->> > =A0}
->>
->> You could just rename this function to e.g.
->> __skb_fill_fragile_page_desc() (or whatever name) add an inline
->> wrapper calling it with destroy =3D=3D NULL. This will avoid touchin=
-g all
->> those drivers which won't ever need this functionality.
->
-> I could call this variant __skb_frag_init (which I think better fits
-> into the pattern of the new functions) and leave the existing
-> __skb_fill_page_desc as a compat wrapper if that's preferred but I wa=
-s
-> trying to avoid duplicating up constructors just for different sets o=
-f
-> defaults.
+On Fri, 22 Jul 2011 10:29:46 -0700
+Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
 
-It's just Huffman coding: since most users need destroy =3D NULL, it's
-good to have a wrapper for this case as it will then take less time to
-write and understand the code (you won't need to think what is this
-NULL for in all those places).
+> On Fri, Jul 22, 2011 at 09:21:13AM -0400, Hal Rosenstock wrote:
+> > On 7/20/2011 7:34 PM, Jason Gunthorpe wrote:
+> > > Also, there is a bug, you can't DLID route to the local HCA and then
+> > > use that as a source of a DR path, even though intuitively that should
+> > > work.
+> > 
+> > Just the local xCA or any xCA ?
+> 
+> Well both, but I was under the impression that latter was specified
+> behavior, but I haven't looked it up.
 
-Best Regards,
-Micha=B3 Miros=B3aw
+I agree it would be nice if one could issue a combined path and "scan through"
+any xCA on the fabric.  However, I don't think it is allowed, nor correct to
+do so.
+
+The informative text on pg 805 ln 23 specifically states that the initial LID
+routing is from "source node to source switch".
+
+Furthermore, C14-7 (continued on pg 809, first bullet)  specifically indicates
+that the DLID for an initial LID routed DR SMP "shall be set to the LID of the
+source switch in the DR part."
+       ^^^^^^
+
+Even if this is considered vague there would be a problem a xCA was allowed.
+
+C14-9 "case 1" would allow an SM to "scan through" a xCA to another subnet.
+Or actually it would result in the SMP being "lost" in the other subnet.
+
+For example take the following:
+
+        "Local subnet"                       "Other subnet"
+     xCA1 ----> switch ----> xCA2 p1 : xCA2 p2 ----> switch -> ...
+LIDs  2           3            4         1            2
+
+If I issue the SMP from xCA1 with DrSLID = 3 and a DR path of 0,2.  xCA2 will
+alter the fields as per C14-9 and issue the SMP out port 2.
+
+Then, when the response comes back to xCA2 p2, it will attempt to
+send the packet to LID 2 (DrSLID == 2 from the original query) and the SMP
+will end up at the switch on the right in "other subnet", _not_ at xCA1
+
+So although I don't see a specific compliance (and I agree it would be nice) I
+think it is safe to say that it should be restricted.
+
+Would it be more clear for C14-9 to specifically exclude this case?
+
+Ira
+
+> 
+> Jason
+
+
+-- 
+Ira Weiny
+Math Programmer/Computer Scientist
+Lawrence Livermore National Lab
+925-423-8008
+weiny2-i2BcT+NCU+M@public.gmane.org
 --
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
