@@ -1,50 +1,34 @@
-From: Brian Ginsbach <ginsbach-WVYJKLFxKCc@public.gmane.org>
-Subject: [PATCH] srp_daemon: pr_err date format bug
-Date: Fri, 22 Jul 2011 09:48:18 -0500
-Message-ID: <20110722144818.GA7450@bukharin.us.cray.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH 2/3] infiniband-diags: libibnetdisc Allow a DR Path
+ partial fabric query starting at a CA
+Date: Fri, 22 Jul 2011 11:29:46 -0600
+Message-ID: <20110722172945.GP18090@obsidianresearch.com>
+References: <20110720161655.1ed38052.weiny2@llnl.gov>
+ <20110720233451.GL18090@obsidianresearch.com>
+ <4E297949.2000607@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-List-Unsubscribe: <http://lists.openfabrics.org/cgi-bin/mailman/options/ewg>,
-	<mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.openfabrics.org/pipermail/ewg>
-List-Post: <mailto:ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
-List-Help: <mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=help>
-List-Subscribe: <http://lists.openfabrics.org/cgi-bin/mailman/listinfo/ewg>,
-	<mailto:ewg-request-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org?subject=subscribe>
-Sender: ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
-Errors-To: ewg-bounces-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
-To: ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+In-Reply-To: <4E297949.2000607-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+On Fri, Jul 22, 2011 at 09:21:13AM -0400, Hal Rosenstock wrote:
+> On 7/20/2011 7:34 PM, Jason Gunthorpe wrote:
+> > Also, there is a bug, you can't DLID route to the local HCA and then
+> > use that as a source of a DR path, even though intuitively that should
+> > work.
+> 
+> Just the local xCA or any xCA ?
 
-The pr_err macro used by srp_daemon to log errors prints the incorrect
-date (month).  The month is one less than the actual month since a
-tm_mon is the number of months since January (0 - 11) and not the
-actual month number (1 - 12).   Easily fixed by adding 1 to the
-tm_mon value.
+Well both, but I was under the impression that latter was specified
+behavior, but I haven't looked it up.
 
-Also opened OpenFabrics Bug 2281
-(http://bugs.openfabrics.org/bugzilla/show_bug?id=2281) for this
-issue.
-
-[Aside:  It would be nice if the srptools tree was public.  The
- README also contains reference to outdated openib mailing lists!]
-
-Signed-off-by: Brian Ginsbach <ginsbach-WVYJKLFxKCc@public.gmane.org>
-
----
-
---- srp_daemon.h.orig	2009-08-30 08:56:11.000000000 -0500
-+++ srp_daemon.h	2011-07-07 12:54:02.000000000 -0500
-@@ -406,7 +406,7 @@
- 		struct tm *t = localtime(&tt);				\
- 		sprintf(str, arg);					\
- 		fprintf(stderr, "%02d/%02d/%02d %02d:%02d:%02d : %s", 	\
--			t->tm_mday, t->tm_mon, t->tm_year%100, 		\
-+			t->tm_mday, t->tm_mon+1, t->tm_year%100, 	\
- 			t->tm_hour, t->tm_min, t->tm_sec, str);		\
- 	} while (0)
+Jason
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
