@@ -1,97 +1,43 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH v3/2] infiniband-diags/smpquery: Add Mellanox extended portinfo
- query
-Date: Sat, 23 Jul 2011 07:02:52 -0400
-Message-ID: <4E2AAA5C.4080801@dev.mellanox.co.il>
+From: System Administrator <apd-sucT6bUGHdqNtZtCCKLhVwC/G2K4zDHf@public.gmane.org>
+Subject: Your Mail Quota Has Exceeded The Set Quota
+Date: Sat, 23 Jul 2011 15:47:13 +0200
+Message-ID: <20110723154713.56636r7bwir1ijok@mail.hiltoncollege.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain;
+ charset=ISO-8859-1;
+ DelSp="Yes";
+ format="flowed"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
-Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
-Changes since v2:
-Made command MlnxExtPortInfo or MEPI
-Other cosmetics to add mlnx to extportinfo
+Your Mail Quota Has Exceeded The Set Quota/Limit. You Are Currently
+Running On 23GB Due To Hidden Files And Folder On Your Mailbox,
+you may not be able to receive or send new mails until you re-validate.
 
-Changes since v1:
-Added man page change
+Please Click the Link Below To Validate Your Mailbox And Increase Your Quota.
 
-diff --git a/man/smpquery.8 b/man/smpquery.8
-index 3b69e8a..afd02db 100644
---- a/man/smpquery.8
-+++ b/man/smpquery.8
-@@ -1,4 +1,4 @@
--.TH SMPQUERY 8 "March 14, 2007" "OpenIB" "OpenIB Diagnostics"
-+.TH SMPQUERY 8 "March 9, 2011" "OpenIB" "OpenIB Diagnostics"
- 
- .SH NAME
- smpquery \- query InfiniBand subnet management attributes
-@@ -29,6 +29,7 @@ Current supported operations and their parameters:
-         sl2vl <addr> [<portnum>]
-         vlarb <addr> [<portnum>]
-         guids <addr>
-+        mlnxextportinfo <addr> [<portnum>]  # default port is zero
- 
- .TP
- \fB\-\-node\-name\-map\fR <node-name-map>
-@@ -113,4 +114,4 @@ smpquery -c nodeinfo 6 0,12  # nodeinfo by combined route
- .SH AUTHOR
- .TP
- Hal Rosenstock
--.RI < halr-smomgflXvOZWk0Htik3J/w@public.gmane.org >
-+.RI < hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org >
-diff --git a/src/smpquery.c b/src/smpquery.c
-index 65bb65c..6753ba9 100644
---- a/src/smpquery.c
-+++ b/src/smpquery.c
-@@ -63,7 +63,7 @@ typedef struct match_rec {
- } match_rec_t;
- 
- static op_fn_t node_desc, node_info, port_info, switch_info, pkey_table,
--    sl2vl_table, vlarb_table, guid_info;
-+    sl2vl_table, vlarb_table, guid_info, mlnx_ext_port_info;
- 
- static const match_rec_t match_tbl[] = {
- 	{"NodeInfo", "NI", node_info},
-@@ -74,6 +74,7 @@ static const match_rec_t match_tbl[] = {
- 	{"SL2VLTable", "SL2VL", sl2vl_table, 1},
- 	{"VLArbitration", "VLArb", vlarb_table, 1},
- 	{"GUIDInfo", "GI", guid_info},
-+	{"MlnxExtPortInfo", "MEPI", mlnx_ext_port_info, 1},
- 	{0}
- };
- 
-@@ -147,6 +148,24 @@ static char *port_info(ib_portid_t * dest, char **argv, int argc)
- 	return 0;
- }
- 
-+static char *mlnx_ext_port_info(ib_portid_t * dest, char **argv, int argc)
-+{
-+	char buf[2300];
-+	char data[IB_SMP_DATA_SIZE];
-+	int portnum = 0;
-+
-+	if (argc > 0)
-+		portnum = strtol(argv[0], 0, 0);
-+
-+	if (!smp_query_via(data, dest, IB_ATTR_MLNX_EXT_PORT_INFO, portnum, 0, srcport))
-+		return "Mellanox ext port info query failed";
-+
-+	mad_dump_mlnx_ext_port_info(buf, sizeof buf, data, sizeof data);
-+
-+	printf("# MLNX ext Port info: %s port %d\n%s", portid2str(dest), portnum, buf);
-+	return 0;
-+}
-+
- static char *switch_info(ib_portid_t * dest, char **argv, int argc)
- {
- 	char buf[2048];
+http://buzurl.com/ao70
+
+Failure To Validate Your Quota May Result In Loss Of Important Information
+In Your Mailbox Or Cause Limited Access To It.
+
+Mail Quota alert -Error Code #1997142DDE
+
+System Administrator
+192.168.0.1
+
+
+
+
+
+----------------------------------------------------------------
+This message was sent using IMP, the Internet Messaging Program.
+
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
