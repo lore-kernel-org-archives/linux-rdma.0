@@ -1,87 +1,129 @@
-From: Bernard Metzler <BMT-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>
-Subject: Re: [PATCH 05/14] SIWv3: User Interface: siw_ae.c, siw_verbs.c, siw_user.h, siw_verbs.h
-Date: Sat, 23 Jul 2011 10:09:09 +0200
-Message-ID: <OF9C85749A.DC74D49B-ONC12578D6.002C7550-C12578D6.002CC954@ch.ibm.com>
-References: <1311360458-15187-1-git-send-email-bmt@zurich.ibm.com> <4E29C7DD.4050409@systemfabricworks.com>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: [PATCHv3 1/2] libibmad: Support for Mellanox vendor specific ExtendedPortInfo
+ SM class MAD
+Date: Sat, 23 Jul 2011 07:02:41 -0400
+Message-ID: <4E2AAA51.5000902@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="US-ASCII"
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4E29C7DD.4050409-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: frank zago <fzago-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-six minutes to find the first issue! that scary ;)
 
-let me set it to NULL at the very beginning of
-the function.
+for FDR10 operation
 
+Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+Changes since v2:
+Added enum for FDR10
 
+Changes since v1:
+Rebased
 
-Frank,
-many thanks.
-
-Bernard.
-
-linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org wrote on 07/22/2011 08:56:29 PM:
-
-> frank zago <fzago-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org> 
-> Sent by: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> 
-> 07/22/2011 08:56 PM
-> 
-> To
-> 
-> Bernard Metzler <bmt-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>
-> 
-> cc
-> 
-> linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> 
-> Subject
-> 
-> Re: [PATCH 05/14] SIWv3: User Interface: siw_ae.c, siw_verbs.c, 
-> siw_user.h, siw_verbs.h
-> 
-> On 07/22/2011 01:47 PM, Bernard Metzler wrote:
-> > +int siw_post_receive(struct ib_qp *ofa_qp, struct ib_recv_wr *wr,
-> > +           struct ib_recv_wr **bad_wr)
-> > +{
-> > +   struct siw_wqe   *wqe = NULL;
-> > +   struct siw_qp   *qp = siw_qp_ofa2siw(ofa_qp);
-> > +   unsigned long   flags;
-> > +   int rv = 0;
-> > +
-> > +   dprint(DBG_WR|DBG_TX, "(QP%d): state=%d\n", QP_ID(qp),
-> > +      qp->attrs.state);
-> > +
-> > +   if (qp->srq)
-> > +      return -EOPNOTSUPP; /* what else from errno.h? */
-> 
-> bad_wr is not set.
-> 
-> > +   /*
-> > +    * Try to acquire QP state lock. Must be non-blocking
-> > +    * to accommodate kernel clients needs.
-> > +    */
-> > +   if (!down_read_trylock(&qp->state_lock)) {
-> > +      *bad_wr = wr;
-> > +      return -ENOTCONN;
-> > +   }
-> > +
-> > +   if (qp->attrs.state > SIW_QP_STATE_RTS) {
-> > +      up_read(&qp->state_lock);
-> > +      dprint(DBG_ON, " (QP%d): state=%d\n", QP_ID(qp),
-> > +         qp->attrs.state);
-> > +      return -EINVAL;
-> 
-> ditto.
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
+diff --git a/include/infiniband/mad.h b/include/infiniband/mad.h
+index b1258bd..09c8d4a 100644
+--- a/include/infiniband/mad.h
++++ b/include/infiniband/mad.h
+@@ -141,7 +141,9 @@ enum SMI_ATTR_ID {
+ 	IB_ATTR_VENDORMADSTBL = 0x1d,
+ 	IB_ATTR_SMINFO = 0x20,
+ 
+-	IB_ATTR_LAST
++	IB_ATTR_LAST,
++
++	IB_ATTR_MLNX_EXT_PORT_INFO = 0xff90,
+ };
+ 
+ enum SA_ATTR_ID {
+@@ -1023,6 +1025,15 @@ enum MAD_FIELDS {
+ 	IB_PC_VL_XMIT_TIME_CONG14,
+ 	IB_PC_VL_XMIT_TIME_CONG_LAST_F,
+ 
++	/*
++	 * Mellanox ExtendedPortInfo fields
++	 */
++	IB_MLNX_EXT_PORT_STATE_CHG_ENABLE_F,
++	IB_MLNX_EXT_PORT_LINK_SPEED_SUPPORTED_F,
++	IB_MLNX_EXT_PORT_LINK_SPEED_ENABLED_F,
++	IB_MLNX_EXT_PORT_LINK_SPEED_ACTIVE_F,
++	IB_MLNX_EXT_PORT_LAST_F,
++
+ 	IB_FIELD_LAST_		/* must be last */
+ };
+ 
+@@ -1119,6 +1130,10 @@ enum MAD_NODE_TYPE {
+ 	IB_NODE_MAX = NODE_RNIC
+ };
+ 
++enum MLNX_EXT_PORT_INFO_LINK_SPEEDS {
++	FDR10 = 1
++};
++
+ /******************************************************************************/
+ 
+ /* portid.c */
+@@ -1361,7 +1376,8 @@ MAD_EXPORT ib_mad_dump_fn
+     mad_dump_perfcounters_port_vl_xmit_flow_ctl_update_errors, mad_dump_perfcounters_port_vl_xmit_wait_counters,
+     mad_dump_perfcounters_sw_port_vl_congestion, mad_dump_perfcounters_rcv_con_ctrl,
+     mad_dump_perfcounters_sl_rcv_fecn, mad_dump_perfcounters_sl_rcv_becn,
+-    mad_dump_perfcounters_xmit_con_ctrl, mad_dump_perfcounters_vl_xmit_time_cong;
++    mad_dump_perfcounters_xmit_con_ctrl, mad_dump_perfcounters_vl_xmit_time_cong,
++    mad_dump_mlnx_ext_port_info;
+ 
+ MAD_EXPORT void mad_dump_fields(char *buf, int bufsz, void *val, int valsz,
+ 				int start, int end);
+diff --git a/src/dump.c b/src/dump.c
+index 52b2010..29fb742 100644
+--- a/src/dump.c
++++ b/src/dump.c
+@@ -957,6 +957,12 @@ void mad_dump_perfcounters_vl_xmit_time_cong(char *buf, int bufsz, void *val, in
+ 		     IB_PC_VL_XMIT_TIME_CONG_LAST_F);
+ }
+ 
++void mad_dump_mlnx_ext_port_info(char *buf, int bufsz, void *val, int valsz)
++{
++	_dump_fields(buf, bufsz, val, IB_MLNX_EXT_PORT_STATE_CHG_ENABLE_F,
++		     IB_MLNX_EXT_PORT_LAST_F);
++}
++
+ void xdump(FILE * file, char *msg, void *p, int size)
+ {
+ #define HEX(x)  ((x) < 10 ? '0' + (x) : 'a' + ((x) -10))
+diff --git a/src/fields.c b/src/fields.c
+index 23947dc..04c60c7 100644
+--- a/src/fields.c
++++ b/src/fields.c
+@@ -772,6 +772,15 @@ static const ib_field_t ib_mad_f[] = {
+ 	{480, 32, "PortVLXmitTimeCong14", mad_dump_uint},
+ 	{0, 0},			/* IB_PC_VL_XMIT_TIME_CONG_LAST_F */
+ 
++	/*
++	 * Mellanox ExtendedPortInfo fields
++	 */
++	{BITSOFFS(24, 8), "StateChangeEnable", mad_dump_hex},
++	{BITSOFFS(56, 8), "LinkSpeedSupported", mad_dump_hex},
++	{BITSOFFS(88, 8), "LinkSpeedEnabled", mad_dump_hex},
++	{BITSOFFS(120, 8), "LinkSpeedActive", mad_dump_hex},
++	{0, 0},			/* IB_MLNX_EXT_PORT_LAST_F */
++
+ 	{0, 0}			/* IB_FIELD_LAST_ */
+ 
+ };
+diff --git a/src/libibmad.map b/src/libibmad.map
+index f0b42a5..508c18b 100644
+--- a/src/libibmad.map
++++ b/src/libibmad.map
+@@ -18,6 +18,7 @@ IBMAD_1.3 {
+ 		mad_dump_linkwidth;
+ 		mad_dump_linkwidthen;
+ 		mad_dump_linkwidthsup;
++		mad_dump_mlnx_ext_port_info;
+ 		mad_dump_mtu;
+ 		mad_dump_node_type;
+ 		mad_dump_nodedesc;
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
