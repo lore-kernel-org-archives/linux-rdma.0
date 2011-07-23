@@ -1,142 +1,87 @@
-From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-Subject: Re: [PATCHv2 2/2] infiniband-diags/smpquery: Add Mellanox extended
- portinfo query
-Date: Fri, 22 Jul 2011 17:09:43 -0700
-Message-ID: <20110722170943.33bc46f0.weiny2@llnl.gov>
-References: <4E2983BF.80906@dev.mellanox.co.il>
-	<20110722153151.ea416898.weiny2@llnl.gov>
-	<4E2A0E48.6030402@dev.mellanox.co.il>
+From: Bernard Metzler <BMT-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>
+Subject: Re: [PATCH 05/14] SIWv3: User Interface: siw_ae.c, siw_verbs.c, siw_user.h, siw_verbs.h
+Date: Sat, 23 Jul 2011 10:09:09 +0200
+Message-ID: <OF9C85749A.DC74D49B-ONC12578D6.002C7550-C12578D6.002CC954@ch.ibm.com>
+References: <1311360458-15187-1-git-send-email-bmt@zurich.ibm.com> <4E29C7DD.4050409@systemfabricworks.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="US-ASCII"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4E2A0E48.6030402-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+In-Reply-To: <4E29C7DD.4050409-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: frank zago <fzago-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, 22 Jul 2011 16:56:56 -0700
-Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wrote:
+six minutes to find the first issue! that scary ;)
 
-> On 7/22/2011 6:31 PM, Ira Weiny wrote:
-> > On Fri, 22 Jul 2011 07:05:51 -0700
-> > Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wrote:
-> > 
-> >>
-> >> Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-> >> ---
-> >> Changes since v1:
-> >> Added man page change
-> >>
-> >> diff --git a/man/smpquery.8 b/man/smpquery.8
-> >> index 3b69e8a..2ba2ef2 100644
-> >> --- a/man/smpquery.8
-> >> +++ b/man/smpquery.8
-> >> @@ -1,4 +1,4 @@
-> >> -.TH SMPQUERY 8 "March 14, 2007" "OpenIB" "OpenIB Diagnostics"
-> >> +.TH SMPQUERY 8 "March 9, 2011" "OpenIB" "OpenIB Diagnostics"
-> >>  
-> >>  .SH NAME
-> >>  smpquery \- query InfiniBand subnet management attributes
-> >> @@ -29,6 +29,7 @@ Current supported operations and their parameters:
-> >>          sl2vl <addr> [<portnum>]
-> >>          vlarb <addr> [<portnum>]
-> >>          guids <addr>
-> >> +        extportinfo <addr> [<portnum>]  # default port is zero
-> > 
-> > I think this should include something which indicates this is a Mellanox vendor specific query.
-> > 
-> > Perhaps just mlnxextportinfo and something in the comment.
-> 
-> I was trying to keep the name from getting too long.
-
-Well MEPI would also be available as per below.  So that is not too bad for the user.
-
-> 
-> > 
-> >>  
-> >>  .TP
-> >>  \fB\-\-node\-name\-map\fR <node-name-map>
-> >> @@ -113,4 +114,4 @@ smpquery -c nodeinfo 6 0,12  # nodeinfo by combined route
-> >>  .SH AUTHOR
-> >>  .TP
-> >>  Hal Rosenstock
-> >> -.RI < halr-smomgflXvOZWk0Htik3J/w@public.gmane.org >
-> >> +.RI < hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org >
-> >> diff --git a/src/smpquery.c b/src/smpquery.c
-> >> index 65bb65c..04cd925 100644
-> >> --- a/src/smpquery.c
-> >> +++ b/src/smpquery.c
-> >> @@ -63,7 +63,7 @@ typedef struct match_rec {
-> >>  } match_rec_t;
-> >>  
-> >>  static op_fn_t node_desc, node_info, port_info, switch_info, pkey_table,
-> >> -    sl2vl_table, vlarb_table, guid_info;
-> >> +    sl2vl_table, vlarb_table, guid_info, ext_port_info;
-> >>  
-> >>  static const match_rec_t match_tbl[] = {
-> >>  	{"NodeInfo", "NI", node_info},
-> >> @@ -74,6 +74,7 @@ static const match_rec_t match_tbl[] = {
-> >>  	{"SL2VLTable", "SL2VL", sl2vl_table, 1},
-> >>  	{"VLArbitration", "VLArb", vlarb_table, 1},
-> >>  	{"GUIDInfo", "GI", guid_info},
-> >> +	{"ExtPortInfo", "EPI", ext_port_info, 1},
-> >>  	{0}
-> >>  };
-> >>  
-> >> @@ -147,6 +148,24 @@ static char *port_info(ib_portid_t * dest, char **argv, int argc)
-> >>  	return 0;
-> >>  }
-> >>  
-> >> +static char *ext_port_info(ib_portid_t * dest, char **argv, int argc)
-> > 
-> > Also it might be more clear to future coders if this also included "mlnx" as a prefix.
-> 
-> OK; so should it also be:
-> 
-> {"MlnxExtPortInfo", "MEPI" ?
-
-Sounds good,
-Ira
-
-> 
-> -- Hal
-> 
-> > Thanks,
-> > Ira
-> > 
-> >> +{
-> >> +	char buf[2300];
-> >> +	char data[IB_SMP_DATA_SIZE];
-> >> +	int portnum = 0;
-> >> +
-> >> +	if (argc > 0)
-> >> +		portnum = strtol(argv[0], 0, 0);
-> >> +
-> >> +	if (!smp_query_via(data, dest, IB_ATTR_MLNX_EXT_PORT_INFO, portnum, 0, srcport))
-> >> +		return "ext port info query failed";
-> >> +
-> >> +	mad_dump_mlnx_ext_port_info(buf, sizeof buf, data, sizeof data);
-> >> +
-> >> +	printf("# Ext Port info: %s port %d\n%s", portid2str(dest), portnum, buf);
-> >> +	return 0;
-> >> +}
-> >> +
-> >>  static char *switch_info(ib_portid_t * dest, char **argv, int argc)
-> >>  {
-> >>  	char buf[2048];
-> > 
-> > 
-> 
+let me set it to NULL at the very beginning of
+the function.
 
 
--- 
-Ira Weiny
-Math Programmer/Computer Scientist
-Lawrence Livermore National Lab
-925-423-8008
-weiny2-i2BcT+NCU+M@public.gmane.org
+
+Frank,
+many thanks.
+
+Bernard.
+
+linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org wrote on 07/22/2011 08:56:29 PM:
+
+> frank zago <fzago-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org> 
+> Sent by: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> 
+> 07/22/2011 08:56 PM
+> 
+> To
+> 
+> Bernard Metzler <bmt-OA+xvbQnYDHMbYB6QlFGEg@public.gmane.org>
+> 
+> cc
+> 
+> linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> 
+> Subject
+> 
+> Re: [PATCH 05/14] SIWv3: User Interface: siw_ae.c, siw_verbs.c, 
+> siw_user.h, siw_verbs.h
+> 
+> On 07/22/2011 01:47 PM, Bernard Metzler wrote:
+> > +int siw_post_receive(struct ib_qp *ofa_qp, struct ib_recv_wr *wr,
+> > +           struct ib_recv_wr **bad_wr)
+> > +{
+> > +   struct siw_wqe   *wqe = NULL;
+> > +   struct siw_qp   *qp = siw_qp_ofa2siw(ofa_qp);
+> > +   unsigned long   flags;
+> > +   int rv = 0;
+> > +
+> > +   dprint(DBG_WR|DBG_TX, "(QP%d): state=%d\n", QP_ID(qp),
+> > +      qp->attrs.state);
+> > +
+> > +   if (qp->srq)
+> > +      return -EOPNOTSUPP; /* what else from errno.h? */
+> 
+> bad_wr is not set.
+> 
+> > +   /*
+> > +    * Try to acquire QP state lock. Must be non-blocking
+> > +    * to accommodate kernel clients needs.
+> > +    */
+> > +   if (!down_read_trylock(&qp->state_lock)) {
+> > +      *bad_wr = wr;
+> > +      return -ENOTCONN;
+> > +   }
+> > +
+> > +   if (qp->attrs.state > SIW_QP_STATE_RTS) {
+> > +      up_read(&qp->state_lock);
+> > +      dprint(DBG_ON, " (QP%d): state=%d\n", QP_ID(qp),
+> > +         qp->attrs.state);
+> > +      return -EINVAL;
+> 
+> ditto.
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
