@@ -1,28 +1,28 @@
 From: rpearson-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org
-Subject: [patch v2 18/37] add rxe_av.c
-Date: Sun, 24 Jul 2011 14:43:18 -0500
-Message-ID: <20110724201229.013780433@systemfabricworks.com>
+Subject: [patch v2 07/37] add rxe.h
+Date: Sun, 24 Jul 2011 14:43:07 -0500
+Message-ID: <20110724201228.463370827@systemfabricworks.com>
 References: <20110724194300.421253331@systemfabricworks.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline; filename=add-rxe_av.c
+Content-Disposition: inline; filename=add-rxe.h
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: rpearson-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Address vector implementation details.
+ib_rxe external interface to lower level modules
 
 Signed-off-by: Bob Pearson <rpearson-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org>
 
 ---
- drivers/infiniband/hw/rxe/rxe_av.c |   75 +++++++++++++++++++++++++++++++++++++
- 1 file changed, 75 insertions(+)
+ drivers/infiniband/hw/rxe/rxe.h |   64 ++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 64 insertions(+)
 
-Index: infiniband/drivers/infiniband/hw/rxe/rxe_av.c
+Index: infiniband/drivers/infiniband/hw/rxe/rxe.h
 ===================================================================
 --- /dev/null
-+++ infiniband/drivers/infiniband/hw/rxe/rxe_av.c
-@@ -0,0 +1,75 @@
++++ infiniband/drivers/infiniband/hw/rxe/rxe.h
+@@ -0,0 +1,64 @@
 +/*
 + * Copyright (c) 2009-2011 Mellanox Technologies Ltd. All rights reserved.
 + * Copyright (c) 2009-2011 System Fabric Works, Inc. All rights reserved.
@@ -33,18 +33,18 @@ Index: infiniband/drivers/infiniband/hw/rxe/rxe_av.c
 + * COPYING in the main directory of this source tree, or the
 + * OpenIB.org BSD license below:
 + *
-+ *	   Redistribution and use in source and binary forms, with or
-+ *	   without modification, are permitted provided that the following
-+ *	   conditions are met:
++ *     Redistribution and use in source and binary forms, with or
++ *     without modification, are permitted provided that the following
++ *     conditions are met:
 + *
-+ *		- Redistributions of source code must retain the above
-+ *		  copyright notice, this list of conditions and the following
-+ *		  disclaimer.
++ *	- Redistributions of source code must retain the above
++ *	  copyright notice, this list of conditions and the following
++ *	  disclaimer.
 + *
-+ *		- Redistributions in binary form must reproduce the above
-+ *		  copyright notice, this list of conditions and the following
-+ *		  disclaimer in the documentation and/or other materials
-+ *		  provided with the distribution.
++ *	- Redistributions in binary form must reproduce the above
++ *	  copyright notice, this list of conditions and the following
++ *	  disclaimer in the documentation and/or other materials
++ *	  provided with the distribution.
 + *
 + * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
 + * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
@@ -56,48 +56,37 @@ Index: infiniband/drivers/infiniband/hw/rxe/rxe_av.c
 + * SOFTWARE.
 + */
 +
-+/* address handle implementation shared by ah and qp verbs */
++#ifndef RXE_H
++#define RXE_H
 +
-+#include "rxe.h"
-+#include "rxe_loc.h"
++#include <linux/skbuff.h>
++#include <linux/crc32.h>
 +
-+int rxe_av_chk_attr(struct rxe_dev *rxe, struct ib_ah_attr *attr)
-+{
-+	struct rxe_port *port;
++#include <rdma/ib_verbs.h>
++#include <rdma/ib_user_verbs.h>
++#include <rdma/ib_pack.h>
++#include <rdma/ib_smi.h>
++#include <rdma/ib_umem.h>
 +
-+	if (attr->port_num < 1 || attr->port_num > rxe->num_ports) {
-+		pr_info("rxe: invalid port_num = %d\n", attr->port_num);
-+		return -EINVAL;
-+	}
++#include "rxe_opcode.h"
++#include "rxe_hdr.h"
++#include "rxe_param.h"
++#include "rxe_verbs.h"
 +
-+	port = &rxe->port[attr->port_num - 1];
++#define RXE_UVERBS_ABI_VERSION		(1)
 +
-+	if (attr->ah_flags & IB_AH_GRH) {
-+		if (attr->grh.sgid_index > port->attr.gid_tbl_len) {
-+			pr_info("rxe: invalid sgid index = %d\n",
-+				 attr->grh.sgid_index);
-+			return -EINVAL;
-+		}
-+	}
++#define IB_PHYS_STATE_LINK_UP		(5)
 +
-+	return 0;
-+}
++int rxe_set_mtu(struct rxe_dev *rxe, unsigned int dev_mtu,
++		unsigned int port_num);
 +
-+int rxe_av_from_attr(struct rxe_dev *rxe, u8 port_num,
-+		     struct rxe_av *av, struct ib_ah_attr *attr)
-+{
-+	memset(av, 0, sizeof(*av));
-+	av->attr = *attr;
-+	av->attr.port_num = port_num;
-+	return rxe->ifc_ops->init_av(rxe, attr, av);
-+}
++int rxe_add(struct rxe_dev *rxe, unsigned int mtu);
 +
-+int rxe_av_to_attr(struct rxe_dev *rxe, struct rxe_av *av,
-+		   struct ib_ah_attr *attr)
-+{
-+	*attr = av->attr;
-+	return 0;
-+}
++void rxe_remove(struct rxe_dev *rxe);
++
++int rxe_rcv(struct sk_buff *skb);
++
++#endif /* RXE_H */
 
 
 --
