@@ -1,29 +1,28 @@
 From: rpearson-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org
-Subject: [patch v2 33/37] add rxe_net.c
-Date: Sun, 24 Jul 2011 14:43:33 -0500
-Message-ID: <20110724201229.765038738@systemfabricworks.com>
+Subject: [patch v2 27/37] add rxe_resp.c
+Date: Sun, 24 Jul 2011 14:43:27 -0500
+Message-ID: <20110724201229.464927217@systemfabricworks.com>
 References: <20110724194300.421253331@systemfabricworks.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline; filename=add-rxe_net.c
+Content-Disposition: inline; filename=add-rxe_resp.c
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: rpearson-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-implements kernel module that implements an interface between
-ib_rxe and the netdev stack.
+QP response logic.
 
 Signed-off-by: Bob Pearson <rpearson-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org>
 
 ---
- drivers/infiniband/hw/rxe/rxe_net.c |  580 ++++++++++++++++++++++++++++++++++++
- 1 file changed, 580 insertions(+)
+ drivers/infiniband/hw/rxe/rxe_resp.c | 1366 +++++++++++++++++++++++++++++++++++
+ 1 file changed, 1366 insertions(+)
 
-Index: infiniband/drivers/infiniband/hw/rxe/rxe_net.c
+Index: infiniband/drivers/infiniband/hw/rxe/rxe_resp.c
 ===================================================================
 --- /dev/null
-+++ infiniband/drivers/infiniband/hw/rxe/rxe_net.c
-@@ -0,0 +1,580 @@
++++ infiniband/drivers/infiniband/hw/rxe/rxe_resp.c
+@@ -0,0 +1,1366 @@
 +/*
 + * Copyright (c) 2009-2011 Mellanox Technologies Ltd. All rights reserved.
 + * Copyright (c) 2009-2011 System Fabric Works, Inc. All rights reserved.
@@ -57,553 +56,1339 @@ Index: infiniband/drivers/infiniband/hw/rxe/rxe_net.c
 + * SOFTWARE.
 + */
 +
++/*
++ * implements the qp responder
++ */
++
 +#include <linux/skbuff.h>
-+#include <linux/netdevice.h>
-+#include <linux/if.h>
-+#include <linux/if_vlan.h>
-+#include <net/sch_generic.h>
-+#include <linux/netfilter.h>
-+#include <rdma/ib_addr.h>
 +
 +#include "rxe.h"
-+#include "rxe_net.h"
++#include "rxe_loc.h"
++#include "rxe_queue.h"
 +
-+MODULE_AUTHOR("Bob Pearson, Frank Zago, John Groves");
-+MODULE_DESCRIPTION("RDMA transport over Converged Enhanced Ethernet");
-+MODULE_LICENSE("Dual BSD/GPL");
++enum resp_states {
++	RESPST_NONE,
++	RESPST_GET_REQ,
++	RESPST_CHK_PSN,
++	RESPST_CHK_OP_SEQ,
++	RESPST_CHK_OP_VALID,
++	RESPST_CHK_RESOURCE,
++	RESPST_CHK_LENGTH,
++	RESPST_CHK_RKEY,
++	RESPST_EXECUTE,
++	RESPST_READ_REPLY,
++	RESPST_COMPLETE,
++	RESPST_ACKNOWLEDGE,
++	RESPST_CLEANUP,
++	RESPST_DUPLICATE_REQUEST,
++	RESPST_ERR_MALFORMED_WQE,
++	RESPST_ERR_UNSUPPORTED_OPCODE,
++	RESPST_ERR_MISALIGNED_ATOMIC,
++	RESPST_ERR_PSN_OUT_OF_SEQ,
++	RESPST_ERR_MISSING_OPCODE_FIRST,
++	RESPST_ERR_MISSING_OPCODE_LAST_C,
++	RESPST_ERR_MISSING_OPCODE_LAST_D1E,
++	RESPST_ERR_TOO_MANY_RDMA_ATM_REQ,
++	RESPST_ERR_RNR,
++	RESPST_ERR_RKEY_VIOLATION,
++	RESPST_ERR_LENGTH,
++	RESPST_ERR_CQ_OVERFLOW,
++	RESPST_ERROR,
++	RESPST_RESET,
++	RESPST_DONE,
++	RESPST_EXIT,
++};
 +
-+static int rxe_eth_proto_id = ETH_P_RXE;
-+module_param_named(eth_proto_id, rxe_eth_proto_id, int, 0644);
-+MODULE_PARM_DESC(eth_proto_id, "Ethernet protocol ID (default/correct=0x8915)");
++static char *resp_state_name[] = {
++	[RESPST_NONE]				= "NONE",
++	[RESPST_GET_REQ]			= "GET_REQ",
++	[RESPST_CHK_PSN]			= "CHK_PSN",
++	[RESPST_CHK_OP_SEQ]			= "CHK_OP_SEQ",
++	[RESPST_CHK_OP_VALID]			= "CHK_OP_VALID",
++	[RESPST_CHK_RESOURCE]			= "CHK_RESOURCE",
++	[RESPST_CHK_LENGTH]			= "CHK_LENGTH",
++	[RESPST_CHK_RKEY]			= "CHK_RKEY",
++	[RESPST_EXECUTE]			= "EXECUTE",
++	[RESPST_READ_REPLY]			= "READ_REPLY",
++	[RESPST_COMPLETE]			= "COMPLETE",
++	[RESPST_ACKNOWLEDGE]			= "ACKNOWLEDGE",
++	[RESPST_CLEANUP]			= "CLEANUP",
++	[RESPST_DUPLICATE_REQUEST]		= "DUPLICATE_REQUEST",
++	[RESPST_ERR_MALFORMED_WQE]		= "ERR_MALFORMED_WQE",
++	[RESPST_ERR_UNSUPPORTED_OPCODE]		= "ERR_UNSUPPORTED_OPCODE",
++	[RESPST_ERR_MISALIGNED_ATOMIC]		= "ERR_MISALIGNED_ATOMIC",
++	[RESPST_ERR_PSN_OUT_OF_SEQ]		= "ERR_PSN_OUT_OF_SEQ",
++	[RESPST_ERR_MISSING_OPCODE_FIRST]	= "ERR_MISSING_OPCODE_FIRST",
++	[RESPST_ERR_MISSING_OPCODE_LAST_C]	= "ERR_MISSING_OPCODE_LAST_C",
++	[RESPST_ERR_MISSING_OPCODE_LAST_D1E]	= "ERR_MISSING_OPCODE_LAST_D1E",
++	[RESPST_ERR_TOO_MANY_RDMA_ATM_REQ]	= "ERR_TOO_MANY_RDMA_ATM_REQ",
++	[RESPST_ERR_RNR]			= "ERR_RNR",
++	[RESPST_ERR_RKEY_VIOLATION]		= "ERR_RKEY_VIOLATION",
++	[RESPST_ERR_LENGTH]			= "ERR_LENGTH",
++	[RESPST_ERR_CQ_OVERFLOW]		= "ERR_CQ_OVERFLOW",
++	[RESPST_ERROR]				= "ERROR",
++	[RESPST_RESET]				= "RESET",
++	[RESPST_DONE]				= "DONE",
++	[RESPST_EXIT]				= "EXIT",
++};
 +
-+static int rxe_xmit_shortcut;
-+module_param_named(xmit_shortcut, rxe_xmit_shortcut, int, 0644);
-+MODULE_PARM_DESC(xmit_shortcut,
-+		 "Shortcut transmit (EXPERIMENTAL)");
-+
-+static int rxe_loopback_mad_grh_fix = 1;
-+module_param_named(loopback_mad_grh_fix, rxe_loopback_mad_grh_fix, int, 0644);
-+MODULE_PARM_DESC(loopback_mad_grh_fix, "Allow MADs to self without GRH");
-+
-+/*
-+ * note: this table is a replacement for a protocol specific pointer
-+ * in struct net_device which exists for other ethertypes
-+ * this allows us to not have to patch that data structure
-+ * eventually we want to get our own when we're famous
-+ */
-+struct rxe_net_info net_info[RXE_MAX_IF_INDEX];
-+spinlock_t net_info_lock;
-+
-+static int rxe_net_rcv(struct sk_buff *skb,
-+		       struct net_device *ndev,
-+		       struct packet_type *ptype,
-+		       struct net_device *orig_dev);
-+
-+static __be64 rxe_mac_to_eui64(struct net_device *ndev)
++/* rxe_recv calls here to add a request packet to the input queue */
++void rxe_resp_queue_pkt(struct rxe_dev *rxe, struct rxe_qp *qp,
++			struct sk_buff *skb)
 +{
-+	unsigned char *mac_addr = ndev->dev_addr;
-+	__be64 eui64;
-+	unsigned char *dst = (unsigned char *)&eui64;
-+
-+	dst[0] = mac_addr[0] ^ 2;
-+	dst[1] = mac_addr[1];
-+	dst[2] = mac_addr[2];
-+	dst[3] = 0xff;
-+	dst[4] = 0xfe;
-+	dst[5] = mac_addr[3];
-+	dst[6] = mac_addr[4];
-+	dst[7] = mac_addr[5];
-+
-+	return eui64;
-+}
-+
-+/* callback when rxe gets released */
-+static void release(struct rxe_dev *rxe)
-+{
-+	module_put(THIS_MODULE);
-+}
-+
-+static __be64 node_guid(struct rxe_dev *rxe)
-+{
-+	return rxe_mac_to_eui64(rxe->ndev);
-+}
-+
-+static __be64 port_guid(struct rxe_dev *rxe, unsigned int port_num)
-+{
-+	return rxe_mac_to_eui64(rxe->ndev);
-+}
-+
-+static struct device *dma_device(struct rxe_dev *rxe)
-+{
-+	struct net_device *ndev;
-+
-+	ndev = rxe->ndev;
-+
-+	if (ndev->priv_flags & IFF_802_1Q_VLAN)
-+		ndev = vlan_dev_real_dev(ndev);
-+
-+	return ndev->dev.parent;
-+}
-+
-+static int mcast_add(struct rxe_dev *rxe, union ib_gid *mgid)
-+{
-+	int err;
-+	unsigned char ll_addr[ETH_ALEN];
-+
-+	ipv6_eth_mc_map((struct in6_addr *)mgid->raw, ll_addr);
-+	err = dev_mc_add(rxe->ndev, ll_addr);
-+
-+	return err;
-+}
-+
-+static int mcast_delete(struct rxe_dev *rxe, union ib_gid *mgid)
-+{
-+	int err;
-+	unsigned char ll_addr[ETH_ALEN];
-+
-+	ipv6_eth_mc_map((struct in6_addr *)mgid->raw, ll_addr);
-+	err = dev_mc_del(rxe->ndev, ll_addr);
-+
-+	return err;
-+}
-+
-+static inline int queue_deactivated(struct sk_buff *skb)
-+{
-+	const struct net_device_ops *ops = skb->dev->netdev_ops;
-+	u16 queue_index = 0;
-+	struct netdev_queue *txq;
-+
-+	if (ops->ndo_select_queue)
-+		queue_index = ops->ndo_select_queue(skb->dev, skb);
-+	else if (skb->dev->real_num_tx_queues > 1)
-+		queue_index = skb_tx_hash(skb->dev, skb);
-+
-+	txq = netdev_get_tx_queue(skb->dev, queue_index);
-+	return txq->qdisc->state & 2;
-+}
-+
-+static int send_finish(struct sk_buff *skb)
-+{
-+	if (!rxe_xmit_shortcut)
-+		return dev_queue_xmit(skb);
-+	else
-+		return skb->dev->netdev_ops->ndo_start_xmit(skb, skb->dev);
-+}
-+
-+static int send(struct rxe_dev *rxe, struct sk_buff *skb)
-+{
-+	if (queue_deactivated(skb))
-+		return RXE_QUEUE_STOPPED;
-+
-+	if (netif_queue_stopped(skb->dev))
-+		return RXE_QUEUE_STOPPED;
-+
-+	return NF_HOOK(NFPROTO_RXE, NF_RXE_OUT, skb, rxe->ndev, NULL,
-+		send_finish);
-+}
-+
-+static int loopback_finish(struct sk_buff *skb)
-+{
++	int must_sched;
 +	struct rxe_pkt_info *pkt = SKB_TO_PKT(skb);
-+	struct packet_type *ptype = NULL;
-+	struct net_device *orig_dev = pkt->rxe->ndev;
 +
-+	return rxe_net_rcv(skb, pkt->rxe->ndev, ptype, orig_dev);
++	atomic_inc(&qp->req_skb_in);
++	atomic_inc(&rxe->req_skb_in);
++
++	skb_queue_tail(&qp->req_pkts, skb);
++
++	must_sched = (pkt->opcode == IB_OPCODE_RC_RDMA_READ_REQUEST)
++		    || (skb_queue_len(&qp->req_pkts) > 1);
++
++	rxe_run_task(&qp->resp.task, must_sched);
 +}
 +
-+static int loopback(struct rxe_dev *rxe, struct sk_buff *skb)
++static inline enum resp_states get_req(struct rxe_qp *qp,
++				       struct rxe_pkt_info **pkt_p)
 +{
-+	return NF_HOOK(NFPROTO_RXE, NF_RXE_OUT, skb, rxe->ndev, NULL,
-+		loopback_finish);
-+}
-+
-+static inline int addr_same(struct rxe_dev *rxe, struct rxe_av *av)
-+{
-+	int port_num = 1;
-+	return rxe->port[port_num - 1].guid_tbl[0]
-+			== av->attr.grh.dgid.global.interface_id;
-+}
-+
-+static struct sk_buff *init_packet(struct rxe_dev *rxe, struct rxe_av *av,
-+				   int paylen)
-+{
++	struct rxe_dev *rxe = to_rdev(qp->ibqp.device);
 +	struct sk_buff *skb;
-+	struct rxe_pkt_info *pkt;
 +
++	if (qp->resp.state == QP_STATE_ERROR) {
++		skb = skb_dequeue(&qp->req_pkts);
++		if (skb) {
++			/* drain request packet queue */
++			rxe_drop_ref(qp);
++			kfree_skb(skb);
++			atomic_dec(&qp->req_skb_in);
++			atomic_dec(&rxe->req_skb_in);
++			return RESPST_GET_REQ;
++		} else {
++			/* go drain recv wr queue */
++			return RESPST_CHK_RESOURCE;
++		}
++	}
 +
-+	skb = alloc_skb(paylen + RXE_GRH_BYTES + LL_RESERVED_SPACE(rxe->ndev),
-+			GFP_ATOMIC);
++	skb = skb_peek(&qp->req_pkts);
++	if (!skb)
++		return RESPST_EXIT;
++
++	*pkt_p = SKB_TO_PKT(skb);
++
++	return (qp->resp.res) ? RESPST_READ_REPLY : RESPST_CHK_PSN;
++}
++
++static enum resp_states check_psn(struct rxe_qp *qp,
++				  struct rxe_pkt_info *pkt)
++{
++	int diff = psn_compare(pkt->psn, qp->resp.psn);
++
++	switch (qp_type(qp)) {
++	case IB_QPT_RC:
++		if (diff > 0) {
++			if (qp->resp.sent_psn_nak) {
++				return RESPST_CLEANUP;
++			} else {
++				qp->resp.sent_psn_nak = 1;
++				return RESPST_ERR_PSN_OUT_OF_SEQ;
++			}
++		} else if (diff < 0) {
++			return RESPST_DUPLICATE_REQUEST;
++		} else {
++			if (qp->resp.sent_psn_nak)
++				qp->resp.sent_psn_nak = 0;
++		}
++		break;
++
++	case IB_QPT_UC:
++		if (qp->resp.drop_msg || diff != 0) {
++			if (pkt->mask & RXE_START_MASK) {
++				qp->resp.drop_msg = 0;
++				return RESPST_CHK_OP_SEQ;
++			} else {
++				qp->resp.drop_msg = 1;
++				return RESPST_CLEANUP;
++			}
++		}
++		break;
++	default:
++		break;
++	}
++
++	return RESPST_CHK_OP_SEQ;
++}
++
++static enum resp_states check_op_seq(struct rxe_qp *qp,
++				     struct rxe_pkt_info *pkt)
++{
++	switch (qp_type(qp)) {
++	case IB_QPT_RC:
++		switch (qp->resp.opcode) {
++		case IB_OPCODE_RC_SEND_FIRST:
++		case IB_OPCODE_RC_SEND_MIDDLE:
++			switch (pkt->opcode) {
++			case IB_OPCODE_RC_SEND_MIDDLE:
++			case IB_OPCODE_RC_SEND_LAST:
++			case IB_OPCODE_RC_SEND_LAST_WITH_IMMEDIATE:
++			case IB_OPCODE_RC_SEND_LAST_INV:
++				return RESPST_CHK_OP_VALID;
++			default:
++				return RESPST_ERR_MISSING_OPCODE_LAST_C;
++			}
++
++		case IB_OPCODE_RC_RDMA_WRITE_FIRST:
++		case IB_OPCODE_RC_RDMA_WRITE_MIDDLE:
++			switch (pkt->opcode) {
++			case IB_OPCODE_RC_RDMA_WRITE_MIDDLE:
++			case IB_OPCODE_RC_RDMA_WRITE_LAST:
++			case IB_OPCODE_RC_RDMA_WRITE_LAST_WITH_IMMEDIATE:
++				return RESPST_CHK_OP_VALID;
++			default:
++				return RESPST_ERR_MISSING_OPCODE_LAST_C;
++			}
++
++		default:
++			switch (pkt->opcode) {
++			case IB_OPCODE_RC_SEND_MIDDLE:
++			case IB_OPCODE_RC_SEND_LAST:
++			case IB_OPCODE_RC_SEND_LAST_WITH_IMMEDIATE:
++			case IB_OPCODE_RC_SEND_LAST_INV:
++			case IB_OPCODE_RC_RDMA_WRITE_MIDDLE:
++			case IB_OPCODE_RC_RDMA_WRITE_LAST:
++			case IB_OPCODE_RC_RDMA_WRITE_LAST_WITH_IMMEDIATE:
++				return RESPST_ERR_MISSING_OPCODE_FIRST;
++			default:
++				return RESPST_CHK_OP_VALID;
++			}
++		}
++		break;
++
++	case IB_QPT_UC:
++		switch (qp->resp.opcode) {
++		case IB_OPCODE_UC_SEND_FIRST:
++		case IB_OPCODE_UC_SEND_MIDDLE:
++			switch (pkt->opcode) {
++			case IB_OPCODE_UC_SEND_MIDDLE:
++			case IB_OPCODE_UC_SEND_LAST:
++			case IB_OPCODE_UC_SEND_LAST_WITH_IMMEDIATE:
++				return RESPST_CHK_OP_VALID;
++			default:
++				return RESPST_ERR_MISSING_OPCODE_LAST_D1E;
++			}
++
++		case IB_OPCODE_UC_RDMA_WRITE_FIRST:
++		case IB_OPCODE_UC_RDMA_WRITE_MIDDLE:
++			switch (pkt->opcode) {
++			case IB_OPCODE_UC_RDMA_WRITE_MIDDLE:
++			case IB_OPCODE_UC_RDMA_WRITE_LAST:
++			case IB_OPCODE_UC_RDMA_WRITE_LAST_WITH_IMMEDIATE:
++				return RESPST_CHK_OP_VALID;
++			default:
++				return RESPST_ERR_MISSING_OPCODE_LAST_D1E;
++			}
++
++		default:
++			switch (pkt->opcode) {
++			case IB_OPCODE_UC_SEND_MIDDLE:
++			case IB_OPCODE_UC_SEND_LAST:
++			case IB_OPCODE_UC_SEND_LAST_WITH_IMMEDIATE:
++			case IB_OPCODE_UC_RDMA_WRITE_MIDDLE:
++			case IB_OPCODE_UC_RDMA_WRITE_LAST:
++			case IB_OPCODE_UC_RDMA_WRITE_LAST_WITH_IMMEDIATE:
++				qp->resp.drop_msg = 1;
++				return RESPST_CLEANUP;
++			default:
++				return RESPST_CHK_OP_VALID;
++			}
++		}
++		break;
++
++	default:
++		return RESPST_CHK_OP_VALID;
++	}
++}
++
++static enum resp_states check_op_valid(struct rxe_qp *qp,
++				       struct rxe_pkt_info *pkt)
++{
++	switch (qp_type(qp)) {
++	case IB_QPT_RC:
++		if (((pkt->mask & RXE_READ_MASK) &&
++		     !(qp->attr.qp_access_flags & IB_ACCESS_REMOTE_READ)) ||
++		    ((pkt->mask & RXE_WRITE_MASK) &&
++		     !(qp->attr.qp_access_flags & IB_ACCESS_REMOTE_WRITE)) ||
++		    ((pkt->mask & RXE_ATOMIC_MASK) &&
++		     !(qp->attr.qp_access_flags & IB_ACCESS_REMOTE_ATOMIC))) {
++			return RESPST_ERR_UNSUPPORTED_OPCODE;
++		}
++
++		if (!pkt->mask)
++			return RESPST_ERR_UNSUPPORTED_OPCODE;
++		break;
++
++	case IB_QPT_UC:
++		if ((pkt->mask & RXE_WRITE_MASK) &&
++		    !(qp->attr.qp_access_flags & IB_ACCESS_REMOTE_WRITE)) {
++			qp->resp.drop_msg = 1;
++			return RESPST_CLEANUP;
++		}
++
++		if (!pkt->mask) {
++			qp->resp.drop_msg = 1;
++			return RESPST_CLEANUP;
++		}
++		break;
++
++	case IB_QPT_UD:
++	case IB_QPT_SMI:
++	case IB_QPT_GSI:
++		if (!pkt->mask)
++			return RESPST_CLEANUP;
++		break;
++
++	default:
++		WARN_ON(1);
++		break;
++	}
++
++	return RESPST_CHK_RESOURCE;
++}
++
++static enum resp_states get_srq_wqe(struct rxe_qp *qp)
++{
++	struct rxe_srq *srq = qp->srq;
++	struct rxe_queue *q = srq->rq.queue;
++	struct rxe_recv_wqe *wqe;
++	struct ib_event ev;
++
++	if (srq->error)
++		return RESPST_ERR_RNR;
++
++	spin_lock_bh(&srq->rq.consumer_lock);
++
++	wqe = queue_head(q);
++	if (!wqe) {
++		spin_unlock_bh(&srq->rq.consumer_lock);
++		return RESPST_ERR_RNR;
++	}
++
++	/* note kernel and user space recv wqes have same size */
++	memcpy(&qp->resp.srq_wqe, wqe, sizeof(qp->resp.srq_wqe));
++
++	qp->resp.wqe = &qp->resp.srq_wqe.wqe;
++	advance_consumer(q);
++
++	if (srq->limit && srq->ibsrq.event_handler &&
++	    (queue_count(q) < srq->limit)) {
++		srq->limit = 0;
++		goto event;
++	}
++
++	spin_unlock_bh(&srq->rq.consumer_lock);
++	return RESPST_CHK_LENGTH;
++
++event:
++	spin_unlock_bh(&srq->rq.consumer_lock);
++	ev.device = qp->ibqp.device;
++	ev.element.srq = qp->ibqp.srq;
++	ev.event = IB_EVENT_SRQ_LIMIT_REACHED;
++	srq->ibsrq.event_handler(&ev, srq->ibsrq.srq_context);
++	return RESPST_CHK_LENGTH;
++}
++
++static enum resp_states check_resource(struct rxe_qp *qp,
++				       struct rxe_pkt_info *pkt)
++{
++	struct rxe_srq *srq = qp->srq;
++
++	if (qp->resp.state == QP_STATE_ERROR) {
++		if (qp->resp.wqe) {
++			qp->resp.status = IB_WC_WR_FLUSH_ERR;
++			return RESPST_COMPLETE;
++		} else if (!srq) {
++			qp->resp.wqe = queue_head(qp->rq.queue);
++			if (qp->resp.wqe) {
++				qp->resp.status = IB_WC_WR_FLUSH_ERR;
++				return RESPST_COMPLETE;
++			} else
++				return RESPST_EXIT;
++		} else
++			return RESPST_EXIT;
++	}
++
++	if (pkt->mask & RXE_READ_OR_ATOMIC) {
++		/* it is the requesters job to not send
++		   too many read/atomic ops, we just
++		   recycle the responder resource queue */
++		if (likely(qp->attr.max_rd_atomic > 0))
++			return RESPST_CHK_LENGTH;
++		else
++			return RESPST_ERR_TOO_MANY_RDMA_ATM_REQ;
++	}
++
++	if (pkt->mask & RXE_RWR_MASK) {
++		if (srq) {
++			return get_srq_wqe(qp);
++		} else {
++			qp->resp.wqe = queue_head(qp->rq.queue);
++			return (qp->resp.wqe) ? RESPST_CHK_LENGTH
++					      : RESPST_ERR_RNR;
++		}
++	}
++
++	return RESPST_CHK_LENGTH;
++}
++
++static enum resp_states check_length(struct rxe_qp *qp,
++				     struct rxe_pkt_info *pkt)
++{
++	switch (qp_type(qp)) {
++	case IB_QPT_RC:
++		return RESPST_CHK_RKEY;
++
++	case IB_QPT_UC:
++		return RESPST_CHK_RKEY;
++
++	default:
++		return RESPST_CHK_RKEY;
++	}
++}
++
++static enum resp_states check_rkey(struct rxe_qp *qp,
++				   struct rxe_pkt_info *pkt)
++{
++	struct rxe_mem *mem;
++	u64 va;
++	u32 rkey;
++	u32 resid;
++	u32 pktlen;
++	int mtu = qp->mtu;
++	enum resp_states state;
++	int access;
++
++	if (pkt->mask & (RXE_READ_MASK | RXE_WRITE_MASK)) {
++		if (pkt->mask & RXE_RETH_MASK) {
++			qp->resp.va = reth_va(pkt);
++			qp->resp.rkey = reth_rkey(pkt);
++			qp->resp.resid = reth_len(pkt);
++		}
++		access = (pkt->mask & RXE_READ_MASK) ? IB_ACCESS_REMOTE_READ
++						     : IB_ACCESS_REMOTE_WRITE;
++	} else if (pkt->mask & RXE_ATOMIC_MASK) {
++		qp->resp.va = atmeth_va(pkt);
++		qp->resp.rkey = atmeth_rkey(pkt);
++		qp->resp.resid = sizeof(u64);
++		access = IB_ACCESS_REMOTE_ATOMIC;
++	} else {
++		return RESPST_EXECUTE;
++	}
++
++	va	= qp->resp.va;
++	rkey	= qp->resp.rkey;
++	resid	= qp->resp.resid;
++	pktlen	= payload_size(pkt);
++
++	mem = lookup_mem(qp->pd, access, rkey, lookup_remote);
++	if (!mem) {
++		state = RESPST_ERR_RKEY_VIOLATION;
++		goto err1;
++	}
++
++	if (mem_check_range(mem, va, resid)) {
++		state = RESPST_ERR_RKEY_VIOLATION;
++		goto err2;
++	}
++
++	if (pkt->mask & RXE_WRITE_MASK)	 {
++		if (resid > mtu) {
++			if (pktlen != mtu || bth_pad(pkt)) {
++				state = RESPST_ERR_LENGTH;
++				goto err2;
++			}
++
++			resid = mtu;
++		} else {
++			if ((pktlen != resid)) {
++				state = RESPST_ERR_LENGTH;
++				goto err2;
++			}
++			if ((bth_pad(pkt) != (0x3 & (-resid)))) {
++				/* This case may not be exactly that
++				 * but nothing else fits. */
++				state = RESPST_ERR_LENGTH;
++				goto err2;
++			}
++		}
++	}
++
++	WARN_ON(qp->resp.mr != NULL);
++
++	qp->resp.mr = mem;
++	return RESPST_EXECUTE;
++
++err2:
++	rxe_drop_ref(mem);
++err1:
++	return state;
++}
++
++static enum resp_states send_data_in(struct rxe_qp *qp, void *data_addr,
++				     int data_len)
++{
++	int err;
++	struct rxe_dev *rxe = to_rdev(qp->ibqp.device);
++
++	err = copy_data(rxe, qp->pd, IB_ACCESS_LOCAL_WRITE, &qp->resp.wqe->dma,
++			data_addr, data_len, direction_in, NULL);
++	if (unlikely(err))
++		return (err == -ENOSPC) ? RESPST_ERR_LENGTH
++					: RESPST_ERR_MALFORMED_WQE;
++
++	return RESPST_NONE;
++}
++
++static enum resp_states write_data_in(struct rxe_qp *qp,
++				      struct rxe_pkt_info *pkt)
++{
++	enum resp_states rc = RESPST_NONE;
++	int	err;
++	int data_len = payload_size(pkt);
++
++	err = rxe_mem_copy(qp->resp.mr, qp->resp.va, payload_addr(pkt),
++			   data_len, direction_in, NULL);
++	if (err) {
++		rc = RESPST_ERR_RKEY_VIOLATION;
++		goto out;
++	}
++
++	qp->resp.va += data_len;
++	qp->resp.resid -= data_len;
++
++out:
++	return rc;
++}
++
++/* Guarantee atomicity of atomic operations at the machine level. */
++static DEFINE_SPINLOCK(atomic_ops_lock);
++
++static enum resp_states process_atomic(struct rxe_qp *qp,
++				       struct rxe_pkt_info *pkt)
++{
++	u64 iova = atmeth_va(pkt);
++	u64 *vaddr;
++	enum resp_states ret;
++	struct rxe_mem *mr = qp->resp.mr;
++
++	if (mr->state != RXE_MEM_STATE_VALID) {
++		ret = RESPST_ERR_RKEY_VIOLATION;
++		goto out;
++	}
++
++	vaddr = iova_to_vaddr(mr, iova, sizeof(u64));
++
++	/* check vaddr is 8 bytes aligned. */
++	if (!vaddr || (uintptr_t)vaddr & 7) {
++		ret = RESPST_ERR_MISALIGNED_ATOMIC;
++		goto out;
++	}
++
++	spin_lock_bh(&atomic_ops_lock);
++
++	qp->resp.atomic_orig = *vaddr;
++
++	if (pkt->opcode == IB_OPCODE_RC_COMPARE_SWAP ||
++	    pkt->opcode == IB_OPCODE_RD_COMPARE_SWAP) {
++		if (*vaddr == atmeth_comp(pkt))
++			*vaddr = atmeth_swap_add(pkt);
++	} else {
++		*vaddr += atmeth_swap_add(pkt);
++	}
++
++	spin_unlock_bh(&atomic_ops_lock);
++
++	ret = RESPST_NONE;
++out:
++	return ret;
++}
++
++static struct sk_buff *prepare_ack_packet(struct rxe_qp *qp,
++					  struct rxe_pkt_info *pkt,
++					  int opcode,
++					  int payload,
++					  u32 psn,
++					  u8 syndrome)
++{
++	struct rxe_dev *rxe = to_rdev(qp->ibqp.device);
++	struct sk_buff *skb;
++	struct rxe_pkt_info *ack;
++	int paylen;
++	int pad;
++
++	/*
++	 * allocate packet
++	 */
++	pad = (-payload) & 0x3;
++	paylen = rxe_opcode[opcode].length + payload + pad + RXE_ICRC_SIZE;
++
++	skb = rxe->ifc_ops->init_packet(rxe, &qp->pri_av, paylen);
 +	if (!skb)
 +		return NULL;
 +
-+	skb_reserve(skb, LL_RESERVED_SPACE(rxe->ndev));
-+	skb_reset_network_header(skb);
++	atomic_inc(&qp->resp_skb_out);
++	atomic_inc(&rxe->resp_skb_out);
 +
-+	skb->dev	= rxe->ndev;
-+	skb->protocol	= htons(rxe_eth_proto_id);
++	ack = SKB_TO_PKT(skb);
++	ack->qp = qp;
++	ack->opcode = opcode;
++	ack->mask |= rxe_opcode[opcode].mask;
++	ack->offset = pkt->offset;
++	ack->paylen = paylen;
 +
-+	pkt		= SKB_TO_PKT(skb);
-+	pkt->rxe	= rxe;
-+	pkt->port_num	= 1;
-+	pkt->hdr	= skb_put(skb, RXE_GRH_BYTES + paylen);
-+	pkt->mask	= RXE_GRH_MASK;
++	/* fill in lrh/grh/bth using the request packet headers */
++	memcpy(ack->hdr, pkt->hdr, pkt->offset + RXE_BTH_BYTES);
 +
-+	dev_hard_header(skb, rxe->ndev, rxe_eth_proto_id,
-+			av->ll_addr, rxe->ndev->dev_addr, skb->len);
++	/* swap addresses in lrh */
++	if (ack->mask & RXE_LRH_MASK) {
++		__lrh_set_dlid(ack->hdr, __lrh_slid(pkt->hdr));
++		__lrh_set_slid(ack->hdr, __lrh_dlid(pkt->hdr));
++	}
 +
-+	if (addr_same(rxe, av))
-+		pkt->mask |= RXE_LOOPBACK_MASK;
++	/* swap addresses in grh */
++	if (ack->mask & RXE_GRH_MASK) {
++		grh_set_paylen(ack, paylen);
++		grh_set_dgid(ack, grh_sgid(pkt)->global.subnet_prefix,
++			grh_sgid(pkt)->global.interface_id);
++		grh_set_sgid(ack, grh_dgid(pkt)->global.subnet_prefix,
++			grh_dgid(pkt)->global.interface_id);
++	}
++
++	bth_set_opcode(ack, opcode);
++	bth_set_qpn(ack, qp->attr.dest_qp_num);
++	bth_set_pad(ack, pad);
++	bth_set_se(ack, 0);
++	bth_set_psn(ack, psn);
++	ack->psn = psn;
++
++	if (ack->mask & RXE_AETH_MASK) {
++		aeth_set_syn(ack, syndrome);
++		aeth_set_msn(ack, qp->resp.msn);
++	}
++
++	if (ack->mask & RXE_ATMACK_MASK)
++		atmack_set_orig(ack, qp->resp.atomic_orig);
 +
 +	return skb;
 +}
 +
-+static int init_av(struct rxe_dev *rxe, struct ib_ah_attr *attr,
-+		   struct rxe_av *av)
++/* RDMA read response. If res is not NULL, then we have a current RDMA request
++ * being processed or replayed. */
++static enum resp_states read_reply(struct rxe_qp *qp,
++				   struct rxe_pkt_info *req_pkt)
 +{
-+	struct in6_addr *in6 = (struct in6_addr *)attr->grh.dgid.raw;
++	struct rxe_dev *rxe = to_rdev(qp->ibqp.device);
++	struct rxe_pkt_info *pkt;
++	int mtu = qp->mtu;
++	enum resp_states state;
++	int payload;
++	struct sk_buff *skb;
++	int opcode;
++	int err;
++	struct resp_res *res = qp->resp.res;
++	unsigned char *buf;
 +
-+	/* grh required for rxe_net */
-+	if ((attr->ah_flags & IB_AH_GRH) == 0) {
-+		if (rxe_loopback_mad_grh_fix) {
-+			/* temporary fix so that we can handle mad's to self
-+			   without grh's included add grh pointing to self */
-+			attr->ah_flags |= IB_AH_GRH;
-+			attr->grh.dgid.global.subnet_prefix
-+				= rxe->port[0].subnet_prefix;
-+			attr->grh.dgid.global.interface_id
-+				= rxe->port[0].guid_tbl[0];
-+			av->attr = *attr;
++	if (!res) {
++		/* This is the first time we process that request. Get a
++		 * resource */
++		res = &qp->resp.resources[qp->resp.res_head];
++
++		free_rd_atomic_resource(qp, res);
++		rxe_advance_resp_resource(qp);
++
++		res->type		= RXE_READ_MASK;
++
++		res->read.va		= qp->resp.va;
++		res->read.va_org	= qp->resp.va;
++
++		res->first_psn		= req_pkt->psn;
++		res->last_psn		= req_pkt->psn +
++					  (reth_len(req_pkt) + mtu - 1)/mtu - 1;
++		res->cur_psn		= req_pkt->psn;
++
++		res->read.resid		= qp->resp.resid;
++		res->read.length	= qp->resp.resid;
++		res->read.rkey		= qp->resp.rkey;
++
++		/* note res inherits the reference to mr from qp */
++		res->read.mr		= qp->resp.mr;
++		qp->resp.mr		= NULL;
++
++		qp->resp.res		= res;
++		res->state		= rdatm_res_state_new;
++	}
++
++	if (res->state == rdatm_res_state_new) {
++		if (res->read.resid <= mtu)
++			opcode = IB_OPCODE_RC_RDMA_READ_RESPONSE_ONLY;
++		else
++			opcode = IB_OPCODE_RC_RDMA_READ_RESPONSE_FIRST;
++	} else {
++		if (res->read.resid > mtu)
++			opcode = IB_OPCODE_RC_RDMA_READ_RESPONSE_MIDDLE;
++		else
++			opcode = IB_OPCODE_RC_RDMA_READ_RESPONSE_LAST;
++	}
++
++	res->state = rdatm_res_state_next;
++
++	payload = min_t(int, res->read.resid, mtu);
++
++	skb = prepare_ack_packet(qp, req_pkt, opcode, payload,
++				 res->cur_psn, AETH_ACK_UNLIMITED);
++	if (!skb)
++		return RESPST_ERR_RNR;
++
++	pkt = SKB_TO_PKT(skb);
++
++	err = rxe_mem_copy(res->read.mr, res->read.va, payload_addr(pkt),
++			   payload, direction_out, NULL);
++	if (err)
++		pr_warn("rxe_mem_copy failed TODO ???\n");
++
++	res->read.va += payload;
++	res->read.resid -= payload;
++	res->cur_psn = (res->cur_psn + 1) & BTH_PSN_MASK;
++
++	buf = payload_addr(pkt) + payload;
++	while (payload & 0x3) {
++		*buf++ = 0;
++		payload++;
++	}
++
++	if (!rxe_crc_disable)
++		*buf = rxe_icrc_pkt(pkt);
++
++	arbiter_skb_queue(rxe, qp, skb);
++
++	if (res->read.resid > 0) {
++		state = RESPST_DONE;
++	} else {
++		qp->resp.res = NULL;
++		qp->resp.opcode = -1;
++		qp->resp.psn = res->cur_psn;
++		state = RESPST_CLEANUP;
++	}
++
++	return state;
++}
++
++/* Executes a new request. A retried request never reach that function (send
++ * and writes are discarded, and reads and atomics are retried elsewhere. */
++static enum resp_states execute(struct rxe_qp *qp, struct rxe_pkt_info *pkt)
++{
++	enum resp_states err;
++
++	if (pkt->mask & RXE_SEND_MASK) {
++		if (qp_type(qp) == IB_QPT_UD ||
++		    qp_type(qp) == IB_QPT_SMI ||
++		    qp_type(qp) == IB_QPT_GSI) {
++			/* Copy the GRH */
++			err = send_data_in(qp, pkt->hdr, RXE_GRH_BYTES);
++			if (err)
++				return err;
++		}
++
++		err = send_data_in(qp, payload_addr(pkt), payload_size(pkt));
++		if (err)
++			return err;
++	} else if (pkt->mask & RXE_WRITE_MASK) {
++		err = write_data_in(qp, pkt);
++		if (err)
++			return err;
++	} else if (pkt->mask & RXE_READ_MASK) {
++		/* For RDMA Read we can increment the msn now. See C9-148. */
++		qp->resp.msn++;
++		return RESPST_READ_REPLY;
++	} else if (pkt->mask & RXE_ATOMIC_MASK) {
++		err = process_atomic(qp, pkt);
++		if (err)
++			return err;
++	} else
++		/* Unreachable */
++		WARN_ON(1);
++
++	/* We successfully processed this new request. */
++	qp->resp.msn++;
++
++	/* next expected psn, read handles this separately */
++	qp->resp.psn = (pkt->psn + 1) & BTH_PSN_MASK;
++
++	qp->resp.opcode = pkt->opcode;
++	qp->resp.status = IB_WC_SUCCESS;
++
++	if (pkt->mask & RXE_COMP_MASK)
++		return RESPST_COMPLETE;
++	else if (qp_type(qp) == IB_QPT_RC)
++		return RESPST_ACKNOWLEDGE;
++	else
++		return RESPST_CLEANUP;
++}
++
++static enum resp_states do_complete(struct rxe_qp *qp,
++				    struct rxe_pkt_info *pkt)
++{
++	struct rxe_cqe cqe;
++	struct ib_wc *wc = &cqe.ibwc;
++	struct ib_uverbs_wc *uwc = &cqe.uibwc;
++	struct rxe_recv_wqe *wqe = qp->resp.wqe;
++
++	if (unlikely(!wqe))
++		return RESPST_CLEANUP;
++
++	memset(&cqe, 0, sizeof(cqe));
++
++	wc->wr_id		= wqe->wr_id;
++	wc->status		= qp->resp.status;
++
++	/* fields after status are not required for errors */
++	if (wc->status == IB_WC_SUCCESS) {
++		wc->opcode = (pkt->mask & RXE_IMMDT_MASK &&
++				pkt->mask & RXE_READ_MASK) ?
++					IB_WC_RECV_RDMA_WITH_IMM : IB_WC_RECV;
++		wc->vendor_err = 0;
++		wc->byte_len = wqe->dma.length - wqe->dma.resid;
++
++		/* fields after byte_len are offset
++		   between kernel and user space */
++		if (qp->rcq->is_user) {
++			uwc->wc_flags		= IB_WC_GRH;
++
++			if (pkt->mask & RXE_IMMDT_MASK) {
++				uwc->wc_flags |= IB_WC_WITH_IMM;
++				uwc->ex.imm_data =
++					(__u32 __force)immdt_imm(pkt);
++			}
++
++			if (pkt->mask & RXE_IETH_MASK) {
++				uwc->wc_flags |= IB_WC_WITH_INVALIDATE;
++				uwc->ex.invalidate_rkey = ieth_rkey(pkt);
++			}
++
++			uwc->qp_num		= qp->ibqp.qp_num;
++
++			if (pkt->mask & RXE_DETH_MASK)
++				uwc->src_qp = deth_sqp(pkt);
++
++			uwc->port_num		= qp->attr.port_num;
 +		} else {
-+			pr_info("rxe_net: attempting to init av without grh\n");
-+			return -EINVAL;
++			wc->wc_flags		= IB_WC_GRH;
++
++			if (pkt->mask & RXE_IMMDT_MASK) {
++				wc->wc_flags |= IB_WC_WITH_IMM;
++				wc->ex.imm_data = immdt_imm(pkt);
++			}
++
++			if (pkt->mask & RXE_IETH_MASK) {
++				wc->wc_flags |= IB_WC_WITH_INVALIDATE;
++				wc->ex.invalidate_rkey = ieth_rkey(pkt);
++			}
++
++			wc->qp			= &qp->ibqp;
++
++			if (pkt->mask & RXE_DETH_MASK)
++				wc->src_qp = deth_sqp(pkt);
++
++			wc->port_num		= qp->attr.port_num;
 +		}
 +	}
 +
-+	if (rdma_link_local_addr(in6))
-+		rdma_get_ll_mac(in6, av->ll_addr);
-+	else if (rdma_is_multicast_addr(in6))
-+		rdma_get_mcast_mac(in6, av->ll_addr);
-+	else {
-+		int i;
-+		char addr[64];
++	/* have copy for srq and reference for !srq */
++	if (!qp->srq)
++		advance_consumer(qp->rq.queue);
 +
-+		for (i = 0; i < 16; i++)
-+			sprintf(addr+2*i, "%02x", attr->grh.dgid.raw[i]);
++	qp->resp.wqe = NULL;
 +
-+		pr_info("rxe_net: non local subnet address not supported %s\n",
-+			addr);
-+		return -EINVAL;
-+	}
++	if (rxe_cq_post(qp->rcq, &cqe, pkt ? bth_se(pkt) : 1))
++		return RESPST_ERR_CQ_OVERFLOW;
 +
-+	return 0;
++	if (qp->resp.state == QP_STATE_ERROR)
++		return RESPST_CHK_RESOURCE;
++
++	if (!pkt)
++		return RESPST_DONE;
++	else if (qp_type(qp) == IB_QPT_RC)
++		return RESPST_ACKNOWLEDGE;
++	else
++		return RESPST_CLEANUP;
 +}
 +
-+/*
-+ * this is required by rxe_cfg to match rxe devices in
-+ * /sys/class/infiniband up with their underlying ethernet devices
-+ */
-+static char *parent_name(struct rxe_dev *rxe, unsigned int port_num)
++static int send_ack(struct rxe_qp *qp, struct rxe_pkt_info *pkt,
++		    u8 syndrome, u32 psn)
 +{
-+	return rxe->ndev->name;
-+}
++	int err = 0;
++	struct sk_buff *skb;
++	struct rxe_dev *rxe = to_rdev(qp->ibqp.device);
++	struct rxe_pkt_info *ack;
++	u32 *buf;
 +
-+static enum rdma_link_layer link_layer(struct rxe_dev *rxe,
-+				       unsigned int port_num)
-+{
-+	return IB_LINK_LAYER_ETHERNET;
-+}
-+
-+static struct rxe_ifc_ops ifc_ops = {
-+	.release	= release,
-+	.node_guid	= node_guid,
-+	.port_guid	= port_guid,
-+	.dma_device	= dma_device,
-+	.mcast_add	= mcast_add,
-+	.mcast_delete	= mcast_delete,
-+	.send		= send,
-+	.loopback	= loopback,
-+	.init_packet	= init_packet,
-+	.init_av	= init_av,
-+	.parent_name	= parent_name,
-+	.link_layer	= link_layer,
-+};
-+
-+/* Caller must hold net_info_lock */
-+void rxe_net_add(struct net_device *ndev)
-+{
-+	int err;
-+	struct rxe_dev *rxe;
-+	unsigned port_num;
-+
-+	__module_get(THIS_MODULE);
-+
-+	rxe = (struct rxe_dev *)ib_alloc_device(sizeof(*rxe));
-+	if (!rxe) {
++	skb = prepare_ack_packet(qp, pkt, IB_OPCODE_RC_ACKNOWLEDGE,
++				 0, psn, syndrome);
++	if (skb == NULL) {
 +		err = -ENOMEM;
 +		goto err1;
 +	}
 +
-+	/* for now we always assign port = 1 */
-+	port_num = 1;
++	/* CRC */
++	ack = SKB_TO_PKT(skb);
++	buf = payload_addr(ack);
 +
-+	rxe->ifc_ops = &ifc_ops;
++	if (!rxe_crc_disable)
++		*buf = rxe_icrc_pkt(ack);
 +
-+	rxe->ndev = ndev;
++	arbiter_skb_queue(rxe, qp, skb);
 +
-+	err = rxe_add(rxe, ndev->mtu);
-+	if (err)
-+		goto err2;
-+
-+	pr_info("rxe_net: added %s to %s\n",
-+		 rxe->ib_dev.name, ndev->name);
-+
-+	net_info[ndev->ifindex].rxe = rxe;
-+	net_info[ndev->ifindex].port = port_num;
-+	net_info[ndev->ifindex].ndev = ndev;
-+	return;
-+
-+err2:
-+	ib_dealloc_device(&rxe->ib_dev);
 +err1:
-+	module_put(THIS_MODULE);
-+
-+	return;
-+}
-+
-+/* Caller must hold net_info_lock */
-+void rxe_net_up(struct net_device *ndev)
-+{
-+	struct rxe_dev *rxe;
-+	struct rxe_port *port;
-+	u8 port_num;
-+
-+	if (ndev->ifindex >= RXE_MAX_IF_INDEX)
-+		goto out;
-+
-+	net_info[ndev->ifindex].status = IB_PORT_ACTIVE;
-+
-+	rxe = net_to_rxe(ndev);
-+	if (!rxe)
-+		goto out;
-+
-+	port_num = net_to_port(ndev);
-+	port = &rxe->port[port_num-1];
-+	port->attr.state = IB_PORT_ACTIVE;
-+	port->attr.phys_state = IB_PHYS_STATE_LINK_UP;
-+
-+	pr_info("rxe_net: set %s active for %s\n",
-+		rxe->ib_dev.name, ndev->name);
-+out:
-+	return;
-+}
-+
-+/* Caller must hold net_info_lock */
-+void rxe_net_down(struct net_device *ndev)
-+{
-+	struct rxe_dev *rxe;
-+	struct rxe_port *port;
-+	u8 port_num;
-+
-+	if (ndev->ifindex >= RXE_MAX_IF_INDEX)
-+		goto out;
-+
-+	net_info[ndev->ifindex].status = IB_PORT_DOWN;
-+
-+	rxe = net_to_rxe(ndev);
-+	if (!rxe)
-+		goto out;
-+
-+	port_num = net_to_port(ndev);
-+	port = &rxe->port[port_num-1];
-+	port->attr.state = IB_PORT_DOWN;
-+	port->attr.phys_state = 3;
-+
-+	pr_info("rxe_net: set %s down for %s\n",
-+		rxe->ib_dev.name, ndev->name);
-+out:
-+	return;
-+}
-+
-+static int can_support_rxe(struct net_device *ndev)
-+{
-+	int rc = 0;
-+
-+	if (ndev->ifindex >= RXE_MAX_IF_INDEX) {
-+		pr_debug("%s index %d: too large for rxe ndev table\n",
-+			 ndev->name, ndev->ifindex);
-+		goto out;
-+	}
-+
-+	/* Let's says we support all ethX devices */
-+	if (strncmp(ndev->name, "eth", 3) == 0)
-+		rc = 1;
-+
-+out:
-+	return rc;
-+}
-+
-+static int rxe_notify(struct notifier_block *not_blk,
-+		      unsigned long event,
-+		      void *arg)
-+{
-+	struct net_device *ndev = arg;
-+	struct rxe_dev *rxe;
-+
-+	if (!can_support_rxe(ndev))
-+		goto out;
-+
-+	spin_lock_bh(&net_info_lock);
-+	switch (event) {
-+	case NETDEV_REGISTER:
-+		/* Keep a record of this NIC. */
-+		net_info[ndev->ifindex].status = IB_PORT_DOWN;
-+		net_info[ndev->ifindex].rxe = NULL;
-+		net_info[ndev->ifindex].port = 1;
-+		net_info[ndev->ifindex].ndev = ndev;
-+		break;
-+
-+	case NETDEV_UNREGISTER:
-+		if (net_info[ndev->ifindex].rxe) {
-+			rxe = net_info[ndev->ifindex].rxe;
-+			net_info[ndev->ifindex].rxe = NULL;
-+			spin_unlock_bh(&net_info_lock);
-+			rxe_remove(rxe);
-+			spin_lock_bh(&net_info_lock);
-+		}
-+		net_info[ndev->ifindex].status = 0;
-+		net_info[ndev->ifindex].port = 0;
-+		net_info[ndev->ifindex].ndev = NULL;
-+		break;
-+
-+	case NETDEV_UP:
-+		rxe_net_up(ndev);
-+		break;
-+
-+	case NETDEV_DOWN:
-+		rxe_net_down(ndev);
-+		break;
-+
-+	case NETDEV_CHANGEMTU:
-+		rxe = net_to_rxe(ndev);
-+		if (rxe) {
-+			pr_info("rxe_net: %s changed mtu to %d\n",
-+				ndev->name, ndev->mtu);
-+			rxe_set_mtu(rxe, ndev->mtu, net_to_port(ndev));
-+		}
-+		break;
-+
-+	case NETDEV_REBOOT:
-+	case NETDEV_CHANGE:
-+	case NETDEV_GOING_DOWN:
-+	case NETDEV_CHANGEADDR:
-+	case NETDEV_CHANGENAME:
-+	case NETDEV_FEAT_CHANGE:
-+	default:
-+		pr_info("rxe_net: ignoring netdev event = %ld for %s\n",
-+			event, ndev->name);
-+		break;
-+	}
-+	spin_unlock_bh(&net_info_lock);
-+
-+out:
-+	return NOTIFY_OK;
-+}
-+
-+static int rxe_net_rcv(struct sk_buff *skb,
-+		       struct net_device *ndev,
-+		       struct packet_type *ptype,
-+		       struct net_device *orig_dev)
-+{
-+	struct rxe_dev *rxe = net_to_rxe(ndev);
-+	struct rxe_pkt_info *pkt = SKB_TO_PKT(skb);
-+	int rc = 0;
-+
-+	if (!rxe)
-+		goto drop;
-+
-+	/* TODO: We can receive packets in fragments. For now we
-+	 * linearize and it's costly because we may copy a lot of
-+	 * data. We should handle that case better. */
-+	if (skb_linearize(skb))
-+		goto drop;
-+
-+#if 0
-+	/* Error injector */
-+	{
-+		static int x = 8;
-+		static int counter;
-+		counter++;
-+
-+		if (counter == x) {
-+			x = 13-x; /* 8 or 5 */
-+			counter = 0;
-+			pr_debug("dropping one packet\n");
-+			goto drop;
-+		}
-+	}
-+#endif
-+
-+	skb = skb_share_check(skb, GFP_ATOMIC);
-+	if (!skb) {
-+		/* still return null */
-+		goto out;
-+	}
-+
-+	/* set required fields in pkt */
-+	pkt->rxe = rxe;
-+	pkt->port_num = net_to_port(ndev);
-+	pkt->hdr = skb_network_header(skb);
-+	pkt->mask = RXE_GRH_MASK;
-+
-+	rc = NF_HOOK(NFPROTO_RXE, NF_RXE_IN, skb, ndev, NULL, rxe_rcv);
-+out:
-+	return rc;
-+
-+drop:
-+	kfree_skb(skb);
-+	return 0;
-+}
-+
-+static struct packet_type rxe_packet_type = {
-+	.func = rxe_net_rcv,
-+};
-+
-+static struct notifier_block rxe_net_notifier = {
-+	.notifier_call = rxe_notify,
-+};
-+
-+static int __init rxe_net_init(void)
-+{
-+	int err;
-+
-+	spin_lock_init(&net_info_lock);
-+
-+	if (rxe_eth_proto_id != ETH_P_RXE)
-+		pr_info("rxe_net: protoid set to 0x%x\n",
-+			rxe_eth_proto_id);
-+
-+	rxe_packet_type.type = cpu_to_be16(rxe_eth_proto_id);
-+	dev_add_pack(&rxe_packet_type);
-+
-+	err = register_netdevice_notifier(&rxe_net_notifier);
-+
-+	pr_info("rxe_net: loaded\n");
-+
 +	return err;
 +}
 +
-+static void __exit rxe_net_exit(void)
++static int send_atomic_ack(struct rxe_qp *qp, struct rxe_pkt_info *pkt,
++			   u8 syndrome)
 +{
-+	unregister_netdevice_notifier(&rxe_net_notifier);
-+	dev_remove_pack(&rxe_packet_type);
++	int rc = 0;
++	struct sk_buff *skb;
++	struct sk_buff *skb_copy;
++	struct rxe_dev *rxe = to_rdev(qp->ibqp.device);
++	struct rxe_pkt_info *ack;
++	struct resp_res *res;
++	u32 *buf;
 +
-+	pr_info("rxe_net: unloaded\n");
++	skb = prepare_ack_packet(qp, pkt, IB_OPCODE_RC_ATOMIC_ACKNOWLEDGE,
++				 0, pkt->psn, syndrome);
++	if (skb == NULL) {
++		rc = -ENOMEM;
++		goto out;
++	}
 +
-+	return;
++	ack = SKB_TO_PKT(skb);
++	buf = payload_addr(ack);
++
++	if (!rxe_crc_disable)
++		*buf = rxe_icrc_pkt(ack);
++
++	res = &qp->resp.resources[qp->resp.res_head];
++	free_rd_atomic_resource(qp, res);
++	rxe_advance_resp_resource(qp);
++
++	res->type = RXE_ATOMIC_MASK;
++	res->atomic.skb = skb;
++	res->first_psn = qp->resp.psn;
++	res->last_psn = qp->resp.psn;
++	res->cur_psn = qp->resp.psn;
++
++	skb_copy = skb_clone(skb, GFP_ATOMIC);
++	if (skb_copy) {
++		rxe_add_ref(qp); /* for the new SKB */
++		atomic_inc(&qp->resp_skb_out);
++		atomic_inc(&rxe->resp_skb_out);
++	} else {
++		pr_warn("Could not clone atomic response\n");
++	}
++
++	arbiter_skb_queue(rxe, qp, skb_copy);
++
++out:
++	return rc;
 +}
 +
-+module_init(rxe_net_init);
-+module_exit(rxe_net_exit);
++static enum resp_states acknowledge(struct rxe_qp *qp,
++				    struct rxe_pkt_info *pkt)
++{
++	if (qp_type(qp) != IB_QPT_RC)
++		return RESPST_CLEANUP;
++
++	if (qp->resp.aeth_syndrome != AETH_ACK_UNLIMITED)
++		send_ack(qp, pkt, qp->resp.aeth_syndrome, pkt->psn);
++	else if (pkt->mask & RXE_ATOMIC_MASK)
++		send_atomic_ack(qp, pkt, AETH_ACK_UNLIMITED);
++	else if (bth_ack(pkt))
++		send_ack(qp, pkt, AETH_ACK_UNLIMITED, pkt->psn);
++
++	return RESPST_CLEANUP;
++}
++
++static enum resp_states cleanup(struct rxe_qp *qp,
++				struct rxe_pkt_info *pkt)
++{
++	struct sk_buff *skb;
++	struct rxe_dev *rxe = to_rdev(qp->ibqp.device);
++
++	if (pkt) {
++		skb = skb_dequeue(&qp->req_pkts);
++		rxe_drop_ref(qp);
++		kfree_skb(skb);
++		atomic_dec(&qp->req_skb_in);
++		atomic_dec(&rxe->req_skb_in);
++	}
++
++	if (qp->resp.mr) {
++		rxe_drop_ref(qp->resp.mr);
++		qp->resp.mr = NULL;
++	}
++
++	return RESPST_DONE;
++}
++
++static struct resp_res *find_resource(struct rxe_qp *qp, u32 psn)
++{
++	int i;
++
++	for (i = 0; i < qp->attr.max_rd_atomic; i++) {
++		struct resp_res *res = &qp->resp.resources[i];
++		if (res->type == 0)
++			continue;
++
++		if (psn_compare(psn, res->first_psn) >= 0 &&
++		    psn_compare(psn, res->last_psn) <= 0) {
++			return res;
++		}
++	}
++
++	return NULL;
++}
++
++static enum resp_states duplicate_request(struct rxe_qp *qp,
++					  struct rxe_pkt_info *pkt)
++{
++	enum resp_states rc;
++	struct rxe_dev *rxe = to_rdev(qp->ibqp.device);
++
++	if (pkt->mask & RXE_SEND_MASK ||
++	    pkt->mask & RXE_WRITE_MASK) {
++		/* SEND. Ack again and cleanup. C9-105. */
++		if (bth_ack(pkt))
++			send_ack(qp, pkt, AETH_ACK_UNLIMITED, qp->resp.psn - 1);
++		rc = RESPST_CLEANUP;
++		goto out;
++	} else if (pkt->mask & RXE_READ_MASK) {
++		struct resp_res *res;
++
++		res = find_resource(qp, pkt->psn);
++		if (!res) {
++			/* Ressource not found. Class D error.
++			   Drop the request. */
++			rc = RESPST_CLEANUP;
++			goto out;
++		} else {
++			/* Ensure this new request is the same as the previous
++			 * one or a subset of it. */
++			u64 iova = reth_va(pkt);
++			u32 resid = reth_len(pkt);
++
++			if (iova < res->read.va_org ||
++			    resid > res->read.length ||
++			    (iova + resid) > (res->read.va_org +
++					      res->read.length)) {
++				rc = RESPST_CLEANUP;
++				goto out;
++			}
++
++			if (reth_rkey(pkt) != res->read.rkey) {
++				rc = RESPST_CLEANUP;
++				goto out;
++			}
++
++			res->cur_psn = pkt->psn;
++			res->state = (pkt->psn == res->first_psn) ?
++					rdatm_res_state_new :
++					rdatm_res_state_replay;
++
++			/* Reset the resource, except length. */
++			res->read.va_org = iova;
++			res->read.va = iova;
++			res->read.resid = resid;
++
++			/* Replay the RDMA read reply. */
++			qp->resp.res = res;
++			rc = RESPST_READ_REPLY;
++			goto out;
++		}
++	} else {
++		struct resp_res *res;
++
++		WARN_ON((pkt->mask & RXE_ATOMIC_MASK) == 0);
++
++		/* Find the operation in our list of responder resources. */
++		res = find_resource(qp, pkt->psn);
++		if (res) {
++			struct sk_buff *skb_copy;
++
++			skb_copy = skb_clone(res->atomic.skb, GFP_ATOMIC);
++			if (skb_copy) {
++				rxe_add_ref(qp); /* for the new SKB */
++				atomic_inc(&qp->resp_skb_out);
++				atomic_inc(&rxe->resp_skb_out);
++			} else {
++				pr_warn("Couldn't clone atomic resp\n");
++				rc = RESPST_CLEANUP;
++				goto out;
++			}
++			bth_set_psn(SKB_TO_PKT(skb_copy),
++				    qp->resp.psn - 1);
++			/* Resend the result. */
++			arbiter_skb_queue(to_rdev(qp->ibqp.device), qp,
++					  skb_copy);
++		}
++
++		/* Ressource not found. Class D error. Drop the request. */
++		rc = RESPST_CLEANUP;
++		goto out;
++	}
++out:
++	return rc;
++}
++
++/* Process a class A or C. Both are treated the same in this implementation. */
++static void do_class_ac_error(struct rxe_qp *qp, u8 syndrome,
++			      enum ib_wc_status status)
++{
++	qp->resp.aeth_syndrome	= syndrome;
++	qp->resp.status		= status;
++
++	/* indicate that we should go through the ERROR state */
++	qp->resp.goto_error	= 1;
++}
++
++static enum resp_states do_class_d1e_error(struct rxe_qp *qp)
++{
++	/* UC */
++	if (qp->srq) {
++		/* Class E */
++		qp->resp.drop_msg = 1;
++		if (qp->resp.wqe) {
++			qp->resp.status = IB_WC_REM_INV_REQ_ERR;
++			return RESPST_COMPLETE;
++		} else {
++			return RESPST_CLEANUP;
++		}
++	} else {
++		/* Class D1. This packet may be the start of a
++		   new message and could be valid. The previous
++		   message is invalid and ignored. reset the
++		   recv wr to its original state */
++		if (qp->resp.wqe) {
++			qp->resp.wqe->dma.resid = qp->resp.wqe->dma.length;
++			qp->resp.wqe->dma.cur_sge = 0;
++			qp->resp.wqe->dma.sge_offset = 0;
++			qp->resp.opcode = -1;
++		}
++
++		if (qp->resp.mr) {
++			rxe_drop_ref(qp->resp.mr);
++			qp->resp.mr = NULL;
++		}
++
++		return RESPST_CHK_OP_SEQ;
++	}
++}
++
++int rxe_responder(void *arg)
++{
++	struct rxe_qp *qp = (struct rxe_qp *)arg;
++	struct rxe_dev *rxe = to_rdev(qp->ibqp.device);
++	enum resp_states state;
++	struct rxe_pkt_info *pkt = NULL;
++	int ret = 0;
++
++	qp->resp.aeth_syndrome = AETH_ACK_UNLIMITED;
++
++	if (!qp->valid) {
++		ret = -EINVAL;
++		goto done;
++	}
++
++	switch (qp->resp.state) {
++	case QP_STATE_RESET:
++		state = RESPST_RESET;
++		break;
++
++	default:
++		state = RESPST_GET_REQ;
++		break;
++	}
++
++	while (1) {
++		pr_debug("state = %s\n", resp_state_name[state]);
++		switch (state) {
++		case RESPST_GET_REQ:
++			state = get_req(qp, &pkt);
++			break;
++		case RESPST_CHK_PSN:
++			state = check_psn(qp, pkt);
++			break;
++		case RESPST_CHK_OP_SEQ:
++			state = check_op_seq(qp, pkt);
++			break;
++		case RESPST_CHK_OP_VALID:
++			state = check_op_valid(qp, pkt);
++			break;
++		case RESPST_CHK_RESOURCE:
++			state = check_resource(qp, pkt);
++			break;
++		case RESPST_CHK_LENGTH:
++			state = check_length(qp, pkt);
++			break;
++		case RESPST_CHK_RKEY:
++			state = check_rkey(qp, pkt);
++			break;
++		case RESPST_EXECUTE:
++			state = execute(qp, pkt);
++			break;
++		case RESPST_COMPLETE:
++			state = do_complete(qp, pkt);
++			break;
++		case RESPST_READ_REPLY:
++			state = read_reply(qp, pkt);
++			break;
++		case RESPST_ACKNOWLEDGE:
++			state = acknowledge(qp, pkt);
++			break;
++		case RESPST_CLEANUP:
++			state = cleanup(qp, pkt);
++			break;
++		case RESPST_DUPLICATE_REQUEST:
++			state = duplicate_request(qp, pkt);
++			break;
++		case RESPST_ERR_PSN_OUT_OF_SEQ:
++			/* RC only - Class B. Drop packet. */
++			send_ack(qp, pkt, AETH_NAK_PSN_SEQ_ERROR, qp->resp.psn);
++			state = RESPST_CLEANUP;
++			break;
++
++		case RESPST_ERR_TOO_MANY_RDMA_ATM_REQ:
++		case RESPST_ERR_MISSING_OPCODE_FIRST:
++		case RESPST_ERR_MISSING_OPCODE_LAST_C:
++		case RESPST_ERR_UNSUPPORTED_OPCODE:
++		case RESPST_ERR_MISALIGNED_ATOMIC:
++			/* RC Only - Class C. */
++			do_class_ac_error(qp, AETH_NAK_INVALID_REQ,
++					  IB_WC_REM_INV_REQ_ERR);
++			state = RESPST_COMPLETE;
++			break;
++
++		case RESPST_ERR_MISSING_OPCODE_LAST_D1E:
++			state = do_class_d1e_error(qp);
++			break;
++		case RESPST_ERR_RNR:
++			if (qp_type(qp) == IB_QPT_RC) {
++				/* RC - class B */
++				send_ack(qp, pkt, AETH_RNR_NAK |
++					 (~AETH_TYPE_MASK &
++					 qp->attr.min_rnr_timer),
++					 pkt->psn);
++			} else {
++				/* UD/UC - class D */
++				qp->resp.drop_msg = 1;
++			}
++			state = RESPST_CLEANUP;
++			break;
++
++		case RESPST_ERR_RKEY_VIOLATION:
++			if (qp_type(qp) == IB_QPT_RC) {
++				/* Class C */
++				do_class_ac_error(qp, AETH_NAK_REM_ACC_ERR,
++						  IB_WC_REM_ACCESS_ERR);
++				state = RESPST_COMPLETE;
++			} else {
++				qp->resp.drop_msg = 1;
++				if (qp->srq) {
++					/* UC/SRQ Class D */
++					qp->resp.status = IB_WC_REM_ACCESS_ERR;
++					state = RESPST_COMPLETE;
++				} else {
++					/* UC/non-SRQ Class E. */
++					state = RESPST_CLEANUP;
++				}
++			}
++			break;
++
++		case RESPST_ERR_LENGTH:
++			if (qp_type(qp) == IB_QPT_RC) {
++				/* Class C */
++				do_class_ac_error(qp, AETH_NAK_INVALID_REQ,
++						  IB_WC_REM_INV_REQ_ERR);
++				state = RESPST_COMPLETE;
++			} else if (qp->srq) {
++				/* UC/UD - class E */
++				qp->resp.status = IB_WC_REM_INV_REQ_ERR;
++				state = RESPST_COMPLETE;
++			} else {
++				/* UC/UD - class D */
++				qp->resp.drop_msg = 1;
++				state = RESPST_CLEANUP;
++			}
++			break;
++
++		case RESPST_ERR_MALFORMED_WQE:
++			/* All, Class A. */
++			do_class_ac_error(qp, AETH_NAK_REM_OP_ERR,
++					  IB_WC_LOC_QP_OP_ERR);
++			state = RESPST_COMPLETE;
++			break;
++
++		case RESPST_ERR_CQ_OVERFLOW:
++			/* All - Class G */
++			state = RESPST_ERROR;
++			break;
++
++		case RESPST_DONE:
++			if (qp->resp.goto_error) {
++				state = RESPST_ERROR;
++				break;
++			} else
++				goto done;
++
++		case RESPST_EXIT:
++			if (qp->resp.goto_error) {
++				state = RESPST_ERROR;
++				break;
++			} else
++				goto exit;
++
++		case RESPST_RESET: {
++			struct sk_buff *skb;
++
++			while ((skb = skb_dequeue(&qp->req_pkts))) {
++				rxe_drop_ref(qp);
++				kfree_skb(skb);
++				atomic_dec(&qp->req_skb_in);
++				atomic_dec(&rxe->req_skb_in);
++			}
++
++			while (!qp->srq && qp->rq.queue &&
++			       queue_head(qp->rq.queue))
++				advance_consumer(qp->rq.queue);
++
++			qp->resp.wqe = NULL;
++			goto exit;
++		}
++
++		case RESPST_ERROR:
++			qp->resp.goto_error = 0;
++			pr_warn("qp#%d moved to error state\n", qp_num(qp));
++			rxe_qp_error(qp);
++			goto exit;
++
++		default:
++			WARN_ON(1);
++		}
++	}
++
++exit:
++	ret = -EAGAIN;
++done:
++	return ret;
++}
 
 
 --
