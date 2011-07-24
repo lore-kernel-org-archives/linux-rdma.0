@@ -1,430 +1,366 @@
 From: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH] opensm: make loopback console compile on by default.
-Date: Sun, 24 Jul 2011 15:08:59 +0300
-Message-ID: <20110724120859.GA17166@calypso.voltaire.com>
-References: <20110706155435.ada5fbb6.weiny2@llnl.gov>
- <20110710091410.GB8520@localhost.localdomain>
- <5033C751-5B39-4F08-AB35-C595F17F6B6B@llnl.gov>
- <20110711175442.GF2084@localhost.localdomain>
- <20110713181730.6941e29a.weiny2@llnl.gov>
+Subject: Re: [PATCHv3] opensm: Add support for partition enforcement types
+Date: Sun, 24 Jul 2011 17:42:55 +0300
+Message-ID: <20110724144255.GC17166@calypso.voltaire.com>
+References: <4E135D51.3080208@dev.mellanox.co.il>
+ <20110710112626.GC8520@localhost.localdomain>
+ <4E1AE7D6.9060209@dev.mellanox.co.il>
+ <20110713140942.GC17818@localhost.localdomain>
+ <4E1E2C0B.6060106@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20110713181730.6941e29a.weiny2-i2BcT+NCU+M@public.gmane.org>
+In-Reply-To: <4E1E2C0B.6060106-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Ira,
+to accomodate IBA extended link speeds
 
-One small issue bellow.
+Also, some other cosmetic changes (formatting, etc.)
 
-On 18:17 Wed 13 Jul     , Ira Weiny wrote:
-> On Mon, 11 Jul 2011 10:54:42 -0700
-> Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wrote:
-> 
-> > Hi Ira,
-> > 
-> > On 10:23 Mon 11 Jul     , Weiny, Ira K. wrote:
-> > > 
-> > > On Jul 10, 2011, at 2:14 AM, Alex Netes wrote:
-> > > 
-> > > > Hi Ira,
-> > > > 
-> > > > On 15:54 Wed 06 Jul     , Ira Weiny wrote:
-> > > >> 
-> > > >> The console is very useful for debugging and should be available in opensm.conf
-> > > >> as an option.
-> > > >> 
-> > > >> Generic socket is still an option which is off for security reasons.
-> > > >> 
-> > > >> Signed-off-by: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-> > > >> ---
-> > > > 
-> > > > I was digging a little in a history and one concern that was issued while socket
-> > > > support was introduced is that it requires libwrap devel package, so any one
-> > > > who lacks this package, opensm compilation will fail.
-> > > 
-> > > My intention was to disable console_looback if libwrap was not available.  But as I look at the configure.in I think there may be a bug in that logic.
-> > > 
-> > > I don't have a system without libwrap readily available so give me some time to fix this.
-> > > 
-> > 
-> > I think though, that lack libwrap support is the only reason that socket
-> > support wasn't included by default in the compilation.
-> > 
-> > Because the security threat by using sockets can be easily managed by opensm
-> > configuration.
-> > 
-> > So what do you say regarding enabling all socket support during compilation,
-> > unless libwrap is unavailable?
-> 
-> My fear here is that anyone who configures "console socket" without properly setting up wrappers will open a huge security hole in their system.  By defaulting the compilation to loopback we limit the amount of access which can be configured "accidentally".
-> 
-> Years ago, Sasha and I discussed a "secure" console (using libssh).  In the end he perfered using ssh directly such as:
-> 
-> 17:55:42 > ssh hypei telnet localhost 10000
-> Password:
-> Trying 127.0.0.1...
-> Connected to localhost.
-> Escape character is '^]'.
-> OpenSM $
-> 
-> This is where I was heading with this patch.
-> 
-> I fixed the check for libwrap.  New patch below.
-> 
-> Ira
-> 
-> 
-> Subject: [PATCH V2] opensm: make loopback console compile on by default.
-> 
-> The console is very useful for debugging and should be available in opensm.conf
-> as an option.
-> 
-> Generic socket is still an option which is off for security reasons.
-> 
-> Changes in V2:
->    fix disable loopback when libwrap is not found
->    fix compile when loopback not enabled
->    clean up man page entry
-> 
-> Signed-off-by: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-> ---
->  config/osmvsel.m4               |   30 ++++++++++++++++++++++++++----
->  include/opensm/osm_console_io.h |    6 +++++-
->  man/opensm.8.in                 |   11 +++++++----
->  opensm/main.c                   |   13 +++++++++----
->  opensm/osm_console.c            |    6 +++---
->  opensm/osm_console_io.c         |   23 ++++++++++++++++++-----
->  opensm/osm_subnet.c             |    9 +++++++--
->  7 files changed, 75 insertions(+), 23 deletions(-)
-> 
-> diff --git a/config/osmvsel.m4 b/config/osmvsel.m4
-> index 2c91f63..87335e3 100644
-> --- a/config/osmvsel.m4
-> +++ b/config/osmvsel.m4
-> @@ -178,28 +178,50 @@ fi
->  # --- END OPENIB_APP_OSMV_CHECK_HEADER ---
->  ]) dnl OPENIB_APP_OSMV_CHECK_HEADER
->  
-> -dnl Check if they want the socket console
-> +dnl Check for socket console support
->  AC_DEFUN([OPENIB_OSM_CONSOLE_SOCKET_SEL], [
->  # --- BEGIN OPENIB_OSM_CONSOLE_SOCKET_SEL ---
->  
-> +dnl Console over a loopback socket is default if libwrap is available
-> +AC_ARG_ENABLE(console-loopback,
-> +[  --enable-console-loopback Enable a console socket on the loopback interface, requires tcp_wrappers (default yes)],
-> +[case $enableval in
-> +     yes) console_loopback=yes ;;
-> +     no)  console_loopback=no ;;
-> +   esac],
-> +   console_loopback=yes)
-> +
-> +if test $console_loopback = yes; then
-> +AC_CHECK_LIB(wrap, request_init, [], [console_loopback=no])
+--
+Changes since v2: Added comments in man, conf file and help
 
-I think it's better to print a warning in case -lwrap is missing. Specially
-when you try to compile with --enable-console-socket and the configure fails
-telling you that it requires --enable-console-loopback which is on by default.
-So I suggest something like:
+Signed-off-by: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ include/opensm/osm_subnet.h |   15 +++++++++++++++
+ man/opensm.8.in             |   13 ++++++++++---
+ opensm/main.c               |   31 ++++++++++++++++++++++++++++---
+ opensm/osm_pkey_mgr.c       |   40 ++++++++++++++++++++++++----------------
+ opensm/osm_subnet.c         |   32 ++++++++++++++++++++++++++++++--
+ 5 files changed, 107 insertions(+), 24 deletions(-)
 
-+AC_CHECK_LIB(wrap, request_init, [], [console_loopback=no
-+                                      AC_MSG_WARN(libwrap is missing. console_loopback=no)])
-
-> +fi
-> +if test $console_loopback = yes; then
-> +  AC_DEFINE(ENABLE_OSM_CONSOLE_LOOPBACK,
-> +	    1,
-> +	    [Define as 1 if you want to enable a loopback console])
-> +fi
-> +
->  dnl Console over a socket connection
->  AC_ARG_ENABLE(console-socket,
-> -[  --enable-console-socket Enable a console socket, requires tcp_wrappers (default no)],
-> +[  --enable-console-socket Enable a console socket, requires --enable-console-loopback (default no)],
->  [case $enableval in
->       yes) console_socket=yes ;;
->       no)  console_socket=no ;;
->     esac],
->     console_socket=no)
->  if test $console_socket = yes; then
-> -  AC_CHECK_LIB(wrap, request_init, [],
-> - 	AC_MSG_ERROR([request_init() not found. console-socket requires libwrap.]))
-> +  if test $console_loopback = no; then
-> +    AC_MSG_ERROR([--enable-console-socket requires --enable-console-loopback])
-> +  fi
->    AC_DEFINE(ENABLE_OSM_CONSOLE_SOCKET,
->  	    1,
->  	    [Define as 1 if you want to enable a console on a socket connection])
->  fi
-> +
->  # --- END OPENIB_OSM_CONSOLE_SOCKET_SEL ---
->  ]) dnl OPENIB_OSM_CONSOLE_SOCKET_SEL
->  
-> +
-> +
->  dnl Check if they want the PerfMgr
->  AC_DEFUN([OPENIB_OSM_PERF_MGR_SEL], [
->  # --- BEGIN OPENIB_OSM_PERF_MGR_SEL ---
-> diff --git a/include/opensm/osm_console_io.h b/include/opensm/osm_console_io.h
-> index b51cbf7..7bf1313 100644
-> --- a/include/opensm/osm_console_io.h
-> +++ b/include/opensm/osm_console_io.h
-> @@ -45,8 +45,12 @@
->  
->  #define OSM_DISABLE_CONSOLE      "off"
->  #define OSM_LOCAL_CONSOLE        "local"
-> +#ifdef ENABLE_OSM_CONSOLE_SOCKET
->  #define OSM_REMOTE_CONSOLE       "socket"
-> +#endif
-> +#ifdef ENABLE_OSM_CONSOLE_LOOPBACK
->  #define OSM_LOOPBACK_CONSOLE     "loopback"
-> +#endif
->  #define OSM_CONSOLE_NAME         "OSM Console"
->  
->  #define OSM_DEFAULT_CONSOLE      OSM_DISABLE_CONSOLE
-> @@ -81,7 +85,7 @@ int osm_console_init(osm_subn_opt_t * opt, osm_console_t * p_oct, osm_log_t * p_
->  void osm_console_exit(osm_console_t * p_oct, osm_log_t * p_log);
->  int is_console_enabled(osm_subn_opt_t *p_opt);
->  
-> -#ifdef ENABLE_OSM_CONSOLE_SOCKET
-> +#ifdef ENABLE_OSM_CONSOLE_LOOPBACK
->  int cio_open(osm_console_t * p_oct, int new_fd, osm_log_t * p_log);
->  int cio_close(osm_console_t * p_oct, osm_log_t * p_log);
->  int is_authorized(osm_console_t * p_oct);
-> diff --git a/man/opensm.8.in b/man/opensm.8.in
-> index f360739..042bee3 100644
-> --- a/man/opensm.8.in
-> +++ b/man/opensm.8.in
-> @@ -266,10 +266,13 @@ SMPs.
->  Without -maxsmps, OpenSM defaults to a maximum of
->  4 outstanding SMPs.
->  .TP
-> -\fB\-console [off | local | socket | loopback]\fR
-> -This option brings up the OpenSM console (default off).
-> -Note that the socket and loopback options will only be available
-> -if OpenSM was built with --enable-console-socket.
-> +\fB\-console [off | local | loopback | socket]\fR
-> +This option brings up the OpenSM console (default off).  Note, loopback and
-> +socket open a socket which can be connected to WITHOUT CREDENTIALS.  Loopback
-> +is safer if access to your SM host is controlled.  tcp_wrappers
-> +(hosts.[allow|deny]) is used with loopback and socket.  loopback and socket
-> +will only be available if OpenSM was built with --enable-console-loopback
-> +(default yes) and --enable-console-socket (default no) respectively.
->  .TP
->  \fB\-console-port\fR <port>
->  Specify an alternate telnet port for the socket console (default 10000).
-> diff --git a/opensm/main.c b/opensm/main.c
-> index 798cb20..51c8291 100644
-> --- a/opensm/main.c
-> +++ b/opensm/main.c
-> @@ -270,11 +270,14 @@ static void show_usage(void)
->  	       "          Without --maxsmps, OpenSM defaults to a maximum of\n"
->  	       "          4 outstanding SMPs.\n\n");
->  	printf("--console, -q [off|local"
-> +#ifdef ENABLE_OSM_CONSOLE_LOOPBACK
-> +	       "|loopback"
-> +#endif
->  #ifdef ENABLE_OSM_CONSOLE_SOCKET
-> -	       "|socket|loopback"
-> +	       "|socket"
->  #endif
->  	       "]\n          This option activates the OpenSM console (default off).\n\n");
-> -#ifdef ENABLE_OSM_CONSOLE_SOCKET
-> +#ifdef ENABLE_OSM_CONSOLE_LOOPBACK
->  	printf("--console-port, -C <port>\n"
->  	       "          Specify an alternate telnet port for the console (default %d).\n\n",
->  	       OSM_DEFAULT_CONSOLE_PORT);
-> @@ -621,7 +624,7 @@ int main(int argc, char *argv[])
->  		{"guid_routing_order_file", 1, NULL, 'X'},
->  		{"stay_on_fatal", 0, NULL, 'y'},
->  		{"honor_guid2lid", 0, NULL, 'x'},
-> -#ifdef ENABLE_OSM_CONSOLE_SOCKET
-> +#ifdef ENABLE_OSM_CONSOLE_LOOPBACK
->  		{"console-port", 1, NULL, 'C'},
->  #endif
->  		{"daemon", 0, NULL, 'B'},
-> @@ -788,6 +791,8 @@ int main(int argc, char *argv[])
->  			    || strcmp(optarg, OSM_LOCAL_CONSOLE) == 0
->  #ifdef ENABLE_OSM_CONSOLE_SOCKET
->  			    || strcmp(optarg, OSM_REMOTE_CONSOLE) == 0
-> +#endif
-> +#ifdef ENABLE_OSM_CONSOLE_LOOPBACK
->  			    || strcmp(optarg, OSM_LOOPBACK_CONSOLE) == 0
->  #endif
->  			    )
-> @@ -797,7 +802,7 @@ int main(int argc, char *argv[])
->  				       optarg);
->  			break;
->  
-> -#ifdef ENABLE_OSM_CONSOLE_SOCKET
-> +#ifdef ENABLE_OSM_CONSOLE_LOOPBACK
->  		case 'C':
->  			opt.console_port = strtol(optarg, NULL, 0);
->  			break;
-> diff --git a/opensm/osm_console.c b/opensm/osm_console.c
-> index 684d6ee..82a9b48 100644
-> --- a/opensm/osm_console.c
-> +++ b/opensm/osm_console.c
-> @@ -45,7 +45,7 @@
->  #include <sys/socket.h>
->  #include <netdb.h>
->  #include <regex.h>
-> -#ifdef ENABLE_OSM_CONSOLE_SOCKET
-> +#ifdef ENABLE_OSM_CONSOLE_LOOPBACK
->  #include <arpa/inet.h>
->  #endif
->  #include <unistd.h>
-> @@ -1620,7 +1620,7 @@ int osm_console(osm_opensm_t * p_osm)
->  	if (poll(fds, nfds, 1000) <= 0)
->  		return 0;
->  
-> -#ifdef ENABLE_OSM_CONSOLE_SOCKET
-> +#ifdef ENABLE_OSM_CONSOLE_LOOPBACK
->  	if (pollfd[0].revents & POLLIN) {
->  		int new_fd = 0;
->  		struct sockaddr_in sin;
-> @@ -1678,7 +1678,7 @@ int osm_console(osm_opensm_t * p_osm)
->  	}
->  	/* input fd is closed (hanged up) */
->  	if (pollfd[1].revents & POLLHUP) {
-> -#ifdef ENABLE_OSM_CONSOLE_SOCKET
-> +#ifdef ENABLE_OSM_CONSOLE_LOOPBACK
->  		/* If we are using a socket, we close the current connection */
->  		if (p_oct->socket >= 0) {
->  			cio_close(p_oct, &p_osm->log);
-> diff --git a/opensm/osm_console_io.c b/opensm/osm_console_io.c
-> index 0614c7f..da07a0b 100644
-> --- a/opensm/osm_console_io.c
-> +++ b/opensm/osm_console_io.c
-> @@ -46,7 +46,7 @@
->  #endif				/* HAVE_CONFIG_H */
->  
->  #define _GNU_SOURCE		/* for getline */
-> -#ifdef ENABLE_OSM_CONSOLE_SOCKET
-> +#ifdef ENABLE_OSM_CONSOLE_LOOPBACK
->  #include <tcpd.h>
->  #include <arpa/inet.h>
->  #include <netinet/in.h>
-> @@ -66,6 +66,7 @@ static int is_local(char *str)
->  	return 0;
->  }
->  
-> +#ifdef ENABLE_OSM_CONSOLE_LOOPBACK
->  static int is_loopback(char *str)
->  {
->  	/* convenience - checks if socket based connection */
-> @@ -73,7 +74,11 @@ static int is_loopback(char *str)
->  		return (strcmp(str, OSM_LOOPBACK_CONSOLE) == 0);
->  	return 0;
->  }
-> +#else
-> +#define is_loopback is_local
-> +#endif
->  
-> +#ifdef ENABLE_OSM_CONSOLE_SOCKET
->  static int is_remote(char *str)
->  {
->  	/* convenience - checks if socket based connection */
-> @@ -81,6 +86,9 @@ static int is_remote(char *str)
->  		return strcmp(str, OSM_REMOTE_CONSOLE) == 0 || is_loopback(str);
->  	return 0;
->  }
-> +#else
-> +#define is_remote is_loopback
-> +#endif
->  
->  int is_console_enabled(osm_subn_opt_t * p_opt)
->  {
-> @@ -92,7 +100,7 @@ int is_console_enabled(osm_subn_opt_t * p_opt)
->  }
->  
->  
-> -#ifdef ENABLE_OSM_CONSOLE_SOCKET
-> +#ifdef ENABLE_OSM_CONSOLE_LOOPBACK
->  int cio_close(osm_console_t * p_oct, osm_log_t * p_log)
->  {
->  	int rtnval = -1;
-> @@ -181,9 +189,12 @@ int osm_console_init(osm_subn_opt_t * opt, osm_console_t * p_oct, osm_log_t * p_
->  		p_oct->out_fd = fileno(stdout);
->  
->  		osm_console_prompt(p_oct->out);
-> +#ifdef ENABLE_OSM_CONSOLE_LOOPBACK
-> +	} else if (strcmp(opt->console, OSM_LOOPBACK_CONSOLE) == 0
->  #ifdef ENABLE_OSM_CONSOLE_SOCKET
-> -	} else if (strcmp(opt->console, OSM_REMOTE_CONSOLE) == 0
-> -		   || strcmp(opt->console, OSM_LOOPBACK_CONSOLE) == 0) {
-> +		   || strcmp(opt->console, OSM_REMOTE_CONSOLE) == 0
-> +#endif
-> +		   ) {
->  		struct sockaddr_in sin;
->  		int optval = 1;
->  
-> @@ -197,9 +208,11 @@ int osm_console_init(osm_subn_opt_t * opt, osm_console_t * p_oct, osm_log_t * p_
->  			   &optval, sizeof(optval));
->  		sin.sin_family = AF_INET;
->  		sin.sin_port = htons(opt->console_port);
-> +#ifdef ENABLE_OSM_CONSOLE_SOCKET
->  		if (strcmp(opt->console, OSM_REMOTE_CONSOLE) == 0)
->  			sin.sin_addr.s_addr = htonl(INADDR_ANY);
->  		else
-> +#endif
->  			sin.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
->  		if (bind(p_oct->socket, &sin, sizeof(sin)) < 0) {
->  			OSM_LOG(p_log, OSM_LOG_ERROR,
-> @@ -230,7 +243,7 @@ int osm_console_init(osm_subn_opt_t * opt, osm_console_t * p_oct, osm_log_t * p_
->  /* clean up and release resources */
->  void osm_console_exit(osm_console_t * p_oct, osm_log_t * p_log)
->  {
-> -#ifdef ENABLE_OSM_CONSOLE_SOCKET
-> +#ifdef ENABLE_OSM_CONSOLE_LOOPBACK
->  	cio_close(p_oct, p_log);
->  	if (p_oct->socket > 0) {
->  		OSM_LOG(p_log, OSM_LOG_INFO, "Closing console socket\n");
-> diff --git a/opensm/osm_subnet.c b/opensm/osm_subnet.c
-> index 0b79d3a..3ba1f81 100644
-> --- a/opensm/osm_subnet.c
-> +++ b/opensm/osm_subnet.c
-> @@ -1118,8 +1118,10 @@ int osm_subn_verify_config(IN osm_subn_opt_t * p_opts)
->  
->  	if (strcmp(p_opts->console, OSM_DISABLE_CONSOLE)
->  	    && strcmp(p_opts->console, OSM_LOCAL_CONSOLE)
-> -#ifdef ENABLE_OSM_CONSOLE_SOCKET
-> +#ifdef ENABLE_OSM_CONSOLE_LOOPBACK
->  	    && strcmp(p_opts->console, OSM_LOOPBACK_CONSOLE)
-> +#endif
-> +#ifdef ENABLE_OSM_CONSOLE_SOCKET
->  	    && strcmp(p_opts->console, OSM_REMOTE_CONSOLE)
->  #endif
->  	    ) {
-> @@ -1634,8 +1636,11 @@ int osm_subn_output_conf(FILE *out, IN osm_subn_opt_t * p_opts)
->  		"disable_multicast %s\n\n"
->  		"# If TRUE opensm will exit on fatal initialization issues\n"
->  		"exit_on_fatal %s\n\n" "# console [off|local"
-> +#ifdef ENABLE_OSM_CONSOLE_LOOPBACK
-> +		"|loopback"
-> +#endif
->  #ifdef ENABLE_OSM_CONSOLE_SOCKET
-> -		"|loopback|socket]\n"
-> +		"|socket]\n"
->  #else
->  		"]\n"
->  #endif
-> -- 
-> 1.7.1
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
+diff --git a/include/opensm/osm_subnet.h b/include/opensm/osm_subnet.h
+index 6d17c31..99f7f5e 100644
+--- a/include/opensm/osm_subnet.h
++++ b/include/opensm/osm_subnet.h
+@@ -68,6 +68,19 @@ BEGIN_C_DECLS
+ #define OSM_SUBNET_VECTOR_MIN_SIZE			0
+ #define OSM_SUBNET_VECTOR_GROW_SIZE			1
+ #define OSM_SUBNET_VECTOR_CAPACITY			256
++
++#define OSM_PARTITION_ENFORCE_BOTH			"both"
++#define OSM_PARTITION_ENFORCE_IN			"in"
++#define OSM_PARTITION_ENFORCE_OUT			"out"
++#define OSM_PARTITION_ENFORCE_OFF			"off"
++
++typedef enum _osm_partition_enforce_type_enum {
++	OSM_PARTITION_ENFORCE_TYPE_BOTH,
++	OSM_PARTITION_ENFORCE_TYPE_IN,
++	OSM_PARTITION_ENFORCE_TYPE_OUT,
++	OSM_PARTITION_ENFORCE_TYPE_OFF
++} osm_partition_enforce_type_enum;
++
+ struct osm_opensm;
+ struct osm_qos_policy;
+ 
+@@ -182,6 +195,8 @@ typedef struct osm_subn_opt {
+ 	unsigned long log_max_size;
+ 	char *partition_config_file;
+ 	boolean_t no_partition_enforcement;
++	char *part_enforce;
++	osm_partition_enforce_type_enum part_enforce_enum;
+ 	boolean_t qos;
+ 	char *qos_policy_file;
+ 	boolean_t accum_log_file;
+diff --git a/man/opensm.8.in b/man/opensm.8.in
+index f360739..94b3882 100644
+--- a/man/opensm.8.in
++++ b/man/opensm.8.in
+@@ -1,4 +1,4 @@
+-.TH OPENSM 8 "November 3, 2010" "OpenIB" "OpenIB Management"
++.TH OPENSM 8 "July 5, 2011" "OpenIB" "OpenIB Management"
+ 
+ .SH NAME
+ opensm \- InfiniBand subnet manager and administration (SM/SA)
+@@ -44,7 +44,8 @@ opensm \- InfiniBand subnet manager and administration (SM/SA)
+ [\-f <log file path> | \-\-log_file <log file path> ]
+ [\-L | \-\-log_limit <size in MB>] [\-e(rase_log_file)]
+ [\-P(config) <partition config file> ]
+-[\-N | \-\-no_part_enforce]
++[\-N | \-\-no_part_enforce] (DEPRECATED)
++[\-Z | \-\-part_enforce [both | in | out | off]]
+ [\-Q | \-\-qos [\-Y | \-\-qos_policy_file <file name>]]
+ [\-y | \-\-stay_on_fatal]
+ [\-B | \-\-daemon]
+@@ -363,9 +364,15 @@ name is \fB\%@OPENSM_CONFIG_DIR@/@QOS_POLICY_FILE@\fP. See
+ QoS_management_in_OpenSM.txt in opensm doc for more information on
+ configuring QoS policy via this file.
+ .TP
+-\fB\-N\fR, \fB\-\-no_part_enforce\fR
++\fB\-N\fR, \fB\-\-no_part_enforce\fR \fB(DEPRECATED)\fR
++This is a deprecated flag. Please use \fB\-\-part_enforce\fR instead.
+ This option disables partition enforcement on switch external ports.
+ .TP
++\fB\-Z\fR, \fB\-\-part_enforce\fR [both | in | out | off]
++This option indicates the partition enforcement type (for switches).
++Enforcement type can be inbound only (in), outbound only (out),
++both or disabled (off). Default is both.
++.TP
+ \fB\-y\fR, \fB\-\-stay_on_fatal\fR
+ This option will cause SM not to exit on fatal initialization
+ issues: if SM discovers duplicated guids or a 12x link with
+diff --git a/opensm/main.c b/opensm/main.c
+index 798cb20..779cf4a 100644
+--- a/opensm/main.c
++++ b/opensm/main.c
+@@ -1,6 +1,6 @@
+ /*
+  * Copyright (c) 2004-2009 Voltaire, Inc. All rights reserved.
+- * Copyright (c) 2002-2009 Mellanox Technologies LTD. All rights reserved.
++ * Copyright (c) 2002-2011 Mellanox Technologies LTD. All rights reserved.
+  * Copyright (c) 1996-2003 Intel Corporation. All rights reserved.
+  * Copyright (c) 2009 HNR Consulting. All rights reserved.
+  * Copyright (c) 2009 System Fabric Works, Inc. All rights reserved.
+@@ -318,8 +318,13 @@ static void show_usage(void)
+ 	       "          This option defines the optional partition configuration file.\n"
+ 	       "          The default name is \'"
+ 	       OSM_DEFAULT_PARTITION_CONFIG_FILE "\'.\n\n");
+-	printf("--no_part_enforce, -N\n"
++	printf("--no_part_enforce, -N (DEPRECATED)\n"
++	       "          Use --part_enforce instead.\n"
+ 	       "          This option disables partition enforcement on switch external ports.\n\n");
++	printf("--part_enforce, -Z [both, in, out, off]\n"
++	       "          This option indicates the partition enforcement type (for switches)\n"
++	       "          Enforcement type can be outbound only (out), inbound only (in), both or\n"
++	       "          disabled (off). Default is both.\n\n");
+ 	printf("--qos, -Q\n" "          This option enables QoS setup.\n\n");
+ 	printf("--qos_policy_file, -Y <QoS-policy-file>\n"
+ 	       "          This option defines the optional QoS policy file.\n"
+@@ -566,7 +571,7 @@ int main(int argc, char *argv[])
+ 	char *conf_template = NULL, *config_file = NULL;
+ 	uint32_t val;
+ 	const char *const short_option =
+-	    "F:c:i:w:O:f:ed:D:g:l:L:s:t:a:u:m:X:R:zM:U:S:P:Y:ANBIQvVhoryxp:n:q:k:C:G:H:";
++	    "F:c:i:w:O:f:ed:D:g:l:L:s:t:a:u:m:X:R:zM:U:S:P:Y:ANBIQvVhoryxp:n:q:k:C:G:H:Z:";
+ 
+ 	/*
+ 	   In the array below, the 2nd parameter specifies the number
+@@ -595,6 +600,7 @@ int main(int argc, char *argv[])
+ 		{"erase_log_file", 0, NULL, 'e'},
+ 		{"Pconfig", 1, NULL, 'P'},
+ 		{"no_part_enforce", 0, NULL, 'N'},
++		{"part_enforce", 1, NULL, 'Z'},
+ 		{"qos", 0, NULL, 'Q'},
+ 		{"qos_policy_file", 1, NULL, 'Y'},
+ 		{"maxsmps", 1, NULL, 'n'},
+@@ -870,6 +876,25 @@ int main(int argc, char *argv[])
+ 			opt.no_partition_enforcement = TRUE;
+ 			break;
+ 
++		case 'Z':
++			if (strcmp(optarg, OSM_PARTITION_ENFORCE_BOTH) == 0
++			    || strcmp(optarg, OSM_PARTITION_ENFORCE_IN) == 0
++			    || strcmp(optarg, OSM_PARTITION_ENFORCE_OUT) == 0
++			    || strcmp(optarg, OSM_PARTITION_ENFORCE_OFF) == 0) {
++				SET_STR_OPT(opt.part_enforce, optarg);
++				if (strcmp(optarg, OSM_PARTITION_ENFORCE_BOTH) == 0)
++					opt.part_enforce_enum = OSM_PARTITION_ENFORCE_TYPE_BOTH;
++				else if (strcmp(optarg, OSM_PARTITION_ENFORCE_IN) == 0)
++					opt.part_enforce_enum = OSM_PARTITION_ENFORCE_TYPE_IN;
++				else if (strcmp(optarg, OSM_PARTITION_ENFORCE_OUT) == 0)
++					opt.part_enforce_enum = OSM_PARTITION_ENFORCE_TYPE_OUT;
++				else
++					opt.part_enforce_enum = OSM_PARTITION_ENFORCE_TYPE_OFF;
++			} else
++				printf("-part_enforce %s option not understood\n",
++				       optarg);
++			break;
++
+ 		case 'Q':
+ 			opt.qos = TRUE;
+ 			break;
+diff --git a/opensm/osm_pkey_mgr.c b/opensm/osm_pkey_mgr.c
+index e6bf0d1..a98cca9 100644
+--- a/opensm/osm_pkey_mgr.c
++++ b/opensm/osm_pkey_mgr.c
+@@ -1,6 +1,6 @@
+ /*
+  * Copyright (c) 2004-2009 Voltaire, Inc. All rights reserved.
+- * Copyright (c) 2002-2010 Mellanox Technologies LTD. All rights reserved.
++ * Copyright (c) 2002-2011 Mellanox Technologies LTD. All rights reserved.
+  * Copyright (c) 1996-2003 Intel Corporation. All rights reserved.
+  * Copyright (c) 2009 Sun Microsystems, Inc. All rights reserved.
+  *
+@@ -182,16 +182,26 @@ pkey_mgr_update_pkey_entry(IN osm_sm_t * sm,
+ 
+ static ib_api_status_t
+ pkey_mgr_enforce_partition(IN osm_log_t * p_log, osm_sm_t * sm,
+-			   IN osm_physp_t * p_physp, IN const boolean_t enforce)
++			   IN osm_physp_t * p_physp,
++			   IN osm_partition_enforce_type_enum enforce_type)
+ {
+ 	osm_madw_context_t context;
+ 	uint8_t payload[IB_SMP_DATA_SIZE];
+ 	ib_port_info_t *p_pi;
+ 	ib_api_status_t status;
++	uint8_t enforce_bits;
+ 
+ 	p_pi = &p_physp->port_info;
+ 
+-	if ((p_pi->vl_enforce & 0xc) == (0xc) * (enforce == TRUE)) {
++	if (enforce_type == OSM_PARTITION_ENFORCE_TYPE_BOTH)
++		enforce_bits = 0xc;
++	else if (enforce_type == OSM_PARTITION_ENFORCE_TYPE_IN)
++		enforce_bits = 0x8;
++	else
++		enforce_bits = 0x4;
++
++	if ((p_pi->vl_enforce & 0xc) == enforce_bits *
++	    (enforce_type != OSM_PARTITION_ENFORCE_TYPE_OFF)) {
+ 		OSM_LOG(p_log, OSM_LOG_DEBUG,
+ 			"No need to update PortInfo for "
+ 			"node 0x%016" PRIx64 " port %u (%s)\n",
+@@ -207,10 +217,9 @@ pkey_mgr_enforce_partition(IN osm_log_t * p_log, osm_sm_t * sm,
+ 	       IB_SMP_DATA_SIZE - sizeof(ib_port_info_t));
+ 
+ 	p_pi = (ib_port_info_t *) payload;
+-	if (enforce == TRUE)
+-		p_pi->vl_enforce |= 0xc;
+-	else
+-		p_pi->vl_enforce &= ~0xc;
++	p_pi->vl_enforce &= ~0xc;
++	if (enforce_type != OSM_PARTITION_ENFORCE_TYPE_OFF)
++		p_pi->vl_enforce |= enforce_bits;
+ 	p_pi->state_info2 = 0;
+ 	ib_port_info_set_port_state(p_pi, IB_LINK_NO_CHANGE);
+ 
+@@ -436,7 +445,7 @@ static int update_peer_block(osm_log_t * p_log, osm_sm_t * sm,
+ static int pkey_mgr_update_peer_port(osm_log_t * p_log, osm_sm_t * sm,
+ 				     const osm_subn_t * p_subn,
+ 				     const osm_port_t * const p_port,
+-				     boolean_t enforce)
++				     osm_partition_enforce_type_enum enforce_type)
+ {
+ 	osm_physp_t *p_physp, *peer;
+ 	osm_node_t *p_node;
+@@ -461,8 +470,8 @@ static int pkey_mgr_update_peer_port(osm_log_t * p_log, osm_sm_t * sm,
+ 	if (!p_node->sw || !p_node->sw->switch_info.enforce_cap)
+ 		return 0;
+ 
+-	if (enforce == FALSE) {
+-		pkey_mgr_enforce_partition(p_log, sm, peer, FALSE);
++	if (enforce_type != OSM_PARTITION_ENFORCE_TYPE_OFF) {
++		pkey_mgr_enforce_partition(p_log, sm, peer, OSM_PARTITION_ENFORCE_TYPE_OFF);
+ 		return ret;
+ 	}
+ 
+@@ -528,14 +537,14 @@ static int pkey_mgr_update_peer_port(osm_log_t * p_log, osm_sm_t * sm,
+ 						cl_ntoh64(osm_node_get_node_guid(p_node)),
+ 						osm_physp_get_port_num(peer),
+ 						p_node->print_desc);
+-					enforce = FALSE;
++					enforce_type = OSM_PARTITION_ENFORCE_TYPE_OFF;
+ 					ret = -1;
+ 				}
+ 			}
+ 		}
+ 	} else {
+ 		p_peer_pkey_tbl->used_blocks = peer_max_blocks;
+-		enforce = FALSE;
++		enforce_type = OSM_PARTITION_ENFORCE_TYPE_OFF;
+ 	}
+ 
+ 	if (!ret)
+@@ -545,7 +554,7 @@ static int pkey_mgr_update_peer_port(osm_log_t * p_log, osm_sm_t * sm,
+ 			cl_ntoh64(osm_node_get_node_guid(p_node)),
+ 			osm_physp_get_port_num(peer), p_node->print_desc);
+ 
+-	if (pkey_mgr_enforce_partition(p_log, sm, peer, enforce))
++	if (pkey_mgr_enforce_partition(p_log, sm, peer, enforce_type))
+ 		ret = -1;
+ 
+ 	return ret;
+@@ -599,8 +608,7 @@ int osm_pkey_mgr_process(IN osm_opensm_t * p_osm)
+ 		if ((osm_node_get_type(p_port->p_node) != IB_NODE_TYPE_SWITCH)
+ 		    && pkey_mgr_update_peer_port(&p_osm->log, &p_osm->sm,
+ 						 &p_osm->subn, p_port,
+-						 !p_osm->subn.opt.
+-						 no_partition_enforcement))
++						 p_osm->subn.opt.part_enforce_enum))
+ 			ret = -1;
+ 	}
+ 
+@@ -624,7 +632,7 @@ int osm_pkey_mgr_process(IN osm_opensm_t * p_osm)
+ 				continue;
+ 
+ 			/* clear partition enforcement */
+-			if (pkey_mgr_enforce_partition(&p_osm->log, &p_osm->sm, p_physp, FALSE))
++			if (pkey_mgr_enforce_partition(&p_osm->log, &p_osm->sm, p_physp, OSM_PARTITION_ENFORCE_TYPE_OFF))
+ 				ret = -1;
+ 		}
+ 	}
+diff --git a/opensm/osm_subnet.c b/opensm/osm_subnet.c
+index 0b79d3a..907209a 100644
+--- a/opensm/osm_subnet.c
++++ b/opensm/osm_subnet.c
+@@ -342,6 +342,7 @@ static const opt_rec_t opt_tbl[] = {
+ 	{ "accum_log_file", OPT_OFFSET(accum_log_file), opts_parse_boolean, opts_setup_accum_log_file, 1 },
+ 	{ "partition_config_file", OPT_OFFSET(partition_config_file), opts_parse_charp, NULL, 0 },
+ 	{ "no_partition_enforcement", OPT_OFFSET(no_partition_enforcement), opts_parse_boolean, NULL, 1 },
++	{ "part_enforce", OPT_OFFSET(part_enforce), opts_parse_charp, NULL, 1 },
+ 	{ "qos", OPT_OFFSET(qos), opts_parse_boolean, NULL, 1 },
+ 	{ "qos_policy_file", OPT_OFFSET(qos_policy_file), opts_parse_charp, NULL, 0 },
+ 	{ "dump_files_dir", OPT_OFFSET(dump_files_dir), opts_parse_charp, NULL, 0 },
+@@ -761,6 +762,7 @@ void osm_subn_set_default_opt(IN osm_subn_opt_t * p_opt)
+ 	p_opt->log_max_size = 0;
+ 	p_opt->partition_config_file = strdup(OSM_DEFAULT_PARTITION_CONFIG_FILE);
+ 	p_opt->no_partition_enforcement = FALSE;
++	p_opt->part_enforce = OSM_PARTITION_ENFORCE_BOTH;
+ 	p_opt->qos = FALSE;
+ 	p_opt->qos_policy_file = strdup(OSM_DEFAULT_QOS_POLICY_FILE);
+ 	p_opt->accum_log_file = TRUE;
+@@ -1129,6 +1131,27 @@ int osm_subn_verify_config(IN osm_subn_opt_t * p_opts)
+ 		p_opts->console = OSM_DEFAULT_CONSOLE;
+ 	}
+ 
++	if (p_opts->no_partition_enforcement == TRUE) {
++		strcpy(p_opts->part_enforce, OSM_PARTITION_ENFORCE_OFF);
++		p_opts->part_enforce_enum = OSM_PARTITION_ENFORCE_TYPE_OFF;
++	} else {
++		if (strcmp(p_opts->part_enforce, OSM_PARTITION_ENFORCE_BOTH) == 0)
++			p_opts->part_enforce_enum = OSM_PARTITION_ENFORCE_TYPE_BOTH;
++		else if (strcmp(p_opts->part_enforce, OSM_PARTITION_ENFORCE_IN) == 0)
++			p_opts->part_enforce_enum = OSM_PARTITION_ENFORCE_TYPE_IN;
++		else if (strcmp(p_opts->part_enforce, OSM_PARTITION_ENFORCE_OUT) == 0)
++			p_opts->part_enforce_enum = OSM_PARTITION_ENFORCE_TYPE_OUT;
++		else if (strcmp(p_opts->part_enforce, OSM_PARTITION_ENFORCE_OFF) == 0)
++			p_opts->part_enforce_enum = OSM_PARTITION_ENFORCE_TYPE_OFF;
++		else {
++			log_report(" Invalid Cached Option Value:part_enforce = %s"
++	                           ", Using Default:%s\n",
++	                           p_opts->part_enforce = OSM_PARTITION_ENFORCE_BOTH);
++			p_opts->part_enforce = OSM_PARTITION_ENFORCE_BOTH;
++			p_opts->part_enforce_enum = OSM_PARTITION_ENFORCE_TYPE_BOTH;
++		}
++	}
++
+ 	if (p_opts->qos) {
+ 		subn_verify_qos_set(&p_opts->qos_options, "qos");
+ 		subn_verify_qos_set(&p_opts->qos_ca_options, "qos_ca");
+@@ -1372,9 +1395,14 @@ int osm_subn_output_conf(FILE *out, IN osm_subn_opt_t * p_opts)
+ 		"# Partition configuration file to be used\n"
+ 		"partition_config_file %s\n\n"
+ 		"# Disable partition enforcement by switches\n"
+-		"no_partition_enforcement %s\n\n",
++		"no_partition_enforcement %s\n\n"
++		"# Partition enforcement type (for switches)\n"
++		"# Values are both, out, and in\n"
++		"# Default is both (outbound and inbound enforcement)\n"
++		"part_enforce %s\n\n",
+ 		p_opts->partition_config_file,
+-		p_opts->no_partition_enforcement ? "TRUE" : "FALSE");
++		p_opts->no_partition_enforcement ? "TRUE" : "FALSE",
++		p_opts->part_enforce);
+ 
+ 	fprintf(out,
+ 		"#\n# SWEEP OPTIONS\n#\n"
 -- 
+1.7.6
 
--- Alex
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
