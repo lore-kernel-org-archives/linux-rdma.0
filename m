@@ -1,28 +1,28 @@
 From: rpearson-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org
-Subject: [patch v2 20/37] add rxe_cq.c
-Date: Sun, 24 Jul 2011 14:43:20 -0500
-Message-ID: <20110724201229.112267527@systemfabricworks.com>
+Subject: [patch v2 19/37] add rxe_srq.c
+Date: Sun, 24 Jul 2011 14:43:19 -0500
+Message-ID: <20110724201229.063911285@systemfabricworks.com>
 References: <20110724194300.421253331@systemfabricworks.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline; filename=add-rxe_cq.c
+Content-Disposition: inline; filename=add-rxe_srq.c
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: rpearson-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Completion queue implementation details.
+Shared receive queue implementation details.
 
 Signed-off-by: Bob Pearson <rpearson-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org>
 
 ---
- drivers/infiniband/hw/rxe/rxe_cq.c |  177 +++++++++++++++++++++++++++++++++++++
- 1 file changed, 177 insertions(+)
+ drivers/infiniband/hw/rxe/rxe_srq.c |  213 ++++++++++++++++++++++++++++++++++++
+ 1 file changed, 213 insertions(+)
 
-Index: infiniband/drivers/infiniband/hw/rxe/rxe_cq.c
+Index: infiniband/drivers/infiniband/hw/rxe/rxe_srq.c
 ===================================================================
 --- /dev/null
-+++ infiniband/drivers/infiniband/hw/rxe/rxe_cq.c
-@@ -0,0 +1,177 @@
++++ infiniband/drivers/infiniband/hw/rxe/rxe_srq.c
+@@ -0,0 +1,213 @@
 +/*
 + * Copyright (c) 2009-2011 Mellanox Technologies Ltd. All rights reserved.
 + * Copyright (c) 2009-2011 System Fabric Works, Inc. All rights reserved.
@@ -33,9 +33,9 @@ Index: infiniband/drivers/infiniband/hw/rxe/rxe_cq.c
 + * COPYING in the main directory of this source tree, or the
 + * OpenIB.org BSD license below:
 + *
-+ *	   Redistribution and use in source and binary forms, with or
-+ *	   without modification, are permitted provided that the following
-+ *	   conditions are met:
++ *     Redistribution and use in source and binary forms, with or
++ *     without modification, are permitted provided that the following
++ *     conditions are met:
 + *
 + *	- Redistributions of source code must retain the above
 + *	  copyright notice, this list of conditions and the following
@@ -56,35 +56,72 @@ Index: infiniband/drivers/infiniband/hw/rxe/rxe_cq.c
 + * SOFTWARE.
 + */
 +
-+/* cq implementation details */
++/* srq implementation details */
 +
 +#include "rxe.h"
 +#include "rxe_loc.h"
 +#include "rxe_queue.h"
 +
-+int rxe_cq_chk_attr(struct rxe_dev *rxe, struct rxe_cq *cq,
-+		    int cqe, int comp_vector, struct ib_udata *udata)
++int rxe_srq_chk_attr(struct rxe_dev *rxe, struct rxe_srq *srq,
++		     struct ib_srq_attr *attr, enum ib_srq_attr_mask mask)
 +{
-+	int count;
-+
-+	if (cqe <= 0) {
-+		pr_warn("cqe(%d) <= 0\n", cqe);
++	if (srq && srq->error) {
++		pr_warn("srq in error state\n");
 +		goto err1;
 +	}
 +
-+	if (cqe > rxe->attr.max_cqe) {
-+		pr_warn("cqe(%d) > max_cqe(%d)\n",
-+			 cqe, rxe->attr.max_cqe);
-+		goto err1;
-+	}
-+
-+	if (cq) {
-+		count = queue_count(cq->queue);
-+		if (cqe < count) {
-+			pr_warn("cqe(%d) < current # elements in queue (%d)",
-+				cqe, count);
++	if (mask & IB_SRQ_MAX_WR) {
++		if (attr->max_wr > rxe->attr.max_srq_wr) {
++			pr_warn("max_wr(%d) > max_srq_wr(%d)\n",
++				 attr->max_wr, rxe->attr.max_srq_wr);
 +			goto err1;
 +		}
++
++		if (attr->max_wr <= 0) {
++			pr_warn("max_wr(%d) <= 0\n", attr->max_wr);
++			goto err1;
++		}
++
++		if (srq && !(rxe->attr.device_cap_flags &
++			IB_DEVICE_SRQ_RESIZE)) {
++			pr_warn("srq resize not supported\n");
++			goto err1;
++		}
++
++		if (srq && srq->limit && (attr->max_wr < srq->limit)) {
++			pr_warn("max_wr (%d) < srq->limit (%d)\n",
++				  attr->max_wr, srq->limit);
++			goto err1;
++		}
++
++		if (attr->max_wr < RXE_MIN_SRQ_WR)
++			attr->max_wr = RXE_MIN_SRQ_WR;
++	}
++
++	if (mask & IB_SRQ_LIMIT) {
++		if (attr->srq_limit > rxe->attr.max_srq_wr) {
++			pr_warn("srq_limit(%d) > max_srq_wr(%d)\n",
++				 attr->srq_limit, rxe->attr.max_srq_wr);
++			goto err1;
++		}
++
++		if (attr->srq_limit > srq->rq.queue->buf->index_mask) {
++			pr_warn("srq_limit (%d) > cur limit(%d)\n",
++				 attr->srq_limit,
++				 srq->rq.queue->buf->index_mask);
++			goto err1;
++		}
++	}
++
++	if (mask == IB_SRQ_INIT_MASK) {
++		if (attr->max_sge > rxe->attr.max_srq_sge) {
++			pr_warn("max_sge(%d) > max_srq_sge(%d)\n",
++				 attr->max_sge, rxe->attr.max_srq_sge);
++			goto err1;
++		}
++
++		if (attr->max_sge < RXE_MIN_SRQ_SGE)
++			attr->max_sge = RXE_MIN_SRQ_SGE;
 +	}
 +
 +	return 0;
@@ -93,112 +130,111 @@ Index: infiniband/drivers/infiniband/hw/rxe/rxe_cq.c
 +	return -EINVAL;
 +}
 +
-+static void rxe_send_complete(unsigned long data)
-+{
-+	struct rxe_cq *cq = (struct rxe_cq *)data;
-+
-+	while (1) {
-+		u8 notify = cq->notify;
-+
-+		cq->ibcq.comp_handler(&cq->ibcq, cq->ibcq.cq_context);
-+
-+		/* See if anything was added to the CQ during the
-+		 * comp_handler call.  If so, go around again because we
-+		 * won't be rescheduled.
-+		 * XXX: is there a race on enqueue right after this test
-+		 * but before we're out? */
-+		if (notify == cq->notify)
-+			return;
-+	}
-+}
-+
-+int rxe_cq_from_init(struct rxe_dev *rxe, struct rxe_cq *cq, int cqe,
-+		     int comp_vector, struct ib_ucontext *context,
-+		     struct ib_udata *udata)
++int rxe_srq_from_init(struct rxe_dev *rxe, struct rxe_srq *srq,
++		      struct ib_srq_init_attr *init,
++		      struct ib_ucontext *context, struct ib_udata *udata)
 +{
 +	int err;
++	int srq_wqe_size;
++	struct rxe_queue *q;
 +
-+	cq->queue = rxe_queue_init(rxe, (unsigned int *)&cqe,
-+				   sizeof(struct rxe_cqe));
-+	if (!cq->queue) {
-+		pr_warn("unable to create cq\n");
-+		return -ENOMEM;
++	srq->event_handler	= init->event_handler;
++	srq->context		= init->srq_context;
++	srq->limit		= init->attr.srq_limit;
++	srq->srq_num		= srq->pelem.index;
++	srq->rq.max_wr		= init->attr.max_wr;
++	srq->rq.max_sge		= init->attr.max_sge;
++
++	srq_wqe_size		= sizeof(struct rxe_recv_wqe) +
++				  srq->rq.max_sge*sizeof(struct ib_sge);
++
++	spin_lock_init(&srq->rq.producer_lock);
++	spin_lock_init(&srq->rq.consumer_lock);
++
++	q = rxe_queue_init(rxe, (unsigned int *)&srq->rq.max_wr,
++			   srq_wqe_size);
++	if (!q) {
++		pr_warn("unable to allocate queue for srq\n");
++		err = -ENOMEM;
++		goto err1;
 +	}
 +
-+	err = do_mmap_info(rxe, udata, 0, context, cq->queue->buf,
-+			   cq->queue->buf_size, &cq->queue->ip);
-+	if (err) {
-+		vfree(cq->queue->buf);
-+		kfree(cq->queue);
-+	}
++	err = do_mmap_info(rxe, udata, 0, context, q->buf,
++			   q->buf_size, &q->ip);
++	if (err)
++		goto err2;
 +
-+	if (udata)
-+		cq->is_user = 1;
++	srq->rq.queue = q;
 +
-+	tasklet_init(&cq->comp_task, rxe_send_complete, (unsigned long)cq);
++	if (udata && udata->outlen >= sizeof(struct mminfo) + sizeof(u32))
++		return copy_to_user(udata->outbuf + sizeof(struct mminfo),
++			&srq->srq_num, sizeof(u32));
++	else
++		return 0;
 +
-+	spin_lock_init(&cq->cq_lock);
-+	cq->ibcq.cqe = cqe;
-+	return 0;
-+}
-+
-+int rxe_cq_resize_queue(struct rxe_cq *cq, int cqe, struct ib_udata *udata)
-+{
-+	int err;
-+
-+	err = rxe_queue_resize(cq->queue, (unsigned int *)&cqe,
-+			       sizeof(struct rxe_cqe),
-+			       cq->queue->ip ? cq->queue->ip->context : NULL,
-+			       udata, NULL, &cq->cq_lock);
-+	if (!err)
-+		cq->ibcq.cqe = cqe;
-+
++err2:
++	vfree(q->buf);
++	kfree(q);
++err1:
 +	return err;
 +}
 +
-+int rxe_cq_post(struct rxe_cq *cq, struct rxe_cqe *cqe, int solicited)
++int rxe_srq_from_attr(struct rxe_dev *rxe, struct rxe_srq *srq,
++		      struct ib_srq_attr *attr, enum ib_srq_attr_mask mask,
++		      struct ib_udata *udata)
 +{
-+	struct ib_event ev;
-+	unsigned long flags;
++	int err;
++	struct rxe_queue *q = srq->rq.queue;
++	struct mminfo mi = { .offset = 1, .size = 0};
 +
-+	spin_lock_irqsave(&cq->cq_lock, flags);
++	if (mask & IB_SRQ_MAX_WR) {
++		/* Check that we can write the mminfo struct to user space */
++		if (udata && udata->inlen >= sizeof(__u64)) {
++			__u64 mi_addr;
 +
-+	if (unlikely(queue_full(cq->queue))) {
-+		spin_unlock_irqrestore(&cq->cq_lock, flags);
-+		if (cq->ibcq.event_handler) {
-+			ev.device = cq->ibcq.device;
-+			ev.element.cq = &cq->ibcq;
-+			ev.event = IB_EVENT_CQ_ERR;
-+			cq->ibcq.event_handler(&ev, cq->ibcq.cq_context);
++			/* Get address of user space mminfo struct */
++			err = ib_copy_from_udata(&mi_addr, udata,
++						sizeof(mi_addr));
++			if (err)
++				goto err1;
++
++			udata->outbuf = (void __user *)(unsigned long)mi_addr;
++			udata->outlen = sizeof(mi);
++
++			err = ib_copy_to_udata(udata, &mi, sizeof(mi));
++			if (err)
++				goto err1;
 +		}
 +
-+		return -EBUSY;
++		err = rxe_queue_resize(q, (unsigned int *)&attr->max_wr,
++				       RCV_WQE_SIZE(srq->rq.max_sge),
++				       srq->rq.queue->ip ?
++						srq->rq.queue->ip->context :
++						NULL,
++				       udata, &srq->rq.producer_lock,
++				       &srq->rq.consumer_lock);
++		if (err)
++			goto err2;
 +	}
 +
-+	memcpy(producer_addr(cq->queue), cqe, sizeof(*cqe));
-+
-+	/* make sure all changes to the CQ are written before
-+	   we update the producer pointer */
-+	wmb();
-+
-+	advance_producer(cq->queue);
-+	spin_unlock_irqrestore(&cq->cq_lock, flags);
-+
-+	if ((cq->notify == IB_CQ_NEXT_COMP) ||
-+	    (cq->notify == IB_CQ_SOLICITED && solicited)) {
-+		cq->notify++;
-+		tasklet_schedule(&cq->comp_task);
-+	}
++	if (mask & IB_SRQ_LIMIT)
++		srq->limit = attr->srq_limit;
 +
 +	return 0;
++
++err2:
++	rxe_queue_cleanup(q);
++	srq->rq.queue = NULL;
++err1:
++	return err;
 +}
 +
-+void rxe_cq_cleanup(void *arg)
++void rxe_srq_cleanup(void *arg)
 +{
-+	struct rxe_cq *cq = arg;
++	struct rxe_srq *srq = (struct rxe_srq *)arg;
 +
-+	if (cq->queue)
-+		rxe_queue_cleanup(cq->queue);
++	if (srq->rq.queue)
++		rxe_queue_cleanup(srq->rq.queue);
 +}
 
 
