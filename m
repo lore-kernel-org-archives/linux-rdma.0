@@ -1,28 +1,28 @@
 From: rpearson-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org
-Subject: [patch v2 10/37] add rxe_queue.h
-Date: Sun, 24 Jul 2011 14:43:10 -0500
-Message-ID: <20110724201228.611945874@systemfabricworks.com>
+Subject: [patch v2 18/37] add rxe_av.c
+Date: Sun, 24 Jul 2011 14:43:18 -0500
+Message-ID: <20110724201229.013780433@systemfabricworks.com>
 References: <20110724194300.421253331@systemfabricworks.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline; filename=add-rxe_queue.h
+Content-Disposition: inline; filename=add-rxe_av.c
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: rpearson-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-declarations for common work and completion queue.
+Address vector implementation details.
 
 Signed-off-by: Bob Pearson <rpearson-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org>
 
 ---
- drivers/infiniband/hw/rxe/rxe_queue.h |  174 ++++++++++++++++++++++++++++++++++
- 1 file changed, 174 insertions(+)
+ drivers/infiniband/hw/rxe/rxe_av.c |   75 +++++++++++++++++++++++++++++++++++++
+ 1 file changed, 75 insertions(+)
 
-Index: infiniband/drivers/infiniband/hw/rxe/rxe_queue.h
+Index: infiniband/drivers/infiniband/hw/rxe/rxe_av.c
 ===================================================================
 --- /dev/null
-+++ infiniband/drivers/infiniband/hw/rxe/rxe_queue.h
-@@ -0,0 +1,174 @@
++++ infiniband/drivers/infiniband/hw/rxe/rxe_av.c
+@@ -0,0 +1,75 @@
 +/*
 + * Copyright (c) 2009-2011 Mellanox Technologies Ltd. All rights reserved.
 + * Copyright (c) 2009-2011 System Fabric Works, Inc. All rights reserved.
@@ -33,18 +33,18 @@ Index: infiniband/drivers/infiniband/hw/rxe/rxe_queue.h
 + * COPYING in the main directory of this source tree, or the
 + * OpenIB.org BSD license below:
 + *
-+ *     Redistribution and use in source and binary forms, with or
-+ *     without modification, are permitted provided that the following
-+ *     conditions are met:
++ *	   Redistribution and use in source and binary forms, with or
++ *	   without modification, are permitted provided that the following
++ *	   conditions are met:
 + *
-+ *	- Redistributions of source code must retain the above
-+ *	  copyright notice, this list of conditions and the following
-+ *	  disclaimer.
++ *		- Redistributions of source code must retain the above
++ *		  copyright notice, this list of conditions and the following
++ *		  disclaimer.
 + *
-+ *	- Redistributions in binary form must reproduce the above
-+ *	  copyright notice, this list of conditions and the following
-+ *	  disclaimer in the documentation and/or other materials
-+ *	  provided with the distribution.
++ *		- Redistributions in binary form must reproduce the above
++ *		  copyright notice, this list of conditions and the following
++ *		  disclaimer in the documentation and/or other materials
++ *		  provided with the distribution.
 + *
 + * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
 + * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
@@ -56,147 +56,48 @@ Index: infiniband/drivers/infiniband/hw/rxe/rxe_queue.h
 + * SOFTWARE.
 + */
 +
-+#ifndef RXE_QUEUE_H
-+#define RXE_QUEUE_H
++/* address handle implementation shared by ah and qp verbs */
 +
-+/* implements a simple circular buffer that can optionally be
-+   shared between user space and the kernel and can be resized
++#include "rxe.h"
++#include "rxe_loc.h"
 +
-+   the requested element size is rounded up to a power of 2
-+   and the number of elements in the buffer is also rounded
-+   up to a power of 2. Since the queue is empty when the
-+   producer and consumer indices match the maximum capacity
-+   of the queue is one less than the number of element slots */
-+
-+/* this data structure is shared between user space and kernel
-+   space for those cases where the queue is shared. It contains
-+   the producer and consumer indices. Is also contains a copy
-+   of the queue size parameters for user space to use but the
-+   kernel must use the parameters in the rxe_queue struct
-+   this MUST MATCH the corresponding librxe struct
-+   for performance reasons arrange to have producer and consumer
-+   pointers in separate cache lines
-+   the kernel should always mask the indices to avoid accessing
-+   memory outside of the data area */
-+struct rxe_queue_buf {
-+	__u32			log2_elem_size;
-+	__u32			index_mask;
-+	__u32			pad_1[30];
-+	__u32			producer_index;
-+	__u32			pad_2[31];
-+	__u32			consumer_index;
-+	__u32			pad_3[31];
-+	__u8			data[0];
-+};
-+
-+struct rxe_queue {
-+	struct rxe_dev		*rxe;
-+	struct rxe_queue_buf	*buf;
-+	struct rxe_mmap_info	*ip;
-+	size_t			buf_size;
-+	size_t			elem_size;
-+	unsigned int		log2_elem_size;
-+	unsigned int		index_mask;
-+};
-+
-+int do_mmap_info(struct rxe_dev *rxe,
-+		 struct ib_udata *udata,
-+		 int offset,
-+		 struct ib_ucontext *context,
-+		 struct rxe_queue_buf *buf,
-+		 size_t buf_size,
-+		 struct rxe_mmap_info **ip_p);
-+
-+struct rxe_queue *rxe_queue_init(struct rxe_dev *rxe,
-+				 unsigned int *num_elem,
-+				 unsigned int elem_size);
-+
-+int rxe_queue_resize(struct rxe_queue *q,
-+		     unsigned int *num_elem_p,
-+		     unsigned int elem_size,
-+		     struct ib_ucontext *context,
-+		     struct ib_udata *udata,
-+		     spinlock_t *producer_lock,
-+		     spinlock_t *consumer_lock);
-+
-+void rxe_queue_cleanup(struct rxe_queue *queue);
-+
-+static inline int next_index(struct rxe_queue *q, int index)
++int rxe_av_chk_attr(struct rxe_dev *rxe, struct ib_ah_attr *attr)
 +{
-+	return (index + 1) & q->buf->index_mask;
++	struct rxe_port *port;
++
++	if (attr->port_num < 1 || attr->port_num > rxe->num_ports) {
++		pr_info("rxe: invalid port_num = %d\n", attr->port_num);
++		return -EINVAL;
++	}
++
++	port = &rxe->port[attr->port_num - 1];
++
++	if (attr->ah_flags & IB_AH_GRH) {
++		if (attr->grh.sgid_index > port->attr.gid_tbl_len) {
++			pr_info("rxe: invalid sgid index = %d\n",
++				 attr->grh.sgid_index);
++			return -EINVAL;
++		}
++	}
++
++	return 0;
 +}
 +
-+static inline int queue_empty(struct rxe_queue *q)
++int rxe_av_from_attr(struct rxe_dev *rxe, u8 port_num,
++		     struct rxe_av *av, struct ib_ah_attr *attr)
 +{
-+	return ((q->buf->producer_index - q->buf->consumer_index)
-+			& q->index_mask) == 0;
++	memset(av, 0, sizeof(*av));
++	av->attr = *attr;
++	av->attr.port_num = port_num;
++	return rxe->ifc_ops->init_av(rxe, attr, av);
 +}
 +
-+static inline int queue_full(struct rxe_queue *q)
++int rxe_av_to_attr(struct rxe_dev *rxe, struct rxe_av *av,
++		   struct ib_ah_attr *attr)
 +{
-+	return ((q->buf->producer_index + 1 - q->buf->consumer_index)
-+			& q->index_mask) == 0;
++	*attr = av->attr;
++	return 0;
 +}
-+
-+static inline void advance_producer(struct rxe_queue *q)
-+{
-+	q->buf->producer_index = (q->buf->producer_index + 1)
-+			& q->index_mask;
-+}
-+
-+static inline void advance_consumer(struct rxe_queue *q)
-+{
-+	q->buf->consumer_index = (q->buf->consumer_index + 1)
-+			& q->index_mask;
-+}
-+
-+static inline void *producer_addr(struct rxe_queue *q)
-+{
-+	return q->buf->data + ((q->buf->producer_index & q->index_mask)
-+				<< q->log2_elem_size);
-+}
-+
-+static inline void *consumer_addr(struct rxe_queue *q)
-+{
-+	return q->buf->data + ((q->buf->consumer_index & q->index_mask)
-+				<< q->log2_elem_size);
-+}
-+
-+static inline unsigned int producer_index(struct rxe_queue *q)
-+{
-+	return q->buf->producer_index;
-+}
-+
-+static inline unsigned int consumer_index(struct rxe_queue *q)
-+{
-+	return q->buf->consumer_index;
-+}
-+
-+static inline void *addr_from_index(struct rxe_queue *q, unsigned int index)
-+{
-+	return q->buf->data + ((index & q->index_mask)
-+				<< q->buf->log2_elem_size);
-+}
-+
-+static inline unsigned int index_from_addr(const struct rxe_queue *q,
-+					   const void *addr)
-+{
-+	return (((u8 *)addr - q->buf->data) >> q->log2_elem_size)
-+		& q->index_mask;
-+}
-+
-+static inline unsigned int queue_count(const struct rxe_queue *q)
-+{
-+	return (q->buf->producer_index - q->buf->consumer_index)
-+		& q->index_mask;
-+}
-+
-+static inline void *queue_head(struct rxe_queue *q)
-+{
-+	return queue_empty(q) ? NULL : consumer_addr(q);
-+}
-+
-+#endif /* RXE_QUEUE_H */
 
 
 --
