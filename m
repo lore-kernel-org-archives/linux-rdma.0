@@ -1,29 +1,30 @@
 From: rpearson-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org
-Subject: [patch v2 35/37] add rxe_sample.c
-Date: Sun, 24 Jul 2011 14:43:35 -0500
-Message-ID: <20110724201229.865806162@systemfabricworks.com>
+Subject: [patch v2 34/37] add rxe_net_sysfs.c
+Date: Sun, 24 Jul 2011 14:43:34 -0500
+Message-ID: <20110724201229.815123934@systemfabricworks.com>
 References: <20110724194300.421253331@systemfabricworks.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline; filename=add-rxe_net_sample.c
+Content-Disposition: inline; filename=add-rxe_net_sysfs.c
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: rpearson-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-module that implements a soft IB device using ib_rxe in loopback.
+sysfs interface for ib_rxe_net.
 
 Signed-off-by: Bob Pearson <rpearson-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org>
 
 ---
- drivers/infiniband/hw/rxe/rxe_sample.c |  226 +++++++++++++++++++++++++++++++++
- 1 file changed, 226 insertions(+)
+ drivers/infiniband/hw/rxe/rxe_net_sysfs.c |  229 ++++++++++++++++++++++++++++++
+ 1 file changed, 229 insertions(+)
 
-Index: infiniband/drivers/infiniband/hw/rxe/rxe_sample.c
+Index: infiniband/drivers/infiniband/hw/rxe/rxe_net_sysfs.c
 ===================================================================
 --- /dev/null
-+++ infiniband/drivers/infiniband/hw/rxe/rxe_sample.c
-@@ -0,0 +1,226 @@
++++ infiniband/drivers/infiniband/hw/rxe/rxe_net_sysfs.c
+@@ -0,0 +1,229 @@
 +/*
++ * Copyright (c) 2009-2011 Mellanox Technologies Ltd. All rights reserved.
 + * Copyright (c) 2009-2011 System Fabric Works, Inc. All rights reserved.
 + *
 + * This software is available to you under a choice of one of two
@@ -55,200 +56,202 @@ Index: infiniband/drivers/infiniband/hw/rxe/rxe_sample.c
 + * SOFTWARE.
 + */
 +
-+/*
-+ * sample driver for IB transport over rxe
-+ * implements a simple loopback device on module load
-+ */
-+
-+#include <linux/skbuff.h>
-+
-+#include <linux/device.h>
-+
 +#include "rxe.h"
++#include "rxe_net.h"
 +
-+MODULE_AUTHOR("Bob Pearson");
-+MODULE_DESCRIPTION("RDMA transport over Converged Enhanced Ethernet");
-+MODULE_LICENSE("Dual BSD/GPL");
-+
-+static __be64 node_guid(struct rxe_dev *rxe)
++/* Copy argument and remove trailing CR. Return the new length. */
++static int sanitize_arg(const char *val, char *intf, int intf_len)
 +{
-+	return cpu_to_be64(0x3333333333333333ULL);
++	int len;
++
++	if (!val)
++		return 0;
++
++	/* Remove newline. */
++	for (len = 0; len < intf_len - 1 && val[len] && val[len] != '\n'; len++)
++		intf[len] = val[len];
++	intf[len] = 0;
++
++	if (len == 0 || (val[len] != 0 && val[len] != '\n'))
++		return 0;
++
++	return len;
 +}
 +
-+static __be64 port_guid(struct rxe_dev *rxe, unsigned int port_num)
++/* Caller must hold net_info_lock */
++static void rxe_set_port_state(struct net_device *ndev)
 +{
-+	return cpu_to_be64(0x4444444444444444ULL);
++	struct rxe_dev *rxe;
++
++	if (ndev->ifindex >= RXE_MAX_IF_INDEX)
++		goto out;
++
++	rxe = net_to_rxe(ndev);
++	if (!rxe)
++		goto out;
++
++	if (net_info[ndev->ifindex].status == IB_PORT_ACTIVE)
++		rxe_net_up(ndev);
++	else
++		rxe_net_down(ndev); /* down for unknown state */
++out:
++	return;
 +}
 +
-+/*
-+ * the ofed core requires that we provide a valid device
-+ * object for registration
-+ */
-+static struct class *my_class;
-+static struct device *my_dev;
-+
-+static struct device *dma_device(struct rxe_dev *rxe)
++static int rxe_param_set_add(const char *val, struct kernel_param *kp)
 +{
-+	return my_dev;
-+}
++	int i, len;
++	char intf[32];
 +
-+static int mcast_add(struct rxe_dev *rxe, union ib_gid *mgid)
-+{
-+	return 0;
-+}
-+
-+static int mcast_delete(struct rxe_dev *rxe, union ib_gid *mgid)
-+{
-+	return 0;
-+}
-+
-+/* just loopback packet */
-+static int send(struct rxe_dev *rxe, struct sk_buff *skb)
-+{
-+	struct rxe_pkt_info *pkt = SKB_TO_PKT(skb);
-+
-+	pkt->rxe = rxe;
-+	pkt->mask = RXE_LRH_MASK;
-+
-+	return rxe_rcv(skb);
-+}
-+
-+static struct sk_buff *init_packet(struct rxe_dev *rxe, struct rxe_av *av,
-+				   int paylen)
-+{
-+	struct sk_buff *skb;
-+	struct rxe_pkt_info *pkt;
-+
-+	paylen += RXE_LRH_BYTES;
-+
-+	if (av->attr.ah_flags & IB_AH_GRH)
-+		paylen += RXE_GRH_BYTES;
-+
-+	skb = alloc_skb(paylen, GFP_ATOMIC);
-+	if (!skb)
-+		return NULL;
-+
-+	skb->dev	= NULL;
-+	skb->protocol	= 0;
-+
-+	pkt		= SKB_TO_PKT(skb);
-+	pkt->rxe	= rxe;
-+	pkt->port_num	= 1;
-+	pkt->hdr	= skb_put(skb, paylen);
-+	pkt->mask	= RXE_LRH_MASK;
-+	if (av->attr.ah_flags & IB_AH_GRH)
-+		pkt->mask	|= RXE_GRH_MASK;
-+
-+	return skb;
-+}
-+
-+static int init_av(struct rxe_dev *rxe, struct ib_ah_attr *attr,
-+		   struct rxe_av *av)
-+{
-+	if (!av->attr.dlid)
-+		av->attr.dlid = 1;
-+	return 0;
-+}
-+
-+static char *parent_name(struct rxe_dev *rxe, unsigned int port_num)
-+{
-+	return "sample";
-+}
-+
-+static enum rdma_link_layer link_layer(struct rxe_dev *rxe,
-+				       unsigned int port_num)
-+{
-+	return IB_LINK_LAYER_INFINIBAND;
-+}
-+
-+static struct rxe_ifc_ops ifc_ops = {
-+	.node_guid	= node_guid,
-+	.port_guid	= port_guid,
-+	.dma_device	= dma_device,
-+	.mcast_add	= mcast_add,
-+	.mcast_delete	= mcast_delete,
-+	.send		= send,
-+	.init_packet	= init_packet,
-+	.init_av	= init_av,
-+	.parent_name	= parent_name,
-+	.link_layer	= link_layer,
-+};
-+
-+static struct rxe_dev *rxe_sample;
-+
-+static int rxe_sample_add(void)
-+{
-+	int err;
-+	struct rxe_port *port;
-+
-+	rxe_sample = (struct rxe_dev *)ib_alloc_device(sizeof(*rxe_sample));
-+	if (!rxe_sample) {
-+		err = -ENOMEM;
-+		goto err1;
++	len = sanitize_arg(val, intf, sizeof(intf));
++	if (!len) {
++		pr_err("rxe_net: add: invalid interface name\n");
++		return -EINVAL;
 +	}
 +
-+	rxe_sample->ifc_ops = &ifc_ops;
++	spin_lock_bh(&net_info_lock);
++	for (i = 0; i < RXE_MAX_IF_INDEX; i++) {
++		struct net_device *ndev = net_info[i].ndev;
 +
-+	err = rxe_add(rxe_sample, 4500);
-+	if (err)
-+		goto err2;
++		if (ndev && (0 == strncmp(intf, ndev->name, len))) {
++			spin_unlock_bh(&net_info_lock);
++			if (net_info[i].rxe)
++				pr_info("rxe_net: already configured on %s\n",
++					intf);
++			else {
++				rxe_net_add(ndev);
++				if (net_info[i].rxe) {
++					rxe_set_port_state(ndev);
++				} else
++					pr_err("rxe_net: add appears to have "
++					       "failed for %s (index %d)\n",
++					       intf, i);
++			}
++			return 0;
++		}
++	}
++	spin_unlock_bh(&net_info_lock);
 +
-+	/* bit of a hack */
-+	port = &rxe_sample->port[0];
-+	port->attr.state = IB_PORT_ACTIVE;
-+	port->attr.phys_state = 5;
-+	port->attr.max_mtu = IB_MTU_4096;
-+	port->attr.active_mtu = IB_MTU_4096;
-+	port->mtu_cap = IB_MTU_4096;
-+	port->attr.lid = 1;
++	pr_warning("interface %s not found\n", intf);
 +
-+	pr_info("rxe_sample: added %s\n",
-+		 rxe_sample->ib_dev.name);
 +	return 0;
-+
-+err2:
-+	ib_dealloc_device(&rxe_sample->ib_dev);
-+err1:
-+	return err;
 +}
 +
-+static void rxe_sample_remove(void)
++static void rxe_remove_all(void)
 +{
-+	if (!rxe_sample)
-+		goto done;
++	int i;
++	struct rxe_dev *rxe;
 +
-+	rxe_remove(rxe_sample);
++	for (i = 0; i < RXE_MAX_IF_INDEX; i++) {
++		if (net_info[i].rxe) {
++			spin_lock_bh(&net_info_lock);
++			rxe = net_info[i].rxe;
++			net_info[i].rxe = NULL;
++			spin_unlock_bh(&net_info_lock);
 +
-+	pr_info("rxe_sample: removed %s\n",
-+		rxe_sample->ib_dev.name);
-+done:
-+	return;
++			rxe_remove(rxe);
++		}
++	}
 +}
 +
-+static int __init rxe_sample_init(void)
++static int rxe_param_set_remove(const char *val, struct kernel_param *kp)
 +{
-+	int err;
++	int i, len;
++	char intf[32];
++	struct rxe_dev *rxe;
 +
-+	rxe_crc_disable = 1;
++	len = sanitize_arg(val, intf, sizeof(intf));
++	if (!len) {
++		pr_err("rxe_net: remove: invalid interface name\n");
++		return -EINVAL;
++	}
 +
-+	my_class = class_create(THIS_MODULE, "foo");
-+	my_dev = device_create(my_class, NULL, 0, NULL, "bar");
++	if (strncmp("all", intf, len) == 0) {
++		pr_info("rxe_sys: remove all");
++		rxe_remove_all();
++		return 0;
++	}
 +
-+	err = rxe_sample_add();
-+	return err;
++	spin_lock_bh(&net_info_lock);
++	for (i = 0; i < RXE_MAX_IF_INDEX; i++) {
++		if (!net_info[i].rxe || !net_info[i].ndev)
++			continue;
++
++		if (0 == strncmp(intf, net_info[i].rxe->ib_dev.name, len)) {
++			rxe = net_info[i].rxe;
++			net_info[i].rxe = NULL;
++			spin_unlock_bh(&net_info_lock);
++
++			rxe_remove(rxe);
++			return 0;
++		}
++	}
++	spin_unlock_bh(&net_info_lock);
++	pr_warning("rxe_sys: instance %s not found\n", intf);
++
++	return 0;
 +}
 +
-+static void __exit rxe_sample_exit(void)
++module_param_call(add, rxe_param_set_add, NULL, NULL, 0200);
++module_param_call(remove, rxe_param_set_remove, NULL, NULL, 0200);
++
++static int rxe_param_set_mtu(const char *val, struct kernel_param *kp)
 +{
-+	rxe_sample_remove();
++	int i, rc, len;
++	int do_all = 0;
++	char intf[32];
++	char cmd[32];
++	int tmp_mtu;
 +
-+	device_destroy(my_class, my_dev->devt);
-+	class_destroy(my_class);
-+	return;
++	len = sanitize_arg(val, intf, sizeof(intf));
++	if (!len)
++		return -EINVAL;
++
++	rc = sscanf(intf, "%s %d", cmd, &tmp_mtu);
++	if (rc != 2) {
++		pr_warning("rxe_net: mtu bogus input (%s)\n", intf);
++		goto out;
++	}
++
++	pr_info("set_mtu: %s %d\n", cmd, tmp_mtu);
++
++	if (!(is_power_of_2(tmp_mtu)
++	      && (tmp_mtu >= 256)
++	      && (tmp_mtu <= 4096))) {
++		pr_warning("rxe_net: bogus mtu (%s - %d pow2  %d)\n",
++			   intf, tmp_mtu, is_power_of_2(tmp_mtu));
++		goto out;
++	}
++
++	tmp_mtu = rxe_mtu_int_to_enum(tmp_mtu);
++
++	if (strcmp("all", cmd) == 0)
++		do_all = 1;
++
++	spin_lock_bh(&net_info_lock);
++	for (i = 0; i < RXE_MAX_IF_INDEX; i++) {
++		if (net_info[i].rxe && net_info[i].ndev) {
++			if (do_all
++			    || (0 == strncmp(cmd,
++					     net_info[i].rxe->ib_dev.name,
++					     len))) {
++				net_info[i].rxe->pref_mtu = tmp_mtu;
++
++				rxe_set_mtu(net_info[i].rxe,
++					    net_info[i].ndev->mtu, 1);
++
++				if (!do_all)
++					break;
++			}
++		}
++	}
++	spin_unlock_bh(&net_info_lock);
++
++out:
++	return 0;
 +}
 +
-+module_init(rxe_sample_init);
-+module_exit(rxe_sample_exit);
++module_param_call(mtu, rxe_param_set_mtu, NULL, NULL, 0200);
 
 
 --
