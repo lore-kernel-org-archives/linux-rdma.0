@@ -1,32 +1,30 @@
 From: rpearson-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org
-Subject: [patch v2 29/37] add rxe_dma.c
-Date: Sun, 24 Jul 2011 14:43:29 -0500
-Message-ID: <20110724201229.565188525@systemfabricworks.com>
+Subject: [patch v2 35/37] add rxe_sample.c
+Date: Sun, 24 Jul 2011 14:43:35 -0500
+Message-ID: <20110724201229.865806162@systemfabricworks.com>
 References: <20110724194300.421253331@systemfabricworks.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline; filename=add-rxe_dma.c
+Content-Disposition: inline; filename=add-rxe_net_sample.c
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: rpearson-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Dummy dma processing for rxe device.
+module that implements a soft IB device using ib_rxe in loopback.
 
 Signed-off-by: Bob Pearson <rpearson-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org>
 
 ---
- drivers/infiniband/hw/rxe/rxe_dma.c |  178 ++++++++++++++++++++++++++++++++++++
- 1 file changed, 178 insertions(+)
+ drivers/infiniband/hw/rxe/rxe_sample.c |  226 +++++++++++++++++++++++++++++++++
+ 1 file changed, 226 insertions(+)
 
-Index: infiniband/drivers/infiniband/hw/rxe/rxe_dma.c
+Index: infiniband/drivers/infiniband/hw/rxe/rxe_sample.c
 ===================================================================
 --- /dev/null
-+++ infiniband/drivers/infiniband/hw/rxe/rxe_dma.c
-@@ -0,0 +1,178 @@
++++ infiniband/drivers/infiniband/hw/rxe/rxe_sample.c
+@@ -0,0 +1,226 @@
 +/*
-+ * Copyright (c) 2009-2011 Mellanox Technologies Ltd. All rights reserved.
 + * Copyright (c) 2009-2011 System Fabric Works, Inc. All rights reserved.
-+ * Copyright (c) 2006 QLogic, Corporation. All rights reserved.
 + *
 + * This software is available to you under a choice of one of two
 + * licenses.  You may choose to be licensed under the terms of the GNU
@@ -57,150 +55,200 @@ Index: infiniband/drivers/infiniband/hw/rxe/rxe_dma.c
 + * SOFTWARE.
 + */
 +
++/*
++ * sample driver for IB transport over rxe
++ * implements a simple loopback device on module load
++ */
++
++#include <linux/skbuff.h>
++
++#include <linux/device.h>
++
 +#include "rxe.h"
-+#include "rxe_loc.h"
 +
-+static int rxe_mapping_error(struct ib_device *dev, u64 dma_addr)
++MODULE_AUTHOR("Bob Pearson");
++MODULE_DESCRIPTION("RDMA transport over Converged Enhanced Ethernet");
++MODULE_LICENSE("Dual BSD/GPL");
++
++static __be64 node_guid(struct rxe_dev *rxe)
 +{
-+	return dma_addr == 0;
++	return cpu_to_be64(0x3333333333333333ULL);
 +}
 +
-+static u64 rxe_dma_map_single(struct ib_device *dev,
-+			      void *cpu_addr, size_t size,
-+			      enum dma_data_direction direction)
++static __be64 port_guid(struct rxe_dev *rxe, unsigned int port_num)
 +{
-+	BUG_ON(!valid_dma_direction(direction));
-+	return (u64) (uintptr_t) cpu_addr;
++	return cpu_to_be64(0x4444444444444444ULL);
 +}
 +
-+static void rxe_dma_unmap_single(struct ib_device *dev,
-+				 u64 addr, size_t size,
-+				 enum dma_data_direction direction)
++/*
++ * the ofed core requires that we provide a valid device
++ * object for registration
++ */
++static struct class *my_class;
++static struct device *my_dev;
++
++static struct device *dma_device(struct rxe_dev *rxe)
 +{
-+	BUG_ON(!valid_dma_direction(direction));
++	return my_dev;
 +}
 +
-+static u64 rxe_dma_map_page(struct ib_device *dev,
-+			    struct page *page,
-+			    unsigned long offset,
-+			    size_t size, enum dma_data_direction direction)
++static int mcast_add(struct rxe_dev *rxe, union ib_gid *mgid)
 +{
-+	u64 addr = 0;
-+
-+	BUG_ON(!valid_dma_direction(direction));
-+
-+	if (offset + size > PAGE_SIZE)
-+		goto out;
-+
-+	addr = (uintptr_t) page_address(page);
-+	if (addr)
-+		addr += offset;
-+
-+out:
-+	return addr;
++	return 0;
 +}
 +
-+static void rxe_dma_unmap_page(struct ib_device *dev,
-+			       u64 addr, size_t size,
-+			       enum dma_data_direction direction)
++static int mcast_delete(struct rxe_dev *rxe, union ib_gid *mgid)
 +{
-+	BUG_ON(!valid_dma_direction(direction));
++	return 0;
 +}
 +
-+static int rxe_map_sg(struct ib_device *dev, struct scatterlist *sgl,
-+		      int nents, enum dma_data_direction direction)
++/* just loopback packet */
++static int send(struct rxe_dev *rxe, struct sk_buff *skb)
 +{
-+	struct scatterlist *sg;
-+	u64 addr;
-+	int i;
-+	int ret = nents;
++	struct rxe_pkt_info *pkt = SKB_TO_PKT(skb);
 +
-+	BUG_ON(!valid_dma_direction(direction));
++	pkt->rxe = rxe;
++	pkt->mask = RXE_LRH_MASK;
 +
-+	for_each_sg(sgl, sg, nents, i) {
-+		addr = (uintptr_t) page_address(sg_page(sg));
-+		/* TODO: handle highmem pages */
-+		if (!addr) {
-+			ret = 0;
-+			break;
-+		}
++	return rxe_rcv(skb);
++}
++
++static struct sk_buff *init_packet(struct rxe_dev *rxe, struct rxe_av *av,
++				   int paylen)
++{
++	struct sk_buff *skb;
++	struct rxe_pkt_info *pkt;
++
++	paylen += RXE_LRH_BYTES;
++
++	if (av->attr.ah_flags & IB_AH_GRH)
++		paylen += RXE_GRH_BYTES;
++
++	skb = alloc_skb(paylen, GFP_ATOMIC);
++	if (!skb)
++		return NULL;
++
++	skb->dev	= NULL;
++	skb->protocol	= 0;
++
++	pkt		= SKB_TO_PKT(skb);
++	pkt->rxe	= rxe;
++	pkt->port_num	= 1;
++	pkt->hdr	= skb_put(skb, paylen);
++	pkt->mask	= RXE_LRH_MASK;
++	if (av->attr.ah_flags & IB_AH_GRH)
++		pkt->mask	|= RXE_GRH_MASK;
++
++	return skb;
++}
++
++static int init_av(struct rxe_dev *rxe, struct ib_ah_attr *attr,
++		   struct rxe_av *av)
++{
++	if (!av->attr.dlid)
++		av->attr.dlid = 1;
++	return 0;
++}
++
++static char *parent_name(struct rxe_dev *rxe, unsigned int port_num)
++{
++	return "sample";
++}
++
++static enum rdma_link_layer link_layer(struct rxe_dev *rxe,
++				       unsigned int port_num)
++{
++	return IB_LINK_LAYER_INFINIBAND;
++}
++
++static struct rxe_ifc_ops ifc_ops = {
++	.node_guid	= node_guid,
++	.port_guid	= port_guid,
++	.dma_device	= dma_device,
++	.mcast_add	= mcast_add,
++	.mcast_delete	= mcast_delete,
++	.send		= send,
++	.init_packet	= init_packet,
++	.init_av	= init_av,
++	.parent_name	= parent_name,
++	.link_layer	= link_layer,
++};
++
++static struct rxe_dev *rxe_sample;
++
++static int rxe_sample_add(void)
++{
++	int err;
++	struct rxe_port *port;
++
++	rxe_sample = (struct rxe_dev *)ib_alloc_device(sizeof(*rxe_sample));
++	if (!rxe_sample) {
++		err = -ENOMEM;
++		goto err1;
 +	}
 +
-+	return ret;
++	rxe_sample->ifc_ops = &ifc_ops;
++
++	err = rxe_add(rxe_sample, 4500);
++	if (err)
++		goto err2;
++
++	/* bit of a hack */
++	port = &rxe_sample->port[0];
++	port->attr.state = IB_PORT_ACTIVE;
++	port->attr.phys_state = 5;
++	port->attr.max_mtu = IB_MTU_4096;
++	port->attr.active_mtu = IB_MTU_4096;
++	port->mtu_cap = IB_MTU_4096;
++	port->attr.lid = 1;
++
++	pr_info("rxe_sample: added %s\n",
++		 rxe_sample->ib_dev.name);
++	return 0;
++
++err2:
++	ib_dealloc_device(&rxe_sample->ib_dev);
++err1:
++	return err;
 +}
 +
-+static void rxe_unmap_sg(struct ib_device *dev,
-+			 struct scatterlist *sg, int nents,
-+			 enum dma_data_direction direction)
++static void rxe_sample_remove(void)
 +{
-+	BUG_ON(!valid_dma_direction(direction));
++	if (!rxe_sample)
++		goto done;
++
++	rxe_remove(rxe_sample);
++
++	pr_info("rxe_sample: removed %s\n",
++		rxe_sample->ib_dev.name);
++done:
++	return;
 +}
 +
-+static u64 rxe_sg_dma_address(struct ib_device *dev, struct scatterlist *sg)
++static int __init rxe_sample_init(void)
 +{
-+	u64 addr = (uintptr_t) page_address(sg_page(sg));
++	int err;
 +
-+	if (addr)
-+		addr += sg->offset;
++	rxe_crc_disable = 1;
 +
-+	return addr;
++	my_class = class_create(THIS_MODULE, "foo");
++	my_dev = device_create(my_class, NULL, 0, NULL, "bar");
++
++	err = rxe_sample_add();
++	return err;
 +}
 +
-+static unsigned int rxe_sg_dma_len(struct ib_device *dev,
-+				   struct scatterlist *sg)
++static void __exit rxe_sample_exit(void)
 +{
-+	return sg->length;
++	rxe_sample_remove();
++
++	device_destroy(my_class, my_dev->devt);
++	class_destroy(my_class);
++	return;
 +}
 +
-+static void rxe_sync_single_for_cpu(struct ib_device *dev,
-+				    u64 addr,
-+				    size_t size, enum dma_data_direction dir)
-+{
-+}
-+
-+static void rxe_sync_single_for_device(struct ib_device *dev,
-+				       u64 addr,
-+				       size_t size, enum dma_data_direction dir)
-+{
-+}
-+
-+static void *rxe_dma_alloc_coherent(struct ib_device *dev, size_t size,
-+				    u64 *dma_handle, gfp_t flag)
-+{
-+	struct page *p;
-+	void *addr = NULL;
-+
-+	p = alloc_pages(flag, get_order(size));
-+	if (p)
-+		addr = page_address(p);
-+
-+	if (dma_handle)
-+		*dma_handle = (uintptr_t) addr;
-+
-+	return addr;
-+}
-+
-+static void rxe_dma_free_coherent(struct ib_device *dev, size_t size,
-+				  void *cpu_addr, u64 dma_handle)
-+{
-+	free_pages((unsigned long)cpu_addr, get_order(size));
-+}
-+
-+struct ib_dma_mapping_ops rxe_dma_mapping_ops = {
-+	rxe_mapping_error,
-+	rxe_dma_map_single,
-+	rxe_dma_unmap_single,
-+	rxe_dma_map_page,
-+	rxe_dma_unmap_page,
-+	rxe_map_sg,
-+	rxe_unmap_sg,
-+	rxe_sg_dma_address,
-+	rxe_sg_dma_len,
-+	rxe_sync_single_for_cpu,
-+	rxe_sync_single_for_device,
-+	rxe_dma_alloc_coherent,
-+	rxe_dma_free_coherent
-+};
++module_init(rxe_sample_init);
++module_exit(rxe_sample_exit);
 
 
 --
