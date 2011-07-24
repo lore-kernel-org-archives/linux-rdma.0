@@ -1,32 +1,31 @@
 From: rpearson-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org
-Subject: [patch v2 09/37] add rxe_mmap.c
-Date: Sun, 24 Jul 2011 14:43:09 -0500
-Message-ID: <20110724201228.563992343@systemfabricworks.com>
+Subject: [patch v2 16/37] add rxe_task.h
+Date: Sun, 24 Jul 2011 14:43:16 -0500
+Message-ID: <20110724201228.913207032@systemfabricworks.com>
 References: <20110724194300.421253331@systemfabricworks.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline; filename=add-rxe_mmap.c
+Content-Disposition: inline; filename=add-rxe_task.h
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: rpearson-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-mmap routines.
+Declarations for tasklet handling.
 
 Signed-off-by: Bob Pearson <rpearson-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org>
 
 ---
- drivers/infiniband/hw/rxe/rxe_mmap.c |  171 +++++++++++++++++++++++++++++++++++
- 1 file changed, 171 insertions(+)
+ drivers/infiniband/hw/rxe/rxe_task.h |  107 +++++++++++++++++++++++++++++++++++
+ 1 file changed, 107 insertions(+)
 
-Index: infiniband/drivers/infiniband/hw/rxe/rxe_mmap.c
+Index: infiniband/drivers/infiniband/hw/rxe/rxe_task.h
 ===================================================================
 --- /dev/null
-+++ infiniband/drivers/infiniband/hw/rxe/rxe_mmap.c
-@@ -0,0 +1,171 @@
++++ infiniband/drivers/infiniband/hw/rxe/rxe_task.h
+@@ -0,0 +1,107 @@
 +/*
 + * Copyright (c) 2009-2011 Mellanox Technologies Ltd. All rights reserved.
 + * Copyright (c) 2009-2011 System Fabric Works, Inc. All rights reserved.
-+ * Copyright (c) 2006, 2007 QLogic Corporation. All rights reserved.
 + *
 + * This software is available to you under a choice of one of two
 + * licenses.  You may choose to be licensed under the terms of the GNU
@@ -34,9 +33,9 @@ Index: infiniband/drivers/infiniband/hw/rxe/rxe_mmap.c
 + * COPYING in the main directory of this source tree, or the
 + * OpenIB.org BSD license below:
 + *
-+ *     Redistribution and use in source and binary forms, with or
-+ *     without modification, are permitted provided that the following
-+ *     conditions are met:
++ *	   Redistribution and use in source and binary forms, with or
++ *	   without modification, are permitted provided that the following
++ *	   conditions are met:
 + *
 + *	- Redistributions of source code must retain the above
 + *	  copyright notice, this list of conditions and the following
@@ -57,143 +56,80 @@ Index: infiniband/drivers/infiniband/hw/rxe/rxe_mmap.c
 + * SOFTWARE.
 + */
 +
-+#include <linux/module.h>
-+#include <linux/vmalloc.h>
-+#include <linux/mm.h>
-+#include <linux/errno.h>
-+#include <asm/pgtable.h>
++#ifndef RXE_TASK_H
++#define RXE_TASK_H
 +
-+#include "rxe.h"
-+#include "rxe_loc.h"
-+#include "rxe_queue.h"
-+
-+void rxe_mmap_release(struct kref *ref)
-+{
-+	struct rxe_mmap_info *ip = container_of(ref,
-+					struct rxe_mmap_info, ref);
-+	struct rxe_dev *rxe = to_rdev(ip->context->device);
-+
-+	spin_lock_bh(&rxe->pending_lock);
-+
-+	if (!list_empty(&ip->pending_mmaps))
-+		list_del(&ip->pending_mmaps);
-+
-+	spin_unlock_bh(&rxe->pending_lock);
-+
-+	vfree(ip->obj);		/* buf */
-+	kfree(ip);
-+}
-+
-+/*
-+ * open and close keep track of how many times the CQ is mapped,
-+ * to avoid releasing it.
-+ */
-+static void rxe_vma_open(struct vm_area_struct *vma)
-+{
-+	struct rxe_mmap_info *ip = vma->vm_private_data;
-+
-+	kref_get(&ip->ref);
-+}
-+
-+static void rxe_vma_close(struct vm_area_struct *vma)
-+{
-+	struct rxe_mmap_info *ip = vma->vm_private_data;
-+
-+	kref_put(&ip->ref, rxe_mmap_release);
-+
-+}
-+
-+static struct vm_operations_struct rxe_vm_ops = {
-+	.open = rxe_vma_open,
-+	.close = rxe_vma_close,
++enum {
++	TASK_STATE_START	= 0,
++	TASK_STATE_BUSY		= 1,
++	TASK_STATE_ARMED	= 2,
 +};
 +
-+/**
-+ * rxe_mmap - create a new mmap region
-+ * @context: the IB user context of the process making the mmap() call
-+ * @vma: the VMA to be initialized
-+ * Return zero if the mmap is OK. Otherwise, return an errno.
++/*
++ * data structure to describe a 'task' which is a short
++ * function that returns 0 as long as it needs to be
++ * called again.
 + */
-+int rxe_mmap(struct ib_ucontext *context, struct vm_area_struct *vma)
-+{
-+	struct rxe_dev *rxe = to_rdev(context->device);
-+	unsigned long offset = vma->vm_pgoff << PAGE_SHIFT;
-+	unsigned long size = vma->vm_end - vma->vm_start;
-+	struct rxe_mmap_info *ip, *pp;
-+	int ret;
-+
-+	/*
-+	 * Search the device's list of objects waiting for a mmap call.
-+	 * Normally, this list is very short since a call to create a
-+	 * CQ, QP, or SRQ is soon followed by a call to mmap().
-+	 */
-+	spin_lock_bh(&rxe->pending_lock);
-+	list_for_each_entry_safe(ip, pp, &rxe->pending_mmaps, pending_mmaps) {
-+		if (context != ip->context || (__u64)offset != ip->info.offset)
-+			continue;
-+
-+		/* Don't allow a mmap larger than the object. */
-+		if (size > ip->info.size)
-+			break;
-+
-+		goto found_it;
-+	}
-+	pr_warning("unable to find pending mmap info\n");
-+	spin_unlock_bh(&rxe->pending_lock);
-+	ret = -EINVAL;
-+	goto done;
-+
-+found_it:
-+	list_del_init(&ip->pending_mmaps);
-+	spin_unlock_bh(&rxe->pending_lock);
-+
-+	ret = remap_vmalloc_range(vma, ip->obj, 0);
-+	if (ret) {
-+		pr_info("rxe: err %d from remap_vmalloc_range\n", ret);
-+		goto done;
-+	}
-+
-+	vma->vm_ops = &rxe_vm_ops;
-+	vma->vm_private_data = ip;
-+	rxe_vma_open(vma);
-+done:
-+	return ret;
-+}
++struct rxe_task {
++	void			*obj;
++	int			*fast;
++	struct tasklet_struct	tasklet;
++	int			state;
++	spinlock_t		state_lock;
++	void			*arg;
++	int			(*func)(void *arg);
++	int			ret;
++	char			name[16];
++};
 +
 +/*
-+ * Allocate information for rxe_mmap
++ * init rxe_task structure
++ *	fast => address of control flag, likely a module parameter
++ *	arg  => parameter to pass to fcn
++ *	fcn  => function to call until it returns != 0
 + */
-+struct rxe_mmap_info *rxe_create_mmap_info(struct rxe_dev *rxe,
-+					   u32 size,
-+					   struct ib_ucontext *context,
-+					   void *obj)
-+{
-+	struct rxe_mmap_info *ip;
++int rxe_init_task(void *obj, struct rxe_task *task, int *fast,
++		  void *arg, int (*func)(void *), char *name);
 +
-+	ip = kmalloc(sizeof *ip, GFP_KERNEL);
-+	if (!ip)
-+		return NULL;
++/*
++ * cleanup task
++ */
++void rxe_cleanup_task(struct rxe_task *task);
 +
-+	size = PAGE_ALIGN(size);
++/*
++ * raw call to func in loop without any checking
++ * can call when tasklets are disabled
++ */
++int __rxe_do_task(struct rxe_task *task);
 +
-+	spin_lock_bh(&rxe->mmap_offset_lock);
++/*
++ * common function called by any of the main tasklets
++ * if someone is calling the function on its own
++ * thread (fast path) then they must increment busy
++ * If there is any chance that there is additional
++ * work to do someone must reschedule the task before
++ * leaving
++ */
++void rxe_do_task(unsigned long data);
 +
-+	if (rxe->mmap_offset == 0)
-+		rxe->mmap_offset = PAGE_SIZE;
++/*
++ * run a task, use fast path if no one else
++ * is currently running it and fast path is ok
++ * else schedule it to run as a tasklet
++ */
++void rxe_run_task(struct rxe_task *task, int sched);
 +
-+	ip->info.offset = rxe->mmap_offset;
-+	rxe->mmap_offset += size;
++/*
++ * keep a task from scheduling
++ */
++void rxe_disable_task(struct rxe_task *task);
 +
-+	spin_unlock_bh(&rxe->mmap_offset_lock);
++/*
++ * allow task to run
++ */
++void rxe_enable_task(struct rxe_task *task);
 +
-+	INIT_LIST_HEAD(&ip->pending_mmaps);
-+	ip->info.size = size;
-+	ip->context = context;
-+	ip->obj = obj;
-+	kref_init(&ip->ref);
-+
-+	return ip;
-+}
++#endif /* RXE_TASK_H */
 
 
 --
