@@ -1,28 +1,28 @@
 From: rpearson-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org
-Subject: [patch v2 17/37] add rxe_task.c
-Date: Sun, 24 Jul 2011 14:43:17 -0500
-Message-ID: <20110724201228.964102039@systemfabricworks.com>
+Subject: [patch v2 20/37] add rxe_cq.c
+Date: Sun, 24 Jul 2011 14:43:20 -0500
+Message-ID: <20110724201229.112267527@systemfabricworks.com>
 References: <20110724194300.421253331@systemfabricworks.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline; filename=add-rxe_task.c
+Content-Disposition: inline; filename=add-rxe_cq.c
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: rpearson-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Tasklet handling details.
+Completion queue implementation details.
 
 Signed-off-by: Bob Pearson <rpearson-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org>
 
 ---
- drivers/infiniband/hw/rxe/rxe_task.c |  169 +++++++++++++++++++++++++++++++++++
- 1 file changed, 169 insertions(+)
+ drivers/infiniband/hw/rxe/rxe_cq.c |  177 +++++++++++++++++++++++++++++++++++++
+ 1 file changed, 177 insertions(+)
 
-Index: infiniband/drivers/infiniband/hw/rxe/rxe_task.c
+Index: infiniband/drivers/infiniband/hw/rxe/rxe_cq.c
 ===================================================================
 --- /dev/null
-+++ infiniband/drivers/infiniband/hw/rxe/rxe_task.c
-@@ -0,0 +1,169 @@
++++ infiniband/drivers/infiniband/hw/rxe/rxe_cq.c
+@@ -0,0 +1,177 @@
 +/*
 + * Copyright (c) 2009-2011 Mellanox Technologies Ltd. All rights reserved.
 + * Copyright (c) 2009-2011 System Fabric Works, Inc. All rights reserved.
@@ -56,141 +56,149 @@ Index: infiniband/drivers/infiniband/hw/rxe/rxe_task.c
 + * SOFTWARE.
 + */
 +
-+#include <linux/kernel.h>
-+#include <linux/interrupt.h>
-+#include <linux/hardirq.h>
++/* cq implementation details */
 +
-+#include "rxe_task.h"
++#include "rxe.h"
++#include "rxe_loc.h"
++#include "rxe_queue.h"
 +
-+int __rxe_do_task(struct rxe_task *task)
-+
++int rxe_cq_chk_attr(struct rxe_dev *rxe, struct rxe_cq *cq,
++		    int cqe, int comp_vector, struct ib_udata *udata)
 +{
-+	int ret;
++	int count;
 +
-+	while ((ret = task->func(task->arg)) == 0)
-+		;
-+
-+	task->ret = ret;
-+
-+	return ret;
-+}
-+
-+/*
-+ * this locking is due to a potential race where
-+ * a second caller finds the task already running
-+ * but looks just after the last call to func
-+ */
-+void rxe_do_task(unsigned long data)
-+{
-+	int cont;
-+	int ret;
-+	unsigned long flags;
-+	struct rxe_task *task = (struct rxe_task *)data;
-+
-+	spin_lock_irqsave(&task->state_lock, flags);
-+	switch (task->state) {
-+	case TASK_STATE_START:
-+		task->state = TASK_STATE_BUSY;
-+		spin_unlock_irqrestore(&task->state_lock, flags);
-+		break;
-+
-+	case TASK_STATE_BUSY:
-+		task->state = TASK_STATE_ARMED;
-+		/* fall through to */
-+	case TASK_STATE_ARMED:
-+		spin_unlock_irqrestore(&task->state_lock, flags);
-+		return;
-+
-+	default:
-+		spin_unlock_irqrestore(&task->state_lock, flags);
-+		pr_warn("bad state = %d in rxe_do_task\n", task->state);
-+		return;
++	if (cqe <= 0) {
++		pr_warn("cqe(%d) <= 0\n", cqe);
++		goto err1;
 +	}
 +
-+	do {
-+		cont = 0;
-+		ret = task->func(task->arg);
++	if (cqe > rxe->attr.max_cqe) {
++		pr_warn("cqe(%d) > max_cqe(%d)\n",
++			 cqe, rxe->attr.max_cqe);
++		goto err1;
++	}
 +
-+		spin_lock_irqsave(&task->state_lock, flags);
-+		switch (task->state) {
-+		case TASK_STATE_BUSY:
-+			if (ret)
-+				task->state = TASK_STATE_START;
-+			else
-+				cont = 1;
-+			break;
-+
-+		/* soneone tried to run the task since the
-+		   last time we called func, so we will call
-+		   one more time regardless of the return value */
-+		case TASK_STATE_ARMED:
-+			task->state = TASK_STATE_BUSY;
-+			cont = 1;
-+			break;
-+
-+		default:
-+			pr_warn("bad state = %d in rxe_do_task\n",
-+				task->state);
++	if (cq) {
++		count = queue_count(cq->queue);
++		if (cqe < count) {
++			pr_warn("cqe(%d) < current # elements in queue (%d)",
++				cqe, count);
++			goto err1;
 +		}
-+		spin_unlock_irqrestore(&task->state_lock, flags);
-+	} while (cont);
++	}
 +
-+	task->ret = ret;
++	return 0;
++
++err1:
++	return -EINVAL;
 +}
 +
-+int rxe_init_task(void *obj, struct rxe_task *task, int *fast,
-+		  void *arg, int (*func)(void *), char *name)
++static void rxe_send_complete(unsigned long data)
 +{
-+	task->obj	= obj;
-+	task->fast	= fast;
-+	task->arg	= arg;
-+	task->func	= func;
-+	snprintf(task->name, sizeof(task->name), "%s", name);
++	struct rxe_cq *cq = (struct rxe_cq *)data;
 +
-+	tasklet_init(&task->tasklet, rxe_do_task, (unsigned long)task);
++	while (1) {
++		u8 notify = cq->notify;
 +
-+	task->state = TASK_STATE_START;
-+	spin_lock_init(&task->state_lock);
++		cq->ibcq.comp_handler(&cq->ibcq, cq->ibcq.cq_context);
++
++		/* See if anything was added to the CQ during the
++		 * comp_handler call.  If so, go around again because we
++		 * won't be rescheduled.
++		 * XXX: is there a race on enqueue right after this test
++		 * but before we're out? */
++		if (notify == cq->notify)
++			return;
++	}
++}
++
++int rxe_cq_from_init(struct rxe_dev *rxe, struct rxe_cq *cq, int cqe,
++		     int comp_vector, struct ib_ucontext *context,
++		     struct ib_udata *udata)
++{
++	int err;
++
++	cq->queue = rxe_queue_init(rxe, (unsigned int *)&cqe,
++				   sizeof(struct rxe_cqe));
++	if (!cq->queue) {
++		pr_warn("unable to create cq\n");
++		return -ENOMEM;
++	}
++
++	err = do_mmap_info(rxe, udata, 0, context, cq->queue->buf,
++			   cq->queue->buf_size, &cq->queue->ip);
++	if (err) {
++		vfree(cq->queue->buf);
++		kfree(cq->queue);
++	}
++
++	if (udata)
++		cq->is_user = 1;
++
++	tasklet_init(&cq->comp_task, rxe_send_complete, (unsigned long)cq);
++
++	spin_lock_init(&cq->cq_lock);
++	cq->ibcq.cqe = cqe;
++	return 0;
++}
++
++int rxe_cq_resize_queue(struct rxe_cq *cq, int cqe, struct ib_udata *udata)
++{
++	int err;
++
++	err = rxe_queue_resize(cq->queue, (unsigned int *)&cqe,
++			       sizeof(struct rxe_cqe),
++			       cq->queue->ip ? cq->queue->ip->context : NULL,
++			       udata, NULL, &cq->cq_lock);
++	if (!err)
++		cq->ibcq.cqe = cqe;
++
++	return err;
++}
++
++int rxe_cq_post(struct rxe_cq *cq, struct rxe_cqe *cqe, int solicited)
++{
++	struct ib_event ev;
++	unsigned long flags;
++
++	spin_lock_irqsave(&cq->cq_lock, flags);
++
++	if (unlikely(queue_full(cq->queue))) {
++		spin_unlock_irqrestore(&cq->cq_lock, flags);
++		if (cq->ibcq.event_handler) {
++			ev.device = cq->ibcq.device;
++			ev.element.cq = &cq->ibcq;
++			ev.event = IB_EVENT_CQ_ERR;
++			cq->ibcq.event_handler(&ev, cq->ibcq.cq_context);
++		}
++
++		return -EBUSY;
++	}
++
++	memcpy(producer_addr(cq->queue), cqe, sizeof(*cqe));
++
++	/* make sure all changes to the CQ are written before
++	   we update the producer pointer */
++	wmb();
++
++	advance_producer(cq->queue);
++	spin_unlock_irqrestore(&cq->cq_lock, flags);
++
++	if ((cq->notify == IB_CQ_NEXT_COMP) ||
++	    (cq->notify == IB_CQ_SOLICITED && solicited)) {
++		cq->notify++;
++		tasklet_schedule(&cq->comp_task);
++	}
 +
 +	return 0;
 +}
 +
-+void rxe_cleanup_task(struct rxe_task *task)
++void rxe_cq_cleanup(void *arg)
 +{
-+	tasklet_kill(&task->tasklet);
-+}
++	struct rxe_cq *cq = arg;
 +
-+/*
-+ * depending on value of fast allow bypassing
-+ * tasklet call or not
-+ *	 0 => never
-+ *	 1 => only if not in interrupt level
-+ *	>1 => always
-+ */
-+static inline int rxe_fast_path_ok(int fast)
-+{
-+	if (fast == 0 || (fast == 1 && (in_irq() || irqs_disabled())))
-+		return 0;
-+	else
-+		return 1;
-+}
-+
-+void rxe_run_task(struct rxe_task *task, int sched)
-+{
-+	if (sched || !rxe_fast_path_ok(*task->fast))
-+		tasklet_schedule(&task->tasklet);
-+	else
-+		rxe_do_task((unsigned long)task);
-+}
-+
-+void rxe_disable_task(struct rxe_task *task)
-+{
-+	tasklet_disable(&task->tasklet);
-+}
-+
-+void rxe_enable_task(struct rxe_task *task)
-+{
-+	tasklet_enable(&task->tasklet);
++	if (cq->queue)
++		rxe_queue_cleanup(cq->queue);
 +}
 
 
