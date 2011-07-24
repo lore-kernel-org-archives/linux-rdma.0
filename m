@@ -1,31 +1,32 @@
 From: rpearson-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org
-Subject: [patch v2 19/37] add rxe_srq.c
-Date: Sun, 24 Jul 2011 14:43:19 -0500
-Message-ID: <20110724201229.063911285@systemfabricworks.com>
+Subject: [patch v2 09/37] add rxe_mmap.c
+Date: Sun, 24 Jul 2011 14:43:09 -0500
+Message-ID: <20110724201228.563992343@systemfabricworks.com>
 References: <20110724194300.421253331@systemfabricworks.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline; filename=add-rxe_srq.c
+Content-Disposition: inline; filename=add-rxe_mmap.c
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: rpearson-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Shared receive queue implementation details.
+mmap routines.
 
 Signed-off-by: Bob Pearson <rpearson-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org>
 
 ---
- drivers/infiniband/hw/rxe/rxe_srq.c |  213 ++++++++++++++++++++++++++++++++++++
- 1 file changed, 213 insertions(+)
+ drivers/infiniband/hw/rxe/rxe_mmap.c |  171 +++++++++++++++++++++++++++++++++++
+ 1 file changed, 171 insertions(+)
 
-Index: infiniband/drivers/infiniband/hw/rxe/rxe_srq.c
+Index: infiniband/drivers/infiniband/hw/rxe/rxe_mmap.c
 ===================================================================
 --- /dev/null
-+++ infiniband/drivers/infiniband/hw/rxe/rxe_srq.c
-@@ -0,0 +1,213 @@
++++ infiniband/drivers/infiniband/hw/rxe/rxe_mmap.c
+@@ -0,0 +1,171 @@
 +/*
 + * Copyright (c) 2009-2011 Mellanox Technologies Ltd. All rights reserved.
 + * Copyright (c) 2009-2011 System Fabric Works, Inc. All rights reserved.
++ * Copyright (c) 2006, 2007 QLogic Corporation. All rights reserved.
 + *
 + * This software is available to you under a choice of one of two
 + * licenses.  You may choose to be licensed under the terms of the GNU
@@ -56,185 +57,142 @@ Index: infiniband/drivers/infiniband/hw/rxe/rxe_srq.c
 + * SOFTWARE.
 + */
 +
-+/* srq implementation details */
++#include <linux/module.h>
++#include <linux/vmalloc.h>
++#include <linux/mm.h>
++#include <linux/errno.h>
++#include <asm/pgtable.h>
 +
 +#include "rxe.h"
 +#include "rxe_loc.h"
 +#include "rxe_queue.h"
 +
-+int rxe_srq_chk_attr(struct rxe_dev *rxe, struct rxe_srq *srq,
-+		     struct ib_srq_attr *attr, enum ib_srq_attr_mask mask)
++void rxe_mmap_release(struct kref *ref)
 +{
-+	if (srq && srq->error) {
-+		pr_warn("srq in error state\n");
-+		goto err1;
-+	}
++	struct rxe_mmap_info *ip = container_of(ref,
++					struct rxe_mmap_info, ref);
++	struct rxe_dev *rxe = to_rdev(ip->context->device);
 +
-+	if (mask & IB_SRQ_MAX_WR) {
-+		if (attr->max_wr > rxe->attr.max_srq_wr) {
-+			pr_warn("max_wr(%d) > max_srq_wr(%d)\n",
-+				 attr->max_wr, rxe->attr.max_srq_wr);
-+			goto err1;
-+		}
++	spin_lock_bh(&rxe->pending_lock);
 +
-+		if (attr->max_wr <= 0) {
-+			pr_warn("max_wr(%d) <= 0\n", attr->max_wr);
-+			goto err1;
-+		}
++	if (!list_empty(&ip->pending_mmaps))
++		list_del(&ip->pending_mmaps);
 +
-+		if (srq && !(rxe->attr.device_cap_flags &
-+			IB_DEVICE_SRQ_RESIZE)) {
-+			pr_warn("srq resize not supported\n");
-+			goto err1;
-+		}
++	spin_unlock_bh(&rxe->pending_lock);
 +
-+		if (srq && srq->limit && (attr->max_wr < srq->limit)) {
-+			pr_warn("max_wr (%d) < srq->limit (%d)\n",
-+				  attr->max_wr, srq->limit);
-+			goto err1;
-+		}
-+
-+		if (attr->max_wr < RXE_MIN_SRQ_WR)
-+			attr->max_wr = RXE_MIN_SRQ_WR;
-+	}
-+
-+	if (mask & IB_SRQ_LIMIT) {
-+		if (attr->srq_limit > rxe->attr.max_srq_wr) {
-+			pr_warn("srq_limit(%d) > max_srq_wr(%d)\n",
-+				 attr->srq_limit, rxe->attr.max_srq_wr);
-+			goto err1;
-+		}
-+
-+		if (attr->srq_limit > srq->rq.queue->buf->index_mask) {
-+			pr_warn("srq_limit (%d) > cur limit(%d)\n",
-+				 attr->srq_limit,
-+				 srq->rq.queue->buf->index_mask);
-+			goto err1;
-+		}
-+	}
-+
-+	if (mask == IB_SRQ_INIT_MASK) {
-+		if (attr->max_sge > rxe->attr.max_srq_sge) {
-+			pr_warn("max_sge(%d) > max_srq_sge(%d)\n",
-+				 attr->max_sge, rxe->attr.max_srq_sge);
-+			goto err1;
-+		}
-+
-+		if (attr->max_sge < RXE_MIN_SRQ_SGE)
-+			attr->max_sge = RXE_MIN_SRQ_SGE;
-+	}
-+
-+	return 0;
-+
-+err1:
-+	return -EINVAL;
++	vfree(ip->obj);		/* buf */
++	kfree(ip);
 +}
 +
-+int rxe_srq_from_init(struct rxe_dev *rxe, struct rxe_srq *srq,
-+		      struct ib_srq_init_attr *init,
-+		      struct ib_ucontext *context, struct ib_udata *udata)
++/*
++ * open and close keep track of how many times the CQ is mapped,
++ * to avoid releasing it.
++ */
++static void rxe_vma_open(struct vm_area_struct *vma)
 +{
-+	int err;
-+	int srq_wqe_size;
-+	struct rxe_queue *q;
++	struct rxe_mmap_info *ip = vma->vm_private_data;
 +
-+	srq->event_handler	= init->event_handler;
-+	srq->context		= init->srq_context;
-+	srq->limit		= init->attr.srq_limit;
-+	srq->srq_num		= srq->pelem.index;
-+	srq->rq.max_wr		= init->attr.max_wr;
-+	srq->rq.max_sge		= init->attr.max_sge;
-+
-+	srq_wqe_size		= sizeof(struct rxe_recv_wqe) +
-+				  srq->rq.max_sge*sizeof(struct ib_sge);
-+
-+	spin_lock_init(&srq->rq.producer_lock);
-+	spin_lock_init(&srq->rq.consumer_lock);
-+
-+	q = rxe_queue_init(rxe, (unsigned int *)&srq->rq.max_wr,
-+			   srq_wqe_size);
-+	if (!q) {
-+		pr_warn("unable to allocate queue for srq\n");
-+		err = -ENOMEM;
-+		goto err1;
-+	}
-+
-+	err = do_mmap_info(rxe, udata, 0, context, q->buf,
-+			   q->buf_size, &q->ip);
-+	if (err)
-+		goto err2;
-+
-+	srq->rq.queue = q;
-+
-+	if (udata && udata->outlen >= sizeof(struct mminfo) + sizeof(u32))
-+		return copy_to_user(udata->outbuf + sizeof(struct mminfo),
-+			&srq->srq_num, sizeof(u32));
-+	else
-+		return 0;
-+
-+err2:
-+	vfree(q->buf);
-+	kfree(q);
-+err1:
-+	return err;
++	kref_get(&ip->ref);
 +}
 +
-+int rxe_srq_from_attr(struct rxe_dev *rxe, struct rxe_srq *srq,
-+		      struct ib_srq_attr *attr, enum ib_srq_attr_mask mask,
-+		      struct ib_udata *udata)
++static void rxe_vma_close(struct vm_area_struct *vma)
 +{
-+	int err;
-+	struct rxe_queue *q = srq->rq.queue;
-+	struct mminfo mi = { .offset = 1, .size = 0};
++	struct rxe_mmap_info *ip = vma->vm_private_data;
 +
-+	if (mask & IB_SRQ_MAX_WR) {
-+		/* Check that we can write the mminfo struct to user space */
-+		if (udata && udata->inlen >= sizeof(__u64)) {
-+			__u64 mi_addr;
++	kref_put(&ip->ref, rxe_mmap_release);
 +
-+			/* Get address of user space mminfo struct */
-+			err = ib_copy_from_udata(&mi_addr, udata,
-+						sizeof(mi_addr));
-+			if (err)
-+				goto err1;
-+
-+			udata->outbuf = (void __user *)(unsigned long)mi_addr;
-+			udata->outlen = sizeof(mi);
-+
-+			err = ib_copy_to_udata(udata, &mi, sizeof(mi));
-+			if (err)
-+				goto err1;
-+		}
-+
-+		err = rxe_queue_resize(q, (unsigned int *)&attr->max_wr,
-+				       RCV_WQE_SIZE(srq->rq.max_sge),
-+				       srq->rq.queue->ip ?
-+						srq->rq.queue->ip->context :
-+						NULL,
-+				       udata, &srq->rq.producer_lock,
-+				       &srq->rq.consumer_lock);
-+		if (err)
-+			goto err2;
-+	}
-+
-+	if (mask & IB_SRQ_LIMIT)
-+		srq->limit = attr->srq_limit;
-+
-+	return 0;
-+
-+err2:
-+	rxe_queue_cleanup(q);
-+	srq->rq.queue = NULL;
-+err1:
-+	return err;
 +}
 +
-+void rxe_srq_cleanup(void *arg)
-+{
-+	struct rxe_srq *srq = (struct rxe_srq *)arg;
++static struct vm_operations_struct rxe_vm_ops = {
++	.open = rxe_vma_open,
++	.close = rxe_vma_close,
++};
 +
-+	if (srq->rq.queue)
-+		rxe_queue_cleanup(srq->rq.queue);
++/**
++ * rxe_mmap - create a new mmap region
++ * @context: the IB user context of the process making the mmap() call
++ * @vma: the VMA to be initialized
++ * Return zero if the mmap is OK. Otherwise, return an errno.
++ */
++int rxe_mmap(struct ib_ucontext *context, struct vm_area_struct *vma)
++{
++	struct rxe_dev *rxe = to_rdev(context->device);
++	unsigned long offset = vma->vm_pgoff << PAGE_SHIFT;
++	unsigned long size = vma->vm_end - vma->vm_start;
++	struct rxe_mmap_info *ip, *pp;
++	int ret;
++
++	/*
++	 * Search the device's list of objects waiting for a mmap call.
++	 * Normally, this list is very short since a call to create a
++	 * CQ, QP, or SRQ is soon followed by a call to mmap().
++	 */
++	spin_lock_bh(&rxe->pending_lock);
++	list_for_each_entry_safe(ip, pp, &rxe->pending_mmaps, pending_mmaps) {
++		if (context != ip->context || (__u64)offset != ip->info.offset)
++			continue;
++
++		/* Don't allow a mmap larger than the object. */
++		if (size > ip->info.size)
++			break;
++
++		goto found_it;
++	}
++	pr_warning("unable to find pending mmap info\n");
++	spin_unlock_bh(&rxe->pending_lock);
++	ret = -EINVAL;
++	goto done;
++
++found_it:
++	list_del_init(&ip->pending_mmaps);
++	spin_unlock_bh(&rxe->pending_lock);
++
++	ret = remap_vmalloc_range(vma, ip->obj, 0);
++	if (ret) {
++		pr_info("rxe: err %d from remap_vmalloc_range\n", ret);
++		goto done;
++	}
++
++	vma->vm_ops = &rxe_vm_ops;
++	vma->vm_private_data = ip;
++	rxe_vma_open(vma);
++done:
++	return ret;
++}
++
++/*
++ * Allocate information for rxe_mmap
++ */
++struct rxe_mmap_info *rxe_create_mmap_info(struct rxe_dev *rxe,
++					   u32 size,
++					   struct ib_ucontext *context,
++					   void *obj)
++{
++	struct rxe_mmap_info *ip;
++
++	ip = kmalloc(sizeof *ip, GFP_KERNEL);
++	if (!ip)
++		return NULL;
++
++	size = PAGE_ALIGN(size);
++
++	spin_lock_bh(&rxe->mmap_offset_lock);
++
++	if (rxe->mmap_offset == 0)
++		rxe->mmap_offset = PAGE_SIZE;
++
++	ip->info.offset = rxe->mmap_offset;
++	rxe->mmap_offset += size;
++
++	spin_unlock_bh(&rxe->mmap_offset_lock);
++
++	INIT_LIST_HEAD(&ip->pending_mmaps);
++	ip->info.size = size;
++	ip->context = context;
++	ip->obj = obj;
++	kref_init(&ip->ref);
++
++	return ip;
 +}
 
 
