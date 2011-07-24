@@ -1,28 +1,28 @@
 From: rpearson-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org
-Subject: [patch v2 28/37] add rxe_arbiter.c
-Date: Sun, 24 Jul 2011 14:43:28 -0500
-Message-ID: <20110724201229.515453123@systemfabricworks.com>
+Subject: [patch v2 30/37] add rxe_icrc.c
+Date: Sun, 24 Jul 2011 14:43:30 -0500
+Message-ID: <20110724201229.614269336@systemfabricworks.com>
 References: <20110724194300.421253331@systemfabricworks.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline; filename=add-rxe_arbiter.c
+Content-Disposition: inline; filename=add-rxe_icrc.c
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: rpearson-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-packet output arbitration.
+Compute ICRC
 
 Signed-off-by: Bob Pearson <rpearson-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org>
 
 ---
- drivers/infiniband/hw/rxe/rxe_arbiter.c |  190 ++++++++++++++++++++++++++++++++
- 1 file changed, 190 insertions(+)
+ drivers/infiniband/hw/rxe/rxe_icrc.c |   99 +++++++++++++++++++++++++++++++++++
+ 1 file changed, 99 insertions(+)
 
-Index: infiniband/drivers/infiniband/hw/rxe/rxe_arbiter.c
+Index: infiniband/drivers/infiniband/hw/rxe/rxe_icrc.c
 ===================================================================
 --- /dev/null
-+++ infiniband/drivers/infiniband/hw/rxe/rxe_arbiter.c
-@@ -0,0 +1,190 @@
++++ infiniband/drivers/infiniband/hw/rxe/rxe_icrc.c
+@@ -0,0 +1,99 @@
 +/*
 + * Copyright (c) 2009-2011 Mellanox Technologies Ltd. All rights reserved.
 + * Copyright (c) 2009-2011 System Fabric Works, Inc. All rights reserved.
@@ -56,162 +56,71 @@ Index: infiniband/drivers/infiniband/hw/rxe/rxe_arbiter.c
 + * SOFTWARE.
 + */
 +
-+#include <linux/skbuff.h>
-+
 +#include "rxe.h"
 +#include "rxe_loc.h"
 +
-+static inline void account_skb(struct rxe_dev *rxe, struct rxe_qp *qp,
-+			       int is_request)
++/* Compute a partial ICRC for all the IB transport headers. */
++u32 rxe_icrc_hdr(struct rxe_pkt_info *pkt)
 +{
-+	if (is_request & RXE_REQ_MASK) {
-+		atomic_dec(&rxe->req_skb_out);
-+		atomic_dec(&qp->req_skb_out);
-+		if (qp->need_req_skb) {
-+			if (atomic_read(&qp->req_skb_out) < rxe_max_skb_per_qp)
-+				rxe_run_task(&qp->req.task, 1);
-+		}
-+	} else {
-+		atomic_dec(&rxe->resp_skb_out);
-+		atomic_dec(&qp->resp_skb_out);
++	u32 crc;
++	unsigned int length;
++	unsigned int grh_offset;
++	unsigned int bth_offset;
++	u8 tmp[RXE_LRH_BYTES + RXE_GRH_BYTES + RXE_BTH_BYTES];
++
++	/* This seed is the result of computing a CRC with a seed of
++	 * 0xfffffff and 8 bytes of 0xff representing a masked LRH. */
++	crc = 0xdebb20e3;
++
++	length = RXE_BTH_BYTES;
++	grh_offset = 0;
++	bth_offset = 0;
++
++	if (pkt->mask & RXE_LRH_MASK) {
++		length += RXE_LRH_BYTES;
++		grh_offset += RXE_LRH_BYTES;
++		bth_offset += RXE_LRH_BYTES;
 +	}
++	if (pkt->mask & RXE_GRH_MASK) {
++		length += RXE_GRH_BYTES;
++		bth_offset += RXE_GRH_BYTES;
++	}
++
++	memcpy(tmp, pkt->hdr, length);
++
++	if (pkt->mask & RXE_GRH_MASK) {
++		tmp[grh_offset + 0] |= 0x0f;	/* GRH: tclass */
++		tmp[grh_offset + 1] = 0xff;
++		tmp[grh_offset + 2] = 0xff;
++		tmp[grh_offset + 3] = 0xff;
++		tmp[grh_offset + 7] = 0xff;
++	}
++
++	tmp[bth_offset + 4] = 0xff;		/* BTH: resv8a */
++
++	crc = crc32_le(crc, tmp + grh_offset, length - grh_offset);
++
++	/* And finish to compute the CRC on the remainder of the headers. */
++	crc = crc32_le(crc, pkt->hdr + length,
++		       rxe_opcode[pkt->opcode].length - RXE_BTH_BYTES);
++
++	return crc;
 +}
 +
-+static int xmit_one_packet(struct rxe_dev *rxe, struct rxe_qp *qp,
-+			   struct sk_buff *skb)
++/* Compute the ICRC for a packet (incoming or outgoing). */
++u32 rxe_icrc_pkt(struct rxe_pkt_info *pkt)
 +{
-+	int err;
-+	struct timespec time;
-+	long new_delay;
-+	struct rxe_pkt_info *pkt = SKB_TO_PKT(skb);
-+	int is_request = pkt->mask & RXE_REQ_MASK;
++	u32 crc;
++	int size;
 +
-+	/* drop pkt if qp is in wrong state to send */
-+	if (!qp->valid)
-+		goto drop;
++	crc = rxe_icrc_hdr(pkt);
 +
-+	if (is_request) {
-+		if (qp->req.state != QP_STATE_READY)
-+			goto drop;
-+	} else {
-+		if (qp->resp.state != QP_STATE_READY)
-+			goto drop;
-+	}
++	/* And finish to compute the CRC on the remainder. */
++	size = pkt->paylen - rxe_opcode[pkt->opcode].length - RXE_ICRC_SIZE;
++	crc = crc32_le(crc, payload_addr(pkt), size);
++	crc = ~crc;
 +
-+	/* busy wait for static rate control
-+	   we could refine this by yielding the tasklet
-+	   for larger delays and waiting out the small ones */
-+	if (rxe->arbiter.delay)
-+		do {
-+			getnstimeofday(&time);
-+		} while (timespec_compare(&time, &rxe->arbiter.time) < 0);
-+
-+	new_delay = (skb->len*rxe_nsec_per_kbyte) >> 10;
-+	if (new_delay < rxe_nsec_per_packet)
-+		new_delay = rxe_nsec_per_packet;
-+
-+	if (pkt->mask & RXE_LOOPBACK_MASK)
-+		err = rxe->ifc_ops->loopback(rxe, skb);
-+	else
-+		err = rxe->ifc_ops->send(rxe, skb);
-+
-+	/* we can recover from RXE_QUEUE_STOPPED errors
-+	   by retrying the packet. In other cases
-+	   the packet is consumed so move on */
-+	if (err == RXE_QUEUE_STOPPED)
-+		return err;
-+	else if (err)
-+		rxe->xmit_errors++;
-+
-+	rxe->arbiter.delay = new_delay > 0;
-+	if (rxe->arbiter.delay) {
-+		getnstimeofday(&time);
-+		time.tv_nsec += new_delay;
-+		while (time.tv_nsec > NSEC_PER_SEC) {
-+			time.tv_sec += 1;
-+			time.tv_nsec -= NSEC_PER_SEC;
-+		}
-+		rxe->arbiter.time = time;
-+	}
-+
-+	goto done;
-+
-+drop:
-+	kfree_skb(skb);
-+	err = 0;
-+done:
-+	account_skb(rxe, qp, is_request);
-+	return err;
-+}
-+
-+/*
-+ * choose one packet for sending
-+ */
-+int rxe_arbiter(void *arg)
-+{
-+	int err;
-+	unsigned long flags;
-+	struct rxe_dev *rxe = (struct rxe_dev *)arg;
-+	struct sk_buff *skb;
-+	struct list_head *qpl;
-+	struct rxe_qp *qp;
-+
-+	/* get the next qp's send queue */
-+	spin_lock_irqsave(&rxe->arbiter.list_lock, flags);
-+	if (list_empty(&rxe->arbiter.qp_list)) {
-+		spin_unlock_irqrestore(&rxe->arbiter.list_lock, flags);
-+		return 1;
-+	}
-+
-+	qpl = rxe->arbiter.qp_list.next;
-+	list_del_init(qpl);
-+	qp = list_entry(qpl, struct rxe_qp, arbiter_list);
-+	spin_unlock_irqrestore(&rxe->arbiter.list_lock, flags);
-+
-+	/* get next packet from queue and try to send it
-+	   note skb could have already been removed */
-+	skb = skb_dequeue(&qp->send_pkts);
-+	if (skb) {
-+		err = xmit_one_packet(rxe, qp, skb);
-+		if (err) {
-+			if (err == RXE_QUEUE_STOPPED)
-+				skb_queue_head(&qp->send_pkts, skb);
-+			rxe_run_task(&rxe->arbiter.task, 1);
-+			return 1;
-+		}
-+	}
-+
-+	/* if more work in queue put qp back on the list */
-+	spin_lock_irqsave(&rxe->arbiter.list_lock, flags);
-+
-+	if (list_empty(qpl) && !skb_queue_empty(&qp->send_pkts))
-+		list_add_tail(qpl, &rxe->arbiter.qp_list);
-+
-+	spin_unlock_irqrestore(&rxe->arbiter.list_lock, flags);
-+	return 0;
-+}
-+
-+/*
-+ * queue a packet for sending from a qp
-+ */
-+void arbiter_skb_queue(struct rxe_dev *rxe, struct rxe_qp *qp,
-+		       struct sk_buff *skb)
-+{
-+	int must_sched;
-+	unsigned long flags;
-+
-+	/* add packet to send queue */
-+	skb_queue_tail(&qp->send_pkts, skb);
-+
-+	/* if not already there add qp to arbiter list */
-+	spin_lock_irqsave(&rxe->arbiter.list_lock, flags);
-+	if (list_empty(&qp->arbiter_list))
-+		list_add_tail(&qp->arbiter_list, &rxe->arbiter.qp_list);
-+	spin_unlock_irqrestore(&rxe->arbiter.list_lock, flags);
-+
-+	/* run the arbiter, use tasklet unless only one packet */
-+	must_sched = skb_queue_len(&qp->resp_pkts) > 1;
-+	rxe_run_task(&rxe->arbiter.task, must_sched);
++	return crc;
 +}
 
 
