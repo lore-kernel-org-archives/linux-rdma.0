@@ -1,25 +1,31 @@
-From: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH 0/7] More sane neigh infrastructure
-Date: Mon, 25 Jul 2011 15:49:39 -0700
-Message-ID: <CAL1RGDXkUj0N5M4c_bpgzC3qM2Ge9Y3n2C0TTRUksx3DeD7D3w@mail.gmail.com>
-References: <20110725.030109.1723861338142084129.davem@davemloft.net>
- <CAG4TOxOv1WsgfRXxrBWWq-+9ee3apEE0B_Onn+JB=tEEuOhhxg@mail.gmail.com> <20110725.141041.1092565620930748250.davem@davemloft.net>
+From: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH] OpenSM: Add infrastructure for "full" SM PortInfo and SA
+ PortInfoRecord attributes
+Date: Tue, 26 Jul 2011 12:44:04 +0300
+Message-ID: <20110726094321.GA1948@calypso.mtl.com>
+References: <4E241CD8.4000104@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="us-ascii"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20110725.141041.1092565620930748250.davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <4E241CD8.4000104-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Jul 25, 2011 at 2:10 PM, David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org> wrote:
-> So call the normal ARP neigh solicit stuff in your neigh ops, and do
-> your local stuff there as well.
->
-> See if you can make it work.
+Hi Hal,
 
-Makes sense, I'll poke at that.  Thanks.
+On 07:45 Mon 18 Jul     , Hal Rosenstock wrote:
+> 
+> to accomodate IBA extended link speeds
+> 
+> Also, some other cosmetic changes (formatting, etc.)
+> 
+> Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> ---
+
+Applied. Thanks.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
