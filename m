@@ -1,25 +1,41 @@
-From: PEPSI BOTTLING COMPANY PLC <pepsidraws-fJkOAjRyC7lfb59vUPa4K7Dks+cytr/Z@public.gmane.org>
-Subject: AWARD
-Date: Wed, 27 Jul 2011 13:18:49 -0700
-Message-ID: <20110727131849.4243462sr3w8a5kw@mail.coppervalley.bc.ca>
-Reply-To: pepsicentre-SrPyuzuu+o61Qrn1Bg8BZw@public.gmane.org
+From: Dotan Barak <dotanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: [PATCH] mlx4: Fix the release func to be consistent with the allocation one
+Date: Thu, 28 Jul 2011 10:59:49 +0300
+Message-ID: <201107281059.50171.dotanb@sw.voltaire.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1;
-	DelSp=Yes	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Your email has won =A3250,000.00 POUNDS from Pepsi online =20
-promotions2011,sendyour Full names, Age, Sex,Occupation,Phone and =20
-Address to:pepsicentre-SrPyuzuu+o61Qrn1Bg8BZw@public.gmane.org for your claims
+Fix the memory release function to be consistent with the memory allocation one
+to prevent problems where the implementation of pci_free_consistent and
+dma_free_coherent are different.
 
-----------------------------------------------------------------
-This message was sent using IMP, the Internet Messaging Program.
+Signed-off-by: Dotan Barak <dotanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Reviewed-by: Eli Cohen <eli-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
+
+---
+
+diff --git a/drivers/net/mlx4/eq.c b/drivers/net/mlx4/eq.c
+index 7aecc34..31177ce 100644
+--- a/drivers/net/mlx4/eq.c
++++ b/drivers/net/mlx4/eq.c
+@@ -489,7 +489,7 @@ static void mlx4_free_eq(struct mlx4_dev *dev,
+ 
+ 	mlx4_mtt_cleanup(dev, &eq->mtt);
+ 	for (i = 0; i < npages; ++i)
+-		pci_free_consistent(dev->pdev, PAGE_SIZE,
++		dma_free_coherent(&dev->pdev->dev, PAGE_SIZE,
+ 				    eq->page_list[i].buf,
+ 				    eq->page_list[i].map);
+ 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
