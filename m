@@ -1,29 +1,63 @@
-From: "System Administrator" <info-Rrbileazn+l54TAoqtyWWQ@public.gmane.org>
-Subject: Increase Your  Mail Quota
-Date: Thu, 28 Jul 2011 22:38:34 +0800
-Message-ID: <20110728141523.M73831__44087.6339715489$1311877097$gmane$org@webmaster.com>
-Reply-To: noreply-gvApmXps4TM@public.gmane.org
-Mime-Version: 1.0
-Content-Type: text/plain;
-	charset=utf-8
+From: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: "mlx4_en: Enabling new steering" brokenness
+Date: Thu, 28 Jul 2011 14:04:59 -0700
+Message-ID: <1311887099-14339-1-git-send-email-roland@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Yevgeny Petrilin <yevgenyp-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
+Cc: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Your Mail Quota Has Exceeded The Set Quota/Limit. You Are Currently
-Running On 23GB Due To Hidden Files And Folder On Your Mailbox,
-you may not be able to receive or send new mails until you re-validate.
+Hi Yevgeny!
 
-Please Click the Link Below To Validate Your Mailbox And Increase Your Quota.
+So I have a system with an mlx4_en device with pretty old FW (version
+2.7.700), old enough that the firmware doesn't have the capability
+MLX4_DEV_CAP_FLAG_VEP_UC_STEER set.  And it looks like mlx4_en is
+completely broken in this case, at least since your commit
+1679200f91da ("mlx4_en: Enabling new steering").  If I try to bring up
+the interface, I just see:
 
-http://buzurl.com/as45
+    mlx4_en: eth1: Failed to allocate RSS indirection QP
 
-Failure To Validate Your Quota May Result In Loss Of Important Information
-In Your Mailbox Or Cause Limited Access To It.
+And this is failing because the QPN in 0.
 
-Mail Quota alert -Error Code #1997142DDE
+The problem is in drivers/net/mlx4/port.c:mlx4_register_mac():
 
-System Administrator
+	if (!(dev->caps.flags & MLX4_DEV_CAP_FLAG_VEP_UC_STEER))
+		*qpn = info->base_qpn + free;
+
+but absolutely nothing ever initializes info->base_qpn.  It looks like
+the intention of the code is to initialize this in
+mlx4_init_port_info(); however even the below hack doesn't seem to fix
+things completely -- I still seem to have problems on the RX side
+unless I enable promiscuous mode by running tcpdump:
+
+diff --git a/drivers/net/mlx4/main.c b/drivers/net/mlx4/main.c
+index c94b342..38092c7 100644
+--- a/drivers/net/mlx4/main.c
++++ b/drivers/net/mlx4/main.c
+@@ -1125,6 +1125,13 @@ static int mlx4_init_port_info(struct mlx4_dev *dev, int port)
+ 	info->port_attr.store     = set_port_type;
+ 	sysfs_attr_init(&info->port_attr.attr);
+ 
++	err = mlx4_qp_reserve_range(dev, 1, 1, &info->base_qpn);
++	if (err) {
++		mlx4_err(dev, "Failed to reserve QP range for port %d\n", port);
++		info->port = -1;
++		return err;
++	}
++
+ 	err = device_create_file(&dev->pdev->dev, &info->port_attr);
+ 	if (err) {
+ 		mlx4_err(dev, "Failed to create file for port %d\n", port);
+
+Could you take a look at getting this working?  (Or update the driver
+so it immediately fails with an informative message if you want to
+rely on certain FW versions; and then strip out the old broken
+compatibility code)
+
+Thanks!
+  Roland
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
