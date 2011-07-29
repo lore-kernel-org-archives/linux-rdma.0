@@ -1,86 +1,45 @@
-From: Yevgeny Petrilin <yevgenyp-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
-Subject: RE: "mlx4_en: Enabling new steering" brokenness
-Date: Fri, 29 Jul 2011 04:34:48 +0000
-Message-ID: <953B660C027164448AE903364AC447D21399BC2F@MTLDAG01.mtl.com>
-References: <1311887099-14339-1-git-send-email-roland@kernel.org>
+From: Eric Dumazet <eric.dumazet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH] IB/ehca: use kthread_create_on_node
+Date: Fri, 29 Jul 2011 09:15:31 +0200
+Message-ID: <1311923731.7845.25.camel@edumazet-laptop>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1311887099-14339-1-git-send-email-roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: "netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Hoang-Nam Nguyen <hnguyen-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>
+Cc: Christoph Raisch <raisch-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hello Roland,
+Since create_comp_task() creates percpu kthread, it makes
+sense to use kthread_create_on_node() to get proper NUMA affinity for
+kthread stack.
 
-I'll check this ASAP.
+Signed-off-by: Eric Dumazet <eric.dumazet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+CC: Hoang-Nam Nguyen <hnguyen-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>
+CC: Christoph Raisch <raisch-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>
+CC: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+CC: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+---
+ drivers/infiniband/hw/ehca/ehca_irq.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-Thanks,
-Yevgeny
+diff --git a/drivers/infiniband/hw/ehca/ehca_irq.c b/drivers/infiniband/hw/ehca/ehca_irq.c
+index e571e60..5358900 100644
+--- a/drivers/infiniband/hw/ehca/ehca_irq.c
++++ b/drivers/infiniband/hw/ehca/ehca_irq.c
+@@ -786,7 +786,8 @@ static struct task_struct *create_comp_task(struct ehca_comp_pool *pool,
+ 	spin_lock_init(&cct->task_lock);
+ 	INIT_LIST_HEAD(&cct->cq_list);
+ 	init_waitqueue_head(&cct->wait_queue);
+-	cct->task = kthread_create(comp_task, cct, "ehca_comp/%d", cpu);
++	cct->task = kthread_create_on_node(comp_task, cct, cpu_to_node(cpu),
++					   "ehca_comp/%d", cpu);
+ 
+ 	return cct->task;
+ }
 
-> -----Original Message-----
-> From: Roland Dreier [mailto:roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org] On Behalf Of Roland
-> Dreier
-> Sent: Friday, July 29, 2011 12:05 AM
-> To: Yevgeny Petrilin
-> Cc: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> Subject: "mlx4_en: Enabling new steering" brokenness
-> 
-> Hi Yevgeny!
-> 
-> So I have a system with an mlx4_en device with pretty old FW (version
-> 2.7.700), old enough that the firmware doesn't have the capability
-> MLX4_DEV_CAP_FLAG_VEP_UC_STEER set.  And it looks like mlx4_en is
-> completely broken in this case, at least since your commit
-> 1679200f91da ("mlx4_en: Enabling new steering").  If I try to bring up
-> the interface, I just see:
-> 
->     mlx4_en: eth1: Failed to allocate RSS indirection QP
-> 
-> And this is failing because the QPN in 0.
-> 
-> The problem is in drivers/net/mlx4/port.c:mlx4_register_mac():
-> 
-> 	if (!(dev->caps.flags & MLX4_DEV_CAP_FLAG_VEP_UC_STEER))
-> 		*qpn = info->base_qpn + free;
-> 
-> but absolutely nothing ever initializes info->base_qpn.  It looks like
-> the intention of the code is to initialize this in
-> mlx4_init_port_info(); however even the below hack doesn't seem to fix
-> things completely -- I still seem to have problems on the RX side
-> unless I enable promiscuous mode by running tcpdump:
-> 
-> diff --git a/drivers/net/mlx4/main.c b/drivers/net/mlx4/main.c
-> index c94b342..38092c7 100644
-> --- a/drivers/net/mlx4/main.c
-> +++ b/drivers/net/mlx4/main.c
-> @@ -1125,6 +1125,13 @@ static int mlx4_init_port_info(struct mlx4_dev
-> *dev, int port)
->  	info->port_attr.store     = set_port_type;
->  	sysfs_attr_init(&info->port_attr.attr);
-> 
-> +	err = mlx4_qp_reserve_range(dev, 1, 1, &info->base_qpn);
-> +	if (err) {
-> +		mlx4_err(dev, "Failed to reserve QP range for port %d\n",
-> port);
-> +		info->port = -1;
-> +		return err;
-> +	}
-> +
->  	err = device_create_file(&dev->pdev->dev, &info->port_attr);
->  	if (err) {
->  		mlx4_err(dev, "Failed to create file for port %d\n", port);
-> 
-> Could you take a look at getting this working?  (Or update the driver
-> so it immediately fails with an informative message if you want to
-> rely on certain FW versions; and then strip out the old broken
-> compatibility code)
-> 
-> Thanks!
->   Roland
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
