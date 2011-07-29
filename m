@@ -1,54 +1,373 @@
-From: Hoang-Nam Nguyen <HNGUYEN-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH] IB/ehca: use kthread_create_on_node
-Date: Fri, 29 Jul 2011 19:39:33 +0200
-Message-ID: <OF31C67CA1.9901BC1C-ONC12578DC.0060E598-C12578DC.006101DD@de.ibm.com>
-References: <1311923731.7845.25.camel@edumazet-laptop> <CAL1RGDXJzW7e2LTyex1EZXSLBdB_xmcBvBiiS2XKL-5qUCOQ1w@mail.gmail.com>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: [Patch infiniband-diags:perfquery] Loop through all local HCAs/ports
+Date: Fri, 29 Jul 2011 17:57:57 -0400
+Message-ID: <4E332CE5.3010706@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: multipart/mixed;
+ boundary="------------020402000102040509090802"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAL1RGDXJzW7e2LTyex1EZXSLBdB_xmcBvBiiS2XKL-5qUCOQ1w-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Christoph Raisch <raisch-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>, Eric Dumazet <eric.dumazet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-kernel <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Roland,
-This patch looks fine to me.
-Thanks
-Nam
+This is a multi-part message in MIME format.
+--------------020402000102040509090802
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 
-roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org wrote on 29.07.2011 19:10:32:
+The -a mode of perfquery is intended to loop through all ports on a 
+single HCA and provide aggregated output across all ports.
 
-> [image removed]
->
-> Re: [PATCH] IB/ehca: use kthread_create_on_node
->
-> Roland Dreier
->
-> to:
->
-> Eric Dumazet
->
-> 29.07.2011 19:11
->
-> Sent by:
->
-> roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org
->
-> Cc:
->
-> Hoang-Nam Nguyen, Christoph Raisch, Sean Hefty, linux-rdma, linux-kernel
->
-> On Fri, Jul 29, 2011 at 12:15 AM, Eric Dumazet <eric.dumazet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-wrote:
-> > Since create_comp_task() creates percpu kthread, it makes
-> > sense to use kthread_create_on_node() to get proper NUMA affinity for
-> > kthread stack.
->
-> Seems eminently sane to me.  ehca guys, any concern about this?
->
->  - R.
+The -l mode is intended to loop through all ports of a single HCA and 
+output non-aggregated data.
 
+Neither mode addresses a machine with more than one HCA.  Furthermore, I 
+found both -a and -l failed to loop properly on my Mellanox adapter (it 
+would read the first port and error out trying to read the second).
+
+So, I wrote a new switch, -H, that loops through all ports on all HCAs 
+in the system.  Because of how it's implemented, it gets around the 
+problem that both -a and -l had on my machine when dealing with the 
+second Mellanox port.  It, however, does not do aggregated output 
+because each HCA/port combination is treated as its own device.
+
+I forgot to update the man page though.  If the current infiniband-diags 
+maintainer wants it, I can add that (that's assuming the base patch is 
+acceptable).  I think Ira is doing that now, right?
+
+Anyway, attached is the patch.
+
+--------------020402000102040509090802
+Content-Type: text/plain;
+ name="infiniband-diags-1.5.8-all_hcas.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename="infiniband-diags-1.5.8-all_hcas.patch"
+
+diff -up infiniband-diags-1.5.8/src/perfquery.c.hcas infiniband-diags-1.5.8/src/perfquery.c
+--- infiniband-diags-1.5.8/src/perfquery.c.hcas	2011-02-16 05:13:21.000000000 -0500
++++ infiniband-diags-1.5.8/src/perfquery.c	2011-07-29 17:17:41.599262511 -0400
+@@ -347,7 +347,7 @@ static void reset_counters(int extended,
+ }
+ 
+ static int reset, reset_only, all_ports, loop_ports, port, extended, xmt_sl,
+-    rcv_sl, xmt_disc, rcv_err, smpl_ctl;
++    rcv_sl, xmt_disc, rcv_err, smpl_ctl, all_hcas;
+ 
+ static void common_func(ib_portid_t * portid, int port_num, int mask,
+ 			unsigned query, unsigned reset,
+@@ -447,12 +447,16 @@ static int process_opt(void *context, in
+ 	case 'R':
+ 		reset_only++;
+ 		break;
++	case 'H':
++		all_hcas++;
++		break;
+ 	default:
+ 		return -1;
+ 	}
+ 	return 0;
+ }
+ 
++#define MAX_NAMES 10
+ int main(int argc, char **argv)
+ {
+ 	int mgmt_classes[4] = { IB_SMI_CLASS, IB_SMI_DIRECT_CLASS, IB_SA_CLASS,
+@@ -467,6 +471,10 @@ int main(int argc, char **argv)
+ 	int start_port = 1;
+ 	int enhancedport0;
+ 	int i;
++	int names;
++	int cur_name = 0;
++	char name_list[10][UMAD_CA_NAME_LEN];
++	umad_ca_t ca;
+ 
+ 	const struct ibdiag_opt opts[] = {
+ 		{"extended", 'x', 0, NULL, "show extended port counters"},
+@@ -476,6 +484,7 @@ int main(int argc, char **argv)
+ 		{"rcverr", 'E', 0, NULL, "show Rcv Error Details"},
+ 		{"smplctl", 'c', 0, NULL, "show samples control"},
+ 		{"all_ports", 'a', 0, NULL, "show aggregated counters"},
++		{"all_hcas", 'H', 0, NULL, "iterate through all local HCAs and ports"},
+ 		{"loop_ports", 'l', 0, NULL, "iterate through each port"},
+ 		{"reset_after_read", 'r', 0, NULL, "reset counters after read"},
+ 		{"Reset_only", 'R', 0, NULL, "only reset counters"},
+@@ -484,10 +493,12 @@ int main(int argc, char **argv)
+ 	char usage_args[] = " [<lid|guid> [[port] [reset_mask]]]";
+ 	const char *usage_examples[] = {
+ 		"\t\t# read local port's performance counters",
++		"-H\t\t# read performance counters on all local HCAs/ports",
+ 		"32 1\t\t# read performance counters from lid 32, port 1",
+ 		"-x 32 1\t# read extended performance counters from lid 32, port 1",
+ 		"-a 32\t\t# read performance counters from lid 32, all ports",
+ 		"-r 32 1\t# read performance counters and reset",
++		"-r -H\t\t# read and reset counters on all local HCAs/ports",
+ 		"-x -r 32 1\t# read extended performance counters and reset",
+ 		"-R 0x20 1\t# reset performance counters of port 1 only",
+ 		"-x -R 0x20 1\t# reset extended performance counters of port 1 only",
+@@ -503,118 +514,173 @@ int main(int argc, char **argv)
+ 	argc -= optind;
+ 	argv += optind;
+ 
++	if (all_hcas && argc > 0)
++		IBERROR("Invalid input: all_hcas and any port/lid/guid are "
++			"not allowed together.");
++	if (all_hcas && (loop_ports || all_ports || (port==ALL_PORTS)))
++		IBERROR("Invalid input: all_hcas already goes over all ports, "
++			"but in a way that's incompatible with the all_ports "
++			"option or variants.");
++
+ 	if (argc > 1)
+ 		port = strtoul(argv[1], 0, 0);
+ 	if (argc > 2)
+ 		mask = strtoul(argv[2], 0, 0);
+ 
+-	srcport = mad_rpc_open_port(ibd_ca, ibd_ca_port, mgmt_classes, 4);
+-	if (!srcport)
+-		IBERROR("Failed to open '%s' port '%d'", ibd_ca, ibd_ca_port);
+-
+-	if (argc) {
+-		if (ib_resolve_portid_str_via(&portid, argv[0], ibd_dest_type,
+-					      ibd_sm_id, srcport) < 0)
+-			IBERROR("can't resolve destination port %s", argv[0]);
+-	} else {
+-		if (ib_resolve_self_via(&portid, &port, 0, srcport) < 0)
+-			IBERROR("can't resolve self port %s", argv[0]);
+-	}
++	if (all_hcas) {
++		if (umad_init() < 0)
++			IBERROR("Failed to initialize libibumad");
++		if ((names = umad_get_cas_names(name_list, 10)) < 0)
++			IBERROR("Unable to get list of HCAs");
++		/* Set up our initial hca, then at the end of the do loop
++		 * get the next one
++		 */
++		cur_name = 0;
++		if (umad_get_ca(name_list[cur_name], &ca))
++			IBERROR("Unable to get umad ca");
+ 
+-	/* PerfMgt ClassPortInfo is a required attribute */
+-	if (!pma_query_via(pc, &portid, port, ibd_timeout, CLASS_PORT_INFO,
+-			   srcport))
+-		IBERROR("classportinfo query");
+-	/* ClassPortInfo should be supported as part of libibmad */
+-	memcpy(&cap_mask, pc + 2, sizeof(cap_mask));	/* CapabilityMask */
+-	cap_mask = ntohs(cap_mask);
+-	if (!(cap_mask & 0x100)) {	/* bit 8 is AllPortSelect */
+-		if (!all_ports && port == ALL_PORTS)
+-			IBERROR("AllPortSelect not supported");
+-		if (all_ports)
+-			all_ports_loop = 1;
++		ibd_ca = name_list[cur_name++];
++		ibd_ca_port = start_port;
+ 	}
+ 
+-	if (xmt_sl) {
+-		xmt_sl_query(&portid, port, mask);
+-		goto done;
+-	}
++	do {
++		srcport = mad_rpc_open_port(ibd_ca, ibd_ca_port,
++					    mgmt_classes, 4);
++		if (!srcport) {
++			if (cur_name == 0)
++				IBERROR("Failed to open '%s' port '%d'",
++					ibd_ca, ibd_ca_port);
++			exit(0);
++		}
+ 
+-	if (rcv_sl) {
+-		rcv_sl_query(&portid, port, mask);
+-		goto done;
+-	}
++		if (argc) {
++			if (ib_resolve_portid_str_via(&portid, argv[0],
++						      ibd_dest_type,
++						      ibd_sm_id, srcport) < 0)
++				IBERROR("can't resolve destination port %s",
++					argv[0]);
++		} else {
++			if (ib_resolve_self_via(&portid, &port, 0, srcport) < 0)
++				IBERROR("can't resolve self port %s", argv[0]);
++		}
+ 
+-	if (xmt_disc) {
+-		xmt_disc_query(&portid, port, mask);
+-		goto done;
+-	}
++		/* PerfMgt ClassPortInfo is a required attribute */
++		if (!pma_query_via(pc, &portid, port, ibd_timeout,
++				   CLASS_PORT_INFO, srcport))
++			IBERROR("classportinfo query");
++		/* ClassPortInfo should be supported as part of libibmad */
++		memcpy(&cap_mask, pc + 2, sizeof(cap_mask));/* CapabilityMask */
++		cap_mask = ntohs(cap_mask);
++		if (!(cap_mask & 0x100)) {	/* bit 8 is AllPortSelect */
++			if (!all_ports && port == ALL_PORTS)
++				IBERROR("AllPortSelect not supported");
++			if (all_ports)
++				all_ports_loop = 1;
++		}
+ 
+-	if (rcv_err) {
+-		rcv_err_query(&portid, port, mask);
+-		goto done;
+-	}
++		if (xmt_sl) {
++			xmt_sl_query(&portid, port, mask);
++			goto done;
++		}
+ 
+-	if (smpl_ctl) {
+-		dump_portsamples_control(&portid, port);
+-		goto done;
+-	}
++		if (rcv_sl) {
++			rcv_sl_query(&portid, port, mask);
++			goto done;
++		}
++
++		if (xmt_disc) {
++			xmt_disc_query(&portid, port, mask);
++			goto done;
++		}
++
++		if (rcv_err) {
++			rcv_err_query(&portid, port, mask);
++			goto done;
++		}
+ 
+-	if (all_ports_loop || (loop_ports && (all_ports || port == ALL_PORTS))) {
+-		if (smp_query_via(data, &portid, IB_ATTR_NODE_INFO, 0, 0,
+-				  srcport) < 0)
+-			IBERROR("smp query nodeinfo failed");
+-		node_type = mad_get_field(data, 0, IB_NODE_TYPE_F);
+-		mad_decode_field(data, IB_NODE_NPORTS_F, &num_ports);
+-		if (!num_ports)
+-			IBERROR("smp query nodeinfo: num ports invalid");
++		if (smpl_ctl) {
++			dump_portsamples_control(&portid, port);
++			goto done;
++		}
+ 
+-		if (node_type == IB_NODE_SWITCH) {
+-			if (smp_query_via(data, &portid, IB_ATTR_SWITCH_INFO,
++		if (all_ports_loop ||
++		    (loop_ports && (all_ports || port == ALL_PORTS))) {
++			if (smp_query_via(data, &portid, IB_ATTR_NODE_INFO,
+ 					  0, 0, srcport) < 0)
+ 				IBERROR("smp query nodeinfo failed");
+-			enhancedport0 =
+-			    mad_get_field(data, 0, IB_SW_ENHANCED_PORT0_F);
+-			if (enhancedport0)
+-				start_port = 0;
++			node_type = mad_get_field(data, 0, IB_NODE_TYPE_F);
++			mad_decode_field(data, IB_NODE_NPORTS_F, &num_ports);
++			if (!num_ports)
++				IBERROR("smp query nodeinfo: num ports invalid");
++
++			if (node_type == IB_NODE_SWITCH) {
++				if (smp_query_via(data, &portid,
++						  IB_ATTR_SWITCH_INFO,
++						  0, 0, srcport) < 0)
++					IBERROR("smp query nodeinfo failed");
++				enhancedport0 =
++				    mad_get_field(data, 0,
++						  IB_SW_ENHANCED_PORT0_F);
++				if (enhancedport0)
++					start_port = 0;
++			}
++			if (all_ports_loop && !loop_ports)
++				IBWARN("Emulating AllPortSelect by iterating "
++				       "through all ports");
+ 		}
+-		if (all_ports_loop && !loop_ports)
+-			IBWARN
+-			    ("Emulating AllPortSelect by iterating through all ports");
+-	}
+ 
+-	if (reset_only)
+-		goto do_reset;
++		if (reset_only)
++			goto do_reset;
+ 
+-	if (all_ports_loop || (loop_ports && (all_ports || port == ALL_PORTS))) {
+-		for (i = start_port; i <= num_ports; i++)
++		if (all_ports_loop ||
++		    (loop_ports && (all_ports || port == ALL_PORTS))) {
++			for (i = start_port; i <= num_ports; i++) {
++				dump_perfcounters(extended, ibd_timeout,
++						  cap_mask, &portid, i,
++						  (all_ports_loop &&
++						   !loop_ports));
++			}
++			if (all_ports_loop && !loop_ports) {
++				if (extended != 1)
++					output_aggregate_perfcounters(&portid);
++				else
++					output_aggregate_perfcounters_ext(&portid);
++			}
++		} else
+ 			dump_perfcounters(extended, ibd_timeout, cap_mask,
+-					  &portid, i, (all_ports_loop
+-						       && !loop_ports));
+-		if (all_ports_loop && !loop_ports) {
+-			if (extended != 1)
+-				output_aggregate_perfcounters(&portid);
+-			else
+-				output_aggregate_perfcounters_ext(&portid);
+-		}
+-	} else
+-		dump_perfcounters(extended, ibd_timeout, cap_mask, &portid,
+-				  port, 0);
++					  &portid, port, 0);
+ 
+-	if (!reset)
+-		goto done;
++		if (!reset)
++			goto done;
+ 
+ do_reset:
+-	if (argc <= 2 && !extended && (cap_mask & 0x1000))
+-		mask |= (1 << 16);	/* reset portxmitwait */
++		if (argc <= 2 && !extended && (cap_mask & 0x1000))
++			mask |= (1 << 16);	/* reset portxmitwait */
+ 
+-	if (all_ports_loop || (loop_ports && (all_ports || port == ALL_PORTS))) {
+-		for (i = start_port; i <= num_ports; i++)
+-			reset_counters(extended, ibd_timeout, mask, &portid, i);
+-	} else
+-		reset_counters(extended, ibd_timeout, mask, &portid, port);
++		if (all_ports_loop ||
++		    (loop_ports && (all_ports || port == ALL_PORTS))) {
++			for (i = start_port; i <= num_ports; i++)
++				reset_counters(extended, ibd_timeout, mask,
++					       &portid, i);
++		} else
++			reset_counters(extended, ibd_timeout, mask,
++				       &portid, port);
+ 
+ done:
+-	mad_rpc_close_port(srcport);
++		mad_rpc_close_port(srcport);
++		if (all_hcas) {
++			if (ibd_ca_port < ca.numports)
++				ibd_ca_port++;
++			else {
++				if (umad_get_ca(name_list[cur_name], &ca))
++					/* We're done, the next name was
++					 * empty, just exit gracefully
++					 */
++					exit(0);
++				ibd_ca = name_list[cur_name++];
++				ibd_ca_port = start_port;
++			}
++		}
++	} while (ibd_ca);
+ 	exit(0);
+ }
+
+--------------020402000102040509090802--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
