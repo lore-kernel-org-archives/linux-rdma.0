@@ -1,62 +1,115 @@
-From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH 2/2 for-3.1] ib/iser: support iSCSI PDU padding
-Date: Tue, 2 Aug 2011 00:14:09 +0300
-Message-ID: <alpine.LRH.2.00.1108020013210.22153@ogerlitz.voltaire.com>
-References: <alpine.LRH.2.00.1108020010060.22153@ogerlitz.voltaire.com>
+From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: [PATCH] RDMA/cxgb4: Fail RDMA initialization for unsupported cards.
+Date: Mon, 01 Aug 2011 16:59:10 -0500
+Message-ID: <20110801215910.9774.75120.stgit@build.ogc.int>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="US-ASCII"
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <alpine.LRH.2.00.1108020010060.22153-VYr5/9ddeaGSIdy2EShu12Xnswh1EIUO@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-RFC3270 mandates that iSCSI PDUs are padded to the closest integer
-number of four byte words. Enhance the iser code to support that
-on both the TX/RX flows.
+The iw_cxgb4 module crashes at init time if the T4 card does not
+support RDMA.  So clean up the init logic to correctly deal with
+non-RDMA cards.
 
-Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
+- If any RDMA resources are not available, then fail the initializtion
+logging an info message.
+
+- Clean up properly on initialization failures.
+
+Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 ---
 
-diff --git a/drivers/infiniband/ulp/iser/iscsi_iser.c b/drivers/infiniband/ulp/iser/iscsi_iser.c
-index 8db008d..9c61b9c 100644
---- a/drivers/infiniband/ulp/iser/iscsi_iser.c
-+++ b/drivers/infiniband/ulp/iser/iscsi_iser.c
-@@ -101,13 +101,17 @@ iscsi_iser_recv(struct iscsi_conn *conn,
+ drivers/infiniband/hw/cxgb4/device.c |   41 +++++++++++++++++++++++++++-------
+ 1 files changed, 33 insertions(+), 8 deletions(-)
 
- 	/* verify PDU length */
- 	datalen = ntoh24(hdr->dlength);
--	if (datalen != rx_data_len) {
--		printk(KERN_ERR "iscsi_iser: datalen %d (hdr) != %d (IB) \n",
--		       datalen, rx_data_len);
-+	if (datalen > rx_data_len || (datalen + 4) < rx_data_len) {
-+		iser_err("wrong datalen %d (hdr), %d (IB)\n",
-+			datalen, rx_data_len);
- 		rc = ISCSI_ERR_DATALEN;
- 		goto error;
- 	}
-
-+	if (datalen != rx_data_len)
-+		iser_dbg("aligned datalen (%d) hdr, %d (IB)\n",
-+			datalen, rx_data_len);
+diff --git a/drivers/infiniband/hw/cxgb4/device.c b/drivers/infiniband/hw/cxgb4/device.c
+index 40a13cc..6d0df6e 100644
+--- a/drivers/infiniband/hw/cxgb4/device.c
++++ b/drivers/infiniband/hw/cxgb4/device.c
+@@ -376,10 +376,8 @@ struct uld_ctx {
+ 	struct c4iw_dev *dev;
+ };
+ 
+-static void c4iw_remove(struct uld_ctx *ctx)
++static void c4iw_dealloc(struct uld_ctx *ctx)
+ {
+-	PDBG("%s c4iw_dev %p\n", __func__,  ctx->dev);
+-	c4iw_unregister_device(ctx->dev);
+ 	c4iw_rdev_close(&ctx->dev->rdev);
+ 	idr_destroy(&ctx->dev->cqidr);
+ 	idr_destroy(&ctx->dev->qpidr);
+@@ -389,11 +387,30 @@ static void c4iw_remove(struct uld_ctx *ctx)
+ 	ctx->dev = NULL;
+ }
+ 
++static void c4iw_remove(struct uld_ctx *ctx)
++{
++	PDBG("%s c4iw_dev %p\n", __func__,  ctx->dev);
++	c4iw_unregister_device(ctx->dev);
++	c4iw_dealloc(ctx);
++}
 +
- 	/* read AHS */
- 	ahslen = hdr->hlength * 4;
-
-diff --git a/drivers/infiniband/ulp/iser/iser_initiator.c b/drivers/infiniband/ulp/iser/iser_initiator.c
-index 95a08a8..6ea28a6 100644
---- a/drivers/infiniband/ulp/iser/iser_initiator.c
-+++ b/drivers/infiniband/ulp/iser/iser_initiator.c
-@@ -412,7 +412,7 @@ int iser_send_control(struct iscsi_conn *conn,
- 		memcpy(iser_conn->ib_conn->login_buf, task->data,
- 							task->data_count);
- 		tx_dsg->addr    = iser_conn->ib_conn->login_dma;
--		tx_dsg->length  = data_seg_len;
-+		tx_dsg->length  = task->data_count;
- 		tx_dsg->lkey    = device->mr->lkey;
- 		mdesc->num_sge = 2;
- 	}
++static int rdma_supported(const struct cxgb4_lld_info *infop)
++{
++	return infop->vr->stag.size > 0 && infop->vr->pbl.size > 0 &&
++	       infop->vr->rq.size > 0 && infop->vr->qp.size > 0 &&
++	       infop->vr->cq.size > 0 && infop->vr->ocq.size > 0;
++}
++
+ static struct c4iw_dev *c4iw_alloc(const struct cxgb4_lld_info *infop)
+ {
+ 	struct c4iw_dev *devp;
+ 	int ret;
+ 
++	if (!rdma_supported(infop)) {
++		printk(KERN_INFO MOD "%s: RDMA not supported on this device.\n",
++		       pci_name(infop->pdev));
++		return ERR_PTR(-ENOSYS);
++	}
+ 	devp = (struct c4iw_dev *)ib_alloc_device(sizeof(*devp));
+ 	if (!devp) {
+ 		printk(KERN_ERR MOD "Cannot allocate ib device\n");
+@@ -414,7 +431,6 @@ static struct c4iw_dev *c4iw_alloc(const struct cxgb4_lld_info *infop)
+ 
+ 	ret = c4iw_rdev_open(&devp->rdev);
+ 	if (ret) {
+-		mutex_unlock(&dev_mutex);
+ 		printk(KERN_ERR MOD "Unable to open CXIO rdev err %d\n", ret);
+ 		ib_dealloc_device(&devp->ibdev);
+ 		return ERR_PTR(ret);
+@@ -519,15 +535,24 @@ static int c4iw_uld_state_change(void *handle, enum cxgb4_state new_state)
+ 	case CXGB4_STATE_UP:
+ 		printk(KERN_INFO MOD "%s: Up\n", pci_name(ctx->lldi.pdev));
+ 		if (!ctx->dev) {
+-			int ret = 0;
++			int ret;
+ 
+ 			ctx->dev = c4iw_alloc(&ctx->lldi);
+-			if (!IS_ERR(ctx->dev))
+-				ret = c4iw_register_device(ctx->dev);
+-			if (IS_ERR(ctx->dev) || ret)
++			if (IS_ERR(ctx->dev)) {
++				printk(KERN_ERR MOD
++				       "%s: initialization failed: %ld\n",
++				       pci_name(ctx->lldi.pdev),
++				       PTR_ERR(ctx->dev));
++				ctx->dev = NULL;
++				break;
++			}
++			ret = c4iw_register_device(ctx->dev);
++			if (ret) {
+ 				printk(KERN_ERR MOD
+ 				       "%s: RDMA registration failed: %d\n",
+ 				       pci_name(ctx->lldi.pdev), ret);
++				c4iw_dealloc(ctx);
++			}
+ 		}
+ 		break;
+ 	case CXGB4_STATE_DOWN:
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
