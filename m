@@ -1,74 +1,61 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH 1/2] libibverbs: Allow 3rd party extensions to verb
- routines
-Date: Tue, 2 Aug 2011 16:28:17 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A82373136F935C@ORSMSX101.amr.corp.intel.com>
-References: <1828884A29C6694DAF28B7E6B8A8237302123C@ORSMSX101.amr.corp.intel.com>
- <201108011508.06521.jackm@dev.mellanox.co.il>
- <20110802053824.GA23512@obsidianresearch.com>
- <201108021053.05311.jackm@dev.mellanox.co.il>
+From: "Shamis, Pavel" <shamisp-1Heg1YXhbW8@public.gmane.org>
+Subject: Re: [RFC] XRC upstream merge reboot
+Date: Tue, 02 Aug 2011 12:29:18 -0400
+Message-ID: <32D25205-3E9C-4757-B0AB-7117BDF3F2F7@ornl.gov>
+References: <1828884A29C6694DAF28B7E6B8A82373F7AB@ORSMSX101.amr.corp.intel.com>
+ <AE625966-FD97-4DBF-A024-22B83B5F3E39@ornl.gov>
+ <1828884A29C6694DAF28B7E6B8A82373136F9194@ORSMSX101.amr.corp.intel.com>
+ <201108021344.25284.jackm@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <201108021053.05311.jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Content-Language: en-US
+In-reply-to: <201108021344.25284.jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Content-language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "tziporet-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org" <tziporet-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, "dotanb-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org" <dotanb-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, "Jeff Squyres (jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org)" <jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, "Shumilin, Victor" <victor.shumilin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Truschin, Vladimir" <vladimir.truschin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Devendar Bureddy <bureddy-wPOY3OvGL++pAIv7I8X2sze48wsgrGvP@public.gmane.org>, "mvapich-core-wPOY3OvGL++pAIv7I8X2sze48wsgrGvP@public.gmane.org" <mvapich-core-wPOY3OvGL++pAIv7I8X2sze48wsgrGvP@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> If I understand correctly, the various additions which would normally be made
-> to libibverbs
-> would then be made by third-party libraries which extend libibverbs to support
-> their additions.
+Hi Jack,
+Please see my comments below
 
-It may help to read about extensions in opengl:
+> From Pavel Shamis:
+>>> We do have unregister on finalization. But this code doesn't introduce any
+>>> synchronization across processes on the same node, since kernel manages the
+>>> receive qp. If the reference counter will be moved to app responsibility, it
+>>> will enforce the app to mange the reference counter on app level , in other
+>>> words , it will require some process to be responsible for the QP. In context
+>>> of MPI-2 dynamics, such approach will make  MPI community live much more
+>>> complicated.
+>> 
+> Why can't the server allocate a new domain per job?  Who creates the target QP? -- can't the
+> target QP creator create the domain (instead of the server), and provide the domain handle to the server? 
 
-http://www.opengl.org/registry/doc/rules.html
+XRC domain is created by process that starts first.  All the rest processes, that belong to the same mpi session and reside on the same node, join the domain. 
+TGT QP is created by process that receive inbound connection first and it is not necessary the same process that created the domain. Even so we assume that both processes belong to the same domain, and belong to the same mpi session.
 
-Additions can be made to both.  Obviously Roland has the final say on any changes to ibverbs, but what I envision is:
+> Once the calculation gets started (with other clients opening that domain and
+> creating XRC SRQs to receive messages via the TGT QP,
+> the TGT QP creator can dealloc the xrc domain and exit (without destroying the TGT QP).
+> The xrc domain will not actually be deallocated in the low-level driver until all XRC SRQ clients
+> also dealloc the domain (reducing its reference count to zero).
+> At that point, all the domain's TGT QPs will be destroyed as well.
 
-If a feature is based on an industry standard and all necessary kernel changes are upstream, then the feature should be integrated into ibverbs.  An application would simply call ibv_new_feature() to make use of the feature (or call an existing function with some new enum value).  Internally, ibverbs may need to obtain a new interface from the provider library.
+Does it mean that TGT QP as well is allocated on low level driver ? If so, I have no problem with this approach.
 
-If there is no published specification for a feature (maybe it's still under development), kernel patches are needed, and there are customers who want to use the feature immediately, then a vendor can define an extension.  In this case, the application may call vendor_ops = ibv_get_ext_ops(), followed by vendor_ops->new_feature().  Or the app may call ibv_some_existing_function() using a vendor specific enum value.
 
-> These additions would include the new ibv_cmd_xxx functions
-> (the core functions reside in src/cmd.c), and new, additional, enum values of
-> the form IBV_USER_VERBS_CMD_XXXX, of which the core enum is in file
-> include/infiniband/kern_abi.h.
+> 
+> We would, in fact, use opening/allocating the XRC domain, which is done anyway, instead of registering
+> "interest" in a specific TGT QP, as the means of controlling target QP lifetime.
+> 
+> Is this an option?
 
-If an app uses an extension, then there are no changes to ibverbs.  The provider library either needs to use an existing ibv_cmd_* call or call into the kernel itself.  If the provider needs a new command, it could declare it as:
+Sure, sounds good.
 
-	enum {
-		MLX4_USER_VERBS_CMD_BASE = IBV_EXTENSION_VENDOR <<
-						IBV_EXTENSION_BASE_SHIFT,
-		MLX4_USER_VERBS_CMD_NEW_FEATURE ...
-	};
+Regards,
 
-This requires a kernel patch to uverbs maintained by the vendor.  Note that this means that the vendor can continue to support their version of a feature (with continued kernel patches) even once the feature is merged into ibverbs.
- 
-> Each new third-party package would need such a library.
-> While this will lead to a multiplicity of new libraries (one per addition),
-> the core libibverbs package would remain as is.
-
-I didn't follow this.  The new feature could be integrated directly into the provider library (e.g. mlx4).
- 
-> Am I correct?  If so, shouldn't the current XRC userspace implementation do
-> the same (and
-> take the XRC-specific additions out of libibverbs and put them into a separate
-> library)?
-
-XRC could be added as an extension, but since it's based on a published specification, IMO it makes more sense being integrated directly into ibverbs with the necessary kernel changes pushed upstream.  Extensions are more difficult for apps to use than an integrated feature.
-
-> Note that coordination between third parties would still be required to insure
-> that there is
-> no collision of enum values between the various packages.
-
-The use of enum ibv_extension_type should prevent collisions.  It may be that different vendors use the same value for different objects, but that doesn't result in a collision.  The scope of a vendor specific value is per device.
-
-- Sean 
---
+Pasha--
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
