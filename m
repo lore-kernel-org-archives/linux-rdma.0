@@ -1,46 +1,45 @@
 From: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH 1/2] libibverbs: Allow 3rd party extensions to verb routines
-Date: Tue, 2 Aug 2011 10:53:05 +0300
-Message-ID: <201108021053.05311.jackm@dev.mellanox.co.il>
-References: <1828884A29C6694DAF28B7E6B8A8237302123C@ORSMSX101.amr.corp.intel.com> <201108011508.06521.jackm@dev.mellanox.co.il> <20110802053824.GA23512@obsidianresearch.com>
+Subject: Re: [RFC] XRC upstream merge reboot
+Date: Tue, 2 Aug 2011 13:44:24 +0300
+Message-ID: <201108021344.25284.jackm@dev.mellanox.co.il>
+References: <1828884A29C6694DAF28B7E6B8A82373F7AB@ORSMSX101.amr.corp.intel.com> <AE625966-FD97-4DBF-A024-22B83B5F3E39@ornl.gov> <1828884A29C6694DAF28B7E6B8A82373136F9194@ORSMSX101.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20110802053824.GA23512-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <1828884A29C6694DAF28B7E6B8A82373136F9194-P5GAC/sN6hmkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "Shamis, Pavel" <shamisp-1Heg1YXhbW8@public.gmane.org>, "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "tziporet-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org" <tziporet-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, "dotanb-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org" <dotanb-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, "Jeff Squyres (jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org)" <jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, "Shumilin, Victor" <victor.shumilin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Truschin, Vladimir" <vladimir.truschin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Devendar Bureddy <bureddy-wPOY3OvGL++pAIv7I8X2sze48wsgrGvP@public.gmane.org>, "mvapich-core-wPOY3OvGL++pAIv7I8X2sze48wsgrGvP@public.gmane.org" <mvapich-core-wPOY3OvGL++pAIv7I8X2sze48wsgrGvP@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tuesday 02 August 2011 08:38, Jason Gunthorpe wrote:
-> The hope is once the infrastructure is in libibverbs there will not
-> be as much need to change libibverbs, just the apps and the drivers.
+On Monday 01 August 2011 21:28, Hefty, Sean wrote:
+
+>From Pavel Shamis:
+> > We do have unregister on finalization. But this code doesn't introduce any
+> > synchronization across processes on the same node, since kernel manages the
+> > receive qp. If the reference counter will be moved to app responsibility, it
+> > will enforce the app to mange the reference counter on app level , in other
+> > words , it will require some process to be responsible for the QP. In context
+> > of MPI-2 dynamics, such approach will make  MPI community live much more
+> > complicated.
 > 
-If I understand correctly, the various additions which would normally be made to libibverbs
-would then be made by third-party libraries which extend libibverbs to support their additions.
+Why can't the server allocate a new domain per job?  Who creates the target QP? -- can't the
+target QP creator create the domain (instead of the server), and provide the domain handle to the server? 
+Once the calculation gets started (with other clients opening that domain and
+creating XRC SRQs to receive messages via the TGT QP,
+the TGT QP creator can dealloc the xrc domain and exit (without destroying the TGT QP).
+The xrc domain will not actually be deallocated in the low-level driver until all XRC SRQ clients
+also dealloc the domain (reducing its reference count to zero).
+At that point, all the domain's TGT QPs will be destroyed as well.
 
-These additions would include the new ibv_cmd_xxx functions
-(the core functions reside in src/cmd.c), and new, additional, enum values of
-the form IBV_USER_VERBS_CMD_XXXX, of which the core enum is in file
-include/infiniband/kern_abi.h.
+We would, in fact, use opening/allocating the XRC domain, which is done anyway, instead of registering
+"interest" in a specific TGT QP, as the means of controlling target QP lifetime.
 
-The modified apps would then include the header files of the 3rd party additions
-after the libibverbs headers when compiling.
-
-Each new third-party package would need such a library.
-While this will lead to a multiplicity of new libraries (one per addition),
-the core libibverbs package would remain as is.
-
-Am I correct?  If so, shouldn't the current XRC userspace implementation do the same (and
-take the XRC-specific additions out of libibverbs and put them into a separate library)?
-
-Note that coordination between third parties would still be required to insure that there is
-no collision of enum values between the various packages.
-
+Is this an option?
 -Jack
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
