@@ -1,103 +1,50 @@
-From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: [Patch libibverbs-1.1.5] Fix broken compat assumption on ppc arch
-Date: Tue, 02 Aug 2011 15:15:11 -0400
-Message-ID: <4E384CBF.6080905@redhat.com>
+From: "Shamis, Pavel" <shamisp-1Heg1YXhbW8@public.gmane.org>
+Subject: Re: [RFC] XRC upstream merge reboot
+Date: Tue, 02 Aug 2011 15:08:57 -0400
+Message-ID: <EABE213A-448A-45F8-B131-AE1EE3F9547F@ornl.gov>
+References: <1828884A29C6694DAF28B7E6B8A82373F7AB@ORSMSX101.amr.corp.intel.com>
+ <201106230935.07425.jackm@dev.mellanox.co.il>
+ <1828884A29C6694DAF28B7E6B8A82373136F63B9@ORSMSX101.amr.corp.intel.com>
+ <201107211038.23000.jackm@dev.mellanox.co.il>
+ <1828884A29C6694DAF28B7E6B8A82373136F6691@ORSMSX101.amr.corp.intel.com>
+ <26AE60A9-D055-4D40-A830-5AADDBA20ED8@ornl.gov>
+ <1828884A29C6694DAF28B7E6B8A82373136F9075@ORSMSX101.amr.corp.intel.com>
+ <AE625966-FD97-4DBF-A024-22B83B5F3E39@ornl.gov>
+ <1828884A29C6694DAF28B7E6B8A82373136F9194@ORSMSX101.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------090804010703090300050700"
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-reply-to: <1828884A29C6694DAF28B7E6B8A82373136F9194-P5GAC/sN6hmkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
+Content-language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "tziporet-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org" <tziporet-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, "dotanb-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org" <dotanb-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, "Jeff Squyres (jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org)" <jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, "Shumilin, Victor" <victor.shumilin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Truschin, Vladimir" <vladimir.truschin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Devendar Bureddy <bureddy-wPOY3OvGL++pAIv7I8X2sze48wsgrGvP@public.gmane.org>, "mvapich-core-wPOY3OvGL++pAIv7I8X2sze48wsgrGvP@public.gmane.org" <mvapich-core-wPOY3OvGL++pAIv7I8X2sze48wsgrGvP@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------090804010703090300050700
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
 
-In the compat-1.0 wrapper, the post_send wrapper assumes that the layout 
-of the tail end of the ibv_send_wr struct is the same in version 1.0 and 
-1.1.  Unfortunately, padding of the struct makes this untrue depending 
-on the architecture.  In my case, it was ppc that was failing to compile 
-because we were triggering the gcc built in memcpy check.  We were 
-scribbling past the end of the structure of the new structure because 
-the old structure has alignment padding that the new one doesn't.  There 
-are two spots that are padded in the version 1.0 ibv_send_wr struct, 4 
-bytes before sg_list, and 4 more bytes before wr.
+>> We do have unregister on finalization. But this code doesn't introduce any
+>> synchronization across processes on the same node, since kernel manages the
+>> receive qp. If the reference counter will be moved to app responsibility, it
+>> will enforce the app to mange the reference counter on app level , in other
+>> words , it will require some process to be responsible for the QP. In context
+>> of MPI-2 dynamics, such approach will make  MPI community live much more
+>> complicated.
+> 
+> I'm not sure we're fully communicating here.  I understand the usage model for xrc.
 
-So this patch conditionalizes whether or not we use memcpy on the basis 
-of data that will be reduced to constants at compile time, so even 
-though there is an if statement, it gets reduced to just the proper 
-method for the given arch at compile time.  And the patch will attempt a 
-simple memcpy if possible, or two memcpy's in the case that wr needed 
-padding to be aligned (as is the case on ppc), and fall back to field 
-based copy just in case this is compiled on some arch with really odd 
-field alignment characteristics.
+Ok.
 
-Signed-off-by: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+> 
+> The basic problem is determining the lifetime of the xrc target qp.  One process creates the xrc target qp.  A process also owns connecting the target qp.  Any process can create the xrc domain.
 
---------------090804010703090300050700
-Content-Type: text/plain;
- name="libibverbs-1.1.5-memcpy.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
- filename="libibverbs-1.1.5-memcpy.patch"
+If the target QP is opened in low level driver, then it's owned by group of processes that share the same XRC domain.
+And , as I mentioned in the reply to Jack, I totally agree that maximum life time of target QP is bound to XRC domain life time,
+even so it should be a way to destroy the QP before XRC domain distraction. My main point is that the target qp should be maintained by low level driver and not specific MPI process (like send qp)
 
-diff -up libibverbs-1.1.5/src/compat-1_0.c.memcpy libibverbs-1.1.5/src/compat-1_0.c
---- libibverbs-1.1.5/src/compat-1_0.c.memcpy	2011-06-28 17:13:45.000000000 -0400
-+++ libibverbs-1.1.5/src/compat-1_0.c	2011-08-02 12:07:20.114511405 -0400
-@@ -350,8 +350,46 @@ static int post_send_wrapper_1_0(struct 
- 		real_wr->wr_id = w->wr_id;
- 		real_wr->next  = NULL;
- 
--		memcpy(&real_wr->sg_list, &w->sg_list,
--		       sizeof *w - offsetof(struct ibv_send_wr, sg_list));
-+#define TEST_SIZE_2_POINT(f1, f2) \
-+((offsetof(struct ibv_send_wr, f1) - offsetof(struct ibv_send_wr, f2)) \
-+== offsetof(struct ibv_send_wr_1_0, f1) - offsetof(struct ibv_send_wr_1_0, f2))
-+#define TEST_SIZE_TO_END(f1) \
-+((sizeof(struct ibv_send_wr) - offsetof(struct ibv_send_wr, f1)) == \
-+ (sizeof(struct ibv_send_wr_1_0) - offsetof(struct ibv_send_wr_1_0, f1)))
-+
-+		if (TEST_SIZE_TO_END (sg_list))
-+			memcpy(&real_wr->sg_list, &w->sg_list, sizeof *real_wr
-+			       - offsetof(struct ibv_send_wr, sg_list));
-+		else if (TEST_SIZE_2_POINT (imm_data, sg_list) &&
-+			 TEST_SIZE_TO_END (wr)) {
-+			/* we have alignment up to wr, but padding between
-+			 * imm_data and wr, and we know wr itself is the
-+			 * same size */
-+			memcpy(&real_wr->sg_list, &w->sg_list,
-+			       offsetof(struct ibv_send_wr, imm_data) -
-+			       offsetof(struct ibv_send_wr, sg_list) +
-+			       sizeof real_wr->imm_data);
-+			memcpy(&real_wr->wr, &w->wr, sizeof real_wr->wr);
-+		} else {
-+			real_wr->sg_list = w->sg_list;
-+			real_wr->num_sge = w->num_sge;
-+			real_wr->opcode = w->opcode;
-+			real_wr->send_flags = w->send_flags;
-+			real_wr->imm_data = w->imm_data;
-+			if (TEST_SIZE_TO_END (wr))
-+				memcpy(&real_wr->wr, &w->wr,
-+				       sizeof real_wr->wr);
-+			else {
-+				real_wr->wr.atomic.remote_addr = 
-+					w->wr.atomic.remote_addr;
-+				real_wr->wr.atomic.compare_add = 
-+					w->wr.atomic.compare_add;
-+				real_wr->wr.atomic.swap = 
-+					w->wr.atomic.swap;
-+				real_wr->wr.atomic.rkey = 
-+					w->wr.atomic.rkey;
-+			}
-+		}
- 
- 		if (is_ud)
- 			real_wr->wr.ud.ah = w->wr.ud.ah->real_ah;
+Regards,
 
---------------090804010703090300050700--
---
+Pasha--
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
