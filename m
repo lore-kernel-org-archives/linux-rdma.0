@@ -1,81 +1,29 @@
-From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-Subject: Re: [libibmad] field name cleanup
-Date: Wed, 3 Aug 2011 12:52:18 -0700
-Message-ID: <20110803125218.983e0db2.weiny2@llnl.gov>
-References: <1312330213.5759.82.camel@auk59.llnl.gov>
-	<4E38F9A8.6060200@dev.mellanox.co.il>
-	<20110803083937.533c5227.weiny2@llnl.gov>
-	<4E396CD6.80904@dev.mellanox.co.il>
+From: "System Administrator" <info-gvApmXps4TM@public.gmane.org>
+Subject: Warning Increase Your Mailbox Quota..
+Date: Thu, 4 Aug 2011 03:42:31 +0800
+Message-ID: <20110803183305.M27171__36311.4042011604$1312402046$gmane$org@web.com>
+Reply-To: info-gvApmXps4TM@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;
+	charset=utf-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4E396CD6.80904-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: "Chu, Al" <chu11-i2BcT+NCU+M@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, 3 Aug 2011 08:44:22 -0700
-Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wrote:
+Your Mail Quota Has Exceeded The Set Quota/Limit. You Are Currently
+Running On 23GB Due To Hidden Files And Folder On Your Mailbox,
+you may not be able to receive or send new mails until you re-validate.
 
-> On 8/3/2011 11:39 AM, Ira Weiny wrote:
-> > On Wed, 3 Aug 2011 00:32:56 -0700
-> > Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wrote:
-> > 
-> >> Hi Al,
-> >>
-> >> On 8/2/2011 8:10 PM, Albert Chu wrote:
-> >>> I noticed that a number of field names did not have the "_F" suffix on
-> >>> them. The patch below cleans this up and makes things consistent.
-> >>
-> >> I think the ship has sailed on this due to backward compatibility. IMO
-> >> the best that could be done now is to add the _F suffixes to be the same
-> >> as the ones without them.
-> >>
-> >> For example,
-> >> ...
-> >> 	IB_PC_PORT_VL_OP_PACKETS1,
-> >> 	IB_PC_PORT_VL_OP_PACKETS1_F = IB_PC_PORT_VL_OP_PACKETS1,
-> >> 	IB_PC_PORT_VL_OP_PACKETS2,
-> >> 	IB_PC_PORT_VL_OP_PACKETS2_F = IB_PC_PORT_VL_OP_PACKETS2,
-> >> ...
-> > 
-> > 
-> > I don't think so.  The last version (tag 1.3.7, released 2/14/2011) does not include IB_PC_PORT_VL_OP_PACKETS1.  So I think we can still change them before the release.
-> > 
-> > I think that is true of all the fields in the patch but I will check again.
-> 
-> Sure, if they're all "new" enums then it's OK to fix those. I thought
-> there were some older ones in that list but maybe I'm wrong...
+Please Click the Link Below To Validate Your Mailbox And Increase Your Quota.
 
-I double checked and they are all "new" since the last release.
+http://buzurl.com/at96
 
-Thanks, applied,
-Ira
+Failure To Validate Your Quota May Result In Loss Of Important Information
+In Your Mailbox Or Cause Limited Access To It.
 
-> 
-> -- Hal
-> 
-> > Ira
-> > 
-> >>
-> >> -- Hal
-> >>
-> >>> Al
-> >>>
-> >>
-> > 
-> > 
-> 
+Mail Quota alert -Error Code #1997142DDE
 
-
--- 
-Ira Weiny
-Math Programmer/Computer Scientist
-Lawrence Livermore National Lab
-925-423-8008
-weiny2-i2BcT+NCU+M@public.gmane.org
+System Administrator
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
