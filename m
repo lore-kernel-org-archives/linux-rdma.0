@@ -1,55 +1,61 @@
-From: Yevgeny Petrilin <yevgenyp-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
-Subject: [PATCH] mlx4: Fixing Ethernet unicast packet steering
-Date: Wed, 3 Aug 2011 17:24:24 +0300
-Message-ID: <4E395A18.8070600@mellanox.co.il>
+From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+Subject: Re: [libibmad] field name cleanup
+Date: Wed, 3 Aug 2011 08:39:37 -0700
+Message-ID: <20110803083937.533c5227.weiny2@llnl.gov>
+References: <1312330213.5759.82.camel@auk59.llnl.gov>
+	<4E38F9A8.6060200@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <4E38F9A8.6060200-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-Cc: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, yevgenyp-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org
+To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: "Chu, Al" <chu11-i2BcT+NCU+M@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-For older FW versions, fixing the usage of per port Mac table.
-For each port we must define the base QP number, which is passed
-to the HW.
-Setting the correct value in SET_PORT FW command to enable the steering.
+On Wed, 3 Aug 2011 00:32:56 -0700
+Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wrote:
 
-Reported-by: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
-Signed-off-by: Yevgeny Petrilin <yevgenyp-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
----
- drivers/net/mlx4/en_port.c |    2 +-
- drivers/net/mlx4/main.c    |    2 ++
- 2 files changed, 3 insertions(+), 1 deletions(-)
+> Hi Al,
+> 
+> On 8/2/2011 8:10 PM, Albert Chu wrote:
+> > I noticed that a number of field names did not have the "_F" suffix on
+> > them. The patch below cleans this up and makes things consistent.
+> 
+> I think the ship has sailed on this due to backward compatibility. IMO
+> the best that could be done now is to add the _F suffixes to be the same
+> as the ones without them.
+> 
+> For example,
+> ...
+> 	IB_PC_PORT_VL_OP_PACKETS1,
+> 	IB_PC_PORT_VL_OP_PACKETS1_F = IB_PC_PORT_VL_OP_PACKETS1,
+> 	IB_PC_PORT_VL_OP_PACKETS2,
+> 	IB_PC_PORT_VL_OP_PACKETS2_F = IB_PC_PORT_VL_OP_PACKETS2,
+> ...
 
-diff --git a/drivers/net/mlx4/en_port.c b/drivers/net/mlx4/en_port.c
-index 5e71091..5ada5b4 100644
---- a/drivers/net/mlx4/en_port.c
-+++ b/drivers/net/mlx4/en_port.c
-@@ -128,7 +128,7 @@ int mlx4_SET_PORT_qpn_calc(struct mlx4_dev *dev, u8 port, u32 base_qpn,
- 	memset(context, 0, sizeof *context);
- 
- 	context->base_qpn = cpu_to_be32(base_qpn);
--	context->n_mac = 0x7;
-+	context->n_mac = 0x2;
- 	context->promisc = cpu_to_be32(promisc << SET_PORT_PROMISC_SHIFT |
- 				       base_qpn);
- 	context->mcast = cpu_to_be32(m_promisc << SET_PORT_MC_PROMISC_SHIFT |
-diff --git a/drivers/net/mlx4/main.c b/drivers/net/mlx4/main.c
-index c94b342..f0ee35d 100644
---- a/drivers/net/mlx4/main.c
-+++ b/drivers/net/mlx4/main.c
-@@ -1117,6 +1117,8 @@ static int mlx4_init_port_info(struct mlx4_dev *dev, int port)
- 	info->port = port;
- 	mlx4_init_mac_table(dev, &info->mac_table);
- 	mlx4_init_vlan_table(dev, &info->vlan_table);
-+	info->base_qpn = dev->caps.reserved_qps_base[MLX4_QP_REGION_ETH_ADDR] +
-+			(port - 1) * (1 << log_num_mac);
- 
- 	sprintf(info->dev_name, "mlx4_port%d", port);
- 	info->port_attr.attr.name = info->dev_name;
--- 1.6.0.2 
+
+I don't think so.  The last version (tag 1.3.7, released 2/14/2011) does not include IB_PC_PORT_VL_OP_PACKETS1.  So I think we can still change them before the release.
+
+I think that is true of all the fields in the patch but I will check again.
+
+Ira
+
+> 
+> -- Hal
+> 
+> > Al
+> > 
+> 
+
+
+-- 
+Ira Weiny
+Math Programmer/Computer Scientist
+Lawrence Livermore National Lab
+925-423-8008
+weiny2-i2BcT+NCU+M@public.gmane.org
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
