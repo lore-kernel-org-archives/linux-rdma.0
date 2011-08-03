@@ -1,114 +1,48 @@
-From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-Subject: Re: [PATCH v3/2] infiniband-diags/smpquery: Add Mellanox extended
- portinfo query
-Date: Wed, 3 Aug 2011 13:14:21 -0700
-Message-ID: <20110803131421.0f1189ad.weiny2@llnl.gov>
-References: <4E2AAA5C.4080801@dev.mellanox.co.il>
+From: "Shamis, Pavel" <shamisp-1Heg1YXhbW8@public.gmane.org>
+Subject: RE: [RFC] XRC upstream merge reboot
+Date: Wed, 03 Aug 2011 16:22:13 -0400
+Message-ID: <5C691E518F345F4882FAB9E9839E60BA0BCA462300@EXCHMB.ornl.gov>
+References: <1828884A29C6694DAF28B7E6B8A82373F7AB@ORSMSX101.amr.corp.intel.com>
+ <201106230935.07425.jackm@dev.mellanox.co.il>
+ <1828884A29C6694DAF28B7E6B8A82373136F63B9@ORSMSX101.amr.corp.intel.com>
+ <201107211038.23000.jackm@dev.mellanox.co.il>
+ <1828884A29C6694DAF28B7E6B8A82373136F6691@ORSMSX101.amr.corp.intel.com>
+ <26AE60A9-D055-4D40-A830-5AADDBA20ED8@ornl.gov>
+ <1828884A29C6694DAF28B7E6B8A82373136F9075@ORSMSX101.amr.corp.intel.com>
+ <AE625966-FD97-4DBF-A024-22B83B5F3E39@ornl.gov>
+ <1828884A29C6694DAF28B7E6B8A82373136F9194@ORSMSX101.amr.corp.intel.com>
+ <EABE213A-448A-45F8-B131-AE1EE3F9547F@ornl.gov>
+ <1828884A29C6694DAF28B7E6B8A82373136F962C@ORSMSX101.amr.corp.intel.com>
+ <DE779D97-F54F-45E4-B3D4-DBEB10F9302D@ornl.gov>
+ <1828884A29C6694DAF28B7E6B8A82373136F967E@ORSMSX101.amr.corp.intel.com>
+ <5C691E518F345F4882FAB9E9839E60BA0BCA4622F4@EXCHMB.ornl.gov>
+ <1828884A29C6694DAF28B7E6B8A82373136F97AC@ORSMSX101.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4E2AAA5C.4080801-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+In-reply-to: <1828884A29C6694DAF28B7E6B8A82373136F97AC-P5GAC/sN6hmkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
+Content-language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: "'Hefty, Sean'" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "tziporet-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org" <tziporet-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, "dotanb-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org" <dotanb-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, "Jeff Squyres (jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org)" <jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, "Shumilin, Victor" <victor.shumilin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Truschin, Vladimir" <vladimir.truschin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Devendar Bureddy <bureddy-wPOY3OvGL++pAIv7I8X2sze48wsgrGvP@public.gmane.org>, "mvapich-core-wPOY3OvGL++pAIv7I8X2sze48wsgrGvP@public.gmane.org" <mvapich-core-wPOY3OvGL++pAIv7I8X2sze48wsgrGvP@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Sat, 23 Jul 2011 04:02:52 -0700
-Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wrote:
 
+> > Well, actually I was thinking about APM. If the "creator" exits, we do not
+> > have a way to
+> > upload alternative path.
 > 
-> Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> Correct - that would be a limitation.  You would need to move to a new tgt
+> qp.
 
-applied, thanks,
-Ira
+Well, in Open MPI we have XRC code that uses APM. 
+If Mellanox cares about the feature, they would have to rework this part of code in Open MPI.
+I don't know about other apps.
 
-> ---
-> Changes since v2:
-> Made command MlnxExtPortInfo or MEPI
-> Other cosmetics to add mlnx to extportinfo
-> 
-> Changes since v1:
-> Added man page change
-> 
-> diff --git a/man/smpquery.8 b/man/smpquery.8
-> index 3b69e8a..afd02db 100644
-> --- a/man/smpquery.8
-> +++ b/man/smpquery.8
-> @@ -1,4 +1,4 @@
-> -.TH SMPQUERY 8 "March 14, 2007" "OpenIB" "OpenIB Diagnostics"
-> +.TH SMPQUERY 8 "March 9, 2011" "OpenIB" "OpenIB Diagnostics"
->  
->  .SH NAME
->  smpquery \- query InfiniBand subnet management attributes
-> @@ -29,6 +29,7 @@ Current supported operations and their parameters:
->          sl2vl <addr> [<portnum>]
->          vlarb <addr> [<portnum>]
->          guids <addr>
-> +        mlnxextportinfo <addr> [<portnum>]  # default port is zero
->  
->  .TP
->  \fB\-\-node\-name\-map\fR <node-name-map>
-> @@ -113,4 +114,4 @@ smpquery -c nodeinfo 6 0,12  # nodeinfo by combined route
->  .SH AUTHOR
->  .TP
->  Hal Rosenstock
-> -.RI < halr-smomgflXvOZWk0Htik3J/w@public.gmane.org >
-> +.RI < hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org >
-> diff --git a/src/smpquery.c b/src/smpquery.c
-> index 65bb65c..6753ba9 100644
-> --- a/src/smpquery.c
-> +++ b/src/smpquery.c
-> @@ -63,7 +63,7 @@ typedef struct match_rec {
->  } match_rec_t;
->  
->  static op_fn_t node_desc, node_info, port_info, switch_info, pkey_table,
-> -    sl2vl_table, vlarb_table, guid_info;
-> +    sl2vl_table, vlarb_table, guid_info, mlnx_ext_port_info;
->  
->  static const match_rec_t match_tbl[] = {
->  	{"NodeInfo", "NI", node_info},
-> @@ -74,6 +74,7 @@ static const match_rec_t match_tbl[] = {
->  	{"SL2VLTable", "SL2VL", sl2vl_table, 1},
->  	{"VLArbitration", "VLArb", vlarb_table, 1},
->  	{"GUIDInfo", "GI", guid_info},
-> +	{"MlnxExtPortInfo", "MEPI", mlnx_ext_port_info, 1},
->  	{0}
->  };
->  
-> @@ -147,6 +148,24 @@ static char *port_info(ib_portid_t * dest, char **argv, int argc)
->  	return 0;
->  }
->  
-> +static char *mlnx_ext_port_info(ib_portid_t * dest, char **argv, int argc)
-> +{
-> +	char buf[2300];
-> +	char data[IB_SMP_DATA_SIZE];
-> +	int portnum = 0;
-> +
-> +	if (argc > 0)
-> +		portnum = strtol(argv[0], 0, 0);
-> +
-> +	if (!smp_query_via(data, dest, IB_ATTR_MLNX_EXT_PORT_INFO, portnum, 0, srcport))
-> +		return "Mellanox ext port info query failed";
-> +
-> +	mad_dump_mlnx_ext_port_info(buf, sizeof buf, data, sizeof data);
-> +
-> +	printf("# MLNX ext Port info: %s port %d\n%s", portid2str(dest), portnum, buf);
-> +	return 0;
-> +}
-> +
->  static char *switch_info(ib_portid_t * dest, char **argv, int argc)
->  {
->  	char buf[2048];
+Regards,
+Pasha
 
-
--- 
-Ira Weiny
-Math Programmer/Computer Scientist
-Lawrence Livermore National Lab
-925-423-8008
-weiny2-i2BcT+NCU+M@public.gmane.org
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
