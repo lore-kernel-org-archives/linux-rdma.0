@@ -1,26 +1,22 @@
-From: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH] mlx4: decreasing ref count when removing mac
-Date: Thu, 4 Aug 2011 05:55:39 -0700
-Message-ID: <CAL1RGDWVBWvc_p_XM2BQ-jV8DG19ZcbCcpntMJifED2frR+jcQ@mail.gmail.com>
-References: <4E3A7CE8.4080407@mellanox.co.il>
+From: "Fiduciary Desk" <info-tbh0vRtOoRA@public.gmane.org>
+Subject: Batch Number: 074/05/ZY369
+Date: Thu, 4 Aug 2011 18:01:07 -0400 (AMT)
+Message-ID: <bbca6622496b3593f14b7a06abbbb3c6.squirrel__34123.1398437687$1312495712$gmane$org@webmail.petroamazon.com.br>
+Reply-To: irs.inl22@w.cn
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4E3A7CE8.4080407-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Yevgeny Petrilin <yevgenyp-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
-Cc: davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-> For older FW versions, when a Mac address removed from Mac table,
-> we should set 0 for reference count for the corresponding Mac index.
-> Fixes a bug where removing Mac from the table still left that entry as
-> invalid.
 
-This fixes my problems with MTU settings with old FW.
 
-Tested-by: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+
+You won =A3750,000 GBP. Send Name, Age, occupation, Country.
+
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
