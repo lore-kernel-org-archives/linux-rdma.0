@@ -1,42 +1,31 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [RFC] XRC upstream merge reboot
-Date: Thu, 4 Aug 2011 00:06:24 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A82373136F9A7E@ORSMSX101.amr.corp.intel.com>
-References: <1828884A29C6694DAF28B7E6B8A82373136F9194@ORSMSX101.amr.corp.intel.com>
- <EABE213A-448A-45F8-B131-AE1EE3F9547F@ornl.gov>
- <1828884A29C6694DAF28B7E6B8A82373136F962C@ORSMSX101.amr.corp.intel.com>
- <DE779D97-F54F-45E4-B3D4-DBEB10F9302D@ornl.gov>
- <1828884A29C6694DAF28B7E6B8A82373136F967E@ORSMSX101.amr.corp.intel.com>
- <5C691E518F345F4882FAB9E9839E60BA0BCA4622F4@EXCHMB.ornl.gov>
- <1828884A29C6694DAF28B7E6B8A82373136F97AC@ORSMSX101.amr.corp.intel.com>
- <5C691E518F345F4882FAB9E9839E60BA0BCA462300@EXCHMB.ornl.gov>
- <1828884A29C6694DAF28B7E6B8A82373136F9A13@ORSMSX101.amr.corp.intel.com>
- <5C691E518F345F4882FAB9E9839E60BA0BCA462301@EXCHMB.ornl.gov>
- <20110803213642.GE28465@obsidianresearch.com>
+From: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH] mlx4: Fixing Ethernet unicast packet steering
+Date: Wed, 3 Aug 2011 19:53:40 -0700
+Message-ID: <CAL1RGDXkbWjC1W0AcjXo6jm9bh1mtnx8nStCZL+ty4ywcCQ0yw@mail.gmail.com>
+References: <4E395A18.8070600@mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20110803213642.GE28465-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <4E395A18.8070600-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, "Shamis, Pavel" <shamisp-1Heg1YXhbW8@public.gmane.org>
-Cc: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, "Jeff Squyres (jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org)" <jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "tziporet-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org" <tziporet-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, "dotanb-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org" <dotanb-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, "Shumilin, Victor" <victor.shumilin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Truschin, Vladimir" <vladimir.truschin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Devendar Bureddy <bureddy-wPOY3OvGL++pAIv7I8X2sze48wsgrGvP@public.gmane.org>, "mvapich-core-wPOY3OvGL++pAIv7I8X2sze48wsgrGvP@public.gmane.org" <mvapich-core-wPOY3OvGL++pAIv7I8X2sze48wsgrGvP@public.gmane.org>
+To: Yevgeny Petrilin <yevgenyp-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
+Cc: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-> Where does the ib_verbs async event for APM state change get routed for
-> XRC?
+Hi Yevgeny!
 
-The OFED APIs route QP events to all processes which register for that qp number.
+Actually on further testing it seems that things are still not perfect
+with my old firmware at least.
 
-> Does the event have enough info to identify all the necessary
-> parts?
+If I do "ifconfig eth6 mtu 1450" (where eth6 is a mlx4_en interface)
+then I am no longer able to get traffic through the interface; if I
+have a ping running it stops immediately.  It seems any mtu change
+triggers this (increasing the mtu above the default has the same
+effect, and restoring the mtu to the default doesn't fix it).
 
-The event carries the qp number only.
+Haven't tried to debug further.
 
-> Can the process that receives the event do something about it?
-
-*shrugs*  MPI devs?
+ - R.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
