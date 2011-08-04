@@ -1,56 +1,50 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [RFC] XRC upstream merge reboot
-Date: Thu, 4 Aug 2011 05:53:58 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A82373136F9AD2@ORSMSX101.amr.corp.intel.com>
-References: <1828884A29C6694DAF28B7E6B8A82373136F962C@ORSMSX101.amr.corp.intel.com>
- <DE779D97-F54F-45E4-B3D4-DBEB10F9302D@ornl.gov>
- <1828884A29C6694DAF28B7E6B8A82373136F967E@ORSMSX101.amr.corp.intel.com>
- <5C691E518F345F4882FAB9E9839E60BA0BCA4622F4@EXCHMB.ornl.gov>
- <1828884A29C6694DAF28B7E6B8A82373136F97AC@ORSMSX101.amr.corp.intel.com>
- <5C691E518F345F4882FAB9E9839E60BA0BCA462300@EXCHMB.ornl.gov>
- <1828884A29C6694DAF28B7E6B8A82373136F9A13@ORSMSX101.amr.corp.intel.com>
- <5C691E518F345F4882FAB9E9839E60BA0BCA462301@EXCHMB.ornl.gov>
- <20110803213642.GE28465@obsidianresearch.com>
- <1828884A29C6694DAF28B7E6B8A82373136F9A7E@ORSMSX101.amr.corp.intel.com>
- <20110804040503.GA13935@obsidianresearch.com>
+From: Yevgeny Petrilin <yevgenyp-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
+Subject: [PATCH] mlx4: decreasing ref count when removing mac
+Date: Thu, 4 Aug 2011 14:05:12 +0300
+Message-ID: <4E3A7CE8.4080407@mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20110804040503.GA13935-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: "Shamis, Pavel" <shamisp-1Heg1YXhbW8@public.gmane.org>, Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, "Jeff Squyres (jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org)" <jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "tziporet-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org" <tziporet-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, "dotanb-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org" <dotanb-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, "Shumilin, Victor" <victor.shumilin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Truschin, Vladimir" <vladimir.truschin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Devendar Bureddy <bureddy-wPOY3OvGL++pAIv7I8X2sze48wsgrGvP@public.gmane.org>, "mvapich-core-wPOY3OvGL++pAIv7I8X2sze48wsgrGvP@public.gmane.org" <mvapich-core-wPOY3OvGL++pAIv7I8X2sze48wsgrGvP@public.gmane.org>
+To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+Cc: davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, yevgenyp-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-> ?? How do you register for an event? There is only
-> ibv_get_async_event(3) - I thought it returned all events relevant to
-> the associated verbs context.
 
-The OFED APIs for managing XRC receive QPs are:
+For older FW versions, when a Mac address removed from Mac table,
+we should set 0 for reference count for the corresponding Mac index.
+Fixes a bug where removing Mac from the table still left that entry as
+invalid.
 
-int (*create_xrc_rcv_qp)(struct ibv_qp_init_attr *init_attr,
-                         uint32_t *xrc_qp_num);
-int (*modify_xrc_rcv_qp)(struct ibv_xrc_domain *xrc_domain,
-                         uint32_t xrc_qp_num,
-                         struct ibv_qp_attr *attr,
-                         int attr_mask);
-int (*query_xrc_rcv_qp)(struct ibv_xrc_domain *xrc_domain,
-                        uint32_t xrc_qp_num,
-                        struct ibv_qp_attr *attr,
-                        int attr_mask,
-                        struct ibv_qp_init_attr *init_attr);
-int (*reg_xrc_rcv_qp)(struct ibv_xrc_domain *xrc_domain,
-                      uint32_t xrc_qp_num);
-int (*unreg_xrc_rcv_qp)(struct ibv_xrc_domain *xrc_domain,
-                        uint32_t xrc_qp_num);
+Signed-off-by: Yevgeny Petrilin <yevgenyp-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
+---
+ drivers/net/mlx4/port.c |    9 ++++++---
+ 1 files changed, 6 insertions(+), 3 deletions(-)
 
-The ibv_reg_xrc_rcv_qp() call bumped a reference count on the receive qp and registered for events.  The event structure was modified to include the xrc_qp_num, along with a flag added to the event to indicate that the event was for an xrc qp.
+diff --git a/drivers/net/mlx4/port.c b/drivers/net/mlx4/port.c
+index 1f95afd..609e0ec 100644
+--- a/drivers/net/mlx4/port.c
++++ b/drivers/net/mlx4/port.c
+@@ -258,9 +258,12 @@ void mlx4_unregister_mac(struct mlx4_dev *dev, u8 port, int qpn)
+ 	if (validate_index(dev, table, index))
+ 		goto out;
+ 
+-	table->entries[index] = 0;
+-	mlx4_set_port_mac_table(dev, port, table->entries);
+-	--table->total;
++	/* Check whether this address has reference count */
++	if (!(--table->refs[index])) {
++		table->entries[index] = 0;
++		mlx4_set_port_mac_table(dev, port, table->entries);
++		--table->total;
++	}
+ out:
+ 	mutex_unlock(&table->mutex);
+ }
+-- 
+1.6.0.2
 
-(To clarify my patches do not have these calls, so event registration isn't possible and would need to be communicated above verbs.)
-
-- Sean
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
