@@ -1,42 +1,17 @@
-From: Rolf Manderscheid <rvm-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: [PATCH] ibsim: fix size of slid/dlid fields in sim_request structure
-Date: Fri, 05 Aug 2011 17:29:41 -0600
-Message-ID: <E1QpTpl-00026F-D6@rvml.edm.orcorp.ca>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: ib-diags and ib_get_err_str
+Date: Fri, 5 Aug 2011 23:31:17 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A8237313702643@ORSMSX101.amr.corp.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Ira Weiny (weiny2-i2BcT+NCU+M@public.gmane.org)" <weiny2-i2BcT+NCU+M@public.gmane.org>, "Hal Rosenstock (hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org)" <hal.rosenstock>
 List-Id: linux-rdma@vger.kernel.org
 
-
-The code treats them as 16-bit fields (by using htons), make
-the structure match.  This also avoids the 32 bits of padding
-before the length field.
-
-Signed-off-by: Rolf Manderscheid <rvm-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
----
- include/ibsim.h |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/include/ibsim.h b/include/ibsim.h
-index 15fc37c..b6b08bd 100644
---- a/include/ibsim.h
-+++ b/include/ibsim.h
-@@ -62,8 +62,8 @@ struct sim_port {
- #define SIM_CTL_MAX_DATA	64
- 
- struct sim_request {
--	uint32_t dlid;
--	uint32_t slid;
-+	uint16_t dlid;
-+	uint16_t slid;
- 	uint32_t dqp;
- 	uint32_t sqp;
- 	uint32_t status;
--- 
-1.7.1
-
-
+Can anyone tell me how ib_get_err_str() gets pulled in on Linux?  I see it is ib_types.h in opensm, which references ib_error_str array.  When are the diags depending on to pick this up?
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
