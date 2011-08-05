@@ -1,36 +1,38 @@
 From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Subject: Re: [patch v2 01/37] add slice by 8 algorithm to crc32.c
-Date: Fri, 5 Aug 2011 20:39:48 +0200
-Message-ID: <CAO+b5-rFs79znwVcG42Px2i351vhiz9hFyCJV5qg77of8Y6P5Q@mail.gmail.com>
-References: <20110724194300.421253331@systemfabricworks.com> <20110724201228.154338911@systemfabricworks.com>
+Subject: Re: [patch v2 37/37] add Kconfig
+Date: Fri, 5 Aug 2011 20:44:24 +0200
+Message-ID: <CAO+b5-oFKiAhTkCntAo5_mMCtdg1vb1eM_mTi-8E-T_atHa_3w@mail.gmail.com>
+References: <20110724194300.421253331@systemfabricworks.com> <20110724201229.966262587@systemfabricworks.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20110724201228.154338911-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org>
+In-Reply-To: <20110724201229.966262587-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: rpearson-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Sun, Jul 24, 2011 at 9:43 PM, <rpearson-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org> wrote=
-:
-> -#if CRC_BE_BITS > 8 || CRC_BE_BITS < 1 || CRC_BE_BITS & CRC_BE_BITS-=
-1
-> -# error CRC_BE_BITS must be a power of 2 between 1 and 8
-> +#if CRC_BE_BITS > 64 || CRC_BE_BITS < 1 || CRC_BE_BITS =3D=3D 16 || =
-\
-> + =A0 =A0 =A0 CRC_BE_BITS & CRC_BE_BITS-1
-> +# error "CRC_BE_BITS must be one of {1, 2, 4, 8, 32, 64}"
-> =A0#endif
+On Sun, Jul 24, 2011 at 9:43 PM,  <rpearson-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org> wrote:
++config INFINIBAND_RXE
++	tristate "Software RDMA over Ethernet (RoCE) driver"
++	depends on INET && PCI && INFINIBAND
++	---help---
++	This driver implements the InfiniBand RDMA transport over
++	the Linux network stack. It enables a system with a
 
-It's a little unfortunate that Roland's macro
-BUILD_BUG_ON_NOT_POWER_OF_2() can't be used in the above - that would
-make the "CRC_BE_BITS & CRC_BE_BITS-1" part more readable.
+Shouldn't that read "an Ethernet network" instead of "the Linux network stack" ?
+
++	standard Ethernet adapter to interoperate with a RoCE
++	adapter or with another system running the RXE driver.
++	Documentation on InfiniBand and RoCE can be downloaded at
++	www.infinibandta.org and www.openfabrics.org. (See also
++	siw which is a similar software driver for iWARP.)
+
+Isn't RoCE an official IBTA standard ? If so, seems like a good idea
+to me to mention that here.
 
 Bart.
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
