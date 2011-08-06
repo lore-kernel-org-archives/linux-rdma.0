@@ -1,75 +1,33 @@
-From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Subject: Re: [patch v2 37/37] add Kconfig
-Date: Sat, 6 Aug 2011 20:44:29 +0200
-Message-ID: <CAO+b5-q_0yoXcAdr6jQthUOYeq6y8uG8VOfdLzYf8ZQSTJ6n3w@mail.gmail.com>
-References: <20110724194300.421253331@systemfabricworks.com>
- <20110724201229.966262587@systemfabricworks.com> <CAO+b5-oFKiAhTkCntAo5_mMCtdg1vb1eM_mTi-8E-T_atHa_3w@mail.gmail.com>
- <027e01cc53a4$a47f2640$ed7d72c0$@systemfabricworks.com>
+From: David Dillow <dave-i1Mk8JYDVaaSihdK6806/g@public.gmane.org>
+Subject: Re: SRP over RoCE
+Date: Sat, 06 Aug 2011 17:54:24 -0400
+Message-ID: <1312667665.19997.2.camel@obelisk.thedillows.org>
+References: <CAO+b5-oeqb79+0V1hG6ZEMR2u-+OxQyxb7zGJhA_J_+WtPADtA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <027e01cc53a4$a47f2640$ed7d72c0$@systemfabricworks.com>
+In-Reply-To: <CAO+b5-oeqb79+0V1hG6ZEMR2u-+OxQyxb7zGJhA_J_+WtPADtA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bob Pearson <rpearson-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Cc: Bob Pearson <rpearson-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, David McMillen <davem-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org>, frank zago <fzago-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Aug 5, 2011 at 9:19 PM, Bob Pearson
-<rpearson-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org> wrote:
->> -----Original Message-----
->> From: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org [mailto:linux-rdma-
->> owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org] On Behalf Of Bart Van Assche
->> Sent: Friday, August 05, 2011 1:44 PM
->> To: rpearson-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org
->> Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->> Subject: Re: [patch v2 37/37] add Kconfig
->>
->> On Sun, Jul 24, 2011 at 9:43 PM, =A0<rpearson-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org>=
- wrote:
->> +config INFINIBAND_RXE
->> + =A0 =A0 tristate "Software RDMA over Ethernet (RoCE) driver"
->> + =A0 =A0 depends on INET && PCI && INFINIBAND
->> + =A0 =A0 ---help---
->> + =A0 =A0 This driver implements the InfiniBand RDMA transport over
->> + =A0 =A0 the Linux network stack. It enables a system with a
->>
->> Shouldn't that read "an Ethernet network" instead of "the Linux netw=
-ork
->> stack" ?
->
-> Technically it will run over more than just Ethernet. RXE plugs in at=
- the
-> same place as IP on top of the netdev core.
-> There are some assumptions about the size of the L2 address that make=
- it
-> work better on Ethernet but I used to run it over the loopback device=
- and it
-> also runs over VLANs.
+On Sat, 2011-08-06 at 09:31 +0200, Bart Van Assche wrote:
+> On Fri, Aug 5, 2011 at 9:17 PM, Bob Pearson
+> <rpearson-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org> wrote:
+> > There are a couple of issues with SRP/RoCE. One of them is that the current
+> > scheme for configuring connections is based on DM MADs. The other is the one
+> > you mention. We (SFW) looked at both problems a couple of years ago and came
+> > up with a version of SRP that runs over RDMACM.
+> 
+> Has it been considered to add that ib_srp patch to the ib_rxe patch
+> series, such that Dave and Roland can have a look at it ?
 
-In that case I propose to change "Linux network stack" into "Linux
-network driver" - that's all what the rxe driver uses from the network
-stack, and there is more in the Linux network stack than only the
-network drivers.
+David McMillen and I have talked about the patches and cleanup needed in
+the past, but it's been a while now.
 
->> + =A0 =A0 standard Ethernet adapter to interoperate with a RoCE
->> + =A0 =A0 adapter or with another system running the RXE driver.
->> + =A0 =A0 Documentation on InfiniBand and RoCE can be downloaded at
->> + =A0 =A0 www.infinibandta.org and www.openfabrics.org. (See also
->> + =A0 =A0 siw which is a similar software driver for iWARP.)
->>
->> Isn't RoCE an official IBTA standard ? If so, seems like a good idea
->> to me to mention that here.
->
-> I'll do that for v3.
-
-Thanks. Maybe it's a good idea to mention also that while RoCE
-benefits from a lossless converged Ethernet network, that the protocol
-also works over a regular (not lossless) Ethernet network.
-
-Bart.
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
