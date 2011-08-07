@@ -1,7 +1,7 @@
 From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Subject: [PATCH 1/7] Add "foreign" option to AM_INIT_AUTOMAKE
-Date: Sun, 7 Aug 2011 20:01:08 +0200
-Message-ID: <201108072001.08990.bvanassche@acm.org>
+Subject: [PATCH 5/7] 32-bit compiler warning fix
+Date: Sun, 7 Aug 2011 20:03:47 +0200
+Message-ID: <201108072003.47863.bvanassche@acm.org>
 References: <201108072000.16383.bvanassche@acm.org>
 Mime-Version: 1.0
 Content-Type: Text/Plain;
@@ -14,27 +14,35 @@ To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Tell automake that the libibverbs package does not follow the GNU standards.
-This change makes it possible to use 'autoreconf' for the libibverbs package.
+Avoid that the code in src/memory.c triggers a compiler warning when compiled
+on a 32-bit system.
 
 Signed-off-by: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
 ---
- configure.in |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ src/memory.c |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletions(-)
 
-diff --git a/configure.in b/configure.in
-index ead3564..4988756 100644
---- a/configure.in
-+++ b/configure.in
-@@ -6,7 +6,7 @@ AC_CONFIG_SRCDIR([src/ibverbs.h])
- AC_CONFIG_AUX_DIR(config)
- AC_CONFIG_MACRO_DIR(config)
- AC_CONFIG_HEADER(config.h)
--AM_INIT_AUTOMAKE(libibverbs, 1.1.5)
-+AM_INIT_AUTOMAKE([foreign])
- m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
+diff --git a/src/memory.c b/src/memory.c
+index faa43f3..9f13774 100644
+--- a/src/memory.c
++++ b/src/memory.c
+@@ -44,6 +44,7 @@
+ #include <string.h>
+ #include <dirent.h>
+ #include <limits.h>
++#include <inttypes.h>
  
- dnl Checks for programs
+ #include "ibverbs.h"
+ 
+@@ -116,7 +117,7 @@ static unsigned long get_page_size(void *base)
+ 		int n;
+ 		uintptr_t range_start, range_end;
+ 
+-		n = sscanf(buf, "%lx-%lx", &range_start, &range_end);
++		n = sscanf(buf, "%" SCNxPTR "-%" SCNxPTR, &range_start, &range_end);
+ 
+ 		if (n < 2)
+ 			continue;
 -- 
 1.7.3.4
 
