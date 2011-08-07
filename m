@@ -1,7 +1,7 @@
 From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Subject: [PATCH 6/7] Fix a compiler warning about an unused function
-Date: Sun, 7 Aug 2011 20:04:19 +0200
-Message-ID: <201108072004.19950.bvanassche@acm.org>
+Subject: [PATCH 3/7] autogen.sh: Introduce autoreconf
+Date: Sun, 7 Aug 2011 20:02:31 +0200
+Message-ID: <201108072002.31662.bvanassche@acm.org>
 References: <201108072000.16383.bvanassche@acm.org>
 Mime-Version: 1.0
 Content-Type: Text/Plain;
@@ -14,31 +14,28 @@ To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+There is no need to invoke the different autotools individually - autoreconf
+already does that.
+
 Signed-off-by: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
 ---
- src/memory.c |    2 ++
- 1 files changed, 2 insertions(+), 0 deletions(-)
+ autogen.sh |    7 +------
+ 1 files changed, 1 insertions(+), 6 deletions(-)
 
-diff --git a/src/memory.c b/src/memory.c
-index 9f13774..7d97e55 100644
---- a/src/memory.c
-+++ b/src/memory.c
-@@ -269,6 +269,7 @@ static void __mm_rotate_left(struct ibv_mem_node *node)
- 	node->parent = tmp;
- }
+diff --git a/autogen.sh b/autogen.sh
+index fd47839..f6ff02c 100755
+--- a/autogen.sh
++++ b/autogen.sh
+@@ -1,8 +1,3 @@
+ #! /bin/sh
  
-+#if 0
- static int verify(struct ibv_mem_node *node)
- {
- 	int hl, hr;
-@@ -294,6 +295,7 @@ static int verify(struct ibv_mem_node *node)
- 
- 	return hl + 1;
- }
-+#endif
- 
- static void __mm_add_rebalance(struct ibv_mem_node *node)
- {
+-set -x
+-aclocal -I config
+-libtoolize --force --copy
+-autoheader
+-automake --foreign --add-missing --copy
+-autoconf
++autoreconf -ivf
 -- 
 1.7.3.4
 
