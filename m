@@ -1,7 +1,7 @@
 From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Subject: [PATCH 2/7] Makefile.am: Fix an automake warning
-Date: Sun, 7 Aug 2011 20:01:48 +0200
-Message-ID: <201108072001.48196.bvanassche@acm.org>
+Subject: [PATCH 6/7] Fix a compiler warning about an unused function
+Date: Sun, 7 Aug 2011 20:04:19 +0200
+Message-ID: <201108072004.19950.bvanassche@acm.org>
 References: <201108072000.16383.bvanassche@acm.org>
 Mime-Version: 1.0
 Content-Type: Text/Plain;
@@ -14,31 +14,31 @@ To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Avoid that automake reports the following warning message:
-Makefile.am:1: `INCLUDES' is the old name for `AM_CPPFLAGS' (or `*_CPPFLAGS')
-
-A quote from the automake manual:
-INCLUDES
-    This does the same job as AM_CPPFLAGS (or any per-target _CPPFLAGS variable
-    if it is used). It is an older name for the same functionality. This
-    variable is deprecated; we suggest using AM_CPPFLAGS and per-target
-    _CPPFLAGS instead.
-
 Signed-off-by: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
 ---
- Makefile.am |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ src/memory.c |    2 ++
+ 1 files changed, 2 insertions(+), 0 deletions(-)
 
-diff --git a/Makefile.am b/Makefile.am
-index e6a50ba..cd00a65 100644
---- a/Makefile.am
-+++ b/Makefile.am
-@@ -1,4 +1,4 @@
--INCLUDES = -I$(srcdir)/include
-+AM_CPPFLAGS = -I$(srcdir)/include
+diff --git a/src/memory.c b/src/memory.c
+index 9f13774..7d97e55 100644
+--- a/src/memory.c
++++ b/src/memory.c
+@@ -269,6 +269,7 @@ static void __mm_rotate_left(struct ibv_mem_node *node)
+ 	node->parent = tmp;
+ }
  
- lib_LTLIBRARIES = src/libibverbs.la
++#if 0
+ static int verify(struct ibv_mem_node *node)
+ {
+ 	int hl, hr;
+@@ -294,6 +295,7 @@ static int verify(struct ibv_mem_node *node)
  
+ 	return hl + 1;
+ }
++#endif
+ 
+ static void __mm_add_rebalance(struct ibv_mem_node *node)
+ {
 -- 
 1.7.3.4
 
