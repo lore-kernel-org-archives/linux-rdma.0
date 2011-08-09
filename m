@@ -1,30 +1,45 @@
-From: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH 0/7] Various libibverbs patches
-Date: Tue, 9 Aug 2011 04:08:35 -0700
-Message-ID: <CAL1RGDUE4SWOwXRBbtbmVH=0q2EiK08FntqZuPP-yjm0MS8Ewg@mail.gmail.com>
-References: <201108072000.16383.bvanassche@acm.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <201108072000.16383.bvanassche-HInyCGIudOg@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+From: Julia Lawall <julia@diku.dk>
+Subject: [PATCH] drivers/infiniband/hw/nes/nes_verbs.c: add missing calls to ib_umem_release
+Date: Tue,  9 Aug 2011 16:16:31 +0200
+Message-ID: <1312899391-6619-1-git-send-email-julia@diku.dk>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Faisal Latif <faisal.latif@intel.com>
+Cc: kernel-janitors@vger.kernel.org, Roland Dreier <roland@kernel.org>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, linux-rdma@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Sun, Aug 7, 2011 at 11:00 AM, Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org> wrote:
+From: Julia Lawall <julia@diku.dk>
 
-> This patch series addresses a few issues I noticed after having built
-> libibverbs from the source tree available at kernel.org. Feedback is welcome.
+Add calls to ib_umem_release, as in the other error-handling code in the
+same function.
 
-Thanks Bart, all look good from a quick skim.  Will apply when I get
-back from vacation in a couple of days.
+Signed-off-by: Julia Lawall <julia@diku.dk>
 
-If you are interested in doing the same fixes for libmthca and libmlx4
-that would be welcome too.
+---
+ drivers/infiniband/hw/nes/nes_verbs.c |    5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
- - Roland
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/drivers/infiniband/hw/nes/nes_verbs.c b/drivers/infiniband/hw/nes/nes_verbs.c
+index 9f2f7d4..394d0e7 100644
+--- a/drivers/infiniband/hw/nes/nes_verbs.c
++++ b/drivers/infiniband/hw/nes/nes_verbs.c
+@@ -2338,8 +2338,10 @@ static struct ib_mr *nes_reg_user_mr(struct ib_pd *pd, u64 start, u64 length,
+ 
+ 	skip_pages = ((u32)region->offset) >> 12;
+ 
+-	if (ib_copy_from_udata(&req, udata, sizeof(req)))
++	if (ib_copy_from_udata(&req, udata, sizeof(req))) {
++		ib_umem_release(region);
+ 		return ERR_PTR(-EFAULT);
++	}
+ 	nes_debug(NES_DBG_MR, "Memory Registration type = %08X.\n", req.reg_type);
+ 
+ 	switch (req.reg_type) {
+@@ -2631,6 +2633,7 @@ static struct ib_mr *nes_reg_user_mr(struct ib_pd *pd, u64 start, u64 length,
+ 			return &nesmr->ibmr;
+ 	}
+ 
++	ib_umem_release(region);
+ 	return ERR_PTR(-ENOSYS);
+ }
+ 
