@@ -1,31 +1,33 @@
-From: Rolf Manderscheid <rvm-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH] ibsim: fix size of slid/dlid fields in sim_request structure
-Date: Wed, 10 Aug 2011 11:18:33 -0600
-Message-ID: <4E42BD69.6070608@obsidianresearch.com>
-References: <E1QpTpl-00026F-D6@rvml.edm.orcorp.ca> <20110809150723.GC2056@calypso.mtl.com>
+From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Subject: Re: [patch v2 26/37] add rxe_req.c
+Date: Wed, 10 Aug 2011 20:44:07 +0200
+Message-ID: <CAO+b5-p+fM+e9=usnfZ0JLHu3kwWE8Zey6Q2St6jYKaRaFg20g@mail.gmail.com>
+References: <20110724194300.421253331@systemfabricworks.com> <20110724201229.415319539@systemfabricworks.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20110809150723.GC2056-iQai9MGU/dze+A/uUDamNg@public.gmane.org>
+In-Reply-To: <20110724201229.415319539-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: rpearson-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Alex,
-> There are more places where lids defined as integer. Why did you choose to
-> change only these two?
+On Sun, Jul 24, 2011 at 9:43 PM,  <rpearson-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org> wrote:
+> +	/* heuristic sliding window algorithm to keep
+> +	   sender from overrunning receiver queues */
+> +	if (qp_type(qp) == IB_QPT_RC)  {
+> +		if (psn_compare(qp->req.psn, qp->comp.psn +
+> +				rxe_max_req_comp_gap) > 0) {
+> +			qp->req.wait_psn = 1;
+> +			goto exit;
+> +		}
+> +	}
 
-This structure defines what request packets look like on the wire to the 
-simulator.
-The motivation for the change is a simulator client for python-rdma, and 
-this issue
-shows up when creating the structure format strings for the request packets.
+Shouldn't the rxe_max_req_comp_gap parameter be negotiated via the
+Priority-based Flow Control protocol (IEEE 802.1 Qbb) instead of using
+a single parameter for all queue pairs ?
 
-     Rolf
-
-
+Bart.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
