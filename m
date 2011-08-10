@@ -1,202 +1,44 @@
-From: Christoph Lameter <cl@linux.com>
-Subject: [RFC] mm: Distinguish between mlocked and pinned pages
-Date: Wed, 10 Aug 2011 15:21:47 -0500 (CDT)
-Message-ID: <alpine.DEB.2.00.1108101516430.20403@router.home>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [RFC] XRC upstream merge reboot
+Date: Wed, 10 Aug 2011 22:20:47 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A8237316E3E55C@FMSMSX151.amr.corp.intel.com>
+References: <1828884A29C6694DAF28B7E6B8A82373F7AB@ORSMSX101.amr.corp.intel.com>
+ <201108021344.25284.jackm@dev.mellanox.co.il>
+ <32D25205-3E9C-4757-B0AB-7117BDF3F2F7@ornl.gov>
+ <201108031337.24527.jackm@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <owner-linux-mm@kvack.org>
-Sender: owner-linux-mm@kvack.org
-To: akpm@linux-foundation.org, linux-mm@kvack.org
-Cc: linux-rdma@vger.kernel.org, Hugh Dickins <hughd@google.com>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <201108031337.24527.jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Content-Language: en-US
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, "Shamis, Pavel" <shamisp-1Heg1YXhbW8@public.gmane.org>
+Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "tziporet-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org" <tziporet-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, "dotanb-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org" <dotanb-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, "Jeff Squyres (jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org)" <jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, "Shumilin, Victor" <victor.shumilin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Truschin, Vladimir" <vladimir.truschin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Devendar Bureddy <bureddy-wPOY3OvGL++pAIv7I8X2sze48wsgrGvP@public.gmane.org>, "mvapich-core-wPOY3OvGL++pAIv7I8X2sze48wsgrGvP@public.gmane.org" <mvapich-core-wPOY3OvGL++pAIv7I8X2sze48wsgrGvP@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Some kernel components pin user space memory (infiniband and perf)
-(by increasing the page count) and account that memory as "mlocked".
+> Things only get complicated when the domain-allocator process allocates a
+> single domain and simply
+> uses that single domain for all jobs (i.e., the domain is never de-allocated
+> for the lifetime of the
+> allocating process, and the allocating process is the server for all jobs).
 
-The difference between mlocking and pinning is:
+To help with OFED feature level compatibility, I'm in the process of adding a new call to ibverbs:
 
-A. mlocked pages are marked with PG_mlocked and are exempt from
-   swapping. Page migration may move them around though.
-   They are kept on a special LRU list.
+struct ib_qp_open_attr {
+	void (*event_handler)(struct ib_event *, void *);
+	void  *qp_context;
+	u32    qp_num;
+};
 
-B. Pinned pages cannot be moved because something needs to
-   directly access physical memory. They may not be on any
-   LRU list.
+struct ib_qp *ib_open_qp(*xrcd, *qp_open_attr);
 
-I recently saw an mlockalled process where mm->locked_vm became
-bigger than the virtual size of the process (!) because some
-memory was accounted for twice:
+This provides functionality similar to ib_reg_xrc_recv_qp().  It allows any process within the xrcd to modify the tgt qp and receive events.  Its use is not required, so we can support both usage models.
 
-Once when the page was mlocked and once when the Infiniband
-layer increased the refcount because it needt to pin the RDMA
-memory.
+I believe we can define this generic enough that it could eventually be used to share other QP types among multiple processes, though more infrastructure would be needed.
 
-This patch introduces a separate counter for pinned pages and
-accounts them seperately.
-
-Signed-off-by: Christoph Lameter <cl@linux.com>
-
----
- drivers/infiniband/core/umem.c                 |    6 +++---
- drivers/infiniband/hw/ipath/ipath_user_pages.c |    6 +++---
- drivers/infiniband/hw/qib/qib_user_pages.c     |    4 ++--
- fs/proc/task_mmu.c                             |    2 ++
- include/linux/mm_types.h                       |    2 +-
- kernel/events/core.c                           |    6 +++---
- 6 files changed, 14 insertions(+), 12 deletions(-)
-
-Index: linux-2.6/fs/proc/task_mmu.c
-===================================================================
---- linux-2.6.orig/fs/proc/task_mmu.c	2011-08-10 14:08:42.000000000 -0500
-+++ linux-2.6/fs/proc/task_mmu.c	2011-08-10 15:01:37.000000000 -0500
-@@ -44,6 +44,7 @@ void task_mem(struct seq_file *m, struct
- 		"VmPeak:\t%8lu kB\n"
- 		"VmSize:\t%8lu kB\n"
- 		"VmLck:\t%8lu kB\n"
-+		"VmPin:\t%8lu kB\n"
- 		"VmHWM:\t%8lu kB\n"
- 		"VmRSS:\t%8lu kB\n"
- 		"VmData:\t%8lu kB\n"
-@@ -55,6 +56,7 @@ void task_mem(struct seq_file *m, struct
- 		hiwater_vm << (PAGE_SHIFT-10),
- 		(total_vm - mm->reserved_vm) << (PAGE_SHIFT-10),
- 		mm->locked_vm << (PAGE_SHIFT-10),
-+		mm->pinned_vm << (PAGE_SHIFT-10),
- 		hiwater_rss << (PAGE_SHIFT-10),
- 		total_rss << (PAGE_SHIFT-10),
- 		data << (PAGE_SHIFT-10),
-Index: linux-2.6/include/linux/mm_types.h
-===================================================================
---- linux-2.6.orig/include/linux/mm_types.h	2011-08-10 14:08:42.000000000 -0500
-+++ linux-2.6/include/linux/mm_types.h	2011-08-10 14:09:02.000000000 -0500
-@@ -281,7 +281,7 @@ struct mm_struct {
- 	unsigned long hiwater_rss;	/* High-watermark of RSS usage */
- 	unsigned long hiwater_vm;	/* High-water virtual memory usage */
-
--	unsigned long total_vm, locked_vm, shared_vm, exec_vm;
-+	unsigned long total_vm, locked_vm, pinned_vm, shared_vm, exec_vm;
- 	unsigned long stack_vm, reserved_vm, def_flags, nr_ptes;
- 	unsigned long start_code, end_code, start_data, end_data;
- 	unsigned long start_brk, brk, start_stack;
-Index: linux-2.6/drivers/infiniband/core/umem.c
-===================================================================
---- linux-2.6.orig/drivers/infiniband/core/umem.c	2011-08-10 14:08:57.000000000 -0500
-+++ linux-2.6/drivers/infiniband/core/umem.c	2011-08-10 14:09:06.000000000 -0500
-@@ -136,7 +136,7 @@ struct ib_umem *ib_umem_get(struct ib_uc
-
- 	down_write(&current->mm->mmap_sem);
-
--	locked     = npages + current->mm->locked_vm;
-+	locked     = npages + current->mm->pinned_vm;
- 	lock_limit = rlimit(RLIMIT_MEMLOCK) >> PAGE_SHIFT;
-
- 	if ((locked > lock_limit) && !capable(CAP_IPC_LOCK)) {
-@@ -206,7 +206,7 @@ out:
- 		__ib_umem_release(context->device, umem, 0);
- 		kfree(umem);
- 	} else
--		current->mm->locked_vm = locked;
-+		current->mm->pinned_vm = locked;
-
- 	up_write(&current->mm->mmap_sem);
- 	if (vma_list)
-@@ -222,7 +222,7 @@ static void ib_umem_account(struct work_
- 	struct ib_umem *umem = container_of(work, struct ib_umem, work);
-
- 	down_write(&umem->mm->mmap_sem);
--	umem->mm->locked_vm -= umem->diff;
-+	umem->mm->pinned_vm -= umem->diff;
- 	up_write(&umem->mm->mmap_sem);
- 	mmput(umem->mm);
- 	kfree(umem);
-Index: linux-2.6/drivers/infiniband/hw/ipath/ipath_user_pages.c
-===================================================================
---- linux-2.6.orig/drivers/infiniband/hw/ipath/ipath_user_pages.c	2011-08-10 14:08:57.000000000 -0500
-+++ linux-2.6/drivers/infiniband/hw/ipath/ipath_user_pages.c	2011-08-10 14:09:06.000000000 -0500
-@@ -79,7 +79,7 @@ static int __ipath_get_user_pages(unsign
- 			goto bail_release;
- 	}
-
--	current->mm->locked_vm += num_pages;
-+	current->mm->pinned_vm += num_pages;
-
- 	ret = 0;
- 	goto bail;
-@@ -178,7 +178,7 @@ void ipath_release_user_pages(struct pag
-
- 	__ipath_release_user_pages(p, num_pages, 1);
-
--	current->mm->locked_vm -= num_pages;
-+	current->mm->pinned_vm -= num_pages;
-
- 	up_write(&current->mm->mmap_sem);
- }
-@@ -195,7 +195,7 @@ static void user_pages_account(struct wo
- 		container_of(_work, struct ipath_user_pages_work, work);
-
- 	down_write(&work->mm->mmap_sem);
--	work->mm->locked_vm -= work->num_pages;
-+	work->mm->pinned_vm -= work->num_pages;
- 	up_write(&work->mm->mmap_sem);
- 	mmput(work->mm);
- 	kfree(work);
-Index: linux-2.6/drivers/infiniband/hw/qib/qib_user_pages.c
-===================================================================
---- linux-2.6.orig/drivers/infiniband/hw/qib/qib_user_pages.c	2011-08-10 14:08:57.000000000 -0500
-+++ linux-2.6/drivers/infiniband/hw/qib/qib_user_pages.c	2011-08-10 14:09:06.000000000 -0500
-@@ -74,7 +74,7 @@ static int __qib_get_user_pages(unsigned
- 			goto bail_release;
- 	}
-
--	current->mm->locked_vm += num_pages;
-+	current->mm->pinned_vm += num_pages;
-
- 	ret = 0;
- 	goto bail;
-@@ -151,7 +151,7 @@ void qib_release_user_pages(struct page
- 	__qib_release_user_pages(p, num_pages, 1);
-
- 	if (current->mm) {
--		current->mm->locked_vm -= num_pages;
-+		current->mm->pinned_vm -= num_pages;
- 		up_write(&current->mm->mmap_sem);
- 	}
- }
-Index: linux-2.6/kernel/events/core.c
-===================================================================
---- linux-2.6.orig/kernel/events/core.c	2011-08-10 14:08:57.000000000 -0500
-+++ linux-2.6/kernel/events/core.c	2011-08-10 15:04:16.000000000 -0500
-@@ -3500,7 +3500,7 @@ static void perf_mmap_close(struct vm_ar
- 		struct ring_buffer *rb = event->rb;
-
- 		atomic_long_sub((size >> PAGE_SHIFT) + 1, &user->locked_vm);
--		vma->vm_mm->locked_vm -= event->mmap_locked;
-+		vma->vm_mm->pinned_vm -= event->mmap_locked;
- 		rcu_assign_pointer(event->rb, NULL);
- 		mutex_unlock(&event->mmap_mutex);
-
-@@ -3581,7 +3581,7 @@ static int perf_mmap(struct file *file,
-
- 	lock_limit = rlimit(RLIMIT_MEMLOCK);
- 	lock_limit >>= PAGE_SHIFT;
--	locked = vma->vm_mm->locked_vm + extra;
-+	locked = vma->vm_mm->pinned_vm + extra;
-
- 	if ((locked > lock_limit) && perf_paranoid_tracepoint_raw() &&
- 		!capable(CAP_IPC_LOCK)) {
-@@ -3607,7 +3607,7 @@ static int perf_mmap(struct file *file,
- 	atomic_long_add(user_extra, &user->locked_vm);
- 	event->mmap_locked = extra;
- 	event->mmap_user = get_current_user();
--	vma->vm_mm->locked_vm += event->mmap_locked;
-+	vma->vm_mm->pinned_vm += event->mmap_locked;
-
- unlock:
- 	if (!ret)
-
+- Sean
 --
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Fight unfair telecom internet charges in Canada: sign http://stopthemeter.ca/
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
