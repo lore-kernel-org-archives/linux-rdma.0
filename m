@@ -1,34 +1,37 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: slow rdma_connect
-Date: Thu, 11 Aug 2011 17:19:34 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A8237316E3E828@FMSMSX151.amr.corp.intel.com>
-References: <4E44075C.2@oracle.com>
+From: Rolf Manderscheid <rvm-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH] ibsim: support LID portions of directed-route SMPs
+Date: Thu, 11 Aug 2011 15:27:07 -0600
+Message-ID: <4E44492B.6080101@obsidianresearch.com>
+References: <E1QpTpp-00026I-7p@rvml.edm.orcorp.ca> <20110809145018.GA2056@calypso.mtl.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4E44075C.2-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <20110809145018.GA2056-iQai9MGU/dze+A/uUDamNg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Arun Kaimalettu <arun.kaimalettu-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-> to complete the connections to a server.  The machine where we are testing
-> has enough CPU resource , so this 30 - 40secs appears to be the time for
-> rdma_cm to transition from resolving address to establishing connections..
-> Is this expected or should we be configuring rdma cm to handle this load ?
+Hi Alex,
+> route_MAD() breaks the LID route support.
 
-The rdma_cm can handle this load, but...
- 
-> set of system calls involved in both sides are:
-> 
-> server:
-> rdma_create_id, rdma_listen, loop with { select, rdma_get_cm_event}
-> (listen backlog is 10)
+I think the change to route_MAD() is sound, there's no change in
+behaviour for LID-routed packets.  The path argument is expected to be
+NULL in the case of a LID routed MAD, which causes an early
+return, but this is only an optimization.  Even if you forget to pass
+in a NULL path (which I did in one case as you pointed out!), the
+path->cnt will be zero for LID routed MADs which causes the
+direct_route_*_MAD() functions to just return the same port that was
+passed in, so it works either way.  I tested this with some simple
+topologies, running opensm and then doing a perfquery to each
+simulated node.  I also used python-rdma with a new python simulator
+client which is the motivation for this patch.  Without this change,
+python-rdma exposes the missing handling of leading and/or trailing LIDs
+in directed-route SMPs.  I'll send an updated patch which passes a
+NULL path for LID-routed packets at the second call site.
 
-the backlog is the issue.  With a backlog of only 10, all additional incoming requests get dropped and must be retried.  The connect retry is a couple of seconds.  Try increasing the backlog (or setting it to 0).
-
-- Sean
+     Rolf
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
