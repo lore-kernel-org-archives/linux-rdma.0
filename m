@@ -1,8 +1,8 @@
 From: "Davis, Arlin R" <arlin.r.davis-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 10/10] DAPL v2.0: build: add IB collective and FCA provider
- to dapl build package as an option --enable-coll-type
-Date: Thu, 11 Aug 2011 00:42:30 +0000
-Message-ID: <54347E5A035A054EAE9D05927FB467F916E42B7B@FMSMSX151.amr.corp.intel.com>
+Subject: [PATCH 9/10] DAPL v2.0: common: add new dapls_evd_post_event_ext
+ call for extended events
+Date: Thu, 11 Aug 2011 00:42:23 +0000
+Message-ID: <54347E5A035A054EAE9D05927FB467F916E42B72@FMSMSX151.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
@@ -12,115 +12,119 @@ Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "ofw-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org" <ofw-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>, "ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org" <ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-New collective support and the FCA provider will only be built with
-configure option of "--enable-coll-type=fca". Dependencies include
-fca devel package, fca library, and mverbs library. This will not
-be included in default builds.
+Add prototype and code to post extended events on dispatcher and
+include collective definitions to dat_event_str function.
 
 Signed-off-by: Arlin Davis <arlin.r.davis-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- Makefile.am  |   16 +++++++++++-----
- configure.in |   22 ++++++++++++++++++++++
- 2 files changed, 33 insertions(+), 5 deletions(-)
+ dapl/common/dapl_evd_util.c |   61 ++++++++++++++++++++++++++++++++++++++++++-
+ dapl/common/dapl_evd_util.h |    7 +++++
+ 2 files changed, 67 insertions(+), 1 deletions(-)
 
-diff --git a/Makefile.am b/Makefile.am
-index 141a68b..55fe45b 100755
---- a/Makefile.am
-+++ b/Makefile.am
-@@ -18,9 +18,15 @@ endif
- if EXT_TYPE_IB
- XFLAGS = -DDAT_EXTENSIONS
- XPROGRAMS = dapl/openib_common/ib_extensions.c
-+if COLL_TYPE_FCA
-+XFLAGS += -DDAT_IB_COLLECTIVES -DDAT_FCA_PROVIDER
-+XPROGRAMS += dapl/openib_common/collectives/fca_provider.c
-+XLIBS = -lfca
-+endif
- else
- XFLAGS =
- XPROGRAMS =
-+XLIBS =
- endif
+diff --git a/dapl/common/dapl_evd_util.c b/dapl/common/dapl_evd_util.c
+index 2a45400..9171415 100644
+--- a/dapl/common/dapl_evd_util.c
++++ b/dapl/common/dapl_evd_util.c
+@@ -91,7 +91,7 @@ char *dapl_event_str(IN DAT_EVENT_NUMBER event_num)
+ 		{"DAT_SOFTWARE_EVENT", DAT_SOFTWARE_EVENT},
+ #ifdef DAT_EXTENSIONS
+ 		{"DAT_EXTENSION_EVENT", DAT_EXTENSION_EVENT},
+-		{"DAT_IB_EXTENSION_RANGE_BASE", DAT_IB_EXTENSION_RANGE_BASE},
++		{"DAT_IB_DTO_EVENT", DAT_IB_EXTENSION_RANGE_BASE},
+ 		{"DAT_IB_UD_CONNECTION_REQUEST_EVENT",
+ 		 DAT_IB_EXTENSION_RANGE_BASE + 1},
+ 		{"DAT_IB_UD_CONNECTION_EVENT_ESTABLISHED",
+@@ -100,6 +100,8 @@ char *dapl_event_str(IN DAT_EVENT_NUMBER event_num)
+ 		 DAT_IB_EXTENSION_RANGE_BASE + 3},
+ 		{"DAT_IB_UD_CONNECTION_ERROR_EVENT",
+ 		 DAT_IB_EXTENSION_RANGE_BASE + 4},
++		{"DAT_IB_COLLECTIVE_EVENT",
++		 DAT_IB_EXTENSION_RANGE_BASE + 5},
+ 		{"DAT_IW_EXTENSION_RANGE_BASE", DAT_IW_EXTENSION_RANGE_BASE},
+ #endif				/* DAT_EXTENSIONS */
+ 		{NULL, 0},
+@@ -837,6 +839,63 @@ err:
+ }
  
- if DEFINE_ATTR_LINK_LAYER
-@@ -210,7 +216,7 @@ dapl_udapl_libdaplofa_la_SOURCES = dapl/udapl/dapl_init.c \
- 
- dapl_udapl_libdaplofa_la_LDFLAGS = -version-info 2:0:0 $(daplofa_version_script) \
- 				   -Wl,-init,dapl_init -Wl,-fini,dapl_fini \
--				   -lpthread -libverbs -lrdmacm 
-+				   -lpthread -libverbs -lrdmacm $(XLIBS)
- 				
- #
- # uDAPL OpenFabrics Socket CM version for IB: libdaplscm.so
-@@ -324,7 +330,7 @@ dapl_udapl_libdaploscm_la_SOURCES = dapl/udapl/dapl_init.c \
- 
- dapl_udapl_libdaploscm_la_LDFLAGS = -version-info 2:0:0 $(daploscm_version_script) \
-                                    -Wl,-init,dapl_init -Wl,-fini,dapl_fini \
--                                   -lpthread -libverbs -lrdmacm
-+                                   -lpthread -libverbs -lrdmacm $(XLIBS)
-                                    
- #
- # uDAPL OpenFabrics UD CM version for IB: libdaplucm.so
-@@ -438,7 +444,7 @@ dapl_udapl_libdaploucm_la_SOURCES = dapl/udapl/dapl_init.c \
- 
- dapl_udapl_libdaploucm_la_LDFLAGS = -version-info 2:0:0 $(daploscm_version_script) \
-                                    -Wl,-init,dapl_init -Wl,-fini,dapl_fini \
--                                   -lpthread -libverbs -lrdmacm
-+                                   -lpthread -libverbs -lrdmacm $(XLIBS)
- 
- libdatincludedir = $(includedir)/dat2
- 
-@@ -498,7 +504,7 @@ EXTRA_DIST = dat/common/dat_dictionary.h \
- 	     dapl/include/dapl_ipoib_names.h \
- 	     dapl/include/dapl_vendor.h \
- 	     dapl/openib_common/dapl_ib_dto.h \
--	     dapl/openib_common/dapl_ib_common.h \
-+	     dapl/openib_common/dapl_ib_common.h 
- 	     dapl/openib_cma/dapl_ib_util.h \
- 	     dapl/openib_cma/linux/openib_osd.h \
- 	     dapl/openib_scm/dapl_ib_util.h \
-@@ -540,7 +546,7 @@ EXTRA_DIST = dat/common/dat_dictionary.h \
- 	     test/dapltest/include/dapl_transaction_stats.h \
- 	     test/dapltest/include/dapl_transaction_test.h \
- 	     test/dapltest/include/dapl_version.h \
--	     test/dapltest/mdep/linux/dapl_mdep_user.h
-+	     test/dapltest/mdep/linux/dapl_mdep_user.h $(XPROGRAMS)
- 	 
- dist-hook: dapl.spec 
- 	cp dapl.spec $(distdir)
-diff --git a/configure.in b/configure.in
-index c78942f..75c002c 100644
---- a/configure.in
-+++ b/configure.in
-@@ -83,6 +83,28 @@ AC_ARG_ENABLE(ext-type,
-  ],[ext_type=ib])
- AM_CONDITIONAL(EXT_TYPE_IB, test "$ext_type" = "ib")
- 
-+dnl Support IB MPI collective extension build - if enable-coll-type == vendor_name 
-+AC_ARG_ENABLE(coll-type,
-+[  --enable-coll-type Enable IB collective support: fca, none, default=fca],
-+ [ if   test "x$enableval" = "xfca" ; then
-+      coll_type=fca
-+      AC_CHECK_HEADER(fca/fca_api.h, [],
-+        AC_MSG_ERROR([<fca/fca_api.h> not found. Is libfca devel package installed?]))
-+      AC_CHECK_LIB(mverbs, ibv_m_post_send, [],
-+        AC_MSG_ERROR([ibv_m_post_send() not found. Is libmverbs installed?]))
-+      AC_CHECK_LIB(fca, fca_init, [],
-+        AC_MSG_ERROR([fca_init() not found. Is libfca library installed?]))
-+   elif test "x$enableval" = "xnone" ; then
-+      coll_type=none
-+   else
-+      echo
-+      echo "Error!"
-+      echo "Unknown IB collective type' type"
-+      exit -1
-+   fi
-+ ],[coll_type=fca])
-+AM_CONDITIONAL(COLL_TYPE_FCA, test "$coll_type" = "fca")
+ #ifdef DAT_EXTENSIONS
 +
- dnl Check for Redhat EL release 4
- AC_CACHE_CHECK(Check for RHEL4 system, ac_cv_rhel4,
-     if test -f /etc/redhat-release &&
++/*
++ * dapls_evd_post_event_ext
++ *
++ * Post a extended event type. Not used by all providers
++ *
++ * Input:
++ *	evd_ptr
++ * 	event_number
++ *	data
++ *	data_ext
++ *
++ * Output:
++ * 	none
++ *
++ * Returns:
++ * 	DAT_SUCCESS
++ *
++ */
++DAT_RETURN
++dapls_evd_post_event_ext(IN DAPL_EVD * evd_ptr,
++			 IN DAT_EVENT_NUMBER event_number,
++			 IN DAT_EVENT_DATA * data,
++			 IN DAT_UINT64 * data_ext)
++{
++	DAT_EVENT *event_ptr;
++
++	dapl_os_lock(&evd_ptr->header.lock);
++	event_ptr = dapli_evd_get_and_init_event(evd_ptr, event_number);
++	/*
++	 * Note event lock may be held on successful return
++	 * to be released by dapli_evd_post_event(), if provider side locking
++	 * is needed.
++	 */
++
++	if (event_ptr == NULL) {
++		dapl_os_unlock(&evd_ptr->header.lock);
++		return DAT_ERROR(DAT_INSUFFICIENT_RESOURCES,
++				 DAT_RESOURCE_MEMORY);
++	}
++
++	/* copy event and extended data */
++	if (data)
++		event_ptr->event_data = *data;
++	else
++		dapl_os_memzero(&event_ptr->event_data,
++				sizeof(event_ptr->event_data));
++
++	dapl_os_memcpy( (void*)event_ptr->event_extension_data,
++			(void *)data_ext,
++			sizeof(event_ptr->event_extension_data));
++
++	dapli_evd_post_event(evd_ptr, event_ptr);
++	dapl_os_unlock(&evd_ptr->header.lock);
++	return DAT_SUCCESS;
++}
++
+ DAT_RETURN
+ dapls_evd_do_post_cr_event_ext(IN DAPL_EVD * evd_ptr,
+ 				IN DAT_EVENT_NUMBER event_number,
+diff --git a/dapl/common/dapl_evd_util.h b/dapl/common/dapl_evd_util.h
+index 65472d7..3d6dbeb 100644
+--- a/dapl/common/dapl_evd_util.h
++++ b/dapl/common/dapl_evd_util.h
+@@ -111,6 +111,13 @@ dapls_evd_post_generic_event (
+ 
+ #ifdef DAT_EXTENSIONS
+ DAT_RETURN
++dapls_evd_post_event_ext(
++    IN DAPL_EVD				*evd_ptr,
++    IN DAT_EVENT_NUMBER			event_number,
++    IN DAT_EVENT_DATA			*data,
++    IN DAT_UINT64			*data_ext);
++
++DAT_RETURN
+ dapls_evd_post_cr_event_ext (
+     IN DAPL_SP				*sp_ptr,
+     IN DAT_EVENT_NUMBER			event_number,
 -- 
 1.7.3
 
