@@ -1,8 +1,8 @@
 From: "Davis, Arlin R" <arlin.r.davis-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 6/10] DAPL v2.0: scm: add support for IB collective drivers
- in socket cm provider
-Date: Thu, 11 Aug 2011 00:42:14 +0000
-Message-ID: <54347E5A035A054EAE9D05927FB467F916E42B5F@FMSMSX151.amr.corp.intel.com>
+Subject: [PATCH 8/10] DAPL v2.0: ucm: add support for IB collective drivers
+ in UD IB cm provider
+Date: Thu, 11 Aug 2011 00:42:18 +0000
+Message-ID: <54347E5A035A054EAE9D05927FB467F916E42B67@FMSMSX151.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
@@ -18,19 +18,18 @@ HCA open/close.
 
 Signed-off-by: Arlin Davis <arlin.r.davis-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- dapl/openib_scm/dapl_ib_util.h |   18 +++++++++++++++++-
- dapl/openib_scm/device.c       |   13 +++++++++++++
- 2 files changed, 30 insertions(+), 1 deletions(-)
+ dapl/openib_ucm/dapl_ib_util.h |   17 +++++++++++++++++
+ dapl/openib_ucm/device.c       |   13 +++++++++++++
+ 2 files changed, 30 insertions(+), 0 deletions(-)
 
-diff --git a/dapl/openib_scm/dapl_ib_util.h b/dapl/openib_scm/dapl_ib_util.h
-index 5f9fb43..0d7f9f3 100644
---- a/dapl/openib_scm/dapl_ib_util.h
-+++ b/dapl/openib_scm/dapl_ib_util.h
-@@ -111,7 +111,23 @@ typedef struct _ib_hca_transport
+diff --git a/dapl/openib_ucm/dapl_ib_util.h b/dapl/openib_ucm/dapl_ib_util.h
+index efeec4d..b5bd082 100644
+--- a/dapl/openib_ucm/dapl_ib_util.h
++++ b/dapl/openib_ucm/dapl_ib_util.h
+@@ -120,6 +120,23 @@ typedef struct _ib_hca_transport
  	uint8_t			sl;
  	uint16_t		pkey;
  	int			pkey_idx;
--
 +#ifdef DAT_IB_COLLECTIVES
 +	/* Collective member device and address information */
 +	ib_thread_state_t 	coll_thread_state;
@@ -48,14 +47,14 @@ index 5f9fb43..0d7f9f3 100644
 +	int			f_size;
 +	int			t_id;
 +#endif
+ 
  } ib_hca_transport_t;
  
- /* prototypes */
-diff --git a/dapl/openib_scm/device.c b/dapl/openib_scm/device.c
-index 4c50f03..41fccdf 100644
---- a/dapl/openib_scm/device.c
-+++ b/dapl/openib_scm/device.c
-@@ -57,6 +57,10 @@ static const char rcsid[] = "$Id:  $";
+diff --git a/dapl/openib_ucm/device.c b/dapl/openib_ucm/device.c
+index a628a78..a07d886 100644
+--- a/dapl/openib_ucm/device.c
++++ b/dapl/openib_ucm/device.c
+@@ -33,6 +33,10 @@
  
  #include <stdlib.h>
  
@@ -63,12 +62,12 @@ index 4c50f03..41fccdf 100644
 +#include <collectives/ib_collectives.h>
 +#endif
 +
- ib_thread_state_t g_ib_thread_state = 0;
- DAPL_OS_THREAD g_ib_thread;
- DAPL_OS_LOCK g_hca_lock;
-@@ -440,6 +444,11 @@ found:
- 		     (unsigned long long)htonll(hca_ptr->ib_trans.gid.global.
- 						interface_id));
+ static void ucm_service_destroy(IN DAPL_HCA *hca);
+ static int  ucm_service_create(IN DAPL_HCA *hca);
+ 
+@@ -347,6 +351,11 @@ found:
+ 	       &hca_ptr->ib_trans.addr, 
+ 	       sizeof(union dcm_addr));
  
 +#ifdef DAT_IB_COLLECTIVES
 +	if (dapli_create_collective_service(hca_ptr))
@@ -76,19 +75,19 @@ index 4c50f03..41fccdf 100644
 +#endif
 +
  	ibv_free_device_list(dev_list);
- 	return dat_status;
  
-@@ -471,6 +480,10 @@ DAT_RETURN dapls_ib_close_hca(IN DAPL_HCA * hca_ptr)
+ 	/* wait for cm_thread */
+@@ -385,6 +394,10 @@ DAT_RETURN dapls_ib_close_hca(IN DAPL_HCA * hca_ptr)
  {
  	dapl_dbg_log(DAPL_DBG_TYPE_UTIL, " close_hca: %p\n", hca_ptr);
  
 +#ifdef DAT_IB_COLLECTIVES
-+		dapli_free_collective_service(hca_ptr);
++	dapli_free_collective_service(hca_ptr);
 +#endif
 +
- 	dapl_os_lock(&g_hca_lock);
- 	if (g_ib_thread_state != IB_THREAD_RUN) {
- 		dapl_os_unlock(&g_hca_lock);
+ 	if (hca_ptr->ib_trans.cm_state == IB_THREAD_RUN) {
+ 		hca_ptr->ib_trans.cm_state = IB_THREAD_CANCEL;
+ 		dapls_thread_signal(&hca_ptr->ib_trans.signal);
 -- 
 1.7.3
 
