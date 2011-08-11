@@ -1,8 +1,8 @@
 From: "Davis, Arlin R" <arlin.r.davis-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 8/10] DAPL v2.0: ucm: add support for IB collective drivers
- in UD IB cm provider
-Date: Thu, 11 Aug 2011 00:42:18 +0000
-Message-ID: <54347E5A035A054EAE9D05927FB467F916E42B67@FMSMSX151.amr.corp.intel.com>
+Subject: [PATCH 10/10] DAPL v2.0: build: add IB collective and FCA provider
+ to dapl build package as an option --enable-coll-type
+Date: Thu, 11 Aug 2011 00:42:30 +0000
+Message-ID: <54347E5A035A054EAE9D05927FB467F916E42B7B@FMSMSX151.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
@@ -12,82 +12,115 @@ Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "ofw-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org" <ofw-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>, "ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org" <ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Add collective member address and threading information
-on a per transport basis. Call create/free service with
-HCA open/close.
+New collective support and the FCA provider will only be built with
+configure option of "--enable-coll-type=fca". Dependencies include
+fca devel package, fca library, and mverbs library. This will not
+be included in default builds.
 
 Signed-off-by: Arlin Davis <arlin.r.davis-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- dapl/openib_ucm/dapl_ib_util.h |   17 +++++++++++++++++
- dapl/openib_ucm/device.c       |   13 +++++++++++++
- 2 files changed, 30 insertions(+), 0 deletions(-)
+ Makefile.am  |   16 +++++++++++-----
+ configure.in |   22 ++++++++++++++++++++++
+ 2 files changed, 33 insertions(+), 5 deletions(-)
 
-diff --git a/dapl/openib_ucm/dapl_ib_util.h b/dapl/openib_ucm/dapl_ib_util.h
-index efeec4d..b5bd082 100644
---- a/dapl/openib_ucm/dapl_ib_util.h
-+++ b/dapl/openib_ucm/dapl_ib_util.h
-@@ -120,6 +120,23 @@ typedef struct _ib_hca_transport
- 	uint8_t			sl;
- 	uint16_t		pkey;
- 	int			pkey_idx;
-+#ifdef DAT_IB_COLLECTIVES
-+	/* Collective member device and address information */
-+	ib_thread_state_t 	coll_thread_state;
-+	DAPL_OS_THREAD 		coll_thread;
-+	DAPL_OS_LOCK 		coll_lock;
-+	DAPL_OS_WAIT_OBJECT 	coll_event;
-+	struct dapl_llist_entry *grp_list;
-+	user_progress_func_t 	*user_func;
-+	int 			l_sock;
-+	struct sockaddr_in	m_addr;
-+	void 			*m_ctx;
-+	void			*m_info;
-+	void			*f_info;
-+	int			m_size;
-+	int			f_size;
-+	int			t_id;
-+#endif
+diff --git a/Makefile.am b/Makefile.am
+index 141a68b..55fe45b 100755
+--- a/Makefile.am
++++ b/Makefile.am
+@@ -18,9 +18,15 @@ endif
+ if EXT_TYPE_IB
+ XFLAGS = -DDAT_EXTENSIONS
+ XPROGRAMS = dapl/openib_common/ib_extensions.c
++if COLL_TYPE_FCA
++XFLAGS += -DDAT_IB_COLLECTIVES -DDAT_FCA_PROVIDER
++XPROGRAMS += dapl/openib_common/collectives/fca_provider.c
++XLIBS = -lfca
++endif
+ else
+ XFLAGS =
+ XPROGRAMS =
++XLIBS =
+ endif
  
- } ib_hca_transport_t;
+ if DEFINE_ATTR_LINK_LAYER
+@@ -210,7 +216,7 @@ dapl_udapl_libdaplofa_la_SOURCES = dapl/udapl/dapl_init.c \
  
-diff --git a/dapl/openib_ucm/device.c b/dapl/openib_ucm/device.c
-index a628a78..a07d886 100644
---- a/dapl/openib_ucm/device.c
-+++ b/dapl/openib_ucm/device.c
-@@ -33,6 +33,10 @@
+ dapl_udapl_libdaplofa_la_LDFLAGS = -version-info 2:0:0 $(daplofa_version_script) \
+ 				   -Wl,-init,dapl_init -Wl,-fini,dapl_fini \
+-				   -lpthread -libverbs -lrdmacm 
++				   -lpthread -libverbs -lrdmacm $(XLIBS)
+ 				
+ #
+ # uDAPL OpenFabrics Socket CM version for IB: libdaplscm.so
+@@ -324,7 +330,7 @@ dapl_udapl_libdaploscm_la_SOURCES = dapl/udapl/dapl_init.c \
  
- #include <stdlib.h>
+ dapl_udapl_libdaploscm_la_LDFLAGS = -version-info 2:0:0 $(daploscm_version_script) \
+                                    -Wl,-init,dapl_init -Wl,-fini,dapl_fini \
+-                                   -lpthread -libverbs -lrdmacm
++                                   -lpthread -libverbs -lrdmacm $(XLIBS)
+                                    
+ #
+ # uDAPL OpenFabrics UD CM version for IB: libdaplucm.so
+@@ -438,7 +444,7 @@ dapl_udapl_libdaploucm_la_SOURCES = dapl/udapl/dapl_init.c \
  
-+#ifdef DAT_IB_COLLECTIVES
-+#include <collectives/ib_collectives.h>
-+#endif
+ dapl_udapl_libdaploucm_la_LDFLAGS = -version-info 2:0:0 $(daploscm_version_script) \
+                                    -Wl,-init,dapl_init -Wl,-fini,dapl_fini \
+-                                   -lpthread -libverbs -lrdmacm
++                                   -lpthread -libverbs -lrdmacm $(XLIBS)
+ 
+ libdatincludedir = $(includedir)/dat2
+ 
+@@ -498,7 +504,7 @@ EXTRA_DIST = dat/common/dat_dictionary.h \
+ 	     dapl/include/dapl_ipoib_names.h \
+ 	     dapl/include/dapl_vendor.h \
+ 	     dapl/openib_common/dapl_ib_dto.h \
+-	     dapl/openib_common/dapl_ib_common.h \
++	     dapl/openib_common/dapl_ib_common.h 
+ 	     dapl/openib_cma/dapl_ib_util.h \
+ 	     dapl/openib_cma/linux/openib_osd.h \
+ 	     dapl/openib_scm/dapl_ib_util.h \
+@@ -540,7 +546,7 @@ EXTRA_DIST = dat/common/dat_dictionary.h \
+ 	     test/dapltest/include/dapl_transaction_stats.h \
+ 	     test/dapltest/include/dapl_transaction_test.h \
+ 	     test/dapltest/include/dapl_version.h \
+-	     test/dapltest/mdep/linux/dapl_mdep_user.h
++	     test/dapltest/mdep/linux/dapl_mdep_user.h $(XPROGRAMS)
+ 	 
+ dist-hook: dapl.spec 
+ 	cp dapl.spec $(distdir)
+diff --git a/configure.in b/configure.in
+index c78942f..75c002c 100644
+--- a/configure.in
++++ b/configure.in
+@@ -83,6 +83,28 @@ AC_ARG_ENABLE(ext-type,
+  ],[ext_type=ib])
+ AM_CONDITIONAL(EXT_TYPE_IB, test "$ext_type" = "ib")
+ 
++dnl Support IB MPI collective extension build - if enable-coll-type == vendor_name 
++AC_ARG_ENABLE(coll-type,
++[  --enable-coll-type Enable IB collective support: fca, none, default=fca],
++ [ if   test "x$enableval" = "xfca" ; then
++      coll_type=fca
++      AC_CHECK_HEADER(fca/fca_api.h, [],
++        AC_MSG_ERROR([<fca/fca_api.h> not found. Is libfca devel package installed?]))
++      AC_CHECK_LIB(mverbs, ibv_m_post_send, [],
++        AC_MSG_ERROR([ibv_m_post_send() not found. Is libmverbs installed?]))
++      AC_CHECK_LIB(fca, fca_init, [],
++        AC_MSG_ERROR([fca_init() not found. Is libfca library installed?]))
++   elif test "x$enableval" = "xnone" ; then
++      coll_type=none
++   else
++      echo
++      echo "Error!"
++      echo "Unknown IB collective type' type"
++      exit -1
++   fi
++ ],[coll_type=fca])
++AM_CONDITIONAL(COLL_TYPE_FCA, test "$coll_type" = "fca")
 +
- static void ucm_service_destroy(IN DAPL_HCA *hca);
- static int  ucm_service_create(IN DAPL_HCA *hca);
- 
-@@ -347,6 +351,11 @@ found:
- 	       &hca_ptr->ib_trans.addr, 
- 	       sizeof(union dcm_addr));
- 
-+#ifdef DAT_IB_COLLECTIVES
-+	if (dapli_create_collective_service(hca_ptr))
-+		goto bail;
-+#endif
-+
- 	ibv_free_device_list(dev_list);
- 
- 	/* wait for cm_thread */
-@@ -385,6 +394,10 @@ DAT_RETURN dapls_ib_close_hca(IN DAPL_HCA * hca_ptr)
- {
- 	dapl_dbg_log(DAPL_DBG_TYPE_UTIL, " close_hca: %p\n", hca_ptr);
- 
-+#ifdef DAT_IB_COLLECTIVES
-+	dapli_free_collective_service(hca_ptr);
-+#endif
-+
- 	if (hca_ptr->ib_trans.cm_state == IB_THREAD_RUN) {
- 		hca_ptr->ib_trans.cm_state = IB_THREAD_CANCEL;
- 		dapls_thread_signal(&hca_ptr->ib_trans.signal);
+ dnl Check for Redhat EL release 4
+ AC_CACHE_CHECK(Check for RHEL4 system, ac_cv_rhel4,
+     if test -f /etc/redhat-release &&
 -- 
 1.7.3
 
