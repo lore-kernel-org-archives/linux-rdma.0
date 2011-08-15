@@ -1,102 +1,39 @@
-From: bugzilla-daemon-590EEB7GvNiWaY/ihj7yzEB+6BGkLq7r@public.gmane.org
-Subject: [Bug 41212] New: [regression] [3.1-git] ipoib causes kernel panic
- (NULL pointer dereference)
-Date: Mon, 15 Aug 2011 15:40:53 GMT
-Message-ID: <bug-41212-11804@https.bugzilla.kernel.org/>
+From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Subject: Re: [patch v2 13/37] add rxe_verbs.c
+Date: Mon, 15 Aug 2011 18:02:23 +0200
+Message-ID: <CAO+b5-ocwYv2_A8PfVUh1yp0CFNYasjTJNQ0F6bj-+wT8npavA@mail.gmail.com>
+References: <20110724194300.421253331@systemfabricworks.com>
+ <20110724201228.761358826@systemfabricworks.com> <CAO+b5-pRQXn08aVOPxeQBzrYXAV+3zD+HZdCCmPTTwBCCzY=ag@mail.gmail.com>
+ <20110815144503.GA12014@suse.de> <CAO+b5-rsofKNdcjCjBdj1fH7i3DpbHhFajhk0QfNK4DE7nj_SQ@mail.gmail.com>
+ <20110815150726.GA12490@suse.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20110815150726.GA12490-l3A5Bk7waGM@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Greg KH <gregkh-l3A5Bk7waGM@public.gmane.org>
+Cc: rpearson-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-https://bugzilla.kernel.org/show_bug.cgi?id=41212
+On Mon, Aug 15, 2011 at 5:07 PM, Greg KH <gregkh-l3A5Bk7waGM@public.gmane.org> wrote:
+> For a device, you HAVE to be creating these attributes before the
+> hotplug event is sent out, and to do that, you need to set the correc=
+t
+> pointer before registering the device. =A0See the documentation for t=
+he
+> driver model for how to do this properly.
 
-           Summary: [regression] [3.1-git] ipoib causes kernel panic (NULL
-                    pointer dereference)
-           Product: Networking
-           Version: 2.5
-    Kernel Version: 3.1-git
-          Platform: All
-        OS/Version: Linux
-              Tree: Mainline
-            Status: NEW
-          Severity: normal
-          Priority: P1
-         Component: Other
-        AssignedTo: acme-f8uhVLnGfZaxAyOMLChx1axOck334EZe@public.gmane.org
-        ReportedBy: bernd.schubert-97jfqw80gc6171pxa8y+qA@public.gmane.org
-                CC: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-        Regression: Yes
+Are you referring to the "groups" member in "struct device" ? The
+source files I have found so far that fill in this member in a struct
+device are: drivers/s390/cio/css.c and drivers/usb/core/endpoint.c.
+But I haven't found anything about that member in the documents under
+Documentation/driver-model. Is it just me who's again missing
+something ?
 
-
-Each time when I start IPoIB with any 3.1-rcX git version I tested so far I get
-a kernel panic. This didn't happen in 3.0 yet.
-
-
-fslab2 login: [  114.392408] EXT4-fs (sdc): barriers disabled
-[  114.449737] EXT4-fs (sdc): mounted filesystem with writeback data mode.
-Opts: journal_async_commit,barrier=0,data=writeback
-[  240.944030] BUG: unable to handle kernel NULL pointer dereference at
-0000000000000040
-[  240.948007] IP: [<ffffffffa0366ce9>] ipoib_start_xmit+0x39/0x280 [ib_ipoib]
-[  240.948007] PGD 1f964f067 PUD 1f9bf2067 PMD 0
-[  240.948007] Oops: 0000 [#1] SMP
-[  240.948007] CPU 1
-[  240.948007] Modules linked in: ext4 mbcache jbd2 crc16 nfsd ib_umad rdma_ucm
-rdma_cm iw_cm ib_addr ib_uverbs ib_ipoib sg ib_cm ib_sa ipv6 sd_mod crc_t10dif
-loop arcmsr md_mod pcspkr ib_mthca ib_mad ib_core 8250_pnp fuse af_packet nfs
-lockd fscache auth_rpcgss nfs_acl sunrpc btrfs lzo_decompress lzo_compress
-zlib_deflate crc32c libcrc32c crypto_hash crypto_algapi ata_generic pata_acpi
-e1000 pata_amd sata_nv libata scsi_mod unix [last unloaded: scsi_wait_scan]
-[  240.948007]
-[  240.948007] Pid: 0, comm: kworker/0:0 Not tainted 3.1.0-rc2+ #29 Supermicro
-H8DCE/H8DCE
-[  240.948007] RIP: 0010:[<ffffffffa0366ce9>]  [<ffffffffa0366ce9>]
-ipoib_start_xmit+0x39/0x280 [ib_ipoib]
-[  240.948007] RSP: 0018:ffff8801ffc03c10  EFLAGS: 00010246
-[  240.948007] RAX: 0000000000000000 RBX: ffff8801f99ea000 RCX:
-0000000000004420
-[  240.948007] RDX: 0000000000000000 RSI: ffff8801f99ea000 RDI:
-ffff8801f9afd500
-[  240.948007] RBP: ffff8801ffc03c40 R08: ffff8801f940d49c R09:
-ffff8801f9852240
-[  240.948007] R10: 0000000000000000 R11: 0000000000000020 R12:
-ffff8801f9afd500
-[  240.948007] R13: 0000000000000050 R14: ffff8801f99ea600 R15:
-ffff8801f9852280
-[  240.948007] FS:  00007f0b66016700(0000) GS:ffff8801ffc00000(0000)
-knlGS:0000000000000000
-[  240.948007] CS:  0010 DS: 0000 ES: 0000 CR0: 000000008005003b
-[  240.948007] CR2: 0000000000000040 CR3: 00000001f9a65000 CR4:
-00000000000006e0
-[  240.948007] DR0: 0000000000000000 DR1: 0000000000000000 DR2:
-0000000000000000
-[  240.948007] DR3: 0000000000000000 DR6: 00000000ffff0ff0 DR7:
-0000000000000400
-[  240.948007] Process kworker/0:0 (pid: 0, threadinfo ffff8800bfe82000, task
-ffff8800bfe6f1a0)
-[  240.948007] Stack:
-[  240.948007]  0000000000000010 ffff8801f9afd500 0000000000004420
-0000000000000050
-[  240.948007]  ffff8801f99ea000 ffff8801f9852280 ffff8801ffc03ca0
-ffffffff812cd5e0
-[  240.948007]  0000000000000001 ffffffffa03721a0 ffffffff8131f680
-ffff8801fa110540
-[  240.948007] Call Trace:
-[  240.948007]  <IRQ>
-[  240.948007]  [<ffffffff812cd5e0>] dev_hard_start_xmit+0x2a0/0x590
-[  240.948007]  [<ffffffff8131f680>] ? arp_create+0x70/0x200
-[  240.948007]  [<ffffffff812e8e1f>] sch_direct_xmit+0xef/0x1c0
-[  240.948007]  [<ffffffff812cd9f9>] dev_queue_xmit+0x129/0x3b0
-[  240.948007]  [<ffffffff8131f853>] arp_send+0x43/0x50
-[  240.948007]  [<ffffffff8131f96b>] arp_solicit+0x10b/0x240
-
--- 
-Configure bugmail: https://bugzilla.kernel.org/userprefs.cgi?tab=email
-------- You are receiving this mail because: -------
-You are on the CC list for the bug.
+Bart.
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
