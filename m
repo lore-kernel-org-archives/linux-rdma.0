@@ -1,7 +1,7 @@
 From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH] libibmad: Add support for PortInfo CapabilityMask2
-Date: Mon, 15 Aug 2011 16:39:14 -0400
-Message-ID: <4E4983F2.8010902@dev.mellanox.co.il>
+Subject: [PATCH] libibmad/dump.c: Allow 0 (extended speed active) in mad_dump_linkspeed
+Date: Mon, 15 Aug 2011 16:49:07 -0400
+Message-ID: <4E498643.2070001@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
@@ -12,64 +12,24 @@ Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY
 List-Id: linux-rdma@vger.kernel.org
 
 
+for PortInfo:LinkSpeedEnabled
+
 Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
-diff --git a/include/infiniband/mad.h b/include/infiniband/mad.h
-index 6d65a29..25c1141 100644
---- a/include/infiniband/mad.h
-+++ b/include/infiniband/mad.h
-@@ -772,6 +772,7 @@ enum MAD_FIELDS {
- 	/*
- 	 * More PortInfo fields
- 	 */
-+	IB_PORT_CAPMASK2_F,
- 	IB_PORT_LINK_SPEED_EXT_ACTIVE_F,
- 	IB_PORT_LINK_SPEED_EXT_SUPPORTED_F,
- 	IB_PORT_LINK_SPEED_EXT_ENABLED_F,
 diff --git a/src/dump.c b/src/dump.c
-index 29fb742..581f044 100644
+index 29fb742..00831a3 100644
 --- a/src/dump.c
 +++ b/src/dump.c
-@@ -561,6 +563,8 @@ void mad_dump_portcapmask(char *buf, int bufsz, void *val, int valsz)
- 			     "\t\t\t\tIsPkeySwitchExternalPortTrapSupported\n");
- 	if (mask & (1 << 14))
- 		s += sprintf(s, "\t\t\t\tIsExtendedSpeedsSupported\n");
-+	if (mask & (1 << 15))
-+		s += sprintf(s, "\t\t\t\tIsCapabilityMask2Supported\n");
- 	if (mask & (1 << 16))
- 		s += sprintf(s, "\t\t\t\tIsCommunicatonManagementSupported\n");
- 	if (mask & (1 << 17))
-@@ -762,8 +766,7 @@ void mad_dump_portinfo(char *buf, int bufsz, void *val, int valsz)
+@@ -244,6 +244,9 @@ void mad_dump_linkspeed(char *buf, int bufsz, void *val, int valsz)
+ 	int speed = *(int *)val;
  
- 	cnt = _dump_fields(buf, bufsz, val, IB_PORT_FIRST_F, IB_PORT_LAST_F);
- 	_dump_fields(buf + cnt, bufsz - cnt, val,
--		     IB_PORT_LINK_SPEED_EXT_ACTIVE_F,
--		     IB_PORT_LINK_SPEED_EXT_LAST_F);
-+		     IB_PORT_CAPMASK2_F, IB_PORT_LINK_SPEED_EXT_LAST_F);
- }
- 
- void mad_dump_portstates(char *buf, int bufsz, void *val, int valsz)
-diff --git a/src/fields.c b/src/fields.c
-index 7e5ac7d..45c07dd 100644
---- a/src/fields.c
-+++ b/src/fields.c
-@@ -1,7 +1,7 @@
- /*
-  * Copyright (c) 2004-2009 Voltaire Inc.  All rights reserved.
-  * Copyright (c) 2009 HNR Consulting.  All rights reserved.
-- * Copyright (c) 2009-2010 Mellanox Technologies LTD.  All rights reserved.
-+ * Copyright (c) 2009-2011 Mellanox Technologies LTD.  All rights reserved.
-  *
-  * This software is available to you under a choice of one of two
-  * licenses.  You may choose to be licensed under the terms of the GNU
-@@ -529,6 +529,7 @@ static const ib_field_t ib_mad_f[] = {
- 	/*
- 	 * More PortInfo fields
- 	 */
-+	{BITSOFFS(480, 16), "CapabilityMask2", mad_dump_hex},
- 	{BITSOFFS(496, 4), "LinkSpeedExtActive", mad_dump_linkspeedext},
- 	{BITSOFFS(500, 4), "LinkSpeedExtSupported", mad_dump_linkspeedextsup},
- 	{BITSOFFS(507, 5), "LinkSpeedExtEnabled", mad_dump_linkspeedexten},
+ 	switch (speed) {
++	case 0:
++		snprintf(buf, bufsz, "Extended speed");
++		break;
+ 	case 1:
+ 		snprintf(buf, bufsz, "2.5 Gbps");
+ 		break;
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
