@@ -1,161 +1,96 @@
-From: Dotan Barak <dotanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH 2/2] librdmacm: fix resource leaks when CMA_CREATE_MSG_CMD_RESP fails
-Date: Mon, 15 Aug 2011 14:38:56 +0300
-Message-ID: <201108151438.56670.dotanb@sw.voltaire.com>
+From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Subject: Re: [patch v2 12/37] add rxe_verbs.h
+Date: Mon, 15 Aug 2011 14:32:01 +0200
+Message-ID: <CAO+b5-okTDAJ6iOTv_JKXeGttt0MFM+na-FRaNwJMFqHktKHJQ@mail.gmail.com>
+References: <20110724194300.421253331@systemfabricworks.com> <20110724201228.710989476@systemfabricworks.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <20110724201228.710989476-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+To: rpearson-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-If the macro CMA_CREATE_MSG_CMD_RESP is being called and there is a failure,
-the macro should release the allocated resources before returning from the called
-function
+On Sun, Jul 24, 2011 at 9:43 PM,  <rpearson-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org> wrote:
+> +static inline int pkey_match(u16 key1, u16 key2)
+> +{
+> +	return (((key1 & 0x7fff) != 0) &&
+> +		((key1 & 0x7fff) == (key2 & 0x7fff)) &&
+> +		((key1 & 0x8000) || (key2 & 0x8000))) ? 1 : 0;
+> +}
 
-Signed-off-by: Dotan Barak <dotanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Shouldn't the return type of the above function be "bool" instead of
+"int" ? Also, the "? 1 : 0" part at the end of the above expression
+looks superfluous to me.
 
----
+> +
+> +/* Return >0 if psn_a > psn_b
+> + *	   0 if psn_a == psn_b
+> + *	  <0 if psn_a < psn_b
+> + */
+> +static inline int psn_compare(u32 psn_a, u32 psn_b)
+> +{
+> +	s32 diff;
+> +	diff = (psn_a - psn_b) << 8;
+> +	return diff;
+> +}
 
-diff --git a/src/cma.c b/src/cma.c
-index bad1ba3..0512187 100755
---- a/src/cma.c
-+++ b/src/cma.c
-@@ -59,14 +59,16 @@
- #include <rdma/rdma_verbs.h>
- #include <infiniband/ib.h>
- 
--#define CMA_CREATE_MSG_CMD_RESP(msg, cmd, resp, type, size) \
-+#define CMA_CREATE_MSG_CMD_RESP(msg, cmd, resp, type, size, clean_cmd) \
- do {                                        \
--	struct ucma_abi_cmd_hdr *hdr;         \
-+	struct ucma_abi_cmd_hdr *hdr;       \
-                                             \
- 	size = sizeof(*hdr) + sizeof(*cmd); \
- 	msg = alloca(size);                 \
--	if (!msg)                           \
-+	if (!msg) {                         \
-+		clean_cmd;                  \
- 		return ERR(ENOMEM);         \
-+	}                                   \
- 	hdr = msg;                          \
- 	cmd = msg + sizeof(*hdr);           \
- 	hdr->cmd = type;                    \
-@@ -74,8 +76,10 @@ do {                                        \
- 	hdr->out = sizeof(*resp);           \
- 	memset(cmd, 0, sizeof(*cmd));       \
- 	resp = alloca(sizeof(*resp));       \
--	if (!resp)                          \
-+	if (!resp) {                        \
-+		clean_cmd;                  \
- 		return ERR(ENOMEM);         \
-+	}                                   \
- 	cmd->response = (uintptr_t)resp;\
- } while (0)
- 
-@@ -460,7 +464,7 @@ static int rdma_create_id2(struct rdma_event_channel *channel,
- 	if (!id_priv)
- 		return ERR(ENOMEM);
- 
--	CMA_CREATE_MSG_CMD_RESP(msg, cmd, resp, UCMA_CMD_CREATE_ID, size);
-+	CMA_CREATE_MSG_CMD_RESP(msg, cmd, resp, UCMA_CMD_CREATE_ID, size, ucma_free_id(id_priv));
- 	cmd->uid = (uintptr_t) id_priv;
- 	cmd->ps = ps;
- 	cmd->qp_type = qp_type;
-@@ -497,7 +501,7 @@ static int ucma_destroy_kern_id(int fd, uint32_t handle)
- 	void *msg;
- 	int ret, size;
- 	
--	CMA_CREATE_MSG_CMD_RESP(msg, cmd, resp, UCMA_CMD_DESTROY_ID, size);
-+	CMA_CREATE_MSG_CMD_RESP(msg, cmd, resp, UCMA_CMD_DESTROY_ID, size, );
- 	cmd->id = handle;
- 
- 	ret = write(fd, msg, size);
-@@ -556,7 +560,7 @@ static int ucma_query_addr(struct rdma_cm_id *id)
- 	void *msg;
- 	int ret, size;
- 	
--	CMA_CREATE_MSG_CMD_RESP(msg, cmd, resp, UCMA_CMD_QUERY, size);
-+	CMA_CREATE_MSG_CMD_RESP(msg, cmd, resp, UCMA_CMD_QUERY, size, );
- 	id_priv = container_of(id, struct cma_id_private, id);
- 	cmd->id = id_priv->handle;
- 	cmd->option = UCMA_QUERY_ADDR;
-@@ -590,7 +594,7 @@ static int ucma_query_gid(struct rdma_cm_id *id)
- 	void *msg;
- 	int ret, size;
- 	
--	CMA_CREATE_MSG_CMD_RESP(msg, cmd, resp, UCMA_CMD_QUERY, size);
-+	CMA_CREATE_MSG_CMD_RESP(msg, cmd, resp, UCMA_CMD_QUERY, size, );
- 	id_priv = container_of(id, struct cma_id_private, id);
- 	cmd->id = id_priv->handle;
- 	cmd->option = UCMA_QUERY_GID;
-@@ -702,7 +706,7 @@ static int ucma_query_route(struct rdma_cm_id *id)
- 	void *msg;
- 	int ret, size, i;
- 
--	CMA_CREATE_MSG_CMD_RESP(msg, cmd, resp, UCMA_CMD_QUERY_ROUTE, size);
-+	CMA_CREATE_MSG_CMD_RESP(msg, cmd, resp, UCMA_CMD_QUERY_ROUTE, size, );
- 	id_priv = container_of(id, struct cma_id_private, id);
- 	cmd->id = id_priv->handle;
- 
-@@ -936,7 +940,7 @@ static int rdma_init_qp_attr(struct rdma_cm_id *id, struct ibv_qp_attr *qp_attr,
- 	void *msg;
- 	int ret, size;
- 	
--	CMA_CREATE_MSG_CMD_RESP(msg, cmd, resp, UCMA_CMD_INIT_QP_ATTR, size);
-+	CMA_CREATE_MSG_CMD_RESP(msg, cmd, resp, UCMA_CMD_INIT_QP_ATTR, size, );
- 	id_priv = container_of(id, struct cma_id_private, id);
- 	cmd->id = id_priv->handle;
- 	cmd->qp_state = qp_attr->qp_state;
-@@ -1613,7 +1617,7 @@ static int rdma_join_multicast2(struct rdma_cm_id *id, struct sockaddr *addr,
- 	if (af_ib_support) {
- 		struct ucma_abi_join_mcast *cmd;
- 
--		CMA_CREATE_MSG_CMD_RESP(msg, cmd, resp, UCMA_CMD_JOIN_MCAST, size);
-+		CMA_CREATE_MSG_CMD_RESP(msg, cmd, resp, UCMA_CMD_JOIN_MCAST, size, free(mc));
- 		cmd->id = id_priv->handle;
- 		memcpy(&cmd->addr, addr, addrlen);
- 		cmd->addr_size = addrlen;
-@@ -1622,7 +1626,7 @@ static int rdma_join_multicast2(struct rdma_cm_id *id, struct sockaddr *addr,
- 	} else {
- 		struct ucma_abi_join_ip_mcast *cmd;
- 
--		CMA_CREATE_MSG_CMD_RESP(msg, cmd, resp, UCMA_CMD_JOIN_IP_MCAST, size);
-+		CMA_CREATE_MSG_CMD_RESP(msg, cmd, resp, UCMA_CMD_JOIN_IP_MCAST, size, free(mc));
- 		cmd->id = id_priv->handle;
- 		memcpy(&cmd->addr, addr, addrlen);
- 		cmd->uid = (uintptr_t) mc;
-@@ -1691,7 +1695,7 @@ int rdma_leave_multicast(struct rdma_cm_id *id, struct sockaddr *addr)
- 	if (id->qp)
- 		ibv_detach_mcast(id->qp, &mc->mgid, mc->mlid);
- 	
--	CMA_CREATE_MSG_CMD_RESP(msg, cmd, resp, UCMA_CMD_LEAVE_MCAST, size);
-+	CMA_CREATE_MSG_CMD_RESP(msg, cmd, resp, UCMA_CMD_LEAVE_MCAST, size, );
- 	cmd->id = mc->handle;
- 
- 	ret = write(id->channel->fd, msg, size);
-@@ -1940,7 +1944,7 @@ int rdma_get_cm_event(struct rdma_event_channel *channel,
- 
- retry:
- 	memset(evt, 0, sizeof *evt);
--	CMA_CREATE_MSG_CMD_RESP(msg, cmd, resp, UCMA_CMD_GET_EVENT, size);
-+	CMA_CREATE_MSG_CMD_RESP(msg, cmd, resp, UCMA_CMD_GET_EVENT, size, free(evt));
- 	ret = write(channel->fd, msg, size);
- 	if (ret != size) {
- 		free(evt);
-@@ -2117,7 +2121,7 @@ int rdma_migrate_id(struct rdma_cm_id *id, struct rdma_event_channel *channel)
- 			return -1;
- 	}
- 
--	CMA_CREATE_MSG_CMD_RESP(msg, cmd, resp, UCMA_CMD_MIGRATE_ID, size);
-+	CMA_CREATE_MSG_CMD_RESP(msg, cmd, resp, UCMA_CMD_MIGRATE_ID, size, if (sync) rdma_destroy_event_channel(channel));
- 	cmd->id = id_priv->handle;
- 	cmd->fd = id->channel->fd;
- 
+Mentioning in the comment block that (according to IBTA) PSNs are
+24-bit quantities would help IMHO.
+
+> +#define RXE_LL_ADDR_LEN		(16)
+> +
+> +struct rxe_av {
+> +	struct ib_ah_attr	attr;
+> +	u8			ll_addr[RXE_LL_ADDR_LEN];
+> +};
+
+Since the ib_rxe kernel module can be used in combination with other
+network drivers than only Ethernet drivers, the number of bytes stored
+in ll_addr[] by init_av() depends on the link layer type. Shouldn't
+the address length be stored in this structure too ?
+
+> +/* must match corresponding data structure in librxe */
+> +struct rxe_send_wqe {
+> +	struct ib_send_wr	ibwr;
+> +	struct rxe_av		av;	/* UD only */
+> +	u32			status;
+> +	u32			state;
+> +	u64			iova;
+> +	u32			mask;
+> +	u32			first_psn;
+> +	u32			last_psn;
+> +	u32			ack_length;
+> +	u32			ssn;
+> +	u32			has_rd_atomic;
+> +	struct rxe_dma_info	dma;	/* must go last */
+> +};
+
+Can't librxe use this header file instead of duplicating the above definition ?
+
+> +struct rxe_port {
+> +	struct ib_port_attr	attr;
+> +	u16			*pkey_tbl;
+> +	__be64			*guid_tbl;
+> +	__be64			subnet_prefix;
+> +
+> +	/* rate control */
+> +	/* TODO */
+> +
+> +	spinlock_t		port_lock;
+> +
+> +	unsigned int		mtu_cap;
+> +
+> +	/* special QPs */
+> +	u32			qp_smi_index;
+> +	u32			qp_gsi_index;
+> +};
+
+Regarding the "to do" item above: is rate control something planned
+for the first submission of this driver ?
+
+Bart.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
