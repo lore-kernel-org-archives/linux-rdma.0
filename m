@@ -1,76 +1,92 @@
-From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Subject: Re: [patch v2 21/37] add rxe_qp.c
-Date: Mon, 15 Aug 2011 18:13:57 +0200
-Message-ID: <CAO+b5-opA-W4Lp69NzS=9MLEv1V7jWhHPo=bayKhaR-kPgTQTQ@mail.gmail.com>
-References: <20110724194300.421253331@systemfabricworks.com> <20110724201229.163423781@systemfabricworks.com>
+From: "Bob Pearson" <rpearson-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org>
+Subject: RE: [patch v2 02/37] add opcodes to ib_pack.h
+Date: Mon, 15 Aug 2011 11:15:58 -0500
+Message-ID: <03e001cc5b66$9e9b6e40$dbd24ac0$@systemfabricworks.com>
+References: <20110724194300.421253331@systemfabricworks.com> <20110724201228.204265835@systemfabricworks.com> <CAO+b5-pb3p0n5MZYNSJicAdUfZ4PtMNG5vdzDOiZNQwLnB3Wcw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
+Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20110724201229.163423781-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org>
+In-Reply-To: <CAO+b5-pb3p0n5MZYNSJicAdUfZ4PtMNG5vdzDOiZNQwLnB3Wcw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Content-Language: en-us
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: rpearson-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org
+To: 'Bart Van Assche' <bvanassche-HInyCGIudOg@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Sun, Jul 24, 2011 at 9:43 PM,  <rpearson-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org> wrot=
-e:
-> +char *rxe_qp_state_name[] =3D {
-> +	[QP_STATE_RESET]	=3D "RESET",
-> +	[QP_STATE_INIT]		=3D "INIT",
-> +	[QP_STATE_READY]	=3D "READY",
-> +	[QP_STATE_DRAIN]	=3D "DRAIN",
-> +	[QP_STATE_DRAINED]	=3D "DRAINED",
-> +	[QP_STATE_ERROR]	=3D "ERROR",
-> +};
+Originally I had xrc support in rxe but there was nothing in Roland's t=
+ree
+to support it so I stripped it out.
+I was experimenting with congestion notification to see if there was a =
+way
+to slow down spewing by fast Ethernet devices but that wasn't working, =
+also
+all the MAD support was stripped out. In the end the only thing left wa=
+s the
+constants and entries in the opcode table in rxe_opcode.c which as you =
+say
+are not used elsewhere. I think it is reasonable to have a complete set=
+ of
+opcodes somewhere.
 
-Doesn't the compiler complain about assigning const char* to char* for
-the above array definition ? And since this array is only used in this
-source file, I think it can be declared static.
+I want to eventually complete the IB transport parts of the driver alth=
+ough
+they are not used by RoCE. They would be useful for a soft IB implement=
+ation
+with say an FPGA based MAC/PHY. The long term goal is to have a complet=
+e
+reference implementation of the IB Architecture.
 
-> +static int rxe_qp_chk_cap(struct rxe_dev *rxe, struct ib_qp_cap *cap=
-,
-> +			  int has_srq)
-> +{
-> +	if (cap->max_send_wr > rxe->attr.max_qp_wr) {
-> +		pr_warn("invalid send wr =3D %d > %d\n",
-> +			cap->max_send_wr, rxe->attr.max_qp_wr);
-> +		goto err1;
-> +	}
+> -----Original Message-----
+> From: bart.vanassche-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org [mailto:bart.vanassche-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org] On
+> Behalf Of Bart Van Assche
+> Sent: Monday, August 15, 2011 4:13 AM
+> To: rpearson-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org
+> Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> Subject: Re: [patch v2 02/37] add opcodes to ib_pack.h
+>=20
+> On Sun, Jul 24, 2011 at 9:43 PM, <rpearson-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org> wro=
+te:
+> >
+> > Bring up to date with the current version of the IBTA spec.
+> > =A0 =A0 =A0 =A0- add new opcodes for RC and RD
+> > =A0 =A0 =A0 =A0- add new groups of opcodes for CN and XRC
+> >
+> > Signed-off-by: Bob Pearson <rpearson-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org>
+> >
+> > ---
+> > =A0include/rdma/ib_pack.h | =A0 39
+> ++++++++++++++++++++++++++++++++++++++-
+> > =A01 file changed, 38 insertions(+), 1 deletion(-)
+> >
+> > Index: infiniband/include/rdma/ib_pack.h
+> >
+> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+> =3D=3D=3D=3D=3D=3D=3D=3D=3D
+> > --- infiniband.orig/include/rdma/ib_pack.h
+> > +++ infiniband/include/rdma/ib_pack.h
+> > @@ -75,6 +75,8 @@ enum {
+> > =A0 =A0 =A0 =A0IB_OPCODE_UC =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 =A0 =A0 =A0=3D 0x20,
+> > =A0 =A0 =A0 =A0IB_OPCODE_RD =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 =A0 =A0 =A0=3D 0x40,
+> > =A0 =A0 =A0 =A0IB_OPCODE_UD =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 =A0 =A0 =A0=3D 0x60,
+> > + =A0 =A0 =A0 IB_OPCODE_CN =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
+=A0 =A0 =A0 =A0 =A0 =A0=3D 0x80,
+> > + =A0 =A0 =A0 IB_OPCODE_XRC =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 =A0 =A0 =A0 =3D 0xA0,
+>=20
+> A convention when submitting Linux kernel patches is to add only thos=
+e
+> constants that are actually used in the code submitted in the same
+> patch series. So I'm not sure it's fine to add the XRC constants in
+> ib_pack.h through the rxe patch series.
+>=20
+> Bart.
 
-Context information is missing in the message generated by the above
-pr_warn() statement. Shouldn't that be dev_warn() instead ?
-
-> +/* move the qp to the error state */
-> +void rxe_qp_error(struct rxe_qp *qp)
-> +{
-> +	qp->req.state =3D QP_STATE_ERROR;
-> +	qp->resp.state =3D QP_STATE_ERROR;
-> +
-> +	/* drain work and packet queues */
-> +	rxe_run_task(&qp->resp.task, 1);
-> +
-> +	if (qp_type(qp) =3D=3D IB_QPT_RC)
-> +		rxe_run_task(&qp->comp.task, 1);
-> +	else
-> +		__rxe_do_task(&qp->comp.task);
-> +	rxe_run_task(&qp->req.task, 1);
-> +}
-
-A quote from the InfiniBand Architecture Specification:
-
-o11-5.2.5: If the HCA supports SRQ, for RC and UD service, the CI
-shall generate a Last WQE Reached Affiliated Asynchronous Event on a
-QP that is in the Error State and is associated with an SRQ when
-either:
-=95 a CQE is generated for the last WQE, or
-=95 the QP gets in the Error State and there are no more WQEs on the RQ=
-=2E
-
-I haven't found the code yet for generating the last WQE event in the
-ib_rxe implementation ?
-
-Bart.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
 n
