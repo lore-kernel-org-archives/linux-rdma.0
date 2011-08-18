@@ -1,42 +1,65 @@
-From: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: [GIT PULL] please pull infiniband.git
-Date: Thu, 18 Aug 2011 08:54:48 -0700
-Message-ID: <1313682888-5108-1-git-send-email-roland@kernel.org>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH] libibmad: Fix build on win8
+Date: Thu, 18 Aug 2011 16:46:49 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A8237316E4175C@FMSMSX151.amr.corp.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Linus Torvalds <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Ira Weiny (weiny2-i2BcT+NCU+M@public.gmane.org)" <weiny2-i2BcT+NCU+M@public.gmane.org>, "Hal Rosenstock (hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org)" <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma@vger.>
+Cc: "ofw-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org" <ofw-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>, "Leonid Keller (leonid-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org)" <leonid-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Linus,
+The win8 compiler appears to be even more brain dead than its
+predecessor.  It complains of an uninitialized variable mad in
+rpc.c around line 213.  Fix this by removing the redirect
+variable and using while (1) / break instead.
 
-Please pull from
+Problem was reported by Leonid Keller <leonid-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
 
-    master.kernel.org:/pub/scm/linux/kernel/git/roland/infiniband.git for-linus
+Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Reviewed-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ src/rpc.c |    9 ++++-----
+ 1 files changed, 4 insertions(+), 5 deletions(-)
 
-This tree is also available from kernel.org mirrors at:
+diff --git a/src/rpc.c b/src/rpc.c
+index d20c321..19a5a70 100644
+--- a/src/rpc.c
++++ b/src/rpc.c
+@@ -213,13 +213,12 @@ void *mad_rpc(const struct ibmad_port *port, ib_rpc_t * rpc,
+ {
+ 	int status, len;
+ 	uint8_t sndbuf[1024], rcvbuf[1024], *mad;
+-	int redirect = 1;
+ 	ib_rpc_v1_t *rpcv1 = (ib_rpc_v1_t *)rpc;
+ 	int error = 0;
+ 
+ 	if ((rpc->mgtclass & IB_MAD_RPC_VERSION_MASK) == IB_MAD_RPC_VERSION1)
+ 		rpcv1->error = 0;
+-	while (redirect) {
++	do {
+ 		len = 0;
+ 		memset(sndbuf, 0, umad_size() + IB_MAD_SIZE);
+ 
+@@ -247,10 +246,10 @@ void *mad_rpc(const struct ibmad_port *port, ib_rpc_t * rpc,
+ 			/* update dport for next request and retry */
+ 			/* bail if redirection fails */
+ 			if (redirect_port(dport, mad))
+-				redirect = 0;
++				break;
+ 		} else
+-			redirect = 0;
+-	}
++			break;
++	} while (1);
+ 
+ 	if ((rpc->mgtclass & IB_MAD_RPC_VERSION_MASK) == IB_MAD_RPC_VERSION1)
+ 		rpcv1->error = error;
 
-    git://git.kernel.org/pub/scm/linux/kernel/git/roland/infiniband.git for-linus
 
-This will get a few fixes:
- - Fix for crash on boot in IPoIB from Bernd Schubert
- - Two iSER bugs from Or Gerlitz
-
-Bernd Schubert (1):
-      IPoIB: Fix possible NULL dereference in ipoib_start_xmit()
-
-Or Gerlitz (2):
-      IBiser: Fix wrong mask when sizeof (dma_addr_t) > sizeof (unsigned long)
-      IB/iser: Support iSCSI PDU padding
-
-Roland Dreier (1):
-      Merge branches 'ipoib' and 'iser' into for-next
-
- drivers/infiniband/ulp/ipoib/ipoib_main.c    |    8 +++++---
- drivers/infiniband/ulp/iser/iscsi_iser.c     |   10 +++++++---
- drivers/infiniband/ulp/iser/iscsi_iser.h     |    2 +-
- drivers/infiniband/ulp/iser/iser_initiator.c |    2 +-
- 4 files changed, 14 insertions(+), 8 deletions(-)
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
