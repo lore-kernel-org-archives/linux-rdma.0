@@ -1,7 +1,7 @@
 From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 1/20 v2] rdma/core: Add XRC domain
-Date: Fri, 19 Aug 2011 02:13:59 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A8237316E419D6@FMSMSX151.amr.corp.intel.com>
+Subject: [PATCH 3/20 v2] rdma/core: Add XRC SRQ type
+Date: Fri, 19 Aug 2011 02:14:00 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A8237316E419E4@FMSMSX151.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
@@ -12,105 +12,110 @@ To: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdm
 Cc: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-To support XRC, we add a new protection object, an XRC domain.
-XRC domains are used to associate XRC target QPs and SRQs.  A
-device indicates that they support XRC through a capability bit.
+XRC defines an SRQ that is specifically used by XRC connections.
+Expand the SRQ code to support XRC SRQs.  An XRC SRQ is currently
+restricted to XRC use only according to the IB XRC Annex.
 
-This patch is derived from work by
+Portions of this patch were derived from work by
 Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 
 Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/core/verbs.c |   26 ++++++++++++++++++++++++++
- include/rdma/ib_verbs.h         |   22 ++++++++++++++++++++++
- 2 files changed, 48 insertions(+), 0 deletions(-)
+ drivers/infiniband/core/verbs.c |   21 ++++++++++++++++++++-
+ include/rdma/ib_verbs.h         |   18 +++++++++++++++++-
+ 2 files changed, 37 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
-index af7a8b0..5e03ab7 100644
+index cbe85dd..25c1c1e 100644
 --- a/drivers/infiniband/core/verbs.c
 +++ b/drivers/infiniband/core/verbs.c
-@@ -920,3 +920,29 @@ int ib_detach_mcast(struct ib_qp *qp, union ib_gid *gid, u16 lid)
- 	return qp->device->detach_mcast(qp, gid, lid);
- }
- EXPORT_SYMBOL(ib_detach_mcast);
-+
-+struct ib_xrcd *ib_alloc_xrcd(struct ib_device *device)
-+{
-+	struct ib_xrcd *xrcd;
-+
-+	if (!device->alloc_xrcd)
-+		return ERR_PTR(-ENOSYS);
-+
-+	xrcd = device->alloc_xrcd(device, NULL, NULL);
-+	if (!IS_ERR(xrcd)) {
-+		xrcd->device = device;
-+		atomic_set(&xrcd->usecnt, 0);
+@@ -251,6 +251,12 @@ struct ib_srq *ib_create_srq(struct ib_pd *pd,
+ 		srq->event_handler = srq_init_attr->event_handler;
+ 		srq->srq_context   = srq_init_attr->srq_context;
+ 		srq->srq_type      = srq_init_attr->srq_type;
++		if (srq->srq_type == IB_SRQT_XRC) {
++			srq->ext.xrc.xrcd = srq_init_attr->ext.xrc.xrcd;
++			srq->ext.xrc.cq   = srq_init_attr->ext.xrc.cq;
++			atomic_inc(&srq->ext.xrc.xrcd->usecnt);
++			atomic_inc(&srq->ext.xrc.cq->usecnt);
++		}
+ 		atomic_inc(&pd->usecnt);
+ 		atomic_set(&srq->usecnt, 0);
+ 	}
+@@ -280,16 +286,29 @@ EXPORT_SYMBOL(ib_query_srq);
+ int ib_destroy_srq(struct ib_srq *srq)
+ {
+ 	struct ib_pd *pd;
++	enum ib_srq_type srq_type;
++	struct ib_xrcd *uninitialized_var(xrcd);
++	struct ib_cq *uninitialized_var(cq);
+ 	int ret;
+ 
+ 	if (atomic_read(&srq->usecnt))
+ 		return -EBUSY;
+ 
+ 	pd = srq->pd;
++	srq_type = srq->srq_type;
++	if (srq_type == IB_SRQT_XRC) {
++		xrcd = srq->ext.xrc.xrcd;
++		cq = srq->ext.xrc.cq;
 +	}
-+
-+	return xrcd;
-+}
-+EXPORT_SYMBOL(ib_alloc_xrcd);
-+
-+int ib_dealloc_xrcd(struct ib_xrcd *xrcd)
-+{
-+	if (atomic_read(&xrcd->usecnt))
-+		return -EBUSY;
-+
-+	return xrcd->device->dealloc_xrcd(xrcd);
-+}
-+EXPORT_SYMBOL(ib_dealloc_xrcd);
+ 
+ 	ret = srq->device->destroy_srq(srq);
+-	if (!ret)
++	if (!ret) {
+ 		atomic_dec(&pd->usecnt);
++		if (srq_type == IB_SRQT_XRC) {
++			atomic_dec(&xrcd->usecnt);
++			atomic_dec(&cq->usecnt);
++		}
++	}
+ 
+ 	return ret;
+ }
 diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index 55cd0a0..760662f 100644
+index 1374a66..2a85461 100644
 --- a/include/rdma/ib_verbs.h
 +++ b/include/rdma/ib_verbs.h
-@@ -112,6 +112,7 @@ enum ib_device_cap_flags {
- 	 */
- 	IB_DEVICE_UD_IP_CSUM		= (1<<18),
- 	IB_DEVICE_UD_TSO		= (1<<19),
-+	IB_DEVICE_XRC			= (1<<20),
- 	IB_DEVICE_MEM_MGT_EXTENSIONS	= (1<<21),
- 	IB_DEVICE_BLOCK_MULTICAST_LOOPBACK = (1<<22),
- };
-@@ -857,6 +858,11 @@ struct ib_pd {
- 	atomic_t          	usecnt; /* count all resources */
+@@ -523,7 +523,8 @@ enum ib_cq_notify_flags {
  };
  
-+struct ib_xrcd {
-+	struct ib_device       *device;
-+	atomic_t          	usecnt; /* count all resources */
-+};
-+
- struct ib_ah {
- 	struct ib_device	*device;
- 	struct ib_pd		*pd;
-@@ -1148,6 +1154,10 @@ struct ib_device {
- 						  struct ib_grh *in_grh,
- 						  struct ib_mad *in_mad,
- 						  struct ib_mad *out_mad);
-+	struct ib_xrcd *	   (*alloc_xrcd)(struct ib_device *device,
-+						 struct ib_ucontext *ucontext,
-+						 struct ib_udata *udata);
-+	int			   (*dealloc_xrcd)(struct ib_xrcd *xrcd);
+ enum ib_srq_type {
+-	IB_SRQT_BASIC
++	IB_SRQT_BASIC,
++	IB_SRQT_XRC
+ };
  
- 	struct ib_dma_mapping_ops   *dma_ops;
- 
-@@ -2059,4 +2069,16 @@ int ib_attach_mcast(struct ib_qp *qp, union ib_gid *gid, u16 lid);
-  */
- int ib_detach_mcast(struct ib_qp *qp, union ib_gid *gid, u16 lid);
- 
-+/**
-+ * ib_alloc_xrcd - Allocates an XRC domain.
-+ * @device: The device on which to allocate the XRC domain.
-+ */
-+struct ib_xrcd *ib_alloc_xrcd(struct ib_device *device);
+ enum ib_srq_attr_mask {
+@@ -542,6 +543,13 @@ struct ib_srq_init_attr {
+ 	void		       *srq_context;
+ 	struct ib_srq_attr	attr;
+ 	enum ib_srq_type	srq_type;
 +
-+/**
-+ * ib_dealloc_xrcd - Deallocates an XRC domain.
-+ * @xrcd: The XRC domain to deallocate.
-+ */
-+int ib_dealloc_xrcd(struct ib_xrcd *xrcd);
++	union {
++		struct {
++			struct ib_xrcd *xrcd;
++			struct ib_cq   *cq;
++		} xrc;
++	} ext;
+ };
+ 
+ struct ib_qp_cap {
+@@ -894,6 +902,14 @@ struct ib_srq {
+ 	void		       *srq_context;
+ 	enum ib_srq_type	srq_type;
+ 	atomic_t		usecnt;
 +
- #endif /* IB_VERBS_H */
++	union {
++		struct {
++			struct ib_xrcd *xrcd;
++			struct ib_cq   *cq;
++			u32		srq_num;
++		} xrc;
++	} ext;
+ };
+ 
+ struct ib_qp {
 
 
 --
