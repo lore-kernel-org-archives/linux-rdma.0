@@ -1,7 +1,7 @@
 From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 14/20 v2] rdma/cm: Support XRC QPs
+Subject: [PATCH 15/20 v2] ib/cm: Do not automatically disconnect XRC TGT QPs
 Date: Fri, 19 Aug 2011 02:14:06 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A8237316E41A6D@FMSMSX151.amr.corp.intel.com>
+Message-ID: <1828884A29C6694DAF28B7E6B8A8237316E41A73@FMSMSX151.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
@@ -12,26 +12,37 @@ To: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdm
 Cc: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Allow users to connect XRC QPs through the rdma_cm.
+Because an XRC TGT QP can end up being shared among multiple
+processes, don't have the ib_cm automatically send a DREQ
+when the user space process that owns the ib_cm_id exits.
+Disconnect can be initiated by the user directly, otherwise,
+the owner of the XRC INI QP controls the connection.
+
+Note that as a result of the process exiting, the ib_cm will
+stop tracking the XRC connection on the target side.  For the
+purposes of disconnecting, this isn't a big deal.  The ib_cm
+will respond to the DREQ appropriately.  For other messages,
+mainly LAP, the cm will reject the request, since there's no
+one available to route the request to.
 
 Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/core/cma.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ drivers/infiniband/core/cm.c |    2 ++
+ 1 files changed, 2 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
-index 9f1d44d..1aa8e96 100644
---- a/drivers/infiniband/core/cma.c
-+++ b/drivers/infiniband/core/cma.c
-@@ -2567,7 +2567,7 @@ static int cma_connect_ib(struct rdma_id_private *id_priv,
- 	req.service_id = cma_get_service_id(id_priv->id.ps,
- 					    (struct sockaddr *) &route->addr.dst_addr);
- 	req.qp_num = id_priv->qp_num;
--	req.qp_type = IB_QPT_RC;
-+	req.qp_type = id_priv->id.qp_type;
- 	req.starting_psn = id_priv->seq_num;
- 	req.responder_resources = conn_param->responder_resources;
- 	req.initiator_depth = conn_param->initiator_depth;
+diff --git a/drivers/infiniband/core/cm.c b/drivers/infiniband/core/cm.c
+index 42a7a9b..4104ea2 100644
+--- a/drivers/infiniband/core/cm.c
++++ b/drivers/infiniband/core/cm.c
+@@ -889,6 +889,8 @@ retest:
+ 		break;
+ 	case IB_CM_ESTABLISHED:
+ 		spin_unlock_irq(&cm_id_priv->lock);
++		if (cm_id_priv->qp_type == IB_QPT_XRC_TGT)
++			break;
+ 		ib_send_cm_dreq(cm_id, NULL, 0);
+ 		goto retest;
+ 	case IB_CM_DREQ_SENT:
 
 
 --
