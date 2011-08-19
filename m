@@ -1,45 +1,26 @@
-From: "Davis, Arlin R" <arlin.r.davis-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH] DAPL v2.0: build: add extended header files to EXTRA_DIST
- and fix missing backslash
-Date: Fri, 19 Aug 2011 18:33:55 +0000
-Message-ID: <54347E5A035A054EAE9D05927FB467F916E4DF99@ORSMSX101.amr.corp.intel.com>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH 0/20 v2] rdma: Add XRC support
+Date: Fri, 19 Aug 2011 19:22:31 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A8237316E46E88@ORSMSX101.amr.corp.intel.com>
+References: <1828884A29C6694DAF28B7E6B8A8237316E41B0A@FMSMSX151.amr.corp.intel.com>
+ <CAL1RGDWrEN9nT=z5c_H=YXykFqVgOrp0vgBkcSshKodPLq+1mw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CAL1RGDWrEN9nT=z5c_H=YXykFqVgOrp0vgBkcSshKodPLq+1mw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "ofw-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org" <ofw-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+To: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-DQpTaWduZWQtb2ZmLWJ5OiBBcmxpbiBEYXZpcyA8YXJsaW4uci5kYXZpc0BpbnRlbC5jb20+DQot
-LS0NCiBNYWtlZmlsZS5hbSB8ICAgMTAgKysrKysrKy0tLQ0KIDEgZmlsZXMgY2hhbmdlZCwgNyBp
-bnNlcnRpb25zKCspLCAzIGRlbGV0aW9ucygtKQ0KDQpkaWZmIC0tZ2l0IGEvTWFrZWZpbGUuYW0g
-Yi9NYWtlZmlsZS5hbQ0KaW5kZXggNTVmZTQ1Yi4uMWY3NDM3OCAxMDA3NTUNCi0tLSBhL01ha2Vm
-aWxlLmFtDQorKysgYi9NYWtlZmlsZS5hbQ0KQEAgLTE4LDE0ICsxOCwxOCBAQCBlbmRpZg0KIGlm
-IEVYVF9UWVBFX0lCDQogWEZMQUdTID0gLUREQVRfRVhURU5TSU9OUw0KIFhQUk9HUkFNUyA9IGRh
-cGwvb3BlbmliX2NvbW1vbi9pYl9leHRlbnNpb25zLmMNCitYSEVBREVSUyA9DQorWExJQlMgPQ0K
-IGlmIENPTExfVFlQRV9GQ0ENCiBYRkxBR1MgKz0gLUREQVRfSUJfQ09MTEVDVElWRVMgLUREQVRf
-RkNBX1BST1ZJREVSDQogWFBST0dSQU1TICs9IGRhcGwvb3BlbmliX2NvbW1vbi9jb2xsZWN0aXZl
-cy9mY2FfcHJvdmlkZXIuYw0KLVhMSUJTID0gLWxmY2ENCitYSEVBREVSUyArPSBkYXBsL29wZW5p
-Yl9jb21tb24vY29sbGVjdGl2ZXMvaWJfY29sbGVjdGl2ZXMuaCBkYXBsL29wZW5pYl9jb21tb24v
-Y29sbGVjdGl2ZXMvZmNhX3Byb3ZpZGVyLmgNCitYTElCUyArPSAtbGZjYQ0KIGVuZGlmDQogZWxz
-ZQ0KIFhGTEFHUyA9DQogWFBST0dSQU1TID0NCitYSEVBREVSUyA9DQogWExJQlMgPQ0KIGVuZGlm
-DQogDQpAQCAtNTA0LDcgKzUwOCw3IEBAIEVYVFJBX0RJU1QgPSBkYXQvY29tbW9uL2RhdF9kaWN0
-aW9uYXJ5LmggXA0KIAkgICAgIGRhcGwvaW5jbHVkZS9kYXBsX2lwb2liX25hbWVzLmggXA0KIAkg
-ICAgIGRhcGwvaW5jbHVkZS9kYXBsX3ZlbmRvci5oIFwNCiAJICAgICBkYXBsL29wZW5pYl9jb21t
-b24vZGFwbF9pYl9kdG8uaCBcDQotCSAgICAgZGFwbC9vcGVuaWJfY29tbW9uL2RhcGxfaWJfY29t
-bW9uLmggDQorCSAgICAgZGFwbC9vcGVuaWJfY29tbW9uL2RhcGxfaWJfY29tbW9uLmggXA0KIAkg
-ICAgIGRhcGwvb3BlbmliX2NtYS9kYXBsX2liX3V0aWwuaCBcDQogCSAgICAgZGFwbC9vcGVuaWJf
-Y21hL2xpbnV4L29wZW5pYl9vc2QuaCBcDQogCSAgICAgZGFwbC9vcGVuaWJfc2NtL2RhcGxfaWJf
-dXRpbC5oIFwNCkBAIC01NDYsNyArNTUwLDcgQEAgRVhUUkFfRElTVCA9IGRhdC9jb21tb24vZGF0
-X2RpY3Rpb25hcnkuaCBcDQogCSAgICAgdGVzdC9kYXBsdGVzdC9pbmNsdWRlL2RhcGxfdHJhbnNh
-Y3Rpb25fc3RhdHMuaCBcDQogCSAgICAgdGVzdC9kYXBsdGVzdC9pbmNsdWRlL2RhcGxfdHJhbnNh
-Y3Rpb25fdGVzdC5oIFwNCiAJICAgICB0ZXN0L2RhcGx0ZXN0L2luY2x1ZGUvZGFwbF92ZXJzaW9u
-LmggXA0KLQkgICAgIHRlc3QvZGFwbHRlc3QvbWRlcC9saW51eC9kYXBsX21kZXBfdXNlci5oICQo
-WFBST0dSQU1TKQ0KKwkgICAgIHRlc3QvZGFwbHRlc3QvbWRlcC9saW51eC9kYXBsX21kZXBfdXNl
-ci5oICQoWEhFQURFUlMpDQogCSANCiBkaXN0LWhvb2s6IGRhcGwuc3BlYyANCiAJY3AgZGFwbC5z
-cGVjICQoZGlzdGRpcikNCi0tIA0KMS43LjMNCg0KDQoNCg==
+> Great stuff!  I'd really like to get this into kernel 3.2... do you have any
+> open issues or is it all good from your POV?
+
+The only issue from my viewpoint is whether the change referenced by patch 11 (ib/cm: Update xrc support based on xrc annex errata) has been approved by the IBTA.  I'm waiting on a response on that.
+
+- Sean
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
