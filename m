@@ -1,7 +1,7 @@
 From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 9/20 v2] rdma/uverbs: Export XRC TGT QPs to user space
+Subject: [PATCH 10/20 v2] ib/cm: Update protocol to support XRC
 Date: Fri, 19 Aug 2011 02:14:04 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A8237316E41A34@FMSMSX151.amr.corp.intel.com>
+Message-ID: <1828884A29C6694DAF28B7E6B8A8237316E41A3C@FMSMSX151.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
@@ -12,210 +12,163 @@ To: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdm
 Cc: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Allow user space to operate on XRC TGT QPs the same as other
-types of QPs, with one notable exception.  Since XRC TGT QPs
-may be shared among multiple processes, the XRC TGT QP is
-allowed to exist beyond the lifetime of the creating process.
-
-The process that creates the qp is allowed to destroy it, but
-if the process exits without destroying the qp, then the qp
-will be left bound to the lifetime of the XRCD.
-
-TGT QPs are not associated with CQs or a PD.
+Update the REQ and REP messages to support XRC connection setup
+according to the XRC Annex.  Several existing fields must be set
+to 0 or 1 when connecting XRC QPs, and a reserved field is changed
+to an extended transport type.
 
 Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/core/uverbs_cmd.c  |  105 +++++++++++++++++++++------------
- drivers/infiniband/core/uverbs_main.c |    8 ++-
- 2 files changed, 73 insertions(+), 40 deletions(-)
+A comment was filed against the XRC Annex regarding SRQN resolution.
+The next patch in this series adjusts the ib_cm based on the proposed
+errata.  This patch adjusts the ib_cm according to the published Annex.
 
-diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
-index dee81fc..2787e5d 100644
---- a/drivers/infiniband/core/uverbs_cmd.c
-+++ b/drivers/infiniband/core/uverbs_cmd.c
-@@ -1371,8 +1371,11 @@ ssize_t ib_uverbs_create_qp(struct ib_uverbs_file *file,
- 	struct ib_uverbs_create_qp_resp resp;
- 	struct ib_udata                 udata;
- 	struct ib_uqp_object           *obj;
--	struct ib_pd                   *pd;
--	struct ib_cq                   *scq, *rcq = NULL;
-+	struct ib_device	       *device;
-+	struct ib_pd                   *pd = NULL;
-+	struct ib_xrcd		       *xrcd = NULL;
-+	struct ib_uobject	       *uninitialized_var(xrcd_uobj);
-+	struct ib_cq                   *scq = NULL, *rcq = NULL;
- 	struct ib_srq                  *srq = NULL;
- 	struct ib_qp                   *qp;
- 	struct ib_qp_init_attr          attr;
-@@ -1395,29 +1398,39 @@ ssize_t ib_uverbs_create_qp(struct ib_uverbs_file *file,
- 	init_uobj(&obj->uevent.uobject, cmd.user_handle, file->ucontext, &qp_lock_key);
- 	down_write(&obj->uevent.uobject.mutex);
- 
--	pd  = idr_read_pd(cmd.pd_handle, file->ucontext);
--	scq = idr_read_cq(cmd.send_cq_handle, file->ucontext, 0);
--	if (!pd || !scq ) {
--		ret = -EINVAL;
--		goto err_put;
--	}
--
--	if (cmd.qp_type == IB_QPT_XRC_INI) {
--		cmd.max_recv_wr = cmd.max_recv_sge = 0;
-+	if (cmd.qp_type == IB_QPT_XRC_TGT) {
-+		xrcd = idr_read_xrcd(cmd.pd_handle, file->ucontext, &xrcd_uobj);
-+		if (!xrcd) {
-+			ret = -EINVAL;
-+			goto err_put;
-+		}
-+		device = xrcd->device;
- 	} else {
--		if (cmd.is_srq) {
--			srq = idr_read_srq(cmd.srq_handle, file->ucontext);
--			if (!srq || srq->srq_type != IB_SRQT_BASIC) {
-+		pd  = idr_read_pd(cmd.pd_handle, file->ucontext);
-+		scq = idr_read_cq(cmd.send_cq_handle, file->ucontext, 0);
-+		if (!pd || !scq ) {
-+			ret = -EINVAL;
-+			goto err_put;
-+		}
+ drivers/infiniband/core/cm.c      |   46 +++++++++++++++++++++++++------------
+ drivers/infiniband/core/cm_msgs.h |   13 ++++++++++
+ 2 files changed, 43 insertions(+), 16 deletions(-)
+
+diff --git a/drivers/infiniband/core/cm.c b/drivers/infiniband/core/cm.c
+index fc0f2bd..d2e1cfb 100644
+--- a/drivers/infiniband/core/cm.c
++++ b/drivers/infiniband/core/cm.c
+@@ -1008,7 +1008,6 @@ static void cm_format_req(struct cm_req_msg *req_msg,
+ 	req_msg->service_id = param->service_id;
+ 	req_msg->local_ca_guid = cm_id_priv->id.device->node_guid;
+ 	cm_req_set_local_qpn(req_msg, cpu_to_be32(param->qp_num));
+-	cm_req_set_resp_res(req_msg, param->responder_resources);
+ 	cm_req_set_init_depth(req_msg, param->initiator_depth);
+ 	cm_req_set_remote_resp_timeout(req_msg,
+ 				       param->remote_cm_response_timeout);
+@@ -1017,12 +1016,16 @@ static void cm_format_req(struct cm_req_msg *req_msg,
+ 	cm_req_set_starting_psn(req_msg, cpu_to_be32(param->starting_psn));
+ 	cm_req_set_local_resp_timeout(req_msg,
+ 				      param->local_cm_response_timeout);
+-	cm_req_set_retry_count(req_msg, param->retry_count);
+ 	req_msg->pkey = param->primary_path->pkey;
+ 	cm_req_set_path_mtu(req_msg, param->primary_path->mtu);
+-	cm_req_set_rnr_retry_count(req_msg, param->rnr_retry_count);
+ 	cm_req_set_max_cm_retries(req_msg, param->max_cm_retries);
+-	cm_req_set_srq(req_msg, param->srq);
 +
-+		if (cmd.qp_type == IB_QPT_XRC_INI) {
-+			cmd.max_recv_wr = cmd.max_recv_sge = 0;
-+		} else {
-+			if (cmd.is_srq) {
-+				srq = idr_read_srq(cmd.srq_handle, file->ucontext);
-+				if (!srq || srq->srq_type != IB_SRQT_BASIC) {
-+					ret = -EINVAL;
-+					goto err_put;
-+				}
-+			}
-+			rcq = (cmd.recv_cq_handle == cmd.send_cq_handle) ?
-+			       scq : idr_read_cq(cmd.recv_cq_handle, file->ucontext, 1);
-+			if (!rcq) {
- 				ret = -EINVAL;
- 				goto err_put;
- 			}
- 		}
--		rcq = (cmd.recv_cq_handle == cmd.send_cq_handle) ?
--		       scq : idr_read_cq(cmd.recv_cq_handle, file->ucontext, 1);
--		if (!rcq) {
--			ret = -EINVAL;
--			goto err_put;
--		}
-+		device = pd->device;
- 	}
- 
- 	attr.event_handler = ib_uverbs_qp_event_handler;
-@@ -1425,6 +1438,7 @@ ssize_t ib_uverbs_create_qp(struct ib_uverbs_file *file,
- 	attr.send_cq       = scq;
- 	attr.recv_cq       = rcq;
- 	attr.srq           = srq;
-+	attr.xrcd	   = xrcd;
- 	attr.sq_sig_type   = cmd.sq_sig_all ? IB_SIGNAL_ALL_WR : IB_SIGNAL_REQ_WR;
- 	attr.qp_type       = cmd.qp_type;
- 	attr.create_flags  = 0;
-@@ -1439,27 +1453,33 @@ ssize_t ib_uverbs_create_qp(struct ib_uverbs_file *file,
- 	INIT_LIST_HEAD(&obj->uevent.event_list);
- 	INIT_LIST_HEAD(&obj->mcast_list);
- 
--	qp = pd->device->create_qp(pd, &attr, &udata);
-+	if (cmd.qp_type == IB_QPT_XRC_TGT)
-+		qp = ib_create_qp(pd, &attr);
-+	else
-+		qp = device->create_qp(pd, &attr, &udata);
-+
- 	if (IS_ERR(qp)) {
- 		ret = PTR_ERR(qp);
- 		goto err_put;
- 	}
- 
--	qp->device     	  = pd->device;
--	qp->pd         	  = pd;
--	qp->send_cq    	  = attr.send_cq;
--	qp->recv_cq    	  = attr.recv_cq;
--	qp->srq	       	  = attr.srq;
--	qp->uobject       = &obj->uevent.uobject;
--	qp->event_handler = attr.event_handler;
--	qp->qp_context    = attr.qp_context;
--	qp->qp_type	  = attr.qp_type;
--	atomic_inc(&pd->usecnt);
--	atomic_inc(&attr.send_cq->usecnt);
--	if (attr.recv_cq)
--		atomic_inc(&attr.recv_cq->usecnt);
--	if (attr.srq)
--		atomic_inc(&attr.srq->usecnt);
-+	if (cmd.qp_type != IB_QPT_XRC_TGT) {
-+		qp->device     	  = device;
-+		qp->pd         	  = pd;
-+		qp->send_cq    	  = attr.send_cq;
-+		qp->recv_cq    	  = attr.recv_cq;
-+		qp->srq	       	  = attr.srq;
-+		qp->event_handler = attr.event_handler;
-+		qp->qp_context    = attr.qp_context;
-+		qp->qp_type	  = attr.qp_type;
-+		atomic_inc(&pd->usecnt);
-+		atomic_inc(&attr.send_cq->usecnt);
-+		if (attr.recv_cq)
-+			atomic_inc(&attr.recv_cq->usecnt);
-+		if (attr.srq)
-+			atomic_inc(&attr.srq->usecnt);
++	if (param->qp_type != IB_QPT_XRC_INI) {
++		cm_req_set_resp_res(req_msg, param->responder_resources);
++		cm_req_set_retry_count(req_msg, param->retry_count);
++		cm_req_set_rnr_retry_count(req_msg, param->rnr_retry_count);
++		cm_req_set_srq(req_msg, param->srq);
 +	}
-+	qp->uobject = &obj->uevent.uobject;
  
- 	obj->uevent.uobject.object = qp;
- 	ret = idr_add_uobj(&ib_uverbs_qp_idr, &obj->uevent.uobject);
-@@ -1481,8 +1501,12 @@ ssize_t ib_uverbs_create_qp(struct ib_uverbs_file *file,
- 		goto err_copy;
- 	}
+ 	if (pri_path->hop_limit <= 1) {
+ 		req_msg->primary_local_lid = pri_path->slid;
+@@ -1080,7 +1083,8 @@ static int cm_validate_req_param(struct ib_cm_req_param *param)
+ 	if (!param->primary_path)
+ 		return -EINVAL;
  
--	put_pd_read(pd);
--	put_cq_read(scq);
-+	if (xrcd)
-+		put_xrcd_read(xrcd_uobj);
-+	if (pd)
-+		put_pd_read(pd);
-+	if (scq)
-+		put_cq_read(scq);
- 	if (rcq && rcq != scq)
- 		put_cq_read(rcq);
- 	if (srq)
-@@ -1505,6 +1529,8 @@ err_destroy:
- 	ib_destroy_qp(qp);
+-	if (param->qp_type != IB_QPT_RC && param->qp_type != IB_QPT_UC)
++	if (param->qp_type != IB_QPT_RC && param->qp_type != IB_QPT_UC &&
++	    param->qp_type != IB_QPT_XRC_INI)
+ 		return -EINVAL;
  
- err_put:
-+	if (xrcd)
-+		put_xrcd_read(xrcd_uobj);
- 	if (pd)
- 		put_pd_read(pd);
- 	if (scq)
-@@ -1624,6 +1650,9 @@ static int modify_qp_mask(enum ib_qp_type qp_type, int mask)
- 	switch (qp_type) {
- 	case IB_QPT_XRC_INI:
- 		return mask & ~(IB_QP_MAX_DEST_RD_ATOMIC | IB_QP_MIN_RNR_TIMER);
-+	case IB_QPT_XRC_TGT:
-+		return mask & ~(IB_QP_MAX_QP_RD_ATOMIC | IB_QP_RETRY_CNT |
-+				IB_QP_RNR_RETRY);
- 	default:
- 		return mask;
- 	}
-diff --git a/drivers/infiniband/core/uverbs_main.c b/drivers/infiniband/core/uverbs_main.c
-index 6ad221b..0cb69e0 100644
---- a/drivers/infiniband/core/uverbs_main.c
-+++ b/drivers/infiniband/core/uverbs_main.c
-@@ -206,8 +206,12 @@ static int ib_uverbs_cleanup_ucontext(struct ib_uverbs_file *file,
- 			container_of(uobj, struct ib_uqp_object, uevent.uobject);
+ 	if (param->private_data &&
+@@ -1604,15 +1608,20 @@ static void cm_format_rep(struct cm_rep_msg *rep_msg,
+ 	cm_rep_set_local_qpn(rep_msg, cpu_to_be32(param->qp_num));
+ 	cm_rep_set_starting_psn(rep_msg, cpu_to_be32(param->starting_psn));
+ 	rep_msg->resp_resources = param->responder_resources;
+-	rep_msg->initiator_depth = param->initiator_depth;
+ 	cm_rep_set_target_ack_delay(rep_msg,
+ 				    cm_id_priv->av.port->cm_dev->ack_delay);
+ 	cm_rep_set_failover(rep_msg, param->failover_accepted);
+-	cm_rep_set_flow_ctrl(rep_msg, param->flow_control);
+ 	cm_rep_set_rnr_retry_count(rep_msg, param->rnr_retry_count);
+-	cm_rep_set_srq(rep_msg, param->srq);
+ 	rep_msg->local_ca_guid = cm_id_priv->id.device->node_guid;
  
- 		idr_remove_uobj(&ib_uverbs_qp_idr, uobj);
--		ib_uverbs_detach_umcast(qp, uqp);
--		ib_destroy_qp(qp);
-+		if (qp->qp_type == IB_QPT_XRC_TGT) {
-+			ib_release_qp(qp);
-+		} else {
-+			ib_uverbs_detach_umcast(qp, uqp);
-+			ib_destroy_qp(qp);
++	if (cm_id_priv->qp_type != IB_QPT_XRC_TGT) {
++		rep_msg->initiator_depth = param->initiator_depth;
++		cm_rep_set_flow_ctrl(rep_msg, param->flow_control);
++		cm_rep_set_srq(rep_msg, param->srq);
++	} else {
++		cm_rep_set_srq(rep_msg, 1);
++	}
++
+ 	if (param->private_data && param->private_data_len)
+ 		memcpy(rep_msg->private_data, param->private_data,
+ 		       param->private_data_len);
+@@ -3492,7 +3501,8 @@ static int cm_init_qp_rtr_attr(struct cm_id_private *cm_id_priv,
+ 		qp_attr->path_mtu = cm_id_priv->path_mtu;
+ 		qp_attr->dest_qp_num = be32_to_cpu(cm_id_priv->remote_qpn);
+ 		qp_attr->rq_psn = be32_to_cpu(cm_id_priv->rq_psn);
+-		if (cm_id_priv->qp_type == IB_QPT_RC) {
++		if (cm_id_priv->qp_type == IB_QPT_RC ||
++		    cm_id_priv->qp_type == IB_QPT_XRC_TGT) {
+ 			*qp_attr_mask |= IB_QP_MAX_DEST_RD_ATOMIC |
+ 					 IB_QP_MIN_RNR_TIMER;
+ 			qp_attr->max_dest_rd_atomic =
+@@ -3537,15 +3547,21 @@ static int cm_init_qp_rts_attr(struct cm_id_private *cm_id_priv,
+ 		if (cm_id_priv->id.lap_state == IB_CM_LAP_UNINIT) {
+ 			*qp_attr_mask = IB_QP_STATE | IB_QP_SQ_PSN;
+ 			qp_attr->sq_psn = be32_to_cpu(cm_id_priv->sq_psn);
+-			if (cm_id_priv->qp_type == IB_QPT_RC) {
+-				*qp_attr_mask |= IB_QP_TIMEOUT | IB_QP_RETRY_CNT |
+-						 IB_QP_RNR_RETRY |
++			switch (cm_id_priv->qp_type) {
++			case IB_QPT_RC:
++			case IB_QPT_XRC_INI:
++				*qp_attr_mask |= IB_QP_RETRY_CNT | IB_QP_RNR_RETRY |
+ 						 IB_QP_MAX_QP_RD_ATOMIC;
+-				qp_attr->timeout = cm_id_priv->av.timeout;
+ 				qp_attr->retry_cnt = cm_id_priv->retry_count;
+ 				qp_attr->rnr_retry = cm_id_priv->rnr_retry_count;
+-				qp_attr->max_rd_atomic =
+-					cm_id_priv->initiator_depth;
++				qp_attr->max_rd_atomic = cm_id_priv->initiator_depth;
++				/* fall through */
++			case IB_QPT_XRC_TGT:
++				*qp_attr_mask |= IB_QP_TIMEOUT;
++				qp_attr->timeout = cm_id_priv->av.timeout;
++				break;
++			default:
++				break;
+ 			}
+ 			if (cm_id_priv->alt_av.ah_attr.dlid) {
+ 				*qp_attr_mask |= IB_QP_PATH_MIG_STATE;
+diff --git a/drivers/infiniband/core/cm_msgs.h b/drivers/infiniband/core/cm_msgs.h
+index 7e63c08..3ade320 100644
+--- a/drivers/infiniband/core/cm_msgs.h
++++ b/drivers/infiniband/core/cm_msgs.h
+@@ -86,7 +86,7 @@ struct cm_req_msg {
+ 	__be16 pkey;
+ 	/* path MTU:4, RDC exists:1, RNR retry count:3. */
+ 	u8 offset50;
+-	/* max CM Retries:4, SRQ:1, rsvd:3 */
++	/* max CM Retries:4, SRQ:1, extended transport type:3 */
+ 	u8 offset51;
+ 
+ 	__be16 primary_local_lid;
+@@ -175,6 +175,11 @@ static inline enum ib_qp_type cm_req_get_qp_type(struct cm_req_msg *req_msg)
+ 	switch(transport_type) {
+ 	case 0: return IB_QPT_RC;
+ 	case 1: return IB_QPT_UC;
++	case 3:
++		switch (req_msg->offset51 & 0x7) {
++		case 1: return IB_QPT_XRC_TGT;
++		default: return 0;
 +		}
- 		ib_uverbs_release_uevent(file, &uqp->uevent);
- 		kfree(uqp);
+ 	default: return 0;
  	}
+ }
+@@ -188,6 +193,12 @@ static inline void cm_req_set_qp_type(struct cm_req_msg *req_msg,
+ 						  req_msg->offset40) &
+ 						   0xFFFFFFF9) | 0x2);
+ 		break;
++	case IB_QPT_XRC_INI:
++		req_msg->offset40 = cpu_to_be32((be32_to_cpu(
++						 req_msg->offset40) &
++						   0xFFFFFFF9) | 0x6);
++		req_msg->offset51 = (req_msg->offset51 & 0xF8) | 1;
++		break;
+ 	default:
+ 		req_msg->offset40 = cpu_to_be32(be32_to_cpu(
+ 						 req_msg->offset40) &
 
 
 --
