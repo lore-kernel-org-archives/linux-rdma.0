@@ -1,129 +1,81 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH 6/6] infiniband-diags/ibstat.c: Add support for FDR10
-Date: Fri, 19 Aug 2011 12:54:16 -0400
-Message-ID: <4E4E9538.5050400@dev.mellanox.co.il>
+From: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+Subject: Re: [PATCH 0/20 v2] rdma: Add XRC support
+Date: Fri, 19 Aug 2011 09:55:48 -0700
+Message-ID: <CAL1RGDWrEN9nT=z5c_H=YXykFqVgOrp0vgBkcSshKodPLq+1mw@mail.gmail.com>
+References: <1828884A29C6694DAF28B7E6B8A8237316E41B0A@FMSMSX151.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1828884A29C6694DAF28B7E6B8A8237316E41B0A-Q3cL8pyY+6ukrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+Great stuff!  I'd really like to get this into kernel 3.2... do you hav=
+e any
+open issues or is it all good from your POV?
 
-without changing libibumad umad_port_t structure
+ - R.
 
-Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- src/ibstat.c |   70 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++-
- 1 files changed, 69 insertions(+), 1 deletions(-)
-
-diff --git a/src/ibstat.c b/src/ibstat.c
-index 92fcd0f..ade5d7a 100644
---- a/src/ibstat.c
-+++ b/src/ibstat.c
-@@ -1,5 +1,6 @@
- /*
-  * Copyright (c) 2004-2009 Voltaire Inc.  All rights reserved.
-+ * Copyright (c) 2011 Mellanox Technologies LTD.  All rights reserved.
-  *
-  * This software is available to you under a choice of one of two
-  * licenses.  You may choose to be licensed under the terms of the GNU
-@@ -43,6 +44,10 @@
- #include <stdlib.h>
- #include <getopt.h>
- #include <netinet/in.h>
-+#include <sys/types.h>
-+#include <sys/stat.h>
-+#include <fcntl.h>
-+#include <errno.h>
- 
- #include <infiniband/umad.h>
- #include <infiniband/mad.h>
-@@ -96,6 +101,66 @@ static char *port_phy_state_str[] = {
- 	"PhyTest"
- };
- 
-+static int ret_code(void)
-+{
-+	int e = errno;
-+
-+	if (e > 0)
-+		return -e;
-+	return e;
-+}
-+
-+static int sys_read_string(char *dir_name, char *file_name, char *str,
-+			   int max_len)
-+{
-+	char path[256], *s;
-+	int fd, r;
-+
-+	snprintf(path, sizeof(path), "%s/%s", dir_name, file_name);
-+
-+	if ((fd = open(path, O_RDONLY)) < 0)
-+		return ret_code();
-+
-+	if ((r = read(fd, str, max_len)) < 0) {
-+		int e = errno;
-+		close(fd);
-+		errno = e;
-+		return ret_code();
-+	}
-+
-+	str[(r < max_len) ? r : max_len - 1] = 0;
-+
-+	if ((s = strrchr(str, '\n')))
-+		*s = 0;
-+
-+	close(fd);
-+	return 0;
-+}
-+
-+static int is_fdr10(umad_port_t *port)
-+{
-+	char port_dir[256];
-+	char rate[32];
-+	int len, fdr10 = 0;
-+	char *p;
-+
-+	len = snprintf(port_dir, sizeof(port_dir), "%s/%s/%s/%d",
-+		       SYS_INFINIBAND, port->ca_name, SYS_CA_PORTS_DIR,
-+		       port->portnum);
-+	if (len < 0 || len > sizeof(port_dir))
-+		goto done;
-+
-+	if (sys_read_string(port_dir, SYS_PORT_RATE, rate, sizeof(rate)) == 0) {
-+		if ((p = strchr(rate, ')'))) {
-+			if (!strncasecmp(p - 5, "fdr10", 5))
-+				fdr10 = 1;
-+		}
-+	}
-+
-+done:
-+	return fdr10;
-+}
-+
- static int port_dump(umad_port_t * port, int alone)
- {
- 	char *pre = "";
-@@ -116,7 +181,10 @@ static int port_dump(umad_port_t * port, int alone)
- 	printf("%sPhysical state: %s\n", pre,
- 	       (unsigned)port->phys_state <=
- 	       7 ? port_phy_state_str[port->phys_state] : "???");
--	printf("%sRate: %d\n", pre, port->rate);
-+	if (is_fdr10(port))
-+		printf("%sRate: %d (FDR10)\n", pre, port->rate);
-+	else
-+		printf("%sRate: %d\n", pre, port->rate);
- 	printf("%sBase lid: %d\n", pre, port->base_lid);
- 	printf("%sLMC: %d\n", pre, port->lmc);
- 	printf("%sSM lid: %d\n", pre, port->sm_lid);
--- 
-1.5.3
-
+On Thu, Aug 18, 2011 at 7:14 PM, Hefty, Sean <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wro=
+te:
+> XRC provides a scalability enhancement when a process on one node
+> must communicate with multiple processes on another node. =A0This
+> is commonly the case when running MPI applications on multi-core
+> systems in a cluster.
+>
+> An XRC connection consists of an initiator (XRC INI) qp and a target
+> (XRC TGT) qp. =A0A single xrc ini -> xrc tgt qp connection enables a
+> process to communicate with all remote processes on a single node.
+> Security is enforced through the use of a special type of protection
+> domain and shared receive queues. =A0An xrc srq is allocated
+> on an xrc domain. =A0The xrc tgt qp is also allocated on an xrc domai=
+n.
+> A process may receive data on an xrc srq from a tgt qp if the xrc
+> domains are the same.
+>
+> The following patch series adds support for XRC. =A0The patches used
+> the patches found in Roland's xrc branch as a base, plus added in
+> patches found in the OFED 1.5 linux git tree. =A0The latter were main=
+ly
+> used for updating the mlx4 driver. =A0I broke the patches up, so that
+> I could follow each change better.
+>
+> This set differs from Roland's xrc branch in that XRC initiator and
+> target QP types are separated, and a type is specified when creating
+> an SRQ. =A0The patches differ from the OFED 1.5 patches by using the
+> existing QP APIs and ABI to create and manage XRC QPs. =A0XRCD's may
+> still be shared among multiple processes, and XRC QPs may be connecte=
+d
+> out of band.
+>
+> There are corresponding patches to libibverbs, libmlx4, and the
+> librdmacm to support XRC.
+>
+> This patch sets are also available on the ofa server:
+>
+> =A0 =A0 =A0 =A0git://git.openfabrics.org/~shefty/rdma-dev.git =A0 xrc
+> =A0 =A0 =A0 =A0git://git.openfabrics.org/~shefty/libibverbs.git xrc
+> =A0 =A0 =A0 =A0git://git.openfabrics.org/~shefty/libmlx4.git =A0 =A0x=
+rc
+> =A0 =A0 =A0 =A0git://git.openfabrics.org/~shefty/librdmacm.git =A0xrc
+>
+> Changes from v1:
+> - Add ability for any process using an xrcd to open an existing tgt q=
+p
+> - Provided update to ib_cm changes based on proposed errata.
+>
+> Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma"=
+ in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
+>
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
