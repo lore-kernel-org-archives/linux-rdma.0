@@ -1,7 +1,7 @@
 From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 8/20 v2] rdma/uverbs: Export XRC INI QP to user space
-Date: Fri, 19 Aug 2011 02:14:03 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A8237316E41A22@FMSMSX151.amr.corp.intel.com>
+Subject: [PATCH 9/20 v2] rdma/uverbs: Export XRC TGT QPs to user space
+Date: Fri, 19 Aug 2011 02:14:04 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A8237316E41A34@FMSMSX151.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
@@ -12,114 +12,210 @@ To: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdm
 Cc: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-XRC INI QPs are similar to send only RC QPs.  Allow user space
-to create INI QPs.  Note that INI QPs do not require receive CQs.
+Allow user space to operate on XRC TGT QPs the same as other
+types of QPs, with one notable exception.  Since XRC TGT QPs
+may be shared among multiple processes, the XRC TGT QP is
+allowed to exist beyond the lifetime of the creating process.
+
+The process that creates the qp is allowed to destroy it, but
+if the process exits without destroying the qp, then the qp
+will be left bound to the lifetime of the XRCD.
+
+TGT QPs are not associated with CQs or a PD.
 
 Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/core/uverbs_cmd.c |   48 ++++++++++++++++++++++++++--------
- 1 files changed, 37 insertions(+), 11 deletions(-)
+ drivers/infiniband/core/uverbs_cmd.c  |  105 +++++++++++++++++++++------------
+ drivers/infiniband/core/uverbs_main.c |    8 ++-
+ 2 files changed, 73 insertions(+), 40 deletions(-)
 
 diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
-index 095b393..dee81fc 100644
+index dee81fc..2787e5d 100644
 --- a/drivers/infiniband/core/uverbs_cmd.c
 +++ b/drivers/infiniband/core/uverbs_cmd.c
-@@ -1372,8 +1372,8 @@ ssize_t ib_uverbs_create_qp(struct ib_uverbs_file *file,
+@@ -1371,8 +1371,11 @@ ssize_t ib_uverbs_create_qp(struct ib_uverbs_file *file,
+ 	struct ib_uverbs_create_qp_resp resp;
  	struct ib_udata                 udata;
  	struct ib_uqp_object           *obj;
- 	struct ib_pd                   *pd;
--	struct ib_cq                   *scq, *rcq;
--	struct ib_srq                  *srq;
-+	struct ib_cq                   *scq, *rcq = NULL;
-+	struct ib_srq                  *srq = NULL;
+-	struct ib_pd                   *pd;
+-	struct ib_cq                   *scq, *rcq = NULL;
++	struct ib_device	       *device;
++	struct ib_pd                   *pd = NULL;
++	struct ib_xrcd		       *xrcd = NULL;
++	struct ib_uobject	       *uninitialized_var(xrcd_uobj);
++	struct ib_cq                   *scq = NULL, *rcq = NULL;
+ 	struct ib_srq                  *srq = NULL;
  	struct ib_qp                   *qp;
  	struct ib_qp_init_attr          attr;
- 	int ret;
-@@ -1395,18 +1395,31 @@ ssize_t ib_uverbs_create_qp(struct ib_uverbs_file *file,
+@@ -1395,29 +1398,39 @@ ssize_t ib_uverbs_create_qp(struct ib_uverbs_file *file,
  	init_uobj(&obj->uevent.uobject, cmd.user_handle, file->ucontext, &qp_lock_key);
  	down_write(&obj->uevent.uobject.mutex);
  
--	srq = cmd.is_srq ? idr_read_srq(cmd.srq_handle, file->ucontext) : NULL;
- 	pd  = idr_read_pd(cmd.pd_handle, file->ucontext);
- 	scq = idr_read_cq(cmd.send_cq_handle, file->ucontext, 0);
--	rcq = cmd.recv_cq_handle == cmd.send_cq_handle ?
--		scq : idr_read_cq(cmd.recv_cq_handle, file->ucontext, 1);
+-	pd  = idr_read_pd(cmd.pd_handle, file->ucontext);
+-	scq = idr_read_cq(cmd.send_cq_handle, file->ucontext, 0);
+-	if (!pd || !scq ) {
+-		ret = -EINVAL;
+-		goto err_put;
+-	}
 -
--	if (!pd || !scq || !rcq ||
--	    (cmd.is_srq && (!srq || srq->srq_type != IB_SRQT_BASIC))) {
-+	if (!pd || !scq ) {
- 		ret = -EINVAL;
- 		goto err_put;
- 	}
- 
-+	if (cmd.qp_type == IB_QPT_XRC_INI) {
-+		cmd.max_recv_wr = cmd.max_recv_sge = 0;
-+	} else {
-+		if (cmd.is_srq) {
-+			srq = idr_read_srq(cmd.srq_handle, file->ucontext);
-+			if (!srq || srq->srq_type != IB_SRQT_BASIC) {
-+				ret = -EINVAL;
-+				goto err_put;
-+			}
-+		}
-+		rcq = (cmd.recv_cq_handle == cmd.send_cq_handle) ?
-+		       scq : idr_read_cq(cmd.recv_cq_handle, file->ucontext, 1);
-+		if (!rcq) {
+-	if (cmd.qp_type == IB_QPT_XRC_INI) {
+-		cmd.max_recv_wr = cmd.max_recv_sge = 0;
++	if (cmd.qp_type == IB_QPT_XRC_TGT) {
++		xrcd = idr_read_xrcd(cmd.pd_handle, file->ucontext, &xrcd_uobj);
++		if (!xrcd) {
 +			ret = -EINVAL;
 +			goto err_put;
 +		}
-+	}
++		device = xrcd->device;
+ 	} else {
+-		if (cmd.is_srq) {
+-			srq = idr_read_srq(cmd.srq_handle, file->ucontext);
+-			if (!srq || srq->srq_type != IB_SRQT_BASIC) {
++		pd  = idr_read_pd(cmd.pd_handle, file->ucontext);
++		scq = idr_read_cq(cmd.send_cq_handle, file->ucontext, 0);
++		if (!pd || !scq ) {
++			ret = -EINVAL;
++			goto err_put;
++		}
 +
++		if (cmd.qp_type == IB_QPT_XRC_INI) {
++			cmd.max_recv_wr = cmd.max_recv_sge = 0;
++		} else {
++			if (cmd.is_srq) {
++				srq = idr_read_srq(cmd.srq_handle, file->ucontext);
++				if (!srq || srq->srq_type != IB_SRQT_BASIC) {
++					ret = -EINVAL;
++					goto err_put;
++				}
++			}
++			rcq = (cmd.recv_cq_handle == cmd.send_cq_handle) ?
++			       scq : idr_read_cq(cmd.recv_cq_handle, file->ucontext, 1);
++			if (!rcq) {
+ 				ret = -EINVAL;
+ 				goto err_put;
+ 			}
+ 		}
+-		rcq = (cmd.recv_cq_handle == cmd.send_cq_handle) ?
+-		       scq : idr_read_cq(cmd.recv_cq_handle, file->ucontext, 1);
+-		if (!rcq) {
+-			ret = -EINVAL;
+-			goto err_put;
+-		}
++		device = pd->device;
+ 	}
+ 
  	attr.event_handler = ib_uverbs_qp_event_handler;
- 	attr.qp_context    = file;
+@@ -1425,6 +1438,7 @@ ssize_t ib_uverbs_create_qp(struct ib_uverbs_file *file,
  	attr.send_cq       = scq;
-@@ -1443,7 +1456,8 @@ ssize_t ib_uverbs_create_qp(struct ib_uverbs_file *file,
- 	qp->qp_type	  = attr.qp_type;
- 	atomic_inc(&pd->usecnt);
- 	atomic_inc(&attr.send_cq->usecnt);
--	atomic_inc(&attr.recv_cq->usecnt);
-+	if (attr.recv_cq)
-+		atomic_inc(&attr.recv_cq->usecnt);
- 	if (attr.srq)
- 		atomic_inc(&attr.srq->usecnt);
+ 	attr.recv_cq       = rcq;
+ 	attr.srq           = srq;
++	attr.xrcd	   = xrcd;
+ 	attr.sq_sig_type   = cmd.sq_sig_all ? IB_SIGNAL_ALL_WR : IB_SIGNAL_REQ_WR;
+ 	attr.qp_type       = cmd.qp_type;
+ 	attr.create_flags  = 0;
+@@ -1439,27 +1453,33 @@ ssize_t ib_uverbs_create_qp(struct ib_uverbs_file *file,
+ 	INIT_LIST_HEAD(&obj->uevent.event_list);
+ 	INIT_LIST_HEAD(&obj->mcast_list);
  
-@@ -1469,7 +1483,7 @@ ssize_t ib_uverbs_create_qp(struct ib_uverbs_file *file,
+-	qp = pd->device->create_qp(pd, &attr, &udata);
++	if (cmd.qp_type == IB_QPT_XRC_TGT)
++		qp = ib_create_qp(pd, &attr);
++	else
++		qp = device->create_qp(pd, &attr, &udata);
++
+ 	if (IS_ERR(qp)) {
+ 		ret = PTR_ERR(qp);
+ 		goto err_put;
+ 	}
  
- 	put_pd_read(pd);
- 	put_cq_read(scq);
--	if (rcq != scq)
-+	if (rcq && rcq != scq)
+-	qp->device     	  = pd->device;
+-	qp->pd         	  = pd;
+-	qp->send_cq    	  = attr.send_cq;
+-	qp->recv_cq    	  = attr.recv_cq;
+-	qp->srq	       	  = attr.srq;
+-	qp->uobject       = &obj->uevent.uobject;
+-	qp->event_handler = attr.event_handler;
+-	qp->qp_context    = attr.qp_context;
+-	qp->qp_type	  = attr.qp_type;
+-	atomic_inc(&pd->usecnt);
+-	atomic_inc(&attr.send_cq->usecnt);
+-	if (attr.recv_cq)
+-		atomic_inc(&attr.recv_cq->usecnt);
+-	if (attr.srq)
+-		atomic_inc(&attr.srq->usecnt);
++	if (cmd.qp_type != IB_QPT_XRC_TGT) {
++		qp->device     	  = device;
++		qp->pd         	  = pd;
++		qp->send_cq    	  = attr.send_cq;
++		qp->recv_cq    	  = attr.recv_cq;
++		qp->srq	       	  = attr.srq;
++		qp->event_handler = attr.event_handler;
++		qp->qp_context    = attr.qp_context;
++		qp->qp_type	  = attr.qp_type;
++		atomic_inc(&pd->usecnt);
++		atomic_inc(&attr.send_cq->usecnt);
++		if (attr.recv_cq)
++			atomic_inc(&attr.recv_cq->usecnt);
++		if (attr.srq)
++			atomic_inc(&attr.srq->usecnt);
++	}
++	qp->uobject = &obj->uevent.uobject;
+ 
+ 	obj->uevent.uobject.object = qp;
+ 	ret = idr_add_uobj(&ib_uverbs_qp_idr, &obj->uevent.uobject);
+@@ -1481,8 +1501,12 @@ ssize_t ib_uverbs_create_qp(struct ib_uverbs_file *file,
+ 		goto err_copy;
+ 	}
+ 
+-	put_pd_read(pd);
+-	put_cq_read(scq);
++	if (xrcd)
++		put_xrcd_read(xrcd_uobj);
++	if (pd)
++		put_pd_read(pd);
++	if (scq)
++		put_cq_read(scq);
+ 	if (rcq && rcq != scq)
  		put_cq_read(rcq);
  	if (srq)
- 		put_srq_read(srq);
-@@ -1604,6 +1618,17 @@ out:
- 	return ret ? ret : in_len;
- }
+@@ -1505,6 +1529,8 @@ err_destroy:
+ 	ib_destroy_qp(qp);
  
-+/* Remove ignored fields set in the attribute mask */
-+static int modify_qp_mask(enum ib_qp_type qp_type, int mask)
-+{
-+	switch (qp_type) {
-+	case IB_QPT_XRC_INI:
-+		return mask & ~(IB_QP_MAX_DEST_RD_ATOMIC | IB_QP_MIN_RNR_TIMER);
-+	default:
-+		return mask;
-+	}
-+}
-+
- ssize_t ib_uverbs_modify_qp(struct ib_uverbs_file *file,
- 			    const char __user *buf, int in_len,
- 			    int out_len)
-@@ -1676,7 +1701,8 @@ ssize_t ib_uverbs_modify_qp(struct ib_uverbs_file *file,
- 	attr->alt_ah_attr.ah_flags 	    = cmd.alt_dest.is_global ? IB_AH_GRH : 0;
- 	attr->alt_ah_attr.port_num 	    = cmd.alt_dest.port_num;
+ err_put:
++	if (xrcd)
++		put_xrcd_read(xrcd_uobj);
+ 	if (pd)
+ 		put_pd_read(pd);
+ 	if (scq)
+@@ -1624,6 +1650,9 @@ static int modify_qp_mask(enum ib_qp_type qp_type, int mask)
+ 	switch (qp_type) {
+ 	case IB_QPT_XRC_INI:
+ 		return mask & ~(IB_QP_MAX_DEST_RD_ATOMIC | IB_QP_MIN_RNR_TIMER);
++	case IB_QPT_XRC_TGT:
++		return mask & ~(IB_QP_MAX_QP_RD_ATOMIC | IB_QP_RETRY_CNT |
++				IB_QP_RNR_RETRY);
+ 	default:
+ 		return mask;
+ 	}
+diff --git a/drivers/infiniband/core/uverbs_main.c b/drivers/infiniband/core/uverbs_main.c
+index 6ad221b..0cb69e0 100644
+--- a/drivers/infiniband/core/uverbs_main.c
++++ b/drivers/infiniband/core/uverbs_main.c
+@@ -206,8 +206,12 @@ static int ib_uverbs_cleanup_ucontext(struct ib_uverbs_file *file,
+ 			container_of(uobj, struct ib_uqp_object, uevent.uobject);
  
--	ret = qp->device->modify_qp(qp, attr, cmd.attr_mask, &udata);
-+	ret = qp->device->modify_qp(qp, attr,
-+				    modify_qp_mask(qp->qp_type, cmd.attr_mask), &udata);
- 
- 	put_qp_read(qp);
- 
+ 		idr_remove_uobj(&ib_uverbs_qp_idr, uobj);
+-		ib_uverbs_detach_umcast(qp, uqp);
+-		ib_destroy_qp(qp);
++		if (qp->qp_type == IB_QPT_XRC_TGT) {
++			ib_release_qp(qp);
++		} else {
++			ib_uverbs_detach_umcast(qp, uqp);
++			ib_destroy_qp(qp);
++		}
+ 		ib_uverbs_release_uevent(file, &uqp->uevent);
+ 		kfree(uqp);
+ 	}
 
 
 --
