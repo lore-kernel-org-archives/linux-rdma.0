@@ -1,7 +1,7 @@
 From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 3/20 v2] rdma/core: Add XRC SRQ type
+Subject: [PATCH 2/20 v2] rdma/core: Add SRQ type
 Date: Fri, 19 Aug 2011 02:14:00 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A8237316E419E4@FMSMSX151.amr.corp.intel.com>
+Message-ID: <1828884A29C6694DAF28B7E6B8A8237316E419DC@FMSMSX151.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
@@ -12,110 +12,168 @@ To: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdm
 Cc: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-XRC defines an SRQ that is specifically used by XRC connections.
-Expand the SRQ code to support XRC SRQs.  An XRC SRQ is currently
-restricted to XRC use only according to the IB XRC Annex.
-
-Portions of this patch were derived from work by
-Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Currently, there is only a single type of SRQ, but with XRC support
+we will add a second.  Prepare for this by defining an SRQ type and
+setting all current users to IB_SRQT_BASIC.
 
 Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/core/verbs.c |   21 ++++++++++++++++++++-
- include/rdma/ib_verbs.h         |   18 +++++++++++++++++-
- 2 files changed, 37 insertions(+), 2 deletions(-)
+change from v1:
+Added check to mlx4 driver.  This will be removed once xrc support is
+added to the driver.
 
+ drivers/infiniband/core/uverbs_cmd.c         |    1 +
+ drivers/infiniband/core/verbs.c              |    1 +
+ drivers/infiniband/hw/ehca/ehca_qp.c         |    3 +++
+ drivers/infiniband/hw/ipath/ipath_srq.c      |    5 +++++
+ drivers/infiniband/hw/mlx4/srq.c             |    3 +++
+ drivers/infiniband/hw/mthca/mthca_provider.c |    3 +++
+ drivers/infiniband/hw/qib/qib_srq.c          |    5 +++++
+ drivers/infiniband/ulp/ipoib/ipoib_cm.c      |    1 +
+ include/rdma/ib_verbs.h                      |    6 ++++++
+ 9 files changed, 28 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
+index c426992..48d21d0 100644
+--- a/drivers/infiniband/core/uverbs_cmd.c
++++ b/drivers/infiniband/core/uverbs_cmd.c
+@@ -2013,6 +2013,7 @@ ssize_t ib_uverbs_create_srq(struct ib_uverbs_file *file,
+ 
+ 	attr.event_handler  = ib_uverbs_srq_event_handler;
+ 	attr.srq_context    = file;
++	attr.srq_type       = IB_SRQT_BASIC;
+ 	attr.attr.max_wr    = cmd.max_wr;
+ 	attr.attr.max_sge   = cmd.max_sge;
+ 	attr.attr.srq_limit = cmd.srq_limit;
 diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
-index cbe85dd..25c1c1e 100644
+index 5e03ab7..cbe85dd 100644
 --- a/drivers/infiniband/core/verbs.c
 +++ b/drivers/infiniband/core/verbs.c
-@@ -251,6 +251,12 @@ struct ib_srq *ib_create_srq(struct ib_pd *pd,
+@@ -250,6 +250,7 @@ struct ib_srq *ib_create_srq(struct ib_pd *pd,
+ 		srq->uobject       = NULL;
  		srq->event_handler = srq_init_attr->event_handler;
  		srq->srq_context   = srq_init_attr->srq_context;
- 		srq->srq_type      = srq_init_attr->srq_type;
-+		if (srq->srq_type == IB_SRQT_XRC) {
-+			srq->ext.xrc.xrcd = srq_init_attr->ext.xrc.xrcd;
-+			srq->ext.xrc.cq   = srq_init_attr->ext.xrc.cq;
-+			atomic_inc(&srq->ext.xrc.xrcd->usecnt);
-+			atomic_inc(&srq->ext.xrc.cq->usecnt);
-+		}
++		srq->srq_type      = srq_init_attr->srq_type;
  		atomic_inc(&pd->usecnt);
  		atomic_set(&srq->usecnt, 0);
  	}
-@@ -280,16 +286,29 @@ EXPORT_SYMBOL(ib_query_srq);
- int ib_destroy_srq(struct ib_srq *srq)
+diff --git a/drivers/infiniband/hw/ehca/ehca_qp.c b/drivers/infiniband/hw/ehca/ehca_qp.c
+index 32fb342..964f855 100644
+--- a/drivers/infiniband/hw/ehca/ehca_qp.c
++++ b/drivers/infiniband/hw/ehca/ehca_qp.c
+@@ -977,6 +977,9 @@ struct ib_srq *ehca_create_srq(struct ib_pd *pd,
+ 	struct hcp_modify_qp_control_block *mqpcb;
+ 	u64 hret, update_mask;
+ 
++	if (srq_init_attr->srq_type != IB_SRQT_BASIC)
++		return ERR_PTR(-ENOSYS);
++
+ 	/* For common attributes, internal_create_qp() takes its info
+ 	 * out of qp_init_attr, so copy all common attrs there.
+ 	 */
+diff --git a/drivers/infiniband/hw/ipath/ipath_srq.c b/drivers/infiniband/hw/ipath/ipath_srq.c
+index 386e2c7..2627198 100644
+--- a/drivers/infiniband/hw/ipath/ipath_srq.c
++++ b/drivers/infiniband/hw/ipath/ipath_srq.c
+@@ -107,6 +107,11 @@ struct ib_srq *ipath_create_srq(struct ib_pd *ibpd,
+ 	u32 sz;
+ 	struct ib_srq *ret;
+ 
++	if (srq_init_attr->srq_type != IB_SRQT_BASIC) {
++		ret = ERR_PTR(-ENOSYS);
++		goto done;
++	}
++
+ 	if (srq_init_attr->attr.max_wr == 0) {
+ 		ret = ERR_PTR(-EINVAL);
+ 		goto done;
+diff --git a/drivers/infiniband/hw/mlx4/srq.c b/drivers/infiniband/hw/mlx4/srq.c
+index 818b7ec..4f7f760 100644
+--- a/drivers/infiniband/hw/mlx4/srq.c
++++ b/drivers/infiniband/hw/mlx4/srq.c
+@@ -81,6 +81,9 @@ struct ib_srq *mlx4_ib_create_srq(struct ib_pd *pd,
+ 	int err;
+ 	int i;
+ 
++	if (init_attr->srq_type != IB_SRQT_BASIC)
++		return ERR_PTR(-ENOSYS);
++
+ 	/* Sanity check SRQ size before proceeding */
+ 	if (init_attr->attr.max_wr  >= dev->dev->caps.max_srq_wqes ||
+ 	    init_attr->attr.max_sge >  dev->dev->caps.max_srq_sge)
+diff --git a/drivers/infiniband/hw/mthca/mthca_provider.c b/drivers/infiniband/hw/mthca/mthca_provider.c
+index 1e0b4b6..784fd5d 100644
+--- a/drivers/infiniband/hw/mthca/mthca_provider.c
++++ b/drivers/infiniband/hw/mthca/mthca_provider.c
+@@ -474,6 +474,9 @@ static struct ib_srq *mthca_create_srq(struct ib_pd *pd,
+ 	struct mthca_srq *srq;
+ 	int err;
+ 
++	if (init_attr->srq_type != IB_SRQT_BASIC)
++		return ERR_PTR(-ENOSYS);
++
+ 	srq = kmalloc(sizeof *srq, GFP_KERNEL);
+ 	if (!srq)
+ 		return ERR_PTR(-ENOMEM);
+diff --git a/drivers/infiniband/hw/qib/qib_srq.c b/drivers/infiniband/hw/qib/qib_srq.c
+index c3ec8ef..d623593 100644
+--- a/drivers/infiniband/hw/qib/qib_srq.c
++++ b/drivers/infiniband/hw/qib/qib_srq.c
+@@ -107,6 +107,11 @@ struct ib_srq *qib_create_srq(struct ib_pd *ibpd,
+ 	u32 sz;
+ 	struct ib_srq *ret;
+ 
++	if (srq_init_attr->srq_type != IB_SRQT_BASIC) {
++		ret = ERR_PTR(-ENOSYS);
++		goto done;
++	}
++
+ 	if (srq_init_attr->attr.max_sge == 0 ||
+ 	    srq_init_attr->attr.max_sge > ib_qib_max_srq_sges ||
+ 	    srq_init_attr->attr.max_wr == 0 ||
+diff --git a/drivers/infiniband/ulp/ipoib/ipoib_cm.c b/drivers/infiniband/ulp/ipoib/ipoib_cm.c
+index 39913a0..ef003cc 100644
+--- a/drivers/infiniband/ulp/ipoib/ipoib_cm.c
++++ b/drivers/infiniband/ulp/ipoib/ipoib_cm.c
+@@ -1496,6 +1496,7 @@ static void ipoib_cm_create_srq(struct net_device *dev, int max_sge)
  {
- 	struct ib_pd *pd;
-+	enum ib_srq_type srq_type;
-+	struct ib_xrcd *uninitialized_var(xrcd);
-+	struct ib_cq *uninitialized_var(cq);
- 	int ret;
- 
- 	if (atomic_read(&srq->usecnt))
- 		return -EBUSY;
- 
- 	pd = srq->pd;
-+	srq_type = srq->srq_type;
-+	if (srq_type == IB_SRQT_XRC) {
-+		xrcd = srq->ext.xrc.xrcd;
-+		cq = srq->ext.xrc.cq;
-+	}
- 
- 	ret = srq->device->destroy_srq(srq);
--	if (!ret)
-+	if (!ret) {
- 		atomic_dec(&pd->usecnt);
-+		if (srq_type == IB_SRQT_XRC) {
-+			atomic_dec(&xrcd->usecnt);
-+			atomic_dec(&cq->usecnt);
-+		}
-+	}
- 
- 	return ret;
- }
+ 	struct ipoib_dev_priv *priv = netdev_priv(dev);
+ 	struct ib_srq_init_attr srq_init_attr = {
++		.srq_type = IB_SRQT_BASIC,
+ 		.attr = {
+ 			.max_wr  = ipoib_recvq_size,
+ 			.max_sge = max_sge
 diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index 1374a66..2a85461 100644
+index 760662f..1374a66 100644
 --- a/include/rdma/ib_verbs.h
 +++ b/include/rdma/ib_verbs.h
-@@ -523,7 +523,8 @@ enum ib_cq_notify_flags {
+@@ -522,6 +522,10 @@ enum ib_cq_notify_flags {
+ 	IB_CQ_REPORT_MISSED_EVENTS	= 1 << 2,
  };
  
- enum ib_srq_type {
--	IB_SRQT_BASIC
-+	IB_SRQT_BASIC,
-+	IB_SRQT_XRC
- };
- 
++enum ib_srq_type {
++	IB_SRQT_BASIC
++};
++
  enum ib_srq_attr_mask {
-@@ -542,6 +543,13 @@ struct ib_srq_init_attr {
+ 	IB_SRQ_MAX_WR	= 1 << 0,
+ 	IB_SRQ_LIMIT	= 1 << 1,
+@@ -537,6 +541,7 @@ struct ib_srq_init_attr {
+ 	void		      (*event_handler)(struct ib_event *, void *);
  	void		       *srq_context;
  	struct ib_srq_attr	attr;
- 	enum ib_srq_type	srq_type;
-+
-+	union {
-+		struct {
-+			struct ib_xrcd *xrcd;
-+			struct ib_cq   *cq;
-+		} xrc;
-+	} ext;
++	enum ib_srq_type	srq_type;
  };
  
  struct ib_qp_cap {
-@@ -894,6 +902,14 @@ struct ib_srq {
+@@ -887,6 +892,7 @@ struct ib_srq {
+ 	struct ib_uobject      *uobject;
+ 	void		      (*event_handler)(struct ib_event *, void *);
  	void		       *srq_context;
- 	enum ib_srq_type	srq_type;
++	enum ib_srq_type	srq_type;
  	atomic_t		usecnt;
-+
-+	union {
-+		struct {
-+			struct ib_xrcd *xrcd;
-+			struct ib_cq   *cq;
-+			u32		srq_num;
-+		} xrc;
-+	} ext;
  };
  
- struct ib_qp {
 
 
 --
