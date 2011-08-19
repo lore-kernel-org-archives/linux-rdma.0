@@ -1,42 +1,81 @@
-From: Christoph Lameter <cl-vYTEC60ixJUAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [RFC] mm: Distinguish between mlocked and pinned pages
-Date: Thu, 18 Aug 2011 18:51:43 -0500 (CDT)
-Message-ID: <alpine.DEB.2.00.1108181851100.11512@router.home>
-References: <alpine.DEB.2.00.1108101516430.20403@router.home> <20110817155412.cc302033.akpm@linux-foundation.org>
+From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+Subject: Re: [PATCH] libibmad: Fix build on win8
+Date: Thu, 18 Aug 2011 18:00:40 -0700
+Message-ID: <20110818180040.935b5caa.weiny2@llnl.gov>
+References: <1828884A29C6694DAF28B7E6B8A8237316E4175C@FMSMSX151.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20110817155412.cc302033.akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
+In-Reply-To: <1828884A29C6694DAF28B7E6B8A8237316E4175C-Q3cL8pyY+6ukrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
-Cc: linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Hugh Dickins <hughd-hpIqsD4AKlfQT0dZR+AlfA@public.gmane.org>
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "Hal Rosenstock (hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org)" <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "ofw-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org" <ofw-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>, "Leonid Keller (leonid-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org)" <leonid-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, 17 Aug 2011, Andrew Morton wrote:
+On Thu, 18 Aug 2011 09:46:49 -0700
+"Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
 
-> Sounds reasonable.  But how do we prevent future confusion?  We should
-> carefully define these terms in an obvious place, please.
+> The win8 compiler appears to be even more brain dead than its
+> predecessor.  It complains of an uninitialized variable mad in
+> rpc.c around line 213.  Fix this by removing the redirect
+> variable and using while (1) / break instead.
+> 
+> Problem was reported by Leonid Keller <leonid-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
+> 
+> Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+> Reviewed-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 
-Ok.
+Thanks applied,
+Ira
 
-> > --- linux-2.6.orig/include/linux/mm_types.h	2011-08-10 14:08:42.000000000 -0500
-> > +++ linux-2.6/include/linux/mm_types.h	2011-08-10 14:09:02.000000000 -0500
-> > @@ -281,7 +281,7 @@ struct mm_struct {
-> >  	unsigned long hiwater_rss;	/* High-watermark of RSS usage */
-> >  	unsigned long hiwater_vm;	/* High-water virtual memory usage */
-> >
-> > -	unsigned long total_vm, locked_vm, shared_vm, exec_vm;
-> > +	unsigned long total_vm, locked_vm, pinned_vm, shared_vm, exec_vm;
-> >  	unsigned long stack_vm, reserved_vm, def_flags, nr_ptes;
-> >  	unsigned long start_code, end_code, start_data, end_data;
-> >  	unsigned long start_brk, brk, start_stack;
->
-> This is an obvious place.  Could I ask that you split all these up into
-> one-definition-per-line and we can start in on properly documenting
-> each field?
+> ---
+>  src/rpc.c |    9 ++++-----
+>  1 files changed, 4 insertions(+), 5 deletions(-)
+> 
+> diff --git a/src/rpc.c b/src/rpc.c
+> index d20c321..19a5a70 100644
+> --- a/src/rpc.c
+> +++ b/src/rpc.c
+> @@ -213,13 +213,12 @@ void *mad_rpc(const struct ibmad_port *port, ib_rpc_t * rpc,
+>  {
+>  	int status, len;
+>  	uint8_t sndbuf[1024], rcvbuf[1024], *mad;
+> -	int redirect = 1;
+>  	ib_rpc_v1_t *rpcv1 = (ib_rpc_v1_t *)rpc;
+>  	int error = 0;
+>  
+>  	if ((rpc->mgtclass & IB_MAD_RPC_VERSION_MASK) == IB_MAD_RPC_VERSION1)
+>  		rpcv1->error = 0;
+> -	while (redirect) {
+> +	do {
+>  		len = 0;
+>  		memset(sndbuf, 0, umad_size() + IB_MAD_SIZE);
+>  
+> @@ -247,10 +246,10 @@ void *mad_rpc(const struct ibmad_port *port, ib_rpc_t * rpc,
+>  			/* update dport for next request and retry */
+>  			/* bail if redirection fails */
+>  			if (redirect_port(dport, mad))
+> -				redirect = 0;
+> +				break;
+>  		} else
+> -			redirect = 0;
+> -	}
+> +			break;
+> +	} while (1);
+>  
+>  	if ((rpc->mgtclass & IB_MAD_RPC_VERSION_MASK) == IB_MAD_RPC_VERSION1)
+>  		rpcv1->error = error;
+> 
+> 
 
-Will do that after the linuxcon.
 
+-- 
+Ira Weiny
+Math Programmer/Computer Scientist
+Lawrence Livermore National Lab
+925-423-8008
+weiny2-i2BcT+NCU+M@public.gmane.org
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
