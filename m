@@ -1,7 +1,7 @@
 From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 5/20 v2] rdma/verbs: Cleanup XRC TGT QPs when destroying XRCD
+Subject: [PATCH 4/20 v2] rdma/core: Add XRX QPs
 Date: Fri, 19 Aug 2011 02:14:01 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A8237316E419F8@FMSMSX151.amr.corp.intel.com>
+Message-ID: <1828884A29C6694DAF28B7E6B8A8237316E419F2@FMSMSX151.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
@@ -12,175 +12,324 @@ To: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdm
 Cc: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-XRC TGT QPs are intended to be shared among multiple users and
-processes.  Allow the destruction of an XRC TGT QP to be done
-explicitly through ib_destroy_qp() or when the XRCD is
-destroyed.
+XRC communication is between an initiator (INI) QP and a target
+(TGT) QP.  Target QPs are associated with SRQs through an XRCD.
+An XRC TGT QP behaves like a receive-only RD QP.  XRC INI QPs
+behave similar to an RC QP, except that work requests posted to
+an XRC INI QP must specify the remote SRQ that is the target
+of the work request.
 
-To support destroying an XRC TGT QP, we need to track TGT QPs
-with the XRCD.  When the XRCD is destroyed, all tracked XRC
-TGT QPs are also cleaned up.
+We define two new QP types for XRC, to distinguish between
+INI and TGT QPs, and update the core layer to support XRC QPs.
 
-To avoid stale reference issues, if a user is holding a
-reference on a TGT QP, we increment a reference count on
-the QP.  The user releases the reference by calling
-ib_release_qp.  This releases any access to the QP from
-a user above verbs, but allows the QP to continue to
-exist until destroyed by the xrcd.
+This patch is derived from work by Jack Morgenstein
+<jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 
 Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
-The management of the XRC TGT QP lifetime will be extended in a later patch.
-
- drivers/infiniband/core/verbs.c |   48 ++++++++++++++++++++++++++++++++++++++-
- include/rdma/ib_verbs.h         |   17 +++++++++++++-
- 2 files changed, 63 insertions(+), 2 deletions(-)
+ drivers/infiniband/core/verbs.c |  149 ++++++++++++++++++++++++++++++++++-----
+ include/rdma/ib_verbs.h         |    9 ++
+ 2 files changed, 137 insertions(+), 21 deletions(-)
 
 diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
-index 8ff16e3..a0e515b 100644
+index 25c1c1e..8ff16e3 100644
 --- a/drivers/infiniband/core/verbs.c
 +++ b/drivers/infiniband/core/verbs.c
-@@ -316,6 +316,20 @@ EXPORT_SYMBOL(ib_destroy_srq);
- 
- /* Queue pairs */
- 
-+static void __ib_insert_xrcd_qp(struct ib_xrcd *xrcd, struct ib_qp *qp)
-+{
-+	mutex_lock(&xrcd->tgt_qp_mutex);
-+	list_add(&qp->xrcd_list, &xrcd->tgt_qp_list);
-+	mutex_unlock(&xrcd->tgt_qp_mutex);
-+}
-+
-+static void __ib_remove_xrcd_qp(struct ib_xrcd *xrcd, struct ib_qp *qp)
-+{
-+	mutex_lock(&xrcd->tgt_qp_mutex);
-+	list_del(&qp->xrcd_list);
-+	mutex_unlock(&xrcd->tgt_qp_mutex);
-+}
-+
- struct ib_qp *ib_create_qp(struct ib_pd *pd,
+@@ -320,24 +320,43 @@ struct ib_qp *ib_create_qp(struct ib_pd *pd,
  			   struct ib_qp_init_attr *qp_init_attr)
  {
-@@ -334,6 +348,7 @@ struct ib_qp *ib_create_qp(struct ib_pd *pd,
- 			qp->srq = NULL;
- 			qp->xrcd = qp_init_attr->xrcd;
- 			atomic_inc(&qp_init_attr->xrcd->usecnt);
-+			__ib_insert_xrcd_qp(qp_init_attr->xrcd, qp);
- 		} else {
- 			if (qp_init_attr->qp_type == IB_QPT_XRC_INI) {
- 				qp->recv_cq = NULL;
-@@ -728,7 +743,8 @@ int ib_destroy_qp(struct ib_qp *qp)
- 	scq  = qp->send_cq;
- 	rcq  = qp->recv_cq;
- 	srq  = qp->srq;
--	xrcd = qp->xrcd;
-+	if ((xrcd = qp->xrcd))
-+		__ib_remove_xrcd_qp(xrcd, qp);
+ 	struct ib_qp *qp;
++	struct ib_device *device;
+ 
+-	qp = pd->device->create_qp(pd, qp_init_attr, NULL);
++	device = pd ? pd->device : qp_init_attr->xrcd->device;
++	qp = device->create_qp(pd, qp_init_attr, NULL);
+ 
+ 	if (!IS_ERR(qp)) {
+-		qp->device     	  = pd->device;
+-		qp->pd         	  = pd;
+-		qp->send_cq    	  = qp_init_attr->send_cq;
+-		qp->recv_cq    	  = qp_init_attr->recv_cq;
+-		qp->srq	       	  = qp_init_attr->srq;
++		qp->device = device;
++
++		if (qp_init_attr->qp_type == IB_QPT_XRC_TGT) {
++			qp->pd = NULL;
++			qp->send_cq = qp->recv_cq = NULL;
++			qp->srq = NULL;
++			qp->xrcd = qp_init_attr->xrcd;
++			atomic_inc(&qp_init_attr->xrcd->usecnt);
++		} else {
++			if (qp_init_attr->qp_type == IB_QPT_XRC_INI) {
++				qp->recv_cq = NULL;
++				qp->srq = NULL;
++			} else {
++				qp->recv_cq = qp_init_attr->recv_cq;
++				atomic_inc(&qp_init_attr->recv_cq->usecnt);
++				if ((qp->srq = qp_init_attr->srq))
++					atomic_inc(&qp_init_attr->srq->usecnt);
++			}
++
++			qp->pd	    = pd;
++			qp->send_cq = qp_init_attr->send_cq;
++			qp->xrcd    = NULL;
++
++			atomic_inc(&pd->usecnt);
++			atomic_inc(&qp_init_attr->send_cq->usecnt);
++		}
++
+ 		qp->uobject       = NULL;
+ 		qp->event_handler = qp_init_attr->event_handler;
+ 		qp->qp_context    = qp_init_attr->qp_context;
+ 		qp->qp_type	  = qp_init_attr->qp_type;
+-		atomic_inc(&pd->usecnt);
+-		atomic_inc(&qp_init_attr->send_cq->usecnt);
+-		atomic_inc(&qp_init_attr->recv_cq->usecnt);
+-		if (qp_init_attr->srq)
+-			atomic_inc(&qp_init_attr->srq->usecnt);
+ 	}
+ 
+ 	return qp;
+@@ -346,8 +365,8 @@ EXPORT_SYMBOL(ib_create_qp);
+ 
+ static const struct {
+ 	int			valid;
+-	enum ib_qp_attr_mask	req_param[IB_QPT_RAW_ETHERTYPE + 1];
+-	enum ib_qp_attr_mask	opt_param[IB_QPT_RAW_ETHERTYPE + 1];
++	enum ib_qp_attr_mask	req_param[IB_QPT_MAX];
++	enum ib_qp_attr_mask	opt_param[IB_QPT_MAX];
+ } qp_state_table[IB_QPS_ERR + 1][IB_QPS_ERR + 1] = {
+ 	[IB_QPS_RESET] = {
+ 		[IB_QPS_RESET] = { .valid = 1 },
+@@ -363,6 +382,12 @@ static const struct {
+ 				[IB_QPT_RC]  = (IB_QP_PKEY_INDEX		|
+ 						IB_QP_PORT			|
+ 						IB_QP_ACCESS_FLAGS),
++				[IB_QPT_XRC_INI] = (IB_QP_PKEY_INDEX		|
++						IB_QP_PORT			|
++						IB_QP_ACCESS_FLAGS),
++				[IB_QPT_XRC_TGT] = (IB_QP_PKEY_INDEX		|
++						IB_QP_PORT			|
++						IB_QP_ACCESS_FLAGS),
+ 				[IB_QPT_SMI] = (IB_QP_PKEY_INDEX		|
+ 						IB_QP_QKEY),
+ 				[IB_QPT_GSI] = (IB_QP_PKEY_INDEX		|
+@@ -385,6 +410,12 @@ static const struct {
+ 				[IB_QPT_RC]  = (IB_QP_PKEY_INDEX		|
+ 						IB_QP_PORT			|
+ 						IB_QP_ACCESS_FLAGS),
++				[IB_QPT_XRC_INI] = (IB_QP_PKEY_INDEX		|
++						IB_QP_PORT			|
++						IB_QP_ACCESS_FLAGS),
++				[IB_QPT_XRC_TGT] = (IB_QP_PKEY_INDEX		|
++						IB_QP_PORT			|
++						IB_QP_ACCESS_FLAGS),
+ 				[IB_QPT_SMI] = (IB_QP_PKEY_INDEX		|
+ 						IB_QP_QKEY),
+ 				[IB_QPT_GSI] = (IB_QP_PKEY_INDEX		|
+@@ -404,6 +435,16 @@ static const struct {
+ 						IB_QP_RQ_PSN			|
+ 						IB_QP_MAX_DEST_RD_ATOMIC	|
+ 						IB_QP_MIN_RNR_TIMER),
++				[IB_QPT_XRC_INI] = (IB_QP_AV			|
++						IB_QP_PATH_MTU			|
++						IB_QP_DEST_QPN			|
++						IB_QP_RQ_PSN),
++				[IB_QPT_XRC_TGT] = (IB_QP_AV			|
++						IB_QP_PATH_MTU			|
++						IB_QP_DEST_QPN			|
++						IB_QP_RQ_PSN			|
++						IB_QP_MAX_DEST_RD_ATOMIC	|
++						IB_QP_MIN_RNR_TIMER),
+ 			},
+ 			.opt_param = {
+ 				 [IB_QPT_UD]  = (IB_QP_PKEY_INDEX		|
+@@ -414,6 +455,12 @@ static const struct {
+ 				 [IB_QPT_RC]  = (IB_QP_ALT_PATH			|
+ 						 IB_QP_ACCESS_FLAGS		|
+ 						 IB_QP_PKEY_INDEX),
++				 [IB_QPT_XRC_INI] = (IB_QP_ALT_PATH		|
++						 IB_QP_ACCESS_FLAGS		|
++						 IB_QP_PKEY_INDEX),
++				 [IB_QPT_XRC_TGT] = (IB_QP_ALT_PATH		|
++						 IB_QP_ACCESS_FLAGS		|
++						 IB_QP_PKEY_INDEX),
+ 				 [IB_QPT_SMI] = (IB_QP_PKEY_INDEX		|
+ 						 IB_QP_QKEY),
+ 				 [IB_QPT_GSI] = (IB_QP_PKEY_INDEX		|
+@@ -434,6 +481,13 @@ static const struct {
+ 						IB_QP_RNR_RETRY			|
+ 						IB_QP_SQ_PSN			|
+ 						IB_QP_MAX_QP_RD_ATOMIC),
++				[IB_QPT_XRC_INI] = (IB_QP_TIMEOUT		|
++						IB_QP_RETRY_CNT			|
++						IB_QP_RNR_RETRY			|
++						IB_QP_SQ_PSN			|
++						IB_QP_MAX_QP_RD_ATOMIC),
++				[IB_QPT_XRC_TGT] = (IB_QP_TIMEOUT		|
++						IB_QP_SQ_PSN),
+ 				[IB_QPT_SMI] = IB_QP_SQ_PSN,
+ 				[IB_QPT_GSI] = IB_QP_SQ_PSN,
+ 			},
+@@ -449,6 +503,15 @@ static const struct {
+ 						 IB_QP_ACCESS_FLAGS		|
+ 						 IB_QP_MIN_RNR_TIMER		|
+ 						 IB_QP_PATH_MIG_STATE),
++				 [IB_QPT_XRC_INI] = (IB_QP_CUR_STATE		|
++						 IB_QP_ALT_PATH			|
++						 IB_QP_ACCESS_FLAGS		|
++						 IB_QP_PATH_MIG_STATE),
++				 [IB_QPT_XRC_TGT] = (IB_QP_CUR_STATE		|
++						 IB_QP_ALT_PATH			|
++						 IB_QP_ACCESS_FLAGS		|
++						 IB_QP_MIN_RNR_TIMER		|
++						 IB_QP_PATH_MIG_STATE),
+ 				 [IB_QPT_SMI] = (IB_QP_CUR_STATE		|
+ 						 IB_QP_QKEY),
+ 				 [IB_QPT_GSI] = (IB_QP_CUR_STATE		|
+@@ -473,6 +536,15 @@ static const struct {
+ 						IB_QP_ALT_PATH			|
+ 						IB_QP_PATH_MIG_STATE		|
+ 						IB_QP_MIN_RNR_TIMER),
++				[IB_QPT_XRC_INI] = (IB_QP_CUR_STATE		|
++						IB_QP_ACCESS_FLAGS		|
++						IB_QP_ALT_PATH			|
++						IB_QP_PATH_MIG_STATE),
++				[IB_QPT_XRC_TGT] = (IB_QP_CUR_STATE		|
++						IB_QP_ACCESS_FLAGS		|
++						IB_QP_ALT_PATH			|
++						IB_QP_PATH_MIG_STATE		|
++						IB_QP_MIN_RNR_TIMER),
+ 				[IB_QPT_SMI] = (IB_QP_CUR_STATE			|
+ 						IB_QP_QKEY),
+ 				[IB_QPT_GSI] = (IB_QP_CUR_STATE			|
+@@ -485,6 +557,8 @@ static const struct {
+ 				[IB_QPT_UD]  = IB_QP_EN_SQD_ASYNC_NOTIFY,
+ 				[IB_QPT_UC]  = IB_QP_EN_SQD_ASYNC_NOTIFY,
+ 				[IB_QPT_RC]  = IB_QP_EN_SQD_ASYNC_NOTIFY,
++				[IB_QPT_XRC_INI] = IB_QP_EN_SQD_ASYNC_NOTIFY,
++				[IB_QPT_XRC_TGT] = IB_QP_EN_SQD_ASYNC_NOTIFY, /* ??? */
+ 				[IB_QPT_SMI] = IB_QP_EN_SQD_ASYNC_NOTIFY,
+ 				[IB_QPT_GSI] = IB_QP_EN_SQD_ASYNC_NOTIFY
+ 			}
+@@ -507,6 +581,15 @@ static const struct {
+ 						IB_QP_ACCESS_FLAGS		|
+ 						IB_QP_MIN_RNR_TIMER		|
+ 						IB_QP_PATH_MIG_STATE),
++				[IB_QPT_XRC_INI] = (IB_QP_CUR_STATE		|
++						IB_QP_ALT_PATH			|
++						IB_QP_ACCESS_FLAGS		|
++						IB_QP_PATH_MIG_STATE),
++				[IB_QPT_XRC_TGT] = (IB_QP_CUR_STATE		|
++						IB_QP_ALT_PATH			|
++						IB_QP_ACCESS_FLAGS		|
++						IB_QP_MIN_RNR_TIMER		|
++						IB_QP_PATH_MIG_STATE),
+ 				[IB_QPT_SMI] = (IB_QP_CUR_STATE			|
+ 						IB_QP_QKEY),
+ 				[IB_QPT_GSI] = (IB_QP_CUR_STATE			|
+@@ -535,6 +618,25 @@ static const struct {
+ 						IB_QP_PKEY_INDEX		|
+ 						IB_QP_MIN_RNR_TIMER		|
+ 						IB_QP_PATH_MIG_STATE),
++				[IB_QPT_XRC_INI] = (IB_QP_PORT			|
++						IB_QP_AV			|
++						IB_QP_TIMEOUT			|
++						IB_QP_RETRY_CNT			|
++						IB_QP_RNR_RETRY			|
++						IB_QP_MAX_QP_RD_ATOMIC		|
++						IB_QP_ALT_PATH			|
++						IB_QP_ACCESS_FLAGS		|
++						IB_QP_PKEY_INDEX		|
++						IB_QP_PATH_MIG_STATE),
++				[IB_QPT_XRC_TGT] = (IB_QP_PORT			|
++						IB_QP_AV			|
++						IB_QP_TIMEOUT			|
++						IB_QP_MAX_DEST_RD_ATOMIC	|
++						IB_QP_ALT_PATH			|
++						IB_QP_ACCESS_FLAGS		|
++						IB_QP_PKEY_INDEX		|
++						IB_QP_MIN_RNR_TIMER		|
++						IB_QP_PATH_MIG_STATE),
+ 				[IB_QPT_SMI] = (IB_QP_PKEY_INDEX		|
+ 						IB_QP_QKEY),
+ 				[IB_QPT_GSI] = (IB_QP_PKEY_INDEX		|
+@@ -619,20 +721,27 @@ int ib_destroy_qp(struct ib_qp *qp)
+ 	struct ib_pd *pd;
+ 	struct ib_cq *scq, *rcq;
+ 	struct ib_srq *srq;
++	struct ib_xrcd *xrcd;
+ 	int ret;
+ 
+-	pd  = qp->pd;
+-	scq = qp->send_cq;
+-	rcq = qp->recv_cq;
+-	srq = qp->srq;
++	pd   = qp->pd;
++	scq  = qp->send_cq;
++	rcq  = qp->recv_cq;
++	srq  = qp->srq;
++	xrcd = qp->xrcd;
  
  	ret = qp->device->destroy_qp(qp);
  	if (!ret) {
-@@ -742,12 +758,30 @@ int ib_destroy_qp(struct ib_qp *qp)
+-		atomic_dec(&pd->usecnt);
+-		atomic_dec(&scq->usecnt);
+-		atomic_dec(&rcq->usecnt);
++		if (pd)
++			atomic_dec(&pd->usecnt);
++		if (scq)
++			atomic_dec(&scq->usecnt);
++		if (rcq)
++			atomic_dec(&rcq->usecnt);
+ 		if (srq)
  			atomic_dec(&srq->usecnt);
- 		if (xrcd)
- 			atomic_dec(&xrcd->usecnt);
-+	} else if (xrcd) {
-+		__ib_insert_xrcd_qp(xrcd, qp);
++		if (xrcd)
++			atomic_dec(&xrcd->usecnt);
  	}
  
  	return ret;
- }
- EXPORT_SYMBOL(ib_destroy_qp);
- 
-+int ib_release_qp(struct ib_qp *qp)
-+{
-+	unsigned long flags;
-+
-+	if (qp->qp_type != IB_QPT_XRC_TGT)
-+		return -EINVAL;
-+
-+	spin_lock_irqsave(&qp->device->event_handler_lock, flags);
-+	qp->event_handler = NULL;
-+	spin_unlock_irqrestore(&qp->device->event_handler_lock, flags);
-+
-+	atomic_dec(&qp->xrcd->usecnt);
-+	return 0;
-+}
-+EXPORT_SYMBOL(ib_release_qp);
-+
- /* Completion queues */
- 
- struct ib_cq *ib_create_cq(struct ib_device *device,
-@@ -1061,6 +1095,8 @@ struct ib_xrcd *ib_alloc_xrcd(struct ib_device *device)
- 	if (!IS_ERR(xrcd)) {
- 		xrcd->device = device;
- 		atomic_set(&xrcd->usecnt, 0);
-+		mutex_init(&xrcd->tgt_qp_mutex);
-+		INIT_LIST_HEAD(&xrcd->tgt_qp_list);
- 	}
- 
- 	return xrcd;
-@@ -1069,9 +1105,19 @@ EXPORT_SYMBOL(ib_alloc_xrcd);
- 
- int ib_dealloc_xrcd(struct ib_xrcd *xrcd)
- {
-+	struct ib_qp *qp;
-+	int ret;
-+
- 	if (atomic_read(&xrcd->usecnt))
- 		return -EBUSY;
- 
-+	while (!list_empty(&xrcd->tgt_qp_list)) {
-+		qp = list_entry(xrcd->tgt_qp_list.next, struct ib_qp, xrcd_list);
-+		ret = ib_destroy_qp(qp);
-+		if (ret)
-+			return ret;
-+	}
-+
- 	return xrcd->device->dealloc_xrcd(xrcd);
- }
- EXPORT_SYMBOL(ib_dealloc_xrcd);
 diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
-index 16a04ff..45ed04b 100644
+index 2a85461..16a04ff 100644
 --- a/include/rdma/ib_verbs.h
 +++ b/include/rdma/ib_verbs.h
-@@ -879,7 +879,10 @@ struct ib_pd {
- 
- struct ib_xrcd {
- 	struct ib_device       *device;
--	atomic_t          	usecnt; /* count all resources */
-+	atomic_t          	usecnt; /* count all exposed resources */
-+
-+	struct mutex		tgt_qp_mutex;
-+	struct list_head	tgt_qp_list;
+@@ -578,7 +578,11 @@ enum ib_qp_type {
+ 	IB_QPT_UC,
+ 	IB_QPT_UD,
+ 	IB_QPT_RAW_IPV6,
+-	IB_QPT_RAW_ETHERTYPE
++	IB_QPT_RAW_ETHERTYPE,
++	/* Save 8 for RAW_PACKET */
++	IB_QPT_XRC_INI = 9,
++	IB_QPT_XRC_TGT,
++	IB_QPT_MAX
  };
  
- struct ib_ah {
-@@ -925,6 +928,7 @@ struct ib_qp {
+ enum ib_qp_create_flags {
+@@ -592,6 +596,7 @@ struct ib_qp_init_attr {
+ 	struct ib_cq	       *send_cq;
  	struct ib_cq	       *recv_cq;
  	struct ib_srq	       *srq;
- 	struct ib_xrcd	       *xrcd; /* XRC TGT QPs only */
-+	struct list_head	xrcd_list;
++	struct ib_xrcd	       *xrcd;     /* XRC TGT QPs only */
+ 	struct ib_qp_cap	cap;
+ 	enum ib_sig_type	sq_sig_type;
+ 	enum ib_qp_type		qp_type;
+@@ -783,6 +788,7 @@ struct ib_send_wr {
+ 			u32				rkey;
+ 		} fast_reg;
+ 	} wr;
++	u32			xrc_remote_srq_num;	/* XRC TGT QPs only */
+ };
+ 
+ struct ib_recv_wr {
+@@ -918,6 +924,7 @@ struct ib_qp {
+ 	struct ib_cq	       *send_cq;
+ 	struct ib_cq	       *recv_cq;
+ 	struct ib_srq	       *srq;
++	struct ib_xrcd	       *xrcd; /* XRC TGT QPs only */
  	struct ib_uobject      *uobject;
  	void                  (*event_handler)(struct ib_event *, void *);
  	void		       *qp_context;
-@@ -1481,6 +1485,17 @@ int ib_query_qp(struct ib_qp *qp,
- int ib_destroy_qp(struct ib_qp *qp);
- 
- /**
-+ * ib_release_qp - Release an external reference to a QP.
-+ * @qp: The QP handle to release
-+ *
-+ * The specified QP handle is released by the caller.  If the QP is
-+ * referenced internally, it is not destroyed until all internal
-+ * references are released.  After releasing the qp, the caller
-+ * can no longer access it and all events on the QP are discarded.
-+ */
-+int ib_release_qp(struct ib_qp *qp);
-+
-+/**
-  * ib_post_send - Posts a list of work requests to the send queue of
-  *   the specified QP.
-  * @qp: The QP to post the work request on.
 
 
 --
