@@ -1,8 +1,7 @@
 From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 20/20 v2] rdma/uverbs: Export ib_open_qp() capability to
- user space
-Date: Fri, 19 Aug 2011 02:14:09 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A8237316E41AB3@FMSMSX151.amr.corp.intel.com>
+Subject: [PATCH 17/20 v2] rdma/mlx4: Add support for XRC SRQs
+Date: Fri, 19 Aug 2011 02:14:08 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A8237316E41A93@FMSMSX151.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
@@ -13,170 +12,139 @@ To: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdm
 Cc: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Allow processes that share the same xrc domain to open an
-existing shareable QP.  This permits those processes to
-receive events on the shared QP and transfer ownership,
-so that any process may modify the QP.  The latter allows
-the creating process to exit, while a remaining process can
-still transition it for path migration purposes.
+Allow the user to create XRC SRQs.  This patch is based on a
+patch from Jack Morgenstrein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 
 Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
-changes from v1:
-Everything in this patch is new too!
+ drivers/infiniband/hw/mlx4/main.c |    3 ++-
+ drivers/infiniband/hw/mlx4/srq.c  |   13 +++++++++----
+ drivers/net/mlx4/srq.c            |   20 +++++++++++---------
+ include/linux/mlx4/device.h       |    4 ++--
+ 4 files changed, 24 insertions(+), 16 deletions(-)
 
- drivers/infiniband/core/uverbs.h     |    1 
- drivers/infiniband/core/uverbs_cmd.c |   92 ++++++++++++++++++++++++++++++++++
- include/rdma/ib_user_verbs.h         |   14 +++++
- 3 files changed, 106 insertions(+), 1 deletions(-)
-
-diff --git a/drivers/infiniband/core/uverbs.h b/drivers/infiniband/core/uverbs.h
-index 00ce032..5bcb2af 100644
---- a/drivers/infiniband/core/uverbs.h
-+++ b/drivers/infiniband/core/uverbs.h
-@@ -195,6 +195,7 @@ IB_UVERBS_DECLARE_CMD(poll_cq);
- IB_UVERBS_DECLARE_CMD(req_notify_cq);
- IB_UVERBS_DECLARE_CMD(destroy_cq);
- IB_UVERBS_DECLARE_CMD(create_qp);
-+IB_UVERBS_DECLARE_CMD(open_qp);
- IB_UVERBS_DECLARE_CMD(query_qp);
- IB_UVERBS_DECLARE_CMD(modify_qp);
- IB_UVERBS_DECLARE_CMD(destroy_qp);
-diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
-index 3d2226c..98ed04f 100644
---- a/drivers/infiniband/core/uverbs_cmd.c
-+++ b/drivers/infiniband/core/uverbs_cmd.c
-@@ -1545,6 +1545,98 @@ err_put:
- 	return ret;
+diff --git a/drivers/infiniband/hw/mlx4/main.c b/drivers/infiniband/hw/mlx4/main.c
+index 1b911aa..d08cc2d 100644
+--- a/drivers/infiniband/hw/mlx4/main.c
++++ b/drivers/infiniband/hw/mlx4/main.c
+@@ -1095,7 +1095,8 @@ static void *mlx4_ib_add(struct mlx4_dev *dev)
+ 		(1ull << IB_USER_VERBS_CMD_CREATE_SRQ)		|
+ 		(1ull << IB_USER_VERBS_CMD_MODIFY_SRQ)		|
+ 		(1ull << IB_USER_VERBS_CMD_QUERY_SRQ)		|
+-		(1ull << IB_USER_VERBS_CMD_DESTROY_SRQ);
++		(1ull << IB_USER_VERBS_CMD_DESTROY_SRQ)		|
++		(1ull << IB_USER_VERBS_CMD_CREATE_XSRQ);	
+ 
+ 	ibdev->ib_dev.query_device	= mlx4_ib_query_device;
+ 	ibdev->ib_dev.query_port	= mlx4_ib_query_port;
+diff --git a/drivers/infiniband/hw/mlx4/srq.c b/drivers/infiniband/hw/mlx4/srq.c
+index 4f7f760..39542f3 100644
+--- a/drivers/infiniband/hw/mlx4/srq.c
++++ b/drivers/infiniband/hw/mlx4/srq.c
+@@ -76,14 +76,13 @@ struct ib_srq *mlx4_ib_create_srq(struct ib_pd *pd,
+ 	struct mlx4_ib_srq *srq;
+ 	struct mlx4_wqe_srq_next_seg *next;
+ 	struct mlx4_wqe_data_seg *scatter;
++	u32 cqn;
++	u16 xrcdn;
+ 	int desc_size;
+ 	int buf_size;
+ 	int err;
+ 	int i;
+ 
+-	if (init_attr->srq_type != IB_SRQT_BASIC)
+-		return ERR_PTR(-ENOSYS);
+-
+ 	/* Sanity check SRQ size before proceeding */
+ 	if (init_attr->attr.max_wr  >= dev->dev->caps.max_srq_wqes ||
+ 	    init_attr->attr.max_sge >  dev->dev->caps.max_srq_sge)
+@@ -177,12 +176,18 @@ struct ib_srq *mlx4_ib_create_srq(struct ib_pd *pd,
+ 		}
+ 	}
+ 
+-	err = mlx4_srq_alloc(dev->dev, to_mpd(pd)->pdn, &srq->mtt,
++	cqn = (init_attr->srq_type == IB_SRQT_XRC) ?
++		to_mcq(init_attr->ext.xrc.cq)->mcq.cqn : 0;
++	xrcdn = (init_attr->srq_type == IB_SRQT_XRC) ?
++		to_mxrcd(init_attr->ext.xrc.xrcd)->xrcdn :
++		(u16) dev->dev->caps.reserved_xrcds;
++	err = mlx4_srq_alloc(dev->dev, to_mpd(pd)->pdn, cqn, xrcdn, &srq->mtt,
+ 			     srq->db.dma, &srq->msrq);
+ 	if (err)
+ 		goto err_wrid;
+ 
+ 	srq->msrq.event = mlx4_ib_srq_event;
++	srq->ibsrq.ext.xrc.srq_num = srq->msrq.srqn;
+ 
+ 	if (pd->uobject)
+ 		if (ib_copy_to_udata(udata, &srq->msrq.srqn, sizeof (__u32))) {
+diff --git a/drivers/net/mlx4/srq.c b/drivers/net/mlx4/srq.c
+index 3b07b80..a20b141 100644
+--- a/drivers/net/mlx4/srq.c
++++ b/drivers/net/mlx4/srq.c
+@@ -40,20 +40,20 @@
+ struct mlx4_srq_context {
+ 	__be32			state_logsize_srqn;
+ 	u8			logstride;
+-	u8			reserved1[3];
+-	u8			pg_offset;
+-	u8			reserved2[3];
+-	u32			reserved3;
++	u8			reserved1;
++	__be16			xrcd;
++	__be32			pg_offset_cqn;
++	u32			reserved2;
+ 	u8			log_page_size;
+-	u8			reserved4[2];
++	u8			reserved3[2];
+ 	u8			mtt_base_addr_h;
+ 	__be32			mtt_base_addr_l;
+ 	__be32			pd;
+ 	__be16			limit_watermark;
+ 	__be16			wqe_cnt;
+-	u16			reserved5;
++	u16			reserved4;
+ 	__be16			wqe_counter;
+-	u32			reserved6;
++	u32			reserved5;
+ 	__be64			db_rec_addr;
+ };
+ 
+@@ -109,8 +109,8 @@ static int mlx4_QUERY_SRQ(struct mlx4_dev *dev, struct mlx4_cmd_mailbox *mailbox
+ 			    MLX4_CMD_TIME_CLASS_A);
  }
  
-+ssize_t ib_uverbs_open_qp(struct ib_uverbs_file *file,
-+			  const char __user *buf, int in_len, int out_len)
-+{
-+	struct ib_uverbs_open_qp        cmd;
-+	struct ib_uverbs_create_qp_resp resp;
-+	struct ib_udata                 udata;
-+	struct ib_uqp_object           *obj;
-+	struct ib_xrcd		       *xrcd;
-+	struct ib_uobject	       *uninitialized_var(xrcd_uobj);
-+	struct ib_qp                   *qp;
-+	struct ib_qp_open_attr          attr;
-+	int ret;
-+
-+	if (out_len < sizeof resp)
-+		return -ENOSPC;
-+
-+	if (copy_from_user(&cmd, buf, sizeof cmd))
-+		return -EFAULT;
-+
-+	INIT_UDATA(&udata, buf + sizeof cmd,
-+		   (unsigned long) cmd.response + sizeof resp,
-+		   in_len - sizeof cmd, out_len - sizeof resp);
-+
-+	obj = kmalloc(sizeof *obj, GFP_KERNEL);
-+	if (!obj)
-+		return -ENOMEM;
-+
-+	init_uobj(&obj->uevent.uobject, cmd.user_handle, file->ucontext, &qp_lock_key);
-+	down_write(&obj->uevent.uobject.mutex);
-+
-+	xrcd = idr_read_xrcd(cmd.pd_handle, file->ucontext, &xrcd_uobj);
-+	if (!xrcd) {
-+		ret = -EINVAL;
-+		goto err_put;
-+	}
-+
-+	attr.event_handler = ib_uverbs_qp_event_handler;
-+	attr.qp_context    = file;
-+	attr.qp_num        = cmd.qpn;
-+	attr.qp_type       = cmd.qp_type;
-+
-+	obj->uevent.events_reported = 0;
-+	INIT_LIST_HEAD(&obj->uevent.event_list);
-+	INIT_LIST_HEAD(&obj->mcast_list);
-+
-+	qp = ib_open_qp(xrcd, &attr);
-+	if (IS_ERR(qp)) {
-+		ret = PTR_ERR(qp);
-+		goto err_put;
-+	}
-+
-+	qp->uobject = &obj->uevent.uobject;
-+
-+	obj->uevent.uobject.object = qp;
-+	ret = idr_add_uobj(&ib_uverbs_qp_idr, &obj->uevent.uobject);
-+	if (ret)
-+		goto err_destroy;
-+
-+	memset(&resp, 0, sizeof resp);
-+	resp.qpn       = qp->qp_num;
-+	resp.qp_handle = obj->uevent.uobject.id;
-+
-+	if (copy_to_user((void __user *) (unsigned long) cmd.response,
-+			 &resp, sizeof resp)) {
-+		ret = -EFAULT;
-+		goto err_remove;
-+	}
-+
-+	put_xrcd_read(xrcd_uobj);
-+
-+	mutex_lock(&file->mutex);
-+	list_add_tail(&obj->uevent.uobject.list, &file->ucontext->qp_list);
-+	mutex_unlock(&file->mutex);
-+
-+	obj->uevent.uobject.live = 1;
-+
-+	up_write(&obj->uevent.uobject.mutex);
-+
-+	return in_len;
-+
-+err_remove:
-+	idr_remove_uobj(&ib_uverbs_qp_idr, &obj->uevent.uobject);
-+
-+err_destroy:
-+	ib_destroy_qp(qp);
-+
-+err_put:
-+	put_xrcd_read(xrcd_uobj);
-+	put_uobj_write(&obj->uevent.uobject);
-+	return ret;
-+}
-+
- ssize_t ib_uverbs_query_qp(struct ib_uverbs_file *file,
- 			   const char __user *buf, int in_len,
- 			   int out_len)
-diff --git a/include/rdma/ib_user_verbs.h b/include/rdma/ib_user_verbs.h
-index 100abbb..81aba3a 100644
---- a/include/rdma/ib_user_verbs.h
-+++ b/include/rdma/ib_user_verbs.h
-@@ -84,7 +84,8 @@ enum {
- 	IB_USER_VERBS_CMD_POST_SRQ_RECV,
- 	IB_USER_VERBS_CMD_OPEN_XRCD,
- 	IB_USER_VERBS_CMD_CLOSE_XRCD,
--	IB_USER_VERBS_CMD_CREATE_XSRQ
-+	IB_USER_VERBS_CMD_CREATE_XSRQ,
-+	IB_USER_VERBS_CMD_OPEN_QP
- };
+-int mlx4_srq_alloc(struct mlx4_dev *dev, u32 pdn, struct mlx4_mtt *mtt,
+-		   u64 db_rec, struct mlx4_srq *srq)
++int mlx4_srq_alloc(struct mlx4_dev *dev, u32 pdn, u32 cqn, u16 xrcd,
++		   struct mlx4_mtt *mtt, u64 db_rec, struct mlx4_srq *srq)
+ {
+ 	struct mlx4_srq_table *srq_table = &mlx4_priv(dev)->srq_table;
+ 	struct mlx4_cmd_mailbox *mailbox;
+@@ -148,6 +148,8 @@ int mlx4_srq_alloc(struct mlx4_dev *dev, u32 pdn, struct mlx4_mtt *mtt,
+ 	srq_context->state_logsize_srqn = cpu_to_be32((ilog2(srq->max) << 24) |
+ 						      srq->srqn);
+ 	srq_context->logstride          = srq->wqe_shift - 4;
++	srq_context->xrcd		= cpu_to_be16(xrcd);
++	srq_context->pg_offset_cqn	= cpu_to_be32(cqn & 0xffffff);
+ 	srq_context->log_page_size      = mtt->page_shift - MLX4_ICM_PAGE_SHIFT;
  
- /*
-@@ -422,6 +423,17 @@ struct ib_uverbs_create_qp {
- 	__u64 driver_data[0];
- };
+ 	mtt_addr = mlx4_mtt_addr(dev, mtt);
+diff --git a/include/linux/mlx4/device.h b/include/linux/mlx4/device.h
+index 33a3516..46c249b 100644
+--- a/include/linux/mlx4/device.h
++++ b/include/linux/mlx4/device.h
+@@ -530,8 +530,8 @@ void mlx4_qp_release_range(struct mlx4_dev *dev, int base_qpn, int cnt);
+ int mlx4_qp_alloc(struct mlx4_dev *dev, int qpn, struct mlx4_qp *qp);
+ void mlx4_qp_free(struct mlx4_dev *dev, struct mlx4_qp *qp);
  
-+struct ib_uverbs_open_qp {
-+	__u64 response;
-+	__u64 user_handle;
-+	__u32 pd_handle;
-+	__u32 qpn;
-+	__u8  qp_type;
-+	__u8  reserved[7];
-+	__u64 driver_data[0];
-+};
-+
-+/* also used for open response */
- struct ib_uverbs_create_qp_resp {
- 	__u32 qp_handle;
- 	__u32 qpn;
+-int mlx4_srq_alloc(struct mlx4_dev *dev, u32 pdn, struct mlx4_mtt *mtt,
+-		   u64 db_rec, struct mlx4_srq *srq);
++int mlx4_srq_alloc(struct mlx4_dev *dev, u32 pdn, u32 cqn, u16 xrcdn,
++		   struct mlx4_mtt *mtt, u64 db_rec, struct mlx4_srq *srq);
+ void mlx4_srq_free(struct mlx4_dev *dev, struct mlx4_srq *srq);
+ int mlx4_srq_arm(struct mlx4_dev *dev, struct mlx4_srq *srq, int limit_watermark);
+ int mlx4_srq_query(struct mlx4_dev *dev, struct mlx4_srq *srq, int *limit_watermark);
 
 
 --
