@@ -1,46 +1,63 @@
-From: Ian Campbell <ian.campbell@citrix.com>
-Subject: [PATCH 07/75] IB: amso1100: convert to SKB paged frag API.
-Date: Fri, 19 Aug 2011 14:26:39 +0100
-Message-ID: <1313760467-8598-7-git-send-email-ian.campbell@citrix.com>
-References: <1313760393.5010.356.camel@zakaz.uk.xensource.com>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: [PATCH 1/6] infiniband-diags/man/ibportstate.8: Update for fdr
+Date: Fri, 19 Aug 2011 12:53:42 -0400
+Message-ID: <4E4E9516.8040704@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1313760393.5010.356.camel@zakaz.uk.xensource.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: netdev@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, Ian Campbell <ian.campbell@citrix.com>, Tom Tucker <tom@opengridcomputing.com>, Steve Wise <swise@opengridcomputing.com>, Roland Dreier <roland@kernel.org>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, linux-rdma@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Signed-off-by: Ian Campbell <ian.campbell@citrix.com>
-Cc: Tom Tucker <tom@opengridcomputing.com>
-Cc: Steve Wise <swise@opengridcomputing.com>
-Cc: Roland Dreier <roland@kernel.org>
-Cc: Sean Hefty <sean.hefty@intel.com>
-Cc: Hal Rosenstock <hal.rosenstock@gmail.com>
-Cc: linux-rdma@vger.kernel.org
----
- drivers/infiniband/hw/amso1100/c2.c |    8 +++-----
- 1 files changed, 3 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/infiniband/hw/amso1100/c2.c b/drivers/infiniband/hw/amso1100/c2.c
-index 444470a..6a8f36e 100644
---- a/drivers/infiniband/hw/amso1100/c2.c
-+++ b/drivers/infiniband/hw/amso1100/c2.c
-@@ -802,11 +802,9 @@ static int c2_xmit_frame(struct sk_buff *skb, struct net_device *netdev)
- 		for (i = 0; i < skb_shinfo(skb)->nr_frags; i++) {
- 			skb_frag_t *frag = &skb_shinfo(skb)->frags[i];
- 			maplen = frag->size;
--			mapaddr =
--			    pci_map_page(c2dev->pcidev, frag->page,
--					 frag->page_offset, maplen,
--					 PCI_DMA_TODEVICE);
--
-+			mapaddr = skb_frag_dma_map(&c2dev->pcidev->dev, frag,
-+						   0, maplen,
-+						   PCI_DMA_TODEVICE);
- 			elem = elem->next;
- 			elem->skb = NULL;
- 			elem->mapaddr = mapaddr;
+Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ man/ibportstate.8 |   10 +++++++---
+ 1 files changed, 7 insertions(+), 3 deletions(-)
+
+diff --git a/man/ibportstate.8 b/man/ibportstate.8
+index 2989247..2a60db9 100644
+--- a/man/ibportstate.8
++++ b/man/ibportstate.8
+@@ -1,4 +1,4 @@
+-.TH IBPORTSTATE 8 "Jan 13, 2010" "OpenIB" "OpenIB Diagnostics"
++.TH IBPORTSTATE 8 "Mar 9, 2011" "OpenIB" "OpenIB Diagnostics"
+ 
+ .SH NAME
+ ibportstate \- handle port (physical) state and link speed of an InfiniBand port
+@@ -23,7 +23,7 @@ also allows the link speed/width enabled on any IB port to be adjusted.
+ .TP
+ op
+ Port operations allowed
+- supported ops: enable, disable, reset, speed, width, query,
++ supported ops: enable, disable, reset, speed, espeed, width, query,
+ 		down, arm, active, vls, mtu, lid, smlid, lmc
+  Default is query
+ .PP
+@@ -33,12 +33,16 @@ Port operations allowed
+  speed values are legal values for PortInfo:LinkSpeedEnabled
+  (An error is indicated if PortInfo:LinkSpeedSupported does not support
+   this setting)
++ espeed ops are allowed on any port supporting extended link speeds
++(An error is indicated if port's capability mask indicates extended
++ link speeds are not supported or if PortInfo:LinkSpeedExtSupported
++ does not support this setting)
+  width values are legal values for PortInfo:LinkWidthEnabled
+  (An error is indicated if PortInfo:LinkWidthSupported does not support
+   this setting)
+  (NOTE: Speed and width changes are not effected until the port goes through
+   link renegotiation)
+- query also validates port characteristics (link width and speed)
++ query also validates port characteristics (link width, speed, and espeed)
+   based on the peer port. This checking is done when the port
+   queried is a switch port as it relies on combined routing
+   (an initial LID route with directed routing to the peer) which
 -- 
-1.7.2.5
+1.5.3
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
