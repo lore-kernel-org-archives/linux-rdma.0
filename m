@@ -1,81 +1,325 @@
 From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-Subject: Re: [PATCH] libibmad: Fix build on win8
-Date: Thu, 18 Aug 2011 18:00:40 -0700
-Message-ID: <20110818180040.935b5caa.weiny2@llnl.gov>
-References: <1828884A29C6694DAF28B7E6B8A8237316E4175C@FMSMSX151.amr.corp.intel.com>
+Subject: [PATCH] infiniband-diags: move get_msg to common code
+Date: Thu, 18 Aug 2011 18:04:13 -0700
+Message-ID: <20110818180413.135ab992.weiny2@llnl.gov>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1828884A29C6694DAF28B7E6B8A8237316E4175C-Q3cL8pyY+6ukrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "Hal Rosenstock (hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org)" <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "ofw-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org" <ofw-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>, "Leonid Keller (leonid-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org)" <leonid-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
+To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, 18 Aug 2011 09:46:49 -0700
-"Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
 
-> The win8 compiler appears to be even more brain dead than its
-> predecessor.  It complains of an uninitialized variable mad in
-> rpc.c around line 213.  Fix this by removing the redirect
-> variable and using while (1) / break instead.
-> 
-> Problem was reported by Leonid Keller <leonid-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
-> 
-> Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> Reviewed-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+iblinkinfo and ibqueryerrors should share this.
 
-Thanks applied,
-Ira
+Signed-off-by: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+---
+ include/ibdiag_common.h |    4 ++
+ src/ibdiag_common.c     |   76 +++++++++++++++++++++++++++++++++++++++++++++
+ src/iblinkinfo.c        |   77 +---------------------------------------------
+ src/ibqueryerrors.c     |   79 +----------------------------------------------
+ 4 files changed, 82 insertions(+), 154 deletions(-)
 
-> ---
->  src/rpc.c |    9 ++++-----
->  1 files changed, 4 insertions(+), 5 deletions(-)
-> 
-> diff --git a/src/rpc.c b/src/rpc.c
-> index d20c321..19a5a70 100644
-> --- a/src/rpc.c
-> +++ b/src/rpc.c
-> @@ -213,13 +213,12 @@ void *mad_rpc(const struct ibmad_port *port, ib_rpc_t * rpc,
->  {
->  	int status, len;
->  	uint8_t sndbuf[1024], rcvbuf[1024], *mad;
-> -	int redirect = 1;
->  	ib_rpc_v1_t *rpcv1 = (ib_rpc_v1_t *)rpc;
->  	int error = 0;
->  
->  	if ((rpc->mgtclass & IB_MAD_RPC_VERSION_MASK) == IB_MAD_RPC_VERSION1)
->  		rpcv1->error = 0;
-> -	while (redirect) {
-> +	do {
->  		len = 0;
->  		memset(sndbuf, 0, umad_size() + IB_MAD_SIZE);
->  
-> @@ -247,10 +246,10 @@ void *mad_rpc(const struct ibmad_port *port, ib_rpc_t * rpc,
->  			/* update dport for next request and retry */
->  			/* bail if redirection fails */
->  			if (redirect_port(dport, mad))
-> -				redirect = 0;
-> +				break;
->  		} else
-> -			redirect = 0;
-> -	}
-> +			break;
-> +	} while (1);
->  
->  	if ((rpc->mgtclass & IB_MAD_RPC_VERSION_MASK) == IB_MAD_RPC_VERSION1)
->  		rpcv1->error = error;
-> 
-> 
-
-
+diff --git a/include/ibdiag_common.h b/include/ibdiag_common.h
+index 57bde20..2425c94 100644
+--- a/include/ibdiag_common.h
++++ b/include/ibdiag_common.h
+@@ -41,6 +41,7 @@
+ 
+ #include <infiniband/iba/ib_types.h>
+ #include <infiniband/mad.h>
++#include <infiniband/ibnetdisc.h>
+ 
+ extern int ibverbose;
+ extern char *ibd_ca;
+@@ -130,4 +131,7 @@ void sa_report_err(int status);
+ 		comp_mask |= IB_##name##_COMPMASK_##mask; \
+ 	}
+ 
++void get_max_msg(char *width_msg, char *speed_msg, int msg_size,
++		 ibnd_port_t * port);
++
+ #endif				/* _IBDIAG_COMMON_H_ */
+diff --git a/src/ibdiag_common.c b/src/ibdiag_common.c
+index e7e1590..e231af2 100644
+--- a/src/ibdiag_common.c
++++ b/src/ibdiag_common.c
+@@ -513,3 +513,79 @@ void sa_report_err(int status)
+ 	fprintf(stderr, "ERROR: Query result returned 0x%04x, %s%s\n",
+ 		status, sm_err_str, sa_err_str);
+ }
++
++static unsigned int get_max(unsigned int num)
++{
++	unsigned r = 0;		// r will be lg(num)
++
++	while (num >>= 1)	// unroll for more speed...
++		r++;
++
++	return (1 << r);
++}
++
++void get_max_msg(char *width_msg, char *speed_msg, int msg_size, ibnd_port_t * port)
++{
++	char buf[64];
++	uint32_t max_speed = 0;
++	uint32_t cap_mask, rem_cap_mask;
++	uint8_t *info;
++
++	uint32_t max_width = get_max(mad_get_field(port->info, 0,
++						   IB_PORT_LINK_WIDTH_SUPPORTED_F)
++				     & mad_get_field(port->remoteport->info, 0,
++						     IB_PORT_LINK_WIDTH_SUPPORTED_F));
++	if ((max_width & mad_get_field(port->info, 0,
++				       IB_PORT_LINK_WIDTH_ACTIVE_F)) == 0)
++		// we are not at the max supported width
++		// print what we could be at.
++		snprintf(width_msg, msg_size, "Could be %s",
++			 mad_dump_val(IB_PORT_LINK_WIDTH_ACTIVE_F,
++				      buf, 64, &max_width));
++
++	if (port->node->type == IB_NODE_SWITCH)
++		info = (uint8_t *)&port->node->ports[0]->info;
++	else
++		info = (uint8_t *)&port->info;
++	cap_mask = mad_get_field(info, 0, IB_PORT_CAPMASK_F);
++
++	if (port->remoteport->node->type == IB_NODE_SWITCH)
++		info = (uint8_t *)&port->remoteport->node->ports[0]->info;
++	else
++		info = (uint8_t *)&port->remoteport->info;
++	rem_cap_mask = mad_get_field(info, 0, IB_PORT_CAPMASK_F);
++	if (cap_mask & IB_PORT_CAP_HAS_EXT_SPEEDS &&
++	    rem_cap_mask & IB_PORT_CAP_HAS_EXT_SPEEDS)
++		goto check_ext_speed;
++check_speed_supp:
++	max_speed = get_max(mad_get_field(port->info, 0,
++					  IB_PORT_LINK_SPEED_SUPPORTED_F)
++			    & mad_get_field(port->remoteport->info, 0,
++					    IB_PORT_LINK_SPEED_SUPPORTED_F));
++	if ((max_speed & mad_get_field(port->info, 0,
++				       IB_PORT_LINK_SPEED_ACTIVE_F)) == 0)
++		// we are not at the max supported speed
++		// print what we could be at.
++		snprintf(speed_msg, msg_size, "Could be %s",
++			 mad_dump_val(IB_PORT_LINK_SPEED_ACTIVE_F,
++				      buf, 64, &max_speed));
++	return;
++
++check_ext_speed:
++	if (mad_get_field(port->info, 0,
++			  IB_PORT_LINK_SPEED_EXT_SUPPORTED_F) == 0 ||
++	    mad_get_field(port->remoteport->info, 0,
++			  IB_PORT_LINK_SPEED_EXT_SUPPORTED_F) == 0)
++		goto check_speed_supp;
++	max_speed = get_max(mad_get_field(port->info, 0,
++					  IB_PORT_LINK_SPEED_EXT_SUPPORTED_F)
++			    & mad_get_field(port->remoteport->info, 0,
++					    IB_PORT_LINK_SPEED_EXT_SUPPORTED_F));
++	if ((max_speed & mad_get_field(port->info, 0,
++				       IB_PORT_LINK_SPEED_EXT_ACTIVE_F)) == 0)
++		// we are not at the max supported extended speed
++		// print what we could be at.
++		snprintf(speed_msg, msg_size, "Could be %s",
++			 mad_dump_val(IB_PORT_LINK_SPEED_EXT_ACTIVE_F,
++				      buf, 64, &max_speed));
++}
+diff --git a/src/iblinkinfo.c b/src/iblinkinfo.c
+index b282d07..bbdb51d 100644
+--- a/src/iblinkinfo.c
++++ b/src/iblinkinfo.c
+@@ -78,81 +78,6 @@ static int down_links_only = 0;
+ static int line_mode = 0;
+ static int add_sw_settings = 0;
+ 
+-static unsigned int get_max(unsigned int num)
+-{
+-	unsigned r = 0;		// r will be lg(num)
+-
+-	while (num >>= 1)	// unroll for more speed...
+-		r++;
+-
+-	return (1 << r);
+-}
+-
+-void get_msg(char *width_msg, char *speed_msg, int msg_size, ibnd_port_t * port)
+-{
+-	char buf[64];
+-	uint32_t max_speed = 0;
+-	uint32_t cap_mask, rem_cap_mask;
+-	uint8_t *info;
+-
+-	uint32_t max_width = get_max(mad_get_field(port->info, 0,
+-						   IB_PORT_LINK_WIDTH_SUPPORTED_F)
+-				     & mad_get_field(port->remoteport->info, 0,
+-						     IB_PORT_LINK_WIDTH_SUPPORTED_F));
+-	if ((max_width & mad_get_field(port->info, 0,
+-				       IB_PORT_LINK_WIDTH_ACTIVE_F)) == 0)
+-		// we are not at the max supported width
+-		// print what we could be at.
+-		snprintf(width_msg, msg_size, "Could be %s",
+-			 mad_dump_val(IB_PORT_LINK_WIDTH_ACTIVE_F,
+-				      buf, 64, &max_width));
+-
+-	if (port->node->type == IB_NODE_SWITCH)
+-		info = (uint8_t *)&port->node->ports[0]->info;
+-	else
+-		info = (uint8_t *)&port->info;
+-	cap_mask = mad_get_field(info, 0, IB_PORT_CAPMASK_F);
+-
+-	if (port->remoteport->node->type == IB_NODE_SWITCH)
+-		info = (uint8_t *)&port->remoteport->node->ports[0]->info;
+-	else
+-		info = (uint8_t *)&port->remoteport->info;
+-	rem_cap_mask = mad_get_field(info, 0, IB_PORT_CAPMASK_F);
+-	if (cap_mask & IB_PORT_CAP_HAS_EXT_SPEEDS &&
+-	    rem_cap_mask & IB_PORT_CAP_HAS_EXT_SPEEDS)
+-		goto check_ext_speed;
+-check_speed_supp:
+-	max_speed = get_max(mad_get_field(port->info, 0,
+-					  IB_PORT_LINK_SPEED_SUPPORTED_F)
+-			    & mad_get_field(port->remoteport->info, 0,
+-					    IB_PORT_LINK_SPEED_SUPPORTED_F));
+-	if ((max_speed & mad_get_field(port->info, 0,
+-				       IB_PORT_LINK_SPEED_ACTIVE_F)) == 0)
+-		// we are not at the max supported speed
+-		// print what we could be at.
+-		snprintf(speed_msg, msg_size, "Could be %s",
+-			 mad_dump_val(IB_PORT_LINK_SPEED_ACTIVE_F,
+-				      buf, 64, &max_speed));
+-	return;
+-
+-check_ext_speed:
+-	if (mad_get_field(port->info, 0,
+-			  IB_PORT_LINK_SPEED_EXT_SUPPORTED_F) == 0 ||
+-	    mad_get_field(port->remoteport->info, 0,
+-			  IB_PORT_LINK_SPEED_EXT_SUPPORTED_F) == 0)
+-		goto check_speed_supp;
+-	max_speed = get_max(mad_get_field(port->info, 0,
+-					  IB_PORT_LINK_SPEED_EXT_SUPPORTED_F)
+-			    & mad_get_field(port->remoteport->info, 0,
+-					    IB_PORT_LINK_SPEED_EXT_SUPPORTED_F));
+-	if ((max_speed & mad_get_field(port->info, 0,
+-				       IB_PORT_LINK_SPEED_EXT_ACTIVE_F)) == 0)
+-		// we are not at the max supported extended speed
+-		// print what we could be at.
+-		snprintf(speed_msg, msg_size, "Could be %s",
+-			 mad_dump_val(IB_PORT_LINK_SPEED_EXT_ACTIVE_F,
+-				      buf, 64, &max_speed));
+-}
+ 
+ int filterdownport_check(ibnd_node_t * node, ibnd_port_t * port)
+ {
+@@ -265,7 +190,7 @@ void print_port(ibnd_node_t * node, ibnd_port_t * port, char *out_prefix)
+ 		else
+ 			ext_port_str[0] = '\0';
+ 
+-		get_msg(width_msg, speed_msg, 256, port);
++		get_max_msg(width_msg, speed_msg, 256, port);
+ 
+ 		if (line_mode) {
+ 			snprintf(remote_guid_str, 256,
+diff --git a/src/ibqueryerrors.c b/src/ibqueryerrors.c
+index 9005fda..6de3d6f 100644
+--- a/src/ibqueryerrors.c
++++ b/src/ibqueryerrors.c
+@@ -160,83 +160,6 @@ static int exceeds_threshold(int field, unsigned val)
+ 	return (val > thres);
+ }
+ 
+-static unsigned int get_max(unsigned int num)
+-{
+-	unsigned r = 0;		// r will be lg(num)
+-
+-	while (num >>= 1)	// unroll for more speed...
+-		r++;
+-
+-	return (1 << r);
+-}
+-
+-static void get_msg(char *width_msg, char *speed_msg, int msg_size,
+-		    ibnd_port_t * port)
+-{
+-	char buf[64];
+-	uint32_t max_speed = 0;
+-	uint32_t cap_mask, rem_cap_mask;
+-	uint8_t *info;
+-
+-	uint32_t max_width = get_max(mad_get_field(port->info, 0,
+-						   IB_PORT_LINK_WIDTH_SUPPORTED_F)
+-				     & mad_get_field(port->remoteport->info, 0,
+-						     IB_PORT_LINK_WIDTH_SUPPORTED_F));
+-	if ((max_width & mad_get_field(port->info, 0,
+-				       IB_PORT_LINK_WIDTH_ACTIVE_F)) == 0)
+-		// we are not at the max supported width
+-		// print what we could be at.
+-		snprintf(width_msg, msg_size, "Could be %s",
+-			 mad_dump_val(IB_PORT_LINK_WIDTH_ACTIVE_F,
+-				      buf, 64, &max_width));
+-
+-	if (port->node->type == IB_NODE_SWITCH)
+-		info = (uint8_t *)&port->node->ports[0]->info;
+-	else
+-		info = (uint8_t *)&port->info;
+-	cap_mask = mad_get_field(info, 0, IB_PORT_CAPMASK_F);
+-	if (port->remoteport->node->type == IB_NODE_SWITCH)
+-		info = (uint8_t *)&port->remoteport->node->ports[0]->info;
+-	else
+-		info = (uint8_t *)&port->remoteport->info;
+-	rem_cap_mask = mad_get_field(info, 0, IB_PORT_CAPMASK_F);
+-	if (cap_mask & IB_PORT_CAP_HAS_EXT_SPEEDS &&
+-	    rem_cap_mask & IB_PORT_CAP_HAS_EXT_SPEEDS)
+-		goto check_ext_speed;
+-
+-check_speed_supp:
+-	max_speed = get_max(mad_get_field(port->info, 0,
+-					  IB_PORT_LINK_SPEED_SUPPORTED_F)
+-			    & mad_get_field(port->remoteport->info, 0,
+-					    IB_PORT_LINK_SPEED_SUPPORTED_F));
+-	if ((max_speed & mad_get_field(port->info, 0,
+-				       IB_PORT_LINK_SPEED_ACTIVE_F)) == 0)
+-		// we are not at the max supported speed
+-		// print what we could be at.
+-		snprintf(speed_msg, msg_size, "Could be %s",
+-			 mad_dump_val(IB_PORT_LINK_SPEED_ACTIVE_F,
+-				      buf, 64, &max_speed));
+-	return;
+-
+-check_ext_speed:
+-	if (mad_get_field(port->info, 0,
+-			  IB_PORT_LINK_SPEED_EXT_SUPPORTED_F) == 0 ||
+-	    mad_get_field(port->remoteport->info, 0,
+-			  IB_PORT_LINK_SPEED_EXT_SUPPORTED_F) == 0)
+-		goto check_speed_supp;
+-	max_speed = get_max(mad_get_field(port->info, 0,
+-					  IB_PORT_LINK_SPEED_EXT_SUPPORTED_F)
+-			    & mad_get_field(port->remoteport->info, 0,
+-					    IB_PORT_LINK_SPEED_EXT_SUPPORTED_F));
+-	if ((max_speed & mad_get_field(port->info, 0,
+-				       IB_PORT_LINK_SPEED_EXT_ACTIVE_F)) == 0)
+-		// we are not at the max supported extended speed
+-		// print what we could be at.
+-		snprintf(speed_msg, msg_size, "Could be %s",
+-			 mad_dump_val(IB_PORT_LINK_SPEED_EXT_ACTIVE_F,
+-				      buf, 64, &max_speed));
+-}
+-
+ static void print_port_config(char *node_name, ibnd_node_t * node, int portnum)
+ {
+ 	char width[64], speed[64], state[64], physstate[64];
+@@ -299,7 +222,7 @@ static void print_port_config(char *node_name, ibnd_node_t * node, int portnum)
+ 		else
+ 			ext_port_str[0] = '\0';
+ 
+-		get_msg(width_msg, speed_msg, 256, port);
++		get_max_msg(width_msg, speed_msg, 256, port);
+ 
+ 		rem_node_name = remap_node_name(node_name_map,
+ 						port->remoteport->node->guid,
 -- 
-Ira Weiny
-Math Programmer/Computer Scientist
-Lawrence Livermore National Lab
-925-423-8008
-weiny2-i2BcT+NCU+M@public.gmane.org
+1.7.1
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
