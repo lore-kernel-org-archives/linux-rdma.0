@@ -1,324 +1,117 @@
-From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-Subject: [PATCH] infiniband-diags: move get_msg to common code
-Date: Thu, 18 Aug 2011 18:04:13 -0700
-Message-ID: <20110818180413.135ab992.weiny2@llnl.gov>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH 1/20 v2] rdma/core: Add XRC domain
+Date: Fri, 19 Aug 2011 02:13:59 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A8237316E419D6@FMSMSX151.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+To support XRC, we add a new protection object, an XRC domain.
+XRC domains are used to associate XRC target QPs and SRQs.  A
+device indicates that they support XRC through a capability bit.
 
-iblinkinfo and ibqueryerrors should share this.
+This patch is derived from work by
+Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 
-Signed-off-by: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- include/ibdiag_common.h |    4 ++
- src/ibdiag_common.c     |   76 +++++++++++++++++++++++++++++++++++++++++++++
- src/iblinkinfo.c        |   77 +---------------------------------------------
- src/ibqueryerrors.c     |   79 +----------------------------------------------
- 4 files changed, 82 insertions(+), 154 deletions(-)
+ drivers/infiniband/core/verbs.c |   26 ++++++++++++++++++++++++++
+ include/rdma/ib_verbs.h         |   22 ++++++++++++++++++++++
+ 2 files changed, 48 insertions(+), 0 deletions(-)
 
-diff --git a/include/ibdiag_common.h b/include/ibdiag_common.h
-index 57bde20..2425c94 100644
---- a/include/ibdiag_common.h
-+++ b/include/ibdiag_common.h
-@@ -41,6 +41,7 @@
- 
- #include <infiniband/iba/ib_types.h>
- #include <infiniband/mad.h>
-+#include <infiniband/ibnetdisc.h>
- 
- extern int ibverbose;
- extern char *ibd_ca;
-@@ -130,4 +131,7 @@ void sa_report_err(int status);
- 		comp_mask |= IB_##name##_COMPMASK_##mask; \
- 	}
- 
-+void get_max_msg(char *width_msg, char *speed_msg, int msg_size,
-+		 ibnd_port_t * port);
-+
- #endif				/* _IBDIAG_COMMON_H_ */
-diff --git a/src/ibdiag_common.c b/src/ibdiag_common.c
-index e7e1590..e231af2 100644
---- a/src/ibdiag_common.c
-+++ b/src/ibdiag_common.c
-@@ -513,3 +513,79 @@ void sa_report_err(int status)
- 	fprintf(stderr, "ERROR: Query result returned 0x%04x, %s%s\n",
- 		status, sm_err_str, sa_err_str);
+diff --git a/drivers/infiniband/core/verbs.c b/drivers/infiniband/core/verbs.c
+index af7a8b0..5e03ab7 100644
+--- a/drivers/infiniband/core/verbs.c
++++ b/drivers/infiniband/core/verbs.c
+@@ -920,3 +920,29 @@ int ib_detach_mcast(struct ib_qp *qp, union ib_gid *gid, u16 lid)
+ 	return qp->device->detach_mcast(qp, gid, lid);
  }
+ EXPORT_SYMBOL(ib_detach_mcast);
 +
-+static unsigned int get_max(unsigned int num)
++struct ib_xrcd *ib_alloc_xrcd(struct ib_device *device)
 +{
-+	unsigned r = 0;		// r will be lg(num)
++	struct ib_xrcd *xrcd;
 +
-+	while (num >>= 1)	// unroll for more speed...
-+		r++;
++	if (!device->alloc_xrcd)
++		return ERR_PTR(-ENOSYS);
 +
-+	return (1 << r);
++	xrcd = device->alloc_xrcd(device, NULL, NULL);
++	if (!IS_ERR(xrcd)) {
++		xrcd->device = device;
++		atomic_set(&xrcd->usecnt, 0);
++	}
++
++	return xrcd;
 +}
++EXPORT_SYMBOL(ib_alloc_xrcd);
 +
-+void get_max_msg(char *width_msg, char *speed_msg, int msg_size, ibnd_port_t * port)
++int ib_dealloc_xrcd(struct ib_xrcd *xrcd)
 +{
-+	char buf[64];
-+	uint32_t max_speed = 0;
-+	uint32_t cap_mask, rem_cap_mask;
-+	uint8_t *info;
++	if (atomic_read(&xrcd->usecnt))
++		return -EBUSY;
 +
-+	uint32_t max_width = get_max(mad_get_field(port->info, 0,
-+						   IB_PORT_LINK_WIDTH_SUPPORTED_F)
-+				     & mad_get_field(port->remoteport->info, 0,
-+						     IB_PORT_LINK_WIDTH_SUPPORTED_F));
-+	if ((max_width & mad_get_field(port->info, 0,
-+				       IB_PORT_LINK_WIDTH_ACTIVE_F)) == 0)
-+		// we are not at the max supported width
-+		// print what we could be at.
-+		snprintf(width_msg, msg_size, "Could be %s",
-+			 mad_dump_val(IB_PORT_LINK_WIDTH_ACTIVE_F,
-+				      buf, 64, &max_width));
-+
-+	if (port->node->type == IB_NODE_SWITCH)
-+		info = (uint8_t *)&port->node->ports[0]->info;
-+	else
-+		info = (uint8_t *)&port->info;
-+	cap_mask = mad_get_field(info, 0, IB_PORT_CAPMASK_F);
-+
-+	if (port->remoteport->node->type == IB_NODE_SWITCH)
-+		info = (uint8_t *)&port->remoteport->node->ports[0]->info;
-+	else
-+		info = (uint8_t *)&port->remoteport->info;
-+	rem_cap_mask = mad_get_field(info, 0, IB_PORT_CAPMASK_F);
-+	if (cap_mask & IB_PORT_CAP_HAS_EXT_SPEEDS &&
-+	    rem_cap_mask & IB_PORT_CAP_HAS_EXT_SPEEDS)
-+		goto check_ext_speed;
-+check_speed_supp:
-+	max_speed = get_max(mad_get_field(port->info, 0,
-+					  IB_PORT_LINK_SPEED_SUPPORTED_F)
-+			    & mad_get_field(port->remoteport->info, 0,
-+					    IB_PORT_LINK_SPEED_SUPPORTED_F));
-+	if ((max_speed & mad_get_field(port->info, 0,
-+				       IB_PORT_LINK_SPEED_ACTIVE_F)) == 0)
-+		// we are not at the max supported speed
-+		// print what we could be at.
-+		snprintf(speed_msg, msg_size, "Could be %s",
-+			 mad_dump_val(IB_PORT_LINK_SPEED_ACTIVE_F,
-+				      buf, 64, &max_speed));
-+	return;
-+
-+check_ext_speed:
-+	if (mad_get_field(port->info, 0,
-+			  IB_PORT_LINK_SPEED_EXT_SUPPORTED_F) == 0 ||
-+	    mad_get_field(port->remoteport->info, 0,
-+			  IB_PORT_LINK_SPEED_EXT_SUPPORTED_F) == 0)
-+		goto check_speed_supp;
-+	max_speed = get_max(mad_get_field(port->info, 0,
-+					  IB_PORT_LINK_SPEED_EXT_SUPPORTED_F)
-+			    & mad_get_field(port->remoteport->info, 0,
-+					    IB_PORT_LINK_SPEED_EXT_SUPPORTED_F));
-+	if ((max_speed & mad_get_field(port->info, 0,
-+				       IB_PORT_LINK_SPEED_EXT_ACTIVE_F)) == 0)
-+		// we are not at the max supported extended speed
-+		// print what we could be at.
-+		snprintf(speed_msg, msg_size, "Could be %s",
-+			 mad_dump_val(IB_PORT_LINK_SPEED_EXT_ACTIVE_F,
-+				      buf, 64, &max_speed));
++	return xrcd->device->dealloc_xrcd(xrcd);
 +}
-diff --git a/src/iblinkinfo.c b/src/iblinkinfo.c
-index b282d07..bbdb51d 100644
---- a/src/iblinkinfo.c
-+++ b/src/iblinkinfo.c
-@@ -78,81 +78,6 @@ static int down_links_only = 0;
- static int line_mode = 0;
- static int add_sw_settings = 0;
++EXPORT_SYMBOL(ib_dealloc_xrcd);
+diff --git a/include/rdma/ib_verbs.h b/include/rdma/ib_verbs.h
+index 55cd0a0..760662f 100644
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -112,6 +112,7 @@ enum ib_device_cap_flags {
+ 	 */
+ 	IB_DEVICE_UD_IP_CSUM		= (1<<18),
+ 	IB_DEVICE_UD_TSO		= (1<<19),
++	IB_DEVICE_XRC			= (1<<20),
+ 	IB_DEVICE_MEM_MGT_EXTENSIONS	= (1<<21),
+ 	IB_DEVICE_BLOCK_MULTICAST_LOOPBACK = (1<<22),
+ };
+@@ -857,6 +858,11 @@ struct ib_pd {
+ 	atomic_t          	usecnt; /* count all resources */
+ };
  
--static unsigned int get_max(unsigned int num)
--{
--	unsigned r = 0;		// r will be lg(num)
--
--	while (num >>= 1)	// unroll for more speed...
--		r++;
--
--	return (1 << r);
--}
--
--void get_msg(char *width_msg, char *speed_msg, int msg_size, ibnd_port_t * port)
--{
--	char buf[64];
--	uint32_t max_speed = 0;
--	uint32_t cap_mask, rem_cap_mask;
--	uint8_t *info;
--
--	uint32_t max_width = get_max(mad_get_field(port->info, 0,
--						   IB_PORT_LINK_WIDTH_SUPPORTED_F)
--				     & mad_get_field(port->remoteport->info, 0,
--						     IB_PORT_LINK_WIDTH_SUPPORTED_F));
--	if ((max_width & mad_get_field(port->info, 0,
--				       IB_PORT_LINK_WIDTH_ACTIVE_F)) == 0)
--		// we are not at the max supported width
--		// print what we could be at.
--		snprintf(width_msg, msg_size, "Could be %s",
--			 mad_dump_val(IB_PORT_LINK_WIDTH_ACTIVE_F,
--				      buf, 64, &max_width));
--
--	if (port->node->type == IB_NODE_SWITCH)
--		info = (uint8_t *)&port->node->ports[0]->info;
--	else
--		info = (uint8_t *)&port->info;
--	cap_mask = mad_get_field(info, 0, IB_PORT_CAPMASK_F);
--
--	if (port->remoteport->node->type == IB_NODE_SWITCH)
--		info = (uint8_t *)&port->remoteport->node->ports[0]->info;
--	else
--		info = (uint8_t *)&port->remoteport->info;
--	rem_cap_mask = mad_get_field(info, 0, IB_PORT_CAPMASK_F);
--	if (cap_mask & IB_PORT_CAP_HAS_EXT_SPEEDS &&
--	    rem_cap_mask & IB_PORT_CAP_HAS_EXT_SPEEDS)
--		goto check_ext_speed;
--check_speed_supp:
--	max_speed = get_max(mad_get_field(port->info, 0,
--					  IB_PORT_LINK_SPEED_SUPPORTED_F)
--			    & mad_get_field(port->remoteport->info, 0,
--					    IB_PORT_LINK_SPEED_SUPPORTED_F));
--	if ((max_speed & mad_get_field(port->info, 0,
--				       IB_PORT_LINK_SPEED_ACTIVE_F)) == 0)
--		// we are not at the max supported speed
--		// print what we could be at.
--		snprintf(speed_msg, msg_size, "Could be %s",
--			 mad_dump_val(IB_PORT_LINK_SPEED_ACTIVE_F,
--				      buf, 64, &max_speed));
--	return;
--
--check_ext_speed:
--	if (mad_get_field(port->info, 0,
--			  IB_PORT_LINK_SPEED_EXT_SUPPORTED_F) == 0 ||
--	    mad_get_field(port->remoteport->info, 0,
--			  IB_PORT_LINK_SPEED_EXT_SUPPORTED_F) == 0)
--		goto check_speed_supp;
--	max_speed = get_max(mad_get_field(port->info, 0,
--					  IB_PORT_LINK_SPEED_EXT_SUPPORTED_F)
--			    & mad_get_field(port->remoteport->info, 0,
--					    IB_PORT_LINK_SPEED_EXT_SUPPORTED_F));
--	if ((max_speed & mad_get_field(port->info, 0,
--				       IB_PORT_LINK_SPEED_EXT_ACTIVE_F)) == 0)
--		// we are not at the max supported extended speed
--		// print what we could be at.
--		snprintf(speed_msg, msg_size, "Could be %s",
--			 mad_dump_val(IB_PORT_LINK_SPEED_EXT_ACTIVE_F,
--				      buf, 64, &max_speed));
--}
++struct ib_xrcd {
++	struct ib_device       *device;
++	atomic_t          	usecnt; /* count all resources */
++};
++
+ struct ib_ah {
+ 	struct ib_device	*device;
+ 	struct ib_pd		*pd;
+@@ -1148,6 +1154,10 @@ struct ib_device {
+ 						  struct ib_grh *in_grh,
+ 						  struct ib_mad *in_mad,
+ 						  struct ib_mad *out_mad);
++	struct ib_xrcd *	   (*alloc_xrcd)(struct ib_device *device,
++						 struct ib_ucontext *ucontext,
++						 struct ib_udata *udata);
++	int			   (*dealloc_xrcd)(struct ib_xrcd *xrcd);
  
- int filterdownport_check(ibnd_node_t * node, ibnd_port_t * port)
- {
-@@ -265,7 +190,7 @@ void print_port(ibnd_node_t * node, ibnd_port_t * port, char *out_prefix)
- 		else
- 			ext_port_str[0] = '\0';
+ 	struct ib_dma_mapping_ops   *dma_ops;
  
--		get_msg(width_msg, speed_msg, 256, port);
-+		get_max_msg(width_msg, speed_msg, 256, port);
+@@ -2059,4 +2069,16 @@ int ib_attach_mcast(struct ib_qp *qp, union ib_gid *gid, u16 lid);
+  */
+ int ib_detach_mcast(struct ib_qp *qp, union ib_gid *gid, u16 lid);
  
- 		if (line_mode) {
- 			snprintf(remote_guid_str, 256,
-diff --git a/src/ibqueryerrors.c b/src/ibqueryerrors.c
-index 9005fda..6de3d6f 100644
---- a/src/ibqueryerrors.c
-+++ b/src/ibqueryerrors.c
-@@ -160,83 +160,6 @@ static int exceeds_threshold(int field, unsigned val)
- 	return (val > thres);
- }
- 
--static unsigned int get_max(unsigned int num)
--{
--	unsigned r = 0;		// r will be lg(num)
--
--	while (num >>= 1)	// unroll for more speed...
--		r++;
--
--	return (1 << r);
--}
--
--static void get_msg(char *width_msg, char *speed_msg, int msg_size,
--		    ibnd_port_t * port)
--{
--	char buf[64];
--	uint32_t max_speed = 0;
--	uint32_t cap_mask, rem_cap_mask;
--	uint8_t *info;
--
--	uint32_t max_width = get_max(mad_get_field(port->info, 0,
--						   IB_PORT_LINK_WIDTH_SUPPORTED_F)
--				     & mad_get_field(port->remoteport->info, 0,
--						     IB_PORT_LINK_WIDTH_SUPPORTED_F));
--	if ((max_width & mad_get_field(port->info, 0,
--				       IB_PORT_LINK_WIDTH_ACTIVE_F)) == 0)
--		// we are not at the max supported width
--		// print what we could be at.
--		snprintf(width_msg, msg_size, "Could be %s",
--			 mad_dump_val(IB_PORT_LINK_WIDTH_ACTIVE_F,
--				      buf, 64, &max_width));
--
--	if (port->node->type == IB_NODE_SWITCH)
--		info = (uint8_t *)&port->node->ports[0]->info;
--	else
--		info = (uint8_t *)&port->info;
--	cap_mask = mad_get_field(info, 0, IB_PORT_CAPMASK_F);
--	if (port->remoteport->node->type == IB_NODE_SWITCH)
--		info = (uint8_t *)&port->remoteport->node->ports[0]->info;
--	else
--		info = (uint8_t *)&port->remoteport->info;
--	rem_cap_mask = mad_get_field(info, 0, IB_PORT_CAPMASK_F);
--	if (cap_mask & IB_PORT_CAP_HAS_EXT_SPEEDS &&
--	    rem_cap_mask & IB_PORT_CAP_HAS_EXT_SPEEDS)
--		goto check_ext_speed;
--
--check_speed_supp:
--	max_speed = get_max(mad_get_field(port->info, 0,
--					  IB_PORT_LINK_SPEED_SUPPORTED_F)
--			    & mad_get_field(port->remoteport->info, 0,
--					    IB_PORT_LINK_SPEED_SUPPORTED_F));
--	if ((max_speed & mad_get_field(port->info, 0,
--				       IB_PORT_LINK_SPEED_ACTIVE_F)) == 0)
--		// we are not at the max supported speed
--		// print what we could be at.
--		snprintf(speed_msg, msg_size, "Could be %s",
--			 mad_dump_val(IB_PORT_LINK_SPEED_ACTIVE_F,
--				      buf, 64, &max_speed));
--	return;
--
--check_ext_speed:
--	if (mad_get_field(port->info, 0,
--			  IB_PORT_LINK_SPEED_EXT_SUPPORTED_F) == 0 ||
--	    mad_get_field(port->remoteport->info, 0,
--			  IB_PORT_LINK_SPEED_EXT_SUPPORTED_F) == 0)
--		goto check_speed_supp;
--	max_speed = get_max(mad_get_field(port->info, 0,
--					  IB_PORT_LINK_SPEED_EXT_SUPPORTED_F)
--			    & mad_get_field(port->remoteport->info, 0,
--					    IB_PORT_LINK_SPEED_EXT_SUPPORTED_F));
--	if ((max_speed & mad_get_field(port->info, 0,
--				       IB_PORT_LINK_SPEED_EXT_ACTIVE_F)) == 0)
--		// we are not at the max supported extended speed
--		// print what we could be at.
--		snprintf(speed_msg, msg_size, "Could be %s",
--			 mad_dump_val(IB_PORT_LINK_SPEED_EXT_ACTIVE_F,
--				      buf, 64, &max_speed));
--}
--
- static void print_port_config(char *node_name, ibnd_node_t * node, int portnum)
- {
- 	char width[64], speed[64], state[64], physstate[64];
-@@ -299,7 +222,7 @@ static void print_port_config(char *node_name, ibnd_node_t * node, int portnum)
- 		else
- 			ext_port_str[0] = '\0';
- 
--		get_msg(width_msg, speed_msg, 256, port);
-+		get_max_msg(width_msg, speed_msg, 256, port);
- 
- 		rem_node_name = remap_node_name(node_name_map,
- 						port->remoteport->node->guid,
--- 
-1.7.1
++/**
++ * ib_alloc_xrcd - Allocates an XRC domain.
++ * @device: The device on which to allocate the XRC domain.
++ */
++struct ib_xrcd *ib_alloc_xrcd(struct ib_device *device);
++
++/**
++ * ib_dealloc_xrcd - Deallocates an XRC domain.
++ * @xrcd: The XRC domain to deallocate.
++ */
++int ib_dealloc_xrcd(struct ib_xrcd *xrcd);
++
+ #endif /* IB_VERBS_H */
+
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
