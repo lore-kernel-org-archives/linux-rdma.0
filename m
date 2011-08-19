@@ -1,8 +1,7 @@
 From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 13/20 v2] rdma/ucm: Allow user to specify qp type when
- creating id
+Subject: [PATCH 11/20 v2] ib/cm: Update xrc support based on xrc annex errata
 Date: Fri, 19 Aug 2011 02:14:05 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A8237316E41A5B@FMSMSX151.amr.corp.intel.com>
+Message-ID: <1828884A29C6694DAF28B7E6B8A8237316E41A49@FMSMSX151.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
@@ -13,55 +12,133 @@ To: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdm
 Cc: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Allow the user to indicate the QP type separate from the
-port space when allocating an rdma_cm_id.  With RDMA_PS_IB,
-there is no longer a 1:1 relationship between the QP type and
-port space, so we need to switch on the QP type to select
-between UD and connected QPs.
+The xrc annex was updated to have xrc behave more like rdd.
+Specifically, the xrc tgt qpn moves from the local qpn to
+local eecn field.  Lookup of srqn is done using the REQ/REP
+protocol.
 
 Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
- drivers/infiniband/core/ucma.c |    5 ++++-
- include/rdma/rdma_user_cm.h    |    3 ++-
- 2 files changed, 6 insertions(+), 2 deletions(-)
+I kept this change separate, so that it could be easily discarded.
+Once the errata has been approved, it would make sense to merge this
+patch with the previous patch before pushing upstream.
 
-diff --git a/drivers/infiniband/core/ucma.c b/drivers/infiniband/core/ucma.c
-index 71be5ee..eb0a8e8 100644
---- a/drivers/infiniband/core/ucma.c
-+++ b/drivers/infiniband/core/ucma.c
-@@ -276,7 +276,7 @@ static int ucma_event_handler(struct rdma_cm_id *cm_id,
- 	ucma_set_event_context(ctx, event, uevent);
- 	uevent->resp.event = event->event;
- 	uevent->resp.status = event->status;
--	if (cm_id->ps == RDMA_PS_UDP || cm_id->ps == RDMA_PS_IPOIB)
-+	if (cm_id->qp_type == IB_QPT_UD)
- 		ucma_copy_ud_event(&uevent->resp.param.ud, &event->param.ud);
- 	else
- 		ucma_copy_conn_event(&uevent->resp.param.conn,
-@@ -377,6 +377,9 @@ static int ucma_get_qp_type(struct rdma_ucm_create_id *cmd, enum ib_qp_type *qp_
- 	case RDMA_PS_IPOIB:
- 		*qp_type = IB_QPT_UD;
- 		return 0;
-+	case RDMA_PS_IB:
-+		*qp_type = cmd->qp_type;
-+		return 0;
- 	default:
+ drivers/infiniband/core/cm.c      |   15 ++++++++-------
+ drivers/infiniband/core/cm_msgs.h |   19 ++++++++++++++++++-
+ 2 files changed, 26 insertions(+), 8 deletions(-)
+
+diff --git a/drivers/infiniband/core/cm.c b/drivers/infiniband/core/cm.c
+index d2e1cfb..42a7a9b 100644
+--- a/drivers/infiniband/core/cm.c
++++ b/drivers/infiniband/core/cm.c
+@@ -1605,7 +1605,6 @@ static void cm_format_rep(struct cm_rep_msg *rep_msg,
+ 	cm_format_mad_hdr(&rep_msg->hdr, CM_REP_ATTR_ID, cm_id_priv->tid);
+ 	rep_msg->local_comm_id = cm_id_priv->id.local_id;
+ 	rep_msg->remote_comm_id = cm_id_priv->id.remote_id;
+-	cm_rep_set_local_qpn(rep_msg, cpu_to_be32(param->qp_num));
+ 	cm_rep_set_starting_psn(rep_msg, cpu_to_be32(param->starting_psn));
+ 	rep_msg->resp_resources = param->responder_resources;
+ 	cm_rep_set_target_ack_delay(rep_msg,
+@@ -1618,8 +1617,10 @@ static void cm_format_rep(struct cm_rep_msg *rep_msg,
+ 		rep_msg->initiator_depth = param->initiator_depth;
+ 		cm_rep_set_flow_ctrl(rep_msg, param->flow_control);
+ 		cm_rep_set_srq(rep_msg, param->srq);
++		cm_rep_set_local_qpn(rep_msg, cpu_to_be32(param->qp_num));
+ 	} else {
+ 		cm_rep_set_srq(rep_msg, 1);
++		cm_rep_set_local_eecn(rep_msg, cpu_to_be32(param->qp_num));
+ 	}
+ 
+ 	if (param->private_data && param->private_data_len)
+@@ -1669,7 +1670,7 @@ int ib_send_cm_rep(struct ib_cm_id *cm_id,
+ 	cm_id_priv->initiator_depth = param->initiator_depth;
+ 	cm_id_priv->responder_resources = param->responder_resources;
+ 	cm_id_priv->rq_psn = cm_rep_get_starting_psn(rep_msg);
+-	cm_id_priv->local_qpn = cm_rep_get_local_qpn(rep_msg);
++	cm_id_priv->local_qpn = cpu_to_be32(param->qp_num & 0xFFFFFF);
+ 
+ out:	spin_unlock_irqrestore(&cm_id_priv->lock, flags);
+ 	return ret;
+@@ -1740,7 +1741,7 @@ error:	spin_unlock_irqrestore(&cm_id_priv->lock, flags);
+ }
+ EXPORT_SYMBOL(ib_send_cm_rtu);
+ 
+-static void cm_format_rep_event(struct cm_work *work)
++static void cm_format_rep_event(struct cm_work *work, enum ib_qp_type qp_type)
+ {
+ 	struct cm_rep_msg *rep_msg;
+ 	struct ib_cm_rep_event_param *param;
+@@ -1749,7 +1750,7 @@ static void cm_format_rep_event(struct cm_work *work)
+ 	param = &work->cm_event.param.rep_rcvd;
+ 	param->remote_ca_guid = rep_msg->local_ca_guid;
+ 	param->remote_qkey = be32_to_cpu(rep_msg->local_qkey);
+-	param->remote_qpn = be32_to_cpu(cm_rep_get_local_qpn(rep_msg));
++	param->remote_qpn = be32_to_cpu(cm_rep_get_qpn(rep_msg, qp_type));
+ 	param->starting_psn = be32_to_cpu(cm_rep_get_starting_psn(rep_msg));
+ 	param->responder_resources = rep_msg->initiator_depth;
+ 	param->initiator_depth = rep_msg->resp_resources;
+@@ -1817,7 +1818,7 @@ static int cm_rep_handler(struct cm_work *work)
  		return -EINVAL;
  	}
-diff --git a/include/rdma/rdma_user_cm.h b/include/rdma/rdma_user_cm.h
-index fc82c18..5348a00 100644
---- a/include/rdma/rdma_user_cm.h
-+++ b/include/rdma/rdma_user_cm.h
-@@ -77,7 +77,8 @@ struct rdma_ucm_create_id {
- 	__u64 uid;
- 	__u64 response;
- 	__u16 ps;
--	__u8  reserved[6];
-+	__u8  qp_type;
-+	__u8  reserved[5];
- };
  
- struct rdma_ucm_create_id_resp {
+-	cm_format_rep_event(work);
++	cm_format_rep_event(work, cm_id_priv->qp_type);
+ 
+ 	spin_lock_irq(&cm_id_priv->lock);
+ 	switch (cm_id_priv->id.state) {
+@@ -1832,7 +1833,7 @@ static int cm_rep_handler(struct cm_work *work)
+ 
+ 	cm_id_priv->timewait_info->work.remote_id = rep_msg->local_comm_id;
+ 	cm_id_priv->timewait_info->remote_ca_guid = rep_msg->local_ca_guid;
+-	cm_id_priv->timewait_info->remote_qpn = cm_rep_get_local_qpn(rep_msg);
++	cm_id_priv->timewait_info->remote_qpn = cm_rep_get_qpn(rep_msg, cm_id_priv->qp_type);
+ 
+ 	spin_lock(&cm.lock);
+ 	/* Check for duplicate REP. */
+@@ -1859,7 +1860,7 @@ static int cm_rep_handler(struct cm_work *work)
+ 
+ 	cm_id_priv->id.state = IB_CM_REP_RCVD;
+ 	cm_id_priv->id.remote_id = rep_msg->local_comm_id;
+-	cm_id_priv->remote_qpn = cm_rep_get_local_qpn(rep_msg);
++	cm_id_priv->remote_qpn = cm_rep_get_qpn(rep_msg, cm_id_priv->qp_type);
+ 	cm_id_priv->initiator_depth = rep_msg->resp_resources;
+ 	cm_id_priv->responder_resources = rep_msg->initiator_depth;
+ 	cm_id_priv->sq_psn = cm_rep_get_starting_psn(rep_msg);
+diff --git a/drivers/infiniband/core/cm_msgs.h b/drivers/infiniband/core/cm_msgs.h
+index 3ade320..d5dcd05 100644
+--- a/drivers/infiniband/core/cm_msgs.h
++++ b/drivers/infiniband/core/cm_msgs.h
+@@ -1,5 +1,5 @@
+ /*
+- * Copyright (c) 2004 Intel Corporation.  All rights reserved.
++ * Copyright (c) 2004,2011 Intel Corporation.  All rights reserved.
+  * Copyright (c) 2004 Topspin Corporation.  All rights reserved.
+  * Copyright (c) 2004 Voltaire Corporation.  All rights reserved.
+  *
+@@ -538,6 +538,23 @@ static inline void cm_rep_set_local_qpn(struct cm_rep_msg *rep_msg, __be32 qpn)
+ 			    (be32_to_cpu(rep_msg->offset12) & 0x000000FF));
+ }
+ 
++static inline __be32 cm_rep_get_local_eecn(struct cm_rep_msg *rep_msg)
++{
++	return cpu_to_be32(be32_to_cpu(rep_msg->offset16) >> 8);
++}
++
++static inline void cm_rep_set_local_eecn(struct cm_rep_msg *rep_msg, __be32 eecn)
++{
++	rep_msg->offset16 = cpu_to_be32((be32_to_cpu(eecn) << 8) |
++			    (be32_to_cpu(rep_msg->offset16) & 0x000000FF));
++}
++
++static inline __be32 cm_rep_get_qpn(struct cm_rep_msg *rep_msg, enum ib_qp_type qp_type)
++{
++	return (qp_type == IB_QPT_XRC_INI) ?
++		cm_rep_get_local_eecn(rep_msg) : cm_rep_get_local_qpn(rep_msg);
++}
++
+ static inline __be32 cm_rep_get_starting_psn(struct cm_rep_msg *rep_msg)
+ {
+ 	return cpu_to_be32(be32_to_cpu(rep_msg->offset20) >> 8);
 
 
 --
