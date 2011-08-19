@@ -1,7 +1,8 @@
 From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 10/20 v2] ib/cm: Update protocol to support XRC
-Date: Fri, 19 Aug 2011 02:14:04 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A8237316E41A3C@FMSMSX151.amr.corp.intel.com>
+Subject: [PATCH 13/20 v2] rdma/ucm: Allow user to specify qp type when
+ creating id
+Date: Fri, 19 Aug 2011 02:14:05 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A8237316E41A5B@FMSMSX151.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
@@ -12,163 +13,55 @@ To: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdm
 Cc: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Update the REQ and REP messages to support XRC connection setup
-according to the XRC Annex.  Several existing fields must be set
-to 0 or 1 when connecting XRC QPs, and a reserved field is changed
-to an extended transport type.
+Allow the user to indicate the QP type separate from the
+port space when allocating an rdma_cm_id.  With RDMA_PS_IB,
+there is no longer a 1:1 relationship between the QP type and
+port space, so we need to switch on the QP type to select
+between UD and connected QPs.
 
 Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
-A comment was filed against the XRC Annex regarding SRQN resolution.
-The next patch in this series adjusts the ib_cm based on the proposed
-errata.  This patch adjusts the ib_cm according to the published Annex.
+ drivers/infiniband/core/ucma.c |    5 ++++-
+ include/rdma/rdma_user_cm.h    |    3 ++-
+ 2 files changed, 6 insertions(+), 2 deletions(-)
 
- drivers/infiniband/core/cm.c      |   46 +++++++++++++++++++++++++------------
- drivers/infiniband/core/cm_msgs.h |   13 ++++++++++
- 2 files changed, 43 insertions(+), 16 deletions(-)
-
-diff --git a/drivers/infiniband/core/cm.c b/drivers/infiniband/core/cm.c
-index fc0f2bd..d2e1cfb 100644
---- a/drivers/infiniband/core/cm.c
-+++ b/drivers/infiniband/core/cm.c
-@@ -1008,7 +1008,6 @@ static void cm_format_req(struct cm_req_msg *req_msg,
- 	req_msg->service_id = param->service_id;
- 	req_msg->local_ca_guid = cm_id_priv->id.device->node_guid;
- 	cm_req_set_local_qpn(req_msg, cpu_to_be32(param->qp_num));
--	cm_req_set_resp_res(req_msg, param->responder_resources);
- 	cm_req_set_init_depth(req_msg, param->initiator_depth);
- 	cm_req_set_remote_resp_timeout(req_msg,
- 				       param->remote_cm_response_timeout);
-@@ -1017,12 +1016,16 @@ static void cm_format_req(struct cm_req_msg *req_msg,
- 	cm_req_set_starting_psn(req_msg, cpu_to_be32(param->starting_psn));
- 	cm_req_set_local_resp_timeout(req_msg,
- 				      param->local_cm_response_timeout);
--	cm_req_set_retry_count(req_msg, param->retry_count);
- 	req_msg->pkey = param->primary_path->pkey;
- 	cm_req_set_path_mtu(req_msg, param->primary_path->mtu);
--	cm_req_set_rnr_retry_count(req_msg, param->rnr_retry_count);
- 	cm_req_set_max_cm_retries(req_msg, param->max_cm_retries);
--	cm_req_set_srq(req_msg, param->srq);
-+
-+	if (param->qp_type != IB_QPT_XRC_INI) {
-+		cm_req_set_resp_res(req_msg, param->responder_resources);
-+		cm_req_set_retry_count(req_msg, param->retry_count);
-+		cm_req_set_rnr_retry_count(req_msg, param->rnr_retry_count);
-+		cm_req_set_srq(req_msg, param->srq);
-+	}
- 
- 	if (pri_path->hop_limit <= 1) {
- 		req_msg->primary_local_lid = pri_path->slid;
-@@ -1080,7 +1083,8 @@ static int cm_validate_req_param(struct ib_cm_req_param *param)
- 	if (!param->primary_path)
- 		return -EINVAL;
- 
--	if (param->qp_type != IB_QPT_RC && param->qp_type != IB_QPT_UC)
-+	if (param->qp_type != IB_QPT_RC && param->qp_type != IB_QPT_UC &&
-+	    param->qp_type != IB_QPT_XRC_INI)
- 		return -EINVAL;
- 
- 	if (param->private_data &&
-@@ -1604,15 +1608,20 @@ static void cm_format_rep(struct cm_rep_msg *rep_msg,
- 	cm_rep_set_local_qpn(rep_msg, cpu_to_be32(param->qp_num));
- 	cm_rep_set_starting_psn(rep_msg, cpu_to_be32(param->starting_psn));
- 	rep_msg->resp_resources = param->responder_resources;
--	rep_msg->initiator_depth = param->initiator_depth;
- 	cm_rep_set_target_ack_delay(rep_msg,
- 				    cm_id_priv->av.port->cm_dev->ack_delay);
- 	cm_rep_set_failover(rep_msg, param->failover_accepted);
--	cm_rep_set_flow_ctrl(rep_msg, param->flow_control);
- 	cm_rep_set_rnr_retry_count(rep_msg, param->rnr_retry_count);
--	cm_rep_set_srq(rep_msg, param->srq);
- 	rep_msg->local_ca_guid = cm_id_priv->id.device->node_guid;
- 
-+	if (cm_id_priv->qp_type != IB_QPT_XRC_TGT) {
-+		rep_msg->initiator_depth = param->initiator_depth;
-+		cm_rep_set_flow_ctrl(rep_msg, param->flow_control);
-+		cm_rep_set_srq(rep_msg, param->srq);
-+	} else {
-+		cm_rep_set_srq(rep_msg, 1);
-+	}
-+
- 	if (param->private_data && param->private_data_len)
- 		memcpy(rep_msg->private_data, param->private_data,
- 		       param->private_data_len);
-@@ -3492,7 +3501,8 @@ static int cm_init_qp_rtr_attr(struct cm_id_private *cm_id_priv,
- 		qp_attr->path_mtu = cm_id_priv->path_mtu;
- 		qp_attr->dest_qp_num = be32_to_cpu(cm_id_priv->remote_qpn);
- 		qp_attr->rq_psn = be32_to_cpu(cm_id_priv->rq_psn);
--		if (cm_id_priv->qp_type == IB_QPT_RC) {
-+		if (cm_id_priv->qp_type == IB_QPT_RC ||
-+		    cm_id_priv->qp_type == IB_QPT_XRC_TGT) {
- 			*qp_attr_mask |= IB_QP_MAX_DEST_RD_ATOMIC |
- 					 IB_QP_MIN_RNR_TIMER;
- 			qp_attr->max_dest_rd_atomic =
-@@ -3537,15 +3547,21 @@ static int cm_init_qp_rts_attr(struct cm_id_private *cm_id_priv,
- 		if (cm_id_priv->id.lap_state == IB_CM_LAP_UNINIT) {
- 			*qp_attr_mask = IB_QP_STATE | IB_QP_SQ_PSN;
- 			qp_attr->sq_psn = be32_to_cpu(cm_id_priv->sq_psn);
--			if (cm_id_priv->qp_type == IB_QPT_RC) {
--				*qp_attr_mask |= IB_QP_TIMEOUT | IB_QP_RETRY_CNT |
--						 IB_QP_RNR_RETRY |
-+			switch (cm_id_priv->qp_type) {
-+			case IB_QPT_RC:
-+			case IB_QPT_XRC_INI:
-+				*qp_attr_mask |= IB_QP_RETRY_CNT | IB_QP_RNR_RETRY |
- 						 IB_QP_MAX_QP_RD_ATOMIC;
--				qp_attr->timeout = cm_id_priv->av.timeout;
- 				qp_attr->retry_cnt = cm_id_priv->retry_count;
- 				qp_attr->rnr_retry = cm_id_priv->rnr_retry_count;
--				qp_attr->max_rd_atomic =
--					cm_id_priv->initiator_depth;
-+				qp_attr->max_rd_atomic = cm_id_priv->initiator_depth;
-+				/* fall through */
-+			case IB_QPT_XRC_TGT:
-+				*qp_attr_mask |= IB_QP_TIMEOUT;
-+				qp_attr->timeout = cm_id_priv->av.timeout;
-+				break;
-+			default:
-+				break;
- 			}
- 			if (cm_id_priv->alt_av.ah_attr.dlid) {
- 				*qp_attr_mask |= IB_QP_PATH_MIG_STATE;
-diff --git a/drivers/infiniband/core/cm_msgs.h b/drivers/infiniband/core/cm_msgs.h
-index 7e63c08..3ade320 100644
---- a/drivers/infiniband/core/cm_msgs.h
-+++ b/drivers/infiniband/core/cm_msgs.h
-@@ -86,7 +86,7 @@ struct cm_req_msg {
- 	__be16 pkey;
- 	/* path MTU:4, RDC exists:1, RNR retry count:3. */
- 	u8 offset50;
--	/* max CM Retries:4, SRQ:1, rsvd:3 */
-+	/* max CM Retries:4, SRQ:1, extended transport type:3 */
- 	u8 offset51;
- 
- 	__be16 primary_local_lid;
-@@ -175,6 +175,11 @@ static inline enum ib_qp_type cm_req_get_qp_type(struct cm_req_msg *req_msg)
- 	switch(transport_type) {
- 	case 0: return IB_QPT_RC;
- 	case 1: return IB_QPT_UC;
-+	case 3:
-+		switch (req_msg->offset51 & 0x7) {
-+		case 1: return IB_QPT_XRC_TGT;
-+		default: return 0;
-+		}
- 	default: return 0;
- 	}
- }
-@@ -188,6 +193,12 @@ static inline void cm_req_set_qp_type(struct cm_req_msg *req_msg,
- 						  req_msg->offset40) &
- 						   0xFFFFFFF9) | 0x2);
- 		break;
-+	case IB_QPT_XRC_INI:
-+		req_msg->offset40 = cpu_to_be32((be32_to_cpu(
-+						 req_msg->offset40) &
-+						   0xFFFFFFF9) | 0x6);
-+		req_msg->offset51 = (req_msg->offset51 & 0xF8) | 1;
-+		break;
+diff --git a/drivers/infiniband/core/ucma.c b/drivers/infiniband/core/ucma.c
+index 71be5ee..eb0a8e8 100644
+--- a/drivers/infiniband/core/ucma.c
++++ b/drivers/infiniband/core/ucma.c
+@@ -276,7 +276,7 @@ static int ucma_event_handler(struct rdma_cm_id *cm_id,
+ 	ucma_set_event_context(ctx, event, uevent);
+ 	uevent->resp.event = event->event;
+ 	uevent->resp.status = event->status;
+-	if (cm_id->ps == RDMA_PS_UDP || cm_id->ps == RDMA_PS_IPOIB)
++	if (cm_id->qp_type == IB_QPT_UD)
+ 		ucma_copy_ud_event(&uevent->resp.param.ud, &event->param.ud);
+ 	else
+ 		ucma_copy_conn_event(&uevent->resp.param.conn,
+@@ -377,6 +377,9 @@ static int ucma_get_qp_type(struct rdma_ucm_create_id *cmd, enum ib_qp_type *qp_
+ 	case RDMA_PS_IPOIB:
+ 		*qp_type = IB_QPT_UD;
+ 		return 0;
++	case RDMA_PS_IB:
++		*qp_type = cmd->qp_type;
++		return 0;
  	default:
- 		req_msg->offset40 = cpu_to_be32(be32_to_cpu(
- 						 req_msg->offset40) &
+ 		return -EINVAL;
+ 	}
+diff --git a/include/rdma/rdma_user_cm.h b/include/rdma/rdma_user_cm.h
+index fc82c18..5348a00 100644
+--- a/include/rdma/rdma_user_cm.h
++++ b/include/rdma/rdma_user_cm.h
+@@ -77,7 +77,8 @@ struct rdma_ucm_create_id {
+ 	__u64 uid;
+ 	__u64 response;
+ 	__u16 ps;
+-	__u8  reserved[6];
++	__u8  qp_type;
++	__u8  reserved[5];
+ };
+ 
+ struct rdma_ucm_create_id_resp {
 
 
 --
