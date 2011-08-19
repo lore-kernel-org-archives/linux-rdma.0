@@ -1,7 +1,8 @@
 From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 0/20 v2] rdma: Add XRC support
-Date: Fri, 19 Aug 2011 02:14:35 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A8237316E41B0A@FMSMSX151.amr.corp.intel.com>
+Subject: [PATCH 1/6 v2] libibverbs: Allow 3rd party extensions to verb
+ routines
+Date: Fri, 19 Aug 2011 02:47:10 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A8237316E41B52@FMSMSX151.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
@@ -12,48 +13,307 @@ To: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdm
 Cc: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-XRC provides a scalability enhancement when a process on one node
-must communicate with multiple processes on another node.  This
-is commonly the case when running MPI applications on multi-core
-systems in a cluster.
+In order to support OFED, vendor specific calls, or new ibverbs
+operations, define a generic extension mechanism.  This allows
+OFED, an RDMA vendor, or another registered 3rd party (for
+example, the librdmacm) to define RDMA extensions, plus provides
+a backwards compatible way to add new features to ibverbs.
 
-An XRC connection consists of an initiator (XRC INI) qp and a target
-(XRC TGT) qp.  A single xrc ini -> xrc tgt qp connection enables a
-process to communicate with all remote processes on a single node.
-Security is enforced through the use of a special type of protection
-domain and shared receive queues.  An xrc srq is allocated
-on an xrc domain.  The xrc tgt qp is also allocated on an xrc domain.
-A process may receive data on an xrc srq from a tgt qp if the xrc
-domains are the same.
+Users which make use extensions are aware that they are not
+only using an extended call, but are given information regarding
+how widely the extension by be supported based on the name of the
+extension.  E.g. a VENDOR extension is specific to a vendor, whereas
+an OFA extension is standardized within an organization.
+Support for extended functions, data structures, and enums are defined.
 
-The following patch series adds support for XRC.  The patches used
-the patches found in Roland's xrc branch as a base, plus added in
-patches found in the OFED 1.5 linux git tree.  The latter were mainly
-used for updating the mlx4 driver.  I broke the patches up, so that
-I could follow each change better.
+Extensions are referenced by name.  There is an assumption that
+extension names are prefixed relative to the supporting party.
+Until an extension has been incorporated into libibverbs, it
+should be defined in an appropriate external header file.
 
-This set differs from Roland's xrc branch in that XRC initiator and
-target QP types are separated, and a type is specified when creating
-an SRQ.  The patches differ from the OFED 1.5 patches by using the
-existing QP APIs and ABI to create and manage XRC QPs.  XRCD's may
-still be shared among multiple processes, and XRC QPs may be connected
-out of band.
+Driver libraries that support extensions are given a new
+registration call, ibv_register_device_ext().  Use of this call
+indicates to libibverbs that the library allocates extended
+versions of struct ibv_device and struct ibv_context.
 
-There are corresponding patches to libibverbs, libmlx4, and the
-librdmacm to support XRC.
+The following new APIs are added to libibverbs to applications
+to use to determine if an extension is supported and to obtain the
+extended function calls.
 
-This patch sets are also available on the ofa server:
+ibv_have_ext_ops - returns true if an extension is supported
+ibv_get_device_ext_ops - return extended operations for a device
+ibv_get_ext_ops - return extended operations for an open context
 
-	git://git.openfabrics.org/~shefty/rdma-dev.git   xrc
-	git://git.openfabrics.org/~shefty/libibverbs.git xrc
-	git://git.openfabrics.org/~shefty/libmlx4.git    xrc
-	git://git.openfabrics.org/~shefty/librdmacm.git  xrc
+To maintain backwards compatibility with existing applications,
+internally, the library uses the last byte of the device name
+to record if the device was registered with extension support.  It
+only does this if the last byte is available for use.
 
-Changes from v1:
-- Add ability for any process using an xrcd to open an existing tgt qp
-- Provided update to ib_cm changes based on proposed errata.
 
 Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+---
+ include/infiniband/driver.h |    1 +
+ include/infiniband/verbs.h  |   40 +++++++++++++++++++++++++++++++++++++++-
+ src/device.c                |   18 ++++++++++++++++++
+ src/ibverbs.h               |   18 ++++++++++++++++++
+ src/init.c                  |   17 ++++++++++++++++-
+ src/libibverbs.map          |    5 +++++
+ src/verbs.c                 |    9 +++++++++
+ 7 files changed, 106 insertions(+), 2 deletions(-)
+
+diff --git a/include/infiniband/driver.h b/include/infiniband/driver.h
+index 9a81416..e48abfd 100644
+--- a/include/infiniband/driver.h
++++ b/include/infiniband/driver.h
+@@ -57,6 +57,7 @@ typedef struct ibv_device *(*ibv_driver_init_func)(const char *uverbs_sys_path,
+ 						   int abi_version);
+ 
+ void ibv_register_driver(const char *name, ibv_driver_init_func init_func);
++void ibv_register_driver_ext(const char *name, ibv_driver_init_func init_func);
+ int ibv_cmd_get_context(struct ibv_context *context, struct ibv_get_context *cmd,
+ 			size_t cmd_size, struct ibv_get_context_resp *resp,
+ 			size_t resp_size);
+diff --git a/include/infiniband/verbs.h b/include/infiniband/verbs.h
+index 0f1cb2e..b82cd3a 100644
+--- a/include/infiniband/verbs.h
++++ b/include/infiniband/verbs.h
+@@ -55,6 +55,15 @@
+ 
+ BEGIN_C_DECLS
+ 
++enum ibv_extension_type {
++	IBV_EXTENSION_COMMON,
++	IBV_EXTENSION_VENDOR,
++	IBV_EXTENSION_OFA,
++	IBV_EXTENSION_RDMA_CM
++};
++#define IBV_EXTENSION_BASE_SHIFT 24
++#define IBV_EXTENSION_MASK 0xFF000000
++
+ union ibv_gid {
+ 	uint8_t			raw[16];
+ 	struct {
+@@ -92,7 +101,8 @@ enum ibv_device_cap_flags {
+ 	IBV_DEVICE_SYS_IMAGE_GUID	= 1 << 11,
+ 	IBV_DEVICE_RC_RNR_NAK_GEN	= 1 << 12,
+ 	IBV_DEVICE_SRQ_RESIZE		= 1 << 13,
+-	IBV_DEVICE_N_NOTIFY_CQ		= 1 << 14
++	IBV_DEVICE_N_NOTIFY_CQ		= 1 << 14,
++	IBV_DEVICE_EXTENSIONS		= 1 << (IBV_EXTENSION_BASE_SHIFT - 1)
+ };
+ 
+ enum ibv_atomic_cap {
+@@ -623,6 +633,13 @@ struct ibv_device {
+ 	char			dev_path[IBV_SYSFS_PATH_MAX];
+ 	/* Path to infiniband class device in sysfs */
+ 	char			ibdev_path[IBV_SYSFS_PATH_MAX];
++
++	/* Following fields only available if device supports extensions */
++	void		       *private;
++	int			(*have_ext_ops)(struct ibv_device *device,
++						const char *ext_name);
++	void *			(*get_device_ext_ops)(struct ibv_device *device,
++						      const char *ext_name);
+ };
+ 
+ struct ibv_context_ops {
+@@ -691,6 +708,11 @@ struct ibv_context {
+ 	int			num_comp_vectors;
+ 	pthread_mutex_t		mutex;
+ 	void		       *abi_compat;
++
++	/* Following fields only available if device supports extensions */
++	void		       *private;
++	void *			(*get_ext_ops)(struct ibv_context *context,
++					       const char *ext_name);
+ };
+ 
+ /**
+@@ -724,6 +746,17 @@ const char *ibv_get_device_name(struct ibv_device *device);
+ uint64_t ibv_get_device_guid(struct ibv_device *device);
+ 
+ /**
++ * ibv_have_ext_ops - Return true if device supports the requested
++ * extended operations.
++ */
++int ibv_have_ext_ops(struct ibv_device *device, const char *name);
++
++/**
++ * ibv_get_device_ext_ops - Return extended operations.
++ */
++void *ibv_get_device_ext_ops(struct ibv_device *device, const char *name);
++
++/**
+  * ibv_open_device - Initialize device for use
+  */
+ struct ibv_context *ibv_open_device(struct ibv_device *device);
+@@ -734,6 +767,11 @@ struct ibv_context *ibv_open_device(struct ibv_device *device);
+ int ibv_close_device(struct ibv_context *context);
+ 
+ /**
++ * ibv_get_ext_ops - Return extended operations.
++ */
++void *ibv_get_ext_ops(struct ibv_context *context, const char *name);
++
++/**
+  * ibv_get_async_event - Get next async event
+  * @event: Pointer to use to return async event
+  *
+diff --git a/src/device.c b/src/device.c
+index 185f4a6..78d9d35 100644
+--- a/src/device.c
++++ b/src/device.c
+@@ -181,6 +181,24 @@ int __ibv_close_device(struct ibv_context *context)
+ }
+ default_symver(__ibv_close_device, ibv_close_device);
+ 
++int __ibv_have_ext_ops(struct ibv_device *device, const char *name)
++{
++	if (!ibv_get_ext_support(device))
++		return ENOSYS;
++
++	return device->have_ext_ops(device, name);
++}
++default_symver(__ibv_have_ext_ops, ibv_have_ext_ops);
++
++void *__ibv_get_device_ext_ops(struct ibv_device *device, const char *name)
++{
++	if (!ibv_get_ext_support(device) || !device->get_device_ext_ops)
++		return NULL;
++
++	return device->get_device_ext_ops(device, name);
++}
++default_symver(__ibv_get_device_ext_ops, ibv_get_device_ext_ops);
++
+ int __ibv_get_async_event(struct ibv_context *context,
+ 			  struct ibv_async_event *event)
+ {
+diff --git a/src/ibverbs.h b/src/ibverbs.h
+index 6a6e3c8..33bdee2 100644
+--- a/src/ibverbs.h
++++ b/src/ibverbs.h
+@@ -35,6 +35,7 @@
+ #define IB_VERBS_H
+ 
+ #include <pthread.h>
++#include <string.h>
+ 
+ #include <infiniband/driver.h>
+ 
+@@ -102,4 +103,21 @@ HIDDEN int ibverbs_init(struct ibv_device ***list);
+ 		(cmd)->response  = (uintptr_t) (out);			\
+ 	} while (0)
+ 
++/*
++ * Support for extended operations is recorded at the end of
++ * the name character array.  This way we don't need to query
++ * for the device capabilities with every call.
++ */
++static inline int ibv_get_ext_support(struct ibv_device *device)
++{
++	return device->name[IBV_SYSFS_NAME_MAX - 1];
++}
++
++static inline void ibv_set_ext_support(struct ibv_device *device,
++				       int ext_supported)
++{
++	if (strlen(device->name) < IBV_SYSFS_NAME_MAX - 1)
++		device->name[IBV_SYSFS_NAME_MAX - 1] = (char) ext_supported;
++}
++
+ #endif /* IB_VERBS_H */
+diff --git a/src/init.c b/src/init.c
+index 4f0130e..419ab31 100644
+--- a/src/init.c
++++ b/src/init.c
+@@ -71,6 +71,7 @@ struct ibv_driver {
+ 	const char	       *name;
+ 	ibv_driver_init_func	init_func;
+ 	struct ibv_driver      *next;
++	int			ext_support;
+ };
+ 
+ static struct ibv_sysfs_dev *sysfs_dev_list;
+@@ -153,7 +154,8 @@ static int find_sysfs_devs(void)
+ 	return ret;
+ }
+ 
+-void ibv_register_driver(const char *name, ibv_driver_init_func init_func)
++static void __ibv_register_driver(const char *name, ibv_driver_init_func init_func,
++				  int ext_support)
+ {
+ 	struct ibv_driver *driver;
+ 
+@@ -166,6 +168,7 @@ void ibv_register_driver(const char *name, ibv_driver_init_func init_func)
+ 	driver->name      = name;
+ 	driver->init_func = init_func;
+ 	driver->next      = NULL;
++	driver->ext_support = ext_support;
+ 
+ 	if (tail_driver)
+ 		tail_driver->next = driver;
+@@ -174,6 +177,16 @@ void ibv_register_driver(const char *name, ibv_driver_init_func init_func)
+ 	tail_driver = driver;
+ }
+ 
++void ibv_register_driver(const char *name, ibv_driver_init_func init_func)
++{
++	__ibv_register_driver(name, init_func, 0);
++}
++
++void ibv_register_driver_ext(const char *name, ibv_driver_init_func init_func)
++{
++	__ibv_register_driver(name, init_func, 1);
++}
++
+ static void load_driver(const char *name)
+ {
+ 	char *so_name;
+@@ -368,6 +381,8 @@ static struct ibv_device *try_driver(struct ibv_driver *driver,
+ 	strcpy(dev->name,       sysfs_dev->ibdev_name);
+ 	strcpy(dev->ibdev_path, sysfs_dev->ibdev_path);
+ 
++	ibv_set_ext_support(dev, driver->ext_support);
++
+ 	return dev;
+ }
+ 
+diff --git a/src/libibverbs.map b/src/libibverbs.map
+index 1827da0..422e07f 100644
+--- a/src/libibverbs.map
++++ b/src/libibverbs.map
+@@ -96,4 +96,9 @@ IBVERBS_1.1 {
+ 		ibv_port_state_str;
+ 		ibv_event_type_str;
+ 		ibv_wc_status_str;
++
++		ibv_register_driver_ext;
++		ibv_have_ext_ops;
++		ibv_get_device_ext_ops;
++		ibv_get_ext_ops;
+ } IBVERBS_1.0;
+diff --git a/src/verbs.c b/src/verbs.c
+index ba3c0a4..a34a784 100644
+--- a/src/verbs.c
++++ b/src/verbs.c
+@@ -76,6 +76,15 @@ enum ibv_rate mult_to_ibv_rate(int mult)
+ 	}
+ }
+ 
++void *__ibv_get_ext_ops(struct ibv_context *context, const char *name)
++{
++	if (!ibv_get_ext_support(context->device) || !context->get_ext_ops)
++		return NULL;
++
++	return context->get_ext_ops(context, name);
++}
++default_symver(__ibv_get_ext_ops, ibv_get_ext_ops);
++
+ int __ibv_query_device(struct ibv_context *context,
+ 		       struct ibv_device_attr *device_attr)
+ {
+
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
