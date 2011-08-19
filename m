@@ -1,80 +1,39 @@
-From: "Davis, Arlin R" <arlin.r.davis-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH] DAPL v2.0: build: link librdmacm dependency to ib_acm usage
- for ucm and scm providers
-Date: Fri, 19 Aug 2011 20:31:59 +0000
-Message-ID: <54347E5A035A054EAE9D05927FB467F916E4E016@ORSMSX101.amr.corp.intel.com>
+From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+Subject: [PATCH] opensm: add torus-2QoS to list of supported engine names
+Date: Fri, 19 Aug 2011 14:06:38 -0700
+Message-ID: <20110819140638.f8f9a5dc.weiny2@llnl.gov>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "ofw-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org" <ofw-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+To: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
-Add -lrdmacm to XLIBS for ucm and scm providers. Only set library
-linking with conditional use of ib_acm as defined by DAPL_USE_IBACM.
 
-Signed-off-by: Arlin Davis <arlin.r.davis-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+
+Signed-off-by: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
 ---
- Makefile.am  |    8 ++++++--
- configure.in |    4 ++++
- 2 files changed, 10 insertions(+), 2 deletions(-)
+ opensm/osm_subnet.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/Makefile.am b/Makefile.am
-index a430568..a9bdeda 100755
---- a/Makefile.am
-+++ b/Makefile.am
-@@ -33,6 +33,10 @@ XHEADERS =
- XLIBS =
- endif
+diff --git a/opensm/osm_subnet.c b/opensm/osm_subnet.c
+index 3ba1f81..36ec3d7 100644
+--- a/opensm/osm_subnet.c
++++ b/opensm/osm_subnet.c
+@@ -1421,7 +1421,7 @@ int osm_subn_output_conf(FILE *out, IN osm_subn_opt_t * p_opts)
+ 		"# Multiple routing engines can be specified separated by\n"
+ 		"# commas so that specific ordering of routing algorithms will\n"
+ 		"# be tried if earlier routing engines fail.\n"
+-		"# Supported engines: minhop, updn, file, ftree, lash, dor\n"
++		"# Supported engines: minhop, updn, file, ftree, lash, dor, torus-2QoS\n"
+ 		"routing_engine %s\n\n", p_opts->routing_engine_names ?
+ 		p_opts->routing_engine_names : null_str);
  
-+if DAPL_USE_IBACM
-+XLIBS += -lrdmacm
-+endif
-+
- if DEFINE_ATTR_LINK_LAYER
- XFLAGS += -DDEFINE_ATTR_LINK_LAYER
- endif
-@@ -362,7 +366,7 @@ dapl_udapl_libdaploscm_la_SOURCES = dapl/udapl/dapl_init.c \
- 
- dapl_udapl_libdaploscm_la_LDFLAGS = -version-info 2:0:0 $(daploscm_version_script) \
-                                    -Wl,-init,dapl_init -Wl,-fini,dapl_fini \
--                                   -lpthread -libverbs -lrdmacm $(XLIBS)
-+                                   -lpthread -libverbs $(XLIBS)
- endif
- if DEFINE_UCM                      
- #
-@@ -477,7 +481,7 @@ dapl_udapl_libdaploucm_la_SOURCES = dapl/udapl/dapl_init.c \
- 
- dapl_udapl_libdaploucm_la_LDFLAGS = -version-info 2:0:0 $(daploscm_version_script) \
-                                    -Wl,-init,dapl_init -Wl,-fini,dapl_fini \
--                                   -lpthread -libverbs -lrdmacm $(XLIBS)
-+                                   -lpthread -libverbs $(XLIBS)
- endif
- 
- libdatincludedir = $(includedir)/dat2
-diff --git a/configure.in b/configure.in
-index 30524d9..fb405ff 100644
---- a/configure.in
-+++ b/configure.in
-@@ -47,7 +47,11 @@ dnl End check for libraries
- 
- if test "$with_ib_acm" != "" && test "$with_ib_acm" != "no"; then
-     AC_DEFINE(DAPL_USE_IBACM, 1, [set to 1 to use IB ACM services])
-+    ac_use_acm=yes
-+else
-+    ac_use_acm=no
- fi
-+AM_CONDITIONAL(DAPL_USE_IBACM, test "$ac_use_acm" = "yes")
- 
- AC_CACHE_CHECK(whether ld accepts --version-script, ac_cv_version_script,
-     if test -n "`$LD --help < /dev/null 2>/dev/null | grep version-script`"; then
 -- 
-1.7.3
-
-
+1.7.1
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
