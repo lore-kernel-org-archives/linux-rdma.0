@@ -1,48 +1,56 @@
 From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Subject: Re: [patch v2 23/37] add rxe_mcast.c
-Date: Sat, 20 Aug 2011 18:13:38 +0200
-Message-ID: <CAO+b5-p1f796QMteE8xLPVS=NSZE+ZJGkCjDH8qkv6UnxxMF1Q@mail.gmail.com>
-References: <20110724194300.421253331@systemfabricworks.com> <20110724201229.264963653@systemfabricworks.com>
+Subject: Re: [patch v2 27/37] add rxe_resp.c
+Date: Sat, 20 Aug 2011 18:26:05 +0200
+Message-ID: <CAO+b5-r+MM4MxSiC9nQUd4m2sZ4z+FBeDc=dUcXwZ5wYz-jLcg@mail.gmail.com>
+References: <20110724194300.421253331@systemfabricworks.com> <20110724201229.464927217@systemfabricworks.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20110724201229.264963653-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org>
+In-Reply-To: <20110724201229.464927217-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: rpearson-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 On Sun, Jul 24, 2011 at 9:43 PM,  <rpearson-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org> wrote:
-> +int rxe_mcast_drop_grp_elem(struct rxe_dev *rxe, struct rxe_qp *qp,
-> +			    union ib_gid *mgid, u16 mlid)
-> +{
-> +	struct rxe_mc_grp *grp;
-> +	struct rxe_mc_elem *elem, *tmp;
-> +
-> +	grp = rxe_pool_get_key(&rxe->mc_grp_pool, mgid);
-> +	if (!grp)
-> +		goto err1;
-> +
-> +	spin_lock_bh(&qp->grp_lock);
-> +	spin_lock_bh(&grp->mcg_lock);
-> +
-> +	list_for_each_entry_safe(elem, tmp, &grp->qp_list, qp_list) {
-> +		if (elem->qp == qp) {
-> +			list_del(&elem->qp_list);
-> +			list_del(&elem->grp_list);
-> +			grp->num_qp--;
-> +
-> +			spin_unlock_bh(&grp->mcg_lock);
-> +			spin_unlock_bh(&qp->grp_lock);
-> +			rxe_drop_ref(elem);
-> +			rxe_drop_ref(grp);	/* ref held by QP */
-> +			rxe_drop_ref(grp);	/* ref from get_key */
-> +			return 0;
-> +		}
-> +	}
+> +static char *resp_state_name[] = {
+> +	[RESPST_NONE]				= "NONE",
 
-The above loop is left after a match has been found. Do we really need
-list_for_each_entry_safe() here ?
+Shouldn't that be "const char * const" instead of "char *" ?
+
+> +/* rxe_recv calls here to add a request packet to the input queue */
+> +void rxe_resp_queue_pkt(struct rxe_dev *rxe, struct rxe_qp *qp,
+> +			struct sk_buff *skb)
+> +{
+> +	int must_sched;
+
+Shouldn't that be "bool" instead of "int" ?
+
+> +	default:
+> +		WARN_ON(1);
+> +		break;
+
+Shouldn't that be "__WARN()" instead of "WARN_ON(1)" ?
+
+> +static struct sk_buff *prepare_ack_packet(struct rxe_qp *qp,
+> +					  struct rxe_pkt_info *pkt,
+> +					  int opcode,
+> +					  int payload,
+> +					  u32 psn,
+> +					  u8 syndrome)
+> +{
+> +	struct rxe_dev *rxe = to_rdev(qp->ibqp.device);
+> +	struct sk_buff *skb;
+> +	struct rxe_pkt_info *ack;
+> +	int paylen;
+> +	int pad;
+> +
+> +	/*
+> +	 * allocate packet
+> +	 */
+> +	pad = (-payload) & 0x3;
+
+Something like "pad = ALIGN(payload, 4) - payload" is probably easier to read.
 
 Bart.
 --
