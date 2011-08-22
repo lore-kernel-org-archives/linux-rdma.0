@@ -1,79 +1,42 @@
-From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-Subject: Re: [PATCH 1/6] infiniband-diags/man/ibportstate.8: Update for fdr
-Date: Sun, 21 Aug 2011 22:15:55 -0700
-Message-ID: <20110821221555.b90281d9.weiny2@llnl.gov>
-References: <4E4E9516.8040704@dev.mellanox.co.il>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [RFC] XRC upstream merge reboot
+Date: Mon, 22 Aug 2011 15:46:39 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A8237316E4709A@ORSMSX101.amr.corp.intel.com>
+References: <1828884A29C6694DAF28B7E6B8A82373F7AB@ORSMSX101.amr.corp.intel.com>
+ <201108031337.24527.jackm@dev.mellanox.co.il>
+ <1828884A29C6694DAF28B7E6B8A8237316E3E55C@FMSMSX151.amr.corp.intel.com>
+ <201108211742.18803.jackm@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4E4E9516.8040704-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+In-Reply-To: <201108211742.18803.jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: "Shamis, Pavel" <shamisp-1Heg1YXhbW8@public.gmane.org>, "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "tziporet-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org" <tziporet-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, "dotanb-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org" <dotanb-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, "Jeff Squyres (jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org)" <jsquyres-FYB4Gu1CFyUAvxtiuMwx3w@public.gmane.org>, "Shumilin, Victor" <victor.shumilin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Truschin, Vladimir" <vladimir.truschin-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Devendar Bureddy <bureddy-wPOY3OvGL++pAIv7I8X2sze48wsgrGvP@public.gmane.org>, "mvapich-core-wPOY3OvGL++pAIv7I8X2sze48wsgrGvP@public.gmane.org" <mvapich-core-wPOY3OvGL++pAIv7I8X2sze48wsgrGvP@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, 19 Aug 2011 09:53:42 -0700
-Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wrote:
-
+> I am a bit concerned here.  In the current usage model, target QPs are destroyed when their reference
+> count goes to zero
+> (ib_reg_xrc_recv_qp and ibv_xrc_create_qp increment the reference count, while ib_unreg_xrc_recv_qp
+> decrements it).
+> In this model, the TGT QP user/consumer does not need to know if it is the last user of the QP (and
+> therefore should
+> destroy it).  The QP simply gets destroyed when no one is left using it.
 > 
-> Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-
-Thanks applied,
-Ira
-
-> ---
->  man/ibportstate.8 |   10 +++++++---
->  1 files changed, 7 insertions(+), 3 deletions(-)
+> In your proposed model, it looks like the last TGT QP user needs to know that it is the last user and
+> must therefore destroy
+> the TGT QP (rather than the QP being destroyed automatically as the result of the ref count going to
+> zero).
 > 
-> diff --git a/man/ibportstate.8 b/man/ibportstate.8
-> index 2989247..2a60db9 100644
-> --- a/man/ibportstate.8
-> +++ b/man/ibportstate.8
-> @@ -1,4 +1,4 @@
-> -.TH IBPORTSTATE 8 "Jan 13, 2010" "OpenIB" "OpenIB Diagnostics"
-> +.TH IBPORTSTATE 8 "Mar 9, 2011" "OpenIB" "OpenIB Diagnostics"
->  
->  .SH NAME
->  ibportstate \- handle port (physical) state and link speed of an InfiniBand port
-> @@ -23,7 +23,7 @@ also allows the link speed/width enabled on any IB port to be adjusted.
->  .TP
->  op
->  Port operations allowed
-> - supported ops: enable, disable, reset, speed, width, query,
-> + supported ops: enable, disable, reset, speed, espeed, width, query,
->  		down, arm, active, vls, mtu, lid, smlid, lmc
->   Default is query
->  .PP
-> @@ -33,12 +33,16 @@ Port operations allowed
->   speed values are legal values for PortInfo:LinkSpeedEnabled
->   (An error is indicated if PortInfo:LinkSpeedSupported does not support
->    this setting)
-> + espeed ops are allowed on any port supporting extended link speeds
-> +(An error is indicated if port's capability mask indicates extended
-> + link speeds are not supported or if PortInfo:LinkSpeedExtSupported
-> + does not support this setting)
->   width values are legal values for PortInfo:LinkWidthEnabled
->   (An error is indicated if PortInfo:LinkWidthSupported does not support
->    this setting)
->   (NOTE: Speed and width changes are not effected until the port goes through
->    link renegotiation)
-> - query also validates port characteristics (link width and speed)
-> + query also validates port characteristics (link width, speed, and espeed)
->    based on the peer port. This checking is done when the port
->    queried is a switch port as it relies on combined routing
->    (an initial LID route with directed routing to the peer) which
-> -- 
-> 1.5.3
+> Am I correct?
 > 
+> (Or does every user -- both the creator and the caller of ib_open_qp do an ib_destroy_qp() -- and the
+> destroy actually
+> occurs when no users who did open/create remain?).
 
-
--- 
-Ira Weiny
-Math Programmer/Computer Scientist
-Lawrence Livermore National Lab
-925-423-8008
-weiny2-i2BcT+NCU+M@public.gmane.org
+The latter is correct.  The caller of ib_create_qp() and ib_open_qp() all call ib_destroy_qp() if they wish to destroy the QP once the reference count hits zero.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
