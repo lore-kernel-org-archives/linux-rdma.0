@@ -1,133 +1,34 @@
-From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: Re: [PATCH] RDMA/cxgb4: Fail RDMA initialization for unsupported
- cards.
-Date: Mon, 22 Aug 2011 15:05:50 -0500
-Message-ID: <4E52B69E.6050802@opengridcomputing.com>
-References: <20110801215910.9774.75120.stgit@build.ogc.int>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH 2/2] librdmacm: fix resource leaks when
+ CMA_CREATE_MSG_CMD_RESP fails
+Date: Mon, 22 Aug 2011 22:39:54 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A8237316E47245@ORSMSX101.amr.corp.intel.com>
+References: <201108151438.56670.dotanb@sw.voltaire.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20110801215910.9774.75120.stgit-T4OLL4TyM9aNDNWfRnPdfg@public.gmane.org>
+In-Reply-To: <201108151438.56670.dotanb-g2bIKuvJtcQanlnWow0HJg@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Dotan Barak <dotanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hey Roland,
+> -#define CMA_CREATE_MSG_CMD_RESP(msg, cmd, resp, type, size) \
+> +#define CMA_CREATE_MSG_CMD_RESP(msg, cmd, resp, type, size, clean_cmd) \
 
-Is this patch acceptable for heading upstream?
+This starts to get ugly, especially with usage that ends up looking like this:
+
+> -	CMA_CREATE_MSG_CMD_RESP(msg, cmd, resp, UCMA_CMD_DESTROY_ID, size);
+> +	CMA_CREATE_MSG_CMD_RESP(msg, cmd, resp, UCMA_CMD_DESTROY_ID, size, );
+
+I think a cleaner fix would be to replace CMA_CREATE_MSG_CMD_RESP and CMA_CREATE_MSG_CMD with macros that simply initialize structures and do not call return.  I'll update the code and either apply patch 1 or make sure that the necessary cleanup is added, depending on how the resulting code gets structured.
+
+Does anyone know of any reason why we can't change the structures in rdma_cma_abi.h?  (Binary compatibility with the kernel would be preserved, obviously.)
 
 Thanks,
-
-Steve.
-
-On 08/01/2011 04:59 PM, Steve Wise wrote:
-> The iw_cxgb4 module crashes at init time if the T4 card does not
-> support RDMA.  So clean up the init logic to correctly deal with
-> non-RDMA cards.
->
-> - If any RDMA resources are not available, then fail the initializtion
-> logging an info message.
->
-> - Clean up properly on initialization failures.
->
-> Signed-off-by: Steve Wise<swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-> ---
->
->   drivers/infiniband/hw/cxgb4/device.c |   41 +++++++++++++++++++++++++++-------
->   1 files changed, 33 insertions(+), 8 deletions(-)
->
-> diff --git a/drivers/infiniband/hw/cxgb4/device.c b/drivers/infiniband/hw/cxgb4/device.c
-> index 40a13cc..6d0df6e 100644
-> --- a/drivers/infiniband/hw/cxgb4/device.c
-> +++ b/drivers/infiniband/hw/cxgb4/device.c
-> @@ -376,10 +376,8 @@ struct uld_ctx {
->   	struct c4iw_dev *dev;
->   };
->
-> -static void c4iw_remove(struct uld_ctx *ctx)
-> +static void c4iw_dealloc(struct uld_ctx *ctx)
->   {
-> -	PDBG("%s c4iw_dev %p\n", __func__,  ctx->dev);
-> -	c4iw_unregister_device(ctx->dev);
->   	c4iw_rdev_close(&ctx->dev->rdev);
->   	idr_destroy(&ctx->dev->cqidr);
->   	idr_destroy(&ctx->dev->qpidr);
-> @@ -389,11 +387,30 @@ static void c4iw_remove(struct uld_ctx *ctx)
->   	ctx->dev = NULL;
->   }
->
-> +static void c4iw_remove(struct uld_ctx *ctx)
-> +{
-> +	PDBG("%s c4iw_dev %p\n", __func__,  ctx->dev);
-> +	c4iw_unregister_device(ctx->dev);
-> +	c4iw_dealloc(ctx);
-> +}
-> +
-> +static int rdma_supported(const struct cxgb4_lld_info *infop)
-> +{
-> +	return infop->vr->stag.size>  0&&  infop->vr->pbl.size>  0&&
-> +	       infop->vr->rq.size>  0&&  infop->vr->qp.size>  0&&
-> +	       infop->vr->cq.size>  0&&  infop->vr->ocq.size>  0;
-> +}
-> +
->   static struct c4iw_dev *c4iw_alloc(const struct cxgb4_lld_info *infop)
->   {
->   	struct c4iw_dev *devp;
->   	int ret;
->
-> +	if (!rdma_supported(infop)) {
-> +		printk(KERN_INFO MOD "%s: RDMA not supported on this device.\n",
-> +		       pci_name(infop->pdev));
-> +		return ERR_PTR(-ENOSYS);
-> +	}
->   	devp = (struct c4iw_dev *)ib_alloc_device(sizeof(*devp));
->   	if (!devp) {
->   		printk(KERN_ERR MOD "Cannot allocate ib device\n");
-> @@ -414,7 +431,6 @@ static struct c4iw_dev *c4iw_alloc(const struct cxgb4_lld_info *infop)
->
->   	ret = c4iw_rdev_open(&devp->rdev);
->   	if (ret) {
-> -		mutex_unlock(&dev_mutex);
->   		printk(KERN_ERR MOD "Unable to open CXIO rdev err %d\n", ret);
->   		ib_dealloc_device(&devp->ibdev);
->   		return ERR_PTR(ret);
-> @@ -519,15 +535,24 @@ static int c4iw_uld_state_change(void *handle, enum cxgb4_state new_state)
->   	case CXGB4_STATE_UP:
->   		printk(KERN_INFO MOD "%s: Up\n", pci_name(ctx->lldi.pdev));
->   		if (!ctx->dev) {
-> -			int ret = 0;
-> +			int ret;
->
->   			ctx->dev = c4iw_alloc(&ctx->lldi);
-> -			if (!IS_ERR(ctx->dev))
-> -				ret = c4iw_register_device(ctx->dev);
-> -			if (IS_ERR(ctx->dev) || ret)
-> +			if (IS_ERR(ctx->dev)) {
-> +				printk(KERN_ERR MOD
-> +				       "%s: initialization failed: %ld\n",
-> +				       pci_name(ctx->lldi.pdev),
-> +				       PTR_ERR(ctx->dev));
-> +				ctx->dev = NULL;
-> +				break;
-> +			}
-> +			ret = c4iw_register_device(ctx->dev);
-> +			if (ret) {
->   				printk(KERN_ERR MOD
->   				       "%s: RDMA registration failed: %d\n",
->   				       pci_name(ctx->lldi.pdev), ret);
-> +				c4iw_dealloc(ctx);
-> +			}
->   		}
->   		break;
->   	case CXGB4_STATE_DOWN:
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
+Sean
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
