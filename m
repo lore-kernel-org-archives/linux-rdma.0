@@ -1,59 +1,73 @@
-From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Subject: Re: [patch v2 02/37] add opcodes to ib_pack.h
-Date: Mon, 22 Aug 2011 20:08:15 +0200
-Message-ID: <CAO+b5-pKPuhsrQV6igqo78y_1+gZ=09GxHoABOVnLxX3myFYZA@mail.gmail.com>
-References: <20110724194300.421253331@systemfabricworks.com>
- <20110724201228.204265835@systemfabricworks.com> <CAO+b5-pb3p0n5MZYNSJicAdUfZ4PtMNG5vdzDOiZNQwLnB3Wcw@mail.gmail.com>
- <03e001cc5b66$9e9b6e40$dbd24ac0$@systemfabricworks.com> <CAO+b5-qV9uxs=V_uHbVZ_3sm1LqkQUB0em=K=nrRxUvFQYWo5A@mail.gmail.com>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH] rdma/cm: Fix crash in cma_req_handler
+Date: Mon, 22 Aug 2011 19:28:28 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A8237316E471B2@ORSMSX101.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAO+b5-qV9uxs=V_uHbVZ_3sm1LqkQUB0em=K=nrRxUvFQYWo5A-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bob Pearson <rpearson-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Sat, Aug 20, 2011 at 4:47 PM, Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org> wrote:
-> On Mon, Aug 15, 2011 at 6:15 PM, Bob Pearson
-> <rpearson-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org> wrote:
-> > I want to eventually complete the IB transport parts of the driver although
-> > they are not used by RoCE. They would be useful for a soft IB implementation
-> > with say an FPGA based MAC/PHY. The long term goal is to have a complete
-> > reference implementation of the IB Architecture.
->
-> Having a complete reference implementation of the IB architecture
-> available would be great. IMHO at least the following should be added
-> to ib_rxe (not necessarily in the first version) before it can called
-> a reference implementation:
-> - Support for secondary GIDs. These make it easy to implement
-> fail-over in a H.A. cluster.
-> - Support for multicast.
+The rdma_cm uses the local qp_type to determine how to
+process an incoming request.  This can result in an
+incoming REQ being treated as a SIDR REQ and vice versa.
+Fix this by switching off the event type instead, and for
+good measure verify that the listener supports the incoming
+connection request.
 
-More in detail, my comments with regard to multicast support in ib_rxe are:
-1. Using ipv6_eth_mc_map() for mapping multicast GIDs seems an
-unfortunate choice to me. That choice will cause multicast GIDs to be
-mapped to the 33-33-xx-xx-xx-xx Ethernet address range that has been
-reserved by RFC 2464 for IPv6 multicast addresses. If a collision with
-an IPv6 multicast address occurs and IPv6 MLD snooping has enabled on
-the switches in the involved network then RoCE multicast won't work
-properly. IMHO we need a separate Ethernet address range for RoCE
-multicast purposes, next to the existing ranges for IPv4 and IPv6.
-2. We need a way to limit multicast traffic to those switch ports on
-which receivers are listening. The InfiniBand architecture has such a
-protocol but it relies on the subnet manager, a component that does
-not exist in RoCE networks. And since IGMP and MLD are IPv4/IPv6
-specific we need a new (IBTA-approved) protocol.
-3. RFC 4541, in which IGMP and MLD snooping has been defined, will
-have to be extended with a paragraph about snooping the protocol
-defined in (2).
-4. Switch vendors will have to implement the protocol item (3) refers to.
+This problem showed up when a user space application
+mismatched the qp types between a client and server app.
 
-Shouldn't a RoCE multicast implementation be postponed until the IEEE
-has assigned an Ethernet address range for mapping RoCE multicast GIDs
-?
+Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+---
+Please consider queuing for 3.1.
 
-Bart.
+ drivers/infiniband/core/cma.c |   14 +++++++++++++-
+ 1 files changed, 13 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
+index b6a33b3..db58478 100644
+--- a/drivers/infiniband/core/cma.c
++++ b/drivers/infiniband/core/cma.c
+@@ -1181,6 +1181,15 @@ static void cma_set_req_event_data(struct rdma_cm_event *event,
+ 	event->param.conn.qp_num = req_data->remote_qpn;
+ }
+ 
++static int cma_check_req_qp_type(struct rdma_cm_id *id, struct ib_cm_event *ib_event)
++{
++	return (((ib_event->event == IB_CM_REQ_RECEIVED) ||
++		 (ib_event->param.req_rcvd.qp_type == id->qp_type)) ||
++		((ib_event->event == IB_CM_SIDR_REQ_RECEIVED) &&
++		 (id->qp_type == IB_QPT_UD)) ||
++		(!id->qp_type));
++}
++
+ static int cma_req_handler(struct ib_cm_id *cm_id, struct ib_cm_event *ib_event)
+ {
+ 	struct rdma_id_private *listen_id, *conn_id;
+@@ -1188,13 +1197,16 @@ static int cma_req_handler(struct ib_cm_id *cm_id, struct ib_cm_event *ib_event)
+ 	int offset, ret;
+ 
+ 	listen_id = cm_id->context;
++	if (!cma_check_req_qp_type(&listen_id->id, ib_event))
++		return -EINVAL;
++
+ 	if (cma_disable_callback(listen_id, RDMA_CM_LISTEN))
+ 		return -ECONNABORTED;
+ 
+ 	memset(&event, 0, sizeof event);
+ 	offset = cma_user_data_offset(listen_id->id.ps);
+ 	event.event = RDMA_CM_EVENT_CONNECT_REQUEST;
+-	if (listen_id->id.qp_type == IB_QPT_UD) {
++	if (ib_event->event == IB_CM_SIDR_REQ_RECEIVED) {
+ 		conn_id = cma_new_udp_id(&listen_id->id, ib_event);
+ 		event.param.ud.private_data = ib_event->private_data + offset;
+ 		event.param.ud.private_data_len =
+
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
