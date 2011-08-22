@@ -1,72 +1,132 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH] rdma/cm: Fix crash in cma_req_handler
-Date: Mon, 22 Aug 2011 19:28:28 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A8237316E471B2@ORSMSX101.amr.corp.intel.com>
+From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: Re: [PATCH] RDMA/cxgb4: Fail RDMA initialization for unsupported
+ cards.
+Date: Mon, 22 Aug 2011 15:05:50 -0500
+Message-ID: <4E52B69E.6050802@opengridcomputing.com>
+References: <20110801215910.9774.75120.stgit@build.ogc.int>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <20110801215910.9774.75120.stgit-T4OLL4TyM9aNDNWfRnPdfg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-The rdma_cm uses the local qp_type to determine how to
-process an incoming request.  This can result in an
-incoming REQ being treated as a SIDR REQ and vice versa.
-Fix this by switching off the event type instead, and for
-good measure verify that the listener supports the incoming
-connection request.
+Hey Roland,
 
-This problem showed up when a user space application
-mismatched the qp types between a client and server app.
+Is this patch acceptable for heading upstream?
 
-Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
----
-Please consider queuing for 3.1.
+Thanks,
 
- drivers/infiniband/core/cma.c |   14 +++++++++++++-
- 1 files changed, 13 insertions(+), 1 deletions(-)
+Steve.
 
-diff --git a/drivers/infiniband/core/cma.c b/drivers/infiniband/core/cma.c
-index b6a33b3..db58478 100644
---- a/drivers/infiniband/core/cma.c
-+++ b/drivers/infiniband/core/cma.c
-@@ -1181,6 +1181,15 @@ static void cma_set_req_event_data(struct rdma_cm_event *event,
- 	event->param.conn.qp_num = req_data->remote_qpn;
- }
- 
-+static int cma_check_req_qp_type(struct rdma_cm_id *id, struct ib_cm_event *ib_event)
-+{
-+	return (((ib_event->event == IB_CM_REQ_RECEIVED) ||
-+		 (ib_event->param.req_rcvd.qp_type == id->qp_type)) ||
-+		((ib_event->event == IB_CM_SIDR_REQ_RECEIVED) &&
-+		 (id->qp_type == IB_QPT_UD)) ||
-+		(!id->qp_type));
-+}
-+
- static int cma_req_handler(struct ib_cm_id *cm_id, struct ib_cm_event *ib_event)
- {
- 	struct rdma_id_private *listen_id, *conn_id;
-@@ -1188,13 +1197,16 @@ static int cma_req_handler(struct ib_cm_id *cm_id, struct ib_cm_event *ib_event)
- 	int offset, ret;
- 
- 	listen_id = cm_id->context;
-+	if (!cma_check_req_qp_type(&listen_id->id, ib_event))
-+		return -EINVAL;
-+
- 	if (cma_disable_callback(listen_id, RDMA_CM_LISTEN))
- 		return -ECONNABORTED;
- 
- 	memset(&event, 0, sizeof event);
- 	offset = cma_user_data_offset(listen_id->id.ps);
- 	event.event = RDMA_CM_EVENT_CONNECT_REQUEST;
--	if (listen_id->id.qp_type == IB_QPT_UD) {
-+	if (ib_event->event == IB_CM_SIDR_REQ_RECEIVED) {
- 		conn_id = cma_new_udp_id(&listen_id->id, ib_event);
- 		event.param.ud.private_data = ib_event->private_data + offset;
- 		event.param.ud.private_data_len =
-
+On 08/01/2011 04:59 PM, Steve Wise wrote:
+> The iw_cxgb4 module crashes at init time if the T4 card does not
+> support RDMA.  So clean up the init logic to correctly deal with
+> non-RDMA cards.
+>
+> - If any RDMA resources are not available, then fail the initializtion
+> logging an info message.
+>
+> - Clean up properly on initialization failures.
+>
+> Signed-off-by: Steve Wise<swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+> ---
+>
+>   drivers/infiniband/hw/cxgb4/device.c |   41 +++++++++++++++++++++++++++-------
+>   1 files changed, 33 insertions(+), 8 deletions(-)
+>
+> diff --git a/drivers/infiniband/hw/cxgb4/device.c b/drivers/infiniband/hw/cxgb4/device.c
+> index 40a13cc..6d0df6e 100644
+> --- a/drivers/infiniband/hw/cxgb4/device.c
+> +++ b/drivers/infiniband/hw/cxgb4/device.c
+> @@ -376,10 +376,8 @@ struct uld_ctx {
+>   	struct c4iw_dev *dev;
+>   };
+>
+> -static void c4iw_remove(struct uld_ctx *ctx)
+> +static void c4iw_dealloc(struct uld_ctx *ctx)
+>   {
+> -	PDBG("%s c4iw_dev %p\n", __func__,  ctx->dev);
+> -	c4iw_unregister_device(ctx->dev);
+>   	c4iw_rdev_close(&ctx->dev->rdev);
+>   	idr_destroy(&ctx->dev->cqidr);
+>   	idr_destroy(&ctx->dev->qpidr);
+> @@ -389,11 +387,30 @@ static void c4iw_remove(struct uld_ctx *ctx)
+>   	ctx->dev = NULL;
+>   }
+>
+> +static void c4iw_remove(struct uld_ctx *ctx)
+> +{
+> +	PDBG("%s c4iw_dev %p\n", __func__,  ctx->dev);
+> +	c4iw_unregister_device(ctx->dev);
+> +	c4iw_dealloc(ctx);
+> +}
+> +
+> +static int rdma_supported(const struct cxgb4_lld_info *infop)
+> +{
+> +	return infop->vr->stag.size>  0&&  infop->vr->pbl.size>  0&&
+> +	       infop->vr->rq.size>  0&&  infop->vr->qp.size>  0&&
+> +	       infop->vr->cq.size>  0&&  infop->vr->ocq.size>  0;
+> +}
+> +
+>   static struct c4iw_dev *c4iw_alloc(const struct cxgb4_lld_info *infop)
+>   {
+>   	struct c4iw_dev *devp;
+>   	int ret;
+>
+> +	if (!rdma_supported(infop)) {
+> +		printk(KERN_INFO MOD "%s: RDMA not supported on this device.\n",
+> +		       pci_name(infop->pdev));
+> +		return ERR_PTR(-ENOSYS);
+> +	}
+>   	devp = (struct c4iw_dev *)ib_alloc_device(sizeof(*devp));
+>   	if (!devp) {
+>   		printk(KERN_ERR MOD "Cannot allocate ib device\n");
+> @@ -414,7 +431,6 @@ static struct c4iw_dev *c4iw_alloc(const struct cxgb4_lld_info *infop)
+>
+>   	ret = c4iw_rdev_open(&devp->rdev);
+>   	if (ret) {
+> -		mutex_unlock(&dev_mutex);
+>   		printk(KERN_ERR MOD "Unable to open CXIO rdev err %d\n", ret);
+>   		ib_dealloc_device(&devp->ibdev);
+>   		return ERR_PTR(ret);
+> @@ -519,15 +535,24 @@ static int c4iw_uld_state_change(void *handle, enum cxgb4_state new_state)
+>   	case CXGB4_STATE_UP:
+>   		printk(KERN_INFO MOD "%s: Up\n", pci_name(ctx->lldi.pdev));
+>   		if (!ctx->dev) {
+> -			int ret = 0;
+> +			int ret;
+>
+>   			ctx->dev = c4iw_alloc(&ctx->lldi);
+> -			if (!IS_ERR(ctx->dev))
+> -				ret = c4iw_register_device(ctx->dev);
+> -			if (IS_ERR(ctx->dev) || ret)
+> +			if (IS_ERR(ctx->dev)) {
+> +				printk(KERN_ERR MOD
+> +				       "%s: initialization failed: %ld\n",
+> +				       pci_name(ctx->lldi.pdev),
+> +				       PTR_ERR(ctx->dev));
+> +				ctx->dev = NULL;
+> +				break;
+> +			}
+> +			ret = c4iw_register_device(ctx->dev);
+> +			if (ret) {
+>   				printk(KERN_ERR MOD
+>   				       "%s: RDMA registration failed: %d\n",
+>   				       pci_name(ctx->lldi.pdev), ret);
+> +				c4iw_dealloc(ctx);
+> +			}
+>   		}
+>   		break;
+>   	case CXGB4_STATE_DOWN:
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
