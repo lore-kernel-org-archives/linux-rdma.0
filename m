@@ -1,32 +1,35 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH 0/20 v2] rdma: Add XRC support
-Date: Thu, 25 Aug 2011 23:42:10 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A8237316E47C00@ORSMSX101.amr.corp.intel.com>
-References: <1828884A29C6694DAF28B7E6B8A8237316E41B0A@FMSMSX151.amr.corp.intel.com>
- <CAL1RGDWrEN9nT=z5c_H=YXykFqVgOrp0vgBkcSshKodPLq+1mw@mail.gmail.com>
- <1828884A29C6694DAF28B7E6B8A8237316E46E88@ORSMSX101.amr.corp.intel.com>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH 0/9] skb fragment API: convert non-network drivers
+Date: Fri, 26 Aug 2011 12:39:05 -0400 (EDT)
+Message-ID: <20110826.123905.2087707552692035948.davem@davemloft.net>
+References: <1314260881.10283.48.camel@zakaz.uk.xensource.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1828884A29C6694DAF28B7E6B8A8237316E46E88-P5GAC/sN6hmkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
-Content-Language: en-US
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
-Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-scsi-owner@vger.kernel.org>
+In-Reply-To: <1314260881.10283.48.camel@zakaz.uk.xensource.com>
+Sender: linux-scsi-owner@vger.kernel.org
+To: Ian.Campbell@citrix.com
+Cc: netdev@vger.kernel.org, linux-atm-general@lists.sourceforge.net, linux-rdma@vger.kernel.org, linux-scsi@vger.kernel.org, devel@open-fcoe.org
 List-Id: linux-rdma@vger.kernel.org
 
-> The only issue from my viewpoint is whether the change referenced by patch 11
-> (ib/cm: Update xrc support based on xrc annex errata) has been approved by the
-> IBTA.  I'm waiting on a response on that.
+From: Ian Campbell <Ian.Campbell@citrix.com>
+Date: Thu, 25 Aug 2011 09:28:01 +0100
 
-I received confirmation that the errata to the XRC Annex was approved.  Both patch 10 (ib/cm: Update protocol to support XRC) and 11 (ib/cm: Update xrc support based on xrc annex errata) should be merged.  You can either keep them separate, combine them into a single patch, or I can resubmit a combined patch.
+> The following series converts some non-network drivers to the SKB pages
+> fragment API introduced in 131ea6675c76. Included are ATM, Infiniband,
+> and FibreChannel. I also included the broadcom network drivers since I
+> was touching the related FC driver.
+> 
+> This is part of my series to enable visibility into SKB paged fragment's
+> lifecycles, [0] contains some more background and rationale but
+> basically the completed series will allow entities which inject pages
+> into the networking stack to receive a notification when the stack has
+> really finished with those pages (i.e. including retransmissions,
+> clones, pull-ups etc) and not just when the original skb is finished
+> with, which is beneficial to many subsystems which wish to inject pages
+> into the network stack without giving up full ownership of those page's
+> lifecycle. It implements something broadly along the lines of what was
+> described in [1].
 
-Let me know if you see any other issues with the series.
-
-Thanks,
-- Sean
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+All applied, thanks Ian.
