@@ -1,25 +1,28 @@
 From: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH] opensm: add torus-2QoS to list of supported engine names
-Date: Wed, 31 Aug 2011 13:37:09 +0300
-Message-ID: <20110831103709.GA3178@calypso.mtl.com>
-References: <20110819140638.f8f9a5dc.weiny2@llnl.gov>
+Subject: Re: [PATCH 1/3] opensm/osm_sa_portinfo_record.c: In pir_rcv_new_pir,
+ fix switch port 0 physp
+Date: Wed, 31 Aug 2011 13:37:44 +0300
+Message-ID: <20110831103744.GB3178@calypso.mtl.com>
+References: <4E4C0AF4.6000400@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <20110819140638.f8f9a5dc.weiny2-i2BcT+NCU+M@public.gmane.org>
+In-Reply-To: <4E4C0AF4.6000400-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Ira,
+Hi Hal,
 
-On 14:06 Fri 19 Aug     , Ira Weiny wrote:
+On 14:39 Wed 17 Aug     , Hal Rosenstock wrote:
 > 
+> use requested rather than requesting port
 > 
+> Found and fixed by Daniel Klein <danielk-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
 > 
-> Signed-off-by: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+> Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 > ---
 
 Applied, thanks.
