@@ -1,41 +1,39 @@
-From: Dotan Barak <dotanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH 2/2 v2] mlx4: Fix the SQ size of an RC QP to support masked atomic operation
-Date: Wed, 31 Aug 2011 18:35:44 +0300
-Message-ID: <201108311835.44602.dotanb@sw.voltaire.com>
+From: Yicheng Jia <YJia-EIlpL8JyKVZBDgjK7y7TUQ@public.gmane.org>
+Subject: multiple QPs with different priorities
+Date: Wed, 31 Aug 2011 10:39:06 -0500
+Message-ID: <OF77A040F6.4196F19A-ON862578FD.0055E182-862578FD.0055FA83@TMRIUSA.COM>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="US-ASCII"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-When calculating the required size of an RC QP send queue, leave enough space
-for masked atomic operation (which requires more space than "regular" atomic
-operation).
+All,
 
-v2: the wrong git tree was used to create the v1 patch
-     (altough the previous patch can be applied as well without any errors)
+I have 2 QPs for my applications, QPn is for data and QPm is for message. 
+I want to set up QPs' QoS so that packages from QPm(message) always go 
+first than from QPn(data). Here are my network configuration:
+1. HCA - MHES18XTC (InfiniHost III Lx SDR) with firmware 1.1.0
+2. OpenSM - ver#3.2.1
+3. Switch - managed/unmanaged switch
 
-Signed-off-by: Dotan Barak <dotanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Reviewed-by: Eli Cohen <eli-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
----
-diff --git a/drivers/infiniband/hw/mlx4/qp.c b/drivers/infiniband/hw/mlx4/qp.c
-index 3a91d9d..d91acbf 100644
---- a/drivers/infiniband/hw/mlx4/qp.c
-+++ b/drivers/infiniband/hw/mlx4/qp.c
-@@ -283,7 +283,7 @@ static int send_wqe_overhead(enum ib_qp_type type, u32 flags)
- 			sizeof (struct mlx4_wqe_raddr_seg);
- 	case IB_QPT_RC:
- 		return sizeof (struct mlx4_wqe_ctrl_seg) +
--			sizeof (struct mlx4_wqe_atomic_seg) +
-+			sizeof (struct mlx4_wqe_masked_atomic_seg) +
- 			sizeof (struct mlx4_wqe_raddr_seg);
- 	case IB_QPT_SMI:
- 	case IB_QPT_GSI:
+My questions are:
+1. Does the HCA provide QoS function?
+2. If it does, then is setting SL value of QP all that I need to do to 
+enable QoS, like QPm.SL = 0 and QPn.SL = 1? Do I also need to configure 
+the SLtoVLMapping table in the switch?
+
+Thanks!
+Yicheng Jia
+
+Software Engineer
+Toshiba Medical Research Institute USA, Inc.
+
+
+_____________________________________________________________________________
+Scanned by IBM Email Security Management Services powered by MessageLabs. For more information please visit http://www-935.ibm.com/services/us/index.wss/offerfamily/iss/a1026954
+_____________________________________________________________________________
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
