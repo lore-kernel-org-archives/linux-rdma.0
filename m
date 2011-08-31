@@ -1,44 +1,26 @@
-From: Dotan Barak <dotanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH 2/2] mlx4: Fix the SQ size of an RC QP to support masked atomic operation
-Date: Wed, 31 Aug 2011 16:29:37 +0300
-Message-ID: <201108311629.37966.dotanb@sw.voltaire.com>
+From: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH] opensm: Add FDR10 support
+Date: Wed, 31 Aug 2011 17:44:32 +0300
+Message-ID: <20110831144432.GF3178@calypso.mtl.com>
+References: <4E4CDE22.5010102@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
+In-Reply-To: <4E4CDE22.5010102-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-When calculating the required size of an RC QP send queue, leave enough space
-for masked atomic operation (which requires more space than "regular" atomic
-operation).
+Hi Hal,
 
-Signed-off-by: Dotan Barak <dotanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Reviewed-by: Eli Cohen <eli-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
----
- drivers/infiniband/hw/mlx4/qp.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+On 05:40 Thu 18 Aug     , Hal Rosenstock wrote:
+> 
+> Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+> ---
 
-diff --git a/drivers/infiniband/hw/mlx4/qp.c b/drivers/infiniband/hw/mlx4/qp.c
-index c825567..d094552 100644
---- a/drivers/infiniband/hw/mlx4/qp.c
-+++ b/drivers/infiniband/hw/mlx4/qp.c
-@@ -312,7 +312,7 @@ static int send_wqe_overhead(enum ib_qp_type type, u32 flags)
- 	case IB_QPT_XRC:
- 	case IB_QPT_RC:
- 		return sizeof (struct mlx4_wqe_ctrl_seg) +
--			sizeof (struct mlx4_wqe_atomic_seg) +
-+			sizeof (struct mlx4_wqe_masked_atomic_seg) +
- 			sizeof (struct mlx4_wqe_raddr_seg);
- 	case IB_QPT_SMI:
- 	case IB_QPT_GSI:
--- 
-1.7.4.1
-
+Applied, thanks.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
