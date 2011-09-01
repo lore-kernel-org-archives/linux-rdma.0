@@ -1,45 +1,85 @@
-From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Subject: Re: [patch v2 02/37] add opcodes to ib_pack.h
-Date: Thu, 1 Sep 2011 19:51:09 +0200
-Message-ID: <CAO+b5-r9agN-5ayYdZA76dY1hk4V8VZef4aEsDhcmFrS5YSkwA@mail.gmail.com>
-References: <20110724194300.421253331@systemfabricworks.com>
- <20110724201228.204265835@systemfabricworks.com> <CAO+b5-pb3p0n5MZYNSJicAdUfZ4PtMNG5vdzDOiZNQwLnB3Wcw@mail.gmail.com>
- <03e001cc5b66$9e9b6e40$dbd24ac0$@systemfabricworks.com> <CAO+b5-qV9uxs=V_uHbVZ_3sm1LqkQUB0em=K=nrRxUvFQYWo5A@mail.gmail.com>
- <CAO+b5-pKPuhsrQV6igqo78y_1+gZ=09GxHoABOVnLxX3myFYZA@mail.gmail.com> <037f01cc6855$5780cef0$06826cd0$@systemfabricworks.com>
+From: Albert Chu <chu11-i2BcT+NCU+M@public.gmane.org>
+Subject: [opensm] [PATCH] Fix invalid error check, which lead to segfault
+Date: Thu, 01 Sep 2011 16:30:47 -0700
+Message-ID: <1314919847.25283.446.camel@auk59.llnl.gov>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: multipart/mixed; boundary="=-e6pQ+F5q3LAi7lP/T98P"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <037f01cc6855$5780cef0$06826cd0$@systemfabricworks.com>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bob Pearson <rpearson-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Sep 1, 2011 at 5:15 AM, Bob Pearson
-<rpearson-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org> wrote:
-> > On Sat, Aug 20, 2011 at 4:47 PM, Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-> > More in detail, my comments with regard to multicast support in ib_rxe
-> are:
-> > 1. Using ipv6_eth_mc_map() for mapping multicast GIDs seems an
-> > unfortunate choice to me. That choice will cause multicast GIDs to be
-> > mapped to the 33-33-xx-xx-xx-xx Ethernet address range that has been
-> > reserved by RFC 2464 for IPv6 multicast addresses. If a collision with
-> > an IPv6 multicast address occurs and IPv6 MLD snooping has enabled on
-> > the switches in the involved network then RoCE multicast won't work
-> > properly. IMHO we need a separate Ethernet address range for RoCE
-> > multicast purposes, next to the existing ranges for IPv4 and IPv6.
->
-> I thought this was intentional! I.e. in order to get multicast over RoCE to
-> work we were trying to piggyback on the behavior of intelligent switches.
-> Otherwise the only way to get packets forwarded without adding a new group
-> of multicast addresses would be to broadcast. The implementation of IGMP and
-> MLD at the end node is oblivious to the packet's ethertype. And switches (at
-> least the ones we tried) also happily multicast RoCE packets.
 
-Shouldn't both the RoCE specification and RFC 4541 be updated
-according to the above ?
+--=-e6pQ+F5q3LAi7lP/T98P
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 
-Bart.
+This patch fixes a bug from:
+
+commit 350c6e49fe3ee492b397346633dee76d3cad9ade
+Author: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Date:   Mon Mar 7 10:03:59 2011 +0000
+
+    opensm: fixed potential memory leak in osm_ucast_ftree()
+
+    Need to free all the allocated variables in case of error.
+
+The invalid error check would lead to sw_create() always returning NULL,
+leading to fabric_add_sw() never adding a switch to sw_tbl, leading to
+fabric_get_sw_by_guid() always returning NULL (i.e. can't find switch),
+leading to rank_leaf_switches() segfaulting.
+
+Al
+
+-- 
+Albert Chu
+chu11-i2BcT+NCU+M@public.gmane.org
+Computer Scientist
+High Performance Systems Division
+Lawrence Livermore National Laboratory
+
+
+--=-e6pQ+F5q3LAi7lP/T98P
+Content-Disposition: attachment; filename=0001-Fix-invalid-error-check-which-lead-to-segfault.patch
+Content-Type: message/rfc822; name=0001-Fix-invalid-error-check-which-lead-to-segfault.patch
+
+From: Albert Chu <chu11-i2BcT+NCU+M@public.gmane.org>
+Date: Thu, 1 Sep 2011 16:24:27 -0700
+Subject: [PATCH] Fix invalid error check, which lead to segfault
+Message-Id: <1314919834.25283.445.camel-akkeaxHeDKRliZ7u+bvwcg@public.gmane.org>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
+
+The invalid error check would lead to sw_create() always
+returning NULL, leading to fabric_add_sw() never adding a
+switch to sw_tbl, leading to fabric_get_sw_by_guid() always
+returning NULL (i.e. can't find switch), leading to rank_leaf_switches()
+segfaulting.
+
+Signed-off-by: Albert Chu <chu11-i2BcT+NCU+M@public.gmane.org>
+---
+ opensm/osm_ucast_ftree.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/opensm/osm_ucast_ftree.c b/opensm/osm_ucast_ftree.c
+index 99a526d..06508c8 100644
+--- a/opensm/osm_ucast_ftree.c
++++ b/opensm/osm_ucast_ftree.c
+@@ -560,7 +560,7 @@ static ftree_sw_t *sw_create(IN ftree_fabric_t * p_ftree,
+ 	p_sw->up_port_groups =
+ 	    (ftree_port_group_t **) malloc(ports_num *
+ 					   sizeof(ftree_port_group_t *));
+-	if (p_sw->sibling_port_groups == NULL)
++	if (p_sw->up_port_groups == NULL)
+ 		goto FREE_DOWN;
+ 
+ 	p_sw->sibling_port_groups =
+-- 
+1.7.1
+
+
+--=-e6pQ+F5q3LAi7lP/T98P--
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
