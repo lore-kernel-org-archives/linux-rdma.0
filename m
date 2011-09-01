@@ -1,7 +1,7 @@
 From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
 Subject: Re: [patch v2 13/37] add rxe_verbs.c
-Date: Thu, 1 Sep 2011 12:33:38 +0200
-Message-ID: <CAO+b5-p6C3RBHee2ozE=-v4nkgFNgCzZ4yv-5CZnAxqGrOp40A@mail.gmail.com>
+Date: Thu, 1 Sep 2011 13:02:33 +0200
+Message-ID: <CAO+b5-otnep143VjpsgmGWBF2Nq5WLa6-hbvePs6+1mAgKGDvQ@mail.gmail.com>
 References: <20110724194300.421253331@systemfabricworks.com>
  <20110724201228.761358826@systemfabricworks.com> <CAO+b5-r3UtgnyfhyaodHQTj_xB5d2MQkZ8kRbrpZ1hF_0W1ONw@mail.gmail.com>
  <039b01cc6866$d909e900$8b1dbb00$@systemfabricworks.com>
@@ -18,61 +18,61 @@ List-Id: linux-rdma@vger.kernel.org
 On Thu, Sep 1, 2011 at 7:20 AM, Bob Pearson
 <rpearson-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org> wrote:
 > From: bvanassche-HInyCGIudOg@public.gmane.org
->> On Sun, Jul 24, 2011 at 9:43 PM, =A0<rpearson-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org>=
- wrote:
->> > +static int rxe_query_port(struct ib_device *dev,
->> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 u8 port_num, struct ib_p=
-ort_attr *attr)
->> > +{
->> > + =A0 struct rxe_dev *rxe =3D to_rdev(dev);
->> > + =A0 struct rxe_port *port;
->> > +
->> > + =A0 if (unlikely(port_num < 1 || port_num > rxe->num_ports)) {
->> > + =A0 =A0 =A0 =A0 =A0 pr_warn("invalid port_number %d\n", port_num=
+> > On Sun, Jul 24, 2011 at 9:43 PM, =A0<rpearson-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org=
+> wrote:
+> > > +static struct ib_ah *rxe_create_ah(struct ib_pd *ibpd, struct
+> ib_ah_attr
+> > *attr)
+> > > +{
+> > > + =A0 int err;
+> > > + =A0 struct rxe_dev *rxe =3D to_rdev(ibpd->device);
+> > > + =A0 struct rxe_pd *pd =3D to_rpd(ibpd);
+> > > + =A0 struct rxe_ah *ah;
+> > > +
+> > > + =A0 err =3D rxe_av_chk_attr(rxe, attr);
+> > > + =A0 if (err)
+> > > + =A0 =A0 =A0 =A0 =A0 goto err1;
+> > > +
+> > > + =A0 ah =3D rxe_alloc(&rxe->ah_pool);
+> > > + =A0 if (!ah) {
+> > > + =A0 =A0 =A0 =A0 =A0 err =3D -ENOMEM;
+> > > + =A0 =A0 =A0 =A0 =A0 goto err1;
+> > > + =A0 }
+> > > +
+> > > + =A0 rxe_add_ref(pd);
+> > > + =A0 ah->pd =3D pd;
+> > > +
+> > > + =A0 err =3D rxe_av_from_attr(rxe, attr->port_num, &ah->av, attr=
 );
->> > + =A0 =A0 =A0 =A0 =A0 goto err1;
->> > + =A0 }
->> > +
->> > + =A0 port =3D &rxe->port[port_num - 1];
->> > +
->> > + =A0 *attr =3D port->attr;
->> > + =A0 return 0;
->> > +
->> > +err1:
->> > + =A0 return -EINVAL;
->> > +}
->>
->> The pr_warn() statement in the above function looks to me like an
->> example of how pr_warn() should not be used: the message it generate=
-s
->> won't allow a user to find out which subsystem generated that messag=
-e.
->> I suggest either to leave out that pr_warn() statement entirely or t=
-o
->> convert it into a pr_debug() statement and to use an appropriate
->> prefix, e.g. via pr_fmt().
+> > > + =A0 if (err)
+> > > + =A0 =A0 =A0 =A0 =A0 goto err2;
+> > > +
+> > > + =A0 return &ah->ibah;
+> > > +
+> > > +err2:
+> > > + =A0 rxe_drop_ref(pd);
+> > > + =A0 rxe_drop_ref(ah);
+> > > +err1:
+> > > + =A0 return ERR_PTR(err);
+> > > +}
+> >
+> > I'm not sure that using a variable with the name "err" and labels w=
+ith
+> > names "err1" and "err2" is a good idea with regard to readability.
 >
-> I am not familiar with pr_fmt but looked at some examples. It looks l=
-ike the
-> conventional usage is to define pr_fmt(fmt) as KBUILD_MODNAME ": " fm=
-t which
-> I suppose will output ib_rxe: or some variant. Ideally I would want r=
-xe0: or
-> rxe1: which is the ib device name.
->
-> Do you have an opinion about best use of pr_debug, pr_warn and pr_err=
- and
-> also about use of something like CONFIG_RXE_DEBUG vs just plain DEBUG=
- vs
-> always on?
+> There are a lot of these. I used err instead of ret in cases where th=
+e only
+> purpose of the return was to indicate an error. I used a lot of stack=
+ed
+> error returns to avoid repetitive cleanup stanzas. Again the name err=
+N:
+> implies an error occurred. How about errorN: Is that enough different=
+ to
+> avoid the confusion you sense?
 
-I should have recommended dev_warn()/dev_dbg() instead of pr_fmt()
-here. These are defined in <linux/device.h>.
-
-And if you would like to make enabling debug statements configurable,
-please use the dynamic_debug infrastructure instead of introducing a
-configure option like CONFIG_RXE_DEBUG. See also
-http://lwn.net/Articles/434833/ for more information.
+If you are going to rename the "err<n>" labels, maybe it's a better
+idea to rename these into "fail<n>" instead of "error<n>". Maybe it's
+even possible to do this renaming with sed.
 
 Bart.
 --
