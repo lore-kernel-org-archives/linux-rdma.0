@@ -1,75 +1,102 @@
 From: "Bob Pearson" <rpearson-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org>
-Subject: RE: [patch v2 02/37] add opcodes to ib_pack.h
-Date: Wed, 31 Aug 2011 22:38:21 -0500
-Message-ID: <038001cc6858$9922d7b0$cb688710$@systemfabricworks.com>
-References: <20110724194300.421253331@systemfabricworks.com> <20110724201228.204265835@systemfabricworks.com> <CAO+b5-pb3p0n5MZYNSJicAdUfZ4PtMNG5vdzDOiZNQwLnB3Wcw@mail.gmail.com>
+Subject: RE: [patch v2 06/37] add rxe_param.h
+Date: Wed, 31 Aug 2011 22:50:00 -0500
+Message-ID: <038101cc685a$39e6bcb0$adb43610$@systemfabricworks.com>
+References: <20110724194300.421253331@systemfabricworks.com> <20110724201228.415281967@systemfabricworks.com> <CAO+b5-q5ohgttDAc45MSKrSUdUVOfR3xHMSY99JtfX_MetSw8Q@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAO+b5-pb3p0n5MZYNSJicAdUfZ4PtMNG5vdzDOiZNQwLnB3Wcw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <CAO+b5-q5ohgttDAc45MSKrSUdUVOfR3xHMSY99JtfX_MetSw8Q-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Content-Language: en-us
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: 'Bart Van Assche' <bvanassche-HInyCGIudOg@public.gmane.org>
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-OK. Since for now I don't need it I'll remove this patch but it might b=
-e
-worth considering adding them as a standalone patch.
+
 
 > -----Original Message-----
 > From: bart.vanassche-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org [mailto:bart.vanassche-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org] On
 > Behalf Of Bart Van Assche
-> Sent: Monday, August 15, 2011 4:13 AM
+> Sent: Saturday, August 20, 2011 10:27 AM
 > To: rpearson-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org
 > Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> Subject: Re: [patch v2 02/37] add opcodes to ib_pack.h
->=20
-> On Sun, Jul 24, 2011 at 9:43 PM, <rpearson-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org> wro=
-te:
-> >
-> > Bring up to date with the current version of the IBTA spec.
-> > =A0 =A0 =A0 =A0- add new opcodes for RC and RD
-> > =A0 =A0 =A0 =A0- add new groups of opcodes for CN and XRC
-> >
-> > Signed-off-by: Bob Pearson <rpearson-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org>
-> >
-> > ---
-> > =A0include/rdma/ib_pack.h | =A0 39
-> ++++++++++++++++++++++++++++++++++++++-
-> > =A01 file changed, 38 insertions(+), 1 deletion(-)
-> >
-> > Index: infiniband/include/rdma/ib_pack.h
-> >
-> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-> =3D=3D=3D=3D=3D=3D=3D=3D=3D
-> > --- infiniband.orig/include/rdma/ib_pack.h
-> > +++ infiniband/include/rdma/ib_pack.h
-> > @@ -75,6 +75,8 @@ enum {
-> > =A0 =A0 =A0 =A0IB_OPCODE_UC =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0 =A0 =A0=3D 0x20,
-> > =A0 =A0 =A0 =A0IB_OPCODE_RD =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0 =A0 =A0=3D 0x40,
-> > =A0 =A0 =A0 =A0IB_OPCODE_UD =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0 =A0 =A0=3D 0x60,
-> > + =A0 =A0 =A0 IB_OPCODE_CN =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
-=A0 =A0 =A0 =A0 =A0 =A0=3D 0x80,
-> > + =A0 =A0 =A0 IB_OPCODE_XRC =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0 =A0 =3D 0xA0,
->=20
-> A convention when submitting Linux kernel patches is to add only thos=
-e
-> constants that are actually used in the code submitted in the same
-> patch series. So I'm not sure it's fine to add the XRC constants in
-> ib_pack.h through the rxe patch series.
->=20
+> Subject: Re: [patch v2 06/37] add rxe_param.h
+> 
+> On Sun, Jul 24, 2011 at 9:43 PM,  <rpearson-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org> wrote:
+> > +enum rxe_mtu {
+> > +	RXE_MTU_INVALID = 0,
+> > +	RXE_MTU_256	= 1,
+> > +	RXE_MTU_512	= 2,
+> > +	RXE_MTU_1024	= 3,
+> > +	RXE_MTU_2048	= 4,
+> > +	RXE_MTU_4096	= 5,
+> > +	RXE_MTU_8192	= 6,
+> > +};
+> 
+> Do the numerical values in the above enum have a meaning ? If not, how
+> about using log2(mtu) for the numerical values and leaving out all
+> names except RXE_MTU_INVALID ? That would allow to simplify the
+> implementation of the two functions below.
+> 
+> Also, in the function rxe_param_set_mtu() it is verified whether the
+> user-provided mtu is in the range (256..4096). Shouldn't there be
+> symbolic names for these two extreme values ?
+
+These enums were added when we were trying to extend the IB MTU to take
+advantage of Ethernet jumbo frames which would allow payloads of 8K. Since
+then we dropped this because it broke all the user space admin tools, and as
+you notice check to see that the mtu is less than 4096. There are generic
+macros in the standard IB files that are the same as these except that they
+stop at 4096. Your comments apply to those as well but we can have that
+battle another day. For now I can drop all the MTU macros here and use the
+standard ones. And worry about jumbo frames another time as well.
+
+> 
+> > +static inline int rxe_mtu_enum_to_int(enum rxe_mtu mtu)
+> > +{
+> > +	switch (mtu) {
+> > +	case RXE_MTU_256:	return	256;
+> > +	case RXE_MTU_512:	return	512;
+> > +	case RXE_MTU_1024:	return	1024;
+> > +	case RXE_MTU_2048:	return	2048;
+> > +	case RXE_MTU_4096:	return	4096;
+> > +	case RXE_MTU_8192:	return	8192;
+> > +	default:		return	-1;
+> > +	}
+> > +}
+> 
+> For this function I'd prefer a function name like "log2_mtu_to_mtu"
+> instead of "rxe_mtu_enum_to_int". It seems to me that all cases except
+> "default" produce the value (1 << (8 + log2_mtu)), so the above
+> function can be made shorter.
+> 
+> > +static inline enum rxe_mtu rxe_mtu_int_to_enum(int mtu)
+> > +{
+> > +	if (mtu < 256)
+> > +		return 0;
+> > +	else if (mtu < 512)
+> > +		return RXE_MTU_256;
+> > +	else if (mtu < 1024)
+> > +		return RXE_MTU_512;
+> > +	else if (mtu < 2048)
+> > +		return RXE_MTU_1024;
+> > +	else if (mtu < 4096)
+> > +		return RXE_MTU_2048;
+> > +	else if (mtu < 8192)
+> > +		return RXE_MTU_4096;
+> > +	else
+> > +		return RXE_MTU_8192;
+> > +}
+> 
+> The above function can be made shorter by using the function ilog2()
+> defined in <linux/log2.h>.
+> 
 > Bart.
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
