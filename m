@@ -1,14 +1,14 @@
 From: "Bob Pearson" <rpearson-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org>
-Subject: RE: [patch v2 06/37] add rxe_param.h
-Date: Wed, 31 Aug 2011 22:50:00 -0500
-Message-ID: <038101cc685a$39e6bcb0$adb43610$@systemfabricworks.com>
-References: <20110724194300.421253331@systemfabricworks.com> <20110724201228.415281967@systemfabricworks.com> <CAO+b5-q5ohgttDAc45MSKrSUdUVOfR3xHMSY99JtfX_MetSw8Q@mail.gmail.com>
+Subject: RE: [patch v2 12/37] add rxe_verbs.h
+Date: Wed, 31 Aug 2011 23:32:12 -0500
+Message-ID: <038501cc6860$1f0bd500$5d237f00$@systemfabricworks.com>
+References: <20110724194300.421253331@systemfabricworks.com> <20110724201228.710989476@systemfabricworks.com> <CAO+b5-okTDAJ6iOTv_JKXeGttt0MFM+na-FRaNwJMFqHktKHJQ@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="us-ascii"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAO+b5-q5ohgttDAc45MSKrSUdUVOfR3xHMSY99JtfX_MetSw8Q-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <CAO+b5-okTDAJ6iOTv_JKXeGttt0MFM+na-FRaNwJMFqHktKHJQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Content-Language: en-us
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: 'Bart Van Assche' <bvanassche-HInyCGIudOg@public.gmane.org>
@@ -20,79 +20,109 @@ List-Id: linux-rdma@vger.kernel.org
 > -----Original Message-----
 > From: bart.vanassche-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org [mailto:bart.vanassche-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org] On
 > Behalf Of Bart Van Assche
-> Sent: Saturday, August 20, 2011 10:27 AM
+> Sent: Monday, August 15, 2011 7:32 AM
 > To: rpearson-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org
 > Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> Subject: Re: [patch v2 06/37] add rxe_param.h
+> Subject: Re: [patch v2 12/37] add rxe_verbs.h
 > 
 > On Sun, Jul 24, 2011 at 9:43 PM,  <rpearson-klaOcWyJdxkshyMvu7JE4pqQE7yCjDx5@public.gmane.org> wrote:
-> > +enum rxe_mtu {
-> > +	RXE_MTU_INVALID = 0,
-> > +	RXE_MTU_256	= 1,
-> > +	RXE_MTU_512	= 2,
-> > +	RXE_MTU_1024	= 3,
-> > +	RXE_MTU_2048	= 4,
-> > +	RXE_MTU_4096	= 5,
-> > +	RXE_MTU_8192	= 6,
+> > +static inline int pkey_match(u16 key1, u16 key2)
+> > +{
+> > +	return (((key1 & 0x7fff) != 0) &&
+> > +		((key1 & 0x7fff) == (key2 & 0x7fff)) &&
+> > +		((key1 & 0x8000) || (key2 & 0x8000))) ? 1 : 0;
+> > +}
+> 
+> Shouldn't the return type of the above function be "bool" instead of
+> "int" ? Also, the "? 1 : 0" part at the end of the above expression
+> looks superfluous to me.
+
+Sounds fine to me.
+
+> 
+> > +
+> > +/* Return >0 if psn_a > psn_b
+> > + *	   0 if psn_a == psn_b
+> > + *	  <0 if psn_a < psn_b
+> > + */
+> > +static inline int psn_compare(u32 psn_a, u32 psn_b)
+> > +{
+> > +	s32 diff;
+> > +	diff = (psn_a - psn_b) << 8;
+> > +	return diff;
+> > +}
+
+Sure
+
+> 
+> Mentioning in the comment block that (according to IBTA) PSNs are
+> 24-bit quantities would help IMHO.
+> 
+> > +#define RXE_LL_ADDR_LEN		(16)
+> > +
+> > +struct rxe_av {
+> > +	struct ib_ah_attr	attr;
+> > +	u8			ll_addr[RXE_LL_ADDR_LEN];
+> > +};
+
+Good idea. Can use MAX_ADDR_LEN as well.
+
+> 
+> Since the ib_rxe kernel module can be used in combination with other
+> network drivers than only Ethernet drivers, the number of bytes stored
+> in ll_addr[] by init_av() depends on the link layer type. Shouldn't
+> the address length be stored in this structure too ?
+> 
+> > +/* must match corresponding data structure in librxe */
+> > +struct rxe_send_wqe {
+> > +	struct ib_send_wr	ibwr;
+> > +	struct rxe_av		av;	/* UD only */
+> > +	u32			status;
+> > +	u32			state;
+> > +	u64			iova;
+> > +	u32			mask;
+> > +	u32			first_psn;
+> > +	u32			last_psn;
+> > +	u32			ack_length;
+> > +	u32			ssn;
+> > +	u32			has_rd_atomic;
+> > +	struct rxe_dma_info	dma;	/* must go last */
 > > +};
 > 
-> Do the numerical values in the above enum have a meaning ? If not, how
-> about using log2(mtu) for the numerical values and leaving out all
-> names except RXE_MTU_INVALID ? That would allow to simplify the
-> implementation of the two functions below.
-> 
-> Also, in the function rxe_param_set_mtu() it is verified whether the
-> user-provided mtu is in the range (256..4096). Shouldn't there be
-> symbolic names for these two extreme values ?
+> Can't librxe use this header file instead of duplicating the above
+definition ?
 
-These enums were added when we were trying to extend the IB MTU to take
-advantage of Ethernet jumbo frames which would allow payloads of 8K. Since
-then we dropped this because it broke all the user space admin tools, and as
-you notice check to see that the mtu is less than 4096. There are generic
-macros in the standard IB files that are the same as these except that they
-stop at 4096. Your comments apply to those as well but we can have that
-battle another day. For now I can drop all the MTU macros here and use the
-standard ones. And worry about jumbo frames another time as well.
+We followed the local convention which is to keep the header files separate.
+(See e.g. nes/nes_user.h, mthca/mthca_user.h, etc...) I can't justify it
+except that everyone else does it too.
 
 > 
-> > +static inline int rxe_mtu_enum_to_int(enum rxe_mtu mtu)
-> > +{
-> > +	switch (mtu) {
-> > +	case RXE_MTU_256:	return	256;
-> > +	case RXE_MTU_512:	return	512;
-> > +	case RXE_MTU_1024:	return	1024;
-> > +	case RXE_MTU_2048:	return	2048;
-> > +	case RXE_MTU_4096:	return	4096;
-> > +	case RXE_MTU_8192:	return	8192;
-> > +	default:		return	-1;
-> > +	}
-> > +}
+> > +struct rxe_port {
+> > +	struct ib_port_attr	attr;
+> > +	u16			*pkey_tbl;
+> > +	__be64			*guid_tbl;
+> > +	__be64			subnet_prefix;
+> > +
+> > +	/* rate control */
+> > +	/* TODO */
+> > +
+> > +	spinlock_t		port_lock;
+> > +
+> > +	unsigned int		mtu_cap;
+> > +
+> > +	/* special QPs */
+> > +	u32			qp_smi_index;
+> > +	u32			qp_gsi_index;
+> > +};
 > 
-> For this function I'd prefer a function name like "log2_mtu_to_mtu"
-> instead of "rxe_mtu_enum_to_int". It seems to me that all cases except
-> "default" produce the value (1 << (8 + log2_mtu)), so the above
-> function can be made shorter.
-> 
-> > +static inline enum rxe_mtu rxe_mtu_int_to_enum(int mtu)
-> > +{
-> > +	if (mtu < 256)
-> > +		return 0;
-> > +	else if (mtu < 512)
-> > +		return RXE_MTU_256;
-> > +	else if (mtu < 1024)
-> > +		return RXE_MTU_512;
-> > +	else if (mtu < 2048)
-> > +		return RXE_MTU_1024;
-> > +	else if (mtu < 4096)
-> > +		return RXE_MTU_2048;
-> > +	else if (mtu < 8192)
-> > +		return RXE_MTU_4096;
-> > +	else
-> > +		return RXE_MTU_8192;
-> > +}
-> 
-> The above function can be made shorter by using the function ilog2()
-> defined in <linux/log2.h>.
+> Regarding the "to do" item above: is rate control something planned
+> for the first submission of this driver ?
+
+Currently rxe only supports one port per device and the injection rate
+control is tied to the device.  It is a fairly fussy change to completely
+implement multiport devices and doesn't add much value as far as I can tell.
+So for now I suppose we can drop this TODO.
+
 > 
 > Bart.
 
