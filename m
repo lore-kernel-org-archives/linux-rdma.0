@@ -1,7 +1,7 @@
 From: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH] libmlx4: add support for 64 byte CQE
-Date: Sun, 4 Sep 2011 15:12:55 +0300
-Message-ID: <20110904121255.GA12603@mtldesk30>
+Subject: [PATCH] mlx4: Enable 64 byte CQEs
+Date: Sun, 4 Sep 2011 15:12:16 +0300
+Message-ID: <20110904121216.GA12495@mtldesk30>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
@@ -12,285 +12,292 @@ Cc: RDMA list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 CX3 devices can work with 64 or 32 byte CQEs. Using 64 byte CQEs allow better
-utilization of new chipsets and gaining higher performance. This patch will
-read from kernel the configured size of a CQE and use this size in CQ related
-code. It also reads the ABI version to a gloabl varialbe and uses it to choose
-either the value read from the kernel (ABI > 3), or use the regular 32 byte
-value.
+utilization of new chipsets and gaining higher performance. This patch queries
+the HCA's capabilities and if it supports 64 byte CQEs and will configure it to
+work in 64 byte mode. Userspace need also be updated to work with the
+configured CQE size so mlx4_ib_alloc_ucontext was modified to return the size
+of the CQE. This changes the binary interface so the ABI is bumped from 3 to 4.
 
 Signed-off-by: Eli Cohen <eli-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
 ---
- src/cq.c       |   41 +++++++++++++++++++----------------------
- src/mlx4-abi.h |    3 ++-
- src/mlx4.c     |    7 +++++++
- src/mlx4.h     |   24 +++++++++++++++++++-----
- src/verbs.c    |    6 ++++--
- 5 files changed, 51 insertions(+), 30 deletions(-)
+ drivers/infiniband/hw/mlx4/cq.c      |   21 ++++++++++++++-------
+ drivers/infiniband/hw/mlx4/main.c    |    1 +
+ drivers/infiniband/hw/mlx4/mlx4_ib.h |    1 +
+ drivers/infiniband/hw/mlx4/user.h    |    3 ++-
+ drivers/net/mlx4/en_cq.c             |    4 ++--
+ drivers/net/mlx4/en_rx.c             |    8 ++++++--
+ drivers/net/mlx4/en_tx.c             |    2 ++
+ drivers/net/mlx4/fw.c                |    6 ++++++
+ drivers/net/mlx4/main.c              |    9 +++++++++
+ include/linux/mlx4/device.h          |    2 ++
+ 10 files changed, 45 insertions(+), 12 deletions(-)
 
-diff --git a/src/cq.c b/src/cq.c
-index 8226b6b..eaadcb0 100644
---- a/src/cq.c
-+++ b/src/cq.c
-@@ -82,21 +82,6 @@ enum {
- 	MLX4_CQE_SYNDROME_REMOTE_ABORTED_ERR		= 0x22,
- };
+diff --git a/drivers/infiniband/hw/mlx4/cq.c b/drivers/infiniband/hw/mlx4/cq.c
+index e8df155..a3b4732 100644
+--- a/drivers/infiniband/hw/mlx4/cq.c
++++ b/drivers/infiniband/hw/mlx4/cq.c
+@@ -66,7 +66,7 @@ static void mlx4_ib_cq_event(struct mlx4_cq *cq, enum mlx4_event type)
  
--struct mlx4_cqe {
--	uint32_t	my_qpn;
--	uint32_t	immed_rss_invalid;
--	uint32_t	g_mlpath_rqpn;
--	uint8_t		sl;
--	uint8_t		reserved1;
--	uint16_t	rlid;
--	uint32_t	reserved2;
--	uint32_t	byte_cnt;
--	uint16_t	wqe_index;
--	uint16_t	checksum;
--	uint8_t		reserved3[3];
--	uint8_t		owner_sr_opcode;
--};
--
- struct mlx4_err_cqe {
- 	uint32_t	my_qpn;
- 	uint32_t	reserved1[5];
-@@ -109,14 +94,15 @@ struct mlx4_err_cqe {
- 
- static struct mlx4_cqe *get_cqe(struct mlx4_cq *cq, int entry)
+ static void *get_cqe_from_buf(struct mlx4_ib_cq_buf *buf, int n)
  {
--	return cq->buf.buf + entry * MLX4_CQ_ENTRY_SIZE;
-+	return cq->buf.buf + entry * cq->cqe_size;
+-	return mlx4_buf_offset(&buf->buf, n * sizeof (struct mlx4_cqe));
++	return mlx4_buf_offset(&buf->buf, n * buf->entry_size);
  }
  
- static void *get_sw_cqe(struct mlx4_cq *cq, int n)
+ static void *get_cqe(struct mlx4_ib_cq *cq, int n)
+@@ -77,8 +77,9 @@ static void *get_cqe(struct mlx4_ib_cq *cq, int n)
+ static void *get_sw_cqe(struct mlx4_ib_cq *cq, int n)
  {
- 	struct mlx4_cqe *cqe = get_cqe(cq, n & cq->ibv_cq.cqe);
-+	struct mlx4_cqe *tcqe = cq->cqe_size == 64 ? cqe + 1 : cqe;
+ 	struct mlx4_cqe *cqe = get_cqe(cq, n & cq->ibcq.cqe);
++	struct mlx4_cqe *tcqe = ((cq->buf.entry_size == 64) ? (cqe + 1) : cqe);
  
 -	return (!!(cqe->owner_sr_opcode & MLX4_CQE_OWNER_MASK) ^
 +	return (!!(tcqe->owner_sr_opcode & MLX4_CQE_OWNER_MASK) ^
- 		!!(n & (cq->ibv_cq.cqe + 1))) ? NULL : cqe;
+ 		!!(n & (cq->ibcq.cqe + 1))) ? NULL : cqe;
  }
  
-@@ -205,6 +191,9 @@ static int mlx4_poll_one(struct mlx4_cq *cq,
+@@ -99,12 +100,13 @@ static int mlx4_ib_alloc_cq_buf(struct mlx4_ib_dev *dev, struct mlx4_ib_cq_buf *
+ {
+ 	int err;
+ 
+-	err = mlx4_buf_alloc(dev->dev, nent * sizeof(struct mlx4_cqe),
++	err = mlx4_buf_alloc(dev->dev, nent * dev->dev->caps.cqe_size,
+ 			     PAGE_SIZE * 2, &buf->buf);
+ 
+ 	if (err)
+ 		goto out;
+ 
++	buf->entry_size = dev->dev->caps.cqe_size;
+ 	err = mlx4_mtt_init(dev->dev, buf->buf.npages, buf->buf.page_shift,
+ 				    &buf->mtt);
+ 	if (err)
+@@ -120,7 +122,7 @@ err_mtt:
+ 	mlx4_mtt_cleanup(dev->dev, &buf->mtt);
+ 
+ err_buf:
+-	mlx4_buf_free(dev->dev, nent * sizeof(struct mlx4_cqe),
++	mlx4_buf_free(dev->dev, nent * buf->entry_size,
+ 			      &buf->buf);
+ 
+ out:
+@@ -129,7 +131,7 @@ out:
+ 
+ static void mlx4_ib_free_cq_buf(struct mlx4_ib_dev *dev, struct mlx4_ib_cq_buf *buf, int cqe)
+ {
+-	mlx4_buf_free(dev->dev, (cqe + 1) * sizeof(struct mlx4_cqe), &buf->buf);
++	mlx4_buf_free(dev->dev, (cqe + 1) * buf->entry_size, &buf->buf);
+ }
+ 
+ static int mlx4_ib_get_cq_umem(struct mlx4_ib_dev *dev, struct ib_ucontext *context,
+@@ -137,8 +139,9 @@ static int mlx4_ib_get_cq_umem(struct mlx4_ib_dev *dev, struct ib_ucontext *cont
+ 			       u64 buf_addr, int cqe)
+ {
+ 	int err;
++	int cqe_size = dev->dev->caps.cqe_size;
+ 
+-	*umem = ib_umem_get(context, buf_addr, cqe * sizeof (struct mlx4_cqe),
++	*umem = ib_umem_get(context, buf_addr, cqe * cqe_size,
+ 			    IB_ACCESS_LOCAL_WRITE, 1);
+ 	if (IS_ERR(*umem))
+ 		return PTR_ERR(*umem);
+@@ -328,13 +331,14 @@ static void mlx4_ib_cq_resize_copy_cqes(struct mlx4_ib_cq *cq)
+ {
+ 	struct mlx4_cqe *cqe, *new_cqe;
+ 	int i;
++	int cqe_size = cq->buf.entry_size;
+ 
+ 	i = cq->mcq.cons_index;
+ 	cqe = get_cqe(cq, i & cq->ibcq.cqe);
+ 	while ((cqe->owner_sr_opcode & MLX4_CQE_OPCODE_MASK) != MLX4_CQE_OPCODE_RESIZE) {
+ 		new_cqe = get_cqe_from_buf(&cq->resize_buf->buf,
+ 					   (i + 1) & cq->resize_buf->cqe);
+-		memcpy(new_cqe, get_cqe(cq, i & cq->ibcq.cqe), sizeof(struct mlx4_cqe));
++		memcpy(new_cqe, get_cqe(cq, i & cq->ibcq.cqe), cqe_size);
+ 		new_cqe->owner_sr_opcode = (cqe->owner_sr_opcode & ~MLX4_CQE_OWNER_MASK) |
+ 			(((i + 1) & (cq->resize_buf->cqe + 1)) ? MLX4_CQE_OWNER_MASK : 0);
+ 		cqe = get_cqe(cq, ++i & cq->ibcq.cqe);
+@@ -562,6 +566,9 @@ repoll:
  	if (!cqe)
- 		return CQ_EMPTY;
+ 		return -EAGAIN;
  
-+	if (cq->cqe_size == 64)
-+		++cqe;
++	if (cq->buf.entry_size == 64)
++		cqe++;
 +
- 	++cq->cons_index;
- 
- 	VALGRIND_MAKE_MEM_DEFINED(cqe, sizeof *cqe);
-@@ -387,6 +376,7 @@ void __mlx4_cq_clean(struct mlx4_cq *cq, uint32_t qpn, struct mlx4_srq *srq)
- 	uint32_t prod_index;
- 	uint8_t owner_bit;
- 	int nfreed = 0;
-+	int cqe_inc = cq->cqe_size == 64 ? 1 : 0;
+ 	++cq->mcq.cons_index;
  
  	/*
- 	 * First we need to find the current producer index, so we
-@@ -405,12 +395,14 @@ void __mlx4_cq_clean(struct mlx4_cq *cq, uint32_t qpn, struct mlx4_srq *srq)
- 	 */
- 	while ((int) --prod_index - (int) cq->cons_index >= 0) {
- 		cqe = get_cqe(cq, prod_index & cq->ibv_cq.cqe);
-+		cqe += cqe_inc;
- 		if ((ntohl(cqe->my_qpn) & 0xffffff) == qpn) {
- 			if (srq && !(cqe->owner_sr_opcode & MLX4_CQE_IS_SEND_MASK))
- 				mlx4_free_srq_wqe(srq, ntohs(cqe->wqe_index));
- 			++nfreed;
- 		} else if (nfreed) {
- 			dest = get_cqe(cq, (prod_index + nfreed) & cq->ibv_cq.cqe);
-+			dest += cqe_inc;
- 			owner_bit = dest->owner_sr_opcode & MLX4_CQE_OWNER_MASK;
- 			memcpy(dest, cqe, sizeof *cqe);
- 			dest->owner_sr_opcode = owner_bit |
-@@ -450,28 +442,33 @@ void mlx4_cq_resize_copy_cqes(struct mlx4_cq *cq, void *buf, int old_cqe)
- {
- 	struct mlx4_cqe *cqe;
- 	int i;
-+	int cqe_inc = cq->cqe_size == 64 ? 1 : 0;
+diff --git a/drivers/infiniband/hw/mlx4/main.c b/drivers/infiniband/hw/mlx4/main.c
+index fa643f4..2a41040 100644
+--- a/drivers/infiniband/hw/mlx4/main.c
++++ b/drivers/infiniband/hw/mlx4/main.c
+@@ -469,6 +469,7 @@ static struct ib_ucontext *mlx4_ib_alloc_ucontext(struct ib_device *ibdev,
+ 	resp.qp_tab_size      = dev->dev->caps.num_qps;
+ 	resp.bf_reg_size      = dev->dev->caps.bf_reg_size;
+ 	resp.bf_regs_per_page = dev->dev->caps.bf_regs_per_page;
++	resp.cqe_size         = dev->dev->caps.cqe_size;
  
- 	i = cq->cons_index;
- 	cqe = get_cqe(cq, (i & old_cqe));
-+	cqe += cqe_inc;
+ 	context = kmalloc(sizeof *context, GFP_KERNEL);
+ 	if (!context)
+diff --git a/drivers/infiniband/hw/mlx4/mlx4_ib.h b/drivers/infiniband/hw/mlx4/mlx4_ib.h
+index e4bf2cf..0c325c4 100644
+--- a/drivers/infiniband/hw/mlx4/mlx4_ib.h
++++ b/drivers/infiniband/hw/mlx4/mlx4_ib.h
+@@ -59,6 +59,7 @@ struct mlx4_ib_pd {
+ struct mlx4_ib_cq_buf {
+ 	struct mlx4_buf		buf;
+ 	struct mlx4_mtt		mtt;
++	int			entry_size;
+ };
  
- 	while ((cqe->owner_sr_opcode & MLX4_CQE_OPCODE_MASK) != MLX4_CQE_OPCODE_RESIZE) {
- 		cqe->owner_sr_opcode = (cqe->owner_sr_opcode & ~MLX4_CQE_OWNER_MASK) |
- 			(((i + 1) & (cq->ibv_cq.cqe + 1)) ? MLX4_CQE_OWNER_MASK : 0);
--		memcpy(buf + ((i + 1) & cq->ibv_cq.cqe) * MLX4_CQ_ENTRY_SIZE,
--		       cqe, MLX4_CQ_ENTRY_SIZE);
-+		memcpy(buf + ((i + 1) & cq->ibv_cq.cqe) * cq->cqe_size,
-+		       cqe - cqe_inc, cq->cqe_size);
- 		++i;
- 		cqe = get_cqe(cq, (i & old_cqe));
-+		cqe += cqe_inc;
- 	}
+ struct mlx4_ib_cq_resize {
+diff --git a/drivers/infiniband/hw/mlx4/user.h b/drivers/infiniband/hw/mlx4/user.h
+index 13beede..2aa33f8 100644
+--- a/drivers/infiniband/hw/mlx4/user.h
++++ b/drivers/infiniband/hw/mlx4/user.h
+@@ -40,7 +40,7 @@
+  * Increment this value if any changes that break userspace ABI
+  * compatibility are made.
+  */
+-#define MLX4_IB_UVERBS_ABI_VERSION	3
++#define MLX4_IB_UVERBS_ABI_VERSION	4
  
- 	++cq->cons_index;
- }
+ /*
+  * Make sure that all structs defined in this file remain laid out so
+@@ -54,6 +54,7 @@ struct mlx4_ib_alloc_ucontext_resp {
+ 	__u32	qp_tab_size;
+ 	__u16	bf_reg_size;
+ 	__u16	bf_regs_per_page;
++	__u32	cqe_size;
+ };
  
--int mlx4_alloc_cq_buf(struct mlx4_device *dev, struct mlx4_buf *buf, int nent)
-+int mlx4_alloc_cq_buf(struct mlx4_device *dev, struct mlx4_buf *buf, int nent,
-+		      int entry_size)
- {
--	if (mlx4_alloc_buf(buf, align(nent * MLX4_CQ_ENTRY_SIZE, dev->page_size),
-+	if (mlx4_alloc_buf(buf, align(nent * entry_size, dev->page_size),
- 			   dev->page_size))
- 		return -1;
--	memset(buf->buf, 0, nent * MLX4_CQ_ENTRY_SIZE);
+ struct mlx4_ib_alloc_pd_resp {
+diff --git a/drivers/net/mlx4/en_cq.c b/drivers/net/mlx4/en_cq.c
+index ec4b6d0..b60b547 100644
+--- a/drivers/net/mlx4/en_cq.c
++++ b/drivers/net/mlx4/en_cq.c
+@@ -52,9 +52,9 @@ int mlx4_en_create_cq(struct mlx4_en_priv *priv,
+ 
+ 	cq->size = entries;
+ 	if (mode == RX)
+-		cq->buf_size = cq->size * sizeof(struct mlx4_cqe);
++		cq->buf_size = cq->size * priv->mdev->dev->caps.cqe_size;
+ 	else
+-		cq->buf_size = sizeof(struct mlx4_cqe);
++		cq->buf_size = priv->mdev->dev->caps.cqe_size;
+ 
+ 	cq->ring = ring;
+ 	cq->is_tx = mode;
+diff --git a/drivers/net/mlx4/en_rx.c b/drivers/net/mlx4/en_rx.c
+index 37cc9e5..dd15ccb 100644
+--- a/drivers/net/mlx4/en_rx.c
++++ b/drivers/net/mlx4/en_rx.c
+@@ -541,15 +541,19 @@ int mlx4_en_process_rx_cq(struct net_device *dev, struct mlx4_en_cq *cq, int bud
+ 	unsigned int length;
+ 	int polled = 0;
+ 	int ip_summed;
++	int factor = 0;
+ 
+ 	if (!priv->port_up)
+ 		return 0;
+ 
++	if (priv->mdev->dev->caps.cqe_size == 64)
++		factor = 1;
 +
-+	memset(buf->buf, 0, nent * entry_size);
+ 	/* We assume a 1:1 mapping between CQEs and Rx descriptors, so Rx
+ 	 * descriptor offset can be deduced from the CQE index instead of
+ 	 * reading 'cqe->index' */
+ 	index = cq->mcq.cons_index & ring->size_mask;
+-	cqe = &cq->buf[index];
++	cqe = &cq->buf[(index << factor) + factor];
  
+ 	/* Process all completed CQEs */
+ 	while (XNOR(cqe->owner_sr_opcode & MLX4_CQE_OWNER_MASK,
+@@ -660,7 +664,7 @@ int mlx4_en_process_rx_cq(struct net_device *dev, struct mlx4_en_cq *cq, int bud
+ next:
+ 		++cq->mcq.cons_index;
+ 		index = (cq->mcq.cons_index) & ring->size_mask;
+-		cqe = &cq->buf[index];
++		cqe = &cq->buf[(index << factor) + factor];
+ 		if (++polled == budget) {
+ 			/* We are here because we reached the NAPI budget -
+ 			 * flush only pending LRO sessions */
+diff --git a/drivers/net/mlx4/en_tx.c b/drivers/net/mlx4/en_tx.c
+index 6e03de0..16337fb 100644
+--- a/drivers/net/mlx4/en_tx.c
++++ b/drivers/net/mlx4/en_tx.c
+@@ -318,6 +318,8 @@ static void mlx4_en_process_tx_cq(struct net_device *dev, struct mlx4_en_cq *cq)
+ 	u32 txbbs_skipped = 0;
+ 	u32 cq_last_sav;
+ 
++	if (priv->mdev->dev->caps.cqe_size == 64)
++		cqe++;
+ 	/* index always points to the first TXBB of the last polled descriptor */
+ 	index = ring->cons & ring->size_mask;
+ 	new_index = be16_to_cpu(cqe->wqe_index) & ring->size_mask;
+diff --git a/drivers/net/mlx4/fw.c b/drivers/net/mlx4/fw.c
+index 7eb8ba8..3cf072e 100644
+--- a/drivers/net/mlx4/fw.c
++++ b/drivers/net/mlx4/fw.c
+@@ -106,6 +106,8 @@ static void dump_dev_cap_flags(struct mlx4_dev *dev, u64 flags)
+ 		[41] = "Unicast VEP steering support",
+ 		[42] = "Multicast VEP steering support",
+ 		[48] = "Counters support",
++		[61] = "64 byte EQE support",
++		[62] = "64 byte CQE support",
+ 	};
+ 	int i;
+ 
+@@ -729,6 +731,7 @@ int mlx4_INIT_HCA(struct mlx4_dev *dev, struct mlx4_init_hca_param *param)
+ #define INIT_HCA_CACHELINE_SZ_OFFSET	 0x0e
+ #define INIT_HCA_FLAGS_OFFSET		 0x014
+ #define INIT_HCA_QPC_OFFSET		 0x020
++#define INIT_HCA_EQE_CQE_OFFSETS	 (INIT_HCA_QPC_OFFSET + 0x38)
+ #define	 INIT_HCA_QPC_BASE_OFFSET	 (INIT_HCA_QPC_OFFSET + 0x10)
+ #define	 INIT_HCA_LOG_QP_OFFSET		 (INIT_HCA_QPC_OFFSET + 0x17)
+ #define	 INIT_HCA_SRQC_BASE_OFFSET	 (INIT_HCA_QPC_OFFSET + 0x28)
+@@ -792,6 +795,9 @@ int mlx4_INIT_HCA(struct mlx4_dev *dev, struct mlx4_init_hca_param *param)
+ 
+ 	/* QPC/EEC/CQC/EQC/RDMARC attributes */
+ 
++	if (dev->caps.cqe_size == 64)
++		*(inbox + INIT_HCA_EQE_CQE_OFFSETS / 4) |= cpu_to_be32(1 << 30);
++
+ 	MLX4_PUT(inbox, param->qpc_base,      INIT_HCA_QPC_BASE_OFFSET);
+ 	MLX4_PUT(inbox, param->log_num_qps,   INIT_HCA_LOG_QP_OFFSET);
+ 	MLX4_PUT(inbox, param->srqc_base,     INIT_HCA_SRQC_BASE_OFFSET);
+diff --git a/drivers/net/mlx4/main.c b/drivers/net/mlx4/main.c
+index f0ee35d..3799710 100644
+--- a/drivers/net/mlx4/main.c
++++ b/drivers/net/mlx4/main.c
+@@ -274,6 +274,15 @@ static int mlx4_dev_cap(struct mlx4_dev *dev, struct mlx4_dev_cap *dev_cap)
+ 		dev->caps.reserved_qps_cnt[MLX4_QP_REGION_FC_ADDR] +
+ 		dev->caps.reserved_qps_cnt[MLX4_QP_REGION_FC_EXCH];
+ 
++	if (dev_cap->flags & (1ULL << 62))
++		dev->caps.cqe_size = 64;
++	else
++		dev->caps.cqe_size = 32;
++
++	/* eqe size remains 32 byte regardles of device's capability */
++	dev->caps.eqe_size = 32;
++
++
  	return 0;
  }
-diff --git a/src/mlx4-abi.h b/src/mlx4-abi.h
-index 20a40c9..9524eea 100644
---- a/src/mlx4-abi.h
-+++ b/src/mlx4-abi.h
-@@ -36,13 +36,14 @@
- #include <infiniband/kern-abi.h>
  
- #define MLX4_UVERBS_MIN_ABI_VERSION	2
--#define MLX4_UVERBS_MAX_ABI_VERSION	3
-+#define MLX4_UVERBS_MAX_ABI_VERSION	4
- 
- struct mlx4_alloc_ucontext_resp {
- 	struct ibv_get_context_resp	ibv_resp;
- 	__u32				qp_tab_size;
- 	__u16				bf_reg_size;
- 	__u16				bf_regs_per_page;
-+	__u32				cqe_size;
+diff --git a/include/linux/mlx4/device.h b/include/linux/mlx4/device.h
+index 53ef894..1b0915f 100644
+--- a/include/linux/mlx4/device.h
++++ b/include/linux/mlx4/device.h
+@@ -276,6 +276,8 @@ struct mlx4_caps {
+ 	u32			port_mask;
+ 	enum mlx4_port_type	possible_type[MLX4_MAX_PORTS + 1];
+ 	u32			max_counters;
++	int			eqe_size;
++	int			cqe_size;
  };
  
- struct mlx4_alloc_pd_resp {
-diff --git a/src/mlx4.c b/src/mlx4.c
-index 8cf249a..0ee8f64 100644
---- a/src/mlx4.c
-+++ b/src/mlx4.c
-@@ -57,6 +57,8 @@
- 	{ .vendor = PCI_VENDOR_ID_##v,			\
- 	  .device = d }
- 
-+HIDDEN int abi_ver;
-+
- struct {
- 	unsigned		vendor;
- 	unsigned		device;
-@@ -140,6 +142,10 @@ static struct ibv_context *mlx4_alloc_context(struct ibv_device *ibdev, int cmd_
- 	context->num_qps	= resp.qp_tab_size;
- 	context->qp_table_shift = ffs(context->num_qps) - 1 - MLX4_QP_TABLE_BITS;
- 	context->qp_table_mask	= (1 << context->qp_table_shift) - 1;
-+	if (abi_ver > 3)
-+		context->cqe_size = resp.cqe_size;
-+	else
-+		context->cqe_size = sizeof (struct mlx4_cqe);
- 
- 	pthread_mutex_init(&context->qp_table_mutex, NULL);
- 	for (i = 0; i < MLX4_QP_TABLE_SIZE; ++i)
-@@ -245,6 +251,7 @@ found:
- 
- 	dev->ibv_dev.ops = mlx4_dev_ops;
- 	dev->page_size   = sysconf(_SC_PAGESIZE);
-+	abi_ver = abi_version;
- 
- 	return &dev->ibv_dev;
- }
-diff --git a/src/mlx4.h b/src/mlx4.h
-index 0ad838d..7924ebf 100644
---- a/src/mlx4.h
-+++ b/src/mlx4.h
-@@ -84,10 +84,6 @@
- #define PFX		"mlx4: "
- 
- enum {
--	MLX4_CQ_ENTRY_SIZE		= 0x20
--};
--
--enum {
- 	MLX4_STAT_RATE_OFFSET		= 5
- };
- 
-@@ -159,6 +155,7 @@ struct mlx4_context {
- 
- 	struct mlx4_db_page	       *db_list[MLX4_NUM_DB_TYPE];
- 	pthread_mutex_t			db_list_mutex;
-+	int				cqe_size;
- };
- 
- struct mlx4_buf {
-@@ -181,6 +178,7 @@ struct mlx4_cq {
- 	uint32_t		       *set_ci_db;
- 	uint32_t		       *arm_db;
- 	int				arm_sn;
-+	int				cqe_size;
- };
- 
- struct mlx4_srq {
-@@ -245,6 +243,21 @@ struct mlx4_ah {
- 	uint8_t				mac[6];
- };
- 
-+struct mlx4_cqe {
-+	uint32_t	my_qpn;
-+	uint32_t	immed_rss_invalid;
-+	uint32_t	g_mlpath_rqpn;
-+	uint8_t		sl;
-+	uint8_t		reserved1;
-+	uint16_t	rlid;
-+	uint32_t	reserved2;
-+	uint32_t	byte_cnt;
-+	uint16_t	wqe_index;
-+	uint16_t	checksum;
-+	uint8_t		reserved3[3];
-+	uint8_t		owner_sr_opcode;
-+};
-+
- static inline unsigned long align(unsigned long val, unsigned long align)
- {
- 	return (val + align - 1) & ~(align - 1);
-@@ -310,7 +323,8 @@ int mlx4_dereg_mr(struct ibv_mr *mr);
- struct ibv_cq *mlx4_create_cq(struct ibv_context *context, int cqe,
- 			       struct ibv_comp_channel *channel,
- 			       int comp_vector);
--int mlx4_alloc_cq_buf(struct mlx4_device *dev, struct mlx4_buf *buf, int nent);
-+int mlx4_alloc_cq_buf(struct mlx4_device *dev, struct mlx4_buf *buf, int nent,
-+		      int entry_size);
- int mlx4_resize_cq(struct ibv_cq *cq, int cqe);
- int mlx4_destroy_cq(struct ibv_cq *cq);
- int mlx4_poll_cq(struct ibv_cq *cq, int ne, struct ibv_wc *wc);
-diff --git a/src/verbs.c b/src/verbs.c
-index 199d107..7d3519d 100644
---- a/src/verbs.c
-+++ b/src/verbs.c
-@@ -168,6 +168,7 @@ struct ibv_cq *mlx4_create_cq(struct ibv_context *context, int cqe,
- 	struct mlx4_create_cq_resp resp;
- 	struct mlx4_cq		  *cq;
- 	int			   ret;
-+	struct mlx4_context       *mctx = to_mctx(context);
- 
- 	/* Sanity check CQ size before proceeding */
- 	if (cqe > 0x3fffff)
-@@ -184,9 +185,10 @@ struct ibv_cq *mlx4_create_cq(struct ibv_context *context, int cqe,
- 
- 	cqe = align_queue_size(cqe + 1);
- 
--	if (mlx4_alloc_cq_buf(to_mdev(context->device), &cq->buf, cqe))
-+	if (mlx4_alloc_cq_buf(to_mdev(context->device), &cq->buf, cqe, mctx->cqe_size))
- 		goto err;
- 
-+	cq->cqe_size = mctx->cqe_size;
- 	cq->set_ci_db  = mlx4_alloc_db(to_mctx(context), MLX4_DB_TYPE_CQ);
- 	if (!cq->set_ci_db)
- 		goto err_buf;
-@@ -247,7 +249,7 @@ int mlx4_resize_cq(struct ibv_cq *ibcq, int cqe)
- 		goto out;
- 	}
- 
--	ret = mlx4_alloc_cq_buf(to_mdev(ibcq->context->device), &buf, cqe);
-+	ret = mlx4_alloc_cq_buf(to_mdev(ibcq->context->device), &buf, cqe, cq->cqe_size);
- 	if (ret)
- 		goto out;
- 
+ struct mlx4_buf_list {
 -- 
 1.7.7.rc0.70.g82660
 
