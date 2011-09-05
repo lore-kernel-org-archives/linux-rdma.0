@@ -1,307 +1,277 @@
-From: Eli Cohen <eli-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH] mlx4: Enable 64 byte CQEs
-Date: Sun, 4 Sep 2011 15:12:16 +0300
-Message-ID: <20110904121216.GA12495@mtldesk30>
+From: Tommi T <tommi_t77-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
+Subject: Re: mlx ipoib error
+Date: Mon, 5 Sep 2011 03:00:27 -0700 (PDT)
+Message-ID: <1315216827.75130.YahooMailNeo@web113912.mail.gq1.yahoo.com>
+References: <1314869585.71072.YahooMailNeo@web113913.mail.gq1.yahoo.com> <CAAk-MO8jBpbV4+dwLxQbauwmFThFTi=Yg78NaPa9V21deL2pOg@mail.gmail.com>
+Reply-To: Tommi T <tommi_t77-/E1597aS9LQAvxtiuMwx3w@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <CAAk-MO8jBpbV4+dwLxQbauwmFThFTi=Yg78NaPa9V21deL2pOg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-Cc: RDMA list <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-CX3 devices can work with 64 or 32 byte CQEs. Using 64 byte CQEs allow better
-utilization of new chipsets and gaining higher performance. This patch queries
-the HCA's capabilities and if it supports 64 byte CQEs and will configure it to
-work in 64 byte mode. Userspace need also be updated to work with the
-configured CQE size so mlx4_ib_alloc_ucontext was modified to return the size
-of the CQE. This changes the binary interface so the ABI is bumped from 3 to 4.
+> The errors you saw are connected to the driver itself (FW commands) a=
+nd not direct;y to the IPoIB module.
+> Can you send more details about the card, the driver details etc / (y=
+ou can run ofed_info)
 
-Signed-off-by: Eli Cohen <eli-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
----
- drivers/infiniband/hw/mlx4/cq.c      |   21 ++++++++++++++-------
- drivers/infiniband/hw/mlx4/main.c    |    1 +
- drivers/infiniband/hw/mlx4/mlx4_ib.h |    1 +
- drivers/infiniband/hw/mlx4/user.h    |    3 ++-
- drivers/net/mlx4/en_cq.c             |    4 ++--
- drivers/net/mlx4/en_rx.c             |    8 ++++++--
- drivers/net/mlx4/en_tx.c             |    2 ++
- drivers/net/mlx4/fw.c                |    6 ++++++
- drivers/net/mlx4/main.c              |    9 +++++++++
- include/linux/mlx4/device.h          |    2 ++
- 10 files changed, 45 insertions(+), 12 deletions(-)
+Hi
 
-diff --git a/drivers/infiniband/hw/mlx4/cq.c b/drivers/infiniband/hw/mlx4/cq.c
-index e8df155..a3b4732 100644
---- a/drivers/infiniband/hw/mlx4/cq.c
-+++ b/drivers/infiniband/hw/mlx4/cq.c
-@@ -66,7 +66,7 @@ static void mlx4_ib_cq_event(struct mlx4_cq *cq, enum mlx4_event type)
- 
- static void *get_cqe_from_buf(struct mlx4_ib_cq_buf *buf, int n)
- {
--	return mlx4_buf_offset(&buf->buf, n * sizeof (struct mlx4_cqe));
-+	return mlx4_buf_offset(&buf->buf, n * buf->entry_size);
- }
- 
- static void *get_cqe(struct mlx4_ib_cq *cq, int n)
-@@ -77,8 +77,9 @@ static void *get_cqe(struct mlx4_ib_cq *cq, int n)
- static void *get_sw_cqe(struct mlx4_ib_cq *cq, int n)
- {
- 	struct mlx4_cqe *cqe = get_cqe(cq, n & cq->ibcq.cqe);
-+	struct mlx4_cqe *tcqe = ((cq->buf.entry_size == 64) ? (cqe + 1) : cqe);
- 
--	return (!!(cqe->owner_sr_opcode & MLX4_CQE_OWNER_MASK) ^
-+	return (!!(tcqe->owner_sr_opcode & MLX4_CQE_OWNER_MASK) ^
- 		!!(n & (cq->ibcq.cqe + 1))) ? NULL : cqe;
- }
- 
-@@ -99,12 +100,13 @@ static int mlx4_ib_alloc_cq_buf(struct mlx4_ib_dev *dev, struct mlx4_ib_cq_buf *
- {
- 	int err;
- 
--	err = mlx4_buf_alloc(dev->dev, nent * sizeof(struct mlx4_cqe),
-+	err = mlx4_buf_alloc(dev->dev, nent * dev->dev->caps.cqe_size,
- 			     PAGE_SIZE * 2, &buf->buf);
- 
- 	if (err)
- 		goto out;
- 
-+	buf->entry_size = dev->dev->caps.cqe_size;
- 	err = mlx4_mtt_init(dev->dev, buf->buf.npages, buf->buf.page_shift,
- 				    &buf->mtt);
- 	if (err)
-@@ -120,7 +122,7 @@ err_mtt:
- 	mlx4_mtt_cleanup(dev->dev, &buf->mtt);
- 
- err_buf:
--	mlx4_buf_free(dev->dev, nent * sizeof(struct mlx4_cqe),
-+	mlx4_buf_free(dev->dev, nent * buf->entry_size,
- 			      &buf->buf);
- 
- out:
-@@ -129,7 +131,7 @@ out:
- 
- static void mlx4_ib_free_cq_buf(struct mlx4_ib_dev *dev, struct mlx4_ib_cq_buf *buf, int cqe)
- {
--	mlx4_buf_free(dev->dev, (cqe + 1) * sizeof(struct mlx4_cqe), &buf->buf);
-+	mlx4_buf_free(dev->dev, (cqe + 1) * buf->entry_size, &buf->buf);
- }
- 
- static int mlx4_ib_get_cq_umem(struct mlx4_ib_dev *dev, struct ib_ucontext *context,
-@@ -137,8 +139,9 @@ static int mlx4_ib_get_cq_umem(struct mlx4_ib_dev *dev, struct ib_ucontext *cont
- 			       u64 buf_addr, int cqe)
- {
- 	int err;
-+	int cqe_size = dev->dev->caps.cqe_size;
- 
--	*umem = ib_umem_get(context, buf_addr, cqe * sizeof (struct mlx4_cqe),
-+	*umem = ib_umem_get(context, buf_addr, cqe * cqe_size,
- 			    IB_ACCESS_LOCAL_WRITE, 1);
- 	if (IS_ERR(*umem))
- 		return PTR_ERR(*umem);
-@@ -328,13 +331,14 @@ static void mlx4_ib_cq_resize_copy_cqes(struct mlx4_ib_cq *cq)
- {
- 	struct mlx4_cqe *cqe, *new_cqe;
- 	int i;
-+	int cqe_size = cq->buf.entry_size;
- 
- 	i = cq->mcq.cons_index;
- 	cqe = get_cqe(cq, i & cq->ibcq.cqe);
- 	while ((cqe->owner_sr_opcode & MLX4_CQE_OPCODE_MASK) != MLX4_CQE_OPCODE_RESIZE) {
- 		new_cqe = get_cqe_from_buf(&cq->resize_buf->buf,
- 					   (i + 1) & cq->resize_buf->cqe);
--		memcpy(new_cqe, get_cqe(cq, i & cq->ibcq.cqe), sizeof(struct mlx4_cqe));
-+		memcpy(new_cqe, get_cqe(cq, i & cq->ibcq.cqe), cqe_size);
- 		new_cqe->owner_sr_opcode = (cqe->owner_sr_opcode & ~MLX4_CQE_OWNER_MASK) |
- 			(((i + 1) & (cq->resize_buf->cqe + 1)) ? MLX4_CQE_OWNER_MASK : 0);
- 		cqe = get_cqe(cq, ++i & cq->ibcq.cqe);
-@@ -562,6 +566,9 @@ repoll:
- 	if (!cqe)
- 		return -EAGAIN;
- 
-+	if (cq->buf.entry_size == 64)
-+		cqe++;
-+
- 	++cq->mcq.cons_index;
- 
- 	/*
-diff --git a/drivers/infiniband/hw/mlx4/main.c b/drivers/infiniband/hw/mlx4/main.c
-index fa643f4..2a41040 100644
---- a/drivers/infiniband/hw/mlx4/main.c
-+++ b/drivers/infiniband/hw/mlx4/main.c
-@@ -469,6 +469,7 @@ static struct ib_ucontext *mlx4_ib_alloc_ucontext(struct ib_device *ibdev,
- 	resp.qp_tab_size      = dev->dev->caps.num_qps;
- 	resp.bf_reg_size      = dev->dev->caps.bf_reg_size;
- 	resp.bf_regs_per_page = dev->dev->caps.bf_regs_per_page;
-+	resp.cqe_size         = dev->dev->caps.cqe_size;
- 
- 	context = kmalloc(sizeof *context, GFP_KERNEL);
- 	if (!context)
-diff --git a/drivers/infiniband/hw/mlx4/mlx4_ib.h b/drivers/infiniband/hw/mlx4/mlx4_ib.h
-index e4bf2cf..0c325c4 100644
---- a/drivers/infiniband/hw/mlx4/mlx4_ib.h
-+++ b/drivers/infiniband/hw/mlx4/mlx4_ib.h
-@@ -59,6 +59,7 @@ struct mlx4_ib_pd {
- struct mlx4_ib_cq_buf {
- 	struct mlx4_buf		buf;
- 	struct mlx4_mtt		mtt;
-+	int			entry_size;
- };
- 
- struct mlx4_ib_cq_resize {
-diff --git a/drivers/infiniband/hw/mlx4/user.h b/drivers/infiniband/hw/mlx4/user.h
-index 13beede..2aa33f8 100644
---- a/drivers/infiniband/hw/mlx4/user.h
-+++ b/drivers/infiniband/hw/mlx4/user.h
-@@ -40,7 +40,7 @@
-  * Increment this value if any changes that break userspace ABI
-  * compatibility are made.
-  */
--#define MLX4_IB_UVERBS_ABI_VERSION	3
-+#define MLX4_IB_UVERBS_ABI_VERSION	4
- 
- /*
-  * Make sure that all structs defined in this file remain laid out so
-@@ -54,6 +54,7 @@ struct mlx4_ib_alloc_ucontext_resp {
- 	__u32	qp_tab_size;
- 	__u16	bf_reg_size;
- 	__u16	bf_regs_per_page;
-+	__u32	cqe_size;
- };
- 
- struct mlx4_ib_alloc_pd_resp {
-diff --git a/drivers/net/mlx4/en_cq.c b/drivers/net/mlx4/en_cq.c
-index ec4b6d0..b60b547 100644
---- a/drivers/net/mlx4/en_cq.c
-+++ b/drivers/net/mlx4/en_cq.c
-@@ -52,9 +52,9 @@ int mlx4_en_create_cq(struct mlx4_en_priv *priv,
- 
- 	cq->size = entries;
- 	if (mode == RX)
--		cq->buf_size = cq->size * sizeof(struct mlx4_cqe);
-+		cq->buf_size = cq->size * priv->mdev->dev->caps.cqe_size;
- 	else
--		cq->buf_size = sizeof(struct mlx4_cqe);
-+		cq->buf_size = priv->mdev->dev->caps.cqe_size;
- 
- 	cq->ring = ring;
- 	cq->is_tx = mode;
-diff --git a/drivers/net/mlx4/en_rx.c b/drivers/net/mlx4/en_rx.c
-index 37cc9e5..dd15ccb 100644
---- a/drivers/net/mlx4/en_rx.c
-+++ b/drivers/net/mlx4/en_rx.c
-@@ -541,15 +541,19 @@ int mlx4_en_process_rx_cq(struct net_device *dev, struct mlx4_en_cq *cq, int bud
- 	unsigned int length;
- 	int polled = 0;
- 	int ip_summed;
-+	int factor = 0;
- 
- 	if (!priv->port_up)
- 		return 0;
- 
-+	if (priv->mdev->dev->caps.cqe_size == 64)
-+		factor = 1;
-+
- 	/* We assume a 1:1 mapping between CQEs and Rx descriptors, so Rx
- 	 * descriptor offset can be deduced from the CQE index instead of
- 	 * reading 'cqe->index' */
- 	index = cq->mcq.cons_index & ring->size_mask;
--	cqe = &cq->buf[index];
-+	cqe = &cq->buf[(index << factor) + factor];
- 
- 	/* Process all completed CQEs */
- 	while (XNOR(cqe->owner_sr_opcode & MLX4_CQE_OWNER_MASK,
-@@ -660,7 +664,7 @@ int mlx4_en_process_rx_cq(struct net_device *dev, struct mlx4_en_cq *cq, int bud
- next:
- 		++cq->mcq.cons_index;
- 		index = (cq->mcq.cons_index) & ring->size_mask;
--		cqe = &cq->buf[index];
-+		cqe = &cq->buf[(index << factor) + factor];
- 		if (++polled == budget) {
- 			/* We are here because we reached the NAPI budget -
- 			 * flush only pending LRO sessions */
-diff --git a/drivers/net/mlx4/en_tx.c b/drivers/net/mlx4/en_tx.c
-index 6e03de0..16337fb 100644
---- a/drivers/net/mlx4/en_tx.c
-+++ b/drivers/net/mlx4/en_tx.c
-@@ -318,6 +318,8 @@ static void mlx4_en_process_tx_cq(struct net_device *dev, struct mlx4_en_cq *cq)
- 	u32 txbbs_skipped = 0;
- 	u32 cq_last_sav;
- 
-+	if (priv->mdev->dev->caps.cqe_size == 64)
-+		cqe++;
- 	/* index always points to the first TXBB of the last polled descriptor */
- 	index = ring->cons & ring->size_mask;
- 	new_index = be16_to_cpu(cqe->wqe_index) & ring->size_mask;
-diff --git a/drivers/net/mlx4/fw.c b/drivers/net/mlx4/fw.c
-index 7eb8ba8..3cf072e 100644
---- a/drivers/net/mlx4/fw.c
-+++ b/drivers/net/mlx4/fw.c
-@@ -106,6 +106,8 @@ static void dump_dev_cap_flags(struct mlx4_dev *dev, u64 flags)
- 		[41] = "Unicast VEP steering support",
- 		[42] = "Multicast VEP steering support",
- 		[48] = "Counters support",
-+		[61] = "64 byte EQE support",
-+		[62] = "64 byte CQE support",
- 	};
- 	int i;
- 
-@@ -729,6 +731,7 @@ int mlx4_INIT_HCA(struct mlx4_dev *dev, struct mlx4_init_hca_param *param)
- #define INIT_HCA_CACHELINE_SZ_OFFSET	 0x0e
- #define INIT_HCA_FLAGS_OFFSET		 0x014
- #define INIT_HCA_QPC_OFFSET		 0x020
-+#define INIT_HCA_EQE_CQE_OFFSETS	 (INIT_HCA_QPC_OFFSET + 0x38)
- #define	 INIT_HCA_QPC_BASE_OFFSET	 (INIT_HCA_QPC_OFFSET + 0x10)
- #define	 INIT_HCA_LOG_QP_OFFSET		 (INIT_HCA_QPC_OFFSET + 0x17)
- #define	 INIT_HCA_SRQC_BASE_OFFSET	 (INIT_HCA_QPC_OFFSET + 0x28)
-@@ -792,6 +795,9 @@ int mlx4_INIT_HCA(struct mlx4_dev *dev, struct mlx4_init_hca_param *param)
- 
- 	/* QPC/EEC/CQC/EQC/RDMARC attributes */
- 
-+	if (dev->caps.cqe_size == 64)
-+		*(inbox + INIT_HCA_EQE_CQE_OFFSETS / 4) |= cpu_to_be32(1 << 30);
-+
- 	MLX4_PUT(inbox, param->qpc_base,      INIT_HCA_QPC_BASE_OFFSET);
- 	MLX4_PUT(inbox, param->log_num_qps,   INIT_HCA_LOG_QP_OFFSET);
- 	MLX4_PUT(inbox, param->srqc_base,     INIT_HCA_SRQC_BASE_OFFSET);
-diff --git a/drivers/net/mlx4/main.c b/drivers/net/mlx4/main.c
-index f0ee35d..3799710 100644
---- a/drivers/net/mlx4/main.c
-+++ b/drivers/net/mlx4/main.c
-@@ -274,6 +274,15 @@ static int mlx4_dev_cap(struct mlx4_dev *dev, struct mlx4_dev_cap *dev_cap)
- 		dev->caps.reserved_qps_cnt[MLX4_QP_REGION_FC_ADDR] +
- 		dev->caps.reserved_qps_cnt[MLX4_QP_REGION_FC_EXCH];
- 
-+	if (dev_cap->flags & (1ULL << 62))
-+		dev->caps.cqe_size = 64;
-+	else
-+		dev->caps.cqe_size = 32;
-+
-+	/* eqe size remains 32 byte regardles of device's capability */
-+	dev->caps.eqe_size = 32;
-+
-+
- 	return 0;
- }
- 
-diff --git a/include/linux/mlx4/device.h b/include/linux/mlx4/device.h
-index 53ef894..1b0915f 100644
---- a/include/linux/mlx4/device.h
-+++ b/include/linux/mlx4/device.h
-@@ -276,6 +276,8 @@ struct mlx4_caps {
- 	u32			port_mask;
- 	enum mlx4_port_type	possible_type[MLX4_MAX_PORTS + 1];
- 	u32			max_counters;
-+	int			eqe_size;
-+	int			cqe_size;
- };
- 
- struct mlx4_buf_list {
--- 
-1.7.7.rc0.70.g82660
+Here are some details: (server itself is HP Proliant DL385 G6)
 
+Network controller: Mellanox Technologies MT26418 [ConnectX VPI PCIe 2.=
+0 5GT/s - IB DDR / 10GigE] (rev a0)
+
+# modinfo mlx4_core
+filename:=A0=A0=A0=A0=A0=A0 /lib/modules/2.6.18-238.5.1.el5/kernel/driv=
+ers/net/mlx4/mlx4_core.ko
+version:=A0=A0=A0=A0=A0=A0=A0 1.0
+license:=A0=A0=A0=A0=A0=A0=A0 Dual BSD/GPL
+description:=A0=A0=A0 Mellanox ConnectX HCA low-level driver
+author:=A0=A0=A0=A0=A0=A0=A0=A0 Roland Dreier
+srcversion:=A0=A0=A0=A0 C2356380EB2ABEA28EDACE0
+
+
+# ibv_devinfo=20
+hca_id: mlx4_0
+=A0=A0=A0=A0=A0=A0=A0 transport:=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
+=A0=A0=A0=A0=A0=A0=A0=A0 InfiniBand (0)
+=A0=A0=A0=A0=A0=A0=A0 fw_ver:=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
+=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 2.8.000
+=A0=A0=A0=A0=A0=A0=A0 node_guid:=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
+=A0=A0=A0=A0=A0=A0=A0=A0 0023:7dff:ff94:1698
+=A0=A0=A0=A0=A0=A0=A0 sys_image_guid:=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
+=A0=A0=A0=A0 0023:7dff:ff94:169b
+=A0=A0=A0=A0=A0=A0=A0 vendor_id:=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
+=A0=A0=A0=A0=A0=A0=A0=A0 0x02c9
+=A0=A0=A0=A0=A0=A0=A0 vendor_part_id:=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
+=A0=A0=A0=A0 26418
+=A0=A0=A0=A0=A0=A0=A0 hw_ver:=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
+=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 0xA0
+=A0=A0=A0=A0=A0=A0=A0 board_id:=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
+=A0=A0=A0=A0=A0=A0=A0=A0 HP_09D0000008
+=A0=A0=A0=A0=A0=A0=A0 phys_port_cnt:=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=
+=A0=A0=A0=A0=A0 2
+=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 port:=A0=A0 1
+=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 s=
+tate:=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 PORT_ACTIVE (4=
+)
+=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 m=
+ax_mtu:=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 2048 (4)
+=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 a=
+ctive_mtu:=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 2048 (4)
+=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 s=
+m_lid:=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 4
+=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 p=
+ort_lid:=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 11
+=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 p=
+ort_lmc:=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 0x00
+=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 l=
+ink_layer:=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0=A0 IB
+
+
+# ofed_info=20
+OFED-1.5.3.1:
+
+compat-dapl:
+http://www.openfabrics.org/downloads/dapl/compat-dapl-1.2.19.tar.gz
+
+dapl:
+http://www.openfabrics.org/downloads/dapl/dapl-2.0.32.tar.gz
+
+ib-bonding:
+http://www.openfabrics.org/downloads/ib-bonding/ib-bonding-0.9.0-42.src=
+=2Erpm
+
+ibacm:
+http://www.openfabrics.org/downloads/rdmacm/ibacm-1.0.4.tar.gz
+
+ibsim:
+http://www.openfabrics.org/downloads/ibsim/ibsim-0.5-0.1.g327c3d8.tar.g=
+z
+
+ibutils:
+http://www.openfabrics.org/downloads/ibutils/ibutils-1.5.7.tar.gz
+
+infiniband-diags:
+http://www.openfabrics.org/downloads/management/infiniband-diags-1.5.8.=
+tar.gz
+
+infinipath-psm:
+http://www.openfabrics.org/downloads/infinipath-psm/infinipath-psm-1.14=
+=2Etar.gz
+
+libcxgb3:
+http://www.openfabrics.org/downloads/cxgb3/libcxgb3-1.2.5.tar.gz
+
+libehca:
+http://www.openfabrics.org/downloads/libehca/libehca-1.2.2-0.1.g69e1a88=
+=2Etar.gz
+
+libibcm:
+http://www.openfabrics.org/downloads/rdmacm/libibcm-1.0.5.tar.gz
+
+libibmad:
+http://www.openfabrics.org/downloads/management/libibmad-1.3.7.tar.gz
+
+libibumad:
+http://www.openfabrics.org/downloads/management/libibumad-1.3.7.tar.gz
+
+libibverbs:
+http://www.openfabrics.org/downloads/libibverbs/libibverbs-1.1.4-1.22.g=
+7257cd3.tar.gz
+
+libipathverbs:
+http://www.openfabrics.org/downloads/libipathverbs/libipathverbs-1.2.ta=
+r.gz
+
+libmlx4:
+http://www.openfabrics.org/downloads/libmlx4/libmlx4-1.0.1-1.18.gb810a2=
+7.tar.gz
+
+libmthca:
+http://www.openfabrics.org/downloads/libmthca/libmthca-1.0.5-0.1.gbe5ee=
+f3.tar.gz
+
+libnes:
+http://www.openfabrics.org/downloads/nes/libnes-1.1.1.tar.gz
+
+librdmacm:
+http://www.openfabrics.org/downloads/rdmacm/librdmacm-1.0.14.1.tar.gz
+
+libsdp:
+http://www.openfabrics.org/downloads/libsdp/libsdp-1.1.108-0.15.gd7fdb7=
+2.tar.gz
+
+mpi-selector:
+http://www.openfabrics.org/downloads/mpi-selector/mpi-selector-1.0.3-1.=
+src.rpm
+
+mpitests:
+http://www.openfabrics.org/~pasha/ofed_1_5/mpitests/mpitests-3.2-923.sr=
+c.rpm
+
+mstflint:
+http://www.openfabrics.org/downloads/mstflint/mstflint-1.4-0.9.gc683022=
+=2Etar.gz
+
+mvapich:
+http://www.openfabrics.org/~pasha/ofed_1_5_1/mvapich/mvapich-1.2.0-3635=
+=2Esrc.rpm
+
+mvapich2:
+http://www.openfabrics.org/~perkinjo/ofed_1_5/mvapich2-1.6-2.src.rpm
+
+ofa_kernel:
+git://git.openfabrics.org/ofed_1_5/linux-2.6.git ofed_kernel_1_5
+commit f160c14d4d3e8ced0d293b77d06ebf8704e5d106
+
+ofed-docs:
+git://git.openfabrics.org/ofed_1_5/docs.git ofed_1_5
+commit d0c8a525eca39ac82c9be4dc31f117b6b241416d
+
+open-iscsi-generic1:
+http://www.openfabrics.org/downloads/iscsi/open-iscsi-generic-2.0-754.1=
+=2Esrc.rpm
+
+open-iscsi-generic2:
+http://www.openfabrics.org/downloads/iscsi/open-iscsi-generic-2.0-869.2=
+=2Esrc.rpm
+
+openmpi:
+http://www.openfabrics.org/~jsquyres/ofed_1_5/openmpi-1.4.3-1.src.rpm
+
+opensm:
+http://www.openfabrics.org/downloads/management/opensm-3.3.9.tar.gz
+
+perftest:
+http://www.openfabrics.org/downloads/perftest/perftest-1.3.0-0.42.gf350=
+d3d.tar.gz
+
+qlvnictools:
+http://www.openfabrics.org/downloads/qlvnictools/qlvnictools-0.0.1-0.1.=
+ge27eef7.tar.gz
+
+qperf:
+http://www.openfabrics.org/downloads/qperf/qperf-0.4.6-0.1.gb81434e.tar=
+=2Egz
+
+rds-tools:
+http://www.openfabrics.org/downloads/rds-tools/rds-tools-2.0.4.tar.gz
+
+rnfs-utils:
+http://www.openfabrics.org/~swise/ofed_1_5/rnfs-utils/rnfs-utils-1.1.5-=
+10.OFED.src.rpm
+
+sdpnetstat:
+http://www.openfabrics.org/downloads/sdpnetstat/sdpnetstat-1.60-0.3.gb6=
+e7425.tar.gz
+
+srptools:
+http://www.openfabrics.org/downloads/srptools/srptools-0.0.4-0.1.gce1f6=
+4c.tar.gz
+
+tgt-generic:
+http://www.openfabrics.org/downloads/iscsi/tgt-generic-0.1-20080828.src=
+=2Erpm
+
+ofed-scripts:
+git://git.openfabrics.org/~vlad/ofed_scripts.git ofed_1_5
+
+Installed Packages:
+-------------------
+compat-dapl-devel-1.2.19-1
+dapl-utils-2.0.32-1
+srptools-0.0.4-0.1.gce1f64c
+dapl-devel-static-2.0.32-1
+dapl-devel-2.0.32-1
+libibverbs-utils-1.1.4-1.23.g6ccf63e
+libmlx4-1.0.1-1.18.gb810a27
+ibsim-0.5-0.1.g327c3d8
+rds-tools-2.0.4-1
+libibmad-static-1.3.7-1
+libibmad-devel-1.3.7-1
+kernel-ib-1.5.3-2.6.18_274.el5
+opensm-devel-3.3.9_MLNX_20110704_c986c53-0.1
+libibverbs-devel-1.1.4-1.23.g6ccf63e
+kernel-ib-1.5.3.1-2.6.18_238.19.1.el5
+librdmacm-1.0.14.1-1
+libmthca-1.0.5-0.1.gbe5eef3
+infinipath-psm-1.14-1
+ibutils-1.5.7-1
+qperf-0.4.6-0.1.gb81434e
+mstflint-1.4-0.9.gc683022
+ofed-scripts-1.5.3.1-OFED.1.5.3.1.
+libipathverbs-devel-1.2-1
+librdmacm-devel-1.0.14.1-1
+infinipath-psm-devel-1.14-1
+kernel-ib-devel-1.5.3-2.6.18_274.el5
+libibverbs-1.1.4-1.23.g6ccf63e
+compat-dapl-1.2.19-1
+libibumad-1.3.7-1
+dapl-2.0.32-1
+libipathverbs-1.2-1
+libmthca-devel-static-1.0.5-0.1.gbe5eef3
+libibumad-static-1.3.7-1
+libibcm-devel-1.0.5-1
+perftest-1.3.0-0.47.ga001d5f
+libibcm-1.0.5-1
+librdmacm-utils-1.0.14.1-1
+libibumad-devel-1.3.7-1
+libsdp-devel-1.1.108-0.15.gd7fdb72
+opensm-libs-3.3.9_MLNX_20110704_c986c53-0.1
+compat-dapl-devel-static-1.2.19-1
+libibmad-1.3.7-1
+libsdp-1.1.108-0.15.gd7fdb72
+ibacm-1.0.4-1
+libmlx4-devel-1.0.1-1.18.gb810a27
+infiniband-diags-1.5.8_MLNX_20110404_eb90f87-0.4
+libibverbs-devel-static-1.1.4-1.23.g6ccf63e
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
