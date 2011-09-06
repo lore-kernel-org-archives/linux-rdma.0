@@ -1,37 +1,24 @@
-From: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 0/7] IBoE user space support
-Date: Mon, 5 Sep 2011 21:36:53 +0300
-Message-ID: <CAJZOPZJRRZX+B=eXKUNTLh684up3_bYievh3PVD_u8QZe3Qb5w@mail.gmail.com>
-References: <alpine.LRH.2.00.1107191223460.5580@ogerlitz.voltaire.com>
-	<CAJZOPZJ0JF_biZ32Kf=p6xw4rkm=TzdoMY5AdqMpfWfDRbg69Q@mail.gmail.com>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: Does the CMA support connecting UC QPs?
+Date: Tue, 6 Sep 2011 15:44:14 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A8237316E59B4E@ORSMSX101.amr.corp.intel.com>
+References: <CALvMawo8Os7yy0dFpZogyOriY+wcf5gU0CRm-Wv2oAkWCxse=Q@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAJZOPZJ0JF_biZ32Kf=p6xw4rkm=TzdoMY5AdqMpfWfDRbg69Q-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <CALvMawo8Os7yy0dFpZogyOriY+wcf5gU0CRm-Wv2oAkWCxse=Q@mail.gmail.com>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+To: Dotan Barak <dotanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Jul 20, 2011 at 10:43 PM, Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
->> the enclosed patch series enhances the user space IB stack to support IBoE.
->> [PATCH 1/7] libibverbs: Add link layer field port attribute
->> [PATCH 2/7] libibverbs: change kernel API to accept link layer
->> [PATCH 3/7] libibverbs: add GID change event
->> [PATCH 4/7] libibverbs: update examples for IBoE
->> [PATCH 5/7] libmlx4: add IBoE support
->> [PATCH 6/7] libmlx4: add IBoE UD/VLANs support
->> [PATCH 7/7] libmlx4: align the list of ConnectX devices supported with the kernel
+> Can one connect a UC QPs using the CMA?
 
-> Hi Roland, Following a review by Jason and Sean I've posted V1
-> for patches 1/7 and 3/7 as replies on the relevant posting of the V0 (this) thread.
-> Please let me know if you have any further comments/questions on the series
+No, but the xrc patches should enable this.
 
-Hi Roland, just wanted to check if you going to take that series soon,
-specifically, soon enough so we have headroom to review/merge code
-towards the 3.2 kernel window.
-
-Or.
+An app may be able to create UC QPs and connect them, but the rdma_cm will treat the connection as RC.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
