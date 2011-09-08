@@ -1,92 +1,57 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH 4/4] [for-3.2] rdma/ucm: Removed checks for unsigned value <
- 0
-Date: Wed, 7 Sep 2011 23:28:17 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A8237316E5A0D1@ORSMSX101.amr.corp.intel.com>
+From: Vladislav Bolkhovitin <vst-d+Crzxg7Rs0@public.gmane.org>
+Subject: [ANNOUNCE]: Released version 2.1 of SCST core, target drivers iSCSI-SCST,
+ qla2x00t (QLogic FC), ib_srpt (InfiniBand SRP) and scst_local with scstadmin
+ utility and fileio_tgt user space backend handler
+Date: Wed, 07 Sep 2011 22:29:21 -0400
+Message-ID: <4E682881.7040900@vlnb.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: scst-devel <scst-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
+Cc: linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Richard Sharpe <realrichardsharpe-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Bart Van Assche <bart.vanassche-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Mark Buechler <mark.buechler-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-cmd is unsigned, no need to check for < 0.  Found by
-code inspection.
+I'm glad to announce stable release 2.1 of SCST, the most advanced, features rich
+and the highest performance SCSI target stack for Linux with target drivers for
+iSCSI (iSCSI-SCST), QLogic Fibre Channel 22xx/23xx/24xx/25xx (qla2x00t),
+InfiniBand SRP (ib_srpt), scst_local as well as user space scstadmin management
+utility and fileio_tgt user space backend handler.
 
-Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
----
- drivers/infiniband/core/ucm.c         |    2 +-
- drivers/infiniband/core/ucma.c        |    2 +-
- drivers/infiniband/core/user_mad.c    |    5 ++---
- drivers/infiniband/core/uverbs_main.c |    3 +--
- 4 files changed, 5 insertions(+), 7 deletions(-)
+SCST allows creation of sophisticated storage devices, which provide advanced
+functionality, like replication, thin provisioning, deduplication, high
+availability, automatic backup, etc. Another class of such devices are Virtual
+Tape Libraries (VTL) as well as other disk-based backup solutions. SCST created
+devices not limited by IP network interface only, but they can use any link
+supporting SCSI-style data exchange, including Fibre Channel, SAS and parallel
+SCSI. It might well be that your favorite storage appliance running SCST in the
+firmware.
 
-diff --git a/drivers/infiniband/core/ucm.c b/drivers/infiniband/core/ucm.c
-index 08f948d..b8a0b4a 100644
---- a/drivers/infiniband/core/ucm.c
-+++ b/drivers/infiniband/core/ucm.c
-@@ -1122,7 +1122,7 @@ static ssize_t ib_ucm_write(struct file *filp, const char __user *buf,
- 	if (copy_from_user(&hdr, buf, sizeof(hdr)))
- 		return -EFAULT;
- 
--	if (hdr.cmd < 0 || hdr.cmd >= ARRAY_SIZE(ucm_cmd_table))
-+	if (hdr.cmd >= ARRAY_SIZE(ucm_cmd_table))
- 		return -EINVAL;
- 
- 	if (hdr.in + sizeof(hdr) > len)
-diff --git a/drivers/infiniband/core/ucma.c b/drivers/infiniband/core/ucma.c
-index 71be5ee..b3f3ddd 100644
---- a/drivers/infiniband/core/ucma.c
-+++ b/drivers/infiniband/core/ucma.c
-@@ -1270,7 +1270,7 @@ static ssize_t ucma_write(struct file *filp, const char __user *buf,
- 	if (copy_from_user(&hdr, buf, sizeof(hdr)))
- 		return -EFAULT;
- 
--	if (hdr.cmd < 0 || hdr.cmd >= ARRAY_SIZE(ucma_cmd_table))
-+	if (hdr.cmd >= ARRAY_SIZE(ucma_cmd_table))
- 		return -EINVAL;
- 
- 	if (hdr.in + sizeof(hdr) > len)
-diff --git a/drivers/infiniband/core/user_mad.c b/drivers/infiniband/core/user_mad.c
-index 8d261b6..07db229 100644
---- a/drivers/infiniband/core/user_mad.c
-+++ b/drivers/infiniband/core/user_mad.c
-@@ -458,8 +458,7 @@ static ssize_t ib_umad_write(struct file *filp, const char __user *buf,
- 		goto err;
- 	}
- 
--	if (packet->mad.hdr.id < 0 ||
--	    packet->mad.hdr.id >= IB_UMAD_MAX_AGENTS) {
-+	if (packet->mad.hdr.id >= IB_UMAD_MAX_AGENTS) {
- 		ret = -EINVAL;
- 		goto err;
- 	}
-@@ -703,7 +702,7 @@ static int ib_umad_unreg_agent(struct ib_umad_file *file, u32 __user *arg)
- 	mutex_lock(&file->port->file_mutex);
- 	mutex_lock(&file->mutex);
- 
--	if (id < 0 || id >= IB_UMAD_MAX_AGENTS || !__get_agent(file, id)) {
-+	if (id >= IB_UMAD_MAX_AGENTS || !__get_agent(file, id)) {
- 		ret = -EINVAL;
- 		goto out;
- 	}
-diff --git a/drivers/infiniband/core/uverbs_main.c b/drivers/infiniband/core/uverbs_main.c
-index 56898b6..7c30e1e 100644
---- a/drivers/infiniband/core/uverbs_main.c
-+++ b/drivers/infiniband/core/uverbs_main.c
-@@ -557,8 +557,7 @@ static ssize_t ib_uverbs_write(struct file *filp, const char __user *buf,
- 	if (hdr.in_words * 4 != count)
- 		return -EINVAL;
- 
--	if (hdr.command < 0				||
--	    hdr.command >= ARRAY_SIZE(uverbs_cmd_table) ||
-+	if (hdr.command >= ARRAY_SIZE(uverbs_cmd_table) ||
- 	    !uverbs_cmd_table[hdr.command])
- 		return -EINVAL;
- 
+More info about SCST core and modules you can find on:
 
+   - SCST core: http://scst.sourceforge.net
+
+   - iSCSI target driver iSCSI-SCST: http://iscsi-scst.sourceforge.net/index.html
+
+   - QLogic 22xx/23xx/24xx/25xx Fibre Channel target driver:
+http://scst.sourceforge.net/target_qla2x00t.html
+
+   - InfiniBand SRP: http://scst.sourceforge.net/target_srp.html
+
+   - scst_local: http://scst.sourceforge.net/target_local.html
+
+   - fileio_tgt backend handler:
+http://scst.sourceforge.net/handler_fileio_tgt.html.
+
+You can download SCST core and modules from
+http://scst.sourceforge.net/downloads.html.
+
+Thanks to all who made it happen, especially to Bart Van Assche for ib_srpt
+development and a lot of other SCST activities and Mark Buechler for great
+scstadmin tool!
+
+Vlad
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
