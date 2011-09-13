@@ -1,53 +1,64 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH] An argument for allowing applications to manually send
- RMPP packets if desired
-Date: Mon, 12 Sep 2011 13:06:23 -0600
-Message-ID: <20110912190623.GD18574@obsidianresearch.com>
-References: <4C2744E8AD2982428C5BFE523DF8CDCB4A5387E899@MNEXMB1.qlogic.org>
- <CAL1RGDUXM9-Ey1aF8xQo3X_L1PLrVyyLPYvqmy6Qeu5M2JnJPA@mail.gmail.com>
- <20110912172334.GC18574@obsidianresearch.com>
- <CAL1RGDVPZzMKmMg7mokhG0btX+3NH_+tL-9P5guV10h6X6i0iw@mail.gmail.com>
+From: Hoang-Nam Nguyen <HNGUYEN-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH 37/62] infiniband: irq: Remove IRQF_DISABLED
+Date: Tue, 13 Sep 2011 10:27:16 +0200
+Message-ID: <OF5F6785FA.2466AF15-ONC125790A.002E2A52-C125790A.002E8113@de.ibm.com>
+References: <OF29249FB5.153CCB29-ONC1257909.00499475-C1257909.00499954@LocalDomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <CAL1RGDVPZzMKmMg7mokhG0btX+3NH_+tL-9P5guV10h6X6i0iw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <OF29249FB5.153CCB29-ONC1257909.00499475-C1257909.00499954@LocalDomain>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
-Cc: Mike Heinz <michael.heinz-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Todd Rimmer <todd.rimmer-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+To: Yong Zhang <yong.zhang0-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org, mingo-X9Un+BFzKDI@public.gmane.org, roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Christoph Raisch <raisch-tA70FqPdS9bQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Sep 12, 2011 at 11:29:20AM -0700, Roland Dreier wrote:
-> On Mon, Sep 12, 2011 at 10:23 AM, Jason Gunthorpe
-> <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
-> >> It seems at least the SM side could be handled using writev() to
-> >> splice together the data it wants to send.
-> 
-> > How does that help avoid the kernel memory allocations?
-> 
-> It doesn't, I was only responding to the idea that the SM has to
-> rebuild the table for every query.  That issue seems independent
-> of where we do RMPP.
-> 
->  > I think having the option for RMPP in user space is a good idea, it
->  > allows much more efficiency on the SM side..
-> 
-> Maybe... but I'd like to explore if there's some way to avoid
-> the copying without having to do the full protocol in userspace.
+This patch looks fine to me.
+Thx
+Nam
 
-It isn't just the copying. The RMPP protocol is designed to let an SA
-generate the response on the fly on a per packet basis. Only a little
-bit of RMPP state is required per active session, and no work is
-needed before starting to supply response data. This capability cannot
-be exposed at all via the kernel interface.
+> From: Yong Zhang <yong.zhang0-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+> To: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> Cc: tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org, mingo-X9Un+BFzKDI@public.gmane.org, Hoang-Nam Nguyen/Germany/
+> IBM@IBMDE, Christoph Raisch/Germany/IBM@IBMDE, Roland Dreier
+> <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal
+> Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> Date: 09/07/2011 10:22 AM
+> Subject: [PATCH 37/62] infiniband: irq: Remove IRQF_DISABLED
+>
+> This flag is a NOOP and can be removed now.
+>
+> Signed-off-by: Yong Zhang <yong.zhang0-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+> ---
+>  drivers/infiniband/hw/ehca/ehca_eq.c |    4 ++--
+>  1 files changed, 2 insertions(+), 2 deletions(-)
+>
+> diff --git a/drivers/infiniband/hw/ehca/ehca_eq.c b/drivers/
+> infiniband/hw/ehca/ehca_eq.c
+> index d9b1bb4..818d721 100644
+> --- a/drivers/infiniband/hw/ehca/ehca_eq.c
+> +++ b/drivers/infiniband/hw/ehca/ehca_eq.c
+> @@ -125,7 +125,7 @@ int ehca_create_eq(struct ehca_shca *shca,
+>        tasklet_init(&eq->interrupt_task, ehca_tasklet_eq, (long)shca);
+>
+>        ret = ibmebus_request_irq(eq->ist, ehca_interrupt_eq,
+> -                 IRQF_DISABLED, "ehca_eq",
+> +                 0, "ehca_eq",
+>                   (void *)shca);
+>        if (ret < 0)
+>           ehca_err(ib_dev, "Can't map interrupt handler.");
+> @@ -133,7 +133,7 @@ int ehca_create_eq(struct ehca_shca *shca,
+>        tasklet_init(&eq->interrupt_task, ehca_tasklet_neq, (long)shca);
+>
+>        ret = ibmebus_request_irq(eq->ist, ehca_interrupt_neq,
+> -                 IRQF_DISABLED, "ehca_neq",
+> +                 0, "ehca_neq",
+>                   (void *)shca);
+>        if (ret < 0)
+>           ehca_err(ib_dev, "Can't map interrupt handler.");
+> --
+> 1.7.4.1
+>
 
-The whole notion of doing RMPP transactions with asynchronous
-write/read operation is totally broken from a buffer management
-perspective. The fact that it exists at all provides way too many
-avenues for user space to OOM the kernel. I hope a remote OOM is not
-also possible through this code :(
-
-Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
