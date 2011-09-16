@@ -1,63 +1,84 @@
 From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: identify the race condition in this code and win the respect
- of linux-rdma developers!
-Date: Fri, 16 Sep 2011 13:57:34 -0600
-Message-ID: <20110916195734.GA6392@obsidianresearch.com>
-References: <1828884A29C6694DAF28B7E6B8A8237316E5B2B1@ORSMSX101.amr.corp.intel.com>
- <20110916005008.GC6020@obsidianresearch.com>
- <1828884A29C6694DAF28B7E6B8A8237316E5B320@ORSMSX101.amr.corp.intel.com>
- <20110916155955.GA18548@obsidianresearch.com>
- <1828884A29C6694DAF28B7E6B8A8237316E5B55E@ORSMSX101.amr.corp.intel.com>
+Subject: [PATCH/ibsim] Provide support for SubnSet(GUIDInfo)
+Date: Fri, 16 Sep 2011 15:06:11 -0600
+Message-ID: <20110916210611.GA6926@obsidianresearch.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
-In-Reply-To: <1828884A29C6694DAF28B7E6B8A8237316E5B55E-P5GAC/sN6hmkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Sep 16, 2011 at 07:36:17PM +0000, Hefty, Sean wrote:
+Hardwire PortInfo.GUIDCap to 1 for both the switch and HCA case,
+then simply verify that the incoming SubnSet matches the RO data
+in block 0.
 
-> I was suggesting that there were only 2 states, not 3, with
-> ibv_get_cq_event() simply retrieving a queued event from the kernel
-> without touching the CQ state.
+Signed-off-by: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+---
+ ibsim/sim_mad.c |   25 +++++++++++++++++--------
+ ibsim/sim_net.c |    2 +-
+ 2 files changed, 18 insertions(+), 9 deletions(-)
 
-But that isn't true, as you point out in your next message
-ibv_get_cq_event calls mlx4_cq_event which does alter the CQ state,
-particularly in how it behaves WRT to mlx4_arm_cq.
+I've put all our patches for ibsim on my github page:
 
-Hard to say what the arm_sn does, but my guess is that it is creating
-a one-shot that is sensitive to ibv_get_cq_event, eg you will never
-get more than one event queued in the kernel queue, which creates the
-3 state system I described.. (at least that matches my experience)
+git://github.com/jgunthorpe/ibsim.git
 
-Certainly, considering that arm_sn is a 3 bit counter, calling
-mlx4_cq_event many times then calling arm_cq will alias the counter
-from the point of view of the chip and that can't possibly be good.
+diff --git a/ibsim/sim_mad.c b/ibsim/sim_mad.c
+index 83d4e3b..60da7d2 100644
+--- a/ibsim/sim_mad.c
++++ b/ibsim/sim_mad.c
+@@ -385,17 +385,26 @@ static int do_guidinfo(Port * port, unsigned op, uint32_t mod, uint8_t * data)
+ 	Node *node = port->node;
+ 	int status = 0;
+ 	uint64_t portguid = node->nodeguid + port->portnum;
++	if (node->type == SWITCH_NODE)
++		portguid = node->nodeguid;
+ 
+-	if (op != IB_MAD_METHOD_GET)    // only get currently supported (non compliant)
+-		status = ERR_METHOD_UNSUPPORTED;
+-
+-	memset(data, 0, IB_SMP_DATA_SIZE);
+-	if (mod == 0) {
+-		if (node->type == SWITCH_NODE)
+-			mad_encode_field(data, IB_GUID_GUID0_F, &node->nodeguid);
+-		else
++	if (op == IB_MAD_METHOD_SET) {
++		/* The PortInfo.GuidCap is hardwired to 1, so the only valid input
++		   to a Set is the port GUID followed by zeros on block 0. */
++		int i = mod == 0?1:0;
++		for (; i != 8; ++i)
++			if (mad_get_field64(data, i*8, IB_GUID_GUID0_F) != 0)
++				status = ERR_BAD_PARAM;
++		if (mod != 0 ||
++		    mad_get_field64(data, 0, IB_GUID_GUID0_F) != portguid)
++			status = ERR_BAD_PARAM;
++	} else if (op == IB_MAD_METHOD_GET) {
++		memset(data, 0, IB_SMP_DATA_SIZE);
++		if (mod == 0)
+ 			mad_encode_field(data, IB_GUID_GUID0_F, &portguid);
+ 	}
++	else
++		status = ERR_METHOD_UNSUPPORTED;
+ 
+ 	return status;
+ }
+diff --git a/ibsim/sim_net.c b/ibsim/sim_net.c
+index 13c3b8c..59fc28e 100644
+--- a/ibsim/sim_net.c
++++ b/ibsim/sim_net.c
+@@ -104,7 +104,7 @@ static const uint8_t hcaport[] = {
+ 	0x00, 0x00, 0x0F, 0xF9, 0x01, 0x03, 0x03, 0x02,
+ 	0x12, 0x52, 0x00, 0x11, 0x40, 0x40, 0x00, 0x08,
+ 	0x08, 0x04, 0xFF, 0x10, 0x00, 0x00, 0x00, 0x00,
+-	0x00, 0x00, 0x20, 0x1F, 0x00, 0x00, 0x00, 0x00,
++	0x00, 0x00, 0x01, 0x1F, 0x00, 0x00, 0x00, 0x00,
+ 	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+ };
+ 
+-- 
+1.7.1
 
-> I changed the code to do this:
-> 
-> 	do {
-> 		poll
-> 		rearm
-> 		poll
-> 		get_event
-> 	} while (1);
-> 
-> which I believe fixes the issue.
-
-In the past I looked at all this and concluded this was the only
-possible correct way to write the loop. You have to guarentee rearm is
-called before every get_event and you have to do a poll after every
-rearm.
-
-> Thanks for the help.  You are now the winner of my respect.  :)
-
-NP :)
-
-Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
