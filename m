@@ -1,51 +1,59 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: identify the race condition in this code and win the respect of
- linux-rdma developers!
-Date: Fri, 16 Sep 2011 17:21:00 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A8237316E5B3DD@ORSMSX101.amr.corp.intel.com>
-References: <1828884A29C6694DAF28B7E6B8A8237316E5B2B1@ORSMSX101.amr.corp.intel.com>
- <20110916005008.GC6020@obsidianresearch.com>
- <1828884A29C6694DAF28B7E6B8A8237316E5B320@ORSMSX101.amr.corp.intel.com>
- <20110916155955.GA18548@obsidianresearch.com>
- <1828884A29C6694DAF28B7E6B8A8237316E5B3B8@ORSMSX101.amr.corp.intel.com>
+From: Mike Heinz <michael.heinz-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+Subject: RE: [PATCH] An argument for allowing applications to manually send
+ RMPP packets if desired
+Date: Fri, 16 Sep 2011 13:28:16 -0500
+Message-ID: <4C2744E8AD2982428C5BFE523DF8CDCB4A5387ECDF@MNEXMB1.qlogic.org>
+References: <4C2744E8AD2982428C5BFE523DF8CDCB4A5387E899@MNEXMB1.qlogic.org>
+ <CAL1RGDUXM9-Ey1aF8xQo3X_L1PLrVyyLPYvqmy6Qeu5M2JnJPA@mail.gmail.com>
+ <20110912172334.GC18574@obsidianresearch.com>
+ <CAL1RGDVPZzMKmMg7mokhG0btX+3NH_+tL-9P5guV10h6X6i0iw@mail.gmail.com>
+ <20110912190623.GD18574@obsidianresearch.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1828884A29C6694DAF28B7E6B8A8237316E5B3B8-P5GAC/sN6hmkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
+In-Reply-To: <20110912190623.GD18574-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Todd Rimmer <todd.rimmer-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Maybe someone at Mellanox can provide some guidance here.  Here are the arm/get_event calls from the libmlx4. 
+There hasn't been any discussion of this patch since Monday, I'd like to
+see if we can keep this conversation moving forward.
 
-int mlx4_arm_cq(struct ibv_cq *ibvcq, int solicited)
-{
-	...
-	sn  = cq->arm_sn & 3;
-	ci  = cq->cons_index & 0xffffff;
-	cmd = solicited ? MLX4_CQ_DB_REQ_NOT_SOL : MLX4_CQ_DB_REQ_NOT;
+Right now, as I see it, we have a scalability issue with how rmpp
+packets are currently handled. While the current method works great on
+small to mid-sized fabrics - and vastly simplifies life for the
+application programmer - as fabrics grow in size, it risks memory
+exhaustion when many nodes make similar queries to a server at the same
+time. In addition, it eliminates the flexibility provided in the RMPP
+protocol; if the SA/SM handles RMPP packets individually it can not only
+stash packets for re-use, it can take advantage of the timing and
+windowing in the protocol to throttle its responses during periods of
+heavy load.
 
-	*cq->arm_db = htonl(sn << 28 | cmd | ci);
+Note that no one is arguing that the existing model isn't appropriate
+for client applications - I doubt we will be seeing fabrics so large
+that a single NodeInfo response would exhaust all RAM on the client.
 
-	wmb();
+Roland, you suggested developing a new interface that avoids the copying
+without requiring the full protocol to be handled in user space,
+possibly using writev(). But is it really worthwhile to add complexity
+to ib_mad, ib_umad, libibumad and libibmad for something that's only
+needed on (for example) one machine out of several thousand? In
+addition, such an interface still would not allow a sophisticated SM
+implementation to do load management of the queries. Trying to put load
+management of MAD queries in the kernel itself would result in a
+constantly changing kernel module as we try to adapt to emerging issues
+as the fabrics become ever larger.
 
-	doorbell[0] = htonl(sn << 28 | cmd | cq->cqn);
-	doorbell[1] = htonl(ci);
-	mlx4_write64(doorbell, to_mctx(ibvcq->context), MLX4_CQ_DOORBELL);
-	return 0;
-}
+The patch at hand avoids all that complexity by simply allowing the SM
+application handle RMPP itself in whatever manner is considered best. If
+the SM wants to use the current RMPP implementation it can, turning this
+ability on is completely optional.
 
-void mlx4_cq_event(struct ibv_cq *cq)
-{
-	to_mcq(cq)->arm_sn++;
-}
-
-What exactly is the role of arm_sn?
-
-- Sean
+This message and any attached documents contain information from QLogic Corporation or its wholly-owned subsidiaries that may be confidential. If you are not the intended recipient, you may not read, copy, distribute, or use this information. If you have received this transmission in error, please notify the sender immediately by reply e-mail and then delete this message.
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
