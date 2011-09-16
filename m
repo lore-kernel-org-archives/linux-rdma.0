@@ -1,62 +1,63 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: identify the race condition in this code and win the respect
- of linux-rdma developers!
-Date: Thu, 15 Sep 2011 18:50:08 -0600
-Message-ID: <20110916005008.GC6020@obsidianresearch.com>
-References: <1828884A29C6694DAF28B7E6B8A8237316E5B2B1@ORSMSX101.amr.corp.intel.com>
+From: Stephen Rothwell <sfr-3FnU+UHB4dNDw9hX6IcOSA@public.gmane.org>
+Subject: Re: Temporary location for infiniband.git tree
+Date: Fri, 16 Sep 2011 10:58:48 +1000
+Message-ID: <20110916105848.10b68055856409f16cfe9dba@canb.auug.org.au>
+References: <CAG4TOxPoz3W1fv50s7+cq_vd6jxbh2=x7bpzvmHRwvW+Nz=EQg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; protocol="application/pgp-signature";
+ micalg="PGP-SHA1";
+ boundary="Signature=_Fri__16_Sep_2011_10_58_48_+1000_4A3O/aOP_3jXPJOM"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1828884A29C6694DAF28B7E6B8A8237316E5B2B1-P5GAC/sN6hmkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
+In-Reply-To: <CAG4TOxPoz3W1fv50s7+cq_vd6jxbh2=x7bpzvmHRwvW+Nz=EQg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Sep 15, 2011 at 11:58:34PM +0000, Hefty, Sean wrote:
-> I have a ping-pong test application that loops doing: send, wait for
-> send completion, wait for receive completion.  The test occasionally
-> hangs in the following code at ibv_get_cq_event() (error handling
-> removed):
+--Signature=_Fri__16_Sep_2011_10_58_48_+1000_4A3O/aOP_3jXPJOM
+Content-Type: text/plain; charset=US-ASCII
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-> Case 1:
-> 	ret = ibv_poll_cq(id->recv_cq, 1, wc);
-> 	ret = ibv_req_notify_cq(id->recv_cq, 0);
-> 
-> 	while (!(ret = ibv_poll_cq(id->recv_cq, 1, wc))) {
-> 		ret = ibv_get_cq_event(id->recv_cq_channel, &cq, &context);
-> 		ibv_ack_cq_events(id->recv_cq, 1);
-> 	}
+Hi Roland,
 
-If ibv_get_cq_event returns here, because the CQ notify triggers but
-poll_cq goes not return a WC then you go back into get_cq_event
-without requesting notification.
+On Thu, 15 Sep 2011 10:48:22 -0700 Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org> w=
+rote:
+>
+> Following the crowd, I've created a tree at
+>=20
+>     https://github.com/rolandd/infiniband
+>=20
+> to keep my work for 3.2.  (and I expect to start merging stuff for 3.2 sh=
+ortly)
+>=20
+> Stephen, there is a for-next branch there that you can use instead of the
+> old kernel.org infiniband.git location for now (it currently should have
+> nothing not in Linus's tree).
 
-I'm pretty sure ibv_req_notify_cq does nothing if there is already a
-notification pending.
+OK, I will switch to that tree from today.
 
-> Case 3:
-> 	ret = ibv_poll_cq(id->recv_cq, 1, wc);
-> 	while (1)
-> 		ret = ibv_req_notify_cq(id->recv_cq, 0);
-> 
-> 		ret = ibv_poll_cq(id->recv_cq, 1, wc);
-> 		if (ret)
-> 			break;
-> 		ret = ibv_get_cq_event(id->recv_cq_channel, &cq, &context);
-> 		ibv_ack_cq_events(id->recv_cq, 1);
-> 	}
+--=20
+Cheers,
+Stephen Rothwell                    sfr-3FnU+UHB4dNDw9hX6IcOSA@public.gmane.org
+http://www.canb.auug.org.au/~sfr/
 
-Where as this, is correct. The sequence must always be
-ibv_req_notify_cq, ibv_poll_cq, ibv_get_cq_event
+--Signature=_Fri__16_Sep_2011_10_58_48_+1000_4A3O/aOP_3jXPJOM
+Content-Type: application/pgp-signature
 
-Case 2 will also fail, but it will be statistically less likely since
-you are looking for a WC being added between the poll_cq and
-req_notify_cq. While case 1 only requires a run through the loop with
-a pending notification but no WC entries.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
 
-Jason
+iQEcBAEBAgAGBQJOcp9IAAoJEDMEi1NhKgbsGeAH/RUky2RnD1VBGqhAgqU9Cs28
+hjokVuaZnVFviCT03TysGQTdDa/YlM11vzShyKurxj0sy59PnJQykHkhqEgigcmL
+G4p0xl3oh0yqP2JuqT8NF1uvv8PW9G2EQu0yJlueZQMj/sNU7cGoAJTvHLliNPES
+9SxA+zq3Bc0Y8yT5/uCVuNAl+wFntyFB0l9KNRPLyzaLPyaMXwtmmx9MexJhsk1H
+PRlSDWkk3YWTQODmCUuKzT5RYFbPZY4e/u234RUyFQWaSURVoTdRqjUHAt6KvFqA
+uJG1QFHVkPF+uavEWCWC0nTFlVcKWeptvjkRqUARKVfEn7G3gVj2XeKz5bjLahw=
+=jBHB
+-----END PGP SIGNATURE-----
+
+--Signature=_Fri__16_Sep_2011_10_58_48_+1000_4A3O/aOP_3jXPJOM--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
