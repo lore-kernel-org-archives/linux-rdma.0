@@ -1,158 +1,134 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH RFC 1/4] ib/core: handle EDR/FDR extended speeds
-Date: Mon, 19 Sep 2011 18:00:51 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A8237316E64FDC@ORSMSX101.amr.corp.intel.com>
+From: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH RFC 1/4] ib/core: handle EDR/FDR extended speeds
+Date: Mon, 19 Sep 2011 14:11:33 -0400
+Message-ID: <CAKzyTszd0LSOaY4RFCw2WpNBBQcgfkUYFSOy6q+rC1SjSb4q3A@mail.gmail.com>
 References: <201109191906.05360.marcela@dev.mellanox.co.il>
+	<1828884A29C6694DAF28B7E6B8A8237316E64FDC@ORSMSX101.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <201109191906.05360.marcela-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <1828884A29C6694DAF28B7E6B8A8237316E64FDC-P5GAC/sN6hmkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Marcel Apfelbaum <marcela-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Marcel Apfelbaum <marcela-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> Index: b/drivers/infiniband/core/verbs.c
-> ===================================================================
-> --- a/drivers/infiniband/core/verbs.c	2011-09-13 13:34:19.660539000 +0300
-> +++ b/drivers/infiniband/core/verbs.c	2011-09-13 16:42:39.713754400 +0300
-> @@ -77,6 +77,23 @@ enum ib_rate mult_to_ib_rate(int mult)
->  }
->  EXPORT_SYMBOL(mult_to_ib_rate);
-> 
-> +int ib_ext_rate_to_int(enum ib_rate rate)
-> +{
-> +	switch (rate) {
-> +	case IB_RATE_14_GBPS:	return 14;
-> +	case IB_RATE_56_GBPS:	return 56;
-> +	case IB_RATE_112_GBPS:	return 112;
-> +	case IB_RATE_168_GBPS:	return 168;
-> +	case IB_RATE_25_GBPS:	return 25;
-> +	case IB_RATE_100_GBPS:	return 100;
-> +	case IB_RATE_200_GBPS:	return 200;
-> +	case IB_RATE_300_GBPS:	return 300;
-> +	/* For higher speeds report 56 */
-> +	default:		return 56;
-> +	}
-> +}
-> +EXPORT_SYMBOL(ib_ext_rate_to_int);
-
-I don't like the idea of introducing new fields and functions to report the rate when there are existing ones that should be usable.
-
-> +
->  enum rdma_transport_type
->  rdma_node_get_transport(enum rdma_node_type node_type)
->  {
-> Index: b/drivers/infiniband/ulp/ipoib/ipoib_fs.c
-> ===================================================================
-> --- a/drivers/infiniband/ulp/ipoib/ipoib_fs.c	2011-09-13 13:34:19.666040100
-> +0300
-> +++ b/drivers/infiniband/ulp/ipoib/ipoib_fs.c	2011-09-13 13:34:25.043115300
-> +0300
-> @@ -212,16 +212,28 @@ static int ipoib_path_seq_show(struct se
->  		   gid_buf, path.pathrec.dlid ? "yes" : "no");
-> 
->  	if (path.pathrec.dlid) {
-> -		rate = ib_rate_to_mult(path.pathrec.rate) * 25;
-> +		if (path.pathrec.rate > IB_RATE_120_GBPS) {
-> +			rate = ib_ext_rate_to_int(path.pathrec.rate);
-> 
-> -		seq_printf(file,
-> -			   "  DLID:     0x%04x\n"
-> -			   "  SL: %12d\n"
-> -			   "  rate: %*d%s Gb/sec\n",
-> -			   be16_to_cpu(path.pathrec.dlid),
-> -			   path.pathrec.sl,
-> -			   10 - ((rate % 10) ? 2 : 0),
-> -			   rate / 10, rate % 10 ? ".5" : "");
-> +			seq_printf(file,
-> +				   "  DLID:     0x%04x\n"
-> +				   "  SL: %12d\n"
-> +				   "  rate: %*d Gb/sec\n",
-> +				   be16_to_cpu(path.pathrec.dlid),
-> +				   path.pathrec.sl,
-> +				   rate);
-> +		} else {
-> +			rate = ib_rate_to_mult(path.pathrec.rate) * 25;
-> +
-> +			seq_printf(file,
-> +				   "  DLID:     0x%04x\n"
-> +				   "  SL: %12d\n"
-> +				   "  rate: %*d%s Gb/sec\n",
-> +				   be16_to_cpu(path.pathrec.dlid),
-> +				   path.pathrec.sl,
-> +				   10 - ((rate % 10) ? 2 : 0),
-> +				   rate / 10, rate % 10 ? ".5" : "");
-> +		}
->  	}
-> 
->  	seq_putc(file, '\n');
-> Index: b/include/rdma/ib_user_verbs.h
-> ===================================================================
-> --- a/include/rdma/ib_user_verbs.h	2011-09-13 13:34:19.745055900 +0300
-> +++ b/include/rdma/ib_user_verbs.h	2011-09-13 13:34:25.050116700 +0300
-> @@ -206,7 +206,8 @@ struct ib_uverbs_query_port_resp {
->  	__u8  active_speed;
->  	__u8  phys_state;
->  	__u8  link_layer;
-> -	__u8  reserved[2];
-> +	__u8  ext_active_speed;
-> +	__u8  reserved;
->  };
-
-Why can't we carry the new speed values in the existing active_speed fields?  It seems awkward for a user to need to read 2 fields to get the active speed.
-
-> +static inline int ib_ext_active_speed_to_rate(u8 ext_active_speed)
-> +{
-> +	switch (ext_active_speed) {
-> +	case 1:	return 14;
-> +	case 2:	return 25;
-> +	default: return -1;
-> +	}
-> +}
-> +
->  static inline int ib_width_enum_to_int(enum ib_port_width width)
->  {
->  	switch (width) {
-> @@ -308,6 +318,7 @@ struct ib_port_attr {
->  	u8			active_width;
->  	u8			active_speed;
->  	u8                      phys_state;
-> +	u8                      ext_active_speed;
->  };
-> 
->  enum ib_device_modify_flags {
-> @@ -415,7 +426,15 @@ enum ib_rate {
->  	IB_RATE_40_GBPS  = 7,
->  	IB_RATE_60_GBPS  = 8,
->  	IB_RATE_80_GBPS  = 9,
-> -	IB_RATE_120_GBPS = 10
-> +	IB_RATE_120_GBPS = 10,
-> +	IB_RATE_14_GBPS  = 11,
-> +	IB_RATE_56_GBPS  = 12,
-> +	IB_RATE_112_GBPS = 13,
-> +	IB_RATE_168_GBPS = 14,
-> +	IB_RATE_25_GBPS  = 15,
-> +	IB_RATE_100_GBPS = 16,
-> +	IB_RATE_200_GBPS = 17,
-> +	IB_RATE_300_GBPS = 18,
->  };
-> 
->  /**
-> @@ -427,6 +446,14 @@ enum ib_rate {
->  int ib_rate_to_mult(enum ib_rate rate) __attribute_const__;
-> 
->  /**
-> + * ib_ext_rate_to_int - Convert the extended IB rate enum to a
-> + * real integer value.  For example,
-> + * IB_RATE_14_GBPS will be converted to 14
-> + * @rate: extended rate to convert.
-> + */
-> +int ib_ext_rate_to_int(enum ib_rate rate) __attribute_const__;
-
-Why can't the existing function be used?
+T24gTW9uLCBTZXAgMTksIDIwMTEgYXQgMjowMCBQTSwgSGVmdHksIFNlYW4gPHNlYW4uaGVmdHlA
+aW50ZWwuY29tPiB3cm90ZToKPj4gSW5kZXg6IGIvZHJpdmVycy9pbmZpbmliYW5kL2NvcmUvdmVy
+YnMuYwo+PiA9PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
+PT09PT09PT09PT09PT09PT09Cj4+IC0tLSBhL2RyaXZlcnMvaW5maW5pYmFuZC9jb3JlL3ZlcmJz
+LmMgMjAxMS0wOS0xMyAxMzozNDoxOS42NjA1MzkwMDAgKzAzMDAKPj4gKysrIGIvZHJpdmVycy9p
+bmZpbmliYW5kL2NvcmUvdmVyYnMuYyAyMDExLTA5LTEzIDE2OjQyOjM5LjcxMzc1NDQwMCArMDMw
+MAo+PiBAQCAtNzcsNiArNzcsMjMgQEAgZW51bSBpYl9yYXRlIG11bHRfdG9faWJfcmF0ZShpbnQg
+bXVsdCkKPj4gwqB9Cj4+IMKgRVhQT1JUX1NZTUJPTChtdWx0X3RvX2liX3JhdGUpOwo+Pgo+PiAr
+aW50IGliX2V4dF9yYXRlX3RvX2ludChlbnVtIGliX3JhdGUgcmF0ZSkKPj4gK3sKPj4gKyDCoCDC
+oCBzd2l0Y2ggKHJhdGUpIHsKPj4gKyDCoCDCoCBjYXNlIElCX1JBVEVfMTRfR0JQUzogwqAgcmV0
+dXJuIDE0Owo+PiArIMKgIMKgIGNhc2UgSUJfUkFURV81Nl9HQlBTOiDCoCByZXR1cm4gNTY7Cj4+
+ICsgwqAgwqAgY2FzZSBJQl9SQVRFXzExMl9HQlBTOiDCoHJldHVybiAxMTI7Cj4+ICsgwqAgwqAg
+Y2FzZSBJQl9SQVRFXzE2OF9HQlBTOiDCoHJldHVybiAxNjg7Cj4+ICsgwqAgwqAgY2FzZSBJQl9S
+QVRFXzI1X0dCUFM6IMKgIHJldHVybiAyNTsKPj4gKyDCoCDCoCBjYXNlIElCX1JBVEVfMTAwX0dC
+UFM6IMKgcmV0dXJuIDEwMDsKPj4gKyDCoCDCoCBjYXNlIElCX1JBVEVfMjAwX0dCUFM6IMKgcmV0
+dXJuIDIwMDsKPj4gKyDCoCDCoCBjYXNlIElCX1JBVEVfMzAwX0dCUFM6IMKgcmV0dXJuIDMwMDsK
+Pj4gKyDCoCDCoCAvKiBGb3IgaGlnaGVyIHNwZWVkcyByZXBvcnQgNTYgKi8KPj4gKyDCoCDCoCBk
+ZWZhdWx0OiDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoHJldHVybiA1NjsKPj4gKyDCoCDCoCB9Cj4+
+ICt9Cj4+ICtFWFBPUlRfU1lNQk9MKGliX2V4dF9yYXRlX3RvX2ludCk7Cj4KPiBJIGRvbid0IGxp
+a2UgdGhlIGlkZWEgb2YgaW50cm9kdWNpbmcgbmV3IGZpZWxkcyBhbmQgZnVuY3Rpb25zIHRvIHJl
+cG9ydCB0aGUgcmF0ZSB3aGVuIHRoZXJlIGFyZSBleGlzdGluZyBvbmVzIHRoYXQgc2hvdWxkIGJl
+IHVzYWJsZS4KPgo+PiArCj4+IMKgZW51bSByZG1hX3RyYW5zcG9ydF90eXBlCj4+IMKgcmRtYV9u
+b2RlX2dldF90cmFuc3BvcnQoZW51bSByZG1hX25vZGVfdHlwZSBub2RlX3R5cGUpCj4+IMKgewo+
+PiBJbmRleDogYi9kcml2ZXJzL2luZmluaWJhbmQvdWxwL2lwb2liL2lwb2liX2ZzLmMKPj4gPT09
+PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
+PT09PT09PQo+PiAtLS0gYS9kcml2ZXJzL2luZmluaWJhbmQvdWxwL2lwb2liL2lwb2liX2ZzLmMg
+MjAxMS0wOS0xMyAxMzozNDoxOS42NjYwNDAxMDAKPj4gKzAzMDAKPj4gKysrIGIvZHJpdmVycy9p
+bmZpbmliYW5kL3VscC9pcG9pYi9pcG9pYl9mcy5jIDIwMTEtMDktMTMgMTM6MzQ6MjUuMDQzMTE1
+MzAwCj4+ICswMzAwCj4+IEBAIC0yMTIsMTYgKzIxMiwyOCBAQCBzdGF0aWMgaW50IGlwb2liX3Bh
+dGhfc2VxX3Nob3coc3RydWN0IHNlCj4+IMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgZ2lkX2J1
+ZiwgcGF0aC5wYXRocmVjLmRsaWQgPyAieWVzIiA6ICJubyIpOwo+Pgo+PiDCoCDCoCDCoCBpZiAo
+cGF0aC5wYXRocmVjLmRsaWQpIHsKPj4gLSDCoCDCoCDCoCDCoCDCoCDCoCByYXRlID0gaWJfcmF0
+ZV90b19tdWx0KHBhdGgucGF0aHJlYy5yYXRlKSAqIDI1Owo+PiArIMKgIMKgIMKgIMKgIMKgIMKg
+IGlmIChwYXRoLnBhdGhyZWMucmF0ZSA+IElCX1JBVEVfMTIwX0dCUFMpIHsKPj4gKyDCoCDCoCDC
+oCDCoCDCoCDCoCDCoCDCoCDCoCDCoCByYXRlID0gaWJfZXh0X3JhdGVfdG9faW50KHBhdGgucGF0
+aHJlYy5yYXRlKTsKPj4KPj4gLSDCoCDCoCDCoCDCoCDCoCDCoCBzZXFfcHJpbnRmKGZpbGUsCj4+
+IC0gwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAiIMKgRExJRDogwqAgwqAgMHgl
+MDR4XG4iCj4+IC0gwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAiIMKgU0w6ICUx
+MmRcbiIKPj4gLSDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCIgwqByYXRlOiAl
+KmQlcyBHYi9zZWNcbiIsCj4+IC0gwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqBi
+ZTE2X3RvX2NwdShwYXRoLnBhdGhyZWMuZGxpZCksCj4+IC0gwqAgwqAgwqAgwqAgwqAgwqAgwqAg
+wqAgwqAgwqAgwqAgwqBwYXRoLnBhdGhyZWMuc2wsCj4+IC0gwqAgwqAgwqAgwqAgwqAgwqAgwqAg
+wqAgwqAgwqAgwqAgwqAxMCAtICgocmF0ZSAlIDEwKSA/IDIgOiAwKSwKPj4gLSDCoCDCoCDCoCDC
+oCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoHJhdGUgLyAxMCwgcmF0ZSAlIDEwID8gIi41IiA6ICIi
+KTsKPj4gKyDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCBzZXFfcHJpbnRmKGZpbGUsCj4+
+ICsgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAiIMKgRExJ
+RDogwqAgwqAgMHglMDR4XG4iCj4+ICsgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAg
+wqAgwqAgwqAgwqAgwqAiIMKgU0w6ICUxMmRcbiIKPj4gKyDCoCDCoCDCoCDCoCDCoCDCoCDCoCDC
+oCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCIgwqByYXRlOiAlKmQgR2Ivc2VjXG4iLAo+PiArIMKg
+IMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgYmUxNl90b19jcHUo
+cGF0aC5wYXRocmVjLmRsaWQpLAo+PiArIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKg
+IMKgIMKgIMKgIMKgIMKgcGF0aC5wYXRocmVjLnNsLAo+PiArIMKgIMKgIMKgIMKgIMKgIMKgIMKg
+IMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgcmF0ZSk7Cj4+ICsgwqAgwqAgwqAgwqAgwqAgwqAg
+fSBlbHNlIHsKPj4gKyDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCByYXRlID0gaWJfcmF0
+ZV90b19tdWx0KHBhdGgucGF0aHJlYy5yYXRlKSAqIDI1Owo+PiArCj4+ICsgwqAgwqAgwqAgwqAg
+wqAgwqAgwqAgwqAgwqAgwqAgc2VxX3ByaW50ZihmaWxlLAo+PiArIMKgIMKgIMKgIMKgIMKgIMKg
+IMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIiDCoERMSUQ6IMKgIMKgIDB4JTA0eFxuIgo+
+PiArIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIiDCoFNM
+OiAlMTJkXG4iCj4+ICsgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAg
+wqAgwqAiIMKgcmF0ZTogJSpkJXMgR2Ivc2VjXG4iLAo+PiArIMKgIMKgIMKgIMKgIMKgIMKgIMKg
+IMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgYmUxNl90b19jcHUocGF0aC5wYXRocmVjLmRsaWQp
+LAo+PiArIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgcGF0
+aC5wYXRocmVjLnNsLAo+PiArIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKg
+IMKgIMKgIMKgMTAgLSAoKHJhdGUgJSAxMCkgPyAyIDogMCksCj4+ICsgwqAgwqAgwqAgwqAgwqAg
+wqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqByYXRlIC8gMTAsIHJhdGUgJSAxMCA/ICIu
+NSIgOiAiIik7Cj4+ICsgwqAgwqAgwqAgwqAgwqAgwqAgfQo+PiDCoCDCoCDCoCB9Cj4+Cj4+IMKg
+IMKgIMKgIHNlcV9wdXRjKGZpbGUsICdcbicpOwo+PiBJbmRleDogYi9pbmNsdWRlL3JkbWEvaWJf
+dXNlcl92ZXJicy5oCj4+ID09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
+PT09PT09PT09PT09PT09PT09PT09PT09PT0KPj4gLS0tIGEvaW5jbHVkZS9yZG1hL2liX3VzZXJf
+dmVyYnMuaCDCoCDCoDIwMTEtMDktMTMgMTM6MzQ6MTkuNzQ1MDU1OTAwICswMzAwCj4+ICsrKyBi
+L2luY2x1ZGUvcmRtYS9pYl91c2VyX3ZlcmJzLmggwqAgwqAyMDExLTA5LTEzIDEzOjM0OjI1LjA1
+MDExNjcwMCArMDMwMAo+PiBAQCAtMjA2LDcgKzIwNiw4IEBAIHN0cnVjdCBpYl91dmVyYnNfcXVl
+cnlfcG9ydF9yZXNwIHsKPj4gwqAgwqAgwqAgX191OCDCoGFjdGl2ZV9zcGVlZDsKPj4gwqAgwqAg
+wqAgX191OCDCoHBoeXNfc3RhdGU7Cj4+IMKgIMKgIMKgIF9fdTggwqBsaW5rX2xheWVyOwo+PiAt
+IMKgIMKgIF9fdTggwqByZXNlcnZlZFsyXTsKPj4gKyDCoCDCoCBfX3U4IMKgZXh0X2FjdGl2ZV9z
+cGVlZDsKPj4gKyDCoCDCoCBfX3U4IMKgcmVzZXJ2ZWQ7Cj4+IMKgfTsKPgo+IFdoeSBjYW4ndCB3
+ZSBjYXJyeSB0aGUgbmV3IHNwZWVkIHZhbHVlcyBpbiB0aGUgZXhpc3RpbmcgYWN0aXZlX3NwZWVk
+IGZpZWxkcz8gwqBJdCBzZWVtcyBhd2t3YXJkIGZvciBhIHVzZXIgdG8gbmVlZCB0byByZWFkIDIg
+ZmllbGRzIHRvIGdldCB0aGUgYWN0aXZlIHNwZWVkLgoKSXQgbWFwcyB0byB3aGF0IHdhcyBkb25l
+IGluIHRoZSBQb3J0SW5mbyBhdHRyaWJ1dGUgdG8gYWRkIHRoZSBuZXcKZXh0ZW5kZWQgc3BlZWRz
+LiBUaGVyZSB3YXMgbm8gcm9vbSBmb3IgZXhwYW5zaW9uIGluIHRoZSBleGlzdGluZwpvcmlnaW5h
+bCBsaW5rIHNwZWVkIGZpZWxkcyBzbyBhICJwYXJhbGxlbCIgc2V0IG9mIGZpZWxkcyBoYWQgdG8g
+YmUKYWRkZWQgdGhlcmUuLgoKLS0gSGFsCgo+PiArc3RhdGljIGlubGluZSBpbnQgaWJfZXh0X2Fj
+dGl2ZV9zcGVlZF90b19yYXRlKHU4IGV4dF9hY3RpdmVfc3BlZWQpCj4+ICt7Cj4+ICsgwqAgwqAg
+c3dpdGNoIChleHRfYWN0aXZlX3NwZWVkKSB7Cj4+ICsgwqAgwqAgY2FzZSAxOiByZXR1cm4gMTQ7
+Cj4+ICsgwqAgwqAgY2FzZSAyOiByZXR1cm4gMjU7Cj4+ICsgwqAgwqAgZGVmYXVsdDogcmV0dXJu
+IC0xOwo+PiArIMKgIMKgIH0KPj4gK30KPj4gKwo+PiDCoHN0YXRpYyBpbmxpbmUgaW50IGliX3dp
+ZHRoX2VudW1fdG9faW50KGVudW0gaWJfcG9ydF93aWR0aCB3aWR0aCkKPj4gwqB7Cj4+IMKgIMKg
+IMKgIHN3aXRjaCAod2lkdGgpIHsKPj4gQEAgLTMwOCw2ICszMTgsNyBAQCBzdHJ1Y3QgaWJfcG9y
+dF9hdHRyIHsKPj4gwqAgwqAgwqAgdTggwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqBh
+Y3RpdmVfd2lkdGg7Cj4+IMKgIMKgIMKgIHU4IMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKg
+IMKgYWN0aXZlX3NwZWVkOwo+PiDCoCDCoCDCoCB1OCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDC
+oCDCoCDCoHBoeXNfc3RhdGU7Cj4+ICsgwqAgwqAgdTggwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAg
+wqAgwqAgwqBleHRfYWN0aXZlX3NwZWVkOwo+PiDCoH07Cj4+Cj4+IMKgZW51bSBpYl9kZXZpY2Vf
+bW9kaWZ5X2ZsYWdzIHsKPj4gQEAgLTQxNSw3ICs0MjYsMTUgQEAgZW51bSBpYl9yYXRlIHsKPj4g
+wqAgwqAgwqAgSUJfUkFURV80MF9HQlBTIMKgPSA3LAo+PiDCoCDCoCDCoCBJQl9SQVRFXzYwX0dC
+UFMgwqA9IDgsCj4+IMKgIMKgIMKgIElCX1JBVEVfODBfR0JQUyDCoD0gOSwKPj4gLSDCoCDCoCBJ
+Ql9SQVRFXzEyMF9HQlBTID0gMTAKPj4gKyDCoCDCoCBJQl9SQVRFXzEyMF9HQlBTID0gMTAsCj4+
+ICsgwqAgwqAgSUJfUkFURV8xNF9HQlBTIMKgPSAxMSwKPj4gKyDCoCDCoCBJQl9SQVRFXzU2X0dC
+UFMgwqA9IDEyLAo+PiArIMKgIMKgIElCX1JBVEVfMTEyX0dCUFMgPSAxMywKPj4gKyDCoCDCoCBJ
+Ql9SQVRFXzE2OF9HQlBTID0gMTQsCj4+ICsgwqAgwqAgSUJfUkFURV8yNV9HQlBTIMKgPSAxNSwK
+Pj4gKyDCoCDCoCBJQl9SQVRFXzEwMF9HQlBTID0gMTYsCj4+ICsgwqAgwqAgSUJfUkFURV8yMDBf
+R0JQUyA9IDE3LAo+PiArIMKgIMKgIElCX1JBVEVfMzAwX0dCUFMgPSAxOCwKPj4gwqB9Owo+Pgo+
+PiDCoC8qKgo+PiBAQCAtNDI3LDYgKzQ0NiwxNCBAQCBlbnVtIGliX3JhdGUgewo+PiDCoGludCBp
+Yl9yYXRlX3RvX211bHQoZW51bSBpYl9yYXRlIHJhdGUpIF9fYXR0cmlidXRlX2NvbnN0X187Cj4+
+Cj4+IMKgLyoqCj4+ICsgKiBpYl9leHRfcmF0ZV90b19pbnQgLSBDb252ZXJ0IHRoZSBleHRlbmRl
+ZCBJQiByYXRlIGVudW0gdG8gYQo+PiArICogcmVhbCBpbnRlZ2VyIHZhbHVlLiDCoEZvciBleGFt
+cGxlLAo+PiArICogSUJfUkFURV8xNF9HQlBTIHdpbGwgYmUgY29udmVydGVkIHRvIDE0Cj4+ICsg
+KiBAcmF0ZTogZXh0ZW5kZWQgcmF0ZSB0byBjb252ZXJ0Lgo+PiArICovCj4+ICtpbnQgaWJfZXh0
+X3JhdGVfdG9faW50KGVudW0gaWJfcmF0ZSByYXRlKSBfX2F0dHJpYnV0ZV9jb25zdF9fOwo+Cj4g
+V2h5IGNhbid0IHRoZSBleGlzdGluZyBmdW5jdGlvbiBiZSB1c2VkPwo+IC0tCj4gVG8gdW5zdWJz
+Y3JpYmUgZnJvbSB0aGlzIGxpc3Q6IHNlbmQgdGhlIGxpbmUgInVuc3Vic2NyaWJlIGxpbnV4LXJk
+bWEiIGluCj4gdGhlIGJvZHkgb2YgYSBtZXNzYWdlIHRvIG1ham9yZG9tb0B2Z2VyLmtlcm5lbC5v
+cmcKPiBNb3JlIG1ham9yZG9tbyBpbmZvIGF0IMKgaHR0cDovL3ZnZXIua2VybmVsLm9yZy9tYWpv
+cmRvbW8taW5mby5odG1sCj4K
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
