@@ -1,27 +1,49 @@
-From: "Davis, Arlin R" <arlin.r.davis-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [ANNOUNCE] dapl-2.0.33
-Date: Mon, 19 Sep 2011 18:34:01 +0000
-Message-ID: <54347E5A035A054EAE9D05927FB467F916E7339F@ORSMSX101.amr.corp.intel.com>
-References: <54347E5A035A054EAE9D05927FB467F916E50C32@ORSMSX101.amr.corp.intel.com>
+From: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH/ibsim] Provide support for SubnSet(GUIDInfo)
+Date: Mon, 19 Sep 2011 15:55:24 -0400
+Message-ID: <CAKzyTsw+VpLaz14eSLNED40QGN3GCeQ5xC7FZp59Da8C1xE3ww@mail.gmail.com>
+References: <20110916210611.GA6926@obsidianresearch.com>
+	<CAKzyTsy6QsrufSAFrCDyUUZcZvQU+PHuPjEL7y9SrT3FuaD19Q@mail.gmail.com>
+	<20110919155904.GA8113@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <54347E5A035A054EAE9D05927FB467F916E50C32-P5GAC/sN6hmkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <20110919155904.GA8113-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org" <ewg-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>, "ofw-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org" <ofw-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
-Cc: Vladimir Sokolovsky <vlad-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-The dapl-2.0.33 distribution was built without FCA configuration so it was missing some of the optional headers for FCA support.
+On Mon, Sep 19, 2011 at 11:59 AM, Jason Gunthorpe
+<jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
+> On Mon, Sep 19, 2011 at 10:07:57AM -0400, Hal Rosenstock wrote:
+>> On Fri, Sep 16, 2011 at 5:06 PM, Jason Gunthorpe
+>> <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
+>> > Hardwire PortInfo.GUIDCap to 1 for both the switch and HCA case,
+>>
+>> Why hardwire this to 1 ? This is not what most defaults are.
+>>
+>> > then simply verify that the incoming SubnSet matches the RO data
+>> > in block 0.
+>>
+>> Is this just to make the set of guidinfo simple ? Longer term, this
+>> should support a GUIDCap > 1 but I suppose that could be a follow on
+>> patch to this.
+>
+> It is to make the existing ibsim compliant with the spec.
 
-Please pull updated dapl-2.0.33.tar.gz. The git tree is unaffected.
+Yes, supporting set of guidinfo is compliant but I think your
+treatment of guid 0 in block 0 is overzealous and non compliant.
 
-	md5sum: 1539095f223d11a3c4a69c5e3775f1cc dapl-2.0.33.tar.gz
+-- Hal
 
-Arlin
+> If someone
+> cares about simulating guidinfo then they can implement a higher port
+> cap, otherwise, setting it to one lets things that those do try to
+> manipulate guid info not blow up.
 
+> Jason
+>
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
