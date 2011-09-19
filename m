@@ -1,54 +1,73 @@
-From: Mike Heinz <michael.heinz-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-Subject: RE: [PATCH] An argument for allowing applications to manually send
- RMPP packets if desired
-Date: Mon, 19 Sep 2011 10:30:56 -0500
-Message-ID: <4C2744E8AD2982428C5BFE523DF8CDCB4A5387EDB4@MNEXMB1.qlogic.org>
-References: <4C2744E8AD2982428C5BFE523DF8CDCB4A5387E899@MNEXMB1.qlogic.org>
- <CAL1RGDUXM9-Ey1aF8xQo3X_L1PLrVyyLPYvqmy6Qeu5M2JnJPA@mail.gmail.com>
- <20110912172334.GC18574@obsidianresearch.com>
- <CAL1RGDVPZzMKmMg7mokhG0btX+3NH_+tL-9P5guV10h6X6i0iw@mail.gmail.com>
- <20110912190623.GD18574@obsidianresearch.com>
- <4C2744E8AD2982428C5BFE523DF8CDCB4A5387ECDF@MNEXMB1.qlogic.org>
- <20110917034251.GA6056@obsidianresearch.com>
- <1828884A29C6694DAF28B7E6B8A8237316E5B763@ORSMSX101.amr.corp.intel.com>
+From: Marcel Apfelbaum <marcela-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH RFC 0/4] adding support for FDR/FDR-10 link speed
+Date: Mon, 19 Sep 2011 18:34:29 +0300
+Message-ID: <CAN+0-cY0EdONB601kwy1+M36KEXsqb2RzkcwABwQUTi3N5gNJA@mail.gmail.com>
+References: <CAN+0-cahigghDbptYHxA1pHOV59CMuWSdXjkPTKTN1uGCcfdRg@mail.gmail.com>
+	<CAN+0-cZ8fuPH_C+mxHFJHwBa1GvH5kZRBxz5X8EVcdpXBmUm5w@mail.gmail.com>
+	<CAN+0-cavjwR4eLCgQVUZayJ+xJ7LZgBtqNN3YbMN34+7WL6vmQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1828884A29C6694DAF28B7E6B8A8237316E5B763-P5GAC/sN6hmkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <CAN+0-cavjwR4eLCgQVUZayJ+xJ7LZgBtqNN3YbMN34+7WL6vmQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Todd Rimmer <todd.rimmer-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-The problem with creating a new protocol is that we would need to
+Hi,
 
-a) design the protocol
-b) get the IBTA to accept it
-c) get the application developers to accept it.
-
-I simply cannot see getting this process done in less than two years.  Meanwhile, the problem with SA/SM performance is an issue right now - and it's an issue that was created not by the IB spec but by the implementation.
-
------Original Message-----
-From: Hefty, Sean [mailto:sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org]
-Sent: Sunday, September 18, 2011 8:35 PM
-To: Jason Gunthorpe; Mike Heinz
-Cc: Roland Dreier; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Todd Rimmer
-Subject: RE: [PATCH] An argument for allowing applications to manually send RMPP packets if desired
-
-> Ultimately I think the scalable/compatible answer is to move these
-> RMPP work loads to a verbs QP and we need to have a user space RMPP
-> implementation for that anyhow.
-
-Many to one is never scalable.  The applications simply cannot rely on every node querying the SA at the same time, especially for large amounts of data.  And the overhead of MADs and RMPP is too high to be a useful solution to scaling.
+Sorry, there is a problem with patches format, I'll send them again aft=
+er fix.
+Marcel
 
 
-
-
-This message and any attached documents contain information from QLogic Corporation or its wholly-owned subsidiaries that may be confidential. If you are not the intended recipient, you may not read, copy, distribute, or use this information. If you have received this transmission in error, please notify the sender immediately by reply e-mail and then delete this message.
-
+On Mon, Sep 19, 2011 at 6:05 PM, Marcel Apfelbaum
+<marcela-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wrote:
+> ---------- Forwarded message ----------
+> From: Marcel Apfelbaum <marcela-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+> Date: Mon, Sep 19, 2011 at 6:01 PM
+> Subject: [PATCH RFC 0/4] adding support for FDR/FDR-10 link speed
+> To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+>
+>
+> The purpose of the RFC is to introduce FDR/FDR-10:
+> =A0- FDR10 is a proprietary link speed which is 10.3125 Gbps at 64/66
+> encoding rather than 8b10b encoding.
+> =A0- FDR represents an extended speed: 14.0625 Gbps
+> =A0- EDR represents an extended speed: 25.78125 Gbps (EDR)
+>
+> The aim is to show correct speeds and link encoding in:
+> =A0 - Ibstat
+> =A0 - Ibv_devinfo
+> =A0 - /sys/class/infiniband/mlx4_0/ports/1/rate
+> =A0 - Other user space modules
+>
+> [PATCH RFC 1/4] ib/core: handle EDR/FDR extended speeds
+> Handle EDR/FDR extended speeds.
+> Extended speeds are introduced and a new formula is used for
+> speed computation (because of different encodings)
+>
+> [PATCH RFC 2/4] ib/core: handle FDR-10 link encoding
+> Deals with issues related to FDR-10 link encoding:
+> For QDR with FDR-10 encoding, =A0the rate is change accordingly to
+> LinkEncodingEnable flag
+>
+> [PATCH RFC 3/4] ib/mlx4: get extended active speed from port info
+> Gets extended active speed from Port Info packet(used for FDR/EDR)
+>
+> [PATCH RFC 4/4] ib/mlx4: get extended port capabilities
+> An Extended Port Info packet is sent to each hw port during HCA init
+> and if returns wihtout error it is assumed the port supports
+> extended port capabilities.
+>
+> If the port supports extended capabilities and the active speed is
+> QDR, FDR-10 link encoding is set according to Extended Port Info.
+>
+>
+> Marcel
+>
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
