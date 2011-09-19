@@ -1,47 +1,53 @@
-From: Marcel Apfelbaum <marcela-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH RFC 2/4] ib/core: handle FDR-10 link encoding
-Date: Mon, 19 Sep 2011 18:02:36 +0300
-Message-ID: <CAN+0-cYDJ2b_aKRfq6Y3OgxJ0TnfU4wWHhffqfvbbSB7kGZarw@mail.gmail.com>
-References: <CAN+0-cZ9XUpsYuHJGT-tuRBwGWOsetKkC9+e-TBab4JuoY5MaA@mail.gmail.com>
+From: Mike Heinz <michael.heinz-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+Subject: RE: [PATCH] An argument for allowing applications to manually send
+ RMPP packets if desired
+Date: Mon, 19 Sep 2011 10:30:56 -0500
+Message-ID: <4C2744E8AD2982428C5BFE523DF8CDCB4A5387EDB4@MNEXMB1.qlogic.org>
+References: <4C2744E8AD2982428C5BFE523DF8CDCB4A5387E899@MNEXMB1.qlogic.org>
+ <CAL1RGDUXM9-Ey1aF8xQo3X_L1PLrVyyLPYvqmy6Qeu5M2JnJPA@mail.gmail.com>
+ <20110912172334.GC18574@obsidianresearch.com>
+ <CAL1RGDVPZzMKmMg7mokhG0btX+3NH_+tL-9P5guV10h6X6i0iw@mail.gmail.com>
+ <20110912190623.GD18574@obsidianresearch.com>
+ <4C2744E8AD2982428C5BFE523DF8CDCB4A5387ECDF@MNEXMB1.qlogic.org>
+ <20110917034251.GA6056@obsidianresearch.com>
+ <1828884A29C6694DAF28B7E6B8A8237316E5B763@ORSMSX101.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAN+0-cZ9XUpsYuHJGT-tuRBwGWOsetKkC9+e-TBab4JuoY5MaA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <1828884A29C6694DAF28B7E6B8A8237316E5B763-P5GAC/sN6hmkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Cc: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Todd Rimmer <todd.rimmer-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-QWRkZWQgc3VwcG9ydCBmb3IgbmV3IGxpbmsgZW5jb2RpbmdzIGJleW9uZCB0aGUgcmVndWxhciA4
-IHRvIDEwIGJpdCBlbmNvZGluZy4KRm9yIG5vdyBvbmx5IEZEUi0xMCAoNjQgdG8gNjYgYml0IGVu
-Y29kaW5nKSBpcyBpbXBsZW1lbnRlZC4KClNpZ25lZC1vZmYtYnk6IE1hcmNlbCBBcGZlbGJhdW0g
-PG1hcmNlbGFAZGV2Lm1lbGxhbm94LmNvLmlsPgpSZXZpZXdlZC1ieTogSGFsIFJvc2Vuc3RvY2sg
-PGhhbEBtZWxsYW5veC5jb20+Ci0tLQpkcml2ZXJzL2luZmluaWJhbmQvY29yZS9zeXNmcy5jIHwg
-oCCgMiArLQppbmNsdWRlL3JkbWEvaWJfdmVyYnMuaCCgIKAgoCCgIHwgoCCgMSArCjIgZmlsZXMg
-Y2hhbmdlZCwgMiBpbnNlcnRpb25zKCspLCAxIGRlbGV0aW9uKC0pCgpJbmRleDogYi9kcml2ZXJz
-L2luZmluaWJhbmQvY29yZS9zeXNmcy5jCj09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT0KLS0tIGEvZHJpdmVycy9pbmZpbmli
-YW5kL2NvcmUvc3lzZnMuYyCgIKAgoCAyMDExLTA5LTE0IDEzOjQ5OjU4LjAwMDAwMDAwMCArMDMw
-MAorKysgYi9kcml2ZXJzL2luZmluaWJhbmQvY29yZS9zeXNmcy5jIKAgoDIwMTEtMDktMTQgMTM6
-NTA6NDMuNzMxNzc1OTAwICswMzAwCkBAIC0yMDksNyArMjA5LDcgQEAgc3RhdGljIHNzaXplX3Qg
-cmF0ZV9zaG93KHN0cnVjdCBpYl9wb3J0CqAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAg
-oCCgIKAgoCCgIKAgoCBzcGVlZCA9ICIgRERSIjsKoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCg
-IKAgoCCgIKAgoCCgIKAgoCCgIGJyZWFrOwqgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCBj
-YXNlIDQ6Ci0goCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgc3Bl
-ZWQgPSAiIFFEUiI7CisgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAg
-oCBzcGVlZCA9CmF0dHIubGlua19lbmNvZGluZyA9PSAwID8gIiBRRFIiIDogIiBGRFIxMCI7CqAg
-oCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCBicmVhazsKoCCgIKAg
-oCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgfQoKSW5kZXg6IGIvaW5jbHVkZS9yZG1hL2liX3ZlcmJz
-LmgKPT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
-PT09PT09PT09PT09PQotLS0gYS9pbmNsdWRlL3JkbWEvaWJfdmVyYnMuaCCgIDIwMTEtMDktMTQg
-MTM6NDk6NTguMDAwMDAwMDAwICswMzAwCisrKyBiL2luY2x1ZGUvcmRtYS9pYl92ZXJicy5oIKAg
-oCCgIKAgoCCgIKAgMjAxMS0wOS0xNCAxMzo1MDo0My43NDA3Nzc3MDAgKzAzMDAKQEAgLTMxOSw2
-ICszMTksNyBAQCBzdHJ1Y3QgaWJfcG9ydF9hdHRyIHsKoCCgIKAgoCCgIKAgoCB1OCCgIKAgoCCg
-IKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCCgIKAgoCBhY3RpdmVfc3BlZWQ7CqAgoCCgIKAg
-oCCgIKAgdTggoCCgIKAgoCCgIKAgoCCgIKAgoCCgcGh5c19zdGF0ZTsKoCCgIKAgoCCgIKAgoCB1
-OCCgIKAgoCCgIKAgoCCgIKAgoCCgIKBleHRfYWN0aXZlX3NwZWVkOworIKAgoCCgIKAgoCCgIHU4
-IKAgoCCgIKAgoCCgIKAgoCCgIKAgoGxpbmtfZW5jb2Rpbmc7Cn07CgqgZW51bSBpYl9kZXZpY2Vf
-bW9kaWZ5X2ZsYWdzIHsK
+The problem with creating a new protocol is that we would need to
+
+a) design the protocol
+b) get the IBTA to accept it
+c) get the application developers to accept it.
+
+I simply cannot see getting this process done in less than two years.  Meanwhile, the problem with SA/SM performance is an issue right now - and it's an issue that was created not by the IB spec but by the implementation.
+
+-----Original Message-----
+From: Hefty, Sean [mailto:sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org]
+Sent: Sunday, September 18, 2011 8:35 PM
+To: Jason Gunthorpe; Mike Heinz
+Cc: Roland Dreier; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Todd Rimmer
+Subject: RE: [PATCH] An argument for allowing applications to manually send RMPP packets if desired
+
+> Ultimately I think the scalable/compatible answer is to move these
+> RMPP work loads to a verbs QP and we need to have a user space RMPP
+> implementation for that anyhow.
+
+Many to one is never scalable.  The applications simply cannot rely on every node querying the SA at the same time, especially for large amounts of data.  And the overhead of MADs and RMPP is too high to be a useful solution to scaling.
+
+
+
+
+This message and any attached documents contain information from QLogic Corporation or its wholly-owned subsidiaries that may be confidential. If you are not the intended recipient, you may not read, copy, distribute, or use this information. If you have received this transmission in error, please notify the sender immediately by reply e-mail and then delete this message.
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
