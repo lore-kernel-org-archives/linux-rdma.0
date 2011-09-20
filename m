@@ -1,41 +1,91 @@
-From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Subject: Re: creating common ib_types.h for linux and windows
-Date: Tue, 20 Sep 2011 08:06:43 +0200
-Message-ID: <CAO+b5-p0O5N6ZZacYGNjz4+H=W3hX6O7kw5pO=XqXSdh3FEdhA@mail.gmail.com>
-References: <1828884A29C6694DAF28B7E6B8A8237316E65191@ORSMSX101.amr.corp.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: [PATCH/RFC] mlx4_core: Clean up error flow in mlx4_register_mac()
+Date: Tue, 20 Sep 2011 00:53:47 -0700
+Message-ID: <1316505227-6031-1-git-send-email-roland@kernel.org>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1828884A29C6694DAF28B7E6B8A8237316E65191-P5GAC/sN6hmkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Hal Rosenstock (hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org)" <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "Alex Netes (alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org)" <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "ofw-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org" <ofw-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+To: Yevgeny Petrilin <yevgenyp-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Sep 19, 2011 at 11:20 PM, Hefty, Sean <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wr=
-ote:
-> It would be easier to maintain opensm on windows if it truly shared t=
-he same code base. =A0For now, I'd just like to start with a common ib_=
-types.h file. =A0(There are currently hundreds, if not thousands, of li=
-nes that differ.) =A0ib_types.h uses #if defined(__WIN__) to separate l=
-inux from windows code. =A0This isn't actually used, since separate fil=
-es are maintained anyway.
->
-> My question is whether we should continue to use #if defined(__WIN__)=
- or add a new ib_types_osd.h file. =A0Any preferences from the opensm m=
-aintainer side?
+From: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
 
-Why to test for __WIN__ instead of _WIN32 (defined both when building
-32-bit and 64-bit code -- see also
-http://msdn.microsoft.com/en-us/library/b0084kay%28v=3Dvs.80%29.aspx) ?
+Fix a leak of entry if radix_tree_insert() fails.
 
-When creating a common header file, this might be a good start:
-https://msinttypes.googlecode.com/svn/trunk/stdint.h
+Also, reduce the indentation and make the flow easier to read by
+sticking to the conventional
 
-Bart.
+    err = do_something();
+    if (err)
+            return err;
+
+    err = do_another();
+    if (err)
+            return err;
+
+rather than mixing the direction of the test as
+
+    err = do_something();
+    if (!err) {
+            err = do_another();
+            if (err)
+                    return err;
+    } else
+            return err;
+
+Signed-off-by: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+---
+ drivers/net/mlx4/port.c |   30 +++++++++++++++++-------------
+ 1 files changed, 17 insertions(+), 13 deletions(-)
+
+diff --git a/drivers/net/mlx4/port.c b/drivers/net/mlx4/port.c
+index 609e0ec..ef10113 100644
+--- a/drivers/net/mlx4/port.c
++++ b/drivers/net/mlx4/port.c
+@@ -148,22 +148,26 @@ int mlx4_register_mac(struct mlx4_dev *dev, u8 port, u64 mac, int *qpn, u8 wrap)
+ 
+ 	if (dev->caps.flags & MLX4_DEV_CAP_FLAG_VEP_UC_STEER) {
+ 		err = mlx4_uc_steer_add(dev, port, mac, qpn, 1);
+-		if (!err) {
+-			entry = kmalloc(sizeof *entry, GFP_KERNEL);
+-			if (!entry) {
+-				mlx4_uc_steer_release(dev, port, mac, *qpn, 1);
+-				return -ENOMEM;
+-			}
+-			entry->mac = mac;
+-			err = radix_tree_insert(&info->mac_tree, *qpn, entry);
+-			if (err) {
+-				mlx4_uc_steer_release(dev, port, mac, *qpn, 1);
+-				return err;
+-			}
+-		} else
++		if (err)
+ 			return err;
++
++		entry = kmalloc(sizeof *entry, GFP_KERNEL);
++		if (!entry) {
++			mlx4_uc_steer_release(dev, port, mac, *qpn, 1);
++			return -ENOMEM;
++		}
++
++		entry->mac = mac;
++		err = radix_tree_insert(&info->mac_tree, *qpn, entry);
++		if (err) {
++			kfree(entry);
++			mlx4_uc_steer_release(dev, port, mac, *qpn, 1);
++			return err;
++		}
+ 	}
++
+ 	mlx4_dbg(dev, "Registering MAC: 0x%llx\n", (unsigned long long) mac);
++
+ 	mutex_lock(&table->mutex);
+ 	for (i = 0; i < MLX4_MAX_MAC_NUM - 1; i++) {
+ 		if (free < 0 && !table->refs[i]) {
+-- 
+1.7.5.4
+
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
