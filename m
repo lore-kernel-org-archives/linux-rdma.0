@@ -1,69 +1,35 @@
-From: Marcel Apfelbaum <marcela-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: Re: [PATCH RFC 2/4] ib/core: handle FDR-10 link encoding
-Date: Tue, 20 Sep 2011 15:47:12 +0300
-Message-ID: <CAN+0-cbO4LB4=-HbUjeUftDm9u4oYuCzvh7u9m6tUv6f+ro8hg@mail.gmail.com>
-References: <201109191906.18102.marcela@dev.mellanox.co.il>
-	<1828884A29C6694DAF28B7E6B8A8237316E64FC3@ORSMSX101.amr.corp.intel.com>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: creating common ib_types.h for linux and windows
+Date: Tue, 20 Sep 2011 14:23:12 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A8237316E6526F@ORSMSX101.amr.corp.intel.com>
+References: <1828884A29C6694DAF28B7E6B8A8237316E65191@ORSMSX101.amr.corp.intel.com>
+ <CAO+b5-p0O5N6ZZacYGNjz4+H=W3hX6O7kw5pO=XqXSdh3FEdhA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1828884A29C6694DAF28B7E6B8A8237316E64FC3-P5GAC/sN6hmkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
+In-Reply-To: <CAO+b5-p0O5N6ZZacYGNjz4+H=W3hX6O7kw5pO=XqXSdh3FEdhA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Hal Rosenstock (hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org)" <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "Alex Netes (alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org)" <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "ofw-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org" <ofw-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Sean,
-Thank you for your review.
+> Why to test for __WIN__ instead of _WIN32 (defined both when building
+> 32-bit and 64-bit code -- see also
+> http://msdn.microsoft.com/en-us/library/b0084kay%28v=vs.80%29.aspx) ?
 
-In my opinion link_encoding is at the same level as active_speed and
-active_width, they all help to compute the actual rate.
+I have no idea.  This is just what's currently in the code.  I can change this portion of the code if we want to use #ifdef's.
 
-Marcel
+> When creating a common header file, this might be a good start:
+> https://msinttypes.googlecode.com/svn/trunk/stdint.h
 
+There are already shared types defined between linux and windows that opensm uses.  For the most part, there's no technical reason why windows can't use 99% of the linux ib_types.h as is.  My goal is to be able to take the file and drop it into the windows build tree without needing changes.
 
-On Mon, Sep 19, 2011 at 8:53 PM, Hefty, Sean <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wro=
-te:
->> Index: b/drivers/infiniband/core/sysfs.c
->> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
->> --- a/drivers/infiniband/core/sysfs.c 2011-09-14 13:49:58.000000000 =
-+0300
->> +++ b/drivers/infiniband/core/sysfs.c 2011-09-14 13:50:43.731775900 =
-+0300
->> @@ -209,7 +209,7 @@ static ssize_t rate_show(struct ib_port
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 speed =3D " DDR";
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 break;
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 case 4:
->> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 speed =3D " QDR";
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 speed =3D attr.link_encodi=
-ng =3D=3D 0 ? " QDR" : " FDR10";
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 break;
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 }
->>
->> Index: b/include/rdma/ib_verbs.h
->> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
->> --- a/include/rdma/ib_verbs.h 2011-09-14 13:49:58.000000000 +0300
->> +++ b/include/rdma/ib_verbs.h 2011-09-14 13:50:43.740777700 +0300
->> @@ -319,6 +319,7 @@ struct ib_port_attr {
->> =A0 =A0 =A0 u8 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0active_spe=
-ed;
->> =A0 =A0 =A0 u8 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0phys_state=
-;
->> =A0 =A0 =A0 u8 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0ext_active=
-_speed;
->> + =A0 =A0 u8 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0link_encodin=
-g;
->
-> This is such a low level detail, that it doesn't make sense to me to =
-expose it above verbs.
->
+Btw, as background I tried to pull in the latest ibmad and ibdiags into windows.  The build broke because of new defines that had been added to ib_types.h.  Eventually we should be able to drop opensm directly into the windows build as well.
+
+- Sean
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
