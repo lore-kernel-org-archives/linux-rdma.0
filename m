@@ -1,50 +1,53 @@
-From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-Subject: Re: [PATCH] infiniband-diags: ibnetdisc Wrap header for use in C++
- code
-Date: Wed, 21 Sep 2011 10:05:14 -0700
-Message-ID: <20110921100514.429ac5d2.weiny2@llnl.gov>
-References: <20110920104542.9e24c01c.weiny2@llnl.gov>
-	<CAO+b5-oy_p1LWm6U8vrKNvNx2kFw-SvizO=9AEeKuU16Sm1skQ@mail.gmail.com>
+From: Goldwyn Rodrigues <rgoldwyn-l3A5Bk7waGM@public.gmane.org>
+Subject: [PATCH] Set BuildArch to noarch
+Date: Wed, 21 Sep 2011 12:59:51 -0500
+Message-ID: <20110921175948.GA3010@shrek.cartoons>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAO+b5-oy_p1LWm6U8vrKNvNx2kFw-SvizO=9AEeKuU16Sm1skQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: vlad-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, 21 Sep 2011 03:11:04 -0700
-Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org> wrote:
+A documentation package should be built as noarch since it does not
+carry any binaries.
 
-> On Tue, Sep 20, 2011 at 7:45 PM, Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org> wrote:
-> > +#ifdef __cplusplus
-> > +extern "C" {
-> > +#endif
-> > +
-> > =A0#include <stdio.h>
-> > =A0#include <infiniband/mad.h>
-> > =A0#include <iba/ib_types.h>
->=20
-> It is bad style to surround #include directives with 'extern "C"'.
+Also removed executable permissions from dhcp/dhcp-3.0.4/*.patch
 
-My bad, thanks for the catch.
+Signed-off-by: Goldwyn Rodrigues <rgoldwyn-l3A5Bk7waGM@public.gmane.org>
+---
+ ofed-docs.spec                                     |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
+ mode change 100755 => 100644 dhcp/dhcp-3.0.4/0001-Make-DHCP-server-print-HW-info.patch
+ mode change 100755 => 100644 dhcp/dhcp-3.0.4/dhcp-3.0.4.patch
 
-Ira
+diff --git a/dhcp/dhcp-3.0.4/0001-Make-DHCP-server-print-HW-info.patch b/dhcp/dhcp-3.0.4/0001-Make-DHCP-server-print-HW-info.patch
+old mode 100755
+new mode 100644
+diff --git a/dhcp/dhcp-3.0.4/dhcp-3.0.4.patch b/dhcp/dhcp-3.0.4/dhcp-3.0.4.patch
+old mode 100755
+new mode 100644
+diff --git a/ofed-docs.spec b/ofed-docs.spec
+index a49ed76..c19b580 100644
+--- a/ofed-docs.spec
++++ b/ofed-docs.spec
+@@ -37,6 +37,7 @@ Url: http://git.openfabrics.org/git?p=ofed_1_5/docs.git;a=summary
+ Group: Documentation/Man
+ Source: %{name}-%{version}.tar.gz
+ BuildRoot: %{?build_root:%{build_root}}%{!?build_root:/var/tmp/%{name}-%{version}-root}
++BuildArch: noarch
+ Vendor: OpenFabrics
+ %description
+ OpenFabrics documentation
+-- 
+1.7.6
 
->=20
-> Bart.
 
-
---=20
-Ira Weiny
-Math Programmer/Computer Scientist
-Lawrence Livermore National Lab
-925-423-8008
-weiny2-i2BcT+NCU+M@public.gmane.org
+-- 
+Goldwyn
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
