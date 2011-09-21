@@ -1,56 +1,51 @@
-From: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH/ibsim] Provide support for SubnSet(GUIDInfo)
-Date: Wed, 21 Sep 2011 09:04:45 -0400
-Message-ID: <CAKzyTswY3ebSgWMWhm7aV0n4PHa4O1qxuHu-EqnwER7b7o-=Dg@mail.gmail.com>
-References: <20110916210611.GA6926@obsidianresearch.com>
-	<CAKzyTsy6QsrufSAFrCDyUUZcZvQU+PHuPjEL7y9SrT3FuaD19Q@mail.gmail.com>
-	<20110919155904.GA8113@obsidianresearch.com>
-	<CAKzyTsw+VpLaz14eSLNED40QGN3GCeQ5xC7FZp59Da8C1xE3ww@mail.gmail.com>
-	<20110919200637.GA28454@obsidianresearch.com>
+From: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: creating common ib_types.h for linux and windows
+Date: Wed, 21 Sep 2011 16:29:45 +0300
+Message-ID: <20110921132945.GA3767@calypso.mtl.com>
+References: <1828884A29C6694DAF28B7E6B8A8237316E65191@ORSMSX101.amr.corp.intel.com>
+ <CAO+b5-p0O5N6ZZacYGNjz4+H=W3hX6O7kw5pO=XqXSdh3FEdhA@mail.gmail.com>
+ <1828884A29C6694DAF28B7E6B8A8237316E6526F@ORSMSX101.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="us-ascii"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20110919200637.GA28454-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1828884A29C6694DAF28B7E6B8A8237316E6526F-P5GAC/sN6hmkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>, "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Hal Rosenstock (hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org)" <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "ofw-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org" <ofw-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Sep 19, 2011 at 4:06 PM, Jason Gunthorpe
-<jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org> wrote:
-> On Mon, Sep 19, 2011 at 03:55:24PM -0400, Hal Rosenstock wrote:
->
->> >> Is this just to make the set of guidinfo simple ? Longer term, this
->> >> should support a GUIDCap > 1 but I suppose that could be a follow on
->> >> patch to this.
->> >
->> > It is to make the existing ibsim compliant with the spec.
+On 14:23 Tue 20 Sep     , Hefty, Sean wrote:
+> > Why to test for __WIN__ instead of _WIN32 (defined both when building
+> > 32-bit and 64-bit code -- see also
+> > http://msdn.microsoft.com/en-us/library/b0084kay%28v=vs.80%29.aspx) ?
+> 
+> I have no idea.  This is just what's currently in the code.  I can change this portion of the code if we want to use #ifdef's.
+> 
 
-You wrote that this was for spec compliance...
+Digging into the history, I found this patch that added __WIN__ defined for
+Windows: http://www.spinics.net/lists/linux-rdma/msg00451.html
 
->> Yes, supporting set of guidinfo is compliant but I think your
->> treatment of guid 0 in block 0 is overzealous and non compliant.
->
-> Having sim return an error if an invalid RO field is written
-> is useful from a testing prespective, since nothing should do a set
-> without the correct entry 0 GUID.
+> > When creating a common header file, this might be a good start:
+> > https://msinttypes.googlecode.com/svn/trunk/stdint.h
+> 
+> There are already shared types defined between linux and windows that opensm uses.  For the most part, there's no technical reason why windows can't use 99% of the linux ib_types.h as is.  My goal is to be able to take the file and drop it into the windows build tree without needing changes.
 
-A correct block 0 entry 0 entry makes no difference on set. The get
-response will have the correct value in that entry though regardless
-of the value in the set request.
+What is your end goal? To have one code base for OpenSM that would be able to
+be compiled on both Linux and Windows based on __WIN__ definition?
 
-> A strict reading of the spec would say that no GUIDInfo set is
-> invalid, even if it tries to set non-zero values for entries past the
-> GUIDCap. I don't see how that is useful behavior for ibsim.
+> 
+> Btw, as background I tried to pull in the latest ibmad and ibdiags into windows.  The build broke because of new defines that had been added to ib_types.h.  Eventually we should be able to drop opensm directly into the windows build as well.
+> 
+> - Sean
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-A compliant SMA would not have a problem with either of these things.
-It wouldn't look at the read only block 0 entry 0 nor at any guids in
-a valid block above the guid cap.
+-- 
 
--- Hal
-
-> Jason
->
+-- Alex
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
