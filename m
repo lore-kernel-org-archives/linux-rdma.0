@@ -1,28 +1,100 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: creating common ib_types.h for linux and windows
-Date: Wed, 21 Sep 2011 15:49:44 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A8237316E66732@ORSMSX101.amr.corp.intel.com>
-References: <1828884A29C6694DAF28B7E6B8A8237316E65191@ORSMSX101.amr.corp.intel.com>
- <CAO+b5-p0O5N6ZZacYGNjz4+H=W3hX6O7kw5pO=XqXSdh3FEdhA@mail.gmail.com>
- <1828884A29C6694DAF28B7E6B8A8237316E6526F@ORSMSX101.amr.corp.intel.com>
- <20110921132945.GA3767@calypso.mtl.com>
+From: Mike Marciniszyn <mike.marciniszyn-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH] IB/qib: Correct nfreectxts for multiple HCAs
+Date: Wed, 21 Sep 2011 12:17:36 -0400
+Message-ID: <20110921161736.19300.66855.stgit@kop-dev-sles11-04.qlogic.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20110921132945.GA3767-iQai9MGU/dze+A/uUDamNg@public.gmane.org>
-Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>, "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Hal Rosenstock (hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org)" <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "ofw-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org" <ofw-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-> What is your end goal? To have one code base for OpenSM that would be able to
-> be compiled on both Linux and Windows based on __WIN__ definition?
+The code that was recently introduced to report the number
+of free contexts is flawed for multiple HCAs:
 
-My end goal is to decrease the maintenance cost porting opensm to Windows.  Ideally, I'd like to have a common code base for opensm, similar to what we have for ibmad and ib-diags.  Whether we achieve that using #ifdef's, OS specific header files, some other means (such as a windows specific patches to complete the conversion), or a combination of these, I don't really care.
+       /* Return the number of free user ports (contexts) available. */
+       return scnprintf(buf, PAGE_SIZE, "%u\n", dd->cfgctxts -
+                dd->first_user_ctxt - (u32)qib_stats.sps_ctxts);
 
-- Sean
+The qib_stats is global to the module, not per HCA, so the code is broken
+for multiple HCAs.
+
+This patch adds a qib_devdata field, freectxts, that reflects the free
+contexts for this HCA.
+
+Signed-off-by: Mike Marciniszyn <mike.marciniszyn-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+Reviewed-by: Ram Vepa <ram.vepa-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+---
+ drivers/infiniband/hw/qib/qib.h          |    4 ++++
+ drivers/infiniband/hw/qib/qib_file_ops.c |    2 ++
+ drivers/infiniband/hw/qib/qib_init.c     |    1 +
+ drivers/infiniband/hw/qib/qib_sysfs.c    |    3 +--
+ 4 files changed, 8 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/infiniband/hw/qib/qib.h b/drivers/infiniband/hw/qib/qib.h
+index c9624ea..ee993e7 100644
+--- a/drivers/infiniband/hw/qib/qib.h
++++ b/drivers/infiniband/hw/qib/qib.h
+@@ -807,6 +807,10 @@ struct qib_devdata {
+ 	 * supports, less gives more pio bufs/ctxt, etc.
+ 	 */
+ 	u32 cfgctxts;
++	/*
++	 * number of ctxts available for PSM open
++	 */
++	u32 freectxts;
+ 
+ 	/*
+ 	 * hint that we should update pioavailshadow before
+diff --git a/drivers/infiniband/hw/qib/qib_file_ops.c b/drivers/infiniband/hw/qib/qib_file_ops.c
+index 2625303..7763366 100644
+--- a/drivers/infiniband/hw/qib/qib_file_ops.c
++++ b/drivers/infiniband/hw/qib/qib_file_ops.c
+@@ -1284,6 +1284,7 @@ static int setup_ctxt(struct qib_pportdata *ppd, int ctxt,
+ 	strlcpy(rcd->comm, current->comm, sizeof(rcd->comm));
+ 	ctxt_fp(fp) = rcd;
+ 	qib_stats.sps_ctxts++;
++	dd->freectxts++;
+ 	ret = 0;
+ 	goto bail;
+ 
+@@ -1792,6 +1793,7 @@ static int qib_close(struct inode *in, struct file *fp)
+ 		if (dd->pageshadow)
+ 			unlock_expected_tids(rcd);
+ 		qib_stats.sps_ctxts--;
++		dd->freectxts--;
+ 	}
+ 
+ 	mutex_unlock(&qib_mutex);
+diff --git a/drivers/infiniband/hw/qib/qib_init.c b/drivers/infiniband/hw/qib/qib_init.c
+index a01f3fc..021636d 100644
+--- a/drivers/infiniband/hw/qib/qib_init.c
++++ b/drivers/infiniband/hw/qib/qib_init.c
+@@ -398,6 +398,7 @@ static void enable_chip(struct qib_devdata *dd)
+ 		if (rcd)
+ 			dd->f_rcvctrl(rcd->ppd, rcvmask, i);
+ 	}
++	dd->freectxts = dd->cfgctxts - dd->first_user_ctxt;
+ }
+ 
+ static void verify_interrupt(unsigned long opaque)
+diff --git a/drivers/infiniband/hw/qib/qib_sysfs.c b/drivers/infiniband/hw/qib/qib_sysfs.c
+index 14d129d..78fbd56 100644
+--- a/drivers/infiniband/hw/qib/qib_sysfs.c
++++ b/drivers/infiniband/hw/qib/qib_sysfs.c
+@@ -515,8 +515,7 @@ static ssize_t show_nfreectxts(struct device *device,
+ 	struct qib_devdata *dd = dd_from_dev(dev);
+ 
+ 	/* Return the number of free user ports (contexts) available. */
+-	return scnprintf(buf, PAGE_SIZE, "%u\n", dd->cfgctxts -
+-		dd->first_user_ctxt - (u32)qib_stats.sps_ctxts);
++	return scnprintf(buf, PAGE_SIZE, "%u\n", dd->freectxts);
+ }
+ 
+ static ssize_t show_serial(struct device *device,
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
