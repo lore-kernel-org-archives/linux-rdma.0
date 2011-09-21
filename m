@@ -1,52 +1,110 @@
-From: Goldwyn Rodrigues <rgoldwyn-l3A5Bk7waGM@public.gmane.org>
-Subject: [PATCH] Set BuildArch to noarch
-Date: Wed, 21 Sep 2011 12:59:51 -0500
-Message-ID: <20110921175948.GA3010@shrek.cartoons>
+From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+Subject: Re: [infiniband-diags] [libibmad] Support new ibccquery congestion
+ control tool
+Date: Wed, 21 Sep 2011 11:09:48 -0700
+Message-ID: <20110921110948.6f3d46ff.weiny2@llnl.gov>
+References: <1316469989.25283.728.camel@auk59.llnl.gov>
+	<CAKzyTsxKD0r9194fd1haQ0u=1kXLDhrRXLL8q+=+inV5BM1mog@mail.gmail.com>
+	<20110921084934.b300e682.weiny2@llnl.gov>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
+In-Reply-To: <20110921084934.b300e682.weiny2-i2BcT+NCU+M@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: vlad-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org
+To: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+Cc: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "Chu, Al" <chu11-i2BcT+NCU+M@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-A documentation package should be built as noarch since it does not
-carry any binaries.
+On Wed, 21 Sep 2011 08:49:34 -0700
+Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org> wrote:
 
-Also removed executable permissions from dhcp/dhcp-3.0.4/*.patch
+> On Wed, 21 Sep 2011 07:17:38 -0700
+> Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
+> 
+> > Hi Al,
 
-Signed-off-by: Goldwyn Rodrigues <rgoldwyn-l3A5Bk7waGM@public.gmane.org>
----
- ofed-docs.spec                                     |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
- mode change 100755 => 100644 dhcp/dhcp-3.0.4/0001-Make-DHCP-server-print-HW-info.patch
- mode change 100755 => 100644 dhcp/dhcp-3.0.4/dhcp-3.0.4.patch
+<snip>
 
-diff --git a/dhcp/dhcp-3.0.4/0001-Make-DHCP-server-print-HW-info.patch b/dhcp/dhcp-3.0.4/0001-Make-DHCP-server-print-HW-info.patch
-old mode 100755
-new mode 100644
-diff --git a/dhcp/dhcp-3.0.4/dhcp-3.0.4.patch b/dhcp/dhcp-3.0.4/dhcp-3.0.4.patch
-old mode 100755
-new mode 100644
-diff --git a/ofed-docs.spec b/ofed-docs.spec
-index a49ed76..c19b580 100644
---- a/ofed-docs.spec
-+++ b/ofed-docs.spec
-@@ -37,6 +37,7 @@ Url: http://git.openfabrics.org/git?p=ofed_1_5/docs.git;a=summary
- Group: Documentation/Man
- Source: %{name}-%{version}.tar.gz
- BuildRoot: %{?build_root:%{build_root}}%{!?build_root:/var/tmp/%{name}-%{version}-root}
-+BuildArch: noarch
- Vendor: OpenFabrics
- %description
- OpenFabrics documentation
+> 
+> > 
+> > On 0001-Support-ibccquery-congestion-control-query-tool.patch, I'm
+> > worried about the following:
+> > +		/* XXX: Q3/2010 errata lists first entry offset at 80, but we assume
+> > +		 * will be updated to 96 once CurrentTimeStamp field is word aligned.
+> > +		 * In addition, assume max 13 log events instead of 16.  Due to
+> > +		 * errata changes increasing size of CA log event, 16 log events is
+> > +		 * no longer possible to fit in max MAD size.
+> > +		 */
+> > 
+> > As far as the 13 v. 16 entries, this appears correct to me (MAD size)
+> > but I'm concerned about changing the offset from 80 to 96 for better
+> > alignment as this is putting the cart before the horse a little as
+> > since these changes have not been finalized AFAIK at the IBTA.
+> 
+> Yes, it is a bit premature.  I have submitted the above alignment as a comment
+> to the IBTA but as you say it is not published.  Most importantly the
+> miss-alignment breaks the convention of the spec.  So I don't think the IBTA
+> will reject the comment.
+> 
+> Second the current alignment breaks libibmad.  So it would be a lot more code
+> to support the miss-alignment and would probably have to be changed anyway.
+> 
+> > 
+> > Also, would you comment on what testing has been done with this ?
+> > 
+> 
+> Right, the real question is what does current hardware do?
+> 
+> We have been unable to determine if any of the vendors support the errata
+> fully or specifically the miss-aligned CurrentTimeStamp.  When I asked the
+> vendors I got concrete answers back, so we proceeded with trying to reverse
+              ^^^
+I meant to say "no concrete" answers here.
+
+Sorry,
+Ira
+
+> engineer it.  Right now the query succeeds, that is all we know.
+> 
+> Perhaps someone on the list can help us find out?  :-D
+> 
+> In the meantime we wanted to get comments on the patches.
+> 
+> Ira
+> 
+> > -- Hal
+> > 
+> > > Al
+> > >
+> > > --
+> > > Albert Chu
+> > > chu11-i2BcT+NCU+M@public.gmane.org
+> > > Computer Scientist
+> > > High Performance Systems Division
+> > > Lawrence Livermore National Laboratory
+> > >
+> > >
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> > the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> 
+> -- 
+> Ira Weiny
+> Member of Technical Staff
+> Lawrence Livermore National Lab
+> 925-423-8008
+> weiny2-i2BcT+NCU+M@public.gmane.org
+
+
 -- 
-1.7.6
-
-
--- 
-Goldwyn
+Ira Weiny
+Member of Technical Staff
+Lawrence Livermore National Lab
+925-423-8008
+weiny2-i2BcT+NCU+M@public.gmane.org
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
