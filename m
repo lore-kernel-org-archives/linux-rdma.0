@@ -1,49 +1,32 @@
-From: Yong Zhang <yong.zhang0@gmail.com>
-Subject: [PATCH 33/57] infiniband: irq: Remove IRQF_DISABLED
-Date: Wed, 21 Sep 2011 17:28:34 +0800
-Message-ID: <1316597339-29861-34-git-send-email-yong.zhang0@gmail.com>
-References: <1316597339-29861-1-git-send-email-yong.zhang0@gmail.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1316597339-29861-1-git-send-email-yong.zhang0@gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-arch@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: tglx@linutronix.de, yong.zhang0@gmail.com, Hoang-Nam Nguyen <hnguyen@de.ibm.com>, Christoph Raisch <raisch@de.ibm.com>, Roland Dreier <roland@kernel.org>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>, linux-rdma@vger.kernel.org
+From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Subject: Re: [PATCH] infiniband-diags: ibnetdisc Wrap header for use in C++ code
+Date: Wed, 21 Sep 2011 12:11:04 +0200
+Message-ID: <CAO+b5-oy_p1LWm6U8vrKNvNx2kFw-SvizO=9AEeKuU16Sm1skQ@mail.gmail.com>
+References: <20110920104542.9e24c01c.weiny2@llnl.gov>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20110920104542.9e24c01c.weiny2-i2BcT+NCU+M@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Since commit [c58543c8: genirq: Run irq handlers with interrupts disabled],
-We run all interrupt handlers with interrupts disabled
-and we even check and yell when an interrupt handler
-returns with interrupts enabled (see commit [b738a50a:
-genirq: Warn when handler enables interrupts]).
+On Tue, Sep 20, 2011 at 7:45 PM, Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org> wrote:
+> +#ifdef __cplusplus
+> +extern "C" {
+> +#endif
+> +
+> =A0#include <stdio.h>
+> =A0#include <infiniband/mad.h>
+> =A0#include <iba/ib_types.h>
 
-So now this flag is a NOOP and can be removed.
+It is bad style to surround #include directives with 'extern "C"'.
 
-Signed-off-by: Yong Zhang <yong.zhang0@gmail.com>
----
- drivers/infiniband/hw/ehca/ehca_eq.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/infiniband/hw/ehca/ehca_eq.c b/drivers/infiniband/hw/ehca/ehca_eq.c
-index d9b1bb4..818d721 100644
---- a/drivers/infiniband/hw/ehca/ehca_eq.c
-+++ b/drivers/infiniband/hw/ehca/ehca_eq.c
-@@ -125,7 +125,7 @@ int ehca_create_eq(struct ehca_shca *shca,
- 		tasklet_init(&eq->interrupt_task, ehca_tasklet_eq, (long)shca);
- 
- 		ret = ibmebus_request_irq(eq->ist, ehca_interrupt_eq,
--					  IRQF_DISABLED, "ehca_eq",
-+					  0, "ehca_eq",
- 					  (void *)shca);
- 		if (ret < 0)
- 			ehca_err(ib_dev, "Can't map interrupt handler.");
-@@ -133,7 +133,7 @@ int ehca_create_eq(struct ehca_shca *shca,
- 		tasklet_init(&eq->interrupt_task, ehca_tasklet_neq, (long)shca);
- 
- 		ret = ibmebus_request_irq(eq->ist, ehca_interrupt_neq,
--					  IRQF_DISABLED, "ehca_neq",
-+					  0, "ehca_neq",
- 					  (void *)shca);
- 		if (ret < 0)
- 			ehca_err(ib_dev, "Can't map interrupt handler.");
--- 
-1.7.4.1
+Bart.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
