@@ -1,59 +1,61 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH] opensm/osmtest/osmt_multicast.c: Fix an unrealistic rate
- case
-Date: Thu, 22 Sep 2011 14:22:46 -0400
-Message-ID: <4E7B7CF6.7010601@dev.mellanox.co.il>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: [PATCH] ib-diags: Add cast to fix build on windows
+Date: Thu, 22 Sep 2011 18:29:39 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A8237316E674F0@ORSMSX101.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Ira Weiny (weiny2-i2BcT+NCU+M@public.gmane.org)" <weiny2-i2BcT+NCU+M@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-
-56 Gbps is really faster than 60 Gbps due to the link encoding difference
-so use 56 Gbps rather than 60 Gbps here
-
-300 Gbps rather than 120 Gbps is now the max rate
-
-Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 ---
-diff --git a/osmtest/osmt_multicast.c b/osmtest/osmt_multicast.c
-index 1054d49..46ed93b 100644
---- a/osmtest/osmt_multicast.c
-+++ b/osmtest/osmt_multicast.c
-@@ -894,13 +894,13 @@ ib_api_status_t osmt_run_mcast_flow(IN osmtest_t * const p_osmt)
- 	}
+ libibnetdisc/src/ibnetdisc.c |    2 +-
+ src/ibportstate.c            |    4 ++--
+ 2 files changed, 3 insertions(+), 3 deletions(-)
+ mode change 100644 => 100755 libibnetdisc/src/ibnetdisc.c
+ mode change 100644 => 100755 src/ibportstate.c
+
+diff --git a/libibnetdisc/src/ibnetdisc.c b/libibnetdisc/src/ibnetdisc.c
+index 86210eb..c93e7ad
+--- a/libibnetdisc/src/ibnetdisc.c
++++ b/libibnetdisc/src/ibnetdisc.c
+@@ -201,7 +201,7 @@ static void debug_port(ib_portid_t * portid, ibnd_port_t * port)
  
- 	/* o15.0.1.8: */
--	/* - Request join with irrelevant RATE : get a ERR_INSUFFICIENT_COMPONENTS */
-+	/* - Request join with unrealistic RATE : get REQ INVALID status */
- 	OSM_LOG(&p_osmt->log, OSM_LOG_INFO,
- 		"Checking Join with unrealistic rate (o15.0.1.8)...\n");
+ static int is_mlnx_ext_port_info_supported(ibnd_port_t * port)
+ {
+-	uint16_t devid = mad_get_field(port->node->info, 0, IB_NODE_DEVID_F);
++	uint16_t devid = (uint16_t) mad_get_field(port->node->info, 0, IB_NODE_DEVID_F);
  
- 	/* impossible requested rate */
- 	mc_req_rec.rate =
--	    IB_PATH_RECORD_RATE_60_GBS | IB_PATH_SELECTOR_GREATER_THAN << 6;
-+	    IB_PATH_RECORD_RATE_56_GBS | IB_PATH_SELECTOR_GREATER_THAN << 6;
+ 	if (devid == 0xc738)
+ 		return 1;
+diff --git a/src/ibportstate.c b/src/ibportstate.c
+index 81d5b58..daa8514
+--- a/src/ibportstate.c
++++ b/src/ibportstate.c
+@@ -462,7 +462,7 @@ int main(int argc, char **argv)
+ 		port_op = QUERY;
  
- 	comp_mask = IB_MCR_COMPMASK_GID | IB_MCR_COMPMASK_PORT_GID | IB_MCR_COMPMASK_QKEY | IB_MCR_COMPMASK_PKEY | IB_MCR_COMPMASK_SL | IB_MCR_COMPMASK_FLOW | IB_MCR_COMPMASK_JOIN_STATE | IB_MCR_COMPMASK_TCLASS |	/* all above are required */
- 	    IB_MCR_COMPMASK_RATE_SEL | IB_MCR_COMPMASK_RATE;
-@@ -922,11 +922,11 @@ ib_api_status_t osmt_run_mcast_flow(IN osmtest_t * const p_osmt)
+ 	is_switch = get_node_info(&portid, data);
+-	devid = mad_get_field(data, 0, IB_NODE_DEVID_F);
++	devid = (uint16_t) mad_get_field(data, 0, IB_NODE_DEVID_F);
  
- 	/* Check Valid value which is unreasonable now */
- 	OSM_LOG(&p_osmt->log, OSM_LOG_INFO,
--		"Checking Join with unrealistic rate 120GB (o15.0.1.8)...\n");
-+		"Checking Join with unrealistic rate 300GB (o15.0.1.8)...\n");
+ 	if (port_op != QUERY || changed)
+ 		printf("Initial %s PortInfo:\n", is_switch ? "Switch" : "CA");
+@@ -591,7 +591,7 @@ int main(int argc, char **argv)
  
- 	/* impossible requested rate */
- 	mc_req_rec.rate =
--	    IB_PATH_RECORD_RATE_120_GBS | IB_PATH_SELECTOR_GREATER_THAN << 6;
-+	    IB_PATH_RECORD_RATE_300_GBS | IB_PATH_SELECTOR_GREATER_THAN << 6;
+ 			/* Get peer port NodeInfo to obtain peer port number */
+ 			is_peer_switch = get_node_info(&peerportid, data);
+-			rem_devid = mad_get_field(data, 0, IB_NODE_DEVID_F);
++			rem_devid = (uint16_t) mad_get_field(data, 0, IB_NODE_DEVID_F);
  
- 	comp_mask = IB_MCR_COMPMASK_GID | IB_MCR_COMPMASK_PORT_GID | IB_MCR_COMPMASK_QKEY | IB_MCR_COMPMASK_PKEY | IB_MCR_COMPMASK_SL | IB_MCR_COMPMASK_FLOW | IB_MCR_COMPMASK_JOIN_STATE | IB_MCR_COMPMASK_TCLASS |	/* all above are required */
- 	    IB_MCR_COMPMASK_RATE_SEL | IB_MCR_COMPMASK_RATE;
+ 			mad_decode_field(data, IB_NODE_LOCAL_PORT_F,
+ 					 &peerlocalportnum);
+
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
