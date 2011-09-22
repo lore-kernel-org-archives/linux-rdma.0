@@ -1,61 +1,69 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH v2] ib-diags: Add cast to fix build on windows
-Date: Thu, 22 Sep 2011 20:37:23 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A8237316E6756F@ORSMSX101.amr.corp.intel.com>
+From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
+Subject: Re: [PATCH] ib-diags: Add cast to fix build on windows
+Date: Thu, 22 Sep 2011 15:27:56 -0600
+Message-ID: <20110922212756.GJ28454@obsidianresearch.com>
+References: <1828884A29C6694DAF28B7E6B8A8237316E674F0@ORSMSX101.amr.corp.intel.com>
+ <CAO+b5-qaSWm4RbhJ4Sk85Kysp2pJYOq6GmYJ=2oJhnL_Q7sa7g@mail.gmail.com>
+ <1828884A29C6694DAF28B7E6B8A8237316E67532@ORSMSX101.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Language: en-US
+Content-Disposition: inline
+In-Reply-To: <1828884A29C6694DAF28B7E6B8A8237316E67532-P5GAC/sN6hmkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Ira Weiny (weiny2-i2BcT+NCU+M@public.gmane.org)" <weiny2-i2BcT+NCU+M@public.gmane.org>
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>, "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Ira Weiny (weiny2-i2BcT+NCU+M@public.gmane.org)" <weiny2-i2BcT+NCU+M@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
----
-changes from v1: reset mode back to 644
+On Thu, Sep 22, 2011 at 08:20:54PM +0000, Hefty, Sean wrote:
+ 
+> The entire windows tree is built using the WinDDK compiler.  I
+> haven't found a way to disable that warning that works.  Since the
+> warning is real, an explicit cast at least lets someone reading the
+> code know that the author took truncation into account.
 
- libibnetdisc/src/ibnetdisc.c |    2 +-
- src/ibportstate.c            |    4 ++--
- 2 files changed, 3 insertions(+), 3 deletions(-)
+It would be much better to fix this at the source.
 
-diff --git a/libibnetdisc/src/ibnetdisc.c b/libibnetdisc/src/ibnetdisc.c
-index 86210eb..c93e7ad 100644
---- a/libibnetdisc/src/ibnetdisc.c
-+++ b/libibnetdisc/src/ibnetdisc.c
-@@ -201,7 +201,7 @@ static void debug_port(ib_portid_t * portid, ibnd_port_t * port)
- 
- static int is_mlnx_ext_port_info_supported(ibnd_port_t * port)
- {
--	uint16_t devid = mad_get_field(port->node->info, 0, IB_NODE_DEVID_F);
-+	uint16_t devid = (uint16_t) mad_get_field(port->node->info, 0, IB_NODE_DEVID_F);
- 
- 	if (devid == 0xc738)
- 		return 1;
-diff --git a/src/ibportstate.c b/src/ibportstate.c
-index 81d5b58..daa8514 100644
---- a/src/ibportstate.c
-+++ b/src/ibportstate.c
-@@ -462,7 +462,7 @@ int main(int argc, char **argv)
- 		port_op = QUERY;
- 
- 	is_switch = get_node_info(&portid, data);
--	devid = mad_get_field(data, 0, IB_NODE_DEVID_F);
-+	devid = (uint16_t) mad_get_field(data, 0, IB_NODE_DEVID_F);
- 
- 	if (port_op != QUERY || changed)
- 		printf("Initial %s PortInfo:\n", is_switch ? "Switch" : "CA");
-@@ -591,7 +591,7 @@ int main(int argc, char **argv)
- 
- 			/* Get peer port NodeInfo to obtain peer port number */
- 			is_peer_switch = get_node_info(&peerportid, data);
--			rem_devid = mad_get_field(data, 0, IB_NODE_DEVID_F);
-+			rem_devid = (uint16_t) mad_get_field(data, 0, IB_NODE_DEVID_F);
- 
- 			mad_decode_field(data, IB_NODE_LOCAL_PORT_F,
- 					 &peerlocalportnum);
+ mad_get_field16(..,IB_NODE_DEVID_F)
 
+Then at least there is the option of doing a static or runtime check
+that IB_NODE_DEVID_F is actually referring to a 16 bit field.
 
+For instance, a static check might be possible with some compilers by
+doing:
+
+enum MAD_FIELDS8
+{
+IB_PORT_LOCAL_PORT_F
+};
+
+enum MAD_FIELDS16
+{
+IB_NODE_DEVID_F
+};
+
+uint8_t mad_get_field8(void *buf, int base_offs,
+	               enum MAD_FIELDS8 field);
+uint16_t mad_get_field16(void *buf, int base_offs,
+	                 enum MAD_FIELDS16 field);
+
+A compiler can produce a warning about mismatching enums.
+
+Someone can fixup the enums later, but I'd much rather see you add a
+patch with this hunk:
+
+static inline uint16_t mad_get_field16(void *buf, int base_offs,
+	                               enum MAD_FIELDS field)
+{
+   return (uint16_t)mad_get_field(buf,base_offs,field);
+}
+
+And another patch replacing every (uint16_t)mad_get_field with
+mad_get_field16
+
+Adding a cast is just pointless noise, doesn't fix or prove anything.
+
+Jason
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
