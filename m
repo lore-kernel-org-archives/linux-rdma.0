@@ -1,47 +1,62 @@
 From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH] ib-diags: Add cast to fix build on windows
-Date: Thu, 22 Sep 2011 20:20:54 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A8237316E67532@ORSMSX101.amr.corp.intel.com>
-References: <1828884A29C6694DAF28B7E6B8A8237316E674F0@ORSMSX101.amr.corp.intel.com>
- <CAO+b5-qaSWm4RbhJ4Sk85Kysp2pJYOq6GmYJ=2oJhnL_Q7sa7g@mail.gmail.com>
+Subject: RE: [PATCH v2] ib-diags: Add cast to fix build on windows
+Date: Thu, 22 Sep 2011 20:37:23 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A8237316E6756F@ORSMSX101.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAO+b5-qaSWm4RbhJ4Sk85Kysp2pJYOq6GmYJ=2oJhnL_Q7sa7g-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Ira Weiny (weiny2-i2BcT+NCU+M@public.gmane.org)" <weiny2-i2BcT+NCU+M@public.gmane.org>
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Ira Weiny (weiny2-i2BcT+NCU+M@public.gmane.org)" <weiny2-i2BcT+NCU+M@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> > =A0libibnetdisc/src/ibnetdisc.c | =A0 =A02 +-
-> > =A0src/ibportstate.c =A0 =A0 =A0 =A0 =A0 =A0| =A0 =A04 ++--
-> > =A02 files changed, 3 insertions(+), 3 deletions(-)
-> > =A0mode change 100644 =3D> 100755 libibnetdisc/src/ibnetdisc.c
-> > =A0mode change 100644 =3D> 100755 src/ibportstate.c
->=20
-> A minor nit: is this mode change really necessary ? (I know Visual
-> Studio does enable the execute bit without asking.)
+Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+---
+changes from v1: reset mode back to 644
 
-No - these mode changes should not be there.  I removed them further do=
-wn in the patch, but missed it here.  I modified the files using Eclips=
-e from a Windows system.  Maybe there's some setting that I missed.
+ libibnetdisc/src/ibnetdisc.c |    2 +-
+ src/ibportstate.c            |    4 ++--
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
-Ira, please let me know if you want me to generate a new patch.
+diff --git a/libibnetdisc/src/ibnetdisc.c b/libibnetdisc/src/ibnetdisc.c
+index 86210eb..c93e7ad 100644
+--- a/libibnetdisc/src/ibnetdisc.c
++++ b/libibnetdisc/src/ibnetdisc.c
+@@ -201,7 +201,7 @@ static void debug_port(ib_portid_t * portid, ibnd_port_t * port)
+ 
+ static int is_mlnx_ext_port_info_supported(ibnd_port_t * port)
+ {
+-	uint16_t devid = mad_get_field(port->node->info, 0, IB_NODE_DEVID_F);
++	uint16_t devid = (uint16_t) mad_get_field(port->node->info, 0, IB_NODE_DEVID_F);
+ 
+ 	if (devid == 0xc738)
+ 		return 1;
+diff --git a/src/ibportstate.c b/src/ibportstate.c
+index 81d5b58..daa8514 100644
+--- a/src/ibportstate.c
++++ b/src/ibportstate.c
+@@ -462,7 +462,7 @@ int main(int argc, char **argv)
+ 		port_op = QUERY;
+ 
+ 	is_switch = get_node_info(&portid, data);
+-	devid = mad_get_field(data, 0, IB_NODE_DEVID_F);
++	devid = (uint16_t) mad_get_field(data, 0, IB_NODE_DEVID_F);
+ 
+ 	if (port_op != QUERY || changed)
+ 		printf("Initial %s PortInfo:\n", is_switch ? "Switch" : "CA");
+@@ -591,7 +591,7 @@ int main(int argc, char **argv)
+ 
+ 			/* Get peer port NodeInfo to obtain peer port number */
+ 			is_peer_switch = get_node_info(&peerportid, data);
+-			rem_devid = mad_get_field(data, 0, IB_NODE_DEVID_F);
++			rem_devid = (uint16_t) mad_get_field(data, 0, IB_NODE_DEVID_F);
+ 
+ 			mad_decode_field(data, IB_NODE_LOCAL_PORT_F,
+ 					 &peerlocalportnum);
 
-> Has it been considered to disable the MSVC warnings about possible
-> truncation instead of inserting a cast ? MSVC generates such warnings
-> while gcc does not.
 
-The entire windows tree is built using the WinDDK compiler.  I haven't =
-found a way to disable that warning that works.  Since the warning is r=
-eal, an explicit cast at least lets someone reading the code know that =
-the author took truncation into account.
-
-- Sean
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
