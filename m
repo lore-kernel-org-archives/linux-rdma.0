@@ -1,30 +1,79 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH] ib-diags: Add cast to fix build on windows
-Date: Thu, 22 Sep 2011 15:39:07 -0600
-Message-ID: <20110922213907.GK28454@obsidianresearch.com>
-References: <1828884A29C6694DAF28B7E6B8A8237316E674F0@ORSMSX101.amr.corp.intel.com>
- <CAO+b5-qaSWm4RbhJ4Sk85Kysp2pJYOq6GmYJ=2oJhnL_Q7sa7g@mail.gmail.com>
- <1828884A29C6694DAF28B7E6B8A8237316E67532@ORSMSX101.amr.corp.intel.com>
- <20110922212756.GJ28454@obsidianresearch.com>
- <1828884A29C6694DAF28B7E6B8A8237316E675B2@ORSMSX101.amr.corp.intel.com>
+From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+Subject: Re: [PATCH v2] ib-diags: Add cast to fix build on windows
+Date: Thu, 22 Sep 2011 15:17:01 -0700
+Message-ID: <20110922151701.c4517b71.weiny2@llnl.gov>
+References: <1828884A29C6694DAF28B7E6B8A8237316E6756F@ORSMSX101.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1828884A29C6694DAF28B7E6B8A8237316E675B2-P5GAC/sN6hmkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
+In-Reply-To: <1828884A29C6694DAF28B7E6B8A8237316E6756F-P5GAC/sN6hmkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>, "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Ira Weiny (weiny2-i2BcT+NCU+M@public.gmane.org)" <weiny2-i2BcT+NCU+M@public.gmane.org>
+Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Sep 22, 2011 at 09:33:24PM +0000, Hefty, Sean wrote:
-> > Adding a cast is just pointless noise, doesn't fix or prove anything.
+On Thu, 22 Sep 2011 13:37:23 -0700
+"Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
+
+> Signed-off-by: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+
+Thanks applied.
+
+Ira
+
+> ---
+> changes from v1: reset mode back to 644
 > 
-> It fixes the build on windows.  You can call that pointless, but I do not.
+>  libibnetdisc/src/ibnetdisc.c |    2 +-
+>  src/ibportstate.c            |    4 ++--
+>  2 files changed, 3 insertions(+), 3 deletions(-)
+> 
+> diff --git a/libibnetdisc/src/ibnetdisc.c b/libibnetdisc/src/ibnetdisc.c
+> index 86210eb..c93e7ad 100644
+> --- a/libibnetdisc/src/ibnetdisc.c
+> +++ b/libibnetdisc/src/ibnetdisc.c
+> @@ -201,7 +201,7 @@ static void debug_port(ib_portid_t * portid, ibnd_port_t * port)
+>  
+>  static int is_mlnx_ext_port_info_supported(ibnd_port_t * port)
+>  {
+> -	uint16_t devid = mad_get_field(port->node->info, 0, IB_NODE_DEVID_F);
+> +	uint16_t devid = (uint16_t) mad_get_field(port->node->info, 0, IB_NODE_DEVID_F);
+>  
+>  	if (devid == 0xc738)
+>  		return 1;
+> diff --git a/src/ibportstate.c b/src/ibportstate.c
+> index 81d5b58..daa8514 100644
+> --- a/src/ibportstate.c
+> +++ b/src/ibportstate.c
+> @@ -462,7 +462,7 @@ int main(int argc, char **argv)
+>  		port_op = QUERY;
+>  
+>  	is_switch = get_node_info(&portid, data);
+> -	devid = mad_get_field(data, 0, IB_NODE_DEVID_F);
+> +	devid = (uint16_t) mad_get_field(data, 0, IB_NODE_DEVID_F);
+>  
+>  	if (port_op != QUERY || changed)
+>  		printf("Initial %s PortInfo:\n", is_switch ? "Switch" : "CA");
+> @@ -591,7 +591,7 @@ int main(int argc, char **argv)
+>  
+>  			/* Get peer port NodeInfo to obtain peer port number */
+>  			is_peer_switch = get_node_info(&peerportid, data);
+> -			rem_devid = mad_get_field(data, 0, IB_NODE_DEVID_F);
+> +			rem_devid = (uint16_t) mad_get_field(data, 0, IB_NODE_DEVID_F);
+>  
+>  			mad_decode_field(data, IB_NODE_LOCAL_PORT_F,
+>  					 &peerlocalportnum);
+> 
+> 
 
-It supresses a warning, warnings are not build failures.
 
-Jason
+-- 
+Ira Weiny
+Math Programmer/Computer Scientist
+Lawrence Livermore National Lab
+925-423-8008
+weiny2-i2BcT+NCU+M@public.gmane.org
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
