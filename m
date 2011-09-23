@@ -1,36 +1,42 @@
-From: "Hefty, Sean" <sean.hefty@intel.com>
-Subject: Re: ib-diags: compatability issue with ibstat
-Date: Fri, 23 Sep 2011 16:15:32 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A8237316E676FE@ORSMSX101.amr.corp.intel.com>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [ofw] ib-diags: compatability issue with ibstat
+Date: Fri, 23 Sep 2011 16:21:58 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A8237316E67718@ORSMSX101.amr.corp.intel.com>
 References: <1828884A29C6694DAF28B7E6B8A8237316E66F5B@ORSMSX101.amr.corp.intel.com>
-	<20110921151349.140d95f6.weiny2@llnl.gov>
-	<1828884A29C6694DAF28B7E6B8A8237316E6723E@ORSMSX101.amr.corp.intel.com>
-	<20110921153254.06c77ebc.weiny2@llnl.gov>
-	<20110921171408.4e4087c8.weiny2@llnl.gov>
-	<CAKzyTsyUnwJHu=pp=zvhbQ9qC97EVp1oqtkt_wRK3o8RWB9D-g@mail.gmail.com>
+	<CAKzyTsyH0rop69rTGUW_+kgfohyN-XiCLV4JsO9NLzyH9KpQAA@mail.gmail.com>
+ <CAKzyTszJ8qbPMYgMFhAzkJVnGmgetggSU7BYN+1RxrVB3tBYqA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <ofw-bounces@lists.openfabrics.org>
-In-Reply-To: <CAKzyTsyUnwJHu=pp=zvhbQ9qC97EVp1oqtkt_wRK3o8RWB9D-g@mail.gmail.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CAKzyTszJ8qbPMYgMFhAzkJVnGmgetggSU7BYN+1RxrVB3tBYqA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Content-Language: en-US
-List-Unsubscribe: <http://lists.openfabrics.org/cgi-bin/mailman/options/ofw>,
-	<mailto:ofw-request@lists.openfabrics.org?subject=unsubscribe>
-List-Archive: <http://lists.openfabrics.org/pipermail/ofw>
-List-Post: <mailto:ofw@lists.openfabrics.org>
-List-Help: <mailto:ofw-request@lists.openfabrics.org?subject=help>
-List-Subscribe: <http://lists.openfabrics.org/cgi-bin/mailman/listinfo/ofw>,
-	<mailto:ofw-request@lists.openfabrics.org?subject=subscribe>
-Sender: ofw-bounces@lists.openfabrics.org
-Errors-To: ofw-bounces@lists.openfabrics.org
-To: Hal Rosenstock <hal.rosenstock@gmail.com>, Ira Weiny <weiny2@llnl.gov>
-Cc: "linux-rdma (linux-rdma@vger.kernel.org)" <linux-rdma@vger.kernel.org>, "ofw@lists.openfabrics.org" <ofw@lists.openfabrics.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: "Ira Weiny (weiny2-i2BcT+NCU+M@public.gmane.org)" <weiny2-i2BcT+NCU+M@public.gmane.org>, "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "ofw-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org" <ofw-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> Even if ibv_devinfo is updated to include the additional information,
-> do we want to require libibverbs, etc. on any IB management machine
-> just for this ? That's not the case today on IB management nodes.
-
-IMO, it's acceptable for ibverbs to be the basic requirement for any IB userspace application.  I think you'll find the ibumad duplicates functionally that ibverbs provides, and that's why windows already has the dependency built in.
-
-- Sean
+PiA+IFRoZSBvbmx5IHdheSB0byBkZXRlcm1pbmUgd2hldGhlciBmZHIxMCBpcyBhY3RpdmUgb3Ig
+bm90IGlzIHZpYSB0aGUNCj4gPiB2ZW5kb3IgcHJvcHJpZXRhcnkgTUFELiBUaGF0IGluZm8gbWF5
+IGJlIHJlZmxlY3RlZCBpbiBzb21lIG90aGVyIEFQSQ0KPiA+IChhbmQvb3IgZmlsZSkgc28gdGhh
+dCBNQUQgZG9lcyBub3QgbmVlZCB0byBiZSByZWlzc3VlZC4gSW4gYSBzZXBhcmF0ZQ0KPiA+IHRo
+cmVhZCBvbiBsaW51eC1yZG1hLCB0aGVyZSB3YXMgZGlzY3Vzc2lvbiBvbiBhIGNvdXBsZSBvZiBk
+aWZmZXJlbnQNCj4gPiB3YXlzIHRvIGRvIHRoYXQgZnJvbSB2ZXJicyBhbmQgaW4gdGhpcyB0aHJl
+YWQgdGhhdCB0aGVyZSdzIG5vIHN5c2ZzDQo+ID4gZXF1aXZhbGVudCBpbiBXaW5kb3dzLiBZb3Un
+dmUgYWxyZWFkeSBzdGF0ZWQgdGhhdCB0aGUgV2luZG93cyBzdXBwb3J0DQo+ID4gaXMgdXNpbmcg
+bGliaWJ2ZXJicyBmb3IgbGliaWJ1bWFkIHN1cHBvcnQgc28gaXQgc2VlbXMgYXBwcm9wcmlhdGUg
+dG8NCj4gPiBtZSB0byBkbyB0aGUgc2FtZSBoZXJlIChpbiBXaW5kb3dzIGF0IGxlYXN0KS4NCj4g
+DQo+IFRoZSBwcm9wZXIgcGxhY2UgZm9yIGlzX2ZkcjEwIGlzIGluIGxpYmlidW1hZCAoYW5kIHRo
+ZW4gd2Ugd291bGRuJ3QgYmUNCj4gZGlzY3Vzc2luZyBsaWJpYnZlcmJzIHcvaWJzdGF0KSBidXQg
+dGhhdCB3YXMgbm90IGRvbmUgdG8gYXZvaWQgYQ0KPiBjaGFuZ2UgdG8gdGhlIHVtYWQgcG9ydCBz
+dHJ1Y3R1cmUuDQoNCmlic3RhdCBkZXRlcm1pbmVzIGlzX2ZkcjEwIGJ5IHJlYWRpbmcgYSBmaWxl
+LiAgVGhhdCBzYW1lIGRhdGEgY291bGQganVzdCBhcyBlYXNpbHkgYmUgZXhwb3J0ZWQgYXMgYSBw
+b3J0IGF0dHJpYnV0ZSwgd2hpY2ggd291bGQgbWFrZSBpdCBiZWxvbmcgdG8gaWJ2ZXJicywgcmF0
+aGVyIHRoYW4gdW1hZC4NCg0KSWYgdGhlIG9ubHkgcG9pbnQgb2YgZXhwb3J0aW5nIGlzX2ZkcjEw
+IGZyb20gdGhlIGtlcm5lbCBpcyBmb3IgYW4gaWIgbWFuYWdlbWVudCBkaWFnIHRvIGRpc3BsYXkg
+dGhlIHZhbHVlLCB0aGVuIGl0J3Mgbm90IGEgdXNlZnVsIHZhbHVlIGZvciB2ZXJicyBhcHBsaWNh
+dGlvbnMuDQo=
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
