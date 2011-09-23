@@ -1,7 +1,8 @@
 From: Mike Marciniszyn <mike.marciniszyn-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH 1/7] IB/qib: Optimize RC/UC code by IB operation
-Date: Fri, 23 Sep 2011 13:16:29 -0400
-Message-ID: <20110923171629.14542.82485.stgit@kop-dev-sles11-04.qlogic.org>
+Subject: [PATCH 3/7] IB/qib: Eliminate divide/mod in converting idx to egr buf
+	pointer
+Date: Fri, 23 Sep 2011 13:16:39 -0400
+Message-ID: <20110923171639.14542.85925.stgit@kop-dev-sles11-04.qlogic.org>
 References: <20110923171623.14542.78747.stgit@kop-dev-sles11-04.qlogic.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -13,124 +14,117 @@ To: roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-The memset for zeroing the work completion had been unconditional.
-
-This patch removes the memset and moves the zeroing into the work
-completion with a more explicit field by field set.   With this patch,
-non-ONLY/non-LAST packets will avoid the overhead since they will
-not generate a completion.
+The context init now saves a shift from rcvegrbufs_perchunk
+rcvegrbufs_perchunk_shift using ilog2.   A BUG_ON protects the
+power of 2 assumption.
 
 Signed-off-by: Mike Marciniszyn <mike.marciniszyn-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
 ---
- drivers/infiniband/hw/qib/qib_rc.c |   19 +++++++++++++------
- drivers/infiniband/hw/qib/qib_uc.c |   14 +++++++++++---
- 2 files changed, 24 insertions(+), 9 deletions(-)
+ drivers/infiniband/hw/qib/qib.h         |    8 ++++++--
+ drivers/infiniband/hw/qib/qib_driver.c  |    6 +++---
+ drivers/infiniband/hw/qib/qib_iba6120.c |    2 ++
+ drivers/infiniband/hw/qib/qib_iba7220.c |    2 ++
+ drivers/infiniband/hw/qib/qib_iba7322.c |    2 ++
+ drivers/infiniband/hw/qib/qib_init.c    |    3 +++
+ 6 files changed, 18 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/infiniband/hw/qib/qib_rc.c b/drivers/infiniband/hw/qib/qib_rc.c
-index eca0c41..5c1c49b 100644
---- a/drivers/infiniband/hw/qib/qib_rc.c
-+++ b/drivers/infiniband/hw/qib/qib_rc.c
-@@ -1955,8 +1955,6 @@ void qib_rc_rcv(struct qib_ctxtdata *rcd, struct qib_ib_header *hdr,
- 		break;
+diff --git a/drivers/infiniband/hw/qib/qib.h b/drivers/infiniband/hw/qib/qib.h
+index ee993e7..97e6233 100644
+--- a/drivers/infiniband/hw/qib/qib.h
++++ b/drivers/infiniband/hw/qib/qib.h
+@@ -171,7 +171,9 @@ struct qib_ctxtdata {
+ 	/* how many alloc_pages() chunks in rcvegrbuf_pages */
+ 	u32 rcvegrbuf_chunks;
+ 	/* how many egrbufs per chunk */
+-	u32 rcvegrbufs_perchunk;
++	u16 rcvegrbufs_perchunk;
++	/* ilog2 of above */
++	u16 rcvegrbufs_perchunk_shift;
+ 	/* order for rcvegrbuf_pages */
+ 	size_t rcvegrbuf_size;
+ 	/* rcvhdrq size (for freeing) */
+@@ -940,7 +942,9 @@ struct qib_devdata {
+ 	/* chip address space used by 4k pio buffers */
+ 	u32 align4k;
+ 	/* size of each rcvegrbuffer */
+-	u32 rcvegrbufsize;
++	u16 rcvegrbufsize;
++	/* log2 of above */
++	u16 rcvegrbufsize_shift;
+ 	/* localbus width (1, 2,4,8,16,32) from config space  */
+ 	u32 lbus_width;
+ 	/* localbus speed in MHz */
+diff --git a/drivers/infiniband/hw/qib/qib_driver.c b/drivers/infiniband/hw/qib/qib_driver.c
+index 23e584f..89264ff 100644
+--- a/drivers/infiniband/hw/qib/qib_driver.c
++++ b/drivers/infiniband/hw/qib/qib_driver.c
+@@ -279,10 +279,10 @@ bail:
+  */
+ static inline void *qib_get_egrbuf(const struct qib_ctxtdata *rcd, u32 etail)
+ {
+-	const u32 chunk = etail / rcd->rcvegrbufs_perchunk;
+-	const u32 idx =  etail % rcd->rcvegrbufs_perchunk;
++	const u32 chunk = etail >> rcd->rcvegrbufs_perchunk_shift;
++	const u32 idx =  etail & ((u32)rcd->rcvegrbufs_perchunk - 1);
+ 
+-	return rcd->rcvegrbuf[chunk] + idx * rcd->dd->rcvegrbufsize;
++	return rcd->rcvegrbuf[chunk] + (idx << rcd->dd->rcvegrbufsize_shift);
+ }
+ 
+ /*
+diff --git a/drivers/infiniband/hw/qib/qib_iba6120.c b/drivers/infiniband/hw/qib/qib_iba6120.c
+index d8ca0a0..781a802 100644
+--- a/drivers/infiniband/hw/qib/qib_iba6120.c
++++ b/drivers/infiniband/hw/qib/qib_iba6120.c
+@@ -3273,6 +3273,8 @@ static int init_6120_variables(struct qib_devdata *dd)
+ 	/* we always allocate at least 2048 bytes for eager buffers */
+ 	ret = ib_mtu_enum_to_int(qib_ibmtu);
+ 	dd->rcvegrbufsize = ret != -1 ? max(ret, 2048) : QIB_DEFAULT_MTU;
++	BUG_ON(!is_power_of_2(dd->rcvegrbufsize));
++	dd->rcvegrbufsize_shift = ilog2(dd->rcvegrbufsize);
+ 
+ 	qib_6120_tidtemplate(dd);
+ 
+diff --git a/drivers/infiniband/hw/qib/qib_iba7220.c b/drivers/infiniband/hw/qib/qib_iba7220.c
+index e1f9474..3f1d562 100644
+--- a/drivers/infiniband/hw/qib/qib_iba7220.c
++++ b/drivers/infiniband/hw/qib/qib_iba7220.c
+@@ -4085,6 +4085,8 @@ static int qib_init_7220_variables(struct qib_devdata *dd)
+ 	/* we always allocate at least 2048 bytes for eager buffers */
+ 	ret = ib_mtu_enum_to_int(qib_ibmtu);
+ 	dd->rcvegrbufsize = ret != -1 ? max(ret, 2048) : QIB_DEFAULT_MTU;
++	BUG_ON(!is_power_of_2(dd->rcvegrbufsize));
++	dd->rcvegrbufsize_shift = ilog2(dd->rcvegrbufsize);
+ 
+ 	qib_7220_tidtemplate(dd);
+ 
+diff --git a/drivers/infiniband/hw/qib/qib_iba7322.c b/drivers/infiniband/hw/qib/qib_iba7322.c
+index 5ea9ece..f3f4b55 100644
+--- a/drivers/infiniband/hw/qib/qib_iba7322.c
++++ b/drivers/infiniband/hw/qib/qib_iba7322.c
+@@ -6205,6 +6205,8 @@ static int qib_init_7322_variables(struct qib_devdata *dd)
+ 
+ 	/* we always allocate at least 2048 bytes for eager buffers */
+ 	dd->rcvegrbufsize = max(mtu, 2048);
++	BUG_ON(!is_power_of_2(dd->rcvegrbufsize));
++	dd->rcvegrbufsize_shift = ilog2(dd->rcvegrbufsize);
+ 
+ 	qib_7322_tidtemplate(dd);
+ 
+diff --git a/drivers/infiniband/hw/qib/qib_init.c b/drivers/infiniband/hw/qib/qib_init.c
+index 021636d..21ffa7c 100644
+--- a/drivers/infiniband/hw/qib/qib_init.c
++++ b/drivers/infiniband/hw/qib/qib_init.c
+@@ -183,6 +183,9 @@ struct qib_ctxtdata *qib_create_ctxtdata(struct qib_pportdata *ppd, u32 ctxt)
+ 		rcd->rcvegrbuf_chunks = (rcd->rcvegrcnt +
+ 			rcd->rcvegrbufs_perchunk - 1) /
+ 			rcd->rcvegrbufs_perchunk;
++		BUG_ON(!is_power_of_2(rcd->rcvegrbufs_perchunk));
++		rcd->rcvegrbufs_perchunk_shift =
++			ilog2(rcd->rcvegrbufs_perchunk);
  	}
- 
--	memset(&wc, 0, sizeof wc);
--
- 	if (qp->state == IB_QPS_RTR && !(qp->r_flags & QIB_R_COMM_EST)) {
- 		qp->r_flags |= QIB_R_COMM_EST;
- 		if (qp->ibqp.event_handler) {
-@@ -2009,16 +2007,19 @@ send_middle:
- 			goto rnr_nak;
- 		qp->r_rcv_len = 0;
- 		if (opcode == OP(SEND_ONLY))
--			goto send_last;
--		/* FALLTHROUGH */
-+			goto no_immediate_data;
-+		/* FALLTHROUGH for SEND_ONLY_WITH_IMMEDIATE */
- 	case OP(SEND_LAST_WITH_IMMEDIATE):
- send_last_imm:
- 		wc.ex.imm_data = ohdr->u.imm_data;
- 		hdrsize += 4;
- 		wc.wc_flags = IB_WC_WITH_IMM;
--		/* FALLTHROUGH */
-+		goto send_last;
- 	case OP(SEND_LAST):
- 	case OP(RDMA_WRITE_LAST):
-+no_immediate_data:
-+		wc.wc_flags = 0;
-+		wc.ex.imm_data = 0;
- send_last:
- 		/* Get the number of bytes the message was padded by. */
- 		pad = (be32_to_cpu(ohdr->bth[0]) >> 20) & 3;
-@@ -2051,6 +2052,12 @@ send_last:
- 		wc.src_qp = qp->remote_qpn;
- 		wc.slid = qp->remote_ah_attr.dlid;
- 		wc.sl = qp->remote_ah_attr.sl;
-+		/* zero fields that are N/A */
-+		wc.vendor_err = 0;
-+		wc.pkey_index = 0;
-+		wc.dlid_path_bits = 0;
-+		wc.port_num = 0;
-+		wc.csum_ok = 0;
- 		/* Signal completion event if the solicited bit is set. */
- 		qib_cq_enter(to_icq(qp->ibqp.recv_cq), &wc,
- 			     (ohdr->bth[0] &
-@@ -2089,7 +2096,7 @@ send_last:
- 		if (opcode == OP(RDMA_WRITE_FIRST))
- 			goto send_middle;
- 		else if (opcode == OP(RDMA_WRITE_ONLY))
--			goto send_last;
-+			goto no_immediate_data;
- 		ret = qib_get_rwqe(qp, 1);
- 		if (ret < 0)
- 			goto nack_op_err;
-diff --git a/drivers/infiniband/hw/qib/qib_uc.c b/drivers/infiniband/hw/qib/qib_uc.c
-index 32ccf3c..d31f33a 100644
---- a/drivers/infiniband/hw/qib/qib_uc.c
-+++ b/drivers/infiniband/hw/qib/qib_uc.c
-@@ -270,7 +270,6 @@ void qib_uc_rcv(struct qib_ibport *ibp, struct qib_ib_header *hdr,
- 
- 	psn = be32_to_cpu(ohdr->bth[2]);
- 	opcode >>= 24;
--	memset(&wc, 0, sizeof wc);
- 
- 	/* Compare the PSN verses the expected PSN. */
- 	if (unlikely(qib_cmp24(psn, qp->r_psn) != 0)) {
-@@ -370,7 +369,7 @@ send_first:
- 		}
- 		qp->r_rcv_len = 0;
- 		if (opcode == OP(SEND_ONLY))
--			goto send_last;
-+			goto no_immediate_data;
- 		else if (opcode == OP(SEND_ONLY_WITH_IMMEDIATE))
- 			goto send_last_imm;
- 		/* FALLTHROUGH */
-@@ -389,8 +388,11 @@ send_last_imm:
- 		wc.ex.imm_data = ohdr->u.imm_data;
- 		hdrsize += 4;
- 		wc.wc_flags = IB_WC_WITH_IMM;
--		/* FALLTHROUGH */
-+		goto send_last;
- 	case OP(SEND_LAST):
-+no_immediate_data:
-+		wc.ex.imm_data = 0;
-+		wc.wc_flags = 0;
- send_last:
- 		/* Get the number of bytes the message was padded by. */
- 		pad = (be32_to_cpu(ohdr->bth[0]) >> 20) & 3;
-@@ -418,6 +420,12 @@ last_imm:
- 		wc.src_qp = qp->remote_qpn;
- 		wc.slid = qp->remote_ah_attr.dlid;
- 		wc.sl = qp->remote_ah_attr.sl;
-+		/* zero fields that are N/A */
-+		wc.vendor_err = 0;
-+		wc.pkey_index = 0;
-+		wc.dlid_path_bits = 0;
-+		wc.port_num = 0;
-+		wc.csum_ok = 0;
- 		/* Signal completion event if the solicited bit is set. */
- 		qib_cq_enter(to_icq(qp->ibqp.recv_cq), &wc,
- 			     (ohdr->bth[0] &
+ 	return rcd;
+ }
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
