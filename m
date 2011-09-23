@@ -1,39 +1,43 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: ib-diags: compatability issue with ibstat
-Date: Fri, 23 Sep 2011 10:57:58 -0600
-Message-ID: <20110923165758.GM28454@obsidianresearch.com>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [ofw] ib-diags: compatability issue with ibstat
+Date: Fri, 23 Sep 2011 17:15:04 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A8237316E677A9@ORSMSX101.amr.corp.intel.com>
 References: <1828884A29C6694DAF28B7E6B8A8237316E66F5B@ORSMSX101.amr.corp.intel.com>
- <20110921151349.140d95f6.weiny2@llnl.gov>
- <1828884A29C6694DAF28B7E6B8A8237316E6723E@ORSMSX101.amr.corp.intel.com>
- <20110921153254.06c77ebc.weiny2@llnl.gov>
- <20110921223546.GI28454@obsidianresearch.com>
- <CAKzyTsw8TKFNPS8QFgjag7XZ77cu=OzofAuAKTr_DQmkPTsogw@mail.gmail.com>
+	<CAKzyTsyH0rop69rTGUW_+kgfohyN-XiCLV4JsO9NLzyH9KpQAA@mail.gmail.com>
+	<CAKzyTszJ8qbPMYgMFhAzkJVnGmgetggSU7BYN+1RxrVB3tBYqA@mail.gmail.com>
+	<1828884A29C6694DAF28B7E6B8A8237316E67777@ORSMSX101.amr.corp.intel.com>
+ <CAKzyTswr6EMFPn1fBNujP1Lgb8b6MEcJ1uPbVqEt_nE1Er7dPw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <CAKzyTsw8TKFNPS8QFgjag7XZ77cu=OzofAuAKTr_DQmkPTsogw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <CAKzyTswr6EMFPn1fBNujP1Lgb8b6MEcJ1uPbVqEt_nE1Er7dPw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "ofw-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org" <ofw-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+Cc: "Ira Weiny (weiny2-i2BcT+NCU+M@public.gmane.org)" <weiny2-i2BcT+NCU+M@public.gmane.org>, "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "ofw-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org" <ofw-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Sep 23, 2011 at 08:57:12AM -0400, Hal Rosenstock wrote:
-
-> > Technically umad already needs to use verbs on Linux because that is
-> > the only way to get the subnet timeout value that is needed to compute
-> > the MAD RPC timeout. Currently umad ignores this part of IBA ...
-> 
-> Determining the MAD timeout is more complicated than this. Subnet
-> timeout is insufficient (so you would need more than just this from
-> verbs - things that would not be part of verbs) if this mechanism were
-> to be made compliant rather than a configurable timeout as it is now.
-
-I didn't have any problem with this in python-rdma. The only wonky bit
-was that verbs was needed for subnet timeout because it isn't in
-sysfs. Everything else went according to the spec.
-
-Jason
+PiAJMS4gUmVtb3ZlIGlic3RhdCBhbmQgdXNlIGlidl9kZXZpbmZvIGluc3RlYWQNCj4gCTIuIENo
+YW5nZSBpYnN0YXQgdG8gb2J0YWluIHRoZSBmZHIxMCBpbmZvcm1hdGlvbiB1c2luZyBpYnZlcmJz
+DQo+IAkzLiBNb3ZlIHRoZSBpc19mZHIxMCBmdW5jdGlvbmFsaXR5IGludG8gT1Mgc3BlY2lmaWMg
+ZmlsZXMgb3IgY29kZQ0KPiBzZWN0aW9ucyBvZiBpYnN0YXQNCj4gCTQuIENoYW5nZSBpYnN0YXQg
+dG8gb2J0YWluIGZkcjEwIGRhdGEgdXNpbmcgTUFEcyBvciBzb21lIG90aGVyIE9TDQo+IGluZGVw
+ZW5kZW50IG1lY2hhbmlzbQ0KPiAJNS4gQ2hhbmdlIGlidW1hZCBzbyB0aGF0IGl0IHByb3ZpZGVz
+IHRoZSBmZHIxMCBkYXRhDQo+IAkgIE5vdGU6IHVtYWQgaGFzIE9TIGRlcGVuZGVudCBpbXBsZW1l
+bnRhdGlvbiBhbnl3YXksIGJ1dCB0aGUgd2luZG93cw0KPiB1bWFkIHdvdWxkDQo+IAkgICAgICAg
+IGRlcGVuZCBvbiB0aGUgZGF0YSBiZWluZyBhdmFpbGFibGUgZnJvbSBpYnZlcmJzDQo+IAk2LiA/
+Pz8NCj4gDQo+IAlDYW4gc29tZW9uZSBleHBsYWluIHdoeSB0aGUgaW5mb3JtYXRpb24gY2FuJ3Qg
+Y29tZSBmcm9tIHRoZQ0KPiB1bWFkX3BvcnQ6OnJhdGUgZmllbGQ/DQo+IA0KPiANCj4gQmVjYXVz
+ZSBmZHIxMCBpcyBub24gc3RhbmRhcmQsIHRoZXJlJ3Mgbm8gcmF0ZSBmb3IgdGhpczsgaXQgb3Zl
+cmxvYWRzIFFEUg0KPiBiYXNlZCByYXRlcyBhcyBib3RoIGFyZSAxMCBHYnBzIGJ1dCBoYXZlIGRp
+ZmZlcmVudCBsaW5rIGVuY29kaW5ncy4NCg0KT2ssIHRoZW4gZm9yIGNob2ljZXMgNi04Og0KDQo2
+LiBIYXZlIGlic3RhdCBqdXN0IHJlcG9ydCB0aGUgcmF0ZSB3aXRob3V0IHNwZWNpZnlpbmcgdGhl
+IGxpbmsgZW5jb2RpbmcNCjcuIFVzZSB1bWFkX3BvcnQ6cmF0ZSB0byBlbmNvZGUgdGhlIHJhdGUs
+IGxpbmsgZW5jb2RpbmcsIGludGVyLXBhY2tldCBkZWxheSwgZXRjLg0KICAgKEknbSBvbmx5IHBh
+cnRpYWxseSBraWRkaW5nIGhlcmUuKQ0KOC4gRHJvcCBpYnN0YXQgZnJvbSB3aW5kb3dzLiAgV2lu
+ZG93cyB1c2VycyB3aWxsIGJlIGRpcmVjdGVkIHRvIHVzZSBpYnZfZGV2aW5mby4NCg0KSXJhLCB3
+aGF0IGFyZSB5b3VyIHRob3VnaHRzIG9uIHRoaXM/DQo=
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
