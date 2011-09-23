@@ -1,130 +1,337 @@
 From: Mike Marciniszyn <mike.marciniszyn-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH 3/7] IB/qib: Eliminate divide/mod in converting idx to egr buf
-	pointer
-Date: Fri, 23 Sep 2011 13:16:39 -0400
-Message-ID: <20110923171639.14542.85925.stgit@kop-dev-sles11-04.qlogic.org>
-References: <20110923171623.14542.78747.stgit@kop-dev-sles11-04.qlogic.org>
+Subject: [PATCH] IB/qib: Add logic for affinity hint
+Date: Fri, 23 Sep 2011 13:17:23 -0400
+Message-ID: <20110923171723.14688.53921.stgit@kop-dev-sles11-04.qlogic.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20110923171623.14542.78747.stgit-hIFRcJ1SNwcXGO8/Qfapyjg/wwJxntczYPYVAmT7z5s@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-The context init now saves a shift from rcvegrbufs_perchunk
-rcvegrbufs_perchunk_shift using ilog2.   A BUG_ON protects the
-power of 2 assumption.
+Call irq_set_affinity_hint to provide user mode programs
+like irqbalance the information to be able to distribute
+qib interrupts appropriately.
+
+The logic allocates all non-receive interrupts to the first
+CPU local to the HCA.  Receive interrupts are allocated round
+robin starting with the second CPU local to the HCA with
+potential wrap back to the second CPU.
+
+This patch also adds a refinement to the name registered with
+MSIX interrupts so that user level scripts can determine
+the device associated with the IRQs when there are
+multiple HCAs with a potentially different set of
+local CPUs.
 
 Signed-off-by: Mike Marciniszyn <mike.marciniszyn-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
 ---
- drivers/infiniband/hw/qib/qib.h         |    8 ++++++--
- drivers/infiniband/hw/qib/qib_driver.c  |    6 +++---
- drivers/infiniband/hw/qib/qib_iba6120.c |    2 ++
- drivers/infiniband/hw/qib/qib_iba7220.c |    2 ++
- drivers/infiniband/hw/qib/qib_iba7322.c |    2 ++
- drivers/infiniband/hw/qib/qib_init.c    |    3 +++
- 6 files changed, 18 insertions(+), 5 deletions(-)
+ drivers/infiniband/hw/qib/qib.h         |   10 +++
+ drivers/infiniband/hw/qib/qib_iba7322.c |  107 ++++++++++++++++++++++---------
+ drivers/infiniband/hw/qib/qib_pcie.c    |   21 ++++++
+ 3 files changed, 104 insertions(+), 34 deletions(-)
 
 diff --git a/drivers/infiniband/hw/qib/qib.h b/drivers/infiniband/hw/qib/qib.h
-index ee993e7..97e6233 100644
+index b881bdc..6b811e3 100644
 --- a/drivers/infiniband/hw/qib/qib.h
 +++ b/drivers/infiniband/hw/qib/qib.h
-@@ -171,7 +171,9 @@ struct qib_ctxtdata {
- 	/* how many alloc_pages() chunks in rcvegrbuf_pages */
- 	u32 rcvegrbuf_chunks;
- 	/* how many egrbufs per chunk */
--	u32 rcvegrbufs_perchunk;
-+	u16 rcvegrbufs_perchunk;
-+	/* ilog2 of above */
-+	u16 rcvegrbufs_perchunk_shift;
- 	/* order for rcvegrbuf_pages */
- 	size_t rcvegrbuf_size;
- 	/* rcvhdrq size (for freeing) */
-@@ -940,7 +942,9 @@ struct qib_devdata {
- 	/* chip address space used by 4k pio buffers */
- 	u32 align4k;
- 	/* size of each rcvegrbuffer */
--	u32 rcvegrbufsize;
-+	u16 rcvegrbufsize;
-+	/* log2 of above */
-+	u16 rcvegrbufsize_shift;
- 	/* localbus width (1, 2,4,8,16,32) from config space  */
- 	u32 lbus_width;
- 	/* localbus speed in MHz */
-diff --git a/drivers/infiniband/hw/qib/qib_driver.c b/drivers/infiniband/hw/qib/qib_driver.c
-index 23e584f..89264ff 100644
---- a/drivers/infiniband/hw/qib/qib_driver.c
-+++ b/drivers/infiniband/hw/qib/qib_driver.c
-@@ -279,10 +279,10 @@ bail:
-  */
- static inline void *qib_get_egrbuf(const struct qib_ctxtdata *rcd, u32 etail)
- {
--	const u32 chunk = etail / rcd->rcvegrbufs_perchunk;
--	const u32 idx =  etail % rcd->rcvegrbufs_perchunk;
-+	const u32 chunk = etail >> rcd->rcvegrbufs_perchunk_shift;
-+	const u32 idx =  etail & ((u32)rcd->rcvegrbufs_perchunk - 1);
+@@ -427,6 +427,14 @@ struct qib_verbs_txreq {
+ /* how often we check for packet activity for "power on hours (in seconds) */
+ #define ACTIVITY_TIMER 5
  
--	return rcd->rcvegrbuf[chunk] + idx * rcd->dd->rcvegrbufsize;
-+	return rcd->rcvegrbuf[chunk] + (idx << rcd->dd->rcvegrbufsize_shift);
- }
- 
- /*
-diff --git a/drivers/infiniband/hw/qib/qib_iba6120.c b/drivers/infiniband/hw/qib/qib_iba6120.c
-index d8ca0a0..781a802 100644
---- a/drivers/infiniband/hw/qib/qib_iba6120.c
-+++ b/drivers/infiniband/hw/qib/qib_iba6120.c
-@@ -3273,6 +3273,8 @@ static int init_6120_variables(struct qib_devdata *dd)
- 	/* we always allocate at least 2048 bytes for eager buffers */
- 	ret = ib_mtu_enum_to_int(qib_ibmtu);
- 	dd->rcvegrbufsize = ret != -1 ? max(ret, 2048) : QIB_DEFAULT_MTU;
-+	BUG_ON(!is_power_of_2(dd->rcvegrbufsize));
-+	dd->rcvegrbufsize_shift = ilog2(dd->rcvegrbufsize);
- 
- 	qib_6120_tidtemplate(dd);
- 
-diff --git a/drivers/infiniband/hw/qib/qib_iba7220.c b/drivers/infiniband/hw/qib/qib_iba7220.c
-index e1f9474..3f1d562 100644
---- a/drivers/infiniband/hw/qib/qib_iba7220.c
-+++ b/drivers/infiniband/hw/qib/qib_iba7220.c
-@@ -4085,6 +4085,8 @@ static int qib_init_7220_variables(struct qib_devdata *dd)
- 	/* we always allocate at least 2048 bytes for eager buffers */
- 	ret = ib_mtu_enum_to_int(qib_ibmtu);
- 	dd->rcvegrbufsize = ret != -1 ? max(ret, 2048) : QIB_DEFAULT_MTU;
-+	BUG_ON(!is_power_of_2(dd->rcvegrbufsize));
-+	dd->rcvegrbufsize_shift = ilog2(dd->rcvegrbufsize);
- 
- 	qib_7220_tidtemplate(dd);
- 
++#define MAX_NAME_SIZE 64
++struct qib_msix_entry {
++	struct msix_entry msix;
++	void *arg;
++	char name[MAX_NAME_SIZE];
++	cpumask_var_t mask;
++};
++
+ /* Below is an opaque struct. Each chip (device) can maintain
+  * private data needed for its operation, but not germane to the
+  * rest of the driver.  For convenience, we define another that
+@@ -1355,7 +1363,7 @@ int qib_pcie_init(struct pci_dev *, const struct pci_device_id *);
+ int qib_pcie_ddinit(struct qib_devdata *, struct pci_dev *,
+ 		    const struct pci_device_id *);
+ void qib_pcie_ddcleanup(struct qib_devdata *);
+-int qib_pcie_params(struct qib_devdata *, u32, u32 *, struct msix_entry *);
++int qib_pcie_params(struct qib_devdata *, u32, u32 *, struct qib_msix_entry *);
+ int qib_reinit_intr(struct qib_devdata *);
+ void qib_enable_intx(struct pci_dev *);
+ void qib_nomsi(struct qib_devdata *);
 diff --git a/drivers/infiniband/hw/qib/qib_iba7322.c b/drivers/infiniband/hw/qib/qib_iba7322.c
-index 5ea9ece..f3f4b55 100644
+index f3f4b55..1e44cab 100644
 --- a/drivers/infiniband/hw/qib/qib_iba7322.c
 +++ b/drivers/infiniband/hw/qib/qib_iba7322.c
-@@ -6205,6 +6205,8 @@ static int qib_init_7322_variables(struct qib_devdata *dd)
+@@ -540,8 +540,7 @@ struct qib_chip_specific {
+ 	u32 lastbuf_for_pio;
+ 	u32 stay_in_freeze;
+ 	u32 recovery_ports_initted;
+-	struct msix_entry *msix_entries;
+-	void  **msix_arg;
++	struct qib_msix_entry *msix_entries;
+ 	unsigned long *sendchkenable;
+ 	unsigned long *sendgrhchk;
+ 	unsigned long *sendibchk;
+@@ -638,24 +637,24 @@ static struct {
+ 	int lsb;
+ 	int port; /* 0 if not port-specific, else port # */
+ } irq_table[] = {
+-	{ QIB_DRV_NAME, qib_7322intr, -1, 0 },
+-	{ QIB_DRV_NAME " (buf avail)", qib_7322bufavail,
++	{ "", qib_7322intr, -1, 0 },
++	{ " (buf avail)", qib_7322bufavail,
+ 		SYM_LSB(IntStatus, SendBufAvail), 0 },
+-	{ QIB_DRV_NAME " (sdma 0)", sdma_intr,
++	{ " (sdma 0)", sdma_intr,
+ 		SYM_LSB(IntStatus, SDmaInt_0), 1 },
+-	{ QIB_DRV_NAME " (sdma 1)", sdma_intr,
++	{ " (sdma 1)", sdma_intr,
+ 		SYM_LSB(IntStatus, SDmaInt_1), 2 },
+-	{ QIB_DRV_NAME " (sdmaI 0)", sdma_idle_intr,
++	{ " (sdmaI 0)", sdma_idle_intr,
+ 		SYM_LSB(IntStatus, SDmaIdleInt_0), 1 },
+-	{ QIB_DRV_NAME " (sdmaI 1)", sdma_idle_intr,
++	{ " (sdmaI 1)", sdma_idle_intr,
+ 		SYM_LSB(IntStatus, SDmaIdleInt_1), 2 },
+-	{ QIB_DRV_NAME " (sdmaP 0)", sdma_progress_intr,
++	{ " (sdmaP 0)", sdma_progress_intr,
+ 		SYM_LSB(IntStatus, SDmaProgressInt_0), 1 },
+-	{ QIB_DRV_NAME " (sdmaP 1)", sdma_progress_intr,
++	{ " (sdmaP 1)", sdma_progress_intr,
+ 		SYM_LSB(IntStatus, SDmaProgressInt_1), 2 },
+-	{ QIB_DRV_NAME " (sdmaC 0)", sdma_cleanup_intr,
++	{ " (sdmaC 0)", sdma_cleanup_intr,
+ 		SYM_LSB(IntStatus, SDmaCleanupDone_0), 1 },
+-	{ QIB_DRV_NAME " (sdmaC 1)", sdma_cleanup_intr,
++	{ " (sdmaC 1)", sdma_cleanup_intr,
+ 		SYM_LSB(IntStatus, SDmaCleanupDone_1), 2 },
+ };
  
- 	/* we always allocate at least 2048 bytes for eager buffers */
- 	dd->rcvegrbufsize = max(mtu, 2048);
-+	BUG_ON(!is_power_of_2(dd->rcvegrbufsize));
-+	dd->rcvegrbufsize_shift = ilog2(dd->rcvegrbufsize);
+@@ -2567,9 +2566,13 @@ static void qib_7322_nomsix(struct qib_devdata *dd)
+ 		int i;
  
- 	qib_7322_tidtemplate(dd);
- 
-diff --git a/drivers/infiniband/hw/qib/qib_init.c b/drivers/infiniband/hw/qib/qib_init.c
-index 021636d..21ffa7c 100644
---- a/drivers/infiniband/hw/qib/qib_init.c
-+++ b/drivers/infiniband/hw/qib/qib_init.c
-@@ -183,6 +183,9 @@ struct qib_ctxtdata *qib_create_ctxtdata(struct qib_pportdata *ppd, u32 ctxt)
- 		rcd->rcvegrbuf_chunks = (rcd->rcvegrcnt +
- 			rcd->rcvegrbufs_perchunk - 1) /
- 			rcd->rcvegrbufs_perchunk;
-+		BUG_ON(!is_power_of_2(rcd->rcvegrbufs_perchunk));
-+		rcd->rcvegrbufs_perchunk_shift =
-+			ilog2(rcd->rcvegrbufs_perchunk);
+ 		dd->cspec->num_msix_entries = 0;
+-		for (i = 0; i < n; i++)
+-			free_irq(dd->cspec->msix_entries[i].vector,
+-				 dd->cspec->msix_arg[i]);
++		for (i = 0; i < n; i++) {
++			irq_set_affinity_hint(
++			  dd->cspec->msix_entries[i].msix.vector, NULL);
++			free_cpumask_var(dd->cspec->msix_entries[i].mask);
++			free_irq(dd->cspec->msix_entries[i].msix.vector,
++			   dd->cspec->msix_entries[i].arg);
++		}
+ 		qib_nomsix(dd);
  	}
- 	return rcd;
+ 	/* make sure no MSIx interrupts are left pending */
+@@ -2597,7 +2600,6 @@ static void qib_setup_7322_cleanup(struct qib_devdata *dd)
+ 	kfree(dd->cspec->sendgrhchk);
+ 	kfree(dd->cspec->sendibchk);
+ 	kfree(dd->cspec->msix_entries);
+-	kfree(dd->cspec->msix_arg);
+ 	for (i = 0; i < dd->num_pports; i++) {
+ 		unsigned long flags;
+ 		u32 mask = QSFP_GPIO_MOD_PRS_N |
+@@ -3071,6 +3073,8 @@ static void qib_setup_7322_interrupt(struct qib_devdata *dd, int clearpend)
+ 	int ret, i, msixnum;
+ 	u64 redirect[6];
+ 	u64 mask;
++	const struct cpumask *local_mask;
++	int firstcpu, secondcpu = 0, currrcvcpu = 0;
+ 
+ 	if (!dd->num_pports)
+ 		return;
+@@ -3119,13 +3123,28 @@ try_intx:
+ 	memset(redirect, 0, sizeof redirect);
+ 	mask = ~0ULL;
+ 	msixnum = 0;
++	local_mask = cpumask_of_pcibus(dd->pcidev->bus);
++	firstcpu = cpumask_first(local_mask);
++	if (firstcpu >= nr_cpu_ids ||
++			cpumask_weight(local_mask) == num_online_cpus()) {
++		local_mask = topology_core_cpumask(0);
++		firstcpu = cpumask_first(local_mask);
++	}
++	if (firstcpu < nr_cpu_ids) {
++		secondcpu = cpumask_next(firstcpu, local_mask);
++		if (secondcpu >= nr_cpu_ids)
++			secondcpu = firstcpu;
++		currrcvcpu = secondcpu;
++	}
+ 	for (i = 0; msixnum < dd->cspec->num_msix_entries; i++) {
+ 		irq_handler_t handler;
+-		const char *name;
+ 		void *arg;
+ 		u64 val;
+ 		int lsb, reg, sh;
+ 
++		dd->cspec->msix_entries[msixnum].
++			name[sizeof(dd->cspec->msix_entries[msixnum].name) - 1]
++			= '\0';
+ 		if (i < ARRAY_SIZE(irq_table)) {
+ 			if (irq_table[i].port) {
+ 				/* skip if for a non-configured port */
+@@ -3136,7 +3155,11 @@ try_intx:
+ 				arg = dd;
+ 			lsb = irq_table[i].lsb;
+ 			handler = irq_table[i].handler;
+-			name = irq_table[i].name;
++			snprintf(dd->cspec->msix_entries[msixnum].name,
++				sizeof(dd->cspec->msix_entries[msixnum].name)
++				 - 1,
++				QIB_DRV_NAME "%d%s", dd->unit,
++				irq_table[i].name);
+ 		} else {
+ 			unsigned ctxt;
+ 
+@@ -3149,23 +3172,28 @@ try_intx:
+ 				continue;
+ 			lsb = QIB_I_RCVAVAIL_LSB + ctxt;
+ 			handler = qib_7322pintr;
+-			name = QIB_DRV_NAME " (kctx)";
++			snprintf(dd->cspec->msix_entries[msixnum].name,
++				sizeof(dd->cspec->msix_entries[msixnum].name)
++				 - 1,
++				QIB_DRV_NAME "%d (kctx)", dd->unit);
+ 		}
+-		ret = request_irq(dd->cspec->msix_entries[msixnum].vector,
+-				  handler, 0, name, arg);
++		ret = request_irq(
++			dd->cspec->msix_entries[msixnum].msix.vector,
++			handler, 0, dd->cspec->msix_entries[msixnum].name,
++			arg);
+ 		if (ret) {
+ 			/*
+ 			 * Shouldn't happen since the enable said we could
+ 			 * have as many as we are trying to setup here.
+ 			 */
+ 			qib_dev_err(dd, "Couldn't setup MSIx "
+-				    "interrupt (vec=%d, irq=%d): %d\n", msixnum,
+-				    dd->cspec->msix_entries[msixnum].vector,
+-				    ret);
++				"interrupt (vec=%d, irq=%d): %d\n", msixnum,
++				dd->cspec->msix_entries[msixnum].msix.vector,
++				ret);
+ 			qib_7322_nomsix(dd);
+ 			goto try_intx;
+ 		}
+-		dd->cspec->msix_arg[msixnum] = arg;
++		dd->cspec->msix_entries[msixnum].arg = arg;
+ 		if (lsb >= 0) {
+ 			reg = lsb / IBA7322_REDIRECT_VEC_PER_REG;
+ 			sh = (lsb % IBA7322_REDIRECT_VEC_PER_REG) *
+@@ -3175,6 +3203,25 @@ try_intx:
+ 		}
+ 		val = qib_read_kreg64(dd, 2 * msixnum + 1 +
+ 			(QIB_7322_MsixTable_OFFS / sizeof(u64)));
++		if (firstcpu < nr_cpu_ids &&
++			zalloc_cpumask_var(
++				&dd->cspec->msix_entries[msixnum].mask,
++				GFP_KERNEL)) {
++			if (handler == qib_7322pintr) {
++				cpumask_set_cpu(currrcvcpu,
++					dd->cspec->msix_entries[msixnum].mask);
++				currrcvcpu = cpumask_next(currrcvcpu,
++					local_mask);
++				if (currrcvcpu >= nr_cpu_ids)
++					currrcvcpu = secondcpu;
++			} else {
++				cpumask_set_cpu(firstcpu,
++					dd->cspec->msix_entries[msixnum].mask);
++			}
++			irq_set_affinity_hint(
++				dd->cspec->msix_entries[msixnum].msix.vector,
++				dd->cspec->msix_entries[msixnum].mask);
++		}
+ 		msixnum++;
+ 	}
+ 	/* Initialize the vector mapping */
+@@ -3366,7 +3413,7 @@ static int qib_do_7322_reset(struct qib_devdata *dd)
+ 	if (msix_entries) {
+ 		/* restore the MSIx vector address and data if saved above */
+ 		for (i = 0; i < msix_entries; i++) {
+-			dd->cspec->msix_entries[i].entry = i;
++			dd->cspec->msix_entries[i].msix.entry = i;
+ 			if (!msix_vecsave || !msix_vecsave[2 * i])
+ 				continue;
+ 			qib_write_kreg(dd, 2 * i +
+@@ -6820,15 +6867,13 @@ struct qib_devdata *qib_init_iba7322_funcs(struct pci_dev *pdev,
+ 
+ 	tabsize = actual_cnt;
+ 	dd->cspec->msix_entries = kmalloc(tabsize *
+-			sizeof(struct msix_entry), GFP_KERNEL);
+-	dd->cspec->msix_arg = kmalloc(tabsize *
+-			sizeof(void *), GFP_KERNEL);
+-	if (!dd->cspec->msix_entries || !dd->cspec->msix_arg) {
++			sizeof(struct qib_msix_entry), GFP_KERNEL);
++	if (!dd->cspec->msix_entries) {
+ 		qib_dev_err(dd, "No memory for MSIx table\n");
+ 		tabsize = 0;
+ 	}
+ 	for (i = 0; i < tabsize; i++)
+-		dd->cspec->msix_entries[i].entry = i;
++		dd->cspec->msix_entries[i].msix.entry = i;
+ 
+ 	if (qib_pcie_params(dd, 8, &tabsize, dd->cspec->msix_entries))
+ 		qib_dev_err(dd, "Failed to setup PCIe or interrupts; "
+diff --git a/drivers/infiniband/hw/qib/qib_pcie.c b/drivers/infiniband/hw/qib/qib_pcie.c
+index 4426782..fe7af78 100644
+--- a/drivers/infiniband/hw/qib/qib_pcie.c
++++ b/drivers/infiniband/hw/qib/qib_pcie.c
+@@ -193,11 +193,24 @@ void qib_pcie_ddcleanup(struct qib_devdata *dd)
  }
+ 
+ static void qib_msix_setup(struct qib_devdata *dd, int pos, u32 *msixcnt,
+-			   struct msix_entry *msix_entry)
++			   struct qib_msix_entry *qib_msix_entry)
+ {
+ 	int ret;
+ 	u32 tabsize = 0;
+ 	u16 msix_flags;
++	struct msix_entry *msix_entry;
++	int i;
++
++	/* We can't pass qib_msix_entry array to qib_msix_setup
++	 * so use a dummy msix_entry array and copy the allocated
++	 * irq back to the qib_msix_entry array. */
++	msix_entry = kmalloc(*msixcnt * sizeof(*msix_entry), GFP_KERNEL);
++	if (!msix_entry) {
++		ret = -ENOMEM;
++		goto do_intx;
++	}
++	for (i = 0; i < *msixcnt; i++)
++		msix_entry[i] = qib_msix_entry[i].msix;
+ 
+ 	pci_read_config_word(dd->pcidev, pos + PCI_MSIX_FLAGS, &msix_flags);
+ 	tabsize = 1 + (msix_flags & PCI_MSIX_FLAGS_QSIZE);
+@@ -208,11 +221,15 @@ static void qib_msix_setup(struct qib_devdata *dd, int pos, u32 *msixcnt,
+ 		tabsize = ret;
+ 		ret = pci_enable_msix(dd->pcidev, msix_entry, tabsize);
+ 	}
++do_intx:
+ 	if (ret) {
+ 		qib_dev_err(dd, "pci_enable_msix %d vectors failed: %d, "
+ 			    "falling back to INTx\n", tabsize, ret);
+ 		tabsize = 0;
+ 	}
++	for (i = 0; i < tabsize; i++)
++		qib_msix_entry[i].msix = msix_entry[i];
++	kfree(msix_entry);
+ 	*msixcnt = tabsize;
+ 
+ 	if (ret)
+@@ -250,7 +267,7 @@ static int qib_msi_setup(struct qib_devdata *dd, int pos)
+ }
+ 
+ int qib_pcie_params(struct qib_devdata *dd, u32 minw, u32 *nent,
+-		    struct msix_entry *entry)
++		    struct qib_msix_entry *entry)
+ {
+ 	u16 linkstat, speed;
+ 	int pos = 0, pose, ret = 1;
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
