@@ -1,33 +1,60 @@
-From: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: creating common ib_types.h for linux and windows
-Date: Sun, 25 Sep 2011 13:39:29 +0300
-Message-ID: <20110925103929.GB2372@calypso.mtl.com>
-References: <1828884A29C6694DAF28B7E6B8A8237316E65191@ORSMSX101.amr.corp.intel.com>
- <CAO+b5-p0O5N6ZZacYGNjz4+H=W3hX6O7kw5pO=XqXSdh3FEdhA@mail.gmail.com>
- <1828884A29C6694DAF28B7E6B8A8237316E6526F@ORSMSX101.amr.corp.intel.com>
- <20110921132945.GA3767@calypso.mtl.com>
- <1828884A29C6694DAF28B7E6B8A8237316E66732@ORSMSX101.amr.corp.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+From: Kumar Sanghvi <kumaras-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+Subject: [PATCH 0/4] iWARP MPAv2 Support
+Date: Sun, 25 Sep 2011 20:17:42 +0530
+Message-ID: <1316962066-28701-1-git-send-email-kumaras@chelsio.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1828884A29C6694DAF28B7E6B8A8237316E66732-P5GAC/sN6hmkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>, "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Hal Rosenstock (hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org)" <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "ofw-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org" <ofw-ZwoEplunGu1OwGhvXhtEPSCwEArCW2h5@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+Cc: swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, divy-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, Faisal.Latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, Tatyana.E.Nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, Kumar Sanghvi <kumaras-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 15:49 Wed 21 Sep     , Hefty, Sean wrote:
-> > What is your end goal? To have one code base for OpenSM that would be able to
-> > be compiled on both Linux and Windows based on __WIN__ definition?
-> 
-> My end goal is to decrease the maintenance cost porting opensm to Windows.  Ideally, I'd like to have a common code base for opensm, similar to what we have for ibmad and ib-diags.  Whether we achieve that using #ifdef's, OS specific header files, some other means (such as a windows specific patches to complete the conversion), or a combination of these, I don't really care.
+This series adds support for MPA V2 Enhanced RDMA Negotiation
+protocol.
+Details about the protocol are available at below IETF Draft:
+http://www.ietf.org/id/draft-ietf-storm-mpa-peer-connect-06.txt
 
-I guess in case of ib_types.h that includes lots of #ifdef's, it would be
-better to use a separate file. But for other files such as osm_base.h, it
-would be much overhead to separate Windows related stuff to a different file.
+To brief on MPA V2:
+1) It allows two communicating endpoints to negotiate the IRD/ORD
+   values to be used in RDMA tranfers.
+2) It allows two communicating endpoints to negotiate the type of
+   RTR message to use, when operating in peer2peer mode.
+3) MPA v2 is backwards compatible with original MPA protocol.
 
--- Alex
+Patch 1/4 adds support to pass the ird/ord values upwards to the ULP
+application so that they can take part in ird/ord negotiation.
+
+Patch 2/4 adds MPA V2 support to the Chelsio iw_cxgb4.
+
+Patch 3/4 adds minimal MPA V2 support to iw_cxgb3 and amso1100.
+
+Patch 4/4 adds MPA V2 support to the Intel iw_nes.
+
+MPA_v2 support to the iw_cxgb4 and iw_nes has been tested to work
+fine, by both Intel and Chelsio, using basic test tools like
+rping and rdma_bw.
+---
+
+Kumar Sanghvi (3):
+  iw_cm: Propagate ird/ord values upwards
+  iw_cxgb4: Add support for MPA V2 Enhanced RDMA Negotiation
+  amso1100/iw_cxgb3: Minimal MPAv2 support
+
+Tatyana (1):
+  RDMA/nes: Adds support for MPA frame Version 2
+
+ drivers/infiniband/core/cma.c            |    8 +-
+ drivers/infiniband/hw/amso1100/c2_ae.c   |    5 +
+ drivers/infiniband/hw/amso1100/c2_intr.c |    5 +
+ drivers/infiniband/hw/cxgb3/iwch_cm.c    |   10 +
+ drivers/infiniband/hw/cxgb4/cm.c         |  469 ++++++++++++-
+ drivers/infiniband/hw/cxgb4/iw_cxgb4.h   |   22 +-
+ drivers/infiniband/hw/cxgb4/qp.c         |   14 +-
+ drivers/infiniband/hw/nes/nes_cm.c       | 1101 +++++++++++++++++------------
+ drivers/infiniband/hw/nes/nes_cm.h       |   73 ++-
+ drivers/infiniband/hw/nes/nes_verbs.h    |    3 +-
+ include/rdma/iw_cm.h                     |    2 +
+ 11 files changed, 1197 insertions(+), 515 deletions(-)
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
