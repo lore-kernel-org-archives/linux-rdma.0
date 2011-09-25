@@ -1,7 +1,7 @@
 From: Kumar Sanghvi <kumaras-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
-Subject: [PATCH 3/4] amso1100/iw_cxgb3: Minimal MPAv2 support
-Date: Sun, 25 Sep 2011 20:17:45 +0530
-Message-ID: <1316962066-28701-4-git-send-email-kumaras@chelsio.com>
+Subject: [PATCH 2/4] iw_cxgb4: Add support for MPA V2 Enhanced RDMA Negotiation
+Date: Sun, 25 Sep 2011 20:17:44 +0530
+Message-ID: <1316962066-28701-3-git-send-email-kumaras@chelsio.com>
 References: <1316962066-28701-1-git-send-email-kumaras@chelsio.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 In-Reply-To: <1316962066-28701-1-git-send-email-kumaras-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
@@ -10,77 +10,840 @@ To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, roland-DgEjT+Ai2ygdnm+yR
 Cc: swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, divy-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, Faisal.Latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, Tatyana.E.Nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, Kumar Sanghvi <kumaras-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-As part of MPAv2 Enhanced RDMA Negotiation, pass max supported
-ird/ord values upwards for the time-being in iw-cxgb3 and
-amso1100.
+The patch adds support for Enhanced RDMA Connection Establishment
+(draft-ietf-storm-mpa-peer-connect-06).
+Details of draft can be obtained from:
+http://www.ietf.org/id/draft-ietf-storm-mpa-peer-connect-06.txt
+
+The patch updates the following functions for initiator perspective:
+-send_mpa_request
+-process_mpa_reply
+-post_terminate for TERM error codes
+-destroy_qp for TERM related change
+-adds layer/etype/ecode to c4iw_qp_attrs for sending with TERM
+-peer_abort for retrying connection attempt with MPA_v1 message
+-added c4iw_reconnect function
+
+The patch updates the following functions for responder perspective:
+-process_mpa_request
+-send_mpa_reply
+-c4iw_accept_cr
+-passes ird/ord to upper layers
 
 Signed-off-by: Kumar Sanghvi <kumaras-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
 ---
- drivers/infiniband/hw/amso1100/c2_ae.c   |    5 +++++
- drivers/infiniband/hw/amso1100/c2_intr.c |    5 +++++
- drivers/infiniband/hw/cxgb3/iwch_cm.c    |   10 ++++++++++
- 3 files changed, 20 insertions(+), 0 deletions(-)
+ drivers/infiniband/hw/cxgb4/cm.c       |  469 +++++++++++++++++++++++++++++---
+ drivers/infiniband/hw/cxgb4/iw_cxgb4.h |   22 ++-
+ drivers/infiniband/hw/cxgb4/qp.c       |   14 +-
+ 3 files changed, 466 insertions(+), 39 deletions(-)
 
-diff --git a/drivers/infiniband/hw/amso1100/c2_ae.c b/drivers/infiniband/hw/amso1100/c2_ae.c
-index 24f9e3a..6eb6fce 100644
---- a/drivers/infiniband/hw/amso1100/c2_ae.c
-+++ b/drivers/infiniband/hw/amso1100/c2_ae.c
-@@ -288,6 +288,11 @@ void c2_ae_event(struct c2_dev *c2dev, u32 mq_index)
- 		cm_event.private_data_len =
- 			be32_to_cpu(req->private_data_length);
- 		cm_event.private_data = req->private_data;
-+		/*
-+		 * Until ird/ord negotiation via MPA_v2 support is added, send
-+		 * max supported values
-+		 */
-+		cm_event.ird = cm_event.ord = 128;
+diff --git a/drivers/infiniband/hw/cxgb4/cm.c b/drivers/infiniband/hw/cxgb4/cm.c
+index 77f769d..b36cdac 100644
+--- a/drivers/infiniband/hw/cxgb4/cm.c
++++ b/drivers/infiniband/hw/cxgb4/cm.c
+@@ -103,7 +103,8 @@ MODULE_PARM_DESC(ep_timeout_secs, "CM Endpoint operation timeout "
+ static int mpa_rev = 1;
+ module_param(mpa_rev, int, 0644);
+ MODULE_PARM_DESC(mpa_rev, "MPA Revision, 0 supports amso1100, "
+-		 "1 is spec compliant. (default=1)");
++		"1 is RFC0544 spec compliant, 2 is IETF MPA Peer Connect Draft"
++		" compliant (default=1)");
  
- 		if (cm_id->event_handler)
- 			cm_id->event_handler(cm_id, &cm_event);
-diff --git a/drivers/infiniband/hw/amso1100/c2_intr.c b/drivers/infiniband/hw/amso1100/c2_intr.c
-index 0ebe4e8..846e9bd 100644
---- a/drivers/infiniband/hw/amso1100/c2_intr.c
-+++ b/drivers/infiniband/hw/amso1100/c2_intr.c
-@@ -183,6 +183,11 @@ static void handle_vq(struct c2_dev *c2dev, u32 mq_index)
- 	case IW_CM_EVENT_ESTABLISHED:
- 		c2_set_qp_state(req->qp,
- 				C2_QP_STATE_RTS);
-+		/*
-+		 * Until ird/ord negotiation via MPA_v2 support is added, send
-+		 * max supported values
-+		 */
-+		cm_event.ird = cm_event.ord = 128;
- 	case IW_CM_EVENT_CLOSE:
+ static int markers_enabled;
+ module_param(markers_enabled, int, 0644);
+@@ -497,17 +498,21 @@ static int send_connect(struct c4iw_ep *ep)
+ 	return c4iw_l2t_send(&ep->com.dev->rdev, skb, ep->l2t);
+ }
  
- 		/*
-diff --git a/drivers/infiniband/hw/cxgb3/iwch_cm.c b/drivers/infiniband/hw/cxgb3/iwch_cm.c
-index 17bf9d9..9c552d1 100644
---- a/drivers/infiniband/hw/cxgb3/iwch_cm.c
-+++ b/drivers/infiniband/hw/cxgb3/iwch_cm.c
-@@ -753,6 +753,11 @@ static void connect_request_upcall(struct iwch_ep *ep)
- 	event.private_data_len = ep->plen;
- 	event.private_data = ep->mpa_pkt + sizeof(struct mpa_message);
+-static void send_mpa_req(struct c4iw_ep *ep, struct sk_buff *skb)
++static void send_mpa_req(struct c4iw_ep *ep, struct sk_buff *skb,
++		u8 mpa_rev_to_use)
+ {
+ 	int mpalen, wrlen;
+ 	struct fw_ofld_tx_data_wr *req;
+ 	struct mpa_message *mpa;
++	struct mpa_v2_conn_params mpa_v2_params;
+ 
+ 	PDBG("%s ep %p tid %u pd_len %d\n", __func__, ep, ep->hwtid, ep->plen);
+ 
+ 	BUG_ON(skb_cloned(skb));
+ 
+ 	mpalen = sizeof(*mpa) + ep->plen;
++	if (mpa_rev_to_use == 2)
++		mpalen += sizeof(struct mpa_v2_conn_params);
+ 	wrlen = roundup(mpalen + sizeof *req, 16);
+ 	skb = get_skb(skb, wrlen, GFP_KERNEL);
+ 	if (!skb) {
+@@ -533,12 +538,39 @@ static void send_mpa_req(struct c4iw_ep *ep, struct sk_buff *skb)
+ 	mpa = (struct mpa_message *)(req + 1);
+ 	memcpy(mpa->key, MPA_KEY_REQ, sizeof(mpa->key));
+ 	mpa->flags = (crc_enabled ? MPA_CRC : 0) |
+-		     (markers_enabled ? MPA_MARKERS : 0);
++		     (markers_enabled ? MPA_MARKERS : 0) |
++		     (mpa_rev_to_use == 2 ? MPA_ENHANCED_RDMA_CONN : 0);
+ 	mpa->private_data_size = htons(ep->plen);
+-	mpa->revision = mpa_rev;
++	mpa->revision = mpa_rev_to_use;
++	if (mpa_rev_to_use == 1)
++		ep->tried_with_mpa_v1 = 1;
++
++	if (mpa_rev_to_use == 2) {
++		mpa->private_data_size +=
++			htons(sizeof(struct mpa_v2_conn_params));
++		mpa_v2_params.ird = htons((u16)ep->ird);
++		mpa_v2_params.ord = htons((u16)ep->ord);
++
++		if (peer2peer) {
++			mpa_v2_params.ird |= htons(MPA_V2_PEER2PEER_MODEL);
++			if (p2p_type == FW_RI_INIT_P2PTYPE_RDMA_WRITE)
++				mpa_v2_params.ord |=
++					htons(MPA_V2_RDMA_WRITE_RTR);
++			else if (p2p_type == FW_RI_INIT_P2PTYPE_READ_REQ)
++				mpa_v2_params.ord |=
++					htons(MPA_V2_RDMA_READ_RTR);
++		}
++		memcpy(mpa->private_data, &mpa_v2_params,
++		       sizeof(struct mpa_v2_conn_params));
+ 
+-	if (ep->plen)
+-		memcpy(mpa->private_data, ep->mpa_pkt + sizeof(*mpa), ep->plen);
++		if (ep->plen)
++			memcpy(mpa->private_data +
++			       sizeof(struct mpa_v2_conn_params),
++			       ep->mpa_pkt + sizeof(*mpa), ep->plen);
++	} else
++		if (ep->plen)
++			memcpy(mpa->private_data,
++					ep->mpa_pkt + sizeof(*mpa), ep->plen);
+ 
+ 	/*
+ 	 * Reference the mpa skb.  This ensures the data area
+@@ -562,10 +594,13 @@ static int send_mpa_reject(struct c4iw_ep *ep, const void *pdata, u8 plen)
+ 	struct fw_ofld_tx_data_wr *req;
+ 	struct mpa_message *mpa;
+ 	struct sk_buff *skb;
++	struct mpa_v2_conn_params mpa_v2_params;
+ 
+ 	PDBG("%s ep %p tid %u pd_len %d\n", __func__, ep, ep->hwtid, ep->plen);
+ 
+ 	mpalen = sizeof(*mpa) + plen;
++	if (ep->mpa_attr.version == 2 && ep->mpa_attr.enhanced_rdma_conn)
++		mpalen += sizeof(struct mpa_v2_conn_params);
+ 	wrlen = roundup(mpalen + sizeof *req, 16);
+ 
+ 	skb = get_skb(NULL, wrlen, GFP_KERNEL);
+@@ -595,8 +630,29 @@ static int send_mpa_reject(struct c4iw_ep *ep, const void *pdata, u8 plen)
+ 	mpa->flags = MPA_REJECT;
+ 	mpa->revision = mpa_rev;
+ 	mpa->private_data_size = htons(plen);
+-	if (plen)
+-		memcpy(mpa->private_data, pdata, plen);
++
++	if (ep->mpa_attr.version == 2 && ep->mpa_attr.enhanced_rdma_conn) {
++		mpa->flags |= MPA_ENHANCED_RDMA_CONN;
++		mpa->private_data_size +=
++			htons(sizeof(struct mpa_v2_conn_params));
++		mpa_v2_params.ird = htons(((u16)ep->ird) |
++					  (peer2peer ? MPA_V2_PEER2PEER_MODEL :
++					   0));
++		mpa_v2_params.ord = htons(((u16)ep->ord) | (peer2peer ?
++					  (p2p_type ==
++					   FW_RI_INIT_P2PTYPE_RDMA_WRITE ?
++					   MPA_V2_RDMA_WRITE_RTR : p2p_type ==
++					   FW_RI_INIT_P2PTYPE_READ_REQ ?
++					   MPA_V2_RDMA_READ_RTR : 0) : 0));
++		memcpy(mpa->private_data, &mpa_v2_params,
++		       sizeof(struct mpa_v2_conn_params));
++
++		if (ep->plen)
++			memcpy(mpa->private_data +
++			       sizeof(struct mpa_v2_conn_params), pdata, plen);
++	} else
++		if (plen)
++			memcpy(mpa->private_data, pdata, plen);
+ 
+ 	/*
+ 	 * Reference the mpa skb again.  This ensures the data area
+@@ -617,10 +673,13 @@ static int send_mpa_reply(struct c4iw_ep *ep, const void *pdata, u8 plen)
+ 	struct fw_ofld_tx_data_wr *req;
+ 	struct mpa_message *mpa;
+ 	struct sk_buff *skb;
++	struct mpa_v2_conn_params mpa_v2_params;
+ 
+ 	PDBG("%s ep %p tid %u pd_len %d\n", __func__, ep, ep->hwtid, ep->plen);
+ 
+ 	mpalen = sizeof(*mpa) + plen;
++	if (ep->mpa_attr.version == 2 && ep->mpa_attr.enhanced_rdma_conn)
++		mpalen += sizeof(struct mpa_v2_conn_params);
+ 	wrlen = roundup(mpalen + sizeof *req, 16);
+ 
+ 	skb = get_skb(NULL, wrlen, GFP_KERNEL);
+@@ -649,10 +708,36 @@ static int send_mpa_reply(struct c4iw_ep *ep, const void *pdata, u8 plen)
+ 	memcpy(mpa->key, MPA_KEY_REP, sizeof(mpa->key));
+ 	mpa->flags = (ep->mpa_attr.crc_enabled ? MPA_CRC : 0) |
+ 		     (markers_enabled ? MPA_MARKERS : 0);
+-	mpa->revision = mpa_rev;
++	mpa->revision = ep->mpa_attr.version;
+ 	mpa->private_data_size = htons(plen);
+-	if (plen)
+-		memcpy(mpa->private_data, pdata, plen);
++
++	if (ep->mpa_attr.version == 2 && ep->mpa_attr.enhanced_rdma_conn) {
++		mpa->flags |= MPA_ENHANCED_RDMA_CONN;
++		mpa->private_data_size +=
++			htons(sizeof(struct mpa_v2_conn_params));
++		mpa_v2_params.ird = htons((u16)ep->ird);
++		mpa_v2_params.ord = htons((u16)ep->ord);
++		if (peer2peer && (ep->mpa_attr.p2p_type !=
++					FW_RI_INIT_P2PTYPE_DISABLED)) {
++			mpa_v2_params.ird |= htons(MPA_V2_PEER2PEER_MODEL);
++
++			if (p2p_type == FW_RI_INIT_P2PTYPE_RDMA_WRITE)
++				mpa_v2_params.ord |=
++					htons(MPA_V2_RDMA_WRITE_RTR);
++			else if (p2p_type == FW_RI_INIT_P2PTYPE_READ_REQ)
++				mpa_v2_params.ord |=
++					htons(MPA_V2_RDMA_READ_RTR);
++		}
++
++		memcpy(mpa->private_data, &mpa_v2_params,
++		       sizeof(struct mpa_v2_conn_params));
++
++		if (ep->plen)
++			memcpy(mpa->private_data +
++			       sizeof(struct mpa_v2_conn_params), pdata, plen);
++	} else
++		if (plen)
++			memcpy(mpa->private_data, pdata, plen);
+ 
+ 	/*
+ 	 * Reference the mpa skb.  This ensures the data area
+@@ -695,7 +780,10 @@ static int act_establish(struct c4iw_dev *dev, struct sk_buff *skb)
+ 
+ 	/* start MPA negotiation */
+ 	send_flowc(ep, NULL);
+-	send_mpa_req(ep, skb);
++	if (ep->retry_with_mpa_v1)
++		send_mpa_req(ep, skb, 1);
++	else
++		send_mpa_req(ep, skb, mpa_rev);
+ 
+ 	return 0;
+ }
+@@ -769,8 +857,19 @@ static void connect_reply_upcall(struct c4iw_ep *ep, int status)
+ 	event.remote_addr = ep->com.remote_addr;
+ 
+ 	if ((status == 0) || (status == -ECONNREFUSED)) {
+-		event.private_data_len = ep->plen;
+-		event.private_data = ep->mpa_pkt + sizeof(struct mpa_message);
++		if (!ep->tried_with_mpa_v1) {
++			/* this means MPA_v2 is used */
++			event.private_data_len = ep->plen -
++				sizeof(struct mpa_v2_conn_params);
++			event.private_data = ep->mpa_pkt +
++				sizeof(struct mpa_message) +
++				sizeof(struct mpa_v2_conn_params);
++		} else {
++			/* this means MPA_v1 is used */
++			event.private_data_len = ep->plen;
++			event.private_data = ep->mpa_pkt +
++				sizeof(struct mpa_message);
++		}
+ 	}
+ 
+ 	PDBG("%s ep %p tid %u status %d\n", __func__, ep,
+@@ -793,9 +892,22 @@ static void connect_request_upcall(struct c4iw_ep *ep)
+ 	event.event = IW_CM_EVENT_CONNECT_REQUEST;
+ 	event.local_addr = ep->com.local_addr;
+ 	event.remote_addr = ep->com.remote_addr;
+-	event.private_data_len = ep->plen;
+-	event.private_data = ep->mpa_pkt + sizeof(struct mpa_message);
  	event.provider_data = ep;
-+	/*
-+	 * Until ird/ord negotiation via MPA_v2 support is added, send max
-+	 * supported values
-+	 */
-+	event.ird = event.ord = 8;
++	if (!ep->tried_with_mpa_v1) {
++		/* this means MPA_v2 is used */
++		event.ord = ep->ord;
++		event.ird = ep->ird;
++		event.private_data_len = ep->plen -
++			sizeof(struct mpa_v2_conn_params);
++		event.private_data = ep->mpa_pkt + sizeof(struct mpa_message) +
++			sizeof(struct mpa_v2_conn_params);
++	} else {
++		/* this means MPA_v1 is used. Send max supported */
++		event.ord = c4iw_max_read_depth;
++		event.ird = c4iw_max_read_depth;
++		event.private_data_len = ep->plen;
++		event.private_data = ep->mpa_pkt + sizeof(struct mpa_message);
++	}
  	if (state_read(&ep->parent_ep->com) != DEAD) {
- 		get_ep(&ep->com);
+ 		c4iw_get_ep(&ep->com);
  		ep->parent_ep->com.cm_id->event_handler(
-@@ -770,6 +775,11 @@ static void established_upcall(struct iwch_ep *ep)
- 	PDBG("%s ep %p\n", __func__, ep);
+@@ -813,6 +925,8 @@ static void established_upcall(struct c4iw_ep *ep)
+ 	PDBG("%s ep %p tid %u\n", __func__, ep, ep->hwtid);
  	memset(&event, 0, sizeof(event));
  	event.event = IW_CM_EVENT_ESTABLISHED;
-+	/*
-+	 * Until ird/ord negotiation via MPA_v2 support is added, send max
-+	 * supported values
-+	 */
-+	event.ird = event.ord = 8;
++	event.ird = ep->ird;
++	event.ord = ep->ord;
  	if (ep->com.cm_id) {
- 		PDBG("%s ep %p tid %d\n", __func__, ep, ep->hwtid);
+ 		PDBG("%s ep %p tid %u\n", __func__, ep, ep->hwtid);
  		ep->com.cm_id->event_handler(ep->com.cm_id, &event);
+@@ -848,7 +962,10 @@ static int update_rx_credits(struct c4iw_ep *ep, u32 credits)
+ static void process_mpa_reply(struct c4iw_ep *ep, struct sk_buff *skb)
+ {
+ 	struct mpa_message *mpa;
++	struct mpa_v2_conn_params *mpa_v2_params;
+ 	u16 plen;
++	u16 resp_ird, resp_ord;
++	u8 rtr_mismatch = 0, insuff_ird = 0;
+ 	struct c4iw_qp_attributes attrs;
+ 	enum c4iw_qp_attr_mask mask;
+ 	int err;
+@@ -888,7 +1005,9 @@ static void process_mpa_reply(struct c4iw_ep *ep, struct sk_buff *skb)
+ 	mpa = (struct mpa_message *) ep->mpa_pkt;
+ 
+ 	/* Validate MPA header. */
+-	if (mpa->revision != mpa_rev) {
++	if (mpa->revision > mpa_rev) {
++		printk(KERN_ERR MOD "%s MPA version mismatch. Local = %d,"
++		       " Received = %d\n", __func__, mpa_rev, mpa->revision);
+ 		err = -EPROTO;
+ 		goto err;
+ 	}
+@@ -938,13 +1057,66 @@ static void process_mpa_reply(struct c4iw_ep *ep, struct sk_buff *skb)
+ 	ep->mpa_attr.crc_enabled = (mpa->flags & MPA_CRC) | crc_enabled ? 1 : 0;
+ 	ep->mpa_attr.recv_marker_enabled = markers_enabled;
+ 	ep->mpa_attr.xmit_marker_enabled = mpa->flags & MPA_MARKERS ? 1 : 0;
+-	ep->mpa_attr.version = mpa_rev;
+-	ep->mpa_attr.p2p_type = peer2peer ? p2p_type :
+-					    FW_RI_INIT_P2PTYPE_DISABLED;
++	ep->mpa_attr.version = mpa->revision;
++	ep->mpa_attr.p2p_type = FW_RI_INIT_P2PTYPE_DISABLED;
++
++	if (mpa->revision == 2) {
++		ep->mpa_attr.enhanced_rdma_conn =
++			mpa->flags & MPA_ENHANCED_RDMA_CONN ? 1 : 0;
++		if (ep->mpa_attr.enhanced_rdma_conn) {
++			mpa_v2_params = (struct mpa_v2_conn_params *)
++				(ep->mpa_pkt + sizeof(*mpa));
++			resp_ird = ntohs(mpa_v2_params->ird) &
++				MPA_V2_IRD_ORD_MASK;
++			resp_ord = ntohs(mpa_v2_params->ord) &
++				MPA_V2_IRD_ORD_MASK;
++
++			/*
++			 * This is a double-check. Ideally, below checks are
++			 * not required since ird/ord stuff has been taken
++			 * care of in c4iw_accept_cr
++			 */
++			if ((ep->ird < resp_ord) || (ep->ord > resp_ird)) {
++				err = -ENOMEM;
++				ep->ird = resp_ord;
++				ep->ord = resp_ird;
++				insuff_ird = 1;
++			}
++
++			if (ntohs(mpa_v2_params->ird) &
++					MPA_V2_PEER2PEER_MODEL) {
++				if (ntohs(mpa_v2_params->ord) &
++						MPA_V2_RDMA_WRITE_RTR)
++					ep->mpa_attr.p2p_type =
++						FW_RI_INIT_P2PTYPE_RDMA_WRITE;
++				else if (ntohs(mpa_v2_params->ord) &
++						MPA_V2_RDMA_READ_RTR)
++					ep->mpa_attr.p2p_type =
++						FW_RI_INIT_P2PTYPE_READ_REQ;
++			}
++		}
++	} else if (mpa->revision == 1)
++		if (peer2peer)
++			ep->mpa_attr.p2p_type = p2p_type;
++
+ 	PDBG("%s - crc_enabled=%d, recv_marker_enabled=%d, "
+-	     "xmit_marker_enabled=%d, version=%d\n", __func__,
+-	     ep->mpa_attr.crc_enabled, ep->mpa_attr.recv_marker_enabled,
+-	     ep->mpa_attr.xmit_marker_enabled, ep->mpa_attr.version);
++	     "xmit_marker_enabled=%d, version=%d p2p_type=%d local-p2p_type = "
++	     "%d\n", __func__, ep->mpa_attr.crc_enabled,
++	     ep->mpa_attr.recv_marker_enabled,
++	     ep->mpa_attr.xmit_marker_enabled, ep->mpa_attr.version,
++	     ep->mpa_attr.p2p_type, p2p_type);
++
++	/*
++	 * If responder's RTR does not match with that of initiator, assign
++	 * FW_RI_INIT_P2PTYPE_DISABLED in mpa attributes so that RTR is not
++	 * generated when moving QP to RTS state.
++	 * A TERM message will be sent after QP has moved to RTS state
++	 */
++	if ((ep->mpa_attr.version == 2) &&
++			(ep->mpa_attr.p2p_type != p2p_type)) {
++		ep->mpa_attr.p2p_type = FW_RI_INIT_P2PTYPE_DISABLED;
++		rtr_mismatch = 1;
++	}
+ 
+ 	attrs.mpa_attr = ep->mpa_attr;
+ 	attrs.max_ird = ep->ird;
+@@ -961,6 +1133,39 @@ static void process_mpa_reply(struct c4iw_ep *ep, struct sk_buff *skb)
+ 			     ep->com.qp, mask, &attrs, 1);
+ 	if (err)
+ 		goto err;
++
++	/*
++	 * If responder's RTR requirement did not match with what initiator
++	 * supports, generate TERM message
++	 */
++	if (rtr_mismatch) {
++		printk(KERN_ERR "%s: RTR mismatch, sending TERM\n", __func__);
++		attrs.layer_etype = LAYER_MPA | DDP_LLP;
++		attrs.ecode = MPA_NOMATCH_RTR;
++		attrs.next_state = C4IW_QP_STATE_TERMINATE;
++		err = c4iw_modify_qp(ep->com.qp->rhp, ep->com.qp,
++				C4IW_QP_ATTR_NEXT_STATE, &attrs, 0);
++		err = -ENOMEM;
++		goto out;
++	}
++
++	/*
++	 * Generate TERM if initiator IRD is not sufficient for responder
++	 * provided ORD. Currently, we do the same behaviour even when
++	 * responder provided IRD is also not sufficient as regards to
++	 * initiator ORD.
++	 */
++	if (insuff_ird) {
++		printk(KERN_ERR "%s: Insufficient IRD, sending TERM\n",
++				__func__);
++		attrs.layer_etype = LAYER_MPA | DDP_LLP;
++		attrs.ecode = MPA_INSUFF_IRD;
++		attrs.next_state = C4IW_QP_STATE_TERMINATE;
++		err = c4iw_modify_qp(ep->com.qp->rhp, ep->com.qp,
++				C4IW_QP_ATTR_NEXT_STATE, &attrs, 0);
++		err = -ENOMEM;
++		goto out;
++	}
+ 	goto out;
+ err:
+ 	state_set(&ep->com, ABORTING);
+@@ -973,6 +1178,7 @@ out:
+ static void process_mpa_request(struct c4iw_ep *ep, struct sk_buff *skb)
+ {
+ 	struct mpa_message *mpa;
++	struct mpa_v2_conn_params *mpa_v2_params;
+ 	u16 plen;
+ 
+ 	PDBG("%s ep %p tid %u\n", __func__, ep, ep->hwtid);
+@@ -1013,7 +1219,9 @@ static void process_mpa_request(struct c4iw_ep *ep, struct sk_buff *skb)
+ 	/*
+ 	 * Validate MPA Header.
+ 	 */
+-	if (mpa->revision != mpa_rev) {
++	if (mpa->revision > mpa_rev) {
++		printk(KERN_ERR MOD "%s MPA version mismatch. Local = %d,"
++		       " Received = %d\n", __func__, mpa_rev, mpa->revision);
+ 		abort_connection(ep, skb, GFP_KERNEL);
+ 		return;
+ 	}
+@@ -1056,9 +1264,37 @@ static void process_mpa_request(struct c4iw_ep *ep, struct sk_buff *skb)
+ 	ep->mpa_attr.crc_enabled = (mpa->flags & MPA_CRC) | crc_enabled ? 1 : 0;
+ 	ep->mpa_attr.recv_marker_enabled = markers_enabled;
+ 	ep->mpa_attr.xmit_marker_enabled = mpa->flags & MPA_MARKERS ? 1 : 0;
+-	ep->mpa_attr.version = mpa_rev;
+-	ep->mpa_attr.p2p_type = peer2peer ? p2p_type :
+-					    FW_RI_INIT_P2PTYPE_DISABLED;
++	ep->mpa_attr.version = mpa->revision;
++	if (mpa->revision == 1)
++		ep->tried_with_mpa_v1 = 1;
++	ep->mpa_attr.p2p_type = FW_RI_INIT_P2PTYPE_DISABLED;
++
++	if (mpa->revision == 2) {
++		ep->mpa_attr.enhanced_rdma_conn =
++			mpa->flags & MPA_ENHANCED_RDMA_CONN ? 1 : 0;
++		if (ep->mpa_attr.enhanced_rdma_conn) {
++			mpa_v2_params = (struct mpa_v2_conn_params *)
++				(ep->mpa_pkt + sizeof(*mpa));
++			ep->ird = ntohs(mpa_v2_params->ird) &
++				MPA_V2_IRD_ORD_MASK;
++			ep->ord = ntohs(mpa_v2_params->ord) &
++				MPA_V2_IRD_ORD_MASK;
++			if (ntohs(mpa_v2_params->ird) & MPA_V2_PEER2PEER_MODEL)
++				if (peer2peer) {
++					if (ntohs(mpa_v2_params->ord) &
++							MPA_V2_RDMA_WRITE_RTR)
++						ep->mpa_attr.p2p_type =
++						FW_RI_INIT_P2PTYPE_RDMA_WRITE;
++					else if (ntohs(mpa_v2_params->ord) &
++							MPA_V2_RDMA_READ_RTR)
++						ep->mpa_attr.p2p_type =
++						FW_RI_INIT_P2PTYPE_READ_REQ;
++				}
++		}
++	} else if (mpa->revision == 1)
++		if (peer2peer)
++			ep->mpa_attr.p2p_type = p2p_type;
++
+ 	PDBG("%s - crc_enabled=%d, recv_marker_enabled=%d, "
+ 	     "xmit_marker_enabled=%d, version=%d p2p_type=%d\n", __func__,
+ 	     ep->mpa_attr.crc_enabled, ep->mpa_attr.recv_marker_enabled,
+@@ -1550,6 +1786,112 @@ static int is_neg_adv_abort(unsigned int status)
+ 	       status == CPL_ERR_PERSIST_NEG_ADVICE;
+ }
+ 
++static int c4iw_reconnect(struct c4iw_ep *ep)
++{
++	int err = 0;
++	struct rtable *rt;
++	struct net_device *pdev;
++	struct neighbour *neigh;
++	int step;
++
++	PDBG("%s qp %p cm_id %p\n", __func__, ep->com.qp, ep->com.cm_id);
++	init_timer(&ep->timer);
++
++	/*
++	 * Allocate an active TID to initiate a TCP connection.
++	 */
++	ep->atid = cxgb4_alloc_atid(ep->com.dev->rdev.lldi.tids, ep);
++	if (ep->atid == -1) {
++		printk(KERN_ERR MOD "%s - cannot alloc atid.\n", __func__);
++		err = -ENOMEM;
++		goto fail2;
++	}
++
++	/* find a route */
++	rt = find_route(ep->com.dev,
++			ep->com.cm_id->local_addr.sin_addr.s_addr,
++			ep->com.cm_id->remote_addr.sin_addr.s_addr,
++			ep->com.cm_id->local_addr.sin_port,
++			ep->com.cm_id->remote_addr.sin_port, 0);
++	if (!rt) {
++		printk(KERN_ERR MOD "%s - cannot find route.\n", __func__);
++		err = -EHOSTUNREACH;
++		goto fail3;
++	}
++	ep->dst = &rt->dst;
++
++	neigh = dst_get_neighbour(ep->dst);
++
++	/* get a l2t entry */
++	if (neigh->dev->flags & IFF_LOOPBACK) {
++		PDBG("%s LOOPBACK\n", __func__);
++		pdev = ip_dev_find(&init_net,
++				   ep->com.cm_id->remote_addr.sin_addr.s_addr);
++		ep->l2t = cxgb4_l2t_get(ep->com.dev->rdev.lldi.l2t,
++					neigh, pdev, 0);
++		ep->mtu = pdev->mtu;
++		ep->tx_chan = cxgb4_port_chan(pdev);
++		ep->smac_idx = (cxgb4_port_viid(pdev) & 0x7F) << 1;
++		step = ep->com.dev->rdev.lldi.ntxq /
++			ep->com.dev->rdev.lldi.nchan;
++		ep->txq_idx = cxgb4_port_idx(pdev) * step;
++		step = ep->com.dev->rdev.lldi.nrxq /
++			ep->com.dev->rdev.lldi.nchan;
++		ep->ctrlq_idx = cxgb4_port_idx(pdev);
++		ep->rss_qid = ep->com.dev->rdev.lldi.rxq_ids[
++			cxgb4_port_idx(pdev) * step];
++		dev_put(pdev);
++	} else {
++		ep->l2t = cxgb4_l2t_get(ep->com.dev->rdev.lldi.l2t,
++					neigh, neigh->dev, 0);
++		ep->mtu = dst_mtu(ep->dst);
++		ep->tx_chan = cxgb4_port_chan(neigh->dev);
++		ep->smac_idx = (cxgb4_port_viid(neigh->dev) & 0x7F) << 1;
++		step = ep->com.dev->rdev.lldi.ntxq /
++			ep->com.dev->rdev.lldi.nchan;
++		ep->txq_idx = cxgb4_port_idx(neigh->dev) * step;
++		ep->ctrlq_idx = cxgb4_port_idx(neigh->dev);
++		step = ep->com.dev->rdev.lldi.nrxq /
++			ep->com.dev->rdev.lldi.nchan;
++		ep->rss_qid = ep->com.dev->rdev.lldi.rxq_ids[
++			cxgb4_port_idx(neigh->dev) * step];
++	}
++	if (!ep->l2t) {
++		printk(KERN_ERR MOD "%s - cannot alloc l2e.\n", __func__);
++		err = -ENOMEM;
++		goto fail4;
++	}
++
++	PDBG("%s txq_idx %u tx_chan %u smac_idx %u rss_qid %u l2t_idx %u\n",
++	     __func__, ep->txq_idx, ep->tx_chan, ep->smac_idx, ep->rss_qid,
++	     ep->l2t->idx);
++
++	state_set(&ep->com, CONNECTING);
++	ep->tos = 0;
++
++	/* send connect request to rnic */
++	err = send_connect(ep);
++	if (!err)
++		goto out;
++
++	cxgb4_l2t_release(ep->l2t);
++fail4:
++	dst_release(ep->dst);
++fail3:
++	cxgb4_free_atid(ep->com.dev->rdev.lldi.tids, ep->atid);
++fail2:
++	/*
++	 * remember to send notification to upper layer.
++	 * We are in here so the upper layer is not aware that this is
++	 * re-connect attempt and so, upper layer is still waiting for
++	 * response of 1st connect request.
++	 */
++	connect_reply_upcall(ep, -ECONNRESET);
++	c4iw_put_ep(&ep->com);
++out:
++	return err;
++}
++
+ static int peer_abort(struct c4iw_dev *dev, struct sk_buff *skb)
+ {
+ 	struct cpl_abort_req_rss *req = cplhdr(skb);
+@@ -1573,8 +1915,11 @@ static int peer_abort(struct c4iw_dev *dev, struct sk_buff *skb)
+ 
+ 	/*
+ 	 * Wake up any threads in rdma_init() or rdma_fini().
++	 * However, this is not needed if com state is just
++	 * MPA_REQ_SENT
+ 	 */
+-	c4iw_wake_up(&ep->com.wr_wait, -ECONNRESET);
++	if (ep->com.state != MPA_REQ_SENT)
++		c4iw_wake_up(&ep->com.wr_wait, -ECONNRESET);
+ 
+ 	mutex_lock(&ep->com.mutex);
+ 	switch (ep->com.state) {
+@@ -1585,7 +1930,21 @@ static int peer_abort(struct c4iw_dev *dev, struct sk_buff *skb)
+ 		break;
+ 	case MPA_REQ_SENT:
+ 		stop_ep_timer(ep);
+-		connect_reply_upcall(ep, -ECONNRESET);
++		if (mpa_rev == 2 && ep->tried_with_mpa_v1)
++			connect_reply_upcall(ep, -ECONNRESET);
++		else {
++			/*
++			 * we just don't send notification upwards because we
++			 * want to retry with mpa_v1 without upper layers even
++			 * knowing it.
++			 *
++			 * do some housekeeping so as to re-initiate the
++			 * connection
++			 */
++			PDBG("%s: mpa_rev=%d. Retrying with mpav1\n", __func__,
++			     mpa_rev);
++			ep->retry_with_mpa_v1 = 1;
++		}
+ 		break;
+ 	case MPA_REP_SENT:
+ 		break;
+@@ -1621,7 +1980,9 @@ static int peer_abort(struct c4iw_dev *dev, struct sk_buff *skb)
+ 	dst_confirm(ep->dst);
+ 	if (ep->com.state != ABORTING) {
+ 		__state_set(&ep->com, DEAD);
+-		release = 1;
++		/* we don't release if we want to retry with mpa_v1 */
++		if (!ep->retry_with_mpa_v1)
++			release = 1;
+ 	}
+ 	mutex_unlock(&ep->com.mutex);
+ 
+@@ -1641,6 +2002,15 @@ static int peer_abort(struct c4iw_dev *dev, struct sk_buff *skb)
+ out:
+ 	if (release)
+ 		release_ep_resources(ep);
++
++	/* retry with mpa-v1 */
++	if (ep && ep->retry_with_mpa_v1) {
++		cxgb4_remove_tid(ep->com.dev->rdev.lldi.tids, 0, ep->hwtid);
++		dst_release(ep->dst);
++		cxgb4_l2t_release(ep->l2t);
++		c4iw_reconnect(ep);
++	}
++
+ 	return 0;
+ }
+ 
+@@ -1792,18 +2162,40 @@ int c4iw_accept_cr(struct iw_cm_id *cm_id, struct iw_cm_conn_param *conn_param)
+ 		goto err;
+ 	}
+ 
+-	cm_id->add_ref(cm_id);
+-	ep->com.cm_id = cm_id;
+-	ep->com.qp = qp;
++	if (ep->mpa_attr.version == 2 && ep->mpa_attr.enhanced_rdma_conn) {
++		if (conn_param->ord > ep->ird) {
++			ep->ird = conn_param->ird;
++			ep->ord = conn_param->ord;
++			send_mpa_reject(ep, conn_param->private_data,
++					conn_param->private_data_len);
++			abort_connection(ep, NULL, GFP_KERNEL);
++			err = -ENOMEM;
++			goto err;
++		}
++		if (conn_param->ird > ep->ord) {
++			if (!ep->ord)
++				conn_param->ird = 1;
++			else {
++				abort_connection(ep, NULL, GFP_KERNEL);
++				err = -ENOMEM;
++				goto err;
++			}
++		}
+ 
++	}
+ 	ep->ird = conn_param->ird;
+ 	ep->ord = conn_param->ord;
+ 
+-	if (peer2peer && ep->ird == 0)
+-		ep->ird = 1;
++	if (ep->mpa_attr.version != 2)
++		if (peer2peer && ep->ird == 0)
++			ep->ird = 1;
+ 
+ 	PDBG("%s %d ird %d ord %d\n", __func__, __LINE__, ep->ird, ep->ord);
+ 
++	cm_id->add_ref(cm_id);
++	ep->com.cm_id = cm_id;
++	ep->com.qp = qp;
++
+ 	/* bind QP to EP and move to RTS */
+ 	attrs.mpa_attr = ep->mpa_attr;
+ 	attrs.max_ird = ep->ird;
+@@ -1944,6 +2336,8 @@ int c4iw_connect(struct iw_cm_id *cm_id, struct iw_cm_conn_param *conn_param)
+ 		       ep->com.dev->rdev.lldi.nchan;
+ 		ep->rss_qid = ep->com.dev->rdev.lldi.rxq_ids[
+ 			      cxgb4_port_idx(neigh->dev) * step];
++		ep->retry_with_mpa_v1 = 0;
++		ep->tried_with_mpa_v1 = 0;
+ 	}
+ 	if (!ep->l2t) {
+ 		printk(KERN_ERR MOD "%s - cannot alloc l2e.\n", __func__);
+@@ -2323,8 +2717,11 @@ static int peer_abort_intr(struct c4iw_dev *dev, struct sk_buff *skb)
+ 
+ 	/*
+ 	 * Wake up any threads in rdma_init() or rdma_fini().
++	 * However, this is not needed if com state is just
++	 * MPA_REQ_SENT
+ 	 */
+-	c4iw_wake_up(&ep->com.wr_wait, -ECONNRESET);
++	if (ep->com.state != MPA_REQ_SENT)
++		c4iw_wake_up(&ep->com.wr_wait, -ECONNRESET);
+ 	sched(dev, skb);
+ 	return 0;
+ }
+diff --git a/drivers/infiniband/hw/cxgb4/iw_cxgb4.h b/drivers/infiniband/hw/cxgb4/iw_cxgb4.h
+index 4f04537..62cea0e 100644
+--- a/drivers/infiniband/hw/cxgb4/iw_cxgb4.h
++++ b/drivers/infiniband/hw/cxgb4/iw_cxgb4.h
+@@ -323,6 +323,7 @@ struct c4iw_mpa_attributes {
+ 	u8 recv_marker_enabled;
+ 	u8 xmit_marker_enabled;
+ 	u8 crc_enabled;
++	u8 enhanced_rdma_conn;
+ 	u8 version;
+ 	u8 p2p_type;
+ };
+@@ -349,6 +350,8 @@ struct c4iw_qp_attributes {
+ 	u8 is_terminate_local;
+ 	struct c4iw_mpa_attributes mpa_attr;
+ 	struct c4iw_ep *llp_stream_handle;
++	u8 layer_etype;
++	u8 ecode;
+ };
+ 
+ struct c4iw_qp {
+@@ -501,11 +504,18 @@ enum c4iw_mmid_state {
+ #define MPA_KEY_REP "MPA ID Rep Frame"
+ 
+ #define MPA_MAX_PRIVATE_DATA	256
++#define MPA_ENHANCED_RDMA_CONN	0x10
+ #define MPA_REJECT		0x20
+ #define MPA_CRC			0x40
+ #define MPA_MARKERS		0x80
+ #define MPA_FLAGS_MASK		0xE0
+ 
++#define MPA_V2_PEER2PEER_MODEL          0x8000
++#define MPA_V2_ZERO_LEN_FPDU_RTR        0x4000
++#define MPA_V2_RDMA_WRITE_RTR           0x8000
++#define MPA_V2_RDMA_READ_RTR            0x4000
++#define MPA_V2_IRD_ORD_MASK             0x3FFF
++
+ #define c4iw_put_ep(ep) { \
+ 	PDBG("put_ep (via %s:%u) ep %p refcnt %d\n", __func__, __LINE__,  \
+ 	     ep, atomic_read(&((ep)->kref.refcount))); \
+@@ -528,6 +538,11 @@ struct mpa_message {
+ 	u8 private_data[0];
+ };
+ 
++struct mpa_v2_conn_params {
++	__be16 ird;
++	__be16 ord;
++};
++
+ struct terminate_message {
+ 	u8 layer_etype;
+ 	u8 ecode;
+@@ -580,7 +595,10 @@ enum c4iw_ddp_ecodes {
+ 
+ enum c4iw_mpa_ecodes {
+ 	MPA_CRC_ERR		= 0x02,
+-	MPA_MARKER_ERR		= 0x03
++	MPA_MARKER_ERR          = 0x03,
++	MPA_LOCAL_CATA          = 0x05,
++	MPA_INSUFF_IRD          = 0x06,
++	MPA_NOMATCH_RTR         = 0x07,
+ };
+ 
+ enum c4iw_ep_state {
+@@ -651,6 +669,8 @@ struct c4iw_ep {
+ 	u16 txq_idx;
+ 	u16 ctrlq_idx;
+ 	u8 tos;
++	u8 retry_with_mpa_v1;
++	u8 tried_with_mpa_v1;
+ };
+ 
+ static inline struct c4iw_ep *to_ep(struct iw_cm_id *cm_id)
+diff --git a/drivers/infiniband/hw/cxgb4/qp.c b/drivers/infiniband/hw/cxgb4/qp.c
+index a41578e..ec3ce67 100644
+--- a/drivers/infiniband/hw/cxgb4/qp.c
++++ b/drivers/infiniband/hw/cxgb4/qp.c
+@@ -917,7 +917,11 @@ static void post_terminate(struct c4iw_qp *qhp, struct t4_cqe *err_cqe,
+ 	wqe->u.terminate.type = FW_RI_TYPE_TERMINATE;
+ 	wqe->u.terminate.immdlen = cpu_to_be32(sizeof *term);
+ 	term = (struct terminate_message *)wqe->u.terminate.termmsg;
+-	build_term_codes(err_cqe, &term->layer_etype, &term->ecode);
++	if (qhp->attr.layer_etype == (LAYER_MPA|DDP_LLP)) {
++		term->layer_etype = qhp->attr.layer_etype;
++		term->ecode = qhp->attr.ecode;
++	} else
++		build_term_codes(err_cqe, &term->layer_etype, &term->ecode);
+ 	c4iw_ofld_send(&qhp->rhp->rdev, skb);
+ }
+ 
+@@ -1012,6 +1016,7 @@ out:
+ 
+ static void build_rtr_msg(u8 p2p_type, struct fw_ri_init *init)
+ {
++	PDBG("%s p2p_type = %d\n", __func__, p2p_type);
+ 	memset(&init->u, 0, sizeof init->u);
+ 	switch (p2p_type) {
+ 	case FW_RI_INIT_P2PTYPE_RDMA_WRITE:
+@@ -1212,6 +1217,8 @@ int c4iw_modify_qp(struct c4iw_dev *rhp, struct c4iw_qp *qhp,
+ 			break;
+ 		case C4IW_QP_STATE_TERMINATE:
+ 			set_state(qhp, C4IW_QP_STATE_TERMINATE);
++			qhp->attr.layer_etype = attrs->layer_etype;
++			qhp->attr.ecode = attrs->ecode;
+ 			if (qhp->ibqp.uobject)
+ 				t4_set_wq_in_error(&qhp->wq);
+ 			ep = qhp->ep;
+@@ -1334,7 +1341,10 @@ int c4iw_destroy_qp(struct ib_qp *ib_qp)
+ 	rhp = qhp->rhp;
+ 
+ 	attrs.next_state = C4IW_QP_STATE_ERROR;
+-	c4iw_modify_qp(rhp, qhp, C4IW_QP_ATTR_NEXT_STATE, &attrs, 0);
++	if (qhp->attr.state == C4IW_QP_STATE_TERMINATE)
++		c4iw_modify_qp(rhp, qhp, C4IW_QP_ATTR_NEXT_STATE, &attrs, 1);
++	else
++		c4iw_modify_qp(rhp, qhp, C4IW_QP_ATTR_NEXT_STATE, &attrs, 0);
+ 	wait_event(qhp->wait, !qhp->ep);
+ 
+ 	remove_handle(rhp, &rhp->qpidr, qhp->wq.sq.qid);
 -- 
 1.7.1
 
