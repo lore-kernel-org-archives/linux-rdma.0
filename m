@@ -1,30 +1,63 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: Issue with ibv_post_send
-Date: Tue, 27 Sep 2011 05:34:43 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A8237316E67F7D@ORSMSX101.amr.corp.intel.com>
-References: <E3692BCE687F4FC6ABC395098AA5ECF7@01hw294151>
+From: "Manoj Nambiar" <manoj_n09-kXrGd1YOZaxBDgjK7y7TUQ@public.gmane.org>
+Subject: Re: Issue with ibv_post_send
+Date: Tue, 27 Sep 2011 13:43:02 +0530
+Message-ID: <246B29DA9E954AA49E77DE537F6C8CD2@01hw294151>
+References: <E3692BCE687F4FC6ABC395098AA5ECF7@01hw294151> <1828884A29C6694DAF28B7E6B8A8237316E67F7D@ORSMSX101.amr.corp.intel.com>
+Reply-To: "Manoj Nambiar" <nambiar-EkmVulN54Sk@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain;
+	format=flowed;
+	charset="UTF-8";
+	reply-type=original
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <E3692BCE687F4FC6ABC395098AA5ECF7@01hw294151>
-Content-Language: en-US
+In-Reply-To: <1828884A29C6694DAF28B7E6B8A8237316E67F7D-P5GAC/sN6hmkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Manoj Nambiar <nambiar-EkmVulN54Sk@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-PiBjb2RlIHNuaXBzDQo+IHN0YXJ0IC0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQ0KPiAtLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tDQo+IGludCByYzsNCj4gc3RydWN0IGlidl9zZW5kX3dyIGJhZF9zZW5kX3dyWzNdOw0K
-DQpUaGlzIHNob3VsZCBqdXN0IGJlOg0KDQpzdHJ1Y3QgaWJ2X3NlbmRfd3IgKmJhZF9zZW5kX3dy
-Ow0KDQpPbiBhIHBvc3QgZXJyb3IsIHRoZSBwb2ludGVyIHdpbGwgYmUgc2V0IHRvIHRoZSB3b3Jr
-IHJlcXVlc3QgdGhhdCBmYWlsZWQuDQoNCj4gKGdkYikgIHAgcmRtYXB0ci0+d3JbMF0uc2dfbGlz
-dFswXQ0KPiAkMjQgPSB7YWRkciA9IDQ3OTY2NTE4MTk5MDI0LCBsZW5ndGggPSA1MTIsIGxrZXkg
-PSAyNjg0NjI2NTA4fQ0KDQpDaGVjayB0aGF0IHlvdXIgaW5saW5lIGRhdGEgc2l6ZSBpcyA1MTIu
-DQoNCj4gKGdkYikgIHAgcmRtYXB0ci0+d3JbMV0uc2dfbGlzdFswXQ0KPiAkMjUgPSB7YWRkciA9
-IDQ3OTY2NTE4MTM0NTM2LCBsZW5ndGggPSA4LCBsa2V5ID0gMjY4NDYyNjUwOH0NCj4gKGdkYikg
-IHAgcmRtYXB0ci0+d3JbMl0uc2dfbGlzdFswXQ0KPiAkMjYgPSB7YWRkciA9IDQ3OTY2NTE4MTM0
-NTEyLCBsZW5ndGggPSA4LCBsa2V5ID0gMjY4NDYyNjUwOH0NCj4gKGdkYikgcCBlcnJubw0KDQo=
+Thanks Sean,
+
+I did "struct ibv_send_wr *bad_send_wr;"
+
+I can see that it is being set to the first work request (the one with wr_id 
+as zero) by ibv_post_send. The inline data size is indeed 512.
+
+But still - I cannot understand why ibv_post_send is failing.
+
+Regards,
+Manoj
+
+
+-----Original Message----- 
+From: Hefty, Sean
+Sent: Tuesday, September 27, 2011 11:04 AM
+To: Manoj Nambiar ; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Subject: RE: Issue with ibv_post_send
+
+> code snips
+> start ------------------------------------------------------------------------
+> ----------------------
+> int rc;
+> struct ibv_send_wr bad_send_wr[3];
+
+This should just be:
+
+struct ibv_send_wr *bad_send_wr;
+
+On a post error, the pointer will be set to the work request that failed.
+
+> (gdb)  p rdmaptr->wr[0].sg_list[0]
+> $24 = {addr = 47966518199024, length = 512, lkey = 2684626508}
+
+Check that your inline data size is 512.
+
+> (gdb)  p rdmaptr->wr[1].sg_list[0]
+> $25 = {addr = 47966518134536, length = 8, lkey = 2684626508}
+> (gdb)  p rdmaptr->wr[2].sg_list[0]
+> $26 = {addr = 47966518134512, length = 8, lkey = 2684626508}
+> (gdb) p errno
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
