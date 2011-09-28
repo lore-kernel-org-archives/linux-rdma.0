@@ -1,47 +1,48 @@
-From: Marcus R Epperson <marcus.r.epperson-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH v2 1/1] infiniband-diags/src/ibqueryerrors.c: don't increment bad_ports for port ALL
-Date: Tue, 27 Sep 2011 18:15:12 -0700
-Message-ID: <1317172512-29615-2-git-send-email-marcus.r.epperson@gmail.com>
-References: <1317172512-29615-1-git-send-email-marcus.r.epperson@gmail.com>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: [PATCH] opensm/osm_dump.c: Fix FDR10 speed dumping
+Date: Wed, 28 Sep 2011 08:50:49 -0400
+Message-ID: <4E831829.4000106@dev.mellanox.co.il>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1317172512-29615-1-git-send-email-marcus.r.epperson-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Daniel Klein <danielk-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
 
-Signed-off-by: Marcus R Epperson <marcus.r.epperson-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+In dump_topology_node, FDR10 can be active regardless of whether
+PortInfo:CapabilityMask.IsExtendedSpeeds is set or not
+
+Prior to this, FDR10 was only indicated if IsExtendedSpeeds was not set
+
+Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- src/ibqueryerrors.c |   10 +++++-----
- 1 files changed, 5 insertions(+), 5 deletions(-)
-
-diff --git a/src/ibqueryerrors.c b/src/ibqueryerrors.c
-index 7222746..d37d268 100644
---- a/src/ibqueryerrors.c
-+++ b/src/ibqueryerrors.c
-@@ -430,13 +430,13 @@ static int print_results(ib_portid_t * portid, char *node_name,
- 			if (node->type == IB_NODE_SWITCH)
- 				printf("   GUID 0x%" PRIx64 " port ALL:%s\n",
- 				       node->ports[0]->guid, str);
--		} else
-+		} else {
- 			printf("   GUID 0x%" PRIx64 " port %d:%s\n",
- 			       node->ports[portnum]->guid, portnum, str);
--		if (portnum != 0xFF && port_config)
--			print_port_config(node_name, node, portnum);
--
--		summary.bad_ports++;
-+			if (port_config)
-+				print_port_config(node_name, node, portnum);
-+			summary.bad_ports++;
+diff --git a/opensm/osm_dump.c b/opensm/osm_dump.c
+index 7e58301..8aa8095 100644
+--- a/opensm/osm_dump.c
++++ b/opensm/osm_dump.c
+@@ -454,6 +454,9 @@ static void dump_topology_node(cl_map_item_t * item, FILE * file, void *cxt)
+ 		else
+ 			link_speed_act_str = "??";
+ 
++		if (p_physp->ext_port_info.link_speed_active & FDR10)
++			link_speed_act_str = "FDR10";
++
+ 		if (p_default_physp->port_info.capability_mask & IB_PORT_CAP_HAS_EXT_SPEEDS) {
+ 			link_speed_act =
+ 			    ib_port_info_get_link_speed_ext_active(&p_physp->port_info);
+@@ -463,8 +466,7 @@ static void dump_topology_node(cl_map_item_t * item, FILE * file, void *cxt)
+ 				link_speed_act_str = "25";
+ 			else if (link_speed_act != IB_LINK_SPEED_EXT_ACTIVE_NONE)
+ 				link_speed_act_str = "??";
+-		} else if (p_physp->ext_port_info.link_speed_active & FDR10)
+-			link_speed_act_str = "FDR10";
 +		}
- 	}
- 	return (n);
- }
--- 
-1.7.4.1
-
+ 
+ 		fprintf(file, "PHY=%s LOG=%s SPD=%s\n",
+ 			p_physp->port_info.link_width_active == 1 ? "1x" :
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
