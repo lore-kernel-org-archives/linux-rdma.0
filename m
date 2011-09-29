@@ -1,42 +1,352 @@
-From: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
-Subject: OpenSM "port is down" logging too verbose
-Date: Thu, 29 Sep 2011 10:18:24 -0700
-Message-ID: <CAL1RGDU9TMN4P5SFZf5x-YXKsx794CLsM4iNfHYYL6pb4DyXXw@mail.gmail.com>
+From: David.Wein-iQUyExClMxnQT0dZR+AlfA@public.gmane.org
+Subject: Re: IBV_WC_LOC_QP_OP_ERR for IBV_WR_RDMA_READ
+Date: Thu, 29 Sep 2011 14:44:53 -0500
+Message-ID: <OF7C5A38BC.B42C48EA-ON8825791A.006C2F2E-8625791A.006C7AA0@sybase.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="US-ASCII"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+To: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hi!
+Thanks for responding Roland.  I wasn't setting these up.  I've added a 
+call to ibv_modify_qp to set these but it doesn't help.  I even explicitly 
+set the access rights on the QP
 
-We have a setup where a system has an IB interface that is sort of
-optional... ie it won't always be connected but we want the SM always
-running and ready to bring up the ports if/when they are connected.
+        qp_attr.max_rd_atomic = 32;
+        qp_attr.max_dest_rd_atomic = 32;
+        qp_attr.qp_access_flags = (IBV_ACCESS_LOCAL_WRITE | 
+                                   IBV_ACCESS_REMOTE_WRITE |
+                                   IBV_ACCESS_REMOTE_READ);
+ 
+        if (ibv_modify_qp(this->rl_cmid->qp, &qp_attr, 
+                          IBV_QP_MAX_QP_RD_ATOMIC | 
+                          IBV_QP_MAX_DEST_RD_ATOMIC |
+                          IBV_QP_ACCESS_FLAGS) == -1)
+        {
+                printf("Failed to modify qp attributes, errno %d", errno);
+                return -1;
+        }
 
-But in this case opensm logs stuff every 10 seconds:
+The first read still throws an error.  I'm looked at the ping-rdma sample 
+code and it doesn't do the ibv_modify_qp either.  Annoyingly, it works 
+find with RDMA_READ on my system.  I've compared the qp initialization and 
+the work request between the working sample app and my code, and don't see 
+anything that looks wrong.  Again, send / receive and rdma write work find 
+on this qp. 
 
-Sep 28 13:41:57 PURE-B18 OpenSM[838]: SM port is down#012
-Sep 28 13:41:57 PURE-B18 OpenSM[836]: SM port is down#012
-Sep 28 13:42:07 PURE-B18 OpenSM[838]: SM port is down#012
-Sep 28 13:42:07 PURE-B18 OpenSM[836]: SM port is down#012
-Sep 28 13:42:17 PURE-B18 OpenSM[838]: SM port is down#012
-Sep 28 13:42:17 PURE-B18 OpenSM[836]: SM port is down#012
-Sep 28 13:42:27 PURE-B18 OpenSM[838]: SM port is down#012
-Sep 28 13:42:27 PURE-B18 OpenSM[836]: SM port is down#012
-Sep 28 13:42:37 PURE-B18 OpenSM[838]: SM port is down#012
-Sep 28 13:42:37 PURE-B18 OpenSM[836]: SM port is down#012
+The ibv_wc I get from poll has a vendor_err of 104.  I can't find a way to 
+decode this.
 
-which junks up the syslog quite a bit.  It appears this message is
-emitted at level OSM_LOG_SYS so there's no way to turn it off at
-runtime (or am I misunderstanding the logging code?).
+Not that the above is on an InfiniHost card.  When I run this on a 
+ConnectX-2 system I get IBV_WC_REM_INV_REQ_ERR.
 
-In any case would it be reasonable to print this log message once and
-then the next time we check the port, not print it again if the port
-was down last time?
+-Dave
 
- - R.
+
+
+From:
+Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+To:
+<David.Wein-iQUyExClMxnQT0dZR+AlfA@public.gmane.org>
+Cc:
+linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Date:
+09/29/2011 11:56 AM
+Subject:
+Re: IBV_WC_LOC_QP_OP_ERR for IBV_WR_RDMA_READ
+
+
+
+How are you initializing the QP?
+
+Do you set max_rd_atomic (and set IB_QP_MAX_QP_RD_ATOMIC) in your
+qp_attr when going to RTS (I think that's the state transition where
+it matters)?
+
+On Wed, Sep 28, 2011 at 5:33 PM,  <David.Wein-iQUyExClMxnQT0dZR+AlfA@public.gmane.org> wrote:
+> I'm going a little crazy here.  I am getting IBV_WC_LOC_QP_OP_ERR when
+> trying to do an IBV_WR_RDMA_READ.  My IBV_WR_RDMA_WRITE operations
+> succeed, no problems.  The read and write cases go down an identical 
+code
+> path, the only difference is the OP code.  I feel like it has to be
+> something obvious, but I am not seeing it.  All memory has been 
+registered
+> with local write, remote write, and remote read.  Any help is 
+appreciated.
+>
+> I get this error on the console:
+>
+> local QP operation err (QPN c8040c, WQE @ 00001303, CQN 3e0083, index
+> 17593)
+>  [ 0] 00c8040c
+>  [ 4] 00000000
+>  [ 8] 00000000
+>  [ c] 00000000
+>  [10] 026800cc
+>  [14] 00000000
+>  [18] 00001303
+>  [1c] ff100000
+>
+> Here is the ibv_send_wr I am passing to ibv_post_send():
+>
+> (dbx) print swr
+> swr = {
+>    wr_id              = 5826396576U
+>    next               = (nil)
+>    sg_list            = 0x1596827a0
+>    num_sge            = 1
+>    opcode             = IBV_WR_RDMA_READ
+>    send_flags         = 2
+>    imm_data           = 0
+>    wr                 = {
+>        rdma   = {
+>            remote_addr = 46912519049216U
+>            rkey        = 3255056896U
+>        }
+>        atomic = {
+>            remote_addr = 46912519049216U
+>            compare_add = 7550024192U
+>            swap        = 5778783872U
+>            rkey        = 1499998064U
+>        }
+>        ud     = {
+>            ah          = 0x2aaaac089000
+>            remote_qpn  = 3255056896U
+>            remote_qkey = 1U
+>        }
+>    }
+>    xrc_remote_srq_num = 1482849088U
+> }
+> (dbx) print swr->sg_list[0]
+> swr.sg_list[0] = {
+>    addr   = 6127460352U
+>    length = 4096U
+>    lkey   = 3255057152U
+> }
+> (dbx)
+>
+> Environment is as follows:
+>
+> [generic]$ ibv_devinfo
+> hca_id: mthca0
+>        transport:                      InfiniBand (0)
+>        fw_ver:                         1.2.0
+>        node_guid:                      0002:c902:002a:9460
+>        sys_image_guid:                 0002:c902:002a:9463
+>        vendor_id:                      0x02c9
+>        vendor_part_id:                 25204
+>        hw_ver:                         0xA0
+>        board_id:                       MT_03F0110001
+>        phys_port_cnt:                  1
+>                port:   1
+>                        state:                  PORT_ACTIVE (4)
+>                        max_mtu:                2048 (4)
+>                        active_mtu:             2048 (4)
+>                        sm_lid:                 1
+>                        port_lid:               1
+>                        port_lmc:               0x00
+>                        link_layer:             IB
+>
+> hca_id: mthca1
+>        transport:                      InfiniBand (0)
+>        fw_ver:                         1.2.0
+>        node_guid:                      0002:c902:002a:add4
+>        sys_image_guid:                 0002:c902:002a:add7
+>        vendor_id:                      0x02c9
+>        vendor_part_id:                 25204
+>        hw_ver:                         0xA0
+>        board_id:                       MT_03F0110001
+>        phys_port_cnt:                  1
+>                port:   1
+>                        state:                  PORT_ACTIVE (4)
+>                        max_mtu:                2048 (4)
+>                        active_mtu:             2048 (4)
+>                        sm_lid:                 1
+>                        port_lid:               2
+>                        port_lmc:               0x00
+>                        link_layer:             IB
+>
+> [generic]$ uname -r
+> 2.6.18-128.1.6.el5
+>
+> [generic]$ ofed_info
+> OFED-1.5.1:
+>
+> compat-dapl:
+> http://www.openfabrics.org/downloads/dapl/compat-dapl-1.2.16.tar.gz
+>
+> dapl:
+> http://www.openfabrics.org/downloads/dapl/dapl-2.0.27.tar.gz
+>
+> ib-bonding:
+> http://www.openfabrics.org/~monis/ofed_1_5/ib-bonding-0.9.0-42.src.rpm
+>
+> ibsim:
+> http://www.openfabrics.org/downloads/ibsim/ibsim-0.5-0.1.g327c3d8.tar.gz
+>
+> ibutils:
+> 
+http://www.openfabrics.org/downloads/ibutils/ibutils-1.5.4-0.1.g0464fe6.tar.gz
+
+>
+> infiniband-diags:
+> 
+http://www.openfabrics.org/downloads/management/infiniband-diags-1.5.5.tar.gz
+
+>
+> libcxgb3:
+> http://www.openfabrics.org/downloads/cxgb3/libcxgb3-1.2.5.tar.gz
+>
+> libehca:
+> 
+http://www.openfabrics.org/downloads/libehca/libehca-1.2.1-0.1.g0a82a52.tar.gz
+
+>
+> libibcm:
+> http://www.openfabrics.org/downloads/rdmacm/libibcm-1.0.5.tar.gz
+>
+> libibmad:
+> http://www.openfabrics.org/downloads/management/libibmad-1.3.4.tar.gz
+>
+> libibumad:
+> http://www.openfabrics.org/downloads/management/libibumad-1.3.4.tar.gz
+>
+> libibverbs:
+> 
+http://www.openfabrics.org/downloads/libibverbs/libibverbs-1.1.3-0.6.g932f1a2.tar.gz
+
+>
+> libipathverbs:
+> 
+http://www.openfabrics.org/downloads/libipathverbs/libipathverbs-1.2.tar.gz
+
+>
+> libmlx4:
+> 
+http://www.openfabrics.org/downloads/libmlx4/libmlx4-1.0-0.7.g2432360.tar.gz
+
+>
+> libmthca:
+> 
+http://www.openfabrics.org/downloads/libmthca/libmthca-1.0.5-0.1.gbe5eef3.tar.gz
+
+>
+> libnes:
+> http://www.openfabrics.org/downloads/nes/libnes-1.0.1.tar.gz
+>
+> librdmacm:
+> http://www.openfabrics.org/downloads/rdmacm/librdmacm-1.0.11.tar.gz
+>
+> libsdp:
+> 
+http://www.openfabrics.org/downloads/libsdp/libsdp-1.1.100-0.1.g920ea31.tar.gz
+
+>
+> mpi-selector:
+> 
+http://www.openfabrics.org/downloads/mpi-selector/mpi-selector-1.0.3-1.src.rpm
+
+>
+> mpitests:
+> 
+http://www.openfabrics.org/~pasha/ofed_1_5/mpitests/mpitests-3.2-916.src.rpm
+
+>
+> mstflint:
+> 
+http://www.openfabrics.org/downloads/mstflint/mstflint-1.4-0.3.gf304647.tar.gz
+
+>
+> mvapich:
+> 
+http://www.openfabrics.org/~pasha/ofed_1_5_1/mvapich/mvapich-1.2.0-3635.src.rpm
+
+>
+> mvapich2:
+> http://www.openfabrics.org/~perkinjo/ofed_1_5/mvapich2-1.4.1-1.src.rpm
+>
+> ofa_kernel:
+> git://git.openfabrics.org/ofed_1_5/linux-2.6.git ofed_kernel_1_5
+> commit 17badd753b40fb1046dc2e5474739357a921fb86
+>
+> ofed-docs:
+> git://git.openfabrics.org/~tziporet/docs.git ofed_1_5
+> commit 4b7a81073731c630427e97a3013efd6cafa537ac
+>
+> open-iscsi-generic1:
+> 
+http://www.openfabrics.org/downloads/iscsi/open-iscsi-generic-2.0-754.1.src.rpm
+
+>
+> open-iscsi-generic2:
+> 
+http://www.openfabrics.org/downloads/iscsi/open-iscsi-generic-2.0-869.2.src.rpm
+
+>
+> openmpi:
+> 
+http://www.openfabrics.org/~jsquyres/ofed_1_5/openmpi-1.4.1-2ofed.src.rpm
+>
+> opensm:
+> http://www.openfabrics.org/downloads/management/opensm-3.3.5.tar.gz
+>
+> perftest:
+> 
+http://www.openfabrics.org/downloads/perftest/perftest-1.2.3-0.10.g90b10d8.tar.gz
+
+>
+> qlvnictools:
+> 
+http://www.openfabrics.org/downloads/qlvnictools/qlvnictools-0.0.1-0.1.ge27eef7.tar.gz
+
+>
+> qperf:
+> 
+http://www.openfabrics.org/downloads/qperf/qperf-0.4.6-0.1.gb81434e.tar.gz
+>
+> rds-tools:
+> 
+http://www.openfabrics.org/~vlad/ofed_1_5/rds-tools/rds-tools-1.5-1.src.rpm
+
+>
+> rnfs-utils:
+> 
+http://www.openfabrics.org/~swise/ofed_1_5/rnfs-utils/rnfs-utils-1.1.5-10.OFED.src.rpm
+
+>
+> sdpnetstat:
+> 
+http://www.openfabrics.org/downloads/sdpnetstat/sdpnetstat-1.60-0.2.g8844f04.tar.gz
+
+>
+> srptools:
+> 
+http://www.openfabrics.org/downloads/srptools/srptools-0.0.4-0.1.gce1f64c.tar.gz
+
+>
+> tgt-generic:
+> 
+http://www.openfabrics.org/downloads/iscsi/tgt-generic-0.1-20080828.src.rpm
+
+>
+> ofed-scripts:
+> git://git.openfabrics.org/~vlad/ofed_scripts.git ofed_1_5
+>
+> Thanks,
+> Dave
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+
+
+
+
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
