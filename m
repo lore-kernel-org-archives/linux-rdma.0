@@ -1,7 +1,7 @@
 From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH 1/7] opensm/osm_helper: Add ib_rate_is_valid
-Date: Sat, 01 Oct 2011 09:15:32 -0400
-Message-ID: <4E871274.2070103@dev.mellanox.co.il>
+Subject: [PATCH 2/7] opensm/osm_sa_path_record.c: Add rate validation if supplied
+Date: Sat, 01 Oct 2011 09:15:40 -0400
+Message-ID: <4E87127C.4040409@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
@@ -12,80 +12,41 @@ Cc: Stan Smith <stan.smith-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "linux-rdma
 List-Id: linux-rdma@vger.kernel.org
 
 
-for use in rate validation by SA
-
 Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- include/opensm/osm_helper.h |   24 ++++++++++++++++++++++++
- opensm/libopensm.map        |    1 +
- opensm/osm_helper.c         |    7 +++++++
- 3 files changed, 32 insertions(+), 0 deletions(-)
+ opensm/osm_sa_path_record.c |   12 ++++++++++++
+ 1 files changed, 12 insertions(+), 0 deletions(-)
 
-diff --git a/include/opensm/osm_helper.h b/include/opensm/osm_helper.h
-index f48af89..7eb4e2a 100644
---- a/include/opensm/osm_helper.h
-+++ b/include/opensm/osm_helper.h
-@@ -588,6 +588,30 @@ const char *osm_get_sm_mgr_state_str(IN uint16_t state);
- * SEE ALSO
- *********/
+diff --git a/opensm/osm_sa_path_record.c b/opensm/osm_sa_path_record.c
+index 1f36326..09dcaff 100644
+--- a/opensm/osm_sa_path_record.c
++++ b/opensm/osm_sa_path_record.c
+@@ -1604,6 +1604,7 @@ void osm_pr_rcv_process(IN void *context, IN void *data)
+ 	const ib_gid_t *p_dgid = NULL;
+ 	const osm_port_t *p_src_port, *p_dest_port;
+ 	osm_port_t *requester_port;
++	uint8_t rate;
  
-+/****f* IBA Base: Types/ib_rate_is_valid
-+* NAME
-+*	ib_rate_is_valid
-+*
-+* DESCRIPTION
-+*	Validates encoded rate
-+*
-+* SYNOPSIS
-+*/
-+int ib_rate_is_valid(IN const int rate);
-+/*
-+* PARAMETERS
-+*	rate
-+*		[in] Encoded path rate.
-+*
-+* RETURN VALUES
-+*	Returns an int indicating rate is valid (1)
-+*	or invalid (0).
-+*
-+* NOTES
-+*
-+* SEE ALSO
-+*********/
-+
- /****f* IBA Base: Types/ib_path_compare_rates
- * NAME
- *	ib_path_compare_rates
-diff --git a/opensm/libopensm.map b/opensm/libopensm.map
-index f88dd8f..5e8dae8 100644
---- a/opensm/libopensm.map
-+++ b/opensm/libopensm.map
-@@ -57,6 +57,7 @@ OPENSM_1.5 {
- 		osm_get_lsa_str;
- 		osm_get_sm_mgr_signal_str;
- 		osm_get_sm_mgr_state_str;
-+		ib_rate_is_valid;
- 		ib_path_compare_rates;
- 		ib_path_rate_get_prev;
- 		ib_path_rate_get_next;
-diff --git a/opensm/osm_helper.c b/opensm/osm_helper.c
-index d9bab65..05becb5 100644
---- a/opensm/osm_helper.c
-+++ b/opensm/osm_helper.c
-@@ -2362,6 +2362,13 @@ const char *osm_get_sm_mgr_state_str(IN uint16_t state)
- 	    sm_mgr_state_str[ARR_SIZE(sm_mgr_state_str) - 1];
- }
+ 	OSM_LOG_ENTER(sa->p_log);
  
-+int ib_rate_is_valid(IN const int rate)
-+{
-+	if (rate < IB_MIN_RATE || rate > IB_MAX_RATE)
-+		return 0;
-+	return 1;
-+}
+@@ -1634,6 +1635,17 @@ void osm_pr_rcv_process(IN void *context, IN void *data)
+ 	if (osm_log_is_active(sa->p_log, OSM_LOG_DEBUG))
+ 		osm_dump_path_record(sa->p_log, p_pr, OSM_LOG_DEBUG);
+ 
++	/* Validate rate if supplied */
++	if ((p_sa_mad->comp_mask & IB_PR_COMPMASK_RATESELEC) &&
++	    (p_sa_mad->comp_mask & IB_PR_COMPMASK_RATE)) {
++		rate = ib_path_rec_rate(p_pr);
++		if (!ib_rate_is_valid(rate)) {
++			osm_sa_send_error(sa, p_madw,
++					  IB_SA_MAD_STATUS_REQ_INVALID);
++			goto Exit;
++		}
++	}
 +
- int ib_path_compare_rates(IN const int rate1, IN const int rate2)
- {
- 	int orate1 = 0, orate2 = 0;
+ 	cl_qlist_init(&pr_list);
+ 
+ 	/*
 -- 
 1.7.6.1
 
