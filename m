@@ -1,51 +1,46 @@
-From: "Manoj Nambiar" <manoj_n09-kXrGd1YOZaxBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: Issue with ibv_post_send
-Date: Fri, 30 Sep 2011 23:28:26 +0530
-Message-ID: <B9438EA8FC8240F998ACDF244CF79A8E@01hw294151>
-References: <C91B74CE6ED1470EB8BC7B9E3B06A4E0@01hw294151> <1828884A29C6694DAF28B7E6B8A8237316E686A3@ORSMSX101.amr.corp.intel.com>
-Reply-To: "Manoj Nambiar" <nambiar-EkmVulN54Sk@public.gmane.org>
+From: Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>
+Subject: Re: [infiniband-diags] [patch] support --switches-only and
+ --cas-only options in iblinkinfo
+Date: Fri, 30 Sep 2011 17:19:46 -0700
+Message-ID: <20110930171946.51f1d9bd.weiny2@llnl.gov>
+References: <1317327360.29218.62.camel@auk59.llnl.gov>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	format=flowed;
-	charset="utf-8";
-	reply-type=original
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1828884A29C6694DAF28B7E6B8A8237316E686A3-P5GAC/sN6hmkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
+In-Reply-To: <1317327360.29218.62.camel-akkeaxHeDKRliZ7u+bvwcg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Albert Chu <chu11-i2BcT+NCU+M@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Thanks again Sean,
+On Thu, 29 Sep 2011 13:16:00 -0700
+Albert Chu <chu11-i2BcT+NCU+M@public.gmane.org> wrote:
 
-That really helped. ibv_post_send is now working. (I was using 
-rdma_create_qp)
+> A relatively simple patch to make the output better for different users
+> under different circumstances.
 
-Regards,
-Manoj Nambiar
+Thanks applied,
+Ira
 
------Original Message----- 
-From: Hefty, Sean
-Sent: Thursday, September 29, 2011 10:22 PM
-To: Manoj Nambiar ; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Subject: RE: Issue with ibv_post_send
+> 
+> Al
+> 
+> -- 
+> Albert Chu
+> chu11-i2BcT+NCU+M@public.gmane.org
+> Computer Scientist
+> High Performance Systems Division
+> Lawrence Livermore National Laboratory
+> 
 
-> * When I reduce the sge length of the first work request to 20 
-> ibv_post_send
-> works
-> * When I remove IBV_SEND_INLINE from the send_flags, ibv_post_send works.
->
-> Either case I am unable to achieve the desired functionality.
->
-> Is there a maximum sge size limit in the case of IBV_SEND_INLINE. How do I
-> control it?
 
-The desired inline data size of the QP is provided as input to 
-ibv_create_qp.  The actual supported size will be returned by that call. 
-You need to verify that your inline send size is less than that value.
-
-- Sean 
-
+-- 
+Ira Weiny
+Member of Technical Staff
+Lawrence Livermore National Lab
+925-423-8008
+weiny2-i2BcT+NCU+M@public.gmane.org
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
