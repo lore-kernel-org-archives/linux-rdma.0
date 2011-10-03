@@ -1,10 +1,11 @@
 From: Marcel Apfelbaum <marcela-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH v1 0/5] adding support for FDR/FDR-10 link speed
-Date: Mon, 3 Oct 2011 18:54:28 +0300
-Message-ID: <201110031754.28833.marcela@dev.mellanox.co.il>
+Subject: [PATCH for-3.2 v1 1/5] ib/core: Add extended link speeds
+Date: Mon, 3 Oct 2011 18:54:59 +0300
+Message-ID: <201110031754.59246.marcela@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
@@ -12,62 +13,190 @@ To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, roland-DgEjT+Ai2ygdnm+yR
 Cc: marcela-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-  The purpose of the RFC is to introduce FDR/FDR-10:
-   =A0- FDR10 is a proprietary link speed which is 10.3125 Gbps at 64/6=
-6 encoding rather than 8b10b encoding. - FDR represents the IBA extende=
-d speed: 14.0625 Gbps
-   =A0- EDR represents the IBA extended speed: 25.78125 Gbps (EDR)
 
-   The aim is to show correct speeds and link encoding in:
-   =A0 - Ibstat
-   =A0 - Ibv_devinfo
-   =A0 - /sys/class/infiniband/mlx4_0/ports/1/rate
-   =A0 - Other user space modules
+The following extended speeds are introduced:
+FDR-10  - is a proprietary link speed which is 10.3125 Gbps at 64/66
+	  encoding rather than 8b10b encoding.
+FDR     - represents the IBA extended speed: 14.0625 Gbps.
+EDR     - represents the IBA extended speed: 25.78125 Gbps.
 
-   Port Info's active speed field has values for the enhanced speeds:
-   8 =A0 - FDR10
-   16 - FDR
-   32 - EDR
+Signed-off-by: Marcel Apfelbaum <marcela-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Reviewed-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ drivers/infiniband/core/sysfs.c |   23 +++++++++++++---
+ drivers/infiniband/core/verbs.c |   29 +++++++++++++++++++++
+ include/rdma/ib_verbs.h         |   55 +++++++++++++++++++++++++++++++++++++++-
+ 3 files changed, 102 insertions(+), 5 deletions(-)
 
-   [PATCH 1/5] ib/core: Add enhanced link speeds
-   Extended speeds are introduced and a new formula is used for speed c=
-omputation (because of different encoding)
-
-   [PATCH 2/5] ib/ipoib: Modified rate computation
-   Modified the way the speed rate is computed because of the new IBA e=
-xtended speeds that are no longer multiple of 2.5 Gbps.
-
-   [PATCH 3/5] ib/mlx4: Add extended port capabilities support
-   An Extended Port Info packet is used to query the extended port capa=
-bilities
-
-   [PATCH 4/5] ib/mlx4: Configure IBA extended active speeds
-   Set the IBA extended active speeds based on hardware configuration
-
-   [PATCH 5/5] libibverbs: Add support for extended speeds
-   Add support for the new speeds in ibv_devinfo
-
- --
- Changes from v0
- Summary - instead of adding two new fields (ext_active_speed and link_=
-encoding), the new speed values are added to existing active_speed fiel=
-d.
-
-  -Patch 1/4 was splitted into ib/core and ib/ipoib parts
-  -Patch 5 was added to handle new speeds for libibverbs
-
- [Patch RFC 1/4]
-  - ext _active_speed field is no longer required; the IBA extended spe=
-eds are added to active_speed field (values 16 and 32)=20
- [Patch RFC 2/4]
-  - link_encoding field is no longer required: FDR-10 link speed is add=
-ed to active_speed field (value 8) [Patch RFC 3/4 and 4/4]
-  - Reorganized
-     - 3/4 only adds extended port capabilities support
-     - 4/4 configures the actual speed based on hw configuration
-
+--- a/drivers/infiniband/core/sysfs.c
++++ b/drivers/infiniband/core/sysfs.c
+@@ -179,6 +179,7 @@ static ssize_t rate_show(struct ib_port 
+ 	struct ib_port_attr attr;
+ 	char *speed = "";
+ 	int rate;
++	int rate_rounded;
+ 	ssize_t ret;
+ 
+ 	ret = ib_query_port(p->ibdev, p->port_num, &attr);
+@@ -186,16 +187,30 @@ static ssize_t rate_show(struct ib_port 
+ 		return ret;
+ 
+ 	switch (attr.active_speed) {
+-	case 2: speed = " DDR"; break;
+-	case 4: speed = " QDR"; break;
++	case 2:
++		speed = " DDR";
++		break;
++	case 4:
++		speed = " QDR";
++		break;
++	case 8:
++		speed = " FDR10";
++		break;
++	case 16:
++		speed = " FDR";
++		break;
++	case 32:
++		speed = " EDR";
++		break;
+ 	}
+ 
+-	rate = 25 * ib_width_enum_to_int(attr.active_width) * attr.active_speed;
++	rate = ib_width_enum_to_int(attr.active_width) *
++	       ib_active_speed_to_rate(attr.active_speed, &rate_rounded);
+ 	if (rate < 0)
+ 		return -EINVAL;
+ 
+ 	return sprintf(buf, "%d%s Gb/sec (%dX%s)\n",
+-		       rate / 10, rate % 10 ? ".5" : "",
++		       rate, rate_rounded ? ".5" : "",
+ 		       ib_width_enum_to_int(attr.active_width), speed);
+ }
+ 
+--- a/drivers/infiniband/core/verbs.c
++++ b/drivers/infiniband/core/verbs.c
+@@ -77,6 +77,35 @@ enum ib_rate mult_to_ib_rate(int mult)
+ }
+ EXPORT_SYMBOL(mult_to_ib_rate);
+ 
++int ib_rate_to_int(enum ib_rate rate, int *rounded)
++{
++	*rounded = 0;
++
++	switch (rate) {
++	case IB_RATE_2_5_GBPS:
++		*rounded = 1;
++		return 2;
++	case IB_RATE_5_GBPS:   return 5;
++	case IB_RATE_10_GBPS:  return 10;
++	case IB_RATE_20_GBPS:  return 20;
++	case IB_RATE_30_GBPS:  return 30;
++	case IB_RATE_40_GBPS:  return 40;
++	case IB_RATE_60_GBPS:  return 60;
++	case IB_RATE_80_GBPS:  return 80;
++	case IB_RATE_120_GBPS: return 120;
++	case IB_RATE_14_GBPS:  return 14;
++	case IB_RATE_56_GBPS:  return 56;
++	case IB_RATE_112_GBPS: return 112;
++	case IB_RATE_168_GBPS: return 168;
++	case IB_RATE_25_GBPS:  return 25;
++	case IB_RATE_100_GBPS: return 100;
++	case IB_RATE_200_GBPS: return 200;
++	case IB_RATE_300_GBPS: return 300;
++	default:	       return -1;
++	}
++}
++EXPORT_SYMBOL(ib_rate_to_int);
++
+ enum rdma_transport_type
+ rdma_node_get_transport(enum rdma_node_type node_type)
+ {
+--- a/include/rdma/ib_verbs.h
++++ b/include/rdma/ib_verbs.h
+@@ -207,6 +207,7 @@ enum ib_port_cap_flags {
+ 	IB_PORT_SM_DISABLED			= 1 << 10,
+ 	IB_PORT_SYS_IMAGE_GUID_SUP		= 1 << 11,
+ 	IB_PORT_PKEY_SW_EXT_PORT_TRAP_SUP	= 1 << 12,
++	IB_PORT_EXTENDED_SPEEDS_SUP             = 1 << 14,
+ 	IB_PORT_CM_SUP				= 1 << 16,
+ 	IB_PORT_SNMP_TUNNEL_SUP			= 1 << 17,
+ 	IB_PORT_REINIT_SUP			= 1 << 18,
+@@ -226,6 +227,42 @@ enum ib_port_width {
+ 	IB_WIDTH_12X	= 8
+ };
+ 
++static inline int ib_active_speed_to_rate(u8 active_speed, int *rounded)
++{
++	int rate;
++
++	*rounded = 0;
++
++	switch (active_speed) {
++	case 1:
++	case 2:
++	case 4:
++		rate = (25 * active_speed) / 10;
++		*rounded =  (25 * active_speed) % 10;
++		break;
++
++	/* FDR10 */
++	case 8:
++		rate = 10;
++		break;
++
++	/* FDR */
++	case 16:
++		rate = 14;
++		break;
++
++	/* EDR */
++	case 32:
++		rate = 25;
++		break;
++
++	default:
++		rate = -1;
++	}
++
++	return rate;
++}
++
+ static inline int ib_width_enum_to_int(enum ib_port_width width)
+ {
+ 	switch (width) {
+@@ -415,7 +452,15 @@ enum ib_rate {
+ 	IB_RATE_40_GBPS  = 7,
+ 	IB_RATE_60_GBPS  = 8,
+ 	IB_RATE_80_GBPS  = 9,
+-	IB_RATE_120_GBPS = 10
++	IB_RATE_120_GBPS = 10,
++	IB_RATE_14_GBPS  = 11,
++	IB_RATE_56_GBPS  = 12,
++	IB_RATE_112_GBPS = 13,
++	IB_RATE_168_GBPS = 14,
++	IB_RATE_25_GBPS  = 15,
++	IB_RATE_100_GBPS = 16,
++	IB_RATE_200_GBPS = 17,
++	IB_RATE_300_GBPS = 18
+ };
+ 
+ /**
+@@ -427,6 +472,14 @@ enum ib_rate {
+ int ib_rate_to_mult(enum ib_rate rate) __attribute_const__;
+ 
+ /**
++ * ib_rate_to_int - Convert the IB rate enum to a real integer value.
++ * For example, IB_RATE_14_GBPS will be converted to 14.
++ * @rate: rate to convert.
++ * @rounded: 1 if the rate was rounded during computation
++ */
++int ib_rate_to_int(enum ib_rate rate, int *rounded) __attribute_const__;
++
++/**
+  * mult_to_ib_rate - Convert a multiple of 2.5 Gbit/sec to an IB rate
+  * enum.
+  * @mult: multiple to convert.
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
