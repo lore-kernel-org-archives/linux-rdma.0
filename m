@@ -1,7 +1,7 @@
 From: Marcel Apfelbaum <marcela-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH for-3.2 v1 2/5] ib/ipoib: Modified rate computation
-Date: Mon, 3 Oct 2011 18:55:19 +0300
-Message-ID: <201110031755.19978.marcela@dev.mellanox.co.il>
+Subject: [PATCH for-3.2 v1 3/5] ib/mlx4: Add extended port capabilities support
+Date: Mon, 3 Oct 2011 18:55:41 +0300
+Message-ID: <201110031755.41883.marcela@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="us-ascii"
@@ -14,45 +14,128 @@ Cc: marcela-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
 
-Modified the way that speed rate is computed because of the
-new IBA extended speeds that are no longer multiple of 2.5 Gbps.
+An Extended Port Info packet is sent to each hw port during HCA init
+and if returns without error it is assumed the port supports
+extended port capabilities.
 
 Signed-off-by: Marcel Apfelbaum <marcela-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 Reviewed-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/ulp/ipoib/ipoib_fs.c |    7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ drivers/net/mlx4/main.c     |   10 ++++++++++
+ drivers/net/mlx4/mlx4.h     |    1 +
+ drivers/net/mlx4/port.c     |   41 +++++++++++++++++++++++++++++++++++++++++
+ include/linux/mlx4/device.h |    7 +++++++
+ 4 files changed, 59 insertions(+)
 
---- a/drivers/infiniband/ulp/ipoib/ipoib_fs.c
-+++ b/drivers/infiniband/ulp/ipoib/ipoib_fs.c
-@@ -198,6 +198,7 @@ static int ipoib_path_seq_show(struct se
- 	char gid_buf[sizeof "ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff"];
- 	struct ipoib_path path;
- 	int rate;
-+	int rate_rounded;
+--- a/drivers/net/mlx4/main.c
++++ b/drivers/net/mlx4/main.c
+@@ -881,6 +881,7 @@ static int mlx4_setup_hca(struct mlx4_de
+ 	struct mlx4_priv *priv = mlx4_priv(dev);
+ 	int err;
+ 	int port;
++	u64 ext_port_default_caps;
+ 	__be32 ib_port_default_caps;
  
- 	if (!iter)
- 		return 0;
-@@ -212,7 +213,7 @@ static int ipoib_path_seq_show(struct se
- 		   gid_buf, path.pathrec.dlid ? "yes" : "no");
+ 	err = mlx4_init_uar_table(dev);
+@@ -998,6 +999,15 @@ static int mlx4_setup_hca(struct mlx4_de
+ 				  "ib capabilities (%d). Continuing with "
+ 				  "caps = 0\n", port, err);
+ 		dev->caps.ib_port_def_cap[port] = ib_port_default_caps;
++
++		ext_port_default_caps = 0;
++		err = mlx4_get_ext_port_caps(dev, port, &ext_port_default_caps);
++		if (err)
++			mlx4_warn(dev, "failed to get port %d extended "
++				  "port capabilities support (%d). Assuming "
++				  "not supported\n", port, err);
++		dev->caps.ext_port_cap[port] = ext_port_default_caps;
++
+ 		err = mlx4_SET_PORT(dev, port);
+ 		if (err) {
+ 			mlx4_err(dev, "Failed to set port %d, aborting\n",
+--- a/drivers/net/mlx4/mlx4.h
++++ b/drivers/net/mlx4/mlx4.h
+@@ -450,6 +450,7 @@ void mlx4_init_vlan_table(struct mlx4_de
  
- 	if (path.pathrec.dlid) {
--		rate = ib_rate_to_mult(path.pathrec.rate) * 25;
-+		rate = ib_rate_to_int(path.pathrec.rate, &rate_rounded);
+ int mlx4_SET_PORT(struct mlx4_dev *dev, u8 port);
+ int mlx4_get_port_ib_caps(struct mlx4_dev *dev, u8 port, __be32 *caps);
++int mlx4_get_ext_port_caps(struct mlx4_dev *dev, u8 port, u64 *get_ext_caps);
  
- 		seq_printf(file,
- 			   "  DLID:     0x%04x\n"
-@@ -220,8 +221,8 @@ static int ipoib_path_seq_show(struct se
- 			   "  rate: %*d%s Gb/sec\n",
- 			   be16_to_cpu(path.pathrec.dlid),
- 			   path.pathrec.sl,
--			   10 - ((rate % 10) ? 2 : 0),
--			   rate / 10, rate % 10 ? ".5" : "");
-+			   10 - (rate_rounded ? 2 : 0),
-+			   rate, rate_rounded ? ".5" : "");
- 	}
+ int mlx4_qp_detach_common(struct mlx4_dev *dev, struct mlx4_qp *qp, u8 gid[16],
+ 			  enum mlx4_protocol prot, enum mlx4_steer_type steer);
+--- a/drivers/net/mlx4/port.c
++++ b/drivers/net/mlx4/port.c
+@@ -464,6 +464,47 @@ int mlx4_get_port_ib_caps(struct mlx4_de
+ 	return err;
+ }
  
- 	seq_putc(file, '\n');
++int mlx4_get_ext_port_caps(struct mlx4_dev *dev, u8 port, u64 *get_ext_caps)
++{
++	struct mlx4_cmd_mailbox *inmailbox, *outmailbox;
++	u8 *inbuf, *outbuf;
++	int err, packet_error;
++
++	inmailbox = mlx4_alloc_cmd_mailbox(dev);
++	if (IS_ERR(inmailbox))
++		return PTR_ERR(inmailbox);
++
++	outmailbox = mlx4_alloc_cmd_mailbox(dev);
++	if (IS_ERR(outmailbox)) {
++		mlx4_free_cmd_mailbox(dev, inmailbox);
++		return PTR_ERR(outmailbox);
++	}
++
++	inbuf = inmailbox->buf;
++	outbuf = outmailbox->buf;
++	memset(inbuf, 0, 256);
++	memset(outbuf, 0, 256);
++	inbuf[0] = 1;
++	inbuf[1] = 1;
++	inbuf[2] = 1;
++	inbuf[3] = 1;
++
++	*(__be16 *) (&inbuf[16]) = MLX4_ATTR_EXTENDED_PORT_INFO;
++	*(__be32 *) (&inbuf[20]) = cpu_to_be32(port);
++
++	err = mlx4_cmd_box(dev, inmailbox->dma, outmailbox->dma, port, 3,
++			   MLX4_CMD_MAD_IFC, MLX4_CMD_TIME_CLASS_C);
++
++	packet_error = be16_to_cpu(*(__be16 *) (outbuf + 4));
++
++	if (!err && !packet_error)
++		*get_ext_caps |= MLX_EXT_PORT_CAP_FLAG_EXTENDED_PORT_INFO;
++
++	mlx4_free_cmd_mailbox(dev, inmailbox);
++	mlx4_free_cmd_mailbox(dev, outmailbox);
++	return err;
++}
++
+ int mlx4_SET_PORT(struct mlx4_dev *dev, u8 port)
+ {
+ 	struct mlx4_cmd_mailbox *mailbox;
+--- a/include/linux/mlx4/device.h
++++ b/include/linux/mlx4/device.h
+@@ -82,6 +82,12 @@ enum {
+ 	MLX4_DEV_CAP_FLAG_COUNTERS	= 1LL << 48
+ };
+ 
++#define MLX4_ATTR_EXTENDED_PORT_INFO	cpu_to_be16(0xff90)
++
++enum {
++	MLX_EXT_PORT_CAP_FLAG_EXTENDED_PORT_INFO	= 1 <<  0
++};
++
+ enum {
+ 	MLX4_BMME_FLAG_LOCAL_INV	= 1 <<  6,
+ 	MLX4_BMME_FLAG_REMOTE_INV	= 1 <<  7,
+@@ -276,6 +282,7 @@ struct mlx4_caps {
+ 	u32			port_mask;
+ 	enum mlx4_port_type	possible_type[MLX4_MAX_PORTS + 1];
+ 	u32			max_counters;
++	u64                     ext_port_cap[MLX4_MAX_PORTS + 1];
+ };
+ 
+ struct mlx4_buf_list {
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
