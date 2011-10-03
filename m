@@ -1,78 +1,73 @@
-From: Kumar Sanghvi <kumaras-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH 0/4] iWARP MPAv2 Support
-Date: Mon, 03 Oct 2011 20:19:31 +0530
-Message-ID: <4E89CB7B.6060806@chelsio.com>
-References: <1316962066-28701-1-git-send-email-kumaras@chelsio.com>
+From: Marcel Apfelbaum <marcela-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: [PATCH v1 0/5] adding support for FDR/FDR-10 link speed
+Date: Mon, 3 Oct 2011 18:54:28 +0300
+Message-ID: <201110031754.28833.marcela@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: Text/Plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1316962066-28701-1-git-send-email-kumaras-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-Cc: Kumar Sanghvi <kumaras-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, tom-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, divy-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, Faisal.Latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, Tatyana.E.Nikolova-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org
+Cc: marcela-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Hi Roland,
+  The purpose of the RFC is to introduce FDR/FDR-10:
+   =A0- FDR10 is a proprietary link speed which is 10.3125 Gbps at 64/6=
+6 encoding rather than 8b10b encoding. - FDR represents the IBA extende=
+d speed: 14.0625 Gbps
+   =A0- EDR represents the IBA extended speed: 25.78125 Gbps (EDR)
 
-On 09/25/2011 08:17 PM, Kumar Sanghvi wrote:
-> This series adds support for MPA V2 Enhanced RDMA Negotiation
-> protocol.
-> Details about the protocol are available at below IETF Draft:
-> http://www.ietf.org/id/draft-ietf-storm-mpa-peer-connect-06.txt
->
-> To brief on MPA V2:
-> 1) It allows two communicating endpoints to negotiate the IRD/ORD
->     values to be used in RDMA tranfers.
-> 2) It allows two communicating endpoints to negotiate the type of
->     RTR message to use, when operating in peer2peer mode.
-> 3) MPA v2 is backwards compatible with original MPA protocol.
->
-> Patch 1/4 adds support to pass the ird/ord values upwards to the ULP
-> application so that they can take part in ird/ord negotiation.
->
-> Patch 2/4 adds MPA V2 support to the Chelsio iw_cxgb4.
->
-> Patch 3/4 adds minimal MPA V2 support to iw_cxgb3 and amso1100.
->
-> Patch 4/4 adds MPA V2 support to the Intel iw_nes.
->
-> MPA_v2 support to the iw_cxgb4 and iw_nes has been tested to work
-> fine, by both Intel and Chelsio, using basic test tools like
-> rping and rdma_bw.
-> ---
->
-> Kumar Sanghvi (3):
->    iw_cm: Propagate ird/ord values upwards
->    iw_cxgb4: Add support for MPA V2 Enhanced RDMA Negotiation
->    amso1100/iw_cxgb3: Minimal MPAv2 support
->
-> Tatyana (1):
->    RDMA/nes: Adds support for MPA frame Version 2
->
->   drivers/infiniband/core/cma.c            |    8 +-
->   drivers/infiniband/hw/amso1100/c2_ae.c   |    5 +
->   drivers/infiniband/hw/amso1100/c2_intr.c |    5 +
->   drivers/infiniband/hw/cxgb3/iwch_cm.c    |   10 +
->   drivers/infiniband/hw/cxgb4/cm.c         |  469 ++++++++++++-
->   drivers/infiniband/hw/cxgb4/iw_cxgb4.h   |   22 +-
->   drivers/infiniband/hw/cxgb4/qp.c         |   14 +-
->   drivers/infiniband/hw/nes/nes_cm.c       | 1101 +++++++++++++++++------------
->   drivers/infiniband/hw/nes/nes_cm.h       |   73 ++-
->   drivers/infiniband/hw/nes/nes_verbs.h    |    3 +-
->   include/rdma/iw_cm.h                     |    2 +
->   11 files changed, 1197 insertions(+), 515 deletions(-)
->
+   The aim is to show correct speeds and link encoding in:
+   =A0 - Ibstat
+   =A0 - Ibv_devinfo
+   =A0 - /sys/class/infiniband/mlx4_0/ports/1/rate
+   =A0 - Other user space modules
 
-Just wanted to ask if you had a chance to review this patch-series and 
-if there are any feedback/comments on this patch-series.
+   Port Info's active speed field has values for the enhanced speeds:
+   8 =A0 - FDR10
+   16 - FDR
+   32 - EDR
 
+   [PATCH 1/5] ib/core: Add enhanced link speeds
+   Extended speeds are introduced and a new formula is used for speed c=
+omputation (because of different encoding)
 
-Thanks & regards,
-Kumar.
+   [PATCH 2/5] ib/ipoib: Modified rate computation
+   Modified the way the speed rate is computed because of the new IBA e=
+xtended speeds that are no longer multiple of 2.5 Gbps.
 
+   [PATCH 3/5] ib/mlx4: Add extended port capabilities support
+   An Extended Port Info packet is used to query the extended port capa=
+bilities
+
+   [PATCH 4/5] ib/mlx4: Configure IBA extended active speeds
+   Set the IBA extended active speeds based on hardware configuration
+
+   [PATCH 5/5] libibverbs: Add support for extended speeds
+   Add support for the new speeds in ibv_devinfo
+
+ --
+ Changes from v0
+ Summary - instead of adding two new fields (ext_active_speed and link_=
+encoding), the new speed values are added to existing active_speed fiel=
+d.
+
+  -Patch 1/4 was splitted into ib/core and ib/ipoib parts
+  -Patch 5 was added to handle new speeds for libibverbs
+
+ [Patch RFC 1/4]
+  - ext _active_speed field is no longer required; the IBA extended spe=
+eds are added to active_speed field (values 16 and 32)=20
+ [Patch RFC 2/4]
+  - link_encoding field is no longer required: FDR-10 link speed is add=
+ed to active_speed field (value 8) [Patch RFC 3/4 and 4/4]
+  - Reorganized
+     - 3/4 only adds extended port capabilities support
+     - 4/4 configures the actual speed based on hw configuration
 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
