@@ -1,7 +1,7 @@
 From: Marcel Apfelbaum <marcela-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: PATCH for-3.2 v1 4/5] ib/mlx4: Configure extended active speeds
-Date: Mon, 3 Oct 2011 18:56:19 +0300
-Message-ID: <201110031756.19487.marcela@dev.mellanox.co.il>
+Subject: [PATCH for-3.2 v1 4/5] ib/mlx4: Configure extended active speeds
+Date: Mon, 3 Oct 2011 19:04:20 +0300
+Message-ID: <201110031804.20861.marcela@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="us-ascii"
