@@ -1,7 +1,8 @@
 From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH 1/4] opensm/osm_helper: Add ib_mtu_is_valid
-Date: Tue, 04 Oct 2011 09:53:10 -0400
-Message-ID: <4E8B0FC6.8010504@dev.mellanox.co.il>
+Subject: [PATCH 3/4] opensm/osm_sa_mcmember_record.c: Add mtu validation if
+ supplied
+Date: Tue, 04 Oct 2011 09:53:23 -0400
+Message-ID: <4E8B0FD3.7020608@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
@@ -12,80 +13,66 @@ Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdm
 List-Id: linux-rdma@vger.kernel.org
 
 
-for use in mtu validation by SA
-
 Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- include/opensm/osm_helper.h |   24 ++++++++++++++++++++++++
- opensm/libopensm.map        |    1 +
- opensm/osm_helper.c         |    7 +++++++
- 3 files changed, 32 insertions(+), 0 deletions(-)
+ opensm/osm_sa_mcmember_record.c |   23 ++++++++++++++++++++---
+ 1 files changed, 20 insertions(+), 3 deletions(-)
 
-diff --git a/include/opensm/osm_helper.h b/include/opensm/osm_helper.h
-index 7eb4e2a..57d1b00 100644
---- a/include/opensm/osm_helper.h
-+++ b/include/opensm/osm_helper.h
-@@ -588,6 +588,30 @@ const char *osm_get_sm_mgr_state_str(IN uint16_t state);
- * SEE ALSO
- *********/
- 
-+/****f* IBA Base: Types/ib_mtu_is_valid
-+* NAME
-+*	ib_mtu_is_valid
-+*
-+* DESCRIPTION
-+*	Validates encoded MTU 
-+*
-+* SYNOPSIS
-+*/
-+int ib_mtu_is_valid(IN const int mtu);
-+/*
-+* PARAMETERS
-+*	mtu
-+*		[in] Encoded path mtu.
-+*
-+* RETURN VALUES
-+*	Returns an int indicating mtu is valid (1)
-+*	or invalid (0).
-+*
-+* NOTES
-+*
-+* SEE ALSO
-+*********/
-+
- /****f* IBA Base: Types/ib_rate_is_valid
- * NAME
- *	ib_rate_is_valid
-diff --git a/opensm/libopensm.map b/opensm/libopensm.map
-index 5e8dae8..90c2857 100644
---- a/opensm/libopensm.map
-+++ b/opensm/libopensm.map
-@@ -57,6 +57,7 @@ OPENSM_1.5 {
- 		osm_get_lsa_str;
- 		osm_get_sm_mgr_signal_str;
- 		osm_get_sm_mgr_state_str;
-+		ib_mtu_is_valid;
- 		ib_rate_is_valid;
- 		ib_path_compare_rates;
- 		ib_path_rate_get_prev;
-diff --git a/opensm/osm_helper.c b/opensm/osm_helper.c
-index 05becb5..f9f3d9d 100644
---- a/opensm/osm_helper.c
-+++ b/opensm/osm_helper.c
-@@ -2362,6 +2362,13 @@ const char *osm_get_sm_mgr_state_str(IN uint16_t state)
- 	    sm_mgr_state_str[ARR_SIZE(sm_mgr_state_str) - 1];
+diff --git a/opensm/osm_sa_mcmember_record.c b/opensm/osm_sa_mcmember_record.c
+index 451f774..ad48d00 100644
+--- a/opensm/osm_sa_mcmember_record.c
++++ b/opensm/osm_sa_mcmember_record.c
+@@ -1452,6 +1452,20 @@ static uint8_t rate_is_valid(IN const ib_sa_mad_t *p_sa_mad,
+ 	return 1;
  }
  
-+int ib_mtu_is_valid(IN const int mtu)
++static int mtu_is_valid(IN const ib_sa_mad_t *p_sa_mad,
++			IN const ib_member_rec_t *p_recvd_mcmember_rec)
 +{
-+	if (mtu < IB_MIN_MTU || mtu > IB_MAX_MTU)
-+		return 0;
++	uint8_t mtu;
++
++	/* Validate MTU if supplied */
++	if ((p_sa_mad->comp_mask & IB_MCR_COMPMASK_MTU_SEL) &&
++	    (p_sa_mad->comp_mask & IB_MCR_COMPMASK_MTU)) {
++		mtu = (uint8_t) (p_recvd_mcmember_rec->mtu & 0x3F);
++		return ib_mtu_is_valid(mtu);
++	}
 +	return 1;
 +}
 +
- int ib_rate_is_valid(IN const int rate)
+ void osm_mcmr_rcv_process(IN void *context, IN void *data)
  {
- 	if (rate < IB_MIN_RATE || rate > IB_MAX_RATE)
+ 	osm_sa_t *sa = context;
+@@ -1492,7 +1506,8 @@ void osm_mcmr_rcv_process(IN void *context, IN void *data)
+ 					  IB_SA_MAD_STATUS_INSUF_COMPS);
+ 			goto Exit;
+ 		}
+-		if (!rate_is_valid(p_sa_mad, p_recvd_mcmember_rec)) {
++		if (!rate_is_valid(p_sa_mad, p_recvd_mcmember_rec) ||
++		    !mtu_is_valid(p_sa_mad, p_recvd_mcmember_rec)) {
+ 			osm_sa_send_error(sa, p_madw,
+ 					  IB_SA_MAD_STATUS_REQ_INVALID);
+ 			goto Exit;
+@@ -1514,7 +1529,8 @@ void osm_mcmr_rcv_process(IN void *context, IN void *data)
+ 					  IB_SA_MAD_STATUS_INSUF_COMPS);
+ 			goto Exit;
+ 		}
+-		if (!rate_is_valid(p_sa_mad, p_recvd_mcmember_rec)) {
++		if (!rate_is_valid(p_sa_mad, p_recvd_mcmember_rec) ||
++		    !mtu_is_valid(p_sa_mad, p_recvd_mcmember_rec)) {
+ 			osm_sa_send_error(sa, p_madw,
+ 					  IB_SA_MAD_STATUS_REQ_INVALID);
+ 			goto Exit;
+@@ -1527,7 +1543,8 @@ void osm_mcmr_rcv_process(IN void *context, IN void *data)
+ 		break;
+ 	case IB_MAD_METHOD_GET:
+ 	case IB_MAD_METHOD_GETTABLE:
+-		if (!rate_is_valid(p_sa_mad, p_recvd_mcmember_rec)) {
++		if (!rate_is_valid(p_sa_mad, p_recvd_mcmember_rec) ||
++		    !mtu_is_valid(p_sa_mad, p_recvd_mcmember_rec)) {
+ 			osm_sa_send_error(sa, p_madw,
+ 					  IB_SA_MAD_STATUS_REQ_INVALID);
+ 			goto Exit;
 -- 
 1.7.6.1
 
