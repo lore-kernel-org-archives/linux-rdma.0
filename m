@@ -1,8 +1,7 @@
 From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH 4/4] opensm/osm_sa_multipath_record.c: Add mtu validation
- if supplied
-Date: Tue, 04 Oct 2011 09:53:28 -0400
-Message-ID: <4E8B0FD8.5050301@dev.mellanox.co.il>
+Subject: [PATCH 1/4] opensm/osm_helper: Add ib_mtu_is_valid
+Date: Tue, 04 Oct 2011 09:53:10 -0400
+Message-ID: <4E8B0FC6.8010504@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
@@ -13,41 +12,80 @@ Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdm
 List-Id: linux-rdma@vger.kernel.org
 
 
+for use in mtu validation by SA
+
 Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- opensm/osm_sa_multipath_record.c |   12 +++++++++++-
- 1 files changed, 11 insertions(+), 1 deletions(-)
+ include/opensm/osm_helper.h |   24 ++++++++++++++++++++++++
+ opensm/libopensm.map        |    1 +
+ opensm/osm_helper.c         |    7 +++++++
+ 3 files changed, 32 insertions(+), 0 deletions(-)
 
-diff --git a/opensm/osm_sa_multipath_record.c b/opensm/osm_sa_multipath_record.c
-index 82f5ea1..e8ec95e 100644
---- a/opensm/osm_sa_multipath_record.c
-+++ b/opensm/osm_sa_multipath_record.c
-@@ -1494,7 +1494,7 @@ void osm_mpr_rcv_process(IN void *context, IN void *data)
- 	cl_qlist_t pr_list;
- 	ib_net16_t sa_status;
- 	int nsrc, ndest;
--	uint8_t rate;
-+	uint8_t rate, mtu;
+diff --git a/include/opensm/osm_helper.h b/include/opensm/osm_helper.h
+index 7eb4e2a..57d1b00 100644
+--- a/include/opensm/osm_helper.h
++++ b/include/opensm/osm_helper.h
+@@ -588,6 +588,30 @@ const char *osm_get_sm_mgr_state_str(IN uint16_t state);
+ * SEE ALSO
+ *********/
  
- 	OSM_LOG_ENTER(sa->p_log);
++/****f* IBA Base: Types/ib_mtu_is_valid
++* NAME
++*	ib_mtu_is_valid
++*
++* DESCRIPTION
++*	Validates encoded MTU 
++*
++* SYNOPSIS
++*/
++int ib_mtu_is_valid(IN const int mtu);
++/*
++* PARAMETERS
++*	mtu
++*		[in] Encoded path mtu.
++*
++* RETURN VALUES
++*	Returns an int indicating mtu is valid (1)
++*	or invalid (0).
++*
++* NOTES
++*
++* SEE ALSO
++*********/
++
+ /****f* IBA Base: Types/ib_rate_is_valid
+ * NAME
+ *	ib_rate_is_valid
+diff --git a/opensm/libopensm.map b/opensm/libopensm.map
+index 5e8dae8..90c2857 100644
+--- a/opensm/libopensm.map
++++ b/opensm/libopensm.map
+@@ -57,6 +57,7 @@ OPENSM_1.5 {
+ 		osm_get_lsa_str;
+ 		osm_get_sm_mgr_signal_str;
+ 		osm_get_sm_mgr_state_str;
++		ib_mtu_is_valid;
+ 		ib_rate_is_valid;
+ 		ib_path_compare_rates;
+ 		ib_path_rate_get_prev;
+diff --git a/opensm/osm_helper.c b/opensm/osm_helper.c
+index 05becb5..f9f3d9d 100644
+--- a/opensm/osm_helper.c
++++ b/opensm/osm_helper.c
+@@ -2362,6 +2362,13 @@ const char *osm_get_sm_mgr_state_str(IN uint16_t state)
+ 	    sm_mgr_state_str[ARR_SIZE(sm_mgr_state_str) - 1];
+ }
  
-@@ -1544,6 +1544,16 @@ void osm_mpr_rcv_process(IN void *context, IN void *data)
- 			goto Exit;
- 		}
- 	}
-+	/* Validate MTU if supplied */
-+	if ((p_sa_mad->comp_mask & IB_MPR_COMPMASK_MTUSELEC) &&
-+	    (p_sa_mad->comp_mask & IB_MPR_COMPMASK_MTU)) {
-+		mtu = ib_multipath_rec_mtu(p_mpr);
-+		if (!ib_mtu_is_valid(mtu)) {
-+			osm_sa_send_error(sa, p_madw,
-+					  IB_SA_MAD_STATUS_REQ_INVALID);
-+			goto Exit;
-+		}
-+	}
- 
- 	cl_qlist_init(&pr_list);
- 
++int ib_mtu_is_valid(IN const int mtu)
++{
++	if (mtu < IB_MIN_MTU || mtu > IB_MAX_MTU)
++		return 0;
++	return 1;
++}
++
+ int ib_rate_is_valid(IN const int rate)
+ {
+ 	if (rate < IB_MIN_RATE || rate > IB_MAX_RATE)
 -- 
 1.7.6.1
 
