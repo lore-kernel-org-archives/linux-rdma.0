@@ -1,81 +1,60 @@
-From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH 3/4] opensm/osm_sa_mcmember_record.c: Add mtu validation if
- supplied
-Date: Tue, 04 Oct 2011 09:53:23 -0400
-Message-ID: <4E8B0FD3.7020608@dev.mellanox.co.il>
+From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: RE: [PATCH for-3.2 v1 1/5] ib/core: Add extended link speeds
+Date: Tue, 4 Oct 2011 15:14:12 +0000
+Message-ID: <1828884A29C6694DAF28B7E6B8A8237316E692EE@ORSMSX101.amr.corp.intel.com>
+References: <201110031754.59246.marcela@dev.mellanox.co.il>
+ <201110041427.23819.marcela@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <201110041427.23819.marcela-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Marcel Apfelbaum <marcela-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: "roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "marcela-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org" <marcela-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, "ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, "hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+> @@ -186,16 +187,30 @@ static ssize_t rate_show(struct ib_port
+>  		return ret;
+> 
+>  	switch (attr.active_speed) {
+> -	case 2: speed = " DDR"; break;
+> -	case 4: speed = " QDR"; break;
+> +	case 2:
+> +		speed = " DDR";
+> +		break;
+> +	case 4:
+> +		speed = " QDR";
+> +		break;
+> +	case 8:
+> +		speed = " FDR10";
+> +		break;
+> +	case 16:
+> +		speed = " FDR";
+> +		break;
+> +	case 32:
+> +		speed = " EDR";
+> +		break;
+>  	}
 
-Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
----
- opensm/osm_sa_mcmember_record.c |   23 ++++++++++++++++++++---
- 1 files changed, 20 insertions(+), 3 deletions(-)
+We're already switching on attr.active speed above.  We should just merge ib_active_speed_to_rate() into this function, so we can avoid dealing with its 'rate_rounded' parameter as well.
 
-diff --git a/opensm/osm_sa_mcmember_record.c b/opensm/osm_sa_mcmember_record.c
-index 451f774..ad48d00 100644
---- a/opensm/osm_sa_mcmember_record.c
-+++ b/opensm/osm_sa_mcmember_record.c
-@@ -1452,6 +1452,20 @@ static uint8_t rate_is_valid(IN const ib_sa_mad_t *p_sa_mad,
- 	return 1;
- }
- 
-+static int mtu_is_valid(IN const ib_sa_mad_t *p_sa_mad,
-+			IN const ib_member_rec_t *p_recvd_mcmember_rec)
-+{
-+	uint8_t mtu;
-+
-+	/* Validate MTU if supplied */
-+	if ((p_sa_mad->comp_mask & IB_MCR_COMPMASK_MTU_SEL) &&
-+	    (p_sa_mad->comp_mask & IB_MCR_COMPMASK_MTU)) {
-+		mtu = (uint8_t) (p_recvd_mcmember_rec->mtu & 0x3F);
-+		return ib_mtu_is_valid(mtu);
-+	}
-+	return 1;
-+}
-+
- void osm_mcmr_rcv_process(IN void *context, IN void *data)
- {
- 	osm_sa_t *sa = context;
-@@ -1492,7 +1506,8 @@ void osm_mcmr_rcv_process(IN void *context, IN void *data)
- 					  IB_SA_MAD_STATUS_INSUF_COMPS);
- 			goto Exit;
- 		}
--		if (!rate_is_valid(p_sa_mad, p_recvd_mcmember_rec)) {
-+		if (!rate_is_valid(p_sa_mad, p_recvd_mcmember_rec) ||
-+		    !mtu_is_valid(p_sa_mad, p_recvd_mcmember_rec)) {
- 			osm_sa_send_error(sa, p_madw,
- 					  IB_SA_MAD_STATUS_REQ_INVALID);
- 			goto Exit;
-@@ -1514,7 +1529,8 @@ void osm_mcmr_rcv_process(IN void *context, IN void *data)
- 					  IB_SA_MAD_STATUS_INSUF_COMPS);
- 			goto Exit;
- 		}
--		if (!rate_is_valid(p_sa_mad, p_recvd_mcmember_rec)) {
-+		if (!rate_is_valid(p_sa_mad, p_recvd_mcmember_rec) ||
-+		    !mtu_is_valid(p_sa_mad, p_recvd_mcmember_rec)) {
- 			osm_sa_send_error(sa, p_madw,
- 					  IB_SA_MAD_STATUS_REQ_INVALID);
- 			goto Exit;
-@@ -1527,7 +1543,8 @@ void osm_mcmr_rcv_process(IN void *context, IN void *data)
- 		break;
- 	case IB_MAD_METHOD_GET:
- 	case IB_MAD_METHOD_GETTABLE:
--		if (!rate_is_valid(p_sa_mad, p_recvd_mcmember_rec)) {
-+		if (!rate_is_valid(p_sa_mad, p_recvd_mcmember_rec) ||
-+		    !mtu_is_valid(p_sa_mad, p_recvd_mcmember_rec)) {
- 			osm_sa_send_error(sa, p_madw,
- 					  IB_SA_MAD_STATUS_REQ_INVALID);
- 			goto Exit;
--- 
-1.7.6.1
+> 
+> -	rate = 25 * ib_width_enum_to_int(attr.active_width) * attr.active_speed;
+> +	rate = ib_width_enum_to_int(attr.active_width) *
+> +	       ib_active_speed_to_rate(attr.active_speed, &rate_rounded);
+>  	if (rate < 0)
+>  		return -EINVAL;
+> 
+>  	return sprintf(buf, "%d%s Gb/sec (%dX%s)\n",
+> -		       rate / 10, rate % 10 ? ".5" : "",
+> +		       rate, rate_rounded ? ".5" : "",
+>  		       ib_width_enum_to_int(attr.active_width), speed);
+>  }
 
+Thanks,
+Sean
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
