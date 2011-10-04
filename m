@@ -1,7 +1,8 @@
 From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH 2/4] opensm/osm_sa_path_record.c: Add mtu validation if supplied
-Date: Tue, 04 Oct 2011 09:53:18 -0400
-Message-ID: <4E8B0FCE.1050306@dev.mellanox.co.il>
+Subject: [PATCH 4/4] opensm/osm_sa_multipath_record.c: Add mtu validation
+ if supplied
+Date: Tue, 04 Oct 2011 09:53:28 -0400
+Message-ID: <4E8B0FD8.5050301@dev.mellanox.co.il>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
@@ -14,30 +15,30 @@ List-Id: linux-rdma@vger.kernel.org
 
 Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- opensm/osm_sa_path_record.c |   12 +++++++++++-
+ opensm/osm_sa_multipath_record.c |   12 +++++++++++-
  1 files changed, 11 insertions(+), 1 deletions(-)
 
-diff --git a/opensm/osm_sa_path_record.c b/opensm/osm_sa_path_record.c
-index 09dcaff..393d78e 100644
---- a/opensm/osm_sa_path_record.c
-+++ b/opensm/osm_sa_path_record.c
-@@ -1604,7 +1604,7 @@ void osm_pr_rcv_process(IN void *context, IN void *data)
- 	const ib_gid_t *p_dgid = NULL;
- 	const osm_port_t *p_src_port, *p_dest_port;
- 	osm_port_t *requester_port;
+diff --git a/opensm/osm_sa_multipath_record.c b/opensm/osm_sa_multipath_record.c
+index 82f5ea1..e8ec95e 100644
+--- a/opensm/osm_sa_multipath_record.c
++++ b/opensm/osm_sa_multipath_record.c
+@@ -1494,7 +1494,7 @@ void osm_mpr_rcv_process(IN void *context, IN void *data)
+ 	cl_qlist_t pr_list;
+ 	ib_net16_t sa_status;
+ 	int nsrc, ndest;
 -	uint8_t rate;
 +	uint8_t rate, mtu;
  
  	OSM_LOG_ENTER(sa->p_log);
  
-@@ -1645,6 +1645,16 @@ void osm_pr_rcv_process(IN void *context, IN void *data)
+@@ -1544,6 +1544,16 @@ void osm_mpr_rcv_process(IN void *context, IN void *data)
  			goto Exit;
  		}
  	}
 +	/* Validate MTU if supplied */
-+	if ((p_sa_mad->comp_mask & IB_PR_COMPMASK_MTUSELEC) &&
-+	    (p_sa_mad->comp_mask & IB_PR_COMPMASK_MTU)) {
-+		mtu = ib_path_rec_mtu(p_pr);
++	if ((p_sa_mad->comp_mask & IB_MPR_COMPMASK_MTUSELEC) &&
++	    (p_sa_mad->comp_mask & IB_MPR_COMPMASK_MTU)) {
++		mtu = ib_multipath_rec_mtu(p_mpr);
 +		if (!ib_mtu_is_valid(mtu)) {
 +			osm_sa_send_error(sa, p_madw,
 +					  IB_SA_MAD_STATUS_REQ_INVALID);
