@@ -1,52 +1,71 @@
-From: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH 2/3] RDMA/nes: Print ip address for critcal errors
-Date: Mon, 10 Oct 2011 12:14:31 -0700
-Message-ID: <CAG4TOxO0nRZOy9RkuVBTeQbQKB32d+e2Z-yLp58x1bSUf-k=yg@mail.gmail.com>
-References: <20110926013344.GA5260@FLATIF-MOBL4> <CAL1RGDU+xag8AtQ18yrZmqU24u9QM6cajhca4MmrCGtmPbxKLg@mail.gmail.com>
- <2EFBCAEF10980645BBCFB605689E08E904EC29E1CE@azsmsx506.amr.corp.intel.com>
+From: Yann Droneaud <yann-WYdEh2jsUj5Wj0EZb7rXcA@public.gmane.org>
+Subject: Re: libmlx4 and setting the doorbell qpn
+Date: Mon, 10 Oct 2011 22:03:04 +0200
+Message-ID: <1318276984.3573.13.camel@dworkin.quest-ce.net>
+References: <CAO+b5-pXXBmVBomOFed7Js4LqyRqseoPEeVCsoeinA1VSTT==Q@mail.gmail.com>
+	 <CAL1RGDVJFwzv8ggnEYbOXtGriLKxYyFxbV9tGOF1ah8rcG9gvQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <2EFBCAEF10980645BBCFB605689E08E904EC29E1CE-uLM7Qlg6MbdZtRGVdHMbwrfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+In-Reply-To: <CAL1RGDVJFwzv8ggnEYbOXtGriLKxYyFxbV9tGOF1ah8rcG9gvQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Latif, Faisal" <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+Cc: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Actually I fixed it up myself, please check my result :)
+Le lundi 10 octobre 2011 =C3=A0 09:28 -0700, Roland Dreier a =C3=A9crit=
+ :
+> actually I think the relevant definitions are:
+>=20
+>         struct mlx4_wqe_ctrl_seg *ctrl;
+>=20
+> and
+>=20
+> struct mlx4_wqe_ctrl_seg {
+>         uint32_t                owner_opcode;
+>         uint8_t                 reserved[3];
+>         ...
+>=20
+> so reserved actually is a pointer to a 3-byte area.
+>=20
 
-On Mon, Oct 10, 2011 at 12:00 PM, Latif, Faisal <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org=
-> wrote:
-> Hi Roland,
->
-> Sorry for late reply. Yes %pI4 would be a lot cleaner. Do you want me=
- to resubmit this patch again?
->
-> Thanks
-> Faisal
->
->
->> -----Original Message-----
->> From: roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org [mailto:roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org] On Beha=
-lf
->> Of Roland Dreier
->> Sent: Thursday, October 06, 2011 2:54 PM
->> To: Latif, Faisal
->> Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
->> Subject: Re: [PATCH 2/3] RDMA/nes: Print ip address for critcal erro=
-rs
->>
->> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 printk(KERN_ERR PFX "Remote ip addr =
-=3D %u.%u.%u.%u\n",
->> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 rem_addr[3], rem_add=
-r[2], rem_addr[1],
->> rem_addr[0]);
->>
->> Any reason this couldn't use %pI4 and be a lot cleaner?
->>
->> =A0- R.
->
+But
+
+>        *(uint32_t *) ctrl->reserved |=3D qp->doorbell_qpn;
+
+is  updating 4 bytes: it seems it's doing some kind of overflow here,
+it's reading and writing to next field of struct mlx4_wqe_ctrl_seg:
+
+struct mlx4_wqe_ctrl_seg {
+        uint32_t                owner_opcode;
+        uint8_t                 reserved[3];
+        uint8_t                 fence_size;
+        ...
+
+Is it the intended behavor ?
+
+If yes, I suggest this (ugly hack)
+
+struct mlx4_wqe_ctrl_seg {
+        uint32_t                owner_opcode;
+	union {
+		uint8_t         reserved8[4];
+		uint32_t	reserved32;
+	} u;
+	...
+
+#define fence_size u.reserved8[3]
+
+But we should choose some other names for the fields to be more
+'unique'.
+
+Regards
+
+--=20
+Yann Droneaud
+
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
 n
