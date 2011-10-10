@@ -1,64 +1,44 @@
 From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Subject: Re: libmlx4 and setting the doorbell qpn
-Date: Mon, 10 Oct 2011 19:36:30 +0200
-Message-ID: <CAO+b5-ojgHpLJL7V0C51mN_qTwTSWN8qP+RhhcRxERAnZW9bkA@mail.gmail.com>
-References: <CAO+b5-pXXBmVBomOFed7Js4LqyRqseoPEeVCsoeinA1VSTT==Q@mail.gmail.com>
- <CAL1RGDVJFwzv8ggnEYbOXtGriLKxYyFxbV9tGOF1ah8rcG9gvQ@mail.gmail.com>
+Subject: libmlx4: Pass the argument "foreign" to AM_INIT_AUTOMAKE()
+Date: Mon, 10 Oct 2011 19:41:37 +0200
+Message-ID: <201110101941.37440.bvanassche@acm.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAL1RGDVJFwzv8ggnEYbOXtGriLKxYyFxbV9tGOF1ah8rcG9gvQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Oct 10, 2011 at 6:28 PM, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>=
- wrote:
-> actually I think the relevant definitions are:
->
-> =A0 =A0 =A0 =A0struct mlx4_wqe_ctrl_seg *ctrl;
->
-> and
->
-> struct mlx4_wqe_ctrl_seg {
-> =A0 =A0 =A0 =A0uint32_t =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0owner_opcode;
-> =A0 =A0 =A0 =A0uint8_t =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 reserved[3];
-> =A0 =A0 =A0 =A0...
->
-> so reserved actually is a pointer to a 3-byte area.
->
-> So aliasing rules aside, I think the code is fine and
-> can be fixed by inserting a cast to void * before the
-> cast to uint32_t *.
+Tell automake explicitly that the libmlx4 package is not a GNU package. This
+change makes it possible to regenerate the configure script via autoreconf
+instead of only via autogen.sh.
 
-I agree that that would be sufficient to suppress the compiler warning.
+Signed-off-by: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
 
-However, in general I'm not enthusiast about inserting such casts
-because that can lead to incorrect code generation. A quote from the
-gcc manual (http://gcc.gnu.org/onlinedocs/gcc-4.6.1/gcc/Optimize-Option=
-s.html):
+---
+ configure.in |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-<quote>
--fstrict-aliasing Allow the compiler to assume the strictest aliasing
-rules applicable to the language being compiled. For C (and C++), this
-activates optimizations based on the type of expressions. In
-particular, an object of one type is assumed never to reside at the
-same address as an object of a different type, unless the types are
-almost the same. For example, an unsigned int can alias an int, but
-not a void* or a double. A character type may alias any other type.
-</quote>
+diff --git a/configure.in b/configure.in
+index 49dc1b0..111f0b0 100644
+--- a/configure.in
++++ b/configure.in
+@@ -5,7 +5,7 @@ AC_INIT(libmlx4, 1.0.2, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)
+ AC_CONFIG_SRCDIR([src/mlx4.h])
+ AC_CONFIG_AUX_DIR(config)
+ AC_CONFIG_HEADER(config.h)
+-AM_INIT_AUTOMAKE(libmlx4, 1.0.2)
++AM_INIT_AUTOMAKE([foreign])
+ m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
+ 
+ AC_PROG_LIBTOOL
+-- 
+1.7.3.4
 
-If I interpret the above correctly, if two pointers point to the same
-memory location but have different types (other than char *) and both
-pointers are used to store a value, then with -fstrict-aliasing
-enabled the compiler is allowed to interchange the two store
-operations. Something that would have unexpected effects of course.
-
-Bart.
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
