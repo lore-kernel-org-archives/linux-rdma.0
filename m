@@ -1,50 +1,54 @@
-From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Subject: [PATCH] libmlx4: Fix a compiler warning
-Date: Mon, 10 Oct 2011 19:47:33 +0200
-Message-ID: <201110101947.34035.bvanassche@acm.org>
+From: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH 3/3] RDMA/nes: Support for Packed And Unaligned fpdus
+Date: Mon, 10 Oct 2011 11:05:27 -0700
+Message-ID: <CAL1RGDVMBCsWnUv3w0y4bETcng4Oud3t33TM=3SR13Ck06pzjg@mail.gmail.com>
+References: <20110926013400.GA4132@FLATIF-MOBL4>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20110926013400.GA4132@FLATIF-MOBL4>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+To: Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-Avoid that link_local_gid() triggers the following compiler warning:
-dereferencing type-punned pointer will break strict-aliasing rules
+Applied, but...
 
-Signed-off-by: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
 
----
- src/verbs.c |    8 +++-----
- 1 files changed, 3 insertions(+), 5 deletions(-)
+> --- /dev/null
+> +++ b/drivers/infiniband/hw/nes/nes_mgt.c
 
-diff --git a/src/verbs.c b/src/verbs.c
-index 199d107..28d8585 100644
---- a/src/verbs.c
-+++ b/src/verbs.c
-@@ -616,12 +616,10 @@ int mlx4_destroy_qp(struct ibv_qp *ibqp)
- 
- static int link_local_gid(const union ibv_gid *gid)
- {
--	uint32_t hi = *(uint32_t *)(gid->raw);
--	uint32_t lo = *(uint32_t *)(gid->raw + 4);
--	if (hi == htonl(0xfe800000) && lo == 0)
--		return 1;
-+	uint32_t hi = gid->u32[0];
-+	uint32_t lo = gid->u32[1];
- 
--	return 0;
-+	return hi == htonl(0xfe800000) && lo == 0;
- }
- 
- static uint16_t get_vlan_id(union ibv_gid *gid)
--- 
-1.7.3.4
+> +void nes_replenish_mgt_rq(struct nes_vnic_mgt *mgtvnic)
 
+Most of these functions are only used in nes_mgt.c and can be made
+static.  I fixed that up.
+
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 barrier();
+
+barrier() is only a compiler optimization barrier.  Does this need to
+be a full memory barrier to make sure that the CPU and NES see the
+same thing?  (ie wmb() or something?)
+
+
+
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 u32tmp =3D (fpdu_info->frags[1].frag_le=
+n << 16) | fpdu_info->frags[0].frag_len;
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 set_wqe_32bit_value(cqp_wqe->wqe_words,=
+ NES_NIC_SQ_WQE_LENGTH_2_1_IDX,
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ cpu_to_le32(u32tmp));
+
+set_wqe_32bit_value does the cpu_to_le32() internally -- I assume this
+will swap twice on big-endian (which I'm sure you never tested).  I
+got rid of this superfluous call here.
+
+Please retest my for-next tree and make sure I didn't break anything
+in my cleanups.
+
+ - R.
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
