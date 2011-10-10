@@ -1,7 +1,7 @@
 From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Subject: libmlx4: Pass the argument "foreign" to AM_INIT_AUTOMAKE()
-Date: Mon, 10 Oct 2011 19:41:37 +0200
-Message-ID: <201110101941.37440.bvanassche@acm.org>
+Subject: [PATCH] libibverbs: Make it easy to interpret struct ibv_gid as four 32-bit words
+Date: Mon, 10 Oct 2011 19:43:48 +0200
+Message-ID: <201110101943.48642.bvanassche@acm.org>
 Mime-Version: 1.0
 Content-Type: Text/Plain;
   charset="us-ascii"
@@ -12,29 +12,24 @@ To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Tell automake explicitly that the libmlx4 package is not a GNU package. This
-change makes it possible to regenerate the configure script via autoreconf
-instead of only via autogen.sh.
-
 Signed-off-by: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
 
 ---
- configure.in |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ include/infiniband/verbs.h |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
 
-diff --git a/configure.in b/configure.in
-index 49dc1b0..111f0b0 100644
---- a/configure.in
-+++ b/configure.in
-@@ -5,7 +5,7 @@ AC_INIT(libmlx4, 1.0.2, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)
- AC_CONFIG_SRCDIR([src/mlx4.h])
- AC_CONFIG_AUX_DIR(config)
- AC_CONFIG_HEADER(config.h)
--AM_INIT_AUTOMAKE(libmlx4, 1.0.2)
-+AM_INIT_AUTOMAKE([foreign])
- m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
+diff --git a/include/infiniband/verbs.h b/include/infiniband/verbs.h
+index ad9d524..656abb8 100644
+--- a/include/infiniband/verbs.h
++++ b/include/infiniband/verbs.h
+@@ -57,6 +57,7 @@ BEGIN_C_DECLS
  
- AC_PROG_LIBTOOL
+ union ibv_gid {
+ 	uint8_t			raw[16];
++	uint32_t		u32[4];
+ 	struct {
+ 		uint64_t	subnet_prefix;
+ 		uint64_t	interface_id;
 -- 
 1.7.3.4
 
