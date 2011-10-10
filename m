@@ -1,57 +1,45 @@
-From: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
-Subject: Re: libmlx4: Pass the argument "foreign" to AM_INIT_AUTOMAKE()
-Date: Mon, 10 Oct 2011 11:12:47 -0700
-Message-ID: <CAL1RGDX7queuQdb=G=D-VUZUC0KgJHDO_g9QOfQtdgiFVhiFvg@mail.gmail.com>
-References: <201110101941.37440.bvanassche@acm.org>
+From: Mike Marciniszyn <mike.marciniszyn@qlogic.com>
+Subject: RE: [PATCH -next] infiniband: fix ipath_chip_init.c build errors
+Date: Mon, 10 Oct 2011 11:57:55 -0700
+Message-ID: <35AAF1E4A771E142979F27B51793A48888433C0838@AVEXMB1.qlogic.org>
+References: <20111007174230.702f4a0bf1fe71dab5e10961@canb.auug.org.au>
+ <4E8F683D.9020604@xenotime.net>
+ <CAL1RGDXoiRfR1Ku67tRgbhxzyWQmDrjKCztnVd6wbwi0Uud90Q@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <201110101941.37440.bvanassche-HInyCGIudOg@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-next-owner@vger.kernel.org>
+In-Reply-To: <CAL1RGDXoiRfR1Ku67tRgbhxzyWQmDrjKCztnVd6wbwi0Uud90Q@mail.gmail.com>
+Content-Language: en-US
+Sender: linux-next-owner@vger.kernel.org
+To: Roland Dreier <roland@purestorage.com>, Randy Dunlap <rdunlap@xenotime.net>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>, "linux-next@vger.kernel.org" <linux-next@vger.kernel.org>, linux-kernel <linux-kernel@vger.kernel.org>, Dept_Infinipath <Dept_Infinipath@qlogic.com>, "linux-rdma@vger.kernel.org" <linux-rdma@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Thanks... I already have this locally (waiting to get my kernel.org tre=
-e back up
-and/or have time to set up a github mirror before I push this out)
+As do I.
 
- - R.
+I've confirmed that patch does no harm, but I would like to see the error.
 
-On Mon, Oct 10, 2011 at 10:41 AM, Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org> =
-wrote:
-> Tell automake explicitly that the libmlx4 package is not a GNU packag=
-e. This
-> change makes it possible to regenerate the configure script via autor=
-econf
-> instead of only via autogen.sh.
+Which of the github repos exposes the error?
+
+Mike
+
+> -----Original Message-----
+> From: Roland Dreier [mailto:roland@purestorage.com]
+> Sent: Friday, October 07, 2011 5:21 PM
+> To: Randy Dunlap
+> Cc: Stephen Rothwell; linux-next@vger.kernel.org; linux-kernel;
+> Dept_Infinipath; linux-rdma@vger.kernel.org; Andrew Morton
+> Subject: Re: [PATCH -next] infiniband: fix ipath_chip_init.c build
+> errors
 >
-> Signed-off-by: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+> On Fri, Oct 7, 2011 at 1:59 PM, Randy Dunlap <rdunlap@xenotime.net>
+> wrote:
+> > Add <linux/stat.h> to fix build errors:
 >
-> ---
-> =A0configure.in | =A0 =A02 +-
-> =A01 files changed, 1 insertions(+), 1 deletions(-)
+> When did this break?  I build ipath in my test config all the time...
 >
-> diff --git a/configure.in b/configure.in
-> index 49dc1b0..111f0b0 100644
-> --- a/configure.in
-> +++ b/configure.in
-> @@ -5,7 +5,7 @@ AC_INIT(libmlx4, 1.0.2, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)
-> =A0AC_CONFIG_SRCDIR([src/mlx4.h])
-> =A0AC_CONFIG_AUX_DIR(config)
-> =A0AC_CONFIG_HEADER(config.h)
-> -AM_INIT_AUTOMAKE(libmlx4, 1.0.2)
-> +AM_INIT_AUTOMAKE([foreign])
-> =A0m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
->
-> =A0AC_PROG_LIBTOOL
-> --
-> 1.7.3.4
->
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>  - R.
+
+
+This message and any attached documents contain information from QLogic Corporation or its wholly-owned subsidiaries that may be confidential. If you are not the intended recipient, you may not read, copy, distribute, or use this information. If you have received this transmission in error, please notify the sender immediately by reply e-mail and then delete this message.
