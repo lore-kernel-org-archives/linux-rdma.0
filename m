@@ -1,54 +1,32 @@
-From: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH 3/3] RDMA/nes: Support for Packed And Unaligned fpdus
-Date: Mon, 10 Oct 2011 11:05:27 -0700
-Message-ID: <CAL1RGDVMBCsWnUv3w0y4bETcng4Oud3t33TM=3SR13Ck06pzjg@mail.gmail.com>
-References: <20110926013400.GA4132@FLATIF-MOBL4>
+From: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+Subject: Re: libmlx4 and setting the doorbell qpn
+Date: Mon, 10 Oct 2011 11:11:42 -0700
+Message-ID: <CAL1RGDWM2m-_3vTrWf6pUmLPLbahe8GsCAxJYALgxDdZtYjS8A@mail.gmail.com>
+References: <CAO+b5-pXXBmVBomOFed7Js4LqyRqseoPEeVCsoeinA1VSTT==Q@mail.gmail.com>
+ <CAL1RGDVJFwzv8ggnEYbOXtGriLKxYyFxbV9tGOF1ah8rcG9gvQ@mail.gmail.com> <CAO+b5-ojgHpLJL7V0C51mN_qTwTSWN8qP+RhhcRxERAnZW9bkA@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20110926013400.GA4132@FLATIF-MOBL4>
+In-Reply-To: <CAO+b5-ojgHpLJL7V0C51mN_qTwTSWN8qP+RhhcRxERAnZW9bkA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Applied, but...
+On Mon, Oct 10, 2011 at 10:36 AM, Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org> wrote:
+> If I interpret the above correctly, if two pointers point to the same
+> memory location but have different types (other than char *) and both
+> pointers are used to store a value, then with -fstrict-aliasing
+> enabled the compiler is allowed to interchange the two store
+> operations. Something that would have unexpected effects of course.
 
-
-> --- /dev/null
-> +++ b/drivers/infiniband/hw/nes/nes_mgt.c
-
-> +void nes_replenish_mgt_rq(struct nes_vnic_mgt *mgtvnic)
-
-Most of these functions are only used in nes_mgt.c and can be made
-static.  I fixed that up.
-
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 barrier();
-
-barrier() is only a compiler optimization barrier.  Does this need to
-be a full memory barrier to make sure that the CPU and NES see the
-same thing?  (ie wmb() or something?)
-
-
-
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 u32tmp =3D (fpdu_info->frags[1].frag_le=
-n << 16) | fpdu_info->frags[0].frag_len;
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 set_wqe_32bit_value(cqp_wqe->wqe_words,=
- NES_NIC_SQ_WQE_LENGTH_2_1_IDX,
-> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- cpu_to_le32(u32tmp));
-
-set_wqe_32bit_value does the cpu_to_le32() internally -- I assume this
-will swap twice on big-endian (which I'm sure you never tested).  I
-got rid of this superfluous call here.
-
-Please retest my for-next tree and make sure I didn't break anything
-in my cleanups.
+My impression was that void* casts tell gcc it can't make any
+aliasing assumptions about a pointer.  So I think getting rid of
+the warning actually makes sure we don't have bad code generation
+here as well.  But I wouldn't swear to that...
 
  - R.
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
