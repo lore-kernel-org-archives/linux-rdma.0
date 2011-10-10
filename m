@@ -1,8 +1,8 @@
 From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH 4/5] ib/core: add support for extended performance counters
- in sysfs
-Date: Mon, 10 Oct 2011 10:56:25 +0200
-Message-ID: <alpine.LRH.2.00.1110101055570.11243@ogerlitz.voltaire.com>
+Subject: [PATCH 5/5] ib/mlx4: added support for extended PMA counters under
+ IBoE
+Date: Mon, 10 Oct 2011 10:57:25 +0200
+Message-ID: <alpine.LRH.2.00.1110101056510.11243@ogerlitz.voltaire.com>
 References: <alpine.LRH.2.00.1110101047420.10901@ogerlitz.voltaire.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="US-ASCII"
@@ -13,198 +13,93 @@ To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-issue a PMA classportinfo query towards the HW driver, and if extended
-counters are supported, expose new sysfs entries which allow to read them.
+With the HW counters being 64bit ones, use the existing IBoE
+PMA counters to support also extended counters.
 
 Signed-off-by: Vu Pham <vu-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
----
- drivers/infiniband/core/sysfs.c |  100 ++++++++++++++++++++++++++++++++++++++-
- include/rdma/ib_pma.h           |    1 +
- 2 files changed, 100 insertions(+), 1 deletions(-)
+ drivers/infiniband/hw/mlx4/mad.c |   49 ++++++++++++++++++++++++++++++++-----
+ 1 files changed, 42 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/infiniband/core/sysfs.c b/drivers/infiniband/core/sysfs.c
-index 9ab5df7..8bbed12 100644
---- a/drivers/infiniband/core/sysfs.c
-+++ b/drivers/infiniband/core/sysfs.c
-@@ -38,6 +38,7 @@
- #include <linux/string.h>
-
- #include <rdma/ib_mad.h>
-+#include <rdma/ib_pma.h>
-
- struct ib_port {
- 	struct kobject         kobj;
-@@ -288,6 +289,13 @@ static ssize_t show_port_pkey(struct ib_port *p, struct port_attribute *attr,
- 	return sprintf(buf, "0x%04x\n", pkey);
+diff --git a/drivers/infiniband/hw/mlx4/mad.c b/drivers/infiniband/hw/mlx4/mad.c
+index f36da99..7ccc9a0 100644
+--- a/drivers/infiniband/hw/mlx4/mad.c
++++ b/drivers/infiniband/hw/mlx4/mad.c
+@@ -303,13 +303,44 @@ static int ib_process_mad(struct ib_device *ibdev, int mad_flags, u8 port_num,
+ 	return IB_MAD_RESULT_SUCCESS | IB_MAD_RESULT_REPLY;
  }
 
-+enum {
-+	COUNTERS_START		= 0,
-+	COUNTERS_LAST		= 15,
-+	EXT_COUNTERS_START	= 16,
-+	EXT_COUNTERS_LAST 	= 23
-+};
+-static void edit_counter(struct mlx4_counter *cnt,
+-					struct ib_pma_portcounters *pma_cnt)
++static int pma_get_classportinfo(struct ib_mad *out_mad)
+ {
+-	pma_cnt->port_xmit_data = cpu_to_be32((be64_to_cpu(cnt->tx_bytes)>>2));
+-	pma_cnt->port_rcv_data  = cpu_to_be32((be64_to_cpu(cnt->rx_bytes)>>2));
+-	pma_cnt->port_xmit_packets = cpu_to_be32(be64_to_cpu(cnt->tx_frames));
+-	pma_cnt->port_rcv_packets  = cpu_to_be32(be64_to_cpu(cnt->rx_frames));
++	struct ib_class_port_info *cpi =
++		(struct ib_class_port_info *)(out_mad->data + 40);
 +
- #define PORT_PMA_ATTR(_name, _counter, _width, _offset)			\
- struct port_table_attribute port_pma_attr_##_name = {			\
- 	.attr  = __ATTR(_name, S_IRUGO, show_pma_counter, NULL),	\
-@@ -301,6 +309,7 @@ static ssize_t show_pma_counter(struct ib_port *p, struct port_attribute *attr,
- 		container_of(attr, struct port_table_attribute, attr);
- 	int offset = tab_attr->index & 0xffff;
- 	int width  = (tab_attr->index >> 16) & 0xff;
-+	int counter  = (tab_attr->index >> 24) & 0xff;
- 	struct ib_mad *in_mad  = NULL;
- 	struct ib_mad *out_mad = NULL;
- 	ssize_t ret;
-@@ -319,7 +328,14 @@ static ssize_t show_pma_counter(struct ib_port *p, struct port_attribute *attr,
- 	in_mad->mad_hdr.mgmt_class    = IB_MGMT_CLASS_PERF_MGMT;
- 	in_mad->mad_hdr.class_version = 1;
- 	in_mad->mad_hdr.method        = IB_MGMT_METHOD_GET;
--	in_mad->mad_hdr.attr_id       = cpu_to_be16(0x12); /* PortCounters */
-+	if (counter >= COUNTERS_START && counter <= COUNTERS_LAST)
-+		in_mad->mad_hdr.attr_id	= IB_PMA_PORT_COUNTERS;
-+	else if (counter >= EXT_COUNTERS_START && counter <= EXT_COUNTERS_LAST)
-+		in_mad->mad_hdr.attr_id	= IB_PMA_PORT_COUNTERS_EXT;
-+	else {
-+		ret = -EINVAL;
-+		goto out;
-+	}
-
- 	in_mad->data[41] = p->port_num;	/* PortSelect field */
-
-@@ -347,6 +363,10 @@ static ssize_t show_pma_counter(struct ib_port *p, struct port_attribute *attr,
- 		ret = sprintf(buf, "%u\n",
- 			      be32_to_cpup((__be32 *)(out_mad->data + 40 + offset / 8)));
- 		break;
-+	case 64:
-+		ret = sprintf(buf, "%llu\n", be64_to_cpup(
-+				(__be64 *)(out_mad->data + 40 + offset / 8)));
-+		break;
- 	default:
- 		ret = 0;
- 	}
-@@ -358,6 +378,7 @@ out:
- 	return ret;
- }
-
++	memset(cpi, 0, sizeof(cpi));
 +
- static PORT_PMA_ATTR(symbol_error		    ,  0, 16,  32);
- static PORT_PMA_ATTR(link_error_recovery	    ,  1,  8,  48);
- static PORT_PMA_ATTR(link_downed		    ,  2,  8,  56);
-@@ -374,6 +395,15 @@ static PORT_PMA_ATTR(port_xmit_data		    , 12, 32, 192);
- static PORT_PMA_ATTR(port_rcv_data		    , 13, 32, 224);
- static PORT_PMA_ATTR(port_xmit_packets		    , 14, 32, 256);
- static PORT_PMA_ATTR(port_rcv_packets		    , 15, 32, 288);
-+/* definition for port counters extension */
-+static PORT_PMA_ATTR(port_xmit_data_64		    , 16, 64,  64);
-+static PORT_PMA_ATTR(port_rcv_data_64		    , 17, 64, 128);
-+static PORT_PMA_ATTR(port_xmit_packets_64	    , 18, 64, 192);
-+static PORT_PMA_ATTR(port_rcv_packets_64	    , 19, 64, 256);
-+static PORT_PMA_ATTR(port_unicast_xmit_packets	    , 20, 64, 320);
-+static PORT_PMA_ATTR(port_unicast_rcv_packets	    , 21, 64, 384);
-+static PORT_PMA_ATTR(port_multicast_xmit_packets   , 22, 64, 448);
-+static PORT_PMA_ATTR(port_multicast_rcv_packets    , 23, 64, 512);
-
- static struct attribute *pma_attrs[] = {
- 	&port_pma_attr_symbol_error.attr.attr,
-@@ -400,6 +430,68 @@ static struct attribute_group pma_group = {
- 	.attrs  = pma_attrs
- };
-
-+static struct attribute *pma_attrs_ext[] = {
-+	&port_pma_attr_port_xmit_data_64.attr.attr,
-+	&port_pma_attr_port_rcv_data_64.attr.attr,
-+	&port_pma_attr_port_xmit_packets_64.attr.attr,
-+	&port_pma_attr_port_rcv_packets_64.attr.attr,
-+	&port_pma_attr_port_unicast_xmit_packets.attr.attr,
-+	&port_pma_attr_port_unicast_rcv_packets.attr.attr,
-+	&port_pma_attr_port_multicast_xmit_packets.attr.attr,
-+	&port_pma_attr_port_multicast_rcv_packets.attr.attr,
-+	NULL
-+};
++	cpi->capability_mask = IB_PMA_CLASS_CAP_EXT_WIDTH_NOIETF ;
 +
-+static struct attribute_group pma_ext_group = {
-+	.name  = "counters_ext",
-+	.attrs  = pma_attrs_ext
-+};
-+
-+static int is_pma_class_cap_ext_width(struct ib_device *ibdev, int port_num)
-+{
-+	struct ib_mad *in_mad  = NULL;
-+	struct ib_mad *out_mad = NULL;
-+	struct ib_class_port_info *cpi = NULL;
-+	int ret = 0;
-+
-+	if (!ibdev->process_mad)
-+		return -ENOSYS;
-+
-+	in_mad  = kzalloc(sizeof *in_mad, GFP_KERNEL);
-+	out_mad = kmalloc(sizeof *out_mad, GFP_KERNEL);
-+	if (!in_mad || !out_mad) {
-+		ret = -ENOMEM;
-+		goto out;
-+	}
-+
-+	in_mad->mad_hdr.base_version  = 1;
-+	in_mad->mad_hdr.mgmt_class    = IB_MGMT_CLASS_PERF_MGMT;
-+	in_mad->mad_hdr.class_version = 1;
-+	in_mad->mad_hdr.method        = IB_MGMT_METHOD_GET;
-+	in_mad->mad_hdr.attr_id       = IB_PMA_CLASS_PORT_INFO;
-+
-+	in_mad->data[41] = port_num;
-+
-+	if ((ibdev->process_mad(ibdev, IB_MAD_IGNORE_MKEY, port_num,
-+				NULL, NULL, in_mad, out_mad) &
-+	    (IB_MAD_RESULT_SUCCESS | IB_MAD_RESULT_REPLY)) !=
-+	    (IB_MAD_RESULT_SUCCESS | IB_MAD_RESULT_REPLY)) {
-+		ret = -EINVAL;
-+		goto out;
-+	}
-+
-+	cpi = (struct ib_class_port_info *)(out_mad->data + 40);
-+	if (!(cpi->capability_mask && IB_PMA_CLASS_CAP_EXT_WIDTH) &&
-+	    !(cpi->capability_mask && IB_PMA_CLASS_CAP_EXT_WIDTH_NOIETF))
-+		ret = -ENOSYS;
-+
-+out:
-+	kfree(in_mad);
-+	kfree(out_mad);
-+
-+	return ret;
++	return IB_MAD_RESULT_SUCCESS | IB_MAD_RESULT_REPLY;
 +}
 +
- static void ib_port_release(struct kobject *kobj)
- {
- 	struct ib_port *p = container_of(kobj, struct ib_port, kobj);
-@@ -520,6 +612,12 @@ static int add_port(struct ib_device *device, int port_num,
- 	if (ret)
- 		goto err_put;
-
-+	if (is_pma_class_cap_ext_width(device, port_num) == 0) {
-+		ret = sysfs_create_group(&p->kobj, &pma_ext_group);
-+		if (ret)
-+			goto err_put;
-+	}
++static void edit_counter(struct mlx4_counter *cnt, void *counters,
++			 __be16	attr_id)
++{
++	if (attr_id == IB_PMA_PORT_COUNTERS) {
++		struct ib_pma_portcounters *pma_cnt =
++				(struct ib_pma_portcounters *) counters;
 +
- 	p->gid_group.name  = "gids";
- 	p->gid_group.attrs = alloc_group_attrs(show_port_gid, attr.gid_tbl_len);
- 	if (!p->gid_group.attrs)
-diff --git a/include/rdma/ib_pma.h b/include/rdma/ib_pma.h
-index a5889f1..2f8a65c 100644
---- a/include/rdma/ib_pma.h
-+++ b/include/rdma/ib_pma.h
-@@ -42,6 +42,7 @@
-  */
- #define IB_PMA_CLASS_CAP_ALLPORTSELECT  cpu_to_be16(1 << 8)
- #define IB_PMA_CLASS_CAP_EXT_WIDTH      cpu_to_be16(1 << 9)
-+#define IB_PMA_CLASS_CAP_EXT_WIDTH_NOIETF cpu_to_be16(1 << 10)
- #define IB_PMA_CLASS_CAP_XMIT_WAIT      cpu_to_be16(1 << 12)
++		pma_cnt->port_xmit_data =
++			cpu_to_be32((be64_to_cpu(cnt->tx_bytes)>>2));
++		pma_cnt->port_rcv_data  =
++			cpu_to_be32((be64_to_cpu(cnt->rx_bytes)>>2));
++		pma_cnt->port_xmit_packets =
++			cpu_to_be32(be64_to_cpu(cnt->tx_frames));
++		pma_cnt->port_rcv_packets  =
++			cpu_to_be32(be64_to_cpu(cnt->rx_frames));
++	} else {
++		struct ib_pma_portcounters_ext *pma_cnt_ext =
++				(struct ib_pma_portcounters_ext *) counters;
++
++		pma_cnt_ext->port_xmit_data =
++			cpu_to_be64((be64_to_cpu(cnt->tx_bytes)>>2));
++		pma_cnt_ext->port_rcv_data  =
++			cpu_to_be64((be64_to_cpu(cnt->rx_bytes)>>2));
++		pma_cnt_ext->port_xmit_packets = cnt->tx_frames;
++		pma_cnt_ext->port_rcv_packets  = cnt->rx_frames;
++	}
+ }
 
- #define IB_PMA_CLASS_PORT_INFO          cpu_to_be16(0x0001)
+ static int iboe_process_mad(struct ib_device *ibdev, int mad_flags, u8 port_num,
+@@ -325,6 +356,9 @@ static int iboe_process_mad(struct ib_device *ibdev, int mad_flags, u8 port_num,
+ 	if (in_mad->mad_hdr.mgmt_class != IB_MGMT_CLASS_PERF_MGMT)
+ 		return -EINVAL;
+
++	if (in_mad->mad_hdr.attr_id == IB_PMA_CLASS_PORT_INFO)
++		return pma_get_classportinfo(out_mad);
++
+ 	mailbox = mlx4_alloc_cmd_mailbox(dev->dev);
+ 	if (IS_ERR(mailbox))
+ 		return IB_MAD_RESULT_FAILURE;
+@@ -339,7 +373,8 @@ static int iboe_process_mad(struct ib_device *ibdev, int mad_flags, u8 port_num,
+ 		switch (mode & 0xf) {
+ 		case 0:
+ 			edit_counter(mailbox->buf,
+-						(void *)(out_mad->data + 40));
++				     (void *)(out_mad->data + 40),
++				     in_mad->mad_hdr.attr_id);
+ 			err = IB_MAD_RESULT_SUCCESS | IB_MAD_RESULT_REPLY;
+ 			break;
+ 		default:
 -- 
 1.7.4.1
+
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
