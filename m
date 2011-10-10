@@ -1,8 +1,8 @@
 From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: [PATCH 2/5] ib/mlx4: remove setting of vlan in IBoE WQEs control
- segment
-Date: Mon, 10 Oct 2011 10:54:42 +0200
-Message-ID: <alpine.LRH.2.00.1110101054110.11243@ogerlitz.voltaire.com>
+Subject: [PATCH 3/5] net/mlx4_core: remove module param controlling the vlan
+ table size
+Date: Mon, 10 Oct 2011 10:55:36 +0200
+Message-ID: <alpine.LRH.2.00.1110101055050.11243@ogerlitz.voltaire.com>
 References: <alpine.LRH.2.00.1110101047420.10901@ogerlitz.voltaire.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="US-ASCII"
@@ -13,65 +13,53 @@ To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-There's no need to set the vlan related fields in an IBoE send WQE
-control segment. This b/c the vlan to be used by a UD QP is specified
-through the the datagram segment, and with GSI (CM) QP, all the headers
-down to the 8021q and mac ones are built by the software anyway.
+Enable the maximum size (128) supported by the device for the shadow
+vlans table, without a module param to override it. This table is only
+used by the IBoE control plane for setting a vlan index into an RC/UC
+QP context or UD Address Handle.
 
 Signed-off-by: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 ---
- drivers/infiniband/hw/mlx4/qp.c |   11 ++---------
- 1 files changed, 2 insertions(+), 9 deletions(-)
+ drivers/net/mlx4/main.c |   12 +++---------
+ 1 files changed, 3 insertions(+), 9 deletions(-)
 
-diff --git a/drivers/infiniband/hw/mlx4/qp.c b/drivers/infiniband/hw/mlx4/qp.c
-index 3a91d9d..819b1a5 100644
---- a/drivers/infiniband/hw/mlx4/qp.c
-+++ b/drivers/infiniband/hw/mlx4/qp.c
-@@ -1547,14 +1547,13 @@ static void set_masked_atomic_seg(struct mlx4_wqe_masked_atomic_seg *aseg,
- }
+diff --git a/drivers/net/mlx4/main.c b/drivers/net/mlx4/main.c
+index f0ee35d..0285c8a 100644
+--- a/drivers/net/mlx4/main.c
++++ b/drivers/net/mlx4/main.c
+@@ -93,9 +93,8 @@ static int log_num_mac = 2;
+ module_param_named(log_num_mac, log_num_mac, int, 0444);
+ MODULE_PARM_DESC(log_num_mac, "Log2 max number of MACs per ETH port (1-7)");
 
- static void set_datagram_seg(struct mlx4_wqe_datagram_seg *dseg,
--			     struct ib_send_wr *wr, __be16 *vlan)
-+			     struct ib_send_wr *wr)
- {
- 	memcpy(dseg->av, &to_mah(wr->wr.ud.ah)->av, sizeof (struct mlx4_av));
- 	dseg->dqpn = cpu_to_be32(wr->wr.ud.remote_qpn);
- 	dseg->qkey = cpu_to_be32(wr->wr.ud.remote_qkey);
- 	dseg->vlan = to_mah(wr->wr.ud.ah)->av.eth.vlan;
- 	memcpy(dseg->mac, to_mah(wr->wr.ud.ah)->av.eth.mac, 6);
--	*vlan = dseg->vlan;
- }
+-static int log_num_vlan;
+-module_param_named(log_num_vlan, log_num_vlan, int, 0444);
+-MODULE_PARM_DESC(log_num_vlan, "Log2 max number of VLANs per ETH port (0-7)");
++/* Log2 max number of VLANs per ETH port (0-7) */
++#define MLX4_LOG_NUM_VLANS 7
 
- static void set_mlx_icrc_seg(void *dseg)
-@@ -1657,7 +1656,6 @@ int mlx4_ib_post_send(struct ib_qp *ibqp, struct ib_send_wr *wr,
- 	__be32 uninitialized_var(lso_hdr_sz);
- 	__be32 blh;
- 	int i;
--	__be16 vlan = cpu_to_be16(0xffff);
+ static int use_prio;
+ module_param_named(use_prio, use_prio, bool, 0444);
+@@ -230,7 +229,7 @@ static int mlx4_dev_cap(struct mlx4_dev *dev, struct mlx4_dev_cap *dev_cap)
+ 	dev->caps.max_gso_sz	     = dev_cap->max_gso_sz;
 
- 	spin_lock_irqsave(&qp->sq.lock, flags);
+ 	dev->caps.log_num_macs  = log_num_mac;
+-	dev->caps.log_num_vlans = log_num_vlan;
++	dev->caps.log_num_vlans = MLX4_LOG_NUM_VLANS;
+ 	dev->caps.log_num_prios = use_prio ? 3 : 0;
 
-@@ -1761,7 +1759,7 @@ int mlx4_ib_post_send(struct ib_qp *ibqp, struct ib_send_wr *wr,
- 			break;
+ 	for (i = 1; i <= dev->caps.num_ports; ++i) {
+@@ -1489,11 +1488,6 @@ static int __init mlx4_verify_params(void)
+ 		return -1;
+ 	}
 
- 		case IB_QPT_UD:
--			set_datagram_seg(wqe, wr, &vlan);
-+			set_datagram_seg(wqe, wr);
- 			wqe  += sizeof (struct mlx4_wqe_datagram_seg);
- 			size += sizeof (struct mlx4_wqe_datagram_seg) / 16;
-
-@@ -1824,11 +1822,6 @@ int mlx4_ib_post_send(struct ib_qp *ibqp, struct ib_send_wr *wr,
- 		ctrl->fence_size = (wr->send_flags & IB_SEND_FENCE ?
- 				    MLX4_WQE_CTRL_FENCE : 0) | size;
-
--		if (be16_to_cpu(vlan) < 0x1000) {
--			ctrl->ins_vlan = 1 << 6;
--			ctrl->vlan_tag = vlan;
--		}
+-	if ((log_num_vlan < 0) || (log_num_vlan > 7)) {
+-		pr_warning("mlx4_core: bad num_vlan: %d\n", log_num_vlan);
+-		return -1;
+-	}
 -
- 		/*
- 		 * Make sure descriptor is fully written before
- 		 * setting ownership bit (because HW can start
+ 	if ((log_mtts_per_seg < 1) || (log_mtts_per_seg > 7)) {
+ 		pr_warning("mlx4_core: bad log_mtts_per_seg: %d\n", log_mtts_per_seg);
+ 		return -1;
 -- 
 1.7.4.1
 
