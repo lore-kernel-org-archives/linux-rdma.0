@@ -1,7 +1,7 @@
 From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Subject: [PATCH] libibverbs: Make it easy to interpret struct ibv_gid as four 32-bit words
-Date: Mon, 10 Oct 2011 19:43:48 +0200
-Message-ID: <201110101943.48642.bvanassche@acm.org>
+Subject: [PATCH] libmlx4: Fix a compiler warning
+Date: Mon, 10 Oct 2011 19:47:33 +0200
+Message-ID: <201110101947.34035.bvanassche@acm.org>
 Mime-Version: 1.0
 Content-Type: Text/Plain;
   charset="us-ascii"
@@ -12,24 +12,35 @@ To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 Cc: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+Avoid that link_local_gid() triggers the following compiler warning:
+dereferencing type-punned pointer will break strict-aliasing rules
+
 Signed-off-by: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
 
 ---
- include/infiniband/verbs.h |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
+ src/verbs.c |    8 +++-----
+ 1 files changed, 3 insertions(+), 5 deletions(-)
 
-diff --git a/include/infiniband/verbs.h b/include/infiniband/verbs.h
-index ad9d524..656abb8 100644
---- a/include/infiniband/verbs.h
-+++ b/include/infiniband/verbs.h
-@@ -57,6 +57,7 @@ BEGIN_C_DECLS
+diff --git a/src/verbs.c b/src/verbs.c
+index 199d107..28d8585 100644
+--- a/src/verbs.c
++++ b/src/verbs.c
+@@ -616,12 +616,10 @@ int mlx4_destroy_qp(struct ibv_qp *ibqp)
  
- union ibv_gid {
- 	uint8_t			raw[16];
-+	uint32_t		u32[4];
- 	struct {
- 		uint64_t	subnet_prefix;
- 		uint64_t	interface_id;
+ static int link_local_gid(const union ibv_gid *gid)
+ {
+-	uint32_t hi = *(uint32_t *)(gid->raw);
+-	uint32_t lo = *(uint32_t *)(gid->raw + 4);
+-	if (hi == htonl(0xfe800000) && lo == 0)
+-		return 1;
++	uint32_t hi = gid->u32[0];
++	uint32_t lo = gid->u32[1];
+ 
+-	return 0;
++	return hi == htonl(0xfe800000) && lo == 0;
+ }
+ 
+ static uint16_t get_vlan_id(union ibv_gid *gid)
 -- 
 1.7.3.4
 
