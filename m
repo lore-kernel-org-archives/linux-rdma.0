@@ -1,32 +1,39 @@
-From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH 3/5] net/mlx4_core: remove module param controlling the
- vlan table size
-Date: Tue, 11 Oct 2011 09:24:40 +0200
-Message-ID: <4E93EF38.5040707@mellanox.com>
-References: <alpine.LRH.2.00.1110101047420.10901@ogerlitz.voltaire.com> <alpine.LRH.2.00.1110101055050.11243@ogerlitz.voltaire.com> <CAG4TOxNaQicA6ExuNsw8V95mJPD+AQX5Wrfg+rCoBxdr2E+2ww@mail.gmail.com>
+From: Mike Marciniszyn <mike.marciniszyn-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+Subject: RE: [PATCH -next] infiniband: fix ipath_chip_init.c build errors
+Date: Tue, 11 Oct 2011 06:06:29 -0700
+Message-ID: <35AAF1E4A771E142979F27B51793A48888433C0972@AVEXMB1.qlogic.org>
+References: <20111007174230.702f4a0bf1fe71dab5e10961@canb.auug.org.au>
+ <4E8F683D.9020604@xenotime.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAG4TOxNaQicA6ExuNsw8V95mJPD+AQX5Wrfg+rCoBxdr2E+2ww-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <4E8F683D.9020604-/UHa2rfvQTnk1uMJSBkQmQ@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Randy Dunlap <rdunlap-/UHa2rfvQTnk1uMJSBkQmQ@public.gmane.org>
+Cc: "linux-next-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-next-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-kernel <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Dept_Infinipath <Dept_Infinipath-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, Stephen Rothwell <sfr-3FnU+UHB4dNDw9hX6IcOSA@public.gmane.org>, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 10/10/2011 7:00 PM, Roland Dreier wrote:
-> Can we really do this? Doesn't this break anyone who has this option 
-> configured in modprobe.conf? 
-> This is one reason why I hate adding module parameters -- you can't 
-> just delete them later like this 
+> Add <linux/stat.h> to fix build errors:
+>
+> drivers/infiniband/hw/ipath/ipath_init_chip.c:54:1: error: 'S_IRUGO'
+> undeclared here (not in a function)
+> drivers/infiniband/hw/ipath/ipath_init_chip.c:54:1: error: bit-field
+> '<anonymous>' width not an integer constant
+> drivers/infiniband/hw/ipath/ipath_init_chip.c:67:1: error: 'S_IWUSR'
+> undeclared here (not in a function)
+> drivers/infiniband/hw/ipath/ipath_init_chip.c:67:1: error: bit-field
+> '<anonymous>' width not an integer constant
+>
+> Signed-off-by: Randy Dunlap <rdunlap-/UHa2rfvQTnk1uMJSBkQmQ@public.gmane.org>
 
-Yes, I now understand even better why you hate adding module params... 
-specifically here, this table relates
-only to IBoE users, which is relatively new (in since 2.6.37) and didn't 
-hit yet most (if not all) of the
-distros,  so I don't expect anything to break, makes sense?
+Thanks for the patch!
 
-Or.
+Acked-by: Mike Marciniszyn <mike.marciniszyn-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+
+
+This message and any attached documents contain information from QLogic Corporation or its wholly-owned subsidiaries that may be confidential. If you are not the intended recipient, you may not read, copy, distribute, or use this information. If you have received this transmission in error, please notify the sender immediately by reply e-mail and then delete this message.
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
