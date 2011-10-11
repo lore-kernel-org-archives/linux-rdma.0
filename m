@@ -1,30 +1,37 @@
 From: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH 3/3] RDMA/nes: Support for Packed And Unaligned fpdus
-Date: Tue, 11 Oct 2011 09:40:28 -0700
-Message-ID: <CAL1RGDWrhQ16OW10KvHfZVDa-D4QV0T9VXqmcJjmN+oFDHuh6A@mail.gmail.com>
-References: <20110926013400.GA4132@FLATIF-MOBL4> <CAL1RGDVMBCsWnUv3w0y4bETcng4Oud3t33TM=3SR13Ck06pzjg@mail.gmail.com>
- <2EFBCAEF10980645BBCFB605689E08E904EC29E1D4@azsmsx506.amr.corp.intel.com>
+Subject: Re: [PATCH 3/5] net/mlx4_core: remove module param controlling the
+ vlan table size
+Date: Tue, 11 Oct 2011 10:28:19 -0700
+Message-ID: <CAL1RGDVk2EOmgWU_iZQWQqKJFPNYN4o_5_14Qbr_6wUzTJ1bOg@mail.gmail.com>
+References: <alpine.LRH.2.00.1110101047420.10901@ogerlitz.voltaire.com>
+ <alpine.LRH.2.00.1110101055050.11243@ogerlitz.voltaire.com>
+ <CAG4TOxNaQicA6ExuNsw8V95mJPD+AQX5Wrfg+rCoBxdr2E+2ww@mail.gmail.com> <4E93EF38.5040707@mellanox.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <2EFBCAEF10980645BBCFB605689E08E904EC29E1D4-uLM7Qlg6MbdZtRGVdHMbwrfspsVTdybXVpNB7YpNyf8@public.gmane.org>
+In-Reply-To: <4E93EF38.5040707-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Latif, Faisal" <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-So as linux-next testing showed, this patch adds uses of NES_DBG_PAU
-but doesn't define it.
+On Tue, Oct 11, 2011 at 12:24 AM, Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org> wr=
+ote:
+> Yes, I now understand even better why you hate adding module params..=
+=2E
+> specifically here, this table relates
+> only to IBoE users, which is relatively new (in since 2.6.37) and did=
+n't hit
+> yet most (if not all) of the
+> distros, =A0so I don't expect anything to break, makes sense?
 
-Should I add something in drivers/infiniband/hw/nes/nes.h like:
+No, I think we need to switch to ignoring the parameter and printing a
+warning if someone sets it, and then we can remove it in a year or so.
 
-#define NES_DBG_PAU    0x00100000
-
-?
-
-Thanks,
-  Roland
+ - R.
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
