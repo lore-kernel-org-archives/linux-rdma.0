@@ -1,33 +1,67 @@
-From: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
-Subject: Re: [PATCH] libmlx4: Fix a compiler warning
-Date: Mon, 10 Oct 2011 17:41:16 -0700
-Message-ID: <CAL1RGDVNoh1Fdm5pvDaeB9YykRpfXMe-s+P_iHs=8Z_r5_DpBQ@mail.gmail.com>
-References: <201110101947.34035.bvanassche@acm.org>
+From: Stephen Rothwell <sfr@canb.auug.org.au>
+Subject: linux-next: build failure after merge of the infiniband tree
+Date: Tue, 11 Oct 2011 14:49:52 +1100
+Message-ID: <20111011144952.22ef7175eb5c4588448f8856@canb.auug.org.au>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <201110101947.34035.bvanassche-HInyCGIudOg@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: multipart/signed; protocol="application/pgp-signature";
+ micalg="PGP-SHA256";
+ boundary="Signature=_Tue__11_Oct_2011_14_49_52_+1100_yb/vExX+/OmMM2.Y"
+Return-path: <linux-next-owner@vger.kernel.org>
+Sender: linux-next-owner@vger.kernel.org
+To: Roland Dreier <rdreier@cisco.com>, linux-rdma@vger.kernel.org
+Cc: linux-next@vger.kernel.org, linux-kernel@vger.kernel.org, Faisal Latif <faisal.latif@intel.com>, Tatyana Nikolova <Tatyana.E.Nikolova@intel.com>
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, Oct 10, 2011 at 10:47 AM, Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org> =
-wrote:
-> - =A0 =A0 =A0 uint32_t hi =3D *(uint32_t *)(gid->raw);
-> - =A0 =A0 =A0 uint32_t lo =3D *(uint32_t *)(gid->raw + 4);
-> - =A0 =A0 =A0 if (hi =3D=3D htonl(0xfe800000) && lo =3D=3D 0)
-> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 return 1;
-> + =A0 =A0 =A0 uint32_t hi =3D gid->u32[0];
-> + =A0 =A0 =A0 uint32_t lo =3D gid->u32[1];
+--Signature=_Tue__11_Oct_2011_14_49_52_+1100_yb/vExX+/OmMM2.Y
+Content-Type: text/plain; charset=US-ASCII
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Thanks, however I like to keep libmlx4 backwards compatible
-if possible.  So we can't do this unconditionally.
+Hi all,
 
- - R.
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+After merging the infiniband tree, today's linux-next build (x86_64
+allmodconfig) failed like this:
+
+drivers/infiniband/hw/nes/nes_mgt.c: In function 'get_fpdu_info':
+drivers/infiniband/hw/nes/nes_mgt.c:328:3: error: 'NES_DBG_PAU' undeclared =
+(first use in this function)
+drivers/infiniband/hw/nes/nes_mgt.c:328:3: note: each undeclared identifier=
+ is reported only once for each function it appears in
+drivers/infiniband/hw/nes/nes_mgt.c: In function 'nes_chg_qh_handler':
+drivers/infiniband/hw/nes/nes_mgt.c:664:4: error: 'NES_DBG_PAU' undeclared =
+(first use in this function)
+drivers/infiniband/hw/nes/nes_mgt.c: In function 'nes_change_quad_hash':
+drivers/infiniband/hw/nes/nes_mgt.c:728:3: error: 'NES_DBG_PAU' undeclared =
+(first use in this function)
+
+Caused by commit cf3fbdf123bf ("RDMA/nes: Support for Packed And
+Unaligned fpdus").  Please build tes ...
+
+I have used the version of the infiniband tree from next-20111007 for today.
+--=20
+Cheers,
+Stephen Rothwell                    sfr@canb.auug.org.au
+http://www.canb.auug.org.au/~sfr/
+
+--Signature=_Tue__11_Oct_2011_14_49_52_+1100_yb/vExX+/OmMM2.Y
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQIcBAEBCAAGBQJOk7zgAAoJEECxmPOUX5FELikQAJf6mGhQV7fpQM2uiFIIDvaS
+wBlCc210MWztKnNqvV0ckv+T+yhDkAsyqNwJCy/Beq9qexJPGD7MPm0XHRIBZPRJ
+CBTopZR026kSm3t/6GNRLGDbFMgMWRngNePAjphMMs8aSQcJG9iWtKA+KP/ZipVu
+iaIvxwgbJELKObWKxPlj/U7nIHkNbdUWNI7aSmTzo9SwEbn5D75v5NbKCRCZaP1L
+9sLbGehBzyFh1k9uOHGOlJQDClpMLxBntVJmd23rZ/GwAXgfAFV6ZSA78b1mKh0K
+rnXu3gUo+19CGPxVBlD+ufjScbkju2dm94kzUPgK7dfvyjKlOT0CiwjUyJqNGDCp
+P7lgS5UyaxRNcmq9vW7rg6tkwMBdiYzDyehRBPe7vgSW4Rh0RteVduMBxMngFWqN
+VNQfYCHkqPtg5bnjZpfMRC13wyV8TMsaV8urT0uTzXegCHMtw9RoBVxDu8Jlh6I1
+SoWwx+nRjDpc0w6B/L3H4HtUHaw5jtTHPkWIKiKs35jXOfR/45mZexPZNAvcpcni
+A19+0OVPU+08+5i7hEsOxNprE5RB19JAcnt+cDb5MxHUbWBKDs7JkyYVij2qw8H8
+sBehuJF+WRCUpQeSd8hn3k4daU9jcr9ExCpmgQWxitFD11aGF8YsAPtDE7hyDqVF
+GkKbolDHcCYcwf7IQCpI
+=1crY
+-----END PGP SIGNATURE-----
+
+--Signature=_Tue__11_Oct_2011_14_49_52_+1100_yb/vExX+/OmMM2.Y--
