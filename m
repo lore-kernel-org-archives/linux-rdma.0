@@ -1,67 +1,34 @@
-From: Stephen Rothwell <sfr@canb.auug.org.au>
-Subject: linux-next: build failure after merge of the infiniband tree
-Date: Tue, 11 Oct 2011 14:49:52 +1100
-Message-ID: <20111011144952.22ef7175eb5c4588448f8856@canb.auug.org.au>
+From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Subject: Re: [PATCH 3/5] net/mlx4_core: remove module param controlling the
+ vlan table size
+Date: Tue, 11 Oct 2011 09:24:40 +0200
+Message-ID: <4E93EF38.5040707@mellanox.com>
+References: <alpine.LRH.2.00.1110101047420.10901@ogerlitz.voltaire.com> <alpine.LRH.2.00.1110101055050.11243@ogerlitz.voltaire.com> <CAG4TOxNaQicA6ExuNsw8V95mJPD+AQX5Wrfg+rCoBxdr2E+2ww@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; protocol="application/pgp-signature";
- micalg="PGP-SHA256";
- boundary="Signature=_Tue__11_Oct_2011_14_49_52_+1100_yb/vExX+/OmMM2.Y"
-Return-path: <linux-next-owner@vger.kernel.org>
-Sender: linux-next-owner@vger.kernel.org
-To: Roland Dreier <rdreier@cisco.com>, linux-rdma@vger.kernel.org
-Cc: linux-next@vger.kernel.org, linux-kernel@vger.kernel.org, Faisal Latif <faisal.latif@intel.com>, Tatyana Nikolova <Tatyana.E.Nikolova@intel.com>
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CAG4TOxNaQicA6ExuNsw8V95mJPD+AQX5Wrfg+rCoBxdr2E+2ww-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
---Signature=_Tue__11_Oct_2011_14_49_52_+1100_yb/vExX+/OmMM2.Y
-Content-Type: text/plain; charset=US-ASCII
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On 10/10/2011 7:00 PM, Roland Dreier wrote:
+> Can we really do this? Doesn't this break anyone who has this option 
+> configured in modprobe.conf? 
+> This is one reason why I hate adding module parameters -- you can't 
+> just delete them later like this 
 
-Hi all,
+Yes, I now understand even better why you hate adding module params... 
+specifically here, this table relates
+only to IBoE users, which is relatively new (in since 2.6.37) and didn't 
+hit yet most (if not all) of the
+distros,  so I don't expect anything to break, makes sense?
 
-After merging the infiniband tree, today's linux-next build (x86_64
-allmodconfig) failed like this:
+Or.
 
-drivers/infiniband/hw/nes/nes_mgt.c: In function 'get_fpdu_info':
-drivers/infiniband/hw/nes/nes_mgt.c:328:3: error: 'NES_DBG_PAU' undeclared =
-(first use in this function)
-drivers/infiniband/hw/nes/nes_mgt.c:328:3: note: each undeclared identifier=
- is reported only once for each function it appears in
-drivers/infiniband/hw/nes/nes_mgt.c: In function 'nes_chg_qh_handler':
-drivers/infiniband/hw/nes/nes_mgt.c:664:4: error: 'NES_DBG_PAU' undeclared =
-(first use in this function)
-drivers/infiniband/hw/nes/nes_mgt.c: In function 'nes_change_quad_hash':
-drivers/infiniband/hw/nes/nes_mgt.c:728:3: error: 'NES_DBG_PAU' undeclared =
-(first use in this function)
-
-Caused by commit cf3fbdf123bf ("RDMA/nes: Support for Packed And
-Unaligned fpdus").  Please build tes ...
-
-I have used the version of the infiniband tree from next-20111007 for today.
---=20
-Cheers,
-Stephen Rothwell                    sfr@canb.auug.org.au
-http://www.canb.auug.org.au/~sfr/
-
---Signature=_Tue__11_Oct_2011_14_49_52_+1100_yb/vExX+/OmMM2.Y
-Content-Type: application/pgp-signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQIcBAEBCAAGBQJOk7zgAAoJEECxmPOUX5FELikQAJf6mGhQV7fpQM2uiFIIDvaS
-wBlCc210MWztKnNqvV0ckv+T+yhDkAsyqNwJCy/Beq9qexJPGD7MPm0XHRIBZPRJ
-CBTopZR026kSm3t/6GNRLGDbFMgMWRngNePAjphMMs8aSQcJG9iWtKA+KP/ZipVu
-iaIvxwgbJELKObWKxPlj/U7nIHkNbdUWNI7aSmTzo9SwEbn5D75v5NbKCRCZaP1L
-9sLbGehBzyFh1k9uOHGOlJQDClpMLxBntVJmd23rZ/GwAXgfAFV6ZSA78b1mKh0K
-rnXu3gUo+19CGPxVBlD+ufjScbkju2dm94kzUPgK7dfvyjKlOT0CiwjUyJqNGDCp
-P7lgS5UyaxRNcmq9vW7rg6tkwMBdiYzDyehRBPe7vgSW4Rh0RteVduMBxMngFWqN
-VNQfYCHkqPtg5bnjZpfMRC13wyV8TMsaV8urT0uTzXegCHMtw9RoBVxDu8Jlh6I1
-SoWwx+nRjDpc0w6B/L3H4HtUHaw5jtTHPkWIKiKs35jXOfR/45mZexPZNAvcpcni
-A19+0OVPU+08+5i7hEsOxNprE5RB19JAcnt+cDb5MxHUbWBKDs7JkyYVij2qw8H8
-sBehuJF+WRCUpQeSd8hn3k4daU9jcr9ExCpmgQWxitFD11aGF8YsAPtDE7hyDqVF
-GkKbolDHcCYcwf7IQCpI
-=1crY
------END PGP SIGNATURE-----
-
---Signature=_Tue__11_Oct_2011_14_49_52_+1100_yb/vExX+/OmMM2.Y--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
