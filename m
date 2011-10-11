@@ -1,33 +1,29 @@
-From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: [ANNOUNCE] libcxgb3 version 1.3.1 released
-Date: Tue, 11 Oct 2011 09:38:43 -0500
-Message-ID: <4E9454F3.9070507@opengridcomputing.com>
+From: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH 3/3] RDMA/nes: Support for Packed And Unaligned fpdus
+Date: Tue, 11 Oct 2011 09:40:28 -0700
+Message-ID: <CAL1RGDWrhQ16OW10KvHfZVDa-D4QV0T9VXqmcJjmN+oFDHuh6A@mail.gmail.com>
+References: <20110926013400.GA4132@FLATIF-MOBL4> <CAL1RGDVMBCsWnUv3w0y4bETcng4Oud3t33TM=3SR13Ck06pzjg@mail.gmail.com>
+ <2EFBCAEF10980645BBCFB605689E08E904EC29E1D4@azsmsx506.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <2EFBCAEF10980645BBCFB605689E08E904EC29E1D4-uLM7Qlg6MbdZtRGVdHMbwrfspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: "Latif, Faisal" <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-Hello,
+So as linux-next testing showed, this patch adds uses of NES_DBG_PAU
+but doesn't define it.
 
-Version 1.3.1 of libcxgb3 is available for download at:
+Should I add something in drivers/infiniband/hw/nes/nes.h like:
 
-http://www.openfabrics.org/downloads/cxgb3/libcxgb3-1.3.1.tar.gz
+#define NES_DBG_PAU    0x00100000
 
-with md5sum:
-
-2a0929159acdd9d69da91e2fb2b746da  libcxgb3-1.3.1.tar.gz
-
-
-This minor release fixes a seg fault issue with dapl applications running on T3.
+?
 
 Thanks,
-
-Steve.
-
-
+  Roland
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
