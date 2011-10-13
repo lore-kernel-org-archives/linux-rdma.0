@@ -1,17 +1,32 @@
-From: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
-Subject: Re: create new library project and few queries to open source
-Date: Thu, 13 Oct 2011 10:32:13 -0700
-Message-ID: <CAL1RGDUybg1bVooqAo1Bt9F2r1hrHtthRtGQE+nzGXELMi136g@mail.gmail.com>
+From: <Parav.Pandit-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>
+Subject: RE: create new library project and few queries to open source
+Date: Thu, 13 Oct 2011 11:00:28 -0700
+Message-ID: <88B766C272F2C64B944B21AD078333151BB18C09E6@EXMAIL.ad.emulex.com>
 References: <88B766C272F2C64B944B21AD078333151BB18C09A2@EXMAIL.ad.emulex.com>
+ <CAL1RGDUybg1bVooqAo1Bt9F2r1hrHtthRtGQE+nzGXELMi136g@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <88B766C272F2C64B944B21AD078333151BB18C09A2-/SwythR3zqxVRK6PHKByhFaTQe2KTcn/@public.gmane.org>
+In-Reply-To: <CAL1RGDUybg1bVooqAo1Bt9F2r1hrHtthRtGQE+nzGXELMi136g-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Parav.Pandit-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org
+To: roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org
 Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, vlad-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
+
+Thanks Roland for your quick inputs.
+I am able to clone your github for-next branch.
+I'll be checkin to your branch soon.
+
+Parav
+
+-----Original Message-----
+From: Roland Dreier [mailto:roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org] 
+Sent: Thursday, October 13, 2011 11:02 PM
+To: Pandit, Parav
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; vlad-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org
+Subject: Re: create new library project and few queries to open source
 
 On Thu, Oct 13, 2011 at 9:40 AM,  <Parav.Pandit-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org> wrote:
 > 2. For adding hardware driver for a new RDMA adapter, to which git tree(s) do I need to submit patches?
