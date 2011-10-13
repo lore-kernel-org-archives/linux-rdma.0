@@ -1,40 +1,47 @@
-From: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
-Subject: Re: Building 3.1-rc9 in kernel infiniband support with OFED libraries
-Date: Thu, 13 Oct 2011 11:06:24 -0700
-Message-ID: <CAL1RGDXw=NK4TWvvf-gx7Fs1K3iC7yY-DAOZ8pmnni7oRaO=Ww@mail.gmail.com>
-References: <alpine.DEB.2.00.1110110900290.3388@router.home>
- <20111011173929.GH26965@obsidianresearch.com> <CAO+b5-pxyc0LpGQ4kkOXJVi7cgYm_cgyJ0qM-m81=fZ+MGXHwQ@mail.gmail.com>
- <1828884A29C6694DAF28B7E6B8A8237316E6A98C@ORSMSX101.amr.corp.intel.com>
- <CAL1RGDW_usQ8o4FJzZqkmoZAvSTHBLZJuJ_YpsHL-=ErbgSw-A@mail.gmail.com>
- <1828884A29C6694DAF28B7E6B8A8237316E6A9C0@ORSMSX101.amr.corp.intel.com>
- <CAL1RGDXm-v52ZRjvNd=jieEeE=rDkatvJcxfporue6x5XjFURA@mail.gmail.com> <1828884A29C6694DAF28B7E6B8A8237316E6AD2E@ORSMSX101.amr.corp.intel.com>
+From: Jonathan Lallinger <jonathan-/Yg/VP3ZvrM@public.gmane.org>
+Subject: [PATCH] IW_CXGB4: Fix iw_cxgb4 recv cqe
+Date: Thu, 13 Oct 2011 13:15:28 -0500
+Message-ID: <20111013181528.29250.15355.stgit@build.ogc.int>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1828884A29C6694DAF28B7E6B8A8237316E6AD2E-P5GAC/sN6hmkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Christoph Lameter <cl-gkYfJU5Cukgdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Oct 13, 2011 at 10:31 AM, Hefty, Sean <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wr=
-ote:
-> ib_open_qp() is implemented entirely in the verbs layer (verbs.c). =A0=
-The OFED API compatibility support that I added to libibverbs makes use=
- of this call, which I tested by running OSU's mvapich2.
+Upon completion of a work request on the recieve queue the 
+IW_CXGB4 driver was incorrectly posting a completion back to
+the recieve queue instead of the send queue. This resulted in 
+hanging worker threads because they were never notified that
+the work requests were completed.
 
-Wait, now I'm baffled by the patch (ie
-http://git.openfabrics.org/git?p=3D~shefty/rdma-dev.git;a=3Dcommitdiff;=
-h=3D1ec4e62a6e967ddc258e7c4e674168debb727d39)
+This change fixes the logic so that insert_recv_cqe posts
+to the correct queue.
 
-I don't see anything that calls ib_uverbs_open_qp().  Am I missing some=
-thing??
+Signed-off by: Jonathan Lallinger <jonathan-/Yg/VP3ZvrM@public.gmane.org>
+Signed-off by: Steve Wise <swise-/Yg/VP3ZvrM@public.gmane.org>
+---
 
-Does the OFED API compatibility actually call this function and care
-if it fails?
+ drivers/infiniband/hw/cxgb4/cq.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/infiniband/hw/cxgb4/cq.c b/drivers/infiniband/hw/cxgb4/cq.c
+index 1720dc7..901c5fb 100644
+--- a/drivers/infiniband/hw/cxgb4/cq.c
++++ b/drivers/infiniband/hw/cxgb4/cq.c
+@@ -185,7 +185,7 @@ static void insert_recv_cqe(struct t4_wq *wq, struct t4_cq *cq)
+ 				 V_CQE_OPCODE(FW_RI_SEND) |
+ 				 V_CQE_TYPE(0) |
+ 				 V_CQE_SWCQE(1) |
+-				 V_CQE_QPID(wq->rq.qid));
++				 V_CQE_QPID(wq->sq.qid));
+ 	cqe.bits_type_ts = cpu_to_be64(V_CQE_GENBIT((u64)cq->gen));
+ 	cq->sw_queue[cq->sw_pidx] = cqe;
+ 	t4_swcq_produce(cq);
+
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
