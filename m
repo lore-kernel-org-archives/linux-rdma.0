@@ -1,42 +1,37 @@
-From: Jonathan Lallinger <jonathan-/Yg/VP3ZvrM@public.gmane.org>
-Subject: [PATCH] IW_CXGB4: Fix iw_cxgb4 recv cqe
-Date: Thu, 13 Oct 2011 13:56:59 -0500
-Message-ID: <20111013185658.29393.53157.stgit@build.ogc.int>
+From: Randy Dunlap <rdunlap@xenotime.net>
+Subject: [PATCH -next] infiniband: fix printk format in hw/nes_cm.c
+Date: Thu, 13 Oct 2011 15:08:07 -0700
+Message-ID: <4E976147.9030000@xenotime.net>
+References: <20111013181606.a204565fad9caaa0fe680b75@canb.auug.org.au>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-next-owner@vger.kernel.org>
+In-Reply-To: <20111013181606.a204565fad9caaa0fe680b75@canb.auug.org.au>
+Sender: linux-next-owner@vger.kernel.org
+To: Stephen Rothwell <sfr@canb.auug.org.au>
+Cc: linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Faisal Latif <faisal.latif@intel.com>, Linux RDMA <linux-rdma@vger.kernel.org>, Roland Dreier <roland@kernel.org>, Sean Hefty <sean.hefty@intel.com>, Hal Rosenstock <hal.rosenstock@gmail.com>
 List-Id: linux-rdma@vger.kernel.org
 
-When creating flushed recv CQEs, set the QPID field in
-the t4_cqe to the SQ QID and not the RQ QID.  Otherwise
-the poll code will not find the correct qp context.
+From: Randy Dunlap <rdunlap@xenotime.net>
 
-Signed-off by: Jonathan Lallinger <jonathan-/Yg/VP3ZvrM@public.gmane.org>
-Signed-off by: Steve Wise <swise-/Yg/VP3ZvrM@public.gmane.org>
+Fix printk format warning seen on x86_64:
+drivers/infiniband/hw/nes/nes_cm.c:3190:2: warning: format '%zu' expects type 'size_t', but argument 11 has type 'int'
+
+Signed-off-by: Randy Dunlap <rdunlap@xenotime.net>
+Cc: Faisal Latif <faisal.latif@intel.com>
 ---
+ drivers/infiniband/hw/nes/nes_cm.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
- drivers/infiniband/hw/cxgb4/cq.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
-
-diff --git a/drivers/infiniband/hw/cxgb4/cq.c b/drivers/infiniband/hw/cxgb4/cq.c
-index 1720dc7..901c5fb 100644
---- a/drivers/infiniband/hw/cxgb4/cq.c
-+++ b/drivers/infiniband/hw/cxgb4/cq.c
-@@ -185,7 +185,7 @@ static void insert_recv_cqe(struct t4_wq *wq, struct t4_cq *cq)
- 				 V_CQE_OPCODE(FW_RI_SEND) |
- 				 V_CQE_TYPE(0) |
- 				 V_CQE_SWCQE(1) |
--				 V_CQE_QPID(wq->rq.qid));
-+				 V_CQE_QPID(wq->sq.qid));
- 	cqe.bits_type_ts = cpu_to_be64(V_CQE_GENBIT((u64)cq->gen));
- 	cq->sw_queue[cq->sw_pidx] = cqe;
- 	t4_swcq_produce(cq);
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--- next-2011-1013.orig/drivers/infiniband/hw/nes/nes_cm.c
++++ next-2011-1013/drivers/infiniband/hw/nes/nes_cm.c
+@@ -3189,7 +3189,7 @@ int nes_accept(struct iw_cm_id *cm_id, s
+ 
+ 	nes_debug(NES_DBG_CM, "QP%u, Destination IP = 0x%08X:0x%04X, local = "
+ 		  "0x%08X:0x%04X, rcv_nxt=0x%08X, snd_nxt=0x%08X, mpa + "
+-		  "private data length=%zu.\n", nesqp->hwqp.qp_id,
++		  "private data length=%u.\n", nesqp->hwqp.qp_id,
+ 		  ntohl(cm_id->remote_addr.sin_addr.s_addr),
+ 		  ntohs(cm_id->remote_addr.sin_port),
+ 		  ntohl(cm_id->local_addr.sin_addr.s_addr),
