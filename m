@@ -1,41 +1,43 @@
-From: Christoph Lameter <cl-gkYfJU5Cukgdnm+yROfE0A@public.gmane.org>
-Subject: Re: Building 3.1-rc9 in kernel infiniband support with OFED
- libraries
-Date: Thu, 13 Oct 2011 12:32:18 -0500 (CDT)
-Message-ID: <alpine.DEB.2.00.1110131231120.19960@router.home>
-References: <alpine.DEB.2.00.1110110900290.3388@router.home> <20111011173929.GH26965@obsidianresearch.com> <CAO+b5-pxyc0LpGQ4kkOXJVi7cgYm_cgyJ0qM-m81=fZ+MGXHwQ@mail.gmail.com> <1828884A29C6694DAF28B7E6B8A8237316E6A98C@ORSMSX101.amr.corp.intel.com>
- <CAL1RGDW_usQ8o4FJzZqkmoZAvSTHBLZJuJ_YpsHL-=ErbgSw-A@mail.gmail.com> <1828884A29C6694DAF28B7E6B8A8237316E6A9C0@ORSMSX101.amr.corp.intel.com> <CAL1RGDXm-v52ZRjvNd=jieEeE=rDkatvJcxfporue6x5XjFURA@mail.gmail.com> <alpine.DEB.2.00.1110131212370.19960@router.home>
- <CAL1RGDVb7dwV8CSoUaWbAOjxkpL=pwpcQ3_8PGkXMksZtWNJNA@mail.gmail.com> <alpine.DEB.2.00.1110131224160.19960@router.home> <CAL1RGDWfoNM+To+7NupJoWiwPRQT9Nip8VodG1pSaBfw3MKzsQ@mail.gmail.com>
+From: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+Subject: Re: create new library project and few queries to open source
+Date: Thu, 13 Oct 2011 10:32:13 -0700
+Message-ID: <CAL1RGDUybg1bVooqAo1Bt9F2r1hrHtthRtGQE+nzGXELMi136g@mail.gmail.com>
+References: <88B766C272F2C64B944B21AD078333151BB18C09A2@EXMAIL.ad.emulex.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAL1RGDWfoNM+To+7NupJoWiwPRQT9Nip8VodG1pSaBfw3MKzsQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <88B766C272F2C64B944B21AD078333151BB18C09A2-/SwythR3zqxVRK6PHKByhFaTQe2KTcn/@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
-Cc: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Parav.Pandit-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, vlad-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, 13 Oct 2011, Roland Dreier wrote:
-
-> On Thu, Oct 13, 2011 at 10:24 AM, Christoph Lameter <cl-gkYfJU5Cukgdnm+yROfE0A@public.gmane.org> wrote:
-> >> Clean reviewed patches for this are where?
-> >
-> > They are in OFED-1.5.3.1 so they were already released.
+On Thu, Oct 13, 2011 at 9:40 AM,  <Parav.Pandit-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org> wrote:
+> 2. For adding hardware driver for a new RDMA adapter, to which git tree(s) do I need to submit patches?
+> openfabrics.org as well as kernel.org or just openfabrics is sufficient?
 >
-> OFED is neither clean nor reviewed.  Really.  The stuff in OFED always
-> needs a bunch
-> of review before it is suitable for upstream.  Ignoring ABI stability
-> is just one problem
-> that OFED code typically has.
+> git://git.openfabrics.org/ofed_1_5/linux-2.6.git, branch ofed_kernel_1_5?
+> and
+> git://git.kernel.org/pub/scm/linux/kernel/git/roland/infiniband.git, branch for-next?
+>
+> 4. I am little confused.
+> pub/scm/linux/kernel/git/roland/infiniband.git is not showing up in the list at http://git.kernel.org.
+> Am I looking at wrong place? Or?
+>
+> 5. my_new_rdma_hw_driver that will be located in drivers/infiniband/hw/my_new_rdma_hw_driver directory, does it have to compile for all backports or only my desired kernel versions are sufficient for OFED 1.5.x, as I don't plan to support 2.6.22 and older kernel version?
 
-Yeah. ABI stability etc is really what we want. Thats why I would like to
-see it upstream rather than continue to work with this OFED tarball
-ofa_kernel mess.
+Please focus on upstream kernel first, then worry about OFED backports.
 
-So the patches need to be resubmitted for upstream inclusion from
-Mellanox to you?
+My for-next tree is temporarily at https://github.com/rolandd/infiniband
+while kernel.org recovers from the security break.
 
+But really it's fine to work against Linus's 3.1-rc as well.  At this point
+it's probably not realistic to expect your code to get into 3.2, but it's the
+perfect time to start reviewing for a 3.3 merge.
 
+Looking forward to seeing another RDMA adapter supported upstream...
+ - Roland
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
