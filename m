@@ -1,35 +1,42 @@
-From: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
-Subject: Re: [PATCH] RDMA/cxgb4: Unblock reads on comp_channel
-Date: Fri, 14 Oct 2011 13:22:32 -0700
-Message-ID: <CAL1RGDUz7jSgA=BHDi3oPEGfJ6oy49ptsiXm9c+vTp+gONO=Ow@mail.gmail.com>
-References: <1318494090-9996-1-git-send-email-kumaras@chelsio.com>
- <CAL1RGDU9Ka7-sGVnCnobgQjoh7p2bsXbSLp-Fnn6aA1Q9of36w@mail.gmail.com> <4E970E02.2090207@opengridcomputing.com>
+From: Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: Building 3.1-rc9 in kernel infiniband support with OFED libraries
+Date: Fri, 14 Oct 2011 16:38:13 -0400 (EDT)
+Message-ID: <16183af4-664d-4a9e-ba8c-4a8acc4018f4@zmail05.collab.prod.int.phx2.redhat.com>
+References: <CAL1RGDWfoNM+To+7NupJoWiwPRQT9Nip8VodG1pSaBfw3MKzsQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4E970E02.2090207-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+In-Reply-To: <CAL1RGDWfoNM+To+7NupJoWiwPRQT9Nip8VodG1pSaBfw3MKzsQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Cc: Kumar Sanghvi <kumaras-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, divy-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org
+To: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+Cc: Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Christoph Lameter <cl-gkYfJU5Cukgdnm+yROfE0A@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Oct 13, 2011 at 9:12 AM, Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+v7I7tHvgBF7@public.gmane.org=
-m> wrote:
-> I'm not sure other drivers have this issue. =A0For example, when a ml=
-x or
-> mthca QP moves out of RTS, does the HW flush the pending recv WRs? =A0=
-=46or
-> Chelsio devices, the provider driver/library must handle this.
+----- Original Message -----
+> On Thu, Oct 13, 2011 at 10:24 AM, Christoph Lameter <cl-gkYfJU5Cukgdnm+yROfE0A@public.gmane.org>
+> wrote:
+> >> Clean reviewed patches for this are where?
+> >
+> > They are in OFED-1.5.3.1 so they were already released.
+> 
+> OFED is neither clean nor reviewed.  Really.  The stuff in OFED
+> always
+> needs a bunch
+> of review before it is suitable for upstream.  Ignoring ABI stability
+> is just one problem
+> that OFED code typically has.
 
-Yeah, mthca will generate the flush events in hardware IIRC.
+Indeed.  Because it is in OFED means it is in testing, nothing more.
+A better acronym for OFED is Open Fabrics Experimental Distribution.
+These issues are the primary reason we don't follow OFED in RHEL6.
 
-So OK, this change makes sense to me... only risk is a spurious
-event for empty queues.
+-- 
+Doug Ledford <dledford-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+              GPG KeyID: 0E572FDD
+	      http://people.redhat.com/dledford
 
- - R.
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
