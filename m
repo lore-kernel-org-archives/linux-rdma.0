@@ -1,33 +1,41 @@
-From: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [PATCH] rdma/core: Really export ib_open_qp() to user space
-Date: Mon, 17 Oct 2011 17:12:19 +0000
-Message-ID: <1828884A29C6694DAF28B7E6B8A8237316E6B4CF@ORSMSX101.amr.corp.intel.com>
-References: <1828884A29C6694DAF28B7E6B8A8237316E6AF56@ORSMSX101.amr.corp.intel.com>
- <1828884A29C6694DAF28B7E6B8A8237316E6B1B1@ORSMSX101.amr.corp.intel.com>
- <4E9AA6B8.8090707@mellanox.com>
+From: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: [PATCH] opensm/main.c: Change size parameter in setvbuf call from
+ 0 to BUFSIZ
+Date: Mon, 17 Oct 2011 13:34:09 -0400
+Message-ID: <4E9C6711.3020704@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4E9AA6B8.8090707-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Cc: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Christoph Lameter <cl-gkYfJU5Cukgdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Dotan Barak <dotanb-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, jack Morgenstein <jackm-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
+To: Alex Netes <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+Cc: Stan Smith <stan.smith-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Leonid Keller <leonid-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, "linux-rdma (linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org)" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-> So what else would you suggest for further testing, is that pulling
-> the xrc branch of your ofa hosted librdmacm/libibverbs/libmlx4 trees
-> and run librdmacm's rdma_{xclient,xserver} example? I was a bit confused
-> since I see this example both in the master and the xrc brach.
 
-I wanted to keep the rdma_client / rdma_server tests as simple as possible, but I still wanted a more complete client / server test where I could add RDMA reads / writes / etc.  The rdma_xclient / rdma_xserver tests are a place for those.  They support RC and XRC, so they're in the master branch for the RC support.  I have extensions for them in a private branch which aren't quite ready yet.
+to eliminate Win8 assert as this is shared code
 
-For my testing, I pulled mvapich2 and run with and without xrc support, plus the normal verbs tests.  For the xrc support I have to build with the OFED compatibility APIs added into verbs.
+Signed-off-by: Hal Rosenstock <hal-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
+---
+ opensm/main.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-> BTW the master branch misses a tag for v1.0.15...
+diff --git a/opensm/main.c b/opensm/main.c
+index 51c8291..f7a6d83 100644
+--- a/opensm/main.c
++++ b/opensm/main.c
+@@ -645,7 +645,7 @@ int main(int argc, char *argv[])
+ 	};
+ 
+ 	/* force stdout to be line-buffered */
+-	setvbuf(stdout, NULL, _IOLBF, 0);
++	setvbuf(stdout, NULL, _IOLBF, BUFSIZ);
+ 
+ 	/* Make sure that the opensm and complib were compiled using
+ 	   same modes (debug/free) */
+-- 
+1.7.6.1
 
-thanks - I'll add.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
