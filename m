@@ -1,61 +1,35 @@
-From: "Latif, Faisal" <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: RE: [patch] RDMA/nes: silence compiler warning
-Date: Mon, 17 Oct 2011 11:28:51 -0700
-Message-ID: <2EFBCAEF10980645BBCFB605689E08E904EC56F5E0@azsmsx506.amr.corp.intel.com>
-References: <20111017072857.GB7812@elgon.mountain>
- <CAL1RGDVe7OKL35G9hdzYNWGZkC+g_HXXXrkRgw2ueTk__vMNPg@mail.gmail.com>
+From: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH] rdma/core: Really export ib_open_qp() to user space
+Date: Mon, 17 Oct 2011 23:09:20 +0200
+Message-ID: <CAJZOPZLUdU=DoiAdhus1SkMgtiWo==xD=55jr9sL9VQFNJ=Y_w@mail.gmail.com>
+References: <1828884A29C6694DAF28B7E6B8A8237316E6AF56@ORSMSX101.amr.corp.intel.com>
+	<1828884A29C6694DAF28B7E6B8A8237316E6B1B1@ORSMSX101.amr.corp.intel.com>
+	<4E9AA6B8.8090707@mellanox.com>
+	<1828884A29C6694DAF28B7E6B8A8237316E6B4CF@ORSMSX101.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAL1RGDVe7OKL35G9hdzYNWGZkC+g_HXXXrkRgw2ueTk__vMNPg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <1828884A29C6694DAF28B7E6B8A8237316E6B4CF-P5GAC/sN6hmkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Cc: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Christoph Lameter <cl-gkYfJU5Cukgdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Dotan Barak <dotanb-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, jack Morgenstein <jackm-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
+Hefty, Sean <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
 
+>=A0The rdma_xclient / rdma_xserver tests are a place for those. =A0The=
+y support RC and
+> XRC, so they're in the master branch for the RC support. =A0I have ex=
+tensions for them in
+> a private branch which aren't quite ready yet.
 
-> -----Original Message-----
-> From: roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org [mailto:roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org] On Behal=
-f
-> Of Roland Dreier
-> Sent: Monday, October 17, 2011 1:15 PM
-> To: Dan Carpenter
-> Cc: Latif, Faisal; Hefty, Sean; Hal Rosenstock; linux-
-> rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> Subject: Re: [patch] RDMA/nes: silence compiler warning
->=20
-> On Mon, Oct 17, 2011 at 12:28 AM, Dan Carpenter
-> <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org> wrote:
-> > =A0 =A0 =A0 =A0nes_debug(NES_DBG_CM, "QP%u, Destination IP =3D 0x%0=
-8X:0x%04X,
-> local =3D "
-> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0"0x%08X:0x%04X, rcv_nxt=3D0x%08X=
-, snd_nxt=3D0x%08X, mpa
-> + "
-> > - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 "private data length=3D%zu.\n", n=
-esqp->hwqp.qp_id,
-> > + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 "private data length=3D%d.\n", ne=
-sqp->hwqp.qp_id,
-> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0ntohl(cm_id->remote_addr.sin_add=
-r.s_addr),
-> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0ntohs(cm_id->remote_addr.sin_por=
-t),
-> > =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0ntohl(cm_id->local_addr.sin_addr=
-=2Es_addr),
->=20
-> By the way, could this debug message be using %pI4 instead of %08X to
-> print IP addresses?
->=20
->  - R.
+again, and just to make sure I got it - for basic XRC testing which
+doesn't go to MPI nor to the OFED compatability APIs, what env/test
+would you recommend - is that the xrc branch on the three libraries
+and rdma_x{client, server}?
 
-Yes, We should have used %pI4 for this also.
-
-Thanks
-=46aisal
-
+Or.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
 n
