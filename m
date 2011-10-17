@@ -1,42 +1,45 @@
-From: Or Gerlitz <ogerlitz-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>
-Subject: Re: [PATCH] rdma/core: Really export ib_open_qp() to user space
-Date: Sun, 16 Oct 2011 11:41:12 +0200
-Message-ID: <4E9AA6B8.8090707@mellanox.com>
-References: <1828884A29C6694DAF28B7E6B8A8237316E6AF56@ORSMSX101.amr.corp.intel.com> <1828884A29C6694DAF28B7E6B8A8237316E6B1B1@ORSMSX101.amr.corp.intel.com>
+From: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
+Subject: [patch] RDMA/nes: silence compiler warning
+Date: Mon, 17 Oct 2011 10:28:57 +0300
+Message-ID: <20111017072857.GB7812@elgon.mountain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1828884A29C6694DAF28B7E6B8A8237316E6B1B1-P5GAC/sN6hmkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
+Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>, Christoph Lameter <cl-gkYfJU5Cukgdnm+yROfE0A@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Dotan Barak <dotanb-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, jack Morgenstein <jackm-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>
+To: Faisal Latif <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Sean Hefty <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On 10/14/2011 10:22 PM, Hefty, Sean wrote:
-> Just an update: the issues that I was seeing were caused by missing 
-> patches in my libraries (one in libmlx4 and the other in the ofed 
-> compatibility layer). The XRC patches in for-next are testing out fine 
-> for me, though it would be good if someone from Mellanox could try 
-> running some tests
+drivers/infiniband/hw/nes/nes_cm.c:3190:2: warning: format =E2=80=98%zu=
+=E2=80=99
+	expects argument of type =E2=80=98size_t=E2=80=99, but argument 11 has=
+ type
+	=E2=80=98int=E2=80=99 [-Wformat]
 
-Hi Sean,
+The warning says the type is "int" but actually it's unsigned short.
 
-I pulled for-next and made some basic IB tests with it, looks okay, 
-specifically I used
-ipoib connected mode and ibv_srq_pingpoing (libibverbs' srq test) to 
-make sure non XRC
-SRQs are working fine.
+Signed-off-by: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
 
-So what else would you suggest for further testing, is that pulling
-the xrc branch of your ofa hosted librdmacm/libibverbs/libmlx4 trees
-and run librdmacm's rdma_{xclient,xserver} example? I was a bit confused
-since I see this example both in the master and the xrc brach.
-
-BTW the master branch misses a tag for v1.0.15...
-
-Or.
+diff --git a/drivers/infiniband/hw/nes/nes_cm.c b/drivers/infiniband/hw=
+/nes/nes_cm.c
+index 16667c7..b96ec43 100644
+--- a/drivers/infiniband/hw/nes/nes_cm.c
++++ b/drivers/infiniband/hw/nes/nes_cm.c
+@@ -3189,7 +3189,7 @@ int nes_accept(struct iw_cm_id *cm_id, struct iw_=
+cm_conn_param *conn_param)
+=20
+ 	nes_debug(NES_DBG_CM, "QP%u, Destination IP =3D 0x%08X:0x%04X, local =
+=3D "
+ 		  "0x%08X:0x%04X, rcv_nxt=3D0x%08X, snd_nxt=3D0x%08X, mpa + "
+-		  "private data length=3D%zu.\n", nesqp->hwqp.qp_id,
++		  "private data length=3D%d.\n", nesqp->hwqp.qp_id,
+ 		  ntohl(cm_id->remote_addr.sin_addr.s_addr),
+ 		  ntohs(cm_id->remote_addr.sin_port),
+ 		  ntohl(cm_id->local_addr.sin_addr.s_addr),
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
