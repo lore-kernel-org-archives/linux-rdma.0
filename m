@@ -1,22 +1,23 @@
 From: Roland Dreier <roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH] mthca: Fix the attribute sq_sig_type value in query qp
-Date: Tue, 18 Oct 2011 10:09:57 -0700
-Message-ID: <CAL1RGDWF9fYiV8gXdF2CpJJqmFcV-J9CFhPhyjjBzut7o3uL=w@mail.gmail.com>
-References: <201110181744.00322.dotanb@sw.voltaire.com>
+Subject: Re: [patch] RDMA/nes: silence compiler warning
+Date: Tue, 18 Oct 2011 10:10:42 -0700
+Message-ID: <CAL1RGDX5EGxqatX-RFLKqZcJ+pYDHhie3G04rD=BedA9uBvA6A@mail.gmail.com>
+References: <20111017072857.GB7812@elgon.mountain> <CAL1RGDVe7OKL35G9hdzYNWGZkC+g_HXXXrkRgw2ueTk__vMNPg@mail.gmail.com>
+ <2EFBCAEF10980645BBCFB605689E08E904EC56F5E0@azsmsx506.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <201110181744.00322.dotanb-g2bIKuvJtcQanlnWow0HJg@public.gmane.org>
+In-Reply-To: <2EFBCAEF10980645BBCFB605689E08E904EC56F5E0-uLM7Qlg6MbdZtRGVdHMbwrfspsVTdybXVpNB7YpNyf8@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Dotan Barak <dotanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: "Latif, Faisal" <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Dan Carpenter <dan.carpenter-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>, "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hal Rosenstock <hal.rosenstock-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <kernel-janitors-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Tue, Oct 18, 2011 at 8:44 AM, Dotan Barak <dotanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org> wrote:
-> Roland: did you have a change to review this patch?
+On Mon, Oct 17, 2011 at 11:28 AM, Latif, Faisal <faisal.latif-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
+> Yes, We should have used %pI4 for this also.
 
-Sorry, let this one slip for some reason.  Was there some reason we didn't
-do this in the first place?
+Any chance of you guys going through and converting IP printing to
+%pI4 in the whole driver?
 
  - R.
 --
