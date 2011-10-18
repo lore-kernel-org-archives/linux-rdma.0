@@ -1,71 +1,53 @@
-From: Christoph Lameter <cl-gkYfJU5Cukgdnm+yROfE0A@public.gmane.org>
-Subject: Re: rdma: 3.1.0-rc9 breaks UD
-Date: Tue, 18 Oct 2011 10:14:49 -0500 (CDT)
-Message-ID: <alpine.DEB.2.00.1110181013090.687@router.home>
-References: <alpine.DEB.2.00.1110140852210.6411@router.home> <CAJZOPZJVNiwU-YA6KteOoFYX5M=BzPEZJsvRoFOz170O11qgeA@mail.gmail.com>
+From: Dotan Barak <dotanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Subject: Re: [PATCH] mthca: Fix the attribute sq_sig_type value in query qp
+Date: Tue, 18 Oct 2011 17:44:00 +0200
+Message-ID: <201110181744.00322.dotanb@sw.voltaire.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAJZOPZJVNiwU-YA6KteOoFYX5M=BzPEZJsvRoFOz170O11qgeA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Mon, 17 Oct 2011, Or Gerlitz wrote:
+Roland: did you have a change to review this patch?
 
-> Could you try that again with small msg size e.g use "-s 100", if that
-> doesn't help
-> can you send the output of "ibv_devinfo" from both nodes. Also please
-> specify the exact top commit of the two libraries (libibverbs and I
-> assume libmlx4 if you use Mellanox ConnectX) in case you built them
-> from the git trees, or the library version if you're using official
-> release, thanks,
+Thanks
+Dotan
 
--s 100 fixes the issue.
+----------  Forwarded Message  ----------
 
-The one side has OFED 1.5.3.1 kernel modules and libraries from the same
-tarball.
+Subject: [PATCH] mthca: Fix the attribute sq_sig_type value in query qp
+Date: Monday 05 September 2011 16:44
+From: Dotan Barak <dotanb-g2bIKuvJtcQanlnWow0HJg@public.gmane.org>
+To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 
-The kernel ib side has
+Fix the attribute sq_sig_type value in query qp.
 
-Libibverbs_git from a mirror of kernel.org
+Signed-off-by: Dotan Barak <dotanb-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Reviewed-by: Jack Morgenstein <jackm-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
 
-commit d0ebae72223298d6dbd7a2e2c812c529bf4d4a1d
-Author: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Date:   Sun Aug 7 18:01:48 2011 +0000
+---
 
-    Makefile.am: Fix an automake warning
-
-    Fix the following automake warning message:
-
-        Makefile.am:1: `INCLUDES' is the old name for `AM_CPPFLAGS' (or `*_CPPFLAGS')
-
-    A quote from the automake manual:
-
-        INCLUDES
-            This does the same job as AM_CPPFLAGS (or any per-target _CPPFLAGS variable
-            if it is used). It is an older name for the same functionality. This
-            variable is deprecated; we suggest using AM_CPPFLAGS and er-target
-            _CPPFLAGS instead.
-
-    Signed-off-by: Bart Van Assche bvanassche-HInyCGIudOg@public.gmane.org
-
-Mlx4_git from the same place.
-
-commit 60dade7a5e97da3b2eedf5839169c044f67577b3
-Author: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
-Date:   Thu Aug 11 09:35:20 2011 -0700
-
-    Add "foreign" option to AM_INIT_AUTOMAKE
-
-    Switch to the modern form of the AM_INIT_AUTOMAKE macro and tell
-    automake that the libmlx4 package does not follow the GNU standards.
-    This change makes it possible to use 'autoreconf' for libmlx4.
-
-    Signed-off-by: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+diff --git a/drivers/infiniband/hw/mthca/mthca_qp.c b/drivers/infiniband/hw/mthca/mthca_qp.c
+index 9601049..57b4325 100644
+--- a/drivers/infiniband/hw/mthca/mthca_qp.c
++++ b/drivers/infiniband/hw/mthca/mthca_qp.c
+@@ -501,6 +501,7 @@ done:
+ 	qp_attr->cap.max_inline_data = qp->max_inline_data;
+ 
+ 	qp_init_attr->cap	     = qp_attr->cap;
++	qp_init_attr->sq_sig_type    = qp->sq_policy;
+ 
+ out_mailbox:
+ 	mthca_free_mailbox(dev, mailbox);
 
 
+-------------------------------------------------------
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
