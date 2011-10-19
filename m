@@ -1,43 +1,55 @@
 From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Subject: Re: [PATCH] ib_srpt: Initial SRP Target merge for v3.2-rc1
-Date: Wed, 19 Oct 2011 19:56:27 +0200
-Message-ID: <CAO+b5-orW-iK6WiGAt8Ovd1g64e628tcOh13D5xA67SfJ-W-Vg@mail.gmail.com>
-References: <1318556901-14850-1-git-send-email-nab@linux-iscsi.org>
+Subject: Re: ib_srpt status
+Date: Wed, 19 Oct 2011 20:09:24 +0200
+Message-ID: <CAO+b5-pypAr6zEXY0eS8Fv06kt-FiYOLNp2PxqqTXnRTo7tfHQ@mail.gmail.com>
+References: <20111012092318.GA9405@lst.de> <CAO+b5-rqc7Dq-7p1XRHrxVMP9JS5N26Ht1q8ee=KGRqpUintFQ@mail.gmail.com>
+ <1318956075.2454.10.camel@haakon2.linux-iscsi.org> <CAO+b5-oxcWM+Sh4t00SxPqbaNGj7uCJK8xgsoRaOxp-6Ac5EmQ@mail.gmail.com>
+ <1319045907.18132.15.camel@haakon2.linux-iscsi.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1318556901-14850-1-git-send-email-nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>
+In-Reply-To: <1319045907.18132.15.camel-Y1+j5t8j3WgjMeEPmliV8E/sVC8ogwMJ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 To: "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>
-Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Vu Pham <vu-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>
+Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Fri, Oct 14, 2011 at 3:48 AM, Nicholas A. Bellinger
+On Wed, Oct 19, 2011 at 7:38 PM, Nicholas A. Bellinger
 <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org> wrote:
-> This patch adds the kernel module ib_srpt SCSI RDMA Protocol (SRP) target
-> implementation conforming to the SRP r16a specification for the mainline
-> drivers/target infrastructure as requested by Christoph for an initial
-> v3.2-rc1 merge.
+> Btw, Roland asked me to take a look at the current set of module
+> parameters for ib_srpt, and see which could be removed and/or convert=
+ed
+> to per SPR target endpoint configfs attributes.. =A0So on that note, =
+a few
+> questions for you on a couple of the module parameters:
+>
+> *) use_port_guid_in_session_name: This appears to be a legacy compat
+> =A0 item, can this be safetly removed for mainline..?
 
-Issues that have been fixed in the SCST source tree but not yet in the
-LIO source tree:
-- Handling error completions for failed multipart RDMA transfers
-causes trouble (fixed in r3632 in the SCST repository).
-- srpt_map can cause memory corruption (fixed in r3262 in the SCST repository).
+As far as I know some people are still using this parameter.
 
-Issues introduced in the LIO source tree:
-- Using 128 bits for identifying a port seems overkill to me - 64 bits
-is sufficient. Also, there is no guarantee that the formula used for
-computing the port GID (node GUID + port number) will match the port
-GID.
-- srpt_make_nodeacl() returns 0 instead of an error code if
-srpt_alloc_fabric_acl() fails.
-- The headers of srpt_make_tport() and srpt_drop_tport() should be
-updated such that these read "$driver/$port" instead of
-"$driver/$target".
+> *) srpt_service_guid: Should this really have global scope..?
+
+I'm afraid that having different values of this parameter for
+different HCAs would break failing over between HCAs.
+
+> Aside from those, i'm currently having a look to see which of the mod=
+ule
+> parameters are not used in the initial srpt_add_one() setup path, and
+> that using per SRP target endpoint configfs attributes would make sen=
+se.
+
+My opinion is that the parameters used in srpt_add_one() also should
+be converted from module parameters into something that is
+configurable dynamically. ib_srpt users have already been asking to
+make e.g. srp_max_req_size configurable dynamically. It should be
+doable to reallocate the receive ring when there are no active
+sessions.
 
 Bart.
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
