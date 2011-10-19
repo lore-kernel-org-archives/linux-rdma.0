@@ -1,55 +1,79 @@
-From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Subject: Re: ib_srpt status
-Date: Wed, 19 Oct 2011 20:09:24 +0200
-Message-ID: <CAO+b5-pypAr6zEXY0eS8Fv06kt-FiYOLNp2PxqqTXnRTo7tfHQ@mail.gmail.com>
-References: <20111012092318.GA9405@lst.de> <CAO+b5-rqc7Dq-7p1XRHrxVMP9JS5N26Ht1q8ee=KGRqpUintFQ@mail.gmail.com>
- <1318956075.2454.10.camel@haakon2.linux-iscsi.org> <CAO+b5-oxcWM+Sh4t00SxPqbaNGj7uCJK8xgsoRaOxp-6Ac5EmQ@mail.gmail.com>
- <1319045907.18132.15.camel@haakon2.linux-iscsi.org>
+From: "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>
+Subject: Re: [PATCH] ib_srpt: Initial SRP Target merge for v3.2-rc1
+Date: Wed, 19 Oct 2011 11:35:35 -0700
+Message-ID: <1319049335.18132.34.camel@haakon2.linux-iscsi.org>
+References: <1318556901-14850-1-git-send-email-nab@linux-iscsi.org>
+	 <CAO+b5-orW-iK6WiGAt8Ovd1g64e628tcOh13D5xA67SfJ-W-Vg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1319045907.18132.15.camel-Y1+j5t8j3WgjMeEPmliV8E/sVC8ogwMJ@public.gmane.org>
+In-Reply-To: <CAO+b5-orW-iK6WiGAt8Ovd1g64e628tcOh13D5xA67SfJ-W-Vg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>
-Cc: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Vu Pham <vu-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Oct 19, 2011 at 7:38 PM, Nicholas A. Bellinger
-<nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org> wrote:
-> Btw, Roland asked me to take a look at the current set of module
-> parameters for ib_srpt, and see which could be removed and/or convert=
-ed
-> to per SPR target endpoint configfs attributes.. =A0So on that note, =
-a few
-> questions for you on a couple of the module parameters:
->
-> *) use_port_guid_in_session_name: This appears to be a legacy compat
-> =A0 item, can this be safetly removed for mainline..?
+On Wed, 2011-10-19 at 19:56 +0200, Bart Van Assche wrote:
+> On Fri, Oct 14, 2011 at 3:48 AM, Nicholas A. Bellinger
+> <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org> wrote:
+> > This patch adds the kernel module ib_srpt SCSI RDMA Protocol (SRP) target
+> > implementation conforming to the SRP r16a specification for the mainline
+> > drivers/target infrastructure as requested by Christoph for an initial
+> > v3.2-rc1 merge.
+> 
+> Issues that have been fixed in the SCST source tree but not yet in the
+> LIO source tree:
+> - Handling error completions for failed multipart RDMA transfers
+> causes trouble (fixed in r3632 in the SCST repository).
+> - srpt_map can cause memory corruption (fixed in r3262 in the SCST repository).
+> 
 
-As far as I know some people are still using this parameter.
+OK thanks for the update here.. I'll have a look at getting these two
+bugfixes merged into lio-core-2.6.git and respun for an initial ib_srpt
+merge.
 
-> *) srpt_service_guid: Should this really have global scope..?
+> Issues introduced in the LIO source tree:
+> - Using 128 bits for identifying a port seems overkill to me - 64 bits
+> is sufficient.
 
-I'm afraid that having different values of this parameter for
-different HCAs would break failing over between HCAs.
+Well, the reason I used 128 bits for the port name is because your
+original patch used 128 bits for the explict Node ACL port name and I
+wanted things to be consistent.
 
-> Aside from those, i'm currently having a look to see which of the mod=
-ule
-> parameters are not used in the initial srpt_add_one() setup path, and
-> that using per SRP target endpoint configfs attributes would make sen=
-se.
+That said, using rtslib + targetcli these are automatically extracted
+from /sys/class/infiniband/*/ports/*/gids/0 via ib_srpt.spec here:
 
-My opinion is that the parameters used in srpt_add_one() also should
-be converted from module parameters into something that is
-configurable dynamically. ib_srpt users have already been asking to
-make e.g. srp_max_req_size configurable dynamically. It should be
-doable to reallocate the receive ring when there are no active
-sessions.
+http://www.risingtidesystems.com/git/?p=rtslib.git;a=blob;f=specs/ib_srpt.spec;h=e42eec906accbe5670a38590cdcf63bba018667c;hb=HEAD
 
-Bart.
+so the end-user does not actually have to type the target port name in
+manually, ever. I'd much rather keep these two consistent with 128 bit
+port names following your original code, and let rtslib do the extra
+formatting as necessary.
+
+>  Also, there is no guarantee that the formula used for
+> computing the port GID (node GUID + port number) will match the port
+> GID.
+
+Not sure what you mean here.  Can you be more specific..?
+
+> - srpt_make_nodeacl() returns 0 instead of an error code if
+> srpt_alloc_fabric_acl() fails.
+
+Ok, will get this fixed up..
+
+> - The headers of srpt_make_tport() and srpt_drop_tport() should be
+> updated such that these read "$driver/$port" instead of
+> "$driver/$target".
+> 
+
+Will do.
+
+Thanks for the feedback!
+
+--nab
+
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
