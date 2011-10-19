@@ -1,40 +1,41 @@
-From: "Webmail Administrator" <chinmaya-iyTXdH61Iiuf0DUV/oxz1A@public.gmane.org>
-Subject: (unknown)
-Date: Thu, 20 Oct 2011 01:04:33 +0530
-Message-ID: <160de73f2ac69161f052ba815bf2c088.squirrel__18479.9401708462$1319053718$gmane$org@webmail.iitk.ac.in>
-Reply-To: webmailservice-zUnIyV3EKxJhl2p70BpVqQ@public.gmane.org
+From: Mike Marciniszyn <mike.marciniszyn-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH] IB/qib: cleanup checkpatch issue
+Date: Wed, 19 Oct 2011 16:42:23 -0400
+Message-ID: <20111019204223.20325.87236.stgit@kop-dev-sles11-04.qlogic.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Subject: 
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
+This was probably present from initial submission.
+
+Signed-off-by: Mike Marciniszyn <mike.marciniszyn-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+---
+ drivers/infiniband/hw/qib/qib_iba7322.c |    3 +--
+ 1 files changed, 1 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/infiniband/hw/qib/qib_iba7322.c b/drivers/infiniband/hw/qib/qib_iba7322.c
+index 5ea9ece..9a9bcd4 100644
+--- a/drivers/infiniband/hw/qib/qib_iba7322.c
++++ b/drivers/infiniband/hw/qib/qib_iba7322.c
+@@ -2853,9 +2853,8 @@ static irqreturn_t qib_7322intr(int irq, void *data)
+ 		for (i = 0; i < dd->first_user_ctxt; i++) {
+ 			if (ctxtrbits & rmask) {
+ 				ctxtrbits &= ~rmask;
+-				if (dd->rcd[i]) {
++				if (dd->rcd[i])
+ 					qib_kreceive(dd->rcd[i], NULL, &npkts);
+-				}
+ 			}
+ 			rmask <<= 1;
+ 		}
 
 
-
-mailbox has exceeded the storage limit which is 20GB as set by your
-administrator,you are currently running on 20.9GB,you may not be able t=
-o
-send or receive new mail until you re-validate your mailbox.To re-valid=
-ate
-your mailbox please click this
-https://docs.google.com/spreadsheet/viewform?formkey=3DdGh2MnVmNjBMdTlQ=
-VUswa3pEWXozTlE6MQ
-
-
-Warning!!! All Webmail. Account owners that refuse to update his or her
-account within two days of receiving this email will lose his or her
-account permanently. AGB =A9 upc cablecom GmbH 2011. We apologize for a=
-ny
-inconvenience this may have cause you. Thank you for using Webmail
-
-
-System Administrator.
-Customer Care Unit.
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
