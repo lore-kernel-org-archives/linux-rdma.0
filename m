@@ -1,54 +1,31 @@
 From: Mike Marciniszyn <mike.marciniszyn-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-Subject: RE: [PATCH] IB/qib: cleanup checkpatch issue
-Date: Wed, 19 Oct 2011 15:14:39 -0700
-Message-ID: <35AAF1E4A771E142979F27B51793A488884349D3DE@AVEXMB1.qlogic.org>
-References: <20111019221452.23608.82448.stgit@kop-dev-sles11-04.qlogic.org>
+Subject: [PATCH 0/2] serdes interoperabilty fixes
+Date: Wed, 19 Oct 2011 18:46:32 -0400
+Message-ID: <20111019224632.24717.17782.stgit@kop-dev-sles11-04.qlogic.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20111019221452.23608.82448.stgit-hIFRcJ1SNwcXGO8/Qfapyjg/wwJxntczYPYVAmT7z5s@public.gmane.org>
-Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Mike Marciniszyn <mike.marciniszyn-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>, "roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org" <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
-Cc: "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-RGlzcmVnYXJkLiAgIFRoaXMgd2FzIGEgZHVwbGljYXRlIHNlbmQuDQoNCk1pa2UNCg0KPiAtLS0t
-LU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiBGcm9tOiBsaW51eC1yZG1hLW93bmVyQHZnZXIua2Vy
-bmVsLm9yZyBbbWFpbHRvOmxpbnV4LXJkbWEtDQo+IG93bmVyQHZnZXIua2VybmVsLm9yZ10gT24g
-QmVoYWxmIE9mIE1pa2UgTWFyY2luaXN6eW4NCj4gU2VudDogV2VkbmVzZGF5LCBPY3RvYmVyIDE5
-LCAyMDExIDY6MTUgUE0NCj4gVG86IHJvbGFuZEBwdXJlc3RvcmFnZS5jb20NCj4gQ2M6IGxpbnV4
-LXJkbWFAdmdlci5rZXJuZWwub3JnDQo+IFN1YmplY3Q6IFtQQVRDSF0gSUIvcWliOiBjbGVhbnVw
-IGNoZWNrcGF0Y2ggaXNzdWUNCj4NCj4gVGhpcyB3YXMgcHJvYmFibHkgcHJlc2VudCBmcm9tIGlu
-aXRpYWwgc3VibWlzc2lvbi4NCj4NCj4gU2lnbmVkLW9mZi1ieTogTWlrZSBNYXJjaW5pc3p5biA8
-bWlrZS5tYXJjaW5pc3p5bkBxbG9naWMuY29tPg0KPiAtLS0NCj4gIGRyaXZlcnMvaW5maW5pYmFu
-ZC9ody9xaWIvcWliX2liYTczMjIuYyB8ICAgIDMgKy0tDQo+ICAxIGZpbGVzIGNoYW5nZWQsIDEg
-aW5zZXJ0aW9ucygrKSwgMiBkZWxldGlvbnMoLSkNCj4NCj4gZGlmZiAtLWdpdCBhL2RyaXZlcnMv
-aW5maW5pYmFuZC9ody9xaWIvcWliX2liYTczMjIuYw0KPiBiL2RyaXZlcnMvaW5maW5pYmFuZC9o
-dy9xaWIvcWliX2liYTczMjIuYw0KPiBpbmRleCA1ZWE5ZWNlLi45YTliY2Q0IDEwMDY0NA0KPiAt
-LS0gYS9kcml2ZXJzL2luZmluaWJhbmQvaHcvcWliL3FpYl9pYmE3MzIyLmMNCj4gKysrIGIvZHJp
-dmVycy9pbmZpbmliYW5kL2h3L3FpYi9xaWJfaWJhNzMyMi5jDQo+IEBAIC0yODUzLDkgKzI4NTMs
-OCBAQCBzdGF0aWMgaXJxcmV0dXJuX3QgcWliXzczMjJpbnRyKGludCBpcnEsIHZvaWQNCj4gKmRh
-dGEpDQo+ICAgICAgICAgICAgICAgZm9yIChpID0gMDsgaSA8IGRkLT5maXJzdF91c2VyX2N0eHQ7
-IGkrKykgew0KPiAgICAgICAgICAgICAgICAgICAgICAgaWYgKGN0eHRyYml0cyAmIHJtYXNrKSB7
-DQo+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIGN0eHRyYml0cyAmPSB+cm1hc2s7DQo+
-IC0gICAgICAgICAgICAgICAgICAgICAgICAgICAgIGlmIChkZC0+cmNkW2ldKSB7DQo+ICsgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgIGlmIChkZC0+cmNkW2ldKQ0KPiAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgIHFpYl9rcmVjZWl2ZShkZC0+cmNkW2ldLCBOVUxMLCAm
-bnBrdHMpOw0KPiAtICAgICAgICAgICAgICAgICAgICAgICAgICAgICB9DQo+ICAgICAgICAgICAg
-ICAgICAgICAgICB9DQo+ICAgICAgICAgICAgICAgICAgICAgICBybWFzayA8PD0gMTsNCj4gICAg
-ICAgICAgICAgICB9DQo+DQo+DQo+IC0tDQo+IFRvIHVuc3Vic2NyaWJlIGZyb20gdGhpcyBsaXN0
-OiBzZW5kIHRoZSBsaW5lICJ1bnN1YnNjcmliZSBsaW51eC1yZG1hIg0KPiBpbg0KPiB0aGUgYm9k
-eSBvZiBhIG1lc3NhZ2UgdG8gbWFqb3Jkb21vQHZnZXIua2VybmVsLm9yZw0KPiBNb3JlIG1ham9y
-ZG9tbyBpbmZvIGF0ICBodHRwOi8vdmdlci5rZXJuZWwub3JnL21ham9yZG9tby1pbmZvLmh0bWwN
-Cg0KDQpUaGlzIG1lc3NhZ2UgYW5kIGFueSBhdHRhY2hlZCBkb2N1bWVudHMgY29udGFpbiBpbmZv
-cm1hdGlvbiBmcm9tIFFMb2dpYyBDb3Jwb3JhdGlvbiBvciBpdHMgd2hvbGx5LW93bmVkIHN1YnNp
-ZGlhcmllcyB0aGF0IG1heSBiZSBjb25maWRlbnRpYWwuIElmIHlvdSBhcmUgbm90IHRoZSBpbnRl
-bmRlZCByZWNpcGllbnQsIHlvdSBtYXkgbm90IHJlYWQsIGNvcHksIGRpc3RyaWJ1dGUsIG9yIHVz
-ZSB0aGlzIGluZm9ybWF0aW9uLiBJZiB5b3UgaGF2ZSByZWNlaXZlZCB0aGlzIHRyYW5zbWlzc2lv
-biBpbiBlcnJvciwgcGxlYXNlIG5vdGlmeSB0aGUgc2VuZGVyIGltbWVkaWF0ZWx5IGJ5IHJlcGx5
-IGUtbWFpbCBhbmQgdGhlbiBkZWxldGUgdGhpcyBtZXNzYWdlLg0K
+The following series implements serdes fixes
+for interoperabilty.
+
+---
+
+Mitko Haralanov (2):
+      IB/qib: Hold links until tuning data is available
+      IB/qib: Fix issue with link states and QSFP cables
+
+
+ drivers/infiniband/hw/qib/qib_iba7322.c |  128 +++++++++++++++++++++----------
+ drivers/infiniband/hw/qib/qib_init.c    |    4 -
+ drivers/infiniband/hw/qib/qib_qsfp.c    |   25 ++++--
+ drivers/infiniband/hw/qib/qib_qsfp.h    |    3 +
+ 4 files changed, 103 insertions(+), 57 deletions(-)
 
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
