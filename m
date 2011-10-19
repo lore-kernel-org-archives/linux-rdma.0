@@ -1,33 +1,40 @@
-From: Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Subject: Re: [PATCH] ib_srpt: Initial SRP Target merge for v3.2-rc1
-Date: Wed, 19 Oct 2011 13:47:48 -0600
-Message-ID: <20111019194748.GA12501@obsidianresearch.com>
-References: <1318556901-14850-1-git-send-email-nab@linux-iscsi.org>
- <CAO+b5-orW-iK6WiGAt8Ovd1g64e628tcOh13D5xA67SfJ-W-Vg@mail.gmail.com>
- <1319049335.18132.34.camel@haakon2.linux-iscsi.org>
- <CAO+b5-oJ38L7t=spKQPnEZxNOA6zoqG9DA3uw9q+eOTVvELRUA@mail.gmail.com>
- <1319051341.18132.53.camel@haakon2.linux-iscsi.org>
+From: "Webmail Administrator" <chinmaya-iyTXdH61Iiuf0DUV/oxz1A@public.gmane.org>
+Subject: (unknown)
+Date: Thu, 20 Oct 2011 01:04:33 +0530
+Message-ID: <160de73f2ac69161f052ba815bf2c088.squirrel__18479.9401708462$1319053718$gmane$org@webmail.iitk.ac.in>
+Reply-To: webmailservice-zUnIyV3EKxJhl2p70BpVqQ@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1319051341.18132.53.camel-Y1+j5t8j3WgjMeEPmliV8E/sVC8ogwMJ@public.gmane.org>
+Subject: 
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>
-Cc: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Vu Pham <vu-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Oct 19, 2011 at 12:09:01PM -0700, Nicholas A. Bellinger wrote:
 
-> Are sport->gid.global.interface_id going to be different for each struct
-> srpt_port..?
 
-Infiniband GID suffixes (interface_id) are not guaranteed to be
-unique. The GID is expected to be unique, the portGUID (which is
-sometimes the same as the interface_id) is also expected to be unique.
 
-Jason
+mailbox has exceeded the storage limit which is 20GB as set by your
+administrator,you are currently running on 20.9GB,you may not be able t=
+o
+send or receive new mail until you re-validate your mailbox.To re-valid=
+ate
+your mailbox please click this
+https://docs.google.com/spreadsheet/viewform?formkey=3DdGh2MnVmNjBMdTlQ=
+VUswa3pEWXozTlE6MQ
+
+
+Warning!!! All Webmail. Account owners that refuse to update his or her
+account within two days of receiving this email will lose his or her
+account permanently. AGB =A9 upc cablecom GmbH 2011. We apologize for a=
+ny
+inconvenience this may have cause you. Thank you for using Webmail
+
+
+System Administrator.
+Customer Care Unit.
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
