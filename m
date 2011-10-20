@@ -1,38 +1,171 @@
-From: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
-Subject: Re: ib_srpt status
-Date: Thu, 20 Oct 2011 09:54:10 -0700
-Message-ID: <CAL1RGDW56xGXSKkHEUK3CSR2fLFCuWb5k9hEdrqi3c8Fad3+jA@mail.gmail.com>
-References: <20111012092318.GA9405@lst.de> <CAO+b5-rqc7Dq-7p1XRHrxVMP9JS5N26Ht1q8ee=KGRqpUintFQ@mail.gmail.com>
- <1318956075.2454.10.camel@haakon2.linux-iscsi.org> <CAO+b5-oxcWM+Sh4t00SxPqbaNGj7uCJK8xgsoRaOxp-6Ac5EmQ@mail.gmail.com>
- <1319045907.18132.15.camel@haakon2.linux-iscsi.org> <CAO+b5-pypAr6zEXY0eS8Fv06kt-FiYOLNp2PxqqTXnRTo7tfHQ@mail.gmail.com>
- <1319049743.18132.41.camel@haakon2.linux-iscsi.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+From: Vipul Pandya <vipul-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+Subject: [PATCH V2 02/10] cxgb4: Common platform specific changes for DB Drop Recovery
+Date: Thu, 20 Oct 2011 22:40:20 +0530
+Message-ID: <1319130620-9240-1-git-send-email-vipul@chelsio.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1319049743.18132.41.camel-Y1+j5t8j3WgjMeEPmliV8E/sVC8ogwMJ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>
-Cc: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, divy-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, dm-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, kumaras-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, Vipul Pandya <vipul-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Oct 19, 2011 at 11:42 AM, Nicholas A. Bellinger
-<nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org> wrote:
->> > *) srpt_service_guid: Should this really have global scope..?
->>
->> I'm afraid that having different values of this parameter for
->> different HCAs would break failing over between HCAs.
+    - Add platform-specific callback functions for interrupts.  This is
+    needed to do a single read-clear of the CAUSE register and then call
+    out to platform specific functions for DB threshold interrupts and DB
+    drop interrupts.
 
-If I have the possibility to set this per-whatever, I can of course
-still choose to set it to the same value everywhere, if I care about
-failover (vs. maybe providing SRP service to two different contexts).
+    - Add t4_mem_win_read_len() - mem-window reads for arbitrary lengths.
+    This is used to read the CIDX/PIDX values from EC contexts during DB
+    drop recovery.
 
-How do I choose what value to set this to anyway?
+    - Add t4_fwaddrspace_write() - sends addrspace write cmds to the fw.
+    Needed to flush the sge eq context cache.
 
-Can we at least put this in configfs with the rest of the target
-config options?  It seems like a hassle fo rme as a user to have
-to set a module parameter to control this type of config.
+Signed-off-by: Vipul Pandya <vipul-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+---
+Changes:
+V2: Corrected the subject for patch.
 
- - R.
+ drivers/net/ethernet/chelsio/cxgb4/t4_hw.c    |   69 +++++++++++++++++++++----
+ drivers/net/ethernet/chelsio/cxgb4/t4fw_api.h |    5 ++
+ 2 files changed, 63 insertions(+), 11 deletions(-)
+
+diff --git a/drivers/net/ethernet/chelsio/cxgb4/t4_hw.c b/drivers/net/ethernet/chelsio/cxgb4/t4_hw.c
+index 13609bf..32e1dd5 100644
+--- a/drivers/net/ethernet/chelsio/cxgb4/t4_hw.c
++++ b/drivers/net/ethernet/chelsio/cxgb4/t4_hw.c
+@@ -868,11 +868,14 @@ int t4_restart_aneg(struct adapter *adap, unsigned int mbox, unsigned int port)
+ 	return t4_wr_mbox(adap, mbox, &c, sizeof(c), NULL);
+ }
+ 
++typedef void (*int_handler_t)(struct adapter *adap);
++
+ struct intr_info {
+ 	unsigned int mask;       /* bits to check in interrupt status */
+ 	const char *msg;         /* message to print or NULL */
+ 	short stat_idx;          /* stat counter to increment or -1 */
+ 	unsigned short fatal;    /* whether the condition reported is fatal */
++	int_handler_t int_handler; /* platform-specific int handler */
+ };
+ 
+ /**
+@@ -905,6 +908,8 @@ static int t4_handle_intr_status(struct adapter *adapter, unsigned int reg,
+ 		} else if (acts->msg && printk_ratelimit())
+ 			dev_warn(adapter->pdev_dev, "%s (0x%x)\n", acts->msg,
+ 				 status & acts->mask);
++		if (acts->int_handler)
++			acts->int_handler(adapter);
+ 		mask |= acts->mask;
+ 	}
+ 	status &= mask;
+@@ -1013,9 +1018,9 @@ static void sge_intr_handler(struct adapter *adapter)
+ 		{ ERR_INVALID_CIDX_INC,
+ 		  "SGE GTS CIDX increment too large", -1, 0 },
+ 		{ ERR_CPL_OPCODE_0, "SGE received 0-length CPL", -1, 0 },
+-		{ F_DBFIFO_LP_INT, NULL, -1, 0 },
+-		{ F_DBFIFO_HP_INT, NULL, -1, 0 },
+-		{ ERR_DROPPED_DB, "SGE doorbell dropped", -1, 0 },
++		{ F_DBFIFO_LP_INT, NULL, -1, 0, t4_db_full },
++		{ F_DBFIFO_HP_INT, NULL, -1, 0, t4_db_full },
++		{ F_ERR_DROPPED_DB, NULL, -1, 0, t4_db_dropped },
+ 		{ ERR_DATA_CPL_ON_HIGH_QID1 | ERR_DATA_CPL_ON_HIGH_QID0,
+ 		  "SGE IQID > 1023 received CPL for FL", -1, 0 },
+ 		{ ERR_BAD_DB_PIDX3, "SGE DBP 3 pidx increment too large", -1,
+@@ -1036,20 +1041,14 @@ static void sge_intr_handler(struct adapter *adapter)
+ 	};
+ 
+ 	v = (u64)t4_read_reg(adapter, SGE_INT_CAUSE1) |
+-	    ((u64)t4_read_reg(adapter, SGE_INT_CAUSE2) << 32);
++		((u64)t4_read_reg(adapter, SGE_INT_CAUSE2) << 32);
+ 	if (v) {
+ 		dev_alert(adapter->pdev_dev, "SGE parity error (%#llx)\n",
+-			 (unsigned long long)v);
++				(unsigned long long)v);
+ 		t4_write_reg(adapter, SGE_INT_CAUSE1, v);
+ 		t4_write_reg(adapter, SGE_INT_CAUSE2, v >> 32);
+ 	}
+ 
+-	err = t4_read_reg(adapter, A_SGE_INT_CAUSE3);
+-	if (err & (F_DBFIFO_HP_INT|F_DBFIFO_LP_INT))
+-		t4_db_full(adapter);
+-	if (err & F_ERR_DROPPED_DB)
+-		t4_db_dropped(adapter);
+-
+ 	if (t4_handle_intr_status(adapter, SGE_INT_CAUSE3, sge_intr_info) ||
+ 	    v != 0)
+ 		t4_fatal_err(adapter);
+@@ -1995,6 +1994,54 @@ int t4_wol_pat_enable(struct adapter *adap, unsigned int port, unsigned int map,
+ 	(var).retval_len16 = htonl(FW_LEN16(var)); \
+ } while (0)
+ 
++int t4_fwaddrspace_write(struct adapter *adap, unsigned int mbox,
++			  u32 addr, u32 val)
++{
++	struct fw_ldst_cmd c;
++
++	memset(&c, 0, sizeof(c));
++	c.op_to_addrspace = htonl(V_FW_CMD_OP(FW_LDST_CMD) | F_FW_CMD_REQUEST |
++			    F_FW_CMD_WRITE |
++			    V_FW_LDST_CMD_ADDRSPACE(FW_LDST_ADDRSPC_FIRMWARE));
++	c.cycles_to_len16 = htonl(FW_LEN16(c));
++	c.u.addrval.addr = htonl(addr);
++	c.u.addrval.val = htonl(val);
++
++	return t4_wr_mbox(adap, mbox, &c, sizeof(c), NULL);
++}
++
++/*
++ *     t4_mem_win_read_len - read memory through PCIE memory window
++ *     @adap: the adapter
++ *     @addr: address of first byte requested aligned on 32b.
++ *     @data: len bytes to hold the data read
++ *     @len: amount of data to read from window.  Must be <=
++ *            MEMWIN0_APERATURE after adjusting for 16B alignment
++ *            requirements of the the memory window.
++ *
++ *     Read len bytes of data from MC starting at @addr.
++ */
++int t4_mem_win_read_len(struct adapter *adap, u32 addr, __be32 *data, int len)
++{
++	int i;
++	int off;
++
++	/*
++	 * Align on a 16B boundary.
++	 */
++	off = addr & 15;
++	if ((addr & 3) || (len + off) > MEMWIN0_APERTURE)
++		return -EINVAL;
++
++	t4_write_reg(adap, A_PCIE_MEM_ACCESS_OFFSET, addr & ~15);
++	t4_read_reg(adap, A_PCIE_MEM_ACCESS_OFFSET);
++
++	for (i = 0; i < len; i += 4)
++		*data++ = t4_read_reg(adap, (MEMWIN0_BASE + off + i));
++
++	return 0;
++}
++
+ /**
+  *	t4_mdio_rd - read a PHY register through MDIO
+  *	@adap: the adapter
+diff --git a/drivers/net/ethernet/chelsio/cxgb4/t4fw_api.h b/drivers/net/ethernet/chelsio/cxgb4/t4fw_api.h
+index edcfd7e..83ca454 100644
+--- a/drivers/net/ethernet/chelsio/cxgb4/t4fw_api.h
++++ b/drivers/net/ethernet/chelsio/cxgb4/t4fw_api.h
+@@ -1620,4 +1620,9 @@ struct fw_hdr {
+ #define FW_HDR_FW_VER_MINOR_GET(x) (((x) >> 16) & 0xff)
+ #define FW_HDR_FW_VER_MICRO_GET(x) (((x) >> 8) & 0xff)
+ #define FW_HDR_FW_VER_BUILD_GET(x) (((x) >> 0) & 0xff)
++
++int t4_mem_win_read_len(struct adapter *adap, u32 addr, __be32 *data, int len);
++int t4_fwaddrspace_write(struct adapter *adap, unsigned int mbox,
++			  u32 addr, u32 val);
++
+ #endif /* _T4FW_INTERFACE_H_ */
+-- 
+1.7.1
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
