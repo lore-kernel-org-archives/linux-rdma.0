@@ -1,50 +1,43 @@
-From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
-Subject: Re: ib_srpt status
-Date: Thu, 20 Oct 2011 20:01:40 +0200
-Message-ID: <CAO+b5-pwDeC_QJbX+d+uYVLoTfM_BZdPOFcfo+j=N-prmucaHQ@mail.gmail.com>
-References: <20111012092318.GA9405@lst.de> <CAO+b5-rqc7Dq-7p1XRHrxVMP9JS5N26Ht1q8ee=KGRqpUintFQ@mail.gmail.com>
- <1318956075.2454.10.camel@haakon2.linux-iscsi.org> <CAO+b5-oxcWM+Sh4t00SxPqbaNGj7uCJK8xgsoRaOxp-6Ac5EmQ@mail.gmail.com>
- <1319045907.18132.15.camel@haakon2.linux-iscsi.org> <CAO+b5-pypAr6zEXY0eS8Fv06kt-FiYOLNp2PxqqTXnRTo7tfHQ@mail.gmail.com>
- <CAL1RGDUfzRXfbc3hpF6s8v-Qo2_okXB8J-jDgQ79ELHe-x3yvg@mail.gmail.com>
+From: Jonathan Lallinger <jonathan-/Yg/VP3ZvrM@public.gmane.org>
+Subject: [PATCH] IW_CXGB4: Fix iw_cxgb4 count_rcqes logic
+Date: Thu, 20 Oct 2011 13:25:14 -0500
+Message-ID: <20111020182514.2760.57368.stgit@build.ogc.int>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAL1RGDUfzRXfbc3hpF6s8v-Qo2_okXB8J-jDgQ79ELHe-x3yvg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
-Cc: "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Oct 20, 2011 at 6:51 PM, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>=
- wrote:
-> On Wed, Oct 19, 2011 at 11:09 AM, Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org=
-> wrote:
->>> *) use_port_guid_in_session_name: This appears to be a legacy compa=
-t
->>> =A0 item, can this be safetly removed for mainline..?
->>
->> As far as I know some people are still using this parameter.
->
-> So what exactly does this parameter do? =A0How do I as a user
-> know what to set this to?
->
-> For mainline can we just decide what the right value of this is
-> and get rid of the parameter?
+Fixes another place in the code where logic dealing with the
+t4_cqe was using the wrong QID. This change fixes the counting
+logic so that it tests against the SQ QID instead of the RQ QID
+when counting RCQES
 
-If this parameter would be removed I would prefer to use the value 0
-(false) - this is the only value that is compliant with the SRP r16a
-draft.
+Signed-off by: Jonathan Lallinger <jonathan-/Yg/VP3ZvrM@public.gmane.org>
+Signed-off by: Steve Wise <swise-/Yg/VP3ZvrM@public.gmane.org>
+---
 
-If anyone is still using this parameter, I think it is a good time to s=
-peak up.
+ drivers/infiniband/hw/cxgb4/cq.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-The most recent discussion I have been able to find about this subject
-is: http://sourceforge.net/mailarchive/message.php?msg_id=3D23481074
+diff --git a/drivers/infiniband/hw/cxgb4/cq.c b/drivers/infiniband/hw/cxgb4/cq.c
+index 901c5fb..04ae97e 100644
+--- a/drivers/infiniband/hw/cxgb4/cq.c
++++ b/drivers/infiniband/hw/cxgb4/cq.c
+@@ -311,7 +311,7 @@ void c4iw_count_rcqes(struct t4_cq *cq, struct t4_wq *wq, int *count)
+ 	while (ptr != cq->sw_pidx) {
+ 		cqe = &cq->sw_queue[ptr];
+ 		if (RQ_TYPE(cqe) && (CQE_OPCODE(cqe) != FW_RI_READ_RESP) &&
+-		    (CQE_QPID(cqe) == wq->rq.qid) && cqe_completes_wr(cqe, wq))
++		    (CQE_QPID(cqe) == wq->sq.qid) && cqe_completes_wr(cqe, wq))
+ 			(*count)++;
+ 		if (++ptr == cq->size)
+ 			ptr = 0;
 
-Bart.
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
