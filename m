@@ -1,32 +1,40 @@
-From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Subject: Re: [PATCH] RDMA/cxgb4: Unblock reads on comp_channel
-Date: Thu, 20 Oct 2011 11:21:41 -0500
-Message-ID: <4EA04A95.9010908@opengridcomputing.com>
-References: <1318494090-9996-1-git-send-email-kumaras@chelsio.com> <CAL1RGDU9Ka7-sGVnCnobgQjoh7p2bsXbSLp-Fnn6aA1Q9of36w@mail.gmail.com> <4E970E02.2090207@opengridcomputing.com> <88B766C272F2C64B944B21AD078333151BEE2E947E@EXMAIL.ad.emulex.com> <CAL1RGDXw9kkxAM8_pJ=jRhFTgRRt52QygDpQ+89RfEN=7QU=HQ@mail.gmail.com>
+From: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+Subject: Re: [PATCH] ib_srpt: Initial SRP Target merge for v3.2-rc1
+Date: Thu, 20 Oct 2011 09:47:47 -0700
+Message-ID: <CAL1RGDVWUGgm=jNsGyPqdEJvP+dbh_BbGKWhjnX=AieD9gXLrg@mail.gmail.com>
+References: <1318556901-14850-1-git-send-email-nab@linux-iscsi.org>
+ <CAO+b5-orW-iK6WiGAt8Ovd1g64e628tcOh13D5xA67SfJ-W-Vg@mail.gmail.com>
+ <1319049335.18132.34.camel@haakon2.linux-iscsi.org> <CAO+b5-oJ38L7t=spKQPnEZxNOA6zoqG9DA3uw9q+eOTVvELRUA@mail.gmail.com>
+ <1319051341.18132.53.camel@haakon2.linux-iscsi.org> <CAO+b5-quJkZdSsAmL1gZz1V6mwB3Q8abOu_Q+96MxO89bhg6EA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAL1RGDXw9kkxAM8_pJ=jRhFTgRRt52QygDpQ+89RfEN=7QU=HQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <CAO+b5-quJkZdSsAmL1gZz1V6mwB3Q8abOu_Q+96MxO89bhg6EA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
-Cc: Parav.Pandit-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org, kumaras-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, divy-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org
+To: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Cc: "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Vu Pham <vu-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, David Dillow <dillowda-1Heg1YXhbW8@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On 10/20/2011 11:06 AM, Roland Dreier wrote:
-> On Thu, Oct 20, 2011 at 2:11 AM,<Parav.Pandit-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>  wrote:
->> http://lxr.linux.no/#linux+v3.0.4/Documentation/infiniband/core_locking.txt
->>
->> Line no 66 to 97 states that - at a given point of time, there should be only one callback per CQ should be active.
->> Is this ensured?
->>
->> compl_handler() is invoked from multiple places flush_qp() and post_qp_event() to my mind.
-> Yes, does look like an issue with this patch :(
->
+On Wed, Oct 19, 2011 at 11:24 PM, Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org> wrote:
+> If you have a look at the output of the command ibv_devices -v
+> (maintained by Roland), you will see that in the output of that
+> command ports are identified by a 64-bit GUID.
 
-And I think this bug exists in the T3 driver too.
+Where would I see that?  Seriously, I don't know where ibv_devices
+prints anything about ports.  It lists device by "node GUID" which is
+a globally unique ID, but that is per-adapter (and of course 2-port
+adapters are very common).
 
+It is true that every port does have a port GUID, but those are not
+used in most places -- typically we use a port GID.  Again, it is
+true that GID table entry 0 must be formed by taking the subnet
+prefix (assigned by the subnet manager) and appending the
+port GUID.
 
+To be honest I've kind of lost track of where this leads: what
+exactly are we trying to figure out how to identify?
+
+ - R.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
