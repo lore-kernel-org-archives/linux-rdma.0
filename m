@@ -1,27 +1,50 @@
-From: Kelly Burkhart <kelly.burkhart-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: RDMA_CM over RoCE
-Date: Thu, 20 Oct 2011 12:46:22 -0500
-Message-ID: <CAND8VyC9cm4J8fktvt2Et0LMpBQcKCcaRNEkFDkB_8VbrzLiqw@mail.gmail.com>
-References: <CAND8VyAWSO=i5uk_ahS15yNGUFq0cJgSDYcU4Go5tX10fj7o1w@mail.gmail.com>
+From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Subject: Re: ib_srpt status
+Date: Thu, 20 Oct 2011 20:01:40 +0200
+Message-ID: <CAO+b5-pwDeC_QJbX+d+uYVLoTfM_BZdPOFcfo+j=N-prmucaHQ@mail.gmail.com>
+References: <20111012092318.GA9405@lst.de> <CAO+b5-rqc7Dq-7p1XRHrxVMP9JS5N26Ht1q8ee=KGRqpUintFQ@mail.gmail.com>
+ <1318956075.2454.10.camel@haakon2.linux-iscsi.org> <CAO+b5-oxcWM+Sh4t00SxPqbaNGj7uCJK8xgsoRaOxp-6Ac5EmQ@mail.gmail.com>
+ <1319045907.18132.15.camel@haakon2.linux-iscsi.org> <CAO+b5-pypAr6zEXY0eS8Fv06kt-FiYOLNp2PxqqTXnRTo7tfHQ@mail.gmail.com>
+ <CAL1RGDUfzRXfbc3hpF6s8v-Qo2_okXB8J-jDgQ79ELHe-x3yvg@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAND8VyAWSO=i5uk_ahS15yNGUFq0cJgSDYcU4Go5tX10fj7o1w-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+In-Reply-To: <CAL1RGDUfzRXfbc3hpF6s8v-Qo2_okXB8J-jDgQ79ELHe-x3yvg-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+Cc: "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-On Wed, Oct 19, 2011 at 8:28 AM, Kelly Burkhart
-<kelly.burkhart-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
-> Hello,
+On Thu, Oct 20, 2011 at 6:51 PM, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>=
+ wrote:
+> On Wed, Oct 19, 2011 at 11:09 AM, Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org=
+> wrote:
+>>> *) use_port_guid_in_session_name: This appears to be a legacy compa=
+t
+>>> =A0 item, can this be safetly removed for mainline..?
+>>
+>> As far as I know some people are still using this parameter.
 >
-> I'm having a problem connecting using RDMA_CM over ethernet....
+> So what exactly does this parameter do? =A0How do I as a user
+> know what to set this to?
+>
+> For mainline can we just decide what the right value of this is
+> and get rid of the parameter?
 
-Actually not.  My network admin found some sort of misconfiguration on
-the switch that caused the problem  Everything works now.
+If this parameter would be removed I would prefer to use the value 0
+(false) - this is the only value that is compliant with the SRP r16a
+draft.
 
--K
+If anyone is still using this parameter, I think it is a good time to s=
+peak up.
+
+The most recent discussion I have been able to find about this subject
+is: http://sourceforge.net/mailarchive/message.php?msg_id=3D23481074
+
+Bart.
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
