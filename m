@@ -1,51 +1,31 @@
-From: <Parav.Pandit-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org>
-Subject: RE: [PATCH] RDMA/cxgb4: Unblock reads on comp_channel
-Date: Thu, 20 Oct 2011 10:25:36 -0700
-Message-ID: <88B766C272F2C64B944B21AD078333151BEE2E9521@EXMAIL.ad.emulex.com>
-References: <1318494090-9996-1-git-send-email-kumaras@chelsio.com>
- <CAL1RGDU9Ka7-sGVnCnobgQjoh7p2bsXbSLp-Fnn6aA1Q9of36w@mail.gmail.com>
- <4E970E02.2090207@opengridcomputing.com>
- <88B766C272F2C64B944B21AD078333151BEE2E947E@EXMAIL.ad.emulex.com>
- <CAL1RGDXw9kkxAM8_pJ=jRhFTgRRt52QygDpQ+89RfEN=7QU=HQ@mail.gmail.com>
- <4EA04A95.9010908@opengridcomputing.com>
+From: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+Subject: Re: [PATCH 07/10] RDMA/cxgb4: DB Drop Recovery for RDMA and LLD queues.
+Date: Thu, 20 Oct 2011 12:28:07 -0500
+Message-ID: <4EA05A27.9090605@opengridcomputing.com>
+References: <1319044264-779-1-git-send-email-vipul@chelsio.com> <1319044264-779-8-git-send-email-vipul@chelsio.com> <CAL1RGDWCfJHD+PjXQ3STk4uc-fEyQ2GsQR5ALU6i4-f7w2bXUA@mail.gmail.com> <4EA030F5.3000007@opengridcomputing.com> <CAL1RGDUDk_MAM+S+MaEcPQzug8TvE-mFAfNqX3FqRApLQu9H2g@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <4EA04A95.9010908-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <CAL1RGDUDk_MAM+S+MaEcPQzug8TvE-mFAfNqX3FqRApLQu9H2g-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org
-Cc: kumaras-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, divy-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org
+To: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
+Cc: Vipul Pandya <vipul-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, divy-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, dm-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, kumaras-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-You are right, cq_lock will result into dead lock.
-Should there be a additional compl_handler spin_lock?
-I was measuring performance impact for adding it, and, irq_save() and irq_restore() variant showed additional 200 cycles, which I believe should be o.k.?
-
-Parav
-
------Original Message-----
-From: Steve Wise [mailto:swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org] 
-Sent: Thursday, October 20, 2011 9:52 PM
-To: Roland Dreier
-Cc: Pandit, Parav; kumaras-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; divy-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org
-Subject: Re: [PATCH] RDMA/cxgb4: Unblock reads on comp_channel
-
-On 10/20/2011 11:06 AM, Roland Dreier wrote:
-> On Thu, Oct 20, 2011 at 2:11 AM,<Parav.Pandit-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>  wrote:
->> http://lxr.linux.no/#linux+v3.0.4/Documentation/infiniband/core_locking.txt
->>
->> Line no 66 to 97 states that - at a given point of time, there should be only one callback per CQ should be active.
->> Is this ensured?
->>
->> compl_handler() is invoked from multiple places flush_qp() and post_qp_event() to my mind.
-> Yes, does look like an issue with this patch :(
+On 10/20/2011 12:17 PM, Roland Dreier wrote:
+>> I believe 5 and 7 have build dependencies.
+> Right, missed that one too.
+>
+> But it seems 4,6,8,9,10 are independent of the rest of the series?
+>
+> ie I can trivially apply them and then worry about working out
+> the drivers/net / drivers/infiniband interdependency a bit later?
 >
 
-And I think this bug exists in the T3 driver too.
+Some of these might be dependent on prior patches the series.   But if they aren't, yes, you could do that.
 
-
+Stevo
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
