@@ -1,64 +1,54 @@
-From: Kumar Sanghvi <kumaras-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
-Subject: Re: [PATCH] RDMA/cxgb4: Unblock reads on comp_channel
-Date: Fri, 21 Oct 2011 13:02:58 +0530
-Message-ID: <20111021073254.GA23539@kumars-PC.asicdesigners.com>
-References: <1318494090-9996-1-git-send-email-kumaras@chelsio.com>
- <CAL1RGDU9Ka7-sGVnCnobgQjoh7p2bsXbSLp-Fnn6aA1Q9of36w@mail.gmail.com>
- <4E970E02.2090207@opengridcomputing.com>
- <88B766C272F2C64B944B21AD078333151BEE2E947E@EXMAIL.ad.emulex.com>
- <CAL1RGDXw9kkxAM8_pJ=jRhFTgRRt52QygDpQ+89RfEN=7QU=HQ@mail.gmail.com>
- <4EA04A95.9010908@opengridcomputing.com>
- <88B766C272F2C64B944B21AD078333151BEE2E9521@EXMAIL.ad.emulex.com>
- <4EA05AA0.4030201@opengridcomputing.com>
+From: Kelly Burkhart <kelly.burkhart-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: RDMA_CM over RoCE
+Date: Fri, 21 Oct 2011 08:35:30 -0500
+Message-ID: <CAND8VyCztMJPaFT1YRDac+rSiW5njCGi-Y081i-OqKshEu_-Mg@mail.gmail.com>
+References: <CAND8VyAWSO=i5uk_ahS15yNGUFq0cJgSDYcU4Go5tX10fj7o1w@mail.gmail.com>
+	<CAND8VyC9cm4J8fktvt2Et0LMpBQcKCcaRNEkFDkB_8VbrzLiqw@mail.gmail.com>
+	<CAJZOPZKYHBXB-C+LJAOtGS4xDCWfSjBoj2JNCwKGWw7cU=2ZxQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <4EA05AA0.4030201-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
+In-Reply-To: <CAJZOPZKYHBXB-C+LJAOtGS4xDCWfSjBoj2JNCwKGWw7cU=2ZxQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
-Cc: Parav.Pandit-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org, roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org, linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, divy-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org
+To: Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-rdma@vger.kernel.org
 
-On Thu, Oct 20, 2011 at 12:30:08 -0500, Steve Wise wrote:
-> On 10/20/2011 12:25 PM, Parav.Pandit-iH1Dq9VlAzfQT0dZR+AlfA@public.gmane.org wrote:
-> >You are right, cq_lock will result into dead lock.
-> >Should there be a additional compl_handler spin_lock?
-> >I was measuring performance impact for adding it, and, irq_save() and irq_restore() variant showed additional 200 cycles, which I believe should be o.k.?
-> >
-> >Parav
-> >
-> 
-> Yea, I think adding a comp_handler spin lock would do the trick.  I'll let Kumar come up with this change.
+This is in a lab environment and our network admin was doing some
+experimentation that he didn't think would affect me since I wasn't
+using multicast (does rdma_cm use multicast or IGMP?).  His
+description:
 
-I will cook up a patch and post soon.
+I was running a test last week to simulate multiple switch hops by
+connecting the switch to itself (in another vlan) several times.  With
+this setup, I had a host on the lab network that was multiple switch
+hops away.  It appears that one of these other vlans somehow became
+designated at the IGMP querier and either queries weren=92t being sent
+or weren=92t being processed.  Removing the first link in this chain
+caused the queries to start working again.  Without an appropriate
+querier, the switch didn=92t think it had to forward any groups (other
+than the 224.0.0.x reserved range that is always flooded).
 
-Thanks,
-Kumar.
-> 
-> 
-> 
-> >-----Original Message-----
-> >From: Steve Wise [mailto:swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org]
-> >Sent: Thursday, October 20, 2011 9:52 PM
-> >To: Roland Dreier
-> >Cc: Pandit, Parav; kumaras-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; divy-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org
-> >Subject: Re: [PATCH] RDMA/cxgb4: Unblock reads on comp_channel
-> >
-> >On 10/20/2011 11:06 AM, Roland Dreier wrote:
-> >>On Thu, Oct 20, 2011 at 2:11 AM,<Parav.Pandit-laKkSmNT4hbQT0dZR+AlfA@public.gmane.org>   wrote:
-> >>>http://lxr.linux.no/#linux+v3.0.4/Documentation/infiniband/core_locking.txt
-> >>>
-> >>>Line no 66 to 97 states that - at a given point of time, there should be only one callback per CQ should be active.
-> >>>Is this ensured?
-> >>>
-> >>>compl_handler() is invoked from multiple places flush_qp() and post_qp_event() to my mind.
-> >>Yes, does look like an issue with this patch :(
-> >>
-> >And I think this bug exists in the T3 driver too.
-> >
-> 
+This kind of odd switch connection would obviously never happen in prod=
+uction.
+
+
+On Thu, Oct 20, 2011 at 4:01 PM, Or Gerlitz <or.gerlitz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrot=
+e:
+> Kelly Burkhart <kelly.burkhart-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
+>
+>>> I'm having a problem connecting using RDMA_CM over ethernet....
+>> Actually not. =A0My network admin found some sort of misconfiguratio=
+n on
+>> the switch that caused the problem =A0Everything works now.
+>
+> Interesting, could you share the nature of =A0problem?
+>
+> Or.
+>
 --
-To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
+To unsubscribe from this list: send the line "unsubscribe linux-rdma" i=
+n
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
