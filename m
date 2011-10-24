@@ -1,322 +1,124 @@
-From: Mike Marciniszyn <mike.marciniszyn-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH V2 1/2] IB/qib: Hold links until tuning data is available
-Date: Mon, 24 Oct 2011 14:58:29 -0400
-Message-ID: <20111024185829.29991.67489.stgit@kop-dev-sles11-04.qlogic.org>
+From: Karl Schulz <karl-Tmo6s3XX3Xr5xfTjtVVUew@public.gmane.org>
+Subject: Re: OpenSM plugin patch request
+Date: Mon, 24 Oct 2011 18:57:33 +0000
+Message-ID: <493B1FB8-7ED1-455D-94B0-4D4B9829C0A1@tacc.utexas.edu>
+References: <6F2B8AE5-D38D-41B3-A237-CBC26680C4FF@tacc.utexas.edu>
+ <20111012151359.f1876bd3.weiny2@llnl.gov>
+ <18FD0A9E-4227-4CC9-B6EB-D451B80920F1@tacc.utexas.edu>
+ <4E96DE86.109@mellanox.co.il>
+ <60C1A845-5973-45E1-B78C-BE816F86BEEF@tacc.utexas.edu>
+ <4E9CAC24.1010101@dev.mellanox.co.il>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed;
+	boundary="_003_493B1FB87ED1455D94B04D4B9829C0A1taccutexasedu_"
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <4E9CAC24.1010101-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Content-Language: en-US
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Hal Rosenstock <hal-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
+Cc: "<kliteyn-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>" <kliteyn-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org>, "alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org" <alexne-VPRAkNaXOzVWk0Htik3J/w@public.gmane.org>, Ira Weiny <weiny2-i2BcT+NCU+M@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-From: Mitko Haralanov <mitko-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+--_003_493B1FB87ED1455D94B04D4B9829C0A1taccutexasedu_
+Content-Type: text/plain; charset="us-ascii"
+Content-ID: <5CBE98EF6F00A54F8C42742B686E36BC-H8qjcnOI+J1gYfp1RNbdJ4dd74u8MsAO@public.gmane.org>
+Content-Transfer-Encoding: quoted-printable
 
-Hold the link state machine until the tuning data is read
-from the QSFP EEPROM so correct tuning settings are applied
-before the state machine attempts to bring the link up.
-Link is also held on cable unplug in case a different cable is
-used.
+On Oct 17, 2011, at 5:28 PM, Hal Rosenstock wrote:
 
-This version avoids scheduling work on non-qsfp cards.
+>=20
+> A couple of minor comments:
+>=20
+> 1. Why not move the OSM_EVENT_ID_LIGHT_SWEEP_DONE event to where "LIGHT
+> SWEEP COMPLETE" is indicated in osm_state_mgr.c ? That's actually more
+> accurate as all the transactions have completed.
+>=20
+> 2. The new events should be added to osmeventplugin/src/osmeventplugin.c
+> example.
+>=20
+> Thanks.
+>=20
+> -- Hal
+>=20
 
-Signed-off-by: Mitko Haralanov <mitko-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-Signed-off-by: Mike Marciniszyn <mike.marciniszyn-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
----
- drivers/infiniband/hw/qib/qib_iba7322.c |  120 ++++++++++++++++++++-----------
- drivers/infiniband/hw/qib/qib_init.c    |    4 -
- drivers/infiniband/hw/qib/qib_qsfp.c    |   25 ++++--
- drivers/infiniband/hw/qib/qib_qsfp.h    |    2 +
- 4 files changed, 94 insertions(+), 57 deletions(-)
+Thanks for the comments.  The attached osm_light_sweep.patch addresses the =
+points above by moving the OSM_EVENT_ID_LIGHT_SWEEP_DONE event to be with i=
+t's corresponding LIGHT SWEEP COMPLETE log message.  Also, the light sweep =
+START/DONE events are included in the example event plugin.=20
 
-diff --git a/drivers/infiniband/hw/qib/qib_iba7322.c b/drivers/infiniband/hw/qib/qib_iba7322.c
-index ebc5266..e3c8ead 100644
---- a/drivers/infiniband/hw/qib/qib_iba7322.c
-+++ b/drivers/infiniband/hw/qib/qib_iba7322.c
-@@ -2380,17 +2380,17 @@ static int qib_7322_bringup_serdes(struct qib_pportdata *ppd)
- 	ppd->cpspec->ibcctrl_a |= SYM_MASK(IBCCtrlA_0, IBLinkEn);
- 	set_vls(ppd);
- 
-+	/* Hold the link state machine for mezz boards */
-+	qib_set_ib_7322_lstate(ppd, 0,
-+			       QLOGIC_IB_IBCC_LINKINITCMD_DISABLE);
-+
-+
- 	/* be paranoid against later code motion, etc. */
- 	spin_lock_irqsave(&dd->cspec->rcvmod_lock, flags);
- 	ppd->p_rcvctrl |= SYM_MASK(RcvCtrl_0, RcvIBPortEnable);
- 	qib_write_kreg_port(ppd, krp_rcvctrl, ppd->p_rcvctrl);
- 	spin_unlock_irqrestore(&dd->cspec->rcvmod_lock, flags);
- 
--	/* Hold the link state machine for mezz boards */
--	if (IS_QMH(dd) || IS_QME(dd))
--		qib_set_ib_7322_lstate(ppd, 0,
--				       QLOGIC_IB_IBCC_LINKINITCMD_DISABLE);
--
- 	/* Also enable IBSTATUSCHG interrupt.  */
- 	val = qib_read_kreg_port(ppd, krp_errmask);
- 	qib_write_kreg_port(ppd, krp_errmask,
-@@ -5276,6 +5276,8 @@ static int qib_7322_ib_updown(struct qib_pportdata *ppd, int ibup, u64 ibcs)
- 				     QIBL_IB_AUTONEG_INPROG)))
- 			set_7322_ibspeed_fast(ppd, ppd->link_speed_enabled);
- 		if (!(ppd->lflags & QIBL_IB_AUTONEG_INPROG)) {
-+			struct qib_qsfp_data *qd =
-+				&ppd->cpspec->qsfp_data;
- 			/* unlock the Tx settings, speed may change */
- 			qib_write_kreg_port(ppd, krp_tx_deemph_override,
- 				SYM_MASK(IBSD_TX_DEEMPHASIS_OVERRIDE_0,
-@@ -5283,6 +5285,12 @@ static int qib_7322_ib_updown(struct qib_pportdata *ppd, int ibup, u64 ibcs)
- 			qib_cancel_sends(ppd);
- 			/* on link down, ensure sane pcs state */
- 			qib_7322_mini_pcs_reset(ppd);
-+			/* schedule the qsfp refresh which should turn the link
-+			   off */
-+			if (ppd->dd->flags & QIB_HAS_QSFP) {
-+				qd->t_insert = get_jiffies_64();
-+				schedule_work(&qd->work);
-+			}
- 			spin_lock_irqsave(&ppd->sdma_lock, flags);
- 			if (__qib_sdma_running(ppd))
- 				__qib_sdma_process_event(ppd,
-@@ -5638,38 +5646,62 @@ static void qsfp_7322_event(struct work_struct *work)
- 
- 	qd = container_of(work, struct qib_qsfp_data, work);
- 	ppd = qd->ppd;
--	pwrup = qd->t_insert + msecs_to_jiffies(QSFP_PWR_LAG_MSEC);
-+	pwrup = qd->t_insert +
-+		msecs_to_jiffies(QSFP_PWR_LAG_MSEC - QSFP_MODPRS_LAG_MSEC);
- 
--	/*
--	 * Some QSFP's not only do not respond until the full power-up
--	 * time, but may behave badly if we try. So hold off responding
--	 * to insertion.
--	 */
--	while (1) {
--		u64 now = get_jiffies_64();
--		if (time_after64(now, pwrup))
--			break;
--		msleep(20);
--	}
--	ret = qib_refresh_qsfp_cache(ppd, &qd->cache);
--	/*
--	 * Need to change LE2 back to defaults if we couldn't
--	 * read the cable type (to handle cable swaps), so do this
--	 * even on failure to read cable information.  We don't
--	 * get here for QME, so IS_QME check not needed here.
--	 */
--	if (!ret && !ppd->dd->cspec->r1) {
--		if (QSFP_IS_ACTIVE_FAR(qd->cache.tech))
--			le2 = LE2_QME;
--		else if (qd->cache.atten[1] >= qib_long_atten &&
--			 QSFP_IS_CU(qd->cache.tech))
--			le2 = LE2_5m;
--		else
-+	/* Delay for 20 msecs to allow ModPrs resistor to setup */
-+	mdelay(QSFP_MODPRS_LAG_MSEC);
-+
-+	if (!qib_qsfp_mod_present(ppd))
-+		/* Set the physical link to disabled */
-+		qib_set_ib_7322_lstate(ppd, 0,
-+				       QLOGIC_IB_IBCC_LINKINITCMD_DISABLE);
-+	else {
-+		/*
-+		 * Some QSFP's not only do not respond until the full power-up
-+		 * time, but may behave badly if we try. So hold off responding
-+		 * to insertion.
-+		 */
-+		while (1) {
-+			u64 now = get_jiffies_64();
-+			if (time_after64(now, pwrup))
-+				break;
-+			msleep(20);
-+		}
-+
-+		ret = qib_refresh_qsfp_cache(ppd, &qd->cache);
-+
-+		/*
-+		 * Need to change LE2 back to defaults if we couldn't
-+		 * read the cable type (to handle cable swaps), so do this
-+		 * even on failure to read cable information.  We don't
-+		 * get here for QME, so IS_QME check not needed here.
-+		 */
-+		if (!ret && !ppd->dd->cspec->r1) {
-+			if (QSFP_IS_ACTIVE_FAR(qd->cache.tech))
-+				le2 = LE2_QME;
-+			else if (qd->cache.atten[1] >= qib_long_atten &&
-+				 QSFP_IS_CU(qd->cache.tech))
-+				le2 = LE2_5m;
-+			else
-+				le2 = LE2_DEFAULT;
-+		} else
- 			le2 = LE2_DEFAULT;
--	} else
--		le2 = LE2_DEFAULT;
--	ibsd_wr_allchans(ppd, 13, (le2 << 7), BMASK(9, 7));
--	init_txdds_table(ppd, 0);
-+		ibsd_wr_allchans(ppd, 13, (le2 << 7), BMASK(9, 7));
-+		/*
-+		 * We always change parameteters, since we can choose
-+		 * values for cables without eeproms, and the cable may have
-+		 * changed from a cable with full or partial eeprom content
-+		 * to one with partial or no content.
-+		 */
-+		init_txdds_table(ppd, 0);
-+		/* The physical link is being re-enabled only when the
-+		   previous state was DISABLED. This should only happen when
-+		   the cable has been physically pulled. */
-+		if (ppd->lflags & QIBL_IB_LINK_DISABLED)
-+			qib_set_ib_7322_lstate(ppd, 0,
-+				QLOGIC_IB_IBCC_LINKINITCMD_SLEEP);
-+	}
- }
- 
- /*
-@@ -5773,7 +5805,8 @@ static void set_no_qsfp_atten(struct qib_devdata *dd, int change)
- 			/* now change the IBC and serdes, overriding generic */
- 			init_txdds_table(ppd, 1);
- 			/* Re-enable the physical state machine on mezz boards
--			 * now that the correct settings have been set. */
-+			 * now that the correct settings have been set.
-+			 * QSFP boards are handles by the QSFP event handler */
- 			if (IS_QMH(dd) || IS_QME(dd))
- 				qib_set_ib_7322_lstate(ppd, 0,
- 					    QLOGIC_IB_IBCC_LINKINITCMD_SLEEP);
-@@ -7193,7 +7226,8 @@ static void find_best_ent(struct qib_pportdata *ppd,
- 		}
- 	}
- 
--	/* Lookup serdes setting by cable type and attenuation */
-+	/* Active cables don't have attenuation so we only set SERDES
-+	 * settings to account for the attenuation of the board traces. */
- 	if (!override && QSFP_IS_ACTIVE(qd->tech)) {
- 		*sdr_dds = txdds_sdr + ppd->dd->board_atten;
- 		*ddr_dds = txdds_ddr + ppd->dd->board_atten;
-@@ -7510,12 +7544,6 @@ static int serdes_7322_init_new(struct qib_pportdata *ppd)
- 	u32 le_val, rxcaldone;
- 	int chan, chan_done = (1 << SERDES_CHANS) - 1;
- 
--	/*
--	 * Initialize the Tx DDS tables.  Also done every QSFP event,
--	 * for adapters with QSFP
--	 */
--	init_txdds_table(ppd, 0);
--
- 	/* Clear cmode-override, may be set from older driver */
- 	ahb_mod(ppd->dd, IBSD(ppd->hw_pidx), 5, 10, 0 << 14, 1 << 14);
- 
-@@ -7701,6 +7729,12 @@ static int serdes_7322_init_new(struct qib_pportdata *ppd)
- 	/* VGA output common mode */
- 	ibsd_wr_allchans(ppd, 12, (3 << 2), BMASK(3, 2));
- 
-+	/*
-+	 * Initialize the Tx DDS tables.  Also done every QSFP event,
-+	 * for adapters with QSFP
-+	 */
-+	init_txdds_table(ppd, 0);
-+
- 	return 0;
- }
- 
-diff --git a/drivers/infiniband/hw/qib/qib_init.c b/drivers/infiniband/hw/qib/qib_init.c
-index 3f0bfc3..d604fc1 100644
---- a/drivers/infiniband/hw/qib/qib_init.c
-+++ b/drivers/infiniband/hw/qib/qib_init.c
-@@ -584,10 +584,6 @@ int qib_init(struct qib_devdata *dd, int reinit)
- 			continue;
- 		}
- 
--		/* let link come up, and enable IBC */
--		spin_lock_irqsave(&ppd->lflags_lock, flags);
--		ppd->lflags &= ~QIBL_IB_LINK_DISABLED;
--		spin_unlock_irqrestore(&ppd->lflags_lock, flags);
- 		portok++;
- 	}
- 
-diff --git a/drivers/infiniband/hw/qib/qib_qsfp.c b/drivers/infiniband/hw/qib/qib_qsfp.c
-index 3374a52..e06c4ed 100644
---- a/drivers/infiniband/hw/qib/qib_qsfp.c
-+++ b/drivers/infiniband/hw/qib/qib_qsfp.c
-@@ -273,18 +273,12 @@ int qib_refresh_qsfp_cache(struct qib_pportdata *ppd, struct qib_qsfp_cache *cp)
- 	int ret;
- 	int idx;
- 	u16 cks;
--	u32 mask;
- 	u8 peek[4];
- 
- 	/* ensure sane contents on invalid reads, for cable swaps */
- 	memset(cp, 0, sizeof(*cp));
- 
--	mask = QSFP_GPIO_MOD_PRS_N;
--	if (ppd->hw_pidx)
--		mask <<= QSFP_GPIO_PORT2_SHIFT;
--
--	ret = ppd->dd->f_gpio_mod(ppd->dd, 0, 0, 0);
--	if (ret & mask) {
-+	if (!qib_qsfp_mod_present(ppd)) {
- 		ret = -ENODEV;
- 		goto bail;
- 	}
-@@ -444,6 +438,19 @@ const char * const qib_qsfp_devtech[16] = {
- 
- static const char *pwr_codes = "1.5W2.0W2.5W3.5W";
- 
-+int qib_qsfp_mod_present(struct qib_pportdata *ppd)
-+{
-+	u32 mask;
-+	int ret;
-+
-+	mask = QSFP_GPIO_MOD_PRS_N <<
-+		(ppd->hw_pidx * QSFP_GPIO_PORT2_SHIFT);
-+	ret = ppd->dd->f_gpio_mod(ppd->dd, 0, 0, 0);
-+
-+	return !((ret & mask) >>
-+		 ((ppd->hw_pidx * QSFP_GPIO_PORT2_SHIFT) + 3));
-+}
-+
- /*
-  * Initialize structures that control access to QSFP. Called once per port
-  * on cards that support QSFP.
-@@ -452,7 +459,6 @@ void qib_qsfp_init(struct qib_qsfp_data *qd,
- 		   void (*fevent)(struct work_struct *))
- {
- 	u32 mask, highs;
--	int pins;
- 
- 	struct qib_devdata *dd = qd->ppd->dd;
- 
-@@ -480,8 +486,7 @@ void qib_qsfp_init(struct qib_qsfp_data *qd,
- 		mask <<= QSFP_GPIO_PORT2_SHIFT;
- 
- 	/* Do not try to wait here. Better to let event handle it */
--	pins = dd->f_gpio_mod(dd, 0, 0, 0);
--	if (pins & mask)
-+	if (!qib_qsfp_mod_present(qd->ppd))
- 		goto bail;
- 	/* We see a module, but it may be unwise to look yet. Just schedule */
- 	qd->t_insert = get_jiffies_64();
-diff --git a/drivers/infiniband/hw/qib/qib_qsfp.h b/drivers/infiniband/hw/qib/qib_qsfp.h
-index c109bbd..786a92a 100644
---- a/drivers/infiniband/hw/qib/qib_qsfp.h
-+++ b/drivers/infiniband/hw/qib/qib_qsfp.h
-@@ -34,6 +34,7 @@
- 
- #define QSFP_DEV 0xA0
- #define QSFP_PWR_LAG_MSEC 2000
-+#define QSFP_MODPRS_LAG_MSEC 20
- 
- /*
-  * Below are masks for various QSFP signals, for Port 1.
-@@ -181,6 +182,7 @@ struct qib_qsfp_data {
- 
- extern int qib_refresh_qsfp_cache(struct qib_pportdata *ppd,
- 				  struct qib_qsfp_cache *cp);
-+extern int qib_qsfp_mod_present(struct qib_pportdata *ppd);
- extern void qib_qsfp_init(struct qib_qsfp_data *qd,
- 			  void (*fevent)(struct work_struct *));
- extern void qib_qsfp_deinit(struct qib_qsfp_data *qd);
+While adding to the example event plugin, I realized that the autoconf setu=
+p in 3.3.9 does not appear to be propagating all user settings down into th=
+e default plugin.  Consequently, I was not able to build the plugin when OF=
+ED headers were not in the default location.   In case it's useful (and has=
+n't already been addressed), the second attached patch adds  $(OSMV_INCLUDE=
+S) to the automake directives for the plugin which was sufficient in my cas=
+e to resolve necessary headers.
+
+Thanks,
+
+Karl
 
 
+
+
+--_003_493B1FB87ED1455D94B04D4B9829C0A1taccutexasedu_
+Content-Type: application/octet-stream; name="osm_light_sweep.patch"
+Content-Description: osm_light_sweep.patch
+Content-Disposition: attachment; filename="osm_light_sweep.patch"; size=1738;
+	creation-date="Mon, 24 Oct 2011 18:57:33 GMT";
+	modification-date="Mon, 24 Oct 2011 18:57:33 GMT"
+Content-ID: <839D6737961CBD40ACEA36C5B37D5A53-H8qjcnOI+J1gYfp1RNbdJ4dd74u8MsAO@public.gmane.org>
+Content-Transfer-Encoding: base64
+
+LS0tIGluY2x1ZGUvb3BlbnNtL29zbV9ldmVudF9wbHVnaW4uaAkyMDExLTA4LTA4IDE4OjQwOjE5
+LjAwMDAwMDAwMCAtMDUwMA0KKysrIGluY2x1ZGUvb3BlbnNtL29zbV9ldmVudF9wbHVnaW4uaAky
+MDExLTEwLTI0IDA4OjEzOjA1LjAwMDAwMDAwMCAtMDUwMA0KQEAgLTc3LDcgKzc3LDkgQEANCiAJ
+T1NNX0VWRU5UX0lEX1VDQVNUX1JPVVRJTkdfRE9ORSwNCiAJT1NNX0VWRU5UX0lEX1NUQVRFX0NI
+QU5HRSwNCiAJT1NNX0VWRU5UX0lEX1NBX0RCX0RVTVBFRCwNCi0JT1NNX0VWRU5UX0lEX01BWA0K
+KwlPU01fRVZFTlRfSURfTElHSFRfU1dFRVBfU1RBUlQsDQorCU9TTV9FVkVOVF9JRF9MSUdIVF9T
+V0VFUF9ET05FLA0KKwlPU01fRVZFTlRfSURfTUFYLA0KIH0gb3NtX2VwaV9ldmVudF9pZF90Ow0K
+DQogdHlwZWRlZiBzdHJ1Y3Qgb3NtX2VwaV9wb3J0X2lkIHsNCi0tLSBvcGVuc20vb3NtX3N0YXRl
+X21nci5jLm9yaWcJMjAxMS0wOC0wOCAxODozNjozOC4wMDAwMDAwMDAgLTA1MDANCisrKyBvcGVu
+c20vb3NtX3N0YXRlX21nci5jCTIwMTEtMTAtMjQgMDg6NTc6NDguMDAwMDAwMDAwIC0wNTAwDQpA
+QCAtNjIwLDYgKzYyMCw5IEBADQogCX0NCg0KIAlPU01fTE9HX01TR19CT1goc20tPnBfbG9nLCBP
+U01fTE9HX1ZFUkJPU0UsICJJTklUSUFUSU5HIExJR0hUIFNXRUVQIik7DQorCW9zbV9vcGVuc21f
+cmVwb3J0X2V2ZW50KHNtLT5wX3N1Ym4tPnBfb3NtLA0KKwkJCQlPU01fRVZFTlRfSURfTElHSFRf
+U1dFRVBfU1RBUlQsIE5VTEwpOw0KKw0KIAlDTF9QTE9DS19BQ1FVSVJFKHNtLT5wX2xvY2spOw0K
+IAljbF9xbWFwX2FwcGx5X2Z1bmMocF9zd190YmwsIHN0YXRlX21ncl9nZXRfc3dfaW5mbywgc20p
+Ow0KIAlDTF9QTE9DS19SRUxFQVNFKHNtLT5wX2xvY2spOw0KQEAgLTExMTMsNiArMTExNiw4IEBA
+DQogCQkJCQlPU01fRVZFTlRfSURfU0FfREJfRFVNUEVELCBOVUxMKTsNCiAJCQlPU01fTE9HX01T
+R19CT1goc20tPnBfbG9nLCBPU01fTE9HX1ZFUkJPU0UsDQogCQkJCQkiTElHSFQgU1dFRVAgQ09N
+UExFVEUiKTsNCisJCQlvc21fb3BlbnNtX3JlcG9ydF9ldmVudChzbS0+cF9zdWJuLT5wX29zbSwN
+CisJCQkJCQlPU01fRVZFTlRfSURfTElHSFRfU1dFRVBfRE9ORSwgTlVMTCk7DQogCQkJcmV0dXJu
+Ow0KIAkJfQ0KIAl9DQotLS0gb3NtZXZlbnRwbHVnaW4vc3JjL29zbWV2ZW50cGx1Z2luLmMJMjAx
+MS0xMC0yNCAwODowNTowNC4wMDAwMDAwMDAgLTA1MDANCisrKyBvc21ldmVudHBsdWdpbi9zcmMv
+b3NtZXZlbnRwbHVnaW4uYwkyMDExLTEwLTI0IDA4OjA1OjU1LjAwMDAwMDAwMCAtMDUwMA0KQEAg
+LTE3Niw2ICsxNzYsMTIgQEANCiAJY2FzZSBPU01fRVZFTlRfSURfU1VCTkVUX1VQOg0KIAkJZnBy
+aW50Zihsb2ctPmxvZ19maWxlLCAiU3VibmV0IHVwIHJlcG9ydGVkXG4iKTsNCiAJCWJyZWFrOw0K
+KwljYXNlIE9TTV9FVkVOVF9JRF9MSUdIVF9TV0VFUF9TVEFSVDoNCisJCWZwcmludGYobG9nLT5s
+b2dfZmlsZSwgIkxpZ2h0IHN3ZWVwIHN0YXJ0ZWRcbiIpOw0KKwkJYnJlYWs7DQorCWNhc2UgT1NN
+X0VWRU5UX0lEX0xJR0hUX1NXRUVQX0RPTkU6DQorCQlmcHJpbnRmKGxvZy0+bG9nX2ZpbGUsICJM
+aWdodCBzd2VlcCBjb21wbGV0ZWRcbiIpOw0KKwkJYnJlYWs7DQogCWNhc2UgT1NNX0VWRU5UX0lE
+X0hFQVZZX1NXRUVQX1NUQVJUOg0KIAkJZnByaW50Zihsb2ctPmxvZ19maWxlLCAiSGVhdnkgc3dl
+ZXAgc3RhcnRlZFxuIik7DQogCQlicmVhazsNCg==
+
+--_003_493B1FB87ED1455D94B04D4B9829C0A1taccutexasedu_
+Content-Type: application/octet-stream; name="build.patch"
+Content-Description: build.patch
+Content-Disposition: attachment; filename="build.patch"; size=324;
+	creation-date="Mon, 24 Oct 2011 18:57:33 GMT";
+	modification-date="Mon, 24 Oct 2011 18:57:33 GMT"
+Content-ID: <F9A6131E0334234E966A7E57070D4A16-H8qjcnOI+J1gYfp1RNbdJ4dd74u8MsAO@public.gmane.org>
+Content-Transfer-Encoding: base64
+
+LS0tIG9zbWV2ZW50cGx1Z2luL01ha2VmaWxlLmFtCTIwMTEtMTAtMjQgMDk6MjE6MjUuMDAwMDAw
+MDAwIC0wNTAwDQorKysgb3NtZXZlbnRwbHVnaW4vTWFrZWZpbGUuYW0JMjAxMS0xMC0yNCAwOTox
+ODowMC4wMDAwMDAwMDAgLTA1MDANCkBAIC0xLDYgKzEsNiBAQA0KIA0KIElOQ0xVREVTID0gLUkk
+KHNyY2RpcikvLi4vaW5jbHVkZSBcDQotCSAgIC1JJChpbmNsdWRlZGlyKS9pbmZpbmliYW5kDQor
+CSAgIC1JJChpbmNsdWRlZGlyKS9pbmZpbmliYW5kICQoT1NNVl9JTkNMVURFUykNCiANCiBsaWJf
+TFRMSUJSQVJJRVMgPSBsaWJvc21ldmVudHBsdWdpbi5sYQ0KIA0K
+
+--_003_493B1FB87ED1455D94B04D4B9829C0A1taccutexasedu_--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
