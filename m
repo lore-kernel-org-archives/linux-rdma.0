@@ -1,49 +1,30 @@
-From: Mike Heinz <michael.heinz-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
-Subject: RE: [PATCH] An argument for allowing applications to manually send
- RMPP packets if desired
-Date: Mon, 24 Oct 2011 12:04:55 -0500
-Message-ID: <4C2744E8AD2982428C5BFE523DF8CDCB5CC9B0EDCC@MNEXMB1.qlogic.org>
-References: <4C2744E8AD2982428C5BFE523DF8CDCB4A5387E899@MNEXMB1.qlogic.org>
- <CAL1RGDUXM9-Ey1aF8xQo3X_L1PLrVyyLPYvqmy6Qeu5M2JnJPA@mail.gmail.com>
- <20110912172334.GC18574@obsidianresearch.com>
- <CAL1RGDVPZzMKmMg7mokhG0btX+3NH_+tL-9P5guV10h6X6i0iw@mail.gmail.com>
- <20110912190623.GD18574@obsidianresearch.com>
- <4C2744E8AD2982428C5BFE523DF8CDCB4A5387ECDF@MNEXMB1.qlogic.org>
- <20110917034251.GA6056@obsidianresearch.com>
- <1828884A29C6694DAF28B7E6B8A8237316E5B763@ORSMSX101.amr.corp.intel.com>
+From: Bart Van Assche <bvanassche-HInyCGIudOg@public.gmane.org>
+Subject: Re: [PATCH 6/9] ib_srpt: Remove legacy use_port_guid_in_session_name
+ module parameter
+Date: Mon, 24 Oct 2011 20:24:04 +0200
+Message-ID: <CAO+b5-oe9H7g9=fbfGSTbRZreA=hDKgtBAG3xFjvsgedCNv0rw@mail.gmail.com>
+References: <1319434422-15354-1-git-send-email-nab@linux-iscsi.org> <1319434422-15354-7-git-send-email-nab@linux-iscsi.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1828884A29C6694DAF28B7E6B8A8237316E5B763-P5GAC/sN6hmkrb+BlOpmy7fspsVTdybXVpNB7YpNyf8@public.gmane.org>
-Content-Language: en-US
+In-Reply-To: <1319434422-15354-7-git-send-email-nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Hefty, Sean" <sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Jason Gunthorpe <jgunthorpe-ePGOBjL8dl3ta4EC/59zMFaTQe2KTcn/@public.gmane.org>
-Cc: Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>, "linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Todd Rimmer <todd.rimmer-h88ZbnxC6KDQT0dZR+AlfA@public.gmane.org>
+To: "Nicholas A. Bellinger" <nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org>
+Cc: linux-rdma <linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Roland Dreier <roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-I'm not sure I understand the resistance to this patch.  The patch does not break existing functionality and can demonstrably improve the performance of tools that can take advantage of it.
+On Mon, Oct 24, 2011 at 7:33 AM, Nicholas A. Bellinger
+<nab-IzHhD5pYlfBP7FQvKIMDCQ@public.gmane.org> wrote:
+> This patch removes the legacy use_port_guid_in_session_name module parameter
+> that is no longer required in modern ib_srpt code.
 
-What's wrong with implementing this patch now and working on an improved mechanism for the future?
+The patch looks fine to me but the description could be improved: the
+"use_port_guid_in_session_name" had been introduced in the past to
+work around a limitation of the Windows SRP initiator in multipath
+setups. Apparently with recent Windows SRP initiator versions setting
+that parameter is no longer necessary.
 
------Original Message-----
-From: Hefty, Sean [mailto:sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org]
-Sent: Sunday, September 18, 2011 8:35 PM
-To: Jason Gunthorpe; Mike Heinz
-Cc: Roland Dreier; linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org; Todd Rimmer
-Subject: RE: [PATCH] An argument for allowing applications to manually send RMPP packets if desired
-
-> Ultimately I think the scalable/compatible answer is to move these
-> RMPP work loads to a verbs QP and we need to have a user space RMPP
-> implementation for that anyhow.
-
-Many to one is never scalable.  The applications simply cannot rely on every node querying the SA at the same time, especially for large amounts of data.  And the overhead of MADs and RMPP is too high to be a useful solution to scaling.
-
-
-
-
-This message and any attached documents contain information from QLogic Corporation or its wholly-owned subsidiaries that may be confidential. If you are not the intended recipient, you may not read, copy, distribute, or use this information. If you have received this transmission in error, please notify the sender immediately by reply e-mail and then delete this message.
-
+Bart.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
