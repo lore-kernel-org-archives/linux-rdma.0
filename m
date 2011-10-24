@@ -1,138 +1,380 @@
-From: Marcel Apfelbaum <marcela-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Subject: [PATCH for-3.2 v2 3/5] ib/mlx4: Add extended port capabilities support
-Date: Mon, 24 Oct 2011 11:02:34 +0200
-Message-ID: <201110241102.35104.marcela@dev.mellanox.co.il>
-Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+From: Vipul Pandya <vipul-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+Subject: [PATCH V2 05/10] RDMA/cxgb4: Add DB Overflow Avoidance.
+Date: Mon, 24 Oct 2011 20:42:31 +0530
+Message-ID: <1319469151-20748-1-git-send-email-vipul@chelsio.com>
 Return-path: <linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
 Sender: linux-rdma-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: roland-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
-Cc: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, sean.hefty-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, marcela-VPRAkNaXOzVS1MOuV/RT9w@public.gmane.org
+To: linux-rdma-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: roland-BHEL68pLQRGGvPXPguhicg@public.gmane.org, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, divy-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, dm-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, kumaras-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org, swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org, Vipul Pandya <vipul-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
 List-Id: linux-rdma@vger.kernel.org
 
-An Extended Port Info packet is sent to each hw port during HCA init
-and if returns without error it is assumed the port supports
-extended port capabilities.
+        - get FULL/EMPTY/DROP events from LLD
 
-Signed-off-by: Marcel Apfelbaum <marcela-LDSdmyG8hGV8YrgS2mwiifqBs+8SCbDb@public.gmane.org>
-Reviewed-by: Jack Morgenstein <jackm-LDSdmyG8hGU/bZweECJiwQ@public.gmane.org>
+        - on FULL event, disable normal user mode DB rings.
+
+        - add modify_qp semantics to allow user processes to call into
+        the kernel to ring doobells without overflowing.
+
+        Add DB Full/Empty/Drop stats.
+
+        Mark queues when created indicating the doorbell state.
+
+        If we're in the middle of db overflow avoidance, then newly created
+        queues should start out in this mode.
+
+        Bump the C4IW_UVERBS_ABI_VERSION to 2 so the user mode library can
+        know if the driver supports the kernel mode db ringing.
+
+Signed-off-by: Vipul Pandya <vipul-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>
+Signed-off-by: Steve Wise <swise-7bPotxP6k4+P2YhJcF5u+vpXobYPEAuW@public.gmane.org>
 ---
+V2: Bump C4IW_UVERBS_ABI_VERSION to 2
 
-Changes from v1
-- method mlx4_get_ext_port_caps changed to mlx4_check_ext_port_caps
-- extended port capabilities are assigned inside mlx4_check_ext_port_caps rather that in mlx4_setup_hca
-- ext_port_cap field is u8 instead of u64
-- minor warning notification change in mlx4_setup_hca
+ drivers/infiniband/hw/cxgb4/device.c   |   84 +++++++++++++++++++++++++++++--
+ drivers/infiniband/hw/cxgb4/iw_cxgb4.h |   37 ++++++++++++--
+ drivers/infiniband/hw/cxgb4/qp.c       |   51 +++++++++++++++++++-
+ drivers/infiniband/hw/cxgb4/user.h     |    2 +-
+ 4 files changed, 162 insertions(+), 12 deletions(-)
 
- drivers/net/mlx4/main.c     |    7 +++++++
- drivers/net/mlx4/mlx4.h     |    1 +
- drivers/net/mlx4/port.c     |   42 ++++++++++++++++++++++++++++++++++++++++++
- include/linux/mlx4/device.h |    7 +++++++
- 4 files changed, 57 insertions(+)
-
---- a/drivers/net/mlx4/main.c
-+++ b/drivers/net/mlx4/main.c
-@@ -998,6 +998,13 @@ static int mlx4_setup_hca(struct mlx4_de
- 				  "ib capabilities (%d). Continuing with "
- 				  "caps = 0\n", port, err);
- 		dev->caps.ib_port_def_cap[port] = ib_port_default_caps;
-+
-+		err = mlx4_check_ext_port_caps(dev, port);
-+		if (err)
-+			mlx4_warn(dev, "failed to get port %d extended "
-+				  "port capabilities support info (%d)."
-+				  " Assuming not supported\n", port, err);
-+
- 		err = mlx4_SET_PORT(dev, port);
- 		if (err) {
- 			mlx4_err(dev, "Failed to set port %d, aborting\n",
---- a/drivers/net/mlx4/mlx4.h
-+++ b/drivers/net/mlx4/mlx4.h
-@@ -450,6 +450,7 @@ void mlx4_init_vlan_table(struct mlx4_de
+diff --git a/drivers/infiniband/hw/cxgb4/device.c b/drivers/infiniband/hw/cxgb4/device.c
+index 8483111..9062ed9 100644
+--- a/drivers/infiniband/hw/cxgb4/device.c
++++ b/drivers/infiniband/hw/cxgb4/device.c
+@@ -44,6 +44,12 @@ MODULE_DESCRIPTION("Chelsio T4 RDMA Driver");
+ MODULE_LICENSE("Dual BSD/GPL");
+ MODULE_VERSION(DRV_VERSION);
  
- int mlx4_SET_PORT(struct mlx4_dev *dev, u8 port);
- int mlx4_get_port_ib_caps(struct mlx4_dev *dev, u8 port, __be32 *caps);
-+int mlx4_check_ext_port_caps(struct mlx4_dev *dev, u8 port);
- 
- int mlx4_qp_detach_common(struct mlx4_dev *dev, struct mlx4_qp *qp, u8 gid[16],
- 			  enum mlx4_protocol prot, enum mlx4_steer_type steer);
---- a/drivers/net/mlx4/port.c
-+++ b/drivers/net/mlx4/port.c
-@@ -464,6 +464,48 @@ int mlx4_get_port_ib_caps(struct mlx4_de
- 	return err;
- }
- 
-+int mlx4_check_ext_port_caps(struct mlx4_dev *dev, u8 port)
-+{
-+	struct mlx4_cmd_mailbox *inmailbox, *outmailbox;
-+	u8 *inbuf, *outbuf;
-+	int err, packet_error;
-+
-+	inmailbox = mlx4_alloc_cmd_mailbox(dev);
-+	if (IS_ERR(inmailbox))
-+		return PTR_ERR(inmailbox);
-+
-+	outmailbox = mlx4_alloc_cmd_mailbox(dev);
-+	if (IS_ERR(outmailbox)) {
-+		mlx4_free_cmd_mailbox(dev, inmailbox);
-+		return PTR_ERR(outmailbox);
-+	}
-+
-+	inbuf = inmailbox->buf;
-+	outbuf = outmailbox->buf;
-+	memset(inbuf, 0, 256);
-+	memset(outbuf, 0, 256);
-+	inbuf[0] = 1;
-+	inbuf[1] = 1;
-+	inbuf[2] = 1;
-+	inbuf[3] = 1;
-+
-+	*(__be16 *) (&inbuf[16]) = MLX4_ATTR_EXTENDED_PORT_INFO;
-+	*(__be32 *) (&inbuf[20]) = cpu_to_be32(port);
-+
-+	err = mlx4_cmd_box(dev, inmailbox->dma, outmailbox->dma, port, 3,
-+			   MLX4_CMD_MAD_IFC, MLX4_CMD_TIME_CLASS_C);
-+
-+	packet_error = be16_to_cpu(*(__be16 *) (outbuf + 4));
-+
-+	dev->caps.ext_port_cap[port] = (!err && !packet_error) ?
-+				       MLX_EXT_PORT_CAP_FLAG_EXTENDED_PORT_INFO
-+				       : 0;
-+
-+	mlx4_free_cmd_mailbox(dev, inmailbox);
-+	mlx4_free_cmd_mailbox(dev, outmailbox);
-+	return err;
-+}
-+
- int mlx4_SET_PORT(struct mlx4_dev *dev, u8 port)
- {
- 	struct mlx4_cmd_mailbox *mailbox;
---- a/include/linux/mlx4/device.h
-+++ b/include/linux/mlx4/device.h
-@@ -82,6 +82,12 @@ enum {
- 	MLX4_DEV_CAP_FLAG_COUNTERS	= 1LL << 48
- };
- 
-+#define MLX4_ATTR_EXTENDED_PORT_INFO	cpu_to_be16(0xff90)
-+
-+enum {
-+	MLX_EXT_PORT_CAP_FLAG_EXTENDED_PORT_INFO	= 1 <<  0
++struct uld_ctx {
++	struct list_head entry;
++	struct cxgb4_lld_info lldi;
++	struct c4iw_dev *dev;
 +};
 +
- enum {
- 	MLX4_BMME_FLAG_LOCAL_INV	= 1 <<  6,
- 	MLX4_BMME_FLAG_REMOTE_INV	= 1 <<  7,
-@@ -276,6 +282,7 @@ struct mlx4_caps {
- 	u32			port_mask;
- 	enum mlx4_port_type	possible_type[MLX4_MAX_PORTS + 1];
- 	u32			max_counters;
-+	u8			ext_port_cap[MLX4_MAX_PORTS + 1];
+ static LIST_HEAD(uld_ctx_list);
+ static DEFINE_MUTEX(dev_mutex);
+ 
+@@ -263,6 +269,9 @@ static int stats_show(struct seq_file *seq, void *v)
+ 	seq_printf(seq, "  OCQPMEM: %10llu %10llu %10llu\n",
+ 			dev->rdev.stats.ocqp.total, dev->rdev.stats.ocqp.cur,
+ 			dev->rdev.stats.ocqp.max);
++	seq_printf(seq, "  DB FULL: %10llu\n", dev->rdev.stats.db_full);
++	seq_printf(seq, " DB EMPTY: %10llu\n", dev->rdev.stats.db_empty);
++	seq_printf(seq, "  DB DROP: %10llu\n", dev->rdev.stats.db_drop);
+ 	return 0;
+ }
+ 
+@@ -283,6 +292,9 @@ static ssize_t stats_clear(struct file *file, const char __user *buf,
+ 	dev->rdev.stats.pbl.max = 0;
+ 	dev->rdev.stats.rqt.max = 0;
+ 	dev->rdev.stats.ocqp.max = 0;
++	dev->rdev.stats.db_full = 0;
++	dev->rdev.stats.db_empty = 0;
++	dev->rdev.stats.db_drop = 0;
+ 	mutex_unlock(&dev->rdev.stats.lock);
+ 	return count;
+ }
+@@ -443,12 +455,6 @@ static void c4iw_rdev_close(struct c4iw_rdev *rdev)
+ 	c4iw_destroy_resource(&rdev->resource);
+ }
+ 
+-struct uld_ctx {
+-	struct list_head entry;
+-	struct cxgb4_lld_info lldi;
+-	struct c4iw_dev *dev;
+-};
+-
+ static void c4iw_dealloc(struct uld_ctx *ctx)
+ {
+ 	c4iw_rdev_close(&ctx->dev->rdev);
+@@ -514,6 +520,7 @@ static struct c4iw_dev *c4iw_alloc(const struct cxgb4_lld_info *infop)
+ 	idr_init(&devp->mmidr);
+ 	spin_lock_init(&devp->lock);
+ 	mutex_init(&devp->rdev.stats.lock);
++	mutex_init(&devp->db_mutex);
+ 
+ 	if (c4iw_debugfs_root) {
+ 		devp->debugfs_root = debugfs_create_dir(
+@@ -659,11 +666,76 @@ static int c4iw_uld_state_change(void *handle, enum cxgb4_state new_state)
+ 	return 0;
+ }
+ 
++static int disable_qp_db(int id, void *p, void *data)
++{
++	struct c4iw_qp *qp = p;
++
++	t4_disable_wq_db(&qp->wq);
++	return 0;
++}
++
++static void stop_queues(struct uld_ctx *ctx)
++{
++	spin_lock_irq(&ctx->dev->lock);
++	ctx->dev->db_state = FLOW_CONTROL;
++	idr_for_each(&ctx->dev->qpidr, disable_qp_db, NULL);
++	spin_unlock_irq(&ctx->dev->lock);
++}
++
++static int enable_qp_db(int id, void *p, void *data)
++{
++	struct c4iw_qp *qp = p;
++
++	t4_enable_wq_db(&qp->wq);
++	return 0;
++}
++
++static void resume_queues(struct uld_ctx *ctx)
++{
++	spin_lock_irq(&ctx->dev->lock);
++	ctx->dev->db_state = NORMAL;
++	idr_for_each(&ctx->dev->qpidr, enable_qp_db, NULL);
++	spin_unlock_irq(&ctx->dev->lock);
++}
++
++static int c4iw_uld_control(void *handle, enum cxgb4_control control, ...)
++{
++	struct uld_ctx *ctx = handle;
++
++	switch (control) {
++	case CXGB4_CONTROL_DB_FULL:
++		stop_queues(ctx);
++		mutex_lock(&ctx->dev->rdev.stats.lock);
++		ctx->dev->rdev.stats.db_full++;
++		mutex_unlock(&ctx->dev->rdev.stats.lock);
++		break;
++	case CXGB4_CONTROL_DB_EMPTY:
++		resume_queues(ctx);
++		mutex_lock(&ctx->dev->rdev.stats.lock);
++		ctx->dev->rdev.stats.db_empty++;
++		mutex_unlock(&ctx->dev->rdev.stats.lock);
++		break;
++	case CXGB4_CONTROL_DB_DROP:
++		printk(KERN_WARNING MOD "%s: Fatal DB DROP\n",
++		       pci_name(ctx->lldi.pdev));
++		mutex_lock(&ctx->dev->rdev.stats.lock);
++		ctx->dev->rdev.stats.db_drop++;
++		mutex_unlock(&ctx->dev->rdev.stats.lock);
++		break;
++	default:
++		printk(KERN_WARNING MOD "%s: unknown control cmd %u\n",
++		       pci_name(ctx->lldi.pdev), control);
++		break;
++	}
++	return 0;
++}
++
+ static struct cxgb4_uld_info c4iw_uld_info = {
+ 	.name = DRV_NAME,
+ 	.add = c4iw_uld_add,
+ 	.rx_handler = c4iw_uld_rx_handler,
+ 	.state_change = c4iw_uld_state_change,
++	.control = c4iw_uld_control,
  };
  
- struct mlx4_buf_list {
+ static int __init c4iw_init_module(void)
+diff --git a/drivers/infiniband/hw/cxgb4/iw_cxgb4.h b/drivers/infiniband/hw/cxgb4/iw_cxgb4.h
+index ec7c848..1924c19 100644
+--- a/drivers/infiniband/hw/cxgb4/iw_cxgb4.h
++++ b/drivers/infiniband/hw/cxgb4/iw_cxgb4.h
+@@ -117,6 +117,9 @@ struct c4iw_stats {
+ 	struct c4iw_stat pbl;
+ 	struct c4iw_stat rqt;
+ 	struct c4iw_stat ocqp;
++	u64  db_full;
++	u64  db_empty;
++	u64  db_drop;
+ };
+ 
+ struct c4iw_rdev {
+@@ -192,6 +195,12 @@ static inline int c4iw_wait_for_reply(struct c4iw_rdev *rdev,
+ 	return wr_waitp->ret;
+ }
+ 
++enum db_state {
++	NORMAL = 0,
++	FLOW_CONTROL = 1,
++	RECOVERY = 2
++};
++
+ struct c4iw_dev {
+ 	struct ib_device ibdev;
+ 	struct c4iw_rdev rdev;
+@@ -200,7 +209,9 @@ struct c4iw_dev {
+ 	struct idr qpidr;
+ 	struct idr mmidr;
+ 	spinlock_t lock;
++	struct mutex db_mutex;
+ 	struct dentry *debugfs_root;
++	enum db_state db_state;
+ };
+ 
+ static inline struct c4iw_dev *to_c4iw_dev(struct ib_device *ibdev)
+@@ -228,8 +239,8 @@ static inline struct c4iw_mr *get_mhp(struct c4iw_dev *rhp, u32 mmid)
+ 	return idr_find(&rhp->mmidr, mmid);
+ }
+ 
+-static inline int insert_handle(struct c4iw_dev *rhp, struct idr *idr,
+-				void *handle, u32 id)
++static inline int _insert_handle(struct c4iw_dev *rhp, struct idr *idr,
++				 void *handle, u32 id, int lock)
+ {
+ 	int ret;
+ 	int newid;
+@@ -237,15 +248,29 @@ static inline int insert_handle(struct c4iw_dev *rhp, struct idr *idr,
+ 	do {
+ 		if (!idr_pre_get(idr, GFP_KERNEL))
+ 			return -ENOMEM;
+-		spin_lock_irq(&rhp->lock);
++		if (lock)
++			spin_lock_irq(&rhp->lock);
+ 		ret = idr_get_new_above(idr, handle, id, &newid);
+ 		BUG_ON(newid != id);
+-		spin_unlock_irq(&rhp->lock);
++		if (lock)
++			spin_unlock_irq(&rhp->lock);
+ 	} while (ret == -EAGAIN);
+ 
+ 	return ret;
+ }
+ 
++static inline int insert_handle(struct c4iw_dev *rhp, struct idr *idr,
++				void *handle, u32 id)
++{
++	return _insert_handle(rhp, idr, handle, id, 1);
++}
++
++static inline int insert_handle_nolock(struct c4iw_dev *rhp, struct idr *idr,
++				       void *handle, u32 id)
++{
++	return _insert_handle(rhp, idr, handle, id, 0);
++}
++
+ static inline void remove_handle(struct c4iw_dev *rhp, struct idr *idr, u32 id)
+ {
+ 	spin_lock_irq(&rhp->lock);
+@@ -369,6 +394,8 @@ struct c4iw_qp_attributes {
+ 	struct c4iw_ep *llp_stream_handle;
+ 	u8 layer_etype;
+ 	u8 ecode;
++	u16 sq_db_inc;
++	u16 rq_db_inc;
+ };
+ 
+ struct c4iw_qp {
+@@ -443,6 +470,8 @@ static inline void insert_mmap(struct c4iw_ucontext *ucontext,
+ 
+ enum c4iw_qp_attr_mask {
+ 	C4IW_QP_ATTR_NEXT_STATE = 1 << 0,
++	C4IW_QP_ATTR_SQ_DB = 1<<1,
++	C4IW_QP_ATTR_RQ_DB = 1<<2,
+ 	C4IW_QP_ATTR_ENABLE_RDMA_READ = 1 << 7,
+ 	C4IW_QP_ATTR_ENABLE_RDMA_WRITE = 1 << 8,
+ 	C4IW_QP_ATTR_ENABLE_RDMA_BIND = 1 << 9,
+diff --git a/drivers/infiniband/hw/cxgb4/qp.c b/drivers/infiniband/hw/cxgb4/qp.c
+index 74df98e..36fc94d 100644
+--- a/drivers/infiniband/hw/cxgb4/qp.c
++++ b/drivers/infiniband/hw/cxgb4/qp.c
+@@ -34,6 +34,10 @@
+ 
+ #include "iw_cxgb4.h"
+ 
++static int db_delay_usecs = 1;
++module_param(db_delay_usecs, int, 0644);
++MODULE_PARM_DESC(db_delay_usecs, "Usecs to delay awaiting db fifo to drain");
++
+ static int ocqp_support = 1;
+ module_param(ocqp_support, int, 0644);
+ MODULE_PARM_DESC(ocqp_support, "Support on-chip SQs (default=1)");
+@@ -1117,6 +1121,29 @@ out:
+ 	return ret;
+ }
+ 
++/*
++ * Called by the library when the qp has user dbs disabled due to
++ * a DB_FULL condition.  This function will single-thread all user
++ * DB rings to avoid overflowing the hw db-fifo.
++ */
++static int ring_kernel_db(struct c4iw_qp *qhp, u32 qid, u16 inc)
++{
++	int delay = db_delay_usecs;
++
++	mutex_lock(&qhp->rhp->db_mutex);
++	do {
++		if (cxgb4_dbfifo_count(qhp->rhp->rdev.lldi.ports[0], 1) < 768) {
++			writel(V_QID(qid) | V_PIDX(inc), qhp->wq.db);
++			break;
++		}
++		set_current_state(TASK_UNINTERRUPTIBLE);
++		schedule_timeout(usecs_to_jiffies(delay));
++		delay = min(delay << 1, 200000);
++	} while (1);
++	mutex_unlock(&qhp->rhp->db_mutex);
++	return 0;
++}
++
+ int c4iw_modify_qp(struct c4iw_dev *rhp, struct c4iw_qp *qhp,
+ 		   enum c4iw_qp_attr_mask mask,
+ 		   struct c4iw_qp_attributes *attrs,
+@@ -1165,6 +1192,15 @@ int c4iw_modify_qp(struct c4iw_dev *rhp, struct c4iw_qp *qhp,
+ 		qhp->attr = newattr;
+ 	}
+ 
++	if (mask & C4IW_QP_ATTR_SQ_DB) {
++		ret = ring_kernel_db(qhp, qhp->wq.sq.qid, attrs->sq_db_inc);
++		goto out;
++	}
++	if (mask & C4IW_QP_ATTR_RQ_DB) {
++		ret = ring_kernel_db(qhp, qhp->wq.rq.qid, attrs->rq_db_inc);
++		goto out;
++	}
++
+ 	if (!(mask & C4IW_QP_ATTR_NEXT_STATE))
+ 		goto out;
+ 	if (qhp->attr.state == attrs->next_state)
+@@ -1454,7 +1490,11 @@ struct ib_qp *c4iw_create_qp(struct ib_pd *pd, struct ib_qp_init_attr *attrs,
+ 	init_waitqueue_head(&qhp->wait);
+ 	atomic_set(&qhp->refcnt, 1);
+ 
+-	ret = insert_handle(rhp, &rhp->qpidr, qhp, qhp->wq.sq.qid);
++	spin_lock_irq(&rhp->lock);
++	if (rhp->db_state != NORMAL)
++		t4_disable_wq_db(&qhp->wq);
++	ret = insert_handle_nolock(rhp, &rhp->qpidr, qhp, qhp->wq.sq.qid);
++	spin_unlock_irq(&rhp->lock);
+ 	if (ret)
+ 		goto err2;
+ 
+@@ -1598,6 +1638,15 @@ int c4iw_ib_modify_qp(struct ib_qp *ibqp, struct ib_qp_attr *attr,
+ 			 C4IW_QP_ATTR_ENABLE_RDMA_WRITE |
+ 			 C4IW_QP_ATTR_ENABLE_RDMA_BIND) : 0;
+ 
++	/*
++	 * Use SQ_PSN and RQ_PSN to pass in IDX_INC values for
++	 * ringing the queue db when we're in DB_FULL mode.
++	 */
++	attrs.sq_db_inc = attr->sq_psn;
++	attrs.rq_db_inc = attr->rq_psn;
++	mask |= (attr_mask & IB_QP_SQ_PSN) ? C4IW_QP_ATTR_SQ_DB : 0;
++	mask |= (attr_mask & IB_QP_RQ_PSN) ? C4IW_QP_ATTR_RQ_DB : 0;
++
+ 	return c4iw_modify_qp(rhp, qhp, mask, &attrs, 0);
+ }
+ 
+diff --git a/drivers/infiniband/hw/cxgb4/user.h b/drivers/infiniband/hw/cxgb4/user.h
+index e6669d5..32b754c 100644
+--- a/drivers/infiniband/hw/cxgb4/user.h
++++ b/drivers/infiniband/hw/cxgb4/user.h
+@@ -32,7 +32,7 @@
+ #ifndef __C4IW_USER_H__
+ #define __C4IW_USER_H__
+ 
+-#define C4IW_UVERBS_ABI_VERSION	1
++#define C4IW_UVERBS_ABI_VERSION	2
+ 
+ /*
+  * Make sure that all structs defined in this file remain laid out so
+-- 
+1.7.1
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-rdma" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
